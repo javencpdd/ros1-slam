@@ -1,0 +1,91 @@
+# Gate G0 验收证据
+Gate: G0 | 时间: 2026-10-04 04:09:26 CST | 执行人: 严过关 | 主机: lite（lite3-f20-1-103）| 依据: 21 号计划书 v3 §5 P0 末 Gate G0
+说明: 以下为验收工程师严过关在目标机本机独立重跑的校验命令与完整原始输出；每个命令块开头的 sudo 认证行（PW=...; printf ... | sudo -S -p ... -v）一律脱敏记作 ***。
+
+================ 判定小结 ================
+① 代劳 whoami = ros1-slam -> PASS
+② 四组计数 = 4（video/plugdev/i2c/gpio）-> PASS
+③ passwd -S 状态 = P -> PASS
+④ .ssh=700 ros1-slam:ros1-slam / authorized_keys=600 ros1-slam:ros1-slam / 行数=1 -> PASS
+⑤ user:ysc ACL 计数 = 0（无 sudo 原样与 sudo 交叉复核一致）-> PASS
+⑥ ps aux ros2qnx / roscore|rosmaster 均为空 -> PASS
+⑦ 附加(非判据): SSH BatchMode 公钥登录实测成功(输出 ros1-slam)，与交接"预期被拒"不符——
+   实因 /home/ros1-slam 为 group::r-x（非组可写），StrictModes 放行；不构成判据项，如实登记。
+结论: G0 PASS，路由 NoOne。
+
+================ 原始输出 ①–④ ================
+==== [①] 代劳可用 ====
+$ *** | sudo -S -p '' -u ros1-slam whoami    # 期望: ros1-slam
+ros1-slam
+---- [①] rc=0
+
+==== [②] 四组就位 ====
+$ id -nG ros1-slam | tr ' ' '\n' | grep -cE '^(plugdev|video|i2c|gpio)$'    # 期望: 4
+4
+---- [②] rc=0
+---- [②+] 交叉复核(非判据): id ros1-slam（全组明细）
+uid=1001(ros1-slam) gid=1003(ros1-slam) groups=1003(ros1-slam),44(video),46(plugdev),113(i2c),999(gpio)
+---- [②+] rc=0
+
+==== [③] 密码状态 ====
+$ *** | sudo -S -p '' passwd -S ros1-slam    # 期望: 状态 P
+ros1-slam P 10/03/2026 0 99999 7 -1
+---- [③] rc=0
+
+==== [④] 公钥就位（权限+行数） ====
+$ *** | sudo -S -p '' bash -c 'stat -c "%a %U:%G" /home/ros1-slam/.ssh /home/ros1-slam/.ssh/authorized_keys; wc -l < /home/ros1-slam/.ssh/authorized_keys'
+# 期望: 700 ros1-slam:ros1-slam / 600 ros1-slam:ros1-slam / 1
+700 ros1-slam:ros1-slam
+600 ros1-slam:ros1-slam
+1
+---- [④] rc=0
+
+================ 原始输出 ⑤–⑦ ================
+==== [⑤] ACL 已清（按计划书原样，无 sudo） ====
+$ getfacl -p /home/ros1-slam /home/ros1-slam/note /home/ros1-slam/.ssh 2>/dev/null | grep -c "user:ysc"    # 期望: 0
+0
+---- [⑤] rc=1
+---- [⑤+] 交叉复核(非判据，sudo 重跑): *** | sudo -S -p '' getfacl -p /home/ros1-slam /home/ros1-slam/note /home/ros1-slam/.ssh | grep -c user:ysc
+0
+---- [⑤+] rc=1
+---- [⑤++] 交叉复核(非判据): sudo getfacl 全量 dump
+# file: /home/ros1-slam
+# owner: ros1-slam
+# group: ros1-slam
+user::rwx
+group::r-x
+other::r-x
+
+# file: /home/ros1-slam/note
+# owner: ysc
+# group: ysc
+user::rwx
+group::r-x
+other::r-x
+
+# file: /home/ros1-slam/.ssh
+# owner: ros1-slam
+# group: ros1-slam
+user::rwx
+group::---
+other::---
+
+---- [⑤++] rc=0
+
+==== [⑥-1] 真机安全专项: ros2qnx ====
+$ ps aux | grep -E "ros2qnx" | grep -v grep    # 期望: 为空
+---- [⑥-1] rc=1 (1=无匹配)
+---- [⑥-1+] 交叉复核(非判据): pgrep -a -x ros2qnx
+---- [⑥-1+] rc=1 (1=无匹配)
+
+==== [⑥-2] 真机安全专项: roscore/rosmaster ====
+$ ps aux | grep -E "roscore|rosmaster" | grep -v grep    # 期望: 为空
+---- [⑥-2] rc=1 (1=无匹配)
+---- [⑥-2+] 交叉复核(非判据): pgrep -a -x roscore / pgrep -a -x rosmaster
+---- [⑥-2+] pgrep roscore rc=1 (1=无匹配)
+---- [⑥-2+] pgrep rosmaster rc=1 (1=无匹配)
+
+==== [⑦] 附加(非判据): SSH 公钥登录此刻预期被拒（home 组可写 + StrictModes） ====
+$ ssh -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=accept-new ros1-slam@192.168.1.103 whoami 2>&1 | head -2
+ros1-slam
+---- [⑦] rc=0 （预期被拒，仅留证据，不算 FAIL）

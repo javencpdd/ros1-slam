@@ -1,0 +1,93 @@
+##################################################################
+# Gate: G1(骨架齐全) + G1.5(9壳包 catkin 可识别) 验收证据
+# 时间: 2026-10-04 04:18:59 CST
+# 执行人: 严过关(验收工程师) · 主机 lite3-f20-1-103 · shell用户 root
+##################################################################
+
+### CMD: for d in ws/src/00_drivers ws/src/10_slam ws/src/20_localization ws/src/30_perception ws/src/40_navigation ws/src/50_task ws/src/60_safety ws/src/70_bringup ws/src/90_supervisor scripts/verify data/maps opt/ref logs note; do [ -d "/home/ros1-slam/$d" ] || echo "MISSING:$d"; done; echo '(期望无 MISSING 输出)'
+(期望无 MISSING 输出)
+### exit=0
+
+### CMD: find /home/ros1-slam -type d | wc -l; echo '(期望 >=20)'
+89
+(期望 >=20)
+### exit=0
+
+### CMD: ls -l /home/ros1-slam/ws/src/CMakeLists.txt; echo '(期望指向 /opt/ros/noetic/share/catkin/cmake/toplevel.cmake)'
+lrwxrwxrwx 1 ros1-slam ros1-slam 49 Oct  4 04:13 /home/ros1-slam/ws/src/CMakeLists.txt -> /opt/ros/noetic/share/catkin/cmake/toplevel.cmake
+(期望指向 /opt/ros/noetic/share/catkin/cmake/toplevel.cmake)
+### exit=0
+
+### CMD: ls -l /home/ros1-slam/scripts/as_ros1slam.sh /home/ros1-slam/scripts/gen_shell_pkgs.sh /home/ros1-slam/scripts/env.sh /home/ros1-slam/scripts/verify/v3_isolation.sh; echo '(期望四件均 755)'
+-rwxr-xr-x 1 ros1-slam ros1-slam  847 Oct  4 04:12 /home/ros1-slam/scripts/as_ros1slam.sh
+-rwxr-xr-x 1 ros1-slam ros1-slam  580 Oct  4 04:13 /home/ros1-slam/scripts/env.sh
+-rwxr-xr-x 1 ros1-slam ros1-slam 1092 Oct  4 04:13 /home/ros1-slam/scripts/gen_shell_pkgs.sh
+-rwxr-xr-x 1 ros1-slam ros1-slam 2136 Oct  4 04:13 /home/ros1-slam/scripts/verify/v3_isolation.sh
+(期望四件均 755)
+### exit=0
+
+### CMD: find /home/ros1-slam/ws/src -name package.xml | grep -c lite3_; echo '(期望 9)'
+9
+(期望 9)
+### exit=0
+
+### CMD: find /home/ros1-slam/ws/src -name package.xml -path '*lite3_*' | sed 's#/home/ros1-slam/ws/src/##;s#/package.xml##' | sort; echo '(期望 9 行唯一)'
+00_drivers/lite3_drivers
+10_slam/lite3_slam
+20_localization/lite3_localization
+30_perception/lite3_perception
+40_navigation/lite3_navigation
+50_task/lite3_task
+60_safety/lite3_safety
+70_bringup/lite3_bringup
+90_supervisor/lite3_supervisor
+(期望 9 行唯一)
+### exit=0
+
+### CMD: ls /home/ros1-slam/ws/src/00_drivers/lite3_drivers/ /home/ros1-slam/ws/src/60_safety/lite3_safety/
+/home/ros1-slam/ws/src/00_drivers/lite3_drivers/:
+CMakeLists.txt
+config
+launch
+package.xml
+README.md
+scripts
+verify
+
+/home/ros1-slam/ws/src/60_safety/lite3_safety/:
+CMakeLists.txt
+config
+launch
+package.xml
+README.md
+scripts
+verify
+### exit=0
+
+### CMD: ls /home/ros1-slam/ws/src/00_drivers/lite3_drivers/launch/ /home/ros1-slam/ws/src/60_safety/lite3_safety/launch/; echo '(期望各含 stub 与 sink)'
+/home/ros1-slam/ws/src/00_drivers/lite3_drivers/launch/:
+sink
+stub
+
+/home/ros1-slam/ws/src/60_safety/lite3_safety/launch/:
+sink
+stub
+(期望各含 stub 与 sink)
+### exit=0
+
+### CMD: grep -rn "/home/ysc" /home/ros1-slam/ws/src/*/lite3_* 2>/dev/null | wc -l; echo '(期望 0)'
+0
+(期望 0)
+### exit=0
+
+### CMD: ps aux | grep -E 'ros2qnx' | grep -v grep; echo '(期望空, 一票否决项)'
+(期望空, 一票否决项)
+### exit=0
+
+### CMD: ps aux | grep -E 'roscore|rosmaster' | grep -v grep; echo '(期望空, 一票否决项)'
+(期望空, 一票否决项)
+### exit=0
+
+##################################################################
+# 证据采集结束
+##################################################################

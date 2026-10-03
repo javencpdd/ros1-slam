@@ -1,0 +1,34 @@
+# 00 · ros1-slam 沙箱三条硬规则（来源：21 号计划书 v3 §3.2/§3.3/V1/V2/A6，2026-10-04）
+
+> 本文件是沙箱内一切施工/运行/验证的最高优先级约束。
+> 三条规则优先级从高到低，顺序不能倒：①真机安全 → ②隔离边界 → ③对照组完整性。
+> 任何 Phase 的命令与这三条冲突时命令作废；先回计划书修订，再施工。修订只许追加，不许重排。
+
+## 规则一（最高优先级）ros2qnx 仅真机 mode
+`message_transformer` 的 `ros2qnx` 节点订阅 `/cmd_vel` 直发 QNX 底盘（ros2qnx.cpp:112）。
+- 仅允许出现在 mode_navigation（真机导航，二期）的 launch 中；stub / mapping / replay / localize 等
+  一切沙箱 mode **严禁启动 ros2qnx、nx2app**；
+- 一期 M0 只允许 `qnx2ros`（发布 /imu/data，qnx2ros.cpp:53）+ 可选 `sensor_checker`；
+- 真机 mode 启动前必须重跑 P0.5 运动链路双查（正则含 jetson2motion|jetson2app|transfer_launch）；
+- 校验：G5 `rosnode list | grep ros2qnx` 期望为空；非空即事故，立即终止 launch 并上报。
+
+## 规则二 /home/ysc 字符串禁令及豁免
+`/home/ros1-slam` 内任何新建/改写的文件与目录，禁止出现 `/home/ysc` 字符串（写穿隔离 = V2 类事故）。
+豁免（允许含该字符串，仅限来源存档/规则定义用途）：
+1. `note/` 下来源记录与规则文档（00/01/02/03/04 与本文件）；
+2. `opt/ref/` 全部（第三方参数原样存档）；
+3. `scripts/env.sh` 与 `scripts/verify/v3_isolation.sh`（计划书 §11 原文自带的隔离 grep 模式）。
+判定域以 v3_isolation.sh [2]/[8] 为准（ws/src 与自研壳）。唯一许可的第三方源码改动：
+`faster_lio/src/laser_mapping.cc` 751 与 862 两行存盘路径（§7.2a，登记 04_diff）。
+
+## 规则三 对照组完整性
+- 永不复制 `build/`、`devel/`、`.git` 进沙箱（R1/R2）；
+- 永不删除、永不修改 `/home/ysc/lite_cog/`（只读对照组与回退基准；单向复制 ysc → ros1-slam，绝不反向）。
+
+## 目录结构（2026-10-04 重组）
+- note/ 下：00_README.md（本文件）
+- 计划书v3/：21 号计划书 v3 原文（计划书唯一真身：计划书v3/21_ros1-slam隔离部署计划书-v3.md，无软链）
+- 进度/：00_总览.md + 每完成阶段一个文件夹（进度文档.md + 证据/）；已完成 P0/P1/P2
+- 01_部署记录.md：已按用户要求拆分至 进度/ 各阶段，现仅保留指针
+- 02_问题与坑.md、03_外部文件来源清单.md、04_配置改动diff.md：三件登记，位置不变
+- 约定：以后每完成一个阶段（含 P3a、C1 等配置项）都在 进度/ 下建同名文件夹，留进度文档与证据

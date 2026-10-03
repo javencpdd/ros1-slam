@@ -1,0 +1,81 @@
+# =====================================================================
+# Gate G2 验收证据 | 21号计划书 v3 §4 / §4.3（P2 隔离与清除）
+# 执行人: 严过关（验收工程师） | 目标机: lite3-f20-1-103
+# 说明: 全部校验命令由严过关在本机独立重跑、以实际输出判定；
+#       sudo 密码已脱敏为 ***；不修施工问题、未启动任何 ROS 节点
+# =====================================================================
+
+【命令 ①】隔离自检（核心判据：devel 未编译，构造环境后把 ws/src 追加进 ROS_PACKAGE_PATH）
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' -v
+sudo bash -c '
+source /opt/ros/noetic/setup.bash
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/ros1-slam/ws/src
+bash /home/ros1-slam/scripts/verify/v3_isolation.sh; echo EXIT=$?
+'
+【输出 ①】
+[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+[2] 自研壳中是否含 /home/ysc
+[3] .bashrc 是否 source 了其他 devel
+[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+[5] ★ 模块间是否互相 include launch（20 号 K3）—— v3 修复子 shell 丢 FAIL bug
+[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug
+[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+=== ISOLATION OK ===
+EXIT=0
+
+【命令 ②】附加抽验：rospack 解析（[4] 的依据）
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' -v
+sudo bash -c 'source /opt/ros/noetic/setup.bash; export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/ros1-slam/ws/src; rospack find faster_lio; rospack find lite3_bringup'
+【输出 ②】
+/home/ros1-slam/ws/src/10_slam/faster_lio
+/home/ros1-slam/ws/src/70_bringup/lite3_bringup
+
+【命令 ③④⑤⑥ + 真机安全专项】（逐条独立重跑）
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' -v
+sudo grep -n '/home/ros1-slam/data/maps' /home/ros1-slam/ws/src/10_slam/faster_lio/src/laser_mapping.cc
+sudo grep -c '/home/ysc' /home/ros1-slam/ws/src/10_slam/faster_lio/src/laser_mapping.cc || true
+sudo grep -rn '/home/ysc' /home/ros1-slam/ws/src 2>/dev/null | wc -l
+sudo bash -c 'stat -c "%a %U %n" /home/ros1-slam /home/ros1-slam/opt/ref /home/ros1-slam/opt/ref/lidar_c16_orig.yaml /home/ros1-slam/note/01_部署记录.md /home/ros1-slam/.ssh /home/ros1-slam/.ssh/authorized_keys /home/ros1-slam/scripts/env.sh'
+sudo bash -c 'grep -c "^| " /home/ros1-slam/note/03_外部文件来源清单.md'
+sudo bash -c 'grep -c "^- " /home/ros1-slam/note/04_配置改动diff.md'
+ps aux | grep -E "ros2qnx" | grep -v grep
+ps aux | grep -E "roscore|rosmaster" | grep -v grep
+【输出 ③–⑥ + 安全专项】
+--- ③a laser_mapping.cc 中 /home/ros1-slam/data/maps 出现处 ---
+751:            std::string all_points_dir(std::string("/home/ros1-slam/data/maps/lite3") + std::string(".pcd"));
+862:        std::string all_points_dir(std::string("/home/ros1-slam/data/maps/lite3") + std::string(".pcd"));
+--- ③b laser_mapping.cc 中 /home/ysc 计数（期望 0） ---
+0
+--- ④ 全 ws/src 扫描 /home/ysc 行数（期望 0） ---
+0
+--- ④b 明细（若有则列出，期望空） ---
+(空，无残留)
+--- ⑤ 权限终态 ---
+750 ros1-slam /home/ros1-slam
+555 ros1-slam /home/ros1-slam/opt/ref
+444 ros1-slam /home/ros1-slam/opt/ref/lidar_c16_orig.yaml
+600 ros1-slam /home/ros1-slam/note/01_部署记录.md
+700 ros1-slam /home/ros1-slam/.ssh
+600 ros1-slam /home/ros1-slam/.ssh/authorized_keys
+755 ros1-slam /home/ros1-slam/scripts/env.sh
+--- ⑥a 03_外部文件来源清单.md 表格行数（期望 ≥15） ---
+16
+--- ⑥b 04_配置改动diff.md 条目数（期望 ≥3） ---
+5
+--- 安全① ps 中 ros2qnx（期望空，V1/R13） ---
+(空)
+--- 安全② ps 中 roscore/rosmaster（期望空，P0–P2 未启动任何节点） ---
+(空)
+
+【判定汇总】
+① 8 项标题无"违规/BAD/命中文件"，=== ISOLATION OK ===，EXIT=0 → 过
+② faster_lio → /home/ros1-slam/ws/src/10_slam/faster_lio；lite3_bringup → /home/ros1-slam/ws/src/70_bringup/lite3_bringup → 过
+③ laser_mapping.cc:751/:862 均为 /home/ros1-slam/data/maps；文件内 /home/ysc 计数 0 → 过
+④ 全 ws/src 复扫 /home/ysc = 0 行 → 过
+⑤ 权限 7 项全符：home=750 / opt/ref=555 / ref文件=444 / 01=600 / .ssh=700 / authorized_keys=600 / env.sh=755（含对 P2.4 "⑥补条 opt/ref=555" 的复核）→ 过
+⑥ 03_外部文件来源清单 = 16 条（≥15）；04_配置改动diff = 5 条（≥3）→ 过
+真机安全专项：ps 中 ros2qnx 空（V1/R13）；roscore|rosmaster 空（P0–P2 未启动任何节点）→ 过
+
+Gate G2 = PASS | 路由 NoOne
+（证据采集时间: 2026-10-04 04:48:03 +0800）
