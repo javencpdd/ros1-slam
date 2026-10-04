@@ -3,5 +3,8 @@
             file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
   <!-- ★ rosparam 在 node 之外：全局 NodeHandle 读全局命名空间（/common/imu_topic 等）。
        副作用：参数占据全局命名空间，同一 roscore 只能跑一套 faster-lio（沙箱单实例，可接受） -->
-  <node pkg="faster_lio" type="mapping_online" name="faster_lio_online" output="screen"/>
+  <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
+  <!-- ★ v4.1 勘误（X7/§5.2）：可执行名 = run_mapping_online（app/CMakeLists.txt:1
+       add_executable(run_mapping_online …)）；v3/v4 写的 type="mapping_online" 不存在，
+       roslaunch 会直接失败 -->
 </launch>

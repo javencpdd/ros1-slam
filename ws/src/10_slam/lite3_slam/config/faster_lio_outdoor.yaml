@@ -1,7 +1,10 @@
-# faster_lio_outdoor.yaml —— ROS1 版（v3 C1 转换自 faster_lio_online.yaml，ROS2 原稿留档 opt/ref/faster_lio_ros2_orig.yaml，勿再"修正"）
+# faster_lio_outdoor.yaml —— ROS1 版（v3 C1 转换自 faster_lio_online.yaml（ROS2 原稿留档 opt/ref/faster_lio_ros2_orig.yaml）；v4.1 X7 注释修订，参数值与 v3 转换稿一致，勿再"修正"）
 common:
-  imu_topic: /imu/data            # qnx2ros 发布（qnx2ros.cpp:53，200 Hz）
-  lid_topic: /rslidar_points      # ★ V5：原 /rslidar_points_filtered 全库无生产者，改驱动实际话题
+  imu_topic: /imu/data            # v4.1 裁决（5.1）：主证据 = 生产 c16.yaml 实测值（与 Mid-360 实机联跑的 ROS1 生产配置）。
+                                  # 由 qnx2ros 发布（UDP 43897 → 200 Hz，qnx2ros.cpp:53/261）。
+                                  # 备选：Mid-360 内置 IMU /livox/imu（sensor_msgs/Imu ≈200 Hz，lddc.cpp:634）——生产未验证，
+                                  # 且换 IMU 即变 lidar↔IMU 几何，须重估外参 → 仅 Q12 现场验证后走变更流程切换，禁止静默改。
+  lid_topic: /rslidar_points      # v4.1 维持：生产 msg_MID360s.launch 已 remap /livox/lidar→/rslidar_points，契约不变（A3.1/X2）
   time_sync_en: true
 cube_side_length: 1000.0
 esti_plane_threshold: 0.1
@@ -18,21 +21,23 @@ mapping:
   det_range: 150.0
   extrinsic_R: [0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
   extrinsic_T: [0.075, 0.0, 0.023]
-  extrinsic_est_en: true
+  extrinsic_est_en: true          # 在线估计兜底：初始外参两来源矛盾（Q13），现场实测后如需固化走变更流程
   gyr_cov: 0.1
 max_iteration: 3
 path_save_en: true
 pcd_save:
-  interval: 10        # ★ v3：原值 0（ROS2 yaml 实测）。interval=0 时 laser_mapping.cc:747 的
-                      #   `pcd_save_interval_ > 0` 恒假，走查显示全程只累积不落盘——
-                      #   落盘语义存疑（Q6），改 10 保证周期性写盘；现场验证后可回调
+  interval: 10        # Q6 维持：interval=0 时 laser_mapping.cc:747 条件恒假可能永不落盘，10 保证周期性写盘，现场验证后可回调
   pcd_save_en: true
 preprocess:
   blind: 1.0
-  lidar_type: 4       # ★ V4：实测=4 → VelodyneHandler 分支（pointcloud_preprocess.cc:20）。
-                      #   C16 驱动输出与该分支兼容；绝不可按 v2 说法"修正"为 2
-  scan_line: 16
-  time_scale: 0.001
+  lidar_type: 4       # v4.1 注释修正（X4）：4 = C16Handler 分支（include/pointcloud_preprocess.h:87
+                      #   enum class LidarType { AVIA=1, VELO32, OUST64, C16 }）——v3/v4 所注"Velodyne 分支"有误，值 4 不变。
+                      #   C16Handler 只读 PointCloud2 的 x/y/z/intensity（leishen_ros::Point，fromROSMsg 按名映射），
+                      #   与 livox_ros_driver2 的 Mid-360 PointCloud2 输出兼容（生产同款链路已实机验证）；
+                      #   不消费逐点时间 → scan 内无去畸变（与生产行为一致，出厂即如此）。
+                      #   绝不可"修正"为 2：VELO32 解析 Velodyne 字段布局，Mid-360 不匹配。
+  scan_line: 16       # C16Handler 分支不消费该参数（仅 AviaHandler 用 num_scans_），保留原值占位
+  time_scale: 0.001   # 同上，C16Handler 分支不消费，保留原值
 publish:
   dense_publish_en: false
   path_publish_en: false

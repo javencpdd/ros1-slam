@@ -1,0 +1,66 @@
+==== v4.1 前置施工合并取证 2026-10-04 19:15:15 ====
+--- [S10.0] /usr/local 四件核查 ---
+-rw-r--r-- 1 root root    22568 Jun 23  2025 /usr/local/include/livox_lidar_api.h
+-rw-r--r-- 1 root root     1731 Jun 23  2025 /usr/local/include/livox_lidar_cfg.h
+-rw-r--r-- 1 root root    19580 Jun 23  2025 /usr/local/include/livox_lidar_def.h
+-rw-r--r-- 1 root root  5292408 Sep 16  2025 /usr/local/lib/liblivox_lidar_sdk_shared.so
+-rw-r--r-- 1 root root 28395498 Sep 16  2025 /usr/local/lib/liblivox_lidar_sdk_static.a
+--- [复制18] 全树 sha256 对账 ---
+copy18: 106 文件 sha256 全一致
+--- [复制19] 全树 sha256 对账 ---
+copy19: 221 文件 sha256 全一致
+--- [§7.4] livox_ros_driver2 副本 /home/ysc 扫描（*.cc *.h *.cpp *.launch *.yaml *.json）---
+0 命中
+--- [rospack] ---
+ROS_PACKAGE_PATH=/home/ros1-slam/ws/src:/opt/ros/noetic/share
+livox_ros_driver2 => /home/ros1-slam/ws/src/00_drivers/livox_ros_driver2
+lslidar_msgs => /home/ros1-slam/ws/src/00_drivers/lslidar_msgs
+lslidar_driver => /home/ros1-slam/ws/src/00_drivers/lslidar_driver
+lite3_drivers => /home/ros1-slam/ws/src/00_drivers/lite3_drivers
+lite3_slam => /home/ros1-slam/ws/src/10_slam/lite3_slam
+faster_lio => /home/ros1-slam/ws/src/10_slam/faster_lio
+--- [launch XML] roslaunch --nodes ---
+[01_sensors.launch]
+/base2livox
+/livox_lidar_publisher2
+/qnx2ros
+[10_slam_mapping.launch]
+/faster_lio_online
+--- [参数契约] 01_sensors.launch dump ---
+/frame_id: rslidar
+/publish_freq: 10.0
+/user_config_path: /home/ros1-slam/ws/src/00_drivers/livox_ros_driver2/config/MID360s_config.json
+/xfer_format: 0
+--- [C1 v4.1] yaml safe_load + 键值 ---
+top keys: 17
+preprocess.lidar_type = 4
+common.imu_topic = /imu/data
+common.lid_topic = /rslidar_points
+mapping.extrinsic_T = [0.075, 0.0, 0.023]
+mapping.extrinsic_est_en = True
+pcd_save.interval = 10
+--- [可执行在位] ---
+-rwxrwxr-x+ 1 ros1-slam ros1-slam 29525344 Oct  4 11:37 /home/ros1-slam/ws/devel/lib/faster_lio/run_mapping_online
+-rwxrwxr-x+ 1 ros1-slam ros1-slam  5266248 Oct  4 19:06 /home/ros1-slam/ws/devel/lib/livox_ros_driver2/livox_ros_driver2_node
+--- [隔离自检 v3_isolation.sh 全量] ---
+[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+[2] 自研壳中是否含 /home/ysc
+[3] .bashrc 是否 source 了其他 devel
+[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+[5] ★ 模块间是否互相 include launch（20 号 K3）—— v3 修复子 shell 丢 FAIL bug
+[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug
+[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+=== ISOLATION OK ===
+ISOLATION_EXIT=0
+--- [9] 独立执行 ---
+40_navigation 源码文件: 0
+--- [编译证据索引] batch1/full 日志尾部 ---
+
+real	2m7.589s
+user	3m37.693s
+sys	0m41.249s
+
+real	2m11.308s
+user	1m14.792s
+sys	0m32.421s
