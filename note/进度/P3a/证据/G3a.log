@@ -1,0 +1,484 @@
+# =====================================================================
+# Gate G3a 验收证据 | 21号计划书 v4 §8（P3a 配置重构收尾门禁）+ 隔离自检全量
+# 执行人: 严过关（验收工程师） | 目标机: lite3-f20-1-103
+# 证据采集时间: 2026-10-04 11:02:57 +0800
+# 说明: 全部校验命令由严过关在本机独立重跑（不采信施工方结论）、以实际输出判定；
+#       sudo 密码已脱敏为 ***；不修施工问题、未启动任何机器人节点（仅私有 master 11411 校验 rosparam）
+# =====================================================================
+
+【基线 ⓪】执行身份与残留状态（起 master 前）
+whoami; id -un
+--- 输出 ---
+ysc（经 sudo 代劳 ros1-slam）
+ps -u ros1-slam -o pid,cmd   # 期望零行
+--- 输出 ---
+    PID CMD
+ps_exit=1（1=零行，无残留）
+ss -tlnp | grep 11411   # 期望空（11411 释放）
+--- 输出 ---
+grep_exit=1（1=未占用）
+
+【P0.5 · v4 扩充正则快照】（起 master 前留档；仅证据非停机线，判定=登记后继续，v4 §5 P0.5/N7）
+ps aux | grep -E "lslidar|faster_lio|hdl_|roscore|rosmaster" | grep -v grep        # 传感器侧
+sensor_exit=1（1=空）
+ps aux | grep -E "ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer_launch" | grep -v grep   # ★运动链路侧（v4 N7）
+ysc         1332 68.1  0.8 668680 61372 ?        Rsl  01:05 406:43 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root        1615  0.1  0.5 277956 35660 ?        Sl   01:05   0:53 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root        2053  0.6  0.2 990796 19852 ?        Sl   01:06   3:59 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_7bmrnrxj
+root        2055 16.8  0.2 926272 20344 ?        Sl   01:06 100:32 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_uf_0fw0s --params-file /tmp/launch_params_sc79x3ww --params-file /tmp/launch_params_y5l5znx8
+motion_exit=0
+P0.5 判读：长期在跑 4 行（lite3_ros_bridge + transfer_launch.py + jetson2app + jetson2motion），与 S1/S3 施工快照及 02_问题与坑 坑1 基线一致，无新增相关进程；ros2qnx 零命中；本阶段仅私有 master，不涉及 P6/P7 起节点 → 不触发 Q8 停止线
+
+【判据 G3a-③/②】插件 type 串逐字比对（v4 §8 G3a 条目③ + N8）
+权威源 A：落盘 ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+权威源 B：note/进度/计划书v4升级/证据/P3a0_mbf组件实测.log（690 行，唯一权威）
+
+── A 侧原始抓取（mbf_navigation.yaml planners/controllers/recovery type 行） ──
+7:    type: "global_planner/GlobalPlanner"   # 串源=原版 move_base_params.yaml base_global_planner 实测值；
+11:    type: "teb_local_planner/TebLocalPlannerROS"   # 串源=teb_local_planner_plugin.xml 双注册实测（mbf_costmap_core::CostmapController）→ mbf 原生可载
+14:    type: "clear_costmap_recovery/ClearCostmapRecovery"
+
+── B 侧原始抓取 1：teb_local_planner_plugin.xml 双注册描述符（log 行 464/470） ──
+$ cat teb_local_planner_plugin.xml
+<library path="lib/libteb_local_planner">
+	<class name="teb_local_planner/TebLocalPlannerROS" type="teb_local_planner::TebLocalPlannerROS" base_class_type="nav_core::BaseLocalPlanner">
+		<description>
+			The teb_local_planner package implements a plugin
+			to the base_local_planner of the 2D navigation stack.
+		</description>
+	</class>
+	<class name="teb_local_planner/TebLocalPlannerROS" type="teb_local_planner::TebLocalPlannerROS" base_class_type="mbf_costmap_core::CostmapController">
+		<description>
+			Same plugin implemented MBF CostmapController's extended interface.
+		</description>
+	</class>
+</library>
+
+── B 侧原始抓取 2：原版 move_base_params.yaml 顶层键（log 行 641-653，base_global_planner/base_local_planner 串源） ──
+--- move_base_params.yaml 顶层键:
+base_global_planner: global_planner/GlobalPlanner
+base_local_planner: teb_local_planner/TebLocalPlannerROS
+
+── 程序化逐字比对（python3，串级 strip 引号后 ==） ──
+A/planners.type      = 'global_planner/GlobalPlanner'
+B/base_global_planner= 'global_planner/GlobalPlanner'
+A/controllers.type   = 'teb_local_planner/TebLocalPlannerROS'
+B/base_local_planner = 'teb_local_planner/TebLocalPlannerROS'
+B/teb 描述符 name 属性（双注册）= [('teb_local_planner/TebLocalPlannerROS', 'nav_core::BaseLocalPlanner'), ('teb_local_planner/TebLocalPlannerROS', 'mbf_costmap_core::CostmapController')]
+
+[比对1] planners type vs log base_global_planner : 一致（逐字 True）
+[比对2] controllers type vs log base_local_planner + teb 描述符 name : 一致（逐字 True）
+[比对2b] teb 双注册两描述符 name 属性一致 : True（nav_core 与 mbf_costmap_core 双注册，P3a.0 裁决表第 5 行）
+[recovery] log 中 clear_costmap_recovery 出现形态：['clear_costmap_recovery', 'clear_costmap_recovery/ccr_plugin.xml']
+[recovery] log 含 class 串描述符：False → v4 裁决：无描述符，type 串比对属 Q11，不作 G3a 硬判据
+[Q11 标注] mbf_navigation.yaml recovery 节含 Q11 注记：True（行12/15-17）
+[Q11 标注] recovery_policy.yaml 含 Q11 注记：True（行10 clear_costmaps 挂载点）
+
+G3a-③ 判定：比对1=PASS；比对2=PASS；recovery=Q11 挂起（标注在位）
+== [env.sh 守卫检查] source /home/ros1-slam/scripts/env.sh（P5 未编译，期望守卫触发） ==
+[env.sh] ws/devel 不存在——先完成编译（P5）
+env.sh source 退出码=1（1=守卫触发：ws/devel 不存在，属 P3a 预期）
+== [构造环境]（G2 既定规程：devel 未编译期 source /opt/ros + 追加 ws/src） ==
+ROS_MASTER_URI=http://localhost:11411
+ROS_PACKAGE_PATH 逐段：
+/opt/ros/noetic/share
+/home/ros1-slam/ws/src
+
+== [1] 起私有 master：setsid roscore -p 11411（ros1-slam 身份） ==
+master 就绪探测：exit=0（0=就绪），等待 3s
+  38773 /usr/bin/python3 /opt/ros/noetic/bin/roscore -p 11411
+  38791 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 11411 -w 3 __log:=/tmp/g3a_yan_ros_home/log/c6dcacfc-bfa0-11f1-9326-3c6d66f8d2d8/master.log
+  38809 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/tmp/g3a_yan_ros_home/log/c6dcacfc-bfa0-11f1-9326-3c6d66f8d2d8/rosout-1.log
+
+== [2] rosparam load 全量（两 config 目录全部 yaml，含 variants/ 子目录；计数期望 12） ==
+LOAD_OK [1]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml  →  /
+LOAD_OK [2]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/planner_teb.yaml  →  /g3a_yan/planner_teb
+LOAD_OK [3]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml  →  /g3a_yan/global_planner
+LOAD_OK [4]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml  →  /g3a_yan/costmap_common
+LOAD_OK [5]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml  →  /g3a_yan/global_costmap
+LOAD_OK [6]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/local_costmap_params.yaml  →  /g3a_yan/local_costmap
+LOAD_OK [7]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/move_base_params.yaml  →  /g3a_yan/move_base_params
+LOAD_OK [8]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/recovery_policy.yaml  →  /g3a_yan/recovery_policy
+LOAD_OK [9]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/outdoor_open.yaml  →  /g3a_yan/variants/outdoor_open
+LOAD_OK [10]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/crowd.yaml  →  /g3a_yan/variants/crowd
+LOAD_OK [11]: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/night.yaml  →  /g3a_yan/variants/night
+LOAD_OK [12]: /home/ros1-slam/ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml  →  /g3a_yan/faster_lio
+== load 结果：12/12 LOAD_OK，LOAD_FAIL=0 ==
+
+== [3] G3a-② 三列表核对（rosparam get，期望非空） ==
+--- rosparam get /planners ---
+- name: GlobalPlanner
+  type: global_planner/GlobalPlanner
+
+--- rosparam get /controllers ---
+- name: TebLocalPlannerROS
+  type: teb_local_planner/TebLocalPlannerROS
+
+--- rosparam get /recovery_behaviors ---
+- name: clear_costmaps
+  type: clear_costmap_recovery/ClearCostmapRecovery
+
+
+== [4] 独立抽查（增强复核，不替代施工方证据） ==
+--- C2 抽查 /g3a_yan/planner_teb/TebLocalPlannerROS/max_vel_x（期望 0.4） ---
+0.4
+--- C3 抽查 /g3a_yan/costmap_common/obstacle_layer/obstacle_range（期望 8.0） ---
+    obstacle_range: 8.0
+    sensor_frame: rslidar
+--- 根域改名参数抽查 /planner_max_retries（期望 -1）与 /recovery_enabled（期望 False） ---
+-1
+false
+--- 根域计数（rosparam list | wc -l） ---
+359
+
+== [5] 判据④ 素材：/g3a_yan/recovery_policy/outcome_tables 四表独立复核 ==
+四表档数实测 = {'get_path': 15, 'exe_path': 19, 'recovery': 10, 'move_base': 11}
+期望         = {'get_path': 15, 'exe_path': 19, 'recovery': 10, 'move_base': 11}
+档数精确匹配 = True
+四表 SUCCESS 实测 = {'get_path': 0, 'exe_path': 0, 'recovery': 0, 'move_base': 0} → 全 0： True
+（对照 P3a0 log：get_path FAILURE=50 / exe_path FAILURE=100 / recovery FAILURE=150 / move_base FAILURE=10： True True True True ）
+outcome_tables 复核退出码=0
+
+== [6] kill master 并复核退净（红线规程） ==
+kill 前 PID 清单：38773
+38791
+38809
+--- 复核 ps -u ros1-slam（期望零行） ---
+    PID CMD
+  38733 bash /tmp/g3a_yan/master_check.sh
+  39247 ps -u ros1-slam -o pid,cmd
+ps_exit=0（1=零行）
+--- 复核 roscore/rosmaster/rosout 全局 grep（期望空） ---
+grep_exit=1（1=零匹配）
+--- 复核 11411 释放 ---
+ss_exit=1（1=已释放）
+ps_exit=1（1=零行，ros1-slam 名下已退净）
+== [规程] source /home/ros1-slam/scripts/env.sh（v3 守卫在 P5 前预期触发） ==
+[env.sh] ws/devel 不存在——先完成编译（P5）
+env.sh source 退出码=1（1=守卫触发：ws/devel 不存在，P3a 阶段预期）
+
+== [规程] devel 未编译期构造环境（P2 G2 既定规程）+ 追加 ws/src ==
+ROS_PACKAGE_PATH=/opt/ros/noetic/share:/home/ros1-slam/ws/src
+
+== [隔离自检 1/2] bash /home/ros1-slam/scripts/verify/v3_isolation.sh（[1]-[8]） ==
+[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+[2] 自研壳中是否含 /home/ysc
+[3] .bashrc 是否 source 了其他 devel
+[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+[5] ★ 模块间是否互相 include launch（20 号 K3）—— v3 修复子 shell 丢 FAIL bug
+[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug
+[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+=== ISOLATION OK ===
+ISOLATION_EXIT=0
+
+== [隔离自检 2/2] [9] 独立执行（v4 §11.2 原文命令；整脚本含 [9] 重落盘归属 P6，N2） ==
+find /home/ros1-slam/ws/src/40_navigation \( -name "*.cpp" -o -name "*.cc" -o -name "*.h" \)  # 期望 0 命中
+（空，0 命中）
+CHECK9_EXIT=0
+
+== [特别盯防 1] [5] 跨模块 include 依据：全部 launch 的 'find lite3_*' 引用 vs 自身包 ==
+  10_slam_mapping.launch  [SELF=lite3_slam]  引用: lite3_slam 
+  cmd_vel_raw_relay.launch  [SELF=lite3_navigation]  引用: （无）
+  mbf_navigation.launch  [SELF=lite3_navigation]  引用: lite3_navigation 
+  50_task_smach_min.launch  [SELF=lite3_task]  引用: lite3_task 
+  60_safety.launch  [SELF=lite3_safety]  引用: lite3_safety 
+  90_supervisor.launch  [SELF=lite3_supervisor]  引用: lite3_supervisor 
+
+== [特别盯防 2] [6] 裸 cmd_vel 依据：launch 层 cmd_vel 命中与排除规则对照 ==
+-- 原始命中（含排除前） --
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/cmd_vel_raw_relay.launch:2:  <!-- C7：/cmd_vel_raw 改名落地载体（v4 §8 C7 + N6 管道：controller(M4)→/cmd_vel_raw→safe_cmd_vel_mux(M6)→/cmd_vel→ros2qnx 仅真机 mode_navigation） -->
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/cmd_vel_raw_relay.launch:5:  <arg name="cmd_vel_raw_source" default="FILL_AFTER_Q11"/>
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/cmd_vel_raw_relay.launch:6:  <!-- <node pkg="topic_tools" type="relay" name="cmd_vel_raw_relay" args="$(arg cmd_vel_raw_source) /cmd_vel_raw"/> -->
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/cmd_vel_raw_relay.launch:7:  <!-- 回退形态（move_base 单体，v4 §8 回退决策表）：源改 move_base 速度输出话题（v3 原形态），目标仍为 /cmd_vel_raw；同样仅回退裁决后 uncomment。 -->
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch:16:  <!-- C7：/cmd_vel_raw relay——源话题 Q11 联调确认后固化，确认前不落 launch 行（载体 launch/cmd_vel_raw_relay.launch，node 行注释） -->
+/home/ros1-slam/ws/src/60_safety/lite3_safety/launch/60_safety.launch:2:  <!-- C8：M6 安全 mux 主线（v4 N6 管道枢纽；/cmd_vel 唯一写者 = safe_cmd_vel_mux，§2.6 硬规则 a） -->
+/home/ros1-slam/ws/src/60_safety/lite3_safety/launch/60_safety.launch:4:  <node pkg="lite3_safety" type="safe_cmd_vel_mux.py" name="safe_cmd_vel_mux" output="screen">
+/home/ros1-slam/ws/src/60_safety/lite3_safety/launch/60_safety.launch:5:    <param name="mux_config" value="$(find lite3_safety)/config/cmd_vel_mux.yaml"/>
+-- 脚本排除规则（grep -v lite3_safety | grep -v cmd_vel_raw）后剩余（期望空） --
+LEFT_EXIT=1（1=空）
+-- 排除合理性注记：cmd_vel_raw_relay.launch=路径含 cmd_vel_raw（C7 载体，node 行注释态）；mbf_navigation.launch 行16=注释内含 cmd_vel_raw 字样（行级排除命中）；60_safety.launch 3 行=路径含 lite3_safety（M6 本体，/cmd_vel 唯一写者）
+
+【判据 G3a-④】note/04_配置改动diff.md 覆盖核对（v4 §8 G3a 条目④ + 派单扩充）
+判据要求：C0/C1/C2/C3/C4/C5 + §7.2a；C6–C9/C11–C13 补充条目在位；格式=旧值/新值/理由/日期
+
+── 程序化核对 ──
+diff 总条目数：18（G2 时基线 5 条，P3a 新增 13 条）
+  [OK] §7.2a(faster-lio 存盘路径)       旧值/新值=True  理由=True  日期=True
+  [OK] C0                           旧值/新值=True  理由=True  日期=True
+  [OK] C1                           旧值/新值=True  理由=True  日期=True
+  [OK] C2                           旧值/新值=True  理由=True  日期=True
+  [OK] C3                           旧值/新值=True  理由=True  日期=True
+  [OK] C4                           旧值/新值=True  理由=True  日期=True
+  [OK] C5                           旧值/新值=True  理由=True  日期=True
+  [OK] C6                           旧值/新值=True  理由=True  日期=True
+  [OK] C7                           旧值/新值=True  理由=True  日期=True
+  [OK] C8                           旧值/新值=True  理由=True  日期=True
+  [OK] C9                           旧值/新值=True  理由=True  日期=True
+  [OK] C11                          旧值/新值=True  理由=True  日期=True
+  [OK] C12                          旧值/新值=True  理由=True  日期=True
+  [OK] C13                          旧值/新值=True  理由=True  日期=True
+
+C10 注记：v4 G3a-④ 判据文本（§8 行711）未列 C10（rviz 默认关=launch arg 载体项，已含于 C0 launch），diff 无 C10 独立条目 → 不构成缺陷
+G3a-④ 判定：PASS（14/14 要求项全部在位，格式三要素齐）
+
+【判据落账三要素】P3a/进度文档.md + 三份分片证据抽查（v4 §11.5 A 系 + 派单判据4）
+── 进度文档结构核对 ──
+5:> **更新时间**：2026-10-04 10:48
+47:### S1 = C0–C3（2026-10-04 寇豆码）
+49:**实现状态（做了什么）**：manifest S1 片 10 文件全部落盘（C0 种子 7：mbf_navigation/planner_teb/costmap_common/global_costmap_params/local_costmap_params/global_planner_params/move_base_params + C1 转换稿 2：faster_lio_outdoor.yaml、10_slam_mapping.launch + C0 launch 1：mbf_navigation.launch）；逐文件 cp 前（载荷源）后（落盘目的）sha256 对账 **10/10 一致**；属主 chown ros1-slam:ros1-slam、目录 755/文件 644（载荷 664 → 按 manifest 注记补 chmod，D-S1-3）。04_配置改动diff.md 已照 /tmp/p3a_diff_entries.md 文案追加 C0/C1/C2/C3 四条。**偏差 D-S1-1**：manifest 校验 (1) 的 `lid_topic: */rslidar_points$` 因值行带行尾注释未命中——值本身正确（载荷与落盘 sha256 一致，语义=V5 实测 /rslidar_points），等效验证 `lid_topic: */rslidar_points( |$)` 命中第 4 行，未改载荷。**偏差 D-S1-2**：首次 roscore 未采信 export 的 ROS_MASTER_URI（起了空 master@11311 约 2 分钟，无节点无参数挂载）→ kill 后以 `roscore -p 11411` 显式端口重起（ros1-slam 身份），符合 manifest 11411 隔离意图。**偏差 D-S1-4**：setsid 下 pid 文件未写成功 → 按 ps 实际 PID 精确杀三进程。
+51:**自动化验收输出（结论：全过）**：校验块 (0)–(7)——(0) P0.5 v4 扩充正则快照留档（4 行长期在跑：jetson2motion/jetson2app/transfer_launch + lite3_ros_bridge，与断点核对基线一致，无新增相关进程；仅证据非停机线）；(1) C1 三实测值 interval:10/lidar_type:4 命中 + lid_topic 等效验证；(2) 8/8 yaml.safe_load OK；(3) 2/2 launch XML OK；(4) C2 五参数 5/5 命中；(5) C3 四参数+min_z/Q3 占位 5/5 命中；(6) type 串三行抓取（global_planner/GlobalPlanner、teb_local_planner/TebLocalPlannerROS、clear_costmap_recovery/ClearCostmapRecovery——G3a-③ 人工比对素材，归严过关）；(7) 私有 master（localhost:11411）rosparam load **9/9 LOAD_OK**（含 mbf_navigation.yaml 根域与 faster_lio_outdoor.yaml）；G3a-② 三列表 **/planners、/controllers、/recovery_behaviors 全部非空**（各 1 项：GlobalPlanner、TebLocalPlannerROS、clear_costmaps）；kill master 后残留检查全空（roscore/rosmaster/rosout/ps -u ros1-slam 均 0 行、11411 已释放）。
+53:**目标环境验收（现在能验到的 vs 归属后续）**：本切片验到=配置文件语法与参数编辑正确性 + rosparam load 无报错 + 三列表非空（G3a-①② 的素材级验证）。**归属后续**：插件真实可加载性（mbf 经 pluginlib 加载 GlobalPlanner/TebLocalPlannerROS、recovery 条目可加载性=Q11 挂起）归 G3a-③/P6 联调；mbf 三 action 话题族可见归 G5；teb 对 planning_horizon 键是否消费归 P6 G3b；recovery_policy 语义联调归 S3/P6；costmap 命名空间实测（Q11①）归 P6。
+55:**证据路径**：`证据/S1_C0-C3.log`（全量命令+原始输出）＝`../../计划书v4升级/证据/P3a_S1_校验.log`（manifest 指定校验 log，同内容）；04 台账 4 条；git 提交 hash 见本节末尾追加行。
+57:### S2 = C4–C8（2026-10-04 寇豆码）
+59:**实现状态（做了什么）**：C4 删除 pipeline_tracking/scripts/dyn_reconfigure.py（删除前留底 ls + sha256 07559540…58a；复核 No such file）；C5 TaskTransfer.py 载荷终稿覆盖（覆盖前 35625ac0…b1 / 覆盖后与载荷一致 c26f9ed8…013，sha256 对账 6/6 一致）；C6 data/waypoints/ 新建（README 占位，Q5 开）；C7 cmd_vel_raw_relay.launch 载体（node 行整体注释）；C8 safe_cmd_vel_mux.py（755）+ cmd_vel_mux.yaml + 60_safety.launch。属主全量 chown ros1-slam:ros1-slam，脚本 755/其余 644。04 台账追加 C4/C5/C6/C7/C8 五条（照 p3a_diff_entries 文案）。
+61:**自动化验收输出（结论：全过）**：(1) C4 复核 No such file ✓；(2) C5 py_compile PY_OK（以 ros1-slam 身份，D-S2-1）+【C5】标记 13 处 + mbf_msgs.MoveBaseAction/recovery_policy 命中；(3) C7 XML_OK + **元素级验证生效 node=0**（grep 子串计数把注释行计入返回 1，D-S2-2）+ 注释行原文留证；(4) C8 YAML_OK + PY_OK + output_rate_hz 20.0 / _zero_twist 无源发零速 / 超时淘汰 / lite3/supervisor/hold 双命中 + **六源 OK** [estop, teleop_joy, teleop_app, task, navigation, demo] + XML_OK:60_safety；(5) C6 README 在位。
+63:**目标环境验收（现在能验到的 vs 归属后续）**：验到=C4 删除生效、C5 语法/标记/关键改写点、C7 载体注释态、C8 配置语法与四设计要素齐备、C6 目录占位。**归属后续**：TaskTransfer 与 mbf action 的真实对接、recovery_policy 分级重试的运行语义（P6 联调）；safe_cmd_vel_mux 六源真跑与 hold 链路（P6/G5）；relay 源话题值确认（Q11）后才 uncomment。
+65:**证据路径**：`证据/S2_C4-C8.log` ＝ `../../计划书v4升级/证据/P3a_S2_校验.log`；04 台账 5 条。
+67:### S3 = C9–C13（2026-10-04 寇豆码）
+69:**实现状态（做了什么）**：manifest S3 片 10 文件落盘（C11 recovery_policy + C9 variants 三档 + C12 task_primitives/task_smach_min.py/launch + C13 health_watch/health_monitor.py/launch），逐文件 sha256 对账 **10/10 一致**（D-S3-1：variants/ 目录未预建致 3 文件首落失败，install -d 后重落对账 OK；D-S3-2：variants 三文件 cp -a 保留 ysc 属主，补 chown）。脚本 755（task_smach_min.py、health_monitor.py）、yaml 644，属主全量 ros1-slam。04 台账追加 C9/C11/C12/C13 四条（照 p3a_diff_entries 文案）。G3a-③ type 串素材无新增（recovery type 串已 S1 抓取）。
+71:**自动化验收输出（结论：全过）**：(0) P0.5 v4 扩充正则快照留档（4 行与基线一致，起 master 前）；(1) 6/6 yaml.safe_load OK；(2) C11 outcome_tables 档数 **{get_path:15, exe_path:19, recovery:10, move_base:11} 精确匹配期望**，SUCCESS: 0 ×4；(3) C12 PY_OK:smach + XML_OK:50_task；(4) C13 PY_OK:health_monitor + **Publisher 仅 1 行=/lite3/supervisor/hold（SUP 红线达标，绝无速度话题发布）** + XML_OK:90_supervisor；(5) 第二段私有 master（roscore -p 11411，ros1-slam 身份）rosparam load **6/6 LOAD_OK** + 抽查 /g3a_s3/outcome_tables/move_base（11 档原样）与 /g3a_s3/modes（四 mode watch 清单）非空；kill 后无管道干净复核：rosmaster/roscore grep exit=1（零匹配）、ps -u ros1-slam exit=1（无进程）、11411 已释放（D-S3-4：首查 exit 码被 tee 管道失真，补干净复核）；(6) 隔离三查：40_navigation 算法源码 **0**、自研壳 launch 裸 cmd_vel（排除 lite3_safety/cmd_vel_raw）**零匹配**、自研壳+waypoints 内 /home/ysc **0**。
+73:**目标环境验收（现在能验到的 vs 归属后续）**：验到=三档 variants/recovery_policy/任务原语/health_watch 的语法与注册表结构（含 outcome 四表与 P3a.0 实测一致）、SMACH 骨架可编译、SUP 红线静态达标。**归属后续**：SMACH 与 mbf action 真实对接（P6 才接 action client，Q10 已关但联调未做）；health_monitor 1 Hz 心跳真跑与失联降级链路（P6 SUP 联调）；recovery_behaviors 注册表 type 串的 mbf 侧可加载性（Q11③）；三档 variants 现场标定（P6）。
+75:**证据路径**：`证据/S3_C9-C13.log` ＝ `../../计划书v4升级/证据/P3a_S3_校验.log`；04 台账 4 条。
+
+── S1 抽查：9/9 LOAD_OK + 三列表非空 ──
+S1 log LOAD_OK 行数（期望 9）：9
+== G3a-② 三列表 ==
+- name: GlobalPlanner
+  type: global_planner/GlobalPlanner
+
+- name: TebLocalPlannerROS
+  type: teb_local_planner/TebLocalPlannerROS
+
+- name: clear_costmaps
+  type: clear_costmap_recovery/ClearCostmapRecovery
+
+── S2 抽查：C8 四要素与六源表 ──
+126:5:output_rate_hz: 20.0            # 恒 20 Hz（Lite3 底盘 250 ms 超时不能断，v3 C8；50 ms 周期必须守恒）
+127:6:# 四设计（v3 C8）：六源优先级 / 超时淘汰 / 无源发零速 / 恒 20 Hz（Lite3 底盘 250 ms 超时不能断）
+128:60:    def _zero_twist():
+129:80:                out, cur = self._zero_twist(), 'HOLD'
+131:84:                out, cur = self._zero_twist(), 'NONE'
+132:6:# 四设计（v3 C8）：六源优先级 / 超时淘汰 / 无源发零速 / 恒 20 Hz（Lite3 底盘 250 ms 超时不能断）
+133:31:        # 六源按优先级排序（1 = 最高）；订阅全部源话题，超时淘汰在 _tick 内判定
+134:72:                if s['active'] and not fresh:            # 超时淘汰
+
+── S3 抽查：outcome 四表 {15,19,10,11} ──
+## (2) C11 outcome 档数（期望 get_path 15 / exe_path 19 / recovery 10 / move_base 11）
+{'get_path': 15, 'exe_path': 19, 'recovery': 10, 'move_base': 11}
+4
+（独立复核：本门禁私有 master load recovery_policy.yaml 后四表实测精确匹配 {get_path:15, exe_path:19, recovery:10, move_base:11}，SUCCESS:0 ×4，FAILURE 对照 P3a0 log 50/100/150/10 全对——见【判据①】[5] 段）
+
+【判定汇总 · Gate G3a（v4 §8 G3a 条目①–④ + N8）+ 隔离自检全量】
+判据① rosparam load 全量：12/12 LOAD_OK 无报错（lite3_navigation/config 8 份 + variants/ 3 档 + lite3_slam/config 1 份，
+       含 move_base_params 回退底稿与 recovery_policy）；三列表非空：
+       /planners=[{name: GlobalPlanner, type: global_planner/GlobalPlanner}]
+       /controllers=[{name: TebLocalPlannerROS, type: teb_local_planner/TebLocalPlannerROS}]
+       /recovery_behaviors=[{name: clear_costmaps, type: clear_costmap_recovery/ClearCostmapRecovery}]
+       附加抽查：max_vel_x=0.4（C2）、obstacle_range=8.0（C3）、planner_max_retries=-1、recovery_enabled=false → 过
+判据② type 串比对（N8）：planners type == P3a0 log「base_global_planner: global_planner/GlobalPlanner」逐字一致；
+       controllers type == P3a0 log「base_local_planner: teb_local_planner/TebLocalPlannerROS」== teb_local_planner_plugin.xml
+       双注册描述符 name 属性（nav_core::BaseLocalPlanner + mbf_costmap_core::CostmapController 两行）逐字一致；
+       recovery type 串按 v4 裁决属 Q11 不比对（log 实证仅含包名/ccr_plugin.xml 路径，无 class 串）；
+       Q11 标注在位：mbf_navigation.yaml 行 12/15-17 + recovery_policy.yaml 行 10 → 过
+判据③ diff 覆盖：04_配置改动diff.md 共 18 条；要求项 14/14 全在位（§7.2a 存盘路径改写 + C0–C9 + C11–C13），
+       每条含旧值/新值描述、理由（F1/F2/F3、v3/v4/N*、裁决依据）、日期 2026-10-04；
+       C10 无独立条目（v4 G3a-④ 判据文本未列，rviz 默认关属 C0 launch 载体）→ 过
+判据④ 落账三要素：进度文档头部「更新时间：2026-10-04 10:48」在位；S1/S2/S3 三节均含
+       实现状态（做了什么）/自动化验收输出/目标环境验收/证据路径 四要素；
+       三份分片证据抽查可复核：S1=9/9 LOAD_OK+三列表非空（log 行 138-155）；
+       S2=C8 四要素（output_rate_hz 20.0 / _zero_twist 无源发零速 / 超时淘汰 / supervisor/hold）+ 六源表
+       [estop, teleop_joy, teleop_app, task, navigation, demo]（log 行 126-139）；
+       S3=outcome 四表 {get_path:15, exe_path:19, recovery:10, move_base:11}（log 行 48）；
+       其中 S3 四表另经本门禁私有 master 独立 load 复核：档数精确匹配 + SUCCESS:0 ×4 + FAILURE 50/100/150/10 对照 P3a0 log 全对 → 过
+隔离自检（env.sh source 后，devel 守卫触发为 P5 前预期；环境构造沿用 P2 G2 既定规程）：
+  [1] ROS_PACKAGE_PATH 无 /home/ysc → 过
+  [2] 自研壳无 /home/ysc → 过
+  [3] .bashrc 无其他 devel → 过
+  [4] rospack 解析均落 /home/ros1-slam → 过
+  [5] 模块间无互相 include launch：新增 5 launch（mbf_navigation/cmd_vel_raw_relay/60_safety/50_task_smach_min/90_supervisor）
+      全部仅自引用（特别盯防 1 明细），无误伤无漏检 → 过
+  [6] 无绕过 M6 直写 /cmd_vel：原始命中 8 行全部属 lite3_safety（M6 本体）或 cmd_vel_raw（预-M6 管道/注释），
+      脚本排除规则后剩余 0 行（特别盯防 2 明细）；90_supervisor.launch 零 cmd_vel 引用（SUP 红线）→ 过
+  [7] 磁盘余量 ≥15G → 过
+  [8] 全 ws/src 扫 /home/ysc 零命中 → 过
+  [9] 40_navigation 算法源码 find 0 命中（v4 §11.2 原文命令单独执行；整脚本含 [9] 重落盘归属 P6，N2）→ 过
+  === ISOLATION OK ===，ISOLATION_EXIT=0，CHECK9_EXIT=0
+退净复核（红线规程）：roscore/rosmaster/rosout 全局 grep 零匹配、11411 释放、
+       ps -u ros1-slam 零行（脚本退出后本机独立复核，final_ps_exit=1）→ 过
+P0.5 v4 扩充正则快照：起 master 前留档（4 行长期在跑与坑1/S1/S3 基线一致，ros2qnx 零命中；仅证据非停机线）→ 登记
+
+Gate G3a = PASS | 路由 NoOne
+已知观察（不影响判定）：
+  O1. S1_C0-C3.log 尾部「残留检查」段为 kill 前快照（列有 roscore/rosmaster/rosout 3 进程），log 内缺 kill 后
+      干净留痕（S3 已有干净复核样本）；施工记录声称的退净由本门禁独立复核证实。建议寇豆码下次施工块时补注，
+      验收不代改。
+  O2. S3 记录「SUCCESS: 0 ×4」在 log 中仅见四表档数字典 + move_base 单表 dump；本门禁经独立 load 证实四表
+      SUCCESS 全 0，声称成立。
+  O3. v3_isolation.sh 磁盘版为 [1]–[8]（v3 语义原样）——与 v4 §11.2「P6 执行时整脚本按全文重新落盘（含 [9]）」
+      一致，P3a 阶段 [9] 由验收单独执行，合规。
+  O4. 本机 sudo 提权命令在证据中一律以 *** 脱敏（PW="***" 规约）；实际执行经 printf 管道喂入。
+
+（证据采集时间: 2026-10-04 11:02–11:12 +0800；执行人: 严过关）
+
+【命令索引（sudo 提权命令脱敏形态；密码一律 ***）】
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' -v                                  # 每施工块开头刷新凭据（坑4①）
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' bash /home/ros1-slam/scripts/as_ros1slam.sh 'bash /tmp/g3a_yan/master_check.sh'    # 判据①（私有 master 11411）+ 判据④ S3 四表独立复核 + kill 退净
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' bash /home/ros1-slam/scripts/as_ros1slam.sh 'bash /tmp/g3a_yan/isolation_run.sh'   # 隔离自检 [1]-[8] + [9] 独立 + 特别盯防
+（非提权命令：P0.5 双查、type 串比对、diff/进度文档核对均以 ysc 只读执行，见各段首行命令回显）
+
+【附录 A】判据① 校验脚本全文（/tmp/g3a_yan/master_check.sh，以 ros1-slam 身份执行）
+------------------------------------------------------------------------
+#!/usr/bin/env bash
+# G3a 判据① 独立复核脚本（严过关，2026-10-04）——以 ros1-slam 身份执行
+# 私有 master 11411：全量 rosparam load 两个 config 目录全部 yaml（含 variants/），三列表非空，验完退净
+set +u
+PASS=0; FAIL=0
+
+echo "== [env.sh 守卫检查] source /home/ros1-slam/scripts/env.sh（P5 未编译，期望守卫触发） =="
+source /home/ros1-slam/scripts/env.sh
+echo "env.sh source 退出码=$?（1=守卫触发：ws/devel 不存在，属 P3a 预期）"
+echo "== [构造环境]（G2 既定规程：devel 未编译期 source /opt/ros + 追加 ws/src） =="
+source /opt/ros/noetic/setup.bash
+export ROS_PACKAGE_PATH="$ROS_PACKAGE_PATH:/home/ros1-slam/ws/src"
+export ROS_MASTER_URI=http://localhost:11411
+export ROS_HOME=/tmp/g3a_yan_ros_home
+echo "ROS_MASTER_URI=$ROS_MASTER_URI"
+echo "ROS_PACKAGE_PATH 逐段："; echo "$ROS_PACKAGE_PATH" | tr ':' '\n'
+
+echo
+echo "== [1] 起私有 master：setsid roscore -p 11411（ros1-slam 身份） =="
+setsid roscore -p 11411 >/tmp/g3a_roscore.log 2>&1 &
+sleep 1
+UP=1
+for i in $(seq 1 30); do
+  if rosparam list >/dev/null 2>&1; then UP=0; break; fi
+  sleep 1
+done
+echo "master 就绪探测：exit=$UP（0=就绪），等待 ${i}s"
+if [ $UP -ne 0 ]; then echo "FATAL: master 未就绪"; exit 9; fi
+ps -u ros1-slam -o pid,cmd | grep -E "roscore|rosmaster|rosout" | grep -v grep
+
+echo
+echo "== [2] rosparam load 全量（两 config 目录全部 yaml，含 variants/ 子目录；计数期望 12） =="
+declare -a TARGETS=(
+  "/|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml"
+  "/g3a_yan/planner_teb|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/planner_teb.yaml"
+  "/g3a_yan/global_planner|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml"
+  "/g3a_yan/costmap_common|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml"
+  "/g3a_yan/global_costmap|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml"
+  "/g3a_yan/local_costmap|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/local_costmap_params.yaml"
+  "/g3a_yan/move_base_params|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/move_base_params.yaml"
+  "/g3a_yan/recovery_policy|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/recovery_policy.yaml"
+  "/g3a_yan/variants/outdoor_open|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/outdoor_open.yaml"
+  "/g3a_yan/variants/crowd|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/crowd.yaml"
+  "/g3a_yan/variants/night|/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/night.yaml"
+  "/g3a_yan/faster_lio|/home/ros1-slam/ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml"
+)
+N=0; OK=0
+for t in "${TARGETS[@]}"; do
+  ns="${t%%|*}"; f="${t##*|}"
+  N=$((N+1))
+  if rosparam load "$f" "$ns" 2>/tmp/g3a_load_err.txt; then
+    echo "LOAD_OK [$N]: $f  →  $ns"
+    OK=$((OK+1))
+  else
+    echo "LOAD_FAIL [$N]: $f  →  $ns"
+    cat /tmp/g3a_load_err.txt
+    FAIL=$((FAIL+1))
+  fi
+done
+echo "== load 结果：$OK/$N LOAD_OK，LOAD_FAIL=$FAIL =="
+
+echo
+echo "== [3] G3a-② 三列表核对（rosparam get，期望非空） =="
+for p in /planners /controllers /recovery_behaviors; do
+  echo "--- rosparam get $p ---"
+  rosparam get "$p"
+done
+echo
+echo "== [4] 独立抽查（增强复核，不替代施工方证据） =="
+echo "--- C2 抽查 /g3a_yan/planner_teb/TebLocalPlannerROS/max_vel_x（期望 0.4） ---"
+rosparam get /g3a_yan/planner_teb/TebLocalPlannerROS/max_vel_x
+echo "--- C3 抽查 /g3a_yan/costmap_common/obstacle_layer/obstacle_range（期望 8.0） ---"
+rosparam get /g3a_yan/costmap_common/obstacle_layer/obstacle_range 2>/dev/null || rosparam get /g3a_yan/costmap_common 2>/dev/null | grep -A1 -m1 "obstacle_range" || true
+echo "--- 根域改名参数抽查 /planner_max_retries（期望 -1）与 /recovery_enabled（期望 False） ---"
+rosparam get /planner_max_retries; rosparam get /recovery_enabled
+echo "--- 根域计数（rosparam list | wc -l） ---"
+rosparam list | wc -l
+
+echo
+echo "== [5] 判据④ 素材：/g3a_yan/recovery_policy/outcome_tables 四表独立复核 =="
+python3 - <<'PYEOF'
+import rosparam
+t = rosparam.get_param('/g3a_yan/recovery_policy/outcome_tables')
+expect = {'get_path': 15, 'exe_path': 19, 'recovery': 10, 'move_base': 11}
+actual = {k: len(v) for k, v in t.items()}
+print('四表档数实测 =', actual)
+print('期望         =', expect)
+print('档数精确匹配 =', actual == expect)
+zeros = {k: v.get('SUCCESS') for k, v in t.items()}
+print('四表 SUCCESS 实测 =', zeros, '→ 全 0：', all(x == 0 for x in zeros.values()))
+print('（对照 P3a0 log：get_path FAILURE=50 / exe_path FAILURE=100 / recovery FAILURE=150 / move_base FAILURE=10：',
+      t['get_path'].get('FAILURE') == 50, t['exe_path'].get('FAILURE') == 100,
+      t['recovery'].get('FAILURE') == 150, t['move_base'].get('FAILURE') == 10, '）')
+PYEOF
+RC=$?
+echo "outcome_tables 复核退出码=$RC"
+
+echo
+echo "== [6] kill master 并复核退净（红线规程） =="
+PIDS=$(pgrep -u ros1-slam -f "roscore -p 11411|rosmaster|rosout" | sort -n)
+echo "kill 前 PID 清单：$PIDS"
+kill $PIDS 2>/dev/null
+sleep 3
+kill -9 $PIDS 2>/dev/null || true
+echo "--- 复核 ps -u ros1-slam（期望零行） ---"
+ps -u ros1-slam -o pid,cmd
+echo "ps_exit=$?（1=零行）"
+echo "--- 复核 roscore/rosmaster/rosout 全局 grep（期望空） ---"
+ps aux | grep -E "roscore|rosmaster|rosout" | grep -v grep
+echo "grep_exit=$?（1=零匹配）"
+echo "--- 复核 11411 释放 ---"
+ss -tlnp 2>/dev/null | grep 11411
+echo "ss_exit=$?（1=已释放）"
+------------------------------------------------------------------------
+
+【附录 B】隔离自检执行脚本全文（/tmp/g3a_yan/isolation_run.sh，以 ros1-slam 身份执行）
+------------------------------------------------------------------------
+#!/usr/bin/env bash
+# G3a 隔离自检全量（严过关，2026-10-04）——以 ros1-slam 身份执行
+echo "== [规程] source /home/ros1-slam/scripts/env.sh（v3 守卫在 P5 前预期触发） =="
+source /home/ros1-slam/scripts/env.sh
+echo "env.sh source 退出码=$?（1=守卫触发：ws/devel 不存在，P3a 阶段预期）"
+echo
+echo "== [规程] devel 未编译期构造环境（P2 G2 既定规程）+ 追加 ws/src =="
+source /opt/ros/noetic/setup.bash
+export ROS_PACKAGE_PATH="$ROS_PACKAGE_PATH:/home/ros1-slam/ws/src"
+echo "ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH"
+echo
+echo "== [隔离自检 1/2] bash /home/ros1-slam/scripts/verify/v3_isolation.sh（[1]-[8]） =="
+bash /home/ros1-slam/scripts/verify/v3_isolation.sh
+echo "ISOLATION_EXIT=$?"
+echo
+echo "== [隔离自检 2/2] [9] 独立执行（v4 §11.2 原文命令；整脚本含 [9] 重落盘归属 P6，N2） =="
+echo 'find /home/ros1-slam/ws/src/40_navigation \( -name "*.cpp" -o -name "*.cc" -o -name "*.h" \)  # 期望 0 命中'
+HITS=$(find /home/ros1-slam/ws/src/40_navigation \( -name "*.cpp" -o -name "*.cc" -o -name "*.h" \) 2>/dev/null)
+if [ -n "$HITS" ]; then echo "命中算法源码文件："; echo "$HITS"; echo "CHECK9_EXIT=1"; else echo "（空，0 命中）"; echo "CHECK9_EXIT=0"; fi
+echo
+echo "== [特别盯防 1] [5] 跨模块 include 依据：全部 launch 的 'find lite3_*' 引用 vs 自身包 =="
+for L in /home/ros1-slam/ws/src/*/lite3_*/launch/*.launch; do
+  [ -e "$L" ] || continue
+  SELF=$(basename "$(dirname "$(dirname "$L")")")
+  REFS=$(grep -o 'find lite3_[a-z_]*' "$L" 2>/dev/null | sed 's/find //;s/)//' | sort -u | tr '\n' ' ')
+  echo "  $(basename "$L")  [SELF=$SELF]  引用: ${REFS:-（无）}"
+done
+echo
+echo "== [特别盯防 2] [6] 裸 cmd_vel 依据：launch 层 cmd_vel 命中与排除规则对照 =="
+echo "-- 原始命中（含排除前） --"
+grep -rn "cmd_vel" /home/ros1-slam/ws/src/*/lite3_*/launch/ 2>/dev/null
+echo "-- 脚本排除规则（grep -v lite3_safety | grep -v cmd_vel_raw）后剩余（期望空） --"
+grep -rn "cmd_vel" /home/ros1-slam/ws/src/*/lite3_*/launch/ 2>/dev/null | grep -v "lite3_safety" | grep -v "cmd_vel_raw"
+echo "LEFT_EXIT=$?（1=空）"
+echo "-- 排除合理性注记：cmd_vel_raw_relay.launch=路径含 cmd_vel_raw（C7 载体，node 行注释态）；mbf_navigation.launch 行16=注释内含 cmd_vel_raw 字样（行级排除命中）；60_safety.launch 3 行=路径含 lite3_safety（M6 本体，/cmd_vel 唯一写者）"
+------------------------------------------------------------------------
