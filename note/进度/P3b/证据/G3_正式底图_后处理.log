@@ -1,0 +1,28 @@
+=== G3 正式底图后处理与质量分析（2026-10-05 02:30–02:35，主理人执行，验收归小美）===
+
+[1] 现场采图事实（用户操作，tmux 三窗）
+- 链路：roscore 11312 + 01_sensors(livox, qnx2ros bind 死=已知噪音) + 10_slam_mapping(faster_lio)
+- /Odometry 实测 9.99 Hz 全程（主机侧独立复测 average rate: 9.989/9.976）
+- faster_lio 建图活性：Map grid num 3758 → 14185（走位中 ×3.8 扩张）
+- 走位：静置→外圈闭环一圈（未补内部线，用户决定收）
+- 闭环偏差（主机侧回起点实测）：x=0.018, y=-0.247, z=0.080 → 水平 ≈0.25 m；航向漂移 ≈5.6°
+
+[2] 停机与 PCD
+- 停序 3→1→0；lite3.pcd 676K（02:30 落盘，为样张 309K 的 2.2 倍）
+
+[3] 三件套后处理（主理人按 P6/G3 已验证组合执行：octomap_server_node + pcl_ros pcd_to_pointcloud + map_saver）
+- octomap 参数：frame map / res 0.05 / pc_z 0.4–1.2 / occ_z 0.0–1.6 / latch / max_range 100
+- map_saver: Received a 188 X 272 map @ 0.050 m/pix → lite3.pgm 51188B + lite3.yaml 152B
+- 首轮 "octree is empty" WARN 为灌图时序竞态（P6 已知），最终成图正常
+- 退净复核：roscore/rosmaster/octomap 残留清零 ✓
+
+[4] D-L1 裁决落地：yaml origin z nan → 0.0
+- 修前: origin: [-4.200000, -3.500000, nan]
+- 修后: origin: [-4.200000, -3.500000, 0.0]
+- 依据：P6 D-L1（map_server 拒收 nan；重采出图后处理置 z=0.0）
+
+[5] 新底图质量分析（python 实测，对照样张）
+- 点数 21609（样张 9860，×2.2）
+- 范围 x 9.73m × y 20.16m；0.5m 栅格占用 432 格 ≈108 m²（样张 98）
+- z 分布：狗活动带（±0.5m）15.9%、0.5–2m 25.8%、>2m 58.2%（场地层高 4.65m 所致，与样张特征一致）
+- 闭环 0.25m/5.6° 显著优于样张（无闭环证据）
