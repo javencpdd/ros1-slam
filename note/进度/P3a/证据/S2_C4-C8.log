@@ -1,0 +1,163 @@
+# P3a S2（C4–C8）施工全量日志
+# 日期：2026-10-04    执行者：寇豆码（施工工程师）    依据：/tmp/p3a_manifest.md S2 片 + 主理人派单
+# sudo 密码规约：回传一律 ***；本切片性质：C4 删除（留底 07559540133164c576d9781030d91c9daad34e7a64e8d3a2a5c5f004cbabd58a）+ C5/C6/C7/C8 落盘 6 文件（sha256 对账）+ 校验块 (1)-(5)——未启任何机器人节点
+# 偏差索引：D-S2-1 py_compile 以 ysc 身份对 scripts/ 建 __pycache__ 被拒（属主目录无 ysc 写权）→ 以 ros1-slam 身份重跑（两脚本 PY_OK），副产物 __pycache__ 已按 P2 裁决清理；D-S2-2 manifest (3) 0 子串计数把 XML 注释内 node 行计入（返回 1≠期望 0）→ 元素级验证 ET findall('.//node')=0 通过，载荷正确（node 行整体注释，Q11 关闭后才落行）
+
+== S2 前检：C4 对象在位性与 sha256 留底 2026-10-04 10:43:43 ==
+-rw-r--r--+ 1 ros1-slam ros1-slam 1304 May 31  2024 /home/ros1-slam/ws/src/50_task/pipeline_tracking/scripts/dyn_reconfigure.py
+07559540133164c576d9781030d91c9daad34e7a64e8d3a2a5c5f004cbabd58a  /home/ros1-slam/ws/src/50_task/pipeline_tracking/scripts/dyn_reconfigure.py
+35625ac0a04478aef7ea78419b0d630f8d43dc8cf97e1154acf97b16383ba9b1  /home/ros1-slam/ws/src/50_task/pipeline_tracking/scripts/TaskTransfer.py
+== S2/S3 目标目录现状 ==
+/home/ros1-slam/ws/src/50_task/lite3_task/:
+CMakeLists.txt
+config
+launch
+package.xml
+README.md
+scripts
+verify
+
+/home/ros1-slam/ws/src/60_safety/lite3_safety/:
+CMakeLists.txt
+config
+launch
+package.xml
+README.md
+scripts
+verify
+
+/home/ros1-slam/ws/src/90_supervisor/lite3_supervisor/:
+CMakeLists.txt
+config
+launch
+package.xml
+README.md
+scripts
+verify
+== S2 载荷文件 ==
+-rw-rw-r-- 1 ysc ysc  676 Oct  4 10:22 /tmp/p3a_payload/data/waypoints/README.md
+-rw-rw-r-- 1 ysc ysc  976 Oct  4 10:24 /tmp/p3a_payload/ws/src/40_navigation/lite3_navigation/launch/cmd_vel_raw_relay.launch
+-rwxr-xr-x 1 ysc ysc 6475 Oct  4 10:27 /tmp/p3a_payload/ws/src/50_task/pipeline_tracking/scripts/TaskTransfer.py
+-rw-rw-r-- 1 ysc ysc 1624 Oct  4 10:25 /tmp/p3a_payload/ws/src/60_safety/lite3_safety/config/cmd_vel_mux.yaml
+-rw-rw-r-- 1 ysc ysc  628 Oct  4 10:25 /tmp/p3a_payload/ws/src/60_safety/lite3_safety/launch/60_safety.launch
+-rwxr-xr-x 1 ysc ysc 4522 Oct  4 10:25 /tmp/p3a_payload/ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py
+== S2 落盘 + sha256 对账 ==
+[1] OK ws/src/50_task/pipeline_tracking/scripts/TaskTransfer.py
+[2] OK data/waypoints/README.md
+[3] OK ws/src/40_navigation/lite3_navigation/launch/cmd_vel_raw_relay.launch
+[4] OK ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py
+[5] OK ws/src/60_safety/lite3_safety/config/cmd_vel_mux.yaml
+[6] OK ws/src/60_safety/lite3_safety/launch/60_safety.launch
+== C4 删除 ==
+== chown + 权限 ==
+total 12
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 10:44 .
+drwxr-xr-x+ 4 ros1-slam ros1-slam 4096 Oct  4 10:44 ..
+-rw-r--r--  1 ros1-slam ros1-slam  676 Oct  4 10:22 README.md
+total 24
+-rw-r--r--+ 1 ros1-slam ros1-slam  368 Jul  2  2024 constants.py
+-rw-r--r--+ 1 ros1-slam ros1-slam 2547 Jul  2  2024 RobotCommander.py
+-rw-r--r--+ 1 ros1-slam ros1-slam 3209 May 31  2024 TaskPoint.py
+-rw-r--r--+ 1 ros1-slam ros1-slam 3685 Aug 20  2024 Task.py
+-rwxr-xr-x  1 ros1-slam ros1-slam 6475 Oct  4 10:27 TaskTransfer.py
+/home/ros1-slam/ws/src/60_safety/lite3_safety/config/:
+total 4
+-rw-r--r-- 1 ros1-slam ros1-slam 1624 Oct  4 10:25 cmd_vel_mux.yaml
+
+/home/ros1-slam/ws/src/60_safety/lite3_safety/launch/:
+total 12
+-rw-r--r--  1 ros1-slam ros1-slam  628 Oct  4 10:25 60_safety.launch
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 04:13 sink
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 04:13 stub
+
+/home/ros1-slam/ws/src/60_safety/lite3_safety/scripts/:
+total 8
+-rwxr-xr-x 1 ros1-slam ros1-slam 4522 Oct  4 10:25 safe_cmd_vel_mux.py
+S2落盘结果：N=6 FAIL=0
+
+########## S2 校验块 (1)-(5) 2026-10-04 10:44:16 ##########
+## (1) C4 删除复核
+ls: cannot access '/home/ros1-slam/ws/src/50_task/pipeline_tracking/scripts/dyn_reconfigure.py': No such file or directory
+## (2) C5：py_compile + 改写标记
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/usr/lib/python3.8/py_compile.py", line 215, in <module>
+    sys.exit(main())
+  File "/usr/lib/python3.8/py_compile.py", line 207, in main
+    compile(filename, doraise=True)
+  File "/usr/lib/python3.8/py_compile.py", line 157, in compile
+    os.makedirs(dirname)
+  File "/usr/lib/python3.8/os.py", line 223, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/home/ros1-slam/ws/src/50_task/pipeline_tracking/scripts/__pycache__'
+13
+4:# 【C5】重试语义：原"盲目 while 无限重发" → 读 recovery_policy.yaml（C11）按错误码分级重试：
+16:    权威：P3a.0 实测 log（outcome_tables.move_base，同 recovery_policy.yaml），禁止凭记忆增删。"""
+45:        self.moveBaseClient = actionlib.SimpleActionClient(action_name, mbf_msgs.MoveBaseAction)
+48:        # 【C5】读 C11 recovery_policy.yaml（路径经 rosparam 注入，默认 = P3a 落位）
+50:            '~recovery_policy',
+51:            '/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/recovery_policy.yaml')
+## (3) C7 载体：XML 可解析 + 不落 launch 行
+XML_OK:relay
+1
+2:  <!-- C7：/cmd_vel_raw 改名落地载体（v4 §8 C7 + N6 管道：controller(M4)→/cmd_vel_raw→safe_cmd_vel_mux(M6)→/cmd_vel→ros2qnx 仅真机 mode_navigation） -->
+5:  <arg name="cmd_vel_raw_source" default="FILL_AFTER_Q11"/>
+6:  <!-- <node pkg="topic_tools" type="relay" name="cmd_vel_raw_relay" args="$(arg cmd_vel_raw_source) /cmd_vel_raw"/> -->
+7:  <!-- 回退形态（move_base 单体，v4 §8 回退决策表）：源改 move_base 速度输出话题（v3 原形态），目标仍为 /cmd_vel_raw；同样仅回退裁决后 uncomment。 -->
+## (4) C8：yaml 语法 + 脚本编译 + 四设计要素
+YAML_OK:mux
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/usr/lib/python3.8/py_compile.py", line 215, in <module>
+    sys.exit(main())
+  File "/usr/lib/python3.8/py_compile.py", line 207, in main
+    compile(filename, doraise=True)
+  File "/usr/lib/python3.8/py_compile.py", line 157, in compile
+    os.makedirs(dirname)
+  File "/usr/lib/python3.8/os.py", line 223, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/home/ros1-slam/ws/src/60_safety/lite3_safety/scripts/__pycache__'
+5:output_rate_hz: 20.0            # 恒 20 Hz（Lite3 底盘 250 ms 超时不能断，v3 C8；50 ms 周期必须守恒）
+6:# 四设计（v3 C8）：六源优先级 / 超时淘汰 / 无源发零速 / 恒 20 Hz（Lite3 底盘 250 ms 超时不能断）
+60:    def _zero_twist():
+80:                out, cur = self._zero_twist(), 'HOLD'
+83:            else:                                        # C8：无源发零速（/cmd_vel 恒有输出，底盘超时不断）
+84:                out, cur = self._zero_twist(), 'NONE'
+6:# 四设计（v3 C8）：六源优先级 / 超时淘汰 / 无源发零速 / 恒 20 Hz（Lite3 底盘 250 ms 超时不能断）
+31:        # 六源按优先级排序（1 = 最高）；订阅全部源话题，超时淘汰在 _tick 内判定
+72:                if s['active'] and not fresh:            # 超时淘汰
+/home/ros1-slam/ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py:8:#   ① 监督保持输入：订阅 /lite3/supervisor/hold（std_msgs/Bool，唯一发布者 = SUP，C13），
+/home/ros1-slam/ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py:27:        hold_topic = cfg['hold_topic']               # /lite3/supervisor/hold（C8①）
+/home/ros1-slam/ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py:56:                rospy.logwarn('[M6] 监督保持输入 hold=%s（/lite3/supervisor/hold，唯一发布者=SUP）', bool(msg.data))
+/home/ros1-slam/ws/src/60_safety/lite3_safety/config/cmd_vel_mux.yaml:6:hold_topic: /lite3/supervisor/hold   # std_msgs/Bool；true 时无视各源直接输出零速直到 false（v4 C8②，唯一发布者 = SUP）
+六源 OK: ['estop', 'teleop_joy', 'teleop_app', 'task', 'navigation', 'demo']
+XML_OK:60_safety
+## (5) C6：目录就位
+/home/ros1-slam/data/waypoints/README.md
+########## S2 校验块 done ##########
+## (2b)(4b) py_compile 以 ros1-slam 身份重跑（ysc 对 scripts/ 无写权，D-S2-1）
+PY_OK:TaskTransfer
+PY_OK:mux
+## 校验副产物 __pycache__ 清理（P2 裁决：运行产物不入副本）
+/home/ros1-slam/ws/src/50_task/pipeline_tracking/scripts/:
+constants.py
+RobotCommander.py
+TaskPoint.py
+Task.py
+TaskTransfer.py
+
+/home/ros1-slam/ws/src/60_safety/lite3_safety/scripts/:
+safe_cmd_vel_mux.py
+## (3b) C7 元素级等效验证（grep 子串计数把注释行计入，D-S2-2）
+生效 node 元素数 = 0 (期望 0)
+ELEMENT_OK:relay 无生效 node
+## (3c) 注释行原文留证（node 行整体在 XML 注释内）
+4:       确认前不落 launch 行（本文件 node 行整体注释，G3a 不校验本项）。Q11 关闭后：填 arg 默认值 + 去掉下行注释即可。 -->
+6:  <!-- <node pkg="topic_tools" type="relay" name="cmd_vel_raw_relay" args="$(arg cmd_vel_raw_source) /cmd_vel_raw"/> -->
+########## S2 校验补完 ##########

@@ -1,0 +1,9 @@
+<launch>
+  <!-- C8：M6 安全 mux 主线（v4 N6 管道枢纽；/cmd_vel 唯一写者 = safe_cmd_vel_mux，§2.6 硬规则 a） -->
+  <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X） -->
+  <node pkg="lite3_safety" type="safe_cmd_vel_mux.py" name="safe_cmd_vel_mux" output="screen">
+    <param name="mux_config" value="$(find lite3_safety)/config/cmd_vel_mux.yaml"/>
+  </node>
+  <!-- C13-② 模块心跳：watch 侧比对 health_watch.yaml#modes.*.watch(M6_safety) -->
+  <node pkg="rostopic" type="rostopic" name="liveness_m6" args="pub -r 1 /lite3/liveness/m6_safety std_msgs/Empty"/>
+</launch>

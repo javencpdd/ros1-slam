@@ -1,0 +1,9 @@
+<launch>
+  <!-- C7：/cmd_vel_raw 改名落地载体（v4 §8 C7 + N6 管道：controller(M4)→/cmd_vel_raw→safe_cmd_vel_mux(M6)→/cmd_vel→ros2qnx 仅真机 mode_navigation） -->
+  <!-- ★ v4 明示裁决：mbf 形态下 relay 源话题 = mbf 服务器的速度输出话题，P3a.0 实测未覆盖该话题名 → Q11 联调确认后固化；
+       确认前不落 launch 行（本文件 node 行整体注释，G3a 不校验本项）。Q11 关闭后：填 arg 默认值 + 去掉下行注释即可。 -->
+  <arg name="cmd_vel_raw_source" default="FILL_AFTER_Q11"/>
+  <!-- <node pkg="topic_tools" type="relay" name="cmd_vel_raw_relay" args="$(arg cmd_vel_raw_source) /cmd_vel_raw"/> -->
+  <!-- 回退形态（move_base 单体，v4 §8 回退决策表）：源改 move_base 速度输出话题（v3 原形态），目标仍为 /cmd_vel_raw；同样仅回退裁决后 uncomment。 -->
+  <!-- 依赖：topic_tools 已装 1.16.0（dpkg 实测 2026-10-04）。 -->
+</launch>
