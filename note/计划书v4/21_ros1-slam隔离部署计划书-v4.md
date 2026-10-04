@@ -32,7 +32,7 @@
 
 | 级别 | # | 变更（内容 + 落点） | 原因（实测证据） |
 |---|---|---|---|
-| 🔴 架构 | **N1** | **M4 服务层从单体 move_base 升级为 mbf_costmap_nav 0.4.0 联邦式**（Nav2 联邦式架构的 ROS 1 现成实现）。实测依据：teb 插件描述符**双注册**（同时声明 `nav_core::BaseLocalPlanner` 与 `mbf_costmap_core::CostmapController`，可被 mbf 原生加载）；四 action Result 均带 `uint32 outcome + string message` 错误码；Goal 均带按名点单字段（GetPath: `planner`，ExePath: `controller`，Recovery: `behavior`，MoveBase 另有 `recovery_behaviors: string[]`）。**前置 S9**：`apt install ros-noetic-nav-core-adapter`（0.3.0，官方源）——仅全局规划器（global_planner/navfn 只注册了 `nav_core::BaseGlobalPlanner`）需要适配；**用户不批 S9 则整体回退 move_base 单体形态**（回退决策表见 §8：move_base 形态下 C11/C12/C13 保留，错误码退化为 move_base actionlib 三态 outcome，C11 降级为简化映射）。落点：§1.1（A11/A12）、§1.2（P3a.0 实测行）、§2.6、§8（C0 重写 + 回退表）、§15（Q9/Q10/Q11）、§5 P0.4（S9） | P3a.0 只读实测（寇豆码，2026-10-04，690 行 log，裁决可行） |
+| 🔴 架构 | **N1** | **M4 服务层从单体 move_base 升级为 mbf_costmap_nav 0.4.0 联邦式**（Nav2 联邦式架构的 ROS 1 现成实现）。实测依据：teb 插件描述符**双注册**（同时声明 `nav_core::BaseLocalPlanner` 与 `mbf_costmap_core::CostmapController`，可被 mbf 原生加载）；四 action Result 均带 `uint32 outcome + string message` 错误码；Goal 均带按名点单字段（GetPath: `planner`，ExePath: `controller`，Recovery: `behavior`，MoveBase 另有 `recovery_behaviors: string[]`）。**前置 S9**：`apt install ros-noetic-nav-core-adapter`（0.3.0，官方源）——仅全局规划器（global_planner/navfn 只注册了 `nav_core::BaseGlobalPlanner`）需要适配；**用户不批 S9 则整体回退 move_base 单体形态**（回退决策表见 §8：move_base 形态下 C11/C12/C13 保留，错误码退化为 move_base actionlib 三态 outcome，C11 降级为简化映射）。落点：§1.1（A11/A12）、§1.2（P3a.0 实测行）、§2.6、§8（C0 重写 + 回退表）、§15（Q9/Q10/Q11）、§5 P0.4（S9） | P3a.0 只读实测（小明，2026-10-04，690 行 log，裁决可行） |
 | 🟠 规约 | **N2** | 新增 **§2.6 导航栈设计规约**：八决策映射表 + 硬规则——lite3_navigation 壳包只许 launch/config/scripts/verify（**policy 层**），算法一律系统插件（**mechanism 层**），壳包内禁出现第三方算法源码；隔离自检新增 **[9]**：`find /home/ros1-slam/ws/src/40_navigation -name "*.cpp" -o -name "*.cc" -o -name "*.h"` 期望 0 命中。落点：§2.6、§11.2（[9]）、§8 G3a | 用户拍板 + P3a.0（teb/global_planner 均为系统插件） |
 | 🟠 诊断式恢复 | **N3** | 新增 **C11** `lite3_navigation/config/recovery_policy.yaml`——恢复原子动作注册 + 错误码→处置分级映射（局部重试 / 重规划 / 清图重规划 / 中止上报），错误码分类**以实测 log 中 GetPathResult/ExePathResult/RecoveryResult 的 outcome 常量表为准**（GetPath 15 档 SUCCESS=0…MAP_ERROR=62）；**C5 升级**：TaskTransfer.py 副本从盲目 `MAX_RETRY=3` 改为读 recovery_policy.yaml 分级重试，登记 04_配置改动diff.md。落点：§8 C11/C5、§3 | P3a.0（四 Result 错误码常量表实测） |
 | 🟠 词汇库契约 | **N4** | 新增 **C12** `lite3_task/config/task_primitives.yaml` 任务原语注册表 v1——navigate_to_pose / get_path / exe_path / recover / wait / clear_costmaps 六原语，每原语 = {action/service 目标， 类型， 关键 outcome 语义}；一期 M5 用系统 **SMACH 2.5.2**（实测可 import/实例化）写最小顺序状态机验证契约；py_trees 列二期（外部依赖 R19）。clear_costmaps 原语的服务挂载点实测未覆盖 → 标注"联调确认"（并入 Q11）。落点：§8 C12、§15 Q10/Q11、§16 | 用户拍板（契约先行）+ P3a.0（smach 2.5.2 ✅） |
@@ -362,7 +362,7 @@ grep -rn "/home/ysc" ws/src 2>/dev/null | wc -l   # 复扫：期望 0（laser_ma
 
 ### 8.0 ★ P3a.0 导航栈组件只读实测（✅ 2026-10-04 完成，收编 N1）
 
-执行者：寇豆码，只读实测（未起节点、未 roscore、未 apt install、未写 ws/opt、未触碰 `/home/ysc/lite_cog/`）。原始证据：`note/进度/计划书v4升级/证据/P3a0_mbf组件实测.log`（690 行；P3a.0 时因 sudo 受限先暂存 /tmp，**已按坑4 规约归档至证据目录**，/tmp 留同内容副本）。**本节及全文一切 mbf 字段名/参数名/插件 type 串以该 log 为唯一权威。**
+执行者：小明，只读实测（未起节点、未 roscore、未 apt install、未写 ws/opt、未触碰 `/home/ysc/lite_cog/`）。原始证据：`note/进度/计划书v4升级/证据/P3a0_mbf组件实测.log`（690 行；P3a.0 时因 sudo 受限先暂存 /tmp，**已按坑4 规约归档至证据目录**，/tmp 留同内容副本）。**本节及全文一切 mbf 字段名/参数名/插件 type 串以该 log 为唯一权威。**
 
 **组件清单裁决表**：
 
