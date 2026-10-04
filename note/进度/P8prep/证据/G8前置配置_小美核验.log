@@ -1,0 +1,47 @@
+G8 前置配置批验收 · 小美独立核验（只读 + 写 note/，零节点启动，全程未用 sudo）
+日期：2026-10-05 ｜ 验收人：小美 ｜ 施工申报 commit：d6c78b8（小明）
+
+[1] min_z 逐字核验
+$ grep -n "min_z:" /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml
+56:    min_z: -0.30    # C3 终值（Q3 实测雷达离地 38cm→地面 z≈-0.38@rslidar 系；-0.38+8~13cm 余量；G8 残差反推后复核，小张 2026-10-05）
+→ 与申报新行逐字一致 PASS（占位行 0.2 已不在盘上）
+
+[2] YAML 独立解析（不采信施工方自报）
+$ python3 -c "import yaml; d=yaml.safe_load(open('costmap_common.yaml')); rp=d['stvl_obstacle_layer']['rslidar_points']; print(rp['min_z'], rp['max_z'], rp['sensor_frame'])"
+min_z = -0.3 | max_z = 3.0 | sensor_frame = rslidar
+YAML parse: OK
+
+[3] launch XML 独立解析 + args/节点清点
+$ python3 -c "import xml.etree.ElementTree as ET; t=ET.parse('hdl_localization.launch'); ..."
+XML parse: OK, root = launch
+args 含 tf_x/tf_y/tf_z/tf_pitch（default 均 0.0，头注+逐 arg 注释标【现场量：G8 演练命令行试值后固化】）
+node: ('tf2_ros', 'static_transform_publisher', 'base_link_to_rslidar')
+static args: $(arg tf_x) $(arg tf_y) $(arg tf_z) 0.0 $(arg tf_pitch) 0.0 /base_link /rslidar
+→ 四 args 在列；static 行在位；Euler 形态槽位 yaw=0/pitch=tf_pitch/roll=0 正确；parent=/base_link child=/rslidar；全节点 6 个（解析通过）PASS
+
+[4] 留底 sha256 对账（重算 vs 证据/留底sha256_改前.log）
+7a20878d2d2560eea7495ec800970fd0a4d1ac589e6527eafc1f4f14ed06e022  raw/costmap_common.yaml.before_G8C3.bak   = 改前原件登记值 ✓
+3818e9d38915dc5a0ef5c4acfc61d4adf50c0052906806630bd8b089c9c45466  raw/hdl_localization.launch.before_G8B.bak = 改前原件登记值 ✓
+44cffc93d168a92772017d4363a1d08010ed0bf25b2aeb662cc938aab900f7a2  现行 costmap_common.yaml = 改后登记值 ✓
+b6caec31389b5b9c858d5869ada48601295013469b17a21b4ef6b64c49c2a219  现行 hdl_localization.launch = 改后登记值 ✓
+→ 四项全对上 PASS
+
+[5] ps 零节点独立复核
+$ ps aux | grep -E "rosmaster|roscore|roslaunch|rosnode|nodelet" | grep -v grep
+（零命中，EXIT=1）
+$ pgrep -af ros → 仅机侧原生 foxy transfer 三进程（jetson2app/jetson2motion/sensor_checker）+ ysc monitor 桥
+（=用户生产常态，02 坑3/Q8 常态共存口径，不在施工范围、未触碰）
+→ 沙箱 ROS1 零节点 PASS；ISOLATION [1]–[9] OK EXIT=0 证据在位（ISOLATION_P8prep.log）
+
+[6] 几何推导复核（离线计算）
+tan(7.5°)=0.13165；俯仰若 7.5°：d=0.5m → -0.38+0.066=-0.314≈-0.31 ✓；d=0.7m → -0.38+0.092=-0.288≈-0.29 ✓（与进度文档推导数吻合）
+带 -0.25~-0.30 = 地面(-0.38) + 0.08~0.13 ✓；取 -0.30 = 带内保守首候选；「G8 残差反推后复核（可上收 -0.25）」注记在行内 ✓
+Q3 基准：153ce32（P3b/证据/G3_正式底图_后处理.log L33「雷达光心离地高度：约 38 cm（±2cm）」）→ 地面 z≈-0.38@rslidar 系一致 ✓
+【现场量】标注在位：占位 0.0 不致被当实测；G8-2 判据（恒等阵=不通过）头注在位 ✓
+
+[7] 台账对账
+02 坑8（v2 判据表不在盘，处置二选一待主理人裁定）/ 坑9（销坑·恒等阵 stub 退役、static 行接替）/ 坑10（备查·min_z/max_z 过滤基准系未实证，G8 首日对账）——症状/根因/处置/计划书更新 四字段齐全 ✓
+04 +2 条（G8 前置/C3 min_z 终值定案、G8 前置/B TF 落壳·新增类）——旧值/新值/理由/留底 sha256/日期齐全 ✓
+00_总览 L66 小明登记一行在位 ✓
+
+结论：PASS（观察项 O1 申报「+13 行」实为 diff +10 行，内容完整仅计数口径差；O2 申报「7 参形态」实为 8 token Euler 形态（x y z yaw pitch roll + 双 frame），槽位/方向正确仅称谓差；O3 B_roslaunch_static_parse.log 未附命令行头——解析已由小美独立复验。三项均不阻塞）
