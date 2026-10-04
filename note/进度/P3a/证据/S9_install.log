@@ -1,0 +1,178 @@
+# P3a 前置 · S9 安装与 git 修复 · 证据日志
+# 日期：2026-10-04    执行者：寇豆码（施工工程师）    任务来源：主理人派单（用户已批 S9 代装）
+# 密码规约：sudo 密码回传一律 ***（实际为 2026-10-04 用户提供值）
+# 性质：git 属主修复（A）+ apt 安装（B）+ 台账建档（C）——未启任何机器人节点，除列明路径外未写任何文件
+
+################################################################
+# A · 修复 🔴 git 阻塞
+################################################################
+
+$ printf "%s\n" *** | sudo -S -p '' chown ros1-slam:ros1-slam /home/ros1-slam/.git/config
+$ ls -la /home/ros1-slam/.git/config
+-rw-rw----+ 1 ros1-slam ros1-slam 152 Oct  4 09:48 /home/ros1-slam/.git/config
+
+$ sudo -u ros1-slam git -C /home/ros1-slam status        # 第一跑仍失败
+fatal: .git/index: index file open failed: Permission denied
+
+$ ls -la /home/ros1-slam/.git/ | head -25                # 根因排查
+total 632
+drwxrwx---+   8 ros1-slam ros1-slam   4096 Oct  4 09:50 .
+drwxr-x---+  14 ros1-slam ros1-slam   4096 Oct  4 08:55 ..
+drwxrwx---+   2 ros1-slam ros1-slam   4096 Oct  4 06:00 branches
+-rw-rw----+   1 ros1-slam ros1-slam    157 Oct  4 08:55 COMMIT_EDITMSG
+-rw-rw----+   1 ros1-slam ros1-slam    152 Oct  4 09:48 config
+-rw-rw----+   1 ros1-slam ros1-slam     73 Oct  4 06:00 description
+-rw-rw----+   1 ysc       ysc            0 Oct  4 10:05 FETCH_HEAD
+-rw-rw----+   1 ros1-slam ros1-slam     21 Oct  4 06:00 HEAD
+drwxrwx---+   2 ros1-slam ros1-slam   4096 Oct  4 06:00 hooks
+-rw-rw----+   1 ysc       ysc       595346 Oct  4 09:50 index
+drwxrwx---+   2 ros1-slam ros1-slam   4096 Oct  4 06:00 info
+drwxrwx---+   3 ros1-slam ros1-slam   4096 Oct  4 06:00 logs
+drwxrwx---+ 260 ros1-slam ros1-slam   4096 Oct  4 06:00 objects
+drwxrwx---+   4 ros1-slam ros1-slam   4096 Oct  4 06:00 refs
+# → 根因：.git/index（09:50）与 FETCH_HEAD（10:05）属主为 ysc:ysc（ysc 侧 git 操作刷新所致）
+
+$ printf "%s\n" *** | sudo -S -p '' chown ros1-slam:ros1-slam /home/ros1-slam/.git/index /home/ros1-slam/.git/FETCH_HEAD
+$ ls -la /home/ros1-slam/.git/index /home/ros1-slam/.git/FETCH_HEAD
+-rw-rw----+ 1 ros1-slam ros1-slam      0 Oct  4 10:05 /home/ros1-slam/.git/FETCH_HEAD
+-rw-rw----+ 1 ros1-slam ros1-slam 595346 Oct  4 09:50 /home/ros1-slam/.git/index
+
+$ sudo -u ros1-slam git -C /home/ros1-slam status        # 验证：正常
+On branch main
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   "note/进度/00_断点核对_2026-10-04_P3a开工前.md"
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   "note/进度/00_断点核对_2026-10-04_P3a开工前.md"
+
+$ sudo -u ros1-slam git -C /home/ros1-slam log --oneline # 验证：3 commits
+d270fbe docs(note): 蓝本切换 v4 —— 计划书v4/计划书v4升级 入库，00_总览/00_README/README 引用同步（P0–P2 按 v3 冻结，P3a 起按 v4）
+ad02996 docs(note): REPO_INIT 进度文档与证据（仓库初始化任务落档）
+f09a2cc chore: 初始化 git 仓库 —— P0–P2 完成态快照（G0/G1/G1.5/G2 全 PASS，隔离自检 8 项通过）
+
+$ sudo -u ros1-slam git -C /home/ros1-slam ls-files | wc -l
+3858
+
+################################################################
+# B · S9 安装（ros-noetic-nav-core-adapter）
+################################################################
+
+$ printf "%s\n" *** | sudo -S -p '' apt-get install -y ros-noetic-nav-core-adapter
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  ros-noetic-nav-2d-utils
+The following NEW packages will be installed:
+  ros-noetic-nav-2d-utils ros-noetic-nav-core-adapter
+0 upgraded, 2 newly installed, 0 to remove and 763 not upgraded.
+Need to get 206 kB of archives.
+After this operation, 1,195 kB of additional disk space will be used.
+Get:1 http://packages.ros.org/ros/ubuntu focal/main arm64 ros-noetic-nav-2d-utils arm64 0.3.0-2focal.20250520.065120 [56.2 kB]
+Get:2 http://packages.ros.org/ros/ubuntu focal/main arm64 ros-noetic-nav-core-adapter arm64 0.3.0-2focal.20250521.021323 [150 kB]
+debconf: unable to initialize frontend: Dialog
+debconf: (Dialog frontend will not work on a dumb terminal, an emacs shell buffer, or without a controlling terminal.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Teletype
+dpkg-preconfigure: unable to re-open stdin:
+Fetched 206 kB in 8s (24.3 kB/s)
+Selecting previously unselected package ros-noetic-nav-2d-utils.
+(Reading database ... 311988 files and directories currently installed.)
+Preparing to unpack .../ros-noetic-nav-2d-utils_0.3.0-2focal.20250520.065120_arm64.deb ...
+Unpacking ros-noetic-nav-2d-utils (0.3.0-2focal.20250520.065120) ...
+Selecting previously unselected package ros-noetic-nav-core-adapter.
+Preparing to unpack .../ros-noetic-nav-core-adapter_0.3.0-2focal.20250521.021323_arm64.deb ...
+Unpacking ros-noetic-nav-core-adapter (0.3.0-2focal.20250521.021323) ...
+Setting up ros-noetic-nav-2d-utils (0.3.0-2focal.20250520.065120) ...
+Setting up ros-noetic-nav-core-adapter (0.3.0-2focal.20250521.021323) ...
+apt_exit=0
+
+$ dpkg -l | grep nav-core-adapter
+ii  ros-noetic-nav-core-adapter                            0.3.0-2focal.20250521.021323          arm64        This package contains adapters for using `nav_core` plugins as `nav_core2` plugins and vice versa (more or less).
+
+$ source /opt/ros/noetic/setup.bash && rospack find nav_core_adapter
+/opt/ros/noetic/share/nav_core_adapter
+
+$ rospack plugins --attrib=plugin nav_core_adapter
+（空输出——非异常，原因见下「plugins 命令语义说明」）
+
+$ ls -R /opt/ros/noetic/share/nav_core_adapter/
+/opt/ros/noetic/share/nav_core_adapter/:
+cmake
+nav_core2_plugins.xml
+nav_core_plugins.xml
+package.xml
+
+/opt/ros/noetic/share/nav_core_adapter/cmake:
+nav_core_adapterConfig.cmake
+nav_core_adapterConfig-version.cmake
+
+$ grep -A8 "<export>" /opt/ros/noetic/share/nav_core_adapter/package.xml
+  <export>
+    <nav_core plugin="${prefix}/nav_core_plugins.xml"/>
+    <nav_core2 plugin="${prefix}/nav_core2_plugins.xml"/>
+  </export>
+</package>
+
+【plugins 命令语义说明】`rospack plugins --attrib=X PKG` 的语义是：从 PKG 出发沿**依赖闭包**（对照实测**不含自身**：navfn 自查亦空，而其 package.xml 明有 <export><nav_core .../></export>）中查找导出 X 标签的包。adapter 的 export 标签名为 nav_core / nav_core2（非裸 plugin），且其依赖闭包内无人导出 → 空输出为命令语义所致，**不是安装问题**。插件描述符权威来源 = share 下两个 XML 文件，全文如下（高见远 C0 用 type 串）：
+
+$ cat /opt/ros/noetic/share/nav_core_adapter/nav_core_plugins.xml
+<class_libraries>
+  <library path="lib/liblocal_planner_adapter">
+    <class type="nav_core_adapter::LocalPlannerAdapter" base_class_type="nav_core::BaseLocalPlanner">
+      <description></description>
+    </class>
+  </library>
+  <library path="lib/libglobal_planner_adapter">
+    <class type="nav_core_adapter::GlobalPlannerAdapter" base_class_type="nav_core::BaseGlobalPlanner">
+      <description></description>
+    </class>
+  </library>
+</class_libraries>
+
+$ cat /opt/ros/noetic/share/nav_core_adapter/nav_core2_plugins.xml
+<class_libraries>
+  <library path="lib/libglobal_planner_adapter2">
+    <class type="nav_core_adapter::GlobalPlannerAdapter2" base_class_type="nav_core2::GlobalPlanner">
+      <description></description>
+    </class>
+  </library>
+  <library path="lib/libcostmap_adapter">
+    <class type="nav_core_adapter::CostmapAdapter" base_class_type="nav_core2::Costmap">
+      <description></description>
+    </class>
+  </library>
+</class_libraries>
+
+【type 串清单（4 个）】
+1. nav_core_adapter::LocalPlannerAdapter   ← base: nav_core::BaseLocalPlanner
+2. nav_core_adapter::GlobalPlannerAdapter  ← base: nav_core::BaseGlobalPlanner
+3. nav_core_adapter::GlobalPlannerAdapter2 ← base: nav_core2::GlobalPlanner
+4. nav_core_adapter::CostmapAdapter        ← base: nav_core2::Costmap
+
+################################################################
+# C · P3a 台账建档（见 ../进度文档.md 与 00_总览.md 追加行）
+################################################################
+
+C4 安全检查（git add 前置门槛）：
+
+$ sudo -u ros1-slam git -C /home/ros1-slam ls-files | grep -i "登录密码"
+（零命中，grep_exit=1）
+$ sudo -u ros1-slam git -C /home/ros1-slam ls-files | grep -iE "password|secret|密码"
+（零命中，grep_exit=1）
+$ cat /home/ros1-slam/.gitignore    # 已存在（05:59 建），且已含规则，未改动：
+# ---- 敏感信息：绝不入库（密码唯一副本只留磁盘，sudo 查看）----
+*登录密码*
+note/**/证据/*密码*
+
+$ sudo -u ros1-slam git -C /home/ros1-slam add note/ .gitignore
+$ sudo -u ros1-slam git -C /home/ros1-slam commit -m "P3a 开工基线：断点核对落档+S9 安装(Q9 关闭)+.git/config 属主修复"
+（提交输出与 hash 见下）
+
+$ git -C /home/ros1-slam log --oneline -1
+<HASH>
