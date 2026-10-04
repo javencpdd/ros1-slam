@@ -1,0 +1,26 @@
+--- /home/ros1-slam/note/进度/P8prep/证据/raw/hdl_localization.launch.before_G8B.bak	2026-10-05 00:46:06.690820838 +0800
++++ /home/ros1-slam/ws/src/20_localization/lite3_localization/launch/hdl_localization.launch	2026-10-05 04:32:12.034119606 +0800
+@@ -28,6 +28,11 @@
+   <arg name="nodelet_manager" default="velodyne_nodelet_manager" />
+   <arg name="points_topic" default="/rslidar_points" />
+   <arg name="map_name" default="lite3" />
++  <!-- base_link→rslidar 外参 args（小张 G8 备战包 B 单 2026-10-05；数值回填前保持 0 占位——【现场量：G8 演练命令行试值后固化】） -->
++  <arg name="tf_x" default="0.0" />      <!-- 现场量：雷达相对 base_link 前向偏移 -->
++  <arg name="tf_y" default="0.0" />      <!-- 现场量：雷达相对 base_link 左向偏移 -->
++  <arg name="tf_z" default="0.0" />      <!-- 现场量：0.38 − h_base，h_base=平地站姿 base_link 离地高 -->
++  <arg name="tf_pitch" default="0.0" />  <!-- Q13：粗测量角器 → G8 残差反推精修（倾向 7.5°） -->
+   <!-- input clouds are transformed in odom_child_frame, and then localization is performed in that frame -->
+   <!-- this is useful to match the LIDAR and IMU coodinate systems -->
+   <arg name="odom_child_frame_id" default="base_link" />
+@@ -44,6 +49,11 @@
+ 
+   <include file="$(find hdl_global_localization)/launch/hdl_global_localization.launch" if="$(arg use_global_localization)" />
+ 
++  <!-- base_link→rslidar 静态外参（G8 定案形态，小张 B 单 2026-10-05）：z=0.38−h_base（h_base 现场量），pitch=Q13 精测值；
++       【现场量：G8 演练命令行试值后固化】——数值回填前保持 0 占位，不得以恒等阵蒙混上 G8（G8-2 判据：恒等阵=不通过）；
++       P6/P7 命令行恒等阵 stub 自此退役（销坑记录见 02） -->
++  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_rslidar"
++        args="$(arg tf_x) $(arg tf_y) $(arg tf_z) 0.0 $(arg tf_pitch) 0.0 /base_link /rslidar" />
+   <!-- in case you use velodyne_driver, comment out the following line -->
+   <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>
+ 

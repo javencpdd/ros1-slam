@@ -1,0 +1,11 @@
+--- /home/ros1-slam/note/进度/P8prep/证据/raw/costmap_common.yaml.before_G8C3.bak	2026-10-04 10:24:04.943413759 +0800
++++ /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml	2026-10-05 04:31:43.333726460 +0800
+@@ -53,7 +53,7 @@
+     inf_is_valid: false           #default false, for laser scans
+     marking: true
+     clearing: true    # C3（F2 坑1：底稿 false，观测永不清除）
+-    min_z: 0.2    # C3/Q3 占位：保留底稿值，tf_echo base_link rslidar 体检后修订（C16 安装倾角实测后回填）
++    min_z: -0.30    # C3 终值（Q3 实测雷达离地 38cm→地面 z≈-0.38@rslidar 系；-0.38+8~13cm 余量；G8 残差反推后复核，小张 2026-10-05）
+     max_z: 3.0
+     vertical_fov_angle: 0.56
+     vertical_fov_padding: 0.0
