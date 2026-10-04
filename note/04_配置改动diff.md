@@ -66,3 +66,6 @@
 - P7/勘误·O-3（小美移交，D-P7-4 表述收窄）：D-P7-4「root 身份运行期落下的日志属主修正」范围以实测收窄——窗口节点树属主 ros1-slam 成立（ps 全树核验过），实际 root 属主遗留仅探针侧 2 件 rostopic 日志（logs/rostopic_112790_1791134255501.log、rostopic_112818_1791134257659.log，01:17 GetPath 冒烟窗遗留，1099/1605 字节）——本次 chown ros1-slam:ros1-slam 归位，find /home/ros1-slam/logs -user root 复核=0；其余 .git/index 属主 ysc→ros1-slam 修复见 P3a 先例、latest 符号链接等已于主批 D-P7-4 纠正时归位（终态 0）2026-10-05
 - data/maps/lite3.yaml origin z：nan → 0.0（D-L1 裁决落地：正式底图出图后处理置 z=0.0，map_server 兼容）2026-10-05
 - data/maps/lite3.{pcd,pgm,yaml}：正式底图重采替换（外圈闭环 0.25m/5.6°，21609 点，188×272@0.05；样张已归档 note/进度/P3b/证据/）2026-10-05
+- faster_lio_outdoor.yaml filter_size_map：0.3 → 0.1（加密重采：地图体素密度主杠杆，稀疏根因对策；实测建图 CPU 15%/内存余量充足）2026-10-05
+- faster_lio_outdoor.yaml filter_size_surf：0.3 → 0.15（进图点密度×4 配套）2026-10-05
+- data/maps/lite3.*：底图 v1（0.3 体素外圈版，G3 PASS b7e8071）归档至 note/进度/P3b/证据/lite3_底图v1.*，待加密重采版替换 2026-10-05
