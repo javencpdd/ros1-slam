@@ -21,7 +21,7 @@ for rel in "${!PKGS[@]}"; do
   <name>$name</name>
   <version>0.1.0</version>
   <description>lite3 shell package (${PKGS[$rel]}) - self-owned launch/config/scripts only</description>
-  <maintainer email="ysc@local">ysc</maintainer>
+  <maintainer email="ros1-slam@lite3.local">ysc</maintainer>
   <license>Proprietary</license>
   <buildtool_depend>catkin</buildtool_depend>
 </package>

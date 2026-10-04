@@ -17,3 +17,6 @@
 - C11: lite3_navigation/config/recovery_policy.yaml 新增（恢复原子动作注册表 + outcome_tables 四表 15/19/10/11 档自实测 log 原样摘录 + disposition 分级映射；消费者=C12 SMACH 与 C5 TaskTransfer）（v4 §8 C11/N3）2026-10-04
 - C12: lite3_task/config/task_primitives.yaml + scripts/task_smach_min.py + launch/50_task_smach_min.launch 新增（六原语注册表 v1；SMACH 2.5.2 最小顺序状态机骨架，不接真实 action client；launch 为架构师裁量增补载体）（v4 §8 C12/N4）2026-10-04
 - C13: lite3_supervisor/config/health_watch.yaml + scripts/health_monitor.py + launch/90_supervisor.launch 新增（按 mode watch 清单 + 1 Hz 心跳监控 + 失联 hold 降级；红线：SUP 绝不直写速度话题，唯一输出=/lite3/supervisor/hold；本批 mbf_navigation.launch/60_safety.launch 同步内置 M4/M6 心跳行）（v4 §8 C13/N5）2026-10-04
+- D-P5-3 裁决执行: ws/src/30_perception/deeprobotics_local_height_map/CATKIN_IGNORE 新增（主理人裁决；包本体保留仅标记跳过——上游无源码包，二期 M3 开工时删除即恢复；纯默认 catkin_make 验证该包零出现且总构建成功）2026-10-04
+- D-P5-1 模板同步: scripts/gen_shell_pkgs.sh 模板 maintainer email ysc@local → ros1-slam@lite3.local（与批1 对 9 个已生成 package.xml 的修复对齐，杜绝重造再犯）2026-10-04
+- .gitignore 追加 .cmake/（catkin 用户级缓存目录，防误入库）2026-10-04
