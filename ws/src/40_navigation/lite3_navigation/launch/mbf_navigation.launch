@@ -3,6 +3,9 @@
   <!-- M4 主线：mbf_costmap_nav 联邦式服务器（v4 N1）。rosparam 在 node 标签内 → 参数落私有命名空间；
        各文件挂载 ns 为 v4 设计稿，P3a.0 未实测 → Q11（P6 下 rosparam get 复核后固化/修正）。 -->
   <node pkg="mbf_costmap_nav" type="mbf_costmap_nav" name="move_base_flex" output="screen">
+    <!-- C7 修正批（主理人裁决 Q11-④）：mbf 控制器输出直写根命名空间速度话题，违反 §2.6-a 唯一写者——
+         remap 并入 M6 管道 navigation 源（cmd_vel_raw），由 safe_cmd_vel_mux 转发。 -->
+    <remap from="cmd_vel" to="cmd_vel_raw"/>
     <rosparam command="load" file="$(find lite3_navigation)/config/mbf_navigation.yaml"/>
     <rosparam command="load" file="$(find lite3_navigation)/config/planner_teb.yaml"/>
     <rosparam command="load" file="$(find lite3_navigation)/config/global_planner_params.yaml"/>

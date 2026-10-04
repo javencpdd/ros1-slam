@@ -1,0 +1,14 @@
+# 修正批复测-④ GetPath 冒烟（第3次：/map 就位 + TF 10Hz fresh-stamp）2026-10-04 23:19:17
+-- 发 goal（target map系 x=2 y=0；tolerance 0.5）--
+publishing and latching message for 3.0 seconds
+-- get_path/result（15s 窗，期望 outcome=0 + path 非空）--
+-- result path 段数与末点 --
+0
+-- get_path/status --
+status_list: 
+    status: 4
+    text: "Could not get the current robot pose!"
+-- 盯防：/cmd_vel 发布者复核（期望仍仅 mux）--
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:46753/)
+

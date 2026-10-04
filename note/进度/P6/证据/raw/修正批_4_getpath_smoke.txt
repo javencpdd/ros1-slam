@@ -1,0 +1,25 @@
+# 修正批复测-④ GetPath 冒烟（重跑，/map 阻塞已解除）2026-10-04 23:14:39
+-- 前置：stub /map latched 20x20@1.0m（探针级，零落盘；首次尝试因 YAML origin 形状错未发布，已修正重跑）--
+Publishers: 
+ * /rostopic_103109_1791126843166 (http://192.168.1.103:43203/)
+
+-- global_costmap 阻塞解除证明 --
+/move_base_flex/global_costmap/costmap
+-- 发 goal（target map系 x=2 y=0；tolerance 0.5）--
+publishing and latching message for 3.0 seconds
+-- get_path/result（15s 窗，期望 outcome=0 + path 非空）--
+-- get_path/status --
+status_list: 
+    status: 4
+    text: "Could not get the current robot pose!"
+-- 盯防：/cmd_vel/linear/x 3 采样 --
+0.0
+---
+0.0
+---
+0.0
+---
+-- 盯防：/cmd_vel 发布者复核（期望仍仅 mux）--
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:46753/)
+

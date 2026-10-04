@@ -25,5 +25,9 @@ primitives:
   wait:
     target: "local:timer"                        # 无 ROS 目标：本地定时器（params 默认 duration_s: 1.0）
     outcome_semantics: "succeeded/aborted 二态"
-  clear_costmaps:
-    target: "service:挂载点联调确认"              # ★ 实测未覆盖：mbf 侧 clear_costmaps 服务名/类型 → Q11（并入）；succeeded/aborted 二态
+  # ★★ clear_costmaps 原语并入 recover 原语（P6 修正批·主理人裁决 Q11-②，2026-10-04）：
+  #    调用方（C12 SMACH / C5 TaskTransfer）按 recover 原语 by_name_field=behavior 点单 clear_costmaps
+  #    （RecoveryAction behavior=clear_costmaps）；mbf 无独立 clear_costmaps 服务（P6-Q11-② rosservice 全量清单实测），
+  #    原 target "service:挂载点联调确认" 作废注销、不回填。注销原节留痕如下：
+  # clear_costmaps:
+  #   target: "service:挂载点联调确认"             # ★ 原值（2026-10-04 注销）：mbf 侧无此形态目标；succeeded/aborted 二态并入 recover outcome

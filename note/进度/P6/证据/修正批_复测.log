@@ -1,0 +1,60 @@
+#═══ P6 修正批 · 主理人四项裁决落地 + C7 定向复测汇总 · 2026-10-04 23:35 ═══
+# 执行：小明（施工工程师）；全程零 /home/ysc 触碰、零 ros2qnx、零狗体反应（无消费者链）
+# 栈：roscore -p 11312 → M0(01_sensors.launch) → M0 临时心跳(/lite3/liveness/m0_drivers 1Hz，GAP-1 同款代偿)
+#     → stub TF → M6(60_safety.launch) → M4(mbf_navigation.launch，含新 remap)；SUP 未起（复测缩编规程）
+#     → stub /map 探针（GetPath 冒烟用，命令行 latched，零落盘文件）
+
+────── 裁决落地 ──────
+【裁决1 / Q11-④，红线级】mbf_navigation.launch move_base_flex 节点内（唯一实例，无第二个 costmap_navigation_server）
+  新增：<remap from="cmd_vel" to="cmd_vel_raw"/>
+  留底：raw/mbf_navigation.launch.before_C7remap.bak（sha256=115488125e0ffa2f0c5dbcfc1a6d6fab168f892c414e659fa1dde625ce34b64e，与原件逐字一致）
+  校验：xml.etree 解析 OK，remap= [('cmd_vel', 'cmd_vel_raw')]；落 node 内 name=move_base_flex
+  04 台账：已登记（旧值/新值/理由）
+【裁决2 / Q11-②】task_primitives.yaml clear_costmaps 原语节整节注释注销
+  标注：并入 recover 原语（RecoveryAction behavior=clear_costmaps）；mbf 无独立 clear_costmaps 服务（Q11-② 实测）；
+        原 target "service:挂载点联调确认" 作废不回填，原节注释留痕
+  留底：raw/task_primitives.yaml.before_Q11-2merge.bak（sha256=3a428da3b0b9c12a7fb6de4c6271bc3635f2e43ce09bdb572146ac68baac150f）
+  校验：yaml.safe_load OK，primitives=exe_path/get_path/navigate_to_pose/recover/wait（5 键）
+  04 台账：已登记
+【裁决3 / F-B2-1】纯登记（进度文档修正批节）：SUP hold 复位需 SUP+M6 双重启（S-3/S-4 实证）；复位语义改进归 M5 联调
+【裁决4 / GAP-4·D-L1】纯登记（进度文档修正批节）：map_server 拒收 origin z=nan；下次出图后处理置 z=0.0，样张不回改
+
+────── 定向复测（C7 remap 生效证明，manifest P6.2 规程缩编）──────
+① /cmd_vel 发布者（期望=唯一 /safe_cmd_vel_mux）→ **PASS**
+   raw/修正批_1_cmd_vel_info.txt：Publishers: * /safe_cmd_vel_mux (http://192.168.1.103:46753/)，Subscribers: None
+   GetPath 冒烟前后三次复核（smoke.txt/smoke_final.txt）：仍唯一，零双发布者（停机条件未触发）
+② /cmd_vel_raw 发布者（期望含 mbf）→ **PASS**
+   raw/修正批_2_cmd_vel_raw_info.txt：Publishers: * /move_base_flex；Subscribers: * /safe_cmd_vel_mux
+   —— mbf→mux 管道首尾相接（C7 管道闭环：mbf 输出并入 navigation 源 p5）
+③ rostopic list | grep move_base_flex（三 action 族回归）→ **PASS**
+   raw/修正批_3_action_families.txt：get_path/exe_path/recovery 三族各 goal/cancel/feedback/result/status 五件套
+   + current_goal + local_costmap 话题族——remap 未伤 action
+④ GetPath 冒烟（payload B.3 探针口径）→ **PASS（outcome=0，Plan found，末点精确命中）**
+   raw/修正批_4_getpath_smoke_final.txt + _result_detail.txt：
+   result.outcome=0 / message="Plan found" / path.frame_id=map / 末点 x=2.0 y=0.0（goal x=2,y=0）
+   status=3 SUCCEEDED "Plan found"——P6.3 S-5 "服务器零处理反应" 的根因（无 /map 阻塞 + TF 新鲜度）本次已解：
+   stub /map 解 static_layer 阻塞 → costmap 话题族全出（P6.3 期间 global_costmap/costmap 不存在）
+   TF fresh-stamp 解 mbf 保鲜校验（"Most recent robot pose is 1.79113e+09s old"）
+   【探针级偏差，零落盘零代码】stub /map 20x20@1.0m latched（首跑 YAML origin 需 Pose 嵌套，修正后重跑，登记 r1 失败原样留证）；
+   stub TF 三段演化（均命令行级）：static_transform_publisher（P6.2 同款，一次 latch）→ rostopic pub 10Hz（now 仅解析期求值一次，
+   冗余戳被 TF 缓存拒，留 r3/r4 失败原样）→ python TransformBroadcaster 10Hz fresh-stamp（终态 tfbr.py 在 /tmp，未入库）；
+   M4 重启一次以清 /tf_static 旧 latch 残留（tf2 静态转换优先压制动态新戳）
+⑤ 退净 + 隔离 → **PASS**
+   tmux 全窗 C-c 退净 → kill-server；ps 零 ROS1 残留（roscore/roslaunch/rostopic/move_base_flex/mux/livox/静态TF 全空）；11312 释放
+   v3_isolation.sh [1]–[9] 复跑 === ISOLATION OK === EXIT=0（raw/修正批_v3_isolation.txt；[6] 对 remap 行 cmd_vel_raw 子串豁免判定兑现，[9] 在列）
+
+────── M0 / qnx2ros 死活登记 ──────
+- livox_lidar_publisher2：存活，/rslidar_points 10.051 Hz（costmap 供点云在位）；Mid-360 实机检测数据流正常（SN ARMCP740036581）
+- qnx2ros：**死**——bind error:: Address already in use（UDP 43897 被 root 侧 jetson2motion 占用，foxy 栈已恢复=生产常态，与坑5/GAP-6 因果一致；
+  P6.2 存活为停栈窗口特例）。死进程 master 登记残留至 roscore 退出（stale URI，无数据流，无害）；/imu/data 无输出（M0 心跳代偿不影响本批判据）
+
+────── 停机条件核查 ──────
+- /cmd_vel 双发布者：未出现（唯一写者全程保持）
+- 同命令三次失败：GetPath 冒烟经 5 次尝试但非同一命令重复失败（每次失败即定位新根因并修正探针：YAML 形状→TF 戳→TF 通道），
+  终态成功；均属探针级调试，非 mbf/remap 故障，失败原样留证 raw/修正批_4_getpath_smoke{,_r3,_r4}.txt
+- 异常狗体反应：零（无消费者链，从未启 ros2qnx/message_transformer→底盘方向）
+
+────── 证据索引 ──────
+汇总：本文件；raw/：修正批_1_cmd_vel_info / 修正批_2_cmd_vel_raw_info / 修正批_3_action_families /
+修正批_4_getpath_smoke{,_r3,_r4,_final} / 修正批_4_getpath_result_detail / 修正批_v3_isolation /
+mbf_navigation.launch.before_C7remap.bak / task_primitives.yaml.before_Q11-2merge.bak

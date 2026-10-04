@@ -1,0 +1,11 @@
+[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+[2] 自研壳中是否含 /home/ysc
+[3] .bashrc 是否 source 了其他 devel
+[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+[5] ★ 模块间是否互相 include launch（20 号 K3）—— v3 修复子 shell 丢 FAIL bug
+[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug；v4 语义注记：lite3_supervisor 亦在扫描范围（SUP 红线：绝不写 /cmd_vel，N5/C13）
+[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.cc/.h）
+=== ISOLATION OK ===
+ISOLATION_EXIT=0
