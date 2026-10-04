@@ -1,5 +1,5 @@
 # P3a 前置 · S9 安装与 git 修复 · 证据日志
-# 日期：2026-10-04    执行者：寇豆码（施工工程师）    任务来源：主理人派单（用户已批 S9 代装）
+# 日期：2026-10-04    执行者：施工工程师-小明    任务来源：主理人派单（用户已批 S9 代装）
 # 密码规约：sudo 密码回传一律 ***（实际为 2026-10-04 用户提供值）
 # 性质：git 属主修复（A）+ apt 安装（B）+ 台账建档（C）——未启任何机器人节点，除列明路径外未写任何文件
 
@@ -119,7 +119,7 @@ $ grep -A8 "<export>" /opt/ros/noetic/share/nav_core_adapter/package.xml
   </export>
 </package>
 
-【plugins 命令语义说明】`rospack plugins --attrib=X PKG` 的语义是：从 PKG 出发沿**依赖闭包**（对照实测**不含自身**：navfn 自查亦空，而其 package.xml 明有 <export><nav_core .../></export>）中查找导出 X 标签的包。adapter 的 export 标签名为 nav_core / nav_core2（非裸 plugin），且其依赖闭包内无人导出 → 空输出为命令语义所致，**不是安装问题**。插件描述符权威来源 = share 下两个 XML 文件，全文如下（高见远 C0 用 type 串）：
+【plugins 命令语义说明】`rospack plugins --attrib=X PKG` 的语义是：从 PKG 出发沿**依赖闭包**（对照实测**不含自身**：navfn 自查亦空，而其 package.xml 明有 <export><nav_core .../></export>）中查找导出 X 标签的包。adapter 的 export 标签名为 nav_core / nav_core2（非裸 plugin），且其依赖闭包内无人导出 → 空输出为命令语义所致，**不是安装问题**。插件描述符权威来源 = share 下两个 XML 文件，全文如下（小张 C0 用 type 串）：
 
 $ cat /opt/ros/noetic/share/nav_core_adapter/nav_core_plugins.xml
 <class_libraries>

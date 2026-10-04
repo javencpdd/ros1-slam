@@ -1,8 +1,8 @@
 # =====================================================================
 # Gate G4 验收证据 | 21号计划书 v4 §10 P5.2（P5 编译构建收尾门禁）+ P4 依赖核对附加
-# 执行人: 严过关（验收工程师） | 目标机: lite3-f20-1-103
+# 执行人: 验收工程师-小美 | 目标机: lite3-f20-1-103
 # 证据采集时间: 2026-10-04 12:09:41 +0800
-# 说明: 全部校验命令由严过关在本机独立重跑（不采信施工方结论）、以实际输出判定；
+# 说明: 全部校验命令由小美在本机独立重跑（不采信施工方结论）、以实际输出判定；
 #       sudo 密码已脱敏为 ***；不修施工问题、未启动任何机器人节点（rospack 静态解析，无 master）
 # =====================================================================
 
@@ -65,7 +65,7 @@ Gate G4 = PASS | 路由 NoOne
   O3 = batch1 归档 log 为 email 修复后成功重跑（未含 Invalid email 首跑阻断原文）；阻断过程以
        进度文档 D-P5-1 叙述 + wrap log 模板同步段留证，九壳包 email 现值已实查合规。
 
-（证据采集时间: 2026-10-04 12:09–12:13 +0800；执行人: 严过关）
+（证据采集时间: 2026-10-04 12:09–12:13 +0800；执行人: 小美）
 
 【命令索引（sudo 提权命令脱敏形态；密码一律 ***）】
 PW="***"; printf '%s\n' "$PW" | sudo -S -p '' bash /home/ros1-slam/scripts/as_ros1slam.sh 'bash /tmp/g4_yan/g4_core.sh'   # 判据1-3（source devel 后 rospack 六包 + RPP 计数）
@@ -76,7 +76,7 @@ PW="***"; printf '%s\n' "$PW" | sudo -S -p '' bash /home/ros1-slam/scripts/as_ro
 【附录】判据1-3 校验脚本全文（/tmp/g4_yan/g4_core.sh，以 ros1-slam 身份执行）
 ------------------------------------------------------------------------
 #!/usr/bin/env bash
-# G4 核心判据独立复核（严过关，2026-10-04）——以 ros1-slam 身份执行
+# G4 核心判据独立复核（小美，2026-10-04）——以 ros1-slam 身份执行
 echo "== 判据1：ws/devel/setup.bash 存在性 =="
 ls -la /home/ros1-slam/ws/devel/setup.bash
 test -f /home/ros1-slam/ws/devel/setup.bash && echo "DEVEL_SETUP=EXISTS" || echo "DEVEL_SETUP=MISSING"

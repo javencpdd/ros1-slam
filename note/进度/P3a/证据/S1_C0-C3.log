@@ -1,5 +1,5 @@
 # P3a S1（C0–C3）施工全量日志
-# 日期：2026-10-04    执行者：寇豆码（施工工程师）    依据：/tmp/p3a_manifest.md S1 片 + 主理人派单
+# 日期：2026-10-04    执行者：施工工程师-小明    依据：/tmp/p3a_manifest.md S1 片 + 主理人派单
 # sudo 密码规约：回传一律 ***；本切片性质：落盘 10 文件（sha256 对账）+ S1 校验块 (0)-(7)（私有 master 11411）——未启任何机器人节点，master 已退净
 # 偏差索引：D-S1-1 lid_topic 行尾注释致 manifest 正则$未命中(值正确,等效验证)；D-S1-2 首次 roscore 未采信 export 的 ROS_MASTER_URI(起了空 master@11311,约2min,无节点无参数)→杀后 roscore -p 11411 显式重起；D-S1-3 载荷664→补chmod644(manifest 注记)；D-S1-4 setsid 下 pid 文件未写成功→按 ps 实际 PID 杀(三进程分别确认)
 

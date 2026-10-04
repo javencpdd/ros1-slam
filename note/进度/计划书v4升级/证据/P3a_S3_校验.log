@@ -1,5 +1,5 @@
 # P3a S3（C9–C13）施工全量日志
-# 日期：2026-10-04    执行者：寇豆码（施工工程师）    依据：/tmp/p3a_manifest.md S3 片 + 主理人派单
+# 日期：2026-10-04    执行者：施工工程师-小明    依据：/tmp/p3a_manifest.md S3 片 + 主理人派单
 # sudo 密码规约：回传一律 ***；本切片性质：C9/C11/C12/C13 落盘 10 文件（sha256 对账）+ 校验块 (0)-(6)（第二段私有 master 11411）——未启任何机器人节点，master 已退净
 # 偏差索引：D-S3-1 variants/ 目录未预建致 3 文件首落失败（No such file）→ install -d 后重落，3/3 对账 OK，累计 10/10；D-S3-2 variants 三文件 cp -a 保留载荷属主 ysc → 补 chown ros1-slam；D-S3-3 py_compile 与 S1/S2 同规程以 ros1-slam 身份执行并清 __pycache__；D-S3-4 残留检查 exit 码首查被 tee 管道失真（0 取到 tee）→ 补无管道干净复核三查 exit=1（零匹配）
 # G3a-③ type 串素材：S3 无新增 type 串（recovery 行为 type 串 clear_costmap_recovery/ClearCostmapRecovery 已在 S1 (6) 抓取）

@@ -1,5 +1,5 @@
 # P3a S2（C4–C8）施工全量日志
-# 日期：2026-10-04    执行者：寇豆码（施工工程师）    依据：/tmp/p3a_manifest.md S2 片 + 主理人派单
+# 日期：2026-10-04    执行者：施工工程师-小明    依据：/tmp/p3a_manifest.md S2 片 + 主理人派单
 # sudo 密码规约：回传一律 ***；本切片性质：C4 删除（留底 07559540133164c576d9781030d91c9daad34e7a64e8d3a2a5c5f004cbabd58a）+ C5/C6/C7/C8 落盘 6 文件（sha256 对账）+ 校验块 (1)-(5)——未启任何机器人节点
 # 偏差索引：D-S2-1 py_compile 以 ysc 身份对 scripts/ 建 __pycache__ 被拒（属主目录无 ysc 写权）→ 以 ros1-slam 身份重跑（两脚本 PY_OK），副产物 __pycache__ 已按 P2 裁决清理；D-S2-2 manifest (3) 0 子串计数把 XML 注释内 node 行计入（返回 1≠期望 0）→ 元素级验证 ET findall('.//node')=0 通过，载荷正确（node 行整体注释，Q11 关闭后才落行）
 
