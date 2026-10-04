@@ -1,0 +1,28 @@
+# =============================================================================
+# recovery_policy.yaml —— M4/M5 诊断式恢复策略（v4 新增 C11，N3）
+# 错误码权威：note/进度/计划书v4升级/证据/P3a0_mbf组件实测.log（P3a.0，2026-10-04）；outcome_tables 禁止手改
+# =============================================================================
+# ---- 恢复原子动作注册表（由 C12 原语组合实现；键名 = M5 处置分级命名空间，边界见下行澄清）----
+# ★ 命名空间边界：本表键（retry_local 等）= M5 处置分级键（C11 策略命名空间），≠ mbf RecoveryGoal.behavior 点单值（后者仅限 C0 recovery_behaviors 注册表 name，当前仅 clear_costmaps；键→点单值是否/如何映射由 SMACH 原语实现层决定）
+recovery_actions:
+  retry_local:      {primitive: exe_path,       max_retries: 2, backoff_s: 1.0}   # 局部重试：同参数重发 ExePath
+  replan:           {primitive: get_path,       max_retries: 2, backoff_s: 1.0}   # 重规划：GetPath → ExePath
+  clear_and_replan: {primitive: clear_costmaps, then: [get_path, exe_path], max_retries: 1, backoff_s: 2.0}   # clear_costmaps 服务挂载点 Q11 联调确认（C12）
+  abort_report:     {primitive: wait, notify: [M6, SUP]}   # 中止上报：停止发运动目标（零速由 M6 无源超时兜底，C8）+ 上报
+  wait:             {primitive: wait}                      # 等待（退避载体）
+# ---- 权威参考：outcome 常量表（P3a.0 log 原样摘录，禁止手改）----
+outcome_tables:
+  get_path:   {SUCCESS: 0, FAILURE: 50, CANCELED: 51, INVALID_START: 52, INVALID_GOAL: 53, NO_PATH_FOUND: 54, PAT_EXCEEDED: 55, EMPTY_PATH: 56, TF_ERROR: 57, NOT_INITIALIZED: 58, INVALID_PLUGIN: 59, INTERNAL_ERROR: 60, OUT_OF_MAP: 61, MAP_ERROR: 62, STOPPED: 63}
+  exe_path:   {SUCCESS: 0, FAILURE: 100, CANCELED: 101, NO_VALID_CMD: 102, PAT_EXCEEDED: 103, COLLISION: 104, OSCILLATION: 105, ROBOT_STUCK: 106, MISSED_GOAL: 107, MISSED_PATH: 108, BLOCKED_PATH: 109, INVALID_PATH: 110, TF_ERROR: 111, NOT_INITIALIZED: 112, INVALID_PLUGIN: 113, INTERNAL_ERROR: 114, OUT_OF_MAP: 115, MAP_ERROR: 116, STOPPED: 117}
+  recovery:   {SUCCESS: 0, FAILURE: 150, CANCELED: 151, PAT_EXCEEDED: 152, TF_ERROR: 153, NOT_INITIALIZED: 154, INVALID_PLUGIN: 155, INTERNAL_ERROR: 156, STOPPED: 157, IMPASSABLE: 158}
+  move_base:  {SUCCESS: 0, FAILURE: 10, CANCELED: 11, COLLISION: 12, OSCILLATION: 13, START_BLOCKED: 14, GOAL_BLOCKED: 15, TF_ERROR: 16, INTERNAL_ERROR: 17, PLAN_FAILURE: 50, CTRL_FAILURE: 100}
+# ---- 错误码 → 处置分级映射（键 = outcome_tables 常量名；SUCCESS=成功路径，不列即不走恢复）----
+disposition:   # default 覆盖 FAILURE/NOT_INITIALIZED/INVALID_PLUGIN/INTERNAL_ERROR；move_base 表服务整链语义（navigate_to_pose / 回退形态共用）
+  get_path:  {CANCELED: abort_report, INVALID_GOAL: abort_report, PAT_EXCEEDED: abort_report, OUT_OF_MAP: abort_report, STOPPED: abort_report,
+              NO_PATH_FOUND: clear_and_replan, MAP_ERROR: clear_and_replan, EMPTY_PATH: replan, TF_ERROR: retry_local, default: replan}
+  exe_path:  {CANCELED: abort_report, PAT_EXCEEDED: abort_report, INVALID_PATH: abort_report, OUT_OF_MAP: abort_report, STOPPED: abort_report,
+              OSCILLATION: clear_and_replan, ROBOT_STUCK: clear_and_replan, MAP_ERROR: clear_and_replan,
+              MISSED_GOAL: replan, MISSED_PATH: replan, BLOCKED_PATH: replan, NO_VALID_CMD: retry_local, COLLISION: retry_local, TF_ERROR: retry_local, default: replan}
+  recovery:  {IMPASSABLE: abort_report, CANCELED: abort_report, STOPPED: abort_report, PAT_EXCEEDED: abort_report, TF_ERROR: retry_local, default: retry_local}
+  move_base: {CANCELED: abort_report, COLLISION: clear_and_replan, OSCILLATION: clear_and_replan, START_BLOCKED: clear_and_replan,
+              GOAL_BLOCKED: clear_and_replan, PLAN_FAILURE: clear_and_replan, TF_ERROR: retry_local, CTRL_FAILURE: retry_local, default: abort_report}

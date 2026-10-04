@@ -1,0 +1,16 @@
+# health_watch.yaml —— SUP 一期 watch 清单（v4 新增 C13，N5）
+# 位置：/home/ros1-slam/ws/src/90_supervisor/lite3_supervisor/config/health_watch.yaml
+# 红线：SUP 绝不写 /cmd_vel（唯一写者 = M6 safe_cmd_vel_mux，§2.6-a / 自检 [6]）
+defaults: {timeout_s: 3.0}    # 1 Hz 心跳，连续 3 s 失联即触发处置
+modes:
+  mode_mapping:               # 本 mode 无 M6 → 失联不涉及零速通知（on_loss: degraded_shutdown）
+    watch: [{module: M0_drivers, topic: /lite3/liveness/m0_drivers}, {module: M1_slam, topic: /lite3/liveness/m1_slam}]
+  mode_localize:
+    watch: [{module: M0_drivers, topic: /lite3/liveness/m0_drivers}, {module: M2_localization, topic: /lite3/liveness/m2_localization}, {module: M6_safety, topic: /lite3/liveness/m6_safety}]
+    on_loss: notify_m6_zero_speed_then_shutdown
+  mode_nav_stub:
+    watch: [{module: M0_drivers, topic: /lite3/liveness/m0_drivers}, {module: M4_navigation, topic: /lite3/liveness/m4_navigation}, {module: M6_safety, topic: /lite3/liveness/m6_safety}]
+    on_loss: notify_m6_zero_speed_then_shutdown
+  mode_navigation:            # 二期
+    watch: [{module: M0_drivers, topic: /lite3/liveness/m0_drivers}, {module: M2_localization, topic: /lite3/liveness/m2_localization}, {module: M4_navigation, topic: /lite3/liveness/m4_navigation}, {module: M6_safety, topic: /lite3/liveness/m6_safety}]
+    on_loss: notify_m6_zero_speed_then_shutdown

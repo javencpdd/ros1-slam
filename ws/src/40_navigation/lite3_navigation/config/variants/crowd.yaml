@@ -1,0 +1,6 @@
+# variants/crowd.yaml —— C9 三档之一：人流密集（低速、大避障余量）
+# 范围约束同 outdoor_open.yaml 头注。
+TebLocalPlannerROS:
+  max_vel_x: 0.25             # 底 0.4 → 降速
+  min_obstacle_dist: 0.25     # 底 0.15 → 障碍间距加大
+  inflation_dist: 0.60        # 底 0.45 → 膨胀加大

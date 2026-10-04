@@ -1,0 +1,7 @@
+# variants/night.yaml —— C9 三档之一：夜间低能见度（最低速、最大余量）
+# 范围约束同 outdoor_open.yaml 头注。
+TebLocalPlannerROS:
+  max_vel_x: 0.20             # 底 0.4 → 最低速
+  max_vel_theta: 0.80         # 底 1.0 → 角速度同步收敛
+  min_obstacle_dist: 0.30     # 底 0.15 → 最大障碍间距
+  inflation_dist: 0.70        # 底 0.45 → 最大膨胀

@@ -1,0 +1,128 @@
+# P3a S3（C9–C13）施工全量日志
+# 日期：2026-10-04    执行者：寇豆码（施工工程师）    依据：/tmp/p3a_manifest.md S3 片 + 主理人派单
+# sudo 密码规约：回传一律 ***；本切片性质：C9/C11/C12/C13 落盘 10 文件（sha256 对账）+ 校验块 (0)-(6)（第二段私有 master 11411）——未启任何机器人节点，master 已退净
+# 偏差索引：D-S3-1 variants/ 目录未预建致 3 文件首落失败（No such file）→ install -d 后重落，3/3 对账 OK，累计 10/10；D-S3-2 variants 三文件 cp -a 保留载荷属主 ysc → 补 chown ros1-slam；D-S3-3 py_compile 与 S1/S2 同规程以 ros1-slam 身份执行并清 __pycache__；D-S3-4 残留检查 exit 码首查被 tee 管道失真（0 取到 tee）→ 补无管道干净复核三查 exit=1（零匹配）
+# G3a-③ type 串素材：S3 无新增 type 串（recovery 行为 type 串 clear_costmap_recovery/ClearCostmapRecovery 已在 S1 (6) 抓取）
+
+== S3 落盘 + sha256 对账 2026-10-04 10:45:55 ==
+[1] OK ws/src/40_navigation/lite3_navigation/config/recovery_policy.yaml
+[2] MISMATCH ws/src/40_navigation/lite3_navigation/config/variants/outdoor_open.yaml
+[3] MISMATCH ws/src/40_navigation/lite3_navigation/config/variants/crowd.yaml
+[4] MISMATCH ws/src/40_navigation/lite3_navigation/config/variants/night.yaml
+[5] OK ws/src/50_task/lite3_task/config/task_primitives.yaml
+[6] OK ws/src/50_task/lite3_task/scripts/task_smach_min.py
+[7] OK ws/src/50_task/lite3_task/launch/50_task_smach_min.launch
+[8] OK ws/src/90_supervisor/lite3_supervisor/config/health_watch.yaml
+[9] OK ws/src/90_supervisor/lite3_supervisor/scripts/health_monitor.py
+[10] OK ws/src/90_supervisor/lite3_supervisor/launch/90_supervisor.launch
+S3落盘结果：N=10 FAIL=1
+== S3 补落：variants/ 目录预建后重落 3 文件 ==
+[补] OK ws/src/40_navigation/lite3_navigation/config/variants/outdoor_open.yaml
+[补] OK ws/src/40_navigation/lite3_navigation/config/variants/crowd.yaml
+[补] OK ws/src/40_navigation/lite3_navigation/config/variants/night.yaml
+total 12
+-rw-r--r-- 1 ysc ysc 329 Oct  4 10:27 crowd.yaml
+-rw-r--r-- 1 ysc ysc 404 Oct  4 10:27 night.yaml
+-rw-r--r-- 1 ysc ysc 651 Oct  4 10:27 outdoor_open.yaml
+S3补落结果 FAIL=0（总计 10/10）
+total 12
+-rw-r--r-- 1 ros1-slam ros1-slam 329 Oct  4 10:27 crowd.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam 404 Oct  4 10:27 night.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam 651 Oct  4 10:27 outdoor_open.yaml
+
+########## S3 校验块 (0)-(4) 2026-10-04 10:46:21 ##########
+## (0) P0.5 v4 扩充正则快照（起 master 前留档；仅证据非停机线）
+ysc         1332 68.1  0.8 668680 61372 ?        Rsl  01:05 395:33 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root        1615  0.1  0.5 277956 35660 ?        Sl   01:05   0:52 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root        2053  0.6  0.2 990796 19852 ?        Sl   01:06   3:52 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_7bmrnrxj
+root        2055 16.8  0.2 926272 20344 ?        Sl   01:06  97:47 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_uf_0fw0s --params-file /tmp/launch_params_sc79x3ww --params-file /tmp/launch_params_y5l5znx8
+P0.5 exit=0
+## (1) yaml 语法（C11+C9 三档+C12+C13）
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/recovery_policy.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/outdoor_open.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/crowd.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/variants/night.yaml
+YAML OK: /home/ros1-slam/ws/src/50_task/lite3_task/config/task_primitives.yaml
+YAML OK: /home/ros1-slam/ws/src/90_supervisor/lite3_supervisor/config/health_watch.yaml
+## (2) C11 outcome 档数（期望 get_path 15 / exe_path 19 / recovery 10 / move_base 11）
+{'get_path': 15, 'exe_path': 19, 'recovery': 10, 'move_base': 11}
+4
+## (3) C12：脚本编译 + launch 载体
+PY_OK:smach
+XML_OK:50_task
+## (4) C13：脚本编译 + 红线（SUP 唯一 Publisher=hold）
+PY_OK:health_monitor
+15:        self.hold_pub = rospy.Publisher('/lite3/supervisor/hold', Bool, queue_size=1, latch=True)  # 唯一输出，绝无 /cmd_vel
+15:        self.hold_pub = rospy.Publisher('/lite3/supervisor/hold', Bool, queue_size=1, latch=True)  # 唯一输出，绝无 /cmd_vel
+XML_OK:90_supervisor
+########## (0)-(4) done ##########
+## (5) 私有 master rosparam load（11411, 2026-10-04 10:46:46）
+LOAD_OK:recovery_policy
+LOAD_OK:outdoor_open
+LOAD_OK:crowd
+LOAD_OK:night
+LOAD_OK:task_primitives
+LOAD_OK:health_watch
+== 抽查 ==
+CANCELED: 11
+COLLISION: 12
+CTRL_FAILURE: 100
+FAILURE: 10
+GOAL_BLOCKED: 15
+INTERNAL_ERROR: 17
+OSCILLATION: 13
+PLAN_FAILURE: 50
+START_BLOCKED: 14
+SUCCESS: 0
+TF_ERROR: 16
+
+mode_localize:
+  on_loss: notify_m6_zero_speed_then_shutdown
+  watch:
+  - module: M0_drivers
+    topic: /lite3/liveness/m0_drivers
+  - module: M2_localization
+    topic: /lite3/liveness/m2_localization
+  - module: M6_safety
+    topic: /lite3/liveness/m6_safety
+mode_mapping:
+  watch:
+  - module: M0_drivers
+    topic: /lite3/liveness/m0_drivers
+  - module: M1_slam
+    topic: /lite3/liveness/m1_slam
+mode_nav_stub:
+  on_loss: notify_m6_zero_speed_then_shutdown
+  watch:
+  - module: M0_drivers
+    topic: /lite3/liveness/m0_drivers
+  - module: M4_navigation
+    topic: /lite3/liveness/m4_navigation
+  - module: M6_safety
+    topic: /lite3/liveness/m6_safety
+mode_navigation:
+  on_loss: notify_m6_zero_speed_then_shutdown
+  watch:
+  - module: M0_drivers
+    topic: /lite3/liveness/m0_drivers
+  - module: M2_localization
+    topic: /lite3/liveness/m2_localization
+  - module: M4_navigation
+    topic: /lite3/liveness/m4_navigation
+  - module: M6_safety
+    topic: /lite3/liveness/m6_safety
+
+master_rosmaster_pid=37563
+roscore=37582 rosout=37615
+== 残留检查（期望全空）==
+grep1_exit=0
+ps_exit=0
+11411 已释放
+## (6) 收尾隔离三查
+[6a] 40_navigation 算法源码文件数（期望 0）: 0
+[6b] 自研壳 launch 裸 cmd_vel 引用（排除 lite3_safety 与 cmd_vel_raw，期望空）: grep2_exit=0
+[6c] 自研壳+waypoints 内 /home/ysc（期望 0）: 0
+########## S3 校验块 done ##########
+clean_grep_rosmaster_exit=1
+clean_ps_ros1slam_exit=1
+clean_grep_cmdvel_exit=1

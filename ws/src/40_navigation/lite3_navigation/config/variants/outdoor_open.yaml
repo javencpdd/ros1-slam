@@ -1,0 +1,7 @@
+# variants/outdoor_open.yaml —— C9 三档之一：开阔户外（高速、长前瞻）
+# 范围约束（架构师职责表）：只动行为参数，不动结构；底 = ../planner_teb.yaml（C2 后终稿），未列参数随底值。
+# 覆盖加载：P7 mode 顶层 launch 按与底文件同一挂载 ns 叠加 rosparam load（Q11 ns 固化后再落加载行）。
+# 裁量登记：三档具体数值为架构师定义（v4 C9 仅定档位名），P6 联调按现场标定回调。
+TebLocalPlannerROS:
+  max_vel_x: 0.6                        # 底 0.4（C2）→ 开阔区提速
+  max_global_plan_lookahead_dist: 6.0   # 底 5.0 → 前瞻拉长

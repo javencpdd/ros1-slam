@@ -1,0 +1,7 @@
+<launch>
+  <!-- C12 配套（架构师裁量增补：v4 C12 条文未给 launch；为 P6 接线注入 ~task_primitives 路径的载体，P3a 仅需 py_compile 过） -->
+  <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X） -->
+  <node pkg="lite3_task" type="task_smach_min.py" name="lite3_task_smach_min" output="screen">
+    <param name="task_primitives" value="$(find lite3_task)/config/task_primitives.yaml"/>
+  </node>
+</launch>

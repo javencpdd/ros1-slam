@@ -13,3 +13,7 @@
 - C6: /home/ros1-slam/data/waypoints/ 新增（空目录占位 + README 说明；录航点工具实为 pipeline_tracking/tools/location_record.py，Q5 开）（v4 §8 C6）2026-10-04
 - C7: lite3_navigation/launch/cmd_vel_raw_relay.launch 新增载体（relay 源话题=mbf 速度输出话题，P3a.0 未实测→Q11；按 v4 裁决「确认前不落 launch 行」，node 行整体注释，G3a 不校验本项）（v4 §8 C7/N6）2026-10-04
 - C8: lite3_safety/scripts/safe_cmd_vel_mux.py + config/cmd_vel_mux.yaml + launch/60_safety.launch 新增（六源优先级/超时淘汰/无源发零速/恒 20 Hz；v4 增补：/lite3/supervisor/hold 保持输入，SUP 唯一发布；源表外化为 config，源名/话题为架构师默认——20 号源表不在沙箱，对账后只改 config）（v4 §8 C8/N5/N6）2026-10-04
+- C9: lite3_navigation/config/variants/{outdoor_open,crowd,night}.yaml 新增（三档行为参数 overlay，最小覆盖集只动 TEB 行为参数；数值为架构师裁量定义，P6 现场标定回调）（v4 §8 C9）2026-10-04
+- C11: lite3_navigation/config/recovery_policy.yaml 新增（恢复原子动作注册表 + outcome_tables 四表 15/19/10/11 档自实测 log 原样摘录 + disposition 分级映射；消费者=C12 SMACH 与 C5 TaskTransfer）（v4 §8 C11/N3）2026-10-04
+- C12: lite3_task/config/task_primitives.yaml + scripts/task_smach_min.py + launch/50_task_smach_min.launch 新增（六原语注册表 v1；SMACH 2.5.2 最小顺序状态机骨架，不接真实 action client；launch 为架构师裁量增补载体）（v4 §8 C12/N4）2026-10-04
+- C13: lite3_supervisor/config/health_watch.yaml + scripts/health_monitor.py + launch/90_supervisor.launch 新增（按 mode watch 清单 + 1 Hz 心跳监控 + 失联 hold 降级；红线：SUP 绝不直写速度话题，唯一输出=/lite3/supervisor/hold；本批 mbf_navigation.launch/60_safety.launch 同步内置 M4/M6 心跳行）（v4 §8 C13/N5）2026-10-04
