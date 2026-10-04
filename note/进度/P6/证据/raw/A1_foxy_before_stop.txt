@@ -1,0 +1,36 @@
+# A1 2026-10-04 21:54:28
+● transfer_ros2.service - DeepRobotics Transfer For ROS2
+     Loaded: loaded (/etc/systemd/system/transfer_ros2.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 01:05:55 CST; 20h ago
+    Process: 938 ExecStart=/bin/bash /home/ysc/lite_cog_ros2/system/scripts/transfer/start_transfer.sh (code=exited, status=0/SUCCESS)
+   Main PID: 1615 (ros2)
+      Tasks: 46 (limit: 8132)
+     Memory: 53.6M
+     CGroup: /system.slice/transfer_ros2.service
+             ├─1615 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+             ├─2053 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_7bmrnrxj
+             ├─2055 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_uf_0fw0s --params-file /tmp/launch_params_sc79x3ww --params-file /tmp/launch_params_y5l5znx8
+             └─2057 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_srfnu4t7
+
+Oct 04 21:54:25 lite bash[1615]: [jetson2motion-2] [INFO] [1791122065.156398143] [motion_receiver]: qnx2ros received: [16] bytes
+Oct 04 21:54:25 lite bash[1615]: [sensor_checker-3] [WARN] [1791122065.306540073] [sensor_checker]: [lidar] has been silient for: [12525.974343] second.
+Oct 04 21:54:25 lite bash[1615]: [sensor_checker-3] [WARN] [1791122065.807102867] [sensor_checker]: [lidar] has been silient for: [12526.474900] second.
+Oct 04 21:54:26 lite bash[1615]: [sensor_checker-3] [WARN] [1791122066.307328604] [sensor_checker]: [lidar] has been silient for: [12526.975122] second.
+Oct 04 21:54:26 lite bash[1615]: [jetson2motion-2] [INFO] [1791122066.516858570] [motion_receiver]: qnx2ros received: [52] bytes
+Oct 04 21:54:26 lite bash[1615]: [sensor_checker-3] [WARN] [1791122066.806334490] [sensor_checker]: [lidar] has been silient for: [12527.474125] second.
+Oct 04 21:54:27 lite bash[1615]: [sensor_checker-3] [WARN] [1791122067.307260587] [sensor_checker]: [lidar] has been silient for: [12527.975045] second.
+Oct 04 21:54:27 lite bash[1615]: [sensor_checker-3] [WARN] [1791122067.806590863] [sensor_checker]: [lidar] has been silient for: [12528.474371] second.
+Oct 04 21:54:27 lite bash[1615]: [jetson2motion-2] [INFO] [1791122067.877407357] [motion_receiver]: qnx2ros received: [108] bytes
+Oct 04 21:54:28 lite bash[1615]: [sensor_checker-3] [WARN] [1791122068.306641370] [sensor_checker]: [lidar] has been silient for: [12528.974417] second.
+
+● lite3-ros-bridge.service - Lite3 ROS2 -> Monitor bridge (topics -> local UDP)
+     Loaded: loaded (/etc/systemd/system/lite3-ros-bridge.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 01:05:52 CST; 20h ago
+       Docs: file:/home/test/monitor/docs/ros_bridge.md
+   Main PID: 1332 (python3)
+      Tasks: 10 (limit: 8132)
+     Memory: 28.5M
+     CGroup: /system.slice/lite3-ros-bridge.service
+             └─1332 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+
+Warning: journal has been rotated since unit was started, output may be incomplete.

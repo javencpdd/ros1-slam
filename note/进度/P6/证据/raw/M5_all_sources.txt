@@ -1,0 +1,15 @@
+== M-5 全源覆盖（p2/p3/p4/p6 依次压制与淘汰）==
+--- 源 joy (p2) 注入 0.2 ---
+压制期实测: Traceback (most recent call last):
+淘汰后实测: [WARN] [1791124339.596235]: [M6] 源 teleop_joy 超时（0.50s 无数据），淘汰
+[WARN] [1791124339.614464]: [M6] 活跃源切换: teleop_joy -> navigation
+--- 源 app (p3) 注入 0.15 ---
+压制期实测: 淘汰后实测: [WARN] [1791124353.795528]: [M6] 源 teleop_app 超时（0.50s 无数据），淘汰
+[WARN] [1791124353.803915]: [M6] 活跃源切换: teleop_app -> navigation
+--- 源 task (p4) 注入 0.25 ---
+压制期实测: 淘汰后实测: [WARN] [1791124368.645427]: [M6] 源 task 超时（0.50s 无数据），淘汰
+[WARN] [1791124369.620843]: [M6] 活跃源切换: task -> navigation
+--- 源 demo (p6) 注入 0.28 ---
+压制期实测: 淘汰后实测: Traceback (most recent call last):
+[WARN] [1791124369.620843]: [M6] 活跃源切换: task -> navigation
+[WARN] [1791124382.981169]: [M6] 源 demo 超时（0.50s 无数据），淘汰

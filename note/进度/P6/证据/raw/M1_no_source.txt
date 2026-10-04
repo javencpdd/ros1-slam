@@ -1,0 +1,19 @@
+# M 系注入测试 2026-10-04 22:28:07；前置：SUP+M6 双复位后 hold 静默
+
+== M-1 无源：/cmd_vel hz（期望 ≈20）==
+average rate: 20.002
+	min: 0.046s max: 0.054s std dev: 0.00100s window: 53
+== M-1 无源：/cmd_vel 值（期望全零）==
+linear: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+angular: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+== M-1 无源：mux 日志（期望活跃 NONE）==
+[INFO] [1791124034.196108]: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+[WARN] [1791124034.246058]: [M6] 活跃源切换: INIT -> NONE
+== M-1 SUP logfatal 查（期望无）==
+21

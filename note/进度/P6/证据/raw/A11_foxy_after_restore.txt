@@ -1,0 +1,37 @@
+# A11 恢复后留证 2026-10-04 22:46:23
+● transfer_ros2.service - DeepRobotics Transfer For ROS2
+     Loaded: loaded (/etc/systemd/system/transfer_ros2.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 22:46:15 CST; 8s ago
+    Process: 99894 ExecStart=/bin/bash /home/ysc/lite_cog_ros2/system/scripts/transfer/start_transfer.sh (code=exited, status=0/SUCCESS)
+   Main PID: 99962 (ros2)
+      Tasks: 46 (limit: 8132)
+     Memory: 60.6M
+     CGroup: /system.slice/transfer_ros2.service
+             ├─99962 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+             ├─99982 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_evwhhak5
+             ├─99984 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_ieuol_yr --params-file /tmp/launch_params_wz43zz3g --params-file /tmp/launch_params_q6k4_t3w
+             └─99986 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_wntzxqge
+
+Oct 04 22:46:22 lite bash[99962]: [jetson2motion-2] [INFO] [1791125182.469553414] [motion_receiver]: local_port:  43897
+Oct 04 22:46:22 lite bash[99962]: [jetson2app-1] [INFO] [1791125182.592292582] [app_receiver]: ##### AppReceiver initialized! #####
+Oct 04 22:46:22 lite bash[99962]: [jetson2motion-2] [INFO] [1791125182.598104259] [motion_receiver]: ##### MotionReceiver initialized! #####
+Oct 04 22:46:22 lite bash[99962]: [sensor_checker-3] [WARN] [1791125182.947448893] [sensor_checker]: no [realsense] data received since setup
+Oct 04 22:46:22 lite bash[99962]: [sensor_checker-3] [WARN] [1791125182.948066052] [sensor_checker]: no [lidar] data received since setup
+Oct 04 22:46:23 lite bash[99962]: [sensor_checker-3] [WARN] [1791125183.447015767] [sensor_checker]: no [realsense] data received since setup
+Oct 04 22:46:23 lite bash[99962]: [sensor_checker-3] [WARN] [1791125183.447328442] [sensor_checker]: no [lidar] data received since setup
+Oct 04 22:46:23 lite bash[99962]: [jetson2motion-2] [INFO] [1791125183.880357630] [motion_receiver]: qnx2ros received: [380] bytes
+Oct 04 22:46:23 lite bash[99962]: [sensor_checker-3] [WARN] [1791125183.947575515] [sensor_checker]: no [realsense] data received since setup
+Oct 04 22:46:23 lite bash[99962]: [sensor_checker-3] [WARN] [1791125183.948004863] [sensor_checker]: no [lidar] data received since setup
+
+● lite3-ros-bridge.service - Lite3 ROS2 -> Monitor bridge (topics -> local UDP)
+     Loaded: loaded (/etc/systemd/system/lite3-ros-bridge.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 22:46:13 CST; 10s ago
+       Docs: file:/home/test/monitor/docs/ros_bridge.md
+   Main PID: 99895 (python3)
+      Tasks: 10 (limit: 8132)
+     Memory: 51.1M
+     CGroup: /system.slice/lite3-ros-bridge.service
+             └─99895 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+
+Oct 04 22:46:13 lite systemd[1]: Started Lite3 ROS2 -> Monitor bridge (topics -> local UDP).
+Oct 04 22:46:17 lite lite3-ros-bridge[99895]: [INFO] [1791125177.553948209] [lite3_ros_bridge]: ROS 桥接已启动，转发 /imu/data / /leg_odom2 / /joint_states -> 127.0.0.1:43900

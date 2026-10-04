@@ -1,0 +1,15 @@
+# B.2 D-L1 2026-10-04 22:03:32 map_server 挂样张 yaml
+-- lite3.yaml 原文
+image: /home/ros1-slam/data/maps/lite3.pgm
+resolution: 0.050000
+origin: [-4.200000, -8.700000, nan]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+
+-- W5 pane 输出
+[sudo] password for ysc: ***
+rosrun map_server map_server /home/ros1-slam/data/maps/lite3.yaml
+ros1-slam@lite:~$ rosrun map_server map_server /home/ros1-slam/data/maps/lite3.yaml
+[ERROR] [1791122480.064013367]: map_server exception: yaml-cpp: error at line 3, column 32: bad conversion
+ros1-slam@lite:~$

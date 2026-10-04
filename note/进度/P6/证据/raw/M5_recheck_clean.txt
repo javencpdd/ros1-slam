@@ -1,0 +1,32 @@
+== M-5 干净复测（四源压制值）==
+--- joy 期望 0.2 实测: 0.2
+--- app 期望 0.15 实测: 0.15
+--- task 期望 0.25 实测: 0.25
+--- demo 期望 0.28 实测: 0.3
+== mux 全量切换史 ==
+[WARN] [1791123527.455113]: [M6] 活跃源切换: INIT -> HOLD
+[WARN] [1791124034.246058]: [M6] 活跃源切换: INIT -> NONE
+[WARN] [1791124169.445554]: [M6] 活跃源切换: NONE -> navigation
+[WARN] [1791124284.495572]: [M6] 活跃源切换: navigation -> estop
+[WARN] [1791124303.796290]: [M6] 源 estop 超时（0.50s 无数据），淘汰
+[WARN] [1791124303.802441]: [M6] 活跃源切换: estop -> navigation
+[WARN] [1791124333.245535]: [M6] 活跃源切换: navigation -> teleop_joy
+[WARN] [1791124339.596235]: [M6] 源 teleop_joy 超时（0.50s 无数据），淘汰
+[WARN] [1791124339.614464]: [M6] 活跃源切换: teleop_joy -> navigation
+[WARN] [1791124348.895793]: [M6] 活跃源切换: navigation -> teleop_app
+[WARN] [1791124353.795528]: [M6] 源 teleop_app 超时（0.50s 无数据），淘汰
+[WARN] [1791124353.803915]: [M6] 活跃源切换: teleop_app -> navigation
+[WARN] [1791124363.949712]: [M6] 活跃源切换: navigation -> task
+[WARN] [1791124368.645427]: [M6] 源 task 超时（0.50s 无数据），淘汰
+[WARN] [1791124369.620843]: [M6] 活跃源切换: task -> navigation
+[WARN] [1791124382.981169]: [M6] 源 demo 超时（0.50s 无数据），淘汰
+[WARN] [1791124429.880331]: [M6] 活跃源切换: navigation -> teleop_joy
+[WARN] [1791124436.381596]: [M6] 源 teleop_joy 超时（0.50s 无数据），淘汰
+[WARN] [1791124436.402895]: [M6] 活跃源切换: teleop_joy -> navigation
+[WARN] [1791124439.880380]: [M6] 活跃源切换: navigation -> teleop_app
+[WARN] [1791124446.279984]: [M6] 源 teleop_app 超时（0.50s 无数据），淘汰
+[WARN] [1791124446.287171]: [M6] 活跃源切换: teleop_app -> navigation
+[WARN] [1791124449.630053]: [M6] 活跃源切换: navigation -> task
+[WARN] [1791124456.129869]: [M6] 源 task 超时（0.50s 无数据），淘汰
+[WARN] [1791124456.138692]: [M6] 活跃源切换: task -> navigation
+[WARN] [1791124465.830065]: [M6] 源 demo 超时（0.50s 无数据），淘汰

@@ -1,0 +1,121 @@
+#═══ M6 mux 单体注入（M-1…M-6）汇总 · 2026-10-04 22:48:44 ═══
+
+────── M1_no_source.txt ──────
+# M 系注入测试 2026-10-04 22:28:07；前置：SUP+M6 双复位后 hold 静默
+
+== M-1 无源：/cmd_vel hz（期望 ≈20）==
+average rate: 20.002
+	min: 0.046s max: 0.054s std dev: 0.00100s window: 53
+== M-1 无源：/cmd_vel 值（期望全零）==
+linear: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+angular: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+== M-1 无源：mux 日志（期望活跃 NONE）==
+[INFO] [1791124034.196108]: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+[WARN] [1791124034.246058]: [M6] 活跃源切换: INIT -> NONE
+== M-1 SUP logfatal 查（期望无）==
+21
+
+────── M2_nav_source.txt ──────
+== M-2 单源 navigation：/cmd_vel（期望跟随 0.3）==
+  x: 0.3
+  y: 0.0
+  x: 0.0
+  y: 0.0
+-- mux 日志（期望 NONE -> navigation）--
+[WARN] [1791124034.246058]: [M6] 活跃源切换: INIT -> NONE
+[WARN] [1791124169.445554]: [M6] 活跃源切换: NONE -> navigation
+
+────── M3_estop_priority.txt ──────
+== M-3 estop(p1) 压制 navigation(p5)：/cmd_vel/linear/x（期望 0.1）==
+0.1
+---
+0.1
+---
+0.1
+---
+-- mux 日志 --
+[WARN] [1791124169.445554]: [M6] 活跃源切换: NONE -> navigation
+[WARN] [1791124284.495572]: [M6] 活跃源切换: navigation -> estop
+
+────── M4_timeout_eviction.txt ──────
+== M-4 estop 停发 → 超时淘汰回 navigation（timeout_s=0.5）==
+-- mux 日志（期望：源 estop 超时…淘汰 + estop -> navigation）--
+[WARN] [1791124284.495572]: [M6] 活跃源切换: navigation -> estop
+[WARN] [1791124303.796290]: [M6] 源 estop 超时（0.50s 无数据），淘汰
+[WARN] [1791124303.802441]: [M6] 活跃源切换: estop -> navigation
+-- /cmd_vel/linear/x（期望回 0.3）--
+0.3
+---
+0.3
+---
+
+────── M5_all_sources.txt ──────
+== M-5 全源覆盖（p2/p3/p4/p6 依次压制与淘汰）==
+--- 源 joy (p2) 注入 0.2 ---
+压制期实测: Traceback (most recent call last):
+淘汰后实测: [WARN] [1791124339.596235]: [M6] 源 teleop_joy 超时（0.50s 无数据），淘汰
+[WARN] [1791124339.614464]: [M6] 活跃源切换: teleop_joy -> navigation
+--- 源 app (p3) 注入 0.15 ---
+压制期实测: 淘汰后实测: [WARN] [1791124353.795528]: [M6] 源 teleop_app 超时（0.50s 无数据），淘汰
+[WARN] [1791124353.803915]: [M6] 活跃源切换: teleop_app -> navigation
+--- 源 task (p4) 注入 0.25 ---
+压制期实测: 淘汰后实测: [WARN] [1791124368.645427]: [M6] 源 task 超时（0.50s 无数据），淘汰
+[WARN] [1791124369.620843]: [M6] 活跃源切换: task -> navigation
+--- 源 demo (p6) 注入 0.28 ---
+压制期实测: 淘汰后实测: Traceback (most recent call last):
+[WARN] [1791124369.620843]: [M6] 活跃源切换: task -> navigation
+[WARN] [1791124382.981169]: [M6] 源 demo 超时（0.50s 无数据），淘汰
+
+────── M5_recheck_clean.txt ──────
+== M-5 干净复测（四源压制值）==
+--- joy 期望 0.2 实测: 0.2
+--- app 期望 0.15 实测: 0.15
+--- task 期望 0.25 实测: 0.25
+--- demo 期望 0.28 实测: 0.3
+== mux 全量切换史 ==
+[WARN] [1791123527.455113]: [M6] 活跃源切换: INIT -> HOLD
+[WARN] [1791124034.246058]: [M6] 活跃源切换: INIT -> NONE
+[WARN] [1791124169.445554]: [M6] 活跃源切换: NONE -> navigation
+[WARN] [1791124284.495572]: [M6] 活跃源切换: navigation -> estop
+[WARN] [1791124303.796290]: [M6] 源 estop 超时（0.50s 无数据），淘汰
+[WARN] [1791124303.802441]: [M6] 活跃源切换: estop -> navigation
+[WARN] [1791124333.245535]: [M6] 活跃源切换: navigation -> teleop_joy
+[WARN] [1791124339.596235]: [M6] 源 teleop_joy 超时（0.50s 无数据），淘汰
+[WARN] [1791124339.614464]: [M6] 活跃源切换: teleop_joy -> navigation
+[WARN] [1791124348.895793]: [M6] 活跃源切换: navigation -> teleop_app
+[WARN] [1791124353.795528]: [M6] 源 teleop_app 超时（0.50s 无数据），淘汰
+[WARN] [1791124353.803915]: [M6] 活跃源切换: teleop_app -> navigation
+[WARN] [1791124363.949712]: [M6] 活跃源切换: navigation -> task
+[WARN] [1791124368.645427]: [M6] 源 task 超时（0.50s 无数据），淘汰
+[WARN] [1791124369.620843]: [M6] 活跃源切换: task -> navigation
+[WARN] [1791124382.981169]: [M6] 源 demo 超时（0.50s 无数据），淘汰
+[WARN] [1791124429.880331]: [M6] 活跃源切换: navigation -> teleop_joy
+[WARN] [1791124436.381596]: [M6] 源 teleop_joy 超时（0.50s 无数据），淘汰
+[WARN] [1791124436.402895]: [M6] 活跃源切换: teleop_joy -> navigation
+[WARN] [1791124439.880380]: [M6] 活跃源切换: navigation -> teleop_app
+[WARN] [1791124446.279984]: [M6] 源 teleop_app 超时（0.50s 无数据），淘汰
+[WARN] [1791124446.287171]: [M6] 活跃源切换: teleop_app -> navigation
+[WARN] [1791124449.630053]: [M6] 活跃源切换: navigation -> task
+[WARN] [1791124456.129869]: [M6] 源 task 超时（0.50s 无数据），淘汰
+[WARN] [1791124456.138692]: [M6] 活跃源切换: task -> navigation
+[WARN] [1791124465.830065]: [M6] 源 demo 超时（0.50s 无数据），淘汰
+
+────── M6_S1_tests.txt ──────
+== M-6 全停：回 NONE 零速 20Hz ==
+average rate: 20.007
+	min: 0.049s max: 0.051s std dev: 0.00032s window: 34
+0.0
+---
+[WARN] [1791124526.436865]: [M6] 活跃源切换: navigation -> NONE
+
+== S-1 健康态：三心跳逐条 hz + hold 静默 ==
+/lite3/liveness/m0_drivers : average rate: 1.001
+/lite3/liveness/m4_navigation : /lite3/liveness/m6_safety : average rate: 1.000
+-- hold 话题（期望静默无消息）--
+echo_done

@@ -1,0 +1,160 @@
+#═══ P6.2（payload B.2）mode_localize 降级部分验证汇总 · 2026-10-04 22:48:44 ═══
+
+────── B2_pre_check_P05.txt ──────
+# B.2 起节点前 P0.5 双查 2026-10-04 21:59:13
+-- 运动链路侧（期望空）
+-- 传感器侧（期望空）
+-- 端口级（期望空）
+-- 双查完
+
+────── B2_stale_probe_cleanup.txt ──────
+# 残留探针发现与清理 2026-10-04 22:05:34
+    PID                  STARTED CMD
+  76953 Sun Oct  4 19:56:01 2026 /usr/bin/python3 /opt/ros/noetic/bin/rostopic hz /Odometry
+pkill: killing pid 85433 failed: Operation not permitted
+pkill: killing pid 85443 failed: Operation not permitted
+Terminated
+
+────── B2_DL1_mapserver_nan.txt ──────
+# B.2 D-L1 2026-10-04 22:03:32 map_server 挂样张 yaml
+-- lite3.yaml 原文
+image: /home/ros1-slam/data/maps/lite3.pgm
+resolution: 0.050000
+origin: [-4.200000, -8.700000, nan]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+
+-- W5 pane 输出
+[sudo] password for ysc: ***
+rosrun map_server map_server /home/ros1-slam/data/maps/lite3.yaml
+ros1-slam@lite:~$ rosrun map_server map_server /home/ros1-slam/data/maps/lite3.yaml
+[ERROR] [1791122480.064013367]: map_server exception: yaml-cpp: error at line 3, column 32: bad conversion
+ros1-slam@lite:~$
+
+────── B2_SUP_hold_observation.txt ──────
+# B.2 SUP hold 通道观察（m2 心跳迟到期）2026-10-04 22:09:27
+-- W2 SUP pane（尾部）
+[FATAL] [1791122904.863110]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122905.865656]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122906.867066]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122907.863835]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122908.863465]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122909.863693]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122910.864043]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122911.864097]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122912.863560]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122913.865096]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122914.863804]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791122915.864360]: [SUP] 心跳失联: M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+-- hold 话题现值
+data: True
+---
+
+────── B2_SUP_restart_reset.txt ──────
+# B.2 SUP 重启复位 2026-10-04 22:10:04
+-- W2 pane
+NODES
+  /
+    lite3_supervisor (lite3_supervisor/health_monitor.py)
+ROS_MASTER_URI=http://192.168.1.103:11312
+process[lite3_supervisor-1]: started with pid [87249]
+-- hold 现值（期望 False 或静默）
+-- W10 mux pane（期望 HOLD->NONE）
+[INFO] [1791122914.225033]: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+[WARN] [1791122914.275854]: [M6] 活跃源切换: INIT -> NONE
+[WARN] [1791122914.285271]: [M6] 监督保持输入 hold=True（/lite3/supervisor/hold，唯一发布者=SUP）
+[WARN] [1791122914.326001]: [M6] 活跃源切换: NONE -> HOLD
+
+────── B2_contract_probes.txt ──────
+# B.2 契约探针 2026-10-04 22:12:05
+== [1] /globalmap latched（--noarr）==
+header: 
+  seq: 0
+  stamp: 
+    secs: 0
+    nsecs:         0
+  frame_id: "map"
+height: 1
+width: 6302
+fields: "<array type: sensor_msgs/PointField, length: 4>"
+is_bigendian: False
+point_step: 32
+row_step: 201664
+== [2] nodelet manager 两 nodelet 在列 ==
+--------------------------------------------------------------------------------
+Node [/velodyne_nodelet_manager]
+Publications: 
+ * /aligned_points [sensor_msgs/PointCloud2]
+ * /globalmap [sensor_msgs/PointCloud2]
+ * /odom [nav_msgs/Odometry]
+ * /rosout [rosgraph_msgs/Log]
+ * /status [hdl_localization/ScanMatchingStatus]
+ * /tf [tf2_msgs/TFMessage]
+ * /velodyne_nodelet_manager/bond [bond/Status]
+
+Subscriptions: 
+== [3] M2 话题族 /odom /status /aligned_points ==
+/aligned_points
+/globalmap
+/odom
+/status
+== [4] /rslidar_points hz（判据 ≥9）==
+	min: 0.092s max: 0.106s std dev: 0.00272s window: 39
+average rate: 10.016
+	min: 0.092s max: 0.106s std dev: 0.00254s window: 45
+== [5] /imu/data hz（qnx2ros 主选，期望 ≈200）==
+	min: 0.000s max: 0.019s std dev: 0.00200s window: 587
+average rate: 199.685
+	min: 0.000s max: 0.019s std dev: 0.00199s window: 697
+== [6] /cmd_vel hz + 值（mux HOLD 态零速恒 20Hz）==
+average rate: 20.002
+	min: 0.046s max: 0.054s std dev: 0.00131s window: 31
+linear: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+angular: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+== [7] /cmd_vel 唯一写者白名单 ==
+Type: geometry_msgs/Twist
+
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:36379/)
+
+Subscribers: None
+
+
+
+────── B2_tf_probes.txt ──────
+# B.2 TF 链探针 2026-10-04 22:13:17
+== map→base_link（specify_init_pose 0,0,0）==
+- Translation: [-0.727, -0.246, 0.000]
+- Rotation: in Quaternion [-0.002, -0.004, 0.068, 0.998]
+            in RPY (radian) [-0.005, -0.007, 0.136]
+            in RPY (degree) [-0.293, -0.386, 7.779]
+At time 1791123203.959
+- Translation: [-0.697, -0.253, 0.000]
+- Rotation: in Quaternion [-0.006, -0.007, 0.069, 0.998]
+            in RPY (radian) [-0.014, -0.014, 0.138]
+            in RPY (degree) [-0.792, -0.781, 7.879]
+== base_link→rslidar（驱动恒等阵）==
+- Translation: [0.000, 0.000, 0.000]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, -0.000, 0.000]
+            in RPY (degree) [0.000, -0.000, 0.000]
+At time 0.000
+- Translation: [0.000, 0.000, 0.000]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, -0.000, 0.000]
+            in RPY (degree) [0.000, -0.000, 0.000]
+
+────── B2_teardown_check.txt ──────
+# B.2 退净总判据 2026-10-04 22:14:46
+1) rosnode list → ERROR: Unable to communicate with master!（master 已亡）
+2) ps 残留 → 空
+3) 端口 56301/56401/43897 → 空
+4) rosnode list|grep ros2qnx → master 亡，前值亦零出现（22:08 grep_exit=1）
+5) tmux kill-server 已执行；v3_isolation 复跑排在最后 mode（B.3）后

@@ -1,0 +1,90 @@
+#═══ P6.0 foxy 停机（Q8 方案 A）汇总 · 由 raw 分片合并 · 2026-10-04 22:48:44 ═══
+
+────── A1_foxy_before_stop.txt ──────
+# A1 2026-10-04 21:54:28
+● transfer_ros2.service - DeepRobotics Transfer For ROS2
+     Loaded: loaded (/etc/systemd/system/transfer_ros2.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 01:05:55 CST; 20h ago
+    Process: 938 ExecStart=/bin/bash /home/ysc/lite_cog_ros2/system/scripts/transfer/start_transfer.sh (code=exited, status=0/SUCCESS)
+   Main PID: 1615 (ros2)
+      Tasks: 46 (limit: 8132)
+     Memory: 53.6M
+     CGroup: /system.slice/transfer_ros2.service
+             ├─1615 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+             ├─2053 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_7bmrnrxj
+             ├─2055 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_uf_0fw0s --params-file /tmp/launch_params_sc79x3ww --params-file /tmp/launch_params_y5l5znx8
+             └─2057 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_srfnu4t7
+
+Oct 04 21:54:25 lite bash[1615]: [jetson2motion-2] [INFO] [1791122065.156398143] [motion_receiver]: qnx2ros received: [16] bytes
+Oct 04 21:54:25 lite bash[1615]: [sensor_checker-3] [WARN] [1791122065.306540073] [sensor_checker]: [lidar] has been silient for: [12525.974343] second.
+Oct 04 21:54:25 lite bash[1615]: [sensor_checker-3] [WARN] [1791122065.807102867] [sensor_checker]: [lidar] has been silient for: [12526.474900] second.
+Oct 04 21:54:26 lite bash[1615]: [sensor_checker-3] [WARN] [1791122066.307328604] [sensor_checker]: [lidar] has been silient for: [12526.975122] second.
+Oct 04 21:54:26 lite bash[1615]: [jetson2motion-2] [INFO] [1791122066.516858570] [motion_receiver]: qnx2ros received: [52] bytes
+Oct 04 21:54:26 lite bash[1615]: [sensor_checker-3] [WARN] [1791122066.806334490] [sensor_checker]: [lidar] has been silient for: [12527.474125] second.
+Oct 04 21:54:27 lite bash[1615]: [sensor_checker-3] [WARN] [1791122067.307260587] [sensor_checker]: [lidar] has been silient for: [12527.975045] second.
+Oct 04 21:54:27 lite bash[1615]: [sensor_checker-3] [WARN] [1791122067.806590863] [sensor_checker]: [lidar] has been silient for: [12528.474371] second.
+Oct 04 21:54:27 lite bash[1615]: [jetson2motion-2] [INFO] [1791122067.877407357] [motion_receiver]: qnx2ros received: [108] bytes
+Oct 04 21:54:28 lite bash[1615]: [sensor_checker-3] [WARN] [1791122068.306641370] [sensor_checker]: [lidar] has been silient for: [12528.974417] second.
+
+● lite3-ros-bridge.service - Lite3 ROS2 -> Monitor bridge (topics -> local UDP)
+     Loaded: loaded (/etc/systemd/system/lite3-ros-bridge.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 01:05:52 CST; 20h ago
+       Docs: file:/home/test/monitor/docs/ros_bridge.md
+   Main PID: 1332 (python3)
+      Tasks: 10 (limit: 8132)
+     Memory: 28.5M
+     CGroup: /system.slice/lite3-ros-bridge.service
+             └─1332 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+
+Warning: journal has been rotated since unit was started, output may be incomplete.
+
+────── A2_foxy_enabled_before.txt ──────
+# A2 2026-10-04 21:54:28
+enabled
+enabled
+
+────── A3_foxy_ps_before.txt ──────
+# A3 2026-10-04 21:54:28
+ysc         1332 67.5  0.5 668680 36052 ?        Rsl  01:05 843:50 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root        1615  0.2  0.3 277956 22416 ?        Sl   01:05   2:43 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root        2053  0.6  0.1 990796 13124 ?        Sl   01:06   8:38 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_7bmrnrxj
+root        2055 16.6  0.1 1057344 11048 ?       Sl   01:06 207:58 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_uf_0fw0s --params-file /tmp/launch_params_sc79x3ww --params-file /tmp/launch_params_y5l5znx8
+
+────── A4_port43897_before.txt ──────
+# A4 2026-10-04 21:54:29
+UNCONN    768       0                  0.0.0.0:43897            0.0.0.0:*        users:(("jetson2motion",pid=2055,fd=11))                                       
+
+────── A5_livox_ports_before.txt ──────
+# A5 2026-10-04 21:54:29
+
+────── A6_stop_output.txt ──────
+# A6 2026-10-04 21:55:01
+stop_exit=0
+
+────── A7_is_active_after_stop.txt ──────
+# A7 2026-10-04 21:55:04
+inactive
+inactive
+
+────── A7_foxy_ps_after_stop.txt ──────
+# A7-ps 2026-10-04 21:55:05
+
+────── A8_port43897_after_stop.txt ──────
+# A8-43897 2026-10-04 21:55:05
+
+────── A8_livox_ports_after_stop.txt ──────
+# A8-livox 2026-10-04 21:55:05
+
+────── P60_v3_isolation_rerun.txt ──────
+# P6.0 自检重落盘（v4 §11.2 全文含 [9]，脚本已按 v4 重写）2026-10-04 21:57:06
+[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+[2] 自研壳中是否含 /home/ysc
+[3] .bashrc 是否 source 了其他 devel
+[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+[5] ★ 模块间是否互相 include launch（20 号 K3）—— v3 修复子 shell 丢 FAIL bug
+[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug；v4 语义注记：lite3_supervisor 亦在扫描范围（SUP 红线：绝不写 /cmd_vel，N5/C13）
+[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.cc/.h）
+=== ISOLATION OK ===
+EXIT=0

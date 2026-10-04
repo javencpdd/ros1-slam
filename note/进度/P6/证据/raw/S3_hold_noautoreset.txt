@@ -1,0 +1,14 @@
+== S-3 恢复 m4 心跳 2026-10-04 22:39:48 ==
+-- liveness_m4 回归? --
+-- SUP FATAL 是否停止（应停）--
+[FATAL] [1791124784.979238]: [SUP] 心跳失联: M4_navigation —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791124785.979285]: [SUP] 心跳失联: M4_navigation —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+-- mux 是否自动回 navigation（预判：不会，hold latch 保持）--
+[WARN] [1791124654.989959]: [M6] 监督保持输入 hold=True（/lite3/supervisor/hold，唯一发布者=SUP）
+[WARN] [1791124655.031118]: [M6] 活跃源切换: navigation -> HOLD
+-- 重启 W2 SUP（payload 复位手段）--
+-- SUP 重启后 mux 状态（实测裁决 payload 预期）--
+[WARN] [1791124654.989959]: [M6] 监督保持输入 hold=True（/lite3/supervisor/hold，唯一发布者=SUP）
+[WARN] [1791124655.031118]: [M6] 活跃源切换: navigation -> HOLD
+/cmd_vel/linear/x: 0.0
+---

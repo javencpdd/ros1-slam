@@ -1,0 +1,20 @@
+== S-2 hold 通道触发测试 2026-10-04 22:37:25 ==
+-- S-2 前置：M-2 态 /cmd_vel/linear/x（期望 0.3）--
+-- 杀 m4 心跳（pkill -f liveness_m4）--
+pkill: killing pid 97022 failed: Operation not permitted
+pkill: killing pid 97060 failed: Operation not permitted
+pkill: killing pid 97140 failed: Operation not permitted
+Terminated
+-- SUP pane（期望 logfatal 心跳失联: M4_navigation + hold=true）--
+    lite3_supervisor (lite3_supervisor/health_monitor.py)
+ROS_MASTER_URI=http://192.168.1.103:11312
+process[lite3_supervisor-1]: started with pid [92936]
+-- mux pane（期望 hold=True + HOLD）--
+[WARN] [1791124526.430124]: [M6] 源 navigation 超时（0.50s 无数据），淘汰
+[WARN] [1791124526.436865]: [M6] 活跃源切换: navigation -> NONE
+[WARN] [1791124645.380246]: [M6] 活跃源切换: NONE -> navigation
+-- /cmd_vel/linear/x（navigation 仍在 pub，期望强制 0.0）--
+0.0
+---
+0.0
+---

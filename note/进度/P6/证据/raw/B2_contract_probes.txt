@@ -1,0 +1,60 @@
+# B.2 契约探针 2026-10-04 22:12:05
+== [1] /globalmap latched（--noarr）==
+header: 
+  seq: 0
+  stamp: 
+    secs: 0
+    nsecs:         0
+  frame_id: "map"
+height: 1
+width: 6302
+fields: "<array type: sensor_msgs/PointField, length: 4>"
+is_bigendian: False
+point_step: 32
+row_step: 201664
+== [2] nodelet manager 两 nodelet 在列 ==
+--------------------------------------------------------------------------------
+Node [/velodyne_nodelet_manager]
+Publications: 
+ * /aligned_points [sensor_msgs/PointCloud2]
+ * /globalmap [sensor_msgs/PointCloud2]
+ * /odom [nav_msgs/Odometry]
+ * /rosout [rosgraph_msgs/Log]
+ * /status [hdl_localization/ScanMatchingStatus]
+ * /tf [tf2_msgs/TFMessage]
+ * /velodyne_nodelet_manager/bond [bond/Status]
+
+Subscriptions: 
+== [3] M2 话题族 /odom /status /aligned_points ==
+/aligned_points
+/globalmap
+/odom
+/status
+== [4] /rslidar_points hz（判据 ≥9）==
+	min: 0.092s max: 0.106s std dev: 0.00272s window: 39
+average rate: 10.016
+	min: 0.092s max: 0.106s std dev: 0.00254s window: 45
+== [5] /imu/data hz（qnx2ros 主选，期望 ≈200）==
+	min: 0.000s max: 0.019s std dev: 0.00200s window: 587
+average rate: 199.685
+	min: 0.000s max: 0.019s std dev: 0.00199s window: 697
+== [6] /cmd_vel hz + 值（mux HOLD 态零速恒 20Hz）==
+average rate: 20.002
+	min: 0.046s max: 0.054s std dev: 0.00131s window: 31
+linear: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+angular: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+== [7] /cmd_vel 唯一写者白名单 ==
+Type: geometry_msgs/Twist
+
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:36379/)
+
+Subscribers: None
+
+

@@ -1,0 +1,13 @@
+# P6.1 mode_mapping 轻量确认 2026-10-04 21:59:13
+# 处置：按主理人指令**跳过 B.1 复跑**（GAP-5：复跑会覆盖样张 lite3.pcd——faster_lio 存盘路径已改写+pcd_save_en:true/interval:10）
+# G5-M0 层证据 = P3b 已证事实引用（原样登记，不重跑不重测）：
+# [F1] 驱动链参数契约：Livox Mid-360，xfer_format=0(PointCloud2)、frame_id=rslidar、publish_freq=10.0 Hz、
+#      remap /livox/lidar→/rslidar_points、恒等 TF base_link→rslidar
+#      证据：note/进度/P3b/证据/v41_sensors_params_dump.yaml；P3b/进度文档.md L47（C1 17 顶层键全命中）
+# [F2] /livox/imu 实测 199.9 Hz（Q12 B 分支，已正式关闭，commit a821e01）；04 台账两条
+#      证据：note/进度/P3b/进度文档.md L72
+# [F3] M1 链路整体跑通：首采样张 lite3.pcd 落盘并归档（b467c69），G3 形式 PASS（三件套补齐，质量注记：底图待重采）
+#      证据：note/进度/P3b/证据/G3.log
+# [F4] M1 判据 /Odometry ≥10 Hz：今日不复跑不重测（G7-④ 预判"若复跑"分支，跳过）——样张保护优先
+# 样张保护基线（复跑跳过后应保持不变）：
+25059f03dd8a30b174511a6526cd5fe69bb2e0f98707548dcec90e761211884b  /home/ros1-slam/data/maps/lite3.pcd

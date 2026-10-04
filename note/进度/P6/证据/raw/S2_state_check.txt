@@ -1,0 +1,26 @@
+== S-2 现状直接观察 2026-10-04 22:38:48 ==
+-- W9 pane 尾部（pub 活着吗）--
+ros1-slam@lite:~$ source /home/ros1-slam/scripts/env.sh
+ros1-slam@lite:~$ rostopic pub -r 10 /cmd_vel_raw geometry_msgs/Twist '{linear: {x: 0.3}}'
+^Cros1-slam@lite:~$ rostopic pub -r 10 /cmd_vel_raw geometry_msgs/Twist '{linear: {x: 0.3}}'
+-- SUP pane 尾部（FATAL?）--
+[FATAL] [1791124725.979309]: [SUP] 心跳失联: M4_navigation —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791124726.979651]: [SUP] 心跳失联: M4_navigation —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[FATAL] [1791124727.979856]: [SUP] 心跳失联: M4_navigation —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+-- mux pane 尾部 --
+[WARN] [1791124645.380246]: [M6] 活跃源切换: NONE -> navigation
+[WARN] [1791124654.989959]: [M6] 监督保持输入 hold=True（/lite3/supervisor/hold，唯一发布者=SUP）
+[WARN] [1791124655.031118]: [M6] 活跃源切换: navigation -> HOLD
+-- liveness_m4 节点与发布者 --
+/liveness_m6
+Type: std_msgs/Empty
+
+Publishers: None
+
+Subscribers: 
+ * /lite3_supervisor (http://192.168.1.103:36337/)
+
+
+-- /cmd_vel/linear/x 现值 --
+0.0
+---

@@ -1,0 +1,9 @@
+== S-3 m4 心跳回归复核 2026-10-04 22:40:50 ==
+/liveness_m6
+no new messages
+average rate: 1.002
+-- SUP pane（FATAL 停止?）--
+ROS_MASTER_URI=http://192.168.1.103:11312
+process[lite3_supervisor-1]: started with pid [97663]
+-- W10 是否 ros1-slam 身份+env 正确（防呆）--
+ros1-slam@lite:~$ rostopic pub -r 1 /lite3/liveness/m4_navigation std_msgs/Empty

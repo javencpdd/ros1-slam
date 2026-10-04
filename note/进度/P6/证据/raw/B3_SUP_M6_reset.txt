@@ -1,0 +1,23 @@
+# SUP+M6 双复位 2026-10-04 22:27:03（F-B2-1：SUP 从不发 False，mux hold 仅消息驱动——需 mux 新实例）
+-- 复位后 M6 先起 --
+-- W6 mux pane --
+process[safe_cmd_vel_mux-1]: started with pid [92872]
+process[liveness_m6-2]: started with pid [92873]
+[INFO] [1791124034.196108]: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+[WARN] [1791124034.246058]: [M6] 活跃源切换: INIT -> NONE
+-- W2 SUP pane --
+    lite3_supervisor (lite3_supervisor/health_monitor.py)
+ROS_MASTER_URI=http://192.168.1.103:11312
+process[lite3_supervisor-1]: started with pid [92936]
+-- SUP 是否 logfatal（心跳全存活应静默）--
+/base2livox
+/lite3_supervisor
+/liveness_m4
+/liveness_m6
+/livox_lidar_publisher2
+/move_base_flex
+/qnx2ros
+/rosout
+/rostopic_90655_1791123492583
+/safe_cmd_vel_mux
+/static_transform_publisher_1791123506424194326

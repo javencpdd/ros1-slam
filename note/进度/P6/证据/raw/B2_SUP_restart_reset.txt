@@ -1,0 +1,13 @@
+# B.2 SUP 重启复位 2026-10-04 22:10:04
+-- W2 pane
+NODES
+  /
+    lite3_supervisor (lite3_supervisor/health_monitor.py)
+ROS_MASTER_URI=http://192.168.1.103:11312
+process[lite3_supervisor-1]: started with pid [87249]
+-- hold 现值（期望 False 或静默）
+-- W10 mux pane（期望 HOLD->NONE）
+[INFO] [1791122914.225033]: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+[WARN] [1791122914.275854]: [M6] 活跃源切换: INIT -> NONE
+[WARN] [1791122914.285271]: [M6] 监督保持输入 hold=True（/lite3/supervisor/hold，唯一发布者=SUP）
+[WARN] [1791122914.326001]: [M6] 活跃源切换: NONE -> HOLD

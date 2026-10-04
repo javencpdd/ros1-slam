@@ -1,0 +1,13 @@
+== S-4 复位后再核（SUP+M6 双复位法）2026-10-04 22:41:55 ==
+-- mux pane（期望 INIT->NONE + NONE->navigation，无 hold 行）--
+process[liveness_m6-2]: started with pid [97979]
+[INFO] [1791124907.938386]: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+[WARN] [1791124907.987794]: [M6] 活跃源切换: INIT -> navigation
+-- /cmd_vel/linear/x（期望 0.3 = 回 M-2 态）--
+0.3
+---
+-- SUP pane（期望静默）--
+ROS_MASTER_URI=http://192.168.1.103:11312
+process[lite3_supervisor-1]: started with pid [98045]
+-- hold 话题静默 --
+silent_done

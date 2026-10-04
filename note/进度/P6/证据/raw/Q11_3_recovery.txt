@@ -1,0 +1,26 @@
+# Q11-③ recovery 插件探针 2026-10-04 22:20:11
+== mbf 启动日志中 recovery/plugin 行 ==
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_plugin: costmap_converter...
+ * /move_base_flex/TebLocalPlannerROS/oscillation_recovery: False
+ * /move_base_flex/global_costmap/plugins: [{'name': 'static...
+ * /move_base_flex/local_costmap/plugins: [{'name': 'stvl_o...
+ * /move_base_flex/recovery_behaviors: [{'name': 'clear_...
+ * /move_base_flex/recovery_enabled: False
+[ INFO] [1791123545.563875659]: local_costmap: Using plugin "stvl_obstacle_layer"
+[ INFO] [1791123546.316892450]: local_costmap: Using plugin "sob_layer"
+[ INFO] [1791123546.745040563]: global_costmap: Using plugin "static_layer"
+== rospack plugins --attrib=plugin nav_core（grep clear）==
+clear_costmap_recovery /opt/ros/noetic/share/clear_costmap_recovery/ccr_plugin.xml
+== ccr_plugin.xml 原文（C0 串对账）==
+<library path="lib/libclear_costmap_recovery">
+  <class name="clear_costmap_recovery/ClearCostmapRecovery" type="clear_costmap_recovery::ClearCostmapRecovery" base_class_type="nav_core::RecoveryBehavior">
+    <description>
+      A recovery behavior that reverts the costmap to the static map outside of a user specified window.
+    </description>
+  </class>
+</library>
+== W7 尾部（服务器起没起来）==
+[ INFO] [1791123546.659138446]: [sob_layer] reinflating
+[ INFO] [1791123546.713331136]: [sob_layer] updating the cache
+[ INFO] [1791123546.745040563]: global_costmap: Using plugin "static_layer"
+[ INFO] [1791123546.982755441]: Requesting the map...

@@ -1,0 +1,10 @@
+== M-4 estop 停发 → 超时淘汰回 navigation（timeout_s=0.5）==
+-- mux 日志（期望：源 estop 超时…淘汰 + estop -> navigation）--
+[WARN] [1791124284.495572]: [M6] 活跃源切换: navigation -> estop
+[WARN] [1791124303.796290]: [M6] 源 estop 超时（0.50s 无数据），淘汰
+[WARN] [1791124303.802441]: [M6] 活跃源切换: estop -> navigation
+-- /cmd_vel/linear/x（期望回 0.3）--
+0.3
+---
+0.3
+---

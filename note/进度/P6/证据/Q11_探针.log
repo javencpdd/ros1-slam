@@ -1,0 +1,303 @@
+#═══ Q11 五项探针 + S-5 加强探针汇总 · 2026-10-04 22:48:44 ═══
+
+────── Q11_3_recovery.txt ──────
+# Q11-③ recovery 插件探针 2026-10-04 22:20:11
+== mbf 启动日志中 recovery/plugin 行 ==
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_plugin: costmap_converter...
+ * /move_base_flex/TebLocalPlannerROS/oscillation_recovery: False
+ * /move_base_flex/global_costmap/plugins: [{'name': 'static...
+ * /move_base_flex/local_costmap/plugins: [{'name': 'stvl_o...
+ * /move_base_flex/recovery_behaviors: [{'name': 'clear_...
+ * /move_base_flex/recovery_enabled: False
+[ INFO] [1791123545.563875659]: local_costmap: Using plugin "stvl_obstacle_layer"
+[ INFO] [1791123546.316892450]: local_costmap: Using plugin "sob_layer"
+[ INFO] [1791123546.745040563]: global_costmap: Using plugin "static_layer"
+== rospack plugins --attrib=plugin nav_core（grep clear）==
+clear_costmap_recovery /opt/ros/noetic/share/clear_costmap_recovery/ccr_plugin.xml
+== ccr_plugin.xml 原文（C0 串对账）==
+<library path="lib/libclear_costmap_recovery">
+  <class name="clear_costmap_recovery/ClearCostmapRecovery" type="clear_costmap_recovery::ClearCostmapRecovery" base_class_type="nav_core::RecoveryBehavior">
+    <description>
+      A recovery behavior that reverts the costmap to the static map outside of a user specified window.
+    </description>
+  </class>
+</library>
+== W7 尾部（服务器起没起来）==
+[ INFO] [1791123546.659138446]: [sob_layer] reinflating
+[ INFO] [1791123546.713331136]: [sob_layer] updating the cache
+[ INFO] [1791123546.745040563]: global_costmap: Using plugin "static_layer"
+[ INFO] [1791123546.982755441]: Requesting the map...
+
+────── Q11_probes.txt ──────
+# Q11 探针汇总 2026-10-04 22:22:49
+
+===== ① costmap 挂载 ns =====
+/move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_distance
+/move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_pts
+/move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_min_pts
+/move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/convex_hull_min_pt_separation
+/move_base_flex/TebLocalPlannerROS/costmap_converter_plugin
+/move_base_flex/TebLocalPlannerROS/costmap_converter_spin_thread
+/move_base_flex/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
+/move_base_flex/TebLocalPlannerROS/include_costmap_obstacles
+/move_base_flex/global_costmap/always_send_full_costmap
+/move_base_flex/global_costmap/footprint
+/move_base_flex/global_costmap/footprint_padding
+/move_base_flex/global_costmap/global_frame
+/move_base_flex/global_costmap/height
+/move_base_flex/global_costmap/origin_x
+/move_base_flex/global_costmap/origin_y
+/move_base_flex/global_costmap/plugins
+/move_base_flex/global_costmap/publish_frequency
+/move_base_flex/global_costmap/resolution
+/move_base_flex/global_costmap/robot_base_frame
+/move_base_flex/global_costmap/rolling_window
+/move_base_flex/global_costmap/sob_layer/cost_scaling_factor
+/move_base_flex/global_costmap/sob_layer/enabled
+/move_base_flex/global_costmap/sob_layer/inflate_unknown
+/move_base_flex/global_costmap/sob_layer/inflation_radius
+/move_base_flex/global_costmap/sob_layer/inscribed_radius
+/move_base_flex/global_costmap/static_layer/first_map_only
+/move_base_flex/global_costmap/static_layer/lethal_cost_threshold
+/move_base_flex/global_costmap/static_layer/map_topic
+/move_base_flex/global_costmap/static_layer/subscribe_to_updates
+/move_base_flex/global_costmap/static_layer/track_unknown_space
+/move_base_flex/global_costmap/static_layer/trinary_costmap
+/move_base_flex/global_costmap/static_layer/unknown_cost_value
+/move_base_flex/global_costmap/static_layer/use_maximum
+/move_base_flex/global_costmap/stvl_obstacle_layer/combination_method
+/move_base_flex/global_costmap/stvl_obstacle_layer/decay_model
+/move_base_flex/global_costmap/stvl_obstacle_layer/enabled
+/move_base_flex/global_costmap/stvl_obstacle_layer/map_save_duration
+/move_base_flex/global_costmap/stvl_obstacle_layer/mapping_mode
+/move_base_flex/global_costmap/stvl_obstacle_layer/mark_threshold
+/move_base_flex/global_costmap/stvl_obstacle_layer/observation_sources
+/move_base_flex/global_costmap/stvl_obstacle_layer/publish_voxel_map
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clearing
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/data_type
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/enabled
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/filter
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/marking
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_z
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_z
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/model_type
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/topic
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding
+/move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points
+/move_base_flex/global_costmap/stvl_obstacle_layer/track_unknown_space
+/move_base_flex/global_costmap/stvl_obstacle_layer/transform_tolerance
+/move_base_flex/global_costmap/stvl_obstacle_layer/update_footprint_enabled
+/move_base_flex/global_costmap/stvl_obstacle_layer/voxel_decay
+/move_base_flex/global_costmap/stvl_obstacle_layer/voxel_size
+/move_base_flex/global_costmap/track_unknown_space
+/move_base_flex/global_costmap/transform_tolerance
+/move_base_flex/global_costmap/update_frequency
+/move_base_flex/global_costmap/width
+/move_base_flex/local_costmap/always_send_full_costmap
+/move_base_flex/local_costmap/footprint
+/move_base_flex/local_costmap/footprint_padding
+/move_base_flex/local_costmap/global_frame
+/move_base_flex/local_costmap/height
+/move_base_flex/local_costmap/origin_x
+/move_base_flex/local_costmap/origin_y
+/move_base_flex/local_costmap/plugins
+/move_base_flex/local_costmap/publish_frequency
+/move_base_flex/local_costmap/resolution
+/move_base_flex/local_costmap/robot_base_frame
+/move_base_flex/local_costmap/robot_radius
+/move_base_flex/local_costmap/rolling_window
+/move_base_flex/local_costmap/sob_layer/cost_scaling_factor
+/move_base_flex/local_costmap/sob_layer/enabled
+/move_base_flex/local_costmap/sob_layer/inflate_unknown
+/move_base_flex/local_costmap/sob_layer/inflation_radius
+/move_base_flex/local_costmap/sob_layer/inscribed_radius
+/move_base_flex/local_costmap/static_layer/first_map_only
+/move_base_flex/local_costmap/static_layer/lethal_cost_threshold
+/move_base_flex/local_costmap/static_layer/map_topic
+/move_base_flex/local_costmap/static_layer/subscribe_to_updates
+/move_base_flex/local_costmap/static_layer/track_unknown_space
+/move_base_flex/local_costmap/static_layer/trinary_costmap
+/move_base_flex/local_costmap/static_layer/unknown_cost_value
+/move_base_flex/local_costmap/static_layer/use_maximum
+/move_base_flex/local_costmap/stvl_obstacle_layer/combination_method
+/move_base_flex/local_costmap/stvl_obstacle_layer/decay_model
+/move_base_flex/local_costmap/stvl_obstacle_layer/enabled
+/move_base_flex/local_costmap/stvl_obstacle_layer/map_save_duration
+/move_base_flex/local_costmap/stvl_obstacle_layer/mapping_mode
+/move_base_flex/local_costmap/stvl_obstacle_layer/mark_threshold
+/move_base_flex/local_costmap/stvl_obstacle_layer/observation_sources
+/move_base_flex/local_costmap/stvl_obstacle_layer/publish_voxel_map
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clearing
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/data_type
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/enabled
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/filter
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/marking
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_z
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_z
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/model_type
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/topic
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points
+/move_base_flex/local_costmap/stvl_obstacle_layer/track_unknown_space
+/move_base_flex/local_costmap/stvl_obstacle_layer/transform_tolerance
+/move_base_flex/local_costmap/stvl_obstacle_layer/update_footprint_enabled
+/move_base_flex/local_costmap/stvl_obstacle_layer/voxel_decay
+/move_base_flex/local_costmap/stvl_obstacle_layer/voxel_size
+/move_base_flex/local_costmap/track_unknown_space
+/move_base_flex/local_costmap/transform_tolerance
+/move_base_flex/local_costmap/update_frequency
+/move_base_flex/local_costmap/width
+--- width/frame 取值 ---
+100
+10
+base_link
+--- 运行侧 rostopic list | grep costmap（头部 12 行）---
+/move_base_flex/local_costmap/costmap
+/move_base_flex/local_costmap/costmap_updates
+/move_base_flex/local_costmap/footprint
+/move_base_flex/local_costmap/parameter_descriptions
+/move_base_flex/local_costmap/parameter_updates
+/move_base_flex/local_costmap/sob_layer/parameter_descriptions
+/move_base_flex/local_costmap/sob_layer/parameter_updates
+/move_base_flex/local_costmap/stvl_obstacle_layer/parameter_descriptions
+/move_base_flex/local_costmap/stvl_obstacle_layer/parameter_updates
+/move_base_flex/local_costmap/stvl_obstacle_layer/voxel_grid
+--- rostopic info /move_base_flex/global_costmap/costmap ---
+ERROR: Unknown topic /move_base_flex/global_costmap/costmap
+
+===== ② clear_costmaps 服务 =====
+ERROR: unknown service
+
+===== ④ action 话题族 + relay 源 =====
+/move_base_flex/current_goal
+/move_base_flex/exe_path/cancel
+/move_base_flex/exe_path/feedback
+/move_base_flex/exe_path/goal
+/move_base_flex/exe_path/result
+/move_base_flex/exe_path/status
+/move_base_flex/get_path/cancel
+/move_base_flex/get_path/feedback
+/move_base_flex/get_path/goal
+/move_base_flex/get_path/result
+/move_base_flex/get_path/status
+/move_base_flex/local_costmap/costmap
+/move_base_flex/local_costmap/costmap_updates
+/move_base_flex/local_costmap/footprint
+/move_base_flex/local_costmap/parameter_descriptions
+/move_base_flex/local_costmap/parameter_updates
+/move_base_flex/local_costmap/sob_layer/parameter_descriptions
+/move_base_flex/local_costmap/sob_layer/parameter_updates
+/move_base_flex/local_costmap/stvl_obstacle_layer/parameter_descriptions
+/move_base_flex/local_costmap/stvl_obstacle_layer/parameter_updates
+/move_base_flex/local_costmap/stvl_obstacle_layer/voxel_grid
+/move_base_flex/recovery/cancel
+/move_base_flex/recovery/feedback
+/move_base_flex/recovery/goal
+/move_base_flex/recovery/result
+/move_base_flex/recovery/status
+--- get_path/goal type ---
+Type: mbf_msgs/GetPathActionGoal
+
+Publishers: 
+ * /move_base_flex (http://192.168.1.103:36291/)
+
+Subscribers: None
+
+
+--- rosnode info /move_base_flex Publishers 段（找 cmd_vel 候选）---
+--- ★ /cmd_vel 发布者白名单核实 ---
+Type: geometry_msgs/Twist
+
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:44369/)
+ * /move_base_flex (http://192.168.1.103:36291/)
+
+Subscribers: None
+
+
+--- 候选类型核实 ---
+ERROR: Unknown topic /move_base_flex/cmd_vel
+
+===== ⑤ make_plan_* 等价 =====
+/move_base_flex/GlobalPlanner/allow_unknown
+/move_base_flex/GlobalPlanner/cost_factor
+/move_base_flex/GlobalPlanner/default_tolerance
+/move_base_flex/GlobalPlanner/lethal_cost
+/move_base_flex/GlobalPlanner/neutral_cost
+/move_base_flex/GlobalPlanner/old_navfn_behavior
+/move_base_flex/GlobalPlanner/orientation_mode
+/move_base_flex/GlobalPlanner/orientation_window_size
+/move_base_flex/GlobalPlanner/outline_map
+/move_base_flex/GlobalPlanner/planner_window_x
+/move_base_flex/GlobalPlanner/planner_window_y
+/move_base_flex/GlobalPlanner/publish_potential
+/move_base_flex/GlobalPlanner/publish_scale
+/move_base_flex/GlobalPlanner/use_dijkstra
+/move_base_flex/GlobalPlanner/use_grid_path
+/move_base_flex/GlobalPlanner/use_quadratic
+float64 tolerance
+string planner
+uint8 concurrency_slot
+
+────── Q11_2_services_full.txt ──────
+# Q11-② 补充：mbf 全量服务清单 2026-10-04 22:25:51
+/move_base_flex/get_loggers
+/move_base_flex/local_costmap/set_parameters
+/move_base_flex/local_costmap/sob_layer/set_parameters
+/move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/toggle_enabled
+/move_base_flex/local_costmap/stvl_obstacle_layer/set_parameters
+/move_base_flex/local_costmap/stvl_obstacle_layer/spatiotemporal_voxel_grid/save_grid
+/move_base_flex/set_logger_level
+-- rosnode info Services 段 --
+sed: -e expression #1, char 11: unexpected `,'
+-- W7 pane 是否有新行（init 是否推进）--
+[ INFO] [1791123546.713331136]: [sob_layer] updating the cache
+[ INFO] [1791123546.745040563]: global_costmap: Using plugin "static_layer"
+[ INFO] [1791123546.982755441]: Requesting the map...
+
+────── S5_getpath_probe.txt ──────
+== S-5 GetPath 加强探针 2026-10-04 22:43:00 ==
+publishing and latching message for 3.0 seconds
+-- get_path/result（outcome 码）--
+-- W7 mbf pane 反应 --
+[ WARN] [1791124385.994526265]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1378 seconds
+[ WARN] [1791124447.563757844]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1071 seconds
+[liveness_m4-2] process has finished cleanly
+log file: /home/ros1-slam/logs/49d3354c-bffe-11f1-a3bb-3c6d66f8d2d8/liveness_m4-2*.log
+-- /cmd_vel/linear/x 期间的值（安全盯防）--
+0.3
+---
+
+────── S5_exepath_probe.txt ──────
+== S-5 ExePath 加强探针（空 path）2026-10-04 22:44:13 ==
+publishing and latching message for 3.0 seconds
+-- exe_path/result（outcome 码）--
+-- W7 mbf pane 反应 --
+[ WARN] [1791124447.563757844]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1071 seconds
+[liveness_m4-2] process has finished cleanly
+log file: /home/ros1-slam/logs/49d3354c-bffe-11f1-a3bb-3c6d66f8d2d8/liveness_m4-2*.log
+-- /cmd_vel 安全盯防 --
+0.3
+---
