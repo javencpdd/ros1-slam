@@ -1,0 +1,38 @@
+== P722 判据1：rosnode list（期望 12 节点）==
+/base2livox
+/globalmap_server_nodelet
+/hdl_localization_nodelet
+/lite3_supervisor
+/liveness_m0
+/liveness_m2
+/liveness_m6
+/livox_lidar_publisher2
+/qnx2ros
+/rosout
+/safe_cmd_vel_mux
+/velodyne_nodelet_manager
+node_count=12
+== A6 负判据：map_server 期望不存在 ==
+/globalmap_server_nodelet
+mapserver_grep_exit=0
+== ros2qnx 反查 ==
+grep_exit=1
+== 判据：nodelet 双装载（从 roslaunch 日志取，零 error 判定）==
+Publications: 
+ * /aligned_points [sensor_msgs/PointCloud2]
+ * /globalmap [sensor_msgs/PointCloud2]
+ * /odom [nav_msgs/Odometry]
+ * /rosout [rosgraph_msgs/Log]
+ * /status [hdl_localization/ScanMatchingStatus]
+ * /tf [tf2_msgs/TFMessage]
+ * /velodyne_nodelet_manager/bond [bond/Status]
+
+-- nodelet manager 内已装载 nodelet（/nodelet_manager list）--
+Your usage: 
+/opt/ros/noetic/lib/nodelet/nodelet list 
+nodelet usage:
+nodelet load pkg/Type manager [--no-bond]  - Launch a nodelet of type pkg/Type on manager manager
+nodelet standalone pkg/Type   - Launch a nodelet of type pkg/Type in a standalone node
+nodelet unload name manager   - Unload a nodelet by name from manager
+nodelet manager               - Launch a nodelet manager node
+(nodelet list 超时/不可用，改用日志)

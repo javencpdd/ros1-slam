@@ -1,0 +1,22 @@
+== P723 判据1：rosnode list（期望 11 节点，N-1 后 stub 节点=stub_tf_broadcaster）==
+/base2livox
+/lite3_supervisor
+/liveness_m0
+/liveness_m4
+/liveness_m6
+/livox_lidar_publisher2
+/move_base_flex
+/qnx2ros
+/rosout
+/safe_cmd_vel_mux
+/stub_tf_broadcaster
+node_count=11
+== ros2qnx 反查 #1 ==
+grep_exit=1
+== 判据2：三心跳 ≈1 Hz ==
+-- /lite3/liveness/m0_drivers --
+average rate: 1.000
+-- /lite3/liveness/m4_navigation --
+average rate: 1.000
+-- /lite3/liveness/m6_safety --
+average rate: 1.000

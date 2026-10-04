@@ -1,0 +1,34 @@
+<launch>
+  <!-- ══════════════════════════════════════════════════════════════════════════════
+       mode_mapping（v4 §12 mode 表；P7 A4，GAP-3 主理人裁决，TOP 编排层首建）
+       组合 = SUP 最先起 + M0(驱动+qnx2ros，仅传感器侧) + M1(faster-lio 建图)。
+       SUP watch 对照 health_watch.yaml#modes.mode_mapping：M0_drivers + M1_slam
+       （本 mode 无 M6 → 失联处置 degraded_shutdown，hold latch 无消费者；
+       SUP 输出仅 /lite3/supervisor/hold，绝不写速度话题，§2.6-a / 自检 [6]）。
+
+       起序语义（launch 文档顺序≠运行时序保证——如实采用「一窗起全部 + 各节点自带联锁」）：
+       · 单窗口单命令：roscore -p 11312 → roslaunch lite3_bringup mode_mapping.launch
+       · SUP 为文档首行（v4 §12 铁律/N5）；liveness_m0/m1 心跳随各模块 launch 秒级在位，
+         一窗内不存在 P6.2「SUP 单独先起、模块跨窗后起」的迟到竞态主根因；
+       · 残余竞态判据：起后 10 s 检查 /lite3/supervisor/hold——静默=正常；若 latch=true
+         （SUP 误报）→ 重启 SUP 复位（P6.2 口径），属安全侧失效，留证不得静默；
+       · livox 驱动 required=true：驱动即死 = 整窗退出（roslaunch 自带联锁）。
+
+       ★ GAP-5 红线：faster-lio pcd_save_en=true（interval 10，存盘路径 = data/maps/lite3.pcd）
+         —— 本 mode 运行可能覆盖样张图（hdl globalmap 同源）！起前备份三件套 + sha256、
+         退净后复核 sha256，漂移即恢复并登记偏差（P7 manifest B 章 P7.2.1）。
+
+       N-4 联动注记（主理人裁决，04 台账）：本 mode 无声明 rviz 的子 launch（sensors/slam
+       均未声明该 arg），故无顶层 rviz arg；90_supervisor.launch 死 rviz arg 已清理。
+       ══════════════════════════════════════════════════════════════════════════════ -->
+  <!-- SUP 最先起（v4 §12 铁律/N5；mode 逐字 = health_watch.yaml#modes 键名；N-4 后 SUP 不再
+       声明 rviz arg，本 include 不透传——roslaunch 未声明 arg 传参必报错） -->
+  <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
+    <arg name="mode" value="mode_mapping"/>
+  </include>
+  <!-- M0：Livox Mid-360 驱动 + qnx2ros（liveness_m0 心跳在其内，A1） -->
+  <include file="$(find lite3_drivers)/launch/01_sensors.launch"/>
+  <!-- M1：faster-lio 建图（rosparam 全局命名空间加载在其内——同一 roscore 单实例；
+       liveness_m1 心跳在其内，A2；GAP-5 红线见头注） -->
+  <include file="$(find lite3_slam)/launch/10_slam_mapping.launch"/>
+</launch>

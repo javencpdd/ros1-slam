@@ -1,0 +1,26 @@
+== A6 负判据（精确全名）：/map_server 期望 grep_exit=1 ==
+mapserver_exact_grep_exit=1
+== 判据2：三心跳 ≈1 Hz ==
+-- /lite3/liveness/m0_drivers --
+average rate: 0.999
+average rate: 1.000
+average rate: 1.000
+-- /lite3/liveness/m2_localization --
+average rate: 0.995
+average rate: 0.999
+-- /lite3/liveness/m6_safety --
+average rate: 1.000
+average rate: 1.000
+== 判据3：/globalmap latched（期望 frame_id: map）==
+    secs: 0
+    nsecs:         0
+  frame_id: "map"
+Publishers: 
+ * /velodyne_nodelet_manager (http://192.168.1.103:39501/)
+
+Subscribers: 
+== 判据4：/imu/data ≈200 Hz（qnx2ros 活 = 43897 已 bind）==
+average rate: 200.505
+average rate: 200.299
+average rate: 200.207
+average rate: 200.205

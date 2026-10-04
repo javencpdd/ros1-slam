@@ -1,0 +1,12 @@
+<launch>
+  <!-- 采图链驱动 = Livox Mid-360（v4.1 A3.1/X2）。include 生产同款 launch（自带全部关键语义：
+       remap /livox/lidar→/rslidar_points；frame_id=rslidar；user_config_path=MID360s_config.json
+       （host 192.168.1.103 / lidar 192.168.1.201）；xfer_format=0（本 fork 枚举 0=PointCloud2，lddc.h:43）；
+       publish_freq 10 Hz；恒等 TF base_link→rslidar；node required=true）。
+       注：broadcast code 不需要——SDK2 按 config IP 识别设备，launch 的 bd_list 参数对 Mid-360 无效（无害占位）。 -->
+  <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360s.launch"/>
+  <!-- 狗体 IMU（C1 主选 /imu/data，200 Hz）：qnx2ros 监听 QNX 遥测 UDP 43897（server_port 默认值，qnx2ros.cpp:261） -->
+  <node pkg="message_transformer" type="qnx2ros" name="qnx2ros" output="screen"/>
+  <!-- ⚠️ ros2qnx（直发 QNX 底盘速度指令的节点）禁令原样保留（v4 §2/V1）；
+       lslidar_c16.launch 文件保留不入链（软件遗留对照，A3.1） -->
+</launch>

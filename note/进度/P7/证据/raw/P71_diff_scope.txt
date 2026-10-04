@@ -1,0 +1,24 @@
+== diff v3_isolation.sh（现行 vs 新版，预期仅 [5] 段 3 行变化）==
+15c15
+< say "[5] ★ 模块间是否互相 include launch（20 号 K3）—— v3 修复子 shell 丢 FAIL bug"
+---
+> say "[5] ★ 平级模块间是否互相 include launch（20 号 K3）—— P7 修订（主理人裁决，04 台账）：豁免 lite3_bringup（TOP 编排层 = include 合法主体，mode 级组合 launch include 各平级模块属 TOP 职责）；K3 语义 = 平级 lite3_* 模块禁互 include（TOP 下行不豁免）—— v3 修复子 shell 丢 FAIL bug 口径不变"
+19a20
+>   [ "$SELF" = "lite3_bringup" ] && continue  # P7 修订：TOP 编排层豁免（语义变化见上方 say 行与 04 台账）
+diff_exit=1
+== diff 90_supervisor.launch（预期仅 rviz arg 行 + 注记）==
+5c5,7
+<        全部输出仅 /lite3/supervisor/hold（Bool）+ 日志；自检 [6] 承接（本包在扫描范围）。 -->
+---
+>        全部输出仅 /lite3/supervisor/hold（Bool）+ 日志；自检 [6] 承接（本包在扫描范围）。
+>        P7/N-4（主理人裁决，04 台账）：原声明的 rviz arg 为死 arg（本 launch 无 rviz 节点，
+>        C10 本就禁启），已清理——三个 mode 顶层 launch 对本文件不再透传 rviz。 -->
+7d8
+<   <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X） -->
+diff_exit=1
+== diff package.xml（预期仅 +3 行 exec_depend）==
+8a9,11
+>   <!-- P7/N-3 主理人裁决（04 台账）：补 hdl_localization exec_depend——A3 自研 launch 承载其
+>        nodelet，规范声明运行时依赖（roslaunch 不校验、纯规范性加固） -->
+>   <exec_depend>hdl_localization</exec_depend>
+diff_exit=1

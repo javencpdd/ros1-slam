@@ -1,0 +1,56 @@
+<launch>
+  <!-- ══════════════════════════════════════════════════════════════════════════════
+       mode_nav_stub ★（v4 §12 mode 表；P7 A4，GAP-3 主理人裁决）
+       组合 = SUP 最先起 + M0(仅驱动+qnx2ros，不含 ros2qnx) + stub TF 广播器 + M6(安全 mux)
+             + M4(mbf 联邦式服务器)。
+       SUP watch 对照 health_watch.yaml#modes.mode_nav_stub：
+       M0_drivers + M4_navigation + M6_safety（on_loss=notify_m6_zero_speed_then_shutdown）。
+
+       ★ ros2qnx 禁令（V1/R13，真机红线）：本 mode 严禁出现 ros2qnx —— 该节点订阅底盘速度
+         话题直发 QNX；真机运动桥仅二期 mode_navigation 且启动前强制重跑 P0.5 运动链路双查
+         + Q8 用户确认。判据：rosnode list | grep ros2qnx 全程为空（G5-①）。
+       ★ 底盘速度唯一写者 = M6 安全 mux（§2.6-a）：mbf 速度输出已经 C7 remap 并入 /cmd_vel_raw
+         （mbf_navigation.launch move_base_flex 节点内，P6 裁决1）→ mux 转发；
+         判据：速度输出话题 publisher 全程唯一 = M6 安全 mux 节点（G6-④）。
+       ★ 地图供给（N-2 主理人裁决，04 台账）：map_server 供给位归 M4 侧设计（mode_navigation
+         二期、与底图重采同场立项）；本 mode 无 map_server，GetPath 冒烟的 stub /map 为探针级
+         注入（/tmp 零落盘，B 章 P7.2.3），不属本 launch 常态节点。
+
+       起序语义（launch 文档顺序≠运行时序保证——如实采用「一窗起全部 + 各节点自带联锁」）：
+       · 单窗口单命令：roscore -p 11312 → roslaunch lite3_bringup mode_nav_stub.launch
+       · SUP 为文档首行（v4 §12 铁律/N5）；liveness_m0/m4/m6 心跳随各模块 launch 秒级在位，
+         一窗内不存在 P6.2「SUP 单独先起、模块跨窗后起」的迟到竞态主根因；
+       · 残余竞态判据：起后 10 s 检查 /lite3/supervisor/hold——静默=正常；若 latch=true
+         （SUP 误报）→ 重启 SUP 复位（P6.2 口径），属安全侧失效，留证不得静默；
+       · livox 驱动 required=true：驱动即死 = 整窗退出（roslaunch 自带联锁）。
+
+       stub TF（N-1 主理人修正裁决落地，04 台账；payload 原案 map→odom 静态已否决）：
+       · 本 launch 引用 scripts/stub_tf_broadcaster.py（P7 变更批明单许可新增）——广播
+         map→base_link 恒等位姿 @ ~10 Hz、header stamp 每拍取 now（fresh-stamp），即 P6 修正批
+         终态同款（tfbr.py 逻辑，实测 GetPath outcome=0）：stamp=0 的静态位姿会被 mbf 保鲜
+         校验拒收（"robot pose ~1.79e9s old"），且 /tf_static 旧 latch 压制动态新戳（修正批 r4，
+         需重启 M4 清）——动态新戳根治该缺陷路径，冒烟零重启、可重复；
+       · base_link→rslidar 恒等由驱动 base2livox 提供，本 launch 不得重复发布；
+       · 二期真实定位接管 map→base_link（map→odom 链）时本节点退役（先停本节点再起定位，
+         避免 base_link 双父）。
+       ══════════════════════════════════════════════════════════════════════════════ -->
+  <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X）；仅透传给声明了该 arg 的子 launch -->
+  <!-- SUP 最先起（v4 §12 铁律/N5；mode 逐字 = health_watch.yaml#modes 键名；N-4 后 SUP 不再
+       声明 rviz arg，本 include 不透传——roslaunch 未声明 arg 传参必报错） -->
+  <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
+    <arg name="mode" value="mode_nav_stub"/>
+  </include>
+  <!-- M0：Livox Mid-360 驱动 + qnx2ros（liveness_m0 心跳在其内，A1） -->
+  <include file="$(find lite3_drivers)/launch/01_sensors.launch"/>
+  <!-- stub TF：map→base_link 恒等 @10Hz fresh-stamp（N-1 修正裁决，见头注；
+       base_link→rslidar 由驱动提供，勿重复） -->
+  <node pkg="lite3_bringup" type="stub_tf_broadcaster.py" name="stub_tf_broadcaster" output="screen"/>
+  <!-- M6：安全 mux（底盘速度唯一写者，§2.6-a；liveness_m6 心跳在其内） -->
+  <include file="$(find lite3_safety)/launch/60_safety.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+  </include>
+  <!-- M4：mbf 联邦式服务器（C7 remap 在其节点内；liveness_m4 心跳在其内） -->
+  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+  </include>
+</launch>

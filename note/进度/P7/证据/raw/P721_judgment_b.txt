@@ -1,0 +1,18 @@
+== 判据2：心跳真源频率（期望 ≈1 Hz）==
+-- m0_drivers --
+average rate: 1.000
+	min: 0.999s max: 1.000s std dev: 0.00027s window: 4
+no new messages
+-- m1_slam --
+	min: 1.000s max: 1.002s std dev: 0.00113s window: 4
+average rate: 1.000
+	min: 0.998s max: 1.002s std dev: 0.00161s window: 5
+== 判据3：/rslidar_points（期望 ≥9 Hz）与 /Odometry（期望 ≥10 Hz）==
+-- rslidar_points --
+	min: 0.086s max: 0.114s std dev: 0.00411s window: 40
+average rate: 9.996
+	min: 0.086s max: 0.114s std dev: 0.00415s window: 43
+-- Odometry --
+	min: 0.042s max: 0.166s std dev: 0.02059s window: 39
+average rate: 10.036
+	min: 0.042s max: 0.166s std dev: 0.02038s window: 40

@@ -1,0 +1,11 @@
+# P7.3.2 mode_localize 演练（汇总）2026-10-05 01:01–01:03 —— 单命令起停全过
+- 起：独立 roscore → `roslaunch lite3_bringup mode_localize.launch`（SUP+M0+M2(A3 hdl 自研 launch)+M6 一窗）。
+- 判据（raw/P722_judgment_a/b/c.txt + P722_nodelet_log.txt）：
+  1. rosnode list = 12 节点精确在列：base2livox / globalmap_server_nodelet / hdl_localization_nodelet / lite3_supervisor / liveness_m0 / liveness_m2 / liveness_m6 / livox_lidar_publisher2 / qnx2ros / rosout / safe_cmd_vel_mux / velodyne_nodelet_manager ✓（watch=M0/M2/M6 全存活）
+  2. 三心跳 ≈1 Hz：m0 1.000 / m2 0.999 / m6 1.000 ✓
+  3. **A6 负判据**：rosnode list 全名精确匹配 /map_server 零命中 ✓（子串命中的 /globalmap_server_nodelet 为设计内 hdl 节点）
+  4. **hdl 契约（P6.2 等价复现）**：/globalmap latched，frame_id="map" ✓；nodelet manager 发布 /aligned_points /odom /status /tf ✓；双 nodelet 装载日志零 error/exception ✓
+  5. **qnx2ros 应活（foxy 已停）**：/imu/data 200.2–200.5 Hz ✓（43897 bind 成功，坑5 规约前置已过闸门）
+  6. TF：map→base_link 活估在动（-0.709,-0.237 → -0.729,-0.235 → -0.702,-0.249，NDT 修正中，质量不判=P6 口径）✓；base_link→rslidar 恒等阵 ✓
+  7. SUP 静默 ✓；ros2qnx 零命中 ✓
+- 退净：ps 零残留（raw/P722_teardown.txt）✓

@@ -1,0 +1,6 @@
+# P7.2 foxy 停机（汇总）2026-10-05 00:49 —— P6.0 A 章规程照用（Q8 方案 A 授权覆盖 P7）
+- A1–A5 停栈前快照（raw/P72_A1_A5_before_stop.txt）：transfer_ros2/lite3-ros-bridge 双 active（22:46:15/13 起）、is-enabled=enabled/enabled、transfer 4 进程 + bridge 1 进程、43897 由 jetson2motion(pid 99984) 占用、56301/56401 空。
+- P0.5 双查（raw/P71_P05_dual_check.txt）：运动链路侧命中 4 行=Q8 已登记常态；传感器侧空。
+- A6 stop（raw/P72_A6_A8_after_stop.txt）：`systemctl stop transfer_ros2 lite3-ros-bridge` exit=0。
+- A7 闸门：双 inactive + ps 零残留。
+- A8 闸门：43897/56301/56401 全释放 → **闸门开，进入 P7.3**。

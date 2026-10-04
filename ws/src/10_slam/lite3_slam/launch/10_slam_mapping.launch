@@ -7,4 +7,10 @@
   <!-- ★ v4.1 勘误（X7/§5.2）：可执行名 = run_mapping_online（app/CMakeLists.txt:1
        add_executable(run_mapping_online …)）；v3/v4 写的 type="mapping_online" 不存在，
        roslaunch 会直接失败 -->
+  <!-- C13-② 模块心跳（P7 A2 / GAP-1 转正）：watch 侧比对 health_watch.yaml#modes.*.watch(M1_slam)，
+       话题逐字 = /lite3/liveness/m1_slam。
+       ★ 本文件源自 v3 §C1 逐字，现属自研壳文件可改（主理人 GAP-1 裁决明示，diff 登记 04 台账）；
+       ★ GAP-5 红线：faster-lio pcd_save_en=true（interval 10）——本 mode 运行可能覆盖样张
+         data/maps/lite3.pcd，起前备份/退后核 sha256（P7 manifest B 章 P7.2.1）。 -->
+  <node pkg="rostopic" type="rostopic" name="liveness_m1" args="pub -r 1 /lite3/liveness/m1_slam std_msgs/Empty"/>
 </launch>

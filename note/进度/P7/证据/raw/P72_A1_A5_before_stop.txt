@@ -1,0 +1,34 @@
+== A1/A2 停栈前快照 2026-10-05 00:49:03 ==
+● transfer_ros2.service - DeepRobotics Transfer For ROS2
+     Loaded: loaded (/etc/systemd/system/transfer_ros2.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 22:46:15 CST; 2h 2min ago
+    Process: 99894 ExecStart=/bin/bash /home/ysc/lite_cog_ros2/system/scripts/transfer/start_transfer.sh (code=exited, status=0/SUCCESS)
+   Main PID: 99962 (ros2)
+      Tasks: 46 (limit: 8132)
+     Memory: 69.0M
+     CGroup: /system.slice/transfer_ros2.service
+             ├─99962 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+             ├─99982 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_evwhhak5
+             ├─99984 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_ieuol_yr --params-file /tmp/launch_params_wz43zz3g --params-file /tmp/launch_params_q6k4_t3w
+             └─99986 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_wntzxqge
+
+● lite3-ros-bridge.service - Lite3 ROS2 -> Monitor bridge (topics -> local UDP)
+     Loaded: loaded (/etc/systemd/system/lite3-ros-bridge.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2026-10-04 22:46:13 CST; 2h 2min ago
+       Docs: file:/home/test/monitor/docs/ros_bridge.md
+   Main PID: 99895 (python3)
+      Tasks: 10 (limit: 8132)
+     Memory: 51.1M
+     CGroup: /system.slice/lite3-ros-bridge.service
+             └─99895 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+
+enabled
+enabled
+== A3 ps foxy 进程 ==
+ysc        99895 68.1  0.9 668648 64896 ?        Ssl  Oct04  83:41 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root       99962  0.1  0.4 277960 34436 ?        Sl   Oct04   0:12 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root       99982  0.6  0.2 990664 16256 ?        Sl   Oct04   0:49 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_evwhhak5
+root       99984 16.7  0.2 1057372 16812 ?       Sl   Oct04  20:30 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_ieuol_yr --params-file /tmp/launch_params_wz43zz3g --params-file /tmp/launch_params_q6k4_t3w
+root       99986 19.8  0.2 614672 14468 ?        Sl   Oct04  24:20 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_wntzxqge
+== A4/A5 端口 ==
+UNCONN    0         0                  0.0.0.0:43897            0.0.0.0:*        users:(("jetson2motion",pid=99984,fd=11))                                      

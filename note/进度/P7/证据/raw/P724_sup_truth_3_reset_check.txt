@@ -1,0 +1,23 @@
+== 复位后判据（回到全层存活）==
+-- hold 静默（latch 回放检查）--
+data: True
+---
+hold_done
+-- 11 节点 --
+/base2livox /lite3_supervisor /liveness_m0 /liveness_m4 /liveness_m6 /livox_lidar_publisher2 /move_base_flex /qnx2ros /rosout /safe_cmd_vel_mux /stub_tf_broadcaster count=11
+-- SUP 零 FATAL --
+1
+-- mux 轨迹（应仅 INIT->NONE）--
+活跃源切换: INIT -> NONE
+活跃源切换: NONE -> HOLD
+-- 三心跳 --
+average rate: 1.000
+average rate: 1.001
+average rate: 1.000
+-- /cmd_vel 发布者唯一（第 3 次复核）--
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:43781/)
+
+Subscribers: None
+-- ros2qnx 反查 #3 --
+grep_exit=1

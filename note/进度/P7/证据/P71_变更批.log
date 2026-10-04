@@ -1,0 +1,31 @@
+# P7.1 变更批落盘（汇总）2026-10-05
+范围：payload A1–A5 全落 + N 系列四项（主理人裁决）+ 04 台账 10 条 + 02 坑册坑6。
+
+## 落盘清单（源 sha256 == 在位 sha256 全 MATCH）
+| # | 目标 | 类型 | 说明 |
+|---|---|---|---|
+| 1 | ws/src/00_drivers/lite3_drivers/launch/01_sensors.launch | 改 | A1：+liveness_m0 心跳行（GAP-1） |
+| 2 | ws/src/10_slam/lite3_slam/launch/10_slam_mapping.launch | 改 | A2：+liveness_m1 心跳行（GAP-1）+ GAP-5 红线头注 |
+| 3 | ws/src/20_localization/lite3_localization/launch/hdl_localization.launch | 新建 | A3：M2 自研承载（GAP-2/A6/坑6） |
+| 4 | ws/src/70_bringup/lite3_bringup/launch/mode_mapping.launch | 新建 | A4+N-4（无顶层 rviz arg） |
+| 5 | ws/src/70_bringup/lite3_bringup/launch/mode_localize.launch | 新建 | A4+N-2 头注+N-4（rviz 仅透传 safety） |
+| 6 | ws/src/70_bringup/lite3_bringup/launch/mode_nav_stub.launch | 新建 | A4+N-1 修正+N-2 头注+N-4 |
+| 7 | ws/src/70_bringup/lite3_bringup/scripts/stub_tf_broadcaster.py | 新建 755 | N-1 修正裁决：map→base_link 恒等 10Hz fresh-stamp |
+| 8 | scripts/verify/v3_isolation.sh | 改 | A5：[5] 段整段替换（豁免 lite3_bringup） |
+| 9 | ws/src/90_supervisor/lite3_supervisor/launch/90_supervisor.launch | 改 | N-4：死 rviz arg 清理 |
+| 10 | ws/src/20_localization/lite3_localization/package.xml | 改 | N-3：+exec_depend hdl_localization |
+
+## 校验（raw/P71_static_checks.txt 等）
+- 8 文件 XML 解析全 OK；stub_tf_broadcaster.py py_compile OK；v3_isolation bash -n OK。
+- 心跳话题逐字对账：health_watch.yaml 全集 md5 == launch 心跳行全集 md5（含既有 M4/M6 行）= 2f611cafb0cdcb38。
+- 字面串红线：6 launch + py + package.xml 零 /home/ysc；裸 cmd_vel 零命中（唯一出现行含 cmd_vel_raw）。
+- diff 精确性：v3_isolation 仅 [5] 段（+1 豁免行/say 行改写）；90_supervisor 仅 rviz arg 行+注记；package.xml 仅 +3 行。
+- 改前留底 5 件（raw/*.before_P7A1/A2/A5/N3/N4.bak，sha256 见 raw/P71_backups_sha256.txt）。
+- P0.5 双查留档：运动链路侧命中 4 行（foxy 栈=Q8 已登记常态）、传感器侧空、43897 被 jetson2motion 占（raw/P71_P05_dual_check.txt）。
+- GAP-5 样张备份三件套至 /tmp/p7_evidence/backup/，sha256 与 P6 基线逐一吻合（raw/P72_map_backup.txt）。
+
+## N 系列裁决落地
+- N-1（修正）：payload 原「map→odom 静态」否决 → stub_tf_broadcaster.py（map→base_link 恒等 @10Hz fresh-stamp，修正批终态 tfbr.py 同款），mode_nav_stub.launch 引用之；04 台账登记 payload 差异。
+- N-2：map_server 归 M4 侧（mode_navigation 二期），mode_localize 不含维持 A6；注记落 mode_nav_stub 头注 + 本 manifest 附录；纯登记。
+- N-3 照准：package.xml 补 exec_depend hdl_localization（仅此一项）。
+- N-4 照准：90_supervisor 死 rviz arg 清理；联动=三 mode 对 SUP include 去透传（roslaunch 未声明 arg 传参必报错）、mode_mapping 同步去顶层 arg（无声明 rviz 的子 launch）。

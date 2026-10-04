@@ -1,0 +1,15 @@
+== S-4 复位终态验证 ==
+/base2livox /lite3_supervisor /liveness_m0 /liveness_m4 /liveness_m6 /livox_lidar_publisher2 /move_base_flex /qnx2ros /rosout /safe_cmd_vel_mux /stub_tf_broadcaster count=11
+-- hold（期望静默）--
+hold_done
+-- mux 活跃源（新实例日志，期望 INIT->NONE）--
+/home/ros1-slam/logs/ff048b14-c017-11f1-91aa-3c6d66f8d2d8/lite3_supervisor-1.log
+/home/ros1-slam/logs/ff048b14-c017-11f1-91aa-3c6d66f8d2d8/safe_cmd_vel_mux-7.log
+活跃源切换: INIT -> NONE
+活跃源切换: NONE -> HOLD
+-- /cmd_vel 20Hz 零速基态 --
+average rate: 20.003
+  x: 0.0
+  x: 0.0
+-- ros2qnx 反查 #4 --
+grep_exit=1

@@ -1,0 +1,6 @@
+# P7.4 退净 + foxy 恢复（汇总）2026-10-05 01:27 —— P6 A9–A12 口径，顺序铁律
+1. 沙箱全退净（raw/P74_teardown.txt）：tmux 全窗 C-c + kill-server → ps 零 ROS 残留（roscore/roslaunch/rostopic/mbf/mux/livox/nodelet/qnx2ros/health_monitor/stub_tf/faster_lio/hdl 全空）→ 11312 释放 → 43897/56301/56401 全空。
+2. `systemctl start transfer_ros2 lite3-ros-bridge` exit=0（raw/P74_foxy_restore.txt）。
+3. A11：双 active（01:27:52/起）。
+4. A12：is-enabled = enabled/enabled **与停栈前快照逐字一致（零配置残留）**；43897 由 jetson2motion（新 pid 115797）回占 = 生产常态复归；transfer 4 进程 + bridge 1 进程齐。
+5. 终核（raw/P74_final_sha_check.txt）：样张三件套 sha256 = P6 基线逐字（25059f03…/e5b54cc4…/b9967786…）；第三方 hdl local_rslidar_imu.launch sha256 = 026041835f49bf59…（演练前后零变化，C-14）。

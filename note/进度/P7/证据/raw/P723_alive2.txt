@@ -1,0 +1,54 @@
+== 判据2b：action 三族五件套 + current_goal ==
+/move_base_flex/current_goal
+/move_base_flex/exe_path/cancel
+/move_base_flex/exe_path/feedback
+/move_base_flex/exe_path/goal
+/move_base_flex/exe_path/result
+/move_base_flex/exe_path/status
+/move_base_flex/get_path/cancel
+/move_base_flex/get_path/feedback
+/move_base_flex/get_path/goal
+/move_base_flex/get_path/result
+/move_base_flex/get_path/status
+/move_base_flex/recovery/cancel
+/move_base_flex/recovery/feedback
+/move_base_flex/recovery/goal
+/move_base_flex/recovery/result
+/move_base_flex/recovery/status
+== 判据4-①：/cmd_vel 发布者唯一 = mux（第 1 次）==
+Type: geometry_msgs/Twist
+
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:35533/)
+
+Subscribers: None
+
+
+== 判据4-②：/cmd_vel_raw 管道闭环 ==
+Type: geometry_msgs/Twist
+
+Publishers: 
+ * /move_base_flex (http://192.168.1.103:33481/)
+
+Subscribers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:35533/)
+
+
+== 判据5：stub TF map→base_link 恒等（N-1：10Hz fresh 广播器）==
+- Translation: [0.000, 0.000, 0.000]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, -0.000, 0.000]
+            in RPY (degree) [0.000, -0.000, 0.000]
+--
+- Translation: [0.000, 0.000, 0.000]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, -0.000, 0.000]
+== 判据6：mux 无源基态（≈20Hz、值零、源 NONE）==
+average rate: 20.038
+linear: 
+  x: 0.0
+angular: 
+  x: 0.0
+linear: 
+  x: 0.0
+WARNING: topic [/lite3/mux/active_source] does not appear to be published yet

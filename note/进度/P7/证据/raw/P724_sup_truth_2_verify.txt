@@ -1,0 +1,23 @@
+== 验证 M0 心跳已死 01:19:55 ==
+m0_alive_grep_exit=1
+__name:=liveness_m4
+__name:=liveness_m6
+== hold latch 状态 ==
+data: True
+---
+== SUP FATAL 原文（本次 run）==
+[rosout][CRITICAL] 2026-10-05 01:19:57,687: [SUP] 心跳失联: M0_drivers —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[rosout][CRITICAL] 2026-10-05 01:19:58,688: [SUP] 心跳失联: M0_drivers —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[rosout][CRITICAL] 2026-10-05 01:19:59,687: [SUP] 心跳失联: M0_drivers —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+== mux 轨迹 ==
+活跃源切换: INIT -> NONE
+活跃源切换: NONE -> HOLD
+== /cmd_vel 强制零速验证 ==
+  x: 0.0
+  x: 0.0
+  x: 0.0
+  x: 0.0
+== master.log 时间戳链（杀时刻→FATAL）==
+[rosmaster.master][INFO] 2026-10-05 01:19:01,044: -PUB [/lite3/liveness/m0_drivers] /liveness_m0 http://192.168.1.103:36765/
+[rosmaster.master][INFO] 2026-10-05 01:19:01,044: -SERVICE [/liveness_m0/get_loggers] /liveness_m0 rosrpc://192.168.1.103:42805
+[rosmaster.master][INFO] 2026-10-05 01:19:01,045: -SERVICE [/liveness_m0/set_logger_level] /liveness_m0 rosrpc://192.168.1.103:42805

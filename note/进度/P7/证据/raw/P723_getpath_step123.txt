@@ -1,0 +1,6 @@
+== GetPath 冒烟 步骤1：stub /map 探针注入（探针级 /tmp 零落盘 ws）==
+stub_map published
+== 步骤2：等 global_costmap/costmap 话题族出现 ==
+/move_base_flex/global_costmap/costmap
+/move_base_flex/local_costmap/costmap
+== 步骤3：result 先挂订阅（后台 25s 窗）==

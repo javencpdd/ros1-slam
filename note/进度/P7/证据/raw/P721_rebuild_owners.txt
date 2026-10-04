@@ -1,0 +1,8 @@
+root      108538 tmux new-session -d -s p7 -n roscore sudo -iu ros1-slam bash -c 'source /home/ros1-slam/scripts/env.sh; roscore -p 11312; read'
+root      108539 sudo -iu ros1-slam bash -c source /home/ros1-slam/scripts/env.sh; roscore -p 11312; read
+ros1-sl+  108542 bash -c source /home/ros1-slam/scripts/env.sh; roscore -p 11312; read
+ros1-sl+  108588 /usr/bin/python3 /opt/ros/noetic/bin/roscore -p 11312
+ros1-sl+  108601 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 11312 -w 3 __log:=/home/ros1-slam/logs/c06ee442-c014-11f1-8824-3c6d66f8d2d8/master.log
+root      108617 sudo -iu ros1-slam bash -c source /home/ros1-slam/scripts/env.sh; roslaunch lite3_bringup mode_mapping.launch; read
+ros1-sl+  108620 bash -c source /home/ros1-slam/scripts/env.sh; roslaunch lite3_bringup mode_mapping.launch; read
+ros1-sl+  108682 /usr/bin/python3 /opt/ros/noetic/bin/roslaunch lite3_bringup mode_mapping.launch

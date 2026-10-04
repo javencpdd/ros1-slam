@@ -1,0 +1,39 @@
+<launch>
+  <!-- ══════════════════════════════════════════════════════════════════════════════
+       mode_localize（v4 §12 mode 表；P7 A4，GAP-3 主理人裁决）
+       组合 = SUP 最先起 + M0(驱动+qnx2ros) + M2(hdl 自研承载) + M6(安全 mux)。
+       SUP watch 对照 health_watch.yaml#modes.mode_localize：
+       M0_drivers + M2_localization + M6_safety（on_loss=notify_m6_zero_speed_then_shutdown；
+       hold 链 P6 S-2 实证：失联 → hold=true → mux 强制零速）。
+
+       地图供给（A6 裁决 a + N-2 主理人裁决，详见 /tmp/p7_manifest.md §4 与注记）：
+       本 mode 不含 map_server——hdl 用 pcd（globalmap_server_nodelet → /globalmap latched）；
+       2D /map 归 M4 costmap 链（重采修复后 map_server 供给位设计在 M4 侧，mode_navigation
+       二期；样张 yaml origin z=nan 被 map_server 拒载 = D-L1；裁决4：样张不回改、修 yaml 与
+       底图重采同场；不做派生副本——违反裁决4 通道与 P7「零新增数据文件」硬约束）。
+
+       依赖前置：/imu/data 由 qnx2ros 产出（UDP 43897）——bind 类节点起前按坑5 规约
+       `ss -ulnp | grep 43897` 查端口；foxy 栈在跑则 43897 被 jetson2motion 占用 →
+       先走 Q8/方案 A 停栈（P7 manifest B 章 P7.2.0）。
+
+       起序语义：一窗起全部 + 各节点自带联锁（细则同 mode_nav_stub.launch 头注；
+       SUP 迟到竞态残余 → hold 误 latch → 重启 SUP 复位，P6.2 口径）。
+
+       N-4 联动注记（主理人裁决，04 台账）：顶层 rviz arg 仅透传给声明了该 arg 的
+       60_safety.launch；90_supervisor.launch 死 rviz arg 已清理，SUP include 不透传。
+       ══════════════════════════════════════════════════════════════════════════════ -->
+  <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X）；仅透传给声明了该 arg 的子 launch -->
+  <!-- SUP 最先起（v4 §12 铁律/N5；mode 逐字 = health_watch.yaml#modes 键名；N-4 后 SUP 不再
+       声明 rviz arg，本 include 不透传——roslaunch 未声明 arg 传参必报错） -->
+  <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
+    <arg name="mode" value="mode_localize"/>
+  </include>
+  <!-- M0：Livox Mid-360 驱动 + qnx2ros（liveness_m0 心跳在其内，A1；43897 前置见头注） -->
+  <include file="$(find lite3_drivers)/launch/01_sensors.launch"/>
+  <!-- M2：hdl_localization 自研承载（A3；liveness_m2 心跳在其内；不含 map_server=A6 裁决 a + N-2） -->
+  <include file="$(find lite3_localization)/launch/hdl_localization.launch"/>
+  <!-- M6：安全 mux（底盘速度唯一写者，§2.6-a；liveness_m6 心跳在其内） -->
+  <include file="$(find lite3_safety)/launch/60_safety.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+  </include>
+</launch>

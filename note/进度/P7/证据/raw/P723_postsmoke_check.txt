@@ -1,0 +1,18 @@
+== 冒烟后复核（第 2 次）：/cmd_vel 发布者唯一 + 输出值 ==
+Publishers: 
+ * /safe_cmd_vel_mux (http://192.168.1.103:34831/)
+
+Subscribers: None
+  x: 0.0
+  x: 0.0
+  x: 0.0
+  x: 0.0
+== /cmd_vel_raw 白名单复核 ==
+Publishers: 
+ * /move_base_flex (http://192.168.1.103:40841/)
+
+Subscribers: 
+== ros2qnx 反查 #2 ==
+grep_exit=1
+== mux 活跃源轨迹（应无 HOLD 出现）==
+活跃源切换: INIT -> NONE

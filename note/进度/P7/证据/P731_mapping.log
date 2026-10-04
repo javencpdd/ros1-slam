@@ -1,0 +1,11 @@
+# P7.3.1 mode_mapping 演练（汇总）2026-10-05 00:51–01:00 —— 单命令起停全过
+- 起：独立 roscore -p 11312 → `roslaunch lite3_bringup mode_mapping.launch`（单命令一窗）。
+- 判据（raw/P721_judgment_a/b.txt）：
+  1. rosnode list = 8 节点精确在列：base2livox / faster_lio_online / lite3_supervisor / liveness_m0 / liveness_m1 / livox_lidar_publisher2 / qnx2ros / rosout ✓（对照 health_watch#mode_mapping watch=M0/M1 全存活）
+  2. 心跳真源：m0_drivers 1.000 Hz、m1_slam 1.000 Hz ✓（launch 内 liveness_m0/m1 节点，非手动 pub）
+  3. /rslidar_points 9.996 Hz（≥9）✓；/Odometry 10.036 Hz（≥10，faster-lio 吃点云）✓
+  4. SUP 静默：hold echo 超时零输出 ✓
+  5. ros2qnx 零命中（grep_exit=1）✓
+  6. 零代偿进程：rostopic pub 仅 2 条且全带 __name:=（launch 真源）✓（raw/P721_no_compensation.txt）
+- 退净：C-c → ps 零 ROS 残留 + 11312 释放 ✓（raw/P721_teardown_gap5.txt）
+- **GAP-5 样张保护（登记偏差）**：退净后 lite3.pcd sha256 漂移（b9cd5e88，93751 字节）——faster-lio pcd_save_en=true 退窗存盘为设计行为（interval 10 覆盖 data/maps/lite3.pcd）；yaml/pgm 零漂移。按 B 章规程自备份恢复 → 恢复后 sha256=25059f03…=P6 基线 ✓。偏差已在进度文档与 04 台账登记。

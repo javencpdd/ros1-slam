@@ -1,0 +1,10 @@
+== P0.5 双查（P7.1 落盘后 / P7.2 停栈前） 2026-10-05 00:47:53 ==
+-- 运动链路侧（预期命中 foxy 栈=Q8 已登记常态，非空）--
+ysc        99895 68.1  0.9 668648 64896 ?        Rsl  Oct04  82:56 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root       99962  0.1  0.4 277960 34436 ?        Sl   Oct04   0:12 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root       99982  0.6  0.2 990664 16256 ?        Sl   Oct04   0:48 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_evwhhak5
+root       99984 16.7  0.2 1057372 16812 ?       Sl   Oct04  20:19 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_ieuol_yr --params-file /tmp/launch_params_wz43zz3g --params-file /tmp/launch_params_q6k4_t3w
+-- 传感器侧（预期空）--
+-- 端口级 43897/56301/56401 --
+UNCONN  0        0                0.0.0.0:43897          0.0.0.0:*              
+-- 双查完 --

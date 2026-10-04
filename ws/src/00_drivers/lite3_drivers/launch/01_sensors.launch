@@ -9,4 +9,7 @@
   <node pkg="message_transformer" type="qnx2ros" name="qnx2ros" output="screen"/>
   <!-- ⚠️ ros2qnx（直发 QNX 底盘速度指令的节点）禁令原样保留（v4 §2/V1）；
        lslidar_c16.launch 文件保留不入链（软件遗留对照，A3.1） -->
+  <!-- C13-② 模块心跳（P7 A1 / GAP-1 转正：P6 临时手动 pub 代偿退役）：
+       watch 侧比对 health_watch.yaml#modes.*.watch(M0_drivers)，话题逐字 = /lite3/liveness/m0_drivers -->
+  <node pkg="rostopic" type="rostopic" name="liveness_m0" args="pub -r 1 /lite3/liveness/m0_drivers std_msgs/Empty"/>
 </launch>

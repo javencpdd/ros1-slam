@@ -2,9 +2,10 @@
   <!-- C13：SUP（v4 N5，Nav2 lifecycle+bond 的 ROS 1 模拟）。
        铁律（v4 §12）：SUP 在每个 mode 顶层 launch 中第一个启动；
        红线（§2.6 硬规则 a）：SUP 绝不直写速度类话题（速度话题唯一写者 = M6 安全 mux），
-       全部输出仅 /lite3/supervisor/hold（Bool）+ 日志；自检 [6] 承接（本包在扫描范围）。 -->
+       全部输出仅 /lite3/supervisor/hold（Bool）+ 日志；自检 [6] 承接（本包在扫描范围）。
+       P7/N-4（主理人裁决，04 台账）：原声明的 rviz arg 为死 arg（本 launch 无 rviz 节点，
+       C10 本就禁启），已清理——三个 mode 顶层 launch 对本文件不再透传 rviz。 -->
   <arg name="mode" default="mode_nav_stub"/>
-  <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X） -->
   <node pkg="lite3_supervisor" type="health_monitor.py" name="lite3_supervisor" output="screen">
     <param name="mode" value="$(arg mode)"/>
     <param name="health_watch" value="$(find lite3_supervisor)/config/health_watch.yaml"/>

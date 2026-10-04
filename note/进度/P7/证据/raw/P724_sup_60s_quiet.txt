@@ -1,0 +1,15 @@
+== 判据7：SUP 60s 零误报观察（零代偿前提）==
+-- 代偿进程核查（期望仅 3 条 launch 真源心跳）--
+3
+liveness_m0
+liveness_m4
+liveness_m6
+__name:=liveness_m0
+__name:=liveness_m4
+__name:=liveness_m6
+-- 60s hold 静默观察开始 01:08:58 --
+data: True
+---
+60s_hold_silent_done 01:09:59（无 data 输出=静默）
+-- SUP stdout logfatal 扫描 --
+0

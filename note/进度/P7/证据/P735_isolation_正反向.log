@@ -1,0 +1,13 @@
+# P7.3.5 隔离自检全量含 [5] 正反向（汇总）2026-10-05 01:26
+## 正向（raw/P725_isolation_pos.txt）
+三 mode 文件 + A3 + stub_tf_broadcaster.py 全在位，v3_isolation.sh [1]–[9] 全过：
+=== ISOLATION OK === ISOLATION_EXIT=0
+- [5] 豁免 lite3_bringup 生效（三 mode 文件不报）
+- [6] mode_nav_stub 头注 cmd_vel_raw 行豁免判定兑现
+- [9] 在列
+
+## 反向（raw/P725_isolation_neg.txt）
+探针 ws/src/10_slam/lite3_slam/launch/tmp_k3_probe.launch（一行 include $(find lite3_drivers)/launch/01_sensors.launch）：
+- [5] 必抓：`/home/ros1-slam/ws/src/10_slam/lite3_slam/launch/tmp_k3_probe.launch -> lite3_drivers`
+- === ISOLATION FAILED === ISOLATION_EXIT=1 ✓（豁免未放大成"谁都能豁免"，K3 平级禁互 include 保持）
+- 探针立即删除（launch/ 目录复核仅 10_slam_mapping.launch + sink/stub）→ 复跑 === ISOLATION OK === EXIT=0 ✓

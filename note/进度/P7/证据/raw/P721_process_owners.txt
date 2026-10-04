@@ -1,0 +1,11 @@
+root      107822       04:02 tmux new-session -d -s p7 -n roscore
+ros1-sl+  107982       02:58 /usr/bin/python3 /opt/ros/noetic/bin/roscore -p 11312
+ros1-sl+  107996       02:56 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 11312 -w 3 __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/master.log
+root      108086       02:37 /usr/bin/python3 /opt/ros/noetic/bin/roslaunch lite3_bringup mode_mapping.launch
+root      108105       02:34 python3 /home/ros1-slam/ws/src/90_supervisor/lite3_supervisor/scripts/health_monitor.py __name:=lite3_supervisor __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/lite3_supervisor-1.log
+root      108106       02:34 /opt/ros/noetic/lib/tf2_ros/static_transform_publisher 0 0 0 0 0 0 1 /base_link /rslidar __name:=base2livox __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/base2livox-2.log
+root      108107       02:34 /home/ros1-slam/ws/devel/lib/livox_ros_driver2/livox_ros_driver2_node 100000000000000 /livox/lidar:=/rslidar_points __name:=livox_lidar_publisher2 __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/livox_lidar_publisher2-3.log
+root      108112       02:34 /home/ros1-slam/ws/devel/lib/message_transformer/qnx2ros __name:=qnx2ros __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/qnx2ros-4.log
+root      108118       02:34 python3 /opt/ros/noetic/lib/rostopic/rostopic pub -r 1 /lite3/liveness/m0_drivers std_msgs/Empty __name:=liveness_m0 __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/liveness_m0-5.log
+root      108131       02:33 /home/ros1-slam/ws/devel/lib/faster_lio/run_mapping_online __name:=faster_lio_online __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/faster_lio_online-6.log
+root      108133       02:33 python3 /opt/ros/noetic/lib/rostopic/rostopic pub -r 1 /lite3/liveness/m1_slam std_msgs/Empty __name:=liveness_m1 __log:=/home/ros1-slam/logs/c7bb84b8-c013-11f1-9a4f-3c6d66f8d2d8/liveness_m1-7.log

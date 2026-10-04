@@ -1,0 +1,14 @@
+== P721 判据1：rosnode list（期望 8 节点）==
+/base2livox
+/faster_lio_online
+/lite3_supervisor
+/liveness_m0
+/liveness_m1
+/livox_lidar_publisher2
+/qnx2ros
+/rosout
+node_count=8
+== 判据5：ros2qnx 反查（期望 grep_exit=1）==
+grep_exit=1
+== 判据4：SUP hold 静默（期望超时无输出）==
+hold_check_done

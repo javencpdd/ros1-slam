@@ -1,0 +1,24 @@
+# P7.3.3 mode_nav_stub 主菜（汇总）2026-10-05 01:03–01:26 —— 全层存活 + GetPath 冒烟回归 PASS
+## 全层存活（raw/P723_alive.txt / P723_alive2.txt）
+- rosnode list = 11 节点精确在列：base2livox / lite3_supervisor / liveness_m0 / liveness_m4 / liveness_m6 / livox_lidar_publisher2 / move_base_flex / qnx2ros / rosout / safe_cmd_vel_mux / **stub_tf_broadcaster**（N-1 修正后节点名，替代 payload 原案 stub_tf_map_to_odom）✓ 对照 health_watch#mode_nav_stub watch（M0/M4/M6）逐条打勾
+- 三心跳 1.000/1.000/1.000 Hz ✓；三 action 族五件套 + current_goal 共 16 话题全在 ✓
+- ros2qnx 全程反查 4+ 次（#1–#4 + 冒烟前后）零命中 ✓
+- /cmd_vel 白名单三次复核：发布者唯一 = /safe_cmd_vel_mux、Subscribers None ✓；/cmd_vel_raw 发布者=/move_base_flex、订阅者=/safe_cmd_vel_mux（C7 管道闭环）✓
+- stub TF（N-1）：tf_echo map base_link 恒等阵（10Hz fresh 广播器在位）✓；base_link→rslidar 恒等由驱动 ✓
+- mux 基态：/cmd_vel 20.038 Hz 值全零 ✓（源状态见 SUP 段）
+
+## GetPath 冒烟回归 —— **一次通过**（raw/P723_getpath_*.txt）
+- 探针 A：stub /map latched 20x20@1.0m（/tmp/p7_probe/stub_map.py，探针级零落盘 ws）→ global_costmap/costmap + local_costmap/costmap 话题族全出（static_layer 解阻塞=修正批同款证明）。
+- 探针 B（odom→base_link）：**不需要**——N-1 广播器直接供 map→base_link 10Hz fresh-stamp，mbf 保鲜校验天然满足。
+- goal（逐字对齐修正批终态参数：target map 系 x=2 y=0、tolerance 0.5；result 先挂订阅后发）：**status:3 / outcome:0 / "Plan found" / path.frame_id="map" / 末点 x=2.0 y=0.0 精确命中**，与 raw/P6 修正批_4_getpath_smoke_final.txt 同构（含 -2.9e-15 数值痕迹）。
+- **N-1 设计价值实证：冒烟零 M4 重启**（修正批 r4 的 /tf_static 旧 latch 压制路径被动态广播器根除）。
+- 冒烟后：/cmd_vel 仍唯一 mux、值零、mux 轨迹无 HOLD（探针不发任何源话题）✓
+- 注：goal pub 行本体 P6 修正批未存档（仅存参数与输出），本次按修正批留证参数（map 系 x=2 y=0 tolerance 0.5）逐字重建，登记偏差。
+
+## SUP 心跳真源验证（raw/P724_*.txt）
+1. **零误报段**：零临时代偿（heartbeat pub 进程恰 3 条全带 __name:=）+ 60s hold 观察零发布零 latch 回放 + SUP 日志零 CRITICAL ✓（P724_sup_truth_1.txt）
+2. **失联触发段**：杀 M0 心跳真源（pkill liveness_m0）→ master.log 注销 01:19:01.044 → 首条 FATAL 01:19:03.688「心跳失联: M0_drivers —— hold=true」= **延迟 2.64s ≤ 3.5s** ✓ + /lite3/supervisor/hold=True + mux NONE→HOLD 强制零速（/cmd_vel x=0.0）✓（P724_sup_truth_2_*.txt）
+3. **复位段**：P6 S-4 口径 SUP+M6 双实例定向重启（旧实例杀除 → 同名替换节点 rosrun 起回）→ 复位后 hold 静默、mux 新实例日志 INIT→NONE（无 HOLD）、/cmd_vel 20.003Hz 零速、11 节点在列、ros2qnx 零 ✓（P724_s4_*.txt）
+
+## 偏差（详见进度文档）
+- **启动竞态复现**：3 次整窗启动中 2 次输（SUP 起 3.0s 宽限 vs mbf 末位 include 的 m4/m6 心跳首包 ~+3.4s）→ hold 误 latch=true（安全侧）；首次发生于 01:05:13.948（SUP init+3.4s），第二次于复位窗 01:21:26。A4 头注「一窗内不存在迟到竞态主根因」对**末位 include 心跳**这一边缘被证伪；复位语义实测整窗重启会重掷竞态骰子，改用 S-4 定向重启。路由主理人/架构师（候选修复：SUP 宽限或心跳先行，设计变更不在施工权限）。

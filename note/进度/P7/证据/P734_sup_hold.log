@@ -1,0 +1,6 @@
+# P7.3.4 SUP 真源 hold 链（专项索引）2026-10-05
+- 三段证据原始分片：
+  - P724_sup_truth_1.txt —— 零代偿（3 条 __name:= 真源）+ 60s hold 零发布零回放 + SUP 零 CRITICAL（01:15:09–01:16:10）
+  - P724_sup_truth_2_kill_m0.txt / _verify.txt / _latency.txt —— 杀 M0 真源 → 注销 01:19:01.044 → 首条 FATAL 01:19:03.688（延迟 2.64s ≤ 3.5s）+ hold=True + mux NONE→HOLD + /cmd_vel 强制零速 + FATAL 1Hz 重复（失联持续通告）
+  - P724_s4_kill_instances.txt / _reset_verify.txt / _hold_attribution.txt / _new_instance_logs.txt —— S-4 双实例定向复位：旧实例杀除 → 同名替换 → hold 静默 + mux INIT→NONE（新实例日志 01:23:25）+ 20.003Hz 零速基态
+- 启动竞态事件链（登记，安全侧失效）：01:05:13.948 首窗 FATAL（M4_navigation,M6_safety 零首包，SUP init+3.4s）→ 01:14 整窗重启竞态获胜（0 FATAL）→ 01:21:26 复位窗再输（M4_navigation）→ 改 S-4 定向复位生效。三次启动两输一赢，属负载相关边缘竞态。

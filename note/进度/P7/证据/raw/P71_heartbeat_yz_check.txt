@@ -1,0 +1,30 @@
+== 心跳话题对账（launch 文件 vs health_watch.yaml）==
+/bin/bash: line 3: /tmp/p7_work/hw_topics.txt: Permission denied
+cat: /tmp/p7_work/hw_topics.txt: No such file or directory
+-- 落盘文件中的心跳行 --
+/bin/bash: line 6: /tmp/p7_work/launch_topics.txt: Permission denied
+cat: /tmp/p7_work/launch_topics.txt: No such file or directory
+diff: /tmp/p7_work/hw_topics.txt: No such file or directory
+diff: /tmp/p7_work/launch_topics.txt: No such file or directory
+== 字面串红线（6 launch + py）==
+/tmp/p7_work/v3_isolation.new.sh:5:say "[1] ROS_PACKAGE_PATH 中是否含 /home/ysc"
+/tmp/p7_work/v3_isolation.new.sh:6:echo "$ROS_PACKAGE_PATH" | tr ':' '\n' | grep -q "/home/ysc" && { echo "  违规"; FAIL=1; }
+/tmp/p7_work/v3_isolation.new.sh:7:say "[2] 自研壳中是否含 /home/ysc"
+/tmp/p7_work/v3_isolation.new.sh:8:grep -rln "/home/ysc" /home/ros1-slam/ws/src/*/lite3_* 2>/dev/null && FAIL=1
+/tmp/p7_work/v3_isolation.new.sh:10:grep -qn "lite_cog\|/home/ysc" /home/ros1-slam/.bashrc 2>/dev/null && { echo "  违规"; FAIL=1; }
+/tmp/p7_work/v3_isolation.new.sh:32:say "[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）"
+/tmp/p7_work/v3_isolation.new.sh:33:grep -rln "/home/ysc" /home/ros1-slam/ws/src 2>/dev/null && FAIL=1
+YSC-HIT!!
+/tmp/p7_work/mode_nav_stub.launch:12:       ★ 底盘速度唯一写者 = M6 安全 mux（§2.6-a）：mbf 速度输出已经 C7 remap 并入 /cmd_vel_raw
+-- 裸 cmd_vel 判定（命中行须含 cmd_vel_raw 子串）--
+裸 cmd_vel 零命中（唯一出现行均含 cmd_vel_raw）
+== 心跳话题对账（launch vs health_watch.yaml，无临时文件版）==
+/lite3/liveness/m0_drivers /lite3/liveness/m1_slam /lite3/liveness/m2_localization /lite3/liveness/m4_navigation /lite3/liveness/m6_safety  <= health_watch 全集
+/lite3/liveness/m0_drivers /lite3/liveness/m1_slam /lite3/liveness/m2_localization /lite3/liveness/m6_safety  <= 本批 launch 心跳行全集
+HEARTBEAT-MISMATCH!! A=2f611cafb0cdcb38b232f3d0627b3b57 B=a63917835cbe021a93edcef081918bd9
+== ysc 字面串红线（scope=6 launch + py + package.xml；v3_isolation 脚本自身正则除外）==
+零 /home/ysc 命中
+18:  <node pkg="rostopic" type="rostopic" name="liveness_m4" args="pub -r 1 /lite3/liveness/m4_navigation std_msgs/Empty"/>
+health_watch md5=2f611cafb0cdcb38b232f3d0627b3b57
+launch 全集  md5=2f611cafb0cdcb38b232f3d0627b3b57
+HEARTBEAT-MATCH: 逐字一致（含既有 M4/M6 行）
