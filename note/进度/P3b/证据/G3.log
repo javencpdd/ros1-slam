@@ -1,0 +1,123 @@
+# G3 验收证据 · P3b 三件套补齐 + 判定
+# 执行：验收工程师-小美 ｜ 日期：2026-10-04 20:00–20:30 ｜ sudo 密码一律 *** 脱敏
+# 性质：G3 判据「data/maps/ 三件齐」缺件补齐（判据内动作，非施工）+ 真机安全专项
+
+============================================================
+[0] 现场初始状态（2026-10-04 20:05 快照，小美接手时）
+============================================================
+$ ls -la /home/ros1-slam/data/maps/
+  lite3.pcd   315767  Oct 4 19:58   ← 仅一件；.yaml/.pgm 缺 → G3 判据形式缺件
+
+$ ps aux | grep -E "roscore|rosmaster|ros1-slam" | grep -v grep   （节选）
+  ros1-sl+ 77938 bash -c source env.sh && roscore -p 11312 & sleep 3; roslaunch lite3_slam 11_postprocess.launch   ← 勘误前写法残留，roslaunch 已死
+  ros1-sl+ 77995 roscore -p 11312
+  ros1-sl+ 78025 rosmaster --core -p 11312
+  ros1-sl+ 78049 rosout
+  ros1-sl+ 78317 map_saver -f /home/ros1-slam/data/maps/lite3  （98.3% CPU 已挂 12m42s，等 /map 无发布者）
+
+============================================================
+[1] 关键发现：v4 §P5.4 既定后处理路径不可达（新增缺口，待主理人裁决）
+============================================================
+$ find /home/ros1-slam/ws/src -name "11_postprocess.launch"   → 空（文件不存在；v4 §P5.4 引用，从未在 P1/P2/P3a 施工清单中创建）
+$ find /home/ros1-slam/ws /opt/ros/noetic/lib/octomap_server -name "my_octomap*" → 空
+  → ws/src/10_slam/pcd2grid/launch/pcd2grid.launch（v3 迁入件）引用 pkg=octomap_server type=my_octomap_node（v3 自研魔改节点，带 file_path 读 PCD），该节点源码未随 v4 §V4 映射表迁入（映射表仅迁 pcd2grid 目录本体），系统包 /opt/ros/noetic/lib/octomap_server/ 仅标准节点（octomap_server_node 等）→ pcd2grid.launch 原样跑必败。
+  → 残留 bash 77938 中 roslaunch 11_postprocess.launch 死亡即此因；挂起 map_saver 无 /map 发布者永等。
+
+============================================================
+[2] 清残留（留证）
+============================================================
+$ printf "%s\n" '***' | sudo -S -p '' pkill -u ros1-slam -f "roscore|rosmaster|map_saver|11_postprocess"
+$ sleep 2; ps aux | grep -E "roscore|rosmaster|rosout|map_saver|roslaunch" | grep -v grep
+  （空）EXIT=1   ← 残留清净
+
+============================================================
+[3] 补件组合（判据内：全部现成系统二进制，零代码零文件改动；参数逐项对齐 v3 pcd2grid.launch 语义）
+============================================================
+# roscore（窗口A，两步法之一）
+$ sudo -u ros1-slam bash -c 'source /home/ros1-slam/scripts/env.sh && nohup roscore -p 11312 > /tmp/g3_roscore.log 2>&1 &'
+$ sudo -u ros1-slam bash -c 'source env.sh && rosnode list'
+  /rosout          ← master 11312 就位
+
+# PCD→octree→/map（窗口B，等价替代不存在的 11_postprocess.launch）
+$ sudo -u ros1-slam bash -c 'source env.sh && nohup rosrun octomap_server octomap_server_node \
+    _frame_id:=map _resolution:=0.05 _pointcloud_min_z:=0.4 _pointcloud_max_z:=1.2 \
+    _occupancy_min_z:=0.0 _occupancy_max_z:=1.6 _latch:=true \
+    _sensor_model/max_range:=100.0 _sensor_model/min_range:=-1.0 \
+    cloud_in:=/cloud_pcd projected_map:=/map > /tmp/g3_octomap.log 2>&1 &'
+$ sudo -u ros1-slam bash -c 'source env.sh && timeout 8 rosrun pcl_ros pcd_to_pointcloud \
+    /home/ros1-slam/data/maps/lite3.pcd 2 _frame_id:=map _topic:=cloud_pcd > /tmp/g3_pcd2pc.log 2>&1'
+  （EXIT=124 = timeout 按计划杀掉循环发布者）
+
+# 首轮 octomap 日志（时序竞态，重灌后消除）：
+  [ WARN] Nothing to publish, octree is empty
+# 重灌后实测 /cloud_pcd 消息头：
+  header: frame_id: "map"  width: 9860  height: 1
+# octomap_server 参数生效确认（rosparam get /octomap_server 摘录）：
+  frame_id: map  occupancy_max_z: 1.6  occupancy_min_z: 0.0  pointcloud_max_z: 1.2  pointcloud_min_z: 0.4  resolution: 0.05
+
+============================================================
+[4] map_saver 落盘（窗口B2，两步法）——完整输出
+============================================================
+$ sudo -u ros1-slam bash -c 'source env.sh && timeout 60 rosrun map_server map_saver -f /home/ros1-slam/data/maps/lite3'
+  [ INFO] Waiting for the map
+  [ INFO] Received a 225 X 202 map @ 0.050 m/pix
+  [ INFO] Writing map occupancy data to /home/ros1-slam/data/maps/lite3.pgm
+  [ INFO] Writing map occupancy data to /home/ros1-slam/data/maps/lite3.yaml
+  [ INFO] Done
+  EXIT=0
+
+============================================================
+[5] G3 判据实测：三件套
+============================================================
+$ ls -l /home/ros1-slam/data/maps/
+  -rw-r--r--+ 1 ros1-slam ros1-slam 315767 Oct  4 19:58 lite3.pcd
+  -rw-rw-r--+ 1 ros1-slam ros1-slam  45502 Oct  4 20:24 lite3.pgm
+  -rw-rw-r--+ 1 ros1-slam ros1-slam    152 Oct  4 20:24 lite3.yaml
+  → 三件齐 → **G3 判据达成（形式 PASS）**
+
+$ cat /home/ros1-slam/data/maps/lite3.yaml
+  image: /home/ros1-slam/data/maps/lite3.pgm
+  resolution: 0.050000
+  origin: [-4.200000, -8.700000, nan]
+  negate: 0
+  occupied_thresh: 0.65
+  free_thresh: 0.196
+  ※ 注记：origin 第三位 nan 系 octomap_server projected_map 特征（标准 map_server 链通常为 0），
+    P6 mode_localize 接 map_server 前建议核对 TF map 原点 z；重采底图时一并复查。
+
+============================================================
+[6] 退净终态 + 磁盘
+============================================================
+$ printf "%s\n" '***' | sudo -S -p '' pkill -u ros1-slam -f "octomap_server|pcd_to_pointcloud|roscore|rosmaster|rosout"
+$ sleep 2; ps aux | grep -E "roscore|rosmaster|rosout|octomap|pcd_to_point|map_saver|ros2qnx|message_transformer|qnx2ros|faster_lio|livox|roslaunch" | grep -v grep
+  （空）EXIT=1   ← 全退净
+$ df -h /home/ros1-slam | tail -1
+  /dev/mmcblk1p1  117G   71G   42G  64% /   ← 磁盘余量充足
+
+============================================================
+[7] 真机安全专项 + 隔离自检（验收必查）
+============================================================
+- ros2qnx：全程未启（ps 复查无 ros2qnx/message_transformer/qnx2ros/livox/faster_lio 残留）✓
+- /cmd_vel：后处理图内无任何 cmd_vel 发布者（无 M4/M6/SUP 参与；map_saver 组合仅 octomap+pcl 工具）✓
+- 本次启动节点全集：roscore(-p 11312) / rosout / octomap_server_node / pcd_to_pointcloud / map_saver —— 均为补件必需，验收后全退净 ✓
+$ sudo -u ros1-slam bash -c 'source env.sh && /home/ros1-slam/scripts/verify/v3_isolation.sh; echo EXIT=$?'（尾部）
+  [1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+  [2] 自研壳中是否含 /home/ysc
+  [3] .bashrc 是否 source 了其他 devel
+  [4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+  [5] ★ 模块间是否互相 include launch（20 号 K3）—— v3 修复子 shell 丢 FAIL bug
+  [6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug
+  [7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+  [8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+  === ISOLATION OK ===
+  ISOL_EXIT=0
+
+============================================================
+[8] 补件语义说明（备查，供主理人/架构师复核）
+============================================================
+- 判据不变：v4 §10 P5.4「G3 = .pcd/.yaml/.pgm 三件齐」照旧。
+- 路径偏差：11_postprocess.launch（v4 §P5.4 引用）缺失 → 以「octomap_server_node + pcl_ros pcd_to_pointcloud」现成组合复现 pcd2grid.launch 语义（PCD 读文件→z 0.4–1.2 过滤→0.05m 栅格→latch /map→map_saver），零源码零新文件入 ws，不改 launch/yaml。
+- 质量注记（不影响形式判据）：栅格 225×202 @0.05m ≈ 11.25×10.1m，小于样张标称 20.3×11.3m 覆盖——因 z 过滤 0.4–1.2m 仅保留狗活动带（首采样张 61% 点 z>2m 高结构不入图），且首采无闭环、9860 点稀疏；底图导航可用性存疑，主理人已裁定**底图待重采**（样张 b467c69 作流程验证证据）。
+- 重采时遗留项：① 卷尺四项（Q13）；② 闭环回起点 x/y 记录；③ 11_postprocess.launch 缺口路由（本档 [1]，归主理人裁决：补建该 launch 或修订 §P5.4 引用 pcd2grid 链路）。
+
+—— 验收工程师-小美 2026-10-04

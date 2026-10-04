@@ -272,7 +272,7 @@ catkin_make -j3 -DCATKIN_WHITELIST_PACKAGES="lslidar_msgs;lslidar_driver;livox_r
 | **Q3** | **作废重立** | ~~C16 安装倾角~~ → **Mid-360 安装几何现场实测**（离地高度/俯仰/朝向），方法 = 卷尺 + 照片记录法（P3b 作业单第 4 节）；产出回填两处：C3 `min_z`（`tf_echo base_link rslidar` 恒等 TF 不可依赖，以卷尺实测为准）与 Q13 外参参照。**开** |
 | **Q7** | **✅ 关闭（有解）** | `/rslidar_points_filtered` = C16 时代 ROS2 栈遗留（源即 `faster_lio_online.yaml` 的 `lid_topic`，ROS2 格式）；ROS1 生产链 c16.yaml 从未用它（用 `/rslidar_points`）。沙箱词汇表维持 `/rslidar_points`，与 v4 C1 裁决一致，无需回改 |
 | **Q9** | **✅ 关闭（裁定二）** | S9 判无用，无需安装；回退触发条件①删除 |
-| **Q12** 🆕 | 开 | **imu_topic 现场验证**：`/imu/data`（qnx2ros，判据 ≈200 Hz + UDP 43897 bind 成功）与 `/livox/imu`（驱动内置，≈200 Hz）双测；主选 A 不可用时停走变更流程（§5.1） |
+| **Q12** 🆕 | **✅ 关闭（2026-10-04，A 不可用按 §5.1 走 B）** | **imu_topic 现场验证**：`/imu/data`（qnx2ros，判据 ≈200 Hz + UDP 43897 bind 成功）与 `/livox/imu`（驱动内置，≈200 Hz）双测；主选 A 不可用时停走变更流程（§5.1）。**闭环（P3b 首采）**：A 不可用——UDP 43897 被 root 侧 jetson2motion 占用，qnx2ros bind error 死亡（主理人主机侧实测复现）；按 B 切 `/livox/imu` 实测 **199.9 Hz** + Mid-360 工厂外参（Q13 配套），diff 台账两条已登记（commit a821e01），Q12 修复后首张有效图落盘 |
 | **Q13** 🆕 | 开 | **外参来源矛盾现场裁决**：`MID360s_config.json`（pitch 18°、x=187、z=400）vs `msg_MID360s.launch` 注释 TF（0.18786/0.12902、pitch 0.1309 rad≈7.5°）两来源互相矛盾；当前以 `extrinsic_est_en: true` 在线估计兜底，现场卷尺实测后决定是否固化初始外参 |
 
 ### 7.2 R 表（§13）
