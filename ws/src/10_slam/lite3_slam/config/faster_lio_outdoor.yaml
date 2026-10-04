@@ -9,8 +9,8 @@ common:
 cube_side_length: 1000.0
 esti_plane_threshold: 0.1
 feature_extract_enable: false
-filter_size_map: 0.1            # 加密重采(2026-10-05)：0.3→0.1，地图体素密度主杠杆(稀疏根因对策)
-filter_size_surf: 0.15          # 加密重采(2026-10-05)：0.3→0.15，进图点密度×4
+filter_size_map: 0.3             # fork未使用(c16.yaml注释证实),纯装饰键,回退减误导
+filter_size_surf: 0.3          # 回退(2026-10-05)：0.15实测CPU load11/里程计4.5Hz超载；密度改由多帧重叠+离线体素化
 ivox_grid_resolution: 0.3
 ivox_nearby_type: 18
 map_file_path: ''
@@ -26,7 +26,7 @@ mapping:
 max_iteration: 3
 path_save_en: true
 pcd_save:
-  interval: 10        # Q6 维持：interval=0 时 laser_mapping.cc:747 条件恒假可能永不落盘，10 保证周期性写盘，现场验证后可回调
+  interval: -1                # Q6 翻案(2026-10-05)：10=每10帧写盘后清空(地图截断为最后≤10帧,653K根因)；-1=全程累积,优雅停机全量落盘
   pcd_save_en: true
 preprocess:
   blind: 1.0

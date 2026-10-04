@@ -69,3 +69,6 @@
 - faster_lio_outdoor.yaml filter_size_map：0.3 → 0.1（加密重采：地图体素密度主杠杆，稀疏根因对策；实测建图 CPU 15%/内存余量充足）2026-10-05
 - faster_lio_outdoor.yaml filter_size_surf：0.3 → 0.15（进图点密度×4 配套）2026-10-05
 - data/maps/lite3.*：底图 v1（0.3 体素外圈版，G3 PASS b7e8071）归档至 note/进度/P3b/证据/lite3_底图v1.*，待加密重采版替换 2026-10-05
+- faster_lio_outdoor.yaml pcd_save.interval：10 → -1（Q6 翻案：10 的清空语义把存盘地图截断为最后≤10帧——v1/v2 均≈2万点653K 的根因；-1=全程累积+优雅停机全量落盘，858行关机分支）2026-10-05
+- faster_lio_outdoor.yaml filter_size_surf：0.15 → 0.3 回退（0.15 实测 CPU load 11/里程计 3.6-4.5Hz 超载；密度改由多帧重叠+离线体素化保证）2026-10-05
+- faster_lio_outdoor.yaml filter_size_map：0.1 → 0.3 回退（该键 fork 未使用，纯装饰）2026-10-05
