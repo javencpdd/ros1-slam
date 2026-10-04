@@ -1,0 +1,166 @@
+# P3a S1（C0–C3）施工全量日志
+# 日期：2026-10-04    执行者：寇豆码（施工工程师）    依据：/tmp/p3a_manifest.md S1 片 + 主理人派单
+# sudo 密码规约：回传一律 ***；本切片性质：落盘 10 文件（sha256 对账）+ S1 校验块 (0)-(7)（私有 master 11411）——未启任何机器人节点，master 已退净
+# 偏差索引：D-S1-1 lid_topic 行尾注释致 manifest 正则$未命中(值正确,等效验证)；D-S1-2 首次 roscore 未采信 export 的 ROS_MASTER_URI(起了空 master@11311,约2min,无节点无参数)→杀后 roscore -p 11411 显式重起；D-S1-3 载荷664→补chmod644(manifest 注记)；D-S1-4 setsid 下 pid 文件未写成功→按 ps 实际 PID 杀(三进程分别确认)
+
+== S1 落盘 sha256 对账（源=载荷，目的=落盘后） 2026-10-04 10:36:26 ==
+[1] OK ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml
+    src=bc9b5edd87d0872589a5ed3d4c0f6470ae6881eb1fbcc9fdf55f141f5ecf5e6b
+    dst=bc9b5edd87d0872589a5ed3d4c0f6470ae6881eb1fbcc9fdf55f141f5ecf5e6b
+[2] OK ws/src/10_slam/lite3_slam/launch/10_slam_mapping.launch
+    src=75492f6e60829f87ef6a806ce2a5295fbc14f118fa8f3a1402326db7534258a0
+    dst=75492f6e60829f87ef6a806ce2a5295fbc14f118fa8f3a1402326db7534258a0
+[3] OK ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+    src=c69a0ed052edb5e408a53b138f9ef2a1e52ef7e01029012ba0712fb636d9ef42
+    dst=c69a0ed052edb5e408a53b138f9ef2a1e52ef7e01029012ba0712fb636d9ef42
+[4] OK ws/src/40_navigation/lite3_navigation/config/planner_teb.yaml
+    src=b9406b3cdc39d5f7cb7c6aae16fcbfdcead667f9dad00adc3bd0786c75dccd9a
+    dst=b9406b3cdc39d5f7cb7c6aae16fcbfdcead667f9dad00adc3bd0786c75dccd9a
+[5] OK ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml
+    src=7a20878d2d2560eea7495ec800970fd0a4d1ac589e6527eafc1f4f14ed06e022
+    dst=7a20878d2d2560eea7495ec800970fd0a4d1ac589e6527eafc1f4f14ed06e022
+[6] OK ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml
+    src=1961c3839b06cb49e6065f923615ce6b8f9b8809d75352e2b4edd58cb1cb6b9a
+    dst=1961c3839b06cb49e6065f923615ce6b8f9b8809d75352e2b4edd58cb1cb6b9a
+[7] OK ws/src/40_navigation/lite3_navigation/config/local_costmap_params.yaml
+    src=6fc552f7c3cfb9028007f06eb7bf9cee6b6909bad563396843b4277a70a76e1e
+    dst=6fc552f7c3cfb9028007f06eb7bf9cee6b6909bad563396843b4277a70a76e1e
+[8] OK ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml
+    src=7d4e7b666c320e10015e50475e886a43af989b4215e2dcec4b169e6fe9339fcf
+    dst=7d4e7b666c320e10015e50475e886a43af989b4215e2dcec4b169e6fe9339fcf
+[9] OK ws/src/40_navigation/lite3_navigation/config/move_base_params.yaml
+    src=2434b8a225157904f91de3594418ba4eb80eb0b4382cf462f44098e9b1edc0ab
+    dst=2434b8a225157904f91de3594418ba4eb80eb0b4382cf462f44098e9b1edc0ab
+[10] OK ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch
+    src=115488125e0ffa2f0c5dbcfc1a6d6fab168f892c414e659fa1dde625ce34b64e
+    dst=115488125e0ffa2f0c5dbcfc1a6d6fab168f892c414e659fa1dde625ce34b64e
+== 对账结果：共 10 文件，MISMATCH=0 ==
+== 权限抽验 ==
+/home/ros1-slam/ws/src/10_slam/lite3_slam/config/:
+total 12
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 10:36 .
+drwxr-xr-x+ 6 ros1-slam ros1-slam 4096 Oct  4 04:13 ..
+-rw-rw-r--  1 ros1-slam ros1-slam 1685 Oct  4 10:22 faster_lio_outdoor.yaml
+
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/:
+total 44
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 10:36 .
+drwxr-xr-x+ 6 ros1-slam ros1-slam 4096 Oct  4 04:13 ..
+-rw-rw-r--  1 ros1-slam ros1-slam 4774 Oct  4 10:24 costmap_common.yaml
+-rw-rw-r--  1 ros1-slam ros1-slam  532 Oct  4 10:24 global_costmap_params.yaml
+-rw-rw-r--  1 ros1-slam ros1-slam  587 Oct  4 10:24 global_planner_params.yaml
+-rw-rw-r--  1 ros1-slam ros1-slam  471 Oct  4 10:24 local_costmap_params.yaml
+-rw-rw-r--  1 ros1-slam ros1-slam 2874 Oct  4 10:22 mbf_navigation.yaml
+-rw-rw-r--  1 ros1-slam ros1-slam 1446 Oct  4 10:24 move_base_params.yaml
+-rw-rw-r--  1 ros1-slam ros1-slam 4913 Oct  4 10:23 planner_teb.yaml
+
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/:
+total 20
+drwxr-xr-x+ 4 ros1-slam ros1-slam 4096 Oct  4 10:36 .
+drwxr-xr-x+ 6 ros1-slam ros1-slam 4096 Oct  4 04:13 ..
+-rw-rw-r--  1 ros1-slam ros1-slam 1755 Oct  4 10:24 mbf_navigation.launch
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 04:13 sink
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 04:13 stub
+== chmod 644 后 ==
+-rw-rw-r--  1 ros1-slam ros1-slam 1755 Oct  4 10:24 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch
+
+/home/ros1-slam/ws/src/10_slam/lite3_slam/config/:
+total 4
+-rw-rw-r-- 1 ros1-slam ros1-slam 1685 Oct  4 10:22 faster_lio_outdoor.yaml
+
+/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/:
+total 36
+-rw-rw-r-- 1 ros1-slam ros1-slam 4774 Oct  4 10:24 costmap_common.yaml
+-rw-rw-r-- 1 ros1-slam ros1-slam  532 Oct  4 10:24 global_costmap_params.yaml
+-rw-rw-r-- 1 ros1-slam ros1-slam  587 Oct  4 10:24 global_planner_params.yaml
+-rw-rw-r-- 1 ros1-slam ros1-slam  471 Oct  4 10:24 local_costmap_params.yaml
+-rw-rw-r-- 1 ros1-slam ros1-slam 2874 Oct  4 10:22 mbf_navigation.yaml
+-rw-rw-r-- 1 ros1-slam ros1-slam 1446 Oct  4 10:24 move_base_params.yaml
+-rw-rw-r-- 1 ros1-slam ros1-slam 4913 Oct  4 10:23 planner_teb.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam 1685 Oct  4 10:22 /home/ros1-slam/ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam  446 Oct  4 10:22 /home/ros1-slam/ws/src/10_slam/lite3_slam/launch/10_slam_mapping.launch
+-rw-r--r-- 1 ros1-slam ros1-slam 4774 Oct  4 10:24 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam  532 Oct  4 10:24 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam  587 Oct  4 10:24 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam  471 Oct  4 10:24 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/local_costmap_params.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam 2874 Oct  4 10:22 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam 1446 Oct  4 10:24 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/move_base_params.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam 4913 Oct  4 10:23 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/planner_teb.yaml
+-rw-r--r-- 1 ros1-slam ros1-slam 1755 Oct  4 10:24 /home/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch
+
+########## S1 校验块 (0)-(6) 2026-10-04 10:37:08 ##########
+## (0) P0.5 v4 扩充正则快照（起 master 前留档；仅证据非停机线）
+ysc         1332 68.1  0.8 668680 61372 ?        Ssl  01:05 389:16 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root        1615  0.1  0.5 277956 35660 ?        Sl   01:05   0:51 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root        2053  0.6  0.2 990796 19852 ?        Sl   01:06   3:48 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_7bmrnrxj
+root        2055 16.8  0.2 926272 20344 ?        Sl   01:06  96:13 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_uf_0fw0s --params-file /tmp/launch_params_sc79x3ww --params-file /tmp/launch_params_y5l5znx8
+P0.5 exit=0
+## (1) C1 三实测值复核
+26:  interval: 10        # ★ v3：原值 0（ROS2 yaml 实测）。interval=0 时 laser_mapping.cc:747 的
+32:  lidar_type: 4       # ★ V4：实测=4 → VelodyneHandler 分支（pointcloud_preprocess.cc:20）。
+## (2) 全部 yaml 语法
+YAML OK: /home/ros1-slam/ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/planner_teb.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/local_costmap_params.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml
+YAML OK: /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/move_base_params.yaml
+## (3) launch XML 解析
+XML OK: 10_slam_mapping.launch
+XML OK: mbf_navigation.launch
+## (4) C2 五参数
+64:  include_costmap_obstacles: true    # C2（F1：底稿 false = TEB 不避障）
+114:  enable_homotopy_class_planning: false    # C2（底稿已为 false，确认保留）
+36:  max_vel_x: 0.4    # C2（底稿 1.0）
+23:  planning_horizon: 4.0    # C2（v4 §8 C2 明设；底稿无此键，teb 0.9.1 是否消费该名待 P6 G3b 核验，若无效走变更协调）
+14:  dt_ref: 0.4    # C2（底稿 0.5）
+## (5) C3 四参数 + min_z/Q3 占位
+55:    clearing: true    # C3（F2 坑1：底稿 false，观测永不清除）
+67:    obstacle_range: 8.0           #meters  C3（F2 坑3：底稿 3.0 太近）
+41:  voxel_decay:           10.0    #seconds if linear, e^n if exponential  C3（底稿 0.3）
+35:  voxel_size:            0.10   #meters  C3（底稿 0.05）
+56:    min_z: 0.2    # C3/Q3 占位：保留底稿值，tf_echo base_link rslidar 体检后修订（C16 安装倾角实测后回填）
+## (6) G3a-③ 素材：type 串（人工比对行）
+7:    type: "global_planner/GlobalPlanner"   # 串源=原版 move_base_params.yaml base_global_planner 实测值；
+11:    type: "teb_local_planner/TebLocalPlannerROS"   # 串源=teb_local_planner_plugin.xml 双注册实测（mbf_costmap_core::CostmapController）→ mbf 原生可载
+14:    type: "clear_costmap_recovery/ClearCostmapRecovery"
+########## (0)-(6) done ##########
+## (1b) lid_topic 等效验证（manifest 正则未命中：值正确但行尾带注释，见偏差记录）
+4:  lid_topic: /rslidar_points      # ★ V5：原 /rslidar_points_filtered 全库无生产者，改驱动实际话题
+## (7) 私有个体 master rosparam load 2026-10-04 10:37:47
+## (7) 续：rosparam load（source 后）
+== G3a-② 三列表 ==
+=== 杀 11311 组（roscore 35796 rosmaster 35823 rosout 35838）===
+=== setsid roscore -p 11411 重起 ===
+## (7) rosparam load（master=11411, 2026-10-04 10:39:29）
+LOAD_OK:mbf_navigation
+LOAD_OK:planner_teb
+LOAD_OK:global_planner
+LOAD_OK:cc_g
+LOAD_OK:gc
+LOAD_OK:cc_l
+LOAD_OK:lc
+LOAD_OK:move_base_fallback
+LOAD_OK:faster_lio
+== G3a-② 三列表 ==
+- name: GlobalPlanner
+  type: global_planner/GlobalPlanner
+
+- name: TebLocalPlannerROS
+  type: teb_local_planner/TebLocalPlannerROS
+
+- name: clear_costmaps
+  type: clear_costmap_recovery/ClearCostmapRecovery
+
+master_pid=
+== 残留检查（期望空）==
+ros1-sl+   36021  5.4  0.6 390320 43204 ?        Ssl  10:39   0:01 /usr/bin/python3 /opt/ros/noetic/bin/roscore -p 11411
+ros1-sl+   36036  7.3  0.5 714896 39336 ?        Ssl  10:39   0:02 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 11411 -w 3 __log:=/home/ros1-slam/.ros/log/c83cfcd6-bf9c-11f1-9219-3c6d66f8d2d8/master.log
+== rosout 残留检查 ==
+ros1-sl+   36051  0.5  0.2 274956 18268 ?        Ssl  10:39   0:00 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/.ros/log/c83cfcd6-bf9c-11f1-9219-3c6d66f8d2d8/rosout-1.log
+== ros1-slam 用户全部残留 ==
+  36021 /usr/bin/python3 /opt/ros/noetic/bin/roscore -p 11411
+  36036 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 11411 -w 3 __log:=/home/ros1-slam/.ros/log/c83cfcd6-bf9c-11f1-9219-3c6d66f8d2d8/master.log
+  36051 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/.ros/log/c83cfcd6-bf9c-11f1-9219-3c6d66f8d2d8/rosout-1.log

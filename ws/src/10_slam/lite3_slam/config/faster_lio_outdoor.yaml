@@ -1,0 +1,45 @@
+# faster_lio_outdoor.yaml —— ROS1 版（v3 C1 转换自 faster_lio_online.yaml，ROS2 原稿留档 opt/ref/faster_lio_ros2_orig.yaml，勿再"修正"）
+common:
+  imu_topic: /imu/data            # qnx2ros 发布（qnx2ros.cpp:53，200 Hz）
+  lid_topic: /rslidar_points      # ★ V5：原 /rslidar_points_filtered 全库无生产者，改驱动实际话题
+  time_sync_en: true
+cube_side_length: 1000.0
+esti_plane_threshold: 0.1
+feature_extract_enable: false
+filter_size_map: 0.3
+filter_size_surf: 0.3
+ivox_grid_resolution: 0.3
+ivox_nearby_type: 18
+map_file_path: ''
+mapping:
+  acc_cov: 0.1
+  b_acc_cov: 0.0001
+  b_gyr_cov: 0.0001
+  det_range: 150.0
+  extrinsic_R: [0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+  extrinsic_T: [0.075, 0.0, 0.023]
+  extrinsic_est_en: true
+  gyr_cov: 0.1
+max_iteration: 3
+path_save_en: true
+pcd_save:
+  interval: 10        # ★ v3：原值 0（ROS2 yaml 实测）。interval=0 时 laser_mapping.cc:747 的
+                      #   `pcd_save_interval_ > 0` 恒假，走查显示全程只累积不落盘——
+                      #   落盘语义存疑（Q6），改 10 保证周期性写盘；现场验证后可回调
+  pcd_save_en: true
+preprocess:
+  blind: 1.0
+  lidar_type: 4       # ★ V4：实测=4 → VelodyneHandler 分支（pointcloud_preprocess.cc:20）。
+                      #   C16 驱动输出与该分支兼容；绝不可按 v2 说法"修正"为 2
+  scan_line: 16
+  time_scale: 0.001
+publish:
+  dense_publish_en: false
+  path_publish_en: false
+  scan_bodyframe_pub_en: true
+  scan_effect_pub_en: true
+  scan_publish_en: true
+  tf_imu_frame: body
+  tf_world_frame: camera_init
+runtime_pos_log_enable: false
+use_sim_time: false

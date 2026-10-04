@@ -1,0 +1,7 @@
+<launch>
+  <rosparam command="load"
+            file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
+  <!-- ★ rosparam 在 node 之外：全局 NodeHandle 读全局命名空间（/common/imu_topic 等）。
+       副作用：参数占据全局命名空间，同一 roscore 只能跑一套 faster-lio（沙箱单实例，可接受） -->
+  <node pkg="faster_lio" type="mapping_online" name="faster_lio_online" output="screen"/>
+</launch>
