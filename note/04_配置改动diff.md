@@ -29,3 +29,5 @@
 - v4.1/X7 C1 修订：lite3_slam/config/faster_lio_outdoor.yaml 全文替换为 v4.1 稿——参数值与 v3 转换稿逐项相同，仅注释修订（imu_topic /imu/data 裁决+Q12 备选 /livox/imu、lidar_type 4=C16Handler 分支纠错 X4、Q13 外参矛盾标注、scan_line/time_scale 不消费注记）。2026-10-04
 - v4.1/D-V41-2 偏差（C1 头注释隔离改写）：补丁 §5 全文替换稿头注释含 `/home/ysc/faster_lio_online.yaml` 串，v3_isolation.sh [2]/[8]（全 ws 禁 /home/ysc）命中 → 按隔离红线与 v3 同款先例改写为「转换自 faster_lio_online.yaml（ROS2 原稿留档 opt/ref/faster_lio_ros2_orig.yaml）」，溯源语义保留；yaml 其余部分与补丁稿逐字一致，参数值零改动。2026-10-04
 - v4.1/D-V41-3 偏差（01_sensors.launch 注释避让 [6]）：补丁 §6.1 注释「订阅 /cmd_vel 直发 QNX 底盘」含裸串 cmd_vel，v3_isolation.sh [6]（launch 内禁 cmd_vel 字样、仅 lite3_safety/cmd_vel_raw 豁免）命中 → 改写为「直发 QNX 底盘速度指令的节点」，禁令语义不变。2026-10-04
+- faster_lio_outdoor.yaml imu_topic：/imu/data → /livox/imu（Q12 分支：UDP 43897 被 root 侧 jetson2motion 占用致 qnx2ros bind error 死亡、/imu/data 无输出；Mid-360 内置 IMU 实测 199.9Hz 替代）2026-10-04
+- faster_lio_outdoor.yaml extrinsic_R/T：狗体 IMU 外参 [0,-1,0;1,0,0;0,0,1]/[0.075,0,0.023] → Mid-360 工厂外参 单位阵/[-0.011,-0.02329,0.04412]（Q13 配套，现场验证可回调；extrinsic_est_en=true 在线精调）2026-10-04

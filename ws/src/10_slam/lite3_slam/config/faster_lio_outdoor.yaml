@@ -1,6 +1,6 @@
 # faster_lio_outdoor.yaml —— ROS1 版（v3 C1 转换自 faster_lio_online.yaml（ROS2 原稿留档 opt/ref/faster_lio_ros2_orig.yaml）；v4.1 X7 注释修订，参数值与 v3 转换稿一致，勿再"修正"）
 common:
-  imu_topic: /imu/data            # v4.1 裁决（5.1）：主证据 = 生产 c16.yaml 实测值（与 Mid-360 实机联跑的 ROS1 生产配置）。
+  imu_topic: /livox/imu   # Q12 分支(2026-10-04)：43897 被 jetson2motion 占用，qnx2ros 不可用；改 Mid-360 内置 IMU(实测 199.9Hz)
                                   # 由 qnx2ros 发布（UDP 43897 → 200 Hz，qnx2ros.cpp:53/261）。
                                   # 备选：Mid-360 内置 IMU /livox/imu（sensor_msgs/Imu ≈200 Hz，lddc.cpp:634）——生产未验证，
                                   # 且换 IMU 即变 lidar↔IMU 几何，须重估外参 → 仅 Q12 现场验证后走变更流程切换，禁止静默改。
@@ -19,8 +19,8 @@ mapping:
   b_acc_cov: 0.0001
   b_gyr_cov: 0.0001
   det_range: 150.0
-  extrinsic_R: [0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-  extrinsic_T: [0.075, 0.0, 0.023]
+  extrinsic_R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]   # Mid-360 工厂外参(Q13：现场验证可回调)
+  extrinsic_T: [-0.011, -0.02329, 0.04412]   # Mid-360 工厂外参(Q13)
   extrinsic_est_en: true          # 在线估计兜底：初始外参两来源矛盾（Q13），现场实测后如需固化走变更流程
   gyr_cov: 0.1
 max_iteration: 3
