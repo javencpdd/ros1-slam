@@ -1,0 +1,88 @@
+=== G3 正式底图验收 · 小美独立复核（2026-10-05，只读复核+python 离线解析，零节点启动，零 sudo 系统变更）===
+范围：证据链复核（a223698/153ce32）+ data/maps 留档 + yaml 逐字 + PGM/PCD 独立解析 + Q3 照片在位性
+
+[1] data/maps 现状（ls + sha256 + 时间戳）
+total 740
+drwxr-xr-x+ 2 ros1-slam ros1-slam   4096 Oct  5 02:33 .
+drwxr-xr-x+ 4 ros1-slam ros1-slam   4096 Oct  4 10:44 ..
+-rw-rw-r--+ 1 ros1-slam ros1-slam      0 Oct  4 05:59 .gitkeep
+-rw-r--r--+ 1 ros1-slam ros1-slam 691737 Oct  5 02:30 lite3.pcd
+-rw-rw-r--+ 1 ros1-slam ros1-slam  51188 Oct  5 02:32 lite3.pgm
+-rw-rw-r--+ 1 ros1-slam ros1-slam    152 Oct  5 02:33 lite3.yaml
+97fe310bfa8a300466f682ff2a6736d72503679ae053b8519fba01de51578003  /home/ros1-slam/data/maps/lite3.pcd
+e2f314dae31ff929a06e393edee99f5bce39c8ee2ce277fbfaa61d61a05b0055  /home/ros1-slam/data/maps/lite3.yaml
+0cd29b9a1dcaf57d253d86a544ede1df078947508f163811bd81bedde52377ce  /home/ros1-slam/data/maps/lite3.pgm
+/home/ros1-slam/data/maps/lite3.pcd 691737 bytes 2026-10-05 02:30:59.911994388 +0800
+/home/ros1-slam/data/maps/lite3.pgm 51188 bytes 2026-10-05 02:32:47.485224568 +0800
+/home/ros1-slam/data/maps/lite3.yaml 152 bytes 2026-10-05 02:33:09.553477377 +0800
+
+[2] lite3.yaml 逐字
+image: /home/ros1-slam/data/maps/lite3.pgm
+resolution: 0.050000
+origin: [-4.200000, -3.500000, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+
+
+[3] PCD 头与体净长对账
+# .PCD v0.7 - Point Cloud Data file format
+VERSION 0.7
+FIELDS x y z intensity normal_x normal_y normal_z curvature
+SIZE 4 4 4 4 4 4 4 4
+TYPE F F F F F F F F
+COUNT 1 1 1 1 1 1 1 1
+WIDTH 21609
+HEIGHT 1
+VIEWPOINT 0 0 0 1 0 0 0
+POINTS 21609
+DATA binary
+header=249 body=691488 expected=21609*32=691488 match=True
+
+[4] PGM P5 解析（尺寸/直方图/占比）
+magic=P5 width=188 height=272 maxval=255 header=52B total=51188B pixels=51136 expected=51136 match=True
+distinct values: {0: 992, 205: 31652, 254: 18492}
+occupied(0)=992(1.9%)= 2.48 m2 | free(254)=18492(36.2%)= 46.23 m2 | unknown(205)=31652(61.9%)
+map extent: 9.40 x 13.60 m @0.05 (origin -4.2,-3.5 => x[-4.2,5.2] y[-3.5,10.1])
+
+[5] 连通性判读（占据 8 连通 + 膨胀桥接 + 自由区连通 + 墙缝统计）
+occupied raw: 248 comps, top5=[21, 19, 19, 18, 18], largest=2.1% of 992 px
+dilate+1px(0.05m): 62 comps, top3=[943, 207, 199], largest=95.1%
+dilate+2px(0.10m): 29 comps, top3=[1727, 1027, 643], largest=174.1%
+free: 12 comps, top5=[18359, 112, 4, 4, 2]; largest=18359 px=45.9 m2 (99.3% of free)
+row/col gaps n=886 median=6px p90=98 max=208px(10.40m)（含平行结构间距/未知带，非皆环断）
+
+[6] PCD 独立解析（bbox/z 分布/带内 footprint 对账 2D 图/0.5m 栅格）
+N=21609 | x -4.41..5.31 (9.73m) | y -10.16..10.01 (20.16m) | z -0.21..4.65 (4.86m)
+z bands: |z|<=0.5m 3438(15.9%) | 0.5-2m 5584(25.8%) | >2m 12587(58.2%)  [对照后处理日志 15.9/25.8/58.2]
+1%-trim span: x 9.56m y 11.03m（原始 y 跨 20.16m 的极值点在带外高位结构）
+z[0.4,1.2] 带内 2728 点 footprint x -4.14..5.19 (9.33m) y -3.47..10.01 (13.47m)
+=> 与 2D 图 x[-4.2,5.2] y[-3.5,10.1]（9.4x13.6m）吻合：高结构未渗入 2D 图
+0.5m 栅格 bbox 覆盖 437 格上界（日志含点格数 432≈108m2，同量级一致）
+
+[7] Q3 照片在位性（git blob 尺寸对账 + 工作区干净）
+-rw-------+ 1 ros1-slam ros1-slam 4170382 Oct  5 02:46 /home/ros1-slam/note/进度/P3b/证据/Q3_安装照片_01.jpg
+-rw-------+ 1 ros1-slam ros1-slam 2587952 Oct  5 02:46 /home/ros1-slam/note/进度/P3b/证据/Q3_安装照片_02.jpg
+-rw-------+ 1 ros1-slam ros1-slam 3935962 Oct  5 02:46 /home/ros1-slam/note/进度/P3b/证据/Q3_安装照片_03.jpg
+-rw-------+ 1 ros1-slam ros1-slam 4442722 Oct  5 02:46 /home/ros1-slam/note/进度/P3b/证据/Q3_安装照片_04.jpg
+ ...\233\276_\345\220\216\345\244\204\347\220\206.log" |  10 ++++++++++
+ ...56\211\350\243\205\347\205\247\347\211\207_01.jpg" | Bin 0 -> 4170382 bytes
+ ...56\211\350\243\205\347\205\247\347\211\207_02.jpg" | Bin 0 -> 2587952 bytes
+ ...56\211\350\243\205\347\205\247\347\211\207_03.jpg" | Bin 0 -> 3935962 bytes
+ ...56\211\350\243\205\347\205\247\347\211\207_04.jpg" | Bin 0 -> 4442722 bytes
+ 5 files changed, 10 insertions(+)
+1
+
+[8] git 证据链
+153ce32 evidence(P3b): Q3 实测回填（离地38cm/朝向一致/IMU频率/照片4张）；Q3 关闭，Q13 俯仰延至 G8
+a223698 feat(P3b): 正式底图重采入库——闭环0.25m/5.6°、21609点、188x272@0.05；yaml z=0.0 落地(D-L1)；后处理证据
+bd4f3c2 P7 收尾：O-3 探针日志属主归位+D-P7-4 台账勘误
+
+[9] 复核结论摘要（详见 P3b/进度文档.md 验收报告正式节）
+- 三件套判据达成；yaml z=0.0/res 0.05/绝对路径逐字符合（D-L1 数据侧落地）
+- PGM 188x272@0.05：占用 992px(1.9%)/自由 18492px(36.2%)/未知 31652px(61.9%)
+- 墙线虚线状：raw 8 连通 248 块；膨胀+1px(5cm) 后 95.1% 单连通 => 外圈 5-10cm 尺度有效闭合
+- 自由区 99.3%（45.9m2）单一连通，无大面积断裂空洞；形态=起点射线型（octomap 自 frame 原点 raytrace 工艺特征，样张同源）
+- z>2m=58.2% 定性=场地特征：z max 4.65m 与层高精确吻合；pc_z 0.4-1.2 过滤实证有效（带内 footprint=2D 图范围）
+- 闭环 0.25m/5.6°：水平 0.25m=优档（≤0.5m）；航向 5.6° 由 G8 重定位初始位姿校正
+- G3 总判定：PASS（正式）；底图（pcd）可支撑 G8 真定位；2D 图三项局限注记不阻塞
