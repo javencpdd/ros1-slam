@@ -1,0 +1,428 @@
+== 批3 开始 2026-10-04 11:37:45 ==
+-- Using CATKIN_DEVEL_PREFIX: /home/ros1-slam/ws/devel
+-- Using CMAKE_PREFIX_PATH: /opt/ros/noetic
+-- This workspace overlays: /opt/ros/noetic
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.8.10", minimum required is "3") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Using Debian Python package layout
+-- Using empy: /usr/lib/python3/dist-packages/em.py
+-- Using CATKIN_ENABLE_TESTING: ON
+-- Call enable_testing()
+-- Using CATKIN_TEST_RESULTS_DIR: /home/ros1-slam/ws/build/test_results
+-- Forcing gtest/gmock from source, though one was otherwise available.
+-- Found gtest sources under '/usr/src/googletest': gtests will be built
+-- Found gmock sources under '/usr/src/googletest': gmock will be built
+-- Found PythonInterp: /usr/bin/python3 (found version "3.8.10") 
+-- Using Python nosetests: /usr/bin/nosetests3
+-- catkin 0.8.10
+-- BUILD_SHARED_LIBS is on
+-- BUILD_SHARED_LIBS is on
+-- Using CATKIN_WHITELIST_PACKAGES: ndt_omp;fast_gicp;hdl_localization;hdl_global_localization
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- ~~  traversing 4 packages in topological order:
+-- ~~  - fast_gicp
+-- ~~  - hdl_global_localization
+-- ~~  - ndt_omp
+-- ~~  - hdl_localization
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- +++ processing catkin package: 'fast_gicp'
+-- ==> add_subdirectory(20_localization/fast_gicp)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/aarch64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/aarch64-linux-gnu/libqhull.so;debug;/usr/lib/aarch64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Found PCL: pcl_common;pcl_kdtree;pcl_octree;pcl_search;pcl_sample_consensus;pcl_filters;pcl_io;pcl_features;pcl_ml;pcl_segmentation;pcl_visualization;pcl_surface;pcl_registration;pcl_keypoints;pcl_tracking;pcl_recognition;pcl_stereo;pcl_apps;pcl_outofcore;pcl_people;/usr/lib/aarch64-linux-gnu/libboost_system.so;/usr/lib/aarch64-linux-gnu/libboost_filesystem.so;/usr/lib/aarch64-linux-gnu/libboost_date_time.so;/usr/lib/aarch64-linux-gnu/libboost_iostreams.so;/usr/lib/aarch64-linux-gnu/libboost_regex.so;optimized;/usr/lib/aarch64-linux-gnu/libqhull.so;debug;/usr/lib/aarch64-linux-gnu/libqhull.so;/usr/lib/libOpenNI.so;/usr/lib/libOpenNI2.so;vtkChartsCore;vtkCommonColor;vtkCommonCore;vtksys;vtkCommonDataModel;vtkCommonMath;vtkCommonMisc;vtkCommonSystem;vtkCommonTransforms;vtkCommonExecutionModel;vtkFiltersGeneral;vtkCommonComputationalGeometry;vtkFiltersCore;vtkInfovisCore;vtkFiltersExtraction;vtkFiltersStatistics;vtkImagingFourier;vtkImagingCore;vtkalglib;vtkRenderingContext2D;vtkRenderingCore;vtkFiltersGeometry;vtkFiltersSources;vtkRenderingFreeType;/usr/lib/aarch64-linux-gnu/libfreetype.so;/usr/lib/aarch64-linux-gnu/libz.so;vtkFiltersModeling;vtkImagingSources;vtkInteractionStyle;vtkInteractionWidgets;vtkFiltersHybrid;vtkImagingColor;vtkImagingGeneral;vtkImagingHybrid;vtkIOImage;vtkDICOMParser;vtkmetaio;/usr/lib/aarch64-linux-gnu/libjpeg.so;/usr/lib/aarch64-linux-gnu/libpng.so;/usr/lib/aarch64-linux-gnu/libtiff.so;vtkRenderingAnnotation;vtkRenderingVolume;vtkIOXML;vtkIOCore;vtkIOXMLParser;/usr/lib/aarch64-linux-gnu/libexpat.so;vtkIOGeometry;vtkIOLegacy;vtkIOPLY;vtkRenderingLOD;vtkViewsContext2D;vtkViewsCore;vtkRenderingContextOpenGL2;vtkRenderingOpenGL2;FLANN::FLANN  
+-- pcl version: 1.10.0
+-- pcl lib: /usr/lib/aarch64-linux-gnu
+-- pcl include: /usr/include/pcl-1.10;/usr/include/eigen3;/usr/include;/usr/include/vtk-7.1;/usr/include/freetype2;/usr/include/aarch64-linux-gnu;/usr/include/ni;/usr/include/openni2
+-- Found OpenMP_C: -fopenmp (found version "4.5") 
+-- Found OpenMP_CXX: -fopenmp (found version "4.5") 
+-- Found OpenMP: TRUE (found version "4.5")  
+-- +++ processing catkin package: 'hdl_global_localization'
+-- ==> add_subdirectory(20_localization/hdl_global_localization)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Found CUDA: /usr/local/cuda (found suitable exact version "11.4") 
+-- Found OpenCV: /usr/local (found version "4.2.0") 
+-- Found OpenMP_C: -fopenmp  
+-- Found OpenMP_CXX: -fopenmp  
+-- Found OpenMP: TRUE   
+-- hdl_global_localization: 0 messages, 3 services
+-- +++ processing catkin package: 'ndt_omp'
+-- ==> add_subdirectory(20_localization/ndt_omp)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/aarch64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/aarch64-linux-gnu/libqhull.so;debug;/usr/lib/aarch64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Found PCL: pcl_common;pcl_kdtree;pcl_octree;pcl_search;pcl_sample_consensus;pcl_filters;pcl_io;pcl_features;pcl_ml;pcl_segmentation;pcl_visualization;pcl_surface;pcl_registration;pcl_keypoints;pcl_tracking;pcl_recognition;pcl_stereo;pcl_apps;pcl_outofcore;pcl_people;/usr/lib/aarch64-linux-gnu/libboost_system.so;/usr/lib/aarch64-linux-gnu/libboost_filesystem.so;/usr/lib/aarch64-linux-gnu/libboost_date_time.so;/usr/lib/aarch64-linux-gnu/libboost_iostreams.so;/usr/lib/aarch64-linux-gnu/libboost_regex.so;optimized;/usr/lib/aarch64-linux-gnu/libqhull.so;debug;/usr/lib/aarch64-linux-gnu/libqhull.so;/usr/lib/libOpenNI.so;/usr/lib/libOpenNI2.so;vtkChartsCore;vtkCommonColor;vtkCommonCore;vtksys;vtkCommonDataModel;vtkCommonMath;vtkCommonMisc;vtkCommonSystem;vtkCommonTransforms;vtkCommonExecutionModel;vtkFiltersGeneral;vtkCommonComputationalGeometry;vtkFiltersCore;vtkInfovisCore;vtkFiltersExtraction;vtkFiltersStatistics;vtkImagingFourier;vtkImagingCore;vtkalglib;vtkRenderingContext2D;vtkRenderingCore;vtkFiltersGeometry;vtkFiltersSources;vtkRenderingFreeType;/usr/lib/aarch64-linux-gnu/libfreetype.so;/usr/lib/aarch64-linux-gnu/libz.so;vtkFiltersModeling;vtkImagingSources;vtkInteractionStyle;vtkInteractionWidgets;vtkFiltersHybrid;vtkImagingColor;vtkImagingGeneral;vtkImagingHybrid;vtkIOImage;vtkDICOMParser;vtkmetaio;/usr/lib/aarch64-linux-gnu/libjpeg.so;/usr/lib/aarch64-linux-gnu/libpng.so;/usr/lib/aarch64-linux-gnu/libtiff.so;vtkRenderingAnnotation;vtkRenderingVolume;vtkIOXML;vtkIOCore;vtkIOXMLParser;/usr/lib/aarch64-linux-gnu/libexpat.so;vtkIOGeometry;vtkIOLegacy;vtkIOPLY;vtkRenderingLOD;vtkViewsContext2D;vtkViewsCore;vtkRenderingContextOpenGL2;vtkRenderingOpenGL2;FLANN::FLANN (Required is at least version "1.7") 
+-- PCL_INCLUDE_DIRS:/usr/include/pcl-1.10/usr/include/eigen3/usr/include/usr/include/vtk-7.1/usr/include/freetype2/usr/include/aarch64-linux-gnu/usr/include/ni/usr/include/openni2
+-- PCL_LIBRARY_DIRS:/usr/lib/aarch64-linux-gnu
+-- PCL_DEFINITIONS:-DDISABLE_PCAP-DDISABLE_PNG-DDISABLE_LIBUSB_1_0
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'hdl_localization'
+-- ==> add_subdirectory(20_localization/hdl_localization)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/aarch64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/aarch64-linux-gnu/libqhull.so;debug;/usr/lib/aarch64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- PCL_INCLUDE_DIRS:/usr/include/pcl-1.10/usr/include/eigen3/usr/include/usr/include/vtk-7.1/usr/include/freetype2/usr/include/aarch64-linux-gnu/usr/include/ni/usr/include/openni2
+-- PCL_LIBRARY_DIRS:/usr/lib/aarch64-linux-gnu
+-- PCL_DEFINITIONS:-DDISABLE_PCAP-DDISABLE_PNG-DDISABLE_LIBUSB_1_0
+-- hdl_localization: 1 messages, 0 services
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/ros1-slam/ws/build
+Scanning dependencies of target _hdl_global_localization_generate_messages_check_deps_SetGlobalLocalizationEngine
+Scanning dependencies of target _hdl_global_localization_generate_messages_check_deps_QueryGlobalLocalization
+[  0%] Built target _hdl_global_localization_generate_messages_check_deps_SetGlobalLocalizationEngine
+[  0%] Built target _hdl_global_localization_generate_messages_check_deps_QueryGlobalLocalization
+Scanning dependencies of target sensor_msgs_generate_messages_cpp
+Scanning dependencies of target _hdl_global_localization_generate_messages_check_deps_SetGlobalMap
+[  0%] Built target sensor_msgs_generate_messages_cpp
+Scanning dependencies of target std_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+Scanning dependencies of target geometry_msgs_generate_messages_cpp
+[  0%] Built target _hdl_global_localization_generate_messages_check_deps_SetGlobalMap
+[  0%] Built target geometry_msgs_generate_messages_cpp
+Scanning dependencies of target sensor_msgs_generate_messages_eus
+[  0%] Built target sensor_msgs_generate_messages_eus
+Scanning dependencies of target geometry_msgs_generate_messages_eus
+[  0%] Built target geometry_msgs_generate_messages_eus
+Scanning dependencies of target std_msgs_generate_messages_eus
+[  0%] Built target std_msgs_generate_messages_eus
+Scanning dependencies of target sensor_msgs_generate_messages_nodejs
+[  0%] Built target sensor_msgs_generate_messages_nodejs
+Scanning dependencies of target geometry_msgs_generate_messages_nodejs
+Scanning dependencies of target fast_gicp
+[  0%] Built target geometry_msgs_generate_messages_nodejs
+Scanning dependencies of target std_msgs_generate_messages_nodejs
+[  1%] Building CXX object 20_localization/fast_gicp/CMakeFiles/fast_gicp.dir/src/fast_gicp/gicp/lsq_registration.cpp.o
+[  1%] Built target std_msgs_generate_messages_nodejs
+Scanning dependencies of target sensor_msgs_generate_messages_lisp
+[  1%] Built target sensor_msgs_generate_messages_lisp
+Scanning dependencies of target std_msgs_generate_messages_lisp
+[  1%] Built target std_msgs_generate_messages_lisp
+Scanning dependencies of target geometry_msgs_generate_messages_lisp
+[  1%] Built target geometry_msgs_generate_messages_lisp
+Scanning dependencies of target std_msgs_generate_messages_py
+[  1%] Built target std_msgs_generate_messages_py
+Scanning dependencies of target hdl_global_localization
+Scanning dependencies of target geometry_msgs_generate_messages_py
+[  1%] Built target geometry_msgs_generate_messages_py
+[  3%] Building CXX object 20_localization/hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/bbs/bbs_localization.cpp.o
+[  5%] Building CXX object 20_localization/hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/ransac/voxelset.cpp.o
+[  7%] Building CXX object 20_localization/hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/ransac/ransac_pose_estimation.cpp.o
+[  9%] Building CXX object 20_localization/hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/engines/global_localization_bbs.cpp.o
+[ 11%] Building CXX object 20_localization/fast_gicp/CMakeFiles/fast_gicp.dir/src/fast_gicp/gicp/fast_gicp.cpp.o
+[ 12%] Building CXX object 20_localization/hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/engines/global_localization_fpfh_ransac.cpp.o
+[ 14%] Building CXX object 20_localization/fast_gicp/CMakeFiles/fast_gicp.dir/src/fast_gicp/gicp/fast_gicp_st.cpp.o
+[ 16%] Building CXX object 20_localization/fast_gicp/CMakeFiles/fast_gicp.dir/src/fast_gicp/gicp/fast_vgicp.cpp.o
+[ 18%] Linking CXX shared library /home/ros1-slam/ws/devel/lib/libhdl_global_localization.so
+Scanning dependencies of target sensor_msgs_generate_messages_py
+[ 18%] Built target sensor_msgs_generate_messages_py
+[ 18%] Built target hdl_global_localization
+Scanning dependencies of target _hdl_localization_generate_messages_check_deps_ScanMatchingStatus
+[ 18%] Built target _hdl_localization_generate_messages_check_deps_ScanMatchingStatus
+Scanning dependencies of target hdl_global_localization_generate_messages_cpp
+[ 20%] Generating C++ code from hdl_global_localization/SetGlobalLocalizationEngine.srv
+Scanning dependencies of target ndt_omp
+[ 22%] Building CXX object 20_localization/ndt_omp/CMakeFiles/ndt_omp.dir/src/pclomp/voxel_grid_covariance_omp.cpp.o
+[ 24%] Generating C++ code from hdl_global_localization/SetGlobalMap.srv
+[ 25%] Generating C++ code from hdl_global_localization/QueryGlobalLocalization.srv
+[ 25%] Built target hdl_global_localization_generate_messages_cpp
+Scanning dependencies of target hdl_global_localization_generate_messages_eus
+[ 27%] Generating EusLisp code from hdl_global_localization/SetGlobalLocalizationEngine.srv
+[ 29%] Generating EusLisp code from hdl_global_localization/SetGlobalMap.srv
+[ 31%] Generating EusLisp code from hdl_global_localization/QueryGlobalLocalization.srv
+[ 33%] Generating EusLisp manifest code for hdl_global_localization
+[ 33%] Built target hdl_global_localization_generate_messages_eus
+Scanning dependencies of target hdl_global_localization_generate_messages_nodejs
+[ 35%] Generating Javascript code from hdl_global_localization/SetGlobalLocalizationEngine.srv
+[ 37%] Generating Javascript code from hdl_global_localization/SetGlobalMap.srv
+[ 38%] Generating Javascript code from hdl_global_localization/QueryGlobalLocalization.srv
+[ 38%] Built target hdl_global_localization_generate_messages_nodejs
+Scanning dependencies of target hdl_global_localization_generate_messages_lisp
+[ 40%] Generating Lisp code from hdl_global_localization/SetGlobalLocalizationEngine.srv
+[ 42%] Generating Lisp code from hdl_global_localization/SetGlobalMap.srv
+[ 44%] Generating Lisp code from hdl_global_localization/QueryGlobalLocalization.srv
+[ 44%] Built target hdl_global_localization_generate_messages_lisp
+Scanning dependencies of target hdl_global_localization_generate_messages_py
+[ 46%] Generating Python code from SRV hdl_global_localization/SetGlobalLocalizationEngine
+[ 48%] Generating Python code from SRV hdl_global_localization/SetGlobalMap
+[ 50%] Generating Python code from SRV hdl_global_localization/QueryGlobalLocalization
+[ 51%] Generating Python srv __init__.py for hdl_global_localization
+[ 51%] Built target hdl_global_localization_generate_messages_py
+Scanning dependencies of target hdl_localization_generate_messages_py
+[ 53%] Generating Python from MSG hdl_localization/ScanMatchingStatus
+[ 55%] Generating Python msg __init__.py for hdl_localization
+[ 55%] Built target hdl_localization_generate_messages_py
+Scanning dependencies of target hdl_localization_generate_messages_nodejs
+[ 57%] Generating Javascript code from hdl_localization/ScanMatchingStatus.msg
+[ 57%] Built target hdl_localization_generate_messages_nodejs
+Scanning dependencies of target hdl_localization_generate_messages_cpp
+[ 59%] Generating C++ code from hdl_localization/ScanMatchingStatus.msg
+[ 59%] Built target hdl_localization_generate_messages_cpp
+Scanning dependencies of target hdl_localization_generate_messages_eus
+[ 61%] Generating EusLisp code from hdl_localization/ScanMatchingStatus.msg
+[ 62%] Generating EusLisp manifest code for hdl_localization
+[ 62%] Built target hdl_localization_generate_messages_eus
+Scanning dependencies of target hdl_localization_generate_messages_lisp
+[ 64%] Generating Lisp code from hdl_localization/ScanMatchingStatus.msg
+[ 64%] Built target hdl_localization_generate_messages_lisp
+Scanning dependencies of target hdl_localization_gencpp
+[ 64%] Built target hdl_localization_gencpp
+Scanning dependencies of target hdl_global_localization_gencpp
+[ 64%] Built target hdl_global_localization_gencpp
+Scanning dependencies of target hdl_global_localization_generate_messages
+[ 64%] Built target hdl_global_localization_generate_messages
+Scanning dependencies of target hdl_global_localization_node
+[ 66%] Building CXX object 20_localization/hdl_global_localization/CMakeFiles/hdl_global_localization_node.dir/src/hdl_global_localization_node.cpp.o
+[ 68%] Building CXX object 20_localization/ndt_omp/CMakeFiles/ndt_omp.dir/src/pclomp/ndt_omp.cpp.o
+[ 70%] Linking CXX shared library /home/ros1-slam/ws/devel/lib/libfast_gicp.so
+[ 70%] Built target fast_gicp
+Scanning dependencies of target hdl_localization_generate_messages
+[ 70%] Built target hdl_localization_generate_messages
+Scanning dependencies of target gicp_kitti
+[ 72%] Building CXX object 20_localization/fast_gicp/CMakeFiles/gicp_kitti.dir/src/kitti.cpp.o
+[ 74%] Linking CXX executable /home/ros1-slam/ws/devel/lib/hdl_global_localization/hdl_global_localization_node
+[ 74%] Built target hdl_global_localization_node
+Scanning dependencies of target gicp_align
+[ 75%] Building CXX object 20_localization/fast_gicp/CMakeFiles/gicp_align.dir/src/align.cpp.o
+[ 77%] Linking CXX executable /home/ros1-slam/ws/devel/lib/fast_gicp/gicp_kitti
+[ 77%] Built target gicp_kitti
+Scanning dependencies of target hdl_global_localization_test
+[ 79%] Building CXX object 20_localization/hdl_global_localization/CMakeFiles/hdl_global_localization_test.dir/src/hdl_global_localization_test.cpp.o
+[ 81%] Building CXX object 20_localization/ndt_omp/CMakeFiles/ndt_omp.dir/src/pclomp/gicp_omp.cpp.o
+[ 83%] Linking CXX executable /home/ros1-slam/ws/devel/lib/hdl_global_localization/hdl_global_localization_test
+[ 83%] Built target hdl_global_localization_test
+[ 85%] Linking CXX executable /home/ros1-slam/ws/devel/lib/fast_gicp/gicp_align
+[ 85%] Built target gicp_align
+[ 87%] Linking CXX shared library /home/ros1-slam/ws/devel/lib/libndt_omp.so
+[ 87%] Built target ndt_omp
+Scanning dependencies of target align
+[ 88%] Building CXX object 20_localization/ndt_omp/CMakeFiles/align.dir/apps/align.cpp.o
+Scanning dependencies of target globalmap_server_nodelet
+[ 90%] Building CXX object 20_localization/hdl_localization/CMakeFiles/globalmap_server_nodelet.dir/apps/globalmap_server_nodelet.cpp.o
+Scanning dependencies of target hdl_localization_nodelet
+[ 92%] Building CXX object 20_localization/hdl_localization/CMakeFiles/hdl_localization_nodelet.dir/src/hdl_localization/pose_estimator.cpp.o
+[ 94%] Linking CXX shared library /home/ros1-slam/ws/devel/lib/libglobalmap_server_nodelet.so
+[ 94%] Built target globalmap_server_nodelet
+[ 96%] Building CXX object 20_localization/hdl_localization/CMakeFiles/hdl_localization_nodelet.dir/apps/hdl_localization_nodelet.cpp.o
+[ 98%] Linking CXX executable /home/ros1-slam/ws/devel/lib/ndt_omp/align
+[ 98%] Built target align
+[100%] Linking CXX shared library /home/ros1-slam/ws/devel/lib/libhdl_localization_nodelet.so
+[100%] Built target hdl_localization_nodelet
+Base path: /home/ros1-slam/ws
+Source space: /home/ros1-slam/ws/src
+Build space: /home/ros1-slam/ws/build
+Devel space: /home/ros1-slam/ws/devel
+Install space: /home/ros1-slam/ws/install
+####
+#### Running command: "cmake /home/ros1-slam/ws/src -DCATKIN_WHITELIST_PACKAGES=ndt_omp;fast_gicp;hdl_localization;hdl_global_localization -DCATKIN_DEVEL_PREFIX=/home/ros1-slam/ws/devel -DCMAKE_INSTALL_PREFIX=/home/ros1-slam/ws/install -G Unix Makefiles" in "/home/ros1-slam/ws/build"
+####
+####
+#### Running command: "make -j3" in "/home/ros1-slam/ws/build"
+####
+
+real	10m4.163s
+user	21m31.404s
+sys	2m31.127s
+== 批3 END_OK 2026-10-04 11:47:49 ==

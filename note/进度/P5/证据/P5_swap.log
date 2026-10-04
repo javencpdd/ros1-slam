@@ -1,0 +1,36 @@
+# P5.0/P5.3 S8 临时 swap 增撤记录
+# 日期：2026-10-04 执行者：寇豆码；v4 §10 P5.0
+
+# P5.0 S8 临时 swap 2026-10-04 11:20:26
+== 挂载前 swapon --show ==
+NAME       TYPE        SIZE USED PRIO
+/dev/zram0 partition 571.2M 768K    5
+/dev/zram1 partition 571.2M 512K    5
+/dev/zram2 partition 571.2M 512K    5
+/dev/zram3 partition 571.2M 512K    5
+/dev/zram4 partition 571.2M 512K    5
+/dev/zram5 partition 571.2M 512K    5
+Setting up swapspace version 1, size = 4 GiB (4294963200 bytes)
+no label, UUID=4393e907-5dd8-4dcc-991c-ecbe8ad1d2a0
+== 挂载后 swapon --show ==
+NAME            TYPE        SIZE USED PRIO
+/dev/zram0      partition 571.2M 768K    5
+/dev/zram1      partition 571.2M 512K    5
+/dev/zram2      partition 571.2M 512K    5
+/dev/zram3      partition 571.2M 512K    5
+/dev/zram4      partition 571.2M 512K    5
+/dev/zram5      partition 571.2M 512K    5
+/tmp/build_swap file          4G   0B   -2
+              total        used        free      shared  buff/cache   available
+Mem:          6.7Gi       2.4Gi       789Mi        60Mi       3.6Gi       4.1Gi
+Swap:         7.3Gi       3.0Mi       7.3Gi
+== 批后撤 swap 2026-10-04 11:58:01 ==
+== 复核 swapon --show（期望无 build_swap）==
+NAME       TYPE        SIZE   USED PRIO
+/dev/zram0 partition 571.2M 130.2M    5
+/dev/zram1 partition 571.2M 129.4M    5
+/dev/zram2 partition 571.2M 128.1M    5
+/dev/zram3 partition 571.2M 127.7M    5
+/dev/zram4 partition 571.2M 128.4M    5
+/dev/zram5 partition 571.2M 129.5M    5
+ls: cannot access '/tmp/build_swap': No such file or directory

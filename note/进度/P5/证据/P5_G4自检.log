@@ -1,0 +1,29 @@
+# P5 G4 自检（寇豆码预执行，正式 Gate 归严过关）
+# 日期：2026-10-04 执行者：寇豆码
+
+# P5 G4 自检（寇豆码预执行，正式 Gate 归严过关）2026-10-04 11:58:15
+== (1) devel/setup.bash ==
+-rw-r--r--+ 1 ros1-slam ros1-slam 260 Oct  4 11:21 /home/ros1-slam/ws/devel/setup.bash
+== (2) rospack find 六包（source devel 后）==
+== (3) ROS_PACKAGE_PATH 含 /home/ysc 计数（期望 0）==
+== P5.4 预备检查（采图前产物校验归 P3b）==
+drwxr-xr-x+ 2 ros1-slam ros1-slam 4096 Oct  4 05:59 /home/ros1-slam/data/maps
+-rw-r--r--+ 1 ros1-slam ros1-slam 4367 Sep 12  2024 /home/ros1-slam/ws/src/50_task/pipeline_tracking/tools/location_record.py
+/home/ros1-slam/ws/src/10_slam/lite3_slam/config/:
+faster_lio_outdoor.yaml
+
+/home/ros1-slam/ws/src/10_slam/lite3_slam/launch/:
+10_slam_mapping.launch
+sink
+stub
+== (2) rospack find 六包（source devel 后）==
+faster_lio -> /home/ros1-slam/ws/src/10_slam/faster_lio
+hdl_localization -> /home/ros1-slam/ws/src/20_localization/hdl_localization
+lite3_bringup -> /home/ros1-slam/ws/src/70_bringup/lite3_bringup
+lite3_safety -> /home/ros1-slam/ws/src/60_safety/lite3_safety
+teb_local_planner -> /opt/ros/noetic/share/teb_local_planner
+mbf_costmap_nav -> /opt/ros/noetic/share/mbf_costmap_nav
+== (3) ROS_PACKAGE_PATH 含 /home/ysc 计数（期望 0）==
+0
+grep_exit=1
+ROS_PACKAGE_PATH=/home/ros1-slam/ws/src:/opt/ros/noetic/share
