@@ -1,0 +1,50 @@
+# faster_lio_sim.yaml —— G8-sim 仿真专用（Q14；底稿=10_slam/lite3_slam/config/faster_lio_outdoor.yaml C1 交付 yaml，参数仅四处差异，C1 三实测值不动）
+# 差异① lidar_type: 4→2（VELO32 分支——sim_adapter 按 velodyne_ros::Point 布局发布 time/ring，
+#        pointcloud_preprocess.h enum {AVIA=1,VELO32,OUST64,C16}；lidar_type=4 C16Handler 只读 xyz/intensity，会丢弃 time）
+# 差异② time_scale: 0.001→1e3（VELO32 分支消费：curvature=time*time_scale_ 单位 ms；adapter time 填秒 → ×1e3）
+# 差异③ extrinsic_R/T：Mid-360 工厂外参→单位阵/零平移（sim_adapter 合成 IMU 即雷达系——payload 04 判据前置声明）
+# 差异④ 头注释与来源声明（本文件为 Q14 自研新增，不属 C1 交付物）
+# imu_topic=/livox/imu、lid_topic=/rslidar_points、pcd_save.interval=-1 与 C1 现值一致（Q12/Q6 已定）。
+# 注意：faster_lio 存盘路径硬编码 data/maps/lite3.pcd（laser_mapping.cc:751/862，拷贝包源码不可改）
+#       —— 仿真起前备份 lite3.pcd、停机后转存 sim_venue.pcd 并回迁，见 runbook（04 台账登记）。
+common:
+  imu_topic: /livox/imu      # sim_adapter 合成 IMU（200Hz，与真机 Mid-360 内置 IMU 同话题契约）
+  lid_topic: /rslidar_points # sim_adapter 重排后点云（velodyne_ros::Point 布局，10Hz）
+  time_sync_en: true
+cube_side_length: 1000.0
+esti_plane_threshold: 0.1
+feature_extract_enable: false
+filter_size_map: 0.3             # 与 C1 现值一致
+filter_size_surf: 0.3            # 与 C1 现值（G8 前置回退值）
+ivox_grid_resolution: 0.3
+ivox_nearby_type: 18
+map_file_path: ''
+mapping:
+  acc_cov: 0.1
+  b_acc_cov: 0.0001
+  b_gyr_cov: 0.0001
+  det_range: 150.0
+  extrinsic_R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]   # 差异③：sim 合成 IMU 与雷达同系
+  extrinsic_T: [0.0, 0.0, 0.0]                                  # 差异③
+  extrinsic_est_en: true          # 与 C1 一致（在线估计兜底）
+  gyr_cov: 0.1
+max_iteration: 3
+path_save_en: true
+pcd_save:
+  interval: -1                # 与 C1 现值一致（Q6：-1=全程累积，优雅停机全量落盘）
+  pcd_save_en: true
+preprocess:
+  blind: 1.0                  # 与 C1 一致；渲染端 min_raylength=1.0 同口径（<1m 点已弃）
+  lidar_type: 2       # 差异①：VELO32 分支（sim_adapter 契约）；真机 C1 仍为 4（C16Handler）
+  scan_line: 32       # VELO32 行占位（given_offset_time=true 时不消费）
+  time_scale: 1.0e3   # 差异②：time 单位=秒 → curvature(ms)=time×1e3（payload 检索#5 对账）
+publish:
+  dense_publish_en: false
+  path_publish_en: false
+  scan_bodyframe_pub_en: true
+  scan_effect_pub_en: true
+  scan_publish_en: true
+  tf_imu_frame: body
+  tf_world_frame: camera_init
+runtime_pos_log_enable: false
+use_sim_time: false

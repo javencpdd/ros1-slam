@@ -1,0 +1,11 @@
+<launch>
+  <!-- 10_slam_mapping_sim.launch —— G8-sim 仿真预演专用（Q14 自研壳；镜像 10_slam_mapping.launch 形态）
+       与真机 10_slam_mapping.launch 的差异：仅换 yaml（95_simulation/config/faster_lio_sim.yaml：
+       lidar_type=2 VELO32 / time_scale=1e3 / extrinsic 单位阵——sim_adapter 契约，payload 04）；
+       不带 M1 心跳行（预演链 SUP/M6 不参与，health_watch 不在线）。
+       ★ 存盘路径硬编码 data/maps/lite3.pcd（拷贝包源码不可改）→ 起前备份/停后回迁，见 04 台账。 -->
+  <rosparam command="load"
+            file="/home/ros1-slam/ws/src/95_simulation/config/faster_lio_sim.yaml"/>
+  <!-- rosparam 在 node 外：全局 NodeHandle 读全局命名空间（同 10_slam_mapping.launch 注记） -->
+  <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
+</launch>

@@ -1,0 +1,387 @@
+== B_sim 批编译开始 05:38:27  USE_GPU=ON  -j2
+-- Using CATKIN_DEVEL_PREFIX: /home/ros1-slam/ws/devel
+-- Using CMAKE_PREFIX_PATH: /opt/ros/noetic
+-- This workspace overlays: /opt/ros/noetic
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.8.10", minimum required is "3") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Using Debian Python package layout
+-- Using empy: /usr/lib/python3/dist-packages/em.py
+-- Using CATKIN_ENABLE_TESTING: ON
+-- Call enable_testing()
+-- Using CATKIN_TEST_RESULTS_DIR: /home/ros1-slam/ws/build/test_results
+-- Forcing gtest/gmock from source, though one was otherwise available.
+-- Found gtest sources under '/usr/src/googletest': gtests will be built
+-- Found gmock sources under '/usr/src/googletest': gmock will be built
+-- Found PythonInterp: /usr/bin/python3 (found version "3.8.10") 
+-- Using Python nosetests: /usr/bin/nosetests3
+-- catkin 0.8.10
+-- BUILD_SHARED_LIBS is on
+-- BUILD_SHARED_LIBS is on
+-- Using CATKIN_WHITELIST_PACKAGES: mockamap;map_generator;local_sensing_node;lite3_description
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- ~~  traversing 4 packages in topological order:
+-- ~~  - map_generator
+-- ~~  - local_sensing_node
+-- ~~  - mockamap
+-- ~~  - lite3_description
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- +++ processing catkin package: 'map_generator'
+-- ==> add_subdirectory(95_simulation/map_generator)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/aarch64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/aarch64-linux-gnu/libqhull.so;debug;/usr/lib/aarch64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Found PCL: pcl_common;pcl_kdtree;pcl_octree;pcl_search;pcl_sample_consensus;pcl_filters;pcl_io;pcl_features;pcl_ml;pcl_segmentation;pcl_visualization;pcl_surface;pcl_registration;pcl_keypoints;pcl_tracking;pcl_recognition;pcl_stereo;pcl_apps;pcl_outofcore;pcl_people;/usr/lib/aarch64-linux-gnu/libboost_system.so;/usr/lib/aarch64-linux-gnu/libboost_filesystem.so;/usr/lib/aarch64-linux-gnu/libboost_date_time.so;/usr/lib/aarch64-linux-gnu/libboost_iostreams.so;/usr/lib/aarch64-linux-gnu/libboost_regex.so;optimized;/usr/lib/aarch64-linux-gnu/libqhull.so;debug;/usr/lib/aarch64-linux-gnu/libqhull.so;/usr/lib/libOpenNI.so;/usr/lib/libOpenNI2.so;vtkChartsCore;vtkCommonColor;vtkCommonCore;vtksys;vtkCommonDataModel;vtkCommonMath;vtkCommonMisc;vtkCommonSystem;vtkCommonTransforms;vtkCommonExecutionModel;vtkFiltersGeneral;vtkCommonComputationalGeometry;vtkFiltersCore;vtkInfovisCore;vtkFiltersExtraction;vtkFiltersStatistics;vtkImagingFourier;vtkImagingCore;vtkalglib;vtkRenderingContext2D;vtkRenderingCore;vtkFiltersGeometry;vtkFiltersSources;vtkRenderingFreeType;/usr/lib/aarch64-linux-gnu/libfreetype.so;/usr/lib/aarch64-linux-gnu/libz.so;vtkFiltersModeling;vtkImagingSources;vtkInteractionStyle;vtkInteractionWidgets;vtkFiltersHybrid;vtkImagingColor;vtkImagingGeneral;vtkImagingHybrid;vtkIOImage;vtkDICOMParser;vtkmetaio;/usr/lib/aarch64-linux-gnu/libjpeg.so;/usr/lib/aarch64-linux-gnu/libpng.so;/usr/lib/aarch64-linux-gnu/libtiff.so;vtkRenderingAnnotation;vtkRenderingVolume;vtkIOXML;vtkIOCore;vtkIOXMLParser;/usr/lib/aarch64-linux-gnu/libexpat.so;vtkIOGeometry;vtkIOLegacy;vtkIOPLY;vtkRenderingLOD;vtkViewsContext2D;vtkViewsCore;vtkRenderingContextOpenGL2;vtkRenderingOpenGL2;FLANN::FLANN  
+-- +++ processing catkin package: 'local_sensing_node'
+-- ==> add_subdirectory(95_simulation/local_sensing)
+-- Found GLEW: /usr/include (found version "2.1.0") 
+CMake Warning (dev) at /usr/share/cmake-3.16/Modules/FindOpenGL.cmake:275 (message):
+  Policy CMP0072 is not set: FindOpenGL prefers GLVND by default when
+  available.  Run "cmake --help-policy CMP0072" for policy details.  Use the
+  cmake_policy command to set the policy and suppress this warning.
+
+  FindOpenGL found both a legacy GL library:
+
+    OPENGL_gl_LIBRARY: /usr/lib/aarch64-linux-gnu/libGL.so
+
+  and GLVND libraries for OpenGL and GLX:
+
+    OPENGL_opengl_LIBRARY: /usr/lib/aarch64-linux-gnu/libOpenGL.so
+    OPENGL_glx_LIBRARY: /usr/lib/aarch64-linux-gnu/libGLX.so
+
+  OpenGL_GL_PREFERENCE has not been set to "GLVND" or "LEGACY", so for
+  compatibility with CMake 3.10 and below the legacy GL library will be used.
+Call Stack (most recent call first):
+  95_simulation/local_sensing/CMakeLists.txt:21 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Found OpenGL: /usr/lib/aarch64-linux-gnu/libOpenGL.so   
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Found Boost: /usr/lib/aarch64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake (found version "1.71.0") found components: filesystem iostreams program_options system serialization 
+-- +++ processing catkin package: 'mockamap'
+-- ==> add_subdirectory(95_simulation/mockamap)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'lite3_description'
+-- ==> add_subdirectory(95_simulation/lite3_description)
+-- Configuring done
+CMake Warning at 95_simulation/local_sensing/CMakeLists.txt:110 (add_executable):
+  Cannot generate a safe runtime search path for target opengl_render_node
+  because files in some directories may conflict with libraries in implicit
+  directories:
+
+    runtime library [libopencv_calib3d.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dnn.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_features2d.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_flann.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_highgui.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_ml.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_objdetect.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_photo.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_stitching.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_video.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_videoio.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_aruco.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_bgsegm.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_bioinspired.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_ccalib.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_datasets.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dnn_objdetect.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dnn_superres.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dpm.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_face.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_freetype.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_fuzzy.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_hdf.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_hfs.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_img_hash.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_line_descriptor.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_optflow.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_phase_unwrapping.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_plot.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_quality.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_reg.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_rgbd.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_saliency.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_shape.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_stereo.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_structured_light.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_superres.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_surface_matching.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_text.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_tracking.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_videostab.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_viz.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_ximgproc.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_xobjdetect.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_xphoto.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_core.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_imgproc.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_imgcodecs.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+
+  Some of these libraries may not be found correctly.
+
+
+CMake Warning at 95_simulation/local_sensing/CMakeLists.txt:84 (add_executable):
+  Cannot generate a safe runtime search path for target pcl_render_node
+  because files in some directories may conflict with libraries in implicit
+  directories:
+
+    runtime library [libopencv_calib3d.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dnn.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_features2d.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_flann.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_highgui.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_ml.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_objdetect.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_photo.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_stitching.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_video.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_videoio.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_aruco.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_bgsegm.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_bioinspired.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_ccalib.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_datasets.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dnn_objdetect.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dnn_superres.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_dpm.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_face.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_freetype.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_fuzzy.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_hdf.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_hfs.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_img_hash.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_line_descriptor.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_optflow.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_phase_unwrapping.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_plot.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_quality.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_reg.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_rgbd.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_saliency.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_shape.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_stereo.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_structured_light.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_superres.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_surface_matching.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_text.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_tracking.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_videostab.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_viz.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_ximgproc.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_xobjdetect.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_xphoto.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_core.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_imgproc.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+    runtime library [libopencv_imgcodecs.so.4.2] in /usr/lib/aarch64-linux-gnu may be hidden by files in:
+      /usr/local/lib
+
+  Some of these libraries may not be found correctly.
+
+
+-- Generating done
+-- Build files have been written to: /home/ros1-slam/ws/build
+Scanning dependencies of target GLAD
+[  5%] Building C object 95_simulation/local_sensing/CMakeFiles/GLAD.dir/include/glad.c.o
+Scanning dependencies of target map_pub
+[ 11%] Building CXX object 95_simulation/map_generator/CMakeFiles/map_pub.dir/src/map_publisher.cpp.o
+[ 17%] Linking C shared library /home/ros1-slam/ws/devel/lib/libGLAD.so
+[ 17%] Built target GLAD
+Scanning dependencies of target pcl_render_node
+[ 23%] Building CXX object 95_simulation/local_sensing/CMakeFiles/pcl_render_node.dir/src/pointcloud_render_node.cpp.o
+[ 29%] Linking CXX executable /home/ros1-slam/ws/devel/lib/map_generator/map_pub
+[ 29%] Built target map_pub
+Scanning dependencies of target mockamap_node
+[ 35%] Building CXX object 95_simulation/mockamap/CMakeFiles/mockamap_node.dir/src/ces_randommap.cpp.o
+[ 41%] Building CXX object 95_simulation/local_sensing/CMakeFiles/pcl_render_node.dir/include/ikd-Tree/ikd_Tree.cpp.o
+[ 47%] Building CXX object 95_simulation/mockamap/CMakeFiles/mockamap_node.dir/src/maps.cpp.o
+[ 52%] Building CXX object 95_simulation/local_sensing/CMakeFiles/pcl_render_node.dir/include/FOV_Checker/FOV_Checker.cpp.o
+[ 58%] Linking CXX executable /home/ros1-slam/ws/devel/lib/local_sensing_node/pcl_render_node
+[ 64%] Building CXX object 95_simulation/mockamap/CMakeFiles/mockamap_node.dir/src/mockamap.cpp.o
+[ 64%] Built target pcl_render_node
+Scanning dependencies of target opengl_render_node
+[ 70%] Building CXX object 95_simulation/local_sensing/CMakeFiles/opengl_render_node.dir/src/opengl_render_node.cpp.o
+[ 76%] Building CXX object 95_simulation/mockamap/CMakeFiles/mockamap_node.dir/src/perlinnoise.cpp.o
+[ 82%] Linking CXX executable /home/ros1-slam/ws/devel/lib/mockamap/mockamap_node
+[ 82%] Built target mockamap_node
+[ 88%] Building CXX object 95_simulation/local_sensing/CMakeFiles/opengl_render_node.dir/include/ikd-Tree/ikd_Tree.cpp.o
+[ 94%] Building CXX object 95_simulation/local_sensing/CMakeFiles/opengl_render_node.dir/include/FOV_Checker/FOV_Checker.cpp.o
+[100%] Linking CXX executable /home/ros1-slam/ws/devel/lib/local_sensing_node/opengl_render_node
+[100%] Built target opengl_render_node
+Base path: /home/ros1-slam/ws
+Source space: /home/ros1-slam/ws/src
+Build space: /home/ros1-slam/ws/build
+Devel space: /home/ros1-slam/ws/devel
+Install space: /home/ros1-slam/ws/install
+####
+#### Running command: "cmake /home/ros1-slam/ws/src -DCATKIN_WHITELIST_PACKAGES=mockamap;map_generator;local_sensing_node;lite3_description -DUSE_GPU=ON -DCATKIN_DEVEL_PREFIX=/home/ros1-slam/ws/devel -DCMAKE_INSTALL_PREFIX=/home/ros1-slam/ws/install -G Unix Makefiles" in "/home/ros1-slam/ws/build"
+####
+####
+#### Running command: "make -j2" in "/home/ros1-slam/ws/build"
+####
+
+real	6m48.161s
+user	9m5.048s
+sys	1m0.763s
+== B_sim 批编译结束 05:45:15 exit=0

@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!-- 95_sim.launch —— G8-sim 自研 launch（Q14 仿真预演；设计稿=payload g8_sim.launch 终稿，两处实证修正见下）
+     接线依据：scan_planner simulator.xml + opengl_render_node.cpp 源码实证（2026-10-05 小明检索）：
+       mockamap /mock_map → /map_generator/global_cloud；opengl_render_node ~global_map → 同话题；
+       位姿输入 /quad_0/body_pose（默认，源码 :1139）；输出 /pcl_render_node/sensor_cloud + /quad_0/lidar_pose。
+     实证修正①（参数级，不改拷贝包）：mockamap maze2D/recursiveDivision 对非正方形地图 Eigen 越界崩溃
+       （maps.cpp:599 block(px,py,sy-px,sy-py) 行列混用，作者自注 @todo all bugs here；scan_planner 自用
+       全为正方形故未暴露）——x/y_length 16×12 改 12×12 正方形（面积 144m² < 192m² 仍满足 R3 CPU 预算），
+       seed 扫描取 7（最长蛇形路径 29 格；递归分割=完美迷宫无长环线，轨迹改最长路径+原路返回）。
+     实证修正②（参数级）：opengl_render_node sensor_type 默认 "depth"（不发 sensor_cloud，:909-912），
+       且需 map/x|y|z_size（:984-986）——补 sensor_type:=lidar 与 map 尺寸，照抄 scan_planner simulator.xml
+       :76-80 的 group 参数形态；其余渲染参数用其默认（is_360lidar=1/sensing_rate=10/min_raylength=1.0 等）。
+     用法: roslaunch lite3_drivers 95_sim.launch rviz:=false -->
+<launch>
+  <arg name="rviz" default="false"/>   <!-- C10：SSH 无 X，默认 false -->
+  <arg name="use_gpu" default="true"/>
+
+  <!-- ============ 虚拟 Venue：mockamap maze2d（type=3，12×12 正方形，seed=7）============ -->
+  <node pkg="mockamap" type="mockamap_node" name="mockamap_node" output="screen">
+    <remap from="/mock_map" to="/map_generator/global_cloud"/>
+    <param name="seed"        type="int"    value="7"/>
+    <param name="update_freq" type="double" value="1.0"/>
+    <param name="resolution"  type="double" value="0.1"/>
+    <param name="x_length"    type="int"    value="12"/>
+    <param name="y_length"    type="int"    value="12"/>
+    <param name="z_length"    type="int"    value="3"/>
+    <param name="type"        type="int"    value="3"/>   <!-- maze2d -->
+    <param name="road_width"  type="double" value="1.2"/> <!-- 走廊宽≈真机 Venue -->
+    <param name="add_wall_x"  type="int"    value="1"/>
+    <param name="add_wall_y"  type="int"    value="1"/>
+    <param name="maze_type"   type="int"    value="1"/>   <!-- recursive division -->
+  </node>
+
+  <!-- ============ 虚拟传感器：opengl_render_node（local_sensing_node，USE_GPU=ON 件）============ -->
+  <node if="$(arg use_gpu)" pkg="local_sensing_node" type="opengl_render_node"
+        name="pcl_render_node" output="screen">
+    <param name="sensor_type" value="lidar"/>   <!-- 修正②：默认 depth 不发 sensor_cloud -->
+    <param name="map/x_size"  value="12.0"/>
+    <param name="map/y_size"  value="12.0"/>
+    <param name="map/z_size"  value="3.0"/>
+    <param name="use_global_map_topic" value="true"/>
+    <remap from="~global_map" to="/map_generator/global_cloud"/>
+  </node>
+  <!-- 降级：USE_GPU=OFF 编译件（CPU 渲染，R2 预案）。
+       R3 缓解（实测 render 吞吐 ~1.5Hz 封顶 /Odometry）：极坐标射线间隔 0.2→0.35 rad、
+       地图降采样 0.1→0.2——仿真分辨率换 CPU 吞吐（真机不受影响），记录 04 台账 -->
+  <node unless="$(arg use_gpu)" pkg="local_sensing_node" type="pcl_render_node"
+        name="pcl_render_node" output="screen">
+    <param name="sensor_type" value="lidar"/>
+    <param name="map/x_size"  value="12.0"/>
+    <param name="map/y_size"  value="12.0"/>
+    <param name="map/z_size"  value="3.0"/>
+    <param name="polar_resolution" value="0.35"/>
+    <param name="downsample_res"   value="0.2"/>
+    <param name="lidar_pitch"      value="0.0"/>   <!-- R3/几何：默认45°俯视+FOV90°=仅看下半球，迷宫无地板→z向不可观（发散轴实测 z）；真机雷达近水平，置0恢复上下对称FOV -->
+    <remap from="~global_map" to="/map_generator/global_cloud"/>
+  </node>
+
+  <!-- ============ 自研 sim_adapter：轨迹源 + 点云适配 + IMU 合成 ============ -->
+  <node pkg="lite3_drivers" type="sim_adapter.py" name="sim_adapter" output="screen"
+        args="--mode traj --traj $(find lite3_drivers)/config/traj_maze.yaml --time-unit s"/>
+  <!-- traj_maze.yaml：seed=7 迷宫最长路径(29格)去程+原路返回，67.2m@0.5m/s≈134s + 静置5s×2 ≥120s -->
+
+  <!-- ============ 可选可视化 ============ -->
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz"
+        args="-d $(find lite3_drivers)/config/g8sim.rviz"/>
+</launch>
