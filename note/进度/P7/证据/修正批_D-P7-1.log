@@ -1,0 +1,26 @@
+# P7 修正批 D-P7-1 · SUP 启动宽限参数化 + 竞态根治回归（汇总）2026-10-05 01:38–01:50
+
+## 参数改动点（04 台账登记；留底 raw/*.before_P7R1.bak 三件）
+1. **health_watch.yaml** defaults：`{timeout_s: 3.0}` → `{timeout_s: 3.0, startup_grace_s: 5.0}`——启动宽限 policy 外置（raw/health_watch.yaml.before_P7R1.bak sha256=24e82703cdfb7807）。
+2. **health_monitor.py**：init 新增 startup_grace 读取 + last_seen 初始化前移 `(startup_grace_s - timeout_s)`，等效启动期 deadline = init + startup_grace_s（5.0s）；首包到达后 _beat 以真实时间覆盖 last_seen，**稳态失联判定仍 = timeout_s（3.0s，看门狗不钝化）**。旧实现启动期与稳态共用 3.0s 截止（D-P7-1 竞态根因）。逻辑等价性自检（deadline=init+grace 数值推演）+ py_compile 过（raw/health_monitor.py.before_P7R1.bak sha256=0bfcfed4aed2936d）。
+3. **mode_nav_stub.launch** 头注「残余竞态判据」节按新参数复核更新：复位标准法 = S-4 定向重启 SUP+M6（整窗重启会重掷竞态骰子）；宽限覆盖实测首包 ~init+3.4s。mode_mapping/mode_localize 同款表述未动（口径不冲突）。
+- 校验：XML/py_compile/yaml safe_load（defaults 双键 3.0/5.0）全过；落盘 sha256 源==在位 MATCH×3；零 /home/ysc。
+
+## 3 连起停回归（raw/P7R1_cycle{1,2,3}*.txt；foxy 保持运行，qnx2ros bind 失败死亡=已知口径，master stale 登记无数据流）
+| cycle | hold | SUP CRITICAL | mux 轨迹 | /cmd_vel | 节点 | 退净 |
+|---|---|---|---|---|---|---|
+| 1 (01:41) | 静默 | 0 | INIT→NONE | 20.006Hz 零 | 11（qnx2ros=stale） | 零残留 |
+| 2 (01:42) | 静默 | 0 | INIT→NONE | 20.000Hz 零 | 11 | 零残留 |
+| 3 (01:43) | 静默 | 0 | INIT→NONE | 20.000Hz 零 | 11 | 零残留 |
+
+**3/3 零 hold 误 latch —— D-P7-1 竞态根治实证**（旧参数下 3 启 2 输）。
+
+## SUP 真源回归抽测（cycle3 窗，raw/P7R1_truthsource_kill.txt / P7R1_s4_*.txt）
+- 杀 M0 心跳：master 注销 01:44:36.529 → 首条 FATAL「心跳失联: M0_drivers」01:44:39.421 = **2.89s ≤ 3.5s**（看门狗未钝化）+ hold=True + mux NONE→HOLD 强制零速（x=0.0）。
+- 复位（L1 语义补全）：M0 心跳死亡期间任何新 SUP 都将（正确地）对真失联触发——故先按原 launch 契约恢复 liveness_m0 实例（1.000 Hz），再 S-4 定向重启 SUP+M6 → hold 静默、mux 新实例 INIT→NONE、/cmd_vel 20.000Hz、11 节点复归（raw/P7R1_s4_reset_final.txt）。
+- 历史回查澄清（raw/P7R1_history_s4_audit.txt）：主批 01:23 S-4 干净复位成立（01:21 整窗重启已带活 m0，三心跳全流）；01:27:17 FATAL(M0,M4,M6)=P7.4 退净拆窗时三心跳齐失联的正确告警，非误报。
+
+## 收尾
+- 全窗退净：ps 零 ROS 残留、11312 释放（raw/P7R1_teardown.txt）。
+- v3_isolation.sh [1]–[9] === ISOLATION OK === EXIT=0。
+- foxy 复核：transfer_ros2/lite3-ros-bridge 双 active + enabled/enabled + 43897 由 jetson2motion（pid 115797，P7.4 恢复后未变）回占 = 全程零扰动（raw/P7R1_foxy_check.txt）。

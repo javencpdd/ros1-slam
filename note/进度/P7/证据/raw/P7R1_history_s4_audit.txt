@@ -1,0 +1,17 @@
+== 主批 01:23 S-4 独立 SUP 日志回查 ==
+-rw-rw-r--+ 1 ros1-slam ros1-slam 20817 Oct  5 01:46 /home/ros1-slam/logs/lite3_supervisor.log
+/home/ros1-slam/logs/lite3_supervisor.log:[rospy.client][INFO] 2026-10-05 01:23:21,920: init_node, name[/lite3_supervisor], pid[114091]
+/home/ros1-slam/logs/lite3_supervisor.log:[rosout][CRITICAL] 2026-10-05 01:27:17,279: [SUP] 心跳失联: M0_drivers,M4_navigation,M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+/home/ros1-slam/logs/lite3_supervisor.log:[rosout][CRITICAL] 2026-10-05 01:27:18,279: [SUP] 心跳失联: M0_drivers,M4_navigation,M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+/home/ros1-slam/logs/lite3_supervisor.log:[rosout][CRITICAL] 2026-10-05 01:27:19,279: [SUP] 心跳失联: M0_drivers,M4_navigation,M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+/home/ros1-slam/logs/lite3_supervisor.log:[rosout][CRITICAL] 2026-10-05 01:27:20,279: [SUP] 心跳失联: M0_drivers,M4_navigation,M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+/home/ros1-slam/logs/lite3_supervisor.log:[rosout][CRITICAL] 2026-10-05 01:27:21,279: [SUP] 心跳失联: M0_drivers,M4_navigation,M6_safety —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+== 主批 01:23 独立 mux 日志全文轨迹 ==
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rospy.internal][INFO] 2026-10-05 01:23:25,452: topic[/lite3/supervisor/hold] adding connection to [http://192.168.1.103:44777/], count 0
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rosout][INFO] 2026-10-05 01:23:25,454: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rosout][WARNING] 2026-10-05 01:23:25,504: [M6] 活跃源切换: INIT -> NONE
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rosout][WARNING] 2026-10-05 01:27:17,288: [M6] 监督保持输入 hold=True（/lite3/supervisor/hold，唯一发布者=SUP）
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rosout][WARNING] 2026-10-05 01:27:17,304: [M6] 活跃源切换: NONE -> HOLD
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rospy.internal][INFO] 2026-10-05 01:27:21,217: topic[/lite3/supervisor/hold] removing connection to http://192.168.1.103:44777/
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rosout][INFO] 2026-10-05 01:45:18,799: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+/home/ros1-slam/logs/safe_cmd_vel_mux.log:[rospy.internal][INFO] 2026-10-05 01:45:18,810: topic[/lite3/supervisor/hold] adding connection to [http://192.168.1.103:43497/], count 0

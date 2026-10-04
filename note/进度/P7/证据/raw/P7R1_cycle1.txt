@@ -1,0 +1,16 @@
+== cycle1 判据 01:41:28 ==
+-- hold 静默（latch 回放检查）--
+hold_done
+-- SUP CRITICAL 计数（期望 0）--
+0
+0
+-- mux 源轨迹（期望仅 INIT->NONE）--
+活跃源切换: INIT -> NONE
+-- /cmd_vel 20Hz 零速 --
+average rate: 20.006
+  x: 0.0
+-- 节点与 ros2qnx --
+/base2livox /lite3_supervisor /liveness_m0 /liveness_m4 /liveness_m6 /livox_lidar_publisher2 /move_base_flex /qnx2ros /rosout /safe_cmd_vel_mux /stub_tf_broadcaster count=11
+qnx_grep=1
+-- qnx2ros 进程实况（foxy 在跑，预期 bind 失败死亡=已知口径）--
+(qnx2ros 进程不存在=stale 登记口径)

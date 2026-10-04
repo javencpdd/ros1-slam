@@ -21,7 +21,12 @@
        · SUP 为文档首行（v4 §12 铁律/N5）；liveness_m0/m4/m6 心跳随各模块 launch 秒级在位，
          一窗内不存在 P6.2「SUP 单独先起、模块跨窗后起」的迟到竞态主根因；
        · 残余竞态判据：起后 10 s 检查 /lite3/supervisor/hold——静默=正常；若 latch=true
-         （SUP 误报）→ 重启 SUP 复位（P6.2 口径），属安全侧失效，留证不得静默；
+         （SUP 误报）→ 属安全侧失效，留证不得静默；复位标准法 = S-4 定向重启 SUP+M6 双实例
+         （P6 S-4 口径；整窗重启会重掷启动竞态骰子）。
+         P7 修正批（D-P7-1，04 台账）：SUP 启动宽限已独立参数化 startup_grace_s=5.0s
+         （health_watch.yaml#defaults；稳态看门狗 timeout_s=3.0 不变）——实测末位 include 的
+         m4/m6 心跳首包 ~SUP init+3.4s 已被宽限覆盖，3 连起停零误 latch 回归
+         见 P7/证据/修正批_D-P7-1.log；
        · livox 驱动 required=true：驱动即死 = 整窗退出（roslaunch 自带联锁）。
 
        stub TF（N-1 主理人修正裁决落地，04 台账；payload 原案 map→odom 静态已否决）：

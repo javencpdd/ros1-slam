@@ -1,0 +1,14 @@
+== P7R3 杀 M0 心跳真源 01:44:36.440146274 ==
+pkill_exit=0
+-- m0 死亡核查 --
+m0_gone=1
+2
+-- 首条 FATAL 时间戳（对 master.log 注销时刻算延迟）--
+[rosout][CRITICAL] 2026-10-05 01:44:39,421: [SUP] 心跳失联: M0_drivers —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表
+[rosmaster.master][INFO] 2026-10-05 01:44:36,529: -PUB [/lite3/liveness/m0_drivers] /liveness_m0 http://192.168.1.103:44187/
+-- hold/mux/零速 --
+data: True
+---
+活跃源切换: INIT -> NONE
+活跃源切换: NONE -> HOLD
+  x: 0.0
