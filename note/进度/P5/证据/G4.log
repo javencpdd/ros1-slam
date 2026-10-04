@@ -1,0 +1,98 @@
+# =====================================================================
+# Gate G4 验收证据 | 21号计划书 v4 §10 P5.2（P5 编译构建收尾门禁）+ P4 依赖核对附加
+# 执行人: 严过关（验收工程师） | 目标机: lite3-f20-1-103
+# 证据采集时间: 2026-10-04 12:09:41 +0800
+# 说明: 全部校验命令由严过关在本机独立重跑（不采信施工方结论）、以实际输出判定；
+#       sudo 密码已脱敏为 ***；不修施工问题、未启动任何机器人节点（rospack 静态解析，无 master）
+# =====================================================================
+
+【基线】残留检查：ps -u ros1-slam（期望零行）
+    PID CMD
+ps_exit=1（1=零行）
+
+【判据 1】ws/devel/setup.bash 存在（v4 §10 P5.2）
+-rw-r--r--+ 1 ros1-slam ros1-slam 260 Oct  4 11:21 /home/ros1-slam/ws/devel/setup.bash
+
+【判据 2+3】以 ros1-slam 身份 source ws/devel/setup.bash 后：rospack find 六包 + RPP 无 ysc
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' bash /home/ros1-slam/scripts/as_ros1slam.sh 'bash /tmp/g4_yan/g4_core.sh'   # 脚本全文见附录
+== 判据1：ws/devel/setup.bash 存在性 ==
+-rw-r--r--+ 1 ros1-slam ros1-slam 260 Oct  4 11:21 /home/ros1-slam/ws/devel/setup.bash
+DEVEL_SETUP=EXISTS
+
+== 判据2：source ws/devel/setup.bash 后 rospack find 六包（v4 §10 P5.2 + v3 A9 + v4 N8） ==
+ROS_PACKAGE_PATH=/home/ros1-slam/ws/src:/opt/ros/noetic/share
+rospack find faster_lio -> /home/ros1-slam/ws/src/10_slam/faster_lio
+rospack find hdl_localization -> /home/ros1-slam/ws/src/20_localization/hdl_localization
+rospack find lite3_bringup -> /home/ros1-slam/ws/src/70_bringup/lite3_bringup
+rospack find lite3_safety -> /home/ros1-slam/ws/src/60_safety/lite3_safety
+rospack find teb_local_planner -> /opt/ros/noetic/share/teb_local_planner
+rospack find mbf_costmap_nav -> /opt/ros/noetic/share/mbf_costmap_nav
+
+== P4 增补附加（v4 §9）：nav_core_adapter 应指向 /opt/ros/noetic/share ==
+rospack find nav_core_adapter -> /opt/ros/noetic/share/nav_core_adapter
+
+== 判据3：echo $ROS_PACKAGE_PATH | grep -c /home/ysc（期望 0） ==
+0
+grep_count_exit=1（1=零命中）
+/home/ros1-slam/ws/src
+/opt/ros/noetic/share
+
+【判定汇总 · Gate G4（v4 §10 P5.2 + v3 A9 + v4 N8）+ 附加复核】
+判据1 devel/setup.bash 存在：EXISTS（ros1-slam 属主 260B，2026-10-04 11:21）→ 过
+判据2 rospack find 六包（source ws/devel/setup.bash 后，ros1-slam 身份）：
+  faster_lio→/home/ros1-slam/ws/src/10_slam/faster_lio；hdl_localization→ws/src/20_localization/hdl_localization；
+  lite3_bringup→ws/src/70_bringup/lite3_bringup；lite3_safety→ws/src/60_safety/lite3_safety（自研四壳全落 ws/src/**）
+  teb_local_planner→/opt/ros/noetic/share/teb_local_planner；mbf_costmap_nav→/opt/ros/noetic/share/mbf_costmap_nav（A9/N8 系统版双证明）→ 过
+  附加（v4 §9 P4 增补）：nav_core_adapter→/opt/ros/noetic/share/nav_core_adapter → 过
+判据3 $ROS_PACKAGE_PATH grep -c /home/ysc = 0（实际 RPP=/home/ros1-slam/ws/src:/opt/ros/noetic/share）→ 过
+判据4 附加复核：
+  a) swap 撤净：swapon --show 仅 zram 6×571M（无 file 型），/tmp/build_swap No such file → 过
+  b) CATKIN_IGNORE（deeprobotics）在位 0 字节且 git 跟踪（ls-files 命中）；04 台账三条新增在位
+     （D-P5-3 裁决执行 / D-P5-1 模板同步 / .gitignore .cmake/，均 2026-10-04）；gen_shell_pkgs.sh
+     grep -cF 'ysc@local' = 0、模板 email=ros1-slam@lite3.local；九壳包 package.xml 实查 9/9 email 合规 → 过
+  c) batch2 尾部 real 11m39s + END_OK、batch5 尾部 real 3m28s + END_OK（黑名单变体）；
+     batch1–5 + WRAP + WRAP2 共 7 个 END_OK 全命中，WRAP2=纯默认重跑（黑名单清空）12:04:47 → 过
+  d) 磁盘 /dev/mmcblk1p1 117G 总量、可用 42G（≥15G）→ 过
+  e) 遗留观察 lslidar_msgs/.obj-x86_64-linux-gnu/CATKIN_IGNORE：上游 2022 复制态、位于 x86 构建产物目录
+     （非包根）；实测惰性——rospack find lslidar_msgs/lslidar_driver 均正常解析、批1 Built target lslidar_driver
+     系列全成、WRAP2 configure 正常 processing lslidar_msgs、子树 /home/ysc 命中 0 → 如实记录，不构成缺陷
+
+Gate G4 = PASS | 路由 NoOne
+已知观察（不影响判定）：
+  O1 = 判据4e 惰性遗留：建议二期 M3/驱动改造时顺手清理（删除该遗留目录），验收不代改。
+  O2 = P4/进度文档.md 自记 Gate 结论=PASS、其「验收报告」占位未由本 Gate 填充（G4 属 P5 门禁）；
+       P4 复核素材已并入本报告判据2 附加项（21 依赖中抽验 nav_core_adapter，其余以 P4 记录在案）。
+  O3 = batch1 归档 log 为 email 修复后成功重跑（未含 Invalid email 首跑阻断原文）；阻断过程以
+       进度文档 D-P5-1 叙述 + wrap log 模板同步段留证，九壳包 email 现值已实查合规。
+
+（证据采集时间: 2026-10-04 12:09–12:13 +0800；执行人: 严过关）
+
+【命令索引（sudo 提权命令脱敏形态；密码一律 ***）】
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' bash /home/ros1-slam/scripts/as_ros1slam.sh 'bash /tmp/g4_yan/g4_core.sh'   # 判据1-3（source devel 后 rospack 六包 + RPP 计数）
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' -u ros1-slam git -C /home/ros1-slam ls-files -- <CATKIN_IGNORE pathspec>   # 判据4b git 跟踪
+PW="***"; printf '%s\n' "$PW" | sudo -S -p '' bash /home/ros1-slam/scripts/as_ros1slam.sh 'source devel && rospack find lslidar_msgs/lslidar_driver'   # 判据4e 惰性证明
+（非提权命令：devel 存在性、swapon/df、台账与日志只读 grep、gen_shell_pkgs email 计数等均 ysc 只读执行，见各段命令回显）
+
+【附录】判据1-3 校验脚本全文（/tmp/g4_yan/g4_core.sh，以 ros1-slam 身份执行）
+------------------------------------------------------------------------
+#!/usr/bin/env bash
+# G4 核心判据独立复核（严过关，2026-10-04）——以 ros1-slam 身份执行
+echo "== 判据1：ws/devel/setup.bash 存在性 =="
+ls -la /home/ros1-slam/ws/devel/setup.bash
+test -f /home/ros1-slam/ws/devel/setup.bash && echo "DEVEL_SETUP=EXISTS" || echo "DEVEL_SETUP=MISSING"
+echo
+echo "== 判据2：source ws/devel/setup.bash 后 rospack find 六包（v4 §10 P5.2 + v3 A9 + v4 N8） =="
+source /home/ros1-slam/ws/devel/setup.bash
+echo "ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH"
+for p in faster_lio hdl_localization lite3_bringup lite3_safety teb_local_planner mbf_costmap_nav; do
+  echo "rospack find $p -> $(rospack find $p 2>&1)"
+done
+echo
+echo "== P4 增补附加（v4 §9）：nav_core_adapter 应指向 /opt/ros/noetic/share =="
+echo "rospack find nav_core_adapter -> $(rospack find nav_core_adapter 2>&1)"
+echo
+echo "== 判据3：echo \$ROS_PACKAGE_PATH | grep -c /home/ysc（期望 0） =="
+echo "$ROS_PACKAGE_PATH" | grep -c "/home/ysc"
+echo "grep_count_exit=$?（1=零命中）"
+echo "$ROS_PACKAGE_PATH" | tr ':' '\n'
+------------------------------------------------------------------------
