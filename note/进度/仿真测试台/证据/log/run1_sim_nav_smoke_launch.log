@@ -1,0 +1,509 @@
+... logging to /home/ros1-slam/.ros/log/018dba5c-c0a1-11f1-99ca-3c6d66f8d2d8/roslaunch-lite-195554.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch
+[1mstarted roslaunch server http://lite:46821/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /lite3_supervisor/health_watch: /home/ros1-slam/w...
+ * /lite3_supervisor/mode: mode_nav_sim
+ * /mockamap_node/add_wall_x: 1
+ * /mockamap_node/add_wall_y: 1
+ * /mockamap_node/maze_type: 1
+ * /mockamap_node/resolution: 0.1
+ * /mockamap_node/road_width: 1.2
+ * /mockamap_node/seed: 7
+ * /mockamap_node/type: 3
+ * /mockamap_node/update_freq: 1.0
+ * /mockamap_node/x_length: 12
+ * /mockamap_node/y_length: 12
+ * /mockamap_node/z_length: 3
+ * /move_base_flex/GlobalPlanner/allow_unknown: False
+ * /move_base_flex/GlobalPlanner/cost_factor: 3
+ * /move_base_flex/GlobalPlanner/default_tolerance: 0.0
+ * /move_base_flex/GlobalPlanner/lethal_cost: 253
+ * /move_base_flex/GlobalPlanner/neutral_cost: 50
+ * /move_base_flex/GlobalPlanner/old_navfn_behavior: False
+ * /move_base_flex/GlobalPlanner/orientation_mode: 1
+ * /move_base_flex/GlobalPlanner/orientation_window_size: 1
+ * /move_base_flex/GlobalPlanner/outline_map: False
+ * /move_base_flex/GlobalPlanner/planner_window_x: 0.0
+ * /move_base_flex/GlobalPlanner/planner_window_y: 0.0
+ * /move_base_flex/GlobalPlanner/publish_potential: False
+ * /move_base_flex/GlobalPlanner/publish_scale: 100
+ * /move_base_flex/GlobalPlanner/use_dijkstra: True
+ * /move_base_flex/GlobalPlanner/use_grid_path: False
+ * /move_base_flex/GlobalPlanner/use_quadratic: False
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_theta: 1.0
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_x: 1.0
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_y: 0.1
+ * /move_base_flex/TebLocalPlannerROS/allow_init_with_backwards_motion: False
+ * /move_base_flex/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /move_base_flex/TebLocalPlannerROS/complete_global_plan: False
+ * /move_base_flex/TebLocalPlannerROS/control_look_ahead_poses: 1
+ * /move_base_flex/TebLocalPlannerROS/controller_frequency: 10
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_distance: 0.3
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_pts: 30
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_min_pts: 3
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/convex_hull_min_pt_separation: 0.1
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_plugin: costmap_converter...
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_spin_thread: True
+ * /move_base_flex/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 2.0
+ * /move_base_flex/TebLocalPlannerROS/divergence_detection: False
+ * /move_base_flex/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /move_base_flex/TebLocalPlannerROS/dt_ref: 0.4
+ * /move_base_flex/TebLocalPlannerROS/dynamic_obstacle_inflation_dist: 0.6
+ * /move_base_flex/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base_flex/TebLocalPlannerROS/exact_arc_length: False
+ * /move_base_flex/TebLocalPlannerROS/feasibility_check_lookahead_distance: 3
+ * /move_base_flex/TebLocalPlannerROS/feasibility_check_no_poses: 30
+ * /move_base_flex/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base_flex/TebLocalPlannerROS/footprint_model/vertices: [[-0.3, -0.2], [-...
+ * /move_base_flex/TebLocalPlannerROS/force_reinit_new_goal_angular: 0.78
+ * /move_base_flex/TebLocalPlannerROS/force_reinit_new_goal_dist: 1.0
+ * /move_base_flex/TebLocalPlannerROS/free_goal_vel: False
+ * /move_base_flex/TebLocalPlannerROS/global_plan_overwrite_orientation: False
+ * /move_base_flex/TebLocalPlannerROS/global_plan_prune_distance: 0.5
+ * /move_base_flex/TebLocalPlannerROS/global_plan_viapoint_sep: 0.3
+ * /move_base_flex/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /move_base_flex/TebLocalPlannerROS/include_dynamic_obstacles: True
+ * /move_base_flex/TebLocalPlannerROS/inflation_dist: 0.45
+ * /move_base_flex/TebLocalPlannerROS/is_footprint_dynamic: False
+ * /move_base_flex/TebLocalPlannerROS/legacy_obstacle_association: False
+ * /move_base_flex/TebLocalPlannerROS/map_frame: /map
+ * /move_base_flex/TebLocalPlannerROS/max_global_plan_lookahead_dist: 5.0
+ * /move_base_flex/TebLocalPlannerROS/max_samples: 100
+ * /move_base_flex/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /move_base_flex/TebLocalPlannerROS/max_vel_trans: 1.0
+ * /move_base_flex/TebLocalPlannerROS/max_vel_x: 0.4
+ * /move_base_flex/TebLocalPlannerROS/max_vel_x_backwards: 0.2
+ * /move_base_flex/TebLocalPlannerROS/max_vel_y: 0.1
+ * /move_base_flex/TebLocalPlannerROS/min_obstacle_dist: 0.15
+ * /move_base_flex/TebLocalPlannerROS/min_resolution_collision_check_angular: 3.1415926
+ * /move_base_flex/TebLocalPlannerROS/min_samples: 3
+ * /move_base_flex/TebLocalPlannerROS/min_turning_radius: 0.0
+ * /move_base_flex/TebLocalPlannerROS/obstacle_association_cutoff_factor: 10
+ * /move_base_flex/TebLocalPlannerROS/obstacle_association_force_inclusion_factor: 3
+ * /move_base_flex/TebLocalPlannerROS/obstacle_poses_affected: 10
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_lower_bound: 0.2
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_ratio_max_vel: 0.7
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_upper_bound: 0.6
+ * /move_base_flex/TebLocalPlannerROS/odom_topic: leg_odom
+ * /move_base_flex/TebLocalPlannerROS/optimization_activate: True
+ * /move_base_flex/TebLocalPlannerROS/oscillation_recovery: False
+ * /move_base_flex/TebLocalPlannerROS/penalty_epsilon: 0.15
+ * /move_base_flex/TebLocalPlannerROS/planning_horizon: 4.0
+ * /move_base_flex/TebLocalPlannerROS/prevent_look_ahead_poses_near_goal: 0
+ * /move_base_flex/TebLocalPlannerROS/publish_feedback: False
+ * /move_base_flex/TebLocalPlannerROS/shrink_horizon_backup: False
+ * /move_base_flex/TebLocalPlannerROS/teb_autosize: True
+ * /move_base_flex/TebLocalPlannerROS/theta_stopped_vel: 0.05
+ * /move_base_flex/TebLocalPlannerROS/trans_stopped_vel: 0.05
+ * /move_base_flex/TebLocalPlannerROS/transform_tolerance: 0.3
+ * /move_base_flex/TebLocalPlannerROS/use_proportional_saturation: True
+ * /move_base_flex/TebLocalPlannerROS/via_points_ordered: True
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_forward_drive: 50
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_nh: 10
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_turning_radius: 0
+ * /move_base_flex/TebLocalPlannerROS/weight_linear_angular: 3
+ * /move_base_flex/TebLocalPlannerROS/weight_linear_angular_times: 1
+ * /move_base_flex/TebLocalPlannerROS/weight_optimaltime: 1
+ * /move_base_flex/TebLocalPlannerROS/weight_prefer_rotdir: 0
+ * /move_base_flex/TebLocalPlannerROS/weight_shortest_path: 9
+ * /move_base_flex/TebLocalPlannerROS/weight_viapoint: 1
+ * /move_base_flex/TebLocalPlannerROS/wheelbase: 0.0
+ * /move_base_flex/TebLocalPlannerROS/xy_goal_tolerance: 0.2
+ * /move_base_flex/TebLocalPlannerROS/yaw_goal_tolerance: 0.2
+ * /move_base_flex/controller_frequency: 10.0
+ * /move_base_flex/controller_patience: 3.0
+ * /move_base_flex/controllers: [{'name': 'TebLoc...
+ * /move_base_flex/global_costmap/always_send_full_costmap: False
+ * /move_base_flex/global_costmap/footprint: [[-0.3, -0.2], [-...
+ * /move_base_flex/global_costmap/footprint_padding: 0.1
+ * /move_base_flex/global_costmap/global_frame: map
+ * /move_base_flex/global_costmap/height: 100
+ * /move_base_flex/global_costmap/origin_x: 0
+ * /move_base_flex/global_costmap/origin_y: 0
+ * /move_base_flex/global_costmap/plugins: [{'name': 'static...
+ * /move_base_flex/global_costmap/publish_frequency: 5
+ * /move_base_flex/global_costmap/resolution: 0.1
+ * /move_base_flex/global_costmap/robot_base_frame: base_link
+ * /move_base_flex/global_costmap/rolling_window: True
+ * /move_base_flex/global_costmap/sob_layer/cost_scaling_factor: 10
+ * /move_base_flex/global_costmap/sob_layer/enabled: True
+ * /move_base_flex/global_costmap/sob_layer/inflate_unknown: False
+ * /move_base_flex/global_costmap/sob_layer/inflation_radius: 0.2
+ * /move_base_flex/global_costmap/sob_layer/inscribed_radius: 0.15
+ * /move_base_flex/global_costmap/static_layer/first_map_only: True
+ * /move_base_flex/global_costmap/static_layer/lethal_cost_threshold: 100
+ * /move_base_flex/global_costmap/static_layer/map_topic: map
+ * /move_base_flex/global_costmap/static_layer/subscribe_to_updates: False
+ * /move_base_flex/global_costmap/static_layer/track_unknown_space: False
+ * /move_base_flex/global_costmap/static_layer/trinary_costmap: True
+ * /move_base_flex/global_costmap/static_layer/unknown_cost_value: -1
+ * /move_base_flex/global_costmap/static_layer/use_maximum: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/combination_method: 1
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/decay_model: 0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /move_base_flex/global_costmap/track_unknown_space: False
+ * /move_base_flex/global_costmap/transform_tolerance: 1.0
+ * /move_base_flex/global_costmap/update_frequency: 10
+ * /move_base_flex/global_costmap/width: 100
+ * /move_base_flex/local_costmap/always_send_full_costmap: False
+ * /move_base_flex/local_costmap/footprint: [[-0.3, -0.2], [-...
+ * /move_base_flex/local_costmap/footprint_padding: 0.1
+ * /move_base_flex/local_costmap/global_frame: map
+ * /move_base_flex/local_costmap/height: 10
+ * /move_base_flex/local_costmap/origin_x: 0
+ * /move_base_flex/local_costmap/origin_y: 0
+ * /move_base_flex/local_costmap/plugins: [{'name': 'stvl_o...
+ * /move_base_flex/local_costmap/publish_frequency: 5
+ * /move_base_flex/local_costmap/resolution: 0.1
+ * /move_base_flex/local_costmap/robot_base_frame: base_link
+ * /move_base_flex/local_costmap/rolling_window: True
+ * /move_base_flex/local_costmap/sob_layer/cost_scaling_factor: 10
+ * /move_base_flex/local_costmap/sob_layer/enabled: True
+ * /move_base_flex/local_costmap/sob_layer/inflate_unknown: False
+ * /move_base_flex/local_costmap/sob_layer/inflation_radius: 0.2
+ * /move_base_flex/local_costmap/sob_layer/inscribed_radius: 0.15
+ * /move_base_flex/local_costmap/static_layer/first_map_only: True
+ * /move_base_flex/local_costmap/static_layer/lethal_cost_threshold: 100
+ * /move_base_flex/local_costmap/static_layer/map_topic: map
+ * /move_base_flex/local_costmap/static_layer/subscribe_to_updates: False
+ * /move_base_flex/local_costmap/static_layer/track_unknown_space: False
+ * /move_base_flex/local_costmap/static_layer/trinary_costmap: True
+ * /move_base_flex/local_costmap/static_layer/unknown_cost_value: -1
+ * /move_base_flex/local_costmap/static_layer/use_maximum: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/combination_method: 1
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/decay_model: 0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /move_base_flex/local_costmap/track_unknown_space: False
+ * /move_base_flex/local_costmap/transform_tolerance: 1.0
+ * /move_base_flex/local_costmap/update_frequency: 10
+ * /move_base_flex/local_costmap/width: 10
+ * /move_base_flex/oscillation_distance: 0.1
+ * /move_base_flex/oscillation_timeout: 0.0
+ * /move_base_flex/planner_frequency: 0.0
+ * /move_base_flex/planner_max_retries: -1
+ * /move_base_flex/planner_patience: 3.0
+ * /move_base_flex/planners: [{'name': 'Global...
+ * /move_base_flex/recovery_behaviors: [{'name': 'clear_...
+ * /move_base_flex/recovery_enabled: False
+ * /pcl_render_node/map/x_size: 12.0
+ * /pcl_render_node/map/y_size: 12.0
+ * /pcl_render_node/map/z_size: 3.0
+ * /pcl_render_node/sensor_type: lidar
+ * /pcl_render_node/use_global_map_topic: True
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /safe_cmd_vel_mux/mux_config: /home/ros1-slam/w...
+
+NODES
+  /
+    lite3_supervisor (lite3_supervisor/health_monitor.py)
+    liveness_m0_sim (rostopic/rostopic)
+    liveness_m4 (rostopic/rostopic)
+    liveness_m6 (rostopic/rostopic)
+    mockamap_node (mockamap/mockamap_node)
+    move_base_flex (mbf_costmap_nav/mbf_costmap_nav)
+    pcl_render_node (local_sensing_node/opengl_render_node)
+    safe_cmd_vel_mux (lite3_safety/safe_cmd_vel_mux.py)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    sim_map_bridge (lite3_bringup/sim_map_bridge.py)
+    sim_pose_tf (lite3_bringup/sim_pose_tf.py)
+[0m[ INFO] [1791193329.692411704]: generating maze with width 10 , height 10[0m
+[0m[ INFO] [1791193329.705080274]: entered 5*5 mode[0m
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+1 0 1 1 1 1 1 1 0 1
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+[0m[ INFO] [1791193329.706033816]: generating maze with width 6 , height 4[0m
+0 1 0 0 1 0 0 0 0 0
+0 1 0 0 1 0 0 0 0 0
+0 1 1 0 1 0 0 0 0 0
+0 1 0 0 1 0 0 0 0 0
+0 1 0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+1 0 1 1 1 1 1 1 0 1
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+[0m[ INFO] [1791193329.706644445]: finished generating maze with width 6 , height 4[0m
+0 1 0 0 1 0 0 0 0 0
+0 1 0 0 1 0 0 0 0 0
+0 1 1 0 1 0 0 0 0 0
+0 1 0 0 1 0 0 0 0 0
+0 1 0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+1 0 1 1 1 1 1 1 0 1
+0 0 0 0 1 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+[0m[ INFO] [1791193329.707411330]: generating maze with width 3 , height 4[0m
+[0m[ INFO] [1791193329.707542019]: entered 3*4+ mode[0m
+[0m[ INFO] [1791193329.707623332]: generating maze with width 6 , height 5[0m
+[0m[ INFO] [1791193329.707698596]: entered 5*5 mode[0m
+0 1 0 0 1 0 0 0 0 0
+0 1 0 0 1 0 1 0 0 0
+0 1 1 0 1 0 1 1 1 1
+0 1 0 0 1 0 1 0 0 0
+0 1 0 0 1 0 1 0 0 0
+0 0 0 0 1 0 0 0 0 0
+1 0 1 1 1 1 1 1 0 1
+0 0 0 0 1 0 0 0 0 0
+1 1 1 0 0 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+[0m[ INFO] [1791193329.708259464]: generating maze with width 2 , height 1[0m
+[0m[ INFO] [1791193329.708321513]: finished generating maze with width 2 , height 1[0m
+[0m[ INFO] [1791193329.708364809]: generating maze with width 3 , height 1[0m
+[0m[ INFO] [1791193329.708406153]: finished generating maze with width 3 , height 1[0m
+[0m[ INFO] [1791193329.708445961]: generating maze with width 2 , height 3[0m
+[0m[ INFO] [1791193329.708486122]: finished generating maze with width 2 , height 3[0m
+[0m[ INFO] [1791193329.708556906]: generating maze with width 3 , height 3[0m
+[0m[ INFO] [1791193329.708665835]: finished generating maze with width 6 , height 5[0m
+0 1 0 0 1 0 0 0 0 0
+0 1 0 0 1 0 1 0 0 0
+0 1 1 0 1 0 1 1 1 1
+0 1 0 0 1 0 1 0 0 0
+0 1 0 0 1 0 1 0 1 0
+0 0 0 0 1 0 0 0 0 0
+1 0 1 1 1 1 1 1 0 1
+0 0 0 0 1 0 0 0 0 0
+1 1 1 0 0 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0
+[0m[ INFO] [1791193329.709206415]: generating maze with width 3 , height 5[0m
+[0m[ INFO] [1791193329.709270255]: entered 3*4+ mode[0m
+[0m[ INFO] [1791193329.709350736]: finished generating maze with width 10 , height 10[0m
+0 1 0 0 1 0 0 0 0 0
+0 1 0 0 1 0 1 0 0 0
+0 1 1 0 1 0 1 1 1 1
+0 1 0 0 1 0 1 0 0 0
+0 1 0 0 1 0 1 0 1 0
+0 0 0 0 1 0 0 0 0 0
+1 0 1 1 1 1 1 1 0 1
+0 0 0 0 1 0 0 0 0 0
+1 1 1 0 0 0 1 1 1 1
+0 0 0 0 1 0 0 0 0 0
+1 1 1 1 1 1 1 1 1 1
+1 1 0 0 1 0 1 0 0 1
+1 1 1 0 1 0 1 1 1 1
+1 1 0 0 1 0 1 0 0 1
+1 1 0 0 1 0 1 0 1 1
+1 0 0 0 1 0 0 0 0 1
+1 0 1 1 1 1 1 1 0 1
+1 0 0 0 1 0 0 0 0 1
+1 1 1 0 0 0 1 1 1 1
+1 1 1 1 1 1 1 1 1 1
+[33m[ WARN] [1791193332.832677690]: Global Pointcloud received for local sensing renderer.[0m
+Failed to find match for field 'intensity'.
+[0m[ INFO] [1791193331.053026749]: opengl_render_node sensor_type: lidar[0m
+[0m[ INFO] [1791193331.462503945]: drone_drawpoints_num = 4,4,2, Uav points num = 32[0m
+Failed to create GLFW window
+[33m[ WARN] [1791193346.357066031]: /rslidar_points buffer updated in 10.01s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193356.457099063]: /rslidar_points buffer updated in 20.11s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193366.557093448]: /rslidar_points buffer updated in 30.21s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193376.557096077]: /rslidar_points buffer updated in 40.21s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193386.557068968]: /rslidar_points buffer updated in 50.21s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193396.657080651]: /rslidar_points buffer updated in 60.31s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193406.657081989]: /rslidar_points buffer updated in 70.31s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193416.657104133]: /rslidar_points buffer updated in 80.31s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193426.757095396]: /rslidar_points buffer updated in 90.41s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193436.757054304]: /rslidar_points buffer updated in 100.41s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193446.857035126]: /rslidar_points buffer updated in 110.51s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193456.857105209]: /rslidar_points buffer updated in 120.51s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193466.957045711]: /rslidar_points buffer updated in 130.61s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193476.957083523]: /rslidar_points buffer updated in 140.61s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193486.957100439]: /rslidar_points buffer updated in 150.61s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193497.057133656]: /rslidar_points buffer updated in 160.71s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193507.157031634]: /rslidar_points buffer updated in 170.81s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193517.157095692]: /rslidar_points buffer updated in 180.81s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193527.157160051]: /rslidar_points buffer updated in 190.81s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193537.257059132]: /rslidar_points buffer updated in 200.91s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193547.357084525]: /rslidar_points buffer updated in 211.01s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193557.457046402]: /rslidar_points buffer updated in 221.11s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193567.457096755]: /rslidar_points buffer updated in 231.11s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193577.557072767]: /rslidar_points buffer updated in 241.21s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193587.557093274]: /rslidar_points buffer updated in 251.21s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193597.657080940]: /rslidar_points buffer updated in 261.31s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193607.757062668]: /rslidar_points buffer updated in 271.41s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193617.757088617]: /rslidar_points buffer updated in 281.41s, it should be updated every 10.00s.[0m
+[WARN] [1791193335.165949]: [M6] 活跃源切换: INIT -> NONE
+[INFO] [1791193335.108304]: [M6] safe_cmd_vel_mux up: 6 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+[WARN] [1791193335.098370]: [sim_pose_tf] 尚未收到 /quad_0/body_pose 首帧
+[INFO] [1791193335.393465]: [sim_adapter] up: mode=traj time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+[INFO] [1791193335.474626]: [sim_adapter] traj R2: 59 waypoints, 总长 69.6m @0.50m/s turn_omega=1.00 v_ramp_s=0.50 align_gate=0.15
+[INFO] [1791193622.282937]: [sim_adapter] 轨迹结束，保持常驻（adapt-only）
+[WARN] [1791193334.883097]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193340.796558]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193345.852173]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193351.797260]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193357.798936]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193363.799506]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193369.792958]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193374.793946]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193379.795896]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193384.802949]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193390.853199]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193396.798076]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193402.793870]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193407.796391]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193413.797075]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193419.793321]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193424.804380]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193430.796601]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193435.821290]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193441.794425]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193447.791634]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193452.791716]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193457.791691]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193463.791035]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193468.792097]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193474.791297]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193479.801255]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193485.792974]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193490.796470]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193495.811308]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193501.795774]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193507.796138]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193513.791692]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193518.792564]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193524.791462]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193529.792812]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193534.796390]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193539.797864]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193545.793804]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193551.792943]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193556.794775]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193562.792777]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193567.794993]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193573.799871]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193579.799267]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193585.793488]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193590.802130]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193596.790333]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193602.790900]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193607.794127]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193613.791633]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[WARN] [1791193618.792197]: [sim_map_bridge] 点云解析失败: read_points() got an unexpected keyword argument 'skip_nan'
+[0m[ INFO] [1791193329.760841563]: finish: infill 0.650000%[0m
+[0m[ INFO] [1791193335.631801615]: local_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1791193336.204746214]: local_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1791193336.205047400]: local_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1791193336.240421282]: local_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1791193336.248314330]: local_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1791193336.341930193]: Voxel filter activated.[0m
+[0m[ INFO] [1791193336.439757766]: local_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1791193336.439893191]: local_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1791193336.589584650]: [sob_layer] initializing...[0m
+[0m[ INFO] [1791193336.590727283]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1791193336.627724408]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791193336.640372626]: [sob_layer] initialized[0m
+[0m[ INFO] [1791193336.756036197]: [sob_layer] resized to 10000[0m
+[0m[ INFO] [1791193336.757892914]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791193336.802626511]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791193336.853914810]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1791193337.059744011]: Requesting the map...[0m
+[0m[ INFO] [1791193621.640183942]: Shutdown costmap navigation server.[0m
+[31m[pcl_render_node-3] process has died [pid 195590, exit code -11, cmd /home/ros1-slam/ws/devel/lib/local_sensing_node/opengl_render_node ~global_map:=/map_generator/global_cloud __name:=pcl_render_node __log:=/home/ros1-slam/.ros/log/018dba5c-c0a1-11f1-99ca-3c6d66f8d2d8/pcl_render_node-3.log].
+log file: /home/ros1-slam/.ros/log/018dba5c-c0a1-11f1-99ca-3c6d66f8d2d8/pcl_render_node-3*.log[0m
+
+[1mROS_MASTER_URI=http://localhost:11312[0m
+]2;/home/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch http://localhost:11312
+[1mprocess[lite3_supervisor-1]: started with pid [195588][0m
+[1mprocess[mockamap_node-2]: started with pid [195589][0m
+[1mprocess[pcl_render_node-3]: started with pid [195590][0m
+[1mprocess[sim_adapter-4]: started with pid [195604][0m
+[1mprocess[liveness_m0_sim-5]: started with pid [195606][0m
+[1mprocess[sim_map_bridge-6]: started with pid [195607][0m
+[1mprocess[sim_pose_tf-7]: started with pid [195608][0m
+[1mprocess[safe_cmd_vel_mux-8]: started with pid [195614][0m
+[1mprocess[liveness_m6-9]: started with pid [195615][0m
+[1mprocess[move_base_flex-10]: started with pid [195616][0m
+[1mprocess[liveness_m4-11]: started with pid [195617][0m
+[liveness_m4-11] killing on exit
+[liveness_m6-9] killing on exit
+[safe_cmd_vel_mux-8] killing on exit
+[sim_pose_tf-7] killing on exit
+[move_base_flex-10] killing on exit
+[liveness_m0_sim-5] killing on exit
+[sim_map_bridge-6] killing on exit
+[sim_adapter-4] killing on exit
+[mockamap_node-2] killing on exit
+[lite3_supervisor-1] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

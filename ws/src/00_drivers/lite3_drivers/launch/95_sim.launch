@@ -15,6 +15,7 @@
 <launch>
   <arg name="rviz" default="false"/>   <!-- C10：SSH 无 X，默认 false -->
   <arg name="use_gpu" default="true"/>
+  <arg name="extra_sim_args" default=""/>  <!-- 附加参数透传 sim_adapter（mode_nav_sim 传 no_imu 开关；默认空=G8 原行为） -->
 
   <!-- ============ 虚拟 Venue：mockamap maze2d（type=3，12×12 正方形，seed=7）============ -->
   <node pkg="mockamap" type="mockamap_node" name="mockamap_node" output="screen">
@@ -60,7 +61,7 @@
 
   <!-- ============ 自研 sim_adapter：轨迹源 + 点云适配 + IMU 合成 ============ -->
   <node pkg="lite3_drivers" type="sim_adapter.py" name="sim_adapter" output="screen"
-        args="--mode traj --traj $(find lite3_drivers)/config/traj_maze.yaml --time-unit s"/>
+        args="--mode traj --traj $(find lite3_drivers)/config/traj_maze.yaml --time-unit s $(arg extra_sim_args)"/>
   <!-- traj_maze.yaml：seed=7 迷宫最长路径(29格)去程+原路返回，67.2m@0.5m/s≈134s + 静置5s×2 ≥120s -->
 
   <!-- ============ 可选可视化 ============ -->

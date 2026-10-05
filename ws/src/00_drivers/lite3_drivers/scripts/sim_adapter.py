@@ -12,6 +12,7 @@
 #    +速度门控（|Δψ|>align_gate 原地转向不推进，零 crab）+起步/换向/到位斜坡（≤1m/s²，零速度跳变）
 #    +位置沿当前自身航向推进 p+=v·dt·(cosψ,sinψ)（velocity∥heading 恒成立）；切段判据=距本段终点<v·dt，
 #    切段不跳步（remain 由新段几何承接，杜绝 on-rails 残留版实测 |a_b|=3.51m/s²/π 向跳变）；端点/29 格路径不变）。
+# ④ --no-imu：不合成 /livox/imu（2026-10-05 仿真可用化：估计层按坑14 排除，规划层零消费者，省 200Hz 空转）。
 # 已知简化（Q14）：渲染点无扫描几何/IMU 位姿差分/开环。红线：不启 M6、不碰 /cmd_vel、不改拷贝包。
 import argparse
 import collections
@@ -142,7 +143,7 @@ class SimAdapter(object):
         self.last_ww_meas = np.zeros(3)     # 世界系 ω 测量值（奇异帧沿用；不回喂输出，防噪声反馈）
         self.rng = np.random.default_rng(20261005)
         self.pub_pts = rospy.Publisher('/rslidar_points', PointCloud2, queue_size=2)
-        self.pub_imu = rospy.Publisher('/livox/imu', Imu, queue_size=200, tcp_nodelay=True)
+        self.pub_imu = None if opt.no_imu else rospy.Publisher('/livox/imu', Imu, queue_size=200, tcp_nodelay=True)
 
     def on_cloud(self, msg):
         self.latest_cloud = msg                         # 最新者胜，低频定时器统一发
@@ -181,6 +182,8 @@ class SimAdapter(object):
 
     def imu_timer(self, _):
         """② 合成 IMU（--rate-imu Timer，默认 200Hz）"""
+        if self.pub_imu is None:
+            return
         buf = self.pose_buf
         self._dbg = getattr(self, '_dbg', 0) + 1
         if self._dbg % 200 == 0 and len(self.pose_buf) >= 2:
@@ -322,6 +325,8 @@ def main():
     ap.add_argument('--time-unit', dest='time_unit', default='s', choices=['s', 'ms'])
     ap.add_argument('--rate-lidar', dest='rate_lidar', type=float, default=10.0)
     ap.add_argument('--rate-imu', dest='rate_imu', type=float, default=200.0)
+    ap.add_argument('--no-imu', dest='no_imu', action='store_true',
+                    help='不合成 /livox/imu（规划层仿真测试台专用，估计层排除后零消费者）')
     ap.add_argument('--selfcheck', action='store_true')
     opt, _ = ap.parse_known_args()
     if opt.selfcheck:
@@ -334,9 +339,10 @@ def main():
     rospy.Subscriber('/pcl_render_node/sensor_cloud', PointCloud2, ad.on_cloud, queue_size=2)
     rospy.Subscriber('/quad_0/lidar_pose', Odometry, ad.on_pose, queue_size=50)
     rospy.Timer(rospy.Duration(1.0 / opt.rate_lidar), ad.cloud_timer)
-    rospy.Timer(rospy.Duration(ad.dt_imu), ad.imu_timer)
-    rospy.loginfo('[sim_adapter] up: mode=%s time-unit=%s rate_lidar=%.0f rate_imu=%.0f',
-                  opt.mode, opt.time_unit, opt.rate_lidar, opt.rate_imu)
+    if not opt.no_imu:
+        rospy.Timer(rospy.Duration(ad.dt_imu), ad.imu_timer)
+    rospy.loginfo('[sim_adapter] up: mode=%s time-unit=%s rate_lidar=%.0f rate_imu=%.0f no_imu=%s',
+                  opt.mode, opt.time_unit, opt.rate_lidar, opt.rate_imu, opt.no_imu)
     if opt.mode == 'traj':
         ad.spin_traj(load_traj(opt.traj))           # 阻塞发轨迹
         rospy.loginfo('[sim_adapter] 轨迹结束，保持常驻（adapt-only）')

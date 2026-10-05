@@ -1,0 +1,36 @@
+[smoke] 起 mode_nav_sim.launch（日志 /tmp/sim_nav_smoke_launch.log）...
+CHECK|venue_map_cloud|PASS|/map_generator/global_cloud 有发布者（mockamap）
+CHECK|rslidar_points|FAIL|/rslidar_points 实测 0.00Hz（≥0.5，G8 适配链活性）
+CHECK|truth_map|FAIL|/map 25s 未到（sim_map_bridge 未出图）
+CHECK|tf_robot|PASS|TF map→base_link 可查（sim_pose_tf）
+CHECK|costmap_data|FAIL|全局 costmap 45s 未出（mbf 未起/costmap 未就绪）
+CHECK|getpath_server|FAIL|mbf get_path action server 在位
+CHECK|getpath_1|FAIL|goal(-1.85,0.55) 20s 无 result
+CHECK|getpath_2|FAIL|goal(0.55,2.95) 20s 无 result
+CHECK|getpath_3|FAIL|goal(2.95,4.15) 20s 无 result
+CHECK|exepath_cmdvel|FAIL|无可用 GetPath 路径，ExePath 跳过
+CHECK|cmdvel_writer|PASS|/cmd_vel publisher=['/safe_cmd_vel_mux (http://lite:33757/)']（唯一写者=M6 safe_cmd_vel_mux，§2.6-a）
+[smoke] launch 日志尾 20 行（失败时排查用）：
+[33m[ WARN] [1791193426.757095396]: /rslidar_points buffer updated in 90.41s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193436.757054304]: /rslidar_points buffer updated in 100.41s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193446.857035126]: /rslidar_points buffer updated in 110.51s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193456.857105209]: /rslidar_points buffer updated in 120.51s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193466.957045711]: /rslidar_points buffer updated in 130.61s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193476.957083523]: /rslidar_points buffer updated in 140.61s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193486.957100439]: /rslidar_points buffer updated in 150.61s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193497.057133656]: /rslidar_points buffer updated in 160.71s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193507.157031634]: /rslidar_points buffer updated in 170.81s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193517.157095692]: /rslidar_points buffer updated in 180.81s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193527.157160051]: /rslidar_points buffer updated in 190.81s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193537.257059132]: /rslidar_points buffer updated in 200.91s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193547.357084525]: /rslidar_points buffer updated in 211.01s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193557.457046402]: /rslidar_points buffer updated in 221.11s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193567.457096755]: /rslidar_points buffer updated in 231.11s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193577.557072767]: /rslidar_points buffer updated in 241.21s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193587.557093274]: /rslidar_points buffer updated in 251.21s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193597.657080940]: /rslidar_points buffer updated in 261.31s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193607.757062668]: /rslidar_points buffer updated in 271.41s, it should be updated every 10.00s.[0m
+[33m[ WARN] [1791193617.757088617]: /rslidar_points buffer updated in 281.41s, it should be updated every 10.00s.[0m
+[smoke] 退净中...
+CHECK|ros2qnx_exit|PASS|ros2qnx 全程不存在
+CHECK|teardown|FAIL|有节点残留

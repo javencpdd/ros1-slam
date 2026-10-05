@@ -18,6 +18,10 @@ modes:
   mode_nav_stub:
     watch: [{module: M0_drivers, topic: /lite3/liveness/m0_drivers}, {module: M4_navigation, topic: /lite3/liveness/m4_navigation}, {module: M6_safety, topic: /lite3/liveness/m6_safety}]
     on_loss: notify_m6_zero_speed_then_shutdown
+  mode_nav_sim:               # 仿真测试台（M4/M5/M6 规划层仿真，坑14：估计层不仿真）
+    # M0 心跳=liveness_m0_sim 假体（mode_nav_sim.launch 内 rostopic pub，弱语义=M0-sim 进程组在位）
+    watch: [{module: M0_drivers, topic: /lite3/liveness/m0_drivers}, {module: M4_navigation, topic: /lite3/liveness/m4_navigation}, {module: M6_safety, topic: /lite3/liveness/m6_safety}]
+    on_loss: notify_m6_zero_speed_then_shutdown
   mode_navigation:            # 二期
     # 真机注记（E，04 台账）：mode_navigation 下自动恢复 = 链路自愈——M0/M2/M4 进程重启或
     # 链路抖动恢复后 hold 自动解除、mux 退出 HOLD，无需 SUP+M6 双重启；恢复需连续
