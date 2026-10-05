@@ -1,0 +1,21 @@
+== D-M1-5 复跑1（logs-20261006_025555）：链路打通、mapping OK，gt 探针 payload 笔误致 assert no /gazebo/model_states（D-M1-6 缘起） ==
+[smoke] 仿真台 OK
+[smoke] mapping OK
+AssertionError: no /gazebo/model_states
+FAIL: 闭环未走完（见 smoke_result.txt）
+
+== D-M1-6 复跑2（logs-20261006_030024）判定 ==
+SMOKE start_odom=(0.000,-0.000) yaw0=0.000 gt0=(5.917097606256725e-15, -3.4768174591045034e-14)
+SMOKE phase_fwd_out_done
+SMOKE phase_turn180_done
+SMOKE phase_fwd_back_TIMEOUT
+SMOKE drift=26.411 dx=26.411 dy=-0.000
+SMOKE gt_drift=26.411 gt=(26.410633499979863, -2.855647290382611e-14)
+SMOKE rate_pts=13.2 rate_imu=264.4 (motion_window=43 sim-s)
+SMOKE fly_ratio=0.0000 bad=0 tot=522883 frames=570
+SMOKE phases out=True turn=True back=False
+
+== No point 计数对比（D-M1-5 生效实证） ==
+复跑前 final4: 1587帧全 Too few（并行会话 final4_mapping.log）
+/tmp/gazebo_m1_payload/logs-20261006_025555/mapping.log:3
+/tmp/gazebo_m1_payload/logs-20261006_030024/mapping.log:3

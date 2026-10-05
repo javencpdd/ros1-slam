@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+# m1_smoke.sh —— M1 最小闭环无人值守冒烟（小张 payload，2026-10-05）
+# 流程：起 world/robot/adapter（m1_gazebo.launch）→ 起 mapping（m1_mapping.launch）
+#       → 闭环驱动 /cmd_vel（体前向 x+，20Hz）：直行至 x≈5m → 原地转 180° → 直行回原点 → 静置 5s 收敛
+#       → 判据：/Odometry 回原点漂移 ≤0.5m；/rslidar_points ≥5Hz；/livox/imu ≥100Hz；
+#              /cloud_registered |z|>10m 飞点 <1%；（参考）/gazebo/model_states 真值漂移
+#       → 退净（GAP-5：起前备份样张 pcd、退后核 sha256）→ PASS/FAIL 摘要，无人值守
+# 用法：bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh
+# ★真机安全（2026-10-05 小明落位适配，主理人红线）：本脚本全部 ROS 流程跑在独立 master
+#   ROS_MASTER_URI=http://127.0.0.1:11313（roslaunch 自动拉起）——生产 master 11312 与 foxy 栈
+#   jetson2motion（订阅真 /cmd_vel）零接触；manifest 无隔离方案，按派单红线补此隔离并留证。
+#   落位适配：payload_dir→自研壳包路径、roslaunch 改包名形式、日志落 /tmp/gazebo_m1_payload/logs-*。
+set -u
+PAYLOAD=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim
+LOGDIR="/tmp/gazebo_m1_payload/logs-$(date +%Y%m%d_%H%M%S)"
+MAP=/home/ros1-slam/data/maps/lite3.pcd
+mkdir -p "$LOGDIR"
+echo "[smoke] 日志目录: $LOGDIR"
+
+source /opt/ros/noetic/setup.bash
+[ -f /home/ros1-slam/ws/devel/setup.bash ] && source /home/ros1-slam/ws/devel/setup.bash
+
+# ---- ★真机安全红线：独立 master 11313（生产 11312 互不相通；jetson2motion 订阅真 /cmd_vel） ----
+export ROS_MASTER_URI=http://127.0.0.1:11313
+export ROS_HOSTNAME=localhost
+echo "[smoke] ROS_MASTER_URI=$ROS_MASTER_URI（独立 master，与生产 11312 隔离）"
+
+cleanup() {
+  rosnode kill -a 2>/dev/null; sleep 3
+  pkill -f gzserver 2>/dev/null; pkill -f gzclient 2>/dev/null
+  pkill -f run_mapping_online 2>/dev/null; pkill -f sim_adapter 2>/dev/null
+  pkill -f "roslaunch.*m1_" 2>/dev/null; sleep 2
+  true
+}
+trap cleanup EXIT
+
+# ---- GAP-5 双保险：起前备份样张 pcd（launch 侧已 pcd_save_en=false 覆盖） ----
+if [ -f "$MAP" ]; then
+  cp "$MAP" "$LOGDIR/lite3.pcd.bak" && sha256sum "$MAP" | awk '{print $1}' > "$LOGDIR/pcd.sha256.before"
+  echo "[smoke] 样张 pcd 已备份"
+fi
+
+wait_topic() {  # D-M1-3（2026-10-06 小明）：Jetson 实证 rostopic echo 在系统启动窗内启动会挂起/吞 TERM
+  # （timeout 到点不返回或僵尸残留，4/4 复现）；改为 master 侧 list 轮询至话题出现后再短窗 echo 取帧，
+  # 该模式探针 15/15 成功。判据本体零改动。
+  # D-M1-4（2026-10-06 小明，final3 实证）：spawn 后 fratopa 首扫初始化冻结 sim 数十秒
+  # （sim_t 卡 0.001，/clock 随之停发）——单次 echo 短窗必误杀；改为预算内 list+echo 反复重试。
+  local t=0
+  while [ "$t" -lt "$2" ]; do
+    if rostopic list 2>/dev/null | grep -qx -- "$1"; then
+      timeout 15 rostopic echo -n 1 "$1" >/dev/null 2>&1 && return 0
+    fi
+    sleep 2; t=$((t+17))
+  done
+  return 1
+}
+
+# ---- 1. 仿真台 ----
+roslaunch lite3_gazebo_sim m1_gazebo.launch > "$LOGDIR/gazebo.log" 2>&1 &
+echo "[smoke] 等 /clock → /rslidar_points → /livox/imu ..."
+# D-M1-2（2026-10-06 小明，Jetson 实证）：等待窗放宽 30/90/30/240 至 120/300/120/360，冷启动 world 就绪约 40s+、fratopa 首 scan 更晚，原窗必误杀（诊断 diag2/diag3 留证）；判据本体零改动。
+wait_topic /clock 300|| { echo "FAIL: /clock 未出（gzserver 未起）"; exit 1; }
+wait_topic /rslidar_points 480|| { echo "FAIL: /rslidar_points 未出（CustomMsg→adapter 链路断）"; exit 1; }
+wait_topic /livox/imu 300|| { echo "FAIL: /livox/imu 未出"; exit 1; }
+echo "[smoke] 仿真台 OK"
+
+# ---- 2. mapping ----
+roslaunch lite3_gazebo_sim m1_mapping.launch > "$LOGDIR/mapping.log" 2>&1 &
+wait_topic /cloud_registered 600|| { echo "FAIL: /cloud_registered 未出（faster_lio 未跑通）"; exit 1; }
+echo "[smoke] mapping OK"
+
+# ---- 3. 闭环驱动 + 判据采集（rospy，sim 时钟域；阶段墙钟兜底防 sim 卡死） ----
+python3 - <<'PYEOF' > "$LOGDIR/smoke_result.txt" 2>&1
+import math, time
+import numpy as np
+import rospy
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import PointCloud2, Imu
+from gazebo_msgs.msg import ModelStates
+
+rospy.init_node('m1_smoke_driver')
+pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
+S = dict(odom=None, gt=None, g0=None, pts=0, imu=0, fly_tot=0, fly_bad=0, fly_frames=0)
+
+rospy.Subscriber('/Odometry', Odometry,
+                 lambda m: S.update(odom=m), queue_size=2)
+rospy.Subscriber('/rslidar_points', PointCloud2,
+                 lambda m: S.update(pts=S['pts'] + 1), queue_size=1)
+rospy.Subscriber('/livox/imu', Imu,
+                 lambda m: S.update(imu=S['imu'] + 1), queue_size=1)
+rospy.Subscriber('/gazebo/model_states', ModelStates,
+                 lambda m: S.update(gt=[(p.pose.position.x, p.pose.position.y)
+                                        for p, n in zip(m.pose, m.name) if n == 'lite3_planar']), queue_size=1)
+
+DZ = np.dtype([('x', '<f4'), ('y', '<f4'), ('z', '<f4'), ('pad', 'V20')])  # C16 布局 z@8
+def on_cloud(m):
+    if not m.width:
+        return
+    S['fly_frames'] += 1
+    a = np.frombuffer(bytes(m.data), dtype=DZ, count=m.width)
+    S['fly_tot'] += m.width
+    S['fly_bad'] += int((np.abs(a['z']) > 10.0).sum())
+rospy.Subscriber('/cloud_registered', PointCloud2, on_cloud, queue_size=1)
+
+def yaw_of(m):
+    q = m.pose.pose.orientation
+    return math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z))
+
+def drive(vx, wz):
+    t = Twist(); t.linear.x = vx; t.angular.z = wz
+    pub.publish(t)
+
+# 等第一帧 odom + 真值（墙钟 60s 兜底）
+w0 = time.time()
+while (S['odom'] is None or S['gt'] is None) and time.time() - w0 < 60:
+    time.sleep(0.1)
+assert S['odom'] is not None, 'no /Odometry'
+assert S['gt'] is not None, 'no /gazebo/model_states'
+p0 = S['odom'].pose.pose.position
+sx, sy = p0.x, p0.y
+syaw0 = yaw_of(S['odom'])
+S['g0'] = S['gt'][0]
+print('SMOKE start_odom=(%.3f,%.3f) yaw0=%.3f gt0=%s' % (sx, sy, syaw0, S['g0']))
+
+def run_phase(name, vx, wz, done, wall_limit=150.0):
+    """20Hz 发布 cmd_vel；done(odom) 达成或墙钟超时；返回 True/False"""
+    w0 = time.time()
+    while not rospy.is_shutdown():
+        m = S['odom']
+        if m and done(m):
+            drive(0.0, 0.0)
+            print('SMOKE phase_%s_done' % name)
+            return True
+        if time.time() - w0 > wall_limit:
+            drive(0.0, 0.0)
+            print('SMOKE phase_%s_TIMEOUT' % name)
+            return False
+        drive(vx, wz)
+        time.sleep(0.05)      # 墙钟节拍：/clock 停摆时兜底循环不冻结
+    return False
+
+ok_out = run_phase('fwd_out', 0.5, 0.0, lambda m: (m.pose.pose.position.x - sx) >= 4.85)
+t_motion0 = rospy.get_rostime()
+ok_turn = run_phase('turn180', 0.0, 0.6, lambda m: ((syaw0 + math.pi - yaw_of(m) + math.pi) % (2*math.pi)) - math.pi <= 0.03)
+ok_back = run_phase('fwd_back', 0.5, 0.0, lambda m: math.hypot(m.pose.pose.position.x - sx, m.pose.pose.position.y - sy) <= 0.25)
+t_motion1 = rospy.get_rostime()
+rospy.sleep(5.0)              # 静置收敛（sim 时）
+
+m = S['odom']
+dx, dy = m.pose.pose.position.x - sx, m.pose.pose.position.y - sy
+drift = math.hypot(dx, dy)
+g = S['gt'][0]
+gdrift = math.hypot(g[0] - S['g0'][0], g[1] - S['g0'][1])
+dt = max((t_motion1 - t_motion0).to_sec(), 1.0)
+rate_pts = S['pts'] / dt
+rate_imu = S['imu'] / dt
+fly_ratio = S['fly_bad'] / max(S['fly_tot'], 1)
+print('SMOKE drift=%.3f dx=%.3f dy=%.3f' % (drift, dx, dy))
+print('SMOKE gt_drift=%.3f gt=%s' % (gdrift, g))
+print('SMOKE rate_pts=%.1f rate_imu=%.1f (motion_window=%.0f sim-s)' % (rate_pts, rate_imu, dt))
+print('SMOKE fly_ratio=%.4f bad=%d tot=%d frames=%d' % (fly_ratio, S['fly_bad'], S['fly_tot'], S['fly_frames']))
+print('SMOKE phases out=%s turn=%s back=%s' % (ok_out, ok_turn, ok_back))
+PYEOF
+RC_PY=$?
+cat "$LOGDIR/smoke_result.txt"
+grep -q "phase_fwd_back_done" "$LOGDIR/smoke_result.txt" || { echo "FAIL: 闭环未走完（见 smoke_result.txt）"; exit 1; }
+
+# ---- 4. 判据 ----
+get() { grep -o "$1=[-0-9.e]*" "$LOGDIR/smoke_result.txt" | head -1 | cut -d= -f2; }
+DRIFT=$(get 'drift'); RP=$(get 'rate_pts'); RI=$(get 'rate_imu'); FR=$(get 'fly_ratio'); GD=$(get 'gt_drift')
+PASS=1
+le() { awk -v a="$1" -v b="$2" 'BEGIN{exit !(a<=b)}'; }
+ge() { awk -v a="$1" -v b="$2" 'BEGIN{exit !(a>=b)}'; }
+le "$DRIFT" 0.5 && echo "[PASS] /Odometry 回原点漂移 $DRIFT m ≤ 0.5（真值参考 $GD m）" || { echo "[FAIL] 漂移 $DRIFT > 0.5"; PASS=0; }
+ge "$RP" 5    && echo "[PASS] /rslidar_points $RP Hz ≥ 5"   || { echo "[FAIL] 点云 $RP Hz < 5"; PASS=0; }
+ge "$RI" 100  && echo "[PASS] /livox/imu $RI Hz ≥ 100"      || { echo "[FAIL] IMU $RI Hz < 100"; PASS=0; }
+le "$FR" 0.01 && echo "[PASS] |z|>10m 飞点占比 $FR < 1%"    || { echo "[FAIL] 飞点占比 $FR ≥ 1%"; PASS=0; }
+
+# ---- 5. 退净核验（GAP-5） ----
+if [ -f "$MAP" ] && [ -f "$LOGDIR/pcd.sha256.before" ]; then
+  sha256sum "$MAP" | awk '{print $1}' > "$LOGDIR/pcd.sha256.after"
+  if cmp -s "$LOGDIR/pcd.sha256.before" "$LOGDIR/pcd.sha256.after"; then
+    echo "[PASS] 样张 lite3.pcd sha256 未变"
+  else
+    echo "[FAIL] 样张 lite3.pcd 被改动！备份: $LOGDIR/lite3.pcd.bak"; PASS=0
+  fi
+fi
+
+echo "=================================================="
+[ "$PASS" = "1" ] && echo "M1 SMOKE: PASS" || echo "M1 SMOKE: FAIL"
+echo "=================================================="
+exit $([ "$PASS" = "1" ] && echo 0 || echo 1)

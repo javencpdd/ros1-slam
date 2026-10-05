@@ -7,6 +7,9 @@
        腿关节不参与推进，只增加碰撞求解负担；落地即四足步态替代，M1 判据（回原点漂移）不受影响。
     ② TORSO 视觉/碰撞 mesh（torso.STL）→ box 0.42×0.31×0.22（官方 URDF 实测包围盒量级），减 Jetson 负载。
     ③ base_link 为我方契约 frame，官方 root 是 TORSO → 以 fixed joint TORSO→base_link 恒等桥接，双 frame 并存。
+    ④ rslidar 整块省略 <collision>（D-M1-5 返工，2026-10-06）：sensor 起点不得落于任何自身 collision 内——
+       r0.045 圆柱包裹 fratopa 射线原点 → 最近命中 ≤0.045m < range.min 0.1 被插件置 0 → 20000 点全零
+       （上游 model.sdf:18/34 以 sensor pose 抬高 0.05 避让同款坑）；visual+inertial 保留。
   传感器（三件全挂 rslidar link，即 base_link 前上方 0.38m —— Q3 实测高度；x/y 取 0 为保守值，Q3 只固化高度，待实机验证）：
     ① fratopa Mid360 插件（liblivox_laser_simulation.so，publish_pointcloud_type=3 → livox_laser_simulation/CustomMsg
        @10Hz → /livox/lidar，frameName=rslidar）——参数逐字照 fratopa README，仅 frameName/topic/visualize 按 M1 调整
@@ -65,9 +68,8 @@
       <geometry><cylinder radius="0.045" length="0.03"/></geometry>
       <material name="lidar_black"><color rgba="0.05 0.05 0.05 1"/></material>
     </visual>
-    <collision>
-      <geometry><cylinder radius="0.045" length="0.03"/></geometry>
-    </collision>
+    <!-- D-M1-5（2026-10-06 返工）：rslidar <collision> 整块删除——sensor 起点不得落于任何自身 collision 内，
+         详见头部取舍声明④；visual+inertial 保留。 -->
   </link>
 
   <!-- ================= fratopa Mid360（参数逐字照 README，type=3 → CustomMsg） ================= -->

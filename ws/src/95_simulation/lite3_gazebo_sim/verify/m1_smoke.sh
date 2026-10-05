@@ -90,7 +90,10 @@ rospy.Subscriber('/rslidar_points', PointCloud2,
 rospy.Subscriber('/livox/imu', Imu,
                  lambda m: S.update(imu=S['imu'] + 1), queue_size=1)
 rospy.Subscriber('/gazebo/model_states', ModelStates,
-                 lambda m: S.update(gt=[(p.pose.position.x, p.pose.position.y)
+                 # D-M1-6（2026-10-06 小明）：payload 笔误 p.pose→p.position——ModelStates.pose[] 元素即 Pose
+                 # （非 PoseStamped），旧式必抛 AttributeError 使 gt 探针全灭、状态机 assert 'no /gazebo/model_states'
+                 # 兜底失败（D-M1-5 通链后首跑实证，logs-20261006_025555/smoke_result.txt）；gt 仅参考打印，判据本体零改动
+                 lambda m: S.update(gt=[(p.position.x, p.position.y)
                                         for p, n in zip(m.pose, m.name) if n == 'lite3_planar']), queue_size=1)
 
 DZ = np.dtype([('x', '<f4'), ('y', '<f4'), ('z', '<f4'), ('pad', 'V20')])  # C16 布局 z@8
