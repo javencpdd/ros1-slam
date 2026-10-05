@@ -4,6 +4,7 @@
 # 差异② time_scale: 0.001→1e3（VELO32 分支消费：curvature=time*time_scale_ 单位 ms；adapter time 填秒 → ×1e3）
 # 差异③ extrinsic_R/T：Mid-360 工厂外参→单位阵/零平移（sim_adapter 合成 IMU 即雷达系——payload 04 判据前置声明）
 # 差异④ 头注释与来源声明（本文件为 Q14 自研新增，不属 C1 交付物）
+# 坑13-R1（2026-10-05）：extrinsic_est_en true→false（差异⑤）、blind 1.0→0.2（差异⑥），理由见行注+04 台账。
 # imu_topic=/livox/imu、lid_topic=/rslidar_points、pcd_save.interval=-1 与 C1 现值一致（Q12/Q6 已定）。
 # 注意：faster_lio 存盘路径硬编码 data/maps/lite3.pcd（laser_mapping.cc:751/862，拷贝包源码不可改）
 #       —— 仿真起前备份 lite3.pcd、停机后转存 sim_venue.pcd 并回迁，见 runbook（04 台账登记）。
@@ -26,7 +27,7 @@ mapping:
   det_range: 150.0
   extrinsic_R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]   # 差异③：sim 合成 IMU 与雷达同系
   extrinsic_T: [0.0, 0.0, 0.0]                                  # 差异③
-  extrinsic_est_en: true          # 与 C1 一致（在线估计兜底）
+  extrinsic_est_en: false         # 坑13-R1（差异⑤）：合成 IMU 相对零噪声，在线外参估计自由游走致优雅失一致；外参=单位阵先验精确，锁死在线估计（真机 C1 仍 true 在线精调）
   gyr_cov: 0.1
 max_iteration: 3
 path_save_en: true
@@ -34,7 +35,7 @@ pcd_save:
   interval: -1                # 与 C1 现值一致（Q6：-1=全程累积，优雅停机全量落盘）
   pcd_save_en: true
 preprocess:
-  blind: 1.0                  # 与 C1 一致；渲染端 min_raylength=1.0 同口径（<1m 点已弃）
+  blind: 0.2                  # 坑13-R1（差异⑥）：与 render min_raylength 0.3 口径同步，保留 0.3–1.0m 走廊侧墙点；真机 C1 不动
   lidar_type: 2       # 差异①：VELO32 分支（sim_adapter 契约）；真机 C1 仍为 4（C16Handler）
   scan_line: 32       # VELO32 行占位（given_offset_time=true 时不消费）
   time_scale: 1.0e3   # 差异②：time 单位=秒 → curvature(ms)=time×1e3（payload 检索#5 对账）

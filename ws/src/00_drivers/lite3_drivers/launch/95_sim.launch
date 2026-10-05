@@ -9,7 +9,8 @@
        seed 扫描取 7（最长蛇形路径 29 格；递归分割=完美迷宫无长环线，轨迹改最长路径+原路返回）。
      实证修正②（参数级）：opengl_render_node sensor_type 默认 "depth"（不发 sensor_cloud，:909-912），
        且需 map/x|y|z_size（:984-986）——补 sensor_type:=lidar 与 map 尺寸，照抄 scan_planner simulator.xml
-       :76-80 的 group 参数形态；其余渲染参数用其默认（is_360lidar=1/sensing_rate=10/min_raylength=1.0 等）。
+       :76-80 的 group 参数形态；其余渲染参数用其默认（is_360lidar=1/sensing_rate=10 等；
+       min_raylength 已由坑13-R1② 覆盖默认 1.0→0.3，见 CPU 分支 param）。
      用法: roslaunch lite3_drivers 95_sim.launch rviz:=false -->
 <launch>
   <arg name="rviz" default="false"/>   <!-- C10：SSH 无 X，默认 false -->
@@ -52,6 +53,7 @@
     <param name="map/z_size"  value="3.0"/>
     <param name="polar_resolution" value="0.35"/>
     <param name="downsample_res"   value="0.2"/>
+    <param name="min_raylength" value="0.3"/>   <!-- 坑13-R1②：默认1.0把1.2m走廊侧墙(<1m)全弃，横向不可观；0.3≤0.6m 半宽，侧墙恢复约束。射线数不变，吞吐预算不破 -->
     <param name="lidar_pitch"      value="0.0"/>   <!-- R3/几何：默认45°俯视+FOV90°=仅看下半球，迷宫无地板→z向不可观（发散轴实测 z）；真机雷达近水平，置0恢复上下对称FOV -->
     <remap from="~global_map" to="/map_generator/global_cloud"/>
   </node>

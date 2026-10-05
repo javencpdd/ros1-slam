@@ -1,0 +1,121 @@
+# G8-sim 返工R1 · 复跑 3 连判据汇总（小明 2026-10-05）
+# 起序：roscore -p 11312 → 95_sim.launch(use_gpu:=false) → collector(GT+odom) → 10_slam_mapping_sim.launch → 149s → 停序：faster_lio 先停(SIGINT，等 finish done+pcd 落盘) → sim → roscore；三连起跑 T0=08:02:51/08:11:07/08:14:08
+# 漂移口径：/Odometry 按戳配对 /quad_0/body_pose（GT 开环真值，GT 起点=(-4.25,-3.05,0) yaw=0）；p_rel=p_gt−p_gt[0]；3 连 stamp 配对 gap max=0.050/0.058/0.053s（全样本 ≤0.2s）
+
+────────── run1 ──────────
+== 采集规模 ==
+odom rows=680  gt rows=7356
+== 频率/时长 ==
+wall 覆盖 143.2s  /Odometry 平均率 4.74 Hz  dt 中位 0.205s  dt 最大 0.496s
+GT 起点=-4.250,-3.050,0.000  GT 起始 yaw=0.0000 rad  GT 终点相对起点偏差=0.0000m
+戳配对: 680/680 样本 gap≤0.2s（最大 gap 0.050s）
+== 判据1 全程漂移（对 GT 折线，含 z）==
+max=59499.734m @t=143.2s  mean=14062.621m  p99=57860.407m
+== 判据1b z 范围 ==
+z min=-32197.647 max=0.067（判据 [-0.3,0.3]）
+== 判据2 末 5s 静置段（样本 24）==
+零漂 |Δpos| ptp=5740.8255m（≤0.05）  |Δyaw| ptp=3.6268rad（≤0.01）
+末端 vs GT 起点均值=56708.079m（≤0.3）  末段 max=59499.734m
+== 判据3 地图收敛（log 行 680）==
+首行 t=0.0s grid=178 effect=217
+终值 grid=559694 effect=265 @t=143.2s
+末 20s grid 增速=172871 grid / 19.9s = 8705.22 grid/s（<10）
+末 20s effect: min=265 终值=265  全程 effect min(首10s后)=218
+grid 峰值=559694 @t=143.2s
+ERROR 计数 [lio]: ERROR 字样=0  glog E行=0
+ERROR 计数 [sim]: ERROR 字样=0  glog E行=0
+ERROR 计数 [overall]: ERROR 字样=0  glog E行=0
+ERROR 计数 [roscore]: ERROR 字样=0  glog E行=0
+-- pcd（优雅停机落盘→/tmp/R1_run1_map.pcd 存证）--
+== pcd 判据: /tmp/R1_run1_map.pcd ==
+POINTS=1022560（判据 3e4–5e5）  z min=-32257.951 max=3.934
+z<-0.05 点数=1011342 占比=98.9029%（<0.1%）
+|x|,|y|≤12m 界内占比=1.44%（场地合理性参考）
+
+────────── run2 ──────────
+== 采集规模 ==
+odom rows=681  gt rows=7398
+== 频率/时长 ==
+wall 覆盖 143.2s  /Odometry 平均率 4.75 Hz  dt 中位 0.207s  dt 最大 0.557s
+GT 起点=-4.250,-3.050,0.000  GT 起始 yaw=0.0000 rad  GT 终点相对起点偏差=0.0000m
+戳配对: 681/681 样本 gap≤0.2s（最大 gap 0.058s）
+== 判据1 全程漂移（对 GT 折线，含 z）==
+max=65940.010m @t=143.2s  mean=17583.089m  p99=64481.884m
+== 判据1b z 范围 ==
+z min=-23926.032 max=0.337（判据 [-0.3,0.3]）
+== 判据2 末 5s 静置段（样本 23）==
+零漂 |Δpos| ptp=4823.8773m（≤0.05）  |Δyaw| ptp=5.9930rad（≤0.01）
+末端 vs GT 起点均值=63520.948m（≤0.3）  末段 max=65940.010m
+== 判据3 地图收敛（log 行 681）==
+首行 t=0.0s grid=177 effect=218
+终值 grid=628092 effect=225 @t=143.2s
+末 20s grid 增速=156158 grid / 19.8s = 7900.28 grid/s（<10）
+末 20s effect: min=224 终值=225  全程 effect min(首10s后)=215
+grid 峰值=628092 @t=143.2s
+ERROR 计数 [lio]: ERROR 字样=0  glog E行=0
+ERROR 计数 [sim]: ERROR 字样=0  glog E行=0
+ERROR 计数 [overall]: ERROR 字样=0  glog E行=0
+ERROR 计数 [roscore]: ERROR 字样=0  glog E行=0
+-- pcd（优雅停机落盘→/tmp/R1_run2_map.pcd 存证）--
+== pcd 判据: /tmp/R1_run2_map.pcd ==
+POINTS=1029701（判据 3e4–5e5）  z min=-23936.537 max=13.690
+z<-0.05 点数=1021839 占比=99.2365%（<0.1%）
+|x|,|y|≤12m 界内占比=0.86%（场地合理性参考）
+
+────────── run3 ──────────
+== 采集规模 ==
+odom rows=680  gt rows=7324
+== 频率/时长 ==
+wall 覆盖 142.6s  /Odometry 平均率 4.76 Hz  dt 中位 0.207s  dt 最大 0.515s
+GT 起点=-4.250,-3.050,0.000  GT 起始 yaw=0.0000 rad  GT 终点相对起点偏差=0.0000m
+戳配对: 680/680 样本 gap≤0.2s（最大 gap 0.053s）
+== 判据1 全程漂移（对 GT 折线，含 z）==
+max=110877.222m @t=142.6s  mean=31301.028m  p99=108371.633m
+== 判据1b z 范围 ==
+z min=-92062.488 max=0.003（判据 [-0.3,0.3]）
+== 判据2 末 5s 静置段（样本 25）==
+零漂 |Δpos| ptp=9027.1420m（≤0.05）  |Δyaw| ptp=6.0018rad（≤0.01）
+末端 vs GT 起点均值=106507.329m（≤0.3）  末段 max=110877.222m
+== 判据3 地图收敛（log 行 680）==
+首行 t=0.0s grid=180 effect=217
+终值 grid=674736 effect=278 @t=142.6s
+末 20s grid 增速=165044 grid / 20.0s = 8265.10 grid/s（<10）
+末 20s effect: min=278 终值=278  全程 effect min(首10s后)=272
+grid 峰值=674736 @t=142.6s
+ERROR 计数 [lio]: ERROR 字样=0  glog E行=0
+ERROR 计数 [sim]: ERROR 字样=0  glog E行=0
+ERROR 计数 [overall]: ERROR 字样=0  glog E行=0
+ERROR 计数 [roscore]: ERROR 字样=0  glog E行=0
+-- pcd（优雅停机落盘→/tmp/R1_run3_map.pcd 存证）--
+== pcd 判据: /tmp/R1_run3_map.pcd ==
+POINTS=1335591（判据 3e4–5e5）  z min=-92157.172 max=3.348
+z<-0.05 点数=1328168 占比=99.4442%（<0.1%）
+|x|,|y|≤12m 界内占比=0.42%（场地合理性参考）
+
+────────── D2 分层（3 连）──────────
+run1: 末5s均值=56708.1m 全程max=59499.7m 首>0.3m@t=1.6s 首>1m@t=2.3s
+run2: 末5s均值=63520.9m 全程max=65940.0m 首>0.3m@t=1.1s 首>1m@t=1.5s
+run3: 末5s均值=106507.3m 全程max=110877.2m 首>0.3m@t=2.2s 首>1m@t=2.2s
+D2 末端漂移 max−min=49799.2m（判据 ≤0.1m）
+
+────────── 判据裁决表（全过才算过）──────────
+| 判据 | 阈值 | run1 | run2 | run3 | 裁决 |
+|---|---|---|---|---|---|
+| 全程漂移 max | ≤0.3m | 59499.7m | 65940.0m | 110877.2m | FAIL |
+| z 全程范围 | [-0.3,0.3] | min -32197.6 | min -23926.0 | min -92062.5 | FAIL |
+| 末5s零漂 pos | ≤0.05m | 5740.8m | 4823.9m | 9027.1m | FAIL |
+| 末5s零漂 yaw | ≤0.01rad | 3.63 | 5.99 | 6.00 | FAIL |
+| 末端均值 vs GT起点 | ≤0.3m | 56708.1m | 63520.9m | 106507.3m | FAIL |
+| grid 终值 | ≤20000 | 559694 | 628092 | 674736 | FAIL |
+| 末20s grid 增速 | <10/s | 8705.2 | 7900.3 | 8265.1 | FAIL |
+| effect 稳定（终段） | ≥100 无塌缩 | 218-265 | 215-225 | 272-278 | PASS |
+| /Odometry 频率 | ≥5Hz | 4.74Hz | 4.75Hz | 4.76Hz | FAIL(临界) |
+| 跑满轨迹 | ~144s | 143.2s | 143.2s | 142.6s | PASS |
+| ERROR 计数 | 0 | 0 | 0 | 0 | PASS |
+| pcd 点数 | 3e4-5e5 | 1022560 | 1029701 | 1335591 | FAIL |
+| pcd z<-0.05 占比 | <0.1% | 98.90% | 99.24% | 99.44% | FAIL |
+| D2 3连末端漂移 | max−min ≤0.1m | 49799.2m | — | FAIL |
+
+**裁决：FAIL（14 项判据 5 项 PASS/9 项 FAIL；任一 FAIL 即整体 FAIL）→ 按红线停手回报，第 2 轮由主理人+小张决策；S6 重定位预演不执行（判据未过）**
+
+现场清洁：三连退场 pgrep 核检均 (none)；v1 底图三连起前=退后 sha256 全等 97fe310b…；lite3.pcd 终态=97fe310b…（run1/2/3 发散图已存证 /tmp/R1_run{1,2,3}_map.pcd，sha256=f36fd07b…/34b0a7a2…/1139d729…）

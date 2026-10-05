@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 # sim_adapter.py —— G8-sim 仿真预演适配器（Q14 自研件；设计依据：小张 payload 03 + faster_lio 契约实测）
 # ① sensor_cloud(PointXYZI)→/rslidar_points（velodyne_ros::Point 布局 intensity@16/time@20/ring@24,step=32；
-#    time=i/N*0.1s；ring=i%32；intensity 透传；frame_id=rslidar；限频 10Hz 最新者胜）
+#    time=0（坑13-R1④：render 单位姿整帧成像，合成扫掠时戳致 deskew 剪切，改全 0=帧内瞬时）；ring=i%32；
+#    intensity 透传；world 系 z≥-0.02 地下幻影点剔除（坑13-R1①，配对 lidar_pose 同戳）；frame_id=rslidar；
+#    限频 10Hz 最新者胜）
 # ② /quad_0/lidar_pose 差分合成→/livox/imu @200Hz（陀螺四元数差+中值+低通→R^T·ω_w；加速度 5 点 SG 二阶
 #    差分→R^T(a_w−g)；偏置+噪声+4g 限幅；Δq 奇异沿用上帧；stamp 单调化；断流>1s 停发）
 # ③ --mode traj：--traj yaml→/quad_0/body_pose @50Hz（静置→waypoints→回起点，偏航限速，开环完美位姿）。
@@ -22,6 +24,7 @@ SCAN_PERIOD = 0.1          # s，与真机雷达节拍一致
 GYRO_BIAS, GYRO_SIGMA, ACC_SIGMA = 0.002, 0.01, 0.05   # 偏置/噪声（防纯零激励）
 ACC_CLAMP = 4.0 * 9.81     # |a_b| 限幅
 LPF_ALPHA, YAW_RATE_MAX = 0.3, 1.0                     # 低通系数 / 轨迹偏航角速率限幅 rad/s
+Z_MIN_WORLD = -0.02     # 坑13-R1①：world 系地下幻影点剔除阈值（mockamap 墙底格心 z≥0.0，幻影层实测 ≤-0.19m，-0.02 给 0.17m 安全边距）
 
 # 输入视图 pcl::PointXYZI（x@0,y@4,z@8,intensity@16）/ 输出视图 velodyne_ros::Point（preprocess.h:12-20）
 DTYPE_IN = np.dtype({'names': ['x', 'y', 'z', 'p0', 'intensity', 'p1'],
@@ -86,17 +89,23 @@ def sg2_accel(pos5, dt):
     return (2 * pos5[0] - pos5[1] - 2 * pos5[2] - pos5[3] + 2 * pos5[4]) / (7.0 * dt * dt)
 
 
-def repack_cloud(msg, time_unit):
-    """sensor_cloud → velodyne_ros::Point 布局 PointCloud2（纯函数，供 selfcheck 复用）"""
+def repack_cloud(msg, time_unit, zcut=None):
+    """sensor_cloud → velodyne_ros::Point 布局 PointCloud2（纯函数，供 selfcheck 复用）
+    zcut=(R 第 3 行 (3,), 配对位姿 z, z_min)：world 系 zw=x*r2[0]+y*r2[1]+z*r2[2]+pz < z_min 的点剔除（坑13-R1①）"""
     if msg.point_step != 32:
         raise ValueError('point_step=%d 期望 32（pcl::PointXYZI 契约）' % msg.point_step)
     pts = np.frombuffer(bytes(msg.data), dtype=DTYPE_IN)
     n = len(pts)
     out = np.zeros(n, dtype=DTYPE_OUT)
     out['x'], out['y'], out['z'], out['intensity'] = pts['x'], pts['y'], pts['z'], pts['intensity']
-    t = np.arange(n, dtype=np.float64) * (SCAN_PERIOD / max(n, 1))
-    out['time'] = t if time_unit == 's' else t * 1e3
+    out['time'] = 0.0   # 坑13-R1④：render 单位姿整帧成像，合成 0..0.1s 扫掠时戳致 deskew 剪切（0.5m/s 端点~5cm/帧），改全 0=帧内瞬时
     out['ring'] = np.arange(n) % 32
+    if zcut is not None:                      # 坑13-R1①：world 系地下幻影点剔除
+        r2, pz, z_min = zcut                  # R 第 3 行 (3,)、配对位姿 z、阈值
+        zw = out['x']*r2[0] + out['y']*r2[1] + out['z']*r2[2] + pz
+        out = out[zw >= z_min]
+        if len(out) == 0: raise ValueError('all points underground')
+        n = len(out)
     pc = PointCloud2()
     pc.header.stamp, pc.header.frame_id = msg.header.stamp, 'rslidar'
     pc.height, pc.width, pc.fields = 1, n, FIELDS_OUT
@@ -143,13 +152,21 @@ class SimAdapter(object):
         self.pose_buf.append((t, p, q))
         self.last_pose_stamp, self.last_pose_wall = t, rospy.get_rostime()
 
+    def paired_zcut(self, t_cloud):
+        """坑13-R1①：cloud 戳（=body_pose 戳域）与 pose_buf 精确同戳配对 → world 系 z 剔除参数；无配对返回 None 不误杀"""
+        for (t, p, q) in reversed(self.pose_buf):
+            if abs(t - t_cloud) <= 5e-3:
+                R = quat_to_R(q)
+                return R[2], float(p[2]), Z_MIN_WORLD   # R 第 3 行、配对位姿 z、阈值 -0.02
+        return None                                # 无配对位姿：不剔（保底不误杀）
+
     def cloud_timer(self, _):
         """① 限频发布（--rate-lidar Timer）"""
         msg, self.latest_cloud = self.latest_cloud, None
         if msg is None:
             return
         try:
-            pc = repack_cloud(msg, self.opt.time_unit)
+            pc = repack_cloud(msg, self.opt.time_unit, zcut=self.paired_zcut(msg.header.stamp.to_sec()))
         except ValueError as e:
             rospy.logwarn_throttle(5.0, '[sim_adapter] 点云契约不符: %s' % e)
             return
@@ -261,10 +278,16 @@ def selfcheck():
     msg.point_step, msg.data, msg.header.stamp = 32, din.tobytes(), rospy.Time(0)
     out = np.frombuffer(repack_cloud(msg, 's').data, dtype=DTYPE_OUT)
     layout_ok = (out['x'][0] == 1 and out['intensity'][0] == 7 and
-                 out['time'][-1] > 0 and out['ring'][33] == 1 and DTYPE_OUT.itemsize == 32)
-    ok = a_err_max <= 0.05 and w_max < 0.01 and layout_ok and n == len(out)
-    print('[selfcheck] |acc|误差峰值=%.4f(≤0.05) |w|峰值=%.6f(<0.01) 点云布局=%s → %s'
-          % (a_err_max, w_max, layout_ok, 'PASS' if ok else 'FAIL'))
+                 out['time'][-1] == 0 and out['ring'][33] == 1 and DTYPE_OUT.itemsize == 32)
+    din2 = np.zeros(2, dtype=DTYPE_IN)             # 坑13-R1① zcut 自检：配对位姿=单位阵（R 第3行=(0,0,1), pz=0）
+    din2['x'], din2['y'], din2['z'] = 0, 0, [-0.5, 0.5]
+    msg2 = PointCloud2()
+    msg2.point_step, msg2.data = 32, din2.tobytes()
+    out2 = np.frombuffer(repack_cloud(msg2, 's', zcut=(np.array([0.0, 0.0, 1.0]), 0.0, Z_MIN_WORLD)).data, dtype=DTYPE_OUT)
+    zcut_ok = len(out2) == 1 and out2['z'][0] == 0.5     # 地下 z=-0.5 剔除、地上 z=0.5 保留 → N=1
+    ok = a_err_max <= 0.05 and w_max < 0.01 and layout_ok and n == len(out) and zcut_ok
+    print('[selfcheck] |acc|误差峰值=%.4f(≤0.05) |w|峰值=%.6f(<0.01) 点云布局=%s zcut剔除=%s → %s'
+          % (a_err_max, w_max, layout_ok, zcut_ok, 'PASS' if ok else 'FAIL'))
     return 0 if ok else 1
 
 
