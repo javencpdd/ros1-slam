@@ -1,0 +1,79 @@
+# G-v4.2 文档批 验收核验原始输出（小美，2026-10-06，只读核验零节点启动；sudo 密码脱敏 ***）
+
+$ sha256sum note/计划书v4/21_ros1-slam隔离部署计划书-v4.2-仿真测试台补丁.md
+8c0651fcd2c99520f884805429717c7a18e353f653c37f9b4721b1ef4cdbd14f  …v4.2-仿真测试台补丁.md   # 申报 8c0651fc… 吻合
+
+$ git diff ba33502^ ba33502 -- note/计划书v4/21_…-v4.md note/计划书v4/21_…-v4.1-雷达翻案补丁.md
+（输出为空）→ v4/v4.1 正文零改动实证；ba33502 变更 18 文件=补丁新落+01/00_总览 指针+04/03/.gitignore 勘误+M2 证据，逐一对账
+
+$ git show --stat ba33502 | head -40
+.gitignore +4 ｜ 01_部署记录 +1 ｜ 03_外部文件来源清单 +1 ｜ 04_配置改动diff 22± ｜ v4.2 补丁 +128 ｜ 进度/00_总览 4± ｜ GazeboM1/进度文档 4± ｜ M2 证据 log/raw 9 件 ｜ M2/进度文档 +29
+（注：ba33502 未动 02_问题与坑.md——O1 口径 02 本无，偏差已由小明如实登记）
+
+$ grep -rn "176" note/ --include="*.md" | grep -v "1587|勘误|不可溯源|原「176」"
+note/进度/计划书v4升级/进度文档.md:49: …V6→DAG P3b 在 P5 后(L176-206/L198)…   # 唯一命中=行号引用 L176，非口径残留 → 176 口径残留=0
+
+$ grep -rn "1587" note/ --include="*.md"（落点）
+04_配置改动diff.md:121/123/130（D-M1-5 条+勘误 O1 条）｜进度/00_总览.md:21/83/85/86｜M2/进度文档.md:12｜GazeboM1/进度文档.md:5/36/42/68/90｜v4.2:18/97
+→ O1 四处更正（04 D-M1-5 条/GazeboM1 L5·L42/00_总览 L85）全部原位在位并标注
+
+$ grep -c "env.sh：头部新增 foxy 隔离" note/04_配置改动diff.md
+1   # O4：删 109/110 留 108，条目=1 ✓
+
+$ git check-ignore -v opt/upstream/ .sdformat/
+.gitignore:36:opt/upstream/	opt/upstream/
+.gitignore:35:.sdformat/	.sdformat/          # O5 两行在位且生效；opt/upstream/ 落盘 6 仓（U1–U6 全）
+$ grep -n "U[1-6]" note/03_外部文件来源清单.md
+34:O5 裁定注记（2026-10-06 主理人：不入 git）+ 37–42:U1–U6 六仓库（URL/落位/克隆日期/用途）登记齐全
+
+$ sed -n '84,113p' note/02_问题与坑.md（节选）
+92:[主理人裁决 · G8-sim 关闭（2026-10-05，R2 封顶 FAIL 后）]
+94:- 裁决：**G8-sim 仿真预演终止**（两轮返工用尽）…
+96:  1) 该仿真器为 EGO-Planner 规划仿真，非物理 LIO 仿真…
+97:     位姿为 on-rails 轨迹、无真实 IMU——faster_lio 在其上的"发散"是传感器仿真保真度不足，
+105:- 台账：02 坑14 登记"G8-sim 终止裁决与仿真保真度边界"；04 已在 R2 登记
+→ v4.2 §1「原坑14 措辞」引用与 02 裁决块逐字吻合；02 无独立坑14 条目（裁决块代行，X1 的 02 侧落位随 M2-5/收编）
+
+$ grep -n "13 CHECK\|SMOKE_EXIT" note/进度/仿真测试台/进度文档.md（节选）
+run3 全 13 CHECK PASS（SMOKE_EXIT=0）：rslidar 3.62Hz≥0.5、/map 占据 5041、全局 costmap 11562、GetPath×3 outcome=0 末点偏差 0.00m、
+ExePath 后 /cmd_vel_raw 有输出、/cmd_vel 写者唯一、ros2qnx 全程不存在、退净零残留；13 CHECK 表：env_sourced/master/leftover=私有 master 11312
+→ v4.2 §2.1 判据逐项一致（含「私有 master 11312」照录证据）
+
+$ sed -n '44p;68p;73p;87p' note/进度/GazeboM1/进度文档.md（节选）
+R1 判据数据：rate_pts=13.2（≥5）、rate_imu=264.4（≥100）、fly_ratio=0.0000（522883 点/570 帧）、drift=26.411m（≤0.5 FAIL）
+traj.txt CSV 抽验（594 点）：LIO 终点 (26.4085,0.0320) vs gt (26.4106,≈0)，全程偏差≈1.5cm=0.06%；四元数全程恒等（q_w≈1）
+核心命题：Gazebo 物理仿真可支撑 faster_lio/hdl 算法仿真验证（faster_lio 已实证，hdl 待 M2）
+→ v4.2 X1/X2 的 1.5cm（0.06%）/570 帧/52 万点引用属实；四判据实测一致
+
+$ sed -n '92p' note/进度/GazeboM1/进度文档.md
+M2 移交清单：① teb 物理仿真导航闭环；② planar_move yaw 语义修复/核对…③ hdl 重定位…④ M1 判据③同判据回归…⑤ 勘误清理 O1/O4/O5(+O2 可选)
+→ v4.2 X3 五项（M2-1-D/1/2/3/4/5）与①–⑤全对应
+
+$ sed -n '59p' note/进度/G8sim/进度文档.md
+漂移 59499.7/65940.0/110877.2m   # =5.9–11 万 m，v4.2 §5.1 R1 行吻合；R2 trajcheck |a_b|=1.0056、静置 0.019m/原地转向 0.069m 见 00_总览/02 裁决块
+$ git log --oneline | grep -m1 c260789
+c260789 feat(GazeboM1): 物理仿真最小闭环——…   # 并行仲裁「c260789 唯一落账」先例在案
+
+$ sed -n '73p' note/进度/P3b/进度文档.md
+Q13 仍挂起：外参矛盾裁决（pitch 18° vs 7.5°/离地高度/朝向）现场卷尺四项用户未提供   # v4.2 X6 Q13 倾向值 7.5° 实证
+$ sed -n '99p' note/04_配置改动diff.md
+常驻发布器…节点名分离避免 ROS1 同名顶替（教训：rosrun 同名节点后者踢前者）   # R21=04:99 逐字
+$ sed -n '54p' /tmp/gazebo_m1_payload/gazebo_manifest.md
+planar_move 此版无 commandTimeout 键（strings 未见）   # R23 manifest F.1 实证；SDK2 按 config IP 见 v4.1 L242
+
+$ sed -n '2,3p' data/maps/lite3.pgm
+310 295    # 一致性抽查 310×295=2D 图实测（0.05m/格）
+$ grep -n "298,350" note/04_配置改动diff.md note/进度/00_总览.md
+04:96: …298,526→298,350，0.06%… ｜ 00_总览:55: …0.08 体素 298,350 点清洗版…   # 298,350 点实证
+$ sha256sum data/maps/lite3.pcd
+c034c90636f55570…   # 样张验收时点实测=申报 c034c906… 全等
+
+$ ls /tmp/m2_payload/ | grep -v logs-probe
+04_台账登记文案.md CMakeLists_plugin_append.txt lite3_planar_drive.cpp lite3_planar.urdf.xacro m2_cmd_relay.py m2_free_map.py
+m2_gazebo.launch m2_hdl.launch m2_mapping.launch m2_probe.sh(+.bak) m2_probe_yaw.py m2_smoke.sh m2_teb.launch
+$ grep -n "m2_gazebo.launch" /tmp/m2_manifest.md
+16:| m2_gazebo.launch | lite3_gazebo_sim/launch/ | m1_gazebo 同构 + GAZEBO_PLUGIN_PATH env（devel/lib） |
+→ 施工包/manifest 实件名=m2_gazebo.launch；v4.2 §2.2 所写「mode_nav_gazebo.launch（M2 施工包已含）」与包不符（轻缺陷 d1，随 M2-5 勘误）
+（manifest 无 mode_nav_gazebo 字样，grep 实证）
+
+# M2/进度文档.md 四要素核验：实现状态/自动化验收输出/目标环境验收/证据路径 齐全；头部缺「更新时间」标注字段（形式注记，不阻塞）
