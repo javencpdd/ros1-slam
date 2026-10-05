@@ -1,0 +1,22 @@
+--- /tmp/gazebo_m1_payload/m1_gazebo.launch	2026-10-05 20:42:02.485348909 +0800
++++ /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch	2026-10-05 23:56:49.461870645 +0800
+@@ -3,8 +3,8 @@
+        （小张 payload，2026-10-05）。headless 实现：empty_world.launch gui:=false → 只起 gzserver。
+        前置：fratopa 包 livox_laser_simulation 原样复制进 ws/src 并 catkin build（见 04 台账 D-02）。 -->
+   <arg name="gui" default="false"/>
+-  <arg name="payload_dir" default="/tmp/gazebo_m1_payload"/>
+-  <arg name="world" default="$(arg payload_dir)/m1_world.world"/>
++  <arg name="payload_dir" default="$(find lite3_gazebo_sim)"/>
++  <arg name="world" default="$(arg payload_dir)/worlds/m1_world.world"/>
+ 
+   <!-- use_sim_time 贯穿（Gazebo 为唯一时钟源 /clock） -->
+   <param name="use_sim_time" value="true"/>
+@@ -20,7 +20,7 @@
+   </include>
+ 
+   <!-- 机器人：xacro → robot_description → spawn（z=0.15：TORSO box 底面 -0.11，落地间隙 0.04m） -->
+-  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/lite3_planar.urdf.xacro"/>
++  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/urdf/lite3_planar.urdf.xacro"/>
+   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+   <node name="spawn_lite3_planar" pkg="gazebo_ros" type="spawn_model"
+         args="-urdf -param robot_description -model lite3_planar -x 0 -y 0 -z 0.15"/>

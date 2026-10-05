@@ -1,0 +1,9 @@
+# /rslidar_points 帧内容探针（2026-10-06 01:55，m1_gazebo.launch 起后 50s，wait_for_message 取 1 帧）
+width= 20000 step= 32 frame= rslidar
+nonzero_xyz= 0 / 20000
+range min/max= 0.0 0.0   z range= 0.0 0.0
+# 判读：每帧 20000 点全部 (0,0,0)——fratopa liblivox_laser_simulation.so 的 ODE multiray
+# 射线在本机（Jetson arm64 / Gazebo 11.11 / ODE）零相交（连 0.3m 外自身 TORSO 均无命中）；
+# 出界点 range→0 语义（manifest §C）成立但相交集合为空。faster_lio 收 20000 全零点被
+# blind=1.0 全滤 → "Too few input point cloud"/"No point, skip this scan" ×1587 帧（glog 留证
+# /tmp/run_mapping_online.lite.ros1-slam.log.INFO.20261006-014905.229743）→ 无 /cloud_registered。

@@ -1,0 +1,16 @@
+Tue 06 Oct 2026 01:27:38 AM CST
+--- ss 11312/11313 ---
+LISTEN    0         128              127.0.0.1:11313            0.0.0.0:*                                                                                       
+--- rosmaster 进程 ---
+ros1-sl+  223251  1.8  0.7 1157688 49600 ?       Ssl  01:23   0:04 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 11313 -w 3 __log:=/home/ros1-slam/.ros/log/8117ea96-c0e1-11f1-9c1e-3c6d66f8d2d8/master.log
+--- /cmd_vel 在 11313 的发布者（冒烟驱动脚本） ---
+Type: geometry_msgs/Twist
+
+Publishers: None
+
+Subscribers: 
+ * /gazebo (http://localhost:36597/)
+
+
+--- 对 11312（生产口）探测：应无 master 或无 /cmd_vel 写者活动 ---
+ERROR: Unable to communicate with master!

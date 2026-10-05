@@ -1,0 +1,12 @@
+# foxy 栈 4 行快照留痕（M1 GazeboM1 施工期 2026-10-05 20:05 ~ 2026-10-06 02:0x）
+== 起前（2026-10-05 00:17 采集）==
+ysc       115711 27.4  0.3 865288 25516 ?        Ssl  Oct05 377:02 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root      115792  0.5  0.1 277956 13320 ?        Sl   Oct05   7:02 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root      115795  1.4  0.1 990656 11140 ?        Sl   Oct05  20:28 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_qn13iekq
+root      115797 15.8  0.2 1057508 15760 ?       Sl   Oct05 218:15 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_0hy95xe_ --params-file /tmp/launch_params_syzz580_ --params-file /tmp/launch_params_qzjzmkm4
+== 收尾（2026-10-06 02:0x 采集）==
+ysc       115711 25.6  0.2 865288 19320 ?        Ssl  Oct05 378:41 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root      115792  0.5  0.1 277956 11396 ?        Sl   Oct05   7:36 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root      115795  1.4  0.1 990656 10276 ?        Sl   Oct05  21:12 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_qn13iekq
+root      115797 15.9  0.1 1057508 10640 ?       Sl   Oct05 235:21 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_0hy95xe_ --params-file /tmp/launch_params_syzz580_ --params-file /tmp/launch_params_qzjzmkm4
+== 结论：4 行（115711/115792/115795/115797）PID/命令行一致，仅动态列波动，零触碰 ==

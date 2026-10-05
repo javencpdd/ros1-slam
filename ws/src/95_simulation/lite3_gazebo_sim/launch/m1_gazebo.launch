@@ -1,0 +1,34 @@
+<launch>
+  <!-- m1_gazebo.launch —— M1 仿真台：headless Gazebo + planar 伪狗 + sim_adapter CustomMsg 分支
+       （小张 payload，2026-10-05）。headless 实现：empty_world.launch gui:=false → 只起 gzserver。
+       前置：fratopa 包 livox_laser_simulation 原样复制进 ws/src 并 catkin build（见 04 台账 D-02）。 -->
+  <arg name="gui" default="false"/>
+  <arg name="payload_dir" default="$(find lite3_gazebo_sim)"/>
+  <arg name="world" default="$(arg payload_dir)/worlds/m1_world.world"/>
+
+  <!-- use_sim_time 贯穿（Gazebo 为唯一时钟源 /clock） -->
+  <param name="use_sim_time" value="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+    <arg name="verbose" value="false"/>
+  </include>
+
+  <!-- 机器人：xacro → robot_description → spawn（z=0.15：TORSO box 底面 -0.11，落地间隙 0.04m） -->
+  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/urdf/lite3_planar.urdf.xacro"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+  <node name="spawn_lite3_planar" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param robot_description -model lite3_planar -x 0 -y 0 -z 0.15"/>
+
+  <!-- sim_adapter（Gazebo 变体）：
+       参数 input=custommsg：吃 fratopa /livox/lidar（livox_laser_simulation/CustomMsg）→ /rslidar_points（C16 契约布局不变）
+       参数 no-imu：/livox/imu 由 Gazebo IMU 插件直发（200Hz 真传感器语义），不再由位姿差分合成（④） -->
+  <node name="sim_adapter" pkg="lite3_drivers" type="sim_adapter.py"
+        args="--input custommsg --no-imu --rate-lidar 10" output="screen"/>
+
+</launch>

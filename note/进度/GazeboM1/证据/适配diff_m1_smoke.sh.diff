@@ -1,0 +1,50 @@
+--- /tmp/gazebo_m1_payload/m1_smoke.sh	2026-10-05 20:38:54.547309787 +0800
++++ /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh	2026-10-05 23:56:14.049419018 +0800
+@@ -5,10 +5,14 @@
+ #       → 判据：/Odometry 回原点漂移 ≤0.5m；/rslidar_points ≥5Hz；/livox/imu ≥100Hz；
+ #              /cloud_registered |z|>10m 飞点 <1%；（参考）/gazebo/model_states 真值漂移
+ #       → 退净（GAP-5：起前备份样张 pcd、退后核 sha256）→ PASS/FAIL 摘要，无人值守
+-# 用法：bash /tmp/gazebo_m1_payload/m1_smoke.sh
++# 用法：bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh
++# ★真机安全（2026-10-05 小明落位适配，主理人红线）：本脚本全部 ROS 流程跑在独立 master
++#   ROS_MASTER_URI=http://127.0.0.1:11313（roslaunch 自动拉起）——生产 master 11312 与 foxy 栈
++#   jetson2motion（订阅真 /cmd_vel）零接触；manifest 无隔离方案，按派单红线补此隔离并留证。
++#   落位适配：payload_dir→自研壳包路径、roslaunch 改包名形式、日志落 /tmp/gazebo_m1_payload/logs-*。
+ set -u
+-PAYLOAD=/tmp/gazebo_m1_payload
+-LOGDIR="$PAYLOAD/logs-$(date +%Y%m%d_%H%M%S)"
++PAYLOAD=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim
++LOGDIR="/tmp/gazebo_m1_payload/logs-$(date +%Y%m%d_%H%M%S)"
+ MAP=/home/ros1-slam/data/maps/lite3.pcd
+ mkdir -p "$LOGDIR"
+ echo "[smoke] 日志目录: $LOGDIR"
+@@ -16,6 +20,11 @@
+ source /opt/ros/noetic/setup.bash
+ [ -f /home/ros1-slam/ws/devel/setup.bash ] && source /home/ros1-slam/ws/devel/setup.bash
+ 
++# ---- ★真机安全红线：独立 master 11313（生产 11312 互不相通；jetson2motion 订阅真 /cmd_vel） ----
++export ROS_MASTER_URI=http://127.0.0.1:11313
++export ROS_HOSTNAME=localhost
++echo "[smoke] ROS_MASTER_URI=$ROS_MASTER_URI（独立 master，与生产 11312 隔离）"
++
+ cleanup() {
+   rosnode kill -a 2>/dev/null; sleep 3
+   pkill -f gzserver 2>/dev/null; pkill -f gzclient 2>/dev/null
+@@ -34,7 +43,7 @@
+ wait_topic() { timeout "$2" rostopic echo -n 1 "$1" >/dev/null 2>&1; }
+ 
+ # ---- 1. 仿真台 ----
+-roslaunch "$PAYLOAD/m1_gazebo.launch" > "$LOGDIR/gazebo.log" 2>&1 &
++roslaunch lite3_gazebo_sim m1_gazebo.launch > "$LOGDIR/gazebo.log" 2>&1 &
+ echo "[smoke] 等 /clock → /rslidar_points → /livox/imu ..."
+ wait_topic /clock 30          || { echo "FAIL: /clock 未出（gzserver 未起）"; exit 1; }
+ wait_topic /rslidar_points 90 || { echo "FAIL: /rslidar_points 未出（CustomMsg→adapter 链路断）"; exit 1; }
+@@ -42,7 +51,7 @@
+ echo "[smoke] 仿真台 OK"
+ 
+ # ---- 2. mapping ----
+-roslaunch "$PAYLOAD/m1_mapping.launch" > "$LOGDIR/mapping.log" 2>&1 &
++roslaunch lite3_gazebo_sim m1_mapping.launch > "$LOGDIR/mapping.log" 2>&1 &
+ wait_topic /cloud_registered 240 || { echo "FAIL: /cloud_registered 未出（faster_lio 未跑通）"; exit 1; }
+ echo "[smoke] mapping OK"
+ 
