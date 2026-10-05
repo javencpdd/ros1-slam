@@ -1,0 +1,23 @@
+# foxy 栈 4 行进程快照留痕（仿真测试台施工期全程未触碰）
+> 采集口径：ps aux | grep -E 'transfer_launch|jetson2motion|jetson2app|lite3_ros_bridge'；施工=仿真可用化（小明，2026-10-05 17:19–18:0x）；判据=4 行同 PID 同命令行在跑、仅动态列（%CPU/内存/累计CPU时间）自然波动
+
+== 起前快照（2026-10-05 17:24，施工前）==
+ysc       115711 38.7  0.3 865288 25520 ?        Ssl  01:27 370:38 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root      115792  0.5  0.1 277956 13256 ?        Sl   01:27   5:00 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root      115795  1.8  0.1 990656 11068 ?        Sl   01:27  17:27 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_qn13iekq
+root      115797 16.4  0.2 1057508 15724 ?       Sl   01:27 156:55 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_0hy95xe_ --params-file /tmp/launch_params_syzz580_ --params-file /tmp/launch_params_qzjzmkm4
+
+== 收尾快照（2026-10-05 18:09，三跑冒烟全退净后）==
+ysc       115711 37.0  0.3 865288 25768 ?        Ssl  01:27 371:23 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root      115792  0.5  0.1 277956 13256 ?        Sl   01:27   5:10 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root      115795  1.7  0.1 990656 11252 ?        Sl   01:27  17:49 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_qn13iekq
+root      115797 16.4  0.2 1057508 15744 ?       Sl   01:27 164:30 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_0hy95xe_ --params-file /tmp/launch_params_syzz580_ --params-file /tmp/launch_params_qzjzmkm4
+
+== 独立复采（2026-10-05 18:53，落账时点）==
+ysc       115711 35.5  0.3 865288 25896 ?        Ssl  01:27 372:06 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+root      115792  0.5  0.1 277956 13256 ?        Sl   01:27   5:27 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+root      115795  1.7  0.1 990656 11252 ?        Sl   01:27  18:16 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_qn13iekq
+root      115797 16.4  0.2 1057508 15744 ?       Sl   01:27 171:48 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_0hy95xe_ --params-file /tmp/launch_params_syzz580_ --params-file /tmp/launch_params_qzjzmkm4
+
+== 结论 ==
+pre/post 两快照 4 行 PID 一致（115711/115792/115795/115797）、01:27 起始时间一致、命令行一致——foxy 栈 4 行施工全程未动（PID 复用=未重启的铁证）；与 P7 修正批「foxy 双 active 零扰动」口径一致。
