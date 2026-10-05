@@ -1,0 +1,31 @@
+M2-1-D 探针停工归因链（小明，2026-10-06 04:17–06:20，6 次探针尝试 1 次架构验证）
+================================================================================
+【尝试记录】
+A 04:17/04:21 m2_probe.sh 原样两跑 → set -u 下干净环境 source noetic 报 ROS_DISTRO/GAZEBO_PLUGIN_PATH unbound（M1 D-M1-2 同族；环境预置解决，payload 零改动）
+B 04:22:37 路径笔误跑 → RLException "is not a launch file name"：$SIM_PKG/m1_gazebo.launch 应为 launch/ 子目录（M1 D-M1-2「包名形式」先例）→ D-M2-P1 修（.bak 留底 79351865→41d5b531）
+C 04:24:21 修后跑 → "model_states 未出"（60s 窗）；04:24 追加窗口 180/120/120（5624dcd8）→ 05:05:55 仍失败
+D 05:09:44 M1 同款环境重跑 → 仍失败
+E 05:13:53 bash -x 归因跑 → 管道 head 提前关断自伤，无数据
+F 05:25:49 仪器化跑（0.2s 轮询）→ gzserver 出生 etimes≈2s 内死亡；06:10:27 x3 跑（D-M1-3 同款 list 轮询等待）model_states OK，但 06:16:32 外来第二个 rosout（pid 254422）注册入我方 11313 master，3 秒后我方 gzserver 被 SIGTERM（06:16:35 exit -15）→ /Odometry 等待必然失败
+
+【归因 1：payload 笔误——已修】
+m2_probe.sh L17 $SIM_PKG/m1_gazebo.launch → launch/ 子目录实际路径（RLException 实证）；修法=M1 D-M1-2 包名形式 roslaunch lite3_gazebo_sim m1_gazebo.launch。
+
+【归因 2：+1.5s gzserver SIGTERM——D-M1-3 同款现象，等待机制修复有效】
+单次长 echo（timeout N rostopic echo -n 1）在启动窗内运行时 gzserver 稳定于 +1.5s 被 TERM（B/C/D/F 4/4 复现，均在 API 插件初始化完成前）；
+改 list 门控+短 echo 后（x3 跑）gzserver 全程存活（Finished loading=1，-15 死亡时刻=06:16:35=外部杀而非 cleanup）。
+M1 D-M1-3 原文：「wait_topic 单次 timeout+echo → master 侧 list 轮询+短 echo（启动窗内直接 echo 挂起/吞 TERM 4/4 复现；探针模式 15/15 成功）」——同款反模式同款修法。
+
+【归因 3：sim 首扫冻结长尾——M1 已编目（D-M1-4）】
+x1 跑实测冻结 >3min；预检跑实测 ~60s 恢复（/clock t=59s 起，RTF≈0.3）；x3 跑 06:10:47(sim_t=0.001)→06:15:51(sim_t=92.699)=冻结约 5min 后 RTF≈0.30 正常运行——方差 1~30min，等待预算须 300s+。
+
+【归因 4：并行会话争用 11313 并杀 gzserver——主理人仲裁事项（v4.2 §5.2）】
+铁证：06:16:32 外来 roslaunch 起第二 rosout（pid 254422）注册入我方 11313 master；06:16:35 我方 gzserver SIGTERM（exit -15，非我方 cleanup——我方 trap 尚未触发）。
+回溯吻合：B(04:24)/C(05:05)/D(05:09)/F(05:25) 四次 +1.5s 枪杀全部发生在并行会话活跃窗；我方 04:52–05:25 独立验证跑（manual/timing/pre-check/repro 4/4）恰在其空闲窗全部存活。
+与 M1 异常登记（agent_37c2f7a2 gzserver/rostopic 探针 kill -9 自清、端口互撞互杀）同款；v4.2 §5.2 规约「仿真主线单会话承载」。
+
+【探针科学数据（未出 PROBE_VERDICT，三段未执行）】
+sim 可运行性：RTF≈0.30（92.7 sim-s/304s 实测）；model_states=/gazebo/model_states 由 gzserver api 插件提供，话题 +16s 在位、消息随 sim 推进发布；planar_move WARN 缺 odometryRate 默认 20 / 缺 cmdTimeout 默认 -1（佐证 manifest F.1/修复点④）；fratopa csv 加载正常。
+
+【停工依据】派单红线「两次失败即停」+ M1 先例 + v4.2 §5.2 并行仲裁规约。返工前置条件：主理人裁定并行会话窗口/端口，确认 11313 单会话承载后重派。
+================================================================================

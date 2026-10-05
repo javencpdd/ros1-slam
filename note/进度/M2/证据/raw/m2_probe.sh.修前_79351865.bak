@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# m2_probe.sh —— M2-1-D 诊断跑（只诊断不改任何文件；小张，2026-10-06）
+# 隔离域同 M1：ROS master 11313 + GAZEBO_MASTER_URI=11355；无 mapping，纯仿真台+探针。
+# 用法：bash /tmp/m2_payload/m2_probe.sh <M1落位包目录，缺省 /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim>
+set -u
+SIM_PKG=${1:-/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim}
+PAYLOAD=/tmp/m2_payload
+LOGDIR="$PAYLOAD/logs-probe-$(date +%Y%m%d_%H%M%S)"; mkdir -p "$LOGDIR"
+source /opt/ros/noetic/setup.bash
+[ -f /home/ros1-slam/ws/devel/setup.bash ] && source /home/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11313 GAZEBO_MASTER_URI=http://127.0.0.1:11355
+export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:$GAZEBO_PLUGIN_PATH
+
+cleanup() { rosnode kill -a 2>/dev/null; sleep 3; pkill -f gzserver 2>/dev/null; pkill -f gzclient 2>/dev/null; pkill -f "roslaunch.*m[12]_gazebo" 2>/dev/null; sleep 2; true; }
+trap cleanup EXIT
+
+roslaunch "$SIM_PKG/m1_gazebo.launch" > "$LOGDIR/gazebo.log" 2>&1 &
+# 等真值与 odom（planar_move 出 /Odometry）
+timeout 60 rostopic echo -n 1 /gazebo/model_states >/dev/null 2>&1 || { echo "FAIL: model_states 未出"; exit 1; }
+timeout 30 rostopic echo -n 1 /Odometry >/dev/null 2>&1 || { echo "FAIL: /Odometry 未出"; exit 1; }
+timeout 30 rostopic echo -n 1 /livox/imu >/dev/null 2>&1 || { echo "FAIL: /livox/imu 未出"; exit 1; }
+python3 "$PAYLOAD/m2_probe_yaw.py" 2>&1 | tee "$LOGDIR/probe_result.txt"
+grep -q "PROBE_VERDICT" "$LOGDIR/probe_result.txt" && echo "[PROBE OK] 结果见 $LOGDIR/probe_result.txt（判定抄录 02 坑册 + 回填 manifest 决策树）" || { echo "FAIL: 探针未出判定"; exit 1; }
