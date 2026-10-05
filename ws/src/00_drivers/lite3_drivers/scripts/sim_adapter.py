@@ -7,7 +7,11 @@
 #    限频 10Hz 最新者胜）
 # ② /quad_0/lidar_pose 差分合成→/livox/imu @200Hz（陀螺四元数差+中值+低通→R^T·ω_w；加速度 5 点 SG 二阶
 #    差分→R^T(a_w−g)；偏置+噪声+4g 限幅；Δq 奇异沿用上帧；stamp 单调化；断流>1s 停发）
-# ③ --mode traj：--traj yaml→/quad_0/body_pose @50Hz（静置→waypoints→回起点，偏航限速，开环完美位姿）。
+# ③ --mode traj：--traj yaml→/quad_0/body_pose @50Hz（静置→waypoints→回起点，开环完美位姿；
+#    R2 运动形态重构（对策 A，设计=/tmp/g8sim_rework_r2_design.md）：航向连续（yaw ≤turn_omega 斜变）
+#    +速度门控（|Δψ|>align_gate 原地转向不推进，零 crab）+起步/换向/到位斜坡（≤1m/s²，零速度跳变）
+#    +位置沿当前自身航向推进 p+=v·dt·(cosψ,sinψ)（velocity∥heading 恒成立）；切段判据=距本段终点<v·dt，
+#    切段不跳步（remain 由新段几何承接，杜绝 on-rails 残留版实测 |a_b|=3.51m/s²/π 向跳变）；端点/29 格路径不变）。
 # 已知简化（Q14）：渲染点无扫描几何/IMU 位姿差分/开环。红线：不启 M6、不碰 /cmd_vel、不改拷贝包。
 import argparse
 import collections
@@ -120,7 +124,9 @@ def load_traj(path):
     wp = np.array(cfg['waypoints'], dtype=np.float64)
     assert wp.ndim == 2 and wp.shape[1] == 2 and len(wp) >= 2, 'waypoints 需 ≥2 个 [x,y]'
     return {'wp': wp, 'z': float(cfg.get('z', 0.0)), 'speed': float(cfg.get('speed', 0.5)),
-            'hold_start': float(cfg.get('hold_start_s', 5.0)), 'hold_end': float(cfg.get('hold_end_s', 5.0))}
+            'hold_start': float(cfg.get('hold_start_s', 5.0)), 'hold_end': float(cfg.get('hold_end_s', 5.0)),
+            'turn_omega': float(cfg.get('turn_omega', 1.0)), 'v_ramp_s': float(cfg.get('v_ramp_s', 0.5)),
+            'align_gate': float(cfg.get('align_gate', 0.15))}          # R2 对策 B：三键缺省=现行为兼容
 
 
 class SimAdapter(object):
@@ -219,40 +225,58 @@ class SimAdapter(object):
         self.pub_imu.publish(im)
 
     def spin_traj(self, traj):
-        """③ 轨迹源（--mode traj，50Hz）：静置→waypoints 匀速→回起点静置"""
-        wp, z, speed, yaw = traj['wp'], traj['z'], traj['speed'], 0.0
+        """③ 轨迹源（--mode traj，50Hz）：静置→waypoints→回起点静置（开环完美位姿）
+        R2 运动形态重构（对策 A，设计=/tmp/g8sim_rework_r2_design.md §二.1 逐条）：
+        航向连续（yaw ≤turn_omega 斜变）；速度门控 v=speed·max(cosΔψ,0)·斜坡，|Δψ|>align_gate 原地转向不推进；
+        起步/换向/到位斜坡 ≤amax=speed/v_ramp_s=1m/s²（转弯/到位前 sqrt(2·amax·d_left) 制动包络）；
+        位置沿当前自身航向推进 p+=v·dt·(cosψ,sinψ)——velocity∥heading 恒成立、方向随 yaw 连续旋转（零 crab/
+        零速度跳变，角点向心项 v·ω≤0.5m/s² 远离 4g 钳位）；切段判据=距本段终点（沿段投影）<v·dt，切段位置
+        不跳步、remain 由新段投影几何承接；到终点后 v 斜坡降 0（惯性滑停 ≤~1.5cm）；端点/29 格路径/hold 语义不变"""
+        wp, z, speed = traj['wp'], traj['z'], traj['speed']
+        turn_omega = float(traj.get('turn_omega', YAW_RATE_MAX))          # 对策 B：yaml 三键，缺省=现值
+        v_ramp_s = float(traj.get('v_ramp_s', 0.5))
+        align_gate = float(traj.get('align_gate', 0.15))
+        self.traj_yaw, self.traj_v = 0.0, 0.0                # R2：航向/速度状态化（0 初值=GT yaw0 与 R1 口径一致）
         pub = rospy.Publisher('/quad_0/body_pose', Odometry, queue_size=50)
         rate = rospy.Rate(50)
+        dt = 0.02                                            # 50Hz
+        amax = speed / max(v_ramp_s, 1e-9)                   # 斜坡加速度（0.5/0.5=1m/s²）
         seg_len = np.linalg.norm(np.diff(wp, axis=0), axis=1)
-        rospy.loginfo('[sim_adapter] traj: %d waypoints, 总长 %.1fm @%.2fm/s', len(wp), seg_len.sum(), speed)
-        stage, t0 = 'hold_start', rospy.get_rostime()
+        u_seg = np.diff(wp, axis=0) / np.maximum(seg_len[:, None], 1e-9)
+        rospy.loginfo('[sim_adapter] traj R2: %d waypoints, 总长 %.1fm @%.2fm/s turn_omega=%.2f v_ramp_s=%.2f align_gate=%.2f',
+                      len(wp), seg_len.sum(), speed, turn_omega, v_ramp_s, align_gate)
+        stage, t0, seg = 'hold_start', rospy.get_rostime(), 0
+        p = wp[0].copy()
         while not rospy.is_shutdown():
             now = rospy.get_rostime()
-            p = wp[0].copy()
-            if stage == 'hold_start' and (now - t0).to_sec() >= traj['hold_start']:
-                stage, t0 = 'move', now
-            elif stage == 'move':
-                remain, seg = speed * (now - t0).to_sec(), 0
-                for L in seg_len:
-                    if remain > L:
-                        remain -= L
-                        seg += 1
-                    else:
-                        break
-                else:
+            if stage == 'hold_start':
+                p = wp[0].copy()
+                if (now - t0).to_sec() >= traj['hold_start']:
+                    stage, t0 = 'move', now
+            else:
+                if stage == 'move' and seg >= len(seg_len):   # 全程走完 → hold_end（本拍即滑停，不留空拍脉冲）
                     stage, t0 = 'hold_end', now
-                if stage == 'move':
-                    d = remain / max(seg_len[seg], 1e-9)
-                    p = wp[seg] + d * (wp[seg + 1] - wp[seg])
-                    dv = wp[seg + 1] - wp[seg]
-                    ty = math.atan2(dv[1], dv[0])
-                    dy = (ty - yaw + math.pi) % (2 * math.pi) - math.pi
-                    yaw += max(-YAW_RATE_MAX / 50.0, min(YAW_RATE_MAX / 50.0, dy))
-                if stage == 'hold_end':
-                    p = wp[-1].copy()                   # 回起点静置
+                if stage == 'hold_end':                       # 到终点后 v 斜坡降 0（manifest §二.1）——惯性滑停
+                    if self.traj_v > 0.0:                     # ≤v²/2amax≈1.5cm，加速度恒 amax 无尖峰；随后原位静置
+                        self.traj_v = max(0.0, self.traj_v - amax * dt)
+                        p = p + self.traj_v * dt * np.array([math.cos(self.traj_yaw), math.sin(self.traj_yaw)])
+                else:
+                    ty = math.atan2(u_seg[seg][1], u_seg[seg][0])          # 本段目标航向（:248 语义）
+                    dy = (ty - self.traj_yaw + math.pi) % (2 * math.pi) - math.pi
+                    self.traj_yaw += max(-turn_omega * dt, min(turn_omega * dt, dy))   # 航向连续斜变
+                    d_left = float(np.dot(wp[seg + 1] - p, u_seg[seg]))    # 距本段终点（沿段投影）
+                    nxt = u_seg[seg + 1] if seg + 1 < len(u_seg) else u_seg[seg]
+                    turn_ahead = abs((math.atan2(nxt[1], nxt[0]) - ty + math.pi) % (2 * math.pi) - math.pi) > align_gate
+                    v_b = math.sqrt(2.0 * amax * max(d_left, 0.0)) if (turn_ahead or seg + 1 == len(seg_len)) else speed
+                    v_tgt = min(speed * max(math.cos(dy), 0.0), v_b) if abs(dy) <= align_gate else 0.0
+                    self.traj_v += max(-amax * dt, min(amax * dt, v_tgt - self.traj_v))    # 起步/换向/到位斜坡 ≤1m/s²
+                    step = self.traj_v * dt
+                    if d_left < self.traj_v * dt:            # 切段：距本段终点 < v·dt（位置不跳步，remain 由新段几何承接）
+                        seg += 1
+                    p = p + step * np.array([math.cos(self.traj_yaw), math.sin(self.traj_yaw)])   # 沿当前自身航向推进
             om = Odometry()
             om.header.stamp, om.header.frame_id, om.child_frame_id = now, 'world', 'base_link'
-            oq = quat_from_yaw(yaw)
+            oq = quat_from_yaw(self.traj_yaw)
             om.pose.pose.position.x, om.pose.pose.position.y, om.pose.pose.position.z = p[0], p[1], z
             om.pose.pose.orientation.x, om.pose.pose.orientation.y = oq[0], oq[1]
             om.pose.pose.orientation.z, om.pose.pose.orientation.w = oq[2], oq[3]

@@ -1,0 +1,16 @@
+# G8-sim 返工R2 · GPU X 授权探针（对策 C，xvfb 冒烟 30s）（小明 2026-10-05 13:59–14:00）
+# 方法：xvfb-run -a -s "-screen 0 1280x1024x24" roslaunch lite3_drivers 95_sim.launch rviz:=false use_gpu:=true（xvfb 2:1.20.13-1ubuntu1.20.04.20 本轮 apt 新装）
+## 裁决：FAIL —— sim.log :94 'Failed to create GLFW window'（与 R1 headless 形态一致，Xvfb GLX 仍不可用）；opengl_render_node 未起（process 行计数=0）；无 compute_time 输出
+## 处置：按对策 C → 3 连回归维持 use_gpu:=false（CPU 渲染）；/Odometry 频率项按已知偏差登记（R1 实测 4.74–4.76Hz 与 5Hz 差 5%，本轮不动 min_raylength 0.3）
+## 退场核检（afterprobe.log）:
+== probe end 14:00:33，退场核检 ==
+176471
+176486
+176501
+176504
+176506
+## sim.log 关键行（GLFW 前后）:
+92-[0m[ INFO] [1791179995.991470230]: opengl_render_node sensor_type: lidar[0m
+93-[0m[ INFO] [1791179996.065316087]: drone_drawpoints_num = 4,4,2, Uav points num = 32[0m
+94:Failed to create GLFW window
+## 附注（诚实登记）：探针退场初检 pgrep 余 5 进程（kill 的是 xvfb-run 包装壳，子树未断）——已 pkill -9 全清并 pgrep 复核 (none)；R2 回归脚本沿用 R1 停序（直接 SIGINT roslaunch 本体），无此问题

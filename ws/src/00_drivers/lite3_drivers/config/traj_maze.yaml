@@ -1,10 +1,15 @@
 # G8-sim 轨迹（Q14）：seed=7 12x12 maze2d 最长蛇形路径(29格)+原路返回
 # 递归分割迷宫=完美迷宫(树拓扑)无长环线 → 双程设计；总程67.2m@0.5m/s≈134s+静置10s>=120s
+# R2(2026-10-04)：新增运动形态三键（对策 A 参数化）——角点/到位前降速原地换向+0.5s 斜坡，
+# 全程 wall 较 143s 增长（转弯原地换向+加减速；实测见返工R2 自检 log），端点/29 格路径不变
 # cell 中心线 clearance≈0.6m；起点=终点=ground truth(-4.25, -3.05, 0)
 frame: world
 hold_end_s: 5.0
 hold_start_s: 5.0
 speed: 0.5
+turn_omega: 1.0    # R2 对策 B：偏航角速率上限 rad/s（缺省 1.0=原 YAW_RATE_MAX 现行为）
+v_ramp_s: 0.5      # R2 对策 B：起步/到位斜坡时长 s（amax=speed/v_ramp_s=1m/s²）
+align_gate: 0.15   # R2 对策 B：|Δψ|>此值原地转向不推进 rad（速度∥heading 门限）
 waypoints:
 - &id029 [-4.25, -3.05]
 - &id028 [-4.25, -1.85]
