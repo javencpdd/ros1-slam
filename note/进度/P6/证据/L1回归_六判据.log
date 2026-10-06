@@ -1,0 +1,69 @@
+# L1 修复回归（G6-③ 收口）六判据汇总 2026-10-06
+# 施工：小明｜起法：l1_design.md §4——SUP(mode_reg_hold)+M6 mux 两节点最小栈，roscore -p 11313（测试 master；
+#       生产 11312 起前=退后全程零监听 ss 留证）；ysc 身份，三步预置（unset→noetic→devel，/tmp/l1_env.sh，
+#       ROS_HOME/ROS_LOG_DIR=/tmp/ysc_l1_ros）；全程 tmux 会话 l1reg 六窗（roscore/心跳/SUP/M6/hold echo/cmd_vel hz），
+#       五路输出全程 tee 本目录 raw/L1_*.log（M2 验收 O1 tee 留痕规约首次执行）。
+# 原始分片：raw/L1_{SUP,SUP_e,M6,hold_echo,cmdvel_hz,heartbeat,roscore,markers}.log
+# 判据口径注记：失联延迟两类——①marker→FATAL（杀除命令时间戳→SUP FATAL 行 WallTime，P6/P7 同口径）；
+#               ②设计调度上界=timeout 3.0s+1 拍=4.0s（设计稿 §4 注记：验收卡相位时以此放宽并注记）。
+
+## a) 基态（15:41:34 起栈静置 ~60s）——PASS
+- hold echo 全程静默 0 行（SUP 启动不主动发布 False，latch 待边缘；M6 端默认 False 语义一致）
+- M6 15:41:35.499 up: 6 sources @20Hz；15:41:35.550 活跃源切换: INIT -> NONE
+- /cmd_vel 恒 20.000 Hz（15:42:23–26 连续 4 个 hz 窗 average rate=20.000，min 0.032s/max 0.068s/std 0.0011s）
+- /cmd_vel 零速样本 linear/angular 全 0.0（15:42 段 rostopic echo -n1）
+- SUP log 零输出（无 FATAL、无发布）；SUP 发布物自检：rosnode info /lite3_supervisor Publications 仅
+  /lite3/supervisor/hold [Bool] + /rosout（红线：无任何 cmd_vel 类）——终态 15:50 复查一致
+
+## b) 杀心跳 → FATAL+hold+HOLD（15:42:37.885 C-c T3）——PASS
+- marker→FATAL = 15:42:37.885 → 15:42:40.734 = **2.849s ≤ 3.5s**（P6/P7 口径；末拍口径 ≈3.03s，亦 ≤4.0s 上界）
+- SUP logfatal **恰 1 行**（15:42:40.734，文案含新后缀「自动恢复=True（需连续 3 拍稳定）」）——旧版每秒重复刷屏已废止
+- hold echo 15:42:40.747 data: True（唯一一条，边缘发布）
+- M6 15:42:40.750 监督保持输入 hold=True；15:42:40.761 活跃源切换: NONE -> HOLD；/cmd_vel 保持零速
+
+## c) 恢复心跳 ≥recover_beats(3) 拍（15:42:59.935 重启 T3）——PASS
+- 15:43:06.735 [SUP][RECOVER] 心跳恢复: M6_safety **连续 3 拍稳定** —— hold=false，FATAL 降级解除（INFO 恰 1 行）
+- hold echo 15:43:06.742 data: False（边缘一条）
+- M6 15:43:06.751 hold=False；15:43:06.761 活跃源切换: **HOLD -> NONE**（mux 未重启，SUP 一条 hold=False 即退出 HOLD）
+- /cmd_vel 恒 20.000 Hz 不变（15:43:07 窗）
+
+## d) 恢复观察期内再失联 → 防振荡（hold 不翻转、计数清零）——PASS
+- 15:44:07.117 杀 → 15:44:09.735 FATAL（2.618s ≤3.5s）+ hold True（15:44:09.741）
+- 15:44:43.371 重启心跳（观察窗起，hold=True 中）；15:44:45.393 **<3 拍（~2 拍）再杀**
+- → 观察中断期 SUP **零新日志**（无重复 FATAL——模块仍在 lost，仅 recover_cnt 清零）、hold echo **零新行**（全程 True 不翻转）、
+  M6 **零切换行**（保持 HOLD）
+- 15:44:49.440 再重启 → 须重新累计：15:44:56.734 RECOVER（连续 3 拍稳定）+ 15:44:56.740 hold False + M6 HOLD->NONE
+  （再失联间隔 4.0s 内未出现提前解除，证明计数清零生效）
+
+## e) auto_recover=false（/tmp/l1_payload/reg_health_watch_e.yaml 重启 SUP）——PASS
+- 15:47:02.475 SUP 换 e 变体重启（defaults auto_recover: false，yaml.safe_load 预检过）
+- 15:47:06.566 杀心跳 → 15:47:11.341 FATAL，文案「**自动恢复=False**（需连续 3 拍稳定）」（变体配置生效证）；
+  marker→FATAL 4.78s 中含 tmux kill-window SIGHUP 收尾窗（pub 末拍 ~15:47:08.3），末拍口径 ≈3.0–4.0s=设计上界内
+- 15:47:11.640 重启心跳，观察 10s（>3 拍）→ **无 RECOVER INFO、hold 仍 True（11 条无新增）、M6 保持 HOLD**
+  （恢复分支被 auto_recover=false 整体旁路，FATAL 不自动解除）
+- 人工 S-4 复位（15:47:53.506 杀 SUP+M6 双重启）：新 M6 实例 15:47:58.494 up；15:47:58.531 活跃源切换: INIT -> NONE；
+  hold echo 无新增行（旧 latch 随 SUP 进程终止消亡）；/cmd_vel 零速恢复 20Hz（hz log 4.987s 间隔=本次 S-4 重启窗）
+
+## f) 恢复-失联-恢复循环 3 次（15:45:27–15:46:06，auto_recover=true 栈）——PASS
+- SUP 转移行恰 +6：3×FATAL（15:45:30.732/15:45:43.736/15:45:56.735）+ 3×RECOVER（15:45:39.736/15:45:52.733/15:46:05.732），
+  每次状态翻转仅 1 行，两态间零重复日志=**无日志风暴**
+- hold 翻转恰 6 条 True/False 严格交替：15:45:30.740/15:45:39.745/15:45:43.742/15:45:52.744/15:45:56.744/15:46:05.746
+- 每循环 marker→FATAL：3.389s/3.304s/3.214s ≤3.5s；RECOVER 均报「连续 3 拍稳定」
+  （restart→RECOVER 7.2–7.4s = rostopic pub 冷启动 ~4.2s + 3 拍 3.0s，自洽）
+- 红线终检：SUP Publications 仅 hold+rosout（rosnode info 两查一致）；mux 文件 git diff 空（60_safety 全目录）；
+  全程 /cmd_vel 唯一写者=safe_cmd_vel_mux
+
+## 隔离与退净
+- 测试 master 11313；生产 11312 起前=退后 ss 零监听；foxy 生产五进程（115711/115792/115795/115797/115799）+180237 全程零触碰
+  （退净前后 ps 快照 diff：PID 集合一致，etime 连续；另观察：livox_ros_driver2_node pid 299594 于回归窗口内自行退出，
+  不命中本次任何清理命令模式、其 launch 父进程 299591 仍在——属用户侧驱动的自主退出，非本施工行为，如实登记）
+- 退净：tmux l1reg 整会话 kill + 定向 pkill；noetic 残留 pgrep=0；11313/11312 双口释放（ss 留证）
+- 回归时间线：15:41:34 起栈 → 15:50:14 终态复查 → 15:52 退净
+
+## 结论
+- 六判据 a)–f) **6/6 全 PASS**——G6-③（hold 复位需 SUP+M6 双重启=L1）由此转**完全 PASS**；
+  D-P7-1 启动宽限未回退（startup_grace 段代码零改动，静态 diff 对账见 raw 与 04 台账 D-L1-1）
+- 偏差 2 条：①设计稿 §4 T2 写 `config/safe_cmd_vel_mux.yaml`，实件=lite3_safety/config/**cmd_vel_mux.yaml**
+  （按设计稿自注「~mux_config 指 lite3_safety/config 下既有 mux yaml」取实件）；②落盘由先前批完成
+  （commit b383033「health修复」），本批核账：payload .diff 应用于 before_L1.bak 与现役 py 零差异、
+  yaml 仅多 7aa32df 仿真测试台合法新增 mode_nav_sim 4 行——与 payload 终稿逐行一致，未重复落盘
