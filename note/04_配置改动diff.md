@@ -218,3 +218,4 @@
 - data/maps/lite3_1007_polished.pcd：正式底图抛光版（329 万→386,549 点：z 裁剪【-0.09,4.46】+0.049m 体素二分+SOR 剔 166）2026-10-07
 - data/maps/lite3.pgm/yaml：2D 底图重生成——**numpy 直接投影法**（狗身带 z[地面+0.2,地面+1.6] → 0.05m 栅格，占据黑/未知灰，origin z=0.0 原生）替代 octomap 管线（pcd_to_pointcloud 在 386k 点 Aborted 不稳定）；299×290、占据 15,517 格 2026-10-07
 - ⚠ 承接前条数据异动：lite3.pgm/yaml 旧版亦被清，本批从 lite3_1007 全量重建三件套 2026-10-07
+- 新增 lite3_bringup/urdf/Lite3_prim.urdf（由 Lite3.urdf 自动生成：13 处 mesh→STL 包围盒 box【躯干 0.55/腿 0.26m】，运动学零漂移，check_urdf 解析通过）+ mapping_viz.launch 切换至该 URDF——Foxglove 远程无需 STL，13 连杆错误根治 2026-10-06
