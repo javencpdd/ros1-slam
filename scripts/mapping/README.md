@@ -6,6 +6,7 @@
 
 ```bash
 # tmux 内（ros1-slam 身份）: sudo -u ros1-slam tmux new-session -A -s p3b
+cd ros1-slam/scripts/mapping
 bash m_check.sh                 # ① 体检（11 项；阻塞项须处置）
 bash m_clean.sh                 # ② 清场（上一场残留）
 bash m_start.sh                 # ③ 三窗启动（core/drv/slam 自动建窗）

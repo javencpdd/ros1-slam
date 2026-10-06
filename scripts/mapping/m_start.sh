@@ -10,11 +10,13 @@ echo "[m_start] 检查体检状态（不强制，建议先跑 m_check.sh）"
 if ! in_tmux=$( [ -n "${TMUX:-}" ] && echo yes || echo no ); then in_tmux=no; fi
 if [ "$in_tmux" = "yes" ]; then
   # 已在 tmux：创建独立窗（不开新会话）
-  tmux new-window -t "$SESSION" -n core "bash -lc 'source /home/ros1-slam/scripts/mapping/m_run_core.sh; exec bash'"
+  # 建窗即切焦属正常；窗内进程若秒退，remain-on-exit 保留窗口与报错（勿 exec）
+  tmux new-window -t "$SESSION" -n core "bash -c 'source /home/ros1-slam/scripts/mapping/m_run_core.sh; exec bash'"
+  tmux set-option -t "$SESSION" remain-on-exit on
   sleep 2
-  tmux new-window -t "$SESSION" -n drv  "bash -lc 'source /home/ros1-slam/scripts/mapping/m_run_drv.sh; exec bash'"
+  tmux new-window -t "$SESSION" -n drv  "bash -c 'source /home/ros1-slam/scripts/mapping/m_run_drv.sh; exec bash'"
   sleep 3
-  tmux new-window -t "$SESSION" -n slam "bash -lc 'source /home/ros1-slam/scripts/mapping/m_run_slam.sh; exec bash'"
+  tmux new-window -t "$SESSION" -n slam "bash -c 'source /home/ros1-slam/scripts/mapping/m_run_slam.sh; exec bash'"
   echo "[m_start] 三窗已建（core/drv/slam）——切窗 Ctrl-b 数字；先验 /rslidar_points≥9Hz 与 /livox/imu≈200Hz 再看 slam 窗 /Odometry"
 else
   echo "[m_start] 不在 tmux 内——请先: sudo -u ros1-slam tmux new-session -A -s $SESSION"

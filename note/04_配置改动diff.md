@@ -197,3 +197,4 @@
 - 新增 lite3_bringup/scripts/map_snapshot_pub.py + launch/mapping_viz.launch（采图可视化伴侣：/cloud_registered 内存累积→/map_snapshot 30s latched 快照【LIO 视角含历史修正，区别于 Foxglove Decay 显示】；Lite3 模型 robot_state_publisher+joint_state_publisher+body→TORSO 桥接，Foxglove 3D 显示狗随位姿移动）2026-10-06
 - 新增 scripts/mapping/ 采图脚本族 12 件（m_check 体检/m_clean 清场/m_start 三窗启动/m_run_core·drv·slam 窗体/m_verify 频率联锁/m_pose 位姿/m_viz 可视化伴侣/m_stop 一键停机【保 interval=-1 落盘顺序】/m_env 公共环境/README 使用手册；超参 SESSION/ODOM/N/WAIT 环境变量）——固化 P3b 作业单流程为可执行脚本 2026-10-06
 - scripts/mapping/：setfacl 授 u:ysc:rwx（含 default，mask=rwx）——用户 VS Code(ysc) 需直接编辑采图脚本；注意后续若对该目录 chmod 会重算 mask 压回 ysc 权限，届时需重跑 setfacl（R14 同族教训）2026-10-06
+- scripts/mapping/m_start.sh+m_run_*.sh 修复：建窗改 bash -c（去 bash -lc）+ remain-on-exit on + m_run_*.sh 去 exec——修复"drv/slam 窗秒死即关、报错丢失"（2026-10-06 现场：仅 core 存活，drv/slam 窗消失，实测 roslaunch 命令本身健康）；窗口常驻化后失败窗保留报错原文 2026-10-06
