@@ -5,7 +5,12 @@
 #   TOPIC=/cloud_view      发布话题名
 #   DECIMATE=10            抽点稀疏化（1=全量；WiFi 看图建议 5–10）
 source "$(dirname "$0")/m_env.sh"
-FILE=${FILE:-lite3_ceshi1006}
+# FILE 不指定 = 自动选 data/maps 下最新的一张（按 mtime）
+if [ -z "${FILE:-}" ]; then
+  FILE=$(ls -t /home/ros1-slam/data/maps/*.pcd 2>/dev/null | head -1 | xargs -r basename | sed 's/\.pcd$//')
+  [ -n "$FILE" ] && echo "[m_view] 未指定 FILE → 自动选最新: $FILE"
+fi
+FILE=${FILE:-lite3}
 TOPIC=${TOPIC:-/cloud_view}
 DEC=${DECIMATE:-10}
 # master 自检：不在则自动起一个（看图独立于采图流程）

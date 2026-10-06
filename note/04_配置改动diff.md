@@ -205,3 +205,4 @@
 - map_snapshot_pub.py v2：修复 snap_timer 与 cb 并发访问 voxels/order 的线程安全缺陷（v1 RuntimeError deque mutated during iteration，快照线程首拍后崩）——threading.RLock 全程护锁，prune 重剪持锁内联，发布移锁外；重写清 v1 prune 遗留伪码 2026-10-06
 - m_view.sh v2：master 自检+自动起 roscore 11312（看图独立于采图流程；采图停机后也能看图）2026-10-06
 - m_view.sh v3：FILE 不指定时自动选 data/maps 最新一张（按 mtime）——配合 m_stop 时间戳命名，看图不必记文件名 2026-10-06
+- 04 补充机理注记：sudo cp 入 ACL 目录会保留源文件 644 权限 → default ACL 的 mask 被压为 r--（ysc 只读）——凡 sudo cp 进 mapping/note 等目录后必须 setfacl 重授或 chmod 后重算 mask（R14 精确机理）；m_view.sh v3：FILE 缺省自动选 data/maps 最新一张 2026-10-06
