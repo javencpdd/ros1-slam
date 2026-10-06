@@ -17,6 +17,20 @@ NAME=1006采集 bash m_stop.sh     # ⑤ 停机（先停 SLAM 等落盘日志！
 
 ## 脚本清单
 
+## tmux 窗口一览（m_start.sh 建成后，按 Ctrl-b 数字切换）
+
+| 窗 | 跑的脚本/命令 | 里面是什么 | 你要做的 |
+|---|---|---|---|
+| `0:bash` | 你的主操作窗 | 普通终端（跑 m_check/m_verify/m_pose/m_stop 的地方） | 体检/验证/记坐标/停机都在这 |
+| `1:core` | `m_run_core.sh` → `roscore -p 11312` | ROS1 master（全图中枢，所有话题经它） | **只看着，别动**；采完随 m_stop 一起退 |
+| `2:drv` | `m_run_drv.sh` → `roslaunch lite3_drivers 01_sensors.launch` | **M0 驱动层**：Livox Mid-360 驱动（→/rslidar_points 10Hz、/livox/imu 200Hz）+ qnx2ros（会报 bind error 死掉=已知噪音，无视） | 确认 livox 启动成功即可；采图期间别碰 |
+| `3:slam` | `m_run_slam.sh` → `roslaunch lite3_slam 10_slam_mapping.launch` | **M1 建图层**：faster_lio（吃点云+IMU → /Odometry + 累积地图） | ⚠ **停机时第一个 Ctrl-C 的窗**；退出时必须等 `current scan saved` + `finish done` 两行打完（PCD 全量落盘在这两行里） |
+| `4:viz` | `m_viz.sh` → `roslaunch lite3_bringup mapping_viz.launch` | **可视化伴侣**：/map_snapshot（30s 一条 LIO 视角全图快照）+ Lite3 狗模型（robot_state_publisher，随 /Odometry 移动） | Foxglove 看建图过程的窗口；TORSO inertia WARN 无害 |
+
+> 频率验证不分窗：`bash m_verify.sh`（加 `ODOM=1` 验 /Odometry）在任何窗都能跑。
+
+
+
 | 脚本 | 作用 | 关键超参 |
 |---|---|---|
 | `m_env.sh` | 公共环境（勿单独跑） | — |

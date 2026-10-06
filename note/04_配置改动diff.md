@@ -199,3 +199,4 @@
 - scripts/mapping/：setfacl 授 u:ysc:rwx（含 default，mask=rwx）——用户 VS Code(ysc) 需直接编辑采图脚本；注意后续若对该目录 chmod 会重算 mask 压回 ysc 权限，届时需重跑 setfacl（R14 同族教训）2026-10-06
 - scripts/mapping/m_start.sh+m_run_*.sh 修复：建窗改 bash -c（去 bash -lc）+ remain-on-exit on + m_run_*.sh 去 exec——修复"drv/slam 窗秒死即关、报错丢失"（2026-10-06 现场：仅 core 存活，drv/slam 窗消失，实测 roslaunch 命令本身健康）；窗口常驻化后失败窗保留报错原文 2026-10-06
 - scripts/mapping/m_start.sh v2：逐窗 remain-on-exit（原仅设活动窗）、已存在窗跳过（防重复 roscore）、VIZ=1 默认建 viz 窗——三窗秒死/重复建窗两坑修复 2026-10-06
+- scripts/mapping/README.md：新增「tmux 窗口一览」表（0:bash 主操作/1:core roscore/2:drv M0 驱动/3:slam M1 建图【停机首 Ctrl-C+等落盘两行】/4:viz 可视化伴侣）——m_start 建成的五窗职责与操作指引 2026-10-06
