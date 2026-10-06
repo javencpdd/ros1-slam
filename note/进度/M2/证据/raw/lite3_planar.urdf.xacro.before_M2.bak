@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<!--
+  lite3_planar.urdf.xacro —— M1 planar 伪狗（小张 payload，2026-10-05）
+  骨架来源：opt/upstream/deep_robotics_model/Lite3/urdf/Lite3.urdf（root=TORSO，保留官方命名）
+  ★ 取舍声明（正式，非偷懒）：
+    ① 四腿 12 关节整体省略 —— planar_move 是运动学驱动（SetLinearVel/SetAngularVel），
+       腿关节不参与推进，只增加碰撞求解负担；落地即四足步态替代，M1 判据（回原点漂移）不受影响。
+    ② TORSO 视觉/碰撞 mesh（torso.STL）→ box 0.42×0.31×0.22（官方 URDF 实测包围盒量级），减 Jetson 负载。
+    ③ base_link 为我方契约 frame，官方 root 是 TORSO → 以 fixed joint TORSO→base_link 恒等桥接，双 frame 并存。
+    ④ rslidar 整块省略 <collision>（D-M1-5 返工，2026-10-06）：sensor 起点不得落于任何自身 collision 内——
+       r0.045 圆柱包裹 fratopa 射线原点 → 最近命中 ≤0.045m < range.min 0.1 被插件置 0 → 20000 点全零
+       （上游 model.sdf:18/34 以 sensor pose 抬高 0.05 避让同款坑）；visual+inertial 保留。
+  传感器（三件全挂 rslidar link，即 base_link 前上方 0.38m —— Q3 实测高度；x/y 取 0 为保守值，Q3 只固化高度，待实机验证）：
+    ① fratopa Mid360 插件（liblivox_laser_simulation.so，publish_pointcloud_type=3 → livox_laser_simulation/CustomMsg
+       @10Hz → /livox/lidar，frameName=rslidar）——参数逐字照 fratopa README，仅 frameName/topic/visualize 按 M1 调整
+    ② Gazebo IMU 200Hz 高斯噪声 → /livox/imu（faster_lio_outdoor.yaml common.imu_topic 契约；Mid-360 IMU 在雷达体内，
+       故挂 rslidar 而非 base_link，与生产 extrinsic_T 语义一致）
+    ③ planar_move 伪狗驱动（libgazebo_ros_planar_move.so，本机 noetic 已装实证）：订阅 /cmd_vel（体前向 x+），
+       发布 /Odometry（odometryFrame=odom）+ TF odom→base_link
+  TF 链：robot_state_publisher 出 base_link→rslidar（fixed 0.38m）+ TORSO→base_link；map→base_link 不在本载荷
+  （M1 判据走 /Odometry 的 odom frame；map 由 M2 定位接入，见 manifest）
+-->
+<robot name="lite3_planar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ================= 官方骨架：TORSO（root，保持官方名） ================= -->
+  <link name="TORSO">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="15.0"/>
+      <inertia ixx="0.3406" iyy="0.1806" izz="0.2810" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.42 0.31 0.22"/></geometry>
+      <material name="torso_grey"><color rgba="0.35 0.35 0.4 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.42 0.31 0.22"/></geometry>
+    </collision>
+  </link>
+
+  <!-- 我方契约 frame：base_link（TORSO 恒等桥接） -->
+  <joint name="torso_to_base" type="fixed">
+    <parent link="TORSO"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="base_link">
+    <inertial>
+      <mass value="0.01"/>
+      <inertia ixx="1e-5" iyy="1e-5" izz="1e-5" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- 雷达 link：base_link 前上方 0.38m（Q3 实测高度，x/y=0 保守值待实机验证） -->
+  <joint name="base_to_rslidar" type="fixed">
+    <parent link="base_link"/>
+    <child link="rslidar"/>
+    <origin xyz="0 0 0.38" rpy="0 0 0"/>
+  </joint>
+  <link name="rslidar">
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="1e-4" iyy="1e-4" izz="1e-4" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <geometry><cylinder radius="0.045" length="0.03"/></geometry>
+      <material name="lidar_black"><color rgba="0.05 0.05 0.05 1"/></material>
+    </visual>
+    <!-- D-M1-5（2026-10-06 返工）：rslidar <collision> 整块删除——sensor 起点不得落于任何自身 collision 内，
+         详见头部取舍声明④；visual+inertial 保留。 -->
+  </link>
+
+  <!-- ================= fratopa Mid360（参数逐字照 README，type=3 → CustomMsg） ================= -->
+  <gazebo reference="rslidar">
+    <sensor type="ray" name="laser_livox">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>false</visualize>
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <plugin name="livox_mid360_plugin" filename="liblivox_laser_simulation.so">
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>100</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.1415926535897931</min_angle>
+              <max_angle>3.1415926535897931</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>50</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.1415926535897931</min_angle>
+              <max_angle>3.1415926535897931</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>40</max>
+            <resolution>1</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.0</stddev>
+          </noise>
+        </ray>
+        <visualize>false</visualize>
+        <samples>20000</samples>
+        <downsample>1</downsample>
+        <csv_file_name>mid360-real-centr.csv</csv_file_name>
+        <publish_pointcloud_type>3</publish_pointcloud_type>
+        <ros_topic>/livox/lidar</ros_topic>
+        <frameName>rslidar</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- ================= Gazebo IMU 200Hz（/livox/imu，faster_lio imu_topic 契约） ================= -->
+  <gazebo reference="rslidar">
+    <sensor type="imu" name="mid360_imu">
+      <always_on>true</always_on>
+      <update_rate>200</update_rate>
+      <!-- D-M1-1 修复（2026-10-06 小明，gdb 实证）：libgazebo_ros_imu.so 为老式 ModelPlugin，
+           挂 sensor type=imu 必触发 Sensor.cc:340 incorrect plugin type 并在析构半初始化对象时
+           SIGSEGV（ros::NodeHandle::shutdown，gdb 栈实证）；noetic 正确件为 libgazebo_ros_imu_sensor.so
+           （SensorPlugin，键名经 .so strings 实证：topicName/frameName/gaussianNoise/xyzOffset/rpyOffset/
+           updateRateHZ/robotNamespace）；键值语义不变（200Hz/0.01/rslidar//livox/imu）。 -->
+      <plugin name="gazebo_ros_imu_sensor" filename="libgazebo_ros_imu_sensor.so">
+        <robotNamespace>/</robotNamespace>
+        <updateRateHZ>200</updateRateHZ>
+        <frameName>rslidar</frameName>
+        <topicName>/livox/imu</topicName>
+        <gaussianNoise>0.01</gaussianNoise>
+        <xyzOffset>0 0 0</xyzOffset>
+        <rpyOffset>0 0 0</rpyOffset>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- ================= planar_move 伪狗驱动 =================
+       键名经本机 /opt/ros/noetic/lib/libgazebo_ros_planar_move.so strings 实证：
+       commandTopic / odometryTopic / odometryFrame / robotBaseFrame；
+       publishOdomTF/commandTimeout 键未在该 so 中出现（此版无）→ 不写，见 manifest 待实机验证 -->
+  <gazebo>
+    <plugin name="planar_move" filename="libgazebo_ros_planar_move.so">
+      <robotNamespace>/</robotNamespace>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>/Odometry</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <robotBaseFrame>base_link</robotBaseFrame>
+    </plugin>
+  </gazebo>
+
+  <!-- 落地摩擦：低 mu 减小 planar 滑行阻力（伪狗靠 SetVel 驱动，腿底摩擦无意义） -->
+  <gazebo reference="TORSO">
+    <mu1>0.1</mu1>
+    <mu2>0.1</mu2>
+  </gazebo>
+
+</robot>

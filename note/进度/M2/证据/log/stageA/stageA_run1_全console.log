@@ -1,0 +1,25 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261006_094429
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(-0.000,-0.000) imu_yaw0=-0.014
+SMOKE phase_fwd_out_done
+SMOKE phase_turn180_done
+SMOKE phase_fwd_back_TIMEOUT
+Traceback (most recent call last):
+  File "<stdin>", line 43, in <module>
+TypeError: 'float' object is not subscriptable
+[FAIL] A: 闭环未走完
+[PASS] A③(M2-4): 漂移  ≤0.5
+[FAIL] A①: 点云  <5Hz
+[FAIL] A②: IMU  <100Hz
+[PASS] A④: 飞点  <1%
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: FAIL
+==================================================
+killing:
+ * /faster_lio_online
+ * /gazebo
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed

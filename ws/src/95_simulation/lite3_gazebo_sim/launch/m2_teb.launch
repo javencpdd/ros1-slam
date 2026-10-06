@@ -1,0 +1,30 @@
+<launch>
+  <!-- m2_teb.launch —— M2-2 teb 物理闭环（小张 payload，2026-10-06）
+       链路：gazebo(M2 xacro) → lite3_planar_drive 吃 /cmd_vel（M1 已证 cmd_vel 可驱动）
+             → costmap 障碍层实时吃 /rslidar_points（C3 终值）+ static_layer 吃 m2_free_map 免费底图
+             → mbf（C0 形态，cmd_vel 已 remap cmd_vel_raw）→ m2_cmd_relay /cmd_vel_raw→/cmd_vel 闭环。
+       TF：map→odom 恒等（static）+ odom→base_link（lite3_planar_drive 闭环发布）→ map→base_link 可查。
+       红线：全链 11313 隔离域（调用方设）；/cmd_vel 写者唯一=m2_cmd_relay（本 sim 域，无 M6/SUP）；
+             无 ros2qnx、无估计层之外的真机组件；不触生产 11312。 -->
+  <arg name="goal_x" default="3.0"/>   <!-- 冒烟判据：起点 +3m -->
+  <arg name="goal_y" default="0.0"/>
+  <param name="use_sim_time" value="true"/>
+
+  <include file="$(find lite3_gazebo_sim)/launch/m2_gazebo.launch"/>
+
+  <!-- map→odom 恒等桥（mapless rolling costmap；真实定位接入= M2-3 hdl，本 stage 不起） -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom_static"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <node pkg="lite3_gazebo_sim" type="m2_free_map.py" name="m2_free_map"/>
+  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="cmd_vel_relay"
+        args="/cmd_vel_raw /cmd_vel Twist"/>
+
+  <!-- mbf 导航栈（C0 形态，cmd_vel→cmd_vel_raw remap 在其 launch 内） -->
+  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
+    <arg name="rviz" value="false"/>
+  </include>
+
+  <!-- 目标注入：mbf move_base action（mbf_msgs/MoveBaseAction）；goal 由冒烟脚本按 start 动态发，
+       此处仅登记约定 goal=(start_x+3, start_y) —— 判据 ≤0.35m / ≤120s（sim 时）见 m2_smoke.sh Stage B -->
+</launch>
