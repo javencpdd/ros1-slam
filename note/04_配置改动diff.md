@@ -213,3 +213,4 @@
 - 新增 scripts/mapping/m_slice.sh + pcd_slice.py（按 Z 轴水平断面条切分：超参 FILE/THICK/ZMIN/ZMAX/OUTDIR，输出 4 字段小 pcd 供 CloudCompare/m_view 逐层查看）——用户需求"按 Z 轴取断面" 2026-10-06
 - pcd_slice.py v2：切片文件名去 '+'（正负改 p/m 前缀）、头部去 '#' 注释行——两项均 CloudCompare PCD 解析器不兼容（用户实测 z+0.00 加载失败）；sim_venue 实测 4 片自验 OK（头尾精确/无 NaN）2026-10-07
 - ⚠ 数据异动登记：data/maps 于 10-06 夜间至 10-07 被清理——lite3_ceshi1006.pcd(182M)/lite3_raw_master.pcd(263M)/lite3_raw_preview.pcd/lite3_ceshi1006_lite1M.pcd 四件消失（行为者待确认：用户下载后清理 or 并行会话 B）。影响评估：ceshi1006 用户笔记本桌面有副本（CloudCompare 加载记录实证）可回传恢复；raw_master 昨日重采 master 是否有第二副本待用户确认；v1 底图(676K)与 2D 图在 archive/与 data/maps 存活。已请用户确认 2026-10-07
+- scripts/mapping/m_start.sh mk_win v2：死窗识别与自动重建（pane_dead 检测——remain-on-exit 残留死窗曾挡住重建，致旧 master run_id mismatch 连锁）2026-10-07

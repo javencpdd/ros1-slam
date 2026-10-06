@@ -11,10 +11,15 @@ if ! in_tmux=$( [ -n "${TMUX:-}" ] && echo yes || echo no ); then in_tmux=no; fi
 if [ "$in_tmux" = "yes" ]; then
   # 已在 tmux：逐窗创建（已存在的窗跳过——防重复跑建重复 roscore）
   # 建窗即切焦属正常；remain-on-exit 逐窗设置（窗内进程秒退时保留窗口与报错，勿 exec）
-  mk_win() {  # mk_win 窗名 窗内命令
+  mk_win() {  # mk_win 窗名 窗内命令（死窗自动重建，活窗跳过）
     local wname="$1" wcmd="$2"
-    if tmux list-windows -t "$SESSION" -F "#W" 2>/dev/null | grep -qx "$wname"; then
-      echo "[m_start] 窗 $wname 已存在，跳过"
+    local dead
+    dead=$(tmux list-windows -t "$SESSION" -F '#{window_name} #{pane_dead}' 2>/dev/null | awk -v w="$wname" '$1==w && $2==1' | wc -l)
+    if [ "$dead" -gt 0 ]; then
+      echo "[m_start] 窗 $wname 为死窗（上次残留）→ 重建"
+      tmux kill-window -t "$SESSION:$wname" 2>/dev/null
+    elif tmux list-windows -t "$SESSION" -F "#W" 2>/dev/null | grep -qx "$wname"; then
+      echo "[m_start] 窗 $wname 已存在且存活，跳过"
       return 0
     fi
     tmux new-window -t "$SESSION" -n "$wname" "bash -c '$wcmd; exec bash'"
