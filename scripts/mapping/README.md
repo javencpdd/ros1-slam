@@ -11,7 +11,7 @@ bash m_clean.sh                 # ② 清场（上一场残留）
 bash m_start.sh                 # ③ 三窗启动（core/drv/slam 自动建窗）
 #    → m_verify.sh 验频率 → 达标后开始走位（静置30s→外圈→反向→内部补线→回起点）
 bash m_pose.sh                  # ④ 回起点时记坐标
-bash m_stop.sh                  # ⑤ 停机（先停 SLAM 等落盘日志！）→ ls data/maps
+NAME=1006采集 bash m_stop.sh     # ⑤ 停机（先停 SLAM 等落盘日志！）→ 产物自动改名 lite3_1006采集.pcd
 ```
 
 ## 脚本清单
@@ -26,11 +26,11 @@ bash m_stop.sh                  # ⑤ 停机（先停 SLAM 等落盘日志！）
 | `m_verify.sh` | 频率联锁验证 | `ODOM=1` 加验 /Odometry |
 | `m_pose.sh` | 当前位姿单帧 | `N`=帧数 |
 | `m_viz.sh` | 可视化伴侣（快照+狗模型） | — |
-| `m_stop.sh` | 一键停机（保落盘顺序） | `WAIT`=落盘等待上限（默认 45s） |
+| `m_stop.sh` | 一键停机（保落盘顺序）+ **产物重命名** | `WAIT`=落盘等待上限（默认 45s）；`NAME`=产物标签（**默认=月日_时分**，如 lite3_1006_1759.pcd；`NAME=mine`；`NAME=keep` 保持原名）；`KEEP_LATEST=1` 额外留 lite3.pcd 副本（hdl 默认名兼容） |
 
 ## Foxglove
 
-- 连接：ROS 1 → `http://192.168.1.103:11312`，ROS_HOSTNAME=笔记本局域网 IP
+- 连接：ROS 1 → `http://192.168.1.103:11312`，ROS_HOSTNAME=笔记本局域网 IP （192.168.2.47）
 - 订阅：`/map_snapshot`（30s 全图快照，主判据）+ 狗模型自动出现 + `/cloud_registered`（可加 Decay Time 看单帧）
 - 红线：**只订阅不发布**
 
