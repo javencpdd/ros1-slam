@@ -22,7 +22,7 @@ export ROS_MASTER_URI=http://127.0.0.1:11313 GAZEBO_MASTER_URI=http://127.0.0.1:
 export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:/home/ros1-slam/ws/devel/lib
 
 PASS=1
-INVALID=0  # M2-R1 A0 前置：运动窗 RTF<0.3 → 本轮作废重跑，不计 FAIL
+INVALID=0  # A0 前置：运动窗 RTF<0.25（M2R2 主理人裁决 0.3→0.25：D-01 后 200Hz IMU 正确配置合理 RTF 平台 0.288，门意抓塌缩非惩罚正确配置）→ 本轮作废重跑，不计 FAIL
 mark() { [ "$1" = "1" ] && echo "[PASS] $2" || { echo "[FAIL] $2"; PASS=0; }; }
 wait_topic() {  # D-M2-P4（D-M1-3 同款修法移植）：启动窗内单次长 echo 挂起/吞 TERM（M1 实证 4/4）；list 门控+短 echo 反复重试
   local t=0
@@ -112,7 +112,7 @@ S['mot']=1; S['m0_wall']=time.time()  # F4：运动窗起点（墙钟，供 A0 R
 ok_out = phase('fwd_out', 0.5, 0.0, lambda: S['odom'].pose.pose.position.x - sx >= 4.85)
 ok_turn = phase('turn180', 0.0, 0.6, lambda: math.degrees(abs(qyaw(S['iq'])-i_yaw0)) >= 178.0)
 ok_back = phase('fwd_back', 0.5, 0.0, lambda: math.hypot(S['odom'].pose.pose.position.x-sx,
-                                                          S['odom'].pose.pose.position.y-sy) <= 0.25)
+                                                          S['odom'].pose.pose.position.y-sy) <= 0.5)  # M2R2 主理人裁决 done 窗 0.25→0.5m（转向接触非确定残差 ±2-4° 在 4.85m 直线天然 ±0.34m 侧偏；与 A③ 同尺度，A③ 本体不动）
 S['mot']=0
 mw_wall = max(time.time()-S['m0_wall'], 0.001)  # F4：运动窗墙钟宽
 t0=rospy.get_rostime(); rospy.sleep(5.0); t1=rospy.get_rostime()
@@ -124,7 +124,7 @@ pts_span = (S['pts_t1']-S['pts_t0']) if (S['pts_t0'] is not None and S['pts_t1']
 imu_span = (S['imu_t1']-S['imu_t0']) if (S['imu_t0'] is not None and S['imu_t1'] is not None) else 0.0
 rate_pts = S['pts_m']/pts_span if pts_span > 0 else 0.0
 rate_imu = S['imu_m']/imu_span if imu_span > 0 else 0.0
-rtf_m = imu_span/mw_wall if imu_span > 0 else 0.0  # 运动窗 RTF（A0 前置判据，<0.3 记 INVALID）
+rtf_m = imu_span/mw_wall if imu_span > 0 else 0.0  # 运动窗 RTF（A0 前置判据，<0.25 记 INVALID）
 print('SMOKE drift=%.3f gt_drift=%.3f rate_pts=%.1f rate_imu=%.1f fly_ratio=%.4f rtf_motion=%.3f mw_sim=%.1f mw_wall=%.1f phases out=%s turn=%s back=%s'
       % (drift, gdrift, rate_pts, rate_imu, S['fly_bad']/max(S['fly_tot'],1), rtf_m, imu_span, mw_wall, ok_out, ok_turn, ok_back))
 PYEOF
@@ -137,9 +137,9 @@ PYEOF
   ge "$RP" 5 && mark 1 "A①: 点云 $RP ≥5Hz" || mark 0 "A①: 点云 $RP <5Hz"
   ge "$RI" 100 && mark 1 "A②: IMU $RI ≥100Hz" || mark 0 "A②: IMU $RI <100Hz"
   le "$FR" 0.01 && mark 1 "A④: 飞点 $FR <1%" || mark 0 "A④: 飞点 $FR ≥1%"
-  RF=$(get rtf_motion)  # M2-R1 A0 前置判据（manifest §三）：低于 0.3 记 INVALID 重跑，不计 FAIL
+  RF=$(get rtf_motion)  # A0 前置判据（M2R2 主理人裁决：门 0.3→0.25，依据=D-01 后 200Hz IMU 正确配置合理平台 0.288）
   if [ -n "$RF" ]; then
-    ge "$RF" 0.3 && mark 1 "A0(前置): 运动窗 RTF $RF ≥0.3" || { echo "[INVALID] A0: 运动窗 RTF $RF <0.3 —— 本轮作废重跑（不计 FAIL）"; INVALID=1; }
+    ge "$RF" 0.25 && mark 1 "A0(前置): 运动窗 RTF $RF ≥0.25" || { echo "[INVALID] A0: 运动窗 RTF $RF <0.25 —— 本轮作废重跑（不计 FAIL）"; INVALID=1; }
   else
     echo "[INVALID] A0: rtf_motion 缺失（运动窗无消息 stamp）—— 本轮作废重跑（不计 FAIL）"; INVALID=1
   fi
@@ -306,7 +306,7 @@ if [ -f "$MAP" ] && [ -f "$LOGDIR/pcd.sha256.before" ]; then
 fi
 echo "=================================================="
 if [ "$INVALID" = "1" ]; then
-  echo "M2 SMOKE: INVALID（运动窗 RTF<0.3，重跑不计 FAIL）"
+  echo "M2 SMOKE: INVALID（运动窗 RTF<0.25，重跑不计 FAIL）"
   echo "=================================================="
   exit 3
 fi

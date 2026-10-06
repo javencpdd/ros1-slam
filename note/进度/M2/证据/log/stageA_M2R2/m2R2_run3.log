@@ -1,0 +1,25 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261006_114701
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) imu_yaw0=0.013
+SMOKE phase_fwd_out_done
+SMOKE phase_turn180_done
+SMOKE phase_fwd_back_done
+SMOKE drift=0.489 gt_drift=0.489 rate_pts=9.1 rate_imu=198.4 fly_ratio=0.0000 rtf_motion=0.290 mw_sim=23.9 mw_wall=82.3 phases out=True turn=True back=True
+[PASS] A: 闭环走完（out/turn/back 全 done）
+[PASS] A③(M2-4): 漂移 0.489 ≤0.5
+[PASS] A①: 点云 9.1 ≥5Hz
+[PASS] A②: IMU 198.4 ≥100Hz
+[PASS] A④: 飞点 0.0000 <1%
+[PASS] A0(前置): 运动窗 RTF 0.290 ≥0.25
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: PASS
+==================================================
+killing:
+ * /faster_lio_online
+ * /gazebo
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+EXIT=0

@@ -1,0 +1,22 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261006_115036
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE teb_state=4 dt=0.0s dev_odom=3.000 dev_gt=3.000
+[FAIL] B: 到达偏差 3.000 >0.35m
+[PASS] B: 用时 0.0 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: FAIL
+==================================================
+killing:
+ * /cmd_vel_relay
+ * /gazebo
+ * /liveness_m4
+ * /m2_free_map
+ * /map_to_odom_static
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+EXIT=1
