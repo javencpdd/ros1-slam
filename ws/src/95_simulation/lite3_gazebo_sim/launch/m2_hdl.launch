@@ -16,5 +16,8 @@
   <include file="$(find lite3_localization)/launch/hdl_localization.launch">
     <arg name="map_name" value="$(arg map_name)"/>
     <arg name="points_topic" value="/rslidar_points"/>
+    <!-- M2-R2C（小张 R2C manifest 施工件3）：/clock 门控 + manager required 仅仿真域启用；真机 G8 不传=缺省现行为 -->
+    <arg name="manager_required" value="true"/>
+    <arg name="clock_gate_cmd" value="/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/wait_sim_clock.sh"/>
   </include>
 </launch>

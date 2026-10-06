@@ -264,6 +264,7 @@ PYEOF
   [ -f "$VENUE" ] || { echo "FAIL C: sim_venue.pcd 缺失"; return 1; }
   rosnode kill -a 2>/dev/null; sleep 3; pkill -f gzserver 2>/dev/null; sleep 2
   # C-2 重定位：hdl 载入 sim_venue → /initialpose 注入真值邻域（±0.15m/5°）→ 三判据
+  T_HDL0=$(date +%s)   # M2-R2C：稳定性判据计时起点（hdl 栈存活 ≥120s 观测窗）
   roslaunch "$PAYLOAD/m2_hdl.launch" > "$LOGDIR/hdlC.log" 2>&1 &
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出"; return 1; }
   timeout 60 rostopic echo -n 1 /hdl_odom >/dev/null 2>&1 || true
@@ -338,6 +339,26 @@ PYEOF
   CV=$(get conv); DV=$(get dev); W=$(get worst30s)
   [ "$CV" = "True" ] && mark 1 "C: 10s 内收敛 ≤0.3m/10°" || mark 0 "C: 10s 未收敛（dev=$DV）"
   awk -v a="$W" 'BEGIN{exit !(a<=0.5)}' && mark 1 "C: 30s 最差偏差 $W ≤0.5m（无跳变）" || mark 0 "C: 30s 窗最差 $W >0.5m"
+  # —— M2-R2C 新增稳定性判据（R2C manifest 施工件4/回归判据）：hdl 栈（manager+双 nodelet）存活 ≥120s，
+  #    无 exit-11/无 Bond broken/无 nodelet 进程死亡。必须在 cleanup 前判定——cleanup 的 rosnode kill -a
+  #    会产生正常的 process has died 行（上轮 124125/125320 hdlC.log L78/80/82 实证），不可混入。
+  #    勘误注记：Bond broken 实际落点=本 launch 的 ROS log stdout 文件（上轮实证 hdlC.log 仅 process has died
+  #    行），故 manifest「grep hdlC.log」扩为 hdlC.log + 本 launch 日志目录 *-stdout.log 双扫。
+  ELAPSED=$(( $(date +%s) - T_HDL0 ))
+  if [ "$ELAPSED" -lt 120 ]; then sleep $(( 120 - ELAPSED )); fi
+  ROSL_LOGDIR="${ROS_LOG_DIR:-$HOME/.ros}/logs"
+  HDL_UUID=$(ls -t "$ROSL_LOGDIR" 2>/dev/null | head -1)
+  HDL_STDOUT_GLOB="$ROSL_LOGDIR/$HDL_UUID"/*-stdout.log
+  if grep -Eq "process has died|exit code -11|Bond broken" "$LOGDIR/hdlC.log" 2>/dev/null \
+     || grep -q "Bond broken" $HDL_STDOUT_GLOB 2>/dev/null; then
+    mark 0 "C: 稳定性 FAIL（观测窗内命中进程死亡/exit-11/Bond broken）"
+    grep -En "process has died|exit code -11|Bond broken" "$LOGDIR/hdlC.log" 2>/dev/null | head -5
+    grep -l "Bond broken" $HDL_STDOUT_GLOB 2>/dev/null | head -3
+  else
+    mark 1 "C: 稳定性 PASS（hdl 栈存活 ≥120s：无 exit-11/Bond broken/进程死亡）"
+  fi
+  rosnode list 2>/dev/null | grep -qx "velodyne_nodelet_manager" \
+    && mark 1 "C: 稳定性旁证（manager 观测窗末在册存活）" || mark 0 "C: 稳定性旁证（manager 观测窗末不在册）"
   # 静置微动（真实底盘静止，仅扰动指令零速）判据旁证：发零速
   true
 }

@@ -1,0 +1,29 @@
+# M2-R2C 最终轮（第2轮/最后一轮）sha256 对账 —— 小明 2026-10-06
+# 施工件基线（改前）与落位（改后）；留底件全数在 raw/ 与 /tmp/m2_payload/*.before_M2R2C.bak
+
+[hdl_localization.launch] 20_localization/lite3_localization/launch/
+改前 b6caec31389b5b9c858d5869ada48601295013469b17a21b4ef6b64c49c2a219 (留底 raw/hdl_localization.launch.before_M2R2C.bak)
+改后 ec50baefb58e30f27d63deabda4536cbddabbf80660cba6105b97b4378416664
+改动=4 处：+manager_required/clock_gate_cmd 两 arg（缺省 false/""=真机现行为）；manager 节点 +required/launch-prefix；两处 load args 尾 +--no-bond。
+中途修正 1 次：9deef9bb（首版）→ ec50baef——注释含裸双连字符 expat not well-formed（D-仿真可用化-2 同款坑二次命中），注释改 no-bond 口径；属性值 --no-bond 保留。
+
+[m2_hdl.launch] payload=/tmp/m2_payload/m2_hdl.launch + ws/95_simulation/lite3_gazebo_sim/launch/（两件全等）
+改前 040f53bcb94b0b0d47e003ed086930fc4ea5bb4373682911aae827a92830161f (留底 raw/m2_hdl.launch.ws.before_M2R2C.bak + payload before_M2R2C.bak)
+改后 79e647249b8cf34da12f7b21c8f74598766802801592191e3083ef444803b091
+改动=include 内传 manager_required=true + clock_gate_cmd=wait_sim_clock.sh 绝对路径（仅仿真域；真机 G8 不传=缺省）。
+
+[wait_sim_clock.sh] 新增
+payload=/tmp/m2_payload/wait_sim_clock.sh = ws/95_simulation/lite3_gazebo_sim/scripts/wait_sim_clock.sh = e708d4b05a72fe3302ab4565e3d24a702e302b4bc5960709346ccfc408dd8fd6（manifest 三行原文逐字；755 ros1-slam）
+
+[m2_smoke.sh 段C 稳定性块] 执行件=ws/.../verify/m2_smoke.sh；交付件=/tmp/m2_payload/m2_smoke.sh（同款改动）
+verify 改前 fd3b895bdac49fc8eb44d3ff2c292bcde233f8219b0745886e04037f1ef9fa94 (留底 raw/m2_smoke.sh.verify.before_M2R2C.bak)
+verify 改后 724cd184824534b1ae7bf6d44398f2f892a373baf70b8752c53c23e1bf5939e4
+payload 改前 1878bff2c39d0edc5bc75f8d1a891e1e44cae2bb717767461a675c893abf1f77 (留底 /tmp/m2_payload/m2_smoke.sh.before_M2R2C.bak)
+payload 改后 bccfeaf011f2a8dee680cb011c853015cd17891ade72a99a91493bfe7e8554ca
+改动=T_HDL0 计时起点 + 三判据后插稳定性块（存活 ≥120s 补齐睡眠 + hdlC.log/launch stdout log 双扫 Bond broken|process has died|exit code -11 + manager 在册旁证）。
+已知缺陷（本轮未触发，不修）：稳定性块 ROS log 目录口径写 /logs，实测 ROS_LOG_DIR=/tmp/ysc_m2_ros 时 uuid 目录直下（无 /logs）；本轮 stage_c 于门控 FAIL 分支提前 return，稳定性块未执行，判定不依赖该块——exit-11 直接取证 hdlC.log/roslaunch 内部日志。
+
+[M2-5 勘误三件落位] 02_问题与坑.md：5e783cd2db70c5aed616bcfd638545f00a348e9ec6d3f94d464a6fc03b24f1bf → 9a1436fbf27bc7b14313b9f914e2205c5c87c834edac0cf670fbbbe80681acce（坑14 v4.2 §1 X1 修订落位执行记录）
+
+[本轮运行图] sim_venue.pcd（C-1 建图转存）= 07dfb27619302d217761736a2916c12bfed14b79839f4284051198c8bceb0017
+[样张红线] lite3.pcd = c034c90636f5557068400d8297d376e0a22a46e6b49601c42591cd94535e970e 起前=退后全等

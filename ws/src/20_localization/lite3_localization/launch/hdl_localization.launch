@@ -37,6 +37,12 @@
   <!-- this is useful to match the LIDAR and IMU coodinate systems -->
   <arg name="odom_child_frame_id" default="base_link" />
 
+  <!-- M2-R2C（小张 R2C manifest 施工件2，2026-10-06）：manager_required=manager 崩则整窗退；
+       clock_gate_cmd=/clock 门控 launch-prefix（阻塞至 /clock 首帧再 exec manager，消除冷启动
+       RTF 突发窗内 nodelet 栈 segv/bond 二象竞态）。缺省 false/""=现行为（真机 G8 默认零影响） -->
+  <arg name="manager_required" default="false" />
+  <arg name="clock_gate_cmd" default="" />
+
   <!-- optional arguments -->
   <arg name="use_imu" default="true" />
   <arg name="invert_imu_acc" default="false" />
@@ -55,17 +61,18 @@
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_rslidar"
         args="$(arg tf_x) $(arg tf_y) $(arg tf_z) 0.0 $(arg tf_pitch) 0.0 /base_link /rslidar" />
   <!-- in case you use velodyne_driver, comment out the following line -->
-  <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>
+  <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager"
+        required="$(arg manager_required)" launch-prefix="$(arg clock_gate_cmd)" output="screen"/>
 
-    <!-- globalmap_server_nodelet -->
-    <node pkg="nodelet" type="nodelet" name="globalmap_server_nodelet" args="load hdl_localization/GlobalmapServerNodelet $(arg nodelet_manager)">
+    <!-- globalmap_server_nodelet（M2-R2C：两处 load args 尾加 no_bond 开关即 no-bond 旗标，消除跨进程 bond 墙钟心跳失联形态；注释禁双连字符=D-仿真可用化-2 同款） -->
+    <node pkg="nodelet" type="nodelet" name="globalmap_server_nodelet" args="load hdl_localization/GlobalmapServerNodelet $(arg nodelet_manager) --no-bond">
       <param name="globalmap_pcd" value="/home/ros1-slam/data/maps/$(arg map_name).pcd" />
       <param name="convert_utm_to_local" value="true" />
       <param name="downsample_resolution" value="0.1" />
     </node>
 
     <!-- hdl_localization_nodelet -->
-    <node pkg="nodelet" type="nodelet" name="hdl_localization_nodelet" args="load hdl_localization/HdlLocalizationNodelet $(arg nodelet_manager)">
+    <node pkg="nodelet" type="nodelet" name="hdl_localization_nodelet" args="load hdl_localization/HdlLocalizationNodelet $(arg nodelet_manager) --no-bond">
       <remap from="/velodyne_points" to="$(arg points_topic)" />
       <param name="lidar_timeout_ms" value="9999" />
       <remap from="/gpsimu_driver/imu_data" to="$(arg imu_topic)" />
