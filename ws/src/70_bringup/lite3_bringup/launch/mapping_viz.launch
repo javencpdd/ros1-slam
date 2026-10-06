@@ -2,7 +2,7 @@
   <!-- 采图可视化伴侣：累积地图快照 + Lite3 模型（供 Foxglove 观察建图过程） -->
   <!-- 用法：采图三窗之外第 4 窗 roslaunch lite3_bringup mapping_viz.launch -->
   <!-- Foxglove：固定参考系 camera_init；订阅 /map_snapshot（30s 一条全图快照）+ 3D 面板 URDF 模型自动跟随 /Odometry -->
-  <param name="robot_description" textfile="/home/ros1-slam/ws/src/95_simulation/lite3_description/urdf/Lite3.urdf"/>
+  <param name="robot_description" textfile="/home/ros1-slam/ws/src/70_bringup/lite3_bringup/urdf/Lite3_prim.urdf"/>
 
   <!-- 累积地图快照（30s 一条，latched） -->
   <node pkg="lite3_bringup" type="map_snapshot_pub.py" name="map_snapshot_pub" output="screen"/>
