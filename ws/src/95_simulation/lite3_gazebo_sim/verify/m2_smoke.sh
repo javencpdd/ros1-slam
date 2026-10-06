@@ -22,6 +22,7 @@ export ROS_MASTER_URI=http://127.0.0.1:11313 GAZEBO_MASTER_URI=http://127.0.0.1:
 export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:/home/ros1-slam/ws/devel/lib
 
 PASS=1
+INVALID=0  # M2-R1 A0 前置：运动窗 RTF<0.3 → 本轮作废重跑，不计 FAIL
 mark() { [ "$1" = "1" ] && echo "[PASS] $2" || { echo "[FAIL] $2"; PASS=0; }; }
 wait_topic() {  # D-M2-P4（D-M1-3 同款修法移植）：启动窗内单次长 echo 挂起/吞 TERM（M1 实证 4/4）；list 门控+短 echo 反复重试
   local t=0
@@ -66,10 +67,23 @@ from sensor_msgs.msg import PointCloud2, Imu
 from gazebo_msgs.msg import ModelStates
 rospy.init_node('m2_stage_a')
 pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
-S = dict(odom=None, gt=None, g0=None, pts=0, imu=0, fly_tot=0, fly_bad=0, fly_frames=0, iq=None)
+S = dict(odom=None, gt=None, g0=None, iq=None,
+         mot=0, pts_m=0, imu_m=0, pts_t0=None, pts_t1=None, imu_t0=None, imu_t1=None, m0_wall=None,
+         fly_tot=0, fly_bad=0, fly_frames=0)
+def on_pts(m):  # F4（M2-R1）：仅运动窗计数 + 消息头 stamp 差分（sim-time 分母，剔除启动/settle 段）
+    if not S['mot']: return
+    S['pts_m'] += 1; st = m.header.stamp.to_sec()
+    if S['pts_t0'] is None: S['pts_t0'] = st
+    S['pts_t1'] = st
+def on_imu(m):  # F4：iq 全程更新（供初始等待/转向判据）；频率计数仅运动窗
+    S['iq'] = m.orientation
+    if not S['mot']: return
+    S['imu_m'] += 1; st = m.header.stamp.to_sec()
+    if S['imu_t0'] is None: S['imu_t0'] = st
+    S['imu_t1'] = st
 rospy.Subscriber('/Odometry', Odometry, lambda m: S.update(odom=m), queue_size=2)
-rospy.Subscriber('/rslidar_points', PointCloud2, lambda m: S.update(pts=S['pts']+1), queue_size=1)
-rospy.Subscriber('/livox/imu', Imu, lambda m: S.update(imu=S['imu']+1, iq=m.orientation), queue_size=1)
+rospy.Subscriber('/rslidar_points', PointCloud2, on_pts, queue_size=1)
+rospy.Subscriber('/livox/imu', Imu, on_imu, queue_size=1)
 rospy.Subscriber('/gazebo/model_states', ModelStates, lambda m: [S.update(gt=(p.position.x, p.position.y))
     for p, n in zip(m.pose, m.name) if n=='lite3_planar'] and None, queue_size=1)
 DZ = np.dtype([('x','<f4'),('y','<f4'),('z','<f4'),('pad','V20')])
@@ -94,16 +108,25 @@ def phase(name, vx, wz, done, wall_limit=150.0):
         drive(vx,wz); time.sleep(0.05)
     return False
 # ★ M2-1 修法 A 语义：转向判据=IMU 物理姿态反馈（不再信 odom yaw 开环值）；回程=位置反馈
+S['mot']=1; S['m0_wall']=time.time()  # F4：运动窗起点（墙钟，供 A0 RTF 前置判据）
 ok_out = phase('fwd_out', 0.5, 0.0, lambda: S['odom'].pose.pose.position.x - sx >= 4.85)
 ok_turn = phase('turn180', 0.0, 0.6, lambda: math.degrees(abs(qyaw(S['iq'])-i_yaw0)) >= 178.0)
 ok_back = phase('fwd_back', 0.5, 0.0, lambda: math.hypot(S['odom'].pose.pose.position.x-sx,
                                                           S['odom'].pose.pose.position.y-sy) <= 0.25)
+S['mot']=0
+mw_wall = max(time.time()-S['m0_wall'], 0.001)  # F4：运动窗墙钟宽
 t0=rospy.get_rostime(); rospy.sleep(5.0); t1=rospy.get_rostime()
 m=S['odom']; drift=math.hypot(m.pose.pose.position.x-sx, m.pose.pose.position.y-sy)
 g=S['gt']; gdrift=math.hypot(g[0]-S['g0'][0], g[1]-S['g0'][1])
-dt=max((t1-t0).to_sec(),1.0)
-print('SMOKE drift=%.3f gt_drift=%.3f rate_pts=%.1f rate_imu=%.1f fly_ratio=%.4f phases out=%s turn=%s back=%s'
-      % (drift, gdrift, S['pts']/dt, S['imu']/dt, S['fly_bad']/max(S['fly_tot'],1), ok_out, ok_turn, ok_back))
+# F4（M2-R1）：A①② 分母改运动窗 sim-time（消息头 stamp 差分），剔除启动/settle 段；
+#   阈值不变（口径 bug 修复，非放宽）；旧口径=全程计数÷5s settle 窗（rate_pts 曾虚标 200.2/20.6）。
+pts_span = (S['pts_t1']-S['pts_t0']) if (S['pts_t0'] is not None and S['pts_t1'] is not None) else 0.0
+imu_span = (S['imu_t1']-S['imu_t0']) if (S['imu_t0'] is not None and S['imu_t1'] is not None) else 0.0
+rate_pts = S['pts_m']/pts_span if pts_span > 0 else 0.0
+rate_imu = S['imu_m']/imu_span if imu_span > 0 else 0.0
+rtf_m = imu_span/mw_wall if imu_span > 0 else 0.0  # 运动窗 RTF（A0 前置判据，<0.3 记 INVALID）
+print('SMOKE drift=%.3f gt_drift=%.3f rate_pts=%.1f rate_imu=%.1f fly_ratio=%.4f rtf_motion=%.3f mw_sim=%.1f mw_wall=%.1f phases out=%s turn=%s back=%s'
+      % (drift, gdrift, rate_pts, rate_imu, S['fly_bad']/max(S['fly_tot'],1), rtf_m, imu_span, mw_wall, ok_out, ok_turn, ok_back))
 PYEOF
   cat "$LOGDIR/stageA.txt"
   get() { grep -o "$1=[-0-9.e]*" "$LOGDIR/stageA.txt" | head -1 | cut -d= -f2; }
@@ -114,6 +137,12 @@ PYEOF
   ge "$RP" 5 && mark 1 "A①: 点云 $RP ≥5Hz" || mark 0 "A①: 点云 $RP <5Hz"
   ge "$RI" 100 && mark 1 "A②: IMU $RI ≥100Hz" || mark 0 "A②: IMU $RI <100Hz"
   le "$FR" 0.01 && mark 1 "A④: 飞点 $FR <1%" || mark 0 "A④: 飞点 $FR ≥1%"
+  RF=$(get rtf_motion)  # M2-R1 A0 前置判据（manifest §三）：低于 0.3 记 INVALID 重跑，不计 FAIL
+  if [ -n "$RF" ]; then
+    ge "$RF" 0.3 && mark 1 "A0(前置): 运动窗 RTF $RF ≥0.3" || { echo "[INVALID] A0: 运动窗 RTF $RF <0.3 —— 本轮作废重跑（不计 FAIL）"; INVALID=1; }
+  else
+    echo "[INVALID] A0: rtf_motion 缺失（运动窗无消息 stamp）—— 本轮作废重跑（不计 FAIL）"; INVALID=1
+  fi
 }
 
 # ============ Stage B：teb 物理闭环（M2-2） ============
@@ -276,6 +305,11 @@ if [ -f "$MAP" ] && [ -f "$LOGDIR/pcd.sha256.before" ]; then
     && mark 1 "样张 lite3.pcd sha256 未变" || mark 0 "样张 lite3.pcd 被改动（备份 $LOGDIR/lite3.pcd.bak）"
 fi
 echo "=================================================="
+if [ "$INVALID" = "1" ]; then
+  echo "M2 SMOKE: INVALID（运动窗 RTF<0.3，重跑不计 FAIL）"
+  echo "=================================================="
+  exit 3
+fi
 [ "$PASS" = "1" ] && echo "M2 SMOKE: PASS" || echo "M2 SMOKE: FAIL"
 echo "=================================================="
 exit $([ "$PASS" = "1" ] && echo 0 || echo 1)

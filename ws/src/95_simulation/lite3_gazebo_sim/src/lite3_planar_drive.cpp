@@ -67,10 +67,13 @@ class Lite3PlanarDrive : public ModelPlugin {
     { boost::mutex::scoped_lock l(lock_);
       const bool stale = !last_cmd_time_.isZero() &&
                          (ros::Time::now() - last_cmd_time_).toSec() > cmd_timeout_;
-      if (stale) { cmd_ = geometry_msgs::Twist(); last_cmd_time_ = ros::Time::now(); }
+      if (stale) { cmd_ = geometry_msgs::Twist(); last_cmd_time_ = ros::Time::now(); ++stale_resets_; }
       vx = cmd_.linear.x; vy = cmd_.linear.y; wz = cmd_.angular.z; }
 
     const ignition::math::Pose3d pose = parent_->WorldPose();
+    // F2（M2-R1）前置：步骤起点物理真实速度（上一步积分结果，含重力/接触法向响应）
+    const ignition::math::Vector3d cur_lin = parent_->WorldLinearVel();
+    const ignition::math::Vector3d cur_ang = parent_->WorldAngularVel();
     if (drive_mode_ == "kinematic") {
       // 运动学直推：体速度 → 世界位移 + 偏航积分，SetWorldPose 落位（免疫接触求解器）
       const double cy = cos(pose.Rot().Yaw()), sy = sin(pose.Rot().Yaw());
@@ -80,10 +83,23 @@ class Lite3PlanarDrive : public ModelPlugin {
       ignition::math::Pose3d np(nx, ny, pose.Pos().Z(), 0, 0, nyaw);
       parent_->SetWorldPose(np, true);
     } else {
-      // dynamic：体速度按模型朝向变换到世界系（修 M1 错位核心），角速度取世界 z
-      parent_->SetLinearVel(pose.Rot().RotateVector(ignition::math::Vector3d(vx, vy, 0)));
-      parent_->SetAngularVel(ignition::math::Vector3d(0, 0, wz));
+      // F2（M2-R1 修法表）：yaw-only 体→世界变换（修 M1 错位核心）；
+      //   SetLinearVel 回填当前 Z 线速、SetAngularVel 回填当前 X/Y 角速——
+      //   不再每步抹杀重力/接触法向（旧版全量覆盖 SetLinearVel(x,y,0)+SetAngularVel(0,0,wz)，
+      //   见留底 lite3_planar_drive.cpp.before_M2R1.bak）。
+      const ignition::math::Quaterniond yaw_q(0, 0, pose.Rot().Yaw());
+      const ignition::math::Vector3d v_world = yaw_q.RotateVector(ignition::math::Vector3d(vx, vy, 0));
+      parent_->SetLinearVel(ignition::math::Vector3d(v_world.X(), v_world.Y(), cur_lin.Z()));
+      parent_->SetAngularVel(ignition::math::Vector3d(cur_ang.X(), cur_ang.Y(), wz));
     }
+
+    // F3（M2-R1）：1Hz 节拍取证日志——stale 清零累计 + cmd vs 步起物理速度
+    //   （置于 odom 门控之前，避免门控早退吞日志；回退=删本块与 stale_resets_ 自增，零副作用）
+    ROS_INFO_THROTTLE(1.0, "[lite3_planar_drive] beat: stale=%llu cmd=(%.2f,%.2f,%.2f) "
+                            "v_phy=(%.3f,%.3f,%.3f) w_phy=(%.3f,%.3f,%.3f) mode=%s",
+                      stale_resets_, vx, vy, wz,
+                      cur_lin.X(), cur_lin.Y(), cur_lin.Z(),
+                      cur_ang.X(), cur_ang.Y(), cur_ang.Z(), drive_mode_.c_str());
 
     // 闭环里程计：一律 WorldPose（修复点①）
     const double period = 1.0 / odom_rate_;
@@ -122,6 +138,7 @@ class Lite3PlanarDrive : public ModelPlugin {
   geometry_msgs::Twist cmd_; ros::Time last_cmd_time_;
   std::string ns_, cmd_topic_, odom_topic_, odom_frame_, base_frame_, drive_mode_;
   double cmd_timeout_ = 0.5, odom_rate_ = 50.0;
+  unsigned long long stale_resets_ = 0;  // F3：stale 清零累计（取证探针）
   common::Time last_update_, last_odom_time_;
 };
 GZ_REGISTER_MODEL_PLUGIN(Lite3PlanarDrive)

@@ -110,7 +110,7 @@
       <update_rate>200</update_rate>
       <plugin name="gazebo_ros_imu_sensor" filename="libgazebo_ros_imu_sensor.so">
         <alwaysOn>true</alwaysOn>
-        <updateRate>200</updateRate>
+        <updateRateHZ>200</updateRateHZ>
         <bodyName>rslidar</bodyName>
         <frameName>rslidar</frameName>
         <topicName>/livox/imu</topicName>
@@ -133,7 +133,7 @@
       <odometryFrame>odom</odometryFrame>
       <robotBaseFrame>base_link</robotBaseFrame>
       <driveMode>dynamic</driveMode>
-      <cmdTimeout>0.5</cmdTimeout>
+      <cmdTimeout>10.0</cmdTimeout>
       <odometryRate>50</odometryRate>
     </plugin>
   </gazebo>

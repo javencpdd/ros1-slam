@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+<world name="imutest">
+  <include><uri>model://ground_plane</uri></include>
+  <include><uri>model://sun</uri></include>
+  <physics type="ode"><max_step_size>0.001</max_step_size><real_time_update_rate>1000</real_time_update_rate></physics>
+  <model name="imubox">
+    <pose>0 0 0.2 0 0 0</pose>
+    <link name="link">
+      <inertial><mass>1</mass><inertia><ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
+      <collision name="col"><geometry><box><size>0.2 0.2 0.2</size></box></geometry></collision>
+      <visual name="vis"><geometry><box><size>0.2 0.2 0.2</size></box></geometry></visual>
+      <sensor type="imu" name="test_imu">
+        <always_on>true</always_on>
+        <update_rate>200</update_rate>
+        <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+          <robotNamespace>/</robotNamespace>
+          <alwaysOn>true</alwaysOn>
+          <updateRateHZ>200</updateRateHZ>
+          <bodyName>link</bodyName>
+          <frameName>link</frameName>
+          <topicName>/livox/imu</topicName>
+          <gaussianNoise>0.01</gaussianNoise>
+          <xyzOffset>0 0 0</xyzOffset>
+          <rpyOffset>0 0 0</rpyOffset>
+        </plugin>
+      </sensor>
+    </link>
+  </model>
+</world>
+</sdf>
