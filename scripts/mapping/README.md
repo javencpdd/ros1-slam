@@ -55,13 +55,13 @@ NAME=1006采集 bash m_stop.sh     # ⑤ 停机（先停 SLAM 等落盘日志！
 
 | 文件 | 是什么 | 谁生成的 |
 |---|---|---|
-| `lite3_<NAME或月日_时分>.pcd` | **本场采图的全量原始图**（interval=-1 全程累积，几百 MB 级，5–800 万点）——最完整、可从中重出任意分辨率的派生图 | m_stop.sh 重命名 |
-| `lite3_raw_master.pcd` | 历史正式重采的原始 master（归档保留，勿删） | 手动归档 |
-| `lite3_raw_preview.pcd` | 上述 master 的 1/10 抽点预览（Foxglove 低带宽对比用） | pcd_latch_pub 流水线 |
-| `lite3.pcd` | 工作图（0.08m 体素清洗版）——hdl 定位用 | 主理人流水线（m_stop 后由团队生成） |
-| `lite3.pgm/.yaml` | 2D 导航栅格图 | octomap+map_saver 流水线 |
+| `lite3_<NAME或月日_时分>.pcd` | **本场采图的全量原始 master**（interval=-1 全程累积，百 MB 级）——最完整母本 | m_stop.sh 重命名 |
+| `<master>_polished.pcd` | **抛光工作图**（z 裁剪去地板/房顶 + 体素二分自适应 ~40 万点 + SOR）——hdl 定位/G8 用这份 | m_polish.sh |
+| `lite3.pcd` | 工作图副本（下游默认名兼容，=最新 polished 的拷贝） | m_polish 后复制 |
+| `lite3.pgm/.yaml` | 2D 导航栅格图（狗身带直接投影，origin z=0.0） | numpy 直接投影流水线 |
+| `slices/` | 按高度切分的断面条（Z 断面逐层查看） | m_slice.sh |
 
-> 原始 master → 工作图/2D 图的派生流水线由团队跑（含 SOR 离群清洗、体素化、z=0.0 修正），采完喊一声即可。
+> 派生流水线（polish→工作图→2D）由团队跑或 `bash m_polish.sh` 自助；旧场图不需要时可整批移入 `data/archive/`（git 外）。
 
 ## 看图（m_view.sh）
 
