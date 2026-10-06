@@ -16,7 +16,7 @@ def load(path):
 def save(path, arr):
     N = len(arr)
     hdr = (f"VERSION 0.7\nFIELDS x y z intensity\nSIZE 4 4 4 4\nTYPE F F F F\nCOUNT 1 1 1 1\n"
-           f"WIDTH {N}\nHEIGHT 1\nVIEWPOINT 0 0 0 1 0 0 0\nPOINTS {N}\nPOINT_STEP 16\nDATA binary\n")
+           f"WIDTH {N}\nHEIGHT 1\nVIEWPOINT 0 0 0 1 0 0 0\nPOINTS {N}\nDATA binary\n")
     open(path, "wb").write(hdr.encode() + arr[:, :16].tobytes())
 
 def pn(v):

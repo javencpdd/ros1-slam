@@ -220,3 +220,4 @@
 - ⚠ 承接前条数据异动：lite3.pgm/yaml 旧版亦被清，本批从 lite3_1007 全量重建三件套 2026-10-07
 - 新增 lite3_bringup/urdf/Lite3_prim.urdf（由 Lite3.urdf 自动生成：13 处 mesh→STL 包围盒 box【躯干 0.55/腿 0.26m】，运动学零漂移，check_urdf 解析通过）+ mapping_viz.launch 切换至该 URDF——Foxglove 远程无需 STL，13 连杆错误根治 2026-10-06
 - 用户裁定（2026-10-06）：旧场图全部退役（raw_master/raw_preview 已在此前清理中消失，勿再寻）；现行 convention = 每场采图产出 lite3_<NAME或时间戳>.pcd（raw master）→ <master>_polished.pcd（m_polish 抛光）→ lite3.pcd（工作名副本）+ lite3.pgm/yaml（2D 直接投影）；现行工作底图 = lite3_1007 系（329 万原始/386,549 抛光/189m²）2026-10-07
+- 生成器与存量 PCD 头部修正：移除非标准键 POINT_STEP（PCL 标准头无此行，CloudCompare 解析器遇未知键即失败——"第三方库加载失败"统一根因；此前切片/抛光/预览所有自制文件均中招）。涉及 pcd_polish.py/pcd_slice.py 生成器 + lite3_1007_polished/raw_preview/lite3.pcd/slices 全部存量头。数据体零改动 2026-10-07
