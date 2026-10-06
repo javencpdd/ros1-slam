@@ -211,3 +211,5 @@
 - pcd_latch_pub.py v4：①POINT_STEP 缺省兼容（PCL 标准头无此行，从 SIZE/COUNT 推导）——修 ceshi1006 解析崩；②DECIMATE 自适应（缺省自动降至 ≤200 万点，显式 0/负值也走自适应）——修 raw_preview 双重抽点过稀 2026-10-06
 - pcd_latch_pub.py：NaN 滤除补 intensity 列（v4 只滤 x/y/z 漏 intensity——Foxglove 12136 告警根因）；顺带数据/maps 新增 lite3_ceshi1006_lite1M.pcd（99.2 万点轻量版，供 scp 本地 CloudCompare 查看）2026-10-06
 - 新增 scripts/mapping/m_slice.sh + pcd_slice.py（按 Z 轴水平断面条切分：超参 FILE/THICK/ZMIN/ZMAX/OUTDIR，输出 4 字段小 pcd 供 CloudCompare/m_view 逐层查看）——用户需求"按 Z 轴取断面" 2026-10-06
+- pcd_slice.py v2：切片文件名去 '+'（正负改 p/m 前缀）、头部去 '#' 注释行——两项均 CloudCompare PCD 解析器不兼容（用户实测 z+0.00 加载失败）；sim_venue 实测 4 片自验 OK（头尾精确/无 NaN）2026-10-07
+- ⚠ 数据异动登记：data/maps 于 10-06 夜间至 10-07 被清理——lite3_ceshi1006.pcd(182M)/lite3_raw_master.pcd(263M)/lite3_raw_preview.pcd/lite3_ceshi1006_lite1M.pcd 四件消失（行为者待确认：用户下载后清理 or 并行会话 B）。影响评估：ceshi1006 用户笔记本桌面有副本（CloudCompare 加载记录实证）可回传恢复；raw_master 昨日重采 master 是否有第二副本待用户确认；v1 底图(676K)与 2D 图在 archive/与 data/maps 存活。已请用户确认 2026-10-07
