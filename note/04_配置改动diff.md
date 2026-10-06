@@ -209,3 +209,4 @@
 - m_view.sh：自动起 roscore 的日志改 PID 后缀（/tmp/roscore_view_$$.log）——修 root 测试遗留日志文件致 ros1-slam 身份 nohup 重定向 EACCES（多用户 /tmp 文件互踩同族）2026-10-06
 - pcd_latch_pub.py v3：NaN 滤除扩展到 intensity 列（v2 只滤 x/y/z，raw master intensity 的 892 个 NaN 漏网→Foxglove 告警）2026-10-06
 - pcd_latch_pub.py v4：①POINT_STEP 缺省兼容（PCL 标准头无此行，从 SIZE/COUNT 推导）——修 ceshi1006 解析崩；②DECIMATE 自适应（缺省自动降至 ≤200 万点，显式 0/负值也走自适应）——修 raw_preview 双重抽点过稀 2026-10-06
+- pcd_latch_pub.py：NaN 滤除补 intensity 列（v4 只滤 x/y/z 漏 intensity——Foxglove 12136 告警根因）；顺带数据/maps 新增 lite3_ceshi1006_lite1M.pcd（99.2 万点轻量版，供 scp 本地 CloudCompare 查看）2026-10-06

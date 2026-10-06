@@ -18,7 +18,8 @@ fields_line = re.search(r"FIELDS (.+)", hdr).group(1).split()
 idx = raw.find(b"DATA binary\n")+len(b"DATA binary\n")
 arr = np.frombuffer(raw[idx:], dtype=np.uint8).reshape(n, step)
 x = arr[:,0:4].copy().view("<f4").ravel(); y = arr[:,4:8].copy().view("<f4").ravel(); z = arr[:,8:12].copy().view("<f4").ravel()
-fin = np.isfinite(x) & np.isfinite(y) & np.isfinite(z)
+it_raw = arr[:,12:16].copy().view('<f4').ravel() if (step >= 16 and len(fields_line) >= 4 and fields_line[3] == 'intensity') else np.zeros(n, np.float32)
+fin = np.isfinite(x) & np.isfinite(y) & np.isfinite(z) & np.isfinite(it_raw)
 sel = arr[fin]
 N0 = len(sel)
 dec = int(dec_arg) if int(dec_arg) > 0 else max(1, int(np.ceil(N0 / 2_000_000)))   # 自适应：目标 ≤200 万点
