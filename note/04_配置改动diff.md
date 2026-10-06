@@ -203,3 +203,4 @@
 - Q3 照片权限：600→644+mask 修正（用户 VS Code 下载查看需求；用户本人照片非敏感）2026-10-06
 - 归档新规：PCD 大文件不入 note/（git 仓库膨胀）——note/进度/P3b/证据/ 两份 PCD 归档移至 data/archive/（git 外），.gitignore 追加 data/archive/；底图v1 root 属主顺带修正；未来大文件归档一律走 data/archive/ 2026-10-06
 - map_snapshot_pub.py v2：修复 snap_timer 与 cb 并发访问 voxels/order 的线程安全缺陷（v1 RuntimeError deque mutated during iteration，快照线程首拍后崩）——threading.RLock 全程护锁，prune 重剪持锁内联，发布移锁外；重写清 v1 prune 遗留伪码 2026-10-06
+- m_view.sh v2：master 自检+自动起 roscore 11312（看图独立于采图流程；采图停机后也能看图）2026-10-06
