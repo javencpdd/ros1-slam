@@ -41,6 +41,8 @@ NAME=1006采集 bash m_stop.sh     # ⑤ 停机（先停 SLAM 等落盘日志！
 | `m_verify.sh` | 频率联锁验证 | `ODOM=1` 加验 /Odometry |
 | `m_pose.sh` | 当前位姿单帧 | `N`=帧数 |
 | `m_viz.sh` | 可视化伴侣（快照+狗模型） | — |
+| `m_view.sh` | 发布任意 PCD 为 latched 话题（Foxglove 看图） | `FILE`=图名 `TOPIC` `/DECIMATE`=抽点 |
+| `pcd_latch_pub.py` | m_view 的后端（勿单独跑） | — |
 | `m_stop.sh` | 一键停机（保落盘顺序）+ **产物重命名** | `WAIT`=落盘等待上限（默认 45s）；`NAME`=产物标签（**默认=月日_时分**，如 lite3_1006_1759.pcd；`NAME=mine`；`NAME=keep` 保持原名）；`KEEP_LATEST=1` 额外留 lite3.pcd 副本（hdl 默认名兼容） |
 
 ## Foxglove
@@ -48,6 +50,29 @@ NAME=1006采集 bash m_stop.sh     # ⑤ 停机（先停 SLAM 等落盘日志！
 - 连接：ROS 1 → `http://192.168.1.103:11312`，ROS_HOSTNAME=笔记本局域网 IP （192.168.2.47）
 - 订阅：`/map_snapshot`（30s 全图快照，主判据）+ 狗模型自动出现 + `/cloud_registered`（可加 Decay Time 看单帧）
 - 红线：**只订阅不发布**
+
+## 产物说明（data/maps/ 下的文件都是什么）
+
+| 文件 | 是什么 | 谁生成的 |
+|---|---|---|
+| `lite3_<NAME或月日_时分>.pcd` | **本场采图的全量原始图**（interval=-1 全程累积，几百 MB 级，5–800 万点）——最完整、可从中重出任意分辨率的派生图 | m_stop.sh 重命名 |
+| `lite3_raw_master.pcd` | 历史正式重采的原始 master（归档保留，勿删） | 手动归档 |
+| `lite3_raw_preview.pcd` | 上述 master 的 1/10 抽点预览（Foxglove 低带宽对比用） | pcd_latch_pub 流水线 |
+| `lite3.pcd` | 工作图（0.08m 体素清洗版）——hdl 定位用 | 主理人流水线（m_stop 后由团队生成） |
+| `lite3.pgm/.yaml` | 2D 导航栅格图 | octomap+map_saver 流水线 |
+
+> 原始 master → 工作图/2D 图的派生流水线由团队跑（含 SOR 离群清洗、体素化、z=0.0 修正），采完喊一声即可。
+
+## 看图（m_view.sh）
+
+采完后想再看某张图的 3D 效果：
+
+```bash
+bash m_view.sh                                    # 默认看最近产物（latched，Foxglove 订 /cloud_view）
+FILE=lite3_ceshi1006 DECIMATE=5 bash m_view.sh    # 指定文件 + 抽点密度
+```
+
+订阅话题 `/cloud_view`（latched：订阅一次即得，看完 Ctrl-C 关发布器省资源）。
 
 ## 安全与铁律
 
