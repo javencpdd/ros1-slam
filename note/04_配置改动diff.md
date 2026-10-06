@@ -222,3 +222,4 @@
 - 用户裁定（2026-10-06）：旧场图全部退役（raw_master/raw_preview 已在此前清理中消失，勿再寻）；现行 convention = 每场采图产出 lite3_<NAME或时间戳>.pcd（raw master）→ <master>_polished.pcd（m_polish 抛光）→ lite3.pcd（工作名副本）+ lite3.pgm/yaml（2D 直接投影）；现行工作底图 = lite3_1007 系（329 万原始/386,549 抛光/189m²）2026-10-07
 - 生成器与存量 PCD 头部修正：移除非标准键 POINT_STEP（PCL 标准头无此行，CloudCompare 解析器遇未知键即失败——"第三方库加载失败"统一根因；此前切片/抛光/预览所有自制文件均中招）。涉及 pcd_polish.py/pcd_slice.py 生成器 + lite3_1007_polished/raw_preview/lite3.pcd/slices 全部存量头。数据体零改动 2026-10-07
 - 修正 fix_headers 自身 +1 字节 bug（join 末尾重复换行）→ 两文件头部从零重建（标准 PCL 键序）；头尾/NaN 终验通过 2026-10-07
+- 根治：v1 修头脚本在 DATA binary 后引入 stray 换行（数据错位 1 字节）——剥离并头部按数据实长重建；两文件终验通过（解析/无 NaN）2026-10-07
