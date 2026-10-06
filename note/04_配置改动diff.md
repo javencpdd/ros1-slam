@@ -196,3 +196,4 @@
 - **L1/尾项-O3（M2 验收移交）**：M2/证据/log/M2R2C_最终轮/console_smoke_stageC.log 属主 ros1-slam 600→**644 平权**（sudo chmod，内容零改动；M2 验收时因 600 需 sudo 补读核验，留证件自本批起 ysc 直读） 2026-10-06
 - 新增 lite3_bringup/scripts/map_snapshot_pub.py + launch/mapping_viz.launch（采图可视化伴侣：/cloud_registered 内存累积→/map_snapshot 30s latched 快照【LIO 视角含历史修正，区别于 Foxglove Decay 显示】；Lite3 模型 robot_state_publisher+joint_state_publisher+body→TORSO 桥接，Foxglove 3D 显示狗随位姿移动）2026-10-06
 - 新增 scripts/mapping/ 采图脚本族 12 件（m_check 体检/m_clean 清场/m_start 三窗启动/m_run_core·drv·slam 窗体/m_verify 频率联锁/m_pose 位姿/m_viz 可视化伴侣/m_stop 一键停机【保 interval=-1 落盘顺序】/m_env 公共环境/README 使用手册；超参 SESSION/ODOM/N/WAIT 环境变量）——固化 P3b 作业单流程为可执行脚本 2026-10-06
+- scripts/mapping/：setfacl 授 u:ysc:rwx（含 default，mask=rwx）——用户 VS Code(ysc) 需直接编辑采图脚本；注意后续若对该目录 chmod 会重算 mask 压回 ysc 权限，届时需重跑 setfacl（R14 同族教训）2026-10-06
