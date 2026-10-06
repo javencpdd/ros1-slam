@@ -2,22 +2,36 @@
 # m_start.sh — 采图三窗一键启动（tmux 自动建窗；已在其一窗内运行时用 bash m_start.sh）
 # 超参:
 #   SESSION=p3b          tmux 会话名
-#   MAP_SAVE=1           1=落盘(默认) 0=试跑不落盘（faster_lio pcd_save_en 覆盖需改 yaml，此开关仅提示）
+#   VIZ=1                1=自动建 viz 窗（默认，/map_snapshot+Lite3 模型）0=不建
 # 用法: bash m_start.sh   （在 tmux 内任一窗执行；无 tmux 时直接前台跑 roscore）
 source "$(dirname "$0")/m_env.sh"
 SESSION=${SESSION:-p3b}
 echo "[m_start] 检查体检状态（不强制，建议先跑 m_check.sh）"
 if ! in_tmux=$( [ -n "${TMUX:-}" ] && echo yes || echo no ); then in_tmux=no; fi
 if [ "$in_tmux" = "yes" ]; then
-  # 已在 tmux：创建独立窗（不开新会话）
-  # 建窗即切焦属正常；窗内进程若秒退，remain-on-exit 保留窗口与报错（勿 exec）
-  tmux new-window -t "$SESSION" -n core "bash -c 'source /home/ros1-slam/scripts/mapping/m_run_core.sh; exec bash'"
-  tmux set-option -t "$SESSION" remain-on-exit on
+  # 已在 tmux：逐窗创建（已存在的窗跳过——防重复跑建重复 roscore）
+  # 建窗即切焦属正常；remain-on-exit 逐窗设置（窗内进程秒退时保留窗口与报错，勿 exec）
+  mk_win() {  # mk_win 窗名 窗内命令
+    local wname="$1" wcmd="$2"
+    if tmux list-windows -t "$SESSION" -F "#W" 2>/dev/null | grep -qx "$wname"; then
+      echo "[m_start] 窗 $wname 已存在，跳过"
+      return 0
+    fi
+    tmux new-window -t "$SESSION" -n "$wname" "bash -c '$wcmd; exec bash'"
+    tmux set-option -w -t "$SESSION:$wname" remain-on-exit on
+  }
+  mk_win core "source /home/ros1-slam/scripts/mapping/m_run_core.sh"
   sleep 2
-  tmux new-window -t "$SESSION" -n drv  "bash -c 'source /home/ros1-slam/scripts/mapping/m_run_drv.sh; exec bash'"
+  mk_win drv  "source /home/ros1-slam/scripts/mapping/m_run_drv.sh"
   sleep 3
-  tmux new-window -t "$SESSION" -n slam "bash -c 'source /home/ros1-slam/scripts/mapping/m_run_slam.sh; exec bash'"
-  echo "[m_start] 三窗已建（core/drv/slam）——切窗 Ctrl-b 数字；先验 /rslidar_points≥9Hz 与 /livox/imu≈200Hz 再看 slam 窗 /Odometry"
+  mk_win slam "source /home/ros1-slam/scripts/mapping/m_run_slam.sh"
+  if [ "${VIZ:-1}" = "1" ]; then
+    sleep 2
+    mk_win viz  "source /home/ros1-slam/scripts/mapping/m_viz.sh"
+  fi
+  echo "[m_start] 窗组就绪（core/drv/slam${VIZ:+/viz}）——切窗 Ctrl-b 数字"
+  echo "[m_start] 顺序：drv 窗确认 livox 启动 → m_verify 验频率 → slam 窗 /Odometry → 开走"
+  echo "[m_start] 停机勿直接杀窗：任一窗跑 m_stop.sh（SLAM 先停等落盘）"
 else
   echo "[m_start] 不在 tmux 内——请先: sudo -u ros1-slam tmux new-session -A -s $SESSION"
   exit 1
