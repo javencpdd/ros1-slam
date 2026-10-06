@@ -1,0 +1,18 @@
+== M2-R2 留底对账（改前=改后基线）2026-10-06 ==
+
+-- 路径 A：payload 照 manifest 全文覆盖（交付记录，不用于执行）--
+c44d38aad4349b5c820755655a88b5762ff2f28acdba11d8c6a91d175a98ef7a  /tmp/m2_payload/m2_smoke.sh.before_M2R2.bak（改前=小张 diff 基线）
+1878bff2c39d0edc5bc75f8d1a891e1e44cae2bb717767461a675c893abf1f77  /tmp/m2_payload/m2_smoke.sh（=交付件 /tmp/m2_R2/m2_smoke.sh 全等）
+对账：diff(改前,改后) 正文与 /tmp/m2_R2/m2_smoke_M2R2.diff 全等 —— PASS
+
+-- 路径 B：verify canonical 件移植（执行件）--
+21945e2964ad1ec0e3640f90ea2fca1d262ad3535d2a072a2376e98bdcf4a667  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh.before_M2R2.bak
+fd3b895bdac49fc8eb44d3ff2c292bcde233f8219b0745886e04037f1ef9fa94  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh（=21945e29 + m2_smoke_M2R2.diff 五 hunk 逐字 patch，offset38/fuzz1[hunk1]）
+对账：53 行纯增量 + 1 行 import 替换（Odometry→Odometry, OccupancyGrid）；六项在案裁决保全
+  （11345 端口 D-P10 / A0 RTF 0.25+INVALID / back 0.5m / turn 178° / sleep 150 D-M2-P5 / wait_topic 重试长超时 D-M2-P4）—— PASS
+偏差登记：R2 包基线为 /tmp/m2_payload 陈旧版（c44d38aa，04:08），缺 D-P10/P4/P5/F4/A0门/back0.5/turn178 共 6 项在案裁决，
+  其中 GAZEBO_MASTER_URI=11355 触犯历轮「11355 零监听」隔离红线 → 按主理人派单「11313/11345 隔离规程照旧」，
+  门控 hunks 逐字移植 verify 件执行；payload 件仅作交付对账记录。主理人问询未及回复，小明按红线择径，特此登记。
+
+-- 校验 --
+bash -n ×2 OK；verify 件 4 个 python heredoc ast.parse 全 OK

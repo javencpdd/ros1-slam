@@ -152,11 +152,13 @@ stage_b() {
   wait_topic /rslidar_points 480 || { echo "FAIL B: /rslidar_points 未出"; return 1; }
   timeout 60 rostopic echo -n 1 /cmd_vel >/dev/null 2>&1 || true
   # 等 mbf move_base action server（60s）；goal=(start+3,0)
+  # M2-R2：goal 前加就绪门控（b858a86 FAIL：teb_state=4 ABORTED @dt=0，"Can not get robot pose" 启动窗竞态）
   python3 - <<'PYEOF' > "$LOGDIR/stageB.txt" 2>&1
 import math, time, rospy, actionlib
 from gazebo_msgs.msg import ModelStates
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import Odometry, OccupancyGrid
 from mbf_msgs.msg import MoveBaseAction, MoveBaseGoal   # mbf 原生 action（G8sim get_path 同族）
+import tf as tf_py
 rospy.init_node('m2_stage_b')
 S=dict(gt=None,odom=None)
 rospy.Subscriber('/gazebo/model_states', ModelStates, lambda m:[S.update(gt=(p.position.x,p.position.y))
@@ -168,6 +170,32 @@ sx,sy=S['gt'][0],S['gt'][1]; gx,gy=sx+3.0,sy
 print('SMOKE start=(%.3f,%.3f) goal=(%.3f,%.3f)'%(sx,sy,gx,gy))
 cli=actionlib.SimpleActionClient('/move_base_flex/move_base', MoveBaseAction)
 if not cli.wait_for_server(rospy.Duration(60)): print('SMOKE mbf_server=ABSENT'); raise SystemExit(1)
+# —— M2-R2 门控（G1–G4，总预算 120s；任一未过 = FAIL 环境不进闭环，不计入 teb 判据）——
+# 注：sim_nav_smoke 的 occupied>0（v>=90）判据在本域不适用——m2_free_map 发布全 FREE 底图
+#     （m2_free_map.py L24 恒 [0]，无 v>=90 格），故 G1/G3/G4 为「有数据」门控，不查占据数。
+GATE_BUDGET = 120.0
+gate_t0 = time.time()
+tf_ = tf_py.TransformListener()
+def gate_left(): return GATE_BUDGET - (time.time() - gate_t0)
+def gate_wait(name, fn):
+    w = time.time()
+    while time.time() - w < gate_left() and not rospy.is_shutdown():
+        try:
+            if fn(): print('SMOKE gate_%s=PASS t=%.1fs' % (name, time.time()-gate_t0)); return True
+        except Exception: pass
+        time.sleep(0.3)
+    print('SMOKE gate_%s=FAIL t=%.1fs' % (name, time.time()-gate_t0)); return False
+ok_map = gate_wait('map_data',      lambda: rospy.wait_for_message('/map', OccupancyGrid, timeout=2.0).info.width > 0)
+ok_tf  = gate_wait('tf_robot',      lambda: tf_.canTransform('map', 'base_link', rospy.Time(0)))   # 竞态根因直查
+def costmap_up(topic):
+    try: return rospy.wait_for_message(topic, OccupancyGrid, timeout=2.0).info.width > 0
+    except Exception: return False
+ok_gcm = gate_wait('gcostmap_data', lambda: costmap_up('/move_base_flex/global_costmap/costmap'))
+ok_lcm = gate_wait('lcostmap_data', lambda: costmap_up('/move_base_flex/local_costmap/costmap'))
+gate = dict(map_data=ok_map, tf_robot=ok_tf, gcostmap_data=ok_gcm, lcostmap_data=ok_lcm)
+if not all(gate.values()):
+    print('SMOKE gate=FAIL t=%.1fs %s' % (time.time()-gate_t0, gate)); raise SystemExit(2)
+print('SMOKE gate=PASS t=%.1fs' % (time.time()-gate_t0))
 g=MoveBaseGoal(); g.target_pose.header.frame_id='map'
 g.target_pose.header.stamp=rospy.Time.now()
 g.target_pose.pose.position.x=gx; g.target_pose.pose.position.y=gy
@@ -180,6 +208,8 @@ gd=math.hypot(S['gt'][0]-gx, S['gt'][1]-gy)
 print('SMOKE teb_state=%s dt=%.1fs dev_odom=%.3f dev_gt=%.3f'%(cli.get_state(), dt, d, gd))
 PYEOF
   cat "$LOGDIR/stageB.txt"
+  grep -q "SMOKE gate=FAIL" "$LOGDIR/stageB.txt" && { mark 0 "B: 门控未过（环境未就绪，FAIL 环境；见 stageB.txt gate_*=FAIL 行）"; return 1; }
+  grep -q "SMOKE gate=PASS" "$LOGDIR/stageB.txt" && mark 1 "B: 门控通过（≤120s，goal 前就绪）" || mark 0 "B: 门控结果缺失"
   get() { grep -o "$1=[-0-9.e]*" "$LOGDIR/stageB.txt" | head -1 | cut -d= -f2; }
   D=$(get dev_odom); T=$(get dt)
   awk -v a="$D" 'BEGIN{exit !(a<=0.35)}' && mark 1 "B: 到达偏差 $D ≤0.35m" || mark 0 "B: 到达偏差 $D >0.35m"
@@ -255,6 +285,26 @@ rospy.Subscriber('/livox/imu', Imu, lambda m:S.update(iq=m.orientation), queue_s
 def qyaw(q): return math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
 w0=time.time()
 while (S['gt'] is None or S['iq'] is None) and time.time()-w0<30: time.sleep(0.1)
+# —— M2-R2 门控（hdl 同款预防：图载入 + odom 管线/TF 上线后才注 initialpose，总预算 120s）——
+# globalmap_server 载完 pcd 后 latched 发 /globalmap（globalmap_server_nodelet.cpp:36,76）；/hdl_odom 出帧=估计管线上线
+from sensor_msgs.msg import PointCloud2 as PC2
+import tf as tf_py2
+g0t=time.time()
+try:
+    gm=rospy.wait_for_message('/globalmap', PC2, timeout=60.0); ok_map=gm.width>0
+except rospy.ROSException:
+    ok_map=False
+print('SMOKE gate_mapload=%s t=%.1fs' % (ok_map, time.time()-g0t))
+gw0=time.time()
+while S.get('ip') is None and time.time()-gw0<60 and time.time()-g0t<120: time.sleep(0.2)
+tf2_=tf_py2.TransformListener()
+gtw=time.time()
+while not tf2_.canTransform('map','base_link',rospy.Time(0)) and time.time()-gtw<30 and time.time()-g0t<120: time.sleep(0.2)
+ok_tf=tf2_.canTransform('map','base_link',rospy.Time(0))
+gateC=dict(globalmap=ok_map, hdl_odom=S.get('ip') is not None, tf_robot=ok_tf)
+if not all(gateC.values()):
+    print('SMOKE gateC=FAIL t=%.1fs %s' % (time.time()-g0t, gateC)); raise SystemExit(2)
+print('SMOKE gateC=PASS t=%.1fs' % (time.time()-g0t))
 ip=PoseStamped(); ip.header.frame_id='map'; ip.header.stamp=rospy.Time.now()
 ip.pose.position.x=S['gt'][0]+0.15; ip.pose.position.y=S['gt'][1]-0.10
 ip.pose.orientation.w=math.cos((-5.0/2)/2); ip.pose.orientation.z=math.sin((-5.0/2)/2)
@@ -282,6 +332,8 @@ while time.time()-t0b<30 and not rospy.is_shutdown():
 print('SMOKE reloc conv=%s t=%.1fs dev=%.3f worst30s=%.3f'%(conv,t_conv,last if last else -1,worst))
 PYEOF
   cat "$LOGDIR/stageC.txt"
+  grep -q "SMOKE gateC=FAIL" "$LOGDIR/stageC.txt" && { mark 0 "C: 门控未过（hdl 图/TF 未就绪，FAIL 环境）"; return 1; }
+  grep -q "SMOKE gateC=PASS" "$LOGDIR/stageC.txt" && mark 1 "C: 门控通过（图载入+TF 就绪后注 initialpose）" || mark 0 "C: 门控结果缺失"
   get() { grep -o "$1=[A-Za-z0-9.-]*" "$LOGDIR/stageC.txt" | head -1 | cut -d= -f2; }
   CV=$(get conv); DV=$(get dev); W=$(get worst30s)
   [ "$CV" = "True" ] && mark 1 "C: 10s 内收敛 ≤0.3m/10°" || mark 0 "C: 10s 未收敛（dev=$DV）"
