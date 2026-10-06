@@ -16,7 +16,7 @@ DEC=${DECIMATE:-10}
 # master 自检：不在则自动起一个（看图独立于采图流程）
 if ! timeout 3 rostopic list >/dev/null 2>&1; then
   echo "[m_view] master 未运行——自动起 roscore 11312（看完可用 m_clean.sh 清）"
-  nohup roscore -p 11312 >/tmp/roscore_view.log 2>&1 &
+  nohup roscore -p 11312 >"/tmp/roscore_view_$$.log" 2>&1 &   # $$ 后缀防多用户/多实例日志文件互踩
   for i in $(seq 1 12); do
     timeout 2 rostopic list >/dev/null 2>&1 && break
     sleep 1

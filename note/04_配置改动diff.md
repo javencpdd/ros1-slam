@@ -206,3 +206,4 @@
 - m_view.sh v2：master 自检+自动起 roscore 11312（看图独立于采图流程；采图停机后也能看图）2026-10-06
 - m_view.sh v3：FILE 不指定时自动选 data/maps 最新一张（按 mtime）——配合 m_stop 时间戳命名，看图不必记文件名 2026-10-06
 - 04 补充机理注记：sudo cp 入 ACL 目录会保留源文件 644 权限 → default ACL 的 mask 被压为 r--（ysc 只读）——凡 sudo cp 进 mapping/note 等目录后必须 setfacl 重授或 chmod 后重算 mask（R14 精确机理）；m_view.sh v3：FILE 缺省自动选 data/maps 最新一张 2026-10-06
+- m_view.sh：自动起 roscore 的日志改 PID 后缀（/tmp/roscore_view_$$.log）——修 root 测试遗留日志文件致 ros1-slam 身份 nohup 重定向 EACCES（多用户 /tmp 文件互踩同族）2026-10-06
