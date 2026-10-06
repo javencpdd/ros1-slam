@@ -214,3 +214,7 @@
 - pcd_slice.py v2：切片文件名去 '+'（正负改 p/m 前缀）、头部去 '#' 注释行——两项均 CloudCompare PCD 解析器不兼容（用户实测 z+0.00 加载失败）；sim_venue 实测 4 片自验 OK（头尾精确/无 NaN）2026-10-07
 - ⚠ 数据异动登记：data/maps 于 10-06 夜间至 10-07 被清理——lite3_ceshi1006.pcd(182M)/lite3_raw_master.pcd(263M)/lite3_raw_preview.pcd/lite3_ceshi1006_lite1M.pcd 四件消失（行为者待确认：用户下载后清理 or 并行会话 B）。影响评估：ceshi1006 用户笔记本桌面有副本（CloudCompare 加载记录实证）可回传恢复；raw_master 昨日重采 master 是否有第二副本待用户确认；v1 底图(676K)与 2D 图在 archive/与 data/maps 存活。已请用户确认 2026-10-07
 - scripts/mapping/m_start.sh mk_win v2：死窗识别与自动重建（pane_dead 检测——remain-on-exit 残留死窗曾挡住重建，致旧 master run_id mismatch 连锁）2026-10-07
+- 新增 scripts/mapping/m_polish.sh + pcd_polish.py（抛光三件套：①z 裁剪【单层自动/多层楼梯 FLOORS=auto 实验性】②体素二分自适应【命中 TARGET±10%】③SOR；修复 argv 顺序 bug 与 1.4 递增失控【二分替换】）2026-10-06
+- data/maps/lite3_1007_polished.pcd：正式底图抛光版（329 万→386,549 点：z 裁剪【-0.09,4.46】+0.049m 体素二分+SOR 剔 166）2026-10-07
+- data/maps/lite3.pgm/yaml：2D 底图重生成——**numpy 直接投影法**（狗身带 z[地面+0.2,地面+1.6] → 0.05m 栅格，占据黑/未知灰，origin z=0.0 原生）替代 octomap 管线（pcd_to_pointcloud 在 386k 点 Aborted 不稳定）；299×290、占据 15,517 格 2026-10-07
+- ⚠ 承接前条数据异动：lite3.pgm/yaml 旧版亦被清，本批从 lite3_1007 全量重建三件套 2026-10-07
