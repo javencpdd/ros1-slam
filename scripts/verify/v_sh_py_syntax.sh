@@ -7,6 +7,14 @@ set -u
 FAIL=0
 for F in "$@"; do
   [ -f "$F" ] || { echo "[FAIL] 不存在: $F"; FAIL=1; continue; }
+  if head -1 "$F" | grep -qi "python" || [ "${F##*.}" = "py" ]; then
+    if python3 -c 'import ast,sys; ast.parse(open(sys.argv[1],encoding="utf-8").read())' "$F" 2>/dev/null; then
+      echo "[OK] python ast $F"
+    else
+      echo "[FAIL] python ast $F"; FAIL=1
+    fi
+    continue
+  fi
   if bash -n "$F" 2>/dev/null; then echo "[OK] bash -n   $F"; else echo "[FAIL] bash -n   $F"; FAIL=1; fi
   python3 - "$F" <<'PYEOF' || FAIL=1
 import io, ast, re, sys

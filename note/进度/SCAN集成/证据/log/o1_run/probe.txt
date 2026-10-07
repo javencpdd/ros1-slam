@@ -1,0 +1,5 @@
+O1 case1_far=PASS dist=1.0 arrived=False（旁证 dist 非空=件确实收到注入）
+O1 case2_near=PASS dist=0.05 arrived=True（期望 True，阈 0.20 窗 1.0s）
+O1 case3_reset=PASS arrived=False（发新 goal 后必须回假）
+O1 case4_break=PASS arrived=False（持续窗未满足，不得跳真）
+O1 case4_reconverge=PASS dist=0.05 arrived=True

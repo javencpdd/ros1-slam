@@ -60,4 +60,17 @@
   <node pkg="scan_planner" name="closed_loop_controller" type="closed_loop_controller" output="screen">
     <remap from="cmd_vel" to="/scan_planner/cmd_vel"/> <!-- run.launch 原文；仿真执行经 cmd_vel_raw 中继同款 -->
   </node>
+
+  <!-- 到达信号观测件（O-1 口径，壳包自有件）：盘上 SCAN 无对外「到达」话题（FSM 判段完成只看
+       轨迹时间耗尽、controller 的 finish_dist 只把 cmd 置零），故此处以只读方式补一个我方信号。
+       参考点 = 我方请求的 goal，不取 bspline 末点、不取被 adjustGlobalTargetIfOccupied 改写的
+       end_pt_（跟踪层收敛目标是轨迹末点，拿它当到达必假绿）。
+       本件不写任何上游话题；置 group 之外 ⇒ 不受 goal remap 影响，直读 /scan_planner/goal。
+       参数在此显式给出、不落 config 文件（02 坑22：与上游同名的 params 文件若无可见加载点即死配置）。 -->
+  <node pkg="lite3_scan" name="scan_arrival_monitor" type="scan_arrival_monitor.py" output="screen">
+    <param name="tol_arrive" value="0.20"/>
+    <param name="settle_s"   value="1.0"/>
+    <param name="pose_topic" value="/LIO/odom_vehicle"/>
+    <param name="goal_topic" value="/scan_planner/goal"/>
+  </node>
 </launch>
