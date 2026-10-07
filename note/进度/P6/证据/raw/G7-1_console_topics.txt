@@ -1,0 +1,68 @@
+# G7-① D-L1 复验 · map_server 控制台/话题二次取证（graceful SIGINT 使 ROS console flush）· 2026-10-08 00:58:14–00:58:30
+
+=== map_server 活体（ps 非 kill -0）===
+ 744735  744018 ysc            00:10 map_server      /opt/ros/noetic/lib/map_server/map_server /home/ros1-slam/data/maps/lite3.yaml
+map_server 真身 PID=744735
+    PID USER                      STARTED     ELAPSED COMMAND
+ 744735 ysc      Thu Oct  8 00:58:14 2026       00:10 /opt/ros/noetic/lib/map_server/map_server /home/ros1-slam/data/maps/lite3.yaml
+=== 话题 ===
+/map
+/map_metadata
+/rosout
+/rosout_agg
+=== /cmd_vel 出现与否（期望无）===
+  /cmd_vel 零出现
+=== graceful SIGINT（让 ROS console flush）===
+=== map_server console 原文 ===
+[0m[ INFO] [1791392297.150475593]: Loading map from image "/home/ros1-slam/data/maps/lite3.pgm"[0m
+[0m[ INFO] [1791392297.165718465]: Read a 299 X 290 map @ 0.050 m/cell[0m
+=== console 字节数=177 ===
+=== /rosout 录制中 map_server 相关行 ===
+8:name: "/map_server_1791392297090711648"
+25:name: "/map_server_1791392297090711648"
+=== /rosout 中 yaml-cpp / bad conversion 扫描 ===
+  零命中
+=== 退净 ===
+  roscore 零残留
+  map_server 零残留
+  rosmaster 零残留
+  11310-11319 零监听
+
+=== map_server_console.txt 原文（字节数 177）===
+[0m[ INFO] [1791392297.150475593]: Loading map from image "/home/ros1-slam/data/maps/lite3.pgm"[0m
+[0m[ INFO] [1791392297.165718465]: Read a 299 X 290 map @ 0.050 m/cell[0m
+=== /rosout 订阅录制（map_server 相关条目，全文 34 行）===
+header: 
+  seq: 0
+  stamp: 
+    secs: 1791392297
+    nsecs: 151231927
+  frame_id: ''
+level: 2
+name: "/map_server_1791392297090711648"
+msg: "Loading map from image \"/home/ros1-slam/data/maps/lite3.pgm\""
+file: "/tmp/binarydeb/ros-noetic-map-server-1.17.3/src/main.cpp"
+function: "loadMapFromValues"
+line: 144
+topics: 
+  - /rosout
+  - /map_metadata
+  - /map
+---
+header: 
+  seq: 1
+  stamp: 
+    secs: 1791392297
+    nsecs: 165859715
+  frame_id: ''
+level: 2
+name: "/map_server_1791392297090711648"
+msg: "Read a 299 X 290 map @ 0.050 m/cell"
+file: "/tmp/binarydeb/ros-noetic-map-server-1.17.3/src/main.cpp"
+function: "loadMapFromValues"
+line: 159
+topics: 
+  - /rosout
+  - /map_metadata
+  - /map
+---

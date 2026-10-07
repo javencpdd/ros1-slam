@@ -1,0 +1,120 @@
+# G7-① D-L1 复验 · map_server 装载实测原始输出 · 2026-10-08 00:56:32–00:57（第一轮，全判据）
+# 命令链：roscore -p 11313 (私有 master, ROS_MASTER_URI=http://localhost:11313) + rosrun map_server map_server /home/ros1-slam/data/maps/lite3.yaml
+
+########## ENV SETUP (三步防 foxy 混装) ##########
+2026-10-08 00:56:32
+-- foxy 混装自检 --
+PATH foxy 条目数=0
+PYTHONPATH foxy 条目数=0
+LD_LIBRARY_PATH foxy 条目数=0
+ROS_DISTRO=noetic ROS_VERSION=1 ROS_PYTHON_VERSION=3
+rosrun=/opt/ros/noetic/bin/rosrun  map_server pkg=/opt/ros/noetic/share/map_server
+ROS_MASTER_URI=http://localhost:11313 ROS_HOME=/tmp/mei_g7/.ros
+
+########## 1) roscore -p 11313 ##########
+roscore pid=739360  master 应答：/rosout /rosout_agg 
+
+########## 2) rosrun map_server map_server /home/ros1-slam/data/maps/lite3.yaml ##########
+-- map_server 活体（ps，非 kill -0）--
+    PID USER         ELAPSED COMMAND         COMMAND
+ 739818 ysc            00:06 timeout         timeout 90 rosrun map_server map_server /home/ros1-slam/data/maps/lite3.yaml
+-- map_server stdout/stderr 原文 --
+
+########## 3) 负判据根除扫描 ##########
+OK：无 yaml-cpp / bad conversion / exception / ERROR 任何命中
+
+########## 4) 正判据：话题在位 ##########
+  /map
+  /map_metadata
+  /rosout
+  /rosout_agg
+  /map 存在=1
+  /map_metadata 存在=1
+-- rostopic info /map --
+  Type: nav_msgs/OccupancyGrid
+  
+  Publishers: 
+   * /map_server_1791392205891332656 (http://192.168.1.103:34265/)
+  
+  Subscribers: None
+  
+  
+-- rostopic info /map_metadata --
+  Type: nav_msgs/MapMetaData
+  
+  Publishers: 
+   * /map_server_1791392205891332656 (http://192.168.1.103:34265/)
+  
+  Subscribers: None
+  
+  
+-- rosnode list --
+  /map_server_1791392205891332656
+  /rosout
+
+########## 5) /map_metadata 实测（rostopic echo -n1）##########
+  map_load_time: 
+    secs: 1791392205
+    nsecs: 946282243
+  resolution: 0.05000000074505806
+  width: 299
+  height: 290
+  origin: 
+    position: 
+      x: -8.8
+      y: -4.35
+      z: 0.0
+    orientation: 
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+  ---
+
+########## 6) /map info 一致性 + data 长度对账（python 实测）##########
+  /map_metadata : resolution=0.050000  width=299  height=290  origin=[-8.800000, -4.350000, 0.000000]
+  /map info     : resolution=0.050000  width=299  height=290  origin=[-8.800000, -4.350000, 0.000000]
+  frame_id=map
+  meta vs info 一致 = True
+  origin z 原值 = 0.0   是否 NaN = False
+  len(data) = 86710   width*height = 86710   相等 = True
+  [如实记录] 占据(100)=15517 自由(0)=0 unknown(-1)=71193 其他=0 min=-1 max=100
+
+########## 7) yaml 原文（对照）##########
+  image: /home/ros1-slam/data/maps/lite3.pgm
+  resolution: 0.050000
+  origin: [-8.800000, -4.350000, 0.0]
+  negate: 0
+  occupied_thresh: 0.65
+  free_thresh: 0.196
+
+########## 8) 退净 ##########
+-- 残留进程扫描 --
+  roscore: 零残留
+  map_server: 零残留
+  rosmaster: 零残留
+328580 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+-- 11313 释放 --
+  11313 已释放
+-- 11312 复核 --
+  11312 零监听
+
+########## 9) 三件数据文件 sha256 退后复核 ##########
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  lite3.pcd
+1d5a70df546348dfd1070c0439b6a356442f65464d3591e177429b96ff11184a  lite3.pgm
+f788851acf74630e308504222a31d1200b90a4dd0c60e626a8eb3fe90bd29d80  lite3.yaml
+
+########## 10) 红线复核 ##########
+-- 六关键 PID --
+    PID USER                      STARTED     ELAPSED COMMAND
+ 115711 ysc      Mon Oct  5 01:27:49 2026  2-23:29:27 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  2-23:29:25 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  2-23:29:23 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  2-23:29:23 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  2-23:29:23 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-09:38:06 static_transfor
+-- UDP 43897 归属 --
+UNCONN    0         0                  0.0.0.0:43897            0.0.0.0:*                                                                                       
+-- ros2qnx --
+  ros2qnx 零出现
+########## DONE ##########

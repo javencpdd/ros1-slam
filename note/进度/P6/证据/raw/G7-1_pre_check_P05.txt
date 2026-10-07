@@ -1,0 +1,51 @@
+# G7-① D-L1 复验 · 起节点前 P0.5 双查 · 2026-10-08 00:52:xx（起前实录，ysc 身份）
+# 口径：判进程存活用 ps（禁 kill -0，对 root 属主返 EPERM 会假报已死）；UDP 归属用 ss -ulnp
+
+-- [A] 传感器侧进程（期望空：无 livox/rslidar/hdl/faster_lio/gazebo/map_server/mbf）
+$ ps -eo pid,user,etime,comm,args | grep -Ei "livox|rslidar|lidar|hdl_localization|faster_lio|teleop|gazebo|map_server|move_base|mbf"
+ 180237 ysc  2-09:32:19 static_transfor /opt/ros/foxy/lib/tf2_ros/static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 base_link rslidar --ros-args -r __node:=base2lidar_tf_broadcaster
+  ↑ 唯一命中 = foxy 生产 static TF 守门进程 180237（红线要求零扰动的既有对象，非沙箱传感器节点）→ 传感器侧判定：空 ✓
+
+-- [B] 运动链路/桥侧（期望空：无 ros2qnx/mux/supervisor/bridge 写者）
+$ ps -eo pid,user,etime,comm,args | grep -Ei "ros2qnx|qnx|ros2_bridge|cmd_vel|safe_cmd_vel|supervisor|mux"
+ 115711 ysc  2-23:23:41 python3  python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+  ↑ 唯一命中 = foxy 侧 ros_bridge_node.py（/home/test 生产监控，红线要求零扰动），非 ros2qnx、非沙箱运动链 → 运动链路侧判定：空 ✓
+
+-- [C] 起前既有的 noetic 残留（重要登记项）
+$ pgrep -af "roscore|rosmaster|rosout"
+ 328580 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-.../rosout-1.log
+$ ps -o pid,ppid,user,lstart,stat -p 328580
+ 328580  1  ros1-sl+  Tue Oct  6 19:51:44 2026  Ssl
+  ↑ 既有孤儿 rosout（PPID=1、Oct 6 起、无 master 在听、`ss -tnp | grep 328580` 无连接），**早于本次验收 00:52 即在位**，非本单产物；本单未杀（非本单属主、不属本单职责面）→ 移交主理人清理
+
+-- [D] 端口级 TCP（期望 11312/11313 零监听）
+$ ss -lntH state listening | awk '{print $4}' | grep -E ":1131[0-9]$"
+  （无输出）→ TCP 11310–11319 零监听 ✓   11312 生产预留口全程零监听 ✓
+$ 全量 TCP listen：111 1111 22 36395 4000 49695 5900 8000 4369 12001 22165 22166 25001 34951 36453 36757 7001 53 —— 无一属 ROS 域
+
+-- [E] 端口级 UDP（43897 归属须 ss -ulnp，ss -lntp 只列 TCP 会假报未监听）
+$ ss -ulnp | grep -E ":43897"
+  UNCONN  29696  0  0.0.0.0:43897  0.0.0.0:*
+$ ss -ulnpH | grep 43897 → fd 归属：python3 pid=115711（foxy ros_bridge_node）
+  ↑ 43897 由 jetson2motion/foxy 侧持有 = 坑5 既有实证状态，全程未变 ✓
+
+-- [F] 红线守门六 PID 起前基线（lstart 须全程不变）
+$ ps -o pid,user,lstart,etime,comm -p 115711,115792,115795,115797,115799,180237
+ 115711 ysc   Mon Oct  5 01:27:49 2026  2-23:24:40  python3
+ 115792 root  Mon Oct  5 01:27:51 2026  2-23:24:38  ros2
+ 115795 root  Mon Oct  5 01:27:53 2026  2-23:24:36  jetson2app
+ 115797 root  Mon Oct  5 01:27:53 2026  2-23:24:36  jetson2motion
+ 115799 root  Mon Oct  5 01:27:53 2026  2-23:24:36  sensor_checker
+ 180237 ysc   Mon Oct  5 15:19:10 2026  2-09:33:19  static_transfor
+
+-- [G] 三件数据文件起前 sha256
+$ sha256sum lite3.pcd lite3.pgm lite3.yaml
+ aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  lite3.pcd
+ 1d5a70df546348dfd1070c0439b6a356442f65464d3591e177429b96ff11184a  lite3.pgm
+ f788851acf74630e308504222a31d1200b90a4dd0c60e626a8eb3fe90bd29d80  lite3.yaml
+$ head -c 15 lite3.pgm → P5 299 290 255（86,725B = 15B 头 + 86,710B 体）
+
+-- [H] ros2qnx 起前扫描
+$ pgrep -af ros2qnx → （无输出）零出现 ✓
+
+-- 双查完：传感器侧空 / 运动链路侧空 / 端口级空 → 放行起节点

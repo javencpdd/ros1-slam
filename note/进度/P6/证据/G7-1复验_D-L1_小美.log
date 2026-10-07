@@ -1,0 +1,87 @@
+# G7-① D-L1 复验 · 验收工程师-小美 · 2026-10-08 00:52–01:06
+- Gate: **G7-①（P6-M2，D-L1 复验）→ PASS**（判据本体 = map_server 能否装载 lite3.yaml 并出 /map）
+- 机器/身份：lite（Jetson aarch64，5.10.120-tegra）／ysc（ros1-slam 身份无 sudo 口令，故以 ysc + ACL 直读直跑，ROS_HOME/ROS_LOG_DIR 指私有 /tmp/mei_g7 以免污染 ros1-slam 属主状态）
+- 被测节点：`/opt/ros/noetic/lib/map_server/map_server`（dpkg 归属 ros-noetic-map-server，`rospack find map_server`=/opt/ros/noetic/share/map_server；沙箱 `ws/devel/lib/map_server` **不存在** → 用系统版，符合 A9/N8 不重复编译）
+- 私有 master：`roscore -p 11313`（`ROS_MASTER_URI=http://localhost:11313`）
+
+## 一、判据本体实测结果（全部原文数值）
+
+### 1. 负判据根除（2026-10-04 D-L1 失败点）
+- map_server 控制台原文（`raw/G7-1_console_topics.txt`，177B，SIGINT 优雅退出后 flush）：
+  ```
+  [ INFO] [1791392297.150475593]: Loading map from image "/home/ros1-slam/data/maps/lite3.pgm"
+  [ INFO] [1791392297.165718465]: Read a 299 X 290 map @ 0.050 m/cell
+  ```
+- `grep -niE "yaml-cpp|bad conversion|exception|ERROR|failed|refus"` → **零命中**（第一轮 stdout/stderr 全量 + 第二轮 `/rosout` 订阅录制双通道，均零命中）
+- 无拒收：节点持续存活（`ps` 实测 744735 运行 00:10，非 kill -0），未退出、未异常
+- **对比 2026-10-04 原始失败**：`B2_DL1_mapserver_nan.txt` L5 `origin: [-4.200000, -8.700000, nan]` + L14 `map_server exception: yaml-cpp: error at line 3, column 32: bad conversion` → **已根除**
+
+### 2. 正判据
+- `/map` 与 `/map_metadata` 双双出话题（`rostopic list` 命中各 1）
+- `rostopic info`：两者 publisher 唯一 = `/map_server_1791392205891332656`；Type=`nav_msgs/OccupancyGrid` / `nav_msgs/MapMetaData`
+- `rostopic echo -n1 /map_metadata` 实测原值：
+  `resolution: 0.05000000074505806`、`width: 299`、`height: 290`、`origin.position: x=-8.8 y=-4.35 z=0.0`、orientation 单位四元数 (0,0,0,1)
+- python 订阅实测对账（`raw/G7-1_mapserver_load.txt` §6）：
+  ```
+  /map_metadata : resolution=0.050000  width=299  height=290  origin=[-8.800000, -4.350000, 0.000000]
+  /map info     : resolution=0.050000  width=299  height=290  origin=[-8.800000, -4.350000, 0.000000]
+  frame_id=map
+  meta vs info 一致 = True
+  origin z 原值 = 0.0   是否 NaN = False
+  len(data) = 86710   width*height = 86710   相等 = True
+  ```
+- **与 pgm 逐字节对账**：`lite3.pgm` 头 `P5 299 290 255`，头长 15B + 体 86,710B = 86,725B = 文件实长；width×height=86,710 = `/map.data` 长度 → **三方闭合**（yaml ↔ pgm ↔ ROS 话题）
+
+### 3. free/occupied/unknown 计数（如实记录，不引申）
+- `占据(100)=15517  自由(0)=0  unknown(-1)=71193  其他=0  min=-1  max=100`
+- 记录口径：map_server 本体**不输出** free/occupied/unknown 计数行（控制台仅 Loading + Read 两行 INFO，无 third 行）；上列计数由验收侧订阅 `/map` 后按 `OccupancyGrid` 三值直方图统计。
+- 待排期 raytrace 项**只登记事实**：本底图 `/map` 中 unknown(-1) 占 82.1%（71,193/86,710）、自由格计数为 **0**。是否触发 costmap/raytrace 相关行为属该待排期项范围，本验收不作结论。
+
+## 二、红线核验
+| 项 | 结果 |
+|---|---|
+| foxy 五 PID 115711/115792/115795/115797/115799 + 180237 | `ps -o lstart` 起前=退后**逐位一致**（Oct5 01:27:49/51/53/53/53 + Oct5 15:19:10）→ **零扰动** ✓（全程未用 kill -0） |
+| UDP 43897 | `ss -ulnp` 归属起前/退后一致（foxy 侧持有）✓ |
+| 11312 | 全程零监听 ✓ |
+| /cmd_vel | 运行期 `rostopic list` 全文无 /cmd_vel，零第三方写者 ✓ |
+| ros2qnx | `pgrep -x` + comm 精确扫描零命中；运行期 `rosnode list` 全文 = /map_server + /rosout ✓ |
+| 三件数据文件 | `lite3.pcd` aaa09362…／`lite3.pgm` 1d5a70df…／`lite3.yaml` f788851a… 起前=退后 **sha256 三件全等** ✓ |
+| ws/、data/、/home/test | `git status --porcelain ws data` 无 tracked 改动；本单零写入；未执行任何 git 写操作（HEAD 仍 dd5822e）✓ |
+| 真机链路 | 未碰；未起 hdl/mbf/Gazebo；本轮被测节点唯一 = map_server ✓ |
+| 环境防混装 | 三步（unset → noetic setup.bash → scripts/env.sh）后 PATH/PYTHONPATH/LD_LIBRARY_PATH foxy 条目数均 **0**、ROS_DISTRO=noetic、无 foxy 警告，shell 未作废 ✓ |
+
+## 三、退净
+- 本单进程全部退净（`pgrep -x`：roscore/rosmaster/map_server 零残留）；11313 已释放
+- 唯一 rosout 命中 = **既有孤儿 328580**（PPID=1、lstart Tue Oct 6 19:51:44、无 master 在听、无 TCP 连接），**起前 00:52 即在位**（P0.5-[C] 已登记），lstart 终检未变 → 非本单残留；本单未杀（非属主、非本单职责面）→ **移交主理人清理**
+
+## 四、★ 本单新发现（与本单判据无关的预存在回归，上报）
+**N-G7①-1｜G2 隔离自检全量 [1]–[9] 复跑 = `ISOLATION FAILED` EXIT=1（两次确定性复现）**
+- 触发项：`[5]`（平级模块禁互 include，K3）四条 + `[6]`（绕过 M6 直写 /cmd_vel，K2）三条
+- 命中文件**全部**位于 `ws/src/95_simulation/lite3_gazebo_sim/launch/`：m1_mapping→lite3_slam、m2_mapping→lite3_slam、m2_hdl→lite3_localization、m2_teb→lite3_navigation；[6] 三条同源于 m2_teb.launch（L3/L7 注释 + L20 `cmd_vel_relay` 节点）
+- **生产域（非 95_simulation）复扫零命中**；`[1][2][3][4][7][8][9]` 全过
+- 判定 = **预存在，非本单造成**，四条独立佐证：①涉事 launch mtime 2026-10-05 20:36 / 10-06 08:19 / 10-06 13:40，**全部早于**本单 00:55 运行；②最后一次在册全量 ISOLATION OK 留证 = 2026-10-05 04:33（`P8prep/证据/ISOLATION_P8prep.log`），早于涉事文件落位；③脚本本体工作树干净、git 历史仅 3 commit（d5e16cd/2735be6/f09a2cc），未被人改过凑过；④本单 `git status ws data` 零 tracked 改动
+- 为何此前未暴露：2026-10-06 之后各批验收（M2/Wave2/Wave3/收官/M5.1）的隔离项均记「活体抽检全过」（端口/PID），**未复跑全量 [1]–[9]**
+- 本单未现场改脚本或改 sim launch 凑过（那是施工/架构侧的活）
+- **路由**：主理人裁决 →（a）仿 04 台账 P7 给 `lite3_bringup` 的 TOP 层豁免先例，为 95_simulation 仿真域设 `[5]/[6]` 域豁免（sim 域无 M6/SUP，写者唯一=m2_cmd_relay 已在 m2_teb.launch L7 自述）；或（b）施工侧改 sim launch 消命中。**G2 状态建议由主理人据本项复评**（本验收不代裁）
+
+## 五、结论
+- **G7-① = PASS**：map_server 装载 lite3.yaml（origin z=0.0）判据本体全过——负判据根除 + 正判据 299×290@0.05、origin=[-8.8, -4.35, 0.0]、len(data)=86710=299×290、meta≡info、frame_id=map。
+- **D-L1（GAP-4）遗留项关闭**；修复随 `lite3_1007` 新底图落地的口径由本复验**实证闭合**（不再只是「已落地待验」）。
+- **G7 整体 = PASS（② 降级注记保留：hdl 定位质量不判，转真机 G8）**。
+- 附带上报 N-G7①-1（隔离全量回归，预存在，另案）；既有孤儿 rosout 328580 移交清理。
+- **违规项：无。路由：主理人（N-G7①-1 裁决 + G2 复评）／清理项 328580。**
+
+## 六、四要素齐备声明
+- **实现状态**：无施工面（纯验收复验）；实测=map_server 装载通过，2026-10-04 拒收已根除；偏差=另发现隔离回归 N-G7①-1（非本单面）
+- **自动化验收输出**：`v3_isolation.sh` 全量 = FAILED EXIT=1（预存在，见 §四）；map_server 判据脚本化两轮复跑（负判据 grep 零命中 + python 订阅对账）均确定性复现
+- **目标环境验收**：本机 noetic 目标环境实起实采（roscore 11313 + 系统版 map_server + 现行 lite3.yaml），非仿真非桩
+- **证据路径**：本目录 `G7-1复验_D-L1_小美.log` + `raw/G7-1_pre_check_P05.txt`、`raw/G7-1_mapserver_load.txt`、`raw/G7-1_console_topics.txt`、`raw/G7-1_teardown_check.txt`、`raw/G7-1_v3_isolation_full.txt`（六件）
+
+## 移交主理人汇编（00_总览.md G7 行 逐字待写文本）
+
+> G7 | **PASS（② 降级注记保留：hdl 定位质量不判，转真机 G8）**（① map_server 装载 **D-L1 复验 PASS（2026-10-08 小美，独立实起实采）**：现行 `/home/ros1-slam/data/maps/lite3.yaml`（origin z=0.0，sha256 f788851a…）交系统版 noetic `map_server` 装载——负判据根除（无 yaml-cpp／bad conversion／exception，stdout+/rosout 双通道零命中，控制台 `Read a 299 X 290 map @ 0.050 m/cell`）；正判据实测 `/map`+`/map_metadata` 双出、resolution=0.050000、width=299/height=290（与 pgm 头 299×290 及 86,725B=15+86,710 逐字节闭合）、origin=[-8.800000, -4.350000, 0.000000]（z=0.0 非 nan）、frame_id=map、len(data)=86,710=299×290、meta≡info；顺带如实记录 `/map` 直方图 占据(100)=15517/自由(0)=0/unknown(-1)=71193（map_server 本体不输出计数行；raytrace 待排期项不引申结论）；退净=本单进程零残留+11313 释放、11312 全程零监听、三件数据 sha256 起前=退后全等、foxy 五 PID+180237 lstart 逐位一致零扰动、/cmd_vel 与 ros2qnx 零出现、环境三步零 foxy 混装；**D-L1 遗留项关闭**，证据 [P6/证据/G7-1复验_D-L1_小美.log](P6/证据/G7-1复验_D-L1_小美.log)+raw/ 五件，报告见 [P6/进度文档.md](P6/进度文档.md) G7-① 复验节。前史：2026-10-04 实测拒收 origin z=nan → 裁决4「下次出图置 z=0.0」→ 修复随 10-05 a223698 起、10-07 lite3_1007 原生带 z=0.0 落地，判据本体本日复验闭合）；② hdl 契约层 PASS（GAP-2 手动组合+定位质量不判，降级注记保留，转真机 G8）；③ PASS（模式组合铁律 K2/K3/N5）
+
+## 移交主理人汇编（附带两项，逐字待写）
+
+> 【N-G7①-1 新发现·G2 隔离自检回归】2026-10-08 小美 G7-① 复验退净时复跑 `v3_isolation.sh` 全量 [1]–[9] = **ISOLATION FAILED EXIT=1**（两次确定性复现）。触发项仅 [5][6]，命中文件**全部**在 `ws/src/95_simulation/lite3_gazebo_sim/launch/`（m1_mapping→lite3_slam、m2_mapping→lite3_slam、m2_hdl→lite3_localization、m2_teb→lite3_navigation；[6] 三条同源 m2_teb.launch L3/L7 注释+L20 cmd_vel_relay）；**生产域零命中**，[1][2][3][4][7][8][9] 全过。**判定预存在**：涉事 mtime 10-05 20:36/10-06 08:19/10-06 13:40 全早于本次 00:55 运行，最后一次在册全量 OK=10-05 04:33（P8prep/证据/ISOLATION_P8prep.log），脚本本体 git 工作树净+历史仅 3 commit 未被改过，本次 ws/data 零 tracked 改动。此前未暴露因 10-06 后各批隔离项记「活体抽检」未复跑全量。**待主理人裁决**：仿 P7 `lite3_bringup` TOP 豁免先例给 95_simulation 仿真域设 [5]/[6] 域豁免（sim 无 M6/SUP、写者唯一=m2_cmd_relay 已在 launch L7 自述）或施工消命中；G2 状态建议复评。验收侧未现场改脚本凑过。证据 [P6/证据/raw/G7-1_v3_isolation_full.txt](P6/证据/raw/G7-1_v3_isolation_full.txt)。
+> 【清理项】既有孤儿 `rosout` PID 328580（user ros1-slam、PPID=1、lstart Tue Oct 6 19:51:44、无 master 在听、无 TCP 连接）系 10-06 会话遗留（非本次产物，本次起前 00:52 已登记、退后 lstart 未变），建议主理人按 a4ae3eb 同类遗留清理口径处置。

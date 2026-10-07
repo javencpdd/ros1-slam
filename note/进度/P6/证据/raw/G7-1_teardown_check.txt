@@ -1,0 +1,49 @@
+# G7-① D-L1 复验 · 退净与红线终检 · 2026-10-08 01:03–01:06（ysc 身份）
+# 口径：判存活用 ps（禁 kill -0，对 root 属主返 EPERM 会假报已死）；UDP 归属用 ss -ulnp；ros2qnx 用 comm 精确匹配避免 pgrep -f 自匹配
+
+-- [T-1] 节点残留（pgrep -x 按 comm 精确）--
+    roscore: 零残留
+    rosmaster: 零残留
+    rosout:
+      328580 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+    map_server: 零残留
+    ↑ rosout 唯一命中 328580 = 起前 P0.5-[C] 已登记的既有孤儿（lstart Tue Oct 6 19:51:44、PPID=1、无 master 在听），
+      本单起前 00:52 即在位、终检 lstart 未变 → 非本单残留，本单未杀（非本单属主）→ 移交主理人清理
+    本单起过的进程（roscore 739360 / rosmaster 739540 / map_server 739818·744735）全部退净
+
+-- [T-2] 端口释放 --
+    11313 已释放；11312 全程零监听；TCP 11310–11319 零监听 OK
+
+-- [T-3] 三件数据文件 退后 sha256（须与起前全等）--
+    aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  lite3.pcd
+    1d5a70df546348dfd1070c0439b6a356442f65464d3591e177429b96ff11184a  lite3.pgm
+    f788851acf74630e308504222a31d1200b90a4dd0c60e626a8eb3fe90bd29d80  lite3.yaml
+    起前 00:52 值 = aaa09362… / 1d5a70df… / f788851a… → 三件退后全等 OK
+
+-- [T-4] foxy 生产五 PID + 180237 终检（lstart 须与起前逐位一致）--
+        PID USER                      STARTED     ELAPSED COMMAND
+     115711 ysc      Mon Oct  5 01:27:49 2026  2-23:35:22 python3
+     115792 root     Mon Oct  5 01:27:51 2026  2-23:35:20 ros2
+     115795 root     Mon Oct  5 01:27:53 2026  2-23:35:18 jetson2app
+     115797 root     Mon Oct  5 01:27:53 2026  2-23:35:18 jetson2motion
+     115799 root     Mon Oct  5 01:27:53 2026  2-23:35:18 sensor_checker
+     180237 ysc      Mon Oct  5 15:19:10 2026  2-09:44:01 static_transfor
+    起前 lstart = Oct5 01:27:49 / 01:27:51 / 01:27:53 / 01:27:53 / 01:27:53 / Oct5 15:19:10
+    → 六项逐位一致（仅 etime 随墙钟自然增长）= 全程零扰动 OK
+
+-- [T-5] UDP 43897 归属终检（ss -ulnp；ss -lntp 只列 TCP 会假报未监听）--
+    UNCONN    1280      0                  0.0.0.0:43897            0.0.0.0:*                                                                                       
+    仍由 foxy 侧持有（与起前基线一致）OK
+
+-- [T-6] /cmd_vel 与 ros2qnx --
+    运行期铁证（见 G7-1_mapserver_load.txt §4）：私有 master 生命周期内
+      rostopic list 全文 = /map  /map_metadata  /rosout  /rosout_agg   → /cmd_vel 零出现，无任何第三方写者
+      rosnode list 全文  = /map_server_1791392205891332656  /rosout     → 被测节点唯一，无运动桥节点
+    comm 精确扫 qnx：零命中；pgrep -x ros2qnx：零命中 → ros2qnx 零出现 OK
+
+-- [T-7] 沙箱与文件面零改动（git 只读；本单未执行任何 git 写操作）--
+    ws/ 与 data/ tracked 文件零改动 OK
+    HEAD 仍为 dd5822e（本单未 add / 未 commit）
+
+-- 退净判定：本单产物零残留、11313 释放、11312 全程零监听、三件 sha256 全等、foxy 六 PID 零扰动、/cmd_vel 与 ros2qnx 零出现 = PASS --
+-- v3_isolation 全量 = ISOLATION FAILED EXIT=1（另见 G7-1_v3_isolation_full.txt）：判定为预存在回归（仿真测试台域触发 [5][6]），非本单造成，另案上报，不改动本单判据本体结论 --
