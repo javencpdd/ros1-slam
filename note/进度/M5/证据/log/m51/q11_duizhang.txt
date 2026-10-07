@@ -1,0 +1,34 @@
+== /move_base_flex/get_path (actionlib 五件套)
+/move_base_flex/get_path/goal                  mbf_msgs/GetPathActionGoal
+/move_base_flex/get_path/result                mbf_msgs/GetPathActionResult
+/move_base_flex/get_path/feedback              mbf_msgs/GetPathActionFeedback
+/move_base_flex/get_path/cancel                actionlib_msgs/GoalID
+/move_base_flex/get_path/status                actionlib_msgs/GoalStatusArray
+== /move_base_flex/exe_path (actionlib 五件套)
+/move_base_flex/exe_path/goal                  mbf_msgs/ExePathActionGoal
+/move_base_flex/exe_path/result                mbf_msgs/ExePathActionResult
+/move_base_flex/exe_path/feedback              mbf_msgs/ExePathActionFeedback
+/move_base_flex/exe_path/cancel                actionlib_msgs/GoalID
+/move_base_flex/exe_path/status                actionlib_msgs/GoalStatusArray
+== /move_base_flex/recovery (actionlib 五件套)
+/move_base_flex/recovery/goal                  mbf_msgs/RecoveryActionGoal
+/move_base_flex/recovery/result                mbf_msgs/RecoveryActionResult
+/move_base_flex/recovery/feedback              mbf_msgs/RecoveryActionFeedback
+/move_base_flex/recovery/cancel                actionlib_msgs/GoalID
+/move_base_flex/recovery/status                actionlib_msgs/GoalStatusArray
+== /move_base_flex/move_base (actionlib 五件套)
+/move_base_flex/move_base/goal                 mbf_msgs/MoveBaseActionGoal
+/move_base_flex/move_base/result               mbf_msgs/MoveBaseActionResult
+/move_base_flex/move_base/feedback             mbf_msgs/MoveBaseActionFeedback
+/move_base_flex/move_base/cancel               actionlib_msgs/GoalID
+/move_base_flex/move_base/status               actionlib_msgs/GoalStatusArray
+== yaml target 声明类型对照
+6:    target: "action:mbf_msgs/MoveBaseAction"     # action 话题名随 mbf 服务器节点名，Q11 联调确认
+10:    target: "action:mbf_msgs/GetPathAction"
+15:    target: "action:mbf_msgs/ExePathAction"
+20:    target: "action:mbf_msgs/RecoveryAction"
+== 脚本拼接口径
+82:        ac = actionlib.SimpleActionClient('/%s/get_path' % rospy.get_param('~mbf_ns', 'move_base_flex'), GetPathAction)
+112:        ac = actionlib.SimpleActionClient('/%s/exe_path' % rospy.get_param('~mbf_ns', 'move_base_flex'), ExePathAction)
+140:        ac = actionlib.SimpleActionClient('/%s/recovery' % rospy.get_param('~mbf_ns', 'move_base_flex'), RecoveryAction)
+179:        ac = actionlib.SimpleActionClient('/%s/move_base' % rospy.get_param('~mbf_ns', 'move_base_flex'), MoveBaseAction)

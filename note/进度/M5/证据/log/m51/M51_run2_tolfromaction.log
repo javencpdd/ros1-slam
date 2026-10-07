@@ -1,0 +1,29 @@
+[ DEBUG ] : Adding state (WAIT, <__main__.WaitState object at 0xffffa607e1f0>, {'succeeded': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'WAIT' to the state machine.
+[ DEBUG ] : State 'WAIT' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR WAIT: {'succeeded': 'GET_PATH', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (GET_PATH, <__main__.GetPathState object at 0xffffa607e190>, {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'GET_PATH' to the state machine.
+[ DEBUG ] : State 'GET_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR GET_PATH: {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (EXE_PATH, <__main__.ExePathState object at 0xffffa607e370>, {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'EXE_PATH' to the state machine.
+[ DEBUG ] : State 'EXE_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR EXE_PATH: {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (NAVIGATE, <__main__.NavigateState object at 0xffffa607e6d0>, {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'NAVIGATE' to the state machine.
+[ DEBUG ] : State 'NAVIGATE' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR NAVIGATE: {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (RECOVER, <__main__.RecoverState object at 0xffffa607e220>, {'succeeded': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'RECOVER' to the state machine.
+[ DEBUG ] : State 'RECOVER' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR RECOVER: {'succeeded': 'GET_PATH', 'aborted': 'aborted'}
+[  INFO ] : State machine starting in initial state 'WAIT' with userdata: 
+	['replan_n', 'clear_n', 'retry_n']
+[INFO] [1791385380.987345]: [M5] 原语 wait（target=local:timer）outcome=succeeded 耗时 1.00s
+[  INFO ] : State machine transitioning 'WAIT':'succeeded'-->'GET_PATH'
+[INFO] [1791385381.336087]: [M5] 原语 get_path outcome=0 Plan found → succeeded 耗时 0.05s
+[  INFO ] : State machine transitioning 'GET_PATH':'succeeded'-->'EXE_PATH'
+[INFO] [1791385471.801755]: [M5] 原语 exe_path outcome=101 看门狗超时 cancel → aborted 耗时 90.01s
+[  INFO ] : State machine terminating 'EXE_PATH':'aborted':'aborted'
+[INFO] [1791385471.808294]: task outcome: aborted（总时长 91.8s）

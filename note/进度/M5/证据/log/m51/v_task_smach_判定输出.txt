@@ -1,0 +1,13 @@
+== v_task_smach.sh v1.1 判定 run1（缺省参数，goal=wp[3] AHEAD=3）
+FAIL 判据一: 未见 task outcome: succeeded（[INFO] [1791385345.530714]: task outcome: aborted（总时长 91.8s））
+FAIL 判据二: dt=91.8s > 60s
+PASS 判据三: wait/get_path/exe_path phase log 三连在册（3 行原语 log）
+False
+exit=1
+
+== v_task_smach.sh v1.1 判定 run2（修法#6 旋钮 tolerance_from_action=true，goal=wp[3] AHEAD=3）
+FAIL 判据一: 未见 task outcome: succeeded（[INFO] [1791385471.808294]: task outcome: aborted（总时长 91.8s））
+FAIL 判据二: dt=91.8s > 60s
+PASS 判据三: wait/get_path/exe_path phase log 三连在册（3 行原语 log）
+False
+exit=1
