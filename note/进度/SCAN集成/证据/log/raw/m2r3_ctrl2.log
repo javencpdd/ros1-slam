@@ -1,0 +1,27 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_051431
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.7s
+SMOKE gate_lcostmap_data=PASS t=0.8s
+SMOKE gate_tf_fresh=FAIL t=60.6s G5b_hit=zero_stamp
+SMOKE gate_tf_fresh_mapodom=FAIL t=90.4s G5b_hit=zero_stamp
+SMOKE DIAG_G5c1(odom->base_link, 非阻断)=HIT G5b_hit=zero_stamp
+SMOKE gate=FAIL t=90.5s {'map_data': True, 'tf_robot': True, 'gcostmap_data': True, 'lcostmap_data': True, 'tf_fresh_G5': False, 'tf_fresh_mapodom_G5c2': False}
+[FAIL] B: 门控未过（环境未就绪，FAIL 环境；见 stageB.txt gate_*=FAIL 行）
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: FAIL
+==================================================
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /map_to_odom_static
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed

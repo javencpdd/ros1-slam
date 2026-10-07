@@ -12,9 +12,25 @@
 
   <include file="$(find lite3_gazebo_sim)/launch/m2_gazebo.launch"/>
 
-  <!-- map→odom 恒等桥（mapless rolling costmap；真实定位接入= M2-3 hdl，本 stage 不起） -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom_static"
-        args="0 0 0 0 0 0 map odom"/>
+  <!-- map→odom 恒等桥（mapless rolling costmap；真实定位接入= M2-3 hdl，本 stage 不起）
+       [M2R3 2026-10-08 主理人采纳小张 §0] tf_source 缺省 fresh：静态件进 tf2 static 专用缓存、
+         语义「对所有时刻恒真」，lookupTransform(Time(0)) 在动态段未入缓存时回退到静态段零时刻
+         锚点 ⇒ 组合结果 stamp=Time(0) ⇒ mbf 保鲜校验 Δ_age = t_sim_now（实测 21.491s vs tol 3s）
+         ⇒ teb 立即 ABORT(state=4/dt=0)；且 canTransform 在静态链上恒 True ⇒ 旧门控 G1–G4 失明。
+         fresh 分支只改时间基（每次带 rospy.Time.now()），几何与静态件逐字相同、节点数与启动
+         次序不变。tf_source:=static 为阴性对照回退口，专供复验证明 G5 确有分辨力，非生产用法。 -->
+  <arg name="tf_source" default="fresh"/>
+  <group if="$(eval arg('tf_source') == 'fresh')">
+    <node pkg="lite3_gazebo_sim" type="m2_tf_fresh.py" name="m2_tf_fresh" output="screen">
+      <param name="rate_hz"     value="10.0"/>
+      <param name="parent_frame" value="map"/>
+      <param name="child_frame"  value="odom"/>
+    </node>
+  </group>
+  <group unless="$(eval arg('tf_source') == 'fresh')">
+    <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom_static"
+          args="0 0 0 0 0 0 map odom"/>
+  </group>
 
   <node pkg="lite3_gazebo_sim" type="m2_free_map.py" name="m2_free_map"/>
   <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="m2_cmd_relay"

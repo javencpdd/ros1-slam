@@ -9,10 +9,13 @@
                  use_sim_time 仍解析为 /use_sim_time（两侧均无 ns，等价）。行为零变化。 -->
   <arg name="goal_x" default="3.0"/>   <!-- 冒烟判据：起点 +3m（与 m2_teb 同值） -->
   <arg name="goal_y" default="0.0"/>
+  <!-- [M2R3] tf_source 透传（缺省 fresh）；tf_source:=static 仅供复验做阴性对照，证明 G5 有分辨力 -->
+  <arg name="tf_source" default="fresh"/>
 
   <include file="$(find lite3_gazebo_sim)/launch/m2_teb.launch">
     <arg name="goal_x" value="$(arg goal_x)"/>
     <arg name="goal_y" value="$(arg goal_y)"/>
+    <arg name="tf_source" value="$(arg tf_source)"/>
   </include>
 
   <!-- ↓↓ 自 m2_teb.launch:23-26 逐字搬来（C8 返工），内容一字未改 ↓↓ -->

@@ -155,7 +155,9 @@ PYEOF
 
 # ============ Stage B：teb 物理闭环（M2-2） ============
 stage_b() {
-  roslaunch lite3_bringup mode_sim_teb.launch > "$LOGDIR/tebB.log" 2>&1 &
+  # [M2R3] TF_SOURCE 环境变量为阴性对照口子：置 static 可回退旧静态件，
+  #   用于证明新门控 G5/G5b 确有分辨力（该跑必须 G5 FAIL）；缺省空=用 launch 内 fresh 缺省。
+  roslaunch lite3_bringup mode_sim_teb.launch ${TF_SOURCE:+tf_source:=$TF_SOURCE} > "$LOGDIR/tebB.log" 2>&1 &
   wait_topic /clock 300 || { echo "FAIL B: /clock 未出"; return 1; }
   wait_topic /rslidar_points 480 || { echo "FAIL B: /rslidar_points 未出"; return 1; }
   timeout 60 rostopic echo -n 1 /cmd_vel >/dev/null 2>&1 || true
@@ -195,12 +197,79 @@ def gate_wait(name, fn):
     print('SMOKE gate_%s=FAIL t=%.1fs' % (name, time.time()-gate_t0)); return False
 ok_map = gate_wait('map_data',      lambda: rospy.wait_for_message('/map', OccupancyGrid, timeout=2.0).info.width > 0)
 ok_tf  = gate_wait('tf_robot',      lambda: tf_.canTransform('map', 'base_link', rospy.Time(0)))   # 竞态根因直查
+# —— [M2R3 2026-10-08 小张 §0/§1] 新鲜度门 G5 / G5b / G5c ——
+# 旧 G1–G4 是「可达性门」：map→odom 若挂 /tf_static，静态条目语义为「对所有时刻恒真」，
+# canTransform(Time(0)) 永远返回 True ⇒ 结构上不具备新鲜度分辨力（不是门太松，是维度缺失）。
+# G5  = map→base_link 连续 3 次采样 Δ_age ≤ 1.0s(sim)
+# G5b = 在取龄内否决「零戳」与「/map 首帧戳」两种形态（后者与零戳同量级同后果但可绕纯零戳断言）
+# G5c = odom→base_link 与 map→odom 分段各取龄，用于断链定位（静态段单独判）
+MAP_FIRST = [None]
+def _mapcb(m):
+    if MAP_FIRST[0] is None:
+        MAP_FIRST[0] = m.header.stamp
+rospy.Subscriber('/map', OccupancyGrid, _mapcb, queue_size=1)
+
+# 取龄必须走 tf2 Buffer：老 tf.TransformListener 既无 lookup_transform（蛇形名是 tf2 的），
+# 其 lookupTransform 也只收三参且返回裸 [x,y,z]/[x,y,z,w] 列表、不含 header.stamp，无从取时间戳。
+# tf2 Buffer.lookup_transform 返回带 header.stamp 的 TransformStamped，且与 mbf 保鲜校验同构。
+import tf2_ros
+buf2 = tf2_ros.Buffer()
+tf2_listener = tf2_ros.TransformListener(buf2)
+
+def _age_of(a, b):
+    st = buf2.lookup_transform(a, b, rospy.Time(0), rospy.Duration(2.0))
+    s = st.header.stamp
+    if s == rospy.Time(0):
+        return None, 'G5b_hit=zero_stamp'
+    if MAP_FIRST[0] is not None and abs((s - MAP_FIRST[0]).to_sec()) < 1e-6:
+        return None, 'G5b_hit=first_map_stamp'
+    return (rospy.get_rostime() - s).to_sec(), None
+
+def g5_sample(a, b, need=3, gap=0.2, lim=1.0):
+    ds = []
+    for _ in range(need):
+        d, why = _age_of(a, b)
+        if why:
+            return False, why
+        if d > lim:
+            return False, 'age=%.3f>%.1f' % (d, lim)
+        ds.append('%.3f' % d)
+        time.sleep(gap)
+    return True, 'ages=[' + ','.join(ds) + ']'
+
+DET = {}
+def gate_wait_d(name, fn):
+    w = time.time()
+    while time.time() - w < gate_left() and not rospy.is_shutdown():
+        try:
+            ok, det = fn()
+            DET[name] = det
+            if ok:
+                print('SMOKE gate_%s=PASS t=%.1fs %s' % (name, time.time() - gate_t0, det))
+                return True
+        except Exception as e:
+            import traceback as _tb
+            DET[name] = 'exc=%s: %s | %s' % (type(e).__name__, e,
+                                             _tb.format_exc().strip().splitlines()[-2:-1])
+        time.sleep(0.3)
+    print('SMOKE gate_%s=FAIL t=%.1fs %s' % (name, time.time() - gate_t0, DET.get(name, '?')))
+    return False
 def costmap_up(topic):
     try: return rospy.wait_for_message(topic, OccupancyGrid, timeout=2.0).info.width > 0
     except Exception: return False
 ok_gcm = gate_wait('gcostmap_data', lambda: costmap_up('/move_base_flex/global_costmap/costmap'))
 ok_lcm = gate_wait('lcostmap_data', lambda: costmap_up('/move_base_flex/local_costmap/costmap'))
-gate = dict(map_data=ok_map, tf_robot=ok_tf, gcostmap_data=ok_gcm, lcostmap_data=ok_lcm)
+ok_g5   = gate_wait_d('tf_fresh',        lambda: g5_sample('map', 'base_link'))
+ok_g5c2 = gate_wait_d('tf_fresh_mapodom', lambda: g5_sample('map', 'odom'))
+# G5c1 降为**诊断项**（不进 gate 字典、不判 FAIL）：fresh1/fresh2 实测主判据 G5 与 G5c2 均 PASS
+#   （ages 0.019–0.093s），唯 G5c1 报 zero_stamp；而插件 lite3_planar_drive.cpp:127 明确以
+#   ros::Time::now() 发 odom→base_link —— 「组合新鲜、分段零戳」两观测互斥，机理未明。
+#   在未查清前既不据其阻断（会把已生效的修法误判为失败），也不删除（它是唯一暴露该异常的探针）。
+#   开放项已挂账待小张/小美判定。
+ok_g5c1 = g5_sample('odom', 'base_link')
+print('SMOKE DIAG_G5c1(odom->base_link, 非阻断)=%s %s' % ('PASS' if ok_g5c1[0] else 'HIT', ok_g5c1[1]))
+gate = dict(map_data=ok_map, tf_robot=ok_tf, gcostmap_data=ok_gcm, lcostmap_data=ok_lcm,
+            tf_fresh_G5=ok_g5, tf_fresh_mapodom_G5c2=ok_g5c2)
 if not all(gate.values()):
     print('SMOKE gate=FAIL t=%.1fs %s' % (time.time()-gate_t0, gate)); raise SystemExit(2)
 print('SMOKE gate=PASS t=%.1fs' % (time.time()-gate_t0))
@@ -218,6 +287,13 @@ PYEOF
   cat "$LOGDIR/stageB.txt"
   grep -q "SMOKE gate=FAIL" "$LOGDIR/stageB.txt" && { mark 0 "B: 门控未过（环境未就绪，FAIL 环境；见 stageB.txt gate_*=FAIL 行）"; return 1; }
   grep -q "SMOKE gate=PASS" "$LOGDIR/stageB.txt" && mark 1 "B: 门控通过（≤120s，goal 前就绪）" || mark 0 "B: 门控结果缺失"
+  # [M2R3 2026-10-08 小张 §3] G6：goal 之后 pose 类 ERROR 命中数必须为 0
+  #   G5 系前置新鲜度门、G6 系后置哨兵——两者双保险，防「门控时刻新鲜、执行中途断流」漏检。
+  #   注：grep -c 计数为 0 时既输出 0 又退出码 1，故**不可**接 `|| echo 0`（会拼成 "0\n0" 两行，
+  #       使算术比较判假、把 0 命中误标 FAIL）——首版即踩此坑，已改为单值归一取数。
+  G6=$(grep -acE "Can not get the robot pose|Could not get the current robot pose|Most recent robot pose is" "$LOGDIR/tebB.log" 2>/dev/null | head -1)
+  G6=${G6:-0}
+  [ "$G6" -eq 0 ] 2>/dev/null && mark 1 "B/G6: goal 后 pose 类 ERROR=0" || mark 0 "B/G6: pose 类 ERROR=${G6} 命中（TF 时基新鲜度回归）"
   get() { grep -o "$1=[-0-9.e]*" "$LOGDIR/stageB.txt" | head -1 | cut -d= -f2; }
   D=$(get dev_odom); T=$(get dt)
   awk -v a="$D" 'BEGIN{exit !(a<=0.35)}' && mark 1 "B: 到达偏差 $D ≤0.35m" || mark 0 "B: 到达偏差 $D >0.35m"
