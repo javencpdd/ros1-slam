@@ -1,0 +1,74 @@
+[02:16:45] == [0] P0.5 双查 ==
+foxy 生产六 PID（须全部在位、启动时刻不变）:
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-00:48:56 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-00:48:54 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-00:48:52 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-00:48:52 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-00:48:52 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-10:57:35 static_transfor
+沙箱 ROS 残留(起前): (空=净)
+11312 生产 master 监听(起前): 0 须=0
+UDP 43897 归属(起前): UNCONN 2560 0 0.0.0.0:43897 0.0.0.0:* 
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+ros2qnx 存在性: 0 须=0
+[02:16:46] == [1] roscore 11313 ==
+master 就绪: 1 节点（应为 1=/rosout）
+[02:16:53] == [2] m2_gazebo.launch ==
+世界层三话题在位（/clock /rslidar_points /livox/imu）
+[02:18:01] == [3] m2_mapping.launch (pcd_save:=false 默认，样张保护) ==
+faster_lio 双输出在位：/Odometry + /cloud_registered_body
+[02:18:16] == [4] 70_scan.launch（SCAN 独立进程 + lio_relay） ==
+SCAN 输入链与占据图话题均在位
+[02:18:40] == [5] F9 互斥 + /cmd_vel 写者 ==
+F9 互斥（节点级判定，不用 pgrep -f —— 实测 'move_base|teb' 正则会误报）: move_base 节点数=0  须=0
+/cmd_vel publisher: 1（本链无 M6/mux，应无订阅侧）
+cmd_vel 话题在位: 1  /scan_planner/cmd_vel 在位: 1
+SCAN 节点清单:
+/body_to_base_link
+/closed_loop_controller
+/faster_lio_online
+/gazebo
+/lio_cloud_relay
+/lio_odom_imu_relay
+/lio_odom_vehicle_relay
+/robot_state_publisher
+/rosout
+/scan_planner_node
+/sim_adapter
+/world_to_camera_init
+[02:18:54] == [6] 判据① 采样 30s ==
+occ.json:
+sampler stderr:
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p1_occ_sample.py", line 97, in <module>
+    main()
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p1_occ_sample.py", line 89, in main
+    and s["y"][0] >= ref["y"][0] - 0.5 and s["y"][1] <= ref["y"][1] + 0.5):
+KeyError: 'y'
+[02:19:31] == [7] 判定 ==
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/usr/lib/python3.8/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/usr/lib/python3.8/json/__init__.py", line 357, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.8/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.8/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+[02:19:33] == [8] 样张与红线终检 ==
+样张 sha256 起前=退后 OK
+foxy 六 PID 终检:
+ 115711 ysc      Mon Oct  5 01:27:49 2026 python3
+ 115792 root     Mon Oct  5 01:27:51 2026 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026 static_transfor
+==================================================
+P1 判据① 结论 = PASS
+P1_EXIT=0 LOGDIR=/tmp/scan_p1_run
+[02:19:33] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0

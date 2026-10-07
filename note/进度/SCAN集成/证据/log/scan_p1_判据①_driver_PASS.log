@@ -1,0 +1,59 @@
+[02:30:46] == [0] P0.5 双查 ==
+foxy 生产六 PID（须全部在位、启动时刻不变）:
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-01:02:56 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-01:02:54 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-01:02:52 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-01:02:52 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-01:02:52 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-11:11:35 static_transfor
+沙箱 ROS 残留(起前): (空=净)
+11312 生产 master 监听(起前): 0 须=0
+UDP 43897 归属(起前): UNCONN 1280 0 0.0.0.0:43897 0.0.0.0:* 
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+ros2qnx 存在性: 0 须=0
+[02:30:46] == [1] roscore 11313 ==
+master 就绪: 1 节点（应为 1=/rosout）
+[02:30:53] == [2] m2_gazebo.launch ==
+世界层三话题在位（/clock /rslidar_points /livox/imu）
+[02:31:58] == [3] m2_mapping.launch (pcd_save:=false 默认，样张保护) ==
+faster_lio 双输出在位：/Odometry + /cloud_registered_body
+[02:32:13] == [4] 70_scan.launch（SCAN 独立进程 + lio_relay） ==
+SCAN 输入链与占据图话题均在位
+[02:32:38] == [5] F9 互斥 + /cmd_vel 写者 ==
+F9 互斥（节点级判定，不用 pgrep -f —— 实测 'move_base|teb' 正则会误报）: move_base 节点数=0  须=0
+/cmd_vel publisher: 1（本链无 M6/mux，应无订阅侧）
+cmd_vel 话题在位: 1  /scan_planner/cmd_vel 在位: 1
+SCAN 节点清单:
+/body_to_base_link
+/closed_loop_controller
+/faster_lio_online
+/gazebo
+/lio_cloud_relay
+/lio_odom_imu_relay
+/lio_odom_vehicle_relay
+/robot_state_publisher
+/rosout
+/scan_planner_node
+/sim_adapter
+/world_to_camera_init
+[02:32:52] == [6] 判据① 采样 30s ==
+occ.json:
+{"topic": "/grid_map/occupancy", "window_s": 30.0, "frames": 152, "counts": [4914, 4895, 4895, 4933, 4933, 4947, 4947, 4947, 4947, 4948, 4948, 4124, 5002, 4984, 4984, 4984, 4124, 4991, 4992, 4990, 4990, 4116, 4990, 4991, 4995, 4994, 4994, 4994, 4994, 5010, 5010, 5010, 5037, 5101, 5101, 4222, 5094, 5091, 5091, 5091, 5091, 5125, 5125, 5125, 5119, 5119, 5139, 5139, 5145, 5179, 5179, 5179, 5195, 5195, 5195, 5195, 5195, 5195, 5195, 4295, 5198, 5198, 5198, 5198, 5154, 5154, 5177, 5177, 5201, 5201, 5206, 5215, 5215, 5215, 5228, 5228, 5240, 5240, 5240, 5240, 5240, 4360, 5267, 5267, 4368, 5279, 4365, 5280, 5280, 5280, 5270, 5270, 5270, 5270, 4355, 5275, 5275, 5285, 5285, 5285, 5285, 5285, 5275, 5275, 5275, 5308, 4388, 5302, 5300, 5300, 4388, 5275, 5275, 5258, 5258, 5252, 5252, 5278, 5284, 5284, 5284, 5284, 4368, 5328, 5347, 5347, 4425, 5330, 5330, 4409, 5334, 5334, 5334, 5343, 5343, 5343, 5322, 5322, 5331, 5331, 4436, 5355, 5324, 5324, 5324, 5324, 4410, 5309, 5309, 5309, 5331, 5331], "first": {"n": 4914, "frame_id": "world", "stamp": 0.0, "wall": 1791397975.0413575, "x": [-4.425, 4.625, 0.475], "y": [-4.425, 4.425, -0.875], "z": [-0.525, 0.375, -0.025]}, "last": {"n": 5331, "frame_id": "world", "stamp": 0.0, "wall": 1791398004.8199906, "x": [-4.325, 4.625, 0.475], "y": [-4.425, 4.425, 0.425], "z": [-0.525, 0.375, -0.025]}, "ref_bbox": {"x": [-39.111, 18.324], "y": [-22.277, 32.415], "z": [-0.522, 0.447]}, "ref_topic": "/cloud_registered", "bbox_check_samples": 3, "bbox_within_ref": true, "bbox_inside_count": 3, "ref_has_xy": true}
+sampler stderr:
+[02:33:25] == [7] 判定 ==
+判定原文: PASS:①帧数≥3; PASS:①末帧点数>0; PASS:①末帧≥首帧(建图不减); PASS:①frame_id=world; PASS:①包围盒非退化(>1m²); PASS:①包围盒落在 LIO 累积云界内
+[02:33:26] == [8] 样张与红线终检 ==
+样张 sha256 起前=退后 OK
+foxy 六 PID 终检:
+ 115711 ysc      Mon Oct  5 01:27:49 2026 python3
+ 115792 root     Mon Oct  5 01:27:51 2026 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026 static_transfor
+==================================================
+P1 判据① 结论 = PASS
+P1_EXIT=0 LOGDIR=/tmp/scan_p1_run
+[02:33:26] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
