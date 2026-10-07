@@ -1,0 +1,22 @@
+== Wave3 收尾快照 2026-10-07 18:00:11 施工人=小明 ==
+-- 端口 ss -tlnp（11312/11313/11314/11345/11346 应全零监听）--
+(全部零监听)
+-- 样张 lite3.pcd --
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+2026-10-07 02:30:50.299020625 +0800 6184931
+-- foxy 进程（起前五 PID 对账）--
+ 115711 ysc       2-16:32:22 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+ 115792 root      2-16:32:20 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+ 115795 root      2-16:32:18 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_qn13iekq
+ 115797 root      2-16:32:18 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_0hy95xe_ --params-file /tmp/launch_params_syzz580_ --params-file /tmp/launch_params_qzjzmkm4
+ 115799 root      2-16:32:18 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_4en3oih0
+-- noetic 残留 --
+(none)
+-- simtb_payload 7 件零改动抽查 --
+52c7a17bad729a5143ab17b17fac0b2273fd4c155baeffeade71181e6a60f50b  /tmp/simtb_payload/lite3_bringup/launch/mode_nav_sim.launch
+ae399fb1a634676c1f303654b5eef1dda0525e47c026adde25615cf3fb08ffba  /tmp/simtb_payload/lite3_bringup/scripts/sim_map_bridge.py
+cb369df95c5e663e6d63378dc46c6435f204a0a124df4bc4bb98a2be32137a9f  /tmp/simtb_payload/lite3_bringup/scripts/sim_pose_tf.py
+2ae36a20c0492fa5f761e0a4f82c1b198c534bd8b15702445de30f796908bf59  /tmp/simtb_payload/lite3_bringup/verify/sim_nav_smoke.sh
+3d0f10b8a938904dcbec152f6a99d16db6e63b4ca6e51eb5da6bd78ecbb30698  /tmp/simtb_payload/lite3_drivers/diff_95_sim_extra_args.patch
+926624d6ee6345d5458d4f1081897614e9cd63f06f701fdb4ccf9c652e0b3b54  /tmp/simtb_payload/lite3_drivers/diff_sim_adapter_no_imu.patch
+13b386d1d70b9010fe0fd2ce00abfc25a339f6d553b0a9928e3b495d2994fa22  /tmp/simtb_payload/lite3_supervisor/diff_health_watch_mode_nav_sim.patch
