@@ -1,0 +1,24 @@
+<launch>
+  <!-- mode_sim_hdl.launch —— M2 stageC 的 TOP 层编排件（[5] 返工，主理人执行 2026-10-08；设计=小张 §0/§1 路 A）
+       为何存在：m2_hdl.launch 原先直接 include lite3_localization = sim 壳包伸手进生产模块
+                 （共同门禁 [5] 真命中之二）。上收到 TOP 编排层 lite3_bringup（P7 裁决先例同构）。
+       等价性声明：sim 侧只删该 include 块、其余原样（gazebo include + imu_relay 保留）；
+                 四个 arg（map_name / points_topic / manager_required / clock_gate_cmd）逐字照搬；
+                 节点启动次序不变（gazebo→imu_relay→hdl）；use_sim_time 仍解析为 /use_sim_time。
+       风险注记：hdl 的**仿真验证**已被 M2-R2C 裁决终止（manager SIGSEGV，转真机 G8 顺带验证），
+                 本文件属「低风险纯搬运」——不改变 hdl 在仿真域不可用的既有结论，也不重启该实验。 -->
+  <arg name="map_name" default="sim_venue"/>
+
+  <include file="$(find lite3_gazebo_sim)/launch/m2_hdl.launch">
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
+  <!-- ↓↓ 自 m2_hdl.launch:16-22 逐字搬来（[5] 返工），内容一字未改 ↓↓ -->
+  <include file="$(find lite3_localization)/launch/hdl_localization.launch">
+    <arg name="map_name" value="$(arg map_name)"/>
+    <arg name="points_topic" value="/rslidar_points"/>
+    <!-- M2-R2C（小张 R2C manifest 施工件3）：/clock 门控 + manager required 仅仿真域启用；真机 G8 不传=缺省现行为 -->
+    <arg name="manager_required" value="true"/>
+    <arg name="clock_gate_cmd" value="/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/wait_sim_clock.sh"/>
+  </include>
+</launch>

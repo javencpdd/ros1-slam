@@ -13,11 +13,7 @@
   <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="imu_relay"
         args="/livox/imu /imu/data Imu"/>
 
-  <include file="$(find lite3_localization)/launch/hdl_localization.launch">
-    <arg name="map_name" value="$(arg map_name)"/>
-    <arg name="points_topic" value="/rslidar_points"/>
-    <!-- M2-R2C（小张 R2C manifest 施工件3）：/clock 门控 + manager required 仅仿真域启用；真机 G8 不传=缺省现行为 -->
-    <arg name="manager_required" value="true"/>
-    <arg name="clock_gate_cmd" value="/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/wait_sim_clock.sh"/>
-  </include>
+  <!-- hdl 重定位的 include 已上收至 TOP 编排层：lite3_bringup/launch/mode_sim_hdl.launch
+       （[5] 返工 2026-10-08，设计=小张路 A；K3 禁平级 lite3_* 互 include，sim 壳包不伸手进生产模块。
+        hdl 的仿真验证本身已被 M2-R2C 裁决终止转真机 G8，本次上收不改变该结论。起 stageC 请用 TOP 入口。） -->
 </launch>

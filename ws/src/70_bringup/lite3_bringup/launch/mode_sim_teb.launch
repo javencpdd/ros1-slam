@@ -1,0 +1,23 @@
+<launch>
+  <!-- mode_sim_teb.launch —— M2 stageB 的 TOP 层编排件（[5] 返工，主理人执行 2026-10-08；设计=小张 §0/§1 路 A）
+       为何存在：K3 禁平级 lite3_* 互 include，而 m2_teb.launch 原先直接 include lite3_navigation
+                 = sim 壳包伸手进生产模块（共同门禁 [5] 真命中之一）。TOP 编排层 lite3_bringup 是
+                 include 合法主体（P7 主理人裁决先例；mode_nav_sim.launch 同构已在位），故该 include
+                 逐字、保序上收到此文件。
+       等价性声明：sim 侧只删该 include 块、其余原样；arg rviz:=false 逐字照搬；
+                 节点启动次序不变（sim 场地/假体/relay 在前，mbf 在后）；
+                 use_sim_time 仍解析为 /use_sim_time（两侧均无 ns，等价）。行为零变化。 -->
+  <arg name="goal_x" default="3.0"/>   <!-- 冒烟判据：起点 +3m（与 m2_teb 同值） -->
+  <arg name="goal_y" default="0.0"/>
+
+  <include file="$(find lite3_gazebo_sim)/launch/m2_teb.launch">
+    <arg name="goal_x" value="$(arg goal_x)"/>
+    <arg name="goal_y" value="$(arg goal_y)"/>
+  </include>
+
+  <!-- ↓↓ 自 m2_teb.launch:23-26 逐字搬来（C8 返工），内容一字未改 ↓↓ -->
+  <!-- mbf 导航栈（C0 形态，cmd_vel→cmd_vel_raw remap 在其 launch 内） -->
+  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
+    <arg name="rviz" value="false"/>
+  </include>
+</launch>

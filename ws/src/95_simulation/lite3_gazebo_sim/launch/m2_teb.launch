@@ -20,10 +20,9 @@
   <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="m2_cmd_relay"
         args="/cmd_vel_raw /cmd_vel Twist"/>
 
-  <!-- mbf 导航栈（C0 形态，cmd_vel→cmd_vel_raw remap 在其 launch 内） -->
-  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
-    <arg name="rviz" value="false"/>
-  </include>
+  <!-- mbf 导航栈的 include 已上收至 TOP 编排层：lite3_bringup/launch/mode_sim_teb.launch
+       （[5] 返工 2026-10-08，设计=小张路 A；K3 禁平级 lite3_* 互 include，sim 壳包不伸手进生产模块。
+        起 stageB 请用 TOP 入口，勿再直接 roslaunch 本文件。） -->
 
   <!-- 目标注入：mbf move_base action（mbf_msgs/MoveBaseAction）；goal 由冒烟脚本按 start 动态发，
        此处仅登记约定 goal=(start_x+3, start_y) —— 判据 ≤0.35m / ≤120s（sim 时）见 m2_smoke.sh Stage B -->

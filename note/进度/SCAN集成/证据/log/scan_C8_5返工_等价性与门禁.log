@@ -1,0 +1,23 @@
+### [5] 返工等价性验证（主理人 2026-10-08）
+
+== A) 旧(/tmp 返工前副本) vs 新(TOP 编排件) 节点展开集对比 ==
+--- m2_teb
+  旧节点数=9  新节点数=9
+  差异:
+    1d0
+    < /cmd_vel_relay
+    3a3
+    > /m2_cmd_relay
+--- m2_hdl
+  旧节点数=10  新节点数=10
+  ★ 节点集合逐位相同 = 纯搬运等价 成立
+
+== B) XML 解析 ==
+  OK  mode_sim_teb.launch
+  OK  mode_sim_hdl.launch
+  OK  m2_teb.launch
+  OK  m2_hdl.launch
+
+== C) 共同门禁全量复跑 ==
+  EXIT=0
+  === ISOLATION OK ===

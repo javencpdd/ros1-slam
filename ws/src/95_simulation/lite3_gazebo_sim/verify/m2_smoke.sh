@@ -48,14 +48,18 @@ trap cleanup EXIT
 if [ -f "$MAP" ]; then cp "$MAP" "$LOGDIR/lite3.pcd.bak"
   sha256sum "$MAP" | awk '{print $1}' > "$LOGDIR/pcd.sha256.before"; echo "[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）"; fi
 
+# [C8 返工 2026-10-08 主理人] 六个 roslaunch 入口由 $PAYLOAD(/tmp 载荷副本) 改指 ws/src 包内路径：
+#   (1) 防复验跑到过期副本（m2_teb.launch 已因 [6] 改名与 [5] include 上收而变，/tmp 侧仍是旧版）
+#   (2) teb/hdl 改指 TOP 编排件 lite3_bringup/mode_sim_*.launch（[5] 返工；判据/阈值/stage 数/进程拓扑零改动）
+
 # ============ Stage A：闭环回归（M2-1/M2-4） ============
 stage_a() {
-  roslaunch "$PAYLOAD/m2_gazebo.launch" > "$LOGDIR/gazeboA.log" 2>&1 &
+  roslaunch lite3_gazebo_sim m2_gazebo.launch > "$LOGDIR/gazeboA.log" 2>&1 &
   # 注：m2_gazebo.launch 亦 install 至包内 launch/（$(find lite3_gazebo_sim)/launch/m2_gazebo.launch），二选一等价
   wait_topic /clock 300 || { echo "FAIL A: /clock 未出"; return 1; }
   wait_topic /rslidar_points 480 || { echo "FAIL A: /rslidar_points 未出"; return 1; }
   wait_topic /livox/imu 300 || { echo "FAIL A: /livox/imu 未出"; return 1; }
-  roslaunch "$PAYLOAD/m2_mapping.launch" > "$LOGDIR/mappingA.log" 2>&1 &
+  roslaunch lite3_gazebo_sim m2_mapping.launch > "$LOGDIR/mappingA.log" 2>&1 &
   wait_topic /cloud_registered 360 || { echo "FAIL A: /cloud_registered 未出"; return 1; }
 
   python3 - <<'PYEOF' > "$LOGDIR/stageA.txt" 2>&1
@@ -147,7 +151,7 @@ PYEOF
 
 # ============ Stage B：teb 物理闭环（M2-2） ============
 stage_b() {
-  roslaunch "$PAYLOAD/m2_teb.launch" > "$LOGDIR/tebB.log" 2>&1 &
+  roslaunch lite3_bringup mode_sim_teb.launch > "$LOGDIR/tebB.log" 2>&1 &
   wait_topic /clock 300 || { echo "FAIL B: /clock 未出"; return 1; }
   wait_topic /rslidar_points 480 || { echo "FAIL B: /rslidar_points 未出"; return 1; }
   timeout 60 rostopic echo -n 1 /cmd_vel >/dev/null 2>&1 || true
@@ -219,10 +223,10 @@ PYEOF
 # ============ Stage C：hdl 重定位（M2-3） ============
 stage_c() {
   # C-1 建图（pcd_save:=true）：复用 Stage A 驱动序列走一遍（out/turn/back），优雅 SIGINT 落盘
-  roslaunch "$PAYLOAD/m2_gazebo.launch" > "$LOGDIR/gazeboC.log" 2>&1 &
+  roslaunch lite3_gazebo_sim m2_gazebo.launch > "$LOGDIR/gazeboC.log" 2>&1 &
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出"; return 1; }
   wait_topic /livox/imu 300 || { echo "FAIL C: /livox/imu 未出"; return 1; }
-  roslaunch "$PAYLOAD/m2_mapping.launch" pcd_save:=true > "$LOGDIR/mappingC.log" 2>&1 &
+  roslaunch lite3_gazebo_sim m2_mapping.launch pcd_save:=true > "$LOGDIR/mappingC.log" 2>&1 &
   wait_topic /cloud_registered 360 || { echo "FAIL C: /cloud_registered 未出"; return 1; }
   python3 - <<'PYEOF' >/dev/null 2>&1 &
 import math, time, rospy
@@ -265,7 +269,7 @@ PYEOF
   rosnode kill -a 2>/dev/null; sleep 3; pkill -f gzserver 2>/dev/null; sleep 2
   # C-2 重定位：hdl 载入 sim_venue → /initialpose 注入真值邻域（±0.15m/5°）→ 三判据
   T_HDL0=$(date +%s)   # M2-R2C：稳定性判据计时起点（hdl 栈存活 ≥120s 观测窗）
-  roslaunch "$PAYLOAD/m2_hdl.launch" > "$LOGDIR/hdlC.log" 2>&1 &
+  roslaunch lite3_bringup mode_sim_hdl.launch > "$LOGDIR/hdlC.log" 2>&1 &
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出"; return 1; }
   timeout 60 rostopic echo -n 1 /hdl_odom >/dev/null 2>&1 || true
   python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
