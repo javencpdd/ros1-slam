@@ -1,0 +1,38 @@
+### [5] 精度修订回归（主理人 2026-10-08）
+
+== A) 正向：改后全量门禁 ==
+改前脚本 sha256 ceddff9848b54974a568670fafc3d400e9c5879baff1c9b0e57cb80151afee9e（留底 raw/v3_isolation.sh.before_scanC5.bak）
+9cb42267d145d786226b6f5be837bda32df3eae4d78b9f7a77a806d234e4a1e9  scripts/verify/v3_isolation.sh
+bash -n OK
+
+正向 EXIT=1
+1:[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+2:[2] 自研壳中是否含 /home/ysc
+3:[3] .bashrc 是否 source 了其他 devel
+4:[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+5:[5] ★ 平级模块间是否互相 include launch（20 号 K3）—— P7 修订（主理人裁决，04 �
+6:/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch -> lite3_localization
+7:/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch -> lite3_navigation
+8:[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug；v4 语义�
+9:/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:3:       链路：gazebo(M2 xac
+10:/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:7:       红线：全链 11313
+11:/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:20:  <node pkg="lite3_gazebo_s
+12:[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+13:[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+14:[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.c
+15:=== ISOLATION FAILED ===
+
+== B) 反向探针：注入一条真 include，必须被 [5] 抓 ==
+[5] ★ 平级模块间是否互相 include launch（20 号 K3）—— P7 修订（主理人裁决，04 台�
+/home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/_probe_c5_tmp.launch -> lite3_navigation
+探针 rc=1
+
+== C) 删除探针后复跑（应回到修订后基线） ==
+探针残留命中: 0
+复跑 EXIT=1
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch -> lite3_localization
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch -> lite3_navigation
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:3:       链路：gazebo(M2 x
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:7:       红线：全链 1131
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:20:  <node pkg="lite3_gazebo_
+=== ISOLATION FAILED ===
