@@ -1,0 +1,39 @@
+[smoke] 起 mode_nav_sim.launch（日志 /tmp/sim_nav_smoke_launch.log）...
+CHECK|venue_map_cloud|PASS|/map_generator/global_cloud 有发布者（mockamap）
+CHECK|rslidar_points|PASS|/rslidar_points 实测 3.12Hz（≥0.5，G8 适配链活性）
+CHECK|truth_map|PASS|/map 有数据且占据格=5041（sim_map_bridge）
+CHECK|tf_robot|PASS|TF map→base_link 可查（sim_pose_tf）
+CHECK|costmap_data|PASS|全局 costmap 占据格=11424（static+stvl 有数据）
+CHECK|getpath_server|PASS|mbf get_path action server 在位
+CHECK|getpath_1|PASS|outcome=0 Plan found | 末点偏差=0.00m 长度=22.2m（当前位姿直线距=3.0m，判据≤35.6m）
+CHECK|getpath_2|PASS|outcome=0 Plan found | 末点偏差=0.00m 长度=18.0m（当前位姿直线距=6.3m，判据≤35.6m）
+CHECK|getpath_3|PASS|outcome=0 Plan found | 末点偏差=0.00m 长度=15.8m（当前位姿直线距=8.8m，判据≤37.3m）
+CHECK|exepath_cmdvel|PASS|/cmd_vel_raw 12s 内消息数=1（M4→M6 速度链活性；闭环不可仿真，不验运动效果）
+CHECK|cmdvel_writer|PASS|/cmd_vel publisher=['/safe_cmd_vel_mux (http://lite:37267/)']（唯一写者=M6 safe_cmd_vel_mux，§2.6-a）
+[smoke] launch 日志尾 20 行（失败时排查用）：
+[0m[ INFO] [1791401215.029418603]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791401215.092957050]: [sob_layer] initialized[0m
+[0m[ INFO] [1791401215.359681832]: [sob_layer] resized to 1000000[0m
+[0m[ INFO] [1791401215.383187261]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791401215.394873063]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791401216.099726987]: The plugin with the type "global_planner/GlobalPlanner" has been loaded successfully under the name "GlobalPlanner".[0m
+[0m[ INFO] [1791401216.304499197]: The plugin with the type "navfn/NavfnROS" has been loaded successfully under the name "NavfnROS".[0m
+[0m[ INFO] [1791401217.281202954]: Footprint model 'polygon' loaded for trajectory optimization.[0m
+[0m[ INFO] [1791401217.283579078]: Parallel planning in distinctive topologies disabled.[0m
+[0m[ INFO] [1791401218.737351922]: Costmap conversion plugin costmap_converter::CostmapToPolygonsDBSMCCH loaded.[0m
+[0m[ INFO] [1791401219.566112267]: The plugin with the type "teb_local_planner/TebLocalPlannerROS" has been loaded successfully under the name "TebLocalPlannerROS".[0m
+[0m[ INFO] [1791401219.761136649]: Sim period is set to 0.10[0m
+[0m[ INFO] [1791401220.143435370]: The plugin with the type "dwa_local_planner/DWAPlannerROS" has been loaded successfully under the name "DWAPlannerROS".[0m
+[0m[ INFO] [1791401220.308127234]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1791401220.308355269]: The plugin with the type "clear_costmap_recovery/ClearCostmap[33m[ WARN] [1791401222.556740145]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1791401222.562060303]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2705 seconds[0m
+[33m[ WARN] [1791401222.572675181]: No velocity command received from controller! teb_local_planner trajectory is not feasible[0m
+[33m[ WARN] [1791401222.574923111]: Calculation needs too much time to stay in the moving frequency! (0.3655s > 0.1000s)[0m
+[33m[ WARN] [1791401222.599600651]: Controller defers handling cancel; force it and wait until the current control cycle finished[0m
+[33m[ WARN] [1791401225.716572700]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1369 seconds[0m
+[smoke] 退净中...
+CHECK|ros2qnx_exit|PASS|ros2qnx 全程不存在
+CHECK|teardown|PASS|launch 内关键节点已退净
+SMOKE_EXIT=0
+残留: (空=净)
+11313: 0  11312: 0
