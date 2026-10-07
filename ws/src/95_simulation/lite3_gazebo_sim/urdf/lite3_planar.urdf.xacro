@@ -8,10 +8,13 @@
     ④ cmdTimeout 零速兜底。
   回退：driveMode 改回/换回 filename="libgazebo_ros_planar_move.so" 即回 M1 形态（无文件回滚需求）。
   其余块与 M1 版逐字相同（取舍声明①②③、fratopa 参数逐字照 README、IMU 200Hz、mu 0.1），未重述。
+  M2R5/U1：仅关节块拓扑方向变（torso_to_base → base_to_torso，parent/child 互换），origin 恒等、
+           几何/inertial/sensor/plugin/mu 五块逐字未动 ⇒ 语义等价，只消除 base_link 双父（设计件
+           note/进度/M2/设计/m2r5_双父TF设计.md 方案 A）。
 -->
 <robot name="lite3_planar" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- ================= 官方骨架：TORSO（root，保持官方名） ================= -->
+  <!-- ================= 官方骨架：TORSO（保持官方名；M2R5 起非 root，恒等挂于 base_link 下） ================= -->
   <link name="TORSO">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -29,9 +32,14 @@
     </collision>
   </link>
 
-  <joint name="torso_to_base" type="fixed">
-    <parent link="TORSO"/>
-    <child link="base_link"/>
+  <!-- [M2R5/U1 2026-10-08 方案 A] 桥向反挂：原 torso_to_base（parent=TORSO/child=base_link）
+       使 base_link 在 tf2 图里同时有静态父 TORSO 与动态父 odom（插件 lite3_planar_drive.cpp:127 发
+       odom→base_link），双父 ⇒ tf2 查询 odom→base_link 命中静态缓存被规范化的 Time(0)，
+       表现为 harness G5c1 零戳（E3 直读实证原始消息戳是新鲜的）。反挂后 base_link 为唯一 root、
+       静态面只剩 base_link→{TORSO, rslidar}。恒等原点与「双 frame 并存」意图逐字保留。 -->
+  <joint name="base_to_torso" type="fixed">
+    <parent link="base_link"/>
+    <child link="TORSO"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
   <link name="base_link">

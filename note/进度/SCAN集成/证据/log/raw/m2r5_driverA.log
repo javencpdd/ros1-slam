@@ -1,0 +1,107 @@
+##### V6 pre  payload_dir=/tmp/m2r5_pre  06:46:50 #####
+### foxy lstart start_v6_pre 06:46:50
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-05:19:01 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-05:18:59 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-05:18:57 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-05:18:57 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-05:18:57 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-15:27:40 static_transfor
+  计数=6
+  model_states 出现=1 等待=10s
+  probe 第 1 次空采，再等 20s
+  probe 第 2 次取到
+    V6 collected=1006
+    V6 tag=pre samples=1006
+    V6 tag=pre pose_x=0.000000 pose_y=0.000000
+    V6 tag=pre z_min=0.109869 z_max=0.150000 z_mean=0.112395 z_span=0.040131
+    V6 tag=pre orient_xyzw=['0.000000', '-0.000000', '0.000000', '1.000000']
+    V6 tag=pre model_ok=True canonical_body_name= is_static=False
+    V6 tag=pre body_names=['TORSO']
+    V6 tag=pre model_props=ERR AttributeError: 'GetModelPropertiesResponse' object has no attribute 'pose'
+    V6 tag=pre link=lite3_planar::base_link OK=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+    V6 tag=pre link=lite3_planar::TORSO ERR AttributeError: 'GetLinkPropertiesResponse' object has no attribute 'inertia'
+    V6 tag=pre link=lite3_planar::rslidar OK=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+  teardown 残留:[]
+##### V6 post  payload_dir=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim  06:47:58 #####
+### foxy lstart start_v6_post 06:47:58
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-05:20:09 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-05:20:07 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-05:20:05 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-05:20:05 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-05:20:05 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-15:28:48 static_transfor
+  计数=6
+  model_states 出现=1 等待=10s
+  probe 第 1 次空采，再等 20s
+  probe 第 2 次取到
+    V6 collected=1021
+    V6 tag=post samples=1021
+    V6 tag=post pose_x=0.000000 pose_y=0.000000
+    V6 tag=post z_min=0.109869 z_max=0.150000 z_mean=0.112360 z_span=0.040131
+    V6 tag=post orient_xyzw=['-0.000000', '0.000000', '0.000000', '1.000000']
+    V6 tag=post model_ok=True canonical_body_name= is_static=False
+    V6 tag=post body_names=['base_link']
+    V6 tag=post model_props=ERR AttributeError: 'GetModelPropertiesResponse' object has no attribute 'pose'
+    V6 tag=post link=lite3_planar::base_link ERR AttributeError: 'GetLinkPropertiesResponse' object has no attribute 'inertia'
+    V6 tag=post link=lite3_planar::TORSO OK=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+    V6 tag=post link=lite3_planar::rslidar OK=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+  teardown 残留:[]
+##### stageA 物理回归（root 变更属被测件变更，A0-A4 必须重取） 06:49:06 #####
+### foxy lstart start_stageA 06:49:06
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-05:21:16 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-05:21:14 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-05:21:12 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-05:21:12 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-05:21:12 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-15:29:55 static_transfor
+  计数=6
+  stageA rc=0
+### foxy lstart end_stageA 06:52:32
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-05:24:42 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-05:24:40 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-05:24:38 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-05:24:38 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-05:24:38 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-15:33:21 static_transfor
+  计数=6
+drift=0.490 drift=0.490 rate_pts=8.9 rate_imu=195.0 fly_ratio=0.0000 rtf_motion=0.271 
+  7 PASS / 0 FAIL
+  teardown 残留:[]
+##### 新 5 连首跑 fresh1n（G5c1 已升阻断门） 06:52:41 #####
+### foxy lstart start_fresh1n 06:52:41
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-05:24:51 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-05:24:49 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-05:24:47 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-05:24:47 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-05:24:47 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-15:33:30 static_transfor
+  计数=6
+### foxy lstart end_fresh1n 06:55:50
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-05:28:00 python3
+ 115792 root     Mon Oct  5 01:27:51 2026  3-05:27:58 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-05:27:56 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-05:27:56 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-05:27:56 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-15:36:39 static_transfor
+  计数=6
+  rc=0
+    SMOKE gate_map_data=PASS t=0.2s
+    SMOKE gate_tf_robot=PASS t=0.5s
+    SMOKE gate_gcostmap_data=PASS t=0.7s
+    SMOKE gate_lcostmap_data=PASS t=0.7s
+    SMOKE gate_tf_fresh=PASS t=1.4s ages=[0.007,0.061,0.022]
+    SMOKE gate_tf_fresh_mapodom=PASS t=2.0s ages=[0.060,0.032,0.059]
+    SMOKE SIMNOW point=age_sample_1 sim_now=21.25s gate_t=2.0s
+    SMOKE gate_G5c1(odom->base_link)=PASS
+    SMOKE E3 tf odom->base_link hits=30 last_stamp=21.980 age=0.002
+    SMOKE E3 base_link_parents=['odom'] transforms_total=36
+    SMOKE E3 static base_link->rslidar stamp=0.025
+    SMOKE E3 static base_link->TORSO stamp=0.025
+    SMOKE gate=PASS t=4.6s
+    SMOKE SIMNOW point=goal_send sim_now=21.98s
+    SMOKE SIMNOW point=goal_done sim_now=30.48s dt=8.50
+    SMOKE teb_state=3 dt=8.5s dev_odom=0.172 dev_gt=0.172
+  5 PASS / 0 FAIL
+  TCP 11312=0 11313=0
+  UDP 11312=0 11313=0
+REGA_DONE rc=0 06:55:50

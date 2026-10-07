@@ -5,7 +5,7 @@
 # Stage B（M2-2）     ：teb 物理闭环 —— goal=(start+3m,0)，sim 时 ≤120s 到达偏差 ≤0.35m（gt 参考）
 # Stage C（M2-3）     ：hdl 重定位 —— 建图存 sim_venue.pcd（样张备份/恢复 sha256 红线）→ /initialpose 注入
 #                       → ≤10s 收敛 ≤0.3m/10°，30s 观察窗无 >0.5m 单步跳变
-# 隔离域：ROS master 11313 + GAZEBO_MASTER_URI=11355（同 M1）；生产 11312 全程零监听；foxy 栈零接触。
+# 隔离域：ROS master 11313 + GAZEBO_MASTER_URI=11345（本会话 P10 仲裁值，见 L21 实际 export）；生产 11312 全程零监听；foxy 栈零接触。
 # 用法：bash /tmp/m2_payload/m2_smoke.sh [stageA|stageB|stageC|all]（缺省 all）
 set -u
 PAYLOAD=/tmp/m2_payload
@@ -259,17 +259,85 @@ def costmap_up(topic):
     except Exception: return False
 ok_gcm = gate_wait('gcostmap_data', lambda: costmap_up('/move_base_flex/global_costmap/costmap'))
 ok_lcm = gate_wait('lcostmap_data', lambda: costmap_up('/move_base_flex/local_costmap/costmap'))
+# —— [M2R4 2026-10-08] G5 取龄定点延时口子（小美 M2R3 复核条件「5 连正中 ≥1 次把取龄推到 sim 时钟 ≥21.5s」）——
+#   fresh1/2/3 实测取龄均在 t=1.2–1.6s（病灶区之外）⇒ 正向证据未覆盖病理时刻，故补齐需可推后采样。
+#   用法：G5_DELAY_SIM=21.5 bash m2_smoke.sh stageB ；缺省 0 = 不延时，行为与 M2R3 逐字一致（零回归）。
+#   注：延时消耗的墙钟从 gate_t0 扣回——门控 120s 预算语义 = 环境就绪耗时上限，不含人为注入的观测延时，
+#       否则 G5/G5c2 会因预算被吃掉而假 FAIL。
+import os
+G5_DELAY_SIM = float(os.environ.get('G5_DELAY_SIM', '0') or 0)
+def sim_wait_until(sec, budget=300.0):
+    w = time.time()
+    while time.time() - w < budget and not rospy.is_shutdown():
+        if rospy.get_rostime().to_sec() >= sec: return True
+        time.sleep(0.5)
+    return False
 ok_g5   = gate_wait_d('tf_fresh',        lambda: g5_sample('map', 'base_link'))
 ok_g5c2 = gate_wait_d('tf_fresh_mapodom', lambda: g5_sample('map', 'odom'))
-# G5c1 降为**诊断项**（不进 gate 字典、不判 FAIL）：fresh1/fresh2 实测主判据 G5 与 G5c2 均 PASS
-#   （ages 0.019–0.093s），唯 G5c1 报 zero_stamp；而插件 lite3_planar_drive.cpp:127 明确以
-#   ros::Time::now() 发 odom→base_link —— 「组合新鲜、分段零戳」两观测互斥，机理未明。
-#   在未查清前既不据其阻断（会把已生效的修法误判为失败），也不删除（它是唯一暴露该异常的探针）。
-#   开放项已挂账待小张/小美判定。
-ok_g5c1 = g5_sample('odom', 'base_link')
-print('SMOKE DIAG_G5c1(odom->base_link, 非阻断)=%s %s' % ('PASS' if ok_g5c1[0] else 'HIT', ok_g5c1[1]))
+sim_after_p1 = rospy.get_rostime().to_sec()
+print('SMOKE SIMNOW point=age_sample_1 sim_now=%.2fs gate_t=%.1fs' % (sim_after_p1, time.time()-gate_t0))
+ok_g5b = True; ok_g5c2b = True
+# [M2R5/R3] 加压档 = 同跑「取龄点2」：延时到 sim 过线后再取一次龄，两点 sim 差即小美新口径的可打印量。
+#   记账方向为**加回** gate_t0（原 -= 反了：t 与预算皆按 现在减 gate_t0 计，减 t0 反使 t 变大，
+#   延时被计两次——fresh4 t=1.4 → fresh5 t=7.4、差 6.0 = 2×wall_spent 实证）。raw/adjusted 两个 t 都打。
+if G5_DELAY_SIM > 0:
+    _raw_t = time.time() - gate_t0
+    _w = time.time()
+    _r = sim_wait_until(G5_DELAY_SIM)
+    _spent = time.time() - _w
+    gate_t0 += _spent
+    print('SMOKE G5_DELAY_SIM target=%.1fs reached=%s sim_now=%.2fs wall_spent=%.1fs t_raw=%.1fs t_adj=%.1fs'
+          % (G5_DELAY_SIM, _r, rospy.get_rostime().to_sec(), _spent, _raw_t, time.time() - gate_t0))
+    ok_g5b   = gate_wait_d('tf_fresh_late',            lambda: g5_sample('map', 'base_link'))
+    ok_g5c2b = gate_wait_d('tf_fresh_mapodom_late',    lambda: g5_sample('map', 'odom'))
+    _sim2 = rospy.get_rostime().to_sec()
+    print('SMOKE SIMNOW point=age_sample_2 sim_now=%.2fs gate_t=%.1fs sim_span_vs_point1=%.2fs'
+          % (_sim2, time.time()-gate_t0, _sim2 - sim_after_p1))
+# G5c1 **自 M2R5 起为阻断 gate 项**：小美 M2R4 复核节判 L307 前置③成立（base_link 双父未修正而
+#   G5c1 7/7 全命中）⇒ 本档 M2R3 的「降级追认」作废，按 L307 原文回补进 gate 字典。
+#   调用形态与阈值一律未放宽：仍单次 g5_sample('odom','base_link')，need=3 / lim=1.0 / 零戳与首帧戳否决照旧。
+ok_g5c1 = g5_sample('odom', 'base_link')[0]
+print('SMOKE gate_G5c1(odom->base_link)=%s' % ('PASS' if ok_g5c1 else 'FAIL'))
+# —— [M2R4] E3：门控时刻对原始 /tf + /tf_static 直读一次（小美指定「一步定阴阳，最省」）——
+#   M2R4 首发已定阴阳：原始 /tf 上 odom→base_link 戳是新鲜的（发布侧无罪），病灶在图结构——
+#   xacro 的 fixed 关节 torso_to_base 使 base_link 同时有静态父 TORSO 与动态父 odom（双父）。
+#   M2R5/U1 反挂该关节后，本探针转任**回归哨兵**：期望签名 = base_link_parents 恰为 ['odom'] 单元素，
+#   且 static 行集里不出现任何 ->base_link 的边（应只见 base_link->TORSO 与 base_link->rslidar）。
+#   本探针仍只打印、不进 gate 字典（非阻断）；结构面判定归验收。
+from tf2_msgs.msg import TFMessage
+def e3_raw_tf(win=2.0):
+    seen = []
+    def cb(m):
+        for tr in m.transforms:
+            seen.append((tr.header.frame_id, tr.child_frame_id, tr.header.stamp))
+    sub = rospy.Subscriber('/tf', TFMessage, cb, queue_size=200)
+    w = time.time()
+    while time.time() - w < win and not rospy.is_shutdown(): time.sleep(0.1)
+    sub.unregister()
+    now = rospy.get_rostime()
+    agg = {}
+    par = {}
+    for f, c, s in seen:
+        par.setdefault(c, set()).add(f)
+        if c != 'base_link': continue
+        t, n = agg.get((f, c), (s, 0))
+        agg[(f, c)] = (max(t, s), n + 1)
+    for (f, c), (s, n) in sorted(agg.items()):
+        print('SMOKE E3 tf %s->%s hits=%d last_stamp=%.3f age=%.3f%s'
+              % (f, c, n, s.to_sec(), (now - s).to_sec(), ' [ZERO]' if s == rospy.Time(0) else ''))
+    print('SMOKE E3 base_link_parents=%s transforms_total=%d'
+          % (sorted(par.get("base_link", [])), len(seen)))
+    try:
+        st = rospy.wait_for_message('/tf_static', TFMessage, timeout=3.0)
+        for tr in st.transforms:
+            print('SMOKE E3 static %s->%s stamp=%.3f'
+                  % (tr.header.frame_id, tr.child_frame_id, tr.header.stamp.to_sec()))
+    except Exception as e:
+        print('SMOKE E3 static=ERR %s' % type(e).__name__)
+e3_raw_tf()
 gate = dict(map_data=ok_map, tf_robot=ok_tf, gcostmap_data=ok_gcm, lcostmap_data=ok_lcm,
-            tf_fresh_G5=ok_g5, tf_fresh_mapodom_G5c2=ok_g5c2)
+            tf_fresh_G5=ok_g5, tf_fresh_mapodom_G5c2=ok_g5c2, tf_fresh_G5c1=ok_g5c1,
+            tf_fresh_late_G5=ok_g5b, tf_fresh_mapodom_late_G5c2=ok_g5c2b)
 if not all(gate.values()):
     print('SMOKE gate=FAIL t=%.1fs %s' % (time.time()-gate_t0, gate)); raise SystemExit(2)
 print('SMOKE gate=PASS t=%.1fs' % (time.time()-gate_t0))
@@ -278,8 +346,10 @@ g.target_pose.header.stamp=rospy.Time.now()
 g.target_pose.pose.position.x=gx; g.target_pose.pose.position.y=gy
 g.target_pose.pose.orientation.w=1.0
 t0=rospy.get_rostime(); cli.send_goal(g)
+print('SMOKE SIMNOW point=goal_send sim_now=%.2fs' % t0.to_sec())
 ok=cli.wait_for_result(rospy.Duration(120))
 dt=(rospy.get_rostime()-t0).to_sec()
+print('SMOKE SIMNOW point=goal_done sim_now=%.2fs dt=%.2f' % (rospy.get_rostime().to_sec(), dt))
 m=S['odom']; d=math.hypot(m.pose.pose.position.x-gx, m.pose.pose.position.y-gy)
 gd=math.hypot(S['gt'][0]-gx, S['gt'][1]-gy)
 print('SMOKE teb_state=%s dt=%.1fs dev_odom=%.3f dev_gt=%.3f'%(cli.get_state(), dt, d, gd))
