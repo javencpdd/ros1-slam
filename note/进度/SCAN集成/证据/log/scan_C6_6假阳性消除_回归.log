@@ -1,0 +1,26 @@
+### [6] 假阳性消除回归（主理人 2026-10-08）
+
+== 改动面（必须恰 3 行、全为注释或节点名） ==
+ ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+-       链路：gazebo(M2 xacro) → lite3_planar_drive 吃 /cmd_vel（M1 已证 cmd_vel 可驱动）
++       链路：gazebo(M2 xacro) → lite3_planar_drive 吃速度指令话题（M1 已证该话题可�
+-       红线：全链 11313 隔离域（调用方设）；/cmd_vel 写者唯一=m2_cmd_relay（本 sim
++       红线：全链 11313 隔离域（调用方设）；速度指令话题写者唯一=m2_cmd_relay�
+-  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="cmd_vel_relay"
++  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="m2_cmd_relay"
+
+== A) XML 解析 ==
+PARSE OK
+
+== B) roslaunch --nodes 静态展开（节点名唯一性/参数完整） ==
+/spawn_lite3_planar
+/m2_free_map
+/m2_cmd_relay
+rc=0
+
+== C) 共同门禁复跑 ==
+EXIT=1
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch -> lite3_localization
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch -> lite3_navigation
+=== ISOLATION FAILED ===
