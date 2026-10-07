@@ -1,0 +1,64 @@
+##### stageB 回归（清理模式修正后） 2026-10-08 03:51:23 #####
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_035123
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.2s
+SMOKE gate_gcostmap_data=PASS t=0.3s
+SMOKE gate_lcostmap_data=PASS t=0.4s
+SMOKE gate=PASS t=0.4s
+SMOKE teb_state=4 dt=0.0s dev_odom=3.000 dev_gt=3.000
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[FAIL] B: 到达偏差 3.000 >0.35m
+[PASS] B: 用时 0.0 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: FAIL
+==================================================
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /map_to_odom_static
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+### stageB_EXIT=1
+### stageB 退净核查  残留:[]  11313=0  11312=0
+##### stageA 回归（清理模式修正后） 2026-10-08 03:53:53 #####
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_035353
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) imu_yaw0=-0.011
+SMOKE phase_fwd_out_done
+SMOKE phase_turn180_done
+SMOKE phase_fwd_back_done
+SMOKE drift=0.497 gt_drift=0.497 rate_pts=9.8 rate_imu=195.9 fly_ratio=0.0000 rtf_motion=0.276 mw_sim=24.0 mw_wall=86.8 phases out=True turn=True back=True
+[PASS] A: 闭环走完（out/turn/back 全 done）
+[PASS] A③(M2-4): 漂移 0.497 ≤0.5
+[PASS] A①: 点云 9.8 ≥5Hz
+[PASS] A②: IMU 195.9 ≥100Hz
+[PASS] A④: 飞点 0.0000 <1%
+[PASS] A0(前置): 运动窗 RTF 0.276 ≥0.25
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: PASS
+==================================================
+killing:
+ * /faster_lio_online
+ * /gazebo
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+### stageA_EXIT=0
+### stageA 退净核查  残留:[]  11313=0  11312=0
+### foxy 终检
+ 115711 ysc      Mon Oct  5 01:27:49 2026 python3
+ 115792 root     Mon Oct  5 01:27:51 2026 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026 static_transfor

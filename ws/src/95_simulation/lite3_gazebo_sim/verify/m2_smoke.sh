@@ -38,7 +38,11 @@ cleanup() { rosnode kill -a 2>/dev/null; sleep 3
   pkill -f gzserver 2>/dev/null; pkill -f gzclient 2>/dev/null
   pkill -f run_mapping_online 2>/dev/null; pkill -f sim_adapter 2>/dev/null
   pkill -f hdl_nodelet 2>/dev/null; pkill -f move_base_flex 2>/dev/null
-  pkill -f "roslaunch.*m2_" 2>/dev/null; sleep 2
+  # [C8 返工修正 2026-10-08] 入口改指 TOP 后命令为 `roslaunch lite3_bringup mode_sim_*.launch`，
+  #   不含 "m2_" ⇒ 原模式漏网（stageB 活体回归实测：roslaunch+rosmaster 存活、11313 未释放）。
+  #   保留旧模式兼容历史跑法，另补 mode_sim_ 与 rosmaster 兜底。
+  pkill -f "roslaunch.*m2_" 2>/dev/null; pkill -f "roslaunch.*mode_sim_" 2>/dev/null
+  pkill -f "rosmaster --core -p 11313" 2>/dev/null; sleep 2
   # 样张恢复兜底（M2-3 建图阶段万一中断）
   if [ -f "$LOGDIR/lite3.pcd.bak" ] && [ -f "$MAP" ] && ! cmp -s "$LOGDIR/lite3.pcd.bak" "$MAP"; then
     cp "$LOGDIR/lite3.pcd.bak" "$MAP"; echo "[m2] 样张 pcd 已从备份恢复"; fi

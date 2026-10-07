@@ -1,0 +1,38 @@
+### stageB 回归（TOP 编排件 mode_sim_teb.launch 端到端） 2026-10-08 03:41:59
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_034159
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.7s
+SMOKE gate_lcostmap_data=PASS t=0.7s
+SMOKE gate=PASS t=0.7s
+SMOKE teb_state=3 dt=8.5s dev_odom=0.181 dev_gt=0.181
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[PASS] B: 到达偏差 0.181 ≤0.35m
+[PASS] B: 用时 8.5 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: PASS
+==================================================
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /map_to_odom_static
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+STAGEB_EXIT=0
+### 退净核查
+残留: 1201319 1201482 (空=净)
+11313: 1  11312: 0
+ 115711 ysc      Mon Oct  5 01:27:49 2026 python3
+ 115792 root     Mon Oct  5 01:27:51 2026 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026 static_transfor
