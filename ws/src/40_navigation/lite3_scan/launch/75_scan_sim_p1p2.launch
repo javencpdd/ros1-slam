@@ -1,0 +1,25 @@
+<launch>
+  <!-- 75_scan_sim_p1p2.launch —— 壳包自有编排件（本轮唯一新 launch 件，manifest §B2）
+       编排：① 仿真世界（ns=gz）② SCAN 独立进程（逐字 include 70_scan.launch，零修改）
+             ③ scan_params.yaml 在 include 70_scan 之后 load（launch 级 param 后写者胜；值相同 ⇒ 行为零变化，§B3）
+       显式不 include mbf_navigation.launch / m2_teb.launch —— F9 CPU 叠加，teb 与 SCAN 互斥使能在 launch 层落地
+       显式不引用 go2 两件与 open_loop_controller —— 存在 ≠ 启用（§B1 整包原样拷入条款的隔离实现）
+       faster_lio 沿用 M2 收口入口 lite3_slam/launch/10_slam_mapping_sim.launch 原样另起终端，本件不复制其 include（避免与 M2 台账双头）
+       C10：SSH 无 X ⇒ gui/rviz 默认 false -->
+  <arg name="navi_mode" default="1"/>
+  <arg name="gui" default="false"/>
+  <arg name="rviz" default="false"/>   <!-- 预留位：P1/P2 不启 rviz，本轮不接线 -->
+
+  <!-- 绝对名（前导 /）→ 参数服务器根，跨 ns 生效；不加则 ns=gz 外的 SCAN 侧落墙钟（m2_gazebo.launch:10 为相对名，只落 /gz/ 下） -->
+  <param name="/use_sim_time" value="true"/>
+
+  <include ns="gz" file="$(find lite3_gazebo_sim)/launch/m2_gazebo.launch">
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <include file="$(find lite3_scan)/launch/70_scan.launch">
+    <arg name="navi_mode" value="$(arg navi_mode)"/>
+  </include>
+
+  <rosparam file="$(find lite3_scan)/config/scan_params.yaml" command="load"/>
+</launch>

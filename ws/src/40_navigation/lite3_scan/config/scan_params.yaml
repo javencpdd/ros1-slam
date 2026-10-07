@@ -1,0 +1,10 @@
+# scan_params.yaml —— 值与 advanced_param.xml:112-119 逐字相同（零默认行为变化）
+closed_loop_controller:
+  time_forward: 0.8
+  heading_error_threshold: 0.8
+  kp_pos: 0.8
+  kp_yaw: 1.5
+  max_vx: 0.40          # = 70_scan.launch arg max_vel（两处必须同值，§C/§D 前置断言）
+  max_vy: 0.05          # F10 保守首跑值；源码无 arg，唯此覆写
+  max_vyaw: 1.0         # kMaxVYawLimit=1.0 已钳，改 1.5 需动源码 ⇒ 禁止
+  finish_dist: 0.15

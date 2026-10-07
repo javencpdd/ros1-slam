@@ -1,0 +1,115 @@
+===== §B2 壳包施工原始输出 =====
+时间: 2026-10-08 01:27:41  身份: ysc  cwd: /home/ros1-slam
+范围: 仅 ws/src/40_navigation/lite3_scan/ 壳包 + note 落账；零节点/零编译/未 source ROS；第三方件 ws/src/30_3rd/ 零改动
+
+--- [A] 时基修复：75_scan_sim_p1p2.launch 插入绝对名参数（唯一实质改动）---
+$ sed -n "9,22p" ws/src/40_navigation/lite3_scan/launch/75_scan_sim_p1p2.launch
+  <arg name="navi_mode" default="1"/>
+  <arg name="gui" default="false"/>
+  <arg name="rviz" default="false"/>   <!-- 预留位：P1/P2 不启 rviz，本轮不接线 -->
+
+  <!-- 绝对名（前导 /）→ 参数服务器根，跨 ns 生效；不加则 ns=gz 外的 SCAN 侧落墙钟（m2_gazebo.launch:10 为相对名，只落 /gz/ 下） -->
+  <param name="/use_sim_time" value="true"/>
+
+  <include ns="gz" file="$(find lite3_gazebo_sim)/launch/m2_gazebo.launch">
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <include file="$(find lite3_scan)/launch/70_scan.launch">
+    <arg name="navi_mode" value="$(arg navi_mode)"/>
+  </include>
+$ grep -n "use_sim_time" ws/src/40_navigation/lite3_scan/launch/75_scan_sim_p1p2.launch
+14:  <param name="/use_sim_time" value="true"/>
+命中行数: 1（恰 1 处，且为绝对名 /use_sim_time）
+$ grep -n "use_sim_time" ws/src/95_simulation/lite3_gazebo_sim/launch/m2_gazebo.launch   # 缺陷来源：相对名
+10:  <param name="use_sim_time" value="true"/>
+15:    <arg name="use_sim_time" value="true"/>
+
+--- [B] XML 三件复验（含改动件）---
+$ python3 -c "import xml.dom.minidom as m; m.parse('ws/src/40_navigation/lite3_scan/launch/70_scan.launch')"
+  PARSE OK
+$ python3 -c "import xml.dom.minidom as m; m.parse('ws/src/40_navigation/lite3_scan/launch/75_scan_sim_p1p2.launch')"
+  PARSE OK
+$ python3 -c "import xml.dom.minidom as m; m.parse('ws/src/40_navigation/lite3_scan/package.xml')"
+  PARSE OK
+$ python3 -c "import yaml; yaml.safe_load(open(...))"  # scan_params.yaml
+  YAML OK, keys=1
+   ['closed_loop_controller']
+
+--- [C] 六件在位 ---
+$ ls -l ws/src/40_navigation/lite3_scan/ .../launch .../config
+ws/src/40_navigation/lite3_scan/:
+total 52
+-rw-rwxr--+ 1 ysc ysc  206 Oct  8 01:20 CMakeLists.txt
+drwxrwxr-x+ 2 ysc ysc 4096 Oct  8 01:20 config
+drwxrwxr-x+ 2 ysc ysc 4096 Oct  8 01:26 launch
+-rw-rwxr--+ 1 ysc ysc  719 Oct  8 01:20 package.xml
+-rw-rwxr--+ 1 ysc ysc  215 Oct  8 01:20 README.md
+drwxrwxr-x+ 2 ysc ysc 4096 Oct  8 01:19 sink
+drwxrwxr-x+ 2 ysc ysc 4096 Oct  8 01:19 stub
+drwxrwxr-x+ 2 ysc ysc 4096 Oct  8 01:19 verify
+
+ws/src/40_navigation/lite3_scan/config/:
+total 4
+-rw-rwxr--+ 1 ysc ysc 487 Oct  8 01:20 scan_params.yaml
+
+ws/src/40_navigation/lite3_scan/launch/:
+total 12
+-rw-rwxr--+ 1 ysc ysc 4227 Oct  7 23:58 70_scan.launch
+-rw-rwxr--+ 1 ysc ysc 1588 Oct  8 01:26 75_scan_sim_p1p2.launch
+件数: 6/6
+
+--- [D] 70_scan.launch 与 /tmp/scan_work 逐字对账 ---
+$ diff /tmp/scan_work/70_scan.launch ws/src/40_navigation/lite3_scan/launch/70_scan.launch && echo IDENTICAL
+  IDENTICAL（零差异）
+
+--- [E] scan_params.yaml 八键对账 advanced_param.xml:112-119 ---
+# scan_params.yaml —— 值与 advanced_param.xml:112-119 逐字相同（零默认行为变化）
+closed_loop_controller:
+  time_forward: 0.8
+  heading_error_threshold: 0.8
+  kp_pos: 0.8
+  kp_yaw: 1.5
+  max_vx: 0.40          # = 70_scan.launch arg max_vel（两处必须同值，§C/§D 前置断言）
+  max_vy: 0.05          # F10 保守首跑值；源码无 arg，唯此覆写
+  max_vyaw: 1.0         # kMaxVYawLimit=1.0 已钳，改 1.5 需动源码 ⇒ 禁止
+  finish_dist: 0.15
+
+--- [F] 隔离检查 [5] 原式复跑（照 scripts/verify/v3_isolation.sh:16-24，未执行整脚本）---
+for L in /home/ros1-slam/ws/src/*/lite3_*/launch/*.launch; do [ -e "$L" ] || continue; SELF=$(basename "$(dirname "$(dirname "$L")")"); [ "$SELF" = "lite3_bringup" ] && continue; grep -o "find lite3_[a-z_]*" "$L" | sed "s/find //;s/)//" | sort -u | while read -r n; do [ "$n" != "$SELF" ] && echo "$L -> $n" >> "$TMP"; done; done
+/home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/75_scan_sim_p1p2.launch -> lite3_gazebo_sim
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_mapping.launch -> lite3_slam
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch -> lite3_localization
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch -> lite3_slam
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch -> lite3_navigation
+[5] 命中总数: 5（本次新增 1 条 = lite3_scan/launch/75_scan_sim_p1p2.launch -> lite3_gazebo_sim；其余 4 条为 M2 期预存在）
+
+--- [G] 隔离检查 [6] 原式复跑（照 v3_isolation.sh:26-28）---
+grep -rn "cmd_vel" /home/ros1-slam/ws/src/*/lite3_*/launch/ | grep -v "lite3_safety" | grep -v "cmd_vel_raw" > "$TMP"
+全量 [6] 命中: 3 条，来源文件分布:
+      3 /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:3:       链路：gazebo(M2 xacro) → lite3_planar_drive 吃 /cmd_vel（M1 已证 cmd_vel 可驱动）
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:7:       红线：全链 11313 隔离域（调用方设）；/cmd_vel 写者唯一=m2_cmd_relay（本 sim 域，无 M6/SUP）；
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:20:  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="cmd_vel_relay"
+SCAN 壳包贡献 [6] 命中: 0 条
+$ grep -n "cmd_vel" ws/src/40_navigation/lite3_scan/launch/70_scan.launch   # 原始 4 行（均同时含 cmd_vel_raw ⇒ 被 grep -v 整体滤除 = 侥幸非合规）
+13:          改发 scan_planner 私有安全网话题（详见下方 remap 行与 cmd_vel_raw 中继说明）——
+16:          名出现（仿真域经 cmd_vel_raw 中继同款模式承接，写者唯一）。 -->
+53:       绝不直发速度指令，一律改发 /scan_planner/cmd_vel（仿真域 cmd_vel_raw 中继同款模式出，写者唯一） -->
+55:    <remap from="cmd_vel" to="/scan_planner/cmd_vel"/> <!-- run.launch 原文；仿真执行经 cmd_vel_raw 中继同款 -->
+
+--- [H] foxy 五 PID + 180237 零扰动探活（未用 kill -0）---
+$ ps -o pid,user,lstart -p 115711,115792,115795,115797,115799,180237
+    PID USER                      STARTED
+ 115711 ysc      Mon Oct  5 01:27:49 2026
+ 115792 root     Mon Oct  5 01:27:51 2026
+ 115795 root     Mon Oct  5 01:27:53 2026
+ 115797 root     Mon Oct  5 01:27:53 2026
+ 115799 root     Mon Oct  5 01:27:53 2026
+ 180237 ysc      Mon Oct  5 15:19:10 2026
+结论: 六进程均在位、STARTED 时间与基线一致 ⇒ 零扰动。
+
+--- [I] 补记 2026-10-08 01:28:43：scan_params.yaml 键结构复核 ---
+顶层键: closed_loop_controller  子键数: 8
+['finish_dist', 'heading_error_threshold', 'kp_pos', 'kp_yaw', 'max_vx', 'max_vy', 'max_vyaw', 'time_forward']
+[6] 复核注记：全量 3 条全部来自 lite3_gazebo_sim/m2_teb.launch（M2 预存在），lite3_scan 贡献 0 条（侥幸，见进度文档偏差 3）
