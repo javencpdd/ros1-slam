@@ -1,0 +1,61 @@
+<launch>
+<!-- ============================================================
+     FAST-LIO(103 上的镭神 C16 定制分支) -> SCAN-Planner 真机话题适配
+
+     背景: 103 的 faster-lio 是 leishen C16 定制分支, mapping_c16.launch
+           不做任何 remap, 节点用的是源码里的默认话题名:
+             /cloud_registered          (世界系, dense_publish_en=false 时是降采样)
+             /cloud_registered_body     (机体 frame "body", 未降采样, 更密)
+             /Odometry                  (nav_msgs/Odometry, frame camera_init, child body)
+           而 SCAN-Planner is_real_world:=true 时只认 /LIO/* 三个话题。
+           (注释里不能出现连续两个短横, 否则 XML 解析报错)
+
+     做法: 用 topic_tools relay 做纯转发。
+           - 不改动 ysc 的 slam 仓库, gridmap.sh / save_map.sh / rviz 照常工作
+           - relay 直接转发收到的消息对象, 不做深拷贝, 开销可忽略
+           - 该 launch 可独立启动, SLAM 先起来之后再启动它也行
+
+     用法: roslaunch scan_planner lio_relay.launch
+     可选: 换用世界系点云
+           roslaunch scan_planner lio_relay.launch cloud_in:=/cloud_registered
+           (此时 SCAN-Planner 侧需 cloud_is_world:=true)
+     ============================================================ -->
+
+  <arg name="odom_in"   default="/Odometry"/>
+  <arg name="cloud_in"  default="/cloud_registered_body"/>
+
+  <arg name="odom_body_out" default="/LIO/odom_vehicle"/>
+  <arg name="odom_imu_out"  default="/LIO/odom_imu"/>
+  <arg name="cloud_out"     default="/LIO/clouds_lidar"/>
+
+  <!-- 机体位姿: 供 /grid_map/body_pose (滑动地图窗口跟随) -->
+  <node pkg="topic_tools" type="relay" name="lio_odom_vehicle_relay"
+        args="$(arg odom_in) $(arg odom_body_out)" output="screen"/>
+
+  <!-- 传感器位姿: 供 /grid_map/sensor_pose (射线原点)
+       这里与机体位姿同源, 因为点云已经是机体系, 不再需要额外外参 -->
+  <node pkg="topic_tools" type="relay" name="lio_odom_imu_relay"
+        args="$(arg odom_in) $(arg odom_imu_out)" output="screen"/>
+
+  <!-- 点云: 供 /grid_map/cloud, is_real_world 下 cloud_is_world=false,
+       期望机体系点云, 故默认取 /cloud_registered_body -->
+  <node pkg="topic_tools" type="relay" name="lio_cloud_relay"
+        args="$(arg cloud_in) $(arg cloud_out)" output="screen"/>
+
+
+  <!-- ============ 静态 TF: 把 SCAN-Planner 的 "world" 接进 TF 树 ============
+       背景: /grid_map/occupancy、/planning/bspline 的 frame_id 是 "world",
+             而 faster-lio 广播的 TF 是 camera_init -> body, "world" 是孤立帧,
+             Foxglove/RViz 里会报 "缺少从 world 到 body 的变换"。
+       数值依据: SCAN-Planner 直接把 /LIO/odom_imu(camera_init 系)当世界系用,
+             所以 world 与 camera_init 原点重合, 用恒等变换。
+       body -> base_link: 仅为可视化连通(robot 模型/栅格同框),
+             恒等近似, 忽略了 IMU 在机体内的安装偏移。规划器不消费 TF, 无影响。
+       (注释里不能出现连续两个短横) -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_camera_init"
+        args="0 0 0 0 0 0 world camera_init"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="body_to_base_link"
+        args="0 0 0 0 0 0 body base_link"/>
+
+</launch>
+

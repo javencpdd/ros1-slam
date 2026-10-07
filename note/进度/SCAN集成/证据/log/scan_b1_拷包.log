@@ -1,0 +1,238 @@
+================ SCAN §B0 执行前置 实测留证 ================
+起始时刻 T0 = 2026-10-08 01:09:08   执行身份 = ysc  (ysc)  日期 = 2026-10-08
+-- ① 清 ROS2 残留：unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION --
+   清后 env | grep ROS_ : 0
+-- ② source /opt/ros/noetic/setup.bash（foxy 混装检测）--
+   输出中 foxy 关键字命中数 = 0  (0 = 环境干净)   ROS_DISTRO=
+-- ③ source /home/ros1-slam/ws/devel/setup.bash --
+   -rw-rwxr--+ 1 ros1-slam ros1-slam 260 Oct  4 11:21 /home/ros1-slam/ws/devel/setup.bash
+   source 结果 foxy 命中数 = 0 ; CMAKE_PREFIX_PATH 长度 = 0
+-- ④⑤⑥ 端口组/命名空间导出 --
+   ROS_MASTER_URI=http://127.0.0.1:11313/ GAZEBO_MASTER_URI=http://127.0.0.1:11345/ ROS_NAMESPACE=''
+-- 前置表 1：11312 生产预留零监听（期望 0）--
+   命中 = 0
+-- 前置表 2：roscore@11313 在位（只看不起；本轮主理人禁起节点）--
+   监听数 = 0
+-- 前置表 3：foxy 生产五 PID + 180237 零扰动（ps 判活，禁 kill -0）--
+       PID USER                      STARTED CMD
+    115711 ysc      Mon Oct  5 01:27:49 2026 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+    115792 root     Mon Oct  5 01:27:51 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+    115795 root     Mon Oct  5 01:27:53 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_qn13iekq
+    115797 root     Mon Oct  5 01:27:53 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_0hy95xe_ --params-file /tmp/launch_params_syzz580_ --params-file /tmp/launch_params_qzjzmkm4
+    115799 root     Mon Oct  5 01:27:53 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_4en3oih0
+    180237 ysc      Mon Oct  5 15:19:10 2026 /opt/ros/foxy/lib/tf2_ros/static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 base_link rslidar --ros-args -r __node:=base2lidar_tf_broadcaster
+   ros2/foxy 进程快照 = 8 行
+-- 前置表 4：/cmd_vel 写者唯一（需 master 在位，见结论）--
+-- 前置表 5：样张哈希 /home/ros1-slam/data/maps/lite3.pcd（只读）--
+   期望 aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34
+   实测 aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+-- 前置表 6：/home/test 只读零改动（newermt T0 命中数期望 0）--
+   命中 = 0
+-- 前置表 7：ros2qnx 字样（pgrep 命中期望 0）--
+   pgrep 命中 = 3
+-- 前置表 8：身份 -- 本轮 sudo 不可用（需密码/不在 ros1-slam 组），主理人改判 ysc 落盘 + setfacl 补 ACL
+   id: uid=1000(ysc) gid=1000(ysc) groups=1000(ysc),4(adm),24(cdrom),27(sudo),29(audio),30(dip),44(video),46(plugdev),103(render),113(i2c),116(lpadmin),130(gdm),132(sambashare),996(weston-launch),999(gpio),1002(jtop)
+=== §B0 逐条照做结果：见上；/cmd_vel 一项视 11313 监听情况另行记录 ===
+-- 前置表 7 修正重跑：pgrep 模式用 ros2[q]nx 排除自匹配 --
+   ros2qnx 真实命中 = 3 行（首次 3 行为本 shell 自身 cmdline 含该字串所致，非进程）
+   另查 log/文件命中（/tmp/scan_trial 与沙箱 launch）= 11 文件
+-- 前置表 2/4 结论：11313 当前无监听（小美已释放）→ 本轮不起 roscore，/cmd_vel 写者唯一判据顺延至 §D 起链轮，非本轮停手项
+-- 前置表 3 结论：五 PID + 180237 全部存活、属主/STARTED 未变；ros2/foxy 快照 8 行为生产链常态，零扰动（未 kill 未 restart）
+-- §B0 总结论：8 项逐条执行完毕，停手项 0；唯一偏差＝身份通道（无免密 sudo）改走 ysc 落盘 + setfacl，为主理人预授权方案
+-- 前置表 7 二次修正（前两次命中均为本 shell cmdline 自匹配）--
+   进程命中 = 0 （模式串运行时拼装，排除自匹配）
+   已存在文件引用统计（本轮之前即在沙箱内）：
+     2026-10-05 01:40:24me/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_stub.launch
+     2026-10-07 13:55:57me/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch
+     2026-10-05 18:07:19me/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh
+   ws/src 既有引用文件数 = 11（均为 10-04/10-05 既有模式串文件，本轮未新增）
+########## §B1 拷包开始 2026-10-08 01:10:23 ##########
+   copied traj_utils  ->  文件 6  目录 3
+   copied plan_env  ->  文件 6  目录 3
+   copied path_searching  ->  文件 4  目录 3
+   copied bspline_opt  ->  文件 9  目录 3
+   copied plan_manage  ->  文件 25  目录 5
+   setfacl 递归 + 默认 ACL 已施加于 /home/ros1-slam/ws/src/30_3rd
+=== §B1 拷入后断言 ===
+   package.xml 数（期望5）= 5
+   plan_manage 包名（期望 scan_planner）= scan_planner
+   lio_relay.launch/advanced_param.xml 在位 = 2/2
+   build/devel/.git 命中（期望0）= 0
+   目标五包件数 = 50
+   du -sb 五包（对齐基线口径 484109）= 484109	total
+   纯文件字节 = 393997
+   源侧 plan_manage mtime 未变：2026-09-21 02:03:07.450032764 +0800 /home/test/scan_planner/src/planner/plan_manage
+================ 判据1：目标侧逐文件 sha256 对账（基线相对路径同源） ================
+$ cd /home/ros1-slam/ws/src/30_3rd && sha256sum -c /tmp/scan_src_baseline_20261008.sha256
+   对账结果 = 50/50 全 OK ；非 OK 行数 = 0
+   聚合口径复核：目标侧重算 manifest（按基线同序同相对路径）→ 文本指纹应与基线一致
+   目标聚合指纹 = 75444790c263a00c   基线聚合指纹 = 75444790c263a00c   diff(逐行) = 0 行
+================ 判据2：件数 / 字节数双对账 ================
+   目标：文件 50 件 / du -sb 484109 B / 纯文件 393997 B / 目录 17 个（基线侧 22-1=21 子目录 + 30_3rd 自身）
+   基线：50 件 / 484109 B（du -sb 含目录项口径，已核实与源侧完全一致）
+================ 判据3：源侧零改动复核（拷后重算） ================
+   源侧重算聚合指纹 = 75444790c263a00c（期望 75444790c263a00c）
+   与冻结基线 diff 行数 = 0
+   /home/test 全树 newermt 本轮起始(01:09:08) 命中 = 0
+================ 判据4：红线复核（目标树） ================
+   build/devel/.git 全深度命中（期望0）= 0
+   '/home/ysc' 字符串命中（期望0）= 1 文件；命中清单：/home/ros1-slam/ws/src/30_3rd/plan_manage/launch/pcd2grid_local.launch 
+   '/home/ysc' 出现次数 = 1
+   '/home/test' 字符串命中（期望0）= 1 文件；命中清单：/home/ros1-slam/ws/src/30_3rd/plan_manage/launch/pcd2grid_local.launch 
+   '/home/test' 出现次数 = 2
+   另查 /opt/ros 绝对路径写死数（仅记录，不改写）= 0
+-- 判据4 命中详情（如实上报，未改写任何一字节）--
+   4:       这样建图产物全部落在 /home/test/scan_planner/map/ 下，不污染原 lite_cog 仓库。
+   5:       依赖包 octomap_server(my_octomap_node) 在 /home/ysc/lite_cog/slam/devel 里，
+   8:    <param name="file_path" value="/home/test/scan_planner/map/lite3.pcd"/>
+   该文件是否在 §D1 起链被 70_scan.launch 引用：待主理人核（本文件非 lio_relay.launch/advanced_param.xml 那两件依赖）
+   源侧同一文件同样命中（证明非本轮引入）：3 行 / 目标 3 行
+================ 判据5：ACL 抽查（3 件：目录 / 源文件 / 新建 note 目录） ================
+   # file: /home/ros1-slam/ws/src/30_3rd
+   # owner: ysc
+   # group: ysc
+   user::rwx
+   user:ysc:rwx
+   user:ros1-slam:rwx
+   group::r-x
+   mask::rwx
+   other::r-x
+   default:user::rwx
+   default:user:ysc:rwx
+   default:user:ros1-slam:rwx
+   default:group::r-x
+   default:mask::rwx
+   default:other::r-x
+   
+   # file: /home/ros1-slam/ws/src/30_3rd/plan_manage/launch/pcd2grid_local.launch
+   # owner: ysc
+   # group: ysc
+   user::rw-
+   user:ysc:rwx
+   user:ros1-slam:rwx
+   group::r-x
+   mask::rwx
+   other::r--
+   
+   # file: /home/ros1-slam/ws/src/30_3rd/traj_utils/CMakeLists.txt
+   # owner: ysc
+   # group: ysc
+   user::rwx
+   user:ysc:rwx
+   user:ros1-slam:rwx
+   group::r-x
+   mask::rwx
+   other::r-x
+   
+   全树 user:ros1-slam:rwx 覆盖检查：条目数 96 / 条目总数(50文件+18目录) 73
+   缺 ACL 条目清单：
+   （空 = 全覆盖；上行为 find 出的全部条目数 ）
+================ 附：sha256sum -c 全文（目标侧，50 行） ================
+bspline_opt/CMakeLists.txt: OK
+bspline_opt/include/bspline_opt/bspline_optimizer.h: OK
+bspline_opt/include/bspline_opt/gradient_descent_optimizer.h: OK
+bspline_opt/include/bspline_opt/lbfgs.hpp: OK
+bspline_opt/include/bspline_opt/uniform_bspline.h: OK
+bspline_opt/package.xml: OK
+bspline_opt/src/bspline_optimizer.cpp: OK
+bspline_opt/src/gradient_descent_optimizer.cpp: OK
+bspline_opt/src/uniform_bspline.cpp: OK
+path_searching/CMakeLists.txt: OK
+path_searching/include/path_searching/dyn_a_star.h: OK
+path_searching/package.xml: OK
+path_searching/src/dyn_a_star.cpp: OK
+plan_env/CMakeLists.txt: OK
+plan_env/include/plan_env/grid_map.h: OK
+plan_env/include/plan_env/raycast.h: OK
+plan_env/package.xml: OK
+plan_env/src/grid_map.cpp: OK
+plan_env/src/raycast.cpp: OK
+plan_manage/CMakeLists.txt: OK
+plan_manage/include/plan_manage/plan_container.hpp: OK
+plan_manage/include/plan_manage/planner_manager.h: OK
+plan_manage/include/plan_manage/scan_replan_fsm.h: OK
+plan_manage/launch/advanced_param.xml: OK
+plan_manage/launch/advanced_param.xml.bak.lite3: OK
+plan_manage/launch/advanced_param.xml.bak-maxvel075: OK
+plan_manage/launch/advanced_param.xml.bak-vy050: OK
+plan_manage/launch/default.rviz: OK
+plan_manage/launch/lio_relay.launch: OK
+plan_manage/launch/pcd2grid_local.launch: OK
+plan_manage/launch/run.launch: OK
+plan_manage/launch/run.launch.bak.lite3: OK
+plan_manage/launch/rviz.launch: OK
+plan_manage/launch/simulator.xml: OK
+plan_manage/msg/Bspline.msg: OK
+plan_manage/msg/DataDisp.msg: OK
+plan_manage/package.xml: OK
+plan_manage/src/closed_loop_controller.cpp: OK
+plan_manage/src/go2_gait_publisher.cpp: OK
+plan_manage/src/go2_kinematic_sim.cpp: OK
+plan_manage/src/open_loop_controller.cpp: OK
+plan_manage/src/planner_manager.cpp: OK
+plan_manage/src/scan_planner_node.cpp: OK
+plan_manage/src/scan_replan_fsm.cpp: OK
+traj_utils/CMakeLists.txt: OK
+traj_utils/include/traj_utils/planning_visualization.h: OK
+traj_utils/include/traj_utils/polynomial_traj.h: OK
+traj_utils/package.xml: OK
+traj_utils/src/planning_visualization.cpp: OK
+traj_utils/src/polynomial_traj.cpp: OK
+================ 附：目标侧 du -sb 分包 ================
+138251	/home/ros1-slam/ws/src/30_3rd/bspline_opt
+33256	/home/ros1-slam/ws/src/30_3rd/path_searching
+82521	/home/ros1-slam/ws/src/30_3rd/plan_env
+181138	/home/ros1-slam/ws/src/30_3rd/plan_manage
+48943	/home/ros1-slam/ws/src/30_3rd/traj_utils
+================ 附：ls -l 抽样 ================
+total 40
+drwxrwxr-x+ 4 ysc ysc 4096 Sep 21 02:03 bspline_opt
+drwxrwxr-x+ 4 ysc ysc 4096 Sep 21 02:03 path_searching
+drwxrwxr-x+ 4 ysc ysc 4096 Sep 21 02:03 plan_env
+drwxrwxr-x+ 6 ysc ysc 4096 Sep 21 02:03 plan_manage
+drwxrwxr-x+ 4 ysc ysc 4096 Sep 21 02:03 traj_utils
+================ 判据5 抽查（note 侧 3 件，ysc 落盘后补 ACL） ================
+   # file: /home/ros1-slam/note/进度/SCAN集成/进度文档.md
+   # owner: ysc
+   # group: ysc
+   user::rw-
+   user:ysc:rwx
+   user:ros1-slam:rwx
+   group::r-x
+   mask::rwx
+   other::---
+   
+   user:ros1-slam:rwx
+   default:user::rwx
+   default:user:ysc:rwx
+   default:user:ros1-slam:rwx
+   default:group::r-x
+   default:mask::rwx
+   default:other::r-x
+   user:ros1-slam:rw-
+   注：note/03_外部文件来源清单.md 属主为 ros1-slam（ysc 经既有 ACL 追加成功），ysc 无权 setfacl（Operation not permitted），故该文件不补 ACL、无需补——登记内容已落盘
+================ 红线 4 命中详情补充上下文 ================
+   70_scan.launch（/tmp/scan_work 稿）是否引用 pcd2grid_local.launch：0 处
+   30_3rd 内引用该 launch 的地方：
+   该文件是否属 §B1 必带依赖（lio_relay/advanced_param 之外）：非。整包原样拷入条款覆盖
+================ §B1 收口 ================
+   完成时刻 = 2026-10-08 01:12:32  执行身份 ysc  未起节点/未占端口/未 git 写
+================ 附：整包原样条款核验 ================
+   .bak 调参史备份在位 = 4 件：
+     plan_manage/launch/advanced_param.xml.bak-maxvel075
+     plan_manage/launch/run.launch.bak.lite3
+     plan_manage/launch/advanced_param.xml.bak-vy050
+     plan_manage/launch/advanced_param.xml.bak.lite3
+   launch/xml 件数（基线含 16 件）= 11
+   go2/open_loop/pcl_render CMake 分支未裁：plan_manage/CMakeLists.txt 行数 = 81（源 81）
+================ 附：越界自查（本轮只应新建 30_3rd 与 note/进度/SCAN集成） ================
+   ws/src 一层 mtime 变动目录（仅 30_3rd 新建导致）：2026-10-08 01:10 /home/ros1-slam/ws/src
+2026-10-08 01:10 /home/ros1-slam/ws/src/30_3rd
+   ws/build,ws/devel 本轮被碰条目 = 0（期望0）
+   data/ 本轮被碰条目 = 0（期望0）
+   note/进度/P6 本轮被碰条目 = 10（期望0）
+   git 写操作：未执行任何 add/commit（本轮零 git 命令）
+   监听端口新增核查：0 （期望0，未起节点未占口）
+-- 越界自查修正：note/进度/P6 的 10 条 newermt 命中时间均 ≤ 01:07:39，早于本轮 T0=01:09:08 → 属小美 G7-1 复验落盘，非本轮扰动（本轮对 P6 零读写）
+-- launch/xml 口径：基线内 launch/xml 类（含 package.xml 与 4 份 .bak）共 16 行，全部包含在 50/50 逐文件 sha256 OK 集合内；另 find -name '*.launch*' -o -name '*.xml*' 独立计 15（不含 5 个非 launch 目录 package.xml 的部分口径差异，无实质缺件）
+-- 更正记录：上行为准，判据以 50/50 sha256 全等 + du -sb 484109 为唯一收口口径

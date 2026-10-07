@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 与官方 pcd2grid.launch 参数一致，只把输入 PCD 改到 scan_planner 自己的目录，
+       这样建图产物全部落在 /home/test/scan_planner/map/ 下，不污染原 lite_cog 仓库。
+       依赖包 octomap_server(my_octomap_node) 在 /home/ysc/lite_cog/slam/devel 里，
+       跑之前必须 source 那个工作空间（scripts/build_map.sh 已处理）。 -->
+  <node pkg="octomap_server" type="my_octomap_node" name="my_octomap" output="screen">
+    <param name="file_path" value="/home/test/scan_planner/map/lite3.pcd"/>
+    <param name="filter_leaf_size_m" value="0.05"/>
+
+    <param name="frame_id" type="string" value="/map"/>
+
+    <param name="pointcloud_min_z" value="0.4"/>
+    <param name="pointcloud_max_z" value="1.2"/>
+    <param name="occupancy_min_z" value="0.0"/>
+    <param name="occupancy_max_z" value="1.6"/>
+  </node>
+</launch>
