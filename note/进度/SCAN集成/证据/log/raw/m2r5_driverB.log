@@ -1,0 +1,149 @@
+##### V6r2 pre  payload_dir=/tmp/m2r5_pre  06:57:20 #####
+### foxy lstart start_v6r2_pre 06:57:20
+  计数=6
+  model_states 等待=10s
+  probe 第 1 次空采，再等 20s
+  probe 第 2 次取到
+    V6 tag=pre samples=1800
+    V6 tag=pre pose_x=0.000000 pose_y=0.000000
+    V6 tag=pre z_min=0.110000 z_max=0.110000 z_mean=0.110000 z_span=0.000000
+    V6 tag=pre orient_xyzw=['0.000000', '-0.000000', '0.000000', '1.000000']
+    V6 tag=pre model_ok=True canonical_body_name= is_static=False parent=
+    V6 tag=pre body_names=['TORSO']
+    V6 tag=pre geom_names=['TORSO_collision']
+    V6 tag=pre joint_names=[]
+    V6 tag=pre link=lite3_planar::base_link found=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+    V6 tag=pre link=lite3_planar::TORSO found=True mass=15.060000 ixx=0.347906 iyy=0.187906 izz=0.281110 ixy=0.000000 ixz=0.000000 iyz=0.000000
+    V6 tag=pre link=lite3_planar::TORSO com=0.000000,0.000000,0.001262 gravity_mode=True
+    V6 tag=pre link=lite3_planar::rslidar found=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+  teardown 残留:[]
+##### V6r2 post  payload_dir=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim  06:58:52 #####
+### foxy lstart start_v6r2_post 06:58:52
+  计数=6
+  model_states 等待=10s
+  probe 第 1 次空采，再等 20s
+  probe 第 2 次取到
+    V6 tag=post samples=1393
+    V6 tag=post pose_x=0.000000 pose_y=0.000000
+    V6 tag=post z_min=0.110000 z_max=0.110000 z_mean=0.110000 z_span=0.000000
+    V6 tag=post orient_xyzw=['0.000000', '-0.000000', '0.000000', '1.000000']
+    V6 tag=post model_ok=True canonical_body_name= is_static=False parent=
+    V6 tag=post body_names=['base_link']
+    V6 tag=post geom_names=['base_link_fixed_joint_lump__TORSO_collision']
+    V6 tag=post joint_names=[]
+    V6 tag=post link=lite3_planar::base_link found=True mass=15.060000 ixx=0.347906 iyy=0.187906 izz=0.281110 ixy=0.000000 ixz=0.000000 iyz=0.000000
+    V6 tag=post link=lite3_planar::base_link com=0.000000,0.000000,0.001262 gravity_mode=True
+    V6 tag=post link=lite3_planar::TORSO found=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+    V6 tag=post link=lite3_planar::rslidar found=False msg=GetLinkProperties: link not found, did you forget to scope the link by model name?
+  teardown 残留:[]
+##### fresh2n  G5_DELAY_SIM=[]  07:00:26 #####
+### foxy lstart start_fresh2n 07:00:26
+  计数=6
+### foxy lstart end_fresh2n 07:03:31
+  计数=6
+  rc=0
+    SMOKE gate_map_data=PASS t=0.3s
+    SMOKE gate_tf_robot=PASS t=0.3s
+    SMOKE gate_gcostmap_data=PASS t=0.5s
+    SMOKE gate_lcostmap_data=PASS t=0.5s
+    SMOKE gate_tf_fresh=PASS t=1.5s ages=[0.048,0.079,0.068]
+    SMOKE gate_tf_fresh_mapodom=PASS t=2.1s ages=[0.005,0.069,0.087]
+    SMOKE SIMNOW point=age_sample_1 sim_now=20.25s gate_t=2.2s
+    SMOKE gate_G5c1(odom->base_link)=PASS
+    SMOKE E3 tf odom->base_link hits=21 last_stamp=20.840 age=0.014
+    SMOKE E3 base_link_parents=['odom'] transforms_total=25
+    SMOKE E3 static base_link->rslidar stamp=0.028
+    SMOKE E3 static base_link->TORSO stamp=0.028
+    SMOKE gate=PASS t=4.8s
+    SMOKE SIMNOW point=goal_send sim_now=20.85s
+    SMOKE SIMNOW point=goal_done sim_now=29.39s dt=8.54
+    SMOKE teb_state=3 dt=8.5s dev_odom=0.166 dev_gt=0.166
+  5 PASS / 0 FAIL   TF_OLD_DATA=0
+  TCP 11312=0 11313=0
+  UDP 11312=0 11313=0
+##### fresh3n  G5_DELAY_SIM=[62]  07:03:35 #####
+### foxy lstart start_fresh3n 07:03:35
+  计数=6
+### foxy lstart end_fresh3n 07:09:19
+  计数=6
+  rc=0
+    SMOKE gate_map_data=PASS t=0.2s
+    SMOKE gate_tf_robot=PASS t=0.5s
+    SMOKE gate_gcostmap_data=PASS t=0.8s
+    SMOKE gate_lcostmap_data=PASS t=0.8s
+    SMOKE gate_tf_fresh=PASS t=1.8s ages=[0.028,0.050,0.065]
+    SMOKE gate_tf_fresh_mapodom=PASS t=2.4s ages=[0.042,0.086,0.063]
+    SMOKE SIMNOW point=age_sample_1 sim_now=21.12s gate_t=2.4s
+    SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.11s wall_spent=155.4s t_raw=2.4s t_adj=2.4s
+    SMOKE gate_tf_fresh_late=PASS t=3.0s ages=[0.008,0.041,0.024]
+    SMOKE gate_tf_fresh_mapodom_late=PASS t=3.6s ages=[0.051,0.043,0.080]
+    SMOKE SIMNOW point=age_sample_2 sim_now=62.44s gate_t=3.6s sim_span_vs_point1=41.31s
+    SMOKE gate_G5c1(odom->base_link)=PASS
+    SMOKE E3 tf odom->base_link hits=23 last_stamp=63.036 age=0.009
+    SMOKE E3 base_link_parents=['odom'] transforms_total=28
+    SMOKE E3 static base_link->rslidar stamp=0.023
+    SMOKE E3 static base_link->TORSO stamp=0.023
+    SMOKE gate=PASS t=6.3s
+    SMOKE SIMNOW point=goal_send sim_now=63.05s
+    SMOKE SIMNOW point=goal_done sim_now=71.59s dt=8.54
+    SMOKE teb_state=3 dt=8.5s dev_odom=0.176 dev_gt=0.176
+  5 PASS / 0 FAIL   TF_OLD_DATA=0
+  TCP 11312=0 11313=0
+  UDP 11312=0 11313=0
+##### fresh4n  G5_DELAY_SIM=[]  07:09:24 #####
+### foxy lstart start_fresh4n 07:09:24
+  计数=6
+### foxy lstart end_fresh4n 07:12:29
+  计数=6
+  rc=0
+    SMOKE gate_map_data=PASS t=0.1s
+    SMOKE gate_tf_robot=PASS t=0.4s
+    SMOKE gate_gcostmap_data=PASS t=0.6s
+    SMOKE gate_lcostmap_data=PASS t=0.7s
+    SMOKE gate_tf_fresh=PASS t=1.4s ages=[0.011,0.045,0.092]
+    SMOKE gate_tf_fresh_mapodom=PASS t=2.0s ages=[0.014,0.012,0.053]
+    SMOKE SIMNOW point=age_sample_1 sim_now=19.73s gate_t=2.0s
+    SMOKE gate_G5c1(odom->base_link)=PASS
+    SMOKE E3 tf odom->base_link hits=26 last_stamp=20.440 age=0.018
+    SMOKE E3 base_link_parents=['odom'] transforms_total=31
+    SMOKE E3 static base_link->rslidar stamp=0.025
+    SMOKE E3 static base_link->TORSO stamp=0.025
+    SMOKE gate=PASS t=4.7s
+    SMOKE SIMNOW point=goal_send sim_now=20.46s
+    SMOKE SIMNOW point=goal_done sim_now=29.05s dt=8.59
+    SMOKE teb_state=3 dt=8.6s dev_odom=0.170 dev_gt=0.170
+  5 PASS / 0 FAIL   TF_OLD_DATA=0
+  TCP 11312=0 11313=0
+  UDP 11312=0 11313=0
+##### fresh5n  G5_DELAY_SIM=[]  07:12:33 #####
+### foxy lstart start_fresh5n 07:12:34
+  计数=6
+### foxy lstart end_fresh5n 07:15:43
+  计数=6
+  rc=0
+    SMOKE gate_map_data=PASS t=0.3s
+    SMOKE gate_tf_robot=PASS t=0.6s
+    SMOKE gate_gcostmap_data=PASS t=0.7s
+    SMOKE gate_lcostmap_data=PASS t=0.8s
+    SMOKE gate_tf_fresh=PASS t=1.6s ages=[0.041,0.030,0.054]
+    SMOKE gate_tf_fresh_mapodom=PASS t=2.3s ages=[0.020,0.056,0.029]
+    SMOKE SIMNOW point=age_sample_1 sim_now=21.15s gate_t=2.3s
+    SMOKE gate_G5c1(odom->base_link)=PASS
+    SMOKE E3 tf odom->base_link hits=25 last_stamp=21.840 age=0.013
+    SMOKE E3 base_link_parents=['odom'] transforms_total=30
+    SMOKE E3 static base_link->rslidar stamp=0.020
+    SMOKE E3 static base_link->TORSO stamp=0.020
+    SMOKE gate=PASS t=4.9s
+    SMOKE SIMNOW point=goal_send sim_now=21.85s
+    SMOKE SIMNOW point=goal_done sim_now=30.39s dt=8.54
+    SMOKE teb_state=3 dt=8.5s dev_odom=0.173 dev_gt=0.173
+  5 PASS / 0 FAIL   TF_OLD_DATA=0
+  TCP 11312=0 11313=0
+  UDP 11312=0 11313=0
+##### 退净核查 07:15:47 #####
+残留:[1718057 1718064 ]
+  TCP 11312=0 11313=0
+  UDP 11312=0 11313=0
+### foxy lstart final 07:15:47
+  计数=6
+REGB_DONE 07:15:47

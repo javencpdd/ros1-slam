@@ -1,0 +1,46 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_070335
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 69.716000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 69.716000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.8s
+SMOKE gate_lcostmap_data=PASS t=0.8s
+SMOKE gate_tf_fresh=PASS t=1.8s ages=[0.028,0.050,0.065]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.4s ages=[0.042,0.086,0.063]
+SMOKE SIMNOW point=age_sample_1 sim_now=21.12s gate_t=2.4s
+SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.11s wall_spent=155.4s t_raw=2.4s t_adj=2.4s
+SMOKE gate_tf_fresh_late=PASS t=3.0s ages=[0.008,0.041,0.024]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.6s ages=[0.051,0.043,0.080]
+SMOKE SIMNOW point=age_sample_2 sim_now=62.44s gate_t=3.6s sim_span_vs_point1=41.31s
+SMOKE gate_G5c1(odom->base_link)=PASS
+SMOKE E3 tf odom->base_link hits=23 last_stamp=63.036 age=0.009
+SMOKE E3 base_link_parents=['odom'] transforms_total=28
+SMOKE E3 static base_link->rslidar stamp=0.023
+SMOKE E3 static base_link->TORSO stamp=0.023
+SMOKE gate=PASS t=6.3s
+SMOKE SIMNOW point=goal_send sim_now=63.05s
+SMOKE SIMNOW point=goal_done sim_now=71.59s dt=8.54
+SMOKE teb_state=3 dt=8.5s dev_odom=0.176 dev_gt=0.176
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[PASS] B/G6: goal 后 pose 类 ERROR=0
+[PASS] B: 到达偏差 0.176 ≤0.35m
+[PASS] B: 用时 8.54 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: PASS
+==================================================
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed

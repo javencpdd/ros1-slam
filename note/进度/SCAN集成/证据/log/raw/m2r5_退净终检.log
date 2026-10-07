@@ -1,0 +1,21 @@
+# M2R5 退净终检（driverB 的 07:15:47 那次打印 残留:[1718057 1718064]，身份未能回溯核实；本件为 +N 分钟后的独立复检）
+checked_at 2026-10-08 07:31:15
+残留进程匹配 [roslaunch|rosmaster|gzserver|gzclient|move_base_flex|hdl|sim_adapter|run_mapping_online]：
+  （无）
+PID 1718057 / 1718064 现存性：
+  1718057 已不存在（kill -0 判据不用，见 02 坑16；以 ps 为准）
+  1718064 已不存在（kill -0 判据不用，见 02 坑16；以 ps 为准）
+端口 TCP:
+  113xx 无 TCP 监听
+端口 UDP:
+  113xx 无 UDP 监听
+foxy 六 PID 终态：
+ 115711 ysc      Mon Oct  5 01:27:49 2026 python3
+ 115792 root     Mon Oct  5 01:27:51 2026 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026 static_transfor
+本会话 noetic rosout 孤儿（起前即在位，非本批造成）：
+328580 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+1373109 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ysc/.ros/log/fad24fb4-c291-11f1-a90d-3c6d66f8d2d8/rosout-1.log
