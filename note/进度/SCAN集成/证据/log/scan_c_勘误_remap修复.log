@@ -1,0 +1,41 @@
+### §C 勘误与 remap 修复实证（主理人直接执行 2026-10-08 02:03:53）
+
+-- 1) 缺陷发现 --
+roslaunch --nodes 对 70_scan.launch 报：WARN: unrecognized 'remap' tag in <include> tag
+根因：roslaunch 的 <include> 标签不支持 remap，解析器静默忽略 ⇒ 设计稿 A1/A3 的 goal 私有名 remap 从未生效
+影响：SCAN FSM 实际订阅绝对名 /move_base_simple/goal（scan_replan_fsm.cpp:104），与 mbf 双消费风险，正是 A1 明令避免项
+发现责任：主理人上一轮核对只核了 16 个 arg 声明，漏核 remap 所挂标签——记为施工侧漏检
+
+-- 2) 修法 --
+ws/src/40_navigation/lite3_scan/launch/70_scan.launch：remap 从 <include> 内移出，改挂外层 <group>（group remap 向下传导给组内节点）；第三方 advanced_param.xml 一字未动
+XML 结构自检：PARSE OK; group 数=1; include 数=2
+
+-- 3) 静态实证（roslaunch XmlLoader + ROSLaunchConfig，不起节点不占端口） --
+修复后 roslaunch --nodes：WARN 消失，7 节点（3 relay + 2 static TF + scan_planner_node + closed_loop_controller）
+scan_planner_node remap=[['/move_base_simple/goal','/scan_planner/goal'], ['/grid_map/body_pose','/LIO/odom_vehicle'], ['/grid_map/sensor_pose','/LIO/odom_imu'], ['/grid_map/cloud','/LIO/clouds_lidar'], ['/grid_map/depth','/camera/aligned_depth_to_color/image_raw']]
+closed_loop_controller remap=[['cmd_vel','/scan_planner/cmd_vel']]
+★ 判定：goal remap 已作用于 scan_planner_node = 缺陷根除（静态实证；话题级活体确认仍列 P2 前置判据）
+注：主理人首版自检脚本以 tuple 比 list 造成一次假阴性，已以打印原始 remap_args 复核纠正
+
+-- 4) 删除便利编排件 75（方案④，依 04 台账 8d50880 裁决） --
+rm ws/src/40_navigation/lite3_scan/launch/75_scan_sim_p1p2.launch  已执行
+连带删除其内 /use_sim_time 修复行 = 预期：三终端形态下 m2_gazebo.launch 不带 ns 启动、相对名 use_sim_time 落参数服务器根全局生效，缺陷不存在。后人勿再加回
+
+-- 5) [5]/[6] 复跑（照 v3_isolation.sh 原式，未跑全脚本未起节点） --
+[5] 命中 4 条，全部 M2 预存在，lite3_scan 净新增 0：
+ws/src/95_simulation/lite3_gazebo_sim/launch/m1_mapping.launch -> lite3_slam
+ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch -> lite3_localization
+ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch -> lite3_slam
+ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch -> lite3_navigation
+[6] 命中 3 条，全部 M2 预存在 m2_teb.launch（2 条注释行 + 1 条 m2_cmd_relay 节点行）：
+ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:3:       链路：gazebo(M2 xacro) �
+ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:7:       红线：全链 11313 隔�
+ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:20:  <node pkg="lite3_gazebo_sim" ty
+[6] lite3_scan 侧 0 条 = 侥幸（含 cmd_vel 的行全伴 cmd_vel_raw 被 grep -v 滤除），入册不视为合规
+
+-- 6) 根目录垃圾清理 --
+rm -f /home/ros1-slam/lite3_gazebo_sim（0 字节空文件，01:28:46 由 §B2 代理跑 [5] grep 时重定向手滑所造，非目录、真包在位无损）
+
+-- 7) ACL 补授 --
+70_scan.launch 与 lite3_scan 整树已补 u:ros1-slam:rwx；ws/devel|ws/build 下 882 项 ysc 属主产物已由主理人补授（devel/lib 15/15 覆盖）
+残留缺口：ws/build、ws/devel 目录属主为 ros1-slam，ysc 设其 default ACL 报 EPERM ⇒ 将来重建仍会漂，需 ros1-slam/root 侧一次性 setfacl -R -d -m u:ros1-slam:rwx

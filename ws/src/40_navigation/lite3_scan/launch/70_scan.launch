@@ -27,7 +27,13 @@
        三 relay /LIO/odom_vehicle、/LIO/odom_imu、/LIO/clouds_lidar + world/camera_init 与 body/base_link 恒等 TF） -->
   <include file="$(find scan_planner)/launch/lio_relay.launch"/>
 
-  <!-- main algorithm params（advanced_param.xml 原样 include，仅 arg 注入 + goal remap） -->
+  <!-- main algorithm params（advanced_param.xml 原样 include，仅 arg 注入；goal remap 见下方 group） -->
+  <group>
+    <!-- goal remap 必须挂 <group> 而非 <include>：roslaunch 的 <include> 不支持 remap，
+         实测报 "WARN: unrecognized 'remap' tag in <include> tag" 并静默忽略 ⇒ A1/A3 的
+         「防与 mbf 双消费」防护会失效（FSM 订阅绝对名 /move_base_simple/goal，见 scan_replan_fsm.cpp:104）。
+         group 的 remap 向下传导给组内所有节点。 -->
+    <remap from="/move_base_simple/goal" to="/scan_planner/goal"/>
   <include file="$(find scan_planner)/launch/advanced_param.xml">
     <arg name="sensor_type" value="lidar"/>
     <arg name="body_pose_topic" value="/LIO/odom_vehicle"/>
@@ -46,8 +52,8 @@
     <arg name="max_vel" value="$(arg max_vel)"/>
     <arg name="max_acc" value="$(arg max_acc)"/>
     <arg name="planning_horizon" value="$(arg planning_horizon)"/>
-    <remap from="/move_base_simple/goal" to="/scan_planner/goal"/>
   </include>
+  </group>
 
   <!-- 轨迹跟踪：closed_loop（run.launch 默认档）；安全网 remap 为 run.launch is_real_world 分支原文：
        绝不直发速度指令，一律改发 /scan_planner/cmd_vel（仿真域 cmd_vel_raw 中继同款模式出，写者唯一） -->

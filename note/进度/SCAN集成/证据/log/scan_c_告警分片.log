@@ -1,0 +1,19 @@
+### §C3 告警留证（不加 -w；-j2 下按源路径归属分片，保留原文，不聚合/不去重/不翻译；第三方告警仅登记，不产生改动义务）
+构建 exit=0  耗时=816s  日志行数=1711
+gcc ': warning:' 全量计数=0   gcc ': error:' 计数=0
+traj_utils      warn=0   err=0   分片行数=0
+plan_env        warn=0   err=0   分片行数=0
+path_searching  warn=0   err=0   分片行数=0
+bspline_opt     warn=0   err=0   分片行数=0
+plan_manage     warn=0   err=0   分片行数=0
+lite3_scan      warn=0 err=0 （壳包无编译单元，分片 0 字节属预期）
+非 gcc 类告警原文（CMake/PCL config 层，共 43 行）:
+     12 ** WARNING ** io features related to png will be disabled
+     12 ** WARNING ** io features related to pcap will be disabled
+     12 ** WARNING ** io features related to libusb-1.0 will be disabled
+      2 CMake Warning at /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:166 (message):
+      1 This warning is for project developers.  Use -Wno-dev to suppress it.
+      1 CMake Warning (dev) at /usr/share/cmake-3.16/Modules/FindOpenGL.cmake:275 (message):
+      1 CMake Warning at 95_simulation/local_sensing/CMakeLists.txt:84 (add_executable):
+      1 CMake Warning at 95_simulation/local_sensing/CMakeLists.txt:110 (add_executable):
+      1   cmake_policy command to set the policy and suppress this warning.

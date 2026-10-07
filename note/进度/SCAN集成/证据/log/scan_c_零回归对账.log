@@ -1,0 +1,143 @@
+### §C 零回归对账（基线 /tmp/scan_c_prebuild_baseline.txt = 主理人 2026-10-08 01:19:31 采集）
+-- 条目1) M2 已验收产物 sha256 逐条比 --
+基线产物条目=0（15 件 devel/lib 产物 + 基线首行 CMakeCache 指纹 = 主理人所述 16 项指纹）
+结论：差异行数=15 ⇒ 内容变化，必须上报
+  0a1,15
+  > b9496a9872d2b384579e88ff08b8513bf9ab84dd37777ee7444d5ad17f17de04  ws/devel/lib/libfaster_lio.so
+  > 09d436c6f53d04b53b35a9160e6b0a3f99172cfe8e1682de332afa0b1ae092d3  ws/devel/lib/libfast_gicp.so
+  > e0d9a83aa0268d925702dddcb189c9baaf8ad4783c3155e3448bdf563e2f29c1  ws/devel/lib/libGLAD.so
+  > 49f702b49e070d5a6641e8ad79c92f7976ca8346ff2045368cb268c07863b521  ws/devel/lib/libglobalmap_server_nodelet.so
+  > 27fc0fb6dbf94d92153bcfddf46cf9fc8fb641d60575a52791c2a9dc828ce846  ws/devel/lib/libhdl_global_localization.so
+  > 0ed797d50225615f2f3d9abbb19972a21cfd55f376ea0a5b784121a401c4ce2a  ws/devel/lib/libhdl_localization_nodelet.so
+  > 4ba2cf5bdb610439c1e8892da2a7667ddba2e856b530ffe15412de4c507d717a  ws/devel/lib/libkindr_rviz_plugins.so
+  > fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7  ws/devel/lib/liblite3_planar_drive.so
+  > 275099d70ab05a67eb83d20be4b1fc2517625e1822029598634e55c59270b24d  ws/devel/lib/liblivox_laser_simulation.so
+  > 76eac258bc921f9f115448b2bfc8bf712aa87b5e5b329979ee461974f676845c  ws/devel/lib/liblslidar_driver_nodelet.so
+  > ca70e864c4cbaabd28f24c70fff8a9bf84659707c885dc2976f0d5c8d935376c  ws/devel/lib/liblslidar_driver.so
+  > 5bf441dcd3a383609c4de6ac3b730633481b19b9377e5090cc5a362b1c7c5d16  ws/devel/lib/liblslidar_input.so
+  > bdaaab36d0bede2802b548d7de70ee2f1374f0135ddebc2987de09330439780e  ws/devel/lib/libmulti_dof_joint_trajectory_rviz_plugins.so
+  > 912975a6d2b92275461a558c9a188e7a35417a0cc21492649cb1eab296b92aee  ws/devel/lib/libndt_omp.so
+  > b061ea06d0b3537261d4194335daab180d1dd7ef4f9d6b9ba9714e7f7e381c6e  ws/devel/lib/pkgconfig/faster_lio.pc
+逐条清单（现值）:
+  b9496a9872d2b384579e88ff08b8513bf9ab84dd37777ee7444d5ad17f17de04  ws/devel/lib/libfaster_lio.so
+  09d436c6f53d04b53b35a9160e6b0a3f99172cfe8e1682de332afa0b1ae092d3  ws/devel/lib/libfast_gicp.so
+  e0d9a83aa0268d925702dddcb189c9baaf8ad4783c3155e3448bdf563e2f29c1  ws/devel/lib/libGLAD.so
+  49f702b49e070d5a6641e8ad79c92f7976ca8346ff2045368cb268c07863b521  ws/devel/lib/libglobalmap_server_nodelet.so
+  27fc0fb6dbf94d92153bcfddf46cf9fc8fb641d60575a52791c2a9dc828ce846  ws/devel/lib/libhdl_global_localization.so
+  0ed797d50225615f2f3d9abbb19972a21cfd55f376ea0a5b784121a401c4ce2a  ws/devel/lib/libhdl_localization_nodelet.so
+  4ba2cf5bdb610439c1e8892da2a7667ddba2e856b530ffe15412de4c507d717a  ws/devel/lib/libkindr_rviz_plugins.so
+  fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7  ws/devel/lib/liblite3_planar_drive.so
+  275099d70ab05a67eb83d20be4b1fc2517625e1822029598634e55c59270b24d  ws/devel/lib/liblivox_laser_simulation.so
+  76eac258bc921f9f115448b2bfc8bf712aa87b5e5b329979ee461974f676845c  ws/devel/lib/liblslidar_driver_nodelet.so
+  ca70e864c4cbaabd28f24c70fff8a9bf84659707c885dc2976f0d5c8d935376c  ws/devel/lib/liblslidar_driver.so
+  5bf441dcd3a383609c4de6ac3b730633481b19b9377e5090cc5a362b1c7c5d16  ws/devel/lib/liblslidar_input.so
+  bdaaab36d0bede2802b548d7de70ee2f1374f0135ddebc2987de09330439780e  ws/devel/lib/libmulti_dof_joint_trajectory_rviz_plugins.so
+  912975a6d2b92275461a558c9a188e7a35417a0cc21492649cb1eab296b92aee  ws/devel/lib/libndt_omp.so
+  b061ea06d0b3537261d4194335daab180d1dd7ef4f9d6b9ba9714e7f7e381c6e  ws/devel/lib/pkgconfig/faster_lio.pc
+-- 条目2) 白名单 --
+现值: CATKIN_WHITELIST_PACKAGES:STRING=  ⇒ 仍为空值
+-- 条目3) devel/lib 清点 --
+基线 63 件（主理人口径）→ 现 find -type f 总数=135；本次 mtime 新/重写=50 件
+新增件按来源归属:
+        1   lib 顶层 libbspline_opt.so
+        1   lib 顶层 libpath_searching.so
+        1   lib 顶层 libplan_env.so
+        1   lib 顶层 libtraj_utils.so
+        1   pkgconfig/bspline_opt.pc
+        1   pkgconfig/faster_lio.pc
+        1   pkgconfig/fast_gicp.pc
+        1   pkgconfig/hdl_global_localization.pc
+        1   pkgconfig/hdl_localization.pc
+        1   pkgconfig/kindr_msgs.pc
+        1   pkgconfig/kindr.pc
+        1   pkgconfig/kindr_ros.pc
+        1   pkgconfig/kindr_rviz_plugins.pc
+        1   pkgconfig/lite3_bringup.pc
+        1   pkgconfig/lite3_description.pc
+        1   pkgconfig/lite3_drivers.pc
+        1   pkgconfig/lite3_gazebo_sim.pc
+        1   pkgconfig/lite3_localization.pc
+        1   pkgconfig/lite3_navigation.pc
+        1   pkgconfig/lite3_perception.pc
+        1   pkgconfig/lite3_safety.pc
+        1   pkgconfig/lite3_scan.pc
+        1   pkgconfig/lite3_slam.pc
+        1   pkgconfig/lite3_supervisor.pc
+        1   pkgconfig/lite3_task.pc
+        1   pkgconfig/livox_laser_simulation.pc
+        1   pkgconfig/livox_ros_driver2.pc
+        1   pkgconfig/local_sensing_node.pc
+        1   pkgconfig/lslidar_driver.pc
+        1   pkgconfig/lslidar_msgs.pc
+        1   pkgconfig/map_generator.pc
+        1   pkgconfig/message_transformer.pc
+        1   pkgconfig/mockamap.pc
+        1   pkgconfig/multi_dof_joint_trajectory_rviz_plugins.pc
+        1   pkgconfig/ndt_omp.pc
+        1   pkgconfig/path_searching.pc
+        1   pkgconfig/pcd2grid.pc
+        1   pkgconfig/pipeline.pc
+        1   pkgconfig/plan_env.pc
+        1   pkgconfig/scan_planner.pc
+        1   pkgconfig/traj_utils.pc
+        5   scan_planner(plan_manage) 可执行
+        4   scan_planner python msg
+非 6 包来源但被 cmake --force-cmake 重写 mtime 的既有件（内容见条目1 逐位比）:
+  pkgconfig/lite3_bringup.pc
+  pkgconfig/lite3_localization.pc
+  pkgconfig/kindr_msgs.pc
+  pkgconfig/bspline_opt.pc
+  pkgconfig/scan_planner.pc
+  pkgconfig/hdl_global_localization.pc
+  pkgconfig/kindr_ros.pc
+  pkgconfig/lite3_scan.pc
+  pkgconfig/lite3_slam.pc
+  pkgconfig/mockamap.pc
+  pkgconfig/fast_gicp.pc
+  pkgconfig/lite3_perception.pc
+  pkgconfig/lite3_gazebo_sim.pc
+  pkgconfig/local_sensing_node.pc
+  pkgconfig/multi_dof_joint_trajectory_rviz_plugins.pc
+  pkgconfig/pipeline.pc
+  pkgconfig/lite3_description.pc
+  pkgconfig/faster_lio.pc
+  pkgconfig/lslidar_msgs.pc
+  pkgconfig/kindr.pc
+  pkgconfig/path_searching.pc
+  pkgconfig/livox_laser_simulation.pc
+  pkgconfig/kindr_rviz_plugins.pc
+  pkgconfig/traj_utils.pc
+  pkgconfig/lite3_safety.pc
+  pkgconfig/lite3_task.pc
+  pkgconfig/hdl_localization.pc
+  pkgconfig/map_generator.pc
+  pkgconfig/lite3_drivers.pc
+  pkgconfig/lslidar_driver.pc
+  pkgconfig/ndt_omp.pc
+  pkgconfig/lite3_navigation.pc
+  pkgconfig/livox_ros_driver2.pc
+  pkgconfig/plan_env.pc
+  pkgconfig/message_transformer.pc
+  pkgconfig/lite3_supervisor.pc
+  pkgconfig/pcd2grid.pc
+-- 条目4) git tracked 零 M --
+tracked 变更行数=0  ?? 行数=7（前序基线 ??=7，全为既有 .bak）
+-- 附:bspline_opt 依赖解析 --
+  	libpath_searching.so => /home/ros1-slam/ws/devel/lib/libpath_searching.so (0x0000ffffbce0b000)
+-- 附:env shim 旧/新内容一致性（因 ysc 无 chmod 权限被移开再生成）--
+  setup.bash        IDENTICAL
+  setup.sh          IDENTICAL
+  setup.zsh         IDENTICAL
+  local_setup.bash  IDENTICAL
+  local_setup.sh    IDENTICAL
+  local_setup.zsh   IDENTICAL
+  env.sh            IDENTICAL
+  .rosinstall       IDENTICAL
+-- 附:内存/swap --
+  PRE_AVAIL_MB=4964
+  BUILD_EXIT=0 DURATION_S=816 END_UTC=2026-10-07T17:53:23Z
+  采样 min avail=2702MB  峰值 cc1plus 合计 RSS=2387628KB
+  /tmp/swap_scan     4G     0B   -2（4G 临时 swap 全程 enabled，未被使用）
+-- 附:CMakeCache --
+  基线 bea4b2f7c595b953e7747641aabd879e40a54e278857f22a984f743636ff94fc → 现 313ead2607304e587c9d9cec5e0c03d8bf2cc9ddd7dd84c53911946ffb80afb2（--force-cmake 重配置所致，白名单仍空、包集合未收缩：见下）
+  参与构建包数=0 configure 段; scan_planner/lite3_scan 均已注册
