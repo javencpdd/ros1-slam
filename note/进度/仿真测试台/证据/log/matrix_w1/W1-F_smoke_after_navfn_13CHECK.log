@@ -1,0 +1,36 @@
+[smoke] 起 mode_nav_sim.launch（日志 /tmp/sim_nav_smoke_launch.log）...
+CHECK|venue_map_cloud|PASS|/map_generator/global_cloud 有发布者（mockamap）
+CHECK|rslidar_points|PASS|/rslidar_points 实测 4.25Hz（≥0.5，G8 适配链活性）
+CHECK|truth_map|PASS|/map 有数据且占据格=5041（sim_map_bridge）
+CHECK|tf_robot|PASS|TF map→base_link 可查（sim_pose_tf）
+CHECK|costmap_data|PASS|全局 costmap 占据格=11589（static+stvl 有数据）
+CHECK|getpath_server|PASS|mbf get_path action server 在位
+CHECK|getpath_1|PASS|outcome=0 Plan found | 末点偏差=0.00m 长度=22.6m（当前位姿直线距=3.3m，判据≤35.6m）
+CHECK|getpath_2|PASS|outcome=0 Plan found | 末点偏差=0.00m 长度=18.4m（当前位姿直线距=6.7m，判据≤35.6m）
+CHECK|getpath_3|PASS|outcome=0 Plan found | 末点偏差=0.00m 长度=16.1m（当前位姿直线距=9.2m，判据≤38.9m）
+CHECK|exepath_cmdvel|PASS|/cmd_vel_raw 12s 内消息数=1（M4→M6 速度链活性；闭环不可仿真，不验运动效果）
+CHECK|cmdvel_writer|PASS|/cmd_vel publisher=['/safe_cmd_vel_mux (http://lite:36353/)']（唯一写者=M6 safe_cmd_vel_mux，§2.6-a）
+[smoke] launch 日志尾 20 行（失败时排查用）：
+1 1 1 0 0 0 1 1 1 1
+0 0 0 0 1 0 0 0 0 0
+1 1 1 1 1 1 1 1 1 1
+1 1 0 0 1 0 1 0 0 1
+1 1 1 0 1 0 1 1 1 1
+1 1 0 0 1 0 1 0 0 1
+1 1 0 0 1 0 1 0 1 1
+1 0 0 0 1 0 0 0 0 1
+1 0 1 1 1 1 1 1 0 1
+1 0 0 0 1 0 0 0 0 1
+1 1 1 0 0 0 1 1 1 1
+1 1 1 1 1 1 1 1 1 1
+[33m[ WARN] [1791345332.116250945]: Global Pointcloud received..[0m
+Failed to find match for field 'intensity'.
+[33m[ WARN] [1791345334.386834335]: Normal compute finished.., mapsize = 35100[0m
+[33m[ WARN] [1791345338.956764298]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1755 seconds[0m
+[33m[ WARN] [1791345347.502689086]: Calculation needs too much time to stay in the moving frequency! (0.2382s > 0.1000s)[0m
+[33m[ WARN] [1791345347.508263497]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1877 seconds[0m
+[33m[ WARN] [1791345347.643683461]: Controller defers handling cancel; force it and wait until the current control cycle finished[0m
+[33m[ WARN] [1791345347.702227031]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2817 seconds[0m
+[smoke] 退净中...
+CHECK|ros2qnx_exit|PASS|ros2qnx 全程不存在
+CHECK|teardown|PASS|launch 内关键节点已退净

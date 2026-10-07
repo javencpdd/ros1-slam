@@ -1,0 +1,62 @@
+[ DEBUG ] : Adding state (WAIT, <__main__.WaitState object at 0xffff7ca0d0d0>, {'succeeded': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'WAIT' to the state machine.
+[ DEBUG ] : State 'WAIT' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR WAIT: {'succeeded': 'GET_PATH', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (GET_PATH, <__main__.GetPathState object at 0xffff7ca0d190>, {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'GET_PATH' to the state machine.
+[ DEBUG ] : State 'GET_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR GET_PATH: {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (EXE_PATH, <__main__.ExePathState object at 0xffff7ca0d160>, {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'EXE_PATH' to the state machine.
+[ DEBUG ] : State 'EXE_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR EXE_PATH: {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (NAVIGATE, <__main__.NavigateState object at 0xffff7ca0d3a0>, {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'NAVIGATE' to the state machine.
+[ DEBUG ] : State 'NAVIGATE' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR NAVIGATE: {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (RECOVER, <__main__.RecoverState object at 0xffff7ca0d070>, {'succeeded': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'RECOVER' to the state machine.
+[ DEBUG ] : State 'RECOVER' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR RECOVER: {'succeeded': 'GET_PATH', 'aborted': 'aborted'}
+[  INFO ] : State machine starting in initial state 'WAIT' with userdata: 
+	['replan_n', 'clear_n', 'retry_n']
+[INFO] [1791343698.144850]: [M5] 原语 wait（target=local:timer）outcome=succeeded 耗时 1.00s
+[  INFO ] : State machine transitioning 'WAIT':'succeeded'-->'GET_PATH'
+[ ERROR ] : InvalidUserCodeError: Could not execute state 'GET_PATH' of type '<__main__.GetPathState object at 0xffff7ca0d190>': Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/smach/state_machine.py", line 250, in _update_once
+    outcome = self._current_state.execute(
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 93, in execute
+    out = self._route(ud, res_out)
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 44, in _route
+    used = ud[self.ud_keys[key]] + 1
+TypeError: list indices must be integers or slices, not str
+
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/smach/state_machine.py", line 250, in _update_once
+    outcome = self._current_state.execute(
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 93, in execute
+    out = self._route(ud, res_out)
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 44, in _route
+    used = ud[self.ud_keys[key]] + 1
+TypeError: list indices must be integers or slices, not str
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 210, in <module>
+    main()
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 205, in main
+    outcome = sm.execute()
+  File "/opt/ros/noetic/lib/python3/dist-packages/smach/state_machine.py", line 368, in execute
+    container_outcome = self._update_once()
+  File "/opt/ros/noetic/lib/python3/dist-packages/smach/state_machine.py", line 260, in _update_once
+    raise smach.InvalidUserCodeError("Could not execute state '%s' of type '%s': " %
+smach.exceptions.InvalidUserCodeError: Could not execute state 'GET_PATH' of type '<__main__.GetPathState object at 0xffff7ca0d190>': Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/smach/state_machine.py", line 250, in _update_once
+    outcome = self._current_state.execute(
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 93, in execute
+    out = self._route(ud, res_out)
+  File "/home/ros1-slam/ws/src/50_task/lite3_task/scripts/task_smach_min.py", line 44, in _route
+    used = ud[self.ud_keys[key]] + 1
+TypeError: list indices must be integers or slices, not str
+

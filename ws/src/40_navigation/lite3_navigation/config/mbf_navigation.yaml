@@ -6,6 +6,9 @@ planners:
   - name: "GlobalPlanner"
     type: "global_planner/GlobalPlanner"   # 串源=原版 move_base_params.yaml base_global_planner 实测值；
                                            # 该插件仅注册 nav_core::BaseGlobalPlanner（rospack plugins 实测）→ 加载须经 S9 nav_core_adapter（Q9）
+  - name: "NavfnROS"
+    type: "navfn/NavfnROS"                 # W1/A3（2026-10-07 小明）：navfn 1.17.3 在装，bgp_plugin.xml 实测仅注册 nav_core::BaseGlobalPlanner
+                                           # → 与 GlobalPlanner 同款经 mbf 内建 nav_core 适配加载（run3 log L421 同款路径已实证）
 controllers:
   - name: "TebLocalPlannerROS"
     type: "teb_local_planner/TebLocalPlannerROS"   # 串源=teb_local_planner_plugin.xml 双注册实测（mbf_costmap_core::CostmapController）→ mbf 原生可载

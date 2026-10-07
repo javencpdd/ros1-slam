@@ -1,0 +1,21 @@
+[ DEBUG ] : Adding state (WAIT, <__main__.PrimitiveState object at 0xffff90786310>, {'succeeded': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'WAIT' to the state machine.
+[ DEBUG ] : State 'WAIT' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR WAIT: {'succeeded': 'GET_PATH', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (GET_PATH, <__main__.PrimitiveState object at 0xffff90786400>, {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'GET_PATH' to the state machine.
+[ DEBUG ] : State 'GET_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR GET_PATH: {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (EXE_PATH, <__main__.PrimitiveState object at 0xffff907864c0>, {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'EXE_PATH' to the state machine.
+[ DEBUG ] : State 'EXE_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR EXE_PATH: {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'GET_PATH', 'aborted': 'aborted'}
+[  INFO ] : State machine starting in initial state 'WAIT' with userdata: 
+	[]
+[INFO] [1791341889.998135]: [M5] 原语 wait（target=local:timer）
+[  INFO ] : State machine transitioning 'WAIT':'succeeded'-->'GET_PATH'
+[INFO] [1791341890.005210]: [M5] 原语 get_path（target=action:mbf_msgs/GetPathAction）
+[  INFO ] : State machine transitioning 'GET_PATH':'succeeded'-->'EXE_PATH'
+[INFO] [1791341890.014894]: [M5] 原语 exe_path（target=action:mbf_msgs/ExePathAction）
+[  INFO ] : State machine terminating 'EXE_PATH':'succeeded':'succeeded'
+[INFO] [1791341890.028425]: task outcome: succeeded

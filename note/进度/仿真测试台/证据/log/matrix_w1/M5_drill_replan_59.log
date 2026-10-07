@@ -1,0 +1,34 @@
+[ERROR] [1791344778.203547]: Got a transition callback on a goal handle that we're not tracking
+[ERROR] [1791344778.214626]: Got a transition callback on a goal handle that we're not tracking
+[ DEBUG ] : Adding state (WAIT, <__main__.WaitState object at 0xffff8d0390a0>, {'succeeded': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'WAIT' to the state machine.
+[ DEBUG ] : State 'WAIT' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR WAIT: {'succeeded': 'GET_PATH', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (GET_PATH, <__main__.GetPathState object at 0xffff8d0391f0>, {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'GET_PATH' to the state machine.
+[ DEBUG ] : State 'GET_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR GET_PATH: {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (EXE_PATH, <__main__.ExePathState object at 0xffff8d039340>, {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'EXE_PATH' to the state machine.
+[ DEBUG ] : State 'EXE_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR EXE_PATH: {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (NAVIGATE, <__main__.NavigateState object at 0xffff8d039190>, {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'NAVIGATE' to the state machine.
+[ DEBUG ] : State 'NAVIGATE' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR NAVIGATE: {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (RECOVER, <__main__.RecoverState object at 0xffff8d039250>, {'succeeded': 'GET_PATH', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'RECOVER' to the state machine.
+[ DEBUG ] : State 'RECOVER' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR RECOVER: {'succeeded': 'GET_PATH', 'aborted': 'aborted'}
+[  INFO ] : State machine starting in initial state 'WAIT' with userdata: 
+	['replan_n', 'clear_n', 'retry_n']
+[INFO] [1791344777.497949]: [M5] 原语 wait（target=local:timer）outcome=succeeded 耗时 1.01s
+[  INFO ] : State machine transitioning 'WAIT':'succeeded'-->'GET_PATH'
+[INFO] [1791344778.063191]: [M5] 原语 get_path outcome=59 No plugin loaded with the given name "NoSuchPlanner"! → replan 耗时 0.01s
+[  INFO ] : State machine transitioning 'GET_PATH':'replan'-->'GET_PATH'
+[INFO] [1791344778.224802]: [M5] 原语 get_path outcome=59 No plugin loaded with the given name "NoSuchPlanner"! → replan 耗时 0.02s
+[  INFO ] : State machine transitioning 'GET_PATH':'replan'-->'GET_PATH'
+[INFO] [1791344778.310137]: [M5] 原语 get_path outcome=59(INVALID_PLUGIN)→replan 预算耗尽（2>2）→ aborted
+[INFO] [1791344778.315537]: [M5] 原语 get_path outcome=59 No plugin loaded with the given name "NoSuchPlanner"! → aborted 耗时 0.01s
+[  INFO ] : State machine terminating 'GET_PATH':'aborted':'aborted'
+[INFO] [1791344778.322226]: task outcome: aborted（总时长 1.8s）
