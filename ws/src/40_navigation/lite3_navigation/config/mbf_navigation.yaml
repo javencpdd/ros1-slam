@@ -12,6 +12,11 @@ planners:
 controllers:
   - name: "TebLocalPlannerROS"
     type: "teb_local_planner/TebLocalPlannerROS"   # 串源=teb_local_planner_plugin.xml 双注册实测（mbf_costmap_core::CostmapController）→ mbf 原生可载
+  - name: "DWAPlannerROS"
+    type: "dwa_local_planner/DWAPlannerROS"   # 矩阵W2/A4（2026-10-07 小明，manifest 预登记①执行）：dwa_local_planner 1.17.3 apt 在装（W2 预检），
+                                              # blp_plugin.xml 实测仅注册 nav_core::BaseLocalPlanner → 经 mbf 内建 nav_core 包装加载
+                                              # （mbf_costmap_nav 0.4.0 costmap_navigation_server.h:239 nav_core_controller_plugin_loader_ 实证）；
+                                              # teb 首位默认不变；T2 对比用 ExePath controller 按名点单，零默认行为变化
 recovery_behaviors:    # 注册表来自 C11 recovery_policy.yaml；type 串与可加载性见 Q11（P3a.0 log 无 recovery 插件描述符）
   - name: "clear_costmaps"
     type: "clear_costmap_recovery/ClearCostmapRecovery"

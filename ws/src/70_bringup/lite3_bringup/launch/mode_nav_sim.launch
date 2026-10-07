@@ -45,6 +45,23 @@
 <launch>
   <arg name="rviz" default="false"/>    <!-- C10：rviz 默认关闭（SSH 无 X） -->
   <arg name="use_gpu" default="true"/>  <!-- G8 遗产：USE_GPU=OFF 件走 CPU 渲染降级分支（吞吐~1.5Hz） -->
+  <!-- 矩阵W2（2026-10-07 小明，manifest B 文 Wave2.3）：多地图矩阵透传（默认=maze2d 现值，零行为变化） -->
+  <arg name="map_type" default="3"/>
+  <arg name="map_seed" default="7"/>
+  <arg name="map_x" default="12"/>
+  <arg name="map_y" default="12"/>
+  <arg name="map_z" default="3"/>
+  <arg name="map_res" default="0.1"/>
+  <arg name="map_traj" default="$(find lite3_drivers)/config/traj_maze.yaml"/>
+  <arg name="map_grid" default="12.0"/>  <!-- sim_map_bridge ~grid_size，须 ≥ 地图最长边 -->
+  <arg name="perlin_complexity" default="0.07"/>
+  <arg name="perlin_fill" default="0.1"/>
+  <arg name="perlin_fractal" default="1"/>
+  <arg name="perlin_attenuation" default="0.1"/>
+  <arg name="post_width_min" default="0.6"/>
+  <arg name="post_width_max" default="1.5"/>
+  <arg name="post_number" default="50"/>
+  <arg name="post_surface_res" default="0.03"/>
 
   <!-- SUP 最先起（v4 §12 铁律/N5；mode 逐字 = health_watch.yaml#modes.mode_nav_sim 键名） -->
   <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
@@ -59,6 +76,21 @@
     <arg name="rviz" value="$(arg rviz)"/>
     <arg name="use_gpu" value="$(arg use_gpu)"/>
     <arg name="extra_sim_args" value="--no-imu"/>
+    <arg name="map_type" value="$(arg map_type)"/>
+    <arg name="map_seed" value="$(arg map_seed)"/>
+    <arg name="map_x" value="$(arg map_x)"/>
+    <arg name="map_y" value="$(arg map_y)"/>
+    <arg name="map_z" value="$(arg map_z)"/>
+    <arg name="map_res" value="$(arg map_res)"/>
+    <arg name="map_traj" value="$(arg map_traj)"/>
+    <arg name="perlin_complexity" value="$(arg perlin_complexity)"/>
+    <arg name="perlin_fill" value="$(arg perlin_fill)"/>
+    <arg name="perlin_fractal" value="$(arg perlin_fractal)"/>
+    <arg name="perlin_attenuation" value="$(arg perlin_attenuation)"/>
+    <arg name="post_width_min" value="$(arg post_width_min)"/>
+    <arg name="post_width_max" value="$(arg post_width_max)"/>
+    <arg name="post_number" value="$(arg post_number)"/>
+    <arg name="post_surface_res" value="$(arg post_surface_res)"/>
   </include>
 
   <!-- M0 心跳假体：M0 真驱动未起，01_sensors 内 liveness_m0 不存在——SUP mode_nav_sim watch
@@ -66,7 +98,9 @@
   <node pkg="rostopic" type="rostopic" name="liveness_m0_sim" args="pub -r 1 /lite3/liveness/m0_drivers std_msgs/Empty"/>
 
   <!-- 真值图桥：/map_generator/global_cloud → latched /map（M4 static_layer 供给，防穿墙规划） -->
-  <node pkg="lite3_bringup" type="sim_map_bridge.py" name="sim_map_bridge" output="screen"/>
+  <node pkg="lite3_bringup" type="sim_map_bridge.py" name="sim_map_bridge" output="screen">
+    <param name="grid_size" type="double" value="$(arg map_grid)"/>
+  </node>
 
   <!-- 真值位姿 TF：/quad_0/body_pose → map→base_link @20Hz fresh-stamp + base_link→rslidar 恒等
        + /Odometry 真值里程计（协方差占位）。替代 stub_tf_broadcaster，本 launch 不得再引 stub 静态版 -->

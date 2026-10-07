@@ -1,0 +1,92 @@
+Base path: /tmp/meshnav_ws
+Source space: /tmp/meshnav_ws/src
+Build space: /tmp/meshnav_ws/build_isolated
+Devel space: /tmp/meshnav_ws/devel_isolated
+Install space: /tmp/meshnav_ws/install_isolated
+Additional CMake Arguments: -DCMAKE_BUILD_TYPE=Release -DLVR2_WITH_CUDA=OFF -DLVR2_WITH_OPENCL=OFF -DLVR2_BUILD_TOOLS=OFF
+Additional make Arguments: -j2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~  traversing 18 packages in topological order:
+~~  - lvr2 (plain cmake)
+~~  - hdf5_map_io
+~~  - mesh_client
+~~  - mesh_msgs
+~~  - label_manager
+~~  - mesh_msgs_conversions
+~~  - mesh_map
+~~  - mbf_mesh_core
+~~  - cvp_mesh_planner
+~~  - dijkstra_mesh_planner
+~~  - mbf_mesh_nav
+~~  - mesh_controller
+~~  - mesh_layers
+~~  - mesh_msgs_hdf5
+~~  - mesh_msgs_transform
+~~  - mesh_navigation
+~~  - mesh_tools
+~~  - rviz_map_plugin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The packages or cmake arguments have changed, forcing cmake invocation
+
+==> Processing plain cmake package: 'lvr2'
+==> Creating build directory: 'build_isolated/lvr2/devel'
+==> cmake /tmp/meshnav_ws/src/lvr2 -DCMAKE_INSTALL_PREFIX=/tmp/meshnav_ws/devel_isolated/lvr2 -DCMAKE_BUILD_TYPE=Release -DLVR2_WITH_CUDA=OFF -DLVR2_WITH_OPENCL=OFF -DLVR2_BUILD_TOOLS=OFF -G Unix Makefiles in '/tmp/meshnav_ws/build_isolated/lvr2/devel'
+-- The C compiler identification is GNU 9.4.0
+-- The CXX compiler identification is GNU 9.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- /tmp/meshnav_ws/src/lvr2/CMakeModules/tmp/meshnav_ws/src/lvr2/ext/kintinuous/cmake/Modules
+-- Found MPI_C: /usr/lib/aarch64-linux-gnu/openmpi/lib/libmpi.so (found version "3.1") 
+-- Found MPI_CXX: /usr/lib/aarch64-linux-gnu/openmpi/lib/libmpi_cxx.so (found version "3.1") 
+-- Found MPI: TRUE (found version "3.1")  
+-- Found MPI
+-- Found TBB library
+-- Found TIFF: /usr/lib/aarch64-linux-gnu/libtiff.so (found version "4.1.0") 
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE  
+-- Found CUDA: /usr/local/cuda (found suitable exact version "11.4") 
+-- Found OpenCV: /usr/local (found suitable version "4.2.0", minimum required is "4") found components: core imgproc imgcodecs features2d calib3d 
+-- Found OpenCV 4
+-- Found FLANN: /usr/include/flann  
+-- Found FLANN library: /usr/include/flann
+-- Try to find LZ4: find_path + find_library
+-- Try to find LZ4: FindPackageHandleStandardArgs
+-- Found LZ4: /usr/lib/aarch64-linux-gnu/liblz4.so  
+-- Found LZ4 library: /usr/include
+-- Found PkgConfig: /usr/bin/pkg-config (found version "0.29.1") 
+CMake Error at /usr/share/cmake-3.16/Modules/FindPackageHandleStandardArgs.cmake:146 (message):
+  Could NOT find GSL (missing: GSL_INCLUDE_DIR GSL_LIBRARY GSL_CBLAS_LIBRARY)
+  (found version "")
+Call Stack (most recent call first):
+  /usr/share/cmake-3.16/Modules/FindPackageHandleStandardArgs.cmake:393 (_FPHSA_FAILURE_MESSAGE)
+  /usr/share/cmake-3.16/Modules/FindGSL.cmake:149 (find_package_handle_standard_args)
+  CMakeLists.txt:192 (find_package)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/tmp/meshnav_ws/build_isolated/lvr2/devel/CMakeFiles/CMakeOutput.log".
+See also "/tmp/meshnav_ws/build_isolated/lvr2/devel/CMakeFiles/CMakeError.log".
+<== Failed to process package 'lvr2': 
+  Command '['cmake', '/tmp/meshnav_ws/src/lvr2', '-DCMAKE_INSTALL_PREFIX=/tmp/meshnav_ws/devel_isolated/lvr2', '-DCMAKE_BUILD_TYPE=Release', '-DLVR2_WITH_CUDA=OFF', '-DLVR2_WITH_OPENCL=OFF', '-DLVR2_BUILD_TOOLS=OFF', '-G', 'Unix Makefiles']' returned non-zero exit status 1.
+
+Reproduce this error by running:
+==> cd /tmp/meshnav_ws/build_isolated/lvr2 && cmake /tmp/meshnav_ws/src/lvr2 -DCMAKE_INSTALL_PREFIX=/tmp/meshnav_ws/devel_isolated/lvr2 -DCMAKE_BUILD_TYPE=Release -DLVR2_WITH_CUDA=OFF -DLVR2_WITH_OPENCL=OFF -DLVR2_BUILD_TOOLS=OFF -G 'Unix Makefiles'
+
+Command failed, exiting.

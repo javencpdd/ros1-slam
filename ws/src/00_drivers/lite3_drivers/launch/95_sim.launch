@@ -16,30 +16,56 @@
   <arg name="rviz" default="false"/>   <!-- C10：SSH 无 X，默认 false -->
   <arg name="use_gpu" default="true"/>
   <arg name="extra_sim_args" default=""/>  <!-- 附加参数透传 sim_adapter（mode_nav_sim 传 no_imu 开关；默认空=G8 原行为） -->
+  <!-- 矩阵W2（2026-10-07 小明，manifest B 文 Wave2.3 预登记②执行）：mockamap 参数 arg 化——默认值=maze2d 现值，
+       向后兼容零行为变化；maze2d 强制正方形（非正方形 Eigen 越界实证修正①）；perlin3d/post2d 类型参数
+       取 mockamap 模板 launch 原值（type=3 时 mockamap_node 不读这些键，默认路径零影响） -->
+  <arg name="map_type" default="3"/>     <!-- 3=maze2d，1=perlin3d，2=post2d -->
+  <arg name="map_seed" default="7"/>
+  <arg name="map_x" default="12"/>       <!-- maze2d 强制正方形 -->
+  <arg name="map_y" default="12"/>
+  <arg name="map_z" default="3"/>
+  <arg name="map_res" default="0.1"/>
+  <arg name="map_traj" default="$(find lite3_drivers)/config/traj_maze.yaml"/>  <!-- sim_adapter 轨迹源（多地图换静止/定制轨迹） -->
+  <arg name="perlin_complexity" default="0.07"/>   <!-- perlin3d 模板原值 -->
+  <arg name="perlin_fill"       default="0.1"/>
+  <arg name="perlin_fractal"    default="1"/>
+  <arg name="perlin_attenuation" default="0.1"/>
+  <arg name="post_width_min"    default="0.6"/>    <!-- post2d 模板原值 -->
+  <arg name="post_width_max"    default="1.5"/>
+  <arg name="post_number"       default="50"/>
+  <arg name="post_surface_res"  default="0.03"/>
 
   <!-- ============ 虚拟 Venue：mockamap maze2d（type=3，12×12 正方形，seed=7）============ -->
   <node pkg="mockamap" type="mockamap_node" name="mockamap_node" output="screen">
     <remap from="/mock_map" to="/map_generator/global_cloud"/>
-    <param name="seed"        type="int"    value="7"/>
+    <param name="seed"        type="int"    value="$(arg map_seed)"/>
     <param name="update_freq" type="double" value="1.0"/>
-    <param name="resolution"  type="double" value="0.1"/>
-    <param name="x_length"    type="int"    value="12"/>
-    <param name="y_length"    type="int"    value="12"/>
-    <param name="z_length"    type="int"    value="3"/>
-    <param name="type"        type="int"    value="3"/>   <!-- maze2d -->
+    <param name="resolution"  type="double" value="$(arg map_res)"/>
+    <param name="x_length"    type="int"    value="$(arg map_x)"/>
+    <param name="y_length"    type="int"    value="$(arg map_y)"/>
+    <param name="z_length"    type="int"    value="$(arg map_z)"/>
+    <param name="type"        type="int"    value="$(arg map_type)"/>   <!-- maze2d/perlin3d/post2d -->
     <param name="road_width"  type="double" value="1.2"/> <!-- 走廊宽≈真机 Venue -->
     <param name="add_wall_x"  type="int"    value="1"/>
     <param name="add_wall_y"  type="int"    value="1"/>
     <param name="maze_type"   type="int"    value="1"/>   <!-- recursive division -->
+    <param name="complexity"         type="double" value="$(arg perlin_complexity)"/>   <!-- perlin3d 键（type=1 用） -->
+    <param name="fill"               type="double" value="$(arg perlin_fill)"/>
+    <param name="fractal"            type="int"    value="$(arg perlin_fractal)"/>
+    <param name="attenuation"        type="double" value="$(arg perlin_attenuation)"/>
+    <param name="width_min"          type="double" value="$(arg post_width_min)"/>     <!-- post2d 键（type=2 用） -->
+    <param name="width_max"          type="double" value="$(arg post_width_max)"/>
+    <param name="obstacle_number"    type="int"    value="$(arg post_number)"/>
+    <param name="surface_resolution" type="double" value="$(arg post_surface_res)"/>
   </node>
 
   <!-- ============ 虚拟传感器：opengl_render_node（local_sensing_node，USE_GPU=ON 件）============ -->
   <node if="$(arg use_gpu)" pkg="local_sensing_node" type="opengl_render_node"
         name="pcl_render_node" output="screen">
     <param name="sensor_type" value="lidar"/>   <!-- 修正②：默认 depth 不发 sensor_cloud -->
-    <param name="map/x_size"  value="12.0"/>
-    <param name="map/y_size"  value="12.0"/>
-    <param name="map/z_size"  value="3.0"/>
+    <param name="map/x_size"  value="$(eval float(arg('map_x')))"/>
+    <param name="map/y_size"  value="$(eval float(arg('map_y')))"/>
+    <param name="map/z_size"  value="$(eval float(arg('map_z')))"/>
     <param name="use_global_map_topic" value="true"/>
     <remap from="~global_map" to="/map_generator/global_cloud"/>
   </node>
@@ -49,9 +75,9 @@
   <node unless="$(arg use_gpu)" pkg="local_sensing_node" type="pcl_render_node"
         name="pcl_render_node" output="screen">
     <param name="sensor_type" value="lidar"/>
-    <param name="map/x_size"  value="12.0"/>
-    <param name="map/y_size"  value="12.0"/>
-    <param name="map/z_size"  value="3.0"/>
+    <param name="map/x_size"  value="$(eval float(arg('map_x')))"/>
+    <param name="map/y_size"  value="$(eval float(arg('map_y')))"/>
+    <param name="map/z_size"  value="$(eval float(arg('map_z')))"/>
     <param name="polar_resolution" value="0.35"/>
     <param name="downsample_res"   value="0.2"/>
     <param name="min_raylength" value="0.3"/>   <!-- 坑13-R1②：默认1.0把1.2m走廊侧墙(<1m)全弃，横向不可观；0.3≤0.6m 半宽，侧墙恢复约束。射线数不变，吞吐预算不破 -->
@@ -61,7 +87,7 @@
 
   <!-- ============ 自研 sim_adapter：轨迹源 + 点云适配 + IMU 合成 ============ -->
   <node pkg="lite3_drivers" type="sim_adapter.py" name="sim_adapter" output="screen"
-        args="--mode traj --traj $(find lite3_drivers)/config/traj_maze.yaml --time-unit s $(arg extra_sim_args)"/>
+        args="--mode traj --traj $(arg map_traj) --time-unit s $(arg extra_sim_args)"/>
   <!-- traj_maze.yaml：seed=7 迷宫最长路径(29格)去程+原路返回，67.2m@0.5m/s≈134s + 静置5s×2 ≥120s -->
 
   <!-- ============ 可选可视化 ============ -->
