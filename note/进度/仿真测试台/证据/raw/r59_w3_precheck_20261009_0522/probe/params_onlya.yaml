@@ -1,0 +1,13 @@
+global_frame: map
+robot_base_frame: base_link
+robot_radius: 0.35
+resolution: 0.1
+width: 4.0
+height: 4.0
+transform_tolerance: 10.0
+update_frequency: 5.0
+publish_frequency: 5.0
+always_send_full_costmap: true
+track_unknown_space: true
+plugins: [{name: static_a, type: costmap_2d::StaticLayer}]
+static_a: {map_topic: /pmap_a, combination_method: 1}
