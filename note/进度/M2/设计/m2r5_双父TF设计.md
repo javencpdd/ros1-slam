@@ -234,3 +234,46 @@
 - 唯一新增文件：本件（note/进度/M2/设计/m2r5_双父TF设计.md），目录为本轮新建（mkdir -p）；创建与追加皆用带引号 heredoc，正文零 markdown 反引号（坑18）。
 - ACL：建目录与本件后补 setfacl -m u:ysc:rwx、-m u:ros1-slam:rwx 于文件与目录，并对新目录补两条 default（坑17）。
 - 实现状态：**未施工**。本件是 U1 的设计 payload，施工与复跑归小明，判定归小美；真机面一律标「待主理人裁定」。
+
+## 11. 向前指向更正（小张，2026-10-08，依小美 M2R5 结案复核 R13）
+
+本件成文 2026-10-08 06:35，早于 V6 两批取样（raw 四件 mtime 实测：batch1 06:47／06:48，batch2 06:58／07:00）。依仓库惯例**上文一字不回改**，本节只做向前指向：自本节生效起，本件 §4 问 3「合并判据①（拓扑）」（L161）以及沿用其字面的 §4 问 3 末句（L165）、§6 表 V6 行「任一不过即停手」（L204）、§8 第 7 条停手条件（L225）、§9 ①（L229）一律按下面 11.1 的替代判据读。
+
+### 11.1 判据① 的字面被实测否证；她的更正文本（逐字引）
+
+- 她更正后的判据文本（逐字，出 note/进度/M2/进度文档.md L560 的 R13 条；L506 表 #31 与 L430 的〔小美 R13〕括注同值）：「**个数不变 ＋ 成员名允许且仅允许跟随 root link ＋ 数值面逐位全等 ＋ canonical_body_name 不作锚（两态皆空串）**」。
+- 本件 L161 的字面「**集合成员与个数不得增减**。任一增减 ⇒ root 变更确实改了合并行为 ⇒ 立即停手上报，不得进入 5 连」**已被实测否证**：改 URDF root 后 lumped body 名**必然**跟随 root —— body_names 由 [TORSO] 变 [base_link]（V6a2 L6 对 V6b2 L6），geom_names 由 [TORSO_collision] 变 [base_link_fixed_joint_lump__TORSO_collision]（V6a2 L7 对 V6b2 L7），而**个数两态皆为 1、未增减**；joint_names 两态皆空列表（V6a2 L8、V6b2 L8）；canonical_body_name 两态皆空串（V6a2 L5、V6b2 L5），该字段本就**不可作锚**。
+- **字面被否证 ≠ 物理面受损**：改 root 使 lumped body 名随 root，是 Gazebo 对 fixed 关节做合并（lump）的**应有行为**（02 坑21 L178–L183；机理面的直接物证我本轮复核为 geom 名内嵌 fixed_joint_lump 串 V6b2 L7 ＋ 改后 URDF 仅 1 个 collision 块（实开 note/进度/SCAN集成/证据/m2r5_baseline/urdf_after_M2R5.urdf：L36 起，grep 计数 1）＋ 非 root 名两态皆回 link not found（V6a2 L9、V6b2 L11））。施工方未走我这条停手条、亦未申报该判据字面被否证，是她 #31 记的**程序面偏差**一条，不归物理面。
+- **替代判据（可机判写法，下轮起用）**：
+  1. 个数面：len(body_names)、len(geom_names)、len(joint_names) 三值改前改后逐位相等。
+  2. 成员名面：body_names 的每个元素只允许两种取值 —— 与改前同名，或等于改后的 root link 名；geom_names 只允许 root_fixed_joint_lump__（改前 geom 名）这一形态；出现其他新名、或条目增删 ⇒ 停手上报。
+  3. 数值面：mass 与 ixx/iyy/izz/ixy/ixz/iyz 六惯量分量 ＋ com 三分量 ＋ gravity_mode，改前取 lite3_planar::TORSO、改后取 lite3_planar::base_link，要求**逐位全等**（打印逐位对照，相等为过；本件 L162 的 ≤1e-6／≤1e-4 容差本轮实测为逐位全等，容差只可收不可放）。
+  4. canonical_body_name **不作锚**：该字段两态皆空串，凡以它为基线或锚点的判据一律视为无效判据，不得据其写停手条。
+- **主证锚点（batch2 四行，点名）**：note/进度/SCAN集成/证据/log/raw/m2r5_v6r2_pre.txt **L10、L11** 与 m2r5_v6r2_post.txt **L9、L10** —— mass=15.060000、ixx=0.347906、iyy=0.187906、izz=0.281110、ixy=ixz=iyz=0.000000、com=0.000000,0.000000,0.001262、gravity_mode=True，两态逐位相同（拓扑面另见 V6a2／V6b2 各 L5–L8）。
+
+### 11.2 batch1／batch2 取证口径（本件无「以 batch1 为准」字样，但链上表述一并指向正确处置）
+
+实测核对：本件 grep batch 零命中（成文早于两批取样），故 §4 与 §6 不存在「以 batch1 为准」的表述；该误记在 note/进度/M2/进度文档.md L430（施工方登记语），已由她以 R12 就地更正且原文保留以显形迹（L559），我不重复改。本件需向前指向的是下列三点：
+- batch1（m2r5_v6_pre_batch1.txt／m2r5_v6_post_batch1.txt）**字段名当时写错、惯量面根本没读到**（V6a1 L8 model_props=ERR、L10 TORSO=ERR 报无 inertia 字段；V6b1 L8、L9 同），故它**只能作瞬态包络旁证**：z 的 min/max/span 两态全等 0.109869／0.150000／0.040131、z_mean 差 3.5e-5（V6a1 L4 对 V6b1 L4，样本 1006 对 1021），**不得用作数值主证**。
+- batch2 才是数值主证（即 11.1 末那四行）；且 batch2 两态 z 四统计逐位相同（V6a2 L3 对 V6b2 L3，恒 0.110000、span 0.000000），pre/post 之间**不存在采样窗错位**（她 #30，L505）。两批同向 ⇒ 采信加强而非削弱。
+- 我 §4 问3 L159 与 §9 ① L229 把 lump 整体列为「未核实其实现」，须收窄：就**是否合并**与**合并后 body 命名规则**两问，batch2 已给出实测答案（合并成立、名随 root），这两问不再算未核实；仍**未核实**的只剩 <gazebo reference=TORSO> 的 mu 归属哪个 body —— GetLinkProperties.srv 不返回摩擦系数（L162 末注仍有效），摩擦仍走行为代理，不得据本更正段宣称摩擦面已证。
+
+### 11.3 建议给 02 坑21 加的「单模型一对实测」限定（只建议，02 归主理人／小王登记，我未改 02）
+
+建议限定句文字（可直接附于 02 L178 标题行下或 L179 句尾）：
+
+「限定（小张，2026-10-08，依小美 #32 ①）：本坑结论「fixed 关节树合并为单一 body、body 名 = URDF root link 名」目前仅由 lite3_planar 这**一个模型**的改前／改后**一对**实测支持（V6a2／V6b2 各一件、每态一台，n=1 对），属**单模型单对实测**，不得写成 Gazebo 通用定律；未经第二个模型（多 fixed 子帧／多 collision／含 active 关节的树）复现前，不得据此外推一般行为，也不得据此外设或放宽任何其他模型的前后对照判据。」
+
+同段另两条建议（同样只申报、不改 02）：①02 L181 的「本轮实测的等价面」引的是 batch1 的 z 三统计 ＋ mean 差 3.5e-5，按 11.2 应补一句「数值面以 batch2 为主证（V6a2 L10/L11、V6b2 L9/L10），本行 z 统计为 batch1 瞬态包络旁证」；②L179 的报错引文串与原件不一致，见 11.4。
+
+### 11.4 「by model name／by link name」实测核对结果（只核对与申报，我未动 02）
+
+- 原件逐字（四件全含同串，实开 grep 命中 8 处）：「GetLinkProperties: link not found, did you forget to scope the link by model name?」——出现于 m2r5_v6r2_pre.txt L9、L12，m2r5_v6r2_post.txt L11、L12，m2r5_v6_pre_batch1.txt L9、L11，m2r5_v6_post_batch1.txt L10、L11。**原件的串是 by model name**。
+- 02 L179 现状写作「link not found, did you forget to scope the link by link name」⇒ **与原件逐字不一致**（by link name 应为 by model name）。应改成的逐字串即上面那条完整句（含 GetLinkProperties: 前缀与句末问号）。
+- 口径对齐：她 #32 ②（L506）与 R13（L560）记载均为「原件 by model name、02 写成 by link name」，与我的实测**一致**；本轮派单转述给我的「原件串为 by link name」与原件**相反**，属转述走样，我一律以原件为准并在此留痕。
+- 该更正的执行权在台账侧（02 归主理人／小王），我只出这条核对结论。
+
+### 11.5 影响面与合规（本段）
+
+- 效力面：本节只更正我这一条判据的**字面**与其停手触发条件；本件 §1–§10 的其余判据（锚点判据、合并判据② 的数值比较、摩擦代理判据、几何等价哨兵，及 §6 V1–V8 各行）**不回改、不撤销**。
+- 合规：零 ws/ 与 scripts/ 改动、零证据件改动、零 02 与进度文档改动（均为只读引用）、零 git 写、零 sudo、零节点、零仿真；11313／11345 未触碰，未干扰施工方在跑的 M2R6 批。追加只用带引号 heredoc、正文零 markdown 反引号（02 L151–L159 坑18）；追加后立即补 named ACL setfacl -m u:ysc:rwx,u:ros1-slam:rwx 本件（02 L141–L149 坑17）。引用行号全部实开原件核对：本件 L159/L161/L162/L165/L186/L204/L225/L229；进度文档 L430/L505/L506/L542/L559/L560；02 L178–L183；raw 四件各行；m2r5_baseline/urdf_after_M2R5.urdf L36。｜小张 2026-10-08

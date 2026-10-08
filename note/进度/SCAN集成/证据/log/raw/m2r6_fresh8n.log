@@ -1,0 +1,46 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_080929
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.8s
+SMOKE gate_gcostmap_data=PASS t=0.9s
+SMOKE gate_lcostmap_data=PASS t=1.0s
+SMOKE gate_tf_fresh=PASS t=1.9s ages=[0.027,0.054,0.009]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.5s ages=[0.044,0.046,0.082]
+SMOKE SIMNOW point=age_sample_1 sim_now=21.03s gate_t=2.5s
+SMOKE G5_DELAY_SIM target=25.0s reached=True sim_now=25.04s wall_spent=15.1s t_raw=2.5s t_adj=2.5s
+SMOKE gate_tf_fresh_late=PASS t=3.1s ages=[0.042,0.080,0.084]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.8s ages=[0.030,0.099,0.029]
+SMOKE SIMNOW point=age_sample_2 sim_now=25.38s gate_t=3.8s sim_span_vs_point1=4.35s
+SMOKE gate_press_late=FAIL (reached=True sim2=25.38 span=4.35 判据=sim2>=60 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.016,0.016,0.011]
+SMOKE E3 tf odom->base_link hits=26 last_stamp=26.080 age=0.005
+SMOKE E3 base_link_parents=['odom'] transforms_total=31
+SMOKE E3 static base_link->rslidar stamp=0.030
+SMOKE E3 static base_link->TORSO stamp=0.030
+SMOKE gate=FAIL t=6.4s {'map_data': True, 'tf_robot': True, 'gcostmap_data': True, 'lcostmap_data': True, 'tf_fresh_G5': True, 'tf_fresh_mapodom_G5c2': True, 'tf_fresh_G5c1': True, 'tf_fresh_late_G5': True, 'tf_fresh_mapodom_late_G5c2': True, 'press_late_G5': False}
+[FAIL] B: 门控未过（环境未就绪，FAIL 环境；见 stageB.txt gate_*=FAIL 行）
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: FAIL
+==================================================
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-08 08:12:19  stage=stageB
+[exitclean] -- 命中进程（原样 ps 行）--
+[exitclean] 328580 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+[exitclean] 1373109 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ysc/.ros/log/fad24fb4-c291-11f1-a90d-3c6d66f8d2d8/rosout-1.log
+[exitclean] -- 监听端口分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0

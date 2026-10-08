@@ -46,6 +46,23 @@ cleanup() { rosnode kill -a 2>/dev/null; sleep 3
   # 样张恢复兜底（M2-3 建图阶段万一中断）
   if [ -f "$LOGDIR/lite3.pcd.bak" ] && [ -f "$MAP" ] && ! cmp -s "$LOGDIR/lite3.pcd.bak" "$MAP"; then
     cp "$LOGDIR/lite3.pcd.bak" "$MAP"; echo "[m2] 样张 pcd 已从备份恢复"; fi
+  # ============ 退净逐跑打印（小美 M2R5 路由项 R10；落点在 cleanup 末尾，因 trap EXIT 之后才是退净态） ============
+  # 为何必做：C9 与 M2R4 都出现过「批级一次非空、身份不可回溯」，事后无人能答那两个 PID 是什么。
+  # 本块把命中的 ps 行（PID＋属主＋完整命令行）原样落件；端口 TCP 与 UDP 分查（02 坑16：ss -lntp 只查 TCP）。
+  # **只打印不判据**：退净是否升为阻断项属验收判据增删，权在小美（本仓惯例：施工不得自加判据）。
+  sleep 4   # gzserver/rosmaster 退出有尾延迟；M2R4 批级检出的「非空」极可能只是这个窗，但本轮起身份可追，不再靠猜
+  {
+  echo "# 退净核验 @$(date '+%Y-%m-%d %H:%M:%S')  stage=$STAGE"
+  PAT='roslaunch|rosmaster|rosout|gzserver|gzclient|move_base_flex|topic_tools|sim_adapter|m2_free_map|m2_cmd_relay|m2_tf_fresh|hdl_nodelet|run_mapping_online'
+  echo "-- 命中进程（原样 ps 行）--"
+  pgrep -af "$PAT" | grep -vE "退净核验|pgrep -af" || echo "  （零命中）"
+  echo "-- 监听端口分查 --"
+  for port in 11311 11312 11313 11345; do
+    T=$(ss -lnt 2>/dev/null | grep -c ":$port\b"); U=$(ss -lnu 2>/dev/null | grep -c ":$port\b")
+    echo "  port $port TCP=$T UDP=$U"
+  done
+} > "$LOGDIR/exitclean.txt" 2>&1
+  sed 's/^/[exitclean] /' "$LOGDIR/exitclean.txt"
   true; }
 trap cleanup EXIT
 
@@ -259,9 +276,12 @@ def costmap_up(topic):
     except Exception: return False
 ok_gcm = gate_wait('gcostmap_data', lambda: costmap_up('/move_base_flex/global_costmap/costmap'))
 ok_lcm = gate_wait('lcostmap_data', lambda: costmap_up('/move_base_flex/local_costmap/costmap'))
-# —— [M2R4 2026-10-08] G5 取龄定点延时口子（小美 M2R3 复核条件「5 连正中 ≥1 次把取龄推到 sim 时钟 ≥21.5s」）——
-#   fresh1/2/3 实测取龄均在 t=1.2–1.6s（病灶区之外）⇒ 正向证据未覆盖病理时刻，故补齐需可推后采样。
-#   用法：G5_DELAY_SIM=21.5 bash m2_smoke.sh stageB ；缺省 0 = 不延时，行为与 M2R3 逐字一致（零回归）。
+# —— [M2R4 起，M2R5 按小美 R16 改口径] G5 取龄定点延时口子（加压档）——
+#   **作废口径注记**：M2R3 时代的「取龄推到 sim 时钟 ≥21.5s」已由小美 M2R4 复核自记作废——21.491s
+#   是那次 C9 跑恰好到的 sim 读数、不是机制阈值；机制阈值是下方 g5_sample 的 lim=1.0s 门与消费端
+#   mbf 的 3s tolerance。现行加压口径 = 取龄点 sim ≥60s（覆盖量）**或** 同跑两取龄点 sim 差 ≥40s。
+#   用法：G5_DELAY_SIM=62 bash m2_smoke.sh stageB ；缺省 0 = 不延时，行为与 M2R3 逐字一致（零回归）。
+#   达标与否**进 gate 字典参与 all()**（键 press_late_G5，R16：不许只打印不判定）。
 #   注：延时消耗的墙钟从 gate_t0 扣回——门控 120s 预算语义 = 环境就绪耗时上限，不含人为注入的观测延时，
 #       否则 G5/G5c2 会因预算被吃掉而假 FAIL。
 import os
@@ -276,7 +296,7 @@ ok_g5   = gate_wait_d('tf_fresh',        lambda: g5_sample('map', 'base_link'))
 ok_g5c2 = gate_wait_d('tf_fresh_mapodom', lambda: g5_sample('map', 'odom'))
 sim_after_p1 = rospy.get_rostime().to_sec()
 print('SMOKE SIMNOW point=age_sample_1 sim_now=%.2fs gate_t=%.1fs' % (sim_after_p1, time.time()-gate_t0))
-ok_g5b = True; ok_g5c2b = True
+ok_g5b = True; ok_g5c2b = True; ok_press = True  # 未开档时三项恒真 ⇒ 与 M2R3 行为逐字等价
 # [M2R5/R3] 加压档 = 同跑「取龄点2」：延时到 sim 过线后再取一次龄，两点 sim 差即小美新口径的可打印量。
 #   记账方向为**加回** gate_t0（原 -= 反了：t 与预算皆按 现在减 gate_t0 计，减 t0 反使 t 变大，
 #   延时被计两次——fresh4 t=1.4 → fresh5 t=7.4、差 6.0 = 2×wall_spent 实证）。raw/adjusted 两个 t 都打。
@@ -291,13 +311,19 @@ if G5_DELAY_SIM > 0:
     ok_g5b   = gate_wait_d('tf_fresh_late',            lambda: g5_sample('map', 'base_link'))
     ok_g5c2b = gate_wait_d('tf_fresh_mapodom_late',    lambda: g5_sample('map', 'odom'))
     _sim2 = rospy.get_rostime().to_sec()
+    _span = _sim2 - sim_after_p1
     print('SMOKE SIMNOW point=age_sample_2 sim_now=%.2fs gate_t=%.1fs sim_span_vs_point1=%.2fs'
-          % (_sim2, time.time()-gate_t0, _sim2 - sim_after_p1))
+          % (_sim2, time.time()-gate_t0, _span))
+    # R16：加压档达标 = 覆盖量 ≥60s 或两点差 ≥40s，且延时自旋必须真到达（reached）；否则参与 all() 判死
+    ok_press = bool(_r) and ((_sim2 >= 60.0) or (_span >= 40.0))
+    print('SMOKE gate_press_late=%s (reached=%s sim2=%.2f span=%.2f 判据=sim2>=60 或 span>=40)'
+          % ('PASS' if ok_press else 'FAIL', _r, _sim2, _span))
 # G5c1 **自 M2R5 起为阻断 gate 项**：小美 M2R4 复核节判 L307 前置③成立（base_link 双父未修正而
 #   G5c1 7/7 全命中）⇒ 本档 M2R3 的「降级追认」作废，按 L307 原文回补进 gate 字典。
 #   调用形态与阈值一律未放宽：仍单次 g5_sample('odom','base_link')，need=3 / lim=1.0 / 零戳与首帧戳否决照旧。
-ok_g5c1 = g5_sample('odom', 'base_link')[0]
-print('SMOKE gate_G5c1(odom->base_link)=%s' % ('PASS' if ok_g5c1 else 'FAIL'))
+_c1ok, _c1det = g5_sample('odom', 'base_link')
+ok_g5c1 = _c1ok
+print('SMOKE gate_G5c1(odom->base_link)=%s %s' % ('PASS' if ok_g5c1 else 'FAIL', _c1det))
 # —— [M2R4] E3：门控时刻对原始 /tf + /tf_static 直读一次（小美指定「一步定阴阳，最省」）——
 #   M2R4 首发已定阴阳：原始 /tf 上 odom→base_link 戳是新鲜的（发布侧无罪），病灶在图结构——
 #   xacro 的 fixed 关节 torso_to_base 使 base_link 同时有静态父 TORSO 与动态父 odom（双父）。
@@ -337,7 +363,7 @@ def e3_raw_tf(win=2.0):
 e3_raw_tf()
 gate = dict(map_data=ok_map, tf_robot=ok_tf, gcostmap_data=ok_gcm, lcostmap_data=ok_lcm,
             tf_fresh_G5=ok_g5, tf_fresh_mapodom_G5c2=ok_g5c2, tf_fresh_G5c1=ok_g5c1,
-            tf_fresh_late_G5=ok_g5b, tf_fresh_mapodom_late_G5c2=ok_g5c2b)
+            tf_fresh_late_G5=ok_g5b, tf_fresh_mapodom_late_G5c2=ok_g5c2b, press_late_G5=ok_press)
 if not all(gate.values()):
     print('SMOKE gate=FAIL t=%.1fs %s' % (time.time()-gate_t0, gate)); raise SystemExit(2)
 print('SMOKE gate=PASS t=%.1fs' % (time.time()-gate_t0))

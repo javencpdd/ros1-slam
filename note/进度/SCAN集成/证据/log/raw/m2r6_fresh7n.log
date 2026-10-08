@@ -1,0 +1,56 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_080319
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 57.780000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 57.780000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.3s
+SMOKE gate_tf_robot=PASS t=0.6s
+SMOKE gate_gcostmap_data=PASS t=0.9s
+SMOKE gate_lcostmap_data=PASS t=0.9s
+SMOKE gate_tf_fresh=PASS t=1.5s ages=[0.016,0.088,0.039]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.1s ages=[0.007,0.061,0.079]
+SMOKE SIMNOW point=age_sample_1 sim_now=21.30s gate_t=2.1s
+SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.06s wall_spent=153.9s t_raw=2.1s t_adj=2.1s
+SMOKE gate_tf_fresh_late=PASS t=2.8s ages=[0.063,0.008,0.036]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.4s ages=[0.012,0.050,0.040]
+SMOKE SIMNOW point=age_sample_2 sim_now=62.38s gate_t=3.4s sim_span_vs_point1=41.08s
+SMOKE gate_press_late=PASS (reached=True sim2=62.38 span=41.08 判据=sim2>=60 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.020,0.023,0.017]
+SMOKE E3 tf odom->base_link hits=26 last_stamp=63.121 age=0.003
+SMOKE E3 base_link_parents=['odom'] transforms_total=32
+SMOKE E3 static base_link->rslidar stamp=0.027
+SMOKE E3 static base_link->TORSO stamp=0.027
+SMOKE gate=PASS t=6.0s
+SMOKE SIMNOW point=goal_send sim_now=63.12s
+SMOKE SIMNOW point=goal_done sim_now=71.57s dt=8.44
+SMOKE teb_state=3 dt=8.4s dev_odom=0.180 dev_gt=0.180
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[PASS] B/G6: goal 后 pose 类 ERROR=0
+[PASS] B: 到达偏差 0.180 ≤0.35m
+[PASS] B: 用时 8.44 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+==================================================
+M2 SMOKE: PASS
+==================================================
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-08 08:09:24  stage=stageB
+[exitclean] -- 命中进程（原样 ps 行）--
+[exitclean] 328580 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+[exitclean] 1373109 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ysc/.ros/log/fad24fb4-c291-11f1-a90d-3c6d66f8d2d8/rosout-1.log
+[exitclean] -- 监听端口分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
