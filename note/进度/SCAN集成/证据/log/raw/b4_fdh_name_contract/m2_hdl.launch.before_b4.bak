@@ -1,0 +1,19 @@
+<launch>
+  <!-- m2_hdl.launch —— M2-3 hdl 重定位 Gazebo 版（小张 payload，2026-10-06）
+       底图：data/maps/sim_venue.pcd（M2-3 建图阶段由 m2_smoke 转存生成，样张 lite3.pcd 备份/恢复红线外置）。
+       契约（G8sim R2 预核）：hdl 订阅 /rslidar_points + /imu/data（生产 remap）→ 仿真域 IMU=/livox/imu
+       → m2_cmd_relay 转发；/initialpose 注入即重置 PoseEstimator（nodelet.cpp:377，R2 实证）；
+       输出 /hdl_odom（map 系）+ TF map→base_link。
+       判据（m2_smoke Stage C）：/initialpose 注入后 ≤10s 收敛（vs gt 偏差 ≤0.3m / 10°），
+       30s 观察窗内无 >0.5m 单步跳变。 -->
+  <arg name="map_name" default="sim_venue"/>
+  <param name="use_sim_time" value="true"/>
+
+  <include file="$(find lite3_gazebo_sim)/launch/m2_gazebo.launch"/>
+  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="imu_relay"
+        args="/livox/imu /imu/data Imu"/>
+
+  <!-- hdl 重定位的 include 已上收至 TOP 编排层：lite3_bringup/launch/mode_sim_hdl.launch
+       （[5] 返工 2026-10-08，设计=小张路 A；K3 禁平级 lite3_* 互 include，sim 壳包不伸手进生产模块。
+        hdl 的仿真验证本身已被 M2-R2C 裁决终止转真机 G8，本次上收不改变该结论。起 stageC 请用 TOP 入口。） -->
+</launch>

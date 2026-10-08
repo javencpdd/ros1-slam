@@ -76,6 +76,12 @@
       <remap from="/velodyne_points" to="$(arg points_topic)" />
       <param name="lidar_timeout_ms" value="9999" />
       <remap from="/gpsimu_driver/imu_data" to="$(arg imu_topic)" />
+      <!-- 批4／FD-H 名字契约（小张裁定处置 (a)＝自有壳包侧收口，第三方 nodelet.cpp:68 的 advertise("/odom") 一字不动）：
+           hdl 实发绝对名 /odom，而在册声明与 Stage C 读者要的是 /hdl_odom（m2_hdl.launch:6、m2_smoke.sh:485/499/505/520）
+           ⇒ 不加这行，即使 hdl 完全健康，gateC 的 hdl_odom 键也恒 False（"跑不动"冒充"跑不过"那一型）。
+           安全性三条已在 verify/v_fd_h_name_contract.sh 里做成断言：订阅面无 /odom（N2）、frame 名走 param 不受话题名影响（N7）、
+           同块已有绝对名 remap 先例（N5）。活体出帧核对随 G8 同场，本行不由静态面冒充。 -->
+      <remap from="/odom" to="/hdl_odom" />
       <!-- odometry frame_id -->
       <param name="odom_child_frame_id" value="$(arg odom_child_frame_id)" />
       <!-- imu settings -->

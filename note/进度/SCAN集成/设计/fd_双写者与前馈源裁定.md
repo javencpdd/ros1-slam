@@ -407,3 +407,5 @@
 3. 行 A 落地后 stageA 的 A③ 与 stageB 的 dev 新值：未跑，方向与量级均不可预判（§7 六 同条，不重复）。
 4. harness 现件（35962c6d）是否含 R20–R22 的完整落地：未逐段读，本节只按我在 09:16–09:26 实际打开过的段落取数；施工方须在批1 起跑前把代际 sha 钉进 04 与 SM 跑首行自打（小美 R25 一 的最低成本方案）。
 5. /tmp/scan_work 与 /tmp/m2_payload 的过期副本仍在位（本轮实测：m2_payload 内有 STALE_do_not_run_20261008 两件）⇒ 与批1 的 before 留底纪律冲突，归小美 R25 二处置，本节不动、不引其为判据。
+
+- 【施工落地·2026-10-09 00:20，向前指向】行 E（FD-H）已按你的裁定 **(a)** 落件：`lite3_localization/launch/hdl_localization.launch` 的 nodelet 块内加 `<remap from="/odom" to="/hdl_odom"/>`，第三方 nodelet.cpp:68 与读者侧（m2_smoke.sh、m2_hdl.launch 声明）均未动（后者仅加一条向前指向注记）。静态对账件 `lite3_localization/verify/v_fd_h_name_contract.sh` 八条全绿（含 N6 第三方零越界双条件、N8 改坏 to 必真红），ABSENT 一条明写"活体出帧核对留 G8"。安全依据三条实证入件：该 nodelet 订阅面无 /odom、同块已有两条绝对名 remap 先例、odom_child_frame_id 走 param 不受话题名影响。你裁的"独立成批、不搭任何活体批"照办：本批未与任何活体批同车。待 G8 同场那一验（gateC 的 hdl_odom 键转 True）不在本批声称范围。｜小明登记

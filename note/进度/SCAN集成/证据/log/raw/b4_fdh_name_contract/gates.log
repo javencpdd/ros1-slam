@@ -1,0 +1,23 @@
+=== 批4 零节点回归与门禁 2026-10-09 00:19:41 ===
+### FDH
+==================================================
+FDH VERDICT: PASS=8 FAIL=0 ABSENT=1（活体面按设计未跑，不计入通过数）
+### SYN
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 86 行，非默认绿）
+PY SYNTAX OK（被检件数=1，内嵌 python 段合计=0）
+### XML
+  OK ws/src/20_localization/lite3_localization/launch/hdl_localization.launch
+  OK ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch
+### 展开面（roslaunch --files 应能解析我们壳包全链）
+/opt/ros/noetic/share/gazebo_ros/launch/empty_world.launch
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_gazebo.launch
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch
+### 载体未动自证
+fa8e57359a1715dfeed  ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+b17022766fa48dd5353  ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+### TEC（双父面未受扰）
+TF EDGE CONFLICT VERDICT: PASS=7 FAIL=0
+### ISO
+=== ISOLATION OK ===
+# self-attest: at=2026-10-09 00:19:50 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4546 rc=0
+ISO rc=0
