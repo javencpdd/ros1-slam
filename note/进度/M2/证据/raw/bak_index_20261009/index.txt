@@ -1,0 +1,28 @@
+# 三份早先漏提交的改前留底：sha↔git 对象对账索引（2026-10-09 00:38，主理人裁 B＝直接入仓）
+# 对账不是手记 commit 号：把留底文件的 sha256 与该路径的全部历史 blob 逐个比，命中才登记；可复跑：
+#   git log --format=%h -- <源路径> | while read c; do git show $c:<源路径> | sha256sum; done
+
+lite3_planar_drive.cpp.before_M2R1.bak
+   sha256=a613de0a87ce530d4eff5ee7da21ca9628d658c6ec78cdadf58a9c420560222b
+   源路径=ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp（历史对象共 2 个）
+   对账结论=等于 commit 2fe9976 的内容 ⇒ 真·改前基线（A1 合规）
+
+lite3_planar.urdf.xacro.before_M2.bak
+   sha256=a65c87c1672eb0ac425c565a97b408338f9c1b68101c06caaa472e6f60bea53c
+   源路径=ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro（历史对象共 6 个）
+   对账结论=等于 commit dddf8a4 的内容 ⇒ 真·改前基线（A1 合规）
+
+lite3_planar.urdf.xacro.before_M2R1.bak
+   sha256=6b0d0db420261b6fa44e37b7695cf8d5598844943c6dfa6fb0c04be00aff93f0
+   源路径=ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro（历史对象共 6 个）
+   对账结论=等于 commit 2fe9976 的内容 ⇒ 真·改前基线（A1 合规）
+
+# 规则一致性说明：仓内另有 4 份同类 .bak 早已被 git 跟踪（lite3_gazebo_sim/verify/ 下 D-M2-P10、D-M2-P11、M2R1、M2R2）；
+# 本次是把漏提交的 3 份并入同一规则（主理人裁定 B），不是新开惯例，也不删任何人的文件。
+
+# ---- 复跑凭证（2026-10-09 00:5x，主理人裁 B 之后的入仓前独立复算，非复用上面手记）----
+# 命令：bak=sha256sum(留底)  blob=sha256sum(git show <声明commit>:<源路径>)  worktree=sha256sum(当前源路径)
+# 断言：bak==blob（对账成立）且 bak!=worktree（不是当前文件的副本）
+[chk] drive.cpp.before_M2R1.bak  bak=a613de0a blob@2fe9976=a613de0a worktree=a32e70ff  match=YES not-copy-of-current=YES
+[chk] urdf.before_M2.bak         bak=a65c87c1 blob@dddf8a4=a65c87c1 worktree=ef23da2d  match=YES not-copy-of-current=YES
+[chk] urdf.before_M2R1.bak       bak=6b0d0db4 blob@2fe9976=6b0d0db4 worktree=ef23da2d  match=YES not-copy-of-current=YES
