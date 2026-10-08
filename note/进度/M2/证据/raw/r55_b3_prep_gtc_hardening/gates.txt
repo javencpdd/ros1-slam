@@ -1,0 +1,62 @@
+# 调用姿势自证：三步 env（ISO[4] 用 rospack find，未 source 会假红）
+### B3 时基对账（现状真红，预期 rc=1）
+=== 批3 时基对账（被测件 sha=a32e70ff0a8f）===
+  [PASS] B1 节流源 锚点唯一在位：L61 ⇒ const common::Time now = parent_->GetWorld()->SimTime();
+  [PASS] B1 odometry 打戳 锚点唯一在位：L111 ⇒ o.header.stamp = ros::Time::now();
+  [PASS] B1 TF 打戳 锚点唯一在位：L127 ⇒ tf_broadcaster_->sendTransform(tf::StampedTransform(tf, ros::Time::now(),
+  现场读数：odometry 打戳=ros::Time::now() ｜ TF 打戳=ros::Time::now() ｜ 节流源=SimTime(now)
+  [FAIL] B2 odometry 打戳仍用 ros::Time::now() ⇒ 与节流源（SimTime）不同基＝坑25 的本体（同戳重复发布）
+  [FAIL] B3 TF 打戳仍用 ros::Time::now() ⇒ 同上，且这条正是 tf2::BufferCore 报 TF_REPEATED_DATA 的那一路
+  [PASS] B4 命令时效那一对仍同基成对（L54 写 / L69 比，皆 ros::Time::now）⇒ 未被顺手改动
+  [PASS] B5 节流早退式在 L106 且不含墙钟调用＝SimTime 面（未被换成墙钟）：if ((now - last_odom_time_).Double() < period) return;
+==================================================
+B3 TIMEBASE VERDICT: PASS=5 FAIL=2 ｜ 时基未统一＝现状（未施工）⇒ 本件今日必然判 1，这条红是被检件真实态、不是件坏
+  在册依据（引用须连件名＋代际）：02 坑25 处置条＝修法；小美 M2R4 复核节＝「被测件即变 ⇒ 5 连重新起算」；
+    代际现值 SM/LIB 见 scripts/verify/v_harness_generation_table.sh --check（本批落地后跳 H15）。
+B3 rc=1
+B3 rc=1
+### B3-POSCTL（按修法形态的 fixture ⇒ 必须转绿）
+=== 阳性对照（fixture 副本）：在册件含 ros::Time::now() 5 处 ⇒ 副本含 3 处（应少 2）===
+  本体对 fixture 实得 rc=0（期望 0＝时基已统一），FAIL 行数=0
+        [PASS] B2 odometry 打戳已与节流源同基（SimTime）
+        [PASS] B3 TF 打戳已与节流源同基（SimTime）
+        [PASS] B4 命令时效那一对仍同基成对（L54 写 / L69 比，皆 ros::Time::now）⇒ 未被顺手改动
+        [PASS] B5 节流早退式在 L106 且不含墙钟调用＝SimTime 面（未被换成墙钟）：if ((now - last_odom_time_).Double() < period) return;
+POSCTL VERDICT: 修法形态可使本件转绿且未越批准面 rc=0
+POSCTL rc=0
+### GTC --check（四列同核）
+  被测件面：末行 XAC/PLG 与 HEAD 同值（无漂移，升 FAIL 与否待裁）
+  分母面：在册行=14 唯一H#=14 git载体提交数=14（重复与漏行同判红）
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+GTC rc=0
+### GTC --negctl（SM/PLG 两列各改一位必红＋未改副本必绿）
+  R2 改末行 SM（fa8e57359a17→fa8e57359a1f）⇒ 本体 rc=5（期望 5），红行：[FAIL] 4f5db86 档内 SM=fa8e57359a1f 现算=fa8e57359a17
+  R1 改末行 PLG（a32e70ff→a32e70f0）⇒ 本体 rc=5（期望 5），红行：[FAIL] 4f5db86 档内 PLG=a32e70f0 现算=a32e70ff
+  R0 未改副本 ⇒ 本体 rc=0（期望 0，证明红来自改动而非临时件本身）
+NEGCTL VERDICT: SM 与 PLG 两列都能真红 rc=0
+GTC-NEGCTL rc=0
+### SYN
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh
+  [OK] python 段 L48-L111 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh
+[OK] bash -n   scripts/verify/v_harness_generation_table.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 120 行，非默认绿）
+PY SYNTAX OK（被检件数=2，内嵌 python 段合计=1）
+SYN rc=0
+### G35
+  活体那半（辅门在真跑里被非零态读过）仍留 R41 两条真反例，本件不冒充已验
+G35 rc=0
+### W3
+W3 CONTRACT VERDICT: PASS=23 FAIL=0 ABSENT=2（ABSENT 不计通过）
+⇒ 件面对账过；二期本体仍属『未开工且前置未销』，本件不声称任何实现或活体结论
+### STS
+EXITCLEAN SELFTEST: 用例 PASS=21 FAIL=0 / 21
+### PTS
+PTS 自测 VERDICT: PASS=15/15 FAIL=0
+SELFTEST VERDICT: rc=0
+### DWRS
+DWRS VERDICT: PASS=5 FAIL=0
+### ISO
+=== ISOLATION OK ===
+# self-attest: at=2026-10-09 02:34:40 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4550 rc=0
+ISO rc=0

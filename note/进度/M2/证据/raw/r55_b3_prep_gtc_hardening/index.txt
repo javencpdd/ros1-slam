@@ -1,0 +1,35 @@
+# R55 —— 批3 前置作业：时基验收件（B3）预置 ＋ 代际表核对扩到 XAC/PLG 四列（不改任何门值、不动被测件）
+# 更新时间 2026-10-09 02:35；代际仍 H14（SM fa8e57359a17／LIB b17022766fa4 一字未动）
+
+## 做了什么
+1. 新件 `ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh`（B3）：把在册修法（02 坑25 处置条）
+   变成可执行断言。今日实跑＝**真红 rc=1**（B2 odometry 打戳、B3 TF 打戳 仍是 ros::Time::now()，这就是坑25 的本体）；
+   `--posctl`＝按修法形态改的临时副本 ⇒ 本体 **rc=0** 且 **B4（命令时效那一对仍同基成对）仍 PASS** ⇒ 修法可达绿且不越批准面。
+   B4 这条是**范围护栏**：cmd_timeout 那对若被顺手改成 SimTime，超时语义会随 /clock 快慢漂移＝行为变更。
+2. `scripts/verify/v_harness_generation_table.sh`：`--check` 由"只核 SM/LIB 两列"扩到 **SM/LIB/XAC/PLG 四列逐行同核**，
+   新增 `--negctl`（三档见证：R2 改末行 SM 一位⇒rc=5、R1 改末行 PLG 一位⇒rc=5、R0 未改副本⇒rc=0）。
+   另加「末行 XAC/PLG vs HEAD」的前向漂移 **WARN** 读数（现值无漂移）；**是否升 FAIL 属判据变更 ⇒ 挂账待裁**，我不自升档。
+3. 工单 `note/进度/SCAN集成/设计/b3_时基根除_改点清单与验收面.md`：改点 2 处（＋不改 2 处及理由）、.so 与重编译面、
+   代际口径更正、五连重取程序令、与 P4 丙项的先后、谁欠什么。
+
+## 一条被本批纠正的在册口径（不是新规则，是核实结果）
+代际轴＝**SM∪LIB 的提交数**，XAC/PLG 只是每行展示列 ⇒ **只改 .cpp 不产生新 H 行**。
+此前我按记忆说"批3 ⇒ 跳 H15"，准确说法是：批3 若与小美名下的 SM→press_gate 接线同批落，SM 提交自然成 H15；
+只改 .cpp 时表内无处定格新 PLG ⇒ 这正是"改被测件面是否必须伴随一次载体提交"要裁的原因（已挂账）。
+
+## 自曝三条（都在本轮写件时当场犯、当场被抓住并修，→ 02 坑42 追加⑤⑥⑦）
+①B3 的 B5 首版按"离 now 定义处 12 行内"找节流式 ⇒ 把 L106 的真实早退式判成"找不到"（**假红**，行距不是结构事实）；
+②`--negctl` 首版用 awk `sub(/[0-9a-f]$/,…)` 改字段 ⇒ 表里字段是「 值 」带空格，末位是空格，**改写静默不生效**（对照空转）；
+③同段引用了未定义的 $SELF ⇒ `set -u` 当场炸（新写模式时把已有件的全局当已知）。
+三条都不是被测件的问题，是我件里的判据/对照自身失效——**若没被"必须改生效"和 set -u 拦下，就会变成假绿**。
+
+## 读数（gates.txt 原文）
+B3 现状 rc=1（FAIL 2 条真缺陷）｜B3 --posctl rc=0｜GTC --check PASS（14 行四列同核）｜GTC --negctl rc=0（SM/PLG 两列都能真红、未改副本绿）
+SYN 2 件（内嵌段 1）｜G35 15/15｜W3 PASS=23/FAIL=0/ABSENT=2｜STS 21/21｜PTS 15/15｜DWRS 5/5｜ISO rc=0（ws_src_files=4550）
+
+## 复跑式
+  bash ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh            # 今日应判 1
+  bash ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh --posctl   # 应判 0
+  bash scripts/verify/v_harness_generation_table.sh --check
+  bash scripts/verify/v_harness_generation_table.sh --negctl
+  sha256sum -c _sha256_manifest.txt（本目录内）
