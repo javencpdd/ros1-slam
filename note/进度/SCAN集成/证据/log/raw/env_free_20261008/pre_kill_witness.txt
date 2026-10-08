@@ -1,0 +1,64 @@
+# 用户授权释放算力窗：杀前见证快照 2026-10-08 12:15:55
+# 授权原话：非本仓的 monitor（CPU 93.7，已连续四天）与真机 livox 驱动（45.2）在压，可以 kill 掉了
+
+## 一、杀前在册见证名单（foxy/生产栈，本仓红线：零触碰）
+ 115711 ysc      Mon Oct  5 01:27:49 2026  3-10:48:06 python3         python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /le
+ 115792 root     Mon Oct  5 01:27:51 2026  3-10:48:04 ros2            /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+ 115795 root     Mon Oct  5 01:27:53 2026  3-10:48:02 jetson2app      /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-
+ 115797 root     Mon Oct  5 01:27:53 2026  3-10:48:02 jetson2motion   /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --r
+ 115799 root     Mon Oct  5 01:27:53 2026  3-10:48:02 sensor_checker  /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-20:56:45 static_transfor /opt/ros/foxy/lib/tf2_ros/static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 bas
+
+## 二、本次将杀的三组（含树）
+   1331       1 ysc      93.8 Sun Oct  4 01:05:50 2026 /home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+ 115711       1 ysc       8.7 Mon Oct  5 01:27:49 2026 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 
+2228880 2228728 ysc       0.0 Thu Oct  8 09:50:07 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch livox_ros_driver2 msg_MID360s_launch.py
+2229089 2228880 ysc      44.8 Thu Oct  8 09:50:12 2026 /home/ysc/lite_cog_ros2/driver/mid360_ws/install/livox_ros_driver2/lib/livox_ros_driver2/livox_ros_driver2_node --ros-args -r __node:=l
+2229091 2228880 ysc       0.1 Thu Oct  8 09:50:13 2026 /opt/ros/foxy/lib/tf2_ros/static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 base_link rslidar --ros-args -r __node:=base2lidar_tf_broa
+
+## 三、杀前负载与端口
+5.72 5.57 5.53 5/840 2591309
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                       
+LISTEN    0         2048               0.0.0.0:8000             0.0.0.0:*                                     
+
+## 四、明确不在授权面内、绝不动的（root 属主生产 ROS2 transfer 栈）
+ 115792 root      0.5 Mon Oct  5 01:27:51 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+ 115795 root      0.9 Mon Oct  5 01:27:53 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params
+ 115797 root     15.8 Mon Oct  5 01:27:53 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --par
+ 115799 root     19.3 Mon Oct  5 01:27:53 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --pa
+
+# 杀后核验 2026-10-08 12:16:36
+
+## 五、生产 transfer 栈与 180237 零触碰证明（lstart 必须与杀前逐位一致）
+ 115792 root     Mon Oct  5 01:27:51 2026  3-10:48:45 ros2
+ 115795 root     Mon Oct  5 01:27:53 2026  3-10:48:43 jetson2app
+ 115797 root     Mon Oct  5 01:27:53 2026  3-10:48:43 jetson2motion
+ 115799 root     Mon Oct  5 01:27:53 2026  3-10:48:43 sensor_checker
+ 180237 ysc      Mon Oct  5 15:19:10 2026  2-20:57:26 static_transfor
+  ↑ 对照杀前：115792 Mon Oct  5 01:27:51 / 115795+115797+115799 Mon Oct  5 01:27:53 / 180237 Mon Oct  5 15:19:10 ⇒ 逐位一致即零触碰
+
+## 六、被杀五件的复检（应全部不在位）
+  pid=1331 存在计数=0
+  pid=115711 存在计数=0
+  pid=2228880 存在计数=0
+  pid=2229089 存在计数=0
+  pid=2229091 存在计数=0
+
+## 七、负载与端口（loadavg 需回落；8000/43900 应释放；11311/11312/11313/11345 应零监听）
+4.72 5.39 5.47 3/794 2593263
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process             
+  监听口总数=22
+
+## 八、CPU 前列（应无 monitor 与 livox）
+ 115799 root     19.3  3-10:48:43 sensor_checker
+ 115797 root     15.8  3-10:48:43 jetson2motion
+2593125 ysc       5.0       00:01 bash
+2593076 root      4.0       00:02 sshd
+ 443143 root      3.7    12:04:56 kworker/3:0H-kblockd
+2245463 root      3.6    02:18:50 kworker/5:0H-kblockd
+
+## 九、处置声明
+  monitor（uvicorn 8000 + ros_bridge 43900）与 livox Mid360 驱动树由用户明示授权后终止，本仓不代为重启（属他人服务，重启由用户决定）。
+  注意：115711（monitor ros_bridge）此前在册于 foxy 见证名单，故自本次起该名单里这一条会读空；
+  见证名单的其余五条（115792/115795/115797/115799/180237）属 root 的生产 transfer 栈，未获授权亦未触碰。
+  harness 侧的见证名单是否据此更新，属判据载体变更，等小美复核落笔后再动（R30 程序令），本轮不改件。
