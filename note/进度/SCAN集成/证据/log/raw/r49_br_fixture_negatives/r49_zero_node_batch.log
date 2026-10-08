@@ -1,0 +1,68 @@
+### RAS
+[PASS] A0 函数体取自现役件且含清单可验断言（非本地复制的实现）
+[PASS] A1a 打印四数同值（OUT=out=可验=全件=4）
+[PASS] A1 正常批：收口成立且四数同值（打印=4 4 4 4）
+[PASS] A2 清单从归档址 -c 全 OK 且条目数＝件数（4＝4）
+[PASS] A3 条目路径含 out/ 前缀（out/f1.log）
+[PASS] A4 不可读件被打真红（OUT_UNCLOSED=1；四数打印见下）
+        [archive] OUT 未收口：/tmp/ras_V9t6cz/o1 件数=4，out 归档=4，清单可验=4，全件数=5（四数须 OUT＝out 且 可验＝全件≥1）⇒ 该段证据不完整，末判 rc=10
+[PASS] A5 空 OUT 判不洁（不因 -ge 1 失守而默认绿）
+[PASS] A6 清单不含自身与 .new 临时件
+[PASS] A7 终局指认式两态可分（含行=1／不含行=0）
+==================================================
+RAS VERDICT: PASS=9 FAIL=0
+RAS rc=0
+### BRS
+[PASS] C1 阳性对照：正常批 rc=0、加压覆盖与计数自洽都在
+[PASS] C0 被试指认：三跑全点名桩件，零次回落到现役 SM
+[PASS] C2 期望不符 ⇒ rc=7，且 6 那面的 FAIL 行不被取一隐没
+[PASS] C3 阴性位（期望 1 实得 1）被逐位消化 ⇒ 批次 rc=0，这就是「非 0 期望位」的形态
+[PASS] C4 计数不自洽（自报 9 对原件 2）⇒ rc=8
+[PASS] C5 缺 SUMMARY 判不可自证 ⇒ rc=8（不是默认绿）
+[PASS] C6 长度不符 ⇒ rc=9 且被试未起跑（被试 log=0）
+[PASS] C7 无加压达标跑 ⇒ rc=6 且 unreached 专列注行在位
+[PASS] C8 三面同不过 ⇒ 取一序给 8，另两面 FAIL 行逐条都在
+[PASS] C9 未设期望表时期望面缺席 ⇒ rc=0
+==================================================
+BRS VERDICT: PASS=10 FAIL=0
+BRS rc=0
+### STS
+  缺基线（U5）、端口计数与身份两面（U6 真判死／U7 不误伤）、段令牌幂等（U9）
+==================================================
+
+### TEC
+==================================================
+TF EDGE CONFLICT VERDICT: PASS=7 FAIL=0
+### MUX
+==================================================
+MUX SOURCES VERDICT: PASS=8 FAIL=0
+### GTC
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+### SYN
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_batch_runner.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 100 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_br_expect_negative_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 118 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 234 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_rd_archive_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 94 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L107-L174 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L205-L406 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L443-L465 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L487-L548 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 168 行，非默认绿）
+PY SYNTAX OK（被检件数=6，内嵌 python 段合计=4）
+SYN rc=0
+### ISO
+=== ISOLATION OK ===
+# self-attest: at=2026-10-08 19:22:20 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4535 rc=0
+ISO rc=0
+### STS 补录（原 tail -2 把判定行截掉了）
+EXITCLEAN SELFTEST: 用例 PASS=21 FAIL=0 / 21
+### GTC 补录
+  分母面：在册行=14 唯一H#=14 git载体提交数=14（重复与漏行同判红）
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）

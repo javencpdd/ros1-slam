@@ -1,0 +1,22 @@
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 2.547000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 2.547000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.3s
+SMOKE gate_tf_robot=PASS t=0.6s
+SMOKE gate_gcostmap_data=PASS t=0.8s
+SMOKE gate_lcostmap_data=PASS t=0.9s
+SMOKE gate_tf_fresh=PASS t=1.5s ages=[0.053,0.077,0.046]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.1s ages=[0.082,0.078,0.035]
+SMOKE SIMNOW point=age_sample_1 sim_now=2.18s gate_t=2.1s
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.006,0.019,0.016]
+SMOKE E3 tf odom->base_link hits=24 last_stamp=2.815 age=0.016
+SMOKE E3 base_link_parents=['odom'] transforms_total=29
+SMOKE E3 static base_link->rslidar stamp=0.023
+SMOKE E3 static base_link->TORSO stamp=0.023
+SMOKE gate=PASS t=4.7s
+SMOKE SIMNOW point=goal_send sim_now=2.83s
+shutdown request: [/m2_stage_b] Reason: new node registered with same name
+SMOKE SIMNOW point=goal_done sim_now=4.92s dt=2.09
+SMOKE teb_state=1 dt=2.1s dev_odom=2.278 dev_gt=2.278

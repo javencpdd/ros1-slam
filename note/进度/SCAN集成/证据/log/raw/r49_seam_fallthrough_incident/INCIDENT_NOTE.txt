@@ -1,0 +1,37 @@
+R49 事故留存：打桩自测件静默回落到现役 m2_smoke.sh，四次真仿真抓停了（2026-10-08 19:08 与 19:15，小明自曝、当场清场）
+
+一、发生了什么
+我要给 m2_batch_runner.sh 的批次层四档 rc（6/7/8/9）做零节点阴性对照（小美 M2R8 第 11 条记的「欠件」，随 R41 一并补）。
+为此在 BR 上开了可测性口子 SM_CMD／SM_ARGS（R49 一）。自测件 v_br_expect_negative_selftest.sh（BRS）里我这样写：
+
+  ( export STUB_PLAN=... BATCH_OUT=... STUB_SUMPASS=...
+      SM_CMD=bash SM_ARGS="$STUB" EXPECT_RC=...
+    bash "$BR" "$@" ) > "$wd/log" 2>&1
+
+**export 命令在换行处就结束了**：第二行的 SM_CMD／SM_ARGS／EXPECT_RC 只是那个子 shell 的 shell 变量，没进环境 ⇒
+BR 继承不到 ⇒ 走 ${SM_ARGS:-verify/m2_smoke.sh} 的缺省值 ⇒ **静默起跑现役 m2_smoke.sh 的真 stageB 仿真**。
+我以为是打桩，实际是在真跑：19:08 一次（SSH 工具超时后我没当场复核，第二次尝试又叠了一层），19:15 用 set -x 复核时看清。
+
+二、当场后果与清场（全部实测，不口头）
+1. 四个 LOGDIR 属中止跑：logs-20261008_190826／191047／191149／191536，已随本目录留文本原件（lite3.pcd.bak 二进副本按 R28 一口径不入仓）。
+   这四次跑互相并发，读数全是脏的：190826 teb_state=9（被中止）、191047 打印「new node registered with same name」且 dev 2.278、
+   191149 E3 transforms_total=0（并发抢 TF）。⇒ **一律不入结论、不归档为跑次证据**，已从 /tmp/m2_payload 移到 /tmp/m2_aborted_r49/ 隔离，
+   以免下一次活体批的 archive_since 按 mtime 把它们扫进证据址（那是 R28 那族污染的同型风险）。
+2. 样张红线未破：三跑的 pcd.sha256.before＝after＝aaa09362…，盘上现值同值（见 witness_after_cleanup.txt）。
+3. 并发红线未破：清场后 11311／11312／11313／11345 监听 0，被试件残留进程 0。生产 transfer 栈全程未碰。
+4. 18:23 那批 H14 的已入仓证据**不受影响**（归档在 18:46 完成，事故在其后）。
+
+三、修法（两件都落件，不是记忆）
+1. BR 加 [subject] 行（R49 二）：每跑起跑前打印「本跑被试＝bash /tmp/...」或「＝bash verify/m2_smoke.sh」。
+   回落从「事后查 ps 才知道」变成「批次日志里当场可见」。
+2. BRS 的调用式改成 env 前缀式（R49 三）：env A=1 B=2 ... bash "$BR"，杜绝「export 换行截断」这一型；
+   并在用例里加 **C0 被试指认**：三跑的被试行必须全部点名桩件、真 SM 命中数必须为 0——这条就是本事故的当场探测器，
+   也是坑29「先阳性对照再零命中」在可测性口子上的直接应用。
+3. 教训入 02 坑34：给判据/批次件开「可测性口子」时，**口子的生效性本身必须是被测项**，否则测的是缺省行为而报告写成桩测。
+
+四、修好后的读数（零节点，不占窗）
+BRS 10/10 PASS：C0 被试指认（3 桩／0 真）、C1 阳性对照 rc=0、C2 期望不符 rc=7、C3 阴性位（期望 1 实得 1）rc=0、
+C4 计数不自洽 rc=8、C5 缺 SUMMARY rc=8、C6 长度不符 rc=9 且被试未起跑、C7 无加压达标跑 rc=6、
+C8 三面同不过取一序 8、C9 未设期望表时期望面缺席 rc=0。
+BR 默认态零回归：不置两个口子时 SUBJ 串逐字等于「bash verify/m2_smoke.sh」（实测比对）。
+件指纹：BR 4341c679ab8b → 7cd764a4e0db；BRS 新件 1a525aeac1a8。门值 60/35/40、rc 语义、取一序 8>7>6 一个都没动。

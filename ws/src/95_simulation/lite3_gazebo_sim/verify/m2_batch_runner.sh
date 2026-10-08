@@ -9,6 +9,10 @@
 #   branch 打印在 unreached 跑曾被快扫读成达标（#17 ii）：harness 侧已补 unreached 态，本件把它单列一行。
 # 用法：EXPECT_RC="0 0 1" bash m2_batch_runner.sh b1: b2:62 b3:99999
 #   期望表按跑序逐位对齐（空格分隔）；不设 EXPECT_RC = 不校验期望，只跑 press 覆盖与计数自洽两面。
+# R49 加的两个可测性口子（她 M2R8 第 11 条「fixture 级已验期望表逻辑 ⇒ 记欠件，随 R41 一并补」的兑现面）：
+#   SM_CMD／SM_ARGS——缺省 bash verify/m2_smoke.sh，与改前逐字同行为；置它只为把「被试」换成打点桩，
+#     从而能在零节点下把本件的 6/7/8/9 四档逐一打到非 0（活体批永远打不到这几档，不造桩就永远没有现场证据）。
+#   SLEEP_BETWEEN——缺省 4，桩测置 0。三个门值（60/35/40）、取一序（8>7>6）与 rc 语义一个都没动。
 # 本件自身 rc：0=批次 VERDICT PASS；6=批内无加压档达标跑（R20 三）；7=有跑的实得 rc 与期望表不符（R27 二）；
 #   8=判定计数不自洽或 harness 未打 SUMMARY（R27 四）；9=期望表长度与跑数不符（作业单本身错，不判被试）。
 #   多面同时不过时按 8 > 7 > 6 取一（先证据不可指认，再设计外 FAIL，再批次覆盖不足）；VERDICT 行把三面逐条都打，不因取一而隐没其余。
@@ -34,7 +38,9 @@ for spec in "$@"; do
   idx=$((idx+1)); tag=${spec%%:*}; dly=${spec#*:}
   echo "##### $tag G5_DELAY_SIM=[$dly] $(date '+%T') #####"
   snap "start_$tag"
-  TF_SOURCE="" G5_DELAY_SIM="$dly" bash verify/m2_smoke.sh stageB > "$B/$tag.log" 2>&1
+  SUBJ="${SM_CMD:-bash} ${SM_ARGS:-verify/m2_smoke.sh}"
+  echo "  [subject] 本跑被试＝$SUBJ"          # R49 二：可测性口子必须**可指认**。桩测的 export 少写一层时，BR 会静默回落到现役 m2_smoke.sh 真跑仿真（今日 19:08／19:15 两次事故正是这一型）；这一行让回落当场可见，不靠人事后查 ps
+  TF_SOURCE="" G5_DELAY_SIM="$dly" "${SM_CMD:-bash}" ${SM_ARGS:-verify/m2_smoke.sh} stageB > "$B/$tag.log" 2>&1
   rc=$?
   snap "end_$tag"
   pl=$(grep -oE "gate_press_late=[A-Z]+ branch=[a-zA-Z+]+" "$B/$tag.log" | head -1)
@@ -67,7 +73,7 @@ for spec in "$@"; do
       CNT_BREAK=$((CNT_BREAK+1)); echo "  [count] 不自洽：自报 pass=${mpa:-?} fail=${mfa:-?} ≠ 原件行首 pass=$sp fail=$sf"
     fi
   fi
-  sleep 4
+  sleep "${SLEEP_BETWEEN:-4}"   # R49：fixture 自测把跑间隔置 0，活体批不改则仍 4s（默认值零变动）
 done
 echo "##### 批次级断言（R20 三 ＋ R27 二 ＋ R27 四）#####"
 echo "  逐跑：${ROWS[*]}"

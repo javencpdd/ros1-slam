@@ -43,14 +43,29 @@ FOXY="115711,115792,115795,115797,115799,1331,180237"
 snap(){ ps -o pid,user,lstart,comm --no-headers -p $FOXY > "$OUT/foxy_$1.txt" 2>/dev/null; log "  foxy[$1] 计数=$(wc -l < "$OUT/foxy_$1.txt")"; }
 
 # ---- 归档：把自 t0 起新产生的 LOGDIR 文本原件拉进证据址（本段可单跑，跑前跑后都能补）----
-archive_out() { # 把本件的 $OUT 整批拉进证据址，并核「归档件数＝$OUT 件数」
-  local n m
+manifest_build() { # 清单**整体重建**（R48 一）：条目＝归档址内除清单自身与临时件外的全部件，路径一律相对归档址
+  #   旧式「每段 >> 追加」且 out/ 段条目缺 out/ 前缀 ⇒ 同一件在一张表里叠多份 sha，且从归档址 sha256sum -c 根本跑不通
+  #   （18:23 批实测：清单 88 行对 61 件，-c 非 OK 103 行）。可验性是证据的最低要求；本改动不触任何判据门值。
+  local t="$MANIFEST.new"
+  ( cd "$ARCHIVE_DIR" && find . -type f ! -name '_sha256_manifest.txt' ! -name '*.new' \
+      | sed 's|^\./||' | sort | xargs -d '\n' -r sha256sum ) > "$t" 2>/dev/null
+  mv -f "$t" "$MANIFEST"
+}
+
+archive_out() { # 把本件的 $OUT 整批拉进证据址，三面核：件数对得上／清单条目＝件数／清单逐条可验（R48 三）
+  local n m c k
   mkdir -p "$ARCHIVE_DIR/out"
   cp -rp "$OUT"/. "$ARCHIVE_DIR/out/" 2>/dev/null
-  ( cd "$ARCHIVE_DIR/out" && find . -type f | sort | sed 's|^\./||' | xargs -r sha256sum ) >> "$MANIFEST" 2>/dev/null
+  manifest_build
   n=$(find "$OUT" -type f 2>/dev/null | wc -l); m=$(find "$ARCHIVE_DIR/out" -type f 2>/dev/null | wc -l)
-  if [ "$n" = "$m" ] && [ "$n" -ge 1 ]; then log "  [archive] OUT 收口：$OUT 件数=$n ＝ 归档件数=$m"
-  else OUT_UNCLOSED=1; log "  [archive] OUT 未收口：$OUT 件数=$n，归档=$m ⇒ 该段证据不完整，末判 rc=10"; fi
+  c=$(find "$ARCHIVE_DIR" -type f ! -name '_sha256_manifest.txt' 2>/dev/null | wc -l)
+  k=$( ( cd "$ARCHIVE_DIR" && sha256sum -c "$MANIFEST" 2>/dev/null ) | grep -c ': OK$' )
+  if [ "$n" = "$m" ] && [ "$n" -ge 1 ] && [ "$c" = "$k" ] && [ "$k" -ge 1 ]; then
+    log "  [archive] OUT 收口：$OUT 件数=$n ＝ 归档件数=$m ｜清单可验=$k ＝ 全件数=$c（校验 CWD＝归档址）"
+  else
+    OUT_UNCLOSED=1
+    log "  [archive] OUT 未收口：$OUT 件数=$n，out 归档=$m，清单可验=$k，全件数=$c（四数须 OUT＝out 且 可验＝全件≥1）⇒ 该段证据不完整，末判 rc=10"
+  fi
 }
 
 archive_since() { # $1=epoch 秒
@@ -60,7 +75,7 @@ archive_since() { # $1=epoch 秒
   for d in $new; do
     tgt="$ARCHIVE_DIR/$(basename "$d")"; mkdir -p "$tgt"
     find "$d" -maxdepth 1 -type f ! -name 'lite3.pcd.bak' -exec cp -p {} "$tgt/" \; 2>/dev/null
-    ( cd "$ARCHIVE_DIR" && sha256sum "$(basename "$d")"/* 2>/dev/null >> "$MANIFEST" )   # 带目录前缀，否则跨目录同名件在清单里不可判读（STL 自引用同族的教训）
+    manifest_build   # 每收一个 LOGDIR 即整体重建（R48 一）；路径自带 logs-*/ 前缀，跨目录同名件仍可判读
     log "  archived $(basename "$d")：$(ls "$tgt" | wc -l) 件，收口=$( [ -f "$d/stageB.txt" ] || [ -f "$d/stageA.txt" ] && echo 是 || echo 否 )"
   done
 }
@@ -191,7 +206,7 @@ SECS=("${@:-all}")
 [[ " ${SECS[*]} " == *" all "* ]] && SECS=(pre a b dwa scan gate)
 ARCHIVE_DIR="$EV/retake_$(date +%Y%m%d_%H%M%S)"; MANIFEST="$ARCHIVE_DIR/_sha256_manifest.txt"
 OUT_UNCLOSED=0
-mkdir -p "$ARCHIVE_DIR"; log "归档址：$ARCHIVE_DIR"; log "  清单不列自身；校验 CWD＝仓根 $ROOT"
+mkdir -p "$ARCHIVE_DIR"; log "归档址：$ARCHIVE_DIR"; log "  清单不列自身；校验口径：cd 归档址 && sha256sum -c _sha256_manifest.txt（旧句写仓根 CWD 不实，R48 一）"
 for s in "${SECS[@]}"; do
   case "$s" in
     pre) sec_pre; rc=$?;; a) sec_a; rc=$?;; b) sec_b; rc=$?;;
@@ -206,5 +221,13 @@ if [ "$OUT_UNCLOSED" = "1" ] && [ "$VERDICT" = "0" ]; then VERDICT=10; fi
 log "===== RETAKE VERDICT: rc=$VERDICT $(now) ====="
 log "  0=全绿 4=A0 三次皆 INVALID（算力面）5=判据 FAIL 6=批次覆盖不足 7=负载预检不过 8=期望/计数面 9=前置缺失 10=证据未收口（OUT 归档数不符）"
 log "  rc 空间属本件自有层（与 DWR／BR／SM 各层不互认），引用时必须连件名＋代际（她裁定 1 丙条／D5）"
-log "  归档件数=$(find "$ARCHIVE_DIR" -type f | wc -l) 清单=$MANIFEST"
+archive_out   # R48 二：VERDICT 行打完再收一次——旧序里归档副本永远没有本批自己的 VERDICT 行（18:23 批实测归档件 66 行／活体件 68 行）
+_v=$(grep -c 'RETAKE VERDICT' "$ARCHIVE_DIR/out/driver.log" 2>/dev/null); [ -z "$_v" ] && _v=0
+log "  [archive] 终局指认：归档件 out/driver.log 内含 RETAKE VERDICT 行=$_v（应=1）；本行及其后的收口行按定义进不了自己的副本，属可指认的固定残差"
+if [ "$_v" != "1" ]; then
+  OUT_UNCLOSED=1; [ "$VERDICT" = "0" ] && VERDICT=10
+  log "  ⇒ 终局指认不过 ⇒ 本批证据不可自证收口，末判改按 rc=$VERDICT"
+fi
+log "  归档件数=$(find "$ARCHIVE_DIR" -type f ! -name '_sha256_manifest.txt' | wc -l)（不含清单自身） 清单=$MANIFEST"
+log "===== RETAKE VERDICT(终): rc=$VERDICT $(now) ====="
 exit "$VERDICT"

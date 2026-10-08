@@ -1,0 +1,18 @@
+SMOKE start=(0.736,-0.000) goal=(3.736,-0.000)
+SMOKE gate_map_data=PASS t=0.1s
+SMOKE gate_tf_robot=PASS t=0.7s
+SMOKE gate_gcostmap_data=PASS t=1.0s
+SMOKE gate_lcostmap_data=PASS t=1.1s
+SMOKE gate_tf_fresh=PASS t=1.7s ages=[0.069,0.004,0.002]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.3s ages=[0.034,0.020,0.060]
+SMOKE SIMNOW point=age_sample_1 sim_now=5.62s gate_t=2.3s
+shutdown request: user request
+SMOKE G5_DELAY_SIM target=62.0s reached=False sim_now=5.62s wall_spent=0.5s t_raw=2.3s t_adj=2.3s
+SMOKE gate_tf_fresh_late=FAIL t=2.3s ?
+SMOKE gate_tf_fresh_mapodom_late=FAIL t=2.3s ?
+SMOKE SIMNOW point=age_sample_2 sim_now=5.62s gate_t=2.3s sim_span_vs_point1=0.00s
+SMOKE gate_press_late=FAIL branch=unreached (reached=False sim2=5.62 span=0.00 判据=(sim2>=60 且 span>=35) 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.025,0.025,0.025]
+SMOKE E3 base_link_parents=[] transforms_total=0
+SMOKE E3 static=ERR ROSInterruptException
+SMOKE gate=FAIL t=3.0s {'map_data': True, 'tf_robot': True, 'gcostmap_data': True, 'lcostmap_data': True, 'tf_fresh_G5': True, 'tf_fresh_mapodom_G5c2': True, 'tf_fresh_G5c1': True, 'tf_fresh_late_G5': False, 'tf_fresh_mapodom_late_G5c2': False, 'press_late_G5': False}
