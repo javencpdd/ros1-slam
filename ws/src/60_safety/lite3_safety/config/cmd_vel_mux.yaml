@@ -1,10 +1,13 @@
 # cmd_vel_mux.yaml —— M6 safe_cmd_vel_mux 源表与行为参数（v4 C8 配套，P3a 新增）
 # 管道规约（v4 N6）：/cmd_vel_raw → safe_cmd_vel_mux → /cmd_vel → ros2qnx（仅真机 mode_navigation）
-# 红线（§2.6 硬规则 a）：/cmd_vel 唯一写者 = 本节点；hold 是控制输入不是速度源（登记口径仍为六源）
+# 红线（§2.6 硬规则 a）：/cmd_vel 唯一写者 = 本节点；hold 是控制输入不是速度源（登记口径：批1/J3 起为七源）
 output_topic: /cmd_vel
 output_rate_hz: 20.0            # 恒 20 Hz（Lite3 底盘 250 ms 超时不能断，v3 C8；50 ms 周期必须守恒）
 hold_topic: /lite3/supervisor/hold   # std_msgs/Bool；true 时无视各源直接输出零速直到 false（v4 C8②，唯一发布者 = SUP）
-# 六源优先级表（v3 C8「六源优先级」；1 = 最高）。
+# 源优先级表（v3 C8 原为「六源优先级」，1 = 最高；批1 行 H/J3 加 scan_planner 后为七源）。
+#   J3 口径：新增的是多一条**订阅**，发布仍只有 safe_cmd_vel_mux.py:39 一处 ⇒ 唯一写者由构造不变；
+#   priority 取 7（最低）而非与 navigation 并列 5，并列会让 teb 与 SCAN 同时活跃变成时序竞态，
+#   取最低＝SCAN 只在无其他导航源时被选中（小张 o1 设计件 §4.2 β，主理人 R1 认可方向、小美批1 批准组成）。
 # ★ 裁量登记：20 号文档源表不在沙箱，以下源名/话题为架构师默认定义并全部外化为配置——
 #   P6/P7 联调若与实际上游发布名不符，只改本表不改代码（R15 教训：话题名必须对账上游）。
 #   navigation 源 = M4 输出（C7 relay 目标，固定名）；estop 源为急停注入位（发布者保证语义）。
@@ -15,3 +18,4 @@ sources:
   - {name: task,       topic: /lite3/task/task_cmd_vel,    priority: 4, timeout_s: 0.5}
   - {name: navigation, topic: /cmd_vel_raw,                priority: 5, timeout_s: 0.5}
   - {name: demo,       topic: /lite3/demo/demo_cmd_vel,    priority: 6, timeout_s: 0.5}
+  - {name: scan_planner, topic: /scan_planner/cmd_vel,     priority: 7, timeout_s: 0.5}

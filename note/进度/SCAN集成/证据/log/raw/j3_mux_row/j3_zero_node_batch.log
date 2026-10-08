@@ -1,0 +1,20 @@
+# J3（批1 行 H）零节点验收批 2026-10-08 12:09:15
+===== v_mux_sources.sh（真表）
+[PASS] M8 文案一致：mux 脚本内「六源」字样已清零（源数在代码里本就动态读取，无硬编码）
+==================================================
+MUX SOURCES VERDICT: PASS=8 FAIL=0
+===== 阴性对照1 抽掉 scan_planner 行（期望红）
+[FAIL] M2 表结构不符：N=6 PRI=1,2,3,4,5,6 UNIQ=1
+[FAIL] M3 J3 行不符：0|-|-
+[FAIL] M7 话题名不对账：源表=0|-|- 而 70_scan 侧=1 处命中
+MUX SOURCES VERDICT: PASS=5 FAIL=3
+===== 阴性对照2 改走 output_topic（期望红）
+[FAIL] M4 红线被改：/cmd_vel_two | 20.0 | /lite3/supervisor/hold
+MUX SOURCES VERDICT: PASS=7 FAIL=1
+===== yaml 解析与表结构
+N= 7 pri= [1, 2, 3, 4, 5, 6, 7] out= /cmd_vel rate= 20.0
+===== 门禁
+=== ISOLATION OK ===
+# self-attest: at=2026-10-08 12:09:22 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4532 rc=0
+===== 07 代际表对账
+GENERATION TABLE CHECK: PASS（13 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）

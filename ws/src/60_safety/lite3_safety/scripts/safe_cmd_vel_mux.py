@@ -3,11 +3,11 @@
 # safe_cmd_vel_mux.py —— M6 安全 mux（v4 C8 终稿；v3 基线四设计 + v4 N5/N6 增补）
 #
 # 管道规约（v4 N6）：controller(M4) → /cmd_vel_raw → safe_cmd_vel_mux(M6) → /cmd_vel → ros2qnx（仅真机 mode_navigation）
-# 四设计（v3 C8）：六源优先级 / 超时淘汰 / 无源发零速 / 恒 20 Hz（Lite3 底盘 250 ms 超时不能断）
+# 四设计（v3 C8）：源优先级表（批1/J3 起七源）/ 超时淘汰 / 无源发零速 / 恒 20 Hz（Lite3 底盘 250 ms 超时不能断）
 # v4 增补（C8①②）：
 #   ① 监督保持输入：订阅 /lite3/supervisor/hold（std_msgs/Bool，唯一发布者 = SUP，C13），
 #      true 时无视各源直接输出零速并保持直到 false（SUP 绝不直写 /cmd_vel，§2.6 硬规则 a）；
-#   ② 全系统 /cmd_vel 唯一写者 = 本节点（自检 [6] 承接）；hold 是控制输入，登记口径仍为六源。
+#   ② 全系统 /cmd_vel 唯一写者 = 本节点（自检 [6] 承接）；hold 是控制输入，登记口径：批1/J3 起七源。
 # 源表外化：config/cmd_vel_mux.yaml（经 ~mux_config 注入；源名/话题为架构师默认，见 yaml 头登记注）。
 
 import threading
@@ -28,7 +28,7 @@ class SafeCmdVelMux(object):
         self.lock = threading.Lock()
         self.hold = False
         self.current = 'INIT'
-        # 六源按优先级排序（1 = 最高）；订阅全部源话题，超时淘汰在 _tick 内判定
+        # 源表按优先级排序（1 = 最高）；订阅全部源话题（批1/J3 起七源），超时淘汰在 _tick 内判定
         self.sources = sorted(cfg['sources'], key=lambda s: s['priority'])
         for s in self.sources:
             s['msg'] = None
