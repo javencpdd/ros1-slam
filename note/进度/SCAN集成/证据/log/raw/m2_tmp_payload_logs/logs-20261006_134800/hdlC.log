@@ -1,0 +1,117 @@
+[33m[ WARN] [1791265921.511548067]: The root link TORSO has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[33m[ WARN] [1791265932.228781718]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 10 seconds...[0m
+[33m[ WARN] [1791265932.312011003]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 10 seconds...[0m
+[0m[ INFO] [1791265927.999156149]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1791265928.015076818]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1791265930.043712057]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1791265933.028295195, 0.001000000]: load csv file name:/home/ros1-slam/ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+[33m[ WARN] [1791265942.247057386]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 20 seconds...[0m
+[33m[ WARN] [1791265942.312401173]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 20 seconds...[0m
+[33m[ WARN] [1791265952.257314255]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 30 seconds...[0m
+[33m[ WARN] [1791265952.325849445]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 30 seconds...[0m
+[33m[ WARN] [1791265962.273151044]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 40 seconds...[0m
+[33m[ WARN] [1791265962.332420313]: Waiting for service velodyne_nodelet_manager/load_nodelet to be available for 40 seconds...[0m
+[31m[ERROR] [1791265969.038866235, 0.617000000]: globalmap has not been received!![0m
+[33m[ WARN] [1791265971.894355661, 1.334000000]: Couldn't find service velodyne_nodelet_manager/unload_nodelet, perhaps the manager is already shut down[0m
+[33m[ WARN] [1791265971.932588638, 1.339000000]: Couldn't find service velodyne_nodelet_manager/unload_nodelet, perhaps the manager is already shut down[0m
+terminate called after throwing an instance of 'boost::wrapexcept<boost::lock_error>'
+  what():  boost: mutex lock failed in pthread_mutex_lock: Invalid argument
+[INFO] [1791265924.443361, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_cmd_relay.py", line 23, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+Aborted (core dumped)
+[31m================================================================================REQUIRED process [velodyne_nodelet_manager-7] has died!
+process has died [pid 296873, exit code -11, cmd /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/wait_sim_clock.sh /opt/ros/noetic/lib/nodelet/nodelet manager __name:=velodyne_nodelet_manager __log:=/tmp/ysc_m2_ros/7eb9eb9c-c149-11f1-95eb-3c6d66f8d2d8/velodyne_nodelet_manager-7.log].
+log file: /tmp/ysc_m2_ros/7eb9eb9c-c149-11f1-95eb-3c6d66f8d2d8/velodyne_nodelet_manager-7*.log
+Initiating shutdown!
+================================================================================[0m
+... logging to /tmp/ysc_m2_ros/7eb9eb9c-c149-11f1-95eb-3c6d66f8d2d8/roslaunch-lite-296808.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/tmp/m2_payload/m2_hdl.launch
+[1mstarted roslaunch server http://192.168.1.103:43425/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /globalmap_server_nodelet/convert_utm_to_local: True
+ * /globalmap_server_nodelet/downsample_resolution: 0.1
+ * /globalmap_server_nodelet/globalmap_pcd: /home/ros1-slam/d...
+ * /hdl_localization_nodelet/cool_time_duration: 2.0
+ * /hdl_localization_nodelet/downsample_resolution: 1.0
+ * /hdl_localization_nodelet/enable_robot_odometry_prediction: False
+ * /hdl_localization_nodelet/imu_timeout_ms: 9999
+ * /hdl_localization_nodelet/init_ori_w: 1.0
+ * /hdl_localization_nodelet/init_ori_x: 0.0
+ * /hdl_localization_nodelet/init_ori_y: 0.0
+ * /hdl_localization_nodelet/init_ori_z: 0.0
+ * /hdl_localization_nodelet/init_pos_x: 0.0
+ * /hdl_localization_nodelet/init_pos_y: 0.0
+ * /hdl_localization_nodelet/init_pos_z: 0.0
+ * /hdl_localization_nodelet/invert_acc: False
+ * /hdl_localization_nodelet/invert_gyro: False
+ * /hdl_localization_nodelet/lidar_timeout_ms: 9999
+ * /hdl_localization_nodelet/ndt_neighbor_search_method: DIRECT1
+ * /hdl_localization_nodelet/ndt_neighbor_search_radius: 3.0
+ * /hdl_localization_nodelet/ndt_resolution: 2.0
+ * /hdl_localization_nodelet/odom_child_frame_id: base_link
+ * /hdl_localization_nodelet/reg_method: NDT_OMP
+ * /hdl_localization_nodelet/robot_odom_frame_id: odom
+ * /hdl_localization_nodelet/specify_init_pose: True
+ * /hdl_localization_nodelet/use_global_localization: False
+ * /hdl_localization_nodelet/use_imu: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /use_sim_time: True
+
+NODES
+  /
+    base_link_to_rslidar (tf2_ros/static_transform_publisher)
+    gazebo (gazebo_ros/gzserver)
+    globalmap_server_nodelet (nodelet/nodelet)
+    hdl_localization_nodelet (nodelet/nodelet)
+    imu_relay (lite3_gazebo_sim/m2_cmd_relay.py)
+    liveness_m2 (rostopic/rostopic)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+    velodyne_nodelet_manager (nodelet/nodelet)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/tmp/m2_payload/m2_hdl.launch http://127.0.0.1:11313
+[1mprocess[gazebo-1]: started with pid [296855][0m
+[1mprocess[robot_state_publisher-2]: started with pid [296859][0m
+[1mprocess[spawn_lite3_planar-3]: started with pid [296861][0m
+[1mprocess[sim_adapter-4]: started with pid [296862][0m
+[1mprocess[imu_relay-5]: started with pid [296868][0m
+[1mprocess[base_link_to_rslidar-6]: started with pid [296870][0m
+[1mprocess[velodyne_nodelet_manager-7]: started with pid [296873][0m
+[1mprocess[globalmap_server_nodelet-8]: started with pid [296889][0m
+[1mprocess[hdl_localization_nodelet-9]: started with pid [296891][0m
+[1mprocess[liveness_m2-10]: started with pid [296897][0m
+[1m[spawn_lite3_planar-3] process has finished cleanly
+log file: /tmp/ysc_m2_ros/7eb9eb9c-c149-11f1-95eb-3c6d66f8d2d8/spawn_lite3_planar-3*.log[0m
+[liveness_m2-10] killing on exit
+[hdl_localization_nodelet-9] killing on exit
+[globalmap_server_nodelet-8] killing on exit
+[base_link_to_rslidar-6] killing on exit
+[imu_relay-5] killing on exit
+[sim_adapter-4] killing on exit
+[robot_state_publisher-2] killing on exit
+[velodyne_nodelet_manager-7] killing on exit
+[gazebo-1] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

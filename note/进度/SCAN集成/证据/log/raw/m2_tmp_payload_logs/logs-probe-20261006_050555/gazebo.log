@@ -1,0 +1,87 @@
+[33m[ WARN] [1791234362.739557851]: The root link TORSO has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py", line 26, in <module>
+    import numpy as np
+  File "/home/ysc/.local/lib/python3.8/site-packages/numpy/__init__.py", line 150, in <module>
+    from . import polynomial
+  File "/home/ysc/.local/lib/python3.8/site-packages/numpy/polynomial/__init__.py", line 120, in <module>
+    from .hermite_e import HermiteE
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 939, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/gazebo_ros/spawn_model", line 20, in <module>
+    import rospy
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/__init__.py", line 47, in <module>
+    from std_msgs.msg import Header
+  File "/opt/ros/noetic/lib/python3/dist-packages/std_msgs/msg/__init__.py", line 1, in <module>
+    from ._Bool import *
+  File "/opt/ros/noetic/lib/python3/dist-packages/std_msgs/msg/_Bool.py", line 6, in <module>
+    import genpy
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/__init__.py", line 34, in <module>
+    from . message import Message, SerializationError, DeserializationError, MessageException, struct_I
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/message.py", line 64, in <module>
+    import numpy as np
+  File "/home/ysc/.local/lib/python3.8/site-packages/numpy/__init__.py", line 153, in <module>
+    from . import ma
+  File "/home/ysc/.local/lib/python3.8/site-packages/numpy/ma/__init__.py", line 45, in <module>
+    from . import extras
+  File "/home/ysc/.local/lib/python3.8/site-packages/numpy/ma/extras.py", line 2023, in <module>
+    polyfit.__doc__ = ma.doc_note(np.polyfit.__doc__, polyfit.__doc__)
+  File "/home/ysc/.local/lib/python3.8/site-packages/numpy/ma/core.py", line 124, in doc_note
+    notesplit = re.split(r'\n\s*?Notes\n\s*?-----', inspect.cleandoc(initialdoc))
+  File "/usr/lib/python3.8/inspect.py", line 641, in cleandoc
+    margin = min(margin, indent)
+KeyboardInterrupt
+[31mWARNING: disk usage in log directory [/home/ysc/.ros/log] is over 1GB.
+It's recommended that you use the 'rosclean' command.[0m
+[31m[gazebo-2] process has died [pid 244124, exit code -15, cmd /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/home/ysc/.ros/log/8fb4467a-c100-11f1-be60-3c6d66f8d2d8/gazebo-2.log].
+log file: /home/ysc/.ros/log/8fb4467a-c100-11f1-be60-3c6d66f8d2d8/gazebo-2*.log[0m
+... logging to /home/ysc/.ros/log/8fb4467a-c100-11f1-be60-3c6d66f8d2d8/roslaunch-lite-244055.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch
+[1mstarted roslaunch server http://lite:42875/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+
+auto-starting new master
+[1mprocess[master]: started with pid [244102][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch http://127.0.0.1:11313
+[1msetting /run_id to 8fb4467a-c100-11f1-be60-3c6d66f8d2d8[0m
+[1mprocess[rosout-1]: started with pid [244117][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [244124][0m
+[1mprocess[robot_state_publisher-3]: started with pid [244129][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [244130][0m
+[1mprocess[sim_adapter-5]: started with pid [244131][0m
+[sim_adapter-5] killing on exit
+[spawn_lite3_planar-4] killing on exit
+[robot_state_publisher-3] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

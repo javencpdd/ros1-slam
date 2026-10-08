@@ -1,0 +1,19 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_105233
+[m2] HARNESS sha256=28a49f89f743f1e367c0255f9c402fa76190161482e7a8478a8562a2212ad609 path=verify/m2_smoke.sh
+[exitbase] # exitbase @2026-10-08 10:52:36 stage=stageA
+[exitbase] PIDS 328580
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+[exitclean] # 退净核验 @2026-10-08 10:52:55  stage=stageA
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]  328580 ros1-sl+       1 Tue Oct  6 19:51:44 2026 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+[exitclean] -- 监听端口分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/进程面：本跑派生零残留（差集为空，既存命中不入判据，R22 二/三）

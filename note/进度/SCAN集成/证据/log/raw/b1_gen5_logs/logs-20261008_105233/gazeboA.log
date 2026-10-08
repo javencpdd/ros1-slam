@@ -1,0 +1,67 @@
+[33m[ WARN] [1791427969.679564115]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/gazebo_ros/spawn_model", line 29, in <module>
+    from gazebo_ros import gazebo_interface
+  File "/opt/ros/noetic/lib/python3/dist-packages/gazebo_ros/gazebo_interface.py", line 9, in <module>
+    from gazebo_msgs.msg import *
+  File "/opt/ros/noetic/lib/python3/dist-packages/gazebo_msgs/msg/__init__.py", line 1, in <module>
+    from ._ContactState import *
+  File "/opt/ros/noetic/lib/python3/dist-packages/gazebo_msgs/msg/_ContactState.py", line 9, in <module>
+    import geometry_msgs.msg
+  File "/opt/ros/noetic/lib/python3/dist-packages/geometry_msgs/msg/__init__.py", line 6, in <module>
+    from ._InertiaStamped import *
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 939, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1038, in get_data
+KeyboardInterrupt
+[31m[gazebo-2] process has died [pid 2357908, exit code -15, cmd /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/home/ysc/.ros/log/54021624-c2c3-11f1-85c1-3c6d66f8d2d8/gazebo-2.log].
+log file: /home/ysc/.ros/log/54021624-c2c3-11f1-85c1-3c6d66f8d2d8/gazebo-2*.log[0m
+[31m[sim_adapter-5] process has died [pid 2357966, exit code -15, cmd /home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py --input custommsg --no-imu --rate-lidar 10 __name:=sim_adapter __log:=/home/ysc/.ros/log/54021624-c2c3-11f1-85c1-3c6d66f8d2d8/sim_adapter-5.log].
+log file: /home/ysc/.ros/log/54021624-c2c3-11f1-85c1-3c6d66f8d2d8/sim_adapter-5*.log[0m
+... logging to /home/ysc/.ros/log/54021624-c2c3-11f1-85c1-3c6d66f8d2d8/roslaunch-lite-2357432.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_gazebo.launch
+[1mstarted roslaunch server http://lite:43051/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+
+auto-starting new master
+[1mprocess[master]: started with pid [2357829][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_gazebo.launch http://127.0.0.1:11313
+[1msetting /run_id to 54021624-c2c3-11f1-85c1-3c6d66f8d2d8[0m
+[1mprocess[rosout-1]: started with pid [2357899][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [2357908][0m
+[1mprocess[robot_state_publisher-3]: started with pid [2357942][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [2357951][0m
+[1mprocess[sim_adapter-5]: started with pid [2357966][0m
+[spawn_lite3_planar-4] killing on exit
+[robot_state_publisher-3] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

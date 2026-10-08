@@ -1,0 +1,69 @@
+[33m[ WARN] [1791235884.561032450]: The root link TORSO has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[0m[ INFO] [1791235888.513966755]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1791235888.536861647]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1791235890.625515638]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1791235894.342924722, 0.097000000]: load csv file name:/home/ros1-slam/ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+[33m[ WARN] [1791235929.474875169, 0.097000000]: PlanarMovePlugin (ns = /) missing <odometryRate>, defaults to 20.000000[0m
+[33m[ WARN] [1791235929.475124548, 0.097000000]: PlanarMovePlugin (ns = /) missing <cmdTimeout>, defaults to -1.000000[0m
+[33m[ WARN] [1791236068.238406342, 41.180000000]: Shutdown request received.[0m
+[33m[ WARN] [1791236068.238669962, 41.180000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791236068.298415639, 41.180000000]: Shutdown request received.[0m
+[33m[ WARN] [1791236068.298974334, 41.180000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791236068.452635364, 41.180000000]: Shutdown request received.[0m
+[33m[ WARN] [1791236068.452948136, 41.180000000]: Reason given for shutdown: [user request][0m
+[INFO] [1791235886.747704, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+shutdown request: user request
+[31m[gazebo-2] process has died [pid 247757, exit code -15, cmd /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/home/ysc/.ros/log/1b51e63a-c104-11f1-8660-3c6d66f8d2d8/gazebo-2.log].
+log file: /home/ysc/.ros/log/1b51e63a-c104-11f1-8660-3c6d66f8d2d8/gazebo-2*.log[0m
+... logging to /home/ysc/.ros/log/1b51e63a-c104-11f1-8660-3c6d66f8d2d8/roslaunch-lite-247693.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch
+[1mstarted roslaunch server http://localhost:37347/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+
+auto-starting new master
+[1mprocess[master]: started with pid [247735][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch http://127.0.0.1:11313
+[1msetting /run_id to 1b51e63a-c104-11f1-8660-3c6d66f8d2d8[0m
+[1mprocess[rosout-1]: started with pid [247753][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [247757][0m
+[1mprocess[robot_state_publisher-3]: started with pid [247763][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [247766][0m
+[1mprocess[sim_adapter-5]: started with pid [247771][0m
+[1m[spawn_lite3_planar-4] process has finished cleanly
+log file: /home/ysc/.ros/log/1b51e63a-c104-11f1-8660-3c6d66f8d2d8/spawn_lite3_planar-4*.log[0m
+[1m[robot_state_publisher-3] process has finished cleanly
+log file: /home/ysc/.ros/log/1b51e63a-c104-11f1-8660-3c6d66f8d2d8/robot_state_publisher-3*.log[0m
+[1m[rosout-1] process has finished cleanly
+log file: /home/ysc/.ros/log/1b51e63a-c104-11f1-8660-3c6d66f8d2d8/rosout-1*.log[0m
+[1m[sim_adapter-5] process has finished cleanly
+log file: /home/ysc/.ros/log/1b51e63a-c104-11f1-8660-3c6d66f8d2d8/sim_adapter-5*.log[0m
+[rosout-1] restarting process
+[1mprocess[rosout-1]: started with pid [249190][0m
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
