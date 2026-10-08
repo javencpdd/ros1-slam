@@ -1,0 +1,35 @@
+[20:17:36] == [0] 红线预检：并发／样张／foxy ==
+在册端口起前监听：11313=0 11312=0（均须 0，否则并发未清 ⇒ rc=2 不跑）
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+[20:17:36] == [1] roscore 11313 ==
+[20:17:41] == [2] m2_gazebo ==
+[20:18:34] == [3] m2_mapping（faster_lio 位姿源）==
+本段只等 /Odometry；/LIO/odom_vehicle 归 [5] 段（relay 在 70_scan 里）
+[20:18:45] == [4] 60_safety（mux 上链，/cmd_vel 唯一写者）==
+mux 属主 PID（起链时取，仅供 C-2 kill 用）：
+C-1 静态面：/cmd_vel Publishers＝/safe_cmd_vel_mux //lite / /gazebo //lite / 
+[20:18:58] == [5] 70_scan.launch（navi_mode:=1，含 J1 到达观测件）==
+F9 互斥（节点级）: move_base/teb 节点数=0 须=0
+链上节点: 4/4 须=4
+[20:19:41] == [6] 判据③④⑤ 取证（三连在同一个 sim 窗内跑，逐跑 goal 重选）==
+p3 python rc=9
+P3 判据③ 结论 = INVALID|前置未成立（占据图=True odom=True clock=False）
+stderr 尾:
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
+    cb(msg)
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p3_track.py", line 77, in on_clock
+    self.clock = m.secs + m.nsecs * 1e-9
+AttributeError: 'Clock' object has no attribute 'secs'
+
+结论行：P3 判据③ 结论 = INVALID|前置未成立（占据图=True odom=True clock=False）
+[20:21:16] == [7] C-1/C-2 mux 活体面（与 P3 同窗）==
+C-1 车动窗后 /cmd_vel 写者：mux 命中=1 写者总数=1（均须恰 1／1，§2.6 硬规则 a）
+C-2 kill 前 /cmd_vel 平均速率＝20.468（mux 恒 20Hz）
+C-2 kill 后 6s 内速率行数＝3（须 0 ⇒ /cmd_vel 停发；非 0 说明还有别的写者）
+[20:21:41] == [8] 退净与红线 ==
+teardown 后的监听与残留见 trap 段
+P3 判据③④⑤ 与 C-1/C-2 联合结论 = FAIL/INVALID rc=1｜判据行=P3 判据③ 结论 = INVALID|前置未成立（占据图=True odom=True clock=False）｜C1写者=1/1｜C2停发行数=3
+[20:21:42] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd

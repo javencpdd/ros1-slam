@@ -1,0 +1,41 @@
+A7 P3 动态闭环首轮活体（2026-10-08 20:23–20:35，v_scan_p3.sh＋p3_track.py 首跑）· 一条到手、一条判废
+
+一、链与拓扑（这一段成立）
+[0]–[5] 全过：roscore 11313 → m2_gazebo → m2_mapping → **60_safety（mux 上链）** → 70_scan navi_mode:=1。
+F9 互斥：move_base／teb 节点数＝0（须 0）；链上四件齐＝4/4（scan_planner_node、closed_loop_controller、
+scan_arrival_monitor、safe_cmd_vel_mux）；/LIO/odom_vehicle 实测 9.8Hz（relay 在位）、/scan_planner/cmd_vel 有流。
+
+二、到手的活体正面证据：J3 的 C-1／C-2（这两条此前只有件面）
+- C-1 唯一写者：车动窗内 `rostopic info /cmd_vel` 的 Publishers 段＝[ * /safe_cmd_vel_mux ]，命中=1 写者总数=1
+  ⇒ §2.6 硬规则 a（/cmd_vel 唯一写者＝mux）在 SCAN 接线的活体链上成立。
+- C-2 kill 必停发：`rosnode kill /safe_cmd_vel_mux` 后节点在位=0，且随后 6s 内 `rostopic hz /cmd_vel` 速率行数=0
+  ⇒ /cmd_vel 确实停发（kill 前实测 19.78Hz，与配置 output_rate_hz: 20.0 相符）。
+  这条在 20:19 那次差点被我读成「未停发＝违例」——当时 MUX_PID 取空导致 kill 是空操作，测到的 20Hz 是活着的 mux；
+  修法是 kill 前后各取一次**节点在位性**（在位不为 1 就不许谈停发），本轮才成立。
+- 样张红线：lite3.pcd sha 起前＝退后＝aaa09362…；退净：残留进程空、11313 与 11312 监听 0。
+
+三、判废的一条：判据③④ 的 FAIL 不成立（成因在我方投递，不在被测件）
+原件证据三条并列可读：
+- scan.log 内 "wait for goal." **101 次**，且 scan_arrival_monitor 的 "goal received" 日志 **0 条**；
+- 插件 beat 全程 cmd=(0.00,0.00,0.00) v_phy=(0,0,0) ⇒ 机器人根本没动，与「goal 从未进 FSM」一致；
+- 我的 p3_track 却打出 FAIL|判据④ 在 sim 135.1s 内未到达。
+⇒ 这条 FAIL 是**「跑不动」冒充「跑不过」**（坑29／R40 那一族），不得引用为 A7 判据③④ 的失败。
+根因两条，都在我自己的件里：
+（一）publisher 建好即发：ROS1 的订阅连接建立是异步的，单次 publish 必丢第一波——P2 原文就是 sleep 1.5 后**连发三次**，
+      我这版漏了这条经验（改回同口径）；
+（二）没有投递面的阳性对照：goal 到底进没进 FSM 当时不可知，于是超时被当成判据不过。
+      现加：发 goal 后 25s 内到达观测件必须给出 arrival_dist 读数（该话题只在收到 goal 后才发），
+      没有读数 ⇒ 判 INVALID（投递面失效，不判被试、不占连击）。
+另记一条同类：首轮（20:19）打在 INVALID 上的原因是 `rosgraph_msgs/Clock` 的载荷在 m.clock（Time）而不是 m.secs，
+    我写成 m.secs ⇒ 回调 AttributeError ⇒ clock 恒 False。fail-closed 如实自报，没有冒充判据失败，这是它对的地方。
+
+四、结论与下一步
+P3 的**载体面**（判据实体在位、链可起、mux 两条活体面）本轮到手；**判据③④⑤ 的达成/未达成本轮不作数**。
+下一步按上面两条修件后复跑（三连），并盯一件事：若 goal 投递正常而 cmd 仍近零，那才是要真查的
+「SCAN 跟踪层在本平台慢速仿真下不出速度」问题（与 17:27 那次 teb 对照的「指令近零」读数同型，尚未定因）。
+
+五、复核口径
+cd 本目录 && sha256sum -c _sha256_manifest.txt ⇒ 实测条目=件数=可验 OK=10，非 OK 0 行。
+本目录件：harness.log（分段自证）、live_driver.log（外层原件，含 C-1/C-2 与联合结论行）、
+scan.log（"wait for goal." 101 次处）、gazebo.log（插件 beat 原文）、mux.log、mapping.log、roscore.log、
+p3.json（判定行）、p3.err（首轮 Clock AttributeError 原文）、pcd_before.sha／pcd_after.sha。

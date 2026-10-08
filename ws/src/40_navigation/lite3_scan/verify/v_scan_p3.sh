@@ -40,8 +40,22 @@ wait_topic() {
   return 1
 }
 
+LOCK=/tmp/scan_p3.lock
+if [ -f "$LOCK" ]; then
+  OLD=$(cat "$LOCK" 2>/dev/null)
+  if [ -n "$OLD" ] && kill -0 "$OLD" 2>/dev/null; then
+    echo "P3 判据③ 结论 = INVALID|已有实例在跑（PID=$OLD）⇒ 并发不自证，本件拒跑（rc=2）"
+    exit 2
+  fi
+  note "锁件存在但属主 PID 已不在 ⇒ 视为陈旧锁，接管（旧值=$OLD）"
+fi
+echo $$ > "$LOCK"
+# 为何要有这把锁（2026-10-08 20:12 实测踩出来的）：本件的 cleanup 按**名字** pkill gzserver/roslaunch 等，
+#   两实例并存时旧实例迟到的 trap 会把新实例刚起的 gazebo 杀掉，新实例随后在 wait_topic /clock 上空等 300s
+#   打 INVALID——现象是「链自己断了」，根因是并发。护栏放在 [0] 之前，拒跑比误杀便宜。
 cleanup() {
   say "-- teardown --"
+  rm -f "$LOCK"
   rosnode kill -a >/dev/null 2>&1; sleep 2
   for p in "${PIDS[@]:-}"; do kill "$p" 2>/dev/null; done
   [ -n "$MUX_PID" ] && kill "$MUX_PID" 2>/dev/null
@@ -88,9 +102,10 @@ say "== [4] 60_safety（mux 上链，/cmd_vel 唯一写者）=="
 roslaunch lite3_safety 60_safety.launch > "$RUN/mux.log" 2>&1 &
 PIDS+=($!)
 MUX_PID=$(pgrep -f 'safe_cmd_vel_mux' | head -1)
+note "mux 起链自证：rosnode 在位=$(rosnode list 2>/dev/null | grep -c '/safe_cmd_vel_mux')（须 1）pgrep 命中=${MUX_PID:-空}"
 wait_topic /cmd_vel 240 || { echo "P3 判据③ 结论 = INVALID|/cmd_vel 未就绪（mux 未起）"; exit 9; }
 note "mux 属主 PID（起链时取，仅供 C-2 kill 用）：$MUX_PID"
-note "C-1 静态面：/cmd_vel Publishers＝$(timeout 8 rostopic info /cmd_vel 2>/dev/null | sed -n '/Publishers:/,$p' | grep -o '/[a-zA-Z0-9_/]*' | tr '\n' ' ')"
+note "C-1 静态面：/cmd_vel Publishers＝$(timeout 8 rostopic info /cmd_vel 2>/dev/null | sed -n '/Publishers:/,/Subscribers:/p' | grep -oE '^ \* /[^ ]*' | tr '\n' ' ')"（只取 Publishers 段，旧式把 Subscribers 也抄进来过）
 
 say "== [5] 70_scan.launch（navi_mode:=1，含 J1 到达观测件）=="
 roslaunch lite3_scan 70_scan.launch navi_mode:=1 > "$RUN/scan.log" 2>&1 &
@@ -118,8 +133,13 @@ C1O=$(timeout 8 rostopic info /cmd_vel 2>/dev/null | sed -n '/Publishers:/,/Subs
 note "C-1 车动窗后 /cmd_vel 写者：mux 命中=$C1 写者总数=$C1O（均须恰 1／1，§2.6 硬规则 a）"
 HZ_ON=$(timeout 6 rostopic hz /cmd_vel 2>/dev/null | grep -oE 'average rate: [0-9.]+' | tail -1 | awk '{print $3}')
 note "C-2 kill 前 /cmd_vel 平均速率＝${HZ_ON:-不可测}（mux 恒 20Hz）"
-[ -n "$MUX_PID" ] && kill "$MUX_PID" 2>/dev/null
+# C-2 的 kill 必须**可指认地**把 mux 从节点图里摘掉，否则「停发」这一面等于没测
+#   （20:19 首轮就是 pgrep 取空 ⇒ kill 空操作 ⇒ 测到 20.468Hz 被我读成「未停发」，属假红）。
+rosnode kill /safe_cmd_vel_mux >/dev/null 2>&1
+[ -n "$MUX_PID" ] && kill -0 "$MUX_PID" 2>/dev/null && kill "$MUX_PID" 2>/dev/null
 sleep 3
+NOTE_AFTER=$(rosnode list 2>/dev/null | grep -c '/safe_cmd_vel_mux')
+note "C-2 kill 后 mux 节点在位=$NOTE_AFTER（须 0，否则本面不作结论）"
 HZ_OFF=$(timeout 6 rostopic hz /cmd_vel 2>/dev/null | grep -c 'average rate')
 note "C-2 kill 后 6s 内速率行数＝$HZ_OFF（须 0 ⇒ /cmd_vel 停发；非 0 说明还有别的写者）"
 
@@ -132,7 +152,7 @@ case "$V" in
   INVALID\|*) RC3=9;;
   *) RC3=1;;
 esac
-if [ "$RC3" = "0" ] && { [ "$C1" != "1" ] || [ "$C1O" != "1" ] || [ "$HZ_OFF" != "0" ]; }; then
+if [ "$RC3" = "0" ] && { [ "$C1" != "1" ] || [ "$C1O" != "1" ] || [ "$NOTE_AFTER" != "0" ] || [ "$HZ_OFF" != "0" ]; }; then
   note "⇒ 判据③④⑤ 过但 C-1/C-2 不过 ⇒ mux 唯一写者／停发未证成 ⇒ 本件整体判 FAIL"
   RC3=1
 fi

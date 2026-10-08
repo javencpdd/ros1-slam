@@ -74,7 +74,10 @@ class Sim(object):
         self.pts = []
 
     def on_clock(self, m):
-        self.clock = m.secs + m.nsecs * 1e-9
+        # rosgraph_msgs/Clock 的载荷是 m.clock（Time），直接取 m.secs 会 AttributeError
+        #   ——20:19 首轮活体就是被这行打在 INVALID 上（占据图 True／odom True／clock False），
+        #   好处是 fail-closed 如实自报，没有把「探针读不到」混成「判据不过」。
+        self.clock = m.clock.secs + m.clock.nsecs * 1e-9
 
     def on_odom(self, m):
         p = m.pose.pose.position
@@ -124,6 +127,7 @@ def run_cycle(sim, occ_msg, idx):
         return c
     gx, gy, gr, gclear = g
     pub = rospy.Publisher("/scan_planner/goal", PoseStamped, queue_size=1)
+    time.sleep(1.5)          # publisher 建好即发＝连接还没建立，第一波必丢（ROS1 老坑，P2 就是这么防的）
     m = PoseStamped()
     m.header.frame_id = occ_msg.header.frame_id or "world"   # 与 P2 同口径：goal 帧取占据图 frame_id（实测 world），不硬写
     m.header.stamp = rospy.Time.now()
@@ -134,11 +138,23 @@ def run_cycle(sim, occ_msg, idx):
     sim.cmd_n = 0
     t0w = time.time()
     c0 = sim.clock
-    pub.publish(m)
+    for _ in range(3):        # 连发三次（P2 原文口径），单次 publish 在慢链接下不可靠
+        pub.publish(m)
+        time.sleep(0.4)
     rospy.loginfo("P3 run%d goal=(%.2f,%.2f) r=%.2f clear=%.2f", idx, gx, gy, gr, gclear)
     # 超时**只按仿真时间判**（判据④ 的 dt 是 sim 口径）；墙钟只作不可动运动的兜底。
     #   首版把墙钟兜底写成 DT_MAX+60 秒＝180s，而本平台 RTF≈0.28 ⇒ 120s sim 要 ~430s 墙钟，
     #   等于「判据还没到门就被判死」——低 RTF 平台下的第三型假红（坑32／O-5 同族），故分开两级。
+    # goal 投递阳性对照：到达观测件只在收到 goal 后才发 arrival_dist ⇒ dist 有值即「goal 真被消费」。
+    #   没有这一条，FSM 收不到 goal 会被判成「判据④超时未达」（20:25 那次活体的 FAIL 就是这个成因，
+    #   scan.log 全程 "wait for goal."），即「跑不动」冒充「跑不过」——坑29／R40 那一族。
+    t_send = time.time()
+    while time.time() - t_send < 25.0 and sim.dist is None:
+        rospy.sleep(0.2)
+    if sim.dist is None:
+        c["fail"].append("goal 未被消费（发 /scan_planner/goal 后 25s 内到达观测件无 arrival_dist 读数 ⇒ 投递面失效，不判被试）")
+        c["invalid"] = True
+        return c
     SIM_WAIT = DT_MAX + 15.0
     WALL_CAP = float(os.environ.get("P3_WALL_CAP", "900"))
     seen_cmd = False
@@ -216,14 +232,14 @@ def main():
     for i in range(1, RUNS + 1):
         r = run_cycle(sim, occ["msg"], i)
         rows.append(r)
-        print(json.dumps(r, ensure_ascii=False))
+        print(json.dumps(r, ensure_ascii=False), flush=True)
         if r.get("invalid"):
-            print("P3 判据③ 结论 = INVALID|%s（第 %d 跑前置未成立，不判被试、不占连击）" % (";".join(r["fail"]), i))
+            print("P3 判据③ 结论 = INVALID|%s（第 %d 跑前置未成立，不判被试、不占连击）" % (";".join(r["fail"]), i), flush=True)
             return 9
         if r["fail"]:
-            print("P3 判据③ 结论 = FAIL|%s（第 %d 跑，红线＝三连任一未过即停）" % (";".join(r["fail"]), i))
+            print("P3 判据③ 结论 = FAIL|%s（第 %d 跑，红线＝三连任一未过即停）" % (";".join(r["fail"]), i), flush=True)
             return 1
-    print("P3 判据③ 结论 = PASS|全部 %d 跑到达实体置位、终点偏差≤%.2fm、dt(sim)≤%.0fs" % (RUNS, DEV_MAX, DT_MAX))
+    print("P3 判据③ 结论 = PASS|全部 %d 跑到达实体置位、终点偏差≤%.2fm、dt(sim)≤%.0fs" % (RUNS, DEV_MAX, DT_MAX), flush=True)
     return 0
 
 
