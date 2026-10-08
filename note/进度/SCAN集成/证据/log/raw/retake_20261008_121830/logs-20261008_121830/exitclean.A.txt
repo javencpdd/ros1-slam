@@ -1,0 +1,10 @@
+# 退净核验 @2026-10-08 12:22:33  stage=stageA seg=A
+-- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+ 328580 ros1-sl+       1 Tue Oct  6 19:51:44 2026 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+2597622 ysc            1 Thu Oct  8 12:18:28 2026 /bin/bash -lc cd /home/ros1-slam && mkdir -p /tmp/rt_b1b2 && setsid nohup env OUT=/tmp/rt_b1b2 EXPECT_RC="0 0 0 0 0" bash ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh > /tmp/rt_b1b2/driver.log 2>&1 < /dev/null & disown; sleep 20; echo "=== 起跑确认 ==="; pgrep -af 'retake_driver|m2_smoke|roslaunch' | grep -v pgrep | cut -c1-110 | head -5; echo "--- driver.log ---"; head -20 /tmp/rt_b1b2/driver.log | cut -c1-140
+-- 监听端口分查（计数面）--
+  port 11311 TCP=0 UDP=0
+  port 11312 TCP=0 UDP=0
+  port 11313 TCP=0 UDP=0
+  port 11345 TCP=0 UDP=0
+-- 监听端口分查（身份三元组面，R26 二）--

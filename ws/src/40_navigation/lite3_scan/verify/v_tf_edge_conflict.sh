@@ -87,6 +87,62 @@ else
   mark 0 "C4 壳包 relay 件不在位（$RELAY_SIM）⇒ 批2 前置件缺失"
 fi
 
+# ---- C6 关节面（R42 三，小张裁定扩面）：xacro／urdf 的 fixed 关节同样能造双父 ----
+# 为何必须扩：M2R4/U1 那一次 base_link 双父的成因就不是 launch 静态边，而是 xacro 里的 fixed 关节
+#   torso_to_base（parent=TORSO／child=base_link）与插件动态边争同一子帧；而本件 C1–C4 只扫 launch 的
+#   static_transform_publisher ⇒ 对关节面是盲区。关节块常跨行，故按整元素匹配（同坑29 的教训）。
+JOUT=$(mktemp /tmp/tf_joints.XXXXXX)
+python3 - > "$JOUT" <<'PYJ'
+import os, re
+joint = re.compile(r"<joint\b[^>]*>.*?</joint>", re.S)
+files = []
+for dp, dn, fn in os.walk("ws/src"):
+    if "/build/" in dp or "/devel/" in dp:
+        continue
+    for f in fn:
+        if f.endswith(".xacro") or f.endswith(".urdf"):
+            files.append(os.path.join(dp, f))
+tot = 0
+kids = []
+anchor = "-"
+for p in sorted(files):
+    try:
+        txt = open(p, encoding="utf-8", errors="ignore").read()
+    except Exception:
+        continue
+    for m in joint.finditer(txt):
+        blk = m.group(0)
+        tot += 1
+        ln = txt[:m.start()].count("\n") + 1
+        nm = re.search(r'name="([^"]+)"', blk)
+        ch = re.search(r'<child\s+link="([^"]+)"', blk)
+        pa = re.search(r'<parent\s+link="([^"]+)"', blk)
+        if ch and ch.group(1) == "base_link":
+            kids.append("%s:%d parent=%s" % (p, ln, pa.group(1) if pa else "-"))
+        if nm and nm.group(1) == "base_to_torso":
+            anchor = "%s:%d child=%s parent=%s" % (p, ln, ch.group(1) if ch else "-", pa.group(1) if pa else "-")
+print("FILES=%d" % len(files))
+print("JOINTS=%d" % tot)
+print("ANCHOR=%s" % anchor)
+print("KIDS=%d" % len(kids))
+for k in kids:
+    print("KID=%s" % k)
+PYJ
+jf() { grep -m1 "^$1=" "$JOUT" | cut -d= -f2-; }
+echo "-- 关节面扫描：文件 $(jf FILES) 个、关节块 $(jf JOINTS) 个，以 base_link 为子者的命中 $(jf KIDS) 条"
+grep '^KID=' "$JOUT" | sed 's/^KID=/  [命中] /'
+if [ "$(jf ANCHOR)" != "-" ] && printf '%s' "$(jf ANCHOR)" | grep -q 'child=TORSO'; then
+  mark 1 "C6a 关节面阳性对照：认出 base_to_torso（$(jf ANCHOR)）⇒ 扫描器对跨行 joint 块有分辨力（U1 修正在位的原件证据）"
+else
+  mark 0 "C6a 关节面阳性对照不过：未认出 base_to_torso／child=TORSO ⇒ 关节面所有零命中结论作废（坑29 同型）"
+fi
+if [ "$(jf KIDS)" = "0" ] && [ "$(jf JOINTS)" -ge 1 ]; then
+  mark 1 "C6b 关节面单父不变式：全仓 $(jf JOINTS) 个关节块中，以 base_link 为 child 的命中 0 条 ⇒ 双父无来源（扩面依据见小张 R42 三）"
+else
+  mark 0 "C6b 关节面出现以 base_link 为 child 的关节 $(jf KIDS) 条 ⇒ 与驱动插件 odom→base_link 争同一子帧，判 TF 结构回归（不走 INVALID）"
+fi
+rm -f "$JOUT"
+
 # ---- C5 30_3rd 基线双条件未被触动（动 30_perception 侧不得波及 30_3rd）----
 _BASE="$ROOT/note/进度/SCAN集成/证据/scan_src_baseline_49.sha256"
 _ok=$(cd ws/src/30_3rd && sha256sum -c "$_BASE" 2>&1 | grep -vc ": OK$")

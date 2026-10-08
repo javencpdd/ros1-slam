@@ -1,0 +1,30 @@
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 46.695000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 46.695000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 55.557000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 55.557000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.6s
+SMOKE gate_lcostmap_data=PASS t=0.7s
+SMOKE gate_tf_fresh=PASS t=1.3s ages=[0.023,0.058,0.042]
+SMOKE gate_tf_fresh_mapodom=PASS t=1.9s ages=[0.079,0.062,0.003]
+SMOKE SIMNOW point=age_sample_1 sim_now=22.65s gate_t=1.9s
+SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.01s wall_spent=139.4s t_raw=1.9s t_adj=1.9s
+SMOKE gate_tf_fresh_late=PASS t=2.5s ages=[0.009,0.066,0.008]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.1s ages=[0.073,0.022,0.051]
+SMOKE SIMNOW point=age_sample_2 sim_now=62.36s gate_t=3.1s sim_span_vs_point1=39.70s
+SMOKE gate_press_late=PASS branch=abs+span (reached=True sim2=62.36 span=39.70 判据=(sim2>=60 且 span>=35) 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.017,0.001,0.001]
+SMOKE E3 tf odom->base_link hits=30 last_stamp=63.140 age=0.020
+SMOKE E3 base_link_parents=['odom'] transforms_total=36
+SMOKE E3 static base_link->rslidar stamp=0.022
+SMOKE E3 static base_link->TORSO stamp=0.022
+SMOKE gate=PASS t=5.7s
+SMOKE SIMNOW point=goal_send sim_now=63.16s
+SMOKE SIMNOW point=goal_done sim_now=71.56s dt=8.40
+SMOKE teb_state=3 dt=8.4s dev_odom=0.183 dev_gt=0.183

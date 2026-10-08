@@ -39,3 +39,30 @@
 
 在册工单 #29 与前一轮台账里 FD-I 的口径是「死件，待处置／不删不改」。本节把处置定形为「保留＋缺省解除＋互斥注记＋静态检查件」，
 以本节为准；旧句按纪律不回改。｜小张裁定、主理人执行、小明落件，2026-10-08
+
+## 五、R42 承接（小美 M2R8 三条，小张定文、小明落件，2026-10-08 12:47）
+
+**（一）件头注的自指锚（已落件）**：HMM 注记块原先写「本件 L64 的 base2urdf」——但我自己加的注记把那行推到了下方，
+行号随之失真（她第 23 条核出）。现改为**以 name=base2urdf 作自指锚**并在注记里写明「用 name 定位而非行号，
+因注记块自身会把行号推走」。这不属判据面变更，属注释实体的名实相符修正。
+
+**（二）G8 前置检查表新增项的文字（小张定稿，抄入时不得改写语义）**：
+
+> G8 开工前置第 N 项（TF 结构面）：在隔离域三步环境下跑
+> ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh，要求 VERDICT 7/7 PASS 且 rc=0；
+> 其中关节面两项为真机侧新增——C6a 必须认出 base_to_torso 的 child=TORSO（扫描器分辨力的阳性对照），
+> C6b 要求全仓 xacro／urdf 中以 base_link 为 child 的关节块命中 0 条。
+> 另核：deeprobotics_local_height_map/launch/height_map_mini.launch 的 enable_urdf 缺省仍为 false；
+> 若真机侧确需该 urdf 可视化（传 enable_urdf:=true），则**不得与 30_3rd lio_relay 同窗**，
+> 同窗即 base_link 双父＋TF 成环，属结构回归而非环境问题。
+> 升阻断条件（原文不变）：任一在册或在跑窗实测 base_link 出现双父，或 /tf_static 同窗共存
+> base_link→body 与 body→base_link 两条边 ⇒ 停手上报、判 TF 结构回归，不走 INVALID 通道。
+
+**（三）扫描面扩到关节（裁定＝扩，已落件）**：她给的事实我复核为真——M2R4/U1 那一次双父的成因不是 launch 静态边，
+而是 xacro 的 fixed 关节 torso_to_base（parent=TORSO／child=base_link）与插件动态边争同一子帧；而本防线 C1–C4
+只扫 launch 的 static_transform_publisher ⇒ 关节面是**结构性盲区**，正是「U1 的病因复发却查不到」那一型。
+扩面实现为 C6a／C6b 两条（v_tf_edge_conflict.sh），要点三条：①关节块跨行是常态，故按整元素匹配（同坑29 的教训，
+逐行扫会静默漏）；②**先阳性对照**（必须认出 base_to_torso 的 child=TORSO）再谈零命中，否则「34 个关节块命中 0」
+这类句子在空扫描面上也成立；③沙箱现况实测＝文件 3 个、关节块 34 个、以 base_link 为 child 的命中 0 条
+（⇒ 单父不变式当前成立，且这一条同时是 U1 修正仍在位的原件证据，不必再靠登记句反推）。
+判据未扩任何门值：C6 是**结构断言**（子帧归属唯一性），与新鲜度／漂移阈值无关，故不触发她 R-FD-5 的改门程序。｜小张定文、小明落件
