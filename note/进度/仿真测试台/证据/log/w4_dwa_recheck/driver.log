@@ -1,0 +1,68 @@
+### 一、mbf 是否真把 DWA 装进控制器表（加载判据，零节点侧改动）
+  /clock 就绪 t=10s
+  等待 28s；DWA 命中=1 teb 命中=1（loaded 总累计=5，含 planners/recovery）
+  控制器注册表: 
+  （注：root-inertia WARN 现指 base_link，小张 M2R5 风险①预测成立；已 grep 全仓无脚本消费该串）
+### 二、DWA 第 1 跑（三连判据）
+    RECHK run=dwa1 controller=DWAPlannerROS start=(0.000,0.000) goal=(3.000,0.000)
+    RECHK gate_map_data=PASS t=0.0s
+    RECHK gate_gcostmap_data=PASS t=0.4s
+    RECHK gate_lcostmap_data=PASS t=0.4s
+    RECHK gate_tf_fresh_mapbase=PASS t=1.0s
+    RECHK pose_age_map_base_link=0.070s stamp=12.300 sim_now=12.467
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=61
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=12.2s(sim) dt_wall=48.5s dev_odom=0.081 dev_gt=0.084 rtf=0.252 smooth_rms=0.0756 cmd_n=122
+    RECHK VERDICT PASS state=3 outcome=0 dt_ok=True dev_ok=True rtf_ok=True
+  rc=0 ；mbf 日志内 pose 类命中累计=0
+  [PASS] dwa 第 1 跑
+### 二、DWA 第 2 跑（三连判据）
+    RECHK run=dwa2 controller=DWAPlannerROS start=(3.139,-0.011) goal=(6.139,-0.011)
+    RECHK gate_map_data=PASS t=0.0s
+    RECHK gate_gcostmap_data=PASS t=0.2s
+    RECHK gate_lcostmap_data=PASS t=0.3s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.9s
+    RECHK pose_age_map_base_link=0.060s stamp=27.100 sim_now=27.194
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=60
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=12.8s(sim) dt_wall=50.6s dev_odom=0.091 dev_gt=0.091 rtf=0.253 smooth_rms=0.1194 cmd_n=128
+    RECHK VERDICT PASS state=3 outcome=0 dt_ok=True dev_ok=True rtf_ok=True
+  rc=0 ；mbf 日志内 pose 类命中累计=0
+  [PASS] dwa 第 2 跑
+### 二、DWA 第 3 跑（三连判据）
+    RECHK run=dwa3 controller=DWAPlannerROS start=(6.055,0.025) goal=(9.055,0.025)
+    RECHK gate_map_data=PASS t=0.1s
+    RECHK gate_gcostmap_data=PASS t=0.3s
+    RECHK gate_lcostmap_data=PASS t=0.3s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.9s
+    RECHK pose_age_map_base_link=0.008s stamp=42.300 sim_now=42.356
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=62
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=12.9s(sim) dt_wall=47.8s dev_odom=0.083 dev_gt=0.083 rtf=0.270 smooth_rms=0.0658 cmd_n=129
+    RECHK VERDICT PASS state=3 outcome=0 dt_ok=True dev_ok=True rtf_ok=True
+  rc=0 ；mbf 日志内 pose 类命中累计=0
+  [PASS] dwa 第 3 跑
+### 三、同场 teb 对照（证 harness 本身没坏）
+    RECHK run=teb_ctrl controller=TebLocalPlannerROS start=(8.973,0.007) goal=(11.973,0.007)
+    RECHK gate_map_data=PASS t=0.1s
+    RECHK gate_gcostmap_data=PASS t=0.2s
+    RECHK gate_lcostmap_data=PASS t=0.3s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.9s
+    RECHK pose_age_map_base_link=0.071s stamp=57.500 sim_now=57.627
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=62
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=9.2s(sim) dt_wall=34.6s dev_odom=0.170 dev_gt=0.170 rtf=0.265 smooth_rms=0.0265 cmd_n=91
+    RECHK VERDICT PASS state=3 outcome=0 dt_ok=True dev_ok=True rtf_ok=True
+  [PASS] teb 对照
+### 汇总 DWA PASS=3 FAIL=0 /3；teb 对照 rc=0
+DWA RECHECK VERDICT: PASS（DWA 已可用）
+[exitclean] # 退净核验 @2026-10-08 08:57:13
+[exitclean] -- 命中进程原样 ps 行 --
+[exitclean] 328580 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+[exitclean] 1373109 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ysc/.ros/log/fad24fb4-c291-11f1-a90d-3c6d66f8d2d8/rosout-1.log
+[exitclean] 1987501 bash ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh 3
+[exitclean] -- 端口 TCP/UDP 分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0

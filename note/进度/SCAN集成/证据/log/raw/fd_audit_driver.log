@@ -1,0 +1,44 @@
+##### 态一：仅 m2_gazebo（stageB 拓扑，无 faster_lio） 08:40:47 #####
+  /Odometry 出现=30s
+    Type: nav_msgs/Odometry
+    
+    Publishers: 
+     * /gazebo (http://lite:46517/)
+    
+    Subscribers: None
+    
+    
+    AUDIT tag=no_lio 不同(frame,child) 组合数=1
+    AUDIT tag=no_lio src=odom->base_link n=117 stamp_first=2.660 stamp_last=4.980 x=[0.000,0.000] y=[0.000,0.000]
+    AUDIT tag=no_lio gt_model_states=(0.000,0.000)
+    AUDIT tag=no_lio dev(odom->base_link vs gt)=(0.000,-0.000) |d|=0.000
+    AUDIT tag=no_lio VERDICT=SINGLE_WRITER
+      stamp: 
+      frame_id: "odom"
+    child_frame_id: "base_link"
+      stamp: 
+      frame_id: "odom"
+    child_frame_id: "base_link"
+##### 态二：加 m2_mapping（stageA 拓扑，起 faster_lio） 08:42:03 #####
+  /cloud_registered 出现=3s
+    Type: nav_msgs/Odometry
+    
+    Publishers: 
+     * /gazebo (http://lite:46517/)
+     * /faster_lio_online (http://lite:41633/)
+    
+    Subscribers: None
+    
+    
+    AUDIT tag=with_lio 不同(frame,child) 组合数=2
+    AUDIT tag=with_lio src=camera_init->body n=18 stamp_first=15.508 stamp_last=17.647 x=[0.007,0.020] y=[0.022,0.028]
+    AUDIT tag=with_lio src=odom->base_link n=109 stamp_first=15.620 stamp_last=17.780 x=[0.000,0.000] y=[0.000,0.000]
+    AUDIT tag=with_lio gt_model_states=(0.000,0.000)
+    AUDIT tag=with_lio dev(camera_init->body vs gt)=(0.009,0.028) |d|=0.029
+    AUDIT tag=with_lio dev(odom->base_link vs gt)=(0.000,-0.000) |d|=0.000
+    AUDIT tag=with_lio VERDICT=DOUBLE_WRITER（/Odometry 双流交织，判据位姿源不可归因）
+  faster_lio 是否在发：rosnode info 摘录
+    Publications: 
+     * /Odometry [nav_msgs/Odometry]
+FD_AUDIT_DONE 08:42:47
+  teardown 残留:[1963364 /bin/bash -lc sleep 60; pgrep -af "fd_audit|m2_gazebo|gzserver" | head -3; cat /tmp/fd_out/driver.log 2>/dev/null | grep -vE "^\s+1[0-9]{5}" | tail -20 ]

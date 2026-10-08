@@ -1,0 +1,7 @@
+AUDIT tag=with_lio 不同(frame,child) 组合数=2
+AUDIT tag=with_lio src=camera_init->body n=18 stamp_first=15.508 stamp_last=17.647 x=[0.007,0.020] y=[0.022,0.028]
+AUDIT tag=with_lio src=odom->base_link n=109 stamp_first=15.620 stamp_last=17.780 x=[0.000,0.000] y=[0.000,0.000]
+AUDIT tag=with_lio gt_model_states=(0.000,0.000)
+AUDIT tag=with_lio dev(camera_init->body vs gt)=(0.009,0.028) |d|=0.029
+AUDIT tag=with_lio dev(odom->base_link vs gt)=(0.000,-0.000) |d|=0.000
+AUDIT tag=with_lio VERDICT=DOUBLE_WRITER（/Odometry 双流交织，判据位姿源不可归因）
