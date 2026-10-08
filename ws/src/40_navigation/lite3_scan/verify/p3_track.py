@@ -94,6 +94,26 @@ class Sim(object):
         self.cmd_n += 1
 
 
+def los_free(tree, a, b, step=0.5, clearance=FREE_CLEAR):
+    """起点到 goal 的连线每 step 米查一次最近占据距离，全部 ≥clearance 才算「沿途自由」。
+
+    为何要有这条（2026-10-08 20:46 第三跑实测出来的）：只查 goal 自身离占据 ≥0.4m 时，goal 可能落在
+    **滑窗未知区**（占据图只覆盖约 9m 见方），上游 A* 直接 "a star error, force return!"、
+    first_optimize_step_success=0 ⇒ 无轨迹 ⇒ cmd 恒零 ⇒ 机器人不动。那不是 P3 要测的东西
+    （P3 测闭环跟踪，不测未知区规划），却会把判据⑤ 的三连打成 FAIL。
+    这是**取证件的目标选取口径**，不动 0.35m／120s／三连任何门值。
+    """
+    import numpy as _np
+    a = _np.asarray(a, dtype=float)
+    b = _np.asarray(b, dtype=float)
+    n = max(2, int(_np.linalg.norm(b - a) / step) + 1)
+    for t in _np.linspace(0.0, 1.0, n):
+        p = a + (b - a) * t
+        if tree.query(p)[0] < clearance:
+            return False
+    return True
+
+
 def pick_goal(tree, occ, odom, idx=1):
     # 逐跑换 seed：同一 seed 三连会挑到同一个 goal（"三连"退化成同任务重放三次），
     #   这里让每跑必不同（可复现：seed=P3_SEED*1000+跑序），要同 goal 复现由调用方显式改回。
@@ -103,7 +123,7 @@ def pick_goal(tree, occ, odom, idx=1):
         r = rng.uniform(GOAL_MIN, GOAL_MAX)
         gx, gy = odom[0] + r * math.cos(th), odom[1] + r * math.sin(th)
         d, _i = tree.query([gx, gy])
-        if d >= FREE_CLEAR:
+        if d >= FREE_CLEAR and los_free(tree, odom, (gx, gy)):
             return gx, gy, r, float(d)
     return None
 
@@ -120,9 +140,10 @@ def run_cycle(sim, occ_msg, idx):
         c["fail"].append("odom 未就绪（前置未成立）")
         c["invalid"] = True
         return c
-    g = pick_goal(cKDTree(pts), pts, odom0, idx)
+    tree = cKDTree(pts)
+    g = pick_goal(tree, pts, odom0, idx)
     if g is None:
-        c["fail"].append("400 次采样内找不到自由 goal（前置未成立）")
+        c["fail"].append("400 次采样内找不到「goal 自身与沿途皆自由」的候选（前置未成立：滑窗未知区过大）")
         c["invalid"] = True
         return c
     gx, gy, gr, gclear = g

@@ -124,6 +124,7 @@ note "p3 python rc=$RC"
 cat "$RUN/p3.json" | tee -a "$LOG"
 [ -s "$RUN/p3.err" ] && { note "stderr 尾:"; tail -6 "$RUN/p3.err" | tee -a "$LOG"; }
 V=$(grep -oE 'P3 判据③ 结论 = [A-Z]+\|.*' "$RUN/p3.json" | tail -1)
+VS=${V#*= }   # case 要比的是「PASS|…」这一段；20:53 那次没剥前缀 ⇒ 判据行明明 PASS 却被打成 rc=1（我方假红）
 [ -z "$V" ] && { echo "P3 判据③ 结论 = INVALID|结论行不可指认（rc=$RC 但无结论行 ⇒ 不采信）"; exit 9; }
 note "结论行：$V"
 
@@ -147,11 +148,13 @@ say "== [8] 退净与红线 =="
 [ -s "$RUN/pcd_before.sha" ] && [ -s "$RUN/pcd_after.sha" ] && note "样张 sha 起前＝退后：$( [ "$(cut -d' ' -f1 "$RUN/pcd_before.sha")" = "$(cd "$RUN" && sha256sum /home/ros1-slam/data/maps/lite3.pcd | cut -d' ' -f1)" ] && echo 是 || echo 否 )"
 note "teardown 后的监听与残留见 trap 段"
 
-case "$V" in
+case "$VS" in
   PASS\|*) RC3=0;;
   INVALID\|*) RC3=9;;
-  *) RC3=1;;
+  FAIL\|*) RC3=1;;
+  *) note "⇒ 判据态既非 PASS/INVALID/FAIL ⇒ 不可指认，按前置不成立处理"; RC3=9;;
 esac
+note "分档自证：VS 首段=${VS%%|*} ⇒ RC3=$RC3（判据行与末判必须同向，历史上这条曾因为没剥前缀把 PASS 判成 1）"
 if [ "$RC3" = "0" ] && { [ "$C1" != "1" ] || [ "$C1O" != "1" ] || [ "$NOTE_AFTER" != "0" ] || [ "$HZ_OFF" != "0" ]; }; then
   note "⇒ 判据③④⑤ 过但 C-1/C-2 不过 ⇒ mux 唯一写者／停发未证成 ⇒ 本件整体判 FAIL"
   RC3=1
