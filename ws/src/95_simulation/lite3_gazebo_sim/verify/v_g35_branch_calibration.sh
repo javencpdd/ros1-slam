@@ -20,6 +20,8 @@ set -u
 ROOT=/home/ros1-slam
 SELF=$(readlink -f "$0")
 LIVE_SM=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+# 第二份定义（加压档辅门的纯函数版，为 H15 接线预备）：路径由 shell 传入，python 侧不重复硬编码
+PG=${G35_PGATE:-$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_press_gate.py}
 SM=${G35_SM:-$LIVE_SM}     # 只有 --negctl 的自证会覆写它（缺省恒为现役件；生效性由阴性对照本身来证）
 
 if [ "${1:-}" = "--negctl" ]; then
@@ -44,9 +46,10 @@ if [ "${1:-}" = "--negctl" ]; then
 fi
 echo "=== 辅门 35 零节点标定（SM sha=$(sha256sum "$SM" | cut -c1-12)）==="
 
-python3 - "$SM" <<'PYEOF'
+python3 - "$SM" "$PG" <<'PYEOF'
 import re, sys
 sm = open(sys.argv[1], encoding='utf-8').read()
+PG_PATH = sys.argv[2]
 
 def paren_expr(text, start):
     """从 start 起找第一个 '('，返回**配对括号**内的完整表达式；收不拢返回 None。"""
@@ -160,9 +163,50 @@ print("--- T5 同源锚（抽取式必须与在册回显行同处一段，防「
 chk("T5 抽取段确为回显行所在那一段（窗口收口生效）", True,
     ("branch=%s" in win) and ("('unreached'" in win) and ("_b_abs =" in win))
 
+print("--- T6 双定义逐格同值（H15 接线落地前的防漂移闸）---")
+# 现状：同一判据有**两处在册定义**——SM 的内联式（H14 现役、活体真正走的那份）与 m2_press_gate.press_gate()
+#   （纯函数版，其件头自记「SM 接线到本件后此表才算活体同一份式子」⇒ 接线前两者可各自漂移而各自的表都绿）。
+#   G35 的 T1～T5 只核 SM 那一处、m2_press_gate 的 11 组只核它自己一处 ⇒ 补这组逐格差分，把「两处同值」变成断言而不是期望。
+import importlib.util, os, tempfile
+def load_pg(path, tag):
+    spec = importlib.util.spec_from_file_location("m2_press_gate_%s" % tag, path)
+    m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m
+if not os.path.exists(PG_PATH):
+    chk("T6 第二份定义在位", True, False); print("    [读数] 找不到 %s" % PG_PATH)
+else:
+    import hashlib
+    print("    两处定义：SM=%s（sha %s）｜%s（sha %s）" % (
+        os.path.basename(sys.argv[1]), hashlib.sha256(sm.encode()).hexdigest()[:12],
+        os.path.basename(PG_PATH), hashlib.sha256(open(PG_PATH,'rb').read()).hexdigest()[:12]))
+    GRID = [(r, s2, sp) for r in (True, False)
+            for s2 in (20.0, 59.9, 60.0, 61.0, 62.0, 99.0)
+            for sp in (10.0, 34.9, 35.0, 36.0, 39.9, 40.0, 41.0)]
+    def diff(mod):
+        bad = []
+        for r, s2, sp in GRID:
+            b1, o1 = judge(r, s2, sp)          # SM 抽出来的式子（branch, ok）
+            o2, b2 = mod.press_gate(r, s2, sp)  # 纯函数版（ok, branch）
+            if (o1, b1) != (o2, b2): bad.append((r, s2, sp, (o1, b1), (o2, b2)))
+        return bad
+    mism = diff(load_pg(PG_PATH, "real"))
+    chk("T6 逐格同值（%d 格）不一致=0" % len(GRID), 0, len(mism))
+    for m in mism[:4]: print("      不一致格 reached=%s sim2=%.1f span=%.2f｜SM=%s 纯函数=%s" % (m[0], m[1], m[2], m[3], m[4]))
+    # T6b 阴性对照：把纯函数版的辅门 35.0 改成 30.0（只在临时副本上，不回写任何在册件）⇒ T6 必须报不一致
+    src = open(PG_PATH, encoding='utf-8').read()
+    mut = src.replace("TOL_SUB_SPAN = 35.0", "TOL_SUB_SPAN = 30.0")
+    if mut == src:
+        chk("T6b 改写生效（找到辅门行）", True, False)
+    else:
+        tfd = tempfile.mkdtemp(prefix="g35_t6b_")
+        tp = os.path.join(tfd, "pg_mut.py"); open(tp, "w", encoding='utf-8').write(mut)
+        mism2 = diff(load_pg(tp, "mut"))
+        chk("T6b 辅门改一档后必须报不一致（本组=%d 格）" % len(mism2), True, len(mism2) > 0)
+        print("      不一致样例：reached=%s sim2=%.1f span=%.2f｜SM=%s 改后=%s" % tuple(mism2[0]) if mism2 else "      （无）")
+        import shutil; shutil.rmtree(tfd, ignore_errors=True)
+
 print("==================================================")
 print("G35 CALIBRATION: PASS=%d FAIL=%d / %d" % (CP, F, T))
-print("  覆盖面：四态对表（T1）／辅门翻转可指认（T2）／抠辅门必真红的阴性对照（T3）／门值字面在册（T4）／抽取式与回显行同源（T5）")
+print("  覆盖面：四态对表（T1）／辅门翻转可指认（T2）／抠辅门必真红的阴性对照（T3）／门值字面在册（T4）／抽取式与回显行同源（T5）／**双定义逐格同值与改档必红（T6／T6b）**")
 print("  活体那半（辅门在真跑里被非零态读过）仍留 R41 两条真反例，本件不冒充已验")
 sys.exit(0 if F == 0 else 5)
 PYEOF

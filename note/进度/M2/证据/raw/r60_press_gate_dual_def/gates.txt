@@ -1,0 +1,66 @@
+# 调用姿势自证：三步 env
+### G35（含新 T6／T6b）
+=== 辅门 35 零节点标定（SM sha=fa8e57359a17）===
+  抽取四面（逐字来自现役 SM，非本件自写）：
+    _b_abs    = (_sim2 >= 60.0 and _span >= 35.0)
+    _b_span   = (_span >= 40.0)
+    ok_press  = bool(_r) and (_b_abs or _b_span)
+    branch    = ('unreached' if not _r else ('abs+span' if _b_abs else ('span' if _b_span else 'NONE')))
+--- T1 四态对表（abs+span／span／NONE／unreached 必须各归各位）---
+[PASS] F1 sim2=61 span=36 → abs+span 且达标 ⇒ ('abs+span', True)
+[PASS] F2 sim2=61 span=34 → NONE 且达标 False（辅门咬合处） ⇒ ('NONE', False)
+[PASS] F3 sim2=50 span=41 → span 且达标 ⇒ ('span', True)
+[PASS] F4 sim2=50 span=20 → NONE 且达标 False ⇒ ('NONE', False)
+[PASS] F5 reached=False → unreached（一票否决，读数再高也不达标） ⇒ ('unreached', False)
+[PASS] F6 边界 sim2=60 span=35 → abs+span（>= 含等号） ⇒ ('abs+span', True)
+[PASS] F7 边界 sim2=59.99 span=34.99 → NONE ⇒ ('NONE', False)
+[PASS] F8 边界 sim2=59.99 span=40.0 → span（OR 另一支单独成立） ⇒ ('span', True)
+--- T2 辅门可指认：F1(36) 与 F2(34) 同 sim2，判定必须翻转（否则辅门不在链上）---
+[PASS] T2 同 sim2 下 span 跨 35 使 branch 与达标同时翻转 ⇒ True
+--- T3 阴性对照（抠掉 `and _span >= 35.0` 后重跑 F2 ⇒ 期望 abs+span/达标，即原表在此必红）---
+    改写后（仅供阴性对照，不写回任何件）：(_sim2 >= 60.0)
+[PASS] T3 抠辅门后 F2 翻成 abs+span 且达标（说明在册式里辅门确实在判） ⇒ ('abs+span', True)
+[PASS] T3 与正表同输入不同结论（分辨力自证） ⇒ True
+--- T4 门值字面在位（60.0／35.0／40.0 任一被改 ⇒ 本件先红，更表须由小美定档后做）---
+[PASS] T4 门值 60.0 在现役式子里 ⇒ True
+[PASS] T4 门值 35.0 在现役式子里 ⇒ True
+[PASS] T4 门值 40.0 在现役式子里 ⇒ True
+--- T5 同源锚（抽取式必须与在册回显行同处一段，防「我抽的是另一段」）---
+[PASS] T5 抽取段确为回显行所在那一段（窗口收口生效） ⇒ True
+--- T6 双定义逐格同值（H15 接线落地前的防漂移闸）---
+    两处定义：SM=m2_smoke.sh（sha fa8e57359a17）｜m2_press_gate.py（sha 790d502c410f）
+[PASS] T6 逐格同值（84 格）不一致=0 ⇒ 0
+[PASS] T6b 辅门改一档后必须报不一致（本组=4 格） ⇒ True
+      不一致样例：reached=True sim2=60.0 span=34.90｜SM=(False, 'NONE') 改后=(True, 'abs+span')
+==================================================
+G35 CALIBRATION: PASS=17 FAIL=0 / 17
+  覆盖面：四态对表（T1）／辅门翻转可指认（T2）／抠辅门必真红的阴性对照（T3）／门值字面在册（T4）／抽取式与回显行同源（T5）／**双定义逐格同值与改档必红（T6／T6b）**
+  活体那半（辅门在真跑里被非零态读过）仍留 R41 两条真反例，本件不冒充已验
+G35 rc=0
+G35 rc=0
+### G35 --negctl
+      [FAIL] T6 逐格同值（84 格）不一致=0 期望=0 实得=8
+NEGCTL VERDICT: 本件能真红 rc=0（辅门确在对表面前起作用，不是注释装饰）
+### m2_press_gate 自带表（第二份定义自己的对账）
+PRESS GATE: 用例 11 组，不符 0；其中期望 FAIL(NONE) 4 组、期望 unreached 2 组
+  辅门可分性结论：成立（反例一/二同时红 ⇒ 「环境慢起使 sim2 自然过 60」这类假达标确被挡住）
+  未闭项：活体真反例两条仍属 R41（三）；SM 接线到本件后，此表才算「活体走的同一份式子」。
+PG rc=0
+### SYN
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh
+  [OK] python 段 L50-L211 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh
+[OK] python ast ws/src/95_simulation/lite3_gazebo_sim/verify/m2_press_gate.py
+PY SYNTAX OK（被检件数=2，内嵌 python 段合计=1）
+SYN rc=0
+### STS
+EXITCLEAN SELFTEST: 用例 PASS=21 FAIL=0 / 21
+### B3
+B3 TIMEBASE VERDICT: PASS=7 FAIL=0 ｜ 时基已统一 ⇒ 批3 可结案（还须 5 连重新起算＋07 表加行）
+### GTC
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+GTC rc=0
+### ISO
+=== ISOLATION OK ===
+# self-attest: at=2026-10-09 05:43:46 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4551 rc=0
+ISO rc=0
