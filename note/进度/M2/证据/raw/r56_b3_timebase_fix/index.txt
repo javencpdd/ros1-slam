@@ -49,3 +49,9 @@ PLG 源码 sha a32e70ff… → **839fe93142bb…**（07 档注记即记这两值
   bash ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh        # 应 rc=0
   OUT=/tmp/rt bash ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh pre b archive   # stageB 五连
   OUT=/tmp/rt bash ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh pre a archive   # stageA（A0）
+
+## 7. 收尾共同门禁（提交 436069f 之后，gates_after_commit.txt，三步 env 调用姿势自证）
+SYN 3 件过｜B3 rc=0 与其 --posctl rc=0｜STS 21/21｜G35 15/15｜W3 PASS=23 FAIL=0 ABSENT=2｜PTS 15/15｜DWRS 5/5｜
+FDH 8P/0F/1ABSENT｜SLE 7/7｜TEC 7/7｜MUX 8/8｜**GTC PASS 且打「已由在册注记定格（PLG=839fe931，XAC=ef23da2d；载体仍 H14）」**｜ISO rc=0。
+提交后 `--negctl` 实跑新增一档：**R3 把注记 PLG 改一位 ⇒ 退回 `[WARN] …且注记不匹配（注记 PLG=839fe93f）`（rc 仍 0，WARN 非致命）**
+⇒ 这条"识别注记"的逻辑有咬合，不是恒绿；R1/R2（末行 SM/PLG 各改一位）仍判红 rc=5，R0 未改副本判绿。

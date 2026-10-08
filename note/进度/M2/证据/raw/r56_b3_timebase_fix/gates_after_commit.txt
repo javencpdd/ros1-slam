@@ -1,0 +1,42 @@
+# 收尾共同门禁（提交 436069f 之后；三步 env 调用姿势自证）
+### SYN
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh
+  [OK] python 段 L48-L111 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh
+[OK] bash -n   scripts/verify/v_harness_generation_table.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 141 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p3_triple.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 283 行，非默认绿）
+PY SYNTAX OK（被检件数=3，内嵌 python 段合计=1）
+SYN rc=0
+### B3
+    代际现值 SM/LIB 见 scripts/verify/v_harness_generation_table.sh --check；只改本插件**不产生新代际行**（代际轴＝SM∪LIB 提交数），故须在 07 档落一条「被测件面注记」把新 PLG 定格，否则引用会歧义。
+B3 rc=0
+### B3-POSCTL
+改写处数不是 2 ⇒ 对照空转，判 9
+### STS
+EXITCLEAN SELFTEST: 用例 PASS=21 FAIL=0 / 21
+### G35
+G35 CALIBRATION: PASS=15 FAIL=0 / 15
+### W3
+W3 CONTRACT VERDICT: PASS=23 FAIL=0 ABSENT=2（ABSENT 不计通过）
+### PTS
+PTS 自测 VERDICT: PASS=15/15 FAIL=0
+SELFTEST VERDICT: rc=0
+### DWRS
+DWRS VERDICT: PASS=5 FAIL=0
+### FDH
+FDH VERDICT: PASS=8 FAIL=0 ABSENT=1（活体面按设计未跑，不计入通过数）
+### SLE
+SLE VERDICT: PASS=7 FAIL=0
+### TEC
+TF EDGE CONFLICT VERDICT: PASS=7 FAIL=0
+### MUX
+MUX SOURCES VERDICT: PASS=8 FAIL=0
+### GTC
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+GTC rc=0
+### ISO
+=== ISOLATION OK ===
+# self-attest: at=2026-10-09 04:05:30 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4550 rc=0
+ISO rc=0
