@@ -20,7 +20,7 @@
 #     也不入连击；阈值 4 是施工侧取的操作数，验收若认为该由读数而不是 loadavg 决定，可直接改本行不动判据面。
 # 退出码：0 全绿；4 A0 三次皆 INVALID（算力面停手，非判据失败）；5 判据 FAIL（被测件面，停手上报）；10 证据未收口；
 #         6 批次覆盖不足（无加压达标跑，R20三）；7 负载预检不过且未 FORCE；8 期望 rc 不符或计数不自洽（R27二/四）；
-#         9 前置件缺失（门禁/归档/基线面）。
+#         9 前置件缺失（门禁/归档/基线面，含「清单不在位」与「结论行不可指认」两类）。
 set +u
 unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION
 source /opt/ros/noetic/setup.bash
@@ -123,8 +123,12 @@ sec_scan() {
   bash "$ROOT/ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh" > "$OUT/p1.log" 2>&1; rc1=$?
   bash "$ROOT/ws/src/40_navigation/lite3_scan/verify/v_scan_p2.sh" > "$OUT/p2.log" 2>&1; rc2=$?
   log "  p1 rc=$rc1 p2 rc=$rc2"
-  grep -E '^\[(PASS|FAIL)\]|VERDICT' "$OUT/p1.log" | tail -6 | sed 's/^/    /'
-  grep -E '^\[(PASS|FAIL)\]|VERDICT|endpoint_err' "$OUT/p2.log" | tail -6 | sed 's/^/    /'
+  # 回显口径修正：P1/P2 的结论行不是行首 [PASS] 而是「P1 判据① 结论 = PASS」「判定: PASS|全部 7 项通过」，
+  #   旧 grep 匹配不到 ⇒ 驱动的关键读数回显长期空着（不是件在假绿，是我这层看不见；两者都必须纠）。
+  grep -E 'P1 判据① 结论|P2 判据② 结论|判定:|endpoint_err|react_s|残留进程|监听' "$OUT/p1.log" | tail -5 | sed 's/^/    p1| /'
+  grep -E 'P1 判据① 结论|P2 判据② 结论|判定:|endpoint_err|react_s' "$OUT/p2.log" | tail -5 | sed 's/^/    p2| /'
+  grep -qE 'P1 判据① 结论 = PASS' "$OUT/p1.log" || { log "  [停手] p1.log 里没有可指认的结论行 ⇒ 不采信 rc=$rc1（R44 新查得：rc 必须与结论行成对可核）"; return 9; }
+  grep -qE 'P2 判据② 结论 = PASS' "$OUT/p2.log" || { log "  [停手] p2.log 里没有可指认的结论行 ⇒ 不采信 rc=$rc2"; return 9; }
   [ "$rc1" = "0" ] && [ "$rc2" = "0" ] && return 0
   return 5
 }
@@ -132,8 +136,21 @@ sec_scan() {
 sec_gate() {
   log "===== 5) 共同门禁＋基线双条件＋样张＋退净 $(now) ====="
   bash "$ROOT/scripts/verify/v3_isolation.sh" > "$OUT/gate.log" 2>&1; log "  门禁 EXIT=$?"; tail -2 "$OUT/gate.log" | sed 's/^/    /'
-  ( cd "$ROOT/ws/src/30_3rd" && sha256sum -c "$EV/scan_src_baseline_49.sha256" > "$OUT/base.txt" 2>&1
-    log "  30_3rd：非OK行数=$(grep -vc ': OK$' "$OUT/base.txt") find计数=$(find . -type f | wc -l)（应为 0 与 49）" )
+  _BL=$ROOT/note/进度/SCAN集成/证据/scan_src_baseline_49.sha256   # 上一版误写 $EV（=证据/log/raw）⇒ 清单找不到，
+  if [ ! -f "$_BL" ]; then                                        #   却被打印成「非OK行数=1」＝一条假红灯。
+    log "  [停手] 基线清单不在位（$_BL）⇒ 属前置缺失 rc=9，本件拒绝打印任何基线读数"
+    return 9
+  fi
+  _btot=$(grep -vc '^#' "$_BL")
+  _bok=$( cd "$ROOT/ws/src/30_3rd" && sha256sum -c "$_BL" > "$OUT/base.txt" 2>&1; grep -c ': OK$' "$OUT/base.txt" )
+  _bcnt=$(cd "$ROOT/ws/src/30_3rd" && find . -type f | wc -l)
+  # 正向计数比对（清单条目数＝OK 数＝目录文件数），不再用「非 OK 行数」这种把「跑不动」与「跑出不符」混为一谈的口径
+  if [ "$_bok" = "$_btot" ] && [ "$_bcnt" = "$_btot" ]; then
+    log "  30_3rd 基线双条件 OK：清单条目=$_btot 逐条 OK=$_bok 目录文件=$_bcnt"
+  else
+    log "  [停手上报] 30_3rd 基线双条件不过：清单条目=$_btot 逐条 OK=$_bok 目录文件=$_bcnt（三者应相等）⇒ 对照组完整性红线，本批不作结论"
+    return 9
+  fi
   sha256sum "$ROOT/data/maps/lite3.pcd" > "$OUT/sample_sha.txt"
   rosnode kill -a >/dev/null 2>&1; sleep 3
   pkill -f gzserver >/dev/null 2>&1; pkill -f run_mapping_online >/dev/null 2>&1
@@ -143,8 +160,23 @@ sec_gate() {
   log "  E3 双父签名（各跑 stageB 的 base_link 父帧集合，须只有 odom）："
   grep -hoE "SMOKE E3 .*base_link_parents=\[[^]]*\]" "$OUT"/batch/r*.log 2>/dev/null | sort | uniq -c | sed 's/^/    /'
   snap end
-  # 整行比（pid＋user＋lstart＋comm），不是只比前两列：lstart 才是「他人进程未被打扰」的实质证据
-  if diff "$OUT/foxy_start.txt" "$OUT/foxy_end.txt" > /dev/null 2>&1; then log "  foxy 起终成对：整行（含 lstart）逐位一致"; else log "  [停手上报] foxy 起终整行不一致 ⇒ 他人进程被扰动，本批不作结论"; diff "$OUT/foxy_start.txt" "$OUT/foxy_end.txt" | head -4 | sed "s/^/    /"; fi
+  # 三种形态必须分开说，否则要么假绿要么假报警（本轮 dry-run 实测到假报警一次）：
+  #   ①缺基准（只跑了 gate 段没跑 pre 段）⇒ 属前置缺失，绝不得指控他人进程被扰动；
+  #   ②两侧皆空（名单里的 PID 全不在位，如重启后换号）⇒ 断言空洞成立，红线见证失效（O-7），不得引用为达成；
+  #   ③两侧都有行且整行（pid＋user＋lstart＋comm）不等 ⇒ 才是真的扰动。
+  if [ ! -f "$OUT/foxy_start.txt" ] || [ ! -f "$OUT/foxy_end.txt" ]; then
+    log "  [停手] foxy 起终快照不全（本调用没跑 pre 段 ⇒ 无基准可比）＝前置缺失 rc=9；这不是他人进程被扰动，不得那样指控"
+    return 9
+  fi
+  _ns=$(wc -l < "$OUT/foxy_start.txt"); _ne=$(wc -l < "$OUT/foxy_end.txt")
+  if [ "$_ns" = "0" ] && [ "$_ne" = "0" ]; then
+    log "  foxy 快照两侧皆空（名单 PID 全不在位，本 boot 属此态）⇒ 「零触碰」空洞成立，**不得引用为红线达成**（O-7）；快照件已随 OUT 归档，空集本身有原件可看"
+  elif diff "$OUT/foxy_start.txt" "$OUT/foxy_end.txt" > /dev/null 2>&1; then
+    log "  foxy 起终成对：整行（含 lstart）逐位一致（$_ns 行）"
+  else
+    log "  [停手上报] foxy 起终整行不一致 ⇒ 他人进程被扰动，本批不作结论"
+    diff "$OUT/foxy_start.txt" "$OUT/foxy_end.txt" | head -4 | sed "s/^/    /"
+  fi
   return 0
 }
 
