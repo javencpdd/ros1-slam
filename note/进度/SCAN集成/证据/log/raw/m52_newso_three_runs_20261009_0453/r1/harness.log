@@ -1,0 +1,26 @@
+[04:53:07] == [0] 预检：并发／样张 ==
+goal 取件＝(-2.72, 0.76)（A7 P3 活体成功坐标）；任务节点墙钟上限 600s；use_sim_time:=true（dt 与 A7 判据④ 同基）
+[04:53:07] == [1..5] 起链（gazebo→mapping→mux→70_scan）==
+链上四件=4/4；F9 互斥=0/0
+[04:54:57] == [6] 任务层节点（mode:=scan）==
+任务节点段耗时 58s；outcome 行：task outcome: succeeded（总时长 13.2s）
+原语行：原语 scan_navigate outcome=succeeded 到达偏差 0.029m≤0.35m 耗时 9.45s
+[04:55:55] == [7] 判定（交回契约件的段 B，判据只此一份）==
+[PASS] S1 阳性对照：注册表解析出原语数=6（≥5 才谈后面的在位与对账）
+[PASS] S2 scan_navigate 在位且 target 前缀在契约空间（INPLACE|OK）
+[PASS] S3 outcome_semantics 与 wait 逐字同值（二态口径复用，未自造失败语义）
+[PASS] S4 实现面在位：类定义/注册表读取/状态挂载(≥2)/mode 分支(≥1)（计数=1|1|2|1）
+[PASS] S5 goal_fields 四维与实现注入口逐字对账通过（target_pose/timeout_s/tol_m/frame_id）
+[PASS] S6 门值零放宽：实现缺省 timeout=120.0s／tol=0.35m ＝ A7 判据④③ 原文
+[PASS] S7 失败侧口径：类内 aborted 返回点恰一处且带超时判定与超时日志（未把 arrived=False 当上游失败事件；读数=1|CLEAN）
+[PASS] S8 旧原语（除 scan_navigate）与 HEAD 逐字同值 ⇒ 我没顺手动到在册契约
+[PASS] S9 mode 缺省仍=chain（scan 需显式点，默认行为零变化）
+[PASS] L1 原语行在册且 succeeded（到达偏差 0.029m 耗时 9.45s）
+[PASS] L2 task outcome=succeeded
+  [注] 段 B 只证「任务层原语跑通并按 J1 到达」；规划层的避让／穿墙分辨力属 O-8，不在本件职责
+==================================================
+TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0（log 未给＝活体面未跑）
+样张起前＝退后：是
+[04:55:59] -- teardown --
+残留进程(comm 面)=[]（须空）；沙箱端口=0（须 0）
+11313 监听=0  11312 监听=0

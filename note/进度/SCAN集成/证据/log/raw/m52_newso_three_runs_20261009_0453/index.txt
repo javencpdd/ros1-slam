@@ -1,0 +1,21 @@
+# R58-② M5.2 scan_navigate 三跑在**新 .so** 下重取 —— 三次独立 launch 全 succeeded（rc=0×3）  2026-10-09 04:53–05:02
+# 同 R58-① 的理由：批3 换了被测件面（so fb4a62d8→f1a7c449）而代际仍 H14，任务层主线的证据不应停在旧 .so 时代。
+# 被试＝现役 ws/src/50_task/lite3_task/verify/{v_scan_task_live.sh, v_task_scan_primitive.sh}，判定仍由 v_task_scan_primitive.sh 段 B 给（一份定义），门值原样 0.35m／120s。
+
+## 逐跑读数（harness.log 原文摘录）
+r1: 原语 scan_navigate outcome=succeeded 到达偏差 0.029m≤0.35m 耗时 9.45s｜TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0｜样张起前＝退后：是
+r2: 原语 scan_navigate outcome=succeeded 到达偏差 0.062m≤0.35m 耗时 10.28s｜TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0｜样张起前＝退后：是
+r3: 原语 scan_navigate outcome=succeeded 到达偏差 0.084m≤0.35m 耗时 3.22s｜TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0｜样张起前＝退后：是
+
+## goal 各不相同（这条与 P3 三连不同：本批三跑特意换了 goal）
+# r1 (-2.72, 0.76)｜r2 (-0.47, 3.60)｜r3 (0.04, 1.04) —— 三个都是 A7 P3 活体成功过的绝对坐标
+# 三跑偏差 0.029／0.062／0.084m 全部优于 J1 自身 tol 0.20m，也都在 0.35m 门内
+
+## 与 R52 前在册那次（旧 .so）的对照
+# 旧（m52_three_run_replicate，so fb4a62d8）：偏差 0.018／0.026／0.047m，sim 总时长 13.2／13.9／7.2s，墙钟 55／62／40s
+# 新（本批，so f1a7c449）：偏差 0.029／0.062／0.084m，原语耗时 9.45／10.28／3.22s
+# ⇒ 同量级、无失效；两批**不可混引**（引用须连 so sha），本批取代旧批作为任务层在当代被测件面上的证据
+
+## 不变项与复跑式
+# 样张三跑均「起前＝退后：是」（口径已在 R49/坑39 修正后运行）；SM/LIB 未动 ⇒ 代际仍 H14；每跑 harness 内含退净与红线自证
+# 复跑：先三步 env source；TASK_RUN=/tmp/x TASK_GOAL_X=… TASK_GOAL_Y=… bash ws/src/50_task/lite3_task/verify/v_scan_task_live.sh
