@@ -24,8 +24,13 @@
   <param name="body_pose_topic" value="/LIO/odom_vehicle" type="str"/>
 
   <!-- faster_lio → SCAN 话题适配（lio_relay.launch 逐字保留，A6「直接拷」行；
-       三 relay /LIO/odom_vehicle、/LIO/odom_imu、/LIO/clouds_lidar + world/camera_init 与 body/base_link 恒等 TF） -->
-  <include file="$(find scan_planner)/launch/lio_relay.launch"/>
+       三 relay /LIO/odom_vehicle、/LIO/odom_imu、/LIO/clouds_lidar + world/camera_init 与 body/base_link 恒等 TF）
+       [批1/F-D 行 B] odom_in 显式写死 /Odometry：上游缺省值虽同，但"依赖别人家的缺省"意味着
+       任何一方改缺省就会静默换掉 SCAN 的前馈源（保真度口径要求前馈=LIO 估计，非世界位真值）。
+       注：本行与批2（FD-G，行 F2）同指本文件同一行 ⇒ 两批必须分开落，批2 落地时改的是 include 目标而非本 arg。 -->
+  <include file="$(find scan_planner)/launch/lio_relay.launch">
+    <arg name="odom_in" value="/Odometry"/>
+  </include>
 
   <!-- main algorithm params（advanced_param.xml 原样 include，仅 arg 注入；goal remap 见下方 group） -->
   <group>

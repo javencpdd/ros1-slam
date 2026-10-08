@@ -1,0 +1,80 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_101414
+[m2] HARNESS sha256=28a49f89f743f1e367c0255f9c402fa76190161482e7a8478a8562a2212ad609 path=verify/m2_smoke.sh
+[exitbase] # exitbase @2026-10-08 10:14:15 stage=stageB
+[exitbase] PIDS 328580
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 34.379000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 34.379000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 39.659000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 39.659000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 43.092000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 43.092000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 46.881000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 46.881000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 60.291000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 60.291000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.8s
+SMOKE gate_lcostmap_data=PASS t=0.9s
+SMOKE gate_tf_fresh=PASS t=1.6s ages=[0.042,0.017,0.074]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.2s ages=[0.094,0.084,0.027]
+SMOKE SIMNOW point=age_sample_1 sim_now=22.69s gate_t=2.2s
+SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.10s wall_spent=156.0s t_raw=2.2s t_adj=2.2s
+SMOKE gate_tf_fresh_late=PASS t=2.8s ages=[0.021,0.049,0.010]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.4s ages=[0.030,0.089,0.093]
+SMOKE SIMNOW point=age_sample_2 sim_now=62.39s gate_t=3.4s sim_span_vs_point1=39.70s
+SMOKE gate_press_late=PASS branch=abs+span (reached=True sim2=62.39 span=39.70 判据=(sim2>=60 且 span>=35) 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.010,0.021,0.011]
+SMOKE E3 tf odom->base_link hits=26 last_stamp=63.039 age=0.008
+SMOKE E3 base_link_parents=['odom'] transforms_total=31
+SMOKE E3 static base_link->rslidar stamp=0.025
+SMOKE E3 static base_link->TORSO stamp=0.025
+SMOKE gate=PASS t=6.1s
+SMOKE SIMNOW point=goal_send sim_now=63.05s
+SMOKE SIMNOW point=goal_done sim_now=71.68s dt=8.63
+SMOKE teb_state=3 dt=8.6s dev_odom=0.156 dev_gt=0.156
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[PASS] B/G6: goal 后 pose 类 ERROR=0
+[PASS] B: 到达偏差 0.156 ≤0.35m
+[PASS] B: 用时 8.63 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-08 10:20:35  stage=stageB
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]  328580 ros1-sl+       1 Tue Oct  6 19:51:44 2026 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+[exitclean] -- 监听端口分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/进程面：本跑派生零残留（差集为空，既存命中不入判据，R22 二/三）
+==================================================
+M2 SMOKE: PASS
+==================================================

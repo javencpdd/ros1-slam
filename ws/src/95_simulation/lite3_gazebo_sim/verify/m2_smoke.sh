@@ -139,6 +139,9 @@ stage_a() {
   wait_topic /livox/imu 300 || { echo "FAIL A: /livox/imu 未出"; return 1; }
   roslaunch lite3_gazebo_sim m2_mapping.launch > "$LOGDIR/mappingA.log" 2>&1 &
   wait_topic /cloud_registered 360 || { echo "FAIL A: /cloud_registered 未出"; return 1; }
+  # [批1/F-D 行 C] 位姿源身份断言（小张 F-D §10.5；post_a 档：/Odometry 恰 1 且只剩 camera_init 族，
+  #   /sim/odom_gt 恰 1 且为 odom 族）。**只打印不判据**——升不升为阻断项属验收判据增删（05 A3），权在小美。
+  bash "$SIM_PKG/verify/v_pose_source.sh" post_a 8 2>&1 | sed 's/^/[posesrc] /' || echo "[posesrc] 断言件执行异常（不判 FAIL，见坑27 同源纪律）"
 
   python3 - <<'PYEOF' > "$LOGDIR/stageA.txt" 2>&1
 import math, time
@@ -163,7 +166,7 @@ def on_imu(m):  # F4：iq 全程更新（供初始等待/转向判据）；频�
     S['imu_m'] += 1; st = m.header.stamp.to_sec()
     if S['imu_t0'] is None: S['imu_t0'] = st
     S['imu_t1'] = st
-rospy.Subscriber('/Odometry', Odometry, lambda m: S.update(odom=m), queue_size=2)
+rospy.Subscriber('/sim/odom_gt', Odometry, lambda m: S.update(odom=m), queue_size=2)  # 批1/F-D：插件世界位里程计改名；/Odometry 归 faster_lio
 rospy.Subscriber('/rslidar_points', PointCloud2, on_pts, queue_size=1)
 rospy.Subscriber('/livox/imu', Imu, on_imu, queue_size=1)
 rospy.Subscriber('/gazebo/model_states', ModelStates, lambda m: [S.update(gt=(p.position.x, p.position.y))
@@ -179,7 +182,7 @@ def qyaw(q): return math.atan2(2*(q.w*q.z+q.x*q.y), 1-2*(q.y*q.y+q.z*q.z))
 def drive(vx, wz): t=Twist(); t.linear.x=vx; t.angular.z=wz; pub.publish(t)
 w0=time.time()
 while (S['odom'] is None or S['gt'] is None or S['iq'] is None) and time.time()-w0<60: time.sleep(0.1)
-assert S['odom'] is not None, 'no /Odometry'
+assert S['odom'] is not None, 'no /sim/odom_gt（插件里程计断供；/Odometry 已让给 faster_lio，勿混用）'
 p0=S['odom'].pose.pose.position; sx,sy=p0.x,p0.y; i_yaw0=qyaw(S['iq']); S['g0']=S['gt']
 print('SMOKE start=(%.3f,%.3f) imu_yaw0=%.3f' % (sx,sy,i_yaw0))
 def phase(name, vx, wz, done, wall_limit=150.0):
@@ -247,7 +250,7 @@ rospy.init_node('m2_stage_b')
 S=dict(gt=None,odom=None)
 rospy.Subscriber('/gazebo/model_states', ModelStates, lambda m:[S.update(gt=(p.position.x,p.position.y))
     for p,n in zip(m.pose,m.name) if n=='lite3_planar'] and None, queue_size=1)
-rospy.Subscriber('/Odometry', Odometry, lambda m:S.update(odom=m), queue_size=2)
+rospy.Subscriber('/sim/odom_gt', Odometry, lambda m:S.update(odom=m), queue_size=2)  # 批1/F-D 改名配套
 w0=time.time()
 while (S['gt'] is None or S['odom'] is None) and time.time()-w0<60: time.sleep(0.1)
 sx,sy=S['gt'][0],S['gt'][1]; gx,gy=sx+3.0,sy
@@ -482,7 +485,7 @@ from sensor_msgs.msg import Imu
 rospy.init_node('m2_stage_c_drive')
 pub=rospy.Publisher('/cmd_vel',Twist,queue_size=5)
 S=dict(o=None,iq=None)
-rospy.Subscriber('/Odometry',Odometry,lambda m:S.update(o=m),queue_size=2)
+rospy.Subscriber('/sim/odom_gt',Odometry,lambda m:S.update(o=m),queue_size=2)  # 批1/F-D 改名配套
 rospy.Subscriber('/livox/imu',Imu,lambda m:S.update(iq=m.orientation),queue_size=1)
 def qyaw(q): return math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
 w0=time.time()

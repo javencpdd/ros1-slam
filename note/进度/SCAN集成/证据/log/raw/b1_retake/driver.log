@@ -1,0 +1,85 @@
+===== 0) 被测件与 harness 指纹 =====
+2026-10-08 10:01:40
+ef23da2dd5e281ae5b5b973f36224e6801156c07a42e0e9512aaccf123ccc86c  urdf/lite3_planar.urdf.xacro
+28a49f89f743f1e367c0255f9c402fa76190161482e7a8478a8562a2212ad609  verify/m2_smoke.sh
+72f673805caa6e4162b698bdbaf5e5c71dadef48edc84522208d21f08a1a45bb  verify/v_pose_source.sh
+8dacbffdcd6299078b4da726102db188a329d3a386636b9d3fdcd127ac9dfe2c  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/verify/dwa_recheck.py
+5f4e31a0e01a0471872b4ed3462a0e614c4f16024da552f55d7e07a32f1401d5  /home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+  foxy[start] 计数=6
+===== 1) stageA（含 post_a 位姿源断言）=====
+  stageA rc=3
+    [posesrc]   /Odometry：Publishers=1 [/faster_lio_online]  帧对集合={child_frame_id: "body"   frame_id: "camera_init" }
+    [posesrc]   [PASS] post_a：/Odometry 发布者恰 1 且不再含 odom 族（真值已让位）
+    [posesrc]   /sim/odom_gt：Publishers=1 [/gazebo]  帧对集合={child_frame_id: "base_link"   frame_id: "odom" }
+    [posesrc]   [PASS] post_a：/sim/odom_gt 恰 1 发布者且为 odom 族（真值另名可读）
+    [posesrc] POSE SOURCE VERDICT: PASS (post_a)
+    SMOKE drift=0.486 gt_drift=0.486 rate_pts=8.3 rate_imu=188.8 fly_ratio=0.0000 rtf_motion=0.240 mw_sim=23.9 mw_wall=99.5 phases out=True turn=True back=True
+    [PASS] A: 闭环走完（out/turn/back 全 done）
+    [PASS] A③(M2-4): 漂移 0.486 ≤0.5
+    [PASS] A①: 点云 8.3 ≥5Hz
+    [PASS] A②: IMU 188.8 ≥100Hz
+    [PASS] A④: 飞点 0.0000 <1%
+    [PASS] 样张 lite3.pcd sha256 未变
+    [PASS] 退净/端口面：四口相对基线零新增（R22 一）
+    [PASS] 退净/进程面：本跑派生零残留（差集为空，既存命中不入判据，R22 二/三）
+===== 2) stageB 五连（第 3 跑加压 62s）=====
+  sB1 delay=[] rc=0 | teb_state=3 dt=8.7s dev_odom=0.157 | press= | 判定 7P/0F
+      [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+      [exitclean]   port 11311 TCP=0 UDP=0
+      [exitclean]   port 11312 TCP=0 UDP=0
+      [exitclean]   port 11313 TCP=0 UDP=0
+      [exitclean]   port 11345 TCP=0 UDP=0
+  sB2 delay=[] rc=0 | teb_state=3 dt=8.6s dev_odom=0.170 | press= | 判定 7P/0F
+      [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+      [exitclean]   port 11311 TCP=0 UDP=0
+      [exitclean]   port 11312 TCP=0 UDP=0
+      [exitclean]   port 11313 TCP=0 UDP=0
+      [exitclean]   port 11345 TCP=0 UDP=0
+  sB3 delay=[62] rc=0 | teb_state=3 dt=8.6s dev_odom=0.156 | press=gate_press_late=PASS | 判定 7P/0F
+      [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+      [exitclean]   port 11311 TCP=0 UDP=0
+      [exitclean]   port 11312 TCP=0 UDP=0
+      [exitclean]   port 11313 TCP=0 UDP=0
+      [exitclean]   port 11345 TCP=0 UDP=0
+  sB4 delay=[] rc=0 | teb_state=3 dt=8.5s dev_odom=0.178 | press= | 判定 7P/0F
+      [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+      [exitclean]   port 11311 TCP=0 UDP=0
+      [exitclean]   port 11312 TCP=0 UDP=0
+      [exitclean]   port 11313 TCP=0 UDP=0
+      [exitclean]   port 11345 TCP=0 UDP=0
+  sB5 delay=[] rc=0 | teb_state=3 dt=8.5s dev_odom=0.170 | press= | 判定 7P/0F
+      [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+      [exitclean]   port 11311 TCP=0 UDP=0
+      [exitclean]   port 11312 TCP=0 UDP=0
+      [exitclean]   port 11313 TCP=0 UDP=0
+      [exitclean]   port 11345 TCP=0 UDP=0
+===== 3) DWA 三连 ＋ teb 对照（roadmap #4 撤销的可复现性）=====
+  dwa rc=0
+        RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+        RECHK VERDICT PASS state=3 outcome=0 dt_ok=True dev_ok=True rtf_ok=True
+      rc=0 ；mbf 日志内 pose 类命中累计=0
+        RECHK get_path attempt1 outcome=0 "Plan found" poses=62
+        RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+        RECHK VERDICT PASS state=3 outcome=0 dt_ok=True dev_ok=True rtf_ok=True
+      rc=0 ；mbf 日志内 pose 类命中累计=0
+        RECHK get_path attempt1 outcome=0 "Plan found" poses=62
+        RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+        RECHK VERDICT PASS state=3 outcome=0 dt_ok=True dev_ok=True rtf_ok=True
+    ### 汇总 DWA PASS=2 FAIL=1 /3；teb 对照 rc=0
+    DWA RECHECK VERDICT: FAIL（DWA 仍不可用）
+===== 4) SCAN P1 =====
+  p1 rc=0
+===== 5) SCAN P2 =====
+  p2 rc=0
+    {"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 3951, "occ_frame": "world", "robot": [0.006, 0.023], "goal": [2.506, 0.023], "goal_dist_to_occ": 0.67, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.32, "bspline": {"order": 3, "n_ctrl": 20, "n_knots": 24, "traj_id": 3}, "traj_min_dist_m": 0.651, "traj_median_dist_m": 0.797, "n_samples": 120, "n_inside_tol": 0, "endpoint": [2.504, 0.023], "endpoint_err_m": 0.002}, "verdict": "PASS"}
+===== 6) 30_3rd 基线双条件 ＋ 7) 共同门禁 =====
+  非OK行数=0  find 计数=49
+  门禁 EXIT=0
+    === ISOLATION OK ===
+    # self-attest: at=2026-10-08 10:40:09 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4525 rc=0
+===== 8) 样张与退净 =====
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+  残留=[]
+  端口: 11311=0 11312=0 11313=0
+  foxy[end] 计数=6
+B1_DONE 10:40:19

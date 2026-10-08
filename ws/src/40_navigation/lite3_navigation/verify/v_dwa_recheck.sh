@@ -61,7 +61,7 @@ LIST=$(timeout 15 rosparam get /move_base_flex/controllers 2>/dev/null | tr -d '
 echo "  控制器注册表: $LIST"
 echo "  （注：root-inertia WARN 现指 base_link，小张 M2R5 风险①预测成立；已 grep 全仓无脚本消费该串）"
 
-PASS=0; FAIL=0
+PASS=0; FAIL=0; INVALID=0
 for i in $(seq 1 "$N"); do
   echo "### 二、DWA 第 $i 跑（三连判据）"
   python3 "$PKG/verify/dwa_recheck.py" DWAPlannerROS "dwa$i" > "$DWA_OUT/dwa$i.txt" 2>&1
@@ -69,13 +69,19 @@ for i in $(seq 1 "$N"); do
   sed 's/^/    /' "$DWA_OUT/dwa$i.txt"
   POSEERR=$(grep -acE "Could not get the current robot pose|robot pose is .* old" "$DWA_OUT/mbf.log" | head -1)
   echo "  rc=$RC ；mbf 日志内 pose 类命中累计=${POSEERR:-0}"
-  if [ $RC -eq 0 ]; then PASS=$((PASS+1)); echo "  [PASS] dwa 第 $i 跑"; else FAIL=$((FAIL+1)); echo "  [FAIL] dwa 第 $i 跑 rc=$RC"; fi
+  # rc 语义三态：0=判据过 5=判据不过 6=有效性门不过(RTF<0.25)⇒作废重跑，不计 PASS 也不计 FAIL（M2R2 裁决）
+  if [ $RC -eq 0 ]; then PASS=$((PASS+1)); echo "  [PASS] dwa 第 $i 跑"
+  elif [ $RC -eq 6 ]; then INVALID=$((INVALID+1)); echo "  [INVALID] dwa 第 $i 跑（RTF 不达标，作废重跑，不计 FAIL）"
+  else FAIL=$((FAIL+1)); echo "  [FAIL] dwa 第 $i 跑 rc=$RC"; fi
   sleep 3
 done
 echo "### 三、同场 teb 对照（证 harness 本身没坏）"
 python3 "$PKG/verify/dwa_recheck.py" TebLocalPlannerROS teb_ctrl > "$DWA_OUT/teb_ctrl.txt" 2>&1
 TC=$?; sed 's/^/    /' "$DWA_OUT/teb_ctrl.txt"
 [ $TC -eq 0 ] && echo "  [PASS] teb 对照" || echo "  [FAIL] teb 对照 rc=$TC"
-echo "### 汇总 DWA PASS=$PASS FAIL=$FAIL /$N；teb 对照 rc=$TC"
+echo "### 汇总 DWA PASS=$PASS FAIL=$FAIL INVALID=$INVALID（目标 PASS=$N）；teb 对照 rc=$TC"
 kill $LP >/dev/null 2>&1
-[ "$PASS" = "$N" ] && [ "$TC" = "0" ] && echo "DWA RECHECK VERDICT: PASS（DWA 已可用）" || echo "DWA RECHECK VERDICT: FAIL（DWA 仍不可用）"
+if [ "$FAIL" -gt 0 ]; then echo "DWA RECHECK VERDICT: FAIL（确有判据不过，非环境因素）"
+elif [ "$PASS" = "$N" ] && [ "$TC" = "0" ]; then echo "DWA RECHECK VERDICT: PASS（DWA 可用，判据三连全过）"
+elif [ "$PASS" -lt "$N" ] && [ "$INVALID" -gt 0 ]; then echo "DWA RECHECK VERDICT: INCOMPLETE（$INVALID 次因 RTF 作废须重取；已 $PASS 次判据全过、0 次判据失败 ⇒ 不判 DWA 不可用）"
+else echo "DWA RECHECK VERDICT: INCOMPLETE（凑不满 $N 次有效跑，且不属 RTF 作废，须人工看日志）"; fi

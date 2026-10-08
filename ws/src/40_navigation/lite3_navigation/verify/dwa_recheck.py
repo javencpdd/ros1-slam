@@ -32,7 +32,7 @@ S = dict(gt=None, odom=None, imut=None)
 rospy.Subscriber('/gazebo/model_states', ModelStates,
                  lambda m: [S.update(gt=(p.position.x, p.position.y))
                             for p, n in zip(m.pose, m.name) if n == 'lite3_planar'] and None, queue_size=1)
-rospy.Subscriber('/Odometry', Odometry, lambda m: S.update(odom=m), queue_size=2)
+rospy.Subscriber('/sim/odom_gt', Odometry, lambda m: S.update(odom=m), queue_size=2)  # 批1/F-D：与 m2_smoke 同源同名，/Odometry 已让给 faster_lio
 def on_imu(m):
     S['imut'] = m.header.stamp.to_sec()
 rospy.Subscriber('/livox/imu', Imu, on_imu, queue_size=1)
@@ -157,7 +157,14 @@ print('RECHK dt=%.1fs(sim) dt_wall=%.1fs dev_odom=%.3f dev_gt=%.3f rtf=%.3f smoo
       % (dt_sim, dt_wall, d, gd, rtf, sm, len(rec['cmd'])))
 with open(OUT + '/cmdvel.csv', 'w', newline='') as f:
     w = csv.writer(f); w.writerow(['t_sim', 'vx', 'vy', 'wz']); [w.writerow(c) for c in rec['cmd']]
-verdict = (ep.get_state() == 3 and r.outcome == 0 and dt_sim <= 120.0 and d <= 0.35 and rtf >= 0.25)
-print('RECHK VERDICT %s state=%s outcome=%d dt_ok=%s dev_ok=%s rtf_ok=%s'
-      % ('PASS' if verdict else 'FAIL', ep.get_state(), r.outcome, dt_sim <= 120.0, d <= 0.35, rtf >= 0.25))
+# 判据与有效性门**分开判**（M2R2 主理人裁决在先：RTF<0.25 属"本轮作废重跑、不计 FAIL"；
+#   首版把 rtf 折进 verdict，使一次环境抖动被误读成"DWA 不可用"——判据语义混叠，已纠）。
+valid = (rtf >= 0.25 and dt_sim > 0)
+verdict = (ep.get_state() == 3 and r.outcome == 0 and dt_sim <= 120.0 and d <= 0.35)
+print('RECHK 有效性门 rtf=%.3f%s ｜ 判据 state=%s outcome=%d dt_ok=%s dev_ok=%s'
+      % (rtf, 'PASS' if valid else 'INVALID(作废重跑，不计 FAIL)', ep.get_state(), r.outcome,
+         dt_sim <= 120.0, d <= 0.35))
+print('RECHK VERDICT %s' % ('PASS' if verdict else 'FAIL'))
+if not valid:
+    raise SystemExit(6)
 raise SystemExit(0 if verdict else 5)

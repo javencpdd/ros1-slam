@@ -137,7 +137,12 @@
     <plugin name="lite3_planar_drive" filename="liblite3_planar_drive.so">
       <robotNamespace>/</robotNamespace>
       <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>/Odometry</odometryTopic>
+      <!-- [批1/F-D 2026-10-08] 让位：/Odometry 归 faster_lio 单写（laser_mapping.cc:265 绝对名），
+           本插件的世界位里程计改发 /sim/odom_gt —— 二者此前同发 /Odometry 构成双写者，
+           使 stageA/C 的 M2-1/M2-4 判据位姿源不可归因（02 坑26，实测证据 fd2_pre_baseline/）。
+           名字带 _gt 是刻意的：它语义上就是 WorldPose 真值，不得冒充估计量。
+           odometryFrame=odom 与 robotBaseFrame=base_link **不动**（护住 M2R5/U1 的单父拓扑与 E3/G5c1 锚）。 -->
+      <odometryTopic>/sim/odom_gt</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <robotBaseFrame>base_link</robotBaseFrame>
       <driveMode>dynamic</driveMode>
