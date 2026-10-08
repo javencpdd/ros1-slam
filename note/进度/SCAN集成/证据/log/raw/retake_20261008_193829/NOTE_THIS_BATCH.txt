@@ -1,0 +1,10 @@
+R41（二）活体完整式批（2026-10-08 19:38:29–19:51:20，retake_driver pre＋negctl 段，RETAKE VERDICT(终) rc=10）
+一、这批要证的与证到了：EXPECT_RC="0 0 1" 三跑，r1 fresh／r2 fresh＋加压 62／r3 tf_source:=static（设计外应 FAIL）。
+  逐跑原件行：r1 rc=0 exp=0 match press=off｜r2 rc=0 exp=0 match press=abs+span｜r3 rc=1 exp=1 match press=off ⇒ BATCH VERDICT rc=0。
+  段内三面闸全过：被试行=3 回落=0；r3 原件内「门控未过（键=tf_fresh_mapodom_G5c2」行=1（阴性跑按预期原因 FAIL，不是换个键凑红）；r1/r2 阳性跑各 PASS=1。
+  探针敏感度三跑各打一条（38827/38347/33191 读出 TCP=1 UDP=0 带 pid/属主）。⇒ 她 12:18 补记判的「半达成」（五跑期望全 0、无阴性对照位）到此转为达成：批内含一位非 0 期望且被逐位消化。
+二、rc=10 的成因（如实打、未软化，也不改判据）：调用者把 stdout 重定向成 driver_stdout.log，而 R48 的终局指认核的是归档件 out/driver.log ⇒ 指认=0 ⇒ 末判 10。
+  本批的末判行**在 out/driver_stdout.log 里逐字存在**（RETAKE VERDICT: rc=0 于 19:51:20，随后 VERDICT(终) rc=10），故证据不缺，缺的是「按件名可指认」。
+  修法已落件＝R50（日志由本件自持，stdout 指向该件时不双写），零节点两态实测见 ../r50_log_ownership_probe/NOTE_R50.txt。下一批起此条不再可能复现。
+三、本目录不证的：不证 M2-2 达标（阴性跑不入连击、不与五连 dev/dt 混读）；不证辅门 35 的活体真反例（R41 三仍未做）；DWA／SCAN／门禁段本批未跑。
+四、复核口径：cd 本目录 && sha256sum -c _sha256_manifest.txt（R48 整体重建式，32 条逐条可验）。

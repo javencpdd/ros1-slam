@@ -1,0 +1,13 @@
+R50 零节点验证（2026-10-08 19:52，retake_driver 改「日志自持」后的两态实测；RD sha 78871b9d8c2f → d126fa27334c）
+
+为何要这一件：19:38 那次 negctl 批（retake_20261008_193829）里，R48 的「终局指认」闸第一次生效，抓的是我自己——
+  调用者把 stdout 重定向成 driver_stdout.log，而归档件 out/driver.log 根本不存在 ⇒ 指认=0 ⇒ RETAKE VERDICT(终) rc=10（如实打，未软化）。
+  根因＝旧式 log() 只写 stdout，「批证据含不含末判行」取决于调用者怎么敲重定向 ⇒ 证据的可自证性挂在用法上，属缺陷。
+修法（R50）：log() 自己追加 /driver.log；若探测到 stdout 已指向该件（readlink /proc/self/fd/1）则只走 stdout，避免同行写两遍。
+
+两态实测：
+  modeB（stdout 指别处）：driver.log 由本件自持 12 行、含「终局指认」行、VERDICT(终) rc=9（9 来自故意用的未知段，不是失败）；
+    同句计数 stdout=3 与 file=3 相等。
+  modeA（stdout 就是 driver.log）：「RETAKE VERDICT:」行数=1 ⇒ 无重复写（双写会是 2）。
+  两态的 out/driver.log 均在各自归档址内可指认，_sha256_manifest.txt 由 R48 的整体重建式生成、逐条可验。
+（自引用同族：首版 find 把清单自己算进去 ⇒ 条目 8 对件数 7；已按 R48／STL 那条口径排除，两态各自的批内 _sha256_manifest.txt 保留为原件不再叠加）

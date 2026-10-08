@@ -14,7 +14,7 @@
 #           并把 #30 那型「INVALID 吸收并存 FAIL」的读数原样打出来（rc 分档仍待她落笔，本件不自立分档）。
 #   （三）R20三／R27二：加压覆盖与每跑期望 rc 属批次层断言 ⇒ 五连段直接走 m2_batch_runner.sh 并带 EXPECT_RC。
 #
-# 用法：OUT=/tmp/rt1 bash retake_driver.sh [段...]     段∈{pre,a,b,dwa,scan,gate,archive,all}（缺省 all）
+# 用法：OUT=/tmp/rt1 bash retake_driver.sh [段...]     段∈{pre,a,b,dwa,scan,gate,negctl,archive,all}（缺省 all）
 #   环境变量：FORCE=1 越过负载预检；LOAD_MAX=4 阈值；STAGEA_MAX=3 A0 重试上限；EXPECT_RC 透传给批次驱动。
 #   注：LOAD_MAX 是**工序闸门**（不跑=不浪费窗），不是判据门：它不判被测件过不过、不进任何 PASS/FAIL 计数、
 #     也不入连击；阈值 4 是施工侧取的操作数，验收若认为该由读数而不是 loadavg 决定，可直接改本行不动判据面。
@@ -34,10 +34,22 @@ PAY=/tmp/m2_payload
 OUT=${OUT:-/tmp/rt_drive}
 EV=${EV:-$ROOT/note/进度/SCAN集成/证据/log/raw}
 mkdir -p "$OUT"
+RD_STDOUT_IS_LOG=0
+if [ -e "/proc/self/fd/1" ]; then
+  _t=$(readlink /proc/self/fd/1 2>/dev/null)
+  [ "$_t" = "$OUT/driver.log" ] && RD_STDOUT_IS_LOG=1
+fi
+export RD_STDOUT_IS_LOG
 STAGEA_MAX=${STAGEA_MAX:-3}
 LOAD_MAX=${LOAD_MAX:-4}
 VERDICT=0
-log(){ printf '%s\n' "$*"; }
+RD_OWN_LOG=1
+log(){ # R50：日志由本件自己拥有并追加到 $OUT/driver.log——旧式把「谁调我怎么重定向」当成证据的一部分，
+       #      19:38 那次调用把 stdout 重定向成 driver_stdout.log ⇒ 归档件里没有 VERDICT 行可指认（R48 那条指认闸当场抓住）。
+       #      若调用者的 stdout 本来就指向这个文件，则只走 stdout，避免同一行写两遍。
+  printf '%s\n' "$*"
+  if [ "${RD_STDOUT_IS_LOG:-0}" != "1" ]; then mkdir -p "$OUT"; printf '%s\n' "$*" >> "$OUT/driver.log"; fi
+}
 now(){ date '+%F %T'; }
 FOXY="115711,115792,115795,115797,115799,1331,180237"
 snap(){ ps -o pid,user,lstart,comm --no-headers -p $FOXY > "$OUT/foxy_$1.txt" 2>/dev/null; log "  foxy[$1] 计数=$(wc -l < "$OUT/foxy_$1.txt")"; }
@@ -202,6 +214,43 @@ sec_gate() {
   return 0
 }
 
+sec_negctl() { # R41（二）活体现场面：批内含一位非 0 期望，且阴性跑必须**按预期原因** FAIL（小明 2026-10-08）
+  log "===== 7) 活体阴性对照批（tf_source:=static 走 mode_sim_teb 的 [M2R3] 复验口子；本件不设门值） $(now) ====="
+  local t0 nspc=(r1:0 r2:62 r3:0) nexp="${NEGCTL_EXPECT_RC:-0 0 1}" nstatic="${NEGCTL_STATIC_RUN:-3}" rc nsub bad r3log key p1 p2
+  t0=$(date +%s)
+  echo 0 > "$OUT/negctl_cnt"
+  env NEGCTL_CNT="$OUT/negctl_cnt" NEGCTL_STATIC_RUN="$nstatic" BATCH_OUT="$OUT/negctl" SLEEP_BETWEEN=4 EXPECT_RC="$nexp" \
+      SM_CMD=bash SM_ARGS="$PKG/verify/m2_negctl_tf_runner.sh" \
+      bash "$PKG/verify/m2_batch_runner.sh" "${nspc[@]}" > "$OUT/negctl.log" 2>&1
+  rc=$?
+  # 闸一（R49 那型的活体 Equivalent）：被试指认——每跑必须有 [subject] 行，且零次回落到现役 SM；不过＝本段前置不成立，不作结论
+  nsub=$(grep -c '\[subject\] 本跑被试＝' "$OUT/negctl.log"); bad=$(grep -c '被试＝bash verify/m2_smoke.sh' "$OUT/negctl.log")
+  log "  [subject] 被试行=$nsub（应＝跑数 ${#nspc[@]}）回落到现役 SM=$bad（应 0）"
+  if [ "$nsub" != "${#nspc[@]}" ] || [ "$bad" != "0" ]; then
+    log "  ⇒ 被试指认不过 ⇒ 本段不作结论（跑的可能不是阴性对照，rc=9 前置不成立）"; archive_since "$t0"; return 9
+  fi
+  # 闸二：阴性跑必须按预期键 FAIL（G5c2 全局系 TF 时基新鲜度）；换了别的键就不是 M2R3 那口子该给的读数
+  r3log="$OUT/negctl/$(printf '%s' "${nspc[$((nstatic-1))]}" | cut -d: -f1).log"
+  key=$(grep -c 'B: 门控未过（键=tf_fresh_mapodom_G5c2' "$r3log" 2>/dev/null); [ -z "$key" ] && key=0
+  log "  阴性跑原件：$r3log 内 G5c2 门控未过行=$key（应 ≥1）"
+  if [ "$key" = "0" ]; then
+    log "  ⇒ 阴性跑未按预期原因 FAIL ⇒ 判该段不可引用（口子失效或另有扰动，rc=5）"; archive_since "$t0"; return 5
+  fi
+  # 闸三：另两跑必须真 PASS（阴性对照混进负载型失败＝整批读数不可引用为分辨力证明）
+  p1=$(grep -c 'M2 SMOKE: PASS' "$OUT/negctl/r1.log" 2>/dev/null); p2=$(grep -c 'M2 SMOKE: PASS' "$OUT/negctl/r2.log" 2>/dev/null)
+  log "  阳性对照面：r1 PASS 行=$p1 r2（加压档）PASS 行=$p2（均应 1）"
+  if [ "$p1" != "1" ] || [ "$p2" != "1" ]; then
+    log "  ⇒ 同批阳性跑未达标 ⇒ 阴性对照失去意义（可能负载型），本段不作结论 rc=5"; archive_since "$t0"; return 5
+  fi
+  log "  批次层：$(grep -E 'BATCH VERDICT|逐跑：|\[expect\]' "$OUT/negctl.log" | tr '\n' ' | ')"
+  if [ "$rc" != "${NEGCTL_EXPECT_BR_RC:-0}" ]; then
+    log "  ⇒ BR 批级 rc=$rc 与预期 ${NEGCTL_EXPECT_BR_RC:-0} 不符（期望位没被逐位消化）rc=8"; archive_since "$t0"; return 8
+  fi
+  log "  ⇒ R41（二）现场面成立：批内含一位非 0 期望且被逐位消化，且阴性跑按 G5c2 键 FAIL"
+  archive_since "$t0"
+  return 0
+}
+
 SECS=("${@:-all}")
 [[ " ${SECS[*]} " == *" all "* ]] && SECS=(pre a b dwa scan gate)
 ARCHIVE_DIR="$EV/retake_$(date +%Y%m%d_%H%M%S)"; MANIFEST="$ARCHIVE_DIR/_sha256_manifest.txt"
@@ -211,6 +260,7 @@ for s in "${SECS[@]}"; do
   case "$s" in
     pre) sec_pre; rc=$?;; a) sec_a; rc=$?;; b) sec_b; rc=$?;;
     dwa) sec_dwa; rc=$?;; scan) sec_scan; rc=$?;; gate) sec_gate; rc=$?;;
+    negctl) sec_negctl; rc=$?;;
     archive) archive_since "$(date -d '12 hours ago' +%s)"; rc=$?;;
     *) log "未知段 $s"; rc=9;;
   esac

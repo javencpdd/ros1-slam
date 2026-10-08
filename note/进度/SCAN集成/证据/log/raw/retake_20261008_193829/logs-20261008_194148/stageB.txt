@@ -1,0 +1,23 @@
+[ERROR] [1791459994.463093, 63.118000]: Got a transition callback on a goal handle that we're not tracking
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.3s
+SMOKE gate_tf_robot=PASS t=0.6s
+SMOKE gate_gcostmap_data=PASS t=0.7s
+SMOKE gate_lcostmap_data=PASS t=0.9s
+SMOKE gate_tf_fresh=PASS t=1.6s ages=[0.017,0.074,0.039]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.2s ages=[0.067,0.028,0.088]
+SMOKE SIMNOW point=age_sample_1 sim_now=22.01s gate_t=2.2s
+SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.03s wall_spent=146.9s t_raw=2.2s t_adj=2.2s
+SMOKE gate_tf_fresh_late=PASS t=2.8s ages=[0.032,0.070,0.028]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.4s ages=[0.003,0.035,0.023]
+SMOKE SIMNOW point=age_sample_2 sim_now=62.36s gate_t=3.4s sim_span_vs_point1=40.35s
+SMOKE gate_press_late=PASS branch=abs+span (reached=True sim2=62.36 span=40.35 判据=(sim2>=60 且 span>=35) 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.019,0.006,0.004]
+SMOKE E3 tf odom->base_link hits=28 last_stamp=63.100 age=0.018
+SMOKE E3 base_link_parents=['odom'] transforms_total=34
+SMOKE E3 static base_link->rslidar stamp=0.021
+SMOKE E3 static base_link->TORSO stamp=0.021
+SMOKE gate=PASS t=6.0s
+SMOKE SIMNOW point=goal_send sim_now=63.12s
+SMOKE SIMNOW point=goal_done sim_now=71.62s dt=8.50
+SMOKE teb_state=3 dt=8.5s dev_odom=0.178 dev_gt=0.178

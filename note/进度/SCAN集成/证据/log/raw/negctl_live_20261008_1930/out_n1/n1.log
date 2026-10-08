@@ -1,0 +1,57 @@
+[negctl] 跑1 ⇒ TF_SOURCE=static（阴性对照，预期 harness 判 FAIL）
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_193047
+[m2] HARNESS sha256=fa8e57359a17daf9f0c1457318e49e63d675027de3ecad11f6e5c401515dfeed path=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+[m2] FP m2_exitclean_lib.sh sha256=b17022766fa415314aa6967c41370e990d74b80b38b75cec520e8bc388dd5353
+[m2] FP lite3_planar.urdf.xacro sha256=ef23da2dd5e281ae5b5b973f36224e6801156c07a42e0e9512aaccf123ccc86c
+[m2] FP lite3_planar_drive.cpp sha256=a32e70ff0a8fa1e3515ef0755f4215a6802d487ade7c4556887520dc7f87ac8a
+[m2] FP liblite3_planar_drive.so sha256=fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7
+[PASS] 探针敏感度自检：临时口 38497 读出 TCP=1 UDP=0 身份=TCP/p38497/942175/ysc（R27 三 阳性对照命中，探针对非零态有分辨力）
+[exitbase] # exitbase @2026-10-08 19:30:49 stage=stageB seg=pre
+[exitbase] PIDS 
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.6s
+SMOKE gate_lcostmap_data=PASS t=0.7s
+SMOKE gate_tf_fresh=PASS t=1.3s ages=[0.009,0.002,0.005]
+SMOKE gate_tf_fresh_mapodom=FAIL t=60.7s G5b_hit=zero_stamp
+SMOKE SIMNOW point=age_sample_1 sim_now=38.93s gate_t=60.7s
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.013,0.007,0.015]
+SMOKE E3 tf odom->base_link hits=27 last_stamp=39.660 age=0.009
+SMOKE E3 base_link_parents=['odom'] transforms_total=27
+SMOKE E3 static map->odom stamp=0.000
+SMOKE gate=FAIL t=63.3s {'map_data': True, 'tf_robot': True, 'gcostmap_data': True, 'lcostmap_data': True, 'tf_fresh_G5': True, 'tf_fresh_mapodom_G5c2': False, 'tf_fresh_G5c1': True, 'tf_fresh_late_G5': True, 'tf_fresh_mapodom_late_G5c2': True, 'press_late_G5': True}
+[FAIL] B: 门控未过（键=tf_fresh_mapodom_G5c2 False ⇒ 全局系 TF 时基新鲜度回归）
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /map_to_odom_static
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-08 19:34:15  stage=stageB seg=B
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]   （零命中）
+[exitclean] -- 监听端口分查（计数面）--
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+[PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+SUMMARY marks pass=5 fail=1
+==================================================
+M2 SMOKE: FAIL
+==================================================

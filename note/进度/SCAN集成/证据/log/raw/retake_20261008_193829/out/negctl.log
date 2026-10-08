@@ -1,0 +1,89 @@
+##### r1 G5_DELAY_SIM=[0] 19:38:30 #####
+### foxy start_r1 19:38:30
+0
+  [subject] 本跑被试＝bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_negctl_tf_runner.sh
+### foxy end_r1 19:41:44
+0
+  rc=0 | press 未参与（未开档） | teb_state=3 dt=8.6s dev_odom=0.172
+    [PASS] 探针敏感度自检：临时口 38827 读出 TCP=1 UDP=0 身份=TCP/p38827/962215/ysc（R27 三 阳性对照命中，探针对非零态有分辨力）
+    [PASS] B: 门控通过（≤120s，goal 前就绪）
+    [PASS] B/G6: goal 后 pose 类 ERROR=0
+    [PASS] B: 到达偏差 0.172 ≤0.35m
+    [PASS] B: 用时 8.56 ≤120s
+    [PASS] 样张 lite3.pcd sha256 未变
+    [exitclean] # 退净核验 @2026-10-08 19:41:32  stage=stageB seg=B
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 11311 TCP=0 UDP=0
+    [exitclean]   port 11312 TCP=0 UDP=0
+    [exitclean]   port 11313 TCP=0 UDP=0
+    [exitclean]   port 11345 TCP=0 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+    [PASS] 退净/端口面：四口相对基线零新增（R22 一）
+    [PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+    [PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+    SUMMARY marks pass=9 fail=0
+  [expect] 跑1 期望 rc=0 实得 rc=0 ⇒ match
+  [count] 自洽：自报 pass=9 fail=0 ＝ 原件行首 pass=9 fail=0
+##### r2 G5_DELAY_SIM=[62] 19:41:48 #####
+### foxy start_r2 19:41:48
+0
+  [subject] 本跑被试＝bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_negctl_tf_runner.sh
+### foxy end_r2 19:47:30
+0
+  rc=0 | gate_press_late=PASS branch=abs+span | teb_state=3 dt=8.5s dev_odom=0.178
+    [PASS] 探针敏感度自检：临时口 38347 读出 TCP=1 UDP=0 身份=TCP/p38347/971009/ysc（R27 三 阳性对照命中，探针对非零态有分辨力）
+    [PASS] B: 门控通过（≤120s，goal 前就绪）
+    [PASS] B/G6: goal 后 pose 类 ERROR=0
+    [PASS] B: 到达偏差 0.178 ≤0.35m
+    [PASS] B: 用时 8.50 ≤120s
+    [PASS] 样张 lite3.pcd sha256 未变
+    [exitclean] # 退净核验 @2026-10-08 19:47:17  stage=stageB seg=B
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 11311 TCP=0 UDP=0
+    [exitclean]   port 11312 TCP=0 UDP=0
+    [exitclean]   port 11313 TCP=0 UDP=0
+    [exitclean]   port 11345 TCP=0 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+    [PASS] 退净/端口面：四口相对基线零新增（R22 一）
+    [PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+    [PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+    SUMMARY marks pass=9 fail=0
+  [expect] 跑2 期望 rc=0 实得 rc=0 ⇒ match
+  [count] 自洽：自报 pass=9 fail=0 ＝ 原件行首 pass=9 fail=0
+##### r3 G5_DELAY_SIM=[0] 19:47:34 #####
+### foxy start_r3 19:47:34
+0
+  [subject] 本跑被试＝bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_negctl_tf_runner.sh
+### foxy end_r3 19:51:15
+0
+  rc=1 | press 未参与（未开档） | 
+    [PASS] 探针敏感度自检：临时口 33191 读出 TCP=1 UDP=0 身份=TCP/p33191/985240/ysc（R27 三 阳性对照命中，探针对非零态有分辨力）
+    [FAIL] B: 门控未过（键=tf_fresh_mapodom_G5c2 False ⇒ 全局系 TF 时基新鲜度回归）
+    [PASS] 样张 lite3.pcd sha256 未变
+    [exitclean] # 退净核验 @2026-10-08 19:51:03  stage=stageB seg=B
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 11311 TCP=0 UDP=0
+    [exitclean]   port 11312 TCP=0 UDP=0
+    [exitclean]   port 11313 TCP=0 UDP=0
+    [exitclean]   port 11345 TCP=0 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+    [PASS] 退净/端口面：四口相对基线零新增（R22 一）
+    [PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+    [PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+    SUMMARY marks pass=5 fail=1
+  [expect] 跑3 期望 rc=1 实得 rc=1 ⇒ match
+  [count] 自洽：自报 pass=5 fail=1 ＝ 原件行首 pass=5 fail=1
+##### 批次级断言（R20 三 ＋ R27 二 ＋ R27 四）#####
+  逐跑：r1 rc=0 exp=0 match press=off r2 rc=0 exp=0 match press=abs+span r3 rc=1 exp=1 match press=off
+  [PASS] 批内含 ≥1 次加压档达标跑（实测 1）
+  [PASS] 每跑实得 rc 与期望表逐位相符（R27 二）
+  [PASS] 每跑判定计数自洽（R27 四）
+  跑况：PASS=2 FAIL=1 / 3 跑
+  foxy 成对快照件数=6
+BATCH VERDICT: rc=0（0=PASS 6=无加压达标跑 7=期望 rc 不符 8=计数不自洽 9=期望表长度错）
