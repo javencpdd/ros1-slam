@@ -1,0 +1,52 @@
+### configure 失败面（实测，非推断）2026-10-08 19:59:44
+  loadavg=3.80
+  CMakeLists.txt:60 (find_package)
+
+
+CMake Error at /opt/ros/noetic/share/catkin/cmake/atomic_configure_file.cmake:10 (file):
+  file COPY cannot set permissions on "/home/ros1-slam/ws/devel/.rosinstall":
+  Operation not permitted.
+Call Stack (most recent call first):
+  /opt/ros/noetic/share/catkin/cmake/catkin_generate_environment.cmake:76 (atomic_configure_file)
+  /opt/ros/noetic/share/catkin/cmake/all.cmake:190 (catkin_generate_environment)
+  /opt/ros/noetic/share/catkin/cmake/catkinConfig.cmake:20 (include)
+  CMakeLists.txt:60 (find_package)
+
+
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/build/catkin_generated/generate_cached_setup.py", line 30, in <module>
+    os.chmod(output_filename, mode | stat.S_IXUSR)
+PermissionError: [Errno 1] Operation not permitted: '/home/ros1-slam/ws/build/catkin_generated/setup_cached.sh'
+CMake Error at /opt/ros/noetic/share/catkin/cmake/safe_execute_process.cmake:11 (message):
+
+### 需要属主侧动手的件（非 ysc 属主 且 模式不含 owner-exec，catkin 会对其 chmod）
+ws/build/atomic_configure/local_setup.bash owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/atomic_configure/local_setup.sh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/atomic_configure/local_setup.zsh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/atomic_configure/.rosinstall owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/atomic_configure/setup.bash owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/atomic_configure/setup.sh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/atomic_configure/setup.zsh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/installspace/local_setup.bash owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/installspace/local_setup.sh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/installspace/local_setup.zsh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/installspace/.rosinstall owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/installspace/setup.bash owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/installspace/setup.sh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/installspace/setup.zsh owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/order_packages.cmake owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/order_packages.py owner=ros1-slam mode=674 writable_by_me=yes
+ws/build/catkin_generated/setup_cached.sh owner=ros1-slam mode=774 writable_by_me=yes
+ws/devel/.built_by owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/.catkin owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/cmake.lock owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/local_setup.bash owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/local_setup.sh owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/local_setup.zsh owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/.rosinstall owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/setup.bash owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/setup.sh owner=ros1-slam mode=674 writable_by_me=yes
+ws/devel/setup.zsh owner=ros1-slam mode=674 writable_by_me=yes
+
+计数：非ysc属主件=50
+cp 失败原件日志：/tmp/b3_configure.log（CATKIN_MAKE rc=1，19:58:17）
