@@ -1,0 +1,20 @@
+=== M5.2 succeeded×3 汇总（三次独立 launch、goal 各不同；2026-10-08 22:54–23:46 三次分窗）===
+第 1 跑  goal=(-2.72, 0.76)
+   原语 scan_navigate outcome=succeeded 到达偏差 0.018m≤0.35m 耗时 9.43s
+   task outcome: succeeded（总时长 13.2s）   墙钟（[6]→[7]）=55s
+   退净：11313/11312 监听=0  样张比对面=否
+第 2 跑  goal=(-0.47, 3.59)
+   原语 scan_navigate outcome=succeeded 到达偏差 0.026m≤0.35m 耗时 10.11s
+   task outcome: succeeded（总时长 13.9s）   墙钟（[6]→[7]）=62s
+   退净：11313/11312 监听=0  样张比对面=是
+第 3 跑  goal=(0.04, 1.04)
+   原语 scan_navigate outcome=succeeded 到达偏差 0.047m≤0.35m 耗时 3.41s
+   task outcome: succeeded（总时长 7.2s）   墙钟（[6]→[7]）=40s
+   退净：11313/11312 监听=0  样张比对面=是
+
+时基注记（不可混比的一条）：本 harness 起任务节点时显式 use_sim_time:=true ⇒ 「耗时/总时长」是仿真时间；
+  M5.1 在册 log 的「总时长 91.8s」是墙钟 ⇒ 引用 B3 的 dt≤60s 时两者不同基，故本表把墙钟单列。
+  三次 sim 总时长＝13.2／13.9／7.2s；三次墙钟（发 goal→拿到 task outcome）＝55／62／40s；三次到达偏差＝0.018／0.026／0.047m（门 0.35m，亦全优于 J1 自身 tol 0.20m）。
+判定：三次均由 v_task_scan_primitive.sh 段 B 判定（PASS＝判定件 rc=0），判据定义单份不复写；三次 goal 坐标各不相同，故不是同任务重放。
+一条必须标注的历史态：第 1 跑那行「样张比对面＝否」是坑39 那次取序缺陷（比对了 cleanup 才写的件）留下的**假警报**，
+  该轮样张实测未动（见 m52_scan_primitive_live/recheck_note.txt 的三值同等复算）；第 2、3 跑已用改正后的口径，当场打「是」。
