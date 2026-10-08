@@ -1,10 +1,16 @@
 <launch>
+    <!-- FD-I 互斥注记（本仓处置 2026-10-08，裁定见 note/进度/SCAN集成/设计/fd_i_反向静态边裁定与处置.md）：
+         本件 L64 的 base2urdf 发 /base_link 到 /body 的静态边，与 30_3rd/plan_manage/launch/lio_relay.launch L57-58
+         的 body_to_base_link（body 到 base_link）同两端点、反方向：两者同窗即 TF 有向图成环且 base_link 复现双父
+         （与 02 坑21／M2R4 U1 闭合过的病根同型）。故 enable_urdf 缺省由 true 改为 false（上游 height_map_lite.launch:7
+         本就是 false，此处只是对齐）。确需 urdf 可视化时显式传 enable_urdf:=true，且**不得与 lio_relay 同窗**。
+         零节点静态防线：ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh -->
     <!-- 相机竖放或平放 vertical or horizontal -->
     <arg name="camera_pose" default="vertical" />
     <!-- 是否打开可视化界面Rviz --> 
     <arg name="enable_rviz" default="true" />
     <!-- 是否打开机器人urdf模型 -->
-    <arg name="enable_urdf" default="true" />
+    <arg name="enable_urdf" default="false" /><!-- FD-I：原缺省 true，改 false 的理由与回退方式见件头注 -->
     <!-- 是否在Rviz中显示足底轨迹 -->
     <arg name="enable_joint_path" default="false" />
     <!-- 是否打开运动传输程序 -->
