@@ -42,6 +42,18 @@ if [ "${1:-}" = "--negctl" ]; then
     echo "  R$([ "$col" = 4 ] && echo 2 || echo 1) 改末行 $nm（$val→$mut）⇒ 本体 rc=$r（期望 5），红行：$(grep -m1 'FAIL' "$T/out_c$col.txt")"
     if [ "$r" != 5 ] || ! grep -q "$nm" "$T/out_c$col.txt"; then echo "NEGCTL VERDICT: $nm 列改了不红 ⇒ 该核对面是空气，rc=5"; exit 5; fi
   done
+  # R3 注记识别的咬合：把注记行里的 PLG 改一位 ⇒ 应退回"未定格"，--check 必须打出漂移 WARN（rc 仍 0，WARN 非致命）
+  NT=$(grep -E '^\| 被测件面注记 \|' "$DOC" | tail -1)
+  if [ -n "$NT" ]; then
+    nval=$(printf '%s' "$NT" | grep -oE 'PLG=[0-9a-f]{8}' | head -1 | cut -d= -f2)
+    nrepl=$([ "${nval: -1}" = "f" ] && echo 0 || echo f); nmut="${nval%?}$nrepl"
+    NTnew="${NT/$nval/$nmut}"; [ "$NTnew" != "$NT" ] || { echo "R3 注记改写未生效 ⇒ 判 9"; exit 9; }
+    awk -v old="$NT" -v new="$NTnew" '$0==old{print new; next}{print}' "$DOC" > "$T/doc_note.md"
+    GTC_DOC="$T/doc_note.md" bash "$SELF" --check > "$T/out_note.txt" 2>&1; rn=$?
+    echo "  R3 注记 PLG 改一位（$nval→$nmut）⇒ 本体 rc=$rn（期望 0＝WARN 非致命），WARN 行：$(grep -m1 'WARN' "$T/out_note.txt")"
+    grep -q 'WARN' "$T/out_note.txt" || { echo "NEGCTL VERDICT: 注记改了却仍称已定格 ⇒ 识别逻辑是空气，rc=5"; exit 5; }
+  else echo "  [INFO] 在册无「被测件面注记」行 ⇒ R3 跳过（不判红，但这条识别面未被见证，须在有待裁件时补）"; fi
+
   cp "$DOC" "$T/doc_same.md"; GTC_DOC="$T/doc_same.md" bash "$SELF" --check >/dev/null 2>&1; r=$?
   echo "  R0 未改副本 ⇒ 本体 rc=$r（期望 0，证明红来自改动而非临时件本身）"
   [ "$r" = 0 ] || { echo "NEGCTL VERDICT: 未改也红 ⇒ 临时件路径本身触发假红，rc=5"; exit 5; }
@@ -90,9 +102,18 @@ if [ "${1:-}" = "--check" ]; then
   _hpl=$(git show "HEAD:$PLG" 2>/dev/null | sha256sum | cut -c1-8)
   _hxa=$(git show "HEAD:$XAC" 2>/dev/null | sha256sum | cut -c1-8)
   _drift=0
-  [ "$_lpl" != "$_hpl" ] && { echo "  [WARN] 被测件面前向漂移：末行 PLG=$_lpl 而 HEAD PLG=$_hpl（$PLG 在末行之后又单独提交过）"; _drift=$((_drift+1)); }
-  [ "$_lxa" != "$_hxa" ] && { echo "  [WARN] 被测件面前向漂移：末行 XAC=$_lxa 而 HEAD XAC=$_hxa"; _drift=$((_drift+1)); }
-  [ "$_drift" = 0 ] && echo "  被测件面：末行 XAC/PLG 与 HEAD 同值（无漂移，升 FAIL 与否待裁）"
+  # 已挂账的漂移＝07 档里有一条「被测件面注记」行写了与 HEAD 同值的 XAC/PLG ⇒ 认成"已定格"，不再当未记录漂移报警
+  _note=$(grep -E '^\| 被测件面注记 \|' "$DOC" | tail -1)
+  _npl=$(printf '%s' "$_note" | grep -oE 'PLG=[0-9a-f]{8}' | head -1 | cut -d= -f2)
+  _nxa=$(printf '%s' "$_note" | grep -oE 'XAC=[0-9a-f]{8}' | head -1 | cut -d= -f2)
+  _pinned=0
+  if [ -n "$_note" ] && [ "${_npl:-none}" = "$_hpl" ] && [ "${_nxa:-none}" = "$_hxa" ]; then
+    _pinned=1; echo "  被测件面：已由在册注记定格（PLG=$_npl，XAC=$_nxa；载体仍 H14）"
+  else
+    [ "$_lpl" != "$_hpl" ] && { echo "  [WARN] 被测件面前向漂移：末行 PLG=$_lpl 而 HEAD PLG=$_hpl，且注记不匹配（注记 PLG=${_npl:-无}）"; _drift=$((_drift+1)); }
+    [ "$_lxa" != "$_hxa" ] && { echo "  [WARN] 被测件面前向漂移：末行 XAC=$_lxa 而 HEAD XAC=$_hxa，且注记不匹配（注记 XAC=${_nxa:-无}）"; _drift=$((_drift+1)); }
+    [ "$_drift" = 0 ] && echo "  被测件面：末行 XAC/PLG 与 HEAD 同值（无漂移）"
+  fi
   # 防重与穷尽（本轮实测教训：我把表体重复插入成 27 行，逐行核对却仍 PASS——
   #   因为每一行单独都与 git 相符，重复与漏行都不在「逐行」的判据面内。现补两断言：）
   _rows=$(grep -cE '^\| H[0-9]+ \|' "$DOC")

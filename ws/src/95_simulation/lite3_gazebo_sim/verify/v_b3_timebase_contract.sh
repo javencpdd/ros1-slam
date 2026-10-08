@@ -112,6 +112,6 @@ sys.exit(0 if NF == 0 else 1)
 PYEOF
 rc=$?
 echo "  在册依据（引用须连件名＋代际）：02 坑25 处置条＝修法；小美 M2R4 复核节＝「被测件即变 ⇒ 5 连重新起算」；"
-echo "    代际现值 SM/LIB 见 scripts/verify/v_harness_generation_table.sh --check（本批落地后跳 H15）。"
+echo "    代际现值 SM/LIB 见 scripts/verify/v_harness_generation_table.sh --check；只改本插件**不产生新代际行**（代际轴＝SM∪LIB 提交数），故须在 07 档落一条「被测件面注记」把新 PLG 定格，否则引用会歧义。"
 echo "B3 rc=$rc"
 exit $rc

@@ -1,0 +1,15 @@
+=== 批3 时基对账（被测件 sha=839fe93142bb）===
+  [PASS] B1 节流源 锚点唯一在位：L61 ⇒ const common::Time now = parent_->GetWorld()->SimTime();
+  [PASS] B1 odometry 打戳 锚点唯一在位：L112 ⇒ o.header.stamp = ros::Time(now.Double());
+  [PASS] B1 TF 打戳 锚点唯一在位：L128 ⇒ tf_broadcaster_->sendTransform(tf::StampedTransform(tf, ros::Time(now.Double()),
+  现场读数：odometry 打戳=SimTime(now) ｜ TF 打戳=SimTime(now) ｜ 节流源=SimTime(now)
+  [PASS] B2 odometry 打戳已与节流源同基（SimTime）
+  [PASS] B3 TF 打戳已与节流源同基（SimTime）
+  [PASS] B4 命令时效那一对仍同基成对（L54 写 / L69 比，皆 ros::Time::now）⇒ 未被顺手改动
+  [PASS] B5 节流早退式在 L106 且不含墙钟调用＝SimTime 面（未被换成墙钟）：if ((now - last_odom_time_).Double() < period) return;
+==================================================
+B3 TIMEBASE VERDICT: PASS=7 FAIL=0 ｜ 时基已统一 ⇒ 批3 可结案（还须 5 连重新起算＋07 表加行）
+  在册依据（引用须连件名＋代际）：02 坑25 处置条＝修法；小美 M2R4 复核节＝「被测件即变 ⇒ 5 连重新起算」；
+    代际现值 SM/LIB 见 scripts/verify/v_harness_generation_table.sh --check；只改本插件**不产生新代际行**（代际轴＝SM∪LIB 提交数），故须在 07 档落一条「被测件面注记」把新 PLG 定格，否则引用会歧义。
+B3 rc=0
+B3 rc=0

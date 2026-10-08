@@ -108,7 +108,8 @@ class Lite3PlanarDrive : public ModelPlugin {
     last_odom_time_ = now;
     const ignition::math::Pose3d p = parent_->WorldPose();
     nav_msgs::Odometry o;
-    o.header.stamp = ros::Time::now();
+    // 坑25：打戳必须与本函数的节流源（L61 的 SimTime）同基，否则一个 tick 内出现同戳重复发布（TF_REPEATED_DATA）
+    o.header.stamp = ros::Time(now.Double());
     o.header.frame_id = odom_frame_;
     o.child_frame_id = base_frame_;
     o.pose.pose.position.x = p.Pos().X();
@@ -124,7 +125,7 @@ class Lite3PlanarDrive : public ModelPlugin {
     tf::Transform tf;
     tf.setOrigin(tf::Vector3(p.Pos().X(), p.Pos().Y(), p.Pos().Z()));
     tf.setRotation(tf::Quaternion(p.Rot().X(), p.Rot().Y(), p.Rot().Z(), p.Rot().W()));
-    tf_broadcaster_->sendTransform(tf::StampedTransform(tf, ros::Time::now(),
+    tf_broadcaster_->sendTransform(tf::StampedTransform(tf, ros::Time(now.Double()),
                                                         odom_frame_, base_frame_));
   }
 

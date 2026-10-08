@@ -1,0 +1,54 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261009_035302
+[m2] HARNESS sha256=fa8e57359a17daf9f0c1457318e49e63d675027de3ecad11f6e5c401515dfeed path=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+[m2] FP m2_exitclean_lib.sh sha256=b17022766fa415314aa6967c41370e990d74b80b38b75cec520e8bc388dd5353
+[m2] FP lite3_planar.urdf.xacro sha256=ef23da2dd5e281ae5b5b973f36224e6801156c07a42e0e9512aaccf123ccc86c
+[m2] FP lite3_planar_drive.cpp sha256=839fe93142bbce59ba1f8fef9c4fc46b8eacc29c62f188a144cf08f618e9ca0a
+[m2] FP liblite3_planar_drive.so sha256=f1a7c4497d1a7441a13a13abcf478685ea0df7c4fa1148433dfe7569c394d04e
+[PASS] 探针敏感度自检：临时口 41299 读出 TCP=1 UDP=0 身份=TCP/p41299/703731/ysc（R27 三 阳性对照命中，探针对非零态有分辨力）
+[exitbase] # exitbase @2026-10-09 03:53:04 stage=stageA seg=pre
+[exitbase] PIDS 
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+[posesrc]   /Odometry：Publishers=1 [/faster_lio_online]  帧对集合={child_frame_id: "body"   frame_id: "camera_init" }
+[posesrc]   [PASS] post_a：/Odometry 发布者恰 1 且不再含 odom 族（真值已让位）
+[posesrc]   /sim/odom_gt：Publishers=1 [/gazebo]  帧对集合={child_frame_id: "base_link"   frame_id: "odom" }
+[posesrc]   [PASS] post_a：/sim/odom_gt 恰 1 发布者且为 odom 族（真值另名可读）
+[posesrc] POSE SOURCE VERDICT: PASS (post_a)
+SMOKE start=(0.000,0.000) imu_yaw0=0.006
+SMOKE phase_fwd_out_done
+SMOKE phase_turn180_done
+SMOKE phase_fwd_back_done
+SMOKE drift=0.492 gt_drift=0.492 rate_pts=9.9 rate_imu=197.5 fly_ratio=0.0000 rtf_motion=0.290 mw_sim=23.9 mw_wall=82.4 phases out=True turn=True back=True
+[PASS] A: 闭环走完（out/turn/back 全 done）
+[PASS] A③(M2-4): 漂移 0.492 ≤0.5
+[PASS] A①: 点云 9.9 ≥5Hz
+[PASS] A②: IMU 197.5 ≥100Hz
+[PASS] A④: 飞点 0.0000 <1%
+[PASS] A0(前置): 运动窗 RTF 0.290 ≥0.25
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /faster_lio_online
+ * /gazebo
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-09 03:56:58  stage=stageA seg=A
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]   （零命中）
+[exitclean] -- 监听端口分查（计数面）--
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+[PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+SUMMARY marks pass=11 fail=0
+==================================================
+M2 SMOKE: PASS
+==================================================

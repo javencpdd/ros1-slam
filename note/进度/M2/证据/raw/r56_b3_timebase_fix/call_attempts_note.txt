@@ -1,0 +1,9 @@
+# 我的三次调用失误（原件留证，不覆写；都不是被测件的问题，是我这侧的调用姿势）
+1) 03:10:39 起构建时把 nohup bash -c 'cd /home/ros1-slam/ws && catkin_make -j2' 直接跑 ⇒ /bin/bash: catkin_make: command not found，rc=127。
+   根因＝没走 ROS 环境三步；日志被后续构建覆盖，此处按原读数留记（原文：which 空 + rc=127）。
+2) 03:17:48 第二次仍 rc=127：我以为加了 env，实际那条命令里漏写 source 两行——证据就是日志首行自证 `command -v catkin_make=` 为空。
+   ⇒ 这条"自证行"是我加的，正因它在，失误当场可指认，而不是留下一句没头没尾的 127。
+3) 03:20:50 成功那次（compile.log）：三步 env 齐 ⇒ which=/opt/ros/noetic/bin/catkin_make，CATKIN_MAKE rc=0，
+   日志内可见 `[100%] Linking CXX shared library /home/ros1-slam/ws/devel/lib/liblite3_planar_drive.so`（Linking 行数=1，即真重链接）。
+4) 另一次核面失误：`cd ws/src/30_3rd && sha256sum -c …` 后我在**仓库根**跑 `find . -type f` 数第三方件数 ⇒ 打出 23408（虚高）。
+   回 30_3rd 内重算得 可验=49／计数=49 ⇒ 双条件成立；23408 那个数是错的，按本条更正，不引用。

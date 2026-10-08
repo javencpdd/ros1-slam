@@ -1,0 +1,9 @@
+【verify】2026-10-09 03:02:28  属主面：ysc 件数=40 ros1-slam 件数=5545
+  改前 .so sha=fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7  样张 sha=aaa09362c5f1…
+  ① 增量 catkin_make rc=0（须 0；日志 /tmp/b3_verify_catkin.log 尾：）
+      ####
+      #### Running command: "make -j2" in "/home/ros1-slam/ws/build"
+      ####
+  ② 关键产物是否被顺带重编译：改后 .so sha=fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7 ⇒ 与改前 同值=未动
+  ③ 白名单必须是空值（只数出现次数会把「键在但被赋值」也判成过）：现值=[CATKIN_WHITELIST_PACKAGES:STRING=] ⇒ OK（值确为空）；样张 未变
+  ④ 属主面 diff：构建后 ysc 件数=501（若比改前跳增，说明我的构建又改了共享件属主，须当场公开＝坑30 纪律）

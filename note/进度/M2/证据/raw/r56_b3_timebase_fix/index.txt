@@ -1,0 +1,51 @@
+# R56／批3（坑25 时基根除）结案 —— 前置落地 → 改两处打戳 → .so 重编译 → 验收件转绿 → stageB 五连＋stageA 重取全绿
+# 更新时间 2026-10-09 03:58；代际仍 H14（SM fa8e57359a17／LIB b17022766fa4 **一字未动**），被测件面已变 ⇒ 由 07 档「被测件面注记」定格
+
+## 0. 前置（属主侧，主理人 03:0x 执行）
+`sudo bash scripts/ops/b3_pre_chown.sh --apply` ⇒ 「已改属主 36 件」「仍属 ros1-slam 的同类件数=0」。我不代跑 sudo（甲新1 口径）。
+`--verify` 四条（原件 pre/）：① 增量 catkin_make **rc=0**（改前 rc=1）；② .so sha 未动（fb4a62d8…，当时无源码变更）；
+③ CATKIN_WHITELIST_PACKAGES 等号后为空 ⇒ OK；④ 属主面 ysc 件数 **40→501**（构建在 chown 后新建/覆盖了共享树里的件）
+⇒ **公开**：这是甲案「把工作户接成 catkin 生成件属主」的直接后果，后续 ros1-slam 侧若再构建，同类 chmod 失败可能反向出现，届时按同一条工单处置，不临时改法。
+
+## 1. 改点（只此两处，来源 02 坑25 处置条；diff 见 plg_diff.txt）
+- `o.header.stamp`：ros::Time::now() → **ros::Time(now.Double())**（与本函数 L61 的 SimTime 节流源同基）
+- `tf_broadcaster_->sendTransform(...)` 第二参：ros::Time::now() → **ros::Time(now.Double())**
+- **未改**：命令时效那一对（`last_cmd_time_=ros::Time::now()` 与 `(ros::Time::now()-last_cmd_time_)>cmd_timeout_`）——
+  同基成对、修法没要求；若改成 SimTime，超时语义会随 /clock 快慢漂移＝行为变更（超出批准面）。B4 断言现在守这条。
+- **未改**：节流面（本就是 SimTime）。SM／LIB／任何门值一字未动。
+
+## 2. 重编译与 .so（compile.log）
+`[100%] Linking CXX shared library ws/devel/lib/liblite3_planar_drive.so`（Linking 行=1）⇒ 真重链接；
+.so sha **fb4a62d8c6add395 → f1a7c4497d1a7441**，属主 ros1-slam → ysc:ysc，大小 502768 → 502840；
+PLG 源码 sha a32e70ff… → **839fe93142bb…**（07 档注记即记这两值）。
+构建调用自证与我的三次失误见 call_attempts_note.txt（前两次 rc=127＝漏 env 三步；第三次靠件内 `command -v` 自证行当场可指认）。
+
+## 3. 验收件
+`v_b3_timebase_contract.sh`：**改前真红 rc=1（B2/B3 两条 FAIL＝坑25 本体）→ 改后 rc=0（PASS=7 FAIL=0）**，
+其中 B4/B5 仍 PASS ⇒ 证明"改对了且没越界"。原件 b3_after_fix.txt。
+
+## 4. 活体重取（程序令：被测件即变 ⇒ 5 连重新起算，小美 M2R4 复核节 L376）
+- stageB 五连：`BATCH VERDICT: rc=0`，逐跑 r1..r5 **rc=0 exp=0 match、SUMMARY pass=9 fail=0 且自报＝原件行首**；
+  r3 加压档 `gate_press_late=PASS branch=abs+span`（G5_DELAY_SIM=62）；批内断言三条全 PASS（≥1 次加压达标跑／逐位期望相符／计数自洽）。
+- stageA：`[PASS] A0(前置): 运动窗 RTF **0.290** ≥0.25` ⇒ 与在册平台 0.288 同量级，新 .so 未把时基拖失真；`SMOKE: PASS`。
+- **跑内指纹（R35）**：五连＋stageA 每跑首行 FP 均为 `lite3_planar_drive.cpp sha256=839fe931…`、`liblite3_planar_drive.so sha256=f1a7c449…`
+  ⇒ "用的是新件"不是我说，是每跑自己打的。
+- **效果面（坑25 本体）**：两批归档原件内 `TF_REPEATED` 行数 **=0**（改前基线是"新五连 3/5 命中"）。
+  面别照 R29(一) 口径声明：这里是**归档件全文行数**，不是"事件数"；且 n=5 仍不构成统计证据，只构成"改后未复现"的直接见证。
+- 退净与红线：每跑 SUMMARY pass=9 fail=0（含退净三面）；批后 11313/11312/11345 监听=0、comm 面残留=0；
+  样张 aaa09362c5f1、世界 fb52d5e6ed3e **未扰动**；第三方沙箱双条件 可验=49／计数=49（在 ws/src/30_3rd 内取，先前那个 23408 是我在仓根误数，已在 call_attempts_note 更正，不引用）。
+- 归档址：SCAN集成/证据/log/raw/retake_20261009_032602/（49 条清单）与 retake_20261009_035301/（41 条清单），各自 `sha256sum -c` 于址内可验。
+
+## 5. 后果与挂账（不由我自闭）
+- **P3／P4／M5.2 的活体结论属旧 .so（fb4a62d8）时代**：引用时必须连 .so sha 一起引（代际仍 H14，被测件面已换代）。
+  是否要为 H14-新PLG 重跑 A7 P3 三连与 M5.2 三次，属验收侧定档 ⇒ **挂小美**，施工侧不自判、也不自跑无意义重取。
+- P4 的**丙项**（顶撞后 /LIO/odom_vehicle 千米级跳变是否与坑25 同源）自此**有对照物可用**：本批同链 TF 同戳重复已不复现，
+  但 P4 那次是撞后跳变、场景不同 ⇒ 复核需重跑 P4，而 P4 的甲／乙两项仍在小张与小美名下。
+- 代际：只改被测件面不产生新 H 行 ⇒ 07 档新增「被测件面注记」行定格（PLG=839fe931／so=f1a7c449）；
+  `v_harness_generation_table.sh --check` 会把它认成"已定格"而非未记录漂移；`--negctl` 的 R3 证明这条识别真有咬合（改注记一位 ⇒ 退回 WARN）。
+  **是否升成 FAIL（＝改被测件面必须伴随一次载体提交）仍待裁**。
+
+## 6. 复跑式
+  bash ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh        # 应 rc=0
+  OUT=/tmp/rt bash ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh pre b archive   # stageB 五连
+  OUT=/tmp/rt bash ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh pre a archive   # stageA（A0）

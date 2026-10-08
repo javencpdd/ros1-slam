@@ -1,0 +1,25 @@
+归档址：/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/retake_20261009_035301
+  清单不列自身；校验口径：cd 归档址 && sha256sum -c _sha256_manifest.txt（旧句写仓根 CWD 不实，R48 一）
+===== 0) 负载与隔离域预检 2026-10-09 03:53:02 =====
+  loadavg(1min)=1.94  LOAD_MAX=4  STAGEA_MAX=3  FORCE=未设
+  在册端口监听：11313=0 11345=0 生产11312=0（三者必须 0／0／0，否则并发未清）
+  非本仓大户点名（只读，不动他人进程）：
+  foxy[start] 计数=0
+  指纹（载体＋被测件＋配套件）：
+  [archive] OUT 收口：/tmp/rt_b3_a 件数=3 ＝ 归档件数=3 ｜清单可验=3 ＝ 全件数=3（校验 CWD＝归档址）
+===== 1) stageA：最多 3 次有效重试（A0 门 0.25 属 M2R2 裁决，本件不改） 2026-10-09 03:53:02 =====
+  第 1 次 rc=0 | drift=0.492 gt_drift=0.492 rate_pts=9.9 rate_imu=197.5 fly_ratio=0.0000 rtf_motion=0.290
+    判定面 11P/0F | SUMMARY marks pass=11 fail=0
+  ⇒ 取得有效 stageA，M2-1／M2-4 的复取成立
+  archived logs-20261009_035302：7 件，收口=是
+  [archive] OUT 收口：/tmp/rt_b3_a 件数=4 ＝ 归档件数=4 ｜清单可验=11 ＝ 全件数=11（校验 CWD＝归档址）
+  archived logs-20261009_032604：6 件，收口=是
+  archived logs-20261009_032921：6 件，收口=是
+  archived logs-20261009_033239：6 件，收口=是
+  archived logs-20261009_033810：6 件，收口=是
+  archived logs-20261009_034111：6 件，收口=是
+  archived logs-20261009_035302：7 件，收口=是
+  [archive] OUT 收口：/tmp/rt_b3_a 件数=4 ＝ 归档件数=4 ｜清单可验=41 ＝ 全件数=41（校验 CWD＝归档址）
+===== RETAKE VERDICT: rc=0 2026-10-09 03:57:11 =====
+  0=全绿 4=A0 三次皆 INVALID（算力面）5=判据 FAIL 6=批次覆盖不足 7=负载预检不过 8=期望/计数面 9=前置缺失 10=证据未收口（OUT 归档数不符）
+  rc 空间属本件自有层（与 DWR／BR／SM 各层不互认），引用时必须连件名＋代际（她裁定 1 丙条／D5）
