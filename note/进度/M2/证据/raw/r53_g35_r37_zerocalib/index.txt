@@ -1,0 +1,30 @@
+# R53 —— 辅门 35 的零节点半标定到手（小美 M2R8 路由 R37 的无窗那一半），同批把 R36 的自述面补齐
+# 更新时间 2026-10-09 02:06；代际仍 H14（SM/LIB 一字未动，见 gates.txt 的 G35 头行 sha=fa8e57359a17 与 GTC rc=0）
+
+## 做了什么
+1) 新件 ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh（G35）
+   对表四态 abs+span／span／NONE／unreached（8 个 fixture 含三处边界）＋辅门翻转可指认＋门值字面在册＋抽取式同源锚。
+   纪律：判据式子（_b_abs／_b_span／ok_press／branch）从**现役 SM** 抽出后 eval，本件不复制实现 ⇒ 过＝在跑的那份判据被证。
+   因此**不改 SM**、不触 SM/LIB 指纹、不跳代际（这正是"零节点这半不等窗"能成立的原因）。
+2) 阴性对照两式：件内 T3（抠掉 `and _span >= 35.0` 重跑 F2 ⇒ 必翻成 abs+span/达标）；
+   件外 --negctl（拿抠辅门的 SM **副本**作被试重跑本体 ⇒ 本体必须真红 rc=5，实测 4 条断言红）＝新 gate 真的红过一次且可复跑。
+3) 退净标定件 v_m2_exitclean_selftest.sh 的**覆盖面自述行**补上 U10（她 R36 的一致性硬闸）与 U11（她 R33 的 inode 键）；
+   用例本体与判据逻辑一字未改（R36 的 LIB 硬闸与 U10/U11 桩测此前已在册，本次只修"件自己说了不全"这行字）。
+
+## 结论读数（gates.txt 原文摘录）
+G35 对表：PASS=15 FAIL=0 / 15，rc=0
+G35 --negctl：被试副本 _b_abs=(_sim2 >= 60.0) ⇒ 本体 rc=5、失败断言数=4（F2／T2／T3／T4 同红）⇒ NEGCTL VERDICT rc=0
+STS：用例 PASS=21 FAIL=0 / 21，rc=0
+SYN：3 件通过（内嵌 python 段 5）｜DWRS 5/5｜RAS 9/9｜BRS 10/10｜SLE 7/7｜TEC 7/7｜PTS 15/15
+GTC：rc=0（逐行与 git 现算同值 ⇒ 代际仍 H14）｜ISO：OK rc=0，ws_src_files=4548（本批 +1＝G35 新件）
+
+## 仍在别人名下的（不由本批结掉）
+R37 的**活体那半**：辅门 35 在真跑里被非零态读过——留 R41 的两条真反例（要窗），本件不冒充已验。
+SM 侧若要把 branch 判定式正式抽成"纯函数"（她原话的形态），那是**判据载体变更** ⇒ 走 A3 挂账＋跳代际，与批3（H15）同批做；
+  本批的窗口收口抽取已经能在零节点侧对表，不需要为标定去动 SM。
+
+## 复跑式
+  bash ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh            # 零节点，秒级
+  bash ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh --negctl   # 阴性对照（本件能真红）
+  bash ws/src/95_simulation/lite3_gazebo_sim/verify/v_m2_exitclean_selftest.sh             # STS 21 条
+  sha256sum -c _sha256_manifest.txt（本目录内）

@@ -1,0 +1,94 @@
+# 调用姿势自证：本段全部件在「unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION → source /opt/ros/noetic/setup.bash → source ws/devel/setup.bash」三步 env 下运行
+# 原因：ISO [4] 用 rospack find，未 source 即解析不到 ws ⇒ 会打假红（R52 批实测过一次），故随门禁一起声明
+### G35（对表正跑）
+=== 辅门 35 零节点标定（SM sha=fa8e57359a17）===
+  抽取四面（逐字来自现役 SM，非本件自写）：
+    _b_abs    = (_sim2 >= 60.0 and _span >= 35.0)
+    _b_span   = (_span >= 40.0)
+    ok_press  = bool(_r) and (_b_abs or _b_span)
+    branch    = ('unreached' if not _r else ('abs+span' if _b_abs else ('span' if _b_span else 'NONE')))
+--- T1 四态对表（abs+span／span／NONE／unreached 必须各归各位）---
+[PASS] F1 sim2=61 span=36 → abs+span 且达标 ⇒ ('abs+span', True)
+[PASS] F2 sim2=61 span=34 → NONE 且达标 False（辅门咬合处） ⇒ ('NONE', False)
+[PASS] F3 sim2=50 span=41 → span 且达标 ⇒ ('span', True)
+[PASS] F4 sim2=50 span=20 → NONE 且达标 False ⇒ ('NONE', False)
+[PASS] F5 reached=False → unreached（一票否决，读数再高也不达标） ⇒ ('unreached', False)
+[PASS] F6 边界 sim2=60 span=35 → abs+span（>= 含等号） ⇒ ('abs+span', True)
+[PASS] F7 边界 sim2=59.99 span=34.99 → NONE ⇒ ('NONE', False)
+[PASS] F8 边界 sim2=59.99 span=40.0 → span（OR 另一支单独成立） ⇒ ('span', True)
+--- T2 辅门可指认：F1(36) 与 F2(34) 同 sim2，判定必须翻转（否则辅门不在链上）---
+[PASS] T2 同 sim2 下 span 跨 35 使 branch 与达标同时翻转 ⇒ True
+--- T3 阴性对照（抠掉 `and _span >= 35.0` 后重跑 F2 ⇒ 期望 abs+span/达标，即原表在此必红）---
+    改写后（仅供阴性对照，不写回任何件）：(_sim2 >= 60.0)
+[PASS] T3 抠辅门后 F2 翻成 abs+span 且达标（说明在册式里辅门确实在判） ⇒ ('abs+span', True)
+[PASS] T3 与正表同输入不同结论（分辨力自证） ⇒ True
+--- T4 门值字面在位（60.0／35.0／40.0 任一被改 ⇒ 本件先红，更表须由小美定档后做）---
+[PASS] T4 门值 60.0 在现役式子里 ⇒ True
+[PASS] T4 门值 35.0 在现役式子里 ⇒ True
+[PASS] T4 门值 40.0 在现役式子里 ⇒ True
+--- T5 同源锚（抽取式必须与在册回显行同处一段，防「我抽的是另一段」）---
+[PASS] T5 抽取段确为回显行所在那一段（窗口收口生效） ⇒ True
+==================================================
+G35 CALIBRATION: PASS=15 FAIL=0 / 15
+  覆盖面：四态对表（T1）／辅门翻转可指认（T2）／抠辅门必真红的阴性对照（T3）／门值字面在册（T4）／抽取式与回显行同源（T5）
+  活体那半（辅门在真跑里被非零态读过）仍留 R41 两条真反例，本件不冒充已验
+G35 rc=0
+G35 rc=0
+### G35-NEGCTL（抠辅门副本 ⇒ 本体必须真红）
+=== G35 阴性对照（被试＝抠掉辅门的 SM 副本）：在册件含辅门 1 处 ⇒ 副本含 0 处 ===
+  被试副本判定行：    _b_abs    = (_sim2 >= 60.0)
+  本体实得 rc=5（期望 5＝有 FAIL），失败断言数=4
+      [FAIL] F2 sim2=61 span=34 → NONE 且达标 False（辅门咬合处） 期望=('NONE', False) 实得=('abs+span', True)
+      [FAIL] T2 同 sim2 下 span 跨 35 使 branch 与达标同时翻转 期望=True 实得=False
+      [FAIL] T3 改写生效（抽出的 _b_abs 里应能找到辅门子句） 期望=True 实得=False
+      [FAIL] T4 门值 35.0 在现役式子里 期望=True 实得=False
+NEGCTL VERDICT: 本件能真红 rc=0（辅门确在对表面前起作用，不是注释装饰）
+NEGCTL rc=0
+### STS（退净标定，覆盖面行补齐 U10/U11 之后）
+==================================================
+EXITCLEAN SELFTEST: 用例 PASS=21 FAIL=0 / 21
+  覆盖面：探针敏感度（U1 阳性／U2 阴性）、进程面差集（U3 不误判／U4 真判死／U8 分栏）、
+  缺基线（U5）、端口计数与身份两面（U6 真判死／U7 不误伤）、段令牌幂等（U9）、
+  身份探针失能的一致性硬闸（U10，她 R36）、同口换 socket 的新增身份（U11，她 R33 的 inode 键）
+==================================================
+STS rc=0
+### SYN
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh
+  [OK] python 段 L48-L167 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_m2_exitclean_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 189 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L107-L174 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L205-L406 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L443-L465 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L487-L548 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+PY SYNTAX OK（被检件数=3，内嵌 python 段合计=5）
+SYN rc=0
+### DWRS
+==================================================
+DWRS VERDICT: PASS=5 FAIL=0
+### RAS
+==================================================
+RAS VERDICT: PASS=9 FAIL=0
+### BRS
+==================================================
+BRS VERDICT: PASS=10 FAIL=0
+### SLE
+==================================================
+SLE VERDICT: PASS=7 FAIL=0
+### TEC
+==================================================
+TF EDGE CONFLICT VERDICT: PASS=7 FAIL=0
+### PTS
+PTS 自测 VERDICT: PASS=15/15 FAIL=0
+SELFTEST VERDICT: rc=0
+### GTC
+  分母面：在册行=14 唯一H#=14 git载体提交数=14（重复与漏行同判红）
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+GTC rc=0
+### ISO
+[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.cc/.h）
+=== ISOLATION OK ===
+# self-attest: at=2026-10-09 02:06:18 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4548 rc=0
+ISO rc=0
