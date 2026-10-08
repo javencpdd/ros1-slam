@@ -1,0 +1,27 @@
+=== R51 零节点回归批 2026-10-08 23:14:53 ===
+### DWRS
+DWRS VERDICT: PASS=5 FAIL=0
+### SYN
+  [OK] python 段 L130-L133 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+PY SYNTAX OK（被检件数=4，内嵌 python 段合计=9）
+### RAS
+RAS VERDICT: PASS=9 FAIL=0
+### BRS
+BRS VERDICT: PASS=10 FAIL=0
+### STS
+EXITCLEAN SELFTEST: 用例 PASS=21 FAIL=0 / 21
+### M5 契约件（不给 log）
+[ABSENT] 段 B 活体 log 判据未跑（未给 log）⇒ 本节不给绿，也不给红
+TASK SCAN PRIMITIVE VERDICT: PASS=9 FAIL=0 ABSENT=1（log 未给＝活体面未跑）
+### SLE
+SLE VERDICT: PASS=7 FAIL=0
+### TEC
+TF EDGE CONFLICT VERDICT: PASS=7 FAIL=0
+### MUX
+MUX SOURCES VERDICT: PASS=8 FAIL=0
+### GTC
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+### ISO
+=== ISOLATION OK ===
+# self-attest: at=2026-10-08 23:16:24 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4545 rc=0
+ISO rc=0

@@ -34,7 +34,16 @@ cleanup() { rosnode kill -a >/dev/null 2>&1; sleep 3
   sleep 4
   { echo "# 退净核验 @$(date '+%F %T')"
     echo "-- 命中进程原样 ps 行 --"
-    pgrep -af 'roslaunch|rosmaster|rosout|gzserver|gzclient|move_base_flex|sim_adapter|dwa_recheck' || echo "  （零命中）"
+    # 旧写法把「调用本件的那条命令行」也列为命中（命令行里带着 dwa_recheck 字样＝匹配散文，R40 后续修订项）：
+    #   现在按两条规则剔除自身面——①剔除本 shell 及其全部祖先 PID；②剔除 args 里出现本判据件名的行。
+    #   这是**证据可读性**修正，不改任何判据门值；剩余命中仍是真残留。
+    _anc=$$; while [ "$_anc" != "1" ] && [ -n "$_anc" ]; do _anc=$(ps -o ppid= -p "$_anc" 2>/dev/null | tr -d ' '); [ -n "$_anc" ] && _ex="${_ex:-} $_anc"; done
+    # 上一版我把这条改成「管道三段 + || echo（零命中）」——结果 **|| 永远不触发**：
+    #   流水线的退出码取最后一个命令（awk），awk 收到空输入照样返回 0 ⇒ 零命中时什么都不打，
+    #   「空输出」冒充「零命中」（自测 T3 当场抓住，属坑29 那一族）。现改为先取串再显式二分支。
+    _hits=$(pgrep -af 'roslaunch|rosmaster|rosout|gzserver|gzclient|move_base_flex|sim_adapter|dwa_recheck' 2>/dev/null \
+      | grep -v "v_dwa_recheck.sh" | awk -v ex="$$ ${_ex:-}" 'BEGIN{split(ex,a," "); for(i in a) drop[a[i]]=1} !($1 in drop)')
+    if [ -n "$_hits" ]; then printf '%s\n' "$_hits"; else echo "  （零命中）"; fi
     echo "-- 端口 TCP/UDP 分查 --"
     for p in 11311 11312 11313 11345; do echo "  port $p TCP=$(ss -lnt 2>/dev/null | grep -c ":$p\b") UDP=$(ss -lnu 2>/dev/null | grep -c ":$p\b")"; done
   } > "$DWA_OUT/exitclean.txt" 2>&1
