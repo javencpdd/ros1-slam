@@ -1,0 +1,81 @@
+<launch>
+  <!-- 70_scan.launch —— SCAN-Planner 独立进程壳包 launch（小明 2026-10-07，roadmap C 节 P0-3）
+       改造自 /home/test/scan_planner run.launch（A6 复用清单「拷入壳包后改造」行；SCAN 源码/launch 零改动）：
+       ① is_real_world 逻辑保留：本 launch 固定走真机话题拓扑（faster_lio 系 /LIO/*，经 lio_relay.launch
+          纯转发——Gazebo 仿真链与真机 faster_lio 输出同契约，故仿真/真机同形态）；
+       ② sim 侧 body/cloud 源已从 quad_0/pcl_render_node 换成 faster_lio 系（A6）；
+       ③ goal remap：/move_base_simple/goal → /scan_planner/goal（A1/A3 私有名，防与 mbf 双消费；
+          include 级 remap 作用于 advanced_param 内 scan_planner_node）；
+       ④ robot_description 段删（A6：我们统一用 Lite3_prim.urdf / Gazebo xacro，本进程不发布模型）；
+       ⑤ simulator.xml 段删（A6 不适用行：pcl_render_node/go2 仿真件不拷不引用；
+          is_real_world=true 时 simulator.xml 本就只剩 odom_visualization，Utils 未拷）；
+       ⑥ 真机安全网 remap 原文保留（run.launch 注释逐字语义）：绝不直发速度指令，一律
+          改发 scan_planner 私有安全网话题（详见下方 remap 行与 cmd_vel_raw 中继说明）——
+          本 launch 无条件启用（含仿真域）。
+       隔离红线：本 launch 由调用方设 ROS_MASTER_URI；速度输出仅以 scan_planner 私有安全网
+          名出现（仿真域经 cmd_vel_raw 中继同款模式承接，写者唯一）。 -->
+  <arg name="navi_mode" default="1"/>
+  <arg name="max_vel" default="0.40"/>          <!-- advanced_param.xml 基线值逐字（.bak-maxvel075 调参史收敛） -->
+  <arg name="max_acc" default="0.5"/>
+  <arg name="planning_horizon" default="3.5"/>
+  <arg name="need_extrinsic" default="false"/>  <!-- faster_lio 给机体系位姿+机体系点云，叠外参是错的（manifest 锚点） -->
+
+  <!-- FSM 与 closed_loop_controller 消费全局 /body_pose_topic（源码 ros::param 读取，run.launch 同款注入） -->
+  <param name="body_pose_topic" value="/LIO/odom_vehicle" type="str"/>
+
+  <!-- faster_lio → SCAN 话题适配（lio_relay.launch 逐字保留，A6「直接拷」行；
+       三 relay /LIO/odom_vehicle、/LIO/odom_imu、/LIO/clouds_lidar + world/camera_init 与 body/base_link 恒等 TF）
+       [批1/F-D 行 B] odom_in 显式写死 /Odometry：上游缺省值虽同，但"依赖别人家的缺省"意味着
+       任何一方改缺省就会静默换掉 SCAN 的前馈源（保真度口径要求前馈=LIO 估计，非世界位真值）。
+       注：本行与批2（FD-G，行 F2）同指本文件同一行 ⇒ 两批必须分开落，批2 落地时改的是 include 目标而非本 arg。 -->
+  <include file="$(find scan_planner)/launch/lio_relay.launch">
+    <arg name="odom_in" value="/Odometry"/>
+  </include>
+
+  <!-- main algorithm params（advanced_param.xml 原样 include，仅 arg 注入；goal remap 见下方 group） -->
+  <group>
+    <!-- goal remap 必须挂 <group> 而非 <include>：roslaunch 的 <include> 不支持 remap，
+         实测报 "WARN: unrecognized 'remap' tag in <include> tag" 并静默忽略 ⇒ A1/A3 的
+         「防与 mbf 双消费」防护会失效（FSM 订阅绝对名 /move_base_simple/goal，见 scan_replan_fsm.cpp:104）。
+         group 的 remap 向下传导给组内所有节点。 -->
+    <remap from="/move_base_simple/goal" to="/scan_planner/goal"/>
+  <include file="$(find scan_planner)/launch/advanced_param.xml">
+    <arg name="sensor_type" value="lidar"/>
+    <arg name="body_pose_topic" value="/LIO/odom_vehicle"/>
+    <arg name="sensor_pose_topic" value="/LIO/odom_imu"/>
+    <arg name="cloud_topic" value="/LIO/clouds_lidar"/>
+    <arg name="cloud_is_world" value="false"/>
+    <!-- depth 分支不消费（Lite3 无深度相机，A6 不适用行）；arg 必填故给真机占位值 -->
+    <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw"/>
+    <arg name="cx" value="317.19183349609375"/>
+    <arg name="cy" value="256.4806823730469"/>
+    <arg name="fx" value="609.5884399414062"/>
+    <arg name="fy" value="609.22021484375"/>
+    <arg name="is_real_world" value="true"/>
+    <arg name="navi_mode" value="$(arg navi_mode)"/>
+    <arg name="need_extrinsic" value="$(arg need_extrinsic)"/>
+    <arg name="max_vel" value="$(arg max_vel)"/>
+    <arg name="max_acc" value="$(arg max_acc)"/>
+    <arg name="planning_horizon" value="$(arg planning_horizon)"/>
+  </include>
+  </group>
+
+  <!-- 轨迹跟踪：closed_loop（run.launch 默认档）；安全网 remap 为 run.launch is_real_world 分支原文：
+       绝不直发速度指令，一律改发 /scan_planner/cmd_vel（仿真域 cmd_vel_raw 中继同款模式出，写者唯一） -->
+  <node pkg="scan_planner" name="closed_loop_controller" type="closed_loop_controller" output="screen">
+    <remap from="cmd_vel" to="/scan_planner/cmd_vel"/> <!-- run.launch 原文；仿真执行经 cmd_vel_raw 中继同款 -->
+  </node>
+
+  <!-- 到达信号观测件（O-1 口径，壳包自有件）：盘上 SCAN 无对外「到达」话题（FSM 判段完成只看
+       轨迹时间耗尽、controller 的 finish_dist 只把 cmd 置零），故此处以只读方式补一个我方信号。
+       参考点 = 我方请求的 goal，不取 bspline 末点、不取被 adjustGlobalTargetIfOccupied 改写的
+       end_pt_（跟踪层收敛目标是轨迹末点，拿它当到达必假绿）。
+       本件不写任何上游话题；置 group 之外 ⇒ 不受 goal remap 影响，直读 /scan_planner/goal。
+       参数在此显式给出、不落 config 文件（02 坑22：与上游同名的 params 文件若无可见加载点即死配置）。 -->
+  <node pkg="lite3_scan" name="scan_arrival_monitor" type="scan_arrival_monitor.py" output="screen">
+    <param name="tol_arrive" value="0.20"/>
+    <param name="settle_s"   value="1.0"/>
+    <param name="pose_topic" value="/LIO/odom_vehicle"/>
+    <param name="goal_topic" value="/scan_planner/goal"/>
+  </node>
+</launch>

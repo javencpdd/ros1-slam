@@ -45,5 +45,9 @@ chk $? "relay 等价与单父静态断言（上列四项）"
 cd /home/ros1-slam/ws/src/30_3rd && sha256sum -c /home/ros1-slam/note/进度/SCAN集成/证据/scan_src_baseline_49.sha256 > /tmp/relay_equiv_base.txt 2>&1
 N=$(grep -vc ': OK$' /tmp/relay_equiv_base.txt); [ "$N" = 0 ] && [ "$(find . -type f | wc -l)" = 49 ]
 chk $? "30_3rd 基线双条件未被触动（非 OK=$N，计数=$(find . -type f | wc -l)）"
+# ---- 批2 接线回归断言：70_scan.launch 必须指壳包自持件，且不得再指上游件（两者同时成立才算接线生效）----
+L7=/home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+grep -q "find lite3_scan)/launch/lio_relay_sim.launch" "$L7" && ! grep -q "find scan_planner)/launch/lio_relay.launch" "$L7"
+chk $? "批2 接线在位：70_scan.launch 的 include 目标＝壳包 lio_relay_sim.launch，且上游件引用已消失"
 [ "$FAIL" = 0 ] && echo "RELAY EQUIV VERDICT: PASS" || echo "RELAY EQUIV VERDICT: FAIL"
 exit "$FAIL"

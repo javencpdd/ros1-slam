@@ -3,6 +3,8 @@
        改造自 /home/test/scan_planner run.launch（A6 复用清单「拷入壳包后改造」行；SCAN 源码/launch 零改动）：
        ① is_real_world 逻辑保留：本 launch 固定走真机话题拓扑（faster_lio 系 /LIO/*，经 lio_relay.launch
           纯转发——Gazebo 仿真链与真机 faster_lio 输出同契约，故仿真/真机同形态）；
+          〔批2 向前指向〕本行原句的转发件自批2 起改指壳包自持的 lio_relay_sim.launch，转发语义与契约不变，
+          差异仅「不再发 body→base_link 静态边」；上游件本身未被改动（49 件基线第 29 行原样在位）。
        ② sim 侧 body/cloud 源已从 quad_0/pcl_render_node 换成 faster_lio 系（A6）；
        ③ goal remap：/move_base_simple/goal → /scan_planner/goal（A1/A3 私有名，防与 mbf 双消费；
           include 级 remap 作用于 advanced_param 内 scan_planner_node）；
@@ -23,12 +25,20 @@
   <!-- FSM 与 closed_loop_controller 消费全局 /body_pose_topic（源码 ros::param 读取，run.launch 同款注入） -->
   <param name="body_pose_topic" value="/LIO/odom_vehicle" type="str"/>
 
-  <!-- faster_lio → SCAN 话题适配（lio_relay.launch 逐字保留，A6「直接拷」行；
+  <!-- faster_lio → SCAN 话题适配（〔批2 更正〕原句「lio_relay.launch 逐字保留，A6 直接拷行」自批2 起不再成立：
+       现指壳包等价件，逐 arg／逐节点对账与唯一差异面由 verify/v_scan_relay_equiv.sh 断言；原句不回改，向前指向本行。
        三 relay /LIO/odom_vehicle、/LIO/odom_imu、/LIO/clouds_lidar + world/camera_init 与 body/base_link 恒等 TF）
        [批1/F-D 行 B] odom_in 显式写死 /Odometry：上游缺省值虽同，但"依赖别人家的缺省"意味着
        任何一方改缺省就会静默换掉 SCAN 的前馈源（保真度口径要求前馈=LIO 估计，非世界位真值）。
-       注：本行与批2（FD-G，行 F2）同指本文件同一行 ⇒ 两批必须分开落，批2 落地时改的是 include 目标而非本 arg。 -->
-  <include file="$(find scan_planner)/launch/lio_relay.launch">
+       注：本行与批2（FD-G，行 F2）同指本文件同一行 ⇒ 两批必须分开落，批2 落地时改的是 include 目标而非本 arg。
+       [批2/FD-G 行 F2 已落地 2026-10-08] include 目标由 30_3rd 上游件改指壳包自持等价件 lio_relay_sim.launch：
+         二者唯一差异＝不再发静态边 body_to_base_link（body→base_link）。该边与自研插件的动态边 odom→base_link
+         争同一子帧，正是 M2R4/U1 刚闭合过的 base_link 双父病根在 SCAN 域的复发源（02 坑21 家族、坑26 同族）。
+         不改上游件的理由：它实测在 30_3rd 的 49 件基线清单第 29 行（sha 1d0aa3f4…），改它即触发双条件红＝失基线
+         事件（R-FD-3）；壳包等价件的逐 arg 与逐节点对账见 verify/v_scan_relay_equiv.sh。
+         前馈语义不变：SCAN 用 /LIO/odom_vehicle，来自 camera_init→body 那条 LIO 边，与被删的静态边无涉（保真度口径
+         仍=LIO 估计）。活体复取（E3 双父签名／SCAN P1P2／FD-6 明细／共同门禁）留活体窗，接线本身不含活体结论。 -->
+  <include file="$(find lite3_scan)/launch/lio_relay_sim.launch">
     <arg name="odom_in" value="/Odometry"/>
   </include>
 

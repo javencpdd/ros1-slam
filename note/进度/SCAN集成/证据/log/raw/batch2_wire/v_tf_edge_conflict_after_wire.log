@@ -1,0 +1,10 @@
+[PASS] C1 阳性对照：扫描面认出 30_3rd/lio_relay.launch 的 body→base_link（实测 1 条）⇒ 后续「零命中」类结论有资格成立
+-- 以 base_link 为子的静态边（本件扫得）--
+  ws/src/30_3rd/plan_manage/launch/lio_relay.launch:57 body->base_link
+[PASS] C2 名册内：base_link 为子的静态边共 1 条，全属 30_3rd/lio_relay.launch（批2 用壳包 relay 绕开的那条）
+  ws/src/30_perception/deeprobotics_local_height_map/launch/height_map_mini.launch：base_link→body 在位，enable_urdf 缺省=false，互斥注记行数=1
+[PASS] C3 反向对静态等价式：同仓共存 base_link→body 与 body→base_link 时，前者所在件必须缺省关闭且有互斥注记（R31 升阻断的零节点前置形态）
+[PASS] C4 壳包 relay 零条 base_link 为子的静态边（该件静态边共 1 条，全为可视化用途）
+[PASS] C5 30_3rd 基线双条件全过（非 OK 行数=0，计数=49）
+==================================================
+TF EDGE CONFLICT VERDICT: PASS=5 FAIL=0
