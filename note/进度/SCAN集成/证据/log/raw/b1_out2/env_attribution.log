@@ -1,0 +1,21 @@
+# M2R8 环境归因与 stageA 异常登记（小明 2026-10-08 10:56）
+at 2026-10-08 10:55:12
+
+## 负载来源（实测 ps，均非本会话、非本仓所起，一律不动）
+   1331 ysc      Sun Oct  4 01:05:50 2026  4-09:49:22 /home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+2228880 ysc      Thu Oct  8 09:50:07 2026    01:05:05 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch livox_ros_driver2 msg_MID360s_launch.py
+2229089 ysc      Thu Oct  8 09:50:12 2026    01:05:00 /home/ysc/lite_cog_ros2/driver/mid360_ws/install/livox_ros_driver2/lib/livox_ros_driver2/livox_r
+2229091 ysc      Thu Oct  8 09:50:13 2026    01:04:59 /opt/ros/foxy/lib/tf2_ros/static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 base_link rslidar -
+
+ 10:55:12 up 4 days,  9:49,  4 users,  load average: 5.98, 9.40, 10.39
+
+## 结论
+  生产侧于 09:50:07 起 livox_ros_driver2（foxy，真机 Mid360），占 CPU ~45%；
+  另有 uvicorn 监控服务 1331 自 10-04 起常驻 ~93%。二者共同把本仓仿真运动窗 RTF 从 ~0.27 压到 0.240/0.233（低于 0.25 门）。
+## stageA 两次结果（同代际件 28a49f89/ef23da2d）
+  第 1 次 10:0x：drift=0.486 gt_drift=0.486 三相位全 True，A0 INVALID(RTF 0.240) ⇒ 无判据失败，仅有效性门不过
+  第 2 次 10:45：drift=12.460 回程 TIMEOUT + A0 INVALID(RTF 0.233) ⇒ 判据 FAIL 与有效性 INVALID 并存，rc 取 INVALID(3)
+  ⇒ 12.46m 不得当作已排除：它发生在 CPU 饥饿窗内（同件第 1 次仅 0.486），但『INVALID 吞掉并存 FAIL』属判据面缺陷，已登记待小美处置。
+## 本仓侧清理
+  1373144（robot_state_publisher，ysc，04:59:30 起 = 045922 未收口跑漏网）已 kill；
+  328580（rosout，ros1-slam 属主，10-06 19:51 起）无 sudo 通道，继续挂 G7 清理项。
