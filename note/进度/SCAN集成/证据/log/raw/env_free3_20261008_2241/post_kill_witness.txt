@@ -1,0 +1,24 @@
+=== 杀后快照 2026-10-08 22:42:42 ===
+-- 被杀两件的存在计数（须 0/0）：
+  pid=1191 存在=0
+  pid=1192 存在=0
+-- 8000/43900 释放：
+0
+-- 零触碰面复算（生产栈起时须与杀前逐字一致：2280/2282＝22:33:37、2028＝ros2 launch transfer）：
+   2028 root     Thu Oct  8 22:33:30 2026 ros2
+   2280 root     Thu Oct  8 22:33:37 2026 jetson2motion
+   2282 root     Thu Oct  8 22:33:37 2026 sensor_checker
+-- 授权面外未动的桌面/NX 件在位：
+   2088 gnome-session-c
+   2770 nxrunner.bin
+-- 沙箱与生产在册端口监听（仍须 0）：
+0
+-- 负载：
+2.74 3.52 2.22 5/664 5801
+-- 当前 CPU 前五：
+    PID USER     %CPU COMMAND
+   2282 root     21.9 sensor_checker
+   2280 root     20.5 jetson2motion
+   2136 ysc       7.8 gnome-shell
+   2664 ysc       6.4 tracker-miner-f
+    238 root      5.8 kworker/1:1H-kblockd

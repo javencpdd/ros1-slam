@@ -1,0 +1,12 @@
+=== M5.2 活体首轮（2026-10-08 22:54:41–22:57:5x）读数与红线复算 2026-10-08 22:59:21
+-- 原语行与 outcome（原件在 task.log）：
+原语 scan_navigate outcome=succeeded 到达偏差 0.018m≤0.35m 耗时 9.43s
+task outcome: succeeded（总时长 13.2s）
+-- 判定件（段 A＋段 B 合跑）尾行：TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0；harness 末判 M5.2 活体结论 = PASS（rc=0）
+-- 样张红线复算（用改后口径当场取现值）：
+   起前=aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34
+   今值=aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34
+   在册基准(H14 批与 P3/P4 各轮同值)=aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34
+   结论：三者同值 ⇒ 未扰动。原件里那行「样张起前＝退后：否」是取序错误（拿 cleanup 才写的件比对）造成的**假警报**，已按改正口径复算为「是」，此处不覆写原件；
+-- 残留面：清场后 comm 面为空、11313/11345/11312/11311 监听 0（原件里的「残留进程: 10033 17031」是 pgrep -f 自匹配，事后 ps 查无此件）；
+-- 他人服务面：monitor 两件（1191/1192）系用户令关，生产 transfer 栈 2028/2280/2282 全程未动（见 raw/env_free3_20261008_2241/）；

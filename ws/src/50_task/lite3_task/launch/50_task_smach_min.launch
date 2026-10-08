@@ -1,7 +1,24 @@
 <launch>
+  <!-- ★ M5.2 起的六个 arg 声明在顶层；节点体内只做条件 param 引用（roslaunch 的 arg 作用域规则） -->
+  <arg name="mode" default=""/>
+  <arg name="goal_x" default=""/>
+  <arg name="goal_y" default=""/>
+  <arg name="scan_timeout_s" default=""/>
+  <arg name="scan_tol_m" default=""/>
+  <arg name="scan_goal_frame" default=""/>
+  <arg name="use_sim_time" default="false"/>   <!-- 缺省 false＝与改前一致；活体仿真域测试显式置 true，好让 scan_navigate 的 dt 与 A7 判据④ 同为仿真时基 -->
   <!-- C12 配套（架构师裁量增补：v4 C12 条文未给 launch；为 P6 接线注入 ~task_primitives 路径的载体，P3a 仅需 py_compile 过） -->
   <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X） -->
   <node pkg="lite3_task" type="task_smach_min.py" name="lite3_task_smach_min" output="screen">
     <param name="task_primitives" value="$(find lite3_task)/config/task_primitives.yaml"/>
+    <param name="use_sim_time" value="$(arg use_sim_time)"/>
+    <param name="mode" value="$(arg mode)" if="$(eval arg('mode') != '')"/>
+    <param name="goal_x" value="$(arg goal_x)" if="$(eval arg('goal_x') != '')"/>
+    <param name="goal_y" value="$(arg goal_y)" if="$(eval arg('goal_y') != '')"/>
+    <param name="scan_timeout_s" value="$(arg scan_timeout_s)" if="$(eval arg('scan_timeout_s') != '')"/>
+    <param name="scan_tol_m" value="$(arg scan_tol_m)" if="$(eval arg('scan_tol_m') != '')"/>
+    <param name="scan_goal_frame" value="$(arg scan_goal_frame)" if="$(eval arg('scan_goal_frame') != '')"/>
+    <!-- 注入口见 launch 顶层的六个 arg；全缺省＝不注入 ⇒ 与改前逐字同行为（mode 仍走脚本缺省 chain）。
+         条件式 if 用空串判缺省，是为了**不给 goal 塞默认坐标**：默认值会掩盖「调用方没注入」这一型错误。 -->
   </node>
 </launch>

@@ -1,0 +1,22 @@
+=== 杀前快照 2026-10-08 22:40:59 ===
+-- 目标（用户授权的 monitor 两件，属主 ysc）：
+   1191 ysc       111  0.7 Thu Oct  8 22:33:19 2026 /home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+   1192 ysc      72.8  0.7 Thu Oct  8 22:33:19 2026 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+-- 零触碰证明面（root 属主的生产 transfer 栈，授权面外，只记录不动）：
+   2280 root     20.7 Thu Oct  8 22:33:37 2026 jetson2motion
+   2282 root     22.1 Thu Oct  8 22:33:37 2026 sensor_checker
+  生产 ros2 树：
+2028 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+5584 /bin/bash -lc cd /home/ros1-slam && EV="note/进度/SCAN集成/证据/log/raw/env_free3_20261008_2241" && mkdir -p "$EV" && { echo "=== 杀前快照 $(date '+%F %T') ==="; echo "-- 目标（用户授权的 monitor 两件，属主 ysc）："; ps -o pid,user,pcpu,pmem,lstart,args --no-headers -p 1191,1192; echo "-- 零触碰证明面（root 属主的生产 transfer 栈，授权面外，只记录不动）："; ps -o pid,user,pcpu,lstart,comm --no-headers -p 2282,2280 2>/dev/null; echo "  生产 ros2 树："; pgrep -fa 'ros2 launch' 2>/dev/null | head -4; echo "-- 名字含 monitor 但**不在授权面**的桌面/NX 件（动 nxrunner 会断我自己的远程会话）："; ps -eo pid,user,pcpu,args --sort=-pcpu | grep -iE 'nxrunner.bin --monitor|gnome-session-ctl|gvfs-.*-volume-monitor' | grep -v grep | head -6; echo "-- 端口与负载："; ss -lntp 2>/dev/null | grep -E ':8000|:43900' ; cat /proc/loadavg; echo "-- 在册沙箱/生产端口监听（必须 0）："; ss -lntp 2>/dev/null | grep -cE ':1131[1-9]|:11345'; } > "$EV/pre_kill_witness.txt" 2>&1 && cat "$EV/pre_kill_witness.txt"
+-- 名字含 monitor 但**不在授权面**的桌面/NX 件（动 nxrunner 会断我自己的远程会话）：
+   2770 ysc       0.3 /usr/NX/bin/nxrunner.bin --monitor --pid 1855
+   2088 ysc       0.0 /usr/libexec/gnome-session-ctl --monitor
+   2406 ysc       0.0 /usr/libexec/gvfs-udisks2-volume-monitor
+   2427 ysc       0.0 /usr/libexec/gvfs-goa-volume-monitor
+   2441 ysc       0.0 /usr/libexec/gvfs-gphoto2-volume-monitor
+   2447 ysc       0.0 /usr/libexec/gvfs-mtp-volume-monitor
+-- 端口与负载：
+LISTEN    0         2048               0.0.0.0:8000             0.0.0.0:*                                                                                       
+3.39 3.79 2.14 3/679 5606
+-- 在册沙箱/生产端口监听（必须 0）：
+0
