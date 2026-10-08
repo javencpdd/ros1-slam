@@ -24,6 +24,12 @@ primitives:
     by_name_field: behavior                      # behavior 点单值仅限 C0 recovery_behaviors 注册表 name（当前仅 clear_costmaps）
     outcome_semantics: "recovery_policy.yaml#outcome_tables.recovery"
     # ★ 命名空间边界：C11 recovery_actions 键（retry_local 等）为 M5 处置分级键，非点单值；处置键→behavior 点单值的映射由 SMACH 原语实现层决定（P6 接线按此实现，按 C11 键字面点单会被拒）
+  scan_navigate:                                   # ★ M5.2 原语（前置=roadmap C #3 与 A7 P3 联合 PASS，2026-10-08）
+    target: "local:scan_goal"                      # 非 mbf action：落在注册表既有前缀空间 {action:mbf_msgs/, local:}，与 wait 的 local:timer 同族
+    goal_fields: [target_pose, timeout_s, tol_m, frame_id]   # 实现侧注入口逐字：~goal_x/~goal_y、~scan_timeout_s、~scan_tol_m、~scan_goal_frame（判据件对账，防契约与实现漂移＝Q11 那一族）
+    reached_entity: "/lite3/scan/arrived(std_msgs/Bool) 与 /lite3/scan/arrival_dist(std_msgs/Float32)"   # 小张 O-1 候选一（J1 观测件）；参考点=我方请求的 goal，不取 bspline 末点（设计件事实 A）
+    outcome_semantics: "succeeded/aborted 二态"    # 沿 wait 原语既有二态口径：失败侧**只有超时档**——盘上 SCAN 的 FSM 无失败事件、J1 明写「不造失败信号」⇒ 任务层不替上游造事件
+    gate_lineage: "A7 判据③ 偏差≤0.35m／④ dt≤120s（同一口径，任务层不放宽）"   # O-8（避让／穿墙判据分辨力）属规划层，不在本原语职责内
   wait:
     target: "local:timer"                        # 无 ROS 目标：本地定时器（params 默认 duration_s: 1.0）
     outcome_semantics: "succeeded/aborted 二态"

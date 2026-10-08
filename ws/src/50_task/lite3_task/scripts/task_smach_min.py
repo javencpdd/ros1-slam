@@ -12,6 +12,7 @@ import rospy, yaml
 import smach
 import actionlib
 from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import Bool, Float32   # M5.2 scan_navigate 用 J1 到达实体（lite3_task 的 rosdep 声明面本件不改，见 04 注记）
 from mbf_msgs.msg import (GetPathAction, GetPathGoal, ExePathAction, ExePathGoal,
                           RecoveryAction, RecoveryGoal, MoveBaseAction, MoveBaseGoal)
 
@@ -196,6 +197,58 @@ class NavigateState(PrimitiveState):
         return out
 
 
+
+class ScanNavigateState(smach.State):
+    """scan_navigate（M5.2）：发布 /scan_planner/goal，等 J1 到达实体置位——任务层的最小闭环原语。
+
+    三条契约口径都不自造：
+      · target=local:scan_goal，属注册表既有前缀空间，与 wait 的 local:timer 同族；
+      · 二态 succeeded/aborted：失败侧**只有超时档**——盘上 SCAN 的 FSM 没有失败事件
+        （scan_replan_fsm.cpp:670→:691 段完成只看轨迹时间耗尽，静默回 WAIT_TARGET），
+        J1 观测件设计又明写「不造失败信号」⇒ 任务层不替上游造事件，只把「到点未达」报 aborted；
+      · 到达与偏差都取 J1 实体的读数，参考点是我方请求的 goal（不取 bspline 末点＝设计件事实 A）。
+    活体口径沿用 A7 P3 的两条实测教训：publisher 建好即发的第一波会被丢 ⇒ 先 sleep 再连发三次。
+    """
+    def __init__(self, reg, policy):
+        smach.State.__init__(self, outcomes=['succeeded', 'aborted'])
+        self.spec = reg['primitives']['scan_navigate']
+        assert self.spec['target'] == 'local:scan_goal', \
+            'scan_navigate target 契约变改：%s' % self.spec['target']
+
+    def execute(self, ud):
+        gx, gy = float(rospy.get_param('~goal_x')), float(rospy.get_param('~goal_y'))
+        timeout_s = float(rospy.get_param('~scan_timeout_s', 120.0))     # A7 判据④ 同值，任务层不放宽
+        tol = float(rospy.get_param('~scan_tol_m', 0.35))                # A7 判据③ 同值
+        frame = rospy.get_param('~scan_goal_frame', 'world')             # P2/P3 实测：goal 帧取占据图 frame_id=world
+        box = {'arrived': False, 'dist': None}
+        s1 = rospy.Subscriber('/lite3/scan/arrived', Bool, lambda m: box.__setitem__('arrived', bool(m.data)))
+        s2 = rospy.Subscriber('/lite3/scan/arrival_dist', Float32, lambda m: box.__setitem__('dist', float(m.data)))
+        pub = rospy.Publisher('/scan_planner/goal', PoseStamped, queue_size=1)
+        g = PoseStamped()
+        g.header.frame_id = frame
+        g.pose.position.x, g.pose.position.y = gx, gy
+        g.pose.orientation.w = 1.0
+        rospy.sleep(1.5)                          # 连接建立前的第一波必丢（A7 P3 活体教训）
+        for _ in range(3):
+            g.header.stamp = rospy.Time.now()
+            pub.publish(g)
+            rospy.sleep(0.4)
+        t0 = rospy.Time.now()
+        while (rospy.Time.now() - t0).to_sec() < timeout_s:
+            if box['arrived'] and box['dist'] is not None and box['dist'] <= tol:
+                dt = (rospy.Time.now() - t0).to_sec()
+                rospy.loginfo('[M5] 原语 scan_navigate outcome=succeeded 到达偏差 %.3fm≤%.2fm 耗时 %.2fs',
+                              box['dist'], tol, dt)
+                s1.unregister(); s2.unregister(); pub.unregister()
+                return 'succeeded'
+            rospy.sleep(0.2)
+        dt = (rospy.Time.now() - t0).to_sec()
+        rospy.loginfo('[M5] 原语 scan_navigate outcome=aborted 超时 %.1fs 未到（arrived=%s dist=%s）',
+                      timeout_s, box['arrived'], box['dist'])
+        s1.unregister(); s2.unregister(); pub.unregister()
+        return 'aborted'
+
+
 def main():
     rospy.init_node('lite3_task_smach_min')
     with open(rospy.get_param('~task_primitives')) as f:
@@ -203,22 +256,26 @@ def main():
     with open(rospy.get_param('~recovery_policy',
                              '/home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/recovery_policy.yaml')) as f:
         policy = yaml.safe_load(f)
-    mode = rospy.get_param('~mode', 'chain')   # chain=GET_PATH→EXE_PATH（骨架拓扑实链）| navigate=navigate_to_pose 组合
+    mode = rospy.get_param('~mode', 'chain')   # chain=GET_PATH→EXE_PATH（骨架拓扑实链）| navigate=navigate_to_pose 组合 | scan=scan_navigate（M5.2，走 J1 到达实体）
 
     sm = smach.StateMachine(outcomes=['succeeded', 'aborted'])
     sm.userdata.replan_n, sm.userdata.clear_n, sm.userdata.retry_n = 0, 0, 0
     with sm:
         smach.StateMachine.add('WAIT', WaitState(reg, policy),
-                               transitions={'succeeded': 'GET_PATH' if mode == 'chain' else 'NAVIGATE', 'aborted': 'aborted'})
+                               transitions={'succeeded': ('SCAN_NAVIGATE' if mode == 'scan'
+                                                                else 'GET_PATH' if mode == 'chain' else 'NAVIGATE'),
+                                                'aborted': 'aborted'})
         smach.StateMachine.add('GET_PATH', GetPathState(reg, policy),
                                transitions={'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH',
                                             'clear': 'RECOVER', 'aborted': 'aborted'})
         smach.StateMachine.add('EXE_PATH', ExePathState(reg, policy),
                                transitions={'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH',
-                                            'clear': 'RECOVER', 'aborted': 'aborted'})
+                                            'clear': 'RECOVER', 'aborted': 'aborted'})   # RECOVER 在 scan 模式下不可达（scan 无 mbf 阶段 outcome，不自造恢复编排）
         smach.StateMachine.add('NAVIGATE', NavigateState(reg, policy),
                                transitions={'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE',
                                             'clear': 'RECOVER', 'aborted': 'aborted'})
+        smach.StateMachine.add('SCAN_NAVIGATE', ScanNavigateState(reg, policy),
+                               transitions={'succeeded': 'succeeded', 'aborted': 'aborted'})
         # C11 clear_and_replan 复合定义：clear_costmaps + then:[get_path, exe_path]——RECOVER 成功即回 GET_PATH
         smach.StateMachine.add('RECOVER', RecoverState(reg, policy),
                                transitions={'succeeded': 'GET_PATH' if mode == 'chain' else 'NAVIGATE',
