@@ -1,0 +1,132 @@
+=== 退净判据零节点标定（库件 sha=b17022766fa4）===
+--- U1 探针敏感度自检（期望 PASS：探针对非零态有分辨力）---
+    [mkPASS] 探针敏感度自检：临时口 39661 读出 TCP=1 UDP=0 身份=TCP/p39661/25268/ysc（R27 三 阳性对照命中，探针对非零态有分辨力）
+[PASS] U1 阳性对照 ⇒ 判据「探针敏感度自检」实得 PASS（期望 PASS）
+--- U2 探针敏感度阴性对照（桩 port_cnt 恒零，期望 FAIL：证该门能真 FAIL 而非恒绿）---
+    [mkFAIL] 探针敏感度自检：临时口 43595 读出 TCP=0 身份=TCP/p43595/25338/ysc ⇒ 端口查询式探针无分辨力，本跑退净端口面不可信（R27 三）
+[PASS] U2 恒零探针必被识破 ⇒ 判据「探针敏感度自检」实得 FAIL（期望 FAIL）
+--- U3 既存 rosout 型命中（在基线内，期望 进程面 PASS）---
+    [exitclean] # 退净核验 @2026-10-08 14:44:53  stage=selftest seg=u3
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   25440 ysc            1 Thu Oct  8 14:44:51 2026 rosout_selftest_u3 999
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 11311 TCP=0 UDP=0
+    [exitclean]   port 11312 TCP=0 UDP=0
+    [exitclean]   port 11313 TCP=0 UDP=0
+    [exitclean]   port 11345 TCP=0 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+        [mkPASS] 退净/端口面：四口相对基线零新增（R22 一）
+        [mkPASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+        [mkPASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+[PASS] U3 既存不入差集 ⇒ 判据「退净/进程面」实得 PASS（期望 PASS）
+[PASS] u3 ⇒ PID 25440 已净（下一用例基线不会被本用例残留污染）
+--- U4 基线后新起 rosout 型残留（不含 OWN，期望 进程面 FAIL：R26 一改式生效）---
+    [exitclean] # 退净核验 @2026-10-08 14:44:58  stage=selftest seg=u4
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   26277 ysc            1 Thu Oct  8 14:44:57 2026 rosout_selftest_u4 999
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 11311 TCP=0 UDP=0
+    [exitclean]   port 11312 TCP=0 UDP=0
+    [exitclean]   port 11313 TCP=0 UDP=0
+    [exitclean]   port 11345 TCP=0 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+        [mkPASS] 退净/端口面：四口相对基线零新增（R22 一）
+        [mkPASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+        [mkFAIL] 退净/进程面：本跑派生未退净 PID: 26277 分栏: 26277=other（R26 一：差集非空即判死，OWN 只分栏不豁免；other=不含自有标识的旧式漏判型）
+[PASS] U4 差集非空即判死 ⇒ 判据「退净/进程面」实得 FAIL（期望 FAIL）
+[PASS] U4 other 分栏可指认 ⇒ 跑内回显 u4.out 含「=other」
+[PASS] u4 ⇒ PID 26277 已净（下一用例基线不会被本用例残留污染）
+--- U5 缺基线快照（期望 退净整体判不洁）---
+    [exitclean] # 退净核验 @2026-10-08 14:45:02  stage=selftest seg=u5
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 11311 TCP=0 UDP=0
+    [exitclean]   port 11312 TCP=0 UDP=0
+    [exitclean]   port 11313 TCP=0 UDP=0
+    [exitclean]   port 11345 TCP=0 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+        [mkFAIL] 退净：缺起跑前基线快照（exitbase.txt 不在位）⇒ 无法按增量判定，本项按不洁处理
+[PASS] U5 缺基线不判洁 ⇒ 判据「退净：缺起跑前基线快照」实得 FAIL（期望 FAIL）
+--- U6 基线后自绑监听口 46559（期望 端口面与端口身份面双 FAIL）---
+    [exitclean] # 退净核验 @2026-10-08 14:45:05  stage=selftest seg=u6
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 46559 TCP=1 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+    [exitclean]   cur TCP/p46559/26961/ysc
+      [port-delta] port 46559 基线=0 → 退净=1
+        [mkFAIL] 退净/端口面：本跑新增端口占用（见上方 port-delta，R22 一）
+      [port-ident] 新增监听身份: 46559 TCP/p46559/26961/ysc
+        [mkFAIL] 退净/端口身份面：出现基线中没有的监听身份（见上方 port-ident，R26 二）
+        [mkPASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+[PASS] U6 计数面能真 FAIL ⇒ 判据「退净/端口面」实得 FAIL（期望 FAIL）
+[PASS] U6 身份面能真 FAIL ⇒ 判据「退净/端口身份面」实得 FAIL（期望 FAIL）
+[PASS] U6 身份面打印新增三元组 ⇒ 跑内回显 u6.out 含「port-ident」
+--- U7 同一监听者已在基线内（期望 两面 PASS：不误伤）---
+    [exitclean] # 退净核验 @2026-10-08 14:45:06  stage=selftest seg=u7
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 46559 TCP=1 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+    [exitclean]   cur TCP/p46559/26961/ysc
+        [mkPASS] 退净/端口面：四口相对基线零新增（R22 一）
+        [mkPASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+        [mkPASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+[PASS] U7 既存监听者不判死（计数面） ⇒ 判据「退净/端口面」实得 PASS（期望 PASS）
+[PASS] U7 既存监听者不判死（身份面） ⇒ 判据「退净/端口身份面」实得 PASS（期望 PASS）
+--- U8 含 OWN 的残留（期望 进程面 FAIL 且分栏标 own=）---
+    [exitclean] # 退净核验 @2026-10-08 14:45:10  stage=selftest seg=u8
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   27586 ysc            1 Thu Oct  8 14:45:08 2026 m2_tf_fresh_selftest_u8 999
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 11311 TCP=0 UDP=0
+    [exitclean]   port 11312 TCP=0 UDP=0
+    [exitclean]   port 11313 TCP=0 UDP=0
+    [exitclean]   port 11345 TCP=0 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+        [mkPASS] 退净/端口面：四口相对基线零新增（R22 一）
+        [mkPASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+        [mkFAIL] 退净/进程面：本跑派生未退净 PID: 27586 分栏: 27586=own（R26 一：差集非空即判死，OWN 只分栏不豁免；other=不含自有标识的旧式漏判型）
+[PASS] U8 含 OWN 残留同样判死 ⇒ 判据「退净/进程面」实得 FAIL（期望 FAIL）
+[PASS] U8 own 分栏可指认 ⇒ 跑内回显 u8.out 含「=own」
+--- U10 计数面有监听者而身份面恒空（期望 端口身份面 FAIL：一致性硬闸生效）---
+    [exitclean] # 退净核验 @2026-10-08 14:45:15  stage=selftest seg=u10b
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 46189 TCP=1 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+        [mkPASS] 退净/端口面：四口相对基线零新增（R22 一）
+      [port-ident] 不一致：port 46189 计数=1 但身份列不出 ⇒ 身份探针失能
+        [mkFAIL] 退净/端口身份面：出现基线中没有的监听身份（见上方 port-ident，R26 二）
+        [mkPASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+[PASS] U10 身份面失能不得判洁 ⇒ 判据「退净/端口身份面」实得 FAIL（期望 FAIL）
+[PASS] U10 失能可指认 ⇒ 跑内回显 u10.out 含「身份探针失能」
+--- U11 同口换 socket（PID 解析得到与否都算，期望 端口身份面 FAIL＝R33 inode 键生效）---
+  基线身份：TCP/p46271/28250/ysc
+  退净身份：TCP/p46271/28491/ysc
+    [exitclean] # 退净核验 @2026-10-08 14:45:19  stage=selftest seg=u11
+    [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+    [exitclean]   （零命中）
+    [exitclean] -- 监听端口分查（计数面）--
+    [exitclean]   port 46271 TCP=1 UDP=0
+    [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+    [exitclean]   cur TCP/p46271/28491/ysc
+        [mkPASS] 退净/端口面：四口相对基线零新增（R22 一）
+      [port-ident] 新增监听身份: 46271 TCP/p46271/28491/ysc
+        [mkFAIL] 退净/端口身份面：出现基线中没有的监听身份（见上方 port-ident，R26 二）
+        [mkPASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+[PASS] U11 换 socket 必须算新增身份 ⇒ 判据「退净/端口身份面」实得 FAIL（期望 FAIL）
+[PASS] U11 新增身份可指认 ⇒ 跑内回显 u11.out 含「port-ident」
+--- U9 段令牌（期望 同段二次调用零新增 mark、换段后必重检）---
+    首检 mark 数=3；同段二次后=3（应仍为 3）；换段后=6（应大于 3）
+[PASS] U9 同段幂等：trap 不会把同一段 mark 计两遍
+[PASS] U9 换段必重检：stage=all 三段各检一次（闭 #13）
+==================================================
+EXITCLEAN SELFTEST: 用例 PASS=21 FAIL=0 / 21
+  覆盖面：探针敏感度（U1 阳性／U2 阴性）、进程面差集（U3 不误判／U4 真判死／U8 分栏）、
+  缺基线（U5）、端口计数与身份两面（U6 真判死／U7 不误伤）、段令牌幂等（U9）
+==================================================

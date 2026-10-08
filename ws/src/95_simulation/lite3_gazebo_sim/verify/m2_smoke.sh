@@ -6,7 +6,12 @@
 # Stage C（M2-3）     ：hdl 重定位 —— 建图存 sim_venue.pcd（样张备份/恢复 sha256 红线）→ /initialpose 注入
 #                       → ≤10s 收敛 ≤0.3m/10°，30s 观察窗无 >0.5m 单步跳变
 # 隔离域：ROS master 11313 + GAZEBO_MASTER_URI=11345（本会话 P10 仲裁值，见 L21 实际 export）；生产 11312 全程零监听；foxy 栈零接触。
-# 用法：bash /tmp/m2_payload/m2_smoke.sh [stageA|stageB|stageC|all]（缺省 all）
+# 用法：bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh [stageA|stageB|stageC|all]（缺省 all）
+#   批次驱动用同目录 m2_batch_runner.sh；整批复取用同目录 retake_driver.sh（现役入口全在包内）。/tmp/m2_payload 侧
+#   副本已就地改名 .STALE_do_not_run_20261008，旧用法行指的是停用路径（她 #14／R26 四；上一轮我漏落，根因见 02 坑31）。
+#   LOGDIR 落址口径（R34）：LOGDIR 仍在 /tmp（$PAYLOAD/logs-时间戳），**跑完即归档属驱动件的责任**——retake_driver.sh
+#   每段结束就把本次新 LOGDIR 的文本原件拉进 证据/log/raw/retake_*/ 并打 sha 清单；不经驱动单跑本件时必须自己归档，
+#   否则证据随 /tmp 一清或机器一重启即永久不可回溯（O-4 三次同型＋ 10-08 那次硬重启实测丢过一整段 SCAN 证据）。
 set -u
 PAYLOAD=/tmp/m2_payload
 SIM_PKG=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim
@@ -28,6 +33,14 @@ PASS=1
 INVALID=0  # A0 前置：运动窗 RTF<0.25（M2R2 主理人裁决 0.3→0.25：D-01 后 200Hz IMU 正确配置合理 RTF 平台 0.288，门意抓塌缩非惩罚正确配置）→ 本轮作废重跑，不计 FAIL
 NPMARK=0; NFMARK=0   # R27 四：mark 自计数，供判定行与原件计数互核（她 #2：表上 6/2 与原件 3/1 不可指认）
 mark() { if [ "$1" = "1" ]; then NPMARK=$((NPMARK+1)); echo "[PASS] $2"; else NFMARK=$((NFMARK+1)); PASS=0; echo "[FAIL] $2"; fi; }
+# [R35 落地] 判据库与被测件的跑内指纹（R28 二 的实际兑现）。只打 harness 自身不够：批1 恰在改 xacro，
+#   单行自证无法断言「这跑跑的是哪一份被测件」；取不到件必须打 ABSENT 并记一条 mark 0，不许静默少打。
+for _f in "$SIM_PKG/verify/m2_exitclean_lib.sh" "$SIM_PKG/urdf/lite3_planar.urdf.xacro" "$SIM_PKG/src/lite3_planar_drive.cpp" "/home/ros1-slam/ws/devel/lib/liblite3_planar_drive.so"; do
+  if [ -f "$_f" ]; then echo "[m2] FP $(basename "$_f") sha256=$(sha256sum "$_f" | awk '{print $1}')";
+  else echo "[m2] FP $(basename "$_f") ABSENT path=$_f"; mark 0 "自证不可指认：指纹件缺位 $_f（R35：缺件即判不洁）"; fi
+done
+#   注：本块必须排在 mark() 之后——上一版我把它插在跑首行自证之后、mark 定义之前，
+#   ABSENT 分支一触发就是 command not found（顺序错，本轮自查出并搬到位）。
 wait_topic() {  # D-M2-P4（D-M1-3 同款修法移植）：启动窗内单次长 echo 挂起/吞 TERM（M1 实证 4/4）；list 门控+短 echo 反复重试
   local t=0
   while [ "$t" -lt "$2" ]; do
@@ -588,7 +601,13 @@ exitclean_check
 echo "SUMMARY marks pass=$NPMARK fail=$NFMARK"   # R27 四：供 driver 与原件 ^[PASS]／^[FAIL] 计数互核
 echo "=================================================="
 if [ "$INVALID" = "1" ]; then
-  echo "M2 SMOKE: INVALID（运动窗 RTF<0.25，重跑不计 FAIL）并存判据 FAIL=$NFMARK（作废不等于判据通过：FAIL 明细须随批可读；rc 分档口径待验收裁定 #30，件面不自改）"
+  echo "M2 SMOKE: INVALID（运动窗 RTF<0.25，重跑不计 FAIL）并存判据 FAIL=$NFMARK"
+  if [ "$NFMARK" -gt 0 ]; then      # #30 定档（小美 M2R8 裁定 1）：INVALID 且并存判据 FAIL ⇒ 另立一档并停手
+    grep -rhoE '^\[FAIL\].*' "$LOGDIR" 2>/dev/null | sort -u | sed 's/^/  [并存FAIL明细] /'
+    echo "M2 SMOKE: rc=4（INVALID 且并存 ≥1 条判据 FAIL ⇒ 停手上报，不得由重试消化；仍不入 FAIL 计数、不入连击）"
+    echo "=================================================="
+    exit 4
+  fi
   echo "=================================================="
   exit 3
 fi

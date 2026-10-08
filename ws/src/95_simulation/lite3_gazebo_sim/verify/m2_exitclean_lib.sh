@@ -16,20 +16,28 @@ port_cnt() { # $1=port -> "TCP UDP" 监听计数（只比数量；身份面见 p
 }
 
 port_ids() { # R26 二：$1=port -> 每行一个监听身份三元组 "proto/port/pid/user"
-  # 非 root 取不到他人口子的 PID 时记 pid=- user=hidden；进程刚好消失记 user=gone。
-  # 三个值都进集合，故「他人换了 PID」与「本跑在同一口留下无人可查的监听者」都会成为新增身份（方向判死）。
+  # R33：非 root 下 PID 常解析不出（本机 ptrace_scope=1，实测同 uid 非子进程也取不到）⇒ 回落 socket inode；
+  #   inode 与 PID 都取不到才记 hidden。旧注释「他人换了 PID 也算新增身份」只对可解析态成立，已加此限定（她 #11 条件闭合）。
   local p="$1" rec proto pid us
   while IFS= read -r rec; do
     [ -z "$rec" ] && continue
-    proto=${rec%% *}; pid=${rec##* }
-    if [ "$pid" = "-" ]; then echo "$proto/p$p/-/hidden"; continue; fi
+    proto=${rec%% *}; pid=$(printf '%s\n' "$rec" | awk '{print $2}')
+    if [ "$pid" = "-" ]; then
+      _ino=$(printf '%s\n' "$rec" | sed -n 's/.*ino=\([0-9]\+\).*/\1/p'); [ -n "$_ino" ] || _ino=0
+      _uid=$(printf '%s\n' "$rec" | sed -n 's/.*uid=\([0-9]\+\).*/\1/p'); [ -n "$_uid" ] || _uid=?
+      echo "$proto/p$p/ino=$_ino/uid=$_uid"; continue
+    fi
     us=$(ps -o user= --no-headers -p "$pid" 2>/dev/null | tr -d ' '); [ -n "$us" ] || us=gone
     echo "$proto/p$p/$pid/$us"
   done < <(
-    { ss -lantp 2>/dev/null | awk -v re=":$p\$" '$1=="LISTEN" && ($4 ~ re || $3 ~ re) {
-           pid="-"; if (match($0, /pid=[0-9]+/)) pid=substr($0, RSTART+4, RLENGTH-4); print "TCP", pid }';
+    { ss -lantpe 2>/dev/null | awk -v re=":$p\$" '$1=="LISTEN" && ($4 ~ re || $3 ~ re) {
+           pid="-"; if (match($0, /pid=[0-9]+/)) pid=substr($0, RSTART+4, RLENGTH-4);
+           ino="-"; if (match($0, /ino:[0-9]+/)) ino=substr($0, RSTART+4, RLENGTH-4);
+           uid="-"; if (match($0, /uid=[0-9]+/)) uid=substr($0, RSTART+4, RLENGTH-4); print "TCP", pid, "ino=" ino " uid=" uid }';
       ss -lanup 2>/dev/null | awk -v re=":$p\$" '$1=="UNCONN" && ($4 ~ re || $3 ~ re) {
-           pid="-"; if (match($0, /pid=[0-9]+/)) pid=substr($0, RSTART+4, RLENGTH-4); print "UDP", pid }'; } | sort -u
+           pid="-"; if (match($0, /pid=[0-9]+/)) pid=substr($0, RSTART+4, RLENGTH-4);
+           ino="-"; if (match($0, /ino:[0-9]+/)) ino=substr($0, RSTART+4, RLENGTH-4);
+           uid="-"; if (match($0, /uid=[0-9]+/)) uid=substr($0, RSTART+4, RLENGTH-4); print "UDP", pid, "ino=" ino " uid=" uid }'; } | sort -u
   )
 }
 
@@ -119,6 +127,15 @@ exitclean_check() { # R21 形态 ＋ R22 部分阻断 ＋ R26 三条改式（差
   #   计数面放过的那一型：基线某口有既存监听者、本跑期间它消亡而本跑在同一口留下残留 ⇒ 计数相等判洁。
   _bids=$(awk '$1=="IDENT" {sub(/^IDENT /,""); print}' "$_bf")
   _ifail=0
+  # 一致性硬闸（R36／U10 的根据）：某口计数面说有监听者、身份面却一条都列不出 ⇒ 身份探针失能，
+  #   此时「零新增身份」这条 PASS 是静默得来的，不可信 ⇒ 直接判死，而不是让它绿过去。
+  for _id in $PORTS; do
+    set -- $(port_cnt "$_id"); _cv=$(( ${1:-0} + ${2:-0} ))
+    _cn=$(port_ids "$_id" | grep -c .)
+    if [ "$_cv" -gt 0 ] && [ "$_cn" = "0" ]; then
+      echo "  [port-ident] 不一致：port $_id 计数=$_cv 但身份列不出 ⇒ 身份探针失能"; _ifail=1
+    fi
+  done
   for _id in $PORTS; do
     while IFS= read -r _rec; do
       [ -z "$_rec" ] && continue

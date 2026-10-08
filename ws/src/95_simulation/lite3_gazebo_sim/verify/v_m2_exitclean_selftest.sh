@@ -133,6 +133,42 @@ chk "U8 含 OWN 残留同样判死" "退净/进程面" FAIL
 has_txt u8.out "U8 own 分栏可指认" "=own"
 killall_hold
 
+# --- U10 身份探针失能必须被判死（她 R36：port_ids 恒空 ⇒ 旧形态会静默 PASS）---
+echo "--- U10 计数面有监听者而身份面恒空（期望 端口身份面 FAIL：一致性硬闸生效）---"
+TP2=$(free_port)
+if [ -z "$TP2" ]; then echo "[FAIL] U10 取不到空闲口 ⇒ 该用例未跑"; CF=$((CF+1)); T=$((T+2));
+else
+begin u10; PORTS="$TP2"
+_p5=$(listen_hold "$TP2"); hold "$_p5"; sleep 1
+port_ids() { :; }                       # 桩：身份面恒空，但计数面仍能看见监听者
+begin u10b; PORTS="$TP2"; CHECKED_SEG=""
+exitbase_snapshot >"$LOGDIR/u10.base" 2>&1
+exitclean_check >"$LOGDIR/u10.out" 2>&1
+sed 's/^/    /' "$LOGDIR/u10.out"
+chk "U10 身份面失能不得判洁" "退净/端口身份面" FAIL
+has_txt u10.out "U10 失能可指认" "身份探针失能"
+source "$LIB"; PORTS="11311 11312 11313 11345"; killall_hold
+fi
+
+# --- U11 同一口换一个新 socket 必须被认作新增身份（她 R33 的阳性对照：PID 不可解析态也要抓得住）---
+echo "--- U11 同口换 socket（PID 解析得到与否都算，期望 端口身份面 FAIL＝R33 inode 键生效）---"
+TP3=$(free_port)
+if [ -z "$TP3" ]; then echo "[FAIL] U11 取不到空闲口 ⇒ 该用例未跑"; CF=$((CF+1)); T=$((T+2));
+else
+begin u11; PORTS="$TP3"
+_p6=$(listen_hold "$TP3"); hold "$_p6"; sleep 1
+exitbase_snapshot >"$LOGDIR/u11.base" 2>&1
+echo "  基线身份：$(port_ids "$TP3" | paste -sd, -)"
+kill "$_p6" 2>/dev/null; HELD=""; sleep 1
+_p7=$(listen_hold "$TP3"); hold "$_p7"; sleep 1        # 同一口，新进程新 socket（新 PID 与新 inode）
+echo "  退净身份：$(port_ids "$TP3" | paste -sd, -)"
+exitclean_check >"$LOGDIR/u11.out" 2>&1
+sed 's/^/    /' "$LOGDIR/u11.out"
+chk "U11 换 socket 必须算新增身份" "退净/端口身份面" FAIL
+has_txt u11.out "U11 新增身份可指认" "port-ident"
+killall_hold; PORTS="11311 11312 11313 11345"
+fi
+
 # --- U9 段令牌：同段幂等不重复打 mark，换段必须重检（她 #13 的正反两面）---
 echo "--- U9 段令牌（期望 同段二次调用零新增 mark、换段后必重检）---"
 begin u9; exitbase_snapshot >"$LOGDIR/u9.base" 2>&1

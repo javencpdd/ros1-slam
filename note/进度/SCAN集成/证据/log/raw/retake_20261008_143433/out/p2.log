@@ -1,0 +1,22 @@
+[14:37:32] == [0] P0.5 双查 + 基线 ==
+11312 监听(起前): 0 须=0
+ros2qnx: 0 须=0
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+[14:37:32] == [1] roscore 11313 ==
+[14:37:37] == [2] m2_gazebo ==
+[14:38:36] == [3] m2_mapping (pcd_save:=false) ==
+[14:38:53] == [4] 70_scan.launch ==
+F9 互斥（节点级）: move_base 节点数=0 须=0
+[14:39:15] == [5] 判据② 取证 ==
+p2 python rc=0
+{"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 4194, "occ_frame": "world", "robot": [0.015, 0.027], "goal": [2.515, 0.027], "goal_dist_to_occ": 0.671, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.2, "bspline": {"order": 3, "n_ctrl": 26, "n_knots": 30, "traj_id": 3}, "traj_min_dist_m": 0.65, "traj_median_dist_m": 0.815, "n_samples": 120, "n_inside_tol": 0, "endpoint": [3.451, 0.026], "endpoint_err_m": 0.936}, "verdict": "PASS"}
+[14:39:34] == [6] 判定（fail-closed） ==
+判定: PASS|全部 7 项通过
+样张 sha256 起前=退后 OK
+==================================================
+P2 判据② 结论 = PASS —— 全部 7 项通过
+P2_EXIT=0 LOGDIR=/tmp/scan_p2_run
+[14:39:34] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+foxy 六 PID 终检:

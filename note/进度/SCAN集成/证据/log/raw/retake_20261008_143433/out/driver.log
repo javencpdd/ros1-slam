@@ -1,0 +1,31 @@
+归档址：/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/retake_20261008_143433
+  清单不列自身；校验 CWD＝仓根 /home/ros1-slam
+===== 0) 负载与隔离域预检 2026-10-08 14:34:33 =====
+  loadavg(1min)=3.76  LOAD_MAX=4  STAGEA_MAX=3  FORCE=未设
+  在册端口监听：11313=0 11345=0 生产11312=0（三者必须 0／0／0，否则并发未清）
+  非本仓大户点名（只读，不动他人进程）：
+    pid=1198 user=whoopsie 81.3% 起了=13:19 comm=whoopsie
+    pid=2544 user=root 21.6% 起了=12:58 comm=sensor_checker
+  foxy[start] 计数=0
+  指纹（载体＋被测件＋配套件）：
+d28412088730125cb657c92324b679d7ff21b8619595c26018857aa6c0334d11  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+61db948e431fe28d78a268867f5cc74c71ecc33ad7eadc96a32c2eaad1969626  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+ef23da2dd5e281ae5b5b973f36224e6801156c07a42e0e9512aaccf123ccc86c  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+a32e70ff0a8fa1e3515ef0755f4215a6802d487ade7c4556887520dc7f87ac8a  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp
+fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7  /home/ros1-slam/ws/devel/lib/liblite3_planar_drive.so
+72f673805caa6e4162b698bdbaf5e5c71dadef48edc84522208d21f08a1a45bb  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/v_pose_source.sh
+10830eeb43e83e211b2342ec336a7aa242afc477754c73236908b12e8d7f4ba1  /home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+  [archive] OUT 收口：/tmp/rt_scan1 件数=3 ＝ 归档件数=3
+===== 4) SCAN P1／P2（批2 接线的活体面） 2026-10-08 14:34:33 =====
+  p1 rc=0 p2 rc=0
+    {"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 4194, "occ_frame": "world", "robot": [0.015, 0.027], "goal": [2.515, 0.027], "goal_dist_to_occ": 0.671, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.2, "bspline": {"order": 3, "n_ctrl": 26, "n_knots": 30, "traj_id": 3}, "traj_min_dist_m": 0.65, "traj_median_dist_m": 0.815, "n_samples": 120, "n_inside_tol": 0, "endpoint": [3.451, 0.026], "endpoint_err_m": 0.936}, "verdict": "PASS"}
+  [archive] OUT 收口：/tmp/rt_scan1 件数=5 ＝ 归档件数=5
+===== 5) 共同门禁＋基线双条件＋样张＋退净 2026-10-08 14:39:45 =====
+  门禁 EXIT=0
+    === ISOLATION OK ===
+    # self-attest: at=2026-10-08 14:39:54 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4532 rc=0
+  30_3rd：非OK行数=1 find计数=49（应为 0 与 49）
+  退净：残留=[] 端口11313=0 11345=0
+  E3 双父签名（各跑 stageB 的 base_link 父帧集合，须只有 odom）：
+  foxy[end] 计数=0
+  foxy 起终成对：整行（含 lstart）逐位一致
