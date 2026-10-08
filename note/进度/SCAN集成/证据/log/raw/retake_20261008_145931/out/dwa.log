@@ -1,0 +1,72 @@
+### 一、mbf 是否真把 DWA 装进控制器表（加载判据，零节点侧改动）
+  /clock 就绪 t=2s
+  等待 176s；DWA 命中=1 teb 命中=1（loaded 总累计=5，含 planners/recovery）
+  控制器注册表: 
+  （注：root-inertia WARN 现指 base_link，小张 M2R5 风险①预测成立；已 grep 全仓无脚本消费该串）
+### 二、DWA 第 1 跑（三连判据）
+    RECHK run=dwa1 controller=DWAPlannerROS start=(0.000,0.000) goal=(3.000,0.000)
+    RECHK gate_map_data=PASS t=0.0s
+    RECHK gate_gcostmap_data=PASS t=0.2s
+    RECHK gate_lcostmap_data=PASS t=0.3s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.9s
+    RECHK pose_age_map_base_link=0.047s stamp=45.801 sim_now=45.944
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=61
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=12.3s(sim) dt_wall=42.2s dev_odom=0.081 dev_gt=0.081 rtf=0.292 smooth_rms=0.0708 cmd_n=123
+    RECHK 有效性门 rtf=0.292PASS ｜ 判据 state=3 outcome=0 dt_ok=True dev_ok=True
+    RECHK VERDICT PASS
+  rc=0 ；mbf 日志内 pose 类命中累计=0
+  [PASS] dwa 第 1 跑
+### 二、DWA 第 2 跑（三连判据）
+    RECHK run=dwa2 controller=DWAPlannerROS start=(3.133,-0.006) goal=(6.133,-0.006)
+    RECHK gate_map_data=PASS t=0.0s
+    RECHK gate_gcostmap_data=PASS t=0.1s
+    RECHK gate_lcostmap_data=PASS t=0.2s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.8s
+    RECHK pose_age_map_base_link=0.039s stamp=60.600 sim_now=60.675
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=60
+    RECHK exe_path outcome=103 "Controller failed" state=4
+    RECHK dt=15.5s(sim) dt_wall=53.3s dev_odom=0.096 dev_gt=0.096 rtf=0.292 smooth_rms=0.1070 cmd_n=156
+    RECHK 有效性门 rtf=0.292PASS ｜ 判据 state=4 outcome=103 dt_ok=True dev_ok=True
+    RECHK VERDICT FAIL
+  rc=5 ；mbf 日志内 pose 类命中累计=0
+  [FAIL] dwa 第 2 跑 rc=5
+### 二、DWA 第 3 跑（三连判据）
+    RECHK run=dwa3 controller=DWAPlannerROS start=(6.042,0.023) goal=(9.042,0.023)
+    RECHK gate_map_data=PASS t=0.0s
+    RECHK gate_gcostmap_data=PASS t=0.1s
+    RECHK gate_lcostmap_data=PASS t=0.2s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.8s
+    RECHK pose_age_map_base_link=0.056s stamp=78.700 sim_now=78.797
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=62
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=12.7s(sim) dt_wall=43.4s dev_odom=0.095 dev_gt=0.095 rtf=0.293 smooth_rms=0.0871 cmd_n=127
+    RECHK 有效性门 rtf=0.293PASS ｜ 判据 state=3 outcome=0 dt_ok=True dev_ok=True
+    RECHK VERDICT PASS
+  rc=0 ；mbf 日志内 pose 类命中累计=0
+  [PASS] dwa 第 3 跑
+### 三、同场 teb 对照（证 harness 本身没坏）
+    RECHK run=teb_ctrl controller=TebLocalPlannerROS start=(8.949,0.003) goal=(11.949,0.003)
+    RECHK gate_map_data=PASS t=0.0s
+    RECHK gate_gcostmap_data=PASS t=0.1s
+    RECHK gate_lcostmap_data=PASS t=0.3s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.9s
+    RECHK pose_age_map_base_link=0.080s stamp=93.900 sim_now=94.056
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=62
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=9.1s(sim) dt_wall=30.6s dev_odom=0.165 dev_gt=0.165 rtf=0.297 smooth_rms=0.0246 cmd_n=91
+    RECHK 有效性门 rtf=0.297PASS ｜ 判据 state=3 outcome=0 dt_ok=True dev_ok=True
+    RECHK VERDICT PASS
+  [PASS] teb 对照
+### 汇总 DWA PASS=2 FAIL=1 INVALID=0（目标 PASS=3）；teb 对照 rc=0
+DWA RECHECK VERDICT: FAIL（确有判据不过，非环境因素）
+DWA RECHECK 批级 rc=5（0 PASS／5 FAIL／6 INVALID／7 并存停手／4 INCOMPLETE；本件自有层，引用须连件名）
+[exitclean] # 退净核验 @2026-10-08 15:08:09
+[exitclean] -- 命中进程原样 ps 行 --
+[exitclean] 79554 /bin/bash -lc cd /home/ros1-slam && setfacl -R -m u:ysc:rwx,u:ros1-slam:rwx ws/src/40_navigation/lite3_navigation/verify ws/src/95_simulation/lite3_gazebo_sim/verify 2>/dev/null; git add -- ws/src/40_navigation/lite3_navigation/verify ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh && git -c user.name=小明 -c user.email=xm@ros1-slam.local commit -q -m "feat(R40): DWA 件族批级 rc 显式分档（灭 O-6 假判据）＋并存独立档 7＋件间 rc 映射表" -m "v_dwa_recheck.sh：件头加 rc 语义表（0 PASS／5 FAIL／6 INVALID／7 并存停手／4 INCOMPLETE，取一序 7>5>6>4>0），VERDICT 之后按计数显式 exit（旧版恒 exit 0＝判据 FAIL 改不动批级 rc，她 R40 判停，H13 批现场反例是 teb 对照被我手工终止而件仍打 dwa rc=0）；两处前置（/clock 300s 未出、DWA 未装载）由 FAIL+exit 1 改 [INVALID]+exit 6；teb 对照不过归前置档不计被测件 FAIL。dwa_recheck.py：valid 不过且 verdict 亦不过 ⇒ 新增 rc=7 并存档，不再被 6 吸收。retake_driver.sh：件间 rc 映射写表（DWR 5/7→本件 5、6/4→本件 4、未知→9），未知值不再静默当通过。全部走 python 写入并逐条复读，bash -n 与 ast 通过。" && git log --oneline -1 | cat; mkdir -p /tmp/rt_dwa1 && setsid nohup env OUT=/tmp/rt_dwa1 bash ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh pre dwa > /tmp/rt_dwa1/driver.log 2>&1 < /dev/null & disown; sleep 8; head -6 /tmp/rt_dwa1/driver.log 2>/dev/null | cut -c1-120
+[exitclean] 79715 bash /home/ros1-slam/ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh 3
+[exitclean] -- 端口 TCP/UDP 分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0

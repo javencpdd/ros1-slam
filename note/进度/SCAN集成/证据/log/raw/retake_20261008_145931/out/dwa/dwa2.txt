@@ -1,0 +1,11 @@
+RECHK run=dwa2 controller=DWAPlannerROS start=(3.133,-0.006) goal=(6.133,-0.006)
+RECHK gate_map_data=PASS t=0.0s
+RECHK gate_gcostmap_data=PASS t=0.1s
+RECHK gate_lcostmap_data=PASS t=0.2s
+RECHK gate_tf_fresh_mapbase=PASS t=0.8s
+RECHK pose_age_map_base_link=0.039s stamp=60.600 sim_now=60.675
+RECHK get_path attempt1 outcome=0 "Plan found" poses=60
+RECHK exe_path outcome=103 "Controller failed" state=4
+RECHK dt=15.5s(sim) dt_wall=53.3s dev_odom=0.096 dev_gt=0.096 rtf=0.292 smooth_rms=0.1070 cmd_n=156
+RECHK 有效性门 rtf=0.292PASS ｜ 判据 state=4 outcome=103 dt_ok=True dev_ok=True
+RECHK VERDICT FAIL

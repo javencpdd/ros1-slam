@@ -1,0 +1,9 @@
+# 退净核验 @2026-10-08 15:08:09
+-- 命中进程原样 ps 行 --
+79554 /bin/bash -lc cd /home/ros1-slam && setfacl -R -m u:ysc:rwx,u:ros1-slam:rwx ws/src/40_navigation/lite3_navigation/verify ws/src/95_simulation/lite3_gazebo_sim/verify 2>/dev/null; git add -- ws/src/40_navigation/lite3_navigation/verify ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh && git -c user.name=小明 -c user.email=xm@ros1-slam.local commit -q -m "feat(R40): DWA 件族批级 rc 显式分档（灭 O-6 假判据）＋并存独立档 7＋件间 rc 映射表" -m "v_dwa_recheck.sh：件头加 rc 语义表（0 PASS／5 FAIL／6 INVALID／7 并存停手／4 INCOMPLETE，取一序 7>5>6>4>0），VERDICT 之后按计数显式 exit（旧版恒 exit 0＝判据 FAIL 改不动批级 rc，她 R40 判停，H13 批现场反例是 teb 对照被我手工终止而件仍打 dwa rc=0）；两处前置（/clock 300s 未出、DWA 未装载）由 FAIL+exit 1 改 [INVALID]+exit 6；teb 对照不过归前置档不计被测件 FAIL。dwa_recheck.py：valid 不过且 verdict 亦不过 ⇒ 新增 rc=7 并存档，不再被 6 吸收。retake_driver.sh：件间 rc 映射写表（DWR 5/7→本件 5、6/4→本件 4、未知→9），未知值不再静默当通过。全部走 python 写入并逐条复读，bash -n 与 ast 通过。" && git log --oneline -1 | cat; mkdir -p /tmp/rt_dwa1 && setsid nohup env OUT=/tmp/rt_dwa1 bash ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh pre dwa > /tmp/rt_dwa1/driver.log 2>&1 < /dev/null & disown; sleep 8; head -6 /tmp/rt_dwa1/driver.log 2>/dev/null | cut -c1-120
+79715 bash /home/ros1-slam/ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh 3
+-- 端口 TCP/UDP 分查 --
+  port 11311 TCP=0 UDP=0
+  port 11312 TCP=0 UDP=0
+  port 11313 TCP=0 UDP=0
+  port 11345 TCP=0 UDP=0
