@@ -35,6 +35,14 @@ if [ "${1:-}" = "--check" ]; then
       case "$lb" in 无*) : ;; *) echo "[FAIL] $c 该代无库件，档内 LIB 列应为「无…」实为 $lb"; bad=$((bad+1));; esac
     fi
   done <<< "$(grep -E '^\| H[0-9]+ \|' "$DOC")"
+  # 防重与穷尽（本轮实测教训：我把表体重复插入成 27 行，逐行核对却仍 PASS——
+  #   因为每一行单独都与 git 相符，重复与漏行都不在「逐行」的判据面内。现补两断言：）
+  _rows=$(grep -cE '^\| H[0-9]+ \|' "$DOC")
+  _uniq=$(grep -oE '^\| H[0-9]+ ' "$DOC" | sort -u | wc -l)
+  _gt=$(git log --format=%h -- "$SM" "$LIB" | wc -l)
+  [ "$_rows" = "$_uniq" ] || { echo "[FAIL] 表体有重复行：在册 $_rows 行、唯一 H# $_uniq 个"; bad=$((bad+1)); }
+  [ "$_uniq" = "$_gt" ] || { echo "[FAIL] 表体不穷尽：唯一 H# $_uniq 个 ≠ git 载体提交数 $_gt"; bad=$((bad+1)); }
+  echo "  分母面：在册行=$n 唯一H#=$_uniq git载体提交数=$_gt（重复与漏行同判红）"
   echo "== 07 档对账：在册 $n 行（SM 与 LIB 双列同核，R47），不符 $bad 行 =="
   [ "$bad" = "0" ] && [ "$n" -ge 1 ] || exit 5
   echo "GENERATION TABLE CHECK: PASS（$n 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）"
