@@ -1,0 +1,55 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_092539
+[m2] HARNESS sha256=35962c6dbafff0caaf659726b2bed3ddd39e3bc1833c6e871d1d192ec96869f6 path=verify/m2_smoke.sh
+[exitbase] # exitbase @2026-10-08 09:25:40 stage=stageB
+[exitbase] PIDS 328580
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.1s
+SMOKE gate_tf_robot=PASS t=0.4s
+SMOKE gate_gcostmap_data=PASS t=0.7s
+SMOKE gate_lcostmap_data=PASS t=0.8s
+SMOKE gate_tf_fresh=PASS t=1.4s ages=[0.024,0.037,0.003]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.0s ages=[0.027,0.012,0.064]
+SMOKE SIMNOW point=age_sample_1 sim_now=20.53s gate_t=2.0s
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.015,0.019,0.009]
+SMOKE E3 tf odom->base_link hits=29 last_stamp=21.239 age=0.004
+SMOKE E3 base_link_parents=['odom'] transforms_total=35
+SMOKE E3 static base_link->rslidar stamp=0.026
+SMOKE E3 static base_link->TORSO stamp=0.026
+SMOKE gate=PASS t=4.7s
+SMOKE SIMNOW point=goal_send sim_now=21.24s
+SMOKE SIMNOW point=goal_done sim_now=29.77s dt=8.53
+SMOKE teb_state=3 dt=8.5s dev_odom=0.182 dev_gt=0.182
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[PASS] B/G6: goal 后 pose 类 ERROR=0
+[PASS] B: 到达偏差 0.182 ≤0.35m
+[PASS] B: 用时 8.53 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-08 09:28:40  stage=stageB
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]  328580 ros1-sl+       1 Tue Oct  6 19:51:44 2026 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+[exitclean] -- 监听端口分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/进程面：本跑派生零残留（差集为空，既存命中不入判据，R22 二/三）
+==================================================
+M2 SMOKE: PASS
+==================================================

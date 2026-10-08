@@ -1,0 +1,10 @@
+PROBE P1_turn_only(w=0.6) | gt_yaw=  +48.4 deg odom_yaw=  +48.4 imu_yaw=  +48.1 | gt_dxy=0.000 m gt_dir= -177.4 deg | odom_dxy=0.000
+PROBE P2_fwd_only(vx=0.3) | gt_yaw=   +0.0 deg odom_yaw=   +0.0 imu_yaw=   +0.8 | gt_dxy=0.427 m gt_dir=  +48.5 deg | odom_dxy=0.427
+PROBE P3_lat_only(vy=0.3) | gt_yaw=   +0.0 deg odom_yaw=   +0.0 imu_yaw=   +3.0 | gt_dxy=0.432 m gt_dir= +138.5 deg | odom_dxy=0.432
+PROBE_VERDICT physical_turn=True odom_yaw_openloop=True linear_rotated=False
+PROBE_DECISION（对照 /tmp/m2_manifest.md §M2-1-D 决策树）:
+  P1 gt_yaw≈0 且 odom_yaw→36°   → odom yaw=开环积分∫ω_cmd 坐实（M1 假设成立）
+  P1 gt_yaw≈0                   → SetAngularVel 物理无效（H2）→ 修法 B 必须 kinematic/SetWorldPose 或修速度语义
+  P1 gt_yaw≈36°                 → 物理可转（H1）→ 修法 B 只需修 odom yaw=WorldPose 闭环
+  P3 gt_dir≈+90°(模型左向)       → SetLinearVal 按 RotateVector 语义（H2b，体速度语义）
+  P3 gt_dir≈0°(世界 +x)          → 线速度按世界系直用（H2a，planar_move 已知局限）

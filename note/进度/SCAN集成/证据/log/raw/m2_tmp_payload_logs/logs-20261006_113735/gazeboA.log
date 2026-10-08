@@ -1,0 +1,73 @@
+WARNING: cannot create log directory [/home/ros1-slam/logs/46ec8a2e-c137-11f1-8ff1-3c6d66f8d2d8]. Please set ROS_LOG_DIR to a writable location.
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/nodeprocess.py", line 250, in _configure_logging
+    os.makedirs(log_dir)
+  File "/usr/lib/python3.8/os.py", line 223, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/home/ros1-slam/logs/46ec8a2e-c137-11f1-8ff1-3c6d66f8d2d8'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/nodeprocess.py", line 305, in start
+    logfileout, logfileerr = self._configure_logging()
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/nodeprocess.py", line 253, in _configure_logging
+    raise RLException("unable to create directory for log file [%s].\nPlease check permissions."%log_dir)
+roslaunch.core.RLException: unable to create directory for log file [/home/ros1-slam/logs/46ec8a2e-c137-11f1-8ff1-3c6d66f8d2d8].
+Please check permissions.
+
+[master] ERROR: unable to configure logging [unable to create directory for log file [/home/ros1-slam/logs/46ec8a2e-c137-11f1-8ff1-3c6d66f8d2d8].
+Please check permissions.]
+[31m[master] ERROR: unable to configure logging [unable to create directory for log file [/home/ros1-slam/logs/46ec8a2e-c137-11f1-8ff1-3c6d66f8d2d8].
+Please check permissions.][0m
+================================================================================REQUIRED process [master] has died!
+process has died [pid 280202, exit code 1, cmd rosmaster --core -p 11313 -w 3].
+Initiating shutdown!
+================================================================================
+[31m================================================================================REQUIRED process [master] has died!
+process has died [pid 280202, exit code 1, cmd rosmaster --core -p 11313 -w 3].
+Initiating shutdown!
+================================================================================[0m
+RLException: ERROR: could not contact master [http://127.0.0.1:11313]
+[31mRLException: ERROR: could not contact master [http://127.0.0.1:11313][0m
+The traceback for the exception was written to the log file
+[31mThe traceback for the exception was written to the log file[0m
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/__init__.py", line 347, in main
+    p.start()
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/parent.py", line 316, in start
+    self.runner.launch()
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/launch.py", line 676, in launch
+    self._setup()
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/launch.py", line 651, in _setup
+    launched = self._launch_master()
+  File "/opt/ros/noetic/lib/python3/dist-packages/roslaunch/launch.py", line 429, in _launch_master
+    raise RLException("ERROR: could not contact master [%s]"%m.uri)
+roslaunch.core.RLException: ERROR: could not contact master [http://127.0.0.1:11313]
+
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/tmp/m2_payload/m2_gazebo.launch
+[1mstarted roslaunch server http://192.168.1.103:42147/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+
+auto-starting new master
+[1mprocess[master]: started with pid [280202][0m
+[master] killing on exit

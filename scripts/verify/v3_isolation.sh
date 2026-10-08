@@ -34,6 +34,10 @@ grep -rln "/home/ysc" /home/ros1-slam/ws/src 2>/dev/null && FAIL=1
 say "[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.cc/.h）"
 HITS=$(find /home/ros1-slam/ws/src/40_navigation \( -name "*.cpp" -o -name "*.cc" -o -name "*.h" \) 2>/dev/null)
 [ -n "$HITS" ] && { echo "  命中算法源码文件："; echo "$HITS"; FAIL=1; }
+# 自证行（小美 M2R6 路由项 R25 二）：旧版只打结论、无时间与退出码 ⇒ 归档件里「谁在跑、跑出几」
+#   要反推（与「跑的是哪份 harness」同族的自证缺口）。日期＋扫描面＋rc 三者入正文，跑完即自解释。
+SCOPE_N=$(find /home/ros1-slam/ws/src -type f 2>/dev/null | wc -l)
 rm -f "$TMP"
 [ $FAIL -eq 0 ] && echo "=== ISOLATION OK ===" || echo "=== ISOLATION FAILED ==="
+echo "# self-attest: at=$(date '+%Y-%m-%d %H:%M:%S') script=$(sha256sum "${BASH_SOURCE[0]}" | awk '{print $1}') ws_src_files=$SCOPE_N rc=$FAIL"
 exit $FAIL

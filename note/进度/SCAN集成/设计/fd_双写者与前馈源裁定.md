@@ -241,3 +241,169 @@
 ## 9. 本切片零改动自证（纪律回执）
 
 只新建了本文件一件；ws/ 与 scripts/ 零改动、既有 note 文档零改动、零 git 写操作、零 sudo、零 ROS 节点与 roslaunch、零端口占用（11312/11313/11345 全程未触）；正文零 markdown 反引号；创建后已按 02 坑17 补 named ACL（setfacl -m u:ysc:rwx,u:ros1-slam:rwx，且后续任何编辑后须重补）。
+
+---
+
+## 10. R24 交件：改动文件 × 触及判据 矩阵（应小美 M2R6 路由项 R24，2026-10-08）
+
+更新时间: 2026-10-08 09:26（date 实测；本节全部行号与 sha 均为 09:16–09:26 窗口内实开文件核对所得）
+
+### 10.0 本节的边界与取证代际声明
+
+- **触发件**：note/进度/M2/进度文档.md:683（R24 原文：F-D 设计件里请附「改动文件 × 触及判据」矩阵，我据矩阵批「正交同批／相交分批」；坑25 根除件（打戳统一 SimTime）在矩阵核过前不动 PLG；本批我不裁 F-D）＋ 同文件 :666（待决④：批准登记为待排期修法、批准进 A7 P3 起点候选；不批准三件同批共取一次 5 连；批次原则四条：同批只动一个病因变量／判据面相交者必须分批／判据面正交者同批内逐件留独立读数／5 连永远按被测件变一次即重新起算不得共用）。本节**只交矩阵与批次建议**，不重设计、不扩范围、不改 §0–§9 正文（历史记录不回改，向前指向，与 05 A2、小美待决③ 同例）。
+- **纪律回执**：零 ROS 节点、零 roslaunch、零端口占用（11312/11313/11345 我全程未触）、零 ws/ 与 scripts/ 改动、零 git 写、无 sudo；本节新增动作只有只读 grep/sed/awk/stat/sha256sum/diff/find/setfacl，以及对 ws/src/30_3rd 跑了一次 sha256sum -c（只读校验，见 10.6 表 #1）、对端口做了一次只读 ss 查询。口径澄清（防误读）：「零端口占用」说的是我，不是隔离域现况——09:31 实测 11313 有 1 名监听者、生产 11312 为 0，该活体窗由施工方在飞批次（roslaunch lite3_bringup mode_sim_teb.launch，起于本节写作期间）持有，我未启停任何进程、未进入该域；这也是下一条 harness 代际连跳的直接原因。正文零 markdown 反引号（02 坑18）。
+- **判据载体代际（必须先声明，否则行号不可用）**：harness 现件在我核对期间被并行施工连改三代——09:05 前小美 M2R6 所记 **568 行 / sha 1570339f88f0**；09:17 我实测 **621 行 / sha 81b7f3b9**；09:25 实测 **644 行 / sha 35962c6d / mtime 09:24:59**（git 侧仍停在 3c12fec，工作树为脏）。⇒ 本节引 harness 处**以判据键名为主键、行号为辅**（键名在三代内稳定：tf_fresh／tf_fresh_mapodom_G5c2／tf_fresh_G5c1／tf_fresh_late_G5／tf_fresh_mapodom_late_G5c2／press_late_G5，现件 :426-427），行号按 35962c6d 代际写，施工方须按键名对号；这正是小美待决③「按 harness 代际分列不合并」口径在改动面的落地。
+- **§1/§2/§6 旧引号的向前指向更正（三条，均不回改原文）**：①§1.3 二引「m2_smoke.sh:193 取 /Odometry、:379 算 dev_odom、:380 算 dev_gt」→ 现件为 :250（订阅）、:440（取 S['odom'] 算 d）、:441（算 gd）、:442（打印行）；②§1.2 更正一引「:109 订阅、:125 断言、:144 drift、:161 门 ≤0.5」→ 现件为 :166（订阅）、:182（断言 no /Odometry）、:201（drift）、:218（A③ ≤0.5 判定行）；③§2-A 引「E3 直读 :333-355」→ 现件为 :391（注释：期望签名 base_link_parents 恰 ['odom']）与 :415（打印行）。
+- **坑25 落点行号更正（与小美 R23（四）同判）**：02:211 与 02:214 引的「L112 打戳」在盘上不成立——ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp 实见 :111 为 o.header.stamp = ros::Time::now()（里程计打戳），:112 为 o.header.frame_id = odom_frame_（帧名行），:127 为 sendTransform(tf::StampedTransform(tf, ros::Time::now(), ...)（TF 打戳）。⇒ **根除件的真实落点是 :111 与 :127 两处**，不是 :112/:127；:61 的 SimTime 与 :105-106 的节流早退逐字复见在案。全件 ros::Time::now() 命中另有 :54/:69/:70（cmd 超时判据，与本修法无关，动它即越界，须登记禁手）。
+
+### 10.1 判据列图例（在册 Gate／判据面 17 列）
+
+| 列 | 在册判据（本体与取处，均实见） |
+|---|---|
+| C1 | M2-1／M2-4 stageA：A0 RTF ≥0.25、A① 点云 ≥5Hz、A②、A③ drift ≤0.5（SM :166 订阅 /Odometry → :201 算 → :218 判） |
+| C2 | M2-2 stageB 五连：teb_state、dt ≤120s、dev_odom ≤0.35（SM :250 订阅 → :440 取 → :442 打印 → :464-466 判） |
+| C3 | G5 门控族：G5／G5b／G5c1／G5c2／press_late_G5（SM :352/:353/:368/:369/:378 取值，:385 G5c1，:426-427 进 gate 字典参与 all()） |
+| C4 | G6：goal 后 pose 类 ERROR=0（SM :460-462 计数 tebB.log） |
+| C5 | E3 结构签名：base_link 父帧恰 [odom]、/tf_static 无入 base_link 边（SM :391/:415） |
+| C6 | 样张 sha 红线：data/maps/lite3.pcd 逐跑备份-比对-恢复（SM :13/:126/:118-119/:510-513；现值 aaa09362c5f1…，c034c906 系旧值且 00_总览:29 已记 04 P0-5 勘误） |
+| C7 | V6 结构等价对照：body_names/geom_names/joint_names/落地 z 与姿态 改前后全等（02 坑21＋04:289 纪律；探针 SM 同场脚本 m2_v6_probe.py） |
+| C8 | A7 判据①（P1，在册 6/6）：v_scan_p1.sh:90 wait_topic /Odometry、:96 起 70_scan、:98-99 等 /LIO 话题 |
+| C9 | A7 判据②（P2，在册 7/7）：v_scan_p2.sh:74 wait_topic /Odometry、:78 起 70_scan；p2_goal_plan.py:155-157 直取 /Odometry 当 camera_init 系机人位置 |
+| C10 | A7 O-1 到达信号：scan_arrival_monitor.py:21/:67 读 /LIO/odom_vehicle（endpoint_err 与 reached）；O-1 已由小美 M2R6 #24 销账（执行面闭合） |
+| C11 | W4 DWA 复测（roadmap C #4 已撤销，复测件在册可复现性）：dwa_recheck.py:35 订 /Odometry、:40 有界轮询 90s、:84-91 tf_fresh_mapbase 门、:146-147 无条件取 S['odom'] |
+| C12 | G7（真机 M1/M2 层，含 G7-④ /Odometry ≥10Hz）：P6/进度文档.md:19（G7-④ 按「若复跑」分支跳过、样张保护）＋ :8（G7=PASS，② 降级注记保留：hdl 定位质量不判） |
+| C13 | G8（真机 hdl 定位联调）：00_总览:23 边界注记「仿真覆盖 faster_lio✅ teb✅ hdl❌，hdl 转真机 G8」 |
+| C14 | 30_3rd 基线双条件：scan_src_baseline_49.sha256 内容全等 ＋ find 计数 = 49（v_scan_o1.sh:50-53，B-6b／C-7） |
+| C15 | 共同门禁 v3_isolation 全量 [1]-[9]（scripts/verify/v3_isolation.sh，现况零节点静态检） |
+| C16 | /cmd_vel 唯一写者与 M6 联锁（02 坑22＋o1 件 C-1..C-8；cmd_vel_mux.yaml:3/:4；红线在册 m2_teb.launch:7） |
+| C17 | A7 §B 第 7 行「70 逐字相同」对账签名：diff /tmp/scan_work/70_scan.launch 零差异（SCAN集成/进度文档.md:78，登记为 绿） |
+
+### 10.2 矩阵本体（行 = 本波次候选改动落点，逐个给文件:行号）
+
+| 行 | 落点（文件:行号，实见） | 性质 | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | C13 | C14 | C15 | C16 | C17 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A | ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro:140（odometryTopic /Odometry → /sim/odom_gt；:141/:142 帧名不动） | 被测件（坑21 家族），零重编译 | 触 | 触 | 触 | 不触 | 不触 | 不触 | 触 | 触 | 触 | 触 | 触 | 不触 | 不触 | 不触 | 待测 | 不触 | 不触 |
+| B | ws/src/40_navigation/lite3_scan/launch/70_scan.launch:28（裸 include 内加 odom_in 显式 arg，值 /Odometry；lio_relay.launch:24 缺省即此值） | 壳包自有件，非被测件 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 待测 | 不触 | 不触 | 不触 | 触 |
+| C | FD 断言入验收件：m2_smoke.sh 的 stageA 段 :140（起 m2_mapping）之后与 :182 之前、SCAN 侧 v_scan_p1.sh:90 之后与 :96 之后、v_scan_p2.sh:74 之后（新增判定行，见 10.5） | 判据新增（05 A3 需追认） | 触 | 触 | 触 | 不触 | 触 | 不触 | 不触 | 触 | 触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 |
+| D | 判据载体订阅名配套（**本节核出的必改落点**）：m2_smoke.sh:166（stageA）／:250（stageB）／:485（stageC）＋ ws/src/40_navigation/lite3_navigation/verify/dwa_recheck.py:35；m1_smoke.sh:86/:121/:178 只登记不复跑 | 判据载体变更（05 A3 需追认） | 触 | 触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 触 | 不触 | 不触 | 不触 | 待测 | 不触 | 不触 |
+| E | FD-H：ws/src/20_localization/hdl_localization/apps/hdl_localization_nodelet.cpp:68 实发 /odom（不可改，第三方）；对账落点二选一——(a) ws/src/20_localization/lite3_localization/launch/hdl_localization.launch（现 :76/:78 仅两点 remap、无 odom 名 remap）加一行，或 (b) 读者侧 m2_smoke.sh:520/:534/:555 的 /hdl_odom 与 m2_hdl.launch:6 的在册声明 | 生产域壳包自有件（我裁 (a)） | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 触 | 触 | 不触 | 不触 | 不触 | 不触 |
+| F1 | FD-G 形态一：ws/src/30_3rd/plan_manage/launch/lio_relay.launch:57-58（静态 body→base_link 恒等边；**30_3rd 基线件**） | 改它即失基线（代价见 10.3） | 不触 | 不触 | 不触 | 不触 | 触 | 不触 | 不触 | 待测 | 待测 | 待测 | 不触 | 待测 | 触 | **触** | 不触 | 不触 | 不触 |
+| F2 | FD-G 形态二（我荐）：不动基线件，改我方 70_scan.launch:28 的 include 目标为壳包自持等价 relay（lite3_scan 内新件），与行 B 同一行 | 壳包自有件＋新判据 | 不触 | 不触 | 不触 | 不触 | 触 | 不触 | 不触 | 触 | 触 | 触 | 不触 | 待测 | 待测 | 不触 | 待测 | 不触 | 触 |
+| G | 坑25 根除：ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp:111（里程计打戳）与 :127（TF 打戳）改用 :61 的 SimTime ⇒ **须重编译 ws/devel/lib/liblite3_planar_drive.so** | 被测件（源码）＋构建态变更 | 不触 | 触 | 触 | 触 | 触 | 不触 | 不触 | 不触 | 不触 | 不触 | 触 | 不触 | 不触 | 不触 | 待测 | 不触 | 不触 |
+| H | J3（对照行，非新落点）：ws/src/60_safety/lite3_safety/config/cmd_vel_mux.yaml:11-17 表尾加 scan_planner 源 ＋ 文案四处（cmd_vel_mux.yaml:3/:7、safe_cmd_vel_mux.py:6/:10/:31） | 安全件配置（条文级口径主理人 R1 已认可） | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 不触 | 待测 | 待测 | 不触 | 不触 | 触 | 不触 |
+
+### 10.3 逐「触／待测」格展开（为什么触）
+
+**行 A（xacro:140 改名）**
+
+- C1 触：stageA 窗内两写者同时在位（实测证据 fd_audit_pub2.txt：Publishers = /gazebo 与 /faster_lio_online；fd_audit_audit2.txt：odom→base_link 109 条位姿恒 (0,0) 与 camera_init→body 18 条差真值 0.029m 在同一话题交织）。改名后 /Odometry 只剩 LIO 一路 ⇒ SM:166 的订阅者只剩一路 ⇒ **A③ drift 的数值口径由「交织竞态读数」变为「LIO 单源回原点误差」**，历史带 0.475–0.497（04:306）与新值不可混计（05 A2＋小美 L376）⇒ 必须复取 1 次并登记源身份变更（FD-8）。
+- C2 触（**断供，非仅口径变**）：stageB 起链为 mode_sim_teb.launch:15 → m2_teb.launch:13 → m2_gazebo.launch，本轮实开三件全链**无 run_mapping_online 节点** ⇒ 该窗内 /Odometry 的唯一写者就是插件（实测 fd_audit_pub1.txt：Publishers 仅 /gazebo 一路）。改名后 stageB 的 :250 订阅恒空 → :252 有界轮询 60s 不报错（该行只判 gt/odom 是否为 None 但不 assert）→ **:440 m=S['odom'] 取 None 的属性即抛异常** → stageB.txt 无 :442 打印行 → :464 取不到 dev_odom → **五连必红**。⇒ 行 A 单独落地在物理上不可收口，必须与行 D 同批。
+- C3 触（连带）：G5 系取值通道是 tf2 lookupTransform（:352/:353/:368/:369/:385 取 map/base_link、map/odom、odom/base_link 的龄），插件 TF 仍在 :127-128 发且帧名不动 ⇒ 通道本身不触；但该族在 stageB 段内取数，而 stageB 整跑被 C2 带崩（rc≠0 即连击不成立）⇒ 判连带触、随 D 修好后同批取数。
+- C7 触：动的是同一个 <plugin> 块内字符串键 ⇒ 依 02 坑21（改 xacro 参数视同改被测件）与 04:289 的 V6 纪律，改前后结构对照必须做一次；预期四项全等，body/geom/joint 面出现任何增减即停手。
+- C8／C9 触：P1/P2 起链（v_scan_p1.sh:79/:88/:96 三件同窗）内 faster_lio 在位 ⇒ wait_topic /Odometry 仍可满足（改由 LIO 满足），但 :90/:74 与 p2_goal_plan.py:157 读到的东西换了身份（此前是竞态混合流）⇒ 既有 6/6 与 7/7 的证据不可复用，各重取 1 次并留 C 行断言读数。
+- C10 触：O-1 观测件读 /LIO/odom_vehicle（relay 直取 /Odometry）⇒ endpoint_err 口径同源变更；O-1 虽已销账（#24 执行面闭合），但**销账所依据的读数属混合源时代**，须随 P2 同窗复取一次并标注换代。
+- C11 触（断供）：W4 复测拓扑与 stageB 同款（v_dwa_recheck.sh:37 起 mode_sim_teb.launch，无 faster_lio）⇒ dwa_recheck.py:35 恒空 → :40 轮询 90s 超时不抛 → **:146-147 无条件取 S['odom'] 即抛** ⇒ 复测件不可复跑。roadmap C #4 的**撤销裁定与 W4 结论不回改**（05 A2 向前指向），本触只记「可复现性面」，修在行 D。
+- C15 待测：静态判据面预期不触（[2] 只查 /home/ysc 字面、[5] 只查跨 lite3_* 的 launch include、[6] 只扫 lite3_*/launch/ 的 cmd_vel 字面，95_simulation 不在 lite3_* 命名内、新话题名不含上述任何字面），但按批次红线仍须全量跑一次并逐条归因。
+
+**行 B（70_scan.launch:28 的 odom_in 显式 arg）**
+
+- C17 触（本节新核出，且**现状已不成立**）：SCAN集成/进度文档.md:78 在册「diff /tmp/scan_work/70_scan.launch 零差异（IDENTICAL）＝绿」。本轮 09:23 实测两侧**已不等**：/tmp 侧 fe651f34…（mtime 10-07 23:58:51）vs 包内 039c0a49…（mtime 10-08 07:36:55），差异内容为 O-1 观测件节点块与 goal remap 的 group 化（A7 自有增量），**非 F-D 造成**。⇒ 该签名的口径变更（改为「与上游逐字对账仅限 relay/params 段」或作废）须由小美/主理人裁定并落 04，施工方不得自改；行 B 落在同一件同一行，改前必须先把这条签名的新口径定下来。
+- C13 待测：70_scan.launch 是 sim 与真机共用的 SCAN 入口件，arg 值取 /Odometry 时与现缺省逐字相同（lio_relay.launch:24 default=/Odometry，实测）⇒ 真机侧行为不变；但「不变」是我按盘上值推定，真机活体未核 ⇒ 待测（G8 起链时随 FD-0 一次读数即可结案，不单独起窗）。
+- 其余列不触：include 传 arg 不改节点数、不改话题图、不改任何帧名与 TF 边。
+
+**行 C（FD-0／FD-1／FD-6 断言入验收件）**
+
+- 判据新增本身即触 05 A3（「判据的增、删、降级一律先挂账待验收追认」）⇒ 施工方不得自加，须随批挂账交小美追认后落地。
+- C1／C2／C8／C9 触：新增判定行进入该跑的 rc 与 mark 序列 ⇒ 那些跑的「同被测件连击」前提被重置，必须与行 A/D 同批取数、不得沿用旧跑充数。
+- C3／C5 触：FD-6 与 E3 同段读 /tf 与 /tf_static 的父集合与静态边，断言插入位置紧邻 :415 ⇒ 该段代码面变（读数通道语义不变，留独立读数）。
+
+**行 D（判据载体订阅名配套）**
+
+- C1／C2 触：这是行 A 的机械必然后果（把 stageA 的 :166 保留 /Odometry 而 stageB 的 :250 与 :485 的读者改指 /sim/odom_gt，或按 stage 分档取源）。**判据载体变更 ⇒ 05 A3 挂账**，且 harness 代际再跳一格 ⇒ 按小美待决③「分代际不合并」，改后跑次与 F1n–F5n／M2R6 三跑分列。
+- C11 触：dwa_recheck.py:35 同批改指 /sim/odom_gt（或按话题存在性自动选源）；W4 三连不复跑（理由见 C11 格：#4 撤销裁定不回改，本次只证复测通道可用）。
+- C7 不触：零 URDF 改动；C3/C4/C5 不触：不动 TF 与 teeB.log 计数面。
+- m1_smoke.sh:86/:121/:178 只登记不复跑（M1 已结案，且其判据③ 26.411 FAIL 与修复史是历史事实，GazeboM1/进度文档.md:83/:92）；m1_gazebo.launch:23 与被改件同引该 xacro，故登记「若复跑 M1 台须按新名」一条，不作复跑义务。
+
+**行 E（FD-H）**
+
+- C12／C13 触：改侧 (a)（hdl_localization.launch 加 odom 话题名 remap）动的是 lite3_localization 生产域壳包件，该件在真机 localize 模式同样装载 ⇒ 真机侧 hdl 输出名一并变（G7-② 是 hdl 契约层、G8 是其本体）⇒ 必须与 G8 前置同场核；改侧 (b) 只动读者（SM:520/:534/:555 与 m2_hdl.launch:6）⇒ C12/C13 降为不触，但名字漂移本体仍在、m2_hdl.launch:6 的在册声明继续与实际发布点不符。
+- **我裁 (a)**：(b) 把对账做在读者侧，等于允许「注释说 /hdl_odom、上游发 /odom」这一形态长期存在，正是 R15 口径要根除的东西；(a) 一次收口在我方壳包、零重编译、且与在册声明一致。C1–C11 全不触（stageC 已由 M2-R2C 终止、gateC 键不在任何在册活体批内——本轮 driver 实见 m2r6_reg.sh:16 只跑 stageB）。
+
+**行 F1／F2（FD-G，lio_relay 的静态 body→base_link 与插件 odom→base_link 构成 base_link 新双父）**
+
+- **基线红线实测结论（不靠记忆）**：note/进度/SCAN集成/证据/scan_src_baseline_49.sha256 共 49 行，**lio_relay.launch 在列**——第 29 行，值 1d0aa3f4ee1659c5994bd6b4c363a7bf52ec90f1e297f25d4d309c1ed0598904；本轮 09:20 在 /home/ros1-slam/ws/src/30_3rd 根跑 sha256sum -c ⇒ **49/49 OK、FAILED 0**，同件盘上 sha256sum 实测逐字等于第 29 行值；find /home/ros1-slam/ws/src/30_3rd -type f 计数 = **49**。⇒ **今天基线是完整的，改它即刻使 B-6b（内容全等）与 C-7（计数=49）两条件当场红**（v_scan_o1.sh:50-53），后果＝失基线事件：须主理人裁＋重发 49 件基线＋03/04 登记，且 v_scan_o1.sh 的在册「绿」全部作废重取。**这就是「改它即失基线」的实测口径，不是修辞。**
+- C5 触（两形态同）：:57-58 无条件发静态 body→base_link；插件 :127-128 动态发 odom→base_link；P1/P2 窗内二者同窗（v_scan_p1.sh:79/:88/:96 实见三件同起）⇒ base_link 父集合变 {odom, body}，正是 E3 期望签名（SM:391 单元素 ['odom']）与 M2R4 前置③ 的同型形态。
+- C14 触（仅 F1）／不触（F2）：见上条实测。
+- C8／C9／C10 触（F2）／待测（F1）：F2 换的是 relay 承载件 ⇒ /LIO/odom_vehicle、/LIO/odom_imu、/LIO/clouds_lidar 三话题的发布者身份与启动次序变 ⇒ A7 的 :98-99 wait_topic 时序读数须重取；F1 只删静态 TF 边，而 SCAN 是否真不消费 TF 只有 lio_relay.launch:52-53 的自述与 §1.4 的盘上推定支撑、未活体核 ⇒ 待测（FD-6 哨兵随批可判）。
+- C13／C12 待测：真机链亦经同一 70_scan.launch include 该件（盘上同件），真机侧 base_link 父帧集合未活体核 ⇒ 待测，随 G8。
+- C17 触（F2）：F2 与行 B 落在**同一文件同一行（70_scan.launch:28）**，是对 C17 签名的第二次改写 ⇒ 这是 FD-G 与 F-D 判据面相交的**物理证据**（同通道 /LIO/odom_vehicle ＋ 同一行）。
+- **替代方案（不占批次，我倾向此路）**：主理人若取 §8 R-FD-3 的选项③（本波次不改任何件、只靠 FD-6 停手哨兵抓），则 F1/F2 两行从改动面移除、批2 不存在；代价是把风险留在潜伏态（P3 窗内双父只在真发作时才被抓）。
+
+**行 G（坑25 根除）**
+
+- C2 触：源码级被测件变更 ＋ .so 重编译 ⇒ 连击重新起算（05 A2／小美 L376），且构建态证据（单包重链批＋全量清白批）随批。
+- C3 触：G5 系五键的读数对象就是这个时间基（:352/:353/:385 的 Δ_age 与 :378 的 press 达标），打戳源由 ros::Time::now()（进程缓存的最近 /clock 值、按 /clock 量子离散）换为 :61 的 SimTime（严格单调）⇒ 同戳重复消失、Δ_age 分布变 ⇒ 带值须另立，旧带 0.005–0.092s（与 M2R6 追加三跑的 0.007–0.093s／单值 0.099s）降为「now 打戳时代」观察值。
+- C4／C5 触：O-2 的再开条件（任一次 Δ_age >1.0s 或 pose 类 ERROR 命中）与 E3 打印的 odom→base_link age（0.002–0.018s、[ZERO] 0 命中，00_总览:23）都直接吃时间基。
+- C11 触：dwa_recheck.py:84-91 的 tf_fresh_mapbase 门读同一条边 ⇒ 龄口径变；W4 结论与 #4 撤销裁定不回改，只在该件复跑时留独立读数。
+- C1 **不触（且这是我反对「坑25 与 F-D 同批」的反向理由）**：批1 落地后 stageA 的 /Odometry 只有 LIO 一路，:111 的打戳改动只作用于 /sim/odom_gt ⇒ 若两件事同批做，C1 的口径变更（行 A）与 C3/C4/C5 的时间基变更（行 G）同时进 stageA 与 stageB 两条判据通道 ⇒ 一条 sha 断言钉不住 ⇒ 破「一次只动一个病因变量」。
+- C7 不触：零 URDF 改动（以 git diff 静态证）。C8／C9／C10 不触：批3 的活体窗是 stageB＋W4，不含 SCAN；**若主理人把 SCAN 复跑并入批3，则 C8/C9/C10 当场改判为触、复跑义务随批加**（此句写死，不留给施工方自行选择）。
+- 02 坑25「未核实」那条（出现率差异：旧七跑 0 / 新五跑 3 / M2R6 三跑 4/2/0 行）只在批3 的**单源前提**下才可判 ⇒ 这也是坑25 必须排在 F-D 之后的第二个理由（可判性由前一批分离出来才成立）。
+
+**行 H（J3）**
+
+- C16 触：mux 表加第七源（scan_planner）改的是 /cmd_vel 的写者归属面；output_topic 与唯一写者语义不动（cmd_vel_mux.yaml:3/:4，m2_teb.launch:7 的红线仍成立）。判据面（C-1..C-8 读 /cmd_vel 的 Publishers 集合）与行 A/D 的消息身份面**正交** ⇒ 可与批1 同批，但同批内必须逐件留独立读数（FD 键与 C 键分列打印，不得合并成一条总判）。
+- C12／C13 待测：60_safety 是生产域件、真机 mode_navigation 装载同一张表；P6 在册证据含 mux 注入（P6/进度文档.md:7）⇒ 真机面为「设计预留」，待主理人裁后随 G7/G8 复核。
+
+### 10.4 批次裁定建议（据 10.2 矩阵得出，不留给施工方选边）
+
+**分组结论：四批，其中三批为活体批、各带独立连击义务。**
+
+- **批1「odom 身份收口批」** = 行 A ＋ 行 D ＋ 行 B ＋ 行 C ＋ 行 H。
+  - 必同批的硬理由：**行 A 与行 D 不是两个病因变量，行 D 是行 A 的必然后果**（A 单落 ⇒ stageB 与 W4 断供必红，见 10.3 行 A 的 C2 格）。拆开就是把一条改名拆成「先红后修」两次连击，纯成本无归因收益。
+  - 可与 A/D 同批的正交件：行 B（不触任何读数面）、行 H（动 /cmd_vel 归属面）、行 C（新增判定行、无独立读数面）——按小美批次原则第三条「判据面正交者同批内逐件留独立读数」执行：FD 键、C-1..C-8 键、A③/dev/G5 系键三组打印分行、互不参与彼此的 all()。
+  - **落地次序写死**：先取 FD-2 改前阳性对照（行 A 落地之前）→ 落 A（xacro 一行）→ 落 D（订阅名，随批挂账 A3）→ 落 B＋C（arg 与断言）→ 落 H（mux 表尾行＋四处文案）→ 跑满清单。禁止把 D 与 A 分作两次编辑各跑一轮。
+  - 复跑清单 **11 条**（活体 Gate 复跑 9 条）：① FD-2 改前阳性对照 1 次；② stageB 正向五连 **5 次**（U4 口径全绿、含 ≥1 次加压档、逐跑 foxy 六 PID 起终成对、四口 TCP/UDP 分查、退净落件、样张 cmp 未变）；③ stageA 复取 1 次（并登记 A③ 源身份已变、旧带降为历史观察值）；④ SCAN P1 重跑 1 次；⑤ SCAN P2 重跑 1 次（同窗取 O-1 endpoint_err）；⑥ FD-0／FD-1／FD-3／FD-4 活体断言各 1 组 ×三取样点；⑦ FD-6 哨兵读数 1 次；⑧ V6 结构等价对照 1 次；⑨ W4 复测件可用性复跑 **1 次**（不为重开 #4，只证通道修好；三连不复跑）；⑩ v3_isolation 全量 [1]-[9] 1 次；⑪ 登记面 1 组（04 台账一条＋before 留底 sha 一件＋判据载体变更挂账一条交小美追认）。
+- **批2「TF 双父（FD-G）根除批」** = 行 F2（我荐）或行 F1，二选一，**不与批1 同批**。
+  - 相交证据（不是修辞）：批1 的行 B 与批2 的行 F2 落在**同一文件同一行 70_scan.launch:28**，且两件事共同改写同一条 SCAN 前馈通道 /LIO/odom_vehicle 的身份面（C10/C17 两列同触）⇒ 按小美批次原则第二条必须分批。
+  - 复跑清单：走 F2 = **5 条**（E3 与双父签名 1 次、SCAN P1 1 次、P2 1 次、FD-6 明细随跑 1 次、门禁全量 1 次）；走 F1 = **7 条**（在 F2 五条之上加「重发 49 件基线＋03/04 登记」1 组与「v_scan_o1.sh B-6b/C-7 与在册绿全部重取」1 次，另加主理人裁一条）。**这是我建议 F2 而非 F1 的唯一成本理由：F1 多两条且会作废一条在册签名。**
+  - 若主理人取 §8 R-FD-3 选项③（只上哨兵、不改件），批2 从改动面移除 ⇒ 批次数降为三批，但 FD-6 停手条（SM:391/:415 段的 {odom, body} 即停）必须先落地，这条不随批2 取消。
+- **批3「时基批」** = 行 G（坑25 ＋ .so 重编译），**单独一批且排最后**。
+  - 必须分批的两条理由：①与批1 相交于 C3/C4/C5（同一组 G5 系与 E3 读数）——小美待决④ 已就此表态（坑25 与 F-D 判据面相交 ⇒ 不得同批），本节矩阵把该判定的格子钉实；②与批2 相交于 C5/E3（双父与龄同面）⇒ 不能把 F-D、FD-G、坑25 三件合并成一次连击。
+  - 复跑清单 **7 条**：① stageB 五连 **5 次**（新时间基下的新带另立）；② G5 系五键逐跑明细读数（旧带降为 now 打戳时代观察值）；③ E3 一次（含 odom→base_link 原始 age 与 [ZERO] 计数）；④ TF_REPEATED_DATA 出现率统计 1 组（按 stdout 件内去重 at time 值计事件，对小美待决② 的计数口径；对 02 坑25「未核实」作答）；⑤ 单包重链 1 次 ＋ 全量清白 1 次（构建态证据）；⑥ v3_isolation 全量 1 次；⑦ 登记面 1 组（PLG 与 .so 的 sha 起终值、harness 代际再列一次）。O-2 挂账的再开条件在本批同场读数，不另起窗。
+- **批4「名字契约批（FD-H）」** = 行 E，**独立成批、不搭任何活体批**。
+  - 裁定理由：它与三批判据面正交，但它在仿真域唯一在册读者是 gateC 的 hdl_odom 键（SM:520/:534/:555），而 stageC 已终止、现况 driver 只跑 stageB ⇒ 搭批只增加 04 台账噪声（「本批还改了 20_localization」），换不到任何活体读数；它真正的验收窗是 G8（需狗）。复跑清单 **2 条**：①静态三面逐字对账 1 次（发布点 nodelet.cpp:68 ＋ 读者 SM 三处 ＋ 声明 m2_hdl.launch:6）；②G8 首次活体 1 次（随 G8 派单，届时与 C12/C13 同场判）。
+
+**重取成本与归因纯度的明确取舍**：接受四批（三次连击义务、共 5＋5＝10 次 stageB 类连击加若干单跑），**不接受**任何「合批省一次起链」的方案。理由三条，均已钉在矩阵上：①合批会让「现读件（xacro/launch/config）」与「重编译件（.so）」两条归因轴同批双变，一条 sha256 断言钉不住构建态；②批1 改的是「判据测的是谁」这一口径级事实，批2/批3 改的是「TF 结构」与「时间基」两条机理级变量，混批后任一跑红就得整批回退（含把 xacro 一起翻回去），代价远高于多起一次窗；③行 B/F2 同行冲突使批1 与批2 在物理上不可同批——同批即同文件同行两次语义改，diff 无法归因。另把一条硬口径写死：**行 A/C/D 的落地顺序里，任何「先改 harness 再改 xacro」的形态都判违规**（判据载体先动等于先改判据再改被测件，违反 05 A3 的先挂账后生效）。
+
+### 10.5 施工前置断言的设计（/Odometry 发布者恰 1；本节只给设计，不写代码）
+
+- **取法（命令与解析）**：rostopic info /Odometry 与 rostopic info /sim/odom_gt 各一次；解析沿用在册助手形态 v_scan_o1.sh:19（自 Publishers: 行起、至 Subscribers: 行止、去空白），计数即发布者行数。**禁改**为按总输出行数或 grep 命中数计数（02 坑26 症状二「同类别总计数」的同型错）。
+- **期望字面**：Publishers 段**恰 1 行**。/Odometry 那 1 行实为「 * /faster_lio_online (http://<host>:<port>/)」；/sim/odom_gt 那 1 行实为「 * /gazebo (http://<host>:<port>/)」——两串字面均实测在案（fd_audit_pub2.txt 的两行原文、fd_audit_pub1.txt 的单行原文，本轮 09:16 复核原件仍在位、内容未变）。行数 ≠ 1（=0 或 ≥2）一律 FAIL。
+- **主判与辅判（写死，别反过来）**：主判 = 段行数恰 1 **＋** 消息头帧对（/Odometry 的 (frame_id, child_frame_id) 去重集合恰 {(camera_init, body)}，/sim/odom_gt 恰 {(odom, base_link)}，采样 N≥200）；辅判 = 节点名。理由：小美待决② 已判「不能单靠 authority 名」（/gazebo 是 gzserver 进程内**共享**节点名，同一事件在 tebB.log 面打的是 unknown_publisher），02 坑26 也已把「同时断言发布者身份与帧对」写成在册防线 ⇒ 只数名字会假绿，只判帧名会漏掉「一路但错的那一路」。
+- **分档（本节新增口径，必须写进断言，否则 F-D 的正确结果会被判成红）**：/Odometry 的「恰 1」只在**有 faster_lio 的窗**内要求（stageA、stageC、SCAN P1/P2：SM:140/:475、v_scan_p1.sh:88、v_scan_p2.sh:72）；stageB 与 W4 拓扑**天然无 LIO**（SM:234、v_dwa_recheck.sh:37 起 mode_sim_teb）⇒ 在该档要求的是「/sim/odom_gt 恰 1」，而 /Odometry 存在与否**不入判据**（若入判据即恒 FAIL）。断言件必须按档取期望，不得写成全局一句「/Odometry 恰 1」。
+- **取样点与失败即停手**：每档三处各取一次（起链就绪时、车动窗中、车动窗末，沿 C-1 的 ≥3 窗／间隔 ≥5s 纪律）；任一处不满足 ⇒ 退出码非 0 并打印「FD-0 停手：话题=<名> 实测发布者 <n> 路（期望 1），不进入 Gate 判定段；停手上报，门值与判据调整权在小美/主理人」，**该跑不得计入连击**（连击只在断言全绿的前提下起算），且禁重跑凑绿（FD-9）。
+- **落点（哪类验收件）**：进**包内 verify/**，不进 scripts/verify/。实测理由：scripts/verify/ 现三件（v3_isolation.sh、v_sh_py_syntax.sh、premap_check.sh）是零节点跨模块静态共同门禁层，v3_isolation.sh 内 roslaunch/rostopic/rosnode 字面命中计数本轮 grep 实测 = 0 ⇒ 把活体断言塞进那层等于改掉那层的语义（门禁语义变更，另议，见下条）。具体：仿真域臂落 m2_smoke.sh 的 stageA 段（起 m2_mapping 之后、SM:140 之后；断言在 :182 的 assert 之前）与 stageC 段同型（:475 之后）；SCAN 域臂落 v_scan_p1.sh（:90 之后与 :96 之后各一次）与 v_scan_p2.sh（:74 之后）；帧对与交织计数的可复跑探针沿用已入库的 ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_pose_source_audit.py（08:40 件，fd_audit 两态原件即其所出），不新写探针。
+- **是否升常设门禁**：**建议升为「P3 及其后每一批活体的起跑前置」，但本节只给建议并标注待主理人裁**（理由：其一，它是新增判定 ⇒ 05 A3 判据变更须先挂账追认；其二，它对 stageB 档加了新期望集，等于改门禁语义，且生效面覆盖 M2 域的在册连击口径）。若批准，生效批次按小美 R22 先例写为「落地后的下一批活体起、不追溯既往（本轮三跑与 F1n–F5n 不回判）」。主理人若判不升，则退为「批1 的一次性前置」，FD-0 仍随批取数、只是不入每批红线。
+
+### 10.6 本节新增实测（可复算，均只读）
+
+| # | 实测项 | 结果（09:16–09:26 窗口） |
+|---|---|---|
+| 1 | 30_3rd 基线双条件 | (cd ws/src/30_3rd ＆＆ sha256sum -c note/…/scan_src_baseline_49.sha256) ⇒ 49 行 OK、FAILED 0；find -type f 计数 49；清单第 29 行即 plan_manage/launch/lio_relay.launch，值 1d0aa3f4…，与同件盘上 sha256sum 逐字相等 |
+| 2 | 插件打戳行 | lite3_planar_drive.cpp：:111 里程计打戳、:112 帧名行、:127 TF 打戳；全件 ros::Time::now() 命中 :54/:69/:70/:111/:127；:61 SimTime、:105-106 节流早退 |
+| 3 | stageB 与 W4 拓扑无 LIO | mode_sim_teb.launch:15 → m2_teb.launch:13 → m2_gazebo.launch；v_dwa_recheck.sh:37 起同件；两链零 run_mapping_online ⇒ /Odometry 唯一写者＝插件（fd_audit_pub1.txt 单路原文同证） |
+| 4 | harness 代际三次跳变 | 568 行/1570339f（小美 M2R6 记）→ 621 行/81b7f3b9（09:17 我见）→ 644 行/35962c6d、mtime 09:24:59（09:25 我见）；git 停在 3c12fec、工作树脏 ⇒ 故键名为主键 |
+| 5 | 70 逐字签名现状 | diff /tmp/scan_work/70_scan.launch（fe651f34，mtime 10-07 23:58:51）vs 包内（039c0a49，mtime 10-08 07:36:55）**不等**；差异 = O-1 节点块＋goal remap group 化，非 F-D 造成 |
+| 6 | 样张现值 | data/maps/lite3.pcd sha256 前缀 aaa09362c5f1（在册勘误见 00_总览:29，c034c906 系旧值）；SM 比对点 :118-119/:126/:510-513 |
+| 7 | 判据键名与行号 | SM :352/:353/:368/:369/:378/:385（G5 系取值）、:426-427（gate 字典十字键）、:460-462（G6）、:391/:415（E3）、:166/:182/:201/:218（stageA）、:250/:440-:442/:464-:466（stageB）、:520/:534/:555（gateC 的 hdl_odom） |
+| 8 | FD-H 发布点 | hdl_localization_nodelet.cpp:68 advertise /odom；lite3_localization/launch/hdl_localization.launch 仅 :76/:78 两 remap、无 odom 名 remap；m2_hdl.launch:6 声明「输出 /hdl_odom」 |
+| 9 | J3 落点 | cmd_vel_mux.yaml:11-17（六源为 :12-17，表尾加一行 ⇒ 现件 17 行）；文案命中 cmd_vel_mux.yaml:3/:7、safe_cmd_vel_mux.py:6/:10/:31 |
+| 10 | 门禁层性质 | scripts/verify/ = premap_check.sh、v3_isolation.sh、v_sh_py_syntax.sh；v3_isolation.sh 内 roslaunch/rostopic/rosnode 字面计数 0 |
+
+### 10.7 未核实与不外推（不推测填充）
+
+1. 行 F1/F2 的 SCAN 是否真不消费 TF（只有 lio_relay.launch:52-53 自述与 §1.4 盘上推定，无活体）⇒ 故该两行 C8/C9/C10 在 F1 形态下写待测。
+2. 真机侧 base_link 父帧集合、真机 /Odometry 第二写者、真机 hdl 输出名 ⇒ 全部待测（G8），§5 的三条预留不变。
+3. 行 A 落地后 stageA 的 A③ 与 stageB 的 dev 新值：未跑，方向与量级均不可预判（§7 六 同条，不重复）。
+4. harness 现件（35962c6d）是否含 R20–R22 的完整落地：未逐段读，本节只按我在 09:16–09:26 实际打开过的段落取数；施工方须在批1 起跑前把代际 sha 钉进 04 与 SM 跑首行自打（小美 R25 一 的最低成本方案）。
+5. /tmp/scan_work 与 /tmp/m2_payload 的过期副本仍在位（本轮实测：m2_payload 内有 STALE_do_not_run_20261008 两件）⇒ 与批1 的 before 留底纪律冲突，归小美 R25 二处置，本节不动、不引其为判据。

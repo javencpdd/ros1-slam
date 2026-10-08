@@ -1,0 +1,419 @@
+... logging to /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/roslaunch-lite-286865.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/tmp/m2_payload/m2_teb.launch
+[1mstarted roslaunch server http://192.168.1.103:41317/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /move_base_flex/GlobalPlanner/allow_unknown: False
+ * /move_base_flex/GlobalPlanner/cost_factor: 3
+ * /move_base_flex/GlobalPlanner/default_tolerance: 0.0
+ * /move_base_flex/GlobalPlanner/lethal_cost: 253
+ * /move_base_flex/GlobalPlanner/neutral_cost: 50
+ * /move_base_flex/GlobalPlanner/old_navfn_behavior: False
+ * /move_base_flex/GlobalPlanner/orientation_mode: 1
+ * /move_base_flex/GlobalPlanner/orientation_window_size: 1
+ * /move_base_flex/GlobalPlanner/outline_map: False
+ * /move_base_flex/GlobalPlanner/planner_window_x: 0.0
+ * /move_base_flex/GlobalPlanner/planner_window_y: 0.0
+ * /move_base_flex/GlobalPlanner/publish_potential: False
+ * /move_base_flex/GlobalPlanner/publish_scale: 100
+ * /move_base_flex/GlobalPlanner/use_dijkstra: True
+ * /move_base_flex/GlobalPlanner/use_grid_path: False
+ * /move_base_flex/GlobalPlanner/use_quadratic: False
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_theta: 1.0
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_x: 1.0
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_y: 0.1
+ * /move_base_flex/TebLocalPlannerROS/allow_init_with_backwards_motion: False
+ * /move_base_flex/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /move_base_flex/TebLocalPlannerROS/complete_global_plan: False
+ * /move_base_flex/TebLocalPlannerROS/control_look_ahead_poses: 1
+ * /move_base_flex/TebLocalPlannerROS/controller_frequency: 10
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_distance: 0.3
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_pts: 30
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_min_pts: 3
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/convex_hull_min_pt_separation: 0.1
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_plugin: costmap_converter...
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_spin_thread: True
+ * /move_base_flex/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 2.0
+ * /move_base_flex/TebLocalPlannerROS/divergence_detection: False
+ * /move_base_flex/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /move_base_flex/TebLocalPlannerROS/dt_ref: 0.4
+ * /move_base_flex/TebLocalPlannerROS/dynamic_obstacle_inflation_dist: 0.6
+ * /move_base_flex/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base_flex/TebLocalPlannerROS/exact_arc_length: False
+ * /move_base_flex/TebLocalPlannerROS/feasibility_check_lookahead_distance: 3
+ * /move_base_flex/TebLocalPlannerROS/feasibility_check_no_poses: 30
+ * /move_base_flex/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base_flex/TebLocalPlannerROS/footprint_model/vertices: [[-0.3, -0.2], [-...
+ * /move_base_flex/TebLocalPlannerROS/force_reinit_new_goal_angular: 0.78
+ * /move_base_flex/TebLocalPlannerROS/force_reinit_new_goal_dist: 1.0
+ * /move_base_flex/TebLocalPlannerROS/free_goal_vel: False
+ * /move_base_flex/TebLocalPlannerROS/global_plan_overwrite_orientation: False
+ * /move_base_flex/TebLocalPlannerROS/global_plan_prune_distance: 0.5
+ * /move_base_flex/TebLocalPlannerROS/global_plan_viapoint_sep: 0.3
+ * /move_base_flex/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /move_base_flex/TebLocalPlannerROS/include_dynamic_obstacles: True
+ * /move_base_flex/TebLocalPlannerROS/inflation_dist: 0.45
+ * /move_base_flex/TebLocalPlannerROS/is_footprint_dynamic: False
+ * /move_base_flex/TebLocalPlannerROS/legacy_obstacle_association: False
+ * /move_base_flex/TebLocalPlannerROS/map_frame: /map
+ * /move_base_flex/TebLocalPlannerROS/max_global_plan_lookahead_dist: 5.0
+ * /move_base_flex/TebLocalPlannerROS/max_samples: 100
+ * /move_base_flex/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /move_base_flex/TebLocalPlannerROS/max_vel_trans: 1.0
+ * /move_base_flex/TebLocalPlannerROS/max_vel_x: 0.4
+ * /move_base_flex/TebLocalPlannerROS/max_vel_x_backwards: 0.2
+ * /move_base_flex/TebLocalPlannerROS/max_vel_y: 0.1
+ * /move_base_flex/TebLocalPlannerROS/min_obstacle_dist: 0.15
+ * /move_base_flex/TebLocalPlannerROS/min_resolution_collision_check_angular: 3.1415926
+ * /move_base_flex/TebLocalPlannerROS/min_samples: 3
+ * /move_base_flex/TebLocalPlannerROS/min_turning_radius: 0.0
+ * /move_base_flex/TebLocalPlannerROS/obstacle_association_cutoff_factor: 10
+ * /move_base_flex/TebLocalPlannerROS/obstacle_association_force_inclusion_factor: 3
+ * /move_base_flex/TebLocalPlannerROS/obstacle_poses_affected: 10
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_lower_bound: 0.2
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_ratio_max_vel: 0.7
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_upper_bound: 0.6
+ * /move_base_flex/TebLocalPlannerROS/odom_topic: leg_odom
+ * /move_base_flex/TebLocalPlannerROS/optimization_activate: True
+ * /move_base_flex/TebLocalPlannerROS/oscillation_recovery: False
+ * /move_base_flex/TebLocalPlannerROS/penalty_epsilon: 0.15
+ * /move_base_flex/TebLocalPlannerROS/planning_horizon: 4.0
+ * /move_base_flex/TebLocalPlannerROS/prevent_look_ahead_poses_near_goal: 0
+ * /move_base_flex/TebLocalPlannerROS/publish_feedback: False
+ * /move_base_flex/TebLocalPlannerROS/shrink_horizon_backup: False
+ * /move_base_flex/TebLocalPlannerROS/teb_autosize: True
+ * /move_base_flex/TebLocalPlannerROS/theta_stopped_vel: 0.05
+ * /move_base_flex/TebLocalPlannerROS/trans_stopped_vel: 0.05
+ * /move_base_flex/TebLocalPlannerROS/transform_tolerance: 0.3
+ * /move_base_flex/TebLocalPlannerROS/use_proportional_saturation: True
+ * /move_base_flex/TebLocalPlannerROS/via_points_ordered: True
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_forward_drive: 50
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_nh: 10
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_turning_radius: 0
+ * /move_base_flex/TebLocalPlannerROS/weight_linear_angular: 3
+ * /move_base_flex/TebLocalPlannerROS/weight_linear_angular_times: 1
+ * /move_base_flex/TebLocalPlannerROS/weight_optimaltime: 1
+ * /move_base_flex/TebLocalPlannerROS/weight_prefer_rotdir: 0
+ * /move_base_flex/TebLocalPlannerROS/weight_shortest_path: 9
+ * /move_base_flex/TebLocalPlannerROS/weight_viapoint: 1
+ * /move_base_flex/TebLocalPlannerROS/wheelbase: 0.0
+ * /move_base_flex/TebLocalPlannerROS/xy_goal_tolerance: 0.2
+ * /move_base_flex/TebLocalPlannerROS/yaw_goal_tolerance: 0.2
+ * /move_base_flex/controller_frequency: 10.0
+ * /move_base_flex/controller_patience: 3.0
+ * /move_base_flex/controllers: [{'name': 'TebLoc...
+ * /move_base_flex/global_costmap/always_send_full_costmap: False
+ * /move_base_flex/global_costmap/footprint: [[-0.3, -0.2], [-...
+ * /move_base_flex/global_costmap/footprint_padding: 0.1
+ * /move_base_flex/global_costmap/global_frame: map
+ * /move_base_flex/global_costmap/height: 100
+ * /move_base_flex/global_costmap/origin_x: 0
+ * /move_base_flex/global_costmap/origin_y: 0
+ * /move_base_flex/global_costmap/plugins: [{'name': 'static...
+ * /move_base_flex/global_costmap/publish_frequency: 5
+ * /move_base_flex/global_costmap/resolution: 0.1
+ * /move_base_flex/global_costmap/robot_base_frame: base_link
+ * /move_base_flex/global_costmap/rolling_window: True
+ * /move_base_flex/global_costmap/sob_layer/cost_scaling_factor: 10
+ * /move_base_flex/global_costmap/sob_layer/enabled: True
+ * /move_base_flex/global_costmap/sob_layer/inflate_unknown: False
+ * /move_base_flex/global_costmap/sob_layer/inflation_radius: 0.2
+ * /move_base_flex/global_costmap/sob_layer/inscribed_radius: 0.15
+ * /move_base_flex/global_costmap/static_layer/first_map_only: True
+ * /move_base_flex/global_costmap/static_layer/lethal_cost_threshold: 100
+ * /move_base_flex/global_costmap/static_layer/map_topic: map
+ * /move_base_flex/global_costmap/static_layer/subscribe_to_updates: False
+ * /move_base_flex/global_costmap/static_layer/track_unknown_space: False
+ * /move_base_flex/global_costmap/static_layer/trinary_costmap: True
+ * /move_base_flex/global_costmap/static_layer/unknown_cost_value: -1
+ * /move_base_flex/global_costmap/static_layer/use_maximum: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/combination_method: 1
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/decay_model: 0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /move_base_flex/global_costmap/track_unknown_space: False
+ * /move_base_flex/global_costmap/transform_tolerance: 1.0
+ * /move_base_flex/global_costmap/update_frequency: 10
+ * /move_base_flex/global_costmap/width: 100
+ * /move_base_flex/local_costmap/always_send_full_costmap: False
+ * /move_base_flex/local_costmap/footprint: [[-0.3, -0.2], [-...
+ * /move_base_flex/local_costmap/footprint_padding: 0.1
+ * /move_base_flex/local_costmap/global_frame: map
+ * /move_base_flex/local_costmap/height: 10
+ * /move_base_flex/local_costmap/origin_x: 0
+ * /move_base_flex/local_costmap/origin_y: 0
+ * /move_base_flex/local_costmap/plugins: [{'name': 'stvl_o...
+ * /move_base_flex/local_costmap/publish_frequency: 5
+ * /move_base_flex/local_costmap/resolution: 0.1
+ * /move_base_flex/local_costmap/robot_base_frame: base_link
+ * /move_base_flex/local_costmap/rolling_window: True
+ * /move_base_flex/local_costmap/sob_layer/cost_scaling_factor: 10
+ * /move_base_flex/local_costmap/sob_layer/enabled: True
+ * /move_base_flex/local_costmap/sob_layer/inflate_unknown: False
+ * /move_base_flex/local_costmap/sob_layer/inflation_radius: 0.2
+ * /move_base_flex/local_costmap/sob_layer/inscribed_radius: 0.15
+ * /move_base_flex/local_costmap/static_layer/first_map_only: True
+ * /move_base_flex/local_costmap/static_layer/lethal_cost_threshold: 100
+ * /move_base_flex/local_costmap/static_layer/map_topic: map
+ * /move_base_flex/local_costmap/static_layer/subscribe_to_updates: False
+ * /move_base_flex/local_costmap/static_layer/track_unknown_space: False
+ * /move_base_flex/local_costmap/static_layer/trinary_costmap: True
+ * /move_base_flex/local_costmap/static_layer/unknown_cost_value: -1
+ * /move_base_flex/local_costmap/static_layer/use_maximum: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/combination_method: 1
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/decay_model: 0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /move_base_flex/local_costmap/track_unknown_space: False
+ * /move_base_flex/local_costmap/transform_tolerance: 1.0
+ * /move_base_flex/local_costmap/update_frequency: 10
+ * /move_base_flex/local_costmap/width: 10
+ * /move_base_flex/oscillation_distance: 0.1
+ * /move_base_flex/oscillation_timeout: 0.0
+ * /move_base_flex/planner_frequency: 0.0
+ * /move_base_flex/planner_max_retries: -1
+ * /move_base_flex/planner_patience: 3.0
+ * /move_base_flex/planners: [{'name': 'Global...
+ * /move_base_flex/recovery_behaviors: [{'name': 'clear_...
+ * /move_base_flex/recovery_enabled: False
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /use_sim_time: True
+
+NODES
+  /
+    cmd_vel_relay (lite3_gazebo_sim/m2_cmd_relay.py)
+    gazebo (gazebo_ros/gzserver)
+    liveness_m4 (rostopic/rostopic)
+    m2_free_map (lite3_gazebo_sim/m2_free_map.py)
+    map_to_odom_static (tf2_ros/static_transform_publisher)
+    move_base_flex (mbf_costmap_nav/mbf_costmap_nav)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+[33m[ WARN] [1791259144.446159895]: The root link TORSO has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[0m[ INFO] [1791259149.760675618]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1791259149.792395352]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1791259151.372040964]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1791259153.839121787, 0.090000000]: load csv file name:/home/ros1-slam/ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+[0m[ INFO] [1791259187.485681651, 0.333000000]: local_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1791259187.826828426, 0.398000000]: local_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1791259187.827079694, 0.398000000]: local_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1791259188.139234833, 0.536000000]: local_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1791259188.146249131, 0.536000000]: local_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1791259188.225491300, 0.542000000]: Voxel filter activated.[0m
+[0m[ INFO] [1791259188.379694494, 0.576000000]: local_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1791259188.379842144, 0.576000000]: local_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1791259188.383017224, 0.576000000]: [sob_layer] initializing...[0m
+[0m[ INFO] [1791259188.383191498, 0.576000000]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1791259188.455245415, 0.610000000]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791259188.470716941, 0.610000000]: [sob_layer] initialized[0m
+[0m[ INFO] [1791259188.623762968, 0.610000000]: [sob_layer] resized to 10000[0m
+[0m[ INFO] [1791259188.627511720, 0.610000000]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791259188.661820544, 0.620000000]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791259188.820012589, 0.698000000]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1791259188.902975125, 0.712000000]: Requesting the map...[0m
+[0m[ INFO] [1791259189.347506171, 0.812000000]: Resizing static layer to 200 X 200 at 0.100000 m/pix[0m
+[0m[ INFO] [1791259189.350490626, 0.815000000]: Shutting down the map subscriber. first_map_only flag is on[0m
+[0m[ INFO] [1791259189.560233572, 0.913000000]: Received a 200 X 200 map at 0.100000 m/pix[0m
+[0m[ INFO] [1791259189.581729368, 0.914000000]: global_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1791259189.582414880, 0.914000000]: global_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1791259189.582552162, 0.914000000]: global_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1791259189.634704127, 0.914000000]: global_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1791259189.640465705, 0.914000000]: global_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1791259189.791714077, 0.952000000]: Voxel filter activated.[0m
+[0m[ INFO] [1791259190.092013769, 1.023000000]: global_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1791259190.092186955, 1.023000000]: global_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1791259190.093467740, 1.023000000]: [sob_layer] initializing...[0m
+[0m[ INFO] [1791259190.093591837, 1.023000000]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1791259190.138748353, 1.023000000]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791259190.158916995, 1.028000000]: [sob_layer] initialized[0m
+[0m[ INFO] [1791259190.407357302, 1.096000000]: [sob_layer] resized to 1000000[0m
+[0m[ INFO] [1791259190.423717064, 1.096000000]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791259190.430955237, 1.096000000]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791259190.911181013, 1.235000000]: The plugin with the type "global_planner/GlobalPlanner" has been loaded successfully under the name "GlobalPlanner".[0m
+[0m[ INFO] [1791259191.434795217, 1.414000000]: Footprint model 'polygon' loaded for trajectory optimization.[0m
+[0m[ INFO] [1791259191.435657372, 1.414000000]: Parallel planning in distinctive topologies disabled.[0m
+[0m[ INFO] [1791259191.658028577, 1.460000000]: Costmap conversion plugin costmap_converter::CostmapToPolygonsDBSMCCH loaded.[0m
+[0m[ INFO] [1791259192.647871002, 1.772000000]: The plugin with the type "teb_local_planner/TebLocalPlannerROS" has been loaded successfully under the name "TebLocalPlannerROS".[0m
+[0m[ INFO] [1791259192.6763[0m[ INFO] [1791259156.655941430, 0.090000000]: ros topic name:/livox/lidar[0m
+[0m[ INFO] [1791259156.656093368, 0.090000000]: ros frame id: rslidar[0m
+[0m[ INFO] [1791259156.683100402, 0.090000000]: scan info size:800000[0m
+[0m[ INFO] [1791259156.686742305, 0.090000000]: sample:20000[0m
+[0m[ INFO] [1791259156.686867235, 0.090000000]: downsample:1[0m
+[0m[ INFO] [1791259156.686957540, 0.090000000]: publish_pointcloud_type: 3[0m
+[0m[ INFO] [1791259186.720766432, 0.090000000]: <initialOrientationAsReference> is unset, using default value of false to comply with REP 145 (world as orientation reference)[0m
+[0m[ INFO] [1791259186.722704121, 0.090000000]: <robotNamespace> set to: //[0m
+[0m[ INFO] [1791259186.725116472, 0.090000000]: <topicName> set to: /livox/imu[0m
+[0m[ INFO] [1791259186.732422966, 0.090000000]: Physics dynamic reconfigure ready.[0m
+[0m[ INFO] [1791259186.732520247, 0.090000000]: <frameName> set to: rslidar[0m
+[0m[ INFO] [1791259186.732651193, 0.090000000]: <updateRateHZ> set to: 200[0m
+[0m[ INFO] [1791259186.732832923, 0.090000000]: <gaussianNoise> set to: 0.01[0m
+[0m[ INFO] [1791259186.732962941, 0.090000000]: <xyzOffset> set to: 0 0 0[0m
+[0m[ INFO] [1791259186.733136863, 0.090000000]: <rpyOffset> set to: 0 -0 0[0m
+[0m[ INFO] [1791259186.818203554, 0.090000000]: [lite3_planar_drive] loaded: mode=dynamic cmd=cmd_vel odom=/Odometry base=base_link[0m
+[0m[ INFO] [1791259189.910405616, 1.002000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,0.000,0.000) w_phy=(-0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1791259193.617382672, 2.002000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,0.000,0.000) w_phy=(-0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1791259197.271934260, 3.003000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,-0.000,0.000) w_phy=(0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259200.724981477, 4.004000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,-0.000,0.000) w_phy=(0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259204.089356584, 5.004000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259207.431444658, 6.004000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259210.841570409, 7.005000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259214.233589340, 8.004000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259217.616093082, 9.004000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259220.957997330, 10.005000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259224.331138880, 11.004000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259227.764123091, 12.004000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259231.232350414, 13.005000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1791259234.706214262, 14.005000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1791259238.161303730, 15.005000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1791259241.[33m[ WARN] [1791259260.824952511, 21.623000000]: Most recent robot pose is 21.623s old (tolerance 3s)[0m
+[31m[ERROR] [1791259260.825293891, 21.623000000]: Can not get the robot pose in the global frame. - robot frame: "base_link"   global frame: "map
+[0m
+[31m[ERROR] [1791259260.825478726, 21.623000000]: Could not get the current robot pose![0m
+[33m[ WARN] [1791259263.629726707, 22.391000000]: Shutdown request received.[0m
+[33m[ WARN] [1791259263.630077592, 22.391000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791259264.032297802, 22.392000000]: Shutdown request received.[0m
+[33m[ WARN] [1791259264.032570957, 22.392000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791259264.163162460, 22.392000000]: Shutdown request received.[0m
+[33m[ WARN] [1791259264.164877874, 22.392000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791259264.296494734, 22.392000000]: Shutdown request received.[0m
+[33m[ WARN] [1791259264.303850989, 22.392000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791259264.415514088, 22.392000000]: Shutdown request received.[0m
+[33m[ WARN] [1791259264.415794380, 22.392000000]: Reason given for shutdown: [user request][0m
+[INFO] [1791259147.432315, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+shutdown request: user request
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_free_map.py", line 26, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_cmd_relay.py", line 23, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+68232, 1.780000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1791259192.676844878, 1.780000000]: The plugin with the type "clear_costmap_recovery/ClearCostmapRecovery" has been loaded successfully under the name "clear_costmaps".[0m
+[31m[m2_free_map-7] process has died [pid 286960, exit code 1, cmd /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_free_map.py __name:=m2_free_map __log:=/tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/m2_free_map-7.log].
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/m2_free_map-7*.log[0m
+[31m[cmd_vel_relay-8] process has died [pid 286966, exit code 1, cmd /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_cmd_relay.py /cmd_vel_raw /cmd_vel Twist __name:=cmd_vel_relay __log:=/tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/cmd_vel_relay-8.log].
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/cmd_vel_relay-8*.log[0m
+[31m[gazebo-2] process has died [pid 286942, exit code -15, cmd /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/gazebo-2.log].
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/gazebo-2*.log[0m
+
+auto-starting new master
+[1mprocess[master]: started with pid [286905][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/tmp/m2_payload/m2_teb.launch http://127.0.0.1:11313
+[1msetting /run_id to 42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8[0m
+[1mprocess[rosout-1]: started with pid [286928][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [286942][0m
+[1mprocess[robot_state_publisher-3]: started with pid [286946][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [286949][0m
+[1mprocess[sim_adapter-5]: started with pid [286951][0m
+[1mprocess[map_to_odom_static-6]: started with pid [286958][0m
+[1mprocess[m2_free_map-7]: started with pid [286960][0m
+[1mprocess[cmd_vel_relay-8]: started with pid [286966][0m
+[1mprocess[move_base_flex-9]: started with pid [286967][0m
+[1mprocess[liveness_m4-10]: started with pid [286970][0m
+[1m[spawn_lite3_planar-4] process has finished cleanly
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/spawn_lite3_planar-4*.log[0m
+[1m[map_to_odom_static-6] process has finished cleanly
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/map_to_odom_static-6*.log[0m
+[1m[rosout-1] process has finished cleanly
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/rosout-1*.log[0m
+[1m[robot_state_publisher-3] process has finished cleanly
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/robot_state_publisher-3*.log[0m
+[rosout-1] restarting process
+[1mprocess[rosout-1]: started with pid [287489][0m
+[1m[liveness_m4-10] process has finished cleanly
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/liveness_m4-10*.log[0m
+[1m[sim_adapter-5] process has finished cleanly
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/sim_adapter-5*.log[0m
+[1m[move_base_flex-9] process has finished cleanly
+log file: /tmp/ysc_m2_ros/log/42e6fd44-c13a-11f1-afe4-3c6d66f8d2d8/move_base_flex-9*.log[0m
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

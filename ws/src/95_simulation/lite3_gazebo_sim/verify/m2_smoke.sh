@@ -15,6 +15,9 @@ VENUE=/home/ros1-slam/data/maps/sim_venue.pcd
 STAGE=${1:-all}
 LOGDIR="$PAYLOAD/logs-$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$LOGDIR"; echo "[m2] 日志目录: $LOGDIR"
+# R25（小美 M2R6）：harness 自打本体指纹 —— 跑完即可断言「这跑跑的是哪一份件」，
+#   不再靠 mtime 或打印形态反推（旧缺陷：/tmp 侧过期副本曾被当现役件跑）。
+echo "[m2] HARNESS sha256=$(sha256sum "${BASH_SOURCE[0]}" | awk '{print $1}') path=${BASH_SOURCE[0]}"
 
 source /opt/ros/noetic/setup.bash
 [ -f /home/ros1-slam/ws/devel/setup.bash ] && source /home/ros1-slam/ws/devel/setup.bash
@@ -34,38 +37,92 @@ wait_topic() {  # D-M2-P4（D-M1-3 同款修法移植）：启动窗内单次长
   done
   return 1
 }
-cleanup() { rosnode kill -a 2>/dev/null; sleep 3
+PAT='roslaunch|rosmaster|rosout|gzserver|gzclient|move_base_flex|topic_tools|sim_adapter|m2_free_map|m2_cmd_relay|m2_tf_fresh|hdl_nodelet|run_mapping_online'
+# 自有标识（R22 二）：差集命中者命令行含其中之一才判死；**禁按 PID 硬编码白名单**（R22 四），
+#   既存命中一律靠「与基线快照取差集」自然排除，不写死任何 PID。
+OWN='m2_tf_fresh|m2_free_map|m2_cmd_relay|gzserver|rosmaster --core -p 11313'
+PORTS="11311 11312 11313 11345"
+CHECK_DONE=0
+
+port_cnt() { # $1=port -> "TCP UDP"
+  local t u
+  t=$(ss -lnt 2>/dev/null | grep -c ":$1\b"); u=$(ss -lnu 2>/dev/null | grep -c ":$1\b")
+  echo "$t $u"
+}
+
+exitbase_snapshot() { # R21 二：起跑前基线快照（PAT 命中 PID 集 ＋ 四口 TCP/UDP 计数）
+  { echo "# exitbase @$(date '+%Y-%m-%d %H:%M:%S') stage=$STAGE"
+    echo "PIDS $(pgrep -f "$PAT" 2>/dev/null | sort -n | tr '\n' ',' | sed 's/,$//')"
+    for pt in $PORTS; do set -- $(port_cnt "$pt"); echo "PORT $pt TCP=$1 UDP=$2"; done
+  } > "$LOGDIR/exitbase.txt" 2>&1
+  sed 's/^/[exitbase] /' "$LOGDIR/exitbase.txt"
+}
+
+exitclean_check() { # R10 打印 + R21 形态 + R22 部分阻断判据（**必须在判定段之前调用**，见下方说明）
+  [ "$CHECK_DONE" = "1" ] && return 0
+  CHECK_DONE=1
+  { echo "# 退净核验 @$(date '+%Y-%m-%d %H:%M:%S')  stage=$STAGE"
+    echo "-- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--"
+    _p=$(pgrep -f "$PAT" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+    if [ -n "$_p" ]; then
+      ps -o pid,user,ppid,lstart,args --no-headers -p $(echo "$_p" | tr ',' ' ') 2>/dev/null | grep -v "pgrep -f" || echo "  （零命中）"
+    else echo "  （零命中）"; fi
+    echo "-- 监听端口分查 --"
+    for pt in $PORTS; do set -- $(port_cnt "$pt"); echo "  port $pt TCP=$1 UDP=$2"; done
+  } > "$LOGDIR/exitclean.txt" 2>&1
+  sed 's/^/[exitclean] /' "$LOGDIR/exitclean.txt"
+
+  # ---- 基线读取（缺基线时不判死，只申报缺失：避免「没快照」被当成「干净」）----
+  if [ ! -f "$LOGDIR/exitbase.txt" ]; then
+    mark 0 "退净：缺起跑前基线快照（exitbase.txt 不在位）⇒ 无法按增量判定，本项按不洁处理"
+    return 0
+  fi
+  B_PIDS=$(grep '^PIDS ' "$LOGDIR/exitbase.txt" | tail -1 | cut -d' ' -f2 | tr ',' ' ')
+  # ---- R22 一：端口面阻断（按基线增量，非零即判死）----
+  _pfail=0
+  for pt in $PORTS; do
+    set -- $(awk -v pt="$pt" '$1=="PORT" && $2==pt {gsub(/TCP=/,"",$3); gsub(/UDP=/,"",$4); print $3, $4}' "$LOGDIR/exitbase.txt" | tail -1)
+    bt=${1:-0}; bu=${2:-0}
+    set -- $(port_cnt "$pt"); ct=$1; cu=$2   # 注：本循环不依赖外层位置参数
+    if [ $((ct + cu)) -gt $(( ${bt:-0} + ${bu:-0} )) ]; then
+      echo "  [port-delta] port $pt 基线=$(( ${bt:-0} + ${bu:-0} )) → 退净=$((ct + cu))"; _pfail=1
+    fi
+  done
+  [ "$_pfail" = "0" ] && mark 1 "退净/端口面：四口相对基线零新增（R22 一）" \
+                      || mark 0 "退净/端口面：本跑新增端口占用（见上方 port-delta，R22 一）"
+  # ---- R22 二：进程面阻断（仅差集，且须含自有标识）----
+  _dfail=""
+  for pid in $(pgrep -f "$PAT" 2>/dev/null); do
+    _keep=0
+    for b in $B_PIDS; do [ "$pid" = "$b" ] && _keep=1 && break; done
+    [ "$_keep" = "1" ] && continue
+    _cl=$(ps -o args= --no-headers -p "$pid" 2>/dev/null)
+    echo "$_cl" | grep -qE "$OWN" && _dfail="$_dfail $pid"
+  done
+  if [ -z "$_dfail" ]; then
+    mark 1 "退净/进程面：本跑派生零残留（差集为空，既存命中不入判据，R22 二/三）"
+  else
+    mark 0 "退净/进程面：本跑派生未退净，新增 PID:$_dfail（R22 二）"
+  fi
+}
+
+kill_all() { rosnode kill -a 2>/dev/null; sleep 3
   pkill -f gzserver 2>/dev/null; pkill -f gzclient 2>/dev/null
   pkill -f run_mapping_online 2>/dev/null; pkill -f sim_adapter 2>/dev/null
   pkill -f hdl_nodelet 2>/dev/null; pkill -f move_base_flex 2>/dev/null
-  # [C8 返工修正 2026-10-08] 入口改指 TOP 后命令为 `roslaunch lite3_bringup mode_sim_*.launch`，
+  # [C8 返工修正 2026-10-08] 入口改指 TOP 后命令为 roslaunch lite3_bringup mode_sim_*.launch，
   #   不含 "m2_" ⇒ 原模式漏网（stageB 活体回归实测：roslaunch+rosmaster 存活、11313 未释放）。
-  #   保留旧模式兼容历史跑法，另补 mode_sim_ 与 rosmaster 兜底。
   pkill -f "roslaunch.*m2_" 2>/dev/null; pkill -f "roslaunch.*mode_sim_" 2>/dev/null
-  pkill -f "rosmaster --core -p 11313" 2>/dev/null; sleep 2
+  pkill -f "rosmaster --core -p 11313" 2>/dev/null; sleep 4
   # 样张恢复兜底（M2-3 建图阶段万一中断）
   if [ -f "$LOGDIR/lite3.pcd.bak" ] && [ -f "$MAP" ] && ! cmp -s "$LOGDIR/lite3.pcd.bak" "$MAP"; then
     cp "$LOGDIR/lite3.pcd.bak" "$MAP"; echo "[m2] 样张 pcd 已从备份恢复"; fi
-  # ============ 退净逐跑打印（小美 M2R5 路由项 R10；落点在 cleanup 末尾，因 trap EXIT 之后才是退净态） ============
-  # 为何必做：C9 与 M2R4 都出现过「批级一次非空、身份不可回溯」，事后无人能答那两个 PID 是什么。
-  # 本块把命中的 ps 行（PID＋属主＋完整命令行）原样落件；端口 TCP 与 UDP 分查（02 坑16：ss -lntp 只查 TCP）。
-  # **只打印不判据**：退净是否升为阻断项属验收判据增删，权在小美（本仓惯例：施工不得自加判据）。
-  sleep 4   # gzserver/rosmaster 退出有尾延迟；M2R4 批级检出的「非空」极可能只是这个窗，但本轮起身份可追，不再靠猜
-  {
-  echo "# 退净核验 @$(date '+%Y-%m-%d %H:%M:%S')  stage=$STAGE"
-  PAT='roslaunch|rosmaster|rosout|gzserver|gzclient|move_base_flex|topic_tools|sim_adapter|m2_free_map|m2_cmd_relay|m2_tf_fresh|hdl_nodelet|run_mapping_online'
-  echo "-- 命中进程（原样 ps 行）--"
-  pgrep -af "$PAT" | grep -vE "退净核验|pgrep -af" || echo "  （零命中）"
-  echo "-- 监听端口分查 --"
-  for port in 11311 11312 11313 11345; do
-    T=$(ss -lnt 2>/dev/null | grep -c ":$port\b"); U=$(ss -lnu 2>/dev/null | grep -c ":$port\b")
-    echo "  port $port TCP=$T UDP=$U"
-  done
-} > "$LOGDIR/exitclean.txt" 2>&1
-  sed 's/^/[exitclean] /' "$LOGDIR/exitclean.txt"
   true; }
+
+cleanup() { kill_all; exitclean_check; true; }
 trap cleanup EXIT
 
+exitbase_snapshot   # R21 二：起跑前基线（在任何 roslaunch/gzserver 起来之前）
 if [ -f "$MAP" ]; then cp "$MAP" "$LOGDIR/lite3.pcd.bak"
   sha256sum "$MAP" | awk '{print $1}' > "$LOGDIR/pcd.sha256.before"; echo "[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）"; fi
 
@@ -314,10 +371,14 @@ if G5_DELAY_SIM > 0:
     _span = _sim2 - sim_after_p1
     print('SMOKE SIMNOW point=age_sample_2 sim_now=%.2fs gate_t=%.1fs sim_span_vs_point1=%.2fs'
           % (_sim2, time.time()-gate_t0, _span))
-    # R16：加压档达标 = 覆盖量 ≥60s 或两点差 ≥40s，且延时自旋必须真到达（reached）；否则参与 all() 判死
-    ok_press = bool(_r) and ((_sim2 >= 60.0) or (_span >= 40.0))
-    print('SMOKE gate_press_late=%s (reached=%s sim2=%.2f span=%.2f 判据=sim2>=60 或 span>=40)'
-          % ('PASS' if ok_press else 'FAIL', _r, _sim2, _span))
+    # R20：在用口径 = OR（M2R4 L377 原意，小美 M2R6 作废她 R16 的 AND 式表述）；
+    #   但 sim2>=60 一支必须同过辅门 span>=35，否则「环境慢起使 sim2 自然过 60」会算假达标（#12(a)）。
+    _b_abs = (_sim2 >= 60.0 and _span >= 35.0)
+    _b_span = (_span >= 40.0)
+    ok_press = bool(_r) and (_b_abs or _b_span)
+    print('SMOKE gate_press_late=%s branch=%s (reached=%s sim2=%.2f span=%.2f 判据=(sim2>=60 且 span>=35) 或 span>=40)'
+          % ('PASS' if ok_press else 'FAIL',
+             ('abs+span' if _b_abs else ('span' if _b_span else 'NONE')), _r, _sim2, _span))
 # G5c1 **自 M2R5 起为阻断 gate 项**：小美 M2R4 复核节判 L307 前置③成立（base_link 双父未修正而
 #   G5c1 7/7 全命中）⇒ 本档 M2R3 的「降级追认」作废，按 L307 原文回补进 gate 字典。
 #   调用形态与阈值一律未放宽：仍单次 g5_sample('odom','base_link')，need=3 / lim=1.0 / 零戳与首帧戳否决照旧。
@@ -381,7 +442,16 @@ gd=math.hypot(S['gt'][0]-gx, S['gt'][1]-gy)
 print('SMOKE teb_state=%s dt=%.1fs dev_odom=%.3f dev_gt=%.3f'%(cli.get_state(), dt, d, gd))
 PYEOF
   cat "$LOGDIR/stageB.txt"
-  grep -q "SMOKE gate=FAIL" "$LOGDIR/stageB.txt" && { mark 0 "B: 门控未过（环境未就绪，FAIL 环境；见 stageB.txt gate_*=FAIL 行）"; return 1; }
+  grep -q "SMOKE gate=FAIL" "$LOGDIR/stageB.txt" && {
+    # R20 四：判定行按键分类。press_late_G5 属**观测口径未达标**、G5/G5b/G5c1 属**TF 新鲜度回归**，
+    #   都不得再混打成「环境未就绪」（那是 map/costmap 类的本义），否则 FAIL 语义被抹成一类。
+    _k=$(grep -oE "'[a-zA-Z_0-9]+': False" "$LOGDIR/stageB.txt" | tr -d "':" | sed 's/^ *//' | paste -sd, -)
+    case "$_k" in
+      *press_late_G5*) mark 0 "B: 门控未过（键=$_k ⇒ 加压档观测口径未达标，非环境故障、非 TF 回归）";;
+      *tf_fresh*|*G5c1*) mark 0 "B: 门控未过（键=$_k ⇒ 全局系 TF 时基新鲜度回归）";;
+      *)                 mark 0 "B: 门控未过（键=${_k:-未打印} ⇒ 环境未就绪，FAIL 环境）";;
+    esac
+    return 1; }
   grep -q "SMOKE gate=PASS" "$LOGDIR/stageB.txt" && mark 1 "B: 门控通过（≤120s，goal 前就绪）" || mark 0 "B: 门控结果缺失"
   # [M2R3 2026-10-08 小张 §3] G6：goal 之后 pose 类 ERROR 命中数必须为 0
   #   G5 系前置新鲜度门、G6 系后置哨兵——两者双保险，防「门控时刻新鲜、执行中途断流」漏检。
@@ -557,6 +627,12 @@ if [ -f "$MAP" ] && [ -f "$LOGDIR/pcd.sha256.before" ]; then
   cmp -s "$LOGDIR/pcd.sha256.before" "$LOGDIR/pcd.sha256.after" \
     && mark 1 "样张 lite3.pcd sha256 未变" || mark 0 "样张 lite3.pcd 被改动（备份 $LOGDIR/lite3.pcd.bak）"
 fi
+# ============ 退净判据前移（R21/R22 落地关键） ============
+# 为何必须显式调用：mark 只改 PASS 变量，而 rc 由本段之后的 verdict 打印决定；
+#   若只依赖 trap cleanup EXIT，trap 是在 exit 之后才跑 ⇒ 退净判据永远影响不到 rc（假判据）。
+# 故此处先 kill_all 落退净态、再 exitclean_check 加 mark；CHECK_DONE 让 trap 成为幂等兜底。
+kill_all
+exitclean_check
 echo "=================================================="
 if [ "$INVALID" = "1" ]; then
   echo "M2 SMOKE: INVALID（运动窗 RTF<0.25，重跑不计 FAIL）"

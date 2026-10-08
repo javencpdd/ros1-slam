@@ -1,0 +1,58 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_093502
+[m2] HARNESS sha256=35962c6dbafff0caaf659726b2bed3ddd39e3bc1833c6e871d1d192ec96869f6 path=verify/m2_smoke.sh
+[exitbase] # exitbase @2026-10-08 09:35:04 stage=stageB
+[exitbase] PIDS 328580
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 96.900000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame base_link (parent odom) at time 96.900000 according to authority /gazebo
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.7s
+SMOKE gate_lcostmap_data=PASS t=0.8s
+SMOKE gate_tf_fresh=PASS t=1.4s ages=[0.007,0.037,0.021]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.0s ages=[0.061,0.035,0.062]
+SMOKE SIMNOW point=age_sample_1 sim_now=20.52s gate_t=2.0s
+SMOKE G5_DELAY_SIM target=99999.0s reached=False sim_now=101.11s wall_spent=300.2s t_raw=2.0s t_adj=2.0s
+SMOKE gate_tf_fresh_late=PASS t=2.6s ages=[0.014,0.044,0.045]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.2s ages=[0.070,0.063,0.010]
+SMOKE SIMNOW point=age_sample_2 sim_now=101.47s gate_t=3.2s sim_span_vs_point1=80.95s
+SMOKE gate_press_late=FAIL branch=abs+span (reached=False sim2=101.47 span=80.95 判据=(sim2>=60 且 span>=35) 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.014,0.004,0.011]
+SMOKE E3 tf odom->base_link hits=27 last_stamp=102.152 age=0.026
+SMOKE E3 base_link_parents=['odom'] transforms_total=32
+SMOKE E3 static base_link->rslidar stamp=0.027
+SMOKE E3 static base_link->TORSO stamp=0.027
+SMOKE gate=FAIL t=5.8s {'map_data': True, 'tf_robot': True, 'gcostmap_data': True, 'lcostmap_data': True, 'tf_fresh_G5': True, 'tf_fresh_mapodom_G5c2': True, 'tf_fresh_G5c1': True, 'tf_fresh_late_G5': True, 'tf_fresh_mapodom_late_G5c2': True, 'press_late_G5': False}
+[FAIL] B: 门控未过（键=press_late_G5 False ⇒ 加压档观测口径未达标，非环境故障、非 TF 回归）
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-08 09:42:38  stage=stageB
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]  328580 ros1-sl+       1 Tue Oct  6 19:51:44 2026 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/home/ros1-slam/logs/4bd9babc-c17c-11f1-9c05-3c6d66f8d2d8/rosout-1.log
+[exitclean] -- 监听端口分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/进程面：本跑派生零残留（差集为空，既存命中不入判据，R22 二/三）
+==================================================
+M2 SMOKE: FAIL
+==================================================

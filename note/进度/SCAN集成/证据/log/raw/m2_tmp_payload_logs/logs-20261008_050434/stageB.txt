@@ -1,0 +1,10 @@
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.1s
+SMOKE gate_tf_robot=PASS t=0.4s
+SMOKE gate_gcostmap_data=PASS t=0.6s
+SMOKE gate_lcostmap_data=PASS t=0.6s
+SMOKE gate_tf_fresh=PASS t=1.2s ages=[0.034,0.076,0.017]
+SMOKE gate_tf_fresh_mapodom=PASS t=1.9s ages=[0.087,0.024,0.088]
+SMOKE DIAG_G5c1(odom->base_link, 非阻断)=HIT G5b_hit=zero_stamp
+SMOKE gate=PASS t=1.9s
+SMOKE teb_state=3 dt=8.6s dev_odom=0.168 dev_gt=0.168
