@@ -1,0 +1,28 @@
+### 窗一：stageB 拓扑（无 faster_lio）/Odometry 在位 36s
+  /Odometry：Publishers=1 [/gazebo]  帧对集合={child_frame_id: "base_link"   frame_id: "odom" }
+  [PASS] legacy_b：现状 stageB 为 odom 单族单写
+  话题 /sim/odom_gt：不存在
+  [PASS] 话题 /sim/odom_gt 尚未引入（legacy_b 档＝F-D 改前态，符合预期）
+POSE SOURCE VERDICT: PASS (legacy_b)
+### 窗二：加 faster_lio（stageA 拓扑）09:56:44
+  /cloud_registered 在位 3s
+  /Odometry：Publishers=2 [/faster_lio_online,/gazebo]  帧对集合={child_frame_id: "base_link" child_frame_id: "body"   frame_id: "camera_init"   frame_id: "odom" }
+  [PASS] pre：/Odometry 含双族（odom 与 camera_init）＝双写阳性对照在案
+  话题 /sim/odom_gt：不存在
+  [PASS] 话题 /sim/odom_gt 尚未引入（pre 档＝F-D 改前态，符合预期）
+POSE SOURCE VERDICT: PASS (pre)
+### 随窗取证：rostopic info 原样落件
+--- /Odometry ---
+Type: nav_msgs/Odometry
+
+Publishers: 
+ * /gazebo (http://lite:43069/)
+ * /faster_lio_online (http://lite:39731/)
+
+Subscribers: None
+
+
+--- /sim/odom_gt ---
+ERROR: Unknown topic /sim/odom_gt
+### FD2 退净：残留[0] 端口11313=0
+FD2_DONE 09:58:27
