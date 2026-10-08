@@ -434,3 +434,8 @@
   自测件按 STS／RAS／BRS 同一条纪律：被检片段用 awk 从**现役件**抽出后 eval（不复制实现），片段不完整即 rc=9 不判被试；**失败带读数**（坑38 的口径对测试自身同样适用——T2/T3 那两轮就是因为打了全文才让我看见是环境脏而不是件过宽）。
   实测：**DWRS 5/5 PASS（rc=0）**——T1a 阳性对照先复现旧式自匹配、T1b 规则一、T2 真残留仍被列出（没换成假绿灯）、T3 零命中可指认、T4 规则二祖先链（父件名里无字面串，救它的只有祖先链规则）。
   同批零节点回归全绿：RAS 9/9、BRS 10/10、STS 21/21、SYN 4 件 9 段、M5 契约件 9P/0F/1ABSENT（不给 log 就不给绿）、SLE 7/7、TEC 7/7、MUX 8/8、GTC 14/14、**ISOLATION OK rc=0（23:16:24，ws_src_files=4545）**。#40 的剩余项只有「DWA n≥5 取样」，那要先由小美给 patience 型定档。｜小明施工、主理人登记
+
+- **批3 前置的执行件已备好（scripts/ops/b3_pre_chown.sh，用户选甲新1；2026-10-08 23:38，证据 EV/raw/b3_chown_handoff_20261008_2336/）**：清单不手抄——dry-run／apply／verify 三模式共用同一个 find 表达式，**当场报错的两件（ws/devel/.rosinstall 与 ws/build/catkin_generated/setup_cached.sh）在清单内＝2/2**，这是这张清单覆盖真实阻塞面的阳性对照。收紧口径：排除 ws/devel/lib 与 ws/build 下编译产物（.so/.a）、以及 devel/include 生成头（catkin 不对它们 chmod）⇒ 待改 **36 件**，全是 setup.*/env.sh/local_setup.*/_setup_util.py/.rosinstall/.built_by/.catkin/cmake.lock/order_packages.*/stamps 一族。
+  权限事实我讲清楚：**chown 改他人属主需要 root**（非 root 的 ros1-slam 也改不动），所以执行式是 `sudo bash scripts/ops/b3_pre_chown.sh --apply`；本件非 root 时**拒跑**（实测打印「拒跑＋当前 ysc」并 exit 9），符合甲案「本仓不代跑 chown」，口令也绝不落进任何文件或日志。
+  复验式 `--verify` 四条已按改前态跑过一遍并留件：①增量 `catkin_make -j2` rc=**1**（预期，改前就是这样）；②`.so` 改前后 sha 同值 fb4a62d8…（未被顺带重编译）；③CATKIN_WHITELIST_PACKAGES 值确为空；④属主面 ysc 件数 4（不跳增）。这里也自纠两次判据自身写得不对：第③条先按"出现次数=1"判（键在就算过，假绿），改按整行等值比又把 `:STRING=` 误判成非空（假红），现按"等号后为空"判——**判空要看值本身，不能看键存在，也不能拿整行字面比**。
+  你执行完 --apply 后我做的：再跑一次 `--verify`（须 rc=0）→ 若过则开工批3 本体（坑25 时基根除：SM 打戳统一 SimTime＋.so 重编译）⇒ 载体跳代 **H15** ⇒ 五连重取一次，并把 SM→press_gate 接线（若小美批）在同批钉死。｜小明施工、主理人登记
