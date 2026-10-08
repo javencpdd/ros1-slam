@@ -2,8 +2,12 @@
 # retake_driver.sh —— 批1／批2 活体复取的一键驱动（小明 2026-10-08；判据与处置口径全部引自在册裁决，本件不自设门值）
 #
 # 为何要一件驱动而不是手敲：本轮三件反复出问题的事，都能被一件程序灭掉——
-#   （一）O-4／R19／R28 三次同型：LOGDIR 落在 /tmp，会话一断证据即永久不可回溯（1373109 那次已经吃过）。
-#         ⇒ 本件每段跑完立刻把本次新产生的 LOGDIR 文本原件归档到证据址，并打清单（不入 lite3.pcd.bak 二进副本）。
+#   （一）O-4／R19／R28 三次同型：证据落在 /tmp，会话一断或机器一重启即永久不可回溯。
+#         ⇒ 本件每段跑完立刻归档两样东西：①本次新产生的 LOGDIR 文本原件（不入 lite3.pcd.bak 二进副本）；
+#           ②**本件自己的 $OUT**（driver.log／各段 log／sha_inputs.txt／foxy 起终快照／batch 与 dwa 子目录）。
+#           第②项是 2026-10-08 那次硬重启教出来的：H13 批的 stageA 与五连因已入仓而活了下来，
+#           而只落在 /tmp/rt_b1b2 的 SCAN 段／门禁段／teb 对照现场**整批丢失**，那段结论至今无原件可指。
+#         ⇒ 并加一条收口断言：归档件数必须等于 $OUT 件数，不等即判该段证据未收口（本件 rc=10）。
 #   （二）O-5：运动窗 RTF 抖动已成活体批第一失效源（0.240／0.233／0.246 三读）。盲跑一次 stageA 要 7～10 分钟。
 #         ⇒ 本件起跑前做负载预检（loadavg 与非本仓大户只读点名），超阈值需 FORCE=1 明示；
 #           stageA 按小美 O-5 句执行「最多三次有效重试，全 INVALID 即停手上报算力面」，
@@ -14,7 +18,7 @@
 #   环境变量：FORCE=1 越过负载预检；LOAD_MAX=4 阈值；STAGEA_MAX=3 A0 重试上限；EXPECT_RC 透传给批次驱动。
 #   注：LOAD_MAX 是**工序闸门**（不跑=不浪费窗），不是判据门：它不判被测件过不过、不进任何 PASS/FAIL 计数、
 #     也不入连击；阈值 4 是施工侧取的操作数，验收若认为该由读数而不是 loadavg 决定，可直接改本行不动判据面。
-# 退出码：0 全绿；4 A0 三次皆 INVALID（算力面停手，非判据失败）；5 判据 FAIL（被测件面，停手上报）；
+# 退出码：0 全绿；4 A0 三次皆 INVALID（算力面停手，非判据失败）；5 判据 FAIL（被测件面，停手上报）；10 证据未收口；
 #         6 批次覆盖不足（无加压达标跑，R20三）；7 负载预检不过且未 FORCE；8 期望 rc 不符或计数不自洽（R27二/四）；
 #         9 前置件缺失（门禁/归档/基线面）。
 set +u
@@ -39,6 +43,16 @@ FOXY="115711,115792,115795,115797,115799,1331,180237"
 snap(){ ps -o pid,user,lstart,comm --no-headers -p $FOXY > "$OUT/foxy_$1.txt" 2>/dev/null; log "  foxy[$1] 计数=$(wc -l < "$OUT/foxy_$1.txt")"; }
 
 # ---- 归档：把自 t0 起新产生的 LOGDIR 文本原件拉进证据址（本段可单跑，跑前跑后都能补）----
+archive_out() { # 把本件的 $OUT 整批拉进证据址，并核「归档件数＝$OUT 件数」
+  local n m
+  mkdir -p "$ARCHIVE_DIR/out"
+  cp -rp "$OUT"/. "$ARCHIVE_DIR/out/" 2>/dev/null
+  ( cd "$ARCHIVE_DIR/out" && find . -type f | sort | sed 's|^\./||' | xargs -r sha256sum ) >> "$MANIFEST" 2>/dev/null
+  n=$(find "$OUT" -type f 2>/dev/null | wc -l); m=$(find "$ARCHIVE_DIR/out" -type f 2>/dev/null | wc -l)
+  if [ "$n" = "$m" ] && [ "$n" -ge 1 ]; then log "  [archive] OUT 收口：$OUT 件数=$n ＝ 归档件数=$m"
+  else OUT_UNCLOSED=1; log "  [archive] OUT 未收口：$OUT 件数=$n，归档=$m ⇒ 该段证据不完整，末判 rc=10"; fi
+}
+
 archive_since() { # $1=epoch 秒
   local t0="$1" new d tgt man
   new=$(find "$PAY" -maxdepth 1 -type d -name 'logs-*' -newermt "@$t0" 2>/dev/null | sort)
@@ -137,7 +151,8 @@ sec_gate() {
 SECS=("${@:-all}")
 [[ " ${SECS[*]} " == *" all "* ]] && SECS=(pre a b dwa scan gate)
 ARCHIVE_DIR="$EV/retake_$(date +%Y%m%d_%H%M%S)"; MANIFEST="$ARCHIVE_DIR/_sha256_manifest.txt"
-mkdir -p "$ARCHIVE_DIR"; log "归档址：$ARCHIVE_DIR"
+OUT_UNCLOSED=0
+mkdir -p "$ARCHIVE_DIR"; log "归档址：$ARCHIVE_DIR"; log "  清单不列自身；校验 CWD＝仓根 $ROOT"
 for s in "${SECS[@]}"; do
   case "$s" in
     pre) sec_pre; rc=$?;; a) sec_a; rc=$?;; b) sec_b; rc=$?;;
@@ -145,9 +160,12 @@ for s in "${SECS[@]}"; do
     archive) archive_since "$(date -d '12 hours ago' +%s)"; rc=$?;;
     *) log "未知段 $s"; rc=9;;
   esac
+  archive_out
   [ "$rc" = "0" ] || { VERDICT=$rc; log "-- 段 $s 止于 rc=$rc ⇒ 后续段不再跑（失败即停手，不往后凑绿）"; break; }
 done
+if [ "$OUT_UNCLOSED" = "1" ] && [ "$VERDICT" = "0" ]; then VERDICT=10; fi
 log "===== RETAKE VERDICT: rc=$VERDICT $(now) ====="
-log "  0=全绿 4=A0 三次皆 INVALID（算力面）5=判据 FAIL 6=批次覆盖不足 7=负载预检不过 8=期望/计数面 9=前置缺失"
+log "  0=全绿 4=A0 三次皆 INVALID（算力面）5=判据 FAIL 6=批次覆盖不足 7=负载预检不过 8=期望/计数面 9=前置缺失 10=证据未收口（OUT 归档数不符）"
+log "  rc 空间属本件自有层（与 DWR／BR／SM 各层不互认），引用时必须连件名＋代际（她裁定 1 丙条／D5）"
 log "  归档件数=$(find "$ARCHIVE_DIR" -type f | wc -l) 清单=$MANIFEST"
 exit "$VERDICT"
