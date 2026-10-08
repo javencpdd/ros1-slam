@@ -19,9 +19,26 @@
 set -u
 ROOT=/home/ros1-slam
 SELF=$(readlink -f "$0")
+
 LIVE_SM=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
 # 第二份定义（加压档辅门的纯函数版，为 H15 接线预备）：路径由 shell 传入，python 侧不重复硬编码
 PG=${G35_PGATE:-$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_press_gate.py}
+# --postwiring：接线（SM 改调 press_gate()）落地后的**收尾断言**——不是"新件通过"，而是"旧那份内联定义从盘上消失"。
+#   今日跑必然判红（SM 里内联式仍在）⇒ 这条红就是它以后真能拦人的凭据（05 C4a 同一口径），也是 02 坑43 的收尾判据。
+if [ "${1:-}" = "--postwiring" ]; then
+  SMP=${G35_SM:-$LIVE_SM}     # 与本件其余模式同一条口子（G35_SM），此处必须用 LIVE_SM：SM= 的赋值在本段之后
+  [ -f "$SMP" ] || { echo "缺现役件：$SMP"; exit 9; }
+  echo "=== G35 接线后收尾断言（SM 内不应再有第二份内联定义）｜被检件=$SMP sha=$(sha256sum "$SMP" | cut -c1-12) ==="
+  LEFT=0
+  for pat in '_b_abs = (' '_b_span = (' 'ok_press = bool(_r)'; do
+    n_=$(grep -cF "$pat" "$SMP")
+    if [ "$n_" = 0 ]; then echo "  [PASS] SM 内已无「$pat」（命中 0）"; else echo "  [FAIL] SM 内仍有「$pat」命中 $n_ 处 ⇒ 第二份定义未消除"; LEFT=$((LEFT+1)); fi
+  done
+  if grep -q 'press_gate' "$SMP"; then echo "  [PASS] SM 已引用 press_gate()"; else echo "  [FAIL] SM 未引用 press_gate() ⇒ 接线未落地"; LEFT=$((LEFT+1)); fi
+  echo "=================================================="
+  if [ "$LEFT" = 0 ]; then echo "POSTWIRING VERDICT: 单一源达成 rc=0（此后 T6 逐格互检退化为同源自检，可保留作回归）"; exit 0; fi
+  echo "POSTWIRING VERDICT: 尚有 $LEFT 处未收口 rc=1（现状未接线时本断言就该红，不是件坏）"; exit 1
+fi
 SM=${G35_SM:-$LIVE_SM}     # 只有 --negctl 的自证会覆写它（缺省恒为现役件；生效性由阴性对照本身来证）
 
 if [ "${1:-}" = "--negctl" ]; then

@@ -1,0 +1,8 @@
+=== G35 接线后收尾断言（SM 内不应再有第二份内联定义）｜被检件=/tmp/g35pw2.qUVz8U/sm_wired.sh sha=88e13ed87773 ===
+  [PASS] SM 内已无「_b_abs = (」（命中 0）
+  [PASS] SM 内已无「_b_span = (」（命中 0）
+  [PASS] SM 内已无「ok_press = bool(_r)」（命中 0）
+  [PASS] SM 已引用 press_gate()
+==================================================
+POSTWIRING VERDICT: 单一源达成 rc=0（此后 T6 逐格互检退化为同源自检，可保留作回归）
+接线形态副本 rc=0 （应 0＝收尾断言可达、且要求旧内联式全部消失）
