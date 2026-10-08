@@ -1,0 +1,55 @@
+# A7 判据⑤ 加严形态：三次独立 launch（冷启动 ×3，每 launch P3_RUNS=1）——合判 PASS rc=0
+# 批起跑 2026-10-09 01:23:39，末判 01:34:27（driver.log 内时间戳为准）；被试＝现役 v_scan_p3.sh（sha 1411d0ae70ce）＋ p3_track.py（sha 3232937bbfa6），本批未改其一字
+# 驱动器批次时刻件本体随证：v_scan_p3_triple.sh.at_batch（sha256 前 12=301895e3a176）；盘上现件另有一次可读性修正（判据行只认 p3.json 独立成行版），修正后 PTS 自测仍 15/15，见 pts_selftest_after_prose_fix.txt
+
+## 逐跑读数（逐字取自各 run*/p3.json，非转述；门值 0.35m／120s 由 p3_track.py 原文给出）
+run1 goal=(-0.474, 3.598) r=3.608 clear=0.777｜odom0=[0.011, 0.022] odom1=[-0.462, 3.514]｜dist_end=0.084m(门0.35) dt_sim=10.98s(门120) dt_wall=39.8s 位移=3.524m cmd_pub=1090 arrived=True
+run2 goal=(-0.471, 3.6) r=3.608 clear=0.775｜odom0=[0.014, 0.024] odom1=[-0.501, 3.58]｜dist_end=0.036m(门0.35) dt_sim=11.2s(门120) dt_wall=39.09s 位移=3.593m cmd_pub=1117 arrived=True
+run3 goal=(-0.474, 3.599) r=3.608 clear=0.776｜odom0=[0.01, 0.024] odom1=[-0.485, 3.565]｜dist_end=0.036m(门0.35) dt_sim=11.2s(门120) dt_wall=41.17s 位移=3.576m cmd_pub=1115 arrived=True
+
+## 三条判据行原文
+run1: P3 判据③ 结论 = PASS|全部 1 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s
+run2: P3 判据③ 结论 = PASS|全部 1 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s
+run3: P3 判据③ 结论 = PASS|全部 1 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s
+
+## 合判（driver.log 末两行原文）
+P3 三连（3 次独立 launch，每 launch 1 轮）合判 = PASS｜判据行逐条见上
+BATCH VERDICT: P3_TRIPLE=PASS rc=0
+
+## 逐跑四面自证（driver.log 原文摘录：生效性／退净／红线）
+[01:27:09]   生效性(1)=本 launch 轮行 1（要求 1）｜判据行自写「全部 1 跑」｜墙钟 209s｜被试 rc 原值=0
+[01:27:09]   退净(1)=11313:0 11312:0 残留(comm):0（均须 0）模式=gate
+[01:27:10]   红线(1)=样张 aaa09362c5f1→aaa09362c5f1（基准 aaa09362c5f1）｜世界 fb52d5e6ed3e→fb52d5e6ed3e（基准 fb52d5e6ed3e）
+[01:30:40]   生效性(2)=本 launch 轮行 1（要求 1）｜判据行自写「全部 1 跑」｜墙钟 210s｜被试 rc 原值=0
+[01:30:41]   退净(2)=11313:0 11312:0 残留(comm):0（均须 0）模式=gate
+[01:30:41]   红线(2)=样张 aaa09362c5f1→aaa09362c5f1（基准 aaa09362c5f1）｜世界 fb52d5e6ed3e→fb52d5e6ed3e（基准 fb52d5e6ed3e）
+[01:34:26]   生效性(3)=本 launch 轮行 1（要求 1）｜判据行自写「全部 1 跑」｜墙钟 225s｜被试 rc 原值=0
+[01:34:27]   退净(3)=11313:0 11312:0 残留(comm):0（均须 0）模式=gate
+[01:34:27]   红线(3)=样张 aaa09362c5f1→aaa09362c5f1（基准 aaa09362c5f1）｜世界 fb52d5e6ed3e→fb52d5e6ed3e（基准 fb52d5e6ed3e）
+
+## 与在册 run8 的关系（为什么不冲突）
+# run8（raw/scan_p3_run8_jointPASS/）＝同一个 sim 窗内三轮、goal 各不相同 ⇒ 证「连击可复现＋场景多样」；
+# 本批＝三次独立 launch、每 launch 冷启动一轮 ⇒ 证「冷启动 ×3」；两批合起来才把「轮边界」与「launch 边界」两个轴都盖住。
+# 一条必须标注的**局限**（不是缺陷，如实写）：三次冷启动的 goal 由同一种子（P3_SEED=7 缺省）选出，读数里三点几乎重合
+#   （-0.474,3.598）／（-0.471,3.600）／（-0.474,3.599）⇒ 本批加严的是 **launch 边界**，不是场景多样性；
+#   要证「冷启动 × 不同 goal」的交叉面需扫 P3_SEED，属验收侧口径，施工侧不自判（交小美，与 #25/#30 同批问）。
+
+## 自测与门禁
+# PTS（v_scan_p3_triple.sh --selftest）15/15，含四条真红：T2 二跑 FAIL⇒合判非 0 且第三跑未启（停手红线是被测项）、
+#   T4 P3_RUNS 口子未生效⇒9（坑34）、T5 环境闸真红（load 门压 -1⇒rc=2 且被试零调用）、T7 判定行只走 stdout 也必须读得到、T8 末判与 rc 不同向⇒9（坑36）
+# 零节点共同门禁见 zero_node_gates_after.txt（SYN 6 件／SLE 7/7／TEC 7/7／MUX 8/8／RAS 9/9／BRS 10/10／DWRS 5/5／PTS 15/15／FDH 8P-0F-1ABSENT／GTC PASS／ISO rc=0，ws_src_files=4547）
+# 门禁首跑 ISO 曾打 rc=1（BAD: faster_lio/hdl_localization/lite3_bringup/lite3_safety）＝**我漏了 ROS 环境三步**，不是件红：[4] 用 rospack find，未 source 即解析不到 ws；补 env 后 rc=0。原件保留在文件头两行注记里。
+
+## 不变项
+# SM=fa8e57359a17…、LIB=b17022766fa4… 未动（GTC --check 逐行与 git 现算同值 ⇒ 代际仍 H14）；门值一个没改；样张/世界件红线三跑全等（见上「红线」行）
+# 三跑退净后 11313/11312 监听=0、comm 面残留=0；生产 transfer 栈未触碰
+
+## incident_0117_false_red/（我方假红原件，不覆写、不删除）
+# 01:17 那次批在 run1 即停手打 rc=9，而 run1 判据**全过**（dist_end 0.025m、C-1 1/1、C-2 停发）——根因：驱动只在 harness.log 找联合结论行，
+#   而现役件那行是裸 echo（只走 stdout＝driver_capture.log）⇒ 判定行的落点取决于调用姿势（02 坑35 的读者版，已并入坑41 追加条）。
+# 该目录含当时的驱动件副本 v_scan_p3_triple.sh.at_false_red（sha256 前 12=ad1c3ae132a8）与 run1 的 p3.json/harness.log 原件
+
+## 复跑/复验式
+#   bash ws/src/40_navigation/lite3_scan/verify/v_scan_p3_triple.sh --selftest            （零节点，不占窗）
+#   P3_TRIPLE_OUT=/tmp/p3t_live3 bash ws/src/40_navigation/lite3_scan/verify/v_scan_p3_triple.sh   （实跑，约 12 分钟）
+#   sha256sum -c _sha256_manifest.txt                                                    （在本目录内）

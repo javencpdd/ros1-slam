@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+# v_scan_p3_triple.sh —— A7 判据⑤「三连」的**加严形态**：三次独立 launch（每条全新链、冷启动，每 launch 1 轮）
+#
+# 为什么要这一版（不是把 run8 再跑一遍凑数）：在册 run8 的三连是**同一个 sim 窗内**跑三轮——第 2、3 跑接着上一跑
+#   的终点位姿、占据图也已收敛，它证的是「连击可复现」，**没证「冷启动 ×3」**。本件把采样边界从「轮」抬到
+#   「launch」：每跑都是 roscore→gazebo→mapping→mux→70_scan 的全新链，用 P3_RUNS=1 让每链只走一轮，三跑互不继承状态。
+#   判据实体、门值、C-1/C-2 全在现役 v_scan_p3.sh／p3_track.py 里，**本件不复制任何判据实现**，
+#   只做四件事：按进程边界起、逐跑收判据行原文、核口子生效性/退净/红线、算合判。
+# 红线沿用设计原文：三连任一未过即**停手** ⇒ 第一个非 0 跑之后不再启新跑（不自作「再试一次」，也不把停手写成就）。
+# 可测性口子的生效性是**被测项**（02 坑34）：P3_TRIPLE_HARNESS 供自测注桩；每跑核 {"run": 行只 1 条 **且**
+#   判据行自写「全部 1 跑」——P3_RUNS 若没真落到判据行上，自测 T4 当场判 9；环境闸的生效性由 T5 真红（拒跑且零调用）。
+#
+# 用法：bash v_scan_p3_triple.sh                实跑（需仿真窗，三跑串行，gate 模式）
+#       bash v_scan_p3_triple.sh --selftest     零节点自测（含真红，不碰仿真，read 模式）
+# 退出码（本件自有层，不与 SM／P3／BR 各层互认；引用须连件名＋代际一起引）：
+#   0=三次独立 launch 合判 PASS；1=任一批内 FAIL 或红线/退净不过（已停手）；2=环境预检不过（不判被试）；
+#   9=判据行不可指认／口子未生效（不判被试）；5=自测模式有 FAIL
+set -u
+ROOT=/home/ros1-slam
+SELF=$(readlink -f "$0")
+LIVE_HARNESS=$ROOT/ws/src/40_navigation/lite3_scan/verify/v_scan_p3.sh
+HARNESS=${P3_TRIPLE_HARNESS:-$LIVE_HARNESS}
+NEED_RUNS=${P3_TRIPLE_NEED_RUNS:-1}                 # 每 launch 期望轮数（加严形态=1，靠 3 个 launch 凑三连）
+N_LAUNCH=${P3_TRIPLE_LAUNCHES:-3}
+PRECHECK=${P3_TRIPLE_PRECHECK:-gate}                # gate=环境不过即拒跑（实跑）；read=只读不判（零节点自测）
+PCD=$ROOT/data/maps/lite3.pcd
+PCD_BASE=aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34   # 在册样张基准（04/总览；c034c906 系旧值）
+WORLD=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+WORLD_BASE=fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35
+LOAD_MAX=${P3_TRIPLE_LOAD_MAX:-4}
+TS=$(date '+%Y%m%d_%H%M%S')
+BASE=${P3_TRIPLE_OUT:-/tmp/scan_p3_triple_$TS}
+LOG=$BASE/driver.log
+mkdir -p "$BASE"
+CALLS=0
+
+# 件自持 log（02 坑35：证据自证不能取决于调用姿势）；stdout 已是本件 ⇒ 不双写
+log() {
+  local m="[$(date '+%T')] $*"
+  printf '%s\n' "$m" >> "$LOG"
+  local t; t=$(readlink "/proc/$$/fd/1" 2>/dev/null || echo "")
+  [ "$t" = "$LOG" ] || printf '%s\n' "$m"
+}
+raw() { printf '%s\n' "$*" | tee -a "$LOG"; }
+
+listeners() { ss -lntp 2>/dev/null | grep -c ":$1"; }
+resid() {   # 残留按 comm 判，不按命令行（02 坑39/40：pgrep -f 会把调用者自己列成命中）
+  local c n t=0
+  for c in gzserver gzclient roscore rosmaster rosout roslaunch scan_planner_node \
+           closed_loop_controller safe_cmd_vel_mux scan_arrival_monitor map_server; do
+    n=$(pgrep -xc "$c" 2>/dev/null | head -1); [ -z "$n" ] && n=0; t=$((t+n))
+  done
+  echo "$t"
+}
+sha_of() { sha256sum "$1" 2>/dev/null | cut -d' ' -f1; }
+
+# ==== 单跑＝单 launch ====
+run_one() {  # $1=序号 $2=harness $3=该跑目录
+  local k=$1 h=$2 d=$3 t0 t1
+  J_VERDICT=""; J_JOINT=""; J_RC=0; J_WHY=""
+  mkdir -p "$d"
+  local pcd0 world0; pcd0=$(sha_of "$PCD"); world0=$(sha_of "$WORLD")   # 起前当场取（比对两端都在比对时刻存在，坑39）
+  printf '%s  %s\n' "$pcd0" "$PCD"   > "$d/pcd_before.sha"
+  printf '%s  %s\n' "$world0" "$WORLD" > "$d/world_before.sha"
+  log "── run$k ── 被试=$(basename "$h") 目录=$d 样张起前=${pcd0:0:12} 世界起前=${world0:0:12}"
+  t0=$(date +%s)
+  P3_RUN="$d" P3_RUNS="$NEED_RUNS" timeout "${P3_TRIPLE_TIMEOUT:-1800}" bash "$h" > "$d/driver_capture.log" 2>&1
+  J_RC=$?
+  t1=$(date +%s); local wall=$((t1 - t0))
+
+  # ① 判据行可指认性（取不到即 9 不判被试；坑38：任何出口都带读数，不只打一行结论）
+  # 判据行**优先取 p3.json 的独立成行版**：联合结论行里内嵌了一段「判据行=…」，若两个落点一起 grep 再 tail -1，
+  #   打出来的就是联合结论行里的子串（内容仍逐字来自原件、不改数，但读者会误认成独立判据行，05 D 的转写可核对性不允许这种歧义）
+  J_VERDICT=$(grep -oE 'P3 判据③ 结论 = [A-Z]+\|.*' "$d/p3.json" 2>/dev/null | tail -1)
+  [ -z "$J_VERDICT" ] && J_VERDICT=$(grep -oE 'P3 判据③ 结论 = [A-Z]+\|.*' "$d/harness.log" 2>/dev/null | tail -1)
+  # 联合结论行在现役件里是**裸 echo**（只走 stdout，不进 harness.log）⇒ 读者必须两个落点都找：
+  #   2026-10-09 01:20 那批 run1 判据全过（dist_end 0.025m、C-1 1/1、C-2 停发）却被我方判 9，
+  #   根因就是只认 harness.log ⇒ 判定行的落点取决于调用姿势（02 坑35 的**读者版**，坑41 追加）。
+  J_JOINT=$(grep -hoE 'P3 判据③④⑤ 与 C-1/C-2 联合结论 = .*' "$d/driver_capture.log" "$d/harness.log" 2>/dev/null | tail -1)
+  if [ -z "$J_VERDICT" ] || [ -z "$J_JOINT" ]; then
+    J_RC=9; J_WHY="判据行/联合结论不可指认（verdict 长度=${#J_VERDICT} joint 长度=${#J_JOINT}）"
+    raw "  [读数] p3.json 尾 3 行："; tail -3 "$d/p3.json"        2>/dev/null | sed 's/^/      /' | tee -a "$LOG"
+    raw "  [读数] harness.log 尾 3 行："; tail -3 "$d/harness.log" 2>/dev/null | sed 's/^/      /' | tee -a "$LOG"
+    raw "  [读数] driver_capture.log 尾 3 行："; tail -3 "$d/driver_capture.log" 2>/dev/null | sed 's/^/      /' | tee -a "$LOG"
+    raw "  [读数] 该跑 rc 原值=$J_RC p3.err 行数=$(wc -l < "$d/p3.err" 2>/dev/null)"
+    return
+  fi
+  # 同向自证（坑36）：判据行/联合结论/被试 rc 三者必须同向，不同向即不判被试（不许"数字非 0 就当停手正确"）
+  local jpass=0; case "$J_JOINT" in *"= PASS"*) jpass=1;; esac
+  if [ "$jpass" != "$([ "$J_RC" = 0 ] && echo 1 || echo 0)" ]; then
+    J_RC=9; J_WHY="末判与被试 rc 不同向（joint=${J_JOINT%%｜*} rc=$J_RC）⇒ 不判被试"; return
+  fi
+  raw "  判据行($k)= $J_VERDICT"
+  raw "  联合结论($k)= $J_JOINT"
+
+  # ② 口子生效性（坑34，gate/read 两模式都判——它与环境无关）
+  local nr claims
+  nr=$(grep -c '^{"run":' "$d/p3.json" 2>/dev/null); [ -z "$nr" ] && nr=0
+  claims=$(printf '%s' "$J_VERDICT" | grep -oE '全部 [0-9]+ 跑' | grep -oE '[0-9]+' | head -1)
+  log "  生效性($k)=本 launch 轮行 $nr（要求 $NEED_RUNS）｜判据行自写「全部 ${claims:-无（FAIL/INVALID 行不带总数，正常）} 跑」｜墙钟 ${wall}s｜被试 rc 原值=$J_RC"
+  # 只在 **PASS 形**判据行上核自写总数：FAIL/INVALID 行本就不写「全部 N 跑」，若在这里一律要求总数，
+  #   就会把一条真 FAIL 重新分类成 9（＝#30 那族「INVALID 吞掉并存的 FAIL」在我自己件里的镜像面，2026-10-09 自测 T2 抓到）
+  if [ "$nr" != "$NEED_RUNS" ]; then
+    J_RC=9; J_WHY="P3_RUNS 口子未生效（本 launch 轮行=$nr 要求=$NEED_RUNS）⇒ 不判被试"; return
+  fi
+  case "$J_VERDICT" in
+    *\ =\ PASS\|*) if [ "${claims:-x}" != "$NEED_RUNS" ]; then
+        J_RC=9; J_WHY="PASS 形判据行自写总数与口子不符（=${claims:-无} 要求=$NEED_RUNS）⇒ 不判被试"; return
+      fi;;
+  esac
+  if [ "$J_RC" != 0 ]; then J_WHY="被试自报 rc=$J_RC（INVALID 不占连击、FAIL 触红线，两者都停手）"; return; fi
+
+  # ③ 退净：本跑退后当场取现值（不等整批结束再算）
+  local l13 l12 rs; l13=$(listeners 11313); l12=$(listeners 11312); rs=$(resid)
+  log "  退净($k)=11313:$l13 11312:$l12 残留(comm):$rs（均须 0）模式=$PRECHECK"
+  if [ "$PRECHECK" = gate ]; then
+    if [ "$l13" != 0 ] || [ "$l12" != 0 ] || [ "$rs" != 0 ]; then
+      J_RC=1; J_WHY="退净不过（11313=$l13 11312=$l12 残留=$rs）⇒ 残留会污染下一跑，停手"; return
+    fi
+  fi
+
+  # ④ 红线：样张与世界件起前＝退后，且等于在册基准（gate/read 两模式都判——桩不动盘上件）
+  local pcd1 world1; pcd1=$(sha_of "$PCD"); world1=$(sha_of "$WORLD")
+  printf '%s  %s\n' "$pcd1" "$PCD"     > "$d/pcd_after.sha"
+  printf '%s  %s\n' "$world1" "$WORLD" > "$d/world_after.sha"
+  log "  红线($k)=样张 ${pcd0:0:12}→${pcd1:0:12}（基准 ${PCD_BASE:0:12}）｜世界 ${world0:0:12}→${world1:0:12}（基准 ${WORLD_BASE:0:12}）"
+  if [ "$pcd0" != "$pcd1" ] || [ "$pcd1" != "$PCD_BASE" ]; then J_RC=1; J_WHY="样张红线破（退后 $pcd1）"; return; fi
+  if [ "$world0" != "$world1" ] || [ "$world1" != "$WORLD_BASE" ]; then J_RC=1; J_WHY="世界件异动（退后 $world1）"; return; fi
+}
+
+# ==== 合判：三次独立 launch 全 0 才 PASS；任一非 0 即停手 ====
+batch() {
+  local k=1 all0=1 why=""
+  while [ "$k" -le "$N_LAUNCH" ]; do
+    run_one "$k" "$HARNESS" "$BASE/run$k"
+    CALLS=$k
+    if [ "$J_RC" != 0 ]; then all0=0; why="run$k: $J_WHY"; break; fi
+    k=$((k+1))
+  done
+  raw ""
+  if [ "$all0" = 1 ]; then
+    raw "P3 三连（$N_LAUNCH 次独立 launch，每 launch $NEED_RUNS 轮）合判 = PASS｜判据行逐条见上"
+    raw "BATCH VERDICT: P3_TRIPLE=PASS rc=0"
+    exit 0
+  fi
+  raw "P3 三连（$N_LAUNCH 次独立 launch）合判 = 未达成｜$why｜已启 launch=$CALLS/$N_LAUNCH（红线＝任一未过即停手，后续未启）"
+  local rc=$J_RC; [ "$rc" = 0 ] && rc=1
+  raw "BATCH VERDICT: P3_TRIPLE=FAIL/INVALID rc=$rc"
+  exit "$rc"
+}
+
+# ==== 零节点自测（新 gate 必须先真的红一次，05 C2；阳性与阴性走同一段合判逻辑）====
+selftest() {
+  local T; T=$(mktemp -d /tmp/p3triple_selftest.XXXXXX)
+  local STUB=$T/stub.sh NT=0 F=0 r2=0
+  # 桩只提供被试的**外部形态**（判据行/轮行/rc/计数），判定逻辑一律走 run_one／batch 本体
+  cat > "$STUB" <<'STUBEOF'
+#!/usr/bin/env bash
+R=${P3_RUN:-/tmp/p3triple_stub_run}
+mkdir -p "$R"
+[ -n "${P3_TRIPLE_CNT:-}" ] && echo "call $$ mode=${P3_TRIPLE_STUB_MODE:-pass}" >> "$P3_TRIPLE_CNT"
+M=${P3_TRIPLE_STUB_MODE:-pass}
+if [ "$M" = pass ]; then
+  echo '{"run": 1, "fail": [], "dist_end": 0.07, "dt_sim": 9.0, "arrived": true}' >> "$R/p3.json"
+  echo "P3 判据③ 结论 = PASS|全部 ${P3_RUNS:-1} 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s" >> "$R/p3.json"
+  echo 'P3 判据③④⑤ 与 C-1/C-2 联合结论 = PASS｜判据行=stub｜C1写者=1/1｜C2停发行数=0' >> "$R/harness.log"
+  exit 0
+elif [ "$M" = passcap ]; then
+  echo '{"run": 1, "fail": [], "dist_end": 0.03, "dt_sim": 9.0, "arrived": true}' >> "$R/p3.json"
+  echo "P3 判据③ 结论 = PASS|全部 ${P3_RUNS:-1} 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s" >> "$R/p3.json"
+  echo 'P3 判据③④⑤ 与 C-1/C-2 联合结论 = PASS｜判据行=stub(只走 stdout，复刻现役件裸 echo 形态)｜C1写者=1/1｜C2停发行数=0'
+  exit 0
+elif [ "$M" = fail ]; then
+  echo '{"run": 1, "fail": ["到达实体未置位"], "dist_end": 0.9, "dt_sim": 9.0}' >> "$R/p3.json"
+  echo 'P3 判据③ 结论 = FAIL|到达实体未置位（第 1 跑，红线＝三连任一未过即停）' >> "$R/p3.json"
+  echo 'P3 判据③④⑤ 与 C-1/C-2 联合结论 = FAIL/INVALID rc=1｜判据行=stub' >> "$R/harness.log"
+  exit 1
+elif [ "$M" = wrongrounds ]; then
+  for i in 1 2 3; do echo "{\"run\": $i, \"fail\": []}" >> "$R/p3.json"; done
+  echo 'P3 判据③ 结论 = PASS|全部 3 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s' >> "$R/p3.json"
+  echo 'P3 判据③④⑤ 与 C-1/C-2 联合结论 = PASS｜stub' >> "$R/harness.log"
+  exit 0
+else
+  echo '被试只出了一行与判据无关的话' > "$R/p3.json"
+  exit 0
+fi
+STUBEOF
+  # 二跑注 FAIL 的包装（T2 用），其余模式直接给桩
+  cat > "$T/second_fail.sh" <<'WRAP'
+#!/usr/bin/env bash
+C=0; [ -f "${P3_TRIPLE_SEQ:-}" ] && C=$(wc -l < "$P3_TRIPLE_SEQ")
+C=$((C+1)); echo "$C" >> "$P3_TRIPLE_SEQ"
+if [ "$C" = 2 ]; then export P3_TRIPLE_STUB_MODE=fail; fi
+exec bash "$STUB_FOR_WRAP"
+WRAP
+
+  chk() { local name=$1 want=$2 got=$3
+    NT=$((NT+1))
+    if [ "$got" = "$want" ]; then raw "  [PASS] $name（=$got）"
+    else raw "  [FAIL] $name 期望=$want 实得=$got"; F=$((F+1)); fi; }
+  ncall() { [ -f "$1" ] && wc -l < "$1" | tr -d ' ' || echo 0; }
+
+  raw "== PTS 自测（被检对象＝本驱动的合判/停手/生效性；判定逻辑不另写一套）=="
+
+  # T1 三跑全 PASS ⇒ 合判 0 且**启满 3 个独立 launch**
+  rm -rf "$T/t1"; mkdir -p "$T/t1"; : > "$T/t1/cnt"
+  P3_TRIPLE_HARNESS="$STUB" P3_TRIPLE_STUB_MODE=pass P3_TRIPLE_CNT="$T/t1/cnt" \
+  P3_TRIPLE_OUT="$T/t1out" P3_TRIPLE_PRECHECK=read bash "$SELF" >/dev/null 2>&1
+  chk T1_batch_rc 0 "$?"; chk T1_launch_calls 3 "$(ncall "$T/t1/cnt")"
+
+  # T2 第二跑真红 ⇒ 合判非 0 **且第三跑未被启**（停手红线本身是被测项）
+  rm -rf "$T/t2"; mkdir -p "$T/t2"; : > "$T/t2/cnt"; : > "$T/t2/seq"
+  STUB_FOR_WRAP="$STUB" P3_TRIPLE_HARNESS="$T/second_fail.sh" P3_TRIPLE_SEQ="$T/t2/seq" P3_TRIPLE_CNT="$T/t2/cnt" \
+  P3_TRIPLE_OUT="$T/t2out" P3_TRIPLE_PRECHECK=read bash "$SELF" >/dev/null 2>&1
+  r2=$?   # 注意：不能写成 local r2; r2=$? —— local 自带返回码会把子进程状态冲成 0（自测 T2 第一次就是这么红的）
+  chk T2_batch_rc_non0 1 "$([ "$r2" != 0 ] && echo 1 || echo 0)"; chk T2_stopped_at_2 2 "$(ncall "$T/t2/cnt")"
+
+  # T3 判据行取不到 ⇒ 9（不可指认，不判被试）
+  rm -rf "$T/t3"; mkdir -p "$T/t3"; : > "$T/t3/cnt"
+  P3_TRIPLE_HARNESS="$STUB" P3_TRIPLE_STUB_MODE=noconclusion P3_TRIPLE_CNT="$T/t3/cnt" \
+  P3_TRIPLE_OUT="$T/t3out" P3_TRIPLE_PRECHECK=read bash "$SELF" >/dev/null 2>&1
+  chk T3_unattestable 9 "$?"; chk T3_stopped_at_1 1 "$(ncall "$T/t3/cnt")"
+
+  # T4 口子未生效（判据行自写「全部 3 跑」而本形态要求每 launch 1 轮）⇒ 必须 9，不得顺着打绿
+  rm -rf "$T/t4"; mkdir -p "$T/t4"; : > "$T/t4/cnt"
+  P3_TRIPLE_HARNESS="$STUB" P3_TRIPLE_STUB_MODE=wrongrounds P3_TRIPLE_CNT="$T/t4/cnt" \
+  P3_TRIPLE_OUT="$T/t4out" P3_TRIPLE_PRECHECK=read bash "$SELF" >/dev/null 2>&1
+  chk T4_seam_not_effective 9 "$?"; chk T4_stopped_at_1 1 "$(ncall "$T/t4/cnt")"
+
+  # T5 环境闸的生效性真红：把 load 门压到 -1 ⇒ gate 模式必须拒跑且**一次都不碰被试**
+  rm -rf "$T/t5"; mkdir -p "$T/t5"; : > "$T/t5/cnt"
+  P3_TRIPLE_HARNESS="$STUB" P3_TRIPLE_STUB_MODE=pass P3_TRIPLE_CNT="$T/t5/cnt" \
+  P3_TRIPLE_OUT="$T/t5out" P3_TRIPLE_PRECHECK=gate P3_TRIPLE_LOAD_MAX=-1 bash "$SELF" >/dev/null 2>&1
+  chk T5_gate_refuses 2 "$?"; chk T5_zero_calls 0 "$(ncall "$T/t5/cnt")"
+
+  # T7 判定行落在 stdout（现役件的真实形态）时也必须读得到 ⇒ 直接钉住 01:20 那次假红的那条根因
+  rm -rf "$T/t7"; mkdir -p "$T/t7"; : > "$T/t7/cnt"
+  P3_TRIPLE_HARNESS="$STUB" P3_TRIPLE_STUB_MODE=passcap P3_TRIPLE_CNT="$T/t7/cnt" \
+  P3_TRIPLE_OUT="$T/t7out" P3_TRIPLE_PRECHECK=read bash "$SELF" >/dev/null 2>&1
+  chk T7_stdout_joint_readable 0 "$?"; chk T7_launch_calls 3 "$(ncall "$T/t7/cnt")"
+
+  # T8 同向性真红：被试 rc=0 但联合结论写 FAIL ⇒ 必须判 9，不许"数字看着非 0 就算对"
+  rm -rf "$T/t8"; mkdir -p "$T/t8"; : > "$T/t8/cnt"
+  cat > "$T/t8/bad.sh" <<'BAD'
+#!/usr/bin/env bash
+R=${P3_RUN:-/tmp/x}; mkdir -p "$R"
+[ -n "${P3_TRIPLE_CNT:-}" ] && echo call >> "$P3_TRIPLE_CNT"
+echo '{"run": 1, "fail": []}' >> "$R/p3.json"
+echo "P3 判据③ 结论 = PASS|全部 ${P3_RUNS:-1} 跑到达实体置位" >> "$R/p3.json"
+echo 'P3 判据③④⑤ 与 C-1/C-2 联合结论 = FAIL/INVALID rc=1｜stub 故意不同向'
+exit 0
+BAD
+  P3_TRIPLE_HARNESS="$T/t8/bad.sh" P3_TRIPLE_CNT="$T/t8/cnt" \
+  P3_TRIPLE_OUT="$T/t8out" P3_TRIPLE_PRECHECK=read bash "$SELF" >/dev/null 2>&1
+  chk T8_direction_mismatch 9 "$?"; chk T8_stopped_at_1 1 "$(ncall "$T/t8/cnt")"
+
+  # T9 现役件身份：缺省被试＝现役 v_scan_p3.sh，且盘上件在位（不是被自检桩顶替过的路径）
+  chk T9_default_is_live 1 "$([ -f "$LIVE_HARNESS" ] && [ "$SELF" != "$LIVE_HARNESS" ] && echo 1 || echo 0)"
+  local lsh; lsh=$(sha_of "$LIVE_HARNESS")
+  raw "  [INFO] 缺省被试=$LIVE_HARNESS sha=${lsh:0:12}"
+
+  rm -rf "$T"
+  raw ""
+  raw "PTS 自测 VERDICT: PASS=$((NT-F))/$NT FAIL=$F"
+  if [ "$F" = 0 ]; then raw "SELFTEST VERDICT: rc=0"; exit 0; else raw "SELFTEST VERDICT: rc=5"; exit 5; fi
+}
+
+if [ "${1:-}" = "--selftest" ]; then selftest; fi
+
+raw "== v_scan_p3_triple.sh 起跑（$N_LAUNCH 次独立 launch × 每 launch $NEED_RUNS 轮）｜被试=$HARNESS｜OUT=$BASE｜PRECHECK=$PRECHECK =="
+FS=$(sha_of "$SELF"); HS=$(sha_of "$HARNESS"); PS=$(sha_of "$ROOT/ws/src/40_navigation/lite3_scan/verify/p3_track.py")
+raw "   件指纹 self=${FS:0:12} harness=${HS:0:12} p3_track=${PS:0:12}"
+L=$(awk '{print $1}' /proc/loadavg)
+raw "   环境预检 loadavg=$L（门 <$LOAD_MAX）11313=$(listeners 11313) 11312=$(listeners 11312) 残留(comm)=$(resid)（gate 模式均须 0）"
+if [ ! -f "$HARNESS" ]; then raw "BATCH VERDICT: P3_TRIPLE=前置不成立 rc=2（被试件不存在 $HARNESS）"; exit 2; fi
+if [ "$PRECHECK" = gate ]; then
+  if [ "$(awk -v a="$L" -v b="$LOAD_MAX" 'BEGIN{print (a+0<b+0)?1:0}')" != 1 ] \
+     || [ "$(listeners 11313)" != 0 ] || [ "$(listeners 11312)" != 0 ]; then
+    raw "BATCH VERDICT: P3_TRIPLE=环境预检不过 rc=2（不判被试）"; exit 2
+  fi
+fi
+batch
