@@ -165,6 +165,12 @@ print('RECHK 有效性门 rtf=%.3f%s ｜ 判据 state=%s outcome=%d dt_ok=%s dev
       % (rtf, 'PASS' if valid else 'INVALID(作废重跑，不计 FAIL)', ep.get_state(), r.outcome,
          dt_sim <= 120.0, d <= 0.35))
 print('RECHK VERDICT %s' % ('PASS' if verdict else 'FAIL'))
+# R40（小美 M2R8 裁定 2）：有效性不过而判据亦不过时给**并存独立档 7**，不再被 6 吸收——
+#   旧写法只要 valid 为假就 exit 6，等于把「这一跑不算数」与「判据也没过」揉成一个数，
+#   调查面会只重跑而不看判据（与 SM 的 #30 同型，件自有 rc 层）。
+if not valid and not verdict:
+    print('RECHK 并存：有效性门不过 且 判据不过 ⇒ rc=7 停手上报（不得由重试消化）')
+    raise SystemExit(7)
 if not valid:
     raise SystemExit(6)
 raise SystemExit(0 if verdict else 5)

@@ -113,8 +113,15 @@ sec_dwa() {
   local rc
   DWA_OUT="$OUT/dwa" bash "$ROOT/ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh" 3 > "$OUT/dwa.log" 2>&1; rc=$?
   log "  dwa rc=$rc"; grep -E 'DWA RECHECK|汇总|INCOMPLETE|rtf=' "$OUT/dwa.log" | tail -8 | sed 's/^/    /'
-  case "$rc" in 0) return 0;; 5) return 5;; 6) log "  （两过一作废之类的不完整集：不判 DWA 不可用，也不称复现）"; return 4;; esac
-  return 0
+  # 件间 rc 映射（DWR 自有层 0/4/5/6/7 → 本件层，她裁定 1 丙条要求逐件写表）：
+  #   DWR 0 → 本件 0；DWR 5 → 本件 5（判据不过，停手）；DWR 7 → 本件 5（并存停手，等同需人工）；
+  #   DWR 6 或 4 → 本件 4（作废/不完整集，算力或前置类，不判 DWA 不可用也不称复现）；其余未知 → 9 前置缺失
+  case "$rc" in
+    0) return 0;;
+    5|7) log "  （DWR rc=$rc ⇒ 判据面或并存停手，本批不作通过结论）"; return 5;;
+    6|4) log "  （DWR rc=$rc ⇒ 作废或不完整集：不判 DWA 不可用，也不称复现）"; return 4;;
+    *) log "  [停手] DWR 返回未知 rc=$rc ⇒ 件间映射不含此值，属前置缺失，不默认绿"; return 9;;
+  esac
 }
 
 sec_scan() {

@@ -5,6 +5,14 @@
 # 判据（roadmap C #4 原句）：mbf 试加载插件成功 ＋ ExePath outcome=0 ×3（三连）。
 # 入口走 TOP 编排件 lite3_bringup/mode_sim_teb.launch（K3：平级模块禁互 include；与 m2_smoke.sh 同款）。
 # 用法：bash v_dwa_recheck.sh [轮数=3]
+# rc 语义表（R40，小美 M2R8 裁定 2；本件自有层，与 DWP／SM／BR／RD 各层互不认，引用必须连件名＋代际）：
+#   0 = PASS       DWA 判据 N 连全过且 teb 同场对照过
+#   5 = FAIL       确有判据不过（有效跑内 state/outcome/dt/dev 不过）⇒ 判 DWA 不可用成立
+#   6 = INVALID    纯前置不成立或有效性门不过（/clock 未出、DWA 未装载、RTF<0.25、teb 对照不过）⇒ 作废重跑，不判可用性
+#   7 = 并存档     INVALID 与判据 FAIL 同批并存 ⇒ 停手上报，不得由重试消化（与 SM 的 rc=4 同型不同值）
+#   4 = INCOMPLETE 凑不满 N 又不属上述（须人工看日志），既不判可用也不判不可用
+# 取一序：7 > 5 > 6 > 4 > 0。旧版此处恒 exit 0（判据 FAIL 改不动批级 rc）＝假判据，她 R40 判停，
+#   并由 H13 批给出活体反例：teb 对照步卡死被我手工终止，件仍打 dwa rc=0。
 # 注：catkin 的 profile.d/1.ros_distro.sh 读 ROS_DISTRO 时不防未绑定 ⇒ 必须在 source 段关 -u，
 #   source 完再开（02 既有坑，m2_smoke.sh 同款处置）。
 set +u
@@ -41,7 +49,7 @@ until [ $T -ge 300 ]; do
   if rostopic list 2>/dev/null | grep -qx /clock && timeout 10 rostopic echo -n 1 /clock >/dev/null 2>&1; then break; fi
   sleep 2; T=$((T+2))
 done
-[ $T -lt 300 ] || { echo "FAIL: /clock 300s 未出"; exit 1; }
+[ $T -lt 300 ] || { echo "  [INVALID] /clock 300s 未出 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性，R40）"; exit 6; }
 echo "  /clock 就绪 t=${T}s"
 # 加载判据必须**有界轮询**：mbf 装插件晚于 /clock 出现数十秒，单次即查会把「还没装」误判成「装不上」，
 #   更糟的是随即 exit → trap 关掉整台仿真（首版即踩此坑，log 见 Reason given for shutdown: user request）。
@@ -56,12 +64,12 @@ while [ $T2 -lt 300 ]; do
 done
 LOAD=$(grep -ac 'has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1)
 echo "  等待 ${T2}s；DWA 命中=$DWA_LOADED teb 命中=$TEB_LOADED（loaded 总累计=$LOAD，含 planners/recovery）"
-[ "${DWA_LOADED:-0}" -ge 1 ] || { echo "  [FAIL] DWA 未加载 ⇒ 复测前置不成立，本批作废（不判 DWA 可用性）"; exit 1; }
+[ "${DWA_LOADED:-0}" -ge 1 ] || { echo "  [INVALID] DWA 未装载 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性；R40：旧版在此打 FAIL 并 exit 1 属语义混叠）"; exit 6; }
 LIST=$(timeout 15 rosparam get /move_base_flex/controllers 2>/dev/null | tr -d '\n' | grep -o "name: '[A-Za-z]*'")
 echo "  控制器注册表: $LIST"
 echo "  （注：root-inertia WARN 现指 base_link，小张 M2R5 风险①预测成立；已 grep 全仓无脚本消费该串）"
 
-PASS=0; FAIL=0; INVALID=0
+PASS=0; FAIL=0; INVALID=0; BOTH=0
 for i in $(seq 1 "$N"); do
   echo "### 二、DWA 第 $i 跑（三连判据）"
   python3 "$PKG/verify/dwa_recheck.py" DWAPlannerROS "dwa$i" > "$DWA_OUT/dwa$i.txt" 2>&1
@@ -69,19 +77,32 @@ for i in $(seq 1 "$N"); do
   sed 's/^/    /' "$DWA_OUT/dwa$i.txt"
   POSEERR=$(grep -acE "Could not get the current robot pose|robot pose is .* old" "$DWA_OUT/mbf.log" | head -1)
   echo "  rc=$RC ；mbf 日志内 pose 类命中累计=${POSEERR:-0}"
-  # rc 语义三态：0=判据过 5=判据不过 6=有效性门不过(RTF<0.25)⇒作废重跑，不计 PASS 也不计 FAIL（M2R2 裁决）
+  # 单跑 rc 四态（DWP 侧 R40 新增 7＝有效性不过与判据不过并存，不再被 6 吸收）
   if [ $RC -eq 0 ]; then PASS=$((PASS+1)); echo "  [PASS] dwa 第 $i 跑"
   elif [ $RC -eq 6 ]; then INVALID=$((INVALID+1)); echo "  [INVALID] dwa 第 $i 跑（RTF 不达标，作废重跑，不计 FAIL）"
+  elif [ $RC -eq 7 ]; then INVALID=$((INVALID+1)); FAIL=$((FAIL+1)); BOTH=1
+    echo "  [INVALID+FAIL 并存] dwa 第 $i 跑（有效性门不过且判据亦不过 ⇒ 停手上报，不由重试消化、不计 PASS）"
   else FAIL=$((FAIL+1)); echo "  [FAIL] dwa 第 $i 跑 rc=$RC"; fi
   sleep 3
 done
 echo "### 三、同场 teb 对照（证 harness 本身没坏）"
 python3 "$PKG/verify/dwa_recheck.py" TebLocalPlannerROS teb_ctrl > "$DWA_OUT/teb_ctrl.txt" 2>&1
 TC=$?; sed 's/^/    /' "$DWA_OUT/teb_ctrl.txt"
-[ $TC -eq 0 ] && echo "  [PASS] teb 对照" || echo "  [FAIL] teb 对照 rc=$TC"
+if [ $TC -eq 0 ]; then echo "  [PASS] teb 对照"
+else INVALID=$((INVALID+1)); echo "  [INVALID] teb 同场对照不过 rc=$TC ⇒ harness 本身存疑，本批不作可用性结论（R40：对照位是前置，不是被测件判据）"; fi
 echo "### 汇总 DWA PASS=$PASS FAIL=$FAIL INVALID=$INVALID（目标 PASS=$N）；teb 对照 rc=$TC"
 kill $LP >/dev/null 2>&1
 if [ "$FAIL" -gt 0 ]; then echo "DWA RECHECK VERDICT: FAIL（确有判据不过，非环境因素）"
 elif [ "$PASS" = "$N" ] && [ "$TC" = "0" ]; then echo "DWA RECHECK VERDICT: PASS（DWA 可用，判据三连全过）"
 elif [ "$PASS" -lt "$N" ] && [ "$INVALID" -gt 0 ]; then echo "DWA RECHECK VERDICT: INCOMPLETE（$INVALID 次因 RTF 作废须重取；已 $PASS 次判据全过、0 次判据失败 ⇒ 不判 DWA 不可用）"
 else echo "DWA RECHECK VERDICT: INCOMPLETE（凑不满 $N 次有效跑，且不属 RTF 作废，须人工看日志）"; fi
+# ---- 批级 rc 显式分档（R40 核心：判据 FAIL 必须能改批级 rc，否则整件是假判据）----
+if   [ "$BOTH" = "1" ]; then _RD=7
+elif [ "$FAIL" -gt 0 ];  then _RD=5
+elif [ "$INVALID" -gt 0 ]; then
+  if [ "$PASS" = "$N" ] && [ "$TC" = "0" ]; then _RD=0; else _RD=6; fi
+elif [ "$PASS" = "$N" ] && [ "$TC" = "0" ]; then _RD=0
+else _RD=4
+fi
+echo "DWA RECHECK 批级 rc=$_RD（0 PASS／5 FAIL／6 INVALID／7 并存停手／4 INCOMPLETE；本件自有层，引用须连件名）"
+exit "$_RD"
