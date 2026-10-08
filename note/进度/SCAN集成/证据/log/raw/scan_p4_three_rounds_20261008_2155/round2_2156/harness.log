@@ -1,0 +1,23 @@
+[21:56:19] == [0] 红线预检：并发／样张／世界件本体 ==
+在册端口起前监听：11313=0 11312=0（均须 0）
+[21:56:20] == [1] roscore 11313 ==
+[21:56:25] == [2] m2_gazebo ==
+[21:57:18] == [3] m2_mapping（faster_lio 位姿源）==
+[21:57:29] == [4] 60_safety（mux 上链）==
+C-1 面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux 
+[21:57:43] == [5] 70_scan.launch（含 J1 到达观测件）==
+F9 互斥: move_base/teb 节点数=0 须=0；链上四件=4/4
+扰动前模型位姿自证：
+[21:58:20] == [6] P4 取证（投障碍→看见→重规划→仍到达）==
+p4 python rc=1
+P4 重规划结论 = FAIL|新轨迹贴撞障碍（离占据最近 0.458m／离新障 0.031m＜0.10m）
+{"steps": ["goal_delivered=True", "traj_pts=120", "injected=obs_5→(-1.00,0.48)", "disturbance_seen=20", "replanned=True"], "fail": [], "invalid": false, "goal": [-2.776, 1.548], "goal_r": 3.175, "goal_clear": 2.925, "traj_before": {"start_time": 20.199, "n_ctrl": 24, "first": [-0.006, 0.019], "last": [-2.77, 1.545]}, "inject": {"model": "obs_5", "at": [-1.0, 0.478], "z": 0.4, "pts_before": 4241, "occ_pts_near": 20}, "traj_after": {"start_time": 25.189, "n_ctrl": 26, "first": [-0.589, 0.228], "last": [-3.271, 2.62]}, "traj_before_control_min_dist": 0.431, "new_traj": {"n_pts": 120, "min_dist_to_any_occ": 0.458, "min_dist_to_injected": 0.031}}
+结论行：P4 重规划结论 = FAIL|新轨迹贴撞障碍（离占据最近 0.458m／离新障 0.031m＜0.10m）
+[21:58:53] == [7] 还原与红线 ==
+扰动后模型位姿自证：
+世界件本体 sha 起前＝退后：是
+样张 sha 起前＝退后：是
+分档自证：VS 首段=FAIL ⇒ RC4=1（判据行与末判必须同向）
+[21:58:57] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0

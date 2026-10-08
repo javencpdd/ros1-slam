@@ -1,0 +1,331 @@
+[33m[ WARN] [1791467596.930082887]: [closed_loop_controller] ready.[0m
+hit: 1.7346
+miss: -0.847298
+min log: -1.99243
+max: 3.89182
+thresh log: 1.38629
+[33m[ WARN] [1791467602.399012380, 13.345000000]: [GridMap] no /grid_map/sensor_pose yet for lidar cloud update.[0m
+[0m[ INFO] [1791467602.745479993, 13.407000000]: [SCANReplanFSM] Set RViz goal height from initial body_pose z: -0.045[0m
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+Triggered!
+[FSM]: from INIT to WAIT_TARGET
+[FSM]: from WAIT_TARGET to GEN_NEW_TRAJ
+
+[rebo replan]: -------------------------------------0
+start: 0.00794  0.0219 -0.0447, 0 0 0
+goal:  -2.77    1.55 -0.0449, 0 0 0
+[32miter(+1)=25,time(ms)=0.000,total_t(ms)=0.000,cost=0.009
+[0mfirst_optimize_step_success=1
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[FSM]: from GEN_NEW_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467635.506054640, 21.626000000]: [closed_loop_controller] received bspline traj_id=1 duration=8.400[0m
+[FSM]: state: EXEC_TRAJ
+Triggered!
+[TRIG]: from EXEC_TRAJ to REPLAN_TRAJ
+
+[rebo replan]: -------------------------------------1
+start: 0.00218  0.0267 -0.0402,  -0.00014  3.29e-05 -4.13e-09
+goal:  -2.77    1.55 -0.0449, 0 0 0
+[32miter(+1)=26,time(ms)=0.000,total_t(ms)=0.000,cost=0.009
+[0mfirst_optimize_step_success=1
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[FSM]: from REPLAN_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467636.598495423, 21.921000000]: [closed_loop_controller] received bspline traj_id=2 duration=8.400[0m
+Triggered!
+[TRIG]: from EXEC_TRAJ to REPLAN_TRAJ
+
+[rebo replan]: -------------------------------------2
+start: -0.0109  0.0295 -0.0458, -0.000149  3.79e-05 -9.61e-08
+goal:  -2.77    1.55 -0.0449, 0 0 0
+[32miter(+1)=25,time(ms)=0.000,total_t(ms)=0.000,cost=0.008
+[0mfirst_optimize_step_success=1
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[FSM]: from REPLAN_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467638.230029740, 22.402000000]: [closed_loop_controller] received bspline traj_id=3 duration=8.400[0m
+[FSM]: state: EXEC_TRAJ
+[FSM]: state: EXEC_TRAJ
+[FSM]: from EXEC_TRAJ to REPLAN_TRAJ
+
+[rebo replan]: -------------------------------------3
+start:  1.35 0.104 0.426,   -0.415    0.285 0.000162
+goal: -1.55  0.935 0.0603,  -0.291   0.105 -0.0326
+[32miter(+1)=4,time(ms)=0.000,keep optimizing
+[0m[32miter(+1)=1,time(ms)=0.000,keep optimizing
+[0m[32miter(+1)=1,time(ms)=0.000,keep optimizing
+[0mfirst_optimize_step_success=0
+final_plan_success=0
+
+[rebo replan]: -------------------------------------4
+start:  1.35 0.104 0.426,   -0.415    0.285 0.000162
+goal: -1.55  0.935 0.0603,  -0.291   0.105 -0.0326
+[31m[ERROR] [1791467657.689666182, 27.453000000]: a star error[0m
+iter=33,time(ms)=20,rebound.
+[31m[ERROR] [1791467657.736462685, 27.453000000]: a star error[0m
+iter=5,time(ms)=0,rebound.
+[32miter(+1)=4,time(ms)=0.000,keep optimizing
+[0m[32miter(+1)=1,time(ms)=0.000,keep optimizing
+[0m[32miter(+1)=1,time(ms)=0.000,keep optimizing
+[0mfirst_optimize_step_success=0
+final_plan_success=0
+[FSM]: from REPLAN_TRAJ to REPLAN_TRAJ
+[33m[ WARN] [1791467657.799540932, 27.479000000]: Local target in collision, adjusted to a nearby collision-free point.[0m
+
+[rebo replan]: -------------------------------------5
+start:   1.89 0.0522  0.529,   -0.415    0.288 0.000164
+goal:-1.01 0.779 0.134, -0.271 0.0495  -0.04
+[32miter(+1)=47,time(ms)=1.000,total_t(ms)=1.000,cost=0.028
+[0mfirst_optimize_step_success=1
+total time:[42m0.002[0m,optimize:0.001,refine:0.001
+final_plan_success=1
+[FSM]: from REPLAN_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467657.805945897, 27.481000000]: [closed_loop_controller] received bspline traj_id=4 duration=8.000[0m
+
+[rebo replan]: -------------------------------------6
+start:   5.72 -0.475   1.25,  -0.416   0.276 -0.0389
+goal:   3.31 -0.0438   0.377, -0.116 0.0902  0.219
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=0.383
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467658.845293715, 27.776000000]: [closed_loop_controller] received bspline traj_id=5 duration=10.793[0m
+[FSM]: state: EXEC_TRAJ
+
+[rebo replan]: -------------------------------------7
+start:   8.72 -0.967   2.07,  -0.414   0.257 -0.0693
+goal:   6.5   -1.1 -0.434,  -0.165 -0.0765  -0.226
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=1.103
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467659.337425569, 27.894000000]: [closed_loop_controller] received bspline traj_id=6 duration=16.084[0m
+
+[rebo replan]: -------------------------------------8
+start:  12.1 -1.61  3.02,  -0.4  0.21 -0.18
+goal: 10.5 -1.66 0.528,   -0.16 -0.0819  -0.358
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=1.428
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467660.870623309, 28.191000000]: [closed_loop_controller] received bspline traj_id=7 duration=15.618[0m
+
+[rebo replan]: -------------------------------------9
+start:  14.8 -2.15  3.81, -0.383   0.19 -0.257
+goal: 13.4 -2.19   1.3,  -0.143 -0.0721  -0.366
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=1.481
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467661.326631159, 28.308000000]: [closed_loop_controller] received bspline traj_id=8 duration=18.490[0m
+[33m[ WARN] [1791467662.420141515, 28.529000000]: Local target in collision, adjusted to a nearby collision-free point.[0m
+
+[rebo replan]: -------------------------------------10
+start:  17.7 -2.73  4.67, -0.356  0.158 -0.342
+goal: 15.8 -2.78  2.17, -0.173  0.095  0.286
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=1.825
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467662.425740040, 28.529000000]: [closed_loop_controller] received bspline traj_id=9 duration=17.186[0m
+
+[rebo replan]: -------------------------------------11
+start:  21.2 -3.44  5.72, -0.327  0.125 -0.371
+goal: 19.1 -3.33  4.36, -0.256  0.129  0.169
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=1.146
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467663.874153640, 28.793000000]: [closed_loop_controller] received bspline traj_id=10 duration=8.690[0m
+[FSM]: state: EXEC_TRAJ
+
+[rebo replan]: -------------------------------------12
+start:  26.3 -4.56  7.31, -0.281 0.0753 -0.302
+goal: 24.2 -4.49  7.72, -0.258   0.14 -0.271
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=0.980
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467666.448710722, 29.263000000]: [closed_loop_controller] received bspline traj_id=11 duration=9.401[0m
+[33m[ WARN] [1791467668.311016335, 29.696000000]: Shutdown request received.[0m
+[33m[ WARN] [1791467668.311238545, 29.696000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791467668.330131805, 29.696000000]: Local target in collision, adjusted to a nearby collision-free point.[0m
+
+[rebo replan]: -------------------------------------13
+start:  29.9 -5.33  8.35,  -0.244  0.0377 -0.0829
+goal: 29.4 -5.49  10.6, -0.0333 -0.0351   0.397
+[32miter(+1)=1,time(ms)=0.000,total_t(ms)=0.000,cost=6.190
+[0mfirst_optimize_step_success=1
+Need to reallocate time.
+total time:[42m0[0m,optimize:0,refine:0
+final_plan_success=1
+[SAFETY]: from EXEC_TRAJ to EXEC_TRAJ
+[33m[ WARN] [1791467668.350277206, 29.697000000]: Shutdown request received.[0m
+[33m[ WARN] [1791467668.350580889, 29.697000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791467668.357415426, 29.697000000]: Shutdown request received.[0m
+[33m[ WARN] [1791467668.357629381, 29.697000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791467668.360349954, 29.697000000]: Shutdown request received.[0m
+[33m[ WARN] [1791467668.360558820, 29.697000000]: Reason given for shutdown: [user request][0m
+terminate called after throwing an instance of 'boost::wrapexcept<boost::lock_error>'
+  what():  boost: mutex lock failed in pthread_mutex_lock: Invalid argument
+[0m[ INFO] [1791467597.132690558, 12.035000000]: advertised as /LIO/clouds_lidar
+[0m
+[0m[ INFO] [1791467597.102355706, 12.014000000]: advertised as /LIO/odom_imu
+[0m
+[0m[ INFO] [1791467597.118179395, 12.032000000]: advertised as /LIO/odom_vehicle
+[0m
+[33m[ WARN] [1791467669.255242371, 29.697000000]: Shutdown request received.[0m
+[33m[ WARN] [1791467669.255484774, 29.697000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791467669.454351811, 29.697000000]: Shutdown request received.[0m
+[33m[ WARN] [1791467669.454643174, 29.697000000]: Reason given for shutdown: [user request][0m
+[INFO] [1791467599.149326, 0.000000]: SCAN arrival monitor up: pose=/LIO/odom_vehicle goal=/scan_planner/goal tol=0.20 settle=1.0
+[INFO] [1791467634.840033, 21.488000]: goal received at (-2.774, 1.550) -> arrived reset, tol=0.20m settle=1.0s
+[INFO] [1791467636.489360, 21.887000]: goal received at (-2.774, 1.550) -> arrived reset, tol=0.20m settle=1.0s
+[INFO] [1791467638.029366, 22.290000]: goal received at (-2.774, 1.550) -> arrived reset, tol=0.20m settle=1.0s
+shutdown request: user request
+des manager
+[31m[closed_loop_controller-6] process has died [pid 1291441, exit code -6, cmd /home/ros1-slam/ws/devel/lib/scan_planner/closed_loop_controller cmd_vel:=/scan_planner/cmd_vel __name:=closed_loop_controller __log:=/home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/closed_loop_controller-6.log].
+log file: /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/closed_loop_controller-6*.log[0m
+... logging to /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/roslaunch-lite-1291222.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+[1mstarted roslaunch server http://lite:46429/[0m
+
+SUMMARY
+========
+
+CLEAR PARAMETERS
+ * /scan_planner_node/
+
+PARAMETERS
+ * /body_pose_topic: /LIO/odom_vehicle
+ * /closed_loop_controller/finish_dist: 0.15
+ * /closed_loop_controller/heading_error_threshold: 0.8
+ * /closed_loop_controller/kp_pos: 0.8
+ * /closed_loop_controller/kp_yaw: 1.5
+ * /closed_loop_controller/max_vx: 0.4
+ * /closed_loop_controller/max_vy: 0.05
+ * /closed_loop_controller/max_vyaw: 1.0
+ * /closed_loop_controller/time_forward: 0.8
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /scan_arrival_monitor/goal_topic: /scan_planner/goal
+ * /scan_arrival_monitor/pose_topic: /LIO/odom_vehicle
+ * /scan_arrival_monitor/settle_s: 1.0
+ * /scan_arrival_monitor/tol_arrive: 0.2
+ * /scan_planner_node/fsm/emergency_time_: 1.0
+ * /scan_planner_node/fsm/fail_safe: True
+ * /scan_planner_node/fsm/is_real_world: True
+ * /scan_planner_node/fsm/max_replan_fail_count: 1000
+ * /scan_planner_node/fsm/navi_mode: 1
+ * /scan_planner_node/fsm/planning_horizon: 3.5
+ * /scan_planner_node/fsm/thresh_no_replan: 0.1
+ * /scan_planner_node/fsm/thresh_replan: 1.0
+ * /scan_planner_node/grid_map/body_height: 0.3
+ * /scan_planner_node/grid_map/cloud_is_world: False
+ * /scan_planner_node/grid_map/cx: 317.19183349609375
+ * /scan_planner_node/grid_map/cy: 256.4806823730469
+ * /scan_planner_node/grid_map/depth_filter_margin: 1
+ * /scan_planner_node/grid_map/depth_filter_maxdist: 3.0
+ * /scan_planner_node/grid_map/depth_filter_mindist: 0.3
+ * /scan_planner_node/grid_map/double_cylinder_offset: 0.12
+ * /scan_planner_node/grid_map/double_cylinder_radius: 0.18
+ * /scan_planner_node/grid_map/fx: 609.5884399414062
+ * /scan_planner_node/grid_map/fy: 609.22021484375
+ * /scan_planner_node/grid_map/k_depth_scaling_factor: 1000.0
+ * /scan_planner_node/grid_map/map_sliding_thresh: 0.2
+ * /scan_planner_node/grid_map/max_ray_length: 5.0
+ * /scan_planner_node/grid_map/need_extrinsic: False
+ * /scan_planner_node/grid_map/obstacles_inflation_z_down: 0.1
+ * /scan_planner_node/grid_map/obstacles_inflation_z_up: 0.1
+ * /scan_planner_node/grid_map/p_hit: 0.85
+ * /scan_planner_node/grid_map/p_max: 0.98
+ * /scan_planner_node/grid_map/p_min: 0.12
+ * /scan_planner_node/grid_map/p_miss: 0.3
+ * /scan_planner_node/grid_map/p_occ: 0.8
+ * /scan_planner_node/grid_map/resolution: 0.05
+ * /scan_planner_node/grid_map/sensor_type: lidar
+ * /scan_planner_node/grid_map/skip_pixel: 2
+ * /scan_planner_node/grid_map/sliding_map_size_x: 10.0
+ * /scan_planner_node/grid_map/sliding_map_size_y: 10.0
+ * /scan_planner_node/grid_map/sliding_map_size_z: 5.0
+ * /scan_planner_node/grid_map/vis_height: 0.3
+ * /scan_planner_node/manager/control_points_distance: 0.2
+ * /scan_planner_node/manager/feasibility_tolerance: 0.5
+ * /scan_planner_node/manager/max_acc: 0.5
+ * /scan_planner_node/manager/max_jerk: 4.0
+ * /scan_planner_node/manager/max_vel: 0.4
+ * /scan_planner_node/manager/planning_horizon: 3.5
+ * /scan_planner_node/optimization/acc_tolerance: 1.0
+ * /scan_planner_node/optimization/dist0: 0.2
+ * /scan_planner_node/optimization/lambda_collision: 1.0
+ * /scan_planner_node/optimization/lambda_feasibility: 0.1
+ * /scan_planner_node/optimization/lambda_fitness: 1.0
+ * /scan_planner_node/optimization/lambda_smooth: 1.0
+ * /scan_planner_node/optimization/max_acc: 0.5
+ * /scan_planner_node/optimization/max_vel: 0.4
+ * /scan_planner_node/optimization/vel_tolerance: 1.0
+
+NODES
+  /
+    closed_loop_controller (scan_planner/closed_loop_controller)
+    lio_cloud_relay (topic_tools/relay)
+    lio_odom_imu_relay (topic_tools/relay)
+    lio_odom_vehicle_relay (topic_tools/relay)
+    scan_arrival_monitor (lite3_scan/scan_arrival_monitor.py)
+    scan_planner_node (scan_planner/scan_planner_node)
+    world_to_camera_init (tf2_ros/static_transform_publisher)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/70_scan.launch http://127.0.0.1:11313
+[1mprocess[lio_odom_vehicle_relay-1]: started with pid [1291404][0m
+[1mprocess[lio_odom_imu_relay-2]: started with pid [1291407][0m
+[1mprocess[lio_cloud_relay-3]: started with pid [1291425][0m
+[1mprocess[world_to_camera_init-4]: started with pid [1291427][0m
+[1mprocess[scan_planner_node-5]: started with pid [1291431][0m
+[1mprocess[closed_loop_controller-6]: started with pid [1291441][0m
+[1mprocess[scan_arrival_monitor-7]: started with pid [1291447][0m
+[1m[lio_cloud_relay-3] process has finished cleanly
+log file: /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/lio_cloud_relay-3*.log[0m
+[1m[lio_odom_vehicle_relay-1] process has finished cleanly
+log file: /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/lio_odom_vehicle_relay-1*.log[0m
+[1m[lio_odom_imu_relay-2] process has finished cleanly
+log file: /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/lio_odom_imu_relay-2*.log[0m
+[1m[scan_arrival_monitor-7] process has finished cleanly
+log file: /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/scan_arrival_monitor-7*.log[0m
+[1m[world_to_camera_init-4] process has finished cleanly
+log file: /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/world_to_camera_init-4*.log[0m
+[1m[scan_planner_node-5] process has finished cleanly
+log file: /home/ysc/.ros/log/64d353e4-c31f-11f1-90f6-3c6d66f8d2d8/scan_planner_node-5*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

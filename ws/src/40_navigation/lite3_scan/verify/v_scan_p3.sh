@@ -40,7 +40,7 @@ wait_topic() {
   return 1
 }
 
-LOCK=/tmp/scan_p3.lock
+LOCK=${SCAN_HARNESS_LOCK:-/tmp/lite3_scan_harness.lock}   # P3／P4 共一把锁：两者起的是同一条链，并发即互扰（20:47 实测过一次）
 if [ -f "$LOCK" ]; then
   OLD=$(cat "$LOCK" 2>/dev/null)
   if [ -n "$OLD" ] && kill -0 "$OLD" 2>/dev/null; then
