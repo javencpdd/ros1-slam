@@ -1,0 +1,40 @@
+# 第二次取窗（用户授权 kill mid360）杀前见证 2026-10-08 18:22:23
+# 授权原话：mid360的进程现在可以kill了
+
+## 杀前：livox 树
+ 315547  315464 ysc       0.0 Thu Oct  8 16:12:37 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch livox_ros_driver2 msg_MID360s_launch.py
+ 315759  315547 ysc      49.8 Thu Oct  8 16:12:41 2026 /home/ysc/lite_cog_ros2/driver/mid360_ws/install/livox_ros_driver2/lib/livox_ros_driver2/livox_ros_driver2_nod
+
+## 杀前：生产 transfer 栈（零触碰对象）
+   2090 root     Thu Oct  8 14:21:25 2026    04:00:58 ros2
+   2540 root     Thu Oct  8 14:21:34 2026    04:00:49 jetson2app
+   2542 root     Thu Oct  8 14:21:34 2026    04:00:49 jetson2motion
+   2544 root     Thu Oct  8 14:21:34 2026    04:00:49 sensor_checker
+
+## 杀前：其它非本仓大户与 loadavg / 端口
+ 315759 ysc      49.8    02:09:42 livox_ros_drive
+   1198 whoopsie 24.3    04:01:10 whoopsie
+   2544 root     23.8    04:00:49 sensor_checker
+   2542 root     19.6    04:00:49 jetson2motion
+   3991 ysc       5.0    04:00:21 nxnode.bin
+ 643931 ysc       5.0       00:01 bash
+2.24 2.77 2.94 2/785 643965
+  Local
+
+## 杀后核验 2026-10-08 18:23:15
+  livox 树残留计数=0（应为 0；父 315464 是 pts 的 -bash，不属 livox 件，未动）
+  生产 transfer 栈（必须与杀前逐位一致）:
+   2090 root     Thu Oct  8 14:21:25 2026    04:01:50 ros2
+   2540 root     Thu Oct  8 14:21:34 2026    04:01:41 jetson2app
+   2542 root     Thu Oct  8 14:21:34 2026    04:01:41 jetson2motion
+   2544 root     Thu Oct  8 14:21:34 2026    04:01:41 sensor_checker
+  loadavg:
+2.47 2.72 2.91 1/753 645975
+  CPU 前列:
+   1198 whoopsie 24.2    04:02:02 whoopsie
+   2544 root     23.8    04:01:41 sensor_checker
+   2542 root     19.6    04:01:41 jetson2motion
+   3991 ysc       5.0    04:01:13 nxnode.bin
+   2275 ysc       4.5    04:01:47 gnome-shell
+  在册端口（应全零）:
+  注：whoopsie（24%）与 nxnode 属系统/远程桌面，非授权面内、未动。
