@@ -1,0 +1,30 @@
+R48 补件说明（2026-10-08 19:2x 生成；本目录是「补」不是「改」——retake_20261008_182329/ 内的原件与它自己的清单一字未动）
+
+一、为什么要有这个目录
+18:23:29–18:46:14 那批（H14 首活批，RETAKE VERDICT rc=0）跑完后我按「证据可复核」自查，查出驱动件 retake_driver.sh 两条缺陷，都在证据面、不在判据门值上：
+
+（一）归档清单不可验。旧式 archive_out 每段跑完把 sha 行 >> 追加进 _sha256_manifest.txt，且 out/ 段条目不带 out/ 前缀。
+    后果两条：同一件在一张表里叠多份 sha（清单 88 行对 61 件）；从归档址跑 sha256sum -c 得 103 行非 OK（原件路径根本解析不到）。
+    ⇒ 「清单存在」被当成了「清单可用」，这正是小美 R46／R40 那一族：空集与跑不动被混成通过。
+    复现命令：cd retake_20261008_182329 && sha256sum -c _sha256_manifest.txt    输出留件 original_manifest_check.txt
+
+（二）归档副本里没有本批自己的 VERDICT 行。旧式是「各段 cp 完就跑下一段」，末行 VERDICT 在最后一次 cp 之后才打，
+    故归档件 out/driver.log 停在门禁段（66 行），活体件 /tmp/rt_h14/driver.log 才是完整的（71 行，含 RETAKE VERDICT rc=0）。
+    ⇒ 若 /tmp 随重启或清理消失，入仓证据将无法自证这批的末判。
+    本目录 driver_final.log ＝ 19:2x 从 /tmp/rt_h14/driver.log 逐字节复制的完整件（复制发生在批后、同 boot 内，非改写）。
+
+二、修法与验证（不在本目录，在件面）
+retake_driver.sh 改三处（sha 由 a0f02ea1d171 → 937eb5a71301）：清单整体重建（路径一律相对归档址、含 out/ 前缀）、
+三面核「OUT 件数＝out 归档件数」「清单条目＝全件数」「sha256sum -c 逐条 OK」，并在 VERDICT 行打完后再收一次终局＋指认「归档件内含 VERDICT 行＝1」。
+零节点自测新件 v_rd_archive_selftest.sh（RAS）eval 现役 RD 件的真函数体跑 9 条：正常批四数同值／从归档址可验／前缀在位／
+不可读件必真红／空 OUT 必真红／清单不含自身与 .new／指认式两态可分。实测 9/9 PASS。
+
+三、这批的结论不受影响
+两条缺陷都只影响「证据的可复核性」，不影响任何判定读数：stageA rc=0（drift 0.489、rtf 0.283、11P/0F）、
+stageB 五连全 PASS（dev_odom 0.160–0.197、r3 加压档 branch=abs+span sim2=62.44 span=42.44）、
+门禁 ISOLATION OK rc=0、30_3rd 基线 49＝49＝49、E3 五跑单父 ['odom']、探针敏感度／端口身份面／进程差集三面真窗读数全绿。
+读数原件在本目录与批目录里都能逐条对上，对不上的只是「原清单跑不通」这一件事。
+
+四、复核口径（一条命令）
+cd 证据/log/raw && sha256sum -c retake_20261008_182329_addendum/_manifest_recheck.txt
+实测：61 件全部 OK、非 OK 行 0（输出留件 recheck_verify_output.txt）。

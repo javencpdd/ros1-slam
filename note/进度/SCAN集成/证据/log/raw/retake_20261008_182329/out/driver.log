@@ -1,0 +1,66 @@
+归档址：/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/retake_20261008_182329
+  清单不列自身；校验 CWD＝仓根 /home/ros1-slam
+===== 0) 负载与隔离域预检 2026-10-08 18:23:29 =====
+  loadavg(1min)=2.24  LOAD_MAX=4  STAGEA_MAX=3  FORCE=未设
+  在册端口监听：11313=0 11345=0 生产11312=0（三者必须 0／0／0，否则并发未清）
+  非本仓大户点名（只读，不动他人进程）：
+    pid=1198 user=whoopsie 24.2% 起了=04:02:16 comm=whoopsie
+    pid=2544 user=root 23.8% 起了=04:01:55 comm=sensor_checker
+  foxy[start] 计数=0
+  指纹（载体＋被测件＋配套件）：
+fa8e57359a17daf9f0c1457318e49e63d675027de3ecad11f6e5c401515dfeed  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+b17022766fa415314aa6967c41370e990d74b80b38b75cec520e8bc388dd5353  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+ef23da2dd5e281ae5b5b973f36224e6801156c07a42e0e9512aaccf123ccc86c  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+a32e70ff0a8fa1e3515ef0755f4215a6802d487ade7c4556887520dc7f87ac8a  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp
+fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7  /home/ros1-slam/ws/devel/lib/liblite3_planar_drive.so
+72f673805caa6e4162b698bdbaf5e5c71dadef48edc84522208d21f08a1a45bb  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/v_pose_source.sh
+10830eeb43e83e211b2342ec336a7aa242afc477754c73236908b12e8d7f4ba1  /home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+  [archive] OUT 收口：/tmp/rt_h14 件数=3 ＝ 归档件数=3
+===== 1) stageA：最多 3 次有效重试（A0 门 0.25 属 M2R2 裁决，本件不改） 2026-10-08 18:23:30 =====
+  第 1 次 rc=0 | drift=0.489 gt_drift=0.489 rate_pts=9.9 rate_imu=197.1 fly_ratio=0.0000 rtf_motion=0.283
+    判定面 11P/0F | SUMMARY marks pass=11 fail=0
+      [posesrc] POSE SOURCE VERDICT: PASS (post_a)
+      M2 SMOKE: PASS
+  ⇒ 取得有效 stageA，M2-1／M2-4 的复取成立
+  archived logs-20261008_182330：7 件，收口=是
+  [archive] OUT 收口：/tmp/rt_h14 件数=4 ＝ 归档件数=4
+===== 2) stageB 五连（含 ≥1 次加压档，批次断言交 m2_batch_runner） 2026-10-08 18:27:36 =====
+  batch rc=0
+        [PASS] B: 到达偏差 0.160 ≤0.35m
+        [PASS] B: 用时 8.62 ≤120s
+        [PASS] 样张 lite3.pcd sha256 未变
+        [exitclean] # 退净核验 @2026-10-08 18:45:43  stage=stageB seg=B
+        [exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+        [exitclean]   （零命中）
+        [exitclean] -- 监听端口分查（计数面）--
+        [exitclean]   port 11311 TCP=0 UDP=0
+        [exitclean]   port 11312 TCP=0 UDP=0
+        [exitclean]   port 11313 TCP=0 UDP=0
+        [exitclean]   port 11345 TCP=0 UDP=0
+        [exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+        [PASS] 退净/端口面：四口相对基线零新增（R22 一）
+        [PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+        [PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+      [expect] 跑5 期望 rc=0 实得 rc=0 ⇒ match
+      [count] 自洽：自报 pass=9 fail=0 ＝ 原件行首 pass=9 fail=0
+      逐跑：r1 rc=0 exp=0 match press=off r2 rc=0 exp=0 match press=off r3 rc=0 exp=0 match press=abs+span r4 rc=0 exp=0 match press=off r5 rc=0 exp=0 match press=off
+      [PASS] 批内含 ≥1 次加压档达标跑（实测 1）
+      [PASS] 每跑实得 rc 与期望表逐位相符（R27 二）
+      [PASS] 每跑判定计数自洽（R27 四）
+    BATCH VERDICT: rc=0（0=PASS 6=无加压达标跑 7=期望 rc 不符 8=计数不自洽 9=期望表长度错）
+  archived logs-20261008_182737：6 件，收口=是
+  archived logs-20261008_183049：6 件，收口=是
+  archived logs-20261008_183407：6 件，收口=是
+  archived logs-20261008_183934：6 件，收口=是
+  archived logs-20261008_184244：6 件，收口=是
+  [archive] OUT 收口：/tmp/rt_h14 件数=20 ＝ 归档件数=20
+===== 5) 共同门禁＋基线双条件＋样张＋退净 2026-10-08 18:46:00 =====
+  门禁 EXIT=0
+    === ISOLATION OK ===
+    # self-attest: at=2026-10-08 18:46:04 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4533 rc=0
+  30_3rd 基线双条件 OK：清单条目=49 逐条 OK=49 目录文件=49
+  退净：残留=[] 端口11313=0 11345=0
+  E3 双父签名（各跑 stageB 的 base_link 父帧集合，须只有 odom）：
+          5 SMOKE E3 base_link_parents=['odom']
+  foxy[end] 计数=0
+  foxy 快照两侧皆空（名单 PID 全不在位，本 boot 属此态）⇒ 「零触碰」空洞成立，**不得引用为红线达成**（O-7）；快照件已随 OUT 归档，空集本身有原件可看

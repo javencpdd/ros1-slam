@@ -1,0 +1,68 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261008_183407
+[m2] HARNESS sha256=fa8e57359a17daf9f0c1457318e49e63d675027de3ecad11f6e5c401515dfeed path=verify/m2_smoke.sh
+[m2] FP m2_exitclean_lib.sh sha256=b17022766fa415314aa6967c41370e990d74b80b38b75cec520e8bc388dd5353
+[m2] FP lite3_planar.urdf.xacro sha256=ef23da2dd5e281ae5b5b973f36224e6801156c07a42e0e9512aaccf123ccc86c
+[m2] FP lite3_planar_drive.cpp sha256=a32e70ff0a8fa1e3515ef0755f4215a6802d487ade7c4556887520dc7f87ac8a
+[m2] FP liblite3_planar_drive.so sha256=fb4a62d8c6add395449c30a126f304138283718870833f3399ad9840fe48b7a7
+[PASS] 探针敏感度自检：临时口 46087 读出 TCP=1 UDP=0 身份=TCP/p46087/675282/ysc（R27 三 阳性对照命中，探针对非零态有分辨力）
+[exitbase] # exitbase @2026-10-08 18:34:09 stage=stageB seg=pre
+[exitbase] PIDS 
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.1s
+SMOKE gate_tf_robot=PASS t=0.7s
+SMOKE gate_gcostmap_data=PASS t=0.9s
+SMOKE gate_lcostmap_data=PASS t=1.0s
+SMOKE gate_tf_fresh=PASS t=1.7s ages=[0.012,0.097,0.042]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.4s ages=[0.008,0.077,0.016]
+SMOKE SIMNOW point=age_sample_1 sim_now=20.00s gate_t=2.4s
+SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.07s wall_spent=145.3s t_raw=2.4s t_adj=2.4s
+SMOKE gate_tf_fresh_late=PASS t=3.0s ages=[0.069,0.051,0.100]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.6s ages=[0.060,0.029,0.057]
+SMOKE SIMNOW point=age_sample_2 sim_now=62.44s gate_t=3.6s sim_span_vs_point1=42.44s
+SMOKE gate_press_late=PASS branch=abs+span (reached=True sim2=62.44 span=42.44 判据=(sim2>=60 且 span>=35) 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.017,0.005,0.016]
+SMOKE E3 tf odom->base_link hits=30 last_stamp=63.161 age=0.012
+SMOKE E3 base_link_parents=['odom'] transforms_total=36
+SMOKE E3 static base_link->rslidar stamp=0.024
+SMOKE E3 static base_link->TORSO stamp=0.024
+SMOKE gate=PASS t=6.2s
+SMOKE SIMNOW point=goal_send sim_now=63.17s
+SMOKE SIMNOW point=goal_done sim_now=71.67s dt=8.50
+SMOKE teb_state=3 dt=8.5s dev_odom=0.177 dev_gt=0.177
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[PASS] B/G6: goal 后 pose 类 ERROR=0
+[PASS] B: 到达偏差 0.177 ≤0.35m
+[PASS] B: 用时 8.50 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /gazebo
+ * /liveness_m4
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /move_base_flex
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+killed
+[exitclean] # 退净核验 @2026-10-08 18:39:17  stage=stageB seg=B
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]   （零命中）
+[exitclean] -- 监听端口分查（计数面）--
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+[PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+SUMMARY marks pass=9 fail=0
+==================================================
+M2 SMOKE: PASS
+==================================================

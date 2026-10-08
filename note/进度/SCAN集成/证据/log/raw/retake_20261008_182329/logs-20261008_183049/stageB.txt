@@ -1,0 +1,17 @@
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.1s
+SMOKE gate_tf_robot=PASS t=0.4s
+SMOKE gate_gcostmap_data=PASS t=0.6s
+SMOKE gate_lcostmap_data=PASS t=0.6s
+SMOKE gate_tf_fresh=PASS t=1.4s ages=[0.030,0.007,0.030]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.0s ages=[0.076,0.072,0.051]
+SMOKE SIMNOW point=age_sample_1 sim_now=22.59s gate_t=2.0s
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.010,0.020,0.015]
+SMOKE E3 tf odom->base_link hits=28 last_stamp=23.276 age=0.010
+SMOKE E3 base_link_parents=['odom'] transforms_total=33
+SMOKE E3 static base_link->rslidar stamp=0.049
+SMOKE E3 static base_link->TORSO stamp=0.049
+SMOKE gate=PASS t=4.6s
+SMOKE SIMNOW point=goal_send sim_now=23.29s
+SMOKE SIMNOW point=goal_done sim_now=31.70s dt=8.42
+SMOKE teb_state=3 dt=8.4s dev_odom=0.197 dev_gt=0.197
