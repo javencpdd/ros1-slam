@@ -1,0 +1,44 @@
+<launch>
+  <!-- lio_relay_sim.launch —— 壳包自持的 faster_lio → SCAN 前馈 relay（批2／FD-G，小明 2026-10-08）
+
+       为何要自持一份：上游 30_3rd/plan_manage/launch/lio_relay.launch 除三条 relay 外，还发一条
+       静态边 body -> base_link（该件 :57-58）。在 P3 窗内 base_link 会同时有
+       静态父 body（本边）与动态父 odom（驱动插件 lite3_planar_drive.cpp:127）⇒ **base_link 双父复发**，
+       正是 M2R5/U1 刚根除的那类缺陷（tf2 查询命中静态缓存被规范化的 Time(0) ⇒ 零戳）。
+       而 lio_relay 是 30_3rd 原样复制件，在 49 件基线清单第 29 行（sha 1d0aa3f4…）⇒ 改它即失基线。
+       故：不动基线件，改由本壳包自持等价 relay，输出话题集与上游逐字相同，仅**不发那条静态边**。
+
+       上游对本边自己的评价（lio_relay.launch:52-53）：「body -> base_link: 仅为可视化连通…
+       恒等近似…规划器不消费 TF, 无影响」⇒ 去掉它对 SCAN 规划零影响，只影响 RViz/Foxglove 里
+       robot 模型与栅格同框；若确需可视化连通，改由可视化侧或 TOP 编排层临时挂，且必须走
+       base_link 作父（与 U1 后的 URDF 拓扑同向），不得反向挂成 base_link 的父帧。
+
+       批次纪律：本件与 70_scan.launch:28 的 include 改指属**同一行改动**，故与批1（行 B 显式 odom_in）
+       必须分批落地（小张 fd 矩阵 §10.4、小美 M2R7 第四节批准）。本 commit 只交件，不改 70_scan.launch；
+       接线与复跑（E3 双父签名／SCAN P1 P2／FD-6 明细／门禁）在批2 活体窗一次做完。 -->
+
+  <arg name="odom_in"   default="/Odometry"/>       <!-- 批1/F-D 后：/Odometry 恰为 faster_lio 单写 -->
+  <arg name="cloud_in"  default="/cloud_registered_body"/>
+
+  <arg name="odom_body_out" default="/LIO/odom_vehicle"/>
+  <arg name="odom_imu_out"  default="/LIO/odom_imu"/>
+  <arg name="cloud_out"     default="/LIO/clouds_lidar"/>
+
+  <!-- 机体位姿：供 /grid_map/body_pose（滑动地图窗口跟随） -->
+  <node pkg="topic_tools" type="relay" name="lio_odom_vehicle_relay"
+        args="$(arg odom_in) $(arg odom_body_out)" output="screen"/>
+
+  <!-- 传感器位姿：供 /grid_map/sensor_pose（射线原点）；与机体位姿同源，点云已是机体系故不需额外外参 -->
+  <node pkg="topic_tools" type="relay" name="lio_odom_imu_relay"
+        args="$(arg odom_in) $(arg odom_imu_out)" output="screen"/>
+
+  <!-- 点云：供 /grid_map/cloud（is_real_world 下 cloud_is_world=false，期望机体系点云） -->
+  <node pkg="topic_tools" type="relay" name="lio_cloud_relay"
+        args="$(arg cloud_in) $(arg cloud_out)" output="screen"/>
+
+  <!-- 静态 TF：只保留 world -> camera_init（SCAN 的 frame_id 是 world，faster_lio 的 TF 是 camera_init->body，
+       否则 world 是孤立帧）。**刻意不发** body -> base_link（见头部理由）。 -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_camera_init"
+        args="0 0 0 0 0 0 world camera_init"/>
+
+</launch>
