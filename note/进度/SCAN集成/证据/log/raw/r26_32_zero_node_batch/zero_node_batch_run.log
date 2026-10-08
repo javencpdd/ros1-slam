@@ -1,0 +1,48 @@
+# 零节点回归批（note/进度/SCAN集成/证据/log/raw/r26_32_zero_node_batch 本档由 retake 之外的纯静态段构成，2026-10-08 12:01:16）
+===== scripts/verify/v_sh_py_syntax.sh ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+[OK] python 段 L430-L452 ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+[OK] python 段 L474-L535 ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+[OK] 4 段全过 ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+PY SYNTAX OK
+  ---- rc=0
+===== scripts/verify/v_sh_py_syntax.sh ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+[OK] 无内嵌 python 段 ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+PY SYNTAX OK
+  ---- rc=0
+===== scripts/verify/v_sh_py_syntax.sh ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh
+[OK] 无内嵌 python 段 ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh
+PY SYNTAX OK
+  ---- rc=0
+===== ws/src/95_simulation/lite3_gazebo_sim/verify/v_m2_exitclean_selftest.sh
+EXITCLEAN SELFTEST: 用例 PASS=17 FAIL=0 / 17
+  覆盖面：探针敏感度（U1 阳性／U2 阴性）、进程面差集（U3 不误判／U4 真判死／U8 分栏）、
+  缺基线（U5）、端口计数与身份两面（U6 真判死／U7 不误伤）、段令牌幂等（U9）
+==================================================
+  ---- rc=0
+===== ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh
+[PASS] C4 壳包 relay 零条 base_link 为子的静态边（该件静态边共 1 条，全为可视化用途）
+[PASS] C5 30_3rd 基线双条件全过（非 OK 行数=0，计数=49）
+==================================================
+TF EDGE CONFLICT VERDICT: PASS=5 FAIL=0
+  ---- rc=0
+===== ws/src/40_navigation/lite3_scan/verify/v_scan_relay_equiv.sh
+[PASS] relay 等价与单父静态断言（上列四项）
+[PASS] 30_3rd 基线双条件未被触动（非 OK=0，计数=49）
+[PASS] 批2 接线在位：70_scan.launch 的 include 目标＝壳包 lio_relay_sim.launch，且上游件引用已消失
+RELAY EQUIV VERDICT: PASS
+  ---- rc=0
+===== scripts/verify/v_harness_generation_table.sh --check
+== 07 档对账：在册 13 行，不符 0 行 ==
+GENERATION TABLE CHECK: PASS（13 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+  ---- rc=0
+===== scripts/verify/v3_isolation.sh
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.cc/.h）
+=== ISOLATION OK ===
+# self-attest: at=2026-10-08 12:01:55 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4531 rc=0
+  ---- rc=0
+===== 30_3rd 双条件
+0
+49
