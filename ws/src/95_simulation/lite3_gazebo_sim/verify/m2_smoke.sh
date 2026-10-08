@@ -26,7 +26,8 @@ export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:/home/ros1-slam/ws/devel/lib
 
 PASS=1
 INVALID=0  # A0 前置：运动窗 RTF<0.25（M2R2 主理人裁决 0.3→0.25：D-01 后 200Hz IMU 正确配置合理 RTF 平台 0.288，门意抓塌缩非惩罚正确配置）→ 本轮作废重跑，不计 FAIL
-mark() { [ "$1" = "1" ] && echo "[PASS] $2" || { echo "[FAIL] $2"; PASS=0; }; }
+NPMARK=0; NFMARK=0   # R27 四：mark 自计数，供判定行与原件计数互核（她 #2：表上 6/2 与原件 3/1 不可指认）
+mark() { if [ "$1" = "1" ]; then NPMARK=$((NPMARK+1)); echo "[PASS] $2"; else NFMARK=$((NFMARK+1)); PASS=0; echo "[FAIL] $2"; fi; }
 wait_topic() {  # D-M2-P4（D-M1-3 同款修法移植）：启动窗内单次长 echo 挂起/吞 TERM（M1 实证 4/4）；list 门控+短 echo 反复重试
   local t=0
   while [ "$t" -lt "$2" ]; do
@@ -42,69 +43,13 @@ PAT='roslaunch|rosmaster|rosout|gzserver|gzclient|move_base_flex|topic_tools|sim
 #   既存命中一律靠「与基线快照取差集」自然排除，不写死任何 PID。
 OWN='m2_tf_fresh|m2_free_map|m2_cmd_relay|gzserver|rosmaster --core -p 11313'
 PORTS="11311 11312 11313 11345"
-CHECK_DONE=0
-
-port_cnt() { # $1=port -> "TCP UDP"
-  local t u
-  t=$(ss -lnt 2>/dev/null | grep -c ":$1\b"); u=$(ss -lnu 2>/dev/null | grep -c ":$1\b")
-  echo "$t $u"
-}
-
-exitbase_snapshot() { # R21 二：起跑前基线快照（PAT 命中 PID 集 ＋ 四口 TCP/UDP 计数）
-  { echo "# exitbase @$(date '+%Y-%m-%d %H:%M:%S') stage=$STAGE"
-    echo "PIDS $(pgrep -f "$PAT" 2>/dev/null | sort -n | tr '\n' ',' | sed 's/,$//')"
-    for pt in $PORTS; do set -- $(port_cnt "$pt"); echo "PORT $pt TCP=$1 UDP=$2"; done
-  } > "$LOGDIR/exitbase.txt" 2>&1
-  sed 's/^/[exitbase] /' "$LOGDIR/exitbase.txt"
-}
-
-exitclean_check() { # R10 打印 + R21 形态 + R22 部分阻断判据（**必须在判定段之前调用**，见下方说明）
-  [ "$CHECK_DONE" = "1" ] && return 0
-  CHECK_DONE=1
-  { echo "# 退净核验 @$(date '+%Y-%m-%d %H:%M:%S')  stage=$STAGE"
-    echo "-- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--"
-    _p=$(pgrep -f "$PAT" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-    if [ -n "$_p" ]; then
-      ps -o pid,user,ppid,lstart,args --no-headers -p $(echo "$_p" | tr ',' ' ') 2>/dev/null | grep -v "pgrep -f" || echo "  （零命中）"
-    else echo "  （零命中）"; fi
-    echo "-- 监听端口分查 --"
-    for pt in $PORTS; do set -- $(port_cnt "$pt"); echo "  port $pt TCP=$1 UDP=$2"; done
-  } > "$LOGDIR/exitclean.txt" 2>&1
-  sed 's/^/[exitclean] /' "$LOGDIR/exitclean.txt"
-
-  # ---- 基线读取（缺基线时不判死，只申报缺失：避免「没快照」被当成「干净」）----
-  if [ ! -f "$LOGDIR/exitbase.txt" ]; then
-    mark 0 "退净：缺起跑前基线快照（exitbase.txt 不在位）⇒ 无法按增量判定，本项按不洁处理"
-    return 0
-  fi
-  B_PIDS=$(grep '^PIDS ' "$LOGDIR/exitbase.txt" | tail -1 | cut -d' ' -f2 | tr ',' ' ')
-  # ---- R22 一：端口面阻断（按基线增量，非零即判死）----
-  _pfail=0
-  for pt in $PORTS; do
-    set -- $(awk -v pt="$pt" '$1=="PORT" && $2==pt {gsub(/TCP=/,"",$3); gsub(/UDP=/,"",$4); print $3, $4}' "$LOGDIR/exitbase.txt" | tail -1)
-    bt=${1:-0}; bu=${2:-0}
-    set -- $(port_cnt "$pt"); ct=$1; cu=$2   # 注：本循环不依赖外层位置参数
-    if [ $((ct + cu)) -gt $(( ${bt:-0} + ${bu:-0} )) ]; then
-      echo "  [port-delta] port $pt 基线=$(( ${bt:-0} + ${bu:-0} )) → 退净=$((ct + cu))"; _pfail=1
-    fi
-  done
-  [ "$_pfail" = "0" ] && mark 1 "退净/端口面：四口相对基线零新增（R22 一）" \
-                      || mark 0 "退净/端口面：本跑新增端口占用（见上方 port-delta，R22 一）"
-  # ---- R22 二：进程面阻断（仅差集，且须含自有标识）----
-  _dfail=""
-  for pid in $(pgrep -f "$PAT" 2>/dev/null); do
-    _keep=0
-    for b in $B_PIDS; do [ "$pid" = "$b" ] && _keep=1 && break; done
-    [ "$_keep" = "1" ] && continue
-    _cl=$(ps -o args= --no-headers -p "$pid" 2>/dev/null)
-    echo "$_cl" | grep -qE "$OWN" && _dfail="$_dfail $pid"
-  done
-  if [ -z "$_dfail" ]; then
-    mark 1 "退净/进程面：本跑派生零残留（差集为空，既存命中不入判据，R22 二/三）"
-  else
-    mark 0 "退净/进程面：本跑派生未退净，新增 PID:$_dfail（R22 二）"
-  fi
-}
+# [R26 落地 2026-10-08] 退净判据四函数（port_cnt／port_ids／probe_sens_check／exitbase_snapshot／exitclean_check）
+#   搬到同目录 m2_exitclean_lib.sh：她 R26 的验收判据要求「改件后随批做一次已知态标定」，而标定必须跑在
+#   活体同一份判据代码上（另抄一份去测＝测的不是在跑的那份，05 B2），故判据住库件、活体与零节点标定件同 source。
+#   三条改式出处：差集非空即判死（R26 一，OWN 降为打印分栏）／端口面比身份三元（R26 二）／按段令牌各检一次（R26 三）。
+SEG=pre          # 段名令牌：stage_a／stage_b／stage_c 各自置 A／B／C（R26 三）
+CHECKED_SEG=""   # 已检段；旧 CHECK_DONE 整跑一锁，使 stage=all 只检第一段（她 #13）
+source "$SIM_PKG/verify/m2_exitclean_lib.sh"
 
 kill_all() { rosnode kill -a 2>/dev/null; sleep 3
   pkill -f gzserver 2>/dev/null; pkill -f gzclient 2>/dev/null
@@ -122,6 +67,7 @@ kill_all() { rosnode kill -a 2>/dev/null; sleep 3
 cleanup() { kill_all; exitclean_check; true; }
 trap cleanup EXIT
 
+probe_sens_check  # R27 三：端口查询式探针的阳性（非零）自检，随批常驻
 exitbase_snapshot   # R21 二：起跑前基线（在任何 roslaunch/gzserver 起来之前）
 if [ -f "$MAP" ]; then cp "$MAP" "$LOGDIR/lite3.pcd.bak"
   sha256sum "$MAP" | awk '{print $1}' > "$LOGDIR/pcd.sha256.before"; echo "[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）"; fi
@@ -132,6 +78,7 @@ if [ -f "$MAP" ]; then cp "$MAP" "$LOGDIR/lite3.pcd.bak"
 
 # ============ Stage A：闭环回归（M2-1/M2-4） ============
 stage_a() {
+  SEG=A   # R26 三：本段退净按段各检一次
   roslaunch lite3_gazebo_sim m2_gazebo.launch > "$LOGDIR/gazeboA.log" 2>&1 &
   # 注：m2_gazebo.launch 亦 install 至包内 launch/（$(find lite3_gazebo_sim)/launch/m2_gazebo.launch），二选一等价
   wait_topic /clock 300 || { echo "FAIL A: /clock 未出"; return 1; }
@@ -232,6 +179,7 @@ PYEOF
 
 # ============ Stage B：teb 物理闭环（M2-2） ============
 stage_b() {
+  SEG=B   # R26 三：本段退净按段各检一次
   # [M2R3] TF_SOURCE 环境变量为阴性对照口子：置 static 可回退旧静态件，
   #   用于证明新门控 G5/G5b 确有分辨力（该跑必须 G5 FAIL）；缺省空=用 launch 内 fresh 缺省。
   roslaunch lite3_bringup mode_sim_teb.launch ${TF_SOURCE:+tf_source:=$TF_SOURCE} > "$LOGDIR/tebB.log" 2>&1 &
@@ -381,7 +329,7 @@ if G5_DELAY_SIM > 0:
     ok_press = bool(_r) and (_b_abs or _b_span)
     print('SMOKE gate_press_late=%s branch=%s (reached=%s sim2=%.2f span=%.2f 判据=(sim2>=60 且 span>=35) 或 span>=40)'
           % ('PASS' if ok_press else 'FAIL',
-             ('abs+span' if _b_abs else ('span' if _b_span else 'NONE')), _r, _sim2, _span))
+             ('unreached' if not _r else ('abs+span' if _b_abs else ('span' if _b_span else 'NONE'))), _r, _sim2, _span))
 # G5c1 **自 M2R5 起为阻断 gate 项**：小美 M2R4 复核节判 L307 前置③成立（base_link 双父未修正而
 #   G5c1 7/7 全命中）⇒ 本档 M2R3 的「降级追认」作废，按 L307 原文回补进 gate 字典。
 #   调用形态与阈值一律未放宽：仍单次 g5_sample('odom','base_link')，need=3 / lim=1.0 / 零戳与首帧戳否决照旧。
@@ -471,6 +419,7 @@ PYEOF
 
 # ============ Stage C：hdl 重定位（M2-3） ============
 stage_c() {
+  SEG=C   # R26 三：本段退净按段各检一次
   # C-1 建图（pcd_save:=true）：复用 Stage A 驱动序列走一遍（out/turn/back），优雅 SIGINT 落盘
   roslaunch lite3_gazebo_sim m2_gazebo.launch > "$LOGDIR/gazeboC.log" 2>&1 &
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出"; return 1; }
@@ -633,12 +582,13 @@ fi
 # ============ 退净判据前移（R21/R22 落地关键） ============
 # 为何必须显式调用：mark 只改 PASS 变量，而 rc 由本段之后的 verdict 打印决定；
 #   若只依赖 trap cleanup EXIT，trap 是在 exit 之后才跑 ⇒ 退净判据永远影响不到 rc（假判据）。
-# 故此处先 kill_all 落退净态、再 exitclean_check 加 mark；CHECK_DONE 让 trap 成为幂等兜底。
+# 故此处先 kill_all 落退净态、再 exitclean_check 加 mark；段令牌 CHECKED_SEG 让 trap 成为幂等兜底（R26 三）。
 kill_all
 exitclean_check
+echo "SUMMARY marks pass=$NPMARK fail=$NFMARK"   # R27 四：供 driver 与原件 ^[PASS]／^[FAIL] 计数互核
 echo "=================================================="
 if [ "$INVALID" = "1" ]; then
-  echo "M2 SMOKE: INVALID（运动窗 RTF<0.25，重跑不计 FAIL）"
+  echo "M2 SMOKE: INVALID（运动窗 RTF<0.25，重跑不计 FAIL）并存判据 FAIL=$NFMARK（作废不等于判据通过：FAIL 明细须随批可读；rc 分档口径待验收裁定 #30，件面不自改）"
   echo "=================================================="
   exit 3
 fi
