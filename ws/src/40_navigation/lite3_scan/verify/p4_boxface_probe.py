@@ -165,7 +165,11 @@ def main():
 
     def frame_shift(frame):
         """该 frame 相对 world 的平移与旋转角；旋转 >3° ⇒ 不能用"世界偏航＋平移"的简化（自锁①）。"""
-        tr, q = listener.lookupTransform(frame, "world", rospy.Time(0))
+        # 方向是关键：lookupTransform(A,B) 给的是"把 B 系的点换到 A 系"，其平移＝B 原点在 A 里的坐标。
+        # 本件要"把该 frame 的点换进 world" ⇒ 必须 (target=world, source=frame)；写成 (frame, world)
+        # 会拿到反向平移（z 差 ≈2×光心高 ≈1.06m）⇒ 箱 OBB 整层落空——这就是 R74/R76 里
+        # /cloud_registered_body 比 post-voxel 层还少的根因（#62）。
+        tr, q = listener.lookupTransform("world", frame, rospy.Time(0))
         yaw = math.degrees(math.atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
         return tuple(tr), yaw
 
@@ -221,6 +225,12 @@ def main():
         + "（格式 OBB内/背景环带）")
     say("  阳性各层 OBB 内点的**距本层原点量程 rmin–rmax**（blind 的直接证据面）："
         + " ".join("%s=%.2f–%.2f" % (k, pc[k][3], pc[k][4]) for k in LAYERS if pc[k][0]))
+    mono = [(pre, post, pc[pre][0], pc[post][0]) for pre, post in (("body", "cloud"),) if pc[pre][0] < pc[post][0]]
+    if mono:
+        say("P4 箱体OBB探针 = INVALID|单调性断言不过 %s（pre-voxel 层比 post-voxel 层还少）⇒ 体素只会并点不会凭空多，"
+            "几何/帧换算必有问题，先修口径不出层结论" % mono)
+        return 9
+    say("  单调性断言（pre ≥ post）：body=%d ≥ cloud=%d ⇒ 过" % (pc["body"][0], pc["cloud"][0]))
     if pc["raw"][0] < 50:
         say("P4 箱体OBB探针 = INVALID|landmark 不过：raw 层在 obs_1 的 OBB 内只有 %d 点（需 ≥50）"
             "⇒ 几何口径本身没对准，不出层结论" % pc["raw"][0])
