@@ -64,8 +64,15 @@ echo "  /clock 就绪 t=${T}s"
 #   更糟的是随即 exit → trap 关掉整台仿真（首版即踩此坑，log 见 Reason given for shutdown: user request）。
 # 就绪信号必须等**目标那一条**：planners（GlobalPlanner/NavfnROS）先于 controllers 装载，
 #   拿「loaded successfully 计数 >=2」当就绪会在 DWA 还没轮到时就读到 2 而提前判定（首版即踩）。
+# R86 等待上界重定标（件面改动，**不动任何判据门值**）：原 300s 是按「快环境」拍的，实测两次装载时刻差一倍以上——
+#   try1：装载行落在墙钟 +约340s（sim=1.268s，RTF≈0.24）⇒ 300s 判 INVALID 属**假红**；
+#   try2：bound 已放到 600s 仍未装载，事后看日志实际到货约 +690s（含迟到自诊的 30s 也没赶上）
+#     ⇒ 同一次窗里我并发跑了 sha256/读 npy 这类重活，把装载拖长了一倍（02 坑54：**独占窗里并发离线活会制造假 INVALID**）。
+#   结论：装载时延对机器负载敏感，上界必须按**最慢观测值再加裕量**定 ⇒ 默认 900s；`DWA_LOAD_BOUND` 可覆写。
+#   纪律面同步：跑本件期间**不得并发跑离线重活**（已在 05 的 G 段与本注释留名）。
+LOAD_BOUND=${DWA_LOAD_BOUND:-900}
 DWA_LOADED=0; TEB_LOADED=0; T2=0
-while [ $T2 -lt 300 ]; do
+while [ $T2 -lt $LOAD_BOUND ]; do
   DWA_LOADED=$(grep -ac 'dwa_local_planner/DWAPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1); DWA_LOADED=${DWA_LOADED:-0}
   TEB_LOADED=$(grep -ac 'teb_local_planner/TebLocalPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1); TEB_LOADED=${TEB_LOADED:-0}
   [ "$DWA_LOADED" -ge 1 ] && [ "$TEB_LOADED" -ge 1 ] && break
@@ -73,6 +80,18 @@ while [ $T2 -lt 300 ]; do
 done
 LOAD=$(grep -ac 'has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1)
 echo "  等待 ${T2}s；DWA 命中=$DWA_LOADED teb 命中=$TEB_LOADED（loaded 总累计=$LOAD，含 planners/recovery）"
+  # 假红自诊（R86）：判 INVALID 之前再等 30s 复看一次。
+  #   若这里非 0 而上面是 0 ⇒ 属**上界太短**（装载迟到），不是「通道坏了」——两种情况的处置完全不同，
+  #   前者只需把 bound 调对再重跑，后者才该上报回归。
+  if [ "${DWA_LOADED:-0}" -lt 1 ] || [ "${TEB_LOADED:-0}" -lt 1 ]; then
+    sleep ${DWA_LATE_CHECK:-120}
+    LD=$(grep -ac 'dwa_local_planner/DWAPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1)
+    LT=$(grep -ac 'teb_local_planner/TebLocalPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1)
+    echo "  【装载迟到自诊】bound=${LOAD_BOUND}s 用尽后再等 ${DWA_LATE_CHECK:-120}s ⇒ DWA 命中=${LD:-0} teb 命中=${LT:-0}"
+    if [ "${LD:-0}" -ge 1 ] && [ "${LT:-0}" -ge 1 ]; then
+      echo "  【判定】装载其实成功＝本次 INVALID 属**等待上界太短**（假红），不是通道故障；请调 DWA_LOAD_BOUND 重跑"
+    fi
+  fi
 [ "${DWA_LOADED:-0}" -ge 1 ] || { echo "  [INVALID] DWA 未装载 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性；R40：旧版在此打 FAIL 并 exit 1 属语义混叠）"; exit 6; }
 LIST=$(timeout 15 rosparam get /move_base_flex/controllers 2>/dev/null | tr -d '\n' | grep -o "name: '[A-Za-z]*'")
 echo "  控制器注册表: $LIST"

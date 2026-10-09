@@ -1,0 +1,12 @@
+### 一、mbf 是否真把 DWA 装进控制器表（加载判据，零节点侧改动）
+  /clock 就绪 t=10s
+  等待 300s；DWA 命中=0 teb 命中=0（loaded 总累计=2，含 planners/recovery）
+  [INVALID] DWA 未装载 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性；R40：旧版在此打 FAIL 并 exit 1 属语义混叠）
+[exitclean] # 退净核验 @2026-10-10 05:26:49
+[exitclean] -- 命中进程原样 ps 行 --
+[exitclean]   （零命中）
+[exitclean] -- 端口 TCP/UDP 分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
