@@ -1,0 +1,66 @@
+index.txt —— R85 批1 复跑清单的第③④⑤⑦⑧条销项（含 ⑪ 的一半）
+目录：note/进度/SCAN集成/证据/log/raw/r85_b1_345/
+时间：2026-10-10 05:01–05:10（CST，独占链窗）＋05:08 的两条离线件
+驱动：`r85_b1_345_driver.sh`（命令形状照在册 `证据/log/raw/b1_retake/b1_retake_driver.sh` 抄，不自创口径）
+清单出处：`设计/fd_双写者与前馈源裁定.md` §10.4「复跑清单 11 条」（活体 9 条）
+
+一、本窗结果（三条活体）
+③ **stageA 复取＝有效，第 1 次就取到**（`TF_SOURCE="" bash verify/m2_smoke.sh stageA` ⇒ rc=0，**11 PASS / 0 FAIL / 0 INVALID**）
+   · `A0(前置): 运动窗 RTF 0.294 ≥0.25` ⇒ 上一批那次 rc=3 INVALID（RTF 0.240）**已闭合**；**未用满三次、未降门值**。
+   · `A③(M2-4): 漂移 0.488 ≤0.5`（同跑 `gt_drift=0.488`）；`rate_pts=10.0 rate_imu=198.6 fly_ratio=0.0000 mw_sim=24.0 mw_wall=81.5`。
+   · 随跑位姿源断言（`m2_smoke.sh:104` 的 post_a 档）：`/Odometry Publishers=1 [/faster_lio_online]` 帧对 `{camera_init, body}`；
+     `/sim/odom_gt Publishers=1 [/gazebo]` 帧对 `{odom, base_link}` ⇒ `POSE SOURCE VERDICT: PASS (post_a)`。
+   ⇒ 清单对 ③ 的附加义务（"登记 A③ 源身份已变、旧带降为历史观察值"）由本文件**第六节**承担。
+④ **SCAN P1 = PASS**（`v_scan_p1.sh` ⇒ rc=0；`P1 判据① 结论 = PASS`；判定原文六项全 PASS：帧数≥3／末帧点数>0／
+   末帧≥首帧（建图不减）／`frame_id=world`／包围盒非退化／…；样张 sha 起前＝退后 OK）
+⑤ **SCAN P2 = PASS**（`v_scan_p2.sh` ⇒ rc=0；`判定: PASS|全部 7 项通过`；F9 互斥 `move_base 节点数=0 须=0`）
+   · **同窗取到 O-1：`endpoint_err_m = 0.829`（`react_s = 0.27`）** ⇒ 对照在册旧值 **1.027 m**（`SCAN集成/进度文档.md:183`）
+     本次更小，但仍是**越过 goal 约 0.8 m** 量级；**这是观察值不是判据**（P2 判据不含到达精度），O-1 仍挂小张。
+
+二、两条不占链窗的（⑦⑧）
+⑦ **FD-6 哨兵读数＝已取**：`base_link_parents=['odom']` 五跑各 1 次（值恒恰单元素＝FD-6 期望，**无双父复发**），
+   `transforms_total` 35–37。出处＝**R81 批1 五连同窗留证**（`../r81_b1_stageB5/b1..b5.log`），
+   复现命令 `for f in b1 b2 b3 b4 b5; do grep -ho "base_link_parents=\[[^]]*\]" $f.log; done`。
+   如实限定：清单要"1 次"，本条给的是**同一批五连里的五次同值**；若小美要求与 ⑥ 同窗再取一次，随 ⑥ 一起做即可。
+⑧ **V6 结构等价对照＝满足**：`xacro → /tmp/r85_v6/r85.urdf`（166 行）后 `check_urdf` 报
+   `root Link: base_link has 2 child(ren)`，子为 `rslidar` 与 `TORSO` ⇒ 与在册期望逐字一致，**单父拓扑未被打穿**；
+   且 `git diff HEAD -- lite3_planar.urdf.xacro` **零行输出**（本批未动 xacro）。全文见 `v6_structural_and_fd6.txt`。
+
+三、零改点与红线（跑前＝跑后自证）
+`sha_inputs_before.txt` 与 `sha_inputs_after.txt` **逐行相同**（diff 无输出），覆盖 9 件：
+   `lite3_planar.urdf.xacro`／`m2_smoke.sh`／`m2_exitclean_lib.sh`／`v_pose_source.sh`／`v_scan_p1.sh`／`v_scan_p2.sh`／
+   `p2_goal_plan.py`／受保护世界件 `m1_world.world`（fb52d5e6ed3eda30…）／受保护样张 `data/maps/lite3.pcd`（**aaa09362c5f1aef9**）。
+⇒ **未改任何判据、门值、配置、launch、源码**；SM/LIB 一字未动 ⇒ **代际仍 H14**；
+   跑前／跑后 在册端口监听 0、残留进程 0；P1/P2 各自 teardown 亦报净。
+
+四、批1 十一条现在到哪（截至 R85）
+   ① FD-2 改前阳性对照 ✅ ｜ ② stageB 五连（含 ≥1 加压）✅ R81 ｜ ③ stageA 有效复取 ✅ **本窗** ｜
+   ④ SCAN P1 ✅ **本窗** ｜ ⑤ SCAN P2＋O-1 同窗 ✅ **本窗** ｜ ⑦ FD-6 哨兵 ✅ **本窗（同批五连留证）** ｜
+   ⑧ V6 结构等价 ✅ **本窗（离线）** ｜ ⑩ `v3_isolation` 全量 [1]–[9] ✅ R81 同窗（04:00:23，附限定）｜
+   ⑪ 登记面 ◐ **做了一半**（04 台账一条 ✅＋before 留底 sha ✅；**"判据载体变更挂账一条交小美追认"未做**，随 A17 一起答）
+   ⇒ **7.5 / 11**；仍缺 **⑥**（FD-0/1/3/4 各 1 组 ×三取样点）与 **⑨**（W4 复测件可用性复跑 1 次）。**本批不称批1 完成。**
+   ⑥ 为什么本窗没顺手做（已升为裁定项 **A17**，见请求单 Q 补二）：
+     · `v_pose_source.sh` 只覆盖 **FD-0／FD-1**；**FD-3（`/LIO/odom_vehicle` 与 `/Odometry` 同族、与 `/sim/odom_gt` 异源）
+       与 FD-4（`rosnode list` 里 `sim_pose_tf` 命中数必须=0）没有任何可执行件**；
+     · 要凑齐就得新增判定行，而 批1 行 C 的在册口径是「断言件**只打印不判据**、正式入 gate 随批1b」，
+       小美又批过「升为 **P3 及其后每一批活体的起跑前置**」⇒ 两句在 FD-3/4 上哪句算数**需她定**，我不自决；
+     · 且"三取样点"（起链就绪／车动窗中／车动窗末）要在 harness 运行期插采样：本窗只拿到 SM:104 那次（起链就绪）＝1 点；
+       在 SM 内插点＝**改判据载体 ⇒ 代际要加一行**，默认不走。
+   ⇒ **不猜口径跑出来的绿不算数**（坑45 同族），宁缺不滥。
+
+五、并发与顺序
+本窗串行独占 m2_smoke／SCAN harness（锁由 harness 自管），未与探针链并发；⑦⑧ 是读盘与离线展开，不与链争资源。
+
+六、③ 的附加登记义务（源身份已变 ⇒ 旧带降为历史观察值）
+F-D（行 A＋D）落地后，`/Odometry` 的写者由 `{/gazebo(真值), /faster_lio_online(估计)}` 双写变成**仅 LIO 单写**，真值改挂 `/sim/odom_gt`。
+因此 **A③(M2-4)「漂移 ≤0.5」这条带的"被测量"换了身份**：
+   · 改前：drift 是"估计 vs 混着真值写者的 /Odometry"之差，分母不纯；
+   · 改后（本跑）：drift 与 gt_drift **同值**（0.488＝0.488）——两列相等**恰好说明该带的口径需要重挂**，
+     否则"漂移合格"会被读成"对真值的漂移合格"。
+⇒ 处置（**只登记、不动门值**）：**F-D 之前各批的 A③／M2-4 带值一律降为「历史观察值」**，不再与新代际读数同表比较；
+   新带（本次 0.488 属新口径首采）待小美确认后升为在册基线。
+⇒ 这就是 ⑪ 缺的那半件：**「判据载体变更挂账一条」交小美追认**（请求单 Q 补二 A17 内），本批不自认生效。
+
+七、本文件自身的 producing 事故（如实留痕，坑50 同族第六次）
+第一版 `index.txt` 我先写在工作区临时件 `.r85_index.md`，然后在**尚未复制进证据目录**时就 `rm` 了临时件 ⇒ 内容丢一次，
+靠重写恢复。根因与坑50 同一句话：**清理永远排在数据落盘之后**；本目录现存文件即恢复后的版本，sha 以 `_sha256_manifest.txt` 为准。

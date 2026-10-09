@@ -1,0 +1,18 @@
+⑧ V6 结构等价对照（R85，纯离线，不占链窗）
+2026-10-10 05:08:08
+命令：xacro ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro > /tmp/r85_v6/r85.urdf && check_urdf /tmp/r85_v6/r85.urdf
+期望（在册 批1 二·自动化验收）：root Link: base_link has 2 child(ren)
+实得：
+robot name is: lite3_planar
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 2 child(ren)
+    child(1):  rslidar
+    child(2):  TORSO
+urdf 行数=166
+
+结论：单父拓扑未被打穿（base_link 仍恰 2 子＝rslidar＋TORSO；无第三父/无双父）⇒ ⑧ 满足。
+同批 xacro 与 git HEAD 零差异：0 行 diff 输出（0＝未改）
+
+⑦ FD-6 哨兵读数（取自 R81 五连**同窗留证**，非挪用别批：命令可复现）
+命令：for f in b1..b5; do grep -ho "base_link_parents=\[[^]\]*\]" $f.log; done
+实得：b1..b5 各 1 次，值恒为 base_link_parents=['odom']（恰单元素＝FD-6 期望）；transforms_total 35–37

@@ -1,0 +1,37 @@
+[05:01:48] ===== 0) 被测件与 harness 指纹（跑前）=====
+    ef23da2dd5e281ae5b5b973f36224e6801156c07a42e0e9512aaccf123ccc86c  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+    fa8e57359a17daf9f0c1457318e49e63d675027de3ecad11f6e5c401515dfeed  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+    b17022766fa415314aa6967c41370e990d74b80b38b75cec520e8bc388dd5353  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+    72f673805caa6e4162b698bdbaf5e5c71dadef48edc84522208d21f08a1a45bb  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/v_pose_source.sh
+    dea049f37037570bbbf6a15b1a23a09f2f03c247411fa905a532b10e51c6695f  /home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh
+    895ab00a58cb3467221ff6c361f39f4107031601a98e534dc436bbd70bb1b340  /home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/v_scan_p2.sh
+    4f72abfea55adf0ac09734baa290c564253df39ee331dfa0f3a5331c41ff1d40  /home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p2_goal_plan.py
+    fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+    aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+[05:01:49] 跑前净空：在册端口=0 残留=0
+[05:01:49] ===== ③ stageA 有效复取（最多三次取有效；rtf_motion 门 0.25）=====
+[05:05:47]   try1 rc=0 rtf_motion=[0.294] 判定=11P/0F
+      [posesrc] POSE SOURCE VERDICT: PASS (post_a)
+      SMOKE drift=0.488 gt_drift=0.488 rate_pts=10.0 rate_imu=198.6 fly_ratio=0.0000 rtf_motion=0.294 mw_sim=24.0 mw_wall=81.5 phases out=True turn=True back=True
+      [PASS] A: 闭环走完（out/turn/back 全 done）
+      [PASS] A③(M2-4): 漂移 0.488 ≤0.5
+      [PASS] A①: 点云 10.0 ≥5Hz
+      [PASS] A②: IMU 198.6 ≥100Hz
+      [PASS] A④: 飞点 0.0000 <1%
+      [PASS] A0(前置): 运动窗 RTF 0.294 ≥0.25
+      [PASS] 样张 lite3.pcd sha256 未变
+      [PASS] 退净/端口面：四口相对基线零新增（R22 一）
+      [PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+      [PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+[05:05:47]   ⇒ 第 1 次取到有效 stageA（rc=0），复取完成
+[05:05:47] ===== ④ SCAN P1 =====
+[05:08:22]   p1 rc=0
+[05:08:22] ===== ⑤ SCAN P2（同窗取 O-1 endpoint_err）=====
+[05:10:35]   p2 rc=0
+      {"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 3763, "occ_frame": "world", "robot": [0.013, 0.021], "goal": [2.513, 0.021], "goal_dist_to_occ": 0.666, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.27, "bspline": {"order": 3, "n_ctrl": 25, "n_knots": 29, "traj_id": 3}, "traj_min_dist_m": 0.643, "traj_median_dist_m": 0.816, "n_samples": 120, "n_inside_tol": 0, "endpoint": [3.342, 0.019], "endpoint_err_m": 0.829}, "verdict": "PASS"}
+[05:10:35] ===== 9) 跑后指纹与净空（与跑前逐行对）=====
+[05:10:35]   被测件／harness／受保护件 sha **跑前＝跑后**（零改动面自证）
+[05:10:35]   跑后净空：在册端口=0 残留=0
+[05:10:35] ===== 汇总 =====
+[05:10:35]   ③stageA=有效复取成功 ④P1 rc=0 ⑤P2 rc=0
+[05:10:35]   证据目录=/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r85_b1_345
