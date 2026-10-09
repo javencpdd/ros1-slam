@@ -1,0 +1,464 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="stair_lab">
+    <!-- stair_lab_stairs_blocked_mid —— 由 stairstudy/fixtures.py 生成（离线候选件，**不被任何在册 launch 引用**）
+         场景：同几何楼梯＋第 5 级处一根 0.25m 立柱（高 0.50m）
+         请勿与 worlds/m1_world.world 混用：后者是红线件（各跑 world_before/after.sha 对它取指纹）。 -->
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+    <model name="stairs_blocked_mid">
+      <static>1</static>
+      <pose>0.000 0.000 0 0 0 0</pose>
+        <link name="seg0">
+          <pose>0.010 0.000 0.050 0 0 0</pose>
+          <collision name="c0"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v0"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg1">
+          <pose>0.030 0.000 0.050 0 0 0</pose>
+          <collision name="c1"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v1"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg2">
+          <pose>0.050 0.000 0.050 0 0 0</pose>
+          <collision name="c2"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v2"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg3">
+          <pose>0.070 0.000 0.050 0 0 0</pose>
+          <collision name="c3"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v3"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg4">
+          <pose>0.090 0.000 0.050 0 0 0</pose>
+          <collision name="c4"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v4"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg5">
+          <pose>0.110 0.000 0.050 0 0 0</pose>
+          <collision name="c5"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v5"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg6">
+          <pose>0.130 0.000 0.050 0 0 0</pose>
+          <collision name="c6"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v6"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg7">
+          <pose>0.150 0.000 0.050 0 0 0</pose>
+          <collision name="c7"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v7"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg8">
+          <pose>0.170 0.000 0.050 0 0 0</pose>
+          <collision name="c8"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v8"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg9">
+          <pose>0.190 0.000 0.050 0 0 0</pose>
+          <collision name="c9"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v9"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg10">
+          <pose>0.210 0.000 0.050 0 0 0</pose>
+          <collision name="c10"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v10"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg11">
+          <pose>0.230 0.000 0.050 0 0 0</pose>
+          <collision name="c11"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v11"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg12">
+          <pose>0.250 0.000 0.050 0 0 0</pose>
+          <collision name="c12"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v12"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg13">
+          <pose>0.270 0.000 0.050 0 0 0</pose>
+          <collision name="c13"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></collision>
+          <visual name="v13"><geometry><box><size>0.02 1.200 0.100</size></box></geometry></visual>
+        </link>        <link name="seg14">
+          <pose>0.290 0.000 0.100 0 0 0</pose>
+          <collision name="c14"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v14"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg15">
+          <pose>0.310 0.000 0.100 0 0 0</pose>
+          <collision name="c15"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v15"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg16">
+          <pose>0.330 0.000 0.100 0 0 0</pose>
+          <collision name="c16"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v16"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg17">
+          <pose>0.350 0.000 0.100 0 0 0</pose>
+          <collision name="c17"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v17"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg18">
+          <pose>0.370 0.000 0.100 0 0 0</pose>
+          <collision name="c18"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v18"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg19">
+          <pose>0.390 0.000 0.100 0 0 0</pose>
+          <collision name="c19"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v19"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg20">
+          <pose>0.410 0.000 0.100 0 0 0</pose>
+          <collision name="c20"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v20"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg21">
+          <pose>0.430 0.000 0.100 0 0 0</pose>
+          <collision name="c21"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v21"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg22">
+          <pose>0.450 0.000 0.100 0 0 0</pose>
+          <collision name="c22"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v22"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg23">
+          <pose>0.470 0.000 0.100 0 0 0</pose>
+          <collision name="c23"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v23"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg24">
+          <pose>0.490 0.000 0.100 0 0 0</pose>
+          <collision name="c24"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v24"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg25">
+          <pose>0.510 0.000 0.100 0 0 0</pose>
+          <collision name="c25"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v25"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg26">
+          <pose>0.530 0.000 0.100 0 0 0</pose>
+          <collision name="c26"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v26"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg27">
+          <pose>0.550 0.000 0.100 0 0 0</pose>
+          <collision name="c27"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></collision>
+          <visual name="v27"><geometry><box><size>0.02 1.200 0.200</size></box></geometry></visual>
+        </link>        <link name="seg28">
+          <pose>0.570 0.000 0.150 0 0 0</pose>
+          <collision name="c28"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v28"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg29">
+          <pose>0.590 0.000 0.150 0 0 0</pose>
+          <collision name="c29"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v29"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg30">
+          <pose>0.610 0.000 0.150 0 0 0</pose>
+          <collision name="c30"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v30"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg31">
+          <pose>0.630 0.000 0.150 0 0 0</pose>
+          <collision name="c31"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v31"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg32">
+          <pose>0.650 0.000 0.150 0 0 0</pose>
+          <collision name="c32"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v32"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg33">
+          <pose>0.670 0.000 0.150 0 0 0</pose>
+          <collision name="c33"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v33"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg34">
+          <pose>0.690 0.000 0.150 0 0 0</pose>
+          <collision name="c34"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v34"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg35">
+          <pose>0.710 0.000 0.150 0 0 0</pose>
+          <collision name="c35"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v35"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg36">
+          <pose>0.730 0.000 0.150 0 0 0</pose>
+          <collision name="c36"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v36"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg37">
+          <pose>0.750 0.000 0.150 0 0 0</pose>
+          <collision name="c37"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v37"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg38">
+          <pose>0.770 0.000 0.150 0 0 0</pose>
+          <collision name="c38"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v38"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg39">
+          <pose>0.790 0.000 0.150 0 0 0</pose>
+          <collision name="c39"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v39"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg40">
+          <pose>0.810 0.000 0.150 0 0 0</pose>
+          <collision name="c40"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v40"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg41">
+          <pose>0.830 0.000 0.150 0 0 0</pose>
+          <collision name="c41"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></collision>
+          <visual name="v41"><geometry><box><size>0.02 1.200 0.300</size></box></geometry></visual>
+        </link>        <link name="seg42">
+          <pose>0.850 0.000 0.200 0 0 0</pose>
+          <collision name="c42"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v42"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg43">
+          <pose>0.870 0.000 0.200 0 0 0</pose>
+          <collision name="c43"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v43"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg44">
+          <pose>0.890 0.000 0.200 0 0 0</pose>
+          <collision name="c44"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v44"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg45">
+          <pose>0.910 0.000 0.200 0 0 0</pose>
+          <collision name="c45"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v45"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg46">
+          <pose>0.930 0.000 0.200 0 0 0</pose>
+          <collision name="c46"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v46"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg47">
+          <pose>0.950 0.000 0.200 0 0 0</pose>
+          <collision name="c47"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v47"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg48">
+          <pose>0.970 0.000 0.200 0 0 0</pose>
+          <collision name="c48"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v48"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg49">
+          <pose>0.990 0.000 0.200 0 0 0</pose>
+          <collision name="c49"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v49"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg50">
+          <pose>1.010 0.000 0.200 0 0 0</pose>
+          <collision name="c50"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v50"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg51">
+          <pose>1.030 0.000 0.200 0 0 0</pose>
+          <collision name="c51"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v51"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg52">
+          <pose>1.050 0.000 0.200 0 0 0</pose>
+          <collision name="c52"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v52"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg53">
+          <pose>1.070 0.000 0.200 0 0 0</pose>
+          <collision name="c53"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v53"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg54">
+          <pose>1.090 0.000 0.200 0 0 0</pose>
+          <collision name="c54"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v54"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg55">
+          <pose>1.110 0.000 0.200 0 0 0</pose>
+          <collision name="c55"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></collision>
+          <visual name="v55"><geometry><box><size>0.02 1.200 0.400</size></box></geometry></visual>
+        </link>        <link name="seg56">
+          <pose>1.130 0.000 0.250 0 0 0</pose>
+          <collision name="c56"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v56"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg57">
+          <pose>1.150 0.000 0.250 0 0 0</pose>
+          <collision name="c57"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v57"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg58">
+          <pose>1.170 0.000 0.250 0 0 0</pose>
+          <collision name="c58"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v58"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg59">
+          <pose>1.190 0.000 0.250 0 0 0</pose>
+          <collision name="c59"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v59"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg60">
+          <pose>1.210 0.000 0.250 0 0 0</pose>
+          <collision name="c60"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v60"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg61">
+          <pose>1.230 0.000 0.250 0 0 0</pose>
+          <collision name="c61"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v61"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg62">
+          <pose>1.250 0.000 0.250 0 0 0</pose>
+          <collision name="c62"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v62"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg63">
+          <pose>1.270 0.000 0.250 0 0 0</pose>
+          <collision name="c63"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v63"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg64">
+          <pose>1.290 0.000 0.250 0 0 0</pose>
+          <collision name="c64"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v64"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg65">
+          <pose>1.310 0.000 0.250 0 0 0</pose>
+          <collision name="c65"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v65"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg66">
+          <pose>1.330 0.000 0.250 0 0 0</pose>
+          <collision name="c66"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v66"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg67">
+          <pose>1.350 0.000 0.250 0 0 0</pose>
+          <collision name="c67"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v67"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg68">
+          <pose>1.370 0.000 0.250 0 0 0</pose>
+          <collision name="c68"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v68"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg69">
+          <pose>1.390 0.000 0.250 0 0 0</pose>
+          <collision name="c69"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></collision>
+          <visual name="v69"><geometry><box><size>0.02 1.200 0.500</size></box></geometry></visual>
+        </link>        <link name="seg70">
+          <pose>1.410 0.000 0.300 0 0 0</pose>
+          <collision name="c70"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v70"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg71">
+          <pose>1.430 0.000 0.300 0 0 0</pose>
+          <collision name="c71"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v71"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg72">
+          <pose>1.450 0.000 0.300 0 0 0</pose>
+          <collision name="c72"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v72"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg73">
+          <pose>1.470 0.000 0.300 0 0 0</pose>
+          <collision name="c73"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v73"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg74">
+          <pose>1.490 0.000 0.300 0 0 0</pose>
+          <collision name="c74"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v74"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg75">
+          <pose>1.510 0.000 0.300 0 0 0</pose>
+          <collision name="c75"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v75"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg76">
+          <pose>1.530 0.000 0.300 0 0 0</pose>
+          <collision name="c76"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v76"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg77">
+          <pose>1.550 0.000 0.300 0 0 0</pose>
+          <collision name="c77"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v77"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg78">
+          <pose>1.570 0.000 0.300 0 0 0</pose>
+          <collision name="c78"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v78"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg79">
+          <pose>1.590 0.000 0.300 0 0 0</pose>
+          <collision name="c79"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v79"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg80">
+          <pose>1.610 0.000 0.300 0 0 0</pose>
+          <collision name="c80"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v80"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg81">
+          <pose>1.630 0.000 0.300 0 0 0</pose>
+          <collision name="c81"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v81"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg82">
+          <pose>1.650 0.000 0.300 0 0 0</pose>
+          <collision name="c82"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v82"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg83">
+          <pose>1.670 0.000 0.300 0 0 0</pose>
+          <collision name="c83"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></collision>
+          <visual name="v83"><geometry><box><size>0.02 1.200 0.600</size></box></geometry></visual>
+        </link>        <link name="seg84">
+          <pose>1.690 0.000 0.350 0 0 0</pose>
+          <collision name="c84"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v84"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg85">
+          <pose>1.710 0.000 0.350 0 0 0</pose>
+          <collision name="c85"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v85"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg86">
+          <pose>1.730 0.000 0.350 0 0 0</pose>
+          <collision name="c86"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v86"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg87">
+          <pose>1.750 0.000 0.350 0 0 0</pose>
+          <collision name="c87"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v87"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg88">
+          <pose>1.770 0.000 0.350 0 0 0</pose>
+          <collision name="c88"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v88"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg89">
+          <pose>1.790 0.000 0.350 0 0 0</pose>
+          <collision name="c89"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v89"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg90">
+          <pose>1.810 0.000 0.350 0 0 0</pose>
+          <collision name="c90"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v90"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg91">
+          <pose>1.830 0.000 0.350 0 0 0</pose>
+          <collision name="c91"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v91"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg92">
+          <pose>1.850 0.000 0.350 0 0 0</pose>
+          <collision name="c92"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v92"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg93">
+          <pose>1.870 0.000 0.350 0 0 0</pose>
+          <collision name="c93"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v93"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg94">
+          <pose>1.890 0.000 0.350 0 0 0</pose>
+          <collision name="c94"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v94"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg95">
+          <pose>1.910 0.000 0.350 0 0 0</pose>
+          <collision name="c95"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v95"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg96">
+          <pose>1.930 0.000 0.350 0 0 0</pose>
+          <collision name="c96"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v96"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg97">
+          <pose>1.950 0.000 0.350 0 0 0</pose>
+          <collision name="c97"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></collision>
+          <visual name="v97"><geometry><box><size>0.02 1.200 0.700</size></box></geometry></visual>
+        </link>        <link name="seg98">
+          <pose>1.970 0.000 0.400 0 0 0</pose>
+          <collision name="c98"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v98"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg99">
+          <pose>1.990 0.000 0.400 0 0 0</pose>
+          <collision name="c99"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v99"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg100">
+          <pose>2.010 0.000 0.400 0 0 0</pose>
+          <collision name="c100"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v100"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg101">
+          <pose>2.030 0.000 0.400 0 0 0</pose>
+          <collision name="c101"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v101"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg102">
+          <pose>2.050 0.000 0.400 0 0 0</pose>
+          <collision name="c102"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v102"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg103">
+          <pose>2.070 0.000 0.400 0 0 0</pose>
+          <collision name="c103"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v103"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg104">
+          <pose>2.090 0.000 0.400 0 0 0</pose>
+          <collision name="c104"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v104"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg105">
+          <pose>2.110 0.000 0.400 0 0 0</pose>
+          <collision name="c105"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v105"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg106">
+          <pose>2.130 0.000 0.400 0 0 0</pose>
+          <collision name="c106"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v106"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg107">
+          <pose>2.150 0.000 0.400 0 0 0</pose>
+          <collision name="c107"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v107"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg108">
+          <pose>2.170 0.000 0.400 0 0 0</pose>
+          <collision name="c108"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v108"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg109">
+          <pose>2.190 0.000 0.400 0 0 0</pose>
+          <collision name="c109"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v109"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg110">
+          <pose>2.210 0.000 0.400 0 0 0</pose>
+          <collision name="c110"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v110"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg111">
+          <pose>2.230 0.000 0.400 0 0 0</pose>
+          <collision name="c111"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v111"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>
+    </model>
+
+  </world>
+</sdf>

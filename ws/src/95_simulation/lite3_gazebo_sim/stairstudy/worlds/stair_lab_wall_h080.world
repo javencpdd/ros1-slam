@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="stair_lab">
+    <!-- stair_lab_wall_h080 —— 由 stairstudy/fixtures.py 生成（离线候选件，**不被任何在册 launch 引用**）
+         场景：整面高 0.80m 厚 0.20m 无踏步
+         请勿与 worlds/m1_world.world 混用：后者是红线件（各跑 world_before/after.sha 对它取指纹）。 -->
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+    <model name="wall_h080">
+      <static>1</static>
+      <pose>0.000 0.000 0 0 0 0</pose>
+        <link name="seg0">
+          <pose>0.010 0.000 0.400 0 0 0</pose>
+          <collision name="c0"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v0"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg1">
+          <pose>0.030 0.000 0.400 0 0 0</pose>
+          <collision name="c1"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v1"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg2">
+          <pose>0.050 0.000 0.400 0 0 0</pose>
+          <collision name="c2"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v2"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg3">
+          <pose>0.070 0.000 0.400 0 0 0</pose>
+          <collision name="c3"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v3"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg4">
+          <pose>0.090 0.000 0.400 0 0 0</pose>
+          <collision name="c4"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v4"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg5">
+          <pose>0.110 0.000 0.400 0 0 0</pose>
+          <collision name="c5"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v5"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg6">
+          <pose>0.130 0.000 0.400 0 0 0</pose>
+          <collision name="c6"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v6"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg7">
+          <pose>0.150 0.000 0.400 0 0 0</pose>
+          <collision name="c7"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v7"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg8">
+          <pose>0.170 0.000 0.400 0 0 0</pose>
+          <collision name="c8"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v8"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>        <link name="seg9">
+          <pose>0.190 0.000 0.400 0 0 0</pose>
+          <collision name="c9"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></collision>
+          <visual name="v9"><geometry><box><size>0.02 1.200 0.800</size></box></geometry></visual>
+        </link>
+    </model>
+
+  </world>
+</sdf>
