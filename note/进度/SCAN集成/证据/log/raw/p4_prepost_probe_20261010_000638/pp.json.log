@@ -1,0 +1,19 @@
+机体位姿 (0.01, 0.02)
+  层 raw   topic=/rslidar_points          frame_id=rslidar      点数=20000 z分位(p5/p50/p95)=[-0.49, 0.0, 0.171]
+  层 body  topic=/cloud_registered_body   frame_id=body         点数=2310 z分位(p5/p50/p95)=[-0.447, -0.044, 0.434]
+  层 cloud topic=/cloud_registered        frame_id=camera_init  点数=644 z分位(p5/p50/p95)=[-0.538, -0.488, 0.352]
+  层 map   topic=/grid_map/occupancy      frame_id=world        点数=5197 z分位(p5/p50/p95)=[-0.525, -0.125, 0.225]
+  帧自证：body 层 z 中位 -0.044 ⇒ 非雷达光心系（按地图/机体面处理）（若 −0.38 附近＝原点在雷达光心，z 带整体上移 0.38）
+== 对照面（四层都要过）==
+  阳性 raw=418 body=238 cloud=10 map=122｜阴性 raw=0 body=0 cloud=0 map=0
+== 八方位注入（机体不动，距离 1.00m，半径 0.55m）==
+  方位   0° (  1.01,  0.02) raw=2127 body=   0 cloud=  0 map=  0 ｜ A preprocess（抽样/blind/VELO32 分支）
+  方位  45° (  0.72,  0.73) raw=1650 body=  69 cloud=  5 map= 81 ｜ 四层全通（看得见）
+  方位  90° (  0.01,  1.03) raw=1946 body=   0 cloud=  0 map=  0 ｜ A preprocess（抽样/blind/VELO32 分支）
+  方位 135° ( -0.69,  0.73) raw=1716 body=  55 cloud=  5 map= 24 ｜ 四层全通（看得见）
+  方位 180° ( -0.99,  0.02) raw=2259 body=   0 cloud=  0 map= 18 ｜ A preprocess（抽样/blind/VELO32 分支）
+  方位 225° ( -0.69, -0.69) raw=1828 body=  48 cloud=  4 map= 14 ｜ 四层全通（看得见）
+  方位 270° (  0.02, -0.98) raw=2211 body=   0 cloud=  0 map=  6 ｜ A preprocess（抽样/blind/VELO32 分支）
+  方位 315° (  0.72, -0.68) raw=1759 body=  54 cloud=  4 map= 24 ｜ 四层全通（看得见）
+汇总：落地 8 方位｜A preprocess 吃=4｜B 体素降采样吃=0｜C 建图面=0｜四层全通=4（互斥）
+P4 四层刷分探针 = FAIL|失因环节＝**A preprocess**（抽样 `point_filter_num`／`blind`／VELO32 分支）：raw 有、pre-voxel 的 body 层就没了 ⇒ 4 方位

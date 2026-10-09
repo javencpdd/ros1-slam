@@ -1,0 +1,45 @@
+index.txt —— R75 几何对齐探针：判定 **INVALID**（自查出我自己的两处静态可查错），但留下一条站得住的新线索
+批次目录：note/进度/SCAN集成/证据/log/raw/p4_geom_probe_20261010_005626/
+时间：2026-10-10 00:56–01:00（CST）｜件面 sha（脚本现算）：p4_geom_probe.py 11ba7f2ee9ca、v_scan_p4_geom_probe.sh 67e2812008ae
+同批反例目录（原样留底、不删）：…_002033_CRASHED_tfSignature、…_002814_CRASHED_tfSignature2、
+                …_003620_CRASHED_numpyTruth、…_004610_CRASHED_NameError-buf（各 9 件，sha 清单逐目录 9/9 OK）
+
+一、本件要修的是 R74 自查出的口径缺陷
+R74 的帧自证显示四层 z 原点根本不同（raw=`rslidar`、cloud=**`camera_init`**、map=`world`），而我此前对四层
+用同一条 z 带不加偏移 ⇒ "原始云看得见箱子"不成立为结论。本件改法：①TF 把目标心换算进每条消息自己的 frame；
+②**球内计数**（三维 ≤R，**不设 z 带**）；③同时给 R=0.55（在册 SEE_RADIUS 同值）与 R=0.25（贴箱体）两个半径。
+
+二、判定与读数
+  层   topic                     frame_id      整帧点数
+  raw  /rslidar_points           rslidar       20000
+  body /cloud_registered_body    body           2361     ⇒ preprocess 削减比 11.8%（R74 为 11.6%，两次独立冷启动链同型）
+  cloud /cloud_registered        camera_init     706
+  map  /grid_map/occupancy       world          4870
+  阳性 obs_1(1.5,1.2)：raw=15351/0｜body=110/0｜cloud=7/0｜map=68/0（格式 大球/贴箱球）
+  阴性 (20,20)：四层 0/0
+**P4 几何对齐探针 = INVALID｜raw 层的声明偏移未被实测确认（最近原始点 0.381m > 0.25m）⇒ raw 层不可用，
+ A 与传感器面分不开**（rc=9；壳件"无判据行⇒INVALID"在四次崩溃里全部如实生效，**没有一次把跑不动透传成跑不过**）。
+
+三、本批**成立**的两条
+1. **preprocess 削减 11.8%**（20000→2361，两条独立链同型）。`point_filter_num` 抽样按 1/2 该给 ≈50% ⇒ 量级对不上，
+   **VELO32 分支（`faster_lio_sim.yaml:39 lidar_type: 2`）在合成点流上大幅丢点**是新的可查线索（仍未点名机制）。
+2. **三态纪律有效**：崩溃一律 INVALID 且留反例，不污染 PASS/FAIL 连击面。
+
+四、本批**不成立、且我错在哪**（全部当场查出）
+①`n = len(axis(m,"x") or [])`：`axis()` 返回 ndarray，`ndarray or []` 触发真值判断 ⇒ 回调每帧 ValueError、随后 `KeyError:'raw'`；
+②③补丁脚本把新函数插到**模块级**却闭包 `main()` 的局部量（`buf`、`pose`）⇒ `NameError` 两次；
+④API 签名靠猜（`TransformListener(queue_size=…)`／`buffer_size=…`；noetic 实签只有 `(interpolate, cache_time)`）⇒ 崩两次。
+**四条链约 40 分钟独占窗烧在静态可查的错上 ⇒ 新立 02 坑48**，处置固化为 `scripts/verify/v_py_static.sh`
+（9d7b8633b290：py_compile → pyflakes 只取 undefined name → AST 占位符 vs 字面元组；自标定 3 例必须真红，实跑 PASS）。
+**它是候补件、不进在册门禁串**（SYN/GTC/ISO/DC 一字未改），入门与否等请求单 #54 追认。
+⑤还查出一个更基础的问题：**贴箱球 R=0.25 连阳性对照 obs_1 都读 0**，而 `sphere_counts` 的自测在零节点下能读出 400
+⇒ 说明**我对目标中心的假设有误**：查世界件 `obs_5` 是 **0.8×0.8×0.8 的箱子**（`m1_world.world:99`），
+`<pose>… 0.4 …</pose>` 是 link 原点 ⇒ 箱体实际占 z ∈ [0.0, 0.8]、水平半宽 0.4m，
+而我按"0.1m 见方、心在 0.40"设计半径与目标点 ⇒ **R70/R72/R74 三批的"箱子"其实是个 0.8m 的大块头**，
+它们的"0.55m 半径内点数"混进了箱体自身以外的地面/背景。⇒ **R72 的层结论与 R74 的环节结论一并挂起**，
+R76 起按真实几何（心 z=0.40、半宽 0.40、贴箱球应取 ≈0.45–0.50）重测。
+
+五、零改点声明
+`p4_replan.py` 一字未动；SEE_RADIUS 0.55／SEE_MIN_PTS 20／AVOID 0.60／到达门 0.35 全部沿用现值；
+**未动任何 faster-lio 参数与配置副本**（C9 未授权，本批不需要）；世界件 before＝after（sha 同值）；
+不投 goal、不发 /cmd_vel；SM/LIB 未动 ⇒ **代际仍 H14**；跑前跑后端口 0 监听、0 残留进程。

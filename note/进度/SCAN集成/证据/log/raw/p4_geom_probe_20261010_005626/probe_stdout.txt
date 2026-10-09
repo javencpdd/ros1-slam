@@ -1,0 +1,15 @@
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame sliding_map (parent world) at time 10.652000 according to authority /scan_planner_node
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame sliding_map (parent world) at time 10.961000 according to authority /scan_planner_node
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+  层 raw   /rslidar_points          frame_id=rslidar      整帧点数=20000
+  层 body  /cloud_registered_body   frame_id=body         整帧点数=2361
+  层 cloud /cloud_registered        frame_id=camera_init  整帧点数=706
+  层 map   /grid_map/occupancy      frame_id=world        整帧点数=4870
+  preprocess 削减比：body/raw = 2361/20000 = 11.8%（R74 同型观测，本件不据此下结论）
+  几何口径：raw 层用**声明偏移**（xacro:55 base_link→rslidar 静态边 0.38m，TF 里 rslidar 不接 world）并须过 landmark 实测；body/cloud/map 三层用 **TF**（world→camera_init 静态边由 lio_relay_sim.launch:41 提供）
+== 对照面（球内、帧对齐）==
+  raw 层声明偏移实测校验（obs_1 原位）：离预测点最近原始点 0.381m @ (-0.00,0.00,0.00)｜偏移表={'rslidar': 0.38}
+  阳性(1.5,1.2) raw=15351/0 body=110/0 cloud=7/0 map=68/0
+  阴性(20,20)  raw=15362/0 body=0/0 cloud=0/0 map=0/0
+P4 几何对齐探针 = INVALID|raw 层的声明偏移未被实测确认（最近原始点 0.38m > 0.25m）⇒ raw 层不可用，A 与传感器面无法分开（body/cloud/map 三层仍按 TF 口径有效）

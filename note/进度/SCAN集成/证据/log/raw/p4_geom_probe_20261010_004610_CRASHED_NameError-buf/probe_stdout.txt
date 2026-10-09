@@ -1,0 +1,19 @@
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame sliding_map (parent world) at time 10.904000 according to authority /scan_planner_node
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame sliding_map (parent world) at time 11.240000 according to authority /scan_planner_node
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+  层 raw   /rslidar_points          frame_id=rslidar      整帧点数=20000
+  层 body  /cloud_registered_body   frame_id=body         整帧点数=2359
+  层 cloud /cloud_registered        frame_id=camera_init  整帧点数=663
+  层 map   /grid_map/occupancy      frame_id=world        整帧点数=5034
+  preprocess 削减比：body/raw = 2359/20000 = 11.8%（R74 同型观测，本件不据此下结论）
+  几何口径：raw 层用**声明偏移**（xacro:55 base_link→rslidar 静态边 0.38m，TF 里 rslidar 不接 world）并须过 landmark 实测；body/cloud/map 三层用 **TF**（world→camera_init 静态边由 lio_relay_sim.launch:41 提供）
+== 对照面（球内、帧对齐）==
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_geom_probe.py", line 329, in <module>
+    sys.exit(main())
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_geom_probe.py", line 223, in main
+    lm = landmark_check(*POS_CTRL)
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_geom_probe.py", line 130, in landmark_check
+    for m in buf["raw"]:
+NameError: name 'buf' is not defined
