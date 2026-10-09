@@ -87,12 +87,73 @@ def variants():
     return v
 
 
+def do_grid(j, tags, load):
+    """外扩 m × 兜底小球 s 的**网格**（--grid 模式）：同时出「收益＝障碍 OBB 内保留点」与
+    「负载＝下游总点数」，并给每档外扩的**盒阴影半径**＝盒八角点在雷达系里的最近／最远距离。
+
+    为什么要盒阴影半径这个数：真机侧真正的问题是"外扩 m 之后，正面多大范围内的障碍会被我自己
+    划掉的盒吞掉"，那个范围就是盒角点的距离——它是**几何量的上界**，不需要真回波也能算，
+    而仿真的 `自回波` 列恒 0（无腿、无地面），所以这一列是**当前唯一能给的定标输入**。
+    """
+    Ms = [round(0.00 + 0.05 * i, 2) for i in range(10)]
+    Ss = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 1.0]
+    ob = j["obstacle"]
+    yaw_o = 2.0 * math.atan2(ob["qz"], ob["qw"])
+    cs = []
+    for t in tags:
+        fr = load(t)
+        if fr is None:
+            continue
+        mp = j["rows"][t]["pose"]
+        w = world_of(fr[:, 0], fr[:, 1], fr[:, 2], mp)
+        r = np.sqrt(fr[:, 0] ** 2 + fr[:, 1] ** 2 + fr[:, 2] ** 2)
+        om = obb_mask(w[0], w[1], w[2], ob["x"], ob["y"], ob["z"], yaw_o)
+        cs.append((fr[:, 0], fr[:, 1], fr[:, 2], r, om))
+    if not cs:
+        print("无可用站 ⇒ INVALID|网格算不出来")
+        return 9
+    print("== 网格（每格 收益＝障碍内保留点 ｜ 负载＝下游总点数；跨 %d 站合计）==" % len(cs))
+    print("%-6s %s" % ("外扩m\\小球s", " ".join("%14.1f" % sv for sv in Ss)))
+    best = {}
+    for m in Ms:
+        cells = []
+        for sv in Ss:
+            o = g = 0
+            for (x, y, z, r, om) in cs:
+                kp = (~box_mask(x, y, z, m)) & (~zero_mask(x, y, z)) & (r >= sv)
+                o += int(np.sum(kp & om))
+                g += int(np.sum(kp))
+            cells.append("%6d|%8d" % (o, g))
+            best[(m, sv)] = (o, g)
+        print("%-6.2f %s" % (m, " ".join(cells)))
+    mx = max(v[0] for v in best.values())
+    print("\n== 读法一：收益上限 %d 点；达到 99%% 上限所需的**最小兜底球**（同外扩下）==" % mx)
+    for m in Ms:
+        hit = [sv for sv in Ss if best[(m, sv)][0] >= 0.99 * mx]
+        lo = min(hit) if hit else None
+        print("  外扩 %.2f：99%% 收益的最小兜底球 %s；该点负载=%s" % (
+            m, ("%.1f m" % lo) if lo is not None else "无（被盒自己吃掉）",
+            best[(m, lo)][1] if lo is not None else "—"))
+    print("\n== 读法二：盒阴影半径（八角点在雷达系的最近／最远距离＝正面会被吞到的范围）==")
+    hx, hy, hz = HALF
+    cz = -LID_OFF_Z
+    for m in Ms:
+        cor = [(sx * (hx + m), sy * (hy + m), cz + sz * (hz + m))
+               for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
+        dd = [math.sqrt(a * a + b * b + c * c) for (a, b, c) in cor]
+        print("  外扩 %.2f ⇒ 阴影 %.3f–%.3f m（正面 x 向 %.3f m）" % (m, min(dd), max(dd), hx + m))
+    print("\n边界声明：本表全部由**仿真落盘帧**算出 ⇒ 收益与负载两列可信；"
+          "但『外扩该取多少』的真约束是自回波覆盖（腿＋支架），**仿真无腿**（n 稿 §7.3）⇒ "
+          "本表给的是**上界侧的几何证据**，不是最终尺寸；最终尺寸等 B15 结合真机安装位定。")
+    return 0
+
+
 def main():
     if len(sys.argv) < 2:
-        print("用法：python3 n_selfmask_offline_compare.py <证据目录> [帧数=全部]")
+        print("用法：python3 n_selfmask_offline_compare.py <证据目录> [帧数=全部] [--grid]")
         return 2
     d = sys.argv[1]
-    nf = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    nf = int(next((a for a in sys.argv[2:] if not a.startswith("-")), 0))   # 位置参数可跳过 --flag
     jp = os.path.join(d, "sm.json")
     if not os.path.isfile(jp):
         print("读不到 %s ⇒ 没有实跑落盘就没法离线比（本件不造数）" % jp)
@@ -104,6 +165,16 @@ def main():
     if not tags:
         print("sm.json 有 %d 站但无可读 .npy ⇒ 判 INVALID|证据不完整" % len(j["rows"]))
         return 9
+    def load(t):
+        a = np.load(os.path.join(d, t + ".npy")).astype(np.float64)
+        if a.shape[0] != 3:
+            print("  站 %-16s .npy 形状 %s 不是 (3,N) ⇒ 跳过，不猜" % (t, a.shape))
+            return None
+        return a.T
+
+    if "--grid" in sys.argv:
+        return do_grid(j, tags, load)
+
     V = variants()
     print("被检站=%d（障碍物 %s 原位未动：x=%.2f y=%.2f yaw=%.0f°）" % (len(tags), "obs_5", ob["x"], ob["y"],
                                                                         math.degrees(yaw_o)))
