@@ -1,0 +1,51 @@
+index.txt —— R81 批1 销项之②：stageB 正向五连 **5/5 PASS、批次 rc=0**（F-D 位姿源身份收口批）
+批次目录：note/进度/SCAN集成/证据/log/raw/r81_b1_stageB5/
+时间：2026-10-10 03:22–03:45（CST）｜驱动：`ws/src/95_simulation/lite3_gazebo_sim/verify/m2_batch_runner.sh`
+命令（原样）：`EXPECT_RC="0 0 0 0 0" bash verify/m2_batch_runner.sh b1: b2:62 b3: b4:62 b5:`
+（`tag:值` 的位是 `G5_DELAY_SIM`；空＝默认档，62＝加压档。加压档"仍应为绿"的依据来自在册 fixture
+`EXPECT_RC="0 0 1"` 的第 2 位期望值＝0，不是我自己设定的。）
+
+一、批次判定
+```
+[PASS] 批内含 ≥1 次加压档达标跑（实测 2）
+[PASS] 每跑实得 rc 与期望表逐位相符（R27 二）
+[PASS] 每跑判定计数自洽（R27 四）
+跑况：PASS=5 FAIL=0 / 5 跑        foxy 成对快照件数=10
+BATCH VERDICT: rc=0（0=PASS 6=无加压达标跑 7=期望 rc 不符 8=计数不自洽 9=期望表长度错）
+```
+逐跑：`b1.log … b5.log`（每跑含 `stageB.txt` 判定明细、`exitbase.txt`/`exitclean.B.txt` 退净两面、`tebB.log`）。
+
+二、批1 清单第②条要求的六面，逐面对上
+| 要求 | 结果 | 证据件 |
+|---|---|---|
+| U4 口径全绿 | 5/5 rc=0，与期望表逐位相符 | `batch_driver.log` |
+| 含 ≥1 次加压档 | **2 次**（b2、b4 走 `G5_DELAY_SIM=62`），且批次层机判"加压达标"通过 | 同上 |
+| 逐跑 foxy 六 PID 起终成对 | 快照 10 件＝5 跑 × (start,end) | `foxy_start_b*.txt`／`foxy_end_b*.txt` |
+| 四口 TCP/UDP 分查 | 每跑 `exitbase.txt` 在册端口基线＋`exitclean.B.txt` 退出后分查 | 各跑目录内 |
+| 退净落件 | 每跑均有落件，非只打屏 | 各跑目录内 |
+| 样张 cmp 未变 | **受保护件 `data/maps/lite3.pcd` 五跑前后 sha 全部＝`aaa09362c5f1…`**（逐跑 `pcd.sha256.before/after` 成对） | `pcd_bak_sha.txt`（汇总）＋各跑成对件 |
+
+三、仓库卫生：本目录**不含大二进制**
+每跑 harness 会生成一份 `lite3.pcd.bak`（6,184,931 B × 5）。经核五份 sha **完全相同**＝`aaa09362c5f1aef9…`，
+即受保护原图的重复副本 ⇒ **不入 git**，改为在此留 sha 与字节数（`pcd_bak_sha.txt`），副本已删。
+本目录体积由 30 MB 降到 392 KB；删后**被检件 48 件**（原归档 51 件＝46 原始件＋5 份重复备份），加 `_sha256_manifest.txt` 后目录内共 49 件，清单核对 48/48 OK。（先例：`data/maps/*` 与构建产物本就永不入库。）
+
+四、零改点与并发
+只读取证：**未改任何判据、门值、配置、launch、源码**；SM/LIB 未动 ⇒ **代际仍 H14**（`m2_smoke.sh` 与
+`m2_exitclean_lib.sh` 一字未改，故不产生新代际行）；跑前跑后在册端口 0 监听、0 残留进程；
+本批独占 `m2_batch_runner`，未与探针链并发。
+
+五、批1 的 11 条现在到哪
+① FD-2 改前阳性对照 ✅（早前已持久化 `fd2_pre_baseline…`）；② **stageB 正向五连 ✅ 本批**；
+③ stageA 复取、④ SCAN P1、⑤ SCAN P2（同窗取 O-1 `endpoint_err`）、⑥ FD-0/1/3/4 活体断言×三取样点、
+⑦ FD-6 哨兵读数、⑧ V6 结构等价对照、⑨ W4 复测件复跑、⑩ `v3_isolation` 全量 [1]-[9]、⑪ 登记面 —— **未做，按序续跑**。
+（⑩ 已在上一批全量跑过且 rc=0，但按清单要求应作为批1 销项的一部分**在本批窗口内重取一次**，不挪用旧读数。）
+二·五、批1 第⑩条同窗补取（本目录内自证，不引旧读数）
+
+命令：`source scripts/env.sh && bash scripts/verify/v3_isolation.sh`
+时刻：2026-10-10 04:00:23（本批五连于 03:45 结束，其间**只改 `note/` 与 `README.md` 文本，`ws/src/` 零改动**）
+自我宣誓行：`# self-attest: at=2026-10-10 04:00:23 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4583 rc=0`
+结论：`=== ISOLATION OK ===`，[1]–[9] 全量 rc=0（含 [8] 无 dev 侧家目录硬编码、[9] `40_navigation` 壳包零 .cpp/.cc/.h、[6] 无绕过 M6 直写 /cmd_vel）。
+⇒ **批1 十一条现状：①②⑩ 已销（3/11），③–⑨⑪ 未做**；本批不称批1 完成。
+如实限定：⑩ 的读数时刻晚于五连结束 15 分钟，靠"其间 `ws/src/` 零改动"这条成立；若期间动过被测件，本条须重取而不可沿用。
+

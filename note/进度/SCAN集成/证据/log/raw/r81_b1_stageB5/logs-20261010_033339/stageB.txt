@@ -1,0 +1,22 @@
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_map_data=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_gcostmap_data=PASS t=0.6s
+SMOKE gate_lcostmap_data=PASS t=0.7s
+SMOKE gate_tf_fresh=PASS t=1.5s ages=[0.015,0.045,0.031]
+SMOKE gate_tf_fresh_mapodom=PASS t=2.1s ages=[0.088,0.042,0.025]
+SMOKE SIMNOW point=age_sample_1 sim_now=22.77s gate_t=2.1s
+SMOKE G5_DELAY_SIM target=62.0s reached=True sim_now=62.05s wall_spent=132.2s t_raw=2.1s t_adj=2.1s
+SMOKE gate_tf_fresh_late=PASS t=2.7s ages=[0.055,0.052,0.094]
+SMOKE gate_tf_fresh_mapodom_late=PASS t=3.3s ages=[0.067,0.023,0.067]
+SMOKE SIMNOW point=age_sample_2 sim_now=62.45s gate_t=3.3s sim_span_vs_point1=39.68s
+SMOKE gate_press_late=PASS branch=abs+span (reached=True sim2=62.45 span=39.68 判据=(sim2>=60 且 span>=35) 或 span>=40)
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.012,0.018,0.011]
+SMOKE E3 tf odom->base_link hits=30 last_stamp=63.233 age=0.012
+SMOKE E3 base_link_parents=['odom'] transforms_total=36
+SMOKE E3 static base_link->rslidar stamp=0.047
+SMOKE E3 static base_link->TORSO stamp=0.047
+SMOKE gate=PASS t=5.9s
+SMOKE SIMNOW point=goal_send sim_now=63.24s
+SMOKE SIMNOW point=goal_done sim_now=71.66s dt=8.42
+SMOKE teb_state=3 dt=8.4s dev_odom=0.169 dev_gt=0.169

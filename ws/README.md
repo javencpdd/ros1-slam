@@ -91,3 +91,54 @@
 它是**判据载体**：改它（或 `m2_exitclean_lib.sh`）＝代际加一行，五连必须重新起算；
 只改仿真插件源码/`.so` **不**产生新代际行，那种变更要在 `../note/07_判据载体代际对照表.md` 落"被测件面注记"，
 引用时必须连载体代际＋`.so` sha 一起引（两代证据不可混引）。
+
+## 六、各算法的存储地址与独立性（2026-10-10 实测核对；**为"以后各自能单独升级"而写**）
+
+> 核对方式：`package.xml` 依赖面逐包扫、跨包 `#include` 扫、launch 的 remap 接缝扫。
+> **结论不是设计意图的复述，是查出来的**——查不动的地方（编译进 `.so` 的厂商件）一律标"未证"。
+
+### 6.1 独立性结论（能单独换算法吗：能，但有三处接缝要一起改）
+
+| 检查项 | 实测结果 |
+|---|---|
+| 算法核之间有没有**代码级耦合**（跨包 `#include` 对方的头） | **无**。`faster_lio`、`hdl_localization`、`30_3rd/*`（SCAN 规划器五包）、`deeprobotics_local_height_map` 各自只 include 自己包内的头（例：`plan_env/src/grid_map.cpp:1` 只引 `plan_env/grid_map.h`） |
+| 算法核之间有没有**编译期耦合**（`package.xml` 互相 depend） | **无**。三个算法核互不依赖 |
+| 那它们靠什么连起来？ | **只有 ROS 话题与 TF**（下表 §6.2 的"接缝"列）⇒ 换算法＝换话题名/消息格式，不动对方代码 |
+| 唯一的例外（**壳→壳的构建顺序耦合，不是代码耦合**） | `lite3_scan` 的 `package.xml` 依赖 `lite3_slam`＋`lite3_gazebo_sim`；`lite3_gazebo_sim` 依赖 `lite3_slam`＋`lite3_drivers`＋`livox_laser_simulation`；`lite3_localization` 依赖 `hdl_localization` ⇒ **换算法核时这些壳包要一起重编**，但不会传染到别的算法 |
+| 未证 | `livox_laser_simulation.so`、厂商 `deeprobotics_*` 件的内部耦合（无源码，看不见） |
+
+### 6.2 存储地址总表（**每条都写"换它时要动哪几处"**）
+
+| 干什么 | 算法包（存储地址） | 编译状态 | 换掉它要一起改的接缝 |
+|---|---|---|---|
+| 激光-惯性里程计／建图（**在用**） | `ws/src/10_slam/faster_lio/` | ✅ 编译 | 入：`/rslidar_points`、`/livox/imu`；出：`/cloud_registered`、`/cloud_registered_body`、`/Odometry`、TF `camera_init→body`；参数在 `10_slam/lite3_slam/config/faster_lio_outdoor.yaml`（**注意：仿真链加载的也是这一份**，见 `m2_mapping.launch:7`；`95_simulation/config/faster_lio_sim.yaml` 只有 `10_slam_mapping_sim.launch` 会用） |
+| 点云转栅格（离线工具，也碰高程） | `ws/src/10_slam/pcd2grid/` | ✅ 编译 | 只吃 `.pcd`＋`config.yaml`，不接在线话题 |
+| 激光重定位（**备用定位路线**） | `ws/src/20_localization/hdl_localization/`、`hdl_global_localization/`、`ndt_omp/`、`fast_gicp/` | ✅ 编译 | 入 `/velodyne_points`＋初始位姿；出 `/hdl_odom`（壳包 `lite3_localization` 转发） |
+| 局部／全局轨迹规划（**在用**） | `ws/src/30_3rd/{plan_env,plan_manage,bspline_opt,path_searching,traj_utils}/`（包名 `scan_planner`） | ✅ 编译 | 入：`/cloud_registered`（经 relay）＋`/map_generator/global_cloud`；出：`/grid_map/occupancy`、`/planning/bspline`、`/scan_planner/cmd_vel`；参数 `plan_manage/param/advanced_param.xml` |
+| 导航编排（MBF 联邦） | `ws/src/40_navigation/lite3_navigation/` | ✅ | 话题 `/move_base_flex/*`；配置 `config/*.yaml` |
+| 安全与指令仲裁 | `ws/src/60_safety/lite3_safety/` | ✅ | **`/cmd_vel` 唯一写者**（红线） |
+| 任务编排 | `ws/src/50_task/lite3_task/` | ✅ | 原语／action 接口 |
+| 仿真载体与传感器 | `ws/src/95_simulation/{lite3_gazebo_sim,Mid360_simulation_plugin,local_sensing,map_generator,lite3_description}/` | ✅ | 世界件 `lite3_gazebo_sim/worlds/m1_world.world`（**sha 钉住**） |
+| 监管 | `ws/src/90_supervisor/lite3_supervisor/` | ✅ | 心跳／`/cmd_vel` 归属面 |
+
+### 6.3 **已搁置：2.5D／高程方向**（搁置 ≠ 删除；**这些地址里的东西不许清理、不许改**）
+
+主理人 2026-10-10 裁定：**2.5D 高程方向暂时搁置，留后期备用**。它的东西分散在四处，恢复时按这张表找：
+
+| 是什么 | 存储地址 | 现状 |
+|---|---|---|
+| **载体包**（厂方高程图／局部高度图节点） | `ws/src/30_perception/deeprobotics_local_height_map/` | **`CATKIN_IGNORE` ＋ `.cpp/.h` 数为 0**（上游源码缺失）⇒ 编译不出、无对象可挂；包内 `launch/config/rviz` 骨架原位保留，**不要删** |
+| **设计稿**（我方 2.5D 方案与判据） | `note/进度/仿真测试台/设计稿/C_全局任务优先级总排序.md`（#6 行）、`…/F_多层导航起工设计_落稿不实现.md`（**§7 的"2.5D 单高度假设"就在这条链上**）、`…/I_方向四先行子集_语义标注通道设计落稿.md`（第四通道＝高程先验注入）；#6 设计稿本体在开发侧对照库 | 落稿状态，未施工 |
+| **预检件与结论**（实测过，且正是它推翻 A 档前提） | `note/进度/仿真测试台/证据/raw/r59_w3_precheck_20261009_0522/`（`预检结论.md` ＋ `probe/` 15 件：双 StaticLayer「覆盖不叠加」的四格对照在此）；`note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md`（3D spike 设计）；可复跑对账件 `scripts/verify/v_w3_terrain_design_contract.sh`；设计档 `note/进度/SCAN集成/设计/m_3d多层_载体缺口与出路.md`（**含 §0 更正节**） | 证据在册、sha 可验 |
+| **配置键面**（挂高程层要动的地方） | `ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml`（双 StaticLayer 挂载位）、`costmap_common.yaml`（`resolution: 0.1`）、`ws/src/30_3rd/plan_manage/param/advanced_param.xml`（`grid_map/resolution=0.05`）；`scan_3d` 第 4 档键面**尚未入库**（variants 现仅三档） | 键在、消费者缺 |
+
+**恢复入口（写死，免得以后重新考古）**：
+1. 先读 `note/进度/SCAN集成/设计/m_3d多层_载体缺口与出路.md` 的 §0——它分清了一件容易混的事：**"多楼层" ≠ "悬挑/桥洞"**。前者可用"一层一图＋切图"实现且**不需要撤 §7**；后者才必须撤 §7。
+2. 再确认两个前置：`#46`（双 StaticLayer 覆盖不叠加，A 档前提已被上面那份预检推翻）路线是否已选；`deeprobotics_local_height_map` 的上游源码是否补齐。
+3. 判据侧连带项：请求单 **C12**（撤不撤 §7）、**A8/A12/B6/C6**（第四通道阈值与可感知距离窗）。
+4. **载体边界提醒**：即便高程层做出来，在册仿真载体是刚体盒子 ⇒ 只能验到"规划层"，**"狗能不能上这段楼梯"最终仍必须真机**（补丁 X7／G 稿）。
+
+### 6.4 一条纪律（为"以后各自升级"服务）
+
+新增或替换算法时：**一算法一独立包、只经话题/TF 相接、不得跨包 `#include` 对方头文件、不得在 `package.xml` 里 depend 另一个算法核**（壳包 depend 算法核是允许的方向，**反向禁止**）。
+现状：这条**基本成立**（§6.1 是实测），但**还没有机器可查的闸**——`v3_isolation.sh` 的 [5] 只查 launch 互 include、[9] 只查 `40_navigation` 下的算法源码文件，**跨包 `#include` 与 `package.xml` 互 depend 目前无人守**。补这条检查属门禁变更，需小美裁定后落地（可与 #54／A15 并案）。
