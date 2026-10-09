@@ -1,0 +1,23 @@
+[10:58:56] == [0] 红线预检：并发／样张／世界件本体 ==
+在册端口起前监听：11313=0 11312=0（均须 0）
+[10:58:56] == [1] roscore 11313 ==
+[10:59:04] == [2] m2_gazebo ==
+[11:00:09] == [3] m2_mapping（faster_lio 位姿源）==
+[11:00:24] == [4] 60_safety（mux 上链）==
+C-1 面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux 
+[11:00:36] == [5] 70_scan.launch（含 J1 到达观测件）==
+F9 互斥: move_base/teb 节点数=0 须=0；链上四件=4/4
+扰动前模型位姿自证：
+[11:01:34] == [6] P4 取证（投障碍→看见→重规划→仍到达）==
+p4 python rc=1
+P4 重规划结论 = FAIL|扰动后未到达（sim 80.7s，dist=12629.465；物理离箱心最近 0.33m，轨迹 430.59m）
+{"steps": ["goal_delivered=True", "traj_pts=120", "injected=obs_5→(-0.64,0.85)", "disturbance_seen=20", "replanned=True"], "fail": [], "invalid": false, "goal": [-2.344, 2.894], "goal_r": 3.713, "goal_clear": 1.515, "traj_before": {"start_time": 27.244, "n_ctrl": 26, "first": [-0.001, 0.007], "last": [-2.224, 2.722]}, "inject": {"model": "obs_5", "at": [-0.637, 0.849], "z": 0.4, "pts_before": 4211, "occ_pts_near": 20}, "traj_after": {"start_time": 32.572, "n_ctrl": 24, "first": [-0.904, 1.025], "last": [-3.221, 3.351]}, "traj_before_control_min_dist": 0.353, "new_traj": {"n_pts": 120, "min_dist_to_any_occ": 0.713, "min_dist_to_injected": 0.534}, "clearance": {"min_dist_to_any_occ": 0.713, "min_dist_to_injected": 0.534, "gate_occ": 0.1}, "physical": {"robot_min_to_injected": 0.33, "box_half_width": 0.4, "traj_min_to_injected_final": 430.589}, "arrive": {"arrived": false, "dist_end": 12629.465, "dt_sim_since_replan": 80.67, "cmd_count": 8770, "displacement": 12629.465}, "restored": true}
+结论行：P4 重规划结论 = FAIL|扰动后未到达（sim 80.7s，dist=12629.465；物理离箱心最近 0.33m，轨迹 430.59m）
+[11:07:08] == [7] 还原与红线 ==
+扰动后模型位姿自证：
+世界件本体 sha 起前＝退后：是
+样张 sha 起前＝退后：是
+分档自证：VS 首段=FAIL ⇒ RC4=1（判据行与末判必须同向）
+[11:07:10] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
