@@ -1,0 +1,16 @@
+[19:41:20] == [1] roscore（11313）==
+[19:42:46] == [2] m2_gazebo ==
+[19:42:55] == [3] m2_mapping ==
+[19:43:07] == [4] 60_safety ==
+[19:43:13] == [5] 70_scan（navi_mode:=1，不投 goal）==
+[19:43:22] 等 45s 让地图收敛（P1 口径的收敛窗量级）
+占据图当前点数≈0
+[19:44:12] == [6] 跑云/图分层探针 ==
+分档自证：判据行首段与 rc 必须同向（PASS↔0／FAIL↔1／INVALID↔9）；本次 rc=1
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_cloud_map_probe.py", line 27, in <module>
+    from geometry_msgs.msg import Odometry, Point, Pose, Twist
+ImportError: cannot import name 'Odometry' from 'geometry_msgs.msg' (/opt/ros/noetic/lib/python3/dist-packages/geometry_msgs/msg/__init__.py)
+[19:44:14] -- teardown --
+退净：残留进程(comm 计)=0 在册端口监听=0（都应为 0）
+证据件数=9
