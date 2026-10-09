@@ -1,0 +1,15 @@
+  层 raw   /rslidar_points          frame_id=rslidar      整帧点数=20000
+  层 body  /cloud_registered_body   frame_id=body         整帧点数=2373
+  层 cloud /cloud_registered        frame_id=camera_init  整帧点数=699
+  层 map   /grid_map/occupancy      frame_id=world        整帧点数=4687
+== 对照面（OBB 口径）==
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame sliding_map (parent world) at time 9.908000 according to authority /scan_planner_node
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_boxface_probe.py", line 317, in <module>
+    sys.exit(main())
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_boxface_probe.py", line 219, in main
+    pc = measure(*POS_CTRL, POS_CTRL_YAW)
+TypeError: measure() missing 1 required positional argument: 'yaw'
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame sliding_map (parent world) at time 10.137000 according to authority /scan_planner_node
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp

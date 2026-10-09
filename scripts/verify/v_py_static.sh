@@ -61,6 +61,28 @@ for p in sys.argv[1:]:
             if ph != len(rhs.elts):
                 print("  [FAIL] %s:%d 占位符=%d 字面元组实参=%d | %s" % (p, node.lineno, ph, len(rhs.elts), fmt[:52]))
                 bad = 1
+
+# 第四查：同文件内**函数调用实参个数**（本仓 R76 第六次烧链就是 measure() 少传一个位置参数，
+#         py_compile／pyflakes 都查不出——它们不看调用点。只判"本文件内定义、纯字面位置实参、且无 *args"的调用）
+import inspect
+defs = {}
+for node in ast.walk(tree):
+    if isinstance(node, (ast.FunctionDef,)):
+        a = node.args
+        if a.vararg is None and a.kwarg is None and not a.kwonlyargs:
+            req = len(a.args) - len(a.defaults)
+            opt = len(a.defaults)
+            skip_self = 1 if a.args and a.args[0].arg in ("self", "cls") else 0
+            defs[node.name] = (req - skip_self, opt - skip_self, node.lineno)
+for node in ast.walk(tree):
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in defs:
+        if any(isinstance(x, ast.Starred) for x in node.args) or node.keywords:
+            continue
+        req, opt, dl = defs[node.func.id]
+        if not (req <= len(node.args) <= req + opt):
+            print("  [FAIL] %s:%d 调用 %s() 给了 %d 个位置实参，定义(:%d)要求 %d–%d 个"
+                  % (p, node.lineno, node.func.id, len(node.args), dl, req, req + opt))
+            bad = 1
 sys.exit(bad)
 PYEOF
 for f in "$@"; do

@@ -1,0 +1,27 @@
+  层 raw   /rslidar_points          frame_id=rslidar      整帧点数=20000
+  层 body  /cloud_registered_body   frame_id=body         整帧点数=2354
+  层 cloud /cloud_registered        frame_id=camera_init  整帧点数=646
+  层 map   /grid_map/occupancy      frame_id=world        整帧点数=4944
+== 对照面（OBB 口径）==
+  阳性 obs_1(1.5,1.2,yaw0.4) raw=590/380 body=0/190 cloud=10/14 map=68/153（格式 OBB内/背景环带）
+  阳性各层 OBB 内点的**距本层原点量程 rmin–rmax**（blind 的直接证据面）：raw=1.49–2.30 cloud=1.48–2.14 map=1.47–2.21
+  阴性 (20,20) raw=0/0 body=0/0 cloud=0/0 map=0/0
+== 八方位注入（机体不动，心距 1.00m，OBB 半宽 0.40m）==
+  方位   0° (  1.01,  0.03) raw=1265/14710 body=0/387 cloud=0/21 map=0/286 ｜ A preprocess
+      距本层原点 rmin–rmax：raw=0.70–0.94
+  方位  45° (  0.72,  0.73) raw=829/14654 body=2/30 cloud=1/4 map=17/227 ｜ 四层全通（看得见）
+      距本层原点 rmin–rmax：raw=0.68–1.21 body=1.01–1.01 cloud=1.00–1.00 map=0.99–1.52
+  方位  90° (  0.01,  1.02) raw=1280/14831 body=0/292 cloud=0/14 map=0/359 ｜ A preprocess
+      距本层原点 rmin–rmax：raw=0.72–0.98
+  方位 135° ( -0.70,  0.73) raw=757/14073 body=15/144 cloud=1/7 map=2/54 ｜ 四层全通（看得见）
+      距本层原点 rmin–rmax：raw=0.66–1.20 body=0.98–1.05 cloud=1.02–1.02 map=1.00–1.01
+  方位 180° ( -0.99,  0.02) raw=1169/13446 body=0/0 cloud=0/0 map=13/19 ｜ A preprocess
+      距本层原点 rmin–rmax：raw=0.67–0.93 map=1.01–1.18
+  方位 225° ( -0.70, -0.69) raw=610/13758 body=2/0 cloud=0/0 map=0/19 ｜ B 体素降采样
+      距本层原点 rmin–rmax：raw=0.64–1.14 body=1.08–1.09
+  方位 270° (  0.01, -0.98) raw=1079/13879 body=0/0 cloud=0/0 map=12/12 ｜ A preprocess
+      距本层原点 rmin–rmax：raw=0.63–0.90 map=0.99–1.15
+  方位 315° (  0.72, -0.68) raw=673/14430 body=3/96 cloud=0/1 map=0/259 ｜ B 体素降采样
+      距本层原点 rmin–rmax：raw=0.66–1.18 body=1.02–1.06
+汇总（OBB 口径）：落地 8 方位｜传感器缺=0｜A preprocess=4｜B 体素=2｜C 建图=0｜四层全通=2
+P4 箱体OBB探针 = FAIL|多层并存：传感器缺=0 A=4 B=2 C=0 ⇒ 不合并归因

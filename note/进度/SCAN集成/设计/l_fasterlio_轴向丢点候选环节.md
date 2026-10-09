@@ -19,6 +19,31 @@
 | `filter_size_surf` | 0.3（当前帧体素降采样叶子） | `faster_lio_sim.yaml:19` |
 | `publish/scan_bodyframe_pub_en` | **true ⇒ `/cloud_registered_body` 已经在发**（pre-voxel、post-preprocess） | `faster_lio_sim.yaml:45`、`faster_lio/src/laser_mapping.cc:263` |
 
+### §1 之**更正**（2026-10-10 01:4x，登记后自查发现；原表不回改，本节向前指向）
+
+**上表第一行错了。** 我按 `faster_lio_sim.yaml` 头部自己的声明（"仿真加载这份"）推断加载关系，**没有去读 launch**；
+实读 `ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch:7`：
+
+    <rosparam command="load" file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
+
+⇒ **在册仿真链跑的是 C1／真机那份**（`faster_lio_outdoor.yaml`：`preprocess/blind: 1.0`、`lidar_type: 4`＝C16Handler），
+`faster_lio_sim.yaml`（blind 0.2／lidar_type 2）只有 `10_slam/lite3_slam/launch/10_slam_mapping_sim.launch:8` 会装载，
+**而我们的链不用它**。因此本档 §2 的三条候选要按新事实重排：
+
+- **A 案（`blind`）从"可排除"升为首要嫌疑**：我原来写"`blind=0.2` ⇒ 1.0m 处的箱子不该被它吃掉"——**前提就用错了值**。
+  真值 **1.0m**：注入箱心在 1.0m、**近面在 0.6m** ⇒ 大面积近面回波全在剔除半径内。
+  而且 `blind` 是**距离**判据、各向同性，但**箱子有 0.8m 尺度**：轴向方位时正对的是宽面（回波集中在 0.6–1.0m ⇒ 全删），
+  对角方位时正对的是棱（回波铺到 1.0m 以外 ⇒ 留下几个）⇒ **这正好能造出"四轴向全盲、四对角有回波"的对称图案**。
+- **B 案（体素）与 VELO32 分支案**：VELO32 一支**不适用**（我们走 C16Handler），此前子智能体报告里关于 VELO32 的
+  逐条结论**不得搬进本链**（我核过 launch 才发现这点）。
+- **新线索（同属 A 案）**：`/rslidar_points` 整帧 20000 点 → `/cloud_registered_body` 2361 点（两条独立链同型 11.8%）。
+  与 `blind` 剔除一致——插件把**没有命中的射线也编码成 (0,0,0) 点**（子智能体读 `livox_laser_simulation` 得到，
+  我尚未自证），这些点距原点 0m、必被 `blind` 删掉；`point_filter_num` 默认 2 再砍一半 ⇒ 20000→~10000→~2361 量级吻合。
+
+**取证纪律更正**：凡"哪份配置生效"这类事实，**只准引用 launch 的行号**，不准引用被加载文件自己的注释；
+本档 §1 的错就是违反了这条（坑43 同族：把声明当实测）。R76 的 `rmin–rmax` 打印正是为这一条准备的实测。
+
+
 ## 2 三个候选环节（并列，未排序出唯一答案）
 
 **A｜preprocess**：`point_filter_num_` 抽样（`src/pointcloud_preprocess.cc:57/94/186/203`，默认 2，配置里没写这个键）

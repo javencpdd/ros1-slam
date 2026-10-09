@@ -1,0 +1,20 @@
+[01:24:14] == [1] roscore（11313）==
+[01:25:42] == [2] m2_gazebo ==
+[01:25:58] == [3] m2_mapping ==
+[01:26:05] == [4] 60_safety ==
+[01:26:12] == [5] 70_scan（navi_mode:=1，不投 goal）==
+[01:26:23] 等 45s 让地图收敛（P1 口径的收敛窗量级）
+占据图是否在发：未知
+[01:27:10] == [6] 跑箱体OBB探针 ==
+P4 箱体OBB探针 = INVALID|TF 解析失败 body（AttributeError）⇒ 不判层，绝不把解析失败当 0
+分档自证：判据行首段与 rc 必须同向（PASS↔0／FAIL↔1／INVALID↔9）；本次 rc=9
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame sliding_map (parent world) at time 10.218000 according to authority /scan_planner_node
+         at line 278 in /tmp/binarydeb/ros-noetic-tf2-0.7.7/src/buffer_core.cpp
+  层 raw   /rslidar_points          frame_id=rslidar      整帧点数=20000
+  层 body  /cloud_registered_body   frame_id=body         整帧点数=2361
+  层 cloud /cloud_registered        frame_id=camera_init  整帧点数=706
+  层 map   /grid_map/occupancy      frame_id=world        整帧点数=4247
+P4 箱体OBB探针 = INVALID|TF 解析失败 body（AttributeError）⇒ 不判层，绝不把解析失败当 0
+[01:27:16] -- teardown --
+退净：残留进程(comm 计)=0 在册端口监听=0（都应为 0）
+证据件数=9
