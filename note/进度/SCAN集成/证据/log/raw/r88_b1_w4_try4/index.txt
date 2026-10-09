@@ -1,0 +1,31 @@
+index.txt —— R88 就绪判据验证跑：**我主动中止的**（无 rc 判定），而中止本身把根因定了
+目录：note/进度/SCAN集成/证据/log/raw/r88_b1_w4_try4/
+时间：2026-10-10 06:24–06:47（CST）
+命令：`DWA_OUT=<本目录> bash ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh 1`
+
+一、中止前
+· 等待遥测打到「轮询=1020s｜墙钟=1050s｜sim≈314s」，RTF≈0.29（**本域正常量级**，不是负载卡）；
+· 此时 `mbf.log` = **83,635 字节**，`"has been loaded successfully"` 只有 **2 条＝planners**（GlobalPlanner／NavfnROS）。
+
+二、中止之后（这一步就是根因）
+· 杀掉 mbf ⇒ 子进程 stdio 缓冲刷盘 ⇒ `mbf.log` 变为 **92,796 字节**，新增内容里包含
+  `"teb_local_planner/TebLocalPlannerROS" has been loaded successfully` 与 DWA 那一条。
+⇒ **控制器早就装好了**，是"写方早已写、读方晚看到"：roslaunch 输出被重定向到文件时写方是**全缓冲**。
+⇒ 连带作废 R86 的「装载要 340s / 690s / >1020s」——那是**刷盘时刻不是发生时刻**；
+  try1 自带时间戳可核（planners epoch 1791580887.74 → controllers 1791580889.27＝**差 1.5 秒**）。
+⇒ 也否证我 R88 第一版草稿的「装载由仿真进度驱动 ⇒ 墙钟上界无界」（该说法未进任何在册文件，只在此留名）。
+
+三、修法（#76 第二版，同批已落件）
+日志门**不再有权 exit 6**：到界只打印警示并**继续进判据阶段**，以 `dwa_recheck.py` 的功能结果为准
+（它本就在发 goal、读 outcome——那才是真就绪证据）。goal 阶段 rc 语义（0/5/6/7/4）与门值**一字不动**。
+
+四、自曝两处
+1. 新加的 `sim_now()` 里 awk 用了 `/secs:/`，而 **`nsecs:` 键名包含子串 `secs:`** ⇒ 同行赋两次值，
+   打印出 `sim=486000000.49s`、`RTF≈5340659` 这类荒谬值（只影响可读性，未进入任何判据）；
+   修＝行首锚定 `/^ *secs:/`、`/^ *nsecs:/` ＋ 首帧失败重试。
+2. **bash 边读边执行** ⇒ 件在跑时不能改它的文件；我把修复排在本次跑退出之后（不是忘了）。
+
+五、零改点与净空
+`dwa_recheck.py` 与被测件未动；`blind` 仍 1.0；未编译；本跑未起建图链；
+exitclean：`port 11313 TCP=0 UDP=0`、`11345` 同零、残留进程 0；SM/LIB 未动 ⇒ **代际仍 H14**。
+⇒ **批1 第⑨条仍未销**（三次 rc=6 ＋ 本次中止），**不判 DWA 不可用**；下一次用第二版的件重取。

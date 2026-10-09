@@ -1,0 +1,29 @@
+### 一、mbf 是否真把 DWA 装进控制器表（加载判据，零节点侧改动）
+  /clock 就绪 t=2s
+  …等待装载 轮询=0s｜墙钟=26s｜sim=-1s（起于 -1s）｜RTF≈—｜DWA=0 teb=0
+  …等待装载 轮询=60s｜墙钟=91s｜sim=486000000.49s（起于 -1s）｜RTF≈5340659.357｜DWA=0 teb=0
+  …等待装载 轮询=120s｜墙钟=155s｜sim=854000000.85s（起于 -1s）｜RTF≈5509677.431｜DWA=0 teb=0
+  …等待装载 轮询=180s｜墙钟=219s｜sim=125000000.12s（起于 -1s）｜RTF≈570776.261｜DWA=0 teb=0
+  …等待装载 轮询=240s｜墙钟=284s｜sim=693000000.69s（起于 -1s）｜RTF≈2440140.851｜DWA=0 teb=0
+  …等待装载 轮询=300s｜墙钟=349s｜sim=190000000.19s（起于 -1s）｜RTF≈544412.611｜DWA=0 teb=0
+  …等待装载 轮询=360s｜墙钟=414s｜sim=685000000.68s（起于 -1s）｜RTF≈1654589.376｜DWA=0 teb=0
+  …等待装载 轮询=420s｜墙钟=479s｜sim=196000000.20s（起于 -1s）｜RTF≈409185.806｜DWA=0 teb=0
+  …等待装载 轮询=480s｜墙钟=543s｜sim=691000000.69s（起于 -1s）｜RTF≈1272559.856｜DWA=0 teb=0
+  …等待装载 轮询=540s｜墙钟=608s｜sim=995000001.00s（起于 -1s）｜RTF≈1636513.161｜DWA=0 teb=0
+  …等待装载 轮询=600s｜墙钟=673s｜sim=800000000.80s（起于 -1s）｜RTF≈1188707.284｜DWA=0 teb=0
+  …等待装载 轮询=660s｜墙钟=738s｜sim=306000000.31s（起于 -1s）｜RTF≈414634.148｜DWA=0 teb=0
+  …等待装载 轮询=720s｜墙钟=802s｜sim=599000000.60s（起于 -1s）｜RTF≈746882.795｜DWA=0 teb=0
+  …等待装载 轮询=780s｜墙钟=867s｜sim=805000000.80s（起于 -1s）｜RTF≈928489.045｜DWA=0 teb=0
+  …等待装载 轮询=840s｜墙钟=931s｜sim=77000000.08s（起于 -1s）｜RTF≈82706.768｜DWA=0 teb=0
+  …等待装载 轮询=900s｜墙钟=996s｜sim=327000000.33s（起于 -1s）｜RTF≈328313.254｜DWA=0 teb=0
+  …等待装载 轮询=960s｜墙钟=1060s｜sim=653000000.65s（起于 -1s）｜RTF≈616037.737｜DWA=0 teb=0
+  …等待装载 轮询=1020s｜墙钟=1125s｜sim=61000000.06s（起于 -1s）｜RTF≈54222.223｜DWA=0 teb=0
+  …等待装载 轮询=1080s｜墙钟=1189s｜sim=53000000.05s（起于 -1s）｜RTF≈44575.274｜DWA=0 teb=0
+[exitclean] # 退净核验 @2026-10-10 06:49:09
+[exitclean] -- 命中进程原样 ps 行 --
+[exitclean] 1280926 /bin/bash -lc cd /home/ros1-slam && sleep 8; ps -eo comm= | grep -cE '^(gzserver|rosmaster|rosout|mbf_costmap_nav|sim_adapter)$'; ss -ltnH 2>/dev/null | grep -cE ':(11311|11312|11313|11345)\b'; tail -2 note/进度/SCAN集成/证据/log/raw/r88_b1_w4_try4/dwa_n1.log | cut -c1-120; ls note/进度/SCAN集成/证据/log/raw/r88_b1_w4_try4/
+[exitclean] -- 端口 TCP/UDP 分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0

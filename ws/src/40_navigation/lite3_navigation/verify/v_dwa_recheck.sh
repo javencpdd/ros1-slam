@@ -70,29 +70,42 @@ echo "  /clock 就绪 t=${T}s"
 #     ⇒ 同一次窗里我并发跑了 sha256/读 npy 这类重活，把装载拖长了一倍（02 坑54：**独占窗里并发离线活会制造假 INVALID**）。
 #   结论：装载时延对机器负载敏感，上界必须按**最慢观测值再加裕量**定 ⇒ 默认 900s；`DWA_LOAD_BOUND` 可覆写。
 #   纪律面同步：跑本件期间**不得并发跑离线重活**（已在 05 的 G 段与本注释留名）。
-LOAD_BOUND=${DWA_LOAD_BOUND:-900}
+# R88 就绪判据重做（任务 #76；**件面改动，不动任何判据门值**）。三跑全打 rc=6 的根因不是"上界不够大"：
+#   try1 的 mbf.log 时间戳重建出「首行 sim=0.001 → DWA 装载行 sim=1.268」＝**事件由仿真进度驱动**，
+#   而当时这台机器 RTF 只有 ≈0.026（sim 推进 1.267s 花了 48s 墙钟）⇒ 装载需要的墙钟时长 = sim 阈值 ÷ RTF，
+#   **RTF 随负载波动 ⇒ 拿墙钟上界等它是无界的**（340s / 690s / >1020s 三次"都太短"就是这么来的）。
+#   改法三条：①上界降级为**防挂死**用途（默认 2400s，不再是判定值）；②轮询期间打印 sim 与 RTF，
+#   让"慢"看得见、可区分环境负载与件坏；③**装载迟到不再直接作废整批**——只要本窗内最终装上就继续跑判据，
+#   ③(R88 第二版) 到界**不再 exit 6**——日志全缓冲会造"假否定"，只打印警示并继续进判据阶段。
+LOAD_BOUND=${DWA_LOAD_BOUND:-2400}
+sim_now() { timeout 12 rostopic echo -n 1 /clock 2>/dev/null \
+  | awk '/^ *secs:/{s=$2} /^ *nsecs:/{n=$2} END{if(s==""){print "-1"} else {printf "%.2f", s+(n==""?0:n)/1000000000}}'; }
+W0=$(date +%s); S0=$(sim_now)
 DWA_LOADED=0; TEB_LOADED=0; T2=0
 while [ $T2 -lt $LOAD_BOUND ]; do
   DWA_LOADED=$(grep -ac 'dwa_local_planner/DWAPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1); DWA_LOADED=${DWA_LOADED:-0}
   TEB_LOADED=$(grep -ac 'teb_local_planner/TebLocalPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1); TEB_LOADED=${TEB_LOADED:-0}
   [ "$DWA_LOADED" -ge 1 ] && [ "$TEB_LOADED" -ge 1 ] && break
+  if [ $((T2 % 60)) -eq 0 ]; then
+    SN=$(sim_now); EL=$(( $(date +%s) - W0 )); RTF="—"
+    if [ "${SN%.*}" -gt 0 ] 2>/dev/null && [ "$EL" -gt 0 ]; then
+      RTF=$(awk -v a="$SN" -v b="$S0" -v e="$EL" 'BEGIN{d=a-b; if(d>0&&e>0) printf "%.3f", d/e; else print "—"}')
+    fi
+    echo "  …等待装载 轮询=${T2}s｜墙钟=${EL}s｜sim=${SN}s（起于 ${S0}s）｜RTF≈${RTF}｜DWA=$DWA_LOADED teb=$TEB_LOADED"
+  fi
   sleep 4; T2=$((T2+4))
 done
 LOAD=$(grep -ac 'has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1)
-echo "  等待 ${T2}s；DWA 命中=$DWA_LOADED teb 命中=$TEB_LOADED（loaded 总累计=$LOAD，含 planners/recovery）"
-  # 假红自诊（R86）：判 INVALID 之前再等 30s 复看一次。
-  #   若这里非 0 而上面是 0 ⇒ 属**上界太短**（装载迟到），不是「通道坏了」——两种情况的处置完全不同，
-  #   前者只需把 bound 调对再重跑，后者才该上报回归。
-  if [ "${DWA_LOADED:-0}" -lt 1 ] || [ "${TEB_LOADED:-0}" -lt 1 ]; then
-    sleep ${DWA_LATE_CHECK:-120}
-    LD=$(grep -ac 'dwa_local_planner/DWAPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1)
-    LT=$(grep -ac 'teb_local_planner/TebLocalPlannerROS" has been loaded successfully' "$DWA_OUT/mbf.log" 2>/dev/null | head -1)
-    echo "  【装载迟到自诊】bound=${LOAD_BOUND}s 用尽后再等 ${DWA_LATE_CHECK:-120}s ⇒ DWA 命中=${LD:-0} teb 命中=${LT:-0}"
-    if [ "${LD:-0}" -ge 1 ] && [ "${LT:-0}" -ge 1 ]; then
-      echo "  【判定】装载其实成功＝本次 INVALID 属**等待上界太短**（假红），不是通道故障；请调 DWA_LOAD_BOUND 重跑"
-    fi
-  fi
-[ "${DWA_LOADED:-0}" -ge 1 ] || { echo "  [INVALID] DWA 未装载 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性；R40：旧版在此打 FAIL 并 exit 1 属语义混叠）"; exit 6; }
+SN=$(sim_now); EL=$(( $(date +%s) - W0 ))
+echo "  装载等待结束：轮询 ${T2}s｜墙钟 ${EL}s｜sim=${SN}s（起于 ${S0}s）｜DWA 命中=$DWA_LOADED teb 命中=$TEB_LOADED（loaded 总累计=$LOAD，含 planners/recovery）"
+if [ "${DWA_LOADED:-0}" -lt 1 ] || [ "${TEB_LOADED:-0}" -lt 1 ]; then
+  # R88 第二版（根因已证＝重定向日志全缓冲，见证据 r88_b1_w4_try4/index.txt）：
+  #   日志里"看不见装载行"不等于"没装载"——子进程 stdio 全缓冲，行会晚于事件几十分钟才落盘，
+  #   甚至要到进程退出才刷出来。⇒ **本门只警示，不再有权 exit 6**；就绪与否改由功能结果判定
+  #   （下面 dwa_recheck.py 会真发 goal、读 outcome；装不上它自然拿不到 outcome，rc 语义已覆盖）。
+  echo "  【警示】到 ${LOAD_BOUND}s 仍未在日志里看到控制器装载行 ⇒ 不据此作废（日志全缓冲会造假否定），"
+  echo "          继续进判据阶段，以 goal 的 outcome 为准（墙钟 ${EL}s｜sim ${SN}s｜起始 ${S0}s）"
+fi
 LIST=$(timeout 15 rosparam get /move_base_flex/controllers 2>/dev/null | tr -d '\n' | grep -o "name: '[A-Za-z]*'")
 echo "  控制器注册表: $LIST"
 echo "  （注：root-inertia WARN 现指 base_link，小张 M2R5 风险①预测成立；已 grep 全仓无脚本消费该串）"
