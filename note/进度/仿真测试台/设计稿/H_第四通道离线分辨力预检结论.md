@@ -153,7 +153,7 @@ R69 已交付的工具侧改动量小（`use` 枚举集中在一处、自检 S6 
 
 第四通道所有阈值都默认"目标被感知到了"。R80 量出这个前提在**近场不成立**：
 本链加载的 `faster_lio_outdoor.yaml:32 preprocess/blind: 1.0` 逐点删掉距雷达 <1 m 的回波
-（`pointcloud_preprocess.cc:187` 的 `r²>blind²`），实测边界**不是心距 1.0m，而随目标尺寸变**：
+（`pointcloud_preprocess.cc:187` 的 `r²>blind²`〔R83 更正：本链生效行是 **`:208`**（C16Handler，`lidar_type: 4`），`:187` 属 VelodyneHandler；**机理不变**〕），实测边界**不是心距 1.0m，而随目标尺寸变**：
 
 | 目标摆放 | 实测"看得见"的心距下限 |
 |---|---|
