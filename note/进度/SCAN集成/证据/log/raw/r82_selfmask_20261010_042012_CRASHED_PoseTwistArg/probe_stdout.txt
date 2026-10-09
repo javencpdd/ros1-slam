@@ -1,0 +1,28 @@
+机体起始位姿（回读）x=0.000 y=0.000 z=0.150 yaw=0.0°
+注入体 obs_5 原位 x=5.800 y=-1.000 z=0.400 yaw=-34.4°（本件**不动它**）
+躯干盒（雷达系）盒心 [0.0, 0.0, -0.38] 半宽 [0.21, 0.155, 0.11] 外扩 0.05；量程带 [0.0, 0.27, 0.56, 1.0, 1.5, 3.0]
+  landmark obs_1 OBB 内 raw 点=562（需 ≥50）整帧=20000
+  站 s035_face        机体(   6.42,  -1.42) 整帧= 20000 躯干盒内=    0 障碍OBB内=4284.0 留点 F1=   0.0 F2=4284.0 F3=4284.0 F4=4284.0
+  站 s050_face        机体(   6.54,  -1.51) 整帧= 20000 躯干盒内=    0 障碍OBB内=2901.7 留点 F1=   0.0 F2=2901.7 F3=2901.7 F4=2901.7
+  站 s060_face        机体(   6.63,  -1.56) 整帧= 20000 躯干盒内=    0 障碍OBB内=2298.7 留点 F1=   0.0 F2=2298.7 F3=2298.7 F4=2298.7
+  站 s070_face        机体(   6.71,  -1.62) 整帧= 20000 躯干盒内=    0 障碍OBB内=1848.3 留点 F1=   0.0 F2=1848.3 F3=1848.3 F4=1848.3
+  站 s085_face        机体(   6.83,  -1.71) 整帧= 20000 躯干盒内=    0 障碍OBB内=1407.3 留点 F1=   0.0 F2=1407.3 F3=1407.3 F4=1407.3
+  站 s100_face        机体(   6.96,  -1.79) 整帧= 20000 躯干盒内=    0 障碍OBB内=1083.0 留点 F1=1083.0 F2=1083.0 F3=1083.0 F4=1083.0
+  站 s130_face        机体(   7.20,  -1.96) 整帧= 20000 躯干盒内=    0 障碍OBB内= 717.7 留点 F1= 717.7 F2= 717.7 F3= 717.7 F4= 717.7
+  站 s035_diag        机体(   6.57,  -0.86) 整帧= 20000 躯干盒内=    0 障碍OBB内=3336.3 留点 F1=   0.0 F2=3336.3 F3=3336.3 F4=2172.7
+  站 s050_diag        机体(   6.68,  -0.83) 整帧= 20000 躯干盒内=    0 障碍OBB内=2462.3 留点 F1=  51.3 F2=2462.3 F3=2462.3 F4=2462.3
+  站 s060_diag        机体(   6.78,  -0.82) 整帧= 20000 躯干盒内=    0 障碍OBB内=2010.7 留点 F1= 126.7 F2=2010.7 F3=2010.7 F4=2010.7
+  站 s070_diag        机体(   6.88,  -0.80) 整帧= 20000 躯干盒内=    0 障碍OBB内=1680.7 留点 F1= 227.7 F2=1680.7 F3=1680.7 F4=1680.7
+  站 s085_diag        机体(   7.03,  -0.77) 整帧= 20000 躯干盒内=    0 障碍OBB内=1320.7 留点 F1= 404.7 F2=1320.7 F3=1320.7 F4=1320.7
+  站 s100_diag        机体(   7.18,  -0.74) 整帧= 20000 躯干盒内=    0 障碍OBB内=1075.7 留点 F1= 622.3 F2=1075.7 F3=1075.7 F4=1075.7
+  站 s130_diag        机体(   7.47,  -0.69) 整帧= 20000 躯干盒内=    0 障碍OBB内= 767.0 留点 F1= 767.0 F2= 767.0 F3= 767.0 F4= 767.0
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_selfmask_probe.py", line 339, in <module>
+    sys.exit(main())
+  File "/home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_selfmask_probe.py", line 314, in main
+    pose=Pose(position=Point(home["x"], home["y"], home["z"]), twist=Twist())))
+  File "/opt/ros/noetic/lib/python3/dist-packages/geometry_msgs/msg/_Pose.py", line 53, in __init__
+    super(Pose, self).__init__(*args, **kwds)
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/message.py", line 361, in __init__
+    raise AttributeError('%s is not an attribute of %s' % (k, self.__class__.__name__))
+AttributeError: twist is not an attribute of Pose
