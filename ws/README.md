@@ -23,7 +23,7 @@
 | `60_safety` | `lite3_safety` | — | **`/cmd_vel` 唯一写者＝safe_cmd_vel_mux**（K2 红线：任何包绕过它直写即门禁红） |
 | `70_bringup` | `lite3_bringup` | — | TOP 编排层，`<include>` 各平级模块是它的职责（K3 语义：平级 `lite3_*` 禁互 include，TOP 下行不豁免） |
 | `90_supervisor` | `lite3_supervisor` | — | 心跳监管；**SUP 自身绝不写 `/cmd_vel`**（SUP 红线） |
-| `95_simulation` | `lite3_gazebo_sim`、`lite3_description`、`config/`（**自研侧**仿真参数，现仅 `faster_lio_sim.yaml`） | `Mid360_simulation_plugin`、`local_sensing`、`mockamap`、`map_generator` | 仿真域全部入口、世界件、验收件、离线预检件都在 `lite3_gazebo_sim/` 下（见下节） |
+| `95_simulation` | `lite3_gazebo_sim`、`lite3_description`、`config/`（自研侧仿真参数 `faster_lio_sim.yaml` ＋ 语义标注 `config/passability/`）、`tools/passability/`（标注工具，非 catkin 包） | `Mid360_simulation_plugin`、`local_sensing`、`mockamap`、`map_generator` | 仿真域全部入口、世界件、验收件、离线预检件都在 `lite3_gazebo_sim/` 下（见下节） |
 
 ## 二、"要找什么，去哪儿"（按问题查，不按目录查）
 
@@ -38,6 +38,7 @@
 | SCAN 的验收链 P1–P4 | `40_navigation/lite3_scan/verify/`：`v_scan_p1.sh`…`v_scan_p4.sh` 与被试 `p1_occ_sample.py`/`p2_goal_plan.py`/`p3_track.py`/`p4_replan.py`；三连独立件 `v_scan_p3_triple.sh` |
 | SCAN 参数在哪 | `30_3rd/plan_manage/launch/advanced_param.xml`（如 `grid_map/resolution=0.05` 在 :51）；我方注入点 `40_navigation/lite3_scan/launch/70_scan.launch` |
 | 导航代价图/规划器参数 | `40_navigation/lite3_navigation/config/`：`costmap_common.yaml`（`resolution: 0.1`）、`planner_teb.yaml`、`variants/`（三档覆盖文件，**当前无人加载**＝待裁 B5） |
+| 标「这级楼梯能不能上」（语义标注） | `ws/src/95_simulation/tools/passability/passability.py`（`check`/`build`/`preview`/`diff`/`verify-built`/`selftest`）；源标注写在 `config/passability/passability.yaml`，**生成物只读**；说明见 `note/进度/仿真测试台/设计稿/I_方向四先行子集_语义标注通道设计落稿.md` |
 | 安全仲裁与优先级 | `60_safety/lite3_safety/{launch,config,verify}` |
 | 任务原语与注册表 | `50_task/lite3_task/{config,verify}` |
 | 采图前体检 | `scripts/verify/premap_check.sh`（在仓库根下）（`sudo` 侧，阻塞/警告两档 rc） |

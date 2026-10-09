@@ -1,0 +1,59 @@
+index.txt —— R69 方向四先行子集的工具面：楼梯可通行性静态标注工具（离线，零门值改动）
+批次目录：note/进度/仿真测试台/证据/raw/r69_passability_tool/
+时间：2026-10-09 18:4x（CST）｜承接：主理人裁定 C7＝建议组合（C 混合维护／落点 95_simulation／流程甲→乙自动升级）
+件面 sha256 见 scripts_sha.txt：
+  tools/passability/passability.py        89e4fba5f056…（新）
+  config/passability/passability.yaml     7de6f1cffe02…（新，**零标注模板**）
+  scripts/ops/passability_pre_acl.sh      a6fac4854d9a…（新，属主侧工单，默认 dry-run）
+
+一、这套工具答哪一个问题
+H 稿 C-5 实证「同几何楼梯＋中段一根立柱」在 2 传感臂 × 3 分辨率八格里全不可分 ⇒ 「这级梯此刻能不能用」
+几何答不了，只能人标（I 稿＝v4.3 补丁 X3 的"四做先行子集"）。工具只做三件事：
+让**人写的标注自洽**、把它**变成机器可读栅格**、改动后**给出可粘进台账的三列摘要**。
+它不生成语义、不生成地图、不改门值，也**不生成 costmap 的第二个 StaticLayer**（X2 已实测两 StaticLayer 不能叠加）。
+
+二、命令与产物
+    python3 ws/src/95_simulation/tools/passability/passability.py selftest        # 10 道自检，rc=0
+    ... check [--src f --map data/maps/lite3.yaml]                                # 只校验
+    ... build [--src f --out DIR]                                                 # 出 mask+json+png
+    ... verify-built --src f --out DIR                                            # 生成物是否对得上源/底图
+    ... diff --src f --out DIR                                                    # 三列变更摘要
+产物三件（同尺寸同原点于底图 299×290、resolution 0.05、origin [-8.8,-4.35]）：
+  passability_mask.pgm  每格 0=unknown / 1=blocked / 2=passable；头部自带注释「不是 map_server 占用栅格，勿直接加载」
+  passability_mask.json 源文件 sha、底图 sha、尺寸、区清单与 poly 摘要 ⇒ 可判"是否过期/被手改"
+  passability_preview.png 底图灰度＋绿(可通行)／红(不可通行)叠画 ⇒ 给运维核对"有没有标错地方"
+
+三、三条写死在代码里的红线（不靠自觉）
+  ①未标注永远＝unknown，任何路径不塌陷成"可走"（I 稿 R-c）；
+  ②同格语义冲突＝直接红且 build 拒绝产出，**不实现"后写的赢"**（I 稿 R-d 的前半）；
+  ③生成物与源/底图 sha 不符＝红（防有人直接编辑产物，或底图换了 mask 已错位）。
+
+四、自检与阴性对照（05 纪律：新门必须真的红一次）
+selftest S0–S9b 全过：S1 空标注＝86710/86710 全 unknown；S2 合法区栅格化 494 格；S3 三件齐且自证一致；
+S4 改源后生成物判过期必红；S5/S5b 冲突只红一次且 build 拒绝；S6 枚举外 use 必红；S7 自交多边形必红；
+S8 完全落在图外要**报警**（静默空 mask 比红更坏）；S9 两次 build 产物逐字节相同（确定性）。
+另跑两组活体阴性对照（negative_control.txt）：
+  反例 yaml（冲突＋escalator）⇒ check rc=5 两条红、build rc=5 拒绝产出；
+  把已生成 mask 末字节改掉 ⇒ verify-built rc=5「mask 出现枚举外的值」；重建后转绿 rc=0。
+演示标注（demo_passability.yaml，**坐标是格式示意不是真实建筑事实**）：3 区、unknown 98.3%／blocked 0.5%／passable 1.2%。
+
+五、权限面（C7 选 C 的落地状态，含一处当场修掉的自用缺陷）
+实测：本仓目录属主是 ros1-slam，我以 ysc 写文件，默认 ACL 只给 ysc ⇒ 我建的文件 ros1-slam **连读都读不到**；
+且 setfacl 改他人目录的 ACL 被拒（`Operation not permitted`，只有属主或 root 能改）。
+本批处置：`config/passability/` 这个目录是我新建的 ⇒ **我自己就能配**：已落 `default:user:ros1-slam:rw-` ＋
+`default:user:ysc:rw-`，并把模板文件从 600 修成双方可读写（实测新建文件自动继承、带 `user:ros1-slam:rw-`）。
+仍需 root 的只剩**既有目录**（如 `note/进度/仿真测试台`）⇒ 工单 `scripts/ops/passability_pre_acl.sh`：
+dry-run 列现状与命令；`--apply` 非 root 直接拒（实测 rc=2）；`--verify` 查默认 ACL 到位与双向可写。
+
+六、零改动面与生效前置
+未动：SM/LIB、任何 gate 阈值、launch、世界件、costmap/SCAN 参数、厂商包（只读引用）⇒ **代际仍 H14**；
+生成的 mask 目前**没有任何节点读它**——读入要等 #46（我方合并代价层）与 B7（载体选型）裁定，
+所以本批价值＝"标注可以提前积累且被校验"，不是"导航行为变了"。
+在册模板保持**零标注**：真实建筑事实要现场核对后由运维/主理人填，我不替建筑编造坐标。
+
+七、开发期自曝（留件）
+①首版 `selftest` 里 S5 的说明串用了裸双引号 ⇒ SyntaxError，被本批新立的硬步骤 `python3 -m py_compile` 当场逮住
+   （这正是刚登记的坑46 的第四次复发，静态闸第一次就起作用）；
+②mask 头我原先用「跳过 4 个换行」定位体，加了防误用注释行就会错位 ⇒ 换成按 PGM 规范逐 token 解析（含 # 注释）；
+③S5 期望值我一开始写成"两条各红一次"，实际冲突只红一次（B 撞 A 的累加格）⇒ 改成断言"恰好一条红＋build 拒绝"；
+④模板文件建出来是 600 权限（运维读不到）⇒ 当场修并验证继承。

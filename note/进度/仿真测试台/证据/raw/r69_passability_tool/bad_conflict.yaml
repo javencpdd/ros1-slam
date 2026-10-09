@@ -1,0 +1,6 @@
+# 反例（阴性对照用）：两块语义打架 ＋ 一个枚举外 use
+frame_id: map
+regions:
+  - {name: 冲突A, use: passable_stair, polygon: [[-3.1,1.2],[-2.2,1.2],[-2.2,2.4],[-3.1,2.4]]}
+  - {name: 冲突B, use: blocked_stair,  polygon: [[-3.0,1.3],[-2.1,1.3],[-2.1,2.3],[-3.0,2.3]]}
+  - {name: 枚举外, use: escalator,      polygon: [[1.4,-2.1],[2.3,-2.1],[2.3,-1.1]]}

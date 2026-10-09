@@ -1,0 +1,34 @@
+# passability.yaml —— 楼梯「通道 vs 障碍」静态标注（人只改这一份）
+#
+# 为什么要有这份文件：H 稿 C-5 已实证，同几何楼梯中段压一根立柱，在 2 传感臂 × 3 分辨率的八格里
+# 全部不可分 ⇒ 「这级梯此刻能不能用」答不了，只能由人标（I 稿＝方向四先行子集，v4.3 补丁 X3/X15）。
+#
+# 规矩（工具会拦，不靠自觉）：
+#   1. 只有本文件由人维护；`generated/` 下的 mask / json / png 是**产物**，改它们没意义——
+#      `verify-built` 会拿源文件 sha 比对，手改即红。
+#   2. 没标到的地方永远是 unknown（值 0），**不会**被当成"可走"。
+#   3. 两块区语义打架（同格既 blocked 又 passable）＝直接红，工具不实现"后写的赢"。
+#   4. 改完必跑：  python3 ws/src/95_simulation/tools/passability/passability.py check
+#                 python3 ws/src/95_simulation/tools/passability/passability.py build
+#                 python3 ws/src/95_simulation/tools/passability/passability.py diff   # 出三列摘要，粘进 note/04
+#
+# 状态：本文件当前**零标注**——下面示例区里的坐标是格式示意，不代表真实建筑事实，别照抄生效。
+# 生效前置：读入面要等 #46（我方合并代价层）与 B7（载体选型）裁定；在那之前 mask 只是中间物。
+
+frame_id: map
+
+# 底图基准（工具从 data/maps/lite3.yaml 取 resolution/origin 并核对，写错会红）
+map_ref: data/maps/lite3.yaml        # resolution 0.05、origin [-8.8, -4.35]、栅格 299×290
+
+regions: []
+
+# --- 示例（取消注释并换成实测坐标后才会生效）------------------------------------
+# regions:
+#   - name: 样例_东楼梯_可通行
+#     use: passable_stair            # 许可：R-a（标注是许可，几何读不出时以标注为准）
+#     polygon: [[-3.10, 1.20], [-2.20, 1.20], [-2.20, 2.40], [-3.10, 2.40]]
+#   - name: 样例_中庭装饰梯_不可通行
+#     use: blocked_stair             # 硬闸：R-b（标了不可上，几何再像也不许）
+#     polygon: [[1.40, -2.10], [2.30, -2.10], [2.30, -1.10], [1.40, -1.10]]
+#   # use 取值：passable_stair | corridor（可通行）／blocked_stair | blocked（不可通行）
+#   # 想表达"这里我不确定"就别写——留 unknown 比写错安全（R-c）。

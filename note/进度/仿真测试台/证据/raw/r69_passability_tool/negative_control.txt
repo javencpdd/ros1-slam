@@ -1,0 +1,20 @@
+### 阴性对照一：语义冲突＋枚举外 use（期望 check 红、build 拒绝）
+  [红] 冲突B：与已标注区在 357 格上语义冲突（本区=1，已有=[2]）⇒ 不实现「后写的赢」，请分块或改界
+  [红] 枚举外：use='escalator' 不在枚举 ['blocked', 'blocked_stair', 'corridor', 'passable_stair', 'unknown'] 内 ⇒ 按纪律只能落 unknown，不得默认成可走
+  栅格 299x290（分辨率 0.050、原点 [-8.80, -4.35]）｜区数 3｜unknown 99.4% blocked 0.5% passable 0.2%
+CHECK: 红 2 ／ 警 0
+rc_check=5（期望 5）
+  [红] 冲突B：与已标注区在 357 格上语义冲突（本区=1，已有=[2]）⇒ 不实现「后写的赢」，请分块或改界
+  [红] 枚举外：use='escalator' 不在枚举 ['blocked', 'blocked_stair', 'corridor', 'passable_stair', 'unknown'] 内 ⇒ 按纪律只能落 unknown，不得默认成可走
+  栅格 299x290（分辨率 0.050、原点 [-8.80, -4.35]）｜区数 3｜unknown 99.4% blocked 0.5% passable 0.2%
+BUILD 拒绝：校验有 2 条红，不产出（宁可不出，不出过期物）
+rc_build=5（期望 5）
+
+### 阴性对照二：手改生成物一个字节（期望 verify-built 红）
+  已把 mask 体最后一字节改掉（模拟有人直接编辑产物）
+  [红] mask 出现枚举外的值 ⇒ 不是本工具产物
+rc_verify=5（期望 5）
+
+### 复原演示产物（自证应重新转绿）
+[绿] 生成物与源、底图、登记尺寸三者一致（可引用）
+rc=0（期望 0）
