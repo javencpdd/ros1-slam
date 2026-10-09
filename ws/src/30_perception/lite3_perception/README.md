@@ -13,5 +13,5 @@
 | 楼梯可通行性的现状证据 | `95_simulation/lite3_gazebo_sim/stairstudy/`（离线预检四件）＋ `note/进度/仿真测试台/设计稿/H_第四通道离线分辨力预检结论.md` |
 | 二期接口/判据契约件（零节点） | `95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh`——逐字钉住设计件 `note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md`（落账 sha 01f30b8b、commit 5867efe）的接口表、三通道判据、`unknown=−1` 语义与开工前置 |
 
-**红线/契约**：**不要在这里放算法源码**（40_navigation 同款禁令由 ISO 项[9] 监控）；实现需等 #46（合并代价层路线）与 B6（仿真竖向图案保真度）裁定。
+**红线/契约**：**这里不放算法**——但要说清约束性质：门禁项 `[9]` 只扫 `40_navigation` 下的 `.cpp/.cc/.h`，**并不监控 30_perception**（我原先写成"同款禁令由 [9] 监控"是过度声明，2026-10-09 更正）；此处的约束来自 N2/§2.6 硬规则 b 的意图，属纪律而非门禁红；实现需等 #46（合并代价层路线）与 B6（仿真竖向图案保真度）裁定。
 
