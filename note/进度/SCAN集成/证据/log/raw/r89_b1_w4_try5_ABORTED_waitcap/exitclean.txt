@@ -1,0 +1,8 @@
+# 退净核验 @2026-10-10 06:59:47
+-- 命中进程原样 ps 行 --
+1309135 /bin/bash -lc cd /home/ros1-slam && sleep 5; ps -eo comm= | grep -cE '^(gzserver|rosmaster|rosout|mbf_costmap_nav|sim_adapter)$'; pgrep -af "v_dwa_recheck" | grep -v pgrep | wc -l; ls note/进度/SCAN集成/证据/log/raw/r89_b1_w4_try5/; date +%T
+-- 端口 TCP/UDP 分查 --
+  port 11311 TCP=0 UDP=0
+  port 11312 TCP=0 UDP=0
+  port 11313 TCP=0 UDP=0
+  port 11345 TCP=0 UDP=0

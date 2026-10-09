@@ -1,0 +1,48 @@
+### 一、mbf 是否真把 DWA 装进控制器表（加载判据，零节点侧改动）
+  /clock 就绪 t=8s
+  …等待装载 轮询=0s｜墙钟=7s｜sim=2.07s（起于 1.12s）｜RTF≈0.136｜DWA=0 teb=0
+  …等待装载 轮询=60s｜墙钟=71s｜sim=21.43s（起于 1.12s）｜RTF≈0.286｜DWA=0 teb=0
+  …等待装载 轮询=120s｜墙钟=136s｜sim=40.92s（起于 1.12s）｜RTF≈0.293｜DWA=0 teb=0
+  装载等待结束：轮询 180s｜墙钟 201s｜sim=60.37s（起于 1.12s）｜DWA 命中=0 teb 命中=0（loaded 总累计=2，含 planners/recovery）
+  【警示】到 180s 仍未在日志里看到控制器装载行 ⇒ 不据此作废（日志全缓冲会造假否定），
+          继续进判据阶段，以 goal 的 outcome 为准（墙钟 201s｜sim 60.37s｜起始 1.12s）
+  控制器注册表: 
+  （注：root-inertia WARN 现指 base_link，小张 M2R5 风险①预测成立；已 grep 全仓无脚本消费该串）
+### 二、DWA 第 1 跑（三连判据）
+    RECHK run=dwa1 controller=DWAPlannerROS start=(0.000,0.000) goal=(3.000,0.000)
+    RECHK gate_map_data=PASS t=0.1s
+    RECHK gate_gcostmap_data=PASS t=0.2s
+    RECHK gate_lcostmap_data=PASS t=0.3s
+    RECHK gate_tf_fresh_mapbase=PASS t=0.9s
+    RECHK pose_age_map_base_link=0.018s stamp=62.000 sim_now=62.079
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=61
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=12.2s(sim) dt_wall=42.1s dev_odom=0.096 dev_gt=0.097 rtf=0.290 smooth_rms=0.0886 cmd_n=122
+    RECHK 有效性门 rtf=0.290PASS ｜ 判据 state=3 outcome=0 dt_ok=True dev_ok=True
+    RECHK VERDICT PASS
+  rc=0 ；mbf 日志内 pose 类命中累计=0
+  [PASS] dwa 第 1 跑
+### 三、同场 teb 对照（证 harness 本身没坏）
+    RECHK run=teb_ctrl controller=TebLocalPlannerROS start=(3.111,-0.006) goal=(6.111,-0.006)
+    RECHK gate_map_data=PASS t=0.1s
+    RECHK gate_gcostmap_data=PASS t=0.4s
+    RECHK gate_lcostmap_data=PASS t=0.4s
+    RECHK gate_tf_fresh_mapbase=PASS t=1.0s
+    RECHK pose_age_map_base_link=0.027s stamp=76.600 sim_now=76.662
+    RECHK get_path attempt1 outcome=0 "Plan found" poses=60
+    RECHK exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3
+    RECHK dt=8.4s(sim) dt_wall=29.0s dev_odom=0.190 dev_gt=0.190 rtf=0.289 smooth_rms=0.0303 cmd_n=84
+    RECHK 有效性门 rtf=0.289PASS ｜ 判据 state=3 outcome=0 dt_ok=True dev_ok=True
+    RECHK VERDICT PASS
+  [PASS] teb 对照
+### 汇总 DWA PASS=1 FAIL=0 INVALID=0（目标 PASS=1）；teb 对照 rc=0
+DWA RECHECK VERDICT: PASS（DWA 可用，判据三连全过）
+DWA RECHECK 批级 rc=0（0 PASS／5 FAIL／6 INVALID／7 并存停手／4 INCOMPLETE；本件自有层，引用须连件名）
+[exitclean] # 退净核验 @2026-10-10 07:07:42
+[exitclean] -- 命中进程原样 ps 行 --
+[exitclean]   （零命中）
+[exitclean] -- 端口 TCP/UDP 分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0

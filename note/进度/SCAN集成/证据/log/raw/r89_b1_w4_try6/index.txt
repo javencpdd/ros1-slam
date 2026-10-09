@@ -1,0 +1,35 @@
+index.txt —— R89 批1 第⑨条销项：**功能性 PASS 顺手证伪了"未装载"**
+目录：note/进度/SCAN集成/证据/log/raw/r89_b1_w4_try6/
+时间：2026-10-10 07:00–07:07（CST，独占链窗）
+命令：`DWA_OUT=<本目录> bash ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh 1`（N=1，按清单"三连不复跑"）
+
+一、结果：**DWA rc=0 ＝ 批1 第⑨条销项**
+· 就绪门（已是"只警示"版）如实打出：`装载等待结束：轮询 180s｜墙钟 201s｜sim=60.37s｜DWA 命中=0 teb 命中=0`
+  ＋`【警示】到 180s 仍未在日志里看到控制器装载行 ⇒ 不据此作废（日志全缓冲会造假否定）`；
+· 然后**判据阶段自己给出了反证**：`get_path attempt1 outcome=0 "Plan found" poses=61`、
+  `exe_path outcome=0 "Controller succeeded; arrived at goal!" state=3`、
+  `dt=12.2s(sim) dt_wall=42.1s dev_odom=0.096 dev_gt=0.097 rtf=0.290 smooth_rms=0.0886 cmd_n=122`
+  ⇒ **控制器一直是装载好的**，"日志里没有"就是缓冲——R88 的根因判断由这次 PASS 直接背书，不再靠中止后刷盘那一步。
+· 前置门四条全 PASS（gate_map_data／gate_lcostmap_data／gate_gcostmap_data／gate_tf_fresh_mapbase），
+  `pose_age_map_base_link=0.018s`，`mbf 日志内 pose 类命中累计=0` ⇒ W2 那个"位姿获取域 age 5.372s"的签名没有复发。
+· 同场 teb 对照也跑完（第三段），批级 rc=0 ⇒ 不是"DWA 单点侥幸"。
+
+二、本条销项的口径（照清单原文）
+「W4 复测件的可用性复跑 **1 次**（不为重开 #4，只证通道修好；三连不复跑）」⇒ 本窗 **N=1**，未跑三连；
+结论层面**只证通道可用**，不重开 roadmap C #4 的裁定（#23 已裁）。
+
+三、四跑链的收官说明（为什么前三次的 INVALID 都作废）
+try1/2/3 打 rc=6 的"未装载"是**同一个假否定**在不同上界下的重复；try4 我中止后刷盘看到 loaded 行；
+try5 是我自己发现的第二个缺陷（门只警示但循环仍等满 2400s ⇒ 白烧窗，已把界缩到 180s，目录
+`../r89_b1_w4_try5_ABORTED_waitcap/`）；try6 ＝ 本销项跑。
+⇒ 教训已回写 02 坑53（等到超时读成不存在）；**泛化那条**（凡 grep 重定向日志的验收件先确认写方是否行缓冲）
+待小美认 A18 后回写 05 G 段。
+
+四、零改点
+`dwa_recheck.py` 未动；`v_dwa_recheck.sh` 只改就绪门与采样打印（**rc 语义 0/5/6/7/4 与所有门值一字未动**）；
+`blind` 仍 1.0；`sha_before.txt` 内四件（件＋样张＋世界件）本跑后未变；
+teardown：11311/11312/11313/11345 全 TCP=0 UDP=0、零命中残留；SM/LIB 未动 ⇒ **代际仍 H14**。
+
+五、批1 十一条现状（R89 后）
+**①②③④⑤⑦⑧⑨⑩ 九条已销 ＋ ⑪ 半**；仅剩 **⑥**（FD-3／FD-4 无可执行件，阻塞在裁定 **A17**）。
+⇒ ⑥ 未答之前 **批1 不称完成**；⑥ 之外的验收面已全部补齐。

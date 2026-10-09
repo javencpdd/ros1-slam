@@ -1,0 +1,13 @@
+### 一、mbf 是否真把 DWA 装进控制器表（加载判据，零节点侧改动）
+  /clock 就绪 t=8s
+  …等待装载 轮询=0s｜墙钟=7s｜sim=2.31s（起于 1.23s）｜RTF≈0.154｜DWA=0 teb=0
+  …等待装载 轮询=60s｜墙钟=72s｜sim=21.63s（起于 1.23s）｜RTF≈0.283｜DWA=0 teb=0
+  …等待装载 轮询=120s｜墙钟=136s｜sim=41.04s（起于 1.23s）｜RTF≈0.293｜DWA=0 teb=0
+[exitclean] # 退净核验 @2026-10-10 06:59:47
+[exitclean] -- 命中进程原样 ps 行 --
+[exitclean] 1309135 /bin/bash -lc cd /home/ros1-slam && sleep 5; ps -eo comm= | grep -cE '^(gzserver|rosmaster|rosout|mbf_costmap_nav|sim_adapter)$'; pgrep -af "v_dwa_recheck" | grep -v pgrep | wc -l; ls note/进度/SCAN集成/证据/log/raw/r89_b1_w4_try5/; date +%T
+[exitclean] -- 端口 TCP/UDP 分查 --
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
