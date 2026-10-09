@@ -64,16 +64,19 @@ for p in sys.argv[1:]:
 
 # 第四查：同文件内**函数调用实参个数**（本仓 R76 第六次烧链就是 measure() 少传一个位置参数，
 #         py_compile／pyflakes 都查不出——它们不看调用点。只判"本文件内定义、纯字面位置实参、且无 *args"的调用）
-import inspect
 defs = {}
-for node in ast.walk(tree):
-    if isinstance(node, (ast.FunctionDef,)):
-        a = node.args
-        if a.vararg is None and a.kwarg is None and not a.kwonlyargs:
-            req = len(a.args) - len(a.defaults)
-            opt = len(a.defaults)
-            skip_self = 1 if a.args and a.args[0].arg in ("self", "cls") else 0
-            defs[node.name] = (req - skip_self, opt - skip_self, node.lineno)
+methods = set()
+for cd in [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]:
+    for fn in [n for n in ast.walk(cd) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+        methods.add(id(fn))                       # 只有**类体内的函数**才有隐式 self/cls
+for node in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+    a = node.args
+    if a.vararg is None and a.kwarg is None and not a.kwonlyargs:
+        req = len(a.args) - len(a.defaults)
+        opt = len(a.defaults)
+        # 假阳教训（本件自曝）：早先用「首参叫 self/cls 就减一」，于是普通函数 def cnt(cls) 被算成 0–-1 ⇒ 判红四次。
+        skip = 1 if id(node) in methods and a.args and a.args[0].arg in ("self", "cls") else 0
+        defs[node.name] = (req - skip, opt - skip, node.lineno)
 for node in ast.walk(tree):
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in defs:
         if any(isinstance(x, ast.Starred) for x in node.args) or node.keywords:

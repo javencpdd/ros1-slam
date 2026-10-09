@@ -54,8 +54,19 @@ case "${1:-}" in
       echo "  $d 默认ACL 含 ros1-slam:$g"
       [ "$g" = "1" ] || OK=0
       t="$d/.acl_probe.$$"
-      if (set -e; : > "$t" && su -s /bin/bash ros1-slam -c "test -w '$t' && echo '    ros1-slam 可写：是'" && rm -f "$t") 2>/dev/null; then :; else
-        echo "    ros1-slam 可写：否（或未装 su 通道，手工验一次）"; OK=0
+      # 假阴教训（2026-10-10 实跑）：`su` 只有 root 能免密切用户 ⇒ 以 ysc 跑 --verify 时 su 必失败，
+      # 旧写法把"切不了用户"报成"不可写"＝**方法自身造出假红**。现分两路：root 跑才做真写测试，
+      # 非 root 只做**静态有效权限核对**（getfacl 的 #effective 标记），并明写"对方可写性需 root 或对方会话验"。
+      if [ "$(id -un)" = root ]; then
+        if (set -e; : > "$t" && su -s /bin/bash ros1-slam -c "test -w '$t' && echo '    ros1-slam 可写：是（实测）'" && rm -f "$t") 2>/dev/null; then :
+        else echo "    ros1-slam 可写：否（实测）"; OK=0; fi
+      else
+        eff=$(getfacl -p "$d" 2>/dev/null | grep '^user:ros1-slam' | head -1)
+        case "$eff" in
+          *rwx*) echo "    ros1-slam 条目：$eff ⇒ 静态核对通过（真写测试需 root 跑本件）";;
+          *)     echo "    ros1-slam 条目：${eff:-缺} ⇒ 未拿到 rwx，需重跑 --apply"; OK=0;;
+        esac
+        touch "$t" 2>/dev/null && { echo "    ysc 侧写测试：可写"; rm -f "$t"; } || { echo "    ysc 侧写测试：不可写"; OK=0; }
       fi
     done
     [ "$OK" = 1 ] && echo "PASSABILITY ACL VERIFY: PASS（双方可写，运维可自助改源标注）" || { echo "PASSABILITY ACL VERIFY: 未到位"; exit 5; }

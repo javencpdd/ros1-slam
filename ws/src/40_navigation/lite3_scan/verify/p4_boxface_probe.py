@@ -48,12 +48,14 @@ HALF = 0.40                                                        # 世界件 o
 EPS = 0.01                                                       # 面点恰在 ±half 边界上，浮点会把它们挤出去（selftest 实测丢 212 点）
 Z_FLOOR = -0.35                                                  # OBB 下界留 5cm 挡地面（箱子底面恰在地面上）
 SHELL = (0.8, 1.6)                                                 # 背景环带（距箱心），量化旧口径的污染源
-DIST = float(os.environ.get("PROBE_D", "1.0"))
 HOME = (5.8, -1.0)
 POS_CTRL = (1.5, 1.2)                                              # obs_1 原位（0.8³、yaw 0.4 rad）
 POS_CTRL_YAW = 0.4
 NEG_CTRL = (20.0, 20.0)
-HEADINGS = (0, 45, 90, 135, 180, 225, 270, 315)
+HEADINGS = tuple(int(v) for v in os.environ.get("PROBE_HEADINGS", "0,45,90,135").split(","))
+# 心距改成可扫（#64）：R77 已证机理是**距离**不是方位 ⇒ 边界该沿距离量。默认 6 档含刀口两侧细步（0.9/1.0/1.1）。
+# 不用 <0.9m：注入体半宽 0.40m，心距 0.6m 时箱体近面距机体仅 0.2m，会与机身相交（那是几何假象不是可见性）。
+DISTS = tuple(float(v) for v in os.environ.get("PROBE_DISTS", "0.9,1.0,1.1,1.3,1.6,2.0").split(","))
 SETTLE_S = 3.0
 SAMPLE_S = 6.0
 LAYERS = ("raw", "body", "cloud", "map")
@@ -241,9 +243,11 @@ def main():
         say("P4 箱体OBB探针 = INVALID|世界外仍数到点（%s）⇒ 口径漏了，不出结论" % {k: nc[k][0] for k in LAYERS})
         return 9
 
-    say("== 八方位注入（机体不动，心距 %.2fm，OBB 半宽 %.2fm）==" % (DIST, HALF))
+    say("== 距离×方位扫描（机体不动，心距 %s m，OBB 半宽 %.2fm，方位 %s）=="
+        % (list(DISTS), HALF, list(HEADINGS)))
     rows = []
-    for h in HEADINGS:
+    for DIST in DISTS:
+      for h in HEADINGS:
         tx = pose["x"] + DIST * math.cos(math.radians(h))
         ty = pose["y"] + DIST * math.sin(math.radians(h))
         move(tx, ty)
@@ -252,8 +256,8 @@ def main():
         a = get(BOX, "world")
         dev = math.hypot(a.pose.position.x - tx, a.pose.position.y - ty)
         if dev > 0.05:
-            say("  方位 %3d° 注入未落地（偏差 %.2fm）⇒ 作废" % (h, dev))
-            rows.append({"heading": h, "landed": False})
+            say("  心距 %4.2fm 方位 %3d° 注入未落地（偏差 %.2fm）⇒ 作废" % (DIST, h, dev))
+            rows.append({"dist": DIST, "heading": h, "landed": False})
             continue
         if got["raw"][0] == 0:
             step = "传感器/插件面：箱体内一个原始点都没有"
@@ -309,7 +313,8 @@ def main():
     move(*HOME)
     if out:
         with open(out, "w") as fh:
-            fh.write(json.dumps({"rc": rc, "pose": [pose.get("x"), pose.get("y")], "dist": DIST,
+            fh.write(json.dumps({"rc": rc, "pose": [pose.get("x"), pose.get("y")],
+                                 "dists": list(DISTS), "headings": list(HEADINGS), "z_box": Z_BOX,
                                  "half": HALF, "shell": list(SHELL), "topics": TOPICS, "meta": meta,
                                  "shifts": {k: list(v) for k, v in shifts.items()},
                                  "pos_ctrl": pc, "neg_ctrl": nc, "rows": rows,
