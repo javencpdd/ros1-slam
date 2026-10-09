@@ -8,7 +8,7 @@ tegra194／aarch64——**目标机就是本机**，不在别处）。
 [v4.1 雷达翻案](note/计划书v4/21_ros1-slam隔离部署计划书-v4.1-雷达翻案补丁.md) ·
 [v4.2 仿真测试台](note/计划书v4/21_ros1-slam隔离部署计划书-v4.2-仿真测试台补丁.md) ·
 [v4.3 楼梯通行与计划书同步纪律（草案 X1–X16）](note/计划书v4/21_ros1-slam隔离部署计划书-v4.3-楼梯通行与计划书同步纪律补丁.md)
-（v3 原文归档于 `note/计划书v3/`）。
+（v3 原文归档于 `note/计划书v3/` 目录）。
 **实机传感器 = Livox Mid-360**（192.168.1.201，v4.1 实测翻案：UDP 56301/56401 → 103，C16 配置为软件遗留）。
 仿真侧的雷达是插件近似（竖向 50 线摊 ±90°、安装高 0.38m），其保真度缺口已挂账待裁（O-10／B6）。
 
@@ -39,13 +39,13 @@ tegra194／aarch64——**目标机就是本机**，不在别处）。
 | `scripts/` | `as_ros1slam.sh`（代劳执行）、`env.sh`（环境入口，含 foxy 清理与 devel 守卫）、`gen_shell_pkgs.sh`、`ops/`（属主/ACL 工单，需你本机 `sudo` 执行） |
 | `note/` | 台账与进度真身（见上表）；计划书归档 `计划书v3/`、`计划书v4/` |
 | `opt/ref/` · `opt/3rdparty/` | 只读参照（导航参数底稿、ROS2 原始 yaml 存档）· Livox_SDK2 沙箱副本 |
-| `data/maps/` · `data/waypoints/` | 建图产物落盘位（**`lite3.pcd` 是样张红线件**，各跑前后取 sha）· 航点目录 |
+| `data/maps/` · `data/waypoints/` | 建图产物落盘位（**`data/maps/lite3.pcd` 是样张红线件**，各跑前后取 sha）· 航点目录 |
 | `logs/` | 运行日志（`ROS_LOG_DIR` 已指此，不入库） |
 
 ## 部署要点（现行口径）
 
 - **M4 导航 = mbf_costmap_nav 联邦式**（GetPath/ExePath/Recovery 独立 action＋按名点单＋错误码分级恢复；MBF 原生加载 nav_core 插件，无需适配器）
-- **M5 编排契约先行**：`task_primitives.yaml` + SMACH 简版；**SUP 心跳监管**；`/cmd_vel` 唯一写者 = M6 `safe_cmd_vel_mux`
+- **M5 编排契约先行**：`50_task/lite3_task/config/task_primitives.yaml` + SMACH 简版；**SUP 心跳监管**；`/cmd_vel` 唯一写者 = M6 `safe_cmd_vel_mux`
 - **采图链**：`livox_ros_driver2`（remap → `/rslidar_points`，frame_id=rslidar）+ `qnx2ros`（`/imu/data`）→ `faster_lio`（`run_mapping_online`，lidar_type=4）
 - **SCAN 集成走壳包**：上游五包在 `ws/src/30_3rd/` 按基线不改，行为改点落在 `40_navigation/lite3_scan/`
 - **仿真优先于真机**：能在仿真闭环的验收不放狗（真机窗口留给 G8/G9 合测）
@@ -75,7 +75,7 @@ tegra194／aarch64——**目标机就是本机**，不在别处）。
 进度、Gate 状态、待裁项**只以 [`note/进度/00_总览.md`](note/进度/00_总览.md) 与
 [`note/进度/00_裁定请求单_2026-10-09.md`](note/进度/00_裁定请求单_2026-10-09.md) 为准**，本文档不复制状态快照
 （复制就会漂移，02 坑43 同族）。当前主线在仿真侧（M2/M5/SCAN 闭环与楼梯可行性预检），
-真机侧 G8/G9 待窗口合测；判据载体代际现值见 `note/07`。
+真机侧 G8/G9 待窗口合测；判据载体代际现值见 `note/07_判据载体代际对照表.md`。
 
 ## 许可证
 
