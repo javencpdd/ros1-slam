@@ -15,7 +15,10 @@
 set -u
 ROOT=/home/ros1-slam
 DIRS=("$ROOT/ws/src/95_simulation/config/passability" "$ROOT/note/进度/仿真测试台")
-CMD='setfacl -R -m d:u:ros1-slam:rw-,d:u:ysc:rw- <目录> && setfacl -R -m u:ros1-slam:rw-,u:ysc:rw- <目录>'
+# 目录必须给 rwx、文件只给 rw-：**目录少了 x 就是"能列名字但不能进入/stat"**，
+#   而 setfacl 会按新条目重算 mask ⇒ 只写 rw- 的递归工单在 mode 700 的子目录上等于没落
+#   （2026-10-10 主理人实跑 --apply 后 note/进度/仿真测试台/{设计稿,证据} 仍 Permission denied，即此因）。
+CMD='find <目录> -type d -exec setfacl -m d:u:ros1-slam:rwx,d:u:ysc:rwx,u:ros1-slam:rwx,u:ysc:rwx {} + ; find <目录> -type f -exec setfacl -m u:ros1-slam:rw-,u:ysc:rw- {} + ; setfacl -d -m u:ros1-slam:rwx,u:ysc:rwx <目录>'
 
 echo "=== 现状（谁可写）==="
 for d in "${DIRS[@]}"; do
@@ -32,7 +35,9 @@ case "${1:-}" in
     N=0
     for d in "${DIRS[@]}"; do
       [ -d "$d" ] || { echo "  跳过缺目录 $d"; continue; }
-      setfacl -R -m d:u:ros1-slam:rw-,d:u:ysc:rw-,u:ros1-slam:rw-,u:ysc:rw- "$d" && N=$((N+1))
+      find "$d" -type d -exec setfacl -m d:u:ros1-slam:rwx,d:u:ysc:rwx,u:ros1-slam:rwx,u:ysc:rwx {} + \
+        && find "$d" -type f -exec setfacl -m u:ros1-slam:rw-,u:ysc:rw- {} + \
+        && setfacl -d -m u:ros1-slam:rwx,u:ysc:rwx "$d" && N=$((N+1))
     done
     echo "已对 $N 个目录落 ACL。注意：这只覆盖**执行时刻已存在**的文件；新建文件靠 default ACL 自动继承。"
     ;;
@@ -40,7 +45,12 @@ case "${1:-}" in
     OK=1
     for d in "${DIRS[@]}"; do
       [ -d "$d" ] || { echo "  [缺] $d"; OK=0; continue; }
-      g=$(getfacl -p "$d" 2>/dev/null | grep -c '^default:user:ros1-slam:rw-')
+      g=$(getfacl -p "$d" 2>/dev/null | grep -c '^default:user:ros1-slam:rwx')
+      # 子目录可进入性也要验：只看顶层会给出假绿（本次就是这么漏的）
+      for sub in "$d"/*/; do
+        [ -d "$sub" ] || continue
+        getfacl -p "$sub" >/dev/null 2>&1 || { echo "  [进不去] $sub ⇒ 目录缺 x，需重跑 --apply"; OK=0; }
+      done
       echo "  $d 默认ACL 含 ros1-slam:$g"
       [ "$g" = "1" ] || OK=0
       t="$d/.acl_probe.$$"
