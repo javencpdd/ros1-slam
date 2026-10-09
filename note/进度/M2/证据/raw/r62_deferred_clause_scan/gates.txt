@@ -1,0 +1,13 @@
+# 调用姿势自证：三步 env
+### SYN
+[OK] bash -n   scripts/verify/v_deferred_clause_scan.sh
+  [OK] python 段 L26-L194 定界符=PYEOF scripts/verify/v_deferred_clause_scan.sh
+PY SYNTAX OK（被检件数=1，内嵌 python 段合计=1）
+SYN rc=0
+### GTC
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+### ISO
+=== ISOLATION OK ===
+# self-attest: at=2026-10-09 10:07:40 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4551 rc=0
+### 本件首轮实跑（未收紧前）的精度自曝：A 类 6 条里只有 2 条为真，含 1 条扫描面自匹配（它自己的注释）⇒ 据此加了两条收紧规则并把 4 条已知假阳性钉成必过用例（T4）
