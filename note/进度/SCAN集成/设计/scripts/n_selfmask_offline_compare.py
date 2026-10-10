@@ -214,7 +214,7 @@ def main():
         print("  %-28s 障碍=%7.0f(×%.2f)  自回波=%6.0f  近地面=%6.0f  下游总点数=%8.0f(×%.2f)"
               % (name, o, o / base, sl, g, tt, tt / baset))
     print("\n读法：`障碍` 越大越好＝收益；`自回波` 越小越好＝干净；`下游总点数` 越小越好＝负载（在册 CPU 已超载过一次"
-          "　faster_lio_outdoor.yaml:15 的 filter_size_surf 0.15→0.3 回退注记）。")
+          "　faster_lio_outdoor.yaml:13 的 filter_size_surf 0.15→0.3 回退注记）。")
     print("三者不可同时最优 ⇒ 本表是给裁定的**输入**，不是结论。仿真侧 `自回波` 与 `近地面` 两列恒 0 ⇒ "
           "这两列必须由真机或换带腿/地面的仿真补测，**不能因为读到 0 就当通过**（坑45 同族）。")
     return 0
