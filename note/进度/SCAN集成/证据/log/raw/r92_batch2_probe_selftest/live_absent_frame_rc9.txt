@@ -1,0 +1,8 @@
+STP 环境自证：mode=live phase=目标帧缺席自检 ROS_MASTER_URI=http://localhost:11313 win=3.0 rotor=1.0 child=no_such_frame
+PROBE master 可达：localhost:11313（有界预检 2s）
+PROBE static=ERR ROSException（静态面缺席 ⇒ 只可能少算入边，不会多算；如实打这行）
+PROBE 窗型自证：TF 相关节点=[]（总节点=2）
+PROBE phase=目标帧缺席自检 来源=live /tf+/tf_static 采样：变换行=0 帧数=0
+PROBE INVALID：窗内一条变换都没扫到（扫描面空集）⇒ **不得读作"没有双父"**（坑29）
+==================================================
+STP VERDICT rc=9（0 未见发作／7 发作停手／9 INVALID 前置缺失／5 自测有 FAIL）

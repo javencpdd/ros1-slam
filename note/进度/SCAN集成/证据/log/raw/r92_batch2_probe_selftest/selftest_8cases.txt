@@ -1,0 +1,51 @@
+STP 环境自证：mode=selftest phase=- ROS_MASTER_URI=http://localhost:11311 win=3.0 rotor=1.0 child=base_link
+PROBE phase=selftest 来源=fixture 采样：变换行=3 帧数=2
+PROBE base_link_parents=['body', 'odom']
+PROBE static_edges_into_base_link=1
+PROBE edge body->base_link static hits=1 last_stamp=0.000 [ZERO]
+PROBE edge odom->base_link dynamic hits=1 last_stamp=10.000
+PROBE STOP-FLAG：base_link 有 2 个父 ['body', 'odom'] ⇒ FD-G 发作签名（fd 稿 :212 的 {odom, body} 一族）⇒ 立即停手上报、判 TF 结构回归；不走 INVALID、不静默继续
+[PASS] T-1 阳性对照·上游 relay 在位（真实发作形态，须被认出双父并打 7）（期望 parents=['body', 'odom'] static=1 rc=7｜实得 parents=['body', 'odom'] static=1 rc=7）
+PROBE phase=selftest 来源=fixture 采样：变换行=4 帧数=4
+PROBE base_link_parents=['odom']
+PROBE static_edges_into_base_link=0
+PROBE edge odom->base_link dynamic hits=1 last_stamp=10.000
+PROBE 未见发作（恰单父；**这是读数陈述，不是 gate 判定**——本件不入 gate、不动门值）
+[PASS] T-2 实照相·壳包 relay（批2 期望态：恰 odom 单父、静态入边 0）（期望 parents=['odom'] static=0 rc=0｜实得 parents=['odom'] static=0 rc=0）
+PROBE phase=selftest 来源=fixture 采样：变换行=3 帧数=2
+PROBE base_link_parents=['odom']
+PROBE static_edges_into_base_link=0
+PROBE edge odom->base_link dynamic hits=2 last_stamp=11.000
+PROBE 未见发作（恰单父；**这是读数陈述，不是 gate 判定**——本件不入 gate、不动门值）
+[PASS] T-3 前导斜杠归一（"/odom"+base_link 与 odom+"/base_link" 都是同一条边，不许假分成两元素）（期望 parents=['odom'] static=0 rc=0｜实得 parents=['odom'] static=0 rc=0）
+PROBE phase=selftest 来源=fixture 采样：变换行=2 帧数=1
+PROBE base_link_parents=['body', 'odom']
+PROBE static_edges_into_base_link=0
+PROBE edge body->base_link dynamic hits=1 last_stamp=10.500
+PROBE edge odom->base_link dynamic hits=1 last_stamp=10.000
+PROBE STOP-FLAG：base_link 有 2 个父 ['body', 'odom'] ⇒ FD-G 发作签名（fd 稿 :212 的 {odom, body} 一族）⇒ 立即停手上报、判 TF 结构回归；不走 INVALID、不静默继续
+[PASS] T-4 双父的另一型（body 侧是动态而非静态，仍须判发作；静态入边计数只用于 FD-6 第二句）（期望 parents=['body', 'odom'] static=0 rc=7｜实得 parents=['body', 'odom'] static=0 rc=7）
+PROBE phase=selftest 来源=fixture 采样：变换行=0 帧数=0
+PROBE INVALID：窗内一条变换都没扫到（扫描面空集）⇒ **不得读作"没有双父"**（坑29）
+[PASS] T-5 空集必须 INVALID（扫描面为空的"零命中"不是绿）（期望 parents=[] static=0 rc=9｜实得 parents=[] static=0 rc=9）
+PROBE phase=selftest 来源=fixture 采样：变换行=1 帧数=1
+PROBE base_link_parents=['odom']
+PROBE static_edges_into_base_link=0
+PROBE edge ->base_link dynamic hits=1 last_stamp=1.000
+PROBE edge odom->base_link dynamic hits=1 last_stamp=10.000
+PROBE 未见发作（恰单父；**这是读数陈述，不是 gate 判定**——本件不入 gate、不动门值）
+[PASS] T-6 坏行不进面（父名为空的畸形行不计入 total，防它把 total 顶成非零骗过 ②）（期望 parents=['odom'] static=0 rc=0｜实得 parents=['odom'] static=0 rc=0）
+PROBE phase=selftest 来源=fixture 采样：变换行=2 帧数=2
+PROBE INVALID：目标帧 base_link 根本不在 TF 图里（扫到 2 行／2 个帧，但没有它的父边）⇒ 父集合为空是**缺席**不是"没有双父"，与绿是两回事（同坑29 的另一种形态：被试名写错／链没起全也会"零命中"）
+[PASS] T-8 目标帧缺席（图里有别的帧、就是没有 base_link 的父边）⇒ INVALID 不是"没有双父"（期望 parents=[] static=0 rc=9｜实得 parents=[] static=0 rc=9）
+PROBE phase=selftest 来源=fixture 采样：变换行=3 帧数=2
+PROBE base_link_parents=['body', 'odom']
+PROBE static_edges_into_base_link=1
+PROBE edge body->base_link static hits=1 last_stamp=0.000 [ZERO]
+PROBE edge odom->base_link dynamic hits=1 last_stamp=10.000
+PROBE STOP-FLAG：base_link 有 2 个父 ['body', 'odom'] ⇒ FD-G 发作签名（fd 稿 :212 的 {odom, body} 一族）⇒ 立即停手上报、判 TF 结构回归；不走 INVALID、不静默继续
+[PASS] T-7 元检（拿 T-1 那份双父 rows 去比"单父＋rc 0"的错期望，harness 必须判不成立；实得 parents=['body', 'odom'] static=1 rc=7 ⇒ 错期望被认出＝绿）
+STP SELFTEST VERDICT: PASS=8 FAIL=0
+==================================================
+STP VERDICT rc=0（0 未见发作／7 发作停手／9 INVALID 前置缺失／5 自测有 FAIL）
+selftest rc=0

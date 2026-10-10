@@ -1,0 +1,47 @@
+index.txt —— R92 批2 条1/条4 的取数件（STP）到手：件面 8/8 自测 ＋ 活体最小图阳性对照 rc=7 ＋ 两种空态各归其位
+目录：note/进度/SCAN集成/证据/log/raw/r92_batch2_probe_selftest/
+时间：2026-10-10 11:20–11:35（CST）
+被检件：ws/src/40_navigation/lite3_scan/verify/v_scan_tf_parent_probe.sh（STP，新件）
+派单出处：设计/r_批2复取承接对账.md §2（条 1「E3 与双父签名」＋条 4「FD-6 明细」＝必须新取）与 §3（取法）
+
+一、为什么本目录不算"批2 已取到"（先说清边界）
+- 本目录证的是**探针自己可用**（能在真 TF 图里认出双父、能分辨三种空态），**不是** SCAN 窗的批2 读数。
+  SCAN 窗那一跑＝#80，仍在等 loadavg 过闸（11:33:22 实测 **5.13 > 阈值 4**，在册闸门见 retake_driver.sh:44
+  `LOAD_MAX=${LOAD_MAX:-4}`，该闸是工序闸不判被测件）。
+- 唯一"活体 rc=7"那份是**合成图**（fake_tf_publisher.py 手工造 odom→base_link 动态边＋body→base_link 静态边），
+  它就是 r 稿 §3 里"阳性对照"那一格的**件面实现**；真链的对照相是否还要在 SCAN 窗里再取一次，随 A20 一起由小美定。
+
+二、五份读数（逐件可复跑，命令都写在件头用法行）
+1) selftest_8cases.txt —— `bash v_scan_tf_parent_probe.sh --selftest` ⇒ **PASS=8 FAIL=0，rc=0**
+   T-1 双父阳性对照（parents=['body','odom']／rc=7）｜T-2 实照相期望态（恰 ['odom']／rc=0）
+   ｜T-3 前导斜杠归一（'/odom'→'/base_link' 与 odom→base_link 是同一条边，不许假分成两元素）
+   ｜T-4 双父的另一型（body 侧是动态而非静态，仍判发作）｜T-5 扫描面空集 ⇒ rc=9
+   ｜T-6 坏行（父名为空）不进 total，防它把非零顶上去骗过空集闸｜T-7 **元检**：拿 T-1 那份 rows 去比
+   "单父＋rc 0"的错期望，harness 必须判不成立（防"8/8 全绿"实为比较式恒真＝坑29 打到自测件自己）
+   ｜T-8 目标帧缺席 ⇒ rc=9
+2) preflight_no_chain_rc9.txt —— 无 master 时 ⇒ **rc=9，两秒内有界返回**
+   `PROBE INVALID：master 前置缺失＝localhost:11311 不可连（ConnectionRefusedError）`。
+   **这条是修出来的**：首版没有前置预检，`rospy.init_node` 在无 master 时**一直挂着**——实测 60s timeout 才回来、
+   rc=124。"跑不动"必须当场落成 INVALID，不能占着窗等（坑53 同族：等待类上界必须显式）。
+3) live_positive_control_rc7.txt —— 合成图真跑 ⇒ **rc=7 并打 STOP-FLAG**：
+   `base_link_parents=['body', 'odom']`、`static_edges_into_base_link=1`、
+   `edge body->base_link static hits=1 last_stamp=0.000 [ZERO]`、`edge odom->base_link dynamic hits=60`。
+   ⇒ 这探针**抓得到** FD-G 的发作签名（也顺带复现了 [ZERO] 那一族签名：静态边戳被规范化成 Time(0)）。
+4) live_absent_frame_rc9.txt —— 同一张真图但把目标帧写成 `STP_CHILD=no_such_frame` ⇒ **rc=9 INVALID**，
+   打印"目标帧根本不在 TF 图里"。**这条也是修出来的**：首版只查"扫描面空"，目标帧缺席会走
+   `parents=[]` ⇒ 被打印成"未见发作 rc=0"＝**假绿**。修法＝parse 额外返回 child_seen，缺席与空集各自打 INVALID。
+5) minwin_driver_stdout.txt ／ fake_publisher_stdout.txt ／ r92_minwin_driver.sh ／ fake_tf_publisher.py
+   —— 复现料：驱动 150s 有界、跑后自检 `after_ports=0 after_procs=0`（11313 释放、无残留）。
+
+三、三态归位（本件 rc 语义，写死在件头）
+   0 取到有效读数且未见发作（**读数陈述，不是 gate 判定**：本件不入 gate、不动门值，照小美 M2R7 `:805`
+     加项二「FD 断言保持只打印」与批1 行 C「正式入 gate 随批1b」）
+   7 双父发作 ⇒ 停手上报、判 TF 结构回归（照 fd 稿 `:212` 原文的停手条，不走 INVALID、不静默继续）
+   9 INVALID 前置缺失（无 master／扫描面空／目标帧缺席）
+   5 自测有 FAIL
+   注：**没有 1**。首版把 init_node 挂死暴露成 timeout 的 rc=124，属"件自己不会用"，已按上述预检消灭。
+
+四、红线与零触碰
+   合成图只用 11313（沙箱在册端口），零 /cmd_vel、零 gzserver、零建图链、零 ws 写（除新件本身）、无 sudo；
+   受保护两件未参与本目录任何一步；起后 teardown 实测 `after_ports=0`、`after_procs=0`。
+   本目录不声称批2 收口：条 1/条 4 的 **SCAN 窗读数**仍缺（#80），条 2/3/5 的承接资格待 A20。
