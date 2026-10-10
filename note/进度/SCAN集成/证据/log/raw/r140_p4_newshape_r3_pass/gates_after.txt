@@ -1,0 +1,8 @@
+# R140 批后「正式门禁串六件」逐件实跑（2026-10-11 03:46；本批自 R137 起 ws/src 有源码＋yaml＋取证面改动 ⇒ 六件全跑，不复用 R132 旧读数）
+SYN          rc=0   被检件数=40（内嵌 python 段 24）        命令：bash scripts/verify/v_sh_py_syntax.sh $(ls scripts/verify/*.sh ws/src/40_navigation/lite3_scan/verify/*.sh ws/src/95_simulation/lite3_gazebo_sim/verify/*.sh)
+GTC          rc=0   14 行与 git 现算同值 ⇒ 载体仍 H14；被测件面注记已随 R138 定格（PLG=839fe931／XAC=ef23da2d／so=147dc8cc 见 07 表）
+ISO          rc=0   [1]–[9] 全过，self-attest at=2026-10-11 03:46:01 script=bf3dfe05…（跑前先 source noetic＋ws/devel＝在册坑，未踩）
+DC           rc=1   **在册已知态**：A 类到期未回收=2、B 类待人工=13 ⇒ 请人确认后回收注记（件不改注记），不是本批新红
+VAR          rc=0   PASS=8 FAIL=0
+v_py_static  rc=0   范围甲三段 50 件零红
+# 合判：五件绿＋DC 在册已知态 ⇒ 与 R132 基线同形；本轮**没有因为改了 faster-lio 源码而跳代**（代际轴＝SM∪LIB 提交数＝14）
