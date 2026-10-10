@@ -1,0 +1,33 @@
+[04:51:07] == [0] 红线预检：并发／样张／世界件本体 ==
+foxy 见证基准（A1 乙＝本 boot 现取）:
+  现取命中 4 行 ⇒ /tmp/p4_r153/foxy_start.txt
+在册端口起前监听：11313=0 11312=0（均须 0）
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+[04:51:08] == [1] roscore 11313 ==
+[04:51:13] == [2] m2_gazebo ==
+[04:52:13] == [3] m2_mapping（faster_lio 位姿源）==
+[04:52:24] == [4] 60_safety（mux 上链）==
+C-1 面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux 
+[04:52:35] == [5] 70_scan.launch（含 J1 到达观测件）==
+F9 互斥: move_base/teb 节点数=0 须=0；链上四件=4/4
+扰动前模型位姿自证：
+[04:53:15] == [6] P4 取证（投障碍→看见→重规划→仍到达）==
+p4 python rc=0
+P4 重规划结论 = PASS|障碍被看见(169 点)⇒扰动后轨迹离箱心最近 2.08m≥0.40m（避让在位）⇒未撞（物理最近 0.88m）⇒到达偏差 0.017m≤0.35m｜还原=True
+结论行：P4 重规划结论 = PASS|障碍被看见(169 点)⇒扰动后轨迹离箱心最近 2.08m≥0.40m（避让在位）⇒未撞（物理最近 0.88m）⇒到达偏差 0.017m≤0.35m｜还原=True
+字段同向自证（判据行 vs p4.json）：OK
+[04:54:34] == [7] 还原与红线 ==
+扰动后模型位姿自证：
+世界件本体 sha 起前＝退后：是
+样张 sha 起前＝退后：是
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证 = OK（4 行整行 pid＋属主＋lstart＋args 逐位一致）
+分档自证：VS 首段=PASS ⇒ RC4=0（判据行与末判必须同向）
+P4 结论 = PASS｜WITNESS=OK｜判据行=P4 重规划结论 = PASS|障碍被看见(169 点)⇒扰动后轨迹离箱心最近 2.08m≥0.40m（避让在位）⇒未撞（物理最近 0.88m）⇒到达偏差 0.017m≤0.35m｜还原=True｜世界件未变=是
+[04:54:37] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+EXIT=0
