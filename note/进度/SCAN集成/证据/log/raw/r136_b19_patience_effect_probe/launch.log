@@ -1,9 +1,9 @@
-... logging to /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/roslaunch-lite-949010.log
+... logging to /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/roslaunch-lite-1084534.log
 Checking log directory for disk usage. This may take a while.
 Press Ctrl-C to interrupt
 Done checking log file disk usage. Usage is <1GB.
 ]2;/home/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch
-[1mstarted roslaunch server http://lite:37999/[0m
+[1mstarted roslaunch server http://lite:41511/[0m
 
 SUMMARY
 ========
@@ -291,211 +291,267 @@ NODES
     sim_adapter (lite3_drivers/sim_adapter.py)
     sim_map_bridge (lite3_bringup/sim_map_bridge.py)
     sim_pose_tf (lite3_bringup/sim_pose_tf.py)
-[33m[ WARN] [1791658892.713879307]: Global Pointcloud received..[0m
+[33m[ WARN] [1791661867.266990428]: Global Pointcloud received..[0m
 Failed to find match for field 'intensity'.
-[33m[ WARN] [1791658893.383068485]: Normal compute finished.., mapsize = 10166[0m
-[33m[ WARN] [1791658898.966908148]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1483 seconds[0m
-[0m[ INFO] [1791658896.931299198]: local_costmap: Using plugin "stvl_obstacle_layer"[0m
-[0m[ INFO] [1791658897.206195789]: local_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
-[0m[ INFO] [1791658897.206456178]: local_costmap/stvl_obstacle_layer's global frame is map.[0m
-[0m[ INFO] [1791658897.253851263]: local_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
-[0m[ INFO] [1791658897.260234573]: local_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
-[0m[ INFO] [1791658897.340032711]: Voxel filter activated.[0m
-[0m[ INFO] [1791658897.660159454]: local_costmap/stvl_obstacle_layer initialization complete![0m
-[0m[ INFO] [1791658897.660271808]: local_costmap: Using plugin "sob_layer"[0m
-[0m[ INFO] [1791658897.664882127]: [sob_layer] initializing...[0m
-[0m[ INFO] [1791658897.665016817]: [sob_layer] resized to 0[0m
-[0m[ INFO] [1791658897.703416068]: [sob_layer] enabled: true[0m
-[0m[ INFO] [1791658897.712587554]: [sob_layer] initialized[0m
-[0m[ INFO] [1791658897.886043811]: [sob_layer] resized to 10000[0m
-[0m[ INFO] [1791658897.898201172]: [sob_layer] reinflating[0m
-[0m[ INFO] [1791658897.931135593]: [sob_layer] updating the cache[0m
-[0m[ INFO] [1791658897.976946844]: global_costmap: Using plugin "static_layer"[0m
-[0m[ INFO] [1791658898.032754233]: Requesting the map...[0m
-[0m[ INFO] [1791658898.255182721]: Resizing static layer to 120 X 120 at 0.100000 m/pix[0m
-[0m[ INFO] [1791658898.255844589]: Shutting down the map subscriber. first_map_only flag is on[0m
-[0m[ INFO] [1791658898.355024786]: Received a 120 X 120 map at 0.100000 m/pix[0m
-[0m[ INFO] [1791658898.440537805]: global_costmap: Using plugin "stvl_obstacle_layer"[0m
-[0m[ INFO] [1791658898.441179224]: global_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
-[0m[ INFO] [1791658898.441284954]: global_costmap/stvl_obstacle_layer's global frame is map.[0m
-[0m[ INFO] [1791658898.522130757]: global_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
-[0m[ INFO] [1791658898.527423520]: global_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
-[0m[ INFO] [1791658898.585518469]: Voxel filter activated.[0m
-[0m[ INFO] [1791658898.673959154]: global_costmap/stvl_obstacle_layer initialization complete![0m
-[0m[ INFO] [1791658898.674108021]: global_costmap: Using plugin "sob_layer"[0m
-[0m[ INFO] [1791658898.674795936]: [sob_layer] initializing...[0m
-[0m[ INFO] [1791658898.674898882]: [sob_layer] resized to 0[0m
-[0m[ INFO] [1791658898.703966325]: [sob_layer] enabled: true[0m
-[0m[ INFO] [1791658898.712488999]: [sob_layer] initialized[0m
-[0m[ INFO] [1791658898.800173799]: [sob_layer] resized to 1000000[0m
-[0m[ INFO] [1791658898.820737640]: [sob_layer] reinflating[0m
-[0m[ INFO] [1791658898.824903280]: [sob_layer] updating the cache[0m
-[0m[ INFO] [1791658899.032311702]: The plugin with the type "global_planner/GlobalPlanner" has been loaded successfully under the name "GlobalPlanner".[0m
-[0m[ INFO] [1791658899.054174285]: The plugin with the type "navfn/NavfnROS" has been loaded successfully under the name "NavfnROS".[0m
-[0m[ INFO] [1791658899.526909303]: Footprint model 'polygon' loaded for trajectory optimization.[0m
-[0m[ INFO] [1791658899.527818822]: Parallel planning in distinctive topologies disabled.[0m
-[0m[ INFO] [1791658899.947853417]: Costmap conversion plugin costmap_converter::CostmapToPolygonsDBSMCCH loaded.[0m
-[0m[ INFO] [1791658901.061859100]: The plugin with the type "teb_local_planner/TebLocalPlannerROS" has been loaded successfully under the name "TebLocalPlannerROS".[0m
-[0m[ INFO] [1791658901.111317451]: Sim period is set to 0.10[0m
-[0m[ INFO] [1791658901.530531864]: The plugin with the type "dwa_local_planner/DWAPlannerROS" has been loaded successfully under the name "DWAPlannerROS".[0m
-[0m[ INFO] [1791658901.560508250]: Recovery behavior will clear layer 'obstacles'[0m
-[0m[ INFO] [1791658901.560814399]: The plugin with the type "clear_costmap_recovery/ClearCostmap[33m[ WARN] [1791658910.283764677]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1653 seconds[0m
-[33m[ WARN] [1791658920.020811606]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1023 seconds[0m
-[33m[ WARN] [1791658925.851261459]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1327 seconds[0m
-[33m[ WARN] [1791658925.904425814]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1099 seconds[0m
-[33m[ WARN] [1791658927.437290733]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1082 seconds[0m
-[33m[ WARN] [1791658937.800229920]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1057 seconds[0m
-[33m[ WARN] [1791658938.931164252]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1046 seconds[0m
-[33m[ WARN] [1791658945.966131053]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1476 seconds[0m
-[33m[ WARN] [1791658948.601005944]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1065 seconds[0m
-[INFO] [1791658895.125591]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658896.159440]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658896.932443]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658897.985728]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658898.879729]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658899.917314]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658901.156810]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658902.011811]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658902.990180]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658904.098230]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658904.913233]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658905.921612]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658906.914233]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658907.845610]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658909.034567]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658909.859478]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658910.921769]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658911.898481]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658912.930290]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658913.916238]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658914.966669]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658916.061278]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658916.889214]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658918.094492]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658918.967552]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658919.976840]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658920.935431]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658921.967702]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658922.971979]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658924.015790]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658925.024528]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658925.988613]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658927.019392]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658927.890476]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658928.859942]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658929.931103]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658930.904609]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658931.979199]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658932.902956]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658933.845119]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658934.913704]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658935.897887]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658936.890836]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658937.939846]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658938.996934]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658939.835558]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658940.953022]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658941.868380]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658943.158947]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658943.988203]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658944.920053]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658946.040755]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658946.898960]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658947.924204]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658949.110169]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658949.970464]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658950.905133]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658952.208266]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658952.932763]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658953.836684]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658954.963382]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658956.064804]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658956.866049]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658957.985117]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658958.969096]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658959.921620]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658960.968360]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658962.050654]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658962.961412]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658963.952256]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658964.870426]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[33m[ WARN] [1791661868.310854639]: Normal compute finished.., mapsize = 10166[0m
+[33m[ WARN] [1791661872.806216631]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1083 seconds[0m
+[33m[ WARN] [1791661873.864477422]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.3178 seconds[0m
+[33m[ WARN] [1791661875.279109666]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2809 seconds[0m
+[33m[ WARN] [1791661875.330360142]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2648 seconds[0m
+[33m[ WARN] [1791661876.874518242]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1448 seconds[0m
+[0m[ INFO] [1791661870.651518704]: local_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1791661871.448611027]: local_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1791661871.448777973]: local_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1791661871.489466030]: local_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1791661871.495549968]: local_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1791661871.590964507]: Voxel filter activated.[0m
+[0m[ INFO] [1791661871.836653635]: local_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1791661871.836780165]: local_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1791661871.988754357]: [sob_layer] initializing...[0m
+[0m[ INFO] [1791661871.988903062]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1791661872.015572568]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791661872.024624474]: [sob_layer] initialized[0m
+[0m[ INFO] [1791661872.093653926]: [sob_layer] resized to 10000[0m
+[0m[ INFO] [1791661872.098269305]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791661872.121936281]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791661872.222209465]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1791661872.593668374]: Requesting the map...[0m
+[0m[ INFO] [1791661872.837044837]: Resizing static layer to 120 X 120 at 0.100000 m/pix[0m
+[0m[ INFO] [1791661872.837644300]: Shutting down the map subscriber. first_map_only flag is on[0m
+[0m[ INFO] [1791661872.938990295]: Received a 120 X 120 map at 0.100000 m/pix[0m
+[0m[ INFO] [1791661872.953031567]: global_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1791661872.953598229]: global_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1791661872.953680214]: global_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1791661872.988380239]: global_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1791661872.992372794]: global_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1791661873.085726415]: Voxel filter activated.[0m
+[0m[ INFO] [1791661873.184005881]: global_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1791661873.184139930]: global_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1791661873.184638240]: [sob_layer] initializing...[0m
+[0m[ INFO] [1791661873.184698688]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1791661873.219227383]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791661873.229942187]: [sob_layer] initialized[0m
+[0m[ INFO] [1791661873.545268775]: [sob_layer] resized to 1000000[0m
+[0m[ INFO] [1791661873.549055185]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791661873.563356396]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791661874.311941956]: The plugin with the type "global_planner/GlobalPlanner" has been loaded successfully under the name "GlobalPlanner".[0m
+[0m[ INFO] [1791661874.500131230]: The plugin with the type "navfn/NavfnROS" has been loaded successfully under the name "NavfnROS".[0m
+[0m[ INFO] [1791661876.258476388]: Footprint model 'polygon' loaded for trajectory optimization.[0m
+[0m[ INFO] [1791661876.259910068]: Parallel planning in distinctive topologies disabled.[0m
+[0m[ INFO] [1791661877.243058913]: Costmap conversion plugin costmap_converter::CostmapToPolygonsDBSMCCH loaded.[0m
+[0m[ INFO] [1791661879.184534259]: The plugin with the type "teb_local_planner/TebLocalPlannerROS" has been loaded successfully under the name "TebLocalPlannerROS".[0m
+[0m[ INFO] [1791661879.402419408]: Sim period is set to 0.10[0m
+[0m[ INFO] [1791661879.932545963]: The plugin with the type "dwa_local_planner/DWAPlannerROS" has been loaded successfully under the name "DWAPlannerROS".[0m
+[0m[ INFO] [1791661880.121700177]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1791661880.121990676]: The plugin with the type "clear_costmap_recovery/ClearCostmap[33m[ WARN] [1791661886.621250613]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1425 seconds[0m
+[33m[ WARN] [1791661887.690299958]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1115 seconds[0m
+[33m[ WARN] [1791661890.045458742]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1161 seconds[0m
+[33m[ WARN] [1791661890.305064764]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1263 seconds[0m
+[33m[ WARN] [1791661891.655923003]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1266 seconds[0m
+[33m[ WARN] [1791661898.132946388]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1036 seconds[0m
+[33m[ WARN] [1791661899.441416437]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1121 seconds[0m
+[33m[ WARN] [1791661904.988668132]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1099 seconds[0m
+[33m[ WARN] [1791661914.081168695]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1023 seconds[0m
+[33m[ WARN] [1791661915.436634453]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1073 seconds[0m
+[33m[ WARN] [1791661916.358376026]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1290 seconds[0m
+[33m[ WARN] [1791661917.738363239]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1090 seconds[0m
+[33m[ WARN] [1791661922.995322302]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2660 seconds[0m
+[33m[ WARN] [1791661922.999536108]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2207 seconds[0m
+[33m[ WARN] [1791661926.530465061]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1310 seconds[0m
+[33m[ WARN] [1791661927.228325322]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1330 seconds[0m
+[33m[ WARN] [1791661931.503074230]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1035 seconds[0m
+[33m[ WARN] [1791661935.103025864]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1035 seconds[0m
+[33m[ WARN] [1791661936.426194762]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1266 seconds[0m
+[33m[ WARN] [1791661936.480235737]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1849 seconds[0m
+[33m[ WARN] [1791661936.501636963]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1063 seconds[0m
+[33m[ WARN] [1791661938.004391699]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1049 seconds[0m
+[33m[ WARN] [1791661939.995487427]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1002 seconds[0m
+[33m[ WARN] [1791661940.027431265]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1279 seconds[0m
+[33m[ WARN] [1791661940.145988114]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1464 seconds[0m
+[33m[ WARN] [1791661940.294001765]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1945 seconds[0m
+[33m[ WARN] [1791661940.319254745]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1196 seconds[0m
+[INFO] [1791661869.882385]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661870.617868]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661871.679799]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661872.564713]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661873.502295]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661874.541939]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661875.646020]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661876.427825]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661877.624563]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661878.848945]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661879.477922]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661880.511335]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661881.521502]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661882.467802]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661883.562141]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661884.410199]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661885.681876]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661886.711581]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661887.971944]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661888.710929]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661889.526173]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661890.594366]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661891.611989]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661892.464800]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661893.709762]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661894.445693]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661895.507298]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661896.452113]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661897.729866]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661898.498229]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661899.454457]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661900.646680]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661901.517488]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661902.612052]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661903.577136]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661904.636906]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661905.521198]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661906.515616]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661907.659631]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661908.525826]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661909.468647]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661910.491946]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661911.550136]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661912.601514]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661913.686022]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661914.414195]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661915.498667]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661916.637447]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661917.434001]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661918.529881]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661919.510504]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661920.520994]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661921.540791]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661922.598438]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661923.859385]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661924.686900]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661925.757525]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661926.555823]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661927.453853]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661928.485920]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661929.431627]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661930.527604]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661931.522044]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661932.509038]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661933.581362]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661934.463480]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661935.728292]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661936.849917]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661937.533104]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661938.716962]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661939.627890]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[33m[ WARN] [1791661946.523941136]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2244 seconds[0m
+[33m[ WARN] [1791661946.540165634]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2449 seconds[0m
+[FATAL] [1791661872.461375]: [SUP] 心跳失联: M4_navigation —— hold=true（通知 M6 立即零速）；待降级关停 = 本 mode watch 全表；自动恢复=True（需连续 3 拍稳定）
+[INFO] [1791661875.461806]: [SUP][RECOVER] 心跳恢复: M4_navigation 连续 3 拍稳定 —— hold=false，FATAL 降级解除
 shutdown request: user request
-[33m[ WARN] [1791658972.607365312]: Shutdown request received.[0m
-[33m[ WARN] [1791658972.607610148]: Reason given for shutdown: [user request][0m
-[33m[ WARN] [1791658972.610998428]: Shutdown request received.[0m
-[33m[ WARN] [1791658972.611459651]: Reason given for shutdown: [user request][0m
-[33m[ WARN] [1791658972.643398899]: Shutdown request received.[0m
-[33m[ WARN] [1791658972.643659607]: Reason given for shutdown: [user request][0m
-[33m[ WARN] [1791658972.647490743]: Shutdown request received.[0m
-[33m[ WARN] [1791658972.647646297]: Reason given for shutdown: [user request][0m
-[WARN] [1791658896.445983]: [M6] 活跃源切换: INIT -> NONE
-[INFO] [1791658896.395763]: [M6] safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
-shutdown request: user request
+[33m[ WARN] [1791661948.957540452]: Shutdown request received.[0m
+[33m[ WARN] [1791661948.957863623]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791661948.960845256]: Shutdown request received.[0m
+[33m[ WARN] [1791661948.961117355]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791661948.978596138]: Shutdown request received.[0m
+[33m[ WARN] [1791661948.978902445]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791661949.006604125]: Shutdown request received.[0m
+[33m[ WARN] [1791661949.006862816]: Reason given for shutdown: [user request][0m
+[0m[ INFO] [1791661866.069280680]: threshold: 0.067416[0m
+[0m[ INFO] [1791661866.254110299]: the number of points before optimization is 43199[0m
+[0m[ INFO] [1791661866.256133777]: finish: infill 0.099998%[0m
+[WARN] [1791661869.578588]: [M6] 活跃源切换: INIT -> NONE
+[WARN] [1791661872.515985]: [M6] 监督保持输入 hold=True（/lite3/supervisor/hold，唯一发布者=SUP）
+[WARN] [1791661872.593098]: [M6] 活跃源切换: NONE -> HOLD
+[WARN] [1791661875.479079]: [M6] 监督保持输入 hold=False（/lite3/supervisor/hold，唯一发布者=SUP）
+[WARN] [1791661875.528991]: [M6] 活跃源切换: HOLD -> NONE
+Exception in thread Thread-7:
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 237, in run
+    self._callback(TimerEvent(last_expected, last_real, current_expected, current_real, last_duration))
+  File "/home/ros1-slam/ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py", line 88, in _tick
+    self.pub.publish(out)                            # 恒 20 Hz 输出
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
+    raise ROSException("publish() to a closed topic")
+rospy.exceptions.ROSException: publish() to a closed topic
 terminate called after throwing an instance of 'boost::wrapexcept<boost::lock_error>'
   what():  boost: mutex lock failed in pthread_mutex_lock: Invalid argument
-[INFO] [1791658896.674581]: [sim_adapter] up: mode=traj input=sensor_cloud time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
-[INFO] [1791658896.785054]: [sim_adapter] traj R2: 59 waypoints, 总长 69.6m @0.50m/s turn_omega=1.00 v_ramp_s=0.50 align_gate=0.15
+[INFO] [1791661869.529312]: [M6] safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
 shutdown request: user request
-[INFO] [1791658973.155504]: [sim_adapter] 轨迹结束，保持常驻（adapt-only）
-[0m[ INFO] [1791658892.189557098]: threshold: 0.067416[0m
-[0m[ INFO] [1791658892.671999386]: the number of points before optimization is 43199[0m
-[0m[ INFO] [1791658892.674004317]: finish: infill 0.099998%[0m
+[INFO] [1791661870.294391]: [sim_adapter] up: mode=traj input=sensor_cloud time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+[INFO] [1791661870.426481]: [sim_adapter] traj R2: 59 waypoints, 总长 69.6m @0.50m/s turn_omega=1.00 v_ramp_s=0.50 align_gate=0.15
+shutdown request: user request
+[WARN] [1791661869.821873]: [sim_pose_tf] 尚未收到 /quad_0/body_pose 首帧
+shutdown request: user request
+[INFO] [1791661940.563925]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661941.657449]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661942.498024]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661943.548370]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661944.532767]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661945.431460]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661946.926697]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661947.440370]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+[INFO] [1791661948.433093]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
+shutdown request: user request
 Recovery" has been loaded successfully under the name "clear_costmaps".[0m
-[WARN] [1791658896.655846]: [sim_pose_tf] 尚未收到 /quad_0/body_pose 首帧
-shutdown request: user request
-[INFO] [1791658966.003380]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658966.849655]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658967.979628]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658968.921424]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658970.078672]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658971.008679]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-[INFO] [1791658972.020945]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=4287（z∈[0.05,2.00]）
-shutdown request: user request
-[31m[pcl_render_node-4] process has died [pid 949413, exit code -6, cmd /home/ros1-slam/ws/devel/lib/local_sensing_node/pcl_render_node ~global_map:=/map_generator/global_cloud __name:=pcl_render_node __log:=/home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/pcl_render_node-4.log].
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/pcl_render_node-4*.log[0m
+Traceback (most recent call last):
+  File "/home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py", line 390, in <module>
+    main()
+  File "/home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py", line 384, in main
+    ad.spin_traj(load_traj(opt.traj))           # 阻塞发轨迹
+  File "/home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py", line 314, in spin_traj
+    pub.publish(om)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
+    raise ROSException("publish() to a closed topic")
+rospy.exceptions.ROSException: publish() to a closed topic
+[31m[pcl_render_node-4] process has died [pid 1084981, exit code -6, cmd /home/ros1-slam/ws/devel/lib/local_sensing_node/pcl_render_node ~global_map:=/map_generator/global_cloud __name:=pcl_render_node __log:=/home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/pcl_render_node-4.log].
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/pcl_render_node-4*.log[0m
+[31m[sim_adapter-5] process has died [pid 1084991, exit code 1, cmd /home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py --mode traj --traj /home/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml --time-unit s --no-imu __name:=sim_adapter __log:=/home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/sim_adapter-5.log].
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/sim_adapter-5*.log[0m
 
 auto-starting new master
-[1mprocess[master]: started with pid [949206][0m
+[1mprocess[master]: started with pid [1084850][0m
 [1mROS_MASTER_URI=http://127.0.0.1:11313[0m
 ]2;/home/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch http://127.0.0.1:11313
-[1msetting /run_id to fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8[0m
-[1mprocess[rosout-1]: started with pid [949385][0m
+[1msetting /run_id to eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8[0m
+[1mprocess[rosout-1]: started with pid [1084921][0m
 started core service [/rosout]
-[1mprocess[lite3_supervisor-2]: started with pid [949393][0m
-[1mprocess[mockamap_node-3]: started with pid [949394][0m
-[1mprocess[pcl_render_node-4]: started with pid [949413][0m
-[1mprocess[sim_adapter-5]: started with pid [949419][0m
-[1mprocess[liveness_m0_sim-6]: started with pid [949420][0m
-[1mprocess[sim_map_bridge-7]: started with pid [949421][0m
-[1mprocess[sim_pose_tf-8]: started with pid [949424][0m
-[1mprocess[safe_cmd_vel_mux-9]: started with pid [949427][0m
-[1mprocess[liveness_m6-10]: started with pid [949446][0m
-[1mprocess[move_base_flex-11]: started with pid [949449][0m
-[1mprocess[liveness_m4-12]: started with pid [949451][0m
+[1mprocess[lite3_supervisor-2]: started with pid [1084952][0m
+[1mprocess[mockamap_node-3]: started with pid [1084964][0m
+[1mprocess[pcl_render_node-4]: started with pid [1084981][0m
+[1mprocess[sim_adapter-5]: started with pid [1084991][0m
+[1mprocess[liveness_m0_sim-6]: started with pid [1084993][0m
+[1mprocess[sim_map_bridge-7]: started with pid [1084994][0m
+[1mprocess[sim_pose_tf-8]: started with pid [1084995][0m
+[1mprocess[safe_cmd_vel_mux-9]: started with pid [1084996][0m
+[1mprocess[liveness_m6-10]: started with pid [1085025][0m
+[1mprocess[move_base_flex-11]: started with pid [1085032][0m
+[1mprocess[liveness_m4-12]: started with pid [1085042][0m
 [1m[lite3_supervisor-2] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/lite3_supervisor-2*.log[0m
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/lite3_supervisor-2*.log[0m
 [1m[rosout-1] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/rosout-1*.log[0m
-[rosout-1] restarting process
-[1mprocess[rosout-1]: started with pid [952448][0m
-[1m[safe_cmd_vel_mux-9] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/safe_cmd_vel_mux-9*.log[0m
-[1m[liveness_m4-12] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/liveness_m4-12*.log[0m
-[1m[sim_adapter-5] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/sim_adapter-5*.log[0m
-[1m[liveness_m0_sim-6] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/liveness_m0_sim-6*.log[0m
-[1m[liveness_m6-10] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/liveness_m6-10*.log[0m
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/rosout-1*.log[0m
 [1m[mockamap_node-3] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/mockamap_node-3*.log[0m
-[1m[move_base_flex-11] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/move_base_flex-11*.log[0m
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/mockamap_node-3*.log[0m
+[rosout-1] restarting process
+[1mprocess[rosout-1]: started with pid [1088357][0m
+[1m[liveness_m6-10] process has finished cleanly
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/liveness_m6-10*.log[0m
+[1m[safe_cmd_vel_mux-9] process has finished cleanly
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/safe_cmd_vel_mux-9*.log[0m
+[1m[liveness_m0_sim-6] process has finished cleanly
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/liveness_m0_sim-6*.log[0m
 [1m[sim_pose_tf-8] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/sim_pose_tf-8*.log[0m
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/sim_pose_tf-8*.log[0m
+[1m[move_base_flex-11] process has finished cleanly
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/move_base_flex-11*.log[0m
+[1m[liveness_m4-12] process has finished cleanly
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/liveness_m4-12*.log[0m
 [1m[sim_map_bridge-7] process has finished cleanly
-log file: /home/ysc/.ros/log/fe8a352a-c4dc-11f1-a8bc-3c6d66f8d2d8/sim_map_bridge-7*.log[0m
+log file: /home/ysc/.ros/log/eb7bf19c-c4e3-11f1-8163-3c6d66f8d2d8/sim_map_bridge-7*.log[0m
 [rosout-1] killing on exit
 [master] killing on exit
 shutting down processing monitor...

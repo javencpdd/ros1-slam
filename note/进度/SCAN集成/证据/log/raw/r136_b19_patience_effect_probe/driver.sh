@@ -79,28 +79,34 @@ dp() {  # **回执不丢弃**：stdout＋stderr＋rc 全留底（这正是老探
 # 读回走 **DR 广播主题**，不再解析 `dynparam get` 的文本（三跑实测：get 取到空串 ⇒ 值仍未证）
 #   原理：dynamic_reconfigure 服务器每次 set 都会把**整份当前 config** 发到 /move_base_flex/parameter_updates，
 #   那条广播就是"生效回执"本体；先起 echo -n1 再 set，保证拿到的是 set 之后的那一帧。
-dr_probe() {   # 用法：dr_probe <目标值> <标签>  ⇒ 打印 set 后广播里的 planner_patience 实值
-  local tgt=$1 tag=$2 f val
-  f=$(mktemp /tmp/mbf_updates.XXXXXX.txt)
-  timeout 15 rostopic echo -n1 /move_base_flex/parameter_updates > "$f" 2>/dev/null &
-  local epid=$!
-  sleep 1.0
+# R142 定稿读回法（前两版的错都登记在这里，不遮）：
+#   ①首版用 `dynparam get <node> <参数名>` ⇒ dynparam 的 get **只接节点名**（整份 dump），多传参数名回 Usage ⇒ 空值；
+#   ②二版改抓 /move_base_flex/parameter_updates 广播，但 `-n1` 只取**第一帧**、而我是在 set 之前起订阅 ⇒
+#     拿到的是**上一帧**（实测三帧＝3.0／3.0／10.0，对着 set 序列 3.0→10.0→3.0，整体**慢一拍**）；
+#     另我在广播里用 `^planner_patience:` 锚定行首，而 dynparam／echo 的输出是**缩进**的 ⇒ 永远匹配不到。
+#   ③本版：set 之后**直接问服务器**（`dynparam get /move_base_flex` 走 DR 的查询），并整份留底；
+#     同时仍抓广播帧（set 之后再起 echo -n1）做第二路印证，两路对不上就以"查询路"为准并如实报。
+dr_probe() {   # 用法：dr_probe <目标值> <标签>  ⇒ 打印 set 之后服务器实际持有的 planner_patience
+  local tgt=$1 tag=$2 raw val
+  raw="$RUN/dynparam_get_$tag.txt"
+  timeout 20 rosrun dynamic_reconfigure dynparam get /move_base_flex > "$raw" 2>&1
+  val=$(grep -oE 'planner_patience: *[0-9.]+' "$raw" | head -1 | grep -oE '[0-9.]+')
+  echo "  [$tag] set 前查询 ⇒ planner_patience=${val:-（空，见 dynparam_get_$tag.txt）}" | tee -a "$LOG"
   local out rc
   out=$(timeout 20 rosrun dynamic_reconfigure dynparam set /move_base_flex planner_patience "$tgt" 2>&1); rc=$?
   { echo "--- dynparam set /move_base_flex planner_patience $tgt (rc=$rc) ---"; echo "$out"; } >> "$RUN/dynparam_receipts.txt"
-  wait $epid 2>/dev/null
-  cp "$f" "$RUN/parameter_updates_$tag.txt" 2>/dev/null
-  val=$(grep -oE 'planner_patience: *[0-9.]+' "$f" | head -1 | grep -oE '[0-9.]+')
-  say "  [$tag] set=$tgt ⇒ parameter_updates 广播里 planner_patience=${val:-（空）}（回执文件 parameter_updates_$tag.txt）"
-  rm -f "$f"
-  echo "${val:-}"
+  sleep 0.6
+  local af
+  af=$(timeout 20 rosrun dynamic_reconfigure dynparam get /move_base_flex 2>&1 | grep -oE 'planner_patience: *[0-9.]+' | head -1 | grep -oE '[0-9.]+')
+  { echo "--- dynparam get /move_base_flex (set $tgt 之后, rc=0) ---"; timeout 20 rosrun dynamic_reconfigure dynparam get /move_base_flex 2>&1; } >> "$RUN/dynparam_receipts.txt"
+  say "  [$tag] set=$tgt (rc=$rc) ⇒ set 后查询 planner_patience=${af:-（空）}"
+  echo "${af:-}"
 }
 
 say "== [2] 基线读取（参数服务器侧 ＋ DR 侧各一份）=="
 : > "$RUN/dynparam_receipts.txt"
 rosparam get /move_base_flex/planner_patience > "$RUN/paramserver_planner_patience.txt" 2>&1
 say "  rosparam get /move_base_flex/planner_patience ⇒ $(cat "$RUN/paramserver_planner_patience.txt" 2>/dev/null | tr -d '\n')"
-dp get planner_patience "" || true
 dp list >/dev/null 2>&1 || true   # 证明 /move_base_flex 确是 DR 可配置节点（在册老探针从没留过这一格）
 
 say "== [3] 运行时放宽（目标 10.0＝B18 那一档）=="

@@ -64,3 +64,34 @@ B19 生效性结论 = PENDING-回执在但读回值未证明
 B19 VERDICT rc=9
 [03:02:50] -- teardown --
 [03:02:58] 残留：gzserver=0 move_base_flex=0 11313 监听=0
+[03:50:57] 起窗门槛：loadavg=3.62 ≤ 4
+[03:50:59] == [0] 生产配置原文留底（生效件＝mbf_navigation.yaml，加载者＝mbf_navigation.launch:9）==
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+# ---- 同名保留参数（底稿原值原样迁移，P3a.0 实测同名）----
+planner_frequency: 0.0
+controller_frequency: 10.0
+planner_patience: 3.0
+controller_patience: 3.0
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+[03:50:59] == [1] 起链（perlin3d 标准档，只为把 /move_base_flex 拉起来；**不投 goal**）==
+[03:51:21] get_path 话题在位=1（须 1）
+[03:51:24] == [2] 基线读取（参数服务器侧 ＋ DR 侧各一份）==
+[03:51:25]   rosparam get /move_base_flex/planner_patience ⇒ 3.0
+[03:51:43]   dynparam get planner_patience  ⇒ rc=2
+[03:51:51]   dynparam list  ⇒ rc=0
+[03:51:51] == [3] 运行时放宽（目标 10.0＝B18 那一档）==
+[03:52:01]   [base] set=3.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_base.txt）
+[03:52:12]   [raised] set=10.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_raised.txt）
+[03:52:13] == [4] 复回原值（生产侧不留改动面）==
+[03:52:24]   [restored] set=3.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_restored.txt）
+[03:52:25] == [5] 配置面自证（本件没写过任何配置文件）==
+[03:52:25]   mbf_navigation.yaml sha 起前＝退后：是
+基线 DR 读数=[03:52:01]   [base] set=3.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_base.txt）
+放宽后 DR 读数=[03:52:12]   [raised] set=10.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_raised.txt）
+参数服务器（与 DR 无关，DR 不回写）before=3.0 after=3.0
+DR 侧三点一线：基线=[03:52:01]   [base] set=3.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_base.txt） → 放宽=[03:52:12]   [raised] set=10.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_raised.txt） → 复回=[03:52:24]   [restored] set=3.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_restored.txt）
+B19 生效性结论 = PENDING-广播里读不到所设值（base=[03:52:01]   [base] set=3.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_base.txt） raised=[03:52:12]   [raised] set=10.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_raised.txt） restored=[03:52:24]   [restored] set=3.0 ⇒ parameter_updates 广播里 planner_patience=（空）（回执文件 parameter_updates_restored.txt） ⇒ 不能据此说生效，也不能说被拒）
+★本件**不投 goal**⇒ 不产出任何'远角对能不能规划出来'的行为读数；它只回答'60s/90s 那次 set 落不落得进去'。
+B19 VERDICT rc=9
+[03:52:25] -- teardown --
+[03:52:35] 残留：gzserver=0 move_base_flex=0 11313 监听=0
