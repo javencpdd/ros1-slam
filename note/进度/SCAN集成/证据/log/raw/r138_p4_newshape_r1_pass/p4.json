@@ -1,0 +1,78 @@
+{
+ "steps": [
+  "goal_delivered=True",
+  "traj_pts=120",
+  "injected=obs_5→(-0.98,0.47)",
+  "disturbance_seen=97",
+  "replanned=True"
+ ],
+ "fail": false,
+ "invalid": false,
+ "goal": [
+  -2.774,
+  1.55
+ ],
+ "goal_r": 3.175,
+ "goal_clear": 2.922,
+ "traj_before": {
+  "start_time": 24.207,
+  "n_ctrl": 24,
+  "first": [
+   0.003,
+   0.016
+  ],
+  "last": [
+   -2.767,
+   1.547
+  ]
+ },
+ "inject": {
+  "model": "obs_5",
+  "at": [
+   -0.982,
+   0.472
+  ],
+  "z": 0.4,
+  "pts_before": 4103,
+  "occ_pts_near": 97
+ },
+ "traj_after": {
+  "start_time": 25.721,
+  "n_ctrl": 24,
+  "first": [
+   -0.021,
+   0.016
+  ],
+  "last": [
+   -2.769,
+   1.547
+  ]
+ },
+ "traj_before_control_min_dist": 0.011,
+ "new_traj": {
+  "n_pts": 120,
+  "min_dist_to_any_occ": 0.242,
+  "min_dist_to_injected": 0.815
+ },
+ "clearance": {
+  "min_dist_to_any_occ": 0.242,
+  "min_dist_to_injected": 0.815,
+  "gate_occ": 0.1
+ },
+ "physical": {
+  "robot_min_to_injected": 0.749,
+  "box_half_width": 0.4,
+  "traj_min_to_injected_final": 1.281
+ },
+ "arrive": {
+  "arrived": true,
+  "dist_end": 0.081,
+  "dt_sim_since_replan": 11.87,
+  "cmd_count": 1558,
+  "displacement": 0.081
+ },
+ "restored": true,
+ "verdict": "P4 重规划结论 = PASS|障碍被看见(97 点)⇒扰动后轨迹离箱心最近 1.28m≥0.40m（避让在位）⇒未撞（物理最近 0.75m）⇒到达偏差 0.081m≤0.35m｜还原=True",
+ "grade": "PASS",
+ "pass": true
+}

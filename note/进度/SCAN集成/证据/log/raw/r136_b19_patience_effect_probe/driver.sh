@@ -76,9 +76,24 @@ dp() {  # **回执不丢弃**：stdout＋stderr＋rc 全留底（这正是老探
   say "  dynparam $op $* ⇒ rc=$rc"
   return $rc
 }
-dr_val() {  # 从整份 dump 里取 planner_patience 的值
-  rosrun dynamic_reconfigure dynparam get /move_base_flex 2>/dev/null \
-    | grep -E '^planner_patience:' | head -1 | awk '{print $2}'
+# 读回走 **DR 广播主题**，不再解析 `dynparam get` 的文本（三跑实测：get 取到空串 ⇒ 值仍未证）
+#   原理：dynamic_reconfigure 服务器每次 set 都会把**整份当前 config** 发到 /move_base_flex/parameter_updates，
+#   那条广播就是"生效回执"本体；先起 echo -n1 再 set，保证拿到的是 set 之后的那一帧。
+dr_probe() {   # 用法：dr_probe <目标值> <标签>  ⇒ 打印 set 后广播里的 planner_patience 实值
+  local tgt=$1 tag=$2 f val
+  f=$(mktemp /tmp/mbf_updates.XXXXXX.txt)
+  timeout 15 rostopic echo -n1 /move_base_flex/parameter_updates > "$f" 2>/dev/null &
+  local epid=$!
+  sleep 1.0
+  local out rc
+  out=$(timeout 20 rosrun dynamic_reconfigure dynparam set /move_base_flex planner_patience "$tgt" 2>&1); rc=$?
+  { echo "--- dynparam set /move_base_flex planner_patience $tgt (rc=$rc) ---"; echo "$out"; } >> "$RUN/dynparam_receipts.txt"
+  wait $epid 2>/dev/null
+  cp "$f" "$RUN/parameter_updates_$tag.txt" 2>/dev/null
+  val=$(grep -oE 'planner_patience: *[0-9.]+' "$f" | head -1 | grep -oE '[0-9.]+')
+  say "  [$tag] set=$tgt ⇒ parameter_updates 广播里 planner_patience=${val:-（空）}（回执文件 parameter_updates_$tag.txt）"
+  rm -f "$f"
+  echo "${val:-}"
 }
 
 say "== [2] 基线读取（参数服务器侧 ＋ DR 侧各一份）=="
@@ -86,17 +101,15 @@ say "== [2] 基线读取（参数服务器侧 ＋ DR 侧各一份）=="
 rosparam get /move_base_flex/planner_patience > "$RUN/paramserver_planner_patience.txt" 2>&1
 say "  rosparam get /move_base_flex/planner_patience ⇒ $(cat "$RUN/paramserver_planner_patience.txt" 2>/dev/null | tr -d '\n')"
 dp get planner_patience "" || true
-BASE_DR=$(dr_val); say "  DR 侧 planner_patience 基线 = $BASE_DR"
-dp list >/dev/null 2>&1 || true
+dp list >/dev/null 2>&1 || true   # 证明 /move_base_flex 确是 DR 可配置节点（在册老探针从没留过这一格）
 
 say "== [3] 运行时放宽（目标 10.0＝B18 那一档）=="
-dp set /move_base_flex planner_patience 10.0; SET_RC=$?
-AFTER_DR=$(dr_val); say "  DR 侧放宽后 = $AFTER_DR（目标 10.0）"
+BASE_DR=$(dr_probe 3.0 base)        # 基线帧：把生产值原值回写一次，只为取回"set 前服务器实际持有什么"
+AFTER_DR=$(dr_probe 10.0 raised); SET_RC=$?
 rosparam get /move_base_flex/planner_patience > "$RUN/paramserver_after.txt" 2>&1
 
 say "== [4] 复回原值（生产侧不留改动面）=="
-dp set /move_base_flex planner_patience 3.0 || true
-RESTORE_DR=$(dr_val); say "  DR 侧复回后 = $RESTORE_DR（须回基线 $BASE_DR）"
+RESTORE_DR=$(dr_probe 3.0 restored)
 rosparam get /move_base_flex/planner_patience > "$RUN/paramserver_restored.txt" 2>&1
 
 say "== [5] 配置面自证（本件没写过任何配置文件）=="
@@ -107,12 +120,16 @@ SAME=$([ "$SHA_BEFORE" = "$SHA_AFTER" ] && echo 是 || echo "否!!（$SHA_BEFORE
 say "  mbf_navigation.yaml sha 起前＝退后：$SAME"
 
 VERDICT="UNKNOWN"; RC=9
-if [ "$SET_RC" = "0" ] && [[ "$AFTER_DR" == *"10"* ]] && [[ "$BASE_DR" != *"10"* ]]; then
-  VERDICT="OK-运行时可放宽"; RC=0
-elif [ "$SET_RC" != "0" ]; then
+if [ "$SET_RC" != "0" ]; then
   VERDICT="NO-DR-set-被拒(rc=$SET_RC)"; RC=1
+elif [ "$AFTER_DR" = "10" ] || [ "$AFTER_DR" = "10.0" ]; then
+  if [ "$RESTORE_DR" = "3" ] || [ "$RESTORE_DR" = "3.0" ]; then
+    VERDICT="OK-双向生效（10.0 与复回 3.0 都在服务器广播里读到 ⇒ 在册那次 60s→90s 的 set 机制上可行；但**行为面仍未证**：本件不投 goal，没有"放宽后能不能规划出来"的读数）"; RC=0
+  else
+    VERDICT="PARTIAL-放宽帧对、复回帧不符（base=$BASE_DR raised=$AFTER_DR restored=$RESTORE_DR）"; RC=9
+  fi
 else
-  VERDICT="PENDING-回执在但读回值未证明"; RC=9
+  VERDICT="PENDING-广播里读不到所设值（base=$BASE_DR raised=$AFTER_DR restored=$RESTORE_DR ⇒ 不能据此说生效，也不能说被拒）"; RC=9
 fi
 {
   echo "基线 DR 读数=$BASE_DR"
