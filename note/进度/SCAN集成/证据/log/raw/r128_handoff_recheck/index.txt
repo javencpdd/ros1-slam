@@ -1,0 +1,20 @@
+# R128 · w 稿移交项清偿复核（只读）＋第 7 张单（计划书面）＋两处自纠留痕
+# 复跑口径：扫描面显式列出（见 scan_face.txt，48 件，**不含 证据/ 树**），另补计划书目录 4 件
+# 读数（本目录三份 VCC 原始输出可复算）：
+#   志文面   单点引用=569 OK=426 RED=4 AMBER=40 勘误句=99 非单点=141  → vcc_ledger_face.txt（rc=6）
+#   计划书面 单点引用=32  OK=28  RED=1 AMBER=0  勘误句=3  非单点=9    → vcc_plan_face.txt（rc=6）
+#   w 稿自身 单点引用=29  OK=18  RED=0 AMBER=0  勘误句=11             → vcc_w_draft_selfcheck.txt（rc=0）
+# ⇒ 与 w 稿 §5.1 基线**逐格同值**：本批净变化＝零清偿、零恶化（移交单放在属主手里没人动，这一状态被复现）
+# 逐张单现文：见 handoff_present_lines.txt（①06 未清 ②仿真测试台/04/README 未清 ③P5 未清 ④M2 未清 ⑤fd 稿 11 行裸行号 未清 ⑥我方三份 已清）
+# 第 7 张单：v4.1 第 125 行引裸件名 CMakeLists 第 94 行被判 RED（解析到 ws/src/CMakeLists.txt 71 行⇒越界）
+#   真身＝ws/src/00_drivers/livox_ros_driver2/CMakeLists.txt 第 94 行（全文 336 行），原文
+#   find_library(LIVOX_LIDAR_SDK_LIBRARY  liblivox_lidar_sdk_static.a    /usr/local/lib) 与 v4.1 那句逐字吻合
+#   ⇒ 属**裸同名件（仓内同名 348 件）解析伪红**，非事实错；改法＝给根全名；属主＝计划书汇编侧，未代改
+# 喂 #12 的形状：5 条 RED 里只有 1 条真须改活错，其余 4 条同病根＝裸 CMakeLists.txt；但伪红与真红文本同形、
+#   机判分不开 ⇒ 分格须含「裸同名件单独一档（黄/提示），不给红拦人」
+# 两处自纠（都在未提交/未被引用时就地改写，错误留痕）：
+#   ①u 稿 §5 首版把 v4.3 X22 的句式当本稿原话加引号 ②本批 §5.3 首版把 lvr2 的 984 行抄到 livox_ros_driver2 头上（实测 336 行）
+#   ⇒ 同名件的「行数」最易被散文式抄错 ⇒ 行数断言应要求成可复跑命令
+# 候补件实战：v_citation_refscan.sh 对 u／q 两稿实跑 rc=0（两件零行号引用⇒追加不顶走在册指针）→ refscan_uq.txt
+# 留件滞后一批如实记：v_py_static 范围甲（三段＝33＋4＋13＝50 件、rc=0、42858 ms）是 R127 的读数，当时未归档，本批补档 → v_py_static_scope_alpha.txt
+# 自限：RED/AMBER 同值只证**形状面**未恶化，不等于内容未漂（坑61）；除逐张单回原文外未做全量内容比对

@@ -1,0 +1,23 @@
+### 逐张单现文（grep 实测，证明「未清」）
+--- 单① note/06_三态通道普查.md ---
+35:   **该怀疑经实测推翻**：两件都在 m2_mapping.launch 之后等 /Odometry，而 m2_mapping.launch:15
+--- 单② 仿真测试台/进度文档.md 与 04 与 00_README ---
+note/进度/仿真测试台/进度文档.md:164:1. **三预检**：①DWA——dpkg 未装→apt 装 ros-noetic-dwa-local-planner **1.17.3**（manifest 授权�
+note/04_配置改动diff.md:237:- **矩阵W2/预检③ T1r mesh_navigation 编译链（timebox 60min，两败即止）**：clone 到 /home/ros1-slam/opt/upstrea
+note/04_配置改动diff.md:750:  · **全仓首跑（缺省文档面＝04／02／总览／SCAN集成设计稿）**：**RED 2、AMBER 20（其中 14 条＝"只�
+note/04_配置改动diff.md:761:  · **分型结论（22 项无一牵动读数）**：甲·近距差行 4（`maps.cpp:599`⇒**:600** `Eigen::MatrixXi sub = maz
+note/04_配置改动diff.md:763:  · **我自己的稿也过一遍 VCC（阳性对照在前的反向用法）**：首版 v 稿因**转述那些错引**而被 VC
+note/00_README.md:82:> 2026-10-10 **R100（无新增补丁行；第三件候补闸，仍未入门禁串；代际仍 H14）**：#86 交付 `scripts/verify/v_cita
+--- 单③ P5/进度文档.md ---
+28:- **D-P5-2（批5 阻断，上游结构补齐）**：deeprobotics_local_height_map 的 CMakeLists.txt:40 `catkin_package(INCLUDE_DIRS include …)` 声明的
+--- 单④ M2/进度文档.md ---
+587:- **R11 归因（O-2 TF_REPEATED_DATA）**：已入 02 坑25。要点：发布侧 = gzserver 进程内驱动插件（authority /gazebo，PLG:127–128 用 r
+--- 单⑤ fd 稿裸行号行数 ---
+11
+--- 单⑦ v4.1 现文 ---
+125:> **先核查、缺才装**：本机 `/usr/local` 已有 ysc 历史安装（`liblivox_lidar_sdk_static.a` + `liblivox_lidar_sdk_shared.so` + `livox_lidar_{a
+--- 真身实测 ---
+336
+  find_library(LIVOX_LIDAR_SDK_LIBRARY  liblivox_lidar_sdk_static.a    /usr/local/lib)
+--- 对照：ws/src/CMakeLists.txt 行数（伪红落点） ---
+71
