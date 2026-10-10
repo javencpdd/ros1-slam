@@ -1,0 +1,15 @@
+# R132 · 正式门禁串六件逐件实跑基线（2026-10-11 02:06–02:09；零活体窗、零改动、无 sudo）
+# 用途：A15／#54 裁定后串子是**六件**（R107 起，05 表 B4／B5 在册），但此前各批只逐件顺手跑、
+#       没有一份"六件同批、逐件 rc 与用时都留底"的基线；本目录补这份基线，供落册与验收直接引。
+# 口径声明（写死，免得被当成唯一口径）：
+#   SYN 被检面＝本批自定：`scripts/verify/*.sh`＋`ws/src/40_navigation/lite3_scan/verify/*.sh`＋`ws/src/95_simulation/lite3_gazebo_sim/verify/*.sh`＝40 件
+#   v_py_static＝范围甲三段（33 自研包内＋4 scripts/＋13 note/进度/**/scripts/＝50 件）＝在册口径
+#   ISO＝先 `source /opt/ros/noetic/setup.bash`＋`ws/devel/setup.bash` 再跑（不 source 会自造 [4] BAD，在册坑，本仓已第三次踩过）
+# 逐件读数：见 summary.txt 与同名 .txt 原件（SYN／GTC／ISO／DC／VAR／v_py_static）
+# 结果：五件 rc=0；DC rc=1＝在册已知态（挂账条款未清，预期红，非本批新红）
+# 两条过程留底（都不是件坏，是件在作用，原样保留不删）：
+#   ① SYN 首跑 rc=5「被检件数=0」＝我漏给范围 ⇒ 件的空集红线（R46 设计）拦住了"无参数即判绿"
+#   ② VAR 首跑与第二次跑均 rc=5「P3a-1 …缺：r132_gate_string_baseline」＝VAR 抓到我**正在写的这个目录**
+#      当时还没有 `_sha256_manifest.txt` 与 ACL；补齐清单与 ACL 后复跑 VAR ⇒ rc=0（最后一次跑的输出见 VAR_rerun.txt）
+# 连带事实（不是本批改动）：`lite3-monitor` 与 `lite3-ros-bridge` 此刻仍 `inactive`（`systemctl is-active` 实测）
+#   ⇒ 红线见证覆盖面仍＝4，凡"零触碰"声称继续带该限定；#10 仍在主理人手里

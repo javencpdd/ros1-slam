@@ -1,0 +1,13 @@
+# 正式门禁串六件 逐件实跑汇总（2026-10-11 02:06–02:09，本机无活体链窗、无 sudo）
+# 口径声明：SYN 的被检面＝本批自定（scripts/verify ＋ lite3_scan/verify ＋ lite3_gazebo_sim/verify 三处全部 .sh＝40 件），不是唯一在册口径；v_py_static 用范围甲三段（33＋4＋13＝50 件）；ISO 先 source noetic＋ws/devel（不 source 会自造 [4] BAD＝在册坑）
+# ---- 五件绿 ----
+SYN          rc=0   7s   被检件数=40（内嵌 python 段 23）→ SYN.txt
+GTC          rc=0   3s   在册 14 行与 git 现算同值（代际 H14）→ GTC.txt
+ISO          rc=0   5s   [1]–[9] 全过＋self-attest at=2026-10-11 02:08:41 script=bf3dfe05… → ISO.txt
+VAR          rc=5→0  首两次跑红（抓到本证据目录当时还没有清单与 ACL＝P3a-1 在作用），补齐后复跑 **rc=0 PASS=8 FAIL=0** → VAR.txt（红）＋VAR_rerun.txt（绿）
+v_py_static  rc=0  43s   范围甲 50 件零红 → v_py_static.txt
+# ---- 一件为在册已知态 ----
+DC           rc=1        v_deferred_clause_scan 的在册已知态（挂账条款未清＝预期红，不是本批新红）→ DC.txt
+# ---- 过程留底两条（都是件在作用，不是件坏）----
+① SYN 首跑 rc=5「PY SYNTAX FAIL（被检件数=0）」＝我给错了范围（无参数）⇒ 件的空集红线按 R46 设计生效：空集不判绿；补范围后同参复跑 rc=0（本行两条都留，不删首跑）
+② VAR 首跑 rc=5「[FAIL] P3a-1 约定日之后落盘的证据目录必须有 _sha256_manifest.txt：缺 r132_gate_string_baseline」＝VAR 抓到我**当时正在写的那个目录**（还没清单与 ACL）⇒ 自家约定的回归面在作用；补齐清单与 ACL 后复跑 rc=0（首跑输出已在被覆盖前记录，本行为其后置说明）
