@@ -1,0 +1,9 @@
+# R152 · M5.2 契约面在新被测面下复跑（**零节点件，不占活体窗**；代际仍 H14）
+# 结果：TASK SCAN PRIMITIVE VERDICT: PASS=9 FAIL=0 ABSENT=1  rc=0
+#   九项含 S7（失败侧口径：类内 aborted 返回点恰一处且带超时判定与日志，不把 arrived=False 当上游失败事件）、
+#   S8（旧原语除 scan_navigate 外与 HEAD 逐字同值 ⇒ 没顺手动到在册契约）、S9（mode 缺省仍=chain，默认行为零变化）
+# ★ABSENT=1 是**件自己给的**：段 B 活体 log 判据未给 log ⇒ 本节明确"不给绿也不给红"
+#   这正是本 boot 反复要求的那条姿势（坑45／坑62 同族）：**没跑的面要显式空着**，不能由契约面全过反推活体面通过
+# 与换代的关系：本件吃的是 task_primitives.yaml／task_smach_min.py 与 log 契约，**不经 faster-lio 点流**
+#   ⇒ 它不构成 M5.2 的"新 so 当代读数"；M5.2 **活体三跑**是否重取＝验收侧 J2 的范围（ab 稿 §1 第 6 行标的就是它）
+# 命令（可复跑）：bash ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh（先 source noetic＋ws/devel；不给 log 参数＝只跑段 A）

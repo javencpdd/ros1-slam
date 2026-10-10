@@ -1,0 +1,13 @@
+[PASS] S1 阳性对照：注册表解析出原语数=6（≥5 才谈后面的在位与对账）
+[PASS] S2 scan_navigate 在位且 target 前缀在契约空间（INPLACE|OK）
+[PASS] S3 outcome_semantics 与 wait 逐字同值（二态口径复用，未自造失败语义）
+[PASS] S4 实现面在位：类定义/注册表读取/状态挂载(≥2)/mode 分支(≥1)（计数=1|1|2|1）
+[PASS] S5 goal_fields 四维与实现注入口逐字对账通过（target_pose/timeout_s/tol_m/frame_id）
+[PASS] S6 门值零放宽：实现缺省 timeout=120.0s／tol=0.35m ＝ A7 判据④③ 原文
+[PASS] S7 失败侧口径：类内 aborted 返回点恰一处且带超时判定与超时日志（未把 arrived=False 当上游失败事件；读数=1|CLEAN）
+[PASS] S8 旧原语（除 scan_navigate）与 HEAD 逐字同值 ⇒ 我没顺手动到在册契约
+[PASS] S9 mode 缺省仍=chain（scan 需显式点，默认行为零变化）
+[ABSENT] 段 B 活体 log 判据未跑（未给 log）⇒ 本节不给绿，也不给红
+==================================================
+TASK SCAN PRIMITIVE VERDICT: PASS=9 FAIL=0 ABSENT=1（log 未给＝活体面未跑）
+rc=0
