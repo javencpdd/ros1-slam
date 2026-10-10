@@ -114,15 +114,37 @@ note "F9 互斥: move_base/teb 节点数=$(rosnode list 2>/dev/null | grep -cE '
 note "扰动前模型位姿自证：$(timeout 10 rosservice call /gazebo/get_model_state "model_name: '${P4_MODEL:-obs_5}' reference_frame: 'world'" 2>/dev/null | tr '\n' ' ' | tr '\n' ' ' | sed -n 's/.*position:  *x: \([-0-9.]*\)  *y: \([-0-9.]*\).*/x=\\1 y=\\2/p')"
 
 say "== [6] P4 取证（投障碍→看见→重规划→仍到达）=="
-python3 /home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_replan.py > "$RUN/p4.json" 2>"$RUN/p4.err"
+# R135（#14＋坑62，2026-10-11 主理人裁"按推荐方案"）：判据行与机读读数**分件**——
+#   stdout 只走判据行（收进 p4_verdict.txt），JSON 由件自己写进 $P4_JSON（＝p4.json，从此是合法 JSON）。
+#   此前 p4.json 首行是中文结论句（整份不是 JSON），且 R124／R125 两窗实测其字段与判据行反向。
+P4_JSON="$RUN/p4.json" python3 /home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_replan.py > "$RUN/p4_verdict.txt" 2>"$RUN/p4.err"
 RC=$?
 note "p4 python rc=$RC"
-cat "$RUN/p4.json" | tee -a "$LOG"
+cat "$RUN/p4_verdict.txt" | tee -a "$LOG"
 [ -s "$RUN/p4.err" ] && { note "stderr 尾:"; tail -8 "$RUN/p4.err" | tee -a "$LOG"; }
-V=$(grep -oE 'P4 重规划结论 = [A-Z]+\|.*' "$RUN/p4.json" | tail -1)
+V=$(grep -oE 'P4 重规划结论 = [A-Z]+\|.*' "$RUN/p4_verdict.txt" | tail -1)
 VS=${V#*= }
 [ -z "$V" ] && { echo "P4 重规划结论 = INVALID|结论行不可指认（rc=$RC 但无结论行 ⇒ 不采信）"; exit 9; }
 note "结论行：$V"
+# 同向自证（坑62 处置③落在件内）：判据行的档位必须与 p4.json 的机读字段一致；不一致＝本窗两份结论互相矛盾，不采信。
+AGREE=$(python3 - "$RUN/p4.json" "$V" <<'PYV'
+import json, re, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception as e:
+    print("JSON 不可解析（%s）" % e); sys.exit(0)
+m = re.match(r"P4 重规划结论 = (PASS|FAIL|INVALID)\|", sys.argv[2])
+g = m.group(1) if m else "不可指认"
+bad = []
+if d.get("grade") != g: bad.append("grade=%s" % d.get("grade"))
+if bool(d.get("invalid")) != (g == "INVALID"): bad.append("invalid=%s" % d.get("invalid"))
+if bool(d.get("pass")) != (g == "PASS"): bad.append("pass=%s" % d.get("pass"))
+if not isinstance(d.get("fail"), bool): bad.append("fail=%r" % (d.get("fail"),))
+print("OK" if not bad else "反向:" + " ".join(bad))
+PYV
+)
+note "字段同向自证（判据行 vs p4.json）：$AGREE"
+if [ "$AGREE" != "OK" ]; then echo "P4 重规划结论 = INVALID|自证不过（判据行与 p4.json 机读字段 $AGREE ⇒ 本窗两份结论互相矛盾，不采信、rc=9）"; exit 9; fi
 
 say "== [7] 还原与红线 =="
 note "扰动后模型位姿自证：$(timeout 10 rosservice call /gazebo/get_model_state "model_name: '${P4_MODEL:-obs_5}' reference_frame: 'world'" 2>/dev/null | tr '\n' ' ' | tr '\n' ' ' | sed -n 's/.*position:  *x: \([-0-9.]*\)  *y: \([-0-9.]*\).*/x=\\1 y=\\2/p')"

@@ -1,0 +1,17 @@
+# R135 · A24＋#14 落地：p4 取证件的「单一真值＋分件＋污染指认」（被测门值一字未动；代际仍 H14）
+# 改了哪两件：
+#   ws/src/40_navigation/lite3_scan/verify/p4_replan.py   （sha 改前 2c2558a6… → 改后 b9a272a2…）
+#   ws/src/40_navigation/lite3_scan/verify/v_scan_p4.sh   （sha 改前 d58e3e76… → 改后 12c42b6e…）
+# 三处结构性修法：
+#   ①单一真值：dump() 只从判据行解析档位，grade/invalid/pass/fail 由它反推（旧：各处各写、未见分支不置位
+#      ⇒ R124/R125 两窗 "invalid": false 与判据行 INVALID 反向）
+#   ②输出分件：判据行走 stdout（harness 收 p4_verdict.txt），JSON 写 $P4_JSON（= p4.json，从此合法 JSON）
+#      未设 env 退回旧行为 ⇒ 手跑仍拿得到读数
+#   ③A24 污染指认：arrived=false 且 dist_end > POLLUTION_DIST（默认 100.0，env 可复算）⇒ INVALID、rc=9、不计入 n=3 分母
+# harness 内同向自证（不是新门禁）：判据行档位 vs p4.json 四字段不一致 ⇒ INVALID|自证不过 ⇒ exit 9
+# ★签据更正（主理人可见）：原推荐特征含"dist_end 与 displacement 同值"，回件三轮（5094.464／0.045／3.324）恒同值
+#   ⇒ 两者同为 goal→odom 模长，同值属结构性、不含信息 ⇒ 已从依据去掉，只留幅值；签的实质不变
+# 门值自证沿用：OCC_TOL 0.10／DEV_MAX 0.35／DT_MAX 120／AVOID_DIST 0.40／SEE_MIN_PTS 20 未动
+# 自证：offline_dump_selftest.txt（四档全过）／pollution_predicate_replay.txt（判据本体取自源码，R120 True、R123/R122/边界 False）
+#       改前后 refscan 均 rc=0（两件各 0 处行号引用）／SYN rc=0／v_py_static rc=0／GTC rc=0（14 行 H14）／VAR rc=0
+# 真窗复验并入 C13＝乙 之后那批 P4 轮次（同窗同验可见性＋分件＋同向自证），不额外烧窗

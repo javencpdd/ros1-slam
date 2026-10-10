@@ -1,0 +1,12 @@
+件内 A24 判据本体（不手抄，直接取源）： (not st.arrived) and de is not None and de > POLLUTION_DIST
+[PASS] R120 污染轮     de=5094.464   arrived=False ⇒ 指认=True（期望 True）
+[PASS] R123 行为轮     de=3.324      arrived=False ⇒ 指认=False（期望 False）
+[PASS] R122 PASS 轮  de=0.045      arrived=True  ⇒ 指认=False（期望 False）
+[PASS] 边界 99.9m     de=99.9       arrived=False ⇒ 指认=False（期望 False）
+[PASS] 恰 100.0m     de=100.0      arrived=False ⇒ 指认=False（期望 False）
+
+同值性实测（回件复算，证明『同值』不含信息、已从指认去掉）：
+  r120：dist_end=5094.464 displacement=5094.464 同值=True（结构性：两者同为 goal→odom 模长）
+  r122：dist_end=0.045 displacement=0.045 同值=True（结构性：两者同为 goal→odom 模长）
+  r123：dist_end=3.324 displacement=3.324 同值=True（结构性：两者同为 goal→odom 模长）
+SELFTEST 指认复算：全过
