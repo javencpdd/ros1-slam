@@ -1,0 +1,18 @@
+# R116 · 全仓引用普查复跑（抓到的漂移是我自己 R111 造成的）
+# 性质：只读复跑＋只改引用形状（零改动读数、零链窗、无 sudo；SM/LIB 未动 ⇒ 代际仍 H14）。
+# 面：note/ 全部 .md = 75 件（含本会话新落的 w/x 稿；自含，重跑数会随台账增删微动，红黄集合为准）
+#   全仓面：单点引用=611 OK=464 RED=5 AMBER=41 勘误句=101 非单点形状=152 rc=6   ← 本轮第一次（明细行因 VCC_MAX=0 被收掉，见下「留痕」）
+#   修正后复跑（本目录第二件 vcc_after_pointer_fix.out）：引用 608 / OK 461 / RED 5 / AMBER 41
+#   ⇒ 我自己登记时一度写成「607/460」，那是中间一版的数（当时本目录的 index.txt 尚未落盘）——**普查面自含台账与新落件，每次跑总数都会微动**；
+#     所以本目录两份原件都留，比较只看**红黄集合**（RED 5 不变、AMBER 41＝基线 40＋本批那 1 条），不追总数；这正是 w 稿 §1 自己写下的口径。
+#   活文档域 66 件：610 引用；证据域 9 件：1 引用、全 OK ⇒ 红黄仍在活文档域
+# 与基线（R104 w 稿在册：74 件／597 引用／RED 5／AMBER 40）对照：面自含增长 +1 件、引用 +10，**RED 集合不变**、AMBER +1（即本批那条）
+# 净增那一条（VCC 原样输出）：
+#   [AMBER] fd_双写者与前馈源裁定.md ⇒ ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh:90 键名「wait_topic」不在该行
+# 旧→新实测表在 w 稿 §5.2；坑与纪律在 02 坑61。
+# 留痕（我自己的两处过程缺陷，不当成读数 hides）：
+#   ① 第一次跑用了 VCC_MAX=0 ⇒ 明细行被收掉，害我一度按「净减 45 条」误判台账变了；重跑用 ${#DOCS[@]} 才有明细。
+#   ② 建 r116 目录时先没配 _sha256_manifest.txt ⇒ VAR P3a-1 当场报红（入门后第二次抓到自家证据目录没清单，同 R110）。
+# 件：vcc_full.out（修正后全仓面 VCC 原件输出，含 46 条 RED/AMBER 明细）＋本 index＋清单
+# 重放：cd /home/ros1-slam && D=$(find note -name '*.md'); VCC_MAX=$(echo "$D" | wc -l) bash scripts/verify/v_citation_check.sh $D
+#       sha256sum -c note/进度/SCAN集成/证据/log/raw/r116_citation_recheck/_sha256_manifest.txt
