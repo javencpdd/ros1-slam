@@ -17,6 +17,9 @@
 #
 # 边界：只读。不改任何文档、不动门禁串四件（SYN/GTC/ISO/DC）；是否入门禁串＝请求单 A15/#54/#16 那一族，我不自落。
 # 用法：bash scripts/verify/v_citation_check.sh --selftest
+#       bash scripts/verify/v_citation_check.sh --census [<文档 ...>]  逐条打印每个「目标:行」被归到哪档，
+#         并汇总「同一目标多处引用是否被归成不同档」（请求单 A25 的成本数；**只读、只数，不改任何判定**）。
+#         census 与 scan/selftest 共用同一个 judge()，不另写第二套正则——否则普查结论与门禁读数会各说各话（坑42）。
 #       bash scripts/verify/v_citation_check.sh <文档 ...>      缺省＝note/04 note/02 note/进度/00_总览.md 与 SCAN集成/设计/*.md
 #   环境变量：VCC_MAX（明细最多列几条，缺省 20）｜VCC_ROOT（仓根，缺省 /home/ros1-slam）
 #   退出码：0 无 RED 无 AMBER｜5 有 AMBER（口径松）｜6 有 RED（引文硬错）｜9 前置缺失或自标定不过
@@ -27,6 +30,7 @@ cd "$ROOT" || { echo "前置缺失：仓根 $ROOT 不在位"; echo "VCC VERDICT 
 MODE="scan"
 case "${1:-}" in
   --selftest) MODE="selftest"; shift ;;
+  --census)   MODE="census"; shift ;;
 esac
 python3 - "$MODE" "$ROOT" "${VCC_MAX:-20}" "$@" <<'PYEOF'
 # -*- coding: utf-8 -*-
@@ -45,7 +49,14 @@ KEY_BARE = re.compile(r'^\s+([A-Za-z_][A-Za-z0-9_\-.:]{3,})')
 # 中文标签只在**形如编号**时才当键名（坑NN／RNN／ANN／FD-N…）：普通中文散文紧跟引用是常态，一律当键名会假红一片
 KEY_CJK_LABEL = re.compile(r'^\s+(坑\d{1,3}|[A-Z]{1,3}\d{1,4}[a-z]?|FD-\d{1,2}|G\d{1,2})')   # 只认"编号型"标签；纯中文散文一律不当键名（防假红）
 FIXUP = re.compile(r'写成|实为|勘误|应为|误为|改成|更正|原文不回改|已删|已移除|不在位|历史|当时|曾为')
+# 勘误关键词的搜索窗（A25 乙案要量的就是这一窗）：缺省 ''＝现行形状（引用前 60 字＋后 60 字，**可跨行**）；
+# VCC_FIXUP_MODE=same_line ⇒ 只在**同一行内**找关键词。开与不开都不改 RED/AMBER/OK 的判据本体，只动 FIXUP 档的归属。
+FIXUP_MODE = os.environ.get('VCC_FIXUP_MODE', '')
+# 窗口宽度做成旋钮（VCC_FIXUP_CHARS，缺省 60＝现行）：本仓志文常一行数百字，『收成同一行』在长行下是**放宽**不是收紧（实测见 04 R163），所以只能按字数扫，不能靠语感定方向。
+FIXUP_CHARS = int(os.environ.get('VCC_FIXUP_CHARS', '60') or 60)
 lines_cache = {}
+RECS = []            # census 用：judge() 每次调用重建，元素＝(目标, 行, 档位, 键名, 出处写法)
+                     # 只加副作用于这个列表，不改 red/amber/fixup/ok/total 的任何一条判定（C7 自测盯住同向）
 name_index = {}      # basename → [绝对路径]，整仓只建一次（首版每次引用都 os.walk 一遍 ⇒ 60s 还没扫完，件自己慢死）
 
 
@@ -103,6 +114,9 @@ def judge(text, root=ROOT):
     red, amber, fixup, ok, total = [], [], [], 0, 0
     amb = []
     info = []
+    del RECS[:]
+    def rec(target, ln, grade, k, written, why=''):
+        RECS.append((target, ln, grade, k, written, why))
     for m in CITE.finditer(text):
         ref, ln = m.group(1), int(m.group(2))
         # 三类"看着像引用但不是单点引用"的形状先放过，否则一开跑就几百条假红（假红会让整件失去可信度）：
@@ -130,22 +144,34 @@ def judge(text, root=ROOT):
                 if not re.search(r'[0-9]', key):
                     key = ''      # 纯中文词不作键名，防假红
         ctx = text[max(0, m.start() - 120):m.end() + 120]
-        pre = text[max(0, m.start() - 60):m.start()]
-        if FIXUP.search(pre) or FIXUP.search(tail[:60]):
+        pre = text[max(0, m.start() - FIXUP_CHARS):m.start()]
+        if FIXUP_MODE == 'same_line':
+            _ls = text.rfind('\n', 0, m.start()) + 1
+            _le = text.find('\n', m.end())
+            pre = text[_ls:m.start()]
+            tail = text[m.end():(_le if _le != -1 else len(text))]
+        if FIXUP.search(pre) or FIXUP.search(tail[:FIXUP_CHARS]):
             fixup.append('%s:%d' % (ref, ln))
+            _p, _k = resolve(ref)
+            rec(os.path.relpath(_p, root) if _p else ref, ln, 'FIXUP', key, ref,
+                '勘误关键词命中（窗＝%s）' % ('同一行内' if FIXUP_MODE == 'same_line' else '±%d字、可跨行' % FIXUP_CHARS))
             continue
         p, kind = resolve(ref)
         if p is None:
             if kind == 'ambiguous':
                 amb.append('%s:%d（只给了文件名、仓里同名多份 ⇒ 按坑52 应写完整路径）' % (ref, ln))
+                rec(ref, ln, 'AMBER', key, ref, '同名多份未写全路径')
             elif kind == 'notfound':
                 amb.append('%s:%d（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）' % (ref, ln))
+                rec(ref, ln, 'AMBER', key, ref, '仓内无此文件名（多为 /opt/ros 侧简写）')
             else:
                 red.append('%s:%d（路径失效：按所给完整路径找不到文件）' % (ref, ln))
+                rec(ref, ln, 'RED', key, ref, '按所给完整路径找不到文件')
             continue
         ls = file_lines(p) or []
         if ln > len(ls) or ln < 1:
             red.append('%s:%d 越界（该文件 %d 行）' % (os.path.relpath(p, root), ln, len(ls)))
+            rec(os.path.relpath(p, root), ln, 'RED', key, ref, '行号越界')
             continue
         line = ls[ln - 1]
         if key:
@@ -153,8 +179,10 @@ def judge(text, root=ROOT):
             toks = [t for t in re.split(r'[^0-9A-Za-z_\-.:/]+', key) if len(t) >= 3] or [key]
             if not any(t in line for t in toks):
                 amber.append('%s:%d 键名「%s」不在该行' % (os.path.relpath(p, root), ln, key[:28]))
+                rec(os.path.relpath(p, root), ln, 'AMBER', key, ref, '键名不在该行')
                 continue
         ok += 1
+        rec(os.path.relpath(p, root), ln, 'OK', key, ref, '')
     return red, amber + amb, fixup, ok, total, len(info), len(info)
 
 
@@ -190,11 +218,100 @@ if MODE == 'selftest':
         rc6b, _, _, _, _, _, _ = judge('%s:9 nope' % tgt_cc)
         ok6 = (tot6 == 2 and len(rc6b) == 1)
         print('[%s] C6 .cc／.xml 引文必须被识别（漏扩展名＝静默漏报）：识别=%d 越界判红=%d' % ('PASS' if ok6 else 'FAIL', tot6, len(rc6b)))
-        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6]); nfail = 6 - npass
+        # C7 census 逐条归档 vs scan 计数**同向**（A25 的成本数就靠 census 出，不同向就等于两套判定各说各话＝坑43 那一型）
+        mixed = '%s:1 alpha\n%s:9 nope\n%s:2 zzz_key\n把 %s:2 wrong 写成，实为 %s:1 alpha\n' % (
+            target, target, target, target, target)
+        rm, am, fm, okm, tm, _, _ = judge(mixed)
+        g7 = {}
+        for _t, _l, _g, _k, _w, _why in RECS:
+            g7[_g] = g7.get(_g, 0) + 1
+        ok7 = (g7.get('RED', 0) == len(rm) and g7.get('AMBER', 0) == len(am)
+               and g7.get('FIXUP', 0) == len(fm) and g7.get('OK', 0) == okm
+               and sum(g7.values()) == tm)
+        print('[%s] C7 census 逐条档位须与 scan 计数同向（RED/AMBER/FIXUP/OK 四项全等且总数等）：实得 %s vs %d/%d/%d/%d' % (
+            'PASS' if ok7 else 'FAIL', sorted(g7.items()), len(rm), len(am), len(fm), okm))
+        # C8 勘误窗跨行吸收（A25 乙案的要害）：关键词在**上一行**时，缺省窗会把本可判黄的引用吸进 FIXUP；
+        #    收成同一行窗后必须回到 AMBER。两档都要对上，否则说明普查读数靠的是猜测不是机制。
+        probe8 = '实为举例说明，本行不含引用。\n%s:2 zzz_key' % target
+        _, _, f8a, _, _, _, _ = judge(probe8)                                  # 缺省窗（跨行）
+        _old8 = FIXUP_MODE
+        FIXUP_MODE = 'same_line'
+        _, a8b, f8b, _, _, _, _ = judge(probe8)                               # 同行窗
+        FIXUP_MODE = _old8
+        ok8 = (len(f8a) == 1 and len(f8b) == 0 and len(a8b) == 1)
+        print('[%s] C8 跨行勘误窗把本可判黄的引用吸走（缺省 FIXUP×1／同行窗 AMBER×1）：实得 FIXUP=%d AMBER=%d' % (
+            'PASS' if ok8 else 'FAIL', len(f8a), len(a8b)))
+        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8]); nfail = 8 - npass
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print('VCC SELFTEST VERDICT: PASS=%d FAIL=%d' % (npass, nfail))
     sys.exit(0 if nfail == 0 else 5)
+
+if MODE == 'census':
+    # 只读普查：把每个「目标:行」被归到哪档逐条列出来，再数「同一目标多处被归成不同档」有几处（请求单 A25 的成本）
+    # 归并口径：按 resolve() 之后的**仓内相对路径＋行号**归并（同一个件的不同写法若都能解析到同一文件，则算同一目标）
+    occ = {}
+    scanned = 0
+    for d in docs:
+        p = d if os.path.isabs(d) else os.path.join(ROOT, d)
+        if not os.path.isfile(p):
+            print('[跳过] 文档不在位：%s' % d)
+            continue
+        scanned += 1
+        base = os.path.relpath(p, ROOT)
+        judge(open(p, encoding='utf-8', errors='ignore').read())
+        for _t, _l, _g, _k, _w, _why in RECS:
+            occ.setdefault((_t, _l), []).append((_g, base, _k, _w, _why))
+    if scanned == 0 and not occ:
+        print('VCC CENSUS rc=9（扫描面为空＝没得查，不判被试；坑29）')
+        sys.exit(9)
+    tally = {}
+    for k, v in occ.items():
+        for g, base, key, written, w in v:
+            tally[g] = tally.get(g, 0) + 1
+    print('[全档合计] 单点引用按档=%s（同一件引用在不同处各计一次）' % (
+        '／'.join('%s×%d' % (g, tally[g]) for g in ('RED', 'AMBER', 'FIXUP', 'OK') if tally.get(g))))
+    multi = dict((k, v) for k, v in occ.items() if len(v) > 1)
+    mixed = dict((k, v) for k, v in multi.items() if len(set(x[0] for x in v)) > 1)
+    # 「就低同判」（A25 甲案的形状）：目标只要在任一处被判 RED/AMBER，其余处一律抬到该档 ⇒ 数有多少处会被改档
+    worst = {'RED': 3, 'AMBER': 2, 'FIXUP': 1, 'OK': 0}
+    lifted_ok = lifted_fix = 0
+    for k, v in mixed.items():
+        cap = max(v, key=lambda x: worst[x[0]])[0]
+        for g, base, key, written, w6 in v:
+            if worst[g] < worst[cap]:
+                if g == 'OK':
+                    lifted_ok += 1
+                else:
+                    lifted_fix += 1
+    print('[普查面] 文档=%d 单点引用=%d 目标:行 去重=%d 被引≥2 处的目标=%d　勘误窗=%s' % (
+        scanned, sum(len(v) for v in occ.values()), len(occ), len(multi),
+        FIXUP_MODE or '缺省(±%d字可跨行)' % FIXUP_CHARS))
+    print('[多档并存] 同一「目标:行」被归成两种以上档的目标=%d 处；若采 A25 甲案（就低同判）需改档的引用=%d 处'
+          '（其中绿→更严 %d 处、勘误句→更严 %d 处）' % (len(mixed), lifted_ok + lifted_fix, lifted_ok, lifted_fix))
+    n = 0
+    for k, v in sorted(mixed.items(), key=lambda x: (-len(x[1]), x[0][0])):
+        if n >= MAXD:
+            print('  …（其余 %d 个目标略，VCC_MAX 可放大）' % (len(mixed) - n)); break
+        gs = {}
+        for g, base, key, written, w7 in v:
+            gs.setdefault(g, []).append(base)
+        whytxt = ''
+        for g, base, key, written, w7 in v:
+            if g in ('AMBER', 'RED') and w7:
+                whytxt = w7; break
+        print('  %s:%d ⇒ %s   [严档原因=%s]' % (k[0], k[1], '／'.join('%s×%d[%s]' % (g, len(b), ','.join(sorted(set(b))[:2]))
+                                                    for g, b in sorted(gs.items(), key=lambda x: -worst[x[0]])), whytxt or '—'))
+        n += 1
+    bywhy = {}
+    for k, v in mixed.items():
+        cap = max(v, key=lambda x: worst[x[0]])
+        bywhy[cap[4] or cap[0]] = bywhy.get(cap[4] or cap[0], 0) + 1
+    print('[严档原因拆分] 多档并存目标按"最严那一档为何严"分组：')
+    for w, c in sorted(bywhy.items(), key=lambda x: -x[1]):
+        print('   %-34s %d 个' % (w, c))
+    print('VCC CENSUS VERDICT: 只数不判（census 无红绿语义；门禁串不变、VCC 仍未入）')
+    sys.exit(0)
 
 allr, alla, allf, okc, tot, info_total = [], [], [], 0, 0, 0
 scanned = 0

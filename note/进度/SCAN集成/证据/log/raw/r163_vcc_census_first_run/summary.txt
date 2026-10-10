@@ -1,0 +1,47 @@
+R163 · VCC 普查模式首跑 ＋ 勘误窗宽度扫描（只读、零节点、零链窗、无 sudo）
+
+件＝scripts/verify/v_citation_check.sh（候补闸，**仍未入门禁串**）
+本次加的东西（默认行为逐字节不变，见 default_behavior_parity.txt 五件 md5 同值）：
+  1) `--census` 模式：逐条打印每个「目标:行」被归到哪档，并汇总「同一目标多处是否被归成不同档」。
+  2) 自测新增 **C7**（census 逐条档位必须与 scan 计数同向）与 **C8**（跨行勘误窗会把本可判黄的引用吸走——
+     缺省窗 FIXUP×1／同行窗 AMBER×1，两档都要对上才算过）。现 **PASS=8 FAIL=0，rc=0**。
+  3) 两个旋钮：`VCC_FIXUP_MODE=same_line`（只在同一行内找勘误关键词）与 `VCC_FIXUP_CHARS=<n>`（对称窗宽，缺省 60＝现行）。
+
+【普查面】（缺省文档集＝note/04、note/02、note/进度/00_总览.md ＋ SCAN集成/设计/*.md）
+  文档=26　单点引用=524　目标:行 去重=231　被引≥2 处的目标=107
+【现役窗 ±60】档位合计＝RED×1／AMBER×29／FIXUP×89／OK×405
+  多档并存目标=39；若采「就低同判」（A25 甲案形状）需改档的引用=108 处（绿→更严 81、勘误句→更严 27）
+  严档原因拆分：勘误关键词吸收 25／键名不在该行 8／仓内无此文件名（多为 /opt/ros 侧简写）5／行号越界 1
+
+【窗宽扫描】（fixup_window_sweep.txt）
+  ±20 字：RED×5 ／AMBER×33／FIXUP×44 ／OK×442 多档并存=27 改档=71
+  ±40 字：RED×4 ／AMBER×31／FIXUP×66 ／OK×423 多档并存=38 改档=99
+  ±60 字：RED×1 ／AMBER×29／FIXUP×89 ／OK×405 多档并存=39 改档=108  ← 现役
+  ±100字：RED×1 ／AMBER×29／FIXUP×107／OK×387 多档并存=45 改档=129
+  ±200字：RED×1 ／AMBER×21／FIXUP×144／OK×358 多档并存=59 改档=177
+  整行内：RED×1 ／AMBER×23／FIXUP×125／OK×375 多档并存=49 改档=143
+  ★反直觉的一条：**"收成同一行"在本仓不是收紧而是放宽**——志文常一行数百字，整行窗比 ±60 更宽，
+    实测 FIXUP 从 89 涨到 125、AMBER 从 29 掉到 23。我最初的直觉（同行＝更严）被自己的实测推翻，如实记。
+
+【必须连着读的一条更正性事实】（red_vs_window_detail.txt、amber_set_delta.txt）
+  ±20 窗多出的 4 条 RED **不是 4 条新硬错**，而是**同一条已知伪红的不同引用处**：
+    `ws/src/CMakeLists.txt:192 越界（该文件 71 行）`——真身是 `opt/upstream/lvr2/.../CMakeLists.txt:192`，
+    在册早由 **v 稿 §81 与 04 R99/R100 定性为"短路径被解析到同名件"的坑52 型伪红**（不是新发现的漏判）。
+  AMBER 多出的 2 条同样落在该族：`fsm.cpp:656`、`costmap_navigation_server.h:236`（只给文件名、仓内无此全名）。
+  ⇒ 窗宽改变的是**"这条已知伪红被算几次严"**（1↔5），不是"藏了几条真硬错"。这句不连着写，上面的表就会被读成后者。
+
+【结论交给 A25 的形状（不代答）】
+  真正没定标的不是"要不要全局同判"，而是**"勘误窗 ±60 这个从 R100 起就在用、从未定标的参数"**：
+  它决定 89 条引用进不进"不判红"档，也决定全局同判会不会把 81 处绿改严。
+  可签三形（各自的数都在上面）：甲＝全局同判（动 108 处，多数落在已知伪红族）／
+  乙＝先定标窗宽（±20／±60／整行三档实测已给，选一个写进件并留名 05 G 段）／
+  丙＝都不改，只按 05 第十节读法（按目标:行去重、颜色不当证据）。
+
+复算命令（全部只读）：
+  bash scripts/verify/v_citation_check.sh --selftest
+  VCC_MAX=60 bash scripts/verify/v_citation_check.sh --census
+  VCC_MAX=0 VCC_FIXUP_CHARS=20 bash scripts/verify/v_citation_check.sh --census      # 换窗扫
+  VCC_MAX=0 VCC_FIXUP_MODE=same_line bash scripts/verify/v_citation_check.sh --census
+
+登记人：小明（施工）· 2026-10-11 · 代际仍 H14（未动 SM／LIB，未编译）
+P8＝计划书未定稿、以 v4.3 补丁稿为准；本目录不含任何活体读数，不构成任何判定或收口。
