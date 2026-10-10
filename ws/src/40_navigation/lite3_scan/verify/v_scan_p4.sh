@@ -68,7 +68,13 @@ cleanup() {
 trap cleanup EXIT
 
 say "== [0] 红线预检：并发／样张／世界件本体 =="
-ps -o pid,user,lstart,etime,comm --no-headers -p 115711,115792,115795,115797,115799,180237 2>/dev/null | tee -a "$LOG"
+# A1（2026-10-11 已裁＝乙＋丙同落）：红线基准每批现取；旧写死名单（115711…180237）一重启即读空＝把没见证当绿
+WITNESS=""
+note "foxy 见证基准（A1 乙＝本 boot 现取）:"
+ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk|grep|v_scan_p4/ {print}' > "$RUN/foxy_start.txt" 2>/dev/null
+FOXY_N=$(grep -c "[0-9]" "$RUN/foxy_start.txt" 2>/dev/null); FOXY_N=${FOXY_N:-0}
+note "  现取命中 $FOXY_N 行 ⇒ $RUN/foxy_start.txt"
+[ "$FOXY_N" = "0" ] && { WITNESS="INVALID-空集"; note "  [INVALID] 基准空集（A1 丙）⇒ 本窗不得写零触碰、不得引用为红线达成"; }
 L13=$(ss -lntp 2>/dev/null | grep -c ':11313'); L12=$(ss -lntp 2>/dev/null | grep -c ':11312')
 note "在册端口起前监听：11313=$L13 11312=$L12（均须 0）"
 [ "$L13" = "0" ] && [ "$L12" = "0" ] || { echo "P4 重规划结论 = INVALID|并发未清（11313=$L13 11312=$L12）"; exit 2; }
@@ -125,6 +131,14 @@ note "世界件本体 sha 起前＝退后：$( [ "$WB" = "$WA" ] && echo 是 || 
 PB=$(cut -d' ' -f1 "$RUN/pcd_before.sha")
 PD=$(sha256sum /home/ros1-slam/data/maps/lite3.pcd | cut -d' ' -f1)
 note "样张 sha 起前＝退后：$( [ "$PB" = "$PD" ] && echo 是 || echo "否!!" )"
+# 终检放在结论行之前（R117 在 p2 上犯过：写在 trap 里会跑在结论之后，把 WITNESS 报成「未检」）
+note "foxy 见证终检（与起前现取基准整行比对）:"
+ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk|grep|v_scan_p4/ {print}' > "$RUN/foxy_end.txt" 2>/dev/null
+if [ -n "$WITNESS" ]; then note "  红线见证 = $WITNESS（本窗不作零触碰声称）"
+elif [ ! -s "$RUN/foxy_end.txt" ]; then WITNESS="INVALID-退后空集"; note "  [INVALID] 退后空集而起前非空 ⇒ 不作零触碰声称"
+elif diff -q "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" >/dev/null 2>&1; then WITNESS="OK"; note "  红线见证 = OK（$FOXY_N 行整行 pid＋属主＋lstart＋args 逐位一致）"
+else WITNESS="DISTURBED"; note "  ★红线见证 = DISTURBED（起终整行不一致）⇒ 本窗不作达成声称"; diff "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" | head -4 | sed "s/^/    /" | tee -a "$LOG"
+fi
 
 case "$VS" in
   PASS\|*) RC4=0;;
@@ -134,5 +148,5 @@ case "$VS" in
 esac
 if [ "$WB" != "$WA" ]; then note "⇒ 世界件本体被改动 ⇒ 本面不可引用"; RC4=1; fi
 note "分档自证：VS 首段=${VS%%|*} ⇒ RC4=$RC4（判据行与末判必须同向）"
-echo "P4 结论 = $([ "$RC4" = "0" ] && echo PASS || echo "rc=$RC4")｜判据行=$V｜世界件未变=$([ "$WB" = "$WA" ] && echo 是 || echo 否)"
+echo "P4 结论 = $([ "$RC4" = "0" ] && echo PASS || echo "rc=$RC4")｜WITNESS=${WITNESS:-未检}｜判据行=$V｜世界件未变=$([ "$WB" = "$WA" ] && echo 是 || echo 否)"
 exit "$RC4"

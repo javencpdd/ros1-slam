@@ -1,0 +1,9 @@
+# R121 · 把 A1 乙／丙 落进 v_scan_p4.sh（第三处病根；A1 裁定 2026-10-10，落地分两批）
+# 缘由：R120 那窗暴露 p4 件第 71 行仍是写死 foxy 名单 ⇒ 起终见证打印为空（R111/R117 只改了 p1、p2，第三件漏了）。
+# 改动：① 起前按在册 P0.5 正则现取基准落 $RUN/foxy_start.txt，命中 0 行 ⇒ WITNESS=INVALID-空集（A1 丙，明写不得零触碰）
+#       ② 退后与基准整行比对 ⇒ WITNESS=OK／INVALID-退后空集／DISTURBED
+#       ③ 「P4 结论 =」摘要行增带 WITNESS 字段
+# 时序注意：终检写在第 [7] 段（结论行之前），**不写进 trap cleanup** —— R117 在 p2 上犯过一次，写在 trap 里会跑在结论之后、把 WITNESS 报成「未检」。
+# 改前反扫：v_citation_refscan.sh ⇒ 该件零行号引用（rc=0）⇒ 不顶走在册指针；改后再扫仍 rc=0。
+# 件面自检：bash -n 过、SYN rc=0；**尚未真窗复验**（按计划并入 #20 的第一轮，那一轮起先未验的写法不留档）。
+# 件：v_scan_p4.sh.before（改前原件）＋ sha.txt（改前＝063f406ce90a6e11…）＋本 index＋清单
