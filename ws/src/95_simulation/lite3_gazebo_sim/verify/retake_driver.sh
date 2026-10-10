@@ -51,8 +51,24 @@ log(){ # R50：日志由本件自己拥有并追加到 $OUT/driver.log——旧�
   if [ "${RD_STDOUT_IS_LOG:-0}" != "1" ]; then mkdir -p "$OUT"; printf '%s\n' "$*" >> "$OUT/driver.log"; fi
 }
 now(){ date '+%F %T'; }
-FOXY="115711,115792,115795,115797,115799,1331,180237"
-snap(){ ps -o pid,user,lstart,comm --no-headers -p $FOXY > "$OUT/foxy_$1.txt" 2>/dev/null; log "  foxy[$1] 计数=$(wc -l < "$OUT/foxy_$1.txt")"; }
+# A1（2026-10-10 主理人裁定＝乙＋丙同落）：红线基准**每批现取**，不再沿用写死的旧 boot PID 名单——
+# 写死名单一重启就必然读空（O-7 病根），而旧行为只打一句"空洞成立"仍 return 0，等于把没见证当绿。
+FOXY_RE='ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer'   # 在册 P0.5 的第二条正则，原样沿用
+FOXY_LAST_KNOWN="115711,115792,115795,115797,115799,1331,180237"   # 上一 boot 的名单，**仅留作对照，不再当基准**
+FOXY=""
+WITNESS_INVALID=0
+rebaseline(){ # 乙：每批起工前按 P0.5 正则现取本 boot 名单
+  FOXY=$(ps -eo pid=,args= | awk -v re="$FOXY_RE" '$0 ~ re && $0 !~ /awk|grep|retake_driver/ {print $1}' | paste -sd, -)
+  : > "$OUT/foxy_baseline.txt" 2>/dev/null
+  [ -n "$FOXY" ] && ps -eo pid,user,lstart,args | awk -v re="$FOXY_RE" '$0 ~ re && $0 !~ /awk|grep|retake_driver/' > "$OUT/foxy_baseline.txt"
+  log "  foxy 基准现取（A1 乙＝每批重取，不沿用上 boot 名单）：命中 $(grep -c '[0-9]' "$OUT/foxy_baseline.txt" 2>/dev/null || echo 0) 行"
+  if [ ! -s "$OUT/foxy_baseline.txt" ]; then
+    WITNESS_INVALID=1
+    log "  [INVALID] 基准空集（本 boot 无 foxy/monitor 进程在位）⇒ A1 丙：本批红线面记 INVALID，**不得写「零触碰」、不得引用为达成**；环境事实随档留证"
+  fi
+}
+snap(){ if [ -n "$FOXY" ]; then ps -o pid,user,lstart,comm --no-headers -p $FOXY > "$OUT/foxy_$1.txt" 2>/dev/null; else : > "$OUT/foxy_$1.txt"; fi
+  log "  foxy[$1] 计数=$(wc -l < "$OUT/foxy_$1.txt")"; [ ! -s "$OUT/foxy_$1.txt" ] && WITNESS_INVALID=1; return 0; }
 
 # ---- 归档：把自 t0 起新产生的 LOGDIR 文本原件拉进证据址（本段可单跑，跑前跑后都能补）----
 manifest_build() { # 清单**整体重建**（R48 一）：条目＝归档址内除清单自身与临时件外的全部件，路径一律相对归档址
@@ -103,6 +119,7 @@ sec_pre() {
   ps -eo pid,user,pcpu,etime,comm --sort=-pcpu 2>/dev/null | awk 'NR>1 && $3+0>20 {printf "    pid=%s user=%s %s%% 起了=%s comm=%s\n",$1,$2,$3,$4,$5}' | head -6
   awk 'BEGIN{exit !('"$la"' > '$LOAD_MAX')}' && [ "${FORCE:-}" != "1" ] && { log "  [停手] 负载超阈值且未 FORCE=1 ⇒ 跑了也是作废跑（O-5 在册）"; return 7; }
   [ $((r1 + r2 + r3)) -eq 0 ] || { log "  [停手] 隔离域或生产口非零 ⇒ 有并发在跑，本驱动不叠加（坑24／#24 同源）"; return 9; }
+  rebaseline
   snap start
   log "  指纹（载体＋被测件＋配套件）："; sha256sum "$PKG/verify/m2_smoke.sh" "$PKG/verify/m2_exitclean_lib.sh" \
     "$PKG/urdf/lite3_planar.urdf.xacro" "$PKG/src/lite3_planar_drive.cpp" "$ROOT/ws/devel/lib/liblite3_planar_drive.so" \
@@ -204,7 +221,8 @@ sec_gate() {
   fi
   _ns=$(wc -l < "$OUT/foxy_start.txt"); _ne=$(wc -l < "$OUT/foxy_end.txt")
   if [ "$_ns" = "0" ] && [ "$_ne" = "0" ]; then
-    log "  foxy 快照两侧皆空（名单 PID 全不在位，本 boot 属此态）⇒ 「零触碰」空洞成立，**不得引用为红线达成**（O-7）；快照件已随 OUT 归档，空集本身有原件可看"
+    WITNESS_INVALID=1
+    log "  [INVALID] foxy 快照两侧皆空（A1 丙）⇒ 红线见证失效，本批**不得写「零触碰」、不得引用为红线达成**（O-7）；空集原件随 OUT 归档可看；末判按 rc=11 出"
   elif diff "$OUT/foxy_start.txt" "$OUT/foxy_end.txt" > /dev/null 2>&1; then
     log "  foxy 起终成对：整行（含 lstart）逐位一致（$_ns 行）"
   else
@@ -267,9 +285,10 @@ for s in "${SECS[@]}"; do
   archive_out
   [ "$rc" = "0" ] || { VERDICT=$rc; log "-- 段 $s 止于 rc=$rc ⇒ 后续段不再跑（失败即停手，不往后凑绿）"; break; }
 done
+if [ "$WITNESS_INVALID" = "1" ] && [ "$VERDICT" = "0" ]; then VERDICT=11; fi   # A1 丙：空集强制 INVALID，不当绿
 if [ "$OUT_UNCLOSED" = "1" ] && [ "$VERDICT" = "0" ]; then VERDICT=10; fi
 log "===== RETAKE VERDICT: rc=$VERDICT $(now) ====="
-log "  0=全绿 4=A0 三次皆 INVALID（算力面）5=判据 FAIL 6=批次覆盖不足 7=负载预检不过 8=期望/计数面 9=前置缺失 10=证据未收口（OUT 归档数不符）"
+log "  0=全绿 4=A0 三次皆 INVALID（算力面）5=判据 FAIL 6=批次覆盖不足 7=负载预检不过 8=期望/计数面 9=前置缺失 10=证据未收口 11=红线见证空集 INVALID（A1 丙，2026-10-10 主理人裁定新增档）（OUT 归档数不符）"
 log "  rc 空间属本件自有层（与 DWR／BR／SM 各层不互认），引用时必须连件名＋代际（她裁定 1 丙条／D5）"
 archive_out   # R48 二：VERDICT 行打完再收一次——旧序里归档副本永远没有本批自己的 VERDICT 行（18:23 批实测归档件 66 行／活体件 68 行）
 _v=$(grep -c 'RETAKE VERDICT' "$ARCHIVE_DIR/out/driver.log" 2>/dev/null); [ -z "$_v" ] && _v=0

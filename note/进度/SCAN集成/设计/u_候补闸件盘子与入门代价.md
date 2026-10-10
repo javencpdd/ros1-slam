@@ -24,6 +24,7 @@
 - **若今日入门禁串的代价（实测）**：
   - 范围甲＝**自研件**（`ws/src/*/lite3_*/` 全部 .py ＋ `scripts/` ＋ `note/进度/**/scripts/*.py`，共 **50 件**）⇒ **rc=0、零红**；耗时 ≈ **145 秒**（25 件实测 73 s，线性外推）。命令：
     `bash scripts/verify/v_py_static.sh $(find ws/src -path '*/lite3_*' -name '*.py' ! -path '*__pycache__*' ! -path '*/30_3rd/*'; find scripts -name '*.py' ! -path '*__pycache__*')`
+  - 【勘误·2026-10-10 R107】上面这条**印出来的命令只有两段**（25＋4＝实测 37 件），与本稿自述的口径（含 `note/进度/**/scripts/*.py`＝**50 件**）不一致：**少写了第三段**。全口径应为 `find ws/src -path '*/lite3_*' -name '*.py' ! -path '*__pycache__*' ! -path '*/30_3rd/*'` ＋ `find scripts -name '*.py' ! -path '*__pycache__*'` ＋ `find note/进度 -path '*/scripts/*' -name '*.py' ! -path '*__pycache__*'`（33＋4＋13＝50）；2026-10-10 21:4x 按全口径实测 **rc=0、50 件、49 秒**。原句不回删（在册规矩），正式串口径以 `note/05_复验作业单.md` B5 为准。
   - 范围乙＝**全仓 .py**（除 30_3rd，共 **132 件**）⇒ **rc=1，红 1 件**：`ws/src/20_localization/fast_gicp/thirdparty/Eigen/scripts/relicense.py`（语法编译不过——那是第三方自带的 Python2 老脚本，**不是我们的件**）；耗时 ≈ 6 分钟。
   - ⇒ **一句话：入门的实际障碍是"范围"，不是自研件的质量**（自研 50 件全干净）。
 - **不入门的代价**：坑46／坑48 那一族（四条活体链才查出的静态可查错）继续靠"烧窗次"发现；R75 的实测代价是**连烧四条链**。
