@@ -69,3 +69,19 @@
 ## 7. 成闸与否（不自落）
 
 本稿新增的两个维度（版本史可证性、同名件多义度）**要不要并进 VCC 判据、阈值给多少（同名 >1 即黄？）、红了谁停手**——与三件候补闸（VAR／v_py_static／VCC）同一族，挂请求单 **A15／#54／#16**；本轮只交读数与形状，不自落门禁、不改判据、不动门值。
+
+## 5.1 落点核实与可粘贴改法（R109 续，2026-10-10 22:4x；只核不代改）
+
+§5 那四张单我逐条回了原文并**实测了真值**（下面每条右边的数都是当场 `sed -n`/`wc -l`/`grep -c` 跑出来的，不是推断）。**改法只动引用形状，不动任何结论句**；四张单里三张在别人的件里，我一条都不代改。
+
+| # | 单（本档位置） | 实测真值 | 可粘贴改法 | 属主 |
+|---|---|---|---|---|
+| 1 | `note/06_三态通道普查.md:35` 引 `m2_mapping.launch` 第 15 行 | 该 launch 全文 **12 行**、git 史 1 版恒 12 行；`run_mapping_online` 那个 node 行实为**第 11 行**（`sed -n '11p' \| grep -c run_mapping_online`＝1） | 「而 `ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch` 第 11 行的 `<node pkg=\"faster_lio\" type=\"run_mapping_online\"`（绝对名 /Odometry 发布者）」 | blame 署名 **小王** |
+| 2 | `note/进度/仿真测试台/进度文档.md:164` 与 `note/04_配置改动diff.md:237` 引 `CMakeLists.txt` 第 192 行 | 真身＝**`opt/upstream/lvr2/CMakeLists.txt`**（**984 行**），第 192 行＝`find_package(GSL REQUIRED)`；裸名 `CMakeLists.txt` **仓内同名 348 件**，VCC 因此把它解析到 `ws/src/CMakeLists.txt`（符号链接→catkin 71 行）才报越界 | 把裸名换成到根全路径 `opt/upstream/lvr2/CMakeLists.txt` 第 192 行（v 稿 §2 已给同一真值，本条是**同型第二、三副本**） | ①仿真测试台志文（验收侧）②04 是在册台账：**原文不回改**，勘误句已在 04:761／v 稿 |
+| 3 | `note/进度/P5/进度文档.md:28` 引 `CMakeLists.txt` 第 40 行 `catkin_package(INCLUDE_DIRS include …)` | 该句**上一小句已点名** `deeprobotics_local_height_map`，实测 `ws/src/30_perception/deeprobotics_local_height_map/CMakeLists.txt` **第 40 行＝`catkin_package(`**（＝内容一直对，只有引用形状用了裸名 ⇒ 被 VCC 判成符号链接件·键名错） | 换成 `ws/src/30_perception/deeprobotics_local_height_map/CMakeLists.txt` 第 40 行 | P5 进度文档（在册验收/施工文档，不代改） |
+| 4 | `note/进度/M2/进度文档.md:587` 引 `buffer_core.cpp` 第 278 行 | **盘上没有这个件**：`/opt/ros/noetic/include/tf2/` 只有 `buffer_core.h`，且 `grep -rl TF_REPEATED_DATA /opt/ros/noetic/include`＝**零命中** ⇒ 那是上游 tf2 源文件里的**运行期日志串**，本机既无源码也无符号可指 | 去掉行号，降档为机理引用：「tf2 上游 `buffer_core.cpp` 的重复检测日志串（本机仅装头文件、无该串 ⇒ 行号与头文件均不可用；结论以 **02 坑25** 在册归因为准）」 | 小美志文（M2 进度文档） |
+
+**这一节自己过 VCC**：本稿新增 22 条引用里 RED 0／AMBER 0——做法是把「旧行号」写成「第 N 行」叙述、把「真值」给到根全路径（坑60 修法①的正用）。**§5 开头那条事实照留**：`git blame` 在这些行上只出 `ros1-slam` 与 `小王` 两种署名 ⇒ **「落到哪个人」不可机判**，所以本表按件属主路由，blame 只作附证。
+
+**VCC 入门议题的口径更新（不自落，仍归 A15／#54）**：四张单核实完，剩下的问题不是「有没有错引」而是**「VCC 该判什么面」**——本批实测：全仓面 RED 5＋AMBER 40 里，**真须改的活错只有 1 条**（第 1 单），另 3 类分别是件名多义（第 2、3 单）、上游不可达（第 4 单）、在册勘误示例（README:82 等）。⇒ 若 VCC 要进正式串，**判据面得先按这四型分档**（否则一进门就把「诚实记录勘误」和「系统头覆盖面」一起判红），这是给你落的笔，不是我自己改判据。
+
