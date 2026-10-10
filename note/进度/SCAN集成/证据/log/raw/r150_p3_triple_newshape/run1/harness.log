@@ -1,0 +1,30 @@
+[04:32:04] == [0] 红线预检：并发／样张／foxy ==
+在册端口起前监听：11313=0 11312=0（均须 0，否则并发未清 ⇒ rc=2 不跑）
+[04:32:04] == [1] roscore 11313 ==
+[04:32:09] == [2] m2_gazebo ==
+[04:33:10] == [3] m2_mapping（faster_lio 位姿源）==
+本段只等 /Odometry；/LIO/odom_vehicle 归 [5] 段（relay 在 70_scan 里）
+[04:33:21] == [4] 60_safety（mux 上链，/cmd_vel 唯一写者）==
+mux 起链自证：rosnode 在位=0（须 1）pgrep 命中=空
+mux 属主 PID（起链时取，仅供 C-2 kill 用）：
+C-1 静态面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux （只取 Publishers 段，旧式把 Subscribers 也抄进来过）
+[04:33:35] == [5] 70_scan.launch（navi_mode:=1，含 J1 到达观测件）==
+F9 互斥（节点级）: move_base/teb 节点数=0 须=0
+链上节点: 4/4 须=4
+[04:34:19] == [6] 判据③④⑤ 取证（三连在同一个 sim 窗内跑，逐跑 goal 重选）==
+p3 python rc=0
+[INFO] [1791664466.671484, 24.193000]: P3 run1 goal=(-0.47,3.60) r=3.61 clear=0.78
+{"run": 1, "fail": [], "goal": [-0.472, 3.598], "goal_r": 3.608, "goal_clear": 0.777, "odom0": [0.013, 0.022], "odom1": [-0.494, 3.588], "dist_end": 0.024, "arrived": true, "cmd_pub_count": 1109, "cmd_seen_after_6s": true, "dt_sim": 11.2, "dt_wall": 41.25, "displacement": 3.602}
+P3 判据③ 结论 = PASS|全部 1 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s
+结论行：P3 判据③ 结论 = PASS|全部 1 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s
+[04:35:07] == [7] C-1/C-2 mux 活体面（与 P3 同窗）==
+C-1 车动窗后 /cmd_vel 写者：mux 命中=1 写者总数=1（均须恰 1／1，§2.6 硬规则 a）
+C-2 kill 前 /cmd_vel 平均速率＝19.787（mux 恒 20Hz）
+C-2 kill 后 mux 节点在位=0（须 0，否则本面不作结论）
+C-2 kill 后 6s 内速率行数＝0（须 0 ⇒ /cmd_vel 停发；非 0 说明还有别的写者）
+[04:35:36] == [8] 退净与红线 ==
+teardown 后的监听与残留见 trap 段
+分档自证：VS 首段=PASS ⇒ RC3=0（判据行与末判必须同向，历史上这条曾因为没剥前缀把 PASS 判成 1）
+[04:35:36] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0

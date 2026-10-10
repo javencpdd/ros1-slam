@@ -1,0 +1,8 @@
+# R150 · P3 三连新形状重取（3 次独立 launch、冷启动×3）＝合判 PASS rc=0（代际仍 H14，被测面 so=147dc8cc）
+# 逐跑：run1 dist_end=0.024m dt_sim=11.20s｜run2 0.028m／11.20s｜run3 0.040m／11.18s（判据行三条均为 `P3 判据③ 结论 = PASS|全部 1 跑到达实体置位、终点偏差≤0.35m、dt(sim)≤120s`）
+# 驱动器合判行：`P3 三连（3 次独立 launch，每 launch 1 轮）合判 = PASS` ／ `BATCH VERDICT: P3_TRIPLE=PASS rc=0`
+# 生效性核（在册 C-1／C-2 两条，每跑各复现一次）：见各 run*/harness.log 的 mux kill 后停发与 /cmd_vel 写者=1/1
+# 单 launch 墙钟：run1 04:32:02→04:35:48＝3分46秒；run2 04:35:48→04:39:39＝3分51秒；run3 04:39:39→约04:43＝≈3分30秒 ⇒ **三连合计 ≈11 分钟**
+#   （比 ab 表原估"每 launch ≈131 秒"大——P3 链比 P1/P2 多 60_safety 与取证段；此数为实测，已回填 ab 稿 §4）
+# 环境闸：起窗 loadavg 3.33＜4（gate 模式，11313/11312=0、残留 comm=0）⇒ 未用任何绕行
+# 红线：样张 sha 起前 aaa09362c5f1＝退后、世界件起前 fb52d5e6ed3e＝退后（三跑各自成对）；teardown 残留净
