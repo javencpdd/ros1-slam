@@ -1,0 +1,17 @@
+[PASS] P1a 阳性对照·可达侧：664＋具名条目 ⇒ 算法须判可读：实得=True
+[PASS] P1b 阳性对照·不可达侧：600＋同条目但 mask::--- ⇒ 算法须判不可读：实得=False
+[PASS] P2 普查面：roots=note,ws/src,scripts 内 7105 件对协作账号 ros1-slam/ysc 全部可读（排除 0 件 __pycache__/*.pyc＝可再生构建产物）：零违规
+[别名] r50_log_ownership_probe 用的是 _manifest_all.txt（正名＝_sha256_manifest.txt）
+[别名] retake_20261008_182329_addendum 用的是 _manifest_recheck.txt（正名＝_sha256_manifest.txt）
+[基准] retake_20261008_182329_addendum 的清单 61 条全部从**父目录**跑通 ⇒ 属旁挂 addendum 那族（04:405 复核命令原文如此）
+[PASS] P3a-1 约定日之后落盘的证据目录**必须**有 _sha256_manifest.txt（这是自家约定的回归面，缺＝红）：无缺
+[已知态] P3a-2 早于清单约定的目录缺清单：20 个；b1_gen5_logs; b1_out2; b1_retake; b3_configure_pre; batch2_wire; env_free2_20261008; env_free3_20261008_2241; env_free_20261008; fd2_pre_baseline; h14_zero_node_batch; j3_mux_row; m2_tmp_payload_logs; m2r6_exitclean; m2r7_batch; m2r7_batch_logs; r26_32_zero_node_batch; r26_selftest; r31_fd_i; r42_joint_surface; r46_syntax_rescan（只登记，不据此判红——它们本来就在约定之前）
+[FAIL] P3b-1 完整性：无任何目录出现「哈希对不上」（这一类是真风险，必红）：内容不符：note/进度/SCAN集成/证据/log/raw/r97_reachability_probe/(内容不符=1 OK=2)
+[PASS] P3b-2 新目录可验面：清单 mtime≥约定日（R48 起）的目录必须从归档址 -c 全 OK 且 OK 计数≥1：新目录全部可验
+[已知态] P3b-3 旧式清单不可验（条目缺前缀那族，R48 已登记、补不覆）：共 5 个目录；retake_20261008_143433; retake_20261008_144159; retake_20261008_144235; retake_20261008_145931; retake_20261008_182329
+[PASS] P3c 证据树内不该有 0 件的目录（空壳既不可验也误导读者）：无空壳
+[计数] 证据目录=90 违规件=0 保密件=1 排除 .pyc=0
+[PASS] P4 保密面：1 件列入 VAR_SECRETS 的件，other 位均不给读（**只 stat 不 open**）：清单=note/*/证据/*密码* note/*/*密码*
+==================================================
+VAR VERDICT: PASS=7 FAIL=1
+VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
