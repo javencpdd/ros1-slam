@@ -1,0 +1,24 @@
+# R103 · 00_总览.md 档头同步批的门禁原件（只读巡检）
+# 性质：纯档头/文档批——零代码、零配置、零门值、零链窗、零端口、无 sudo；SM/LIB 未动 ⇒ 代际仍 H14。
+# 本目录只放"能重放的命令＋其原始输出"，结论一律在 00_总览.md 的 R103 条与 04 的 R103 块里。
+#
+# 档头所写现况的在册出处（按 02 坑60 的修法：给件名＋锚文本，不给裸行号——行号随被引件长行漂移）：
+#   批1「①②③④⑤⑦⑧⑨⑩ 九条已销＋⑪ 半，只剩 ⑥ 卡在裁定 A17；⑥ 未答不称批1 完成」＝ note/进度/00_总览.md 的 R89 条目原文
+#   批2 不自称收口（承接资格待裁）＝ note/进度/SCAN集成/设计/r_批2复取承接对账.md ＋ 请求单 A20/A21
+#   六 PID 基准失效＝ note/进度/00_总览.md 的 R93 条目「foxy 六 PID 命中 0（15:03 重启）⇒ 零触碰句空洞」＋ 请求单 A1
+#   「ISO 前先 source」＝ note/02_问题与坑.md 的「本轮做法」句（R102 自曝）——本件把该前提写进代码，不靠自觉
+#
+# 件：
+#   r103_gates.sh   门禁件（bash -n 过；SYN 的被检件就是它自身 ⇒ 被检件计数 1，按在册"空集不判绿"不点空集）
+#   gtc.out         v_harness_generation_table.sh 原样输出（14 行，末版 H14：SM fa8e57359a17·616 行／LIB b17022766fa4）
+#   syn.out         v_sh_py_syntax.sh 原样输出
+#   iso.out         v3_isolation.sh 原样输出（=== ISOLATION OK ===、ws_src_files=4706，与 R102 同数）
+#   _sha256_manifest.txt  本目录清单（自排除；清单外不指认）
+#
+# 改版留痕：本件首版带 `set -u`，撞上 noetic 的 etc/catkin/profile.d/1.ros_distro.sh 在 ROS_DISTRO 赋值前
+#   引用该变量 ⇒ 件死在 source 行、rc=1、三条闸一条没跑（是我自家件的缺陷，不是被测面红）。首版未入任何
+#   台账引用、未提交，故不另存旧件；错误本身登记在 00_总览 R103 条与 04 R103 块的自曝格。
+#
+# 重放：
+#   cd /home/ros1-slam && bash note/进度/SCAN集成/证据/log/raw/r103_header_sync/r103_gates.sh
+#   sha256sum -c note/进度/SCAN集成/证据/log/raw/r103_header_sync/_sha256_manifest.txt
