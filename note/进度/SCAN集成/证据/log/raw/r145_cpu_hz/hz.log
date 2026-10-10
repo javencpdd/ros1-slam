@@ -1,0 +1,47 @@
+[04:05:42] 起窗门槛：loadavg=2.40 ≤ 4
+[04:05:43] == [0] roscore ==
+[04:05:48] == [1] m2_gazebo ==
+[04:06:00] == [2] m2_mapping（faster_lio 位姿源＝被试面）==
+[04:06:12] 话题在位：/cloud_registered /cloud_registered_body /cloud_registered_effect_world /rslidar_points 
+[04:06:12] 盒生效回执（本窗独立取，不沿用 P4 窗）：
+[04:06:12] 被试节点 PID=1122220
+[04:06:12] == [3] 点流频率（入 /rslidar_points ＋出 /cloud_registered，各 20s）==
+[04:06:15]   /rslidar_points ⇒ 
+[04:06:17]   /cloud_registered ⇒ 
+[04:06:17] == [4] 节点开销（ps 累计均值 ＋ top 瞬时值两路，10s 内取）==
+[04:06:18]   ps  1122220 17.7  0.8 62812       00:10 /home/ros1-slam/ws/devel/lib/faster_lio/run_mapping_online __name:=faster_lio_online
+[04:06:18]   top 1122220 ysc       20   0  390992  62812  50372 R  20.0   0.9   0:01.84 run_map+
+[04:06:18]   核数=6（pcpu 是多核累加，换算须除它）
+[04:06:19] == [5] 点数吞吐（帧均值点数＝出/入点数，与离线网格 ×1.48 口径对表）==
+[04:06:31]   
+[04:06:31] == [6] 红线与还原自证 ==
+[04:06:32]   世界件本体 sha 起前＝退后：是
+[04:06:32]   样张 sha 起前＝退后：是
+开销自证结论 = INVALID|读数没取全（in= out= cpu=17.7）
+HZ VERDICT rc=9
+[04:06:32] -- teardown --
+[04:06:38] 残留：gzserver=0 mapping=0 11313 监听=0
+[04:08:37] 起窗门槛：loadavg=2.73 ≤ 4
+[04:08:38] == [0] roscore ==
+[04:08:43] == [1] m2_gazebo ==
+[04:08:50] == [2] m2_mapping（faster_lio 位姿源＝被试面）==
+[04:09:02] 话题在位：/cloud_registered /cloud_registered_body /cloud_registered_effect_world /rslidar_points 
+[04:09:02] 被试节点 PID=1130729
+[04:09:02] == [3] 点流频率（入 /rslidar_points ＋出 /cloud_registered，各 20s）==
+[04:09:37]   /rslidar_points ⇒ average rate: 9.390
+[04:10:12]   /cloud_registered ⇒ average rate: 7.380
+[04:10:12] == [4] 节点开销（ps 累计均值 ＋ top 瞬时值两路，10s 内取）==
+[04:10:12]   ps  1130729 27.2  0.9 68492       01:16 /home/ros1-slam/ws/devel/lib/faster_lio/run_mapping_online __name:=faster_lio_online
+[04:10:12]   top 1130729 ysc       20   0  750556  68492  50576 R  25.0   1.0   0:20.78 run_map+
+[04:10:13]   核数=6（pcpu 是多核累加，换算须除它）
+[04:10:13] == [5] 点数吞吐（帧均值点数＝出/入点数，与离线网格 ×1.48 口径对表）==
+[04:10:17]   height: 1 width: 641 height: 1 
+[04:10:17] == [5b] 盒生效回执（在采样之后取，最多再等 60s；不沿用 P4 窗那一行）==
+[04:10:18]   C13-乙] 盒生效回执：box_on=1 心=(0,0,-0.38) 半宽(含外扩)=(0.26,0.205,0.16) 剔无效=1 兜底球 blind 由调用方传入 ⇒ **只覆盖
+[04:10:18] == [6] 红线与还原自证 ==
+[04:10:18]   世界件本体 sha 起前＝退后：是
+[04:10:18]   样张 sha 起前＝退后：是
+开销自证结论 = OK|入流 hz= 出流 hz=7.380 节点 pcpu=27.2%（核数 6，pcpu 为跨核累加 ⇒ 单核当量≈4.53）｜盒回执=在位
+HZ VERDICT rc=0
+[04:10:18] -- teardown --
+[04:10:25] 残留：gzserver=0 mapping=0 11313 监听=0
