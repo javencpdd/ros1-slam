@@ -1,0 +1,116 @@
+扫描面=全仓 74 件 ｜ 活文档域 65 件（可整改）｜ 证据域 9 件（原件冻结、只登勘误不回改）
+VCC 全仓面 rc=6（0 干净／5 有 AMBER／6 有 RED）文档=74 件；原件输出见 /home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r104_drift_survey/vcc_full.out
+域面 live（65 件）[计数] 文档=65 单点引用=596 OK=451 RED=5 AMBER=40 勘误句=100（不判红）非单点形状=151（不判红）
+域面 ev（9 件）[计数] 文档=9 单点引用=1 OK=1 RED=0 AMBER=0 勘误句=0（不判红）非单点形状=0（不判红）
+解析 VCC 明细：RED=5 AMBER=40 ｜ VCC 自报 RED=5 AMBER=40 单点引用=597
+
+==== RED 逐条 ====
+[RED] 00_README.md ⇒ ws/src/CMakeLists.txt:192 越界（该文件 71 行）
+    型=在册勘误句内(非活错)·越界(现 71 行)｜**符号链接件**，实身在仓外 ⇒ git 史不可判（行号由安装版本限定） ｜ 证据=链接目标=/opt/ros/noetic/share/catkin/cmake/toplevel.cmake；锚行 全文无此键名 ｜ 本档位置=note/00_README.md:82〔勘误句〕｜同名件数 仓内348/系统域2 ⇒ 件名多义(须给全名)
+[RED] 04_配置改动diff.md ⇒ ws/src/CMakeLists.txt:192 越界（该文件 71 行）
+    型=越界(现 71 行)｜**符号链接件**，实身在仓外 ⇒ git 史不可判（行号由安装版本限定） ｜ 证据=链接目标=/opt/ros/noetic/share/catkin/cmake/toplevel.cmake；锚行 全文无此键名 ｜ 本档位置=note/04_配置改动diff.md:237 ; note/04_配置改动diff.md:750〔勘误句〕 ; note/04_配置改动diff.md:761〔勘误句〕｜同名件数 仓内348/系统域2 ⇒ 件名多义(须给全名)
+[RED] 06_三态通道普查.md ⇒ ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch:15 越界（该文件 12 行）
+    型=越界(现 12 行｜该件历史最多 12 行，查 1 版)｜历史从未达该行⇒硬错（指向不存在的行） ｜ 证据=仓内 ｜ 锚行 全文无此键名 ｜ 本档位置=note/06_三态通道普查.md:35｜同名件数 仓内1/系统域0 ⇒ 件名唯一
+[RED] 21_ros1-slam隔离部署计划书-v4.1-雷达翻案补丁.md ⇒ ws/src/CMakeLists.txt:94 越界（该文件 71 行）
+    型=在册勘误句内(非活错)·越界(现 71 行)｜**符号链接件**，实身在仓外 ⇒ git 史不可判（行号由安装版本限定） ｜ 证据=链接目标=/opt/ros/noetic/share/catkin/cmake/toplevel.cmake；锚行 全文无此键名 ｜ 本档位置=note/计划书v4/21_ros1-slam隔离部署计划书-v4.1-雷达翻案补丁.md:125〔勘误句〕｜同名件数 仓内348/系统域2 ⇒ 件名多义(须给全名)
+[RED] 进度文档.md ⇒ ws/src/CMakeLists.txt:192 越界（该文件 71 行）
+    型=越界(现 71 行)｜**符号链接件**，实身在仓外 ⇒ git 史不可判（行号由安装版本限定） ｜ 证据=链接目标=/opt/ros/noetic/share/catkin/cmake/toplevel.cmake；锚行 全文无此键名 ｜ 本档位置=note/进度/仿真测试台/进度文档.md:164｜同名件数 仓内348/系统域2 ⇒ 件名多义(须给全名)
+
+==== AMBER 逐条 ====
+[AMBER] 00_README.md ⇒ ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml:12 键名「allow_unknown」不在该行
+    型=在册勘误句内(非活错)·漂移候选(锚在别处，未证历史) ｜ 证据=现锚行 [8] ｜ 本档位置=note/00_README.md:82〔勘误句〕｜同名件数 仓内3/系统域0 ⇒ 件名多义(须给全名)
+[AMBER] 00_README.md ⇒ abstract_planner_execution.h:292（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_abstract_nav/abstract_planner_execution.h｜现该行=ros::Duration patience_; ｜ 本档位置=note/00_README.md:77〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_README.md ⇒ GetPathResult.h:111（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/GetPathResult.h｜现该行=PAT_EXCEEDED = 55u, ｜ 本档位置=note/00_README.md:77〔勘误句〕 ; note/00_README.md:78〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_README.md ⇒ GetPathResult.h:111（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/GetPathResult.h｜现该行=PAT_EXCEEDED = 55u, ｜ 本档位置=note/00_README.md:77〔勘误句〕 ; note/00_README.md:78〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_README.md ⇒ nodelet.cpp:68（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['P722_nodelet_log.txt', 'color_nodelet_plugins.xml', 'globalmap_server_nodelet-8-stdout.log', 'globalmap_server_nodelet.cpp', 'hdl_localization_nodelet-9-stdout.log'] ｜ 本档位置=note/00_README.md:83〔勘误句〕 ; note/00_README.md:84〔勘误句〕｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 02_问题与坑.md ⇒ ws/src/40_navigation/lite3_scan/launch/70_scan.launch:61 键名「remap」不在该行
+    型=漂移·已证(写下时正确) ｜ 证据=锚现在 [9, 10, 14, 15, 45, 47]；历史上 d981a06 版该行含锚 ｜ 本档位置=note/02_问题与坑.md:190｜同名件数 仓内1/系统域0 ⇒ 件名唯一
+[AMBER] 04_配置改动diff.md ⇒ ws/src/95_simulation/mockamap/src/maps.cpp:599 键名「block」不在该行
+    型=漂移候选(锚在别处，未证历史) ｜ 证据=现锚行 [468, 500, 600, 602, 606, 608] ｜ 本档位置=note/04_配置改动diff.md:82 ; note/04_配置改动diff.md:761〔勘误句〕｜同名件数 仓内1/系统域0 ⇒ 件名唯一
+[AMBER] 04_配置改动diff.md ⇒ ws/src/95_simulation/config/faster_lio_sim.yaml:29 键名「mapping.extrinsic_est_en」不在该行
+    型=口径松(在册写点路径、件内是嵌套键，叶名在 [7, 30]) ｜ 证据=现该行=extrinsic_T: [0.0, 0.0, 0.0]                                  # 差异③ ｜ 本档位置=note/04_配置改动diff.md:88 ; note/04_配置改动diff.md:761〔勘误句〕｜同名件数 仓内2/系统域0 ⇒ 件名多义(须给全名)
+[AMBER] 04_配置改动diff.md ⇒ ws/src/95_simulation/config/faster_lio_sim.yaml:37 键名「preprocess.blind」不在该行
+    型=口径松(在册写点路径、件内是嵌套键，叶名在 [7, 38]) ｜ 证据=现该行=preprocess: ｜ 本档位置=note/04_配置改动diff.md:89｜同名件数 仓内2/系统域0 ⇒ 件名多义(须给全名)
+[AMBER] 04_配置改动diff.md ⇒ note/02_问题与坑.md:314 键名「坑42」不在该行
+    型=在册勘误句内(非活错)·漂移候选(锚在别处，未证历史) ｜ 证据=现锚行 [452, 466, 479, 491, 517, 560] ｜ 本档位置=note/04_配置改动diff.md:748〔勘误句〕｜同名件数 仓内2/系统域0 ⇒ 件名多义(须给全名)
+[AMBER] 04_配置改动diff.md ⇒ ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml:12 键名「allow_unknown」不在该行
+    型=在册勘误句内(非活错)·漂移候选(锚在别处，未证历史) ｜ 证据=现锚行 [8] ｜ 本档位置=note/04_配置改动diff.md:748〔勘误句〕 ; note/04_配置改动diff.md:761〔勘误句〕｜同名件数 仓内3/系统域0 ⇒ 件名多义(须给全名)
+[AMBER] 04_配置改动diff.md ⇒ costmap_navigation_server.h:239（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_costmap_nav/costmap_navigation_server.h｜现该行=pluginlib::ClassLoader<nav_core::BaseLocalPlanner> nav_core_controller_plugin_loader_; ｜ 本档位置=note/04_配置改动diff.md:235｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 04_配置改动diff.md ⇒ ExePathResult.h:126（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/ExePathResult.h｜现该行=PAT_EXCEEDED = 103u, ｜ 本档位置=note/04_配置改动diff.md:714 ; note/04_配置改动diff.md:755〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 04_配置改动diff.md ⇒ RecoveryResult.h:87（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/RecoveryResult.h｜现该行=PAT_EXCEEDED = 152u, ｜ 本档位置=note/04_配置改动diff.md:714 ; note/04_配置改动diff.md:755〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 04_配置改动diff.md ⇒ ExePathResult.h:126（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/ExePathResult.h｜现该行=PAT_EXCEEDED = 103u, ｜ 本档位置=note/04_配置改动diff.md:714 ; note/04_配置改动diff.md:755〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 04_配置改动diff.md ⇒ RecoveryResult.h:87（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/RecoveryResult.h｜现该行=PAT_EXCEEDED = 152u, ｜ 本档位置=note/04_配置改动diff.md:714 ; note/04_配置改动diff.md:755〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 04_配置改动diff.md ⇒ nodelet.cpp:68（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['P722_nodelet_log.txt', 'color_nodelet_plugins.xml', 'globalmap_server_nodelet-8-stdout.log', 'globalmap_server_nodelet.cpp', 'hdl_localization_nodelet-9-stdout.log'] ｜ 本档位置=note/04_配置改动diff.md:339 ; note/04_配置改动diff.md:445 ; note/04_配置改动diff.md:756〔勘误句〕｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 00_总览.md ⇒ move_base_action.h:116（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_abstract_nav/move_base_action.h｜现该行=// copy outcome and message from action client result ｜ 本档位置=note/进度/00_总览.md:24｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_总览.md ⇒ nodelet.cpp:68（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['P722_nodelet_log.txt', 'color_nodelet_plugins.xml', 'globalmap_server_nodelet-8-stdout.log', 'globalmap_server_nodelet.cpp', 'hdl_localization_nodelet-9-stdout.log'] ｜ 本档位置=note/进度/00_总览.md:145 ; note/进度/00_总览.md:231〔勘误句〕｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 00_总览.md ⇒ GetPathResult.h:111（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/GetPathResult.h｜现该行=PAT_EXCEEDED = 55u, ｜ 本档位置=note/进度/00_总览.md:225〔勘误句〕 ; note/进度/00_总览.md:226〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_总览.md ⇒ GetPathResult.h:111（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/GetPathResult.h｜现该行=PAT_EXCEEDED = 55u, ｜ 本档位置=note/进度/00_总览.md:225〔勘误句〕 ; note/进度/00_总览.md:226〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_总览.md ⇒ ExePathResult.h:126（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/ExePathResult.h｜现该行=PAT_EXCEEDED = 103u, ｜ 本档位置=note/进度/00_总览.md:231〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_总览.md ⇒ RecoveryResult.h:87（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_msgs/RecoveryResult.h｜现该行=PAT_EXCEEDED = 152u, ｜ 本档位置=note/进度/00_总览.md:231〔勘误句〕｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+[AMBER] 00_裁定请求单_2026-10-09.md ⇒ ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml:32 键名「preprocess」不在该行
+    型=漂移·已证(写下时正确) ｜ 证据=锚现在 [31, 33]；历史上 33721ae 版该行含锚 ｜ 本档位置=note/进度/00_裁定请求单_2026-10-09.md:135 ; note/进度/00_裁定请求单_2026-10-09.md:139 ; note/进度/00_裁定请求单_2026-10-09.md:143｜同名件数 仓内1/系统域0 ⇒ 件名唯一
+[AMBER] 00_裁定请求单_2026-10-09.md ⇒ fresh2n.log:23（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh2n.txt', 'm2r5_foxy_start_fresh2n.txt', 'm2r5_fresh2n.log'] ｜ 本档位置=note/进度/00_裁定请求单_2026-10-09.md:306〔勘误句〕｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 00_裁定请求单_2026-10-09.md ⇒ fresh3n.log:27（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh3n.txt', 'm2r5_foxy_start_fresh3n.txt', 'm2r5_fresh3n.log'] ｜ 本档位置=note/进度/00_裁定请求单_2026-10-09.md:306〔勘误句〕｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 00_裁定请求单_2026-10-09.md ⇒ fresh4n.log:19（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh4n.txt', 'm2r5_foxy_start_fresh4n.txt', 'm2r5_fresh4n.log'] ｜ 本档位置=note/进度/00_裁定请求单_2026-10-09.md:306〔勘误句〕｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 00_裁定请求单_2026-10-09.md ⇒ fresh5n.log:23（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh5n.txt', 'm2r5_foxy_start_fresh5n.txt', 'm2r5_fresh5n.log'] ｜ 本档位置=note/进度/00_裁定请求单_2026-10-09.md:306〔勘误句〕｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 进度文档.md ⇒ nodelet.cpp:377（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['P722_nodelet_log.txt', 'color_nodelet_plugins.xml', 'globalmap_server_nodelet-8-stdout.log', 'globalmap_server_nodelet.cpp', 'hdl_localization_nodelet-9-stdout.log'] ｜ 本档位置=note/进度/G8sim/进度文档.md:83｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 进度文档.md ⇒ buffer_core.cpp:278（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（盘上无同名⇒须给全名） ｜ 证据=系统域也没有 ｜ 近名候选 无 ｜ 本档位置=note/进度/M2/进度文档.md:587｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] 进度文档.md ⇒ ws/src/CMakeLists.txt:40 键名「catkin_package(INCLUDE_DIRS 」不在该行
+    型=符号链接件·键名错(锚全文不现) ｜ 证据=现该行=string(REPLACE ":" ";" CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH}) ｜ 本档位置=note/进度/P5/进度文档.md:28｜同名件数 仓内348/系统域2 ⇒ 件名多义(须给全名)
+[AMBER] fd_双写者与前馈源裁定.md ⇒ ws/src/20_localization/lite3_localization/launch/hdl_localization.launch:89 键名「enable_robot_odometry_predic」不在该行
+    型=漂移·已证(写下时正确) ｜ 证据=锚现在 [52, 95]；历史上 dfb3ef0 版该行含锚 ｜ 本档位置=note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:95｜同名件数 仓内3/系统域0 ⇒ 件名多义(须给全名)
+[AMBER] fd_双写者与前馈源裁定.md ⇒ fresh2n.log:23（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh2n.txt', 'm2r5_foxy_start_fresh2n.txt', 'm2r5_fresh2n.log'] ｜ 本档位置=note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:55｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] fd_双写者与前馈源裁定.md ⇒ fresh3n.log:27（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh3n.txt', 'm2r5_foxy_start_fresh3n.txt', 'm2r5_fresh3n.log'] ｜ 本档位置=note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:55｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] fd_双写者与前馈源裁定.md ⇒ fresh4n.log:19（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh4n.txt', 'm2r5_foxy_start_fresh4n.txt', 'm2r5_fresh4n.log'] ｜ 本档位置=note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:55｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] fd_双写者与前馈源裁定.md ⇒ fresh5n.log:23（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['m2r5_foxy_end_fresh5n.txt', 'm2r5_foxy_start_fresh5n.txt', 'm2r5_fresh5n.log'] ｜ 本档位置=note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:55｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] fd_双写者与前馈源裁定.md ⇒ nodelet.cpp:68（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['P722_nodelet_log.txt', 'color_nodelet_plugins.xml', 'globalmap_server_nodelet-8-stdout.log', 'globalmap_server_nodelet.cpp', 'hdl_localization_nodelet-9-stdout.log'] ｜ 本档位置=note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:67 ; note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:95 ; note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:133｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] fd_双写者与前馈源裁定.md ⇒ nodelet.cpp:68（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件·无法定位（有近名候选⇒疑省写名） ｜ 证据=系统域也没有 ｜ 近名候选 ['P722_nodelet_log.txt', 'color_nodelet_plugins.xml', 'globalmap_server_nodelet-8-stdout.log', 'globalmap_server_nodelet.cpp', 'hdl_localization_nodelet-9-stdout.log'] ｜ 本档位置=note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:67 ; note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:95 ; note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md:133｜同名件数 仓内0/系统域0 ⇒ 件名唯一
+[AMBER] H_第四通道离线分辨力预检结论.md ⇒ ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml:32 键名「preprocess」不在该行
+    型=漂移·已证(写下时正确) ｜ 证据=锚现在 [31, 33]；历史上 33721ae 版该行含锚 ｜ 本档位置=note/进度/仿真测试台/设计稿/H_第四通道离线分辨力预检结论.md:155｜同名件数 仓内1/系统域0 ⇒ 件名唯一
+[AMBER] 进度文档.md ⇒ costmap_navigation_server.h:239（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）
+    型=面外件(系统域)·行在、未给键名(口径松) ｜ 证据=/opt/ros/noetic/include/mbf_costmap_nav/costmap_navigation_server.h｜现该行=pluginlib::ClassLoader<nav_core::BaseLocalPlanner> nav_core_controller_plugin_loader_; ｜ 本档位置=note/进度/仿真测试台/进度文档.md:164｜同名件数 仓内0/系统域1 ⇒ 件名唯一
+
+==== 分型计数 ====
+    1  口径松(在册写点路径、件内是嵌套键，叶名在 [7, 30])
+    1  口径松(在册写点路径、件内是嵌套键，叶名在 [7, 38])
+    3  在册勘误句内(非活错)·漂移候选(锚在别处，未证历史)
+    2  在册勘误句内(非活错)·越界(现 71 行)｜**符号链接件**，实身在仓外 ⇒ git 史不可判（行号由安装版本限定）
+    4  漂移·已证(写下时正确)
+    1  漂移候选(锚在别处，未证历史)
+    1  符号链接件·键名错(锚全文不现)
+    1  越界(现 12 行｜该件历史最多 12 行，查 1 版)｜历史从未达该行⇒硬错（指向不存在的行）
+    2  越界(现 71 行)｜**符号链接件**，实身在仓外 ⇒ git 史不可判（行号由安装版本限定）
+   14  面外件(系统域)·行在、未给键名(口径松)
+   14  面外件·无法定位（有近名候选⇒疑省写名）
+    1  面外件·无法定位（盘上无同名⇒须给全名）
+合计已定型=45 条（RED 5 ＋ AMBER 40）；其中「未定」=0
+W_DRIFT_SURVEY VERDICT rc=0
+W DRIFT SURVEY rc=0

@@ -1,0 +1,28 @@
+# R104 · w 稿（全仓单点引用的版本漂移普查）的普查件与原件输出
+# 性质：离线只读普查——只 find/grep/git log/git show/git blame，零改动（未动任何件/配置/门值/门禁串/台账正文/他人志文）、
+#   零链窗、零端口、无 sudo；SM/LIB 未动 ⇒ 代际仍 H14。
+# 落稿正文：note/进度/SCAN集成/设计/w_全仓单点引用版本漂移普查.md（结论一律在稿里，本目录只放可重放的件与原始输出）
+#
+# 件：
+#   w_drift_survey.sh      普查件（bash -n 过；内嵌 python 段另抽出来过 v_py_static＝未定义名 0）
+#   vcc_full.out           VCC 全仓面（74 件）原件输出：单点引用=597 OK=452 RED=5 AMBER=40 勘误句=100 非单点形状=151 rc=6
+#   vcc_live.out           VCC 活文档域（65 件）原件输出：引用=596 OK=451 RED=5 AMBER=40
+#   vcc_evidence.out       VCC 证据域（9 件）原件输出：引用=1 OK=1 RED=0 AMBER=0
+#   w_drift_survey.out     普查件原样输出（45 条逐条「型＋证据＋本档位置」＋分型计数＋VERDICT rc=0）
+#   _sha256_manifest.txt   本目录清单（自排除；清单外不指认）
+#
+# 关键口径（防读者把本目录当成"改了判据"或"清了红黄"）：
+#   ① VCC 的 RED/AMBER/FIXUP/非单点形状四判据一字未改，本件只**调用**它；新维度（git 版本史可证性、同名件多义度、
+#      符号链接面）全在本件里，成闸与否归请求单 A15/#54/#16，不自落。
+#   ② 本稿自己也在扫描面内 ⇒ 面内件数与引用总数会随台账/稿件增删而长；本批三次跑的 RED 5＋AMBER 40 的**集合与型数逐项同**。
+#   ③ 「面外件」两型不是错引：VCC 只索引仓根，故 /opt/ros 系统头必然黄；件只证到"件找得到＋被引行存在"，
+#      **没证**"内容合意"（VCC 明细这些条未带键名⇒不可逐字比对）——4 条我手工读了该行，见稿 §2。
+#
+# 改版留痕（四处缺陷都在本轮被跑出来，稿 §6 逐条登记；首版未入在册读数、未提交 ⇒ 依本仓约定不另存旧件）：
+#   ① git 史维度对符号链接件量到 blob ⇒ 假读数"历史最多 1 行"；② 回找原句用了 VCC 解析后的全路径 ⇒ 3 条"未找回"；
+#   ③ yaml 点路径被判"键名错"⇒ 2 条假错；④ 件 `cd "$ROOT"` 后用相对名写输出 ⇒ 三份 VCC 输出误落仓根（提交前删净）。
+#
+# 重放：
+#   cd /home/ros1-slam && bash note/进度/SCAN集成/证据/log/raw/r104_drift_survey/w_drift_survey.sh \
+#     > note/进度/SCAN集成/证据/log/raw/r104_drift_survey/w_drift_survey.out 2>&1
+#   sha256sum -c note/进度/SCAN集成/证据/log/raw/r104_drift_survey/_sha256_manifest.txt
