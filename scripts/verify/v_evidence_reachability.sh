@@ -197,49 +197,50 @@ def is_new_era(path):
 
 CUTOFF = 0
 nomani_new, nomani_old, mismatch, unverif_new, legacy = [], [], [], [], []
+def _verifies(m, base_dir):
+    rel = os.path.relpath(m, base_dir)
+    rr = subprocess.run(['sha256sum', '-c', rel], cwd=base_dir, capture_output=True, text=True)
+    return any(ln.endswith(': OK') for ln in (rr.stdout + rr.stderr).splitlines())
+
+def run_cwd(base_dir, rel):
+    rr = subprocess.run(['sha256sum', '-c', rel], cwd=base_dir, capture_output=True, text=True)
+    lns = (rr.stdout + rr.stderr).splitlines()
+    return rr, sum(1 for ln in lns if ln.endswith(': OK')),\
+           sum(1 for ln in lns if ln.endswith(': FAILED')),\
+           sum(1 for ln in lns if 'could not be read' in ln), lns
+
 MANI_NAMES = ['_sha256_manifest.txt', '_manifest_all.txt', '_manifest_recheck.txt']
 # 清单件名允许三个在册别名：正名 _sha256_manifest.txt；_manifest_all.txt（R50 那批）；
-#   _manifest_recheck.txt（R48 "补不覆"时旁挂的修正清单）。用别名不视为红，但在明细里点名，
-#   免得将来有人以为"随便起个名字就行"——正名仍只有一个。
+#   _manifest_recheck.txt（R48 旁挂、R98 推广）。**基准目录也有两种**：本目录／父目录（raw/）。
+#   做法＝把"每个清单名 × 每个基准"都试一遍，取 **OK 条数最多**的那一组合；都跑不通才算不可验。
+#   为什么不是"取第一个存在的"：182329 那种目录同时有正名（旧式不可验）与旁挂 recheck（可验），
+#   只认第一个就会把已补齐的目录永远报成已知态——补建工作对巡检件隐形（本轮实测就是这个）。
 empty_dirs = []
 for d in evdirs:
-    found = [n for n in MANI_NAMES if os.path.isfile(os.path.join(d, n))]
-    mani = os.path.join(d, found[0]) if found else None
+    present = [n for n in MANI_NAMES if os.path.isfile(os.path.join(d, n))]
+    parent = os.path.dirname(os.path.abspath(d)) or '.'
+    best = None
+    for n in present:
+        for base, rel in ((d, n), (parent, os.path.join(os.path.basename(d.rstrip('/')), n))):
+            rr, k_ok, k_mis, k_miss, lns = run_cwd(base, rel)
+            if best is None or k_ok > best[1]:
+                best = (n, k_ok, k_mis, k_miss, base, rel, rr, lns)
     nfiles = sum(len(fns) for _, _, fns in os.walk(d))
     if nfiles == 0:
         empty_dirs.append(d)
-    if mani is None:
+    if not present:
         (nomani_new if is_new_era(d) else nomani_old).append(d)
         continue
-    if found[0] != MANI_NAMES[0]:
-        print('[别名] %s 用的是 %s（正名＝%s）' % (d.split('/')[-2], found[0], MANI_NAMES[0]))
+    nmis_total = best[2]
+    if best[0] != MANI_NAMES[0]:
+        print('[别名] %s 用的是 %s（正名＝%s）' % (d.split('/')[-2], best[0], MANI_NAMES[0]))
+    if os.path.abspath(best[4]) != os.path.abspath(d):
+        print('[基准] %s 的清单 %d 条从**父目录**跑通 ⇒ 旁挂 addendum 那族（04:405 复核命令原文如此）'
+              % (d.split('/')[-2], best[1]))
+    nok, nmis, nmiss = best[1], best[2], best[3]
+    lines = best[7]
+    r = best[6]
     new_ish = is_new_era(d)
-    # 清单的**基准目录有两种**（在册事实，不是我的偏好）：正例＝从本目录跑（R48 起整体重建的口径）；
-    #   旁挂 addendum 那批＝从**父目录**跑（如 retake_20261008_182329_addendum/_manifest_recheck.txt，
-    #   04:405 的复核命令原文就是 `cd 证据/log/raw && sha256sum -c …_addendum/_manifest_recheck.txt`）。
-    #   只认一种就会把在册好件判成坏件——本轮实测就红过一次，属**假红**，故先本目录、全"读不到"再退父目录。
-    def run_cwd(base_dir, rel):
-        rr = subprocess.run(['sha256sum', '-c', rel], cwd=base_dir, capture_output=True, text=True)
-        lns = (rr.stdout + rr.stderr).splitlines()
-        return rr, sum(1 for ln in lns if ln.endswith(': OK')),\
-               sum(1 for ln in lns if ln.endswith(': FAILED')),\
-               sum(1 for ln in lns if 'could not be read' in ln), lns
-    # 基准目录有两种在册形态：正例＝从本目录跑；旁挂 addendum 那族＝从父目录跑（条目自带 "<目录名>/" 前缀）。
-    #   退父目录时**必须**条目全部带本目录名前缀，否则父层同名件会造成假绿（本轮差点踩上）。
-    r, nok, nmis, nmiss, lines = run_cwd(d, os.path.basename(mani))
-    if nok == 0:
-        ent = [ln.split('  ')[-1].strip() for ln in open(mani, encoding='utf-8', errors='ignore')
-               if ln.strip() and not ln.startswith('#')]
-        # 接受父基准的条件是"每一条都从父目录跑通了"（nok=条目数、零 FAILED 零读不到），
-        #   而不是只看前缀——addendum 那族的条目指的是**兄弟目录**（retake_…_182329/），前缀规则会误拒它。
-        pref_ok = bool(ent)
-        if pref_ok:
-            pr = run_cwd(os.path.dirname(os.path.abspath(d)) or '.',
-                         os.path.join(os.path.basename(d.rstrip('/')), os.path.basename(mani)))
-            if pr[1] == len(ent) and pr[2] == 0 and pr[3] == 0:
-                print('[基准] %s 的清单 %d 条全部从**父目录**跑通 ⇒ 属旁挂 addendum 那族（04:405 复核命令原文如此）'
-                      % (d.split('/')[-2], len(ent)))
-                r, nok, nmis, nmiss, lines = pr
     if nmis > 0:
         mismatch.append('%s(内容不符=%d OK=%d)' % (d, nmis, nok))
     elif nmiss > 0 or nok == 0:
