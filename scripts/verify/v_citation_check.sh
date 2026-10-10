@@ -12,7 +12,7 @@
 #   FIXUP 同一句里含「写成／实为／勘误／应为」等 ⇒ 这是**在册引错示例**（我们的台账规矩是"原文不回改＋另起勘误句"，
 #         所以这类句子必然同时含错引与正解），**不计红**，只单列计数；把它算红就等于罚"诚实记录错误"。
 #   OK    行存在，且（无键名 或 键名能在该行匹配）。
-# 自标定（P1，阳性对照在前；坑29／坑42 的既有姿势）：植入 1 条行号越界(须 RED)＋1 条键名不符(须 AMBER)
+# 自标定（P1，阳性对照在前；坑29／坑42 的既有姿势）：植入 1 条行号越界(须 RED)＋1 条键名不符(须 AMBER)＋1 条 .cc/.xml 覆盖面(须识别)
 #   ＋1 条正确引用(须 OK)＋1 条勘误句式(须 FIXUP)＋空扫描面(须 rc=9)；**五项任一对不上即 rc=9，普查结果一律不采信**。
 #
 # 边界：只读。不改任何文档、不动门禁串四件（SYN/GTC/ISO/DC）；是否入门禁串＝请求单 A15/#54/#16 那一族，我不自落。
@@ -35,7 +35,7 @@ import glob, os, re, shutil, sys, tempfile
 MODE, ROOT, MAXD = sys.argv[1], sys.argv[2], int(sys.argv[3])
 docs = sys.argv[4:] or (['note/04_配置改动diff.md', 'note/02_问题与坑.md', 'note/进度/00_总览.md']
                         + sorted(glob.glob('note/进度/SCAN集成/设计/*.md')))
-CITE = re.compile(r'([A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:sh|py|md|ya?ml|launch|world|pcd|csv|txt|xacro|json|cpp|h|bak|log))[:：](\d+)')
+CITE = re.compile(r'([A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:sh|py|md|ya?ml|launch|world|pcd|csv|txt|xacro|json|cpp|cc|hpp|h|c|xml|bak|log))[:：](\d+)')
 # 键名的两种在册写法都要认（自测 C3 首版就是因为只认第一种而漏判）：
 #   甲 "`global_planner_params.yaml:12 allow_unknown: false`"——**同一对反引号内**跟着键名；
 #   乙 "`m2_smoke.sh:382` 的 `wait_for_message`"——引用**闭合之后**另起一对反引号。
@@ -180,7 +180,17 @@ if MODE == 'selftest':
         rp, ap, fp, okp, tp, ip, _ = judge('')
         ok5 = (rp, ap, fp, okp, tp) == ([], [], [], 0, 0)
         print('[%s] C5 空扫描面须"零判定"（由外层据此退 rc=9，不判被试）：实得 total=%d' % ('PASS' if ok5 else 'FAIL', tp))
-        npass = sum([ok1, ok2, ok3, ok4, ok5]); nfail = 5 - npass
+        # C6 扩展名覆盖面（2026-10-11 R134 加的：表的扩展名漏了 cc/xml/hpp，
+        #    结果在册 82 处引用**从未被任何一次普查数进去**，而件照样报"干净"⇒ 漏报比误报危险）
+        tgt_cc = os.path.join(tmp, 'probe.cc')
+        tgt_xml = os.path.join(tmp, 'probe.xml')
+        open(tgt_cc, 'w').write('line one\nline two\n')
+        open(tgt_xml, 'w').write('<a>1</a>\n<b>2</b>\n')
+        rc6, _, _, ok6a, tot6, _, _ = judge('%s:2 line two and %s:1 <a>1</a>' % (tgt_cc, tgt_xml))
+        rc6b, _, _, _, _, _, _ = judge('%s:9 nope' % tgt_cc)
+        ok6 = (tot6 == 2 and len(rc6b) == 1)
+        print('[%s] C6 .cc／.xml 引文必须被识别（漏扩展名＝静默漏报）：识别=%d 越界判红=%d' % ('PASS' if ok6 else 'FAIL', tot6, len(rc6b)))
+        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6]); nfail = 6 - npass
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print('VCC SELFTEST VERDICT: PASS=%d FAIL=%d' % (npass, nfail))

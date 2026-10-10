@@ -1,0 +1,27 @@
+# R134 · 候补闸匹配面缺扩展名（cc／xml／hpp）⇒ 在册 82 处按行号引用从未被任何一次普查数进去
+# 发现方式：C13＝乙 的改前反扫报 pointcloud_preprocess.cc「0 处行号引用」，而我直扫 grep 得 27 处 ⇒ 差额指向件而不是文档
+# 根因（一行）：VCC 与 refscan 的 CITE 正则扩展名表是 `…|json|cpp|h|bak|log`，**没有 cc**（也没有 xml／hpp）
+#   ⇒ 凡引 `laser_mapping.cc:82`、`pointcloud_preprocess.cc:208`、`advanced_param.xml:51` 之类的句子，两件一律当不存在
+# 漏量实测（扫描面＝49 志文＋4 计划书）：`.cc` 67 处、`.xml` 14 处、`.hpp` 1 处 ⇒ **82 处**
+#   按目标件分布：laser_mapping.cc 31＋pointcloud_preprocess.cc 29＋advanced_param.xml 13＋run_mapping_online.cc 3＋其余若干
+# 修法（两件同修，不动判据/门值/门禁串）：
+#   ①CITE 扩展名表补 `cpp|cc|hpp|h|c|xml`（长名在前，防回溯歧义）——两件同址同步改
+#   ②自标定各加一条**覆盖面对照**（漏扩展名的复现子）：VCC 加 C6（`.cc`/`.xml` 引文必须被识别，越界须判红）；
+#     refscan 自标定加第三项（`.cc` 的全路径与 `src/` 简写＋越界三者都必须认）
+#   ③改后两件 `--selftest` 均 rc=0（VCC PASS=6 FAIL=0；refscan 三项全 PASS）→ vcc_selftest.txt／refscan_selftest.txt
+# 改后普查真值（覆盖面扩大所致，**不是文档变差**）：
+#   志文面 单点引用 569→**616**、OK 426→**464**、RED 4→**4（未增）**、AMBER 40→**43**、勘误句 99→105、非单点 141→160
+#   计划书面 单点引用 32→**49**、OK 28→**43**、RED 1→**1（未增）**、AMBER 0→**0**
+#   ⇒ 新纳入的 47 条引用里**没有一条是硬错**（RED 未增），说明大家引 `.cc`/`.xml` 的行号大体是准的；新增 3 条 AMBER 见下
+# 新增 3 条 AMBER（都是"行在范围内、那一行没有所引键名"的口径松，其中第 3 条是我自己的文、已开勘误）：
+#   ①`04` ⇒ `ws/src/30_3rd/plan_manage/launch/advanced_param.xml:51` 键名「SCAN」不在该行
+#   ②`04` ⇒ `Sensor.cc:340` 仓内根本没有这个文件名（简写，该按坑52 写全名）
+#   ③`请求单` ⇒ `ws/src/10_slam/faster_lio/src/pointcloud_preprocess.cc:186` 键名「VELO32」不在该行
+#      实测 :186＝`if (i % point_filter_num_ == 0) {`（VelodyneHandler 内的抽样行）；VELO32 的**分派**在 :20/:25/:26
+#      ⇒ 该行号不是错（抽样确在 Velodyne 支里），缺的是"这一行不写着 VELO32"；勘误另起句写在请求单，原文不回改
+# 对 C13 乙案的直接后果：改前反扫由「47 处」更正为 **118 处**（见 ../r134_c13b_before/refscan_before_fixed.txt）
+#   分布：pointcloud_preprocess.cc 32／laser_mapping.cc 39／faster_lio_outdoor.yaml 38／pointcloud_preprocess.h 9
+#   ⇒ 施工面据此改为**守住行号不位移**（:208 一行改一行、helper 追加文件尾、.h 只在被引行之后插入、
+#      yaml 新键作顶层键追加文末、laser_mapping.cc 两处同行多语句），位移只落在未被引用的尾行
+# 纪律连带：这类"匹配面缺口"**不会让任何现有门禁变红**（件自己漏扫＝没有第二件能发现），
+#   所以本批把覆盖面写成自标定必过项；与坑59（清单存在但没人打得开）／坑61（漂移静默）同族

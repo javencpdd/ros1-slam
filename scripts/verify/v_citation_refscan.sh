@@ -30,7 +30,7 @@ import glob, io, os, re, subprocess, sys
 
 MODE, ROOT = sys.argv[1], sys.argv[2]
 TARGETS = sys.argv[3:]
-CITE = re.compile(r'([A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:sh|py|md|ya?ml|launch|world|pcd|csv|txt|xacro|json|cpp|h|bak|log))[:：](\d+)')
+CITE = re.compile(r'([A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:sh|py|md|ya?ml|launch|world|pcd|csv|txt|xacro|json|cpp|cc|hpp|h|c|xml|bak|log))[:：](\d+)')
 DOCS = sorted(glob.glob("note/**/*.md", recursive=True))
 
 
@@ -98,9 +98,20 @@ if MODE == "selftest":
         neg = refscan([orphan], docs)
         ok1 = any(h[2] == 12 for h in pos)
         ok2 = orphan in neg and len(neg[orphan]) == 0
+        # C3 扩展名覆盖面（R134）：曾经 CITE 的扩展名表漏了 cc／xml／hpp，
+        #    在册 82 处引用（含 C13 乙案要动的 laser_mapping.cc 与 pointcloud_preprocess.cc）
+        #    对件来说等于不存在——件照样报"零引用、放心改"。漏报比误报危险，故列为自标定必过项。
+        probe = os.path.join(T, "probe.cc")
+        io.open(probe, "w", encoding="utf-8").write("first line\nsecond line\nthird line\n")
+        d2 = os.path.join(T, "doc_citing_cc.md")
+        io.open(d2, "w", encoding="utf-8").write("引用 probe.cc:2 与简写 src/probe.cc:3，另引越界 probe.cc:9\n")
+        pos3 = refscan([probe], [d2])[probe]
+        nums3 = sorted(h[2] for h in pos3)
+        ok3 = nums3 == [2, 3, 9]
         print("自标定：阳性（引 v_sh_py_syntax.sh:12 必须命中现值）= %s" % ("PASS" if ok1 else "FAIL"))
         print("        阴性（不存在的被改件必须零命中）= %s" % ("PASS" if ok2 else "FAIL"))
-        if not (ok1 and ok2):
+        print("        覆盖面（.cc 的全路径与 src/ 简写＋越界都必须认，实得 %s）= %s" % (nums3, "PASS" if ok3 else "FAIL"))
+        if not (ok1 and ok2 and ok3):
             print("REFSCAN SELFTEST: FAIL rc=9"); sys.exit(9)
         print("REFSCAN SELFTEST: PASS rc=0"); sys.exit(0)
     finally:
