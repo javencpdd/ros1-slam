@@ -1,0 +1,27 @@
+[01:17:08] == [0] 红线预检：并发／样张／世界件本体 ==
+foxy 见证基准（A1 乙＝本 boot 现取）:
+  现取命中 4 行 ⇒ /tmp/p4_r122b/foxy_start.txt
+在册端口起前监听：11313=0 11312=0（均须 0）
+[01:17:09] == [1] roscore 11313 ==
+[01:17:14] == [2] m2_gazebo ==
+[01:18:15] == [3] m2_mapping（faster_lio 位姿源）==
+[01:18:26] == [4] 60_safety（mux 上链）==
+C-1 面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux 
+[01:18:38] == [5] 70_scan.launch（含 J1 到达观测件）==
+F9 互斥: move_base/teb 节点数=0 须=0；链上四件=4/4
+扰动前模型位姿自证：
+[01:19:18] == [6] P4 取证（投障碍→看见→重规划→仍到达）==
+p4 python rc=1
+P4 重规划结论 = FAIL|扰动后未到达（sim 84.6s，dist=3.324；物理离箱心最近 5.36m，轨迹 2.20m）
+{"steps": ["goal_delivered=True", "traj_pts=120", "injected=obs_5→(-1.01,0.48)", "disturbance_seen=23", "replanned=True"], "fail": [], "invalid": false, "goal": [-2.778, 1.547], "goal_r": 3.175, "goal_clear": 2.927, "traj_before": {"start_time": 23.351, "n_ctrl": 24, "first": [-0.014, 0.024], "last": [-2.773, 1.544]}, "inject": {"model": "obs_5", "at": [-1.006, 0.483], "z": 0.4, "pts_before": 4524, "occ_pts_near": 23}, "traj_after": {"start_time": 29.832, "n_ctrl": 27, "first": [-11.702, 1.262], "last": [-8.026, 1.378]}, "traj_before_control_min_dist": 6.873, "new_traj": {"n_pts": 120, "min_dist_to_any_occ": 0.796, "min_dist_to_injected": 7.234}, "clearance": {"min_dist_to_any_occ": 0.796, "min_dist_to_injected": 7.234, "gate_occ": 0.1}, "physical": {"robot_min_to_injected": 5.356, "box_half_width": 0.4, "traj_min_to_injected_final": 2.196}, "arrive": {"arrived": false, "dist_end": 3.324, "dt_sim_since_replan": 84.6, "cmd_count": 9283, "displacement": 3.324}, "restored": true}
+结论行：P4 重规划结论 = FAIL|扰动后未到达（sim 84.6s，dist=3.324；物理离箱心最近 5.36m，轨迹 2.20m）
+[01:24:53] == [7] 还原与红线 ==
+扰动后模型位姿自证：
+世界件本体 sha 起前＝退后：是
+样张 sha 起前＝退后：是
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证 = OK（4 行整行 pid＋属主＋lstart＋args 逐位一致）
+分档自证：VS 首段=FAIL ⇒ RC4=1（判据行与末判必须同向）
+[01:24:56] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
