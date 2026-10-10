@@ -1,0 +1,66 @@
+[02:57:07] 起窗门槛：loadavg=3.23 ≤ 4
+[02:57:08] == [0] 生产配置原文留底（生效件＝mbf_navigation.yaml，加载者＝mbf_navigation.launch:9）==
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+# ---- 同名保留参数（底稿原值原样迁移，P3a.0 实测同名）----
+planner_frequency: 0.0
+controller_frequency: 10.0
+planner_patience: 3.0
+controller_patience: 3.0
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+[02:57:08] == [1] 起链（perlin3d 标准档，只为把 /move_base_flex 拉起来；**不投 goal**）==
+[02:57:31] get_path 话题在位=1（须 1）
+[02:57:34] == [2] 基线读取（参数服务器侧 ＋ DR 侧各一份）==
+[02:57:35]   rosparam get /move_base_flex/planner_patience ⇒ 3.0
+[02:57:51]   dynparam get planner_patience ⇒ rc=2
+[02:57:51] == [3] 运行时放宽（目标 10.0＝B18 那一档）==
+[02:58:00]   dynparam set planner_patience ⇒ rc=0
+[02:58:08]   dynparam get planner_patience ⇒ rc=2
+[02:58:09] == [4] 复回原值（生产侧不留改动面）==
+[02:58:21]   dynparam set planner_patience ⇒ rc=0
+[02:58:29]   dynparam get planner_patience ⇒ rc=2
+[02:58:30] == [5] 配置面自证（本件没写过任何配置文件）==
+[02:58:30]   mbf_navigation.yaml sha 起前＝退后：是
+基线 DR 读数=Usage: dynparam get [options] node
+放宽后 DR 读数=Usage: dynparam get [options] node
+参数服务器 before=3.0 after=3.0
+B19 生效性结论 = PENDING-回执在但读回值未证明
+★本件**不投 goal**⇒ 不产出任何'远角对能不能规划出来'的行为读数；它只回答'60s/90s 那次 set 落不落得进去'。
+B19 VERDICT rc=9
+[02:58:30] -- teardown --
+[02:58:40] 残留：gzserver=0 move_base_flex=0 11313 监听=0
+[03:00:02] 起窗门槛不过：loadavg=6.95 ＞ 4 ⇒ 停手不跑（不绕行）
+B19 生效性结论 = INVALID|未起窗（loadavg=6.95＞4）
+B19 VERDICT rc=7
+[03:01:23] 起窗门槛：loadavg=3.63 ≤ 4
+[03:01:25] == [0] 生产配置原文留底（生效件＝mbf_navigation.yaml，加载者＝mbf_navigation.launch:9）==
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+# ---- 同名保留参数（底稿原值原样迁移，P3a.0 实测同名）----
+planner_frequency: 0.0
+controller_frequency: 10.0
+planner_patience: 3.0
+controller_patience: 3.0
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+[03:01:25] == [1] 起链（perlin3d 标准档，只为把 /move_base_flex 拉起来；**不投 goal**）==
+[03:01:45] get_path 话题在位=1（须 1）
+[03:01:48] == [2] 基线读取（参数服务器侧 ＋ DR 侧各一份）==
+[03:01:49]   rosparam get /move_base_flex/planner_patience ⇒ 3.0
+[03:01:57]   dynparam get planner_patience  ⇒ rc=2
+[03:02:06]   DR 侧 planner_patience 基线 = 
+[03:02:14]   dynparam list  ⇒ rc=0
+[03:02:14] == [3] 运行时放宽（目标 10.0＝B18 那一档）==
+[03:02:22]   dynparam set /move_base_flex planner_patience 10.0 ⇒ rc=0
+[03:02:31]   DR 侧放宽后 = （目标 10.0）
+[03:02:31] == [4] 复回原值（生产侧不留改动面）==
+[03:02:40]   dynparam set /move_base_flex planner_patience 3.0 ⇒ rc=0
+[03:02:49]   DR 侧复回后 = （须回基线 ）
+[03:02:49] == [5] 配置面自证（本件没写过任何配置文件）==
+[03:02:50]   mbf_navigation.yaml sha 起前＝退后：是
+基线 DR 读数=
+放宽后 DR 读数=
+参数服务器（与 DR 无关，DR 不回写）before=3.0 after=3.0
+DR 侧三点一线：基线= → 放宽= → 复回=
+B19 生效性结论 = PENDING-回执在但读回值未证明
+★本件**不投 goal**⇒ 不产出任何'远角对能不能规划出来'的行为读数；它只回答'60s/90s 那次 set 落不落得进去'。
+B19 VERDICT rc=9
+[03:02:50] -- teardown --
+[03:02:58] 残留：gzserver=0 move_base_flex=0 11313 监听=0

@@ -127,6 +127,20 @@ class PointCloudPreprocess {
     float time_scale_ = 1e-3;
     bool given_offset_time_ = false;
 };
+
+// ============================================================================================
+// C13＝乙（2026-10-11 主理人裁定"原地换形状"）：C16Handler 生效判据的声明
+//   定义在 `src/pointcloud_preprocess.cc` 文件尾（四道显式判据：①非有限 ②精确 (0,0,0) 占位点
+//   ③机体长方体 ④兜底小球仍吃 blind_）；参数由定义处**惰性读一次**，故本头文件不新增任何成员，
+//   `Blind()`／`blind_` 的现有形状与行号一律不动。
+// 为什么放在 class 闭合之后（坑61 守行号）：本头文件在册被引 :87（enum）与 :106（Blind()）；
+//   若把声明插进 :112 之后的 accessors 区，会**把 :126 的 blind_ 顶走一行**，而 `h:106/126` 这种
+//   斜杠合写在 VCC 里属"非单点引用"、不会被判红 ⇒ 是一处**不报警的静默漂移**（小张复核点出的写法漏项，已改）。
+// H2（X29 实质）：**只覆盖 C16Handler**。AviaHandler(:71)/Oust64Handler(:99)/VelodyneHandler(:187) 的
+//   同形 blind 判据一字未动；哪天 lidar_type 变了，本盒静默不生效、没有任何门禁会红——生效与否看定义处 Load() 的 LOG 回执。
+// ============================================================================================
+bool C16SelfMaskHit(double x, double y, double z, double range2, double blind);
+
 }  // namespace faster_lio
 
 #endif

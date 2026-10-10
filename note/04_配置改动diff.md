@@ -836,3 +836,13 @@
   · 被测门值**一字未动**：`OCC_TOL 0.10`／`DEV_MAX 0.35`／`DT_MAX 120`／`AVOID_DIST 0.40`（A5 定档值）全部沿用；未动配置／世界件／样张；未重编译、未起链、无 sudo。
   · 改前后 `v_citation_refscan.sh` 两扫均 **rc=0**（`p4_replan.py` 与 `v_scan_p4.sh` 各 0 处行号引用 ⇒ 不顶走在册指针）；但**在册文档里"p4.json 首行是中文结论句"这类描述自此成为过期形状**（R124／R125／z 稿第 6 项等），按规矩原文不回改、以本条与 00_总览 R135 为准读。
   · 原件：`SCAN集成/证据/log/raw/r135_p4_shape_fix/`（两件改前 HEAD 版 `.before` 含 sha ＋ 离线自证与复算输出）。
+
+- **R137 C13＝乙 落地（主理人 2026-10-11 裁「原地换形状」，授权动厂商 fork 源码＋重编译；代际仍 H14）**：
+  · `ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml:32` 旧值＝`blind: 1.0` ⇒ 新值＝`blind: 0.2`。理由＝换盒后 `blind` 只剩**第④道兜底小球**的语义；留 1.0 会让球把 1m 内一切剔光 ⇒ **乙案完全空转**（小张复核定档）。0.2 在仿真是**严格 no-op**（14 帧非零回波最小 r=0.2125），0.3 要付 −4.3%（1166 点）且那些点全是障碍角点。**连带**：本件与仿真共用（`ws/README.md` §6.2），所以 0.2 也是真机侧的 0.2 ⇒ 只能记作"近原点杂波保险"，**不得写成自遮挡保护到位**（躯干/腿在 0.27–0.55m，0.2 罩不住）。
+  · 同件文末**新增四个顶层键**（追加在文末 ⇒ :12/:13/:15/:31/:32/:33/:47 等在册被引行一律不位移）：`self_mask_box_on: 1`／`self_mask_box: [0.0,0.0,-0.38,0.21,0.155,0.11]`（雷达系躯干盒，来源 `lite3_planar.urdf.xacro` :26/:31/:55 的 0.42×0.31×0.22 与关节 z=0.38）／`self_mask_margin: 0.05`（各向同性外扩；网格实测 m=0.05/0.20 同保留 27214、m=0.25 起跌到 25801，视场最深俯角 7.21° ⇒ 取 0.05）／`self_mask_drop_invalid: true`。**数值全带小数点**（XmlRpcValue 只有 `operator double&`，整数写法会 assertTypeOrInvalid ⇒ 读成默认值）。
+  · `ws/src/10_slam/faster_lio/src/pointcloud_preprocess.cc:208`（C16Handler 生效判据）旧值＝`if (range < (blind_ * blind_)) continue;` ⇒ 新值＝一行调用 `C16SelfMaskHit(x,y,z,range,blind_)`，定义追加在**文件尾**：四道显式判据 ①`!isfinite` ②精确 `(0,0,0)` 占位点 ③机体长方体 ④兜底小球。**一行改一行、此前零增删** ⇒ 在册 `pointcloud_preprocess.cc:` 的 :19/:20/:57/:186/:187/:208 六组行号不位移（改后反扫实测：**位移 0 处**）。
+  · `ws/src/10_slam/faster_lio/include/pointcloud_preprocess.h` 旧值＝无该声明 ⇒ 新值＝在 **class 闭合之后、namespace 闭合之前**加 `bool C16SelfMaskHit(double,double,double,double,double);`。位置是小张纠出来的：原打算插进 :112 之后会**把 :126 的 `blind_` 顶走一行**，而 `h:106/126` 斜杠合写在 VCC 属"非单点引用"、不报警 ⇒ 静默漂移。现写法实测 `.h` 的 9 处引用**零漂**。
+  · 默认安全（写进代码不写在文档）：`self_mask_box` 缺失／长度≠6／含非有限值 ⇒ **关盒、只留兜底球、打 WARNING**；`self_mask_box_on` 读不到 ⇒ 默认 0＝关盒。⇒ 绝不把仿真约定值（0.38 是约定不是实测）当默认真机参数。
+  · 生效回执：helper 首帧 `LOG(INFO) "[C13-乙] 盒生效回执：box_on=… 心=… 半宽=… 剔无效=…"`——**没有这行就是没生效**，不许用"编译过了"代替。
+  · 验证成本实测：`catkin_make --pkg faster_lio -j2` BUILD_EXIT=**0**、告警 0 条、`libfaster_lio.so` 重链接 sha256 `147dc8cc…`（03:21）。**未起链、未跑 A/B**（读数另批）。被测门值／SCAN 判据面**一字未动**。
+  · 内容漂连带：改后与 `.before` 对撞 ⇒ 在册 **84 处行号引用中 30 处「该行内容已变」**（`.cc` 13／`yaml` 17／`.h` 0），**行号位移＝0**；逐条移交单见 `SCAN集成/设计/w_全仓单点引用版本漂移普查.md` §5.4，他人志文一律不代改。

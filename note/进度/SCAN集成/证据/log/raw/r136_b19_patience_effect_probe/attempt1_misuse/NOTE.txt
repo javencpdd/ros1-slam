@@ -1,0 +1,7 @@
+# 首跑留底（不删）：探针自己的用法错，不是被测面的结论
+# 症状：dynparam get 传了参数名（`dynparam get /move_base_flex planner_patience`）⇒ 件回 "Usage: dynparam get [options] node"
+#       于是 BASE_DR／AFTER_DR 两格读到的是 Usage 文本，判据落成 PENDING rc=9（件没假装通过，如实报未证明）
+# 事实：两次 dynparam set 的 rc 都是 0（set 的语法本来对）⇒ 首轮已经暗示 /move_base_flex 确实是 DR 可配置节点，
+#       但缺"读回值"这一半 ⇒ 不据此下结论，按正确用法重跑（dynparam get <node> 是整份配置 dump，不带参数名）
+# 另记：rosparam 侧 before=3.0 after=3.0 与 DR 无关（DR 不回写参数服务器）⇒ 读回必须走 dynparam get，不能用 rosparam
+# 出处：`rosrun dynamic_reconfigure dynparam` 自带的 Commands/Usage 文本（本批实测打印）

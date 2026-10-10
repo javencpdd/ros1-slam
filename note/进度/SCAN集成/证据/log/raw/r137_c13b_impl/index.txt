@@ -1,0 +1,8 @@
+# R137 · C13＝乙 施工留底（改前三件快照＋改后对撞反扫）
+# 改了哪三件：pointcloud_preprocess.cc（:208 一行改一行＋helper 追加文件尾）
+#             pointcloud_preprocess.h（声明加在 class 闭合之后，避开被引的 :87/:106/:126）
+#             faster_lio_outdoor.yaml（:32 blind 1.0→0.2 就地；四个新顶层键追加文末）
+# 对撞结果（refscan_after_with_before.txt，RS_BEFORE_DIR 指向本目录的 .before）：
+#   在册行号引用 84 处 ⇒ ★内容已变 30（.cc 13／yaml 17／.h 0）、内容未变 54、**行号位移 0**
+# 构建：catkin_make --pkg faster_lio -j2 ⇒ BUILD_EXIT=0、告警 0；libfaster_lio.so 重链接 sha256 147dc8cc…（03:21）
+# 本批未做：未起链、未取 A/B 读数（盒生效回执／不吃障碍／CPU-Hz 另窗，见任务 #34）

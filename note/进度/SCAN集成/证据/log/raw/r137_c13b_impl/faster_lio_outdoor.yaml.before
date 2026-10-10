@@ -1,0 +1,50 @@
+# faster_lio_outdoor.yaml —— ROS1 版（v3 C1 转换自 faster_lio_online.yaml（ROS2 原稿留档 opt/ref/faster_lio_ros2_orig.yaml）；v4.1 X7 注释修订，参数值与 v3 转换稿一致，勿再"修正"）
+common:
+  imu_topic: /livox/imu   # Q12 分支(2026-10-04)：43897 被 jetson2motion 占用，qnx2ros 不可用；改 Mid-360 内置 IMU(实测 199.9Hz)
+                                  # 由 qnx2ros 发布（UDP 43897 → 200 Hz，qnx2ros.cpp:53/261）。
+                                  # 备选：Mid-360 内置 IMU /livox/imu（sensor_msgs/Imu ≈200 Hz，lddc.cpp:634）——生产未验证，
+                                  # 且换 IMU 即变 lidar↔IMU 几何，须重估外参 → 仅 Q12 现场验证后走变更流程切换，禁止静默改。
+  lid_topic: /rslidar_points      # v4.1 维持：生产 msg_MID360s.launch 已 remap /livox/lidar→/rslidar_points，契约不变（A3.1/X2）
+  time_sync_en: true
+cube_side_length: 1000.0
+esti_plane_threshold: 0.1
+feature_extract_enable: false
+filter_size_map: 0.3             # fork未使用(c16.yaml注释证实),纯装饰键,回退减误导
+filter_size_surf: 0.3          # 回退(2026-10-05)：0.15实测CPU load11/里程计4.5Hz超载；密度改由多帧重叠+离线体素化
+ivox_grid_resolution: 0.3
+ivox_nearby_type: 18
+map_file_path: ''
+mapping:
+  acc_cov: 0.1
+  b_acc_cov: 0.0001
+  b_gyr_cov: 0.0001
+  det_range: 150.0
+  extrinsic_R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]   # Mid-360 工厂外参(Q13：现场验证可回调)
+  extrinsic_T: [-0.011, -0.02329, 0.04412]   # Mid-360 工厂外参(Q13)
+  extrinsic_est_en: true          # 在线估计兜底：初始外参两来源矛盾（Q13），现场实测后如需固化走变更流程
+  gyr_cov: 0.1
+max_iteration: 3
+path_save_en: true
+pcd_save:
+  interval: -1                # Q6 翻案(2026-10-05)：10=每10帧写盘后清空(地图截断为最后≤10帧,653K根因)；-1=全程累积,优雅停机全量落盘
+  pcd_save_en: true
+preprocess:
+  blind: 1.0
+  lidar_type: 4       # v4.1 注释修正（X4）：4 = C16Handler 分支（include/pointcloud_preprocess.h:87
+                      #   enum class LidarType { AVIA=1, VELO32, OUST64, C16 }）——v3/v4 所注"Velodyne 分支"有误，值 4 不变。
+                      #   C16Handler 只读 PointCloud2 的 x/y/z/intensity（leishen_ros::Point，fromROSMsg 按名映射），
+                      #   与 livox_ros_driver2 的 Mid-360 PointCloud2 输出兼容（生产同款链路已实机验证）；
+                      #   不消费逐点时间 → scan 内无去畸变（与生产行为一致，出厂即如此）。
+                      #   绝不可"修正"为 2：VELO32 解析 Velodyne 字段布局，Mid-360 不匹配。
+  scan_line: 16       # C16Handler 分支不消费该参数（仅 AviaHandler 用 num_scans_），保留原值占位
+  time_scale: 0.001   # 同上，C16Handler 分支不消费，保留原值
+publish:
+  dense_publish_en: false
+  path_publish_en: false
+  scan_bodyframe_pub_en: true
+  scan_effect_pub_en: true
+  scan_publish_en: true
+  tf_imu_frame: body
+  tf_world_frame: camera_init
+runtime_pos_log_enable: false
+use_sim_time: false

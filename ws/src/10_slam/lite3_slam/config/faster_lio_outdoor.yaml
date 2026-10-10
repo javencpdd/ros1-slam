@@ -29,7 +29,7 @@ pcd_save:
   interval: -1                # Q6 翻案(2026-10-05)：10=每10帧写盘后清空(地图截断为最后≤10帧,653K根因)；-1=全程累积,优雅停机全量落盘
   pcd_save_en: true
 preprocess:
-  blind: 1.0
+  blind: 0.2                  # C13=乙（2026-10-11 主理人裁）：现语义＝**兜底小球**（第④道，见 pointcloud_preprocess.cc 文件尾）；1.0 口径自 X23/X24 起作废。0.2 在仿真是严格 no-op（14 帧非零回波最小 r=0.2125），真机侧只是“近原点杂波保险”——躯干/腿在 0.27–0.55m，0.2 罩不住 ⇒ **不得写成自遮挡保护到位**；本件与仿真共用（ws/README.md 6.2）
   lidar_type: 4       # v4.1 注释修正（X4）：4 = C16Handler 分支（include/pointcloud_preprocess.h:87
                       #   enum class LidarType { AVIA=1, VELO32, OUST64, C16 }）——v3/v4 所注"Velodyne 分支"有误，值 4 不变。
                       #   C16Handler 只读 PointCloud2 的 x/y/z/intensity（leishen_ros::Point，fromROSMsg 按名映射），
@@ -48,3 +48,14 @@ publish:
   tf_world_frame: camera_init
 runtime_pos_log_enable: false
 use_sim_time: false
+
+
+# ==== C13＝乙 的新键（2026-10-11 主理人裁；本块只追加在文末 ⇒ :12/:13/:15/:31/:32/:33/:47 等在册被引行一律不位移 ====
+# 键名为**顶层**（与 point_filter_num／feature_extract_enable 同型）：装载由 m2_mapping.launch:7 的 <rosparam>（在 node 之外）
+#   ＋ app/run_mapping_online.cc:25 的全局 ros::NodeHandle ⇒ 定义处的 ros::param::get("self_mask_box") 解析到同一命名空间。
+# 数值一律带小数点（XmlRpcValue 只有 operator double& ⇒ 整数写法会 assertTypeOrInvalid 失败、读成默认值）。
+# 默认安全：**任一缺失/长度!=6/非有限 ⇒ 关盒、只留兜底球并打 WARNING**——绝不把下面这组仿真约定值当默认真机值。
+self_mask_box_on: 1                     # 0=关盒（回到只看球的旧口径）；1=开盒
+self_mask_box: [0.0, 0.0, -0.38, 0.21, 0.155, 0.11]   # 雷达系躯干盒：心＋半宽。来源 lite3_planar.urdf.xacro :26/:31/:55（0.42×0.31×0.22、关节 z=0.38）⇒ 半宽 0.21/0.155/0.11、最近面 0.27、最远角 0.555（n 稿 §2.1，小张 1:1 复算）
+self_mask_margin: 0.05                  # 各向同性外扩 m。网格实测：m=0.05/0.20 障碍保留同为 27214，m=0.25 起跌到 25801（盒顶升到 z=-0.02 贴雷达平面；硬上限＝0.38-0.11=0.27）；视场最深俯角 7.21° ⇒ m 取 0.05 留四倍余量
+self_mask_drop_invalid: true            # 第①②道：非有限值＋精确 (0,0,0) 占位点（仿真插件每帧发满、无命中填零，R82 实测占 74.6%；换盒后它在盒外，不显式删就会把 ×5.84 的伪点灌进栅格）

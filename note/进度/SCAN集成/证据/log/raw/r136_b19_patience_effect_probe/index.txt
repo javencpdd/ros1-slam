@@ -1,0 +1,20 @@
+# R136 · B19「patience 运行时放宽到底落不落得进去」探针（诊断件，非判据采数；**不投 goal**）
+# 为什么存在：在册句「远角对 patience 运行时放宽 60s→90s 仍无 result＝不可终止」（04 R95 段）**生效性无原件**——
+#   老探针 matrix_w3/scripts/w3_t1_probe.sh 的 dynparam() 用 capture_output=True 把回执整个丢弃，
+#   归档 log 里 atience 只命中参数表两行（3.0），且原句自陈「dynparam 20s 超时」
+# 红线（写死在件里）：①不投任何 goal ⇒ 与「远角 4 对任何波次禁止复跑」（仿真测试台/进度文档.md:278 在册红线）无涉
+#   ②不碰生产配置：只走 dynamic_reconfigure 运行时通道，set 后必复回并自证  ③load≤4 才起窗，**无 FORCE 口子**
+# 三跑全留底（不删失败跑）：
+#   attempt1_misuse/  首跑：我把 dynparam get 多传了参数名 ⇒ 件回 Usage 文本 ⇒ 判据如实落 PENDING rc=9（件没假装通过）
+#                     附带用法事实：`dynparam get <node>` 是整份配置 dump、**不接参数名**；set 的语法本来对、两次 rc=0
+#   probe.log 二跑   ：loadavg=6.95＞4 ⇒ 件自停 rc=7（在册 O-5「跑了也是作废跑」），未绕行
+#   probe.log 三跑   ：起链成功，两条硬事实到手——
+#                     ① `dynparam list` 里 **/move_base_flex 确为可配置节点**（另列 GlobalPlanner/Teb/DWA/costmap 等子服务器）
+#                     ② `dynparam set /move_base_flex planner_patience 10.0` 与 `... 3.0` **rc 均为 0、无报错输出**
+#                     ③ 但我的读回（dynparam get 整份 dump 的 grep '^planner_patience:'）取到空串 ⇒ **值仍未证**
+#   ⇒ 本批结论＝**PENDING**：老探针"能不能 set"这一半已排除（节点可配置＋set 被接受），
+#     但"set 之后执行体真换了 patience"这一半没有原件 ⇒ **在册「不可终止」不得引为已证**；下一轮改用
+#     /move_base_flex/parameter_updates 主题取回执（#36）
+# 配置面自证：mbf_navigation.yaml sha 起前＝退后（本件没写过任何配置文件）
+# 环境外因（不是件坏）：whoopsie 占 ~35% CPU（Ubuntu 报错上报守护进程，与本作业无关），是 load 卡门的主要原因之一
+# 待主理人的一条分岔（已在册，非本件能答）：真要读"远角对能不能规划出来"必须碰那条红线 ⇒ 需撤销红线＋同批补丁（z 稿第 5 项）
