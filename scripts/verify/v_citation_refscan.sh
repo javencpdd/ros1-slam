@@ -50,6 +50,13 @@ def refscan(targets, docs):
             print("  [警告] 被改件不在盘上：%s（属前置缺失，不计入零命中）" % t)
             continue
         tlines = read(t)
+        # 留底对撞：若给了 RS_BEFORE_DIR（内有 <basename>.before），同一条行的**旧内容**一并取出
+        #   ⇒ 同一行号「旧≠今」就是被本次改动顶走的直接证据（不靠人猜片段说的是哪个构造）
+        bdir = os.environ.get("RS_BEFORE_DIR", "")
+        blines = []
+        bpath = os.path.join(bdir, os.path.basename(t) + ".before") if bdir else ""
+        if bpath and os.path.exists(bpath):
+            blines = read(bpath)
         tb = os.path.basename(t)
         for d in docs:
             for i, ln in enumerate(read(d), 1):
@@ -59,7 +66,19 @@ def refscan(targets, docs):
                     if not same:
                         continue
                     cur = tlines[num - 1].strip() if 0 < num <= len(tlines) else "（越界：该件现 %d 行）" % len(tlines)
-                    hits[t].append((d, i, num, cur[:70], ln[max(0, m.start() - 28):m.end() + 40].replace("\n", " ")))
+                    snip = ln[max(0, m.start() - 28):m.end() + 40].replace("\n", " ")
+                    if blines:
+                        old = blines[num - 1].strip() if 0 < num <= len(blines) else "（留底越界：改前 %d 行）" % len(blines)
+                        tag = "★漂(该行内容已变)" if old != cur else "同一行内容未变"
+                        # 再看它是否只是整体位移：同一段内容在别处还在 ⇒ 给出新行号
+                        moved = ""
+                        if old and old != cur:
+                            where = [j for j, x in enumerate(tlines, 1) if x.strip() == old]
+                            if where:
+                                moved = "；该内容现在第 %s 行" % where[:3]
+                        hits[t].append((d, i, num, "%s ｜ %s%s｜改前=%s" % (cur[:60], tag, moved, old[:40]), snip))
+                    else:
+                        hits[t].append((d, i, num, cur[:70], snip))
     return hits
 
 
