@@ -1,0 +1,26 @@
+# R110 · 批2 条2/3 活体复取（A20＝(b) 重新起算）的原件与读数
+# 主理人裁定：A20＝(b) ⇒ 承接旧读数不作数，条 2/3/5 必须新取。本目录＝条 2/3 的活体原件。
+#
+# 开窗前环境（env_pre.txt 逐条留证，2026-10-10 22:44:33）：
+#   lite3-monitor=inactive、lite3-ros-bridge=inactive（主理人 22:4x 令停 monitor；复探发现 bridge 亦已停）
+#   ⇒ 原 A1 现取见证成员中的 pid 1200（ros_bridge_node.py，属主 ysc）不在位 ⇒ **本 boot 见证覆盖面由 5 缩为 4**，
+#     剩余 4 个全为 root 侧 foxy/transfer（2056/2287/2289/2291，见 foxy_baseline.txt）；这是**环境变更不是本批扰动**，按事实登记。
+#   端口 11310-11319/11345 监听数=0；负载 1.75（门槛 LOAD_MAX=4）。
+#
+# 读数（原件为 harness 自打日志，非转述）：
+#   条2 = `v_scan_p1.sh` **rc=0 / P1 判据① 结论 = PASS**：/grid_map/occupancy 30s 窗 **173 帧**、
+#         判定原文六项全 PASS（①帧数≥3／末帧点数>0／末帧≥首帧／frame_id=world／包围盒非退化／落在 LIO 累积云界内）；
+#         样张 sha256 起前=退后 OK；teardown 残留进程空、11313/11312 监听 0。文件 p1_harness.log / p1_stdout.txt
+#   条3 = `v_scan_p2.sh` **rc=0 / P2 判据② 结论 = PASS —— 全部 7 项通过**：checks 含 ①占据图就绪 ②取到机器人位姿
+#         ③选出自由 goal ④goal remap 活体归属 ⑤5s 内 FSM …（fail-closed 判定行原文在 p2_harness.log）；
+#         样张 sha 起前=退后 OK；teardown 净、端口 0。文件 p2_harness.log / p2_stdout.txt
+#   条5 = 全量门禁随 R107 的 gate 段到手（ISO [1]–[9] rc=0），本批复跑同绿。
+#
+# 红线终检（foxy_baseline.txt vs foxy_end.txt）：起前 4 行／退后 4 行，**整行（pid＋属主＋lstart＋args）逐位一致**
+#   ⇒ root 侧 foxy 4 进程未被扰动。**但覆盖面须同句引用**：monitor 侧 2 进程（1199/1200）是本批开窗前由主理人令停，
+#   不是本批扰动；且 `v_scan_p1.sh`/`v_scan_p2.sh` 两件内部的「foxy 六 PID 终检」仍用**写死名单**，本批实测其打印为空
+#   （⇒ A1 乙的现取基准还需落进这两件，已列待办，不属本批改动面）。
+#
+# 重放：
+#   cd /home/ros1-slam && bash ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh   # 需负载 ≤4
+#   sha256sum -c note/进度/SCAN集成/证据/log/raw/r110_b2_live_retake/_sha256_manifest.txt
