@@ -90,14 +90,14 @@ dr_probe() {   # 用法：dr_probe <目标值> <标签>  ⇒ 打印 set 之后�
   local tgt=$1 tag=$2 raw val
   raw="$RUN/dynparam_get_$tag.txt"
   timeout 20 rosrun dynamic_reconfigure dynparam get /move_base_flex > "$raw" 2>&1
-  val=$(grep -oE 'planner_patience: *[0-9.]+' "$raw" | head -1 | grep -oE '[0-9.]+')
+  val=$(grep -oE "'?planner_patience'? *: *[0-9.]+" "$raw" | head -1 | grep -oE '[0-9.]+')
   echo "  [$tag] set 前查询 ⇒ planner_patience=${val:-（空，见 dynparam_get_$tag.txt）}" | tee -a "$LOG"
   local out rc
   out=$(timeout 20 rosrun dynamic_reconfigure dynparam set /move_base_flex planner_patience "$tgt" 2>&1); rc=$?
   { echo "--- dynparam set /move_base_flex planner_patience $tgt (rc=$rc) ---"; echo "$out"; } >> "$RUN/dynparam_receipts.txt"
   sleep 0.6
   local af
-  af=$(timeout 20 rosrun dynamic_reconfigure dynparam get /move_base_flex 2>&1 | grep -oE 'planner_patience: *[0-9.]+' | head -1 | grep -oE '[0-9.]+')
+  af=$(timeout 20 rosrun dynamic_reconfigure dynparam get /move_base_flex 2>&1 | grep -oE "'?planner_patience'? *: *[0-9.]+" | head -1 | grep -oE '[0-9.]+')
   { echo "--- dynparam get /move_base_flex (set $tgt 之后, rc=0) ---"; timeout 20 rosrun dynamic_reconfigure dynparam get /move_base_flex 2>&1; } >> "$RUN/dynparam_receipts.txt"
   say "  [$tag] set=$tgt (rc=$rc) ⇒ set 后查询 planner_patience=${af:-（空）}"
   echo "${af:-}"
@@ -135,7 +135,7 @@ elif [ "$AFTER_DR" = "10" ] || [ "$AFTER_DR" = "10.0" ]; then
     VERDICT="PARTIAL-放宽帧对、复回帧不符（base=$BASE_DR raised=$AFTER_DR restored=$RESTORE_DR）"; RC=9
   fi
 else
-  VERDICT="PENDING-广播里读不到所设值（base=$BASE_DR raised=$AFTER_DR restored=$RESTORE_DR ⇒ 不能据此说生效，也不能说被拒）"; RC=9
+  VERDICT="PENDING-服务器查询里读不到所设值（base=$BASE_DR raised=$AFTER_DR restored=$RESTORE_DR ⇒ 不能据此说生效，也不能说被拒）"; RC=9
 fi
 {
   echo "基线 DR 读数=$BASE_DR"

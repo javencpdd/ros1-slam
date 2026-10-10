@@ -95,3 +95,44 @@ B19 生效性结论 = PENDING-广播里读不到所设值（base=[03:52:01]   [b
 B19 VERDICT rc=9
 [03:52:25] -- teardown --
 [03:52:35] 残留：gzserver=0 move_base_flex=0 11313 监听=0
+[03:56:25] 起窗门槛：loadavg=3.26 ≤ 4
+[03:56:26] == [0] 生产配置原文留底（生效件＝mbf_navigation.yaml，加载者＝mbf_navigation.launch:9）==
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+# ---- 同名保留参数（底稿原值原样迁移，P3a.0 实测同名）----
+planner_frequency: 0.0
+controller_frequency: 10.0
+planner_patience: 3.0
+controller_patience: 3.0
+cbbb8f0bbeefe9f5a75a970f7e68714ae726bf62b103a9f3c02e82949fc83ecb  /home/ros1-slam/ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml
+[03:56:26] == [1] 起链（perlin3d 标准档，只为把 /move_base_flex 拉起来；**不投 goal**）==
+[03:56:48] get_path 话题在位=1（须 1）
+[03:56:50] == [2] 基线读取（参数服务器侧 ＋ DR 侧各一份）==
+[03:56:51]   rosparam get /move_base_flex/planner_patience ⇒ 3.0
+[03:57:02]   dynparam list  ⇒ rc=0
+[03:57:02] == [3] 运行时放宽（目标 10.0＝B18 那一档）==
+  [base] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_base.txt）
+[03:57:37]   [base] set=3.0 (rc=0) ⇒ set 后查询 planner_patience=（空）
+  [raised] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_raised.txt）
+[03:58:13]   [raised] set=10.0 (rc=0) ⇒ set 后查询 planner_patience=（空）
+[03:58:14] == [4] 复回原值（生产侧不留改动面）==
+  [restored] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_restored.txt）
+[03:58:49]   [restored] set=3.0 (rc=0) ⇒ set 后查询 planner_patience=（空）
+[03:58:50] == [5] 配置面自证（本件没写过任何配置文件）==
+[03:58:50]   mbf_navigation.yaml sha 起前＝退后：是
+基线 DR 读数=  [base] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_base.txt）
+[03:57:37]   [base] set=3.0 (rc=0) ⇒ set 后查询 planner_patience=（空）
+放宽后 DR 读数=  [raised] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_raised.txt）
+[03:58:13]   [raised] set=10.0 (rc=0) ⇒ set 后查询 planner_patience=（空）
+参数服务器（与 DR 无关，DR 不回写）before=3.0 after=3.0
+DR 侧三点一线：基线=  [base] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_base.txt）
+[03:57:37]   [base] set=3.0 (rc=0) ⇒ set 后查询 planner_patience=（空） → 放宽=  [raised] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_raised.txt）
+[03:58:13]   [raised] set=10.0 (rc=0) ⇒ set 后查询 planner_patience=（空） → 复回=  [restored] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_restored.txt）
+[03:58:49]   [restored] set=3.0 (rc=0) ⇒ set 后查询 planner_patience=（空）
+B19 生效性结论 = PENDING-广播里读不到所设值（base=  [base] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_base.txt）
+[03:57:37]   [base] set=3.0 (rc=0) ⇒ set 后查询 planner_patience=（空） raised=  [raised] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_raised.txt）
+[03:58:13]   [raised] set=10.0 (rc=0) ⇒ set 后查询 planner_patience=（空） restored=  [restored] set 前查询 ⇒ planner_patience=（空，见 dynparam_get_restored.txt）
+[03:58:49]   [restored] set=3.0 (rc=0) ⇒ set 后查询 planner_patience=（空） ⇒ 不能据此说生效，也不能说被拒）
+★本件**不投 goal**⇒ 不产出任何'远角对能不能规划出来'的行为读数；它只回答'60s/90s 那次 set 落不落得进去'。
+B19 VERDICT rc=9
+[03:58:50] -- teardown --
+[03:59:00] 残留：gzserver=0 move_base_flex=0 11313 监听=0
