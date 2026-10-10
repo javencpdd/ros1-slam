@@ -1,0 +1,19 @@
+# R120 · P4 按新档 0.40 的第一个活体读数（A5 落地后首窗；一窗，N=1）
+# 环境：起窗前 load 2.27（门槛 4）、端口 11313/11345/11312 全零；monitor 两 unit 仍 inactive（主理人未复原）⇒ 本 boot 红线见证成员只剩 root 侧 4 个。
+# ★诚实交代一处红线缺口：`v_scan_p4.sh` 第 71 行的 foxy 双查**仍是写死名单**（A1 乙／丙 在 R111/R117 只落进 p1、p2 两件），
+#   ⇒ 本窗的 foxy 起终见证打印为空、属 A1 丙定义的「空洞」，本批因此**不写任何「零触碰」声称**；把现取基准落进 p4 已列待办。
+#   本窗可核的红线面只有这三条（都是件自打自证、原件在内）：世界件本体 sha 起前＝退后（fb52d5e6…）、样张 sha 起前＝退后（aaa09362…）、扰动还原 restored=true。
+# 读数（p4.json，按坑61 切段法读：首行结论、第二段 JSON）：
+#   steps：goal_delivered=True、traj_pts=120、injected=obs_5→(-0.99,0.48)、disturbance_seen=23、replanned=True
+#   new_traj.min_dist_to_injected = 2.088 ⇒ **第二式两档都过**（≥0.40 也 ≥0.60）⇒ 本轮不是"避让无效"
+#   new_traj.min_dist_to_any_occ   = 0.760 ｜ clearance.gate_occ = 0.1（P2 原文第一式）
+#   physical.robot_min_to_injected = 6.357 ⇒ **本体从未接近箱体**（半宽 0.40，差 15 倍）
+#   physical.traj_min_to_injected_final = 1542.226 ｜ arrive.dist_end = displacement = 5094.464 ｜ arrived=false ｜ cmd_count=8827 ｜ dt_sim_since_replan=80.77
+#   ⇒ 坐标/里程计在跑中跳变（千米级），件仍按行为判 `FAIL|扰动后未到达`（rc=1）
+# 三件待裁由此窗触发（都在 04/请求单 R120 与 A24 登记，本批不自改判据）：
+#   ① **B2 的在册结论被挑战**：10-09 我写「跳变只与物理穿透共现」，本轮物理离箱心 6.357m（无任何穿透）而跳变仍在 ⇒ 该句需降档或加限定；
+#   ② **A24（新）**：件的三档（INVALID／FAIL／PASS）里没有「测量污染」型，跳变轮被记成行为 FAIL ⇒ 会把"避让无效"的错误结论混进统计；是否把跳变轮改判 INVALID 属判据面；
+#   ③ A23（R119 已登记）：min_dist_to_any_occ 算了未入判定链——本窗顺带又读了它一次（0.760，这轮合格）。
+# 跳变判据的可复算口径（不新设门值，只指认现象）：dist_end/displacement 同值且 >100m ⇒ 系框失真特征（在册 10-09 那两例 6040.72m 同形）。
+# 件：p4_harness.log（件自打全日志）＋p4.json（取证原件，含首行结论）＋p4_stdout.txt＋本 index＋清单
+# 重放：cd /home/ros1-slam && source /opt/ros/noetic/setup.bash && source ws/devel/setup.bash && P4_RUN=/tmp/p4_rerun bash ws/src/40_navigation/lite3_scan/verify/v_scan_p4.sh
