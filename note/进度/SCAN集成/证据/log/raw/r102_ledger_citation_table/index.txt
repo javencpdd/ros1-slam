@@ -1,0 +1,13 @@
+# R102 · v 稿（台账引用黄红名单 22 项勘误对照表）的取证件与输出
+# 名单口径：VCC_MAX=200 bash scripts/verify/v_citation_check.sh  ⇒ 去重后 RED 1 + AMBER 21 = 22 项
+# 落稿正文：note/进度/SCAN集成/设计/v_台账引用勘误对照表.md
+# 本目录只做"能重放的核实命令 + 其原始输出"，结论一律在 v 稿里。
+
+verify_ledger_citations.sh   取证件（只读；bash -n 通过；rc=0）
+verify_ledger_citations.out  它的原样输出（47 条 ⇒ 实证行，零空取证）
+_sha256_manifest.txt         本目录清单（自排除，清单外不指认）
+
+# 重放：
+#   cd /home/ros1-slam && bash note/进度/SCAN集成/证据/log/raw/r102_ledger_citation_table/verify_ledger_citations.sh
+# 改版留痕：本件当轮改版一次（首版只覆盖 9 项、且 move_base_action.h 误指 mbf_msgs/MoveBaseAction.h），
+#   首版未入任何台账引用、未提交，故不另存旧件；错误本身记入 02 坑60 的"我如何发现自己指错件"一句。

@@ -1,0 +1,119 @@
+
+### 0) 名单本身（去重后的红/黄全集，应与本件条目一一对应）
+    $ VCC_MAX=200 bash scripts/verify/v_citation_check.sh 2>&1 | grep -E "^\[(RED|AMBER)\]" | sort -u
+
+### 1) 红·04:237 引 ws/src/CMakeLists.txt:192（越界，该件仅 71 行）
+    $ wc -l ws/src/CMakeLists.txt
+      ⇒ 71 ws/src/CMakeLists.txt
+    $ sed -n "192p" opt/upstream/lvr2/CMakeLists.txt   # 真所指（04:750 已在册勘误）
+    $ sed -n "192p" opt/upstream/lvr2/CMakeLists.txt
+      ⇒ find_package(GSL REQUIRED)
+
+### 2) 04 引 mockamap/src/maps.cpp:599（键名 block）
+    $ sed -n "599p" ws/src/95_simulation/mockamap/src/maps.cpp
+      ⇒   {
+    $ sed -n "600p" ws/src/95_simulation/mockamap/src/maps.cpp
+      ⇒     Eigen::MatrixXi sub = maze.block(0, 0, px + 1, py + 1);
+
+### 3) 04 引 faster_lio_sim.yaml:29（键名 mapping.extrinsic_est_en）
+    $ sed -n "29p" ws/src/95_simulation/config/faster_lio_sim.yaml
+      ⇒   extrinsic_T: [0.0, 0.0, 0.0]                                  # 差异③
+    $ sed -n "30p" ws/src/95_simulation/config/faster_lio_sim.yaml
+      ⇒   extrinsic_est_en: false         # 坑13-R1（差异⑤）：合成 IMU 相对零噪声，在线外参估计�
+
+### 4) 04 引 faster_lio_sim.yaml:37（键名 preprocess.blind）
+    $ sed -n "37p" ws/src/95_simulation/config/faster_lio_sim.yaml
+      ⇒ preprocess:
+    $ sed -n "38p" ws/src/95_simulation/config/faster_lio_sim.yaml
+      ⇒   blind: 0.2                  # 坑13-R1（差异⑥）：与 render min_raylength 0.3 口径同步，保留 0
+
+### 5) 04 引 global_planner_params.yaml:12（键名 allow_unknown）
+    $ sed -n "12p" ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml
+      ⇒   publish_scale: 100
+    $ sed -n "8p" ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml
+      ⇒   allow_unknown: false
+
+### 6) 04 引 note/02_问题与坑.md:314（键名 坑42）
+    $ sed -n "314p" note/02_问题与坑.md
+      ⇒ - 现象：我给 m2_batch_runner.sh 开了 SM_CMD／SM_ARGS 两个口子（R49 一），自测件里这样传
+    $ sed -n "452p" note/02_问题与坑.md
+      ⇒ ## 坑42 · 「从现役件抽式子来测」的锚不唯一、又不按行取 RHS ⇒ 静默抽到别家表�
+
+### 7) 02 引 70_scan.launch:61（键名 remap）
+    $ sed -n "61p" ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+      ⇒     <arg name="cy" value="256.4806823730469"/>
+    $ sed -n "76p" ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+      ⇒     <remap from="cmd_vel" to="/scan_planner/cmd_vel"/> <!-- run.launch 原文；仿真执行经 cmd_vel_raw �
+
+### 8) 简写名·costmap_navigation_server.h:236/:239（真所在 /opt/ros/noetic/include/mbf_costmap_nav/）
+    $ ls /opt/ros/noetic/include/mbf_costmap_nav/costmap_navigation_server.h
+      ⇒ /opt/ros/noetic/include/mbf_costmap_nav/costmap_navigation_server.h
+    $ sed -n "236p" /opt/ros/noetic/include/mbf_costmap_nav/costmap_navigation_server.h
+      ⇒   pluginlib::ClassLoader<mbf_costmap_core::CostmapRecovery> recovery_plugin_loader_;
+    $ sed -n "239p" /opt/ros/noetic/include/mbf_costmap_nav/costmap_navigation_server.h
+      ⇒   pluginlib::ClassLoader<nav_core::BaseLocalPlanner> nav_core_controller_plugin_loader_;
+
+### 9) 简写名·nodelet.cpp:68（实名 hdl_localization_nodelet.cpp）
+    $ sed -n "68p" ws/src/20_localization/hdl_localization/apps/hdl_localization_nodelet.cpp
+      ⇒     pose_pub = nh.advertise<nav_msgs::Odometry>("/odom", 5, false);
+
+### 10) 简写名·mbf 三码 GetPathResult.h:111 / ExePathResult.h:126 / RecoveryResult.h:87
+    $ sed -n "111p" /opt/ros/noetic/include/mbf_msgs/GetPathResult.h
+      ⇒     PAT_EXCEEDED = 55u,
+    $ sed -n "126p" /opt/ros/noetic/include/mbf_msgs/ExePathResult.h
+      ⇒     PAT_EXCEEDED = 103u,
+    $ sed -n "87p" /opt/ros/noetic/include/mbf_msgs/RecoveryResult.h
+      ⇒     PAT_EXCEEDED = 152u,
+
+### 11) 简写名·move_base_action.h:116（总览引；/opt/ros/noetic/include/mbf_abstract_nav/，**非** mbf_msgs/MoveBaseAction.h）
+    $ sed -n "116p" /opt/ros/noetic/include/mbf_abstract_nav/move_base_action.h
+      ⇒     // copy outcome and message from action client result
+    配套两码表：$ grep -n OSCILLATION /opt/ros/noetic/share/mbf_msgs/action/{MoveBase,ExePath}.action
+      ⇒ /opt/ros/noetic/share/mbf_msgs/action/MoveBase.action:24:uint8 OSCILLATION    = 13
+      ⇒ /opt/ros/noetic/share/mbf_msgs/action/ExePath.action:27:uint8 OSCILLATION     = 105
+
+### 12) 简写名·fresh{1..5}n.log（真名带 m2r5_ 前缀，同目录 raw/；首条已给全路径，后四条省写）
+    $ sed -n "19p" note/进度/SCAN集成/证据/log/raw/m2r5_fresh1n.log
+      ⇒ SMOKE teb_state=3 dt=8.5s dev_odom=0.172 dev_gt=0.172
+    $ sed -n "23p" note/进度/SCAN集成/证据/log/raw/m2r5_fresh2n.log
+      ⇒ SMOKE teb_state=3 dt=8.5s dev_odom=0.166 dev_gt=0.166
+    $ sed -n "27p" note/进度/SCAN集成/证据/log/raw/m2r5_fresh3n.log
+      ⇒ SMOKE teb_state=3 dt=8.5s dev_odom=0.176 dev_gt=0.176
+    $ sed -n "19p" note/进度/SCAN集成/证据/log/raw/m2r5_fresh4n.log
+      ⇒ SMOKE teb_state=3 dt=8.6s dev_odom=0.170 dev_gt=0.170
+    $ sed -n "23p" note/进度/SCAN集成/证据/log/raw/m2r5_fresh5n.log
+      ⇒ SMOKE teb_state=3 dt=8.5s dev_odom=0.173 dev_gt=0.173
+
+### 13) fd 稿引 hdl_localization.launch:89（键名 enable_robot_odometry_prediction）
+    $ sed -n "89p" ws/src/20_localization/lite3_localization/launch/hdl_localization.launch
+      ⇒       <param name="use_imu" value="$(arg use_imu)" />
+    该键实所在：
+      ⇒ 52:  <arg name="enable_robot_odometry_prediction" value="false" />
+      ⇒ 95:      <param name="enable_robot_odometry_prediction" value="$(arg enable_robot_odometry_prediction)" />
+
+### 14) fd 稿引 hdl_localization.launch:38/:80/:89-90（键名 odom_child_frame_id）
+      ⇒ 38:  <arg name="odom_child_frame_id" default="base_link" />
+      ⇒ 86:      <param name="odom_child_frame_id" value="$(arg odom_child_frame_id)" />
+
+### 15) fd 稿:55 机读点 m2_smoke.sh:193/:379/:380 ⇒ 行号随 SM 生长漂移
+    $ sed -n "193p" ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+      ⇒ # ============ Stage B：teb 物理闭环（M2-2） ============
+    $ sed -n "379p" ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+      ⇒     print('SMOKE E3 base_link_parents=%s transforms_total=%d'
+    $ sed -n "380p" ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+      ⇒           % (sorted(par.get("base_link", [])), len(seen)))
+    现行真值：
+      ⇒ 129:rospy.Subscriber('/sim/odom_gt', Odometry, lambda m: S.update(odom=m), queue_size=2)  # 批1/F-D
+      ⇒ 214:rospy.Subscriber('/sim/odom_gt', Odometry, lambda m:S.update(odom=m), queue_size=2)  # 批1/F-D 
+    $ sed -n "404p" ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+      ⇒ m=S['odom']; d=math.hypot(m.pose.pose.position.x-gx, m.pose.pose.position.y-gy)
+    $ sed -n "405p" ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+      ⇒ gd=math.hypot(S['gt'][0]-gx, S['gt'][1]-gy)
+    $ sed -n "406p" ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+      ⇒ print('SMOKE teb_state=%s dt=%.1fs dev_odom=%.3f dev_gt=%.3f'%(cli.get_state(), dt, d, gd))
+    当年（M2R6＝3c12fec）确为所指 ⇒ 属漂移非臆造：
+      ⇒ rospy.Subscriber('/Odometry', Odometry, lambda m:S.update(odom=m), queue_size=2)
+      ⇒ m=S['odom']; d=math.hypot(m.pose.pose.position.x-gx, m.pose.pose.position.y-gy)
+      ⇒ gd=math.hypot(S['gt'][0]-gx, S['gt'][1]-gy)
+
+核实命令清单即本件；重放：bash note/进度/SCAN集成/证据/log/raw/r102_ledger_citation_table/verify_ledger_citations.sh
