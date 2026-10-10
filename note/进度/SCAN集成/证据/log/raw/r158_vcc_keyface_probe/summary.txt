@@ -1,0 +1,37 @@
+R158 附带探针 · VCC 的「键名是否在该行」这一维**取决于措辞**，不取决于指针本身
+
+目的：核清一件事——同一个**已漂移**的行号指针，在册里为什么有时判 AMBER、有时判绿。
+只读探针，不起节点、不改件。件＝scripts/verify/v_citation_check.sh（现役版，本批未改）。
+
+目标行实况（ws/src/40_navigation/lite3_scan/launch/70_scan.launch，91 行）：
+- 第 61 行＝`<arg name="cy" value="256.4806823730469"/>`（**不含** remap）
+- remap 实际在别处：第 51 行 goal remap、第 76 行 cmd_vel remap（grep 实测）
+- 在册坑22「症状二」要引的是 **cmd_vel 那条** ⇒ 该指针属坑60 的漂移
+
+probe.md（反引号形，指针后无紧邻键名）：
+  A 句 `…按 \`70_scan.launch:61\` 起见…`   ⇒ 判 OK
+  B 句 `键名 remap 写作 \`70_scan.launch:61\`` ⇒ 判 OK
+  C 句 `` `70_scan.launch:51` 键名 remap 在该行`` ⇒ 判 OK（该行确实含 remap，属真绿）
+  计数：单点引用=3 OK=3 RED=0 AMBER=0 → rc=0
+
+probe2.md（同三个指针，只把措辞改成「指针后紧跟键名」）：
+  D 句 `经 70_scan.launch:61 remap 落到 …`（裸形）  ⇒ 判 **AMBER**
+  E 句 `经 70_scan.launch:61 落到 …`（裸形、无键名）⇒ 判 OK
+  F 句 `经 \`70_scan.launch:61\` remap 落到 …`（反引号）⇒ 判 **AMBER**
+  计数：单点引用=3 OK=1 RED=0 AMBER=2 → rc=5
+
+结论（实测，非推断）：
+1. **反引号不影响分类**（D 与 F 同判 AMBER）。
+2. 决定性因素是**指针之后是否紧邻一个键名样 token**：A/B/E 三个**同一个错指针**被判 OK，D/F 被判 AMBER。
+3. ⇒ VCC 的「键名不在该行」这一维**不是指针的属性，是句子的属性**：一处漂移会不会报黄，取决于我当时的措辞。
+4. 后果面：本会话给 02 追加勘误句时，第一次写法（"该句按 `70_scan.launch:61` 引 remap"）**被判 OK**——也就是说**在册里可以并存两条同样的坏指针，一条黄一条绿**，而复核者按颜色取舍就会漏。该写法本批已改回锚文本（02 里不再复制裸指针）。
+
+归属与路由（施工侧不自落）：
+- 形状归**坑63 同族**（白名单/匹配面缺口：件没识别的东西永远不会让它变红）＋**坑59**（绿在错的地方）；**不新立坑号**（本批坑面审计刚定的口径：扩号稀释检索）。
+- 这条是给 **#12（VCC 入门判据分档提案）** 与 **A15／#54** 的输入：**要不要把「同一目标件＋同一行号」的指针做全局去重、并对"在册已判黄"的指针强制同判**，属判据面变更，不在施工侧自决范围。
+
+复算命令（只读）：
+  bash scripts/verify/v_citation_check.sh note/进度/SCAN集成/证据/log/raw/r158_vcc_keyface_probe/probe.md
+  bash scripts/verify/v_citation_check.sh note/进度/SCAN集成/证据/log/raw/r158_vcc_keyface_probe/probe2.md
+登记人：小明（施工）· 2026-10-11 · 代际仍 H14，零改动面（未动件／判据／门值／配置，无 sudo）
+P8＝计划书未定稿、以 v4.3 补丁稿为准
