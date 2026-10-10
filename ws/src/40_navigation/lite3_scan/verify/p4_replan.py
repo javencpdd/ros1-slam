@@ -38,7 +38,9 @@ SEE_MIN_PTS = 20                                         # 看见判据：新增
 GOAL_MIN, GOAL_MAX = 2.5, 4.0
 FREE_CLEAR = 0.40
 OCC_TOL = 0.10                                           # P2 原文硬穿墙阈，本件不改值
-AVOID_DIST = float(os.environ.get("P4_AVOID_DIST", "0.60"))   # 「算绕开」的距离＝箱半宽 0.40＋裕度 0.20（施工口径，待小美定档）
+AVOID_DIST = float(os.environ.get("P4_AVOID_DIST", "0.40"))   # 2026-10-11 主理人裁 A5＝定档 0.40（＝箱半宽；语义「轨迹不得进入箱体」，擦边算过）
+#   旧默认 0.60（箱半宽 0.40＋裕度 0.20）属施工口径、当时标「待小美定档」；要复算裁前各轮，设 P4_AVOID_DIST=0.60 即可逐字重放
+#   注意本件另有两条同值不同义的边界：collide 用 robot_min <= 0.40（本体贴边即算撞，含等号），avoided 用 traj_min >= 0.40（轨迹贴边算过，含等号）
 DEV_MAX = 0.35                                           # A7 判据③ 原文
 DT_MAX = 120.0                                           # A7 判据④ 原文
 REACT_S = float(os.environ.get("P4_REACT_MAX", "15.0"))  # 看见障碍后允许的重规响应窗（施工口径，可改）

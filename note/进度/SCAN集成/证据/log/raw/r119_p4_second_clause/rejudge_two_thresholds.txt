@@ -1,0 +1,17 @@
+可解析的 p4.json 样本=11（件面结论行含 PASS/FAIL；首行是结论、第二段才是 JSON ⇒ 本轮按坑61 用切段法读）
+
+样本                                                         原判     到达     离占据      离箱心      本体       avoid@0.60 avoid@0.40
+scan_p4_retake_newso_20261009_0407/r1/p4.json              FAIL   None   0.262    0.128    None     False     False
+scan_p4_retake_newso_20261009_0407/r2/p4.json              PASS   None   0.608    2.093    None     True      True
+scan_p4_retake_newso_20261009_0407/r3/p4.json              FAIL   None   0.259    0.19     None     False     False
+scan_p4_sampling_n6_20261009_1037/s11/p4.json              FAIL   None   0.004    0.32     None     False     False
+scan_p4_sampling_n6_20261009_1037/s12/p4.json              FAIL   None   0.263    0.207    None     False     False
+scan_p4_sampling_n6_20261009_1037/s13/p4.json              FAIL   None   None     None     None     无离箱心读数
+scan_p4_sampling_n6_20261009_1037/s14/p4.json              FAIL   None   0.713    0.534    None     False     True
+scan_p4_sampling_n6_20261009_1037/s15/p4.json              FAIL   None   None     None     None     无离箱心读数
+scan_p4_sampling_n6_20261009_1037/s16/p4.json              FAIL   None   None     None     None     无离箱心读数
+scan_p4_three_rounds_20261008_2155/round2_2156/p4.json     FAIL   None   None     None     None     无离箱心读数
+scan_p4_three_rounds_20261008_2155/round3_2201/p4.json     FAIL   None   0.281    0.038    None     False     False
+
+合计：avoid@0.60 过 1／有读数样本 11；avoid@0.40 过 2／有读数样本 11
+⇒ 定档 0.40 的效果（如实）：比 0.60 多放行 1 个样本，语义差别只在「擦边但不进箱」那一型；两档都抓不住「压占据图元」那一型——那是 min_dist_to_any_occ（表内「离占据」列，如 0.004m）在件里**算了但没进判据链**。
