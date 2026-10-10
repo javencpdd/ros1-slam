@@ -1,0 +1,9 @@
+index.txt —— R93 第一窗（取数作废，判定正确）
+结论行：`DRIVER VERDICT rc=9 INVALID：取数未成立（实照相 rc=0／对照 rc=0）`
+· 实照相本身是干净的单父读数（stp_实照相.txt），但**对照相没跑起来**：
+  `upstream_relay.log` 记 `RLException: [lio_relay.launch] is neither a launch file in package [plan_manage]`
+  ⇒ 我把目录名（ws/src/30_3rd/plan_manage）当 ROS 包名用了；该件 package.xml 的 <name> 实为 **scan_planner**。
+· 按在册纪律（坑29：没有对照的零命中不算数），本窗的实照相**不得引用为批2 条1/条4 的到手**。
+· 红线同窗核验：foxy 六 PID 命中 0（本 boot 形态②，retake_driver.sh:205-207）；teardown 后端口全 0；
+  受保护件 sha 起前＝退后；30_3rd 基线 -c rc=0 且计数 49（上游件只读未动）。
+· 修复与复跑见 ../r93_batch2_live_20261010_153849/（第四窗，到手）。本目录原件一字不动。

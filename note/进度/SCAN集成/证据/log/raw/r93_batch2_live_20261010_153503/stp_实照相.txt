@@ -1,0 +1,10 @@
+STP 环境自证：mode=live phase=实照相 ROS_MASTER_URI=http://localhost:11313 win=3.0 rotor=1.0 child=base_link
+PROBE master 可达：localhost:11313（有界预检 2s）
+PROBE 窗型自证：TF 相关节点=['/lio_cloud_relay', '/lio_odom_imu_relay', '/lio_odom_vehicle_relay', '/world_to_camera_init']（总节点=13）
+PROBE phase=实照相 来源=live /tf+/tf_static 采样：变换行=63 帧数=4
+PROBE base_link_parents=['odom']
+PROBE static_edges_into_base_link=0
+PROBE edge odom->base_link dynamic hits=40 last_stamp=8.521
+PROBE 未见发作（恰单父；**这是读数陈述，不是 gate 判定**——本件不入 gate、不动门值）
+==================================================
+STP VERDICT rc=0（0 未见发作／7 发作停手／9 INVALID 前置缺失／5 自测有 FAIL）

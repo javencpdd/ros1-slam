@@ -1,0 +1,50 @@
+index.txt —— R93 批2 条1/条4 **到手**：真 SCAN 窗的实照相（恰 ['odom']）＋真链级阳性对照（双父 ⇒ 探针被验过）
+目录：note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_153849/
+驱动：../r93_batch2_live_driver.sh（命令形状照在册 `v_scan_p1.sh:58-98` 与 `cleanup :44-58` 抄，不自创口径）
+取数件：ws/src/40_navigation/lite3_scan/verify/v_scan_tf_parent_probe.sh（STP）
+时间：2026-10-10 15:38:49–15:40:10（CST，独占链窗）｜清单出处：设计/r_批2复取承接对账.md §2 条 1／条 4 与 §3
+
+一、本窗两格读数（同一条真链，只差那一条静态边 ⇒ 构成有效对照对）
+1) 实照相（在册接线：70_scan.launch 的 include 指壳包 lio_relay_sim.launch）
+   `stp_实照相.txt` ⇒ **rc=0 未见发作**
+   · `PROBE 静态面投递：/tf_static 收到消息数=2`（robot_state_publisher 与 world_to_camera_init 各一条 latched）
+   · `PROBE base_link_parents=['odom']`
+   · `PROBE static_edges_into_base_link=0`
+   · `PROBE edge odom->base_link dynamic hits=… last_stamp≈8.5`（仿真题）
+   · 窗型自证：TF 相关节点=`/lio_cloud_relay /lio_odom_imu_relay /lio_odom_vehicle_relay /world_to_camera_init`（总节点 13）
+     ⇒ **relay 确在位**，这一格与 r81 那五份 stageB 读数的区别就在这里（02 坑55：指认了名字、没指认载体）
+2) 真链级阳性对照（只读起上游基线件 `roslaunch scan_planner lio_relay.launch`，该件一字未动）
+   `stp_真链阳性对照.txt` ⇒ **rc=7 发作签名（这是本格的期望，不是回归）**
+   · `PROBE 静态面投递：/tf_static 收到消息数=3`（多出的那一条即 body_to_base_link）
+   · `PROBE base_link_parents=['body', 'odom']`、`static_edges_into_base_link=1`、`STOP-FLAG` 行照 fd 稿 :212 原文打
+   ⇒ 探针在真链里**抓得到** FD-G ⇒ 上面那格"零命中"不是"探针读空"，是**被验过的零命中**。
+   **误读防护（写死）**：本目录里的 `STOP-FLAG／rc=7` 是**受控复现**，属对照相的期望值；
+   fd :212 的停手条（判 TF 结构回归）**只作用于实照相那一格**。看到 7 就上报＝把对照当回归，是另一种假红。
+
+二、判定归位
+`DRIVER VERDICT rc=0 取数成立（实照相单父＋真链对照双父）`。⇒ 批2 五条复取到此**全部有读数**：
+条 2/3/5 承接 r85 与 04 R85/R89（同一 F2 之后、晚于 R41（一）展开断言），条 1/4 由本窗新取。
+**但"批2 是否称收口"仍挂 A20**（一条读数能否抵两批义务）——本目录只交读数，不替验收下定论。
+
+三、红线与本窗零触碰
+· 受保护两件按完整路径核：`sha_protected_before.txt` ＝ `sha_protected_after.txt`
+  （世界件 fb52d5e6ed3eda30…／样张 aaa09362c5f1aef9…，坑52）。
+· 30_3rd 基线双条件：`baseline_before.txt`／`baseline_after.txt` 的 `sha256sum -c` **rc=0** 且 find 计数 **49**
+  ⇒ 上游件在本窗**只读未动**（对照相只是 roslaunch 它）。
+· foxy 生产六 PID：`foxy_start.txt` 命中 **0**（本机 15:03 重启过）⇒ 照 `retake_driver.sh:205-207` 的**形态②**：
+  「零触碰」句空洞成立、**不得引用为红线达成**（O-7／请求单 A1 的实况），本窗不作扰动指控。
+· 不发 `/cmd_vel`、不发 goal、不跑 mbf/move_base、不读占据图质量——本窗只为拿 TF 父集合读数。
+· teardown：残留进程 **空**；11311/11312/11313/11345 监听 **全 0**；无 sudo、未编译。
+· 本窗**未起建图落盘**：`m2_mapping.launch` 用缺省 `pcd_save:=false`。
+
+四、同一缺陷的四次尝试（留全，别只留成功那次）
+· `../r93_batch2_live_20261010_152710/` 首窗：实照相 rc=0，但对照相死于 `RLException: [lio_relay.launch] is neither a
+  a launch file in package [plan_manage]` ⇒ 我把**目录名当包名**用（该件 package.xml 的 <name> 是 **scan_planner**）。
+  驱动判 rc=9（无对照 ⇒ 实照相不得引用）⇒ **判定正确、取数作废**。
+· `../r93_batch2_live_20261010_153227/` 第二窗：被自己的工序闸拦住（loadavg **4.04 > 4**）⇒ rc=9 停手，不起坏窗。
+· `../r93_batch2_live_20261010_153503/` 第三窗：对照相节点 `/body_to_base_link` 明明在位（第 3 秒），STP 却仍读单父
+  ⇒ 翻出**探针的静态面取样缺陷**（`wait_for_message('/tf_static')` 只取最先到的**一条**，而 latching 是**逐发布者**
+  各存一份 ⇒ 多发布者时其余静态边整批漏读）。本目录的 `静态面投递=2/3` 那一行就是修好之后的自证。
+  ⇒ 同族新登记：02 坑57；在册 E3（`m2_smoke.sh:382` 同款 `wait_for_message`）的同型风险另挂请求单 A21（我不自改 SM）。
+· 本目录＝第四窗，两处修好后一次取到。
+· 三份 STP 输出与 driver.log 均原件入档；`roslog/` 为该窗 ROS 日志目录（`ROS_LOG_DIR` 指到本窗内，不留 /tmp）。

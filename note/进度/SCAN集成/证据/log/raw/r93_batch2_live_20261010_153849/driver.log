@@ -1,0 +1,62 @@
+
+===== 0) 前置（工序闸，不判被测件） 2026-10-10 15:38:49 =====
+loadavg=3.81（在册工序闸 4，出处 retake_driver.sh:44 LOAD_MAX=${LOAD_MAX:-4}）
+沙箱 ROS 残留(起前): (空=净)
+端口(起前): 11311=0 11312=0 11313=0 11345=0
+ros2qnx 存在性(须=0): 0
+foxy 六 PID 起前命中=0（0＝本 boot 名单全不在位 ⇒ 照 retake_driver.sh:205-207 形态②：「零触碰」空洞成立，**不得引用为红线达成**（O-7），本窗不作扰动指控）
+30_3rd 基线起前：sha256sum -c rc=0（0＝内容全等）find 计数=49（须=49）
+
+===== 1) roscore 11313 2026-10-10 15:38:50 =====
+master 就绪：节点数=1（应为 1=/rosout）
+
+===== 2) m2_gazebo.launch（物理世界；gui:=false） 2026-10-10 15:38:58 =====
+世界层三话题在位
+
+===== 3) m2_mapping.launch（faster_lio；pcd_save 缺省 false ⇒ 样张保护） 2026-10-10 15:39:49 =====
+faster_lio 双输出在位
+
+===== 4) 70_scan.launch navi_mode:=1（在册接线：include 指壳包 lio_relay_sim.launch） 2026-10-10 15:40:03 =====
+SCAN 输入链与占据图话题在位 ⇒ 本窗确是 SCAN 窗（这是坑55 要的那一列）
+
+===== 5) 实照相：STP 取 SCAN 窗的 base_link 父集合（期望 恰 ['odom'] 且 /tf_static 零条以 base_link 为子） 2026-10-10 15:40:15 =====
+STP 实照相 rc=0
+STP 环境自证：mode=live phase=实照相 ROS_MASTER_URI=http://localhost:11313 win=3.0 child=base_link
+PROBE master 可达：localhost:11313（有界预检 2s）
+PROBE 静态面投递：/tf_static 收到消息数=2（latched 逐发布者各一条，>1 才算收全）
+PROBE 窗型自证：TF 相关节点=['/lio_cloud_relay', '/lio_odom_imu_relay', '/lio_odom_vehicle_relay', '/world_to_camera_init']（总节点=13）
+PROBE phase=实照相 来源=live /tf+/tf_static 采样：变换行=64 帧数=6
+PROBE base_link_parents=['odom']
+PROBE static_edges_into_base_link=0
+PROBE edge odom->base_link dynamic hits=40 last_stamp=9.301
+PROBE 未见发作（恰单父；**这是读数陈述，不是 gate 判定**——本件不入 gate、不动门值）
+==================================================
+STP VERDICT rc=0（0 未见发作／7 发作停手／9 INVALID 前置缺失／5 自测有 FAIL）
+
+===== 6) 真链级阳性对照（只读起上游基线件，不动它：期望双父 ⇒ 证探针在真链里也抓得到） 2026-10-10 15:40:28 =====
+对照相已起跑：/body_to_base_link 在位（第 3 秒）
+STP 真链阳性对照 rc=7（**期望=7**；若这里也是单父 ⇒ 对照失败，实照相那条读数不能算被验过）
+STP 环境自证：mode=live phase=真链阳性对照 ROS_MASTER_URI=http://localhost:11313 win=3.0 child=base_link
+PROBE master 可达：localhost:11313（有界预检 2s）
+PROBE 静态面投递：/tf_static 收到消息数=3（latched 逐发布者各一条，>1 才算收全）
+PROBE 窗型自证：TF 相关节点=['/body_to_base_link', '/lio_cloud_relay', '/lio_odom_imu_relay', '/lio_odom_vehicle_relay', '/world_to_camera_init']（总节点=14）
+PROBE phase=真链阳性对照 来源=live /tf+/tf_static 采样：变换行=65 帧数=6
+PROBE base_link_parents=['body', 'odom']
+PROBE static_edges_into_base_link=1
+PROBE edge body->base_link static hits=1 last_stamp=0.000 [ZERO]
+PROBE edge odom->base_link dynamic hits=37 last_stamp=15.321
+PROBE STOP-FLAG：base_link 有 2 个父 ['body', 'odom'] ⇒ FD-G 发作签名（fd 稿 :212 的 {odom, body} 一族）⇒ 立即停手上报、判 TF 结构回归；不走 INVALID、不静默继续
+==================================================
+STP VERDICT rc=7（0 未见发作／7 发作停手／9 INVALID 前置缺失／5 自测有 FAIL）
+对照相关节点残留=2（摘干净才谈实照相未被污染）
+
+===== 7) 判定归位（本驱动不设判据：只把两格读数与在册期望并列陈述） 2026-10-10 15:40:59 =====
+实照相 rc=0｜真链阳性对照 rc=7（期望 7）
+批2 条1/条4 到手判据：实照相 rc=0 **且** 真链阳性对照 rc=7 ⇒ 两条都取到且探针被验过
+DRIVER VERDICT rc=0 取数成立（实照相单父＋真链对照双父）
+
+===== teardown 2026-10-10 15:41:00 =====
+残留进程: (空=净)
+端口监听（须全 0）: 11311=0 11312=0 11313=0 11345=0
+受保护件跑后 sha（完整路径核，坑52）: fb52d5e6ed3eda30 aaa09362c5f1aef9 
+30_3rd 基线跑后：sha256sum -c rc=0（0＝内容全等）find 计数=49（须=49）⇒ 上游件仍只读未动

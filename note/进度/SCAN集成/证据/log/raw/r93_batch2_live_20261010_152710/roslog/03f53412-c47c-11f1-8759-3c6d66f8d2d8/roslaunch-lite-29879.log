@@ -1,0 +1,102 @@
+[roslaunch][INFO] 2026-10-10 15:27:15,060: Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+[roslaunch][INFO] 2026-10-10 15:27:15,075: Done checking log file disk usage. Usage is <1GB.
+[roslaunch][INFO] 2026-10-10 15:27:15,077: roslaunch starting with args ['roscore', '--core', '-p', '11313']
+[roslaunch][INFO] 2026-10-10 15:27:15,078: roslaunch env is environ({'SHELL': '/bin/bash', 'ROS_VERSION': '1', 'PKG_CONFIG_PATH': '/home/ros1-slam/ws/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig:/opt/ros/noetic/lib/aarch64-linux-gnu/pkgconfig', 'ROS_PYTHON_VERSION': '3', 'LC_ADDRESS': 'zh_CN.UTF-8', 'LC_NAME': 'zh_CN.UTF-8', 'LC_MONETARY': 'zh_CN.UTF-8', 'ROS_PACKAGE_PATH': '/home/ros1-slam/ws/src:/opt/ros/noetic/share', 'ROSLISP_PACKAGE_DIRECTORIES': '/home/ros1-slam/ws/devel/share/common-lisp', 'PWD': '/home/ros1-slam', 'LOGNAME': 'ysc', 'XDG_SESSION_TYPE': 'tty', 'ROS_LOG_DIR': '/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog', 'MOTD_SHOWN': 'pam', 'HOME': '/home/ysc', 'LC_PAPER': 'zh_CN.UTF-8', 'LANG': 'en_US.UTF-8', 'ROS_ETC_DIR': '/opt/ros/noetic/etc/ros', 'CMAKE_PREFIX_PATH': '/home/ros1-slam/ws/devel:/opt/ros/noetic', 'SSH_CONNECTION': '192.168.1.120 36534 192.168.1.103 22', 'XDG_SESSION_CLASS': 'user', 'PYTHONPATH': '/home/ros1-slam/ws/devel/lib/python3/dist-packages:/opt/ros/noetic/lib/python3/dist-packages', 'LC_IDENTIFICATION': 'zh_CN.UTF-8', 'USER': 'ysc', 'SHLVL': '0', 'LC_TELEPHONE': 'zh_CN.UTF-8', 'ROS_MASTER_URI': 'http://localhost:11313', 'LC_MEASUREMENT': 'zh_CN.UTF-8', 'XDG_SESSION_ID': '65', 'LD_LIBRARY_PATH': '/home/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/aarch64-linux-gnu', 'XDG_RUNTIME_DIR': '/run/user/1000', 'SSH_CLIENT': '192.168.1.120 36534 22', 'LC_TIME': 'zh_CN.UTF-8', 'LC_ALL': 'en_US.UTF-8', 'PATH': '/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'ROS_ROOT': '/opt/ros/noetic/share/ros', 'ROS_DISTRO': 'noetic', 'LC_NUMERIC': 'zh_CN.UTF-8', 'OLDPWD': '/home/ros1-slam', '_': '/opt/ros/noetic/bin/roscore', 'ROS_LOG_FILENAME': '/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog/03f53412-c47c-11f1-8759-3c6d66f8d2d8/roslaunch-lite-29879.log'})
+[roslaunch][INFO] 2026-10-10 15:27:15,078: starting in server mode
+[roslaunch.parent][INFO] 2026-10-10 15:27:15,080: starting roslaunch parent run
+[roslaunch][INFO] 2026-10-10 15:27:15,082: loading roscore config file /opt/ros/noetic/etc/ros/roscore.xml
+[roslaunch][INFO] 2026-10-10 15:27:16,589: Added core node of type [rosout/rosout] in namespace [/]
+[roslaunch.pmon][INFO] 2026-10-10 15:27:16,591: start_process_monitor: creating ProcessMonitor
+[roslaunch.pmon][INFO] 2026-10-10 15:27:16,592: created process monitor <ProcessMonitor(ProcessMonitor-1, initial daemon)>
+[roslaunch.pmon][INFO] 2026-10-10 15:27:16,597: start_process_monitor: ProcessMonitor started
+[roslaunch.parent][INFO] 2026-10-10 15:27:16,598: starting parent XML-RPC server
+[roslaunch.server][INFO] 2026-10-10 15:27:16,599: starting roslaunch XML-RPC server
+[roslaunch.server][INFO] 2026-10-10 15:27:16,600: waiting for roslaunch XML-RPC server to initialize
+[xmlrpc][INFO] 2026-10-10 15:27:16,601: XML-RPC server binding to 0.0.0.0:0
+[xmlrpc][INFO] 2026-10-10 15:27:16,603: Started XML-RPC server [http://lite:37821/]
+[xmlrpc][INFO] 2026-10-10 15:27:16,605: xml rpc node: starting XML-RPC server
+[roslaunch][INFO] 2026-10-10 15:27:16,623: started roslaunch server http://lite:37821/
+[roslaunch.parent][INFO] 2026-10-10 15:27:16,623: ... parent XML-RPC server started
+[roslaunch][INFO] 2026-10-10 15:27:16,625: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:16,634: auto-starting new master
+[roslaunch][INFO] 2026-10-10 15:27:16,634: create_master_process: rosmaster, /opt/ros/noetic/share/ros, 11313, 3, None, False
+[roslaunch][INFO] 2026-10-10 15:27:16,635: process[master]: launching with args [['rosmaster', '--core', '-p', '11313', '-w', '3']]
+[roslaunch.pmon][INFO] 2026-10-10 15:27:16,636: ProcessMonitor.register[master]
+[roslaunch.pmon][INFO] 2026-10-10 15:27:16,636: ProcessMonitor.register[master] complete
+[roslaunch][INFO] 2026-10-10 15:27:16,636: process[master]: starting os process
+[roslaunch][INFO] 2026-10-10 15:27:16,637: process[master]: start w/ args [['rosmaster', '--core', '-p', '11313', '-w', '3', '__log:=/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog/03f53412-c47c-11f1-8759-3c6d66f8d2d8/master.log']]
+[roslaunch][INFO] 2026-10-10 15:27:16,638: process[master]: cwd will be [/home/ysc/.ros]
+[roslaunch][INFO] 2026-10-10 15:27:16,721: process[master]: started with pid [30289]
+[roslaunch][INFO] 2026-10-10 15:27:16,723: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:16,854: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:16,988: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,094: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,197: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,300: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,406: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,509: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,611: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,720: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,822: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:17,924: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:18,026: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:18,130: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:18,232: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:18,242: master.is_running[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:18,250: ROS_MASTER_URI=http://lite:11313/
+[roslaunch][INFO] 2026-10-10 15:27:18,255: setting /run_id to 03f53412-c47c-11f1-8759-3c6d66f8d2d8
+[roslaunch][INFO] 2026-10-10 15:27:18,259: setting /roslaunch/uris/host_lite__37821' to http://lite:37821/
+[roslaunch][INFO] 2026-10-10 15:27:18,268: ... preparing to launch node of type [rosout/rosout]
+[roslaunch][INFO] 2026-10-10 15:27:18,268: create_node_process: package[rosout] type[rosout] machine[Machine(name[] env_loader[None] address[localhost] ssh_port[22] user[None] assignable[True] timeout[10.0])] master_uri[http://lite:11313/]
+[roslaunch][INFO] 2026-10-10 15:27:18,270: process[rosout-1]: env[{'SHELL': '/bin/bash', 'ROS_VERSION': '1', 'PKG_CONFIG_PATH': '/home/ros1-slam/ws/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig:/opt/ros/noetic/lib/aarch64-linux-gnu/pkgconfig', 'ROS_PYTHON_VERSION': '3', 'LC_ADDRESS': 'zh_CN.UTF-8', 'LC_NAME': 'zh_CN.UTF-8', 'LC_MONETARY': 'zh_CN.UTF-8', 'ROS_PACKAGE_PATH': '/home/ros1-slam/ws/src:/opt/ros/noetic/share', 'ROSLISP_PACKAGE_DIRECTORIES': '/home/ros1-slam/ws/devel/share/common-lisp', 'PWD': '/home/ros1-slam', 'LOGNAME': 'ysc', 'XDG_SESSION_TYPE': 'tty', 'ROS_LOG_DIR': '/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog', 'MOTD_SHOWN': 'pam', 'HOME': '/home/ysc', 'LC_PAPER': 'zh_CN.UTF-8', 'LANG': 'en_US.UTF-8', 'ROS_ETC_DIR': '/opt/ros/noetic/etc/ros', 'CMAKE_PREFIX_PATH': '/home/ros1-slam/ws/devel:/opt/ros/noetic', 'SSH_CONNECTION': '192.168.1.120 36534 192.168.1.103 22', 'XDG_SESSION_CLASS': 'user', 'PYTHONPATH': '/home/ros1-slam/ws/devel/lib/python3/dist-packages:/opt/ros/noetic/lib/python3/dist-packages', 'LC_IDENTIFICATION': 'zh_CN.UTF-8', 'USER': 'ysc', 'SHLVL': '0', 'LC_TELEPHONE': 'zh_CN.UTF-8', 'ROS_MASTER_URI': 'http://lite:11313/', 'LC_MEASUREMENT': 'zh_CN.UTF-8', 'XDG_SESSION_ID': '65', 'LD_LIBRARY_PATH': '/home/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/aarch64-linux-gnu', 'XDG_RUNTIME_DIR': '/run/user/1000', 'SSH_CLIENT': '192.168.1.120 36534 22', 'LC_TIME': 'zh_CN.UTF-8', 'LC_ALL': 'en_US.UTF-8', 'PATH': '/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'ROS_ROOT': '/opt/ros/noetic/share/ros', 'ROS_DISTRO': 'noetic', 'LC_NUMERIC': 'zh_CN.UTF-8', 'OLDPWD': '/home/ros1-slam', '_': '/opt/ros/noetic/bin/roscore', 'ROS_LOG_FILENAME': '/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog/03f53412-c47c-11f1-8759-3c6d66f8d2d8/roslaunch-lite-29879.log'}]
+[roslaunch][INFO] 2026-10-10 15:27:19,151: process[rosout-1]: args[['/opt/ros/noetic/lib/rosout/rosout', '__name:=rosout']]
+[roslaunch][INFO] 2026-10-10 15:27:19,152: ... created process [rosout-1]
+[roslaunch.pmon][INFO] 2026-10-10 15:27:19,153: ProcessMonitor.register[rosout-1]
+[roslaunch.pmon][INFO] 2026-10-10 15:27:19,153: ProcessMonitor.register[rosout-1] complete
+[roslaunch][INFO] 2026-10-10 15:27:19,154: ... registered process [rosout-1]
+[roslaunch][INFO] 2026-10-10 15:27:19,155: process[rosout-1]: starting os process
+[roslaunch][INFO] 2026-10-10 15:27:19,156: process[rosout-1]: start w/ args [['/opt/ros/noetic/lib/rosout/rosout', '__name:=rosout', '__log:=/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog/03f53412-c47c-11f1-8759-3c6d66f8d2d8/rosout-1.log']]
+[roslaunch][INFO] 2026-10-10 15:27:19,157: process[rosout-1]: cwd will be [/home/ysc/.ros]
+[roslaunch][INFO] 2026-10-10 15:27:19,324: process[rosout-1]: started with pid [30595]
+[roslaunch][INFO] 2026-10-10 15:27:19,328: ... successfully launched [rosout-1]
+[roslaunch][INFO] 2026-10-10 15:27:19,332: load_parameters starting ...
+[roslaunch][INFO] 2026-10-10 15:27:19,415: ... load_parameters complete
+[roslaunch][INFO] 2026-10-10 15:27:19,416: launch_nodes: launching local nodes ...
+[roslaunch][INFO] 2026-10-10 15:27:19,417: ... launch_nodes complete
+[roslaunch.pmon][INFO] 2026-10-10 15:27:19,418: registrations completed <ProcessMonitor(ProcessMonitor-1, started daemon 281473497870816)>
+[roslaunch.parent][INFO] 2026-10-10 15:27:19,419: ... roslaunch parent running, waiting for process exit
+[roslaunch][INFO] 2026-10-10 15:27:19,419: spin
+[roslaunch][INFO] 2026-10-10 15:29:27,121: [rosout-1] process has finished cleanly
+log file: /home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog/03f53412-c47c-11f1-8759-3c6d66f8d2d8/rosout-1*.log
+[roslaunch][INFO] 2026-10-10 15:29:27,122: [rosout-1] restarting process
+[roslaunch][INFO] 2026-10-10 15:29:27,124: process[rosout-1]: restarting os process
+[roslaunch][INFO] 2026-10-10 15:29:27,125: process[rosout-1]: start w/ args [['/opt/ros/noetic/lib/rosout/rosout', '__name:=rosout', '__log:=/home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r93_batch2_live_20261010_152710/roslog/03f53412-c47c-11f1-8759-3c6d66f8d2d8/rosout-1.log']]
+[roslaunch][INFO] 2026-10-10 15:29:27,126: process[rosout-1]: cwd will be [/home/ysc/.ros]
+[roslaunch][INFO] 2026-10-10 15:29:27,202: process[rosout-1]: started with pid [39102]
+[roslaunch.pmon][INFO] 2026-10-10 15:29:33,481: ProcessMonitor.shutdown <ProcessMonitor(ProcessMonitor-1, started daemon 281473497870816)>
+[roslaunch.pmon][INFO] 2026-10-10 15:29:33,573: ProcessMonitor._post_run <ProcessMonitor(ProcessMonitor-1, started daemon 281473497870816)>
+[roslaunch.pmon][INFO] 2026-10-10 15:29:33,574: ProcessMonitor._post_run <ProcessMonitor(ProcessMonitor-1, started daemon 281473497870816)>: remaining procs are [<roslaunch.nodeprocess.LocalProcess object at 0xffffadd93190>, <roslaunch.nodeprocess.LocalProcess object at 0xffffadd45e50>]
+[roslaunch.pmon][INFO] 2026-10-10 15:29:33,580: ProcessMonitor exit: killing rosout-1
+[roslaunch][INFO] 2026-10-10 15:29:33,581: [rosout-1] killing on exit
+[roslaunch][INFO] 2026-10-10 15:29:33,581: process[rosout-1]: killing os process with pid[39102] pgid[39102]
+[roslaunch][INFO] 2026-10-10 15:29:33,582: [rosout-1] sending SIGINT to pgid [39102]
+[roslaunch][INFO] 2026-10-10 15:29:33,582: [rosout-1] sent SIGINT to pgid [39102]
+[roslaunch][INFO] 2026-10-10 15:29:33,884: process[rosout-1]: SIGINT killed with return value 0
+[roslaunch.pmon][INFO] 2026-10-10 15:29:33,885: ProcessMonitor exit: killing master
+[roslaunch][INFO] 2026-10-10 15:29:33,885: [master] killing on exit
+[roslaunch][INFO] 2026-10-10 15:29:33,886: process[master]: killing os process with pid[30289] pgid[30289]
+[roslaunch][INFO] 2026-10-10 15:29:33,886: [master] sending SIGINT to pgid [30289]
+[roslaunch][INFO] 2026-10-10 15:29:33,886: [master] sent SIGINT to pgid [30289]
+[roslaunch][INFO] 2026-10-10 15:29:34,188: process[master]: SIGINT killed with return value 0
+[roslaunch.pmon][INFO] 2026-10-10 15:29:34,188: ProcessMonitor exit: cleaning up data structures and signals
+[roslaunch.pmon][INFO] 2026-10-10 15:29:34,189: ProcessMonitor exit: pmon has shutdown
+[roslaunch][INFO] 2026-10-10 15:29:34,190: process monitor is done spinning, initiating full shutdown
+[roslaunch][INFO] 2026-10-10 15:29:34,193: runner.stop()
+[roslaunch][INFO] 2026-10-10 15:29:34,195: shutting down processing monitor...
+[roslaunch][INFO] 2026-10-10 15:29:34,195: shutting down processing monitor <ProcessMonitor(ProcessMonitor-1, stopped daemon 281473497870816)>
+[roslaunch.pmon][INFO] 2026-10-10 15:29:34,197: ProcessMonitor.shutdown <ProcessMonitor(ProcessMonitor-1, stopped daemon 281473497870816)>
+[roslaunch][INFO] 2026-10-10 15:29:34,198: ... shutting down processing monitor complete
+[roslaunch][INFO] 2026-10-10 15:29:34,199: done
+[roslaunch.pmon][INFO] 2026-10-10 15:29:34,201: ProcessMonitor.shutdown <ProcessMonitor(ProcessMonitor-1, stopped daemon 281473497870816)>
+[rospy.core][INFO] 2026-10-10 15:29:34,203: signal_shutdown [atexit]

@@ -1,0 +1,945 @@
+[rosmaster.main][INFO] 2026-10-10 15:38:54,380: initialization complete, waiting for shutdown
+[rosmaster.main][INFO] 2026-10-10 15:38:54,381: Starting ROS Master Node
+[xmlrpc][INFO] 2026-10-10 15:38:54,385: XML-RPC server binding to 0.0.0.0:11313
+[xmlrpc][INFO] 2026-10-10 15:38:54,386: Started XML-RPC server [http://lite:11313/]
+[rosmaster.master][INFO] 2026-10-10 15:38:54,387: Master initialized: port[11313], uri[http://lite:11313/]
+[xmlrpc][INFO] 2026-10-10 15:38:54,387: xml rpc node: starting XML-RPC server
+[rosmaster.master][INFO] 2026-10-10 15:38:54,506: +PARAM [/run_id] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:38:54,514: +PARAM [/roslaunch/uris/host_lite__41711] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:38:54,996: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:38:55,000: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:38:55,037: +SERVICE [/rosout/get_loggers] /rosout http://lite:36073/
+[rosmaster.master][INFO] 2026-10-10 15:38:55,039: +SERVICE [/rosout/set_logger_level] /rosout http://lite:36073/
+[rosmaster.master][INFO] 2026-10-10 15:38:55,047: +PUB [/rosout_agg] /rosout http://lite:36073/
+[rosmaster.master][INFO] 2026-10-10 15:38:55,133: +SUB [/rosout] /rosout http://lite:36073/
+[rosmaster.master][INFO] 2026-10-10 15:39:02,302: +PARAM [/roslaunch/uris/host_lite__42983] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:02,323: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:02,323: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:02,324: +PARAM [/use_sim_time] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:02,325: +PARAM [/gazebo/enable_ros_network] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:02,326: +PARAM [/robot_description] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:02,855: +PUB [/rosout] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:39:02,858: +SERVICE [/robot_state_publisher/get_loggers] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:39:02,861: +SERVICE [/robot_state_publisher/set_logger_level] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:39:02,873: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/']
+[rosmaster.master][INFO] 2026-10-10 15:39:02,892: +SUB [/clock] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:39:02,901: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/']: sec=0.03, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:02,915: +CACHEDPARAM [/rosout_disable_topics_generation] by /robot_state_publisher
+[rosmaster.master][INFO] 2026-10-10 15:39:02,924: +PUB [/tf] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:39:02,930: +PUB [/tf_static] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:39:02,945: +SUB [/joint_states] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,625: +PUB [/rosout] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,640: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/']
+[rosmaster.master][INFO] 2026-10-10 15:39:04,646: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:04,651: +SUB [/clock] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,682: +SERVICE [/sim_adapter/get_loggers] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,687: +SERVICE [/sim_adapter/set_logger_level] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,693: +PUB [/rslidar_points] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,701: +SUB [/livox/lidar] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,712: +SUB [/quad_0/lidar_pose] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,721: +CACHEDPARAM [/rosout_disable_topics_generation] by /sim_adapter
+[rosmaster.master][INFO] 2026-10-10 15:39:04,872: +CACHEDPARAM [/rosout/omit_topics] by /rosout
+[rosmaster.master][INFO] 2026-10-10 15:39:04,986: +PUB [/rosout] /spawn_lite3_planar http://lite:39399/
+[rosmaster.master][INFO] 2026-10-10 15:39:04,990: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:39399/']
+[rosmaster.master][INFO] 2026-10-10 15:39:05,006: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:39399/']: sec=0.02, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:05,009: +SUB [/clock] /spawn_lite3_planar http://lite:39399/
+[rosmaster.master][INFO] 2026-10-10 15:39:05,018: +SERVICE [/spawn_lite3_planar/get_loggers] /spawn_lite3_planar http://lite:39399/
+[rosmaster.master][INFO] 2026-10-10 15:39:05,024: +SERVICE [/spawn_lite3_planar/set_logger_level] /spawn_lite3_planar http://lite:39399/
+[rosmaster.master][INFO] 2026-10-10 15:39:05,036: +CACHEDPARAM [/rosout_disable_topics_generation] by /spawn_lite3_planar
+[rosmaster.master][INFO] 2026-10-10 15:39:05,057: +CACHEDPARAM [/rosout_disable_topics_generation] by /spawn_lite3_planar
+[rosmaster.master][INFO] 2026-10-10 15:39:07,010: +PUB [/rosout] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:07,024: +SERVICE [/gazebo/get_loggers] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:07,032: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:39399/', 'http://lite:36765/']
+[rosmaster.master][INFO] 2026-10-10 15:39:07,037: +SERVICE [/gazebo/set_logger_level] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:07,042: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:39399/', 'http://lite:36765/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:07,102: +SUB [/clock] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:07,128: +CACHEDPARAM [/rosout_disable_topics_generation] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,435: +PUB [/clock] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,438: +SERVICE [/gazebo/spawn_sdf_model] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,443: +SERVICE [/gazebo/spawn_urdf_model] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,446: +SERVICE [/gazebo/delete_model] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,446: publisherUpdate[/clock] -> http://lite:34091/ ['http://lite:36765/']
+[rosmaster.master][INFO] 2026-10-10 15:39:09,452: publisherUpdate[/clock] -> http://lite:34091/ ['http://lite:36765/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:09,453: publisherUpdate[/clock] -> http://lite:33861/ ['http://lite:36765/']
+[rosmaster.master][INFO] 2026-10-10 15:39:09,456: +SERVICE [/gazebo/delete_light] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,457: publisherUpdate[/clock] -> http://lite:39399/ ['http://lite:36765/']
+[rosmaster.master][INFO] 2026-10-10 15:39:09,457: publisherUpdate[/clock] -> http://lite:36765/ ['http://lite:36765/']
+[rosmaster.master][INFO] 2026-10-10 15:39:09,463: +SERVICE [/gazebo/get_model_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,466: publisherUpdate[/clock] -> http://lite:33861/ ['http://lite:36765/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:09,469: publisherUpdate[/clock] -> http://lite:36765/ ['http://lite:36765/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:09,471: +SERVICE [/gazebo/get_model_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,473: publisherUpdate[/clock] -> http://lite:39399/ ['http://lite:36765/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:09,478: +SERVICE [/gazebo/get_world_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,481: +SERVICE [/gazebo/get_joint_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,483: +SERVICE [/gazebo/get_link_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,486: +SERVICE [/gazebo/get_link_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,489: +SERVICE [/gazebo/get_light_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,494: +SERVICE [/gazebo/set_light_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,502: +SERVICE [/gazebo/get_physics_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,509: +PUB [/gazebo/link_states] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,517: +PUB [/gazebo/model_states] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,521: +PUB [/gazebo/performance_metrics] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,526: +SERVICE [/gazebo/set_link_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,531: +SERVICE [/gazebo/set_physics_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,547: +SERVICE [/gazebo/set_model_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,552: +SERVICE [/gazebo/set_model_configuration] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,556: +SERVICE [/gazebo/set_parameters] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,559: +PUB [/gazebo/parameter_descriptions] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,561: +PUB [/gazebo/parameter_updates] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,564: +SERVICE [/gazebo/set_joint_properties] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,568: +SERVICE [/gazebo/set_link_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,589: +SUB [/gazebo/set_link_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,602: +PARAM [/gazebo/time_step] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,607: +PARAM [/gazebo/max_update_rate] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,608: +SUB [/gazebo/set_model_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,612: +PARAM [/gazebo/gravity_x] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,617: +SERVICE [/gazebo/pause_physics] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,619: +PARAM [/gazebo/gravity_y] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,625: +PARAM [/gazebo/gravity_z] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,623: +SERVICE [/gazebo/unpause_physics] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,629: +PARAM [/gazebo/auto_disable_bodies] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,632: +SERVICE [/gazebo/apply_body_wrench] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,635: +PARAM [/gazebo/sor_pgs_precon_iters] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,646: +CACHEDPARAM [/rosout_disable_topics_generation] by /spawn_lite3_planar
+[rosmaster.master][INFO] 2026-10-10 15:39:09,649: +PARAM [/gazebo/sor_pgs_iters] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,653: +PARAM [/gazebo/sor_pgs_w] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,657: +SERVICE [/gazebo/apply_joint_effort] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,659: +PARAM [/gazebo/sor_pgs_rms_error_tol] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,664: +PARAM [/gazebo/cfm] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,666: +SERVICE [/gazebo/clear_joint_forces] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,668: +PARAM [/gazebo/erp] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,670: +SERVICE [/gazebo/clear_body_wrenches] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,673: +PARAM [/gazebo/contact_surface_layer] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,676: +SERVICE [/gazebo/reset_simulation] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,679: +PARAM [/gazebo/contact_max_correcting_vel] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:09,681: +SERVICE [/gazebo/reset_world] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:09,684: +PARAM [/gazebo/max_contacts] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:15,153: +PUB [/tf] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:15,186: +PUB [/livox/lidar] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:15,201: publisherUpdate[/livox/lidar] -> http://lite:33861/ ['http://lite:36765/']
+[rosmaster.master][INFO] 2026-10-10 15:39:15,211: publisherUpdate[/livox/lidar] -> http://lite:33861/ ['http://lite:36765/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:47,958: +PARAM [/gazebo/time_step] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:47,959: +CACHEDPARAM [/rosout_disable_topics_generation] by /spawn_lite3_planar
+[rosmaster.master][INFO] 2026-10-10 15:39:47,964: +PARAM [/gazebo/max_update_rate] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:47,970: +PARAM [/gazebo/gravity_x] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:47,973: -SUB [/clock] /spawn_lite3_planar http://lite:39399/
+[rosmaster.master][INFO] 2026-10-10 15:39:47,974: -PUB [/rosout] /spawn_lite3_planar http://lite:39399/
+[rosmaster.master][INFO] 2026-10-10 15:39:47,974: -SERVICE [/spawn_lite3_planar/get_loggers] /spawn_lite3_planar rosrpc://lite:40493
+[rosmaster.master][INFO] 2026-10-10 15:39:47,975: -SERVICE [/spawn_lite3_planar/set_logger_level] /spawn_lite3_planar rosrpc://lite:40493
+[rosmaster.master][INFO] 2026-10-10 15:39:47,980: +PARAM [/gazebo/gravity_y] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:47,983: +PARAM [/gazebo/gravity_z] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:47,994: +PARAM [/gazebo/auto_disable_bodies] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,002: +PARAM [/gazebo/sor_pgs_precon_iters] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,007: +PARAM [/gazebo/sor_pgs_iters] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,010: +PARAM [/gazebo/sor_pgs_w] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,014: +PARAM [/gazebo/sor_pgs_rms_error_tol] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,017: +PARAM [/gazebo/cfm] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,019: +PARAM [/gazebo/erp] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,022: +PARAM [/gazebo/contact_surface_layer] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,024: +PARAM [/gazebo/contact_max_correcting_vel] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,027: +PARAM [/gazebo/max_contacts] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:39:48,028: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/']
+[rosmaster.master][INFO] 2026-10-10 15:39:48,043: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:48,050: +PUB [/livox/imu] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:48,101: +PUB [/sim/odom_gt] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:48,112: +SUB [/cmd_vel] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:39:55,297: +PARAM [/roslaunch/uris/host_lite__38763] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,345: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,346: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,346: +PARAM [/common/imu_topic] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,347: +PARAM [/common/lid_topic] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,347: +PARAM [/common/time_sync_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,347: +PARAM [/cube_side_length] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,348: +PARAM [/esti_plane_threshold] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,357: +PARAM [/feature_extract_enable] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,358: +PARAM [/filter_size_map] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,358: +PARAM [/filter_size_surf] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,359: +PARAM [/ivox_grid_resolution] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,359: +PARAM [/ivox_nearby_type] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,360: +PARAM [/map_file_path] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,360: +PARAM [/mapping/acc_cov] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,361: +PARAM [/mapping/b_acc_cov] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,361: +PARAM [/mapping/b_gyr_cov] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,361: +PARAM [/mapping/det_range] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,362: +PARAM [/mapping/extrinsic_R] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,362: +PARAM [/mapping/extrinsic_T] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,362: +PARAM [/mapping/extrinsic_est_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,363: +PARAM [/mapping/gyr_cov] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,363: +PARAM [/max_iteration] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,363: +PARAM [/path_save_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,364: +PARAM [/pcd_save/interval] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,364: +PARAM [/pcd_save/pcd_save_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,365: +PARAM [/preprocess/blind] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,365: +PARAM [/preprocess/lidar_type] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,365: +PARAM [/preprocess/scan_line] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,366: +PARAM [/preprocess/time_scale] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,367: +PARAM [/publish/dense_publish_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,368: +PARAM [/publish/path_publish_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,378: +PARAM [/publish/scan_bodyframe_pub_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,379: +PARAM [/publish/scan_effect_pub_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,380: +PARAM [/publish/scan_publish_en] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,380: +PARAM [/publish/tf_imu_frame] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,381: +PARAM [/publish/tf_world_frame] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,384: +PARAM [/runtime_pos_log_enable] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:55,384: +PARAM [/use_sim_time] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:39:56,653: +PUB [/rosout] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,658: +SERVICE [/faster_lio_online/get_loggers] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,677: +SERVICE [/faster_lio_online/set_logger_level] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,711: +SUB [/clock] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,725: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/']
+[rosmaster.master][INFO] 2026-10-10 15:39:56,731: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:39:56,829: +SUB [/rslidar_points] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,840: +SUB [/livox/imu] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,844: +PUB [/cloud_registered] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,848: +PUB [/cloud_registered_body] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,850: +PUB [/cloud_registered_effect_world] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,853: +PUB [/Odometry] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:56,856: +PUB [/path] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:39:58,851: +PUB [/tf] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:40:08,873: +PARAM [/roslaunch/uris/host_lite__45129] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:08,994: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:08,995: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:08,996: +PARAM [/body_pose_topic] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:08,997: +PARAM [/scan_planner_node/grid_map/sensor_type] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:08,998: +PARAM [/scan_planner_node/grid_map/cloud_is_world] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:08,998: +PARAM [/scan_planner_node/grid_map/need_extrinsic] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:08,999: +PARAM [/scan_planner_node/fsm/navi_mode] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,000: +PARAM [/scan_planner_node/fsm/thresh_replan] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,001: +PARAM [/scan_planner_node/fsm/thresh_no_replan] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,002: +PARAM [/scan_planner_node/fsm/planning_horizon] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,002: +PARAM [/scan_planner_node/fsm/emergency_time_] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,003: +PARAM [/scan_planner_node/fsm/fail_safe] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,004: +PARAM [/scan_planner_node/fsm/max_replan_fail_count] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,005: +PARAM [/scan_planner_node/fsm/is_real_world] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,007: +PARAM [/scan_planner_node/grid_map/resolution] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,007: +PARAM [/scan_planner_node/grid_map/sliding_map_size_x] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,008: +PARAM [/scan_planner_node/grid_map/sliding_map_size_y] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,009: +PARAM [/scan_planner_node/grid_map/sliding_map_size_z] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,009: +PARAM [/scan_planner_node/grid_map/map_sliding_thresh] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,010: +PARAM [/scan_planner_node/grid_map/double_cylinder_radius] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,011: +PARAM [/scan_planner_node/grid_map/double_cylinder_offset] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,011: +PARAM [/scan_planner_node/grid_map/obstacles_inflation_z_up] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,012: +PARAM [/scan_planner_node/grid_map/obstacles_inflation_z_down] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,013: +PARAM [/scan_planner_node/grid_map/body_height] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,014: +PARAM [/scan_planner_node/grid_map/cx] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,015: +PARAM [/scan_planner_node/grid_map/cy] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,015: +PARAM [/scan_planner_node/grid_map/fx] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,016: +PARAM [/scan_planner_node/grid_map/fy] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,017: +PARAM [/scan_planner_node/grid_map/depth_filter_maxdist] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,018: +PARAM [/scan_planner_node/grid_map/depth_filter_mindist] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,019: +PARAM [/scan_planner_node/grid_map/depth_filter_margin] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,019: +PARAM [/scan_planner_node/grid_map/k_depth_scaling_factor] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,020: +PARAM [/scan_planner_node/grid_map/skip_pixel] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,021: +PARAM [/scan_planner_node/grid_map/p_hit] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,021: +PARAM [/scan_planner_node/grid_map/p_miss] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,022: +PARAM [/scan_planner_node/grid_map/p_min] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,029: +PARAM [/scan_planner_node/grid_map/p_max] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,030: +PARAM [/scan_planner_node/grid_map/p_occ] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,031: +PARAM [/scan_planner_node/grid_map/max_ray_length] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,033: +PARAM [/scan_planner_node/grid_map/vis_height] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,033: +PARAM [/scan_planner_node/manager/max_vel] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,034: +PARAM [/scan_planner_node/manager/max_acc] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,036: +PARAM [/scan_planner_node/manager/max_jerk] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,037: +PARAM [/scan_planner_node/manager/control_points_distance] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,041: +PARAM [/scan_planner_node/manager/feasibility_tolerance] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,042: +PARAM [/scan_planner_node/manager/planning_horizon] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,043: +PARAM [/scan_planner_node/optimization/lambda_smooth] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,044: +PARAM [/scan_planner_node/optimization/lambda_collision] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,045: +PARAM [/scan_planner_node/optimization/lambda_feasibility] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,045: +PARAM [/scan_planner_node/optimization/lambda_fitness] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,049: +PARAM [/scan_planner_node/optimization/dist0] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,050: +PARAM [/scan_planner_node/optimization/max_vel] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,050: +PARAM [/scan_planner_node/optimization/vel_tolerance] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,051: +PARAM [/scan_planner_node/optimization/max_acc] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,054: +PARAM [/scan_planner_node/optimization/acc_tolerance] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,054: +PARAM [/closed_loop_controller/time_forward] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,055: +PARAM [/closed_loop_controller/heading_error_threshold] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,064: +PARAM [/closed_loop_controller/kp_pos] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,066: +PARAM [/closed_loop_controller/kp_yaw] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,067: +PARAM [/closed_loop_controller/max_vx] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,068: +PARAM [/closed_loop_controller/max_vy] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,069: +PARAM [/closed_loop_controller/max_vyaw] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,070: +PARAM [/closed_loop_controller/finish_dist] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,071: +PARAM [/scan_arrival_monitor/tol_arrive] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,071: +PARAM [/scan_arrival_monitor/settle_s] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,072: +PARAM [/scan_arrival_monitor/pose_topic] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,074: +PARAM [/scan_arrival_monitor/goal_topic] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:09,932: +PUB [/rosout] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:09,933: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/']
+[rosmaster.master][INFO] 2026-10-10 15:40:09,946: +SERVICE [/lio_odom_vehicle_relay/get_loggers] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:09,951: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/']: sec=0.02, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:09,961: +SERVICE [/lio_odom_vehicle_relay/set_logger_level] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:09,994: +PUB [/rosout] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,003: +SERVICE [/lio_odom_imu_relay/get_loggers] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,007: +SUB [/clock] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,012: +SERVICE [/lio_odom_imu_relay/set_logger_level] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,014: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/']
+[rosmaster.master][INFO] 2026-10-10 15:40:10,022: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:10,064: +SUB [/Odometry] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,081: +SUB [/clock] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,126: +SUB [/Odometry] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,189: +PUB [/rosout] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,195: +SERVICE [/lio_cloud_relay/get_loggers] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,199: +SERVICE [/lio_cloud_relay/set_logger_level] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,220: +SUB [/clock] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,224: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/']
+[rosmaster.master][INFO] 2026-10-10 15:40:10,239: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:10,263: +SUB [/cloud_registered_body] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,516: +PUB [/rosout] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,523: +SERVICE [/world_to_camera_init/get_loggers] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,540: +PUB [/LIO/odom_imu] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,542: +PUB [/LIO/odom_vehicle] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,581: +PUB [/LIO/clouds_lidar] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,582: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/']
+[rosmaster.master][INFO] 2026-10-10 15:40:10,594: +CACHEDPARAM [/rosout_disable_topics_generation] by /lio_odom_imu_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:10,596: +SERVICE [/world_to_camera_init/set_logger_level] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,599: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:10,605: +CACHEDPARAM [/rosout_disable_topics_generation] by /lio_cloud_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:10,609: +CACHEDPARAM [/rosout_disable_topics_generation] by /lio_odom_vehicle_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:10,639: +SUB [/clock] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,645: +PUB [/tf_static] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,653: +CACHEDPARAM [/rosout_disable_topics_generation] by /world_to_camera_init
+[rosmaster.master][INFO] 2026-10-10 15:40:10,748: +PUB [/rosout] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,753: +SERVICE [/scan_planner_node/get_loggers] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,765: +SERVICE [/scan_planner_node/set_logger_level] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,786: +PUB [/rosout] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,787: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/']
+[rosmaster.master][INFO] 2026-10-10 15:40:10,796: +SERVICE [/closed_loop_controller/get_loggers] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,798: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:10,804: +SERVICE [/closed_loop_controller/set_logger_level] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,808: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/']
+[rosmaster.master][INFO] 2026-10-10 15:40:10,818: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:10,897: +SUB [/clock] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:10,936: +SUB [/clock] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,185: +SUB [/planning/bspline] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,267: +SUB [/LIO/odom_vehicle] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,272: +PUB [/scan_planner/cmd_vel] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,276: +PUB [/scan_planner_node/goal_point] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,279: +PUB [/planning/go2_execution_frozen] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,282: +PUB [/scan_planner_node/global_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,285: +PUB [/scan_planner_node/init_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,287: +CACHEDPARAM [/rosout_disable_topics_generation] by /closed_loop_controller
+[rosmaster.master][INFO] 2026-10-10 15:40:11,289: +PUB [/scan_planner_node/optimal_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,294: +PUB [/scan_planner_node/a_star_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,549: +PUB [/tf] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,561: +SUB [/LIO/odom_imu] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,573: +SUB [/LIO/clouds_lidar] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,591: +SUB [/LIO/odom_vehicle] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,596: +PUB [/grid_map/occupancy] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,609: +PUB [/grid_map/occupancy_inflate] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,612: +PUB [/grid_map/sliding_map_bbox] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,614: +PUB [/grid_map/unknown] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,616: +PUB [/grid_map/depth_cloud] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:11,618: +PUB [/grid_map/sensor_pose_extrinsic] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:12,211: +SUB [/planning/go2_execution_frozen] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:12,226: +PUB [/planning/bspline] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:12,238: +PUB [/planning/data_display] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:12,248: +PUB [/scan_planner_node/self_inflation] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:12,249: publisherUpdate[/planning/bspline] -> http://lite:35181/ ['http://lite:45543/']
+[rosmaster.master][INFO] 2026-10-10 15:40:12,270: publisherUpdate[/planning/bspline] -> http://lite:35181/ ['http://lite:45543/']: sec=0.02, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:12,313: +SUB [/scan_planner/goal] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,377: +PUB [/rosout] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,392: +SUB [/clock] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,399: +SERVICE [/scan_arrival_monitor/get_loggers] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,404: +SERVICE [/scan_arrival_monitor/set_logger_level] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,442: +PUB [/lite3/scan/arrived] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,447: +PUB [/lite3/scan/arrival_dist] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,453: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/']
+[rosmaster.master][INFO] 2026-10-10 15:40:13,457: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:13,468: +SUB [/scan_planner/goal] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,480: +SUB [/LIO/odom_vehicle] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:40:13,486: +CACHEDPARAM [/rosout_disable_topics_generation] by /scan_arrival_monitor
+[rosmaster.master][INFO] 2026-10-10 15:40:16,749: +CACHEDPARAM [/rosout_disable_topics_generation] by /scan_planner_node
+[rosmaster.master][INFO] 2026-10-10 15:40:21,091: +PUB [/rosout] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:21,128: +SUB [/clock] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:21,132: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:43741/']
+[rosmaster.master][INFO] 2026-10-10 15:40:21,148: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:43741/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:21,161: +SERVICE [/stp_tf_parent_probe_88133_1791618020609/get_loggers] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:21,195: +SERVICE [/stp_tf_parent_probe_88133_1791618020609/set_logger_level] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:21,208: +SUB [/tf] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:21,222: +SUB [/tf_static] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:24,266: -SUB [/tf] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:24,280: -SUB [/tf_static] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:27,183: -SUB [/clock] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:27,184: -PUB [/rosout] /stp_tf_parent_probe_88133_1791618020609 http://lite:43741/
+[rosmaster.master][INFO] 2026-10-10 15:40:27,188: -SERVICE [/stp_tf_parent_probe_88133_1791618020609/get_loggers] /stp_tf_parent_probe_88133_1791618020609 rosrpc://lite:45137
+[rosmaster.master][INFO] 2026-10-10 15:40:27,192: -SERVICE [/stp_tf_parent_probe_88133_1791618020609/set_logger_level] /stp_tf_parent_probe_88133_1791618020609 rosrpc://lite:45137
+[rosmaster.master][INFO] 2026-10-10 15:40:27,193: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/']
+[rosmaster.master][INFO] 2026-10-10 15:40:27,204: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:36917/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:35,078: +PARAM [/roslaunch/uris/host_lite__40751] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:35,132: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:35,138: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2026-10-10 15:40:35,909: +PUB [/rosout] /lio_odom_vehicle_relay http://lite:33271/
+[rosmaster.master][INFO] 2026-10-10 15:40:35,914: +SERVICE [/lio_odom_vehicle_relay/get_loggers] /lio_odom_vehicle_relay http://lite:33271/
+[rosmaster.master][INFO] 2026-10-10 15:40:35,924: +SERVICE [/lio_odom_vehicle_relay/set_logger_level] /lio_odom_vehicle_relay http://lite:33271/
+[rosmaster.master][INFO] 2026-10-10 15:40:35,961: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/']
+[rosmaster.master][INFO] 2026-10-10 15:40:35,967: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:35531/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:35,970: +SUB [/clock] /lio_odom_vehicle_relay http://lite:33271/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,030: +SUB [/Odometry] /lio_odom_vehicle_relay http://lite:33271/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,065: -PUB [/rosout] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,068: -PUB [/LIO/odom_vehicle] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,108: -SUB [/clock] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,117: -SUB [/Odometry] /lio_odom_vehicle_relay http://lite:36917/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,195: +PUB [/rosout] /lio_odom_imu_relay http://lite:46807/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,235: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/']
+[rosmaster.master][INFO] 2026-10-10 15:40:36,261: -SERVICE [/lio_odom_vehicle_relay/get_loggers] /lio_odom_vehicle_relay rosrpc://lite:51823
+[rosmaster.master][INFO] 2026-10-10 15:40:36,275: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/']: sec=0.02, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:36,278: -SERVICE [/lio_odom_vehicle_relay/set_logger_level] /lio_odom_vehicle_relay rosrpc://lite:51823
+[rosmaster.master][INFO] 2026-10-10 15:40:36,281: -CACHEDPARAM [/rosout_disable_topics_generation] by /lio_odom_vehicle_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:36,284: +SERVICE [/lio_odom_imu_relay/get_loggers] /lio_odom_imu_relay http://lite:46807/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,298: +SERVICE [/lio_odom_imu_relay/set_logger_level] /lio_odom_imu_relay http://lite:46807/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,338: +PUB [/rosout] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,340: +SERVICE [/body_to_base_link/get_loggers] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,342: +SERVICE [/body_to_base_link/set_logger_level] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,354: -PUB [/rosout] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,355: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/']
+[rosmaster.master][INFO] 2026-10-10 15:40:36,360: -PUB [/LIO/odom_imu] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,366: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:37785/', 'http://lite:42453/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:36,369: -SUB [/clock] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,372: +SUB [/clock] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,375: -SUB [/Odometry] /lio_odom_imu_relay http://lite:35531/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,377: +PUB [/tf_static] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,379: -SERVICE [/lio_odom_imu_relay/get_loggers] /lio_odom_imu_relay rosrpc://lite:57221
+[rosmaster.master][INFO] 2026-10-10 15:40:36,403: +CACHEDPARAM [/rosout_disable_topics_generation] by /body_to_base_link
+[rosmaster.master][INFO] 2026-10-10 15:40:36,409: -SERVICE [/lio_odom_imu_relay/set_logger_level] /lio_odom_imu_relay rosrpc://lite:57221
+[rosmaster.master][INFO] 2026-10-10 15:40:36,414: -CACHEDPARAM [/rosout_disable_topics_generation] by /lio_odom_imu_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:36,442: +SUB [/clock] /lio_odom_imu_relay http://lite:46807/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,450: +PUB [/rosout] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,453: +SERVICE [/world_to_camera_init/get_loggers] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,458: +SERVICE [/world_to_camera_init/set_logger_level] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,477: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:37785/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/']
+[rosmaster.master][INFO] 2026-10-10 15:40:36,482: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:37785/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:36,490: +PUB [/rosout] /lio_cloud_relay http://lite:40649/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,501: +SUB [/Odometry] /lio_odom_imu_relay http://lite:46807/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,509: +SUB [/clock] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,514: +SERVICE [/lio_cloud_relay/get_loggers] /lio_cloud_relay http://lite:40649/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,517: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:40:36,522: +SERVICE [/lio_cloud_relay/set_logger_level] /lio_cloud_relay http://lite:40649/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,525: +PUB [/tf_static] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,527: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/', 'http://lite:40649/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:36,537: +PUB [/LIO/odom_vehicle] /lio_odom_vehicle_relay http://lite:33271/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,540: +CACHEDPARAM [/rosout_disable_topics_generation] by /world_to_camera_init
+[rosmaster.master][INFO] 2026-10-10 15:40:36,553: +CACHEDPARAM [/rosout_disable_topics_generation] by /lio_odom_vehicle_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:36,588: publisherUpdate[/LIO/odom_vehicle] -> http://lite:35181/ ['http://lite:33271/']
+[rosmaster.master][INFO] 2026-10-10 15:40:36,590: publisherUpdate[/LIO/odom_vehicle] -> http://lite:45543/ ['http://lite:33271/']
+[rosmaster.master][INFO] 2026-10-10 15:40:36,602: +SUB [/clock] /lio_cloud_relay http://lite:40649/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,631: publisherUpdate[/LIO/odom_vehicle] -> http://lite:40551/ ['http://lite:33271/']
+[rosmaster.master][INFO] 2026-10-10 15:40:36,628: publisherUpdate[/LIO/odom_vehicle] -> http://lite:35181/ ['http://lite:33271/']: sec=0.04, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:36,622: publisherUpdate[/LIO/odom_vehicle] -> http://lite:45543/ ['http://lite:33271/']: sec=0.03, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:36,632: -PUB [/rosout] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,685: publisherUpdate[/LIO/odom_vehicle] -> http://lite:40551/ ['http://lite:33271/']: sec=0.05, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:36,686: +SUB [/cloud_registered_body] /lio_cloud_relay http://lite:40649/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,696: -PUB [/tf_static] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,714: -SUB [/clock] /world_to_camera_init http://lite:42453/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,722: -SERVICE [/world_to_camera_init/get_loggers] /world_to_camera_init rosrpc://lite:47829
+[rosmaster.master][INFO] 2026-10-10 15:40:36,728: -PUB [/rosout] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,734: -PUB [/LIO/clouds_lidar] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,739: -SUB [/clock] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,744: -SUB [/cloud_registered_body] /lio_cloud_relay http://lite:37785/
+[rosmaster.master][INFO] 2026-10-10 15:40:36,755: -SERVICE [/world_to_camera_init/set_logger_level] /world_to_camera_init rosrpc://lite:47829
+[rosmaster.master][INFO] 2026-10-10 15:40:36,764: -SERVICE [/lio_cloud_relay/get_loggers] /lio_cloud_relay rosrpc://lite:45285
+[rosmaster.master][INFO] 2026-10-10 15:40:36,771: -CACHEDPARAM [/rosout_disable_topics_generation] by /world_to_camera_init
+[rosmaster.master][INFO] 2026-10-10 15:40:36,774: -SERVICE [/lio_cloud_relay/set_logger_level] /lio_cloud_relay rosrpc://lite:45285
+[rosmaster.master][INFO] 2026-10-10 15:40:36,779: -CACHEDPARAM [/rosout_disable_topics_generation] by /lio_cloud_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:37,639: +PUB [/LIO/clouds_lidar] /lio_cloud_relay http://lite:40649/
+[rosmaster.master][INFO] 2026-10-10 15:40:37,643: +PUB [/LIO/odom_imu] /lio_odom_imu_relay http://lite:46807/
+[rosmaster.master][INFO] 2026-10-10 15:40:37,647: +CACHEDPARAM [/rosout_disable_topics_generation] by /lio_odom_imu_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:37,659: +CACHEDPARAM [/rosout_disable_topics_generation] by /lio_cloud_relay
+[rosmaster.master][INFO] 2026-10-10 15:40:37,701: publisherUpdate[/LIO/clouds_lidar] -> http://lite:45543/ ['http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:40:37,723: publisherUpdate[/LIO/clouds_lidar] -> http://lite:45543/ ['http://lite:40649/']: sec=0.02, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:37,724: publisherUpdate[/LIO/odom_imu] -> http://lite:45543/ ['http://lite:46807/']
+[rosmaster.master][INFO] 2026-10-10 15:40:37,733: publisherUpdate[/LIO/odom_imu] -> http://lite:45543/ ['http://lite:46807/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:45,787: +PUB [/rosout] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:45,818: +SUB [/clock] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:45,840: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/', 'http://lite:40649/', 'http://lite:35963/']
+[rosmaster.master][INFO] 2026-10-10 15:40:45,849: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/', 'http://lite:40649/', 'http://lite:35963/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:45,884: +SERVICE [/stp_tf_parent_probe_89890_1791618045125/get_loggers] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:45,895: +SERVICE [/stp_tf_parent_probe_89890_1791618045125/set_logger_level] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:45,910: +SUB [/tf] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:45,957: +SUB [/tf_static] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:48,992: -SUB [/tf] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:49,048: -SUB [/tf_static] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:51,236: -SUB [/clock] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:51,238: -PUB [/rosout] /stp_tf_parent_probe_89890_1791618045125 http://lite:35963/
+[rosmaster.master][INFO] 2026-10-10 15:40:51,239: -SERVICE [/stp_tf_parent_probe_89890_1791618045125/get_loggers] /stp_tf_parent_probe_89890_1791618045125 rosrpc://lite:43805
+[rosmaster.master][INFO] 2026-10-10 15:40:51,241: -SERVICE [/stp_tf_parent_probe_89890_1791618045125/set_logger_level] /stp_tf_parent_probe_89890_1791618045125 rosrpc://lite:43805
+[rosmaster.master][INFO] 2026-10-10 15:40:51,271: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:40:51,276: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:44569/', 'http://lite:40649/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:52,816: -PUB [/rosout] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:52,820: -PUB [/tf_static] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:52,822: -SUB [/clock] /world_to_camera_init http://lite:44569/
+[rosmaster.master][INFO] 2026-10-10 15:40:52,828: -SERVICE [/world_to_camera_init/get_loggers] /world_to_camera_init rosrpc://lite:38317
+[rosmaster.master][INFO] 2026-10-10 15:40:52,830: -SERVICE [/world_to_camera_init/set_logger_level] /world_to_camera_init rosrpc://lite:38317
+[rosmaster.master][INFO] 2026-10-10 15:40:52,835: -CACHEDPARAM [/rosout_disable_topics_generation] by /world_to_camera_init
+[rosmaster.master][INFO] 2026-10-10 15:40:52,840: -PUB [/rosout] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:52,842: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:40:52,848: -PUB [/tf_static] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:52,849: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:42087/', 'http://lite:40649/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:52,851: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:40:52,854: -SUB [/clock] /body_to_base_link http://lite:42087/
+[rosmaster.master][INFO] 2026-10-10 15:40:52,855: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:35181/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:40:52,858: -SERVICE [/body_to_base_link/get_loggers] /body_to_base_link rosrpc://lite:52353
+[rosmaster.master][INFO] 2026-10-10 15:40:52,861: -SERVICE [/body_to_base_link/set_logger_level] /body_to_base_link rosrpc://lite:52353
+[rosmaster.master][INFO] 2026-10-10 15:40:52,869: -CACHEDPARAM [/rosout_disable_topics_generation] by /body_to_base_link
+[rosmaster.master][INFO] 2026-10-10 15:41:01,387: +CACHEDPARAM [/rosout_disable_topics_generation] by /faster_lio_online
+[rosmaster.master][INFO] 2026-10-10 15:41:01,486: -PUB [/rosout] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,489: -PUB [/scan_planner/cmd_vel] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,494: -PUB [/planning/go2_execution_frozen] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,498: -PUB [/rosout] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,503: -SUB [/clock] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,509: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:41:01,510: -PUB [/cloud_registered] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,523: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:46729/', 'http://lite:45543/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:41:01,524: -SUB [/planning/bspline] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,525: publisherUpdate[/planning/go2_execution_frozen] -> http://lite:45543/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,528: -PUB [/cloud_registered_body] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,535: -SUB [/LIO/odom_vehicle] /closed_loop_controller http://lite:35181/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,546: -PUB [/cloud_registered_effect_world] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,560: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:45543/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:41:01,569: publisherUpdate[/cloud_registered_body] -> http://lite:40649/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,573: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:45543/', 'http://lite:40551/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:41:01,574: publisherUpdate[/planning/go2_execution_frozen] -> http://lite:45543/ []: sec=0.05, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:41:01,584: publisherUpdate[/Odometry] -> http://lite:46807/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,586: publisherUpdate[/Odometry] -> http://lite:46807/ []: sec=0.00, exception=[Errno 111] Connection refused
+[rosmaster.master][INFO] 2026-10-10 15:41:01,575: -PUB [/Odometry] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,583: publisherUpdate[/cloud_registered_body] -> http://lite:40649/ []: sec=0.01, exception=[Errno 111] Connection refused
+[rosmaster.master][INFO] 2026-10-10 15:41:01,583: publisherUpdate[/Odometry] -> http://lite:33271/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,593: -SERVICE [/closed_loop_controller/get_loggers] /closed_loop_controller rosrpc://lite:51245
+[rosmaster.master][INFO] 2026-10-10 15:41:01,601: -SUB [/clock] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,604: -PUB [/path] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,613: -SUB [/scan_planner/goal] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,618: publisherUpdate[/Odometry] -> http://lite:33271/ []: sec=0.02, exception=[Errno 111] Connection refused
+[rosmaster.master][INFO] 2026-10-10 15:41:01,622: -SERVICE [/closed_loop_controller/set_logger_level] /closed_loop_controller rosrpc://lite:51245
+[rosmaster.master][INFO] 2026-10-10 15:41:01,625: -PUB [/tf] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,628: -SUB [/LIO/odom_vehicle] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,630: -PUB [/rosout] /scan_arrival_monitor http://lite:40551/
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,633: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,634: -SUB [/clock] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,638: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:45543/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,637: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,635: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,639: -CACHEDPARAM [/rosout_disable_topics_generation] by /closed_loop_controller
+[rosmaster.master][INFO] 2026-10-10 15:41:01,640: -PUB [/lite3/scan/arrived] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,652: -PUB [/lite3/scan/arrival_dist] /scan_arrival_monitor http://lite:40551/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,653: -PUB [/rosout] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,654: -PUB [/rosout_agg] /rosout http://lite:36073/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,656: -SERVICE [/scan_arrival_monitor/get_loggers] /scan_arrival_monitor rosrpc://lite:37603
+[rosmaster.master][INFO] 2026-10-10 15:41:01,663: -SUB [/rslidar_points] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,665: -PUB [/rosout] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,666: -SUB [/rosout] /rosout http://lite:36073/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,667: -SERVICE [/scan_arrival_monitor/set_logger_level] /scan_arrival_monitor rosrpc://lite:37603
+[rosmaster.master][INFO] 2026-10-10 15:41:01,673: -PUB [/clock] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,674: -PUB [/tf] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,682: -SUB [/livox/imu] /faster_lio_online http://lite:46729/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,683: -SERVICE [/rosout/get_loggers] /rosout rosrpc://lite:56271
+[rosmaster.master][INFO] 2026-10-10 15:41:01,686: -PUB [/tf_static] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,689: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:36765/', 'http://lite:45543/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']: sec=0.04, exception=<Fault -1: 'publisherUpdate: unknown method name'>
+[rosmaster.master][INFO] 2026-10-10 15:41:01,690: -PUB [/gazebo/link_states] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,697: -SERVICE [/faster_lio_online/get_loggers] /faster_lio_online rosrpc://lite:56653
+[rosmaster.master][INFO] 2026-10-10 15:41:01,698: -SERVICE [/rosout/set_logger_level] /rosout rosrpc://lite:56271
+[rosmaster.master][INFO] 2026-10-10 15:41:01,699: -SUB [/clock] /robot_state_publisher http://lite:34091/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,704: -SERVICE [/faster_lio_online/set_logger_level] /faster_lio_online rosrpc://lite:56653
+[rosmaster.master][INFO] 2026-10-10 15:41:01,706: -PUB [/gazebo/model_states] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,707: -CACHEDPARAM [/rosout/omit_topics] by /rosout
+[rosmaster.master][INFO] 2026-10-10 15:41:01,709: -SUB [/joint_states] /robot_state_publisher http://lite:34091/
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,713: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1169, in single_request
+    return self.parse_response(resp)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1341, in parse_response
+    return u.close()
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 655, in close
+    raise Fault(**self._stack[0])
+xmlrpc.client.Fault: <Fault -1: 'publisherUpdate: unknown method name'>
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,717: -CACHEDPARAM [/rosout_disable_topics_generation] by /faster_lio_online
+[rosmaster.master][INFO] 2026-10-10 15:41:01,717: -PUB [/gazebo/performance_metrics] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,718: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:45543/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:41:01,722: -SERVICE [/robot_state_publisher/get_loggers] /robot_state_publisher rosrpc://lite:39669
+[rosmaster.master][INFO] 2026-10-10 15:41:01,730: -PUB [/gazebo/parameter_descriptions] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,735: -SERVICE [/robot_state_publisher/set_logger_level] /robot_state_publisher rosrpc://lite:39669
+[rosmaster.master][INFO] 2026-10-10 15:41:01,738: -CACHEDPARAM [/rosout_disable_topics_generation] by /robot_state_publisher
+[rosmaster.master][INFO] 2026-10-10 15:41:01,742: -PUB [/gazebo/parameter_updates] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,750: publisherUpdate[/clock] -> http://lite:34091/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,750: publisherUpdate[/clock] -> http://lite:33861/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,757: publisherUpdate[/clock] -> http://lite:34091/ []: sec=0.01, exception=<Fault -1: 'publisherUpdate: unknown method name'>
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,758: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1169, in single_request
+    return self.parse_response(resp)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1341, in parse_response
+    return u.close()
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 655, in close
+    raise Fault(**self._stack[0])
+xmlrpc.client.Fault: <Fault -1: 'publisherUpdate: unknown method name'>
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,758: publisherUpdate[/clock] -> http://lite:36765/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,749: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:34091/', 'http://lite:33861/', 'http://lite:45543/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']: sec=0.02, exception=<Fault -1: 'publisherUpdate: unknown method name'>
+[rosmaster.master][INFO] 2026-10-10 15:41:01,765: publisherUpdate[/clock] -> http://lite:33861/ []: sec=0.01, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:41:01,774: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:33861/', 'http://lite:45543/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']
+[rosmaster.master][INFO] 2026-10-10 15:41:01,766: publisherUpdate[/clock] -> http://lite:36765/ []: sec=0.01, exception=<Fault -1: 'publisherUpdate: unknown method name'>
+[rosmaster.master][INFO] 2026-10-10 15:41:01,769: -PUB [/tf] /gazebo http://lite:36765/
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,780: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1169, in single_request
+    return self.parse_response(resp)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1341, in parse_response
+    return u.close()
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 655, in close
+    raise Fault(**self._stack[0])
+xmlrpc.client.Fault: <Fault -1: 'publisherUpdate: unknown method name'>
+
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,784: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1169, in single_request
+    return self.parse_response(resp)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1341, in parse_response
+    return u.close()
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 655, in close
+    raise Fault(**self._stack[0])
+xmlrpc.client.Fault: <Fault -1: 'publisherUpdate: unknown method name'>
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,785: publisherUpdate[/rosout] -> http://lite:36073/ ['http://lite:33861/', 'http://lite:45543/', 'http://lite:33271/', 'http://lite:46807/', 'http://lite:40649/']: sec=0.01, exception=[Errno 111] Connection refused
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,797: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,793: publisherUpdate[/clock] -> http://lite:33271/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,788: publisherUpdate[/clock] -> http://lite:45543/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,806: publisherUpdate[/clock] -> http://lite:45543/ []: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:41:01,807: publisherUpdate[/clock] -> http://lite:40649/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,798: publisherUpdate[/clock] -> http://lite:46807/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,815: publisherUpdate[/clock] -> http://lite:46807/ []: sec=0.00, exception=[Errno 111] Connection refused
+[rosmaster.master][INFO] 2026-10-10 15:41:01,819: publisherUpdate[/clock] -> http://lite:40649/ []: sec=0.01, exception=[Errno 111] Connection refused
+[rosmaster.master][INFO] 2026-10-10 15:41:01,800: -PUB [/livox/lidar] /gazebo http://lite:36765/
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,821: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,853: publisherUpdate[/livox/lidar] -> http://lite:33861/ []
+[rosmaster.master][INFO] 2026-10-10 15:41:01,852: -SUB [/clock] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,858: -SUB [/livox/lidar] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,858: -SUB [/quad_0/lidar_pose] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,859: -PUB [/rosout] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,859: -PUB [/rslidar_points] /sim_adapter http://lite:33861/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,860: -SERVICE [/sim_adapter/get_loggers] /sim_adapter rosrpc://lite:36069
+[rosmaster.master][INFO] 2026-10-10 15:41:01,861: -SERVICE [/sim_adapter/set_logger_level] /sim_adapter rosrpc://lite:36069
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,825: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,849: publisherUpdate[/clock] -> http://lite:33271/ []: sec=0.05, exception=[Errno 111] Connection refused
+[rosmaster.threadpool][ERROR] 2026-10-10 15:41:01,870: Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/threadpool.py", line 218, in run
+    result = cmd(*args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rosmaster/master_api.py", line 210, in publisher_update_task
+    ret = xmlrpcapi(api).publisherUpdate('/master', topic, pub_uris)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+[rosmaster.master][INFO] 2026-10-10 15:41:01,867: -PUB [/livox/imu] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,880: publisherUpdate[/livox/lidar] -> http://lite:33861/ []: sec=0.03, result=[1, '', 0]
+[rosmaster.master][INFO] 2026-10-10 15:41:01,883: -PUB [/sim/odom_gt] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,888: -SUB [/clock] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,913: -PUB [/rosout] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,920: -PUB [/scan_planner_node/goal_point] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,925: -SUB [/gazebo/set_link_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,928: -PUB [/scan_planner_node/global_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,931: -SUB [/gazebo/set_model_state] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,934: -PUB [/scan_planner_node/init_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,939: -SUB [/cmd_vel] /gazebo http://lite:36765/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,944: -PUB [/scan_planner_node/optimal_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,955: -SERVICE [/gazebo/get_loggers] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:01,960: -SERVICE [/gazebo/set_logger_level] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:01,966: -PUB [/scan_planner_node/a_star_list] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,970: -SERVICE [/gazebo/spawn_sdf_model] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:01,978: -PUB [/tf] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,984: -SERVICE [/gazebo/spawn_urdf_model] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:01,987: -PUB [/grid_map/occupancy] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,990: -SERVICE [/gazebo/delete_model] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:01,993: -SERVICE [/gazebo/delete_light] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:01,995: -PUB [/grid_map/occupancy_inflate] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:01,998: -SERVICE [/gazebo/get_model_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,000: -PUB [/grid_map/sliding_map_bbox] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,003: -SERVICE [/gazebo/get_model_state] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,007: -PUB [/grid_map/unknown] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,010: -SERVICE [/gazebo/get_world_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,013: -PUB [/grid_map/depth_cloud] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,015: -SERVICE [/gazebo/get_joint_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,018: -SERVICE [/gazebo/get_link_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,020: -PUB [/grid_map/sensor_pose_extrinsic] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,022: -SERVICE [/gazebo/get_link_state] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,025: -PUB [/planning/bspline] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,028: -SERVICE [/gazebo/get_light_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,032: -PUB [/planning/data_display] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,034: -SERVICE [/gazebo/set_light_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,038: -PUB [/scan_planner_node/self_inflation] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,041: -SERVICE [/gazebo/get_physics_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,044: -SUB [/clock] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,047: -SERVICE [/gazebo/set_link_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,049: -SUB [/LIO/odom_imu] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,058: -SERVICE [/gazebo/set_physics_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,060: -SUB [/LIO/clouds_lidar] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,063: -SERVICE [/gazebo/set_model_state] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,068: -SUB [/LIO/odom_vehicle] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,073: -SERVICE [/gazebo/set_model_configuration] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,075: -SUB [/planning/go2_execution_frozen] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,079: -SERVICE [/gazebo/set_parameters] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,083: -SUB [/scan_planner/goal] /scan_planner_node http://lite:45543/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,085: -SERVICE [/gazebo/set_joint_properties] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,089: -SERVICE [/scan_planner_node/get_loggers] /scan_planner_node rosrpc://lite:33811
+[rosmaster.master][INFO] 2026-10-10 15:41:02,093: -SERVICE [/gazebo/set_link_state] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,109: -SERVICE [/scan_planner_node/set_logger_level] /scan_planner_node rosrpc://lite:33811
+[rosmaster.master][INFO] 2026-10-10 15:41:02,112: +SERVICE [/rosout/get_loggers] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,115: -SERVICE [/gazebo/pause_physics] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,118: -CACHEDPARAM [/rosout_disable_topics_generation] by /scan_planner_node
+[rosmaster.master][INFO] 2026-10-10 15:41:02,119: +SERVICE [/rosout/set_logger_level] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,122: -SERVICE [/gazebo/unpause_physics] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,127: -SERVICE [/gazebo/apply_body_wrench] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,134: -SERVICE [/gazebo/apply_joint_effort] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,140: -SERVICE [/gazebo/clear_joint_forces] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,144: +SUB [/clock] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,150: +PUB [/rosout_agg] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,165: +SUB [/rosout] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:02,173: -SERVICE [/gazebo/clear_body_wrenches] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,204: -SERVICE [/gazebo/reset_simulation] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,222: -SERVICE [/gazebo/reset_world] /gazebo rosrpc://lite:49073
+[rosmaster.master][INFO] 2026-10-10 15:41:02,236: -CACHEDPARAM [/rosout_disable_topics_generation] by /gazebo
+[rosmaster.master][INFO] 2026-10-10 15:41:08,905: -PUB [/rosout_agg] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:08,908: -SUB [/clock] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:08,910: -SUB [/rosout] /rosout http://lite:33841/
+[rosmaster.master][INFO] 2026-10-10 15:41:08,913: -SERVICE [/rosout/get_loggers] /rosout rosrpc://lite:46887
+[rosmaster.master][INFO] 2026-10-10 15:41:08,915: -SERVICE [/rosout/set_logger_level] /rosout rosrpc://lite:46887
+[rosmaster.main][INFO] 2026-10-10 15:41:09,050: keyboard interrupt, will exit
+[rosmaster.main][INFO] 2026-10-10 15:41:09,052: stopping master...
+[rospy.core][INFO] 2026-10-10 15:41:09,053: signal_shutdown [atexit]

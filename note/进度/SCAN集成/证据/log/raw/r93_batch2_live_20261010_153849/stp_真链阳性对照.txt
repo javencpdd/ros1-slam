@@ -1,0 +1,12 @@
+STP 环境自证：mode=live phase=真链阳性对照 ROS_MASTER_URI=http://localhost:11313 win=3.0 child=base_link
+PROBE master 可达：localhost:11313（有界预检 2s）
+PROBE 静态面投递：/tf_static 收到消息数=3（latched 逐发布者各一条，>1 才算收全）
+PROBE 窗型自证：TF 相关节点=['/body_to_base_link', '/lio_cloud_relay', '/lio_odom_imu_relay', '/lio_odom_vehicle_relay', '/world_to_camera_init']（总节点=14）
+PROBE phase=真链阳性对照 来源=live /tf+/tf_static 采样：变换行=65 帧数=6
+PROBE base_link_parents=['body', 'odom']
+PROBE static_edges_into_base_link=1
+PROBE edge body->base_link static hits=1 last_stamp=0.000 [ZERO]
+PROBE edge odom->base_link dynamic hits=37 last_stamp=15.321
+PROBE STOP-FLAG：base_link 有 2 个父 ['body', 'odom'] ⇒ FD-G 发作签名（fd 稿 :212 的 {odom, body} 一族）⇒ 立即停手上报、判 TF 结构回归；不走 INVALID、不静默继续
+==================================================
+STP VERDICT rc=7（0 未见发作／7 发作停手／9 INVALID 前置缺失／5 自测有 FAIL）

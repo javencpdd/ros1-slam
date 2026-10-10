@@ -25,7 +25,7 @@
 #
 # 用法：bash v_scan_tf_parent_probe.sh --selftest            # 零节点：解析层正反例＋空集中止＋元检＋缺席防呆（须 8 全绿）
 #       bash v_scan_tf_parent_probe.sh <phase标签>            # 活体只读采样（须已有链与 master），缺省标签 live
-#       环境变量：STP_WIN=3.0（/tf 采样秒数）｜STP_ROTOR=1.0（静态等待秒）｜STP_CHILD=base_link
+#       环境变量：STP_WIN=3.0（采样窗秒数；/tf 与 /tf_static **同窗**累计）｜STP_CHILD=base_link
 # 退出码：0 取到有效读数且未见双父（＝"未见发作"，**不称通过判据**）｜7 双父发作（停手）｜9 INVALID 前置缺失｜5 自测有 FAIL
 # 性质：零 ws 写、零编译、零 /cmd_vel、无 sudo；只读 /tf 与 /tf_static 与 rosnode list。
 set +u
@@ -39,14 +39,14 @@ case "${1:-}" in
   "")          ;;
   *)           PHASE="$1" ;;
 esac
-WIN="${STP_WIN:-3.0}"; ROTOR="${STP_ROTOR:-1.0}"; CHILD="${STP_CHILD:-base_link}"
-echo "STP 环境自证：mode=${MODE} phase=${PHASE} ROS_MASTER_URI=${ROS_MASTER_URI:-未设} win=${WIN} rotor=${ROTOR} child=${CHILD}"
-OUT=$(python3 - "${MODE}" "${WIN}" "${ROTOR}" "${CHILD}" "${PHASE}" <<'PYEOF'
+WIN="${STP_WIN:-3.0}"; CHILD="${STP_CHILD:-base_link}"
+echo "STP 环境自证：mode=${MODE} phase=${PHASE} ROS_MASTER_URI=${ROS_MASTER_URI:-未设} win=${WIN} child=${CHILD}"
+OUT=$(python3 - "${MODE}" "${WIN}" "${CHILD}" "${PHASE}" <<'PYEOF'
 # -*- coding: utf-8 -*-
 # 解析核（两模式共用；自测就是在喂它）：rows = [(parent, child, stamp_float, is_static)]
 import sys, time, os
 
-MODE, WIN, ROTOR, CHILD, PHASE = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), sys.argv[4], sys.argv[5]
+MODE, WIN, CHILD, PHASE = sys.argv[1], float(sys.argv[2]), sys.argv[3], sys.argv[4]
 
 
 def norm(f):
@@ -168,22 +168,31 @@ def live_sample():
     print('PROBE master 可达：%s（有界预检 2s）' % det)
     rospy.init_node('stp_tf_parent_probe', anonymous=True, disable_signals=True)
     rows = []
+    nstat_msg = [0]
 
     def cb(m):
         for tr in m.transforms:
             rows.append((tr.header.frame_id, tr.child_frame_id, tr.header.stamp.to_sec(), False))
 
+    def cb_static(m):
+        nstat_msg[0] += 1
+        for tr in m.transforms:
+            rows.append((tr.header.frame_id, tr.child_frame_id, tr.header.stamp.to_sec(), True))
+
+    # 静态面**不能**用 wait_for_message：/tf_static 是 latched，而 latching 是**逐发布者**各存一份，
+    # wait_for_message 只返回最先到的那一条 ⇒ 多发布者时其余静态边整批漏读（本件首版就是这么漏掉
+    # /body_to_base_link 的，实测见 证据/.../r93_batch2_live_20261010_153503）。改成窗开头建订阅、
+    # 每个发布者连接时各投递一次 latch，窗内累计全部消息。
     sub = rospy.Subscriber('/tf', TFMessage, cb, queue_size=200)
+    subS = rospy.Subscriber('/tf_static', TFMessage, cb_static, queue_size=200)
     w = time.time()
     while time.time() - w < WIN and not rospy.is_shutdown():
         time.sleep(0.05)
     sub.unregister()
-    try:
-        st = rospy.wait_for_message('/tf_static', TFMessage, timeout=ROTOR)
-        for tr in st.transforms:
-            rows.append((tr.header.frame_id, tr.child_frame_id, tr.header.stamp.to_sec(), True))
-    except Exception as e:
-        print('PROBE static=ERR %s（静态面缺席 ⇒ 只可能少算入边，不会多算；如实打这行）' % type(e).__name__)
+    subS.unregister()
+    print('PROBE 静态面投递：/tf_static 收到消息数=%d（latched 逐发布者各一条，>1 才算收全）' % nstat_msg[0])
+    if nstat_msg[0] == 0:
+        print('PROBE static=ERR 窗内一条 /tf_static 都没收到 ⇒ 静态入边计数不可用（**不得**读作"零条静态边"）')
     try:
         import subprocess
         nodes = subprocess.check_output(['rosnode', 'list']).decode().split()
