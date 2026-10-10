@@ -1,0 +1,18 @@
+# R111 · 把 A1 乙／丙落进 v_scan_p1.sh 与 v_scan_p2.sh（改前留底＋真窗复验）
+# 缘由（R110 实测暴露）：这两件内部的「foxy 六 PID 终检」仍用写死名单（115711…180237），
+#   本 boot 打印为空 ⇒ 老行为＝「只打一句空洞、照样出 PASS」，把没见证当绿，与 retake_driver.sh 改前同源。
+# 改动面（只这两件；均非判据载体 ⇒ 代际仍 H14）：
+#   · 起前：按在册 P0.5 正则**现取**本 boot 名单 ⇒ $RUN/foxy_start.txt；命中 0 行 ⇒ WITNESS=INVALID-空集（A1 丙），
+#     明写「本跑不得写零触碰、不得引用为达成」
+#   · 退后：与起前基准**整行**（pid＋属主＋lstart＋args）比对 ⇒ WITNESS=OK／INVALID-退后空集／DISTURBED
+#   · 摘要行：P1_EXIT／P2_EXIT 增带 WITNESS 字段
+#   · p2 顺带修一处真缺陷：它的终检原写在 `trap cleanup` 内、**跑在 P2_EXIT 打印之后** ⇒ WITNESS 会被报成「未检」；
+#     本批把终检移到主体内（样张终检之后、结论打印之前）；起前那行写死名单一并撤除（改打印现取基准），残留计数=0
+# 复验（真窗原样输出，非推演）：
+#   p1：现取命中 4 行 ⇒ 红线见证 = OK ⇒ P1 判据① 结论 = PASS ⇒ P1_EXIT=0 WITNESS=OK
+#   p2：现取命中 4 行 ⇒ 红线见证 = OK ⇒ P2 判据② 结论 = PASS 全部 7 项通过 ⇒ P2_EXIT=0 WITNESS=OK
+#   本 boot 见证面＝4（root 侧 foxy/transfer 2056/2287/2289/2291）；monitor 侧 1199/1200 是主理人开窗前令停，
+#   ⇒ 覆盖面收窄随件输出留证，**不写成「零触碰全栈」**（待 #10 复原后回到 5）
+# 件：v_scan_p{1,2}.sh.before＋sha_before.txt／sha_after.txt；p{1,2}_after_fix_stdout.txt；p{1,2}_foxy_start.txt／_end.txt
+# 重放：cd /home/ros1-slam && bash ws/src/40_navigation/lite3_scan/verify/v_scan_p2.sh
+#       sha256sum -c note/进度/SCAN集成/证据/log/raw/r111_a1_scan_harness/_sha256_manifest.txt

@@ -1,0 +1,53 @@
+[22:58:03] == [0] P0.5 双查 ==
+foxy 见证基准（A1 乙＝本 boot 现取；旧写死名单 115711…180237 不再作基准）:
+  现取命中 4 行 ⇒ /tmp/scan_p1_run/foxy_start.txt
+       2056 root     Sat Oct 10 19:30:09 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+       2287 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_5m9viyvp
+       2289 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_1xta71wh --params-file /tmp/launch_params_nnitszx4 --params-file /tmp/launch_params_4o17fxlr
+       2291 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_3p1mpmwx
+沙箱 ROS 残留(起前): (空=净)
+11312 生产 master 监听(起前): 0 须=0
+UDP 43897 归属(起前): UNCONN 0 0 0.0.0.0:43897 0.0.0.0:* 
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  /home/ros1-slam/data/maps/lite3.pcd
+ros2qnx 存在性: 1 须=0
+[22:58:03] == [1] roscore 11313 ==
+master 就绪: 1 节点（应为 1=/rosout）
+[22:58:10] == [2] m2_gazebo.launch ==
+世界层三话题在位（/clock /rslidar_points /livox/imu）
+[22:59:12] == [3] m2_mapping.launch (pcd_save:=false 默认，样张保护) ==
+faster_lio 双输出在位：/Odometry + /cloud_registered_body
+[22:59:29] == [4] 70_scan.launch（SCAN 独立进程 + lio_relay） ==
+SCAN 输入链与占据图话题均在位
+[22:59:48] == [5] F9 互斥 + /cmd_vel 写者 ==
+F9 互斥（节点级判定，不用 pgrep -f —— 实测 'move_base|teb' 正则会误报）: move_base 节点数=0  须=0
+/cmd_vel publisher: 1（本链无 M6/mux，应无订阅侧）
+cmd_vel 话题在位: 1  /scan_planner/cmd_vel 在位: 1
+SCAN 节点清单:
+/closed_loop_controller
+/faster_lio_online
+/gazebo
+/lio_cloud_relay
+/lio_odom_imu_relay
+/lio_odom_vehicle_relay
+/robot_state_publisher
+/rosout
+/scan_arrival_monitor
+/scan_planner_node
+/sim_adapter
+/world_to_camera_init
+[22:59:59] == [6] 判据① 采样 30s ==
+occ.json:
+{"topic": "/grid_map/occupancy", "window_s": 30.0, "frames": 174, "counts": [4316, 4287, 4287, 4259, 4259, 4259, 4259, 4310, 4310, 4319, 4319, 4323, 4365, 4365, 4365, 4365, 4403, 4403, 4369, 4369, 4369, 4387, 4387, 4434, 4434, 4460, 4460, 4442, 4442, 4470, 4470, 4502, 4502, 4548, 4548, 4566, 4566, 4572, 4572, 4559, 4559, 4559, 4559, 4626, 4626, 4683, 4683, 4681, 4681, 4684, 4684, 4684, 4684, 4698, 4698, 4698, 4663, 4611, 4611, 4642, 4642, 4669, 4669, 4675, 4675, 4642, 4642, 4673, 4673, 4675, 4675, 4683, 4683, 4683, 4630, 4621, 4649, 4649, 4656, 4656, 4656, 4626, 4600, 4600, 4600, 4600, 4600, 4603, 4603, 4644, 4644, 4612, 4612, 4612, 4638, 4638, 4638, 4618, 4618, 4618, 4618, 4678, 4678, 4691, 4691, 4684, 4684, 4665, 4665, 4683, 4683, 4728, 4728, 4728, 4728, 4728, 4753, 4753, 4748, 4751, 4751, 4726, 4726, 4773, 4773, 4741, 4741, 4776, 4776, 4796, 4796, 4785, 4785, 4804, 4804, 4804, 4804, 4763, 4763, 4763, 4808, 4832, 4832, 4832, 4832, 4809, 4809, 4797, 4797, 4799, 4799, 4792, 4792, 4757, 4757, 4757, 4757, 4760, 4760, 4757, 4757, 4704, 4651, 4651, 4651, 4677, 4725, 4725, 4725, 4725, 4705, 4705, 4705, 4705], "first": {"n": 4316, "frame_id": "world", "stamp": 0.0, "wall": 1791644401.828392, "x": [-4.425, 4.625, 0.425], "y": [-4.425, 4.425, -1.225], "z": [-0.525, 0.225, -0.075]}, "last": {"n": 4705, "frame_id": "world", "stamp": 0.0, "wall": 1791644431.5856044, "x": [-4.325, 4.675, 0.475], "y": [-4.425, 4.425, -1.375], "z": [-0.525, 0.225, -0.075]}, "ref_bbox": {"x": [-36.676, 29.607], "y": [-13.753, 31.277], "z": [-0.53, 0.477]}, "ref_topic": "/cloud_registered", "bbox_check_samples": 3, "bbox_within_ref": true, "bbox_inside_count": 3, "ref_has_xy": true}
+sampler stderr:
+[23:00:32] == [7] 判定 ==
+判定原文: PASS:①帧数≥3; PASS:①末帧点数>0; PASS:①末帧≥首帧(建图不减); PASS:①frame_id=world; PASS:①包围盒非退化(>1m²); PASS:①包围盒落在 LIO 累积云界内
+[23:00:33] == [8] 样张与红线终检 ==
+样张 sha256 起前=退后 OK
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证 = OK（4 行整行 pid＋属主＋lstart＋args 逐位一致 ⇒ 未被扰动）
+==================================================
+P1 判据① 结论 = PASS
+P1_EXIT=0 WITNESS=OK LOGDIR=/tmp/scan_p1_run
+[23:00:33] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0

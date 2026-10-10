@@ -59,8 +59,13 @@ trap cleanup EXIT
 
 # ---------- 0) P0.5 双查 + 基线哈希 ----------
 say "== [0] P0.5 双查 =="
-note "foxy 生产六 PID（须全部在位、启动时刻不变）:"
-ps -o pid,user,lstart,etime,comm --no-headers -p 115711,115792,115795,115797,115799,180237 2>/dev/null | tee -a "$LOG"
+# A1（2026-10-10 已裁＝乙＋丙同落）：见证基准每批**现取**，不沿用写死 PID（写死名单一重启即读空＝把没见证当绿）
+WITNESS=""
+note "foxy 见证基准（A1 乙＝本 boot 现取；旧写死名单 115711…180237 不再作基准）:"
+ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk/ {print}' > "$RUN/foxy_start.txt" 2>/dev/null
+FOXY_N=$(grep -c "[0-9]" "$RUN/foxy_start.txt" 2>/dev/null); FOXY_N=${FOXY_N:-0}
+note "  现取命中 $FOXY_N 行 ⇒ $RUN/foxy_start.txt"
+if [ "$FOXY_N" = "0" ]; then WITNESS="INVALID-空集"; note "  [INVALID] 基准空集（A1 丙）⇒ 本跑红线面不得写零触碰、不得引用为达成"; else sed "s/^/    /" "$RUN/foxy_start.txt" | tee -a "$LOG"; fi
 note "沙箱 ROS 残留(起前): $(pgrep -f 'roscore|roslaunch|gzserver|rosmaster' | grep -v $$ | tr '\n' ' ')(空=净)"
 note "11312 生产 master 监听(起前): $(ss -lntp 2>/dev/null | grep -c ':11312') 须=0"
 note "UDP 43897 归属(起前): $(ss -ulnp 2>/dev/null | awk '/43897/' | tr -s ' ')"
@@ -157,10 +162,16 @@ if diff -q "$RUN/pcd_before.sha" <(cut -d' ' -f1-2 "$RUN/pcd_after.sha") >/dev/n
 else
   note "★样张 sha256 变化！前=$(cat $RUN/pcd_before.sha) 后=$(cat $RUN/pcd_after.sha)"; P1_PASS=0; P1_FAILMSG="样张污染"
 fi
-note "foxy 六 PID 终检:"; ps -o pid,user,lstart,comm --no-headers -p 115711,115792,115795,115797,115799,180237 2>/dev/null | tee -a "$LOG"
+note "foxy 见证终检（与起前现取基准整行比对）:"
+ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk/ {print}' > "$RUN/foxy_end.txt" 2>/dev/null
+if [ -n "$WITNESS" ]; then note "  红线见证 = $WITNESS（本跑不作零触碰声称）"
+elif [ ! -s "$RUN/foxy_end.txt" ]; then WITNESS="INVALID-退后空集"; note "  [INVALID] 退后空集而起前非空 ⇒ 不作零触碰声称"
+elif diff -q "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" >/dev/null 2>&1; then WITNESS="OK"; note "  红线见证 = OK（$FOXY_N 行整行 pid＋属主＋lstart＋args 逐位一致 ⇒ 未被扰动）"
+else WITNESS="DISTURBED"; note "  ★红线见证 = DISTURBED（起终整行不一致）⇒ 本跑不作达成声称"; diff "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" | head -4 | sed "s/^/    /" | tee -a "$LOG"
+fi
 
 echo "==================================================" | tee -a "$LOG"
 if [ "$P1_PASS" = "1" ]; then echo "P1 判据① 结论 = PASS"; else echo "P1 判据① 结论 = FAIL —— $P1_FAILMSG"; fi | tee -a "$LOG"
 RC=1; [ "$P1_PASS" = "1" ] && RC=0
-echo "P1_EXIT=$RC LOGDIR=$RUN" | tee -a "$LOG"
+echo "P1_EXIT=$RC WITNESS=${WITNESS:-未检} LOGDIR=$RUN" | tee -a "$LOG"
 exit "$RC"
