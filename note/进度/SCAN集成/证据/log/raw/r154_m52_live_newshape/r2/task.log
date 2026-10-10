@@ -1,0 +1,63 @@
+[ DEBUG ] : Adding state (WAIT, <__main__.WaitState object at 0xffff8a93f070>, {'succeeded': 'SCAN_NAVIGATE', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'WAIT' to the state machine.
+[ DEBUG ] : State 'WAIT' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR WAIT: {'succeeded': 'SCAN_NAVIGATE', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (GET_PATH, <__main__.GetPathState object at 0xffff8a93fb80>, {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'GET_PATH' to the state machine.
+[ DEBUG ] : State 'GET_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR GET_PATH: {'succeeded': 'EXE_PATH', 'retry': 'GET_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (EXE_PATH, <__main__.ExePathState object at 0xffff8a93f1c0>, {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'EXE_PATH' to the state machine.
+[ DEBUG ] : State 'EXE_PATH' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR EXE_PATH: {'succeeded': 'succeeded', 'retry': 'EXE_PATH', 'replan': 'GET_PATH', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (NAVIGATE, <__main__.NavigateState object at 0xffff8a93f190>, {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'NAVIGATE' to the state machine.
+[ DEBUG ] : State 'NAVIGATE' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR NAVIGATE: {'succeeded': 'succeeded', 'retry': 'NAVIGATE', 'replan': 'NAVIGATE', 'clear': 'RECOVER', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (SCAN_NAVIGATE, <__main__.ScanNavigateState object at 0xffff8a93f2b0>, {'succeeded': 'succeeded', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'SCAN_NAVIGATE' to the state machine.
+[ DEBUG ] : State 'SCAN_NAVIGATE' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR SCAN_NAVIGATE: {'succeeded': 'succeeded', 'aborted': 'aborted'}
+[ DEBUG ] : Adding state (RECOVER, <__main__.RecoverState object at 0xffff8a93f340>, {'succeeded': 'NAVIGATE', 'aborted': 'aborted'})
+[ DEBUG ] : Adding state 'RECOVER' to the state machine.
+[ DEBUG ] : State 'RECOVER' is missing transitions: {}
+[ DEBUG ] : TRANSITIONS FOR RECOVER: {'succeeded': 'NAVIGATE', 'aborted': 'aborted'}
+[  INFO ] : State machine starting in initial state 'WAIT' with userdata: 
+	['replan_n', 'clear_n', 'retry_n']
+[INFO] [1791666370.659039, 18.555000]: [M5] 原语 wait（target=local:timer）outcome=succeeded 耗时 18.55s
+[  INFO ] : State machine transitioning 'WAIT':'succeeded'-->'SCAN_NAVIGATE'
+[INFO] [1791666415.366022, 30.818000]: [M5] 原语 scan_navigate outcome=succeeded 到达偏差 0.012m≤0.35m 耗时 9.51s
+[  INFO ] : State machine terminating 'SCAN_NAVIGATE':'succeeded':'succeeded'
+[INFO] [1791666415.425588, 30.840000]: task outcome: succeeded（总时长 30.8s）
+... logging to /home/ysc/.ros/log/2121ae90-c4ee-11f1-914f-3c6d66f8d2d8/roslaunch-lite-1269102.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ros1-slam/ws/src/50_task/lite3_task/launch/50_task_smach_min.launch
+[1mstarted roslaunch server http://lite:42561/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /lite3_task_smach_min/goal_x: -2.72
+ * /lite3_task_smach_min/goal_y: 0.76
+ * /lite3_task_smach_min/mode: scan
+ * /lite3_task_smach_min/task_primitives: /home/ros1-slam/w...
+ * /lite3_task_smach_min/use_sim_time: True
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+
+NODES
+  /
+    lite3_task_smach_min (lite3_task/task_smach_min.py)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/home/ros1-slam/ws/src/50_task/lite3_task/launch/50_task_smach_min.launch http://127.0.0.1:11313
+[1mprocess[lite3_task_smach_min-1]: started with pid [1269265][0m
+[1m[lite3_task_smach_min-1] process has finished cleanly
+log file: /home/ysc/.ros/log/2121ae90-c4ee-11f1-914f-3c6d66f8d2d8/lite3_task_smach_min-1*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

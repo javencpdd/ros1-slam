@@ -154,5 +154,8 @@ else
 fi
 
 echo "=================================================="
-echo "TASK SCAN PRIMITIVE VERDICT: PASS=$NP FAIL=$NF ABSENT=$NA（log 未给＝活体面未跑）"
+# 旧写法把「（log 未给＝活体面未跑）」当成固定后缀印——于是段 B **真跑过**时（ABSENT=0）判定行仍说"活体面未跑"，
+# 与同一行的 ABSENT=0 自相矛盾（坑62 那一族：两份陈述互相打架，且都语法合法）。改成随 ABSENT 计数条件印。
+if [ "$NA" -gt 0 ]; then NOTE="（log 未给＝活体面未跑，本节不给绿也不给红）"; else NOTE="（段 B 活体 log 判据已跑）"; fi
+echo "TASK SCAN PRIMITIVE VERDICT: PASS=$NP FAIL=$NF ABSENT=$NA$NOTE"
 [ "$NF" = "0" ] && exit 0 || exit 5
