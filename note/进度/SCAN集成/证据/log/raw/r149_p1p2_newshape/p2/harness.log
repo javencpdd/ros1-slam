@@ -1,0 +1,86 @@
+[22:48:05] == [0] P0.5 双查 + 基线 ==
+11312 监听(起前): 0 须=0
+ros2qnx: 1 须=0
+[22:48:06] == [1] roscore 11313 ==
+[22:48:11] == [2] m2_gazebo ==
+[22:49:04] == [3] m2_mapping (pcd_save:=false) ==
+[22:49:21] == [4] 70_scan.launch ==
+F9 互斥（节点级）: move_base 节点数=0 须=0
+[22:49:44] == [5] 判据② 取证 ==
+p2 python rc=0
+{"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 3806, "occ_frame": "world", "robot": [0.008, 0.025], "goal": [2.508, 0.025], "goal_dist_to_occ": 0.672, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.22, "bspline": {"order": 3, "n_ctrl": 24, "n_knots": 28, "traj_id": 3}, "traj_min_dist_m": 0.649, "traj_median_dist_m": 0.793, "n_samples": 120, "n_inside_tol": 0, "endpoint": [3.142, 0.026], "endpoint_err_m": 0.634}, "verdict": "PASS"}
+[22:50:05] == [6] 判定（fail-closed） ==
+判定: PASS|全部 7 项通过
+样张 sha256 起前=退后 OK
+[22:50:06] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+foxy 六 PID 终检:
+[23:01:22] == [0] P0.5 双查 + 基线 ==
+foxy 见证基准（A1 乙＝本 boot 现取）：命中 4 行 ⇒ /tmp/scan_p2_run/foxy_start.txt
+11312 监听(起前): 0 须=0
+ros2qnx: 1 须=0
+[23:01:23] == [1] roscore 11313 ==
+[23:01:28] == [2] m2_gazebo ==
+[23:02:21] == [3] m2_mapping (pcd_save:=false) ==
+[23:02:38] == [4] 70_scan.launch ==
+F9 互斥（节点级）: move_base 节点数=0 须=0
+[23:02:59] == [5] 判据② 取证 ==
+p2 python rc=0
+{"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 3316, "occ_frame": "world", "robot": [0.004, 0.027], "goal": [2.504, 0.027], "goal_dist_to_occ": 0.674, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.11, "bspline": {"order": 3, "n_ctrl": 18, "n_knots": 22, "traj_id": 3}, "traj_min_dist_m": 0.646, "traj_median_dist_m": 0.797, "n_samples": 120, "n_inside_tol": 0, "endpoint": [3.356, 0.028], "endpoint_err_m": 0.851}, "verdict": "PASS"}
+[23:03:16] == [6] 判定（fail-closed） ==
+判定: PASS|全部 7 项通过
+样张 sha256 起前=退后 OK
+[23:03:17] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证 = OK（4 行整行逐位一致）
+[23:05:02] == [0] P0.5 双查 + 基线 ==
+foxy 见证基准（A1 乙＝本 boot 现取）：命中 4 行 ⇒ /tmp/scan_p2_run/foxy_start.txt
+       2056 root     Sat Oct 10 19:30:09 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+       2287 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_5m9viyvp
+       2289 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_1xta71wh --params-file /tmp/launch_params_nnitszx4 --params-file /tmp/launch_params_4o17fxlr
+       2291 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_3p1mpmwx
+11312 监听(起前): 0 须=0
+ros2qnx: 1 须=0
+[23:05:02] == [1] roscore 11313 ==
+[23:05:07] == [2] m2_gazebo ==
+[23:06:00] == [3] m2_mapping (pcd_save:=false) ==
+[23:06:16] == [4] 70_scan.launch ==
+F9 互斥（节点级）: move_base 节点数=0 须=0
+[23:06:38] == [5] 判据② 取证 ==
+p2 python rc=0
+{"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 3889, "occ_frame": "world", "robot": [0.012, 0.023], "goal": [2.512, 0.023], "goal_dist_to_occ": 0.668, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.1, "bspline": {"order": 3, "n_ctrl": 26, "n_knots": 30, "traj_id": 3}, "traj_min_dist_m": 0.649, "traj_median_dist_m": 0.817, "n_samples": 120, "n_inside_tol": 0, "endpoint": [3.508, 0.023], "endpoint_err_m": 0.995}, "verdict": "PASS"}
+[23:06:54] == [6] 判定（fail-closed） ==
+判定: PASS|全部 7 项通过
+样张 sha256 起前=退后 OK
+foxy 见证终检（与起前现取基准整行比对）:
+红线见证 = OK（4 行整行逐位一致）
+[23:06:55] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+[04:25:24] == [0] P0.5 双查 + 基线 ==
+foxy 见证基准（A1 乙＝本 boot 现取）：命中 4 行 ⇒ /tmp/scan_p2_run/foxy_start.txt
+       2056 root     Sat Oct 10 19:30:09 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+       2287 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_5m9viyvp
+       2289 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_1xta71wh --params-file /tmp/launch_params_nnitszx4 --params-file /tmp/launch_params_4o17fxlr
+       2291 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_3p1mpmwx
+11312 监听(起前): 0 须=0
+ros2qnx: 0 须=0
+[04:25:24] == [1] roscore 11313 ==
+[04:25:29] == [2] m2_gazebo ==
+[04:26:34] == [3] m2_mapping (pcd_save:=false) ==
+[04:26:52] == [4] 70_scan.launch ==
+F9 互斥（节点级）: move_base 节点数=0 须=0
+[04:27:16] == [5] 判据② 取证 ==
+p2 python rc=0
+{"checks": {"①占据图就绪": true, "②取到机器人位姿": true, "③选出自由 goal": true, "④goal remap 活体归属": true, "⑤5s 内 FSM 出轨迹": true, "⑥曲线可求值": true, "⑦轨迹无穿墙(>=0.10m)": true}, "notes": {"occ_n": 3577, "occ_frame": "world", "robot": [0.006, 0.029], "goal": [2.506, 0.029], "goal_dist_to_occ": 0.675, "goal_radius": 2.5, "subs_scan_planner_goal": ["scan_planner_node", "scan_arrival_monitor"], "subs_move_base_simple_goal": [], "react_s": 0.43, "bspline": {"order": 3, "n_ctrl": 20, "n_knots": 24, "traj_id": 3}, "traj_min_dist_m": 0.647, "traj_median_dist_m": 0.796, "n_samples": 120, "n_inside_tol": 0, "endpoint": [2.504, 0.029], "endpoint_err_m": 0.002}, "verdict": "PASS"}
+[04:27:35] == [6] 判定（fail-closed） ==
+判定: PASS|全部 7 项通过
+样张 sha256 起前=退后 OK
+foxy 见证终检（与起前现取基准整行比对）:
+红线见证 = OK（4 行整行逐位一致）
+[04:27:36] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0

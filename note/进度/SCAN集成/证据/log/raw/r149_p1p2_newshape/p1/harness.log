@@ -1,0 +1,52 @@
+[04:21:22] == [0] P0.5 双查 ==
+foxy 见证基准（A1 乙＝本 boot 现取；旧写死名单 115711…180237 不再作基准）:
+  现取命中 4 行 ⇒ /tmp/scan_p1_run/foxy_start.txt
+       2056 root     Sat Oct 10 19:30:09 2026 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+       2287 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_5m9viyvp
+       2289 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_1xta71wh --params-file /tmp/launch_params_nnitszx4 --params-file /tmp/launch_params_4o17fxlr
+       2291 root     Sat Oct 10 19:30:17 2026 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_3p1mpmwx
+沙箱 ROS 残留(起前): (空=净)
+11312 生产 master 监听(起前): 0 须=0
+UDP 43897 归属(起前): UNCONN 0 0 0.0.0.0:43897 0.0.0.0:* 
+ros2qnx 存在性: 0 须=0
+[04:21:23] == [1] roscore 11313 ==
+master 就绪: 1 节点（应为 1=/rosout）
+[04:21:29] == [2] m2_gazebo.launch ==
+世界层三话题在位（/clock /rslidar_points /livox/imu）
+[04:22:22] == [3] m2_mapping.launch (pcd_save:=false 默认，样张保护) ==
+faster_lio 双输出在位：/Odometry + /cloud_registered_body
+[04:22:40] == [4] 70_scan.launch（SCAN 独立进程 + lio_relay） ==
+SCAN 输入链与占据图话题均在位
+[04:23:02] == [5] F9 互斥 + /cmd_vel 写者 ==
+F9 互斥（节点级判定，不用 pgrep -f —— 实测 'move_base|teb' 正则会误报）: move_base 节点数=0  须=0
+/cmd_vel publisher: 1（本链无 M6/mux，应无订阅侧）
+cmd_vel 话题在位: 1  /scan_planner/cmd_vel 在位: 1
+SCAN 节点清单:
+/closed_loop_controller
+/faster_lio_online
+/gazebo
+/lio_cloud_relay
+/lio_odom_imu_relay
+/lio_odom_vehicle_relay
+/robot_state_publisher
+/rosout
+/scan_arrival_monitor
+/scan_planner_node
+/sim_adapter
+/world_to_camera_init
+[04:23:15] == [6] 判据① 采样 30s ==
+occ.json:
+{"topic": "/grid_map/occupancy", "window_s": 30.0, "frames": 160, "counts": [4147, 4147, 4156, 4156, 4126, 4126, 4149, 4149, 4183, 4183, 4183, 4239, 4239, 4277, 4277, 4287, 4287, 4316, 4316, 4241, 4241, 4240, 4240, 4314, 4314, 4320, 4320, 4305, 4305, 4350, 4350, 4350, 4389, 4389, 4437, 4398, 4398, 4371, 4371, 4370, 4370, 4370, 4389, 4392, 4392, 4396, 4396, 4396, 4396, 4421, 4421, 4421, 4421, 4386, 4386, 4415, 4415, 4469, 4482, 4482, 4464, 4464, 4464, 4483, 4495, 4495, 4495, 4487, 4487, 4514, 4514, 4479, 4479, 4480, 4480, 4494, 4494, 4505, 4505, 4465, 4450, 4450, 4450, 4480, 4480, 4508, 4508, 4542, 4542, 4524, 4524, 4528, 4528, 4505, 4505, 4447, 4447, 4356, 4356, 4358, 4358, 4439, 4439, 4439, 4439, 4439, 4424, 4427, 4427, 4478, 4478, 4478, 4478, 4478, 4476, 4476, 4476, 4490, 4490, 4479, 4497, 4497, 4497, 4497, 4497, 4531, 4531, 4541, 4541, 4541, 4549, 4549, 4549, 4584, 4584, 4582, 4587, 4587, 4587, 4573, 4573, 4546, 4546, 4546, 4546, 4566, 4566, 4566, 4546, 4566, 4566, 4566, 4582, 4582, 4582, 4555, 4555, 4559, 4559, 4570], "first": {"n": 4147, "frame_id": "world", "stamp": 0.0, "wall": 1791663799.0696285, "x": [-4.275, 4.625, 0.475], "y": [-4.425, 4.425, -0.725], "z": [-0.475, 0.225, -0.075]}, "last": {"n": 4570, "frame_id": "world", "stamp": 0.0, "wall": 1791663828.672295, "x": [-4.275, 4.675, 0.525], "y": [-4.425, 4.425, -0.875], "z": [-0.475, 0.225, -0.075]}, "ref_bbox": {"x": [-33.929, 19.757], "y": [-21.421, 25.41], "z": [-0.5, 0.506]}, "ref_topic": "/cloud_registered", "bbox_check_samples": 3, "bbox_within_ref": true, "bbox_inside_count": 3, "ref_has_xy": true}
+sampler stderr:
+[04:23:49] == [7] 判定 ==
+判定原文: PASS:①帧数≥3; PASS:①末帧点数>0; PASS:①末帧≥首帧(建图不减); PASS:①frame_id=world; PASS:①包围盒非退化(>1m²); PASS:①包围盒落在 LIO 累积云界内
+[04:23:50] == [8] 样张与红线终检 ==
+样张 sha256 起前=退后 OK
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证 = OK（4 行整行 pid＋属主＋lstart＋args 逐位一致 ⇒ 未被扰动）
+==================================================
+P1 判据① 结论 = PASS
+P1_EXIT=0 WITNESS=OK LOGDIR=/tmp/scan_p1_run
+[04:23:50] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
