@@ -89,7 +89,10 @@ WA=$(sha256sum "$WORLD" | cut -d' ' -f1); WBk=$(cut -d' ' -f1 "$RUN/world_before
 say "  世界件本体 sha 起前＝退后：$([ "$WA" = "$WBk" ] && echo 是 || echo "否!!")"
 PA=$(sha256sum "$PCD" | cut -d' ' -f1); PB=$(cut -d' ' -f1 "$RUN/pcd_before.sha")
 say "  样张 sha 起前＝退后：$([ "$PA" = "$PB" ] && echo 是 || echo "否!!")"
-HZIN=$(grep -E 'average rate' "$RUN/hz__rslidar_points.txt" 2>/dev/null | tail -1 | awk '{print $3}')
+# R148 修：入流文件名是 `hz_$(basename /rslidar_points).txt`＝**单下划线** `hz_rslidar_points.txt`，
+#   而上一版这里写成 `hz__rslidar_points.txt`（多一个下划线）⇒ 明明取到 10.695Hz 却被判"未取到"。
+#   件宁可降级也不假装通过是对的，但**降级原因必须是数据真缺**，不能是我读错文件名——故登记为第五处自身错。
+HZIN=$(grep -E 'average rate' "$RUN/hz_rslidar_points.txt" 2>/dev/null | tail -1 | awk '{print $3}')
 HZOUT=$(grep -E 'average rate' "$RUN/hz_cloud_registered.txt" 2>/dev/null | tail -1 | awk '{print $3}')
 CPU=$(tail -1 "$RUN/ps_node.txt" | awk '{print $2}')
 if [ -n "$HZOUT" ] && [ -n "$CPU" ]; then
