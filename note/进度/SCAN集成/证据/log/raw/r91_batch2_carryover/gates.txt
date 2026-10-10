@@ -1,0 +1,41 @@
+gates.txt —— R91 本轮门禁与红线读数（2026-10-10 11:04–11:20，CST）
+性质：本轮零脚本改动（只读跑现有件）＋四条台账/设计文档写入；未起链、未占端口、无 sudo。
+
+一、四道门禁
+1) SYN `bash scripts/verify/v_sh_py_syntax.sh <三件>` ⇒ **rc=0**
+   被检件＝本轮读数所依赖的三件（虽未改动，空集不得判绿 ⇒ 显式点名）：
+     v_scan_launch_expand.sh ／ v_scan_relay_equiv.sh ／ v_tf_edge_conflict.sh
+   实得：`PY SYNTAX OK（被检件数=3，内嵌 python 段合计=7）`
+2) GTC `bash scripts/verify/v_harness_generation_table.sh --check` ⇒ **rc=0**
+   `GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值）`；分母面 在册行=14 唯一H#=14 git载体提交数=14。
+   ⇒ 代际仍 **H14**（SM/LIB 一字未动，本轮无新行、无行变更）。
+3) ISO `bash scripts/verify/v3_isolation.sh`（三步环境：unset ROS_DISTRO/ROS_VERSION/ROS_PYTHON_VERSION
+   → source /opt/ros/noetic/setup.bash → source ws/devel/setup.bash）⇒ **rc=0，ISOLATION OK**
+   self-attest: at=2026-10-10 11:15:40 script=bf3dfe051cd4685b ws_src_files=4585
+   全文 `违规` 计数＝**0**（[1]–[9] 逐段）。限定照在册：[5]/[6] 段末自记「跨行 include 不在扫描面内」
+   ⇒ 门禁绿不覆盖批2 的 `$(find)` 拓扑风险，那一面由本目录 sle_expand.txt 与 r85 的 P1 运行期读数钉。
+4) DC `bash scripts/verify/v_deferred_clause_scan.sh` ⇒ **rc=1（在册已知态，非本批造成）**
+   `A 类到期未回收=1 B 类待人工=14`；本轮未新增/未回收任何缓做条款，读数与上一批同型。
+
+二、红线与受保护件（**按完整路径核**，不用 find|head——坑52）
+- `sha256sum -c note/进度/SCAN集成/证据/log/raw/r85_b1_345/sha_inputs_before.txt` ⇒ 9 行**全部 OK、非 OK 行数=0**
+  （该清单为 R85 输入面 9 件，含 SM／XAC／PLG／SO 与两件受保护产物 ⇒ 本轮未扰动）。
+- 受保护两件现值：世界件 `.../95_simulation/lite3_gazebo_sim/worlds/m1_world.world` = **fb52d5e6ed3eda30…**；
+  样张 `data/maps/lite3.pcd` = **aaa09362c5f1aef9…**（与在册锚点逐字同）。
+- 端口面：11311/11312/11313/11345 的 TCP 监听命中 **0**（`ss -lnt | grep -cE ':(...)\b'` ⇒ 0）。
+  进程面实测原样：`pgrep -af 'roslaunch|gzserver|rosmaster|roscore'` 只有 **1 条命中，且是本次查询自身的命令行**
+  （PID 62618 `/bin/bash -lc pgrep ...`＝自匹配）⇒ **真实沙箱 ROS 残留＝0**。写法教训沿用坑52 同源纪律：
+  自证句要写"数了什么"，不能写"grep 为空"，否则自匹配会被读成残留，或反过来被读成净。
+- `/cmd_vel` 唯一写者纪律：本轮零节点，未发布任何话题；`ros2qnx` 只读实测不存在。
+
+三、本轮写入面（逐字可 diff）
+新增 `设计/r_批2复取承接对账.md`；新增本目录 5 件；改 `note/04_配置改动diff.md`（R91 条＋档头更新时间）、
+`note/进度/00_总览.md`（R91 条＋档头）、`note/00_README.md`（R91 一行）、`note/02_问题与坑.md`（坑55）、
+`note/进度/SCAN集成/进度文档.md`（批2 节末追加一条向前指向，**git diff 实测 1 插入 0 删除**＝原句未回改）、
+`note/进度/00_裁定请求单_2026-10-09.md`（R 节＋A20）。
+零改动：`ws/` 内任何 .sh/.py/.launch/.yaml/.cpp、CMake、配置、门值；未编译。
+
+四、一条自曝（已入 04 R91 与坑55 族谱）
+本目录首版清单是「在目录内边生成边 `find`」造的 ⇒ 中间文件 `_tmp` 被扫进清单，复验当场
+`_tmp: FAILED open or read`。这正是 R28 那条 STL 自引用同型。修法落册：**先在目录外（/tmp）生成、再 mv 入位**，
+清单不含自身，头部写明「校验 CWD＝本目录」。修后（含本件与 index.txt 入位后的终态）：**目录 6 件、清单 5 条目、`sha256sum -c` 5 条全 OK**。

@@ -1,0 +1,38 @@
+index.txt —— R91 批2 复取承接对账 · 零节点读数补档（无链窗）
+目录：note/进度/SCAN集成/证据/log/raw/r91_batch2_carryover/
+时间：2026-10-10 11:04–11:10（CST）｜性质：零 ROS 节点、零 roscore、零 roslaunch、零仿真、零 ws 写、无 sudo
+对账件正文：../设计/r_批2复取承接对账.md
+
+一、本目录三件（全部当场复跑所得，不是从台账抄的）
+1) sle_expand.txt —— `bash verify/v_scan_launch_expand.sh` ⇒ **PASS=7 FAIL=0，rc=0**
+   为何单独落这一件：小美 M2R8 第 22 条（note/进度/M2/进度文档.md:912）写死「批2 活体之前先做一次 roslaunch 展开断言，
+   xmllint 不验 $(find) 可解析性」，并要求「入 EV/batch2_wire」。本轮实测 `batch2_wire/` 只有接线四件
+   （xmllint_70_scan.log／v_scan_relay_equiv／v_tf_edge_conflict／v3_isolation，mtime 全为 2026-10-08 11:54:05–06），
+   **SLE 的输出从未入档**，只在 04 台账 :411 以文字存在 ⇒ 证据面欠项，本轮补上（补不覆：batch2_wire 一字未动）。
+   关键读数：L2 `roslaunch --files` 展开 rc=0 实读 3 件；L3 解析目标＝壳包 lio_relay_sim.launch；L4 include 目标
+   零命中 30_3rd（目标数=2，指 30_3rd 者=0）；L5 odom_in 逐字 /Odometry（批1 行 B 未被批2 波及）；
+   L6 relay 只有壳包件（rsim=1 旧件=0）；L7 展开节点=7 含 /lio_odom_vehicle_relay 与 /scan_planner_node。
+   ⇒ 硬前置乙（M2:953「重取必须在 R41 的展开断言之后」）对**本轮之后**的批2 新取已满足。
+
+2) sre_relay_equiv.txt —— `bash verify/v_scan_relay_equiv.sh` ⇒ **RELAY EQUIV VERDICT: PASS**（8 条 [PASS]，rc=0）
+   壳包 relay 与上游 30_3rd 件逐 arg／逐节点对账；唯一差异＝不发静态边 body→base_link。含「include 必须指壳包件
+   且上游引用消失」两条同判才绿的那条批2 接线回归断言（SRE:50）。
+
+3) tec_edge_conflict.txt —— `bash verify/v_tf_edge_conflict.sh` ⇒ **PASS=7 FAIL=0**（rc=0）
+   静态面（读盘上 launch/urdf，不读活体 TF 图）：C1 阳性对照先认在册已知的 body→base_link 边，再取名册零外命中，
+   并检壳包侧零 base_link 子边。⇒ 它**不能**替代批2 条 1/4 的活体读数，本目录如实分栏。
+
+二、本批不做的事
+- 不起任何链、不开独占窗（起前实测 loadavg 4.92 > 在册阈值 4，且本轮目标是离线对账）。
+- 不动 70_scan.launch / lio_relay_sim.launch / 任何配置与门值；未编译；SM/LIB 一字未动 ⇒ 代际仍 H14。
+- 不删不改 `batch2_wire/` 的在册四件（她要求的是「入档」，不是「替换旧证据」）。
+
+三、本目录另有 gates.txt —— 本轮四道门禁（SYN／GTC／ISO／DC）、受保护件 sha（按完整路径核，坑52）、
+   端口与残留只读实测，以及"清单自引用"那条自曝的修法。目录终态：6 件、清单 5 条目、`sha256sum -c` 5 条全 OK。
+
+四、承接对账结论摘要（详见 r 稿 §2 表）
+- 条 2（SCAN P1）／条 3（SCAN P2）／条 5（门禁全量）＝**可承接**（出处 r85_b1_345/index.txt:14/16 与 04:631/677；
+  同一事实的载体同一性由 `git diff --quiet 98d6a72 -- ws/src/40_navigation/lite3_scan/launch/70_scan.launch` 空输出支撑）。
+- 条 1（E3 与双父签名）／条 4（FD-6 明细）＝**必须新取**：r81 五跑的 `base_link_parents=['odom']`（b1..b5.log:25）
+  出自 stageB 窗，其 roslaunch 面只有 m2_gazebo／m2_mapping（m2_smoke.sh:95/100）⇒ **relay 不在位**，
+  该窗结构上检不出 FD-G，拿来抵批2 的义务＝假承接。

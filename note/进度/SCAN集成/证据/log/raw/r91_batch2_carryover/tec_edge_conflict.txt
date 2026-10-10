@@ -1,0 +1,14 @@
+[PASS] C1 阳性对照：扫描面认出 30_3rd/lio_relay.launch 的 body→base_link（实测 1 条）⇒ 后续「零命中」类结论有资格成立
+-- 以 base_link 为子的静态边（本件扫得）--
+  ws/src/30_3rd/plan_manage/launch/lio_relay.launch:57 body->base_link
+[PASS] C2 名册内：base_link 为子的静态边共 1 条，全属 30_3rd/lio_relay.launch（批2 用壳包 relay 绕开的那条）
+  ws/src/30_perception/deeprobotics_local_height_map/launch/height_map_mini.launch：base_link→body 在位，enable_urdf 缺省=false，互斥注记行数=1
+[PASS] C3 反向对静态等价式：同仓共存 base_link→body 与 body→base_link 时，前者所在件必须缺省关闭且有互斥注记（R31 升阻断的零节点前置形态）
+[PASS] C4 壳包 relay 零条 base_link 为子的静态边（该件静态边共 1 条，全为可视化用途）
+-- 关节面扫描：文件 3 个、关节块 34 个，以 base_link 为子者的命中 0 条
+[PASS] C6a 关节面阳性对照：认出 base_to_torso（ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro:40 child=TORSO parent=base_link）⇒ 扫描器对跨行 joint 块有分辨力（U1 修正在位的原件证据）
+[PASS] C6b 关节面单父不变式：全仓 34 个关节块中，以 base_link 为 child 的命中 0 条 ⇒ 双父无来源（扩面依据见小张 R42 三）
+[PASS] C5 30_3rd 基线双条件全过（非 OK 行数=0，计数=49）
+==================================================
+TF EDGE CONFLICT VERDICT: PASS=7 FAIL=0
+TEC rc=0
