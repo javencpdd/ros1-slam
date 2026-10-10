@@ -88,7 +88,9 @@ def resolve(ref):
     hits = name_index.get(base, [])
     if len(hits) == 1:
         return hits[0], 'ok'
-    if len(hits) > 1:
+    if len(hits) == 0:
+        return None, 'notfound'
+    if True:
         for h in hits:
             if h.endswith(ref if not ref.startswith('./') else ref[2:]):
                 return h, 'ok'
@@ -108,8 +110,9 @@ def judge(text, root=ROOT):
         #   ② 范围/通配写法 `r81_b1_stageB5/b1..b5.log:25`（含 .. 或 *）；
         #   ③ 系统路径（/opt/... 下的头文件）——仓内找不到属正常，按绝对路径单独判。
         # rc 档图例（`v_dwa_recheck.sh：0=判据过／5=…`）不是行号引用：数字后紧跟等号，或行号本身就是 0（文件行号从 1 起）
-        if re.match(r'^\s*[=＝]', text[m.end():m.end() + 2]) or ln == 0 or re.match(r'^\s*/\d', text[m.end():m.end() + 3]):
-            info.append('%s:%d（rc 档位列表，非单点引用）' % (ref, ln)); continue
+        # 三类非单点引用先放过：等号图例（`：0=判据过`）、行号为 0、斜杠续列（`:0/5/6/7/4`）；再加区间写法 `:2-10`（引用一段而非一行）
+        if re.match(r'^\s*(?:[=＝]|/\d|-\d)', text[m.end():m.end() + 3]) or ln == 0:
+            info.append('%s:%d（非单点引用：等号图例／斜杠续列／区间写法）' % (ref, ln)); continue
         if '..' in ref or '*' in ref:
             info.append('%s:%d（范围/通配写法）' % (ref, ln)); continue
         total += 1
@@ -135,8 +138,10 @@ def judge(text, root=ROOT):
         if p is None:
             if kind == 'ambiguous':
                 amb.append('%s:%d（只给了文件名、仓里同名多份 ⇒ 按坑52 应写完整路径）' % (ref, ln))
+            elif kind == 'notfound':
+                amb.append('%s:%d（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）' % (ref, ln))
             else:
-                red.append('%s:%d（%s：按所给路径找不到文件）' % (ref, ln, '路径失效' if kind == 'missing' else '仓内无此件'))
+                red.append('%s:%d（路径失效：按所给完整路径找不到文件）' % (ref, ln))
             continue
         ls = file_lines(p) or []
         if ln > len(ls) or ln < 1:

@@ -19,7 +19,7 @@
 
 ## 2. `outcome=55` 到底是什么码（这决定它归谁管）
 
-- `mbf_msgs/GetPathResult.h:111` ⇒ **`PAT_EXCEEDED = 55u`**；对照同名码：`ExePathResult.h:126` 是 **103**、`RecoveryResult.h:87` 是 **152**。
+- `mbf_msgs/GetPathResult.h:111` ⇒ **`PAT_EXCEEDED = 55u`**；对照同名码：`/opt/ros/noetic/include/mbf_msgs/ExePathResult.h:126` 是 **103**、`/opt/ros/noetic/include/mbf_msgs/RecoveryResult.h:87` 是 **152**。
 - ⇒ 55 属 **GetPath＝全局规划侧**被 patience 掐断，与控制器/恢复无关；文案 `mbf_utility/get_path_exception.h:22` 原文 `"Patience exceeded"`。
 
 ## 3. 读数（两份在册 CSV，原样统计）
