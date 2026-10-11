@@ -25,6 +25,42 @@
 set -u
 cd /home/ros1-slam || exit 9
 command -v getfacl >/dev/null 2>&1 || { echo "[前置缺失] getfacl 不可用 ⇒ 无法判 effective"; echo "VAR VERDICT rc=9"; exit 9; }
+SELF=$(readlink -f "$0")
+# --selftest：把"能红也能绿"打包成例（R187；来源＝本会话 VAR 逮到我 7 次，但它此前只有内建 P1 探针、没有可复跑的 P2/P3 用例）
+#   每条守卫都必须**两面都过**：植入违规必须红、撤掉违规必须绿；只红不绿＝恒红噪声，只绿不红＝空控。
+if [ "${1:-}" = "--selftest" ]; then
+  npass=0; nfail=0
+  T1=$(mktemp -d /tmp/var_st_perms.XXXXXX); T2=$(mktemp -d /tmp/var_st_evd.XXXXXX)
+  printf 'y\n' > "$T1/keep664.txt"; chmod 664 "$T1/keep664.txt"
+  mkdir -p "$T2/r99_probe"; printf 'z\n' > "$T2/r99_probe/out.txt"; chmod 664 "$T2/r99_probe/out.txt"
+
+  printf 'x\n' > "$T1/bad600.txt"; chmod 600 "$T1/bad600.txt"
+  o1=$(bash "$SELF" "$T1" 2>&1); r1=$?
+  if [ "$r1" = 5 ] && printf '%s' "$o1" | grep -q 'bad600.txt'; then
+    npass=$((npass+1)); echo "[PASS] S1 P2 植入 600 件必须点名并 rc=5（实得 rc=$r1）"
+  else nfail=$((nfail+1)); echo "[FAIL] S1 P2 未逮住植入的 600 件（rc=$r1）⇒ P2 没有分辨力"; fi
+  rm -f "$T1/bad600.txt"
+  o2=$(bash "$SELF" "$T1" 2>&1); r2=$?
+  if [ "$r2" = 0 ]; then npass=$((npass+1)); echo "[PASS] S2 撤掉违规后必须 rc=0（实得 rc=$r2）"
+  else nfail=$((nfail+1)); echo "[FAIL] S2 撤掉违规后仍 rc=$r2 ⇒ P2 恒红，读数不可信：$(printf '%s' "$o2" | grep FAIL | head -1)"; fi
+  [ "$r1" != "$r2" ] && { npass=$((npass+1)); echo "[PASS] S3 P2 两面不同（$r1 ≠ $r2）⇒ 红确由违规而来"; } \
+    || { nfail=$((nfail+1)); echo "[FAIL] S3 P2 两面同果（都 $r1）⇒ 该变异例无效，不得据此说 P2 被测过"; }
+
+  o4=$(VAR_EVD="$T2/*/" bash "$SELF" "$T2" 2>&1); r4=$?
+  if [ "$r4" = 5 ] && printf '%s' "$o4" | grep -q 'r99_probe'; then
+    npass=$((npass+1)); echo "[PASS] S4 P3a-1 缺清单的证据目录必须被报并 rc=5（实得 rc=$r4）"
+  else nfail=$((nfail+1)); echo "[FAIL] S4 P3a-1 未逮住缺清单目录（rc=$r4）⇒ 约定回归面没有牙"; fi
+  ( cd "$T2/r99_probe" && sha256sum out.txt > _sha256_manifest.txt && chmod 664 _sha256_manifest.txt )
+  o5=$(VAR_EVD="$T2/*/" bash "$SELF" "$T2" 2>&1); r5=$?
+  if [ "$r5" = 0 ]; then npass=$((npass+1)); echo "[PASS] S5 补上清单后必须 rc=0（实得 rc=$r5）"
+  else nfail=$((nfail+1)); echo "[FAIL] S5 补清单后仍 rc=$r5 ⇒ P3a-1 恒红：$(printf '%s' "$o5" | grep FAIL | head -1)"; fi
+  [ "$r4" != "$r5" ] && { npass=$((npass+1)); echo "[PASS] S6 P3a-1 两面不同（$r4 ≠ $r5）"; } \
+    || { nfail=$((nfail+1)); echo "[FAIL] S6 P3a-1 两面同果（都 $r4）⇒ 该变异例无效"; }
+
+  rm -rf "$T1" "$T2"
+  echo "VAR SELFTEST VERDICT: PASS=$npass FAIL=$nfail（每条守卫都必须既会红又会绿；只红＝恒红噪声、只绿＝空控）"
+  [ "$nfail" = 0 ] && exit 0 || exit 5
+fi
 set +u
 unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION
 set -u

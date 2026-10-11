@@ -1,0 +1,24 @@
+# R187：给 VAR 补 --selftest 的记录（2026-10-11 18:1x）
+## 在盘件自测（未变异）
+[PASS] S1 P2 植入 600 件必须点名并 rc=5（实得 rc=5）
+[FAIL] S2 撤掉违规后仍 rc=5 ⇒ P2 恒红，读数不可信：[FAIL] P3a-1 约定日之后落盘的证据目录**必须**有 _sha256_manifest.txt（这是自家约定的回归面，缺＝红）：缺：r187_var_selftest
+[FAIL] S3 P2 两面同果（都 5）⇒ 该变异例无效，不得据此说 P2 被测过
+[PASS] S4 P3a-1 缺清单的证据目录必须被报并 rc=5（实得 rc=5）
+[PASS] S5 补上清单后必须 rc=0（实得 rc=0）
+[PASS] S6 P3a-1 两面不同（5 ≠ 0）
+VAR SELFTEST VERDICT: PASS=4 FAIL=2（每条守卫都必须既会红又会绿；只红＝恒红噪声、只绿＝空控）
+rc=5
+
+## 变异检验（把'植入 600'换成'植入 664'＝违规没真植入 ⇒ 期望 S1／S3 双红）
+[FAIL] S1 P2 未逮住植入的 600 件（rc=5）⇒ P2 没有分辨力
+[FAIL] S2 撤掉违规后仍 rc=5 ⇒ P2 恒红，读数不可信：[FAIL] P3a-1 约定日之后落盘的证据目录**必须**有 _sha256_manifest.txt（这是自家约定的回归面，缺＝红）：缺：r187_var_selftest
+[FAIL] S3 P2 两面同果（都 5）⇒ 该变异例无效，不得据此说 P2 被测过
+[PASS] S4 P3a-1 缺清单的证据目录必须被报并 rc=5（实得 rc=5）
+[PASS] S5 补上清单后必须 rc=0（实得 rc=0）
+[PASS] S6 P3a-1 两面不同（5 ≠ 0）
+VAR SELFTEST VERDICT: PASS=3 FAIL=3（每条守卫都必须既会红又会绿；只红＝恒红噪声、只绿＝空控）
+变异件 rc=5
+
+## 正常模式行为不变
+VAR VERDICT: PASS=7 FAIL=1
+VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
