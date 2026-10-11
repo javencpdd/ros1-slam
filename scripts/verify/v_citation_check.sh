@@ -15,7 +15,12 @@
 # 自标定（P1，阳性对照在前；坑29／坑42 的既有姿势）：植入 1 条行号越界(须 RED)＋1 条键名不符(须 AMBER)＋1 条 .cc/.xml 覆盖面(须识别)
 #   ＋1 条正确引用(须 OK)＋1 条勘误句式(须 FIXUP)＋空扫描面(须 rc=9)；**五项任一对不上即 rc=9，普查结果一律不采信**。
 #
-# 边界：只读。不改任何文档、不动门禁串四件（SYN/GTC/ISO/DC）；是否入门禁串＝请求单 A15/#54/#16 那一族，我不自落。
+# 豁免档（EXEMPT，主理人 2026-10-11 勾 #12-甲、要求留证）：表＝`scripts/verify/citation_known_pseudo_reds.tsv`
+#   每条记「目标:行＋为什么是解析伪红＋在册出处锚文本＋登记批＋裁定来源」。三条规矩：
+#   ①只收**已被在册定性的解析伪红**（短路径撞同名件那类造成的越界）；②每条**必须指得到在册出处**，指不到不许进表；
+#   ③**不在表内的越界照旧判红**——这档不是消音器，真须改的活错（如 06 那条 launch 越界）仍会红。
+#   表可用 VCC_EXEMPT 改指（自测注桩）；表缺失＝豁免面为空，件照常判红（**失败方向是保守的**）。
+# 边界：只读。不改任何文档、不动门禁串六件；是否入门禁串＝请求单 A15／#54／#16／#12 那一族，我不自落。
 # 用法：bash scripts/verify/v_citation_check.sh --selftest
 #       bash scripts/verify/v_citation_check.sh --census [<文档 ...>]  逐条打印每个「目标:行」被归到哪档，
 #         并汇总「同一目标多处引用是否被归成不同档」（请求单 A25 的成本数；**只读、只数，不改任何判定**）。
@@ -54,6 +59,16 @@ FIXUP = re.compile(r'写成|实为|勘误|应为|误为|改成|更正|原文不�
 FIXUP_MODE = os.environ.get('VCC_FIXUP_MODE', '')
 # 窗口宽度做成旋钮（VCC_FIXUP_CHARS，缺省 60＝现行）：本仓志文常一行数百字，『收成同一行』在长行下是**放宽**不是收紧（实测见 04 R163），所以只能按字数扫，不能靠语感定方向。
 FIXUP_CHARS = int(os.environ.get('VCC_FIXUP_CHARS', '60') or 60)
+EXEMPT = {}          # 目标相对路径:行 -> (定性, 出处)  ⇒ 命中则越界不判红、单列 EXEMPT
+EXEMPT_HITS = []     # judge() 每次调用重建
+EXEMPT_FILE = os.environ.get('VCC_EXEMPT') or os.path.join(ROOT, 'scripts/verify/citation_known_pseudo_reds.tsv')
+if os.path.isfile(EXEMPT_FILE):
+    for _row in open(EXEMPT_FILE, encoding='utf-8', errors='ignore').read().splitlines():
+        if not _row.strip() or _row.startswith('目标相对路径'):
+            continue
+        _c = _row.split('\t')
+        if len(_c) >= 3 and ':' in _c[0]:
+            EXEMPT[_c[0].strip()] = (_c[1].strip(), _c[2].strip())
 lines_cache = {}
 RECS = []            # census 用：judge() 每次调用重建，元素＝(目标, 行, 档位, 键名, 出处写法)
                      # 只加副作用于这个列表，不改 red/amber/fixup/ok/total 的任何一条判定（C7 自测盯住同向）
@@ -112,6 +127,7 @@ def resolve(ref):
 def judge(text, root=ROOT):
     """扫描一段文本，返回 (RED, AMBER, FIXUP_HITS, OK_count, total)。"""
     red, amber, fixup, ok, total = [], [], [], 0, 0
+    del EXEMPT_HITS[:]
     amb = []
     info = []
     del RECS[:]
@@ -170,8 +186,15 @@ def judge(text, root=ROOT):
             continue
         ls = file_lines(p) or []
         if ln > len(ls) or ln < 1:
-            red.append('%s:%d 越界（该文件 %d 行）' % (os.path.relpath(p, root), ln, len(ls)))
-            rec(os.path.relpath(p, root), ln, 'RED', key, ref, '行号越界')
+            _rel = os.path.relpath(p, root)
+            # 两种键形都试（只认相对形会让"写成绝对路径的表项"永远静默不命中＝坑63 那一型漏）
+            _ex = EXEMPT.get('%s:%d' % (_rel, ln)) or EXEMPT.get('%s:%d' % (p, ln))
+            if _ex:
+                EXEMPT_HITS.append('%s:%d 越界（该文件 %d 行）→ 已定性伪红；出处：%s' % (_rel, ln, len(ls), _ex[1][:130]))
+                rec(_rel, ln, 'EXEMPT', key, ref, '已定性解析伪红（见豁免表）')
+                continue
+            red.append('%s:%d 越界（该文件 %d 行）' % (_rel, ln, len(ls)))
+            rec(_rel, ln, 'RED', key, ref, '行号越界')
             continue
         line = ls[ln - 1]
         if key:
@@ -241,7 +264,26 @@ if MODE == 'selftest':
         ok8 = (len(f8a) == 1 and len(f8b) == 0 and len(a8b) == 1)
         print('[%s] C8 跨行勘误窗把本可判黄的引用吸走（缺省 FIXUP×1／同行窗 AMBER×1）：实得 FIXUP=%d AMBER=%d' % (
             'PASS' if ok8 else 'FAIL', len(f8a), len(a8b)))
-        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8]); nfail = 8 - npass
+        # C9 豁免档**双向**阳性对照：表内那条越界必须不红、表外那条必须仍红（防豁免档退化成消音器）
+        _ex_bak = dict(EXEMPT)
+        try:
+            ex_tsv = os.path.join(tmp, 'ex.tsv')
+            open(ex_tsv, 'w', encoding='utf-8').write(
+                '目标相对路径:行\t定性\t出处\n%s:9\t桩：解析伪红\t桩出处：本自测 C9\n' % target)
+            EXEMPT.clear()
+            for _row in open(ex_tsv, encoding='utf-8').read().splitlines():
+                _c = _row.split('\t')
+                if len(_c) >= 3 and ':' in _c[0] and not _c[0].startswith('目标相对路径'):
+                    EXEMPT[_c[0].strip()] = (_c[1].strip(), _c[2].strip())
+            r9a, _, _, _, _, _, _ = judge('%s:9 nope' % target)        # 表内 ⇒ 不得判红
+            eh9 = len(EXEMPT_HITS)
+            r9b, _, _, _, _, _, _ = judge('%s:8 nope' % target)        # 表外越界 ⇒ 必须仍红
+            ok9 = (len(r9a) == 0 and eh9 == 1 and len(r9b) == 1 and len(EXEMPT) == 1)
+            print('[%s] C9 豁免档双向：表内红=%d（须 0）豁免命中=%d（须 1）表外红=%d（须 1）表=%d 条' % (
+                'PASS' if ok9 else 'FAIL', len(r9a), eh9, len(r9b), len(EXEMPT)))
+        finally:
+            EXEMPT.clear(); EXEMPT.update(_ex_bak)
+        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9]); nfail = 9 - npass
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print('VCC SELFTEST VERDICT: PASS=%d FAIL=%d' % (npass, nfail))
@@ -274,7 +316,7 @@ if MODE == 'census':
     multi = dict((k, v) for k, v in occ.items() if len(v) > 1)
     mixed = dict((k, v) for k, v in multi.items() if len(set(x[0] for x in v)) > 1)
     # 「就低同判」（A25 甲案的形状）：目标只要在任一处被判 RED/AMBER，其余处一律抬到该档 ⇒ 数有多少处会被改档
-    worst = {'RED': 3, 'AMBER': 2, 'FIXUP': 1, 'OK': 0}
+    worst = {'RED': 3, 'AMBER': 2, 'FIXUP': 1, 'OK': 0, 'EXEMPT': 0}
     lifted_ok = lifted_fix = 0
     for k, v in mixed.items():
         cap = max(v, key=lambda x: worst[x[0]])[0]
@@ -314,6 +356,7 @@ if MODE == 'census':
     sys.exit(0)
 
 allr, alla, allf, okc, tot, info_total = [], [], [], 0, 0, 0
+alle = []
 scanned = 0
 for d in docs:
     p = d if os.path.isabs(d) else os.path.join(ROOT, d)
@@ -322,6 +365,7 @@ for d in docs:
         continue
     scanned += 1
     red, amber, fixup, ok, t, inf, _ = judge(open(p, encoding='utf-8', errors='ignore').read())
+    alle += ['%s ⇒ %s' % (os.path.basename(d), x) for x in EXEMPT_HITS]
     info_total += inf
     allr += ['%s ⇒ %s' % (os.path.basename(d), x) for x in red]
     alla += ['%s ⇒ %s' % (os.path.basename(d), x) for x in amber]
@@ -335,8 +379,10 @@ for x in allr[:MAXD]:
     print('[RED] %s' % x)
 for x in alla[:MAXD]:
     print('[AMBER] %s' % x)
-print('[计数] 文档=%d 单点引用=%d OK=%d RED=%d AMBER=%d 勘误句=%d（不判红）非单点形状=%d（不判红）'
-      % (scanned, tot, okc, len(allr), len(alla), len(allf), info_total))
+for x in alle[:MAXD]:
+    print('[EXEMPT] %s' % x)
+print('[计数] 文档=%d 单点引用=%d OK=%d RED=%d AMBER=%d 勘误句=%d（不判红）非单点形状=%d（不判红）豁免红=%d（不判红；表 %d 条）'
+      % (scanned, tot, okc, len(allr), len(alla), len(allf), info_total, len(alle), len(EXEMPT)))
 rc = 6 if allr else (5 if alla else 0)
 print('VCC VERDICT rc=%d（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）' % rc)
 sys.exit(rc)
