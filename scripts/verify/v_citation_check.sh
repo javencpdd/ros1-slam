@@ -61,6 +61,7 @@ FIXUP_MODE = os.environ.get('VCC_FIXUP_MODE', '')
 FIXUP_CHARS = int(os.environ.get('VCC_FIXUP_CHARS', '60') or 60)
 EXEMPT = {}          # 目标相对路径:行 -> (定性, 出处)  ⇒ 命中则越界不判红、单列 EXEMPT
 EXEMPT_HITS = []     # judge() 每次调用重建
+EXEMPT_SEEN = set()  # **跨文档累计**：本次扫描真命中过的表键 ⇒ 没出现的就是陈旧条目（只报不红）
 EXEMPT_FILE = os.environ.get('VCC_EXEMPT') or os.path.join(ROOT, 'scripts/verify/citation_known_pseudo_reds.tsv')
 if os.path.isfile(EXEMPT_FILE):
     for _row in open(EXEMPT_FILE, encoding='utf-8', errors='ignore').read().splitlines():
@@ -188,8 +189,10 @@ def judge(text, root=ROOT):
         if ln > len(ls) or ln < 1:
             _rel = os.path.relpath(p, root)
             # 两种键形都试（只认相对形会让"写成绝对路径的表项"永远静默不命中＝坑63 那一型漏）
-            _ex = EXEMPT.get('%s:%d' % (_rel, ln)) or EXEMPT.get('%s:%d' % (p, ln))
+            _k1, _k2 = '%s:%d' % (_rel, ln), '%s:%d' % (p, ln)
+            _ex = EXEMPT.get(_k1) or EXEMPT.get(_k2)
             if _ex:
+                EXEMPT_SEEN.add(_k1 if _k1 in EXEMPT else _k2)   # 记**表里的键形**，否则陈旧检测对不上账
                 EXEMPT_HITS.append('%s:%d 越界（该文件 %d 行）→ 已定性伪红；出处：%s' % (_rel, ln, len(ls), _ex[1][:130]))
                 rec(_rel, ln, 'EXEMPT', key, ref, '已定性解析伪红（见豁免表）')
                 continue
@@ -283,7 +286,29 @@ if MODE == 'selftest':
                 'PASS' if ok9 else 'FAIL', len(r9a), eh9, len(r9b), len(EXEMPT)))
         finally:
             EXEMPT.clear(); EXEMPT.update(_ex_bak)
-        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9]); nfail = 9 - npass
+        # C10 陈旧豁免条目自检：命中的不许被报陈旧、没命中的必须被报陈旧，且"陈旧"本身不得变成红或黄（只报不拦人）
+        _ex_bak10 = dict(EXEMPT)
+        try:
+            open(os.path.join(tmp, 'ex10.tsv'), 'w', encoding='utf-8').write(
+                '目标相对路径:行\t定性\t出处\n'
+                '%s:9\t桩甲：会被命中\t桩出处：C10 甲\n'
+                '%s:77\t桩乙：无人引用\t桩出处：C10 乙\n' % (target, target))
+            EXEMPT.clear(); EXEMPT_SEEN.clear()
+            for _row in open(os.path.join(tmp, 'ex10.tsv'), encoding='utf-8').read().splitlines():
+                _c = _row.split('\t')
+                if len(_c) >= 3 and ':' in _c[0] and not _c[0].startswith('目标相对路径'):
+                    EXEMPT[_c[0].strip()] = (_c[1].strip(), _c[2].strip())
+            r10, a10, _, _, _, _, _ = judge('%s:9 nope_key' % target)   # 只命中甲
+            stale10 = sorted(k for k in EXEMPT if k not in EXEMPT_SEEN)
+            ok10 = (len(EXEMPT) == 2 and len(EXEMPT_SEEN) == 1
+                    and stale10 == ['%s:77' % target]
+                    and not r10 and not a10                      # 陈旧条目本身不产生红/黄
+                    and list(EXEMPT_SEEN)[0] == '%s:9' % target) # 记的是**表里的键形**（绝对形）
+            print('[%s] C10 陈旧豁免双向：表=%d 命中=%d 报陈旧=%s（须只乙一条）该次 RED=%d AMBER=%d（须 0/0）' % (
+                'PASS' if ok10 else 'FAIL', len(EXEMPT), len(EXEMPT_SEEN), stale10 or '无', len(r10), len(a10)))
+        finally:
+            EXEMPT.clear(); EXEMPT.update(_ex_bak10); EXEMPT_SEEN.clear()
+        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10]); nfail = 10 - npass
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print('VCC SELFTEST VERDICT: PASS=%d FAIL=%d' % (npass, nfail))
@@ -381,8 +406,16 @@ for x in alla[:MAXD]:
     print('[AMBER] %s' % x)
 for x in alle[:MAXD]:
     print('[EXEMPT] %s' % x)
-print('[计数] 文档=%d 单点引用=%d OK=%d RED=%d AMBER=%d 勘误句=%d（不判红）非单点形状=%d（不判红）豁免红=%d（不判红；表 %d 条）'
-      % (scanned, tot, okc, len(allr), len(alla), len(allf), info_total, len(alle), len(EXEMPT)))
+# 陈旧豁免条目自检：**表里有条目、本次扫描一条没命中** ⇒ 要么是属主已把那处改掉（条目该销）、
+# 要么是键形与扫描面对不上（条目一直在静默不命中＝坑63 那一型）。**只报不红、不改 rc**（自家约定不拦人，销不销归人）。
+_stale = sorted(k for k in EXEMPT if k not in EXEMPT_SEEN)
+for k in _stale[:MAXD]:
+    print('[STALE] 豁免条目 %s 本次扫描**零命中**（登记出处：%s｜定性：%s）'
+          '⇒ 三种可能都要查：该处已被清偿、该引用已不在扫描面、或表键形与扫描面不符；**只报不红**，销不销由人定'
+          % (k, EXEMPT[k][1][:70], EXEMPT[k][0][:40]))
+print('[计数] 文档=%d 单点引用=%d OK=%d RED=%d AMBER=%d 勘误句=%d（不判红）非单点形状=%d（不判红）豁免红=%d（不判红；表 %d 条）豁免表命中=%d 未命中=%d%s'
+      % (scanned, tot, okc, len(allr), len(alla), len(allf), info_total, len(alle), len(EXEMPT),
+         len(EXEMPT_SEEN), len(_stale), '（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）' if _stale else ''))
 rc = 6 if allr else (5 if alla else 0)
 print('VCC VERDICT rc=%d（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）' % rc)
 sys.exit(rc)
