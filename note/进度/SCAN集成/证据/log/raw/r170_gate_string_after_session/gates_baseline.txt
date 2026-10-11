@@ -1,0 +1,37 @@
+# R170 批后「正式门禁串六件」逐件实跑（2026-10-11 10:31；本会话 R163 改了 v_citation_check.sh、R164 新建 v_ledger_batch_consistency.sh ⇒ 六件全跑，不复用 R140 旧读数）
+# 起工前 uptime load average：2.50, 3.05, 3.29（≤4，未用 FORCE）
+# 范围甲件数＝50（三段 33／4／13）⇒ **与 R132／R140 基线同数**，被检面未缩
+
+SYN          rc=0   7639ms   被检件数=41（内嵌 python 段 25）
+GTC          rc=0   2623ms   GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 载体仍 H14）
+ISO          rc=0   5339ms   [1]–[9] 九项全在；self-attest at=2026-10-11 10:31:58 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4703 rc=0
+DC           rc=1    932ms   **在册已知态**（A 类到期未回收／B 类待人工），不是本批新红
+v_py_static  rc=0  41630ms   PY STATIC OK（被检件数=50，零红）
+VAR          rc=5   →补清单后复跑 rc=0（见下「VAR 两遍」）
+
+# ---- 跑法与口径 ----
+# SYN   ：bash scripts/verify/v_sh_py_syntax.sh $(ls scripts/verify/*.sh ws/src/40_navigation/lite3_scan/verify/*.sh ws/src/95_simulation/lite3_gazebo_sim/verify/*.sh)
+# GTC   ：bash scripts/verify/v_harness_generation_table.sh --check
+# ISO   ：bash -lc 'source /opt/ros/noetic/setup.bash && source /home/ros1-slam/ws/devel/setup.bash && bash scripts/verify/v3_isolation.sh'
+#         （**跑前必 source**——这是在册坑，本仓踩过三次；不 source 出来的 [4] BAD 是自造 INVALID，不是被测件坏）
+# DC    ：bash scripts/verify/v_deferred_clause_scan.sh
+# PYST  ：bash scripts/verify/v_py_static.sh <范围甲 50 件清单>
+# VAR   ：bash scripts/verify/v_evidence_reachability.sh
+
+# ---- 两条必须连着读的说明 ----
+# ①**被检件数 40 → 41**：本会话 R164 新建了一个 .sh 进了 `scripts/verify/` ⇒ 这是**覆盖面变化**（件多了），
+#    **不是**「SYN 变严了」或「原 40 件里有新红」（原 40 件本轮仍零红，逐行见同目录 SYN.txt）。
+#    按坑63 处置③：计数变动要写明是覆盖面变了还是对象真的变了，混起来就会把「我加了个件」读成「志文变差」。
+# ②**VAR 两遍（按发生序，不是只报好看的那遍）**：
+#    第一遍 **rc=5**——P3a-1 抓出**本证据目录自己没建 `_sha256_manifest.txt`**（自家约定的回归面，缺＝红，件判得对，是我目录没建全）；
+#    补清单并从归档址 `sha256sum -c` 全 OK 后复跑 **rc=0（8 PASS／0 FAIL）**。
+
+# ---- 合判 ----
+# 五件绿 ＋ DC 在册已知态 ⇒ **与 R140／R132 基线同形**；
+# 代际仍 H14（GTC 现算 14 行＝SM∪LIB 提交数）；被测件面仍是 R137 起定格的 `so=147dc8cc`（本会话未再编译、未动 ws/src 源码）。
+# 本串**不因本会话改的是候补件而跳代**，也不因为「只是文档批」就跳过——R163／R164 动了 `scripts/verify/` 下的件面，故全跑。
+
+# ---- 边界 ----
+# 零改动面：本批只跑件、只留底；未改判据／门值／门禁串、未动 ws/src 任何件、未编译、未起活体窗、无 sudo。
+# 留底件：SYN.txt GTC.txt ISO.txt DC.txt PYSTATIC.txt VAR.txt 六份原始输出＋本说明＋_sha256_manifest.txt。
+# 登记人：小明（施工）· 2026-10-11 · P8＝计划书未定稿、以 v4.3 补丁稿为准；不构成任何阶段收口。
