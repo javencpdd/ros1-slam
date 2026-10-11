@@ -1,0 +1,10 @@
+# R165 · 三件候补闸的单跑代价实测（干净条件墙钟，本 boot；排程仍按「窗数×2」估）
+# 逐件计时法：date +%s%3N 前后夹一次调用，rc 一并记
+v_citation_check.sh                args=（无）                             1094ms rc=6
+v_citation_check.sh                args=--selftest                             190ms rc=0
+v_ledger_batch_consistency.sh      args=（无）                             1799ms rc=0
+v_ledger_batch_consistency.sh      args=--selftest                             203ms rc=0
+v_citation_refscan.sh              args=scripts/verify/v_citation_check.sh     647ms rc=0
+
+# 关键一条（不报就是我知道它会红却不说）：VCC 默认全量面此刻退 rc=6，红源＝04 里那条已被定性的坑52 型伪红 ⇒ 原样入门会让门禁每批带红跑（ac 稿 §3）。
+# 在册六件基线（05 第九节原文）：SYN 40 件≈7s／GTC≈3s／ISO≈5s／DC rc=1 在册已知态／VAR≈6s／v_py_static 范围甲 50 件≈42s ⇒ 合计≈63s；加三件≈+3.5s ⇒ ≈66.5s（+5.6%）。
