@@ -1,0 +1,7 @@
+# R212 第七件（并排核器）的真实变异验证留底——入门不等于有牙，本批在真面上把五种失败方向各走一遍
+# step1_inject.log        ＝ 注入门用面外的未知形状 ⇒ rc=5 且点名 [新增]（已知 7／新增 1）
+# step2_retract.log       ＝ 撤掉注入 ⇒ rc=0（原始疑点 7＝已知 7、新增 0）
+# step3_empty_table.log   ＝ VP_KNOWN 指空表 ⇒ rc=5（7 条全部复活为新增）
+# step4_missing_table.log ＝ VP_KNOWN 指不存在的文件 ⇒ rc=9 不判（缺表＝无人守）
+# step5_drop_one_row.log  ＝ 表的**副本**删一行 ⇒ 那条（attempt7 的 RESTORE）复活成新增 ⇒ 证明"不许删行"是纪律
+# 在册表 scripts/verify/parity_known_findings.tsv 本批一字未动（git status 对该件为空）；注入件在 /tmp 跑完即删、不入库
