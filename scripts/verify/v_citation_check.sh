@@ -12,8 +12,11 @@
 #   FIXUP 同一句里含「写成／实为／勘误／应为」等 ⇒ 这是**在册引错示例**（我们的台账规矩是"原文不回改＋另起勘误句"，
 #         所以这类句子必然同时含错引与正解），**不计红**，只单列计数；把它算红就等于罚"诚实记录错误"。
 #   OK    行存在，且（无键名 或 键名能在该行匹配）。
-# 自标定（P1，阳性对照在前；坑29／坑42 的既有姿势）：植入 1 条行号越界(须 RED)＋1 条键名不符(须 AMBER)＋1 条 .cc/.xml 覆盖面(须识别)
-#   ＋1 条正确引用(须 OK)＋1 条勘误句式(须 FIXUP)＋空扫描面(须 rc=9)；**五项任一对不上即 rc=9，普查结果一律不采信**。
+# 自标定（P1，阳性对照在前；坑29／坑42 的既有姿势）：C1 正确引用(须 OK)＋C2 行号越界(须 RED)＋C3 键名不符(须 AMBER)
+#   ＋C4 勘误句式(须 FIXUP 不判红)＋C5 空扫描面(须零判定，外层据此退 rc=9)＋C6 .cc/.xml 覆盖面(须识别)
+#   ＋C7 census 与 scan 同向＋C8 跨行窗的吸走效应双向＋C9 豁免档双向＋C10 陈旧条目双向
+#   ＋**C11 面条件双向（R192）**：同一条引用在"目标被 git 忽略／不被忽略"两面下必须报 1 与 0，且两面档位必须全等（面条件只报数、不动判定）。
+#   **共 11 项，任一对不上即 rc=9，普查结果一律不采信**（头注原先写"五项"是 R163 前的旧数，本次一并改准）。
 #
 # 豁免档（EXEMPT，主理人 2026-10-11 勾 #12-甲、要求留证）：表＝`scripts/verify/citation_known_pseudo_reds.tsv`
 #   每条记「目标:行＋为什么是解析伪红＋在册出处锚文本＋登记批＋裁定来源」。三条规矩：
@@ -39,7 +42,7 @@ case "${1:-}" in
 esac
 python3 - "$MODE" "$ROOT" "${VCC_MAX:-20}" "$@" <<'PYEOF'
 # -*- coding: utf-8 -*-
-import glob, os, re, shutil, sys, tempfile
+import glob, os, re, shutil, subprocess, sys, tempfile
 
 MODE, ROOT, MAXD = sys.argv[1], sys.argv[2], int(sys.argv[3])
 docs = sys.argv[4:] or (['note/04_配置改动diff.md', 'note/02_问题与坑.md', 'note/进度/00_总览.md']
@@ -74,6 +77,7 @@ lines_cache = {}
 RECS = []            # census 用：judge() 每次调用重建，元素＝(目标, 行, 档位, 键名, 出处写法)
                      # 只加副作用于这个列表，不改 red/amber/fixup/ok/total 的任何一条判定（C7 自测盯住同向）
 name_index = {}      # basename → [绝对路径]，整仓只建一次（首版每次引用都 os.walk 一遍 ⇒ 60s 还没扫完，件自己慢死）
+USED_PATHS = set()   # 本次解析**用到的仓内目标绝对路径**：只喂下面的「面条件」自检，不参与任何档位判定
 
 
 def build_index():
@@ -99,6 +103,48 @@ def file_lines(path):
     return lines_cache[path]
 
 
+def _ok(p):
+    USED_PATHS.add(p)
+    return p, 'ok'
+
+
+def face_condition():
+    """面条件自检（R192 加；**只报数、不参与任何档位判定**）：本次解析用到的仓内目标里，有哪些落在 **git 忽略集**内。
+    为什么要有这格：本件的 RED 列来自"回整棵树解析目标在不在位"，而 `git archive` 只收 git 收录的文件
+    ⇒ 用 archive 还原的面里，被 `.gitignore` 挡掉的真身文件会凭空消失、各档 RED 多 1–3 条（R191 实测：±60 由 1 变 3）。
+    ⇒ 任何留底都得能被判"它的面含不含忽略件"，否则换人复跑必然对不上。返回 (用到件数, 忽略集内的件名列表, 未核原因)。"""
+    rels = []
+    for p in USED_PATHS:
+        r = os.path.relpath(p, ROOT)
+        if not r.startswith('..'):          # 仓外目标（如 /opt/ros 侧头文件）本来不在面里，不计
+            rels.append(r)
+    if not rels:
+        return 0, [], ''
+    if not shutil.which('git'):
+        return len(rels), [], 'git 不可用'
+    try:
+        pr = subprocess.run(['git', '-C', ROOT, 'check-ignore', '--stdin'],
+                            input='\n'.join(rels) + '\n', stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, universal_newlines=True)
+    except Exception as e:
+        return len(rels), [], 'git 调用失败：%s' % str(e)[:40]
+    if pr.returncode not in (0, 1):         # 0＝有命中、1＝一条没命中（两者都是有效读数）；128 等＝不在仓里 ⇒ 未核
+        return len(rels), [], (pr.stderr.strip()[:60] or 'git rc=%d' % pr.returncode)
+    return len(rels), sorted(x for x in pr.stdout.splitlines() if x.strip()), ''
+
+
+def print_face_line():
+    n, ig, err = face_condition()
+    if err:
+        tail = '＝**未核**（%s）⇒ 不许当成"0 件忽略"' % err
+    elif ig:
+        tail = '⇒ 用 `git archive` 还原面会缺下面这些件 ⇒ 回整树解析出来的 RED 列会变（复现留名要带上"面怎么取"）：'
+    else:
+        tail = '⇒ 本轮 git 面与工作树面等价（archive 还原不改变 RED 列）'
+    print('[面条件] 本次解析用到仓内目标=%d 件；其中 git 忽略集内=%d 件%s%s'
+          % (n, len(ig), tail, ('%s' % '、'.join(ig[:MAXD])) if ig else ''))
+
+
 def resolve(ref):
     """返回 (路径或 None, 类别)。类别：'ok' 唯一命中｜'missing' 写了目录却找不到（＝路径失效，硬错）｜
        'ambiguous' 只给 basename 且仓里多份（坑52 那一族：该写完整路径，属**引用质量问题**不是硬错）｜'notfound' 哪儿都没有。
@@ -109,18 +155,18 @@ def resolve(ref):
         cands += ['/opt/ros/noetic/include/' + ref, os.path.join('/opt/ros/noetic', ref), ref]
     for c in cands:
         if os.path.isfile(c):
-            return c, 'ok'
+            return _ok(c)
     base = os.path.basename(ref).lstrip('.')
     build_index()
     hits = name_index.get(base, [])
     if len(hits) == 1:
-        return hits[0], 'ok'
+        return _ok(hits[0])
     if len(hits) == 0:
         return None, 'notfound'
     if True:
         for h in hits:
             if h.endswith(ref if not ref.startswith('./') else ref[2:]):
-                return h, 'ok'
+                return _ok(h)
         return None, ('ambiguous' if '/' not in ref else 'missing')
     return None, ('ambiguous' if '/' not in ref else 'missing')
 
@@ -308,7 +354,53 @@ if MODE == 'selftest':
                 'PASS' if ok10 else 'FAIL', len(EXEMPT), len(EXEMPT_SEEN), stale10 or '无', len(r10), len(a10)))
         finally:
             EXEMPT.clear(); EXEMPT.update(_ex_bak10); EXEMPT_SEEN.clear()
-        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10]); nfail = 10 - npass
+        # C11 面条件双向（R192）：同一条引用，在"目标被 git 忽略"与"不被忽略"两面下必须给出 1 与 0 两种数，
+        #     而**档位判定两边都必须一样**（面条件只报数、不许动判定）——两面同果＝这格没牙（05 §十二补 口径）
+        t11 = os.path.join(tmp, 'c11')
+        os.makedirs(os.path.join(t11, 'sub'))
+        open(os.path.join(t11, 'sub', 'ig.txt'), 'w', encoding='utf-8').write('alpha: 1\nbeta: 2\n')
+        open(os.path.join(t11, '.gitignore'), 'w', encoding='utf-8').write('sub/\n')
+        _root_bak, _used_bak = ROOT, set(USED_PATHS)
+        try:
+            if not shutil.which('git'):
+                ok11 = False
+                print('[FAIL] C11 面条件：git 不可用＝**前置缺失**，自测不许把"没测到"当"测过了"')
+            else:
+                subprocess.run(['git', 'init', '-q', t11], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                ROOT = t11
+                txt11 = '见 sub/ig.txt:1 alpha'
+                USED_PATHS.clear()
+                r11a, a11a, _, ok11a, tot11a, _, _ = judge(txt11)
+                n11a, g11a, e11a = face_condition()
+                os.remove(os.path.join(t11, '.gitignore'))
+                USED_PATHS.clear()
+                r11b, a11b, _, ok11b, tot11b, _, _ = judge(txt11)
+                n11b, g11b, e11b = face_condition()
+                # 第三腿＝**未核**那条支路：把面指到一个不是 git 仓的普通目录 ⇒ 必须报"未核"、不许当成 0
+                t11c = os.path.join(tmp, 'c11_nogit')
+                os.makedirs(os.path.join(t11c, 'sub'))
+                open(os.path.join(t11c, 'sub', 'ig.txt'), 'w', encoding='utf-8').write('alpha: 1\nbeta: 2\n')
+                ROOT = t11c
+                USED_PATHS.clear()
+                r11c, a11c, _, ok11c, tot11c, _, _ = judge(txt11)
+                n11c, g11c, e11c = face_condition()
+                ok11 = (not e11a and not e11b
+                        and n11a == 1 and g11a == ['sub/ig.txt'] and n11b == 1 and g11b == []
+                        and (r11a, a11a, ok11a, tot11a) == (r11b, a11b, ok11b, tot11b)
+                        and not r11a and not a11a and ok11a == 1
+                        and bool(e11c) and n11c == 1 and g11c == []
+                        and (r11c, a11c, ok11c, tot11c) == (r11a, a11a, ok11a, tot11a))
+                print('[%s] C11 面条件双向：忽略面内 用=%d 命中=%s／撤掉 .gitignore 后 用=%d 命中=%s'
+                      '（须 1/[sub/ig.txt] 与 1/[]）／非 git 面 用=%d 命中=%s 未核原因=%s（须非空）；'
+                      '三面档位须全等（RED=%d AMBER=%d OK=%d）%s' % (
+                          'PASS' if ok11 else 'FAIL', n11a, g11a or '无', n11b, g11b or '无',
+                          n11c, g11c or '无', e11c or '（空＝没报未核）',
+                          len(r11a), len(a11a), ok11a,
+                          '' if not (e11a or e11b) else '｜前两腿意外未核：%s / %s' % (e11a, e11b)))
+        finally:
+            ROOT = _root_bak
+            USED_PATHS.clear(); USED_PATHS.update(_used_bak)
+        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11]); nfail = 11 - npass
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print('VCC SELFTEST VERDICT: PASS=%d FAIL=%d' % (npass, nfail))
@@ -377,6 +469,7 @@ if MODE == 'census':
     print('[严档原因拆分] 多档并存目标按"最严那一档为何严"分组：')
     for w, c in sorted(bywhy.items(), key=lambda x: -x[1]):
         print('   %-34s %d 个' % (w, c))
+    print_face_line()
     print('VCC CENSUS VERDICT: 只数不判（census 无红绿语义；门禁串不变、VCC 仍未入）')
     sys.exit(0)
 
@@ -416,6 +509,7 @@ for k in _stale[:MAXD]:
 print('[计数] 文档=%d 单点引用=%d OK=%d RED=%d AMBER=%d 勘误句=%d（不判红）非单点形状=%d（不判红）豁免红=%d（不判红；表 %d 条）豁免表命中=%d 未命中=%d%s'
       % (scanned, tot, okc, len(allr), len(alla), len(allf), info_total, len(alle), len(EXEMPT),
          len(EXEMPT_SEEN), len(_stale), '（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）' if _stale else ''))
+print_face_line()
 rc = 6 if allr else (5 if alla else 0)
 print('VCC VERDICT rc=%d（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）' % rc)
 sys.exit(rc)
