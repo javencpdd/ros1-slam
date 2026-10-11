@@ -1,0 +1,18 @@
+[gate] 等 get_path action 服务器（上限 300s）…
+[gate] 服务器就绪，用时 4.7s
+[DR] 含 patience 的键与现值：{'controller_patience': 3.0, 'planner_patience': 3.0, 'recovery_patience': 15.0}
+
+=== 前置门：等 /map（上限 60s）===
+[地图门] /map 就绪 400x400 @0.100m（launch 请求的是 40x20 @0.15m ⇒ 若不同，本窗的"远角"是在别的图上测的，必须记下来）
+[地图普查] 盘上所有 OccupancyGrid 话题：['/map = 400x400 @0.100m', '/move_base_flex/local_costmap/costmap = 100x100 @0.100m', '/move_base_flex/global_costmap/costmap = 1000x1000 @0.100m', '/move_base_flex/GlobalPlanner/potential（无新消息／latched 未命中）']
+
+=== 放宽 planner_patience 到 60.0s（此刻已发过的 goal 数＝0，即真空闲）===
+[空闲门] 写 DR 前客户端状态=9（GOAL_STATE LOST）；未发过目标时应为 PENDING
+[DR 回执] 服务器广播={'planner_patience': 3.0}｜客户端缓存={'planner_patience': 60.0} ⇒ 落地＝True（判据来自=客户端缓存）
+
+=== 被试尝试：放宽后（60s patience）发该对 ===
+[cancel] 目标未回话 ⇒ 已 cancel_goal；取消后状态=1（ACTIVE，等 20.1s，到终态＝False）
+[attempt after_relaxed_patience_idle_set_first] outcome=None(NO-OUTCOME) state=1 path_poses=None 墙钟=90.0s msg=  ERR=result 为 None（等待超时或服务器未回话）
+[DR 还原] {'planner_patience': 60.0}
+
+B18 诊断窗结论 = INVALID|前置未成立：探针在 after_relaxed_patience_idle_set_first 未取到 outcome 或有 harness_error（逐条见 attempts）⇒ 本窗不判被试，也不得记为远角失败

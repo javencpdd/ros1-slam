@@ -1,0 +1,9 @@
+[gate] 等 get_path action 服务器（上限 300s）…
+[gate] 服务器就绪，用时 4.0s
+[DR] 含 patience 的键与现值：{'controller_patience': 3.0, 'planner_patience': 3.0, 'recovery_patience': 15.0}
+
+=== 尝试①：默认 patience（基线复现）===
+Traceback (most recent call last):
+  File "<stdin>", line 119, in <module>
+  File "<stdin>", line 90, in run_once
+AttributeError: 'SimpleActionClient' object has no attribute 'wait_for_state'

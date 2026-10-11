@@ -1,0 +1,21 @@
+12:35:20 roslaunch 真 PID=2728580（组长 2728580）；等就绪（上限 300s）
+[gate] 等 get_path action 服务器（上限 300s）…
+[gate] 服务器就绪，用时 5.5s
+[DR] 含 patience 的键与现值：{'controller_patience': 3.0, 'planner_patience': 3.0, 'recovery_patience': 15.0}
+
+=== 尝试①：默认 patience（基线复现）===
+[attempt baseline_default_patience] outcome=None(NO-OUTCOME) state=1 path_poses=None 墙钟=60.0s msg=  ERR=result 为 None（等待超时或服务器未回话）
+
+=== 放宽 planner_patience 到 60.0s 并取回执 ===
+[DR 回执] set→查询 {'planner_patience': 3.0} ⇒ 未落地
+B18 诊断窗结论 = INVALID|前置未成立：patience 未确认放宽（查询={'planner_patience': 3.0}）⇒ 不判被试
+12:36:34 关窗：rosnode kill -a → 结束 roslaunch 组长 → 按名兜底
+12:36:53 探针退出码=9
+== 样张 sha 起前 vs 退后 ==
+  同（未被触碰）
+== foxy 侧 PID 起前 vs 退后 ==
+  逐位一致（零触碰；覆盖面＝4 unit 见证，monitor 两 unit 主理人裁定不复原）
+== 残留进程 ==
+（零残留）
+== 端口 ==
+端口零监听

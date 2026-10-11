@@ -1,0 +1,16 @@
+12:31:18 roslaunch 真 PID=2707684（组长 2707684）；等就绪（上限 300s）
+[gate] 等 get_path action 服务器（上限 300s）…
+[gate] 服务器就绪，用时 5.0s
+[DR] 含 patience 的键与现值：{'controller_patience': 3.0, 'planner_patience': 3.0, 'recovery_patience': 15.0}
+
+=== 尝试①：默认 patience（基线复现）===
+[attempt baseline_default_patience] outcome=-1(?) state=no-result('GetPathResult' object has no attribute 'state') path_poses=0 墙钟=3.2s msg=
+
+=== 放宽 planner_patience 到 60.0s 并取回执 ===
+[DR 回执] set→查询 {'planner_patience': 60.0} ⇒ 落地
+
+=== 尝试②：放宽后同一对 ===
+[attempt after_relaxed_patience] outcome=-1(?) state=no-result('GetPathResult' object has no attribute 'state') path_poses=0 墙钟=60.2s msg=
+[DR 还原] {'planner_patience': 60.0}
+
+B18 诊断窗结论 = FAIL(诊断意义=坐实)|放宽 patience 至 60s 后该对仍无规划：outcome=-1、墙钟 60.2s（默认 outcome=-1）⇒ 在册『不可终止/长 patience 仍无 result』这一表述由『未证』升为『已证（本对、本图、本 boot）』

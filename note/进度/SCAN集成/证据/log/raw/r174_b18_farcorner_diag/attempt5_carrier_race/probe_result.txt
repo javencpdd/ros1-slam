@@ -1,0 +1,11 @@
+[gate] 等 get_path action 服务器（上限 300s）…
+[gate] 服务器就绪，用时 3.9s
+[DR] 含 patience 的键与现值：{'controller_patience': 3.0, 'planner_patience': 3.0, 'recovery_patience': 15.0}
+
+=== 前置门：等 /map（上限 60s）===
+[地图门] /map 就绪 400x400 @0.10m
+
+=== 放宽 planner_patience 到 60.0s（此刻已发过的 goal 数＝0，即真空闲）===
+[空闲门] 写 DR 前客户端状态=9（GOAL_STATE LOST）；未发过目标时应为 PENDING
+[DR 回执] set→查询 {'planner_patience': 3.0} ⇒ 未落地
+B18 诊断窗结论 = INVALID|前置未成立：patience 未确认放宽（查询={'planner_patience': 3.0}）⇒ 不判被试

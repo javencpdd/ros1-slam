@@ -1,0 +1,45 @@
+{
+ "pair": {
+  "start": [
+   0.05,
+   0.05
+  ],
+  "goal": [
+   -19.55,
+   -9.55
+  ],
+  "index": 0,
+  "euclid_xy": 21.82
+ },
+ "attempts": [
+  {
+   "tag": "baseline_default_patience",
+   "outcome": null,
+   "outcome_name": "NO-OUTCOME",
+   "state": "1",
+   "message": "",
+   "path_poses": null,
+   "wall_s": 60.0,
+   "result_returned": false,
+   "wait_returned": false,
+   "harness_error": "result 为 None（等待超时或服务器未回话）"
+  }
+ ],
+ "patience": {
+  "keys_found": {
+   "controller_patience": 3.0,
+   "planner_patience": 3.0,
+   "recovery_patience": 15.0
+  },
+  "before_set": {
+   "planner_patience": 3.0
+  },
+  "after_set": {
+   "planner_patience": 3.0
+  }
+ },
+ "note": [
+  "DR set 抛错：service call failed"
+ ],
+ "verdict": "INVALID|前置未成立：patience 未确认放宽（查询={'planner_patience': 3.0}）⇒ 不判被试"
+}

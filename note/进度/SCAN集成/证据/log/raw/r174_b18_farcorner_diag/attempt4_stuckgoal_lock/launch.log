@@ -1,0 +1,481 @@
+... logging to /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/roslaunch-lite-2796401.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch
+[1mstarted roslaunch server http://lite:44957/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /lite3_supervisor/health_watch: /home/ros1-slam/w...
+ * /lite3_supervisor/mode: mode_nav_sim
+ * /mockamap_node/add_wall_x: 1
+ * /mockamap_node/add_wall_y: 1
+ * /mockamap_node/attenuation: 0.1
+ * /mockamap_node/complexity: 0.07
+ * /mockamap_node/fill: 0.1
+ * /mockamap_node/fractal: 1
+ * /mockamap_node/maze_type: 1
+ * /mockamap_node/obstacle_number: 50
+ * /mockamap_node/resolution: 0.15
+ * /mockamap_node/road_width: 1.2
+ * /mockamap_node/seed: 511
+ * /mockamap_node/surface_resolution: 0.03
+ * /mockamap_node/type: 1
+ * /mockamap_node/update_freq: 1.0
+ * /mockamap_node/width_max: 1.5
+ * /mockamap_node/width_min: 0.6
+ * /mockamap_node/x_length: 40
+ * /mockamap_node/y_length: 20
+ * /mockamap_node/z_length: 5
+ * /move_base_flex/GlobalPlanner/allow_unknown: False
+ * /move_base_flex/GlobalPlanner/cost_factor: 3
+ * /move_base_flex/GlobalPlanner/default_tolerance: 0.0
+ * /move_base_flex/GlobalPlanner/lethal_cost: 253
+ * /move_base_flex/GlobalPlanner/neutral_cost: 50
+ * /move_base_flex/GlobalPlanner/old_navfn_behavior: False
+ * /move_base_flex/GlobalPlanner/orientation_mode: 1
+ * /move_base_flex/GlobalPlanner/orientation_window_size: 1
+ * /move_base_flex/GlobalPlanner/outline_map: False
+ * /move_base_flex/GlobalPlanner/planner_window_x: 0.0
+ * /move_base_flex/GlobalPlanner/planner_window_y: 0.0
+ * /move_base_flex/GlobalPlanner/publish_potential: False
+ * /move_base_flex/GlobalPlanner/publish_scale: 100
+ * /move_base_flex/GlobalPlanner/use_dijkstra: True
+ * /move_base_flex/GlobalPlanner/use_grid_path: False
+ * /move_base_flex/GlobalPlanner/use_quadratic: False
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_theta: 1.0
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_x: 1.0
+ * /move_base_flex/TebLocalPlannerROS/acc_lim_y: 0.1
+ * /move_base_flex/TebLocalPlannerROS/allow_init_with_backwards_motion: False
+ * /move_base_flex/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /move_base_flex/TebLocalPlannerROS/complete_global_plan: False
+ * /move_base_flex/TebLocalPlannerROS/control_look_ahead_poses: 1
+ * /move_base_flex/TebLocalPlannerROS/controller_frequency: 10
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_distance: 0.3
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_pts: 30
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_min_pts: 3
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/convex_hull_min_pt_separation: 0.1
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_plugin: costmap_converter...
+ * /move_base_flex/TebLocalPlannerROS/costmap_converter_spin_thread: True
+ * /move_base_flex/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 2.0
+ * /move_base_flex/TebLocalPlannerROS/divergence_detection: False
+ * /move_base_flex/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /move_base_flex/TebLocalPlannerROS/dt_ref: 0.4
+ * /move_base_flex/TebLocalPlannerROS/dynamic_obstacle_inflation_dist: 0.6
+ * /move_base_flex/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base_flex/TebLocalPlannerROS/exact_arc_length: False
+ * /move_base_flex/TebLocalPlannerROS/feasibility_check_lookahead_distance: 3
+ * /move_base_flex/TebLocalPlannerROS/feasibility_check_no_poses: 30
+ * /move_base_flex/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base_flex/TebLocalPlannerROS/footprint_model/vertices: [[-0.3, -0.2], [-...
+ * /move_base_flex/TebLocalPlannerROS/force_reinit_new_goal_angular: 0.78
+ * /move_base_flex/TebLocalPlannerROS/force_reinit_new_goal_dist: 1.0
+ * /move_base_flex/TebLocalPlannerROS/free_goal_vel: False
+ * /move_base_flex/TebLocalPlannerROS/global_plan_overwrite_orientation: False
+ * /move_base_flex/TebLocalPlannerROS/global_plan_prune_distance: 0.5
+ * /move_base_flex/TebLocalPlannerROS/global_plan_viapoint_sep: 0.3
+ * /move_base_flex/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /move_base_flex/TebLocalPlannerROS/include_dynamic_obstacles: True
+ * /move_base_flex/TebLocalPlannerROS/inflation_dist: 0.45
+ * /move_base_flex/TebLocalPlannerROS/is_footprint_dynamic: False
+ * /move_base_flex/TebLocalPlannerROS/legacy_obstacle_association: False
+ * /move_base_flex/TebLocalPlannerROS/map_frame: /map
+ * /move_base_flex/TebLocalPlannerROS/max_global_plan_lookahead_dist: 5.0
+ * /move_base_flex/TebLocalPlannerROS/max_samples: 100
+ * /move_base_flex/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /move_base_flex/TebLocalPlannerROS/max_vel_trans: 1.0
+ * /move_base_flex/TebLocalPlannerROS/max_vel_x: 0.4
+ * /move_base_flex/TebLocalPlannerROS/max_vel_x_backwards: 0.2
+ * /move_base_flex/TebLocalPlannerROS/max_vel_y: 0.1
+ * /move_base_flex/TebLocalPlannerROS/min_obstacle_dist: 0.15
+ * /move_base_flex/TebLocalPlannerROS/min_resolution_collision_check_angular: 3.1415926
+ * /move_base_flex/TebLocalPlannerROS/min_samples: 3
+ * /move_base_flex/TebLocalPlannerROS/min_turning_radius: 0.0
+ * /move_base_flex/TebLocalPlannerROS/obstacle_association_cutoff_factor: 10
+ * /move_base_flex/TebLocalPlannerROS/obstacle_association_force_inclusion_factor: 3
+ * /move_base_flex/TebLocalPlannerROS/obstacle_poses_affected: 10
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_lower_bound: 0.2
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_ratio_max_vel: 0.7
+ * /move_base_flex/TebLocalPlannerROS/obstacle_proximity_upper_bound: 0.6
+ * /move_base_flex/TebLocalPlannerROS/odom_topic: leg_odom
+ * /move_base_flex/TebLocalPlannerROS/optimization_activate: True
+ * /move_base_flex/TebLocalPlannerROS/oscillation_recovery: False
+ * /move_base_flex/TebLocalPlannerROS/penalty_epsilon: 0.15
+ * /move_base_flex/TebLocalPlannerROS/planning_horizon: 4.0
+ * /move_base_flex/TebLocalPlannerROS/prevent_look_ahead_poses_near_goal: 0
+ * /move_base_flex/TebLocalPlannerROS/publish_feedback: False
+ * /move_base_flex/TebLocalPlannerROS/shrink_horizon_backup: False
+ * /move_base_flex/TebLocalPlannerROS/teb_autosize: True
+ * /move_base_flex/TebLocalPlannerROS/theta_stopped_vel: 0.05
+ * /move_base_flex/TebLocalPlannerROS/trans_stopped_vel: 0.05
+ * /move_base_flex/TebLocalPlannerROS/transform_tolerance: 0.3
+ * /move_base_flex/TebLocalPlannerROS/use_proportional_saturation: True
+ * /move_base_flex/TebLocalPlannerROS/via_points_ordered: True
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_forward_drive: 50
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_nh: 10
+ * /move_base_flex/TebLocalPlannerROS/weight_kinematics_turning_radius: 0
+ * /move_base_flex/TebLocalPlannerROS/weight_linear_angular: 3
+ * /move_base_flex/TebLocalPlannerROS/weight_linear_angular_times: 1
+ * /move_base_flex/TebLocalPlannerROS/weight_optimaltime: 1
+ * /move_base_flex/TebLocalPlannerROS/weight_prefer_rotdir: 0
+ * /move_base_flex/TebLocalPlannerROS/weight_shortest_path: 9
+ * /move_base_flex/TebLocalPlannerROS/weight_viapoint: 1
+ * /move_base_flex/TebLocalPlannerROS/wheelbase: 0.0
+ * /move_base_flex/TebLocalPlannerROS/xy_goal_tolerance: 0.2
+ * /move_base_flex/TebLocalPlannerROS/yaw_goal_tolerance: 0.2
+ * /move_base_flex/controller_frequency: 10.0
+ * /move_base_flex/controller_patience: 3.0
+ * /move_base_flex/controllers: [{'name': 'TebLoc...
+ * /move_base_flex/global_costmap/always_send_full_costmap: False
+ * /move_base_flex/global_costmap/footprint: [[-0.3, -0.2], [-...
+ * /move_base_flex/global_costmap/footprint_padding: 0.1
+ * /move_base_flex/global_costmap/global_frame: map
+ * /move_base_flex/global_costmap/height: 100
+ * /move_base_flex/global_costmap/origin_x: 0
+ * /move_base_flex/global_costmap/origin_y: 0
+ * /move_base_flex/global_costmap/plugins: [{'name': 'static...
+ * /move_base_flex/global_costmap/publish_frequency: 5
+ * /move_base_flex/global_costmap/resolution: 0.1
+ * /move_base_flex/global_costmap/robot_base_frame: base_link
+ * /move_base_flex/global_costmap/rolling_window: True
+ * /move_base_flex/global_costmap/sob_layer/cost_scaling_factor: 10
+ * /move_base_flex/global_costmap/sob_layer/enabled: True
+ * /move_base_flex/global_costmap/sob_layer/inflate_unknown: False
+ * /move_base_flex/global_costmap/sob_layer/inflation_radius: 0.2
+ * /move_base_flex/global_costmap/sob_layer/inscribed_radius: 0.15
+ * /move_base_flex/global_costmap/static_layer/first_map_only: True
+ * /move_base_flex/global_costmap/static_layer/lethal_cost_threshold: 100
+ * /move_base_flex/global_costmap/static_layer/map_topic: map
+ * /move_base_flex/global_costmap/static_layer/subscribe_to_updates: False
+ * /move_base_flex/global_costmap/static_layer/track_unknown_space: False
+ * /move_base_flex/global_costmap/static_layer/trinary_costmap: True
+ * /move_base_flex/global_costmap/static_layer/unknown_cost_value: -1
+ * /move_base_flex/global_costmap/static_layer/use_maximum: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/combination_method: 1
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/decay_model: 0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /move_base_flex/global_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /move_base_flex/global_costmap/track_unknown_space: False
+ * /move_base_flex/global_costmap/transform_tolerance: 1.0
+ * /move_base_flex/global_costmap/update_frequency: 10
+ * /move_base_flex/global_costmap/width: 100
+ * /move_base_flex/local_costmap/always_send_full_costmap: False
+ * /move_base_flex/local_costmap/footprint: [[-0.3, -0.2], [-...
+ * /move_base_flex/local_costmap/footprint_padding: 0.1
+ * /move_base_flex/local_costmap/global_frame: map
+ * /move_base_flex/local_costmap/height: 10
+ * /move_base_flex/local_costmap/origin_x: 0
+ * /move_base_flex/local_costmap/origin_y: 0
+ * /move_base_flex/local_costmap/plugins: [{'name': 'stvl_o...
+ * /move_base_flex/local_costmap/publish_frequency: 5
+ * /move_base_flex/local_costmap/resolution: 0.1
+ * /move_base_flex/local_costmap/robot_base_frame: base_link
+ * /move_base_flex/local_costmap/rolling_window: True
+ * /move_base_flex/local_costmap/sob_layer/cost_scaling_factor: 10
+ * /move_base_flex/local_costmap/sob_layer/enabled: True
+ * /move_base_flex/local_costmap/sob_layer/inflate_unknown: False
+ * /move_base_flex/local_costmap/sob_layer/inflation_radius: 0.2
+ * /move_base_flex/local_costmap/sob_layer/inscribed_radius: 0.15
+ * /move_base_flex/local_costmap/static_layer/first_map_only: True
+ * /move_base_flex/local_costmap/static_layer/lethal_cost_threshold: 100
+ * /move_base_flex/local_costmap/static_layer/map_topic: map
+ * /move_base_flex/local_costmap/static_layer/subscribe_to_updates: False
+ * /move_base_flex/local_costmap/static_layer/track_unknown_space: False
+ * /move_base_flex/local_costmap/static_layer/trinary_costmap: True
+ * /move_base_flex/local_costmap/static_layer/unknown_cost_value: -1
+ * /move_base_flex/local_costmap/static_layer/use_maximum: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/combination_method: 1
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/decay_model: 0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /move_base_flex/local_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /move_base_flex/local_costmap/track_unknown_space: False
+ * /move_base_flex/local_costmap/transform_tolerance: 1.0
+ * /move_base_flex/local_costmap/update_frequency: 10
+ * /move_base_flex/local_costmap/width: 10
+ * /move_base_flex/oscillation_distance: 0.1
+ * /move_base_flex/oscillation_timeout: 0.0
+ * /move_base_flex/planner_frequency: 0.0
+ * /move_base_flex/planner_max_retries: -1
+ * /move_base_flex/planner_patience: 3.0
+ * /move_base_flex/planners: [{'name': 'Global...
+ * /move_base_flex/recovery_behaviors: [{'name': 'clear_...
+ * /move_base_flex/recovery_enabled: False
+ * /pcl_render_node/downsample_res: 0.2
+ * /pcl_render_node/lidar_pitch: 0.0
+ * /pcl_render_node/map/x_size: 40.0
+ * /pcl_render_node/map/y_size: 20.0
+ * /pcl_render_node/map/z_size: 5.0
+ * /pcl_render_node/min_raylength: 0.3
+ * /pcl_render_node/polar_resolution: 0.35
+ * /pcl_render_node/sensor_type: lidar
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /safe_cmd_vel_mux/mux_config: /home/ros1-slam/w...
+ * /sim_map_bridge/grid_size: 40.0
+
+NODES
+  /
+    lite3_supervisor (lite3_supervisor/health_monitor.py)
+    liveness_m0_sim (rostopic/rostopic)
+    liveness_m4 (rostopic/rostopic)
+    liveness_m6 (rostopic/rostopic)
+    mockamap_node (mockamap/mockamap_node)
+    move_base_flex (mbf_costmap_nav/mbf_costmap_nav)
+    pcl_render_node (local_sensing_node/pcl_render_node)
+    safe_cmd_vel_mux (lite3_safety/safe_cmd_vel_mux.py)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    sim_map_bridge (lite3_bringup/sim_map_bridge.py)
+    sim_pose_tf (lite3_bringup/sim_pose_tf.py)
+[33m[ WARN] [1791693979.725358972]: Global Pointcloud received..[0m
+Failed to find match for field 'intensity'.
+[33m[ WARN] [1791693983.131437537]: Normal compute finished.., mapsize = 63042[0m
+[33m[ WARN] [1791693986.450002555]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.2490 seconds[0m
+[33m[ WARN] [1791693986.949861185]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1001 seconds[0m
+[33m[ WARN] [1791693987.070708874]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1210 seconds[0m
+[33m[ WARN] [1791693987.376911618]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1272 seconds[0m
+[33m[ WARN] [1791693988.153833466]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1041 seconds[0m
+[0m[ INFO] [1791693982.965913846]: local_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1791693983.999666364]: local_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1791693984.008905510]: local_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1791693984.196445346]: local_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1791693984.211108919]: local_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1791693984.383267865]: Voxel filter activated.[0m
+[0m[ INFO] [1791693984.526987670]: local_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1791693984.527110135]: local_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1791693984.529921966]: [sob_layer] initializing...[0m
+[0m[ INFO] [1791693984.530060431]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1791693984.644440610]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791693984.654312369]: [sob_layer] initialized[0m
+[0m[ INFO] [1791693984.861386345]: [sob_layer] resized to 10000[0m
+[0m[ INFO] [1791693984.879159512]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791693984.909640427]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791693984.970005134]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1791693985.116807557]: Requesting the map...[0m
+[0m[ INFO] [1791693985.463222203]: Resizing static layer to 400 X 400 at 0.100000 m/pix[0m
+[0m[ INFO] [1791693985.485134187]: Shutting down the map subscriber. first_map_only flag is on[0m
+[0m[ INFO] [1791693985.559651103]: Received a 400 X 400 map at 0.100000 m/pix[0m
+[0m[ INFO] [1791693985.579978434]: global_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1791693985.580549574]: global_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1791693985.580633095]: global_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1791693985.638372821]: global_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1791693985.644256101]: global_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1791693985.722695097]: Voxel filter activated.[0m
+[0m[ INFO] [1791693985.870219126]: global_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1791693985.870350199]: global_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1791693985.871071069]: [sob_layer] initializing...[0m
+[0m[ INFO] [1791693985.871151389]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1791693985.914479576]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1791693985.967112702]: [sob_layer] initialized[0m
+[0m[ INFO] [1791693986.198122937]: [sob_layer] resized to 1000000[0m
+[0m[ INFO] [1791693986.203347778]: [sob_layer] reinflating[0m
+[0m[ INFO] [1791693986.268993456]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1791693986.650058462]: The plugin with the type "global_planner/GlobalPlanner" has been loaded successfully under the name "GlobalPlanner".[0m
+[0m[ INFO] [1791693986.701551291]: The plugin with the type "navfn/NavfnROS" has been loaded successfully under the name "NavfnROS".[0m
+[0m[ INFO] [1791693987.172851261]: Footprint model 'polygon' loaded for trajectory optimization.[0m
+[0m[ INFO] [1791693987.173795236]: Parallel planning in distinctive topologies disabled.[0m
+[0m[ INFO] [1791693987.392327453]: Costmap conversion plugin costmap_converter::CostmapToPolygonsDBSMCCH loaded.[0m
+[0m[ INFO] [1791693988.429225853]: The plugin with the type "teb_local_planner/TebLocalPlannerROS" has been loaded successfully under the name "TebLocalPlannerROS".[0m
+[0m[ INFO] [1791693988.462964332]: Sim period is set to 0.10[0m
+[0m[ INFO] [1791693988.860350722]: The plugin with the type "dwa_local_planner/DWAPlannerROS" has been loaded successfully under the name "DWAPlannerROS".[0m
+[0m[ INFO] [1791693988.907712350]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1791693988.907999744]: The plugin with the type "clear_costmap_recovery/ClearCostmap[31m[ERROR] [1791693990.452357531]: Failed to get a plan.[0m
+[33m[ WARN] [1791693990.517902826]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 1.0682 seconds[0m
+shutdown request: user request
+[33m[ WARN] [1791694043.267489777]: Shutdown request received.[0m
+[33m[ WARN] [1791694043.269108670]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791694043.289230055]: Shutdown request received.[0m
+[33m[ WARN] [1791694043.290282832]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1791694043.369490697]: Shutdown request received.[0m
+[33m[ WARN] [1791694043.371251191]: Reason given for shutdown: [user request][0m
+[0m[ INFO] [1791693978.798491400]: threshold: 0.067466[0m
+[0m[ INFO] [1791693979.664488535]: the number of points before optimization is 116747[0m
+[0m[ INFO] [1791693979.686877193]: finish: infill 0.100000%[0m
+[INFO] [1791693982.143345]: [sim_adapter] up: mode=traj input=sensor_cloud time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+[INFO] [1791693982.244703]: [sim_adapter] traj R2: 2 waypoints, 总长 0.0m @0.50m/s turn_omega=1.00 v_ramp_s=0.50 align_gate=0.15
+shutdown request: user request
+[INFO] [1791694043.703007]: [sim_adapter] 轨迹结束，保持常驻（adapt-only）
+terminate called after throwing an instance of 'boost::wrapexcept<boost::lock_error>'
+  what():  boost: mutex lock failed in pthread_mutex_lock: Invalid argument
+[WARN] [1791693982.726555]: [M6] 活跃源切换: INIT -> NONE
+[INFO] [1791693982.674575]: [M6] safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+shutdown request: user request
+[WARN] [1791693982.572622]: [sim_pose_tf] 尚未收到 /quad_0/body_pose 首帧
+shutdown request: user request
+[INFO] [1791693983.053779]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693984.280286]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693985.232419]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693985.877068]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693986.520703]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693987.453379]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693988.127986]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693989.561504]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693990.252059]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693991.224930]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693992.192180]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693993.206974]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693994.180533]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693995.382129]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693996.139683]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693997.148221]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693998.208054]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791693999.209316]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694000.158126]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694001.312907]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694002.194579]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694003.193938]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694004.146209]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694005.225520]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694006.207717]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694007.325151]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694008.266470]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694009.207167]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694010.137689]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694011.318309]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694012.283159]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694013.141800]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694014.203022]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694015.095697]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694016.199285]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694017.245008]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694018.146655]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694019.184260]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694020.235907]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694021.130365]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694022.229642]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694023.152236]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694024.179436]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694025.260947]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694026.167340]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694027.455917]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694028.093273]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694029.209821]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694030.320333]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694031.211620]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694032.218489]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694033.219682]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694034.120177]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694035.169853]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694036.132946]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694037.277667]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694038.294010]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694039.224114]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694040.336069]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694041.389654]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694042.266954]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+[INFO] [1791694043.476035]: [sim_map_bridge] /map 已物化：400x400 @0.10m，占据格=13587（z∈[0.05,2.00]）
+shutdown request: user request
+[31m[move_base_flex-11] process has died [pid 2797399, exit code -11, cmd /opt/ros/noetic/lib/mbf_costmap_nav/mbf_costmap_nav cmd_vel:=cmd_vel_raw __name:=move_base_flex __log:=/home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/move_base_flex-11.log].
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/move_base_flex-11*.log[0m
+[31m[pcl_render_node-4] process has died [pid 2797319, exit code -6, cmd /home/ros1-slam/ws/devel/lib/local_sensing_node/pcl_render_node ~global_map:=/map_generator/global_cloud __name:=pcl_render_node __log:=/home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/pcl_render_node-4.log].
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/pcl_render_node-4*.log[0m
+
+auto-starting new master
+[1mprocess[master]: started with pid [2797093][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/home/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch http://127.0.0.1:11313
+[1msetting /run_id to af519c26-c52e-11f1-92a2-3c6d66f8d2d8[0m
+[1mprocess[rosout-1]: started with pid [2797286][0m
+started core service [/rosout]
+[1mprocess[lite3_supervisor-2]: started with pid [2797317][0m
+[1mprocess[mockamap_node-3]: started with pid [2797318][0m
+[1mprocess[pcl_render_node-4]: started with pid [2797319][0m
+[1mprocess[sim_adapter-5]: started with pid [2797329][0m
+[1mprocess[liveness_m0_sim-6]: started with pid [2797351][0m
+[1mprocess[sim_map_bridge-7]: started with pid [2797358][0m
+[1mprocess[sim_pose_tf-8]: started with pid [2797359][0m
+[1mprocess[safe_cmd_vel_mux-9]: started with pid [2797360][0m
+[1mprocess[liveness_m6-10]: started with pid [2797372][0m
+[1mprocess[move_base_flex-11]: started with pid [2797399][0m
+[1mprocess[liveness_m4-12]: started with pid [2797405][0m
+[1m[liveness_m0_sim-6] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/liveness_m0_sim-6*.log[0m
+[1m[lite3_supervisor-2] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/lite3_supervisor-2*.log[0m
+[1m[rosout-1] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/rosout-1*.log[0m
+[1m[mockamap_node-3] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/mockamap_node-3*.log[0m
+[rosout-1] restarting process
+[1mprocess[rosout-1]: started with pid [2803268][0m
+[1m[liveness_m6-10] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/liveness_m6-10*.log[0m
+[1m[sim_adapter-5] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/sim_adapter-5*.log[0m
+[1m[safe_cmd_vel_mux-9] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/safe_cmd_vel_mux-9*.log[0m
+[1m[liveness_m4-12] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/liveness_m4-12*.log[0m
+[1m[sim_pose_tf-8] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/sim_pose_tf-8*.log[0m
+[1m[sim_map_bridge-7] process has finished cleanly
+log file: /home/ysc/.ros/log/af519c26-c52e-11f1-92a2-3c6d66f8d2d8/sim_map_bridge-7*.log[0m
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

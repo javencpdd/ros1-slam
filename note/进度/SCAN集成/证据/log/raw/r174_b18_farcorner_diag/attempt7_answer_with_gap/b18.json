@@ -1,0 +1,73 @@
+{
+ "pair": {
+  "start": [
+   0.05,
+   0.05
+  ],
+  "goal": [
+   -19.55,
+   -9.55
+  ],
+  "index": 0,
+  "euclid_xy": 21.82
+ },
+ "attempts": [
+  {
+   "tag": "after_relaxed_patience_idle_set_first",
+   "outcome": null,
+   "outcome_name": "NO-OUTCOME",
+   "state": "1",
+   "state_name": "ACTIVE",
+   "message": "",
+   "path_poses": null,
+   "wall_s": 90.0,
+   "result_returned": false,
+   "wait_returned": false,
+   "cancelled_by_harness": true,
+   "harness_error": "result 为 None（等待超时或服务器未回话）"
+  }
+ ],
+ "patience": {
+  "keys_found": {
+   "controller_patience": 3.0,
+   "planner_patience": 3.0,
+   "recovery_patience": 15.0
+  },
+  "before_set": {
+   "planner_patience": 3.0
+  },
+  "after_set_server_broadcast": {
+   "planner_patience": 3.0
+  },
+  "after_set_client_cache": {
+   "planner_patience": 60.0
+  },
+  "restored": {
+   "planner_patience": 60.0
+  }
+ },
+ "note": [
+  "还原 set 抛错：service call failed"
+ ],
+ "map_gate": {
+  "ok": true,
+  "w": 400,
+  "h": 400,
+  "res": 0.10000000149011612,
+  "occupancy_topics": [
+   "/map = 400x400 @0.100m",
+   "/move_base_flex/local_costmap/costmap = 100x100 @0.100m",
+   "/move_base_flex/global_costmap/costmap = 1000x1000 @0.100m",
+   "/move_base_flex/GlobalPlanner/potential（无新消息／latched 未命中）"
+  ]
+ },
+ "cancel": [
+  {
+   "tag": "after_relaxed_patience_idle_set_first",
+   "terminal_reached": false,
+   " waited_s": 20.1,
+   "state_name": "ACTIVE"
+  }
+ ],
+ "verdict": "INVALID|前置未成立：探针在 after_relaxed_patience_idle_set_first 未取到 outcome 或有 harness_error（逐条见 attempts）⇒ 本窗不判被试，也不得记为远角失败"
+}

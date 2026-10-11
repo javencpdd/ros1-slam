@@ -1,0 +1,10 @@
+[gate] 等 get_path action 服务器（上限 300s）…
+[gate] 服务器就绪，用时 5.5s
+[DR] 含 patience 的键与现值：{'controller_patience': 3.0, 'planner_patience': 3.0, 'recovery_patience': 15.0}
+
+=== 尝试①：默认 patience（基线复现）===
+[attempt baseline_default_patience] outcome=None(NO-OUTCOME) state=1 path_poses=None 墙钟=60.0s msg=  ERR=result 为 None（等待超时或服务器未回话）
+
+=== 放宽 planner_patience 到 60.0s 并取回执 ===
+[DR 回执] set→查询 {'planner_patience': 3.0} ⇒ 未落地
+B18 诊断窗结论 = INVALID|前置未成立：patience 未确认放宽（查询={'planner_patience': 3.0}）⇒ 不判被试
