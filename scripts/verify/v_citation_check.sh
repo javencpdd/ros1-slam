@@ -78,6 +78,7 @@ RECS = []            # census 用：judge() 每次调用重建，元素＝(目�
                      # 只加副作用于这个列表，不改 red/amber/fixup/ok/total 的任何一条判定（C7 自测盯住同向）
 name_index = {}      # basename → [绝对路径]，整仓只建一次（首版每次引用都 os.walk 一遍 ⇒ 60s 还没扫完，件自己慢死）
 USED_PATHS = set()   # 本次解析**用到的仓内目标绝对路径**：只喂下面的「面条件」自检，不参与任何档位判定
+MISSING_RELS = []  # 写成完整路径却找不到文件的那些引用（resolve 的 missing 支路）：也喂「面条件」，用来分"面缺件"与"引用错"
 
 
 def build_index():
@@ -108,41 +109,61 @@ def _ok(p):
     return p, 'ok'
 
 
+def _ignored_subset(paths):
+    """把给定的一批仓内相对路径交给只读的 `git check-ignore` 筛出落在忽略集里的。
+    返回 (命中列表, 未核原因)。git rc 只认 0（有命中）与 1（一条没命中，仍是有效读数）；其余＝未核，**不许当成"0 件命中"**（坑45 那一型）。"""
+    paths = sorted(set(paths))
+    if not paths:
+        return [], ''
+    if not shutil.which('git'):
+        return [], 'git 不可用'
+    try:
+        pr = subprocess.run(['git', '-C', ROOT, 'check-ignore', '--stdin'],
+                            input='\n'.join(paths) + '\n', stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, universal_newlines=True)
+    except Exception as e:
+        return [], 'git 调用失败：%s' % str(e)[:40]
+    if pr.returncode not in (0, 1):
+        return [], (pr.stderr.strip()[:60] or 'git rc=%d' % pr.returncode)
+    return [x for x in pr.stdout.splitlines() if x.strip()], ''
+
+
 def face_condition():
-    """面条件自检（R192 加；**只报数、不参与任何档位判定**）：本次解析用到的仓内目标里，有哪些落在 **git 忽略集**内。
+    """面条件自检（R192 加；**只报数、不参与任何档位判定**）：
+    ①本次解析**用到**的仓内目标里有哪些落在 git 忽略集内（＝这轮的红/绿有一半靠工作树里"未被 git 收录但在位"的文件）；
+    ②本次判成"路径失效"的那些引用，其**所给路径**是否其实属忽略集（＝面缺件，不是引用写错）。
     为什么要有这格：本件的 RED 列来自"回整棵树解析目标在不在位"，而 `git archive` 只收 git 收录的文件
-    ⇒ 用 archive 还原的面里，被 `.gitignore` 挡掉的真身文件会凭空消失、各档 RED 多 1–3 条（R191 实测：±60 由 1 变 3）。
-    ⇒ 任何留底都得能被判"它的面含不含忽略件"，否则换人复跑必然对不上。返回 (用到件数, 忽略集内的件名列表, 未核原因)。"""
+    ⇒ 用 archive 还原的面里，被 `.gitignore` 挡掉的真身会凭空消失、各档 RED 多 1–3 条（R191 实测：±60 由 1 变 3）。
+    只查①会在**恰恰最不等价的那面上反过来报"两面等价"**（缺件根本进不了 USED_PATHS）——②就是补这一漏的。
+    返回 (用到件数, 用到里的忽略件, 路径失效里属忽略集的件, 未核原因)。"""
     rels = []
     for p in USED_PATHS:
         r = os.path.relpath(p, ROOT)
         if not r.startswith('..'):          # 仓外目标（如 /opt/ros 侧头文件）本来不在面里，不计
             rels.append(r)
-    if not rels:
-        return 0, [], ''
-    if not shutil.which('git'):
-        return len(rels), [], 'git 不可用'
-    try:
-        pr = subprocess.run(['git', '-C', ROOT, 'check-ignore', '--stdin'],
-                            input='\n'.join(rels) + '\n', stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, universal_newlines=True)
-    except Exception as e:
-        return len(rels), [], 'git 调用失败：%s' % str(e)[:40]
-    if pr.returncode not in (0, 1):         # 0＝有命中、1＝一条没命中（两者都是有效读数）；128 等＝不在仓里 ⇒ 未核
-        return len(rels), [], (pr.stderr.strip()[:60] or 'git rc=%d' % pr.returncode)
-    return len(rels), sorted(x for x in pr.stdout.splitlines() if x.strip()), ''
+    ig_used, err = _ignored_subset(rels)
+    ig_missing, err2 = _ignored_subset(
+        [r if not os.path.isabs(r) else os.path.relpath(r, ROOT) for r in MISSING_RELS])
+    return len(rels), sorted(ig_used), sorted(set(ig_missing)), err or err2
 
 
 def print_face_line():
-    n, ig, err = face_condition()
+    n, ig, igm, err = face_condition()
     if err:
-        tail = '＝**未核**（%s）⇒ 不许当成"0 件忽略"' % err
+        tail = '＝**未核**（%s）⇒ 不许当成"0 件忽略／两面等价"' % err
     elif ig:
-        tail = '⇒ 用 `git archive` 还原面会缺下面这些件 ⇒ 回整树解析出来的 RED 列会变（复现留名要带上"面怎么取"）：'
+        tail = '⇒ 本面**靠工作树才在位**（用 `git archive` 还原就缺它，各档 RED 会变；复现留名要带"面怎么取"）：%s' % '、'.join(ig[:MAXD])
+    elif not n:
+        tail = '＝**本轮没解析到任何仓内目标 ⇒ 面条件无从判**（空集不当"两面等价"读，坑29）'
     else:
-        tail = '⇒ 本轮 git 面与工作树面等价（archive 还原不改变 RED 列）'
-    print('[面条件] 本次解析用到仓内目标=%d 件；其中 git 忽略集内=%d 件%s%s'
-          % (n, len(ig), tail, ('%s' % '、'.join(ig[:MAXD])) if ig else ''))
+        tail = '⇒ 本轮用到的目标全在 git 收录面内'
+    extra = ''
+    if igm:
+        extra = ('\n[面缺件] 判成"路径失效"的引用里有 %d 条**所给路径属 git 忽略集**：%s'
+                 '⇒ 两种成因都要人判：**面缺件**（跑在 archive／新克隆面上，真身被 .gitignore 挡着）或**所给路径本就写错**（坑52 那一族）'
+                 '——件只能证"这条路径属忽略集、面上不在位"，**不替人下结论**；分辨法＝把面换成完整工作树再跑，红消失＝面缺件、还在＝引用错'
+                 % (len(igm), '、'.join(igm[:MAXD])))
+    print('[面条件] 本次解析用到仓内目标=%d 件；其中 git 忽略集内=%d 件%s%s' % (n, len(ig), tail, extra))
 
 
 def resolve(ref):
@@ -175,6 +196,7 @@ def judge(text, root=ROOT):
     """扫描一段文本，返回 (RED, AMBER, FIXUP_HITS, OK_count, total)。"""
     red, amber, fixup, ok, total = [], [], [], 0, 0
     del EXEMPT_HITS[:]
+    del MISSING_RELS[:]
     amb = []
     info = []
     del RECS[:]
@@ -228,6 +250,7 @@ def judge(text, root=ROOT):
                 amb.append('%s:%d（**仓内根本没有这个文件名**——多半是简写，如 `fsm.cpp` 实为 `scan_replan_fsm.cpp`；按坑52 该写全名）' % (ref, ln))
                 rec(ref, ln, 'AMBER', key, ref, '仓内无此文件名（多为 /opt/ros 侧简写）')
             else:
+                MISSING_RELS.append(ref)
                 red.append('%s:%d（路径失效：按所给完整路径找不到文件）' % (ref, ln))
                 rec(ref, ln, 'RED', key, ref, '按所给完整路径找不到文件')
             continue
@@ -371,11 +394,11 @@ if MODE == 'selftest':
                 txt11 = '见 sub/ig.txt:1 alpha'
                 USED_PATHS.clear()
                 r11a, a11a, _, ok11a, tot11a, _, _ = judge(txt11)
-                n11a, g11a, e11a = face_condition()
+                n11a, g11a, gm11a, e11a = face_condition()
                 os.remove(os.path.join(t11, '.gitignore'))
                 USED_PATHS.clear()
                 r11b, a11b, _, ok11b, tot11b, _, _ = judge(txt11)
-                n11b, g11b, e11b = face_condition()
+                n11b, g11b, gm11b, e11b = face_condition()
                 # 第三腿＝**未核**那条支路：把面指到一个不是 git 仓的普通目录 ⇒ 必须报"未核"、不许当成 0
                 t11c = os.path.join(tmp, 'c11_nogit')
                 os.makedirs(os.path.join(t11c, 'sub'))
@@ -383,20 +406,31 @@ if MODE == 'selftest':
                 ROOT = t11c
                 USED_PATHS.clear()
                 r11c, a11c, _, ok11c, tot11c, _, _ = judge(txt11)
-                n11c, g11c, e11c = face_condition()
-                ok11 = (not e11a and not e11b
-                        and n11a == 1 and g11a == ['sub/ig.txt'] and n11b == 1 and g11b == []
+                n11c, g11c, gm11c, e11c = face_condition()
+                # 第四腿＝**面缺件**那条支路（R193）：目标被忽略**且已从面上删掉**、别处留两份同名副本逼出 resolve 的 missing 支路
+                #        那条「路径失效」红必须被认出是**面缺件**（gm 非空），否则这行会在最不等价的面上反报「两面等价」
+                ROOT = t11
+                open(os.path.join(t11, '.gitignore'), 'w', encoding='utf-8').write('sub/\n')
+                for _d in ('other', 'other2'):
+                    os.makedirs(os.path.join(t11, _d))
+                    open(os.path.join(t11, _d, 'ig.txt'), 'w', encoding='utf-8').write('alpha: 1\n')
+                os.remove(os.path.join(t11, 'sub', 'ig.txt'))
+                USED_PATHS.clear()
+                r11d, a11d, _, ok11d, tot11d, _, _ = judge(txt11)
+                n11d, g11d, gm11d, e11d = face_condition()
+                ok11 = (not e11a and not e11b and not e11d
+                        and n11a == 1 and g11a == ['sub/ig.txt'] and gm11a == [] and n11b == 1 and g11b == []
                         and (r11a, a11a, ok11a, tot11a) == (r11b, a11b, ok11b, tot11b)
                         and not r11a and not a11a and ok11a == 1
                         and bool(e11c) and n11c == 1 and g11c == []
-                        and (r11c, a11c, ok11c, tot11c) == (r11a, a11a, ok11a, tot11a))
-                print('[%s] C11 面条件双向：忽略面内 用=%d 命中=%s／撤掉 .gitignore 后 用=%d 命中=%s'
-                      '（须 1/[sub/ig.txt] 与 1/[]）／非 git 面 用=%d 命中=%s 未核原因=%s（须非空）；'
-                      '三面档位须全等（RED=%d AMBER=%d OK=%d）%s' % (
-                          'PASS' if ok11 else 'FAIL', n11a, g11a or '无', n11b, g11b or '无',
-                          n11c, g11c or '无', e11c or '（空＝没报未核）',
-                          len(r11a), len(a11a), ok11a,
-                          '' if not (e11a or e11b) else '｜前两腿意外未核：%s / %s' % (e11a, e11b)))
+                        and (r11c, a11c, ok11c, tot11c) == (r11a, a11a, ok11a, tot11a)
+                        and len(r11d) == 1 and '路径失效' in r11d[0]
+                        and gm11d == ['sub/ig.txt'] and g11d == [])
+                print('[%s] C11 面条件四腿：用到目标里被忽略 a=%s／撤 .gitignore 后 b=%s（须 [sub/ig.txt] 与 无）'
+                      '／非 git 面 c 未核原因=%s（须非空）／面缺件 d：RED=%s 且该路径属忽略集=%s（须 [sub/ig.txt]）；'
+                      'a/b/c 三腿的档位须全等（RED=%d AMBER=%d OK=%d）'
+                      % ('PASS' if ok11 else 'FAIL', g11a or '无', g11b or '无', e11c or '（空＝没报未核）',
+                         (r11d[0][:22] if r11d else '无'), gm11d or '无', len(r11a), len(a11a), ok11a))
         finally:
             ROOT = _root_bak
             USED_PATHS.clear(); USED_PATHS.update(_used_bak)

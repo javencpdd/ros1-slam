@@ -1,0 +1,13 @@
+[PASS] C1 正确引用（行存在＋键名在该行）须判 OK：实得 RED=0
+[PASS] C2 行号越界（该文件 2 行、引到 :9）须判 RED：实得 ['../../tmp/vcc_p1_19zr3pms/t.yaml:9 越界（该文件 2 行）']
+[PASS] C3 行存在但键名不在该行须判 AMBER：实得 AMBER=['../../tmp/vcc_p1_19zr3pms/t.yaml:2 键名「zzz_key」不在该行']
+[PASS] C4 勘误句式（同句含"写成…实为"）须判 FIXUP 不判红：实得 ['/tmp/vcc_p1_19zr3pms/t.yaml:2', '/tmp/vcc_p1_19zr3pms/t.yaml:1']
+[PASS] C5 空扫描面须"零判定"（由外层据此退 rc=9，不判被试）：实得 total=0
+[PASS] C6 .cc／.xml 引文必须被识别（漏扩展名＝静默漏报）：识别=2 越界判红=1
+[PASS] C7 census 逐条档位须与 scan 计数同向（RED/AMBER/FIXUP/OK 四项全等且总数等）：实得 [('FIXUP', 3), ('OK', 1), ('RED', 1)] vs 1/0/3/1
+[PASS] C8 跨行勘误窗把本可判黄的引用吸走（缺省 FIXUP×1／同行窗 AMBER×1）：实得 FIXUP=1 AMBER=1
+[PASS] C9 豁免档双向：表内红=0（须 0）豁免命中=1（须 1）表外红=1（须 1）表=1 条
+[PASS] C10 陈旧豁免双向：表=2 命中=1 报陈旧=['/tmp/vcc_p1_19zr3pms/t.yaml:77']（须只乙一条）该次 RED=0 AMBER=0（须 0/0）
+[PASS] C11 面条件四腿：用到目标里被忽略 a=['sub/ig.txt']／撤 .gitignore 后 b=无（须 [sub/ig.txt] 与 无）／非 git 面 c 未核原因=fatal: not a git repository (or any of the parent directorie（须非空）／面缺件 d：RED=sub/ig.txt:1（路径失效：按所给完 且该路径属忽略集=['sub/ig.txt']（须 [sub/ig.txt]）；a/b/c 三腿的档位须全等（RED=0 AMBER=0 OK=1）
+VCC SELFTEST VERDICT: PASS=11 FAIL=0
+VCC rc=0
