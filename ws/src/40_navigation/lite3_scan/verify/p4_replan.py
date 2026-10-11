@@ -6,14 +6,14 @@
   判据本体只用在册既有阈值：穿墙阈 OCC_TOL=0.10m（P2 原文）、终点偏差 0.35m 与 dt 120s（A7 判据③④ 原文）、到达实体 J1。
 
 三档分明（坑29／R40 那一族，绝不把「跑不动」报成「跑不过」）：
-  INVALID＝扰动没打进世界／扰动未被占据图看见／goal 未被 FSM 消费／首规没出来／**测量污染（A24，2026-10-11 并入：
-            dist_end＝displacement 且 >100m ⇒ odom 系框失真，本轮不判被试、不计入 n=3 分母）** ⇒ 前置未成立，不判被试；
+  INVALID＝扰动没打进世界／扰动未被占据图看见／goal 未被 FSM 消费／首规没出来 ⇒ 前置未成立，不判被试；
+            （A24「测量污染」一档曾于 2026-10-11 并入，主理人 2026-10-12 裁撤销 ⇒ 超幅值的 odom 系框失真
+             回到 `FAIL|扰动后未到达`，代价与更正面见 04 R220；这类轮次今后**不得**再当行为结论引用）
   FAIL   ＝扰动已被看见，但没有任何新轨迹、或新轨迹穿上新障碍、或最终未到达／超时；
   PASS   ＝障碍被感知 ⇒ 出现新轨迹（轨迹身份可指认地变了）⇒ 新轨迹不撞新障碍 ⇒ 仍以 ≤0.35m 到达。
 
-输出两件（R135，#14＋坑62）：**判据行只走 stdout**（harness 收 `p4_verdict.txt`），**JSON 写 `$P4_JSON` 指向的文件**
-  （harness 给 `p4.json` ⇒ 从此是合法 JSON）；机读字段 `grade／invalid／fail／pass` 一律由判据行反推，不两处各写各的。
-  未设 P4_JSON 时退回旧行为（JSON 打到 stdout），手跑本件仍拿得到读数。
+输出一件（R220 撤销 R135 的分件，主理人 2026-10-12 裁"两者都撤"）：**判据行与 JSON 同走 stdout**；
+  机读字段 `grade／invalid／fail／pass` 仍一律由判据行反推（单一真值保留，不两处各写各的）。
 
 世界只改**运行时位姿**（/gazebo/set_model_state 搬 obs_5），m1_world.world 文件一字不动，退出前必还原并自证。
 """
@@ -49,13 +49,6 @@ AVOID_DIST = float(os.environ.get("P4_AVOID_DIST", "0.40"))   # 2026-10-11 主�
 #   注意本件另有两条同值不同义的边界：collide 用 robot_min <= 0.40（本体贴边即算撞，含等号），avoided 用 traj_min >= 0.40（轨迹贴边算过，含等号）
 DEV_MAX = 0.35                                           # A7 判据③ 原文
 DT_MAX = 120.0                                           # A7 判据④ 原文
-POLLUTION_DIST = float(os.environ.get("P4_POLLUTION_DIST", "100.0"))
-#   2026-10-11 主理人裁 A24（按推荐方案）：INVALID 定义扩到含「测量污染」指认——
-#   `arrived=false` 且 `arrive.dist_end` > 本阈 ⇒ odom 系框/配准失真，本轮**不判被试、不计入 n=3 分母** ⇒ rc=9。
-#   成因实例：R120 那轮 dist_end＝5094.464m 被记成「FAIL|扰动后未到达」，把测量跑不动译成了行为失败（坑45／坑53／坑62 同族）。
-#   ★我原先提的特征含"`dist_end` 与 `displacement` 同值"，实测回件三轮恒同值（两者都是 goal→当前 odom 的模长）
-#     ⇒ **同值是结构性的、不含信息**，已从指认依据里去掉，只留幅值一条（这条更正同时进 R135 台账句，不藏在注释里）。
-#   本件不自设门值：0.35／120／0.10／0.40 全是 A7 与 A5 的原文，这一条只加"什么算没测成"的指认。
 REACT_S = float(os.environ.get("P4_REACT_MAX", "15.0"))  # 看见障碍后允许的重规响应窗（施工口径，可改）
 
 
@@ -131,13 +124,14 @@ def dump(out, verdict):
     """任何出口都把读数打全——21:55 那次 FAIL 只留了一行结论，取证数据（轨迹身份、离障距离分布）全丢了，
        这正是「失败时最难复查」的形态；自此 FAIL／INVALID 与 PASS 同等留件。
 
-       R135（#14 ＋坑62，2026-10-11 主理人裁"按推荐方案"）两处结构性修法：
-       ①**单一真值**：档位只从判据行解析一次，机读字段一律由它反推——此前 `out["invalid"]` 在
-          扰动未见分支根本没置位，R124／R125 两窗实测到 `"invalid": false` 与判据行 `INVALID|…` 反向，
-          按字段取数的复核会把 INVALID 读成"既没失败也没无效"。
-       ②**两份输出分件**：判据行只走 stdout，JSON 写进 `$P4_JSON` 指定的文件 ⇒ `p4.json` 从此是合法 JSON
-          （此前首行是中文结论句，严格说整份不是 JSON）。未给 P4_JSON 时退回旧行为（JSON 打到 stdout），
-          以免直接手跑本件的人拿不到读数。
+       结构性修法保留一条、撤销一条（主理人 2026-10-12 裁"15 号两者都撤"，R220）：
+       ①**保留·单一真值**：档位只从判据行解析一次，机读字段一律由它反推——这条属坑62 的修法，
+          撤掉就会让 R124／R125 那种 `"invalid": false` 与判据行 `INVALID|…` 反向回来，故不在撤销范围内。
+       ②**撤销·两份输出分件**：曾由件写 `$P4_JSON` 指向的文件、判据行只走 stdout；自本批起恢复
+          **判据行与 JSON 同走 stdout**（⇒ 收下来的 `p4.json` 首行是中文结论句、整份不是合法 JSON——
+          这是主理人明知代价后的裁定，代价见 04 R220 与 v4.7 补丁稿 Z2，不是本件的缺陷）。
+       撤销②的同时 harness 侧的同向自证也必须撤（它要比两份东西，现在只剩一份）；单一真值在，
+       "两处各自维护"这一型结构上不可能发生 ⇒ 防线没有因为撤自证而消失。
     """
     m = re.match(r"P4 重规划结论 = (PASS|FAIL|INVALID)\|", verdict)
     grade = m.group(1) if m else "INVALID"
@@ -147,12 +141,7 @@ def dump(out, verdict):
     out["pass"] = (grade == "PASS")
     out["fail"] = (grade == "FAIL")
     print(verdict, flush=True)
-    jf = os.environ.get("P4_JSON", "").strip()
-    if jf:
-        with open(jf, "w") as f:
-            f.write(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
-    else:
-        print(json.dumps(out, ensure_ascii=False), flush=True)
+    print(json.dumps(out, ensure_ascii=False), flush=True)
     return grade
 
 
@@ -365,18 +354,6 @@ def main():
     out["restored"] = restored
     collide = robot_min <= 0.40
     avoided = traj_min >= AVOID_DIST
-    de = out["arrive"]["dist_end"]
-    if (not st.arrived) and de is not None and de > POLLUTION_DIST:
-        # A24（2026-10-11 主理人裁"按推荐方案"）：这不是"没避让/没到达"，是**测量本身失真**——
-        #   终点偏差超阈 ⇒ odom 系框/配准被拉飞，本轮不判被试、不计入 n=3 分母（rc=9）。
-        #   成因实例：R120 那轮 dist_end＝5094.464m 被记成「FAIL|扰动后未到达」，把测量跑不动译成了行为失败（坑45／坑53／坑62 同族）。
-        #   ★指认依据**只用幅值**：我原本向主理人提的特征是"`dist_end` 与 `displacement` **同值** 且 >100m"，
-        #     实测三轮回件（R120 5094.464／R122 0.045／R123 3.324）**两轮以上恒同值**——两者都是"goal 到当前 odom 的模长"，
-        #     同值是**结构性结果、不含信息**（J1 的 arrival_dist 与本件自算的 displacement 是同一个量）。
-        #     所以这里不拿它当证据，只登记一条注释防后人再把它当指认面；判据阈可由 P4_POLLUTION_DIST 复算。
-        dump(out, "P4 重规划结论 = INVALID|测量污染（dist_end=%.3fm＞%.0fm 阈 且 arrived=false ⇒ odom 系框失真，本轮不判被试、不计入 n=3 分母；避让面另记 轨迹离箱心 %.2fm／物理最近 %.2fm）" %
-             (de, POLLUTION_DIST, traj_min, robot_min))
-        return 9
     if not st.arrived:
         dump(out, "P4 重规划结论 = FAIL|扰动后未到达（sim %.1fs，dist=%s；物理离箱心最近 %.2fm，轨迹 %.2fm）" %
              (dts if dts is not None else -1, out["arrive"]["dist_end"], robot_min, traj_min))

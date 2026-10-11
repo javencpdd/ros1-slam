@@ -1,0 +1,38 @@
+# R220 整串复跑（改件后当代基线）｜开始时刻 2026-10-12 05:16
+--- SYN ---
+rc=0
+PY SYNTAX OK（被检件数=2，内嵌 python 段合计=0）
+--- GTC（代际是否仍 H14） ---
+rc=0
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+--- ISO（必须先双 source） ---
+rc=0
+=== ISOLATION OK ===
+# self-attest: at=2026-10-12 05:17:01 script=bf3dfe051cd4685bd74cb30868eb66b632fca48ff140f6c79b82d0be00e538f1 ws_src_files=4693 rc=0
+--- DC ---
+rc=1
+DC SCAN VERDICT: A 类到期未回收=2 B 类待人工=13 ｜ 有疑似到期条目 ⇒ 请人确认后回收注记（本件不改注记），rc=1
+DC rc=1
+--- PYST 范围甲 ---
+rc=5
+[FAIL] 未给被检件 ⇒ 空集不得判绿（R46 一同款规矩）
+--- PARITY ---
+rc=0
+[计数] json=56 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+--- LCB --check（老面 55） ---
+rc=0
+LCB VERDICT: 与基线逐项同值
+--- VAR ---
+rc=0
+VAR VERDICT: PASS=8 FAIL=0
+VAR rc=0（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+--- 账构 ---
+rc=0
+[C1 档头 vs 实际] 声明=R220／实动档头=R219 ⇒ **不同值（账实不符）**
+[C4 档头滞后] 0 批（条目区域内最大 R220 − 档头 R220）
+结束时刻 2026-10-12 05:17
+--- PYST 范围甲（正确调用：三段 find，件数=50） ---
+rc=0
+[OK]  pyflakes note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_t2_exec.py（未定义名 0）
+PY STATIC OK（被检件数=50）

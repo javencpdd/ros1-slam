@@ -1,0 +1,8 @@
+改前后行数：p4_replan.py 401→378（删 7 行定义块＋12 行污染分支，dump() 两份写出并回单流）
+            v_scan_p4.sh 174→158（运行行与两处引用改回单流＋撤销 20 行同向自证段）
+改动面来源：git diff --stat
+ .../40_navigation/lite3_scan/verify/p4_replan.py   | 51 ++++++----------------
+ .../40_navigation/lite3_scan/verify/v_scan_p4.sh   | 34 ++++-----------
+ 2 files changed, 23 insertions(+), 62 deletions(-)
+
+反扫（改前与改后各一次，均 rc=0、零行号引用）：见 50_refscan.txt
