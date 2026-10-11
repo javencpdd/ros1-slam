@@ -1,0 +1,14 @@
+# R191 收尾整串复跑（志文批次：本轮未改任何门禁件，只改文档＋新增证据目录）
+# 起工前 load=4.84｜未用 FORCE（在册 O-5）｜ISO 前双 source：noetic ＋ ws/devel（不 source 会自造 [4] BAD）
+# 六件：SYN/GTC/ISO/DC/PYST/VAR —— 见 gate_rcs.txt 与各 .log
+# SYN 被检件数=43（在册 42 ＋1＝本批新增的证据树驱动件 r191_recount.sh，属**覆盖面变化**不是原 42 件出新红；内嵌 python 段 26）
+# GTC rc=0：14 行逐行与 git 现算同值 ⇒ 载体仍 H14（本批未动 SM∪LIB）
+# ISO rc=0：九项全在，self-attest at=2026-10-11 15:41:59 script=bf3dfe05
+# DC rc=1＝**在册已知态**（A 类到期未回收 2／B 类待人工 13），不是本批新红
+# PYST rc=0：范围甲 50 件（三段 33＋4＋13，与 R132／R140／R170／R180／R189 同数）零红
+# VAR：**三遍都记**——第一遍 rc=5，P3a-1 抓出**本批新建的 note/进度/SCAN集成/证据/log/raw/r191_gate_string_after_docs 自己还没有 _sha256_manifest.txt**（自家约定，缺＝红，件判得对；本会话同族第 9 次、自己造的第 3 次）；
+#   补权限（find -exec 664/775）与清单后**第三遍 rc=0**（VAR_round3_final_rc0.log）、证据目录 149、违规件 0；清单覆盖 16 件、从归档址 `sha256sum -c` 全 OK。第三遍之后又另跑一遍确认仍 rc=0——该遍输出**不归档**（归档就追不完清单），只在此记其 rc。
+# 六件自测全绿：VCC PASS=10／PYST 7 例＋空集／DC 6 例／VAR 6 例／计数器 6 例／账构 5 例（各见 SELFTEST_*.log）
+# 合判：五件绿＋DC 在册已知态 ⇒ 与 R132／R140／R170／R180／R189 基线同形；被测件面仍定格 so=147dc8cc（本批未编译、未动 ws/src）
+# P8＝计划书未定稿、以 v4.3／v4.4 补丁稿为准；不构成阶段收口
+VAR 终态 rc=5（详见本行下方的终态输出）
