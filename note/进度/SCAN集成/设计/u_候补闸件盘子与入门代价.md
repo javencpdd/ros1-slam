@@ -241,3 +241,22 @@
 - **口径刷新**（三句各管一件事，别再互相顶）：**正式串＝七件**（SYN／GTC／ISO／DC／`v_py_static` 范围甲／VAR／**`v_verdict_field_parity`**）；**候补盘子＝六件**（未入）；**盘子外已入门＝本件一件**。申请包"五件一次签"的口径**不变**（本件是**单独裁单独入**的，不代替那五件）。
 - **入门前必须先定的参数**（§7 那一族的老问题，本件答全了三条才成闸）：档位（已裁甲、缺省锁死、自测 C6 防漂移）／**已定性存量表**（新增才拦、存量逐条带出处——没有这张表，一入门就永久红）／**门用面固定件**（54 个含 json 的证据目录写死，否则每批扫的面会漂、读数不可比）。
 - **一件值得进 #19 评估面的读法**：本件入门时**特意把"缺表"定为 rc=9 不判**而不是"默认全绿"——这是 `05` "空集不得判绿"一族在**豁免表**上的对应物。**建议 #19 评估其余候补件时同样加这一问**：*"它的豁免／存量表读不到时会怎么走？走绿＝无人守。"*
+
+## 19. 【R213 追加 · 2026-10-11 21:5x】签前可核清单**整张刷新**（七件版；§1–§18 原文不回改，按本节读；本节**不含任何 `件名:行` 形状引用**）
+
+**为什么重刷一张**：§13 那张是六件时期印的，第七件入门后**清单本身少一行**——而这张清单的用法（§13 已写明）是**当场跑、读输出**，少一行就会让签核人以为"跑完六件＝跑完全部"。
+
+| 件／自测 | 现在怎么跑 | 期望读数 |
+|---|---|---|
+| 正式串七件 | `05` 追加十的调用式（面写死）＋ DC／PYST／GTC／ISO 各按 `05` §六 | 全 0，**唯 DC＝1 属在册已知态**（A 类 2／B 类 13）；**PARITY 终态＝已知 7、新增 0** |
+| VCC 自测 | `bash scripts/verify/v_citation_check.sh --selftest` | `PASS=11 FAIL=0` |
+| 并排核器自测 | `bash scripts/verify/v_verdict_field_parity.sh --selftest` | **`PASS=9 FAIL=0`**（C7 全已知须 0／C8 清表须拦住／C9 缺表须不判；C6＝缺省档必须等于甲） |
+| PYST 自测 | `bash scripts/verify/v_py_static.sh --selftest` | 6 例＋空集共 **7 项**（含 4 例必须真红） |
+| DC 自测 | `bash scripts/verify/v_deferred_clause_scan.sh --selftest` | **6 例**全过 |
+| VAR 自测 | `bash scripts/verify/v_evidence_reachability.sh --selftest` | **6 例** |
+| 计数器自测 | `bash scripts/verify/v_ledger_citation_baseline.sh --selftest` | **6 例** |
+| 账构自测 | `bash scripts/verify/v_ledger_batch_consistency.sh --selftest` | **5 例** |
+| 志文面基线 | `bash scripts/verify/v_ledger_citation_baseline.sh --check note/进度/SCAN集成/证据/log/raw/r208_parity_fullscan/baseline_note53_r208.tsv $(面清单)` | **逐项同值**（53 件面；R182 那份 52 件旧基线**并存不覆写**，两时点可比） |
+
+**一条使用纪律（写死，防这张表又变成"照抄的数"）**：本表**只给跑法与期望**，任何一格被引用进志文时**必须写"当场跑得 X"并注明批号**，不得写"清单说 11"。这条来历＝R198 那次我照抄了清单里的"VCC 10 例"、而它当时已过期。
+**边界**：本节只刷清单，**未把任何候补件入门**（入门唯一实例仍是 R211 主理人明文那件）；未改判据／门值；`ws/src` 一字未动。
