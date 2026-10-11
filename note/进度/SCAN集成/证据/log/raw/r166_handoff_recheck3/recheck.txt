@@ -1,0 +1,28 @@
+# R166 · w 稿移交单第三次清偿复跑（只读；口径照 w 稿 §5.3，未扩扫描面、不含 证据/ 树）
+
+## 复跑命令
+scan=$(ls note/*.md note/进度/00_总览.md note/进度/00_裁定请求单_2026-10-09.md note/进度/*/进度文档.md note/进度/SCAN集成/设计/*.md)
+VCC_MAX=300 bash scripts/verify/v_citation_check.sh $scan
+scan2=$(ls note/计划书v4/*.md)
+VCC_MAX=300 bash scripts/verify/v_citation_check.sh $scan2
+
+## 志文面读数（文档数=52）
+[RED] 00_README.md ⇒ ws/src/CMakeLists.txt:192 越界（该文件 71 行）
+[RED] 04_配置改动diff.md ⇒ ws/src/CMakeLists.txt:192 越界（该文件 71 行）
+[RED] 06_三态通道普查.md ⇒ ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch:15 越界（该文件 12 行）
+[RED] 进度文档.md ⇒ ws/src/CMakeLists.txt:192 越界（该文件 71 行）
+[计数] 文档=52 单点引用=634 OK=478 RED=4 AMBER=43 勘误句=109（不判红）非单点形状=160（不判红）
+
+## 计划书面读数
+[RED] 21_ros1-slam隔离部署计划书-v4.1-雷达翻案补丁.md ⇒ ws/src/CMakeLists.txt:94 越界（该文件 71 行）
+[计数] 文档=4 单点引用=49 OK=43 RED=1 AMBER=0 勘误句=5（不判红）非单点形状=11（不判红）
+
+## 与 R128 基线的比较（口径已变两处，故不能只比数字）
+- 覆盖面：文档 48→52（R128 后新交付稿进了通配面）；且 R134 已修 CITE 扩展名白名单（补 cc/xml/hpp），分母本就该涨——R128 的 569/99/141 是**残缺面**上的数
+- 对象：RED 4→4 且**逐条同件同形状**（06 launch 越界一条＋04／00_README／仿真测试台进度文档 各一条 CMakeLists 越界）⇒ 这才是零清偿的硬证据
+- AMBER 40→43：本批未做全量内容比对 ⇒ 属待定性，不写成结论（坑45）；已排队下一步逐条比
+
+## 结构性结论（喂 #12／A25）
+- 我方两处（04 第 237 行、00_README）早按另起句处置（v 稿 §81、04 R99/R100、ac 稿 §3），但机判面永久报红：规矩是不回改原文，而 RED 判的是那一行本身越界，新写的勘误句离它几百行、进不了 ±60 字勘误窗
+- ⇒ #12 实际是三选一：甲＝加已定性伪红豁免档（件面改）／乙＝接受 rc=6 为本仓常态（同 DC rc=1 先例，分口径报）／丙＝不入门、按 05 第十节读法手跑
+- 三次复跑（R116→R128→R166）零清偿 ⇒ 待移交单清完再议这个前置在等一个不会自己发生的动作
