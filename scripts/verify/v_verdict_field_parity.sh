@@ -7,7 +7,7 @@
 # 用法：
 #   bash v_verdict_field_parity.sh <目录或 json 文件 ...>    # 缺省＝不判（见 rc=9）
 #   bash v_verdict_field_parity.sh --selftest                # 三例：阳性须报出／阴性须不报／缺前置须 rc=9
-# rc：0 无疑点；5 有疑点（**仍只是"请看这一行"，不是判红**）；9 前置缺失（没给件／JSON 解析不了／件里根本没有被并排的键）。
+# rc（**R211 起本件已入正式门禁串＝七件之一**）：0 ＝新增疑点为 0（存量已知条不判红）；5 ＝**有新增疑点**（拦：该批不得算施工完成）；9 ＝前置缺失（没给件／件解析不了／**存量表读不到＝无人守**）。
 # 环境变量（**缺省＝现行规则，本件不自定档**）：
 #   VP_RULES=off      ⇒ 关掉全部规则、只做并排计数（自测注桩用，也是候选「丙」的形状）
 #   VP_RULESET=cur    ⇒ **旧缺省**（主理人裁甲之前的行为）：两条规则都逐条列（首扫＝承重 5＋噪音 7）——现仅显式可取
@@ -50,6 +50,33 @@ PYFIX
   n1=$(bash "$0" "$T/pos" 2>/dev/null | grep -c '^\[疑点\]')
   n2=$(bash "$0" "$T/neg" 2>/dev/null | grep -c '^\[疑点\]')
   n_cur=$(VP_RULESET=cur bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
+  # 键里的路径是**相对 cwd** 的（件用 os.path.relpath）⇒ 表不能手写绝对路径：从一次空表跑出来的行**回推键**最稳
+  : > "$T/empty0.tsv"
+  # 注意：`python3 - <<HDC` 会让 heredoc **占掉 stdin**、把管道挤掉（本批踩过）⇒ 帮助脚本先落盘，再走管道
+  cat > "$T/mkknown.py" <<'PYFIX'
+import sys, re
+cnt = {}
+for line in sys.stdin:
+    m = re.match(r'^\[疑点\] (NOSAY|CLAIM)\|(\S+) ↔ ([^(（]+)（第', line)
+    if m:
+        k = '%s|%s|%s' % (m.group(1), m.group(2), m.group(3).strip())
+        cnt[k] = cnt.get(k, 0) + 1
+        continue
+    m = re.match(r'^\[疑点\] (RESTORE)\|(\S+) ::', line)
+    if m:
+        k = 'RESTORE|%s' % m.group(2)
+        cnt[k] = cnt.get(k, 0) + 1
+with open(sys.argv[1], 'w', encoding='utf-8') as out:
+    for k, v in cnt.items():
+        out.write('%s\t%d\t自测内定性\n' % (k, v))
+PYFIX
+  : > "$T/empty0.tsv"
+  VP_KNOWN="$T/empty0.tsv" bash "$0" "$T/pos" 2>/dev/null | python3 "$T/mkknown.py" "$T/known.tsv"
+  nkn=$(wc -l < "$T/known.tsv")
+  r7=0; VP_KNOWN="$T/known.tsv" bash "$0" "$T/pos" >/dev/null 2>&1 || r7=$?
+  k7=$(VP_KNOWN="$T/known.tsv" bash "$0" "$T/pos" 2>/dev/null | grep -c '^\[已知态\]')
+  r8=0; : > "$T/empty.tsv"; VP_KNOWN="$T/empty.tsv" bash "$0" "$T/pos" >/dev/null 2>&1 || r8=$?
+  r9=0; VP_KNOWN="$T/no_such_file.tsv" bash "$0" "$T/pos" >/dev/null 2>&1 || r9=$?
   n_def=$(bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
   n_A=$(VP_RULESET=A bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
   n_AB=$(VP_RULESET=AB bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
@@ -70,14 +97,23 @@ PYFIX
   echo "[C5] VP_RULES=off 须不判任何疑点且 rc=0（防「关掉规则还报红」）：实得 rc=$r6 疑点=$n6"
   ok6=$([ "$n_def" = "$n_A" ] && [ "$n_def" != "$n_cur" ] && echo 1 || echo 0)
   echo "[C6] 缺省档必须＝甲（主理人已裁）：缺省打印须与 A 同值且与 cur 不同，实得 缺省=$n_def A=$n_A cur=$n_cur ⇒ 防日后被改回缺省而没人发现"
-  npass=0; for x in $ok1 $ok2 $ok3 $ok4 $ok5 $ok6; do [ "$x" = "1" ] && npass=$((npass+1)); done
-  echo "PARITY SELFTEST VERDICT: PASS=$npass FAIL=$((6-npass))"
-  [ "$npass" = "6" ] || exit 5
+  ok7=$([ "$r7" = "0" ] && [ "$k7" = "$nkn" ] && [ "$nkn" -ge 2 ] && echo 1 || echo 0)
+  ok8=$([ "$r8" = "5" ] && echo 1 || echo 0)
+  ok9=$([ "$r9" = "9" ] && echo 1 || echo 0)
+  echo "[C7] 入门语义：全部落在存量表内须 rc=0 且 [已知态]=表内条数，实得 rc=$r7 已知=$k7／表内 $nkn 条"
+  echo "[C8] 入门语义：清空存量表（＝没有一条被定性）须 rc=5 拦住，实得 rc=$r8"
+  echo "[C9] 入门语义：存量表文件不存在须 rc=9 **不判**（缺表比全绿危险），实得 rc=$r9"
+  npass=0; for x in $ok1 $ok2 $ok3 $ok4 $ok5 $ok6 $ok7 $ok8 $ok9; do [ "$x" = "1" ] && npass=$((npass+1)); done
+  echo "PARITY SELFTEST VERDICT: PASS=$npass FAIL=$((9-npass))"
+  [ "$npass" = "9" ] || exit 5
   exit 0
 fi
 
 [ $# -ge 1 ] || { echo "[FAIL] 未给被检件 ⇒ 空集不得判绿（R46 一；与坑29 同族）" >&2; exit 9; }
 
+# 存量表路径在 shell 层定（python 从 stdin 跑时 __file__ 不可靠 ⇒ 靠 "$0" 的目录，别靠 cwd）
+VP_KNOWN="${VP_KNOWN:-$(dirname "$0")/parity_known_findings.tsv}"
+export VP_KNOWN
 python3 - "$@" <<'PYEOF'
 import glob, json, os, re, sys
 paths = sys.argv[1:]
@@ -97,7 +133,7 @@ if not jsons:
 
 RULESET = os.environ.get('VP_RULESET', 'A') or 'A'   # 缺省＝甲（主理人 2026-10-11 明文裁「b 按甲」；cur 仍可显式取，供复跑旧留底）
 RULES_OFF = (os.environ.get('VP_RULES', '') == 'off')
-print('[规则档] %s（**缺省＝cur；改档需主理人／小美明文，本件不自定**）' % ('off（只做并排计数）' if RULES_OFF else RULESET))
+print('[规则档] %s（**缺省＝甲，主理人 2026-10-11 明文 R210；旧行可 VP_RULESET=cur 显式取，供复跑历史留底**）' % ('off（只做并排计数）' if RULES_OFF else RULESET))
 NOSAY = re.compile(r'(无\s*result|没有\s*result|未收到\s*result|未回话|仍无规划|没有任何\s*result)')
 CLAIM = re.compile(r'(升为.{0,4}已证|已证|不可终止|被实证推翻|推翻)')
 
@@ -117,6 +153,27 @@ def scal(d, pre=''):
 nflag = 0
 claim_only = 0
 used_txt = 0
+# —— 已定性存量表（**入门必备**：新增即拦、存量逐条带在册出处；先例＝VCC 的 #12-甲「已定性伪红」豁免档）——
+KNOWN_PATH = os.environ.get('VP_KNOWN', '')
+if not KNOWN_PATH:
+    print('[前置缺失] 没给存量表路径（件内默认丢了）⇒ **门不判**')
+    sys.exit(9)
+FULLFACE = (os.environ.get('VP_FULLFACE', '') == '1')
+known = {}
+if KNOWN_PATH == 'none':
+    known = None          # 显式关掉存量表（自测用：关了就等于"无人守"）
+else:
+    try:
+        for kl in open(KNOWN_PATH, encoding='utf-8'):
+            kl = kl.rstrip('\n')
+            if not kl or kl[0] == '#' or '\t' not in kl:
+                continue
+            kk, cc, nn = (kl.split('\t') + ['', '', ''])[:3]
+            known[kk] = (int(cc or 1), nn)
+    except Exception as e:
+        print('[前置缺失] 存量表读不到（%s）⇒ **门不判**：缺表＝无人守，比"全绿"危险' % str(e)[:56])
+        sys.exit(9)
+hits_by_key = {}
 # 去重：给定的目录可能互相嵌套（父目录的递归 glob 会把子目录的件再收一遍）⇒ 按绝对路径去重，
 #   否则 [计数] 与疑点条数会被同一件重复贡献（R208 实测：同一份件被数了两次）。
 seen, uniq = set(), []
@@ -172,12 +229,36 @@ for j in jsons:
                 hits.append('文本下了"已证／推翻"级结论，但该件既无 outcome 码也无回话记录 ⇒ 结论强度请人判')
             if hits:
                 nflag += 1
-                print('[疑点] %s ↔ %s（第 %d 行）：%s' % (os.path.basename(j), os.path.relpath(t), ln, '；'.join(hits)))
+                for x in hits:
+                    kk = ('NOSAY' if x[:3] == '字段里' else 'CLAIM') + '|' + os.path.basename(j) + '|' + os.path.relpath(t)
+                    hits_by_key[kk] = hits_by_key.get(kk, 0) + 1
+                cat = 'NOSAY' if any(x[:3] == '字段里' for x in hits) else 'CLAIM'
+                print('[疑点] %s|%s ↔ %s（第 %d 行）：%s' % (cat, os.path.basename(j), os.path.relpath(t), ln, '；'.join(hits)))
                 print('        原文：%s' % line.strip()[:100])
     if pb is not None and pr is not None and pb != pr:
         nflag += 1
-        print('[疑点] %s：还原未还原（before_set=%s 而 restored=%s）' % (os.path.basename(j), pb, pr))
-print('[计数] json=%d 并排文本件=%d 疑点=%d 去重跳过=%d claim只计数=%d 规则档=%s（**只列不判**）' % (
-    len(jsons), used_txt, nflag, dup, claim_only, 'off' if RULES_OFF else RULESET))
-sys.exit(5 if nflag else 0)
+        kk = 'RESTORE|' + os.path.relpath(j)
+        hits_by_key[kk] = hits_by_key.get(kk, 0) + 1
+        print('[疑点] RESTORE|%s :: 还原未还原（before_set=%s 而 restored=%s）' % (os.path.relpath(j), pb, pr))
+nnew = 0
+nknown = 0
+if known is not None:
+    for kk, nv in sorted(hits_by_key.items()):
+        allow, note = known.get(kk, (0, ''))
+        nknown += min(nv, allow)
+        if nv > allow:
+            nnew += nv - allow
+            print('[新增] %s 实得 %d 条、表内定性 %d 条 ⇒ 超出 %d 条是本批新出现的形状（出处=%s）' % (kk, nv, allow, nv - allow, note or '无'))
+        else:
+            print('[已知态] %s %d 条全在表内（出处=%s）' % (kk, nv, note))
+    if FULLFACE:
+        for kk, (allow, note) in sorted(known.items()):
+            if kk not in hits_by_key:
+                print('[存量失效] %s 表内声明 %d 条、本面一条没命中 ⇒ 该定性条目疑过期（不判红，请人判；同 VCC 的 STALE 形状）' % (kk, allow))
+else:
+    nnew = nflag
+print('[计数] json=%d 并排文本件=%d 原始疑点=%d 去重跳过=%d claim只计数=%d 规则档=%s 已知=%d 新增=%d 存量表=%s（**新增才拦、存量逐条带出处**）' % (
+    len(jsons), used_txt, nflag, dup, claim_only, ('off' if RULES_OFF else RULESET), nknown, nnew,
+    '关（自测）' if known is None else os.path.basename(KNOWN_PATH)))
+sys.exit(5 if nnew else 0)
 PYEOF
