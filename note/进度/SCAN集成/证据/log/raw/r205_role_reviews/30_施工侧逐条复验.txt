@@ -1,0 +1,31 @@
+# 施工侧对两份角色意见的逐条复验（每条都回原件，不接受"子智能体说了就算"）
+# ① advanced_param.xml 的真实位置 = ws/src/30_3rd/plan_manage/launch/advanced_param.xml（find 实证）
+#    ⇒ 我在 ws/README.md §6.3 把它写成 plan_manage/param/ ＝**路径错**（另起句更正，不悄悄改）
+# ② M 稿 §0 原文第二行＝「**多楼层**（跨层、悬挑、桥洞）｜没测过｜载体不存在…且与 #6 §7 的 2.5D 假设正面冲突」
+#    ⇒ 三件事被并作一行；而我请求单里写的是「M 稿 §0 **已分清**：前者可走一层一图＋切图、不需要撤 §7；后者才必须撤」
+#    ⇒ **我把自己的概括当成了源文件的结论**（在册反向引用，另起句更正）
+# ③ 厂商 12 份 yaml 实测：slope_method 恒 1（12 处）、slope_threshold 恒 0.839；注释两种写法：
+#    「# method1:0.839  method2:0.577」8 处 ＋「#5cm分辨率：1.0 3cm分辨率：0.839」4 处
+#    ⇒ 0.577 是 **method2 的算法值**，不是"抓地挡/通用挡"的两挡上限 ⇒ 我 X18/X25 的 tan40/tan30 解释降级为巧合级旁证
+# ④ param_all_camera_v_safety.yaml 第 34 行 resolution: 0.04 ＋ 第 76 行注释写 5cm/3cm ⇒ 注释与本件分辨率不自洽
+#    ⇒ 我 X18 写的"更强旁证＝阈值随分辨率改写"不成立为证据（另起句降级）
+# ⑤ R59 预检 probe 目录：cost.txt 与 cost2.txt **同 sha**（0ac31ee0…）且内容只有 76 字节 "WARNING: topic … does not appear to be published"
+#    ⇒ "双 StaticLayer 四格对照"里**只有 cost3.txt（换序那格）留有真实读数**；"后加载者整图覆盖"那格无原始件
+#    ⇒ v4.3 X2 用"被实证推翻"的措辞**证据不足**（降级为"在册配置下未证实可叠加"，并列出待补测三格）
+# ⑥ 探针参数 `probe/params.yaml` 与 `probe/params_both.yaml` 的**第 11 行**均为 track_unknown_space: true；在册 costmap_common.yaml 第 7／24／39 行全为 false
+#    ⇒ 预检结论**不迁移**到本部署（小张这条成立）；另 params_both.yaml 是 a=0/b=1 的**混配** ⇒ "combination_method 取 0/1 皆如此"未分扫 [0,0]/[1,1]
+# ⑦ 在册 costmap_common.yaml 第 26–28 行：lethal_cost_threshold: 100 ＋ unknown_cost_value: -1 ＋ trinary_costmap: true
+#    ⇒ "costmap 源图中间值 50 读回 0"是**三值量化开关**的后果（可关），不是玄学；我原句未写这个限定
+# ⑧ r174 attempt1_aborted_harness/b18.json：result_returned: true ＋ outcome: -1，而同件 verdict 行写
+#    「60.2s（默认 outcome=-1）⇒ 在册『不可终止/长 patience 仍无 result』由『未证』**升为『已证』**」
+#    ⇒ 该 verdict 行**内部矛盾**（60.2s 恰恰回了话）⇒ 落册**不得引用该行**，须另起句更正（小美这条成立）
+本轮据其降级 X1／X2／X5 三条写法、替换 A23 理由①、更正三处我自己的在册句子。
+# ⑨（施工侧自己回原件再挖一层，比 ⑤ 更具体）把 cost3.txt 整张 1600 格解出来后：
+#    distinct 值只有 [0,100]；map_a 的 100 区**在位**（行10 列10..14 全 100）、map_b 的 −1 区读回 **0**、未被覆盖的 (35,35) 读回 **0**、全图 **无一个 254**
+#    ⇒ 与 `预检结论.md` §8.3 第四行「双实例 [b,a]（换序）⇒ 100 区保留、−1 行变 0」**逐字对得上** ⇒ cost3.txt 就是**换序那一格**；
+#    而 §8.3 第三行「双实例 [a,b] ⇒ 100 区读回 [0,0,0,0,0]，−1 行保留」＝**盘上没有对应原始件**的那一格（cost.txt/cost2.txt 是 76 字节 WARNING，run.log 记 data 面=0、run2.log 记 采到 data 行=0）
+#    ⇒ 精确到格的说法应改成：**四格里只有"换序"那一格留有原始读数，其余三格（含承载"覆盖"结论的那格）只在预检结论正文里以文字存在**；
+#    ⇒ 附带**raw 级证实**了一条：`a[20*40+20]=50` 这个点在 cost3.txt 里读回 **0** ⇒「源图中间值 50 读回 0」不靠转述、有原件；
+#      成因可点名＝StaticLayer 的 `trinary_costmap` 默认 true ＋ `lethal_cost_threshold:100`（在册 `ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml` 的 **第 26–28 行**同值）
+#    ⇒ 所以 X2 那句「代价映射非恒等」应写成**带开关的约束**（三值量化／阈值量化是可关的选项，不是 costmap 的天性）
+# 结论：两份意见的承重事实 8/8 成立（①–⑧），另由施工侧补出 ⑨ 这层更细的格级证据；本轮据此降级 X1／X2／X5 三条写法、替换 A23 理由①、更正三处我自己的在册句子。

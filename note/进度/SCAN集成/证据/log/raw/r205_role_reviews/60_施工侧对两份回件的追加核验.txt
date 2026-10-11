@@ -1,0 +1,45 @@
+# 两份回件里【30_施工侧逐条复验.txt 未曾覆盖】的新事实，逐条回原件核验（R205 现跑，只读、零开窗、无 sudo）
+# 记法：成立＝施工侧独立复现；未核＝回件主张但施工侧本轮未取得证据（不得当已证引用）
+
+甲｜来自「小张」（Z1／Z2／Z3）
+A1 **成立** noetic 的 StaticLayer **没有 `combination_method` 这个键**
+     证据＝`/opt/ros/noetic/include/costmap_2d/static_layer.h` 私有成员只有 subscribe_to_updates_／map_received_／track_unknown_space_／**use_maximum_**／**first_map_only_**／trinary_costmap_／lethal_threshold_／unknown_cost_value_；
+     `grep -l combination_method /opt/ros/noetic/include/costmap_2d/*.h` ⇒ 只有 obstacle_layer.h／ObstaclePluginConfig.h／VoxelPluginConfig.h
+     ⇒ R59 那句「combination_method 取 0 与 1 都试过、未改变结果」应改读作「**该键挂在没人读的层上**」，不是"试过无效"
+A2 **成立（且比"面不同"更硬）** 在册部署的 static_layer 块**自己就写着 `use_maximum: true`**
+     证据＝`ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml` 第 22 行 `first_map_only: true`、第 25 行 `use_maximum: true`（第 26–28 行 lethal 100／unknown −1／trinary true）
+     ⇒ 探针两份参数件**一个都没写这两个开关** ⇒ 走的是 StaticLayer 缺省（不合并、后来者写覆盖）
+     ⇒ 所以「后加载者整图覆盖」在探针面上是**缺省行为的复现**，不构成对"能否叠加"的否定；待补测格因此要加一列：**use_maximum 开／关 × first_map_only 开／关**
+A3 **成立** `slope>25°`／`step>0.15m` 出自**我方**设计稿、不是厂商标定
+     证据＝`note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` §4.3「通行代价映射：slope>25° 或 step>0.15m 或 roughness>阈值→cost 100」
+     ⇒ §4.3 该标"我方自定、无实测锚"，厂商标称（≤12／15cm、≤30°／40°）只能作**上界对照**
+A4 **成立** 厂商数值分布不支持"分辨率决定阈值"的读法
+     证据＝现数 12 件带 `slope_threshold` 的 yaml：取值**全为 0.839**、`slope_method` **全为 1**；注释两种写法 8 处（method1/method2）＋4 处（5cm:1.0／3cm:0.839）；
+     `grep -rn "slope_threshold: *0.577" ws/src --include=*.yaml` = **0** ⇒ **0.577 从不作取值**（method2 从未被选用）；
+     0.839 同现于 `param_all_camera_v.yaml`（resolution **0.03**）与 `param_all_camera_v_safety.yaml`（resolution **0.04**）⇒ 阈值不随该件分辨率改
+A5 **成立** 同件里 `distinct=[0,100]`、100 未被量化成别的值 ⇒「50→0」与「100 原值保留」**并存**，成因未定（trinary 量化的解释只覆盖 50 那一半）
+A6 **成立** 现役 global costmap 是 **三插件**（static_layer＋stvl_obstacle_layer＋sob_layer），探针只有两个 StaticLayer
+     证据＝`ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml` 第 6–9 行
+     ⇒ 预检面与本部署面**连插件构成都不同**，迁移性更弱
+A7 **成立** 探针 `params.yaml` 与 `params_both.yaml` **同 sha**（ff804e95…）⇒ 所谓"两种配置"实为**同一份文件跑两次**
+B1 **未核** 「§8.4 未知被尊重」被 cost3 反证——施工侧同向（本文件 A5／30 文 ⑨：(35,35) 读 0、全图无 254），但**该结论属于哪一格**仍系于文字反推（`run3.log` 未记 `$PF`）
+
+乙｜来自「小美」（A23／A25／A30／#12）
+C1 **成立** avoid@0.40 的分母不是 8：`r119_p4_second_clause/rejudge_two_thresholds.txt` 首行「可解析的 p4.json 样本=11」、末段「avoid@0.60 过 1／有读数样本 11；avoid@0.40 过 2／有读数样本 11」
+     ⇒ 我在候选稿 §16.4 写的"在册 8 个有读数样本"**是错数**（既非 11、也非表内 7 行离箱心读数）；更正见 `04` R205 段与候选稿 Part 5
+C2 **成立** `OCC_TOL` 在取证件里**从不参与判定**：`grep -n OCC_TOL ws/src/40_navigation/lite3_scan/verify/p4_replan.py` ⇒ 只有第 46 行定义与第 334 行 `gate_occ` 打印；
+     判定链是 `collide = robot_min <= 0.40` 与 `avoided = traj_min >= AVOID_DIST` ⇒ A23 理由②里"沿用在册硬穿墙阈、不新立数"这半句**名实不足**（该阈从无生效史）
+C3 **成立** 勘误窗是**六档**（±20／±40／±60／±100／±200／整行，`r163_vcc_census_first_run/fixup_window_sweep.txt`）⇒ 候选稿写"三档实测在案"**过期**；且该表头自记普查面＝**26 件文档／524 条**（今天的默认面是 27 件）⇒ "面"要一起记
+C4 **成立** attempt7 的 patience 两读互斥：`after_set_server_broadcast.planner_patience = 3.0` 而 `after_set_client_cache... = 60.0`；`restored = 60.0`（`before_set = 3.0`）⇒ "还原"未还原
+C5 **成立** r174 盘上是 **7 个 attempt 目录（缺 6 号）**，本文件 50_ 逐窗清点给出：5 窗留有 `b18.json`、被试尝试共 **5 条**（`result_returned=True` 2 条＝3.2s／60.2s，同出 attempt1；False 3 条＝60.0／30.0／90.0）
+     ⇒ v4.4 Part 2 第 5 条那句"本轮已有 4 次开窗…零可引用读数"**低估**：按"窗"数是 7；attempt7 的 `ANALYSIS.md` §1 自题「这是本窗的可引用产出」（三条独立轨迹）⇒"零可引用"亦不成立
+C6 **未核** 小美说"6 次起链"——施工侧只核到目录与 json 计数，未逐窗读 `launch.log`，**不引用该数**
+C7 **成立** 候补盘子是**六件**：`u` 稿 §9 标题「第六件候补件到手：`v_ledger_citation_baseline.sh`」、`ac` 稿 §8「盘子里现在躺着**六件**，但本包口径仍是五件一次签」⇒ 候选稿 Part 0 ③ 写"候补盘子五件"**过期**
+C8 **成立** 志文面唯一红仍在（`06_三态通道普查.md ⇒ m2_mapping.launch:15 越界，该文件实 12 行）＝基线里那条 RED=1，**w 稿移交项零清偿第七次再证**；本批计数器 `--check` 十项**逐项同值**（见 LCB_check.log）
+C9 **成立** `05` C2 原文确为「新门入 gate 字典时**必须让它真实 FAIL 一次**；不得以同判据的历史命中代替」⇒ A23 的对照按此形状做（离线合成穿墙轨迹判红＋撤后判绿＋两面不同）
+C10 **未核** 小美报的 `/proc/loadavg` 5.31 为**她那一跑时刻**的值；施工侧 18:15 读到 1-min 4.99（本机 whoopsie／sensor_checker／jetson2motion 等常驻服务所致，非我方子进程，见 02 ㉒ 同族核查）⇒ 本批为纯文档面、不开活体窗，故无需门槛判定；**但落册前若要开窗须重取**
+
+丁｜本目录三份留底件在写盘过程中的自纠（未入库前，如实记）
+ - `00_说明.txt` 初稿写"含 7 项"、实为 ①–⑧ ⇒ 已重写为 ①–⑨；
+ - `30_施工侧逐条复验.txt` 追加 ⑨ 时一次 python 切片误删了结尾结论句的前半 ⇒ 当场整件重组，未影响其余条目；
+ - 门禁第一遍 ISO rc=1 是**我方驱动件自己的缺陷**（脚本 `set -u` 撞上 `/opt/ros/noetic/etc/catkin/profile.d/1.ros_distro.sh` 的 `ROS_DISTRO: unbound variable`，ISO 根本没跑成）——**自造无效跑**，第二遍改 `set +u` 后 rc=0（`self-attest at=2026-10-11 18:30:15 script=bf3dfe05`）；第一遍那一行输出被第二遍覆盖，未留原件，故在此逐字记其内容。

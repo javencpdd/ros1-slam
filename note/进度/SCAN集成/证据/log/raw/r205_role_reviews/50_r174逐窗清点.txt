@@ -1,0 +1,11 @@
+# r174 逐窗清点（R205 现跑，只读；用于回答 v4.4 Part 2 第 5 条"至多 2 次尝试按什么数"）
+# 口径：窗＝attempt 目录；次＝窗内 attempts[] 的一条被试尝试（含默认 patience 尝试与放宽后尝试）
+# 列：窗目录名 | attempts 条数 | result_returned=True | =False | 各条 wall_s | patience.before_set | after_set_server_broadcast/after_set_client_cache
+('attempt0_aborted_preflight', '无 b18.json', '-', '-', '-', '-', '-')
+('attempt1_aborted_harness', 2, 2, 0, [3.2, 60.2], 3.0, 'None / None')
+('attempt2_invalid_idle', 1, 0, 1, [60.0], 3.0, 'None / None')
+('attempt3_invalid_apiname', '无 b18.json', '-', '-', '-', '-', '-')
+('attempt4_stuckgoal_lock', 1, 0, 1, [30.0], 3.0, 'None / None')
+('attempt5_carrier_race', 0, 0, 0, [], 3.0, 'None / None')
+('attempt7_answer_with_gap', 1, 0, 1, [90.0], 3.0, '3.0 / 60.0')
+# 合计：窗=7 尝试=5 有回话=2 无回话=3
