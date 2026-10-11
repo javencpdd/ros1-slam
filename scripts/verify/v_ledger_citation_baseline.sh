@@ -117,8 +117,16 @@ selftest() {
     if [ "$rc" -eq 9 ]; then npass=$((npass+1)); echo "[PASS] T4 VCC 不打印 [计数] 时 rc=9（不冒充全零）";
     else nfail=$((nfail+1)); echo "[FAIL] T4 未退 9（rc=$rc）：$(tail -2 "$tmp/t4.log" | tr '\n' ' ')"; fi
 
+    # T5 **变异测试补上的一例**（R185：把"解析不出字段就填 0"这个改动塞进去时，原四例全绿 ⇒ 那条守卫从没被测过）
+    #     对象＝VCC 打了 [计数] 行、但**少了其中一项** ⇒ 必须 rc=9，**不得**把缺的这项当 0（坑45 的正身）
+    printf '#!/usr/bin/env bash\nprintf "[计数] 文档=2 单点引用=5 OK=3 RED=0 勘误句=1 非单点形状=1 豁免红=0 豁免表命中=0 未命中=0\\n"\n' > "$tmp/stub2.sh"
+    VCC="$tmp/stub2.sh" bash "$0" --check "$tmp/base.tsv" "$tmp/a.md" > "$tmp/t5.log" 2>&1; rc=$?
+    if [ "$rc" -eq 9 ] && grep -q "解析不出\|口径不符" "$tmp/t5.log"; then
+        npass=$((npass+1)); echo "[PASS] T5 [计数] 行缺字段须 rc=9（不把缺项当 0）"
+    else nfail=$((nfail+1)); echo "[FAIL] T5 未退 9（rc=$rc）⇒ 缺字段被当成 0，正是坑45 那个形状：$(tail -2 "$tmp/t5.log" | tr '\n' ' ')"; fi
+
     rm -rf "$tmp"
-    echo "LCB SELFTEST VERDICT: PASS=$npass FAIL=$nfail（T2 是本件的分辨力所在，它红＝整件不可用）"
+    echo "LCB SELFTEST VERDICT: PASS=$npass FAIL=$nfail（T2 管分辨力、T5 管「缺项不等于 0」，任一红＝整件不可用）"
     [ "$nfail" -eq 0 ] || return 5
     return 0
 }

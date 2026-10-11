@@ -1,0 +1,43 @@
+# R185 变异测试记录（2026-10-11 17:3x）：把每条守卫在 /tmp 副本上关掉，看对应自测是否转红
+# 在盘件全程未因变异被改动；变异只在副本上发生
+
+## 变异① VCC：让 EXEMPT 永不命中 ⇒ 期望 C9 红
+[FAIL] C9 豁免档双向：表内红=1（须 0）豁免命中=0（须 1）表外红=1（须 1）表=1 条
+[FAIL] C10 陈旧豁免双向：表=2 命中=0 报陈旧=['/tmp/vcc_p1_uy32sqcj/t.yaml:77', '/tmp/vcc_p1_uy32sqcj/t.yaml:9']（须只乙一条）该次 RED=1 AMBER=0（须 0/0）
+VCC SELFTEST VERDICT: PASS=8 FAIL=2
+
+## 变异② VCC：停掉 EXEMPT_SEEN 记账 ⇒ 期望 C10 红
+[PASS] C9 豁免档双向：表内红=0（须 0）豁免命中=1（须 1）表外红=1（须 1）表=1 条
+[FAIL] C10 陈旧豁免双向：表=2 命中=0 报陈旧=['/tmp/vcc_p1_7jah9_yc/t.yaml:77', '/tmp/vcc_p1_7jah9_yc/t.yaml:9']（须只乙一条）该次 RED=0 AMBER=0（须 0/0）
+VCC SELFTEST VERDICT: PASS=9 FAIL=1
+
+## 变异③ VCC：扩展名白名单去掉 cc ⇒ 期望 C6 红
+[FAIL] C6 .cc／.xml 引文必须被识别（漏扩展名＝静默漏报）：识别=1 越界判红=0
+VCC SELFTEST VERDICT: PASS=9 FAIL=1
+
+## 变异④ 基线件：拿掉基线缺失即 rc=9 ⇒ 期望 T3 红
+[FAIL] T3 基线未退 9（rc=0）⇒ 空基线被当成同值
+LCB SELFTEST VERDICT: PASS=4 FAIL=1（T2 是本件的分辨力所在，它红＝整件不可用）
+
+## 变异⑤ 基线件：字段解析不出就填 0（坑45 正身）
+--- ⑤-a 变异前（原四例）：变异**活了下来**＝那条守卫从没被测过（本轮最有价值的发现）
+LCB SELFTEST VERDICT: PASS=5 FAIL=0（T2 是本件的分辨力所在，它红＝整件不可用）
+--- ⑤-b 补 T5 之后重放同一变异：必须被逮住
+[FAIL] T5 未退 9（rc=5）⇒ 缺字段被当成 0，正是坑45 那个形状：  豁免表未命中 2 → 0  **变动 -2** LCB VERDICT: 计数有变动（**只报数**——变动本身不是错；该不该变由人判，入门与阈值归 A26／#12 那族） 
+LCB SELFTEST VERDICT: PASS=5 FAIL=1（T2 管分辨力、T5 管「缺项不等于 0」，任一红＝整件不可用）
+
+## 修好的在盘件（未变异）自测
+LCB SELFTEST VERDICT: PASS=6 FAIL=0（T2 管分辨力、T5 管「缺项不等于 0」，任一红＝整件不可用）
+
+## 自测覆盖面清点（scripts/verify 全部 11 件）
+  无自测：premap_check.sh
+  无自测：v3_isolation.sh
+  有自测：v_citation_check.sh
+  有自测：v_citation_refscan.sh
+  有自测：v_deferred_clause_scan.sh
+  无自测：v_evidence_reachability.sh
+  无自测：v_harness_generation_table.sh
+  有自测：v_ledger_batch_consistency.sh
+  有自测：v_ledger_citation_baseline.sh
+  有自测：v_py_static.sh
+  有自测：v_sh_py_syntax.sh
