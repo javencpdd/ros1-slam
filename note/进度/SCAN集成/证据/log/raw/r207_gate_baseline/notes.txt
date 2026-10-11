@@ -1,0 +1,14 @@
+# R207 收尾整串复跑（本会话最后一段：文档面批次，未改任何闸件）
+# 未用 FORCE（O-5）｜无 sudo｜未起活体窗｜ISO 前 set +u 后双 source（不这样写会自造 rc=1：R205 刚犯，见 02 ㉗ 同段与 u 稿 §14）
+# VAR 两遍都记：第一遍 rc=5＝本目录自己尚未建清单（自家约定，件判得对，本会话同族第 13 次）；补权限＋清单后第二遍见 VAR_round2.log
+# LCB：52 件志文面十项逐项同值 ⇒ R205／R206 两批文档改动＝零新引用形状
+# P8＝计划书未定稿、以 v4.3／v4.4 补丁稿为准；不构成阶段收口
+VAR 第一遍（建清单前）rc=5 输出见 VAR.log
+# R207 追加：新建**候选件原型** v_verdict_field_parity.sh（「结论行 vs 字段值」并排核；只列疑点、不自判红绿、未入门禁串）
+# 自测三例全过（阳性须报／阴性须不报／缺前置须 rc=9），见 SELFTEST_v_verdict_field_parity.log
+# 首次真件跑＝r174 那批：列出 5 条并排疑点（含 02 ㉕ 抓到的那条 verdict 行＋两例"还原未还原"），见 parity_r174_first_run.log
+# SYN 已过（被检件数=1、内嵌 python 段=2），见 SYN_newpiece.log；本件**不加入**在册 42 件面（入门与否归 #12/#19/A32）
+# R207 同批事故与自证（重要）：本批一次 python 写法把 note/04 从 1417 行写成 8 行（先以写模式打开、又在同一表达式里读同一路径）
+#   发现者＝本目录 LCB_check_round1_truncation_caught.log：计数器报 单点引用 634→524、RED 1→12，逐条红都写着「该文件 8 行」
+#   处置＝git checkout HEAD -- note/04（R206 及以前全在 HEAD ⇒ 零已入库损失）→ 重贴本批增量 → 改成"先读完赋变量再写"
+#   复跑＝LCB_check_round2_after_restore.log（十项逐项同值）；VAR 终态见 VAR_round2.log（rc=0）
