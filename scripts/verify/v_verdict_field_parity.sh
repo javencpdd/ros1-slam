@@ -83,6 +83,17 @@ def scal(d, pre=''):
 
 nflag = 0
 used_txt = 0
+# 去重：给定的目录可能互相嵌套（父目录的递归 glob 会把子目录的件再收一遍）⇒ 按绝对路径去重，
+#   否则 [计数] 与疑点条数会被同一件重复贡献（R208 实测：同一份件被数了两次）。
+seen, uniq = set(), []
+for j in jsons:
+    a = os.path.abspath(j)
+    if a in seen:
+        continue
+    seen.add(a)
+    uniq.append(j)
+dup = len(jsons) - len(uniq)
+jsons = uniq
 for j in jsons:
     try:
         d = json.load(open(j, encoding='utf-8', errors='ignore'))
@@ -116,6 +127,6 @@ for j in jsons:
     if pb is not None and pr is not None and pb != pr:
         nflag += 1
         print('[疑点] %s：还原未还原（before_set=%s 而 restored=%s）' % (os.path.basename(j), pb, pr))
-print('[计数] json=%d 并排文本件=%d 疑点=%d（**只列不判**）' % (len(jsons), used_txt, nflag))
+print('[计数] json=%d 并排文本件=%d 疑点=%d 去重跳过=%d（**只列不判**）' % (len(jsons), used_txt, nflag, dup))
 sys.exit(5 if nflag else 0)
 PYEOF
