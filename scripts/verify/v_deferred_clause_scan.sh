@@ -21,6 +21,7 @@ ROOT=/home/ros1-slam
 SCAN_ROOT=${DC_SCAN_ROOT:-$ROOT}
 LEDGER_ROOT=${DC_LEDGER_ROOT:-$ROOT}
 SELF=$(readlink -f "$0")
+export DC_SELF="$SELF"     # 内嵌 python 走 heredoc ⇒ 那边 sys.argv[0] 只是 "-"，自测要回呼本件必须靠这个
 
 python3 - "$SCAN_ROOT" "$LEDGER_ROOT" "${1:-}" <<'PYEOF'
 import os, re, sys
@@ -162,6 +163,23 @@ if mode == '--selftest':
             if x[0].endswith(fp) and frag in x[2]: bad.append("%s:%d(%s)" % (x[0], x[1], x[3]))
     print(("[PASS]" if not bad else "[FAIL]") + " T4 四条已知假阳性均已排除；残留=%s" % (bad or '无'))
     fails += (1 if bad else 0)
+    # T5 报告层（R186 变异测试补上的一例）：以前各例只断言 collect() 的返回值 ⇒
+    #     "判到了却压根没印出来"这种失效不会被发现（rc 仍对、人看不到明细＝件面静默失效，坑63 的另一个出口）
+    import subprocess
+    self_path = os.environ.get('DC_SELF') or ''
+    if not self_path or not os.path.exists(self_path):
+        print("[FAIL]  T5 取不到本件路径（DC_SELF 未导出）⇒ 报告层无法验证，不判绿"); fails += 1
+    else:
+        env2 = dict(os.environ); env2['DC_SCAN_ROOT'] = tmp; env2['DC_LEDGER_ROOT'] = tmp
+        # T3 为了反向咬合把这句结案凭据撤掉了 ⇒ T5 必须先把它放回去，否则"A 类为空"是正确的，测不到报告层
+        open(os.path.join(tmp, 'note/04_配置改动diff.md'), 'w').write(
+            "- 2026-10-09：Q99 联调实测：命名空间双挂载成立，全量落位 ⇒ 结案。\n")
+        rp = subprocess.run(["bash", self_path], capture_output=True, text=True, env=env2)
+        rep_lines = rp.stdout.count('[到期?]')
+        rep_ok = (rep_lines >= 1) and (rp.returncode == 1)
+        print(("[PASS] " if rep_ok else "[FAIL] ") +
+              " T5 正常模式必须**印出** A 类明细且 rc=1（实得 rc=%s、到期印出行=%d）" % (rp.returncode, rep_lines))
+        fails += (0 if rep_ok else 1)
     import shutil; shutil.rmtree(tmp, ignore_errors=True)
     print("SELFTEST VERDICT: %s rc=%d" % ("全过" if fails == 0 else "有 FAIL", 0 if fails == 0 else 5))
     sys.exit(0 if fails == 0 else 5)

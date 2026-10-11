@@ -20,19 +20,27 @@ if [ "${1:-}" = "--selftest" ]; then
   printf 'import sys\n\ndef f():\n    return buf["raw"]      # NameError 族：模块级函数引用 main 的局部量（R75 第三崩同款）\n' > "$SELF/closure.py"
   printf 'import sys\n\ndef f(vals):\n    print("%%s %%s" %% (vals,))      # 占位符 2 个、字面元组 1 个\n' > "$SELF/fmt.py"
   printf 'def f(:\n' > "$SELF/bad_syntax.py"
+  # 第四查（调用实参个数）的配对例：R84 加这查时只当场验过一次、没落进自测 ⇒ R186 变异测试证明它当时是"无例可红"的守卫
+  printf 'def measure(a, b):\n    return a + b\n\nprint(measure(1))\n' > "$SELF/arity_bad.py"
+  printf 'def measure(a, b):\n    return a + b\n\nprint(measure(1, 2))\n' > "$SELF/arity_ok.py"
   r=0
   "$0" "$SELF/good.py" >/dev/null 2>&1; g=$?
   "$0" "$SELF/closure.py" >/dev/null 2>&1; c=$?
   "$0" "$SELF/fmt.py" >/dev/null 2>&1; m=$?
   "$0" "$SELF/bad_syntax.py" >/dev/null 2>&1; b=$?
+  "$0" "$SELF/arity_bad.py" >/dev/null 2>&1; ab=$?
+  "$0" "$SELF/arity_ok.py" >/dev/null 2>&1; ao=$?
   "$0" >/dev/null 2>&1; e=$?
   [ "$g" = 0 ] || { echo "自标定 FAIL：good.py 应过，实得 rc=$g"; r=1; }
   [ "$c" = 1 ] || { echo "自标定 FAIL：closure.py（未定义名）应 rc=1，实得 $c"; r=1; }
   [ "$m" = 1 ] || { echo "自标定 FAIL：fmt.py（占位符不符）应 rc=1，实得 $m"; r=1; }
   [ "$b" = 1 ] || { echo "自标定 FAIL：bad_syntax.py 应 rc=1，实得 $b"; r=1; }
+  # 第四查必须**双向**：缺参必须红、配平必须绿——只把一切判红不算"这查被测过"（坑45 的另一头）
+  [ "$ab" = 1 ] || { echo "自标定 FAIL：arity_bad.py（少传一个位置实参）应 rc=1，实得 $ab ⇒ 第四查没有例覆盖"; r=1; }
+  [ "$ao" = 0 ] || { echo "自标定 FAIL：arity_ok.py（实参配平）应 rc=0，实得 $ao ⇒ 第四查过咬"; r=1; }
   [ "$e" = 5 ] || { echo "自标定 FAIL：未给件应 rc=5（空集不得判绿，R46 一），实得 $e"; r=1; }
   rm -rf "$SELF"
-  [ "$r" = 0 ] && echo "V_PY_STATIC SELFTEST: PASS（4 例＋空集共 5 项，含 3 例必须真红）"
+  [ "$r" = 0 ] && echo "V_PY_STATIC SELFTEST: PASS（6 例＋空集共 7 项，含 4 例必须真红；第四查＝缺参红／配平绿双向）"
   exit $r
 fi
 
