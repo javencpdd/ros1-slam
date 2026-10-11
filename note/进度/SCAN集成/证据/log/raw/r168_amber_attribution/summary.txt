@@ -1,0 +1,73 @@
+# R168 · 「AMBER 40→43 待定性」的结掉（w 稿 §5.5 那格，双时点快照逐条比）
+# 时点 A＝36dafc6 fix+docs(R134)（扩展名白名单补齐 cc/xml/hpp 那次）的 note/ 树快照，用 git archive 取到 /tmp/snap_r134
+# 时点 B＝工作树现状（HEAD＝f0abdd8 docs(R167) 之后）
+# 两次都用同一版 VCC、同一口径（note/*.md ＋ 00_总览 ＋ 请求单 ＋ */进度文档 ＋ SCAN集成/设计/*.md，不含 证据/ 树），差别只在文档数 49 → 52
+
+## 读数对照
+A（R134 时点，49 件）：文档=49 单点引用=623 OK=470 RED=4 AMBER=43 勘误句=106 非单点=160
+B（工作树，52 件）：文档=52 单点引用=634 OK=478 RED=4 AMBER=43 勘误句=109 非单点=160
+
+## 名单逐条比（comm 双向）
+AMBER 只在工作树出现：（空）／只在 R134 出现：（空）⇒ **43 条逐条同集合**
+RED   只在工作树出现：（空）／只在 R134 出现：（空）⇒ **4 条逐条同集合**
+
+## 结论（可签的定性）
+1. w 稿 §5.5 那格「AMBER 40→43」**全部由 R134 修的覆盖面带来**（cc/xml/hpp 三类引文进分母），**不是新漂移**——因为把同一版件跑在 R134 时点的树上，AMBER 已经是 43。
+2. 自 R134 至今：RED 4→4、AMBER 43→43、非单点 160→160，且**名单逐条同集合**；新增的 3 份文档贡献 0 条红/黄（引用形状从一开始就按 05 第十节写）。
+3. ⇒ 形状面**零恶化、零清偿**这句话现在有了第二个独立证据（第一个是 §5.5 的逐张单回原文）。
+4. 顺带把 §5.5 里我标的『不能只比数字』这条落实：40 那个数本身是残缺面上的读数，**引用它必须带「修白名单前」**——这正是坑63 处置③要求区分『覆盖面变了』与『对象真的变了』的又一例。
+
+## 复算命令
+git archive 36dafc6 note | tar -x -C /tmp/snap_r134
+VCC_MAX=400 bash scripts/verify/v_citation_check.sh \/tmp/snap_r134/note/00_README.md
+/tmp/snap_r134/note/01_部署记录.md
+/tmp/snap_r134/note/02_问题与坑.md
+/tmp/snap_r134/note/03_外部文件来源清单.md
+/tmp/snap_r134/note/04_配置改动diff.md
+/tmp/snap_r134/note/05_复验作业单.md
+/tmp/snap_r134/note/06_三态通道普查.md
+/tmp/snap_r134/note/07_判据载体代际对照表.md
+/tmp/snap_r134/note/进度/00_总览.md
+/tmp/snap_r134/note/进度/00_裁定请求单_2026-10-09.md
+/tmp/snap_r134/note/进度/G8sim/进度文档.md
+/tmp/snap_r134/note/进度/GazeboM1/进度文档.md
+/tmp/snap_r134/note/进度/M2/进度文档.md
+/tmp/snap_r134/note/进度/M5/进度文档.md
+/tmp/snap_r134/note/进度/P0/进度文档.md
+/tmp/snap_r134/note/进度/P1/进度文档.md
+/tmp/snap_r134/note/进度/P2/进度文档.md
+/tmp/snap_r134/note/进度/P3a/进度文档.md
+/tmp/snap_r134/note/进度/P3b/进度文档.md
+/tmp/snap_r134/note/进度/P4/进度文档.md
+/tmp/snap_r134/note/进度/P5/进度文档.md
+/tmp/snap_r134/note/进度/P6/进度文档.md
+/tmp/snap_r134/note/进度/P7/进度文档.md
+/tmp/snap_r134/note/进度/P8prep/进度文档.md
+/tmp/snap_r134/note/进度/REPO_INIT/进度文档.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/b3_时基根除_改点清单与验收面.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/b3_甲案工单_属主侧待办.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/fd_i_反向静态边裁定与处置.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/k_a14_三案离线后果.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/l_fasterlio_轴向丢点候选环节.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/m_3d多层_载体缺口与出路.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/n_自遮挡过滤_球形blind换机体OBB.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/o1_到达信号与联锁设计.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/o_仿真近场验证缺口_视场归因更正.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/p_轴向对账_仿真为何照不到近场地面.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/q_C13三案改动清单与回退方案.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/r_批2复取承接对账.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/s_A17A20A21三案改动清单与成本.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/t_perlin3d超时定位_patience生效路径与两种失败形态.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/u_候补闸件盘子与入门代价.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/v_台账引用勘误对照表.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/w_全仓单点引用版本漂移普查.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/x_批2收口材料包.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/y_v4.3落册输入单_§16现状复算与增量清单.md
+/tmp/snap_r134/note/进度/SCAN集成/设计/z_决策单_一页可签.md
+/tmp/snap_r134/note/进度/SCAN集成/进度文档.md
+/tmp/snap_r134/note/进度/仿真测试台/进度文档.md
+/tmp/snap_r134/note/进度/计划书v4升级/进度文档.md
+（工作树同口径换一遍，再 comm -13 / -23 比两份 AMBER、RED 名单）
+
+登记人：小明（施工）· 2026-10-11 · 代际仍 H14 · 只读，未改任何志文／件／判据 · P8＝计划书未定稿、以 v4.3 补丁稿为准
