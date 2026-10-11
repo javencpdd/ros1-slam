@@ -10,10 +10,10 @@
 # rc：0 无疑点；5 有疑点（**仍只是"请看这一行"，不是判红**）；9 前置缺失（没给件／JSON 解析不了／件里根本没有被并排的键）。
 # 环境变量（**缺省＝现行规则，本件不自定档**）：
 #   VP_RULES=off      ⇒ 关掉全部规则、只做并排计数（自测注桩用，也是候选「丙」的形状）
-#   VP_RULESET=cur    ⇒ 缺省：两条规则都逐条列（首扫实测＝承重 5＋噪音 7）
+#   VP_RULESET=cur    ⇒ **旧缺省**（主理人裁甲之前的行为）：两条规则都逐条列（首扫＝承重 5＋噪音 7）——现仅显式可取
 #   VP_RULESET=A      ⇒ 候选「甲」：claim 级（已证／推翻）只在**同一行同时提到本件的字段名或件名**时才报（治跨对象误伤）
 #   VP_RULESET=B      ⇒ 候选「乙」：claim 级**只进计数、不逐条列**（nosay 级仍逐条列，保证承重条仍可指认）
-#   这三档是给 #12／#19／小美**定档用的对照面**，不是三个都算通过；哪一档成为件的行为＝主理人／小美明文，施工侧不自落。
+#   **档位已由主理人 2026-10-11 明文＝甲**（R210 入账）；本行保留其余档仅为**可复跑对照**，不得被后批读成「档位仍未定」。
 # **本件不使用 FORCE**（在册 O-5：FORCE 禁用于判定）。
 set -u
 
@@ -49,7 +49,8 @@ PYFIX
   r3=0; bash "$0" "$T/empty" >/dev/null 2>&1 || r3=$?
   n1=$(bash "$0" "$T/pos" 2>/dev/null | grep -c '^\[疑点\]')
   n2=$(bash "$0" "$T/neg" 2>/dev/null | grep -c '^\[疑点\]')
-  n_cur=$(bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
+  n_cur=$(VP_RULESET=cur bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
+  n_def=$(bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
   n_A=$(VP_RULESET=A bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
   n_AB=$(VP_RULESET=AB bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
   n_B=$(VP_RULESET=B bash "$0" "$T/mix" 2>/dev/null | grep -c '^\[疑点\]')
@@ -67,9 +68,11 @@ PYFIX
   ok5=$([ "$r6" = "0" ] && [ "$n6" = "0" ] && echo 1 || echo 0)
   echo "[C4] 改档必须真改变行为（混合例须 cur=2／甲=1／合档=1 只留提到字段名那条／乙=0 打印而 claim只计数=2）：实得 cur=$n_cur A=$n_A AB=$n_AB B=$n_B B计数=$c_B"
   echo "[C5] VP_RULES=off 须不判任何疑点且 rc=0（防「关掉规则还报红」）：实得 rc=$r6 疑点=$n6"
-  npass=0; for x in $ok1 $ok2 $ok3 $ok4 $ok5; do [ "$x" = "1" ] && npass=$((npass+1)); done
-  echo "PARITY SELFTEST VERDICT: PASS=$npass FAIL=$((5-npass))"
-  [ "$npass" = "5" ] || exit 5
+  ok6=$([ "$n_def" = "$n_A" ] && [ "$n_def" != "$n_cur" ] && echo 1 || echo 0)
+  echo "[C6] 缺省档必须＝甲（主理人已裁）：缺省打印须与 A 同值且与 cur 不同，实得 缺省=$n_def A=$n_A cur=$n_cur ⇒ 防日后被改回缺省而没人发现"
+  npass=0; for x in $ok1 $ok2 $ok3 $ok4 $ok5 $ok6; do [ "$x" = "1" ] && npass=$((npass+1)); done
+  echo "PARITY SELFTEST VERDICT: PASS=$npass FAIL=$((6-npass))"
+  [ "$npass" = "6" ] || exit 5
   exit 0
 fi
 
@@ -92,7 +95,7 @@ if not jsons:
     print('[前置缺失] 给定的件里没有任何可解析的 json ⇒ 不判（rc=9）')
     sys.exit(9)
 
-RULESET = os.environ.get('VP_RULESET', 'cur') or 'cur'
+RULESET = os.environ.get('VP_RULESET', 'A') or 'A'   # 缺省＝甲（主理人 2026-10-11 明文裁「b 按甲」；cur 仍可显式取，供复跑旧留底）
 RULES_OFF = (os.environ.get('VP_RULES', '') == 'off')
 print('[规则档] %s（**缺省＝cur；改档需主理人／小美明文，本件不自定**）' % ('off（只做并排计数）' if RULES_OFF else RULESET))
 NOSAY = re.compile(r'(无\s*result|没有\s*result|未收到\s*result|未回话|仍无规划|没有任何\s*result)')
