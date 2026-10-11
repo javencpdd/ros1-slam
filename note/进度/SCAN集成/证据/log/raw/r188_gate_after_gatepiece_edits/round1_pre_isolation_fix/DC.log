@@ -1,0 +1,29 @@
+=== 缓做条款巡检（扫描面 175 件｜台账含结案词的行 2541 行）===
+   扫描根=/home/ros1-slam｜台账根=/home/ros1-slam（缺省＝仓根；只有自测会改）
+
+## A 类：前置可机读且**台账里查得结案凭据**，而注记未回收 ⇒ 疑似到期（逐条需人确认，本件不自动改）
+  [到期?] scripts/verify/v_py_static.sh:9  前置代号=#54
+      注记原文：# 性质：**候补闸件**——本件不进在册门禁串（SYN/GTC/ISO/DC 四件一字不改），等请求单 #54 由小美追认后再议入门。
+      结案凭据：note/00_README.md:87  > 2026-10-11 **R130（无新增补丁行：入口索引补齐，把 10-10 至 10-11 交付的四份设计稿挂进本索引；代际仍 H14）**：本索引此前只挂到 R119、且 **w／x／y／z 四稿一直没有指针行**（＝按本仓规矩"
+  [到期?] ws/src/40_navigation/lite3_navigation/config/variants/outdoor_open.yaml:3  前置代号=Q11
+      注记原文：# 覆盖加载：P7 mode 顶层 launch 按与底文件同一挂载 ns 叠加 rosparam load（Q11 ns 固化后再落加载行）。
+      结案凭据：note/04_配置改动diff.md:14  - C7: lite3_navigation/launch/cmd_vel_raw_relay.launch 新增载体（relay 源话题=mbf 速度输出话题，P3a.0 未实测→Q11；按 v4 裁决「确认前不落 launch 行」，n
+      结案凭据：note/04_配置改动diff.md:35  - P6/Q11-① 联调实测：costmap 私有 ns 双挂载成立——/move_base_flex/{global,local}_costmap/* 全量落位（global width=100 / local width=10 / r
+
+## B 类：前置是自然语言／无机读代号 ⇒ **机读不了，只列出待人工判**（不判绿也不判红）
+  共 13 条，按文件汇总：
+    scripts/verify/v_py_static.sh  行 2
+    ws/src/20_localization/lite3_localization/launch/hdl_localization.launch  行 31
+    ws/src/40_navigation/lite3_navigation/config/mbf_navigation.yaml  行 24,39,40
+    ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh  行 4
+    ws/src/40_navigation/lite3_scan/launch/70_scan.launch  行 58
+    ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh  行 54
+    ws/src/70_bringup/lite3_bringup/scripts/sim_pose_tf.py  行 10,19,66
+    ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh  行 44
+    ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh  行 321
+  其中 T1b 要求在册的一条必须出现：mbf_navigation.yaml ——在列
+
+  另：注记自身已带回收凭据（不计入两侧）0 条
+==================================================
+DC SCAN VERDICT: A 类到期未回收=2 B 类待人工=13 ｜ 有疑似到期条目 ⇒ 请人确认后回收注记（本件不改注记），rc=1
+DC rc=1

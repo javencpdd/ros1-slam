@@ -1,0 +1,7 @@
+[PASS] S1 P2 植入 600 件必须点名并 rc=5（实得 rc=5）
+[FAIL] S2 撤掉违规后仍 rc=5 ⇒ P2 恒红，读数不可信：[FAIL] P3a-1 约定日之后落盘的证据目录**必须**有 _sha256_manifest.txt（这是自家约定的回归面，缺＝红）：缺：r188_gate_after_gatepiece_edits
+[FAIL] S3 P2 两面同果（都 5）⇒ 该变异例无效，不得据此说 P2 被测过
+[PASS] S4 P3a-1 缺清单的证据目录必须被报并 rc=5（实得 rc=5）
+[PASS] S5 补上清单后必须 rc=0（实得 rc=0）
+[PASS] S6 P3a-1 两面不同（5 ≠ 0）
+VAR SELFTEST VERDICT: PASS=4 FAIL=2（每条守卫都必须既会红又会绿；只红＝恒红噪声、只绿＝空控）

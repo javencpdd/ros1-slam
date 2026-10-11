@@ -34,15 +34,20 @@ if [ "${1:-}" = "--selftest" ]; then
   printf 'y\n' > "$T1/keep664.txt"; chmod 664 "$T1/keep664.txt"
   mkdir -p "$T2/r99_probe"; printf 'z\n' > "$T2/r99_probe/out.txt"; chmod 664 "$T2/r99_probe/out.txt"
 
+  # 关键：测 P2 时必须把 P3 也喂一个**合规**的证据目录（①glob 指空 ⇒ 普查面为空 ⇒ rc=9 前置缺失；
+  #   ②不指 ⇒ 仓里任一未建清单的目录把两面一起染红 ⇒ S2 误判"P2 恒红"。两种都被本自测的 S3 抓到过，见 04 R189）
+  mkdir -p "$T1/ev"; printf 'e\n' > "$T1/ev/item.txt"; chmod 664 "$T1/ev/item.txt"
+  ( cd "$T1/ev" && sha256sum item.txt > _sha256_manifest.txt && chmod 664 _sha256_manifest.txt )
+  P3ENV="VAR_EVD=$T1/ev/"
   printf 'x\n' > "$T1/bad600.txt"; chmod 600 "$T1/bad600.txt"
-  o1=$(bash "$SELF" "$T1" 2>&1); r1=$?
+  o1=$(env "$P3ENV" bash "$SELF" "$T1" 2>&1); r1=$?
   if [ "$r1" = 5 ] && printf '%s' "$o1" | grep -q 'bad600.txt'; then
     npass=$((npass+1)); echo "[PASS] S1 P2 植入 600 件必须点名并 rc=5（实得 rc=$r1）"
   else nfail=$((nfail+1)); echo "[FAIL] S1 P2 未逮住植入的 600 件（rc=$r1）⇒ P2 没有分辨力"; fi
   rm -f "$T1/bad600.txt"
-  o2=$(bash "$SELF" "$T1" 2>&1); r2=$?
-  if [ "$r2" = 0 ]; then npass=$((npass+1)); echo "[PASS] S2 撤掉违规后必须 rc=0（实得 rc=$r2）"
-  else nfail=$((nfail+1)); echo "[FAIL] S2 撤掉违规后仍 rc=$r2 ⇒ P2 恒红，读数不可信：$(printf '%s' "$o2" | grep FAIL | head -1)"; fi
+  o2=$(env "$P3ENV" bash "$SELF" "$T1" 2>&1); r2=$?
+  if [ "$r2" = 0 ] && ! printf '%s' "$o2" | grep -q '^\[FAIL\]'; then npass=$((npass+1)); echo "[PASS] S2 撤掉违规后必须 rc=0 且无 FAIL 行（实得 rc=$r2）"
+  else nfail=$((nfail+1)); echo "[FAIL] S2 撤掉违规后仍 rc=$r2 ⇒ 探针被别的检查污染或 P2 恒红：$(printf '%s' "$o2" | grep '^\[FAIL\]' | head -1)"; fi
   [ "$r1" != "$r2" ] && { npass=$((npass+1)); echo "[PASS] S3 P2 两面不同（$r1 ≠ $r2）⇒ 红确由违规而来"; } \
     || { nfail=$((nfail+1)); echo "[FAIL] S3 P2 两面同果（都 $r1）⇒ 该变异例无效，不得据此说 P2 被测过"; }
 
