@@ -1,0 +1,33 @@
+## 逐件计时（单跑墙钟 ms）+ 末判行｜**内容定稿后终轮**｜身份 ysc｜2026-10-13 04:07:18｜load 0.67
+=== VCC 缺省面(无参)          rc=5     1174 ms
+[计数] 文档=32 单点引用=529 OK=428 RED=0 AMBER=31 勘误句=66（不判红）非单点形状=135（不判红）豁免红=4（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+VCC VERDICT rc=5（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+=== VCC 63件面                   rc=6     1626 ms
+[计数] 文档=63 单点引用=744 OK=608 RED=1 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+VCC VERDICT rc=6（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+=== VCC --census 63件面          rc=0     1496 ms
+VCC CENSUS VERDICT: 只数不判（census 无红绿语义；门禁串不变、VCC 仍未入）
+=== LCB --check(基线+63件面)   rc=0     1909 ms
+LCB VERDICT: 与基线逐项同值
+=== LCB --selftest                 rc=0     3322 ms
+[PASS] T5 [计数] 行缺字段须 rc=9（不把缺项当 0）
+LCB SELFTEST VERDICT: PASS=6 FAIL=0（T2 管分辨力、T5 管「缺项不等于 0」，任一红＝整件不可用）
+=== refscan --selftest             rc=0      559 ms
+=== refscan ISO 单件             rc=5      900 ms
+合计行号引用=2
+REFSCAN VERDICT: rc=5 —— 有 2 处按行号的引用会随本次改动漂移：改完必须逐条核，在册他人件与台账原文**不代改**（开移交单），自己的件按坑60 改成锚文本＋现行号
+=== refscan 账构单件           rc=0      907 ms
+合计行号引用=0
+REFSCAN VERDICT: rc=0 —— 零行号引用，本次改动不会顶走任何在册指针
+=== refscan 三件合跑           rc=5     1780 ms
+合计行号引用=2
+REFSCAN VERDICT: rc=5 —— 有 2 处按行号的引用会随本次改动漂移：改完必须逐条核，在册他人件与台账原文**不代改**（开移交单），自己的件按坑60 改成锚文本＋现行号
+=== 规矩9 63件面               rc=0      419 ms
+[计数] 含结论强度词行=253 其中**须人读**=6
+CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）
+=== 规矩9 --selftest             rc=0      273 ms
+CLAIMAUDIT SELFTEST VERDICT: PASS=5/5（五例，每例都必须能单独失败）
+=== RAS                            rc=0      768 ms
+RAS VERDICT: PASS=9 FAIL=0
+=== 账构                         rc=0     1976 ms
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
