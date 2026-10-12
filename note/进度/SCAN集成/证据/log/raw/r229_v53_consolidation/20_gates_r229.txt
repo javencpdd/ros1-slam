@@ -1,0 +1,29 @@
+== R229 门禁复跑 ==
+2026-10-12 23:25
+--- LCB --check 新基线 note63 ---
+字段              基线 → 现值
+  文档         63 = 63  同值
+  单点引用   744 = 744  同值
+  OK             585 = 585  同值
+  RED            1 = 1  同值
+  AMBER          43 = 43  同值
+  勘误句      112 = 112  同值
+  非单点形状 172 = 172  同值
+  豁免红      3 = 3  同值
+  豁免表命中 1 = 1  同值
+  豁免表未命中 1 = 1  同值
+LCB VERDICT: 与基线逐项同值
+--- 七件串 ---
+v_sh_py_syntax              rc=0 PY SYNTAX OK（被检件数=82，内嵌 python 段�
+v_harness_generation_table  rc=0 == 共 14 版载体 ==
+v_py_static                 rc=0 PY STATIC OK（被检件数=50）
+v_evidence_reachability     rc=5 VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或
+v_verdict_field_parity      rc=0 [计数] json=56 并排文本件=204 原始疑点=7 
+v_deferred_clause_scan      rc=1 DC rc=1
+ISO(双source)              rc=0 1
+--- 账构 ---
+[C1 档头 vs 实际] 声明=R229／实动档头=R228 ⇒ **不同值（账实不符）**
+[C4 档头滞后] 0 批（条目区域内最大 R229 − 档头 R229）
+--- 反扫 ---
+合计行号引用=26
+REFSCAN VERDICT: rc=5 —— 有 26 处按行号的引用会随本次改动漂移：改完必须逐条核，在册他人件与台账原文**不代改**（开移

@@ -1,0 +1,37 @@
+== 技能包四件改指针前后对照 ＋ 一次我自己造成的权限事故（已恢复）==
+2026-10-12 23:30
+--- 指针：v5.2 残留应全 0，v5.3 计数如下 ---
+/home/ysc/.zcode/skill/software-company/SKILL.md:1 /home/ysc/.zcode/skill/software-company/agents/主理人-佳文.md:0 /home/ysc/.zcode/skill/software-company/agents/计划与风险管家-小王.md:0 /home/ysc/.zcode/skill/senior-developer/SKILL.md:0 
+/home/ysc/.zcode/skill/software-company/SKILL.md:2 /home/ysc/.zcode/skill/senior-developer/SKILL.md:2 
+--- 四件行数（120/97/76/54，一件未变）---
+  120 /home/ysc/.zcode/skill/software-company/SKILL.md
+   97 /home/ysc/.zcode/skill/software-company/agents/主理人-佳文.md
+   76 /home/ysc/.zcode/skill/software-company/agents/计划与风险管家-小王.md
+   54 /home/ysc/.zcode/skill/senior-developer/SKILL.md
+  347 total
+--- 备份槽 ---
+00_备份说明.txt
+senior-developer
+senior-developer-SKILL.md改前重建件.txt
+SKILL.md
+software-company
+主理人-佳文.md
+计划与风险管家-小王.md
+
+== ★ 事故现场取证（chmod 前，ls -laD 原文摘录）==
+  drw-rw-r-- 6 ysc ysc 4096 Oct  6 01:13 software-company
+  drw-rw-r-- 4 ysc ysc 4096 Oct  4 08:56 senior-developer
+  drw-rw-r-- 2 ysc ysc 4096 Oct  4 18:39 note
+  报错原文：ls: cannot access .../SKILL.md: Permission denied ／ wc: ...: Permission denied
+  后果面：四件技能包文件与两个 agents 文件一度从 bash 不可读（内容未损，只是目录失去 x 遍历位）
+
+== 根因（可复算，非猜测）==
+  上一条命令的形状＝cd /home/ros1-slam; R=note/...; { ...; cd ~/.zcode/skill; ... } > $R/30_...; chmod 664 "$R"/*; cd "$R" && ... ; chmod 664 *; cd /home/ros1-slam
+  其中 cd "$R" 因当时 R 是相对路径而失败 ⇒ && 后面的链断掉 ⇒ **末尾裸的 chmod 664 * 在 cwd＝~/.zcode/skill 上执行** ⇒ 通配命中三个子目录 ⇒ 目录 x 位被剥成 664
+  教训形状与 R227／R228 两例不同：前两例是【写盘脚本自身】出错（崩在写盘前、零污染），本例是【shell 批处理的 cwd 未复位】出错（**造成真实副作用**，只是范围限于施工侧资产目录、且当场可逆）
+
+== 恢复与核对 ==
+775 /home/ysc/.zcode/skill/software-company
+775 /home/ysc/.zcode/skill/software-company/agents
+775 /home/ysc/.zcode/skill/senior-developer
+  （三目录恢复 775；文件模式未动；四件行数与内容逐项核对通过）
