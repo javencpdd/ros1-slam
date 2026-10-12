@@ -1,0 +1,48 @@
+# R245 取证 at=2026-10-13 03:01（零窗只读＋一起入仓违规的当场撤销）
+== 1) 三份生产 unit 里的外部依赖原句（逐字，只在此登记面内出现）==
+/etc/systemd/system/lite3-monitor.service:3:Documentation=file:/home/test/monitor/README.md
+/etc/systemd/system/lite3-monitor.service:18:WorkingDirectory=/home/test/monitor/backend
+/etc/systemd/system/lite3-monitor.service:23:Environment=HOME=/home/ysc
+/etc/systemd/system/lite3-monitor.service:46:ExecStart=/home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+/etc/systemd/system/lite3-ros-bridge.service:20:#   - ROS 发行版目录          : ExecStart 里用 `ls /opt/ros/*/setup.bash` 自动探测；若装在别处请改路径
+/etc/systemd/system/lite3-ros-bridge.service:25:Documentation=file:/home/test/monitor/docs/ros_bridge.md
+/etc/systemd/system/lite3-ros-bridge.service:44:WorkingDirectory=/home/test/monitor/backend
+/etc/systemd/system/lite3-ros-bridge.service:47:Environment=HOME=/home/ysc
+/etc/systemd/system/lite3-ros-bridge.service:48:ExecStart=/bin/bash -c 'ROS_SETUP=$(ls /opt/ros/*/setup.bash 2>/dev/null | head -n1); [ -n "$ROS_SETUP" ] && source "$ROS_SETUP"; [ -f /home/t
+/etc/systemd/system/transfer_ros2.service:7:ExecStart=/bin/bash  /home/ysc/lite_cog_ros2/system/scripts/transfer/start_transfer.sh
+
+== 2) unit 正文是否含在册禁串（命中行数，不回显整行）==
+  /etc/systemd/system/lite3-monitor.service                命中=1
+  /etc/systemd/system/lite3-ros-bridge.service             命中=2
+  /etc/systemd/system/transfer_ros2.service                命中=1
+  /lib/systemd/system/whoopsie.service                     命中=0
+  /lib/systemd/system/apport-autoreport.path               命中=0
+  /lib/systemd/system/apport-forward.socket                命中=0
+
+== 3) mask 态（符号链接→/dev/null，主理人 2026-10-12 建）==
+  whoopsie.service               lrwxrwxrwx /dev/null
+  apport-autoreport.path         lrwxrwxrwx /dev/null
+
+== 4) 编译产物/构建缓存里的 /home/ysc 字面（在 ISO 扫描面之外）==
+2732:OGRE_PREFIX_WATCH_INT_CHECK:INTERNAL=/opt/ogre;/opt/OGRE;/usr/lib/ogre;/usr/lib/OGRE;/usr/local/lib/ogre;/usr/local/lib/OGRE;/home/ysc/ogre;/home
+  livox_ros_driver2_node 内嵌（前 2 条）：
+/home/ysc/lite_cog_ros2/driver/Livox_SDK2/sdk_core/../3rdparty/spdlog/spdlog/fmt/bundled/core.h
+/home/ysc/lite_cog_ros2/driver/Livox_SDK2/sdk_core/../3rdparty/spdlog/spdlog/fmt/bundled/format-inl.h
+  opengl_render_node 内嵌（前 2 条）：
+/home/ysc/Documents/lib/librealsense-2.50.0/third-party/glfw/src
+/home/ysc/Documents/lib/librealsense-2.50.0/third-party/glfw/src/../include/GLFW
+  ⇒ 形状判读：这些是 **__FILE__／调试信息／上游 CMake 搜索列表** 带进来的编译期字面量，不是运行时查找（未做运行面验证＝未量）；
+    但 ISO [2]/[8] 只扫 ws/src ⇒ ws/build、ws/devel、.ros/log 三处均在**扫描面外**（坑63 同族：它没扫的东西永远不会让它变红）。
+
+== 5) /home/test/monitor 外部依赖实测 ==
+drwxr-xr-x 10 ysc root 4096 Oct  7 01:32 /home/test
+drwxr-xr-x  8 ysc ysc  4096 Sep 26 02:28 /home/test/monitor
+34M	/home/test/monit
+backend docs frontend note QUICKSTART.md README.md requirements.txt tools 
+# Lite3 Robot Monitor
+
+== 6) 扩扫描面前先量的三处既存命中（本批一处未改）==
+  tooling/ 命中件数=9（全在 git 跟踪内；抽样＝技能包条文自身提到该串，如「内禁 /home/ysc 字符串」⇒ 元话语类，朴素扩面会当场全成假红）
+  opt/upstream/ 命中件数=3（pcd2grid.launch／mapping_c16.launch／local_rslidar_imu.launch；git ls-files 未跟踪＝在忽略集内，但盘上存在，而豁免列只有 opt/ref）
+  ws/build／ws/devel／.ros/log 命中（编译期 __FILE__／CMake 搜索列表／运行日志，见第 4 段）
+  ⇒ A36 的"另问"要按这三类分开答：元话语类（需过滤）／上游原件类（并入豁免列或脱敏）／编译产物类（性质待定、未量）。

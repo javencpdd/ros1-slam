@@ -32,3 +32,10 @@
 2. **权限照 §0.12 事故后的规矩**：目录 **775**、文件 **664**（脚本 755）；`chmod` **一律绝对路径＋`find -exec`，禁止在旧 cwd 上用通配**。
 3. **不可搬项**每条都要有"恢复办法"一栏，**没有恢复办法的项＝登记为阻塞项上报**，不得留空当已完成。
 4. **技能包若改动**：改前备份**带子目录或改名**（不得同名平铺 `cp`），改后**同批刷新 `tooling/skill/` 镜像与清单**——镜像与真身不一致＝本条第 4 项违规。
+
+## 4. R245 新增：systemd 生产单元**只登不抄**（正文含在册禁字符串，仓内不给副本）
+
+- 六份单元（monitor／ros-bridge／transfer_ros2／whoopsie／apport-autoreport.path／apport-forward.socket）的**来历表**落在 `note/03_外部文件来源清单.md`（该面是红线唯一豁免列之一）；每行给 绝对路径／属主与模／字节数／mtime／**内容 sha256**／正文是否含禁串。
+- **为什么不抄进 `tooling/`**＝其中三份生产 unit 的正文含本仓在册禁字符串（红线只豁免 note 来源记录与 `opt/ref`，`tooling/` 不在列）⇒ 逐字入仓即违规。同一性由 sha 可验：`sha256sum /etc/systemd/system/<unit>` 对表即可（other 位可读，`-rw-r--r-- root root`，**不需要 sudo**）。
+- **代价写死**：仓内无正文 ⇒ 单目录重建时**无法离线复原这些 unit**；要入册正文须主理人对 **A36** 择案（三选：只维持 sha 登记／给 `tooling/` 开豁免面并配"未命中即报"闸／脱敏副本＋还原说明）。
+- **顺带实测到的服务面依赖（2026-10-13 03:0x，非推断）**：`transfer_ros2.service` 的 ExecStart 直指生产账户树内的 `…/lite_cog_ros2/system/scripts/transfer/start_transfer.sh`；monitor 与 bridge 两份设 `Environment=HOME=` 指向该账户、`WorkingDirectory` 与 `ExecStart` 指向 `/home/test/monitor`（**34M、ysc 属主**，内含 backend/frontend/.venv，`/home/test/monitor/README.md` 首行＝"# Lite3 Robot Monitor"）。⇒ 这一层比 R240 报的 numpy 执行面**更硬**，已作为 A36 进请求单。

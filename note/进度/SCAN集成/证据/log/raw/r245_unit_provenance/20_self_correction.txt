@@ -1,0 +1,14 @@
+# R245 两起我自己的错（都当场纠正、零污染到仓）
+1) 差点把违规内容入仓：本批第一步我把六份 unit 正文逐字 cp 进 tooling/systemd/（#124 第一半的直觉形状），
+   并做了逐件 sha 对账（6/6 与来源等值）。随后自查"仓内是否含在册禁串"时发现：
+   lite3-monitor.service／lite3-ros-bridge.service／transfer_ros2.service **正文本身就含该串**（命中行数见 10_findings.txt 第 2 段），
+   而在册红线是「/home/ros1-slam 内禁 /home/ysc 字符串（**note 来源记录与 opt/ref 除外**）」⇒ tooling/ 不在豁免列。
+   ⇒ 处置：六份副本已删（rm -rf tooling/systemd/，从未提交、工作区净），来历表改落 note/03_外部文件来源清单.md（在册允许的登记面），
+     仓内只留 路径／属主模／字节／mtime／sha256／是否含禁串；内容同一性仍可由 sha256sum 对表在机器上验。
+     代价写死：正文不入仓 ⇒ 离线复原 unit 做不到，要复原须主理人对 A36 择案。
+   定性＝**没查规矩就落笔**（与 R244 那次"没测就写"同族的新变体）；落成动作＝**往仓内复制任何外部文件正文之前，先跑一次 ISO 的第 [2]/[8] 那条 grep**
+     （命令本身已在册，两秒钟的事），而不是等门禁串跑完再发现。
+2) 写留底时又踩 坑18 族（本会话第 N 次同型复发）：在双引号 echo 串里放了反引号 ⇒ bash 把 `tooling/systemd/` 与
+   `sha256sum ...` **当命令执行**（前者报 No such file or directory、后者因 `<unit>` 重定向语法直接 syntax error），
+   结果是留底文件里那两处字面**被吃掉**。已用带引号 heredoc 整体重写本文件；检查过工作区与仓内**没有意外新建文件**
+   （ls unit＝No such file、git status 只有本证据目录）。⇒ 在册动作照旧：正文含反引号一律走 <<'EOF' 引号 heredoc，不走双引号变量/echo。

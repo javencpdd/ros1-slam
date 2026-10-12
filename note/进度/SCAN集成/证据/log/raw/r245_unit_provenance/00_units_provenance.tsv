@@ -1,0 +1,12 @@
+# _provenance.tsv —— 仓内 systemd 单元正文的**来历表（只登不抄）**（R245，#124 第一半的形状修正版）
+# 为什么不抄正文＝本仓在册红线「/home/ros1-slam 内禁 /home/ysc 字符串（note 来源记录与 opt/ref 除外）」，而三份生产单元正文里**确实含**该串（见末列）⇒ 逐字入仓即违规；本表只给**路径＋属主模＋字节＋mtime＋sha256**，内容同一性可由 sha 验、正文不入仓。脱敏副本入册与否属新裁项 A36。
+# 列＝件名<TAB>来源绝对路径<TAB>属主/模<TAB>字节数<TAB>mtime<TAB>内容 sha256<TAB>正文是否含 /home/ysc
+lite3-monitor.service	/etc/systemd/system/lite3-monitor.service	root:root 644	2189	2026-09-26 02:23:21	608e3293cbd919a9301cc119313c897b9c77d0acf641fe8d2b1abf23658766c3	是（命中 1 行）
+lite3-ros-bridge.service	/etc/systemd/system/lite3-ros-bridge.service	root:root 644	3015	2026-09-26 02:23:33	666d09db040189cc32fffae7d8b18612ebcc1e155775e30afa3ae92e9cce58e1	是（命中 2 行）
+transfer_ros2.service	/etc/systemd/system/transfer_ros2.service	root:root 644	281	2024-03-27 11:19:07	119bf7b9dfd0b04187cff55110c2c1ebd1e46d1af929b1ec31b85445ea0fb105	是（命中 1 行）
+whoopsie.service	/lib/systemd/system/whoopsie.service	root:root 644	253	2021-02-05 10:37:17	59b893e94fda9808e28d5453a1a329f6e2486c2d265e8d2aa485addf0a33f45f	否
+apport-autoreport.path	/lib/systemd/system/apport-autoreport.path	root:root 644	212	2023-04-14 07:17:21	68eba84291e4010428e01644f9b07f79a493ebe2b203bede696ab30361a815e5	否
+apport-forward.socket	/lib/systemd/system/apport-forward.socket	root:root 644	246	2019-11-12 05:57:56	d3b7d68269d8a0d051e1ab63680abdfffb1b4ad12fb503997fb6da4ceaf1c083	否
+# 掩码态另记（不是文件、是指向 /dev/null 的符号链接，主理人 2026-10-12 22:1x 建的 mask）：
+whoopsie.service.mask	/etc/systemd/system/whoopsie.service	root:root 777 -> /dev/null				-
+apport-autoreport.path.mask	/etc/systemd/system/apport-autoreport.path	root:root 777 -> /dev/null				-
