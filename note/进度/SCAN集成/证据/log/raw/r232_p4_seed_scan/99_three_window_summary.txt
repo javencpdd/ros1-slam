@@ -1,0 +1,31 @@
+== R232 三扇窗汇总（P4_SEED 扫描，只 sim 面、未碰远角）==
+2026-10-13 00:19
+窗数口径＝A27 按独占活体窗数计（本批 3 窗，属 sim 面、在主理人「这个特殊情况多给 2 次」的例外范围内）
+
+RUN          P4_SEED 障碍点 轨迹离箱心最近 物理最近 到达偏差 还原     世界件未变 
+w1_seed7     7      54       2.03m      0.78m      0.038m       True       是             
+w2_seed23    23     96       1.11m      0.76m      0.087m       True       是             
+w3_seed11    11     100      1.30m      0.72m      0.024m       True       是             
+
+门值引用（全部为在册原文，本批未改）：AVOID_DIST=0.40m／DEV_MAX=0.35m／物理最近<AVOID_DIST 不算穿墙（collide 判据 robot_min<=0.40）
+三窗 WITNESS 一律＝INVALID-空集：foxy_start.txt 与 foxy_end.txt 均 0 行（停单后基线为空集），件内规则第 77 行原文＝[INVALID] 基准空集（A1 丙）⇒ 本窗不得写零触碰、不得引用为红线达成
+⇒ **本批三窗只作行为读数，不作零触碰声称、不作 P4 达成声称**（J1 是否判达成＝验收侧裁定，见 ab/aa 稿）
+
+== sha 对账（起＝终）==
+w1_seed7     world fb52d5e6ed3eda30 → fb52d5e6ed3eda30
+w1_seed7     pcd    aaa09362c5f1aef9 → aaa09362c5f1aef9
+w2_seed23    world fb52d5e6ed3eda30 → fb52d5e6ed3eda30
+w2_seed23    pcd    aaa09362c5f1aef9 → aaa09362c5f1aef9
+w3_seed11    world fb52d5e6ed3eda30 → fb52d5e6ed3eda30
+w3_seed11    pcd    aaa09362c5f1aef9 → aaa09362c5f1aef9
+
+== teardown 净度与墙钟 ==
+w1_seed7     
+w2_seed23    
+w3_seed11    
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
