@@ -1,0 +1,26 @@
+== A23 纳入判定施工取证（R239，依据＝v4.7 稿 Z6）==
+2026-10-13 01:43
+--- 件与改法 ---
+文件＝ws/src/40_navigation/lite3_scan/verify/p4_replan.py（378 → 424 行）
+①门值单一真身在代码：OCC_BREACH_TOL = float(os.environ.get("P4_OCC_TOL", "0.10"))，升级条件（跨多张不同分辨率图反复扫则升 yaml）已写在该行注释；
+②纯函数 a23_breach(min_occ, tol) —— 判定链与离线对照共用同一份，不抄两遍（坑62）；
+③判定链新分支（在「未避让」之后、「超门」之前）：min_dist_to_any_occ ＜ 门值 ⇒ FAIL|…判穿墙；
+④报数两列并报 avoid@／breach@（PASS 与 breach-FAIL 两条结论行都带）；⑤JSON 新增 out["a23"] 段（字段名＝min_dist_to_any_occ／breach_gate／breach／avoid_gate／avoid）
+--- 离线阳性对照五例（不开 ROS、不起窗）---
+[PASS] 例一 合成穿墙（轨迹离占据格 0.02m）：期望 breach=True／实得 True（门值 0.10）
+[PASS] 例二 同数据但门值关到 0（＝撤掉判据）：期望 breach=False／实得 False（门值 0.00）
+[PASS] 例三 安全轨迹（离占据格 0.50m）：期望 breach=False／实得 False（门值 0.10）
+[PASS] 例四 边界：恰等于门值 0.10 不算 breach（严格小于才拦）：期望 breach=False／实得 False（门值 0.10）
+[PASS] 例五 无读数（None）须放行不得瞎判：期望 breach=False／实得 False（门值 0.10）
+A23 SELFTEST VERDICT: PASS=5/5（含「撤掉判据必须转绿」这一反向例——不反向就证明不了判据在起作用）
+rc=0
+--- 静态与语法 ---
+PY STATIC OK（被检件数=1）
+PY STATIC OK（被检件数=50）
+AST OK
+--- 反扫（本批按新规矩在改后立刻跑；p4_replan.py 零行号引用）---
+REFSCAN VERDICT: rc=0 —— 零行号引用，本次改动不会顶走任何在册指针
+--- PARITY ---
+[计数] json=61 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_fi
+--- ★未做的事（写清楚，免得被读成已验证）---
+本批**没有起活体窗**：breach 分支的真窗首读要等主理人认完 sim 面窗数账（R238 已报 5 扇）；所以本条只能报「判定链已按 Z6 纳入＋离线五例（含撤判据转绿的反向例）过」，**不得写成 A23 已验证通过**。

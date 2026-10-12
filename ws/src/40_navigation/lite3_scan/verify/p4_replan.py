@@ -49,6 +49,13 @@ AVOID_DIST = float(os.environ.get("P4_AVOID_DIST", "0.40"))   # 2026-10-11 主�
 #   注意本件另有两条同值不同义的边界：collide 用 robot_min <= 0.40（本体贴边即算撞，含等号），avoided 用 traj_min >= 0.40（轨迹贴边算过，含等号）
 DEV_MAX = 0.35                                           # A7 判据③ 原文
 DT_MAX = 120.0                                           # A7 判据④ 原文
+# A23 纳入判定（v4.7 稿 Z6，主理人 2026-10-12 裁）：轨迹离**任意占据格**的最近距离低于此阈即判穿墙。
+#   门值 0.10m 沿用 P2 原文 OCC_TOL 同值但**不同义**（OCC_TOL 讲的是本体贴边即撞，本条讲的是**轨迹线**离占据格）；
+#   单一真身在本行（env `P4_OCC_TOL` 可覆盖，供离线阳性对照"关掉判据"用）。
+#   升级条件（Z6 原文）：出现"同一批跨多张不同分辨率图反复扫"再请示升 yaml，届时本行改为读参数、不在代码里写死。
+OCC_BREACH_TOL = float(os.environ.get("P4_OCC_TOL", "0.10"))
+TWO_COL_FMT = "两列并报 avoid@%.2f=%.2f／breach@%.2f=%.2f"
+
 REACT_S = float(os.environ.get("P4_REACT_MAX", "15.0"))  # 看见障碍后允许的重规响应窗（施工口径，可改）
 
 
@@ -118,6 +125,35 @@ def pick_goal(tree, odom, idx=1):
         if d >= FREE_CLEAR and los_free(tree, odom, (gx, gy)):
             return gx, gy, r, float(d)
     return None
+
+
+def a23_breach(min_occ, tol=None):
+    """A23：轨迹离任意占据格最近距离是否 breaches 阈值。返回 (是否 breach, 用的门值)。
+    判定链与离线阳性对照**共用本函数**——把同一判断抄两份就是坑62（两处各自维护）。"""
+    t = OCC_BREACH_TOL if tol is None else float(tol)
+    if min_occ is None:
+        return False, t
+    return (float(min_occ) < t), t
+
+
+def a23_selftest():
+    """离线合成三段对照（不开 ROS、不起窗）：明知穿墙必须判 breach、关掉判据必须转绿、安全轨迹必须不 breach。"""
+    cases = [
+        ("例一 合成穿墙（轨迹离占据格 0.02m）", 0.020, None, True),
+        ("例二 同数据但门值关到 0（＝撤掉判据）", 0.020, 0.0, False),
+        ("例三 安全轨迹（离占据格 0.50m）", 0.500, None, False),
+        ("例四 边界：恰等于门值 0.10 不算 breach（严格小于才拦）", 0.100, None, False),
+        ("例五 无读数（None）须放行不得瞎判", None, None, False),
+    ]
+    npass = 0
+    for name, dmin, tol, want in cases:
+        got, t = a23_breach(dmin, tol)
+        ok = (got == want)
+        npass += ok
+        print("[%s] %s：期望 breach=%s／实得 %s（门值 %.2f）" % ("PASS" if ok else "FAIL", name, want, got, t))
+    print("A23 SELFTEST VERDICT: PASS=%d/%d（含「撤掉判据必须转绿」这一反向例——不反向就证明不了判据在起作用）"
+          % (npass, len(cases)))
+    return 0 if npass == len(cases) else 9
 
 
 def dump(out, verdict):
@@ -366,13 +402,23 @@ def main():
         dump(out, "P4 重规划结论 = FAIL|到达但未观测到避让（轨迹离箱心最近 %.2fm ＜ %.2fm；物理最近 %.2fm）⇒ 判据分辨力缺口一并上报" %
              (traj_min, AVOID_DIST, robot_min))
         return 1
+    breach, btol = a23_breach(dmin)
+    out["a23"] = {"min_dist_to_any_occ": round(dmin, 3), "breach_gate": btol, "breach": bool(breach),
+                  "avoid_gate": AVOID_DIST, "avoid": bool(avoided)}
+    if breach:
+        dump(out, "P4 重规划结论 = FAIL|轨迹离任意占据格最近 %.3fm ＜ %.2fm（A23 纳入判定，Z6）⇒ 判穿墙；%s｜还原=%s" %
+             (dmin, btol, TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), restored))
+        return 1
     if st.dist > DEV_MAX or (dts is not None and dts > DT_MAX):
         dump(out, "P4 重规划结论 = FAIL|到达但超门（偏差 %.3fm／dt_sim %.1fs）" % (st.dist, dts or -1))
         return 1
-    dump(out, "P4 重规划结论 = PASS|障碍被看见(%d 点)⇒扰动后轨迹离箱心最近 %.2fm≥%.2fm（避让在位）⇒未撞（物理最近 %.2fm）⇒到达偏差 %.3fm≤%.2fm｜还原=%s" %
-         (seen, traj_min, AVOID_DIST, robot_min, st.dist, DEV_MAX, restored))
+    dump(out, "P4 重规划结论 = PASS|障碍被看见(%d 点)⇒扰动后轨迹离箱心最近 %.2fm≥%.2fm（避让在位）⇒未撞（物理最近 %.2fm）⇒到达偏差 %.3fm≤%.2fm｜%s｜还原=%s" %
+         (seen, traj_min, AVOID_DIST, robot_min, st.dist, DEV_MAX,
+         TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), restored))
     return 0
 
 
 if __name__ == "__main__":
+    if "--a23-selftest" in sys.argv:
+        sys.exit(a23_selftest())
     sys.exit(main())
