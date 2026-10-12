@@ -117,6 +117,17 @@ def check(ov_text, subs, hdr_sub):
     res['C2'] = {'missing_from_ledger': sorted(git_ids - set(ids))}
     res['C3'] = {'gaps': sorted(set(range(min(ids), max(ids) + 1)) - set(ids))} if ids else {'gaps': []}
     res['C4'] = {'lag': (max_id - declared) if (declared is not None and max_id) else None, 'max': max_id}
+    # C5 行首自测锁（R236，#110 第四段；**只报不判**——Z3 已裁 FAIL 集＝C2+C4，我不擅自把它加进去）
+    FMT = re.compile(r'^- \d{4}-\d{2}-\d{2}：\*\*R\d{2,4}')
+    FMT_MIN = os.environ.get('VLB_FMT_MIN_DATE', '2026-10-05')
+    bad_fmt = []
+    for ln in ov_text.splitlines():
+        if not ENTRY.match(ln):
+            continue
+        d = ln[2:12]
+        if d >= FMT_MIN and not FMT.match(ln):
+            bad_fmt.append(d + '|' + ln[12:52].replace('\n', ''))
+    res['C5_行首不合规'] = {'数': len(bad_fmt), '样': bad_fmt[:4]}
     res['_面'] = {'条目行': n_entry, '域内号数': len(set(ids)), '无自有号的条目行': n_entry - len(ids_raw),
                   '域外号数': len(set(x for x in ids_raw if x < DOMAIN_MIN)),
                   'git 提交': len(subs), 'git 域内号数': len(git_ids), '域下限': DOMAIN_MIN}
@@ -160,6 +171,10 @@ def show(res, tag=''):
     print('%s[C3 总览条目批号缺号（域内）] %s' % (tag, res['C3']['gaps'] or '无'))
     print('%s[C4 档头滞后] %s 批（条目区域内最大 R%s − 档头 R%s）' % (
         tag, '未可算' if lag is None else lag, res['C4']['max'], d))
+    c5 = res['C5_行首不合规']
+    print('%s[C5 行首自测锁（只报不判；日期≥%s 的条目行须以「- 日期：**R<号>」开头）] 不合规=%d 行%s' % (
+        tag, os.environ.get('VLB_FMT_MIN_DATE', '2026-10-05'), c5['数'],
+        ('｜样=' + str(c5['样'])) if c5['样'] else ''))
     m = res['_面']
     print('%s[面] 条目行=%d 域内号=%d 无自有号=%d 域外号=%d ｜ 判定域≥R%d ｜ git 提交=%d 域内号=%d' % (
         tag, m['条目行'], m['域内号数'], m['无自有号的条目行'], m['域外号数'], m['域下限'],
@@ -225,10 +240,15 @@ if MODE == 'selftest':
         'PASS' if ok7 else 'FAIL', v_out['rc'], v_out['C2_新增']))
     print('[%s] T8 阈值边界：滞后＝2（等于阈值）须放、滞后＝3（＞阈值）须拦：实得 lag2=%s rc=%s／lag3=%s rc=%s' % (
         'PASS' if ok8 else 'FAIL', r2['C4']['lag'], v_edge['rc'], r3['C4']['lag'], v_over['rc']))
+    bad = ov + '- 2026-10-11 09:00：R236 这批我把行首写成了「日期 时:分：」老误形\n'
+    r_bad = check(bad, subs, hdr)
+    ok9 = (r['C5_行首不合规']['数'] == 0 and r_bad['C5_行首不合规']['数'] == 1)
+    print('[%s] T9 行首自测锁：合规桩须报 0 行、注入一行坏文体必须报出来（只报不判，但**报不出来＝锁失效**）：实得 干净=%s 注入=%s' % (
+        'PASS' if ok9 else 'FAIL', r['C5_行首不合规']['数'], r_bad['C5_行首不合规']['数']))
     print('[例四] 缺存量表须 rc=9（不判绿）：由 shell 侧以 VLB_KNOWN=不存在路径 复跑断言（本批实测 rc=9）')
-    npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8])
-    print('BATCHCHECK SELFTEST VERDICT: PASS=%d FAIL=%d（八例：T1-T5 解析层／T6-T8 判定层）' % (npass, 8 - npass))
-    sys.exit(0 if npass == 8 else 9)
+    npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9])
+    print('BATCHCHECK SELFTEST VERDICT: PASS=%d FAIL=%d（九例：T1-T5 解析层／T6-T8 判定层／T9 行首锁）' % (npass, 9 - npass))
+    sys.exit(0 if npass == 9 else 9)
 
 if not os.path.isfile(OVERVIEW):
     print('前置缺失：总览不在位 %s' % OVERVIEW)
