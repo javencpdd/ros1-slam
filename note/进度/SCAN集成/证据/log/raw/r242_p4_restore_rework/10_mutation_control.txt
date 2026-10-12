@@ -1,0 +1,6 @@
+# 变异对照：把 restore_verdict 改成恒真，自测必须转红（证明五例不是橡皮图章）at=2026-10-13 02:40
+手法＝在同目录放临时副本（件里 sys.path 用 __file__ 定位 p2_goal_plan，副本必须在同目录才跑得起来），跑完即删
+注入＝q = ... 那行之后 return {ok: True, ...}（恒真）
+实测＝RESTORE SELFTEST VERDICT: PASS=2/5、rc=9；例二／例四／例五 三条从'拦住'翻成'实得 True'⇒ 被拦下
+  （例一与例三在恒真变异体下仍'过'是预期的：这两例期望本就要求 ok=True，恒真当然满足——分辨力由那三条必拦例提供）
+  另记一次自己踩的形状：第一版把副本放 /tmp，import p2_goal_plan 直接 ModuleNotFoundError ⇒ 空跑，已改同目录并重跑为真结果

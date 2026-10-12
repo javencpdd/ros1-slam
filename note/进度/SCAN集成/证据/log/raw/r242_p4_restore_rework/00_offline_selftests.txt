@@ -1,0 +1,17 @@
+# p4_replan.py 还原面返工（#103）件面自证 at=2026-10-13 02:40
+件＝ws/src/40_navigation/lite3_scan/verify/p4_replan.py  行数 424→518  现 sha 前 12＝2822f4df3c00  改前 sha 前 12＝7e125cac01da
+== 反扫（改前先跑）＝0 处行号引用（REFSCAN rc=0，见 04 R242）
+== SYN（本件）==
+PY SYNTAX OK（被检件数=1，内嵌 python 段合计=0）
+== PYST（本件）==
+PY STATIC OK（被检件数=1）
+== 三个入口的离线自测 ==
+A23 SELFTEST VERDICT: PASS=5/5（含「撤掉判据必须转绿」这一反向例——不反向就证明不了判据在起作用）
+  a23 rc=0
+[PASS] 例一 写回后逐位相同：期望 ok=True／实得 True（delta_m=0.0／qdelta=0.0／tol_m=0.02）
+[PASS] 例二 位移 0.05m＞容差 0.02m 必须拦住：期望 ok=False／实得 False（delta_m=0.05／qdelta=0.0／tol_m=0.02／why=位置或姿态超出容差）
+[PASS] 例三 同例二数据但容差撤到 10m（＝关掉断言）必须转绿：期望 ok=True／实得 True（delta_m=0.05／qdelta=0.0／tol_m=10.0）
+[PASS] 例四 位置同、姿态差 90°（qw 1.0→0.707）必须拦住：期望 ok=False／实得 False（delta_m=0.0／qdelta=0.707／tol_m=0.02／why=位置或姿态超出容差）
+[PASS] 例五 回读取不到（None）不得判成已还原：期望 ok=False／实得 False（delta_m=None／qdelta=None／tol_m=0.02／why=缺读数不得判还原（before=True／after=False））
+RESTORE SELFTEST VERDICT: PASS=5/5（含「撤掉断言必须转绿」反向例——不反向就证明不了回读断言在起作用）
+  restore rc=0

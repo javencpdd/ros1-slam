@@ -35,7 +35,7 @@ from scipy.spatial import cKDTree
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from p2_goal_plan import eval_curve, occ_points          # 复用现役 P2 件里的曲线求值与点云解析（不复制实现）
 from gazebo_msgs.msg import ModelState
-from gazebo_msgs.srv import SetModelState
+from gazebo_msgs.srv import SetModelState, GetModelState
 
 INJECT_MODEL = os.environ.get("P4_MODEL", "obs_5")       # 世界里现成的 0.8³ 箱（runtime 搬动，不改世界件）
 INJECT_Z = 0.40
@@ -55,6 +55,11 @@ DT_MAX = 120.0                                           # A7 判据④ 原文
 #   升级条件（Z6 原文）：出现"同一批跨多张不同分辨率图反复扫"再请示升 yaml，届时本行改为读参数、不在代码里写死。
 OCC_BREACH_TOL = float(os.environ.get("P4_OCC_TOL", "0.10"))
 TWO_COL_FMT = "两列并报 avoid@%.2f=%.2f／breach@%.2f=%.2f"
+# #103（R210 已裁返工）：还原面。旧实现两处病＝①`orig` 抄的是**世界件里的静态值**、不是开窗前从 Gazebo 读回来的实际位姿
+#   （跨窗时无从发现上一窗没还原干净）；②`restore()` 只看"调用没抛异常"就记 restored=True（**没有回读断言**）。
+#   两条门值单一真身在本两行，env 覆盖供离线阳性对照「撤掉断言必须转绿」用。
+RESTORE_TOL = float(os.environ.get("P4_RESTORE_TOL", "0.02"))      # 位置回读容差（m）
+RESTORE_QTOL = float(os.environ.get("P4_RESTORE_QTOL", "0.001"))   # 姿态四元数分量回读容差（无量纲）
 
 REACT_S = float(os.environ.get("P4_REACT_MAX", "15.0"))  # 看见障碍后允许的重规响应窗（施工口径，可改）
 
@@ -156,6 +161,49 @@ def a23_selftest():
     return 0 if npass == len(cases) else 9
 
 
+def restore_verdict(before, after, tol=None, qtol=None):
+    """#103 的还原断言＝纯函数（判定链与离线自测共用同一份，抄两遍就是坑62）。
+
+    before／after＝(x, y, z, qx, qy, qz, qw) 七元组或 None；返回 dict：
+    ok（写回后是否真在原位）／delta_m（位置差模长）／qdelta（四元数逐分量最大差）／tol_m／why。
+    缺读数一律 ok=False 并在 why 里写明——「取不到」不等于"还原成功"（坑64 那一族：工具故障不得写成正经结论）。
+    """
+    t = RESTORE_TOL if tol is None else float(tol)
+    q = RESTORE_QTOL if qtol is None else float(qtol)
+    if before is None or after is None:
+        return {u"ok": False, u"delta_m": None, u"qdelta": None, u"tol_m": round(t, 4),
+                u"why": u"缺读数不得判还原（before=%s／after=%s）" % (before is not None, after is not None)}
+    dm = math.sqrt(sum((float(before[i]) - float(after[i])) ** 2 for i in range(3)))
+    qd = max(abs(float(before[3 + i]) - float(after[3 + i])) for i in range(4))
+    return {u"ok": bool(dm <= t and qd <= q), u"delta_m": round(dm, 4), u"qdelta": round(qd, 6),
+            u"tol_m": round(t, 4), u"qtol": round(q, 6),
+            u"why": u"" if (dm <= t and qd <= q) else u"位置或姿态超出容差"}
+
+
+def restore_selftest():
+    """离线五例（不开 ROS、不起窗）：一致须放行／位移超容差须拦住／撤宽容差必须转绿（反向例）／
+       位置同姿态不同须拦住／缺读数不得瞎判。"""
+    b = (5.8, -1.0, 0.4, 0.0, 0.0, 0.0, 1.0)
+    cases = [
+        (u"例一 写回后逐位相同", b, b, None, None, True),
+        (u"例二 位移 0.05m＞容差 0.02m 必须拦住", b, (5.85, -1.0, 0.4, 0.0, 0.0, 0.0, 1.0), None, None, False),
+        (u"例三 同例二数据但容差撤到 10m（＝关掉断言）必须转绿", b, (5.85, -1.0, 0.4, 0.0, 0.0, 0.0, 1.0), 10.0, None, True),
+        (u"例四 位置同、姿态差 90°（qw 1.0→0.707）必须拦住", b, (5.8, -1.0, 0.4, 0.0, 0.0, 0.707, 0.707), None, None, False),
+        (u"例五 回读取不到（None）不得判成已还原", b, None, None, None, False),
+    ]
+    npass = 0
+    for name, bef, aft, tol, qtol, want in cases:
+        r = restore_verdict(bef, aft, tol, qtol)
+        ok = (r[u"ok"] == want)
+        npass += ok
+        print(u"[%s] %s：期望 ok=%s／实得 %s（delta_m=%s／qdelta=%s／tol_m=%s%s）"
+              % (u"PASS" if ok else u"FAIL", name, want, r[u"ok"], r[u"delta_m"], r[u"qdelta"], r[u"tol_m"],
+                 u"" if r[u"why"] == u"" else u"／why=" + r[u"why"]))
+    print(u"RESTORE SELFTEST VERDICT: PASS=%d/%d（含「撤掉断言必须转绿」反向例——不反向就证明不了回读断言在起作用）"
+          % (npass, len(cases)))
+    return 0 if npass == len(cases) else 9
+
+
 def dump(out, verdict):
     """任何出口都把读数打全——21:55 那次 FAIL 只留了一行结论，取证数据（轨迹身份、离障距离分布）全丢了，
        这正是「失败时最难复查」的形态；自此 FAIL／INVALID 与 PASS 同等留件。
@@ -214,23 +262,62 @@ def main():
     gx, gy, gr, gclear = g
     out.update(goal=[round(gx, 3), round(gy, 3)], goal_r=round(gr, 3), goal_clear=round(gclear, 3))
 
-    # 还原用：读当前 obs 位姿（从世界件里取的静态值不必再查，直接用在册 pose）
-    orig = [5.8, -1.0, 0.4]
+    # 还原用：**开窗前先从 Gazebo 读回实际位姿**（#103 返工之一、二：旧版把世界件静态值 [5.8,-1.0,0.4] 抄成 orig，
+    #   既看不出上一窗没还原干净，也没有回读断言）
+    get_svc = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
     svc = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
+    orig = None
+    try:
+        rsp0 = get_svc(INJECT_MODEL, "world")
+        if rsp0.success:
+            p0, q0 = rsp0.state.pose.position, rsp0.state.pose.orientation
+            orig = (p0.x, p0.y, p0.z, q0.x, q0.y, q0.z, q0.w)
+    except Exception as e:
+        step("pose_before_err", repr(e)[:80])
+    if orig is None:
+        dump(out, "P4 重规划结论 = INVALID|开窗前读不到 %s 的当前位姿（/gazebo/get_model_state 未成功）"
+                  "⇒ 没有基线可还原，本窗不自证「世界没被我改」" % (INJECT_MODEL,))
+        return 9
+    out["pose_before"] = [round(float(v), 4) for v in orig]
+    step("pose_before", out["pose_before"])
     restored = False
+    restore_report = {u"ok": False, u"delta_m": None, u"qdelta": None, u"tol_m": round(RESTORE_TOL, 4),
+                      u"why": u"尚未执行还原"}
 
     def restore():
-        nonlocal restored
+        """写回**开窗前读到的原七元组**（含姿态），再回读一次交给 restore_verdict 断言。"""
+        nonlocal restored, restore_report
         try:
             ms = ModelState()
             ms.model_name = INJECT_MODEL
             ms.reference_frame = "world"
-            ms.pose.position.x, ms.pose.position.y, ms.pose.position.z = orig
-            ms.pose.orientation.w = 1.0
+            ms.pose.position.x, ms.pose.position.y, ms.pose.position.z = orig[0], orig[1], orig[2]
+            ms.pose.orientation.x, ms.pose.orientation.y = orig[3], orig[4]
+            ms.pose.orientation.z, ms.pose.orientation.w = orig[5], orig[6]
             svc(ms)
-            restored = True
+            rospy.sleep(0.4)
+            rsp2 = get_svc(INJECT_MODEL, "world")
+            if not rsp2.success:
+                restore_report = {u"ok": False, u"delta_m": None, u"qdelta": None, u"tol_m": round(RESTORE_TOL, 4),
+                                  u"why": u"回读失败（get_model_state success=False／%s）" % (rsp2.status_message[:40],)}
+            else:
+                p2, q2 = rsp2.state.pose.position, rsp2.state.pose.orientation
+                after = (p2.x, p2.y, p2.z, q2.x, q2.y, q2.z, q2.w)
+                out["pose_after"] = [round(float(v), 4) for v in after]
+                restore_report = restore_verdict(orig, after)
+            restored = bool(restore_report[u"ok"])
+            step("restore_delta_m", restore_report[u"delta_m"])
         except Exception as e:
             step("restore_err", repr(e)[:80])
+            restore_report = {u"ok": False, u"delta_m": None, u"qdelta": None, u"tol_m": round(RESTORE_TOL, 4),
+                              u"why": u"写回或回读抛异常 %s" % (repr(e)[:60],)}
+
+    def rn():
+        """还原面读数（每次现取）——凡在 restore() 之后打出的结论行都带这一串，
+           否则 INVALID／FAIL 那几条早退路径就成了"世界还没还原干净却没人知道"的洞。"""
+        return "还原=restored(%s)｜delta_m=%s／tol_m=%s／qdelta=%s／why=%s" % (
+            restored, restore_report["delta_m"], restore_report["tol_m"], restore_report["qdelta"],
+            restore_report["why"] if restore_report["why"] else "无")
 
     pub = rospy.Publisher("/scan_planner/goal", PoseStamped, queue_size=1)
     time.sleep(1.5)
@@ -247,7 +334,7 @@ def main():
         rospy.sleep(0.2)
     if st.dist is None:
         restore()
-        dump(out, "P4 重规划结论 = INVALID|goal 未被消费（25s 内无 arrival_dist 读数）")
+        dump(out, "P4 重规划结论 = INVALID|goal 未被消费（25s 内无 arrival_dist 读数）｜%s" % rn())
         return 9
     step("goal_delivered", True)
 
@@ -259,7 +346,7 @@ def main():
         bs0 = st.bs
     if bs0 is None:
         restore()
-        dump(out, "P4 重规划结论 = INVALID|首规未出现（goal 已投递但无 /planning/bspline）")
+        dump(out, "P4 重规划结论 = INVALID|首规未出现（goal 已投递但无 /planning/bspline）｜%s" % rn())
         return 9
     id0 = bs_ident(bs0)
     c0 = eval_curve(bs0)
@@ -267,7 +354,7 @@ def main():
     step("traj_pts", 0 if c0 is None else int(len(c0)))
     if c0 is None or len(c0) < 5:
         restore()
-        dump(out, "P4 重规划结论 = INVALID|首规曲线不可求值")
+        dump(out, "P4 重规划结论 = INVALID|首规曲线不可求值｜%s" % rn())
         return 9
 
     # 把障碍搬到轨迹中段前方（机器人还没走到的地方）
@@ -283,7 +370,7 @@ def main():
         svc(ms)
     except Exception as e:
         restore()
-        dump(out, "P4 重规划结论 = INVALID|/gazebo/set_model_state 调用失败 %r" % (repr(e)[:80],))
+        dump(out, "P4 重规划结论 = INVALID|/gazebo/set_model_state 调用失败 %r｜%s" % (repr(e)[:80], rn()))
         return 9
     out["inject"] = {"model": INJECT_MODEL, "at": [round(ix, 3), round(iy, 3)], "z": INJECT_Z,
                      "pts_before": n_before}
@@ -302,8 +389,8 @@ def main():
     out["inject"]["occ_pts_near"] = seen
     if seen < SEE_MIN_PTS:
         restore()
-        dump(out, "P4 重规划结论 = INVALID|扰动未被占据图看见（%.2fm 内新增占据点=%d＜%d）" %
-             (SEE_RADIUS, seen, SEE_MIN_PTS))
+        dump(out, "P4 重规划结论 = INVALID|扰动未被占据图看见（%.2fm 内新增占据点=%d＜%d）｜%s" %
+             (SEE_RADIUS, seen, SEE_MIN_PTS, rn()))
         return 9
     step("disturbance_seen", seen)
 
@@ -348,7 +435,7 @@ def main():
         out["traj_before_control_min_dist"] = round(float(min(t0tree.query(q)[0] for q in b0)), 3)
     if cn is None or len(cn) < 5:
         restore()
-        dump(out, "P4 重规划结论 = INVALID|新轨迹不可求值")
+        dump(out, "P4 重规划结论 = INVALID|新轨迹不可求值｜%s" % rn())
         return 9
     tree2 = cKDTree(st.occ)
     dmin = float(min(tree2.query(p)[0] for p in cn))
@@ -388,37 +475,44 @@ def main():
                      "cmd_count": int(st.cmd_n), "displacement": round(math.hypot(st.odom[0] - gx, st.odom[1] - gy), 3)}
     restore()
     out["restored"] = restored
+    out["restore"] = restore_report
     collide = robot_min <= 0.40
     avoided = traj_min >= AVOID_DIST
     if not st.arrived:
-        dump(out, "P4 重规划结论 = FAIL|扰动后未到达（sim %.1fs，dist=%s；物理离箱心最近 %.2fm，轨迹 %.2fm）" %
-             (dts if dts is not None else -1, out["arrive"]["dist_end"], robot_min, traj_min))
+        dump(out, "P4 重规划结论 = FAIL|扰动后未到达（sim %.1fs，dist=%s；物理离箱心最近 %.2fm，轨迹 %.2fm）｜%s" %
+             (dts if dts is not None else -1, out["arrive"]["dist_end"], robot_min, traj_min, rn()))
         return 1
     if collide:
-        dump(out, "P4 重规划结论 = FAIL|机器人撞进注入障碍（物理离箱心 %.2fm ≤ 箱半宽 0.40m；轨迹离箱心 %.2fm）⇒ 未有效避让" %
-             (robot_min, traj_min))
+        dump(out, "P4 重规划结论 = FAIL|机器人撞进注入障碍（物理离箱心 %.2fm ≤ 箱半宽 0.40m；轨迹离箱心 %.2fm）⇒ 未有效避让｜%s" %
+             (robot_min, traj_min, rn()))
         return 1
     if not avoided:
-        dump(out, "P4 重规划结论 = FAIL|到达但未观测到避让（轨迹离箱心最近 %.2fm ＜ %.2fm；物理最近 %.2fm）⇒ 判据分辨力缺口一并上报" %
-             (traj_min, AVOID_DIST, robot_min))
+        dump(out, "P4 重规划结论 = FAIL|到达但未观测到避让（轨迹离箱心最近 %.2fm ＜ %.2fm；物理最近 %.2fm）⇒ 判据分辨力缺口一并上报｜%s" %
+             (traj_min, AVOID_DIST, robot_min, rn()))
         return 1
     breach, btol = a23_breach(dmin)
     out["a23"] = {"min_dist_to_any_occ": round(dmin, 3), "breach_gate": btol, "breach": bool(breach),
                   "avoid_gate": AVOID_DIST, "avoid": bool(avoided)}
     if breach:
-        dump(out, "P4 重规划结论 = FAIL|轨迹离任意占据格最近 %.3fm ＜ %.2fm（A23 纳入判定，Z6）⇒ 判穿墙；%s｜还原=%s" %
-             (dmin, btol, TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), restored))
+        dump(out, "P4 重规划结论 = FAIL|轨迹离任意占据格最近 %.3fm ＜ %.2fm（A23 纳入判定，Z6）⇒ 判穿墙；%s｜%s" %
+             (dmin, btol, TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), rn()))
         return 1
     if st.dist > DEV_MAX or (dts is not None and dts > DT_MAX):
-        dump(out, "P4 重规划结论 = FAIL|到达但超门（偏差 %.3fm／dt_sim %.1fs）" % (st.dist, dts or -1))
+        dump(out, "P4 重规划结论 = FAIL|到达但超门（偏差 %.3fm／dt_sim %.1fs）｜%s" % (st.dist, dts or -1, rn()))
         return 1
-    dump(out, "P4 重规划结论 = PASS|障碍被看见(%d 点)⇒扰动后轨迹离箱心最近 %.2fm≥%.2fm（避让在位）⇒未撞（物理最近 %.2fm）⇒到达偏差 %.3fm≤%.2fm｜%s｜还原=%s" %
+    if not restored:
+        dump(out, "P4 重规划结论 = INVALID|避让与到达全部成立但**世界没还原干净**（%s）⇒ 本窗读数不可引用；"
+                  "这条门自 #103 起才真落在件里（v_scan_p4.sh 头注早已诺「还原不成就把本面判 INVALID」，此前无任何代码执行它）" % (rn(),))
+        return 9
+    dump(out, "P4 重规划结论 = PASS|障碍被看见(%d 点)⇒扰动后轨迹离箱心最近 %.2fm≥%.2fm（避让在位）⇒未撞（物理最近 %.2fm）⇒到达偏差 %.3fm≤%.2fm｜%s｜%s" %
          (seen, traj_min, AVOID_DIST, robot_min, st.dist, DEV_MAX,
-         TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), restored))
+         TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), rn()))
     return 0
 
 
 if __name__ == "__main__":
     if "--a23-selftest" in sys.argv:
         sys.exit(a23_selftest())
+    if "--restore-selftest" in sys.argv:
+        sys.exit(restore_selftest())
     sys.exit(main())
