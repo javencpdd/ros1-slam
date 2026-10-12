@@ -55,7 +55,11 @@ WITNESS=""
 ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk/ {print}' > "$RUN/foxy_start.txt" 2>/dev/null
 FOXY_N=$(grep -c "[0-9]" "$RUN/foxy_start.txt" 2>/dev/null); FOXY_N=${FOXY_N:-0}
 note "foxy 见证基准（A1 乙＝本 boot 现取）：命中 $FOXY_N 行 ⇒ $RUN/foxy_start.txt"
-[ "$FOXY_N" = "0" ] && { WITNESS="INVALID-空集"; note "  [INVALID] 基准空集（A1 丙）⇒ 本跑不得写零触碰"; }
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/witness_units.sh"   # §0.12.3 乙′：覆盖面＝六 unit 的 systemd 态（R238）
+WN=$(witness_snapshot "$RUN" start)
+note "  六 unit 见证快照起前 = ${WN} 行 ⇒ $RUN/wit_start.txt（名单数应为 $WIT_EXPECT_N；名单＝§0.12.3 在册六件）"
+[ "${WN:-0}" != "$WIT_EXPECT_N" ] && { WITNESS="INVALID-覆盖面快照不符(${WN} 行)"; note "  [INVALID] 覆盖面快照行数≠6 ⇒ 本跑不得写零触碰、不得引用为红线达成"; }
+[ -n "$WITNESS" ] || note "  红线见证基准已按六 unit 态建立（foxy 快照仍留档，降为辅助：$(witness_foxy_aux)）"
 sed "s/^/    /" "$RUN/foxy_start.txt" 2>/dev/null | tee -a "$LOG"
 note "11312 监听(起前): $(ss -lntp 2>/dev/null | grep -c ':11312') 须=0"
 note "ros2qnx: $(pgrep -fa ros2qnx | wc -l) 须=0"
@@ -111,11 +115,10 @@ diff -q "$RUN/pcd_before.sha" "$RUN/pcd_after.sha" >/dev/null 2>&1 && note "样�
 
 note "foxy 见证终检（与起前现取基准整行比对）:"
 ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk/ {print}' > "$RUN/foxy_end.txt" 2>/dev/null
-if [ -n "$WITNESS" ]; then note "红线见证 = $WITNESS（本跑不作零触碰声称）"
-elif [ ! -s "$RUN/foxy_end.txt" ]; then WITNESS="INVALID-退后空集"; note "★[INVALID] 退后空集而起前非空 ⇒ 不作零触碰声称"
-elif diff -q "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" >/dev/null 2>&1; then WITNESS="OK"; note "红线见证 = OK（$FOXY_N 行整行逐位一致）"
-else WITNESS="DISTURBED"; note "★红线见证 = DISTURBED ⇒ 本跑不作达成声称"; diff "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" | head -4 | sed "s/^/    /" | tee -a "$LOG"
-fi
+WV=$(witness_verdict "$RUN"); WT=$(printf %s "$WV" | head -1)
+[ -n "$WITNESS" ] || WITNESS="$WT"
+note "  红线见证（六 unit 态，§0.12.3 乙′）= $WITNESS（foxy 残留为辅助项：$(witness_foxy_aux)）"
+[ "$WITNESS" = "OK" ] || { note "  ⇒ 本跑不作零触碰声称、不作达成声称"; printf '%s\n' "$WV" | tail -n +2 | sed 's/^/    /'; }
 echo "=================================================="
 case "$V" in PASS\|*) echo "P2 判据② 结论 = PASS —— ${V#PASS|}"; RC2=0;; *) echo "P2 判据② 结论 = FAIL —— ${V#FAIL|}"; RC2=1;; esac
 echo "P2_EXIT=$RC2 WITNESS=${WITNESS:-未检} LOGDIR=$RUN"

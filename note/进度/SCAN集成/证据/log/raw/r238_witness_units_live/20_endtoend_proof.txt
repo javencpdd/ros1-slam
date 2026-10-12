@@ -1,0 +1,39 @@
+== R238 端到端验证（新见证面＝六 unit 态）==
+2026-10-13 01:15
+--- 第 4 扇（w4，见证件取数写法错 ⇒ WITNESS 误判 INVALID）结论行 ---
+P4 结论 = PASS｜WITNESS=INVALID-行数与覆盖面名单数不符(应 ，实 6)｜判据行=P4 重规划结论 = PASS|障碍被看见(93 点)⇒扰动后轨迹离箱心最近 2.05m≥0.40
+--- 修写法后第 5 扇（w5）结论行 ---
+P4 结论 = PASS｜WITNESS=OK｜判据行=P4 重规划结论 = PASS|障碍被看见(111 点)⇒扰动后轨迹离箱心最近 2.13m≥0.40m（避让在位）⇒未撞（物理最近 0.91m）
+--- 起终快照逐字比对（应无差异）---
+  无差异（6 行）
+  lite3-monitor.service|enabled|inactive
+  lite3-ros-bridge.service|enabled|inactive
+  transfer_ros2.service|enabled|inactive
+  whoopsie.service|masked|failed
+  apport-autoreport.path|masked|inactive
+  apport-forward.socket|enabled|inactive
+--- 自测五例 ---
+[PASS] T1 起前快照行数须等于覆盖面名单数 6（期望 6／实得 6）
+[PASS] T2 起终一致须 OK（期望 OK／实得 OK）
+[PASS] T3 起终不一致必须 DISTURBED（这条不绿＝见证面是橡皮图章）（期望 DISTURBED／实得 DISTURBED）
+[PASS] T4 缺起前快照须 INVALID-缺起前快照（不得当作 OK）（期望 INVALID-缺起前快照／实得 INVALID-缺起前快照）
+[PASS] T5 起前空文件须报『形状不符』而不是『缺快照』（0 行也是形状问题）（期望 INVALID-形状不符(起0行/终6行)／实得 INVALID-形状不符(起0行/终6行)）
+WITNESS SELFTEST VERDICT: PASS=5/5
+rc=0
+--- 辅助项自匹配修正后的读数 ---
+foxy 残留进程（辅助，非判据）=2
+--- 复验（换不含模式串的调用方式：bash -c + </dev/null）---
+  foxy 残留进程（辅助，非判据）=0
+  （=0 为期望；上一条取证里读到的 2/3 是执行查询的 shell 自身命令行含模式串所致——同 05 追加十四的断言⑤形状，本件已用字符类自我排除）
+== 反扫与漂移核算（R238）==
+2026-10-13 01:19
+p4 被按行号引用＝0 处 ⇒ 改 p4 不伤任何在册指针
+p1＝22 处（8 个不同行号，其中 5 个真漂移）、p2＝8 处（3 个行号全漂）
+v_scan_p1.sh:79 → 83｜for _ in $(seq 1 30); do rostopic list >/dev/n
+v_scan_p1.sh:88 → 92｜wait_topic /livox/imu 300 || { P1_FAILMSG="/li
+v_scan_p1.sh:90 → 20｜
+v_scan_p1.sh:96 → 100｜wait_topic /cloud_registered_body 360 || { P1_
+v_scan_p1.sh:106 → 20｜
+v_scan_p2.sh:65 → 69｜roscore -p 11313 > "$RUN/roscore.log" 2>&1 &
+v_scan_p2.sh:72 → 76｜wait_topic /clock 300 || { echo "FAIL: /clock"
+v_scan_p2.sh:74 → 78｜wait_topic /livox/imu 300 || { echo "FAIL: /li

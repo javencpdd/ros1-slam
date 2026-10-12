@@ -1,0 +1,8 @@
+v_scan_p1.sh:79 → 83｜for _ in $(seq 1 30); do rostopic list >/dev/n
+v_scan_p1.sh:88 → 92｜wait_topic /livox/imu 300 || { P1_FAILMSG="/li
+v_scan_p1.sh:90 → 20｜
+v_scan_p1.sh:96 → 100｜wait_topic /cloud_registered_body 360 || { P1_
+v_scan_p1.sh:106 → 20｜
+v_scan_p2.sh:65 → 69｜roscore -p 11313 > "$RUN/roscore.log" 2>&1 &
+v_scan_p2.sh:72 → 76｜wait_topic /clock 300 || { echo "FAIL: /clock"
+v_scan_p2.sh:74 → 78｜wait_topic /livox/imu 300 || { echo "FAIL: /li

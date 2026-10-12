@@ -1,0 +1,30 @@
+[01:06:28] == [0] 红线预检：并发／样张／世界件本体 ==
+foxy 见证基准（A1 乙＝本 boot 现取）:
+  现取命中 0 行 ⇒ /home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r238_witness_units_live/w4_seed5_witnew/foxy_start.txt
+  六 unit 见证快照起前 = 6 行 ⇒ /home/ros1-slam/note/进度/SCAN集成/证据/log/raw/r238_witness_units_live/w4_seed5_witnew/wit_start.txt（名单数应为 6；名单＝§0.12.3 在册六件）
+  红线见证基准已按六 unit 态建立（foxy 快照仍留档，降为辅助：foxy 残留进程（辅助，非判据）=0）
+在册端口起前监听：11313=0 11312=0（均须 0）
+[01:06:30] == [1] roscore 11313 ==
+[01:06:35] == [2] m2_gazebo ==
+[01:07:34] == [3] m2_mapping（faster_lio 位姿源）==
+[01:07:45] == [4] 60_safety（mux 上链）==
+C-1 面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux 
+[01:07:55] == [5] 70_scan.launch（含 J1 到达观测件）==
+F9 互斥: move_base/teb 节点数=0 须=0；链上四件=4/4
+扰动前模型位姿自证：
+[01:08:26] == [6] P4 取证（投障碍→看见→重规划→仍到达）==
+p4 python rc=0
+P4 重规划结论 = PASS|障碍被看见(93 点)⇒扰动后轨迹离箱心最近 2.05m≥0.40m（避让在位）⇒未撞（物理最近 0.99m）⇒到达偏差 0.097m≤0.35m｜还原=True
+{"steps": ["goal_delivered=True", "traj_pts=120", "injected=obs_5→(-1.25,-0.40)", "disturbance_seen=93", "replanned=True"], "fail": false, "invalid": false, "goal": [-3.084, -1.322], "goal_r": 3.375, "goal_clear": 1.551, "traj_before": {"start_time": 21.027, "n_ctrl": 26, "first": [0.009, 0.012], "last": [-3.132, -1.218]}, "inject": {"model": "obs_5", "at": [-1.252, -0.396], "z": 0.4, "pts_before": 4100, "occ_pts_near": 93}, "traj_after": {"start_time": 21.962, "n_ctrl": 26, "first": [0.025, 0.001], "last": [-3.134, -1.203]}, "traj_before_control_min_dist": 0.019, "new_traj": {"n_pts": 120, "min_dist_to_any_occ": 0.295, "min_dist_to_injected": 0.363}, "clearance": {"min_dist_to_any_occ": 0.295, "min_dist_to_injected": 0.363, "gate_occ": 0.1}, "physical": {"robot_min_to_injected": 0.985, "box_half_width": 0.4, "traj_min_to_injected_final": 2.053}, "arrive": {"arrived": true, "dist_end": 0.097, "dt_sim_since_replan": 16.51, "cmd_count": 2008, "displacement": 0.097}, "restored": true, "verdict": "P4 重规划结论 = PASS|障碍被看见(93 点)⇒扰动后轨迹离箱心最近 2.05m≥0.40m（避让在位）⇒未撞（物理最近 0.99m）⇒到达偏差 0.097m≤0.35m｜还原=True", "grade": "PASS", "pass": true}
+结论行：P4 重规划结论 = PASS|障碍被看见(93 点)⇒扰动后轨迹离箱心最近 2.05m≥0.40m（避让在位）⇒未撞（物理最近 0.99m）⇒到达偏差 0.097m≤0.35m｜还原=True", "grade": "PASS", "pass": true}
+[01:09:38] == [7] 还原与红线 ==
+扰动后模型位姿自证：
+世界件本体 sha 起前＝退后：是
+样张 sha 起前＝退后：是
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证（六 unit 态，§0.12.3 乙′）= INVALID-行数与覆盖面名单数不符(应 ，实 6)（foxy 残留为辅助项：foxy 残留进程（辅助，非判据）=1）
+  ⇒ 本窗不作零触碰声称、不作达成声称
+分档自证：VS 首段=PASS ⇒ RC4=0（判据行与末判必须同向）
+[01:09:43] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0

@@ -74,7 +74,11 @@ note "foxy 见证基准（A1 乙＝本 boot 现取）:"
 ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk|grep|v_scan_p4/ {print}' > "$RUN/foxy_start.txt" 2>/dev/null
 FOXY_N=$(grep -c "[0-9]" "$RUN/foxy_start.txt" 2>/dev/null); FOXY_N=${FOXY_N:-0}
 note "  现取命中 $FOXY_N 行 ⇒ $RUN/foxy_start.txt"
-[ "$FOXY_N" = "0" ] && { WITNESS="INVALID-空集"; note "  [INVALID] 基准空集（A1 丙）⇒ 本窗不得写零触碰、不得引用为红线达成"; }
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/witness_units.sh"   # §0.12.3 乙′：覆盖面＝六 unit 的 systemd 态（R238）
+WN=$(witness_snapshot "$RUN" start)
+note "  六 unit 见证快照起前 = ${WN} 行 ⇒ $RUN/wit_start.txt（名单数应为 $WIT_EXPECT_N；名单＝§0.12.3 在册六件）"
+[ "${WN:-0}" != "$WIT_EXPECT_N" ] && { WITNESS="INVALID-覆盖面快照不符(${WN} 行)"; note "  [INVALID] 覆盖面快照行数≠6 ⇒ 本窗不得写零触碰、不得引用为红线达成"; }
+[ -n "$WITNESS" ] || note "  红线见证基准已按六 unit 态建立（foxy 快照仍留档，降为辅助：$(witness_foxy_aux)）"
 L13=$(ss -lntp 2>/dev/null | grep -c ':11313'); L12=$(ss -lntp 2>/dev/null | grep -c ':11312')
 note "在册端口起前监听：11313=$L13 11312=$L12（均须 0）"
 [ "$L13" = "0" ] && [ "$L12" = "0" ] || { echo "P4 重规划结论 = INVALID|并发未清（11313=$L13 11312=$L12）"; exit 2; }
@@ -140,11 +144,10 @@ note "样张 sha 起前＝退后：$( [ "$PB" = "$PD" ] && echo 是 || echo "否
 # 终检放在结论行之前（R117 在 p2 上犯过：写在 trap 里会跑在结论之后，把 WITNESS 报成「未检」）
 note "foxy 见证终检（与起前现取基准整行比对）:"
 ps -eo pid,user,lstart,args | awk '/ros2qnx|message_transformer|lite3_ros_bridge|jetson2motion|jetson2app|transfer/ && !/awk|grep|v_scan_p4/ {print}' > "$RUN/foxy_end.txt" 2>/dev/null
-if [ -n "$WITNESS" ]; then note "  红线见证 = $WITNESS（本窗不作零触碰声称）"
-elif [ ! -s "$RUN/foxy_end.txt" ]; then WITNESS="INVALID-退后空集"; note "  [INVALID] 退后空集而起前非空 ⇒ 不作零触碰声称"
-elif diff -q "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" >/dev/null 2>&1; then WITNESS="OK"; note "  红线见证 = OK（$FOXY_N 行整行 pid＋属主＋lstart＋args 逐位一致）"
-else WITNESS="DISTURBED"; note "  ★红线见证 = DISTURBED（起终整行不一致）⇒ 本窗不作达成声称"; diff "$RUN/foxy_start.txt" "$RUN/foxy_end.txt" | head -4 | sed "s/^/    /" | tee -a "$LOG"
-fi
+WV=$(witness_verdict "$RUN"); WT=$(printf %s "$WV" | head -1)
+[ -n "$WITNESS" ] || WITNESS="$WT"
+note "  红线见证（六 unit 态，§0.12.3 乙′）= $WITNESS（foxy 残留为辅助项：$(witness_foxy_aux)）"
+[ "$WITNESS" = "OK" ] || { note "  ⇒ 本窗不作零触碰声称、不作达成声称"; printf '%s\n' "$WV" | tail -n +2 | sed 's/^/    /'; }
 
 case "$VS" in
   PASS\|*) RC4=0;;
