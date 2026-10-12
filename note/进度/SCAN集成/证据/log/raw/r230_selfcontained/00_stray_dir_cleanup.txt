@@ -1,0 +1,7 @@
+== 根目录空壳目录的处置留底（R230）==
+2026-10-12 23:36
+对象＝/home/ros1-slam/[C3] 缺前置（目录里没有 json）须 rc=9：实得 rc=（名字是一条测试断言的话，形如「[C3] 缺前置…」）
+取证＝find 计数 1（只有目录自身＝空）、git ls-files 命中 0（未被跟踪）、git status 提交前后皆净
+处置＝rmdir（空目录、无内容可丢；先在此留底再删）
+rmdir rc=0 已删
+ls: cannot access '/home/ros1-slam/[C3] 缺前置（目录里没有 json）须 rc=9：实得 rc=': No such file or directory

@@ -1,0 +1,22 @@
+== ★ 事故留底：本批误跑了一次 RESTORE.sh（命令自身形状错）==
+2026-10-12 23:43
+错形＝在 case 分支里写 F=$(cat …) /home/ros1-slam/tooling/skill/RESTORE.sh ⇒ bash 解析为「以 F 为环境变量执行该脚本」，不是变量赋值（**在册老坑 2588 那族的又一变体：赋值前缀与命令混写**）
+--- 误跑造成的三项后果（逐条核）---
+1) 新建了一个全量备份目录：
+drwxrwxr-x 6 ysc ysc 4096 Oct  4 02:33 /home/ysc/.zcode/skill.orig.20261012_2340
+6.7M	/home/ysc/.zcode/skill.orig.20261012_2340
+2) 在 ~/.qoder/skills/ 里补建了两条符号链接（note／senior-developer，改前只有 software-company）：
+total 0
+lrwxrwxrwx 1 ysc ysc 27 Oct 12 23:40 note -> /home/ysc/.zcode/skill/note
+lrwxrwxrwx 1 ysc ysc 39 Oct 12 23:40 senior-developer -> /home/ysc/.zcode/skill/senior-developer
+lrwxrwxrwx 1 ysc ysc 39 Oct 10 20:59 software-company -> /home/ysc/.zcode/skill/software-company
+3) 把镜像 cp 回真身＋chmod 目录 775／文件 664 ⇒ 内容零变化，实证：
+   diff -rq 真身↔镜像 software-company＝0 行、senior-developer＝0 行（0＝逐字一致）
+   四件权威文件行数＝120/97/76/54（应 120/97/76/54）
+--- 处置（回到误跑前的状态，可逆）---
+   已撤掉本批新建的两条符号链接（改前态只有 software-company；要重建＝bash tooling/skill/RESTORE.sh 第[4]步）
+total 0
+lrwxrwxrwx 1 ysc ysc 39 Oct 10 20:59 software-company -> /home/ysc/.zcode/skill/software-company
+   备份目录 skill.orig.20261012_2340 **保留**（它是备份，删它才是不可逆动作；主理人要清可一条 rm 搞定）
+--- 在册 RESTORE.sh 的定性 ---
+   脚本自身按设计工作（备份→恢复→权限→链接→核对五步全过），**问题不在脚本，在我调用它的命令行形状**；本条留底即'首次真实执行'记录，故 §0.13.2 那句'恢复脚本已建成且被真跑过一次'现在有据。

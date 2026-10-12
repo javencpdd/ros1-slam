@@ -1,0 +1,35 @@
+== R230 自持闭环的取证 ==
+2026-10-12 23:39
+--- 插入前/后 v5.3 的行数与 diff 形状（纯插入）---
+1181 note/计划书v5/21_ros1-slam隔离部署计划书-v5.3.md
+删除行数=0 新增行数=24
+--- tooling 面构成与件数 ---
+6.4M	tooling
+136
+tooling:
+README.md
+skill
+
+tooling/skill:
+note
+RESTORE.sh
+senior-developer
+_sha256_manifest.txt
+software-company
+--- 技能包镜像清单校验（在镜像目录内跑 -c）---
+133
+--- 真身与镜像是否逐字一致（diff -r，只应无差异）---
+差异行数=0
+--- 外部依赖引用面（§0.13 数字的出处）---
+  10384 /home/ros1-slam
+   9180 /opt/ros
+   3932 /home/ysc
+   2620 /usr/lib
+    781 /usr/local
+    669 /usr/bin
+ws/src 对被测件面的生产路径引用计数=0
+--- 本机是否存在 MCP 配置文件 ---
+(空＝本机无)
+remote
+skills
+lrwxrwxrwx 1 ysc ysc 39 Oct 10 20:59 /home/ysc/.qoder/skills/software-company -> /home/ysc/.zcode/skill/software-company
