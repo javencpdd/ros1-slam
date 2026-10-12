@@ -1,0 +1,61 @@
+== date ==
+2026-10-12 20:10
+== uptime ==
+ 20:10:31 up  5:41,  4 users,  load average: 14.03, 13.62, 13.19
+== loadavg raw ==
+14.03 13.62 13.19 9/881 106190
+== top ysc cpu ==
+    PID    PPID USER     %CPU %MEM     ELAPSED COMMAND
+   9054    9052 ysc       109 34.1    03:20:01 /home/ysc/lite_cog_ros2/slam/install/faster_lio/lib/faster_lio/run_mapping_online --ros-args -r __node:=faster_lio_online --params-file /home/ysc/lite_cog_ros2/slam/install/faster_lio/share/faster_lio/config/c16.yaml
+   1135       1 ysc      89.8  0.8    05:41:23 /home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+   1137       1 ysc      69.1  0.8    05:41:23 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+   4970    4968 ysc      48.8  0.8    04:54:23 /home/ysc/lite_cog_ros2/driver/mid360_ws/install/livox_ros_driver2/lib/livox_ros_driver2/livox_ros_driver2_node --ros-args -r __node:=livox_lidar_publisher --params-file /tmp/launch_params_bybacu6i --params-file /tmp/launch_params_wodn9pck --params-file /tmp/launch_params_0bxau51p --params-file /tmp/launch_params_9oovbu1r --params-file /tmp/launch_params_twl86oos --params-file /tmp/launch_params_ifqwmh49 --params-file /tmp/launch_params_w8jk8zqy --params-file /tmp/launch_params_er6_6ng5 --params-file /tmp/launch_params_41zybr4v -r /livox/lidar:=/rslidar_points
+ 106176  106133 ysc      26.0  0.0       00:01 git -c core.fsmonitor=false ls-files --modified --others --exclude-standard
+   2267    2025 root     23.4  0.3    05:41:05 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_yv0myp1u --params-file /tmp/launch_params_mexpzfu4 --params-file /tmp/launch_params_88qcpdra
+   2269    2025 root     23.1  0.3    05:41:05 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_tfvws0jd
+   2744    2741 ysc       3.6  3.0    05:40:38 /usr/NX/bin/nxnode.bin
+   9133    9119 ysc       3.5  0.4    03:19:21 /opt/ros/foxy/lib/nav2_planner/planner_server --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_47fk7gu9/params.yaml -r __node:=planner_server
+   9151    9120 ysc       3.1  0.2    03:19:20 /opt/ros/foxy/lib/nav2_lifecycle_manager/lifecycle_manager --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_47fk7gu9/params.yaml -r __node:=lifecycle_manager
+   5245    5227 ysc       2.9  0.5    04:51:01 /opt/ros/foxy/lib/nav2_planner/planner_server --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_tk7w48zz/params.yaml -r __node:=planner_server
+   2265    2025 root      2.7  0.3    05:41:05 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_fyylhjeg
+   5244    5228 ysc       2.5  0.2    04:51:01 /opt/ros/foxy/lib/nav2_lifecycle_manager/lifecycle_manager --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_tk7w48zz/params.yaml -r __node:=lifecycle_manager
+ 106034    1318 root      2.5  0.1       00:04 sshd: ysc [priv]
+   1612    1540 ysc       2.4  0.3    05:41:19 /usr/bin/pulseaudio --daemonize=no --log-target=journal
+   4972    4968 ysc       2.4  0.2    04:54:23 /opt/ros/foxy/lib/tf2_ros/static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 base_link rslidar --ros-args -r __node:=base2lidar_tf_broadcaster
+ 106124  106123 ysc       2.0  0.0       00:02 /bin/bash -lc cd /home/ros1-slam; D=$(date '+%F_%H%M'); mkdir -p /home/ros1-slam/evidence/r227_stop_orphans 2>/dev/null; { echo "== date =="; date '+%F %H:%M'; echo "== uptime =="; uptime; echo "== loadavg raw =="; cat /proc/loadavg; echo "== top ysc cpu =="; ps -eo pid,ppid,user,pcpu,pmem,etime,args --sort=-pcpu | awk 'NR==1 || /ysc|test/' | head -30; echo "== all ros/foxy procs =="; ps -eo pid,ppid,user,pcpu,etime,args | grep -E 'foxy|ros2|_node|run_mapping|livox' | grep -v grep; echo "== systemd units state =="; systemctl is-enabled lite3-monitor.service lite3-ros-bridge.service 2>&1; systemctl is-active lite3-monitor.service lite3-ros-bridge.service 2>&1; } | tee /home/ros1-slam/evidence/r227_stop_orphans/pre_stop_${D}.txt | tail -45; chmod 664 /home/ros1-slam/evidence/r227_stop_orphans/pre_stop_${D}.txt 2>/dev/null; ls -l /home/ros1-slam/evidence/r227_stop_orphans/
+   9052    4637 ysc       1.4  0.5    03:20:03 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch faster_lio mapping_c16.launch.py
+   2138    1540 ysc       0.7  5.5    05:41:09 /usr/bin/gnome-shell
+   4636    4591 ysc       0.2  0.1    05:05:00 sshd: ysc@pts/1
+  12874    2744 ysc       0.2  1.5    01:00:17 /usr/NX/bin/nxcodec.bin
+   2673    1540 ysc       0.1  0.5    05:40:49 /usr/libexec/tracker-miner-fs
+   2687    2537 ysc       0.1  0.3    05:40:49 python3 /usr/share/nvpmodel_indicator/nvpmodel_indicator.py
+  12762   12759 ysc       0.1  1.4    01:00:20 /usr/NX/bin/nxnode.bin -H 8
+    101       2 root      0.0  0.0    05:41:45 [kpcitest]
+   1218       1 kernoops  0.0  0.0    05:41:22 /usr/sbin/kerneloops --test
+   1540       1 ysc       0.0  0.2    05:41:20 /lib/systemd/systemd --user
+   1541    1540 ysc       0.0  0.0    05:41:20 (sd-pam)
+   1633       1 ysc       0.0  0.1    05:41:19 /usr/bin/gnome-keyring-daemon --daemonize --login
+== all ros/foxy procs ==
+   1137       1 ysc      69.1    05:41:23 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+   2025       1 root      0.1    05:41:12 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch transfer transfer_launch.py
+   2265    2025 root      2.7    05:41:05 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_fyylhjeg
+   2267    2025 root     23.4    05:41:05 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_yv0myp1u --params-file /tmp/launch_params_mexpzfu4 --params-file /tmp/launch_params_88qcpdra
+   2269    2025 root     23.1    05:41:05 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_tfvws0jd
+   4968    4960 ysc       0.0    04:54:27 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch livox_ros_driver2 msg_MID360s_launch.py
+   4970    4968 ysc      48.8    04:54:23 /home/ysc/lite_cog_ros2/driver/mid360_ws/install/livox_ros_driver2/lib/livox_ros_driver2/livox_ros_driver2_node --ros-args -r __node:=livox_lidar_publisher --params-file /tmp/launch_params_bybacu6i --params-file /tmp/launch_params_wodn9pck --params-file /tmp/launch_params_0bxau51p --params-file /tmp/launch_params_9oovbu1r --params-file /tmp/launch_params_twl86oos --params-file /tmp/launch_params_ifqwmh49 --params-file /tmp/launch_params_w8jk8zqy --params-file /tmp/launch_params_er6_6ng5 --params-file /tmp/launch_params_41zybr4v -r /livox/lidar:=/rslidar_points
+   4972    4968 ysc       2.4    04:54:23 /opt/ros/foxy/lib/tf2_ros/static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 base_link rslidar --ros-args -r __node:=base2lidar_tf_broadcaster
+   5227       1 ysc       0.0    04:51:05 /usr/bin/python3 /opt/ros/foxy/bin/ros2 run nav2_planner planner_server --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_tk7w48zz/params.yaml -r __node:=planner_server
+   5228       1 ysc       0.0    04:51:05 /usr/bin/python3 /opt/ros/foxy/bin/ros2 run nav2_lifecycle_manager lifecycle_manager --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_tk7w48zz/params.yaml -r __node:=lifecycle_manager
+   5244    5228 ysc       2.5    04:51:01 /opt/ros/foxy/lib/nav2_lifecycle_manager/lifecycle_manager --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_tk7w48zz/params.yaml -r __node:=lifecycle_manager
+   5245    5227 ysc       2.9    04:51:01 /opt/ros/foxy/lib/nav2_planner/planner_server --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_tk7w48zz/params.yaml -r __node:=planner_server
+   9052    4637 ysc       1.4    03:20:03 /usr/bin/python3 /opt/ros/foxy/bin/ros2 launch faster_lio mapping_c16.launch.py
+   9054    9052 ysc       109    03:20:01 /home/ysc/lite_cog_ros2/slam/install/faster_lio/lib/faster_lio/run_mapping_online --ros-args -r __node:=faster_lio_online --params-file /home/ysc/lite_cog_ros2/slam/install/faster_lio/share/faster_lio/config/c16.yaml
+   9119       1 ysc       0.0    03:19:24 /usr/bin/python3 /opt/ros/foxy/bin/ros2 run nav2_planner planner_server --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_47fk7gu9/params.yaml -r __node:=planner_server
+   9120       1 ysc       0.0    03:19:24 /usr/bin/python3 /opt/ros/foxy/bin/ros2 run nav2_lifecycle_manager lifecycle_manager --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_47fk7gu9/params.yaml -r __node:=lifecycle_manager
+   9133    9119 ysc       3.5    03:19:21 /opt/ros/foxy/lib/nav2_planner/planner_server --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_47fk7gu9/params.yaml -r __node:=planner_server
+   9151    9120 ysc       3.1    03:19:20 /opt/ros/foxy/lib/nav2_lifecycle_manager/lifecycle_manager --ros-args -r __ns:=/web_nav --params-file /tmp/lite3_web_nav_47fk7gu9/params.yaml -r __node:=lifecycle_manager
+== systemd units state ==
+enabled
+enabled
+active
+active

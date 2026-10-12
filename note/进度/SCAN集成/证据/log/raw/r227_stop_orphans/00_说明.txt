@@ -1,0 +1,17 @@
+R227 留底｜强停 ysc 名下滞留 ROS2 链（主理人明文「我现在没有跑真机 帮我退掉吧。或者给我sudo命令」）
+时刻只认 date：停手 2026-10-12 20:11:35（见 post_stop 首行），本说明写于同日 20:2x。
+
+文件对照：
+  pre_stop_2026-10-12_2010.txt      停手前全景（date／uptime／loadavg／ysc 与 test 属主进程／全部 ros 进程／两 unit enabled+active）
+  post_stop_2026-10-12_2011.txt     kill -9 显式 13 PID 的 rc、3 秒后 ps -p 回显（零存活）、停后剩余 ros2、当时 loadavg
+  loadavg_after90s_2026-10-12_2013.txt  90 秒后负载与榜首前 12（含 PID／属主／命令行）＋top 快照
+  post_kill_mapcheck.txt            停后生产侧落图对账：map 目录仍 total 8、find -newermt 只见 .log
+  30_gate_string_rerun.txt          七件串裸调回显（含"空集不判绿"的 rc=5／rc=9，属件设计行为，非本批回归）
+  40_gate_with_targets.txt          带被检件的正式复跑（SYN 82 件 rc=0／PYST 范围甲 50 件 rc=0／PARITY 已知 7 新增 0／账构 C1–C4）
+  _sha256_manifest.txt              本目录清单（VAR 的 P3a-1 回归面）
+
+复现命令（逐字）：
+  kill -9 9054 9052 4970 4972 4968 5245 5244 5227 5228 9133 9151 9119 9120
+  ps -o pid,ppid,user,pcpu,etime,args -p 9052,9054,4968,4970,4972,5227,5228,5244,5245,9119,9120,9133,9151
+  systemctl stop lite3-monitor.service lite3-ros-bridge.service   # 本批回显 Interactive authentication required（无 sudo 通道）
+用过的判据实测（非推算）：c16.yaml 的 path_save_en=true／pcd_save.pcd_save_en=true／pcd_save.interval=0；两 unit 的 User=ysc／Restart=on-failure／RestartSec=3。

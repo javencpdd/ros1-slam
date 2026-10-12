@@ -1,0 +1,35 @@
+== 停后 90s 复测 ==
+2026-10-12 20:13:19
+ 20:13:19 up  5:44,  4 users,  load average: 8.40, 11.82, 12.62
+
+== 1 分钟均值门槛判定（≤4 才可起活体窗）==
+load1=8.40
+== 当前榜首前 12（含属主与命令行）==
+    PID    PPID USER     %CPU %MEM     ELAPSED COMMAND
+   1135       1 ysc      89.8  0.8    05:44:11 /home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+   1164       1 whoopsie 72.8  0.3    05:44:11 /usr/bin/whoopsie -f
+   1137       1 ysc      69.1  0.8    05:44:11 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+   2267    2025 root     23.4  0.3    05:43:53 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_yv0myp1u --params-file /tmp/launch_params_mexpzfu4 --params-file /tmp/launch_params_88qcpdra
+   2269    2025 root     23.0  0.3    05:43:53 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_tfvws0jd
+   2744    2741 ysc       3.6  3.0    05:43:26 /usr/NX/bin/nxnode.bin
+   2265    2025 root      2.6  0.3    05:43:53 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2app --ros-args --params-file /tmp/launch_params_fyylhjeg
+  11856       2 root      2.5  0.0    01:24:51 [kworker/2:2H-kblockd]
+   1612    1540 ysc       2.4  0.3    05:44:07 /usr/bin/pulseaudio --daemonize=no --log-target=journal
+  11158       2 root      2.0  0.0    02:00:39 [kworker/1:0H-kblockd]
+  10955       2 root      1.7  0.0    02:26:30 [kworker/4:0H+kblockd]
+  11006       2 root      1.6  0.0    02:18:54 [kworker/3:2H-kblockd]
+== dstat/top 快照 ==
+MiB Swap:   3427.3 total,   3427.3 free,      0.0 used.   4843.9 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+   1164 whoopsie  20   0  335320  25472  13904 R 100.0   0.4 250:42.07 whoopsie
+   1135 ysc       20   0  654212  57308  11068 S  85.7   0.8 309:08.48 python
+   1137 ysc       20   0  668648  62588  25644 R  76.2   0.9 238:05.92 python3
+  11856 root       0 -20       0      0      0 R  52.4   0.0   2:09.60 kworker+
+ 111252 ysc       20   0   15068   3168   2600 R  23.8   0.0   0:00.11 top
+   2267 root      20   0 1057512  21800   8532 S  19.0   0.3  80:41.12 jetson2+
+   2269 root      20   0  614584  26312   8752 S  19.0   0.4  79:25.20 sensor_+
+   2744 ysc        0 -20 3344720 211780 117928 S   9.5   3.0  12:28.63 nxnode.+
+    391 syslog    20   0  220940   6300   3272 S   4.8   0.1   0:10.24 rsyslogd
+  12762 ysc        0 -20 2205888 104892  24736 S   4.8   1.5   0:06.10 nxnode.+
+      1 root      20   0  170344  10844   7080 S   0.0   0.2   0:37.06 systemd
