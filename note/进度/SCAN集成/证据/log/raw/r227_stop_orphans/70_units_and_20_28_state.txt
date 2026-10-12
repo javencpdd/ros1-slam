@@ -1,0 +1,24 @@
+== R227 补录：root 侧托管件名与 20:28 现况 ==
+2026-10-12 20:29
+ 20:29:51 up  6:01,  2 users,  load average: 5.98, 7.28, 9.15
+--- 2025 的 unit（systemctl status 2025 回显）---
+● transfer_ros2.service - DeepRobotics Transfer For ROS2
+     Loaded: loaded (/etc/systemd/system/transfer_ros2.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2026-10-12 14:29:19 CST; 6h ago
+    Process: 993 ExecStart=/bin/bash /home/ysc/lite_cog_ros2/system/scripts/transfer/start_transfer.sh (code=exited, status=0/SUCCESS)
+   Main PID: 2025 (ros2)
+      Tasks: 46 (limit: 8132)
+--- monitor 两 unit 与崩溃上报的 enabled 面 ---
+apport-autoreport.path                     enabled enabled      
+lite3-monitor.service                      enabled enabled      
+lite3-ros-bridge.service                   enabled enabled      
+transfer_ros2.service                      enabled enabled      
+apport-forward.socket                      enabled enabled      
+--- 榜首三件 %CPU（现跑）---
+   1135 ysc      90.1 /home/test/monitor/.venv/bin/python -m uvicorn main:app --
+   1164 whoopsie 73.8 /usr/bin/whoopsie -f
+   1137 ysc      69.2 python3 /home/test/monitor/backend/ros_bridge_node.py --im
+--- 会话面：who 与两个前次 shell 的存亡 ---
+ysc      :0           2026-10-12 14:29 (:0)
+ysc      pts/4        2026-10-12 16:06 (192.168.1.120)
+    PID USER     COMMAND
