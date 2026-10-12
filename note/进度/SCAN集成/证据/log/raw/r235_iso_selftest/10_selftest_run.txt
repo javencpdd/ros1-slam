@@ -1,0 +1,20 @@
+== ISO 双向自测（R235）七例逐条 ==
+2026-10-13 00:47
+[PASS] T0 未变异副本必须全绿（红只能来自注入，不能来自沙箱本身）（期望 放／rc=0，实得 rc=0）
+[PASS] T1a 壳包注入 /home/ysc 硬编码 ⇒ [2] 与 [8] 必须红（期望 拦／rc≠0，实得 rc=1）
+[PASS] T1b 撤掉注入必须回绿（否则 T1a 的红可能来自别的因素）（期望 放／rc=0，实得 rc=0）
+[PASS] T2 平级 lite3_* 互 include ⇒ [5] 必须红（期望 拦／rc≠0，实得 rc=1）
+[PASS] T2b TOP 编排层（lite3_bringup）include 必须仍被豁免（P7 裁决在位；误删豁免即红）（期望 放／rc=0，实得 rc=0）
+[PASS] T3 40_navigation 壳包混进 .cpp ⇒ [9] 必须红（期望 拦／rc≠0，实得 rc=1）
+[PASS] T4 ROS_PACKAGE_PATH 混入 /home/ysc ⇒ [1] 必须红（期望 拦／rc≠0，实得 rc=1）
+ISOLATION SELFTEST VERDICT: PASS=7/7（七例：T0 基线／T1a-b 注入与撤除／T2 互 include／T2b 豁免／T3 算法源码／T4 混装）
+rc=0
+
+== 在册本体行行为未变的证据 ==
+①本体（第 50 行起）与改前留底逐字比对＝全等（python 比对，见 20_ 件）
+②真仓 ISO 双 source 复跑：
+=== ISOLATION OK ===
+# self-attest: at=2026-10-13 00:47:30 script=63eb19e14451a16e3e4e0a2351a43a7d172642aac147e63f6ae8647fd1c71f4f ws_src_files=4707 rc=0
+③bash -n 与 SYN 双层语法检：
+  bash -n OK
+PY SYNTAX OK（被检件数=1，内嵌 python 段合计=0）
