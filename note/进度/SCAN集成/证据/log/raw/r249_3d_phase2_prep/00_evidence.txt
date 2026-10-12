@@ -1,0 +1,35 @@
+# 3D／多层二期前置盘点取证（R249，#136）——本件由 python 一次生成（前两次用 shell heredoc 追加时把文件搞出过非法字节，故整体重建）
+# 生成时刻＝2026-10-13 03:27
+
+== 1) 在册终局原句（矩阵收官行的最终状态表，逐字摘录）==
+  最终状态表：M5✅/全局对比✅（20/20）/局部✅（teb 定型，DWA 裁撤）/组合✅（双 PASS）/多地图✅（perlin3d 除外）/定位仿真❌（hdl segv 转真机 G8）/perlin3d 远角❌（裁撤，两轮封顶）/3D 地形规划⏸（spike 设计件 01f30b8b 待二期）
+
+== 2) spike 设计件同一性复核（防引错件）==
+  件＝note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md
+  实算 sha256 前 8＝01f30b8b，size＝7621 字节
+  在册基线文件＝01f30b8bd4addcbab42c9ee2dbc11d511ec14845e5719c118e19a217f60b27a0  note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costm
+  文首性质句＝- 日期：2026-10-07｜起草：小明（施工域产出，供小张/主理人裁决）｜性质：**设计确认文档，本轮不实现任何代码**
+
+== 3) C13＝乙 已落地（用于刷新 m 稿 §3 的旧成因）==
+  C13＝乙 落地（主理人 2026-10-11 裁「原地换形状」，授权动厂商 fork 源码＋重编译；代际仍 H14）**：
+  盒回执形状在册出现次数＝04：1 处／n 稿：0 处
+
+== 4) 二期若要判形状必须占独占窗 ⇒ 现被 A35 挡（门禁照录）==
+  ISO rc=1 ｜ # self-attest: at=2026-10-13 03:27:20 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 
+  （运行账户字段与 home 字段是 R240 新加的两格，正是 A35 的成因面）
+
+== 5) 上游路线盘上实测（更正我初稿那句「mesh_navigation 属 ROS2 栈」）==
+  /bin/ls -d opt/upstream/mesh_navigation ＝ opt/upstream/mesh_navigation
+  /bin/ls -d opt/upstream/mesh_tools ＝ opt/upstream/mesh_tools
+  /bin/ls -d opt/upstream/lvr2 ＝ opt/upstream/lvr2
+  mesh_navigation 顶层子包（13 项）＝ci／cvp_mesh_planner／dijkstra_mesh_planner／docs／LICENSE／mbf_mesh_core／mbf_mesh_nav／mesh_client／mesh_controller
+  在册预检结论（00_总览 L111 逐字）＝③T1r mesh_navigation@noetic+mesh_tools@noetic+lvr2 clone（opt/upstream）→/tmp 试编译两败即止（attempt1 非同质 ws／attempt2 GSL REQUIRED 缺失 CMakeLists:192 无开关）＝不可用＋★TerrainPlanner 不在 noetic 分支（3D 选型前提重核）
+  ⇒ 更正：源码在仓内、卡的是编译链缺 GSL 且无降级开关＋TerrainPlanner 不在 noetic；结论（自研 2.5D elevation 层）不变、理由换。
+
+== 6) 本批三起自己的错（都当场处理）==
+  ①初稿把上游路线写成「属 ROS2 栈」＝按记忆归类、没先 ls 盘上（R244「没测就写」同族第二次）——已在同批内自查改写、未提交。
+  ②往留底追加段时把 shell 变量 E 跨调用使用（每条命令都是新 shell）⇒ 重定向落到根路径、被 Permission denied 挡下（无副作用）。
+  ③双引号 echo 串里放 ASCII 双引号与反引号 ⇒ 把汉字截成半个字节，留底两度出现非法 UTF-8（python 直接 UnicodeDecodeError）＝刚在 R247 把「含反引号走带引号 heredoc」写进 05 动作④，连续两批再犯 ⇒ 「写进册≠下次不再犯」第六次成立，且本件改用 python 单发写盘彻底避开。
+
+== 7) 零改动面 ==
+  只读盘点：未动 C12 状态、未建件、未起窗、未改判据／门值／门禁串（仍八件）、未动上游件与 opt／ws 任何文件；本节结论均为在册照录。
