@@ -1,0 +1,31 @@
+=== 盘上事实读数留档 ===
+生成时刻 2026-10-12 08:34——以下均为本会话只读实测原文
+--- faster_lio app CMakeLists 前 2 行 ---
+add_executable(run_mapping_online run_mapping_online.cc)
+target_link_libraries(run_mapping_online
+--- 现役 yaml 关键行 ---
+3:  imu_topic: /livox/imu   # Q12 分支(2026-10-04)：43897 被 jetson2motion 占用，qnx2ros 不可用；改 Mid-360 内置 IMU(实测 199.9Hz)
+29:  interval: -1                # Q6 翻案(2026-10-05)：10=每10帧写盘后清空(地图截断为最后≤10帧,653K根因)；-1=全程累积,优雅停机全量落盘
+32:  blind: 0.2                  # C13=乙（2026-10-11 主理人裁）：现语义＝**兜底小球**（第④道，见 pointcloud_preprocess.cc 文件尾）；1.0 口径自 X23/X24 起作废。0.2 在仿真是严格 no-op（14 帧非零回波最小 r=0.2125），真机侧只是“近原点杂波保险”——躯干/腿在 0.27–0.55m，0.2 罩不住 ⇒ **不得写成自遮挡保护到位**；本件与仿真共用（ws/README.md 6.2）
+58:self_mask_box_on: 1                     # 0=关盒（回到只看球的旧口径）；1=开盒
+59:self_mask_box: [0.0, 0.0, -0.38, 0.21, 0.155, 0.11]   # 雷达系躯干盒：心＋半宽。来源 lite3_planar.urdf.xacro :26/:31/:55（0.42×0.31×0.22、关节 z=0.38）⇒ 半宽 0.21/0.155/0.11、最近面 0.27、最远角 0.555（n 稿 §2.1，小张 1:1 复算）
+--- livox 驱动 ROS_EDITION 分支（注意目录是 00_drivers） ---
+2:if(ROS_EDITION STREQUAL "ROS1")
+187:else(ROS_EDITION STREQUAL "ROS2")
+--- SDK 静态库 ---
+-rw-r--r-- 1 root root 28395498 Sep 16  2025 /usr/local/lib/liblivox_lidar_sdk_static.a
+--- 40_navigation 实际在位 launch ---
+ws/src/40_navigation/lite3_navigation/launch/:
+cmd_vel_raw_relay.launch
+mbf_navigation.launch
+sink
+stub
+
+ws/src/40_navigation/lite3_scan/launch/:
+70_scan.launch
+lio_relay_sim.launch
+--- 11_postprocess 检索（零命中＝不存在） ---
+命中数=0
+--- P3a0 证据：/tmp 与归档 ---
+ls: cannot access '/tmp/P3a0*': No such file or directory
+-rw-rwxr--+ 1 ros1-slam ros1-slam 27370 Oct  4 18:47 note/进度/计划书v4升级/证据/P3a0_mbf组件实测.log
