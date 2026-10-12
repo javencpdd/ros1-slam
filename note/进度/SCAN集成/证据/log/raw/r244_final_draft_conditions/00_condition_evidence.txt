@@ -1,0 +1,19 @@
+# 终稿四条件核对单的取证面（R244，只读批）at=2026-10-13 02:57
+== 条件的在册原文（v5.3 §0.12.5 那一行，按版本＋节次引、不按行号引正文）==
+**§0.12.5 终稿条件（T4＝甲 的在册口径）**：**本件不是终稿**。终稿条件＝①#117 仿真窗包出完读数（`P4_SEED` 扫描／X2 四格／sim 取码＋#103 还原返工验证／J3 goal 多样性）；②§0.8「已裁待施工」清零（现列 **#110／#111／#112／#113／#114／#115／#116�
+
+== 条件④ 的在册原文（§0.13.5）==
+**§0.13.5 与终稿条件的关系**：本条**列入** §0.12.5 的"终稿前置"之一（终稿＝#117 读数出完＋§0.8 待施工清零＋J2 落签＋**本条的外部依赖表逐条有恢复办法**）。
+
+== ①的卡点实测：ISO 现态（判据面真红非本批造成）==
+[10] ★★ 全变量与库解析来源核对（v5.3 §0.8 收编 A34③乙 ⇒ 待办 #121；四变量**全表逐段**＋rospack 全量＋python impo
+  [import numpy] 来源=/home/ysc/.local/lib/python3.8/site-packages/numpy/__init__.py ⇒ 越界｜运行账户=ysc HOME=/home/ysc
+
+== ②里 #114 已建但未追认（本件 rc 无违规档）==
+run rc=0
+
+== ★我上一条断言的纠正：systemd 单元其实 other 可读（不用 root）==
+-rw-r--r-- 1 root root 2189 Sep 26 02:23 /etc/systemd/system/lite3-monitor.service
+-rw-r--r-- 1 root root 3015 Sep 26 02:23 /etc/systemd/system/lite3-ros-bridge.service
+[Unit]
+Description=Lite3 Robot Monitor (UDP 43897 旁路抓包 → WebSocket 监控面板)
