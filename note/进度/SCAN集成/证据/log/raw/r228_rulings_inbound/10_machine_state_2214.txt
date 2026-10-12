@@ -1,0 +1,24 @@
+== 22:14 现跑（裁定到达时的机况，非推算）==
+2026-10-12 22:17
+ 22:17:02 up  7:48,  1 user,  load average: 6.46, 6.17, 5.92
+--- 榜首 6 ---
+   1135 ysc      93.5    07:47:54 /home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+   1164 whoopsie 79.1    07:47:54 /usr/bin/whoopsie -f
+   1137 ysc      69.3    07:47:54 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+   2269 root     22.4    07:47:36 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/sensor_checker --ros-args --params-file /tmp/launch_params_tfvws0jd
+   2267 root     22.2    07:47:36 /home/ysc/lite_cog_ros2/transfer/install/transfer/lib/transfer/jetson2motion --ros-args --params-file /tmp/launch_params_yv0myp1u --params-file /tmp/launch_params_mexpzfu4 --params-file /tmp/launch_params_88qcpdra
+ 349232 root      4.5       00:02 sshd: ysc [priv]
+--- 五 unit 态（S1 停单是否已执行的判据）---
+lite3-monitor.service          enabled=enabled active=active
+lite3-ros-bridge.service       enabled=enabled active=active
+transfer_ros2.service          enabled=enabled active=active
+whoopsie.service               enabled=disabled active=active
+apport-autoreport.path         enabled=enabled active=active
+--- who ---
+ysc      :0           2026-10-12 14:29 (:0)
+--- 在册几何字段现值（W9 对账用）---
+56:    min_z: -0.30    # C3 终值（Q3 实测雷达离地 38cm→地面 z≈-0.38@rslidar 系；-0.38+8~13cm 余量；G8 残差反推后复核，小张 2026-10-05）
+24:  extrinsic_est_en: true          # 在线估计兜底：初始外参两来源矛盾（Q13），现场实测后如需固化走变更流程
+--- Q3/Q13 在册原句 ---
+73:- **Q13 仍挂起**：外参矛盾裁决（pitch 18° vs 7.5°/离地高度/朝向）现场卷尺四项用户未提供；当前以 `extrinsic_est_e
+112:- **Q3：✅ 正式关闭**（离地 38cm±2/朝向一致✓/10.017Hz+200.03Hz 实测/照片 4 张在位=153ce32 blob 尺寸逐一吻合，git sta
