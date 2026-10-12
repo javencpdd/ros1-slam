@@ -1,0 +1,30 @@
+== A1 红线基准 现取（形状＝v5.3 §0.12.3 乙′ 五条断言）==
+时刻＝2026-10-13 00:00:45（只认 date）
+ 00:00:45 up  9:31,  3 users,  load average: 0.82, 2.45, 4.51
+--- 断言①：六 unit 的 systemd 态（is-enabled ／ is-active）---
+lite3-monitor.service        enabled   inactive
+lite3-ros-bridge.service     enabled   inactive
+transfer_ros2.service        enabled   inactive
+whoopsie.service             masked    failed
+apport-autoreport.path       masked    inactive
+apport-forward.socket        enabled   inactive
+--- 断言②：foxy／生产侧残留进程计数 ---
+0
+--- 断言③：样张 lite3.pcd sha256 ---
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34  data/maps/lite3.pcd
+--- 断言④：11312／11313 监听（TCP 与 UDP 分查）---
+0
+0
+--- 断言⑤：ros2qnx／qnx 关键字（红线）---
+2
+--- 环境三步是否混装（走 env.sh 后四变量）---
+ROS_DISTRO=noetic
+ROS_PACKAGE_PATH     foxy段=0 ysc段=0
+PYTHONPATH           foxy段=0 ysc段=0
+LD_LIBRARY_PATH      foxy段=0 ysc段=0
+CMAKE_PREFIX_PATH    foxy段=0 ysc段=0
+--- 榜首（证明本会话未起高耗源）---
+ 583114 root      2.7 [kworker/1:2H-kblockd]
+  11856 root      2.4 [kworker/2:2H-kblockd]
+   2744 ysc       2.3 /usr/NX/bin/nxnode.bin
+  10955 root      2.1 [kworker/4:0H+kblockd]
