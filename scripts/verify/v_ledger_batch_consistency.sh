@@ -55,7 +55,8 @@ GITSUB = re.compile(r'^[a-z+]+\(([^)]{1,80})\)')
 HDR = re.compile(r'更新时间：[^（]*（\s*R(\d{2,4}) 批同步')
 DOMAIN_MIN = int(os.environ.get('VLB_MIN_R', '140'))   # Z3 已裁：判定域下限 R140（旧缺省 100 的读数不回改，读时须带域）
 LAG_MAX = int(os.environ.get('VLB_LAG_MAX', '2'))       # Z3 已裁：档头滞后阈值 2 批
-FAIL_SET = os.environ.get('VLB_FAIL_SET', 'C2+C4')      # Z3 已裁：FAIL 集＝C2＋C4
+FAIL_SET = os.environ.get('VLB_FAIL_SET', 'C2+C4+C5')   # Z3 原裁＝C2＋C4；R237 主理人加裁「C5 入集，仅拦新增」⇒ 现缺省 C2＋C4＋C5
+C5_KNOWN_FILE = os.environ.get('VLB_C5_KNOWN') or os.path.join(ROOT, 'scripts/verify/batch_c5_known_lines.tsv')
 KNOWN_FILE = os.environ.get('VLB_KNOWN') or os.path.join(ROOT, 'scripts/verify/batch_known_findings.tsv')
 
 
@@ -127,7 +128,7 @@ def check(ov_text, subs, hdr_sub):
         d = ln[2:12]
         if d >= FMT_MIN and not FMT.match(ln):
             bad_fmt.append(d + '|' + ln[12:52].replace('\n', ''))
-    res['C5_行首不合规'] = {'数': len(bad_fmt), '样': bad_fmt[:4]}
+    res['C5_行首不合规'] = {'数': len(bad_fmt), '样': bad_fmt[:4], '样全': bad_fmt}
     res['_面'] = {'条目行': n_entry, '域内号数': len(set(ids)), '无自有号的条目行': n_entry - len(ids_raw),
                   '域外号数': len(set(x for x in ids_raw if x < DOMAIN_MIN)),
                   'git 提交': len(subs), 'git 域内号数': len(git_ids), '域下限': DOMAIN_MIN}
@@ -149,16 +150,35 @@ def load_known():
     return k
 
 
-def verdict(res, known):
-    """FAIL 集＝C2 新增（不在存量表）＋C4 滞后＞阈值；C1／C3 只报不判。"""
+def load_c5_known():
+    """C5 行首锁的存量基线（R237）：每行一个键，#开头为注释。缺文件 ⇒ 不判（rc=9）。"""
+    if not os.path.isfile(C5_KNOWN_FILE):
+        return None
+    ks = set()
+    for row in open(C5_KNOWN_FILE, encoding='utf-8', errors='ignore').read().splitlines():
+        if not row.strip() or row.startswith('#'):
+            continue
+        ks.add(row)
+    return ks
+
+
+def verdict(res, known, c5_known=None):
+    """FAIL 集＝C2 新增＋C4 滞后＞阈值＋（R237 加裁）C5 行首不合规之**新增**；C1／C3 仍只报不判。"""
+    judge = set(FAIL_SET.split('+'))
     c2_new = [x for x in res['C2']['missing_from_ledger'] if str(x) not in (known or {}).get('C2', {})]
     c2_old = [x for x in res['C2']['missing_from_ledger'] if str(x) in (known or {}).get('C2', {})]
     lag = res['C4']['lag']
-    c4_bad = (lag is not None and lag > LAG_MAX)
-    rc = 5 if (c2_new or c4_bad) else 0
+    c4_bad = ('C4' in judge and lag is not None and lag > LAG_MAX)
+    c5_bad_list = res['C5_行首不合规']['样全'] if 'C5' in judge else []
+    c5_new = [k for k in c5_bad_list if k not in (c5_known or set())]
+    c5_old = [k for k in c5_bad_list if k in (c5_known or set())]
+    rc = 5 if (c2_new or c4_bad or c5_new) else 0
     return {'rc': rc, 'C2_新增': c2_new, 'C2_存量命中': c2_old,
             'C4_判': ('滞后 %s 批＞阈值 %s ⇒ 拦' % (lag, LAG_MAX)) if c4_bad
                      else ('滞后 %s 批≤阈值 %s ⇒ 放' % (lag, LAG_MAX)),
+            'C5_判': (('不合规 %d 行＝新增 %d／存量 %d ⇒ %s' % (len(c5_bad_list), len(c5_new), len(c5_old),
+                     '拦' if c5_new else '放')) if 'C5' in judge else '只报不判（未入 FAIL 集）'),
+            'C5_新增': c5_new, 'C5_存量命中': len(c5_old),
             'FAIL集': FAIL_SET, '域下限': DOMAIN_MIN, '阈值': LAG_MAX}
 
 
@@ -175,6 +195,7 @@ def show(res, tag=''):
     print('%s[C5 行首自测锁（只报不判；日期≥%s 的条目行须以「- 日期：**R<号>」开头）] 不合规=%d 行%s' % (
         tag, os.environ.get('VLB_FMT_MIN_DATE', '2026-10-05'), c5['数'],
         ('｜样=' + str(c5['样'])) if c5['样'] else ''))
+    print('%s[C5 入集态] FAIL 集=%s ⇒ %s' % (tag, FAIL_SET, 'C5 已入集（仅拦新增）' if 'C5' in set(FAIL_SET.split('+')) else 'C5 只报不判'))
     m = res['_面']
     print('%s[面] 条目行=%d 域内号=%d 无自有号=%d 域外号=%d ｜ 判定域≥R%d ｜ git 提交=%d 域内号=%d' % (
         tag, m['条目行'], m['域内号数'], m['无自有号的条目行'], m['域外号数'], m['域下限'],
@@ -245,10 +266,20 @@ if MODE == 'selftest':
     ok9 = (r['C5_行首不合规']['数'] == 0 and r_bad['C5_行首不合规']['数'] == 1)
     print('[%s] T9 行首自测锁：合规桩须报 0 行、注入一行坏文体必须报出来（只报不判，但**报不出来＝锁失效**）：实得 干净=%s 注入=%s' % (
         'PASS' if ok9 else 'FAIL', r['C5_行首不合规']['数'], r_bad['C5_行首不合规']['数']))
+    # 注意：必须用**滞符合规的桩 r2**，否则 C4 先拦、C5 的对照就失去意义（R235 刚记过这条，T10 第一版又踩了）
+    bad2 = ov2 + '- 2026-10-11 09:00：R237 这批我把行首写成「日期 时:分：」老误形\n'
+    r_bad2 = check(bad2, subs, 'docs(R156): x')
+    k10 = set(r2['C5_行首不合规']['样全'])
+    v_new = verdict(r_bad2, kn, k10)                                        # 注入行不在基线 ⇒ 必须拦
+    v_old = verdict(r_bad2, kn, k10 | {r_bad2['C5_行首不合规']['样全'][0]})  # 同一行写进基线 ⇒ 必须放
+    ok10 = (v_new['rc'] == 5 and len(v_new['C5_新增']) == 1 and v_old['rc'] == 0 and v_old['C5_新增'] == [])
+    print('[%s] T10 C5 入集后：注入不在存量基线的坏行须拦（rc=5）、把同一行写进基线须放（rc=0）——**这条不绿＝"仅拦新增"是假的**：实得 拦=%s(新增%d) 放=%s' % (
+        'PASS' if ok10 else 'FAIL', v_new['rc'], len(v_new['C5_新增']), v_old['rc']))
+
     print('[例四] 缺存量表须 rc=9（不判绿）：由 shell 侧以 VLB_KNOWN=不存在路径 复跑断言（本批实测 rc=9）')
-    npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9])
-    print('BATCHCHECK SELFTEST VERDICT: PASS=%d FAIL=%d（九例：T1-T5 解析层／T6-T8 判定层／T9 行首锁）' % (npass, 9 - npass))
-    sys.exit(0 if npass == 9 else 9)
+    npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10])
+    print('BATCHCHECK SELFTEST VERDICT: PASS=%d FAIL=%d（十例：T1-T5 解析层／T6-T8 判定层／T9-T10 行首锁）' % (npass, 10 - npass))
+    sys.exit(0 if npass == 10 else 9)
 
 if not os.path.isfile(OVERVIEW):
     print('前置缺失：总览不在位 %s' % OVERVIEW)
@@ -270,10 +301,16 @@ if known is None:
     print('BATCHCHECK rc=9')
     sys.exit(9)
 show(res)
-v = verdict(res, known)
+c5k = load_c5_known()
+if 'C5' in set(FAIL_SET.split('+')) and c5k is None:
+    print('前置缺失：C5 存量基线不在位 %s ⇒ 不判（缺基线不判绿，同存量表语义）' % C5_KNOWN_FILE)
+    print('BATCHCHECK rc=9')
+    sys.exit(9)
+v = verdict(res, known, c5k)
 print('[判定] FAIL集=%s／域下限=R%d／滞后阈值=%d 批' % (v['FAIL集'], v['域下限'], v['阈值']))
 print('[判定] C2 新增=%s（拦）／C2 存量命中=%s（放，逐条带出处）' % (v['C2_新增'] or '无', v['C2_存量命中'] or '无'))
-print('[判定] C4 %s（C1／C3 只报不判）' % v['C4_判'])
+print('[判定] C4 %s' % v['C4_判'])
+print('[判定] C5 %s%s（C1／C3 只报不判）' % (v['C5_判'], ('｜新增样=' + str(v['C5_新增'][:2])) if v['C5_新增'] else ''))
 print('BATCHCHECK VERDICT: rc=%d（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）' % v['rc'])
 sys.exit(v['rc'])
 PYEOF
