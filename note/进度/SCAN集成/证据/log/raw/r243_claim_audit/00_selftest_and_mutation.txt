@@ -1,0 +1,40 @@
+# v_claim_field_audit.py（规矩⑨报告器，候选件）自测与变异对照 at=2026-10-13 02:49
+== 缺省五例 ==
+[PASS] 例一 阳性对照：同句无痕迹必须报出（桩里两行）（实得 2）
+[PASS] 例二 阴性对照：同句有 restored=True／rc=0 必须不报（实得 0）
+[PASS] 例三 元话语过滤：提到词不等于下结论，必须不报（实得 0）
+[PASS] 例四 撤掉降噪必须变多（证明那两条在起作用，不是装饰）（实得 1）
+[PASS] 例五 清单文件必须在位且面非空（缺＝前置不成立）（实得 63）
+CLAIMAUDIT SELFTEST VERDICT: PASS=5/5（五例，每例都必须能单独失败）
+  rc=0
+
+== 变异对照：把 TRACE 痕迹正则打成永不匹配（CFA_MUTATE_TRACE=off），例二（同句有痕迹须不报）必须转 FAIL ==
+  File "/tmp/cfa_mut.py", line 26
+    TRACE = re.compile(r"$^$") if os.environ.get("CFA_MUTATE_TRACE") == "off" else TRACE = re.compile(r'(?:[A-Za-z_][A-Za-z_0-9]{1,}|=)\s*[=＝]\s*\S|rc\s*=\s*\d|\bsha256\b|sha\s*前\s*12|'
+            ^
+SyntaxError: cannot assign to conditional expression
+  变异体 rc=1（期望 9）
+== 第二道变异：面清单缺失必须 rc=9（不判绿）==
+CLAIMAUDIT VERDICT: rc=9 —— 面清单读不到或为空（缺省＝/不存在的路径）；**空集不得判绿**
+  rc=9
+== 变异对照（第二版，注入语法修正后）：TRACE 正则永不匹配 ⇒ 例二「同句有痕迹须不报」必须转 FAIL ==
+变异手法＝副本内把 TRACE 换成 re.compile(r"$^$")（永不匹配），原件一字未动；副本放同目录（面清单按 __file__ 定位）、跑完即删
+[FAIL] 例一 阳性对照：同句无痕迹必须报出（桩里两行）（实得 0）
+[PASS] 例二 阴性对照：同句有 restored=True／rc=0 必须不报（实得 0）
+[PASS] 例三 元话语过滤：提到词不等于下结论，必须不报（实得 0）
+[PASS] 例四 撤掉降噪必须变多（证明那两条在起作用，不是装饰）（实得 2）
+[PASS] 例五 清单文件必须在位且面非空（缺＝前置不成立）（实得 63）
+CLAIMAUDIT SELFTEST VERDICT: PASS=4/5（五例，每例都必须能单独失败）
+变异体 rc=9（期望 9）
+
+== 变异对照第一版（我自己的设计错，照实记）：把 TRACE 换成 re.compile(r"$^$") 想表达"永不匹配"，
+   实测它**在空串上会匹配**（空行⇒has_trace=True）⇒ 翻的是例一（阳性例）而不是例二，
+   且当时我把 rc=9 当成"预期的那条例翻了"——与在册坑34／坑40 同族：变异注入自身也要验生效面。
+== 变异对照第二版（永不匹配的正则＝re.compile(r"(?!x)x")）：期望例二（同句有痕迹须不报）转 FAIL ==
+[PASS] 例一 阳性对照：同句无痕迹必须报出（桩里两行）（实得 2）
+[FAIL] 例二 阴性对照：同句有 restored=True／rc=0 必须不报（实得 1）
+[PASS] 例三 元话语过滤：提到词不等于下结论，必须不报（实得 0）
+[PASS] 例四 撤掉降噪必须变多（证明那两条在起作用，不是装饰）（实得 2）
+[PASS] 例五 清单文件必须在位且面非空（缺＝前置不成立）（实得 63）
+CLAIMAUDIT SELFTEST VERDICT: PASS=4/5（五例，每例都必须能单独失败）
+第二版 rc=9（期望 9）
