@@ -1,0 +1,19 @@
+=== ③乙 的 [10] 项存量面（11:34 现跑，走 env.sh 之后） ===
+ROS_PACKAGE_PATH   段数=2   foxy或/home/ysc残留=0
+PYTHONPATH         段数=2   foxy或/home/ysc残留=0
+LD_LIBRARY_PATH    段数=3   foxy或/home/ysc残留=0
+CMAKE_PREFIX_PATH  段数=2   foxy或/home/ysc残留=0
+ROS_DISTRO=noetic
+口径：以上是本会话工具链 shell 的现值；落地时须在主理人交互终端复测一次（不同 shell 的 foxy 残留可能不同）
+
+=== ①甲 的权限实证 ===
+# file: opt/3rdparty
+# owner: ros1-slam
+# group: ros1-slam
+user::r-x
+user:ysc:rwx
+group::r-x
+-rw-r--r-- 1 root root 28395498 Sep 16  2025 /usr/local/lib/liblivox_lidar_sdk_static.a
+livox_lidar_api.h
+livox_lidar_cfg.h
+livox_lidar_def.h
