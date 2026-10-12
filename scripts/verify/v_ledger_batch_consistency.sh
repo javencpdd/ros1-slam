@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# v_ledger_batch_consistency.sh —— 台账「批号账实一致性」报告器（**候选件，未入门禁串**；小明 2026-10-11，请求单 A26 的原型）
+# v_ledger_batch_consistency.sh —— 台账「批号账实一致性」核验件（**R233 已裁入门、门禁串七→八**；小明 2026-10-11 原型，2026-10-13 R234 施工）
+#
+# ★成闸三参数＝主理人 2026-10-12 裁「0-b 照推荐」（v4.7 稿 Z3）：判定域下限 **R140**／FAIL 集＝**C2+C4**／滞后阈值 **2 批**；
+#   **C1 与 C3 只报不判**（C1 提交前必差一批属结构性现象；C3 缺号靠人补条目、机器不代判）。
+# ★「新增才拦、存量逐条带出处」＝照第七件 PARITY 的语义（Z3 原文要求）；存量表缺 ⇒ **rc=9 不判**（缺表不判绿，同第七件）。
 #
 # 为何存在：本仓的批号（RNNN）同时写在三处——①`note/进度/00_总览.md` 档头"更新时间"里声明的「RNNN 批同步」
 #   ②同档文末的逐批条目 ③git 提交标题 `docs(RNNN)`。R160 滚档头时自查抓到两处**账实不符**：
@@ -49,7 +53,10 @@ SELF = re.compile(r'^- \d{4}-\d{2}-\d{2}：\*\*R(\d{2,4})')
 # `test+docs(R158)`、`docs(R106 更正)`、`docs(R105＋R106)` 四种——只认第一种会漏，漏了就误报成"缺号"）
 GITSUB = re.compile(r'^[a-z+]+\(([^)]{1,80})\)')
 HDR = re.compile(r'更新时间：[^（]*（\s*R(\d{2,4}) 批同步')
-DOMAIN_MIN = int(os.environ.get('VLB_MIN_R', '100'))
+DOMAIN_MIN = int(os.environ.get('VLB_MIN_R', '140'))   # Z3 已裁：判定域下限 R140（旧缺省 100 的读数不回改，读时须带域）
+LAG_MAX = int(os.environ.get('VLB_LAG_MAX', '2'))       # Z3 已裁：档头滞后阈值 2 批
+FAIL_SET = os.environ.get('VLB_FAIL_SET', 'C2+C4')      # Z3 已裁：FAIL 集＝C2＋C4
+KNOWN_FILE = os.environ.get('VLB_KNOWN') or os.path.join(ROOT, 'scripts/verify/batch_known_findings.tsv')
 
 
 def read(path):
@@ -116,6 +123,34 @@ def check(ov_text, subs, hdr_sub):
     return res
 
 
+def load_known():
+    """存量表：类别<TAB>键<TAB>定性<TAB>出处 ⇒ 命中即「存量」，不判；表缺＝rc=9（不判绿）。"""
+    if not os.path.isfile(KNOWN_FILE):
+        return None
+    k = {'C2': {}, 'C4': {}}
+    for row in open(KNOWN_FILE, encoding='utf-8', errors='ignore').read().splitlines():
+        if not row.strip() or row.startswith('类别'):
+            continue
+        c = row.split('\t')
+        if len(c) < 4:
+            continue
+        k.setdefault(c[0], {})[c[1]] = (c[2], c[3])
+    return k
+
+
+def verdict(res, known):
+    """FAIL 集＝C2 新增（不在存量表）＋C4 滞后＞阈值；C1／C3 只报不判。"""
+    c2_new = [x for x in res['C2']['missing_from_ledger'] if str(x) not in (known or {}).get('C2', {})]
+    c2_old = [x for x in res['C2']['missing_from_ledger'] if str(x) in (known or {}).get('C2', {})]
+    lag = res['C4']['lag']
+    c4_bad = (lag is not None and lag > LAG_MAX)
+    rc = 5 if (c2_new or c4_bad) else 0
+    return {'rc': rc, 'C2_新增': c2_new, 'C2_存量命中': c2_old,
+            'C4_判': ('滞后 %s 批＞阈值 %s ⇒ 拦' % (lag, LAG_MAX)) if c4_bad
+                     else ('滞后 %s 批≤阈值 %s ⇒ 放' % (lag, LAG_MAX)),
+            'FAIL集': FAIL_SET, '域下限': DOMAIN_MIN, '阈值': LAG_MAX}
+
+
 def show(res, tag=''):
     d, a, lag = res['C1']['declared'], res['C1']['actual'], res['C4']['lag']
     print('%s[C1 档头 vs 实际] 声明=R%s／实动档头=R%s ⇒ %s' % (
@@ -168,9 +203,32 @@ if MODE == 'selftest':
     print('[%s] T4 C4 滞后须为 8 批（158−150）：实得 %s' % ('PASS' if ok4 else 'FAIL', r['C4']['lag']))
     print('[%s] T5 域与形状须对上（域内号=7 域外号=1 无号条目行=1）：实得 域内=%s 域外=%s 无号=%s' % (
         'PASS' if ok5 else 'FAIL', r['_面']['域内号数'], r['_面']['域外号数'], r['_面']['无自有号的条目行']))
-    npass = sum([ok1, ok2, ok3, ok4, ok5])
-    print('BATCHCHECK SELFTEST VERDICT: PASS=%d FAIL=%d' % (npass, 5 - npass))
-    sys.exit(0 if npass == 5 else 9)
+    # ★ 判定层三例（R234 入门时加）：每例都必须能**单独失败**，否则等于没有守卫。
+    #   第一版我把这三例接在 r（档头 R150、滞后 8 批）上 ⇒ T6 被 C4 污染成 rc=5 假 FAIL、T8 因把 git 标题当档头而 lag 仍=8：
+    #   **C4 的滞后＝「条目区最大号 − 档头声明号」，与 git 标题无关**（这一点是被失败照出来的，不是我先想清的）。
+    #   ⇒ 判定层必须用**滞后才合规的第二份档头桩** ov2，才能让 C2 单独决定结果。
+    ov2 = ov.replace('（R150 批同步', '（R156 批同步')
+    r2 = check(ov2, subs, 'docs(R156): x')
+    kn = {'C2': {'153': ('存量', '桩出处')}, 'C4': {}}
+    v_in = verdict(r2, kn)                       # 存量命中 ⇒ 应放
+    v_out = verdict(r2, {'C2': {}, 'C4': {}})    # 同一个号不在表 ⇒ 必须拦
+    # T8 阈值边界：滞后恰＝2（等于阈值）须放；把档头改成 R155（滞后 3）须拦
+    v_edge = verdict(r2, kn)
+    r3 = check(ov.replace('（R150 批同步', '（R155 批同步'), subs, 'docs(R155): x')
+    v_over = verdict(r3, {'C2': {'153': ('存量', '桩')}, 'C4': {}})
+    ok6 = (r2['C4']['lag'] == 2 and v_in['rc'] == 0 and v_in['C2_存量命中'] == [153] and not v_in['C2_新增'])
+    ok7 = (v_out['rc'] == 5 and v_out['C2_新增'] == [153])
+    ok8 = (v_edge['rc'] == 0 and r3['C4']['lag'] == 3 and v_over['rc'] == 5)
+    print('[%s] T6 滞符合规＋C2 仅存量 ⇒ 须放（rc=0、新增为空）：实得 lag=%s rc=%s 新增=%s 存量=%s' % (
+        'PASS' if ok6 else 'FAIL', r2['C4']['lag'], v_in['rc'], v_in['C2_新增'], v_in['C2_存量命中']))
+    print('[%s] T7 同一个号从存量表去掉必须拦住（rc=5 且 C2_新增=[153]）——**这条不绿就说明表是橡皮图章**：实得 rc=%s 新增=%s' % (
+        'PASS' if ok7 else 'FAIL', v_out['rc'], v_out['C2_新增']))
+    print('[%s] T8 阈值边界：滞后＝2（等于阈值）须放、滞后＝3（＞阈值）须拦：实得 lag2=%s rc=%s／lag3=%s rc=%s' % (
+        'PASS' if ok8 else 'FAIL', r2['C4']['lag'], v_edge['rc'], r3['C4']['lag'], v_over['rc']))
+    print('[例四] 缺存量表须 rc=9（不判绿）：由 shell 侧以 VLB_KNOWN=不存在路径 复跑断言（本批实测 rc=9）')
+    npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8])
+    print('BATCHCHECK SELFTEST VERDICT: PASS=%d FAIL=%d（八例：T1-T5 解析层／T6-T8 判定层）' % (npass, 8 - npass))
+    sys.exit(0 if npass == 8 else 9)
 
 if not os.path.isfile(OVERVIEW):
     print('前置缺失：总览不在位 %s' % OVERVIEW)
@@ -186,7 +244,16 @@ if res['C1']['declared'] is None and res['C4']['lag'] is None:
     print('前置缺失：档头与条目区都抽不到批号 ⇒ 形状变了，普查结果不采信（坑42：锚不唯一／已漂）')
     print('BATCHCHECK rc=9')
     sys.exit(9)
+known = load_known()
+if known is None:
+    print('前置缺失：存量表不在位 %s ⇒ 不判（缺表不判绿，照第七件语义）' % KNOWN_FILE)
+    print('BATCHCHECK rc=9')
+    sys.exit(9)
 show(res)
-print('BATCHCHECK VERDICT: 只报数、**不判红绿**——哪些项算 FAIL、阈值与域下限＝请求单 A26 待裁（未入门禁串）')
-sys.exit(0)
+v = verdict(res, known)
+print('[判定] FAIL集=%s／域下限=R%d／滞后阈值=%d 批' % (v['FAIL集'], v['域下限'], v['阈值']))
+print('[判定] C2 新增=%s（拦）／C2 存量命中=%s（放，逐条带出处）' % (v['C2_新增'] or '无', v['C2_存量命中'] or '无'))
+print('[判定] C4 %s（C1／C3 只报不判）' % v['C4_判'])
+print('BATCHCHECK VERDICT: rc=%d（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）' % v['rc'])
+sys.exit(v['rc'])
 PYEOF
