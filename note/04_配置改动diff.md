@@ -1781,3 +1781,21 @@
 - **两条过程中的自己错（都当场修掉、没进仓）**：①我在插入的正文里又用 ASCII 双引号嵌套 ⇒ `SyntaxError`（本会话第 N 次同型，仍是"写进册≠下一条不再犯"）；②结论行初版用字符串拼接让 PYST 的"占位符数 vs 实参数"对不上（`[FAIL] :414 占位符=1 字面元组实参=7`）⇒ 改成单模板 `%` 一次喂齐，PYST 转 OK——**这条静态检真拦住了一次会在线上炸的错**。
 
 - **零改动面**＝未动被测件面（SM／LIB／`so`，仍 H14）、未编译、**本批未起窗、未取任何活体读数**、无 sudo、无 FORCE、门禁串仍八件、除 Z6 已裁的这条纳入外**未改任何门值**、零他人志文改动。**P8**＝现行以 v5.3 为准，本件不是终稿；只报施工完成。
+
+## R240（2026-10-13 02:10）｜#121＝A34③乙 已裁项落地：**ISO 新增第 [10] 项**（四变量全表＋rospack 全量＋python import 来源）｜首跑即逮到一条**真实既存越界** ⇒ 新开 **A35**，施工侧不自豁免
+
+- **改动面**＝仅 `scripts/verify/v3_isolation.sh` 91→150 行（净 +59）。新增第 [10] 项：`ISO_ROOT`／`ISO_ALLOW` 白名单＋`in_allow()` 前缀匹配＋四变量逐段核＋`rospack list` 全量核＋`import rospy`／`import numpy` 来源核。自测块由七例升**十例**（新增 T5 变量段注入须拦／T5b 撤除须回绿／T6 import 来源落面外须拦），并给 `expect()` 加**指认锁**＝拦例必须在输出里命中该项专属串，否则「本例不作数」（把 R44「不可指认的 rc 不采信」第一次落到自测件自己身上）。自证行新增两字段 `user=`／`home=`：第 [10] 项的 import 结论**取决于运行账户**，不留这两格，归档件就得反推是谁跑的。**[1]–[9] 九条判据原文一字未动、门值一字未动、门禁串仍＝八件**（本批没加件，只给在册件补一项，依据＝主理人已裁 A34③乙）。件版本 sha256 前 12＝`8e2c2c023a3f`。
+
+- **首跑读数（双 source 后真实环境，未注入任何东西）**：`[ROS_PACKAGE_PATH] 段数=2 越界=0`／`[PYTHONPATH] 段数=2 越界=0`／`[LD_LIBRARY_PATH] 段数=3 越界=0`／`[CMAKE_PREFIX_PATH] 段数=2 越界=0`／`[rospack list] 包数=348 解析到白名单外=0`／`[import rospy] 来源=/opt/ros/noetic/lib/python3/dist-packages/rospy/__init__.py（在允许面内）`／**`[import numpy] 来源=/home/ysc/.local/lib/python3.8/site-packages/numpy/__init__.py ⇒ 越界`** ⇒ **ISO rc=1**。留底 `r240_iso_item10/00_iso_item10_realrun.txt`。
+
+- ★**第一版把守卫写坏了，靠"同一份环境两态对账"照出来（已修，进坑册）**：`in_allow()` 初版＝**整段全等**匹配 ⇒ 项目自己的合法子路径全判越界。实测（同一环境、零注入）四变量四行全红，首条越界分别是 `ws/src`、`ws/devel/lib/python3/dist-packages`、`ws/devel/lib`、`ws/devel`，外加 `[rospack list] 解析到白名单外=37`（348 包里 37 个其实在面内）——**红全来自判据件自身**。改前缀匹配后＝四行 0/0/0/0、`37→0`。⇒ 归 `02` 坑34 一族追加例（R240），落成动作＝**新判据首跑必须先在"零注入"面跑一遍，每条红逐条问「这是真越界还是我的面写窄了」，两态对照留底**（`06_whitelist_exact_match_bug.txt`）。
+
+- **同批修掉的第二个坑（自测基线假红）**：副本继承真实环境 ⇒ 第 [10] 项读的是"跑自测的这台机器"，**T0 基线必然红 ⇒ 十例全不作数**。修法＝副本自带沙箱四变量（`SP_RPP`／`SP_PYP`／`SP_LD`／`SP_CM`）＋`rospack list` 走桩并**加一条 grep 断言证明桩替换真生效**（防 sed 静默 no-op＝坑34 的"口子生效性必须是被测项"）＋import 走沙箱模块＋白名单由父进程传＋`runit` 改进子 shell（防 T4 注入的 env 漏给后续例）。实测**自测 `PASS=10/10`、rc=0**；**指认锁自己也做了反向对照**＝把 T6 的指认串换成输出里不存在的串 ⇒ 必须转 `PASS=9/10`、rc=9（实测如此，`02_attribution_lock_mutation.txt`）＝**锁能失败才算锁**。
+
+- ★**第 [10] 项逮到的这条不是假阳性，是新裁项 A35（只报数、不自判案、不自豁免）**：本会话所有命令、门禁串与**五扇活体窗都在 `ysc` 账户下跑**（现跑 `whoami=ysc`、`HOME=/home/ysc`；`/home/ros1-slam` 属主＝`ros1-slam:ros1-slam`，靠 ACL 读写）。python 的 user-site 机制把 `/home/ysc/.local/lib/python3.8/site-packages`（**185 条**，含 `evo`／`cv2`／`dash` 等旧站工具）自动塞进 `sys.path` ⇒ `numpy.__version__`＝**1.23.1（ysc 私有）**。`/home/ros1-slam/.local` 不存在 ⇒ 换 ros1-slam 身份或置 `PYTHONNOUSERSITE=1`，numpy 一律回落 **1.19.4（`/usr/local/lib/python3.8/dist-packages`，在白名单内）**；`scipy` 两态同为 1.5.3、`yaml` 两态同为 5.3.1、`rospy` 两态同在 `/opt/ros/noetic`。扫描 harness 的真实 import 面＝`numpy scipy rospy tf json math os re subprocess sys time collections`＋ROS 消息件，**不含任何 ysc 独有件**（`cv2`／`evo` 零出现；`cv2` 在掐 user-site 后还会因 numpy 版本错配 ImportError）。⇒ 三条后果写死：①「ros1-slam 不依赖 `/home/ysc`」这条红线**文件面 0 命中仍成立、执行面不成立**；②本会话五扇窗的 numpy 来源是 ysc 私有件 ⇒ **跨态读数不同基、不得混引**（与 `07` 表 H14 混引禁令同族）；③ISO rc=1 之后，凡前置写「共同门禁 ISO OK」的活体窗**自动不成立**。取证 `03_account_dependency_finding.txt`。**换身份的载体已在册**＝`scripts/as_ros1slam.sh`（须 root），施工侧不自行调用。四案代价与勾法见本轮呈报，待办 **#129** 已建。
+
+- **八件串当代基线（02:05，双 source 后）**＝SYN rc=0（被检件数 **83**、内嵌 python 段 46）／GTC rc=0（14 版＝**H14**）／**ISO rc=1（第 [10] 项的真红，非自造）**／DC rc=1（在册已知态）／PYST rc=0（范围甲 50 件）／VAR `PASS=8 FAIL=0`（清单建好后复跑）／PARITY rc=0（`json=71`、已知 7、**新增 0**；56→71 属证据面增长＝覆盖面变化非新红，A32⑧ 口径）／账构 rc=0。留底 `04_gate8_chain.txt`。
+
+- **反扫（本批改完立刻跑，不再事后补）**＝`v_citation_refscan.sh scripts/verify/v3_isolation.sh` 报 **2 处**按行号引用漂，**与 #126 是同一对**（第二次跳）：`o1_到达信号与联锁设计.md` 引 `[6]` 实现旧 25–28 → 现 **98–99**（标题行 97）；`仿真测试台/设计稿/I_方向四先行子集…` 引 `[9]` 实现旧 35 → 现 **107**（标题行 106）。**他人稿不代改** ⇒ **#126 状态刷新为"两跳未清偿"**，并附新旧对照（`05_refscan_line_drift.txt`）。⇒ 落成动作＝在册引用**改判据项号 `[6]`／`[9]` 而不是行号**（项号不随自测块增删而漂），这句已进 `05` 追加二十三。
+
+- **零改动面**＝未动被测件面（SM／LIB／`so` 仍 **H14**）、未编译、**未起窗、未取任何活体读数**、无 sudo、无 FORCE、[1]–[9] 与全部门值一字未动、门禁串仍**八件**、零他人志文改动。**P8**＝现行以 **v5.3** 为准，**本件不是终稿**；只报施工完成，不声称阶段收口。

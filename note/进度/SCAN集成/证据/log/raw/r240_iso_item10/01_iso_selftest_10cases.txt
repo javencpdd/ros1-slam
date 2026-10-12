@@ -1,0 +1,12 @@
+[PASS] T0 未变异副本必须全绿（红只能来自注入，不能来自沙箱本身）（期望 放／rc=0，实得 rc=0）
+[PASS] T1a 壳包注入 /home/ysc 硬编码 ⇒ [2] 与 [8] 必须红（期望 拦／rc≠0，实得 rc=1）
+[PASS] T1b 撤掉注入必须回绿（否则 T1a 的红可能来自别的因素）（期望 放／rc=0，实得 rc=0）
+[PASS] T2 平级 lite3_* 互 include ⇒ [5] 必须红（期望 拦／rc≠0，实得 rc=1）
+[PASS] T2b TOP 编排层（lite3_bringup）include 必须仍被豁免（P7 裁决在位；误删豁免即红）（期望 放／rc=0，实得 rc=0）
+[PASS] T3 40_navigation 壳包混进 .cpp ⇒ [9] 必须红（期望 拦／rc≠0，实得 rc=1）
+[PASS] T4 ROS_PACKAGE_PATH 混入 /home/ysc ⇒ [1] 必须红（期望 拦／rc≠0，实得 rc=1）
+[PASS] T5 PYTHONPATH 混入白名单外段 ⇒ [10] 必须红（期望 拦／rc≠0，实得 rc=1）｜指认＝命中「越界=1」
+[PASS] T5b 撤掉该段必须回绿（证明 T5 的红来自注入而非沙箱本身）（期望 放／rc=0，实得 rc=0）
+[PASS] T6 import 来源落在白名单外（沙箱外模块）⇒ [10] 的 import 支路必须红（期望 拦／rc≠0，实得 rc=1）｜指认＝命中「⇒ 越界｜运行账户=」
+ISOLATION SELFTEST VERDICT: PASS=10/10（十例：T0 基线／T1a-b 注入与撤除／T2 互 include／T2b 豁免／T3 算法源码／T4 混装／T5-b [10] 变量段拦与撤／T6 [10] import 来源拦）
+selftest rc=0

@@ -1,0 +1,35 @@
+# 第 [10] 项逮到的既存越界：库来源随运行账户而变（本会话全部窗与门禁都在 ysc 身份下跑）at=2026-10-13 02:06
+== 身份实测 ==
+whoami=ysc uid=1000 HOME=/home/ysc
+ros1-slam:x:1001:1003::/home/ros1-slam:/bin/bash
+ysc:x:1000:1000:ysc,,,:/home/ysc:/bin/bash
+项目目录属主：ros1-slam:ros1-slam  （本会话以 ysc 身份经 ACL 读写）
+
+== 已在册的换身份载体（需 root）==
+#!/usr/bin/env bash
+# as_ros1slam.sh —— 以 ros1-slam 身份执行单条命令（root 调用；ysc 经 sudo 代劳）
+# 用法: sudo bash /home/ros1-slam/scripts/as_ros1slam.sh '<命令>'
+#
+# ★ 非交互 bash 不加载 .bashrc 尾部环境段（Ubuntu .bashrc 顶部对非交互 shell 直接 return），
+#   本脚本不依赖 .bashrc。需要 ROS 环境时在命令串里显式 source：
+
+== python user-site 注入面 ==
+['/home/ros1-slam/ws/devel/lib/python3/dist-packages', '/opt/ros/noetic/lib/python3/dist-packages', '/usr/lib/python38.zip', '/usr/lib/python3.8', '/usr/lib/python3.8/lib-dynload', '/home/ysc/.local/lib/python3.8/site-packages', '/usr/local/lib/python3.8/dist-packages', '/usr/local/lib/python3.8/dist-packages/torchvision-0.16.1-py3.8-linux-aarch64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python3.8/dist-packages']
+ysc user-site 条目数=185（含 evo／cv2／dash 等旧站工具）
+ros1-slam 有无 user-site：ls: cannot access '/home/ros1-slam/.local': No such file or directory
+
+== 两态对照（同一次 source 之后）==
+numpy    现态(开 user-site)=1.23.1 /home/ysc/.local/lib/python3.8/site-packages/numpy/__init__.py
+         掐 user-site  =1.19.4 /usr/local/lib/python3.8/dist-packages/numpy/__init__.py
+scipy    现态(开 user-site)=1.5.3 /usr/local/lib/python3.8/dist-packages/scipy/__init__.py
+         掐 user-site  =1.5.3 /usr/local/lib/python3.8/dist-packages/scipy/__init__.py
+yaml     现态(开 user-site)=5.3.1 /usr/lib/python3/dist-packages/yaml/__init__.py
+         掐 user-site  =5.3.1 /usr/lib/python3/dist-packages/yaml/__init__.py
+rospy    现态(开 user-site)=- /opt/ros/noetic/lib/python3/dist-packages/rospy/__init__.py
+         掐 user-site  =- /opt/ros/noetic/lib/python3/dist-packages/rospy/__init__.py
+
+== 扫描 harness 的真实 import 面（是否依赖 ysc 独有件）==
+collections gazebo_msgs geometry_msgs json math nav_msgs numpy os p1_occ_sample p2_goal_plan re rospy scan_planner scipy sensor_msgs std_msgs subprocess sys tf time 
+结论（只报数不判案）：harness 的 import 面里 numpy／scipy／rospy／tf／消息件在掐掉 user-site 后仍全部解析到 /usr 或 /opt/ros 面内（yaml 在 harness 面内零出现，仅一并核其来源稳定），
+  唯一变化＝numpy 由 1.23.1（ysc 私有）降到 1.19.4（系统）⇒ 本会话历史 5 扇窗的 numpy 来源＝/home/ysc/.local，跨态读数不同基。
+  ysc 独有的 cv2／evo 在 harness import 面内＝零出现（cv2 在掐 user-site 后还会因 numpy 版本错配 ImportError）。

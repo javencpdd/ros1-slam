@@ -1,0 +1,13 @@
+# 第 [10] 项首版白名单写错的账（我自己的件缺陷，靠同一份环境两态对账照出来）at=2026-10-13 02:07
+首版形状＝整段全等匹配：case ":$ISO_ALLOW:" in *":$s:"\* ＋ 少量通配
+后果（同一份环境、未注入任何东西）＝四变量四行全红（ROS_PACKAGE_PATH／PYTHONPATH／LD_LIBRARY_PATH／CMAKE_PREFIX_PATH 各 越界=1，
+  首条越界分别是 /home/ros1-slam/ws/src、ws/devel/lib/python3/dist-packages、ws/devel/lib、ws/devel——全是项目自己的合法子路径）
+  ＋ rospack list 报「解析到白名单外=37」（348 包里 37 个真在白名单根之下）⇒ ISOLATION FAILED 全因判据件自身。
+现版形状＝前缀匹配（段＝表内项本身或其子目录 ⇒ 在面内）
+后果（同一份环境）＝四变量 越界=0／0／0／0，rospack 包数=348 白名单外=0；仍红的只剩 import 支路一条（真实既存越界，见 03）。
+定性＝「守卫自身坏掉而输出好看」家族第三例（前两例＝R235 的 expect 比错、插字面 $W）；本批用「同一份环境两态对账」把它照出来，
+  并给自测加了 T0 基线必须绿＋指认锁（02 号件反向证明该锁能失败）。
+== 复跑法 ==
+  改前态：git show HEAD:scripts/verify/v3_isolation.sh（该版含整段全等匹配）→ 双 source 后跑，四行应全报 越界=1
+  改后态：bash scripts/verify/v3_isolation.sh → 四行应全报 越界=0、rospack 白名单外=0
+件版本 sha256 前 12＝8e2c2c023a3f
