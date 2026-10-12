@@ -1,0 +1,19 @@
+== VCC 缺省窗宽 ±60→±40（Z4 已裁，R233 执行）读数对照 ==
+2026-10-13 00:28
+--- ±40（新缺省，件自打印四元组）---
+[计数] 文档=63 单点引用=744 OK=608 RED=1 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+[四元组] 件版本=v_citation_check.sh 本件现身（sha=a42627ebd331）／扫描面=63 件／窗宽=±40（缺省，可被 VCC_FIXUP_CHARS 覆盖）／列名=文档,单点引用,OK,RED,AMBER,勘误句,非单点形状,豁免红,豁免表命中,豁免表未命中
+VCC VERDICT rc=6（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+--- ±60（旧缺省，显式覆盖）---
+[计数] 文档=63 单点引用=744 OK=585 RED=1 AMBER=43 勘误句=112（不判红）非单点形状=172（不判红）豁免红=3（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+[四元组] 件版本=v_citation_check.sh 本件现身（sha=a42627ebd331）／扫描面=63 件／窗宽=±60（缺省，可被 VCC_FIXUP_CHARS 覆盖）／列名=文档,单点引用,OK,RED,AMBER,勘误句,非单点形状,豁免红,豁免表命中,豁免表未命中
+VCC VERDICT rc=6（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+--- RED 明细（两档相同＝无新硬错）---
+[RED] 06_三态通道普查.md ⇒ ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch:15 越界（该文件 12 行）
+[RED] 06_三态通道普查.md ⇒ ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch:15 越界（该文件 12 行）
+--- 件版本 sha（改前／改后）---
+4dca28b05a49dc4a3f7bb52505ab9deab6bb2059578aec0157a4063092982e9a  /tmp/vcc_before_r233.sh
+a42627ebd331b4d8d9a1bb55d483b007a9b93ba56627da6dd139325b0c082924  scripts/verify/v_citatio
+--- 自测 ---
+VCC SELFTEST VERDICT: PASS=11 FAIL=0
+VCC rc=0

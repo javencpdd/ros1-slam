@@ -35,6 +35,8 @@
 set -u
 ROOT="${VCC_ROOT:-/home/ros1-slam}"
 cd "$ROOT" || { echo "前置缺失：仓根 $ROOT 不在位"; echo "VCC VERDICT rc=9"; exit 9; }
+# 件版本留名（Z4 四元组之一）：内嵌 python 里 __file__＝<stdin> 拿不到自身 ⇒ 在 shell 层算完再传进去
+export VCC_SELF_SHA="$(sha256sum "$0" 2>/dev/null | cut -c1-12)"
 MODE="scan"
 case "${1:-}" in
   --selftest) MODE="selftest"; shift ;;
@@ -57,11 +59,12 @@ KEY_BARE = re.compile(r'^\s+([A-Za-z_][A-Za-z0-9_\-.:]{3,})')
 # 中文标签只在**形如编号**时才当键名（坑NN／RNN／ANN／FD-N…）：普通中文散文紧跟引用是常态，一律当键名会假红一片
 KEY_CJK_LABEL = re.compile(r'^\s+(坑\d{1,3}|[A-Z]{1,3}\d{1,4}[a-z]?|FD-\d{1,2}|G\d{1,2})')   # 只认"编号型"标签；纯中文散文一律不当键名（防假红）
 FIXUP = re.compile(r'写成|实为|勘误|应为|误为|改成|更正|原文不回改|已删|已移除|不在位|历史|当时|曾为')
-# 勘误关键词的搜索窗（A25 乙案要量的就是这一窗）：缺省 ''＝现行形状（引用前 60 字＋后 60 字，**可跨行**）；
+# 勘误关键词的搜索窗（A25 乙案要量的就是这一窗）：**缺省＝引用前 40 字＋后 40 字（可跨行）**——2026-10-12 主理人裁「改 ±40，并把四元组留名升为在册规矩」＝v4.7 稿 **Z4**（追认范围＝A32①），R233 起生效；
+#   **旧值 ±60 的历史读数不回改**（R163 那次对照就是 ±60 面上取的），引用 VCC 数一律带四元组（件版本／扫描面／窗宽／列名，件已在末行自打印窗宽与面件数）；
 # VCC_FIXUP_MODE=same_line ⇒ 只在**同一行内**找关键词。开与不开都不改 RED/AMBER/OK 的判据本体，只动 FIXUP 档的归属。
 FIXUP_MODE = os.environ.get('VCC_FIXUP_MODE', '')
 # 窗口宽度做成旋钮（VCC_FIXUP_CHARS，缺省 60＝现行）：本仓志文常一行数百字，『收成同一行』在长行下是**放宽**不是收紧（实测见 04 R163），所以只能按字数扫，不能靠语感定方向。
-FIXUP_CHARS = int(os.environ.get('VCC_FIXUP_CHARS', '60') or 60)
+FIXUP_CHARS = int(os.environ.get('VCC_FIXUP_CHARS', '40') or 40)
 EXEMPT = {}          # 目标相对路径:行 -> (定性, 出处)  ⇒ 命中则越界不判红、单列 EXEMPT
 EXEMPT_HITS = []     # judge() 每次调用重建
 EXEMPT_SEEN = set()  # **跨文档累计**：本次扫描真命中过的表键 ⇒ 没出现的就是陈旧条目（只报不红）
@@ -545,6 +548,8 @@ print('[计数] 文档=%d 单点引用=%d OK=%d RED=%d AMBER=%d 勘误句=%d（�
          len(EXEMPT_SEEN), len(_stale), '（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）' if _stale else ''))
 print_face_line()
 rc = 6 if allr else (5 if alla else 0)
+print('[四元组] 件版本=v_citation_check.sh 本件现身（sha=%s）／扫描面=%d 件／窗宽=±%d（缺省，可被 VCC_FIXUP_CHARS 覆盖）／列名=文档,单点引用,OK,RED,AMBER,勘误句,非单点形状,豁免红,豁免表命中,豁免表未命中' % (
+        os.environ.get('VCC_SELF_SHA','未知'), scanned, FIXUP_CHARS))
 print('VCC VERDICT rc=%d（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）' % rc)
 sys.exit(rc)
 PYEOF
