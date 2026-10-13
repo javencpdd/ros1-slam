@@ -4,8 +4,9 @@
 # ★面取自 **git 索引** ⇒ **未跟踪的新件天然不在面内**（R270 实测：新件落盘未 stage 时 83、stage 后 84）。
 # 每批用法（在册调用式，清单数与现拼数须并打）：
 #   grep -vE "^ *(#|$)" scripts/verify/syn_face.txt | xargs bash scripts/verify/v_sh_py_syntax.sh
-# 建单时间：2026-10-14 01:28（R273）；建单时条目数=84；佳文裁单当日在册读数＝83（其时新件 v_window_preflight.sh 未入），差 1 属覆盖面变化、非新红。
 # ★踩过的坑（R273 建单当场）：**xargs 不会跳过 # 注释行**——本清单头含派生式与说明，若直接 `xargs … < 本文件`，注释里的词会被当文件名传进件，实测 SYN 报「被检件数=130 语法 FAIL」、PYST 报「被检件数=125 FAIL」⇒ **是喂法错、不是盘上有语法红**（正确喂法见上行；对照＝剥注释后 SYN 84/46 OK、PYST 51 OK）。
+# 刷新记录：2026-10-14 01:40（R274）＝新建运行器 scripts/verify/run_gate_chain.sh 入索引 ⇒ 本清单由 84 刷到 **85**；同批并打两数：清单数 84（刷前）↔ 现拼数 85 ⇒ 差 1 属覆盖面变化、非新红（在册读法见 05 追加三十）。建单当日为 84（佳文裁单当日 83）。
+
 note/进度/仿真测试台/证据/log/matrix_w2/scripts/m2_w2_localcmp.sh
 note/进度/仿真测试台/证据/log/matrix_w2/scripts/w2_t1_smoke.sh
 note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_survey_run.sh
@@ -37,6 +38,7 @@ scripts/mapping/m_viz.sh
 scripts/ops/b3_pre_chown.sh
 scripts/ops/passability_pre_acl.sh
 scripts/verify/premap_check.sh
+scripts/verify/run_gate_chain.sh
 scripts/verify/v3_isolation.sh
 scripts/verify/v_citation_check.sh
 scripts/verify/v_citation_refscan.sh
