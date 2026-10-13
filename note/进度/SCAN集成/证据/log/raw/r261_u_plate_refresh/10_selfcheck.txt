@@ -1,0 +1,32 @@
+# 10_定稿后自证｜2026-10-13 09:14:29
+-- u 稿单件 VCC --
+VCC VERDICT rc=0（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+-- u 稿单件 规矩⑨ --
+[计数] 含结论强度词行=2 其中**须人读**=0
+CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）
+-- 63 件面 --
+[计数] 文档=63 单点引用=744 OK=608 RED=1 AMBER=45 勘误句=83（不判红）非单�
+-- LCB --
+LCB VERDICT: 与基线逐项同值
+-- 账构 --
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+-- 动作㉒ 升级后的三份计数（首轮即通过）--
+04=1 README=1 总览=2
+-- 六件 sha（本批未动，供 §23 表内值核对）--
+a42627ebd331 scripts/verify/v_citation_check.sh
+ce02c8c27b49 scripts/verify/v_ledger_citation_baseline.sh
+92e5802af26d scripts/verify/v_citation_refscan.sh
+e6b6bd7173e8 scripts/verify/v_claim_field_audit.py
+70456ba9b1cb scripts/verify/v_ledger_batch_consistency.sh
+8301d38b1581 ws/src/95_simulation/lite3_gazebo_sim/verify/v_rd_archive_selftest.sh
+
+## 追加：本批第三处同型自纠的复验（"描述计数会改动计数"）
+  改前 §23 内引的值＝`含结论强度词行=262`；§23 落笔后面读数＝263（本节自己把分母推高一格）
+  改后（两处都改成定稿值 263）连续复跑两次＝
+  
+  ⇒ 值已稳定＝**263**；u 稿内仍出现两次"262"＝那两处是**指着自己说"本节把这格从 262 推到 263"的自指说明**，不是引用错值
+  面数与基线：[计数] 文档=63 单点引用=744 OK=608 RED=1 AMBER=45 勘误句=83（不判红）非
+  LCB：LCB VERDICT: 与基线逐项同值
