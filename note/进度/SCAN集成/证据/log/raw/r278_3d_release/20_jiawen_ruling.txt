@@ -1,0 +1,13 @@
+【主理人-佳文 · A44 裁定回件（逐字转录；施工侧转录时刻 2026-10-14 04:25）】
+
+核查毕（只读）：`v3_isolation.sh` sha 尾行＝8e2c2c023a3f（现算同值，四跑相同属实）；`run_gate_chain.sh` 第 38 行 ISO 支确无该 export；`env.sh:14`、`v_window_preflight.sh:42` 均已带 PYTHONNOUSERSITE=1；`r278_3d_release/10_iso_four_runs/iso_pin.txt` 末行 rc=0、同目录预检读数 [①ISO] ISO_RC=0。三裁如下——
+
+裁定一＝丙（改件＋报头注姿势）。理由：A35-丙 已落，ISO 真态由四跑钉死（iso_pin.txt rc=0），运行器第 38 行少一个 export＝R274 建器时未随 A35 同步的跑法缺陷；只注不改会留"读数与说明书互斥"。**不属判据面变更**——成员仍 gate_chain.txt=8 行、各件 rc 语义一字不动、被检件 sha 未动、运行器退出码恒 0 未动。
+
+裁定二＝八件串换版一帧，67 面基线不换。旧版 …/log/raw/r274_chain_baseline/ 并存不覆写、原文不回改；新版落 note/进度/SCAN集成/证据/log/raw/r278_iso_posture_fix/00_chain_after_fix.txt（清单最后建、复跑 VAR），表头带换算句＝"与 r274 基线唯一差＝ISO 调用式一行（rc=1→0），ws_src_files 4704→4708"。baseline_note67w40_r272.tsv（LCB/VCC）沿用——引用面读数与 ISO rc 无关。
+
+裁定三＝更正句只在 04 R278 段另起一条总勘误，覆盖 R274／R276／R277 各处「ISO rc=1（在册已知态）」；04 各段与 00_总览 沿革列一律不回改，00_总览 档头随 R278 批滚动自然以新句覆盖。ag 稿 §3 那句要标已失效：于该稿末尾另起一节补一条勘误句，限定失效范围＝仅「A35 未落（ISO rc=1）」半句（env.sh:14=export PYTHONNOUSERSITE=1），同句「sim 窗数账待认」不在本次失效范围；并写死"失效≠即开窗"——现读 [③机况] load1=4.47 阈值=4.0 ⇒ 拒窗 rc=5。
+
+给施工侧可照做条目：①run_gate_chain.sh 第 38 行 `. ws/devel/setup.bash` 后加 export PYTHONNOUSERSITE=1;，文件头"ISO 与 DC 长期 rc=1"句同批改注（DC rc=1 仍在册、ISO 真态＝0）；②改后全串重跑，并打两数＝ISO rc=0＋尾行 script= 前 12＝8e2c2c023a3f（改前改后必须同值），并报运行器自身 sha 4a1f9cce→新值；③新基线按裁定二落址、清单最后建后复跑 VAR；④04 R278 段登"运行器调用式修正，非成员／非 rc 语义变更"＋总勘误另起句；⑤ag 稿末另起节补一条失效句。
+
+署名＝主理人-佳文｜2026-10-14 04:21（date 实读）｜性质＝项目内口径裁定

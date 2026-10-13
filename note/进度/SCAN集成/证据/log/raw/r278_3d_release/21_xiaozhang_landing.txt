@@ -1,0 +1,33 @@
+【部署架构师-小张 · S1／S2 落点裁定回件（逐字转录；施工侧转录时刻 2026-10-14 04:25）】
+
+已核实完毕（全程只读，未创建／修改任何文件，未起窗）。
+
+落点＝ ws/src/30_perception/lite3_perception/scripts/w3_elevation_node.py（包名＝lite3_perception，层＝30_perception／M3）；不新建包、不入 ws/src/40_navigation。
+
+合规依据＝
+①note/计划书v5/21_ros1-slam隔离部署计划书-v5.3.md「b) 壳包禁算法源码——lite3_* 壳包（尤其 lite3_navigation）内禁出现**第三方**算法 .cpp/.cc/.h」⇒ 管束对象＝第三方算法源码；同件 v4 注记「本条款管第三方包」⇒ 条款范围＝第三方包。本件＝自研 python ⇒ 不在其域。
+②同件 §2.6 行「find /home/ros1-slam/ws/src/40_navigation -name "*.cpp" -o "*.cc" -o "*.h" 期望 0 命中」＋盘上 scripts/verify/v3_isolation.sh 同式 ⇒ [9] 扫描根＝40_navigation 单目录（实测该目录算法源码命中数＝0）⇒ 落 30 层不触闸。
+③ws/README.md §一 层表 40_navigation 行「**壳包内禁算法源码**」⇒ 工单"lite3_scan 侧新件"选项作废（同层，且契约件 ws/src/95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh 原文「二期落位不能选这层」）。
+④ws/src/30_perception/lite3_perception/package.xml「self-owned launch/config/scripts only」⇒ 许可目录含 scripts；scripts/gen_shell_pkgs.sh「[30_perception/lite3_perception]="M3"」＋「mkdir -p "$d"/{launch/stub,launch/sink,config,scripts,verify}」⇒ scripts 系在册骨架（实测在位、.py 数＝0）。
+⑤先例 note/进度/SCAN集成/设计/q_C13三案改动清单与回退方案.md「建议 10_slam/lite3_slam/scripts/self_mask_node.py…**不要放 40_navigation**」⇒ 在册姿势＝所属壳包 scripts/。
+⑥反向句 .../lite3_perception/README.md「**这里不放算法**…属纪律而非门禁红」⇒ 性质＝纪律（同文件有 2026-10-09 自更正先例），须同批改写。
+⑦授权出处 该契约件「w3_elevation_node 落哪个壳包/是否新建包…⇒ 交小张设计域」＝本裁定所填之格。
+
+包形态与命名＝**不新建包**（新建＝第 13 个可核面：须补统一头 README＋ws/README.md 二·b 索引行＋gen_shell_pkgs.sh PKGS 行，代价＞收益）。纯 python，照 lite3_scan 形制：package.xml 必填＝name/version/description/maintainer/license/buildtool_depend＋exec_depend(rospy、sensor_msgs、nav_msgs、std_msgs、geometry_msgs、tf2_ros)；CMakeLists.txt＝catkin_package()＋install(DIRECTORY launch config scripts)；**不用 catkin_python_setup**（实测该宏全仓命中＝2 件，均在第三方 kindr_ros／mockamap，lite3_* 内命中＝0）。
+
+S2 落点与冲突核查＝工单包名拼写**无误**：ws/src/70_bringup/lite3_bringup/package.xml＝<name>lite3_bringup</name>，config/ 在位、实测文件数＝0、*elevation* 命中＝0 ⇒ 同目录同名冲突＝0。语义冲突在别包：30_perception/deeprobotics_local_height_map/config/param_all_camera_h.yaml 已占 resolution: 0.03／slope_threshold: 0.839（量纲不可核＝X5），40_navigation/lite3_navigation/config/costmap_common.yaml 已占 resolution: 0.1 ⇒ 新键一律挂 elevation/… 前缀，禁裸 resolution/slope/step。文件名建议 elevation_costmap.yaml（须含 elevation，以被契约件规范位断言命中）。
+
+S1 参数面条目＝
+1 入：/rslidar_points(PointCloud2 10Hz)＋TF map→base_link→rslidar；~pose_source＝tf|truth（truth 订阅 /quad_0/body_pose 50Hz，零 TF 依赖）。
+2 出：/elevation_grid(nav_msgs/OccupancyGrid，1–2Hz latched)＋/elevation_stats(std_msgs/String 1Hz)；可选 /elevation_map_layers（grid_map_msgs 实测已装 1.6.4 ⇒ 免 apt 申请）。
+3 参：~resolution(0.1)、~window 封边包络二选一（venue：maze2d 16m／perlin3d 44×24m；或 fixed_map_frame）、~nan_warn_ratio(0.30，超即 WARN)。
+4 摄取写死＝四条 bincount（计数／和／平方和／每格 32 箱 z 直方图），P50 取直方图（≈0.0375m）、step 取 8 邻域最大差、RMS 由平方和；**禁逐格 python 循环**（离线代理两版差≈200 倍）。
+5 #46 形状：常量 UNKNOWN=-1 / FREE=0 / BLOCKED=100；计数==0 列⇒−1；**默认分支不得产出 0**；同批配一例负面对照（摘标注必红，K-3 式）。
+6 源图只承诺三值 −1/0/100：v5.3 §16.8「trinary_costmap 开启时源图只出三值…a[20*40+20]=50 读回 0」⇒ 中间代价不得入契约。
+7 slope 25°／step 0.15m／roughness 阈值＝**设计输入**，行内标签必写「未标定施工值（实测锚＝0 处，不得作真机能力上限）」，不得写成已标定。
+
+连带影响＝①PYST 派生式含 find ws/src -path '*/lite3_*' -name '*.py' ⇒ 现拼数必＞清单数 51，同批刷 scripts/verify/pyst_face.txt，按 05 追加三十并打两数并留名；SYN 面取自 git 索引（现清单数＝现拼数＝85），改契约件须 stage 后并打。②ISO [2][5][6][8] 用 */lite3_* glob ⇒ 自动覆盖，gate_chain.txt 成员数＝8 不动（该文件原文「改本文件＝改门禁串成员＝须主理人／小美裁定」）。③契约件两条 bad 分支会同批点亮（节点命中 0→非 0＝「违程序令」；规范位 yaml 0→非 0＝「半件状态」）⇒ **S1 与 S2 必须同批**并同批改其 W5／W8 前置句。④GTC 不跳代：v_harness_generation_table.sh 载体行 SM=…/m2_smoke.sh，本批不碰 SM/LIB ⇒ 代际仍 H14。⑤新留底目录须有 _sha256_manifest.txt（VAR 原文「缺＝红」）。⑥lite3_perception/README.md 与 ws/README.md「当前空壳」两处须同批更正＋04 登记。
+
+前置缺口＝#46 在册未销（M3 README「实现需等 #46…与 B6…裁定」）⇒ S1 只交表征件、不碰合并代价层；X2「双 StaticLayer＝未证实可叠加…四格未跑齐前不得写"已解决"」⇒ S3 不排；**X26「先解 P4 的几何／配置重叠（C10、C9）再谈 3D 与多层」**＝另一条顺序锁，本轮明文只解 C12 那条 ⇒ X26 是否同解**未见字面**，我不自解（S1／S2 不改 P4 取样几何，与之无正面冲突）；§9「小张接口复核＋主理人批准」＝批准已至、复核以上 1–7 条为件，待小明逐字对设计件 §4 表后销；B6 未裁；窗仍拒（/proc/loadavg load1＝4.10 ＞ 阈值 4.0 ⇒ S3–S5 全挂）。
+
+署名＝部署架构师-小张｜时刻＝2026-10-14 04:24｜性质＝落点裁定，不构成施工完成

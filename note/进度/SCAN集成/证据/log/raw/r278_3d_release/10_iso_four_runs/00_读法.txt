@@ -1,0 +1,8 @@
+== 同一件四跑对照（现跑 2026-10-14 04:17，件未动，sha 尾行四跑相同＝script=8e2c2c023a3f04d8…）==
+  iso_nosrc.txt      ＝不 source 任何东西            → rc=1  ISOLATION FAILED（numpy=/home/ysc/.local 越界、ROS_PACKAGE_PATH 段数=0、四条 BAD:）
+  iso_src.txt        ＝先 source scripts/env.sh      → rc=0  ISOLATION OK（env.sh 内含 A35-丙 的 export PYTHONNOUSERSITE=1）
+  iso_nousersite.txt ＝照 run_gate_chain.sh 的姿势    → rc=1  ISOLATION FAILED（noetic→ws/devel，**不含** PYTHONNOUSERSITE）
+  iso_pin.txt        ＝上一行姿势＋只加一行 export    → rc=0  ISOLATION OK（numpy=/usr/local/...、[rospack list] 包数=348 解析到白名单外=0）
+⇒ 结论（待佳文裁，施工侧不自改任何件的调用式与 rc 语义）：
+  A35-丙 之后 ISO 的真态＝rc=0；八件串逐批报的 `ISO rc=1（在册已知态）`＝**运行器少一个 export 的调用式差**，非隔离本身不过。
+  连带：ag 稿 §3 那句"活体窗现被 A35 未落（ISO rc=1）挡着"若成立，它就是 **S3–S5 的假阻塞**。

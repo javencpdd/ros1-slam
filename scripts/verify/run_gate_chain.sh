@@ -6,7 +6,9 @@
 #   本件把"按名单跑一遍、逐件打印 rc 与关键行"变成一条命令，于是那句散文有了可复现的载体。
 #
 # ★本件**不做任何判定**：不内置"什么算绿"，不比较历史值，不决定谁的 rc 可接受
-#   （ISO 与 DC 长期 `rc=1` 属在册已知态，见 `05` 追加二十三——**看到具体行才可定性**，本件只把行打出来）。
+#   （**R278 佳文裁定＝丙修正调用式**：ISO 真态为 `rc=0`（须带 `PYTHONNOUSERSITE=1`，与 `env.sh`、
+#    `v_window_preflight.sh` 同姿势；此前长期报 `rc=1` 是本件少这个 export 所致，非隔离不过）；
+#    DC 的 `rc=1` 仍属在册已知态，见 `05` 追加二十三——**看到具体行才可定性**，本件只把行打出来）。
 #   所以本件**退出码恒 0**；真要拦人，靠的是各件自身的 rc 与在册调用式，不是本件。
 #   ⇒ 本件**不是第九件门禁件**，也不改任何件的 rc 语义；它只是一个跑法。
 #
@@ -35,7 +37,7 @@ run_one() { # 代号 件路径 rc语义
              grep -vE '^ *(#|$)' scripts/verify/pyst_face.txt | xargs bash "$path" ) > "$out" 2>&1 ;;
     PARITY) ( cd "$ROOT" && set +u; . /opt/ros/noetic/setup.bash; . ws/devel/setup.bash
               VP_FULLFACE=1 bash "$path" $(grep -vE '^ *(#|$)' scripts/verify/parity_face.txt) ) > "$out" 2>&1 ;;
-    ISO)   ( cd "$ROOT" && set +u; . /opt/ros/noetic/setup.bash; . ws/devel/setup.bash; bash "$path" ) > "$out" 2>&1 ;;
+    ISO)   ( cd "$ROOT" && set +u; . /opt/ros/noetic/setup.bash; . ws/devel/setup.bash; export PYTHONNOUSERSITE=1; bash "$path" ) > "$out" 2>&1 ;;
     *)     ( cd "$ROOT" && bash "$path" ) > "$out" 2>&1 ;;
   esac
   rc=$?
@@ -46,6 +48,7 @@ run_one() { # 代号 件路径 rc语义
 echo "== 门禁串逐件（$(date '+%F %H:%M')，身份 $(whoami)）｜成员名单＝$CHAIN（$(face_count "$CHAIN") 行）=="
 echo "   面：syn_face=$(face_count "$ROOT/scripts/verify/syn_face.txt") pyst_face=$(face_count "$ROOT/scripts/verify/pyst_face.txt") parity_face=$(face_count "$ROOT/scripts/verify/parity_face.txt") claim_face=$(face_count "$ROOT/scripts/verify/claim_face.txt")"
 echo "   窗数回执＝$(face_count "$ROOT/scripts/verify/_window_receipt.tsv") 行（A27 口径）"
+echo "   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／VAR／账构：直接 bash 件"
 while IFS=$'\t' read -r n tag path sem; do
   case "$n" in ''|'#'*) continue ;; esac
   if [ -n "${GATE_ONLY:-}" ] && ! printf '%s' ",$GATE_ONLY," | grep -q ",$tag,"; then continue; fi
