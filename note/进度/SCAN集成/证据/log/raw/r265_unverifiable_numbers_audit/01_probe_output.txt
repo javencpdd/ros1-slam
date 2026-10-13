@@ -1,0 +1,53 @@
+== date: 2026-10-13 23:39  == whoami: ysc ==
+
+### A 组：一条命令跑出唯一值（可当场复跑）
+[A1] claim_face 条目（口径＝非注释非空行）
+   cmd: grep -cvE "^ *(#|$)" scripts/verify/claim_face.txt => 63
+[A2] note/ 下 .md 全量
+   cmd: find note -name "*.md" -type f | wc -l => 119
+[A3] parity_face 条目
+   cmd: grep -cvE "^ *(#|$)" scripts/verify/parity_face.txt => 54
+[A4] PARITY 存量表条目
+   cmd: grep -cvE "^ *(#|$)" scripts/verify/parity_known_findings.tsv => 7
+[A5] 本会话批次数（git 可数）
+   cmd: git log --oneline 3ae4404~1..HEAD -- note | wc -l => 12
+[A6] 05 追加块数（口径＝### 追加X 标题行）
+   cmd: grep -cE "^### 追加[一二三四五六七八九十]+" note/05_复验作业单.md => 24
+[A7] tooling/skill 镜像件数（口径＝排除清单自身与 RESTORE.sh）
+   cmd: find tooling/skill -type f ! -name _sha256_manifest.txt ! -name RESTORE.sh | wc -l => 133
+[A8] tooling/skill 清单登记数
+   cmd: grep -cvE "^ *(#|$)" tooling/skill/_sha256_manifest.txt => 133
+[A9] 清单里列出的路径实际不存在者（在 tooling/skill 下逐项 test -e）
+   missing=0
+
+### B 组：同一量两条式子都给数（口径未绑定 ⇒ 须写明用哪条）
+[B1] 「志文面」三式
+   清单口径 grep -cvE "^ *(#|$)" claim_face.txt => 63
+   原始行数 wc -l claim_face.txt => 65
+   全量 find note -name "*.md" => 119
+[B2] 「豁免表条数」两式
+   非注释行 grep -cvE "^ *(#|$)" citation_known_pseudo_reds.tsv => 3
+   表头行（首行是否表头） => 目标相对路径:行	�
+[B3] 「坑册条目数」三式
+   标题行 grep -cE "^## 坑" => 70
+   三级标题 grep -cE "^### 坑" => 5
+   去重坑号 => 64
+   最大坑号 => 64
+[B4] 「tooling 目录文件数」两式（含/不含清单与恢复脚本自身）
+   find tooling -type f => 136
+   find tooling/skill -type f => 135
+
+### C 组：没有命令能跑出该数（台账累计值／须人工判定）
+[C1] 「声明面＝65」——在册句是每批手写的覆盖面声明；无 face 文件、无件打印此数
+   能否 grep 出唯一命令？件内是否打印过 "声明面"：0
+[C2] 「正式门禁串＝八件」——串成员只在 05 的散文句里，无清单文件、无运行器脚本
+   scripts/ 下含 "门禁串" 的件数：9
+   scripts/verify 下 .sh 件数（可跑，但不是"串成员数"）：12
+[C3] 「远角 4 对」——留底 attempt 目录可数，对须人工配对
+   留底 attempt 目录数 find r174_b18_farcorner_diag -maxdepth 1 -type d -name "attempt*" => 7
+   在册句里的对数（grep 计数，不作读数用）：28
+[C4] 「w 稿移交单第七次复跑＝七轮零恶化」——轮次靠留底目录与在册句对起来，无件自报轮次
+   含 w 稿复跑留底的目录数：5
+[C5] 「活体窗数（A27 口径）」——目录命名不统一，两条模式给出不同数
+   模式A find note -type d | grep -cE "seed|witness" => 9
+   模式B find note -type d -name "r2[0-9][0-9]_*" => 56
