@@ -1,0 +1,57 @@
+== date ==
+2026-10-14 02:18
+
+== R1 static_layer.h 内 combination_method 命中数 ==
+$ grep -c combination_method /opt/ros/noetic/include/costmap_2d/static_layer.h
+0
+  rc=1
+
+== R2 v5.3 全文 elevation_grid 命中数 ==
+$ grep -c elevation_grid <v5.3>
+0
+
+== R3 v5.3 全文 blind 命中数 ==
+$ grep -c blind <v5.3>
+2
+-- R3b 近场过滤行原文（锚文本：§0.12 表内『近场过滤』那一行）--
+近场过滤 | `blind: 0.2`（第 32 行，C13＝乙；语义＝**兜底小球**，`1.0` 口径作废）＋`self_mask_box_on: 1`＋躯干盒 `[0,0,-0.38,0.21,0.155,0.11]`＋`margin: 0.05`＋`drop_invalid: true` | **"
+
+== R4 v5.3 生效序句原文（锚文本：§0.6『生效序（写死…）』那句）==
+生效序（写死，治 R36 的"两句话争夺优先级"）
+
+== R5 v5.3 是否存在 §0.11/§0.12/§0.13 三章标题 ==
+  §0.11 章标题命中数=1
+  §0.12 章标题命中数=1
+  §0.13 章标题命中数=1
+
+== R6 §16.9 的 X1/X2 行现文字（锚文本：§16.9 二期路线图那节的 X1/X2 两条）==
+  - **X1（2.5D 与多层的关系）＝事实句已定、路线句未定**：事实＝单张 2.5D 表达不了多层（**per-map** 层面），**未证**"每层各挂一张单高度图（per-system）不可行"；路线选择**挂 C12 恢复＋#46** 之后。
+  - **X2（双 StaticLayer 组合）＝未证实可叠加**，非"被推翻"（Y2 降档；实证缺口＝探针面未开 `use_maximum`／`first_map_only`、四格对照只有"换序"一格留有原始读数）。**恢复该方向前的待补测四格**：
+
+== R7 v5.3 内『出处类别』『未标定施工值』通则句命中数 ==
+  出处类别=0
+  未标定施工值|未标定的施工值=0
+
+== R8 高程包文件计数（小张 X5 前提复核）==
+$ find ws/src/30_perception/deeprobotics_local_height_map -type f | wc -l
+63
+  其中 .cpp/.h 数=0
+  CATKIN_IGNORE 在位=yes
+
+== R9 slope_threshold 0.577 命中数（全仓 yaml）==
+  slope_threshold: 0.577 命中=0
+  slope_method: 1 命中文件数=12
+
+== R10 v4.1 与 v4.3 的 X 编号是否同号不同事 ==
+  v4.1 内 X 编号种类数=10
+  note/ 内『同号不同事』命中文件数（本批前应为 0）=3
+
+== R11 v4.5 候选稿 Part 5.1/5.2 是否已成文（判『重复』的依据）==
+  Part 5.1 内 use_maximum 成文=3
+  Part 5.1 内 combination_method 成文=1
+  Part 4.2 内 三值成文=1
+  Part 7 内『剩下的随 1 一起落』=1
+
+== R12 load1（本批零窗，仅记环境态）==
+2.10 1.62 1.91 1/662 98037
+== end ==
