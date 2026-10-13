@@ -1,0 +1,14 @@
+# gate_chain.txt —— 正式门禁串的**成员名单**（A39＝丙 第一张；主理人-佳文 2026-10-14 裁）
+# ★本张清单的存在理由＝把「串共几件」从 **C 档（无命令可跑）** 变 **A 档**：此前成员只写在 05 追加十六那句散文里，
+#   而 `ls scripts/verify/*.sh | wc -l`＝12 是"件数"不是"成员数"（含 premap_check.sh 等非闸件），**不可顶替**（验收-小美 2026-10-14 原文）。
+# 验收式＝grep -cvE "^ *(#|$)" scripts/verify/gate_chain.txt 必须＝8，且同一命令连跑两次同数；**改本文件＝改门禁串成员＝须主理人／小美裁定，施工侧不自改**。
+# 顺序＝05 追十六在册调用顺序（1–8）。列义：序号<TAB>代号<TAB>件路径<TAB>rc 语义（rc 语义只登记、不改任何件）。
+# 建单时间：2026-10-14 01:28（R273）。
+1	SYN	scripts/verify/v_sh_py_syntax.sh	0＝全过／非 0＝有件语法或内嵌段不过
+2	GTC	scripts/verify/v_harness_generation_table.sh	0＝代际表与盘一致
+3	ISO	scripts/verify/v3_isolation.sh	0＝隔离成立／1＝在册已知态（须看到具体项才可定性）
+4	DC	scripts/verify/v_deferred_clause_scan.sh	0／1＝缓做条款到期未回收（1 属在册已知态）／9＝面不可信
+5	PYST	scripts/verify/v_py_static.sh	0＝范围甲全过
+6	VAR	scripts/verify/v_evidence_reachability.sh	0＝PASS=8 FAIL=0／5＝有 FAIL／9＝前置缺失或探针无分辨力
+7	PARITY	scripts/verify/v_verdict_field_parity.sh	0＝新增=0（存量逐条带出处）／5＝有新增疑点
+8	账构	scripts/verify/v_ledger_batch_consistency.sh	0＝仅存量／5＝FAIL 集命中新增／9＝缺存量表不判

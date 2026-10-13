@@ -1,0 +1,92 @@
+# syn_face.txt —— SYN（v_sh_py_syntax.sh）的**写死门用面**（A37＝丙 第三格；主理人-佳文＋验收-小美 2026-10-14 裁，#112 格二"门用面写死"的落地件）
+# 派生式（可原样复跑，两次同数＝验收式）：
+#   git -c core.quotepath=false ls-files 'scripts/*.sh' 'note/进度/**/scripts/*.sh' 'ws/src/**/verify/*.sh' 'tooling/*.sh'
+# ★面取自 **git 索引** ⇒ **未跟踪的新件天然不在面内**（R270 实测：新件落盘未 stage 时 83、stage 后 84）。
+# 每批用法（在册调用式，清单数与现拼数须并打）：
+#   grep -vE "^ *(#|$)" scripts/verify/syn_face.txt | xargs bash scripts/verify/v_sh_py_syntax.sh
+# 建单时间：2026-10-14 01:28（R273）；建单时条目数=84；佳文裁单当日在册读数＝83（其时新件 v_window_preflight.sh 未入），差 1 属覆盖面变化、非新红。
+# ★踩过的坑（R273 建单当场）：**xargs 不会跳过 # 注释行**——本清单头含派生式与说明，若直接 `xargs … < 本文件`，注释里的词会被当文件名传进件，实测 SYN 报「被检件数=130 语法 FAIL」、PYST 报「被检件数=125 FAIL」⇒ **是喂法错、不是盘上有语法红**（正确喂法见上行；对照＝剥注释后 SYN 84/46 OK、PYST 51 OK）。
+note/进度/仿真测试台/证据/log/matrix_w2/scripts/m2_w2_localcmp.sh
+note/进度/仿真测试台/证据/log/matrix_w2/scripts/w2_t1_smoke.sh
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_survey_run.sh
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_diag.sh
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe.sh
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe2.sh
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_smoke.sh
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_t2_run.sh
+note/进度/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_healthcheck.sh
+note/进度/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_preverify.sh
+note/进度/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_t1_rerun.sh
+scripts/as_ros1slam.sh
+scripts/env.sh
+scripts/gen_shell_pkgs.sh
+scripts/mapping/m_check.sh
+scripts/mapping/m_clean.sh
+scripts/mapping/m_env.sh
+scripts/mapping/m_polish.sh
+scripts/mapping/m_pose.sh
+scripts/mapping/m_run_core.sh
+scripts/mapping/m_run_drv.sh
+scripts/mapping/m_run_slam.sh
+scripts/mapping/m_slice.sh
+scripts/mapping/m_start.sh
+scripts/mapping/m_stop.sh
+scripts/mapping/m_verify.sh
+scripts/mapping/m_view.sh
+scripts/mapping/m_viz.sh
+scripts/ops/b3_pre_chown.sh
+scripts/ops/passability_pre_acl.sh
+scripts/verify/premap_check.sh
+scripts/verify/v3_isolation.sh
+scripts/verify/v_citation_check.sh
+scripts/verify/v_citation_refscan.sh
+scripts/verify/v_deferred_clause_scan.sh
+scripts/verify/v_evidence_reachability.sh
+scripts/verify/v_harness_generation_table.sh
+scripts/verify/v_ledger_batch_consistency.sh
+scripts/verify/v_ledger_citation_baseline.sh
+scripts/verify/v_py_static.sh
+scripts/verify/v_sh_py_syntax.sh
+scripts/verify/v_verdict_field_parity.sh
+scripts/verify/v_window_preflight.sh
+tooling/skill/RESTORE.sh
+ws/src/20_localization/lite3_localization/verify/v_fd_h_name_contract.sh
+ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh
+ws/src/40_navigation/lite3_navigation/verify/v_dwr_exitclean_selftest.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_o1.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p2.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p3.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p3_triple.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_body_frame_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_boxface_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_cloud_map_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_geom_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_inject_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_layer_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_prepost_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_p4_selfmask_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_relay_equiv.sh
+ws/src/40_navigation/lite3_scan/verify/v_scan_tf_parent_probe.sh
+ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh
+ws/src/40_navigation/lite3_scan/verify/witness_units.sh
+ws/src/50_task/lite3_task/verify/v_scan_task_live.sh
+ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+ws/src/50_task/lite3_task/verify/v_task_smach.sh
+ws/src/60_safety/lite3_safety/verify/v_mux_sources.sh
+ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/m2_batch_runner.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/m2_negctl_tf_runner.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/v_br_expect_negative_selftest.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/v_m2_exitclean_selftest.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/v_pose_source.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/v_rd_archive_selftest.sh
+ws/src/95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh

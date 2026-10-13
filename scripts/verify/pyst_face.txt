@@ -1,0 +1,59 @@
+# pyst_face.txt —— PYST（v_py_static.sh，范围甲）的**写死门用面**（A37＝丙；05 B5 在册"范围甲"三式的固化）
+# 派生式（两次同数＝验收式）：
+#   { find ws/src -path '*/lite3_*' -name '*.py'; find scripts -name '*.py'; find note/进度 -path '*/scripts/*.py' -name '*.py'; } | grep -v __pycache__ | sort -u
+# ★范围乙（全仓 .py 除 30_3rd＝132 件）**不入门**——B5 在册原文：会红 1 件第三方 Eigen 脚本。R271 我现拼 137 件宽面得 PY STATIC FAIL(137) 即此病，非回归。
+# 每批用法（★必须先剥注释与空行，见下行警告）：
+#   grep -vE "^ *(#|$)" scripts/verify/pyst_face.txt | xargs bash scripts/verify/v_py_static.sh
+# 建单时间：2026-10-14 01:28（R273）；建单时条目数=**51**。★B5 在册原文写"实测 50 件"，差 1 的成因**已查明、不是猜**＝`scripts/verify/v_claim_field_audit.py`（规矩⑨报告器，b6944a7，2026-10-13 入面）落在本面的 `scripts/` 段内 ⇒ 50 是该件入面**之前**的旧值；★同段 r242 留底打印的 `被检件数=50` 同属该时点，**引用须带面号/时点**（A39-乙）。
+# ★踩过的坑（R273 建单当场）：**xargs 不会跳过 # 注释行**——本清单头含派生式与说明，若直接 `xargs … < 本文件`，注释里的词会被当文件名传进件，实测 SYN 报「被检件数=130 语法 FAIL」、PYST 报「被检件数=125 FAIL」⇒ **是喂法错、不是盘上有语法红**（正确喂法见上行；对照＝剥注释后 SYN 84/46 OK、PYST 51 OK）。
+note/进度/SCAN集成/设计/scripts/k_a14_offline.py
+note/进度/SCAN集成/设计/scripts/n_selfmask_offline_compare.py
+note/进度/SCAN集成/设计/scripts/o_fov_check.py
+note/进度/SCAN集成/设计/scripts/p_axis_check.py
+note/进度/SCAN集成/证据/scripts/m2_pose_source_audit.py
+note/进度/仿真测试台/证据/log/matrix_w2/scripts/apply_w2_edits.py
+note/进度/仿真测试台/证据/log/matrix_w2/scripts/w2_survey.py
+note/进度/仿真测试台/证据/log/matrix_w2/scripts/w2_t2_exec.py
+note/进度/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_goals_regen.py
+note/进度/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_rerank_visits.py
+note/进度/仿真测试台/证据/log/matrix_w3_r2/scripts/w3_t2_exec.py
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w2_survey.py
+note/进度/仿真测试台/证据/log/matrix_w3/scripts/w3_t2_exec.py
+scripts/mapping/pcd_latch_pub.py
+scripts/mapping/pcd_polish.py
+scripts/mapping/pcd_slice.py
+scripts/raw_preview_pub.py
+scripts/verify/v_claim_field_audit.py
+ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py
+ws/src/40_navigation/lite3_navigation/verify/dwa_recheck.py
+ws/src/40_navigation/lite3_scan/scripts/scan_arrival_monitor.py
+ws/src/40_navigation/lite3_scan/verify/o1_arrival_probe.py
+ws/src/40_navigation/lite3_scan/verify/p1_occ_sample.py
+ws/src/40_navigation/lite3_scan/verify/p2_goal_plan.py
+ws/src/40_navigation/lite3_scan/verify/p3_track.py
+ws/src/40_navigation/lite3_scan/verify/p4_body_frame_probe.py
+ws/src/40_navigation/lite3_scan/verify/p4_boxface_probe.py
+ws/src/40_navigation/lite3_scan/verify/p4_cloud_map_probe.py
+ws/src/40_navigation/lite3_scan/verify/p4_geom_probe.py
+ws/src/40_navigation/lite3_scan/verify/p4_inject_probe.py
+ws/src/40_navigation/lite3_scan/verify/p4_layer_probe.py
+ws/src/40_navigation/lite3_scan/verify/p4_prepost_probe.py
+ws/src/40_navigation/lite3_scan/verify/p4_replan.py
+ws/src/40_navigation/lite3_scan/verify/p4_selfmask_probe.py
+ws/src/50_task/lite3_task/scripts/task_smach_min.py
+ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py
+ws/src/70_bringup/lite3_bringup/scripts/map_snapshot_pub.py
+ws/src/70_bringup/lite3_bringup/scripts/sim_map_bridge.py
+ws/src/70_bringup/lite3_bringup/scripts/sim_pose_tf.py
+ws/src/70_bringup/lite3_bringup/scripts/stub_tf_broadcaster.py
+ws/src/90_supervisor/lite3_supervisor/scripts/health_monitor.py
+ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_cmd_relay.py
+ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_free_map.py
+ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_pose_source_audit.py
+ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_tf_fresh.py
+ws/src/95_simulation/lite3_gazebo_sim/scripts/m2_v6_probe.py
+ws/src/95_simulation/lite3_gazebo_sim/stairstudy/bandstudy.py
+ws/src/95_simulation/lite3_gazebo_sim/stairstudy/fixtures.py
+ws/src/95_simulation/lite3_gazebo_sim/stairstudy/precheck.py
+ws/src/95_simulation/lite3_gazebo_sim/stairstudy/sweep.py
+ws/src/95_simulation/lite3_gazebo_sim/verify/m2_press_gate.py
