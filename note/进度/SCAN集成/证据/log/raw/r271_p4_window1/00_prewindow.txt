@@ -1,0 +1,24 @@
+## R271 窗1 开窗前留证（2026-10-14 00:59:19，身份 ysc）
+=== 1) 许可式（本批唯一开窗凭据）===
+[①ISO] ISO_RC=0 尾行＝# self-attest: at=2026-10-14 00:59:25 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4704 user=ysc home=/home/ys
+[②库来源] numpy=1.19.4 path=/usr/local/lib/python3.8/dist-packages/numpy/__init__.py 要求前缀=/usr/local
+[③机况] load1=1.56 阈值=4.0 门槛来源＝在册开窗规矩
+PREFLIGHT VERDICT rc=0（放行：ISO_RC=0／numpy 在 /usr/local 下／load1=1.56≤4.0）
+PREFLIGHT rc=0
+=== 2) 见证面起快照 ===
+6
+wit_start 行数=6
+lite3-monitor.service|enabled|inactive
+lite3-ros-bridge.service|enabled|inactive
+transfer_ros2.service|enabled|active
+whoopsie.service|masked|inactive
+apport-autoreport.path|masked|inactive
+apport-forward.socket|enabled|inactive
+=== 3) 被测世界件 sha（起）===
+fb52d5e6ed3eda3014b33c8c  ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+=== 4) 锁与端口 ===
+lock 存在? no  11313/11312/11345 监听=0
+=== 5) load 与内存 ===
+1.67 1.33 1.40 2/659 50917
+              total        used        free      shared  buff/cache   available
+Mem:           6854        1223        3290          36        2340        5374

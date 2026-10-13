@@ -1,0 +1,29 @@
+[01:04:07] == [0] 红线预检：并发／样张／世界件本体 ==
+foxy 见证基准（A1 乙＝本 boot 现取）:
+  现取命中 4 行 ⇒ /tmp/scan_p4_run_r272/foxy_start.txt
+  六 unit 见证快照起前 = 6 行 ⇒ /tmp/scan_p4_run_r272/wit_start.txt（名单数应为 6；名单＝§0.12.3 在册六件）
+  红线见证基准已按六 unit 态建立（foxy 快照仍留档，降为辅助：foxy 残留进程（辅助，非判据）=1）
+在册端口起前监听：11313=0 11312=0（均须 0）
+[01:04:09] == [1] roscore 11313 ==
+[01:04:14] == [2] m2_gazebo ==
+[01:05:06] == [3] m2_mapping（faster_lio 位姿源）==
+[01:05:16] == [4] 60_safety（mux 上链）==
+C-1 面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux 
+[01:05:26] == [5] 70_scan.launch（含 J1 到达观测件）==
+F9 互斥: move_base/teb 节点数=0 须=0；链上四件=4/4
+扰动前模型位姿自证：
+[01:05:56] == [6] P4 取证（投障碍→看见→重规划→仍到达）==
+p4 python rc=0
+P4 重规划结论 = PASS|障碍被看见(119 点)⇒扰动后轨迹离箱心最近 1.57m≥0.40m（避让在位）⇒未撞（物理最近 0.53m）⇒到达偏差 0.051m≤0.35m｜两列并报 avoid@0.40=1.57／breach@0.10=0.18｜还原=restored(True)｜delta_m=0.0／tol_m=0.02／qdelta=0.0／why=无
+{"steps": ["pose_before=[5.8, -1.0, 0.4, 0.0, 0.0, -0.2955, 0.9553]", "goal_delivered=True", "traj_pts=120", "injected=obs_5→(-0.98,0.48)", "disturbance_seen=119", "replanned=True", "restore_delta_m=0.0"], "fail": false, "invalid": false, "goal": [-2.775, 1.547], "goal_r": 3.175, "goal_clear": 2.926, "pose_before": [5.8, -1.0, 0.4, 0.0, 0.0, -0.2955, 0.9553], "traj_before": {"start_time": 19.088, "n_ctrl": 24, "first": [0.008, 0.026], "last": [-2.769, 1.544]}, "inject": {"model": "obs_5", "at": [-0.98, 0.479], "z": 0.4, "pts_before": 4376, "occ_pts_near": 119}, "traj_after": {"start_time": 20.418, "n_ctrl": 24, "first": [-0.032, 0.001], "last": [-2.77, 1.545]}, "traj_before_control_min_dist": 0.008, "new_traj": {"n_pts": 120, "min_dist_to_any_occ": 0.177, "min_dist_to_injected": 0.85}, "clearance": {"min_dist_to_any_occ": 0.177, "min_dist_to_injected": 0.85, "gate_occ": 0.1}, "physical": {"robot_min_to_injected": 0.534, "box_half_width": 0.4, "traj_min_to_injected_final": 1.567}, "arrive": {"arrived": true, "dist_end": 0.082, "dt_sim_since_replan": 9.11, "cmd_count": 1276, "displacement": 0.082}, "pose_after": [5.8, -1.0, 0.4, 0.0, 0.0, -0.2955, 0.9553], "restored": true, "restore": {"ok": true, "delta_m": 0.0, "qdelta": 0.0, "tol_m": 0.02, "qtol": 0.001, "why": ""}, "a23": {"min_dist_to_any_occ": 0.177, "breach_gate": 0.1, "breach": false, "avoid_gate": 0.4, "avoid": true}, "verdict": "P4 重规划结论 = PASS|障碍被看见(119 点)⇒扰动后轨迹离箱心最近 1.57m≥0.40m（避让在位）⇒未撞（物理最近 0.53m）⇒到达偏差 0.051m≤0.35m｜两列并报 avoid@0.40=1.57／breach@0.10=0.18｜还原=restored(True)｜delta_m=0.0／tol_m=0.02／qdelta=0.0／why=无", "grade": "PASS", "pass": true}
+结论行：P4 重规划结论 = PASS|障碍被看见(119 点)⇒扰动后轨迹离箱心最近 1.57m≥0.40m（避让在位）⇒未撞（物理最近 0.53m）⇒到达偏差 0.051m≤0.35m｜两列并报 avoid@0.40=1.57／breach@0.10=0.18｜还原=restored(True)｜delta_m=0.0／tol_m=0.02／qdelta=0.0／why=无", "grade": "PASS", "pass": true}
+[01:06:45] == [7] 还原与红线 ==
+扰动后模型位姿自证：
+世界件本体 sha 起前＝退后：是
+样张 sha 起前＝退后：是
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证（六 unit 态，§0.12.3 乙′）= OK（foxy 残留为辅助项：foxy 残留进程（辅助，非判据）=2）
+分档自证：VS 首段=PASS ⇒ RC4=0（判据行与末判必须同向）
+[01:06:51] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0

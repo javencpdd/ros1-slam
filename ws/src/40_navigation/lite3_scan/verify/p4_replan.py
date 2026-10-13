@@ -270,7 +270,9 @@ def main():
     try:
         rsp0 = get_svc(INJECT_MODEL, "world")
         if rsp0.success:
-            p0, q0 = rsp0.state.pose.position, rsp0.state.pose.orientation
+            # ★ 字段名更正（R272 窗1 逮到）：GetModelStateResponse 的直接字段是 pose／twist，
+            #   旧版写 rsp0.state.pose ⇒ AttributeError ⇒ orig 永远取不到 ⇒ 本件自 R242 起每窗必 INVALID
+            p0, q0 = rsp0.pose.position, rsp0.pose.orientation
             orig = (p0.x, p0.y, p0.z, q0.x, q0.y, q0.z, q0.w)
     except Exception as e:
         step("pose_before_err", repr(e)[:80])
@@ -301,7 +303,7 @@ def main():
                 restore_report = {u"ok": False, u"delta_m": None, u"qdelta": None, u"tol_m": round(RESTORE_TOL, 4),
                                   u"why": u"回读失败（get_model_state success=False／%s）" % (rsp2.status_message[:40],)}
             else:
-                p2, q2 = rsp2.state.pose.position, rsp2.state.pose.orientation
+                p2, q2 = rsp2.pose.position, rsp2.pose.orientation   # 同上映射（回读断言用）
                 after = (p2.x, p2.y, p2.z, q2.x, q2.y, q2.z, q2.w)
                 out["pose_after"] = [round(float(v), 4) for v in after]
                 restore_report = restore_verdict(orig, after)

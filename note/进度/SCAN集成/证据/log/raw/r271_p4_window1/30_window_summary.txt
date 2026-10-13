@@ -1,0 +1,42 @@
+## R271 两窗汇总（2026-10-14 01:11，身份 ysc；无 sudo、FORCE=1 一次未用）
+
+窗1 w1_newstate  HARNESS rc=9  INVALID  pose_before_err=AttributeError("'GetModelStateResponse' object has no attribute 'state'")  WITNESS=OK  世界件 fb52d5e6ed3eda30… 起=退  pcd aaa09362c5f1aef9… 起=退  teardown 净 端口 0/0
+修复 p4_replan.py 两处 rsp.state.pose → rsp.pose（py_compile OK；v_py_static 未定义名 0；改前 refscan 合计行号引用=0）
+窗2 w2_after_fix  HARNESS rc=0  PASS   pose_before=[5.8,-1.0,0.4,0.0,0.0,-0.2955,0.9553]  disturbance_seen=119  traj_min_to_injected_final=1.567  robot_min_to_injected=0.534  a23.min_dist_to_any_occ=0.177 breach=false  arrive.dist_end=0.082  restore.delta_m=0.0/qdelta=0.0/tol_m=0.02  WITNESS=OK  sha 起=退  teardown 净 端口 0/0
+
+=== 批末门禁与面级复跑 ===
+[计数] 文档=63 单点引用=744 OK=608 RED=1 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+LCB VERDICT: 与基线逐项同值
+[判定] FAIL集=C2+C4+C5／域下限=R140／滞后阈值=2 批
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+[计数] json=63 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+PY SYNTAX OK（被检件数=84，内嵌 python 段合计=46）
+PY STATIC FAIL（被检件数=137）
+=== 本批被改件的 sha 与状态 ===
+ M note/00_README.md
+ M "note/02_\351\227\256\351\242\230\344\270\216\345\235\221.md"
+ M "note/04_\351\205\215\347\275\256\346\224\271\345\212\250diff.md"
+ M "note/\350\277\233\345\272\246/00_\346\200\273\350\247\210.md"
+ M "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\277\233\345\272\246\346\226\207\346\241\243.md"
+ M ws/src/40_navigation/lite3_scan/verify/p4_replan.py
+?? "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r271_p4_window1/"
+17d16ebd1635947ba12e6bd8  ws/src/40_navigation/lite3_scan/verify/p4_replan.py
+
+=== ★更正上一条 PY STATIC FAIL（是我把面拼错，不是回归）===
+上一条跑的是我临时拼的宽面（`git ls-files 'ws/src/*.py' 'scripts/*.py'`＝137 件，**含第三方 .py**）⇒ 打印出 `PY STATIC FAIL（被检件数=137）`。
+在册面＝范围甲（B5 原文：`ws/src/*/lite3_*/` 全部 .py ＋ `scripts/` ＋ `note/进度/**/scripts/*.py`，实测 **51 件**）重跑 ⇒ `PY STATIC OK（被检件数=51）`、`rc=0`。
+⇒ 与在册 B5 另一句吻合：范围乙（全仓 .py 除 30_3rd＝132 件）会红 1 件第三方 Eigen 脚本、**不入门**。★我这次是**第三次撞上"自己现拼面"**这一型（R253 的 SYN 72↔83、PYST 38↔51 同族）⇒ 读法＝引用件报数前须用 B5 在册面式子，不要现拼；这一条正是 A37-丙 建 `pyst_face.txt`／`syn_face.txt` 要消灭的东西。
+
+=== ★PARITY 的 json 计数变化定性 ===
+本批新增 2 份 `p4.json`（两窗原件）入证据面 ⇒ PARITY `json=61 → 63`，而 `原始疑点=7 已知=7 新增=0` 不变 ⇒ **属覆盖面变化、非新疑点**（在册规矩：新增才拦、存量逐条带出处）。
+
+=== 被改件单件复检 ===
+`bash scripts/verify/v_py_static.sh <该件>` ⇒ `PY STATIC OK（被检件数=1）`；`py_compile` OK；`v_sh_py_syntax.sh` 对该件所在面 `PY SYNTAX OK（被检件数=84，内嵌 python 段合计=46）`。
+
+=== ★同批又犯一次"含反引号正文经双引号 echo"（第三次，R269 刚立的读法立刻自破）===
+上面两段初稿是用 `echo "…" >> 文件` 写的，正文里的反引号被当命令替换执行 ⇒ stderr 出现 `PY: command not found`／`→: command not found`／`原始疑点=7: command not found`，且**两句话的内容被吞成"⇒ 。"这种残句**。
+处置＝删掉损坏尾段、改由**引号定界 heredoc 落临时文件＋python 追加**重写（即本段）。
+★固化（比 R269 那句更硬、且这次是当场自破）＝**凡正文含反引号或引号的落盘，一律不允许出现在 shell 的双引号串里**；只有两条合法路径：①`cat > 文件 <<'EOF'`（定界符必须带引号）②python 直接写。本会话已三次违反（R269 造成台账 33148 行乱码＋一次 `git commit --amend` 被真执行；R271 造成本段残句），⇒ 该候选动作应优先并入 `05` 追加二十九（#155 已排队）。
