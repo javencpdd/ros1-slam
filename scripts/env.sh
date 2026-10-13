@@ -9,6 +9,9 @@ export LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | tr ':' '\n' | grep -v "/opt/r
 export ROS_DISTRO=noetic
 export ROS_VERSION=1
 export ROS_PYTHON_VERSION=3
+# ★ 库来源钉成唯一态（A35＝丙，主理人-佳文 2026-10-14 裁）：不读运行账户的 user-site，
+#   否则同一台机器上 numpy 会随账户在两套之间跳（ISO 第 [10] 项长期 rc=1 那一红即此病）。
+export PYTHONNOUSERSITE=1
 source /opt/ros/noetic/setup.bash
 # ★ v3 守卫：devel 不存在时明确报错而不是喷一屏 source 失败
 [ -f /home/ros1-slam/ws/devel/setup.bash ] || { echo "[env.sh] ws/devel 不存在——先完成编译（P5）"; return 1 2>/dev/null || exit 1; }

@@ -1,0 +1,19 @@
+## R270 覆盖面变化（新件入面）＋一条面条件发现
+
+=== SYN 在册面（小美复算式）===
+-- (a) 新件**未 stage** 时：
+   cmd: git -c core.quotepath=false ls-files 'scripts/*.sh' 'note/进度/**/scripts/*.sh' 'ws/src/**/verify/*.sh' 'tooling/*.sh' | wc -l ⇒ 83 行（含新件未入时面内仍 83）
+-- (b) 新件已 stage 后（本批现值）：
+PY SYNTAX OK（被检件数=84，内嵌 python 段合计=46）
+   面行数=84
+
+=== 单件自检（新件自身过 SYN）===
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 111 行，非默认绿）
+PY SYNTAX OK（被检件数=1，内嵌 python 段合计=0）
+
+=== ★一条面条件发现（须进 A37-丙 的验收面）===
+SYN 的在册面取自 **git ls-files（索引）** ⇒ **未跟踪的新件天然不在面内**：本批实测＝新件已落盘、未 stage 时面仍 83／46，stage 后瞬间 84／46。
+⇒ 读法：①「83→84」属**覆盖面变化**、非新红（在册规矩：差≠0 只记覆盖面变化）；②建 syn_face.txt 时须写明**新件何时算入面**（建议＝以 git 索引为准、并在每批报告器串里并打「清单数／索引数」两个数），否则新建件在 stage 前逃检这一型会长期看不见。
+
+=== 志文面（本批新建的是 .sh 不是 .md）===
+全量 note/ .md=121（本批未新建 .md）；claim_face 清单口径=63（未改）

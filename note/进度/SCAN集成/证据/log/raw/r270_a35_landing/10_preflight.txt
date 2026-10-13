@@ -1,0 +1,57 @@
+## R270 A35-丙 落地自证（2026-10-14 00:53，身份 ysc）
+
+=== 1) 主理人给的许可式，施工侧自验（不照抄裁定文本，自己再跑一遍）===
+bash: -c: line 0: unexpected EOF while looking for matching `"'
+bash: -c: line 1: syntax error: unexpected end of file
+
+=== 2) 成件本体 v_window_preflight.sh ===
+[①ISO] ISO_RC=0 尾行＝# self-attest: at=2026-10-14 00:53:41 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4704 user=ysc home=/home/ys
+[②库来源] numpy=1.19.4 path=/usr/local/lib/python3.8/dist-packages/numpy/__init__.py 要求前缀=/usr/local
+[③机况] load1=1.34 阈值=4.0 门槛来源＝在册开窗规矩
+PREFLIGHT VERDICT rc=0（放行：ISO_RC=0／numpy 在 /usr/local 下／load1=1.34≤4.0）
+PREFLIGHT rc=0
+
+=== 3) 成件自测四例（每例须能单独失败；基线不绿即 exit 9）===
+[PASS] T0 真跑必须放（期望 rc=0 实=0）
+[PASS] T1 阈值压到 0.0001 必须拦（期望 rc=5 实=5）
+[PASS] T2 路径前缀改错必须拦（期望 rc=5 实=5）
+[PASS] T3 ISO 件不在位必须 rc=9（不当绿）（期望 rc=9 实=9）
+PREFLIGHT-SELFTEST VERDICT: PASS=4 FAIL=0（T0 未绿即已 exit 9，不留假全过）
+SELFTEST rc=0
+
+=== 4) 见证面现况（主理人要求 WITNESS=OK；R232 当年是 INVALID-空集）===
+6
+行数=6
+verdict=OK
+lite3-monitor.service|enabled|inactive
+lite3-ros-bridge.service|enabled|inactive
+transfer_ros2.service|enabled|active
+whoopsie.service|masked|inactive
+apport-autoreport.path|masked|inactive
+apport-forward.socket|enabled|inactive
+
+=== 5) env.sh 改动（只加一行 export，零 sudo）===
+ scripts/env.sh                       |   3 +
+ scripts/verify/v_window_preflight.sh | 110 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 113 insertions(+)
+ export ROS_VERSION=1
+ export ROS_PYTHON_VERSION=3
++# ★ 库来源钉成唯一态（A35＝丙，主理人-佳文 2026-10-14 裁）：不读运行账户的 user-site，
++#   否则同一台机器上 numpy 会随账户在两套之间跳（ISO 第 [10] 项长期 rc=1 那一红即此病）。
++export PYTHONNOUSERSITE=1
+ source /opt/ros/noetic/setup.bash
+ # ★ v3 守卫：devel 不存在时明确报错而不是喷一屏 source 失败
+ [ -f /home/ros1-slam/ws/devel/setup.bash ] || { echo "[env.sh] ws/devel 不存在——先完成编译（P5）"; return 1 2>/dev/null || exit 1; }
+
+=== 6) 批末面级与门禁复跑（含本批两件落地件入面后）2026-10-14 00:57 ===
+[计数] 文档=63 单点引用=744 OK=608 RED=1 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+VCC VERDICT rc=6（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+LCB VERDICT: 与基线逐项同值
+[判定] FAIL集=C2+C4+C5／域下限=R140／滞后阈值=2 批
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+[计数] json=61 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+== 共 14 版载体 ==
+PY SYNTAX OK（被检件数=84，内嵌 python 段合计=46）
