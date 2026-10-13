@@ -1,0 +1,26 @@
+# 10_那条结论句的在册实证字段（逐字摘自留底，整改句只用这里已有的字段值）｜2026-10-13 08:24:47
+=== r86_b1_w4_try1_INVALID_loadbound300 ===
+  rc.txt        = DWA rc=6
+  INVALID 行    = [INVALID] DWA 未装载 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性；R40：旧版在此打 FAIL 并
+  自诊行        = 
+=== r86_b1_w4_try2_INVALID_load600_contaminated ===
+  rc.txt        = DWA rc=6
+  INVALID 行    = [INVALID] DWA 未装载 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性；R40：旧版在此打 FAIL 并
+  自诊行        = 【装载迟到自诊】bound=600s 用尽后再等 30s ⇒ DWA 命中=0 teb 命中=0
+=== r86_b1_w4_try3 ===
+  rc.txt        = DWA rc=6
+  INVALID 行    = [INVALID] DWA 未装载 ⇒ 前置不成立，本批作废重跑（不判 DWA 可用性；R40：旧版在此打 FAIL 并
+  自诊行        = 【装载迟到自诊】bound=900s 用尽后再等 120s ⇒ DWA 命中=0 teb 命中=0
+=== r88_b1_w4_try4 ===
+  rc.txt        = 不存在（本窗为主动中止、无 rc 判定）
+  INVALID 行    = 
+  自诊行        = 
+=== try1 的 dwa 装载行（mbf.log 逐字，含双戳）===
+[0m[ INFO] [1791580889.266197401, 1.268000000]: The plugin with the type "dwa_local_planner/DWAPlannerROS" has been loaded successfully under the name "DWAPlannerROS".[0m
+=== try4 末三轮轮询行（逐字）===
+  …等待装载 轮询=960s｜墙钟=1060s｜sim=653000000.65s（起于 -1s）｜RTF≈616037.737｜DWA=0 teb=0
+  …等待装载 轮询=1020s｜墙钟=1125s｜sim=61000000.06s（起于 -1s）｜RTF≈54222.223｜DWA=0 teb=0
+  …等待装载 轮询=1080s｜墙钟=1189s｜sim=53000000.05s（起于 -1s）｜RTF≈44575.274｜DWA=0 teb=0
+=== 在册 #23 可用性结论（04 台账 R86 段原句，整改句引它不重写它）===
+637:  · 停手与不越界：按 05 复验作业单 E 段**不再烧第四窗**；**不判「DWA 不可用」**——三跑都是 INVALID＝跑不动，且在册 #23 的可用性结论（2 判据全�
+656:  三跑 INVALID ＋ 本次中止合计四次取数未成，**依旧不判 DWA 不可用**（在册 #23 的可用性结论不被推翻）。
