@@ -1,0 +1,34 @@
+# 00_「声明面 66 是错的」核对（全部改成可复跑口径）｜2026-10-13 09:33:48
+## 一、三种口径的实跑命令与现值
+  清单：grep -vc '^ *#' scripts/verify/claim_face.txt ⇒ 63
+  全量：find note -name '*.md' | wc -l ⇒ 119（含本批新建的 ai 稿；R263 末为 118）
+  声明面＝逐批累计的台账句子、**无命令可跑**（这正是本条账实的根因）
+## 二、R251／R252 各新增一件（git 可证）
+  ag_3Dspike_施工工单_待授权.md ⇒ 首次入库 eef4c13 10-13 03:44
+  ah_hdl仿真不可覆盖_原件索引_供G8对照.md ⇒ 首次入库 67306b1 10-13 03:48
+## 三、R253→R263 七批是否新增过 .md（git 可证：应为 0）
+  git log --diff-filter=A 3ae4404~1..5dc6990 -- note ⇒ 新增 .md = 0 件
+## 四、错数『66』的扩散：以 HEAD（＝R263 末、本批开工前）为基准，可复跑
+  HEAD:note/00_README.md:声明面 66
+  HEAD:note/00_README.md:声明面 66
+  HEAD:note/00_README.md:声明面 66
+  HEAD:note/04_配置改动diff.md:65→**66**
+  HEAD:note/04_配置改动diff.md:65→**66**
+  HEAD:note/04_配置改动diff.md:声明面 66
+  HEAD:note/04_配置改动diff.md:声明面 66
+  HEAD:note/进度/00_总览.md:声明面 66
+  HEAD:note/进度/00_总览.md:声明面 66
+  HEAD:note/进度/00_总览.md:声明面 66
+  HEAD:note/进度/00_总览.md:声明面 66
+  HEAD:note/进度/00_总览.md:65→66
+  HEAD:note/进度/00_总览.md:声明面 66
+  HEAD:note/进度/00_总览.md:声明面 66
+  HEAD:note/进度/00_总览.md:声明面 66
+  HEAD:note/进度/00_断点核对_2026-10-11_R206后施工侧.md:65→**66**
+  HEAD:note/进度/SCAN集成/设计/u_候补闸件盘子与入门代价.md:声明面 66
+  HEAD:note/进度/SCAN集成/设计/u_候补闸件盘子与入门代价.md:声明面 66
+  HEAD:note/进度/SCAN集成/设计/u_候补闸件盘子与入门代价.md:65→66
+  HEAD:note/进度/SCAN集成/设计/y_v4.3落册输入单_§16现状复算与增量清单.md:声明面 66
+  HEAD:note/进度/SCAN集成/设计/z_决策单_一页可签.md:65→66
+  合计＝21 处（口径：处＝匹配次数，同行两现算两处）
+  注：本批（R264）自己的文件里也会出现该串——那些是**指出该错**、不计入扩散，故一律以 HEAD 计数为准
