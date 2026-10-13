@@ -1,0 +1,31 @@
+# elevation_costmap.yaml —— 3D 高程表征件的三通道映射参数（S2）
+#
+# 落点与键前缀规矩依部署架构师-小张 R278 落点裁定：新键一律挂 `elevation/` 之下，
+# **禁**裸 `resolution`／`slope`／`step`（`40_navigation/lite3_navigation/config/costmap_common.yaml`
+# 已占 `resolution: 0.1`；`30_perception/deeprobotics_local_height_map/config/param_all_camera_h.yaml`
+# 已占 `resolution: 0.03` 与 `slope_threshold: 0.839` ⇒ 裸键必撞语义）。
+# 本文件由 w3_elevation_node 以 `~elevation/...` 私有命名空间读取（S1 与 S2 同批落，缺一即"半件状态"）。
+
+elevation:
+  # —— 栅格与窗口（封边包络语义对齐 W2 勘察模板）——
+  resolution: 0.1          # 与 sim_map_bridge／static 层同格（设计件 §4.3）
+  x_min: -22.0             # perlin3d 44×24 m ⇒ ±22 m（W2 封边包络）
+  x_max: 22.0
+  y_min: -12.0             # maze2d 12→16 m 的包络由 launch 覆写；此处给 perlin3d 尺寸
+  y_max: 12.0
+  z_min: -2.0              # z 箱界＝固定值：浮动界会把已累计的帧悄悄重划＝同格两读
+  z_max: 2.0
+
+  # —— 三通道判据阈值 ——
+  # ★ 以下三档一律读作「未标定施工值（真机实测前不作能力上限）」：出处类别＝我方 spike3d 设计稿自定、
+  #    实测锚＝0 处（v5.3 §4.3 三段式＋验收工程师-小美 2026-10-14 会签字面）。
+  #    不得据本文件声称任何真机能力，也不得把"厂商上界"当取值依据（厂商挡位只作上界对照）。
+  slope_max_deg: 25.0      # 未标定施工值（实测锚＝0 处）
+  step_max_m: 0.15         # 未标定施工值（实测锚＝0 处）
+  roughness_max_m: 0.05    # 未标定施工值（实测锚＝0 处；设计件 §4.3 只写"roughness>阈值"、未给数 ⇒ 此值为施工占位）
+
+  # —— 健康度与三态语义 ——
+  nan_warn_ratio: 0.30     # 单帧更新后未覆盖占比 > 此值 ⇒ /elevation_stats 记 WARN（T1r 判据采数）
+  unknown_value: -1        # 零覆盖列＝未知；#46 三态语义在册未销 ⇒ 默认分支不得产出 free_value
+  free_value: 0
+  blocked_value: 100       # 源图只承诺三值 −1/0/100（v5.3 §16.8：trinary_costmap 开启时中间代价不得入契约）

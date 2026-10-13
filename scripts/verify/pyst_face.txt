@@ -6,6 +6,7 @@
 #   grep -vE "^ *(#|$)" scripts/verify/pyst_face.txt | xargs bash scripts/verify/v_py_static.sh
 # 建单时间：2026-10-14 01:28（R273）；建单时条目数=**51**。★B5 在册原文写"实测 50 件"，差 1 的成因**已查明、不是猜**＝`scripts/verify/v_claim_field_audit.py`（规矩⑨报告器，b6944a7，2026-10-13 入面）落在本面的 `scripts/` 段内 ⇒ 50 是该件入面**之前**的旧值；★同段 r242 留底打印的 `被检件数=50` 同属该时点，**引用须带面号/时点**（A39-乙）。
 # ★踩过的坑（R273 建单当场）：**xargs 不会跳过 # 注释行**——本清单头含派生式与说明，若直接 `xargs … < 本文件`，注释里的词会被当文件名传进件，实测 SYN 报「被检件数=130 语法 FAIL」、PYST 报「被检件数=125 FAIL」⇒ **是喂法错、不是盘上有语法红**（正确喂法见上行；对照＝剥注释后 SYN 84/46 OK、PYST 51 OK）。
+# ★R280 刷新（放行 3D 后 S1 落盘）：新增 `ws/src/30_perception/lite3_perception/scripts/w3_elevation_node.py` ⇒ 清单数 51→**52**＝派生式现拼数 52（两次同数＝验收式过；反向差集为空 ⇒ 无失效条目）
 note/进度/SCAN集成/设计/scripts/k_a14_offline.py
 note/进度/SCAN集成/设计/scripts/n_selfmask_offline_compare.py
 note/进度/SCAN集成/设计/scripts/o_fov_check.py
@@ -57,3 +58,4 @@ ws/src/95_simulation/lite3_gazebo_sim/stairstudy/fixtures.py
 ws/src/95_simulation/lite3_gazebo_sim/stairstudy/precheck.py
 ws/src/95_simulation/lite3_gazebo_sim/stairstudy/sweep.py
 ws/src/95_simulation/lite3_gazebo_sim/verify/m2_press_gate.py
+ws/src/30_perception/lite3_perception/scripts/w3_elevation_node.py

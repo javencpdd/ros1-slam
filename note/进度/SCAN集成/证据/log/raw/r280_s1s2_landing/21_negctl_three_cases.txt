@@ -1,0 +1,28 @@
+### N1 撤规范位 yaml（有节点无 yaml）⇒ 期望「半件状态」红
+== N1：rc=1
+     [FAIL] W5 半件状态：节点在位但规范位 yaml=0／全盘节点=1 ⇒ S1 与 S2 必须同批
+   W3 CONTRACT VERDICT: PASS=25 FAIL=1 ABSENT=0（ABSENT 不计通过）
+   ⇒ 该例真红且命中期望句「半件状态」
+
+### N2 节点挪出落点、放到他包（落点缺件而全盘>0）⇒ 期望「落错包」红
+== N2：rc=1
+     [FAIL] W5 节点落错包：裁定落点缺件而全盘命中 1 ⇒ 违落点裁定
+   W3 CONTRACT VERDICT: PASS=25 FAIL=1 ABSENT=0（ABSENT 不计通过）
+   ⇒ 该例真红且命中期望句「落错包」
+
+### N3 elevation yaml 落在他包、规范位为 0 ⇒ 期望「不在规范位」红
+== N3：rc=1
+     [FAIL] W5 半件状态：节点在位但规范位 yaml=0／全盘节点=1 ⇒ S1 与 S2 必须同批
+     [FAIL] W5 elevation yaml 不在规范位：规范位 0 而其他位 1 件 ⇒ 违 §4.3 规范位
+   W3 CONTRACT VERDICT: PASS=24 FAIL=2 ABSENT=0（ABSENT 不计通过）
+   ⇒ 该例真红且命中期望句「不在规范位」
+
+### 还原核验（三项须各回原位；多余件须 0）
+  全盘节点命中＝1
+  规范位 yaml 命中＝1
+  残留探针件（须 0）＝0
+  /tmp 暂存目录剩余（须 0）＝0
+
+### 正跑复归（三例后本体须回 rc=0）
+W3 CONTRACT VERDICT: PASS=26 FAIL=0 ABSENT=0（ABSENT 不计通过）
+⇒ 件面对账过；二期本体仍属『未开工且前置未销』，本件不声称任何实现或活体结论

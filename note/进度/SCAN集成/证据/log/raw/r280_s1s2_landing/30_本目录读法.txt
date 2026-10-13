@@ -1,0 +1,14 @@
+== r280_s1s2_landing —— R280 批留底（S1／S2 落盘＋契约件四改＋三负面对照）==
+  00_selftest_raw.txt          S1 `--selftest` 原始输出（10 例含 #46 负面对照）；跑在带 PYTHONNOUSERSITE=1 的身份内（numpy 1.19.4 @/usr/local）
+  10_throughput_probe.py       吞吐探针（真件，补 ag §1 预检② 无原件那一笔；116,747 点／帧、res 0.1、44×24 m）
+  10_throughput_raw.txt        上件输出：冷启动首帧 521.3 ms ＞阈值 500；稳态 136.3–151.9 ms
+  20_contract_after_fix.txt    契约件改后正跑（PASS=26 FAIL=0 ABSENT=0，rc=0）
+  21_negctl_three_cases.txt    小美会签要求的三条负面对照当场跑（半件状态／落错包／不在规范位 各真红）＋还原核验＋正跑复归
+  22_negctl_cmd.sh             上例的可复跑脚本（含"跑完即还原"的断言）
+  30_本目录读法.txt            本件
+★两条过程自曝（详见 04 R280 段）：①S1／S2 落盘时刻早于小美会签回件时刻（我先动手后取签，签文亦已把此点列为须自曝项）；
+  ②`grep -vxF <(find …)` 在本机静默不生效 ⇒ Y_ELSE 曾错报 1，已改前缀排除并留名 02 坑18 追加例。
+★本批未起任何活体窗（前置件 load 拒）；未改任何门值／判据／门禁串成员；契约件仍不入串。
+★另记一条（本批第二条自曝）：`10_throughput_probe.py` 以模块方式 import S1 ⇒ 生成 `scripts/__pycache__/w3_elevation_node.cpython-38.pyc`，
+  而契约件 W5 的"全盘唯一"判据用 `find ws/src -name 'w3_elevation_node*'` ⇒ **可再生构建产物会把该断言顶成假红**（本批实测发生两次，均已清）。
+  处置＝本批**只清产物、不改她刚签的断言**；是否给该式加 `grep -v __pycache__`（与 `pyst_face.txt` 派生式同口径）＝挂 **#174 待小美签**，施工侧不自便。

@@ -9,6 +9,9 @@
 #      ws/src 无 lvr2/mesh_navigation/CuPy 路线痕迹、第三方沙箱基线 49 件双条件全等。
 #      这些走 **ABSENT 档**＝「按设计尚未存在」，**不计入通过数**（05 的跑不动≠跑不过；把 ABSENT 读成绿＝坑29 那族）。
 #   ③ 把在册**口径空白**原样列出（不替他/她补数）：路径长差无数值阈、T2r 三连/单跑未定、节点落哪个包未定、§8 预检 1–4 未跑、
+#   ★R280 依验收工程师-小美会签（有条件签，四改逐字落）改注：本件 ② 的"未开工物证"一段在 S1／S2 落盘后
+#     由 ABSENT 改为"开工后正确形态"的联合判（落点唯一＋规范位 yaml 在位），且"放行未开工"亦改判真红；
+#     rc 语义 0／1／5／9 四档一字未动、--negctl 未动、本件仍不在 gate_chain.txt（入串与否归 #12／#19）。
 #      以及**程序前置「小张接口复核＋主理人批准」未销 ⇒ 施工侧无权开工**。
 # 阴性对照（05 C4a：新 gate 先真的红一次，且可复跑）：--negctl 拿设计稿副本改掉一处门值 ⇒ 本体必须真红。
 #
@@ -86,18 +89,37 @@ GPU=$( { grep -rlE '^[[:space:]]*(import|from)[[:space:]]+cupy' "$ROOT/ws/src" 2
          grep -rl 'cupy' --include=package.xml "$ROOT/ws/src" 2>/dev/null; } | sort -u | grep -vxF "$SELF" | wc -l)
 [ "$GPU" = 0 ] && ok "W4 自研面无 cupy 的真实用法（import／package.xml 依赖，命中 $GPU）" || bad "W4 出现 cupy 真实用法 $GPU 件 ⇒ GPU 路线已被 GLFW segfault 排除，须公开回报"
 
-echo "--- W5 开工前置的**在场性**与「未开工」物证（ABSENT＝按设计尚未存在，不是通过）---"
-has "小张接口复核" && has "主理人批准" && ok "W5 §9 的程序前置仍写明（未销 ⇒ 施工侧无权开工）" || bad "W5 前置句被删 ⇒ 这才是真正的红线"
-NODE=$(find "$ROOT/ws/src" -name 'w3_elevation_node*' 2>/dev/null | wc -l)
-[ "$NODE" = 0 ] && absn "W5 w3_elevation_node 未实现（盘上命中 0）＝二期本体未开工" || bad "W5 节点已出现在盘上但 §9 前置未销 ⇒ 违程序令，须停手回报"
+echo "--- W5 开工前置的**在场性**（★R280 依验收工程师-小美会签由"未开工物证"改为"开工后正确形态"；ABSENT 档在下述两条作废）---"
+HAS_REL=$(grep -c '放行 3D' "$ROOT/note/计划书v5/21_ros1-slam隔离部署计划书-v5.3.md" 2>/dev/null)
+if has "小张接口复核" && has "主理人批准" && [ "$HAS_REL" -ge 1 ]; then
+  ok "W5 §9 批准半已销于 v5.3 §0.14（主理人明文「放行 3D」命中 $HAS_REL 处）；**小张接口复核半未销** ⇒ 本件不声称 §9 全销"
+else
+  bad "W5 §9 前置句被删或放行明文不在计划书里（文字命中／明文命中＝$HAS_REL）⇒ 这才是真正的红线"
+fi
+NODE_LANDED="$ROOT/ws/src/30_perception/lite3_perception/scripts/w3_elevation_node.py"
+NODE_ALL=$(find "$ROOT/ws/src" -name 'w3_elevation_node*' 2>/dev/null | wc -l)
 if [ -z "$PKG_BRINGUP" ]; then
   bad "W5 按包名找不到 lite3_bringup（在册规范位所在包不在盘上 ⇒ 对账无锚，先修这条）"
-elif [ -d "$PKG_BRINGUP/config" ]; then
-  Y=$(find "$PKG_BRINGUP/config" -name '*elevation*' 2>/dev/null | wc -l)
-  echo "     （规范位解析为 $PKG_BRINGUP/config）"
-  [ "$Y" = 0 ] && absn "W5 bringup/config（§4.3 规范位）内尚无 elevation yaml" || bad "W5 规范位已落 elevation yaml 而节点未开工 ⇒ 半件状态，须公开"
-else
+elif [ ! -d "$PKG_BRINGUP/config" ]; then
   bad "W5 §4.3 的规范位目录不存在：$PKG_BRINGUP/config"
+else
+  Y_SPEC=$(find "$PKG_BRINGUP/config" -name '*elevation*' 2>/dev/null | wc -l)
+  # 不用 `grep -vxF <(...)`：进程替换是管道、grep 读模式文件时要 seek ⇒ 静默不生效（实测报 1 而非 0，见 02 坑18 追加例）
+  Y_ELSE=$(find "$ROOT/ws/src" -name '*elevation*.yaml' 2>/dev/null | grep -v "^$PKG_BRINGUP/config/" | grep -v '/deeprobotics_local_height_map/' | wc -l)
+  if [ -f "$NODE_LANDED" ] && [ "$NODE_ALL" = 1 ] && [ "$Y_SPEC" -ge 1 ]; then
+    ok "W5 联合判过：落点件在位且全盘唯一（命中 $NODE_ALL）＋规范位 yaml $Y_SPEC 件（小张 R278 落点裁定形态）"
+  elif [ ! -f "$NODE_LANDED" ] && [ "$NODE_ALL" -gt 0 ]; then
+    bad "W5 节点落错包：裁定落点缺件而全盘命中 $NODE_ALL ⇒ 违落点裁定"
+  elif [ -f "$NODE_LANDED" ] && { [ "$Y_SPEC" = 0 ] || [ "$NODE_ALL" -gt 1 ]; }; then
+    bad "W5 半件状态：节点在位但规范位 yaml=$Y_SPEC／全盘节点=$NODE_ALL ⇒ S1 与 S2 必须同批"
+  else
+    bad "W5 放行未开工：v5.3 §0.14 已明文放行而全盘节点命中 $NODE_ALL＝0 ⇒ 依会签此档由 ABSENT 改为真红"
+  fi
+  if [ "$Y_ELSE" -gt 0 ] && [ "$Y_SPEC" = 0 ]; then
+    bad "W5 elevation yaml 不在规范位：规范位 0 而其他位 $Y_ELSE 件 ⇒ 违 §4.3 规范位"
+  else
+    ok "W5 elevation yaml 位置对账（规范位 $Y_SPEC／其他非第三方位 $Y_ELSE）"
+  fi
 fi
 
 echo "--- W6 隔离红线兼容（未来落位不得触 [9]；现在就核一次，别等开工才发现）---"
@@ -120,12 +142,18 @@ else bad "W7 13 CHECK 锚点件缺失或语法不过 ⇒ §8.3 的对照物没�
 echo "--- W8 口径空白清单（在册就是空的，我不替他/她补数；逐条须裁定后才可开工）---"
 echo "  1) T2r 的「路径长差」在册只有'形状可辨'，**无数值阈** ⇒ 交小美定档"
 echo "  2) T2r harness 是单跑还是三连在册未写 ⇒ 交小美（P3 已有两轴口径可参照，不自动套用）"
-echo "  3) w3_elevation_node 落哪个壳包/是否新建包，在册只写了参数规范位（lite3_bringup/config）⇒ 交小张设计域"
+echo "  3) w3_elevation_node 落哪个壳包/是否新建包：原为口径空白 ⇒ 已由小张 R278 落点裁定填上（留底 21_xiaozhang_landing.txt），本条升为实断言"
+XZ_LB="$ROOT/note/进度/SCAN集成/证据/log/raw/r278_3d_release/21_xiaozhang_landing.txt"
+if [ -f "$XZ_LB" ] && grep -q 'w3_elevation_node.py' "$XZ_LB"; then
+  ok "W8-3 落点裁定留底在位且点名 w3_elevation_node.py（$(grep -c 'w3_elevation_node.py' "$XZ_LB") 处）"
+else
+  bad "W8-3 落点裁定留底缺失或不含落点名 ⇒ 落点无据，S1 不得自定"
+fi
 echo "  4) §8 预检 1–4（grid_map_msgs 在装否／116,747 点吞吐／StaticLayer 双实例零变化／unknown 与 0 的解释差异）**未跑**"
 echo "  5) 程序前置：小张接口复核＋主理人批准 **未销** ⇒ 本件面完成不等于二期开工，施工侧不越过此门"
 
 echo "=================================================="
 echo "W3 CONTRACT VERDICT: PASS=$NP FAIL=$NF ABSENT=$NA（ABSENT 不计通过）"
 if [ "$NF" != 0 ]; then echo "⇒ 有 FAIL：对账不过（设计稿漂移或盘上越界），rc=1"; exit 1; fi
-echo "⇒ 件面对账过；二期本体仍属『未开工且前置未销』，本件不声称任何实现或活体结论"
+echo "⇒ 件面对账过；★R280 起 S1／S2 已落盘（S1 本体＋规范位 yaml），但**本件不声称任何实现正确性或活体结论**：小张接口复核半未销、#46 三态语义未销 ⇒ 判据面与达成判定仍不在本件出口"
 exit 0

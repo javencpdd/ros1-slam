@@ -54,7 +54,7 @@
 | `00_drivers/lite3_drivers` | M0 驱动与传感接入 | [README](src/00_drivers/lite3_drivers/README.md) |
 | `10_slam/lite3_slam` | M1 建图（LIO） | [README](src/10_slam/lite3_slam/README.md) |
 | `20_localization/lite3_localization` | M2 重定位/配准 | [README](src/20_localization/lite3_localization/README.md) |
-| `30_perception/lite3_perception` | M3 感知（**当前空壳**，理由在文内） | [README](src/30_perception/lite3_perception/README.md) |
+| `30_perception/lite3_perception` | M3 感知（R280 起非空壳：含自研 python 表征件 `scripts/w3_elevation_node.py`；第三方算法源码仍禁，门禁 `[9]` 域不受触——见该包 README 的 R280 更正节） | [README](src/30_perception/lite3_perception/README.md) |
 | `40_navigation/lite3_navigation` | M4 导航联邦（mbf） | [README](src/40_navigation/lite3_navigation/README.md) |
 | `40_navigation/lite3_scan` | SCAN 集成壳 | [README](src/40_navigation/lite3_scan/README.md) |
 | `50_task/lite3_task` | M5 任务编排 | [README](src/50_task/lite3_task/README.md) |
