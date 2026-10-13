@@ -1,0 +1,24 @@
+## R275 批末在册件复跑（2026-10-14 02:00）——用 R274 的运行器一条跑
+
+== 门禁串逐件（2026-10-14 02:00，身份 ysc）｜成员名单＝/home/ros1-slam/scripts/verify/gate_chain.txt（8 行）==
+   面：syn_face=85 pyst_face=51 parity_face=54 claim_face=67
+   窗数回执＝10 行（A27 口径）
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=85，内嵌 python 段合计=46）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=1   ｜ # self-attest: at=2026-10-14 02:00:56 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=51）
+VAR     rc=5   ｜ VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+== 本件只报不判（退出码恒 0）；判定看各件自身 rc 与 05 的在册调用式，成员增减与 rc 语义变更须裁定者明令 ==
+Binary file (standard input) matches
+
+=== 67 面 VCC 与 LCB（对 R272 新基线）===
+[计数] 文档=67 单点引用=743 OK=608 RED=0 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+VCC VERDICT rc=5（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+LCB VERDICT: 与基线逐项同值
+
+=== 窗回执行逐行 test -d（现 10 行）===
+  可指得到的行＝10／10
+
+（注：本目录清单在本文件写完后生成；VAR 的末次读数只记在 04 台账正文，不再回写本文件——见 R274 登记的清单生成后追加无机器兜底缺口）
