@@ -1,0 +1,67 @@
+== 八件串＋固定跑法 ①–⑥（R281 批末，身份 ysc，时刻 2026-10-14 05:27，numpy 1.19.4）==
+
+===== ⑧ 八件串（run_gate_chain.sh，只报不判）=====
+== 门禁串逐件（2026-10-14 05:27，身份 ysc）｜成员名单＝/home/ros1-slam/scripts/verify/gate_chain.txt（8 行）==
+   面：syn_face=85 pyst_face=53 parity_face=54 claim_face=67
+   窗数回执＝10 行（A27 口径）
+   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／VAR／账构：直接 bash 件
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=85，内嵌 python 段合计=46）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=0   ｜ # self-attest: at=2026-10-14 05:28:03 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=53）
+VAR     rc=5   ｜ VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=66 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新�
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+== 本件只报不判（退出码恒 0）；判定看各件自身 rc 与 05 的在册调用式，成员增减与 rc 语义变更须裁定者明令 ==
+
+===== ① 账构（批 consistency）=====
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+①_RC=0
+
+===== ② VCC（在册 67 面）=====
+[面条件] 本次解析用到仓内目标=106 件；其中 git 忽略集内=1 件⇒ 本面**靠工作树才在位**（用 `git archive` 还原就缺它，各档 RED 会变；复现留名要带"面怎么取"）：opt/upstream/lvr2/CMakeLists.txt
+[四元组] 件版本=v_citation_check.sh 本件现身（sha=a42627ebd331）／扫描面=67 件／窗宽=±40（缺省，可被 VCC_FIXUP_CHARS 覆盖）／列名=文档,单点引用,OK,RED,AMBER,勘误句,非单点形状,豁免红,豁免表命中,豁免表未命中
+VCC VERDICT rc=5（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+VCC rc=5
+②_RC=0
+
+===== ③ LCB（对 r272 基线）=====
+  非单点形状 172 = 172  同值
+  豁免红      7 = 7  同值
+  豁免表命中 1 = 1  同值
+  豁免表未命中 1 = 1  同值
+LCB VERDICT: 与基线逐项同值
+③_RC=0
+
+===== ④ 规矩⑨报告器（本批被改／新建五件）=====
+面＝5 件／文本行数=3963（缺省降噪三条＝跳头部 8 行＋元话语过滤＋邻行±1）
+[分类] 元话语=51／同句有痕迹=65／报=2／跳过(头部)=1／邻行有痕迹=3
+[计数] 含结论强度词行=122 其中**须人读**=2
+  [报] note/04_配置改动diff.md:656｜词=推翻｜三跑 INVALID ＋ 本次中止合计四次取数未成，**依旧不判 DWA 不可用**（在册 #23 的可用性结论不被推翻）。
+  [报] note/04_配置改动diff.md:927｜词=未证｜③**未证实生效 ⇒ 按"前置不成立"处理、不得判被试**（与件里的 INVALID 前门同一口径）；
+CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）
+④_RC=0
+
+===== ⑤ refscan（★改后补跑，非改前钩子——见台账自曝）=====
+### 被改件：note/进度/SCAN集成/设计/scripts/s1_offline_frames_smoke.py（0 处行号引用）
+
+### 被改件：scripts/verify/pyst_face.txt（0 处行号引用）
+
+合计行号引用=0
+REFSCAN VERDICT: rc=0 —— 零行号引用，本次改动不会顶走任何在册指针
+⑤_RC=0
+
+===== ⑥ 窗前置件（本批不开窗，只取当次拒窗回执）=====
+[①ISO] ISO_RC=0 尾行＝# self-attest: at=2026-10-14 05:30:48 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4613 user=ysc home=/home/ys
+[②库来源] numpy=1.19.4 path=/usr/local/lib/python3.8/dist-packages/numpy/__init__.py 要求前缀=/usr/local
+[③机况] load1=4.35 阈值=4.0 门槛来源＝在册开窗规矩
+[拒窗] load1=4.35 > 阈值 4.0
+PREFLIGHT VERDICT rc=5（拒窗：1 项不成立，逐条见上）
+⑥_RC=0
+
+[②补录] VCC 汇总行＝[计数] 文档=67 单点引用=743 OK=608 RED=0 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）⇒ **与 R272 清红后、R280 批末逐值同**（本批新志文未引入裸行号引用、RED 仍 0）
+[⑥限定] 本批**未开窗**：前置件当次报 `load1=4.35 > 4.0` ⇒ `rc=5 拒窗`；`ISO_RC=0`、`numpy=1.19.4 @/usr/local`（与冒烟跑同态）
+[八件串 VAR 一栏的当时态] 本次串跑时本目录**尚未建清单** ⇒ VAR 报 `[FAIL] P3a-1 缺：r281_s1_offline_smoke`、`PASS=7 FAIL=1`、`rc=5`；清单按"最后建"规矩补后须复跑取终值（见台账 R281 段末行），**此处不假装绿**
