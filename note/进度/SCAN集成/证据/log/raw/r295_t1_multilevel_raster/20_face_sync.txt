@@ -1,0 +1,15 @@
+# r295 留底：面同步（pyst_face 53→54）与两数并打
+时刻＝2026-10-14 20:22
+
+派生式（写在清单头，两次同数＝验收式）＝
+  { find ws/src -path '*/lite3_*' -name "*.py"; find scripts -name "*.py"; find note/进度 -path "*/scripts/*.py" -name "*.py"; } | grep -v __pycache__ | sort -u
+  跑 1＝54｜跑 2＝54
+  清单条目数（grep -vcE "^ *(#|$)"）＝54
+  现拼（逐条 test -e）＝54
+
+PYST 单跑（ISO 姿势，命令＝剥注释空行后把 54 条喂件）：
+  [OK]  py_compile note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+  [OK]  pyflakes note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py（未定义名 0）
+  PY STATIC OK（被检件数=54）
+
+★为何不进 ws/src（在册理由三条）＝①R288 已定半成品不入代码面，且当时正因一个 178 行探针差点把 pyst_face 撑成 54≠53；②T1 是**离线验证件**，先例＝同目录的 s1_offline_frames_smoke.py（R281 也是放这里）；③生产化要等消费时刻（投影进 costmap）与 #46／A47 后续裁定。

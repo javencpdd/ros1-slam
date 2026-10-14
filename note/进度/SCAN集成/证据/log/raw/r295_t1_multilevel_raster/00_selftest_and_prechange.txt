@@ -1,0 +1,28 @@
+# r295 留底：⑤ 改前反扫（动台账之前跑）＋自测原文（含两条阴性对照）
+时刻＝2026-10-14 20:20
+  note/04_配置改动diff.md                              合计行号引用=18 件 rc=5
+  note/00_README.md                                        合计行号引用=6 件 rc=5
+  note/进度/00_总览.md                                 合计行号引用=4 件 rc=5
+  note/进度/SCAN集成/进度文档.md                   合计行号引用=51 件 rc=5
+  note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py 合计行号引用=0 件 rc=0
+
+## 自测原文（命令＝ISO 姿势下 python3 … --selftest；期望 PASS=14 FAIL=0 rc=0）
+    [PASS] T-a 单层地面 multi_layer=0 格数=30
+    [PASS] T-a 单层地面 suspended=0 
+    [PASS] T-b 悬挑 suspended>0 最低板>0 的格=1
+    [PASS] T-c 双层 multi_layer>0 中间空板的格=1
+    [PASS] T-c 三值不塌陷：有覆盖格数==格数>0 
+    [PASS] T-d 剔零计数 removed=500 removed=500
+    [PASS] T-d 剔零后 (0,0) 处不成格（零点不再撑出栅格范围） 栅格=1x1 总格=1 覆盖格=1
+    [PASS] T-d 剔零后覆盖格==1（只剩那个真点） 
+    [PASS] M1 关掉剔零后 (0,0) 格被塌占（阴性对照须成立） 该格落点=500
+    [PASS] M1 关掉剔零后覆盖格==2（虚高一格） 实=2
+    [PASS] M1 关掉剔零后总点数虚高 500 
+    [PASS] M2 朴素判据在单层地面上误判（故判据须要"中间空板"这一件） 
+    [PASS] T-e 窗外点数 n_points_out_of_z=2 out=2 used=2
+    [PASS] T-f 空点云须抛错 
+    合计 PASS=14 FAIL=0
+  T1_SELFTEST PASS=14 FAIL=0 rc=0
+
+## 件 sha 与行数（供下一位核对未被偷改）
+  行数=292 sha 前 8=66bd86c1 权限=664
