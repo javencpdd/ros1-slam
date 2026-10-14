@@ -1,0 +1,36 @@
+# （本文件是生成器；同批的 *_out.txt 是它的现跑输出原文）
+# r303 留底：an 稿（T3＝X1 结构断言的可判输入）里每个数的现跑出处｜时刻＝2026-10-14 22:47
+# ★全部由两件在册离线件现跑取，未新造数；复跑式写在每段首行
+echo "== 段一：lite3.pcd（map 系，可引默认＝贴地＋垫一板）=="
+python3 - <<'PY1'
+import sys, numpy as np
+sys.path.insert(0,'note/进度/SCAN集成/设计/scripts')
+import t1_multilevel_raster_offline as t1
+pts,meta=t1.read_pcd('data/maps/lite3.pcd'); pts,rm=t1.drop_placeholder_zeros(pts)
+zg=float(np.percentile(pts[:,2],5))
+r=t1.rasterize(pts,res=0.10,z_min=zg-0.10,z_max=zg-0.10+1.20,slab=0.10,z_ground=zg)
+cov=r['covered']>0; cells=int(cov.sum()); pairs=int(r['n_slab'][cov].sum())
+print('覆盖格=%d 有效(格,板)对=%d 每列最大板数=%d 平均板数=%.2f'%(cells,pairs,int(r['n_slab'].max()),pairs/cells))
+print('需要>=2板的格=%d（占覆盖格 %.1f%%）真有空板=%d 悬挑候选=%d 总格=%d'
+      %(int((r['n_slab']>=2).sum()),100.0*int((r['n_slab']>=2).sum())/cells,int(r['multi_layer'].sum()),int(r['suspended'].sum()),r['nx']*r['ny']))
+print('单高度载体丢弃的板事实=%d 对 = 全部板事实的 %.1f%%（每格只留 1 板）'%(pairs-cells,100.0*(pairs-cells)/pairs))
+print('per-system（每层一张单高度图）＝%d 层 × %d 格 = %d 个 float = %.2f MB/帧（float32，未计消息头）；对比每格 1 个 int64 掩码 = %d 字节/帧 = %.0f KB'%(
+      r['nz'],r['nx']*r['ny'],r['nz']*r['nx']*r['ny'],4.0*r['nz']*r['nx']*r['ny']/1e6,8*r['nx']*r['ny'],8.0*r['nx']*r['ny']/1e3))
+print('z_ground=%.3f 窗=[%.2f,%.2f] k0=%d truncated=%s nz=%d'%(zg,r['z_min'],r['z_max'],r['k0'],r['truncated'],r['nz']))
+PY1
+echo
+echo "== 段二：R82 那 14 帧（雷达系，res 0.05）=="
+python3 - <<'PY2'
+import sys, numpy as np
+sys.path.insert(0,'note/进度/SCAN集成/设计/scripts')
+import t1_multilevel_raster_offline as t1, t2_placeholder_zeros_and_tristate_offline as t2
+fr=t2.load_frames('note/进度/SCAN集成/证据/log/raw/r82_selfmask_20261010_042738')
+allp=np.vstack([p for _,p in fr]); allp,rm=t1.drop_placeholder_zeros(allp)
+zg=float(np.percentile(allp[:,2],5))
+r=t1.rasterize(allp,res=0.05,z_min=zg-0.10,z_max=zg-0.10+1.20,slab=0.10,z_ground=zg)
+cov=r['covered']>0; cells=int(cov.sum()); pairs=int(r['n_slab'][cov].sum())
+print('剔零=%d 点 覆盖格=%d 有效(格,板)对=%d 每列最大板数=%d 平均板数=%.2f'%(rm,cells,pairs,int(r['n_slab'].max()),pairs/cells))
+print('需要>=2板的格=%d（占覆盖格 %.1f%%）真有空板=%d 悬挑候选=%d'%(int((r['n_slab']>=2).sum()),100.0*int((r['n_slab']>=2).sum())/cells,int(r['multi_layer'].sum()),int(r['suspended'].sum())))
+print('单高度载体丢弃=%d 对 = %.1f%% 全部板事实；格网=%dx%d 窗=[%.2f,%.2f] k0=%d truncated=%s'%(
+      pairs-cells,100.0*(pairs-cells)/pairs,r['nx'],r['ny'],r['z_min'],r['z_max'],r['k0'],r['truncated']))
+PY2

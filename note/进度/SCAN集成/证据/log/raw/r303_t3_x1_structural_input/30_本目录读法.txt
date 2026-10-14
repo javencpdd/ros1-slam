@@ -1,0 +1,8 @@
+# r303（T3 侧）留目录读法｜本目录只放"an 稿的证据半边"
+- 本批（R303）留底分两个目录，另一个＝`…/r303_a50_xiaomei_ruling/`（小美裁定逐字＋可判输入的现跑输出＋批末复跑）。★两边各带自己的清单。
+- `00_msg_shapes.txt`（23 行）＝三条消息定义的当场 `cat` 取证＋`w3_elevation_node.py` 里那行发布者：
+  `OccupancyGrid` ＝ `int8[] data` ＋ `MapMetaData{map_load_time, resolution(float32), width(uint32), height(uint32), origin(Pose)}` ⇒ **每格一个标量、结构里没有 z 维**；
+  `GridMap` ＝ `GridMapInfo info` ＋ `string[] layers` ＋ `std_msgs/Float32MultiArray[] data` ⇒ **每层每格一个 float**，"多层堆叠"＝N 张单高度图。
+- 为什么这半边单独立目录＝an 稿 §1 的两条 msg 断言必须能被人**原样复跑**（`cat /opt/ros/noetic/share/nav_msgs/msg/OccupancyGrid.msg` 等），与"数从哪来"（在姊妹目录 10_ 件）是两类证据。
+- ★边界：本目录不含任何结论；X1 的**路线句**（per-system 不可行）在 an 稿 §4 明确标为"不能判"。
+- **P8**＝计划书未定稿、以 **v5.3（含 R294 收编段）** 为准；只读取证、未起窗、未改件。

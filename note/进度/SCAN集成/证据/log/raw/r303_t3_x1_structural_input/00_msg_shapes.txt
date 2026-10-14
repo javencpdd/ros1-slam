@@ -1,0 +1,23 @@
+# r303 留底：an 稿（T3＝X1 结构断言的可判输入）里每个数的出处与现跑输出｜时刻=2026-10-14 22:46:19
+# ★an 稿不新造数——全部来自这两件现跑：t1_multilevel_raster_offline.py（lite3.pcd）与 t2_placeholder_zeros_and_tristate_offline.py（R82 14 帧）
+
+## 一、消息形状（三条都当场 cat／grep 得到，不是引用记忆）
+$ cat /opt/ros/noetic/share/nav_msgs/msg/OccupancyGrid.msg
+    Header header 
+    MapMetaData info
+    int8[] data
+$ cat /opt/ros/noetic/share/nav_msgs/msg/MapMetaData.msg
+    time map_load_time
+    float32 resolution
+    uint32 width
+    uint32 height
+    geometry_msgs/Pose origin
+$ cat /opt/ros/noetic/share/grid_map_msgs/msg/GridMap.msg
+    GridMapInfo info
+    string[] layers
+    string[] basic_layers
+    std_msgs/Float32MultiArray[] data
+    uint16 outer_start_index
+    uint16 inner_start_index
+S1 发布者那行＝
+        pub_grid = rospy.Publisher("/elevation_grid", OccupancyGrid, queue_size=2, latch=True)
