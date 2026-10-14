@@ -1,0 +1,8 @@
+本目录读法（R316，2026-10-15 02:5x；零窗施工批＝A55＝乙 落地）
+- `00_prechange_and_baseline.txt` ＝ 改前 tooling 现状（顶层清单存在性＝否、`RESTORE.sh` 1173 字节 rwx、子清单 133 收录／135 文件／校验 rc=0、RESTORE 被列 0 次）＋VCC／账构基线＋五件行数＋load1＋**七份 unit 可读性探针**。★引用"改前值"只用这一件。
+- `10_overview_increment.txt` ＝ 总览档头增量串底稿。
+- `20_batch_end_runs.txt` ＝ 批末 ①–⑥＋八件串＋收尾跑序＋★**A55 专项三式**（顶层清单行数／条目、`sha256sum -c`、存在性与 mode、unit 可读性复跑＝7/7）；`21_chain_raw.txt` ＝ 串原始输出（★ISO 行含禁列路径字面量，志文不抄）；`batchend_run.sh` ＝ 本批跑法（沿 R315 那份改目录＋被检四件＋插入 A55 专项）。
+- ★本批**入库正文件本体**＝`tooling/_sha256_manifest.txt`（11 行＝头注 9＋2 条目），不在本目录内，别在此找。
+- `_sha256_manifest.txt` ＝ 本目录清单，**最后建**、不列自身。
+限定：①本批只闭 §0.13.5 的**一个子格**（恢复脚本无 sha 见证），★**条件④ 未整体闭合**（A36 豁免面未建、unit 正文未入仓）；②"7 份 unit 可读"＝**只读探针**，未复制、未 sudo、未入仓；③★子清单 sha 只作当批报行（`c86d87b3`），★不列为判据、也不进顶层清单（避免每次自过期）。
+校验式：`cd tooling && sha256sum -c _sha256_manifest.txt`（期望 2 行全 OK）；`cd 本目录 && sha256sum -c _sha256_manifest.txt`。

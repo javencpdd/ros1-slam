@@ -1,0 +1,11 @@
+# tooling/_sha256_manifest.txt —— `tooling/` 的**顶层 sha 见证清单**（R316 建；主理人-佳文 2026-10-15 裁 **A55＝乙**：另立顶层清单，而非改动在册子清单本体）
+# 存在的理由＝§0.13.5 终稿第四条前置要"外部依赖表逐条有恢复办法"，而 R312 现跑发现**恢复脚本自身没有 sha 见证**
+#   （`tooling/skill/_sha256_manifest.txt` 收录 133 件、`tooling/skill/` 实有 135 文件；`RESTORE.sh` 在该清单里出现 **0** 次＝该脚本＋清单自身未列）。
+# ★覆盖范围（三条，逐条可跑）＝①`README.md`②`skill/RESTORE.sh`（★可执行位＝rwx，复原整棵树靠它）③★**不含** `skill/_sha256_manifest.txt`（子清单）。
+# ★为何不列子清单＝子清单**每批末最后生成**，其 sha 随子目录任何一次增删而变；把它写进本清单＝造一条**每次必然自过期**的在册串
+#   （在册规矩：清单最后建、追加即作废）。⇒ 子清单的当期 sha 只作**当批留底报行**（★非判据），复现式＝`sha256sum tooling/skill/_sha256_manifest.txt`。
+# ★生成序＝本清单在**当批全部写动作完成后**生成；★生成后再往 `tooling/` 顶层追加文件，本清单即作废（同子清单规矩）。
+# 键形与列序＝照盘上既有清单形状（`<sha256>  <相对路径>`，路径相对**本清单所在目录**）；本清单**不列自身**。
+# 校验式＝`cd tooling && sha256sum -c _sha256_manifest.txt`（期望：全部 `: OK`、失败行数 **0**）。
+5ad7fc1902813768dd67015478d6af6cffd261dec739f28d87fac781c0134036  README.md
+19ea897a3003cfcd848e9eedb793df49182deeac0d2a04093e59d2cbb37f64f2  skill/RESTORE.sh
