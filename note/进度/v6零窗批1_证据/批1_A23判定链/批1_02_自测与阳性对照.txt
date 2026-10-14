@@ -1,0 +1,31 @@
+# 批1_02 自测与阳性对照复跑（时刻=2026-10-15 05:44:06，零窗零节点）
+## 一、件内 --a23-selftest（在册既有五例，含反向例）
+[PASS] 例一 合成穿墙（轨迹离占据格 0.02m）：期望 breach=True／实得 True（门值 0.10）
+[PASS] 例二 同数据但门值关到 0（＝撤掉判据）：期望 breach=False／实得 False（门值 0.00）
+[PASS] 例三 安全轨迹（离占据格 0.50m）：期望 breach=False／实得 False（门值 0.10）
+[PASS] 例四 边界：恰等于门值 0.10 不算 breach（严格小于才拦）：期望 breach=False／实得 False（门值 0.10）
+[PASS] 例五 无读数（None）须放行不得瞎判：期望 breach=False／实得 False（门值 0.10）
+A23 SELFTEST VERDICT: PASS=5/5（含「撤掉判据必须转绿」这一反向例——不反向就证明不了判据在起作用）
+件内自测 rc=0
+## 二、本批新件 t_p4_occ_tol_selftest.sh 九档
+== 档一 未设 env ⇒ 缺省读 0.10（单一真身在代码）==
+[PASS] 档一 OCC_BREACH_TOL 缺省：期望=0.1／实得=0.1
+== 档二 env P4_OCC_TOL=0.25 ⇒ 读到 0.25 ==
+[PASS] 档二 env 覆盖生效：期望=0.25／实得=0.25
+== 档三 两侧用例（恰在门值两侧，判定必须不同）==
+[PASS] 档三 下侧 0.0999 应判 breach：期望=True／实得=True
+[PASS] 档三 上侧 0.1001 应不判：期望=False／实得=False
+[PASS] 档三 两面必须不同：期望=diff／实得=diff
+== 档四 撤 env ⇒ 回缺省 0.10 ==
+[PASS] 档四 撤例回缺省：期望=0.1／实得=0.1
+== 反向对照 撤掉判据（tol=0）⇒ 同一穿墙样本必须转绿（Z6 硬要求：不反向就证明不了判据在起作用）==
+[PASS] 反向 撤判据转绿：期望=False／实得=False
+[PASS] 反向 带判据判红：期望=True／实得=True
+== 判定链是否真引用（名实相符检查，只读）==
+[PASS] 主链调用 a23_breach 处在位：期望=1／实得=1
+T SELFTEST VERDICT: PASS=9/9（rc=0 全过／9 有 FAIL；★本件不入门禁串）
+新件 rc=0
+## 三、★反面样本（首版新件 PASS=2/9、rc=9 的实录——证明这套断言真能失败，不是空跑）
+首版缺陷＝harness 里把待求值表达式当字符串打印（print(sys.argv[1]) 应为 exec(...)）⇒ 七档全 FAIL、rc=9；★改法＝exec；改后 9/9 全过＝两面不同已证
+## 四、Z6 要求的两面不同（同一穿墙样本 0.020m）
+带判据＝breach True｜撤判据(tol=0)＝breach False｜★两面不同=成立

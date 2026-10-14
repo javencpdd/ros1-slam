@@ -1,0 +1,31 @@
+# 批1_01 只读盘点（判据权威＝v5.3 §16.4 Z6 格＋ap 稿 #7 行原文；时刻=2026-10-15 05:41:34）
+被盘件＝ws/src/40_navigation/lite3_scan/verify/p4_replan.py｜行数=520｜sha 前 12=17d16ebd1635｜mode=664
+
+## 作业单点名的那条式子（原样跑）
+$ grep -n 'collide\|avoided\|OCC_TOL\|min_dist' p4_replan.py
+6:  判据本体只用在册既有阈值：穿墙阈 OCC_TOL=0.10m（P2 原文）、终点偏差 0.35m 与 dt 120s（A7 判据③④ 原文）、到达实体 J1。
+46:OCC_TOL = 0.10                                           # P2 原文硬穿墙阈，本件不改值
+49:#   注意本件另有两条同值不同义的边界：collide 用 robot_min <= 0.40（本体贴边即算撞，含等号），avoided 用 traj_min >= 0.40（轨迹贴边算过，含等号）
+53:#   门值 0.10m 沿用 P2 原文 OCC_TOL 同值但**不同义**（OCC_TOL 讲的是本体贴边即撞，本条讲的是**轨迹线**离占据格）；
+54:#   单一真身在本行（env `P4_OCC_TOL` 可覆盖，供离线阳性对照"关掉判据"用）。
+56:OCC_BREACH_TOL = float(os.environ.get("P4_OCC_TOL", "0.10"))
+437:        out["traj_before_control_min_dist"] = round(float(min(t0tree.query(q)[0] for q in b0)), 3)
+445:    out["new_traj"] = {"n_pts": int(len(cn)), "min_dist_to_any_occ": round(dmin, 3),
+446:                       "min_dist_to_injected": round(dout_obs, 3)}
+447:    out["clearance"] = {"min_dist_to_any_occ": round(dmin, 3), "min_dist_to_injected": round(dout_obs, 3),
+448:                        "gate_occ": OCC_TOL}
+481:    collide = robot_min <= 0.40
+482:    avoided = traj_min >= AVOID_DIST
+487:    if collide:
+491:    if not avoided:
+496:    out["a23"] = {"min_dist_to_any_occ": round(dmin, 3), "breach_gate": btol, "breach": bool(breach),
+497:                  "avoid_gate": AVOID_DIST, "avoid": bool(avoided)}
+
+## ★与作业单第 27 行那句在册口径的对照（作业单写：OCC_TOL 现仅常量定义＋打印两处、不进判定）
+grep -c 'OCC_TOL'（子串式，含 OCC_BREACH_TOL 不计）＝6 处
+  定义行＝46:OCC_TOL = 0.10                       
+  打印/输出行＝448:                        "gate_occ": OCC_TO
+判定链引用的其实是新常量行＝56:OCC_BREACH_TOL = float(os.environ.get("P4_OCC_TOL", "0.10
+  判定函数＝135:def a23_breach(min_occ, tol=None):／主链调用＝495:    breach, btol = a23_breach(dmin)
+两列并报形状＝57:TWO_COL_FMT = "两列并报 avoid@%.2f=%.2f／breach@%.2f=%.2f"
+env 名＝P4_OCC_TOL｜缺省＝0.10｜单一真身＝上述 OCC_BREACH_TOL 行

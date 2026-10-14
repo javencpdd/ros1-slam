@@ -1,0 +1,17 @@
+# 批1_06 静态校验（时刻=2026-10-15 05:44:50；★调用式＝逐件给路径，用法见两件头注「用法：… <文件> [...]」）
+①bash -n 新件 ＝
+  rc=0
+②v_sh_py_syntax.sh 被检件＝新件＋被验件
+  rc=0
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/t_p4_occ_tol_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 43 行，非默认绿）
+[OK] python ast ws/src/40_navigation/lite3_scan/verify/p4_replan.py
+PY SYNTAX OK（被检件数=2，内嵌 python 段合计=0）
+③v_py_static.sh（范围甲，被检件＝p4_replan.py；★新件是 .sh 不属本件面）
+  rc=0
+[OK]  py_compile ws/src/40_navigation/lite3_scan/verify/p4_replan.py
+[OK]  pyflakes ws/src/40_navigation/lite3_scan/verify/p4_replan.py（未定义名 0）
+PY STATIC OK（被检件数=1）
+④面数核对（本批新增 .sh 未入 syn／pyst 面＝覆盖面零变化）
+  syn=85 pyst=55 新件在 syn 面内=0 在 pyst 面内=0
+⑤★一次调用式自纠（同族在册已知形状）＝首跑我把两件静态件不带参数跑了 ⇒ rc=5「空集不得判绿」＝用法错、不是语法错；★没有把它读成"绿"、也没改件凑数，改为逐件给路径后重跑＝以上两条

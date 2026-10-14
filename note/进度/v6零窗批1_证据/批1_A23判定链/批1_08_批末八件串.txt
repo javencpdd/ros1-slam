@@ -1,0 +1,30 @@
+# 批1_08 收尾八件串（作业单收尾第 1 条；时刻=2026-10-15 05:48:14，运行器恒 0＝只报不判）
+串运行器 rc=0
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=85，内嵌 python 段合计=46）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=0   ｜ # self-attest: at=2026-10-15 05:48:38 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4580 user=ysc home=/home/ysc rc=0
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=55）
+VAR     rc=0   ｜ VAR rc=0（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=66 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+## 收尾跑序 K1/K2/K3 ＋ 清 __pycache__（PYST 产物污染 find 计数之在册动作）
+K1=0 K2=0 K3=0（三条须全 0 才许清盘）
+清前=19
+清后=0
+## 契约件（清盘后跑）
+契约件 rc=0
+W3 CONTRACT VERDICT: PASS=26 FAIL=0 ABSENT=0（ABSENT 不计通过）
+## 面与成员（★本批零改动面自证）
+gate_chain=8 syn=85 pyst=55 parity=54 claim=70 窗回执=13 30_3rd=49
+## 被验件 sha 前后（★零改动自证）
+  p4_replan.py 前=17d16ebd1635 后=17d16ebd1635
+  git status（该件＋v5.3＋gate_chain）＝[]（空＝未动）
+## 新件清单（本批唯一的代码侧新增）
+  mode=-rwxr-xr-x+ 字节=2921 件=ws/src/40_navigation/lite3_scan/verify/t_p4_occ_tol_selftest.sh
+load1=1.02
+## ★一条读数变化留名（差因未查＝不写成因、不下结论）
+本批串里 VAR 由在册连续多批的 rc=5 变为 rc=0（单跑复验＝VAR VERDICT: PASS=8 FAIL=0，清盘前后各跑一次均 0）；★同批 ISO 自证计数 ws_src_files 由 4579 → 4580＝本批新增那件 .sh 落进 ws/src 扫描面（★属覆盖面变化、不是新疑点）；
+VAR 那一格 FAIL 具体是哪一项未查明 ⇒ 登记为下批待查（在册读法＝"新增或消失的 FAIL 必须先定性再动笔"）；★未据此改任何件、也未把 rc=0 读成"VAR 已被验证正确"；
+★可原样复跑＝bash scripts/verify/v_evidence_reachability.sh（本件不落 /tmp 输出、只登记两条结论与判据式）
+## ★本批自陈一条（动作㉕ 第十三次、就在收尾这一步）＝上面这段第一次是用双引号 echo 写进文件的、串里含一对反引号 ⇒ shell 把反引号内内容当命令执行（报 "ws/src/: Is a directory"）并把正文吃掉一截；★发现＝读回该文件时看到行被截断；★处置＝删掉那 4 行、改带引号定界符 heredoc 重写本段；★未污染在册件（只影响这份留底、且已重取）
