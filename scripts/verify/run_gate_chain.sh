@@ -41,7 +41,8 @@ run_one() { # 代号 件路径 rc语义
     *)     ( cd "$ROOT" && bash "$path" ) > "$out" 2>&1 ;;
   esac
   rc=$?
-  printf "%-7s rc=%-3s ｜ %s\n" "$tag" "$rc" "$(tail -1 "$out" | cut -c1-110)"
+  # ★不按字节截行：`cut -c` 在本 locale 下按**字节**数，会把中文砍半截、令本件自己吐出无效 UTF-8（R299 实测）
+  printf "%-7s rc=%-3s ｜ %s\n" "$tag" "$rc" "$(tail -1 "$out")"
   rm -f "$out"
 }
 

@@ -1,0 +1,31 @@
+# r300 留底：改串运行器之前的依据 ＋ 改后两条对照｜时刻＝2026-10-14 21:58—22:01
+
+## ① 改前钩子（05 追加三十一第 4 条：动手之前跑）
+bash scripts/verify/v_citation_refscan.sh scripts/verify/run_gate_chain.sh
+  ⇒ 合计行号引用=0／REFSCAN VERDICT rc=0（＝乙种件，无人按行号引它 ⇒ 允许中间插入；许可依据就是这一行）
+bash -n scripts/verify/run_gate_chain.sh ⇒ rc=0
+
+## ② 缺陷本体（R299 实测到的那一条）
+原第 44 行＝printf "%-7s rc=%-3s ｜ %s\n" "$tag" "$rc" "$(tail -1 "$out" | cut -c1-110)"
+`cut -c` 在本 locale（非 UTF-8）下按**字节**数 ⇒ 中文三字一组被砍半截 ⇒ **本件自己**吐出无效 UTF-8。
+R299 现例＝/tmp/chain_r299.txt 第 11 行（PARITY 那行）python 解码报 `0xe5 unexpected end of data`；
+★我第一版留底 40_ 用 sed 抄了那行 ⇒ 把坏字节抄进了证据目录 ⇒ 该件已整件重写（r299 目录 40_ 里有说明）。
+
+## ③ 改法（就一处、不动任何 rc 语义）
+去掉 `| cut -c1-110`、改打整行，并加一行注释写明"为什么不能按字节截"。
+★本件身份不变＝只报不判、退出码恒 0；成员名单 gate_chain.txt（8 行）未动；未新增门禁件。
+不选的方案＝加 `iconv -c` 之类"清洗"：那会把上游真的坏字节静默吃掉＝掩盖问题而不是修掉（在册"不自装闸"同一口径）。
+
+## ④ 改后两条对照（可原样复跑）
+阴性对照（旧写法在同一条真行上确实会坏）：
+  grep -a '^\[计数\]' /tmp/parity_r299.txt | tail -1 | cut -c1-110 → /tmp/old_style_probe.bin
+  python 解码 ⇒ UnicodeDecodeError（末三字节 = b'... \xe6\x96\xb0\xe5'，★半个"新"字）⇒ 缺陷复现 ✓
+阳性对照（新写法整行可解码、短行不受影响）：
+  新串输出 PARITY 行＝215 字节 ⇒ utf-8 解码 OK ✓
+  DC 短行＝"DC      rc=1   ｜ DC rc=1" ⇒ 原样 ✓
+  整份 /tmp/chain_r300.txt 逐行解码 ⇒ 无效 UTF-8 行数=0／总行数 15 ✓
+
+## ⑤ 顺带一条不必慌的数变化（按在册"先分覆盖面变化还是真漂"）
+ISO self-attest 的 ws_src_files：R296＝4613 → 本批＝4579（−34）
+⇒ 成因＝本批与 R299 之间按追加三十一①清了 19 个 __pycache__ 目录（约 34 个 .pyc 文件），★不是隔离态变了、也不是 ws/src 源件被删；
+  复现式＝find ws/src -type f | wc -l 在清产物前后各取一次。
