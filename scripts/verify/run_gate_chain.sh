@@ -56,4 +56,5 @@ while IFS=$'\t' read -r n tag path sem; do
   run_one "$tag" "$ROOT/$path" "$sem"
 done < "$CHAIN"
 echo "== 本件只报不判（退出码恒 0）；判定看各件自身 rc 与 05 的在册调用式，成员增减与 rc 语义变更须裁定者明令 =="
+echo "   ★收尾跑序提示（05 追加三十一②；只提示、不动盘、不判定）：本串内 PYST／SYN 对 .py 跑过 py_compile ⇒ 源件旁会留下 __pycache__/*.pyc；接下来若跑任何按 find 计数的件，先按追加三十一①的三条核对式清产物，否则计数会虚高（R281／R282／R284 三次实测同源，产物在场数 19）"
 exit 0
