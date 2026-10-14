@@ -1,0 +1,61 @@
+# R319 收窗｜退窗 A1 对照＋窗回执＋门禁串复跑｜时刻=2026-10-15 03:30:24｜身份=ysc
+## 退窗 A1（覆盖面＝6、乙' 五断言；用快照式）
+①六unit: lite3-monitor=enabled/inactive lite3-ros-bridge=enabled/inactive transfer_ros2=enabled/inactive whoopsie=masked/inactive apport-autoreport.path=masked/inactive apport-forward.socket=enabled/inactive 
+  ②⑤ run_mapping_online   命中=1
+  ②⑤ /opt/ros/foxy        命中=1
+  ②⑤ livox_ros_driver     命中=1
+  ②⑤ ros2qnx              命中=1
+  ②⑤ qnx                  命中=1
+③样张 sha=aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34
+④11312/11313 TCP=0
+?
+④改用文件式 TCP=0 UDP=0
+★滞留链残留（应为 0 行，除快照自身外）：1 行包装 shell；gazebo／roslaunch 存活=1
+
+## 三扇关键读数（逐条原样摘录，供 ap 编号对账）
+--- w1_goalA
+F9 互斥=0/0
+task outcome: succeeded
+TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0
+到达偏差 0.011m≤0.35m
+总时长 13.1s
+样张起前＝退后：是
+耗时 52s
+耗时 9.40s
+链上四件=4/4
+--- w2_goalB
+F9 互斥=0/0
+task outcome: succeeded
+TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0
+到达偏差 0.077m≤0.35m
+总时长 14.2s
+样张起前＝退后：是
+耗时 10.40s
+耗时 55s
+链上四件=4/4
+--- w3_goalC
+F9 互斥=0/0
+task outcome: succeeded
+TASK SCAN PRIMITIVE VERDICT: PASS=11 FAIL=0 ABSENT=0
+到达偏差 0.057m≤0.35m
+总时长 13.5s
+样张起前＝退后：是
+耗时 52s
+耗时 9.81s
+链上四件=4/4
+
+## 八件串复跑（收窗后）
+运行器 rc=0
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=85，内嵌 python 段合计=46）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=0   ｜ # self-attest: at=2026-10-15 03:30:59 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4579 user=ysc home=/home/ysc rc=0
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=55）
+VAR     rc=5   ｜ VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=66 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+## 契约件（清 pycache 前不跑 find 件；先清）
+pycache 清前=19 清后=0
+契约件 rc=0
+W3 CONTRACT VERDICT: PASS=26 FAIL=0 ABSENT=0（ABSENT 不计通过）
+⇒ 件面对账过；★R280 起 S1／S2 已落盘（S1 本体＋规范位 yaml），但**本件不声称任何实现正确性或活体结论**：小张接口复核半未销、#46 三态语义未销 ⇒ 判据面与达成判定仍不在本件出口

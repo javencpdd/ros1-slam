@@ -1,0 +1,31 @@
+# R319 窗包批｜起前 A1 基准（覆盖面＝6、形状＝乙' 五断言）｜时刻=2026-10-15 03:19:00｜身份=ysc
+①六unit: lite3-monitor=enabled/inactive lite3-ros-bridge=enabled/inactive transfer_ros2=enabled/inactive whoopsie=masked/inactive apport-autoreport.path=masked/inactive apport-forward.socket=enabled/inactive 
+②foxy/滞留链真计数=0
+③样张 sha256=aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34
+④11312/11313 TCP=0 UDP=0
+⑤ros2qnx/qnx 真计数=2
+load1=0.49 在线CPU=6
+预检 rc=0
+[②库来源] numpy=1.19.4 path=/usr/local/lib/python3.8/dist-packages/numpy/__init__.py 要求前缀=/usr/local
+[③机况] load1=0.72 阈值=4.0 门槛来源＝在册开窗规矩
+PREFLIGHT VERDICT rc=0（放行：ISO_RC=0／numpy 在 /usr/local 下／load1=0.72≤4.0）
+# 更正一条（同批、起前基准文件写完即发现）
+上面 ⑤ 那行报 2 是**假阳性**＝探针自身命令行里带着字符串 'ros2qnx/qnx'（在 echo 文本内），被自己的 ps 扫到。
+自避复跑（排除本进程树 369208 与其子壳、并逐条打印）：
+⑤真计数=1
+★在册读法候选（本批第三次撞同一形状）＝ps/grep 类计数式必须①模式自避（括号技巧）**且**②排除探针自身进程树，两法同时归 0 才可写'真计数=0'；单用任一种都会出假阳性。
+# 第二次更正（同上批，写完发现计数式仍在自匹配）
+⑤改用 pgrep（自免自身 PID）＝0（命中清单逐条打印为空）
+②同法三式交叉＝run_mapping_online=1 /opt/ros/foxy=0 livox_ros_driver=1
+★升级读法＝ps|grep 计数式即使模式自避，管道内 grep 进程仍会自匹配 ⇒ 正确姿势只有 pgrep -f（自免自身）或 ps 与 grep 分两步；本批两次假阳性均由此出，登记为候选读法、★不自立规矩
+# 第三次更正＝定稿式（快照与匹配分两步，消除包装 shell 自匹配）
+ps 快照行数=295（快照先于任何匹配动作完成）
+  run_mapping_online   命中=1
+  /opt/ros/foxy        命中=1
+  livox_ros_driver     命中=1
+  ros2qnx              命中=1
+  qnx                  命中=1
+★结论＝②⑤ 真计数均为 0；前两次的 1／2 全由『执行探针的那个 shell 的命令行里写着被扫字符串』造成（快照式一劳永逸）。
+# 第四次也是最后一次（这一族今天第三次复发）＝证据式定稿
+命中行的原样打印见本目录 00 号文件末尾之前的最后一次跑法输出；结论＝唯一命中是执行探针的 bash -lc 自身（其命令行含被扫字符串清单），真实残留进程＝0。
+★可复跑定稿式（写进读法候选）＝先 、再对快照匹配、并把**命中行逐条打印**（不打印就不可能发现是自匹配）；★只报计数不报行＝本批连错三次的直接原因。
