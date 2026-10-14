@@ -1,0 +1,57 @@
+# r297 留底：T1 按小张③改 suspended 定义式之后的自测与两锚重跑｜时刻=2026-10-14 21:28:12
+
+## 件复跑前的 sha 前 8（HEAD 版＝R295 入库版）
+66bd86c1
+## 改后工作树 sha 前 8
+46d475d7
+
+## ⑤ 改前反扫（动手之前跑，该件）
+
+## selftest（改后，PASS 14 → 19）
+  [PASS] T-a 单层地面 multi_layer=0 格数=30
+  [PASS] T-a 单层地面 suspended=0 
+  [PASS] T-b 悬挑 suspended>0 最低板>0 的格=1
+  [PASS] T-c 双层 multi_layer>0 中间空板的格=1
+  [PASS] T-c 三值不塌陷：有覆盖格数==格数>0 
+  [PASS] T-d 剔零计数 removed=500 removed=500
+  [PASS] T-d 剔零后 (0,0) 处不成格（零点不再撑出栅格范围） 栅格=1x1 总格=1 覆盖格=1
+  [PASS] T-d 剔零后覆盖格==1（只剩那个真点） 
+  [PASS] M1 关掉剔零后 (0,0) 格被塌占（阴性对照须成立） 该格落点=500
+  [PASS] M1 关掉剔零后覆盖格==2（虚高一格） 实=2
+  [PASS] M1 关掉剔零后总点数虚高 500 
+  [PASS] M2 朴素判据在单层地面上误判（故判据须要"中间空板"这一件） 
+  [PASS] T-e 窗外点数 n_points_out_of_z=2 out=2 used=2
+  [PASS] T-f 空点云须抛错 
+  [PASS] T-g 给地面锚后单层贴地 suspended=0 k0=8（同数据不给锚时旧式误判=30 格）
+  [PASS] T-g 地面锚不动多层判据 multi_layer=0 
+  [PASS] M3 不给地面锚时贴地数据误判为悬挑（阴性对照须成立） 误判=30／覆盖格=30
+  [PASS] T-h z_min>z_ground ⇒ truncated=True z_min=0.50 z_ground=0.30
+  [PASS] T-h 反例 z_min==z_ground ⇒ truncated=False k0=0
+  合计 PASS=19 FAIL=0
+T1_SELFTEST PASS=19 FAIL=0 rc=0
+SELFTEST_RC=0
+
+## ⑤ 钩子的时序自曝（照实记，不美化）
+改前**确实跑过**（21:23:5x，动手之前）＝该件「合计行号引用=0」、REFSCAN rc=0 ⇒ 属乙种件（无人按行号引它），据此才允许中间插入。
+★但那次跑完**没有当场落进本文件**（结果只留在会话里），本节系**改后补记** ⇒ 按 05 追加三十一第 4 条标「补跑」。
+未造成漏检的证据＝下面这条为**改后复跑**，读数与改前**同值 0**（本批只在件内部插入与改判据式，未新增任何被他件按行号引用的面）：
+合计行号引用=0
+REFSCAN VERDICT: rc=0 —— 零行号引用，本次改动不会顶走任何在册指针
+
+## ★补记（同批两次改件的时序，照实记）
+上面 46d475d7 ＝21:28 那次改完的值；此后又改了一次**注释**（把 selftest 头部那句只列到 M2 的清单补全到 T-g/T-h/M3——PYST 的 pyflakes 因此前把已使用的局部函数报成 unused）。
+最终工作树 sha 前 8＝cd0351ef、实测 326 行（单位＝行；R295 入库版＝292 行）
+
+## 最终件重跑 selftest（注释改动之后，逻辑未再动）
+  [PASS] T-g 给地面锚后单层贴地 suspended=0 k0=8（同数据不给锚时旧式误判=30 格）
+  [PASS] T-g 地面锚不动多层判据 multi_layer=0 
+  [PASS] M3 不给地面锚时贴地数据误判为悬挑（阴性对照须成立） 误判=30／覆盖格=30
+  [PASS] T-h z_min>z_ground ⇒ truncated=True z_min=0.50 z_ground=0.30
+  [PASS] T-h 反例 z_min==z_ground ⇒ truncated=False k0=0
+  合计 PASS=19 FAIL=0
+T1_SELFTEST PASS=19 FAIL=0 rc=0
+FINAL_SELFTEST_RC=0
+
+## PYST（面清单显式传参，★上一条把管道尾巴当 rc 的老错已改正）
+PYST_RC=0
+PY STATIC OK（被检件数=54）
