@@ -1,0 +1,19 @@
+# r292 留底：施工侧对他两条事实句的**当场复核**（他不写盘 ⇒ 由我复跑；★凡引"实测"必附命令）
+
+时刻＝2026-10-14 15:30
+
+## 一 他称「noetic 的 grid_map 全套皆已装二进制——core/msgs/ros/pcl/costmap_2d 全 `ii 1.6.4`，零自编译」
+命令＝`dpkg -l | grep -i 'grid-map' | grep -v dbgsym | awk '{print $1, $2, $3}'`
+实测＝**14 件**全 `ii`、版本前缀去重后只有 **1.6.4** 一个值（`... | awk '{print substr($3,1,5)}' | sort -u` ⇒ 1.6.4）
+  其中他点名的四件均在列：`ros-noetic-grid-map-core`／`-msgs`／`-ros`／`-pcl`／`-costmap-2d`（★他列的"四件"实际点了五个名字，含 costmap_2d，不矛盾）
+  ★**比他说的更宽**：还装了 `cv`／`filters`／`loader`／`octomap`／`sdf`／`visualization`／`rviz-plugin`／`demos` ＋ 顶层 `grid-map`；★**未自编译**这一点我只核到"都是 apt 装的 ii 态"，源码树里是否有自建副本**未核**（若要入正文须另跑）。
+
+## 二 他引「spike3d §4.3 在册"与 static 层同格"」
+命令＝`grep -n "4.3" 与 grep -nE "0\.1[05]|分辨率|static|同格"` 于 `note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md`（实测 **77 行**）
+逐字命中＝该件 §4.3（标题「核心参数（yaml，壳包规范位 lite3_bringup/config/）」）内一句原文＝
+  「resolution=0.1（与 sim_map_bridge/static 层同格）」
+  ⇒ **他的引用成立**（措辞略有出入：原文是"与 sim_map_bridge/static 层同格"，他写"与 static 层同格"＝缩写不误义）；
+  ★同段在册还有一句是**上限条件**＝「吞吐探针：python numpy 单帧 116,747 点×10Hz 增量融合＋1Hz 全图重发的 wall 耗时（Tegra 实测，**超 0.5s/帧→降 res 0.15 或降 fps**）」⇒ 他给的 0.10m 起始值**与在册一致**，但"要不要降 0.15"属**活体吞吐判据**、须窗后再定（本批不排窗）。
+
+## 三 他没引用但我核到的相邻事实（写明白免得下一位重复查）
+- `min_z=-0.45`／上界 `+0.75`／`z_range=1.2` 的**依据链**＝他由在册雷达高 38cm 推地面 z≈−0.38、留 7cm 裕量、取两倍档竖向尺度 ⇒ 这是一条**推导**、不是在册读数 ⇒ ★分档＝**丙**（设计给定值，未测），不得当甲-离引用。
