@@ -126,11 +126,12 @@ def rasterize(pts, res=RES, z_min=Z_MIN, z_max=Z_MAX, slab=Z_SLAB, z_ground=None
     high = np.where(mask > 0, _highest_bit(mask, nz), -1).astype(np.int16)
     contiguous = (mask > 0) & (nslab_occ == (high - low + 1))
     k0 = 0 if z_ground is None else int(np.floor((float(z_ground) - z_min) / slab))
-    truncated = bool(z_ground is not None and z_min > float(z_ground))
+    truncated = bool(z_ground is not None and z_min > float(z_ground) - slab + 1e-9)
     multi = (nslab_occ >= 2) & ~contiguous                    # ★中间有空板 ⇒ 多层／桥洞候选
     susp = (low > k0) & (mask > 0)                            # ★最低板在"地面板 k0"之上才算悬挑候选（小张 R296③）
     return {'res': res, 'z_min': z_min, 'z_max': z_max, 'slab': slab, 'nz': nz,
             'z_ground': None if z_ground is None else float(z_ground), 'k0': k0, 'truncated': truncated,
+            'contiguous': contiguous,
             'nx': nx, 'ny': ny, 'x_lo': x_lo, 'x_hi': x_hi, 'y_lo': y_lo, 'y_hi': y_hi,
             'mask': mask, 'covered': cov, 'n_slab': nslab_occ, 'low': low, 'high': high,
             'multi_layer': multi, 'suspended': susp,
@@ -151,7 +152,8 @@ def _highest_bit(mask, nz):
     m = mask.astype(np.int64, copy=True)
     hit = m > 0
     idx = np.full_like(m, -1)
-    for k in range(nz - 1, -1, -1):
+    # ★升序：最后一次写入才落在**最高**置位板（降序版每次都覆盖，末次是最低板 ⇒ high≡low，R299 勘误）
+    for k in range(nz):
         idx = np.where(hit & ((m >> k) & 1).astype(bool), k, idx)
     return idx
 
@@ -243,13 +245,31 @@ def selftest():
     check('M3 不给地面锚时贴地数据误判为悬挑（阴性对照须成立）', int(r_old['suspended'].sum()) > 0,
           '误判=%d／覆盖格=%d' % (int(r_old['suspended'].sum()), int((r_old['covered'] > 0).sum())))
 
-    # T-h 护栏：窗口下沿高于地面 ⇒ 整份标 truncated（此时两个旗标只算候选）
+    # T-h 护栏（★小张新修正④：要求地面所在**整板**在窗内 ⇒ 判据是 z_min > z_ground − slab）
     hh = _cloud([[0.5, 0.5, 0.60, 0], [0.6, 0.5, 0.90, 0], [0.5, 0.6, 0.60, 0]])
     r_h = rasterize(hh, z_min=0.50, z_max=1.70, slab=0.10, z_ground=0.30)
-    check('T-h z_min>z_ground ⇒ truncated=True', r_h['truncated'] is True,
+    check('T-h z_min 远高于地面 ⇒ truncated=True', r_h['truncated'] is True,
           'z_min=%.2f z_ground=%.2f' % (r_h['z_min'], r_h['z_ground']))
     r_h2 = rasterize(hh, z_min=0.30, z_max=1.50, slab=0.10, z_ground=0.30)
-    check('T-h 反例 z_min==z_ground ⇒ truncated=False', r_h2['truncated'] is False, 'k0=%d' % r_h2['k0'])
+    check('T-h 下沿==地面（不垫板）⇒ 现按④判 truncated=True（地面那板被截半）', r_h2['truncated'] is True,
+          'z_min=%.2f 要求 z_min<=%.2f' % (r_h2['z_min'], 0.30 - 0.10))
+    r_h3 = rasterize(hh, z_min=0.20, z_max=1.40, slab=0.10, z_ground=0.30)
+    check('T-h 下沿垫一板 ⇒ truncated=False（这是推荐的贴地法）', r_h3['truncated'] is False,
+          'z_min=%.2f k0=%d' % (r_h3['z_min'], r_h3['k0']))
+
+    # T-i ★本批补的实现级对照（R299 勘误：_highest_bit 曾把 high 写成 low，致 multi_layer 退化）
+    r_hw = rasterize(_cloud([[0.05, 0.05, 0.00, 1], [0.05, 0.05, 0.10, 1], [0.05, 0.05, 0.20, 1],
+                             [0.55, 0.55, 0.00, 1], [0.55, 0.55, 0.20, 1]]),
+                    z_min=-0.45, z_max=0.75, slab=0.10)
+    i_full = _cell_of(r_hw, 0.05, 0.05)
+    i_gap = _cell_of(r_hw, 0.55, 0.55)
+    check('T-i high/low 直测（连续三板 high 应为最低+2）',
+          (int(r_hw['low'][i_full]), int(r_hw['high'][i_full])) == (4, 6),
+          'low=%d high=%d（旧缺陷下＝4 4）' % (int(r_hw['low'][i_full]), int(r_hw['high'][i_full])))
+    check('T-i 连续三板的格**不得**算多层（正例，旧缺陷下必误判）', bool(r_hw['multi_layer'][i_full]) is False,
+          'n_slab=%d contiguous=%s' % (int(r_hw['n_slab'][i_full]), bool(r_hw['contiguous'][i_full])))
+    check('T-i 0/2 有、1 空的格**必须**算多层（反例）', bool(r_hw['multi_layer'][i_gap]) is True,
+          'n_slab=%d low=%d high=%d' % (int(r_hw['n_slab'][i_gap]), int(r_hw['low'][i_gap]), int(r_hw['high'][i_gap])))
 
     lines.append('  合计 PASS=%d FAIL=%d' % (ok, fail))
     return ok, fail, lines
@@ -277,6 +297,8 @@ def main(argv=None):
     ap.add_argument('--anchor', choices=['given', 'ground'], default='given',
                     help="given＝照 --min-z/--max-z（★那组是雷达系值，地面≈-0.38）；ground＝把同一 z 宽度下沿贴到本件自报的地面分位（★map 系必用此档）")
     ap.add_argument('--ground-pct', type=float, default=5.0, help='地面代理分位（%%），默认 P5')
+    ap.add_argument('--ground-pad', type=int, default=1,
+                    help='锚定=ground 时把窗下沿再垫几板（小张修正④的等价做法；默认 1＝保证地面所在整板在窗内；0＝复现 R295／R297 那两次读数）')
     ap.add_argument('--quiet', action='store_true')
     a = ap.parse_args(argv)
     rc = 0
@@ -293,14 +315,15 @@ def main(argv=None):
         pts, removed = drop_placeholder_zeros(pts)
         zpct = np.percentile(pts[:, 2], [0, a.ground_pct, 50, 95, 99, 100])
         span = a.max_z - a.min_z
-        zmin, zmax = (a.min_z, a.max_z) if a.anchor == 'given' else (float(zpct[1]), float(zpct[1]) + span)
+        zmin, zmax = (a.min_z, a.max_z) if a.anchor == 'given' else (float(zpct[1]) - a.ground_pad * a.slab,
+                                                                      float(zpct[1]) - a.ground_pad * a.slab + span)
         zground = float(zpct[1])
         r = rasterize(pts, res=a.res, z_min=zmin, z_max=zmax, slab=a.slab, z_ground=zground)
         cov = int((r['covered'] > 0).sum())
         print('T1_ZDIST z 分位（单位：m，map 系）MIN=%.2f P%.0f=%.2f P50=%.2f P95=%.2f P99=%.2f MAX=%.2f'
               % (zpct[0], a.ground_pct, zpct[1], zpct[2], zpct[3], zpct[4], zpct[5]))
-        print('T1_ZWIN 锚定=%s 二元式=(z_ground=%.2f, z_range=%.2fm) ⇒ 实开窗 [%.2f, %.2f]（k0=%d 板；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）'
-              % (a.anchor, zground, zmax - zmin, zmin, zmax, r['k0']))
+        print('T1_ZWIN 锚定=%s 垫板=%d 二元式=(z_ground=%.2f, z_range=%.2fm) ⇒ 实开窗 [%.2f, %.2f]（k0=%d 板；truncated=%s；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）'
+              % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0, zground, zmax - zmin, zmin, zmax, r['k0'], r['truncated']))
         print('T1_PCD 文件=%s 声明点数=%d 实读=%d 剔零=%d 入窗=%d 窗外z=%d（单位：点；模式=%s）'
               % (a.pcd, meta['declared'], raw_total, removed, r['n_points_used'], r['n_points_out_of_z'], meta['mode']))
         print('T1_PCD 栅格=%dx%d 格（分辨率 %.2f m）z 窗 [%.2f, %.2f] 板厚 %.2f ⇒ 每格 %d 个 z 板（掩码态空间 %d＝2^%d）'
@@ -310,9 +333,16 @@ def main(argv=None):
                  int(np.percentile(r['n_slab'][r['covered'] > 0], 50)) if cov else -1,
                  int(np.percentile(r['n_slab'][r['covered'] > 0], 95)) if cov else -1,
                  int(r['n_slab'].max()) if cov else -1))
-        print('T1_PCD ★多层格（中间有空板）=%d 格 ★悬挑格（最低板>地面板 k0=%d）=%d 格 ⇒ 这两类是 2.5D 单高度表达不了的场景%s'
+        print('T1_PCD ★多层格（中间真有空板＝不连续）=%d 格 ★悬挑格（最低板>地面板 k0=%d）=%d 格 ⇒ 这两类是 2.5D 单高度表达不了的场景%s'
               % (int(r['multi_layer'].sum()), r['k0'], int(r['suspended'].sum()),
-                 '；★truncated=True（窗口下沿高于地面）⇒ 本行两旗标**只算候选、不得引用**' if r['truncated'] else ''))
+                 '；★truncated=True（窗下沿截掉了地面那半板）⇒ 本行两旗标**只算候选、不得引用**' if r['truncated'] else ''))
+        print('T1_PCD 另有（不是多层）＝板数>=2 的格=%d、连续填充的格=%d（单位：格；★R295／R297 那两个"多层"数用的是这个 >=2 板口径、当时 high 有缺陷，见 R299 勘误）'
+              % (int((r['n_slab'] >= 2).sum()), int(r['contiguous'].sum())))
+        n_gap = (r['high'] - r['low'] + 1) - r['n_slab']
+        mg = (r['n_slab'] >= 2) & ~r['contiguous'] & (r['low'] <= r['k0'])
+        mg2 = mg & (n_gap >= 2)
+        print('T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=%d 格、其中空板>=2 板者=%d 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）'
+              % (int(mg.sum()), int(mg2.sum())))
         print('T1_PCD 耗时=%.1f s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）'
               % (time.time() - t0))
         print('T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）')

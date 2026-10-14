@@ -1,0 +1,15 @@
+# r299 留底：改件**之前**的实现勘误取证（小张 R297 问四的答复里那条 high≡low 的指控，施工侧自行复现）
+# 取证时刻＝2026-10-14 21:40:49｜件＝t1_multilevel_raster_offline.py 工作树版 sha 前 8＝cd0351ef（＝R297 入库版 cd0351ef）
+# 探针＝/tmp/r299_probe/probe_high.py（★临时件、不入仓），三格合成数据：连续三板 4/5/6、隔空两板 4/6、远距两板 4/9
+
+连续三板 0/1/2             mask=112 n_slab=3 low=4 high=4 contiguous=n/a multi_layer=True suspended=True
+0 与 2 板（中间空）           mask=80 n_slab=2 low=4 high=4 contiguous=n/a multi_layer=True suspended=True
+0 与 5 板                mask=528 n_slab=2 low=4 high=4 contiguous=n/a multi_layer=True suspended=True
+返回值里有 contiguous 键吗： False
+
+## 判读（可复跑）
+1) 连续三板那格 n_slab=3、low=4、★high 也＝4（应为 6）⇒ _highest_bit 的循环 nz-1→0、**每中必写**，末次写落在最低置位板 ⇒ high≡low。
+2) 于是 contiguous=(n_slab==high-low+1) 退化为 (n_slab==1) ⇒ multi_layer 恒等于 (n_slab>=2)：连续三板那格也被判成 multi_layer=True ⇒★在册那句「中间有空板 ⇒ 多层／桥洞候选」在此件里**从未真过**（空头支票）。
+3) R295/R297 引用的 多层 4,099（跑 B）／4,785（跑 A）按此定义＝「≥2 板的格数」，**不是**「中间有空板的格数」⇒ 两数须挂待换版、不得再按原语义引用。
+4) M2 那条阴性对照测不到此缺陷（它只测 n_slab>=1 与单层地面，缺「连续 3 板不得算多层」的正例与「0/2 有、1 空必须算」的反例）⇒ 本批补两例＋high/low 直测。
+5) 另：rasterize 返回值里**没有** contiguous 键（探针第 4 行打印 n/a）⇒ 志文若引用连续板数须先补返回值，本批顺带加。
