@@ -119,7 +119,7 @@ def rasterize(pts, res=RES, z_min=Z_MIN, z_max=Z_MAX, slab=Z_SLAB, z_ground=None
     pcell, psz = pairs[:, 0], pairs[:, 1]
     mask = np.zeros(nx * ny, dtype=np.int64)
     np.add.at(mask, pcell, 1 << psz)
-    cov = np.zeros(nx * ny, dtype=np.int16)
+    cov = np.zeros(nx * ny, dtype=np.int32)              # ★int32：int16 会在单格 >32767 点时绕回（R302 由 T2 抓到：208836 显示成 12228）
     np.add.at(cov, cell, 1)                                   # 每格落点数（剔零之后）
     nslab_occ = popcount[mask]
     low = np.where(mask > 0, _lowest_bit(mask), -1).astype(np.int16)
@@ -223,6 +223,13 @@ def selftest():
     e = _cloud([[3.5, 3.5, 5.0, 0], [3.5, 3.5, -9.0, 0], [3.5, 3.5, 0.0, 1]])
     r = rasterize(np.vstack([e, _cloud([[0.1, 0.1, 0.0, 0]])]))
     check('T-e 窗外点数 n_points_out_of_z=2', r['n_points_out_of_z'] == 2, 'out=%d used=%d' % (r['n_points_out_of_z'], r['n_points_used']))
+
+    # T-j ★单格点数溢出护栏（R302：cov 曾为 int16，208836 绕回成 12228＝T2 抓出来的）
+    big = _cloud([[7.5, 7.5, 0.10, 0]] * 40000)
+    r_big = rasterize(big, z_min=-0.45, z_max=0.75, slab=0.10)
+    i_big = _cell_of(r_big, 7.5, 7.5)
+    check('T-j 单格 40000 点计数不绕回（int32 生效）', int(r_big['covered'][i_big]) == 40000,
+          '实测=%d（int16 下会绕成 %d）' % (int(r_big['covered'][i_big]), 40000 - 65536))
 
     # T-f 空输入必须报错而不是静默产出空面
     try:
