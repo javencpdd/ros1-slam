@@ -1,0 +1,28 @@
+# R321 留底 00｜改前基线＝★本批是【真改前】跑的（钩子跑在动手之前、不标补跑）｜时刻=2026-10-15 03:59—04:01｜身份=ysc
+## 一、改前钩子（动作⑤＝凡将被改动的件，动手前先跑 refscan）
+refscan note/计划书v5/21_ros1-slam隔离部署计划书-v5.3.md  rc=0  合计行号引用=0
+全仓 grep 'v5\.3\.md[:：][0-9]' 除证据留底外命中 = 0 处（⇒ 往 v5.3 插入不顶走任何在册指针）
+改前行数＝v5.3 1254｜请求单 1366｜04 2809｜README 243｜总览 583（单位＝行）
+## 二、改前权限与身份只读实测（本批 #120 乙 文案的事实底座）
+stat -c '%a %U:%G' opt/3rdparty                      = 575 ros1-slam:ros1-slam
+stat -c '%a %U:%G' opt/3rdparty/Livox_SDK2           = 775 ros1-slam:ros1-slam
+[ -w opt/3rdparty/Livox_SDK2 ]                        = 可写=是
+[ -w opt/3rdparty/Livox_SDK2/sdk_core ]               = 可写=是
+ls -l /usr/local/lib/liblivox_lidar_sdk_static.a      = 644 root:root 28,395,498 B（2025-09-16）
+find . -maxdepth 5 -iname '*livox*sdk*'               = ./opt/3rdparty/Livox_SDK2（含 sdk_core/、3rdparty/、CMakeLists.txt）
+⇒ ★据这些现跑把在册前提"SDK 副本 555 只读"限定为＝父目录不可新建、★不是源目录不可写
+## 三、#119 移交单的指针实测（★全部只读、时刻 04:0x）
+v4 主件 829 号位现内容 = 一段隔离自检 shell 的收尾行（exit $FAIL）
+v4 主件 837 号位现内容 = M1 判据行（rostopic hz /Odometry ≥10 Hz）⇒ 引用方所指真句在此、★晚 8 行
+v4 主件 889 号位现内容 = 排程表一行（P7 组合启动 1 h）
+v4 主件 897 号位现内容 = Q4 格（/Odometry 话题名与频率、状态＝开）⇒ ★同向漂 8 行
+v4.1 件 282 号位现内容 = R15 对账行（上游真实发布名）⇒ 号对、内容也对，★但该件已转历史件
+00_总览 86 号位现内容 = P7 完成条目行（含 10.036Hz）⇒ ★现跑未漂（与 R282 复跑同值）
+⇒ 与 R257／R218 那两次量到的"各漂 8 行"逐值同 ⇒ ★自 R218 起零恶化
+## 四、改前门禁读数（与本批批末逐值对照用）
+账构 rc=0（C2 新增=无／存量命中=[146, 153]、C4 滞后 0 批、C5 存量 57／新增 0）
+VCC rc=5（文档=70 单点引用=744 OK=609 RED=0 AMBER=45 勘误句=83 非单点形状=172 豁免红=7 命中=1 未命中=1；[RED] 行实数 0、[AMBER] 打印 20）
+LCB rc=0（对 r308 基线十一项同值）
+规矩⑨ rc=0（面=70 件／含结论强度词行=310／须人读=8／[报] 行实数 8）
+refscan 逐件＝请求单 1 rc=5｜04 18 rc=5｜README 6 rc=5｜总览 4 rc=5
+串成员 8｜syn 85｜pyst 55｜parity 54｜claim 70｜窗回执非注释 13｜30_3rd 49｜未跟踪 scripts/verify 0｜load1 0.56—1.22
