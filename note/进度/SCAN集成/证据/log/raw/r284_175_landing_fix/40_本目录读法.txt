@@ -1,0 +1,28 @@
+r284_175_landing_fix —— R284（2026-10-14）＃175 执行留底：契约件「S1 落点唯一」式子收紧＋两条对照（零窗、未起任何活体窗）
+
+一、这批干了什么
+  按验收工程师-小美 ＃175 会签（签文原文见 `…/r283_signs/10_xiaomei_175.txt`）逐字改契约件**一行**，
+  把会吃 `.pyc` 的通配 `'w3_elevation_node*'` 收紧成 `-type f -name 'w3_elevation_node.py'`。
+  件＝ws/src/95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh 第 100 行。
+
+二、文件
+  05_diff_of_the_single_line.txt        那一行的 git diff 逐字＋★一处执行适配的如实申报（请她案验定夺）
+  10_pos_control_pyc_present.txt        ★阳性对照：先造 `.pyc` 在场，再跑契约件 ⇒ `PASS=26 FAIL=0 ABSENT=0`、`rc=0`
+  20_neg_control_extra_copy.txt         ★阴性对照：规范位外多放一份同名 `.py` ⇒ `[FAIL] W5 半件状态：… 全盘节点=2`、`PASS=25 FAIL=1`、`rc=1`
+  30_chain_then_contract.txt            ★端到端：整条八件串跑完（PYST 当场造出 **19** 个 `__pycache__`）后**紧接着**跑契约件 ⇒ `PASS=26 FAIL=0`、`rc=0`
+  40_本目录读法.txt                      本件
+  _sha256_manifest.txt                  ★最后建；任何事后追加即令清单失效
+
+三、这三条对照各自在防什么
+  阳性防的是"把式子改成恒绿"——若只图不红而随便排除，`PASS=26` 会是假的；
+  阴性防的是"把断言改哑了"——盘上真多一个落点时**必须**仍顶红，这条**过了**（rc=1）；
+  端到端防的是"只在自己的小实验里成立"——在册 PYST 每次跑都会造产物，串后紧跑契约件是真实跑序，这条**过了**。
+
+四、清理与残留（跑完即还原并核）
+  临时副本 `ws/src/95_simulation/lite3_gazebo_sim/verify/w3_elevation_node.py` 已 `rm`，核＝该目录 `w3_elevation` 命中 **0**；
+  `__pycache__` 全仓清后 **0**；`git status --porcelain` 未跟踪新增 **0**；`ws/src/30_3rd` 未触及（第三方沙箱文件计数仍 **49**）。
+
+五、没做的事
+  未起活体窗、未跑节点、未取新活体读数；未改其它任何判据句／门值／rc 语义／门禁串成员；
+  未自改 `--negctl`（复跑仍报「门值一改本件即真红 rc=0（对账有分辨力，不是恒绿）」）；
+  未销 ＃175（她原话「案验后由我销」，施工侧只报"材料已备齐"）。

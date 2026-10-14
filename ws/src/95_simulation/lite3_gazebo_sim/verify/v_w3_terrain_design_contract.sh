@@ -97,7 +97,7 @@ else
   bad "W5 §9 前置句被删或放行明文不在计划书里（文字命中／明文命中＝$HAS_REL）⇒ 这才是真正的红线"
 fi
 NODE_LANDED="$ROOT/ws/src/30_perception/lite3_perception/scripts/w3_elevation_node.py"
-NODE_ALL=$(find "$ROOT/ws/src" -name 'w3_elevation_node*' 2>/dev/null | wc -l)
+NODE_ALL=$(find "$ROOT/ws/src" -type f -name 'w3_elevation_node.py' 2>/dev/null | wc -l)
 if [ -z "$PKG_BRINGUP" ]; then
   bad "W5 按包名找不到 lite3_bringup（在册规范位所在包不在盘上 ⇒ 对账无锚，先修这条）"
 elif [ ! -d "$PKG_BRINGUP/config" ]; then

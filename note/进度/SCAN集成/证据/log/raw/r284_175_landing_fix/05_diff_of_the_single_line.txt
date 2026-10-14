@@ -1,0 +1,14 @@
+#175 执行面＝只改一行（小美逐字授权的那一行），diff 逐字如下（git diff -U0 原样）：
+
+-NODE_ALL=$(find "$ROOT/ws/src" -name 'w3_elevation_node*' 2>/dev/null | wc -l)
++NODE_ALL=$(find "$ROOT/ws/src" -type f -name 'w3_elevation_node.py' 2>/dev/null | wc -l)
+
+件＝ws/src/95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh 第 100 行
+统计＝1 file changed, 1 insertion(+), 1 deletion(-)；bash -n 过
+其余全部未动：rc 语义 0／1／5／9、--negctl 分支、门禁串成员、五条红路径句、其它任何判据句。
+
+★一处执行适配（如实报，请小美案验时定夺，施工侧不自评合规）：
+  小美原文形如 `[ "$(find … -type f -name 'w3_elevation_node.py' | wc -l)" -eq 1 ]` 是一个**独立测试式**；
+  而盘上那一行是**变量赋值**（`NODE_ALL=$(find …)`），其值被下方的联合判（落点唯一＋规范位 yaml 在位）消费。
+  ⇒ 施工侧的处理＝**把她的收紧谓词原样搬进那一行的 find 子句**（`-type f` ＋ `-name 'w3_elevation_node.py'`，单引号形与她一致），
+     不改结构、不改判定分支。若她要的是"把该行整体换成独立测试式"，那属第二形态、须她再明令，我不自选。
