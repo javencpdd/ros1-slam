@@ -1,0 +1,58 @@
+# r314 留底：批末固定跑（A54＝乙 落地批）｜时刻=2026-10-15 02:20:43｜身份=ysc
+# ★ISO 原样自证串不入本件（含禁列路径字面量）；写入不经 cut -c
+## 八件串（只报不判运行器）
+串运行器 rc=0
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=85，内嵌 python 段合计=46）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=0   ｜ # self-attest: at=2026-10-15 02:21:07 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4579 user=ysc home=/home/ysc rc=0
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=55）
+VAR     rc=5   ｜ VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=66 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+## ① 账构
+账构 rc=0
+[判定] FAIL集=C2+C4+C5／域下限=R140／滞后阈值=2 批
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+## ② VCC（70 面）
+VCC rc=5
+[计数] 文档=70 单点引用=744 OK=609 RED=0 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+[四元组] 件版本=v_citation_check.sh 本件现身（sha=a42627ebd331）／扫描面=70 件／窗宽=±40（缺省，可被 VCC_FIXUP_CHARS 覆盖）／列名=文档,单点引用,OK,RED,AMBER,勘误句,非单点形状,豁免红,豁免表命中,豁免表未命中
+VCC VERDICT rc=5（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+  RED 行数实数=0
+## ③ LCB 对 r308 基线
+LCB rc=0
+LCB VERDICT: 与基线逐项同值
+  同值项数=11
+## ④ 规矩⑨（70 面默认）
+audit rc=0
+面＝70 件／文本行数=20508（缺省降噪三条＝跳头部 8 行＋元话语过滤＋邻行±1）
+[计数] 含结论强度词行=294 其中**须人读**=8
+## ④′ 规矩⑨（只跑本批被改五件）
+audit5 rc=0
+[计数] 含结论强度词行=166 其中**须人读**=7
+## ⑤ refscan 改后逐件
+  00_裁定请求单_2026-10-09.md rc=5 合计行号引用=1
+  05_复验作业单.md rc=0 合计行号引用=0
+  04_配置改动diff.md rc=5 合计行号引用=18
+  00_README.md rc=5 合计行号引用=6
+  00_总览.md rc=5 合计行号引用=4
+  ap_在册判据清单_A54扫完定义输入.md rc=0 合计行号引用=0
+## ⑥ 预检（本批零窗，跑只为留「能否开」的数，不开窗）
+preflight rc=0
+PREFLIGHT VERDICT rc=0（放行：ISO_RC=0／numpy 在 /usr/local 下／load1=1.60≤4.0）
+## 收尾跑序 K1/K2/K3 ＋ 清 __pycache__
+K1=0 K2=0 K3=0（三条须全 0 才许清盘）
+清前=19
+清后=0
+## 契约件（清盘后跑）
+契约件 rc=0
+W3 CONTRACT VERDICT: PASS=26 FAIL=0 ABSENT=0（ABSENT 不计通过）
+30_3rd=49
+## 面与成员（现跑）
+gate_chain=8 syn=85 pyst=55 parity=54 claim=70
+窗回执非注释=10
+load1=1.60
