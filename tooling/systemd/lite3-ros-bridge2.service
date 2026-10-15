@@ -1,0 +1,48 @@
+# Lite3 ROS2 -> Monitor 桥接节点 systemd 单元
+#
+# 作用：把 ros_bridge_node.py 作为常驻服务运行在 103 的 ROS2 环境里，
+#       持续订阅 /leg_odom2 /imu/data /joint_states，转发 JSON 到本地 127.0.0.1:43900。
+#       这样中控后端（ros 数据源）无需手动起桥接，开机自愈。
+#
+# 本文件与 lite3-monitor.service 共用 install.sh 的占位符约定：
+#   /home/test/monitor2 / ysc / ysc / /home/ysc 由 install.sh 自动替换，无需手改。
+# （注意：本服务用系统 python3 + 已 source 的 ROS 环境，不使用 monitor 的 __VENV_PY__。）
+#
+# 安装（install.sh 会自动处理；也可手动）：
+#   sudo cp lite3-ros-bridge.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now lite3-ros-bridge
+# 查看日志：
+#   journalctl -u lite3-ros-bridge -f
+#
+# ⚠️ 需要按 103 实际情况调整的占位项：
+#   - --imu/--odom/--joints  : 若 transfer_ros2 发布的 topic 名不同，改这里（或用 /api/source 切回 sniff）
+#   - ROS 发行版目录          : ExecStart 里用 `ls /opt/ros/*/setup.bash` 自动探测；若装在别处请改路径
+#   - 若 103 上 transfer_ros2 本身也是 systemd 服务，建议在其后启动（见下方 After/Wants 注释）
+
+[Unit]
+Description=Lite3 ROS2 -> Monitor bridge (topics -> local UDP)
+Documentation=file:/home/test/monitor2/docs/ros_bridge.md
+# 让桥接在 transfer_ros2 之后再启动（请把 transfer_ros2.service 换成 103 上真实的服务名）
+# After=network-online.target transfer_ros2.service
+# Wants=transfer_ros2.service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ysc
+Group=ysc
+WorkingDirectory=/home/test/monitor2/backend
+# 必须 source ROS2 环境；这里自动探测 /opt/ros 下的发行版 setup.bash。
+# 若使用了 colcon 工作区，在下面补一行 source <ws>/install/setup.bash 即可。
+Environment=HOME=/home/ysc
+ExecStart=/bin/bash -c 'ROS_SETUP=$(ls /opt/ros/*/setup.bash 2>/dev/null | head -n1); [ -n "$ROS_SETUP" ] && source "$ROS_SETUP"; [ -f /home/test/monitor2/install/setup.bash ] && source /home/test/monitor2/install/setup.bash; exec python3 /home/test/monitor2/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43902 --name lite3_ros_bridge2'
+Restart=on-failure
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lite3-ros-bridge
+
+[Install]
+WantedBy=multi-user.target

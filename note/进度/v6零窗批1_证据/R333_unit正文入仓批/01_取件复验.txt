@@ -1,0 +1,62 @@
+# R333 取件复验（施工侧另跑一路、不照抄主理人读数）｜时刻 2026-10-16 04:43:05
+## ① 件数／模／属主
+total 32
+-rw-rw-r--  1 ysc ysc 1724 Oct 16 04:05 lite3-monitor2.service
+-rw-rw-r--  1 ysc ysc 2189 Oct 16 04:05 lite3-monitor.service
+-rw-rw-r--  1 ysc ysc 2515 Oct 16 04:05 lite3-ros-bridge2.service
+-rw-rw-r--  1 ysc ysc 3015 Oct 16 04:05 lite3-ros-bridge.service
+-rw-rw-r--  1 ysc ysc 1451 Oct 16 04:05 lite3-yolo-publish.service
+-rw-rw-r--  1 ysc ysc  876 Oct 16 04:05 lite3-yolo-rosbridge.service
+-rw-rw----+ 1 ysc ysc  636 Oct 16 04:06 _sha256_manifest.txt
+-rw-rw-r--  1 ysc ysc  281 Oct 16 04:05 transfer_ros2.service
+drwxrwxr-x+ 2 ysc ysc 4096 Oct 16 04:06 tooling/systemd
+## ② 与 /etc 真身逐件 cmp（镜像与真身一致才算合规＝§0.13.4④）
+lite3-monitor2.service vs /etc/systemd/system/lite3-monitor2.service rc=0
+lite3-monitor.service vs /etc/systemd/system/lite3-monitor.service rc=0
+lite3-ros-bridge2.service vs /etc/systemd/system/lite3-ros-bridge2.service rc=0
+lite3-ros-bridge.service vs /etc/systemd/system/lite3-ros-bridge.service rc=0
+lite3-yolo-publish.service vs /etc/systemd/system/lite3-yolo-publish.service rc=0
+lite3-yolo-rosbridge.service vs /etc/systemd/system/lite3-yolo-rosbridge.service rc=0
+transfer_ros2.service vs /etc/systemd/system/transfer_ros2.service rc=0
+## ③ sha 前 12 复算
+119bf7b9dfd0 transfer_ros2.service
+406555a1ab1d lite3-yolo-rosbridge.service
+608e3293cbd9 lite3-monitor.service
+666d09db0401 lite3-ros-bridge.service
+6f6ef9c839c0 lite3-ros-bridge2.service
+9fb4ff1a65ff lite3-monitor2.service
+b55978bce559 lite3-yolo-publish.service
+## ④ 在册预期（note/03 取件清单逐值）
+608e3293cbd9 lite3-monitor.service
+9fb4ff1a65ff lite3-monitor2.service
+666d09db0401 lite3-ros-bridge.service
+6f6ef9c839c0 lite3-ros-bridge2.service
+b55978bce559 lite3-yolo-publish.service
+406555a1ab1d lite3-yolo-rosbridge.service
+119bf7b9dfd0 transfer_ros2.service
+## ⑤ 子清单自验
+lite3-monitor2.service: OK
+lite3-monitor.service: OK
+lite3-ros-bridge2.service: OK
+lite3-ros-bridge.service: OK
+lite3-yolo-publish.service: OK
+lite3-yolo-rosbridge.service: OK
+transfer_ros2.service: OK
+rc=0
+## ⑥ 禁串现跑（两段拼、单位=行）
+tooling/systemd/lite3-monitor2.service	1
+tooling/systemd/lite3-monitor.service	1
+tooling/systemd/lite3-ros-bridge2.service	2
+tooling/systemd/lite3-ros-bridge.service	2
+tooling/systemd/lite3-yolo-publish.service	1
+tooling/systemd/lite3-yolo-rosbridge.service	1
+tooling/systemd/transfer_ros2.service	1
+tooling/systemd/_sha256_manifest.txt	0
+## ⑦ 顶层清单现况自验（改前基线）
+_forbid_str_exempt.tsv: OK
+README.md: OK
+skill/RESTORE.sh: OK
+skill/window-scheduler/references/queue-format.md: OK
+skill/window-scheduler/scripts/window_watch.sh: OK
+skill/window-scheduler/SKILL.md: OK
+rc=0

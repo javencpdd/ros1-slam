@@ -1,0 +1,12 @@
+[Unit]
+Description=DeepRobotics Transfer For ROS2
+After=networkd-dispatcher.service network-manager.service
+
+[Service]
+Type=forking
+ExecStart=/bin/bash  /home/ysc/lite_cog_ros2/system/scripts/transfer/start_transfer.sh
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
+
