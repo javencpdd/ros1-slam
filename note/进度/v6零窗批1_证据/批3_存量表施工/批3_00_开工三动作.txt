@@ -1,0 +1,13 @@
+# 批3 存量表施工 开工三动作（Z12）｜本行以下全部由命令现跑写盘，正文不手抄
+## ① 写测试（工具层可写否）
+写=ok 读回=probe_at=2026-10-15 16:42:41/PROBE-LINE-批3/
+## ② 负载归因登记（uptime＋榜首一行）
+ 16:42:41 up  1:36,  6 users,  load average: 4.53, 5.53, 8.50
+    PID %CPU     ELAPSED COMMAND
+   1195 90.4    01:35:54 /home/test/monitor/.venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+   1196 73.8    01:35:54 python3 /home/test/monitor/backend/ros_bridge_node.py --imu /imu/data --odom /leg_odom2 --joints /joint_states --host 127.0.0.1 --port 43900 --name lite3_ros_bridge
+   8564 52.4    01:30:37 /home/ysc/lite_cog_ros2/driver/mid360_ws/install/livox_ros_driver2/lib/livox_ros_driver2/livox_ros_driver2_node --ros-args -r __node:=livox_lidar_publisher --params-file /tmp/launch_params_u3u7u8rw --params-file /tmp/launch_params_svmrcdff --params-file /tmp/launch_params_jlvcvu5d --params-file /tmp/launch_params_pvzf5_tp --params-file /tmp/launch_params_n4cfuwnz --params-file /tmp/launch_params_h_w8kfiv --params-file /tmp/launch_params_vuti4v2k --params-file /tmp/launch_params_l8lh8fd2 --params-file /tmp/launch_params_mieo3x0l -r /livox/lidar:=/rslidar_points
+## ③ 窗期间大负载源暂停规则声明
+本批零窗（存量表两张＋串成员增减）⇒ 动作③不适用；未起窗、无活体读数
+## ④ 明令原文出处（勾复 A-8 2026-10-15 16:05，现跑摘自已入库任务队列 A-8 行）
+14:| A-8 | 批 3 存量表两张（VCC #112＝第9件／规矩⑨＝第10件，成员 8→10） | A | 零窗 | 主理人 2026-10-15 16:05 已勾：第9件＝VCC（#112乙，rc语义一字不改、只报不判）；第10件＝规矩⑨结论行报告器（#114甲，同批配存量表）；rc语义照各件在册定义一字不改，件无rc定义则由施工批出推荐待主理人追认 | 已勾，待施工批开工 | 两张存量表逐条带出处＋gate_chain.txt 仅施工批按明令改（8→10）、头注规矩不破 |

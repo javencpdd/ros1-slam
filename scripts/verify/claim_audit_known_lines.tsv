@@ -1,0 +1,18 @@
+# claim_audit_known_lines.tsv —— 规矩⑨（结论行报告器 v_claim_field_audit.py）存量表
+# 档位＝#114 甲＝报告器入门＋同批配存量表；明令出处＝主理人 2026-10-15 16:05 勾复 A-8「第 10 件＝规矩⑨结论行报告器（#114 甲，同批配存量表）」（原文见 note/计划书v6/23_v6任务队列.md A-8 行）
+# 门用面写死＝scripts/verify/claim_face.txt（现跑 70 件）
+# 件版本＝v_claim_field_audit.py sha 前 12=e6b6bd7173e8｜件读数出处＝本批现跑：[计数] 含结论强度词行=326 其中**须人读**=8 ／ 跑法：python3 scripts/verify/v_claim_field_audit.py（缺省面）
+# 键形＝「被报那一行的整行内容」sha256 前 12 ⇒ 行号漂不产生假新增；★键内不含引号／制表符／件给的理由句
+# 列＝键（行内容指纹）｜文档相对路径｜实测行号（会漂，定位以指纹＋锚片段为准）｜强度词｜git blame 批次｜commit 前 7｜该行锚片段（前 64 字）
+# ★本表消费方＝批内一条命令复验（现跑 [报] 行逐行取指纹 → 与本表键集 diff）；报告器件本身无存量表输入口（件只报不拦、rc 恒 0／缺面 9），改件成消费方＝超出本次明令 ⇒ 已按停手条件呈报
+# 一条命令复验（新增才点名、陈旧只报不销；缺表⇒下表末命令自行打印「缺表⇒不判 rc=9」并以 9 退出）：
+#   T=scripts/verify/claim_audit_known_lines.tsv; [ -f "$T" ] || { echo '缺表⇒不判 rc=9'; exit 9; }; cd /home/ros1-slam; K() { python3 scripts/verify/v_claim_field_audit.py 2>/dev/null | sed -n '/^ *\[报\]/{s/^ *\[报\] //;p}' | awk -F'｜' '{print $1}' | while IFS= read -r loc; do f=${loc%:*}; n=${loc##*:}; sed -n "${n}p" "$f" | python3 -c 'import sys,hashlib;print(hashlib.sha256(sys.stdin.read().strip().encode("utf-8")).hexdigest()[:12])'; done | sort -u; }; N=$(comm -13 <(grep -v '^#' "$T" | cut -f1 | sort -u) <(K) | grep -c .); S=$(comm -23 <(grep -v '^#' "$T" | cut -f1 | sort -u) <(K) | grep -c .); echo "规矩⑨存量复验 新增=$N 陈旧=$S"; [ "$N" = 0 ] && exit 0 || exit 5
+# 缺表行为＝复验式先判文件在位，缺⇒打印「不判 rc=9」并以 9 退出（照 Z5 第四件套语义；★不是报告器自身的 rc）
+bd3e31852256	note/02_问题与坑.md	1210	未证	docs(R205): 主理	3f033bc	**归位＝坑45／坑55 同族**（未证前提当结论引用）＋**"引用面"那一族**（被引件的语义被我在转述里改了＝02 坑61 
+0b83084d7037	note/04_配置改动diff.md	656	推翻	R88	437ce67	三跑 INVALID ＋ 本次中止合计四次取数未成，**依旧不判 DWA 不可用**（在册 #23 的可用性结论不被推翻）。
+3d21998eb5ca	note/04_配置改动diff.md	927	未证	docs(R176): 05	d5e302e	③**未证实生效 ⇒ 按"前置不成立"处理、不得判被试**（与件里的 INVALID 前门同一口径）；
+396c42a491e7	note/05_复验作业单.md	155	未证	docs(R176): 05	d5e302e	- **规矩（三取，缺一律按"未证实生效"处理、不得判被试）**：凡"运行时把某个参数改掉、再据此读数"的窗，落地回执必须同时取
+2c0c645210f1	note/05_复验作业单.md	344	推翻	ruling+docs(R2	c4d1b38	**与在册规矩的关系**：这是 `05` 追六（引对照表／结论行前三步清点）的**加强版**，不推翻它；同时**并入 A32 家
+ad95fe4bd94c	note/进度/00_裁定请求单_2026-10-09.md	493	已证	docs+test+plan	2f5600e	⇒ 建议落册口径：**"已证（本对、本图、本 boot）：放宽 patience 后仍无 result 且取消不受理"**，
+c9f8dc98c551	note/进度/00_裁定请求单_2026-10-09.md	851	推翻	land(R270): #1	0446772	| **#112** | 格一**不勾甲**（改四档各判＋来历句）；格二**入门**；格三**撤前置** | 格二被"实测推翻"
+57bf88d54279	note/进度/00_裁定请求单_2026-10-09.md	859	推翻	land(R270): #1	0446772	### 三、★裁定者推翻／修正了施工侧的三条自述（照实记，不改旧句、按此读）

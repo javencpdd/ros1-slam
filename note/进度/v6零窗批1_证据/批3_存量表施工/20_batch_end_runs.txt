@@ -1,0 +1,95 @@
+% r326 留底：批末固定跑（批3 存量表两张＋门禁串成员 8→10）｜时刻=2026-10-15 17:11:08｜身份=ysc
+## 十件串（只报不判运行器，读数取自同目录 21_chain_raw.txt）
+串运行器 rc=0（恒 0）
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=85，内嵌 python 段合计=46）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=0   ｜ # self-attest: at=2026-10-15 17:07:37 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4614 user=ysc home=/home/ysc rc=0
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=55）
+VAR     rc=5   ｜ VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=66 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+VCC     rc=5   ｜ VCC rc=5
+规矩⑨ rc=0   ｜ CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）
+## ① 账构
+账构 rc=0
+[判定] FAIL集=C2+C4+C5／域下限=R140／滞后阈值=2 批
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+## ② VCC（70 面，缺省 VCC_MAX=20）
+VCC rc=5
+[计数] 文档=70 单点引用=744 OK=609 RED=0 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+[四元组] 件版本=v_citation_check.sh 本件现身（sha=a42627ebd331）／扫描面=70 件／窗宽=±40（缺省，可被 VCC_FIXUP_CHARS 覆盖）／列名=文档,单点引用,OK,RED,AMBER,勘误句,非单点形状,豁免红,豁免表命中,豁免表未命中
+VCC VERDICT rc=5（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+  RED 行数实数=0  AMBER 打印行数=20  AMBER 字段数=45
+## ②′ VCC（同面同窗宽、只把明细上限 VCC_MAX 放到 200）
+VCC_MAX=200 rc=5
+[计数] 文档=70 单点引用=744 OK=609 RED=0 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+VCC VERDICT rc=5（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+  AMBER 打印行数=45（★与②同面同判据、字段数不变⇒在册那条「AMBER=45 vs 打印 20 行」口径差成因查明＝件内 VCC_MAX 明细上限缺省 20，不是判定漏印、也不是数错）
+## ③ LCB 对 r308 基线
+LCB rc=0
+LCB VERDICT: 与基线逐项同值
+  同值项数=11
+## ④ 规矩⑨（70 面缺省）
+audit rc=0
+面＝70 件／文本行数=20819（缺省降噪三条＝跳头部 8 行＋元话语过滤＋邻行±1）
+[计数] 含结论强度词行=326 其中**须人读**=8
+  [报] 行实数=0
+## ④′ 规矩⑨（只跑本批被改与新建的四处）
+audit4 rc=0
+  [计数] 含结论强度词行=8 其中**须人读**=0
+## ⑤ refscan（改前基线见 批3_05_refscan_改前.txt；批末再跑一遍要求逐值同）
+  note/进度/00_裁定请求单_2026-10-09.md rc=5 合计行号引用=1
+  note/04_配置改动diff.md rc=5 合计行号引用=18
+  note/00_README.md rc=5 合计行号引用=6
+  note/进度/00_总览.md rc=5 合计行号引用=4
+  scripts/verify/vcc_known_findings.tsv rc=0 合计行号引用=0
+  scripts/verify/claim_audit_known_lines.tsv rc=0 合计行号引用=0
+## ⑥ 预检（本批零窗，跑只为留「能否开」的数，不开窗）
+preflight rc=5
+[③机况] load1=5.50 阈值=4.0 门槛来源＝在册开窗规矩
+[拒窗] load1=5.50 > 阈值 4.0
+PREFLIGHT VERDICT rc=5（拒窗：1 项不成立，逐条见上）
+## ⑦ 两条存量表复验式（从各自表头原文取出直接跑）
+VCC存量复验 新增=0 陈旧=0
+  scripts/verify/vcc_known_findings.tsv 复验 rc=0
+规矩⑨存量复验 新增=0 陈旧=0
+  scripts/verify/claim_audit_known_lines.tsv 复验 rc=0
+## ⑧ VAR 复跑（★上面串读数里的 VAR rc=5 跑在 chmod 之前：逮的是本批新建两件 600 位）
+VAR rc=0
+VAR VERDICT: PASS=8 FAIL=0
+## ★④ 段勘误（另起句，不回改上面那行）＝上面「[报] 行实数=0」是取值式写坏（模式里多打了一个反斜杠空格⇒匹配 0 行），同一份 _t4.txt 现跑实数＝8 条，与 [计数] 字段「须人读=8」同值；★本批把这条写进台账时按 8 读，不按 0 读（坑63 族：式子换了不等于它被清了，R257 立的原话这回是自我兑现）
+## 收尾跑序（05 追加三十一①三条核对式＋②清产物＋契约件）
+K1=0 K2=0 K3=0（三条须全 0 才许清盘）
+清前=.pyc 文件数 34／__pycache__ 目录数 19
+清后=.pyc 文件数 0／__pycache__ 目录数 0
+## ★ISO 清盘后复跑（只为把在册覆盖面计数取回干净值：串里那次 4614 里含 34 个 .pyc 产物）
+ISO rc=0
+# self-attest: at=2026-10-15 17:13:32 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4580 user=ysc home=/home/ysc rc=0
+## 契约件（清盘后跑）
+契约件 rc=127
+## ★契约件段勘误（另起句，不回改上面「契约件 rc=127」那行）＝127 的成因是我把件路径写错（写成 scripts/verify/ 下，真身在 ws/src/95_simulation/lite3_gazebo_sim/verify/）＝用法错、不是被试失败（与 R323 那次「静态件少给参数得 rc=5」同族，本批第二次）；正确调用式现跑如下
+契约件 rc=0
+W3 CONTRACT VERDICT: PASS=26 FAIL=0 ABSENT=0（ABSENT 不计通过）
+30_3rd=49
+## ★批3 专项校验（本批自缚面：改动的边界必须自证）
+A. gate_chain.txt 与改前留底逐行 diff（只许出现新增行、不许有删改行）：
+   diff rc=1 删除/改写行数=0 新增行数=5（★改前 8 成员行逐字节保留＝第 1–8 件的件路径与 rc 语义列一字未动）
+   成员数 改前=8 改后=10（同一语义连跑两次同数=10/10）
+B. 运行器 run_gate_chain.sh diff（只加两条调用分支＋一行调用式提示；自身退出码仍恒 0）：
+   diff rc=1 删除/改写行数=1 新增行数=5
+C. 两件被测本体零改动自证（sha 前后同值；★串成员增减不触碰件本体）：
+   v_citation_check.sh sha 前 12=a42627ebd331（在册 R320/R322 同值=a42627ebd331）
+   v_claim_field_audit.py sha 前 12=e6b6bd7173e8（在册 R324 同值=e6b6bd7173e8）
+   p4_replan.py sha 前 12=17d16ebd1635（在册 R323 同值=17d16ebd1635，本批零写入）
+D. 两张存量表在位（★键形干净、逐条带出处）：
+890d138d99f9c65328c76a625106cf7668f32fd3860d073e5fc52872c755fd41  scripts/verify/vcc_known_findings.tsv
+0f0a0fc2747a86e7251723448564174d1de604e0a99dc3550eb767793292a7b5  scripts/verify/claim_audit_known_lines.tsv
+   VCC 表：数据行=40 处数合计=45 定位失败行=0 列数=4
+   规矩⑨ 表：数据行=8 列数=7 词表=      1 已证/      4 推翻/      3 未证/
+E. 面与成员（现跑）：gate_chain=10 syn=85 pyst=55 parity=54 claim=70 窗回执非注释=13
+F. scripts/verify 未跟踪件计数（本批新建两张表须逐件入库、不整目录 add）：2
+G. load1 现值=4.23（本批零窗、未开窗）

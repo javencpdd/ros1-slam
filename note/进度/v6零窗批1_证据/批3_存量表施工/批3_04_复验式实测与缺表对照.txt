@@ -1,0 +1,39 @@
+# 批3 存量表复验式实测（缺表行为＋双向阳性对照）｜时刻=2026-10-15 17:00:12｜身份=ysc
+# 说明＝两张表的消费方是本批的一条命令（件本身无存量表输入口）；本节实测这条命令的三态：表在／表缺／表少一行
+===== scripts/verify/vcc_known_findings.tsv =====
+[0] 原表 sha=890d138d99f9c65328c76a625106cf7668f32fd3860d073e5fc52872c755fd41  scripts/verify/vcc_known_findings.tsv
+VCC存量复验 新增=0 陈旧=0
+[1] 表在位（撤例，期望 新增=0 rc=0）rc=0
+缺表⇒不判 rc=9
+[2] ★缺表（期望打印「缺表⇒不判 rc=9」并以 9 退）rc=9
+[2r] 恢复后 sha=890d138d99f9c65328c76a625106cf7668f32fd3860d073e5fc52872c755fd41  scripts/verify/vcc_known_findings.tsv 与[0]同值=需再看
+890d138d99f9c65328c76a625106cf7668f32fd3860d073e5fc52872c755fd41  scripts/verify/vcc_known_findings.tsv
+[3] 造阳性＝临时把表内首条数据行删掉（应为 新增=1 rc=5）；原表行数=40
+VCC存量复验 新增=1 陈旧=0
+[3] 桩表（少一行）rc=5
+VCC存量复验 新增=0 陈旧=0
+[4] 复原后再跑（期望回到 新增=0 rc=0）rc=0
+[4r] 复原 sha 对照＝[0] 那行与本行逐值比：890d138d99f9c65328c76a625106cf7668f32fd3860d073e5fc52872c755fd41  scripts/verify/vcc_known_findings.tsv
+===== scripts/verify/claim_audit_known_lines.tsv =====
+[0] 原表 sha=0f0a0fc2747a86e7251723448564174d1de604e0a99dc3550eb767793292a7b5  scripts/verify/claim_audit_known_lines.tsv
+规矩⑨存量复验 新增=0 陈旧=0
+[1] 表在位（撤例，期望 新增=0 rc=0）rc=0
+缺表⇒不判 rc=9
+[2] ★缺表（期望打印「缺表⇒不判 rc=9」并以 9 退）rc=9
+[2r] 恢复后 sha=0f0a0fc2747a86e7251723448564174d1de604e0a99dc3550eb767793292a7b5  scripts/verify/claim_audit_known_lines.tsv 与[0]同值=需再看
+0f0a0fc2747a86e7251723448564174d1de604e0a99dc3550eb767793292a7b5  scripts/verify/claim_audit_known_lines.tsv
+[3] 造阳性＝临时把表内首条数据行删掉（应为 新增=1 rc=5）；原表行数=8
+规矩⑨存量复验 新增=1 陈旧=0
+[3] 桩表（少一行）rc=5
+规矩⑨存量复验 新增=0 陈旧=0
+[4] 复原后再跑（期望回到 新增=0 rc=0）rc=0
+[4r] 复原 sha 对照＝[0] 那行与本行逐值比：0f0a0fc2747a86e7251723448564174d1de604e0a99dc3550eb767793292a7b5  scripts/verify/claim_audit_known_lines.tsv
+===== 件自身对「缺前置」的在册行为（★与存量表无关，用于区分两种 rc=9）=====
+[A] VCC 指空豁免表（件唯一表类输入口 VCC_EXEMPT，件文档自写「表缺失＝豁免面为空、件照常判红＝失败方向保守」）
+    [计数] 文档=1 单点引用=31 OK=18 RED=1 AMBER=5 勘误句=7（不判红）非单点形状=8（不判红）豁免红=0（不判红；表 0 条）豁免表命中=0 未命中=0
+    VCC VERDICT rc=6（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+    件 rc=0 （★上面这条管道的 rc 是 grep 的，件 rc 见下）
+    件 rc=6
+[B] 规矩⑨ 报告器给空面（件自写 rc=9＝面清单读不到或为空、空集不得判绿）
+    件 rc=0
+CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）

@@ -1,0 +1,7 @@
+6a7,9
+> # ★R326 批3（2026-10-15，施工侧-小明）＝按主理人明令把成员 8→10：第 9 件＝VCC（#112 乙）、第 10 件＝规矩⑨结论行报告器（#114 甲）；两件各配同批新建的存量表（scripts/verify/vcc_known_findings.tsv／scripts/verify/claim_audit_known_lines.tsv，逐条带出处）。★两件 rc 语义照各件在册自报串一字未改；串与运行器仍「只报不判」。明令原文盘上出处＝note/计划书v6/23_v6任务队列.md 的 A-8 行（主理人 2026-10-15 16:05 勾：「第9件＝VCC（#112乙，rc语义一字不改、只报不判）；第10件＝规矩⑨结论行报告器（#114甲，同批配存量表）」）。
+> # ★另起句指针（原句不回改）＝上方那行「验收判据…必须＝8」是 R273 建本件时的原句、属历史值；现跑成员数按此读＝`grep -cvE "^ *(#|$)" scripts/verify/gate_chain.txt` 必须＝10，且同一语义连跑两次同数。
+> # ★第 9／10 件的调用式（门用面写死，Z5 之三）＝VCC 由运行器显式喂 scripts/verify/claim_face.txt（件自身缺省面＝42 件、与存量表不同面 ⇒ 不喂会跨面混引）；规矩⑨件自身缺省面＝claim_face.txt（与存量表同面，直接跑）。
+14a18,19
+> 9	VCC	scripts/verify/v_citation_check.sh	0 干净／5 有 AMBER／6 有 RED／9 前置缺失（件自报串逐字＝「VCC VERDICT rc=N（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）」；★只报不判照运行器；存量表 vcc_known_findings.tsv）
+> 10	规矩⑨	scripts/verify/v_claim_field_audit.py	0＝只报不拦（报了行也返 0）／9＝前置缺失（件自报串逐字＝「CLAIMAUDIT VERDICT: rc=0（本件只报不拦，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）」；★只报不判照运行器；存量表 claim_audit_known_lines.tsv）
