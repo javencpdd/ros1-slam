@@ -1,0 +1,29 @@
+# R334 确证复跑（★独立一路、不接前档结论；先核清单 sha256 再 grep 字段）｜时刻 2026-10-16 05:16:47｜全程只读、未跑节点、无 sudo
+r138_p4_newshape_r1_pass         清单在位 OK=12 非OK=0
+r149_p1p2_newshape               清单在位 OK=25 非OK=0
+r150_p3_triple_newshape          清单在位 OK=42 非OK=0
+r85_b1_345                       清单在位 OK=9 非OK=0
+r154_m52_live_newshape           清单在位 OK=24 非OK=0
+r155_m52_live_goalB              清单在位 OK=11 非OK=0
+r156_m52_live_goalC              清单在位 OK=11 非OK=0
+r331_breach_first_live           清单在位 OK=18 非OK=0
+r332_x2_fourcells                清单在位 OK=63 非OK=0
+
+## 逐条字段复跑（判据式取自 ap 稿、值取原件现跑）
+#1 P1 收敛 ｜       3 判据① 结论 = PASS 
+#2 P2 出轨迹 ｜       2 判据② 结论 = PASS 
+#3 到点偏差 ｜ 判据③ 结论 = PASS 判据③④⑤ 取证（三连在同一个 sim 窗内跑，逐跑 goal 重选）== 
+#4 全程时延 ｜ 
+#5 三连红线 ｜ 31 处
+#6 避让门值 ｜ 
+#7 breach  ｜ 历史 ｜R331 整链首读 breach@0.10=0.38 "breach": false "breach_gate": 0.1 
+#8 A① Hz   ｜ A①8.3Hz／A②188.8Hz／A④飞点 0 全过） A①: 点云 10.0 ≥5Hz 
+#9 A② Hz   ｜ A②188.8Hz／A④飞点 0 全过） A②: IMU 198.6 ≥100Hz 
+#18 唯一写者｜       6 mux 命中=1       6 写者总数=1 
+#23 outcome ｜ r154_m52_live_newshape=14 r155_m52_live_goalB=7 r156_m52_live_goalC=7 
+#24 dt≤60s ｜ 
+#22 X2 四格｜ R332 两扇目录内 cost 原始件：0 件；data 行数合计=12；VERDICT 行＝
+
+## 目录全貌与分母（现跑）
+raw 目录数=267 其中无清单目录=22
+ap 表体行数=32｜丙=#27—#32
