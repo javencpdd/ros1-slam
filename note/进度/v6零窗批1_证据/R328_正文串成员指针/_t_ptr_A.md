@@ -1,0 +1,1 @@
+**★另起句指针（R328 加，★上方两句原文一字未动）**＝「七件」与「八件」这两格到今天要再往下读一格：门禁串成员**现跑＝10**（单位＝行）＝主理人 2026-10-15 16:05 勾复 A-8 明令 ⇒ 施工批 R326 执行：第 9 件＝VCC、第 10 件＝规矩⑨结论行报告器；★两件 rc 语义照各件自报串一字未改、在串内仍**只报不判**；两张存量表同批新建（`scripts/verify/vcc_known_findings.tsv`／`scripts/verify/claim_audit_known_lines.tsv`，逐条带出处）。可复跑判据＝`grep -cvE '^ *(#|$)' scripts/verify/gate_chain.txt`（同一语义连跑两次同数＝10/10）。
