@@ -1,0 +1,64 @@
+# R330 批末固定跑＋收尾跑序｜时刻=2026-10-16 01:53:08｜身份=ysc｜★零窗、未起窗
+## 机况
+ 01:53:08 up  1:00,  1 user,  load average: 4.00, 3.45, 3.11
+   1188  120    01:00:27 python
+   1189 69.9    01:00:27 python3
+## 十件串终跑
+串运行器 rc=0
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=85，内嵌 python 段合计=46）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=0   ｜ # self-attest: at=2026-10-16 01:54:03 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4580 user=ysc home=/home/ysc rc=0
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=55）
+VAR     rc=0   ｜ VAR rc=0（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=66 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+VCC     rc=5   ｜ VCC rc=5
+规矩⑨ rc=0   ｜ CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）
+## ①账构
+账构 rc=0
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+## ②VCC
+VCC rc=5
+[计数] 文档=70 单点引用=744 OK=609 RED=0 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2
+[四元组] 件版本=v_citation_check.sh 本件现身（sha=a42627ebd331）／扫描面=70 件／窗宽=±40（缺省，可被 VCC_FIXUP_CHARS 覆盖
+  RED 行实数=0 AMBER 打印行=20
+## ③LCB
+LCB rc=0
+LCB VERDICT: 与基线逐项同值
+  同值项数=11
+## ④规矩⑨
+audit rc=0
+面＝70 件／文本行数=20932（缺省降噪三条＝跳头部 8 行＋元话语过滤＋邻行±1）
+[计数] 含结论强度词行=334 其中**须人读**=8
+  [报] 行实数=8
+## ⑤refscan 逐件（含 05 与 v5.3 两个本批被改件）
+  05_复验作业单.md rc=0 合计行号引用=0
+  21_ros1-slam隔离部署计划书-v5.3.md rc=0 合计行号引用=0
+  00_裁定请求单_2026-10-09.md rc=5 合计行号引用=1
+  04_配置改动diff.md rc=5 合计行号引用=18
+  00_README.md rc=5 合计行号引用=6
+  00_总览.md rc=5 合计行号引用=4
+## ⑥预检（零窗、只留能否开的数）
+preflight rc=5
+[拒窗] load1=5.02 > 阈值 4.0
+PREFLIGHT VERDICT rc=5（拒窗：1 项不成立，逐条见上）
+## ⑦两表复验式
+VCC存量复验 新增=0 陈旧=0
+规矩⑨存量复验 新增=0 陈旧=0
+## ⑧新规矩自查（⑤配套）＝本批新建留底目录必配清单
+（尚未生成＝下面收尾时最后生成）
+## 收尾跑序
+K1=0 K2=0 K3=0
+清前=.pyc 34／目录 19
+清后=.pyc 0／目录 0
+ISO 清盘后 rc=0
+# self-attest: at=2026-10-16 01:56:28 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4580 user=ysc home=/home/ysc rc=0
+契约件 rc=0
+W3 CONTRACT VERDICT: PASS=26 FAIL=0 ABSENT=0（ABSENT 不计通过）
+30_3rd=49
+## 面与成员
+gate_chain=10 syn=85 pyst=55 parity=54 claim=70 窗回执=13 05块=37 05行=863 v5.3行=1298

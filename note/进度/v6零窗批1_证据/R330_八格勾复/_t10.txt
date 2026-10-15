@@ -1,0 +1,44 @@
+=== W3 设计对账（设计稿 sha=01f30b8bd4ad 行数=77）｜ABSENT 不计通过数 ===
+--- W0 基线可复算（不手抄 commit 号）---
+  [PASS] W0 基线件在场且 sha256sum -c 过（01f30b8bd4ad）
+--- W1 输入流契约逐字（§3/§4.1）---
+  [PASS] W1 在册原文含「/rslidar_points | sensor_msgs/PointCloud2」
+  [PASS] W1 在册原文含「/quad_0/body_pose」
+  [PASS] W1 在册原文含「/elevation_grid | nav_msgs/OccupancyGrid」
+  [PASS] W1 在册原文含「/elevation_stats」
+--- W2 输出语义与 unknown 口径（§4.2/§4.3，N1 教训写死那一句）---
+  [PASS] W2 unknown=−1 在位
+  [PASS] W2 「未覆盖≠自由」的禁令在位
+--- W3 三通道判据门值按字面钉住（本件**不改门值**，只核在册值未被静默改）---
+  [PASS] W3 门值原文「slope>25°」在位
+  [PASS] W3 门值原文「step>0.15m」在位
+  [PASS] W3 门值原文「cost 100」在位
+  [PASS] W3 门值原文「NaN 占比>30% 记 WARN」在位
+  [PASS] W3 门值原文「A0 RTF 门 0.25」在位
+--- W4 能力边界与依赖链（§7＋Wave2 修正边界）---
+  [PASS] W4 悬挑/多层/桥洞的永久放弃仍写明
+  [PASS] W4 盘上零 lvr2/mesh_navigation/cupy 路线件（命中=0）
+  [PASS] W4 自研面无 cupy 的真实用法（import／package.xml 依赖，命中 0）
+--- W5 开工前置的**在场性**（★R280 依验收工程师-小美会签由未开工物证改为开工后正确形态；ABSENT 档在下述两条作废）---
+  [PASS] W5 §9 批准半已销于 v5.3 §0.14（主理人明文「放行 3D」命中 3 处）；**小张接口复核半未销** ⇒ 本件不声称 §9 全销
+  [PASS] W5 联合判过：落点件在位且全盘唯一（命中 1）＋规范位 yaml 1 件（小张 R278 落点裁定形态）
+  [PASS] W5 elevation yaml 位置对账（规范位 1／其他非第三方位 0）
+--- W6 隔离红线兼容（未来落位不得触 [9]；现在就核一次，别等开工才发现）---
+  [PASS] W6 40_navigation 零算法源码（命中 0，与 v3_isolation.sh [9] 同式）
+  [PASS] W6 第三方沙箱双条件全等（可验 49＝计数 49＝49，D2 口径）
+--- W7 §8 预检与对照锚点的**在册承载件**（跑没跑不在这件里声称）---
+  [PASS] W7 §8 预检项原文含「grid_map_msgs」
+  [PASS] W7 §8 预检项原文含「116,747」
+  [PASS] W7 §8 预检项原文含「13 CHECK」
+  [PASS] W7 §8 预检项原文含「sim_map_bridge」
+  [PASS] W7 maze2d 零行为变化的 13 CHECK 锚点件在位且语法过（/home/ros1-slam/ws/src/50_task/lite3_task/verify/v_task_smach.sh 行号 2）
+--- W8 口径空白清单（在册就是空的，我不替他/她补数；逐条须裁定后才可开工）---
+  1) T2r 的「路径长差」在册只有'形状可辨'，**无数值阈** ⇒ 交小美定档
+  2) T2r harness 是单跑还是三连在册未写 ⇒ 交小美（P3 已有两轴口径可参照，不自动套用）
+  3) w3_elevation_node 落哪个壳包/是否新建包：原为口径空白 ⇒ 已由小张 R278 落点裁定填上（留底 21_xiaozhang_landing.txt），本条升为实断言
+  [PASS] W8-3 落点裁定留底在位且点名 w3_elevation_node.py（1 处）
+  4) §8 预检 1–4（grid_map_msgs 在装否／116,747 点吞吐／StaticLayer 双实例零变化／unknown 与 0 的解释差异）**未跑**
+  5) 程序前置：小张接口复核＋主理人批准 **未销** ⇒ 本件面完成不等于二期开工，施工侧不越过此门
+==================================================
+W3 CONTRACT VERDICT: PASS=26 FAIL=0 ABSENT=0（ABSENT 不计通过）
+⇒ 件面对账过；★R280 起 S1／S2 已落盘（S1 本体＋规范位 yaml），但**本件不声称任何实现正确性或活体结论**：小张接口复核半未销、#46 三态语义未销 ⇒ 判据面与达成判定仍不在本件出口
