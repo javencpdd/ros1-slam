@@ -7,5 +7,10 @@
 # ★生成序＝本清单在**当批全部写动作完成后**生成；★生成后再往 `tooling/` 顶层追加文件，本清单即作废（同子清单规矩）。
 # 键形与列序＝照盘上既有清单形状（`<sha256>  <相对路径>`，路径相对**本清单所在目录**）；本清单**不列自身**。
 # 校验式＝`cd tooling && sha256sum -c _sha256_manifest.txt`（期望：全部 `: OK`、失败行数 **0**）。
+# ★覆盖范围换版（R332＝主理人 2026-10-16 03:5x 勾复②「进」：`_forbid_str_exempt.tsv` 与 `skill/window-scheduler/` 纳入本清单）＝自此五条＝①`README.md`②`skill/RESTORE.sh`③★仍**不含** `skill/_sha256_manifest.txt`（子清单，理由见上行：每批末最后生成、sha 随子目录增删而变）④`_forbid_str_exempt.tsv`（R331 建的禁串显式豁免面）⑤`skill/window-scheduler/**` 全树 3 件（SKILL.md／references/queue-format.md／scripts/window_watch.sh）。★上面「覆盖范围（三条）」那行**原文一字未动**、本行为纯插入追加；换版缘由与＃241 清偿同批登记在 `note/04` R332 段。
+e3e4d1636633ef3772402427733ad83f6a503007cbe96b8ba7e6a491569ee34c  _forbid_str_exempt.tsv
 5ad7fc1902813768dd67015478d6af6cffd261dec739f28d87fac781c0134036  README.md
-19ea897a3003cfcd848e9eedb793df49182deeac0d2a04093e59d2cbb37f64f2  skill/RESTORE.sh
+b13ba005a9d42049b3143357bb98116b353c30673e6ffc40116b3316e10e9f9a  skill/RESTORE.sh
+61143dfacd1ed75871c160957dae451ac65b070a52e59392d3cd1d7f8d06f18d  skill/window-scheduler/references/queue-format.md
+47b2094821c383496fe08beee39233b00c2b8b0521e8a1741eb94f8851b67327  skill/window-scheduler/scripts/window_watch.sh
+f88b190c2cc2b5b4c5b815a625dc8b84f0699610a21496d3f8fba4a2196cf90e  skill/window-scheduler/SKILL.md

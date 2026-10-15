@@ -1,0 +1,15 @@
+[INFO] [1792095429.255987]: X2_CLOUD first sent pts=42 frame=rslidar topic=/rslidar_points tag=x2_g6
+Traceback (most recent call last):
+  File "/home/ros1-slam/note/进度/SCAN集成/设计/scripts/x2_pub_cloud.py", line 65, in <module>
+    main()
+  File "/home/ros1-slam/note/进度/SCAN集成/设计/scripts/x2_pub_cloud.py", line 57, in main
+    pub.publish(m)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1066, in publish
+    serialize_message(b, self.seq, message)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/msg.py", line 152, in serialize_message
+    msg.serialize(b)
+  File "/opt/ros/noetic/lib/python3/dist-packages/sensor_msgs/msg/_PointCloud2.py", line 152, in serialize
+    _x = val1.name
+AttributeError: 'dict' object has no attribute 'name'

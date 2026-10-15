@@ -1,0 +1,14 @@
+global_frame: map
+robot_base_frame: base_link
+robot_radius: 0.35
+resolution: 0.1
+width: 4.0
+height: 4.0
+transform_tolerance: 10.0
+update_frequency: 5.0
+publish_frequency: 5.0
+always_send_full_costmap: true
+track_unknown_space: false
+plugins: [{name: static_a, type: "costmap_2d::StaticLayer"}, {name: static_b, type: "costmap_2d::StaticLayer"}]
+static_a: {map_topic: /pmap_a, first_map_only: false, subscribe_to_updates: false, track_unknown_space: false, use_maximum: false, lethal_cost_threshold: 100, unknown_cost_value: -1, trinary_costmap: true}
+static_b: {map_topic: /pmap_b, first_map_only: false, subscribe_to_updates: false, track_unknown_space: false, use_maximum: false, lethal_cost_threshold: 100, unknown_cost_value: -1, trinary_costmap: true}
