@@ -121,6 +121,8 @@ A-1~A-3、A-5~A-7 为零窗/离线批（合计约 1–2 个工作日）；A-4 �
 
 **留盘件处置**：S1 `w3_elevation_node.py`（266 行）与 S2 `elevation_costmap.yaml`（31 行）属**已搁置 2.5D 面**（R294：留盘不删不投入）；B 线如需同源功能**新写 3D 面件**，键一律挂 `elevation/` 前缀（禁裸 `resolution`/`slope`/`step`，与在册冲突键避让），不复活 S1/S2。
 
+**另起句（R347，真人 2026-10-17 明文取窄义）**＝上表 B.1.3 那句「载体话题名/落点**一律不得**用 `/elevation_grid`（X1 载体禁令）」自此按**窄义**读，真身＝v5.3 那句「多层**不得**复用 `/elevation_grid` 作载体」（现跑 v5.3 第 **1233** 行（实测 1233 行））⇒ ①**单层高程栅格**不构成违令（现例＝R280 落盘的 T1 节点 `w3_elevation_node.py` 第 **231** 行 `rospy.Publisher("/elevation_grid", OccupancyGrid, latch=True)` ＋ 断言件 `v_w3_terrain_design_contract.sh` 第 **69** 行把 `"/elevation_grid | nav_msgs/OccupancyGrid"` 列为期望）；②**R280 不因此被判为违令批**；③★B.1.3 旧行一字不回改、按本句读（在册登记面＝请求单 `R 补八十三`＋`04` R347 段）；④★本句只解"字面宽窄"这一件事，★不改任何判据／门值、★不撤 X1 其余禁令、★不因此放开已搁置的 2.5D 面（R294「留盘不删不投入」照守）。
+
 ### B.2 高程→代价地图层（规划消费面）
 
 - 按在册 3D 维方向裁定（Wave2 验收）：**自研高程→costmap 层**（非 mesh_navigation——其 noetic 分支试编译两败＝不可用，TerrainPlanner 不在 noetic 分支，在册）。
