@@ -1,0 +1,24 @@
+# R337-4 施工侧现跑盘点＝拆分边界两侧的可指认物（★供核小 Designs 件的出处、不照抄它的自述）｜2026-10-16 14:53:14
+## 一、仿真环境与模型构建侧（仓内／Lite3 职责候选）
+world 件＝10 件｜例＝ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world ws/src/95_simulation/lite3_gazebo_sim/stairstudy/worlds/stair_lab_stairs_steep.world ws/src/95_simulation/lite3_gazebo_sim/stairstudy/worlds/stair_lab_stairs_easy.world 
+xacro／urdf＝3 件
+launch 件（scan＋sim 家族）＝72 件｜其中 lite3_safety＝1｜70_scan＝1
+传感器／代价图插件源（cpp／hpp）＝0 件
+参数基线 yaml＝12 件｜在册 trinary／lethal 关键值所在件＝ws/src/70_bringup/lite3_bringup/config/elevation_costmap.yaml ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml 
+verify 件（判据本体）＝32 件
+## 二、数据件与依赖（导出包候选）
+pcd／地图＝6 件｜bag 件＝0 件
+在册依赖值＝python3 3.8.10｜numpy 1.23.1｜ROS_DISTRO noetic
+tooling 顶层清单条目＝13 自验 rc=0
+## 三、真机侧在册锚（安全闸与 M20Pro 取证）
+ros2qnx 提及件数＝165 件｜P0.5 双句在册处＝87 件
+★M20Pro 仓内取证＝2 件（0＝全仓无据 ⇒ 设计件硬件差异表必须整列标「待核实」）
+## 四、面与闸（★新载体件只进 SYN/PYST、不入门禁串）
+syn 面派生枚数＝88｜pyst 面派生枚数＝57
+门禁串成员＝10（★本批不改成员）
+
+
+## ★本件两条自污染读数当场更正（第三型同族错误：grep 把自己也数进去了）
+①「M20Pro 仓内取证＝2 件」＝★错：那 2 件全是本批自己新写的 `R337-4` 留底件与请求单新节。排除本批自写件后现跑＝既存出处 `0` 件 ⇒ ★实质读法＝真人本次明文之前、仓内 M20Pro 无任何据 ⇒ 小张的硬件差异表必须整列标「待核实」、不得编造（错读数原样留底、本段为统一更正面）。
+②「numpy 1.23.1」＝★缺姿态标注：那是用户站读数。★ISO 姿势（`noetic`→`ws/devel`＋`PYTHONNOUSERSITE=1`）现跑＝`numpy=1.19.4@/usr/local/lib/python3.8/dist-packages/numpy`、`python3=3.8.10`、`ROS_DISTRO=noetic` ⇒ 导出包随行依赖件必按 ISO 姿态取值（＝在册 J1 三件限定的同代值）。
+③★自污染第三次复发登记＝本次写这段更正时又用了"带插值的 heredoc 里放反引号"，shell 把反引号当命令替换执行、把 `R337-4`／`noetic`／`ws/devel` 等字面吃掉（症状＝输出里出现 `/bin/bash: R337-4: command not found`）⇒ 处置＝用 python 回截被污染的 4 行、改用带引号 heredoc 重写；★教训已在 R337-1 写过一次、仍再犯 ⇒ 此后凡正文含反引号，一律"先落 `cat > 文件 <<'EOF'`（带引号定界符），再执行"，不允许在带插值的 here-doc／双引号串里放反引号。
