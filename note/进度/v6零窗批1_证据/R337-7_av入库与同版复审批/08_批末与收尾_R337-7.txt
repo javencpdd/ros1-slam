@@ -1,0 +1,34 @@
+# R337-7 批末与收尾｜2026-10-16 17:06:52｜身份 ysc｜★零窗
+== 十件串 ==
+== 门禁串逐件（2026-10-16 17:06，身份 ysc）｜成员名单＝/home/ros1-slam/scripts/verify/gate_chain.txt（10 行）==
+   面：syn_face=89 pyst_face=57 parity_face=54 claim_face=70
+   窗数回执＝16 行（A27 口径）
+   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／VAR／账构：直接 bash 件｜R326 起两件＝VCC：bash 件＋显式喂 claim_face.txt（门用面写死，件内缺省面只有 42 件）｜规矩⑨：python3 件（件内缺省面＝claim_face.txt）
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=89，内嵌 python 段合计=47）
+GTC     rc=0   ｜ == 共 14 版载体 ==
+ISO     rc=0   ｜ # self-attest: at=2026-10-16 17:08:18 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4580 user=ysc home=/home/ysc rc=0
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=57）
+VAR     rc=0   ｜ VAR rc=0（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=67 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+账构  rc=0   ｜ BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+VCC     rc=5   ｜ VCC rc=5
+规矩⑨ rc=0   ｜ CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）
+== 本件只报不判（退出码恒 0）；判定看各件自身 rc 与 05 的在册调用式，成员增减与 rc 语义变更须裁定者明令 ==
+   ★收尾跑序提示（05 追加三十一②；只提示、不动盘、不判定）：本串内 PYST／SYN 对 .py 跑过 py_compile ⇒ 源件旁会留下 __pycache__/*.pyc；接下来若跑任何按 find 计数的件，先按追加三十一①的三条核对式清产物，否则计数会虚高（R281／R282／R284 三次实测同源，产物在场数 19）
+
+== 规矩⑨ / VCC / LCB 现跑 ==
+[计数] 含结论强度词行=360 其中**须人读**=8
+[计数] 文档=70 单点引用=744 OK=609 RED=0 AMBER=45 勘误句=83（不判红）非单点形状=172（不判红）豁免红=7（不判红；表 2 条）豁免表命中=1 未命中=1（未命中≠0 ⇒ 豁免表可能有条目已失效，见上面 [STALE] 行）
+  豁免表未命中 1 = 1  同值
+LCB VERDICT: 与基线逐项同值
+== 清盘三条＋清盘 ==
+K1=0 K2=0 K3=0 清前=19
+三条全过 ⇒ 已清：清前=19 → 清后=0 目录
+
+== 计数现跑与仓态 ==
+04=3135 请求单=1485 总览=636 23号=31 syn_face=89 05=863 aq=145 ap=84 v5.3=1300 v6=224
+本批 numstat＝04=12/0 总览=3/1（★请求单/23号/aq/05/v5.3/v6 未动；★av 未入库）
+status 条目=49（?? 45／M 4）；v6 锚四值＝旧句在位 1／旁证桶 2／§I 0／§H 1
+av 在途现跑=382行 74962字节 a986c544 mtime=2026-10-16 17:11:48｜I-6b行=7 次=20 裸式=3
+load1=18.62 止 2026-10-16 17:12:26
