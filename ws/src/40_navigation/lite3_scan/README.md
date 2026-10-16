@@ -18,3 +18,5 @@
 **红线/契约**：**禁算法源码**（ISO 项[9]）＋**上游按基线不改**：需要改 SCAN 行为时在本壳包自持 relay/参数（批2 已定口径）。引用 P4 等活体结论必须连载体代际＋`.so` sha 一起引。
 
 SCAN-Planner 独立进程壳包：只提供自有 launch/config 编排与参数外化落点，`ws/src/30_3rd/` 内 SCAN 五包源码零改动；本壳无编译目标（`architecture_independent`）。
+
+- **R348 README 同步（追加句）**＝本包目录内两枚**空子目录**此前未登记＝`sink/` 与 `stub/`（现跑 `find sink stub -maxdepth 1 -type f | wc -l`＝**0**，时刻 2026-10-17 03:0x，单位＝文件）⇒ 读作"目录在位、当前无文件"，★不得读成"该面已实现"。本包另有 `verify/` 面 **33** 枚（现跑式＝`find ws/src/40_navigation/lite3_scan/verify -maxdepth 1 -type f | wc -l`＝33，与佳文 2026-10-17 同版小复核的现跑值同；出处＝其复核件 `note/进度/v6零窗批1_证据/R347_av修⑧后同版复审批/02_佳文追加段_目录逐条核与vation_grid判定.md`；★判定权与定档不在施工侧，本句只登记枚数与在位性）。

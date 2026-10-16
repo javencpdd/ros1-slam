@@ -16,3 +16,4 @@
 
 **红线/契约**：K3 语义＝**平级 `lite3_*` 禁互 include**，TOP 下行不豁免；include 级 remap 的可见性由 ISO 项[5] 监控（曾有两条真 include 待返工）。
 
+- **R348 README 同步（追加句）**＝本包 `config/` 目录此前未登记，现跑其内**一枚**在册件＝`config/elevation_costmap.yaml`＝**31 行／2293 字节／sha 前 8=`aad5adac`／模 664**／mtime 2026-10-14 04:48:55（＝R280 的 S2 规范位；★其 z 窗现读 `z_min=-2.0／z_max=2.0`，与 v6 §B.1.1 丙档设计值不同一事见 `note/计划书v6/23_v6任务队列.md` 的 `B-1` 行与请求单 `R 补八十二`，★不在本 README 判定）。

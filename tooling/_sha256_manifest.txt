@@ -10,7 +10,7 @@
 # ★覆盖范围换版（R332＝主理人 2026-10-16 03:5x 勾复②「进」：`_forbid_str_exempt.tsv` 与 `skill/window-scheduler/` 纳入本清单）＝自此五条＝①`README.md`②`skill/RESTORE.sh`③★仍**不含** `skill/_sha256_manifest.txt`（子清单，理由见上行：每批末最后生成、sha 随子目录增删而变）④`_forbid_str_exempt.tsv`（R331 建的禁串显式豁免面）⑤`skill/window-scheduler/**` 全树 3 件（SKILL.md／references/queue-format.md／scripts/window_watch.sh）。★上面「覆盖范围（三条）」那行**原文一字未动**、本行为纯插入追加；换版缘由与＃241 清偿同批登记在 `note/04` R332 段。
 # ★R333 换版（主理人 2026-10-16 04:0x 令＝unit 正文取件第 1–3 步已执行、本批续七格勾复⑤「连同滞留件入库」）＝本清单覆盖范围**在上一条换版行的五条之外再加一条⑥**＝`systemd/*.service` 七件（生产单元正文镜像，`/etc/systemd/system/` 逐件 `cmp` rc=0）；★`systemd/_sha256_manifest.txt`（该目录子清单）**不列**＝沿用上面第 5、6 行为 `skill/` 子清单写死的同一条理由（每批末最后生成、追加即作废，列进来＝造一条必然自过期的在册串），其当期 sha 只作当批留底报行、复现式＝`sha256sum tooling/systemd/_sha256_manifest.txt`（★非判据）。★条目行数现跑＝**13 行**（单位＝行；R332 为 6 行，差额＝本批 7 件）；★条目序沿用 R332 既有六行的既有序、七条 systemd 追加在末＝为把 diff 压到「1 改 7 增」，不按全表重排（键形与列序仍照上面第 8 行 `<sha256>  <相对路径>`、路径相对本清单所在目录）。★本清单仍是**当批全部写动作完成后**最后生成；★生成后再往 `tooling/` 追加文件本清单即作废（规矩未动）。★禁串豁免面与盘上件数现跑同值＝`tooling/_forbid_str_exempt.tsv` 数据行 16／`tooling/` 全树禁串 16 件 25 行（复验式跑数＝`新增=0 陈旧=0 处数不符=0`、`rc=0`）。
 a254a734e53ca5bb3b6fe4d77e25c5453d595efb7e00686fbdda1a9e5c13ebad  _forbid_str_exempt.tsv
-5ad7fc1902813768dd67015478d6af6cffd261dec739f28d87fac781c0134036  README.md
+85d8c47ec67eef8148e155e5ab3c8315968789923967af54bc5badec6abb4366  README.md
 b13ba005a9d42049b3143357bb98116b353c30673e6ffc40116b3316e10e9f9a  skill/RESTORE.sh
 61143dfacd1ed75871c160957dae451ac65b070a52e59392d3cd1d7f8d06f18d  skill/window-scheduler/references/queue-format.md
 47b2094821c383496fe08beee39233b00c2b8b0521e8a1741eb94f8851b67327  skill/window-scheduler/scripts/window_watch.sh

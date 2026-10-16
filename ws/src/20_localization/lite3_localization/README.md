@@ -15,3 +15,4 @@
 
 **红线/契约**：M2 的判据载体在仿真侧是 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`（改它＝换代际）；本包只承载话题名与 TF 契约，不放算法。
 
+- **R348 README 同步（追加句）**＝本包 `config/` 目录现跑为**空**（`find config -maxdepth 1 -type f | wc -l`＝**0**，时刻 2026-10-17 03:0x，单位＝文件）⇒ 读作"占位目录在位、当前无参数文件"；本包参数实际取处＝`ws/src/95_simulation/config/faster_lio_sim.yaml`（`note/进度/SCAN集成/设计/av_v6仿真拆分与x86验证架构设计稿.md` §1.2 那行 I-7 的在册路径），★不因本句改动任何参数文件。

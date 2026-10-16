@@ -80,3 +80,6 @@ FILE=lite3_ceshi1006 DECIMATE=5 bash m_view.sh    # 指定文件 + 抽点密度
 - 采图全程不发任何 cmd_vel；ros2qnx 禁启
 - 走位要领：静置 30s → 慢速 ≤0.5m/s → 外圈+反向+内部补线 → 回起点记坐标
 - 产物三件套校验与 G3 复验：采完喊团队（或看 note/进度/P3b/现场作业单.md）
+
+- **R348 README 同步（追加句、旧行不回改）**＝本目录另有**两枚脚本此前未登记在本 README**：`pcd_polish.py`＝**133 行／sha 前 8=`037bf5f0`**／mtime 2026-10-07 02:26；`pcd_slice.py`＝**58 行／sha 前 8=`536667fe`**／mtime 同刻（式＝`wc -l <scripts/mapping/<件>>`＋`sha256sum`，时刻 2026-10-17 03:0x，单位＝行）。用途＝`pcd_polish.py` 对点云做抛光、`pcd_slice.py` 按 z 切片（★只登记"在位"，不声称其当代读数；★本 README 上方走位要领一节一字未动）。
+- **★同批记一枚权限位读法（防后人误判为异常）**＝本目录 16 枚在册件的 `stat -c %a` 现跑多报 **`674`**（含本 README 自身），★这不是历批 `chmod` 漏覆盖：`getfacl -p scripts/mapping` 现跑＝目录带**默认 ACL** `default:user:ysc:rwx`＋`default:mask::rwx`，文件实位＝`user::rw-`／`other::r--`，★中间那位读作 **ACL mask**（具名用户 `ysc` 拿到 `rwx` 把 mask 顶到 `rwx`）⇒ `674` 属**共用工作区权限模型的显示形**、有效权限与 `664` 同义（普查式＝`git ls-files -z | xargs -0 stat -c '%U %a' | sort | uniq -c`，2026-10-17 03:0x 现跑＝`ros1-slam 674`＝**5045** 枚 ‖ `ysc 664`＝**3450** 枚 ‖ `ysc 674`＝**875** 枚，单位＝枚）⇒ ★施工侧不对任何单件 `chmod`（单点改会造成本目录面内不一致）；★在册『脚本 `755`／正文 `664`』那句与盘面主导显示值如何统一表述＝**属全仓权限位口径、不在本 README 判定**，已另起句登请求单。
