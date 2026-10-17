@@ -1,0 +1,55 @@
+# r372 · ay 件段 1（发射图案对拍）x86 侧**同日第二遍**复算（★零窗、纯只读、★为 103 侧对拍备"同日两遍并报"）
+
+- 批＝x86 侧批27（04 登记号 R372）｜取证时刻＝宿主 2026-10-18 07:18（容器 UTC 同日 23:07:18，两基并标）
+- 件＝`note/进度/SCAN集成/设计/ay_B0载体真身两机对拍呈报输入单_供103复跑.md` §② 段 1（照单跑、★未改任何在册件、★未新建驱动件）
+- 被试文件（两机须同串）＝`ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/scan_mode/mid360-real-centr.csv`
+
+## 1｜sha 前 16（两代同串）
+
+```
+$ sha256sum ws/src/.../mid360-real-centr.csv | cut -c1-16
+aa486c66092af45e                     ← 宿主 Python 3.13 侧现跑
+aa486c66092af45e                     ← 容器在册基 Python 3.8.10 侧现跑（★逐字同串）
+文件字节数＝25,399,988 B（ls -la 现跑）
+```
+
+## 2｜行数
+
+```
+$ wc -l < mid360-real-centr.csv
+800001                               ← 两代同值（含表头 1 行 ⇒ 数据 800,000 行）
+```
+
+## 3｜Zenith 域（第 3 列，跳表头）
+
+```
+$ python3 -c "import csv;r=list(csv.reader(open(F)))[1:];z=[float(x[2]) for x in r if len(x)>=3];print('Zenith 域=[%.2f, %.2f]'%(min(z),max(z)))"
+Zenith 域=[37.84, 97.21]             ← 两代同值、与 ay 件所记 x86 现跑逐字同
+（★本批另报一条 ay 件未转录的数：唯一原始 zenith 值枚数＝187,919 枚
+  式＝len(set(z))；与 `04` R362 段所记小美复验现跑值**同值** ⇒ 两条独立路径撞出同一个数）
+```
+
+## 4｜xacro 字面（★ suspect-inert：装载的是插件花洒图案、这几行不是发射来源）
+
+```
+$ grep -n 'csv_file_name|<vertical>|<samples>|min_angle|max_angle' ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+80:              <samples>100</samples>              ← 横向（水平 ray 传感器）
+82/83:         <min_angle>/<max_angle>＝-3.1415926535897931 / +3.1415926535897931（±180 度）
+85:            <vertical>
+86:              <samples>50</samples>               ← ★与 ay 件"期望两机同串"那行一致
+88/89:         <min_angle>/<max_angle>＝同上 ±180 度
+104:           <samples>20000</samples>              ← ★插件块内、★ay 件原单未转录此行（本批补上，供 103 侧别误当成竖向线数）
+106:           <csv_file_name>mid360-real-centr.csv</csv_file_name>   ← ★相对文件名、由插件解析（本批补转录）
+```
+
+## 4.5｜★一条纪律句
+
+`ay` 件段 1 明写"sha 前 16 请 103 报、★本单不预填"⇒ 本留底记录 x86 侧自己的现跑值（`aa486c66092af45e`）**只进本留底、★不回写进 `ay` 件正文**，以免 103 侧照抄而非实测（同 `05` 追加二十九"命中数不是状态量"那一族的反向用法）。
+
+## 5｜★本段不声称的事（P8）
+
+- ★不声称两机对拍已完成（103 侧未回文；本件的作用正是请 103 照段 1 跑一遍并报同三项）。
+- ★不声称"8 线/50 线"哪一方对（在册 `precheck.py` T8 在解析域内可复算、其 rc=0 一字未动；本批只是**发射侧原始文件**的第三次同日复算）。
+- ★不声称 B.0／B 线任何格进展；不声称已开窗（本批零容器链、零窗、只读文件）。
+- ★判据面零改动：未动 CSV／xacro／`precheck.py`／任何件（numstat 全 0）；无 sudo、无 `FORCE=1`。
+- ★清盘自证（坑67②姿势＝清理与计数写在同一条命令内）＝`ws_src=4580`／`tooling=149`／`pyc=0`。
