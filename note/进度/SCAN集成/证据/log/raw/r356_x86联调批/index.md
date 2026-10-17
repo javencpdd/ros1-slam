@@ -36,7 +36,7 @@
 
 | 断言 | 现跑读数 | 判定形状 |
 |---|---|---|
-| ①六 unit systemd 态 | 六枚全部 `Failed to connect to bus`（沙箱无 systemd 面）＋沙箱 ps 仅见自身 7 进程 | ★登记「**覆盖面变化：异机无此六 unit 对象**」——**不记通过**（au §6.2 明示）；host 级榜首式待机主终端补 |
+| ①六 unit systemd 态 | 六枚全部 `Failed to connect to bus`（沙箱无 systemd 面） | ★登记「**覆盖面变化：异机无此六 unit 对象**」——**不记通过**（au §6.2 明示）；**等价物已补**（真人终端 2026-10-18 04:0x 现跑入册 `assert1_host_load_top.txt`：workbuddy 组 4 枚 ~177%（zygote 95.1% 单枚偏高）／gnome-shell 19%／Xorg 15%／openclaw 17.5%／Qoder 13.1%／内存余 10G／无常驻仿真负载） |
 | ②foxy 残留零进程 | `pgrep -x run_mapping_online/livox_ros_driver/ros2qnx`＝空（起前 03:28:30＝退后 03:29:17 两刻同）；`/opt/ros/foxy` 不存在 | 起前＝退后同形 |
 | ③样张 lite3.pcd sha256 | 起前＝退后＝`aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34`（与 au §4.4 锚串逐字等） | 可完整等价 |
 | ④1131x 端口 TCP/UDP 分查 | host 起前 TCP=2／退后 TCP=2（★2＝容器 11313 映射面、起前＝退后同形）；UDP 均 0；container 起前 0/0；退净后 container TCP=UDP=0 | 起前＝退后同形（host 侧 2 的来由已注） |
