@@ -9,19 +9,25 @@
 #   ①ISO_RC＝0 —— 本件自带 source（noetic → ws/devel），调用者不必也不得先手 source（防跨态混引）；
 #   ②numpy 的**解析路径前缀**＝/usr/local —— 把库来源钉成唯一态（`PYTHONNOUSERSITE=1` 由本件 export，
 #     也写进 scripts/env.sh；1.23.1 那个 user-site 态自此不再是默认态，旧留底属另一态、不可与新窗混引）；
-#   ③load1 ≤ VPF_LOAD_MAX（缺省 4.0，在册开窗规矩）。
+#   ③load1 ≤ 每核阈值 × 核数（**核归一化**，缺省每核 0.5 ⇒ 8 核＝4.0＝旧绝对值、行为逐字不变；72 核＝36）。
+#     ★判据基 2026-10-18 真人改判：绝对值 4.0 对多核机失真（72 核机 load1=6.02 仅 0.08/核却判"过载"拒窗）
+#     ⇒ 改核归一化；loadavg 是全系统量，除以核数才可比（同一个 6.02 在 8 核与 72 核上代表的拥塞差 9 倍）。
+#     兼容旧式＝显式设 VPF_LOAD_MAX 才走绝对值硬顶（未设＝核归一化；selftest T4 专测这条路）。
 #
 # rc 语义：0＝放行；5＝拒窗（任一判据不成立）；9＝前置缺失（ISO 件不在位／source 后仍取不到 numpy 字段／
 #   **空读数不得当绿读**，坑29 同族）。判定不改任何判据与门值：ISO 本体、harness、门禁串成员一字不动。
 #
-# --selftest 四例（每例必须能单独失败；照 ISO 的在册教训：**基线不绿即 exit 9**，否则所有断言失去意义）：
-#   T0 真跑＝期望 0；T1 阈值收到 0.0001＝期望 5（load1 必超）；T2 路径前缀改成不存在＝期望 5；
-#   T3 ISO 件不可达＝期望 9。T1/T2/T3 都只动本件自己的旋钮，不改任何在册件。
+# --selftest 五例（每例必须能单独失败；照 ISO 的在册教训：**基线不绿即 exit 9**，否则所有断言失去意义）：
+#   T0 真跑＝期望 0；T1 每核阈值压到 0.00001＝期望 5（核归一化基，load1 必超）；T2 路径前缀改成不存在＝期望 5；
+#   T3 ISO 件不可达＝期望 9；T4 绝对值硬顶压到 0.0001＝期望 5（兼容旧式路径也要拦得住）。
+#   五例都只动本件自己的旋钮，不改任何在册件。
 
 SELF=$(readlink -f "${BASH_SOURCE[0]}")
 ROOT=$(cd "$(dirname "$SELF")/../.." && pwd)
 VPF_ISO=${VPF_ISO:-$ROOT/scripts/verify/v3_isolation.sh}
-VPF_LOAD_MAX=${VPF_LOAD_MAX:-4.0}
+VPF_NCPU=${VPF_NCPU:-$(nproc 2>/dev/null)}   # 核数（缺省现取；loadavg 是全系统量，须按核归一才可比）
+VPF_LOAD_PER_CPU=${VPF_LOAD_PER_CPU:-0.5}    # 每核负载上限（核归一化基；8 核＝4.0＝旧绝对值，Lite3 侧行为不变）
+VPF_LOAD_MAX=${VPF_LOAD_MAX:-}               # 可选绝对值硬顶：显式设才用（兼容旧式）；未设＝核归一化
 VPF_NUMPY_PREFIX=${VPF_NUMPY_PREFIX:-/usr/local}
 
 emit_fail() { echo "[拒窗] $1"; VERDICT_FAIL=$((VERDICT_FAIL + 1)); }
@@ -69,9 +75,21 @@ run_checks() {
   esac
 
   LOAD1=$(awk '{print $1}' /proc/loadavg)
-  echo "[③机况] load1=$LOAD1 阈值=$VPF_LOAD_MAX 门槛来源＝在册开窗规矩"
-  if awk -v a="$LOAD1" -v b="$VPF_LOAD_MAX" 'BEGIN{exit !(a>b)}'; then
-    emit_fail "load1=$LOAD1 > 阈值 $VPF_LOAD_MAX"
+  LOAD_LIMIT=""; LOAD_BASIS=""
+  if ! printf '%s' "$LOAD1" | grep -qE '^[0-9]+\.?[0-9]*$'; then
+    emit_fail "load1 取不到或非法＝'$LOAD1'（/proc/loadavg 不可读；空读数不得当绿读，坑29 同族）"
+  elif [ -n "$VPF_LOAD_MAX" ]; then
+    LOAD_LIMIT=$VPF_LOAD_MAX
+    LOAD_BASIS="绝对值硬顶（VPF_LOAD_MAX 显式指定＝兼容旧式）"
+  elif ! printf '%s' "$VPF_NCPU" | grep -qE '^[1-9][0-9]*$'; then
+    emit_fail "核数取不到或非法＝'$VPF_NCPU'（nproc 失败；空读数不得当绿读，坑29 同族）"
+  else
+    LOAD_LIMIT=$(awk -v c="$VPF_NCPU" -v r="$VPF_LOAD_PER_CPU" 'BEGIN{printf "%.2f", c*r}')
+    LOAD_BASIS="核归一化＝核数 $VPF_NCPU × 每核阈值 $VPF_LOAD_PER_CPU（2026-10-18 真人改判基：绝对值 4.0 对多核机失真）"
+  fi
+  echo "[③机况] load1=$LOAD1 上限=${LOAD_LIMIT:-未定}｜$LOAD_BASIS"
+  if [ -n "$LOAD_LIMIT" ] && awk -v a="$LOAD1" -v b="$LOAD_LIMIT" 'BEGIN{exit !(a>b)}'; then
+    emit_fail "load1=$LOAD1 > 上限 $LOAD_LIMIT｜$LOAD_BASIS"
   fi
 }
 
@@ -81,17 +99,18 @@ if [ "${1:-}" = "--selftest" ]; then
     if [ "$2" = "$3" ]; then echo "[PASS] $1（期望 rc=$2 实=$3）"; NPASS=$((NPASS+1));
     else echo "[FAIL] $1（期望 rc=$2 实=$3）"; NFAIL=$((NFAIL+1)); fi
   }
-  VPF_ISO="$VPF_ISO" VPF_LOAD_MAX="$VPF_LOAD_MAX" VPF_NUMPY_PREFIX="$VPF_NUMPY_PREFIX" bash "$SELF" >/tmp/vpf_t0.txt 2>&1; T0=$?
+  VPF_ISO="$VPF_ISO" VPF_NCPU="$VPF_NCPU" VPF_LOAD_PER_CPU="$VPF_LOAD_PER_CPU" VPF_LOAD_MAX="$VPF_LOAD_MAX" VPF_NUMPY_PREFIX="$VPF_NUMPY_PREFIX" bash "$SELF" >/tmp/vpf_t0.txt 2>&1; T0=$?
   check "T0 真跑必须放" 0 "$T0"
   if [ "$T0" -ne 0 ]; then
-    # 基线不绿 ⇒ 后面三例的"拦得住"全不可信（ISO 自测的第一课），直接 exit 9
-    echo "[中止] T0 基线不绿（rc=$T0），四例不作数——见 /tmp/vpf_t0.txt 末三行"
+    # 基线不绿 ⇒ 后面四例的"拦得住"全不可信（ISO 自测的第一课），直接 exit 9
+    echo "[中止] T0 基线不绿（rc=$T0），五例不作数——见 /tmp/vpf_t0.txt 末三行"
     tail -3 /tmp/vpf_t0.txt
     exit 9
   fi
-  VPF_LOAD_MAX=0.0001 bash "$SELF" >/tmp/vpf_t1.txt 2>&1; check "T1 阈值压到 0.0001 必须拦" 5 $?
+  VPF_LOAD_PER_CPU=0.00001 bash "$SELF" >/tmp/vpf_t1.txt 2>&1; check "T1 每核阈值压到 0.00001 必须拦（核归一化基）" 5 $?
   VPF_NUMPY_PREFIX=/nonexistent-prefix bash "$SELF" >/tmp/vpf_t2.txt 2>&1; check "T2 路径前缀改错必须拦" 5 $?
   VPF_ISO=/nonexistent/iso.sh bash "$SELF" >/tmp/vpf_t3.txt 2>&1; check "T3 ISO 件不在位必须 rc=9（不当绿）" 9 $?
+  VPF_LOAD_MAX=0.0001 bash "$SELF" >/tmp/vpf_t4.txt 2>&1; check "T4 绝对值硬顶压到 0.0001 必须拦（兼容旧式路径）" 5 $?
   echo "PREFLIGHT-SELFTEST VERDICT: PASS=$NPASS FAIL=$NFAIL（T0 未绿即已 exit 9，不留假全过）"
   [ "$NFAIL" -eq 0 ] && exit 0 || exit 5
 fi
@@ -106,5 +125,5 @@ if [ "$VERDICT_FAIL" -gt 0 ]; then
   echo "PREFLIGHT VERDICT rc=5（拒窗：$VERDICT_FAIL 项不成立，逐条见上）"
   exit 5
 fi
-echo "PREFLIGHT VERDICT rc=0（放行：ISO_RC=0／numpy 在 $VPF_NUMPY_PREFIX 下／load1=$LOAD1≤$VPF_LOAD_MAX）"
+echo "PREFLIGHT VERDICT rc=0（放行：ISO_RC=0／numpy 在 $VPF_NUMPY_PREFIX 下／load1=$LOAD1≤${LOAD_LIMIT:-?}｜${LOAD_BASIS}）"
 exit 0
