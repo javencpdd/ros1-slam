@@ -1,0 +1,16 @@
+# assert1 六 unit systemd 态＋覆盖面登记（host 现跑 2026-10-18 03:28:29）
+  lite3-monitor is-enabled=Failed to connect to bus: 没有可用的数据 is-active=Failed to connect to bus: 没有可用的数据
+  lite3-ros-bridge is-enabled=Failed to connect to bus: 没有可用的数据 is-active=Failed to connect to bus: 没有可用的数据
+  transfer_ros2 is-enabled=Failed to connect to bus: 没有可用的数据 is-active=Failed to connect to bus: 没有可用的数据
+  whoopsie is-enabled=Failed to connect to bus: 没有可用的数据 is-active=Failed to connect to bus: 没有可用的数据
+  apport-autoreport.path is-enabled=Failed to connect to bus: 没有可用的数据 is-active=Failed to connect to bus: 没有可用的数据
+  apport-forward.socket is-enabled=Failed to connect to bus: 没有可用的数据 is-active=Failed to connect to bus: 没有可用的数据
+# ★登记（au §6.2 断言①）：**覆盖面变化：异机无此六 unit 对象**——★不记通过（六 unit 属主理人机 root 面）
+# 等价物＝本机常驻大负载源榜首式（au §6.2：权威清单等主理人给、未给前逐窗现跑）：
+# ★视图限制照实报：本驱动跑在沙箱内，ps 只见沙箱自身进程树（现跑仅 7 个）⇒
+#   host 级榜首式须机主/主理人终端补跑：ps -eo pid,user,etimes,pcpu,args | sort -k3 -nr | head -3
+# 沙箱可见面榜首（仅证沙箱自身、★不得当宿主常驻源读）：
+    PID USER     ELAPSED %CPU COMMAND
+      1 root           0  0.0 [★已脱敏（2026-10-18 03:5x，判定侧遗留项7）：沙箱 PID1 命令行含本会话 MCP Authorization 凭据，整行替换；原件不入库、不引用]
+      4 root           0  0.0 bash note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x86_link_driver.sh
+      5 root           0  0.0 tail -24

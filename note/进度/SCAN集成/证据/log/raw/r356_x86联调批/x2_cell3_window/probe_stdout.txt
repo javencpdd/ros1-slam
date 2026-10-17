@@ -1,0 +1,15 @@
+[19:28:34] == X2 四格窗包开跑｜RUN=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window｜身份=root｜load1=5.68｜两帧间隔=12s｜在册 yaml=/opt/ros1-slam/ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml ==
+[19:28:37] roscore 在位（PID=14275）
+[19:28:40] ---- 段 x2_g6｜格＝格③三插件构成｜use_maximum=true｜first_map_only=true｜构成=four_plugin ----
+[19:28:41]   参数回读：global_frame=map｜plugins=4（须 2 或 4）｜static_a.use_maximum=true
+[19:29:07]   插件装载行：
+[19:29:08]   主话题数：1（须 1）
+[19:29:10]   [x2_g6] ★原始件合格（data_行数=1）→ data_行数=1 格数=1600 判别区=[100, 100, 100, 100, 100] A独占50点=0 B独占100区=[100, 100, 100] 未知区=[0, 0, 0, 0, 0] 第二帧新置区=[0, 0, 0, 0, 0] distinct=[0, 99, 100] 254_格数=0
+  段指纹：seg=x2_g6 格="格③三插件构成" use_maximum=true first_map_only=true 构成=four_plugin data_行数=1 解析rc=0
+[19:29:14] == 汇总 ==
+X2 四格读数 = 段数=1｜原始件合格=1／1｜不合格=0／1｜N3 段=无（★合格判据＝data: 计数断言=1 且 格数=1600）
+★读法写死：判别区=[100×5]⇒A 的 lethal 保住（取大语义）；=[0×5]⇒被后加载者的自由格抹掉（覆盖语义）；其余值⇒两档都不成立、须逐段看；第二帧新置区=[100×5]⇒后续图进层（first_map_only 未拦），=[0×5]⇒只吃首帧；A独占50点 读回 0＝在册 trinary 把 50 抹成 0
+★本件不自判 X2 能否叠加、不写已解决／被推翻／确证；四格是否跑齐只看上面两个数
+X2_FOURCELL VERDICT rc=0（所选 1 段原始件齐＝1／1；★段数不足 6 ⇒ 只报本段合格、★不得读作四格跑齐）
+[19:29:14] -- teardown（只按本件 PID 与端口持有者收；★不用未锚定的 -f 全局匹配、不 kill 他人进程）--
+[19:29:17] 退净：11313=0 11311=0（均须 0）

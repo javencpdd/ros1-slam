@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>lite3_navigation</name>
   <version>0.1.0</version>
   <description>lite3 shell package (M4) - self-owned launch/config/scripts only</description>
@@ -11,7 +11,7 @@
        dwa_local_planner/DWAPlannerROS。此前任何 package.xml 均未声明，镜像缺装时 mbf_costmap_nav 抛
        pluginlib::LibraryLoadException 直接 exit -6（2026-10-17 x86 侧实测）。真人裁决归「依赖声明类」
        常设授权：只回写声明，不改任何数值与判据语义。 -->
-  <run_depend>dwa_local_planner</run_depend>
-  <run_depend>spatio_temporal_voxel_layer</run_depend>
-  <run_depend>sob_layer</run_depend>
+  <exec_depend>dwa_local_planner</exec_depend>
+  <exec_depend>spatio_temporal_voxel_layer</exec_depend>
+  <exec_depend>sob_layer</exec_depend>
 </package>
