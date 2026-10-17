@@ -6,4 +6,12 @@
   <maintainer email="ros1-slam@lite3.local">ysc</maintainer>
   <license>Proprietary</license>
   <buildtool_depend>catkin</buildtool_depend>
+  <!-- 三枚导航插件由本包 config 的 plugin 类型直接点名：global/local_costmap_params.yaml 的
+       spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer 与 sob_layer::SobLayer、mbf_navigation.yaml 的
+       dwa_local_planner/DWAPlannerROS。此前任何 package.xml 均未声明，镜像缺装时 mbf_costmap_nav 抛
+       pluginlib::LibraryLoadException 直接 exit -6（2026-10-17 x86 侧实测）。真人裁决归「依赖声明类」
+       常设授权：只回写声明，不改任何数值与判据语义。 -->
+  <run_depend>dwa_local_planner</run_depend>
+  <run_depend>spatio_temporal_voxel_layer</run_depend>
+  <run_depend>sob_layer</run_depend>
 </package>
