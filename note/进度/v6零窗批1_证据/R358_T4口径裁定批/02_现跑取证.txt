@@ -1,0 +1,205 @@
+# 02_现跑取证 · R358_T4口径裁定批（x86 独立佳文实例）
+# 机＝hostname jack（x86 侧）｜仓根＝/home/jack/ysc-code/ros1-slam｜HEAD 现跑见第 0 条｜时基＝CST(+8)
+# ★脱敏声明：取证不取 ps 的 args 列（本机已备案坑＝args 列会把沙箱 PID1 环境串打进 stdout）；
+#   端口与进程面只用 ss -lnt/lnu 计数、pgrep -x 计数、docker inspect 的 PortBindings 三项，均不含命令行。
+# ★sha256sum -c 一律带 --quiet 判 rc（中文 locale 下 stdout 是「成功」不是「OK」，属已备案坑）。
+
+===== [00] 2026-10-18 04:53:36 CST :: date / pwd / git HEAD / status =====
+2026-10-18 04:53:36 CST
+/home/jack/ysc-code/ros1-slam
+9048efc
+6
+
+===== [01] 2026-10-18 04:53:36 CST :: docker ps（只读） =====
+ros1-slam-sim	ros1-slam:noetic-sim	Up 22 minutes	0.0.0.0:11313->11313/tcp, [::]:11313->11313/tcp, 0.0.0.0:11345->11345/tcp, [::]:11345->11345/tcp
+campusos-v12-03b-complete-1792166341-2790335	postgres:16-alpine	Up 29 hours	127.0.0.1:32808->5432/tcp
+campusos-pgadmin	dpage/pgadmin4:latest	Up 2 days	443/tcp, 0.0.0.0:5050->80/tcp, [::]:5050->80/tcp
+rc=0
+
+===== [02] 2026-10-18 04:53:37 CST :: 装置面证据＝容器端口发布（HostConfig.PortBindings） =====
+{"11313/tcp":[{"HostIp":"","HostPort":"11313"}],"11345/tcp":[{"HostIp":"","HostPort":"11345"}]}
+status=running started=2026-10-17T20:30:55.238137953Z
+
+===== [03] 2026-10-18 04:53:37 CST :: host 端口域 1131x/1134x（明细，TCP 与 UDP 同表） =====
+tcp   LISTEN 0      4096              0.0.0.0:11345      0.0.0.0:*          
+tcp   LISTEN 0      4096              0.0.0.0:11313      0.0.0.0:*          
+tcp   LISTEN 0      4096                 [::]:11345         [::]:*          
+tcp   LISTEN 0      4096                 [::]:11313         [::]:*          
+--- 分查计数 ---
+host_TCP_1131band=2
+host_UDP_1131band=0
+host_TCP_1134band=2
+host_UDP_1134band=0
+host_11312_单查=0
+
+===== [04] 2026-10-18 04:53:37 CST :: container 端口域（同一式，容器 netns 内） =====
+--- 分查计数 ---
+cont_TCP_1131band=0
+cont_UDP_1131band=0
+cont_TCP_1134band=0
+cont_UDP_1134band=0
+
+===== [05] 2026-10-18 04:53:38 CST :: container 退净五名 pgrep -x 计数（★此刻＝窗中态、非退净态） =====
+gzserver=0 gzclient=0 roslaunch=0 roscore=0 rosmaster=0 
+
+===== [06] 2026-10-18 04:53:38 CST :: container foxy/qnx 残留面（pgrep -x，断言②⑤同形） =====
+run_mapping_online=0 livox_ros_driver=0 ros2qnx=0 
+/opt/ros/foxy=不存在
+
+===== [07] 2026-10-18 04:53:38 CST :: T1 环境锚四串（容器面＝x86 执行场） =====
+PRETTY_NAME="Ubuntu 20.04.6 LTS"
+1.19.4 /usr/local/lib/python3.8/dist-packages/numpy/__init__.py 1.5.3 /usr/local/lib/python3.8/dist-packages/scipy/__init__.py
+11.15.1-1~focal
+
+===== [08] 2026-10-18 04:53:38 CST :: T1 宿主机面（★非在册执行场，只作覆盖面并报） =====
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+72
+内存：         31          19           2           0           8          10
+
+===== [09] 2026-10-18 04:53:38 CST :: T2 并比四数（仓根现跑） =====
+串成员=10
+ws_src_files=4580
+tooling_files=149
+tooling_顶层清单条目=13
+tooling_清单自验_rc=0
+
+===== [10] 2026-10-18 04:53:39 CST :: T3 四枚 sha 前 16（现跑） =====
+17d16ebd1635947b ws/src/40_navigation/lite3_scan/verify/p4_replan.py
+cbf06584e453fea3 note/进度/SCAN集成/设计/scripts/probe_x2_fourcells.sh
+4bec5e73fb8a2d76 note/进度/SCAN集成/设计/scripts/x2_pub_cloud.py
+aaa09362c5f1aef9 data/maps/lite3.pcd
+
+===== [11] 2026-10-18 04:53:39 CST :: T4 现场复跑式两 clause（真身式，逐 clause 现跑） =====
+clause1_名式命中=0
+clause2_覆盖面等价基准行_全仓命中文件数=1
+./note/进度/v6零窗批1_证据/R337-4_v6架构重组设计批/01_佳文裁定_A59两格.md: <<覆盖面等价基准>> …（截断，不转录全行）=<机�
+./note/进度/v6零窗批1_证据/R358_T4口径裁定批/02_现跑取证.txt: <<覆盖面等价基准>> …（截断，不转录全行）行_全仓命中文件�
+
+===== [12] 2026-10-18 04:53:40 CST :: 窗回执册现跑（只读、本件不写该册） =====
+窗回执_非注释行=17
+末行登记批列=R356
+
+===== [13] 2026-10-18 04:53:40 CST :: au §6.2 表断言④行与退净原句（区段抽取，★未整读巨型件） =====
+| ④11312／11313 的 TCP 与 UDP **分查**零监听 | 端口域在异机**不自动沿用**：103 在册＝11312 生产/真机预留、11313/11345 仿真 A 会话、11314/11346 仿真 B 会话（主理人仲裁在册）⇒ **x86 侧端口域等主理人另给**（§9 第 4 项）；未给＝**不开窗** | `ss -lnt \| grep -cE ':1131[1-9]'` 与 `ss -lnu …` 分查；GAZEBO master 同报（在册 `GAZEBO_MASTER_URI=11345`／`11355`） | 在异机沿用 11312 语义或自赋新端口 |
+### 6.3 窗回执册跨机怎么记（★不得互推）
+au件_行数=320
+au件_sha前8=1a37278c
+
+===== [14] 2026-10-18 04:53:40 CST :: R356 在册 ④ 证据两路（起前/退后×host/container）现读 =====
+--- assert4_ports_before.txt（sha 前8=1bc1f2e3）---
+# assert4 端口零监听（host 起前 2026-10-18 03:28:30；TCP 与 UDP 分查；域＝1131x）
+  TCP 1131x 计数 = 2
+  UDP 1131x 计数 = 0
+  TCP 明细：
+    LISTEN 0      4096              0.0.0.0:11313      0.0.0.0:*          
+    LISTEN 0      4096                 [::]:11313         [::]:*          
+  UDP 明细：
+  （★起前态预期：sim 容器 11313 映射在听属既起容器面、非本窗引入；判据看起前＝退后同形）
+--- assert4_ports_after.txt（sha 前8=8fa82d62）---
+# assert4 端口（host 退后 2026-10-18 03:29:18；TCP/UDP 分查）
+  TCP 1131x 计数 = 2
+  UDP 1131x 计数 = 0
+  TCP 明细：
+    LISTEN 0      4096              0.0.0.0:11313      0.0.0.0:*          
+    LISTEN 0      4096                 [::]:11313         [::]:*          
+  UDP 明细：
+--- assert4_ports_container_before.txt（sha 前8=afc50ea8）---
+# assert4 端口（container 起前  2026-10-17 19:28:34 ；TCP/UDP 分查）
+  TCP 1131x = 0
+  UDP 1131x = 0
+--- exitclean_after.txt（sha 前8=103ac1b2）---
+# 退净形状（container 退后  2026-10-17 19:29:17 ；au §6.2 原句形状）
+  pgrep -x gzserver=0 gzclient=0 roslaunch=0 roscore=0 rosmaster=0
+  pgrep -x run_mapping_online=[] pgrep -x livox_ros_driver=[] pgrep -x ros2qnx=[]
+  TCP 1131x = 0｜UDP 1131x = 0
+  ★本窗探针自带 teardown 行见 /opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window/run.log 末段
+a1_baseline_清单自验_rc=0
+a1_baseline_件数=11
+
+===== [15] 2026-10-18 04:54:23 CST :: au §6.2 退净原句定位（坏指针更正） =====
+来单所给＝第 178 行；实测＝第 176 行（式＝grep -n '^\*\*退净形状' au件）
+**退净形状（在册原句可抄）**＝`pgrep -x gzserver=0 gzclient=0 roslaunch=0 roscore=0 rosmaster=0` ＋ 端口全 0 ＋ ★"零残留"类断言须**同时给按名精确匹配计数与端口占用两路证据**（R319 在册读法候选）。
+
+===== [16] 2026-10-18 04:54:23 CST :: 在册锚件版本现跑（供裁定文引用件版本用） =====
+note/进度/SCAN集成/设计/au_x86仿真迁出交接任务单_设计稿.md	行数=320	sha前8=1a37278c
+note/进度/v6零窗批1_证据/R337-4_v6架构重组设计批/01_佳文裁定_A59两格.md	行数=92	sha前8=bd5a04e2
+note/计划书v6/21_ros1-slam三线程推进计划书-v6.md	行数=237	sha前8=73e94881
+note/计划书v7/21_ros1-slam中心计划书-v7.md	行数=223	sha前8=eedf0f93
+note/进度/SCAN集成/证据/log/raw/r356_x86联调批/acceptance_verdict/verdict_x86_acceptance.md	行数=117	sha前8=9eaefc5d
+note/进度/SCAN集成/设计/av_v6仿真拆分与x86验证架构设计稿.md	行数=382	sha前8=01c3ce76
+note/05_复验作业单.md	行数=863	sha前8=a06af976
+scripts/verify/_window_receipt.tsv	行数=22	sha前8=a10952d5
+
+===== [17] 2026-10-18 04:54:23 CST :: 断言④相关在册件（装置面定义来源）现读 =====
+55:    ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://roscore:11312}
+106:    command: ["bash", "-lc", "roscore -p ${ROS_PORT:-11312}"]
+108:      - "${ROS_PORT:-11312}:${ROS_PORT:-11312}"
+132:      # 11312 归 roscore 服务独占，这里不要再映射，否则 "port is already allocated"
+160:      ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://${HOST_IP:-192.168.1.103}:11312}
+180:  #      既连不上也没用。另外退净判据要求 11311/11312 跑完必须零监听 —— 本容器天然满足。
+docker-compose_sha前8=6c356468 行数=325
+来历 commit＝a7a9292 x86侧批6：x86 仿真环境点火与异机基线对齐（v7 
+
+===== [18] 2026-10-18 04:54:23 CST :: 在册 R358 撞号核查（照实报，本件不自改） =====
+3438:## R358（2026-10-18 04:40）x86 侧接手第一棒＝R355 挂账的件内注释勘�
+本批落盘目录名＝R358_T4口径裁定批（来单指定）
+
+===== [19] 2026-10-18 04:54:23 CST :: 取证收尾＝本实例未做的写操作自证 =====
+git status 脏行数=7
+ M "note/02_\351\227\256\351\242\230\344\270\216\345\235\221.md"
+ M "note/04_\351\205\215\347\275\256\346\224\271\345\212\250diff.md"
+ M "note/\350\277\233\345\272\246/00_\346\200\273\350\247\210.md"
+?? 0.2
+?? "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\256\276\350\256\241/ax_B0-1\344\273\277\347\234\237\350\275\275\344\275\223\345\215\207\347\272\247\350\256\276\350\256\241\344\273\266_\345\260\217\345\274\240.md"
+?? "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r359_B0-1\350\275\275\344\275\223\345\217\226\350\257\201/"
+?? "note/\350\277\233\345\272\246/v6\351\233\266\347\252\227\346\211\2711_\350\257\201\346\215\256/R358_T4\345\217\243\345\276\204\350\243\201\345\256\232\346\211\271/"
+本目录文件＝
+02_现跑取证.txt
+
+===== [20] 前一轮现跑原始输出转录（时刻 2026-10-18 04:46:19 / 04:46:40 / 04:47:59 / 04:48:31 CST，★本实例同批自跑、非转引） =====
+# 该轮容器＝窗中态（有 roslaunch/rosmaster 在跑），与段 [04][05] 的退净态构成同机两刻对照 ⇒ 本件 §1 的
+# 「装置面 vs 被试面」分界即由这两轮之差得出，不靠任何旧留底。
+--- 04:46:19 docker ps ---
+ros1-slam-sim	ros1-slam:noetic-sim	Up 15 minutes	0.0.0.0:11313->11313/tcp, [::]:11313->11313/tcp, 0.0.0.0:11345->11345/tcp, [::]:11345->11345/tcp
+--- 04:46:19 host ss -lntu 明细 ---
+tcp   LISTEN 0      4096              0.0.0.0:11345      0.0.0.0:*
+tcp   LISTEN 0      4096              0.0.0.0:11313      0.0.0.0:*
+tcp   LISTEN 0      4096                 [::]:11345         [::]:*
+tcp   LISTEN 0      4096                 [::]:11313         [::]:*
+host_TCP_1131band=2  host_UDP_1131band=0（同式同刻）
+--- 04:46:40 container 明细（ss -lntu | grep -E '1131[0-9]|1134[0-9]'） ---
+tcp    LISTEN  0       4096           0.0.0.0:11345        0.0.0.0:*
+tcp    LISTEN  0       128            0.0.0.0:11313        0.0.0.0:*
+cont_TCP_1131band=1  cont_UDP_1131band=0  cont_TCP_1134band=1  cont_UDP_1134band=0（11345 同刻在听）
+--- 04:46:40 container 退净五名 pgrep -x 计数（窗中态） ---
+gzserver=2 gzclient=0 roslaunch=1 roscore=0 rosmaster=1
+--- 04:47:59 container T1 四串（与段 [07] 同值＝两轮同串自证） ---
+PRETTY_NAME="Ubuntu 20.04.6 LTS" / 1.19.4 @ /usr/local/lib/python3.8/dist-packages + scipy 1.5.3 / gazebo11 11.15.1-1~focal
+
+===== [21] 2026-10-18 04:55:13 CST :: clause2 计数复跑（★带排除本批目录的兜法，自引现场留名） =====
+不排除=2（★含本件自身＝自引抬高）
+排除本批目录=1
+在册基准件含该行否＝0
+
+===== [22] 2026-10-18 04:55:17 CST :: 本实例只读性自证（★未起窗、未 kill、无 sudo、未写他人件） =====
+docker ps 计数（未起新容器）=3
+本目录文件＝
+02_现跑取证.txt
+
+
+===== [23] 2026-10-18 05:02:42 CST :: 断言①在册件面（★只跑探针计数、不转录正文＝守 args 脱敏坑） =====
+assert1_host_load_top.txt: 行数=23 字节=1979 mtime=2026-10-18 04:11:28 sha前16=a5a6ed896e3fa71e Bearer=0 Authorization=0
+assert1_unit_coverage.txt: 行数=16 字节=1856 mtime=2026-10-18 03:52:17 sha前16=fefeea4e87e2ae66 Bearer=0 Authorization=1
+凭据残留四探针（对 assert1_unit_coverage.txt，只出计数）：
+  「Authorization:」后跟值=0
+  JWT 常见前缀 eyJ=0
+  连续 25 位以上 token 样串=0
+  第 14 行总字符长=194
+# 结论（本件 §5.3 第 6 条用）＝凭据面四探针全 0；唯一 'Authorization' 字面命中在第 14 行的**脱敏说明文字自身**、非凭据。
+
+===== [24] 2026-10-18 05:02:42 CST :: 台账与在册件节次／行位复核（供裁定文引用面） =====
+『T4 等真人「x86 导入完成」』所在段＝R349（2026-10-17 04:1x，零窗�（现跑 04 第 3315 行，归 R349 段 P8 行）
+05 追加四十系节头现跑=1 个（＝追加四十在位、追加四十一 无节头 ⇒ 下一号仍＝追加四十一）
+au §6.2 ④ 行现读第 173 行（来单给 173＝符）；退净原句现读第 176 行（来单给 178＝坏指针）
+v7 S2 行现读第 50 行（来单给 48＝坏指针）；'^## §4' 现读第 129 行（来单给 122—128）
+判定件行位现读＝总判句 20 ‖ ④ 行 29 ‖ ① 行 24 ‖ ①等价物行 25 ‖ 退净行 31 ‖ 不声称行 90 ‖ 施工侧可说行 92 ‖ ⑥表端口域行 104 ‖ ⑥表榜首行 103
