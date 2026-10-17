@@ -26,7 +26,7 @@ SELF=$(readlink -f "${BASH_SOURCE[0]}")
 ROOT=$(cd "$(dirname "$SELF")/../.." && pwd)
 VPF_ISO=${VPF_ISO:-$ROOT/scripts/verify/v3_isolation.sh}
 VPF_NCPU=${VPF_NCPU:-$(nproc 2>/dev/null)}   # 核数（缺省现取；loadavg 是全系统量，须按核归一才可比）
-VPF_LOAD_PER_CPU=${VPF_LOAD_PER_CPU:-0.5}    # 每核负载上限（核归一化基；8 核＝4.0＝旧绝对值，Lite3 侧行为不变）
+VPF_LOAD_PER_CPU=${VPF_LOAD_PER_CPU:-0.5}    # 每核负载上限（核归一化基；★R355 真人勘误 2026-10-18：Lite3＝6 核 ⇒ 新基 0.5×6＝3.0，**较旧绝对值 4.0 变紧**；「8 核＝4.0 与旧值逐字一致」只对 8 核机成立，★不得读作"Lite3 侧行为不变"）
 VPF_LOAD_MAX=${VPF_LOAD_MAX:-}               # 可选绝对值硬顶：显式设才用（兼容旧式）；未设＝核归一化
 VPF_NUMPY_PREFIX=${VPF_NUMPY_PREFIX:-/usr/local}
 
