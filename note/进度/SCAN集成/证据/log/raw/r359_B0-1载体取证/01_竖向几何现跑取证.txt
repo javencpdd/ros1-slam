@@ -1,0 +1,22 @@
+# B.0 载体竖向几何现跑取证 · 时刻=2026-10-17 20:49:36 · 容器 ros1-slam-sim · numpy 1.19.4
+## 取样式＝roslaunch lite3_gazebo_sim m2_gazebo.launch（在册 m2 场地）→ rosbag record -o geo --duration=12s /rslidar_points → python3 逐帧解析（60 帧）
+## bag＝/tmp/geo_2026-10-17-20-46-11.bag（76,846,805 B，★bag 不入仓、留容器 /tmp）
+帧=60 有效点=281310｜ring 唯一值枚数=32｜ring 取值域=[0,31]
+  ring= 0  n=  8761  mean= 90.02  min= 72.30  max= 97.21
+  ring= 1  n=  8816  mean= 89.88  min= 72.34  max= 95.14
+  ring=31  n=  8764  mean= 90.05  min= 72.19  max= 97.21
+|elev|<=15.5 度带内的 ring 枚数=32（在册病灶句所称「8 条线」的对照量）
+
+## CSV 发射几何真身（ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/scan_mode/mid360-real-centr.csv）
+行数=800000｜Zenith 域=[37.84, 97.21] 度 ⇒ 仰角域=[-7.21, +52.16] 度（90 度＝水平）
+
+## xacro 字面（★与现跑不符处）
+85:            <vertical>
+86-              <samples>50</samples>
+87-              <resolution>1</resolution>
+88-              <min_angle>-3.1415926535897931</min_angle>
+89-              <max_angle>3.1415926535897931</max_angle>
+104:        <samples>20000</samples>
+106:        <csv_file_name>mid360-real-centr.csv</csv_file_name>
+
+## 时基注记（防读错）＝容器 TZ=UTC，上面 20:49:36 与宿主机 2026-10-18 04:49:36 同一时刻（差 8 小时）；本包其余留底同此。
