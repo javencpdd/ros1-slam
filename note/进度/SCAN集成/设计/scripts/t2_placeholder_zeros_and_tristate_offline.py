@@ -61,6 +61,21 @@ def cell_of_origin(frames, res=0.05, slab=0.10, drop=True):
     return r, removed, at_origin, z_ground
 
 
+def tristate_grid(r):
+    """#46 三态**表征面**（R365 补：原自测只在计数面上守恒，而那个守恒式是定义式、永不红）。
+
+    在册常量真身＝`t1` 第 20 行 `UNKNOWN, FREE, BLOCKED = -1, 0, 100`（本件**复用、不另写一套**）。
+    两句话写死：
+      · **默认分支＝UNKNOWN(−1)** ⇒ 没回波的格绝不产出 0（0＝FREE＝"可上"，正是 #46 明令禁止的塌陷）；
+      · **覆盖格本件不产代价**，一律保守记 BLOCKED(100) ⇒ 全面**不出现 FREE**（★"有回波"≠"可上"）。
+    """
+    total = r['nx'] * r['ny']
+    g = np.full(total, t1.UNKNOWN, dtype=np.int16)     # ★默认分支＝未知
+    cov = r['covered'] > 0
+    g[cov] = t1.BLOCKED                                 # ★保守：覆盖不等于可上
+    return g, cov
+
+
 def tristate_counts(r):
     """三态计数（本件只到"表征"，不产代价）：接地＝覆盖且最低板贴地；未知＝没回波。"""
     total = r['nx'] * r['ny']
@@ -102,7 +117,9 @@ def selftest():
     sparse = cloud([[0.0, 0.0, 0.10, 0], [0.05, 0.0, 0.10, 0], [1.00, 1.00, 0.10, 0], [1.05, 1.00, 0.10, 0]])
     r_sp = t1.rasterize(sparse, res=0.05, z_min=0.0, z_max=1.2, slab=0.1, z_ground=0.1)
     total, covered, unknown, grounded = tristate_counts(r_sp)
-    check('T2-b 三态守恒 total==covered+unknown', total == covered + unknown,
+    # ★注（R365）：本条是**定义式**守恒（unknown 在 tristate_counts 里就是 total−covered 算出来的）
+    #   ⇒ 它恒真、不能单独承重；真正有牙的是下面 T2-i（由数组反推）。原断言保留、★不删不放宽。
+    check('T2-b 三态守恒 total==covered+unknown（★定义式、不单独承重，见 T2-i）', total == covered + unknown,
           'total=%d covered=%d unknown=%d' % (total, covered, unknown))
     check('T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格）', grounded <= covered and covered == 4,
           'grounded=%d covered=%d' % (grounded, covered))
@@ -121,6 +138,23 @@ def selftest():
     r_noanchor = t1.rasterize(cleaned, z_min=0.0, z_max=1.2, slab=0.1)
     check('T2-e 不给 z_ground ⇒ k0=0（旧式）', r_noanchor['k0'] == 0 and r_noanchor['z_ground'] is None)
     check('T2-e 下沿垫一板 ⇒ truncated=False', r_keep['truncated'] is False, 'z_min=%.2f z_ground=%.2f' % (r_keep['z_min'], r_keep['z_ground']))
+
+    # T2-g／T2-h／T2-i 三态**表征面**断言（R365 补；★堵的就是"守恒式是定义式、错写 0 照样绿"这个假绿入口）
+    g_sp, cov_sp = tristate_grid(r_sp)
+    check('T2-g 未覆盖格全为 UNKNOWN(−1)（默认分支不产出 0）',
+          bool((g_sp[~cov_sp] == t1.UNKNOWN).all()) and int(t1.UNKNOWN) == -1,
+          '未覆盖格=%d 全为 %d' % (int((~cov_sp).sum()), t1.UNKNOWN))
+    check('T2-g 全面不出现 FREE(0)（★有回波不得读作可上）',
+          not bool((g_sp == t1.FREE).any()), 'FREE 命中=%d 格' % int((g_sp == t1.FREE).sum()))
+    # ★阳性对照：把未覆盖格故意塌成 0 ⇒ 上一条断言**必须红**，否则断言没牙（＝本件原先的病）
+    g_bad = g_sp.copy(); g_bad[~cov_sp] = t1.FREE
+    check('T2-h 阳性对照：塌陷成 FREE 时断言必须红（证断言有牙）',
+          bool((g_bad == t1.FREE).any()), '塌陷后 FREE 命中=%d 格（须 >0）' % int((g_bad == t1.FREE).sum()))
+    # ★独立守恒：unknown 由**数组**反推、★不得由 total−covered 定义式得来（那条恒真、见 T2-b 注）
+    n_unknown = int((g_sp == t1.UNKNOWN).sum()); n_cov = int(cov_sp.sum())
+    check('T2-i 独立守恒 n_unknown+n_covered==total（数组反推、非定义式）',
+          n_unknown + n_cov == total and n_unknown == unknown,
+          '数组未知=%d 计数未知=%d 覆盖=%d 总=%d' % (n_unknown, unknown, n_cov, total))
 
     # T2-f 空输入必须报错，不静默产出空面
     try:
