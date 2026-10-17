@@ -22,6 +22,19 @@ RES = 0.10
 Z_MIN, Z_MAX = -0.45, 0.75
 Z_SLAB = 0.10
 
+def zwin_attribution(tag, how):
+    """★R366 打印面补句（★纯口径声明、不改任何数）。
+
+    在册硬句真身＝v6 §B.1.4 行「**任何 z 窗引用须连带安装位 (h,θ) 与站立态**（R310 在册硬句）」。
+    R310 三值＝h=0.45 m／θ=15°／站立态；在册几何式＝正下方地面雷达系 z=−0.4347 m。
+    本件不产 (h,θ)（推窗式在 t3 的 --zwin），故这里只把定档真身**并排报出**、★不冒充本件窗的来源。
+    """
+    print('%s_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：'
+          'R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；'
+          '★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；'
+          '本件此行窗由%s得来、★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"'
+          % (tag, how))
+
 
 # ---------- 输入面：PCD 读取（binary 与 ascii 两种 DATA）----------
 def read_pcd(path):
@@ -331,6 +344,8 @@ def main(argv=None):
               % (zpct[0], a.ground_pct, zpct[1], zpct[2], zpct[3], zpct[4], zpct[5]))
         print('T1_ZWIN 锚定=%s 垫板=%d 二元式=(z_ground=%.2f, z_range=%.2fm) ⇒ 实开窗 [%.2f, %.2f]（k0=%d 板；truncated=%s；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）'
               % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0, zground, zmax - zmin, zmin, zmax, r['k0'], r['truncated']))
+        zwin_attribution('T1', '锚定=%s／垫板=%s／窗宽=max_z−min_z（件内缺省 1.20 m）'
+                            % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0,))
         print('T1_PCD 文件=%s 声明点数=%d 实读=%d 剔零=%d 入窗=%d 窗外z=%d（单位：点；模式=%s）'
               % (a.pcd, meta['declared'], raw_total, removed, r['n_points_used'], r['n_points_out_of_z'], meta['mode']))
         print('T1_PCD 栅格=%dx%d 格（分辨率 %.2f m）z 窗 [%.2f, %.2f] 板厚 %.2f ⇒ 每格 %d 个 z 板（掩码态空间 %d＝2^%d）'
