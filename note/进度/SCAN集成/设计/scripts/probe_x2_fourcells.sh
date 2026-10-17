@@ -15,7 +15,8 @@
 #
 # rc 语义（本件自报；★不入门禁串＝勾复③「不入」，将来要入第 11 件须另走 #112/#114 同款明令）：
 #   0＝六段全部原始件合格（`data:` 计数断言＝1 且 格数＝1600）｜5＝有段不合格（该段记 N3、不判被试）｜9＝前置缺失（发布器不在位／source 后非 noetic／roscore 起不来＝★空读数不得当绿读）
-# 用法：bash probe_x2_fourcells.sh                     RUN=${X2_RUN:-/tmp/x2_fourcells}  两帧间隔=${X2_GAP:-12}s
+# 用法：bash probe_x2_fourcells.sh                     RUN=${X2_RUN:-/tmp/x2_fourcells}  两帧间隔=${X2_GAP:-12}s（★缺省六段全跑）
+#       X2_SEGS="x2_g6" bash probe_x2_fourcells.sh    只跑指定段（R354 增设段选；格③ 补测用）
 #       bash probe_x2_fourcells.sh --parse-selftest    离线自检（不碰 ROS，四例：两例须过、两例须失败）
 # 开窗前置由 scripts/verify/v_window_preflight.sh 把关（在册唯一许可式）；本件不自设负载门槛、不 kill 非本件进程。
 set -u
@@ -198,19 +199,38 @@ run_seg() {  # $1=段名 $2=use_maximum $3=first_map_only $4=构成 $5=格名
   sleep 4
 }
 
-run_seg x2_g1 true  true  static2     "格①在册参数面"
-run_seg x2_g2 true  false static2     "格②(T,F)"
-run_seg x2_g3 false true  static2     "格②(F,T)"
-run_seg x2_g4 false false static2     "格②(F,F)"
-run_seg x2_g5 true  true  static2     "格②(T,T) 复跑"
-run_seg x2_g6 true  true  four_plugin "格③三插件构成"
+# ---------------- 段选（R354 增设；★缺省＝六段全跑，与 R332 行为逐字一致）----------------
+# 由来＝ao 稿（#235 补测输入单）乙案「只补格③ N3 列、不重跑已跑齐的格①②④」⇒ 需单段跑能力。
+# 旋钮＝X2_SEGS（空格分隔段名）。例：X2_SEGS="x2_g6" bash probe_x2_fourcells.sh
+SEGS="${X2_SEGS:-x2_g1 x2_g2 x2_g3 x2_g4 x2_g5 x2_g6}"
+run_by_name() {
+  case "$1" in
+    x2_g1) run_seg x2_g1 true  true  static2     "格①在册参数面" ;;
+    x2_g2) run_seg x2_g2 true  false static2     "格②(T,F)" ;;
+    x2_g3) run_seg x2_g3 false true  static2     "格②(F,T)" ;;
+    x2_g4) run_seg x2_g4 false false static2     "格②(F,F)" ;;
+    x2_g5) run_seg x2_g5 true  true  static2     "格②(T,T) 复跑" ;;
+    x2_g6) run_seg x2_g6 true  true  four_plugin "格③三插件构成" ;;
+    *) echo "[前置缺失] 未知段名：$1（只认 x2_g1..x2_g6）"; exit 9 ;;
+  esac
+}
+NSEG=0
+for s in $SEGS; do run_by_name "$s"; NSEG=$((NSEG+1)); done
 
 say "== 汇总 =="
-note "X2 四格读数 = 段数=6｜原始件合格=$OKSEG／6｜不合格=$FAILSEG／6｜N3 段=${N3LIST:-无}（★合格判据＝data: 计数断言=1 且 格数=1600）"
+note "X2 四格读数 = 段数=$NSEG｜原始件合格=$OKSEG／$NSEG｜不合格=$FAILSEG／$NSEG｜N3 段=${N3LIST:-无}（★合格判据＝data: 计数断言=1 且 格数=1600）"
 note "★读法写死：判别区=[100×5]⇒A 的 lethal 保住（取大语义）；=[0×5]⇒被后加载者的自由格抹掉（覆盖语义）；其余值⇒两档都不成立、须逐段看；第二帧新置区=[100×5]⇒后续图进层（first_map_only 未拦），=[0×5]⇒只吃首帧；A独占50点 读回 0＝在册 trinary 把 50 抹成 0"
 note "★本件不自判 X2 能否叠加、不写已解决／被推翻／确证；四格是否跑齐只看上面两个数"
 if [ "$FAILSEG" = 0 ]; then
-  echo "X2_FOURCELL VERDICT rc=0（六段原始件齐＝四格已跑齐）"; exit 0
+  if [ "$NSEG" = 6 ]; then
+    echo "X2_FOURCELL VERDICT rc=0（六段原始件齐＝四格已跑齐）"; exit 0
+  else
+    echo "X2_FOURCELL VERDICT rc=0（所选 $NSEG 段原始件齐＝$OKSEG／$NSEG；★段数不足 6 ⇒ 只报本段合格、★不得读作四格跑齐）"; exit 0
+  fi
 else
-  echo "X2_FOURCELL VERDICT rc=5（有段记 N3＝四格未跑齐）"; exit 5
+  if [ "$NSEG" = 6 ]; then
+    echo "X2_FOURCELL VERDICT rc=5（有段记 N3＝四格未跑齐）"; exit 5
+  else
+    echo "X2_FOURCELL VERDICT rc=5（所选 $NSEG 段有 N3＝$FAILSEG 段：${N3LIST:-无}；★段数不足 6 ⇒ 不得读作四格未跑齐的完整结论）"; exit 5
+  fi
 fi

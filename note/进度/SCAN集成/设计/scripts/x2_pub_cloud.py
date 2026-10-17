@@ -8,7 +8,7 @@ import os
 import math
 import struct
 import rospy
-from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointCloud2, PointField
 from std_msgs.msg import MultiArrayDimension
 
 FRAME = "rslidar"
@@ -22,9 +22,9 @@ def cloud(pts):
     m.height = 1
     m.width = len(pts)
     m.fields = [
-        {"name": "x", "offset": 0, "datatype": 7, "count": 1},
-        {"name": "y", "offset": 4, "datatype": 7, "count": 1},
-        {"name": "z", "offset": 8, "datatype": 7, "count": 1},
+        PointField(name="x", offset=0, datatype=7, count=1),
+        PointField(name="y", offset=4, datatype=7, count=1),
+        PointField(name="z", offset=8, datatype=7, count=1),
     ]
     m.is_dense = True
     buf = b"".join(struct.pack("<fff", x, y, z) for x, y, z in pts)

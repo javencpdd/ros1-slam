@@ -84,6 +84,8 @@ def z_window_rederive(h=H_R310, theta_deg=THETA_R310, slab=SLAB, z_range=Z_RANGE
       mode='keep-upper'（缺省）＝上沿沿用丙档 +0.75（R310 只给地面带几何、上沿无重推依据
               ⇒ 保守保留、与丙档保持可比）；
       mode='keep-width'＝保丙档窗宽（z_max ＝ z_min ＋ z_range，12 板）。
+    ★另起句（真人 2026-10-18 定档）＝两候选已定＝**候选甲 keep-upper [−0.55, +0.75]（13 板、k0=1、truncated=False）**；
+      本件保留两档实现与自测（M1 阴性对照仍借 keep-width 验"窗跟着安装位走"），★定档只记不改成闸。
     返回 dict（★非实测、★引用必须连带安装位 (h,θ) 与站立态）。
     """
     z_g = ground_z_radar(0.0, h, theta_deg)                    # 正下方地面（雷达系）
@@ -230,6 +232,7 @@ def emit_contract():
     print('T3_ZWIN 重推窗候选乙（keep-width）＝[%.2f, %.2f]（%d 板；k0=%d；truncated=%s；%s）'
           '★两候选下沿同值、上沿二选一，定档权归小美／真人，施工侧不自选'
           % (ww['z_min'], ww['z_max'], ww['nz'], ww['k0'], ww['truncated'], ww['grade']))
+    print('T3_ZWIN ★定档注记（真人 2026-10-18）＝已定取候选甲 [−0.55, +0.75]（13 板）；上句"二选一"自定档日起按已定读，★本件仍两档都跑（阴性对照需要）')
     print('T3_ZWIN 并报一＝丙档设计值 [%.2f, %.2f] 按 R310 锚判 truncated=%s（★地面那板被截半 ⇒ 丙档下沿按 R310 回核不成立）'
           % (C_BING_MIN, C_BING_MAX, is_truncated(z_g, C_BING_MIN)))
     print('T3_ZWIN 并报二＝现读 [%.2f, %.2f]（已搁置 S1 留盘件参数缺省；★该件无坐标系注记、窗宽 %d 板，与丙档/重推值均不可比，仅登记）'
