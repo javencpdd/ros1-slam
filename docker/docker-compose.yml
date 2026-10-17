@@ -1,0 +1,312 @@
+# =============================================================================
+# ros1-slam 开发环境编排
+# -----------------------------------------------------------------------------
+# 使用：  cd docker && docker compose up -d --build
+#         docker compose exec slam bash
+#
+# 四种形态（按用途选，别同时起）：
+#   1) 默认：roscore + slam 走 bridge 网络，master 在 roscore 容器里 —— 日常开发/编译
+#   2) --profile sim     ：sim 容器跑 Gazebo 仿真（自带 master 11313，自成一域）
+#   3) --profile hostnet ：slam-host 用 host 网络，直接吃真机 LiDAR（192.168.1.201）
+#   4) --profile extras  ：额外起 redis(6379)（项目本体不需要，仅作外部件模板）
+# =============================================================================
+
+x-build: &build
+  context: ..                       # 构建上下文 = 仓库根目录（.dockerignore 在那儿）
+  dockerfile: docker/Dockerfile
+  args:
+    ROS_BASE_IMAGE: ${ROS_BASE_IMAGE:-ros}   # 拉不到 Docker Hub 时改成镜像源，见 .env.example
+    ROS_BASE_TAG: ${ROS_BASE_TAG:-noetic-ros-base-focal}
+    PROFILE: ${PROFILE:-core}       # core | sim（sim 额外装 Gazebo11）
+    WITH_RVIZ: ${WITH_RVIZ:-0}      # 1 = 额外装 rviz/rqt
+    JOBS: ${JOBS:-4}                # 编译并发；Jetson 内存紧张时降到 2
+    HOST_UID: ${HOST_UID:-1000}     # 名字别用 UID —— bash 内置变量会覆盖它
+    HOST_GID: ${HOST_GID:-1000}
+    # ---- 构建期代理（默认留空：国内源直连更快）----
+    # ★ 变量名故意不叫 HTTP_PROXY —— 那会被调用方 shell 的代理顺手继承，
+    #   而 shell 里的 127.0.0.1:xxxx 在构建容器内不存在 ⇒ apt 全 Connection refused
+    #   （2026-10-17 实测踩坑，表现为满屏 "Unable to locate package"）。
+    #   只有换回官方 ros: 基础镜像（源在国外）时才需要显式设，且必须填宿主机局域网 IP。
+    BUILD_HTTP_PROXY: ${BUILD_HTTP_PROXY:-}
+    BUILD_HTTPS_PROXY: ${BUILD_HTTPS_PROXY:-}
+    BUILD_NO_PROXY: ${BUILD_NO_PROXY:-localhost,127.0.0.1}
+
+x-build-sim: &build-sim          # 与 x-build 同构，只把 PROFILE 钉成 sim（编出带 Gazebo 的镜像）
+  context: ..
+  dockerfile: docker/Dockerfile
+  args:
+    ROS_BASE_IMAGE: ${ROS_BASE_IMAGE:-ros}
+    ROS_BASE_TAG: ${ROS_BASE_TAG:-noetic-ros-base-focal}
+    PROFILE: sim
+    WITH_RVIZ: ${WITH_RVIZ:-0}
+    JOBS: ${JOBS:-4}
+    SLIM: ${SLIM:-0}               # 1 = 只编仿真需要的包，首编省一半以上时间
+    HOST_UID: ${HOST_UID:-1000}
+    HOST_GID: ${HOST_GID:-1000}
+    BUILD_HTTP_PROXY: ${BUILD_HTTP_PROXY:-}
+    BUILD_HTTPS_PROXY: ${BUILD_HTTPS_PROXY:-}
+    BUILD_NO_PROXY: ${BUILD_NO_PROXY:-localhost,127.0.0.1}
+
+x-ros-base: &ros-base
+  image: ${IMAGE:-ros1-slam:noetic}
+  build: *build
+  environment: &ros-env
+    # ★ 网络口径全部走变量，不在镜像里写死 IP
+    ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://roscore:11312}
+    ROS1_IP: ${ROS1_IP:-}
+    ROS_HOME: /opt/ros1-slam/.ros
+    ROS_LOG_DIR: /opt/ros1-slam/logs
+    ROS_DISTRO: noetic
+    PYTHONNOUSERSITE: "1"
+    TERM: xterm-256color
+    # X 认证 cookie 路径（容器内）。可视化时配合 VIZ_HOST_X=1 使用；
+    # 无头跑 smoke 时没有任何程序读它，无害。
+    # ★ 不要写成 ${XAUTHORITY:-...}：调用方 shell 里的值会被继承进容器，见 README 4.6
+    XAUTHORITY: /tmp/.Xauthority
+  volumes: &ros-volumes
+    # ---- 源码热更新：改宿主机文件，容器里立刻可见 ----
+    - ../ws/src:/opt/ros1-slam/ws/src
+    - ../scripts:/opt/ros1-slam/scripts
+    - ../docker:/opt/ros1-slam/docker
+    - ../data:/opt/ros1-slam/data
+    - ../opt:/opt/ros1-slam/opt
+    # ---- 编译产物：用命名卷持久化，容器重建不丢（首次会从镜像层复制一份）----
+    - ros1_ws_build:/opt/ros1-slam/ws/build
+    - ros1_ws_devel:/opt/ros1-slam/ws/devel
+    - ros1_logs:/opt/ros1-slam/logs
+    - ros1_ros_home:/opt/ros1-slam/.ros
+    # ---- 宿主机 X 服务器 + 认证 cookie（可视化用；无头跑 smoke 时挂着也不影响）----
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
+  working_dir: /opt/ros1-slam
+  tty: true
+  stdin_open: true
+  restart: unless-stopped
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # 1) ROS Master
+  # ---------------------------------------------------------------------------
+  roscore:
+    init: true                     # ★ PID 1 用 docker-init(tini) 回收僵尸：
+                                   # 容器默认 PID1=sleep infinity 不收割，被 kill 的子进程会变 <defunct>，
+                                   # 直接让 m2_smoke.sh 的「退净/进程面」判据判死。
+    <<: *ros-base
+    container_name: ros1-slam-roscore
+    command: ["bash", "-lc", "roscore -p ${ROS_PORT:-11312}"]
+    ports:
+      - "${ROS_PORT:-11312}:${ROS_PORT:-11312}"
+    volumes: []                     # master 不需要源码
+    healthcheck:
+      # ★ healthcheck 不走 entrypoint，必须自己把 ROS_MASTER_URI 装上
+      test: ["CMD-SHELL", "bash -lc 'export ROS_MASTER_URI=\"${ROS1_MASTER_URI}\"; source /opt/ros/noetic/setup.bash; rosnode list >/dev/null 2>&1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # 2) 主开发/运行容器（bridge 网络）
+  # ---------------------------------------------------------------------------
+  slam:
+    init: true                     # ★ PID 1 用 docker-init(tini) 回收僵尸：
+                                   # 容器默认 PID1=sleep infinity 不收割，被 kill 的子进程会变 <defunct>，
+                                   # 直接让 m2_smoke.sh 的「退净/进程面」判据判死。
+    <<: *ros-base
+    container_name: ros1-slam-dev
+    depends_on:
+      roscore:
+        condition: service_healthy
+    command: ["bash", "-lc", "sleep infinity"]
+    ports:
+      # 11312 归 roscore 服务独占，这里不要再映射，否则 "port is already allocated"
+      # 11313/11345 属于仿真域（m2_smoke.sh 写死），归 sim 服务，这里也不占
+      # —— 否则 slam 与 sim 同时起会抢宿主机端口
+      - "11311:11311"
+      # Livox Mid-360 点云/IMU 上行（UDP）
+      - "56301:56301/udp"
+      - "56401:56401/udp"
+    shm_size: "2gb"                 # Gazebo / 点云传输需要大 /dev/shm
+    # 需要 GUI（rviz/gzclient）时打开下面三行，并在宿主机执行 xhost +local:root
+    # environment:
+    #   - DISPLAY=${DISPLAY:-:0}
+    # volumes: *ros-volumes + ["/tmp/.X11-unix:/tmp/.X11-unix:rw"]
+    # 想让容器写出的文件归属宿主机用户，打开下面这行：
+    # user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+
+  # ---------------------------------------------------------------------------
+  # 3) 真机形态：host 网络（直接收 LiDAR UDP、IP 就是宿主机 IP）
+  #    启动： docker compose --profile hostnet up -d slam-host
+  # ---------------------------------------------------------------------------
+  slam-host:
+    init: true                     # ★ PID 1 用 docker-init(tini) 回收僵尸：
+                                   # 容器默认 PID1=sleep infinity 不收割，被 kill 的子进程会变 <defunct>，
+                                   # 直接让 m2_smoke.sh 的「退净/进程面」判据判死。
+    <<: *ros-base
+    container_name: ros1-slam-host
+    profiles: ["hostnet"]
+    network_mode: host              # 与宿主机共用网络栈，ports 配置被忽略
+    environment:
+      ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://${HOST_IP:-192.168.1.103}:11312}
+      ROS1_IP: ${HOST_IP:-192.168.1.103}
+      ROS_HOME: /opt/ros1-slam/.ros
+      ROS_LOG_DIR: /opt/ros1-slam/logs
+      PYTHONNOUSERSITE: "1"
+    command: ["bash", "-lc", "sleep infinity"]
+    ipc: host                        # host 网络下直接用宿主机 /dev/shm（shm_size 不生效）
+
+  # ---------------------------------------------------------------------------
+  # 3.5) 仿真容器（Gazebo headless）—— 专用，别和 roscore 混用
+  #      启动： docker compose --profile sim up -d sim      ← 必须显式写服务名 sim
+  #      跑冒烟： docker compose exec sim bash /opt/ros1-slam/docker/sim.sh smoke stageA
+  #
+  #      为什么必须写服务名 sim：不带 profiles 的服务（roscore/slam）在 --profile 下依然会被拉起，
+  #      而 slam 与 sim 共用命名卷 ros1_ws_devel（一份 devel 两处写会互相覆盖），
+  #      端口也会撞。显式写 sim 就只起它一个。
+  #
+  #      为什么单独一个服务、且 depends_on 里没有 roscore：
+  #      m2_smoke.sh:29 写死 ROS_MASTER_URI=http://127.0.0.1:11313、GAZEBO_MASTER_URI=:11345，
+  #      roslaunch 会在本容器内自起 rosmaster(11313)。外部 roscore 容器在别的网络命名空间，
+  #      既连不上也没用。另外退净判据要求 11311/11312 跑完必须零监听 —— 本容器天然满足。
+  # ---------------------------------------------------------------------------
+  sim:
+    init: true                     # ★ PID 1 用 docker-init(tini) 回收僵尸：
+                                   # 容器默认 PID1=sleep infinity 不收割，被 kill 的子进程会变 <defunct>，
+                                   # 直接让 m2_smoke.sh 的「退净/进程面」判据判死。
+    container_name: ros1-slam-sim
+    profiles: ["sim"]
+    image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
+    build: *build-sim
+    command: ["bash", "-lc", "sleep infinity"]
+    environment:
+      USE_XVFB: "1"                 # entrypoint 据此起 Xvfb :99（gzserver 需要 GL 上下文）
+      LIBGL_ALWAYS_SOFTWARE: "1"    # 强制 Mesa 软渲染，不要去找 NVIDIA
+      GAZEBO_MASTER_URI: http://127.0.0.1:11345
+      ROS1_MASTER_URI: http://127.0.0.1:11313
+      # ★ 必须同时给 ROS_MASTER_URI：entrypoint 只在它自己的进程树里把
+      #   ROS1_MASTER_URI 转成 ROS_MASTER_URI，`docker compose exec` 拿到的是空值，
+      #   会默认去找 11311（那里没 master）⇒ rviz/gzclient 卡在 "waiting for master"。
+      ROS_MASTER_URI: http://127.0.0.1:11313
+      ROS1_IP: 127.0.0.1
+      ROS_HOME: /opt/ros1-slam/.ros
+      ROS_LOG_DIR: /opt/ros1-slam/logs
+      ROS_DISTRO: noetic
+      PYTHONNOUSERSITE: "1"
+      TERM: xterm-256color
+    volumes: *ros-volumes
+    working_dir: /opt/ros1-slam
+    shm_size: "2gb"                 # gzserver + 点云传输
+    ports:
+      - "11313:11313"               # 仿真域 ROS master
+      - "11345:11345"               # Gazebo master
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # 3.6) 可视化容器（Gazebo 客户端 / rviz，直通宿主机 X）
+  #      启动： xhost +local:root（宿主机执行一次）
+  #             docker compose --profile viz up -d sim-viz
+  #      然后： docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient
+  #             docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-map
+  #
+  #      原理：把宿主机的 X 服务器（实测 /tmp/.X11-unix/X1，即 DISPLAY=:1，带 NVIDIA GPU）
+  #      挂进容器，GUI 程序直接在宿主机的 X 上开窗 —— 用的是真 GPU，不是软件渲染。
+  #      ★ USE_XVFB=0：有宿主 X 就不需要容器内的虚拟屏；gzclient 仍可能要求 GL，
+  #        真 GPU 下直接过，不需要 LIBGL_ALWAYS_SOFTWARE。
+  # ---------------------------------------------------------------------------
+  sim-viz:
+    init: true                     # ★ PID 1 用 docker-init(tini) 回收僵尸：
+                                   # 容器默认 PID1=sleep infinity 不收割，被 kill 的子进程会变 <defunct>，
+                                   # 直接让 m2_smoke.sh 的「退净/进程面」判据判死。
+    container_name: ros1-slam-sim-viz
+    profiles: ["viz"]
+    image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
+    build: *build-sim
+    command: ["bash", "-lc", "sleep infinity"]
+    environment:
+      USE_XVFB: "0"                 # 用宿主机 X，不起容器内虚拟屏
+      LIBGL_ALWAYS_SOFTWARE: "0"    # ★ 覆盖镜像里的全局 1：直通宿主机 X 时要用真 GPU，
+                                    #   否则 glxinfo 只会看到 llvmpipe（软件渲染）
+      DISPLAY: ${X_DISPLAY:-:1}     # 宿主机 X 显示器（实测 :1）
+      XAUTHORITY: /tmp/.Xauthority  # ★ 写死，不要用 ${XAUTHORITY:-...}：
+                                    # 调用方 shell 里通常有 XAUTHORITY=/run/user/1000/gdm/Xauthority，
+                                    # 会被 compose 继承进容器，而那个路径在容器里不存在
+                                    # ⇒ 报 Authorization required（和 HTTP_PROXY 那次同型的坑）
+      GAZEBO_MASTER_URI: http://127.0.0.1:11345
+      ROS1_MASTER_URI: http://127.0.0.1:11313
+      # ★ 必须同时给 ROS_MASTER_URI：entrypoint 只在它自己的进程树里把
+      #   ROS1_MASTER_URI 转成 ROS_MASTER_URI，`docker compose exec` 拿到的是空值，
+      #   会默认去找 11311（那里没 master）⇒ rviz/gzclient 卡在 "waiting for master"。
+      ROS_MASTER_URI: http://127.0.0.1:11313
+      ROS1_IP: 127.0.0.1
+      ROS_HOME: /opt/ros1-slam/.ros
+      ROS_LOG_DIR: /opt/ros1-slam/logs
+      ROS_DISTRO: noetic
+      PYTHONNOUSERSITE: "1"
+      TERM: xterm-256color
+    volumes:
+      - ../ws/src:/opt/ros1-slam/ws/src
+      - ../scripts:/opt/ros1-slam/scripts
+      - ../docker:/opt/ros1-slam/docker
+      - ../data:/opt/ros1-slam/data
+      - ../opt:/opt/ros1-slam/opt
+      - ros1_ws_build:/opt/ros1-slam/ws/build
+      - ros1_ws_devel:/opt/ros1-slam/ws/devel
+      - ros1_logs:/opt/ros1-slam/logs
+      - ros1_ros_home:/opt/ros1-slam/.ros
+      # ---- 宿主机 X 服务器 + 认证 cookie（可视化用：gzclient / rviz 直通宿主机 GPU）----
+      # ★ 默认取 /run/user/1000/gdm/Xauthority —— 实测本机桌面 X(:1) 的 cookie 在这里；
+      #   /home/jack/.Xauthority 里只有 unix:10 / unix:11 的 cookie，对不上 :1，
+      #   拿它会导致 "Authorization required"。找不到对的可以用 xhost +local:root 绕过（见 README 4.6）。
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
+    working_dir: /opt/ros1-slam
+    shm_size: "2gb"
+    ports:
+      - "11313:11313"
+      - "11345:11345"
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # 4) 可选外部服务
+  #    · redis(6379)      —— 项目本体不需要，仅作外部件模板（profile extras）
+  #    · rosbridge(9090)  —— 给 Foxglove / 网页端看数用（profile extras）
+  #      启动： docker compose --profile extras up -d
+  #      前提：镜像需含 ros-noetic-rosbridge-suite（PROFILE=sim 时会装上）
+  # ---------------------------------------------------------------------------
+  rosbridge:
+    image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
+    container_name: ros1-slam-rosbridge
+    profiles: ["extras"]
+    command: ["bash", "-lc", "source /opt/ros/noetic/setup.bash && export ROS_MASTER_URI=${ROS1_MASTER_URI:-http://roscore:11312} && roslaunch rosbridge_server rosbridge_websocket.launch"]
+    environment:
+      ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://roscore:11312}
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ros1-slam-redis
+    profiles: ["extras"]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ros1_redis:/data
+    restart: unless-stopped
+
+volumes:
+  ros1_ws_build:
+  ros1_ws_devel:
+  ros1_logs:
+  ros1_ros_home:
+  ros1_redis:
+
+networks:
+  default:
+    name: ros1-slam-net

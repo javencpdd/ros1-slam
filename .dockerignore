@@ -1,0 +1,69 @@
+# ============================================================
+# ros1-slam 构建上下文忽略表（构建上下文 = 仓库根目录）
+# 目的：把 .git / 证据日志 / 编译产物挡在镜像外，避免镜像体积爆炸
+# ============================================================
+
+# ---- 版本控制与编辑器 ----
+.git
+.gitignore
+.vscode
+.idea
+
+# ---- 编译产物（镜像里会自己编，绝不 COPY 宿主机产物）----
+ws/build/
+ws/devel/
+ws/logs/
+ws/install/
+ws/.catkin_*
+ws/src/CMakeLists.txt
+**/build/
+**/devel/
+**/CMakeCache.txt
+**/CMakeFiles/
+**/Makefile
+**/cmake_install.cmake
+**/*.o
+**/*.so
+**/*.a
+**/*.pyc
+**/__pycache__/
+
+# ---- 运行产物（跑起来再挂卷，不进镜像）----
+logs/
+.ros/
+.gazebo/
+.nx/
+.sdformat/
+data/maps/*
+!data/maps/.gitkeep
+data/archive/
+opt/upstream/
+
+# ---- 文档台账（体积大、与运行无关；需要时用卷挂进去）----
+note/进度/**/证据/
+note/计划书v3/
+note/计划书v4/
+note/计划书v5/
+note/计划书v6/
+note/计划书v7/
+
+# ---- 敏感信息（绝不能进镜像层）----
+*登录密码*
+*密码*
+.ssh/
+*.pem
+*.key
+
+# ---- 系统杂项 ----
+.bash_history
+.bash_logout
+.profile
+Desktop/
+*.swp
+*~
+.DS_Store
+*.pdf
+
+# ---- Docker 自身（避免把本目录的 README 等噪音带进去也无所谓，但保持干净）----
+docker/.git
+docker/*.log
