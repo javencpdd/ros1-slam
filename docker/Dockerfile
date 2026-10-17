@@ -120,7 +120,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-numpy python3-yaml python3-scipy python3-opencv \
         tmux screen nano vim-tiny less procps psmisc \
         net-tools iputils-ping iproute2 dnsutils lsof \
+        acl \
     && rm -rf /var/lib/apt/lists/*
+
+# ★ `acl`（getfacl／setfacl）为什么在依赖面里（2026-10-17 x86 侧实测）：
+#   门禁串成员 VAR＝scripts/verify/v_evidence_reachability.sh 要用 getfacl 判 effective 权限，
+#   缺它时该件直接 `[前置缺失] getfacl 不可用 ⇒ 无法判 effective` 报 **rc=9**，
+#   异机批末串因此少一件。补装后同一调用式现跑＝`VAR VERDICT: PASS=8 FAIL=0`／rc=0。
+#   （Lite3 侧本来就有 acl——JetPack 桌面基线带的；本机基座 fishros2/ros 没带。）
 
 # ---- 1.2 ROS Noetic 依赖（按 ws/src 各包 package.xml 反推）----
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -139,9 +146,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-global-planner ros-${ROS_DISTRO}-base-local-planner \
         ros-${ROS_DISTRO}-move-base ros-${ROS_DISTRO}-move-base-flex \
         ros-${ROS_DISTRO}-teb-local-planner \
+        ros-${ROS_DISTRO}-dwa-local-planner \
+        ros-${ROS_DISTRO}-spatio-temporal-voxel-layer \
+        ros-${ROS_DISTRO}-sob-layer \
         ros-${ROS_DISTRO}-smach ros-${ROS_DISTRO}-smach-ros \
         ros-${ROS_DISTRO}-map-server \
     && rm -rf /var/lib/apt/lists/*
+
+# ★ 上面三枚（dwa / spatio-temporal-voxel-layer / sob-layer）为什么不能省（2026-10-17 x86 侧实测）：
+#   它们由**本项目自己的 costmap 配置**点名，却不在任何 package.xml 里声明 ⇒
+#   没有任何工具（rosdep / catkin / 本 Dockerfile 的反推清单）能替你发现它们。
+#   真身：40_navigation/lite3_navigation/config/{global,local}_costmap_params.yaml 的 plugins 行
+#         {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+#         {name: sob_layer,  type: "sob_layer::SobLayer"}
+#         与 mbf_navigation.yaml 的 controllers: [{name: DWAPlannerROS, ...}]
+#   缺装时的症状不是"少一层障碍"，而是**整条导航链起不来**：
+#     terminate called after throwing an instance of 'pluginlib::LibraryLoadException'
+#       what(): the class spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer with base class
+#               type costmap_2d::Layer does not exist. Declared types are costmap_2d::{Inflation,
+#               Obstacle,Static,Voxel}Layer
+#     [move_base_flex-9] process has died [exit code -6]
+#   ⇒ mbf_costmap_nav 直接 abort，合成动作 /move_base_flex/move_base 的 goal 面根本不 advertise，
+#     异机侧照 Lite3 在册式子写的 goal 客户端会 `wait_for_server` 超时——**看起来像"异机接口差"，
+#     实际是缺包**。★修法是补装依赖，不是去改那两份 costmap 配置（costmap_common.yaml 属红线件）。
 
 # ---- 1.3 可选：仿真域（Gazebo 11）—— PROFILE=sim 时安装 ----
 # ★ 仿真能不能跑，关键就在这一层。三个不能省的点：
@@ -184,6 +211,31 @@ RUN if [ "${WITH_RVIZ}" = "1" ]; then \
 
 # ---- 1.5 rosdep 初始化（便于后续按需装包）----
 RUN rosdep init || true && rosdep update || true
+
+# ---- 1.6 T1 环境锚对齐（异机基线）----
+# 目标串真身＝Lite3 侧在册值（随导出包到达的 deps/versions.tsv，契约＝av 稿 §2.4）。
+# 放在 deps 层最末：前面的 apt 层全部保住缓存，只有本层之后的阶段重跑。
+#
+# ① 点版本串：/etc/os-release 的 PRETTY_NAME 由 base-files 这一个包生成。基座停在
+#    20.04.4，focal-updates 的 base-files 11ubuntu5.8 写出来就是 "Ubuntu 20.04.6 LTS"
+#    ＝在册值。★只 --only-upgrade 它一个，不跑 dist-upgrade —— 后者会让整片 ROS
+#    依赖面跟着漂移，基线反而更不可控。
+# ② numpy／scipy 两串：在册值是「版本＋路径」两道闸（1.19.4 与 1.5.3 都要落在
+#    /usr/local/lib/python3.8/dist-packages/…/__init__.py）。apt 面那一对
+#    （python3-numpy 1.17.4／python3-scipy 1.3.3）在 /usr/lib/python3/dist-packages，
+#    ★不卸载也不升级，让 /usr/local 在 sys.path 上自然遮蔽它。
+#    已实测：装上之后 cv2 4.2.0 / rospy / cv_bridge 全部仍可 import。
+# ③ gazebo11 那串 ★装不出来，本件不假装对齐：在册值 11.11.0-1~focal 在
+#    OSRF ubuntu-stable 与 USTC ros 镜像的 pool 里都已不存在，focal 只有 11.15.1
+#    （同目录另有 11.9.0，那是 buster 包，跨发行版不可用）。★不为此从源码编 Gazebo，
+#    差值如实登记回报。
+ARG PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple
+RUN apt-get update \
+    && apt-get install -y --only-upgrade base-files \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install --no-cache-dir -i "${PIP_INDEX_URL}" "numpy==1.19.4" "scipy==1.5.3" \
+    && python3 -c 'import numpy, scipy; print("[T1] numpy", numpy.__version__, numpy.__file__); print("[T1] scipy", scipy.__version__, scipy.__file__)' \
+    && grep PRETTY_NAME /etc/os-release
 
 # =============================================================================
 # Stage 2 · livox-sdk —— 编译 Livox-SDK2（第三方源码，原样编译不改）

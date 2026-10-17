@@ -533,3 +533,56 @@ docker build -f docker/Dockerfile -t ros1-slam:noetic-sim \
 
 **未跑**：`m2_smoke.sh` 全量三阶段（Stage A/B/C）没跑——那需要跑完驱动相位与退净判据，
 属验收批跑，请在容器里按 4.4 的命令自行执行。
+
+---
+
+## 七、异机侧（x86）手工跑法与三处必补前置
+
+> 本节只写**跑法**，不写数值。所有基线数值一律当批现跑，出证位置见 `note/02_问题与坑.md` 坑65／坑66
+> 与当批「x86 导入完成」证据包路径。
+
+### 7.1 在容器里手工跑 `catkin_build.sh` ≠ 在镜像构建期跑
+
+镜像构建期由 builder 阶段提供两处前置，**runtime 阶段都不继承**，容器内手工全量重编前必须自己补：
+
+```bash
+docker exec ros1-slam-sim bash -lc '
+  # 前置①  ROS 总包含目录（lite3_gazebo_sim/CMakeLists.txt 未把 tf 声明成 catkin 组件）
+  export CPATH=/opt/ros/noetic/include
+  # 前置②  livox_ros_driver2 的 package.xml（上游只发 package_ROS1/ROS2.xml）
+  #         宿主机侧做一次即可，该文件被该包自身 .gitignore:3 挡住，不入 git
+  # cp ws/src/00_drivers/livox_ros_driver2/package_ROS1.xml ws/src/00_drivers/livox_ros_driver2/package.xml
+  JOBS=8 WS_DIR=/opt/ros1-slam/ws bash /opt/ros1-slam/docker/catkin_build.sh'
+```
+
+少前置① ⇒ 挂在 `lite3_planar_drive.cpp:14 fatal error: tf/transform_broadcaster.h`；
+少前置② ⇒ `livox_ros_driver2` 整个包对 catkin 不可见，`livox_laser_simulation` 因 `build_depend` 它而连带的消息头链一起断。
+**两处在镜像里都有备案**（`Dockerfile` 的 `ENV CPATH` 与修复步①），所以镜像构建能过、容器内直跑不能过——
+这是"构建期与运行期环境不等价"，不是项目源码问题。
+
+### 7.2 三枚 costmap/controller 插件依赖：缺了不是"少一层"，是整条导航链起不来
+
+`40_navigation/lite3_navigation/config/{global,local}_costmap_params.yaml` 点名
+`spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer` 与 `sob_layer::SobLayer`，
+`mbf_navigation.yaml` 的 controllers 注册表点名 `DWAPlannerROS`。
+**这三枚在任何 `package.xml` 里都没声明** ⇒ rosdep / catkin / 本 Dockerfile 的反推清单都抓不到它们。
+缺装时 `mbf_costmap_nav` 抛 `pluginlib::LibraryLoadException` 后 `exit -6`，
+合成动作 `/move_base_flex/move_base` 的 `goal` 面根本不会 advertise ⇒
+异机侧照 Lite3 在册式子写的 goal 客户端只会 `wait_for_server` 超时，**看着像"异机接口差"，实为缺包**。
+已写进 Dockerfile §1.2 的 ROS 依赖列表；★修法只许补装依赖，★不许去动那两份 costmap 配置（红线件）。
+
+### 7.3 门禁件在异机的两种读数（以 ISO 为例，★只报不判）
+
+| 跑法 | 环境 | 结果形状 |
+|---|---|---|
+| 甲式（直跑） | 只 source `/opt/ros/noetic` + `ws/devel` | `rc=1`；具体项＝`[4]` 数枚 `BAD` ＋ `[10]` 四变量各 1 越界 ＋ `rospack list` 数十条在白名单外。根因＝镜像把 ws 固定在 `/opt/ros1-slam/ws`，`/home/ros1-slam/ws` 只是符号链，而 catkin `devel/setup.sh` 取目录用 `pwd -P`（解析符号链）⇒ 交出来的全是 `/opt` 形 |
+| 乙式（换形跑） | `ROS_PACKAGE_PATH` 前置 `/home/ros1-slam/ws/src` ＋ `ISO_ALLOW` 含两个前缀 | `rc=0`；自证行 `ws_src_files` 与在册同值。★只用件自带旋钮、★零文件改动 |
+
+★哪一式算异机在册口径＝归主理人／小美裁定，本 README 不自裁。坑66 有条目。
+
+### 7.4 冒烟链的容器选择
+
+`sim`（容器内 Xvfb，无 GUI）与 `sim-viz`（直通宿主机 X，可开 rviz/gzclient）**共用同一批命名卷**，
+同时起会抢宿主机 11313/11345 的端口映射 ⇒ **一次只用一个**。要在 rviz 里出截图，就用 `sim-viz` 跑整条链
+（viz.sh 早就写明"旁观 smoke 务必在同一个容器里"）。宿主机 X 的 cookie 实测在
+`/run/user/1000/gdm/Xauthority`（不是 `~/.Xauthority`），compose 已按 `X_AUTH_FILE` 挂进来。

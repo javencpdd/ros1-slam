@@ -70,6 +70,15 @@ x-ros-base: &ros-base
     - ../docker:/opt/ros1-slam/docker
     - ../data:/opt/ros1-slam/data
     - ../opt:/opt/ros1-slam/opt
+    # ---- 门禁面：四张面清单里有 40+ 条目指向 note/ 与 tooling/ ----
+    # ★ 不挂这两处时，异机跑门禁串会得到 SYN/PYST rc=123「文件不存在」＋
+    #   VAR/PARITY/账构/VCC/规矩⑨ rc=9「前置缺失」——那是**面不可见**（按三态口径应判
+    #   INVALID、不入串），不是语法/静态检查真红。挂上后 x86 侧才能跑齐批末十件。
+    #   镜像运行期已把 /home/ros1-slam/{ws,scripts,docker,data,note,opt} 做成软链，
+    #   唯独没有 tooling ⇒ 下面对 tooling 多补一处直连绑定。
+    - ../note:/opt/ros1-slam/note
+    - ../tooling:/opt/ros1-slam/tooling
+    - ../tooling:/home/ros1-slam/tooling
     # ---- 编译产物：用命名卷持久化，容器重建不丢（首次会从镜像层复制一份）----
     - ros1_ws_build:/opt/ros1-slam/ws/build
     - ros1_ws_devel:/opt/ros1-slam/ws/devel
@@ -252,6 +261,10 @@ services:
       - ../docker:/opt/ros1-slam/docker
       - ../data:/opt/ros1-slam/data
       - ../opt:/opt/ros1-slam/opt
+      # ---- 门禁面（同 &ros-volumes 里那段注释）----
+      - ../note:/opt/ros1-slam/note
+      - ../tooling:/opt/ros1-slam/tooling
+      - ../tooling:/home/ros1-slam/tooling
       - ros1_ws_build:/opt/ros1-slam/ws/build
       - ros1_ws_devel:/opt/ros1-slam/ws/devel
       - ros1_logs:/opt/ros1-slam/logs
