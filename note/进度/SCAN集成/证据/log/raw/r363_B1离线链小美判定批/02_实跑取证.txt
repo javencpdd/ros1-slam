@@ -1,0 +1,326 @@
+# r363｜B-1 四子项离线链判定＝实跑取证（采集壳＝/tmp/r363_capture.sh，本判定零容器、零窗、只读）
+# 两基并标＝本机 UTC+8（Asia/Shanghai）‖ UTC 换算值；★容器 TZ=UTC 基本判定未使用（未起容器，起链即越界）
+# 本机时区现读：CST +0800｜UTC +0000
+
+################ J0 环境与件版本基
+@@ 本机 2026-10-18 06:15:24.605 +0800 ‖ UTC 换算 2026-10-17 22:15:24.608 +0000 ｜ python 版本与 numpy（本机，★未起容器 ⇒ 在册容器基 numpy=1.19.4/py3.8 与本判定的宿主基 numpy 版本不同代，见 01 判定附注）
+python=3.13.13 numpy=2.5.3
+@@ 本机 2026-10-18 06:15:24.810 +0800 ‖ UTC 换算 2026-10-17 22:15:24.812 +0000 ｜ git 基
+cf32e13 2026-10-18 06:03:39 x86侧批18：＋验证＝R362 小美复验回文入
+1
+
+################ J1 件在位与指纹（行数 wc -l ／ sha256 前 16 ／ 权限模 ／ 首入库批 ‖ 末次改动批）
+@@ 本机 2026-10-18 06:15:24.869 +0800 ‖ UTC 换算 2026-10-17 22:15:24.872 +0000 ｜ 件 t1_multilevel_raster_offline.py
+  wc -l ＝363
+  sha256 前16 ＝4471b88d93fe69bc
+  权限模 ＝664
+  首入库批 ＝5f48efd|2026-10-14 20:28:03
+  末次改动批 ＝99191c8|2026-10-14 22:38:41
+@@ 本机 2026-10-18 06:15:24.939 +0800 ‖ UTC 换算 2026-10-17 22:15:24.942 +0000 ｜ 件 t2_placeholder_zeros_and_tristate_offline.py
+  wc -l ＝185
+  sha256 前16 ＝dee8930498177055
+  权限模 ＝664
+  首入库批 ＝99191c8|2026-10-14 22:38:41
+  末次改动批 ＝99191c8|2026-10-14 22:38:41
+@@ 本机 2026-10-18 06:15:25.005 +0800 ‖ UTC 换算 2026-10-17 22:15:25.008 +0000 ｜ 件 t3_decidable_input_offline.py
+  wc -l ＝272
+  sha256 前16 ＝38e5963c67226bd7
+  权限模 ＝664
+  首入库批 ＝fa35ad7|2026-10-18 00:32:11
+  末次改动批 ＝3e7ac55|2026-10-18 01:26:03
+@@ 本机 2026-10-18 06:15:25.069 +0800 ‖ UTC 换算 2026-10-17 22:15:25.072 +0000 ｜ 输入样张 sha（在册钉值对照）
+  lite3.pcd sha256 前16 ＝aaa09362c5f1aef9
+
+################ J1b 队列行／04 所记对照现跑
+@@ 本机 2026-10-18 06:15:25.125 +0800 ‖ UTC 换算 2026-10-17 22:15:25.128 +0000 ｜ 23 号队列 B-1 行在位与长度
+  第16行 字符数=2118
+  命中 B-1 行首＝成立
+@@ 本机 2026-10-18 06:15:25.133 +0800 ‖ UTC 换算 2026-10-17 22:15:25.136 +0000 ｜ 队列行里 t3 缺失那句（陈旧值候选）现跑核对
+  「该目录无」命中行数＝1
+  现跑 t3 件＝t3_decidable_input_offline.py
+@@ 本机 2026-10-18 06:15:25.146 +0800 ‖ UTC 换算 2026-10-17 22:15:25.148 +0000 ｜ scripts 面 R310 关键词（0.4347／15°／站立态）命中（单位＝行／枚）
+  行＝11
+  枚＝1
+  件＝/home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py
+@@ 本机 2026-10-18 06:15:25.162 +0800 ‖ UTC 换算 2026-10-17 22:15:25.165 +0000 ｜ 04 里 B.1.4 定档段在位（行号定位、未整读）
+sed: -e 表达式 #1, 字符 9: 未终止的“s”命令↵
+sed: -e 表达式 #1, 字符 9: 未终止的“s”命令↵
+@@ 本机 2026-10-18 06:15:25.175 +0800 ‖ UTC 换算 2026-10-17 22:15:25.177 +0000 ｜ v6 §B.1 是否已回写定档（现跑否定式，带判据式＋时刻）
+  21号「定档」命中行数＝0
+  21号「候选甲」命中行数＝0
+  21号「待 R310 值（45cm／15°）重核」命中行数＝1
+
+################ J2 自测开关确认（先 --help，不猜开关名）
+@@ 本机 2026-10-18 06:15:25.191 +0800 ‖ UTC 换算 2026-10-17 22:15:25.194 +0000 ｜ python3 t1_multilevel_raster_offline.py --help（取 usage 与开关行）
+  usage: t1_multilevel_raster_offline.py [-h] [--selftest] [--pcd PCD]
+    --selftest
+    --pcd PCD
+    --res RES
+    --min-z MIN_Z
+    --max-z MAX_Z
+    --slab SLAB
+    --anchor {given,ground}
+    --ground-pct GROUND_PCT
+    --ground-pad GROUND_PAD
+    --quiet
+  rc=0（★自测开关名逐枚确认＝--selftest，另 t3 有 --emit／--zwin，t1 有 --pcd，t2 有 --frames）
+@@ 本机 2026-10-18 06:15:25.408 +0800 ‖ UTC 换算 2026-10-17 22:15:25.410 +0000 ｜ python3 t2_placeholder_zeros_and_tristate_offline.py --help（取 usage 与开关行）
+  usage: t2_placeholder_zeros_and_tristate_offline.py [-h] [--selftest]
+    --selftest
+    --frames FRAMES       R82 那种含 s*.npy 的目录
+    --res RES
+    --slab SLAB
+    --expect-zero EXPECT_ZERO
+  rc=0（★自测开关名逐枚确认＝--selftest，另 t3 有 --emit／--zwin，t1 有 --pcd，t2 有 --frames）
+@@ 本机 2026-10-18 06:15:25.623 +0800 ‖ UTC 换算 2026-10-17 22:15:25.626 +0000 ｜ python3 t3_decidable_input_offline.py --help（取 usage 与开关行）
+  usage: t3_decidable_input_offline.py [-h] [--selftest] [--emit] [--zwin]
+    --selftest
+    --emit
+    --zwin
+  rc=0（★自测开关名逐枚确认＝--selftest，另 t3 有 --emit／--zwin，t1 有 --pcd，t2 有 --frames）
+
+################ J2a 三枚自测逐枚复跑
+@@ 本机 2026-10-18 06:15:25.686 +0800 ‖ UTC 换算 2026-10-17 22:15:25.690 +0000 ｜ python3 t1_multilevel_raster_offline.py --selftest
+    [PASS] T-a 单层地面 multi_layer=0 格数=30
+    [PASS] T-a 单层地面 suspended=0 
+    [PASS] T-b 悬挑 suspended>0 最低板>0 的格=1
+    [PASS] T-c 双层 multi_layer>0 中间空板的格=1
+    [PASS] T-c 三值不塌陷：有覆盖格数==格数>0 
+    [PASS] T-d 剔零计数 removed=500 removed=500
+    [PASS] T-d 剔零后 (0,0) 处不成格（零点不再撑出栅格范围） 栅格=1x1 总格=1 覆盖格=1
+    [PASS] T-d 剔零后覆盖格==1（只剩那个真点） 
+    [PASS] M1 关掉剔零后 (0,0) 格被塌占（阴性对照须成立） 该格落点=500
+    [PASS] M1 关掉剔零后覆盖格==2（虚高一格） 实=2
+    [PASS] M1 关掉剔零后总点数虚高 500 
+    [PASS] M2 朴素判据在单层地面上误判（故判据须要"中间空板"这一件） 
+    [PASS] T-e 窗外点数 n_points_out_of_z=2 out=2 used=2
+    [PASS] T-j 单格 40000 点计数不绕回（int32 生效） 实测=40000（int16 下会绕成 -25536）
+    [PASS] T-f 空点云须抛错 
+    [PASS] T-g 给地面锚后单层贴地 suspended=0 k0=8（同数据不给锚时旧式误判=30 格）
+    [PASS] T-g 地面锚不动多层判据 multi_layer=0 
+    [PASS] M3 不给地面锚时贴地数据误判为悬挑（阴性对照须成立） 误判=30／覆盖格=30
+    [PASS] T-h z_min 远高于地面 ⇒ truncated=True z_min=0.50 z_ground=0.30
+    [PASS] T-h 下沿==地面（不垫板）⇒ 现按④判 truncated=True（地面那板被截半） z_min=0.30 要求 z_min<=0.20
+    [PASS] T-h 下沿垫一板 ⇒ truncated=False（这是推荐的贴地法） z_min=0.20 k0=0
+    [PASS] T-i high/low 直测（连续三板 high 应为最低+2） low=4 high=6（旧缺陷下＝4 4）
+    [PASS] T-i 连续三板的格**不得**算多层（正例，旧缺陷下必误判） n_slab=3 contiguous=True
+    [PASS] T-i 0/2 有、1 空的格**必须**算多层（反例） n_slab=2 low=4 high=6
+    合计 PASS=24 FAIL=0
+  T1_SELFTEST PASS=24 FAIL=0 rc=0
+  rc=0
+@@ 本机 2026-10-18 06:15:26.036 +0800 ‖ UTC 换算 2026-10-17 22:15:26.039 +0000 ｜ python3 t2_placeholder_zeros_and_tristate_offline.py --selftest
+    [PASS] T2-a 剔零计数 removed=700 removed=700
+    [PASS] T2-a 不剔零会多撑出一格（覆盖格 +1） 剔零=1 格／不剔=2 格
+    [PASS] T2-a 零点全塌进**同一格**（700 点＝1 格） 该格落点=700
+    [PASS] T2-b 三态守恒 total==covered+unknown total=462 covered=4 unknown=458
+    [PASS] T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格） grounded=4 covered=4
+    [PASS] T2-c 塌陷后"可上格"虚高（阴性对照须成立） 虚高=458／462 格（99.1%）
+    [PASS] T2-d 关掉剔零 ⇒ 原点格被 700 个假点占满（故剔除步不是白计） 该格点数=700（真点只有 1 个）
+    [PASS] T2-e 不给 z_ground ⇒ k0=0（旧式） 
+    [PASS] T2-e 下沿垫一板 ⇒ truncated=False z_min=0.00 z_ground=0.10
+    [PASS] T2-f 空点云须抛错 
+    合计 PASS=10 FAIL=0
+  T2_SELFTEST PASS=10 FAIL=0 rc=0
+  rc=0
+@@ 本机 2026-10-18 06:15:26.250 +0800 ‖ UTC 换算 2026-10-17 22:15:26.252 +0000 ｜ python3 t3_decidable_input_offline.py --selftest
+    [PASS] T3-a R310 三锚点复算（h=0.45／θ=15°） 复算=[-0.4347, -0.5641, -0.6935] 在册=[-0.4347, -0.5641, -0.6935]
+    [PASS] T3-b 每前进 1 m 再降 0.2588（在册） 复算=0.2588 在册=0.2588
+    [PASS] T3-c 旧工作值正下方 −0.3614（h=0.38／θ=18°） 复算=-0.3614 在册=-0.3614
+    [PASS] T3-d 丙档 [−0.45,+0.75] 按 R310 锚判 truncated=True（回核发现） z_min=-0.45 z_ground=-0.4347（贴地法要求下沿 ≤ -0.5347）
+    [PASS] T3-d 丙档窗 k0=0（地面落在 0 号板、板下无垫板 ⇒ 这正是截断的几何形状） k0=0
+    [PASS] T3-e 重推窗 [-0.55, 0.75] 板数=13 truncated=False k0=1 z_min=-0.55（≤ -0.5347 取整）z_max=0.75 nz=13
+    [PASS] T3-e 重推窗下沿整板垫地（z_min ≤ z_ground − slab） z_min=-0.55 vs 界限=-0.5347
+    [PASS] T3-e2 保宽候选 [-0.55, 0.65] 12 板 truncated=False k0=1 z_max=0.65（保丙档窗宽 1.2）
+    [PASS] T3-f 恰好贴板时裸 floor＝0（陷阱复现）⇒ 本件 k0 用容差后＝1 裸=0 容差后=1
+    [PASS] T3-g 三态常量逐字（−1／0／100） 
+    [PASS] T3-g 未知≠自由（UNKNOWN 不是 FREE） 
+    [PASS] T3-h 载体契约三件一套过（/elevation_grid｜OccupancyGrid｜latch） 
+    [PASS] T3-h 话题名错一个字符即红（断言有牙） 
+    [PASS] T3-h latch 丢失即红 
+    [PASS] M1 旧工作值下重推窗贴旧地面（z_min ≤ -0.4614） z_ground=-0.3614 z_min=-0.55
+    [PASS] M2 宣称多层 ⇒ 断言红（窄义前提有牙） 
+    [PASS] M2 不宣称多层 ⇒ 断言绿 
+    [PASS] M3 下沿截半地面板 ⇒ truncated=True（判据有牙） z_min=-0.4847
+    合计 PASS=18 FAIL=0
+  T3_SELFTEST PASS=18 FAIL=0 rc=0
+  rc=0
+
+################ J2b 真数据路径复跑（★全部离线喂已落盘件，不起窗）
+@@ 本机 2026-10-18 06:15:26.301 +0800 ‖ UTC 换算 2026-10-17 22:15:26.303 +0000 ｜ t3 --zwin（B.1.4 定档窗重出）
+  T3_ZWIN_REDERIVE (h=0.45, θ=15°, 站立态) ⇒ z_ground=-0.4347 重推窗=[-0.55, 0.75] nz=13 k0=1 truncated=False（丙档设计值（非实测））
+  rc=0
+@@ 本机 2026-10-18 06:15:26.354 +0800 ‖ UTC 换算 2026-10-17 22:15:26.359 +0000 ｜ t3 --emit（可判输入块全文）
+  T3_CONTRACT 载体＝/elevation_grid｜nav_msgs/OccupancyGrid｜latch=True（形状照 R280 在册节点现查；R347 窄义只放行单层）
+  T3_CONTRACT 三态＝UNKNOWN=-1／FREE=0／BLOCKED=100（#46 在册常量；★未覆盖＝未知、绝不塌陷成可上）
+  T3_CONTRACT 分辨率＝0.10 m（在册依据 spike3d §4.3）；z 板厚＝0.10 m（丙档设计值）
+  T3_ZWIN 安装位＝(h=0.45 m, θ=15° 前倾)＋静止站立态（R310 工作值；★任何 z 窗引用必须连带这两件）
+  T3_ZWIN 几何（R310 在册式）＝正下方 -0.4347｜x_b=0.5 m 处 -0.5641｜x_b=1.0 m 处 -0.6935｜每前进 1 m 再降 0.2588（单位：m，雷达系）
+  T3_ZWIN 重推窗候选甲（keep-upper）＝[-0.55, 0.75]（13 板；k0=1；truncated=False；丙档设计值（非实测））
+  T3_ZWIN 重推窗候选乙（keep-width）＝[-0.55, 0.65]（12 板；k0=1；truncated=False；丙档设计值（非实测））★两候选下沿同值、上沿二选一，定档权归小美／真人，施工侧不自选
+  T3_ZWIN ★定档注记（真人 2026-10-18）＝已定取候选甲 [−0.55, +0.75]（13 板）；上句"二选一"自定档日起按已定读，★本件仍两档都跑（阴性对照需要）
+  T3_ZWIN 并报一＝丙档设计值 [-0.45, 0.75] 按 R310 锚判 truncated=True（★地面那板被截半 ⇒ 丙档下沿按 R310 回核不成立）
+  T3_ZWIN 并报二＝现读 [-2.00, 2.00]（已搁置 S1 留盘件参数缺省；★该件无坐标系注记、窗宽 40 板，与丙档/重推值均不可比，仅登记）
+  T3_ZWIN 帧系纪律＝上两行雷达系；map 系数据（lite3.pcd）按 t1 --anchor ground 用数据自报地面分位，★雷达系值直接用会把大部分点判成窗外
+  T3_GRADE 分档＝甲-离（离线几何读数；★不得顶替甲-活）；★本件不是闸：入门成闸须主理人／验收侧明令，施工侧不自装
+  T3_BOUNDARY 与 an 稿（R303）并存不覆盖：an 稿判多层（单标量载体表达不了多层、丢七成板事实），本件立单层形状（R347 窄义）
+  rc=0
+@@ 本机 2026-10-18 06:15:26.408 +0800 ‖ UTC 换算 2026-10-17 22:15:26.410 +0000 ｜ t1 --pcd lite3.pcd --anchor ground（map 系贴地锚定档）
+  T1_ZDIST z 分位（单位：m，map 系）MIN=-0.09 P5=0.01 P50=2.57 P95=4.14 P99=4.45 MAX=4.46
+  T1_ZWIN 锚定=ground 垫板=1 二元式=(z_ground=0.01, z_range=1.20m) ⇒ 实开窗 [-0.09, 1.11]（k0=1 板；truncated=False；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）
+  T1_PCD 文件=/home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd 声明点数=386549 实读=386549 剔零=0 入窗=107131 窗外z=279418（单位：点；模式=binary）
+  T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.09, 1.11] 板厚 0.10 ⇒ 每格 12 个 z 板（掩码态空间 4096＝2^12）
+  T1_PCD 覆盖格=7748／总格=43250（覆盖率 17.91%）；z 板数分位 P50=2 P95=11 MAX=12（单位：板／格）
+  T1_PCD ★多层格（中间真有空板＝不连续）=2748 格 ★悬挑格（最低板>地面板 k0=1）=1471 格 ⇒ 这两类是 2.5D 单高度表达不了的场景
+  T1_PCD 另有（不是多层）＝板数>=2 的格=4510、连续填充的格=5000（单位：格；★R295／R297 那两个"多层"数用的是这个 >=2 板口径、当时 high 有缺陷，见 R299 勘误）
+  T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=2262 格、其中空板>=2 板者=1816 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）
+  T1_PCD 耗时=0.4 s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）
+  T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）
+  rc=0
+@@ 本机 2026-10-18 06:15:27.009 +0800 ‖ UTC 换算 2026-10-17 22:15:27.011 +0000 ｜ t1 --pcd lite3.pcd --anchor given（缺省＝雷达系丙档窗直接用在 map 系，取证用）
+  T1_ZDIST z 分位（单位：m，map 系）MIN=-0.09 P5=0.01 P50=2.57 P95=4.14 P99=4.45 MAX=4.46
+  T1_ZWIN 锚定=given 垫板=0 二元式=(z_ground=0.01, z_range=1.20m) ⇒ 实开窗 [-0.45, 0.75]（k0=4 板；truncated=False；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）
+  T1_PCD 文件=/home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd 声明点数=386549 实读=386549 剔零=0 入窗=81261 窗外z=305288（单位：点；模式=binary）
+  T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.45, 0.75] 板厚 0.10 ⇒ 每格 12 个 z 板（掩码态空间 4096＝2^12）
+  rc=（只取前四行）
+@@ 本机 2026-10-18 06:15:27.515 +0800 ‖ UTC 换算 2026-10-17 22:15:27.519 +0000 ｜ t2 --frames R82 十四帧（占位零点复现＋三态读数）
+  T2_FRAMES 目录=/home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/证据/log/raw/r82_selfmask_20261010_042738 帧数=14 合计点=280000 全零=208836 非零=71164（单位：点）
+  T2_ZERO_MATCH 在册＃176 期望=208836 实测=208836 ⇒ 一致
+  T2_DROP 剔零=208836 点（单位：点）；z_ground(P5，雷达系)=-0.49 m ⇒ 实开窗 [-0.59, 0.61] k0=0 truncated=False
+  T2_COLLAPSE 不剔零：原点格落点=208836 点／覆盖格=18555｜剔零后：原点格落点=0／覆盖格=18554 ⇒ ★零点确实全塌进 1 格
+  T2_TRISTATE 总格=2507466 覆盖=18554 未知=2488912 接地=15270（单位：格；守恒式 total==covered+unknown ⇒ 成立）
+  T2_TRISTATE ★本件不产代价、不产"可上"：未覆盖一律读作**未知**（#46）；接地格 15270 只是"最低板≤地面板 k0"的表征事实
+  T2_TRISTATE 塌陷测试：若把未知 2488912 格读作可上 ⇒ 自由空间虚高 99.3%（★这就是 #46 明令禁止的那种读法）
+  T2_LAYER 多层格（中间真有空板）=2011 悬挑候选格（low>k0）=3284 板数>=2 的格=3024（单位：格）
+  T2_GRADE 分档＝甲-离（离线真数据、活体落盘的帧；★不得顶替甲-活）
+  rc=0（帧级 14 行已折叠，折叠前计数见下行）
+  帧级行数＝14
+
+################ J3 三态不塌陷：断言行定位（★有自测≠自测覆盖到该断言）
+@@ 本机 2026-10-18 06:15:33.337 +0800 ‖ UTC 换算 2026-10-17 22:15:33.339 +0000 ｜ t2 自测里与 #46 相关的断言行（原文抽取）
+  64:def tristate_counts(r):
+  68:    unknown = total - covered
+  70:    return total, covered, unknown, grounded
+  101:    # T2-b／T2-c 三态守恒与塌陷对照：用一"稀疏"合成云 ⇒ 格网跨很多格、只有两格有回波
+  104:    total, covered, unknown, grounded = tristate_counts(r_sp)
+  105:    check('T2-b 三态守恒 total==covered+unknown', total == covered + unknown,
+  106:          'total=%d covered=%d unknown=%d' % (total, covered, unknown))
+  107:    check('T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格）', grounded <= covered and covered == 4,
+  110:    # T2-c 阴性对照（塌陷测试）：把"未覆盖"当"可上" ⇒ 必须造出一大片**假自由空间**（证明这条断言有牙）
+  111:    fake_free = unknown                    # ★这就是塌陷：未观测被读成自由空间
+  112:    check('T2-c 塌陷后"可上格"虚高（阴性对照须成立）', fake_free > 0 and fake_free == total - covered,
+  168:        total, covered, unknown, grounded = tristate_counts(r_post)
+  169:        print('T2_TRISTATE 总格=%d 覆盖=%d 未知=%d 接地=%d（单位：格；守恒式 total==covered+unknown ⇒ %s）'
+  170:              % (total, covered, unknown, grounded, '成立' if total == covered + unknown else '**破坏**'))
+  174:              % (unknown, 100.0 * unknown / total))
+@@ 本机 2026-10-18 06:15:33.347 +0800 ‖ UTC 换算 2026-10-17 22:15:33.350 +0000 ｜ 三枚件内 UNKNOWN／FREE／BLOCKED 与 −1 落值的所有出现行
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py:20:UNKNOWN, FREE, BLOCKED = -1, 0, 100   # #46 三态在册常量（本件只用 UNKNOWN/覆盖两态，不产出 FREE）
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:29:UNKNOWN, FREE, BLOCKED = -1, 0, 100       # #46 三态在册常量（与 t1 同源）
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:121:    return (unknown_v == UNKNOWN and free_v == FREE and blocked_v == BLOCKED)
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:189:    check('T3-g 未知≠自由（UNKNOWN 不是 FREE）', UNKNOWN != FREE and UNKNOWN == -1)
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:222:    print('T3_CONTRACT 三态＝UNKNOWN=%d／FREE=%d／BLOCKED=%d（#46 在册常量；★未覆盖＝未知、绝不塌陷成可上）'
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:223:          % (UNKNOWN, FREE, BLOCKED))
+@@ 本机 2026-10-18 06:15:33.357 +0800 ‖ UTC 换算 2026-10-17 22:15:33.359 +0000 ｜ 是否存在把「未覆盖格落值＝−1」钉住的断言（现跑否定式）
+  （上面无输出＝三枚件的自测里没有一条把「未覆盖⇒−1」的落值钉成断言；−1 的实现行见下）
+  实现行＝125:    low = np.where(mask > 0, _lowest_bit(mask), -1).astype(np.int16)
+  实现行＝126:    high = np.where(mask > 0, _highest_bit(mask, nz), -1).astype(np.int16)
+
+################ J4 载体禁令合规（R347 窄义）
+@@ 本机 2026-10-18 06:15:33.370 +0800 ‖ UTC 换算 2026-10-17 22:15:33.373 +0000 ｜ 三枚件内 elevation_grid 出现行
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py:7:# 边界：零窗、零编译、不触 costmap_2d 插件链、不新建包；★本件与它的输出话题名一律不用 `/elevation_grid`
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:9:#       /elevation_grid 对单层不违令）；★本件不绕去多层、★不因此撤 X1 其余禁令。
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:42:CARRIER_TOPIC = '/elevation_grid'         # R280 落盘节点发布位（w3_elevation_node.py 第 231 行现查）
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:192:    check('T3-h 载体契约三件一套过（/elevation_grid｜OccupancyGrid｜latch）',
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:193:          assert_carrier_contract('/elevation_grid', 'nav_msgs/OccupancyGrid', True) is True)
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:195:          assert_carrier_contract('/elevation_gridx', 'nav_msgs/OccupancyGrid', True) is False)
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:196:    check('T3-h latch 丢失即红', assert_carrier_contract('/elevation_grid', 'nav_msgs/OccupancyGrid', False) is False)
+@@ 本机 2026-10-18 06:15:33.378 +0800 ‖ UTC 换算 2026-10-17 22:15:33.380 +0000 ｜ 三枚件是否有 ROS 发布／落点（现跑否定式，带判据式＋时刻）
+  命中行数＝0
+@@ 本机 2026-10-18 06:15:33.386 +0800 ‖ UTC 换算 2026-10-17 22:15:33.389 +0000 ｜ t3 的单层前提断言与阴性对照行
+  124:def assert_single_layer_only(claims_multi_layer):
+  204:    # M2 阴性对照：宣称多层 ⇒ 窄义前提断言必须红（单层路径不许拿单标量载体声称多层）
+  205:    check('M2 宣称多层 ⇒ 断言红（窄义前提有牙）', assert_single_layer_only(True) is False)
+  206:    check('M2 不宣称多层 ⇒ 断言绿', assert_single_layer_only(False) is True)
+
+################ J5 z 窗引用合规（R310 在册硬句：引用须连带 (h,θ)＋站立态）
+@@ 本机 2026-10-18 06:15:33.395 +0800 ‖ UTC 换算 2026-10-17 22:15:33.397 +0000 ｜ t3：安装位／站立态／非实测限定三件在位行
+  14:#       ★只对静止站立态成立）重推，几何式与四个锚点值均在册（R310 收编记录四）；旧工作值（h=0.38／θ=18°）
+  35:H_R310, THETA_R310 = 0.45, 15.0           # R310 工作值（Mid-360 量具实测；只对静止站立态成立）
+  75:def z_window_rederive(h=H_R310, theta_deg=THETA_R310, slab=SLAB, z_range=Z_RANGE,
+  105:    return {'h': h, 'theta_deg': theta_deg, 'stance': '静止站立态（R310 限定）',
+  110:            'grade': '丙档设计值（非实测）'}
+  144:    got = [round(ground_z_radar(x, H_R310, THETA_R310), 4) for x in (0.0, 0.5, 1.0)]
+  158:    z_g = ground_z_radar(0.0, H_R310, THETA_R310)
+  219:    z_g = ground_z_radar(0.0, H_R310, THETA_R310)
+  226:          % (H_R310, THETA_R310, '静止站立态'))
+  228:          % tuple([round(ground_z_radar(x, H_R310, THETA_R310), 4) for x in (0.0, 0.5, 1.0)] + [DROP_PER_M]))
+@@ 本机 2026-10-18 06:15:33.402 +0800 ‖ UTC 换算 2026-10-17 22:15:33.403 +0000 ｜ t1：件内 z 窗常量与引用面（现跑是否带 (h,θ)＋站立态）
+  11:#           z 窗 -0.45 / +0.75 与小美给的 z 板厚 0.10 ＝**丙档设计值**（由在册雷达高 38cm 推导），本件不称实测。
+  22:Z_MIN, Z_MAX = -0.45, 0.75
+  92:def rasterize(pts, res=RES, z_min=Z_MIN, z_max=Z_MAX, slab=Z_SLAB, z_ground=None, x_lo=None, x_hi=None, y_lo=None, y_hi=None):
+  301:    ap.add_argument('--min-z', type=float, default=Z_MIN)
+  现跑否定式＝t1 全文 grep「站立」／「安装位」／「θ」命中行数＝0
+@@ 本机 2026-10-18 06:15:33.412 +0800 ‖ UTC 换算 2026-10-17 22:15:33.414 +0000 ｜ t2：件内 z 窗引用面
+  56:    z_ground = float(np.percentile(z, 5)) if allp.shape[0] else 0.0
+  57:    r = t1.rasterize(allp, res=res, z_min=z_ground - slab, z_max=z_ground - slab + 12 * slab,
+  58:                     slab=slab, z_ground=z_ground)
+  61:    return r, removed, at_origin, z_ground
+  93:    r_keep = t1.rasterize(cleaned, z_min=0.0, z_max=1.2, slab=0.1, z_ground=0.1)
+  94:    r_all = t1.rasterize(mixed, z_min=0.0, z_max=1.2, slab=0.1, z_ground=0.1)
+  103:    r_sp = t1.rasterize(sparse, res=0.05, z_min=0.0, z_max=1.2, slab=0.1, z_ground=0.1)
+  121:    r_noanchor = t1.rasterize(cleaned, z_min=0.0, z_max=1.2, slab=0.1)
+  122:    check('T2-e 不给 z_ground ⇒ k0=0（旧式）', r_noanchor['k0'] == 0 and r_noanchor['z_ground'] is None)
+  123:    check('T2-e 下沿垫一板 ⇒ truncated=False', r_keep['truncated'] is False, 'z_min=%.2f z_ground=%.2f' % (r_keep['z_min'], r_keep['z_ground']))
+  127:        t1.rasterize(np.zeros((0, 4)), z_min=0.0, z_max=1.2, slab=0.1)
+  164:        print('T2_DROP 剔零=%d 点（单位：点）；z_ground(P5，雷达系)=%.2f m ⇒ 实开窗 [%.2f, %.2f] k0=%d truncated=%s'
+  165:              % (removed, zg2, r_post['z_min'], r_post['z_max'], r_post['k0'], r_post['truncated']))
+  现跑否定式＝t2 全文 grep「站立」／「安装位」／「θ」命中行数＝0
+
+################ J6 桶名（甲-离／甲-活 自陈行）
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py:9:# 分档：本件产出＝**甲-离**（离线真数据读数），★不得顶替甲-活（05 追加三十二）。
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py:355:        print('T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）')
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py:177:        print('T2_GRADE 分档＝甲-离（离线真数据、活体落盘的帧；★不得顶替甲-活）')
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:12:# 分档：本件产出＝**甲-离**（离线几何/真数据读数），★不得顶替甲-活（05 追加三十二）。
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:217:    """出具可判输入块（结构断言＋读数；★甲-离、★不是闸、★入门成闸须主理人／验收侧明令）。"""
+  /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py:241:    print('T3_GRADE 分档＝甲-离（离线几何读数；★不得顶替甲-活）；★本件不是闸：入门成闸须主理人／验收侧明令，施工侧不自装')
+@@ 本机 2026-10-18 06:15:33.427 +0800 ‖ UTC 换算 2026-10-17 22:15:33.428 +0000 ｜ 在册桶定义真身定位（不整读）
+sed: -e 表达式 #1, 字符 12: 未终止的“s”命令↵
+  21号「## §H」在位＝1
+  21号旁证桶串枚数＝5
+
+################ Z1 收尾：清盘自证（05 追加三十一＝PYST 产物污染 find 计数）
+@@ 本机 2026-10-18 06:15:33.443 +0800 ‖ UTC 换算 2026-10-17 22:15:33.445 +0000 ｜ 跑完 pyc／__pycache__ 计数（排除 .git 与 .Trash-0）
+  pyc＝0
+  __pycache__ 目录＝0
+@@ 本机 2026-10-18 06:15:33.562 +0800 ‖ UTC 换算 2026-10-17 22:15:33.564 +0000 ｜ 在册 find 式两枚现跑（★本判定不写 ws/ 与 tooling/，故应零变动）
+  ws_src_files＝4580（在册基线 4580，单位＝文件）
+  tooling 文件数＝149（在册基线 149，单位＝文件）
+@@ 本机 2026-10-18 06:15:33.593 +0800 ‖ UTC 换算 2026-10-17 22:15:33.595 +0000 ｜ 门禁面只读核（★不入串、不改面）：pyst_face 内三枚件条目在位
+  11:# ★R295 刷新（T1 多高度列离线栅格化器落盘，A47＝丙 授权的零窗首件）：新增 `note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py` ⇒ 清单数 53→**54**＝派生式现拼数 54（两次同数＝验收式；★该件只进 PYST 的"范围甲"面，不入 ws/src 生产代码面、不新建包）
+  13:# ★R302 刷新（T2 占位零点剔除＋三态不塌陷离线对照件落盘，A47＝丙 授权的零窗第二件）：新增 `note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py` ⇒ 清单数 54→**55**＝派生式现拼数 55（两次同数＝验收式；★该件复用 T1 的判据函数、不入 `ws/src` 生产面；★同批把 T1 的每格点数计数器由 int16 改 int32——单格 >32767 点会绕回，208836 曾显示成 12228）
+  67:note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+  68:note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py
+  72:note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py
+  73:# ★R352 刷新（B-1 单层高程栅格结构断言件落盘＝A47＝丙 路线第三步的 T3，真人 2026-10-17 放行 B-1 开跑）：新增 `note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py` ⇒ 清单数 57→**58**＝派生式现拼数 58（两次同数＝验收式过；反向差集为空 ⇒ 无失效条目；新增差集仅此一条；★与 an 稿（R303 的 X1 多层 T3）并存不覆盖、★不入 ws/src 生产面）
+  pyst_face 非注释行数＝58（在册基线 58）
+@@ 本机 2026-10-18 06:15:33.602 +0800 ‖ UTC 换算 2026-10-17 22:15:33.605 +0000 ｜ git 工作区状态（本判定只新增留底目录，不改任何已入库件）
+  ?? "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r363_B1\347\246\273\347\272\277\351\223\276\345\260\217\347\276\216\345\210\244\345\256\232\346\211\271/"
+  改动件数＝0（★应为 0；未跟踪新目录另计）
+
+################ J1c 补跑（修正采集壳两处 sed 定界符缺失；★原两行报错照留在上，不改写原始输出）
+@@ 本机 2026-10-18 06:15:55.131 +0800 ‖ UTC 换算 2026-10-17 22:15:55.134 +0000
+  04 ／3380:## R354（2026-10-18 01:1x—01:4x）真人四项到签执行批＝#250 最小修＋B.1.4 定档甲档＋v7 micro 补句＋格③补测窗拒窗（负载）
+  04 ／3357:## R352（2026-10-17 23:5x—2026-10-18 00:3x，零窗）常设授权 v2 到达＋v7 §8 索引批（一次性特别授权）＋B-1 首件（T3 单层高程栅格结构断言＋B.1.4 z 窗重推）
+  04 ／3270:## R347（2026-10-17 02:2x—02:3x）｜★真人「`/elevation_grid` 取窄义」明文到达→**v6 §B.1.3 那行以另起句改齐窄义**（纯追加 2/0、旧行不回改）＋单层高程栅格不构成违令＋R280 不判违令批＋★迁出准备批闸门确认＝待佳文同版小复核（并转达一条：`simexp_<…>/` 系包根、盘上不存在属预期）
+  04 ／3284:## R348（2026-10-17 03:0x—03:4x，零窗）迁出准备首包与 README 同步批＝佳文同版小复核回文入册（总判「通过」带修⑩）＋★首枚 `SIMEXP/1` 全形包落 `export/`＋README 面六枚同步＋`tooling` 顶层清单同批刷新
+@@ 本机 2026-10-18 06:15:55.153 +0800 ‖ UTC 换算 2026-10-17 22:15:55.155 +0000 ｜ 05 追加三十二／三十一 标题行定位
+  05 ／668:### 追加三十一｜**PYST 产物污染 `find` 计数 ⇒ 收尾跑序成件（部署架构师-小张裁①②都要＋主理人-佳文定号三十一）**（R285，2026-10-14 13:2x；★三封签文原文见 `…/证据/log/raw/r283_signs/`，其中两封为"依据施工侧转录证据、未自盘"；追加二十九／三十与各表原文**不回改**，按本节读）
+  05 ／686:### 追加三十二｜**测试读数分三档：甲-活／甲-离／丙 ⇒ 硬句「甲-离 不得顶替 甲-活」＋否定式存在声称须带判据式与时刻**（R286，2026-10-14 13:38；主理人-佳文 2026-10-14 定号与定形，签文原文见 `…/证据/log/raw/r283_signs/40_jiawen_three_rulings.txt`，限定＝据施工侧转录读数、**未自盘**；追加三十一与各表原文**不回改**，按本节读）
+  05 ／775:### 追加三十七｜**「#117 窗包扫完了」自此有在册定义＝判据覆盖度（主理人-佳文 2026-10-15 裁 A54＝乙 的落地件；分母承载＝新志文 `ap` 稿）；追加二十九／三十／三十一／三十二／三十四／三十五／三十六 与各表原文一律不回改，按本节读**（R314，2026-10-15 02:1x）
+@@ 本机 2026-10-18 06:15:55.162 +0800 ｜ 21 号 §H／§I 定位
+  21 ／209:## §H x86 外部算力与仿真迁出（R337 派工④＝P8 补丁批新增；★本节为纯追加，§0—§G 与下方收编记录旧文一字未动）
+  21 ／212:- **H.2 在册口径（★两条均为"已生效"读法、非未决）**＝①`外部 x86 读数计入在册判据分子＝乙（不计入）` ⇒ 异机活体读数**不进 `甲-活／甲-离／丙` 任何一档作命中**，单列新桶**「旁证·异机活体（未计分子）」**（★与 `05` 追加三十二「甲-离不得顶替甲-活」同形；★不改 `05` 追加三十七 的"扫完"判据与三个数——现跑当期值仍 `命中=12／N3=12／须活体分母=24（范围化式）‖26（全项目式）`，单位＝条，件版本＝`ap` 表 `84 行／sha 前 8=866d7b50`）；②`迁出时机早于 A 线出口＝乙（不可早）`＋同批钉一条**可复跑改判触发式**（监测式、不是新选项）＝`连续 ≥3 批 A 线无窗可排` 且 `x86 侧判据件 sha 与 103 侧同代（逐件比对式在留底 03_ 内）` ⇒ 本条自此可读作"允许提前迁出"，★届时仍须走 P8 补丁改本节，不得口头改口。
+  21 ／213:- **H.3 交接载体（★文件已在册、执行时机未触发）**＝`note/进度/SCAN集成/设计/au_x86仿真迁出交接任务单_设计稿.md`（现跑 `行数=319／sha 前 8=86a6500a`、模 `664`；五要素齐＝①环境依赖清单 ②`ws`／数据打包与 sha 随行 ③判据门值随行 ④跑法与窗口纪律换算 ⑤结果回传格式）。★迁出执行须由 window-scheduler 流程触发，并按 H.2 口径①把异机读数归入"旁证·未计分子"桶——**任何批不得把旁证读成分母内命中**。
+  21 ／220:- **I.2 ★H.2 那枚改判触发式自此读作四行式 T1—T4（★旧句原文不回改、本条为读法指针）**＝`T1 环境锚四串同值=4/4`｜`T2 基线并比四数=4/4`｜`T3 被试件与样张 sha 见证=4/4`｜`T4 异机 A1 等价基准件在仓=是`；★四行全中才转甲、缺任一行＝维持「旁证·异机活体（未计分子）」；★届时转甲须同批按 `05` 追加三十六 立齐换口径四要素；★旧式两枚证据（窗荒＋sha 同代）并入 `T2`／`T3`、不另立（★H.2 那一行字面照守、不口头改口＝本节即所走的那次 P8 补丁）。
+@@ 本机 2026-10-18 06:15:55.170 +0800 ｜ 23 号 B-1 行里三处陈旧候选的原文定位（不整读队列）
+  句＝B.1.3（该目录无 `t3*` 件、`elevation_grid` 仅 t1 自陈不用）
+  句＝B.1.4（scripts 面 `0.4347／15°／站立态` 命中 0）
