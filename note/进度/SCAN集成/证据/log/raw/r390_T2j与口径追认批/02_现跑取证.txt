@@ -1,0 +1,363 @@
+====================================================================
+r390 · T2-j 与口径追认批 · 现跑取证
+复验实例＝独立小美形（只读＋只写本留底目录）；执行时刻＝2026-10-18 14:29:25；宿主＝jack
+宿主代＝Python 3.13.13／numpy 2.5.3
+容器代＝Python 3.8.10／numpy 1.19.4
+★全程未开窗、未 sudo、未 FORCE=1、未 git add/commit、未改任何在册件（件面同值核对见 §8）
+
+====================================================================
+§0 当期件指纹（跑前）＝R389 段声称值的现场核对
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && sha256sum t1_multilevel_raster_offline.py t2_placeholder_zeros_and_tristate_offline.py | cut -c1-16 && wc -l t1_multilevel_raster_offline.py t2_placeholder_zeros_and_tristate_offline.py
+135e24ff1952fbb4
+16a3adb8036ceb62
+  395 t1_multilevel_raster_offline.py
+  245 t2_placeholder_zeros_and_tristate_offline.py
+  640 总计
+$ sha256sum probe_x2_fourcells.sh derive_stvl_mark.py t3_decidable_input_offline.py | cut -c1-12   # 见证件未动核对
+cbf06584e453
+2811115949fe
+38e5963c6722
+  在册声称＝t1 前16 135e24ff1952fbb4／395 行‖t2 前16 16a3adb8036ceb62／245 行‖probe cbf06584e453‖derive 2811115949fe
+
+====================================================================
+§1 两代自测·宿主代（3.13／numpy 2.5.3）
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && python3 t1_multilevel_raster_offline.py --selftest
+  [PASS] T-a 单层地面 multi_layer=0 格数=30
+  [PASS] T-a 单层地面 suspended=0 
+  [PASS] T-b 悬挑 suspended>0 最低板>0 的格=1
+  [PASS] T-c 双层 multi_layer>0 中间空板的格=1
+  [PASS] T-c 三值不塌陷：有覆盖格数==格数>0 
+  [PASS] T-d 剔零计数 removed=500 removed=500
+  [PASS] T-d 剔零后 (0,0) 处不成格（零点不再撑出栅格范围） 栅格=1x1 总格=1 覆盖格=1
+  [PASS] T-d 剔零后覆盖格==1（只剩那个真点） 
+  [PASS] M1 关掉剔零后 (0,0) 格被塌占（阴性对照须成立） 该格落点=500
+  [PASS] M1 关掉剔零后覆盖格==2（虚高一格） 实=2
+  [PASS] M1 关掉剔零后总点数虚高 500 
+  [PASS] M2 朴素判据在单层地面上误判（故判据须要"中间空板"这一件） 
+  [PASS] T-e 窗外点数 n_points_out_of_z=2 out=2 used=2
+  [PASS] T-j 单格 40000 点计数不绕回（int32 生效） 实测=40000（int16 下会绕成 -25536）
+  [PASS] T-f 空点云须抛错 
+  [PASS] T-g 给地面锚后单层贴地 suspended=0 k0=8（同数据不给锚时旧式误判=30 格）
+  [PASS] T-g 地面锚不动多层判据 multi_layer=0 
+  [PASS] M3 不给地面锚时贴地数据误判为悬挑（阴性对照须成立） 误判=30／覆盖格=30
+  [PASS] T-h z_min 远高于地面 ⇒ truncated=True z_min=0.50 z_ground=0.30
+  [PASS] T-h 下沿==地面（不垫板）⇒ 现按④判 truncated=True（地面那板被截半） z_min=0.30 要求 z_min<=0.20
+  [PASS] T-h 下沿垫一板 ⇒ truncated=False（这是推荐的贴地法） z_min=0.20 k0=0
+  [PASS] T-i high/low 直测（连续三板 high 应为最低+2） low=4 high=6（旧缺陷下＝4 4）
+  [PASS] T-i 连续三板的格**不得**算多层（正例，旧缺陷下必误判） n_slab=3 contiguous=True
+  [PASS] T-i 0/2 有、1 空的格**必须**算多层（反例） n_slab=2 low=4 high=6
+  [PASS] T-k 甲档窗形 nz=13 ‖ k0=1 ‖ truncated=False（vs R310 锚 −0.4347） 窗[-0.55, 0.75] nz=13 k0=1 truncated=False
+  [PASS] T-k 对照：丙档窗 [-0.45,0.75] 同锚必 truncated=True（★证上一条不是恒真摆设） nz=12 k0=0 truncated=True
+  合计 PASS=26 FAIL=0
+T1_SELFTEST PASS=26 FAIL=0 rc=0
+  ↑rc=0  （看末两行 合计 与 T*_SELFTEST）
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && python3 t2_placeholder_zeros_and_tristate_offline.py --selftest
+  [PASS] T2-a 剔零计数 removed=700 removed=700
+  [PASS] T2-a 不剔零会多撑出一格（覆盖格 +1） 剔零=1 格／不剔=2 格
+  [PASS] T2-a 零点全塌进**同一格**（700 点＝1 格） 该格落点=700
+  [PASS] T2-b 三态守恒 total==covered+unknown（★定义式、不单独承重，见 T2-i） total=462 covered=4 unknown=458
+  [PASS] T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格） grounded=4 covered=4
+  [PASS] T2-c 塌陷后"可上格"虚高（阴性对照须成立） 虚高=458／462 格（99.1%）
+  [PASS] T2-d 关掉剔零 ⇒ 原点格被 700 个假点占满（故剔除步不是白计） 该格点数=700（真点只有 1 个）
+  [PASS] T2-e 不给 z_ground ⇒ k0=0（旧式） 
+  [PASS] T2-e 下沿垫一板 ⇒ truncated=False z_min=0.00 z_ground=0.10
+  [PASS] T2-g 未覆盖格全为 UNKNOWN(−1)（默认分支不产出 0） 未覆盖格=458 全为 -1
+  [PASS] T2-g 全面不出现 FREE(0)（★有回波不得读作可上） FREE 命中=0 格
+  [PASS] T2-h 阳性对照（谓词层）：塌陷成 FREE 时断言必须红 塌陷后 FREE 命中=458 格（须 >0）
+  [PASS] T2-h2 退化态阳性对照（经生产函数本体）：默认分支写坏成 FREE ⇒ T2-g 两枚必红 未覆盖格全为 −1？False（须 False）‖FREE 命中=458 格（须 >0）‖复原后 UNKNOWN=-1
+  [PASS] T2-i 独立守恒 n_unknown+n_covered==total（数组反推、非定义式） 数组未知=458 计数未知=458 覆盖=4 总=462
+  [PASS] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=4 ‖ B grounded=0 covered=4 low=[np.int16(5), np.int16(5), np.int16(5), np.int16(5)] k0=1
+  [PASS] T2-f 空点云须抛错 
+  合计 PASS=16 FAIL=0
+T2_SELFTEST PASS=16 FAIL=0 rc=0
+  ↑rc=0  （看末两行 合计 与 T*_SELFTEST）
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && python3 t3_decidable_input_offline.py --selftest
+  [PASS] T3-a R310 三锚点复算（h=0.45／θ=15°） 复算=[-0.4347, -0.5641, -0.6935] 在册=[-0.4347, -0.5641, -0.6935]
+  [PASS] T3-b 每前进 1 m 再降 0.2588（在册） 复算=0.2588 在册=0.2588
+  [PASS] T3-c 旧工作值正下方 −0.3614（h=0.38／θ=18°） 复算=-0.3614 在册=-0.3614
+  [PASS] T3-d 丙档 [−0.45,+0.75] 按 R310 锚判 truncated=True（回核发现） z_min=-0.45 z_ground=-0.4347（贴地法要求下沿 ≤ -0.5347）
+  [PASS] T3-d 丙档窗 k0=0（地面落在 0 号板、板下无垫板 ⇒ 这正是截断的几何形状） k0=0
+  [PASS] T3-e 重推窗 [-0.55, 0.75] 板数=13 truncated=False k0=1 z_min=-0.55（≤ -0.5347 取整）z_max=0.75 nz=13
+  [PASS] T3-e 重推窗下沿整板垫地（z_min ≤ z_ground − slab） z_min=-0.55 vs 界限=-0.5347
+  [PASS] T3-e2 保宽候选 [-0.55, 0.65] 12 板 truncated=False k0=1 z_max=0.65（保丙档窗宽 1.2）
+  [PASS] T3-f 恰好贴板时裸 floor＝0（陷阱复现）⇒ 本件 k0 用容差后＝1 裸=0 容差后=1
+  [PASS] T3-g 三态常量逐字（−1／0／100） 
+  [PASS] T3-g 未知≠自由（UNKNOWN 不是 FREE） 
+  [PASS] T3-h 载体契约三件一套过（/elevation_grid｜OccupancyGrid｜latch） 
+  [PASS] T3-h 话题名错一个字符即红（断言有牙） 
+  [PASS] T3-h latch 丢失即红 
+  [PASS] M1 旧工作值下重推窗贴旧地面（z_min ≤ -0.4614） z_ground=-0.3614 z_min=-0.55
+  [PASS] M2 宣称多层 ⇒ 断言红（窄义前提有牙） 
+  [PASS] M2 不宣称多层 ⇒ 断言绿 
+  [PASS] M3 下沿截半地面板 ⇒ truncated=True（判据有牙） z_min=-0.4847
+  合计 PASS=18 FAIL=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+  ↑rc=0  （看末两行 合计 与 T*_SELFTEST）
+
+====================================================================
+§2 两代自测·容器代（ros1-slam-sim＝在册基 3.8.10／numpy 1.19.4，仓＝容器 /opt/ros1-slam）
+$ docker exec -w "/opt/ros1-slam/note/进度/SCAN集成/设计/scripts" ros1-slam-sim python3 t1_multilevel_raster_offline.py --selftest
+  [PASS] T-a 单层地面 multi_layer=0 格数=30
+  [PASS] T-a 单层地面 suspended=0 
+  [PASS] T-b 悬挑 suspended>0 最低板>0 的格=1
+  [PASS] T-c 双层 multi_layer>0 中间空板的格=1
+  [PASS] T-c 三值不塌陷：有覆盖格数==格数>0 
+  [PASS] T-d 剔零计数 removed=500 removed=500
+  [PASS] T-d 剔零后 (0,0) 处不成格（零点不再撑出栅格范围） 栅格=1x1 总格=1 覆盖格=1
+  [PASS] T-d 剔零后覆盖格==1（只剩那个真点） 
+  [PASS] M1 关掉剔零后 (0,0) 格被塌占（阴性对照须成立） 该格落点=500
+  [PASS] M1 关掉剔零后覆盖格==2（虚高一格） 实=2
+  [PASS] M1 关掉剔零后总点数虚高 500 
+  [PASS] M2 朴素判据在单层地面上误判（故判据须要"中间空板"这一件） 
+  [PASS] T-e 窗外点数 n_points_out_of_z=2 out=2 used=2
+  [PASS] T-j 单格 40000 点计数不绕回（int32 生效） 实测=40000（int16 下会绕成 -25536）
+  [PASS] T-f 空点云须抛错 
+  [PASS] T-g 给地面锚后单层贴地 suspended=0 k0=8（同数据不给锚时旧式误判=30 格）
+  [PASS] T-g 地面锚不动多层判据 multi_layer=0 
+  [PASS] M3 不给地面锚时贴地数据误判为悬挑（阴性对照须成立） 误判=30／覆盖格=30
+  [PASS] T-h z_min 远高于地面 ⇒ truncated=True z_min=0.50 z_ground=0.30
+  [PASS] T-h 下沿==地面（不垫板）⇒ 现按④判 truncated=True（地面那板被截半） z_min=0.30 要求 z_min<=0.20
+  [PASS] T-h 下沿垫一板 ⇒ truncated=False（这是推荐的贴地法） z_min=0.20 k0=0
+  [PASS] T-i high/low 直测（连续三板 high 应为最低+2） low=4 high=6（旧缺陷下＝4 4）
+  [PASS] T-i 连续三板的格**不得**算多层（正例，旧缺陷下必误判） n_slab=3 contiguous=True
+  [PASS] T-i 0/2 有、1 空的格**必须**算多层（反例） n_slab=2 low=4 high=6
+  [PASS] T-k 甲档窗形 nz=13 ‖ k0=1 ‖ truncated=False（vs R310 锚 −0.4347） 窗[-0.55, 0.75] nz=13 k0=1 truncated=False
+  [PASS] T-k 对照：丙档窗 [-0.45,0.75] 同锚必 truncated=True（★证上一条不是恒真摆设） nz=12 k0=0 truncated=True
+  合计 PASS=26 FAIL=0
+T1_SELFTEST PASS=26 FAIL=0 rc=0
+  ↑rc=0
+$ docker exec -w "/opt/ros1-slam/note/进度/SCAN集成/设计/scripts" ros1-slam-sim python3 t2_placeholder_zeros_and_tristate_offline.py --selftest
+  [PASS] T2-a 剔零计数 removed=700 removed=700
+  [PASS] T2-a 不剔零会多撑出一格（覆盖格 +1） 剔零=1 格／不剔=2 格
+  [PASS] T2-a 零点全塌进**同一格**（700 点＝1 格） 该格落点=700
+  [PASS] T2-b 三态守恒 total==covered+unknown（★定义式、不单独承重，见 T2-i） total=462 covered=4 unknown=458
+  [PASS] T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格） grounded=4 covered=4
+  [PASS] T2-c 塌陷后"可上格"虚高（阴性对照须成立） 虚高=458／462 格（99.1%）
+  [PASS] T2-d 关掉剔零 ⇒ 原点格被 700 个假点占满（故剔除步不是白计） 该格点数=700（真点只有 1 个）
+  [PASS] T2-e 不给 z_ground ⇒ k0=0（旧式） 
+  [PASS] T2-e 下沿垫一板 ⇒ truncated=False z_min=0.00 z_ground=0.10
+  [PASS] T2-g 未覆盖格全为 UNKNOWN(−1)（默认分支不产出 0） 未覆盖格=458 全为 -1
+  [PASS] T2-g 全面不出现 FREE(0)（★有回波不得读作可上） FREE 命中=0 格
+  [PASS] T2-h 阳性对照（谓词层）：塌陷成 FREE 时断言必须红 塌陷后 FREE 命中=458 格（须 >0）
+  [PASS] T2-h2 退化态阳性对照（经生产函数本体）：默认分支写坏成 FREE ⇒ T2-g 两枚必红 未覆盖格全为 −1？False（须 False）‖FREE 命中=458 格（须 >0）‖复原后 UNKNOWN=-1
+  [PASS] T2-i 独立守恒 n_unknown+n_covered==total（数组反推、非定义式） 数组未知=458 计数未知=458 覆盖=4 总=462
+  [PASS] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=4 ‖ B grounded=0 covered=4 low=[5, 5, 5, 5] k0=1
+  [PASS] T2-f 空点云须抛错 
+  合计 PASS=16 FAIL=0
+T2_SELFTEST PASS=16 FAIL=0 rc=0
+  ↑rc=0
+$ docker exec -w "/opt/ros1-slam/note/进度/SCAN集成/设计/scripts" ros1-slam-sim python3 t3_decidable_input_offline.py --selftest
+  [PASS] T3-a R310 三锚点复算（h=0.45／θ=15°） 复算=[-0.4347, -0.5641, -0.6935] 在册=[-0.4347, -0.5641, -0.6935]
+  [PASS] T3-b 每前进 1 m 再降 0.2588（在册） 复算=0.2588 在册=0.2588
+  [PASS] T3-c 旧工作值正下方 −0.3614（h=0.38／θ=18°） 复算=-0.3614 在册=-0.3614
+  [PASS] T3-d 丙档 [−0.45,+0.75] 按 R310 锚判 truncated=True（回核发现） z_min=-0.45 z_ground=-0.4347（贴地法要求下沿 ≤ -0.5347）
+  [PASS] T3-d 丙档窗 k0=0（地面落在 0 号板、板下无垫板 ⇒ 这正是截断的几何形状） k0=0
+  [PASS] T3-e 重推窗 [-0.55, 0.75] 板数=13 truncated=False k0=1 z_min=-0.55（≤ -0.5347 取整）z_max=0.75 nz=13
+  [PASS] T3-e 重推窗下沿整板垫地（z_min ≤ z_ground − slab） z_min=-0.55 vs 界限=-0.5347
+  [PASS] T3-e2 保宽候选 [-0.55, 0.65] 12 板 truncated=False k0=1 z_max=0.65（保丙档窗宽 1.2）
+  [PASS] T3-f 恰好贴板时裸 floor＝0（陷阱复现）⇒ 本件 k0 用容差后＝1 裸=0 容差后=1
+  [PASS] T3-g 三态常量逐字（−1／0／100） 
+  [PASS] T3-g 未知≠自由（UNKNOWN 不是 FREE） 
+  [PASS] T3-h 载体契约三件一套过（/elevation_grid｜OccupancyGrid｜latch） 
+  [PASS] T3-h 话题名错一个字符即红（断言有牙） 
+  [PASS] T3-h latch 丢失即红 
+  [PASS] M1 旧工作值下重推窗贴旧地面（z_min ≤ -0.4614） z_ground=-0.3614 z_min=-0.55
+  [PASS] M2 宣称多层 ⇒ 断言红（窄义前提有牙） 
+  [PASS] M2 不宣称多层 ⇒ 断言绿 
+  [PASS] M3 下沿截半地面板 ⇒ truncated=True（判据有牙） z_min=-0.4847
+  合计 PASS=18 FAIL=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+  ↑rc=0
+
+====================================================================
+§3 Q2 ①②③：真数据 /home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd 两形各跑（宿主代）＋逐行核对
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && python3 t1_multilevel_raster_offline.py --pcd /home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd --anchor ground   （全文逐字）
+T1_ZDIST z 分位（单位：m，map 系）MIN=-0.09 P5=0.01 P50=2.57 P95=4.14 P99=4.45 MAX=4.46
+T1_ZWIN 锚定=ground 垫板=1 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.09, 1.21]（k0=1 板；truncated=False；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+T1_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝锚定=ground／垫板=1／窗宽=max_z−min_z（件内常量回写后＝1.30 m‖13 板，R377 甲档）｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+T1_PCD 文件=/home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd 声明点数=386549 实读=386549 剔零=0 入窗=113941 窗外z=272608（单位：点；模式=binary）
+T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.09, 1.21] 板厚 0.10 ⇒ 每格 13 个 z 板（掩码态空间 8192＝2^13）
+T1_PCD 覆盖格=7804／总格=43250（覆盖率 18.04%）；z 板数分位 P50=2 P95=11 MAX=13（单位：板／格）
+T1_PCD ★多层格（中间真有空板＝不连续）=2857 格 ★悬挑格（最低板>地面板 k0=1）=1527 格 ⇒ 这两类是 2.5D 单高度表达不了的场景
+T1_PCD 另有（不是多层）＝板数>=2 的格=4604、连续填充的格=4947（单位：格；★R295／R297 那两个"多层"数用的是这个 >=2 板口径、当时 high 有缺陷，见 R299 勘误）
+T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=2308 格、其中空板>=2 板者=1876 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）
+T1_PCD 耗时=0.3 s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）
+T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）
+  ↑rc=0
+  ---- 逐行核对（anchor=ground）：含 z 窗数值／板锚数值的行 是否带禁令 ----
+     带禁令 | T1_ZWIN 锚定=ground 垫板=1 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.09, 1.21]（
+     ★无禁令 | T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.09, 1.21] 板厚 0.10 ⇒ 每格 13 个 z 板（掩码态空间 8
+     ★无禁令 | T1_PCD ★多层格（中间真有空板＝不连续）=2857 格 ★悬挑格（最低板>地面板 k0=1）=1527 格 ⇒ 这两类是 2.5D 单高度表达不了的场
+     汇总：禁令行=2｜字面**行=0｜含「得来」行=0
+
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && python3 t1_multilevel_raster_offline.py --pcd /home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd --anchor given   （全文逐字）
+T1_ZDIST z 分位（单位：m，map 系）MIN=-0.09 P5=0.01 P50=2.57 P95=4.14 P99=4.45 MAX=4.46
+T1_ZWIN 锚定=given 垫板=0 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.55, 0.75]（k0=5 板；truncated=False；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）
+T1_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝锚定=given／垫板=0／窗宽=max_z−min_z（件内常量回写后＝1.30 m‖13 板，R377 甲档）
+T1_PCD 文件=/home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd 声明点数=386549 实读=386549 剔零=0 入窗=81261 窗外z=305288（单位：点；模式=binary）
+T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.55, 0.75] 板厚 0.10 ⇒ 每格 13 个 z 板（掩码态空间 8192＝2^13）
+T1_PCD 覆盖格=7294／总格=43250（覆盖率 16.86%）；z 板数分位 P50=2 P95=9 MAX=9（单位：板／格）
+T1_PCD ★多层格（中间真有空板＝不连续）=2061 格 ★悬挑格（最低板>地面板 k0=5）=1201 格 ⇒ 这两类是 2.5D 单高度表达不了的场景
+T1_PCD 另有（不是多层）＝板数>=2 的格=4785、连续填充的格=5233（单位：格；★R295／R297 那两个"多层"数用的是这个 >=2 板口径、当时 high 有缺陷，见 R299 勘误）
+T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=1730 格、其中空板>=2 板者=1224 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）
+T1_PCD 耗时=0.4 s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）
+T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）
+  ↑rc=0
+  ---- 逐行核对（anchor=given）：含 z 窗数值／板锚数值的行 是否带禁令 ----
+     ★无禁令 | T1_ZWIN 锚定=given 垫板=0 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.55, 0.75]（k
+     ★无禁令 | T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.55, 0.75] 板厚 0.10 ⇒ 每格 13 个 z 板（掩码态空间 8
+     ★无禁令 | T1_PCD ★多层格（中间真有空板＝不连续）=2061 格 ★悬挑格（最低板>地面板 k0=5）=1201 格 ⇒ 这两类是 2.5D 单高度表达不了的场
+     汇总：禁令行=0｜字面**行=0｜含「得来」行=0
+
+  ---- ATTR 行尾巴现读（ground 形，末 46 字）----
+     形、不得入判据读数（G-1 到签④）
+
+§3b 同两形·容器代逐字比对（宿主 vs 容器）
+$ diff <(sed 's#/opt/ros1-slam#/home/jack/ysc-code/ros1-slam#g' 容器形) 宿主形   # anchor=ground
+     10c10
+     < T1_PCD 耗时=0.2 s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）
+     ---
+     > T1_PCD 耗时=0.3 s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）
+     容器形禁令行=2｜宿主形禁令行=2
+$ diff <(sed 's#/opt/ros1-slam#/home/jack/ysc-code/ros1-slam#g' 容器形) 宿主形   # anchor=given
+     容器形禁令行=0｜宿主形禁令行=0
+     （唯一差行＝T1_PCD 耗时行＝本机单次计时，非读数）
+
+====================================================================
+§4 t2 的 T2_GRADE：喂★合成 s*.npy（跑完即删；★合成件不得代在册 208,836 点引用）
+$ rm -rf /tmp/r390_frames && mkdir -p /tmp/r390_frames && python3 - <<EOF   # 3 帧 × (3,4000) float16，各含 1000 个占位零点
+  合成 s000.npy shape=(3, 4000) dtype=float16 全零列=1000
+  合成 s001.npy shape=(3, 4000) dtype=float16 全零列=1000
+  合成 s002.npy shape=(3, 4000) dtype=float16 全零列=1000
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && python3 t2_placeholder_zeros_and_tristate_offline.py --frames /tmp/r390_frames
+T2_FRAMES 目录=/tmp/r390_frames 帧数=3 合计点=12000 全零=3000 非零=9000（单位：点）
+  帧 s000           N=4000 全零=1000 非零=3000（全零占比 25.0%）
+  帧 s001           N=4000 全零=1000 非零=3000（全零占比 25.0%）
+  帧 s002           N=4000 全零=1000 非零=3000（全零占比 25.0%）
+T2_ZERO_MATCH 在册＃176 期望=208836 实测=3000 ⇒ **不一致（照实报）**
+T2_DROP 剔零=3000 点（单位：点）；z_ground(P5，雷达系)=0.05 m ⇒ 实开窗 [-0.05, 1.15] k0=1 truncated=False
+T2_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）
+T2_COLLAPSE 不剔零：原点格落点=3000 点／覆盖格=6697｜剔零后：原点格落点=0／覆盖格=6696 ⇒ ★零点确实全塌进 1 格
+T2_TRISTATE 总格=14520 覆盖=6696 未知=7824 接地=1285（单位：格；守恒式 total==covered+unknown ⇒ 成立）
+T2_TRISTATE ★本件不产代价、不产"可上"：未覆盖一律读作**未知**（#46）；接地格 1285 只是"最低板≤地面板 k0"的表征事实
+T2_TRISTATE 塌陷测试：若把未知 7824 格读作可上 ⇒ 自由空间虚高 53.9%（★这就是 #46 明令禁止的那种读法）
+T2_LAYER 多层格（中间真有空板）=1425 悬挑候选格（low>k0）=5411 板数>=2 的格=1737（单位：格）
+T2_GRADE 分档＝甲-离（★离线复算、★不得顶替甲-活；"活体落盘的帧"这一来历只在输入确为 R82 那批 s*.npy 时才成立、本件无法自证输入来历 ⇒ 该行★不得当来源声明引用）；本次输入目录＝/tmp/r390_frames
+  ↑rc=0
+$ docker cp /tmp/r390_frames ros1-slam-sim:/tmp/ && docker exec -w "/opt/ros1-slam/note/进度/SCAN集成/设计/scripts" ros1-slam-sim python3 t2_placeholder_zeros_and_tristate_offline.py --frames /tmp/r390_frames
+  ↑容器 rc=0
+     [容器] T2_ZERO_MATCH 在册＃176 期望=208836 实测=3000 ⇒ **不一致（照实报）**
+     [容器] T2_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）
+     [容器] T2_TRISTATE 总格=14520 覆盖=6696 未知=7824 接地=1285（单位：格；守恒式 total==covered+unknown ⇒ 成立）
+     [容器] T2_GRADE 分档＝甲-离（★离线复算、★不得顶替甲-活；"活体落盘的帧"这一来历只在输入确为 R82 那批 s*.npy 时才成立、本件无法自证输入来历 ⇒ 该行★不得当来源声明引用）；本次输入目录＝/tmp/r390_frames
+     容器 t2 --frames：禁令行=1｜字面**行=2｜含「得来」行=0
+$ diff <(grep -v T2_GRADE 容器 t2 --frames) <(grep -v T2_GRADE 宿主 t2 --frames)   # 两代读数逐字核对
+     （空＝两代逐字同值；T2_GRADE 行本身带输入目录、已在上面单列）
+
+====================================================================
+§5 计数面变异复验（★只在 /tmp 副本上改、仓内件一字未动；脚本＝/tmp/r390_mut/runmut.py）
+  被变异的生产函数＝t2_placeholder_zeros_and_tristate_offline.py:79-85 tristate_counts()，现值 t2_placeholder_zeros_and_tristate_offline.py:84＝
+         grounded = int(((r['covered'] > 0) & (r['low'] <= r['k0'])).sum())
+  七枚＝点名存活两枚（M1 off-by-one／M2 恒置 0）＋指派反写一枚（M3）＋自补四枚（M4 互换、M5 low→high、M6 k0 取反、M7 covered>1）
+$ python3 /tmp/r390_mut/runmut.py   # 宿主代
+### M1 阈值 off-by-one（点名存活枚）
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=0 covered=4 ‖ B grounded=0 
+### M2 grounded 恒置 0（点名存活枚）
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=0 covered=4 ‖ B grounded=0 
+### M3 谓词反写成 low>=k0
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=4 ‖ B grounded=4 
+### M4 返回值 covered/grounded 互换
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=4 ‖ B grounded=4 
+### M5 谓词数组取错 low->high
+  合计=合计 PASS=16 FAIL=0 rc=0 红=0
+  （无红＝★存活）
+### M6 k0 取反
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=0 covered=4 ‖ B grounded=0 
+### M7 covered 面 off-by-one（>0 改 >1）
+  合计=合计 PASS=13 FAIL=3 rc=1 红=3
+  [FAIL] T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格） grounded=4 covered=0
+  [FAIL] T2-i 独立守恒 n_unknown+n_covered==total（数组反推、非定义式） 数组未知=458 计数未知=462 覆盖=4 总=462
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=0 ‖ B grounded=0 
+
+$ docker exec -e R390_SRC="/opt/ros1-slam/note/进度/SCAN集成/设计/scripts" -e R390_TMP=/tmp/r390_mut ros1-slam-sim python3 /tmp/r390_mut/runmut.py   # 容器代（3.8.10／1.19.4）
+### M1 阈值 off-by-one（点名存活枚）
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=0 covered=4 ‖ B grounded=0 
+### M2 grounded 恒置 0（点名存活枚）
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=0 covered=4 ‖ B grounded=0 
+### M3 谓词反写成 low>=k0
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=4 ‖ B grounded=4 
+### M4 返回值 covered/grounded 互换
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=4 ‖ B grounded=4 
+### M5 谓词数组取错 low->high
+  合计=合计 PASS=16 FAIL=0 rc=0 红=0
+  （无红＝★存活）
+### M6 k0 取反
+  合计=合计 PASS=15 FAIL=1 rc=1 红=1
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=0 covered=4 ‖ B grounded=0 
+### M7 covered 面 off-by-one（>0 改 >1）
+  合计=合计 PASS=13 FAIL=3 rc=1 红=3
+  [FAIL] T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格） grounded=4 covered=0
+  [FAIL] T2-i 独立守恒 n_unknown+n_covered==total（数组反推、非定义式） 数组未知=458 计数未知=462 覆盖=4 总=462
+  [FAIL] T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式） A grounded=4 covered=0 ‖ B grounded=0 
+
+§5b 存活枚（M5）的非等价性证明＝同一输入下对外读数确实变了
+$ python3 /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py --frames /tmp/r390_frames | grep 'T2_TRISTATE 总格'
+     [在册现件] T2_TRISTATE 总格=14520 覆盖=6696 未知=7824 接地=1285（单位：格；守恒式 total==covered+unknown ⇒ 成立）
+$ python3 /tmp/r390_mut/w_M5/t2_placeholder_zeros_and_tristate_offline.py --frames /tmp/r390_frames | grep 'T2_TRISTATE 总格'
+     [M5 副本]    T2_TRISTATE 总格=14520 覆盖=6696 未知=7824 接地=757（单位：格；守恒式 total==covered+unknown ⇒ 成立）
+
+====================================================================
+§6 缺形补测（T2-k 试形：C 面接地多板柱；断言要素＝grounded==1 ∧ covered==3，两读数经生产函数）
+$ python3 /tmp/r390_mut/probe_t2k.py <目录>   # 依次对现件与七枚副本各跑一遍
+     [现件·/home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts]
+       T2-k 试形：C 面 grounded=1 covered=3  (期望 grounded==1 且 covered==3？实=3) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ True
+     [w_M1]
+       T2-k 试形：C 面 grounded=0 covered=3  (期望 grounded==1 且 covered==3？实=3) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ False
+     [w_M2]
+       T2-k 试形：C 面 grounded=0 covered=3  (期望 grounded==1 且 covered==3？实=3) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ False
+     [w_M3]
+       T2-k 试形：C 面 grounded=3 covered=3  (期望 grounded==1 且 covered==3？实=3) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ False
+     [w_M4]
+       T2-k 试形：C 面 grounded=3 covered=1  (期望 grounded==1 且 covered==3？实=1) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ False
+     [w_M5]
+       T2-k 试形：C 面 grounded=0 covered=3  (期望 grounded==1 且 covered==3？实=3) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ False
+     [w_M6]
+       T2-k 试形：C 面 grounded=0 covered=3  (期望 grounded==1 且 covered==3？实=3) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ False
+     [w_M7]
+       T2-k 试形：C 面 grounded=1 covered=1  (期望 grounded==1 且 covered==3？实=1) low=[np.int16(1), np.int16(5), np.int16(5)] high=[np.int16(5), np.int16(5), np.int16(5)] k0=1
+       T2-k 断言 grounded==1 and covered==3 ⇒ False
+
+====================================================================
+§7 在册件未动核对（跑完再取一次指纹）
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts && sha256sum t1_multilevel_raster_offline.py t2_placeholder_zeros_and_tristate_offline.py | cut -c1-16
+135e24ff1952fbb4
+16a3adb8036ceb62
+$ cd /home/jack/ysc-code/ros1-slam && git status --porcelain -- ws note tooling scripts | grep -c . （应为 0＝零改动态）
+1
+  ↑订正注（本实例追加）：这个 1 ＝本留底目录自身那一行 `?? …/r390_T2j与口径追认批/`（未跟踪、非改动）；
+    另跑 `git status --porcelain -- ws note tooling scripts | grep -c '^[MADRC]'` ＝ 0 ⇒ ★在册件零改动。
+    跑前／跑后 t1＝135e24ff1952fbb4、t2＝16a3adb8036ceb62 同值；probe＝cbf06584e453、derive＝2811115949fe、t3 未动（见 §0）。
+
+====================================================================
+§8 清盘与计数写在同一条命令内（★坑67②／追加三十一；清理排在全部取证之后）
+  $ docker exec ros1-slam-sim sh -c 'cd /opt/ros1-slam && find note tooling ws/src scripts -name "__pycache__" -prune -exec rm -rf {} + ; echo "  pyc=$(find note tooling ws/src scripts -name "*.pyc" | wc -l) pycache=$(find note tooling ws/src scripts -name "__pycache__" | wc -l) ws_src=$(find ws/src -type f | wc -l) tooling=$(find tooling -type f | wc -l) note=$(find note -type f | wc -l)"'
+  pyc=0 pycache=0 ws_src=4580 tooling=149 note=4839
+  基线对照＝R389 段在册值 ws_src=4580／tooling=149／pyc=0
+$ rm -rf /tmp/r390_frames /tmp/r390_mut   # 合成帧跑完即删（★不得代在册 208,836 点引用）
+  已删＝宿主与容器两侧的合成帧与变异副本；仓内无任何本批新写文件（除本留底目录三件）
