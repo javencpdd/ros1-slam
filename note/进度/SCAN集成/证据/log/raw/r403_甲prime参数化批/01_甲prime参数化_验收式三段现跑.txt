@@ -1,0 +1,60 @@
+# r403 · 甲′＝雷达竖向参数提为 xacro property（★行为零改动）· 现跑取证
+# 生成时刻＝2026-10-18 19:49:54 CST ‖ 容器 UTC 2026-10-18 11:49:54 UTC；机名＝jack
+# 被试件＝ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro（★本批唯一被改的在册件）
+
+### §1 改动逐字（★缺省值＝原字面值，故语义不变）
+diff --git a/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro b/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+index c244585..f888300 100644
+--- a/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
++++ b/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+@@ -15,4 +15,11 @@
+ <robot name="lite3_planar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+ 
++  <!-- ★R403 甲′（Q-B1 载体竖向参数参数化、★行为零改动）＝雷达安装高与俯仰提为 property、缺省＝原字面值；
++       下一步（乙）若要对齐真机口径 h≈0.45 m／θ≈15°（R310），★只改这两行数值、并把俯仰写成度数＋radians()：
++       rpy 单位是弧度 ⇒ 必须 `${radians(lidar_pitch_deg)}`、★不得填字面 15（那会被当 15 弧度，az §8 修正四）。
++       验收式＝排除 xacro 自生成横幅行后比 body（逐字 diff 含横幅不可判，az §8 修正一）。 -->
++  <xacro:property name="lidar_z" value="0.38"/>
++  <xacro:property name="lidar_pitch" value="0"/>
++
+   <!-- ================= 官方骨架：TORSO（保持官方名；M2R5 起非 root，恒等挂于 base_link 下） ================= -->
+   <link name="TORSO">
+@@ -53,5 +60,5 @@
+     <parent link="base_link"/>
+     <child link="rslidar"/>
+-    <origin xyz="0 0 0.38" rpy="0 0 0"/>
++    <origin xyz="0 0 ${lidar_z}" rpy="${lidar_pitch} 0 0"/>   <!-- ★R403 甲′：值即原字面 0.38／0，行为不变 -->
+   </joint>
+   <link name="rslidar">
+
+### §2 验收式三段（★本批实测：只排横幅不够，须再排注释或直接比结构）
+  (a) 排除 xacro 自生成横幅行后比 body ＝
+     61a62 ⏎ >     <!-- ★R403 甲′：值即原字面 0.38／0，行为不变 -->
+     ⇒ ★她的"修正一"方向对但不充分：横幅之外，★行内注释也会进展开体（本批唯一差行＝新加的那条 inline 注释）
+  (b) 再排除注释行后比 body ＝ before=9d2d0bf43a7baf74 after=9d2d0bf43a7baf74 diff空=True
+  (c) ★最强式＝解析 XML 比结构签名（joint 名＋origin xyz/rpy ‖ link 名），与注释、横幅、缩进全无关 ＝
+before 元素=5 ‖ after 元素=5 ‖ 结构全等=True
+  雷达关节展开现值＝ [('joint', 'base_to_rslidar', '0 0 0.38', '0 0 0')]
+  ⇒ xyz 展开后＝'0 0 0.38'、rpy＝'0 0 0' ＝与改前字面值逐字同（★property 未改语义）
+
+### §3 展开确定性（同件两次展开必须同值，否则 (b)(c) 式都不可信）
+第一次=baabe0da4949eeff 第二次=baabe0da4949eeff 同值=True
+
+### §4 基线未破（★两代；★这些件与 xacro 无耦合，跑它是"没碰坏别的"、不是甲′ 的证据）
+  容器代（在册基）＝ T1_SELFTEST PASS=32 FAIL=0 rc=0 T2_SELFTEST PASS=18 FAIL=0 rc=0 T3_SELFTEST PASS=18 FAIL=0 rc=0
+  宿主代＝ T1_SELFTEST PASS=32 FAIL=0 rc=0 T2_SELFTEST PASS=18 FAIL=0 rc=0 T3_SELFTEST PASS=18 FAIL=0 rc=0
+  解析臂十闸＝ PRECHECK SELFTEST: FAIL=0（★该件读 fixtures.py 的 MID360_MOUNT_Z=0.38、★不读 xacro ⇒ 甲′ 不影响它；列此只为证"没被碰坏"）
+
+### §5 件面与未动面
+8	1	ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+    件行数：
+  166 ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+  8de9c3a914b639b5  note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+  8619b35ae3bfd166  ws/src/95_simulation/lite3_gazebo_sim/stairstudy/fixtures.py
+  292b767f3fcdff06  ws/src/95_simulation/lite3_gazebo_sim/launch/m2_gazebo.launch
+
+### §6 边界与不声称
+  ★甲′ 只证明"参数化不改展开结果"（§2c 结构全等）；★不声称载体已对齐真机（那要乙：lidar_z→使离地 0.45、lidar_pitch→${radians(15)}）；
+  ★不声称 0.53 m 是实测（第 0 步活体 TF 仍未做）；★不声称 z 窗在乙 后够用（复验实证＝15° 时 174/186 点出窗）；
+  ★未开窗、未起链、无 sudo、无 FORCE=1；★未动 spawn（-z 0.15）、未动 fixtures 常量、未动世界件；
+  ★分档：本批属"载体治理·零行为改动"，★不产活体读数 ⇒ 不落甲-活／甲-离、★在册三数零抬。
