@@ -1,0 +1,8 @@
+[TF ] base_link->rslidar xyz=[0.0, 0.0, 0.38] rpy_deg=[0.0, 0.0, 0.0]  age=0.0s
+[TF ] odom->base_link    xyz=[0.0, 0.0, 0.11] rpy_deg=[0.0, 0.0, 0.0]  age=0.0s
+[TF ] base_link->TORSO   xyz=[0.0, 0.0, 0.0] rpy_deg=[0.0, 0.0, 0.0]  age=0.0s
+[TF ] odom->rslidar      xyz=[0.0, 0.0, 0.49] rpy_deg=[0.0, 0.0, 0.0]  age=0.0s
+[MDL] lite3_planar 采样=1501 首 z=0.1500 末 z=0.1100 min=0.1099 max=0.1500 末 rpy_deg=[-0.00, 0.00, 0.00]
+[合成] 雷达离地（model_z + TF 安装高）＝0.49 ‖ 直查 odom->rslidar z＝0.49 ‖ 在册推导值＝0.53（0.15 spawn ＋ 0.38 安装）
+[俯仰] TF base_link->rslidar pitch＝0.0 deg（在册 xacro 字面＝0）
+JSON {"base_link->TORSO": {"age_s": 0.0, "rpy_deg": [0.0, 0.0, 0.0], "xyz": [0.0, 0.0, 0.0]}, "base_link->rslidar": {"age_s": 0.0, "rpy_deg": [0.0, 0.0, 0.0], "xyz": [0.0, 0.0, 0.38]}, "derived": {"in_register_claim": 0.53, "lidar_clearance_composed": 0.49, "lidar_clearance_direct": 0.49}, "model": {"n": 1502, "rpy_last_deg": [-0.0, 0.0, 0.0], "z_first": 0.15, "z_last": 0.11, "z_max": 0.15, "z_min": 0.1099}, "odom->base_link": {"age_s": 0.0, "rpy_deg": [0.0, 0.0, 0.0], "xyz": [0.0, 0.0, 0.11]}, "odom->rslidar": {"age_s": 0.0, "rpy_deg": [0.0, 0.0, 0.0], "xyz": [0.0, 0.0, 0.49]}}

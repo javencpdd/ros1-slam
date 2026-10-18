@@ -1,0 +1,11 @@
+# 生效值＝GAZEBO_PLUGIN_PATH=/home/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib（在册 launch 内 <env> 逐字、★写死开发侧根＝坑66 本体）
+  /home/ros1-slam/ws 是否符号链接＝是 ‖ readlink -f＝/opt/ros1-slam/ws
+  插件文件在该路径下可读＝是
+  roslaunch 日志里的 plugin 行（前 6）：
+[0m[ INFO] [1792328988.329503309]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1792328989.231781371, 0.064000000]: load csv file name:/opt/ros1-slam/ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+  活体侧机器人描述里的雷达关节展开现值（★robot_description 是参数不是话题，走 rosparam）：
+  \ izz=\"1e-5\"/>\n    </inertial>\n  </link>\n  <joint name=\"base_to_rslidar\"\
+  \ type=\"fixed\">\n    <parent link=\"base_link\"/>\n    <child link=\"rslidar\"\
+  />\n    <origin rpy=\"0 0 0\" xyz=\"0 0 0.38\"/>\n    <!-- \u2605R403 \u7532\u2032\
+  \uFF1A\u5C55\u5F00\u503C\uFF1D\u539F\u5B57\u9762 0.38\uFF0F0\uFF0C\u884C\u4E3A\u4E0D\
