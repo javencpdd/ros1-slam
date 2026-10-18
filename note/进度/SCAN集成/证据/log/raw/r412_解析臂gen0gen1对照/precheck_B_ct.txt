@@ -1,0 +1,73 @@
+=== 射线密度自证（每扫描落在公共窗内的命中点数；两臂若差＞2 倍，则配对差不得归因于视场形状）===
+  planar   stairs_easy=83  stairs_mid=115  wall_h080=173
+  hdl32    stairs_easy=4504  stairs_mid=4620  wall_h080=5150
+  mid360   stairs_easy=2412  stairs_mid=2419  wall_h080=2459
+  mid360n  stairs_easy=2412  stairs_mid=2419  wall_h080=2459
+
+=== 分辨力矩阵 @d1.5（+＝至少一特征相对差≥0.50；-＝全重叠；n/a＝前件不成立）===
+配对                               planar@0.05  planar@0.10  planar@0.15  planar@0.30  hdl32@0.05  hdl32@0.10  hdl32@0.15  hdl32@0.30  mid360@0.05  mid360@0.10  mid360@0.15  mid360@0.30  mid360n@0.05  mid360n@0.10  mid360n@0.15  mid360n@0.30
+stairs_mid↔wall_h080            n/a n/a n/a - + - - + + + + + + + + +
+stairs_easy↔wall_h045           n/a n/a n/a - + + + + - - - - + + + +
+stairs_mid↔ramp_envelope        n/a n/a n/a - + + + + - - - + - - - +
+ramp_envelope↔sidewall_envelope n/a n/a n/a + + + + + + + + + + + + +
+stairs_mid↔stairs_blocked_mid   n/a n/a n/a - - - - - - - - - - - - -
+
+=== 可分特征明细（在册臂 mid360 @0.05 @d1.5）===
+stairs_mid ↔ wall_h080｜可上楼梯 vs 等高矮墙（G 稿主断言）
+   可分：同列y向高差极大m 0.018↔0.099(差0.69)
+stairs_easy ↔ wall_h045｜浅台阶 vs 半高矮墙
+   可分：（无 ⇒ 现特征不可分）
+stairs_mid ↔ ramp_envelope｜楼梯 vs 同包络连续斜坡
+   可分：（无 ⇒ 现特征不可分）
+ramp_envelope ↔ sidewall_envelope｜斜坡 vs 同剖面薄侧壁（差别只在占不占道）
+   可分：有面y列比 0.636↔0.061(差0.83)；同列y向高差极大m 0.013↔0.000(差1.00)
+stairs_mid ↔ stairs_blocked_mid｜楼梯 vs 楼梯中段压立柱（通道被局部打断）
+   可分：（无 ⇒ 现特征不可分）
+
+=== 可见性面（ret＝有回波列比；surf＝有实体面列比；run＝最长连续有面长度）===
+  stairs_easy  planar  r0.05 ret=0.01 surf=0.01 run=0.05m faces=0 peri=0.00 ｜ r0.10 ret=0.02 surf=0.02 run=0.10m faces=0 peri=0.00 ｜ r0.15 ret=0.04 surf=0.04 run=0.15m faces=0 peri=0.00 ｜ r0.30 ret=0.07 surf=0.07 run=0.30m faces=0 peri=0.00
+  stairs_easy  hdl32   r0.05 ret=0.85 surf=0.28 run=0.40m faces=1 peri=0.00 ｜ r0.10 ret=0.85 surf=0.41 run=0.40m faces=1 peri=0.00 ｜ r0.15 ret=0.82 surf=0.54 run=1.35m faces=2 peri=0.00 ｜ r0.30 ret=0.86 surf=0.79 run=3.00m faces=6 peri=0.00
+  stairs_easy  mid360  r0.05 ret=0.37 surf=0.10 run=0.15m faces=0 peri=0.00 ｜ r0.10 ret=0.61 surf=0.17 run=0.20m faces=0 peri=0.00 ｜ r0.15 ret=0.71 surf=0.21 run=0.30m faces=0 peri=0.00 ｜ r0.30 ret=0.79 surf=0.36 run=0.60m faces=0 peri=0.00
+  stairs_mid   planar  r0.05 ret=0.01 surf=0.01 run=0.05m faces=0 peri=0.00 ｜ r0.10 ret=0.02 surf=0.02 run=0.10m faces=0 peri=0.00 ｜ r0.15 ret=0.04 surf=0.04 run=0.15m faces=0 peri=0.00 ｜ r0.30 ret=0.07 surf=0.07 run=0.30m faces=0 peri=0.00
+  stairs_mid   hdl32   r0.05 ret=0.84 surf=0.20 run=0.30m faces=1 peri=0.19 ｜ r0.10 ret=0.83 surf=0.27 run=0.30m faces=0 peri=0.00 ｜ r0.15 ret=0.82 surf=0.32 run=0.45m faces=0 peri=0.00 ｜ r0.30 ret=0.86 surf=0.50 run=2.10m faces=6 peri=0.00
+  stairs_mid   mid360  r0.05 ret=0.37 surf=0.07 run=0.05m faces=0 peri=0.00 ｜ r0.10 ret=0.51 surf=0.15 run=0.10m faces=0 peri=0.00 ｜ r0.15 ret=0.64 surf=0.21 run=0.30m faces=0 peri=0.00 ｜ r0.30 ret=0.71 surf=0.36 run=0.90m faces=0 peri=0.00
+  stairs_steep planar  r0.05 ret=0.01 surf=0.01 run=0.05m faces=0 peri=0.00 ｜ r0.10 ret=0.02 surf=0.02 run=0.10m faces=0 peri=0.00 ｜ r0.15 ret=0.04 surf=0.04 run=0.15m faces=0 peri=0.00 ｜ r0.30 ret=0.07 surf=0.07 run=0.30m faces=0 peri=0.00
+  stairs_steep hdl32   r0.05 ret=0.81 surf=0.10 run=0.25m faces=1 peri=0.00 ｜ r0.10 ret=0.80 surf=0.15 run=0.30m faces=0 peri=0.00 ｜ r0.15 ret=0.79 surf=0.18 run=0.45m faces=0 peri=0.00 ｜ r0.30 ret=0.79 surf=0.21 run=0.90m faces=0 peri=0.00
+  stairs_steep mid360  r0.05 ret=0.33 surf=0.10 run=0.25m faces=2 peri=0.00 ｜ r0.10 ret=0.49 surf=0.15 run=0.30m faces=0 peri=0.00 ｜ r0.15 ret=0.61 surf=0.18 run=0.45m faces=0 peri=0.00 ｜ r0.30 ret=0.71 surf=0.21 run=0.90m faces=0 peri=0.00
+  wall_h080    planar  r0.05 ret=0.01 surf=0.01 run=0.05m faces=0 peri=0.00 ｜ r0.10 ret=0.02 surf=0.02 run=0.10m faces=0 peri=0.00 ｜ r0.15 ret=0.04 surf=0.04 run=0.15m faces=0 peri=0.00 ｜ r0.30 ret=0.07 surf=0.07 run=0.30m faces=0 peri=0.00
+  wall_h080    hdl32   r0.05 ret=0.79 surf=0.01 run=0.05m faces=0 peri=0.00 ｜ r0.10 ret=0.80 surf=0.02 run=0.10m faces=0 peri=0.00 ｜ r0.15 ret=0.79 surf=0.04 run=0.15m faces=0 peri=0.00 ｜ r0.30 ret=0.79 surf=0.07 run=0.30m faces=0 peri=0.00
+  wall_h080    mid360  r0.05 ret=0.28 surf=0.01 run=0.05m faces=0 peri=0.00 ｜ r0.10 ret=0.46 surf=0.02 run=0.10m faces=0 peri=0.00 ｜ r0.15 ret=0.57 surf=0.04 run=0.15m faces=0 peri=0.00 ｜ r0.30 ret=0.71 surf=0.07 run=0.30m faces=0 peri=0.00
+
+=== 距离面（在册臂 mid360@0.10）：走近到多少米才有踏步结构 ===
+  stairs_easy  d1.5 ret=0.61 surf=0.17 run=0.20m faces=0 peri=0.00 slope=0.0 ｜ d1.0 ret=0.66 surf=0.24 run=0.50m faces=1 peri=0.00 slope=10.1 ｜ d0.6 ret=0.76 surf=0.27 run=0.70m faces=2 peri=0.00 slope=10.8
+  stairs_mid   d1.5 ret=0.51 surf=0.15 run=0.10m faces=0 peri=0.00 slope=0.0 ｜ d1.0 ret=0.63 surf=0.20 run=0.30m faces=0 peri=0.00 slope=0.0 ｜ d0.6 ret=0.68 surf=0.24 run=0.60m faces=2 peri=0.38 slope=17.9
+  stairs_steep d1.5 ret=0.49 surf=0.15 run=0.30m faces=0 peri=0.00 slope=0.0 ｜ d1.0 ret=0.59 surf=0.15 run=0.30m faces=0 peri=0.00 slope=0.0 ｜ d0.6 ret=0.54 surf=0.17 run=0.50m faces=2 peri=0.00 slope=38.6
+
+=== 视场几何（两臂并列；安装高：在册臂 0.45m、对照臂 0.40m）===
+  在册臂 MID360 近似（50 竖向 ±90°、100 方位）：最低线 -90° ⇒ **无地面盲区**（机体脚下就有线）；但竖向间隔 3.67° ⇒ 楼梯立面所在的 ±15.5° 仰角带内只有 8 条线
+  对照臂 32 线（1° 竖向间隔 ±15.5°）：最低线 -15.5° ⇒ 地面盲区半径 d_ground=1.44m；±15.5° 带内 32 条线（间隔 1.0°）
+      踏步高 0.06m ⇒ 站距梯脚 1.23–1.44m（带宽 0.22m）才看得见这级立面；更近＝整锥从其上方越过
+      踏步高 0.10m ⇒ 站距梯脚 1.08–1.44m（带宽 0.36m）才看得见这级立面；更近＝整锥从其上方越过
+      踏步高 0.18m ⇒ 站距梯脚 0.79–1.44m（带宽 0.65m）才看得见这级立面；更近＝整锥从其上方越过
+      踏步高 0.30m ⇒ 站距梯脚 0.36–1.44m（带宽 1.08m）才看得见这级立面；更近＝整锥从其上方越过
+
+=== 阈值建议表（供 A8/O-8/C1/C4 输入，**不是门值**）===
+  在册参照：SCAN 栅格 grid_map/resolution=0.05（30_3rd/plan_manage/launch/advanced_param.xml:51）；costmap resolution=0.1（40_navigation/lite3_navigation/config/costmap_common.yaml:14）
+  两轴不得混谈：踏步**深度**（水平周期）下限＝2 列＝2r；台阶**高度**（竖直跳升）下限＝max(栅格量化 r, 3σ=0.06)
+  r=0.05  ←＝SCAN 现值 ⇒ 踏步深≥0.10m 才可测｜级高≥0.06m 才可测｜§4.3 未标定施工值（台阶高 0.15m）在本档判得出｜该档可测的最浅楼梯踏步深＝0.10m
+  r=0.10  ←＝costmap 现值 ⇒ 踏步深≥0.20m 才可测｜级高≥0.10m 才可测｜§4.3 未标定施工值（台阶高 0.15m）在本档判得出｜该档可测的最浅楼梯踏步深＝0.20m
+  r=0.15 ⇒ 踏步深≥0.30m 才可测｜级高≥0.15m 才可测｜§4.3 未标定施工值（台阶高 0.15m）在本档判得出｜该档可测的最浅楼梯踏步深＝0.30m
+  r=0.30 ⇒ 踏步深≥0.60m 才可测｜级高≥0.30m 才可测｜§4.3 未标定施工值（台阶高 0.15m）在本档判不出｜该档可测的最浅楼梯踏步深＝0.60m
+
+=== 自检 ===
+[PASS] T0 实体齐 ｜ 场景数=8（应为 8）
+[PASS] T1 主断言有数值支撑（在册臂四档全可分） ｜ 最大相对差逐档=['0.69', '0.69', '0.68', '0.72']；run_len 逐档=['0.00', '0.00', '0.33', '0.50']（阈 0.50）
+[FAIL] T2 级高归零则特征归零 ｜ faces 0→0、run_len 0.05→0.00
+[PASS] T3 每踏步列数（0.05 档≥5 列、0.30 档≤1 列） ｜ 浅台阶 0.30m 踏步：0.05 档 6.0 列 / 0.30 档 1.0 列
+[PASS] T4 单高平面无结构面（且须仍有阳性） ｜ 浅台阶 surf 平面=0.01 vs 在册臂=0.10
+[PASS] T5 同 seed 可复算 ｜ 两算栅格逐元全等
+[PASS] T6 堵头不可分且稳定复现（登记为需语义通道＝方向四） ｜ 八格全不可分=True（若某格忽然可分，先怀疑特征伪影而不是新能力）
+[PASS] T7 竖直段计数随阈值单调（故不得单独承重） ｜ faces@0.03/0.05/0.10 = 0/0/0
+[FAIL] T8 仿真图案在楼梯立面上比 32 线更稀（保真度缺口） ｜ surf 三梯逐只：在册臂 vs 32线 = ['stairs_easy 0.10/0.28', 'stairs_mid 0.07/0.20', 'stairs_steep 0.10/0.10']
+[PASS] T9 短序列自相关不冒充周期 ｜ 违规格=0（可见长度＜2 个踏步却报出 peri_amp≥0.5 即为伪峰）
+PRECHECK SELFTEST: FAIL=2
