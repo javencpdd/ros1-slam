@@ -246,7 +246,7 @@ def main(argv=None):
         print('T2_DROP 剔零=%d 点（单位：点）；z_ground(P5，雷达系)=%.2f m ⇒ 实开窗 [%.2f, %.2f] k0=%d truncated=%s'
               '｜★本行 z 窗数值＝件内 ground 旁报形（P5 锚）、不得入判据读数（G-1 到签④）'
               % (removed, zg2, r_post['z_min'], r_post['z_max'], r_post['k0'], r_post['truncated']))
-        t1.zwin_attribution('T2', 'z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）')
+        t1.zwin_attribution('T2', 'z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）；★R416 另起句＝t1 当期档自 R416 起为档 C 18 板，本串的 12 板旁报形★不随档改、仍只作旁报）')
         print('T2_COLLAPSE 不剔零：原点格落点=%d 点／覆盖格=%d｜剔零后：原点格落点=%d／覆盖格=%d ⇒ ★零点确实全塌进 1 格'
               % (cell_pre, int((r_pre['covered'] > 0).sum()), cell_post, int((r_post['covered'] > 0).sum())))
         total, covered, unknown, grounded = tristate_counts(r_post)

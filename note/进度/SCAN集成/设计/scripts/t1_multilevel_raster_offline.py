@@ -19,7 +19,14 @@ import numpy as np
 
 UNKNOWN, FREE, BLOCKED = -1, 0, 100   # #46 三态在册常量（本件只用 UNKNOWN/覆盖两态，不产出 FREE）
 RES = 0.10
-Z_MIN, Z_MAX = -0.55, 0.75   # R354 甲档在册值（★真人 2026-10-18 G-1 到签取形状甲；★引用甲档必须 --anchor given，见下 --anchor 的 help）
+# ★R416（真人 2026-10-19 全部到签＝「向后兼容＋不留技术债」）：甲档 13 板 → **档 C 18 板**。
+#   下沿 −0.55 → −1.05（增 5 板，容到前向 2 m 工作距）、上沿 +0.75 与板厚 0.10 一字不动。
+#   排除：档 B（15 板）只容 1 m ⇒ 盖不住楼梯判读常用 2 m 工作距、迟早二次改档＝新债；
+#         档 D（23 板）地面自占 10 板 ⇒ grounded／suspended 区分度被吃掉＝判据退化；
+#         档 E（窗不动、喂链前绕 y 回转 15° 做 pitch 补偿）⇒ 判定链与真机链路不等价（真机点云未补偿）且仍须全表重跑＝隐性债。
+#   ★新档自批64（R409 乙 落地批）起用；历史 gen0 读数不回溯、仍按 13 板记。
+#   ★旧句保留（不回改）＝「R354 甲档在册值（★真人 2026-10-18 G-1 到签取形状甲；★引用甲档必须 --anchor given）」——该句的适用时点＝R377—R415。
+Z_MIN, Z_MAX = -1.05, 0.75   # R416 档 C＝18 板（★引用仍必须 --anchor given，见下 --anchor 的 help）
 Z_SLAB = 0.10
 
 def gmark(anchor):
@@ -34,11 +41,12 @@ def zwin_attribution(tag, how):
     R310 三值＝h=0.45 m／θ=15°／站立态；在册几何式＝正下方地面雷达系 z=−0.4347 m。
     本件不产 (h,θ)（推窗式在 t3 的 --zwin），故这里只把定档真身**并排报出**、★不冒充本件窗的来源。
     """
+    _nz = int(round((Z_MAX - Z_MIN) / Z_SLAB))
     print('%s_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：'
           'R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；'
-          '★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；'
+          '★定档档 C [%+.2f, %+.2f]（%d 板；★R416 起＝档 C，旧句「甲档 [−0.55,+0.75] 13 板」见 04 R377 段、不回改）现跑式在 t3 --zwin；'
           '本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；'
-          '本行窗的来路＝%s' % (tag, how))
+          '本行窗的来路＝%s' % (tag, Z_MIN, Z_MAX, _nz, how))
 
 
 # ---------- 输入面：PCD 读取（binary 与 ascii 两种 DATA）----------
@@ -320,10 +328,12 @@ def selftest():
     check('T-i 0/2 有、1 空的格**必须**算多层（反例）', bool(r_hw['multi_layer'][i_gap]) is True,
           'n_slab=%d low=%d high=%d' % (int(r_hw['n_slab'][i_gap]), int(r_hw['low'][i_gap]), int(r_hw['high'][i_gap])))
 
-    # T-k ★甲档形状断言（真人 G-1 到签⑥；R310 锚＝正下方地面雷达系 z=−0.4347）
+    # T-k ★档形断言（真人 G-1 到签⑥；R310 锚＝正下方地面雷达系 z=−0.4347）
+    #   ★R416 另起句（真人 2026-10-19 全部到签＝档 C）：原断「甲档 nz=13 ‖ k0=1 ‖ truncated=False」＝R377—R415 时点、不回改；
+    #   R416 起档 C 18 板 ⇒ 现断 nz=18 ‖ k0=6 ‖ truncated=False（k0 1→6＝窗下沿降 5 板的直接结果，★不是回归）。
     r_jia = rasterize(_after_zero(gg), z_min=Z_MIN, z_max=Z_MAX, slab=Z_SLAB, z_ground=-0.4347)
-    check('T-k 甲档窗形 nz=13 ‖ k0=1 ‖ truncated=False（vs R310 锚 −0.4347）',
-          r_jia['nz'] == 13 and r_jia['k0'] == 1 and r_jia['truncated'] is False,
+    check('T-k 档 C 窗形 nz=18 ‖ k0=6 ‖ truncated=False（vs R310 锚 −0.4347；★R377—R415 的甲档 13 板／k0=1 见 04 R377 段）',
+          r_jia['nz'] == 18 and r_jia['k0'] == 6 and r_jia['truncated'] is False,
           '窗[%.2f, %.2f] nz=%d k0=%d truncated=%s' % (Z_MIN, Z_MAX, r_jia['nz'], r_jia['k0'], r_jia['truncated']))
     # ★阳性对照（证上一条有牙）：旧丙档窗形在同一锚上必须判成 truncated=True（＝R352 在册回核结论）
     r_bing = rasterize(_after_zero(gg), z_min=-0.45, z_max=0.75, slab=Z_SLAB, z_ground=-0.4347)
