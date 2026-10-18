@@ -1,0 +1,208 @@
+R387 · 02 现跑取证（x86 侧独立复验·小美形·零协商；逐字输出，两代各标一次）
+时刻锚（本实例现取）：容器 ros1-slam-sim=Up；宿主 python3 3.13.13 / numpy 2.5.3；容器 python3 3.8.10 / numpy 1.19.4（在册基，仓=/opt/ros1-slam）。
+红线自证：★未改任何在册件（见 [S0] sha，复验前后同值）；★未开窗（复算只用 r386 落盘件）；★未 git add/commit；无 sudo、无 FORCE=1、无 ps -eo args；sha256sum -c 一律 --quiet 判 rc；清盘与计数同条命令（见 [Z]）。
+
+========================================================================
+[S0] 三枚在册件 + 见证件 sha 现算（前 16）—— 复验前/后各一次，逐字同
+$ for f in <t1> <t2> <derive> <probe> <x2_ablate_stvl>; do sha256sum "$f"|cut -c1-16; wc -l; done
+22f381b0f812c3f0  389  t1_multilevel_raster_offline.py
+5ffad5fc291126fb  220  t2_placeholder_zeros_and_tristate_offline.py
+2811115949feb70c  220  derive_stvl_mark.py
+cbf06584e453fea3  236  probe_x2_fourcells.sh            ← T3 四枚 sha 见证件，值在册 cbf06584e453、未动
+88eab6c5ba4c8a64  109  x2_ablate_stvl.sh
+（复验全部只读/自测跑完后重算，五枚 sha 逐字同上 ⇒ 本复验未触碰任何在册件。）
+
+========================================================================
+[H] 宿主基 py3.13.13 / numpy 2.5.3 —— 三枚自测
+$ python3 <t1> --selftest
+  [PASS] T-a 单层地面 multi_layer=0 格数=30
+  [PASS] T-a 单层地面 suspended=0
+  [PASS] T-b 悬挑 suspended>0 最低板>0 的格=1
+  [PASS] T-c 双层 multi_layer>0 中间空板的格=1
+  [PASS] T-c 三值不塌陷：有覆盖格数==格数>0
+  [PASS] T-d 剔零计数 removed=500 removed=500
+  [PASS] T-d 剔零后 (0,0) 处不成格（零点不再撑出栅格范围） 栅格=1x1 总格=1 覆盖格=1
+  [PASS] T-d 剔零后覆盖格==1（只剩那个真点）
+  [PASS] M1 关掉剔零后 (0,0) 格被塌占（阴性对照须成立） 该格落点=500
+  [PASS] M1 关掉剔零后覆盖格==2（虚高一格） 实=2
+  [PASS] M1 关掉剔零后总点数虚高 500
+  [PASS] M2 朴素判据在单层地面上误判（故判据须要"中间空板"这一件）
+  [PASS] T-e 窗外点数 n_points_out_of_z=2 out=2 used=2
+  [PASS] T-j 单格 40000 点计数不绕回（int32 生效） 实测=40000（int16 下会绕成 -25536）
+  [PASS] T-f 空点云须抛错
+  [PASS] T-g 给地面锚后单层贴地 suspended=0 k0=8（同数据不给锚时旧式误判=30 格）
+  [PASS] T-g 地面锚不动多层判据 multi_layer=0
+  [PASS] M3 不给地面锚时贴地数据误判为悬挑（阴性对照须成立） 误判=30／覆盖格=30
+  [PASS] T-h z_min 远高于地面 ⇒ truncated=True z_min=0.50 z_ground=0.30
+  [PASS] T-h 下沿==地面（不垫板）⇒ 现按④判 truncated=True（地面那板被截半） z_min=0.30 要求 z_min<=0.20
+  [PASS] T-h 下沿垫一板 ⇒ truncated=False（这是推荐的贴地法） z_min=0.20 k0=0
+  [PASS] T-i high/low 直测（连续三板 high 应为最低+2） low=4 high=6（旧缺陷下＝4 4）
+  [PASS] T-i 连续三板的格**不得**算多层（正例，旧缺陷下必误判） n_slab=3 contiguous=True
+  [PASS] T-i 0/2 有、1 空的格**必须**算多层（反例） n_slab=2 low=4 high=6
+  [PASS] T-k 甲档窗形 nz=13 ‖ k0=1 ‖ truncated=False（vs R310 锚 −0.4347） 窗[-0.55, 0.75] nz=13 k0=1 truncated=False
+  [PASS] T-k 对照：丙档窗 [-0.45,0.75] 同锚必 truncated=True（★证上一条不是恒真摆设） nz=12 k0=0 truncated=True
+  合计 PASS=26 FAIL=0
+T1_SELFTEST PASS=26 FAIL=0 rc=0
+
+$ python3 <t2> --selftest
+  [PASS] T2-a 剔零计数 removed=700 removed=700
+  [PASS] T2-a 不剔零会多撑出一格（覆盖格 +1） 剔零=1 格／不剔=2 格
+  [PASS] T2-a 零点全塌进**同一格**（700 点＝1 格） 该格落点=700
+  [PASS] T2-b 三态守恒 total==covered+unknown（★定义式、不单独承重，见 T2-i） total=462 covered=4 unknown=458
+  [PASS] T2-b 接地格 ⊆ 覆盖格 且 覆盖格确为 4（四点各落一格） grounded=4 covered=4
+  [PASS] T2-c 塌陷后"可上格"虚高（阴性对照须成立） 虚高=458／462 格（99.1%）
+  [PASS] T2-d 关掉剔零 ⇒ 原点格被 700 个假点占满（故剔除步不是白计） 该格点数=700（真点只有 1 个）
+  [PASS] T2-e 不给 z_ground ⇒ k0=0（旧式）
+  [PASS] T2-e 下沿垫一板 ⇒ truncated=False z_min=0.00 z_ground=0.10
+  [PASS] T2-g 未覆盖格全为 UNKNOWN(−1)（默认分支不产出 0） 未覆盖格=458 全为 -1
+  [PASS] T2-g 全面不出现 FREE(0)（★有回波不得读作可上） FREE 命中=0 格
+  [PASS] T2-h 阳性对照：塌陷成 FREE 时断言必须红（证断言有牙） 塌陷后 FREE 命中=458 格（须 >0）
+  [PASS] T2-i 独立守恒 n_unknown+n_covered==total（数组反推、非定义式） 数组未知=458 计数未知=458 覆盖=4 总=462
+  [PASS] T2-f 空点云须抛错
+  合计 PASS=14 FAIL=0
+T2_SELFTEST PASS=14 FAIL=0 rc=0
+
+$ python3 <derive> --selftest
+  [PASS] A1 层内痕迹列=有效（足印内 1 格 100） ... 痕迹_格数=1 痕迹_最大值=100 254_格数=0 顶档=N3
+  [PASS] A1 ★顶档=N3 且原因写明"缺归因"（路径 A 设计边界） 顶档=N3 归因=未定源
+  [PASS] A1 必带子键齐
+  [PASS] A2 层内痕迹列=无痕（足印全 0、非数据缺口） 痕迹_格数=0
+  [PASS] A3 P1 不成立⇒顶档 N3 且 rc 面记该段不合格 原始件不合格（P1）⇒ 该段不判被试
+  [PASS] A4 足印内无值⇒无痕（★同一式子、痕迹位置决定档位＝断言有牙）
+  [PASS] A5 P2 不成立（首帧后有 traceback）⇒顶档 N3、该段判不合格 P3成立、P2不成立 须两前置齐
+  [PASS] A6 件不在位⇒顶档 N3（★不静默产空面） cost_s_missing.txt 不在位
+  合计 PASS=8 FAIL=0
+DERIVE_SELFTEST PASS=8 FAIL=0 rc=0
+
+========================================================================
+[C] 容器基 py3.8.10 / numpy 1.19.4（在册基）—— 同三枚自测（逐字与 [H] 同值）
+$ docker exec ros1-slam-sim bash -lc 'cd /opt/ros1-slam && python3 <t1> --selftest; python3 <t2> --selftest; python3 <derive> --selftest'
+T1_SELFTEST PASS=26 FAIL=0 rc=0        （26 条逐字同 [H]：含 T-a PASS / T-k 甲档 nz=13 k0=1 truncated=False / T-k 对照 truncated=True）
+T2_SELFTEST PASS=14 FAIL=0 rc=0        （14 条逐字同 [H]：含 T2-g FREE命中=0 / T2-h 塌陷后 FREE命中=458 / T2-i 数组未知=458）
+DERIVE_SELFTEST PASS=8 FAIL=0 rc=0     （8 条逐字同 [H]）
+==> 两代逐值一致：T1=26/0、T2=14/0、derive=8/0，全 rc=0。
+
+========================================================================
+[Q1] 恒真式探针（本实例自写、/tmp、只 import 只读、不写任何件）
+$ cat > /tmp/q1_probe.py  << 见下转录；python3 /tmp/q1_probe.py
+import sys, os, numpy as np
+sys.path.insert(0,'/home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts')
+import t1_multilevel_raster_offline as t1
+import t2_placeholder_zeros_and_tristate_offline as t2
+sparse=np.array([[0,0,0.10,0],[0.05,0,0.10,0],[1.0,1.0,0.10,0],[1.05,1.0,0.10,0]],dtype=np.float64)
+r_sp=t1.rasterize(sparse,res=0.05,z_min=0.0,z_max=1.2,slab=0.1,z_ground=0.1); total=r_sp['nx']*r_sp['ny']
+def T2g(g):  # 与 t2 两条 T2-g 断言同一谓词
+    cov=r_sp['covered']>0
+    return bool((g[~cov]==t1.UNKNOWN).all()), (not bool((g==t1.FREE).any()))
+g_prod,cov_prod=t2.tristate_grid(r_sp)
+def broken(r):  # 假绿入口所怕的回归：tristate_grid 默认分支写 FREE
+    g=np.full(r['nx']*r['ny'],t1.FREE,dtype=np.int16); g[r['covered']>0]=t1.BLOCKED; return g
+g_broken=broken(r_sp)
+def T2h(g,cov): gb=g.copy(); gb[~cov]=t1.FREE; return bool((gb==t1.FREE).any())
+allcov=r_sp.copy(); allcov['covered']=np.ones_like(allcov['covered'])*5
+g_all,_=t2.tristate_grid(allcov)
+print(...)  # 逐行打印以下值
+----- 现跑输出（逐字）-----
+A production tristate_grid -> T2g(uncov_ok,no_free)= (True, True) FREEhits= 0
+B broken tristate_grid    -> T2g(uncov_ok,no_free)= (False, False) FREEhits= 458
+C T2-h on CORRECT grid  = True
+C T2-h on BROKEN  grid  = True
+C T2-h insensitive to production regression? (True => no teeth) = True
+D T2-h on fully-covered grid (no uncovered cells) = False
+----- 判读 -----
+· A vs B：生产函数退化时 T2-g 立刻 (True,True)→(False,False) 会红 ⇒ T2-g(×2) 有牙、堵住假绿入口。
+· C：T2-h 对"正确 / 退化"两种生产函数输出**返回同值 True** ⇒ T2-h 从不触生产函数退化态 ⇒ **恒真式**。
+· D：T2-h 仅当网格无未覆盖格时才 False ⇒ 其结果取决于 fixture 覆盖率、不取决于 tristate_grid 正确性。
+
+========================================================================
+[Q2] t1 两形语义现跑（宿主基，只用 data/maps/lite3.pcd，只打印不落件）
+$ python3 <t1> --pcd data/maps/lite3.pcd --anchor given
+T1_ZWIN 锚定=given 垫板=0 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.55, 0.75]（k0=5 板；truncated=False；…）
+T1_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗由锚定=given／垫板=0／窗宽=…得来、★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"
+T1_PCD ★多层格（中间真有空板＝不连续）=2061 格 ★悬挑格（最低板>地面板 k0=5）=1201 格 ⇒ 这两类是 2.5D 单高度表达不了的场景
+T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）
+
+$ python3 <t1> --pcd data/maps/lite3.pcd --anchor ground
+T1_ZWIN 锚定=ground 垫板=1 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.09, 1.21]（k0=1 板；truncated=False；…）
+T1_ZWIN_ATTR …（同上行，本件此行窗由锚定=ground／垫板=1／窗宽=… 得来、★非由 (h,θ) 推得）…
+T1_PCD ★多层格=2857 格 ★悬挑格（最低板>地面板 k0=1）=1527 格 ⇒ …
+T1_PCD 分档＝甲-离（…）
+----- 判读 -----
+· ground 那遍 truncated=False ⇒ 读数行走 t1:369 非截断分支，多层格/悬挑格行**不带任何"旁报/不得入判据"字样**。
+· "不得入判据读数"只见于 --anchor help（跑前）与 t2:200 的 ZWIN_ATTR 串；t1 的 zwin_attribution 打印串(t1:32-36)只写"非由(h,θ)推得/两式不得互顶"，不含"ground 只可旁报" ⇒ 只留 stdout 的 ground 证据件可被误读成可入判据。
+
+========================================================================
+[Q3] T-a 钉窗是否放宽（本实例自写探针，只 import 只读）
+$ cat > /tmp/q3_probe.py  << 转录：复现 T-a fixture（地面点 z=-0.40），分别用钉窗 -0.45 与漂移缺省 t1.Z_MIN 跑 rasterize，比较 multi_layer/suspended/low
+----- 现跑输出（逐字）-----
+PINNED -0.45/0.75        multi_layer=0 suspended=0 low(min)=0 k0=0
+DRIFTED default -0.55/0.75 multi_layer=0 suspended=30 low(min)=1 k0=0
+module Z_MIN now = -0.55
+T-a passes with PINNED window   = True
+T-a would FAIL if left on default (假红) = True
+----- 判读 -----
+· 钉窗 -0.45 ⇒ 地面点落 0 板、low=0、suspended=0 ⇒ T-a 检其本意（单层⇒无悬挑）。
+· 若沿用漂移缺省 -0.55 ⇒ 同点落 1 板、low=1>k0=0、suspended=30 ⇒ T-a 假红（与判别逻辑无关）。
+· 字面窗值未变、只是不随缺省漂移 ⇒ 保持本意、非放宽；甲档新窗形另由 T-k/T-k对照 承担（[H]/[C] 两枚 PASS）。
+
+========================================================================
+[Q4] 四子项真身现读（宿主基，只 grep/sed 抽段、不整读巨型文档）
+$ sed -n '22p' <t1>            # t1 第 22 行现值
+Z_MIN, Z_MAX = -0.55, 0.75   # R354 甲档在册值（★真人 2026-10-18 G-1 到签取形状甲；★引用甲档必须 --anchor given…）
+$ grep -nE '站立态|安装位|θ|0.4347' <t1> <t2> | head
+t1:32,33  ZWIN_ATTR 打印 h=0.45 ‖ θ=15° ‖ 站立态 … z=−0.4347  （t1 侧并报在位）
+t2:200    （t2 复用同函数、串内并写"旁报形、不得入判据读数"）
+$ grep -nE '定档|候选甲|甲档|-0\.55|丙档设计值|45cm|15°' 21_ros1-slam三线程推进计划书-v6.md
+117:| B.1.1 | … `min_z=-0.45`/上界 `+0.75`/`z_range=1.2`＝**丙档设计值**…引用须写明"非实测、待 R310 值（45cm/15°）重核" |
+120:| B.1.4 | …任何 z 窗引用须连带安装位 (h,θ) 与站立态… |
+（§B.1 表内 "定档/候选甲/甲档/-0.55" 命中 0 行 ⇒ 表未随甲档回写；此句归设计/施工侧另起句，本复验不改文。）
+内部漂移一枚（新现形）：t1 头注第 11 行仍写"z 窗 -0.45 / +0.75 … ＝ 丙档设计值"，与已回写的第 22 行(-0.55)自相矛盾。
+
+========================================================================
+[Q5] R386 三段 cost 逐格复算（本实例自写 stdlib 式，只读 r386 落盘件；★不开窗）
+$ cat > /tmp/q5_recompute.py << 转录：W=40；FR,FC=(18,21),(29,32)；face() 取 data: 段整数；g(r,c)=nums[r*40+c]；对 x2_g6/x2_d1/x2_d2 各算足印非零格集合与值、判别格值、254、data_行数、格数；再算 d1⊆g6 / 逐格同值 / g6去d1余格 / 余格值 / d2空
+----- 宿主基 3.13 现跑输出（逐字）-----
+x2_g6: data_行数=1 格数=1600 254=0 判别格值=[100, 100, 100, 100, 100]  T=9 非零格=[(18, 29, 99), (18, 30, 99), (18, 31, 99), (19, 29, 100), (19, 30, 100), (19, 31, 99), (20, 29, 99), (20, 30, 99), (20, 31, 99)]
+x2_d1: data_行数=1 格数=1600 254=0 判别格值=[100, 100, 100, 100, 100]  T=2 非零格=[(19, 29, 100), (19, 30, 100)]
+x2_d2: data_行数=1 格数=1600 254=0 判别格值=[100, 100, 100, 100, 100]  T=0 非零格=[]
+d1集合⊆g6集合 = True
+d1 每格值与 g6 同值 = True
+g6 去 d1 余格 = [(18, 29), (18, 30), (18, 31), (19, 31), (20, 29), (20, 30), (20, 31)]
+余格值全为 99 = True
+d2 空 = True
+T 值: g6=9 d1=2 d2=0
+----- 容器基 3.8.10 现跑输出（逐字，与宿主基完全同串，此处省列同值确认）-----
+（docker cp /tmp/q5_recompute.py → 容器 python3 跑 /opt/ros1-slam 下三件，输出 T=9/2/0、d1⊆g6 True、逐格同值 True、余 7 格全 99 True、d2 空 True、三段 data_行数=1 格数=1600 254=0 判别格值=[100×5] 逐字同）
+----- R1 旁路现核（只读 r386 落盘件）-----
+$ wc -c 04_voxel_topic_hits.txt; grep -cE 'stvl|voxel' 04_voxel_topic_hits.txt
+0
+0                                            ← 话题命中 0
+$ sed -n '31p' 05_voxel_echo.txt
+WARNING: topic [/x2_g6/costmap/stvl_obstacle_layer/voxel_grid] does not appear to be published yet   ← R1 活体通道未通
+----- 只读件同窗复算（本实例现跑，★未改该件）-----
+$ python3 <derive> --dir r386_stvl归因旁证窗 --segs x2_g6,x2_d1,x2_d2     （rc=0）
+STVL_MARK 段=x2_g6 ｜ 顶档=N3 ｜ 层内痕迹列=有效 ｜ 归因=未定源 ｜ 痕迹_格数=9 ｜ 痕迹_最大值=100 ｜ 254_格数=0 ｜ 判别格值=[100, 100, 100, 100, 100] ｜ cloud_first42=True ｜ 必带子键齐=True ｜ 前置=P1 成立、P2 成立、P3 成立、P4 已计 ｜ 原因=★路径 A 缺归因…
+STVL_MARK 段=x2_d1 ｜ 顶档=N3 ｜ 层内痕迹列=有效 ｜ 归因=未定源 ｜ 痕迹_格数=2 ｜ 痕迹_最大值=100 ｜ …
+STVL_MARK 段=x2_d2 ｜ 顶档=N3 ｜ 层内痕迹列=无痕 ｜ 归因=未定源 ｜ 痕迹_格数=0 ｜ 痕迹_最大值=0 ｜ …
+DERIVE_SUMMARY 被检段=3 P1—P3 全不成立段=0｜★顶档全为 N3 属路径 A 设计边界（缺归因）…
+（⇒ 只读件自身三段全 N3；顶档"有效"不出自此件、出自佳文 §2.2 判定式第一行括号支的差分通道。）
+----- 判读（详见 01 问 5）-----
+① 三段 T 值与逐格集合现跑可得、两代逐字吻合施工侧读数。
+② 差分通道（路径 E）能支撑 归因=stvl；对照 §2.5 第 3/4/5 条均不违反（不靠 254、正确排除 99、差分正是答(c)）。
+③ 登记面无夸大：未把旁证读成分母内命中（明记未计分子）、未把 99 当 stvl 证据、如实并报 derive 仍 N3。
+④ 不必降到更弱档（工单在此支即给有效），唯段级"有效"的 stvl 归因范围宜钉到"仅 100×2 纯 stvl、99×7 叠加、R1 未通、未计分子"。
+
+========================================================================
+[Z] 清盘 + 计数（★同一条命令内；容器内跑过 .py 后必清 __pycache__；路径全集 note/tooling/ws/src/scripts）
+$ # 宿主基
+  rm -rf note/进度/SCAN集成/设计/scripts/__pycache__ 2>/dev/null; \
+  echo "[HOST] pycache_left=$(find note tooling ws/src scripts -path '*__pycache__*' -type f|wc -l) | ws_src_files=$(find ws/src -type f|wc -l) | tooling=$(find tooling -type f|wc -l)"
+[HOST] pycache_left=0 | ws_src_files=4580 | tooling=149
+$ # 容器基（在册基）
+  docker exec ros1-slam-sim bash -lc 'cd /opt/ros1-slam && find note tooling ws/src scripts -name __pycache__ -type d -exec rm -rf {} + ; echo "[CONTAINER] pycache_left=$(...) | ws_src_files=$(find ws/src -type f|wc -l) | tooling=$(find tooling -type f|wc -l)"'
+[CONTAINER] pycache_left=0 | ws_src_files=4580 | tooling=149
+==> 两代清盘后 ws_src_files 合在册基 4580、tooling 149、pycache 0（不涨到 4614）。
+==> 坑17 setfacl 本机不适用：id ros1-slam＝"无此用户"（x86 侧无该账号），照实登记不硬造。
+
+========================================================================
+取证完。本文件所有输出均为本实例现跑逐字转录；未引施工侧任何结论作证据。

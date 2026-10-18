@@ -8,7 +8,7 @@
 #       （v4.3 X1 纯载体禁令：多层不得复用该载体）。
 # 分档：本件产出＝**甲-离**（离线真数据读数），★不得顶替甲-活（05 追加三十二）。
 # 参数依据：分辨率 0.10 有在册依据（spike3d §4.3 那句「resolution=0.1（与 sim_map_bridge/static 层同格）」）；
-#           z 窗 -0.45 / +0.75 与小美给的 z 板厚 0.10 ＝**丙档设计值**（由在册雷达高 38cm 推导），本件不称实测。
+#           z 窗 -0.45 / +0.75 与小美给的 z 板厚 0.10 ＝**丙档设计值**（由在册雷达高 38cm 推导），本件不称实测。（★R377 到签后的当期口径另起一句、本句保留为历史时点：模块常量已回写＝**甲档 `Z_MIN, Z_MAX = -0.55, 0.75`＝13 板**，且**引用甲档必须 `--anchor given`**、`ground` 形只可旁报 ⇒ 上面那句 -0.45／12 板只适用于 R377 之前的读数与丙档对照。）
 # P8：计划书未定稿、现行以 v5.3（含 R294 收编段）为准、本件不是终稿。
 
 import argparse
@@ -355,8 +355,9 @@ def main(argv=None):
               % (zpct[0], a.ground_pct, zpct[1], zpct[2], zpct[3], zpct[4], zpct[5]))
         print('T1_ZWIN 锚定=%s 垫板=%d 二元式=(z_ground=%.2f, z_range=%.2fm) ⇒ 实开窗 [%.2f, %.2f]（k0=%d 板；truncated=%s；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）'
               % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0, zground, zmax - zmin, zmin, zmax, r['k0'], r['truncated']))
-        zwin_attribution('T1', '锚定=%s／垫板=%s／窗宽=max_z−min_z（件内缺省 1.20 m）'
-                            % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0,))
+        zwin_attribution('T1', '锚定=%s／垫板=%s／窗宽=max_z−min_z（件内常量回写后＝1.30 m‖13 板，R377 甲档）%s'
+                            % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0,
+                               '｜★本行窗由实测地面分位锚定⇒**旁报形、不得入判据读数**（G-1 到签④）' if a.anchor == 'ground' else ''))
         print('T1_PCD 文件=%s 声明点数=%d 实读=%d 剔零=%d 入窗=%d 窗外z=%d（单位：点；模式=%s）'
               % (a.pcd, meta['declared'], raw_total, removed, r['n_points_used'], r['n_points_out_of_z'], meta['mode']))
         print('T1_PCD 栅格=%dx%d 格（分辨率 %.2f m）z 窗 [%.2f, %.2f] 板厚 %.2f ⇒ 每格 %d 个 z 板（掩码态空间 %d＝2^%d）'

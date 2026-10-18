@@ -148,8 +148,22 @@ def selftest():
           not bool((g_sp == t1.FREE).any()), 'FREE 命中=%d 格' % int((g_sp == t1.FREE).sum()))
     # ★阳性对照：把未覆盖格故意塌成 0 ⇒ 上一条断言**必须红**，否则断言没牙（＝本件原先的病）
     g_bad = g_sp.copy(); g_bad[~cov_sp] = t1.FREE
-    check('T2-h 阳性对照：塌陷成 FREE 时断言必须红（证断言有牙）',
+    check('T2-h 阳性对照（谓词层）：塌陷成 FREE 时断言必须红',
           bool((g_bad == t1.FREE).any()), '塌陷后 FREE 命中=%d 格（须 >0）' % int((g_bad == t1.FREE).sum()))
+    # ★T2-h2（R387 小美复验 Q1 补）：上一枚只证**谓词**对塌陷敏感、不经生产函数（她现跑＝正确网格与退化网格 T2-h 同 True ⇒ 单靠它仍算部分堵住）。
+    #   本枚把**生产函数本体**置于退化态（默认分支被写成 FREE）再跑，验 T2-g 的两枚断言是否真会红——★这才是能拦住在建函数改坏的那一枚。
+    _orig_unknown, _free = t1.UNKNOWN, t1.FREE
+    try:
+        t1.UNKNOWN = _free                      # 人为退化：默认分支产出 FREE(0)＝#46 明令禁止的塌陷
+        g_deg, cov_deg = tristate_grid(r_sp)     # ★走真函数、★不手工造数组
+    finally:
+        t1.UNKNOWN = _orig_unknown
+    deg_unknown_red = not bool((g_deg[~cov_deg] == _orig_unknown).all())
+    deg_free_red = bool((g_deg == _free).any())
+    check('T2-h2 退化态阳性对照（经生产函数本体）：默认分支写坏成 FREE ⇒ T2-g 两枚必红',
+          deg_unknown_red and deg_free_red,
+          '未覆盖格全为 −1？%s（须 False）‖FREE 命中=%d 格（须 >0）‖复原后 UNKNOWN=%d'
+          % (bool((g_deg[~cov_deg] == _orig_unknown).all()), int((g_deg == _free).sum()), t1.UNKNOWN))
     # ★独立守恒：unknown 由**数组**反推、★不得由 total−covered 定义式得来（那条恒真、见 T2-b 注）
     n_unknown = int((g_sp == t1.UNKNOWN).sum()); n_cov = int(cov_sp.sum())
     check('T2-i 独立守恒 n_unknown+n_covered==total（数组反推、非定义式）',
