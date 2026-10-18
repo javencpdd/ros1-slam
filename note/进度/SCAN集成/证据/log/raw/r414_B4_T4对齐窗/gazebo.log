@@ -1,0 +1,56 @@
+[33m[ WARN] [1792349626.145207276]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[0m[ INFO] [1792349627.507480531]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1792349627.512440275]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1792349628.066503907]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1792349628.651077973, 0.046000000]: load csv file name:/opt/ros1-slam/ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+terminate called after throwing an instance of 'boost::wrapexcept<boost::lock_error>'
+terminate called recursively
+[INFO] [1792349626.872652, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+Aborted (core dumped)
+... logging to /opt/ros1-slam/logs/3e6f0c9e-cb25-11f1-8dbe-56919b1a948e/roslaunch-99957655604a-1097.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_gazebo.launch
+[1mstarted roslaunch server http://99957655604a:40355/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+
+auto-starting new master
+[1mprocess[master]: started with pid [1254][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_gazebo.launch http://127.0.0.1:11313
+[1msetting /run_id to 3e6f0c9e-cb25-11f1-8dbe-56919b1a948e[0m
+[1mprocess[rosout-1]: started with pid [1391][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [1394][0m
+[1mprocess[robot_state_publisher-3]: started with pid [1399][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [1404][0m
+[1mprocess[sim_adapter-5]: started with pid [1405][0m
+[1m[spawn_lite3_planar-4] process has finished cleanly
+log file: /opt/ros1-slam/logs/3e6f0c9e-cb25-11f1-8dbe-56919b1a948e/spawn_lite3_planar-4*.log[0m
+[sim_adapter-5] killing on exit
+[robot_state_publisher-3] killing on exit
+[gazebo-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
