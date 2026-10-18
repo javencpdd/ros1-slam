@@ -1,0 +1,24 @@
+# 现跑时刻＝2026-10-19 04:5x（date 取值见 00 句）‖ 机名＝jack ‖ 全部只读
+# 用途＝为"15 条 RED 逐族定性"提供本仓现读事实（不引任何转述）
+
+## 一、四族目标件的行数与在位性（★同名多份是关键）
+| 引用形（VCC 现读解析到的目标） | 该件行数 | 仓内还有谁同名 | 备注 |
+|---|---|---|---|
+| `opt/3rdparty/Livox_SDK2/CMakeLists.txt`（:192／:40／:36） | **20** | Livox_SDK2 树下另有 `sdk_core/CMakeLists.txt`（**144**）、`samples/CMakeLists.txt`（24）＋若干 samples/* | ★三处行号在 20 行件上必越界；144 行件上也越界（192>144）；★仓内行数 ≥192 的 CMakeLists 见下第三节 |
+| `opt/upstream/lvr2/CMakeLists.txt`（:192） | ★**件不在位**（仓内无 `opt/upstream/`，宿主机 `/opt/upstream/lvr2` 也不存在） | — | ＝在册坑69「opt/upstream 异机缺失」族 |
+| `ws/src/20_localization/hdl_localization/launch/hdl_localization.launch`（:89） | **70** ⇒ 越界 | ★同名第二份 `ws/src/20_localization/lite3_localization/launch/hdl_localization.launch`＝**124 行**，★其第 89 行现读＝`<param name="use_imu" value="$(arg use_imu)" />`（行存在） | ★与 D 族同形＝**件名多义、行号未必错**（同形先例见 02 表第 2 条与坑70） |
+| `note/进度/P3b/进度文档.md`（:972） | **141** ⇒ 越界 | ★仓内同名 `进度文档.md` 共 20 份；本意那份＝`note/进度/SCAN集成/进度文档.md`＝**1001 行**，★其第 972 行现读＝「- **新件**＝`设计/scripts/t2_placeholder_zeros_and_tristate_offline.py`（**185 行**…」（与 04 上下文吻合） | ★已由批73 定性并登坑70：文档没错、引用没错、是**解析面歧义**；★当时明写「不消红、不擅自改 EXEMPT」 |
+
+## 二、在册豁免表（现读 2 条，键形都是「相对路径:行」）
+1. `ws/src/CMakeLists.txt:192` → 定性＝裸名解析到 `ws/src/CMakeLists.txt`（全文 69 行），真身另有其件；★现跑仍命中（VCC 报「豁免表命中=1」）
+2. `ws/src/CMakeLists.txt:94` → 定性＝同机制，真身＝`ws/src/00_drivers/livox_ros_driver2/CMakeLists.txt` 的第 … 行；★**本次零命中**＝VCC 的 [STALE] 行（三种可能都要查：已清偿／引用不在扫描面／**表键形与扫描面不符**）
+
+## 三、★可当"真身"的长件（行数 ≥192 的 CMakeLists，仓内现读）
+- `ws/src/00_drivers/livox_ros_driver2/CMakeLists.txt` ＝ **335 行**（★第 2 条豁免的在册真身）
+- `ws/src/95_simulation/mockamap/CMakeLists.txt` ＝ 207 行
+- `ws/src/20_localization/fast_gicp/thirdparty/Eigen/CMakeLists.txt` ＝ 650 行（及其子目录 test/lapack 等多枚）
+- `.../pybind11/CMakeLists.txt` 283 行、`.../pybind11/tests/CMakeLists.txt` 451 行、`.../nvbio/contrib/zlib-1.2.7/CMakeLists.txt` 211 行
+
+## 四、面条件（★两侧不同数、本批按宿主机面裁）
+- 宿主机显式传根（claim_face 71 件）＝文档 71／单点引用 770／OK 612／**RED 15**／AMBER 58／豁免红 1（表 2 条）／豁免表命中 1／未命中 1
+- 容器内同式＝**RED 7**／AMBER 44／OK 628／豁免红 7（★容器内无 .git ⇒ 忽略集核对必报 fatal、且 Livox_SDK2 等异机目标差族在容器视图不现形）＝R400／追加四十一 已知族
