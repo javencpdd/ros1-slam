@@ -29,8 +29,8 @@
 #         并汇总「同一目标多处引用是否被归成不同档」（请求单 A25 的成本数；**只读、只数，不改任何判定**）。
 #         census 与 scan/selftest 共用同一个 judge()，不另写第二套正则——否则普查结论与门禁读数会各说各话（坑42）。
 #       bash scripts/verify/v_citation_check.sh <文档 ...>      缺省＝note/04 note/02 note/进度/00_总览.md 与 SCAN集成/设计/*.md
-#   环境变量：VCC_MAX（明细最多列几条，缺省 20）｜VCC_ROOT（仓根，缺省 /home/ros1-slam）
-#   退出码：0 无 RED 无 AMBER｜5 有 AMBER（口径松）｜6 有 RED（引文硬错）｜9 前置缺失或自标定不过
+#   环境变量：VCC_MAX（明细最多列几条，缺省 20）｜VCC_ROOT（仓根，缺省 /home/ros1-slam）｜VCC_MIN_CENSUS（★R407 根自检阈值，缺省 1000 个可见文件）
+#   退出码：0 无 RED 无 AMBER｜5 有 AMBER（口径松）｜6 有 RED（引文硬错）｜9 前置缺失或自标定不过（★R407 起新增一条 9 的触发＝根不是仓身：note/ 或 ws/ 缺失或是符号链接、或 os.walk 可见文件数 < 阈值 ⇒ ★当场拒跑、★不产出任何 RED/AMBER/OK 读数；缘由见 note/02 坑66 追加例第二条与 05 追加四十一 补例＝缺省根在异机是符号链接视图、而 os.walk 默认不跟随链接 ⇒ 面近乎空 ⇒ 引用解析失败被降级成 AMBER、RED 被抹成 0）
 # 性质：零 ROS 节点、零链窗、零写盘（临时件在 /tmp，跑完即删）、无 sudo。
 set -u
 ROOT="${VCC_ROOT:-/home/ros1-slam}"
@@ -284,6 +284,48 @@ def judge(text, root=ROOT):
     return red, amber + amb, fixup, ok, total, len(info), len(info)
 
 
+# ============================ ★R407 根的完整性自检（真人 2026-10-18 到签＝甲）============================
+# 为什么要有：件内缺省根写死开发侧路径（坑66）。异机上那个路径往往"存在、但整棵是符号链接视图"，
+#   而 build_index() 用的 os.walk ★默认不跟随符号链接 ⇒ 普查面从万级缩到百级 ⇒ 目标解析不到的那些引用
+#   被归成 AMBER 而不是 RED ⇒ RED 恒 0、闸只报"有 AMBER"，把"引用面已核"这个含义悄悄抽空（现跑：
+#   正确根 OK=628/RED=7/rc=6 ‖ 符号链接根 OK=131/RED=0/AMBER=554/rc=5）。
+# 边界：★只读；★不改 RED/AMBER/OK 的判据本体；★不改 0/5/6 语义；只给"根不是仓身"这一种情形加一条 rc=9
+#   （＝与 v_citation_refscan.sh 的 rc=9 同形＝好的失败方向：宁可拒跑，不出失真读数）。
+MIN_CENSUS = int(os.environ.get('VCC_MIN_CENSUS', '1000'))
+
+
+def census_size(root):
+    """与 build_index() 用★同一套遍历语义（含同样的目录剪枝），数"本件真正看得见多少文件"。"""
+    n = 0
+    for _dp, _dn, _fn in os.walk(root):
+        _dn[:] = [d for d in _dn if d not in ('.git', '__pycache__', 'build', 'devel')]
+        n += len(_fn)
+    return n
+
+
+def root_guard(root):
+    """返回 (不合格原因列表, 可见文件数)。原因空＝根是仓身、可以跑。"""
+    bad = []
+    for sub in ('note', 'ws'):
+        p = os.path.join(root, sub)
+        if not os.path.isdir(p):
+            bad.append('%s/ 不在位' % sub)
+        elif os.path.islink(p):
+            bad.append('%s/ 是符号链接（视图、非仓身）' % sub)
+    c = census_size(root)
+    if c < MIN_CENSUS:
+        bad.append('可见文件数 %d < 阈值 %d（os.walk 不跟随符号链接 ⇒ 面近乎空）' % (c, MIN_CENSUS))
+    return bad, c
+
+
+_bad, _c = root_guard(ROOT)
+print('[根自检] 根=%s 可见文件=%d 阈值=%d ⇒ %s' % (ROOT, _c, MIN_CENSUS, u'OK' if not _bad else u'★拒跑'))
+if _bad:
+    print('[根自检] ★前置缺失：%s' % u'；'.join(_bad))
+    print('VCC VERDICT rc=9')
+    sys.exit(9)
+
+
 if MODE == 'selftest':
     tmp = tempfile.mkdtemp(prefix='vcc_p1_')
     npass = nfail = 0
@@ -437,7 +479,26 @@ if MODE == 'selftest':
         finally:
             ROOT = _root_bak
             USED_PATHS.clear(); USED_PATHS.update(_used_bak)
-        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11]); nfail = 11 - npass
+        # C12（★R407 随自检同批新增的阳性对照）＝根的自检必须"能拦假根、也能放真根"，否则它就是摆设或永红。
+        fake = tempfile.mkdtemp(prefix='vcc_c12_')
+        try:
+            _body = os.path.join(fake, 'body')
+            os.makedirs(_body)
+            for _i in range(3):
+                open(os.path.join(_body, 'f%d.txt' % _i), 'w').write('x\n')
+            os.symlink(_body, os.path.join(fake, 'note'))
+            os.symlink(_body, os.path.join(fake, 'ws'))
+            bad12, c12 = root_guard(fake)
+            ok12 = bool(bad12)
+            print('[%s] C12 假根（note/ws 皆为符号链接＋可见文件极少）须被根自检拦下：可见文件=%d 原因=%s'
+                  % ('PASS' if ok12 else 'FAIL', c12, u'；'.join(bad12) or u'无'))
+        finally:
+            shutil.rmtree(fake, ignore_errors=True)
+        bad12b, c12b = root_guard(ROOT)
+        ok12b = not bad12b
+        print('[%s] C12 真根须通过根自检（★不过则本闸成永红摆设）：可见文件=%d 阈值=%d'
+              % ('PASS' if ok12b else 'FAIL', c12b, MIN_CENSUS))
+        npass = sum([ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok12b]); nfail = 13 - npass
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print('VCC SELFTEST VERDICT: PASS=%d FAIL=%d' % (npass, nfail))
