@@ -331,26 +331,29 @@ def selftest():
           r_lB['k0'] == 1, 'k0=%d truncated=%s' % (r_lB['k0'], r_lB['truncated']))
 
     # T-m ★main() 面派生读数的断言（真人 2026-10-18 到签①＝抽函数＋补断言；抓 r392 全表最后两枚存活 N17／N18）
-    #   夹具＝一格贴地多层（low==k0）＋一格台阶多层（low==k0+1）＋一格连续填充柱（★抓"漏掉非连续护栏"那族），
-    #   前两格空板数同为 2 ⇒ 判据放宽一板／空板式去掉 +1／摘掉 `~contiguous` 都必红。
+    #   夹具＝一格贴地多层（low==k0、空板 2）＋一格台阶多层（low==k0+1）＋一格连续填充柱（★抓"漏掉非连续护栏"那族）
+    #        ＋★一格"接地、恰 1 空板"的多层格（R397 第五位实例要件＝破 `mg_n==mg2_n` 打平 ⇒ 抓 D8 返回元组对调）。
     r_dm = rasterize(_cloud([[0.00, 0.00, 0.10, 0], [0.00, 0.00, 0.40, 0],
                              [1.00, 1.00, 0.20, 0], [1.00, 1.00, 0.50, 0],
-                             [2.00, 2.00, 0.10, 0], [2.00, 2.00, 0.20, 0], [2.00, 2.00, 0.30, 0]]),
+                             [2.00, 2.00, 0.10, 0], [2.00, 2.00, 0.20, 0], [2.00, 2.00, 0.30, 0],
+                             [3.00, 3.00, 0.10, 0], [3.00, 3.00, 0.35, 0]]),
                      res=0.05, z_min=0.0, z_max=1.2, slab=0.10, z_ground=0.1)
     mg_n, mg2_n, ngap = derived_counts(r_dm)
     i_p = _cell_of(r_dm, 0.00, 0.00)
     i_q = _cell_of(r_dm, 1.00, 1.00)
     i_s = _cell_of(r_dm, 2.00, 2.00)
-    check('T-m 派生判据有牙：接地多层候选=1 ‖ 空板>=2 者=1（★台阶格 low==k0+1 与连续填充柱都必须被排除＝抓 N17／N19）',
-          mg_n == 1 and mg2_n == 1,
-          'mg=%d mg2=%d 贴地格 low=%d 台阶格 low=%d 连续柱 n_slab=%d contiguous=%s k0=%d'
+    i_t = _cell_of(r_dm, 3.00, 3.00)
+    check('T-m 派生判据有牙：接地多层候选=2 ‖ 空板>=2 者=1（★两数不得相等＝抓 D8 返回序对调；台阶格与连续柱须被排除＝抓 N17／N19）',
+          mg_n == 2 and mg2_n == 1,
+          'mg=%d mg2=%d 贴地两层格 low=%d 台阶格 low=%d 连续柱 n_slab=%d 接地单层空板格 low=%d k0=%d'
           % (mg_n, mg2_n, int(r_dm['low'][i_p]), int(r_dm['low'][i_q]),
-             int(r_dm['n_slab'][i_s]), bool(r_dm['contiguous'][i_s]), r_dm['k0']))
-    check('T-m 夹具几何前提自证（★证上一条不是恒真摆设，且空板式带 +1＝抓 N18）',
-          int(ngap[i_p]) == 2 and int(ngap[i_q]) == 2 and int(ngap[i_s]) == 0
-          and int(r_dm['low'][i_p]) == r_dm['k0'] and int(r_dm['low'][i_q]) == r_dm['k0'] + 1,
-          '空板数[贴地]=%d 空板数[台阶]=%d 空板数[连续柱]=%d（★去掉板式里的 +1 ⇒ 前两条同变 1⇒mg2 变 0＝本枚必红）'
-          % (int(ngap[i_p]), int(ngap[i_q]), int(ngap[i_s])))
+             int(r_dm['n_slab'][i_s]), int(r_dm['low'][i_t]), r_dm['k0']))
+    check('T-m 夹具几何前提自证（★证上一条不是恒真摆设：空板式带 +1＝抓 N18／D4；阈值 2 与 3 有别＝抓 N20／D6）',
+          int(ngap[i_p]) == 2 and int(ngap[i_q]) == 2 and int(ngap[i_s]) == 0 and int(ngap[i_t]) == 1
+          and int(r_dm['low'][i_p]) == r_dm['k0'] and int(r_dm['low'][i_q]) == r_dm['k0'] + 1
+          and int(r_dm['low'][i_t]) == r_dm['k0'],
+          '空板数[贴地两层]=%d [台阶两层]=%d [连续柱]=%d [接地单层空板]=%d'
+          % (int(ngap[i_p]), int(ngap[i_q]), int(ngap[i_s]), int(ngap[i_t])))
 
     lines.append('  合计 PASS=%d FAIL=%d' % (ok, fail))
     return ok, fail, lines
