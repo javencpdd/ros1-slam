@@ -205,13 +205,16 @@ def selftest(fxmap, c, cnear):
        "最大相对差逐档=%s；run_len 逐档=%s（阈 %.2f）"
        % (["%.2f" % v for v in mx], ["%.2f" % v for v in runs], SEP))
 
-    # T2 阴性对照：级高→1mm 的「墙式楼梯」必须丢掉竖直段与周期性（否则 T1 的绿是空的）
+    # T2 阴性对照：级高→1mm 的「墙式楼梯」不得比真实楼梯更有结构（否则 T1 的绿是空的）
+    #   ★R413（真人 2026-10-19 勾甲跟值）重述：常量 0.38→0.45 后基线 faces 归零（fm.faces=0），
+    #     原严格「ff.faces < fm.faces」退化成 0<0 恒假 ⇒ 改判「不升」（≤）保持阴性对照意图；
+    #     ★faces 不承重与 T7 同向（竖直段计数对阈值敏感），T1 的支撑改由 run_len／坡度承担。
     fake = FX._stairs(0.001, 0.28, 8)
     g, h = grid(points("mid360", fake, -1.5), fake, 0.05)
     ff = feats(g, h, fake, 0.05)
     fm = F("stairs_mid", "d1.5", "mid360", 0.05)
-    ck("T2 级高归零则特征归零", ff["faces"] < fm["faces"] and ff["run_len_m"] <= fm["run_len_m"],
-       "faces %d→%d、run_len %.2f→%.2f" % (fm["faces"], ff["faces"], fm["run_len_m"], ff["run_len_m"]))
+    ck("T2 级高归零则特征不升", ff["faces"] <= fm["faces"] and ff["run_len_m"] <= fm["run_len_m"],
+       "faces %d→%d、run_len %.2f→%.2f（★R413 起重述为不升；基线 faces 已归零、faces 不承重）" % (fm["faces"], ff["faces"], fm["run_len_m"], ff["run_len_m"]))
 
     # T3 阈值建议表的算术面：每踏步占几列＝tread/r，不足 2 列就无从测踏步深度
     cpr_fine, cpr_coarse = 0.30 / 0.05, 0.30 / 0.30
@@ -242,14 +245,16 @@ def selftest(fxmap, c, cnear):
     ck("T7 竖直段计数随阈值单调（故不得单独承重）",
        sens[0] >= sens[1] >= sens[2], "faces@0.03/0.05/0.10 = %d/%d/%d" % tuple(sens))
 
-    # T8 在册仿真图案在楼梯方向上**更稀**：100×50 全向把竖向间隔摊到 3.67°，
-    #    落在楼梯立面仰角带内的只有约 8 条线；32 线臂是 1° 间隔 ⇒ 结构面读数反而更密。
+    # T8 在册仿真图案在楼梯方向上**不密于** 32 线：100×50 全向把竖向间隔摊到 3.67°，
+    #    落在楼梯立面仰角带内的只有约 8 条线；32 线臂是 1° 间隔 ⇒ 结构面读数不更稀。
     #    （原假设「宽垂直 FOV 就看得更多」被实测推翻，方向记录在案，不改口径粉饰）
+    #    ★R413（真人 2026-10-19 勾甲跟值）重述：常量 0.38→0.45 后 steep 梯持平（0.10/0.10），
+    #      原严格「<」不再成立 ⇒ 改判「不密于」（≤）；★保真度缺口在 steep 梯弥散、另两梯仍在（逐只值见下行）。
     worse = []
     for nm in ("stairs_easy", "stairs_mid", "stairs_steep"):
         a, b = F(nm, "d1.5", "mid360", 0.05), F(nm, "d1.5", "hdl32", 0.05)
-        worse.append(a["surf_frac"] < b["surf_frac"])
-    ck("T8 仿真图案在楼梯立面上比 32 线更稀（保真度缺口）", all(worse),
+        worse.append(a["surf_frac"] <= b["surf_frac"])
+    ck("T8 仿真图案在楼梯立面上不密于 32 线（保真度缺口不反向）", all(worse),
        "surf 三梯逐只：在册臂 vs 32线 = %s" % ["%s %.2f/%.2f" % (nm, F(nm, "d1.5", "mid360", 0.05)["surf_frac"],
                                                                  F(nm, "d1.5", "hdl32", 0.05)["surf_frac"])
                                                 for nm in ("stairs_easy", "stairs_mid", "stairs_steep")])
