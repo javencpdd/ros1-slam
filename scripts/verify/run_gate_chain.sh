@@ -40,7 +40,10 @@ run_one() { # 代号 件路径 rc语义
     ISO)   ( cd "$ROOT" && set +u; . /opt/ros/noetic/setup.bash; . ws/devel/setup.bash; export PYTHONNOUSERSITE=1; bash "$path" ) > "$out" 2>&1 ;;
     # ★R326（主理人 2026-10-15 16:05 明令成员 8→10）新增两条**跑法**分支：不改任何件、不改任何件的 rc 语义，
     #   只是让第 9／10 件能被串跑到、且跑在写死的面上（VCC 件内缺省面＝42 件≠存量表的 claim_face 70 件 ⇒ 必须显式喂，否则跨面混引）。
-    VCC)   ( cd "$ROOT" && bash "$path" $(grep -vE '^ *(#|$)' scripts/verify/claim_face.txt) ) > "$out" 2>&1 ;;
+    # ★R400（主理人 2026-10-18 到签＝甲）＝VCC 这一支补 `VCC_ROOT="$ROOT"`：件内缺省根写死 `/home/ros1-slam`，在异机（含本仓容器）那是
+    #   一份靠符号链接的旧视图 ⇒ 不设根时目标解析不到、被归 AMBER 而非 RED（现跑同张面：正确根 RED=7／rc=6 ‖ 缺省根 RED=0／AMBER=554／rc=5）。
+    #   ★只改传根，不改成员、不改任何件的 rc 语义；后果＝本仓 VCC 由 5 变 6（真现 7 条 RED），基线换档已按 04 R400 并报。
+    VCC)   ( cd "$ROOT" && VCC_ROOT="$ROOT" bash "$path" $(grep -vE '^ *(#|$)' scripts/verify/claim_face.txt) ) > "$out" 2>&1 ;;
     规矩⑨) ( cd "$ROOT" && python3 "$path" ) > "$out" 2>&1 ;;
     *)     ( cd "$ROOT" && bash "$path" ) > "$out" 2>&1 ;;
   esac
@@ -53,7 +56,7 @@ run_one() { # 代号 件路径 rc语义
 echo "== 门禁串逐件（$(date '+%F %H:%M')，身份 $(whoami)）｜成员名单＝$CHAIN（$(face_count "$CHAIN") 行）=="
 echo "   面：syn_face=$(face_count "$ROOT/scripts/verify/syn_face.txt") pyst_face=$(face_count "$ROOT/scripts/verify/pyst_face.txt") parity_face=$(face_count "$ROOT/scripts/verify/parity_face.txt") claim_face=$(face_count "$ROOT/scripts/verify/claim_face.txt")"
 echo "   窗数回执＝$(face_count "$ROOT/scripts/verify/_window_receipt.tsv") 行（A27 口径）"
-echo "   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／VAR／账构：直接 bash 件｜R326 起两件＝VCC：bash 件＋显式喂 claim_face.txt（门用面写死，件内缺省面只有 42 件）｜规矩⑨：python3 件（件内缺省面＝claim_face.txt）"
+echo "   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／VAR／账构：直接 bash 件｜R326 起两件＝VCC：bash 件＋显式喂 claim_face.txt（门用面写死，件内缺省面只有 42 件）＋VCC_ROOT＝仓根（R400 甲，★不设则件内缺省 /home/ros1-slam 在异机是旧视图、会把 RED 抹成 0）｜规矩⑨：python3 件（件内缺省面＝claim_face.txt）"
 while IFS=$'\t' read -r n tag path sem; do
   case "$n" in ''|'#'*) continue ;; esac
   if [ -n "${GATE_ONLY:-}" ] && ! printf '%s' ",$GATE_ONLY," | grep -q ",$tag,"; then continue; fi

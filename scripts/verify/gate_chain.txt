@@ -17,3 +17,6 @@
 8	账构	scripts/verify/v_ledger_batch_consistency.sh	0＝仅存量／5＝FAIL 集命中新增／9＝缺存量表不判
 9	VCC	scripts/verify/v_citation_check.sh	0 干净／5 有 AMBER／6 有 RED／9 前置缺失（件自报串逐字＝「VCC VERDICT rc=N（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）」；★只报不判照运行器；存量表 vcc_known_findings.tsv）
 10	规矩⑨	scripts/verify/v_claim_field_audit.py	0＝只报不拦（报了行也返 0）／9＝前置缺失（件自报串逐字＝「CLAIMAUDIT VERDICT: rc=0（本件只报不拦，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）」；★只报不判照运行器；存量表 claim_audit_known_lines.tsv）
+# ★另起句指针（R400 追加，原第 9 行调用式说明一字不回改）＝VCC 这一支自 R400 起由运行器补 `VCC_ROOT="$ROOT"`（真人 2026-10-18 到签＝甲）。
+#   理由与现跑＝件内缺省根写死 /home/ros1-slam，在 x86 容器里那是靠符号链接的旧视图（note/data/docker 有链、ws 等无）⇒ 同张 71 面：缺省根 RED=0 AMBER=554 rc=5 ‖ 正确根 RED=7 AMBER=44 rc=6。
+#   ★基线换档（在册读数）＝VCC 由「5＝在册基线」改为「6＝在册基线（7 条 RED 全属异机目标差，逐条见 04 R400）」；成员数仍 10、任何件的 rc 语义未动。
