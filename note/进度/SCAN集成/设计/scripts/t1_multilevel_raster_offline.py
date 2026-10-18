@@ -157,6 +157,17 @@ def rasterize(pts, res=RES, z_min=Z_MIN, z_max=Z_MAX, slab=Z_SLAB, z_ground=None
             'n_points_out_of_z': n_out_of_z}
 
 
+def derived_counts(r):
+    """真数据打印面的派生读数（★判据真身在此、`main()` 只打印＝真人 2026-10-18 到签①"抽函数＋补断言"）。
+
+    返回 (接地多层候选格数, 其中空板>=2 板者格数, 每格空板数数组)。小张建议的桥洞可引口径；
+    ★不改任何在册旗标定义（`multi_layer`／`suspended` 仍是 A50 待裁旗标）、★不改窗常量与门值。
+    """
+    n_gap = (r['high'] - r['low'] + 1) - r['n_slab']
+    mg = (r['n_slab'] >= 2) & ~r['contiguous'] & (r['low'] <= r['k0'])
+    return int(mg.sum()), int((mg & (n_gap >= 2)).sum()), n_gap
+
+
 def _lowest_bit(mask):
     m = mask.astype(np.int64, copy=True)
     out = np.zeros_like(m)
@@ -319,6 +330,28 @@ def selftest():
     check('T-l B 正半板比值 +1.5 ⇒ k0=1（floor；round 得 2 ⇒ 本枚必红）',
           r_lB['k0'] == 1, 'k0=%d truncated=%s' % (r_lB['k0'], r_lB['truncated']))
 
+    # T-m ★main() 面派生读数的断言（真人 2026-10-18 到签①＝抽函数＋补断言；抓 r392 全表最后两枚存活 N17／N18）
+    #   夹具＝一格贴地多层（low==k0）＋一格台阶多层（low==k0+1）＋一格连续填充柱（★抓"漏掉非连续护栏"那族），
+    #   前两格空板数同为 2 ⇒ 判据放宽一板／空板式去掉 +1／摘掉 `~contiguous` 都必红。
+    r_dm = rasterize(_cloud([[0.00, 0.00, 0.10, 0], [0.00, 0.00, 0.40, 0],
+                             [1.00, 1.00, 0.20, 0], [1.00, 1.00, 0.50, 0],
+                             [2.00, 2.00, 0.10, 0], [2.00, 2.00, 0.20, 0], [2.00, 2.00, 0.30, 0]]),
+                     res=0.05, z_min=0.0, z_max=1.2, slab=0.10, z_ground=0.1)
+    mg_n, mg2_n, ngap = derived_counts(r_dm)
+    i_p = _cell_of(r_dm, 0.00, 0.00)
+    i_q = _cell_of(r_dm, 1.00, 1.00)
+    i_s = _cell_of(r_dm, 2.00, 2.00)
+    check('T-m 派生判据有牙：接地多层候选=1 ‖ 空板>=2 者=1（★台阶格 low==k0+1 与连续填充柱都必须被排除＝抓 N17／N19）',
+          mg_n == 1 and mg2_n == 1,
+          'mg=%d mg2=%d 贴地格 low=%d 台阶格 low=%d 连续柱 n_slab=%d contiguous=%s k0=%d'
+          % (mg_n, mg2_n, int(r_dm['low'][i_p]), int(r_dm['low'][i_q]),
+             int(r_dm['n_slab'][i_s]), bool(r_dm['contiguous'][i_s]), r_dm['k0']))
+    check('T-m 夹具几何前提自证（★证上一条不是恒真摆设，且空板式带 +1＝抓 N18）',
+          int(ngap[i_p]) == 2 and int(ngap[i_q]) == 2 and int(ngap[i_s]) == 0
+          and int(r_dm['low'][i_p]) == r_dm['k0'] and int(r_dm['low'][i_q]) == r_dm['k0'] + 1,
+          '空板数[贴地]=%d 空板数[台阶]=%d 空板数[连续柱]=%d（★去掉板式里的 +1 ⇒ 前两条同变 1⇒mg2 变 0＝本枚必红）'
+          % (int(ngap[i_p]), int(ngap[i_q]), int(ngap[i_s])))
+
     lines.append('  合计 PASS=%d FAIL=%d' % (ok, fail))
     return ok, fail, lines
 
@@ -391,11 +424,9 @@ def main(argv=None):
                  gmark(a.anchor)))
         print('T1_PCD 另有（不是多层）＝板数>=2 的格=%d、连续填充的格=%d（单位：格；★R295／R297 那两个"多层"数用的是这个 >=2 板口径、当时 high 有缺陷，见 R299 勘误）'
               % (int((r['n_slab'] >= 2).sum()), int(r['contiguous'].sum())))
-        n_gap = (r['high'] - r['low'] + 1) - r['n_slab']
-        mg = (r['n_slab'] >= 2) & ~r['contiguous'] & (r['low'] <= r['k0'])
-        mg2 = mg & (n_gap >= 2)
+        mg_n, mg2_n, _ngap = derived_counts(r)     # ★判据真身在 derived_counts、本行只打印（R395 抽函数）
         print('T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=%d 格、其中空板>=2 板者=%d 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形%s'
-              % (int(mg.sum()), int(mg2.sum()), gmark(a.anchor)))
+              % (mg_n, mg2_n, gmark(a.anchor)))
         print('T1_PCD 耗时=%.1f s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）'
               % (time.time() - t0))
         print('T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）')
