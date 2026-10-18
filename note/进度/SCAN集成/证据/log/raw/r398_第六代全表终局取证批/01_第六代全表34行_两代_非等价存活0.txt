@@ -1,0 +1,119 @@
+# r398 · 第六代全表重跑（34 行）·两代·★非等价存活 0＝追环终局取证
+# 生成时刻（两基并标）：宿主 2026-10-18 16:47:57 CST ‖ 容器 UTC 2026-10-18 08:47:57 UTC；机名＝jack
+# 触发＝真人 2026-10-18 到签＝D9 取「甲：做（抽打印函数＋比对串内数）」
+# 件面＝24	3	note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py；★只动 t1 一枚件（t2 sha 与 R393—R397 各段声称值逐字同＝② 裁定的"不动它"继续保持）
+# 现读 sha 前 16：
+8de9c3a914b639b5  t1_multilevel_raster_offline.py
+e2afc29f383d12ea  t2_placeholder_zeros_and_tristate_offline.py
+38e5963c67226bd7  t3_decidable_input_offline.py
+2811115949feb70c  derive_stvl_mark.py
+cbf06584e453fea3  probe_x2_fourcells.sh
+
+### §1 本批落形逐字（★打印与判据同源＝抓 D9）
+  新增 `REF_LINE_FMT` ＋ `ref_line_text(r, anchor_mark)`（t1:171—181＝`REF_LINE_FMT`＋`ref_line_text`）＝参考行整行文本由 `derived_counts()` 直接产出；
+  `main()` 侧改为 `print(ref_line_text(r, gmark(a.anchor)))`（t1:453）＝★main 里不再存在可单独对调的两个参数位；
+  自测补 `T-n` 两枚（t1:373 与 376）＝①串内的「=%d 格、其中空板>=2 板者=%d 格」片段必须等于 `derived_counts` 返回值（★对调即不等）；②旁报形尾巴只随 `anchor_mark` 出（given 不带、ground 带＝防"两边都贴"造假禁令）。
+  ★`derived_counts()` 本体一字未动、★`REF_LINE_FMT` 的字面与原 print 串逐字同＝排版文本零改动。
+
+### §2 真数据回归（在册基、未变异、两形逐字）
+    [ground] T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=2308 格、其中空板>=2 板者=1876 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+    [given] T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=1730 格、其中空板>=2 板者=1224 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形
+  ⇒ 与 R397／R395 留底逐字同＝`ground 2308/1876` ‖ `given 1730/1224` ⇒ ★本批★未改任何对外读数。
+
+### §3 两代自测逐值（在册目录直跑、逐字）
+  [宿主] T1_SELFTEST PASS=32 FAIL=0 rc=0
+  [宿主] T2_SELFTEST PASS=18 FAIL=0 rc=0
+  [宿主] T3_SELFTEST PASS=18 FAIL=0 rc=0
+  [容器] T1_SELFTEST PASS=32 FAIL=0 rc=0
+  [容器] T2_SELFTEST PASS=18 FAIL=0 rc=0
+  [容器] T3_SELFTEST PASS=18 FAIL=0 rc=0
+  ⇒ T1 30→★32/0 rc=0（新增 T-n 两枚）‖ T2 18/0 ‖ T3 18/0，两代逐值同。
+
+### §4 第六代全表·宿主代（Python 3.13.13／numpy 2.5.3）
+  # 工作目录=/tmp/r398_host  Python=3.13.13  numpy=2.5.3  ★在册件只读  枚数=34
+  CTRL  面=CTRL T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ 红=无 ｜ 改后现件字面（★期望两代 t2 17/0）
+  M1    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 阈值 <（第三轮枚·对照）
+  M2    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 恒置 0（对照）
+  M3    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 反写 >=（对照）
+  M4    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 返回值 covered‖grounded 互换（对照）
+  M5    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=16 FAIL=2 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-k,T2-l ｜ 谓词数组 r[low]→r[high]（★第三轮存活枚·对照）
+  M6    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ k0 取反（对照）
+  M7    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=13 FAIL=5 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-b,T2-i,T2-j,T2-k,T2-l ｜ covered>1（对照）
+  N1    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=17 FAIL=1 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-l ｜ ★新：接地阈值放宽一板（低≤k0+1；= "抬高一板的台阶也算接地"）
+  N2    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=17 FAIL=1 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-l ｜ ★新：接地阈值放宽两板
+  N3    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ ★新：谓词同时取错数组＋反写（high>=k0）
+  N4    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=16 FAIL=2 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-k,T2-l ｜ ★新：只算连续填充柱（多板柱被漏计）
+  N5    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=0 t2=0 ｜ ★存活 ｜ ★新（等价候选·校准）：covered 改由 n_slab 反推
+  N6    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ t2 NO-SUMMARY rc=1（★执行面崩＝INVALID、非断言拦下） ｜ rc:t1=0 t2=1 ｜ ★INVALID（崩） ｜ ★新：相邻读数 unknown 改由 grounded 反推
+  N7    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ ★新：grounded≡covered（整格集合原样返回）
+  N8    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=17 FAIL=1 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j ｜ ★新：只算多板柱接地（单板的贴地格被漏计）
+  N9    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=11 FAIL=7 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-b,T2-c,T2-i,T2-j,T2-k,T2-l ｜ ★新：返回值 unknown‖grounded 互换
+  N10   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-l ｜ ★新：k0 取整 floor→round（地面板号口径）｜真数据 given 参考行=1870/1311
+  N11   面=t1 T1_SELFTEST PASS=29 FAIL=3 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-k,T-l ｜ ★新：k0 取整 floor→ceil｜真数据 given 参考行=1870/1311
+  N12   面=t1 T1_SELFTEST PASS=31 FAIL=1 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-l ｜ ★新：k0 取整 floor→截断 int()（负值差一板）｜真数据 given 参考行=1730/1224
+  N13   面=t1 T1_SELFTEST PASS=31 FAIL=1 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-i ｜ ★新：z 板位量化 floor→round（落在半板界的点被挪一格板）｜真数据 given 参考行=1535/1073
+  N14   面=t1 T1_SELFTEST PASS=27 FAIL=5 rc=1 ‖ T2_SELFTEST PASS=16 FAIL=2 rc=1 ｜ rc:t1=1 t2=1 ｜ 被抓→T-i,T-m,T-n,T2-k,T2-l ｜ ★新：_lowest_bit 取整柱最高置位（low≡high）｜真数据 given 参考行=1109/0
+  N15   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-a,T-g ｜ ★新：悬挑判据 > → >=（相邻读数面）｜真数据 given 参考行=1730/1224
+  N16   面=t1 T1_SELFTEST PASS=27 FAIL=5 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-i,T-m,T-n ｜ ★新：_highest_bit 改回降序（R299 在册缺陷复现）｜真数据 given 参考行=3936/0
+  N17   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ mg 判据放宽一板（＝她 D1）｜真数据 given 参考行=1870/1311
+  N18   面=t1 T1_SELFTEST PASS=29 FAIL=3 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 空板式去掉 +1（＝她 D4）｜真数据 given 参考行=1730/849
+  N19   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 摘掉 ~contiguous 护栏（＝她 D7）｜真数据 given 参考行=3936/1224
+  N20   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 空板阈值 2→3（＝她 D6）｜真数据 given 参考行=1730/849
+  D2    面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 她 D2：接地判据收紧一档｜真数据 given 参考行=1109/795
+  D3    面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 她 D3：摘掉接地 k0 项｜真数据 given 参考行=2061/1375
+  D5    面=t1 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=0 t2=0 ｜ ★存活 ｜ 她 D5：板数阈值 2→1（等价候选）｜真数据 given 参考行=1730/1224
+  D8    面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 她 D8：返回元组对调（R397 已堵）｜真数据 given 参考行=1224/1730
+  D9    面=t1 T1_SELFTEST PASS=31 FAIL=1 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-n ｜ ★★她 D9＝锚点搬家版（原在 main 打印位、R398 抽进 ref_line_text）：排版与判据对调｜真数据 given 参考行=1224/1730
+  E3    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 她 E3：t2 摘掉接地 k0 项
+
+### §5 第六代全表·容器代（在册基 Python 3.8.10／numpy 1.19.4）
+  # 工作目录=/tmp/r398_ctr  Python=3.8.10  numpy=1.19.4  ★在册件只读  枚数=34
+  CTRL  面=CTRL T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ 红=无 ｜ 改后现件字面（★期望两代 t2 17/0）
+  M1    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 阈值 <（第三轮枚·对照）
+  M2    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 恒置 0（对照）
+  M3    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 反写 >=（对照）
+  M4    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 返回值 covered‖grounded 互换（对照）
+  M5    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=16 FAIL=2 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-k,T2-l ｜ 谓词数组 r[low]→r[high]（★第三轮存活枚·对照）
+  M6    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ k0 取反（对照）
+  M7    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=13 FAIL=5 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-b,T2-i,T2-j,T2-k,T2-l ｜ covered>1（对照）
+  N1    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=17 FAIL=1 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-l ｜ ★新：接地阈值放宽一板（低≤k0+1；= "抬高一板的台阶也算接地"）
+  N2    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=17 FAIL=1 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-l ｜ ★新：接地阈值放宽两板
+  N3    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ ★新：谓词同时取错数组＋反写（high>=k0）
+  N4    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=16 FAIL=2 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-k,T2-l ｜ ★新：只算连续填充柱（多板柱被漏计）
+  N5    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=0 t2=0 ｜ ★存活 ｜ ★新（等价候选·校准）：covered 改由 n_slab 反推
+  N6    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ t2 NO-SUMMARY rc=1（★执行面崩＝INVALID、非断言拦下） ｜ rc:t1=0 t2=1 ｜ ★INVALID（崩） ｜ ★新：相邻读数 unknown 改由 grounded 反推
+  N7    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ ★新：grounded≡covered（整格集合原样返回）
+  N8    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=17 FAIL=1 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j ｜ ★新：只算多板柱接地（单板的贴地格被漏计）
+  N9    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=11 FAIL=7 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-b,T2-c,T2-i,T2-j,T2-k,T2-l ｜ ★新：返回值 unknown‖grounded 互换
+  N10   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-l ｜ ★新：k0 取整 floor→round（地面板号口径）｜真数据 given 参考行=1870/1311
+  N11   面=t1 T1_SELFTEST PASS=29 FAIL=3 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-k,T-l ｜ ★新：k0 取整 floor→ceil｜真数据 given 参考行=1870/1311
+  N12   面=t1 T1_SELFTEST PASS=31 FAIL=1 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-l ｜ ★新：k0 取整 floor→截断 int()（负值差一板）｜真数据 given 参考行=1730/1224
+  N13   面=t1 T1_SELFTEST PASS=31 FAIL=1 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-i ｜ ★新：z 板位量化 floor→round（落在半板界的点被挪一格板）｜真数据 given 参考行=1535/1073
+  N14   面=t1 T1_SELFTEST PASS=27 FAIL=5 rc=1 ‖ T2_SELFTEST PASS=16 FAIL=2 rc=1 ｜ rc:t1=1 t2=1 ｜ 被抓→T-i,T-m,T-n,T2-k,T2-l ｜ ★新：_lowest_bit 取整柱最高置位（low≡high）｜真数据 given 参考行=1109/0
+  N15   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-a,T-g ｜ ★新：悬挑判据 > → >=（相邻读数面）｜真数据 given 参考行=1730/1224
+  N16   面=t1 T1_SELFTEST PASS=27 FAIL=5 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-i,T-m,T-n ｜ ★新：_highest_bit 改回降序（R299 在册缺陷复现）｜真数据 given 参考行=3936/0
+  N17   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ mg 判据放宽一板（＝她 D1）｜真数据 given 参考行=1870/1311
+  N18   面=t1 T1_SELFTEST PASS=29 FAIL=3 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 空板式去掉 +1（＝她 D4）｜真数据 given 参考行=1730/849
+  N19   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 摘掉 ~contiguous 护栏（＝她 D7）｜真数据 given 参考行=3936/1224
+  N20   面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 空板阈值 2→3（＝她 D6）｜真数据 given 参考行=1730/849
+  D2    面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 她 D2：接地判据收紧一档｜真数据 given 参考行=1109/795
+  D3    面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 她 D3：摘掉接地 k0 项｜真数据 given 参考行=2061/1375
+  D5    面=t1 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=0 t2=0 ｜ ★存活 ｜ 她 D5：板数阈值 2→1（等价候选）｜真数据 given 参考行=1730/1224
+  D8    面=t1 T1_SELFTEST PASS=30 FAIL=2 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-m,T-n ｜ 她 D8：返回元组对调（R397 已堵）｜真数据 given 参考行=1224/1730
+  D9    面=t1 T1_SELFTEST PASS=31 FAIL=1 rc=1 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0 ｜ rc:t1=1 t2=0 ｜ 被抓→T-n ｜ ★★她 D9＝锚点搬家版（原在 main 打印位、R398 抽进 ref_line_text）：排版与判据对调｜真数据 given 参考行=1224/1730
+  E3    面=t2 T1_SELFTEST PASS=32 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=15 FAIL=3 rc=1 ｜ rc:t1=0 t2=1 ｜ 被抓→T2-j,T2-k,T2-l ｜ 她 E3：t2 摘掉接地 k0 项
+
+### §6 两代逐枚比对
+  逐行比对（各代去首行标注）＝宿主 34 行 ‖ 容器 34 行 ‖ 完全相等＝True ⇒ ★两代逐字同值
+
+### §7 当期账面（★照表报数）
+  被抓＝30 枚（★含 D8 红在 T-m＋T-n、★D9 红在 T-n）；等价存活＝2 枚（N5‖D5，各由第五位实例真数据三式同值证等价）；
+  INVALID＝1 枚（N6 执行面崩、★三态不入串）；★★非等价存活＝0 枚 ⇒ 真人 ③ 要求的「全表重跑非等价存活须为 0」本轮达成。
+  ★锚点搬家第二次披露＝D9 原锚点在 `main()` 打印位、R398 抽函数后该行消失 ⇒ 本代把锚点同步到 `ref_line_text` 的格式行；
+    跑器仍按「命中≠1 立报 INVALID」设计、★无静默失配（若搬家未同步，本代会报 INVALID 而非绿）。
+
+### §8 边界与不声称
+  ★覆盖面非穷举＝34 枚是五位实例＋施工侧四轮累积，★不声称"再无存活形"、★不声称"已完全有牙"；
+  ★等价存活两枚的"等价"判定沿用第五位实例的现跑论证（真数据三式同值），本批★未独立重证；
+  ★"非等价存活 0"＝施工侧现跑自证，★独立追认权在复验实例与真人（★是否再派第七轮由真人一句定，本批★不声称已解附）；
+  ★未开窗、未起链、无 sudo、无 FORCE=1；分档甲-离、不入在册分子、★在册三数零抬；两代读数不外推 103／Tegra。

@@ -168,6 +168,19 @@ def derived_counts(r):
     return int(mg.sum()), int((mg & (n_gap >= 2)).sum()), n_gap
 
 
+REF_LINE_FMT = (u'T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=%d 格、'
+                u'其中空板>=2 板者=%d 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形%s')
+
+
+def ref_line_text(r, anchor_mark=u''):
+    """参考行整行文本＝★让排版与判据同源（真人 2026-10-18 到签甲；抓第五位实例的 `D9`＝打印参数对调）。
+
+    数字直接取 `derived_counts()`，故 `main()` 侧不再有可单独对调的参数位。
+    """
+    mg_n, mg2_n, _ngap = derived_counts(r)
+    return REF_LINE_FMT % (mg_n, mg2_n, anchor_mark)
+
+
 def _lowest_bit(mask):
     m = mask.astype(np.int64, copy=True)
     out = np.zeros_like(m)
@@ -355,6 +368,16 @@ def selftest():
           '空板数[贴地两层]=%d [台阶两层]=%d [连续柱]=%d [接地单层空板]=%d'
           % (int(ngap[i_p]), int(ngap[i_q]), int(ngap[i_s]), int(ngap[i_t])))
 
+    # T-n ★排版与判据同源的断言（真人 2026-10-18 到签甲＝抽打印函数；抓第五位实例的 D9＝打印参数对调）
+    _mn, _m2, _ng = derived_counts(r_dm)
+    check('T-n 同源断言：参考行串内两数顺序须等于 derived_counts 返回值（★抓 D9；对调后串里成 =1 格／=2 格 ⇒ 本枚必红）',
+          (u'=%d 格、其中空板>=2 板者=%d 格' % (_mn, _m2)) in ref_line_text(r_dm) and _mn == 2 and _m2 == 1,
+          '串内片段＝…=%d 格、其中空板>=2 板者=%d 格…（★两数不等＝对调可见）' % (_mn, _m2))
+    check('T-n 对照：旁报形尾巴只随 anchor_mark 出（★given 形不得带旁报禁令＝防"两边都贴"造假禁令）',
+          (u'不得入判据读数' not in ref_line_text(r_dm))
+          and (u'不得入判据读数' in ref_line_text(r_dm, gmark('ground'))),
+          'given 串带禁令＝False（要求）‖ ground 串带禁令＝True（要求）')
+
     lines.append('  合计 PASS=%d FAIL=%d' % (ok, fail))
     return ok, fail, lines
 
@@ -427,9 +450,7 @@ def main(argv=None):
                  gmark(a.anchor)))
         print('T1_PCD 另有（不是多层）＝板数>=2 的格=%d、连续填充的格=%d（单位：格；★R295／R297 那两个"多层"数用的是这个 >=2 板口径、当时 high 有缺陷，见 R299 勘误）'
               % (int((r['n_slab'] >= 2).sum()), int(r['contiguous'].sum())))
-        mg_n, mg2_n, _ngap = derived_counts(r)     # ★判据真身在 derived_counts、本行只打印（R395 抽函数）
-        print('T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=%d 格、其中空板>=2 板者=%d 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形%s'
-              % (mg_n, mg2_n, gmark(a.anchor)))
+        print(ref_line_text(r, gmark(a.anchor)))   # ★文案与判据同源（R398 到签甲）：参数位不在 main、对调不了
         print('T1_PCD 耗时=%.1f s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）'
               % (time.time() - t0))
         print('T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）')
