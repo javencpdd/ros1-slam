@@ -170,6 +170,16 @@ def selftest():
           n_unknown + n_cov == total and n_unknown == unknown,
           '数组未知=%d 计数未知=%d 覆盖=%d 总=%d' % (n_unknown, unknown, n_cov, total))
 
+    # T2-j ★计数面阳性对照（R389 小美复验试形、本批落地）：在册唯一约束是弱不等式 grounded<=covered ⇒ 拦不住 off-by-one／恒置 0
+    sp_hi = cloud([[0.0, 0.0, 0.60, 0], [0.05, 0.0, 0.60, 0], [1.00, 1.00, 0.60, 0], [1.05, 1.00, 0.60, 0]])
+    r_hi = t1.rasterize(sp_hi, res=0.05, z_min=0.0, z_max=1.2, slab=0.1, z_ground=0.1)
+    _ta, _ca, _ua, ga = tristate_counts(r_sp)
+    _tb, _cb, _ub, gb = tristate_counts(r_hi)
+    check('T2-j 计数面 grounded 有牙：接地面=4 ‖ 同四点抬高面=0（★两读数都经生产函数 tristate_counts、★不只看弱不等式）',
+          ga == 4 and _ca == 4 and gb == 0 and _cb == 4 and bool((r_hi['low'][r_hi['covered'] > 0] > r_hi['k0']).all()),
+          'A grounded=%d covered=%d ‖ B grounded=%d covered=%d low=%s k0=%d'
+          % (ga, _ca, gb, _cb, list(r_hi['low'][r_hi['covered'] > 0]), r_hi['k0']))
+
     # T2-f 空输入必须报错，不静默产出空面
     try:
         t1.rasterize(np.zeros((0, 4)), z_min=0.0, z_max=1.2, slab=0.1)
@@ -211,7 +221,7 @@ def main(argv=None):
         r_post, removed, cell_post, zg2 = cell_of_origin(frames, res=a.res, slab=a.slab, drop=True)
         print('T2_DROP 剔零=%d 点（单位：点）；z_ground(P5，雷达系)=%.2f m ⇒ 实开窗 [%.2f, %.2f] k0=%d truncated=%s'
               % (removed, zg2, r_post['z_min'], r_post['z_max'], r_post['k0'], r_post['truncated']))
-        t1.zwin_attribution('T2', 'z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab）⇒ ★按 G-1 到签④＝**旁报形、不得入判据读数**')
+        t1.zwin_attribution('T2', 'z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）')
         print('T2_COLLAPSE 不剔零：原点格落点=%d 点／覆盖格=%d｜剔零后：原点格落点=%d／覆盖格=%d ⇒ ★零点确实全塌进 1 格'
               % (cell_pre, int((r_pre['covered'] > 0).sum()), cell_post, int((r_post['covered'] > 0).sum())))
         total, covered, unknown, grounded = tristate_counts(r_post)
@@ -223,7 +233,8 @@ def main(argv=None):
               % (unknown, 100.0 * unknown / total))
         print('T2_LAYER 多层格（中间真有空板）=%d 悬挑候选格（low>k0）=%d 板数>=2 的格=%d（单位：格）'
               % (int(r_post['multi_layer'].sum()), int(r_post['suspended'].sum()), int((r_post['n_slab'] >= 2).sum())))
-        print('T2_GRADE 分档＝甲-离（离线真数据、活体落盘的帧；★不得顶替甲-活）')
+        print('T2_GRADE 分档＝甲-离（★离线复算、★不得顶替甲-活；"活体落盘的帧"这一来历只在输入确为 R82 那批 s*.npy 时才成立、'
+              '本件无法自证输入来历 ⇒ 该行★不得当来源声明引用）；本次输入目录＝%s' % a.frames)
     if not a.selftest and not a.frames:
         print('用法：--selftest 或 --frames <R82 目录>（两者皆不传 ⇒ rc=9 前置缺失）')
         rc = 9

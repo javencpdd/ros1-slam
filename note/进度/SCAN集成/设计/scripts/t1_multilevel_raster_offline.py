@@ -22,6 +22,11 @@ RES = 0.10
 Z_MIN, Z_MAX = -0.55, 0.75   # R354 甲档在册值（★真人 2026-10-18 G-1 到签取形状甲；★引用甲档必须 --anchor given，见下 --anchor 的 help）
 Z_SLAB = 0.10
 
+def gmark(anchor):
+    u"""★R389（小美复验 Q2 残留）：ground 形的禁令要贴到**读数行本身**，given 形不贴。"""
+    return u'｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）' if anchor == 'ground' else u''
+
+
 def zwin_attribution(tag, how):
     """★R366 打印面补句（★纯口径声明、不改任何数）。
 
@@ -32,8 +37,8 @@ def zwin_attribution(tag, how):
     print('%s_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：'
           'R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；'
           '★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；'
-          '本件此行窗由%s得来、★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"'
-          % (tag, how))
+          '本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；'
+          '本行窗的来路＝%s' % (tag, how))
 
 
 # ---------- 输入面：PCD 读取（binary 与 ascii 两种 DATA）----------
@@ -353,11 +358,11 @@ def main(argv=None):
         cov = int((r['covered'] > 0).sum())
         print('T1_ZDIST z 分位（单位：m，map 系）MIN=%.2f P%.0f=%.2f P50=%.2f P95=%.2f P99=%.2f MAX=%.2f'
               % (zpct[0], a.ground_pct, zpct[1], zpct[2], zpct[3], zpct[4], zpct[5]))
-        print('T1_ZWIN 锚定=%s 垫板=%d 二元式=(z_ground=%.2f, z_range=%.2fm) ⇒ 实开窗 [%.2f, %.2f]（k0=%d 板；truncated=%s；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）'
-              % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0, zground, zmax - zmin, zmin, zmax, r['k0'], r['truncated']))
+        print('T1_ZWIN 锚定=%s 垫板=%d 二元式=(z_ground=%.2f, z_range=%.2fm) ⇒ 实开窗 [%.2f, %.2f]（k0=%d 板；truncated=%s；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）%s'
+              % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0, zground, zmax - zmin, zmin, zmax, r['k0'], r['truncated'], gmark(a.anchor)))
         zwin_attribution('T1', '锚定=%s／垫板=%s／窗宽=max_z−min_z（件内常量回写后＝1.30 m‖13 板，R377 甲档）%s'
                             % (a.anchor, a.ground_pad if a.anchor == 'ground' else 0,
-                               '｜★本行窗由实测地面分位锚定⇒**旁报形、不得入判据读数**（G-1 到签④）' if a.anchor == 'ground' else ''))
+                               gmark(a.anchor)))
         print('T1_PCD 文件=%s 声明点数=%d 实读=%d 剔零=%d 入窗=%d 窗外z=%d（单位：点；模式=%s）'
               % (a.pcd, meta['declared'], raw_total, removed, r['n_points_used'], r['n_points_out_of_z'], meta['mode']))
         print('T1_PCD 栅格=%dx%d 格（分辨率 %.2f m）z 窗 [%.2f, %.2f] 板厚 %.2f ⇒ 每格 %d 个 z 板（掩码态空间 %d＝2^%d）'
