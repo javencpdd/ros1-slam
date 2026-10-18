@@ -180,6 +180,19 @@ def selftest():
           'A grounded=%d covered=%d ‖ B grounded=%d covered=%d low=%s k0=%d'
           % (ga, _ca, gb, _cb, list(r_hi['low'][r_hi['covered'] > 0]), r_hi['k0']))
 
+    # ★T2-k（R390 小美三轮 Q1 补）：她现跑＝T2-j 对七枚变异抓 6 枚，M5（谓词数组 r['low'] 取错成 r['high']）两代均存活
+    #   （读数 1285→757＝非等价变异）。存活根因＝A／B 两面的 grounded 与 covered 要么同为 4 要么同为 0 ⇒ "把整格集合原样返回"不可分。
+    #   本枚补第三面 C＝**同格接地多板柱**（一格内既有贴地板又有上抬板：low<=k0 且 high>k0），另两格纯在上不接地
+    #   ⇒ 断言要点＝grounded 与 covered **不许相等**（1 ‖ 3）。★只追加一枚，未动 tristate_counts 本体与 T2-b／T2-h2／T2-i／T2-j。
+    sp_pi = cloud([[0.0, 0.0, 0.10, 0], [0.0, 0.0, 0.60, 0], [1.00, 1.00, 0.60, 0], [1.05, 1.00, 0.60, 0]])
+    r_pi = t1.rasterize(sp_pi, res=0.05, z_min=0.0, z_max=1.2, slab=0.1, z_ground=0.1)
+    _tc, _cc, _uc, gc = tristate_counts(r_pi)
+    check('T2-k 计数面有牙（多板柱形）：接地=1 ‖ 覆盖=3 ‖ 两者★不得相等（M5 谓词取 high 时必红）',
+          gc == 1 and _cc == 3,
+          'C grounded=%d covered=%d total=%d low=%s high=%s k0=%d'
+          % (gc, _cc, _tc, [int(x) for x in r_pi['low'][r_pi['covered'] > 0]],
+             [int(x) for x in r_pi['high'][r_pi['covered'] > 0]], r_pi['k0']))
+
     # T2-f 空输入必须报错，不静默产出空面
     try:
         t1.rasterize(np.zeros((0, 4)), z_min=0.0, z_max=1.2, slab=0.1)
@@ -216,18 +229,19 @@ def main(argv=None):
         for name, n, z, nz in per:
             print('  帧 %-14s N=%d 全零=%d 非零=%d（全零占比 %.1f%%）' % (name[:-4], n, z, nz, 100.0 * z / n))
         print('T2_ZERO_MATCH 在册＃176 期望=%d 实测=%d ⇒ %s'
-              % (a.expect_zero, tot_zero, '一致' if tot_zero == a.expect_zero else '**不一致（照实报）**'))
+              % (a.expect_zero, tot_zero, '一致' if tot_zero == a.expect_zero else '不一致（照实报）'))
         r_pre, _rm, cell_pre, zg = cell_of_origin(frames, res=a.res, slab=a.slab, drop=False)
         r_post, removed, cell_post, zg2 = cell_of_origin(frames, res=a.res, slab=a.slab, drop=True)
         print('T2_DROP 剔零=%d 点（单位：点）；z_ground(P5，雷达系)=%.2f m ⇒ 实开窗 [%.2f, %.2f] k0=%d truncated=%s'
+              '｜★本行 z 窗数值＝件内 ground 旁报形（P5 锚）、不得入判据读数（G-1 到签④）'
               % (removed, zg2, r_post['z_min'], r_post['z_max'], r_post['k0'], r_post['truncated']))
         t1.zwin_attribution('T2', 'z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）')
         print('T2_COLLAPSE 不剔零：原点格落点=%d 点／覆盖格=%d｜剔零后：原点格落点=%d／覆盖格=%d ⇒ ★零点确实全塌进 1 格'
               % (cell_pre, int((r_pre['covered'] > 0).sum()), cell_post, int((r_post['covered'] > 0).sum())))
         total, covered, unknown, grounded = tristate_counts(r_post)
         print('T2_TRISTATE 总格=%d 覆盖=%d 未知=%d 接地=%d（单位：格；守恒式 total==covered+unknown ⇒ %s）'
-              % (total, covered, unknown, grounded, '成立' if total == covered + unknown else '**破坏**'))
-        print('T2_TRISTATE ★本件不产代价、不产"可上"：未覆盖一律读作**未知**（#46）；接地格 %d 只是"最低板≤地面板 k0"的表征事实'
+              % (total, covered, unknown, grounded, '成立' if total == covered + unknown else '破坏'))
+        print('T2_TRISTATE ★本件不产代价、不产"可上"：未覆盖一律读作「未知」（#46）；接地格 %d 只是"最低板≤地面板 k0"的表征事实'
               % grounded)
         print('T2_TRISTATE 塌陷测试：若把未知 %d 格读作可上 ⇒ 自由空间虚高 %.1f%%（★这就是 #46 明令禁止的那种读法）'
               % (unknown, 100.0 * unknown / total))

@@ -1,0 +1,118 @@
+# r391 · T2-k 落地＋z 窗禁令四行补齐 · 现跑取证
+# 生成时刻（两基并标）：宿主 2026-10-18 14:46:12 CST ‖ 容器 UTC 2026-10-18 06:46:12 UTC
+# 机名（hostname 现读）＝jack
+# 宿主代＝Python 3.13.13／numpy 2.5.3
+# 容器代＝3.8.10／numpy 1.19.4
+
+### §0 在册件指纹（改后现值 ‖ R389 在册基线＝t1 135e24ff1952fbb4／395 行、t2 16a3adb8036ceb62／245 行）
+  numstat 8	6	"note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\256\276\350\256\241/scripts/t1_multilevel_raster_offline.py"
+  numstat 17	3	"note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\256\276\350\256\241/scripts/t2_placeholder_zeros_and_tristate_offline.py"
+8	6	note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+17	3	note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py
+  行数与 sha（改后）：
+  397 /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+  259 /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py
+  656 总计
+4c8865870d7d458fe3cd0ebab14b264bc6501b64d705c0913c47b1adb1bbee2d  t1_multilevel_raster_offline.py
+a8ea35a3130cef7607993f2554a372b90f5a4469521cc842f01f9cf5dedf06ce  t2_placeholder_zeros_and_tristate_offline.py
+  mode=-rw-rw-r-- size=25605
+  mode=-rw-rw-r-- size=16670
+
+### §1 宿主代三枚自测（在册目录直跑）
+T1_SELFTEST PASS=26 FAIL=0 rc=0
+T2_SELFTEST PASS=17 FAIL=0 rc=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+
+### §2 容器代三枚自测（在册基 Python 3.8.10／numpy 1.19.4）
+T1_SELFTEST PASS=26 FAIL=0 rc=0
+T2_SELFTEST PASS=17 FAIL=0 rc=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+
+### §3 新补 T2-k 逐字读数（两代）
+-- 宿主代 --
+  [PASS] T2-k 计数面有牙（多板柱形）：接地=1 ‖ 覆盖=3 ‖ 两者★不得相等（M5 谓词取 high 时必红） C grounded=1 covered=3 total=462 low=[1, 5, 5] high=[5, 5, 5] k0=1
+-- 容器代 --
+  [PASS] T2-k 计数面有牙（多板柱形）：接地=1 ‖ 覆盖=3 ‖ 两者★不得相等（M5 谓词取 high 时必红） C grounded=1 covered=3 total=462 low=[1, 5, 5] high=[5, 5, 5] k0=1
+
+### §4 变异复跑·宿主代（★只跑 /tmp/r391_host 副本，在册件未被改；CTRL＝改后现件字面）
+  CTRL | rc=0 | T2_SELFTEST PASS=17 FAIL=0 rc=0 | 红断言=
+  M1 | rc=1 | T2_SELFTEST PASS=15 FAIL=2 rc=1 | 红断言=T2-j,T2-k,
+  M2 | rc=1 | T2_SELFTEST PASS=15 FAIL=2 rc=1 | 红断言=T2-j,T2-k,
+  M3 | rc=1 | T2_SELFTEST PASS=15 FAIL=2 rc=1 | 红断言=T2-j,T2-k,
+  M4 | rc=1 | T2_SELFTEST PASS=15 FAIL=2 rc=1 | 红断言=T2-j,T2-k,
+  M5 | rc=1 | T2_SELFTEST PASS=16 FAIL=1 rc=1 | 红断言=T2-k,
+  M6 | rc=1 | T2_SELFTEST PASS=15 FAIL=2 rc=1 | 红断言=T2-j,T2-k,
+  M7 | rc=1 | T2_SELFTEST PASS=13 FAIL=4 rc=1 | 红断言=T2-b,T2-i,T2-j,T2-k,
+
+### §5 变异复跑·容器代（副本经 docker cp 置于容器 /tmp/r391_mut，跑完即删）
+%s,,: -c: line 3: unexpected EOF while looking for matching `)'
+%s,,: -c: line 4: syntax error: unexpected end of file
+
+### §6 M5 专条（上轮存活枚）现件对 M5 的逐字红行·两代
+-- 宿主 --
+  [FAIL] T2-k 计数面有牙（多板柱形）：接地=1 ‖ 覆盖=3 ‖ 两者★不得相等（M5 谓词取 high 时必红） C grounded=0 covered=3 total=462 low=[1, 5, 5] high=[5, 5, 5] k0=1
+T2_SELFTEST PASS=16 FAIL=1 rc=1
+-- 容器 --
+  [FAIL] T2-k 计数面有牙（多板柱形）：接地=1 ‖ 覆盖=3 ‖ 两者★不得相等（M5 谓词取 high 时必红） C grounded=0 covered=3 total=462 low=[1, 5, 5] high=[5, 5, 5] k0=1
+T2_SELFTEST PASS=16 FAIL=1 rc=1
+
+### §7 z 窗禁令四行补齐·真数据现跑（data/maps/lite3.pcd，6,184,931 B；容器代在册基）
+-- anchor=ground --
+T1_ZWIN 锚定=ground 垫板=1 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.09, 1.21]（k0=1 板；truncated=False；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+T1_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝锚定=ground／垫板=1／窗宽=max_z−min_z（件内常量回写后＝1.30 m‖13 板，R377 甲档）｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.09, 1.21] 板厚 0.10 ⇒ 每格 13 个 z 板（掩码态空间 8192＝2^13）｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+T1_PCD ★多层格（中间真有空板＝不连续）=2857 格 ★悬挑格（最低板>地面板 k0=1）=1527 格 ⇒ 这两类是 2.5D 单高度表达不了的场景｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=2308 格、其中空板>=2 板者=1876 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形｜★本行＝ground 旁报形、不得入判据读数（G-1 到签④）
+  ⇒ anchor=ground 含「z 窗 [」或「k0」的行=4，其中带旁报禁令=4（★given 形不贴＝设计如此）
+-- anchor=given --
+T1_ZWIN 锚定=given 垫板=0 二元式=(z_ground=0.01, z_range=1.30m) ⇒ 实开窗 [-0.55, 0.75]（k0=5 板；truncated=False；★窗口宽度沿用设计值，只换下沿锚；雷达系那组值直接用在 map 系会把大部分点判成窗外）
+T1_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝锚定=given／垫板=0／窗宽=max_z−min_z（件内常量回写后＝1.30 m‖13 板，R377 甲档）
+T1_PCD 栅格=173x250 格（分辨率 0.10 m）z 窗 [-0.55, 0.75] 板厚 0.10 ⇒ 每格 13 个 z 板（掩码态空间 8192＝2^13）
+T1_PCD ★多层格（中间真有空板＝不连续）=2061 格 ★悬挑格（最低板>地面板 k0=5）=1201 格 ⇒ 这两类是 2.5D 单高度表达不了的场景
+T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=1730 格、其中空板>=2 板者=1224 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形
+  ⇒ anchor=given 含「z 窗 [」或「k0」的行=4，其中带旁报禁令=0（★given 形不贴＝设计如此）
+
+### §8 t2 --frames 面（合成 s*.npy 三帧／各 4000 点／各 1000 占位零，★只让分支进得去、★不代在册 208,836 点引用）
+-- 宿主代全量 stdout --
+T2_FRAMES 目录=/tmp/r391_frames 帧数=3 合计点=12000 全零=3000 非零=9000（单位：点）
+  帧 s0             N=4000 全零=1000 非零=3000（全零占比 25.0%）
+  帧 s1             N=4000 全零=1000 非零=3000（全零占比 25.0%）
+  帧 s2             N=4000 全零=1000 非零=3000（全零占比 25.0%）
+T2_ZERO_MATCH 在册＃176 期望=208836 实测=3000 ⇒ 不一致（照实报）
+T2_DROP 剔零=3000 点（单位：点）；z_ground(P5，雷达系)=-0.34 m ⇒ 实开窗 [-0.44, 0.76] k0=1 truncated=False｜★本行 z 窗数值＝件内 ground 旁报形（P5 锚）、不得入判据读数（G-1 到签④）
+T2_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）
+T2_COLLAPSE 不剔零：原点格落点=3000 点／覆盖格=6242｜剔零后：原点格落点=0／覆盖格=6169 ⇒ ★零点确实全塌进 1 格
+T2_TRISTATE 总格=14520 覆盖=6169 未知=8351 接地=1108（单位：格；守恒式 total==covered+unknown ⇒ 成立）
+T2_TRISTATE ★本件不产代价、不产"可上"：未覆盖一律读作「未知」（#46）；接地格 1108 只是"最低板≤地面板 k0"的表征事实
+T2_TRISTATE 塌陷测试：若把未知 8351 格读作可上 ⇒ 自由空间虚高 57.5%（★这就是 #46 明令禁止的那种读法）
+T2_LAYER 多层格（中间真有空板）=1225 悬挑候选格（low>k0）=5061 板数>=2 的格=1444（单位：格）
+T2_GRADE 分档＝甲-离（★离线复算、★不得顶替甲-活；"活体落盘的帧"这一来历只在输入确为 R82 那批 s*.npy 时才成立、本件无法自证输入来历 ⇒ 该行★不得当来源声明引用）；本次输入目录＝/tmp/r391_frames
+-- 容器代全量 stdout --
+T2_FRAMES 目录=/tmp/r391_frames 帧数=3 合计点=12000 全零=3000 非零=9000（单位：点）
+  帧 s0             N=4000 全零=1000 非零=3000（全零占比 25.0%）
+  帧 s1             N=4000 全零=1000 非零=3000（全零占比 25.0%）
+  帧 s2             N=4000 全零=1000 非零=3000（全零占比 25.0%）
+T2_ZERO_MATCH 在册＃176 期望=208836 实测=3000 ⇒ 不一致（照实报）
+T2_DROP 剔零=3000 点（单位：点）；z_ground(P5，雷达系)=-0.34 m ⇒ 实开窗 [-0.44, 0.76] k0=1 truncated=False｜★本行 z 窗数值＝件内 ground 旁报形（P5 锚）、不得入判据读数（G-1 到签④）
+T2_ZWIN_ATTR ★z 窗引用须连带安装位 (h,θ)＋站立态（v6 §B.1.4 在册硬句／R310）：R310 三值＝h=0.45 m ‖ θ=15° ‖ 站立态（几何式在册＝正下方地面雷达系 z=−0.4347 m）；★定档甲档 [−0.55, +0.75]（13 板）现跑式在 t3 --zwin；本件此行窗★非由 (h,θ) 推得 ⇒ 两式★不得互顶、★不得据本行读作"本件窗已带口径"；本行窗的来路＝z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab＝12 板；★与 t1 当期甲档 13 板不齐＝旁报面、★不随 R377 回写、★不得入判据读数（G-1 到签④）
+T2_COLLAPSE 不剔零：原点格落点=3000 点／覆盖格=6242｜剔零后：原点格落点=0／覆盖格=6169 ⇒ ★零点确实全塌进 1 格
+T2_TRISTATE 总格=14520 覆盖=6169 未知=8351 接地=1108（单位：格；守恒式 total==covered+unknown ⇒ 成立）
+T2_TRISTATE ★本件不产代价、不产"可上"：未覆盖一律读作「未知」（#46）；接地格 1108 只是"最低板≤地面板 k0"的表征事实
+T2_TRISTATE 塌陷测试：若把未知 8351 格读作可上 ⇒ 自由空间虚高 57.5%（★这就是 #46 明令禁止的那种读法）
+T2_LAYER 多层格（中间真有空板）=1225 悬挑候选格（low>k0）=5061 板数>=2 的格=1444（单位：格）
+T2_GRADE 分档＝甲-离（★离线复算、★不得顶替甲-活；"活体落盘的帧"这一来历只在输入确为 R82 那批 s*.npy 时才成立、本件无法自证输入来历 ⇒ 该行★不得当来源声明引用）；本次输入目录＝/tmp/r391_frames
+-- 两代逐字比对 --
+  diff 空＝两代逐字同值（输入目录字面同为 /tmp/r391_frames）
+-- 打印面字面 ** 命中（两代全量 stdout）--
+  宿主＝0 容器＝0（★R390 §五③ 所列 t2:219／229／230 三行的字面 ** 现均为 0）
+
+### §9 未动面自证（在册其它件 sha 现值 ‖ R390 记录值）
+38e5963c6722 note/进度/SCAN集成/设计/scripts/t3_decidable_input_offline.py
+2811115949fe note/进度/SCAN集成/设计/scripts/derive_stvl_mark.py
+cbf06584e453 note/进度/SCAN集成/设计/scripts/probe_x2_fourcells.sh
+  gitstatus  M "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\256\276\350\256\241/scripts/t1_multilevel_raster_offline.py"
+  gitstatus  M "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\256\276\350\256\241/scripts/t2_placeholder_zeros_and_tristate_offline.py"
+
+### §10 取证边界（本脚本没测什么）
+  ★未开窗、未起链、未跑 precheck.py／fixtures.py（判据面件一字未动）；★未改 tristate_counts 本体与 T2-b／T2-h2／T2-i／T2-j 任何断言；
+  ★未动判据门值／rc 语义／串成员（10）／四张面；变异只存在于 /tmp 与容器 /tmp 副本；★不给任何"计数面已完全有牙"的结论（本轮只测了 M1—M7 七枚）。

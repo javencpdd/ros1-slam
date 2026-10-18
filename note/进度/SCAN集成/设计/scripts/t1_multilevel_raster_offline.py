@@ -365,23 +365,25 @@ def main(argv=None):
                                gmark(a.anchor)))
         print('T1_PCD 文件=%s 声明点数=%d 实读=%d 剔零=%d 入窗=%d 窗外z=%d（单位：点；模式=%s）'
               % (a.pcd, meta['declared'], raw_total, removed, r['n_points_used'], r['n_points_out_of_z'], meta['mode']))
-        print('T1_PCD 栅格=%dx%d 格（分辨率 %.2f m）z 窗 [%.2f, %.2f] 板厚 %.2f ⇒ 每格 %d 个 z 板（掩码态空间 %d＝2^%d）'
-              % (r['nx'], r['ny'], r['res'], r['z_min'], r['z_max'], r['slab'], r['nz'], 1 << r['nz'], r['nz']))
+        print('T1_PCD 栅格=%dx%d 格（分辨率 %.2f m）z 窗 [%.2f, %.2f] 板厚 %.2f ⇒ 每格 %d 个 z 板（掩码态空间 %d＝2^%d）%s'
+              % (r['nx'], r['ny'], r['res'], r['z_min'], r['z_max'], r['slab'], r['nz'], 1 << r['nz'], r['nz'],
+                 gmark(a.anchor)))
         print('T1_PCD 覆盖格=%d／总格=%d（覆盖率 %.2f%%）；z 板数分位 P50=%d P95=%d MAX=%d（单位：板／格）'
               % (cov, r['nx'] * r['ny'], 100.0 * cov / (r['nx'] * r['ny']),
                  int(np.percentile(r['n_slab'][r['covered'] > 0], 50)) if cov else -1,
                  int(np.percentile(r['n_slab'][r['covered'] > 0], 95)) if cov else -1,
                  int(r['n_slab'].max()) if cov else -1))
-        print('T1_PCD ★多层格（中间真有空板＝不连续）=%d 格 ★悬挑格（最低板>地面板 k0=%d）=%d 格 ⇒ 这两类是 2.5D 单高度表达不了的场景%s'
+        print('T1_PCD ★多层格（中间真有空板＝不连续）=%d 格 ★悬挑格（最低板>地面板 k0=%d）=%d 格 ⇒ 这两类是 2.5D 单高度表达不了的场景%s%s'
               % (int(r['multi_layer'].sum()), r['k0'], int(r['suspended'].sum()),
-                 '；★truncated=True（窗下沿截掉了地面那半板）⇒ 本行两旗标**只算候选、不得引用**' if r['truncated'] else ''))
+                 '；★truncated=True（窗下沿截掉了地面那半板）⇒ 本行两旗标只算候选、不得引用' if r['truncated'] else '',
+                 gmark(a.anchor)))
         print('T1_PCD 另有（不是多层）＝板数>=2 的格=%d、连续填充的格=%d（单位：格；★R295／R297 那两个"多层"数用的是这个 >=2 板口径、当时 high 有缺陷，见 R299 勘误）'
               % (int((r['n_slab'] >= 2).sum()), int(r['contiguous'].sum())))
         n_gap = (r['high'] - r['low'] + 1) - r['n_slab']
         mg = (r['n_slab'] >= 2) & ~r['contiguous'] & (r['low'] <= r['k0'])
         mg2 = mg & (n_gap >= 2)
-        print('T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=%d 格、其中空板>=2 板者=%d 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）'
-              % (int(mg.sum()), int(mg2.sum())))
+        print('T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=%d 格、其中空板>=2 板者=%d 格（单位：格；小张建议的桥洞可引口径，本批不改旗标定义）｜★本行 k0 随锚定形%s'
+              % (int(mg.sum()), int(mg2.sum()), gmark(a.anchor)))
         print('T1_PCD 耗时=%.1f s（本机单次，★不据此推 Tegra 结论：spike3d §4.3 那句 0.5 s/帧 门槛属活体吞吐判据、本批不测）'
               % (time.time() - t0))
         print('T1_PCD 分档＝甲-离（离线真数据；★不得顶替甲-活）；本件不出代价映射、不出可上判据（#46 三态：未覆盖＝未知，绝不塌陷成可上）')
