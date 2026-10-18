@@ -1,0 +1,14 @@
+[TF ] base_link->rslidar xyz=[0.0, 0.0, 0.34] rpy_deg=[0.0, 15.0, 0.0]
+[TF ] odom->base_link    xyz=[0.0, 0.0, 0.11] rpy_deg=[0.0, 0.0, 0.0]
+[TF ] odom->rslidar      xyz=[0.0, 0.0, 0.45] rpy_deg=[0.0, 15.0, 0.0]
+
+★活体量得＝离地 h=0.4500 m ‖ 俯仰 θ=15.000°（安装高 TF=[0.0, 0.0, 0.34]、基座稳态 z=0.11）
+
+==== ⓪槽位自检＋四项相容验算（★用活体实量 (h,θ) 喂在册式子）====
+[PASS] ⓪槽位自检：非零角必须在 pitch（第二槽）、roll/yaw 须≈0 ｜ rpy_deg=[roll=0.000, pitch=15.000, yaw=0.000]（★若 roll 非零＝角度落错槽＝雷达被侧倾而非仲俯）
+[PASS] ①地面 z 落 −0.4347±一板 ｜ z_ground=-0.4347 锚=-0.4347 差=0.0000 板厚=0.10
+[PASS] ②甲档板数＝13 ｜ nz=13（窗 [-0.55, 0.75]、板厚 0.10＝在册 t1 常量、★未改）
+[PASS] ③k0＝1 ｜ k0=1
+[PASS] ④truncated＝False ｜ truncated=False
+JSON {"base": {"rpy_deg": [0.0, 0.0, 0.0], "xyz": [0.0, 0.0, 0.11]}, "derived": {"h_live": 0.45, "k0": 1, "nfail": 0, "nz": 13, "roll_deg": 0.0, "theta_live": 15.0, "truncated": false, "yaw_deg": 0.0, "z_ground": -0.4347}, "lidar_world": {"rpy_deg": [0.0, 15.0, 0.0], "xyz": [0.0, 0.0, 0.45]}, "mount": {"rpy_deg": [0.0, 15.0, 0.0], "xyz": [0.0, 0.0, 0.34]}}
+★⓪＋四项全中 ⇒ 按真人判语＝"不是换档、是坐实"（甲档名实相符）

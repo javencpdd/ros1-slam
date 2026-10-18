@@ -13,7 +13,7 @@
            note/进度/M2/设计/m2r5_双父TF设计.md 方案 A）。
 -->
 <robot name="lite3_planar" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:property name="lidar_z" value="0.38"/><xacro:property name="lidar_pitch" value="0"/><!-- ★R403 甲′（Q-B1 载体竖向旋钮、★缺省＝原字面值 ⇒ 行为零改动）。下一步（乙）若对齐真机口径 h≈0.45 m／θ≈15°（R310）只改本行两值，俯仰★必须写成 ${radians(度数)}——rpy 单位是弧度，填字面 15 会被当 15 弧度。验收式＝只排 xacro 横幅行不够（行内注释也进展开体），须解析 XML 比结构签名。★本行刻意占掉原空行＝零插入行、★不顶走任何在册行号引用（note/02 坑61／追加三十九）。 -->
+  <xacro:property name="lidar_z" value="0.34"/><xacro:property name="lidar_pitch_deg" value="15"/><!-- ★R409 乙（真人 2026-10-19 两句到签＝★符号＝下倾 15° ‖ ★离地目标＝0.45 m）。本行存★度数与★安装高；★槽位硬约束＝rpy 三元＝(roll, pitch, yaw)＝绕 X,Y,Z，雷达前向＝+X ⇒ 要让光轴俯仰必须把角度放进★第二槽（绕 Y 的 pitch）；★放进第一槽＝把雷达侧倾（★本 boot 首刀就踩过、R409 自纠留名）。rpy 单位是弧度 ⇒ 展开处必须写 ${radians(lidar_pitch_deg)}、★不得把 15 直接填进去（那是 15 弧度）。0.34 的算法＝目标离地 0.45 − ★实测稳态基座 0.11（R405 活体窗），★不是按 spawn 初始位 0.15 推的 0.30＝★坑68 的直接兑现。 -->
   <!-- ================= 官方骨架：TORSO（保持官方名；M2R5 起非 root，恒等挂于 base_link 下） ================= -->
   <link name="TORSO">
     <inertial>
@@ -52,7 +52,7 @@
   <joint name="base_to_rslidar" type="fixed">
     <parent link="base_link"/>
     <child link="rslidar"/>
-    <origin xyz="0 0 ${lidar_z}" rpy="${lidar_pitch} 0 0"/>   <!-- ★R403 甲′：展开值＝原字面 0.38／0，行为不变 -->
+    <origin xyz="0 0 ${lidar_z}" rpy="0 ${radians(lidar_pitch_deg)} 0"/>   <!-- ★R409 乙（★第二槽＝pitch，第一槽是 roll）：展开值＝xyz "0 0 0.34" ‖ rpy "0 0.2617993877991494 0"（＝15° 下倾）。★这一行改了活体行为 ⇒ 旧读数按 az §8 冻结名单标 carrier=gen0、新读数标 gen1。 -->
   </joint>
   <link name="rslidar">
     <inertial>

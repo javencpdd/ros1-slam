@@ -1,0 +1,60 @@
+[2026-10-18 16:26:11] == 步0 预检变体当刻（在册预检本体一字未动，走 x86 变体）==
+[2026-10-18 16:26:15] 预检变体 rc=0
+[2026-10-18 16:26:15] == 步1 起本窗 roscore（隔离域 11313／GAZEBO 11355）==
+[2026-10-18 16:26:15]   roscore PID=194935
+[2026-10-18 16:26:17]   master 在位（等待 2s）
+[2026-10-18 16:26:17] == 步2 起 m2_gazebo.launch（gui:=false；★在册 launch 一字未改）==
+[2026-10-18 16:26:17]   roslaunch PID=195294
+[2026-10-18 16:26:19]   等待 robot_state_publisher 用时 2s
+[2026-10-18 16:26:21]   节点数=4 ‖ /tf 在位=1 ‖ /gazebo/model_states 在位=1
+[2026-10-18 16:26:21] == 步3 活体实测（只读探针、12s 采样窗）==
+[2026-10-18 16:26:42]   探针 rc=0（★该 rc 是探针自己的读数成功与否、★不是任何判据）
+[2026-10-18 16:26:42] == 步4 活体侧 robot_description 展开值旁证（★rosparam 不是 rostopic）==
+  \ izz=\"1e-5\"/>\n    </inertial>\n  </link>\n  <joint name=\"base_to_rslidar\"\
+  \ type=\"fixed\">\n    <parent link=\"base_link\"/>\n    <child link=\"rslidar\"\
+  />\n    <origin rpy=\"0.2617993877991494 0 0\" xyz=\"0 0 0.34\"/>\n    <!-- \u2605\
+  R409 \u4E59\uFF1A\u5C55\u5F00\u503C\uFF1Dxyz \"0 0 0.34\" \u2016 rpy \"0.2617993877991494\
+[2026-10-18 16:26:43] == 步5 退窗（★只 kill 本窗自己起的两个 PID：SIGINT 优雅退）==
+# 退净形状（容器 2026-10-18 16:26:51）
+  pgrep gzserver=0 gzclient=0 roslaunch=0 roscore=0 rosmaster=0
+  TCP 1131x=0 UDP 1131x=0 TCP 11345/11355=0
+[2026-10-18 16:26:51] == 步6 清盘（坑67②＝清理与计数同条命令、路径写全集）==
+  pyc=0 ws_src=4580 tooling=149 note=4913
+[2026-10-18 16:26:51] == 窗结束：预检 rc=0｜探针 rc=0｜时长 40s（★上限 10 分钟）｜★档名＝联调·旁证、★不入分子 ==
+[2026-10-18 16:28:34] == 步0 预检变体当刻（在册预检本体一字未动，走 x86 变体）==
+[2026-10-18 16:28:37] 预检变体 rc=0
+[2026-10-18 16:28:37] == 步1 起本窗 roscore（隔离域 11313／GAZEBO 11355）==
+[2026-10-18 16:28:37]   roscore PID=196816
+[2026-10-18 16:28:40]   master 在位（等待 2s）
+[2026-10-18 16:28:40] == 步2 起 m2_gazebo.launch（gui:=false；★在册 launch 一字未改）==
+[2026-10-18 16:28:40]   roslaunch PID=197175
+[2026-10-18 16:28:42]   等待 robot_state_publisher 用时 2s
+[2026-10-18 16:28:43]   节点数=5 ‖ /tf 在位=1 ‖ /gazebo/model_states 在位=1
+[2026-10-18 16:28:43] == 步3 活体实测（只读探针、12s 采样窗）==
+[2026-10-18 16:29:02]   探针 rc=0（★该 rc 是探针自己的读数成功与否、★不是任何判据）
+[TF ] base_link->rslidar xyz=[0.0, 0.0, 0.34] rpy_deg=[0.0, 15.0, 0.0]
+[TF ] odom->base_link    xyz=[0.0, 0.0, 0.11] rpy_deg=[0.0, 0.0, 0.0]
+[TF ] odom->rslidar      xyz=[0.0, 0.0, 0.45] rpy_deg=[0.0, 15.0, 0.0]
+
+★活体量得＝离地 h=0.4500 m ‖ 俯仰 θ=15.000°（安装高 TF=[0.0, 0.0, 0.34]、基座稳态 z=0.11）
+
+==== ⓪槽位自检＋四项相容验算（★用活体实量 (h,θ) 喂在册式子）====
+[PASS] ⓪槽位自检：非零角必须在 pitch（第二槽）、roll/yaw 须≈0 ｜ rpy_deg=[roll=0.000, pitch=15.000, yaw=0.000]（★若 roll 非零＝角度落错槽＝雷达被侧倾而非仲俯）
+[PASS] ①地面 z 落 −0.4347±一板 ｜ z_ground=-0.4347 锚=-0.4347 差=0.0000 板厚=0.10
+[PASS] ②甲档板数＝13 ｜ nz=13（窗 [-0.55, 0.75]、板厚 0.10＝在册 t1 常量、★未改）
+[PASS] ③k0＝1 ｜ k0=1
+[PASS] ④truncated＝False ｜ truncated=False
+JSON {"base": {"rpy_deg": [0.0, 0.0, 0.0], "xyz": [0.0, 0.0, 0.11]}, "derived": {"h_live": 0.45, "k0": 1, "nfail": 0, "nz": 13, "roll_deg": 0.0, "theta_live": 15.0, "truncated": false, "yaw_deg": 0.0, "z_ground": -0.4347}, "lidar_world": {"rpy_deg": [0.0, 15.0, 0.0], "xyz": [0.0, 0.0, 0.45]}, "mount": {"rpy_deg": [0.0, 15.0, 0.0], "xyz": [0.0, 0.0, 0.34]}}
+★⓪＋四项全中 ⇒ 按真人判语＝"不是换档、是坐实"（甲档名实相符）
+[2026-10-18 16:29:02] == 步4 活体侧 robot_description 展开值旁证（★rosparam 不是 rostopic）==
+  />\n    </inertial>\n  </link>\n  <joint name=\"base_to_rslidar\" type=\"fixed\"\
+  >\n    <parent link=\"base_link\"/>\n    <child link=\"rslidar\"/>\n    <origin\
+  \ rpy=\"0 0.2617993877991494 0\" xyz=\"0 0 0.34\"/>\n    <!-- \u2605R409 \u4E59\uFF08\
+  \u2605\u7B2C\u4E8C\u69FD\uFF1Dpitch\uFF0C\u7B2C\u4E00\u69FD\u662F roll\uFF09\uFF1A\
+[2026-10-18 16:29:02] == 步5 退窗（★只 kill 本窗自己起的两个 PID：SIGINT 优雅退）==
+# 退净形状（容器 2026-10-18 16:29:09）
+  pgrep gzserver=0 gzclient=0 roslaunch=0 roscore=0 rosmaster=0
+  TCP 1131x=0 UDP 1131x=0 TCP 11345/11355=0
+[2026-10-18 16:29:10] == 步6 清盘（坑67②＝清理与计数同条命令、路径写全集）==
+  pyc=0 ws_src=4580 tooling=149 note=4916
+[2026-10-18 16:29:10] == 窗结束：预检 rc=0｜探针 rc=0｜时长 36s（★上限 10 分钟）｜★档名＝联调·旁证、★不入分子 ==
