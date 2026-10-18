@@ -1,0 +1,39 @@
+# R419 M3 归因采集窗 · 汇总（x86 侧施工；2026-10-19 03:41—03:45）
+
+窗号＝**R419**（回执册 25→26）｜授权＝R 补一百三十六 ②（真人「全部勾选」）｜分档＝**联调·旁证（A59 不计分子）**
+件面零改动：`probe_x2_fourcells.sh` 一字未动（M2 不落、仍是 T3 见证件）；本次增采走**另件驱动**（`win_driver_v3.sh`）。
+
+## 一、开窗前置
+- 预检（`v_window_preflight_x86_variant.sh`）**rc=0**：ISO_RC=0｜numpy 1.19.4 在 /usr/local｜load1=7.81 ≤ 36.00（核归一化 72×0.5）。
+
+## 二、段 x2_g6（格③ 四插件构成）——探针原样跑，rc=0
+- 参数回读：`global_frame=map`｜**plugins=4**｜`static_a.use_maximum=true`
+- 主话题数＝1（`/x2_g6/costmap/costmap`）
+- 原始件合格：`data: 行数=1`｜**格数=1600**
+- 判别区＝**`[100, 100, 100, 100, 100]`**（A 的 lethal 保住＝取大语义）
+- A 独占 50 点＝0（在册 trinary 把 50 抹成 0）｜B 独占 100 区＝`[100, 100, 100]`｜未知区＝`[0,0,0,0,0]`｜第二帧新置区＝`[0,0,0,0,0]`
+- `distinct=[0, 99, 100]`｜`254_格数=0`
+- 探针自报：`X2_FOURCELL VERDICT rc=0（1/1 段合格；★段数不足 6 ⇒ 不得读作四格跑齐）`
+
+## 三、★增采步（本次窗的核心产出）：体素话题的**实际名**
+- **话题名＝`/x2_g6t/costmap/stvl_obstacle_layer/voxel_grid`**｜类型＝`sensor_msgs/PointCloud2`｜发布者＝`/x2_g6t`
+- 规律＝**`<ns>/costmap/<插件名>/voxel_grid`**（插件名＝`stvl_obstacle_layer`，不是 `stvl`）⇒ 探针段的对应话题应为 `/x2_g6/costmap/stvl_obstacle_layer/voxel_grid`
+- **四插件装载的硬证据（替代"日志 grep"）**＝`parameter_descriptions/parameter_updates` 四对全在：`static_a`／`static_b`／`stvl_obstacle_layer`／`sob_layer` ⇒ 参数面证死 4 插件已实例化。
+- ★**节点日志确实不打印装载行**（`node_x2_g6t3.log` 0 字节、`node_kw` 0 行）⇒ M4 的"日志不可读"结论**成立**，但"只能靠日志"不成立——**参数面与话题面都能证**。
+- 三次尝试留名（不删）：
+  - v1＝漏起两帧地图发布器 ⇒ `static_a.map_topic(/pmap_a)` 无源、成本图对象不建 ⇒ 话题 6 个、无 costmap、node 日志 0 字节。
+  - v2＝补自检仍缺发布器 ⇒ 同样 6 话题；但取得 `master_ready=1`／`plugins=4` 两条干净读数。
+  - **v3＝补 `x2_pub_two_frame.py` ⇒ 21 话题、costmap 与 voxel 全出**（本条为有效读数）。
+
+## 四、数据面件（`derive_stvl_mark.py --dir run`）
+- `顶档=N3｜层内痕迹列=有效｜痕迹_格数=9｜痕迹_最大值=100｜254_格数=0｜归因=未定源｜足印=rows[18,21]xcols[29,32]｜判别格值=[100,100,100,100,100]｜cloud_first42=True｜必带子键齐=True`
+- `DERIVE_GRADE 桶名＝甲-离`（只读后处理、不顶替甲-活、不进分子）
+- **★归因仍＝"未定源"**：话题名只证明 **stvl 在跑且发布了体素栅格**，**不证明** costmap 层里那 9 格痕迹/100 值来自 stvl ⇒ 归因需要**差分**（去 stvl 一段＝路径 R2），不是话题名能给的。⇒ **③归因正式定档的前置未达成**，本窗不预填。
+
+## 五、见证（分域两路）
+- 被试域（容器 netns）：起前 `五名计数=0`、TCP 0／UDP 0；退后 `五名计数=0`、TCP 0／UDP 0 ⇒ **绝对零**。
+- 装置域（宿主机）：退后 `:11313 LISTEN`（docker 端口发布代理）⇒ **只并报、不入判定**（佳文裁定件 §1 读法）。
+- ★本窗退净**一次即成**（未出现 R414 那次的 roslaunch 残留）；仍按纪律重采了一次，两采同值。
+
+## 六、边界
+★读数＝旁证·未计分子（A59 不全中：T1 gazebo 异值／T3 两枚 sha 待 103 并打／T4 有件但 M1+M2+M7 未齐）；★不声称 X2 四格跑齐（只 1 段）；★不声称格③ N3 列已补；★不声称归因已定档；★不撤 §16.9。
