@@ -19,7 +19,7 @@ import numpy as np
 
 UNKNOWN, FREE, BLOCKED = -1, 0, 100   # #46 三态在册常量（本件只用 UNKNOWN/覆盖两态，不产出 FREE）
 RES = 0.10
-Z_MIN, Z_MAX = -0.45, 0.75
+Z_MIN, Z_MAX = -0.55, 0.75   # R354 甲档在册值（★真人 2026-10-18 G-1 到签取形状甲；★引用甲档必须 --anchor given，见下 --anchor 的 help）
 Z_SLAB = 0.10
 
 def zwin_attribution(tag, how):
@@ -194,7 +194,7 @@ def selftest():
     g = np.column_stack([np.repeat(np.arange(0.0, 1.0, 0.1), 3),
                          np.tile(np.arange(0.0, 1.0, 0.1), 3),
                          np.concatenate([np.full(3, -0.40)] * 10)])
-    r = rasterize(_after_zero(g))
+    r = rasterize(_after_zero(g), z_min=-0.45, z_max=0.75, slab=0.10)   # ★R377：窗显式钉回甲档回写前的旧值（G-1 到签⑥＝fixture 字面不动；缺省已随回写漂移，不显式钉住这条机械回归件会假红）
     check('T-a 单层地面 multi_layer=0', int(r['multi_layer'].sum()) == 0, '格数=%d' % int((r['covered'] > 0).sum()))
     check('T-a 单层地面 suspended=0', int(r['suspended'].sum()) == 0)
 
@@ -291,6 +291,17 @@ def selftest():
     check('T-i 0/2 有、1 空的格**必须**算多层（反例）', bool(r_hw['multi_layer'][i_gap]) is True,
           'n_slab=%d low=%d high=%d' % (int(r_hw['n_slab'][i_gap]), int(r_hw['low'][i_gap]), int(r_hw['high'][i_gap])))
 
+    # T-k ★甲档形状断言（真人 G-1 到签⑥；R310 锚＝正下方地面雷达系 z=−0.4347）
+    r_jia = rasterize(_after_zero(gg), z_min=Z_MIN, z_max=Z_MAX, slab=Z_SLAB, z_ground=-0.4347)
+    check('T-k 甲档窗形 nz=13 ‖ k0=1 ‖ truncated=False（vs R310 锚 −0.4347）',
+          r_jia['nz'] == 13 and r_jia['k0'] == 1 and r_jia['truncated'] is False,
+          '窗[%.2f, %.2f] nz=%d k0=%d truncated=%s' % (Z_MIN, Z_MAX, r_jia['nz'], r_jia['k0'], r_jia['truncated']))
+    # ★阳性对照（证上一条有牙）：旧丙档窗形在同一锚上必须判成 truncated=True（＝R352 在册回核结论）
+    r_bing = rasterize(_after_zero(gg), z_min=-0.45, z_max=0.75, slab=Z_SLAB, z_ground=-0.4347)
+    check('T-k 对照：丙档窗 [-0.45,0.75] 同锚必 truncated=True（★证上一条不是恒真摆设）',
+          r_bing['nz'] == 12 and r_bing['truncated'] is True,
+          'nz=%d k0=%d truncated=%s' % (r_bing['nz'], r_bing['k0'], r_bing['truncated']))
+
     lines.append('  合计 PASS=%d FAIL=%d' % (ok, fail))
     return ok, fail, lines
 
@@ -315,7 +326,7 @@ def main(argv=None):
     ap.add_argument('--max-z', type=float, default=Z_MAX)
     ap.add_argument('--slab', type=float, default=Z_SLAB)
     ap.add_argument('--anchor', choices=['given', 'ground'], default='given',
-                    help="given＝照 --min-z/--max-z（★那组是雷达系值，地面≈-0.38）；ground＝把同一 z 宽度下沿贴到本件自报的地面分位（★map 系必用此档）")
+                    help="given＝照 --min-z/--max-z（★G-1 到签＝**引用甲档必须走本形**；缺省即 given）｜同一组字面若走 ground＝只控 span、下沿改由实测地面分位锚定 ⇒ 产出**只可作旁报、★不得入判据读数**｜（given 那组是雷达系值，地面≈-0.38）；ground＝把同一 z 宽度下沿贴到本件自报的地面分位（★map 系必用此档）")
     ap.add_argument('--ground-pct', type=float, default=5.0, help='地面代理分位（%%），默认 P5')
     ap.add_argument('--ground-pad', type=int, default=1,
                     help='锚定=ground 时把窗下沿再垫几板（小张修正④的等价做法；默认 1＝保证地面所在整板在窗内；0＝复现 R295／R297 那两次读数）')

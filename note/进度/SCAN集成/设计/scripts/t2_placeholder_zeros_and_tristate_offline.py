@@ -197,7 +197,7 @@ def main(argv=None):
         r_post, removed, cell_post, zg2 = cell_of_origin(frames, res=a.res, slab=a.slab, drop=True)
         print('T2_DROP 剔零=%d 点（单位：点）；z_ground(P5，雷达系)=%.2f m ⇒ 实开窗 [%.2f, %.2f] k0=%d truncated=%s'
               % (removed, zg2, r_post['z_min'], r_post['z_max'], r_post['k0'], r_post['truncated']))
-        t1.zwin_attribution('T2', 'z 的 P5 分位锚＋slab 垫板（件内 --res/--slab 旋钮）')
+        t1.zwin_attribution('T2', 'z 的 P5 分位锚＋slab 垫板（件内 ground 式、窗宽写死 12*slab）⇒ ★按 G-1 到签④＝**旁报形、不得入判据读数**')
         print('T2_COLLAPSE 不剔零：原点格落点=%d 点／覆盖格=%d｜剔零后：原点格落点=%d／覆盖格=%d ⇒ ★零点确实全塌进 1 格'
               % (cell_pre, int((r_pre['covered'] > 0).sum()), cell_post, int((r_post['covered'] > 0).sum())))
         total, covered, unknown, grounded = tristate_counts(r_post)
