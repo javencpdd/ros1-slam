@@ -1,0 +1,135 @@
+r396 陈述行真身裁定批 · 现跑取证（第五位独立复验实例·小美形）
+生成身份＝qoder 侧独立实例；只读＋只写本留底目录；未改任何在册件、未 git add/commit、未开窗、未 sudo、未 FORCE=1。
+两代环境：容器 ros1-slam-sim Py3.8.10/numpy1.19.4（仓挂载 /opt/ros1-slam）‖ 宿主 Py3.13.13/numpy2.5.3。
+分档＝甲-离。
+
+================================================================
+[S0] 在册件跑前指纹自证（宿主）
+$ cd /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts
+$ wc -l t1_multilevel_raster_offline.py t2_placeholder_zeros_and_tristate_offline.py
+  440 t1_multilevel_raster_offline.py
+  270 t2_placeholder_zeros_and_tristate_offline.py
+$ sha256sum t1... | cut -c1-16  ; sha256sum t2... | cut -c1-16
+f97ab9b7181397f5      # t1  (工单基＝440/f97ab9b7181397f5 ✓)
+e2afc29f383d12ea      # t2  (工单基＝270/e2afc29f383d12ea ✓)
+$ sha256sum t3_decidable_input_offline.py derive_stvl_mark.py probe_x2_fourcells.sh | cut -c1-16
+38e5963c67226bd7      # t3
+2811115949feb70c      # derive_stvl_mark.py
+cbf06584e453fea3      # probe_x2_fourcells.sh
+$ sha256sum /home/jack/ysc-code/ros1-slam/data/maps/lite3.pcd | cut -c1-16   ; ls -la 同档
+aaa09362c5f1aef9      # lite3.pcd（6,184,931 B ✓）
+$ python3 --version; python3 -c 'import numpy;print(numpy.__version__)'
+Python 3.13.13 / numpy 2.5.3
+
+================================================================
+[S1] 在册态基线自测（两代）
+--- 宿主 gen2 ---
+$ python3 t1_multilevel_raster_offline.py --selftest | tail -2
+  合计 PASS=30 FAIL=0
+T1_SELFTEST PASS=30 FAIL=0 rc=0
+$ python3 t2_placeholder_zeros_and_tristate_offline.py --selftest | tail -2
+  合计 PASS=18 FAIL=0
+T2_SELFTEST PASS=18 FAIL=0 rc=0
+$ python3 t3_decidable_input_offline.py --selftest | tail -2
+  合计 PASS=18 FAIL=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+--- 容器 gen1 ---
+$ docker exec ros1-slam-sim bash -lc 'cd /opt/ros1-slam/note/进度/SCAN集成/设计/scripts && for f in t1... t2... t3...; do python3 $f --selftest | tail -1; done'
+T1_SELFTEST PASS=30 FAIL=0 rc=0
+T2_SELFTEST PASS=18 FAIL=0 rc=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+⇒ 两代 T1 30/0 rc=0 ‖ T2 18/0 ‖ T3 18/0（＝符合施工侧自证第 3 条）
+
+================================================================
+[S2] 真数据回归 参考行（两代）· 抽函数后在册态读数
+--- 宿主 gen2 ---
+$ python3 t1_multilevel_raster_offline.py --pcd data/maps/lite3.pcd --anchor ground | grep 参考行
+T1_PCD 参考行（★非在册旗标、A50 待裁）＝接地多层候选（有空板且 low<=k0）=2308 格、其中空板>=2 板者=1876 格 ……
+$ python3 t1_multilevel_raster_offline.py --pcd data/maps/lite3.pcd --anchor given  | grep 参考行
+T1_PCD 参考行（…）＝接地多层候选（有空板且 low<=k0）=1730 格、其中空板>=2 板者=1224 格 ……
+--- 容器 gen1（grep -o 抽数）---
+CT ground: 候选（有空板且 low<=k0）=2308 格、其中空板>=2 板者=1876
+CT given: 候选（有空板且 low<=k0）=1730 格、其中空板>=2 板者=1224
+⇒ ground 2308/1876、given 1730/1224，两代同值（＝符合施工侧第 2 条，抽函数前后判据一致、在册态无漂移）
+
+================================================================
+[S3] 被裁句在册态逐字定位（宿主 Read＋grep 对读）
+t2:84（判据真身）=   grounded = int(((r['covered'] > 0) & (r['low'] <= r['k0'])).sum())   ⇒ 当期＝low <= k0，★未放宽
+t2:255（被裁文案）=  'T2_TRISTATE …；接地格 %d 只是"最低板≤地面板 k0"的表征事实'  % grounded
+⇒ 文案"≤地面板 k0"如实描述当期 low<=k0 ⇒ 二者语义一致、矛盾属"潜在（改坏时）"非"已发生（现读数无错）"
+
+================================================================
+[S4] 我自造 12 枚变异（全在 /tmp 副本、两侧跑完即删；★未碰在册件）
+说明：t2 变异只测 t2 selftest（tristate_counts 面）；t1 变异测 t1 selftest（T-m/derived_counts 面）＋ given 参考行现读。
+"CAUGHT"=自测红 rc≠0；"SURVIVED"=自测仍全绿。判据真身看是否红、参考行看是否翻数。
+
+--- 宿主 gen2 全 12 枚 ---
+GEN host python=3.13.13
+D1 grounding low<=k0+1 (relax1)          [t1] rc=1 CAUGHT(red)    合计 PASS=29 FAIL=1 given=1870/1311
+D2 grounding low<k0 (tighten)            [t1] rc=1 CAUGHT(red)    合计 PASS=29 FAIL=1 given=1109/795
+D3 grounding drop k0 term                [t1] rc=1 CAUGHT(red)    合计 PASS=29 FAIL=1 given=2061/1375
+D4 n_gap drop +1                         [t1] rc=1 CAUGHT(red)    合计 PASS=28 FAIL=2 given=1730/849
+D5 n_slab>=2 -> >=1                      [t1] rc=0 SURVIVED(green) 合计 PASS=30 FAIL=0 given=1730/1224   ★等价存活(参考行不变)
+D6 gap>=2 -> >=3                         [t1] rc=1 CAUGHT(red)    合计 PASS=29 FAIL=1 given=1730/849
+D7 drop ~contiguous guard                [t1] rc=1 CAUGHT(red)    合计 PASS=29 FAIL=1 given=3936/1224
+D8 return tuple order swap               [t1] rc=0 SURVIVED(green) 合计 PASS=30 FAIL=0 given=1224/1730   ★非等价存活(参考行翻数说谎)
+D9 main print mg_n/mg2_n swap            [t1] rc=0 SURVIVED(green) 合计 PASS=30 FAIL=0 given=1224/1730   ★非等价存活(排版面说谎)
+E1 tristate low<=k0+1 (relax1)           [t2] rc=1 CAUGHT(red)    合计 PASS=17 FAIL=1   ★即上一位 N1，当期被 T2-l 拦
+E2 tristate low<k0 (tighten)             [t2] rc=1 CAUGHT(red)    合计 PASS=15 FAIL=3
+E3 tristate drop k0 term (=covered)      [t2] rc=1 CAUGHT(red)    合计 PASS=15 FAIL=3
+
+--- 容器 gen1 关键 4 枚复跑（两代各跑才算数）---
+GEN container python=3.8.10 numpy=1.19.4
+D5 n_slab>=2 -> >=1          [t1] rc=0 SURVIVED(green) 合计 PASS=30 FAIL=0 given=1730/1224
+D8 return tuple order swap   [t1] rc=0 SURVIVED(green) 合计 PASS=30 FAIL=0 given=1224/1730
+D9 main print swap           [t1] rc=0 SURVIVED(green) 合计 PASS=30 FAIL=0 given=1224/1730
+E1 tristate low<=k0+1        [t2] rc=1 CAUGHT(red)    合计 PASS=17 FAIL=1
+⇒ 两代逐枚同结论：D5 等价存活(无害)；D8/D9 非等价存活(参考行翻 1224/1730 说谎)；E1/E2/E3 全拦。
+
+[S4-附] E1 究竟红在哪一枚（证明锚＝T2-l）
+$ python3 t2...（把 t2:84 改 low<=k0+1）--selftest | grep -E 'FAIL|合计'
+  [FAIL] T2-l 计数面有牙（台阶格形）：接地=1 ‖ 覆盖=4 ‖ 两者★不得相等（判据放宽到 k0+1 或 k0+2 ⇒ grounded 必变 2 ⇒ 本枚红） D grounded=2 covered=4 total=1681 low=[1, 5, 5, 2] k0=1
+  合计 PASS=17 FAIL=1
+在册态基线（同枚改前）：
+  [PASS] T2-l … D grounded=1 covered=4 total=1681 low=[1, 5, 5, 2] k0=1
+⇒ 锚在 T2-l：台阶格 low==k0+1 现读被排除⇒基线 grounded=1；放宽即 grounded=2⇒红。落点(i) 要件由 T2-l 当期满足。
+
+================================================================
+[S5] 清盘（容器内清 root 属主 __pycache__，清理与计数同条命令、路径写全集）·在册坑67/坑65
+$ docker exec ros1-slam-sim bash -lc 'for b in /opt/ros1-slam/note /opt/ros1-slam/tooling /opt/ros1-slam/ws/src /opt/ros1-slam/scripts; do find "$b" -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null; done; echo remaining=$(find 同四径 -type d -name __pycache__|wc -l)'
+remaining_pycache_in_repo=0
+$ ls scripts 目录 __pycache__：no __pycache__ dir（宿主侧未产生）
+/tmp 变异副本目录 /tmp/mw_* /tmp/mutw_* /tmp/e1_* 均在跑器内 shutil.rmtree 即删；/tmp/mutrun_gen.py /tmp/mutrun_host.py 为跑器脚本（非仓内件）。
+清盘四数＝①容器 repo 内 __pycache__=0 ②scripts 目录 __pycache__=0 ③在册件 sha/行数跑后未变 ④git 修改态=0（见 S6）
+
+================================================================
+[S6] 跑后自证：在册件未改、git 修改态 0
+$ cd /home/jack/ysc-code/ros1-slam
+$ git -c core.quotepath=false status --porcelain | grep -v '^??' | wc -l
+MODCOUNT=0            # 无 tracked 修改（?? 为未跟踪的本留底目录，未 add/commit）
+--- 跑后指纹（应＝跑前）---
+  440 t1_multilevel_raster_offline.py
+  270 t2_placeholder_zeros_and_tristate_offline.py
+t1_multilevel_raster_offline.py f97ab9b7181397f5
+t2_placeholder_zeros_and_tristate_offline.py e2afc29f383d12ea
+t3_decidable_input_offline.py 38e5963c67226bd7
+derive_stvl_mark.py 2811115949feb70c
+probe_x2_fourcells.sh cbf06584e453fea3
+⇒ 跑前后 sha16／行数全部同值；在册件一字未动。
+
+================================================================
+[S7] 未跑／不采信声明（诚实边界）
+- 施工侧那套"全表 28 行两代逐枚同值"跑器（含 item 4／5b 的"锚点搬家命中≠1 立报 INVALID"机制）我★未独立复跑
+  （那是施工侧按裁定做的第五代全表重跑活）；我只自造 12 枚变异＋核到"被变异行从 main 移进 derived_counts"前提属实、
+  判据层确由 T-m/derived_counts 经过。
+- 覆盖面非穷举：D8/D9 两枚排版面存活＝本批实测出的 R395 真实残口（施工侧未自报 D8）；不声称已完全有牙。
+- 无 R82 s*.npy 帧目录 ⇒ t2 --frames 真数据打印面（255 行）本次未现跑；但其 grounded 数经 tristate_counts、
+  该函数已由 S4-E/S4-附 的三枚断言（T2-j/k/l）拦截，判据层结论不受影响。
+
+================================================================
+[S8] 清单与自校验（清单最后建、覆盖 01/02；-c 用 --quiet 因中文 locale）
+清单成员＝01_裁定_声明还是实现为真身.md、02_现跑取证.txt（本文件）。_sha256_manifest.txt 覆盖二者、★不含自身。
+$ cd <本留底目录>
+$ sha256sum 01_裁定_声明还是实现为真身.md 02_现跑取证.txt > _sha256_manifest.txt   # 最后建
+$ sha256sum -c --quiet _sha256_manifest.txt ; echo "rc=$?"
+rc=0    # 上式为清单建好、本 02 定稿后的实际最终校验；中文路径用 git -c core.quotepath=false / locale 下 -c 用 --quiet
