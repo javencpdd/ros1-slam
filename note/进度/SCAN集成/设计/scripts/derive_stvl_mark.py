@@ -188,7 +188,6 @@ def main(argv=None):
     # ★缺省只取 x2_g6：判据足印由合成点云 build() 推得（§2.3），只有四插件段才有点云发布侧；
     #   其余五段＝static2 构成、本无 cloud 发布侧 ⇒ 对其套 P2 只会造出"假 N3"，★不是被试失败。
     ap.add_argument('--segs', default='x2_g6')
-    ap.add_argument('--expect-zero', action='store_true', help='预留：与在册期望值并报（本件不自判）')
     a = ap.parse_args(argv)
     rc = 0
     if a.selftest:
