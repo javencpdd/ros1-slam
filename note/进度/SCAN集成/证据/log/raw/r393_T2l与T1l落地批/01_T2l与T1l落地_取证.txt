@@ -1,0 +1,82 @@
+# r393 · T2-l（台阶格）＋T1-l（k0 取整两侧对照）落地 · 现跑取证
+# 生成时刻（两基并标）：宿主 2026-10-18 15:33:29 CST ‖ 容器 UTC 2026-10-18 07:33:29 UTC
+# 机名（hostname 现读）＝jack；宿主代＝Python 3.13.13／numpy 2.5.3；容器代＝3.8.10／numpy 1.19.4
+# 改前在册基线（R391 段值，由 git HEAD 现取）：
+  t1 改前 sha 前16＝4c8865870d7d458f
+  t2 改前 sha 前16＝a8ea35a3130cef76
+
+### §0 件面（numstat ‖ 行数 ‖ 改后 sha ‖ mode）
+12	0	note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+11	0	note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py
+  409 /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+  270 /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py
+  679 总计
+76d6dc74266a9bed4435edd769c63ebebc0239a7c5821f21171fb9bd234570a2  t1_multilevel_raster_offline.py
+e2afc29f383d12ea520f49192f905220b0c972038f8bdb0e09cb4f8138078bd6  t2_placeholder_zeros_and_tristate_offline.py
+  mode=-rw-rw-r-- size=26675
+  mode=-rw-rw-r-- size=17651
+  ★本批改动只＝追加自测枚（t1 两枚 T-l A/B、t2 一枚 T2-l）；★未动 tristate_counts()／rasterize() 本体、★未动既有断言、★未动判据门值与 rc 语义
+
+### §1 两代三枚自测逐值
+-- 宿主代 --
+T1_SELFTEST PASS=28 FAIL=0 rc=0
+T2_SELFTEST PASS=18 FAIL=0 rc=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+-- 容器代 --
+T1_SELFTEST PASS=28 FAIL=0 rc=0
+T2_SELFTEST PASS=18 FAIL=0 rc=0
+T3_SELFTEST PASS=18 FAIL=0 rc=0
+
+### §2 新枚逐字读数（两代）＋与小美 r392 §03 要件现读对表
+  她给的 D 面现读要件＝total=1681 covered=4 grounded=1 low=[1, 5, 5, 2] k0=1（断言 grounded==1∧covered==4）
+-- 宿主代 T2-l --
+  [PASS] T2-l 计数面有牙（台阶格形）：接地=1 ‖ 覆盖=4 ‖ 两者★不得相等（判据放宽到 k0+1 或 k0+2 ⇒ grounded 必变 2 ⇒ 本枚红） D grounded=1 covered=4 total=1681 low=[1, 5, 5, 2] k0=1
+-- 容器代 T2-l --
+  [PASS] T2-l 计数面有牙（台阶格形）：接地=1 ‖ 覆盖=4 ‖ 两者★不得相等（判据放宽到 k0+1 或 k0+2 ⇒ grounded 必变 2 ⇒ 本枚红） D grounded=1 covered=4 total=1681 low=[1, 5, 5, 2] k0=1
+  她给的 T1-l 要件＝A 例（z_ground=0.00 z_min=0.05 slab=0.10，比值 −0.5）在册 k0=−1、★自带 truncated=True；B 例（0.10／−0.05／0.10，比值 +1.5）在册 k0=1
+-- 宿主代 T-l --
+  [PASS] T-l A 负半板比值 −0.5 ⇒ k0=−1（floor；round／int() 截断都得 0 ⇒ 取整口径一改坏本枚必红） k0=-1 truncated=True（★该例 truncated=True 属几何事实、★不得当"窗可用"引用，与 T-h 护栏例分行）
+  [PASS] T-l B 正半板比值 +1.5 ⇒ k0=1（floor；round 得 2 ⇒ 本枚必红） k0=1 truncated=False
+-- 容器代 T-l --
+  [PASS] T-l A 负半板比值 −0.5 ⇒ k0=−1（floor；round／int() 截断都得 0 ⇒ 取整口径一改坏本枚必红） k0=-1 truncated=True（★该例 truncated=True 属几何事实、★不得当"窗可用"引用，与 T-h 护栏例分行）
+  [PASS] T-l B 正半板比值 +1.5 ⇒ k0=1（floor；round 得 2 ⇒ 本枚必红） k0=1 truncated=False
+
+### §3 变异逐枚（★只跑副本、在册件未被改；N1 N2＝接地阈值容差族／N10 N12＝k0 取整族＝她四轮点名的四枚存活枚；N17 N18＝main() 面；M5＝三轮存活枚、作对照）
+-- 宿主代（/tmp/r393_host）--
+  t1:N10 | rc=1 | T1_SELFTEST PASS=26 FAIL=2 rc=1 | 红=T-l,T-l,
+  t1:N12 | rc=1 | T1_SELFTEST PASS=27 FAIL=1 rc=1 | 红=T-l,
+  t1:N17 | rc=0 | T1_SELFTEST PASS=28 FAIL=0 rc=0 | 红=
+  t1:N18 | rc=0 | T1_SELFTEST PASS=28 FAIL=0 rc=0 | 红=
+  t2:N1 | rc=1 | T2_SELFTEST PASS=17 FAIL=1 rc=1 | 红=T2-l,
+  t2:N2 | rc=1 | T2_SELFTEST PASS=17 FAIL=1 rc=1 | 红=T2-l,
+  t2:M5 | rc=1 | T2_SELFTEST PASS=16 FAIL=2 rc=1 | 红=T2-k,T2-l,
+  CTRL（同目录副本＝改后现件字面）| T1_SELFTEST PASS=28 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0
+-- 容器代（容器 /tmp/r393_mut，经 docker cp，跑完即删）--
+  t1:N10 | rc=1 | T1_SELFTEST PASS=26 FAIL=2 rc=1 | 红=T-l,T-l,
+  t1:N12 | rc=1 | T1_SELFTEST PASS=27 FAIL=1 rc=1 | 红=T-l,
+  t1:N17 | rc=0 | T1_SELFTEST PASS=28 FAIL=0 rc=0 | 红=
+  t1:N18 | rc=0 | T1_SELFTEST PASS=28 FAIL=0 rc=0 | 红=
+  t2:N1 | rc=1 | T2_SELFTEST PASS=17 FAIL=1 rc=1 | 红=T2-l,
+  t2:N2 | rc=1 | T2_SELFTEST PASS=17 FAIL=1 rc=1 | 红=T2-l,
+  t2:M5 | rc=1 | T2_SELFTEST PASS=16 FAIL=2 rc=1 | 红=T2-k,T2-l,
+  CTRL（同目录副本＝改后现件字面）| T1_SELFTEST PASS=28 FAIL=0 rc=0 ‖ T2_SELFTEST PASS=18 FAIL=0 rc=0
+
+### §4 ★仍未堵的两枚（她四轮点名的 main() 打印面派生读数族＝N17／N18，属交真人裁量的结构项）
+  现读＝t1:N17 ‖ t1:N18 两代均 28/0 rc=0（自测全绿而 main() 派生读数被改）⇒ ★本批未堵它：堵它要动 t1 结构（把派生判据抽成库函数再自测）＝超出「只追加一枚断言」的授权面、已原样交真人（请求单 R 补一百一十四）。
+  她的出处＝r392_T2k与禁令第四轮复验批/01_判定_T2k与禁令与存活形.md §三 ＋ 03_补形要件_T2l与T1l_交施工侧.md §三①。
+
+### §5 未动面自证（现值 sha 前 16 ‖ 路径）＋★一处她的记录值与现值不符（照实报、不回改她件）
+38e5963c67226bd7 t3_decidable_input_offline.py
+2811115949feb70c derive_stvl_mark.py
+cbf06584e453fea3 probe_x2_fourcells.sh
+a161e147e77128fe ws/src/95_simulation/lite3_gazebo_sim/stairstudy/precheck.py
+8619b35ae3bfd166 ws/src/95_simulation/lite3_gazebo_sim/stairstudy/fixtures.py
+aaa09362c5f1aef9 data/maps/lite3.pcd
+  ★小美 r392 §首记 precheck.py＝a161e147e77128f4，本批现读＝a161e147e77128fe（第 16 位不同）；git 可证该件最后一次改动＝提交 65b02c3（R64 建件批）、工作区与 HEAD 同值、44ac2af（批46，14:56）之后本侧未碰 ws/ ⇒ 判定＝★她抄录错位一位、★非文件被改；以现值为准、★不回改她件。
+  她记 fixtures.py＝8619b35ae3bfd166 ‖ 现读同值＝逐字对上（同一枚件、说明错位只发生在 precheck 那一枚的抄录）。
+  修改态（本批只应有 t1／t2 两枚）＝ M note/进度/SCAN集成/设计/scripts/t1_multilevel_raster_offline.py
+  修改态（本批只应有 t1／t2 两枚）＝ M note/进度/SCAN集成/设计/scripts/t2_placeholder_zeros_and_tristate_offline.py
+
+### §6 边界（本脚本没测什么）
+  ★未开窗、未起链；★未跑门禁串于本取证内（串在批末另跑）；★变异覆盖面＝她两轮累积枚＋本批目标四枚，★不是穷举；
+  ★未测 precheck.py 等判据面件（一字未动）；★两代逐值不外推 103／Tegra；★分档甲-离、不入在册分子。

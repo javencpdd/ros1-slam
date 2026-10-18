@@ -307,6 +307,18 @@ def selftest():
           r_bing['nz'] == 12 and r_bing['truncated'] is True,
           'nz=%d k0=%d truncated=%s' % (r_bing['nz'], r_bing['k0'], r_bing['truncated']))
 
+    # T-l ★k0 取整口径两侧对照（R392 小美四轮 03 要件二＝抓 N10 floor→round、N12 floor→int() 截断）
+    #   存活根因（她的话）＝现形所有 fixture 的 (z_ground−z_min)/slab 比值全落三者同值位 ⇒ 取整口径改坏无人拦；本枚两例并钉。
+    hl = _cloud([[0.50, 0.50, 0.60, 0], [0.55, 0.50, 0.90, 0]])
+    r_lA = rasterize(hl, z_min=0.05, z_max=1.25, slab=0.10, z_ground=0.00)    # 比值＝−0.5
+    check('T-l A 负半板比值 −0.5 ⇒ k0=−1（floor；round／int() 截断都得 0 ⇒ 取整口径一改坏本枚必红）',
+          r_lA['k0'] == -1,
+          'k0=%d truncated=%s（★该例 truncated=True 属几何事实、★不得当"窗可用"引用，与 T-h 护栏例分行）'
+          % (r_lA['k0'], r_lA['truncated']))
+    r_lB = rasterize(hl, z_min=-0.05, z_max=1.15, slab=0.10, z_ground=0.10)   # 比值＝+1.5
+    check('T-l B 正半板比值 +1.5 ⇒ k0=1（floor；round 得 2 ⇒ 本枚必红）',
+          r_lB['k0'] == 1, 'k0=%d truncated=%s' % (r_lB['k0'], r_lB['truncated']))
+
     lines.append('  合计 PASS=%d FAIL=%d' % (ok, fail))
     return ok, fail, lines
 

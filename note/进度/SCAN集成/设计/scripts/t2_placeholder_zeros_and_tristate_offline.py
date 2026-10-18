@@ -193,6 +193,17 @@ def selftest():
           % (gc, _cc, _tc, [int(x) for x in r_pi['low'][r_pi['covered'] > 0]],
              [int(x) for x in r_pi['high'][r_pi['covered'] > 0]], r_pi['k0']))
 
+    # ★T2-l（R392 小美四轮 03 要件一＝抓 N1／N2＝接地阈值容差族）：现形三面 A/B/C 的 low 取值只有 {1,5,6}、k0∈{0,1}
+    #   ⇒ 没有任何一格落在 low==k0+1，判据被放宽 1—2 板时 grounded 读数不变。本枚补 D 面＝纯台阶格（★只追加一枚，本体与既有断言未动）。
+    sp_st = cloud([[0.0, 0.0, 0.10, 0], [0.0, 0.0, 0.60, 0], [1.00, 1.00, 0.60, 0],
+                   [1.05, 1.00, 0.60, 0], [2.00, 2.00, 0.25, 0]])
+    r_st = t1.rasterize(sp_st, res=0.05, z_min=0.0, z_max=1.2, slab=0.1, z_ground=0.1)
+    _td, _cd, _ud, gd = tristate_counts(r_st)
+    check('T2-l 计数面有牙（台阶格形）：接地=1 ‖ 覆盖=4 ‖ 两者★不得相等（判据放宽到 k0+1 或 k0+2 ⇒ grounded 必变 2 ⇒ 本枚红）',
+          gd == 1 and _cd == 4,
+          'D grounded=%d covered=%d total=%d low=%s k0=%d'
+          % (gd, _cd, _td, [int(x) for x in r_st['low'][r_st['covered'] > 0]], r_st['k0']))
+
     # T2-f 空输入必须报错，不静默产出空面
     try:
         t1.rasterize(np.zeros((0, 4)), z_min=0.0, z_max=1.2, slab=0.1)
