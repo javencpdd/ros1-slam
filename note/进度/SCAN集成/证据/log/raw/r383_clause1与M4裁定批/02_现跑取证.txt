@@ -1,0 +1,321 @@
+# 02_现跑取证 · r383 clause1与M4裁定批 · 独立裁定实例（佳文形）
+# 纪律：全程只读；未开窗；未 git add/commit；未改仓内其它文件；取证不取 ps -eo args（在册事故）；中文 locale 下校验一律 sha256sum -c --quiet 判 rc。
+
+[0] 时刻与两代 Python
+$ date '+%F %T %Z'
+2026-10-18 12:55:00 CST
+$ uname -n ; hostname
+jack
+jack
+$ python3 -V （宿主）
+Python 3.13.13
+$ git --version
+git version 2.34.1
+$ docker exec ros1-slam-sim bash -lc 'source /opt/ros/noetic/setup.bash; set +u; python3 -V; PYTHONNOUSERSITE=1 python3 -c "import numpy;print(numpy.__version__, numpy.__file__)"'
+Python 3.8.10
+1.19.4 /usr/local/lib/python3.8/dist-packages/numpy/__init__.py
+
+[1] clause1 两式现跑（真身＝A59 裁件:33 逐字）
+$ git ls-files | grep -cE '(x86|异机).*A1.*(等价|基准)'
+0
+  计数 0 的伴生读数（grep 自身 rc）：
+$ git -c core.quotepath=false ls-files | grep -cE '(x86|异机).*A1.*(等价|基准)'
+3
+$ git -c core.quotepath=false ls-files | grep -E '(x86|异机).*A1.*(等价|基准)'
+note/进度/SCAN集成/证据/log/raw/r380_x86_A1_等价基准件批/01_x86_A1等价基准件.md
+note/进度/SCAN集成/证据/log/raw/r380_x86_A1_等价基准件批/02_两数并报.txt
+note/进度/SCAN集成/证据/log/raw/r380_x86_A1_等价基准件批/_sha256_manifest.txt
+
+[2] 字面式的判别力实测（同一式换 flag 的对照）
+$ git ls-files | grep -c 'note/进度'
+0
+$ git -c core.quotepath=false ls-files | grep -c 'note/进度'
+4728
+$ git ls-files | wc -l   （全仓跟踪件）
+9799
+$ git ls-files | grep -c '^"'   （被转义＝路径含非 ASCII 的件数）
+4767
+$ git ls-files | grep 'r380' | head -3   （默认形逐字输出＝八进制转义样例）
+"note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r380_x86_A1_\347\255\211\344\273\267\345\237\272\345\207\206\344\273\266\346\211\271/01_x86_A1\347\255\211\344\273\267\345\237\272\345\207\206\344\273\266.md"
+"note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r380_x86_A1_\347\255\211\344\273\267\345\237\272\345\207\206\344\273\266\346\211\271/02_\344\270\244\346\225\260\345\271\266\346\212\245.txt"
+"note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r380_x86_A1_\347\255\211\344\273\267\345\237\272\345\207\206\344\273\266\346\211\271/_sha256_manifest.txt"
+  ⇒ 结论：裸式要求路径以字面含 等价/基准，而中文必被转义 ⇒ 裸式对任何可能存在的件恒 0（含假想 ASCII 命名件）。
+
+[3] quotepath 配置现读（证明没人在仓里/全局设过 false）
+$ git config --get core.quotepath            （仓级）
+  rc=1（1＝未设置）
+$ git config --global --get core.quotepath   （全局）
+  rc=1（1＝未设置）
+  git 默认 core.quotepath=true ⇒ 上述恒 0 是默认态，不是本机环境差异。
+
+[4] clause2 现跑 ＋ 同件合取（收紧①）
+$ grep -n '覆盖面等价基准' note/进度/SCAN集成/证据/log/raw/r380_x86_A1_等价基准件批/01_x86_A1等价基准件.md | head -3
+3:覆盖面等价基准=jack
+6:- **机名来历（真人给法，逐字照守）**＝`jack` ＝**取 `hostname` 现读**；★**重装／换机须另起句更名**（本件行 `覆盖面等价基准=jack` 是**见证锚**、不是可随时改写的字段；改名须另起句登记、原行不回改）。
+17:clause2 ＝ 该件内含一行  覆盖面等价基准=<机名>                        机名＝jack（本件第 5 行）
+$ hostname   （机名在册已定档 jack，本实例不重开、不代给）
+jack
+命中件 note/进度/SCAN集成/证据/log/raw/r380_x86_A1_等价基准件批/01_x86_A1等价基准件.md : clause2任意形=3 : 实机名形=2
+命中件 note/进度/SCAN集成/证据/log/raw/r380_x86_A1_等价基准件批/02_两数并报.txt : clause2任意形=2 : 实机名形=1
+命中件 note/进度/SCAN集成/证据/log/raw/r380_x86_A1_等价基准件批/_sha256_manifest.txt : clause2任意形=0 : 实机名形=0
+$ 同件合取（名式命中 ∧ 该件内含实机名行）计数:
+2
+
+[5] 在册同族先例 ＋ 两面当期数（只读转录，未改一字符）
+$ sed -n '1,4p' scripts/verify/syn_face.txt
+# syn_face.txt —— SYN（v_sh_py_syntax.sh）的**写死门用面**（A37＝丙 第三格；主理人-佳文＋验收-小美 2026-10-14 裁，#112 格二"门用面写死"的落地件）
+# 派生式（可原样复跑，两次同数＝验收式）：
+#   git -c core.quotepath=false ls-files 'scripts/*.sh' 'note/进度/**/scripts/*.sh' 'ws/src/**/verify/*.sh' 'tooling/*.sh'
+# ★面取自 **git 索引** ⇒ **未跟踪的新件天然不在面内**（R270 实测：新件落盘未 stage 时 83、stage 后 84）。
+$ grep -vE '^ *(#|$)' scripts/verify/syn_face.txt | wc -l   （SYN 清单数）
+91
+$ sed -n '1,3p' scripts/verify/pyst_face.txt
+# pyst_face.txt —— PYST（v_py_static.sh，范围甲）的**写死门用面**（A37＝丙；05 B5 在册"范围甲"三式的固化）
+# 派生式（两次同数＝验收式）：
+#   { find ws/src -path '*/lite3_*' -name '*.py'; find scripts -name '*.py'; find note/进度 -path '*/scripts/*.py' -name '*.py'; } | grep -v __pycache__ | sort -u
+$ grep -vE '^ *(#|$)' scripts/verify/pyst_face.txt | wc -l   （PYST 清单数）
+59
+$ sed -n '33p' note/进度/v6零窗批1_证据/R337-4_v6架构重组设计批/01_佳文裁定_A59两格.md   （真身行逐字，未改）
+  - `T4 异机 A1 等价基准件在仓=是`＝真人依 au 稿 §6.2 那张等价表给出该机"常驻大负载源清单"并落成在册件；现场复跑式＝`git ls-files | grep -cE '(x86|异机).*A1.*(等价|基准)'` ≥**1** 且该件内含行 `覆盖面等价基准=<机名>` ≥1。★这一行**钥匙不在我手上**（N1）＝真人给得出则 T4 立，给不出则本格长期维持旁桶。
+
+[6] 复算器本体（★只在 /tmp，不落仓 ⇒ 天然不入 SYN/PYST 面）＋ 原件指纹
+$ sha256sum <四枚原件>（★LC_ALL=C、--quiet 只在清单自验用；此处报逐值）
+2465fc1a69b495dedac7da87e0717dca201ca6729fd728f3a62cfa3df33ee5e7  note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window/cost_x2_g6.txt
+26bc024283fa2d80a9398185aa72895c0228c0c3b27fd832fa62a80474528d89  note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window/cloud_x2_g6.log
+7743989f61e76bcee24aeb1c3927332066b30fea22525eff46644aa78936cd1f  note/进度/SCAN集成/证据/log/raw/r374_X2六段旁证窗/cost_x2_g6.txt
+4bec5e73fb8a2d7651eb47af7e149c142a22941f432760a7a658e66394295d07  note/进度/SCAN集成/设计/scripts/x2_pub_cloud.py
+  定形 §5.4 锚对照（本实例现算 ‖ 在册）：cost(r356) 前16 ＝ 2465fc1a69b495de ‖ 2465fc1a69b495de ｜ cloud(r356) 前16 ＝ 26bc024283fa2d80 ‖ 26bc024283fa2d80 ｜ x2_pub_cloud.py 前16 ＝ 4bec5e73fb8a2d76 ‖ 4bec5e73fb8a2d76
+  ⇒ 三锚全同 ⇒ 定形 §2.3 足印常量当期仍适用（★本实例据此才可复算，未改任何原件）
+
+[7] 足印现算（两扇窗 × 两代 Python；★本实例自写式，不引任何在册读数）
+--- 宿主 gen1（Python 3.13.13）$ python3 /tmp/r383_footprint.py <窗>/cost_x2_g6.txt <窗>/cloud_x2_g6.log
+FILE=note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window/cost_x2_g6.txt
+data_行数=1｜格数=1600｜直方=[(0, 1557), (99, 33), (100, 10)]｜254_格数=0
+P1=True｜判别区=[100, 100, 100, 100, 100]｜P3=True
+足印 rows[18,21]xcols[29,32] 内：痕迹_格数=9｜痕迹_最大值=100｜P4=True
+足印非零格明细=[(18, 29, 99), (18, 30, 99), (18, 31, 99), (19, 29, 100), (19, 30, 100), (19, 31, 99), (20, 29, 99), (20, 30, 99), (20, 31, 99)]
+簇①投影 col=(1.00..1.10+2)/0.1 -> [30, 31]  row=(−0.05..0.05+2)/0.1 -> [19, 20]
+簇②投影 col=(2.50+2)/0.1=45.0（>39＝图外，不计未进层）
+P2(cloud_first42)=True｜cloud 件=note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window/cloud_x2_g6.log｜首42字节='[INFO] [1792265324.884636]: X2_CLOUD first'
+--- 宿主 gen1（Python 3.13.13）$ python3 /tmp/r383_footprint.py <窗>/cost_x2_g6.txt <窗>/cloud_x2_g6.log
+FILE=note/进度/SCAN集成/证据/log/raw/r374_X2六段旁证窗/cost_x2_g6.txt
+data_行数=1｜格数=1600｜直方=[(0, 1557), (99, 33), (100, 10)]｜254_格数=0
+P1=True｜判别区=[100, 100, 100, 100, 100]｜P3=True
+足印 rows[18,21]xcols[29,32] 内：痕迹_格数=9｜痕迹_最大值=100｜P4=True
+足印非零格明细=[(18, 29, 99), (18, 30, 99), (18, 31, 99), (19, 29, 100), (19, 30, 100), (19, 31, 99), (20, 29, 99), (20, 30, 99), (20, 31, 99)]
+簇①投影 col=(1.00..1.10+2)/0.1 -> [30, 31]  row=(−0.05..0.05+2)/0.1 -> [19, 20]
+簇②投影 col=(2.50+2)/0.1=45.0（>39＝图外，不计未进层）
+P2(cloud_first42)=True｜cloud 件=note/进度/SCAN集成/证据/log/raw/r374_X2六段旁证窗/cloud_x2_g6.log｜首42字节='[INFO] [1792279677.536119]: X2_CLOUD first'
+--- 容器 gen2（在册基 Python 3.8.10/numpy 1.19.4）$ docker exec -i ros1-slam-sim python3 - <成本件> <云件> < /tmp/r383_footprint.py
+  [窗=note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window]
+FILE=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window/cost_x2_g6.txt
+data_行数=1｜格数=1600｜直方=[(0, 1557), (99, 33), (100, 10)]｜254_格数=0
+P1=True｜判别区=[100, 100, 100, 100, 100]｜P3=True
+足印 rows[18,21]xcols[29,32] 内：痕迹_格数=9｜痕迹_最大值=100｜P4=True
+足印非零格明细=[(18, 29, 99), (18, 30, 99), (18, 31, 99), (19, 29, 100), (19, 30, 100), (19, 31, 99), (20, 29, 99), (20, 30, 99), (20, 31, 99)]
+簇①投影 col=(1.00..1.10+2)/0.1 -> [30, 31]  row=(−0.05..0.05+2)/0.1 -> [19, 20]
+簇②投影 col=(2.50+2)/0.1=45.0（>39＝图外，不计未进层）
+P2(cloud_first42)=True｜cloud 件=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r356_x86联调批/x2_cell3_window/cloud_x2_g6.log｜首42字节='[INFO] [1792265324.884636]: X2_CLOUD first'
+  [窗=note/进度/SCAN集成/证据/log/raw/r374_X2六段旁证窗]
+FILE=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r374_X2六段旁证窗/cost_x2_g6.txt
+data_行数=1｜格数=1600｜直方=[(0, 1557), (99, 33), (100, 10)]｜254_格数=0
+P1=True｜判别区=[100, 100, 100, 100, 100]｜P3=True
+足印 rows[18,21]xcols[29,32] 内：痕迹_格数=9｜痕迹_最大值=100｜P4=True
+足印非零格明细=[(18, 29, 99), (18, 30, 99), (18, 31, 99), (19, 29, 100), (19, 30, 100), (19, 31, 99), (20, 29, 99), (20, 30, 99), (20, 31, 99)]
+簇①投影 col=(1.00..1.10+2)/0.1 -> [30, 31]  row=(−0.05..0.05+2)/0.1 -> [19, 20]
+簇②投影 col=(2.50+2)/0.1=45.0（>39＝图外，不计未进层）
+P2(cloud_first42)=True｜cloud 件=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r374_X2六段旁证窗/cloud_x2_g6.log｜首42字节='[INFO] [1792279677.536119]: X2_CLOUD first'
+
+[8] 容器内在册 STVL 包现读（★本实例独立发现：定形 §2.5 第 3 条"share/include 亦无该包"一句在现境不成立）
+  （如实标注：本行标题在生成时因我引号套引号被 shell 断词，整行经管道吞掉、并漏出一行 stderr 噪声 `行 20: include: 未找到命令`；**下方各条输出均为原样、未受影响**，此处只把丢失的标题补回，属格式修复不属读数修复）
+$ docker exec ros1-slam-sim bash -lc 'ls /opt/ros/noetic/share | grep -iE "spatio|voxel|sob"; grep -E "<name>|<version>" /opt/ros/noetic/share/spatio_temporal_voxel_layer/package.xml; ls /opt/ros/noetic/include | grep -iE "spatio|voxel"; ls -la /opt/ros/noetic/lib | grep -iE "spatio|sob"'
+sob_layer
+spatio_temporal_voxel_layer
+voxel_grid
+  <name>spatio_temporal_voxel_layer</name>
+  <version>1.4.5</version>
+spatio_temporal_voxel_layer
+voxel_grid
+-rw-r--r-- 1 root root  307584 May 21  2025 libsob_layer.so
+-rw-r--r-- 1 root root 1180856 May 21  2025 libspatio_temporal_voxel_layer.so
+
+[9] 话题名／消息类型／参数面的只读取证（strings 逐值）
+$ strings -n 3 libspatio_temporal_voxel_layer.so | grep -xcE "costmap_2d/VoxelGrid|sensor_msgs/PointCloud2|visualization_msgs/MarkerArray"
+costmap_2d/VoxelGrid             -> 0
+sensor_msgs/PointCloud2          -> 1
+visualization_msgs/MarkerArray   -> 0
+-- 裸串 voxel_grid 在位行号 --
+35146:voxel_grid
+-- liblayers.so 同串（costmap_2d 本家）--
+1
+$ rosmsg list | grep -i voxel（costmap_2d/VoxelGrid 在位与否）
+costmap_2d/VoxelGrid
+msg 定义：
+Header header
+uint32[] data
+geometry_msgs/Point32 origin
+geometry_msgs/Vector3 resolutions
+uint32 size_x
+uint32 size_y
+uint32 size_z
+
+$ STVL dynamic_reconfigure 参数名全集（现读，无 trinary/lethal 支）
+"enabled", "bool"
+"map_save_duration", "double"
+"mapping_mode", "bool"
+"mark_threshold", "double"
+"publish_voxel_map", "bool"
+"track_unknown_space", "bool"
+"update_footprint_enabled", "bool"
+"voxel_decay", "double"
+"voxel_size", "double"
+$ combination_method 自带枚举逐字（现读，与 yaml 注释相反）
+$ grep -nE "combination_method" note/进度/SCAN集成/证据/log/raw/r374_X2六段旁证窗/params_x2_g6.yaml
+21:  combination_method:    1      #1=max, 0=override
+$ sob_layer.xml 在册描述（＝InflationLayer 替代品 ⇒ 只导出下层代价、不能无中生有）
+<library path="lib/libsob_layer">
+  <class type="sob_layer::SobLayer" base_class_type="costmap_2d::Layer">
+    <description>Plugin-replacement for the default costmap_2d::InflationLayer.</description>
+  </class>
+</library>
+  （上行取串式写法不成立，改用逐字串抽取＝[9b]）
+$ docker exec ros1-slam-sim bash -lc "strings -n 8 /opt/ros/noetic/lib/libspatio_temporal_voxel_layer.so | grep -o 'Combination methods' ; strings /opt/ros/noetic/lib/libspatio_temporal_voxel_layer.so | grep -m1 \"'name': 'largest'\""
+Combination methods
+{'enum': [{'name': 'largest', 'type': 'int', 'value': 0, 'srcline': 7, 'srcfile': '/tmp/binarydeb/ros-noetic-spatio-temporal-voxel-layer-1.4.5/cfg/SpatioTemporalVoxelLayer.cfg', 'description': 'uses the highest of the layers in the stack', 'ctype': 'int', 'cconsttype': 'const int'}, {'name': 'overwrite', 'type': 'int', 'value': 1, 'srcline': 8, 'srcfile': '/tmp/binarydeb/ros-noetic-spatio-temporal-voxel-layer-1.4.5/c
+  ⇒ 现读逐字：enum 项1 name=largest value=0 description='uses the highest of the layers in the stack'；项2 name=overwrite value=1 description='overrides lower layers than this with these values'（源＝该包自带 cfg 串）
+
+[10] 话题名的在册形先例（★唯一在册出处，非活体）
+$ grep -n 'voxel_grid' ws/src/20_localization/hdl_localization/rviz/hdl_localization.rviz
+179:      Topic: /move_base/local_costmap/stvl_obstacle_layer/voxel_grid
+$ sed -n '160,182p' ...（该 Display 的 Class 段，看它按什么类型订的）
+4:      Channel Name: intensity
+5:      Class: rviz/PointCloud2
+13:      Name: PointCloud2
+20:      Topic: /move_base/local_costmap/stvl_obstacle_layer/voxel_grid
+$ grep -rn 'stvl_obstacle_layer' ws/src/40_navigation/lite3_navigation/config/*.yaml | head -4
+ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml:30:stvl_obstacle_layer:
+ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml:8:  - {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+ws/src/40_navigation/lite3_navigation/config/local_costmap_params.yaml:7:  - {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+ws/src/40_navigation/lite3_navigation/config/move_base_params.yaml:34:  layer_names: ["stvl_obstacle_layer"]
+  ⇒ 形＝/<节点名>/<costmap 段>/<层名>/voxel_grid；探针侧节点名＝__name:="$seg"、costmap 段实测为 costmap（见 [12]）⇒ 本窗候选名＝/x2_g6/costmap/stvl_obstacle_layer/voxel_grid
+
+[11] 活体面现跑（★结论：当前无在跑窗 ⇒ 本实例拿不到活体话题名）
+$ docker exec ros1-slam-sim bash -lc 'source /opt/ros/noetic/setup.bash; set +u; ROS_MASTER_URI=http://127.0.0.1:11313 timeout 6 rosnode list; ROS_MASTER_URI=http://127.0.0.1:11311 timeout 6 rosnode list; ss -ltn | grep -cE ":1131[0-9]|:11345|:11355"'
+ERROR: Unable to communicate with master!
+ERROR: Unable to communicate with master!
+监听口计数=0
+
+[12] 在册探针结构现读（★只读；sha 前12 见 [13]）
+$ grep -n 'gen_params\|four_plugin\|static2' note/进度/SCAN集成/设计/scripts/probe_x2_fourcells.sh | head -12
+135:gen_params() {  # $1=段名 $2=use_maximum $3=first_map_only $4=构成(static2|four_plugin) → 打印参数件路径
+149:    if [ "$kind" = "four_plugin" ]; then
+157:  if [ "$kind" = "four_plugin" ]; then
+167:  pf=$(gen_params "$seg" "$um" "$fm" "$kind")
+175:  if [ "$kind" = "four_plugin" ]; then
+208:    x2_g1) run_seg x2_g1 true  true  static2     "格①在册参数面" ;;
+209:    x2_g2) run_seg x2_g2 true  false static2     "格②(T,F)" ;;
+210:    x2_g3) run_seg x2_g3 false true  static2     "格②(F,T)" ;;
+211:    x2_g4) run_seg x2_g4 false false static2     "格②(F,F)" ;;
+212:    x2_g5) run_seg x2_g5 true  true  static2     "格②(T,T) 复跑" ;;
+213:    x2_g6) run_seg x2_g6 true  true  four_plugin "格③三插件构成" ;;
+$ sed -n '205,217p' probe（SEGS 表＝没有消融段）
+# 旋钮＝X2_SEGS（空格分隔段名）。例：X2_SEGS="x2_g6" bash probe_x2_fourcells.sh
+SEGS="${X2_SEGS:-x2_g1 x2_g2 x2_g3 x2_g4 x2_g5 x2_g6}"
+run_by_name() {
+  case "$1" in
+    x2_g1) run_seg x2_g1 true  true  static2     "格①在册参数面" ;;
+    x2_g2) run_seg x2_g2 true  false static2     "格②(T,F)" ;;
+    x2_g3) run_seg x2_g3 false true  static2     "格②(F,T)" ;;
+    x2_g4) run_seg x2_g4 false false static2     "格②(F,F)" ;;
+    x2_g5) run_seg x2_g5 true  true  static2     "格②(T,T) 复跑" ;;
+    x2_g6) run_seg x2_g6 true  true  four_plugin "格③三插件构成" ;;
+    *) echo "[前置缺失] 未知段名：$1（只认 x2_g1..x2_g6）"; exit 9 ;;
+  esac
+}
+NSEG=0
+$ grep -n 'sleep\|timeout 40\|__name' note/进度/SCAN集成/设计/scripts/probe_x2_fourcells.sh | sed -n '1,12p'
+110:  sleep 3
+120:    sleep 2
+129:for _ in $(seq 1 40); do rosnode list >/dev/null 2>&1 && break; sleep 1; done
+133:sleep 3
+174:  sleep 2
+181:  rosrun costmap_2d costmap_2d_node __name:="$seg" > "$RUN/node_$seg.log" 2>&1 &
+183:  sleep $(( GAP + 12 ))
+186:  timeout 40 rostopic echo -n1 "/$seg/costmap/costmap" > "$RUN/cost_$seg.txt" 2>&1
+199:  sleep 4
+  ⇒ 单段时长推得＝sleep2 + sleep(GAP+12=24) + echo -n1 首帧即返(≤1) + sleep4 ≈ 31—35s
+$ grep -n 'GAP\|X2_RUN\|X2_SEGS' note/进度/SCAN集成/设计/scripts/probe_x2_fourcells.sh | head -6
+18:# 用法：bash probe_x2_fourcells.sh                     RUN=${X2_RUN:-/tmp/x2_fourcells}  两帧间隔=${X2_GAP:-12}s（★缺省六段全跑）
+19:#       X2_SEGS="x2_g6" bash probe_x2_fourcells.sh    只跑指定段（R354 增设段选；格③ 补测用）
+27:RUN=${X2_RUN:-/tmp/x2_fourcells}
+28:GAP=${X2_GAP:-12}
+127:say "== X2 四格窗包开跑｜RUN=$RUN｜身份=$(whoami)｜load1=$(cut -d' ' -f1 /proc/loadavg)｜两帧间隔=${GAP}s｜在册 yaml=$CCY =="
+172:  X2_GAP="$GAP" X2_TAG="$seg" python3 "$PUBPY" > "$RUN/pub_$seg.log" 2>&1 &
+$ sed -n '37,44p;60,61p' note/进度/SCAN集成/设计/scripts/x2_pub_cloud.py（发布节奏＝2 Hz 连发 ⇒ 体素话题整段都该有消息）
+def build():
+    pts = []
+    for i in range(6):
+        for j in range(6):
+            pts.append((1.00 + 0.02 * i, -0.05 + 0.02 * j, 0.50))
+    for k in range(6):
+        pts.append((2.50, -0.40 + 0.16 * k, 0.50))
+    return pts
+    r = rospy.Rate(2)
+    n = 0
+    while not rospy.is_shutdown():
+        m = cloud(pts)
+        m.header.stamp = rospy.Time.now()
+        pub.publish(m)
+
+[13] ★不得改的件：本实例现算指纹（证明一字未动）
+$ LC_ALL=C sha256sum probe_x2_fourcells.sh derive_stvl_mark.py x2_pub_cloud.py x2_pub_two_frame.py | cut -c1-12＋件名
+cbf06584e453 note/进度/SCAN集成/设计/scripts/probe_x2_fourcells.sh
+d8789c108807 note/进度/SCAN集成/设计/scripts/derive_stvl_mark.py
+4bec5e73fb8a note/进度/SCAN集成/设计/scripts/x2_pub_cloud.py
+20b57936f71e note/进度/SCAN集成/设计/scripts/x2_pub_two_frame.py
+  在册对照＝探针 cbf06584e453（T3 四枚 sha 见证之一，M2 已明令不落）｜derive d8789c108807（R378 落件值）⇒ 两值现算同在册 ⇒ 本实例未触
+
+[14] 只读后处理件的在册调用面现读（有无归因支）
+$ grep -n 'add_argument' note/进度/SCAN集成/设计/scripts/derive_stvl_mark.py
+186:    ap.add_argument('--selftest', action='store_true')
+187:    ap.add_argument('--dir', help='X2 窗留底目录（含 cost_*.txt 与 cloud_*.log）')
+190:    ap.add_argument('--segs', default='x2_g6')
+191:    ap.add_argument('--expect-zero', action='store_true', help='预留：与在册期望值并报（本件不自判）')
+  ⇒ 实件只有 --selftest/--dir/--segs/--expect-zero 四支；★无 --attrib；★也无定形 §5.3 形状里的 --cost/--params/--cloud/--footprint/--tol
+$ sed -n '53,58p' note/进度/SCAN集成/证据/log/raw/r356_x86联调批/acceptance_verdict/stvl_标注列定形_x86小美.md（§5.3 原形状逐字，供对照）
+
+[15] 开窗义务面现读（★本实例因此不开窗）
+$ grep -vcE '^ *(#|$)' scripts/verify/_window_receipt.tsv   （回执行数，在册现读）
+18
+$ ls scripts/verify/v_window_preflight.sh   （预检＝在册唯一许可式，本实例不动它、只在工单里引用）
+-rwxrwxr-x 1 jack jack 7621 10月 18 04:30 scripts/verify/v_window_preflight.sh
+  ⇒ 实开之窗必在同批往该 tsv 加行（A27 逆命题＝在册 G-8 到签）＝改仓内非本目录件 ⇒ 越本实例授权面 ⇒ 本实例只出工单不出窗
+
+[16] 改面自检（★除本留底目录外零改动）
+$ git status --porcelain | grep -v '^??'   （已跟踪件的改动，须为空）
+  上行输出为空＝已跟踪件零改动（rc 由 grep 决定，不作判据）
+$ git status --porcelain | grep '^??'   （未跟踪新件，应只有本批目录）
+?? "note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r383_clause1\344\270\216M4\350\243\201\345\256\232\346\211\271/"
+  （[14] 第二条取行号未命中，改按关键字定位＝[14b]）
+$ grep -n 'attrib' note/进度/SCAN集成/证据/log/raw/r356_x86联调批/acceptance_verdict/stvl_标注列定形_x86小美.md
+203:  --footprint auto --tol 1 --attrib <none|voxel|diff>
+204:# 期望（--attrib none，即现件）：与 5.1 同串同 rc=5
+
+[17] 容器内跑过 python 之后的清盘＋计数（★同一条命令内，在册坑67 姿势；清理路径写全集 note/tooling/ws/src/scripts）
+  （如实标注：本行标题生成时漏写 echo 前缀、整行落到 stderr 成了 `未找到命令` 噪声，补回标题；下方读数原样未动）
+$ docker exec ros1-slam-sim bash -lc 'find note tooling ws/src scripts -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null; echo ws_src_files=$(find /opt/ros1-slam/ws/src -type f | wc -l); echo pycache_left=$(find /opt/ros1-slam/note /opt/ros1-slam/tooling /opt/ros1-slam/ws/src /opt/ros1-slam/scripts -name __pycache__ -type d | wc -l)'
+ws_src_files=4580
+pycache_left=0
+本批目录件数=2
+  在册基 ws_src_files=4580 ⇒ 现算须等值；不等值＝有 .py 副产物落盘，须当场处置
+
+[2b] 恒 0 的机理性补跑（把「乙路线在任何命名下都不可解」证到底）
+$ git ls-files | LC_ALL=C grep -c '[^ -~]'   （默认形输出里非可打印 ASCII 字节行数，须 0＝中文全被转义）
+0
+$ git ls-files | grep -c '等价'   （默认形里 等价 二字出现次数，须 0）
+0
+$ git ls-files | grep -c '基准'   （默认形里 基准 二字出现次数，须 0）
+0
+$ git -c core.quotepath=false ls-files | grep -c '等价'   （对照＝关掉转义后 等价 出现次数）
+4
+  ⇒ 默认形的 stdout 内**根本不存在任何非 ASCII 字节**（前三行均 0）⇒ 任何要求中文字面出现的正则在此形下**恒不命中**，与件名怎么起**无关**；⇒ 乙设想的'另落 ASCII 命名件'同样过不了裸式（只有 quotepath=false 形才能出现 等价 二字，末行现跑>0）。
