@@ -1,0 +1,9 @@
+# 05 · 立新基线（★不覆盖 R399 那份、两份并存）＋十字段对拍
+命令（★照 r426 裁定回文给的跑法，宿主机面、显式传根）＝
+  face="$(sed -n '2p' <R399 基线件> | sed 's/^# 被检面：//')"
+  bash scripts/verify/v_ledger_citation_baseline.sh --snap <本目录>/baseline_note71w40_r428.tsv $face
+  bash scripts/verify/v_ledger_citation_baseline.sh --check <本目录>/baseline_note71w40_r428.tsv $face
+新基线十字段现读＝文档=71｜单点引用=770｜OK=612｜★RED=9｜AMBER=58｜勘误句=84｜非单点形状=174｜豁免红=7｜豁免表命中=2｜豁免表未命中=1
+★对拍结果＝逐项同值、★check rc=0；R399 那份★仍在原目录★未动（ls 现读在位）。
+★"干净"的定义照裁定人原话＝★不是消到 0，而是"剩下的红全部对得上一句在册结论"；★把 B/C/D 硬塞进表换 RED 归零＝用豁免表遮掩真错。
+★基线件名口径＝note71（71 件面）× w40（±40 窗宽缺省）× r428（立基线的批号）。
