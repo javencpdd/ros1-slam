@@ -1,0 +1,35 @@
+[2026-10-19 04:40:03] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 04:40:06]   预检 rc=0
+[2026-10-19 04:40:06] == 步0b 起前快照 S0（★名集已扩到导航栈成员★）==
+[2026-10-19 04:40:06]   基线=0
+[2026-10-19 04:40:08] == 步1 master_ready=1（等待 2s）‖ WPID=103328 ==
+[2026-10-19 04:40:08] == 步1b uuid 自校验＝OK ‖ UUID=289f4e0e-cb77-11f1-8544-d23e7c952659 ‖ 本窗 rosout pid N=103540 ==
+[2026-10-19 04:40:08] == 步2 跑★在册★冒烟件（★一字未改、★上限 300s、★只报不判★）==
+[2026-10-19 04:40:08]   冒烟件 sha 前 16=837cd647606450b0 行数=162（★跑前后必须同值⇒证明未改★）
+[2026-10-19 04:40:37]   ★冒烟件 rc=1★（0＝全 PASS｜1＝有 FAIL｜124＝被 300s 上限掐掉＝★起量未成★）‖ 时长 34s
+[2026-10-19 04:40:37]   ★CHECK 行数=13‖ 其中 PASS=9‖ FAIL=4★
+[2026-10-19 04:40:37]   冒烟件自带 launch 全量日志已随窗留底＝字节=33038
+[2026-10-19 04:40:37]   ★起不来时最要紧的三行（★launch 日志尾）★：
+    ｜shutting down processing monitor...
+    ｜... shutting down processing monitor complete
+    ｜[1mdone[0m
+[2026-10-19 04:40:37]   冒烟件收尾（★末 8 行★）：
+    ｜[0m[ INFO] [1792384830.593694721]: Global planner patience has been exceeded! Cancel planning...[0m
+    ｜[33m[ WARN] [1792384830.593945120]: Cancel planning failed or is not supported by the plugin. Wait until the current planning finished![0m
+    ｜[0m[ INFO] [1792384830.594345344]: Planning patience (3s) has been exceeded; planner canceled![0m
+    ｜[INFO] [1792384830.725371]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+    ｜[INFO] [1792384831.861989]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+    ｜[smoke] 退净中...
+    ｜CHECK|ros2qnx_exit|PASS|ros2qnx 全程不存在
+    ｜CHECK|teardown|PASS|launch 内关键节点已退净
+  冒烟件跑后 sha 前 16=837cd647606450b0
+[2026-10-19 04:40:37] == 步9 退净（★SIGTERM wrapper → 轮询 rosout 消失 → 差集双过滤 → 五数★）==
+[2026-10-19 04:40:37]   SIGTERM 本窗 PID pid=103328
+[2026-10-19 04:40:37]   SIGTERM 本窗 PID pid=103630
+[2026-10-19 04:40:38]   ★第 2s：本窗 rosout pid=103540 已消失★
+[2026-10-19 04:40:41]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口=0★（现读计数=0）
+[2026-10-19 04:40:41]   ★退净达标（乙式）★
+[2026-10-19 04:40:41] == 步11 日志落盘 ==
+[2026-10-19 04:40:41]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-19 04:40:41] == 步99 清盘与计数同条命令 ==
+[2026-10-19 04:40:41]   pyc=0 ws_src=4580 tooling=149 note=5330 ‖ 时长 38s

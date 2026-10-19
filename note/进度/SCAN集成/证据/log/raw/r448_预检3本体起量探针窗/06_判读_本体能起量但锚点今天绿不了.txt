@@ -1,0 +1,15 @@
+# 06 · 判读＝★预检 3 本体在这台镜像★能起量★（13 CHECK 全部产出、34s 跑完、★在册冒烟件一字未改★），但★原话要的那格不成立★：现值＝9 PASS／★4 FAIL★＝全局规划器 patience 超时（outcome=55）⇒★"13 CHECK 全 PASS"这个锚点今天绿不了★
+## 一、13 行 CHECK 现值（★逐字，★原件 `run/smoke_stdout.txt`★）
+- ★PASS 9 行★＝`venue_map_cloud`（mockamap 有发布者）‖ `rslidar_points`★实测 10.00Hz★‖ `truth_map`（`/map` 占据格=5041、120×120@0.10）‖ `tf_robot`（map→base_link 可查）‖ `costmap_data`（★全局 costmap 占据格=12161、static+stvl 有数据★）‖ `getpath_server`（mbf action server 在位）‖ `cmdvel_writer`（★/cmd_vel 唯一写者＝safe_cmd_vel_mux★）‖ `ros2qnx_exit`‖ `teardown`。
+- ★FAIL 4 行★＝`getpath_1`／`getpath_2`／`getpath_3`★三条同因★＝`outcome=55 Global planner exceeded the patience time`（★patience=3s、日志另有"Cancel planning failed or is not supported by the plugin"★）＋`exepath_cmdvel`★因前者连带★＝"无可用 GetPath 路径，ExePath 跳过"。
+## 二、★这条为什么是好消息也是坏消息★
+- ★好★＝★整条链在这台镜像里是活的★（地图生成→点云 10Hz→真值图→TF→costmap 有占据→action server→唯一写者→退净），★包齐不齐这个未验项当场被消灭★（★批101 里我说"roslaunch 无 --deps/--params、我的 XML 解析件失败 ⇒ 未验证"★）；★34s 跑完 ⇒ ★远在 300s 与 10 分钟窗上限之内★，段 B 不必拆窗。
+- ★坏★＝★设计件 §8.3 原话"零行为变化锚点＝W2-0 同款 13 CHECK"隐含"锚点是绿的"★，★而本镜像现值 4 条红★ ⇒ ★"改前改后都全 PASS"这种写法今天做不到★；★可做的只有另一格＝"改前改后★同一组 13 行向量逐行同值★（含 4 条同因 FAIL）"★。★把判据从"全 PASS"换成"逐行同值"＝判据定形★ ⇒★不是我该自定的★（★交裁定面／小张★）。
+## 三、★那 4 条 FAIL 归谁★（★照实摆、★不自修★）
+- 现象在★规划层★（global_planner／mbf 的 patience 3s 与取消失败），★与 elevation 层无关★（本段★没有★加任何新层）。
+- 可能成因★本窗无法区分★（★地图连通性／起点落在占据格／patience 太短／TEB 与全局规划器混配／sim 定位与真值图偏差★）⇒★不自修、不改在册 yaml、不改 patience 值★（★判据门值与导航参数属红线面、★且 Q-B1 那类竖向参数须真人勾★）。
+- ★要人定的一格★＝预检 3 本体下一步走哪条：甲＝★先按"逐行同值"当锚点★跑段 B（★判据定形先交独立实例裁★），乙＝★先诊断那 4 条红★（★属导航参数面、★可能回设计侧★），丙＝★停在替身链★（★R441／R442／R445／R446 已把"加层会不会改行为"答死、★本体不做★）。
+## 四、★本窗自校验三条★
+①★在册冒烟件未改★＝跑前跑后 sha 前 16★同值★（837cd647606450b0）＋行数 162★未变★；②★退净★＝基线★0★（★批101 收孤儿的效果★）｜D=0｜K=0｜D∖K=0｜端口 0 ⇒★五名全零＝★绝对零口径重新做到★（★R419 之后第一次★）；③★rosout 第 2s 自消失★、`roscore.log`★886 字节★／`killing on exit` 行=2；④★冒烟件自带的整份 roslaunch 日志已随窗留底★（★33038 字节★）——★下次要查规划器为什么超时，材料在这一份里★。
+## 五、★不声称★
+不声称 §8 预检 3 已通过（★4 条红在★）；不声称"逐行同值"是合法替代锚点（★未裁★）；不声称知道那 4 条红的成因；不声称段 B 已跑（★本窗★没加★任何新层★）；不声称 13 CHECK 的清单定义已核对（★无文件列清单、★此件用的是冒烟件自带的那 13 行★）；不声称读数入分子；不撤 §16.9。
