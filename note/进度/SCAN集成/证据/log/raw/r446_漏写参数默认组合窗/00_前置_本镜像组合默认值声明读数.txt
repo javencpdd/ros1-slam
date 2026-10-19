@@ -1,0 +1,20 @@
+# 00 · 前置离线读数（★零窗、只读、容器内 gen0＝Py3.8.10★）＝★本镜像的层组合默认值★直接从★随包发布的 dynamic_reconfigure 描述符★里读出来（★不必起窗就能拿到声明★）
+## 一、读数（★命令＋输出原样★）
+```
+$ . /opt/ros/noetic/setup.bash
+$ python3 -c "from costmap_2d.cfg import ObstaclePluginConfig as O; print(O.defaults)"
+Obstacle.defaults 全表: {'enabled': True, 'footprint_clearing_enabled': True,
+                         'max_obstacle_height': 2.0, 'combination_method': 1}
+
+$ python3 -c "from costmap_2d.cfg import ObstaclePluginConfig as O; print(O.ObstaclePlugin_Nothing, O.ObstaclePlugin_Overwrite, O.ObstaclePlugin_Maximum)"
+Nothing= 99  Overwrite= 0  Maximum= 1
+```
+⇒ ★★声明层的答案★★＝①★这一版用的是 `combination_method`（整数枚举），★`use_maximum` ★不在这几份生成描述符的键里★（`"use_maximum" in O.defaults = False`、`GenericPluginConfig.defaults` 亦无此键）；②★`combination_method` 的默认值＝1＝★Maximum★＝★只升不降★（Overwrite=0、Maximum=1 逐字取自同模块的枚举常量）。
+## 二、★由此产生的一条新问★（★这才是 R446 起窗要答的★）
+本镜像★没有★名为 `use_maximum` 的配置键，★可 R445 里我确实用 `use_maximum: true／false` 测出了两种不同的发布面★（true 保 9 枚致命格、false 抹成 0）⇒ ★说明 C++ 侧存在一条★遗留兼容★通路把 `use_maximum` 映射到 `combination_method`★（★方向与枚举值一致★）。★但"漏写两个键时到底取谁"是★行为★问题：★cfg 默认＝1(Maximum) 不代表运行时真取它★（★插件初始化可能先读参数服务器、再用别的缺省★）⇒ ★本窗 v1 段＝elevation_layer★同时不写★ `use_maximum` 与 `combination_method`，读两件事★：(a) cost 面那 9 枚致命格保没保住；(b) `rosparam get …/elevation_layer/combination_method` 的★在带内生效值★。
+## 三、★两条通路必须撞同数才算闭合★
+- 声明通路（本件）＝默认 1＝Maximum ⇒ 预期★致命格保住★。
+- 行为通路（R446 v1 段）＝漏写该层的组合键 ⇒ 预期★非零仍=9、那 9 格=[100×9]★、且★生效值回读=1★。
+- ★若两路相反★（例如漏写后 9 格被抹／生效值=0）⇒ ★声明件与运行时不一致＝本镜像的一条真实危险★，★必须回写三面并把 bb 件 K4 从"建议"升级成"硬前置"交小张★。
+## 四、★本件不声称★
+不声称读到了★源码★（costmap_2d 在本镜像只有 share/＋生成的 cfg 描述符＋include/，★头文件里 grep 不到 OVERWRITE／MAXIMUM★，枚举声明在这份 .cfg 生成物里）；不声称 `use_maximum` 与 `combination_method` 的映射方向已证（★R445 只证了行为方向、★映射代码没读过★）；不声称 R446 已跑（★本件只是前置★）。

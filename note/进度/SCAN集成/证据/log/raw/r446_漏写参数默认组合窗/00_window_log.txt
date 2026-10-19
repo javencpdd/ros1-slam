@@ -1,0 +1,33 @@
+[2026-10-19 03:56:07] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 03:56:11]   预检 rc=0
+[2026-10-19 03:56:11]   ★本窗打开的输出通道＝ROS_STDOUT_STDERR=1 ROSCONSOLE_STDOUT_LINE_BUFFERED=1★
+[2026-10-19 03:56:11] == 步0b 起前快照 S0 ==
+[2026-10-19 03:56:11]   名集=[^(roslaunch|rosmaster|rosout|gzserver|gzclient|rosbag|costmap_2d_node)$] ‖ ★基线＝3★
+[2026-10-19 03:56:13] == 步1 master_ready=1（等待 2s）‖ WPID=95263 ==
+[2026-10-19 03:56:13] == 步1b uuid 自校验＝OK ‖ UUID=05f157e0-cb71-11f1-aa9d-d23e7c952659 ‖ 本窗 rosout pid N=95475 ==
+[2026-10-19 03:56:13] == 段 v1（params_v1.yaml）==
+[2026-10-19 03:56:13]   起发布器 topic=/gmap_v1 layer=static_a mode=3state
+[2026-10-19 03:56:13]   起发布器 topic=/gmap_v1e layer=elevation_layer mode=allfree
+[2026-10-19 03:56:17]   ★逐层互校＝static_a ‖ 参数面 map_topic=[/gmap_v1] ‖ 发布器实际=[/gmap_v1] ⇒ 同＝True ‖ use_maximum 回读=[true] ‖ combination_method 回读（★生效值、★在带内★）=[ERROR:Parameter[/v1/costmap/static_a/combination_method]isnotset]★
+[2026-10-19 03:56:17]   ★逐层互校＝elevation_layer ‖ 参数面 map_topic=[/gmap_v1e] ‖ 发布器实际=[/gmap_v1e] ⇒ 同＝True ‖ use_maximum 回读=[ERROR:Parameter[/v1/costmap/elevation_layer/use_maximum]isnotset] ‖ combination_method 回读（★生效值、★在带内★）=[ERROR:Parameter[/v1/costmap/elevation_layer/combination_method]isnotset]★
+[2026-10-19 03:56:17]   plugins 枚数回读＝2
+[2026-10-19 03:56:20]   costmap 就绪＝1（等待 2s）
+[2026-10-19 03:56:21]   取样 data_行数=1 字节=5153
+[2026-10-19 03:56:22]   ★节点日志＝字节=816 ‖ 行数=10 ‖ Using plugin 行=2 ‖ Received 行=2★
+[2026-10-19 03:56:26] == 段 rc＝v1=0 ‖ 时长 19s ==
+[2026-10-19 03:56:26] == 步9 退净（★先 SIGTERM → 轮询本窗 rosout 消失 → 差集双过滤 → 判定行五数★）==
+[2026-10-19 03:56:26]   SIGTERM 本窗 PID pid=95263（★禁 -9★）
+[2026-10-19 03:56:26]   SIGTERM 本窗 PID pid=95552（★禁 -9★）
+[2026-10-19 03:56:26]   ★本窗 PID 集已交出（此后 EXIT 钩子不再重复收）★
+[2026-10-19 03:56:27]   ★第 2s：本窗 rosout pid=95475 已消失★
+[2026-10-19 03:56:29]   ★判定行五数＝基线=3｜D=0｜K=0｜D∖K=0｜端口=0★（现读计数=3）
+[2026-10-19 03:56:29]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 03:56:29] == 步10 单面判读（★elevation_layer 漏写两个组合键 ⇒ 看那 9 枚致命格保没保住★）==
+[2026-10-19 03:56:29]   对比件 rc=0
+    ｜v1（★elevation_layer 漏写两个组合键★）distinct=[0] 非零=   0 hist={0: 1600}
+    ｜★那 9 枚致命格现值＝[0, 0, 0, 0, 0, 0, 0, 0, 0]（保位枚数=0／9）
+    ｜★判读★＝保位 9／9 且 非零=9 ⇒ ★漏写时该层走"只升不降"＝与声明层默认 combination_method=1(Maximum) 一致 ⇒ 默认安全★；保位 0／9 且 非零=0 ⇒ ★漏写即抹致命＝与声明层相反 ⇒ 本镜像一条真实危险、须把 bb 件 K4 升成硬前置★；其余形状 ⇒ ★两路都没闭合、照实报未决★
+[2026-10-19 03:56:29] == 步11 roscore／节点日志落盘否 ==
+[2026-10-19 03:56:29]   roscore.log 字节=883 ‖ killing 行=2 ‖ node_v1 字节=816
+[2026-10-19 03:56:29] == 步99 清盘与计数同条命令 ==
+[2026-10-19 03:56:29]   pyc=0 ws_src=4580 tooling=149 note=5306 ‖ 时长 22s

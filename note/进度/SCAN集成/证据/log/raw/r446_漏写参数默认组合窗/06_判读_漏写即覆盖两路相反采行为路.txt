@@ -1,0 +1,15 @@
+# 06 · 判读＝★两路相反、行为层赢★：本镜像里★elevation_layer 漏写组合键 ⇒ 那 9 枚致命格被整片抹成 0（非零 9→0、distinct=[0]）★＝★与 R445 的 use_maximum:false 同形★ ⇒ ★"声明层默认=1(Maximum)"★不能★当依据（那份描述符是★父级插件的、不是被试层的）★
+## 一、两路读数（★同窗并读★）
+- ★声明通路（00 件、零窗）★＝`ObstaclePluginConfig.defaults = {…, combination_method: 1}`、同模块枚举常量 `Overwrite=0 ／ Maximum=1` ⇒★看着像"默认只升不降"★。
+- ★行为通路（本窗 v1）★＝elevation_layer 的参数面★同时不写★ `use_maximum` 与 `combination_method` ⇒ 合成面 ★distinct=[0]、非零=0、那 9 枚致命格 [0×9]（保位 0／9）★ ⇒★实际走的是覆盖★。
+- ★两路相反★ ⇒ ★采信行为路★（★它就是我这条链路上真正会被发布出来的那张 cost 面★），★并登记声明路的两处失效★：①★我读的那份是 ObstaclePluginConfig／VoxelPluginConfig★，★本镜像里根本没有 StaticLayer 的 cfg 生成物★（`find /opt/ros/noetic -name "*StaticLayer*"` ★零命中★；`costmap_2d.cfg` 只有 Costmap2D／Generic／Inflation／Obstacle／Voxel 五份；头文件里 `VoxelPluginConfig.h` 带 `__default__.combination_method = 1`）⇒★被试层（StaticLayer）的默认值★在这台镜像里读不到★，我只好在 C++ `initializeParam` 那侧，而★src/ 不在镜像里★；②★`rosparam get …/elevation_layer/combination_method` 回读＝"Parameter is not set"★ ⇒★生效值不会写回参数服务器 ⇒ 参数服务器不能用来读"这一层实际按哪种组合在跑"★（★这是一条新的取证式边界，值得进 05★）。
+## 二、★跨窗一致性★（★不是单窗噪声★）
+- R445：★显式 false★ ⇒ 9 格抹成 0；★显式 true★ ⇒ 9 格保住（逐格等 0/1600）。
+- R446：★漏写★ ⇒ 9 格抹成 0 ⇒★与显式 false 同形★。
+- ⇒ ★在本镜像这条链路上，"漏写"等价于"覆盖"★（★两次独立起停、两枚不同参数面、同结论★）。
+## 三、★对 S3 的后果（★升级、不再只是建议★）
+- ★往 global_costmap 新增一枚 StaticLayer（elevation_layer）时★必须★显式钉住★ `use_maximum: true`（★或该版对应的 `combination_method: 1`★），★漏写＝把底层 static 的致命障碍整片洗成自由★＝★安全侧硬危险★。
+- ★因此 bb 件的 K4 应从"双实例同栈是否以预检 3 为硬前置"升成★两件事★★：①硬前置；②★新增层的组合键必须显式为 MAX★（★缺省不可信★）★。★★改设计件 §5／§6 的字仍不归施工侧★★（★§9 批准式＝小张复核＋主理人批准★），★本批只把读数与升级建议送到小张面★。
+## 四、★退净（★第四次复现★）＝★基线3｜D=0｜K=0｜D∖K=0｜端口0＝乙式达标★、★rosout pid=95475 SIGTERM 后第 2s 自消失★、★roscore.log 883 字节 killing 行=2★、★节点日志 816 字节／Using plugin 行=2／Received 行=2★（★两枚层都真收到图 ⇒ 抹除不是空转副产物★）、★逐层互校两行全部 ⇒ 同＝True★。
+## 五、★本件不声称★
+不声称已知道★为什么★漏写会走覆盖（★StaticLayer 源码不在镜像里、不可证★）；不声称其它★非★ StaticLayer 层型（obstacle／inflation／voxel／stvl）漏写也是覆盖（★只测了 StaticLayer；★Voxel 的描述符默认反而是 1★，★恰说明"父级描述符不能代表被试层"★）；不声称预检 3 本体已过；不声称设计件该由我改；不声称读数入分子；不撤 §16.9。
