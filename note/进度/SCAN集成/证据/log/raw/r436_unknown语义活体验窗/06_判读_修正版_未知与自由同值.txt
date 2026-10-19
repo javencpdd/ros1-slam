@@ -1,0 +1,12 @@
+# 06 · §8 预检 4 的判读（★修正版★＝5 号件那次的区域映射是我写错的、★原件不动★、★本件为准★）
+时刻＝2026-10-19 02:28:22（容器 UTC；宿主 10:28 CST）‖ 机名＝容器 99957655604a ‖ 档名＝联调·冒烟、★不计分子、★桶名甲-离
+输入（★同一个探针发布器 pub_unknown_probe.py、★两态参数面只差 track_unknown_space★）＝背景 1573 格 = −1（未知）、自由块 rows10—12×cols10—12 = 0、致命块 rows10—12×cols20—22 = 100（★发布器自报 unknown/free/lethal 枚数见 run/pub_u1.log）
+
+实测（★两态各自采一帧 cost 面、★逐区取hist★）：
+  u1 track_unknown_space:false（＝在册 X2 生产形）＝输入 0 区→cost {0:9} ‖ 输入 100 区→cost {100:9} ‖ ★输入 −1（未知）区→cost {0:9}★；distinct=[0,100]
+  u2 track_unknown_space:true （对照）　　　　　＝输入 0 区→cost {0:9} ‖ 输入 100 区→cost {100:9} ‖ ★输入 −1（未知）区→cost {0:9}★；distinct=[0,100]
+⇒ ①★在本镜像这条链路上，"未知"与"自由"在 costmap 发布面上★同值★（都落 0），★改 track_unknown_space 的 true/false 不改变这一结果★（两态逐值同）；
+　②★never★ 出现 −1 或 254 ⇒ ★"用 −1 表达未知"★在这条链路★观测不到★（与 X2 三扇窗 r419／r422／r429 的 distinct={0,99,100}★互证）；
+　③★预检 4 的结论写法★＝★生产配置下未知＝自由★（保守代价＝0）⇒ ★任何"未知列被当障碍"或"被单独标出"的假设★不成立★，w3_elevation_node 的 cost_map() 自己发 −1 也无从经此路径区分；
+　④★源码级解释★（为什么 NO_INFORMATION 与 FREE_SPACE 同值）★本镜像不可证★（costmap_2d 只有 share/、无 src/）⇒ ★本条只签到"实测两态同值"，★不签"因为常量定义如此"。
+不声称＝不声称 track_unknown_space 无差别（★只测了这一个发布面、★未测 layered／未测 collision checker 侧）；不声称 maze2d 整链行为（那是预检 3、★未跑）；不声称任何读数入分子。
