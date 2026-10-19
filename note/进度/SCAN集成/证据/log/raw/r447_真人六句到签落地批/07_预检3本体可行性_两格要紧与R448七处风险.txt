@@ -1,0 +1,20 @@
+# 07 · 第 5 句「开完整 maze2d 窗跑预检 3 本体」的★可行性现读★＝★本体可跑★（导航栈／maze2d／13 CHECK 三样载体俱在），★但有两格要说清：注册段属设计面、合同件的 13 CHECK 锚点是假锚点★
+## 一、预检 3 原话（★逐字★，`note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` §8 第 72 行）
+> `3. costmap_2d StaticLayer 双实例同栈实测（maze2d 上零行为变化锚点=W2-0 同款 13 CHECK）；`
+- ⇒ 拆开＝★三件缺一不可★：①★maze2d★（不是 X2 那种手工三态图）②★双实例同栈★（第二枚 StaticLayer 真挂进 global_costmap）③★W2-0 同款 13 CHECK 做锚点、改前改后两跑比对照★。
+- 同件 §5 第 56 行＝A 档形态明文「plugins 增第二实例…★1 处注册段（预登记 04 diff）★」；§9 第 76—77 行＝「§8 预检 1—3 通过…★实现开工前须小张接口复核＋主理人批准★」。
+## 二、三条载体现读（★都在册、★我逐条自核过★）
+1. ★maze2d＝mockamap 运行时生成、★不是静态地图也不是 gazebo world★＝`ws/src/00_drivers/lite3_drivers/launch/95_sim.launch` 第 22—24 行（`map_type default=3` 注释「3=maze2d」、`map_seed=7`、`map_x=12`「maze2d 强制正方形」）；`ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch` 第 49—52 行同值；第 9 行注释写明 seed=7 取"最长蛇形路径 29 格"。
+2. ★完整导航栈在位★＝`ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch` ＋ `config/{mbf_navigation,global_costmap_params,costmap_common,global_planner_params,planner_teb}.yaml`。
+3. ★13 CHECK 载体在位且在册★＝`ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh`★现读 162 行★；它在门禁面清单里的行号＝`scripts/verify/syn_face.txt`★第 81 行★（★被 SYN 件做语法检★）。
+## 三、★两格要紧的★
+### (a) 「双实例同栈」需要在册 yaml 加注册段 ⇒ ★我没动、也不打算动★
+- `ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml` 现读 plugins★只有三枚★＝`static_layer`／`stvl_obstacle_layer`／`sob_layer`（第 6—9 行；第 10—11 行是两行注释掉的 `voxel_layer`／`inflation_layer`），★没有 elevation_layer★。
+- ⇒ R448 走★留底副本＋私有启动器★：把参数面★复制★进窗留底目录、在★副本★上加那一处注册段，★在册 yaml 一字不改★（同 R441／R445／R446 的"探针与参数面新建在留底内 ⇒ 不进 scripts/、不入任何面"路数）。
+- ⇒ ★读数是"预检证据"、不是开工令★：§9 那半句复核未销之前，★不得把 R448 的结果当作"§8.3 已过 ⇒ 可以改在册 yaml"★。
+### (b) ★合同件的 13 CHECK 锚点是假锚点★（★新发现、★登记不修★）
+- `ws/src/95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh` 第 137—139 行：`A1=$ROOT/ws/src/50_task/lite3_task/verify/v_task_smach.sh`，判据＝`[ -f "$A1" ] && grep -q '13 CHECK' "$A1" && bash -n "$A1"` ⇒ ★只要那个文件里★出现★"13 CHECK"这五个字就算过★。
+- 而 `v_task_smach.sh` 里那处命中★是第 2 行的一句注释★（「…不碰 sim_nav_smoke.sh 13 CHECK 冻结判据…」）⇒ ★真正的 13 CHECK 载体是另一个文件（sim_nav_smoke.sh），合同件却没指向它★。
+- ⇒ 后果＝该合同件的 PASS=26 里★这一条不承重★：将来若有人把 sim_nav_smoke.sh 删了或改了判据数，★合同件仍会绿★。⇒ ★判定件本体我不自改★（结构改动不自裁），★登记此发现★并把它列入★交裁定面／交小张★的清单：要么把 A1 改指 sim_nav_smoke.sh＋"CHECK 计数＝13"的实检，要么在 §8.3 另立可跑对照物。
+## 四、★R448 脚本层面要改的七处（★风险点清单、★不是设计★）＝①七名集合须扩到含 `roslaunch`／`move_base_flex`／`pcl_render_node`／`sim_adapter`；②起 roslaunch 要 `setsid`＋按★PGID★发 INT（逐 PID kill 不适用）；③取样不再是"一帧 rostopic echo"、而是跑 162 行冒烟件 ⇒ ★10 分钟窗上限很可能超★（要么拆两窗、要么先与真人议上限，★我不擅自放宽★）；④必带 `rviz:=false use_gpu:=false`；⑤`cmdvel_writer` 唯一写者判据在共用容器里易假红；⑥★不许改在册 yaml★（见 (a)）；⑦rosout 孤儿（坑75）——★本批已把基线清回 0★，R448 起窗时基线应读到 0。
+★不声称★：不声称 R448 已跑或能一次跑成；不声称 13 CHECK 就是那 11 条 python CHECK＋teardown＋ros2qnx_exit（★无文件写明 13 项清单、★此为我按行数推断★）；不声称 W2-0 那次的双锚点结果仍可比（★其载体在另一台时期、★未复核★）；不声称假锚点已修；不声称 §8.3 已过。
