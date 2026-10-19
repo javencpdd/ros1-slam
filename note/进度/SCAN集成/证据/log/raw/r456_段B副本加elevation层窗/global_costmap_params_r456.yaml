@@ -1,0 +1,26 @@
+# global_costmap_params.yaml —— v4 C0：底稿 opt/ref/navigation_params_orig/ 同名文件原样拷入（结构沿用，挂载 ns 见 mbf_navigation.launch，Q11）
+
+width: 100
+height: 100
+
+plugins:
+  - {name: static_layer, type: "costmap_2d::StaticLayer"}
+  - {name: elevation_layer, type: "costmap_2d::StaticLayer"}  # R456 段 B 新增（只在副本里）
+  - {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+  - {name: sob_layer,  type: "sob_layer::SobLayer"}
+  # - {name: voxel_layer, type: "costmap_2d::VoxelLayer"}
+  # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+# ===== R456 段 B 副本独有（在册件无此块）=====
+# ★R445／R446 硬结论★＝两枚 StaticLayer 同栈时，第二枚★漏写或写 false★＝走覆盖、能把底层致命格抹成自由（cost 0）
+# ⇒ ★新增层必须把两把键都显式钉上★：use_maximum: true ＋ combination_method: 1
+elevation_layer:
+  map_topic: map
+  first_map_only: true
+  subscribe_to_updates: false
+  track_unknown_space: false
+  use_maximum: true
+  combination_method: 1
+  lethal_cost_threshold: 100
+  unknown_cost_value: -1
+  trinary_costmap: true

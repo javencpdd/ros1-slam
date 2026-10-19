@@ -1,0 +1,34 @@
+06 判读（窗号 R456＝§8.3 段 B＝在册形 vs 副本形逐行比对）＝★段 B 达意★＝★"改前／改后逐行同值"这条锚点形式首次真用起来、拿到"同值＝True、差异条数＝0"★，★同时 C11 两格证明那枚新层真挂上、真收到图★（Using plugin 行 5→6、Received a 行 1→2、层名清单里确有 `elevation_layer`）
+现读时刻：2026-10-19 14:21（宿主 CST；容器 UTC 06:21）；★本窗共跑两遍（14:19 与 14:21），第二遍＝修掉互校件的一处自伤后复跑，两遍的 13 枚形状逐遍同值★（第一遍原始输出留 `run/first_run/`）
+
+== 一、段 B 的主读数（`05_ab_cmp.txt` 逐字）==
+  REG（★在册形★）＝13 条｜PASS=9 FAIL=4 ‖ CP（★副本形＝只多一枚 elevation StaticLayer★）＝13 条｜PASS=9 FAIL=4
+  ★逐行同值（名＋判定）＝ True ｜差异条数＝0★（13 行每行都印了 `⇒ 同＝True`）
+  名集差（CP−REG）＝[]｜（REG−CP）＝[]；FAIL 集两侧逐字同＝['exepath_cmdvel','getpath_1','getpath_2','getpath_3']、★新增＝[] 消失＝[]★
+★C11 挂载活性锁★＝REG Using plugin 行=5（层名＝static_layer／stvl_obstacle_layer／sob_layer＋local 侧两枚）
+  ‖ CP Using plugin 行=★6★、★层名清单里多出 `elevation_layer`★、★Received a 行由 1 变 2★（＝新层确实吃到图、不是空挂）
+★两侧互校（05 追加四十六 姿势①）★＝参数面 ↔ 产出侧同窗取：
+  REG：`use_maximum=ERROR: Parameter [...] is not set`、`combination_method=... is not set` → 归一后 ★NONE／期望 NONE ⇒ 同＝True★；plugins 清单★无★ elevation_layer
+  CP：`use_maximum=true`、`combination_method=1`、`map_topic=map` → ★True／期望 True ⇒ 同＝True★、★1／期望 1 ⇒ 同＝True★；plugins 清单★含★ elevation_layer
+  （★两份读回原文逐字落 `run/param_REG.txt`／`run/param_CP.txt`★）
+
+== 二、这条读数撑到哪里（★只到这里★）==
+★能撑★＝在★这枚层的配置形★下（★与 static_layer 同源 `map_topic: map`、★两把键都显式钉死＝`use_maximum: true` ＋ `combination_method: 1`★、插在 static 之后第二位），
+  ★13-CHECK 锚点形状一格没被挪动★＝★§8.3 段 B 要的"加层不改行为"读数拿到★；★且它是在 C7 已答死（这把闸确有牙、R455）之后拿到的同值★＝
+  ★"同值"不是"闸坏了读不出差别"★（★这两件事的顺序不能反、反了就是假绿★）。
+★不能撑★＝①★不声称"任意 elevation 层都安全"★：本窗的内容面＝同一张真值图再 MAX 一次；★不同源／三态内容经叠加层影响 costmap 内容的路径由 R445／R446 另证、★本窗没测内容面★（★C6 明令数字不比★）；
+  ②★不声称 §8.3／预检 3 已"签通过"★＝★段 A（锚点体检）＋段 B（加层同值）两段的读数都齐了，但"据此算不算通过"属判据面★⇒★下一件＝派 L1 独立实例裁（批108）★；
+  ③★不声称副本形可以进在册★＝★副本四件只是本窗留底、在册 launch／yaml 一字未改★（★跑前跑后 sha 与行数四件逐字同值＝True：smoke 837cd647606450b0／162 行、mode aba9b658fb898212、mbf 13c4f27f9675fab8、yaml 1961c3839b06cb49／11 行★）；
+  ④★读数不计分子★（A59 仍只 T2 中）。
+
+== 三、★自曝一处（★本窗第一次互校时把真读数误报成假 False★）==
+★第一遍跑★的互校行印的是 `use_maximum 读回=ERROR:／期望=NONE ⇒ 同＝False` 与 CP 侧 `读回=true／期望=True ⇒ 同＝False`——★两个 False 都是我的取值代码造成的★：
+  ①用 `grep -oE 'use_maximum=\S+'` 取"读回值"＝★在第一个空格处截断★（`ERROR: Parameter ... is not set` 被截成 `ERROR:`）；②没做大小写归一（rosparam 回的是 `true`、我期望串写的是 `True`）。
+★真读回值一直在 `run/param_*.txt` 里、逐字可点★＝第一遍的 CP 侧其实★已经互校通过★、只是被我的件报成不等。
+⇒ ★修＝取值改 `cut -d= -f2-` 取整行余值＋归一（含 not set→NONE、true/True→True）→ ★复跑一遍得到上面 True/True★；★第一遍原始输出不删、留 `run/first_run/`★。
+★入 05 追加五十的姿势★＝★互校件的"读回值"必须取★整行余值★并显式归一；★截断＋大小写敏感＝把真等读成假不等★（★与追加四十九④同源：自证的形状错了、错的方向是"看起来严、实际假"★）。
+
+== 四、常规自证（两遍都过）==
+★退净＝乙式达标（★第八、九次连续★）★＝两遍皆 基线0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0（现读 14 名计数=0）；rosout 两遍都在 SIGTERM 后★第 2s★自消失（级联第八～九次复现）；roscore.log 886 字节／killing 行=2；★单窗时长 76s／76s★（★10 分钟窗上限未触碰★）。
+★预检★＝变体件两遍皆 rc=0 当刻起窗；★清盘与计数同条命令★＝pyc=0／ws_src=4580／tooling=149／note=★5493★（★本批全部留底落地后现读★）。
+★改动面★＝新留底 `r456_段B副本加elevation层窗/`（窗器＋副本生成器＋★四件副本★＋delta 全公开 `03_delta.txt`（★四组＝+15/-0、+1/-1、+1/-1、+1/-1、无第五处★）＋对照件＋两遍原始输出与互校读回＋06 判读；★清单最后建、自验 rc=0★）＋回执册★41→42（★先报后开：开窗前一行、前 41 行逐字等自证★）＋04 本段＋05 追加五十＋档头第一百二十二枚（★声明位单号 R456★）。★ws/ 零（副本全在 note/ 下）、判定件本体零改动、第三方包未碰、计划书正文未动、豁免表 4 条未动、A6 未破、容器内 ROS 进程＝0★。★请求单本批不加句＝待真人仍 0 句★。

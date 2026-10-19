@@ -1,0 +1,22 @@
+== 段 B 对照（★在册形 REG vs 副本形 CP★）==
+REG＝13 条｜PASS=9 FAIL=4
+CP ＝13 条｜PASS=9 FAIL=4
+   1｜REG=venue_map_cloud        PASS  ‖ CP=venue_map_cloud        PASS  ⇒ 同＝True
+   2｜REG=rslidar_points         PASS  ‖ CP=rslidar_points         PASS  ⇒ 同＝True
+   3｜REG=truth_map              PASS  ‖ CP=truth_map              PASS  ⇒ 同＝True
+   4｜REG=tf_robot               PASS  ‖ CP=tf_robot               PASS  ⇒ 同＝True
+   5｜REG=costmap_data           PASS  ‖ CP=costmap_data           PASS  ⇒ 同＝True
+   6｜REG=getpath_server         PASS  ‖ CP=getpath_server         PASS  ⇒ 同＝True
+   7｜REG=getpath_1              FAIL  ‖ CP=getpath_1              FAIL  ⇒ 同＝True
+   8｜REG=getpath_2              FAIL  ‖ CP=getpath_2              FAIL  ⇒ 同＝True
+   9｜REG=getpath_3              FAIL  ‖ CP=getpath_3              FAIL  ⇒ 同＝True
+  10｜REG=exepath_cmdvel         FAIL  ‖ CP=exepath_cmdvel         FAIL  ⇒ 同＝True
+  11｜REG=cmdvel_writer          PASS  ‖ CP=cmdvel_writer          PASS  ⇒ 同＝True
+  12｜REG=ros2qnx_exit           PASS  ‖ CP=ros2qnx_exit           PASS  ⇒ 同＝True
+  13｜REG=teardown               PASS  ‖ CP=teardown               PASS  ⇒ 同＝True
+★逐行同值（名＋判定）＝ True ｜差异条数＝0
+名集差（CP−REG）＝[]｜（REG−CP）＝[]
+FAIL 集：REG＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3'] ‖ CP＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3'] ‖ 新增＝[] ‖ 消失＝[]
+C11｜REG Using plugin 行=5 层名=['"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m', '"static_layer"\x1b[0m', '"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m'] ‖ Received a 行=1
+C11｜CP Using plugin 行=6 层名=['"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m', '"static_layer"\x1b[0m', '"elevation_layer"\x1b[0m', '"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m'] ‖ Received a 行=2
+== 本件只报数；判读见 06 件 ==

@@ -1,0 +1,74 @@
+===== yaml =====
+在册=/opt/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml（12 行）｜副本=global_costmap_params_r456.yaml（27 行）
+--- /opt/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml	2026-10-16 18:58:48.513512323 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r456_\346\256\265B\345\211\257\346\234\254\345\212\240elevation\345\261\202\347\252\227/global_costmap_params_r456.yaml"	2026-10-19 06:16:43.317353735 +0000
+@@ -5,7 +5,22 @@
+ 
+ plugins:
+   - {name: static_layer, type: "costmap_2d::StaticLayer"}
++  - {name: elevation_layer, type: "costmap_2d::StaticLayer"}  # R456 段 B 新增（只在副本里）
+   - {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+   - {name: sob_layer,  type: "sob_layer::SobLayer"}
+   # - {name: voxel_layer, type: "costmap_2d::VoxelLayer"}
+   # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
++
++# ===== R456 段 B 副本独有（在册件无此块）=====
++# ★R445／R446 硬结论★＝两枚 StaticLayer 同栈时，第二枚★漏写或写 false★＝走覆盖、能把底层致命格抹成自由（cost 0）
++# ⇒ ★新增层必须把两把键都显式钉上★：use_maximum: true ＋ combination_method: 1
++elevation_layer:
++  map_topic: map
++  first_map_only: true
++  subscribe_to_updates: false
++  track_unknown_space: false
++  use_maximum: true
++  combination_method: 1
++  lethal_cost_threshold: 100
++  unknown_cost_value: -1
++  trinary_costmap: true
+
+本组 delta 行数＝+15/-0
+===== mbf =====
+在册=/opt/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch（23 行）｜副本=mbf_navigation_r456.launch（23 行）
+--- /opt/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch	2026-10-16 18:58:48.514512306 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r456_\346\256\265B\345\211\257\346\234\254\345\212\240elevation\345\261\202\347\252\227/mbf_navigation_r456.launch"	2026-10-19 06:16:43.325353722 +0000
+@@ -10,7 +10,7 @@
+     <rosparam command="load" file="$(find lite3_navigation)/config/planner_teb.yaml"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/global_planner_params.yaml"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="global_costmap"/>
+-    <rosparam command="load" file="$(find lite3_navigation)/config/global_costmap_params.yaml" ns="global_costmap"/>
++    <rosparam command="load" file="/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r456_段B副本加elevation层窗/global_costmap_params_r456.yaml" ns="global_costmap"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="local_costmap"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/local_costmap_params.yaml"  ns="local_costmap"/>
+   </node>
+
+本组 delta 行数＝+1/-1
+===== mode =====
+在册=/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch（119 行）｜副本=mode_nav_sim_r456.launch（119 行）
+--- /opt/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch	2026-10-16 18:58:48.523512155 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r456_\346\256\265B\345\211\257\346\234\254\345\212\240elevation\345\261\202\347\252\227/mode_nav_sim_r456.launch"	2026-10-19 06:16:43.332353712 +0000
+@@ -112,7 +112,7 @@
+   </include>
+ 
+   <!-- M4：mbf 联邦式服务器（C7 remap 在其节点内；liveness_m4 心跳在其内） -->
+-  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
++  <include file="/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r456_段B副本加elevation层窗/mbf_navigation_r456.launch">
+     <arg name="rviz" value="$(arg rviz)"/>
+   </include>
+ </launch>
+
+本组 delta 行数＝+1/-1
+===== smoke =====
+在册=/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh（163 行）｜副本=sim_nav_smoke_r456.sh（163 行）
+--- /opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh	2026-10-16 18:58:48.524512138 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r456_\346\256\265B\345\211\257\346\234\254\345\212\240elevation\345\261\202\347\252\227/sim_nav_smoke_r456.sh"	2026-10-19 06:16:43.338353703 +0000
+@@ -25,7 +25,7 @@
+ timeout 5 rosnode list 2>/dev/null | grep -q "^/move_base_flex$" && { echo "CHECK|leftover|FAIL|残留 /move_base_flex，先退净再跑"; exit 1; }
+ 
+ echo "[smoke] 起 mode_nav_sim.launch（日志 $LOG）..."
+-setsid roslaunch lite3_bringup mode_nav_sim.launch rviz:=false use_gpu:=false >"$LOG" 2>&1 &
++setsid roslaunch /opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r456_段B副本加elevation层窗/mode_nav_sim_r456.launch rviz:=false use_gpu:=false >"$LOG" 2>&1 &
+ LAUNCH_PGID=$!
+ cleanup() {
+   echo "[smoke] 退净中..."
+
+本组 delta 行数＝+1/-1

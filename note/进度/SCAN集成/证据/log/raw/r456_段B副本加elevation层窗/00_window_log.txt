@@ -1,0 +1,114 @@
+[2026-10-19 06:18:23] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 06:18:27]   预检 rc=0
+[2026-10-19 06:18:27]   ★本窗名集＝14 名（写实际枚数）
+[2026-10-19 06:18:27] == 步0a 在册四件跑前自证 ==
+[2026-10-19 06:18:27]   sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49 ‖ 行数｜smoke=162 mode=118 mbf=22 yaml=11
+[2026-10-19 06:18:27]   ★副本四件 sha＝15ee8936 e5a36248 56a23f76 b36688eb ★
+[2026-10-19 06:18:27] == 步0b 起前快照 S0 ==
+[2026-10-19 06:18:27]   ★基线（起前 14 名计数）＝0★
+[2026-10-19 06:18:31] == 步1 master_ready=1（等待 3s）‖ WPID=173603 ==
+[2026-10-19 06:18:31] == 步1b uuid 自校验＝OK ‖ 本窗 rosout pid N=173881 ==
+[2026-10-19 06:18:31] == 跑 REG（★/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh★｜超时 300s）==
+[2026-10-19 06:18:47]   ★参数面互校（第 15s）★：[REG @15s 已印 6 条] use_maximum=ERROR: Parameter [/move_base_flex/global_costmap/elevation_layer/use_maximum] is not set combination_method=ERROR: Parameter [/move_base_flex/global_costmap/elevation_layer/combination_method] is not set map_topic=ERROR: Parameter [/move_base_flex/global_costmap/elevation_layer/map_topic] is not set plugins_global=- name: static_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer   名册含 mbf=1 
+[2026-10-19 06:18:48]   ★同式互校（★读回值先归一：含 not set 记作 NONE★）＝use_maximum 读回=ERROR:／期望=NONE ⇒ 同＝False★ ‖ combination_method 读回=ERROR:／期望=NONE ⇒ 同＝False★
+[2026-10-19 06:19:02]   REG：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 06:19:02]   ★C11（REG）＝launch 日志字节=34206 ‖ Using plugin 行=5 ‖ Received a 行=1 ‖ 层名清单=★
+[2026-10-19 06:19:02]   REG 用时≈31s（★单跑不得超 300s★）
+[2026-10-19 06:19:02] == 跑 CP（★/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r456_段B副本加elevation层窗/sim_nav_smoke_r456.sh★｜超时 300s）==
+[2026-10-19 06:19:17]   ★参数面互校（第 13s）★：[CP @13s 已印 6 条] use_maximum=true combination_method=1 map_topic=map plugins_global=- name: static_layer   type: costmap_2d::StaticLayer - name: elevation_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer   名册含 mbf=1 
+[2026-10-19 06:19:17]   ★同式互校（★读回值先归一：含 not set 记作 NONE★）＝use_maximum 读回=true／期望=True ⇒ 同＝False★ ‖ combination_method 读回=1／期望=1 ⇒ 同＝True★
+[2026-10-19 06:19:34]   CP：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 06:19:34]   ★C11（CP）＝launch 日志字节=34944 ‖ Using plugin 行=6 ‖ Received a 行=2 ‖ 层名清单=★
+[2026-10-19 06:19:34]   CP 用时≈32s（★单跑不得超 300s★）
+[2026-10-19 06:19:34] == 步9 退净（★SIGTERM wrapper → 轮询 rosout 消失 → 差集双过滤 → 五数★）==
+[2026-10-19 06:19:35]   ★第 2s：本窗 rosout pid=173881 已消失★
+[2026-10-19 06:19:38]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+[2026-10-19 06:19:38]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 06:19:38] == 步10 段 B 对照（★在册形 vs 副本形：只比（CHECK 名，判定）二元组★）==
+[2026-10-19 06:19:38]   对照件 rc=0
+    ｜== 段 B 对照（★在册形 REG vs 副本形 CP★）==
+    ｜REG＝13 条｜PASS=9 FAIL=4
+    ｜CP ＝13 条｜PASS=9 FAIL=4
+    ｜   1｜REG=venue_map_cloud        PASS  ‖ CP=venue_map_cloud        PASS  ⇒ 同＝True
+    ｜   2｜REG=rslidar_points         PASS  ‖ CP=rslidar_points         PASS  ⇒ 同＝True
+    ｜   3｜REG=truth_map              PASS  ‖ CP=truth_map              PASS  ⇒ 同＝True
+    ｜   4｜REG=tf_robot               PASS  ‖ CP=tf_robot               PASS  ⇒ 同＝True
+    ｜   5｜REG=costmap_data           PASS  ‖ CP=costmap_data           PASS  ⇒ 同＝True
+    ｜   6｜REG=getpath_server         PASS  ‖ CP=getpath_server         PASS  ⇒ 同＝True
+    ｜   7｜REG=getpath_1              FAIL  ‖ CP=getpath_1              FAIL  ⇒ 同＝True
+    ｜   8｜REG=getpath_2              FAIL  ‖ CP=getpath_2              FAIL  ⇒ 同＝True
+    ｜   9｜REG=getpath_3              FAIL  ‖ CP=getpath_3              FAIL  ⇒ 同＝True
+    ｜  10｜REG=exepath_cmdvel         FAIL  ‖ CP=exepath_cmdvel         FAIL  ⇒ 同＝True
+    ｜  11｜REG=cmdvel_writer          PASS  ‖ CP=cmdvel_writer          PASS  ⇒ 同＝True
+    ｜  12｜REG=ros2qnx_exit           PASS  ‖ CP=ros2qnx_exit           PASS  ⇒ 同＝True
+    ｜  13｜REG=teardown               PASS  ‖ CP=teardown               PASS  ⇒ 同＝True
+    ｜★逐行同值（名＋判定）＝ True ｜差异条数＝0
+    ｜名集差（CP−REG）＝[]｜（REG−CP）＝[]
+    ｜FAIL 集：REG＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3'] ‖ CP＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3'] ‖ 新增＝[] ‖ 消失＝[]
+    ｜C11｜REG Using plugin 行=5 层名=['"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m', '"static_layer"\x1b[0m', '"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m'] ‖ Received a 行=1
+    ｜C11｜CP Using plugin 行=6 层名=['"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m', '"static_layer"\x1b[0m', '"elevation_layer"\x1b[0m', '"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m'] ‖ Received a 行=2
+    ｜== 本件只报数；判读见 06 件 ==
+[2026-10-19 06:19:38] == 步11 在册四件跑后自证 ==
+[2026-10-19 06:19:38]   跑前＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-19 06:19:38]   跑后＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-19 06:19:38]   ★四件逐字同值＝True★
+[2026-10-19 06:19:38]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-19 06:19:38] == 步99 清盘与计数同条命令 ==
+[2026-10-19 06:19:39]   pyc=0 ws_src=4580 tooling=149 note=5483 ‖ 时长 76s
+[2026-10-19 06:20:23] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 06:20:26]   预检 rc=0
+[2026-10-19 06:20:26]   ★本窗名集＝14 名（写实际枚数）
+[2026-10-19 06:20:26] == 步0a 在册四件跑前自证 ==
+[2026-10-19 06:20:27]   sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49 ‖ 行数｜smoke=162 mode=118 mbf=22 yaml=11
+[2026-10-19 06:20:27]   ★副本四件 sha＝15ee8936 e5a36248 56a23f76 b36688eb ★
+[2026-10-19 06:20:27] == 步0b 起前快照 S0 ==
+[2026-10-19 06:20:27]   ★基线（起前 14 名计数）＝0★
+[2026-10-19 06:20:30] == 步1 master_ready=1（等待 2s）‖ WPID=178919 ==
+[2026-10-19 06:20:30] == 步1b uuid 自校验＝OK ‖ 本窗 rosout pid N=179133 ==
+[2026-10-19 06:20:30] == 跑 REG（★/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh★｜超时 300s）==
+[2026-10-19 06:20:46]   ★参数面互校（第 14s）★：[REG @14s 已印 6 条] use_maximum=ERROR: Parameter [/move_base_flex/global_costmap/elevation_layer/use_maximum] is not set combination_method=ERROR: Parameter [/move_base_flex/global_costmap/elevation_layer/combination_method] is not set map_topic=ERROR: Parameter [/move_base_flex/global_costmap/elevation_layer/map_topic] is not set plugins_global=- name: static_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer   名册含 mbf=1 
+[2026-10-19 06:20:46]   ★同式互校（★读回值先归一：含 not set 记作 NONE★）＝use_maximum 读回=NONE／期望=NONE ⇒ 同＝True★ ‖ combination_method 读回=NONE／期望=NONE ⇒ 同＝True★
+[2026-10-19 06:21:02]   REG：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 06:21:02]   ★C11（REG）＝launch 日志字节=32641 ‖ Using plugin 行=5 ‖ Received a 行=1 ‖ 层名清单=★
+[2026-10-19 06:21:02]   REG 用时≈32s（★单跑不得超 300s★）
+[2026-10-19 06:21:02] == 跑 CP（★/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r456_段B副本加elevation层窗/sim_nav_smoke_r456.sh★｜超时 300s）==
+[2026-10-19 06:21:19]   ★参数面互校（第 15s）★：[CP @15s 已印 6 条] use_maximum=true combination_method=1 map_topic=map plugins_global=- name: static_layer   type: costmap_2d::StaticLayer - name: elevation_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer   名册含 mbf=1 
+[2026-10-19 06:21:19]   ★同式互校（★读回值先归一：含 not set 记作 NONE★）＝use_maximum 读回=True／期望=True ⇒ 同＝True★ ‖ combination_method 读回=1／期望=1 ⇒ 同＝True★
+[2026-10-19 06:21:34]   CP：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 06:21:34]   ★C11（CP）＝launch 日志字节=33633 ‖ Using plugin 行=6 ‖ Received a 行=2 ‖ 层名清单=★
+[2026-10-19 06:21:34]   CP 用时≈32s（★单跑不得超 300s★）
+[2026-10-19 06:21:34] == 步9 退净（★SIGTERM wrapper → 轮询 rosout 消失 → 差集双过滤 → 五数★）==
+[2026-10-19 06:21:35]   ★第 2s：本窗 rosout pid=179133 已消失★
+[2026-10-19 06:21:38]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+[2026-10-19 06:21:38]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 06:21:38] == 步10 段 B 对照（★在册形 vs 副本形：只比（CHECK 名，判定）二元组★）==
+[2026-10-19 06:21:38]   对照件 rc=0
+    ｜== 段 B 对照（★在册形 REG vs 副本形 CP★）==
+    ｜REG＝13 条｜PASS=9 FAIL=4
+    ｜CP ＝13 条｜PASS=9 FAIL=4
+    ｜   1｜REG=venue_map_cloud        PASS  ‖ CP=venue_map_cloud        PASS  ⇒ 同＝True
+    ｜   2｜REG=rslidar_points         PASS  ‖ CP=rslidar_points         PASS  ⇒ 同＝True
+    ｜   3｜REG=truth_map              PASS  ‖ CP=truth_map              PASS  ⇒ 同＝True
+    ｜   4｜REG=tf_robot               PASS  ‖ CP=tf_robot               PASS  ⇒ 同＝True
+    ｜   5｜REG=costmap_data           PASS  ‖ CP=costmap_data           PASS  ⇒ 同＝True
+    ｜   6｜REG=getpath_server         PASS  ‖ CP=getpath_server         PASS  ⇒ 同＝True
+    ｜   7｜REG=getpath_1              FAIL  ‖ CP=getpath_1              FAIL  ⇒ 同＝True
+    ｜   8｜REG=getpath_2              FAIL  ‖ CP=getpath_2              FAIL  ⇒ 同＝True
+    ｜   9｜REG=getpath_3              FAIL  ‖ CP=getpath_3              FAIL  ⇒ 同＝True
+    ｜  10｜REG=exepath_cmdvel         FAIL  ‖ CP=exepath_cmdvel         FAIL  ⇒ 同＝True
+    ｜  11｜REG=cmdvel_writer          PASS  ‖ CP=cmdvel_writer          PASS  ⇒ 同＝True
+    ｜  12｜REG=ros2qnx_exit           PASS  ‖ CP=ros2qnx_exit           PASS  ⇒ 同＝True
+    ｜  13｜REG=teardown               PASS  ‖ CP=teardown               PASS  ⇒ 同＝True
+    ｜★逐行同值（名＋判定）＝ True ｜差异条数＝0
+    ｜名集差（CP−REG）＝[]｜（REG−CP）＝[]
+    ｜FAIL 集：REG＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3'] ‖ CP＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3'] ‖ 新增＝[] ‖ 消失＝[]
+    ｜C11｜REG Using plugin 行=5 层名=['"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m', '"static_layer"\x1b[0m', '"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m'] ‖ Received a 行=1
+    ｜C11｜CP Using plugin 行=6 层名=['"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m', '"static_layer"\x1b[0m', '"elevation_layer"\x1b[0m', '"stvl_obstacle_layer"\x1b[0m', '"sob_layer"\x1b[0m'] ‖ Received a 行=2
+    ｜== 本件只报数；判读见 06 件 ==
+[2026-10-19 06:21:38] == 步11 在册四件跑后自证 ==
+[2026-10-19 06:21:38]   跑前＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-19 06:21:38]   跑后＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-19 06:21:39]   ★四件逐字同值＝True★
+[2026-10-19 06:21:39]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-19 06:21:39] == 步99 清盘与计数同条命令 ==
+[2026-10-19 06:21:39]   pyc=0 ws_src=4580 tooling=149 note=5493 ‖ 时长 76s
