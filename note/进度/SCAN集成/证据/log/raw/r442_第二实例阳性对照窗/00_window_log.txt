@@ -1,0 +1,58 @@
+[2026-10-19 03:18:07] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 03:18:10]   预检 rc=0
+[2026-10-19 03:18:10] == 步0b 起前快照 S0（★名集写进读数＝坑76★）==
+[2026-10-19 03:18:10]   名集=[^(roslaunch|rosmaster|rosout|gzserver|gzclient|rosbag|costmap_2d_node)$] ‖ ★基线＝退前计数＝3★
+    S0｜29682	Mon Oct 19 01:46:34 2026	rosout	/opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/opt/ros1-slam/logs/ea41bb3c-cb5e-11f1-9ff0-d23e7c952659/rosout-1.log 
+    S0｜49554	Mon Oct 19 02:27:47 2026	rosout	/opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/opt/ros1-slam/logs/abecb336-cb64-11f1-b057-d23e7c952659/rosout-1.log 
+    S0｜59754	Mon Oct 19 02:41:55 2026	rosout	/opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/opt/ros1-slam/logs/a5a08fe6-cb66-11f1-8b85-d23e7c952659/rosout-1.log 
+[2026-10-19 03:18:10] == 步1 起 roscore（★记 wrapper pid＝WPID★）==
+[2026-10-19 03:18:12]   master_ready=1（等待 2s）‖ WPID=69567
+[2026-10-19 03:18:12] == 步1b 归属令牌 UUID＋本窗 rosout pid N（★裁定认可的认亲法★）==
+[2026-10-19 03:18:12]   uuid 自校验＝OK ‖ UUID=b696e6c4-cb6b-11f1-96dd-d23e7c952659 ‖ 日志件=roslaunch-99957655604a-69567.log ‖ 本窗 rosout pid N=69779
+[2026-10-19 03:18:12] == 段 w1（参数面＝params_w1.yaml）==
+[2026-10-19 03:18:12]   起图发布器 topic=/gmap_w1 mode=3state
+[2026-10-19 03:18:16]   plugins 枚数回读＝1
+[2026-10-19 03:18:18]   costmap 就绪＝1（按 rostopic info 成功返回判；等待 2s）
+[2026-10-19 03:18:19]   名册 /gmap_w1 ⇒ ★订阅者枚数=0★（）
+[2026-10-19 03:18:22]   取样完成 data_行数=1 字节=5171
+[2026-10-19 03:18:25] == 段 w2（参数面＝params_w2.yaml）==
+[2026-10-19 03:18:25]   起图发布器 topic=/gmap_w2 mode=3state
+[2026-10-19 03:18:25]   起图发布器 topic=/gmap_el2 mode=allunknown
+[2026-10-19 03:18:28]   plugins 枚数回读＝2
+[2026-10-19 03:18:30]   costmap 就绪＝1（按 rostopic info 成功返回判；等待 2s）
+[2026-10-19 03:18:31]   名册 /gmap_w2 ⇒ ★订阅者枚数=0★（）
+[2026-10-19 03:18:32]   名册 /gmap_el2 ⇒ ★订阅者枚数=0★（）
+[2026-10-19 03:18:35]   取样完成 data_行数=1 字节=5171
+[2026-10-19 03:18:38] == 段 w3（参数面＝params_w3.yaml）==
+[2026-10-19 03:18:38]   起图发布器 topic=/gmap_w3 mode=3state
+[2026-10-19 03:18:38]   起图发布器 topic=/gmap_el3 mode=alllethal
+[2026-10-19 03:18:41]   plugins 枚数回读＝2
+[2026-10-19 03:18:44]   costmap 就绪＝1（按 rostopic info 成功返回判；等待 2s）
+[2026-10-19 03:18:45]   名册 /gmap_w3 ⇒ ★订阅者枚数=0★（）
+[2026-10-19 03:18:45]   名册 /gmap_el3 ⇒ ★订阅者枚数=0★（）
+[2026-10-19 03:18:48]   取样完成 data_行数=1 字节=8353
+[2026-10-19 03:18:51] == 段 rc 汇总＝w1=0 w2=0 w3=0｜时长 44s ==
+[2026-10-19 03:18:51] == 步9 退净（★先礼后兵：SIGTERM wrapper → 轮询 rosout 消失 → 双过滤补救 → 判定行五数★）==
+[2026-10-19 03:18:51]   SIGTERM 本窗 PID pid=69567（★禁 -9★）
+[2026-10-19 03:18:51]   SIGTERM 本窗 PID pid=69856（★禁 -9★）
+[2026-10-19 03:18:52]   ★第 2s：本窗 rosout pid=69779 已消失★
+[2026-10-19 03:18:52]   退后快照 S1 计数=3
+    S1｜29682	Mon Oct 19 01:46:34 2026	rosout	/opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/opt/ros1-slam/logs/ea41bb3c-cb5e-11f1-9ff0-d23e7c952659/rosout-1.log 
+    S1｜49554	Mon Oct 19 02:27:47 2026	rosout	/opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/opt/ros1-slam/logs/abecb336-cb64-11f1-b057-d23e7c952659/rosout-1.log 
+    S1｜59754	Mon Oct 19 02:41:55 2026	rosout	/opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/opt/ros1-slam/logs/a5a08fe6-cb66-11f1-8b85-d23e7c952659/rosout-1.log 
+[2026-10-19 03:18:55]   第1采五数＝基线=3｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0（现读计数=3）
+[2026-10-19 03:18:55]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 03:18:55] == 步10 三面 cost 对比（★决定性★）==
+[2026-10-19 03:18:55]   对比件 rc=0（★读数见 05 件★）
+    ｜w2 双实例·第二枚＝★全未知★                   distinct=[0, 100] 非零=   9 hist={0: 1591, 100: 9}
+    ｜w3 双实例·第二枚＝★全致命 100＝阳性对照★          distinct=[100] 非零=1600 hist={100: 1600}
+    ｜vs w1 ⇒ 逐格差异＝0／1600；升格 0 降格 0；差异样本 []
+    ｜vs w1 ⇒ 逐格差异＝1591／1600；升格 1591 降格 0；差异样本 [(0, 0, 0, 100), (0, 1, 0, 100), (0, 2, 0, 100), (0, 3, 0, 100), (0, 4, 0, 100), (0, 5, 0, 100)]
+    ｜★决定性一行★＝w2 与 w3 ★同为逐格等★？False（w2vs w3 差异=1591／1600）
+    ｜★判读★＝若 w3 非零数★远大于★ w1/w2（≈1600）⇒ 第二枚真在合成 ⇒ R441 的"零变化"落在解释(甲)＝全未知被当自由；若 w3 与 w1/w2 ★逐格等★ ⇒ 第二枚空转 ⇒ R441 结论★降为弱形★（只证"多挂一枚实例不改发布面"）
+[2026-10-19 03:18:55] == 步11 roscore 日志在位否（★本窗要拿到的那句级联证据★）==
+[2026-10-19 03:18:55]   roscore.log 字节=883 ‖ killing 行数=2
+    ｜26:[rosout-1] killing on exit
+    ｜27:[master] killing on exit
+[2026-10-19 03:18:55] == 步99 清盘与计数同条命令 ==
+[2026-10-19 03:18:55]   pyc=0 ws_src=4580 tooling=149 note=5197 ‖ 时长 48s
