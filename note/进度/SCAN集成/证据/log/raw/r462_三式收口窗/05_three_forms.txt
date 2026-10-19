@@ -1,0 +1,41 @@
+REF＝13 条｜PASS=9 FAIL=4
+A＝13 条｜PASS=9 FAIL=4
+Ap＝13 条｜PASS=9 FAIL=4
+B＝13 条｜PASS=9 FAIL=4
+C＝13 条｜PASS=9 FAIL=4
+名集（五态）逐字同＝ True
+REF vs A（★在册形 vs A 侧同形重排副本＝语义等价的判定面复核★）
+── REF vs A：栏一（名，判定）异行数＝0 ‖ 栏二 C4＝共同 FAIL 4 条、不等 0 条 ‖ 新增红 [] 消失红 []
+── Ap vs A（★C6 同窗噪声地板★）：栏一（名，判定）异行数＝0 ‖ 栏二 C4＝共同 FAIL 4 条、不等 0 条 ‖ 新增红 [] 消失红 []
+── B vs A（★加一枚同源 MAX 层★）：栏一（名，判定）异行数＝0 ‖ 栏二 C4＝共同 FAIL 4 条、不等 0 条 ‖ 新增红 [] 消失红 []
+── C vs A（★C7-B 靶＝致命墙喂第二枚层★）：栏一（名，判定）异行数＝0 ‖ 栏二 C4＝共同 FAIL 4 条、不等 0 条 ‖ 新增红 [] 消失红 []
+== C1-C：参数面键路径展平（★每态 T1／T2 先自等★）==
+  A｜T1 行数=71 T2 行数=71 ‖ ★自等＝True★（差 0 项：[]）
+  Ap｜T1 行数=71 T2 行数=71 ‖ ★自等＝True★（差 0 项：[]）
+  B｜T1 行数=83 T2 行数=83 ‖ ★自等＝True★（差 0 项：[]）
+  C｜T1 行数=83 T2 行数=83 ‖ ★自等＝True★（差 0 项：[]）
+  A↔B｜只在 B 侧 16 项｜只在 A 侧 4 项｜★非白名单项=0★
+     ＋ /elevation_layer/combination_method=1
+     ＋ /elevation_layer/enabled=True
+     ＋ /elevation_layer/first_map_only=True
+     ＋ /elevation_layer/lethal_cost_threshold=100
+     ＋ /elevation_layer/map_topic=map
+     ＋ /elevation_layer/subscribe_to_updates=False
+  A↔C｜只在 C 侧 16 项｜只在 A 侧 4 项｜★非白名单项=0★
+     ＋ /elevation_layer/combination_method=1
+     ＋ /elevation_layer/enabled=True
+     ＋ /elevation_layer/first_map_only=True
+     ＋ /elevation_layer/lethal_cost_threshold=100
+     ＋ /elevation_layer/map_topic=/elev_map
+     ＋ /elevation_layer/subscribe_to_updates=False
+== C1-B 载体面＝★路径归一式★（r459q 要求：载体副本只改指向 ⇒ 把所有路径字面换成同一记号后应逐行同）==
+  mbf｜★归一后差异行数=0★（逐行同）‖ 归一前的字面差异行=[13]
+  mode｜★归一后差异行数=0★（逐行同）‖ 归一前的字面差异行=[115]
+  smoke｜★归一后差异行数=1★（第28行｜在=setsid roslaunch lite3_bringup @PATH@ rviz:=false use_gpu:=false >"$LOG" 2>&1 & ‖ 副=setsid roslaunch @PATH@ rviz:=false use_gpu:=false >"$LOG" 2>&1 &）‖ 归一前的字面差异行=[28]
+== C7-B：内容栏（★世界坐标对齐的逐格差异★；D_floor＝同参数面双跑）==
+   D_floor｜A vs Ap｜X_基准=12892 X_对照=12939 Δ=+47（容差 ±600 ⇒ 在容差内）‖ 逐格差异 D=601 ‖ 格集交集=1000000 仅基准=0 仅对照=0 ‖ 几何 1000x1000 vs 1000x1000
+   A vs B｜X_基准=12892 X_对照=12897 Δ=+5（容差 ±600 ⇒ 在容差内）‖ 逐格差异 D=2293 ‖ 格集交集=1000000 仅基准=0 仅对照=0 ‖ 几何 1000x1000 vs 1000x1000
+   A vs C（★靶在这一栏留下多少逐格差异★）｜X_基准=12892 X_对照=13023 Δ=+131（容差 ±600 ⇒ 在容差内）‖ 逐格差异 D=1300 ‖ 格集交集=998001 仅基准=1999 仅对照=1999 ‖ 几何 1000x1000 vs 1000x1000
+   靶区专项｜x∈[0.25,1.35] 交集格=11988 ‖ ★C 致命而 A 不致命=284 格★ ‖ A 致命而 C 不致命=0 ‖ 两侧皆致命=1204
+   靶区专项｜x∈[0.25,1.35] 交集格=12000 ‖ ★C 致命而 A 不致命=4 格★ ‖ A 致命而 C 不致命=38 ‖ 两侧皆致命=1166
+== 本件只报数；判读见 06 件 ==
