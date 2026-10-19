@@ -1,0 +1,13 @@
+# §8 预检 1＝grid_map_msgs 是否在装
+时刻＝见 00 汇总件 ‖ 机名＝jack ‖ 面＝容器 ros1-slam-sim（在册基 Py3.8.10／numpy1.19.4）‖ 只读、不起节点
+
+现读三条：
+- rospack find grid_map_msgs ⇒ NOT_INSTALLED
+- rospack find grid_map_ros ⇒ NOT_INSTALLED
+- 包清单里含 grid_map 字样者 ⇒ 0 个
+
+结论（按设计件 §8-1 原话"不在→apt 申请或降级纯 OccupancyGrid 路线，A 档不依赖它"）：
+- A 档（最小可行层＝只发 /elevation_grid 的 nav_msgs/OccupancyGrid）**不需要任何 apt 动作**，本项对 A 档不构成阻塞；
+- 仅当要 §4.2 那枚可选增强话题 /elevation_map_layers（grid_map_msgs/GridMap 四层）时，才需要装 ros-noetic-grid-map-msgs ＝**环境变更**＝归主理人／开发侧，施工侧不自装。
+
+不声称＝不声称 A 档实现正确（本项只测依赖在装性）；不声称增强层被永久放弃（它是可选项、等环境授权再谈）。

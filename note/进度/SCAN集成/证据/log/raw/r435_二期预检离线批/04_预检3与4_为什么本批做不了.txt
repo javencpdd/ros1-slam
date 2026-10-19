@@ -1,0 +1,13 @@
+# §8 预检 3 与 4＝本批做不了的两项＋各自的最小复跑式（不含糊过去）
+
+## 预检 3＝costmap_2d StaticLayer 双实例同栈实测（maze2d 上零行为变化，锚点＝W2-0 同款 13 CHECK）
+- 为什么不在本批做＝它要起活体（roscore＋costmap_2d 节点＋maze2d 世界）＝不是离线件；本批定为"离线两项"，免得把冒烟与判据混在一次交付里。
+- 最小复跑式（下一批的活体预检窗，窗号先报后用）＝用在册 13 CHECK 锚点件（合同件第 92 段现读已把它指向 ws/src/50_task/lite3_task/verify/v_task_smoke 系那一枚，行号 2 命中）＋X2 系两帧地图发布器；启动序照 R419 的教训＝两帧地图发布器必须先于 costmap_2d_node（否则成本图对象不建，v1/v2 三次尝试留名换来的）。断言＝双 StaticLayer 在栈时 cost 面与单实例基线逐格等（零行为变化）。
+
+## 预检 4＝unknown=−1 与 0 的 costmap 解释差异核验
+- 本镜像事实（现跑）＝rospack find costmap_2d ⇒ /opt/ros/noetic/share/costmap_2d ＝只有 share／运行时、没有 src ⇒ "读源码看 trinary_costmap／unknown_cost_value 怎么处理"这条路在本镜像不可用（试过：grep src/costmap/costmap.cpp ⇒ 无此文件）。
+- 改走的两条（择一，都不需要改在册件）＝
+  ① 活体行为验：在 maze2d 上分别给 /map 含未知格（occupancy = -1）与纯 0 格两态，看 costmap 输出里它们是否落在同一 cost（与预检 3 同窗做最节省）。
+  ② 在册旁证（已有形状）：X2 系三扇窗（r419／r422／r429）的 cost 面 distinct 值集合全是 {0, 99, 100}、从未出现 -1 或 254；且 static_a/static_b 参数面写着 unknown_cost_value: -1、track_unknown_space: false、trinary_costmap: true ⇒ 说明在该组合下未知被并入 known 处理。这是间接证据，不是代码级证明。
+- 本批现形的一条相关事实＝w3_elevation_node.py 的 cost_map() 输出严格三值 -1/0/100（源码注释自引 v5.3 §16.8"trinary_costmap 开启时中间代价不得入契约"），而同一段 docstring 明写三个阈值"现均为未标定施工值（实测锚＝0 处）" ⇒ 预检 4 与"阈值标定"是两件事、不要在一个窗里混着签。
+- 同步一条方法账＝本镜像里 costmap_2d 无源码 ⇒ 以后任何"读源码判行为"的断言在本镜像都不可复跑，必须改写成活体断言（同族记忆：r419 曾核"那份 .so 只有 mangled 符号"）。
