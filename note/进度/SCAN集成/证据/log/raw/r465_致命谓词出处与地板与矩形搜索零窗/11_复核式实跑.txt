@@ -1,0 +1,41 @@
+## 〔R2〕路二（原始列号、不经本批脚本）
+列数=120 行数=120 P90=12060 P100=6492
+
+## 〔R4〕四条点位实跑
+-- 输入侧阈值
+26:  lethal_cost_threshold:  100
+-- 活体参数面
+6:  lethal_cost_threshold: 100
+42:  lethal_cost_threshold: 100
+-- 内部常量（容器面）
+43:static const unsigned char LETHAL_OBSTACLE = 254;
+44:static const unsigned char INSCRIBED_INFLATED_OBSTACLE = 253;
+-- 判定面同一 cutoff
+86:    occ2 = sum(1 for v in cm.data if v >= 90)
+87:    chk('costmap_data', occ2 > 0, '全局 costmap 占据格=%d（static+stvl 有数据）' % occ2)
+-- 取样器与对照件
+../r462_三式收口窗/sub_costmap_dump.py:36:lethal = sum(1 for v in m.data if int(v) >= 90)
+../r462_三式收口窗/_cmp_r462.py:88:    up = sum(1 for k in ks if mc[k] >= 90 > ma[k])
+../r462_三式收口窗/_cmp_r462.py:89:    dn = sum(1 for k in ks if ma[k] >= 90 > mc[k])
+../r462_三式收口窗/_cmp_r462.py:90:    both_l = sum(1 for k in ks if ma[k] >= 90 and mc[k] >= 90)
+../r462_三式收口窗/_cmp_r462.py:99:    la = sum(1 for v in ma.values() if v >= 90)
+../r462_三式收口窗/_cmp_r462.py:100:    lb = sum(1 for v in mb.values() if v >= 90)
+
+## 〔R5〕条带域三条并读
+   靶区专项｜x∈[0.25,1.35] 交集格=11988 ‖ ★C 致命而 A 不致命=284 格★ ‖ A 致命而 C 不致命=0 ‖ 两侧皆致命=1204
+   靶区专项｜x∈[0.25,1.35] 交集格=12000 ‖ ★C 致命而 A 不致命=4 格★ ‖ A 致命而 C 不致命=38 ‖ 两侧皆致命=1166
+
+
+def band_read(pa, pc, lo, hi):
+    """★靶区专项：把两侧格按世界 x 落在 [lo,hi] 的格挑出来，数 C 里致命而 A 里不致命的格数★（★全局 D 会被层栈与 STVL 时变盖过，这一栏才是靶的直接读数★）"""
+    ma, _, _ = cells(pa)
+    mc, _, _ = cells(pc)
+1:SELFREPORT topic=/elev_map size=120x120 res=0.100 frame=map origin=(-6.00,-6.00) robot=(0.00,0.00) band=(0.25,1.35) free=13080 lethal=1320 unknown=0 total=14400 靶功率下限=1200 ⇒ 达标
+2:SELFREPORT 退出（latch 保活到点或被 SIGINT）
+
+## 〔R6〕零改动自证（在册五件 sha／行数）
+837cd647606450b0  162 行  ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh
+aba9b658fb898212  118 行  ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch
+13c4f27f9675fab8  22 行  ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch
+1961c3839b06cb49  11 行  ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml
+44cffc93d168a927  150 行  ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml

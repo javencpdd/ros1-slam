@@ -1,0 +1,32 @@
+10_输入件sha.txt —— 本批所有读数依赖的原件（★一律只读、本批一字未改★）
+==========================================================================
+取数时刻＝与下列计数同一次运行（宿主面、CST）；仓根＝/home/jack/ysc-code/ros1-slam
+
+〔被读的留底〕（本批三个读数件的全部输入）
+  e1141b071d68cf96   2 行   note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/run/csv/cm_A.csv
+  9e8ff55c19f6a361   2 行   note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/run/csv/cm_Ap.csv
+  029a2e9b46530ea9   2 行   note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/run/csv/cm_C.csv
+  （★每个 csv＝1 行 META ＋ 1 行 100 万格★ ⇒ 行数 2 是对的、不是截断）
+
+〔被点名的在册件〕（出处链的四枚，跑前＝跑后）
+  837cd647606450b0  162 行  ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh          ← ★第 86 行 `>= 90`＝判定面同一枚 cutoff★
+  aba9b658fb898212  118 行  ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch
+  13c4f27f9675fab8   22 行  ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch
+  1961c3839b06cb49   11 行  ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml
+  44cffc93d168a927  150 行  ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml  ← ★第 26 行 lethal_cost_threshold: 100★
+  （★末两枚与 R456／R462 各窗志的「跑前＝跑后」同值；本批未写、未改★）
+
+〔被引用的他人／他窗判定件〕（只读、未改）
+  note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/05_three_forms.txt        ← 第 39／40 行「靶区专项」
+  note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/_cmp_r462.py              ← 第 81—100 行 band_read／content
+  note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/sub_costmap_dump.py       ← 第 36 行 `>= 90`
+  note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/pub_wall_probe_r462.py    ← 第 54 行写 100、第 58 行 SELFREPORT
+  note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/run/dump/dump_C_T1.yaml   ← 第 6／42 行 lethal_cost_threshold: 100
+  note/进度/SCAN集成/证据/log/raw/r462_三式收口窗/run/pub_C.txt             ← SELFREPORT 行（lethal=1320）
+  note/进度/SCAN集成/证据/log/raw/r464_B2a前提项补正窗/*                    ← 批114 的扫描件（本批收窄其结论的适用面、★未回改★）
+  note/进度/SCAN集成/证据/log/raw/r464q_L1两支互斥改哪一支独立裁定/*        ← 判据面重算的 325／416（本批独立复现 416、★未回改★）
+
+〔镜像内常量〕（容器面、只读）
+  /opt/ros/noetic/include/costmap_2d/cost_values.h  第 42—45 行＝NO_INFORMATION 255／LETHAL_OBSTACLE 254／INSCRIBED_INFLATED_OBSTACLE 253／FREE_SPACE 0
+  ★costmap_2d 的 src/ 不在本镜像 ⇒「254→发布侧 100、253→99」这条换算式★不可从源码证★；
+    本批给的三条是★行为侧★证据（值域只有 {0,99,100}、1..98 全空、99 全部贴 100），并且★不声称★换算式已证。
