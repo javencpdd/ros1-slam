@@ -1,0 +1,38 @@
+A＝13 条｜PASS=9 FAIL=4
+Ap＝13 条｜PASS=9 FAIL=4
+B＝13 条｜PASS=9 FAIL=4
+C＝13 条｜PASS=7 FAIL=6
+名集（四态）逐字同＝ True
+── Ap（在册形第二遍＝同窗噪声地板） vs 基准：CHECK 条数 13／13 ‖ ★栏一（名，判定）异行数＝0★ 
+   ★栏二 C4（共同 FAIL 行逐字比 outcome／message／连带句）＝4 条共同 FAIL、不等条数＝0★
+   新增红（对照−基准）＝[]｜消失红（基准−对照）＝[]
+── B（副本形＝加一枚同源 MAX 层） vs 基准：CHECK 条数 13／13 ‖ ★栏一（名，判定）异行数＝0★ 
+   ★栏二 C4（共同 FAIL 行逐字比 outcome／message／连带句）＝4 条共同 FAIL、不等条数＝0★
+   新增红（对照−基准）＝[]｜消失红（基准−对照）＝[]
+── C（副本形＋给第二实例喂刻意抬高代价的图＝r448q C7 原式靶形） vs 基准：CHECK 条数 13／13 ‖ ★栏一（名，判定）异行数＝2★ [5, 6]
+   ★栏二 C4（共同 FAIL 行逐字比 outcome／message／连带句）＝4 条共同 FAIL、不等条数＝3★
+     C4 不等｜getpath_1｜基准=outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=1.9m，判据≤35.6m）
+                      ｜对照=goal(-1.85,0.55) 20s 无 result
+     C4 不等｜getpath_2｜基准=outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=3.0m，判据≤35.6m）
+                      ｜对照=goal(0.55,2.95) 20s 无 result
+     C4 不等｜getpath_3｜基准=outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=5.1m，判据≤35.6m）
+                      ｜对照=goal(2.95,4.15) 20s 无 result
+   新增红（对照−基准）＝['costmap_data', 'getpath_server']｜消失红（基准−对照）＝[]
+== 参数面语义等价（★只报命中行数、不解释★）==
+  A↔B｜只在 A 侧 0 行｜只在 B 侧 2 行
+    ＋ elevation_layer:
+    ＋ - name: elevation_layer
+  B↔C｜只在 A 侧 8 行｜只在 B 侧 17 行
+    − footprint: '[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]'
+    − origin_x: 0.0
+    − origin_y: 0.0
+    − publish_frequency: 5.0
+    −   cost_scaling_factor: 10.0
+    −   map_save_duration: 60.0
+    ＋   map_topic: /elev_map
+    ＋ footprint:
+    ＋ - - -0.3
+    ＋   - -0.2
+    ＋ - - -0.3
+    ＋   - 0.2
+== 本件只报数；判读见 06 件 ==

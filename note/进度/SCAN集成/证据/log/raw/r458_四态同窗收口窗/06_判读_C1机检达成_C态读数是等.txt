@@ -1,0 +1,36 @@
+06 判读（窗号 R458＝四态同窗收口窗）＝★C1 的在册机检式第一次真达成（STATE 行数＝4、四态同 boot 同 master 同 seed 同 traj）★＋★同窗噪声地板成立（Ap vs A：栏一异行数＝0、栏二 C4 不等条数＝0）★＋★B（加一枚同源 MAX 层）与 A 逐行同值、且这次连 C4 栏也同值★＋★C 态按 r448q 原式执行、读数是"C＝A"★（★两种解释留给判据面、本件不判"死闸"★）
+现读时刻：2026-10-19 15:10（宿主 CST；容器 UTC 07:10）；★本窗号下共两次起跑★＝第一遍 07:03（★发布器崩 ⇒ C 态读数不可用★）＋第二遍 07:07～07:10（★修好后完整两态齐全★）；★第一遍全文留 `run/attempt1/`（窗志原件 92 行也在里面、没删）★
+
+== 一、C1 的在册机检式（★这是七扇窗以来第一次★）==
+`grep -c '^STATE=' 00_window_log.txt` 现读＝★4★（★r448q C1 要求的正是这个数★），四行逐字＝
+  `STATE=A … master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=9.47 precheck=0`
+  `STATE=Ap … load1=15.48`‖`STATE=B … load1=15.76`‖`STATE=C … load1=23.09`
+★四态同一 boot 的原件级证据★＝同一 WPID=189778 ‖ 同一 uuid=013951b6-cb8b-11f1-8647-d23e7c952659 ‖ 同一 seed=7 ‖ 同一 traj ‖ 同一 master（★窗志里逐字可见★）。
+★仍要如实报的两格★＝①★load1 带宽★＝9.47／15.48／15.76／23.09（★A 与 C 差约 2.4 倍★；★预检放行线 36.00、四态都在线内、四态皆 precheck=0★）＝★"同窗同 boot"已达成、"同一负载带"只做到"同在放行线内"★；
+②★A↔B 参数面 diff 的白名单字面★＝普通 diff 命中 6 行，其中★3 行是以 `- {name: …}` 起始的旧列表项行★（它们是把 block 式 plugins 列表重排成 flow 式时被替换掉的那三行＝★属 plugins 本体、不是 foreign 变量★）⇒ ★字面不合 3 行、如实报、不改判★；明细在 `03_delta.txt` 逐行可见。
+
+== 二、★最有价值的一格：语义等价不是我说出来的、是活体参数面 dump 差出来的★==
+`rosparam dump /move_base_flex/global_costmap` 在态内现取（★第二遍★）：
+  ★A↔B｜只在 A 侧 0 行｜只在 B 侧 2 行★＝`elevation_layer:` ＋ `- name: elevation_layer` ⇒ ★把 plugins 从 block 式重排成 flow 式、载入后的参数树逐字节等价（0 行只在本侧）＝我这次改的"序列化形"没有偷带任何语义变化★；
+  ★B↔C｜只在 B 侧 0 行｜只在 C 侧 1 行★＝`map_topic: /elev_map` ⇒ ★唯一变量锁在"实际生效的参数面"上干净到只剩一行★（★这一条正是 r456q C1 想看到的"没有 foreign 变量"、这次是活体读数、不是我的说明★）。
+层参数面逐字回读（`run/param_C.txt`）＝`use_maximum=true`／`combination_method=1`／`map_topic=/elev_map`（★B 态＝`map_topic=map`★）。
+
+== 三、四态对照（★两条栏并列＝r456q 点名的半步★）==
+`05_four_states.txt` 现读（★21 行、非空★）：A／Ap／B／C 四态皆 13 条｜★名集（四态）逐字同＝True★
+  ★Ap vs A★＝栏一异行数 0 ‖ 栏二 C4（4 条共同 FAIL 逐字比 outcome／message／连带句）不等条数 0 ‖ 新增红 [] 消失红 [] ⇒ ★同窗噪声地板成立★（★比 R451 那次更强：连 message 面都同★）
+  ★B vs A★ ＝栏一 0 ‖ 栏二 0 ‖ 双向 [] ⇒ ★加一枚同源 MAX 层、连 C4 栏都同值★（★R456 当时缺 C4 栏、这次补上了★）
+  ★C vs A★ ＝栏一 ★0★ ‖ 栏二 ★0★ ‖ 新增红 [] ⇒ ★按 r448q C7 原式的机检式（"C 与 A 的向量必须不等、异行数 ≥1"）＝这次读数是"等"★
+C 态的输入面逐字（`run/pub_C.txt` 第一行 SELFREPORT）＝`topic=/elev_map size=120x120 res=0.100 frame=map origin=(-6.00,-6.00) robot=(0.00,0.00) radius=0.40 free=14348 lethal=52 unknown=0 total=14400`
+C 态的挂载面（★不是空挂★）＝`Using plugin 行=6 ‖ Received a 行=2 ‖ 含 elevation_layer 的 Using plugin 行=1`；发布器 SIGINT 后第 1s 退、退出尾行在件里。
+★本件不下"锚点是死闸"的结论★＝理由：同一把闸在 R455 用"杀掉 move_base_flex"这一刀时★向量真的变了★（新增红＝costmap_data／getpath_server、异行数 2）；★"对某一类输入不灵敏"与"死闸"不是同一句话★，而 r448q 那句"C＝A ⇒ 死闸 ⇒ 同值读数一律作废"与本读数碰在一起该怎么裁＝★判据面的话、不属施工侧★ ⇒ ★另开一单派独立实例裁（连同数字容差一起送）★；★强靶形的第二发已先跑＝见 R459 的 06（把 0.40m 圆盘换成 720 格横贯全图的致命墙、★读数仍是零变化★）★。
+
+== 四、第一遍（★未达意、原件留着★）的三条读数 ==
+①★发布器崩★＝`TypeError: 'float' object is not subscriptable`（`run/attempt1/pub_C.txt`）＝我把 `lookupTransform` 的返回当成"元组的元组"取 `tr[0][0]`，★而 tf 的 lookupTransform 返回 (trans, rot)、trans 本身就是三元表★ ⇒ 正确形＝`tr[0], tr[1]`（★在册冒烟件里那两句 `rp[0][0]` 用的是整体元组、和我这里的解包法不同＝我照抄错了对象★）。★坑72 那一族的追加例＝同一个 API 两种取法、抄形不抄义★。
+②第一遍的 C 态因此是"层没吃到图"的降级态：栏一异行数＝★2★（第 5、6 条＝costmap_data／getpath_server 变红）、C4 不等＝3（getpath_1／2／3 从 `outcome=55 …patience` 变成 `20s 无 result`）、launch 日志里出现 `terminate called after throwing an instance of 'boost::lock_error'`、Using plugin 行只剩 4。★这一遍的"能红"不能拿去充 C7 原式★（★它证的是"喂不到图会红"、不是"喂了高代价图会红"★）＝★已如实登记、不当数★。
+③第一遍的 B↔C dump 差里出现 footprint 等 17 行＝★那是降级态下 runtime 参数面本身在变（取样时点 59s vs 13s）★＝★不是变量污染★；★第二遍同一对比只剩 1 行★ ⇒ 用第二遍那组作数。
+
+== 五、常规自证 ==
+★退净＝乙式达标★＝基线0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0（现读 14 名计数=0）；rosout pid 第 2s 自消失（★级联第十次复现★）；★第二遍时长 136s★（★第一遍 267s★）、★10 分钟窗上限未触碰★。
+★在册四件跑前跑后逐字同值＝True★＝smoke 837cd647606450b0／162 行、mode aba9b658fb898212／118 行、mbf 13c4f27f9675fab8／22 行、yaml 1961c3839b06cb49／11 行。
+★副本五件★＝两枚层参数面（B／C）＋mbf／mode／smoke 三件副本，`$(env R458_YAML)` 选层参数面 ⇒ ★B／C 共用同一条副本链、唯一变量只剩"那枚层的图从哪来"★。
+★清盘与计数同条命令★＝pyc0／ws_src4580／tooling149／note5554（★窗内现读；本批收口的登记面终值另取、见 04 段★）。

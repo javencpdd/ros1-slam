@@ -1,0 +1,77 @@
+00_window_log.txt (attempt2 起、attempt1 全文已存 run/attempt1/00_window_log.txt＝ 92 行)
+[2026-10-19 07:07:49] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 07:07:53]   预检 rc=0
+[2026-10-19 07:07:53]   ★本窗名集＝14 名（写实际枚数）｜STATE 行常量＝seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml master=http://127.0.0.1:11313★
+[2026-10-19 07:07:53]   traj 在位＝True
+[2026-10-19 07:07:53] == 步0a 副本生成＋白名单逐行验＋在册四件跑前自证 ==
+副本五件已生成（B／C 两枚 yaml ＋ mbf／mode／smoke 各一枚共用副本链）；delta 与白名单逐行验落 03_delta.txt
+[2026-10-19 07:07:53]   生成器 rc=0 ‖ 03_delta.txt 现读行数=124 ‖ ★不合白名单字面的组数＝4★（★逐组明细在 03_delta.txt、本窗不改判★）
+[2026-10-19 07:07:53]   sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49 ‖ 行数｜smoke=162 mode=118 mbf=22 yaml=11
+[2026-10-19 07:07:53] == 步0b 起前快照 S0 ==
+[2026-10-19 07:07:53]   ★基线（起前 14 名计数）＝0★
+[2026-10-19 07:07:56] == 步1 master_ready=1（等待 2s）‖ WPID=201036 ==
+[2026-10-19 07:07:56] == 步1b uuid 自校验＝OK ‖ 本窗 rosout pid N=201248 ==
+STATE=A master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=9.47 precheck=0
+[2026-10-19 07:07:56] == 跑态 A（★/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh｜R458_YAML=（在册形・未设）★｜超时 300s）==
+[2026-10-19 07:08:11]   ★参数面读数（第 13s）★＝tag=A el=13s 已印=6|plugins_get=- name: static_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer  |use_maximum=ERROR: Parameter [/move_base_flex/global_costmap/elevation_layer
+[2026-10-19 07:08:26]   A：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈30s
+[2026-10-19 07:08:26]   ★C11（A）＝launch 日志字节=33062 ‖ Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 的 Using plugin 行=0★
+STATE=Ap master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=15.48 precheck=0
+[2026-10-19 07:08:26] == 跑态 Ap（★/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh｜R458_YAML=（在册形・未设）★｜超时 300s）==
+[2026-10-19 07:08:42]   ★参数面读数（第 14s）★＝tag=Ap el=14s 已印=6|plugins_get=- name: static_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer  |use_maximum=ERROR: Parameter [/move_base_flex/global_costmap/elevation_laye
+[2026-10-19 07:08:57]   Ap：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈31s
+[2026-10-19 07:08:57]   ★C11（Ap）＝launch 日志字节=33677 ‖ Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 的 Using plugin 行=0★
+STATE=B master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=15.76 precheck=0
+[2026-10-19 07:08:57] == 跑态 B（★/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r458_四态同窗收口窗/sim_nav_smoke_r458.sh｜R458_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r458_四态同窗收口窗/global_costmap_params_B_r458.yaml★｜超时 300s）==
+[2026-10-19 07:09:12]   ★参数面读数（第 14s）★＝tag=B el=14s 已印=5|plugins_get=- name: static_layer   type: costmap_2d::StaticLayer - name: elevation_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer  |use_maximum=true|com
+[2026-10-19 07:09:28]   B：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈31s
+[2026-10-19 07:09:28]   ★C11（B）＝launch 日志字节=33639 ‖ Using plugin 行=6 ‖ Received a 行=2 ‖ 含 elevation_layer 的 Using plugin 行=1★
+STATE=C master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=23.09 precheck=0
+[2026-10-19 07:09:28] == 跑态 C（★/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r458_四态同窗收口窗/sim_nav_smoke_r458.sh｜R458_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r458_四态同窗收口窗/global_costmap_params_C_r458.yaml★｜超时 300s）==
+[2026-10-19 07:09:28]   发布器随栈起动（pid=207400；★它自己等 /map ≤60s、拿到后按当刻 base_link 涂致命再 latched 发★）
+[2026-10-19 07:09:36]   ★发布器自报★＝SELFREPORT topic=/elev_map size=120x120 res=0.100 frame=map origin=(-6.00,-6.00) robot=(0.00,0.00) radius=0.40 free=14348 lethal=52 unknown=0 total=14400
+[2026-10-19 07:09:44]   ★参数面读数（第 15s）★＝tag=C el=15s 已印=6|plugins_get=- name: static_layer   type: costmap_2d::StaticLayer - name: elevation_layer   type: costmap_2d::StaticLayer - name: stvl_obstacle_layer   type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer - name: sob_layer   type: sob_layer::SobLayer  |use_maximum=true|com
+[2026-10-19 07:10:00]   C：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈32s
+[2026-10-19 07:10:00]   ★C11（C）＝launch 日志字节=33509 ‖ Using plugin 行=6 ‖ Received a 行=2 ‖ 含 elevation_layer 的 Using plugin 行=1★
+[2026-10-19 07:10:01]   发布器 SIGINT 后第 2s 已退＝True ‖ 尾行=SELFREPORT 退出（latch 保活 170s 到点或被 SIGINT）
+[2026-10-19 07:10:01] == 步9 退净（★SIGTERM wrapper → 轮询 rosout 消失 → 差集双过滤 → 五数★）==
+[2026-10-19 07:10:02]   ★第 2s：本窗 rosout pid=201248 已消失★
+[2026-10-19 07:10:05]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+[2026-10-19 07:10:05]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 07:10:05] == 步9b C1 的在册机检式现跑 ==
+[2026-10-19 07:10:05]   ★grep -c '^STATE=' 00_window_log.txt＝4★（★在册要求＝4★）
+    STATE｜STATE=A master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=9.47 precheck=0
+    STATE｜STATE=Ap master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=15.48 precheck=0
+    STATE｜STATE=B master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=15.76 precheck=0
+    STATE｜STATE=C master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=23.09 precheck=0
+[2026-10-19 07:10:05]   四态 boot 同一条式子＝同一 WPID=201036 ‖ 同一 uuid=cdfed892-cb8b-11f1-a5f2-d23e7c952659 ‖ 同一 seed=7 ‖ 同一 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml ‖ 同一 master=http://127.0.0.1:11313
+[2026-10-19 07:10:05] == 步10 四态对照（★栏一（名，判定）＋栏二 C4 同因同码 两条并列★）==
+[2026-10-19 07:10:05]   对照件 rc=0 ‖ 行数=21（★非空自证★）
+    ｜A＝13 条｜PASS=9 FAIL=4
+    ｜Ap＝13 条｜PASS=9 FAIL=4
+    ｜B＝13 条｜PASS=9 FAIL=4
+    ｜C＝13 条｜PASS=9 FAIL=4
+    ｜名集（四态）逐字同＝ True
+    ｜── Ap（在册形第二遍＝同窗噪声地板） vs 基准：CHECK 条数 13／13 ‖ ★栏一（名，判定）异行数＝0★ 
+    ｜   ★栏二 C4（共同 FAIL 行逐字比 outcome／message／连带句）＝4 条共同 FAIL、不等条数＝0★
+    ｜   新增红（对照−基准）＝[]｜消失红（基准−对照）＝[]
+    ｜── B（副本形＝加一枚同源 MAX 层） vs 基准：CHECK 条数 13／13 ‖ ★栏一（名，判定）异行数＝0★ 
+    ｜   ★栏二 C4（共同 FAIL 行逐字比 outcome／message／连带句）＝4 条共同 FAIL、不等条数＝0★
+    ｜   新增红（对照−基准）＝[]｜消失红（基准−对照）＝[]
+    ｜── C（副本形＋给第二实例喂刻意抬高代价的图＝r448q C7 原式靶形） vs 基准：CHECK 条数 13／13 ‖ ★栏一（名，判定）异行数＝0★ 
+    ｜   ★栏二 C4（共同 FAIL 行逐字比 outcome／message／连带句）＝4 条共同 FAIL、不等条数＝0★
+    ｜   新增红（对照−基准）＝[]｜消失红（基准−对照）＝[]
+    ｜== 参数面语义等价（★只报命中行数、不解释★）==
+    ｜  A↔B｜只在 A 侧 0 行｜只在 B 侧 2 行
+    ｜    ＋ elevation_layer:
+    ｜    ＋ - name: elevation_layer
+    ｜  B↔C｜只在 A 侧 0 行｜只在 B 侧 1 行
+    ｜    ＋   map_topic: /elev_map
+    ｜== 本件只报数；判读见 06 件 ==
+[2026-10-19 07:10:05] == 步11 在册四件跑后自证 ==
+[2026-10-19 07:10:05]   跑前＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-19 07:10:05]   跑后＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-19 07:10:05]   ★四件逐字同值＝True★
+[2026-10-19 07:10:05]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-19 07:10:05] == 步99 清盘与计数同条命令 ==
+[2026-10-19 07:10:05]   pyc=0 ws_src=4580 tooling=149 note=5554 ‖ 时长 136s
