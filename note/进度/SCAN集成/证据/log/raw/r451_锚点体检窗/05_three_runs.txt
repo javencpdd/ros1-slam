@@ -1,0 +1,23 @@
+A（第一遍）                                         CHECK行数=13  PASS= 9 FAIL= 4  {'PASS': 9, 'FAIL': 4}
+A2（第二遍＝同参数面）                                   CHECK行数=13  PASS= 9 FAIL= 4  {'PASS': 9, 'FAIL': 4}
+C（验牙跑：中途 rosnode kill /move_base_flex）         CHECK行数=13  PASS= 9 FAIL= 4  {'PASS': 9, 'FAIL': 4}
+--- 逐行名序与判定（三列＝A / A2 / C）---
+   1) venue_map_cloud:PASS               venue_map_cloud:PASS               venue_map_cloud:PASS                     [A vs A2：同]
+   2) rslidar_points:PASS                rslidar_points:PASS                rslidar_points:PASS                      [A vs A2：同]
+   3) truth_map:PASS                     truth_map:PASS                     truth_map:PASS                           [A vs A2：同]
+   4) tf_robot:PASS                      tf_robot:PASS                      tf_robot:PASS                            [A vs A2：同]
+   5) costmap_data:PASS                  costmap_data:PASS                  costmap_data:PASS                        [A vs A2：同]
+   6) getpath_server:PASS                getpath_server:PASS                getpath_server:PASS                      [A vs A2：同]
+   7) getpath_1:FAIL                     getpath_1:FAIL                     getpath_1:FAIL                           [A vs A2：同]
+   8) getpath_2:FAIL                     getpath_2:FAIL                     getpath_2:FAIL                           [A vs A2：同]
+   9) getpath_3:FAIL                     getpath_3:FAIL                     getpath_3:FAIL                           [A vs A2：同]
+  10) exepath_cmdvel:FAIL                exepath_cmdvel:FAIL                exepath_cmdvel:FAIL                      [A vs A2：同]
+  11) cmdvel_writer:PASS                 cmdvel_writer:PASS                 cmdvel_writer:PASS                       [A vs A2：同]
+  12) ros2qnx_exit:PASS                  ros2qnx_exit:PASS                  ros2qnx_exit:PASS                        [A vs A2：同]
+  13) teardown:PASS                      teardown:PASS                      teardown:PASS                            [A vs A2：同]
+--- ★C6 噪声地板★＝A 与 A2 的数字读数差异条数=3（差异行如下，★地板不为零处、逐条列出★）
+    rslidar_points   A=['8.75', '0.5', '8'] ‖ A2=['9.75', '0.5', '8']
+    costmap_data     A=['12755'] ‖ A2=['12180']
+    cmdvel_writer    A=['99957655604', '46233', '6', '2.6'] ‖ A2=['99957655604', '43549', '6', '2.6']
+--- ★C7 验牙★＝C 相对 A 多出的 FAIL=0 ⇒ ★C 态没有让它变红＝这把闸没有牙 ⇒ 段 B 的"同值"读数一律不采信★
+--- ★C11 挂载活性锁★＝下面三行由窗志另计（Using plugin／Received a／新增层 use_maximum 回读）
