@@ -1,0 +1,34 @@
+[2026-10-19 03:26:52] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 03:26:55]   预检 rc=0
+[2026-10-19 03:26:55]   ★本窗打开的输出通道＝ROS_STDOUT_STDERR=1 ROSCONSOLE_STDOUT_LINE_BUFFERED=1★
+[2026-10-19 03:26:55] == 步0b 起前快照 S0 ==
+[2026-10-19 03:26:55]   名集=[^(roslaunch|rosmaster|rosout|gzserver|gzclient|rosbag|costmap_2d_node)$] ‖ ★基线＝3★
+[2026-10-19 03:26:57] == 步1 master_ready=1（等待 2s）‖ WPID=75648 ==
+[2026-10-19 03:26:57] == 步1b uuid 自校验＝OK ‖ UUID=ef718fa2-cb6c-11f1-ac42-d23e7c952659 ‖ 本窗 rosout pid N=75860 ==
+[2026-10-19 03:26:57] == 段 c1（params_c1.yaml，first_map_only 见参数面）==
+[2026-10-19 03:27:01]   plugins 枚数回读＝1 ‖ first_map_only 回读＝false
+[2026-10-19 03:28:09]   costmap 就绪＝0（等待 40s）
+[2026-10-19 03:28:09]   ★未就绪 ⇒ N3
+[2026-10-19 03:28:09] == 段 c2（params_c2.yaml，first_map_only 见参数面）==
+[2026-10-19 03:28:12]   plugins 枚数回读＝1 ‖ first_map_only 回读＝true
+[2026-10-19 03:29:20]   costmap 就绪＝0（等待 40s）
+[2026-10-19 03:29:20]   ★未就绪 ⇒ N3
+[2026-10-19 03:29:20] == 段 rc＝c1=8 c2=8 ‖ 时长 148s ==
+[2026-10-19 03:29:20] == 步9 退净（★先 SIGTERM → 轮询本窗 rosout 消失 → 差集双过滤 → 判定行五数★）==
+[2026-10-19 03:29:20]   SIGTERM 本窗 PID pid=75648（★禁 -9★）
+[2026-10-19 03:29:20]   SIGTERM 本窗 PID pid=75937（★禁 -9★）
+[2026-10-19 03:29:21]   ★第 2s：本窗 rosout pid=75860 已消失★
+[2026-10-19 03:29:23]   ★判定行五数＝基线=3｜D=0｜K=0｜D∖K=0｜端口=0★（现读计数=3）
+[2026-10-19 03:29:23]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 03:29:23] == 步10 两态 cost 面同异（★顺带自校验：两态只差 first_map_only、输入同＝应逐格等★）==
+[2026-10-19 03:29:23]   对比件 rc=1
+    ｜Traceback (most recent call last):
+    ｜  File "/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r443_名册取证式校准窗/_cmp_two.py", line 11, in <module>
+    ｜    a, b = grid(sys.argv[1]), grid(sys.argv[2])
+    ｜  File "/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r443_名册取证式校准窗/_cmp_two.py", line 6, in grid
+    ｜    t = io.open(p, encoding='utf-8', errors='ignore').read()
+    ｜FileNotFoundError: [Errno 2] No such file or directory: '/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r443_名册取证式校准窗/run/cost_c1.txt'
+[2026-10-19 03:29:23] == 步11 roscore／节点日志落盘否 ==
+[2026-10-19 03:29:23]   roscore.log 字节=883 ‖ killing 行=2 ‖ node_c1 字节=135 ‖ node_c2 字节=135
+[2026-10-19 03:29:23] == 步99 清盘与计数同条命令 ==
+[2026-10-19 03:29:24]   pyc=0 ws_src=4580 tooling=149 note=5220 ‖ 时长 152s

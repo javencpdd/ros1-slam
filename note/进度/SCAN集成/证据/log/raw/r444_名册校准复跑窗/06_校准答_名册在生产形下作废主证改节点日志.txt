@@ -1,0 +1,23 @@
+# 06 · ★校准答完★＝分支 (a) 成立：`first_map_only: true` 时该层★在首个回调里就把订阅拆掉★（★逐字行拿到★），所以名册"取样后报 None"是★结构性假阴性★、不是"没吃到图"；★名册在生产形下正式作废、改读节点日志三行★
+## 一、两态名册四读（★唯一变量＝first_map_only；自校验＝两态 cost 面逐格等 0/1600 ⇒ True★）
+| 段 | first_map_only（回读） | 名册·取样前 | 名册·取样后 |
+|---|---|---|---|
+| c1 | false | ★1 枚★（`* /c1 (http://99957655604a:35003/)`） | ★1 枚★ |
+| c2 | true | ★0 枚★（`Subscribers: None`） | ★0 枚★ |
+⇒ ★连"取样前"都读不到★：本窗就绪闸是 `rostopic info /$NS/costmap/costmap` 成功返回（★等待 2s★），而 c2 的订阅在★收到首帧那一次回调内★就拆了 ⇒ ★在"就绪之后"这个常规时点读名册，true 形★永远★报 None★。
+## 二、★机制行逐字拿到（★这就是主证、不是名册★）
+- c1（false）节点日志 4 行：`Using plugin "static_a"` → `Requesting the map...` → `Resizing costmap to 40 X 40 at 0.100000 m/pix` → ★`Received a 40 X 40 map at 0.100000 m/pix`★
+- c2（true）节点日志 5 行：同前三行，中间多一行 ★`Shutting down the map subscriber. first_map_only flag is on`★，随后仍到 `Received a 40 X 40 map at 0.100000 m/pix`
+⇒ ★"吃到图"的判据＝有没有那行 `Received a … map`★；★`Shutting down the map subscriber…` 只说明它随后退订、不说明它没收到★（★时序：拆订阅在收到之前 0.1s、两者在同一次回调里★）。
+## 三、★姿势定稿（★三条★）
+1. ★`rostopic info` 名册★在生产形（`first_map_only: true`）下★不得用作"吃没吃到图"的判据★（★假阴性机器★）；★只有该参数为 false 时名册才有意义★。★R441 的 09 件里我写的"名册无节点名即判 INVALID"★正式作废★（★不是停用★）。
+2. ★主证改读节点日志三行★＝`Using plugin "…"` / `Requesting the map...` / `Received a W X H map at R m/pix`（★前提＝起窗时 `export ROS_STDOUT_STDERR=1 ROSCONSOLE_STDOUT_LINE_BUFFERED=1`★，★该形已由 R443 与本报双窗实测：节点日志 302／402 字节非空★）；★再加一条★cost 面阳性对照★（★R442 的 w3★）★作第二路独立证据★。
+3. ★段前必做"两侧同一条式子互校"★＝参数面读回的 `static_a/map_topic` 与发布器实际话题名★逐字比、不等即不起段★（★本窗两段的互校行都打了 `⇒ 同＝True`★）。★这条是 R443 整窗报废的病根，属 05 追加四十四的第二个动作面实例★。
+## 四、★退净与发布器（★本窗把 R443 那条含糊过一次的地方测干净★）
+- 五数＝★基线 3｜D=0｜K=0｜D∖K=0｜端口=0 ⇒ 乙式四合取项全成立＝退净达标★；rosout pid=84732 在 SIGTERM 后★第 2s 自消失★（★R442 之后第二次复现同一条级联★）。
+- ★发布器用 `kill -INT`★＝本窗两枚自报★存活=9.48s／9.44s★（★都远低于 60s 上限★）且★打印了退出尾行★＝★SIGINT 让它们走完了 rospy 关停钩子★。★SIGTERM 对发布器有效与否★仍未单独测★（★R443 那次时刻对不上、已在 R443 的 06 件里改口★）。
+## 五、★本窗自曝两处★
+①★R444 第一次起跑没跑成★：`local NS="$1" SEGF="$2" TOP="$3" WANT="/gmap_$TOP"` 写在同一条 local 里 ⇒ `$TOP` 尚未赋值 ⇒ `set -u` 下★步1b 之后当场中断★；★中断把 rosmaster(83755)＋rosout(83828) 留在容器里★，★本批按归属令牌 uuid＋ppid 链认亲后对 wrapper 发 SIGINT 收净（端口回 0、基线回 3）★；★同窗补了 EXIT 钩子＋`local` 拆两条★再跑＝本报读数出自★第二次起跑★。
+②★"本窗 PID 清零"这句的含义★＝只有当差集非空时才被真正检验过；★本窗 D=0 是因为段末 INT 已把发布器收掉、不是"补救循环显过功"★（★两回事，别把前者读成后者★）。
+## 六、★本件不声称★
+不声称名册在所有链路都不可用（★只测了 costmap_2d StaticLayer＋生产形参数★）；不声称 SIGTERM 对 rospy 发布器无效（★时刻对不上、未测★）；不声称本窗答了 §8 预检 3 本体（★没跑 maze2d／13-CHECK★）；不声称 R444 第一次起跑的读数存在（★它没有读数★）；不声称任何读数入分子。

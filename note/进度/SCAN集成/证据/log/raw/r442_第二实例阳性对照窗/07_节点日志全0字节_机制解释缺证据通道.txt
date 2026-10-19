@@ -1,0 +1,21 @@
+# 07 · ★本窗第四条留底缺口★＝三枚节点日志＋tf_base 全 0 字节（★C++ 节点经 rosrun 时输出走 roscout、不进 stdout★）⇒ 名册报 None 的那条机制解释在留底里★连一条证据通道都没有★
+## 一、现读（★与发布器对照，★同窗同盘★）
+```
+$ wc -c run/node_w1.log run/node_w2.log run/node_w3.log run/tf_base.log run/pub_w1.log run/roscore.log
+       0 node_w1.log        0 node_w2.log        0 node_w3.log
+       0 tf_base.log      402 pub_w1.log       883 roscore.log
+```
+⇒ **同一条窗里三种命运**：①★python 发布器非空★（★窗器里是 `python3 -u`★）；②★roscore 非空★（★它就是那个 python wrapper，★且本窗用 SIGTERM 让它正常退出、把两行 `killing on exit` 落了下来★）；③★rosrun 起的 C++ 节点全空★——costmap 节点与 static_transform_publisher 的 `INFO` 走 **roscout**（`$ROS_HOME/log/<uuid>/roscout-*.log` 一路），★重定向到文件的 stdout 里没有它们★，除非显式 `export ROS_STDOUT_STDERR=1`。
+## 二、为什么这条要单独立一件（★不是补美观★）
+06 件第四节我写了一条**候选解释**＝"参数面 `first_map_only: true` ⇒ StaticLayer 收到首帧即退订 ⇒ 名册读得太晚"。而这条解释★本可以有一条正面证据通道★＝StaticLayer 的 `[StaticLayer]: Enabled`／map 到达那几行 INFO 就在节点输出里。★本窗那条通道是 0 字节★ ⇒ ★我连"那一层到底打过什么话"都没读到★ ⇒ 所以 06 件那句的分量应写成**"未证、且本窗不可证"**，★不该只写"未证"★（★这是我写 06 时低估了自己留底的空洞★）。
+## 三、★不影响本窗判定★（★照实圈出来★）
+w3 那条阳性对照（★非零从 9 变 1600★）读的是 `rostopic echo` 下来的 **cost 面原始件**，与节点日志无关；名册那条我同样已停用（★它连显然收到图的 /gmap_w1 都报 None★）。⇒ ★R442 的结论不靠这三枚空日志★，缺的是**机制解释的证据**，不是**判定**。
+## 四、★R443 的取数姿势（★把这条通道打开★）
+起窗前 `export ROS_STDOUT_STDERR=1 ROSCONSOLE_STDOUT_LINE_BUFFERED=1` ⇒ 节点 INFO 进 stdout ⇒ 每段必读到：`[StaticLayer]: Enabled` 各层名、★map 到达／退订那行★；同窗跑一段 `first_map_only: false`、★取样前后各读一次 `rostopic info`★ ⇒ 三分支定死：★(a) false 段名册出现订阅者 ⇒ 退订解释成立、姿势改"为真时须在首帧前读"；(b) 两态都 None ⇒ `rostopic info` 在本链路根本不可用、★从姿势里删掉★；(c) 节点日志仍空 ⇒ ★本条 export 形不对、记回坑72 追加例★。
+## 五、★本件不声称★
+不声称退订解释已成立（★本窗不可证★）；不声称 0 字节＝节点没起（★cost 面在动、话题在带★）；不声称 R442 结论受影响；不声称 `ROS_STDOUT_STDERR=1` 一定管用（★R443 现测、★不管用就照实登记★）；不声称这条缺口是我今天发现的（★它是收窗提交之后回头核名册机制时才撞出来的★）。
+
+## 六、★同批补记（★R444 已把第四节那三个分支答完★）＝分支★(a) 成立★
+- ★逐字机制行拿到★（★R444 段 c2、first_map_only: true★）＝`[ INFO] Shutting down the map subscriber. first_map_only flag is on`，★紧接同一回调里仍有★`Received a 40 X 40 map at 0.100000 m/pix`；★对照段 c1（false）名册取样前后★都=1 枚★、c2 ★两读都=0 枚★。
+- ⇒ ★本窗那五条 "Subscribers: None" 不是"没吃到图"、是该层★收到首帧就把订阅拆掉★★⇒ 名册在生产形下是结构性假阴性★。★本件第四节那句"未证"现改判为"已证"★（★证据＝R444 的 roster_* 四读＋节点日志两态，★本件原文一字不回改★）。
+- ★姿势定稿★＝★判"该层吃到图"主证＝节点日志那行 `Received a W X H map…`（★须先 `export ROS_STDOUT_STDERR=1`★）＋cost 面阳性对照★；★`rostopic info` 名册在生产形下作废、仅 `first_map_only: false` 时可作辅证★；★R441 的 09 件里"名册无节点名即判 INVALID"那条★正式作废★。
