@@ -42,7 +42,11 @@
 | `env.sh` | 容器内完整环境入口（先吃项目原 `env.sh`，再覆写网络口径） |
 | `build.sh` | 容器内增量/全量编译脚本 |
 | `docker/sim.sh` | 仿真统一入口：`probe` / `gazebo` / `smoke [stage]` 三模式 |
-| `docker/viz.sh` | 可视化入口：`check` / `gzclient` / `rviz-map` / `rviz-nav` |
+| `docker/viz.sh` | 可视化入口：`check` / `gzclient` / `rviz-raw` / `rviz-map` / `rviz-nav` |
+| `docker/rviz_sim_raw.rviz` | rviz 视图·雷达原始点云（Fixed Frame=`rslidar`，订 `/rslidar_points`） |
+| `docker/rviz_sim_map.rviz` | rviz 视图·建图过程（Fixed Frame=`camera_init`，订 `/cloud_registered`） |
+| `docker/rviz_sim_nav.rviz` | rviz 视图·导航（Fixed Frame=`map`，订 costmap／stvl 体素／`/planning/bspline`／目标） |
+| `docker/foxglove/` | Foxglove 布局件与连接口径（路线 B，见该目录 `README.md`） |
 | `docker/lint.sh` | 构建前静态自检（Dockerfile RUN 引号配平 + `bash -n` + compose 解析） |
 | `docker/catkin_build.sh` | 镜像构建期的工作区编译（三步：configure → 预生成消息头 → 正式编译） |
 | `.env.example` | compose 变量模板 |
@@ -279,9 +283,17 @@ gzclient/rviz 是否就位、当前话题。**renderer 那行拿不到值就先�
 
 ```bash
 docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient    # Gazebo 3D 客户端
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-map    # rviz 看建图
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # rviz 看导航
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-raw    # rviz 看雷达原始点云（只要场地起着就能看）
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-map    # rviz 看建图（需 faster_lio 在跑）
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # rviz 看导航（走项目自带 rviz_sim_nav.rviz）
 ```
+
+> **排障先起 `rviz-raw`**：它只订 `/rslidar_points`、Fixed Frame=`rslidar`，不依赖 faster_lio／SCAN，
+> 场地起着就有画面。若它也是一片黑，问题在 X / GL（见上表），不在算法链。
+>
+> **导航视图的口径**：`rviz_sim_nav.rviz` 的 Fixed Frame=`map`、订 `/x2_g6/costmap/costmap`
+> 与 `/x2_g6/costmap/stvl_obstacle_layer/voxel_grid`——`x2_g6` 是**在册探针段名**，
+> 实跑导航时若换了命名空间，改这两行话题即可（规律＝`<ns>/costmap/<插件名>/voxel_grid`）。
 
 `gzclient` 也可以直接并进仿真启动：`roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true`
 （该 launch 的 `gui` 参数默认 `false`，显式打开即可）。
@@ -302,7 +314,8 @@ docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # rviz
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
 项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的
-（`/map_snapshot` 30s 一条全图 + URDF 模型自动跟随 `/Odometry`）：
+（`/map_snapshot` 30s 一条全图 + URDF 模型自动跟随 `/Odometry`）。
+**布局件与连接口径见 `docker/foxglove/README.md`**（含手工摆面板的兜底步骤）。
 
 ```bash
 docker compose --profile extras up -d rosbridge      # 起 rosbridge(9090)，需 PROFILE=sim 镜像

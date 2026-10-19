@@ -3,8 +3,9 @@
 # viz.sh —— 仿真过程可视化入口（在容器内跑）
 #
 #   bash /opt/ros1-slam/docker/viz.sh gzclient     # Gazebo 3D 客户端：看世界/伪狗/雷达
+#   bash /opt/ros1-slam/docker/viz.sh rviz-raw     # rviz 看雷达原始点云（Fixed Frame=rslidar，只要场地起着就能看）
 #   bash /opt/ros1-slam/docker/viz.sh rviz-map     # rviz 看建图过程（点云+里程计）
-#   bash /opt/ros1-slam/docker/viz.sh rviz-nav     # rviz 看导航（代价图+路径）
+#   bash /opt/ros1-slam/docker/viz.sh rviz-nav     # rviz 看导航（代价图+stvl 体素+轨迹+目标）
 #   bash /opt/ros1-slam/docker/viz.sh check        # 自检：X / GL / 显示是否就绪
 #
 # 三种可视化路径，按场景选：
@@ -84,9 +85,15 @@ check() {
     for c in gzclient rviz; do
         printf "%-21s = %s\n" "$c" "$(command -v $c || echo 'MISSING（镜像未装，见 WITH_RVIZ / PROFILE=sim）')"
     done
-    echo "--- rviz 配置（项目自带）---"
+    echo "--- rviz 配置（第三方自带）---"
     for f in "$WS/ws/src/10_slam/faster_lio/rviz_cfg/loam_livox.rviz" \
              "$WS/ws/src/30_3rd/plan_manage/launch/default.rviz"; do
+        [ -f "$f" ] && echo "  [有] $f" || echo "  [缺] $f"
+    done
+    echo "--- rviz 配置（本项目自带，docker/ 下）---"
+    for f in "$WS/docker/rviz_sim_raw.rviz" \
+             "$WS/docker/rviz_sim_map.rviz" \
+             "$WS/docker/rviz_sim_nav.rviz"; do
         [ -f "$f" ] && echo "  [有] $f" || echo "  [缺] $f"
     done
     echo "--- 当前话题（需要仿真已在跑）---"
@@ -129,16 +136,25 @@ case "$MODE" in
         else
             echo "[viz] /cloud_registered 已在 —— 直接开 rviz"
         fi
-        echo "[viz] rviz 建图视图（Fixed Frame=camera_init，订阅 /cloud_registered + /cloud_registered_body）"
+        echo "[viz] rviz 建图视图（Fixed Frame=camera_init，订阅 /cloud_registered 两路＝current_scan＋history_scan）"
         exec rviz -d "$WS/docker/rviz_sim_map.rviz"
         ;;
     rviz-nav)
-        # 导航视图：项目自带 plan_manage 的配置，需要 SCAN 规划器在跑（SLIM=1 镜像里没编）
+        # 导航视图：优先用本项目自带 docker/rviz_sim_nav.rviz
+        #   Fixed Frame=map（据 M3 窗参数回读 global_frame=map）
+        #   订 /x2_g6/costmap/costmap ＋ /x2_g6/costmap/stvl_obstacle_layer/voxel_grid
+        #     ＋ /planning/bspline ＋ /move_base_simple/goal
+        # ★自带件缺失时才回落到第三方 plan_manage 的 default.rviz；★回落不等价
+        #   （第三方的 Fixed Frame 与话题名与本仿真不一致），只是保证不至于开不了窗。
+        NAV_CFG="$WS/docker/rviz_sim_nav.rviz"
+        [ -f "$NAV_CFG" ] || NAV_CFG="$WS/ws/src/30_3rd/plan_manage/launch/default.rviz"
+        echo "[viz] 使用配置：$NAV_CFG"
         if ! timeout 8 rostopic list 2>/dev/null | grep -qx "/planning/bspline"; then
             echo "[viz] 警告：/planning/bspline 不存在 —— SCAN 规划器没跑（SLIM=1 镜像不含 30_3rd）"
-            echo "[viz]       本视图会只有 Axes。要用它请用 SLIM=0 全量镜像并起 SCAN 链"
+            echo "[viz]       轨迹会是空的；代价图与体素取决于 costmap 是否在跑"
+            echo "[viz]       要看完整导航请用 SLIM=0 全量镜像并起 SCAN 链"
         fi
-        exec rviz -d "$WS/ws/src/30_3rd/plan_manage/launch/default.rviz"
+        exec rviz -d "$NAV_CFG"
         ;;
     *)
         echo "用法: bash $0 {check|gzclient|rviz-raw|rviz-map|rviz-nav}"

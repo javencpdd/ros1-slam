@@ -1,0 +1,53 @@
+{
+  "id": "ros1-slam-sim",
+  "name": "ros1-slam 仿真（建图 + 导航）",
+  "version": 1,
+  "data": {
+    "configById": {
+      "3D!sim": {
+        "id": "3D!sim",
+        "title": "3D",
+        "config": {
+          "cameraState": {
+            "distance": 12,
+            "fovy": 0.7853981852531433,
+            "near": 0.1,
+            "far": 5000,
+            "perspective": true,
+            "phi": 0.7853981852531433,
+            "target": [2.5, 0, 0],
+            "targetOffset": [0, 0, 0],
+            "thetaOffset": 0
+          },
+          "followMode": "follow-none",
+          "scene": {
+            "enableStats": false,
+            "grid": { "color": "#248eff", "divisions": 10, "size": 40 },
+            "labelScaleFactor": 1
+          },
+          "topics": {
+            "/map_snapshot": {
+              "visible": true,
+              "colorBy": "z",
+              "pointShape": "circle",
+              "pointSize": 0.1,
+              "decayTime": 0
+            },
+            "/tf": { "visible": true, "axisScale": 1 },
+            "/Odometry": { "visible": true }
+          },
+          "transforms": {}
+        }
+      }
+    },
+    "globalVariables": {},
+    "layout": "{\"direction\":\"row\",\"first\":\"3D!sim\",\"second\":\"\",\"splitPercentage\":100}",
+    "playbackConfig": {
+      "speed": 1,
+      "messageOrder": "receiveTime",
+      "timeDisplayMethod": "ROS",
+      "autoSeekOnDataValidation": false
+    },
+    "savedProps": {}
+  }
+}
