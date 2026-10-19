@@ -1,0 +1,33 @@
+[2026-10-19 06:00:36] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 06:00:40]   预检 rc=0
+[2026-10-19 06:00:40]   ★本窗名集＝14 名（写实际枚数）：^(roslaunch|rosmaster|rosout|gzserver|gzclient|rosbag|costmap_2d_node|move_base_flex|pcl_render_node|sim_adapter|rostopic|health_monitor|map_server|mockamap)$
+[2026-10-19 06:00:40]   ★在册冒烟件跑前 sha 前 16=837cd647606450b0 行数=162★
+[2026-10-19 06:00:40] == 步0b 起前快照 S0 ==
+[2026-10-19 06:00:40]   ★基线（起前 14 名计数）＝0★
+[2026-10-19 06:00:43] == 步1 master_ready=1（等待 2s）‖ WPID=146930 ==
+[2026-10-19 06:00:43] == 步1b uuid 自校验＝OK ‖ 本窗 rosout pid N=147142 ==
+[2026-10-19 06:00:43] == 跑 CT（inj=no｜★在册冒烟件一字不改★｜★超时上限 300s★）==
+[2026-10-19 06:01:13]   CT：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 06:01:13]   ★C11 挂载活性锁（CT）＝launch 日志字节=32625 ‖ Using plugin 行=5 ‖ Received a 行=1★
+[2026-10-19 06:01:13]   CT 用时≈30s（★单跑不得超 300s★）
+[2026-10-19 06:01:13] == 跑 INJ（inj=yes｜★在册冒烟件一字不改★｜★超时上限 300s★）==
+[2026-10-19 06:01:13]   ★控制跑总 CHECK 数 TOT=13 ⇒ 本窗注入窗＝已印 2～5 条（★改靶：把 costmap_data／getpath_server 纳入待印集★）
+[2026-10-19 06:01:45]   ★注入跑是否真动过手＝acted=0（1＝已注入／2＝名册未命中／3＝pid 未归属／0＝条件从未命中）★
+[2026-10-19 06:01:45]   INJ：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 06:01:45]   ★C11 挂载活性锁（INJ）＝launch 日志字节=33331 ‖ Using plugin 行=5 ‖ Received a 行=1★
+[2026-10-19 06:01:45]   INJ 用时≈32s（★单跑不得超 300s★）
+[2026-10-19 06:01:45] == 步9 退净（★SIGTERM wrapper → 轮询 rosout 消失 → 差集双过滤 → 五数★）==
+[2026-10-19 06:01:46]   ★第 2s：本窗 rosout pid=147142 已消失★
+[2026-10-19 06:01:49]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+[2026-10-19 06:01:49]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 06:01:49] == 步10 对照（★控制跑 vs 打断前 vs 注入跑：只看（CHECK 名，判定）二元组★）==
+[2026-10-19 06:01:49]   对照件 rc=0
+    ｜控制跑＝13 条｜PASS=9 FAIL=4
+    ｜  控制跑 FAIL 名集＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3']
+    ｜  控制跑名序＝['venue_map_cloud', 'rslidar_points', 'truth_map', 'tf_robot', 'costmap_data', 'getpath_server', 'getpath_1', 'getpath_2', 'getpath_3', 'exepath_cmdvel', 'cmdvel_writer', 'ros2qnx_exit', 'teardown']
+    ｜★打断前快照不可用（READ_FAIL [Errno 2] No such file or directory: '/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r454_验牙改靶窗/run/smoke_INJ_pre.txt'）⇒ 本窗＝注入未发生，C7 判 INVALID、不得据此说有牙或没牙★
+[2026-10-19 06:01:49] == 步11 在册件未改自证 ＋ 日志落盘 ==
+[2026-10-19 06:01:49]   冒烟件跑后 sha 前 16=837cd647606450b0 ‖ 跑前=837cd647606450b0 ⇒ ★同值＝True★、行数 162（跑前 162）
+[2026-10-19 06:01:49]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-19 06:01:49] == 步99 清盘与计数同条命令 ==
+[2026-10-19 06:01:50]   pyc=0 ws_src=4580 tooling=149 note=5424 ‖ 时长 74s

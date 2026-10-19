@@ -1,0 +1,36 @@
+[smoke] 起 mode_nav_sim.launch（日志 /tmp/sim_nav_smoke_launch.log）...
+CHECK|venue_map_cloud|PASS|/map_generator/global_cloud 有发布者（mockamap）
+CHECK|rslidar_points|PASS|/rslidar_points 实测 9.38Hz（≥0.5，G8 适配链活性）
+CHECK|truth_map|PASS|/map 有数据且占据格=5041（sim_map_bridge）
+CHECK|tf_robot|PASS|TF map→base_link 可查（sim_pose_tf）
+CHECK|costmap_data|PASS|全局 costmap 占据格=12146（static+stvl 有数据）
+CHECK|getpath_server|PASS|mbf get_path action server 在位
+CHECK|getpath_1|FAIL|outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=1.9m，判据≤35.6m）
+CHECK|getpath_2|FAIL|goal(0.55,2.95) 20s 无 result
+CHECK|getpath_3|FAIL|goal(2.95,4.15) 20s 无 result
+CHECK|exepath_cmdvel|FAIL|无可用 GetPath 路径，ExePath 跳过
+CHECK|cmdvel_writer|PASS|/cmd_vel publisher=['/safe_cmd_vel_mux (http://99957655604a:46007/)']（唯一写者=M6 safe_cmd_vel_mux，§2.6-a）
+[smoke] launch 日志尾 20 行（失败时排查用）：
+[INFO] [1792389491.434885]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389492.276401]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389493.752571]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389494.776510]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389495.879254]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389496.867567]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389497.652875]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389498.402009]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389499.331963]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389500.486774]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389501.643209]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389502.403530]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389503.353696]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389504.598278]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389505.384043]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389506.798789]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389507.885099]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389508.984583]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389510.031476]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792389511.049228]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[smoke] 退净中...
+CHECK|ros2qnx_exit|PASS|ros2qnx 全程不存在
+CHECK|teardown|PASS|launch 内关键节点已退净

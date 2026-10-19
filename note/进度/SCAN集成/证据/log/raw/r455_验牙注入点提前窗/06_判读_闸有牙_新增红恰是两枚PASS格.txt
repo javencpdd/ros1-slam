@@ -1,0 +1,39 @@
+06 判读（窗号 R455＝验牙注入点提前窗）＝★C7 答死了：这把闸有牙★＝★新增 FAIL 恰是控制跑里为 PASS、且直接依赖 mbf 的那两枚★（costmap_data／getpath_server），★其余七枚不受牵连★
+现读时刻：2026-10-19 14:06（宿主 CST；容器 UTC 06:06）；对照读数补跑于 14:0x（★原因见 §四、不是二次实验★）
+
+== 一、开窗前写死的判读式（在窗器头部逐字可见）与命中情况 ==
+式＝★新增 FAIL 集含 costmap_data 或 getpath_server ⇒ 这把闸对"杀 mbf"这一刀有分辨力；仍为空＋注入生效三证齐 ⇒ 没有分辨力；三证不齐 ⇒ INVALID 两说都不给★。
+现读（`05_inject_cmp.txt`）＝
+  控制跑 13 条／9 PASS／4 FAIL｜FAIL 名集＝['exepath_cmdvel','getpath_1','getpath_2','getpath_3']
+  打断前＝1 条｜名序＝['venue_map_cloud']
+  注入跑 13 条／7 PASS／6 FAIL｜FAIL 名集＝['costmap_data','exepath_cmdvel','getpath_1','getpath_2','getpath_3','getpath_server']
+  ★新增 FAIL（注入跑 − 控制跑）＝['costmap_data','getpath_server']★｜★消失 FAIL＝[]★
+⇒ 判读★落在式子的第一支★＝★有牙★（★13-CHECK 形状能分辨"mbf 被杀"这件事★）。
+
+== 二、两条让这条结论不算空心的自证 ==
+★①注入确实生效★（`run/inject_log.txt` 逐字）＝`COND at=4s printed=1 last=venue_map_cloud` ‖
+  `MIDPID 156758 etimes=3（本跑已 4s）cmdline=/opt/ros/noetic/lib/mbf_costmap_nav/mbf_costmap_nav cmd_vel:=cmd_vel_raw __name:=move_base` ‖
+  `KILL rc=0 out=killing /move_base_flex at=4s pid=156758` ‖ `+1s 名册含 mbf=0 ‖ pid 156758 etimes=gone` ‖ `+3s 同`；
+  ★单跑用时 31s→156s★（★仍 < 300s 上限★）＝多出来的正是 costmap_data 的 45s 与 getpath_server 的 30s 等超时。
+★②分辨力是特异的、不是"一杀全红"★＝同一注入跑里★venue_map_cloud／rslidar_points／truth_map／tf_robot／cmdvel_writer／ros2qnx_exit／teardown 七枚仍 PASS★、
+  ★4 枚存量红（坑78 那批 planner 层）一字未变★；变红的只有★依赖 mbf 的两枚★。
+  ⇒ ★"闸会红"与"闸乱红"是两件事，本窗同时给到了★：★靶上必红、靶外不红★。
+
+== 三、这条结论能撑到哪里、撑不到哪里（★只到这里★）==
+★能★＝§8.3 那把"改前／改后逐行同值"的闸★通过了 C7（阳性对照必须能变红）★；连同 R452～R455 的 C6（★只比（CHECK 名，判定）二元组、数字三处天生漂★）
+  与 C11（★每跑 Using plugin 行=5／Received a 行=1★），★L1 裁定（r448q）承重三条★首次全部有实证★。
+★不能★＝①★不声称这把闸对别的失败模式也有牙★（本窗只注入了"杀 mbf"这一种；★costmap 参数漂、层缺失、tf 断、时基倒退等一律未测★）；
+  ②★不声称 §8.3 本体已过★＝★段 B（副本加 elevation 层逐行比对）还没跑★（号位现排 R456）；
+  ③★不声称数字容差已定★（±2Hz／±1500／端口不比＝我按一次双跑估的、不是裁出来的）；④★读数不计入分子（A59 仍只 T2 中）★。
+
+== 四、★自曝一条工具性坑（本窗唯一不体面的地方）★==
+★对照件 `_cmp_r455.py` 被我生成时写成了 0 字节★：我在一条表达式里先 `open(dst,"w")` 再 `open(dst).read()`＝★写模式先把文件截断了、读回来是空、再写回空★。
+★当场没发现的原因＝我用 `python3 -m py_compile` 当"件可用"的自证，而★py_compile 对空文件照样返回 0★（★PYOK 是假绿★）。
+⇒ ★新姿势（入 05 追加四十九）★＝★凡"复制改名"生成的件，自证必须三段：字节数>0（wc）＋语法过（py_compile）＋★跑出非空读数★；
+   ★只有后两段同过才叫件在位★。★本次修件＝从 `_cmp_r454.py` 重新生成（62 行）后★补跑对照★得到 §一 那些数★，
+   ★补跑不改动任何活体状态★（窗已退净、名册与端口全 0，只读留底文件）＝★不是二次实验、不新增读数★。
+
+== 五、同批常规自证 ==
+★退净＝乙式达标★：基线0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0（现读 14 名计数=0）；rosout pid=154181 在 SIGTERM 后★第 2s★自消失；roscore.log 886 字节／killing 行=2；★时长 197s★（★10 分钟窗上限未触碰★）。
+★在册件零改动★：冒烟件跑前跑后 sha 前 16 同值 837cd647606450b0、行数 162；★本窗未加 elevation 层、未碰 launch／yaml★。
+★清盘★：pyc=0／ws_src=4580／tooling=149／note=5449（★与计数同一条命令里取★）。

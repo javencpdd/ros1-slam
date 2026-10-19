@@ -1,0 +1,46 @@
+[2026-10-19 05:56:54] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-19 05:56:58]   预检 rc=0
+[2026-10-19 05:56:58]   ★本窗名集＝14 名（写实际枚数）：^(roslaunch|rosmaster|rosout|gzserver|gzclient|rosbag|costmap_2d_node|move_base_flex|pcl_render_node|sim_adapter|rostopic|health_monitor|map_server|mockamap)$
+[2026-10-19 05:56:58]   ★在册冒烟件跑前 sha 前 16=837cd647606450b0 行数=162★
+[2026-10-19 05:56:58] == 步0b 起前快照 S0 ==
+[2026-10-19 05:56:58]   ★基线（起前 14 名计数）＝0★
+[2026-10-19 05:57:01] == 步1 master_ready=1（等待 2s）‖ WPID=139477 ==
+[2026-10-19 05:57:01] == 步1b uuid 自校验＝OK ‖ 本窗 rosout pid N=139755 ==
+[2026-10-19 05:57:01] == 跑 CT（inj=no｜★在册冒烟件一字不改★｜★超时上限 300s★）==
+[2026-10-19 05:57:32]   CT：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 05:57:32]   ★C11 挂载活性锁（CT）＝launch 日志字节=33840 ‖ Using plugin 行=5 ‖ Received a 行=1★
+[2026-10-19 05:57:32]   CT 用时≈31s（★单跑不得超 300s★）
+[2026-10-19 05:57:32] == 跑 INJ（inj=yes｜★在册冒烟件一字不改★｜★超时上限 300s★）==
+[2026-10-19 05:57:32]   ★控制跑总 CHECK 数 TOT=13 ⇒ 注入窗＝已印 4～12 条之间★
+[2026-10-19 05:57:48]   ★条件命中（第 15s｜已印 6／13｜最后一条=getpath_server）★
+[2026-10-19 05:57:50]   ★归属三证＝launch 日志 pid=142132｜etimes=14 ≤ 本跑已 15s｜名册含实名★（★R452 那格 14 名差集现读＝4 行、不含 mbf★）
+[2026-10-19 05:57:50]   ★注入动作（第 15s）＝rosnode kill /move_base_flex ‖ 归属证明＝本窗 S0 差集内 pid=142132★
+[2026-10-19 05:57:51]   kill 返回 rc=0（killing /move_base_flex）‖ 打断前 CHECK 行数=7
+[2026-10-19 05:57:56]   ★打断前已印名＝venue_map_cloud,rslidar_points,truth_map,tf_robot,costmap_data,getpath_server,getpath_1,｜待印名＝getpath_1,getpath_2,getpath_3,exepath_cmdvel,cmdvel_writer,ros2qnx_exit,teardown,★
+[2026-10-19 05:58:38]   ★注入跑是否真动过手＝acted=1（1＝已注入／2＝名册未命中／3＝pid 未归属／0＝条件从未命中）★
+[2026-10-19 05:58:39]   INJ：冒烟件 rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4
+[2026-10-19 05:58:39]   ★C11 挂载活性锁（INJ）＝launch 日志字节=35844 ‖ Using plugin 行=5 ‖ Received a 行=1★
+[2026-10-19 05:58:39]   INJ 用时≈67s（★单跑不得超 300s★）
+[2026-10-19 05:58:39] == 步9 退净（★SIGTERM wrapper → 轮询 rosout 消失 → 差集双过滤 → 五数★）==
+[2026-10-19 05:58:40]   ★第 2s：本窗 rosout pid=139755 已消失★
+[2026-10-19 05:58:43]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+[2026-10-19 05:58:43]   ★退净达标（乙式四合取项全成立）★
+[2026-10-19 05:58:43] == 步10 对照（★控制跑 vs 打断前 vs 注入跑：只看（CHECK 名，判定）二元组★）==
+[2026-10-19 05:58:43]   对照件 rc=0
+    ｜控制跑＝13 条｜PASS=9 FAIL=4
+    ｜  控制跑 FAIL 名集＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3']
+    ｜  控制跑名序＝['venue_map_cloud', 'rslidar_points', 'truth_map', 'tf_robot', 'costmap_data', 'getpath_server', 'getpath_1', 'getpath_2', 'getpath_3', 'exepath_cmdvel', 'cmdvel_writer', 'ros2qnx_exit', 'teardown']
+    ｜打断前＝7 条｜名序＝['venue_map_cloud', 'rslidar_points', 'truth_map', 'tf_robot', 'costmap_data', 'getpath_server', 'getpath_1']
+    ｜注入跑＝13 条｜PASS=9 FAIL=4
+    ｜  注入跑 FAIL 名集＝['exepath_cmdvel', 'getpath_1', 'getpath_2', 'getpath_3']
+    ｜新增 FAIL（注入跑 − 控制跑）＝[]
+    ｜消失 FAIL（控制跑 − 注入跑）＝[]
+    ｜控制跑里打断后才会印的名＝['getpath_2', 'getpath_3', 'exepath_cmdvel', 'cmdvel_writer', 'ros2qnx_exit', 'teardown']
+    ｜其中在注入跑印出的＝['getpath_2', 'getpath_3', 'exepath_cmdvel', 'cmdvel_writer', 'ros2qnx_exit', 'teardown']｜其中注入跑判 FAIL 的＝['getpath_2', 'getpath_3', 'exepath_cmdvel']
+    ｜注入跑名序＝['venue_map_cloud', 'rslidar_points', 'truth_map', 'tf_robot', 'costmap_data', 'getpath_server', 'getpath_1', 'getpath_2', 'getpath_3', 'exepath_cmdvel', 'cmdvel_writer', 'ros2qnx_exit', 'teardown']
+    ｜== 本件只报数：有没有牙由 06 判读按 C7 定义判 ==
+[2026-10-19 05:58:43] == 步11 在册件未改自证 ＋ 日志落盘 ==
+[2026-10-19 05:58:43]   冒烟件跑后 sha 前 16=837cd647606450b0 ‖ 跑前=837cd647606450b0 ⇒ ★同值＝True★、行数 162（跑前 162）
+[2026-10-19 05:58:43]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-19 05:58:43] == 步99 清盘与计数同条命令 ==
+[2026-10-19 05:58:43]   pyc=0 ws_src=4580 tooling=149 note=5405 ‖ 时长 109s

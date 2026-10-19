@@ -1,0 +1,42 @@
+06 判读（窗号 R452＝验牙补跑窗第一跑）＝★本窗未达意：注入没有发生★＝条件命中了、实名也在名册里，★是我用来"证明这个进程属于本窗"的键选错了★
+现读时刻：2026-10-19 13:53（宿主 CST；容器 UTC 05:53；两个时刻都取自窗日志的 date）
+
+== 一、本窗做成了什么、没做成什么 ==
+★做成了（都是现读、可当后续输入）★
+  1) ★名册取证成立★：第 15s 的 `rosnode list` 真实名册 14 名，★其中确有 `/move_base_flex`★（`run/roster_at_inject.txt` 全文落盘）。
+     ⇒ ★R451 的"成因②＝未按 rosnode list 核名、按 launch 里 name= 假定"这一条★现在有了正面答案★：节点实名★就是★ /move_base_flex，
+       ★假定这次恰好撞对了★＝那不是错，但★仍要先取名★（本窗照姿势做了，才拿到这条读数）。
+  2) ★CHECK 时间轴拿到★（`run/timeline.tsv`，每秒一行＝elapsed｜已印数｜最后一条名｜名册含 mbf）：
+       0s 0 条 ‖ 5～13s 已印 1（venue_map_cloud）‖ 15s 已印 6（最后一条 getpath_server）‖ 19s 7（getpath_1）‖ 22s 8（getpath_2）‖
+       26s 已印 11★且名册含 mbf＝0★ ⇒ ★序列约在 25s 前后跑完、随后在册件自己的退净就把节点收走了★
+     ⇒ ★R451 的"成因①＝第 28s 才动手＝CHECK 序列已跑完"由这条时间轴★直接证实★★（不再是推断）★：28s 时名册里已经没有 mbf，
+       `rosnode kill` 自然回 `ERROR: Unknown node(s)`。★成因③（我对 launch 日志格式的假设也不对）＝★不成立★、★见 §三★。
+  3) ★C6 噪声地板再加两跑★：CT 与 INJ★都是 13 条／9 PASS／4 FAIL★、FAIL 名集逐字＝['exepath_cmdvel','getpath_1','getpath_2','getpath_3']；
+     加上 R448 与 R451 的 A／A2，★同一（名，判定）形状已是第六次出现★。launch 日志字节★两跑都是 32741★（比 R451 三跑 33058／33967／33377 又少一档＝
+     ★"日志字节"这一格本身在漂、不能当判据用★，能用的只有 Using plugin 行=5／Received a 行=1 两格）。
+  4) ★退净＝乙式达标★＝基线0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0（现读 14 名计数=0）、本窗 rosout pid=133728 在 SIGTERM 后★第 2s★自消失、
+     roscore.log 886 字节／killing 行=2、★时长 75s★（★10 分钟窗上限未触碰也未放宽★）。
+  5) ★在册件零改动★：冒烟件跑前跑后 sha 前 16 同值 837cd647606450b0、行数 162 未变；预检变体件 rc=0 当刻起窗。
+
+★没做成★＝★C7 验牙仍未做成★：`inject_log.txt` 逐字＝`COND at=15s printed=6 last=getpath_server` → `MIDPID none` ⇒
+  窗器判 acted=3＝★pid 未归属 ⇒ 不 kill★（★红线优先：认不出是本窗生的进程就不杀★）。★注入未发生 ⇒ 本窗对"这把闸有没有牙"一句都不说★。
+
+== 二、为什么认不出（★错在我的键、不是进程不该杀★）==
+我用的是★S0 差集 + 14 名 comm 正则★：`snap()` 先按 `NAMEPAT` 过滤 `ps comm`，再取 S0 差集，最后在其中 grep cmdline 含 `move_base_flex` 的行。
+★现读＝第 15s 的差集快照只有 4 行★（`run/S_mid.tsv`：pcl_render_node／roslaunch／rosmaster／rosout 各 1）⇒
+★mbf 那个进程的 comm 名根本不在我这 14 个名字里★（launch 里节点标签叫 `move_base_flex-10`，可执行文件不是同名），
+★所以是"过滤器把候选筛没了"，不是"这个进程来路不明"★。
+⇒ ★修法（R453）★＝★换归属键★：从★本次这跑自己的★ launch 日志里按★已被 rosout 用通了的同一形状★取 pid＝
+  `process\[move_base_flex-[0-9]+\]: started with pid \[[0-9]+\]`（★本窗 `run/roslaunch_CT.log` 实测在第 396 行＝`process[move_base_flex-10]: started with pid [134267]`，同类行共 11 条★），
+  ★再用 `ps -o etimes= -p <pid>` 二次自证＝它出生在本窗起点之后★；★两条都过才动手，任一不过仍判不杀★。
+
+== 三、★纠正一条 R451 的在册句★（★旧文不回改、此句作纠正★）==
+R451 的 06 件里我写了"★成因③＝launch 日志 grep `starting process [` 零命中＝我对日志格式的假设也不对★"。
+★本窗现读★＝`roslaunch_CT.log` 里明明白白有 `process[move_base_flex-10]: started with pid [134267]`（以及 11 个同类行），
+★真正的格式是 `process[名-N]: started with pid [P]`＝我在 r444／r451 里对 rosout 用的那条正则★本来就是这个形状、并且一直是通的★。
+⇒ ★R451 的三条成因里★只剩①（动手太晚）成立、②（未核名）＝这次证明假定恰好对但姿势仍该改、★③＝不成立（我把"我自己 grep 的字面串写错了"记成了"日志格式假设不对"）★。
+
+== 四、下一件（★不需真人勾、我侧可自主★）==
+★R453＝按 §二 换键复跑★：同一事件驱动条件（已印数落在 [4, TOT) 且名册含 /move_base_flex）＋★launch 日志取 pid＋etimes 二次自证★ ⇒
+  真打断后看★待印那 7 条（costmap_data 之后的 getpath_1／2／3、exepath_cmdvel、cmdvel_writer、ros2qnx_exit、teardown）里★
+  ★有没有新出现的 FAIL★＝注入跑 FAIL 集 − 控制跑 FAIL 集★非空★才叫这把闸有牙；★相等就照实说"这一刀没让它变红"、并同时报"注入是否真生效"两条★。

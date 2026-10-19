@@ -1,0 +1,25 @@
+06 判读（窗号 R454＝验牙改靶窗）＝★本窗未达意：抢窗失败（acted=0＝条件从未命中）★＝但★拿到一条很有用的时间轴读数★，它直接决定了 R455 的靶位
+现读时刻：2026-10-19 14:01（宿主 CST；容器 UTC 06:01）
+
+== 一、没做成什么、为什么 ==
+窗器条件＝★已印条数 f ∈ [2,5]★（意图＝插在 costmap_data 之前）；★整跑轮询到结束都没命中★ ⇒ `acted=0`、`run/smoke_INJ_pre.txt` 不存在、
+对照件照实报"★打断前快照不可用 ⇒ 注入未发生，C7 判 INVALID、不得据此说有牙或没牙★"。★本窗对 C7 一个字都不说★。
+
+★机制（`run/timeline.tsv` 逐条、0.2s 轮询、下面只列计数变化点）★＝
+  el=0s printed=0 last=none ‖ ★el=4s printed=1 last=venue_map_cloud★（名册含 mbf=1）‖
+  ★el=14s printed=6 last=getpath_server★ ‖ el=18s 7（getpath_1）‖ el=20s 8（getpath_2）‖ el=24s 10（exepath_cmdvel）‖
+  el=25s 11（cmdvel_writer）‖ el=31s 12（ros2qnx_exit，名册含 mbf=0）
+⇒ ★printed 从 1 直接跳到 6、2～5 这一档在 0.2s 采样里也没被采到★＝
+  第 2～6 枚 CHECK（rslidar_points→truth_map→tf_robot→costmap_data→getpath_server）★几乎在同一瞬间连印★
+  （★rslidar_points 自带 8s 采样等待＝唯一有停留的格；它一过，后面四枚都是"数据已在、当场判完"★）。
+⇒ ★可达的插入点只有 printed=1★（venue_map_cloud 已印、还在那 8s 采样窗内）；★[2,5] 是一个空洞★。
+
+== 二、同批白拿的读数 ==
+★C6 再加两跑★：CT 与 INJ★都是 13 条／9 PASS／4 FAIL★、FAIL 名集逐字＝['exepath_cmdvel','getpath_1','getpath_2','getpath_3']（★第八、九次同形★）；
+launch 日志字节 CT 32625／INJ 33331（★再次证明这一格在漂、不可当判据★）；Using plugin 行=5／Received a 行=1 两格稳定。
+★退净＝乙式达标★：基线0｜D=0｜K=0｜D∖K=0｜TCP=0 UDP=0（现读 14 名计数=0）；rosout pid=147142 第 2s 自消失；roscore.log 886 字节／killing 行=2；★时长 74s★。
+★在册件零改动★：sha 前 16 跑前后同值 837cd647606450b0、行数 162；预检变体件 rc=0 当刻起窗。
+
+== 三、下一件（不需真人勾）==
+★R455＝把条件放宽成 printed ∈ [1,5]★（★即 printed=1 这个唯一可达点★），其余三证与 kill 后 +1s／+3s 生效复查一字不动；
+★判读式已在开窗前写死★＝★新增 FAIL 含 costmap_data 或 getpath_server ⇒ 这把闸对"杀 mbf"有分辨力；仍为空＋三证齐 ⇒ 没有分辨力；三证不齐 ⇒ INVALID 两说都不给★。

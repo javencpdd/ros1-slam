@@ -1,0 +1,29 @@
+06 判读（窗号 R453＝验牙复跑窗）＝★注入这次真生效了★（三证齐＋生效复查），★但新增 FAIL＝空★＝★靶选错了、不是闸没牙★
+现读时刻：2026-10-19 13:58（宿主 CST；容器 UTC 05:58）
+
+== 一、注入生效的三条证据（逐字，`run/inject_log.txt`）==
+  `COND at=15s printed=6 last=getpath_server`
+  `MIDPID 142132 etimes=14（本跑已 15s）cmdline=/opt/ros/noetic/lib/mbf_costmap_nav/mbf_costmap_nav cmd_vel:=cmd_vel_raw __name:=move_base ‖ S_mid 行数=4`
+  `KILL rc=0 out=killing /move_base_flex at=15s pid=142132`
+  `POSTCHECK` ‖ `+1s 名册含 mbf=0 ‖ pid 142132 etimes=gone` ‖ `+3s 名册含 mbf=0 ‖ pid 142132 etimes=gone`
+⇒ ★kill 确实动了手、目标进程确实消失★（不是"没打断成功"这一类假绿）；★单跑用时由 31s 涨到 67s★（多出来的正是 mbf 死后的几处等待）。
+
+== 二、★R452 那次"认不出 pid"的机制由这行 cmdline 答死★==
+真实可执行＝`/opt/ros/noetic/lib/mbf_costmap_nav/mbf_costmap_nav`、进程内 `__name:=move_base`；
+★而 ROS 名册里的节点名是 `/move_base_flex`★（roslaunch 的 name= 覆盖）。
+⇒ 我这 14 名 comm 正则里写的是 `move_base_flex`（那是★launch 里的标签名★、不是 comm），★所以差集筛完只剩 4 行、mbf 根本不在候选里★
+＝★R452 的"pid 未归属"是过滤器把自己的键写成了节点标签名★（★不是进程来路不明★）。★换键（本跑已验通）＝launch 日志取 pid＋etimes 自证＋名册实名★。
+
+== 三、★C7 本跑仍不能下结论：新增 FAIL＝空、消失 FAIL＝空★==
+`05_inject_cmp.txt` 逐字：控制跑 13 条／9 PASS／4 FAIL（FAIL 名集＝exepath_cmdvel, getpath_1, getpath_2, getpath_3）；
+注入跑 13 条／9 PASS／4 FAIL（★名集逐字相同★）；★新增 FAIL（注入跑 − 控制跑）＝[]★。
+★为什么不算"闸没牙"★＝打断点落在★第 7 条已印之后★，★此后待印的 6 枚里凡是与 mbf 有关的全部命中那 4 枚★存量红★（坑78 那四枚 planner 层红）＝
+  ★红已经被天花板吸住了，再多一个失败也还是同一个"FAIL"字★ ⇒ ★这次对照的靶打错了，读数只能证明"我的靶位不对"★。
+⇒ ★★不声称这把闸没牙★★（本跑不能作这个结论的依据）；★也不声称有牙★（同理）。★判为"未答"、改靶另开 R454／R455★。
+
+== 四、其它同批读数 ==
+★C6 再加两跑★：CT／INJ 都是 13 条、FAIL 名集逐字同（★同一形状第六、第七次出现★）；
+★launch 日志字节在漂★＝CT 33840／INJ 35844（R452 两跑都是 32741）⇒ ★这一格不能当判据用★，能用的只有 Using plugin 行=5／Received a 行=1。
+★退净＝乙式达标★：基线0｜D=0｜K=0｜D∖K=0｜TCP=0 UDP=0（现读 14 名计数=0）；rosout pid=139755 在 SIGTERM 后第 2s 自消失；roscore.log 886 字节／killing 行=2；★时长 109s★。
+★在册件零改动★：冒烟件跑前跑后 sha 前 16 同值 837cd647606450b0、行数 162。
+★下一件（不需真人勾）★＝R454 改靶：把打断点提到★控制跑里为 PASS 的那几枚之前★（costmap_data／getpath_server），★判读式在开窗前先写死在窗器头里★。

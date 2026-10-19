@@ -1,0 +1,8 @@
+[smoke] 起 mode_nav_sim.launch（日志 /tmp/sim_nav_smoke_launch.log）...
+CHECK|venue_map_cloud|PASS|/map_generator/global_cloud 有发布者（mockamap）
+CHECK|rslidar_points|PASS|/rslidar_points 实测 9.38Hz（≥0.5，G8 适配链活性）
+CHECK|truth_map|PASS|/map 有数据且占据格=5041（sim_map_bridge）
+CHECK|tf_robot|PASS|TF map→base_link 可查（sim_pose_tf）
+CHECK|costmap_data|PASS|全局 costmap 占据格=12146（static+stvl 有数据）
+CHECK|getpath_server|PASS|mbf get_path action server 在位
+CHECK|getpath_1|FAIL|outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=1.9m，判据≤35.6m）
