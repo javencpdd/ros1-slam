@@ -104,9 +104,20 @@ echo "── 附：清盘计数 ──"
 if [ "$BRSKIP" = "6" ]; then echo "  （负例开关跳过）"; else
   # ★先清产物再计数★（追加三十一①；R281／R282／R284 三次实测同源：SYN／PYST 跑过 py_compile 会在被检件旁留 __pycache__，
   #   直接 find 计数会把 ws_src 报成 4614 而在册基线是 4580＝差 34 枚产物＝假高读数）
-  [ "$SKIPCHAIN" = "0" ] && docker exec ros1-slam-sim bash -lc 'cd /opt/ros1-slam && find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; true'
+  # ★清产物动作不得被 --skip-chain 门住★（R507 批163 自曝：落册后复跑时串已在早先跑过、本遍走 --skip-chain ⇒ 旧形跳过了清理
+  #   ⇒ 读数虚高＝pyc 48／__pycache__ 19／ws_src 4614 对不上 ISO 自报 4580＝假高。清理动作与串跑没跑无关，故写死无条件。）
+  docker exec ros1-slam-sim bash -lc 'cd /opt/ros1-slam && find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; true'
   docker exec ros1-slam-sim bash -lc "cd /opt/ros1-slam && echo \"  容器面 pyc=\$(find . -name '*.pyc' | wc -l) ‖ __pycache__ 目录=\$(find . -type d -name '__pycache__' | wc -l) ‖ ROS 进程=\$(ps -ef | grep -E 'roslaunch|rosmaster|gzserver|move_base_flex' | grep -v grep | wc -l) ‖ TCP=\$(ss -ltng 2>/dev/null | grep -c LISTEN)\""
   echo "  宿主面 note_files=$(find note -type f | wc -l) ‖ ws_src=$(find ws/src -type f | wc -l) ‖ tooling=$(find tooling -type f | wc -l)（★ws_src 与 ISO 自报串同值才算没被产物污染★）"
+fi
+
+echo
+echo "── 附二：留底清单覆盖面（★第六枚·只报不拦＝跑不到才算缺一枚；漏件本身不拦★）──"
+if [ "$BRSKIP" = "6" ]; then note "附二"; echo "  （负例开关跳过）"; else
+  MCC="$ROOT/note/进度/SCAN集成/证据/_manifest_coverage_check.sh"
+  if [ -f "$MCC" ]; then
+    bash "$MCC" 2>&1 | awk '/漏件|★无清单★|★目录不在位★/ {c++; if (c<=6) print "   " $0} /全部覆盖OK|★有留底目录漏件|小结＝/ {print "  " $0} END {printf "  （★未覆盖OK 的行共 %d 枚、只列前 6；★历史目录不回填＝R506 全仓盘点在册★）\n", c}'
+  else note "附二"; echo "  ★覆盖面自检件不在位＝不可现取★"; fi
 fi
 
 echo
