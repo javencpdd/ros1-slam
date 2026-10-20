@@ -1,0 +1,79 @@
+[2026-10-20 04:43:18] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-20 04:43:22]   预检 rc=0
+[2026-10-20 04:43:22]   ★名集＝14 名｜STATE 常量＝seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml master=http://127.0.0.1:11313★
+[2026-10-20 04:43:22] == 步0a 副本生成＋白名单逐行验＋在册四件跑前自证 ==
+副本五件已生成（A／C 两枚参数面＋mbf／mode／smoke 三件副本链）；白名单逐行验落 03_delta.txt
+[2026-10-20 04:43:22]   生成器 rc=0 ‖ ★全链命中行数合计=9、不合白名单行数合计=6★（明细在 03_delta.txt）
+[2026-10-20 04:43:22]   sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49 ‖ 行数｜smoke=162 mode=118 mbf=22 yaml=11
+[2026-10-20 04:43:22] == 步0b 起前快照 S0 ==
+[2026-10-20 04:43:22]   ★基线（起前 14 名计数）＝0★
+[2026-10-20 04:43:24] == 步1 master_ready=1（等待 2s）‖ ★本遍 WPID=339552（同遍现取）★==
+[2026-10-20 04:43:24] == 步1b uuid 自校验＝OK ‖ 本遍 rosout pid=339830 ‖ ★本遍 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659★==
+[2026-10-20 04:43:24] == 步1c ★申报行=P100 ‖ 留底 X_A[P100]=118 ‖ 0.1n_T=123.9 ‖ 留底出处=note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:25（余量同件第 27 行、G1 同件第 66 行） ‖ 跨行不合成＝形 L-A1 ‖ G1 所报对象＝逐态 T 内 v==99 枚数（式引 r468q 第 77 行）★；★另一行 P90 同栏打印留底、不据此开窗也不据此判过★==
+STATE=REF master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=9.14 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+[2026-10-20 04:43:24] == 跑态 REF（R496_YAML=（★在册形・未设★） ‖ 冒烟件＝sim_nav_smoke.sh ‖ 超时 300s）==
+[2026-10-20 04:43:42]   ★T1 采样（第 15s，已印 6）★＝DUMPSAMPLE 件＝cm_REF.csv ‖ 几何 W=1000 H=1000 res=0.100 origin=(-49.90,-49.90) frame=map ‖ distinct=[0, 99, 100] ‖ P90(>=90≡{99,100})=13030 ‖ P100(==100)=6629 ‖ 1..98=0 ‖ 负值=0 ‖ 全格=1000000
+[2026-10-20 04:43:49]   ★T2 采样（第 24s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 04:43:56]   REF：rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈32s ‖ T1＝在 T2＝在 csv＝在
+[2026-10-20 04:43:56]   ★C11（REF）＝Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 行=0★
+STATE=A master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=15.26 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+[2026-10-20 04:43:56] == 跑态 A（R496_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r496_活体窗带真读复读机与lethal独立来源与同名位带件名/global_costmap_params_A_r496.yaml ‖ 冒烟件＝sim_nav_smoke_r496.sh ‖ 超时 300s）==
+[2026-10-20 04:44:13]   ★T1 采样（第 14s，已印 6）★＝DUMPSAMPLE 件＝cm_A.csv ‖ 几何 W=1000 H=1000 res=0.100 origin=(-49.90,-49.90) frame=map ‖ distinct=[0, 99, 100] ‖ P90(>=90≡{99,100})=12977 ‖ P100(==100)=6592 ‖ 1..98=0 ‖ 负值=0 ‖ 全格=1000000
+[2026-10-20 04:44:20]   ★T2 采样（第 23s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 04:44:28]   A：rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈32s ‖ T1＝在 T2＝在 csv＝在
+[2026-10-20 04:44:28]   ★C11（A）＝Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 行=0★
+STATE=Ap master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=13.01 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+[2026-10-20 04:44:28] == 跑态 Ap（R496_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r496_活体窗带真读复读机与lethal独立来源与同名位带件名/global_costmap_params_A_r496.yaml ‖ 冒烟件＝sim_nav_smoke_r496.sh ‖ 超时 300s）==
+[2026-10-20 04:44:46]   ★T1 采样（第 14s，已印 6）★＝DUMPSAMPLE 件＝cm_Ap.csv ‖ 几何 W=1000 H=1000 res=0.100 origin=(-50.00,-50.00) frame=map ‖ distinct=[0, 99, 100] ‖ P90(>=90≡{99,100})=12912 ‖ P100(==100)=6533 ‖ 1..98=0 ‖ 负值=0 ‖ 全格=1000000
+[2026-10-20 04:44:52]   ★T2 采样（第 24s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 04:45:00]   Ap：rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈32s ‖ T1＝在 T2＝在 csv＝在
+[2026-10-20 04:45:00]   ★C11（Ap）＝Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 行=0★
+STATE=C master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=19.57 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+[2026-10-20 04:45:00] == 跑态 C（R496_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r496_活体窗带真读复读机与lethal独立来源与同名位带件名/global_costmap_params_C_r496.yaml ‖ 冒烟件＝sim_nav_smoke_r496.sh ‖ 超时 300s）==
+[2026-10-20 04:45:00]   ★靶发布器随栈起动（pid=346052）★
+[2026-10-20 04:47:22]   ★T1 采样（第 59s，已印 5）★＝DUMPSAMPLE FAIL: 80.0s 内未拿到 /move_base_flex/global_costmap/costmap
+[2026-10-20 04:47:29]   ★T2 采样（第 149s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 04:47:36]   C：rc=1 ‖ CHECK 行数=13 ‖ PASS=7 ‖ FAIL=6 ‖ 用时≈156s ‖ T1＝在 T2＝在 csv＝★缺★
+[2026-10-20 04:47:36]   ★C11（C）＝Using plugin 行=4 ‖ Received a 行=1 ‖ 含 elevation_layer 行=1★
+[2026-10-20 04:47:36]   靶发布器 SIGINT 后第 1s 已退＝True
+[2026-10-20 04:47:36] == 步9 退净 ==
+[2026-10-20 04:47:37]   ★第 2s：本遍 rosout pid=339830 已消失★
+[2026-10-20 04:47:41]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+[2026-10-20 04:47:41]   ★退净达标（乙式四合取项全成立）★
+[2026-10-20 04:47:41] == 步9b STATE 机检＋行号同报 ==
+[2026-10-20 04:47:41]   ★grep -c '^STATE='＝4★（★本窗★四跑⇒应为 4★＝REF／A／Ap／C；★R458 那条＝四态同窗的旧达成、与本窗无关★）
+    行号｜13:STATE=REF master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=9.14 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+    行号｜19:STATE=A master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=15.26 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+    行号｜25:STATE=Ap master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=13.01 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+    行号｜31:STATE=C master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=19.57 precheck=0 wpid=339552 uuid=c7f117ac-cc40-11f1-b60d-d23e7c952659
+[2026-10-20 04:47:41] == 步10 对照件（八栏×两谓词）==
+[2026-10-20 04:47:41]   对照件 rc=1 ‖ 输出行数=8（★非空自证★）
+    ｜Traceback (most recent call last):
+    ｜  File "/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r496_活体窗带真读复读机与lethal独立来源与同名位带件名/_cmp_r496.py", line 35, in <module>
+    ｜    S = {t: load(t) for t in STATES}
+    ｜  File "/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r496_活体窗带真读复读机与lethal独立来源与同名位带件名/_cmp_r496.py", line 35, in <dictcomp>
+    ｜    S = {t: load(t) for t in STATES}
+    ｜  File "/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r496_活体窗带真读复读机与lethal独立来源与同名位带件名/_cmp_r496.py", line 28, in load
+    ｜    with open(p, encoding="utf-8", errors="replace") as f:
+    ｜FileNotFoundError: [Errno 2] No such file or directory: '/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r496_活体窗带真读复读机与lethal独立来源与同名位带件名/run/csv/cm_C.csv'
+[2026-10-20 04:47:41] == 步10b ★真读复读件（P100 与 P90 两行都复、留底侧真 open 被引件）★==
+[2026-10-20 04:47:42]   复读件 rc=0 ‖ 输出行数=26（★非空自证★）
+    ｜   被引件＝RAW/…/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt ‖ 行数＝66 ‖ sha 前 16＝c79a676595142517
+    ｜   [P100] X_A：★留底（从被引件第 25 行真读）118★ ‖ 活体 118 ‖ 同值＝成立
+    ｜   [P100] n_T：★留底（从被引件第 25 行真读）1239★ ‖ 活体 1239 ‖ 同值＝成立
+    ｜   [P100] G1_v99：★留底（从被引件第 66 行真读）356★ ‖ 活体 356 ‖ 同值＝成立
+    ｜   [P100] 域核对：本窗 T 内 P100 格集 vs 被引窗 同架★真对称差＝0 枚★（★复读出处窗也进对照集＝修⑤的前半、不除 2★）
+    ｜   [P90] X_A：★留底（从被引件第 29 行真读）474★ ‖ 活体 474 ‖ 同值＝成立
+    ｜   [P90] n_T：★留底（从被引件第 29 行真读）1239★ ‖ 活体 1239 ‖ 同值＝成立
+    ｜   [P90] G1_v99：★留底（从被引件第 66 行真读）356★ ‖ 活体 356 ‖ 同值＝成立
+    ｜   [P90] 域核对：本窗 T 内 P90 格集 vs 被引窗 同架★真对称差＝0 枚★（★复读出处窗也进对照集＝修⑤的前半、不除 2★）
+    ｜   清单出处＝r464q 00 件 ‖ 行数＝176 ‖ sha 前 16＝1701d392a00dfd73
+    ｜   ★rc_勾对_复读件（新名、与预检件那枚分开）＝0★ 在册清单枚数（真读 r464q）＝8 ‖ 在场（两谓词行齐）＝8 ‖ 缺项＝无
+    ｜   rc_复读＝0（★缺项＝无 ⇒ 两谓词 × 三栏全部真读并同值；有缺即红、★不许用手抄常量补★）＝无
+[2026-10-20 04:47:42] == 步11 在册四件跑后自证 ==
+[2026-10-20 04:47:42]   跑前＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-20 04:47:42]   跑后＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-20 04:47:42]   ★四件逐字同值＝True★
+[2026-10-20 04:47:42]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-20 04:47:42] == 步99 清盘与计数同条命令 ==
+[2026-10-20 04:47:43]   pyc=0 ws_src=4580 tooling=149 note=5980 ‖ 时长 265s
