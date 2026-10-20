@@ -71,9 +71,9 @@ def main():
     print("SELFREPORT topic=/elev_map size=%dx%d res=%.3f frame=%s origin=(%.2f,%.2f) rect_world x∈[%.2f,%.2f) y∈[%.2f,%.2f) 图层列 %d..%d × 行 %d..%d robot=(%.2f,%.2f) band=(%.2f,%.2f) free=%d lethal=%d unknown=0 total=%d painted=%d lethal_重数=%d" % (
         w, h, res, m.header.frame_id, ox, oy, X0, X1, Y0, Y1,
         cols[0], cols[-1], rows[0], rows[-1], rx, ry, X0, X1,
-        w * h - painted, painted, w * h, painted, lethal_recount))
+        w * h - painted, lethal_recount, w * h, painted, lethal_recount))
     print("SELFREPORT 具名声明＝本窗以 lethal= 承担 r464q 第 56 行在册模板那一位；★两枚独立来源＝图层计数 painted 与 发布数组逐格重数 lethal_重数 ⇒ 非同源自证★；★robot= 由 TF 现查、band= ＝所用世界 x 区间 ⇒ 模板缺的两枚本窗补齐★")
-    print("SELFREPORT 两来源核对：painted=%d ‖ lethal_重数=%d ‖ 两来源同值＝%s（★R492 那版两个字段吃同一变量＝恒真、本窗改法★）" % (
+    print("SELFREPORT 两来源核对（★两枚同源两派生＝同一枚 data 的增量计数与逐格重数 ⇒ 在册意义上的独立来源仍未合、本窗自记缺项★）：painted=%d ‖ lethal_重数=%d ‖ 两来源同值＝%s（★R492 那版两个字段吃同一变量＝恒真、本窗改法★）" % (
         painted, lethal_recount, "成立" if painted == lethal_recount else "★不成立★"))
     print("SELFREPORT N 比对：n_T 期望=%d ‖ painted 实际=%d ‖ n_T==N ⇒ %s ‖ 面积下限 IV（≥1200）⇒ %s ‖ 索引平移量：图层列 j ↔ A 规范列 c 满足 c = j + 440" % (
         N_EXPECT, painted, "★成立★" if painted == N_EXPECT else "★不成立★",

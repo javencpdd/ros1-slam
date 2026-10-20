@@ -80,6 +80,16 @@ cs_l = {pn: cellset(gl, kp)[0] for pn, kp in PRED}
 cs_r = {pn: cellset(ref, kp)[0] for pn, kp in PRED}
 print("\n=== 修②两行都复（P100 与 P90 分别判、不选边）===")
 bad = []
+def _diff(a, b):
+    try:
+        return abs(int(float(a)) - int(float(b)))
+    except Exception:
+        return "不可数（非整数）"
+
+import datetime
+_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+_cst = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
+print("   ★复读时刻＝%s UTC ‖ %s CST★（两侧同打＝追加五十六③；栏形＝留底值 ‖ 留底出处窗号＋行号 ‖ 活体复读值 ‖ 差值枚 ‖ 复读时刻）" % (_utc, _cst))
 for pn, kp in PRED:
     xa = len(cs_l[pn])
     v99 = len(cellset(gl, lambda v: v == 99)[0])
@@ -95,7 +105,7 @@ for pn, kp in PRED:
         eq = (keepv == live)
         if not eq:
             bad.append("%s/%s 留底 %s vs 活体 %s" % (pn, key, keepv, live))
-        print("   [%s] %s：★留底（从被引件第 %d 行真读）%s★ ‖ 活体 %s ‖ 同值＝%s" % (pn, key, cite_ln, keepv, live, "成立" if eq else "★不成立★"))
+        print("   [%s] %s：★留底（从被引件第 %d 行真读）%s★ ‖ 活体 %s ‖ ★差值枚＝%s★ ‖ 同值＝%s" % (pn, key, cite_ln, keepv, live, _diff(keepv, live), "成立" if eq else "★不成立★"))
     print("   [%s] 域核对：本窗 T 内 %s 格集 vs 被引窗 同架★真对称差＝%d 枚★（★复读出处窗也进对照集＝修⑤的前半、不除 2★）" % (
         pn, pn, len(cs_l[pn] ^ cs_r[pn])))
 print("\n=== 修③同名位分家：清单从 r464q 真读解析、不是硬编码 ===")
