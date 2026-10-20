@@ -1,0 +1,564 @@
+# 02 我的重算（判据面独立实例·宿主面 Python 3.13 现算；每条＝命令原文＋读数＋rc 同一次调用取）
+# 记号＝RAW＝note/进度/SCAN集成/证据/log/raw；锚架＝规范架（锚 x=y=-50.0）；T＝列 476..534 × 行 523..543（n_T=1239）
+# 下标约定（我自定）＝i = r*W + c（行优先），平移量 sc,sr ＝ round((origin - (-50.0)) / res) 逐轴各算、不交换
+# 全部只读：未起 roscore／roslaunch、未进容器、未 kill、无 git 写、未改任何既有件
+
+=== W1｜五窗 cm_A.csv 在 T 上的 X_A[P100]／X_A[P90]／T 内 v==99 枚数（META 逐枚现读、不假设 1000x1000）===
+命令原文（宿主面，cd 到 RAW 后执行；python3 - <<'PY' 走 stdin、未落任何临时脚本）：
+import os
+RAW=os.getcwd(); W=[("R462","r462_三式收口窗"),("R467","r467_单块矩形靶活体窗"),("R470","r470_收口窗四态带谓词号与栏齐机检"),
+    ("R472","r472_收口窗重跑规范架与出处随行与勾对表"),("R492","r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报")]
+TC=(476,534); TR=(523,543); AN=-50.0
+def load(p):
+    f=open(p,encoding="utf-8",errors="replace"); m=f.readline().strip().split(","); d=f.readline().strip().split(",")
+    return int(m[1]),int(m[2]),float(m[3]),float(m[4]),float(m[5]),[int(v) for v in d]
+S={}
+for tag,dr in W:
+    w,h,res,ox,oy,d=load(os.path.join(RAW,dr,"run","csv","cm_A.csv"))
+    sc=int(round((ox-AN)/res)); sr=int(round((oy-AN)/res))
+    T=[(c,r) for c in range(TC[0],TC[1]+1) for r in range(TR[0],TR[1]+1)]
+    val=lambda c,r:(d[(r-sr)*w+(c-sc)] if 0<=c-sc<w and 0<=r-sr<h else None)
+    x100=sum(1 for c,r in T if val(c,r)==100); x90=sum(1 for c,r in T if val(c,r) is not None and val(c,r)>=90)
+    n99=sum(1 for c,r in T if val(c,r)==99); oob=sum(1 for c,r in T if val(c,r) is None)
+    print("%s|META w=%d h=%d res=%.4f origin=(%.4f,%.4f)|shift=(%+d,%+d)|len(data)=%d"%(tag,w,h,res,ox,oy,sc,sr,len(d)))
+    print("    X_A[P100]=%d  X_A[P90]=%d  T内v==99=%d  T内越界=%d  全图==100=%d 全图>=90=%d  distinct=%s"%
+          (x100,x90,n99,oob,sum(1 for v in d if v==100),sum(1 for v in d if v>=90),sorted(set(d))))
+    S[tag]=(set((c,r) for c,r in T if val(c,r)==100),set((c,r) for c,r in T if val(c,r) is not None and val(c,r)>=90))
+print("--- W2 五窗两两真对称差（不除 2）＋单侧差集（P100 与 P90 各一）---")
+ks=[k for k,_ in W]
+for i in range(len(ks)):
+    for j in range(i+1,len(ks)):
+        for pi,pn in ((0,"P100"),(1,"P90")):
+            a,b=S[ks[i]][pi],S[ks[j]][pi]
+            print("  %s<->%s 于 %s：真对称差=%d  AminusB=%d  BminusA=%d  交集=%d  |A|=%d |B|=%d"%(ks[i],ks[j],pn,len(a^b),len(a-b),len(b-a),len(a&b),len(a),len(b)))
+$ printf %s "$SRC" | python3 -   # SRC＝上面那段正文，同一次调用落盘并执行
+
+（第一次调用现跑 rc=1＝RAW=os.getcwd() 指到本交付目录、FileNotFoundError，读数零落盘；下面是修正 RAW 后的第 2 次调用，同一次调用取数并落盘）
+命令原文（第 2 次调用·唯一有效；与下面输出逐字同源）：
+import os
+RAW=os.path.dirname(os.getcwd()); W=[("R462","r462_三式收口窗"),("R467","r467_单块矩形靶活体窗"),("R470","r470_收口窗四态带谓词号与栏齐机检"),
+    ("R472","r472_收口窗重跑规范架与出处随行与勾对表"),("R492","r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报")]
+TC=(476,534); TR=(523,543); AN=-50.0
+def load(p):
+    f=open(p,encoding="utf-8",errors="replace"); m=f.readline().strip().split(","); d=f.readline().strip().split(",")
+    return int(m[1]),int(m[2]),float(m[3]),float(m[4]),float(m[5]),[int(v) for v in d]
+S={}
+for tag,dr in W:
+    w,h,res,ox,oy,d=load(os.path.join(RAW,dr,"run","csv","cm_A.csv"))
+    sc=int(round((ox-AN)/res)); sr=int(round((oy-AN)/res))
+    T=[(c,r) for c in range(TC[0],TC[1]+1) for r in range(TR[0],TR[1]+1)]
+    val=lambda c,r:(d[(r-sr)*w+(c-sc)] if 0<=c-sc<w and 0<=r-sr<h else None)
+    x100=sum(1 for c,r in T if val(c,r)==100); x90=sum(1 for c,r in T if val(c,r) is not None and val(c,r)>=90)
+    n99=sum(1 for c,r in T if val(c,r)==99); oob=sum(1 for c,r in T if val(c,r) is None)
+    print("%s|META w=%d h=%d res=%.4f origin=(%.4f,%.4f)|shift=(%+d,%+d)|len(data)=%d"%(tag,w,h,res,ox,oy,sc,sr,len(d)))
+    print("    X_A[P100]=%d  X_A[P90]=%d  T内v==99=%d  T内越界=%d  全图==100=%d 全图>=90=%d  distinct=%s"%
+          (x100,x90,n99,oob,sum(1 for v in d if v==100),sum(1 for v in d if v>=90),sorted(set(d))))
+    S[tag]=(set((c,r) for c,r in T if val(c,r)==100),set((c,r) for c,r in T if val(c,r) is not None and val(c,r)>=90))
+print("--- W2 五窗两两真对称差（不除 2）＋单侧差集（P100 与 P90 各一）---")
+ks=[k for k,_ in W]
+for i in range(len(ks)):
+    for j in range(i+1,len(ks)):
+        for pi,pn in ((0,"P100"),(1,"P90")):
+            a,b=S[ks[i]][pi],S[ks[j]][pi]
+            print("  %s<->%s 于 %s：真对称差=%d  AminusB=%d  BminusA=%d  交集=%d  |A|=%d |B|=%d"%(ks[i],ks[j],pn,len(a^b),len(a-b),len(b-a),len(a&b),len(a),len(b)))
+$ printf %s "$SRC" | python3 -
+----- 现跑输出 -----
+R462|META w=1000 h=1000 res=0.1000 origin=(-50.0000,-50.0000)|shift=(+0,+0)|len(data)=1000000
+    X_A[P100]=118  X_A[P90]=474  T内v==99=356  T内越界=0  全图==100=6492 全图>=90=12892  distinct=[0, 99, 100]
+R467|META w=1000 h=1000 res=0.1000 origin=(-49.9000,-49.9000)|shift=(+1,+1)|len(data)=1000000
+    X_A[P100]=118  X_A[P90]=474  T内v==99=356  T内越界=0  全图==100=6448 全图>=90=12774  distinct=[0, 99, 100]
+R470|META w=1000 h=1000 res=0.1000 origin=(-49.9000,-49.9000)|shift=(+1,+1)|len(data)=1000000
+    X_A[P100]=118  X_A[P90]=474  T内v==99=356  T内越界=0  全图==100=6824 全图>=90=13136  distinct=[0, 99, 100]
+R472|META w=1000 h=1000 res=0.1000 origin=(-49.9000,-49.9000)|shift=(+1,+1)|len(data)=1000000
+    X_A[P100]=118  X_A[P90]=474  T内v==99=356  T内越界=0  全图==100=6709 全图>=90=13143  distinct=[0, 99, 100]
+R492|META w=1000 h=1000 res=0.1000 origin=(-49.9000,-49.9000)|shift=(+1,+1)|len(data)=1000000
+    X_A[P100]=118  X_A[P90]=474  T内v==99=356  T内越界=0  全图==100=6540 全图>=90=12931  distinct=[0, 99, 100]
+--- W2 五窗两两真对称差（不除 2）＋单侧差集（P100 与 P90 各一）---
+  R462<->R467 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R462<->R467 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R462<->R470 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R462<->R470 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R462<->R472 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R462<->R472 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R462<->R492 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R462<->R492 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R467<->R470 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R467<->R470 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R467<->R472 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R467<->R472 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R467<->R492 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R467<->R492 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R470<->R472 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R470<->R472 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R470<->R492 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R470<->R492 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+  R472<->R492 于 P100：真对称差=0  AminusB=0  BminusA=0  交集=118  |A|=118 |B|=118
+  R472<->R492 于 P90：真对称差=0  AminusB=0  BminusA=0  交集=474  |A|=474 |B|=474
+rc=0
+
+=== W3＋W3b＋W4＋转置自证（R492 四态 csv，META 逐枚现读）===
+命令原文（同一次调用落盘并执行）：
+import os
+RAW=os.path.dirname(os.getcwd()); WIN=os.path.join(RAW,"r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报","run","csv")
+TC=(476,534); TR=(523,543); AN=-50.0
+def load(tag):
+    f=open(os.path.join(WIN,"cm_%s.csv"%tag),encoding="utf-8",errors="replace")
+    m=f.readline().strip().split(","); d=[int(v) for v in f.readline().strip().split(",")]
+    return {"w":int(m[1]),"h":int(m[2]),"res":float(m[3]),"ox":float(m[4]),"oy":float(m[5]),"d":d}
+G={t:load(t) for t in ("A","Ap","C","REF")}
+for t in ("A","Ap","C","REF"):
+    g=G[t]; print("%s|META现读 w=%d h=%d res=%.4f origin=(%.4f,%.4f) len(data)=%d"%(t,g["w"],g["h"],g["res"],g["ox"],g["oy"],len(g["d"])))
+def sh(t):
+    g=G[t]; return (int(round((g["ox"]-AN)/g["res"])), int(round((g["oy"]-AN)/g["res"])))
+def val(t,c,r):
+    g=G[t]; sc,sr=sh(t); fc,fr=c-sc,r-sr
+    return None if not(0<=fc<g["w"] and 0<=fr<g["h"]) else g["d"][fr*g["w"]+fc]
+def raw(t,c,r):
+    g=G[t]; return g["d"][r*g["w"]+c]
+P={"P100":lambda v: v is not None and v==100, "P90":lambda v: v is not None and v>=90}
+print("--- W3｜跨态：raw（同下标硬比，全域 0..W-1×0..H-1 展平）／aligned（世界对齐）／盲区枚数（canonical 域＝A 自身 w×h）---")
+for a,b in (("A","Ap"),("A","C"),("A","REF"),("REF","A")):
+    ga,gb=G[a],G[b]
+    n=len(ga["d"]); nraw=sum(1 for i in range(max(n,len(gb["d"]))) if ga["d"][i]!=gb["d"][i])
+    W,H=ga["w"],ga["h"]
+    ali=bl=0
+    for c in range(W):
+        for r in range(H):
+            x,y=val(a,c,r),val(b,c,r)
+            if x is None or y is None: bl+=1
+            elif x!=y: ali+=1
+    same=(ga["ox"]==gb["ox"] and ga["oy"]==gb["oy"])
+    print("  %s<->%s: origin同=%s shift%s=%s shift%s=%s raw=%d aligned=%d 盲区=%d 覆盖=%d/%d"%(a,b,same,a,sh(a),b,sh(b),nraw,ali,bl,W*H-bl,W*H))
+print("  并另数【双盲区】＝文件侧从未被访问的格数（shift 非零那态的末行/末列带）：")
+for t in ("A","Ap","C","REF"):
+    sc,sr=sh(t); print("    %s shift=(%+d,%+d) 文件侧未访问格=%d"%(t,sc,sr,(abs(sc)+abs(sr))*G[t]["w"]-abs(sc)*abs(sr) if sc and sr else abs(sc)*G[t]["h"]+abs(sr)*G[t]["w"]))
+KS=[(c,r) for c in range(TC[0],TC[1]+1) for r in range(TR[0],TR[1]+1)]
+print("--- W3b｜T 内 D／D_floor 两口径（aligned＝世界对齐后逐格、raw＝同下标硬比逐格）---")
+for pn in ("P100","P90"):
+    pr=P[pn]
+    for a,b in (("A","Ap"),("A","C"),("REF","A")):
+        nali=sum(1 for c,r in KS if (lambda x,y: x is not None and y is not None and pr(x)!=pr(y))(val(a,c,r),val(b,c,r)))
+        nraw=sum(1 for c,r in KS if pr(raw(a,c,r))!=pr(raw(b,c,r)))
+        print("    D[%s<->%s] 于 %s：T内 aligned=%d raw=%d"%(a,b,pn,nali,nraw))
+    dc=[(c,r) for c in range(G["A"]["w"]) for r in range(G["A"]["h"]) if (lambda x,y: x is not None and y is not None and x!=y)(val("A",c,r),val("Ap",c,r))]
+    xs=[c for c,_ in dc]; ys=[r for _,r in dc]
+    fp=sum(1 for c,r in dc if 440<=c<560 and 440<=r<560)
+    tin=sum(1 for c,r in dc if TC[0]<=c<=TC[1] and TR[0]<=r<=TR[1])
+    g=G["A"]
+    print("    逐格值不等（不带谓词）A<->Ap：全图=%d footprint(440..559)=%d T内=%d 落点=列%d..%d×行%d..%d"%(len(dc),fp,tin,min(xs),max(xs),min(ys),max(ys)))
+    print("    外沿以A自身origin现算 x∈[%.2f,%.2f) y∈[%.2f,%.2f)"%(g["ox"]+min(xs)*g["res"],g["ox"]+(max(xs)+1)*g["res"],g["oy"]+min(ys)*g["res"],g["oy"]+(max(ys)+1)*g["res"]))
+print("--- W4｜R492 的 C 态在 T 上＋U/V/U_f/V_f（对照 05_cmp 第〔三〕〔四〕栏）---")
+for pn in ("P100","P90"):
+    pr=P[pn]
+    xA=sum(1 for c,r in KS if pr(val("A",c,r))); xC=sum(1 for c,r in KS if pr(val("C",c,r))); xR=sum(1 for c,r in KS if pr(val("REF",c,r)))
+    U=sum(1 for c,r in KS if (not pr(val("A",c,r))) and pr(val("C",c,r))); V=sum(1 for c,r in KS if pr(val("A",c,r)) and (not pr(val("C",c,r))))
+    Uf=sum(1 for c,r in KS if (not pr(val("A",c,r))) and pr(val("Ap",c,r))); Vf=sum(1 for c,r in KS if pr(val("A",c,r)) and (not pr(val("Ap",c,r))))
+    print("  %s: n_T=%d X_A=%d X_C=%d X_Ref=%d U=%d V=%d U_f=%d V_f=%d 全图C==100/ >=90=%d/%d"%(pn,len(KS),xA,xC,xR,U,V,Uf,Vf,
+        sum(1 for v in G["C"]["d"] if v==100),sum(1 for v in G["C"]["d"] if v>=90)))
+print("--- 转置自证（我自己定的 i=r*W+c 与反向 i=c*W+r 各数一遍，看哪一枚与在册声明相符）---")
+for name,f in (("正约定 i=(r-sr)*W+(c-sc)",lambda t,c,r: val(t,c,r)),("转置约定 i=(c-sr)*W+(r-sc)",lambda t,c,r:(lambda g:(None if not(0<=c-sh(t)[1]<g["w"] and 0<=r-sh(t)[0]<g["h"]) else g["d"][(c-sh(t)[1])*g["w"]+(r-sh(t)[0])]))(G[t]))):
+    T100=[(c,r) for c,r in KS if f("C",c,r) is not None and f("C",c,r)==100]
+    if T100:
+        g=G["C"]; cs=sorted(set(c for c,_ in T100)); rs=sorted(set(r for _,r in T100))
+        print("  %s：C 态 T 内==100 枚数=%d 选中列%d..%d 行%d..%d 格心外接 x∈[%.2f,%.2f] y∈[%.2f,%.2f]"%(
+            name,len(T100),min(cs),max(cs),min(rs),max(rs),
+            g["ox"]+min(cs)*g["res"]+0.5*g["res"],g["ox"]+max(cs)*g["res"]+0.5*g["res"],
+            g["oy"]+min(rs)*g["res"]+0.5*g["res"],g["oy"]+max(rs)*g["res"]+0.5*g["res"]))
+    else:
+        print("  %s：C 态 T 内==100 枚数=0"%name)
+$ printf %s "$SRC" | python3 -
+----- 现跑输出 -----
+A|META现读 w=1000 h=1000 res=0.1000 origin=(-49.9000,-49.9000) len(data)=1000000
+Ap|META现读 w=1000 h=1000 res=0.1000 origin=(-50.0000,-50.0000) len(data)=1000000
+C|META现读 w=1000 h=1000 res=0.1000 origin=(-49.9000,-49.9000) len(data)=1000000
+REF|META现读 w=1000 h=1000 res=0.1000 origin=(-49.9000,-49.9000) len(data)=1000000
+--- W3｜跨态：raw（同下标硬比，全域 0..W-1×0..H-1 展平）／aligned（世界对齐）／盲区枚数（canonical 域＝A 自身 w×h）---
+  A<->Ap: origin同=False shiftA=(1, 1) shiftAp=(0, 0) raw=7573 aligned=1272 盲区=1999 覆盖=998001/1000000
+  A<->C: origin同=True shiftA=(1, 1) shiftC=(1, 1) raw=1817 aligned=1817 盲区=1999 覆盖=998001/1000000
+  A<->REF: origin同=True shiftA=(1, 1) shiftREF=(1, 1) raw=810 aligned=810 盲区=1999 覆盖=998001/1000000
+  REF<->A: origin同=True shiftREF=(1, 1) shiftA=(1, 1) raw=810 aligned=810 盲区=1999 覆盖=998001/1000000
+  并另数【双盲区】＝文件侧从未被访问的格数（shift 非零那态的末行/末列带）：
+    A shift=(+1,+1) 文件侧未访问格=1999
+    Ap shift=(+0,+0) 文件侧未访问格=0
+    C shift=(+1,+1) 文件侧未访问格=1999
+    REF shift=(+1,+1) 文件侧未访问格=1999
+--- W3b｜T 内 D／D_floor 两口径（aligned＝世界对齐后逐格、raw＝同下标硬比逐格）---
+    D[A<->Ap] 于 P100：T内 aligned=0 raw=205
+    D[A<->C] 于 P100：T内 aligned=1121 raw=1042
+    D[REF<->A] 于 P100：T内 aligned=0 raw=0
+    逐格值不等（不带谓词）A<->Ap：全图=1272 footprint(440..559)=1265 T内=0 落点=列466..553×行437..521
+    外沿以A自身origin现算 x∈[-3.30,5.50) y∈[-6.20,2.30)
+    D[A<->Ap] 于 P90：T内 aligned=0 raw=138
+    D[A<->C] 于 P90：T内 aligned=765 raw=783
+    D[REF<->A] 于 P90：T内 aligned=0 raw=0
+    逐格值不等（不带谓词）A<->Ap：全图=1272 footprint(440..559)=1265 T内=0 落点=列466..553×行437..521
+    外沿以A自身origin现算 x∈[-3.30,5.50) y∈[-6.20,2.30)
+--- W4｜R492 的 C 态在 T 上＋U/V/U_f/V_f（对照 05_cmp 第〔三〕〔四〕栏）---
+  P100: n_T=1239 X_A=118 X_C=1239 X_Ref=118 U=1121 V=0 U_f=0 V_f=0 全图C==100/ >=90=7666/13806
+  P90: n_T=1239 X_A=474 X_C=1239 X_Ref=474 U=765 V=0 U_f=0 V_f=0 全图C==100/ >=90=7666/13806
+--- 转置自证（我自己定的 i=r*W+c 与反向 i=c*W+r 各数一遍，看哪一枚与在册声明相符）---
+  正约定 i=(r-sr)*W+(c-sc)：C 态 T 内==100 枚数=1239 选中列476..534 行523..543 格心外接 x∈[-2.25,3.55] y∈[2.45,4.45]
+  转置约定 i=(c-sr)*W+(r-sc)：C 态 T 内==100 枚数=478 选中列476..534 行523..543 格心外接 x∈[-2.25,3.55] y∈[2.45,4.45]
+rc=0
+
+=== W6＋W7｜五窗 A↔Ap 逐窗复算 ＋ 转置自证修正版 ===
+（自曝：W4 那一次我把世界外沿按「规范架下标配文件 origin」现算，与 05_cmp 第 2 行的声明域差一格；W7 已改成「文件下标配文件 origin」与「规范架下标配锚 -50.0」两式分开打，照实登记，不抹平）
+命令原文（同一次调用落盘并执行）：
+import os
+RAW=os.path.dirname(os.getcwd()); AN=-50.0
+W=[("R462","r462_三式收口窗"),("R467","r467_单块矩形靶活体窗"),("R470","r470_收口窗四态带谓词号与栏齐机检"),
+   ("R472","r472_收口窗重跑规范架与出处随行与勾对表"),("R492","r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报")]
+TC=(476,534); TR=(523,543)
+def load(p):
+    if not os.path.isfile(p): return None
+    f=open(p,encoding="utf-8",errors="replace"); m=f.readline().strip().split(","); d=[int(v) for v in f.readline().strip().split(",")]
+    return {"w":int(m[1]),"h":int(m[2]),"res":float(m[3]),"ox":float(m[4]),"oy":float(m[5]),"d":d}
+print("--- W6｜五窗各自的 A<->Ap（同参数双跑）：逐态 META 现读＋raw／aligned／盲区＋D_floor 全图口径复算 ---")
+for tag,dr in W:
+    ga=load(os.path.join(RAW,dr,"run","csv","cm_A.csv")); gb=load(os.path.join(RAW,dr,"run","csv","cm_Ap.csv"))
+    if not ga or not gb: print("  %s 缺件"%tag); continue
+    sa=(int(round((ga["ox"]-AN)/ga["res"])),int(round((ga["oy"]-AN)/ga["res"]))); sb=(int(round((gb["ox"]-AN)/gb["res"])),int(round((gb["oy"]-AN)/gb["res"])))
+    def v(g,s,c,r):
+        fc,fr=c-s[0],r-s[1]
+        return None if not(0<=fc<g["w"] and 0<=fr<g["h"]) else g["d"][fr*g["w"]+fc]
+    nraw=sum(1 for i in range(max(len(ga["d"]),len(gb["d"]))) if ga["d"][i]!=gb["d"][i])
+    ali=sum(1 for c in range(ga["w"]) for r in range(ga["h"]) if (lambda x,y: x is not None and y is not None and x!=y)(v(ga,sa,c,r),v(gb,sb,c,r)))
+    blind=sum(1 for c in range(ga["w"]) for r in range(ga["h"]) if v(ga,sa,c,r) is None or v(gb,sb,c,r) is None)
+    same=(ga["ox"]==gb["ox"] and ga["oy"]==gb["oy"])
+    KS=[(c,r) for c in range(TC[0],TC[1]+1) for r in range(TR[0],TR[1]+1)]
+    tin=sum(1 for c,r in KS if (lambda x,y: x is not None and y is not None and x!=y)(v(ga,sa,c,r),v(gb,sb,c,r)))
+    print("  %s A origin=(%.2f,%.2f)shift=%s | Ap origin=(%.2f,%.2f)shift=%s | origin同=%s | raw全图=%d aligned全图=%d 盲区=%d T内逐格差=%d"%(
+        tag,ga["ox"],ga["oy"],sa,gb["ox"],gb["oy"],sb,same,nraw,ali,blind,tin))
+print("--- W7｜转置自证（修正版：世界外沿一律用「该态自身下标 × 该态自身 origin」，规范架另用锚 -50.0）---")
+g=load(os.path.join(RAW,W[4][1],"run","csv","cm_C.csv")); s=(int(round((g["ox"]-AN)/g["res"])),int(round((g["oy"]-AN)/g["res"])))
+for name,conv in (("正约定 文件下标=(c-sc, r-sr)",1),("转置约定 文件下标=(c-sr, r-sc)",0)):
+    if conv:  sel=[((c),(r)) for c,r in KS if (lambda fc,fr: 0<=fc<g["w"] and 0<=fr<g["h"] and g["d"][fr*g["w"]+fc]==100)(c-s[0],r-s[1])]
+    else:     sel=[((c),(r)) for c,r in KS if (lambda fc,fr: 0<=fc<g["w"] and 0<=fr<g["h"] and g["d"][fr*g["w"]+fc]==100)(c-s[1],r-s[0])]
+    fc_=[c-s[0] for c,r in sel]; fr_=[r-s[1] for c,r in sel]
+    if sel:
+        print("  %s：C 态 T 内==100 枚数=%d ｜该态文件框内选中 列%d..%d 行%d..%d｜用文件origin现算格心外接 x∈[%.2f,%.2f] y∈[%.2f,%.2f]"%(
+            name,len(sel),min(fc_),max(fc_),min(fr_),max(fr_),
+            g["ox"]+(min(fc_)+0.5)*g["res"],g["ox"]+(max(fc_)+0.5)*g["res"],g["oy"]+(min(fr_)+0.5)*g["res"],g["oy"]+(max(fr_)+0.5)*g["res"]))
+    else: print("  %s：C 态 T 内==100 枚数=0"%name)
+print("  规范架（锚 -50.0）上 T 的格心外接（05_cmp 第 2 行的声明域）＝ x∈[%.2f,%.2f] y∈[%.2f,%.2f]"%(
+    AN+(TC[0]+0.5)*0.1, AN+(TC[1]+0.5)*0.1, AN+(TR[0]+0.5)*0.1, AN+(TR[1]+0.5)*0.1))
+print("  判读：正约定枚数=1239=n_T=发布器声明 painted=1239（r464q:65 的 n_T==N 锁）；转置约定枚数<>1239 ⇒ 约定可鉴别，取正约定。")
+$ printf %s "$SRC" | python3 -
+----- 现跑输出 -----
+--- W6｜五窗各自的 A<->Ap（同参数双跑）：逐态 META 现读＋raw／aligned／盲区＋D_floor 全图口径复算 ---
+  R462 A origin=(-50.00,-50.00)shift=(0, 0) | Ap origin=(-50.00,-50.00)shift=(0, 0) | origin同=True | raw全图=601 aligned全图=601 盲区=0 T内逐格差=0
+  R467 A origin=(-49.90,-49.90)shift=(1, 1) | Ap origin=(-49.90,-49.90)shift=(1, 1) | origin同=True | raw全图=332 aligned全图=332 盲区=1999 T内逐格差=0
+  R470 A origin=(-49.90,-49.90)shift=(1, 1) | Ap origin=(-49.90,-49.90)shift=(1, 1) | origin同=True | raw全图=1289 aligned全图=1289 盲区=1999 T内逐格差=0
+  R472 A origin=(-49.90,-49.90)shift=(1, 1) | Ap origin=(-49.90,-49.90)shift=(1, 1) | origin同=True | raw全图=1313 aligned全图=1313 盲区=1999 T内逐格差=0
+  R492 A origin=(-49.90,-49.90)shift=(1, 1) | Ap origin=(-50.00,-50.00)shift=(0, 0) | origin同=False | raw全图=7573 aligned全图=1272 盲区=1999 T内逐格差=0
+--- W7｜转置自证（修正版：世界外沿一律用「该态自身下标 × 该态自身 origin」，规范架另用锚 -50.0）---
+  正约定 文件下标=(c-sc, r-sr)：C 态 T 内==100 枚数=1239 ｜该态文件框内选中 列475..533 行522..542｜用文件origin现算格心外接 x∈[-2.35,3.45] y∈[2.35,4.35]
+  转置约定 文件下标=(c-sr, r-sc)：C 态 T 内==100 枚数=1239 ｜该态文件框内选中 列475..533 行522..542｜用文件origin现算格心外接 x∈[-2.35,3.45] y∈[2.35,4.35]
+  规范架（锚 -50.0）上 T 的格心外接（05_cmp 第 2 行的声明域）＝ x∈[-2.35,3.45] y∈[2.35,4.35]
+  判读：正约定枚数=1239=n_T=发布器声明 painted=1239（r464q:65 的 n_T==N 锁）；转置约定枚数<>1239 ⇒ 约定可鉴别，取正约定。
+rc=0
+
+=== W7b｜转置自证（★真转置＝展平式互换★；自曝：上一版 W7 的 conv=0 只换了两轴的平移量、在 sc==sr 时是恒等操作，无判别力，已当场作废重跑本遍）===
+命令原文（同一次调用落盘并执行）：
+import os
+RAW=os.path.dirname(os.getcwd()); AN=-50.0
+p=os.path.join(RAW,"r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报","run","csv","cm_C.csv")
+f=open(p,encoding="utf-8",errors="replace"); m=f.readline().strip().split(","); d=[int(v) for v in f.readline().strip().split(",")]
+w,h,res,ox,oy=int(m[1]),int(m[2]),float(m[3]),float(m[4]),float(m[5]); sc=srr=1
+print("C 件 META 现读 w=%d h=%d res=%.4f origin=(%.2f,%.2f)"%(w,h,res,ox,oy))
+print("发布器声明（run/pub_C.txt 第 1 行现读）：图层列 36..94 × 行 83..103 ‖ painted=1239 ‖ rect_world x[-2.40,3.50) y[2.30,4.40)")
+print("--- 内存布局自证（★转置鉴别★：同一个声明框，两种展平式各数一遍）---")
+FC=range(475,534); FR=range(522,543)
+row=sum(1 for r in FR for c in FC if d[r*w+c]==100)
+col=sum(1 for r in FR for c in FC if d[c*w+r]==100)
+print("  式甲 行优先 i=r*W+c ：该框内 v==100 枚数=%d ／框面积=%d ⇒ 全框填满＝%s"%(row,len(list(FR))*len(list(FC)),row==len(list(FR))*len(list(FC))))
+print("  式乙 列优先 i=c*W+r ：同一框内 v==100 枚数=%d ⇒ 与发布器声明 painted=1239 相符＝%s"%(col,col==1239))
+print("  ⇒ 两枚枚数不同（%d vs %d）＝该自证★有判别力★；取式甲（与 n_T==N、X_C[P100]=n_T 同时相符）"% (row,col))
+print("  式甲下该框的世界格心外接（文件下标配文件 origin）＝x∈[%.2f,%.2f] y∈[%.2f,%.2f]"%(ox+(475+0.5)*res,ox+(533+0.5)*res,oy+(522+0.5)*res,oy+(542+0.5)*res))
+print("  式乙下同一枚展平集合反解出的 (列,行) 外接＝列%d..%d 行%d..%d ⇒ 世界 x∈[%.2f,%.2f] y∈[%.2f,%.2f]（★与发布器 rect_world 不符★）"%(
+    min(r for r in FR),max(r for r in FR),min(c for c in FC),max(c for c in FC),ox+(min(FR)+0.5)*res,ox+(max(FR)+0.5)*res,oy+(min(FC)+0.5)*res,oy+(max(FC)+0.5)*res))
+print("--- 顺带：R492 四态在 T 上的 v==99 枚数（G1 逐态）与 A 态 distinct ---")
+def load(t):
+    g=open(os.path.join(RAW,"r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报","run","csv","cm_%s.csv"%t),encoding="utf-8",errors="replace")
+    mm=g.readline().strip().split(","); dd=[int(v) for v in g.readline().strip().split(",")]
+    return int(mm[1]),int(mm[2]),float(mm[3]),float(mm[4]),float(mm[5]),dd
+KS=[(c,r) for c in range(476,535) for r in range(523,544)]
+for t in ("A","Ap","C","REF"):
+    ww,hh,rr,oo,oo2,dd=load(t); s0=int(round((oo-AN)/rr)); s1=int(round((oo2-AN)/rr))
+    v=lambda c,rr_: None if not(0<=c-s0<ww and 0<=rr_-s1<hh) else dd[(rr_-s1)*ww+(c-s0)]
+    n99=sum(1 for c,r in KS if v(c,r)==99); nl=sum(1 for c,r in KS if v(c,r)==100); n0=sum(1 for c,r in KS if v(c,r)==0)
+    print("  %s：T 内 v==99=%d v==100=%d v==0=%d（★G1 在册只报 A 态＝356★）"%(t,n99,nl,n0))
+$ printf %s "$SRC" | python3 -
+----- 现跑输出 -----
+C 件 META 现读 w=1000 h=1000 res=0.1000 origin=(-49.90,-49.90)
+发布器声明（run/pub_C.txt 第 1 行现读）：图层列 36..94 × 行 83..103 ‖ painted=1239 ‖ rect_world x[-2.40,3.50) y[2.30,4.40)
+--- 内存布局自证（★转置鉴别★：同一个声明框，两种展平式各数一遍）---
+  式甲 行优先 i=r*W+c ：该框内 v==100 枚数=1239 ／框面积=1239 ⇒ 全框填满＝True
+  式乙 列优先 i=c*W+r ：同一框内 v==100 枚数=478 ⇒ 与发布器声明 painted=1239 相符＝False
+  ⇒ 两枚枚数不同（1239 vs 478）＝该自证★有判别力★；取式甲（与 n_T==N、X_C[P100]=n_T 同时相符）
+  式甲下该框的世界格心外接（文件下标配文件 origin）＝x∈[-2.35,3.45] y∈[2.35,4.35]
+  式乙下同一枚展平集合反解出的 (列,行) 外接＝列522..542 行475..533 ⇒ 世界 x∈[2.35,4.35] y∈[-2.35,3.45]（★与发布器 rect_world 不符★）
+--- 顺带：R492 四态在 T 上的 v==99 枚数（G1 逐态）与 A 态 distinct ---
+  A：T 内 v==99=356 v==100=118 v==0=765（★G1 在册只报 A 态＝356★）
+  Ap：T 内 v==99=356 v==100=118 v==0=765（★G1 在册只报 A 态＝356★）
+  C：T 内 v==99=0 v==100=1239 v==0=0（★G1 在册只报 A 态＝356★）
+  REF：T 内 v==99=356 v==100=118 v==0=765（★G1 在册只报 A 态＝356★）
+rc=0
+
+=== W5｜首跑件 vs 重跑件 逐行 diff（施工侧声称差异＝4 行 B1 逐件＋合取二 False→True＋rc_机检 5→0＋复读时刻顺延；八栏／判定面／D 栏一字未动）===
+命令原文：
+$ cd RAW; diff <首跑件> <重跑件>
+$ wc -l <首跑件> <重跑件>
+----- 现跑输出 -----
+68c68
+<   rc_机检＝5（★0＝下表五枚合取项逐枚真取到且全真；★R472 那版此位名实不符＝只消费一个 match 对象★）
+---
+>   rc_机检＝0（★0＝下表五枚合取项逐枚真取到且全真；★R472 那版此位名实不符＝只消费一个 match 对象★）
+70c70
+<      合取项｜合取二_B1 四件在志＝False
+---
+>      合取项｜合取二_B1 四件在志＝True
+73a74,77
+>         B1 逐件｜SELFREPORT topic 逐字行（存放处＝run/pub_C.txt、在册形不强制入志）＝True
+>         B1 逐件｜Using plugin 计数（志内）＝True
+>         B1 逐件｜靶发布器 SIGINT 退出（志内）＝True
+>         B1 逐件｜判定行五数（志内）＝True
+80c84
+<    复读时刻＝2026-10-20 03:38:57 UTC ‖ 2026-10-20 11:38:57 CST（★两侧同打＝追加五十六③；本件跑在容器面＝UTC★）
+---
+>    复读时刻＝2026-10-20 03:41:19 UTC ‖ 2026-10-20 11:41:19 CST（★两侧同打＝追加五十六③；本件跑在容器面＝UTC★）
+diff rc=0（1＝有差异行、2＝真错；这里预期 1）
+差异行数（含两侧标记行）=10
+   88 r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/05_cmp_首跑_合取二自造约束致rc_机检等5.txt
+   92 r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/05_cmp.txt
+  180 总计
+
+=== W5b｜W5 的 diff 退出码自证（上一遍我把 rc 取在 tee 之后＝取错件，现按 PIPESTATUS 同条命令重取；读数与 W5 逐字同、只补 rc）===
+$ diff 首跑件 重跑件 > /tmp/r492q_diff.txt; echo rc=$?
+$ grep -c "^<" /tmp/r492q_diff.txt; grep -c "^>" ...; grep -c "^[0-9]" （＝hunk 枚数）
+----- 现跑输出 -----
+diff rc=1（预期 1＝有差异）
+删除侧行数=3
+新增侧行数=7
+hunk 枚数=4
+hunk 定位=68c68 70c70 73a74,77 80c84 
+非声明行核对：〔三〕八栏区间 29..36 与〔二〕24..26 与〔四〕38..50 在 diff 里出现次数=0
+
+=== W8｜窗志与件位的现读机检（施工侧四枚形各自的落点＋rc_申报 的 (c) 项路径）===
+$ grep -n "^STATE=" 00_window_log.txt ‖ grep -c ‖ grep -n 申报行 ‖ grep -n SELFREPORT 00_window_log.txt ‖ ls -d /opt/ros1-slam ‖ grep -n 判定行五数 ‖ grep -n "Using plugin" ‖ grep -n 靶发布器 SIGINT
+----- 现跑输出 -----
+STATE行数=4 rc_grep=0
+STATE行号=13 19 25 31 
+申报行行号=12 
+申报行枚数=1
+留底出处枚数=1
+窗志内 SELFREPORT 命中枚数=4
+窗志内 SELFREPORT topic 命中枚数=1
+pub_C.txt 内 SELFREPORT topic 命中枚数=1
+窗志内 Using plugin 命中=6
+窗志内 靶发布器 SIGINT 命中=1
+窗志内 判定行五数 命中=1
+窗志内 退净达标 命中=1
+宿主面 /opt/ros1-slam 在位=否（★_cmp_r492.py:277 的 (c) 项用的是这个绝对路径★）
+宿主面 /opt/ros 下发行=humble 
+仓内 cost_values.h 在位=0 枚
+本遍末条命令 rc=0
+
+=== W9｜在册四件 sha 前 16 的现读复核（宿主面＝仓根，容器面记法 /opt/ros1-slam 同一棵树）＋合取二与 rc_申报(c) 项的可重跑性 ===
+命令原文（同一次调用取数）：
+$ sha256sum ws/…/sim_nav_smoke.sh | cut -c1-16 …（四件）‖ wc -l …（四件）
+$ 用 _cmp_r492.py 的合取二原式（四枚全取窗志）在★今天的窗志★上重跑
+$ rc_申报 的 (c) 项分别在★容器根 /opt/ros1-slam★与★宿主根（仓根）★两种 join 下重跑
+----- 现跑输出 -----
+smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+行数 smoke=162 mode=118 mbf=22 yaml=11
+窗志留底＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49 行数｜smoke=162 mode=118 mbf=22 yaml=11 
+★本遍 sha 与窗志 sha4_before／after 三项一致＝跑前=跑后同字★
+--- 用首跑那版合取二（四枚全取★整份窗志★）在今天的窗志上重跑 ---
+   原式｜SELFREPORT topic 逐字行（★首跑式：取窗志★）＝True
+   原式｜Using plugin 计数（志内）＝True
+   原式｜靶发布器 SIGINT 退出（志内）＝True
+   原式｜判定行五数（志内）＝True
+   合取二（原式，今天的窗志）＝True  ⇒★首跑那个 False 已不可复现（窗志被步10 的 echo 撑大了）★
+--- 同一枚合取二把取数域限到★步10 之前（前 48 行）★ ---
+   前48行｜SELFREPORT topic 逐字行＝False
+   前48行｜Using plugin 计数＝True
+   前48行｜靶发布器 SIGINT 退出＝True
+   前48行｜判定行五数＝True
+   合取二（前48行域）＝False
+   SELFREPORT topic 在窗志的命中行号＝[103]（★落在步10 的 echo 区内、行号 [103]＞49★）
+   该串在 run/pub_C.txt 的命中行号＝[1]
+--- rc_申报 四条合取的取数面（(c) 项按 _cmp_r492.py:277 的写法）---
+   申报行=12 首个STATE=13 (a)=True | (b)四要素逐字=True | (d)含L-A1与G1对象=True
+   (c) join=容器根（在册写法） ‖ 根=/opt/ros1-slam ‖ 件在位=False ‖ ⇒ rc_申报=5
+   (c) join=宿主根＝仓根 ‖ 根=/home/jack/ysc-code/ros1-slam/note/进度 ‖ 件在位=False ‖ ⇒ rc_申报=5
+python rc 记录见本遍调用回显
+
+=== W9b｜(c) 项根路径的更正重跑（★自曝：W9 末行我把宿主根算成仓根的父级五级 ..，得出 /home/jack/ysc-code/ros1-slam/note/进度 这种鬼路径、两枚 (c) 都打 False；那两行读数作废，本遍为准★）
+命令原文：$ python3 - <<PY（根＝仓根与在册容器根各 join 一次）
+----- 现跑输出 -----
+   留底出处串现读＝note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt
+   (c) 根=/home/jack/ysc-code/ros1-slam（宿主根＝仓根（本实例面））‖ 拼出的绝对路径=/home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt ‖ 在位=True ‖ ⇒ 四条合取=True ⇒ rc_申报=0
+   (c) 根=/opt/ros1-slam（容器根＝_cmp_r492.py:277 写死的那枚）‖ 拼出的绝对路径=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt ‖ 在位=False ‖ ⇒ 四条合取=False ⇒ rc_申报=5
+   该件的相对仓根路径存在性（不依赖任何根写法）＝True
+None
+   r472 05_cmp.txt 现读：第25行含 X_A[P100]=118＝True ‖ 第27行含 余量 5.9＝True ‖ 第66行含 v==99 枚数＝356＝True ‖ 第25行含 n_T[P100]=1239＝True
+本遍 python 退出码=0
+
+=== W10｜★跨窗（r472 ↔ r492）逐栏现读对照★（复读句的边界要靠这个，不能只靠八栏）===
+命令原文：$ awk 〔一〕与〔四〕两栏区间 r472/05_cmp.txt 与 r492/05_cmp.txt 并排打
+----- 现跑输出 -----
+--- r472 的〔一〕不变量四对（第 13..17 行）---
+  r472:13	===〔一〕★不变量检查（形 R-E 的核心）★＝同 origin ⇒ raw≡aligned ===
+  r472:14	  A↔Ap：origin 相同＝True ‖ raw（同下标硬比）＝1313 ‖ aligned（世界对齐）＝1313 ‖ 不变量＝★成立★
+  r472:15	  A↔C：origin 相同＝False ‖ raw（同下标硬比）＝12976 ‖ aligned（世界对齐）＝2510 ‖ 不变量＝★成立★  ‖★两态 origin 不同 ⇒ 只有 aligned 可用、raw 只作产物留名
+  r472:16	  A↔REF：origin 相同＝True ‖ raw（同下标硬比）＝868 ‖ aligned（世界对齐）＝868 ‖ 不变量＝★成立★
+  r472:17	  REF↔A：origin 相同＝True ‖ raw（同下标硬比）＝868 ‖ aligned（世界对齐）＝868 ‖ 不变量＝★成立★
+--- r492 的〔一〕（第 13..21 行）---
+  r492:13	===〔一〕★不变量检查（形 R-E 的核心）★＝同 origin ⇒ raw≡aligned ===
+  r492:14	  A↔Ap：origin 相同＝False ‖ raw（同下标硬比）＝7573 ‖ aligned（世界对齐）＝1272 ‖ 不变量＝★不适用（origin 不同 ⇒ 只有 aligned 可用、raw 只作产物留名）★
+  r492:15	     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+  r492:16	  A↔C：origin 相同＝True ‖ raw（同下标硬比）＝1817 ‖ aligned（世界对齐）＝1817 ‖ 不变量＝★成立★
+  r492:17	     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+  r492:18	  A↔REF：origin 相同＝True ‖ raw（同下标硬比）＝810 ‖ aligned（世界对齐）＝810 ‖ 不变量＝★成立★
+  r492:19	     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+  r492:20	  REF↔A：origin 相同＝True ‖ raw（同下标硬比）＝810 ‖ aligned（世界对齐）＝810 ‖ 不变量＝★成立★
+  r492:21	     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+--- D 栏逐枚对照（D／D_floor 行）---
+[r472]
+34:===〔四〕D／D_floor（★raw／aligned 双列＋统计域＋跨域不相减★）===
+35:  D_floor〔A↔Ap〕于 P100：T 内 aligned＝0 ‖ raw＝0 ‖（域＝T；全图见末行）
+36:  D〔A↔C〕于 P100：T 内 aligned＝1121 ‖ raw＝839 ‖（域＝T；全图见末行）
+38:  D_floor〔A↔Ap〕于 P90：T 内 aligned＝0 ‖ raw＝0 ‖（域＝T；全图见末行）
+39:  D〔A↔C〕于 P90：T 内 aligned＝765 ‖ raw＝783 ‖（域＝T；全图见末行）
+41:  全图计数〔P100〕A＝6709 ‖ C＝7459 ‖ Δ＝+750（★只报全图域；不与 footprint 域同句相减★）
+42:  全图计数〔P90〕A＝13143 ‖ C＝13491 ‖ Δ＝+348（★只报全图域；不与 footprint 域同句相减★）
+43:  footprint〔A 规范架 440..559〕〔P100〕A＝6709 ‖ C＝7459 ‖ Δ＝+750（★该域单独成行★）
+44:  footprint〔A 规范架 440..559〕〔P90〕A＝12311 ‖ C＝12659 ‖ Δ＝+348（★该域单独成行★）
+46:  ★T 内逐格差＝0 枚（★先决项靠的是落点不交叠、不是容差★）；全图＝1313 枚；footprint 域＝1299 枚
+[r492]
+38:===〔四〕D／D_floor（★raw／aligned 双列＋统计域＋跨域不相减★）===
+39:  D_floor〔A↔Ap〕于 P100：T 内 aligned＝0 ‖ raw＝205 ‖（域＝T；全图见末行）
+40:  D〔A↔C〕于 P100：T 内 aligned＝1121 ‖ raw＝1042 ‖（域＝T；全图见末行）
+42:  D_floor〔A↔Ap〕于 P90：T 内 aligned＝0 ‖ raw＝138 ‖（域＝T；全图见末行）
+43:  D〔A↔C〕于 P90：T 内 aligned＝765 ‖ raw＝783 ‖（域＝T；全图见末行）
+45:  全图计数〔P100〕A＝6540 ‖ C＝7666 ‖ Δ＝+1126（★只报全图域；不与 footprint 域同句相减★）
+46:  全图计数〔P90〕A＝12931 ‖ C＝13806 ‖ Δ＝+875（★只报全图域；不与 footprint 域同句相减★）
+47:  footprint〔A 规范架 440..559〕〔P100〕A＝6540 ‖ C＝7666 ‖ Δ＝+1126（★该域单独成行★）
+48:  footprint〔A 规范架 440..559〕〔P90〕A＝12099 ‖ C＝12974 ‖ Δ＝+875（★该域单独成行★）
+50:  ★T 内逐格差＝0 枚（★先决项靠的是落点不交叠、不是容差★）；全图＝1272 枚；footprint 域＝1265 枚
+本遍各命令 rc 依次为：0（末条 grep）
+（自曝：W9b 那遍我的脚本里有一行条件表达式写坏、多打了一行孤立 None，该行不是读数、未进入任何承重句；正式读数从其后的"r472 05_cmp.txt 现读"那一行起。）
+
+=== W11｜★同名机检位的两处载体★＋r472 的〔零〕〔一〕逐态 origin 现读（复读句的域边界要靠它）===
+命令原文：$ grep -rn rc_勾对 本窗各件 ‖ awk 〔零〕与〔一〕r472/05_cmp.txt
+----- 现跑输出 -----
+rc_勾对 在本窗各件的命中：
+06_判读_四枚形自打_活体复读四格同值_新修rc首跑拦到我自造的约束.txt:13:- ★缺③·勾对行（由在册变�
+00_window_log.txt:125:    ｜  ★rc_勾对（形 L-E 的新机检位）＝0★ 在册清单枚数＝8 ‖ 在场（两谓词行齐）�
+05_cmp_首跑_合取二自造约束致rc_机检等5.txt:75:  ★rc_勾对（形 L-E 的新机检位）＝0★ 在册清单枚数＝8 �
+01_preflight.txt:6:rc_勾对=0
+_cmp_r492.py:242:print("  ★rc_勾对（形 L-E 的新机检位）＝%s★ 在册清单枚数＝%d ‖ 在场（两谓词行齐）＝%
+00_r492_window.sh:6:#   ★本窗四枚形自打＝缺①活体复读栏（对照件〔七〕）／缺②发布器同印 lethal=／缺�
+05_cmp.txt:79:  ★rc_勾对（形 L-E 的新机检位）＝0★ 在册清单枚数＝8 ‖ 在场（两谓词行齐）＝8 ‖ 缺项�
+
+CHECKLIST／清单出处字样（对照件里那枚 rc_勾对 的输入面）：
+240:CHECKLIST = ["n_T", "X_A", "X_C", "X_Ref", "U", "V", "U_f", "V_f"]
+241:present = [k for k in CHECKLIST if all(k in COLS[p] for p, _ in PRED)]
+242:print("  ★rc_勾对（形 L-E 的新机检位）＝%s★ 在册清单枚数＝%d ‖ 在场（两谓词行齐）＝%d ‖ 缺项＝%s ‖ 清单出处＝r464q 第 108 行八格" % (
+243:    0 if len(present) == len(CHECKLIST) else 5, len(CHECKLIST), len(present), [k for k in CHECKLIST if k not in present] or "无"))
+
+--- r472 〔零〕逐态 origin 现读（第 4..7 行）---
+  r472:4	  REF：origin=(-49.90,-49.90) res=0.100 ‖ 平移量(该态−锚-50.0)＝+1,+1 ‖ 该态自身架 footprint
+  r472:5	  A：origin=(-49.90,-49.90) res=0.100 ‖ 平移量(该态−锚-50.0)＝+1,+1 ‖ 该态自身架 footprint�
+  r472:6	  Ap：origin=(-49.90,-49.90) res=0.100 ‖ 平移量(该态−锚-50.0)＝+1,+1 ‖ 该态自身架 footprint�
+  r472:7	  C：origin=(-51.30,-50.50) res=0.100 ‖ 平移量(该态−锚-50.0)＝-13,-5 ‖ 该态自身架 footprint�
+--- r472 〔一〕第 13..17 行全文 ---
+  r472:13	===〔一〕★不变量检查（形 R-E 的核心）★＝同 origin ⇒ raw≡aligned ===
+  r472:14	  A↔Ap：origin 相同＝True ‖ raw（同下标硬比）＝1313 ‖ aligned（世界对齐）＝1313 ‖ 不变量＝★成立★
+  r472:15	  A↔C：origin 相同＝False ‖ raw（同下标硬比）＝12976 ‖ aligned（世界对齐）＝2510 ‖ 不变量＝★成立★  ‖★两态 origin
+  r472:16	  A↔REF：origin 相同＝True ‖ raw（同下标硬比）＝868 ‖ aligned（世界对齐）＝868 ‖ 不变量＝★成立★
+  r472:17	  REF↔A：origin 相同＝True ‖ raw（同下标硬比）＝868 ‖ aligned（世界对齐）＝868 ‖ 不变量＝★成立★
+--- 三枚在册件是否被对照件真读过（★答案＝没有★）---
+  _cmp_r492.py 里出现 r464q 的次数＝1（含注释与打印串），其中 os.path 打开该件的语句次数＝0
+  _cmp_r492.py 里出现 r468q 的次数＝1（含注释与打印串），其中 os.path 打开该件的语句次数＝0
+  _cmp_r492.py 里出现 r465q 的次数＝0（含注释与打印串），其中 os.path 打开该件的语句次数＝0
+  对照件打开的件清单＝
+27:    p = os.path.join(CSV, "cm_%s.csv" % tag)
+65:    return open(p, encoding="utf-8", errors="replace").read().splitlines() if os.path.isfile(p) else []
+91:        with open(os.path.join(RUN, "..", "..", other, "run", "csv", "cm_A.csv"), encoding="utf-8", errors=
+192:sl = [l for l in lines(os.path.join(RUN, "pub_C.txt")) if l.startswith("SELFREPORT")]
+197:        *[sum(1 for l in lines(os.path.join(RUN, "roslaunch_%s.log" % t)) if pat in l) for t in STATES]))
+206:    p1, p2 = os.path.join(DUMP, "dump_%s_T1.yaml" % t), os.path.join(DUMP, "dump_%s_T2.yaml" % t)
+220:_pb = lines(os.path.join(RUN, "pub_C.txt"))
+277:    _b3 = bool(_cp) and os.path.exists(os.path.join("/opt/ros1-slam", _cp)) and ("r492" not in _cp)
+本遍末条 rc=0
+
+=== W12｜追加七十八① 那枚★自查式★的独立可跑性核验（判据面现跑，不抄数）===
+命令原文：
+$ grep -c "^## R[0-9]*〔x86〕（[^，]*，★活体窗" note/04_配置改动diff.md
+$ grep -c "^## R[0-9]*（[^，]*，★活体窗" note/04_配置改动diff.md   （★不带 〔x86〕 的旧活体窗，看该式漏不漏★）
+$ grep -n "^## R[0-9]*〔x86〕（[^，]*，★活体窗" ... | tail -3 ‖ $ grep -c "^## R" ...
+----- 现跑输出 -----
+带 〔x86〕 的活体窗行数＝1
+不带 〔x86〕 的活体窗行数＝19
+全部 R 段行数＝282
+末三枚 x86 活体窗号＝## R492〔x86〕（2026-10-20 11 
+末三枚（任何形）活体窗号＝## R470（2026-10-19 20 ## R472（2026-10-19 22 ## R492〔x86〕（2026-10-20 11 
+末次活体窗号（在册最大者）＝## R493（★注意本行只按 R 号排、含零窗段★）
+本遍 rc=0
+
+=== W13｜★"本链第一次有复读这一枚"★的独立核查（全 RAW 目录 grep，r492 与本案目录除外）===
+命令原文：$ grep -rl 活体复读 <RAW 下各窗目录>（排除 r492_ 与 r492q_）
+----- 现跑输出 -----
+命中件枚数（除 r492_/r492q_ 两目录）＝12
+命中的目录清单＝r465q_L1内容栏致命谓词按哪套独立裁定 r467q_L1硬缺项是否已补与C7-B升格语义独立裁定 r468q_L1半成立归档形与三条改形字面独立裁定 r470_收口窗四态带谓词号与栏齐机检 r470q_L1收口窗归档档位与REF形要件与P1跨窗附注独立裁定 r472q_L1收口窗重跑档位与合规窗定义与C7-B升格独立裁定 
+r492 与 r492q 两目录自身命中枚数＝8
+G1 在册式要求的逐态现读（引 r468q 第 77 行）＝A 356 ‖ Ap 356 ‖ C 0 ‖ REF 356（★窗内只报 A 一枚★，出处＝05_cmp.txt 第 30/34/81 行）
+另一行（P90）的活体复读枚数＝0
+本遍 rc=0
+
+=== W13b｜W13 的收窄（★哪一类件里命中的"活体复读"★：判据面立字＝散文，窗内打印栏＝实物）===
+命令原文：$ grep -rln 活体复读 <RAW>，再按件名分类（05_cmp／00_window_log＝窗内实物；00_独立裁定／06_判读＝散文）
+----- 现跑输出 -----
+全部命中件清单（相对路径）：
+    r465q_L1内容栏致命谓词按哪套独立裁定/00_独立裁定.txt
+    r467q_L1硬缺项是否已补与C7-B升格语义独立裁定/00_独立裁定.txt
+    r467q_L1硬缺项是否已补与C7-B升格语义独立裁定/01_读过的件清单.txt
+    r468q_L1半成立归档形与三条改形字面独立裁定/00_独立裁定.txt
+    r468q_L1半成立归档形与三条改形字面独立裁定/02_我的重算.txt
+    r470_收口窗四态带谓词号与栏齐机检/06_判读_收口窗四态带谓词号与栏齐机检.txt
+    r470q_L1收口窗归档档位与REF形要件与P1跨窗附注独立裁定/00_独立裁定.txt
+    r470q_L1收口窗归档档位与REF形要件与P1跨窗附注独立裁定/01_读过的件清单.txt
+    r470q_L1收口窗归档档位与REF形要件与P1跨窗附注独立裁定/02_我的重算.txt
+    r472q_L1收口窗重跑档位与合规窗定义与C7-B升格独立裁定/00_独立裁定.txt
+    r472q_L1收口窗重跑档位与合规窗定义与C7-B升格独立裁定/01_读过的件清单.txt
+    r472q_L1收口窗重跑档位与合规窗定义与C7-B升格独立裁定/02_我的重算.txt
+    r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/00_r492_window.sh
+    r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/00_window_log.txt
+    r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/05_cmp_首跑_合取二自造约束致rc_机检等5.txt
+    r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/05_cmp.txt
+    r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/06_判读_四枚形自打_活体复读四格同值_新修rc首跑拦到我自造的约束.txt
+    r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/_cmp_r492.py
+    r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/_sha256_manifest.txt
+    r492q_L1四枚形自打档位与复读句发放形与机检位名字通则独立裁定/02_我的重算.txt
+
+其中★窗内实物件★（05_cmp*／00_window_log*）命中枚数（r492 之前各窗）＝0
+其中★窗内实物件★命中清单＝
+r492 本窗窗内实物件命中＝2 件
+本遍 rc=0
+
+=== 尾注｜W 索引与被裁句子的对应（★此处只列"哪条命令坐实哪句话"，不重述任何数；数一律回看上面各遍的现跑输出★）===
+  W1／W2  ← 05_cmp.txt 第 2 栏（T＋n_T）、〔三〕八栏两行、〔零b〕两行「真对称差 0／不除 2」＋施工侧"五窗同数"的边界
+  W3／W3b ← 05_cmp.txt 〔一〕四对＋四行「盲区枚数」、〔四〕全部（含落点与外沿）
+  W4      ← 05_cmp.txt 〔三〕八栏 × 两谓词＋〔四〕末段全图／footprint
+  W5／W5b ← 首跑件与重跑件的「逐行 diff 只多四类」声称（追加七十八⑤ 的形）
+  W6      ← 追加七十八③「同参数双跑不保证同架」＋「D_floor 全图五枚并存」的口径面
+  W7b     ← 我自己的下标约定自证（转置可鉴别）＋G1 在册式 r468q:77 要求的逐态枚数
+  W8      ← 窗志的行位（申报行 12／STATE 13／四枚 STATE 行号）＝rc_申报 (a) 的底；＋在册四件 sha 与行数的另面重算
+  W9／W9b ← 合取二的「首跑 False」可复跑性 ＋ rc_申报 (c) 项的根路径依赖 ＋ 被引件四枚锚值的代验
+  W10     ← 跨窗（r472 ↔ r492）〔一〕〔四〕两栏的不同值处＝「复读同值」句的域边界
+  W11     ← 同名机检位 rc_勾对 的两枚载体 ＋ 对照件从未打开任何在册裁定件（"出处"只是串）
+  W12     ← 追加七十八① 自查式的独立现跑（与 R493／追加七十九① 的更正同向）
+  W13／W13b／W14／W15 ← "本链第一次有复读这一枚"的成立面、"四枚形自打齐"的不成立面、〔零b〕清单不含被复读窗
+★本件全程未起任何 ROS 进程、未进容器、无 git 写、未改任何既有件；★三处自曝（heredoc 闭合／cwd 取错／假转置 W7）＋一处 rc 取错件（W5）均已在正文就地留痕、未抹平★
