@@ -30,7 +30,9 @@ if [ "$BRSKIP" = "1" ]; then note "①"; echo "  （负例开关跳过）";
 elif [ "$SKIPCHAIN" = "1" ]; then echo "  串＝本批早先已跑（★同批引用、不跨批抄★）；窗数回执现取＝$(grep -c '^R' scripts/verify/_window_receipt.tsv) 行";
 else
   docker exec ros1-slam-sim bash -lc "cd /opt/ros1-slam && bash scripts/verify/run_gate_chain.sh" 2>&1 |
-    awk '/^ *(SYN|GTC|ISO|DC|PYST|VAR|PARITY|账构|VCC|规矩⑨) +rc=/ {printf "  %s rc=%s\n", $1, $2} /窗数回执/ {print "  窗数回执＝"$0} /面：/ {print "  "$0}'
+    awk '/^ *(SYN|GTC|ISO|DC|PYST|VAR|PARITY|账构|VCC|规矩⑨) +rc=/ {v=$2; sub(/^rc=/,"",v); printf "  %s rc=%s\n", $1, v}
+         /窗数回执/ {l=$0; sub(/^.*窗数回执＝/,"",l); print "  窗数回执＝" l}
+         /面：/ {print "  "$0}'
 fi
 BASE=note/进度/SCAN集成/证据/log/raw/r447_真人六句到签落地批/04_baseline_note71w40_r447.tsv
 if [ -f "$BASE" ]; then
@@ -120,7 +122,7 @@ if [ "$BRSKIP" = "6" ]; then echo "  （负例开关跳过）"; else
 # ★R509 批165 改形＝ROS 进程两口径并报★（R508 批164 自曝：`pgrep -f`／`ps -ef | grep -E` 这类★argv 口径★会把承载命令自身的 bash 数进来＝给出假残影；
 #   在册退净用的是★名册＋甲/乙差集★口径，采集件此前混用了 argv 口径 ⇒ 现在★精确名(comm)为主、argv 为辅★，两枚并报、缺一枚即自曝）
   docker exec ros1-slam-sim bash -lc "cd /opt/ros1-slam && echo \"  容器面 pyc=\$(find . -name '*.pyc' | wc -l) ‖ __pycache__ 目录=\$(find . -type d -name '__pycache__' | wc -l) ‖ ROS 进程(★主＝名册 argv＋自剔承载者★)=\$(ps -eo args= | grep -E '(/opt/ros/[^ ]*(roslaunch|rosmaster|roscore|gzserver|move_base|sim_adapter|costmap_2d))' | grep -vE 'grep -E|bash -lc|ps -eo' | wc -l) ‖ ROS 进程(辅＝精确名 comm，★对 shebang 脚本假阴★)=\$(ps -eo comm= | grep -cE '^(roslaunch|rosmaster|rosout|gzserver|gzclient|move_base|costmap_2d|sim_adapter)') ‖ ROS 进程(argv 含前缀)=\$(ps -eo args= | grep -E 'roslaunch|rosmaster|gzserver|move_base_flex' | grep -v 'grep -E' | grep -vc 'batch_readout') ‖ TCP=\$(ss -ltng 2>/dev/null | grep -c LISTEN)\""
-  echo "  宿主面 note_files=$(find note -type f | wc -l) ‖ ws_src=$(find ws/src -type f | wc -l) ‖ tooling=$(find tooling -type f | wc -l)（★ws_src 与 ISO 自报串同值才算没被产物污染★）"
+  echo "  宿主面 note_files=$(find note -type f | wc -l) ‖ ws_src=$(find ws/src -type f | wc -l) ‖ tooling=$(find tooling -type f | wc -l)（★ws_src 与 ISO 自报串同值才算没被产物污染；★note_files 这枚是「与清理同一条命令」取的瞬时值★——★下一次跑门禁串会在被检件旁留 __pycache__，它必然回潮，不得当末态引用＝r511q 新六：这句此前只在 04 的志文里、现在写进件里★）"
 fi
 
 echo

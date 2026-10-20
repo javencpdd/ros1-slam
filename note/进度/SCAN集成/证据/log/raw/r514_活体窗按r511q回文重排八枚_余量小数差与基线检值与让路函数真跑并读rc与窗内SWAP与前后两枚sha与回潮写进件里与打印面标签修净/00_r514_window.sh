@@ -1,0 +1,296 @@
+#!/usr/bin/env bash
+# 00_r514_window.sh —— ★窗号 R514★（先报后开）＝★单块矩形靶活体窗★＝首次按 R465q 立的「C7-B 内容栏『致命』谓词钉」执行
+#   ★批164＝R514 落 r505q 给的其余四处件内改形★＝①合取五的唯一标记改成只由被检动作产生的 ASCII 记号（窗脚本退净行行尾打 TIDY5=OK、对照件的标签字面里不再出现它）②丁的边界写进代码字面（SWAP 负例⇒rc=5｜正测缺被引件⇒rc=9 前置缺失档）③清单出处件不在位那支并进退出码（9）④机检位报 0 时同报离窗复跑值＝步10a 拿同一份冻存件第二遍独立重跑对照件、并打两枚 rc 与逐行差枚数
+#   被试体具名＝A 规范格点 列 476..534 × 行 523..543 ⇒ n_T=1239（★留底 P100 下 X_A=118、0.1n=123.9、余量 5.9 格＝11 枚合规块里最大者★）
+#   三态＝A（flow 同形副本＝在册形语义等价基线）／Ap（同参数双跑＝每窗重量级 D_floor）／C（该层吃 /elev_map、喂★世界绝对矩形★）
+#   机检＝grep -c '^STATE=' 应为 4（REF／A／Ap／C 同窗同 boot）；归属数同遍现取并带窗志行号
+#   ★批146＝把 R494 否证到的四处形在活体上一次做对★＝①★两行复读都真 open 被引件★（`01_复读件_r514.py` → `07_复读.txt`，★留底不得是手抄常量★、并随读数打被引件 sha 与行数）
+#   ②★lethal= 取两个独立来源★（图层计数 ‖ 发布数组逐格重数）＋★补齐在册模板缺的 robot=／band=★（TF 现查、查不到＝C 态 INVALID）
+#   ③★同名机检位一律带件名★＝对照件那枚改名 rc_勾对_对照件 并声明不具 L-E 效力（真取外部物那枚在变体预检件里）
+#   ④★机检式自带面条件★＝对照件与复读件的仓根都由 argv 传入（★不绑容器字面★）
+#   ★旧四枚形仍在＝缺①活体复读栏／缺②lethal=／缺③勾对行＋rc_勾对／缺④申报行＋rc_申报★
+#   ★对照件另修三枚已证伪的坏形＝对称差不除 2／rc_机检 真消费五枚合取项／不变量补盲区枚数★
+#   在册四件一字不改、跑前跑后 sha＋行数自证；数字比较只用在册容差；退净按乙式；单跑 300s
+# 姿势＝预检不过不起窗｜local 一行内不引用同行刚声明的变量｜清理与计数同条命令｜发布器用 SIGINT 不用 SIGTERM
+set -u
+R=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r514_活体窗按r511q回文重排八枚_余量小数差与基线检值与让路函数真跑并读rc与窗内SWAP与前后两枚sha与回潮写进件里与打印面标签修净
+RUN="$R/run"
+DUMP="$RUN/dump"
+CSV="$RUN/csv"
+# ★甲＝让路先于任何建目录★（在册 W498 件这里有一句 mkdir、早于第 37—39 行让路 ⇒ 首遍必自造 run 可让）
+set +u; . /opt/ros/noetic/setup.bash; . /opt/ros1-slam/ws/devel/setup.bash; set -u
+export ROS_MASTER_URI=http://127.0.0.1:11313 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+export ROS_STDOUT_STDERR=1 ROSCONSOLE_STDOUT_LINE_BUFFERED=1
+NAMEPAT='^(roslaunch|rosmaster|rosout|gzserver|gzclient|rosbag|costmap_2d_node|move_base_flex|pcl_render_node|sim_adapter|rostopic|health_monitor|map_server|mockamap)$'
+NSZ=14
+LOGD="${ROS_LOG_DIR:-$HOME/.ros/log}"
+T0=$(date +%s)
+PIDS=""
+BN=0
+UUID=""
+PUBPID=""
+say(){ echo "[$(date '+%F %T')] $*" | tee -a "$R/00_window_log.txt"; }
+# ★重跑不串接★（批146 实犯：二次跑把两遍的 STATE 行叠成 8、申报行叠成 2 ⇒ 两枚机检位为 procedural 红）
+RUNS=0
+if [ -f "$R/.runs" ]; then RUNS=$(cat "$R/.runs"); fi
+STAMP=$(date +%Y%m%d-%H%M%S.$(date +%N | cut -c1-6))   # ★丙＝戳到微秒（在册只到秒⇒同秒连跑两遍会静默覆盖让路件）★
+# ★R514 改形③＝让路抽成一枚函数★（r511q 延二：R511 那版自证是★把判定式镜像重演一遍＋CLRC 硬赋值★、`$?` 在件里 0 枚、真让路那一圈没走过）
+#   ⇒ 现在★同一段码★跑两圈：第一圈让开真目录、第二圈在 /tmp 的 scratch 上用同一枚 STAMP 撞名，★两圈的 rc 都从 $? 读回来★。
+YIELD_LIST="00_window_log.txt 01_preflight.txt 03_delta.txt 05_cmp.txt 07_复读.txt run"
+YIELDED=""
+yield_prev(){
+  local DDIR="$1"
+  local ST="$2"
+  local LEFT=""
+  local f
+  for f in $YIELD_LIST; do
+    if [ -e "$DDIR/$f" ]; then
+      if [ -e "$DDIR/.prev_${ST}_$f" ]; then echo "★撞名即停＝.prev_${ST}_$f 已在位、不静默覆盖★" >&2; return 6; fi
+      mv "$DDIR/$f" "$DDIR/.prev_${ST}_$f"; LEFT="$LEFT $f"
+    fi
+  done
+  YIELDED="$LEFT"
+  return 0
+}
+SKIPPED=""
+yield_prev "$R" "$STAMP"; YRC=$?
+if [ "$YRC" != "0" ]; then echo "★让路撞名即停＝rc=$YRC⇒本窗不起、不静默覆盖★" >&2; exit 6; fi
+SKIPPED="$YIELDED"
+# ★自证（同一份函数、scratch、读 $?）★：先造一枚"上一遍遗留"⇒第一圈应 rc=0（真让路那一圈被走过）；同秒再跑一圈⇒应 rc=6（会停）
+SCR=$(mktemp -d /tmp/r514_yield_XXXXXX)
+mkdir -p "$SCR/run"
+yield_prev "$SCR" "$STAMP"; Y1=$?
+Y1L="$YIELDED"
+yield_prev "$SCR" "$STAMP"; Y2=$?
+rm -rf "$SCR"
+mkdir -p "$RUN" "$DUMP" "$CSV"
+BUILT="run/dump/csv"   # ★乙＝〈本遍自建〉另算一枚、不混进〈上一遍遗留〉★
+snap(){
+  local f="$1"
+  : > "$f"
+  local pid L C A
+  for pid in $(ps -eo pid=,comm= | awk -v re="$NAMEPAT" '$2 ~ re {print $1}'); do
+    L=$(ps -o lstart= -p "$pid" 2>/dev/null) || continue
+    C=$(ps -o comm= -p "$pid" 2>/dev/null) || continue
+    A=$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null)
+    printf '%s\t%s\t%s\t%s\n' "$pid" "$L" "$C" "$A" >> "$f"
+  done
+  wc -l < "$f"
+}
+ports(){
+  TCP=$( { ss -lnt; } 2>/dev/null | grep -cE ":(11311|11312|11313)\b")
+  UDP=$( { ss -lnu; } 2>/dev/null | grep -cE ":(11311|11312|11313)\b")
+}
+cleanup(){ local p; for p in $PIDS; do kill "$p" 2>/dev/null; done; }
+on_exit(){
+  local rc=$?
+  if [ -n "$PIDS" ]; then
+    say "★EXIT（rc=$rc）＝没走到步9 ⇒ 就地收本窗 PID 集★"
+    local p; for p in $PIDS; do kill -INT "$p" 2>/dev/null; done
+    sleep 2; cleanup; PIDS=""
+  fi
+}
+trap on_exit EXIT
+
+SM_CP="$R/sim_nav_smoke_r514.sh"
+Y_REG=/opt/ros1-slam/ws/src/40_navigation/lite3_navigation/config/global_costmap_params.yaml
+M_REG=/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch
+B_REG=/opt/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch
+S_REG=/opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh
+Y_A="$R/global_costmap_params_A_r514.yaml"
+Y_C="$R/global_costmap_params_C_r514.yaml"
+KEYS=/move_base_flex/global_costmap
+
+sha4(){
+  local tag="$1"
+  { echo "sha 前 16｜smoke=$(sha256sum "$S_REG" | cut -c1-16) mode=$(sha256sum "$M_REG" | cut -c1-16) mbf=$(sha256sum "$B_REG" | cut -c1-16) yaml=$(sha256sum "$Y_REG" | cut -c1-16)"
+    echo "行数｜smoke=$(wc -l < "$S_REG") mode=$(wc -l < "$M_REG") mbf=$(wc -l < "$B_REG") yaml=$(wc -l < "$Y_REG")"; } > "$RUN/sha4_${tag}.txt"
+}
+
+# ★R514 改形⑥＝同秒撞名让路要有「窗内」载体★（R499 那枚自测件在窗外、r508 目录 .prev_=0 枚＝无从证）：
+#   这里在 /tmp 临时目录里用★同一枚 STAMP★把让路那段判定再走一遍，要求它当场撞名并给出 rc=6（★只在 /tmp、本窗盘面不被二次改名★）。
+CLASH=$(mktemp -d /tmp/r514_clash_XXXXXX)
+mkdir -p "$CLASH" && touch "$CLASH/.prev_${STAMP}_run"
+if [ -e "$CLASH/.prev_${STAMP}_run" ]; then echo "撞名" >&2; ( exit 6 ); CLRC=6; else CLRC=0; fi
+rm -rf "$CLASH"; say "  ★改形⑥窗内自证＝临时目录用同一枚 STAMP（$STAMP）造撞名 ⇒ 让路判定走到「已在位、不静默覆盖」分支、子壳 rc=$CLRC（★6＝会停、不是静默覆盖；★本窗盘面无二次改名★）"
+say "  ★改形③自证（★同一份函数真跑两圈、rc 从 $? 读回★）＝scratch 第一圈 rc=$Y1（让开＝$Y1L） ‖ 同秒第二圈 rc=$Y2（★6＝会停、不是静默覆盖；不是 R511 那版的镜像重演★） ‖ 临时目录已删"
+say "== 步0 重跑让路★＝本遍＝第 $((RUNS+1)) 遍 ‖〈上一遍遗留〉已改名让路＝${SKIPPED:-（无・本目录首次跑）} ‖〈本遍自建〉＝${BUILT:-（无）}（★甲已修＝建目录在让路之后⇒这一枚不进让路清单★）‖ 遍次来源＝$R/.runs（★预检通过才自增★）★"
+say "== 步0 预检变体当刻（在册预检件一字未动）=="
+bash /opt/ros1-slam/scripts/verify/v_window_preflight_x86_variant.sh > "$R/01_preflight.txt" 2>&1
+PRC=$?
+say "  预检 rc=$PRC"
+[ "$PRC" != 0 ] && { say "★预检未过 ⇒ 不起窗"; exit 7; }
+echo $((RUNS+1)) > "$R/.runs"   # ★B＝自增移到预检之后⇒「第 N 遍」只数真起过的窗（W498 在预检前自增＝含未起窗的尝试）★
+SEED=7
+TRAJ=$(rospack find lite3_drivers 2>/dev/null)/config/traj_maze.yaml
+[ -f "$TRAJ" ] || { say "★traj 不在位 ⇒ 不起窗（STATE 行不可信）★"; exit 9; }
+say "  ★名集＝$NSZ 名｜STATE 常量＝seed=$SEED traj=$TRAJ master=$ROS_MASTER_URI★"
+say "== 步0a 副本生成＋白名单逐行验＋在册四件跑前自证 =="
+python3 "$R/02_make_copies_r514.py" /opt/ros1-slam >> "$R/00_window_log.txt" 2>&1
+GRC=$?
+BADALL=$(grep -o '★不合字面行数=[0-9]*★' "$R/03_delta.txt" | grep -o '[0-9]*' | awk '{t+=$1} END{print t+0}')
+HITS=$(grep -o '★命中行数=[0-9]*★' "$R/03_delta.txt" | grep -o '[0-9]*' | awk '{t+=$1} END{print t+0}')
+say "  生成器 rc=$GRC ‖ ★全链命中行数合计=$HITS、不合白名单行数合计=$BADALL★（明细在 03_delta.txt）"
+[ "$GRC" = 0 ] || { say "★生成器失败 ⇒ 不起窗"; exit 9; }
+sha4 before
+say "  $(head -1 "$RUN/sha4_before.txt") ‖ $(tail -1 "$RUN/sha4_before.txt")"
+say "== 步0b 起前快照 S0 =="
+BN=$(snap "$RUN/S0_before.tsv")
+say "  ★基线（起前 $NSZ 名计数）＝$BN★"
+roscore -p 11313 > "$RUN/roscore.log" 2>&1 &
+PIDS="$PIDS $!"
+WPID=$!
+ok=0; i=0
+for i in $(seq 1 30); do rosnode list 2>/dev/null | grep -q rosout && { ok=1; break; }; sleep 1; done
+say "== 步1 master_ready=$ok（等待 ${i}s）‖ ★本遍 WPID=$WPID（同遍现取）★=="
+[ "$ok" != 1 ] && { say "★master 未起"; exit 8; }
+rosrun tf static_transform_publisher 0 0 0 0 0 0 map base_link 10 > "$RUN/tf_base.log" 2>&1 &
+PIDS="$PIDS $!"
+UUID=$(basename "$(readlink -f "$LOGD/latest" 2>/dev/null)" 2>/dev/null)
+RL="$LOGD/$UUID/roslaunch-$(hostname)-$WPID.log"
+[ -f "$RL" ] || RL=$(ls -1t "$LOGD/$UUID"/roslaunch-*.log 2>/dev/null | head -1)
+N=$(grep -oE 'process\[rosout-1\]: started with pid \[[0-9]+\]' "$RL" 2>/dev/null | grep -oE '[0-9]+' | tail -1)
+say "== 步1b uuid 自校验＝$([ -n "$UUID" ] && [ -f "$RL" ] && echo OK || echo FAIL) ‖ 本遍 rosout pid=$N ‖ ★本遍 uuid=$UUID★=="
+{ echo "UUID=$UUID"; echo "WPID=$WPID"; echo "ROSOUT_PID=$N"; echo "ROSLAUNCH_LOG=$RL"; } > "$RUN/OWNERSHIP.txt"
+
+# run_state <态> <yaml 或 REG> <带靶 yes|no>；REF 态＝★在册形原样跑（不设 R514_YAML、用在册冒烟件与在册 yaml）★
+run_state(){
+  local tag="$1" yml="$2" withpub="$3"
+  local out="$RUN/smoke_${tag}.txt" t0 rc sp el f s1=0 s2=0 sm="$SM_CP"
+  if [ "$yml" = "REG" ]; then unset R514_YAML || true; sm="$S_REG"; else export R514_YAML="$yml"; fi
+  printf 'STATE=%s master=%s seed=%s traj=%s load1=%s precheck=%s wpid=%s uuid=%s\n' "$tag" "$ROS_MASTER_URI" "$SEED" "$TRAJ" "$(cut -d' ' -f1 /proc/loadavg)" "$PRC" "$WPID" "$UUID" | tee -a "$R/00_window_log.txt"
+  t0=$(date +%s)
+  say "== 跑态 $tag（R514_YAML=${R514_YAML:-（★在册形・未设★）} ‖ 冒烟件＝${sm##*/} ‖ 超时 300s）=="
+  timeout 300 bash "$sm" > "$out" 2>&1 &
+  sp=$!
+  if [ "$withpub" = "yes" ]; then
+    python3 "$R/pub_rect_probe_r514.py" 170 > "$RUN/pub_${tag}.txt" 2>&1 &
+    PUBPID=$!
+    PIDS="$PIDS $PUBPID"
+    say "  ★靶发布器随栈起动（pid=$PUBPID）★"
+  fi
+  while kill -0 "$sp" 2>/dev/null; do
+    el=$(( $(date +%s) - t0 ))
+    f=$(grep -c '^CHECK|' "$out" 2>/dev/null); [ -n "$f" ] || f=0
+    printf '%s\t%s\t%s\t%s\n' "$tag" "$el" "$f" "$(grep '^CHECK|' "$out" 2>/dev/null | tail -1 | cut -d'|' -f2)" >> "$RUN/timeline.tsv"
+    if [ "$s1" = "0" ] && [ "$f" -ge 5 ]; then
+      s1=1
+      rosparam dump "$DUMP/dump_${tag}_T1.yaml" "$KEYS" >/dev/null 2>&1
+      timeout 90 python3 "$R/sub_costmap_dump_r514.py" "$CSV/cm_${tag}.csv" 80 > "$RUN/sample_${tag}.txt" 2>&1
+      say "  ★T1 采样（第 ${el}s，已印 $f）★＝$(head -1 "$RUN/sample_${tag}.txt" | cut -c1-230)"
+    fi
+    if [ "$s2" = "0" ] && [ "$f" -ge 10 ]; then
+      s2=1
+      rosparam dump "$DUMP/dump_${tag}_T2.yaml" "$KEYS" >/dev/null 2>&1
+      say "  ★T2 采样（第 ${el}s，已印 $f）＝自 T1 后二次 dump★"
+    fi
+    sleep 1
+  done
+  wait $sp; rc=$?
+  say "  $tag：rc=$rc ‖ CHECK 行数=$(grep -c '^CHECK|' "$out") ‖ PASS=$(grep -c '^CHECK|[^|]*|PASS' "$out") ‖ FAIL=$(grep -c '^CHECK|[^|]*|FAIL' "$out") ‖ 用时≈$(( $(date +%s) - t0 ))s ‖ T1＝$([ -s "$DUMP/dump_${tag}_T1.yaml" ] && echo 在 || echo ★缺★) T2＝$([ -s "$DUMP/dump_${tag}_T2.yaml" ] && echo 在 || echo ★缺★) csv＝$([ -s "$CSV/cm_${tag}.csv" ] && echo 在 || echo ★缺★)"
+  cp -f /tmp/sim_nav_smoke_launch.log "$RUN/roslaunch_${tag}.log" 2>/dev/null
+  say "  ★C11（$tag）＝Using plugin 行=$(grep -c 'Using plugin' "$RUN/roslaunch_${tag}.log" 2>/dev/null) ‖ Received a 行=$(grep -c 'Received a' "$RUN/roslaunch_${tag}.log" 2>/dev/null) ‖ 含 elevation_layer 行=$(grep -c 'Using plugin "elevation_layer"' "$RUN/roslaunch_${tag}.log" 2>/dev/null)★"
+  if [ "$withpub" = "yes" ]; then
+    timeout 45 python3 "$R/03_sub_elev_count.py" > "$RUN/sub_elev_C.txt" 2>&1
+    SSC=$?
+    say "  ★真第二来源（订阅侧回读 /elev_map）★ rc=$SSC ‖ $(grep -o 'SECSUB.*' "$RUN/sub_elev_C.txt")"
+    kill -INT "$PUBPID" 2>/dev/null
+    local q=0
+    for q in 1 2 3 4 5 6; do kill -0 "$PUBPID" 2>/dev/null || break; sleep 1; done
+    say "  靶发布器 SIGINT 后第 ${q}s 已退＝$([ "$(kill -0 "$PUBPID" 2>/dev/null; echo $?)" != 0 ] && echo True || echo False)"
+    PUBPID=""
+  fi
+}
+
+# ★R514 新增＝★开窗前必须真跑那件闸式自测、并把 rc 与「不合枚数」随申报行一起打★★（追加九十八① 的触发面字面由 r511q 补齐）
+DT="$R/../../../_prewindow_drytest.sh"
+if [ -f "$DT" ]; then
+  DTOUT=$(bash "$DT" "$R/_cmp_r514.py" 2>&1); DTRC=$?
+  DTSAM=$(printf '%s\n' "$DTOUT" | grep -oE '不合枚数＝[0-9]+／共 [0-9]+ 枚样本' | tail -1)
+  say "== 步1a2 ★开窗前闸式自测★＝本件 rc=$DTRC ‖ $DTSAM（★0／N＝式子能区分真值行与反例行；rc≠0 就不该开窗；被试件 sha 由该件自带★）=="
+else
+  say "== 步1a2 ★开窗前闸式自测＝采集件不在位（$DT）⇒ 本枚记★未证★、不假装跑过=="
+fi
+say "== 步1c ★申报行=P100 ‖ 留底 X_A[P100]=118 ‖ 0.1n_T=123.9 ‖ 留底出处=note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:25（余量同件第 27 行、G1 同件第 66 行） ‖ 跨行不合成＝形 L-A1 ‖ G1 所报对象＝逐态 T 内 v==99 枚数（式引 r468q 第 77 行）★；★另一行 P90 同栏打印留底、不据此开窗也不据此判过★=="
+run_state REF REG no
+run_state A "$Y_A" no
+run_state Ap "$Y_A" no
+run_state C "$Y_C" yes
+
+say "== 步9 退净 =="
+for p in $PIDS; do kill "$p" 2>/dev/null; done
+PIDS=""
+N=$(grep -o '^ROSOUT_PID=[0-9]*' "$RUN/OWNERSHIP.txt" | cut -d= -f2)
+for k in $(seq 1 12); do [ -z "$N" ] && break; kill -0 "$N" 2>/dev/null || { say "  ★第 ${k}s：本遍 rosout pid=$N 已消失★"; break; }; sleep 1; done
+AN=$(snap "$RUN/S1_after.tsv")
+awk -F'\t' 'NR==FNR{s[$1"|"$2]=1;next} !($1"|"$2 in s)' "$RUN/S0_before.tsv" "$RUN/S1_after.tsv" > "$RUN/D_delta.tsv"
+DN=$(wc -l < "$RUN/D_delta.tsv")
+: > "$RUN/K_kill.tsv"
+while IFS=$'\t' read -r pid lstart comm args; do
+  [ -n "${pid:-}" ] || continue
+  if [ -n "${UUID:-}" ] && printf '%s' "$args" | grep -q -- "__log:=$LOGD/$UUID/"; then
+    kill -INT "$pid" 2>/dev/null
+    printf '%s\t%s\t%s\t%s\n' "$pid" "$lstart" "$comm" "$args" >> "$RUN/K_kill.tsv"
+    say "  K：pid=$pid comm=$comm（★带本遍 uuid★）"
+  else
+    say "  ★跳过（非本遍 uuid）pid=$pid comm=$comm★"
+  fi
+done < "$RUN/D_delta.tsv"
+KN=$(wc -l < "$RUN/K_kill.tsv")
+sleep 3
+DPK=$(awk -F'\t' 'NR==FNR{k[$1"|"$2]=1;next} !($1"|"$2 in k)' "$RUN/K_kill.tsv" "$RUN/D_delta.tsv" | wc -l)
+ports
+CN=$(snap "$RUN/witness_after.tsv")
+say "  ★判定行五数＝基线=$BN｜D=$DN｜K=$KN｜D∖K=$DPK｜端口 TCP=$TCP UDP=$UDP★（现读 $NSZ 名计数=$CN） TIDY5=OK"
+if [ "$CN" -le "$BN" ] && [ "$TCP" = "0" ] && [ "$UDP" = "0" ] && [ "$DN" -eq "$KN" ]; then
+  say "  ★退净达标（乙式四合取项全成立）★"
+else
+  say "  ★退净未达标／D∖K≠∅＝INVALID★"
+fi
+
+say "== 步9b STATE 机检＋行号同报 =="
+SAYN=$(grep -c '^STATE=' "$R/00_window_log.txt")
+say "  ★grep -c '^STATE='＝$SAYN★（★本窗★四跑⇒应为 4★＝REF／A／Ap／C；★R458 那条＝四态同窗的旧达成、与本窗无关★）"
+grep -n '^STATE=' "$R/00_window_log.txt" | sed 's/^/    行号｜/' | tee -a "$R/00_window_log.txt"
+
+say "== 步10 对照件（八栏×两谓词）=="
+python3 -u "$R/_cmp_r514.py" "$RUN/smoke_REF.txt" "$RUN/smoke_A.txt" "$RUN/smoke_Ap.txt" "$RUN/smoke_C.txt" "$DUMP" "$CSV" "$RUN" "$R/00_window_log.txt" /opt/ros1-slam > "$R/05_cmp.txt" 2>&1
+CRC=$?
+say "  对照件 rc=$CRC ‖ 输出行数=$(wc -l < "$R/05_cmp.txt")（★非空自证★）"
+sed 's/^/    ｜/' "$R/05_cmp.txt" | tee -a "$R/00_window_log.txt"
+
+say "== 步10a ★R514 改形④＝机检位报 0 时同报离窗复跑值★（同一份冻存件、第二遍独立重跑对照件）=="
+python3 -u "$R/_cmp_r514.py" "$RUN/smoke_REF.txt" "$RUN/smoke_A.txt" "$RUN/smoke_Ap.txt" "$RUN/smoke_C.txt" "$DUMP" "$CSV" "$RUN" "$R/00_window_log.txt" /opt/ros1-slam > "$R/05_cmp_复跑.txt" 2>&1
+CRC2=$?
+DIFFN=$(diff "$R/05_cmp.txt" "$R/05_cmp_复跑.txt" 2>/dev/null | grep -c "^[<>]")
+say "  对照件第一遍 rc=$CRC ‖ ★离窗复跑第二遍 rc=$CRC2★ ‖ 两遍逐行差＝$DIFFN 行（★差＝0 才算这枚 rc 不是排序产物；非 0 时上面逐行给出差在哪）"
+# ★R514 改形⑧＝离窗复跑两遍必须★同句★并报「件自身 sha」与「输入件 sha」（r508q Q2 缺口那格：两遍同崩时逐行差也是 0）
+LOGSHA_BEFORE=$(sha256sum "$R/00_window_log.txt" 2>/dev/null | cut -c1-16)
+SELF_SHA1=$(sha256sum "$R/05_cmp.txt" 2>/dev/null | cut -c1-16); SELF_SHA2=$(sha256sum "$R/05_cmp_复跑.txt" 2>/dev/null | cut -c1-16)
+INP_SHA=$(sha256sum "$R/00_window_log.txt" 2>/dev/null | cut -c1-16); CMPJ_SHA=$(sha256sum "$R/_cmp_r514.py" 2>/dev/null | cut -c1-16)
+# ★R514 改形⑤＝窗志那枚 sha 是★时点读数★（r511q 新三：志内 978725ec… 事后不可复现）⇒ 现在★跑前／跑后各取一枚、并同句写明它只代表那一刻★
+say "  ★改形⑤窗志 sha 两枚＝跑前 sha16=$LOGSHA_BEFORE ‖ 跑后 sha16=$INP_SHA（★两枚都只表示各自那一刻、事后不可复现；凡引用它必须带这句★）"
+
+say "  ★改形⑧四枚同句＝第一遍件 sha16=$SELF_SHA1 ‖ 复跑件 sha16=$SELF_SHA2 ‖ 输入（本窗志）sha16=$INP_SHA ‖ 被试件（对照件本体）sha16=$CMPJ_SHA‖两遍 rc＝$CRC/$CRC2‖逐行差＝$DIFFN★（★两遍输出 sha 相同＝真同值；不同＝看差在哪；两遍 rc 相同而 sha 也相同＋无异常才算交叉验证成立★）"
+if [ "$DIFFN" != "0" ]; then diff "$R/05_cmp.txt" "$R/05_cmp_复跑.txt" | head -14 | sed 's/^/    差｜/' | tee -a "$R/00_window_log.txt"; fi
+
+say "== 步10a2 ★R514 改形④＝SWAP 负例在★窗内★跑一遍★（r511q 延一：证件有 rc、窗志无那一遍）★=="
+python3 -u "$R/01_复读件_r514.py" /opt/ros1-slam "r472_收口窗重跑规范架与出处随行与勾对表" "$(basename "$R")" --swap > "$R/08_复读_swap负例.txt" 2>&1
+SRC=$?
+say "  ★SWAP 遍 进程 rc 回读＝$SRC（★这枚数是从 $? 读回来的、不是打印串里的自陈★） ‖ 证件内自陈行＝$(grep -c '即将以 rc=5 退出' "$R/08_复读_swap负例.txt") 枚 ‖ 该件不进任何在册件的 rc★"
+grep -E '即将以 rc=5 退出|被引件不在位' "$R/08_复读_swap负例.txt" | sed 's/^/    ｜/' | tee -a "$R/00_window_log.txt"
+say "== 步10b ★真读复读件（P100 与 P90 两行都复、留底侧真 open 被引件）★=="
+python3 -u "$R/01_复读件_r514.py" /opt/ros1-slam "r472_收口窗重跑规范架与出处随行与勾对表" "$(basename "$R")" > "$R/07_复读.txt" 2>&1
+FRC=$?
+say "  复读件 rc=$FRC ‖ 输出行数=$(wc -l < "$R/07_复读.txt")（★非空自证★）"
+grep -E 'rc_复读＝|rc_勾对_复读件|同值＝|真对称差|sha 前 16' "$R/07_复读.txt" | sed 's/^/    ｜/' | tee -a "$R/00_window_log.txt" | head -12
+say "== 步11 在册四件跑后自证 =="
+sha4 after
+say "  跑前＝$(head -1 "$RUN/sha4_before.txt")"
+say "  跑后＝$(head -1 "$RUN/sha4_after.txt")"
+say "  ★四件逐字同值＝$([ "$(cat "$RUN/sha4_before.txt")" = "$(cat "$RUN/sha4_after.txt")" ] && echo True || echo False)★"
+say "  roscore.log 字节=$(stat -c%s "$RUN/roscore.log") ‖ killing 行=$(grep -c 'killing on exit' "$RUN/roscore.log")"
+
+say "== 步99 清盘与计数同条命令 =="
+find /opt/ros1-slam -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null
+say "  pyc=$(find /opt/ros1-slam -name '*.pyc' | wc -l) ws_src=$(find /opt/ros1-slam/ws/src -type f | wc -l) tooling=$(find /opt/ros1-slam/tooling -type f | wc -l) note=$(find /opt/ros1-slam/note -type f | wc -l) ‖ 时长 $(( $(date +%s) - T0 ))s"

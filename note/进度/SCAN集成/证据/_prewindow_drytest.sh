@@ -35,13 +35,14 @@ RX = re.compile(pat)
 def judge(line):
     g = dict(RX.findall(line))
     return (g.get('D') == g.get('K') and g.get('D∖K') == '0' and g.get('TCP') == '0'
-            and g.get('UDP') == '0' and g.get('基线') is not None), g
+            and g.get('UDP') == '0' and g.get('基线') is not None and g.get('基线') == '0'), g   # ★R514 改形②＝基线要检值（★与件里同口径★）★
 SAMP = [
     ('真窗志退净行', '  ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0） TIDY5=OK', True),
     ('反例·D≠K 而 D∖K 顶替', '基线=0｜D=5｜K=0｜D∖K=5｜端口 TCP=0 UDP=0', False),
     ('反例·K 非零被顶替', '基线=0｜D=2｜K=1｜D∖K=2｜端口 TCP=0 UDP=0', False),
     ('反例·D∖K 非零', '基线=0｜D=5｜K=5｜D∖K=3｜端口 TCP=0 UDP=0', False),
     ('反例·基线缺席', 'D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0', False),
+    ('反例·★基线非零★', '基线=9｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0', False),   # ★r511q 新二：旧件只检键在 ⇒ 这枚曾被放行★
     ('反例·端口非零', '基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=1 UDP=0', False),
 ]
 bad = 0
