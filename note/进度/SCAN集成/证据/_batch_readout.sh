@@ -135,5 +135,15 @@ if [ "$BRSKIP" = "6" ]; then note "附二"; echo "  （负例开关跳过）"; e
 fi
 
 echo
+echo "── 附三：firing 探测（★第九枚·丙案口径＝正文齐而清单缺席跨过一整批★；★只报不拦、不入门禁串★）──"
+if [ "$BRSKIP" = "7" ]; then note "附三"; echo "  （负例开关跳过）"; else
+  RQ="$ROOT/note/进度/SCAN集成/证据/_rqq_watch.sh"
+  if [ -f "$RQ" ]; then
+    bash "$RQ" --batch "${BR_BATCH:-?}" --phase "$PHASE" 2>&1 | sed 's/^/  /'
+    echo "  ★本枚的 rc 只作登记面读数、不进 MISS、不改任何在册件的 rc★（★红＝人要看一眼：按 R355 同规格扩、不等句★）"
+  else note "附三"; echo "  ★firing 探测件不在位＝不可现取★"; fi
+fi
+
+echo
 if [ -n "$MISS" ]; then echo "★缺一枚＝本批自曝★ 缺＝$MISS"; exit 5; fi
 echo "五枚齐（①—⑤ 全部现取到数）；★本件只报不拦、不进任何件的 rc★"
