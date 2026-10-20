@@ -7,6 +7,7 @@
 #   ★r514q 修正（批172）＝旧式 m＝非空行数⇒把清单的注释头也计成条目★；判据面交付件的清单带四行注释头（条数写在注释里）
 #   ⇒ 同一枚名字在两种清单方言下取的是两枚东西＝假漏件（n−m 为负）。现改为只数 sha 行；★只报不拦、不进任何在册件的 rc★
 set -u
+# ★打印面★＝★不截目录名★＝本仓目录名多含中文、`cut -c1-90` 会★按字节★截断产生非法 UTF-8（批180 实测：下游 python 解码 UnicodeDecodeError）
 RAW_DEFAULT="log/raw"
 base=$(cd "$(dirname "$0")" && pwd)
 if [ $# -eq 0 ]; then
@@ -18,7 +19,7 @@ for d in $dirs; do
   mf="$d/_sha256_manifest.txt"
   if [ ! -f "$mf" ]; then
     n=$(find "$d" -type f | wc -l)
-    printf "  %-96s ★无清单★（件数 %s）\n" "$(basename "$d" | cut -c1-92)" "$n"; nolist=$((nolist+1)); bad=1; continue
+    printf "  %-96s ★无清单★（件数 %s）\n" "$(basename "$d")" "$n"; nolist=$((nolist+1)); bad=1; continue
   fi
   m=$(grep -cE '^[0-9a-f]{64}[ *]' "$mf")
   cm=$(grep -c '^#' "$mf")
@@ -34,7 +35,7 @@ for d in $dirs; do
   tot=$((tot+1))
   if [ "$n" = "$m" ] && [ "$miss" = 0 ]; then okc=$((okc+1)); st=覆盖OK
   else st="★漏件：n−m=$((n-m))、未列=$miss★"; bad=1; fi
-  printf "  %-96s n=%-4s m=%-4s 未列=%-3s 注释行=%-3s sha256sum-c_rc=%s ⇒ %s\n" "$(basename "$d" | cut -c1-92)" "$n" "$m" "$miss" "$cm" "$rc" "$st"
+  printf "  %-96s n=%-4s m=%-4s 未列=%-3s 注释行=%-3s sha256sum-c_rc=%s ⇒ %s\n" "$(basename "$d")" "$n" "$m" "$miss" "$cm" "$rc" "$st"
 done
 echo "  小结＝有清单目录 $tot ‖ 覆盖OK $okc ‖ 无清单 $nolist ‖ ★本件只报不拦★"
 [ "$bad" = 0 ] && echo "全部覆盖OK" || echo "★有留底目录漏件＝登记面自曝（不拦、不改串、不回填已入库清单）★"

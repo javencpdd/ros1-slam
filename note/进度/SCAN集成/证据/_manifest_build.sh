@@ -9,6 +9,7 @@
 # 断言（★三枚并报、缺一即红★）＝①sha 条目枚数＞0 ②条目枚数＝目录内文件数−1（★清单自己不录入★）③`sha256sum -c` rc=0
 # 清单方言＝「<64位sha><两个空格><相对路径>」＋★头部注释行以 # 起★（★注释行不计入条目＝批174 修过的那枚口径★）
 set -u
+# ★打印面★＝★不截目录名★＝本仓目录名多含中文、`cut -c1-90` 会★按字节★截断产生非法 UTF-8（批180 实测：下游 python 解码 UnicodeDecodeError）
 
 base=$(cd "$(dirname "$0")" && pwd)
 MODE=build; BR_EMPTY=0; DIRS=""
@@ -53,7 +54,7 @@ for d in $DIRS; do
   [ "$m" = "$n" ] || { verdict="★漏件/多列：条目 $m ≠ 文件数 $n★"; fail=1; }
   [ "$rc" = 0 ] || { verdict="$verdict ‖ ★sha256sum -c rc=$rc★"; fail=1; }
   printf "  %-92s 文件数(不含清单)=%-4s sha条目=%-4s 注释行=%-3s -c_rc=%s ⇒ %s\n" \
-    "$(basename "$d" | cut -c1-90)" "$n" "$m" "$cm" "$rc" "$verdict"
+    "$(basename "$d")" "$n" "$m" "$cm" "$rc" "$verdict"
 done
 if [ "$fail" = 0 ]; then echo "建单闸全过（★三枚断言逐枚真取：条目＞0 ‖ 条目＝文件数 ‖ -c rc=0★）"; exit 0; fi
 echo "★建单闸翻红＝登记面自曝（本件只作用于★建单方自己★：不进门禁串、不改任何在册件的 rc 语义）★"
