@@ -1,0 +1,12 @@
+批172（R516）★VAR 辖域端到端复现★（问⑤的施工侧独立复跑）
+取数面＝宿主面 CST ‖ ★只在 /tmp/r516_scratch★、★仓内未建任何目录、在册件一字未动★
+件＝整份复制 scripts/verify/v_evidence_reachability.sh → /tmp/r516_scratch/var_copy.sh，★只改第 26 行 cd 目标★（宿主面无 /home/ros1-slam ⇒ 直跑恒 rc=9）
+夹具三枚（★同样都缺清单★）＝/tmp/r516_scratch/varroot/note/进度/SCAN集成/证据/log/raw/{r999_施工侧窗, r999q_L1裁某判据形, r999q_裁形_20261020}
+跑法＝VAR_USERS="nobody jack" VAR_EVD="note/进度/SCAN集成/证据/log/raw/*/" bash /tmp/r516_scratch/var_copy.sh note
+读数＝
+  [FAIL] P3a-1 约定日之后落盘的证据目录必须有 _sha256_manifest.txt：缺：r999_施工侧窗; r999q_裁形_20261020   ⇒ ★VAR rc=5★
+  [已知态] P3a-2 早于清单约定的目录缺清单：1 个；r999q_L1裁某判据形（只登记，不据此判红）              ⇒ ★不红★
+  VAR VERDICT: PASS=7 FAIL=1
+结论＝★无牙的准确辖域＝「名内不含 2026\d{4} 的 rNNNq_ 族」★；判据面 r514q 报同形（三枚夹具一红一不红一被点名）＝★两条独立路径同结论★
+在册件本体 sha16 复算＝★b7d868b31d80ed7b★（开工＝收工同值）‖ git status --porcelain scripts/ ＝★空★ ⇒ ★一字未动★
+★本件★不★提改法：扩辖域＝改在册件＝须真人明令（四案呈上、施工侧推荐丁）★
