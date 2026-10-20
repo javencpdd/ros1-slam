@@ -1,0 +1,89 @@
+always_send_full_costmap: false
+elevation_layer:
+  combination_method: 1
+  enabled: true
+  first_map_only: true
+  lethal_cost_threshold: 100
+  map_topic: /elev_map
+  subscribe_to_updates: false
+  track_unknown_space: false
+  trinary_costmap: true
+  unknown_cost_value: -1
+  use_maximum: true
+footprint: '[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]'
+footprint_padding: 0.1
+global_frame: map
+height: 100
+origin_x: 0.0
+origin_y: 0.0
+plugins:
+- name: static_layer
+  type: costmap_2d::StaticLayer
+- name: elevation_layer
+  type: costmap_2d::StaticLayer
+- name: stvl_obstacle_layer
+  type: spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer
+- name: sob_layer
+  type: sob_layer::SobLayer
+publish_frequency: 5.0
+resolution: 0.1
+robot_base_frame: base_link
+robot_radius: 0.46
+rolling_window: true
+sob_layer:
+  cost_scaling_factor: 10.0
+  enabled: true
+  inflate_unknown: false
+  inflation_radius: 0.2
+  inscribed_radius: 0.15
+static_layer:
+  enabled: true
+  first_map_only: true
+  lethal_cost_threshold: 100
+  map_topic: map
+  subscribe_to_updates: false
+  track_unknown_space: false
+  trinary_costmap: true
+  unknown_cost_value: -1
+  use_maximum: true
+stvl_obstacle_layer:
+  combination_method: 1
+  decay_model: 0
+  enabled: true
+  map_save_duration: 60.0
+  mapping_mode: false
+  mark_threshold: 0.0
+  observation_sources: rslidar_points
+  publish_voxel_map: true
+  rslidar_points:
+    clear_after_reading: false
+    clearing: true
+    data_type: PointCloud2
+    decay_acceleration: 5
+    enabled: true
+    expected_update_rate: 10.0
+    filter: voxel
+    horizontal_fov_angle: 6.29
+    inf_is_valid: false
+    marking: true
+    max_obstacle_height: 1.5
+    max_z: 3.0
+    min_obstacle_height: 0.15
+    min_z: -0.3
+    model_type: 1
+    observation_persistence: 0.5
+    obstacle_range: 8.0
+    sensor_frame: rslidar
+    topic: /rslidar_points
+    vertical_fov_angle: 0.56
+    vertical_fov_padding: 0.0
+    voxel_min_points: 3
+  track_unknown_space: false
+  transform_tolerance: 1.0
+  update_footprint_enabled: true
+  voxel_decay: 10.0
+  voxel_size: 0.1
+track_unknown_space: false
+transform_tolerance: 1.0
+update_frequency: 10.0
+width: 100
