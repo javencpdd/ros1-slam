@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!-- ════════════════════════════════════════════════════════════════════════════════════
+     mode_nav_sim —— M4/M5/M6 规划导航层长期仿真测试台（小张 2026-10-05，「仿真可用化」payload B；
+     照 mode_nav_stub 骨架；G8-sim 遗产复用：95_sim.launch / sim_adapter.py / 仿真 yaml，均零结构改动）
+
+     定位与边界（主理人裁决 2026-10-05，写死）：
+     · 仿真只服务规划/导航层算法测试（M4 mbf+costmap、M5 任务编排、M6 mux、SUP、三层 launch 组合）；
+       估计层（faster_lio/hdl）按坑14 边界排除，两轮返工已证伪其可行性——本 launch 无任何估计层节点。
+· 位姿 = on-rails 轨迹回放真值（sim_adapter traj 模式发布 /quad_0/body_pose @50Hz），
+       cmd_vel/cmd_vel_raw 不驱动仿真狗 → 闭环底盘控制不可仿真。验证形态 =「规划链活性 + 正确性」：
+       costmap 随虚拟位姿更新、路径生成有效（outcome=0 + 真值图内可达）、mux 仲裁正确、任务原语走通；
+       NOT 验证：闭环导航效果、定位精度、真机动力学。
+     · 真机 mode launch（mode_mapping/mode_localize/mode_navigation 二期）零改动；A6 负判据
+       （mode_localize 无 map_server）不涉及本 mode。
+
+     组合 = SUP 最先起 + M0-sim（95_sim.launch：mockamap 迷宫 + opengl_render_node + sim_adapter
+           traj+adapt 一体；no_imu 开关关 IMU 合成、不起真驱动）+ liveness_m0_sim 心跳假体
+           + 真值图桥 sim_map_bridge（/map 供 M4 static_layer）+ sim_pose_tf（真值 TF，替代 stub 静态版）
+           + M6(安全 mux) + M4(mbf 联邦式服务器)。
+     SUP watch 对照 health_watch.yaml#modes.mode_nav_sim（mode_nav_stub 同款三路，见其 patch）：
+     M0_drivers + M4_navigation + M6_safety（on_loss=notify_m6_zero_speed_then_shutdown）。
+
+     起序语义（与 mode_nav_stub 同款「一窗起全部 + 各节点自带联锁」）：
+     · 单窗口单命令：roscore -p 11312 → roslaunch lite3_bringup mode_nav_sim.launch
+       （或直接跑 verify/sim_nav_smoke.sh 一键冒烟）；起后 10s 查 /lite3/supervisor/hold 静默=正常。
+       注：本头注内所有命令行参数以「no_imu 开关」等口语化写法指代（XML 注释禁双连字符），实际参数见节点行。
+     · ros2qnx 禁令（V1/R13 真机红线）同样适用：本 mode 无 ros2qnx，判据 rosnode list | grep ros2qnx 全空。
+     · 底盘速度唯一写者 = M6 安全 mux（§2.6-a）：mbf cmd_vel 已 C7 remap 入 /cmd_vel_raw → mux 转发；
+       仿真狗不消费 /cmd_vel（无 ros2qnx/真驱动），速度流止于 mux，ExePath 冒烟看 /cmd_vel_raw 有输出即证活性。
+
+     真值 TF（sim_pose_tf，替代 mode_nav_stub 的 stub_tf_broadcaster 静态版）：
+     · map→base_link @20Hz fresh-stamp（P6 修正批口径，stamp=0/旧戳被 mbf 保鲜校验拒收）；
+     · base_link→rslidar 恒等 @20Hz（真驱动未起，由本节点补位；真机上该链由驱动 base2livox 提供）；
+     · 数据源 = /quad_0/body_pose 真值（数据源裁决见 sim_pose_tf.py 头注）；map→base_link 写者唯一。
+     真值图（sim_map_bridge）：mockamap 全局云 → /map latched（M4 static_layer 必需；stub /map 探针
+     注入的常驻化替代，防穿墙规划无正确性）——map≡world 恒等约定与 sim_pose_tf 一致。
+
+     M0-sim 内部数据流（G8 遗产实测契约，95_sim.launch 头注+sim_adapter.py 头注）：
+     sim_adapter(traj) → /quad_0/body_pose @50Hz → render 订阅 → /pcl_render_node/sensor_cloud（传感器系
+     PointXYZI）+ /quad_0/lidar_pose → sim_adapter(adapt 定时器) → /rslidar_points @10Hz 最新者胜
+     （velodyne 布局、time=0、zcut 地下幻影剔除、frame_id=rslidar）→ stvl_obstacle_layer
+     （costmap_common.yaml:46 topic=/rslidar_points，sensor_frame=rslidar）——直喂，零转换。
+     IMU 合成经 no_imu 开关关闭（sim_adapter patch，估计层排除后零消费者）。
+     ════════════════════════════════════════════════════════════════════════════════════ -->
+<launch>
+  <arg name="rviz" default="false"/>    <!-- C10：rviz 默认关闭（SSH 无 X） -->
+  <arg name="use_gpu" default="true"/>  <!-- G8 遗产：USE_GPU=OFF 件走 CPU 渲染降级分支（吞吐~1.5Hz） -->
+  <!-- 矩阵W2（2026-10-07 小明，manifest B 文 Wave2.3）：多地图矩阵透传（默认=maze2d 现值，零行为变化） -->
+  <arg name="map_type" default="3"/>
+  <arg name="map_seed" default="7"/>
+  <arg name="map_x" default="12"/>
+  <arg name="map_y" default="12"/>
+  <arg name="map_z" default="3"/>
+  <arg name="map_res" default="0.1"/>
+  <arg name="map_traj" default="$(find lite3_drivers)/config/traj_maze.yaml"/>
+  <arg name="map_grid" default="12.0"/>  <!-- sim_map_bridge ~grid_size，须 ≥ 地图最长边 -->
+  <arg name="perlin_complexity" default="0.07"/>
+  <arg name="perlin_fill" default="0.1"/>
+  <arg name="perlin_fractal" default="1"/>
+  <arg name="perlin_attenuation" default="0.1"/>
+  <arg name="post_width_min" default="0.6"/>
+  <arg name="post_width_max" default="1.5"/>
+  <arg name="post_number" default="50"/>
+  <arg name="post_surface_res" default="0.03"/>
+
+  <!-- SUP 最先起（v4 §12 铁律/N5；mode 逐字 = health_watch.yaml#modes.mode_nav_sim 键名） -->
+  <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
+    <arg name="mode" value="mode_nav_sim"/>
+  </include>
+
+  <!-- M0-sim：虚拟场地（mockamap maze2d 12×12 seed=7）+ 虚拟雷达（opengl_render_node）
+       + sim_adapter（traj：/quad_0/body_pose @50Hz + adapt：sensor_cloud→/rslidar_points @10Hz）。
+       G8-sim 遗产 95_sim.launch 原样 include（结构零改动），extra_sim_args 透传 no_imu 开关关 IMU 合成；
+       不含任何真驱动/qnx2ros/ros2qnx（真机红线） -->
+  <include file="$(find lite3_drivers)/launch/95_sim.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+    <arg name="use_gpu" value="$(arg use_gpu)"/>
+    <arg name="extra_sim_args" value="--no-imu"/>
+    <arg name="map_type" value="$(arg map_type)"/>
+    <arg name="map_seed" value="$(arg map_seed)"/>
+    <arg name="map_x" value="$(arg map_x)"/>
+    <arg name="map_y" value="$(arg map_y)"/>
+    <arg name="map_z" value="$(arg map_z)"/>
+    <arg name="map_res" value="$(arg map_res)"/>
+    <arg name="map_traj" value="$(arg map_traj)"/>
+    <arg name="perlin_complexity" value="$(arg perlin_complexity)"/>
+    <arg name="perlin_fill" value="$(arg perlin_fill)"/>
+    <arg name="perlin_fractal" value="$(arg perlin_fractal)"/>
+    <arg name="perlin_attenuation" value="$(arg perlin_attenuation)"/>
+    <arg name="post_width_min" value="$(arg post_width_min)"/>
+    <arg name="post_width_max" value="$(arg post_width_max)"/>
+    <arg name="post_number" value="$(arg post_number)"/>
+    <arg name="post_surface_res" value="$(arg post_surface_res)"/>
+  </include>
+
+  <!-- M0 心跳假体：M0 真驱动未起，01_sensors 内 liveness_m0 不存在——SUP mode_nav_sim watch
+       供给用（弱语义=「M0-sim 进程组在位」；本节点随本 launch 存活即有心跳） -->
+  <node pkg="rostopic" type="rostopic" name="liveness_m0_sim" args="pub -r 1 /lite3/liveness/m0_drivers std_msgs/Empty"/>
+
+  <!-- 真值图桥：/map_generator/global_cloud → latched /map（M4 static_layer 供给，防穿墙规划） -->
+  <node pkg="lite3_bringup" type="sim_map_bridge.py" name="sim_map_bridge" output="screen">
+    <param name="grid_size" type="double" value="$(arg map_grid)"/>
+  </node>
+
+  <!-- 真值位姿 TF：/quad_0/body_pose → map→base_link @20Hz fresh-stamp + base_link→rslidar 恒等
+       + /Odometry 真值里程计（协方差占位）。替代 stub_tf_broadcaster，本 launch 不得再引 stub 静态版 -->
+  <node pkg="lite3_bringup" type="sim_pose_tf.py" name="sim_pose_tf" output="screen"/>
+
+  <!-- M6：安全 mux（底盘速度唯一写者，§2.6-a；liveness_m6 心跳在其内） -->
+  <include file="$(find lite3_safety)/launch/60_safety.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+  </include>
+
+  <!-- M4：mbf 联邦式服务器（C7 remap 在其节点内；liveness_m4 心跳在其内） -->
+  <include file="/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/mbf_navigation_r492.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+  </include>
+</launch>

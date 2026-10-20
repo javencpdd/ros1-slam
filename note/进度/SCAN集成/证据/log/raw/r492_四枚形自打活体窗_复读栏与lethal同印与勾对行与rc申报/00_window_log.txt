@@ -1,0 +1,145 @@
+[2026-10-20 03:36:03] == 步0 预检变体当刻（在册预检件一字未动）==
+[2026-10-20 03:36:08]   预检 rc=0
+[2026-10-20 03:36:08]   ★名集＝14 名｜STATE 常量＝seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml master=http://127.0.0.1:11313★
+[2026-10-20 03:36:08] == 步0a 副本生成＋白名单逐行验＋在册四件跑前自证 ==
+副本五件已生成（A／C 两枚参数面＋mbf／mode／smoke 三件副本链）；白名单逐行验落 03_delta.txt
+[2026-10-20 03:36:09]   生成器 rc=0 ‖ ★全链命中行数合计=9、不合白名单行数合计=6★（明细在 03_delta.txt）
+[2026-10-20 03:36:09]   sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49 ‖ 行数｜smoke=162 mode=118 mbf=22 yaml=11
+[2026-10-20 03:36:09] == 步0b 起前快照 S0 ==
+[2026-10-20 03:36:09]   ★基线（起前 14 名计数）＝0★
+[2026-10-20 03:36:11] == 步1 master_ready=1（等待 2s）‖ ★本遍 WPID=318824（同遍现取）★==
+[2026-10-20 03:36:11] == 步1b uuid 自校验＝OK ‖ 本遍 rosout pid=319062 ‖ ★本遍 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659★==
+[2026-10-20 03:36:11] == 步1c ★申报行=P100 ‖ 留底 X_A[P100]=118 ‖ 0.1n_T=123.9 ‖ 留底出处=note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:25（余量同件第 27 行、G1 同件第 66 行） ‖ 跨行不合成＝形 L-A1 ‖ G1 所报对象＝逐态 T 内 v==99 枚数（式引 r468q 第 77 行）★；★另一行 P90 同栏打印留底、不据此开窗也不据此判过★==
+STATE=REF master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=10.88 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+[2026-10-20 03:36:11] == 跑态 REF（R492_YAML=（★在册形・未设★） ‖ 冒烟件＝sim_nav_smoke.sh ‖ 超时 300s）==
+[2026-10-20 03:36:31]   ★T1 采样（第 17s，已印 6）★＝DUMPSAMPLE 件＝cm_REF.csv ‖ 几何 W=1000 H=1000 res=0.100 origin=(-49.90,-49.90) frame=map ‖ distinct=[0, 99, 100] ‖ P90(>=90≡{99,100})=13013 ‖ P100(==100)=6559 ‖ 1..98=0 ‖ 负值=0 ‖ 全格=1000000
+[2026-10-20 03:36:37]   ★T2 采样（第 26s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 03:36:44]   REF：rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈33s ‖ T1＝在 T2＝在 csv＝在
+[2026-10-20 03:36:45]   ★C11（REF）＝Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 行=0★
+STATE=A master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=24.01 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+[2026-10-20 03:36:45] == 跑态 A（R492_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/global_costmap_params_A_r492.yaml ‖ 冒烟件＝sim_nav_smoke_r492.sh ‖ 超时 300s）==
+[2026-10-20 03:37:02]   ★T1 采样（第 14s，已印 6）★＝DUMPSAMPLE 件＝cm_A.csv ‖ 几何 W=1000 H=1000 res=0.100 origin=(-49.90,-49.90) frame=map ‖ distinct=[0, 99, 100] ‖ P90(>=90≡{99,100})=12931 ‖ P100(==100)=6540 ‖ 1..98=0 ‖ 负值=0 ‖ 全格=1000000
+[2026-10-20 03:37:09]   ★T2 采样（第 23s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 03:37:16]   A：rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈31s ‖ T1＝在 T2＝在 csv＝在
+[2026-10-20 03:37:16]   ★C11（A）＝Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 行=0★
+STATE=Ap master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=29.83 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+[2026-10-20 03:37:16] == 跑态 Ap（R492_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/global_costmap_params_A_r492.yaml ‖ 冒烟件＝sim_nav_smoke_r492.sh ‖ 超时 300s）==
+[2026-10-20 03:37:34]   ★T1 采样（第 14s，已印 6）★＝DUMPSAMPLE 件＝cm_Ap.csv ‖ 几何 W=1000 H=1000 res=0.100 origin=(-50.00,-50.00) frame=map ‖ distinct=[0, 99, 100] ‖ P90(>=90≡{99,100})=13233 ‖ P100(==100)=6954 ‖ 1..98=0 ‖ 负值=0 ‖ 全格=1000000
+[2026-10-20 03:37:39]   ★T2 采样（第 23s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 03:37:47]   Ap：rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈31s ‖ T1＝在 T2＝在 csv＝在
+[2026-10-20 03:37:47]   ★C11（Ap）＝Using plugin 行=5 ‖ Received a 行=1 ‖ 含 elevation_layer 行=0★
+STATE=C master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=26.06 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+[2026-10-20 03:37:47] == 跑态 C（R492_YAML=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r492_四枚形自打活体窗_复读栏与lethal同印与勾对行与rc申报/global_costmap_params_C_r492.yaml ‖ 冒烟件＝sim_nav_smoke_r492.sh ‖ 超时 300s）==
+[2026-10-20 03:37:47]   ★靶发布器随栈起动（pid=325307）★
+[2026-10-20 03:38:05]   ★T1 采样（第 14s，已印 5）★＝DUMPSAMPLE 件＝cm_C.csv ‖ 几何 W=1000 H=1000 res=0.100 origin=(-49.90,-49.90) frame=map ‖ distinct=[0, 99, 100] ‖ P90(>=90≡{99,100})=13806 ‖ P100(==100)=7666 ‖ 1..98=0 ‖ 负值=0 ‖ 全格=1000000
+[2026-10-20 03:38:11]   ★T2 采样（第 24s，已印 10）＝自 T1 后二次 dump★
+[2026-10-20 03:38:18]   C：rc=1 ‖ CHECK 行数=13 ‖ PASS=9 ‖ FAIL=4 ‖ 用时≈31s ‖ T1＝在 T2＝在 csv＝在
+[2026-10-20 03:38:18]   ★C11（C）＝Using plugin 行=6 ‖ Received a 行=2 ‖ 含 elevation_layer 行=1★
+[2026-10-20 03:38:19]   靶发布器 SIGINT 后第 2s 已退＝True
+[2026-10-20 03:38:19] == 步9 退净 ==
+[2026-10-20 03:38:20]   ★第 2s：本遍 rosout pid=319062 已消失★
+[2026-10-20 03:38:24]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+[2026-10-20 03:38:24]   ★退净达标（乙式四合取项全成立）★
+[2026-10-20 03:38:24] == 步9b STATE 机检＋行号同报 ==
+[2026-10-20 03:38:24]   ★grep -c '^STATE='＝4★（★本窗★四跑⇒应为 4★＝REF／A／Ap／C；★R458 那条＝四态同窗的旧达成、与本窗无关★）
+    行号｜13:STATE=REF master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=10.88 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+    行号｜19:STATE=A master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=24.01 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+    行号｜25:STATE=Ap master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=29.83 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+    行号｜31:STATE=C master=http://127.0.0.1:11313 seed=7 traj=/opt/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml load1=26.06 precheck=0 wpid=318824 uuid=63fde846-cc37-11f1-ba4c-d23e7c952659
+[2026-10-20 03:38:24] == 步10 对照件（八栏×两谓词）==
+[2026-10-20 03:38:58]   对照件 rc=0 ‖ 输出行数=88（★非空自证★）
+    ｜===〔零〕被试体具名（★三项齐＋逐态 origin 与平移量减序★）===
+    ｜  T＝★规范架（锚 x=y=-50.0★）列 476..534 × 行 523..543 ‖ n_T＝1239（=59 列 × 21 行）‖ 世界格心 x∈[-2.35,3.45] y∈[2.35,4.35]
+    ｜  ★S3 阈值出处随行（形 R-F 要求）＝输入侧阈值＝ws/…/costmap_common.yaml 第 26 行 lethal_cost_threshold: 100 ‖ 活体参数面＝run/dump/dump_C_T1.yaml 第 6 行（elevation_layer）与第 42 行（static_layer）‖ 内部常量＝/opt/ros/noetic/include/costmap_2d/cost_values.h 第 43 行 LETHAL_OBSTACLE=254（★发布侧换算式未证、只登记名义对齐★）
+    ｜  REF：origin=(-49.90,-49.90) res=0.100 ‖ 平移量(该态−锚-50.0)＝+1,+1 ‖ 该态自身架 footprint＝列 439..558 × 行 439..558 ‖ distinct=[0, 99, 100]
+    ｜  A：origin=(-49.90,-49.90) res=0.100 ‖ 平移量(该态−锚-50.0)＝+1,+1 ‖ 该态自身架 footprint＝列 439..558 × 行 439..558 ‖ distinct=[0, 99, 100]
+    ｜  Ap：origin=(-50.00,-50.00) res=0.100 ‖ 平移量(该态−锚-50.0)＝+0,+0 ‖ 该态自身架 footprint＝列 440..559 × 行 440..559 ‖ distinct=[0, 99, 100]
+    ｜  C：origin=(-49.90,-49.90) res=0.100 ‖ 平移量(该态−锚-50.0)＝+1,+1 ‖ 该态自身架 footprint＝列 439..558 × 行 439..558 ‖ distinct=[0, 99, 100]
+    ｜
+    ｜===〔零b〕★跨窗格集对称差（发任何「迁移／变化」句的前置格、形 L-C 的解药）★===
+    ｜  r467_单块矩形靶活体窗（该件 origin=-49.90、锚平移=+1,+1）：本窗 T 内 P100 格集 vs 该窗＝★真对称差 0 枚★（★0＝同一枚格集、才允许发跨窗句；★不除 2★）
+    ｜  r470_收口窗四态带谓词号与栏齐机检（该件 origin=-49.90、锚平移=+1,+1）：本窗 T 内 P100 格集 vs 该窗＝★真对称差 0 枚★（★0＝同一枚格集、才允许发跨窗句；★不除 2★）
+    ｜
+    ｜===〔一〕★不变量检查（形 R-E 的核心）★＝同 origin ⇒ raw≡aligned ===
+    ｜  A↔Ap：origin 相同＝False ‖ raw（同下标硬比）＝7573 ‖ aligned（世界对齐）＝1272 ‖ 不变量＝★不适用（origin 不同 ⇒ 只有 aligned 可用、raw 只作产物留名）★
+    ｜     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+    ｜  A↔C：origin 相同＝True ‖ raw（同下标硬比）＝1817 ‖ aligned（世界对齐）＝1817 ‖ 不变量＝★成立★
+    ｜     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+    ｜  A↔REF：origin 相同＝True ‖ raw（同下标硬比）＝810 ‖ aligned（世界对齐）＝810 ‖ 不变量＝★成立★
+    ｜     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+    ｜  REF↔A：origin 相同＝True ‖ raw（同下标硬比）＝810 ‖ aligned（世界对齐）＝810 ‖ 不变量＝★成立★
+    ｜     盲区枚数＝1999（★两态任一下标越界的格、本检查对其不可见★）
+    ｜
+    ｜===〔二〕栏一＋栏二（判定面，★与谓词无关★）===
+    ｜  〔REF vs A〕名数=13/13 ‖ 名集逐字同＝True ‖ 栏一异行数＝★0★ ‖ 栏二 C4：共同 FAIL 4 枚、逐字不等＝0（全字等） ‖ PASS/FAIL＝9/4 vs 9/4
+    ｜  〔A vs Ap〕名数=13/13 ‖ 名集逐字同＝True ‖ 栏一异行数＝★0★ ‖ 栏二 C4：共同 FAIL 4 枚、逐字不等＝0（全字等） ‖ PASS/FAIL＝9/4 vs 9/4
+    ｜  〔A vs C〕名数=13/13 ‖ 名集逐字同＝True ‖ 栏一异行数＝★0★ ‖ 栏二 C4：共同 FAIL 4 枚、逐字不等＝0（全字等） ‖ PASS/FAIL＝9/4 vs 9/4
+    ｜
+    ｜===〔三〕★八栏 × 两谓词（形 P-N1：栏名带号、行内一致、不合成）★===
+    ｜  ──【P100 行】n_T[P100]=1239 ‖ X_A[P100]=118 ‖ X_C[P100]=1239 ‖ X_Ref[P100]=118 ‖ U[P100]=1121 ‖ V[P100]=0 ‖ U_f[P100]=0 ‖ V_f[P100]=0
+    ｜     G1 闸（A 态 T 内 v==99 枚数）＝356 ⇒ ★逐行各判、跨行不合成（形 L-A1）★
+    ｜     判词（★只用本行谓词★）：IV n_T≥1200 ⇒ 成立 ‖ P1：X_A[P100]≤0.1n_T（123.9）⇒ ★成立★（余量 5.9） ‖ 靶区地板 U_f[P100]==0∧V_f[P100]==0 ⇒ ★成立★ ‖ 净升 U[P100]≥0.9n_T（1115.1）⇒ ★成立★ ‖ 反降 V[P100]==0 ⇒ ★成立★ ‖ X_C[P100]≥0.9n_T ⇒ ★成立★
+    ｜     注：皆致命 ≡ X_A[P100] − V[P100] ＝ 118（★派生栏、不作第二证★）
+    ｜  ──【P90 行】n_T[P90]=1239 ‖ X_A[P90]=474 ‖ X_C[P90]=1239 ‖ X_Ref[P90]=474 ‖ U[P90]=765 ‖ V[P90]=0 ‖ U_f[P90]=0 ‖ V_f[P90]=0
+    ｜     G1 闸（A 态 T 内 v==99 枚数）＝356 ⇒ ★逐行各判、跨行不合成（形 L-A1）★
+    ｜     判词（★只用本行谓词★）：IV n_T≥1200 ⇒ 成立 ‖ P1：X_A[P90]≤0.1n_T（123.9）⇒ ★不成立（合格读数、不是判过式失手）★（余量 -350.1） ‖ 靶区地板 U_f[P90]==0∧V_f[P90]==0 ⇒ ★成立★ ‖ 净升 U[P90]≥0.9n_T（1115.1）⇒ 不成立 ‖ 反降 V[P90]==0 ⇒ ★成立★ ‖ X_C[P90]≥0.9n_T ⇒ ★成立★
+    ｜     注：皆致命 ≡ X_A[P90] − V[P90] ＝ 474（★派生栏、不作第二证★）
+    ｜
+    ｜===〔四〕D／D_floor（★raw／aligned 双列＋统计域＋跨域不相减★）===
+    ｜  D_floor〔A↔Ap〕于 P100：T 内 aligned＝0 ‖ raw＝205 ‖（域＝T；全图见末行）
+    ｜  D〔A↔C〕于 P100：T 内 aligned＝1121 ‖ raw＝1042 ‖（域＝T；全图见末行）
+    ｜  D(REF↔A)〔REF↔A〕于 P100：T 内 aligned＝0 ‖ raw＝0 ‖（域＝T；全图见末行）
+    ｜  D_floor〔A↔Ap〕于 P90：T 内 aligned＝0 ‖ raw＝138 ‖（域＝T；全图见末行）
+    ｜  D〔A↔C〕于 P90：T 内 aligned＝765 ‖ raw＝783 ‖（域＝T；全图见末行）
+    ｜  D(REF↔A)〔REF↔A〕于 P90：T 内 aligned＝0 ‖ raw＝0 ‖（域＝T；全图见末行）
+    ｜  全图计数〔P100〕A＝6540 ‖ C＝7666 ‖ Δ＝+1126（★只报全图域；不与 footprint 域同句相减★）
+    ｜  全图计数〔P90〕A＝12931 ‖ C＝13806 ‖ Δ＝+875（★只报全图域；不与 footprint 域同句相减★）
+    ｜  footprint〔A 规范架 440..559〕〔P100〕A＝6540 ‖ C＝7666 ‖ Δ＝+1126（★该域单独成行★）
+    ｜  footprint〔A 规范架 440..559〕〔P90〕A＝12099 ‖ C＝12974 ‖ Δ＝+875（★该域单独成行★）
+    ｜  ★漂移落点（aligned、全图域）＝列 466..553 × 行 437..521 ‖ 外沿以★A 件自身 origin=-49.90★ 为架＝x∈[-3.30,5.50) y∈[-6.20,2.30)★两轴各自现算、不复制★
+    ｜  ★T 内逐格差＝0 枚（★先决项靠的是落点不交叠、不是容差★）；全图＝1272 枚；footprint 域＝1265 枚
+    ｜
+    ｜===〔五〕B1 靶生效锁＋C1-C 两采自等＋值域 ===
+    ｜   SELFREPORT topic=/elev_map size=120x120 res=0.100 frame=map origin=(-6.00,-6.00) rect_world x∈[-2.40,3.50) y∈[2.30,4.40) 图层列 36..94 × 行 83..103 free=13161 lethal=1239 unknown=0 total=14400 painted=1239
+    ｜   SELFREPORT 具名声明＝★本窗以 `lethal=` 承担在册模板（r464q 第 56 行）那一位、`painted=` 为同值别名★；★L-G 的静默改名自本窗止★
+    ｜   SELFREPORT N 比对：n_T 期望=1239 ‖ painted 实际=1239 ‖ n_T==N ⇒ ★成立★ ‖ 面积下限 IV（≥1200）⇒ ★达标★ ‖ 索引平移量：图层列 j ↔ A 规范列 c 满足 c = j + 440
+    ｜   SELFREPORT 退出（latch 保活到点或被 SIGINT）
+    ｜   Using plugin 行＝REF 5 ‖ A 5 ‖ Ap 5 ‖ C 6
+    ｜   Received a 行＝REF 1 ‖ A 1 ‖ Ap 1 ‖ C 2
+    ｜   含 elevation_layer 的 Using plugin 行＝REF 0 ‖ A 0 ‖ Ap 0 ‖ C 1
+    ｜   ★n_T==N★＝painted=1239 ‖ lethal=1239 ‖ n_T=1239 ⇒ 成立 ‖★lethal 与 painted 同值（缺② 自打）＝成立★
+    ｜   C1-C REF：T1＝76 行 T2＝76 行 ‖ 两采自等＝True
+    ｜   C1-C A：T1＝76 行 T2＝76 行 ‖ 两采自等＝True
+    ｜   C1-C Ap：T1＝76 行 T2＝76 行 ‖ 两采自等＝True
+    ｜   C1-C C：T1＝89 行 T2＝89 行 ‖ 两采自等＝True
+    ｜
+    ｜===〔六〕★两枚独立 rc（形 R-F：机检齐≠读数齐）★===
+    ｜  rc_栏齐＝0（★应为 0＝八格×两谓词全打出、含 X_Ref；非 0＝缺哪栏逐枚列出★）缺＝无
+    ｜  rc_机检＝5（★0＝下表五枚合取项逐枚真取到且全真；★R472 那版此位名实不符＝只消费一个 match 对象★）
+    ｜     合取项｜合取一_STATE 四行＝4＝True
+    ｜     合取项｜合取二_B1 四件在志＝False
+    ｜     合取项｜合取三_n_T==N＝True
+    ｜     合取项｜合取四_两采自等四态＝True
+    ｜     合取项｜合取五_退净乙式＝True
+    ｜     ★这枚 rc 的名字等于这张表的键集；改名须同步改表★
+    ｜  ★rc_勾对（形 L-E 的新机检位）＝0★ 在册清单枚数＝8 ‖ 在场（两谓词行齐）＝8 ‖ 缺项＝无 ‖ 清单出处＝r464q 第 108 行八格
+    ｜  ★窗级归档（形 L-A1）★＝「跨谓词分歧·行级各判（不合成）」：P100 行 P1＝成立 ‖ P90 行 P1＝不成立 ⇒ ★本窗不发任何不带谓词号的合成句★
+    ｜  ★G1（合成闸一）＝A 态 T 内 v==99 枚数＝356 ⇒ ≠0 ⇒ 不许跨行合成★
+    ｜
+    ｜===〔七〕★缺①活体复读栏（四字段逐格）＋缺④ rc_申报★（形＝05 追加六十七）===
+    ｜   复读时刻＝2026-10-20 03:38:57 UTC ‖ 2026-10-20 11:38:57 CST（★两侧同打＝追加五十六③；本件跑在容器面＝UTC★）
+    ｜   栏形＝留底值 ‖ 留底出处（窗号＋行号）‖ 活体复读值 ‖ 复读时刻
+    ｜     X_A[P100]：留底 118 ‖ 出处 note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:25 ‖ 活体复读 118 ‖★同值＝成立★
+    ｜     P1 余量（0.1n_T−X_A）：留底 5.9 ‖ 出处 note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:27 ‖ 活体复读 5.9 ‖★同值＝成立★
+    ｜     G1＝A 态 T 内 v==99 枚数：留底 356 ‖ 出处 note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:66 ‖ 活体复读 356 ‖★同值＝成立★
+    ｜     n_T[P100]：留底 1239 ‖ 出处 note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:25 ‖ 活体复读 1239 ‖★同值＝成立★
+    ｜   ★复读栏结论＝四格全同值 ⇒ 可发「活体复读同值」★；★不得由留底值反推、不得以留底值代填、不得拿另一窗的值当「复读」★
+    ｜   rc_申报＝0（★0＝(a) 申报行号 12 < 首个 STATE 13 ‖ (b) 四要素逐字齐＝True ‖ (c) 出处指本窗之前在册件且件在位＝True ‖ (d) 含 L-A1 与 G1 所报对象＝True★）
+    ｜   ★四枚形自打汇总＝缺② lethal=（发布器同印）＝成立 ‖ 缺③ 勾对行（变体预检件 01_preflight.txt 现读）‖ 缺① 活体复读栏＝四格同值 ‖ 缺④ rc_申报＝0★
+[2026-10-20 03:38:58] == 步11 在册四件跑后自证 ==
+[2026-10-20 03:38:58]   跑前＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-20 03:38:58]   跑后＝sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+[2026-10-20 03:38:58]   ★四件逐字同值＝True★
+[2026-10-20 03:38:58]   roscore.log 字节=886 ‖ killing 行=2
+[2026-10-20 03:38:58] == 步99 清盘与计数同条命令 ==
+[2026-10-20 03:38:58]   pyc=0 ws_src=4580 tooling=149 note=5915 ‖ 时长 175s
