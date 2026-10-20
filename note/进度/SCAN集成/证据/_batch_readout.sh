@@ -44,6 +44,16 @@ echo "── ② 账构（宿主面显式 VLB_ROOT）──"
 if [ "$BRSKIP" = "2" ]; then note "②"; echo "  （负例开关跳过）"; else
   OUT=$(VLB_ROOT=$PWD bash scripts/verify/v_ledger_batch_consistency.sh 2>&1); RC=$?
   echo "  rc=$RC ‖ $(printf '%s\n' "$OUT" | grep -oE 'C4 滞后\]? [0-9]+ 批' | head -1) ‖ $(printf '%s\n' "$OUT" | grep -E '^\[C1 ' | head -1)"
+  # ★R510 批166 新增枚＝「档头时间枚」形检＋与当刻钟面差（只报不拦、不进任何件的 rc、不入门禁串）★
+  #   起意＝批163—165 三批的档头时间枚被模板里 T[-5:] 的切片改成「分:秒」而无人报错（28:58 ‖ 03:35 ‖ 11:51）；
+  #   姿势＝凡从钟面串里截一段，必须同句声明截的是哪几枚字符并打印一次对表。
+  HEADTM=$(sed -n '2p' "$ROOT/note/进度/00_总览.md" | grep -oE '更新时间：[0-9]{1,2}:[0-9]{2}' | head -1 | sed 's/更新时间：//')
+  NOWHM=$(date '+%H:%M')
+  SHAPEOK=$(printf '%s' "$HEADTM" | grep -cE '^[0-2][0-9]:[0-5][0-9]$')
+  DIFFMIN=$(awk -v a="$HEADTM" -v b="$NOWHM" 'BEGIN{split(a,x,":");split(b,y,":");m=(y[1]*60+y[2])-(x[1]*60+x[2]); if(m<0)m=-m; print m}')
+  if [ "$SHAPEOK" != "1" ]; then echo "  ★档头时间枚形检不过＝现取[$HEADTM] ‖ 当刻 HH:MM＝$NOWHM★＝本批该行可能被抄歪（只报不拦）";
+  elif [ "$DIFFMIN" -gt 90 ]; then echo "  ★档头时间枚＝[$HEADTM] ‖ 当刻＝$NOWHM ‖ 差 ${DIFFMIN} 分＞90★＝疑滞批或被改坏（只报不拦；★本枚不覆盖 C1 的档头账实核对★）";
+  else echo "  档头时间枚＝[$HEADTM] ‖ 当刻＝$NOWHM ‖ 差 ${DIFFMIN} 分 ‖ 形检过＝1（只报不拦）"; fi
   echo "  ★读法照坑79＝rc=0 只覆盖 C2＋C4＋C5、不覆盖 C1 的档头账实核对★（本仓提交标题形「x86侧批N（…」不被 GITSUB 的 ^[a-z+]+\( 抓到 ⇒ C1 恒报「实动档头＝R未取到」＝在册已知态）"
   [ "$RC" = "9" ] && note "②"
 fi

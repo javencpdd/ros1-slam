@@ -1,0 +1,218 @@
+02_我的重算 —— 判据面独立实例（r508q）承重数逐条命令与★原始输出★
+================================================================================
+口径＝本件里每一枚数都由本实例★自己在同一次调用内产生并引用★，不抄施工侧判读。
+运行面＝宿主面（仓根 /home/jack/ysc-code/ros1-slam，python3.13.13）＋容器面 ros1-slam-sim
+        （仓根 /opt/ros1-slam，python3.8.10）；两面时刻差 8 小时、同一物理时刻同打。
+被试件＝★一律只读★（零改写、零 git 写操作、零 bridge.py 写命令、零节点、零编译、零 sudo）。
+scratch＝/tmp/r508q_judge（含我的独立复算件 mycalc.py、四份符号链接夹具、capture.sh）。
+产出时刻＝宿主 CST 2026-10-20 19:20 段 ‖ 容器 UTC 11:20 段（见下方逐条自带时间戳）
+
+--------------------------------------------------------------------------------
+命令索引（逐条对应下方原始输出的 0—15 段）
+--------------------------------------------------------------------------------
+〔0〕date '+%Y-%m-%d %H:%M:%S %z' ‖ python3 -V ‖ docker exec ros1-slam-sim bash -lc 'date -u; python3 -V'
+〔1〕grep -a -c 'TIDY5=OK' 00_window_log.txt ‖ grep -a -o 'TIDY5=OK' 00_window_log.txt | wc -l
+     grep -a -n 'TIDY5=OK' 00_window_log.txt
+     grep -a -c 'TIDY5=OK' 05_cmp.txt 05_cmp_复跑.txt 07_复读.txt
+     grep -a -c '判定行五数＝基线=' r505_…/00_window_log.txt（完成态对照）
+〔2〕grep -a -c '^STATE=' 00_window_log.txt ‖ grep -a -n '^STATE=' ‖ sed -n '13p'（申报行）
+     grep -a -c 'rc_机检' 00_window_log.txt（活体那遍有没有打出这枚）‖ grep -a -c 'rc_栏齐' 00_window_log.txt
+〔3〕python3：把窗志第 43 行喂给对照件用的那枚正则 (D|K|TCP|UDP)=(-?\d+)，再喂三枚★合成反例★
+     sed -n '233p;234p' _cmp_r508.py | cmp（死赋值一枚）
+〔4〕python3 /tmp/r508q_judge/mycalc.py（★判据面自己实现的架与谓词，不 import 被试件★）：
+     八栏×两谓词 ‖ G1 ‖ 余量 ‖ D〔A↔C〕T 内 aligned/raw ‖ 全图计数 ‖ 四对不变量
+〔5〕sha256sum 在册四件（sim_nav_smoke.sh ‖ mode_nav_sim.launch ‖ mbf_navigation.launch ‖ global_costmap_params.yaml）
+     ＋ cat run/sha4_before.txt run/sha4_after.txt（三时点并报）
+〔6〕grep -a -c '^CHECK|' run/smoke_{REF,A,Ap,C}.txt ＋ PASS／FAIL 分列 ＋ FAIL 名集逐字
+〔7〕★四支分支我自己跑★（被试件未改，夹具与留底假造件全在 /tmp）：
+     T1 正测：python3 01_复读件_r508.py <宿主仓根> r472_… r508_…                      → 期望 0
+     T2 负例：同上加 --swap                                                        → 期望 5
+     T3 清单出处件不在位（根＝/tmp 符号链接树、不放 r464q）                        → 期望 9
+     T4 正测缺被引件（根＝/tmp 符号链接树、r472 内不放 05_cmp.txt）                 → 期望 9
+     T5 ★留底与活体不一致那支★（r472 用我自己的假造件、X_A[P100] 改 999）           → 施工侧未跑过
+〔8〕grep -a -c 'rc=5' 08_复读_swap负例.txt（该证件是否自带进程 rc）‖ grep -a -c 'swap' 00_window_log.txt
+〔9〕diff attempt1_…/05_cmp.txt attempt1_…/05_cmp_复跑.txt（冻存两遍逐字节差）
+     cmp 00_window_log.txt attempt1_…/00_window_log.txt（窗志是否再跑过）
+     diff 05_cmp.txt 05_cmp_复跑.txt（修后盘上那两遍）
+〔10〕wc -l ‖ sha256sum r472/05_cmp.txt ＋ sed -n '25p;27p;29p;31p;66p'（被引侧逐行真读）
+〔11〕grep -a -o 'raw＝[0-9]*' 05_cmp.txt ‖ grep -a -o 'raw=[0-9]*' 06_判读 ‖ grep -ra -c 1098 .
+〔12〕find . -maxdepth 1 -name '.prev*' | wc -l（C 格可证性）
+〔13〕docker exec -w /opt/ros1-slam ros1-slam-sim bash scripts/verify/v_evidence_reachability.sh（全仓普查面）
+〔14〕find note -type f | wc -l ＋ 剔 pyc ＋ pyc 枚数；ws/src 同形
+      容器面：pgrep -f 'roscore|roslaunch|gzserver' ＋ pgrep -af（看命中是谁）
+      容器面：ps -eo comm | grep -cE '^(roscore|roslaunch|rosmaster|gzserver|move_base)'
+      head -1 /opt/ros/noetic/bin/{roscore,roslaunch}；/proc/self/comm 现读；comm 截断实证
+〔15〕sha256sum 同一枚被试件（05_cmp.txt ‖ 01_复读件_r508.py）两面各跑一次
+
+--------------------------------------------------------------------------------
+★原始输出★（capture.sh 一次调用产，逐字未删；行序与上方索引 0—15 对应）
+--------------------------------------------------------------------------------
+###### 0）两面时刻与身份 ######
+宿主 CST  = 2026-10-20 19:23:17 +0800  python=Python 3.13.13
+容器 UTC  = 2026-10-20 11:23:17 UTC  python=Python 3.8.10
+
+###### 1）改形①：唯一标记枚数（承重） ######
+窗志 TIDY5=OK 枚数（grep -a -c，行计）  = 1
+窗志 TIDY5=OK 枚数（grep -a -o，次计）  = 1
+命中行号与原文：
+43:[2026-10-20 10:50:50]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0） TIDY5=OK
+05_cmp.txt 内该记号枚数（应为 0＝标签已脱敏）  = 0
+05_cmp_复跑.txt 内枚数                          = 0
+07_复读.txt 内枚数                              = 0
+对照 r505 那版（同一形状的完成态）：
+  r505 窗志旧中文标记枚数（声称 2）  = 2
+  命中行号：
+43:[2026-10-20 09:10:59]   ★判定行五数＝基线=0｜D=0｜K=0｜D∖K=0｜端口 TCP=0 UDP=0★（现读 14 名计数=0）
+133:    ｜        B1 逐件｜判定行五数（志内、★只认正本行＝唯一标记「判定行五数＝基线=」＝防自打自证
+
+###### 2）STATE 枚数与申报行行位 ######
+grep -a -c '^STATE='  = 4
+14:STATE=REF master=http://127.0.0.1:11313 seed=7 traj=/opt/
+20:STATE=A master=http://127.0.0.1:11313 seed=7 traj=/opt/ro
+26:STATE=Ap master=http://127.0.0.1:11313 seed=7 traj=/opt/r
+32:STATE=C master=http://127.0.0.1:11313 seed=7 traj=/opt/ro
+申报行（第 13 行）现读：
+[2026-10-20 10:48:32] == 步1c ★申报行=P100 ‖ 留底 X_A[P100]=118 ‖ 0.1n_T=123.9 ‖ 留底出处=note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt:25（余量同件第 27 �
+首个 STATE 行号  = 14
+窗志内 rc_机检 枚数（活体那遍有没有打出这枚）  = 0
+窗志内 rc_栏齐 枚数                            = 1
+121:    ｜  rc_栏齐＝0（★应为 0＝八格×两谓词全打出、含 X_Ref；非 0�
+05_cmp.txt 内 rc_机检 枚数                     = 1
+
+###### 3）合取五的实检命题（我自己跑正则） ######
+  正本行枚数 = 1
+  本窗真值行解析得 = {'D': '0', 'K': '0', 'TCP': '0', 'UDP': '0'}   ⇒ 守卫 D==K 取到 True
+  合成反例 D=2｜K=1｜D∖K=2          解析={'D': '2', 'K': '2', 'TCP': '0', 'UDP': '0'}  守卫(D==K)判=True
+  合成反例 D=1｜K=0｜D∖K=1          解析={'D': '1', 'K': '1', 'TCP': '0', 'UDP': '0'}  守卫(D==K)判=True
+  合成反例 D=5｜K=5｜D∖K=3          解析={'D': '5', 'K': '3', 'TCP': '0', 'UDP': '0'}  守卫(D==K)判=False
+  ⇒ 正则无边界：`D∖K=0` 里被再次匹配成 K ⇒ g[K] 实为 D∖K 的值；基线（BN）不入式；D∖K==0 从未被断言
+c5_tidy 重复赋值两行（233/234）是否逐字节相同 = 相同 ⇒ 第 233 行为死赋值
+
+###### 4）八栏×两谓词：判据面独立复算（我自己的件） ######
+META 逐态 origin/res/尺寸：
+   REF: origin=(-50.00,-50.00) res=0.100 w=1000 h=1000 锚平移=+0,+0 len(d)=1000000
+   A: origin=(-49.90,-49.90) res=0.100 w=1000 h=1000 锚平移=+1,+1 len(d)=1000000
+   Ap: origin=(-49.90,-49.90) res=0.100 w=1000 h=1000 锚平移=+1,+1 len(d)=1000000
+   C: origin=(-49.90,-49.90) res=0.100 w=1000 h=1000 锚平移=+1,+1 len(d)=1000000
+n_T 自算＝1239（列 476..534 × 行 523..543）
+【P100】n_T=1239 X_A=118 X_C=1239 X_Ref=118 U=1121 V=0 U_f=0 V_f=0 | G1(A态T内v==99)=356 | 余量=5.9
+     D〔A↔C〕T内 aligned=1121 raw=1042
+     P1(X_A<=0.1n_T=123.9)⇒成立 ‖ 净升(U>=1115.1)⇒成立 ‖ 反降(V==0)⇒成立 ‖ 靶区地板(U_f==0&V_f==0)⇒成立 ‖ X_C>=1115.1⇒成立
+【P90】n_T=1239 X_A=474 X_C=1239 X_Ref=474 U=765 V=0 U_f=0 V_f=0 | G1(A态T内v==99)=356 | 余量=-350.1
+     D〔A↔C〕T内 aligned=765 raw=783
+     P1(X_A<=0.1n_T=123.9)⇒不成立 ‖ 净升(U>=1115.1)⇒不成立 ‖ 反降(V==0)⇒成立 ‖ 靶区地板(U_f==0&V_f==0)⇒成立 ‖ X_C>=1115.1⇒成立
+全图计数〔P100〕A=6926 C=8458 Δ=+1532
+全图计数〔P90〕A=12982 C=14305 Δ=+1323
+不变量 A↔Ap origin同=True raw=2071 aligned=2071 成立
+不变量 A↔C origin同=True raw=2763 aligned=2763 成立
+不变量 A↔REF origin同=False raw=8454 aligned=2132 不适用
+不变量 REF↔A origin同=False raw=8454 aligned=2132 不适用
+
+###### 5）在册四件 sha 三时点（跑前／跑后／判据面现读） ######
+跑前留档  = sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+跑后留档  = sha 前 16｜smoke=837cd647606450b0 mode=aba9b658fb898212 mbf=13c4f27f9675fab8 yaml=1961c3839b06cb49
+现读（宿主面）＝
+  sim_nav_smoke.sh                                                         837cd647606450b0
+  mode_nav_sim.launch                                                      aba9b658fb898212
+  mbf_navigation.launch                                                    13c4f27f9675fab8
+  global_costmap_params.yaml                                               1961c3839b06cb49
+
+###### 6）判定面四态（我数，不采信报数） ######
+  REF  CHECK=13 PASS=9 FAIL=4
+  A    CHECK=13 PASS=9 FAIL=4
+  Ap   CHECK=13 PASS=9 FAIL=4
+  C    CHECK=13 PASS=9 FAIL=4
+四态 FAIL 名集：
+  REF  getpath_1 getpath_2 getpath_3 exepath_cmdvel 
+  A    getpath_1 getpath_2 getpath_3 exepath_cmdvel 
+  Ap   getpath_1 getpath_2 getpath_3 exepath_cmdvel 
+  C    getpath_1 getpath_2 getpath_3 exepath_cmdvel 
+
+###### 7）复读件三档退出码：判据面自己跑（被试件零改动） ######
+-- T1 正测（宿主面 python3.13，根＝宿主仓根）
+   进程 rc=0
+   ★差值枚＝N 的行数 = 8
+      8 ★差值枚＝0★
+=== 修①真 open 被引件（★留底侧不许是手抄常量★）===
+   被引件＝RAW/…/r472_收口窗重跑规范架与出处随行与勾对表/05_cmp.txt ‖ 行数＝66 ‖ sha 前 16＝c79a676595142517
+-- T2 --swap 负例
+   进程 rc=5
+-- T3 清单出处件（r464q）不在位
+   进程 rc=9
+   ★本件退出码档＝9（0＝正测取到全读数 ‖ 5＝负例分支红（仅 SWAP）‖ 9＝前置缺失＝被引件或清单出�
+-- T4 正测缺被引件
+   进程 rc=9
+   被引件不在位＝/tmp/r508q_judge/f_nosite/note/进度/SCAN集成/证据/log/raw/r472_收口窗重跑规范架与出处随行与勾�
+-- T5 ★留底与活体不一致（bad 非空）那支★
+   进程 rc=0
+   [P100] X_A：★留底（从被引件第 25 行真读）999★ ‖ 活体 118 ‖ ★差值枚＝881★ ‖ 同值＝★不成立★
+   rc_复读＝5（★缺项＝无 ⇒ 两谓词 × 三栏全部真读并同值；有缺即红、★不许用手抄常量补★）＝['P100/X_A 留底 999 vs 活体 118']
+   ★本件退出码档＝0（0＝正测取到全读数 ‖ 5＝负例分支红（仅 SWAP）‖ 9＝前置缺失＝被引件或清单出处件不在位)★
+
+###### 8）5 档与 9 档的在盘证件是否自带进程 rc ######
+08_复读_swap负例.txt 内含 rc=5 字样枚数  = 0
+08 件行数                                = 5
+窗志里 swap／替换自测 那一遍枚数         = 0
+10_前置缺失件内含 档＝9 字样枚数         = 2
+
+###### 9）同崩那格：冻存两遍是否逐字节同件 ######
+冻存 05_cmp.txt 与 05_cmp_复跑.txt diff 行数（按 ^[<>]） = 0
+两遍各自 NameError 枚数 = attempt1_对照件标签引用了后定义的记号致NameError两遍同崩//05_cmp.txt:1 attempt1_对照件标签引用了后定义的记号致NameError两遍同崩//05_cmp_复跑.txt:1 
+窗志与冻存窗志是否同一份（cmp） = 逐字节相同＝窗志未再跑
+修后盘上 05_cmp.txt 与 复跑 diff 行数 = 2
+本件时刻＝2026-10-20 10:53:14
+本件时刻＝2026-10-20 10:53:44
+
+###### 10）被引件（复读出处）现读 ######
+r472/05_cmp.txt 行数 = 66
+r472/05_cmp.txt sha256 = c79a676595142517
+被引侧逐行现读（第 25／27／29／31／66 行）：
+  :25   ──【P100 行】n_T[P100]=1239 ‖ X_A[P100]=118 ‖ X_C[P100]=1239 ‖ X_Ref[P100]=118 ‖ U[P100]=1121 ‖ V[P100]=0 ‖ U
+  :27      判词（★只用本行谓词★）：IV n_T≥1200 ⇒ 成立 ‖ P1：X_A[P100]≤0.1n_T（123.9）⇒ ★成立★（余�
+  :29   ──【P90 行】n_T[P90]=1239 ‖ X_A[P90]=474 ‖ X_C[P90]=1239 ‖ X_Ref[P90]=474 ‖ U[P90]=765 ‖ V[P90]=0 ‖ U_f[P90]=
+  :31      判词（★只用本行谓词★）：IV n_T≥1200 ⇒ 成立 ‖ P1：X_A[P90]≤0.1n_T（123.9）⇒ ★不成立（合�
+  :66   ★G1（合成闸一）＝A 态 T 内 v==99 枚数＝356 ⇒ ≠0 ⇒ 不许跨行合成★
+
+###### 11）登记面两枚抄值差（我自己数出来的） ######
+05_cmp.txt 第 40 行 raw＝ 现值：raw＝0 raw＝1042 
+06_判读 第 30 行写的 raw＝ raw=0 raw=1098 
+r508 目录全文（含窗志）现读 1098 枚数 = 1
+r505/05_cmp.txt 里 1098 枚数 = 1
+09 件「六行差值枚」字样 = 1
+06 件「八行差值枚」字样 = 1
+07 件真差值枚行数 = 8
+
+###### 12）C 格（同秒撞名让路）在 r508 的可证性 ######
+r508 目录 .prev_* 枚数 = 0
+微秒戳字面在窗脚本内枚数 = 1
+
+###### 13）VAR 时点句：判据面自己容器面跑（限当前全仓普查面） ######
+   VAR rc=0
+VAR VERDICT: PASS=8 FAIL=0
+VAR VERDICT: PASS=8 FAIL=0
+VAR rc=0（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+
+###### 14）note_files 与 ROS 进程口径 ######
+  note_files(原式) = 6385 ‖ 剔 pyc = 6376 ‖ note 内 pyc = 9
+  ws_src(原式) = 4614 ‖ 剔 pyc = 4580 ‖ ws/src 内 pyc = 34
+  旧口径 pgrep -f 枚数 = 2
+    ／495632 bash -lc echo "  旧口径 pgrep -f 枚数 = $(pgrep -f "roscore|roslaunch|gzserver" | wc -l)
+  新口径 comm 精确名枚数 = 0
+  roscore／roslaunch 首行 = #!/usr/bin/python3 ／ #!/usr/bin/python3
+  以 shebang 起的 py 脚本 self/comm 现读 = python3
+  comm 长度截断实证 = static_transfor
+
+###### 15）同一枚被试件两面 sha（应同值） ######
+  宿主面   05_cmp.txt = d2a510b2b635d437d60e305cd943c5d9884d2154af2a12170d99467d8715aa12
+  容器面   05_cmp.txt = d2a510b2b635d437d60e305cd943c5d9884d2154af2a12170d99467d8715aa12
+  宿主面 01_复读件.py = 597cf07a1db1e7dda200c9823c02e64554889690ccde32a7d32eccee5fcf5ccb
+  容器面 01_复读件.py = 597cf07a1db1e7dda200c9823c02e64554889690ccde32a7d32eccee5fcf5ccb
+###### 完 ######
+
+###### 16）VAR 时点句的第二枚现读（本实例自己的交付目录建好、清单未落那一刻） ######
+命令：docker exec -w /opt/ros1-slam ros1-slam-sim bash -lc 'bash scripts/verify/v_evidence_reachability.sh'
+时刻：宿主 CST 2026-10-20 19:25:39 ‖ 容器 UTC 11:25:39
+VAR 现读 rc=5
+[FAIL] P3c 证据树内不该有 0 件的目录（空壳既不可验也误导读者）：空目录：r508q_L1裁R508四处件内改形与两遍同崩那格与VAR时点句
+VAR VERDICT: PASS=7 FAIL=1
+VAR rc=5（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
