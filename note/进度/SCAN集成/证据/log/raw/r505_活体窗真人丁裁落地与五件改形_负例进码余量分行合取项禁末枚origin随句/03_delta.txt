@@ -1,0 +1,95 @@
+===== A↔C =====
+--- "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r505_\346\264\273\344\275\223\347\252\227\347\234\237\344\272\272\344\270\201\350\243\201\350\220\275\345\234\260\344\270\216\344\272\224\344\273\266\346\224\271\345\275\242_\350\264\237\344\276\213\350\277\233\347\240\201\344\275\231\351\207\217\345\210\206\350\241\214\345\220\210\345\217\226\351\241\271\347\246\201\346\234\253\346\236\232origin\351\232\217\345\217\245/global_costmap_params_A_r505.yaml"	2026-10-20 09:08:38.559347742 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r505_\346\264\273\344\275\223\347\252\227\347\234\237\344\272\272\344\270\201\350\243\201\350\220\275\345\234\260\344\270\216\344\272\224\344\273\266\346\224\271\345\275\242_\350\264\237\344\276\213\350\277\233\347\240\201\344\275\231\351\207\217\345\210\206\350\241\214\345\220\210\345\217\226\351\241\271\347\246\201\346\234\253\346\236\232origin\351\232\217\345\217\245/global_costmap_params_C_r505.yaml"	2026-10-20 09:08:38.559347742 +0000
+@@ -3,6 +3,7 @@
+ width: 100
+ height: 100
+ 
+-plugins: [{name: static_layer, type: "costmap_2d::StaticLayer"}, {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}, {name: sob_layer, type: "sob_layer::SobLayer"}]
++plugins: [{name: static_layer, type: "costmap_2d::StaticLayer"}, {name: elevation_layer, type: "costmap_2d::StaticLayer"}, {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}, {name: sob_layer, type: "sob_layer::SobLayer"}]
+   # - {name: voxel_layer, type: "costmap_2d::VoxelLayer"}
+   # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
++elevation_layer: {map_topic: /elev_map, first_map_only: true, subscribe_to_updates: false, track_unknown_space: false, use_maximum: true, combination_method: 1, lethal_cost_threshold: 100, unknown_cost_value: -1, trinary_costmap: true}
+
+── 普通 diff（机检面）──
+6c6
+< plugins: [{name: static_layer, type: "costmap_2d::StaticLayer"}, {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}, {name: sob_layer, type: "sob_layer::SobLayer"}]
+---
+> plugins: [{name: static_layer, type: "costmap_2d::StaticLayer"}, {name: elevation_layer, type: "costmap_2d::StaticLayer"}, {name: stvl_obstacle_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}, {name: sob_layer, type: "sob_layer::SobLayer"}]
+8a9
+> elevation_layer: {map_topic: /elev_map, first_map_only: true, subscribe_to_updates: false, track_unknown_space: false, use_maximum: true, combination_method: 1, lethal_cost_threshold: 100, unknown_cost_value: -1, trinary_costmap: true}
+
+★命中行数=3★
+  白名单逐行验｜< plugins: [{name: static_layer, type: "costmap_2d::StaticLayer"}, {name: stvl_o｜起始=plugins: [{name: sta｜合＝True
+  白名单逐行验｜> plugins: [{name: static_layer, type: "costmap_2d::StaticLayer"}, {name: elevat｜起始=plugins: [{name: sta｜合＝True
+  白名单逐行验｜> elevation_layer: {map_topic: /elev_map, first_map_only: true, subscribe_to_upd｜起始=elevation_layer: {ma｜合＝True
+  ★不合字面行数=0★
+===== mbf =====
+--- /opt/ros1-slam/ws/src/40_navigation/lite3_navigation/launch/mbf_navigation.launch	2026-10-16 18:58:48.514512306 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r505_\346\264\273\344\275\223\347\252\227\347\234\237\344\272\272\344\270\201\350\243\201\350\220\275\345\234\260\344\270\216\344\272\224\344\273\266\346\224\271\345\275\242_\350\264\237\344\276\213\350\277\233\347\240\201\344\275\231\351\207\217\345\210\206\350\241\214\345\220\210\345\217\226\351\241\271\347\246\201\346\234\253\346\236\232origin\351\232\217\345\217\245/mbf_navigation_r505.launch"	2026-10-20 09:08:38.559347742 +0000
+@@ -10,7 +10,7 @@
+     <rosparam command="load" file="$(find lite3_navigation)/config/planner_teb.yaml"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/global_planner_params.yaml"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="global_costmap"/>
+-    <rosparam command="load" file="$(find lite3_navigation)/config/global_costmap_params.yaml" ns="global_costmap"/>
++    <rosparam command="load" file="$(env R505_YAML)" ns="global_costmap"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="local_costmap"/>
+     <rosparam command="load" file="$(find lite3_navigation)/config/local_costmap_params.yaml"  ns="local_costmap"/>
+   </node>
+
+── 普通 diff（机检面）──
+13c13
+<     <rosparam command="load" file="$(find lite3_navigation)/config/global_costmap_params.yaml" ns="global_costmap"/>
+---
+>     <rosparam command="load" file="$(env R505_YAML)" ns="global_costmap"/>
+
+★命中行数=2★
+  白名单逐行验｜<     <rosparam command="load" file="$(find lite3_navigation)/config/global_cost｜起始=<rosparam command="l｜合＝False
+  白名单逐行验｜>     <rosparam command="load" file="$(env R505_YAML)" ns="global_costmap"/>｜起始=<rosparam command="l｜合＝False
+  ★不合字面行数=2★
+===== mode =====
+--- /opt/ros1-slam/ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch	2026-10-16 18:58:48.523512155 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r505_\346\264\273\344\275\223\347\252\227\347\234\237\344\272\272\344\270\201\350\243\201\350\220\275\345\234\260\344\270\216\344\272\224\344\273\266\346\224\271\345\275\242_\350\264\237\344\276\213\350\277\233\347\240\201\344\275\231\351\207\217\345\210\206\350\241\214\345\220\210\345\217\226\351\241\271\347\246\201\346\234\253\346\236\232origin\351\232\217\345\217\245/mode_nav_sim_r505.launch"	2026-10-20 09:08:38.559347742 +0000
+@@ -112,7 +112,7 @@
+   </include>
+ 
+   <!-- M4：mbf 联邦式服务器（C7 remap 在其节点内；liveness_m4 心跳在其内） -->
+-  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
++  <include file="/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r505_活体窗真人丁裁落地与五件改形_负例进码余量分行合取项禁末枚origin随句/mbf_navigation_r505.launch">
+     <arg name="rviz" value="$(arg rviz)"/>
+   </include>
+ </launch>
+
+── 普通 diff（机检面）──
+115c115
+<   <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
+---
+>   <include file="/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r505_活体窗真人丁裁落地与五件改形_负例进码余量分行合取项禁末枚origin随句/mbf_navigation_r505.launch">
+
+★命中行数=2★
+  白名单逐行验｜<   <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">｜起始=<include file="$(fin｜合＝False
+  白名单逐行验｜>   <include file="/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r505_活体窗真人丁裁落地与五件改形_｜起始=<include file="/opt/｜合＝False
+  ★不合字面行数=2★
+===== smoke =====
+--- /opt/ros1-slam/ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh	2026-10-16 18:58:48.524512138 +0000
++++ "/opt/ros1-slam/note/\350\277\233\345\272\246/SCAN\351\233\206\346\210\220/\350\257\201\346\215\256/log/raw/r505_\346\264\273\344\275\223\347\252\227\347\234\237\344\272\272\344\270\201\350\243\201\350\220\275\345\234\260\344\270\216\344\272\224\344\273\266\346\224\271\345\275\242_\350\264\237\344\276\213\350\277\233\347\240\201\344\275\231\351\207\217\345\210\206\350\241\214\345\220\210\345\217\226\351\241\271\347\246\201\346\234\253\346\236\232origin\351\232\217\345\217\245/sim_nav_smoke_r505.sh"	2026-10-20 09:08:38.560347742 +0000
+@@ -25,7 +25,7 @@
+ timeout 5 rosnode list 2>/dev/null | grep -q "^/move_base_flex$" && { echo "CHECK|leftover|FAIL|残留 /move_base_flex，先退净再跑"; exit 1; }
+ 
+ echo "[smoke] 起 mode_nav_sim.launch（日志 $LOG）..."
+-setsid roslaunch lite3_bringup mode_nav_sim.launch rviz:=false use_gpu:=false >"$LOG" 2>&1 &
++setsid roslaunch /opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r505_活体窗真人丁裁落地与五件改形_负例进码余量分行合取项禁末枚origin随句/mode_nav_sim_r505.launch rviz:=false use_gpu:=false >"$LOG" 2>&1 &
+ LAUNCH_PGID=$!
+ cleanup() {
+   echo "[smoke] 退净中..."
+
+── 普通 diff（机检面）──
+28c28
+< setsid roslaunch lite3_bringup mode_nav_sim.launch rviz:=false use_gpu:=false >"$LOG" 2>&1 &
+---
+> setsid roslaunch /opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r505_活体窗真人丁裁落地与五件改形_负例进码余量分行合取项禁末枚origin随句/mode_nav_sim_r505.launch rviz:=false use_gpu:=false >"$LOG" 2>&1 &
+
+★命中行数=2★
+  白名单逐行验｜< setsid roslaunch lite3_bringup mode_nav_sim.launch rviz:=false use_gpu:=false ｜起始=setsid roslaunch lit｜合＝False
+  白名单逐行验｜> setsid roslaunch /opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r505_活体窗真人丁裁落地与五件改形_｜起始=setsid roslaunch /op｜合＝False
+  ★不合字面行数=2★
