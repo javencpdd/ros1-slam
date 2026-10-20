@@ -1,0 +1,22 @@
+<launch>
+  <arg name="rviz" default="false"/>
+  <!-- M4 主线：mbf_costmap_nav 联邦式服务器（v4 N1）。rosparam 在 node 标签内 → 参数落私有命名空间；
+       各文件挂载 ns 为 v4 设计稿，P3a.0 未实测 → Q11（P6 下 rosparam get 复核后固化/修正）。 -->
+  <node pkg="mbf_costmap_nav" type="mbf_costmap_nav" name="move_base_flex" output="screen">
+    <!-- C7 修正批（主理人裁决 Q11-④）：mbf 控制器输出直写根命名空间速度话题，违反 §2.6-a 唯一写者——
+         remap 并入 M6 管道 navigation 源（cmd_vel_raw），由 safe_cmd_vel_mux 转发。 -->
+    <remap from="cmd_vel" to="cmd_vel_raw"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/mbf_navigation.yaml"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/planner_teb.yaml"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/global_planner_params.yaml"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="global_costmap"/>
+    <rosparam command="load" file="$(env R508_YAML)" ns="global_costmap"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="local_costmap"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/local_costmap_params.yaml"  ns="local_costmap"/>
+  </node>
+  <!-- C13-② 模块心跳（v4 C13 原例行，policy 层零代码）：SUP health_monitor 按 health_watch.yaml#modes.*.watch 比对 -->
+  <node pkg="rostopic" type="rostopic" name="liveness_m4" args="pub -r 1 /lite3/liveness/m4_navigation std_msgs/Empty"/>
+  <!-- C7：/cmd_vel_raw relay——源话题 Q11 联调确认后固化，确认前不落 launch 行（载体 launch/cmd_vel_raw_relay.launch，node 行注释） -->
+  <!-- C10：rviz 默认关闭（SSH 无 X，required=true 会拖死 launch）；显式 rviz:=true 才起 -->
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz_nav"/>
+</launch>
