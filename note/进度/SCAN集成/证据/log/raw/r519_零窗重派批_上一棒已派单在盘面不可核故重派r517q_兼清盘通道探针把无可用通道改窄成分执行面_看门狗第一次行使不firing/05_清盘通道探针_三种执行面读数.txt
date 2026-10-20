@@ -1,0 +1,23 @@
+== 探针一：/tmp 下的删除通道（五种写法各一次）==
+  python os.remove ⇒ ★成功★
+  python shutil.move 到 /tmp 外 ⇒ ★成功★
+  python shutil.rmtree 子目录 ⇒ ★成功★
+  bash mv ⇒ ★成功★
+  bash rm ⇒ ★成功★
+  /tmp 沙箱残件＝ ['b.moved']
+
+== 探针二：仓内一枚 gitignored 编译产物（★只试一次、不反复★）==
+  候选枚数＝ 34
+  靶＝ ws/src/00_drivers/lite3_drivers/scripts/__pycache__/sim_adapter.cpython-38.pyc
+    仓内 python os.remove ⇒ ★失败★ PermissionError: [Errno 13] Permission denied: '/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/__pycache__/sim_adapter.cpython-38.pyc'
+    仓内 bash rm（同靶、★第二次也是最后一次★） ⇒ ★失败★ CalledProcessError: Command '['rm', '/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/__pycache__/sim_adapter.cpython-38.pyc']' returned non-zero exit status 1.
+  靶是否仍在位＝ True
+
+== 现读：仓内污染枚数（探针前后各一枚）==
+  pyc 全仓                      ＝298
+  pyc 在 ws/src                ＝34
+  __pycache__ 目录              ＝19
+  ws_src 全文计数                 ＝4614
+  ws_src 去掉 pyc               ＝4580
+  ws_src 去掉 pyc 与 __pycache__ ＝4580
+  git 是否跟踪这些 pyc＝ 0
