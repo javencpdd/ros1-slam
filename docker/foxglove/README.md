@@ -56,3 +56,11 @@ bash /home/ros1-slam/scripts/mapping/m_viz.sh
 | 本机有桌面 / 已挂 DISPLAY，要最高帧率 | 路线 A，`viz.sh rviz-raw` / `rviz-map` / `rviz-nav` |
 | 远程机、无 X、或 X 认证折腾不通 | **路线 B（本目录）** |
 | 无 X 又必须跑 GUI（gzclient/rviz） | 路线 C，`viz.sh` 容器内 Xvfb + VNC |
+
+---
+
+## ★同步戳（追加节·docker/foxglove；上方旧文一字未回改）★
+
+- **对齐到**＝进度真身末号 **R518** ／ 本 boot **批174**（零窗·派单批）。
+- 本目录＝`viz.sh` **路线 B** 的布局件与连接口径；**红线＝只订阅不发布**。
+- 同步时刻＝2026-10-21 03:32 CST。

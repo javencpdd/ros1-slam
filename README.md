@@ -124,3 +124,29 @@ python3 .ai/bridge.py check          # 会报：多个 in_progress、任务卡�
 - Agent 交接四模式（Handoff Envelope / Relay Ledger / 显式 ACK / 上下文压缩）：
   <https://askpatrick.co/guides/agent-handoff-patterns>
 - memU（日后要跨机/语义检索再升级）：<https://github.com/NevaMind-AI/memU>
+
+---
+
+## 八、全仓目录导航（★补·对齐到 R518／批174★）
+
+> 上面第一—七节讲的是**跨工具接力黑白**；本节补的是**这个仓库本身是什么、东西在哪**。
+> （★插入节、上方旧文一字未回改★）
+
+| 顶层目录 | 是什么 | 入口 |
+|---|---|---|
+| `ws/` | catkin 工作区＝**源码面**（只放代码与配置；`build/` `devel/` 是编译产物、不入库） | [`ws/README.md`](ws/README.md) |
+| `note/` | **台账志文面**＝进度真身／坑台账／判据表／计划书 v3—v7 | [`note/00_README.md`](note/00_README.md)＝三条硬规则 |
+| `scripts/` | 门禁件 `scripts/verify/`（★十件套★）＋采图脚本族 `scripts/mapping/` | [`scripts/mapping/README.md`](scripts/mapping/README.md) |
+| `docker/` | 容器开发环境（复刻 Jetson aarch64 的 Noetic 隔离沙箱）＋ `foxglove/` 布局件 | [`docker/README.md`](docker/README.md) |
+| `tooling/` | 项目自持清单（含 skill 逐字镜像＋ `*_sha256_manifest.txt` 见证清单） | [`tooling/README.md`](tooling/README.md) |
+| `data/` | 底图与输出面（`maps/`＝建图三件套 .pcd/.pgm/.yaml，`waypoints/`＝航点 JSON） | [`data/waypoints/README.md`](data/waypoints/README.md) |
+| `opt/` | **第三方与原件区**（★原样复制、一字不改★；唯一许可例外＝faster-lio 存盘路径隔离） | `opt/upstream/`、`opt/3rdparty/` |
+| `.ai/` | 跨工具接力黑白（`bridge.py`＝唯一状态写入者） | `python3 .ai/bridge.py resume --as <工具名>` |
+| `.qoder/rules/` | qoder 侧常驻提醒（带 `alwaysApply`） | `ros1-slam-collab.md` |
+
+**分工一句话**：`ws/` 只放代码与配置，进度／验收／证据／台账全在 `note/`，门禁跑批在 `scripts/verify/`。
+
+⚠️ `logs/` 与 `data/maps/` 下的产物**不入库**（`.gitignore` 已排除），换机只拿代码与台账即可重建。
+
+- 同步时刻＝2026-10-21 03:29 CST（整串从 `date` 取，不心算）。
+- ★本节为插入节：上方第一—七节一字未回改★。
