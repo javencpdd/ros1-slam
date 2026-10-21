@@ -1,0 +1,65 @@
+<launch>
+  <!-- stairstudy.launch —— 八枚 stair_lab 世界件的专用薄 launch（R563／批219 新建；真人 2026-10-22 裁1／裁2「可先行」）
+
+       为什么单独一件，而不是改 m1/m2_gazebo.launch：
+         ① 八枚 stair_lab 世界件此前**不被任何 launch 引用**（R560 W1），跑它们只能手动传 world:=；
+         ② 手动传**相对**路径时 gzserver 会**静默不加载**楼梯——无报错、/gazebo/model_states 缺模型名、
+            点云退化成纯地面（R560 W2／ax §11.1），照字面复跑的人会拿到假读数；
+         ③ m1_gazebo.launch 与 m2_gazebo.launch 是已验收冒烟链，**不动它们**（零作废）。
+
+       本件只做三件事：绝对路径（$(find ...) 强制）＋ 模型库注入 ＋ 在位断言（断言不过则采集不开）。
+       不给任何门值、不设达成定义、不动 precheck.py 一行、不动 xacro 竖向参数。
+
+       跑法：roslaunch lite3_gazebo_sim stairstudy.launch world_file:=stair_lab_stairs_easy.world
+       九枚可选：stairs_easy / stairs_mid / stairs_steep / stairs_blocked_mid /
+                 wall_h045 / wall_h080 / ramp_envelope / sidewall_envelope /
+                 ★blank（空白对照景，本批新建，只含 ground_plane＋sun、不含任何 <model>）★
+                 （均带 stair_lab_ 前缀与 .world 后缀） -->
+
+  <arg name="gui" default="false"/>
+  <arg name="payload_dir" default="$(find lite3_gazebo_sim)"/>
+  <arg name="world_file" default="stair_lab_stairs_easy.world"/>
+  <arg name="assert_timeout" default="30.0"/>
+
+  <!-- 起始位姿：八枚世界件的楼梯/墙/坡都在原点附近，生在原点会穿模 ⇒ 默认退到 -1.5 m。
+       ★这是场景配置、不是门值★；按实验需要覆盖 spawn_x / spawn_y 即可。 -->
+  <arg name="spawn_x" default="-1.5"/>
+  <arg name="spawn_y" default="0.0"/>
+  <arg name="spawn_z" default="0.15"/>
+
+  <param name="use_sim_time" value="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <!-- ★绝对路径：world_file 只接受文件名，路径由 payload_dir 拼出 ⇒ 不可能退化成相对路径★ -->
+    <arg name="world_name" value="$(arg payload_dir)/stairstudy/worlds/$(arg world_file)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+    <arg name="verbose" value="false"/>
+    <!-- 世界件 include model://ground_plane 与 model://sun ⇒ 必须让 gzserver 找得到本地模型库，
+         否则会去联网拉 model database，离线环境必挂（Dockerfile §1.3 第②点）。 -->
+    <env name="GAZEBO_MODEL_PATH" value="/usr/share/gazebo-11/models:$(optenv GAZEBO_MODEL_PATH)"/>
+  </include>
+
+  <!-- 机器人：与 m1_gazebo 同款 xacro → robot_description → spawn（gen1 载体：离地 0.34＋下倾 15°） -->
+  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/urdf/lite3_planar.urdf.xacro"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+  <node name="spawn_lite3_planar" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param robot_description -model lite3_planar -x $(arg spawn_x) -y $(arg spawn_y) -z $(arg spawn_z)"/>
+
+  <!-- 在位断言：从世界件本体解析它声明的全部 <model name=...>，逐枚比对 /gazebo/get_world_properties。
+       缺任何一枚即 rc=1 ⇒ 采集步不开始（把 W2 从"靠人记得核验"变成"链路自己拦"）。
+       ★extra_required 覆盖 W2 的另一半★：八枚世界件都 include model://ground_plane 与 model://sun，
+       ground_plane 缺即说明 GAZEBO_MODEL_PATH 没生效（gzserver 会转去联网拉 model database，离线必挂）。
+       ★★这里只能填 ground_plane、不能填 sun：活体实测 sun 作为场景光源被 gazebo 吃掉、
+       不进 model_names（空白景实测 loaded=['ground_plane']）⇒ 填 sun＝一枚恒假的红★。
+       结论同时写进全局参数 /world_load_assert/ok，采集脚本可直接断言（见脚本头注释）。 -->
+  <node pkg="lite3_gazebo_sim" type="world_load_assert.py" name="world_load_assert" output="screen">
+    <param name="world_file" value="$(arg payload_dir)/stairstudy/worlds/$(arg world_file)"/>
+    <param name="timeout" value="$(arg assert_timeout)"/>
+    <param name="extra_required" value="ground_plane"/>
+  </node>
+
+</launch>

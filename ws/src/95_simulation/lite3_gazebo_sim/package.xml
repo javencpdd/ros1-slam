@@ -14,4 +14,10 @@
   <exec_depend>livox_laser_simulation</exec_depend>
   <exec_depend>faster_lio</exec_depend>
   <exec_depend>lite3_slam</exec_depend>
+  <!-- ★R563／批219 补声明（裁1 落地）★：scripts/world_load_assert.py 逐行 import rospy 与
+       gazebo_msgs.srv.GetWorldProperties ⇒ 二者是**代码级真依赖**，此前 package.xml 未声明。
+       这正是 STVL／sob_layer 那类坑的正形：镜像里装着、package.xml 不声明 ⇒ 换机/重建镜像时
+       依赖静默消失、只在运行期炸。新节点上线即同步声明，不留给下一个人去猜。 -->
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>gazebo_msgs</exec_depend>
 </package>

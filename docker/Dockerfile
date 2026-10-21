@@ -151,7 +151,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-sob-layer \
         ros-${ROS_DISTRO}-smach ros-${ROS_DISTRO}-smach-ros \
         ros-${ROS_DISTRO}-map-server \
+        ros-${ROS_DISTRO}-grid-map \
     && rm -rf /var/lib/apt/lists/*
+
+# ★ grid-map 为什么补装（R563／批219，真人裁10 预授权「判可装即走」）：
+#   容器内实测 grid_map_core / grid_map_ros / grid_map_msgs 三件全缺，
+#   而 40_navigation/lite3_navigation/package.xml 里那三条 exec_depend 声明一直在
+#   （代码零使用）⇒ 声明与实装不一致，属"依赖声明类"补装。
+#   可装性已判：ros-noetic-grid-map 候选 1.6.4-1focal（USTC 源 focal/main）。
+#   注意：R59 §8.1 那句「grid_map_msgs 全族在装可导入」是 tegra194 真机读数、不是本镜像。\
 
 # ★ 上面三枚（dwa / spatio-temporal-voxel-layer / sob-layer）为什么不能省（2026-10-17 x86 侧实测）：
 #   它们由**本项目自己的 costmap 配置**点名，却不在任何 package.xml 里声明 ⇒
