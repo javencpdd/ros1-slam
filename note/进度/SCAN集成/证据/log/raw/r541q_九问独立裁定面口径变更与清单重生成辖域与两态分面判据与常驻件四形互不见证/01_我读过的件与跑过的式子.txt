@@ -1,0 +1,55 @@
+01_我读过的件与跑过的式子 —— 判据面 r541q（独立实例＝小美／佳文面 ‖ L1 裁定权 ‖ 零协商）
+
+== 时刻与执行面（★本件全部读数取自这两枚面、逐条已标★）==
+  宿主面 2026-10-21 18:15—19:0x（CST）‖ 容器面 ros1-slam-sim 内 python3.8.10、同刻 UTC＝CST−8（现读 10:19:22 UTC ‖ 宿主 18:19 CST＝差 8 小时合在册口径）
+  同一枚仓树两面对得上：容器面 /home/ros1-slam 的 _governance_drift_check.sh sha16＝e47e89d1a7d2e02e＝宿主面同值；容器面顶层清单条目＝13＝宿主面同值
+  会话内 HEAD 移动三格（★不是我动的，是施工侧在本裁进行期间连交两批★）：f9c63cb（批196）→ ac2c1f0（批197＝本工单，18:21:38）→ da43e0a（批198＝常驻第十一枚）
+  派发件所称「工作树当前是干净的（批196 已入库 f9c63cb）」＝我首读时不合：当时 tooling/_build_tooling_manifests.sh 处 M、git diff --numstat＝2／2；18:21:38 之后才干净（现读 git status 枚数＝0）
+  raw/ 目录枚数会话内 401→402（新增 r542_常驻第十一枚志面与标题禁形闸落地…＝在途、无清单）‖ 证据面自有件 7 枚→8 枚
+
+== 式子逐条（编号 E、可原样复跑；形＝命令 ⇒ 读数 ‖ 面）==
+E01 sha256sum 五枚 ‖ wc -l 五枚 ⇒ 盘上 5de82f5333e8754a／128 行 ‖ e47e89d1a7d2e02e／231 ‖ 6fe429c99b10500d／146 ‖ e9d303b8195d197f／165 ‖ 60007765440b1b29／161 ⇒ 工单 01 件那五行★逐字合★ ‖ 宿主面
+E02 git ls-files 'scripts/*.sh' ⇒ 36 ‖ 'note/进度/**/scripts/*.sh' ⇒ 13 ‖ 'ws/src/**/verify/*.sh' ⇒ 41 ‖ 'tooling/*.sh' ⇒ 3 ‖ 合计＝93 ‖ 宿主面（★派生式四形逐形现拼、非抄工单★）
+E03 grep -cvE '^ *(#|$)' scripts/verify/syn_face.txt ⇒ 93 ‖ LC_ALL=C comm 双向差集 ⇒ 面外条目 0 ‖ 清单外条目 0 ⇒ 两数并打合、在册验收式成立 ‖ 宿主面
+E04 grep -c 'SCAN集成/证据/_' scripts/verify/syn_face.txt ⇒ 0（grep rc=1＝无匹配） ‖ 同一条式子在候选形变化后复跑仍＝0 ‖ 宿主面
+E05 ★E04 的假零反控★：git ls-files note/进度/SCAN集成/证据/ | grep -E '/_[a-z_]+\.sh$' ⇒ 0（rc=1），而同一条式子加 -c core.quotepath=false 后 ⇒ 7 枚 ⇒ 我这枚 0 是★转义路径让 $ 锚失效★造出来的假零＝同一形（报 0 而实非 0）我本次亲踩一次；凡本件报 0 处均带一枚非零对照 ‖ 宿主面
+E06 git -c core.quotepath=false ls-files 'note/进度/**/证据/_*.sh' ⇒ 批197 时点 7 枚、批198 后 8 枚（新增 _ledger_form_check.sh） ‖ 逐枚喂 E02 四形 ⇒ 命中形枚数各＝0 ‖ 宿主面
+E07 bash scripts/verify/v_sh_py_syntax.sh 逐枚喂 8 枚常驻件 ⇒ PY SYNTAX OK、被检件数＝7（后复跑＝8）、内嵌 python 段合计＝7（后＝8）⇒ 有内嵌段者 6 枚、零段者 2 枚（_manifest_build.sh ‖ _manifest_coverage_check.sh 各按双条件扫全 86／42 行＝件面自报非默认绿） ‖ 宿主面
+E08 候选第五形 A＝git ls-files 'note/进度/**/证据/*.sh' ⇒ 142 枚 ‖ 与现面 LC_ALL=C comm 差集 ⇒ 净新增 131、重枚 11 ‖ 面 93→224 ‖ 候选形 B＝'note/进度/**/证据/_*.sh' ⇒ 142 内 8 枚、净新增 8、面 93→101（批197 时点＝7／100） ‖ 宿主面
+E09 bash note/进度/SCAN集成/证据/_governance_drift_check.sh --root /home/jack/ysc-code/ros1-slam ⇒ D1 距令日 0 天 ‖ D2 红档 0 旁报 13 ‖ D3 0 ‖ D4 红 0 旁 1 ‖ D5 消费者 1 ‖ D6a 13／不合 0／缺 0 ‖ D6b 136／不合 0／缺 0 ‖ 红档枚数 0 ‖ 旁报枚数 14 ‖ rc=0 ‖ 宿主面（★合工单 02 件★）
+E10 同一条式子喂容器面（--root /home/ros1-slam）⇒ 前六行逐项同值 ‖ 但★红档枚数＝1 ‖ rc=5★＝[红] D0 读不到＝/home/ros1-slam/README.md（FileNotFoundError） ‖ 现读容器面 /home/ros1-slam 目录清单＝data docker logs note opt scripts tooling ws（★无 README.md、无 .git★） ‖ 容器面
+E11 bash _governance_drift_check.sh --root <仓> --BR_DRIFT ⇒ 十四枚期望判定全合（红档抓 7 ‖ 不误报 4 ‖ 两档分流 3）rc=0 ‖ 夹具面（件自带、跑完自报已删） ‖ 宿主面
+E12 /tmp 自建根（含门面指针节＋tooling/skill 三枚坏行＋两面清单）喂同一枚闸 ⇒ D3 技能包转录门值★命中 1 枚★（三枚带门值的行里只有无豁免词那枚被咬） ‖ 另两枚（一行以「来源：」起、一行带「本稿写就时」）红档 0 ‖ 同时 D6a／D6b 各点名一枚 sha 不合（在册 e3b0c442 ‖ 现读 eced9c70／42341fd2） ⇒ 宿主面（★式子与读数详见 02 件 F1、F2★）
+E13 把闸内五支牙★逐字从件面 L132—L140 现取★（按行首变量名取 re.compile 九行、exec 成对象）喂 git ls-files '*.sh' 全 284 枚 ⇒ A1 命中 5 ‖ A2 命中 3 ‖ A5 命中 2 ‖ A3 命中 37 ‖ A4 命中 0 ‖ D3 命中 0 ‖ D4 命中 18 ‖ 被整行豁免吃掉的命中行 1 ‖ 宿主面（脚本＝/tmp/qa_r541q/q7_scan.py，不落仓）
+E14 同一普查按件拆账 ⇒ _governance_drift_check.sh 自身总命中 13（含其正则定义行 L133 被自己的 A1 咬中、L135 被自己的 A5 咬中）‖ 其余 7 枚常驻件总命中各＝0 ‖ 唯一一处非自身 A1 命中＝note/进度/SCAN集成/证据/log/raw/r269_handoff_recheck8/05_recheck8_cmd.sh:36 ‖ 宿主面
+E15 git show 各提交的顶层清单 README 行 vs 该提交 tooling/README.md 实算 sha16 ⇒ cdd9639 合（85d8c47e↔85d8c47e）‖ 6a01532★不合★（85d8c47e↔9edf5a7a）‖ 19da4a2^★不合★ ‖ 19da4a2 合 ‖ HEAD 合 ⇒ 工单 03 问的既存漂★复现成立★、漂龄＝6a01532（10-21 03:43）起至 19da4a2（17:47）＝14 小时 04 分 ‖ 宿主面
+E16 git log --numstat 顶层清单 ⇒ 触及提交 5 枚（1／1、1／1、9／1、6／1、11／0）‖ 名册路径列集差＝0 的提交枚数＝2（cdd9639、19da4a2）‖ 子清单 ⇒ 触及 3 枚（113／113、136／133、133／0）‖ 名册集差＝0 的枚数＝1（19da4a2）‖ diff 顶层清单 19da4a2^ ↔ 19da4a2 的头注行 ⇒ 差 0 ‖ 名册列 ⇒ 差 0 ‖ 宿主面
+E17 wc -l tooling/_sha256_manifest.txt ⇒ 24 ‖ grep -c '^#' ⇒ 11 ‖ 条目行 ⇒ 13 ‖ LC_ALL=C sha256sum -c ⇒ rc=0 ‖ grep -c ': OK$' ⇒ 13 ‖ 宿主面（★工单 02 件那三数逐项合★）
+E18 tooling/ 盘上普通文件（递归）＝150 ‖ 顶层名册＝13 ‖ 盘上有名册无＝137 枚（其中★含 _build_tooling_manifests.sh 生成件自身 ‖ 顶层清单自身 ‖ 子清单自身★）‖ 名册有盘上无＝0 ‖ 宿主面
+E19 tooling/skill/ 盘上普通文件＝138 ‖ 子清单条目＝136 ‖ 差 2 枚＝RESTORE.sh ‖ _sha256_manifest.txt＝★与件面 L9—13 那两枚排除名册逐字对上★ ‖ 两面清单重复见证的条目＝3 枚（skill/window-scheduler 下 SKILL.md ‖ references/queue-format.md ‖ scripts/window_watch.sh） ‖ 宿主面
+E20 bash tooling/_build_tooling_manifests.sh --target skill --build --by-order --BR_OK 连跑两遍 ⇒ 两次生成物 sha16 同值＝67e89bf7e5207a79（★与批195 在册那句同值★） ‖ --target top --BR_OK ⇒ 条目 13 ‖ 头注 11 ‖ 名册差 0 ‖ 两支 rc=0 ‖ 宿主面（★两支正控都只落 /tmp、件面自报已删；仓内两面清单未被本裁改动★）
+E21 同件不带明令旗 ⇒ --target skill --build ⇒ rc=9 ‖ --target top --build ⇒ rc=9（★不带管道复测＝rc 取自件自身而非 tail★） ‖ 同件 --check ⇒ 顶层 rc=0（头注 11 ‖ 条目 13 ‖ OK 13 ‖ 不合 0） ‖ 子清单 rc=0（条目 136 ‖ 待录名册 136 ‖ OK 136） ‖ 宿主面
+E22 生成序同覆盖面两序形对照：把 skill 面 136 枚按★落盘自然序★与★LC_ALL=C 定序★各生成一枚清单（落 /tmp），逐枚跑在册三枚验收式 ⇒ 两序形下★路径集合差均＝0 ‖ 枚数均＝136 ‖ sha256sum -c rc 均＝0★ ‖ 而两序形清单本文的行差＝228 枚 ‖ 宿主面（★式子详见 02 件 F5★）
+E23 留底面普查（修正版）：raw 下目录 401（现复测 402）‖ 有清单 379 ‖ 无清单 22 ‖ 条目 sha 与盘上现算不合的目录★枚数 0★ ‖ 条目指向缺件的目录 5 枚（全属 retake_20261008_* 族） ‖ 条目数＝单层文件数 288 枚 ‖ ＝递归文件数 71 枚 ‖ 两者都不等 20 枚 ‖ 条目列未按 LC_ALL=C 定序 85 枚 ‖ 清单自录自己 0 枚 ‖ 宿主面（脚本 /tmp/qa_r541q 内联跑、不落仓）
+E24 ★E23 的作废登记★：普查首版把条目名做 rel.lstrip('./') 归一 ⇒ 把以点起头的件名（.prev_20261020-*.txt 一族）的开头点也剥掉 ⇒ 假报「缺件目录 16 枚」；反控＝同一条式子改回只在整串以 ./ 起头时剥两字符 ⇒ 缺件目录＝5 枚 ⇒ 首版那 16 枚★作废、不作为读数★（在册「测量式自己也有缺陷」同族、本次是我自己踩的） ‖ 宿主面
+E25 bash note/进度/SCAN集成/证据/_manifest_coverage_check.sh（缺省面）⇒ 小结＝有清单目录 344 ‖ 覆盖OK 324 ‖ 无清单 8 ‖ 打印★漏件★行 20 枚 ‖ ★sha256sum-c_rc＝1 出现 344 枚／344 枚＝全数★ ‖ 本件退出码现读★＝0★（有漏件仍 0） ‖ 名册口径＝ls -d r*/ ⇒ raw 下 402 枚目录实扫 352、★按名前缀跳过 50 枚★（b1_* ‖ env_* ‖ fd2_* ‖ h14_* ‖ j3_* ‖ m2* ‖ m52_* ‖ batch2_wire ‖ doc_truncation_* 等） ‖ 宿主面（容器面同件同读数，未另计）
+E26 件面行号现读（★判据面只指认、不建议★）：_manifest_coverage_check.sh:14 名册形＝ls -d r*/ ‖ :34 的 sha256sum -c ★未 cd 进目录★（件内唯一带 cd 的是 :26 取枚数那一支） ‖ :36 判定式只取 n＝m 与 miss＝0、★不含 rc★ ‖ :41 末命令是 echo ‖ _manifest_build.sh:49 拒写闸的键＝削掉仓根后的相对面 ‖ :74 才是带 cd 的 -c ‖ 宿主面
+E27 bash note/进度/SCAN集成/证据/_manifest_build.sh --check <工单目录> ⇒ 文件数（不含清单）＝5 ‖ sha 条目＝5 ‖ 注释行＝3 ‖ -c rc=0 ⇒ OK ‖ 建单闸全过 rc=0 ‖ 宿主面（★本裁自己的交付目录也用同一枚闸自校，见 02 件 F7★）
+E28 同件负例：--BR_EMPTY（★build 形★）⇒ 写出面强制换到夹具 /tmp/manifest_br_empty.* ‖ 复现批177 那一枚＝sha条目＝1（空输入 sha）‖ 文件数＝0 ‖ -c_rc＝0 ‖ 判★漏件/多列★ ‖ 本件 rc=5 ‖ 夹具已删现读＝无 ‖ 宿主面（★另一支 --check --BR_EMPTY 也给 rc=5，但成因不同＝夹具目录内根本没有清单＝不是批177 那一形★）
+E29 已入库拒写分支的两面可达性：git ls-files --error-unmatch <工单清单相对面> ⇒ 宿主面 rc=0（查得到＝拒写分支可达）‖ 容器面 rc=128＝fatal: not a git repository ⇒ 件面 L47—L54 的 if 判为假 ⇒★同一枚常驻件在同一份盘上、容器面走的是准建那一支★ ‖ 双面
+E30 VAR 容器面实跑 timeout 300 ⇒ P1a／P1b／P2 全过（普查 11787 件） ‖ P3a-1 无缺 ‖ P3a-2 已知态 3 枚（r31_fd_i ‖ r42_joint_surface ‖ r46_syntax_rescan） ‖ P3b-1 零件 ‖ P3b-2 新目录全部可验 ‖ P3b-3 已知态 2 枚（retake_20261008_144159 ‖ _144235） ‖ 别名面 10 枚（b1_gen5_logs 等走 _manifest_recheck.txt＋父目录基准） ‖ VAR VERDICT PASS=8 FAIL=0 rc=0 ‖ 容器面
+E31 VAR 宿主面★跑不起来★：件面 v_evidence_reachability.sh:26 写死 cd /home/ros1-slam ‖ 现读该路径在本机不存在（No such file or directory） ⇒ 宿主面 rc=9 前置缺失、★未经行使★ ‖ 宿主面
+E32 VAR 名册正则的两面夹具：/tmp 造两枚目录、各 3 枚件、均无清单，喂 VAR_EVD 与 root ⇒ ★r951_施工侧留底目录★ ⇒ P3a-1 FAIL 点名、PASS=7 FAIL=1、rc=5；★r951q_判据面在途目录★ ⇒ 进 P3a-2 已知态（只登记、不判红） ‖ 夹具已删 ‖ 容器面
+E33 常驻件族在 VAR 那支正则下的实际枚数：正则现读 v_evidence_reachability.sh:224 R_MIN=48 ‖ :228—236 is_new_era 两支＝^r(\d+)[_\-] 与 (2026\d{4})；把 raw 下 401 枚目录名逐枚喂进去 ⇒ 带字母后缀的 rNNN<字母>_ 族 26 枚、★其中判为旧时代（缺清单不判红）＝26 枚＝全族★ ‖ 无清单且判为新 era 的＝1 枚（r50_log_ownership_probe） ‖ 宿主面
+E34 bash note/进度/SCAN集成/证据/_rqq_watch.sh --BR_WATCH ⇒ 五组对照全合（阳性 0→5 ‖ 阴性 0/0 ‖ 空集字面 [0] ‖ G15 具名 2／1 ‖ G15 只读 sha16 前后同值、只读句 1、rc=0；对立面 sha16 变值） ‖ 本件（自测面）rc=0 ‖ 宿主面（★本次夹具内 sha16 值＝2d52dd7773c97dac→4cd11690cd1c9922，与工单 02 件所印 d3db8a83／464b5f94★不同值★＝那两枚是当刻瞬时值、不可跨批复跑核对；结构读数逐项复现合）
+E35 bash _rqq_watch.sh --phase post --batch r541q --RO ⇒ 该族目录枚数 25 ‖ 缺清单 0 ‖ 其中正文齐（非清单件≥3）0 ‖ 具名两档皆无 ‖ firing=NO ‖ 只读句在位、随句时刻 2026-10-21 18:30:20 ‖ rc=0；★同一条 --RO 连跑两次取仓内状态面 sha16＝88098fedc218de71 ↔ 88098fedc218de71＝同值★（只读面在真仓上也不写） ‖ 宿主面；状态面行数 45
+E36 _rqq_watch.sh 的族名册形现读＝件面 L112 re.match 形 ^r\d+q_ ‖ 与 E33 的 26 枚差 1 枚＝r534b_（施工侧旁批目录、字母不是 q）⇒ 两枚件用两把名册尺、同一盘两个枚数 ‖ 宿主面
+E37 bash note/进度/SCAN集成/证据/_anchor_key_check.sh 缺省被试面（＝仓根、不带目录参数）跑 --BR_MISS 与 --BR_NONNUM ⇒ ★两支均 rc=0★、小结红面 0 ‖ 件面 :142 照样打印「负例开关 --BR_MISS 已行使＝本枚预期红≥1；不红＝A3 这枚断言没牙」 ‖ 同件 --all ⇒ rc=0、表合 3 ‖ 表不合 0 ‖ 未带表 13（★表合那 3 枚＝r525 ‖ r530 ‖ r534 三枚窗目录★） ‖ 宿主面
+E38 同件带被试面复跑 ⇒ --all --BR_MISS rc=5 点名 ANCHOR_P100_BAR_cmp.cmp(999≠33) ‖ --all --BR_NONNUM rc=5 点名 ANCHOR_P100_BAR_cmp★志面字段非数字＝「九」⇒ 记红档、不崩★ ‖ 宿主面 ⇒ ★负例开关的效力以「被试目录恰好带表」为前提（件面 L91／L95 两处 if BRK 均 and rows）、缺省面上退化成空跑而打印面自称已行使★
+E39 python3 .ai/bridge.py --help ⇒ 子命令名册现读★13 枚★＝init new claim note handoff done status ls check resume knowledge mem json；别名定义处＝bridge.py:846（status ‖ ls）与 :858（knowledge ‖ mem）；grep -nE 'rename|set-title|set_title|--title' ⇒ 2 处命中均＝写文件的 temp+rename（:44 ‖ :214）、★无改名通道这句成立★ ‖ 宿主面（★工单 00 件那句子命令名册现读＝11 枚、且含 mcp 一枚＝与盘上不合；本裁只登记读数差、不代改★）
+E40 head -1 十枚任务卡 ⇒ 标题行带死版本号 2 枚＝.ai/tasks/T-20261017-04.md:1（含 v7）‖ .ai/tasks/T-20261017-05.md:1（含 v6）；两枚卡各含「澄清」1 行在位（04 卡 119 行 ‖ 05 卡 90 行） ‖ .ai/knowledge.md:27 那句「新卡立题不写版本号」在位 ‖ 宿主面
+E41 grep -rl '澄清' 限定 --include='*.sh' 与 '*.py'（scripts ‖ tooling ‖ 证据面）⇒ ★命中 0 枚★；同一条式子把词换成 _governance_drift_check ⇒ 命中 2 枚（该件自身 ‖ _batch_readout.sh）＝反控 ⇒ ★没有任何代码载体盯「澄清在不在位」★；不限定 --include 时该词只出现在留底 txt 里＝叙述面、非校验面 ‖ 宿主面
+E42 闸的五支牙（E13 同一套现取正则）喂 .ai 面 14 枚 md、按★标题行（每文件行 1）与★正文（行 2 起）分档 ⇒ 标题行命中★0 枚★ ‖ 正文命中★4 枚★（全在 .ai/tasks/T-20261018-01.md：822 行 A1 ‖ 1800 行 D4 ‖ 1811 行 A1＋D4） ‖ 宿主面
+E43 git check-ignore -v .ai/tasks/T-20261018-01.md ⇒ 命中 .gitignore:52＝.ai/ ‖ git ls-files .ai | wc -l ⇒ 0 ⇒ ★任务卡面全族不入版本面＝任何闸扫它都没有 git 侧见证、改动无 numstat★ ‖ 宿主面
+E44 工单 01 件末行那枚「靶」自跑：8 枚常驻件此刻有无内嵌 python 段 ⇒ 有段 6 枚（_anchor 1 ‖ _batch_readout 3 ‖ _governance 1 ‖ _prewindow 1 ‖ _rqq 1 ‖ _ledger 1）＝段合计 8 ‖ 零段 2 枚 ⇒ 与 SYN 的口径（python 调用＋heredoc 双条件）对上 ‖ 宿主面
+E45 会话末态复测：现拼★93★＝清单★93★（批198 落 _ledger_form_check.sh 之后两数仍并打合） ‖ grep -c '_ledger_form_check' scripts/verify/syn_face.txt ⇒ 0（rc=1） ⇒ ★E03／E06 那一格在会话内又长出一枚新的、同型★ ‖ 宿主面
