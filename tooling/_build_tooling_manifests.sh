@@ -15,6 +15,7 @@
 #   --check＝只校验（逐条 sha256sum -c 面）＝不合⇒ rc=5 并逐枚点名（★这才是"改完还没重建"的正常红态★）
 #   --build --by-order＝按上面的生成序★整体重写★清单（生成物、非手改）
 #   --BR_NOFLAG＝★负例开关★＝不带明令旗跑 --build ⇒ 本件必须翻红（rc=9）；带旗的★正控★另由 --BR_OK 跑（生成完立刻自删到 /tmp 的副本，不落仓）
+#   --BR_OK＝正控面★四枚★期望＝①名册枚数＝生成枚数 ②路径集合差＝0 ③生成物可 -c ④★序形锚同值★（＝批200 补的第四枚；旧三枚对「序形换了」全绿＝判据面反例 C2 实测、我本次独立复跑亦全绿）
 # 退出码＝0（校验全过／生成成功）‖ 5（有条目不合）‖ 9（前置缺失＝面不在位、或无明令旗想写盘、或排除面出处读不到）
 set -u
 ROOT=$(cd "$(dirname "$0")" && pwd)          # ★tooling/ 由自己位置现取＝不硬编码★
@@ -35,6 +36,14 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$MODE" ] || { echo "★用法＝--check | --build --by-order | --BR_NOFLAG | --BR_OK ‖ 可选 --target skill|top★"; exit 9; }
 [ "$TARG" = skill ] || [ "$TARG" = top ] || { echo "★未知目标面★ $TARG（只许 skill ‖ top）"; exit 9; }
+
+# ============ ★第四枚验收式＝序形锚（批200 落 r541q 问④裁＋反例 C2＝F4）============
+# 在册三枚验收式＝①条目枚数等式 ②路径集合差＝0 ③LC_ALL=C sha256sum -c rc＝0 ⇒ 判据面实测：同一份 136 枚覆盖面在★落盘自然序★与★C 定序★两形下
+# 三枚★全绿★、而清单本文行差＝228 枚＝★这三枚对「序形变了」完全无分辨力★（我本次也独立复跑到同一读数）。
+# ⇒ 补第四枚＝★路径列序列的 sha16 锚★（只锚序列、不锚内容＝改内容不炸、改序形或改覆盖面必炸）；换代先比、比出差⇒正控面 rc=5 并点名。
+#   锚值＝现取（式子见本件两处 SEQ／SEQT 行）；覆盖面合法增删时★必须同批改锚并另起句登记★＝本件缺省面（--check／--build）不受锚约束、不会因此永红。
+ANCH_SKILL=7b3113d656b837ac     # tooling/skill 子清单＝136 枚路径列按 C 定序的序列 sha16（对立面＝落盘自然序 5c00e15aba48b34c＝不同值⇒锚真有分辨力）
+ANCH_TOP=b914971a1e56f236       # tooling 顶层清单＝13 枚路径列按名册序的序列 sha16（对立面＝改 C 定序 bf0167a5fb85f9bc）
 
 # ============ ★顶层面★＝tooling/_sha256_manifest.txt（头注逐字不动、名册沿用盘上条目行、只重算 sha＝R348 先例形）============
 if [ "$TARG" = top ]; then
@@ -60,9 +69,13 @@ if [ "$TARG" = top ]; then
   DIFFP=$(diff <(LC_ALL=C sort "$NAME") <(grep -E '^[0-9a-f]{64}  ' "$NEW" | awk '{print $2}' | LC_ALL=C sort) | grep -c '^[<>]')
   [ "$N2" = "$ENT" ] && [ "$H2" = "$HDR" ] && [ "$DIFFP" = 0 ] || {
     echo "★拒绝落盘★＝条目 $ENT→$N2 ‖ 头注 $HDR→$H2 ‖ 名册差 $DIFFP（★三枚等式任一不合都不许动顶层★）"; rm -f "$NAME" "$NEW"; exit 9; }
+  SEQT=$(grep -E '^[0-9a-f]{64}  ' "$NEW" | awk '{print $2}' | sha256sum | cut -c1-16)
   if [ "$BR_OK" = 1 ]; then
     echo "== ★正控（--BR_OK／top）★＝只生成到 /tmp、★不落仓★：条目 $ENT ‖ 头注 $HDR ‖ 名册差 $DIFFP"
-    rm -f "$NAME" "$NEW"; echo "本件（正控面）rc=0"; exit 0
+    echo "   ★第四枚验收式＝序形锚★＝路径列（名册序）序列 sha16＝$SEQT ‖ 在册锚＝$ANCH_TOP ⇒ $([ "$SEQT" = "$ANCH_TOP" ] && echo 合 || echo '★不合＝序形或覆盖面换了★')"
+    rm -f "$NAME" "$NEW"
+    [ "$SEQT" = "$ANCH_TOP" ] || { echo "★正控不合期望＝序形锚换枚了★＝换代先比：要么序形被改、要么覆盖面增删未登记 ⇒ 必须同批改锚并另起句登记"; echo "本件（正控面）rc=5"; exit 5; }
+    echo "本件（正控面）rc=0"; exit 0
   fi
   cp "$NEW" "$TOP"; rm -f "$NAME" "$NEW"
   OUT=$(cd "$ROOT" && LC_ALL=C sha256sum -c _sha256_manifest.txt 2>&1); RC=$?
@@ -105,14 +118,18 @@ fi
 NEW=$(mktemp /tmp/skill_manifest.XXXXXX)
 ( cd "$SKILL" && while IFS= read -r f; do sha256sum "$f"; done <<< "$LIST" ) > "$NEW"
 M2=$(grep -c '  ' "$NEW")
+SEQ=$(printf '%s\n' "$LIST" | sha256sum | cut -c1-16)
+SEQN=$(printf '%s\n' "$LIST" | grep -c .)
 if [ "$M2" != "$N" ]; then echo "★拒绝落盘＝生成枚数 $M2 ≠ 名册枚数 $N★"; rm -f "$NEW"; exit 9; fi
 # ★集合差断言★＝新清单的路径列与旧清单的路径列差集必须只允许"空"（换代＝同覆盖面换 sha，不许多件或少件；多了要另批显式登记）
 DIFFP=$(diff <(awk '{print $2}' "$MF" | LC_ALL=C sort) <(awk '{print $2}' "$NEW" | LC_ALL=C sort) | grep -c '^[<>]')
 if [ "$BR_OK" = 1 ]; then
   echo "== ★正控（--BR_OK）★＝只生成到 /tmp、★不落仓★：名册 $N ‖ 生成 $M2 ‖ 与在册路径列差＝$DIFFP"
+  echo "   ★第四枚验收式＝序形锚★＝路径列（C 定序、$SEQN 枚）序列 sha16＝$SEQ ‖ 在册锚＝$ANCH_SKILL ⇒ $([ "$SEQ" = "$ANCH_SKILL" ] && echo 合 || echo '★不合＝序形或覆盖面换了★')"
   OLD=$(sha256sum "$NEW" | cut -c1-16); rm -f "$NEW"
   echo "   正控期望＝差＝0（★换代不增不减覆盖面★）；生成物 sha16＝$OLD ‖ 已从 /tmp 删除＝$([ -f "$NEW" ] && echo 在 || echo 无)"
   [ "$DIFFP" = 0 ] || { echo "★正控不合期望＝路径列有增减★"; exit 5; }
+  [ "$SEQ" = "$ANCH_SKILL" ] || { echo "★正控不合期望＝序形锚换枚了★＝换代先比：要么序形被改（★三枚旧验收式对此全绿★）、要么覆盖面增删未登记 ⇒ 必须同批改锚并另起句登记"; echo "本件（正控面）rc=5"; exit 5; }
   echo "本件（正控面）rc=0"; exit 0
 fi
 if [ "$DIFFP" != 0 ]; then

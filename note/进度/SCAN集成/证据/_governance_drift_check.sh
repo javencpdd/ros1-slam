@@ -17,6 +17,9 @@
 #        A5 「（中心）计划书…真身／唯一真身…v数字」＝★把「真身」这顶帽子扣死在某一个版本号上★（目录树注行就是这一形）
 #      ★现存路径的纯书目引用不记红＝进旁报★（23 号队列的真身此刻就在 `note/计划书v6/`＝在册许可，不是漂）
 #   D3 ★技能包不许转录门值★＝扫 `tooling/skill/**/*.md` 里 OID_DIST／OCC_TOL／DEV_MAX／DT_MAX／`0\.40`／`0\.10`／`0\.35`／`≥1200` ⇒ 命中即点名
+#      ★这支牙不受全行豁免管（批200 落 r541q 反例 C1＝F3）★＝旧形把豁免写在三支牙之前、整行 continue ⇒
+#      一行「来源：v7 §8」起头＋同句抄满四枚门值＝★门值转录那支牙在同一行里全部失效★；而★带出处恰是技能包抄数字最自然的写法★。
+#      在册规矩乙那句「判据／门值只引用索引、一个数字都不抄」★没有例外形★＝所以豁免词在这里不能当通行证。
 #   D4 ★「终稿」必须带层★＝含「终稿」的行同句须带层词（路线｜判据｜§6.4｜范围化｜非终稿｜带层｜口径）之一；红档面记红、笔权与历史面记旁报
 #   D5 ★消费者在位★＝`_batch_readout.sh` 必须真调用本件（★新件要被下游真实调用一次＝追加一百一十二⑩★），否则＝本枚件是死件＝红
 #   D6 ★清单＝派生物、漂了必须被机器看见★＝逐枚对表 `tooling/_sha256_manifest.txt`（顶层）＋`tooling/skill/_sha256_manifest.txt`（子）
@@ -26,7 +29,7 @@
 # 许可括注（★全行豁免★）＝行内含 现读＝／写就时／指针／归档／旧版／不再更新／历史／取代／一字未动／不写死／不硬编码／不得读成
 #   ⇒ 那一枚版本号是★快照注记或历史叙述★，不是硬编码引用＝真人 2026-10-21 的指针形判据正是「门面现读为准（本稿写就时＝v7）」这一形。
 # 用法＝bash _governance_drift_check.sh [--max-age N] [--root DIR] [--BR_DRIFT]
-#   --BR_DRIFT＝★自测面（夹具只在 /tmp、跑完自报已删）★＝六枚坏样本（硬编码现行断言／书目号同句钉版本／真身钉版本／转录门值／终稿不带层／悬空版本路径）必须全被抓进红档
+#   --BR_DRIFT＝★自测面（夹具只在 /tmp、跑完自报已删）★＝七枚坏样本（硬编码现行断言／书目号同句钉版本／真身钉版本／转录门值／★带出处的门值行＝豁免不能吃掉门值牙★／终稿不带层／悬空版本路径）必须全被抓进红档
 #              ＋三枚好样本（指针形括注、现存版本路径的书目引用、版本并列简写 v3/v4）必须不被记红，
 #              另三枚分流对照（现存路径引用★必须落旁报★、门面历史行★必须落旁报不落红★、简写★不进任何档★）；任一不合＝本件自带缺陷⇒ rc=5 并点名
 # 退出码＝0（红档全过）‖ 5（红档任一不合）‖ 9（前置缺失＝被扫面不在位）
@@ -51,6 +54,7 @@ if [ "$BRK" = 1 ]; then
   : > "$T/note/计划书v6/23_v6任务队列.md"
   printf -- '- 计划书v4/：21 号计划书 v4 原文（**现行施工蓝本**）\n' > "$T/tooling/skill/x/bad_hard.md"
   printf -- '- 门值 OID_DIST 0.40 ‖ OCC_TOL 0.10（★把数字抄进技能包了★）\n' > "$T/tooling/skill/x/bad_gate.md"
+  printf -- '- 按出处转录门值：来源：v7 §8 的 OID_DIST 0.40 ‖ DT_MAX 120（★一行带出处＝旧形在这行被整行豁免吃掉★）\n' > "$T/tooling/skill/x/bad_gate_src.md"
   printf -- '- 本件已定为终稿\n' > "$T/tooling/skill/x/bad_final.md"
   printf -- '- 施工蓝本见 `note/计划书v9/21_中心计划书-v9.md`（★换代后的悬空路径★）\n' > "$T/tooling/skill/x/bad_dangling.md"
   printf -- '├── 计划书v5/                # **计划书唯一真身＝21_中心计划书-v5.3.md**（1157 行）\n' > "$T/tooling/skill/x/bad_pin.md"
@@ -66,7 +70,7 @@ if [ "$BRK" = 1 ]; then
   OUT=$(bash "$0" --root "$T" --max-age 21 2>&1); RC=$?
   RED=$(printf '%s\n' "$OUT" | grep '\[红\]')
   SOFT=$(printf '%s\n' "$OUT" | grep '\[旁\]')
-  C1=$(printf '%s\n' "$RED" | grep -c bad_hard);  C2=$(printf '%s\n' "$RED" | grep -c bad_gate)
+  C1=$(printf '%s\n' "$RED" | grep -c bad_hard);  C2=$(printf '%s\n' "$RED" | grep -c 'bad_gate\.md')
   C3=$(printf '%s\n' "$RED" | grep -c bad_final); C4=$(printf '%s\n' "$RED" | grep -c good_ptr)
   C5=$(printf '%s\n' "$RED" | grep -c ok_exist);  C6=$(printf '%s\n' "$SOFT" | grep -c ok_exist)
   C7=$(printf '%s\n' "$RED" | grep -c bad_dangling)
@@ -74,8 +78,10 @@ if [ "$BRK" = 1 ]; then
   C10=$(printf '%s\n' "$RED" | grep -c ok_shorthand); C11=$(printf '%s\n' "$SOFT" | grep -c ok_shorthand)
   C12=$(printf '%s\n' "$RED" | grep -c bad_pin); C13=$(printf '%s\n' "$RED" | grep -c bad_21hao)
   C14=$(printf '%s\n' "$RED" | grep -c 'sha 不合.*d6_bad'); C15=$(printf '%s\n' "$RED" | grep -c 'sha 不合.*good_ptr')
+  C16=$(printf '%s\n' "$RED" | grep -c bad_gate_src)
   echo "  阳性对照（红档抓＝期望≥1 ‖ 红档不抓＝期望★0★ ‖ 旁报抓＝期望≥1）"
   echo "    硬编码现行版本=$C1(≥1) ‖ 转录门值=$C2(≥1) ‖ 终稿不带层=$C3(≥1) ‖ 悬空版本路径=$C7(≥1)"
+  echo "    ★带出处的门值行（旧形被整行豁免那一枚）＝$C16(≥1＝豁免不能当门值转录的通行证)★"
   echo "    真身钉版本=$C12(≥1) ‖ 书目号同句钉版本=$C13(≥1) ‖ D6 清单 sha 漂=$C14(≥1)且正条目误报=$C15(★0★)"
   echo "    指针形好样本误报=$C4(0) ‖ 现存路径引用误报=$C5(0)且落旁报=$C6(≥1)"
   echo "    版本并列简写（v3/v4）误报=$C10(★0★)且落旁报=$C11(0＝★简写本就不是路径、不进任何档★)"
@@ -83,6 +89,7 @@ if [ "$BRK" = 1 ]; then
   BAD=""
   [ "$C1" -ge 1 ] || BAD="$BAD ★A1 硬编码现行版本没抓到★"
   [ "$C2" -ge 1 ] || BAD="$BAD ★D3 转录门值没抓到★"
+  [ "$C16" -ge 1 ] || BAD="$BAD ★D3 被一行出处从句整行绕过＝豁免锚吃掉了门值牙★"
   [ "$C3" -ge 1 ] || BAD="$BAD ★D4 终稿不带层没抓到★"
   [ "$C7" -ge 1 ] || BAD="$BAD ★A3 悬空版本路径没抓到★"
   [ "$C12" -ge 1 ] || BAD="$BAD ★A5 真身钉在版本号上没抓到★"
@@ -98,7 +105,7 @@ if [ "$BRK" = 1 ]; then
   rm -rf "$T"
   echo "  夹具已删＝$([ -d $T ] && echo 在 || echo 无)"
   if [ -n "$BAD" ]; then echo "★自测不合期望★＝$BAD"; echo "本件（自测面）rc=5"; exit 5; fi
-  echo "  自测合期望＝★十四枚期望判定全合（红档抓 7 ‖ 不误报 4 ‖ 两档分流 3）★"
+  echo "  自测合期望＝★十五枚期望判定全合（红档抓 8 ‖ 不误报 4 ‖ 两档分流 3）★"
   echo "本件（自测面）rc=0"; exit 0
 fi
 
@@ -171,6 +178,9 @@ for p in [D] + files:
     rel = os.path.relpath(p, ROOT)
     for i, l in enumerate(read(p).split("\n"), 1):
         f = face_of(rel, i)
+        if f == "red" and rel.startswith("tooling/skill") and GATE.search(l):
+            # ★门值牙先于豁免★＝批200 落 r541q 反例 C1：旧形把 continue 写在它之前＝一行「来源：」就能把四枚门值整行抄进技能包
+            add("red", "D3", "%s:%d 转录门值（★这支牙不受全行豁免★）‖ 句＝%s" % (rel, i, snip(l)))
         if SNAP.search(l): continue
         hit = None
         if f == "red":
@@ -191,8 +201,6 @@ for p in [D] + files:
                 for m in A34.finditer(l):
                     if not os.path.exists(os.path.join(ROOT, "note", m.group(0))):
                         add(f, "D2", "%s:%d 悬空版本路径＝%s（★旁报★）‖ 句＝%s" % (rel, i, m.group(0), snip(l))); break
-        if f == "red" and rel.startswith("tooling/skill") and GATE.search(l):
-            add("red", "D3", "%s:%d 转录门值 ‖ 句＝%s" % (rel, i, snip(l)))
         if FIN.search(l) and not LAYER.search(l):
             add(f, "D4", "%s:%d 「终稿」未带层 ‖ 句＝%s" % (rel, i, snip(l)))
 print("  D2 硬编码现行引用＝红档 %d 枚 ‖ 旁报 %d 枚 ‖ D3 技能包转录门值＝%d 枚 ‖ D4 「终稿」不带层＝红档 %d ‖ 旁报 %d 枚" % (n2r, n2s, n3, n4r, n4s))
