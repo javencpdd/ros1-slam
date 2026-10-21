@@ -15,7 +15,13 @@
 # 用法＝bash _ledger_form_check.sh [--msg 文件] [--file 文件] [--tasks] [--BR_FORM]
 # 退出码＝0（全过）‖ 5（任一名点）‖ 9（前置缺失＝不在 git 仓内／给的文件读不到）
 set -u
-ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
+# ★ROOT 推导（R557／批213 修）★＝原式 `cd "$(dirname "$0")/../../../.."` 只在本件深 3 级
+#   （进度/<X>/证据/）时到仓根；批208 把 SCAN集成 搬入 进度/v7/S1/ 后本件深 5 级，
+#   同样 4 次上跳只到 note/进度，F4 据此拼出的 readout 路径不存在 ⇒ 恒报死件。
+#   ★新式＝git 定仓根（不受目录深度影响），fallback 按当前深度 6 级上跳。
+SELF=$(cd "$(dirname "$0")" && pwd)
+ROOT=$(cd "$SELF" && git rev-parse --show-toplevel 2>/dev/null)
+[ -n "$ROOT" ] || ROOT=$(cd "$SELF/../../../../.." && pwd)
 MSG=""; TASKS=0; BRK=0; SAMPLE=""
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -52,6 +58,15 @@ if [ "$BRK" = 1 ]; then
   F3G=$(printf '%s\n' "$OUT4" | grep -c 'F3 标题＝★不过★')
   echo "  两支禁形＝踩反引号被抓 $B1(≥1) ‖ 踩 ASCII 双引号被抓 $B2(≥1) ‖ 合形样本被点名 $G1(★0★)"
   echo "  标题三支坏样本 rc＝$R1/$R2/$R3（★全部必须 5★） ‖ 好标题＝F3 判「不过」枚数 $F3G（期望★0★；★rc=$R4 只可能因 F4／A 档＝本控不判★）"
+  # F4 正控／反控（R557／批213 修；★反控造"撞名那一态"＝readout 路径不可达，期望红★）
+  OUT_F4P=$(bash "$0" 2>&1); RC_F4P=$?
+  F4P=$(printf '%s\n' "$OUT_F4P" | grep -c 'F4 消费者.*在位')
+  BAK="$ROOT/note/进度/v7/S1/SCAN集成/证据/_batch_readout.sh"
+  [ -f "$BAK" ] && mv "$BAK" "$BAK.selftest_bak"
+  OUT_F4N=$(bash "$0" 2>&1); RC_F4N=$?
+  [ -f "$BAK.selftest_bak" ] && mv "$BAK.selftest_bak" "$BAK"
+  F4N=$(printf '%s\n' "$OUT_F4N" | grep -c 'F4 本件无消费者')
+  echo "  F4 正控＝在位 $F4P（期望≥1） ‖ F4 反控＝撞名态报死件 $F4N 枚、rc=$RC_F4N（期望≥1 且 rc=5）"
   BAD=""
   [ "$B1" -ge 1 ] || BAD="$BAD ★F5：F1 没抓到已知反引号＝式子坏＝比漏报更坏★"
   [ "$B2" -ge 1 ] || BAD="$BAD ★F5：F2 没抓到已知 ASCII 双引号＝式子坏★"
@@ -59,6 +74,9 @@ if [ "$BRK" = 1 ]; then
   [ "$R1" = 5 ] || BAD="$BAD ★缺右括号的标题没翻红（实=$R1）＝F3 没牙★"
   [ "$R2" = 5 ] || BAD="$BAD ★缺前缀的标题没翻红（实=$R2）★"
   [ "$R3" = 5 ] || BAD="$BAD ★标题里的反引号没翻红（实=$R3）★"
+  [ "$F4P" -ge 1 ] || BAD="$BAD ★F4 正控不在位（实=$F4P）＝ROOT 推导仍不可达★"
+  [ "$RC_F4N" = 5 ] || BAD="$BAD ★F4 反控没翻红（实 rc=$RC_F4N）＝反控无牙★"
+  [ "$F4N" -ge 1 ] || BAD="$BAD ★F4 反控没点名死件（实=$F4N）★"
   [ "$F3G" = 0 ] || BAD="$BAD ★好标题被判不过＝F3 锚过宽★"
   rm -rf "$T"
   echo "  夹具已删＝$([ -d "$T" ] && echo 在 || echo 无)"
