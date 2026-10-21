@@ -5,13 +5,16 @@
 #      而它输出的「除 token 外逐行差＝2」恰好等于「未排除」的数＝★不报命中枚数，读者永不可能识破★（追加一百一十二①／②）。
 #   ②判读面的行号改由机读表 `09_锚键.tsv` 生成＝★追加一百一十一⑧ 的执行形★，但这件事当时只在★窗内一次性★实现过；
 #      按追加一百一十二⑧「★新件的可用性门槛＝被下游真实调用一次★」，抽成常驻件才算立住。
-# 用法＝bash _anchor_key_check.sh [--all] [--BR_MISS] [窗目录…]   （★缺省＝当前目录；--all＝扫 raw/ 下所有带 05_cmp.txt 的目录★）
+# 用法＝bash _anchor_key_check.sh [--all] [--BR_MISS | --BR_NONNUM] [窗目录…]   （★缺省＝当前目录；--all＝扫 raw/ 下所有带 05_cmp.txt 的目录★）
 # 四枚断言（★逐枚并报、缺一即红 rc=5★）＝
 #   A1 ★正则自证★＝本件每条它自己要用的式子，先拿被试件里的一枚真样本跑★命中≥1★；命中 0 ⇒ 点名「死码」（★在册新立：不转义的字面串一律 re.escape 或改用字符类★）
 #   A2 ★锚表在位★＝目录内 `09_锚键.tsv` 存在且枚数＝6；★不在位＝记「该窗未带锚表」＝只报不拦、★不计红★（历窗没有这枚表）
 #   A3 ★表与现跑对表★＝每枚键：cmp 面表值★逐字等★现跑；志面表值★⊂★现跑并报多命中枚数（★表是时点产物＝算完之后窗志才被 tee 追加★）
 #   A4 ★排除式自报命中枚数★＝「本件时刻＝」出现枚数 ‖ 在册那枚式子命中枚数 ‖ 转义安全式命中枚数；★出现>命中 ⇒ 该枚判据未经行使＝红★
 # ★负例开关 --BR_MISS★＝故意把一枚键值改成不可能命中的数 ⇒ 本件★必须翻红（rc=5）★并点名＝证明 A3 真有牙（★只报不拦的件也要有跑证的反例面★）
+# ★负例开关 --BR_NONNUM★＝★G3 的「常驻第八枚那一半」（判据面 r534q 问②／批191 在册句「两处都要」）★＝故意把一枚★志面★表字段写成★非数字★
+#   ⇒ 本件★必须记红档并点名那枚键＋那个字段★、★绝不许 traceback★（在册 S34／S27 那族＝「查不到」的三种形里★只有红档算被检到★＝崩与空值都不算）；
+#   ★旧形＝`set(int(x) for ...)` 直接 ValueError 崩整个件★＝一行坏表让复核面★整枚失明★＝坏得比红更坏（追加一百二十四②「面名册要逐枚配坏样本」的执行形）
 set -u
 ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 RAW="$ROOT/note/进度/SCAN集成/证据/log/raw"
@@ -21,6 +24,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --all) MODE=all; shift ;;
     --BR_MISS) BRK=1; shift ;;
+    --BR_NONNUM) BRK=2; shift ;;
     *) DIRS="$DIRS $1"; shift ;;
   esac
 done
@@ -88,6 +92,10 @@ for d in dirs:
         r = rows[0]
         r[1] = "999"
         rows[0] = r
+    if BRK == "2" and rows:
+        r = rows[0]
+        r[2] = "九"                     # ★志面字段写成非数字★＝旧形在这里必 ValueError 崩＝本枚负例要证的是「记红、不崩」
+        rows[0] = r
     okc = okl = True
     miss = []
     extra = []
@@ -102,8 +110,16 @@ for d in dirs:
         if crows != ",".join(map(str, c_now)):
             okc = False
             extra.append("%s.cmp(%s≠%s)" % (k, crows, ",".join(map(str, c_now))))
-        want = set(int(x) for x in lrows.split(",") if x.strip())
-        if not want <= set(l_now):
+        try:
+            want = set(int(x) for x in lrows.split(",") if x.strip())
+            bad_field = None
+        except ValueError:
+            want = set()
+            bad_field = (lrows or "空")
+        if bad_field is not None:
+            okl = False
+            extra.append("%s★志面字段非数字＝「%s」⇒ 记红档、不崩★（旧形＝ValueError 让整件失明）" % (k, bad_field))
+        elif not want <= set(l_now):
             okl = False
             extra.append("%s.log(表值不在现跑里)" % k)
         elif len(l_now) > len(want):

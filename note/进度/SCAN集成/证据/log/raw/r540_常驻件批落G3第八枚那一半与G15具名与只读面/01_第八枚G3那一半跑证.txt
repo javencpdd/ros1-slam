@@ -1,0 +1,20 @@
+# 第八枚件（判读面复核）改形跑证 令日＝2026-10-21 17:59:25
+## 件身份 sha16 与行数（旧←HEAD ‖ 新←盘上）
+  旧 45744d78b8e84618 130 行 → 新 6fe429c99b10500d 146 行
+## 形检＝bash -n ‖ SYN 件单检
+  bash -n rc=0
+  [OK] bash -n   /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/证据/_anchor_key_check.sh
+    [OK] python 段 L37-L145 定界符=PYEOF /home/jack/ysc-code/ros1-slam/note/进度/SCAN集成/证据/_anchor_key_check.sh
+  PY SYNTAX OK（被检件数=1，内嵌 python 段合计=1）
+## 正控＝真目录只读对表（期望红面 0 ‖ rc=0）
+  
+  小结＝红面枚数★0★ ‖ 表合1 ‖ 表不合0 ‖ 未带表0（★未带表只报不拦★）
+  本件 rc=0（0＝已带表的窗逐枚对表全合＋安全式命中＝出现枚数；5＝任一名点；★只报不拦、不进任何在册件的 rc★）
+## 旧负例 --BR_MISS（期望 rc=5）
+  rc=5
+## ★新负例 --BR_NONNUM（G3 那一半＝期望 rc=5、记红不崩、点名键与字段）
+        点名＝ANCHOR_P100_BAR_cmp★志面字段非数字＝「九」⇒ 记红档、不崩★（旧形＝ValueError 让整件失明） ‖ ANCHOR_P90_BAR_cmp.log★多命中1枚★(时点性) ‖ 
+  小结＝红面枚数★1★ ‖ 表合0 ‖ 表不合1 ‖ 未带表0（★未带表只报不拦★）
+  rc=5
+## 对立面＝旧式在同一条输入上必崩（不落仓）
+  旧形＝ ValueError ＝一行坏表让整枚复核件失明＝坏得比红更坏
