@@ -2,9 +2,11 @@
 # _batch_readout.sh —— ★批末读数面五枚的可复跑采集件★（登记面纪律件、★不是闸★：不进任何件的 rc、不入门禁串、不改成员与语义）
 # 起意＝追加七十九③ 立的「批末读数面固定五枚、缺一即自曝」连犯四次（批137—139 漏 P8、批142 漏两枚、批150 取的是提交前的丁案源、
 #         ④ 甲/乙累计 自批143 起一律报"未动"却从没跑过式）⇒ 把"当次同调用现取"从脑子里的动作变成一件能跑、会翻红的东西。
-# 用法＝bash _batch_readout.sh [--phase pre|post] [--skip-chain] [--BR_SKIP=<①..⑤>]
+# 用法＝bash _batch_readout.sh [--phase pre|post] [--skip-chain] [--BR_SKIP=<①..⑤|6=附二|7=附三|8=附四>]
 #   --phase post 只影响⑤的措辞（★提交前跑⇒本批那次提交不在丁案源内★）；--skip-chain 用于同一批内早先已跑过串的那一遍；
 #   --BR_SKIP=3 是★负例开关★：故意让第③枚取不到 ⇒ 本件必须翻红（rc=5）并点名缺哪枚。
+# 附面（★全部只报不拦＝不进 MISS、不进任何件的 rc★）＝附 清盘计数 ‖ 附二 清单覆盖面（第六枚）‖ 附三 firing 探测（第九枚）
+#            ‖ ★附四 governance 漂移闸（第十枚＝2026-10-21 真人点出四处陈旧后建）★＝红档面必须归零、笔权与历史面走旁报★
 # 面（★两面分别写死★）＝①②③④⑤ 全在★宿主面★跑（账构与引用件必须显式传根 VLB_ROOT／VCC_ROOT，容器内无 .git ⇒ 账构恒 rc=9）；
 #              容器面只跑门禁串与清盘计数。
 set -u
@@ -142,6 +144,16 @@ if [ "$BRSKIP" = "7" ]; then note "附三"; echo "  （负例开关跳过）"; e
     bash "$RQ" --batch "${BR_BATCH:-?}" --phase "$PHASE" 2>&1 | sed 's/^/  /'
     echo "  ★本枚的 rc 只作登记面读数、不进 MISS、不改任何在册件的 rc★（★红＝人要看一眼：按 R355 同规格扩、不等句★）"
   else note "附三"; echo "  ★firing 探测件不在位＝不可现取★"; fi
+fi
+
+echo
+echo "── 附四：governance 漂移闸（★第十枚＝真人 2026-10-21 点出四处陈旧后建的格子★；★只报不拦、不入门禁串★）──"
+if [ "$BRSKIP" = "8" ]; then note "附四"; echo "  （负例开关跳过）"; else
+  GDC="$ROOT/note/进度/SCAN集成/证据/_governance_drift_check.sh"
+  if [ -f "$GDC" ]; then
+    bash "$GDC" 2>&1 | sed 's/^/  /'
+    echo "  ★红档＝施工侧★有写入通道★的面（技能包／仓根 README／门面现行指针节）＝必须归零；旁报＝笔权面（计划书正文）与不回改面（门面历史行）＝只点名★不记红★"
+  else note "附四"; echo "  ★漂移闸件不在位＝不可现取★"; fi
 fi
 
 echo
