@@ -1,0 +1,7 @@
+02_VAR 门禁位由 0 变 5 —— ★新增红当场归因（未消除＝不带窗起、记录在案）★
+
+★现跑★＝容器面 `bash scripts/verify/v_window_preflight.sh` ⇒★rc=5★（★1 项不成立★）＝★①ISO_RC=1≠0★（②numpy、③load1=15.27／上限 36.00 均过）。
+★定位到★＝`v3_isolation.sh` 的★第 [4] 项★打印 ★BAD: faster_lio ‖ hdl_localization ‖ lite3_bringup ‖ lite3_safety★＝rospack 解析路径不在 ★/home/ros1-slam★ 之下（★本机真实仓根＝/home/jack/ysc-code/ros1-slam＝异机克隆的固有差异★）；★第 [10] 项在 VAR 自带 source 的全环境里全绿★（四变量各段数=2 越界=0 ‖ rospack 包数=270 越界=0 ‖ rospy 来源／numpy 来源均在允许面内）。
+★与串面口径的冲突（★本批新登记的读法问题★）★＝★门禁串第 3 步 ISO 恒 rc=1★＝★在册已知态「ISO甲1」★、而★VAR 第①条要求 ISO_RC=0★ ⇒★同一枚 ISO 在两面被要求两个值★ ⇒ 今天 12:40 ‖ 12:45 两遍串里 VAR 都记为★0★、13:12 起为★5★＝★VAR 的这枚判据此前是如何过的、我未查完★（★已排除＝我的残留＝清干净后仍 5；已排除＝变体预检＝`v_window_preflight_x86_variant.sh` 独立跑仍★rc=0★★）。
+★因此本批的动作★＝★不开窗★（★VAR 是起窗闸、闸红就不起★）＋★把「窗号未登记、窗件未入库、窗未起」三件一起交出去★；★下一棒第一件＝查 VAR 在 12:45→13:12 之间由谁改的判据口径★（★两枚候选＝①串面 VAR 步实际调的是★变体★件、我这次把手跑成了★本体★＝★我的调用形错★（追加一百零七①同族）；②本体确被换过＝`git log -p scripts/verify/v_window_preflight.sh` 现查★）。
+★限定★＝★不把「VAR=5」读成「机器被我的窗跑坏了」★（ISO 的 [4] 项是★异机路径★固有差异、与窗无关）；也不把「ISO甲1」读成「VAR 应该红」——★两枚在册口径未对表★＝★未证★。
