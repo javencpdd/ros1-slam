@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _build_skill_manifest.sh —— ★技能包镜像清单的法定生成件（施工侧自有登记面件，不入门禁串、不改任何在册件的 rc）★
+# _build_tooling_manifests.sh —— ★tooling 两面清单（子清单＋顶层）的法定生成件（施工侧自有登记面件，不入门禁串、不改任何在册件的 rc）★
 # 起意＝真人 2026-10-21 明文处置「清单闸」那一格＝★闸防「手改」、不防「重建」⇒ 走法定生命周期★：
 #   ①先写完全部 SKILL.md／角色件内容 ②★按生成序重建★ tooling/skill/_sha256_manifest.txt（生成≠编辑，新件落位即换代）
 #   ③改动面若触到★顶层★清单覆盖集才同批刷顶层（本件★不碰★顶层清单＝只读现取它一次，用来验证排除面的出处）
@@ -11,7 +11,7 @@
 #   `RESTORE.sh` ＝★由顶层 `tooling/_sha256_manifest.txt` 覆盖★⇒ 本件每次跑都要★现读顶层清单里那一行★★在不在位★，不在＝拒绝生成（rc=9）
 #     ⇒ 理由＝"排除"必须是★有出处的移交★，不能是我自己少写一件＝追加一百二十二②「生成面每跑一次重播一遍」的同族
 # 默认★拒写★＝没有 --by-order 明令旗一律 rc=9 退出（＝对已入库面的重建必须由明令触发，同 R534 断言③ 的 RERUN=1 形）
-# 用法＝bash _build_skill_manifest.sh --check | --build --by-order | --BR_NOFLAG
+# 用法＝bash _build_tooling_manifests.sh [--target skill|top] --check | --build --by-order | --BR_NOFLAG | --BR_OK
 #   --check＝只校验（逐条 sha256sum -c 面）＝不合⇒ rc=5 并逐枚点名（★这才是"改完还没重建"的正常红态★）
 #   --build --by-order＝按上面的生成序★整体重写★清单（生成物、非手改）
 #   --BR_NOFLAG＝★负例开关★＝不带明令旗跑 --build ⇒ 本件必须翻红（rc=9）；带旗的★正控★另由 --BR_OK 跑（生成完立刻自删到 /tmp 的副本，不落仓）
