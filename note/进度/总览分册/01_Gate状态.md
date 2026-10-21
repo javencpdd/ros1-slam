@@ -26,21 +26,21 @@
 - **PASS**（2026-10-04 小美，独立静态核验）
 ### G6
 - **PASS（完全，L1 收口 2026-10-06）**（2026-10-04 小美：①②④⑤ PASS
-- ；③ SUP 心跳为 GAP-1 临时代偿 + hold 复位需 SUP+M6 双重启=L1，PARTIAL——2026-10-06 L1 修复收口：SUP 自动复位语义（恢复观察状态机+防振荡+auto_recover 安全阀）回归 6/6，证据 [P6/证据/L1回归_六判据.log](P6/证据/L1回归_六判据.log)、04 台账 D-L1-1/2/3
-- ；**2026-10-06 小美验收确认**：六判据逐字核验+payload 对账复算（bak+diff==现役）+设计符合性全过，G6-③ 转完全 PASS，报告见 [P6/进度文档.md](P6/进度文档.md) L1 正式验收节）
+- ；③ SUP 心跳为 GAP-1 临时代偿 + hold 复位需 SUP+M6 双重启=L1，PARTIAL——2026-10-06 L1 修复收口：SUP 自动复位语义（恢复观察状态机+防振荡+auto_recover 安全阀）回归 6/6，证据 [P6/证据/L1回归_六判据.log](v7/S3/P6/证据/L1回归_六判据.log)、04 台账 D-L1-1/2/3
+- ；**2026-10-06 小美验收确认**：六判据逐字核验+payload 对账复算（bak+diff==现役）+设计符合性全过，G6-③ 转完全 PASS，报告见 [P6/进度文档.md](v7/S3/P6/进度文档.md) L1 正式验收节）
 ### G7
 - **PASS（② 降级注记保留：hdl 定位质量不判，转真机 G8）· 非无条件 PASS**（2026-10-08 小美 Gate 补验收：**G7-① 由 PARTIAL 转 PASS、D-L1（GAP-4）遗留项关闭**——实起实采（roscore 11313 + 系统版 noetic map_server + 现行 lite3.yaml）
 - ；负判据根除：yaml-cpp／bad conversion／exception 双通道（节点 stdout/stderr + /rosout）零命中，控制台 `Read a 299 X 290 map @ 0.050 m/cell`
 - ；正判据实测 **width=299 / height=290 / resolution=0.050000 / origin=[-8.800000, -4.350000, 0.000000]**（z 非 nan）、frame_id=map、meta≡info、**len(data)=86710=299×290**，与 pgm 头 `P5 299 290`+体 86,710B=86,725B 三方逐字节闭合
 - ；红线零违规（三件 sha256 起前=退后全等、foxy 五 PID+180237 `lstart` 逐位一致零扰动、11312 全程零监听、/cmd_vel 与 ros2qnx 零出现、环境三步零 foxy 混装）
 - ；退净=本单进程零残留+11313 释放
-- ；证据 [P6/证据/G7-1复验_D-L1_小美.log](P6/证据/G7-1复验_D-L1_小美.log) + raw/G7-1_* 五件，报告见 [P6/进度文档.md](P6/进度文档.md) G7-① 复验节。**★ 附带上报 N-G7①-1（预存在回归，非本单造成）**：`v3_isolation.sh` 全量 [1]–[9] = **ISOLATION FAILED EXIT=1（两次复现）**，仅 [5][6] 触发、命中全在 `95_simulation/lite3_gazebo_sim/launch/` 域、生产域零命中、最后一次在册全量 OK=2026-10-05 04:33、涉事 mtime（10-05 20:36～10-06 13:40）全早于本次开工、脚本本体工作树净未被改
+- ；证据 [P6/证据/G7-1复验_D-L1_小美.log](v7/S3/P6/证据/G7-1复验_D-L1_小美.log) + raw/G7-1_* 五件，报告见 [P6/进度文档.md](v7/S3/P6/进度文档.md) G7-① 复验节。**★ 附带上报 N-G7①-1（预存在回归，非本单造成）**：`v3_isolation.sh` 全量 [1]–[9] = **ISOLATION FAILED EXIT=1（两次复现）**，仅 [5][6] 触发、命中全在 `95_simulation/lite3_gazebo_sim/launch/` 域、生产域零命中、最后一次在册全量 OK=2026-10-05 04:33、涉事 mtime（10-05 20:36～10-06 13:40）全早于本次开工、脚本本体工作树净未被改
 - ；**G2 待主理人复评**，本验收未现场改脚本或改 sim launch 凑过
 - ；清理项=既有孤儿 `rosout` 328580（起前即在位）。 **〔小美 R23(五)／O-3 处置，2026-10-08〕**清理项补正：本仓另有一孤儿 rosout **1373109**（属 ysc），经小美 M2R6 溯源为本仓 logs-20261008_045922 未收口跑的漏网（非 G7 在册的起前件），已于 2026-10-08 09:2x 以 ps 判在位后 kill 销项、复检零存在 ⇒ **O-3 清理面闭合**
 - ；328580（属 ros1-slam、lstart 10-06 19:51:44）仍为起前既存、无 sudo 通道不动，继续挂清理项。前史：2026-10-04 小美 PARTIAL（② hdl 契约层 PASS（GAP-2 手动组合+样张地图降级注记，定位质量不判）、③ PASS
 - ；① map_server 拒收 origin z=nan=D-L1 PARTIAL，修 yaml 与底图重采同场））
 ### G8/G9
-- **G8 前置配置 PASS**（2026-10-05 小美，静态批：C3 min_z=-0.30 定案+M2 壳 TF 四 args 占位行+留底 sha256 四项对账+推导复核自洽，证据 [P8prep/证据/G8前置配置_小美核验.log](P8prep/证据/G8前置配置_小美核验.log)
+- **G8 前置配置 PASS**（2026-10-05 小美，静态批：C3 min_z=-0.30 定案+M2 壳 TF 四 args 占位行+留底 sha256 四项对账+推导复核自洽，证据 [P8prep/证据/G8前置配置_小美核验.log](v7/S4/P8prep/证据/G8前置配置_小美核验.log)
 - ；**G8/G9 本体仍未到**：余 Q13 俯仰精测（G8 同场残差反推）/真运动链，F5 顺序 G3→G8→G9 不可倒，明令不硬闯——非 FAIL）
 ### G-组合（P7）
 - **PASS**（2026-10-05 小美，独立核验：三 mode 全 PASS+GetPath outcome=0+SUP 真源三段含修正批 2.89s 回归+[5] 正反向+样张/第三方零漂移+foxy 快照一致+DoD 10/10
@@ -49,7 +49,7 @@
 ### G-G8b（仿真测试台）
 - **PASS（边界注记）**（2026-10-05 小美，独立核验：run3 13 CHECK 全 PASS 逐字复核+静态红线全过（ros2qnx 零节点引用/写者唯一/ysc·test 双 0/拷贝包零改动/payload 7 件 sha256 零改动/v3_isolation ISOLATION OK）+偏差 D-1..5 全部追认，**D-5 判据几何修正成立（traj_maze 实测去程 34.8m、三 goal 落线 0.000m、最坏走廊距 32.4m＜下限 35.6m），常数 33.6 附口径注记=沿用既有注释口径、实测以 34.8m 为准（+2 松弛覆盖，裕度 0.8m）**
 - ；**边界=规划/导航层活性+正确性，非闭环非估计层（坑14），不动 G0–G9 判据原文，G8 真机正路照旧**
-- ；证据 [仿真测试台/证据/](仿真测试台/证据/)，报告见 [仿真测试台/进度文档.md](仿真测试台/进度文档.md)）
+- ；证据 [仿真测试台/证据/](v7/S3/仿真测试台/证据/)，报告见 [仿真测试台/进度文档.md](v7/S3/仿真测试台/进度文档.md)）
 ### GazeboM1（仿真主线）
 - **PASS（边界注记：闭环转 M2）**（2026-10-06 小美，独立核验：返工 R1 后四判据 ①13.2Hz≥5 ②264.4Hz≥100 ④出图 570 帧/522,883 点/飞点 0.0000 全 PASS、③漂移 26.411m≤0.5 **FAIL 事实保留**但 traj.txt CSV 独立抽验 faster_lio 自身轨迹与 gt 全程吻合至 1.5cm（0.06%）+四元数恒等=**非估计层漂移**，闭环未完成归 harness（planar_move odom yaw 开环积分至 π 而机体物理未转向，CSV 坐实）→划转 M2
 - ；D-M1-5（rslidar collision 删除，xacro 独立展开 rslidar 真实 collision=0+sha256 四件对账）/D-M1-6（gt 探针 p.pose→p.position，diff 单行）复核 PASS
@@ -57,11 +57,11 @@
 - ；**核心命题成立：Gazebo 物理仿真可支撑 faster_lio 仿真验证（坑14 局限在物理仿真不复现）
 - ；hdl 属 M2 定位接入待验**
 - ；勘误 O1「No point 176→3」实为 1587→3（三件留证一致）
-- ；证据 [GazeboM1/证据/](GazeboM1/证据/)，报告见 [GazeboM1/进度文档.md](GazeboM1/进度文档.md)）
+- ；证据 [GazeboM1/证据/](v7/S3/GazeboM1/证据/)，报告见 [GazeboM1/进度文档.md](v7/S3/GazeboM1/进度文档.md)）
 ### v4.2 补丁（文档批）
 - **PASS**（2026-10-06 小美，独立核验：sha256 8c0651fc… 吻合+v4/v4.1 正文零改动（git diff ba33502^ ba33502 为空）+X1–X7 逐项对上 02 坑册/仿真测试台/GazeboM1/G8sim/manifest 证据+勘误 O1 四处在位（176 口径残留 0）/O4 env.sh=1/O5 .gitignore 两行+03 六仓库+一致性抽查全中（1.5cm/0.06%、13 CHECK、310×295=pgm 实测、298,350 点、样张 c034c906 实测全等）
 - ；轻缺陷 d1–d3 随 M2-5 落账（入口件名 m2_gazebo≠mode_nav_gazebo/11312 双口径注记/坑14 02 侧落位）
-- ；报告见 [M2/进度文档.md](M2/进度文档.md)
+- ；报告见 [M2/进度文档.md](v7/S2/M2/进度文档.md)
 - ；**M2 运行时批暂停待主理人仲裁**）
 ### M2（物理仿真闭环主线）
 - **PASS（条件注记：仿真覆盖 faster_lio✅ teb✅（功能面
@@ -82,7 +82,7 @@
 - ；M2-5 勘误 d1/d2/d3 落 04/02 核验通过
 - ；隔离/样张 c034c906/foxy 四行/退净验收时点活体抽检全过
 - ；**边界=仿真覆盖 faster_lio✅ teb✅ hdl❌，两层均不可替代 G8/G9 真机 Gate**
-- ；报告见 [M2/进度文档.md](M2/进度文档.md)〔同被测件（XAC b32f49fd／PLG a32e70ff／SO 零重编译）、判据集为超集（gate 十字键，新增 press_late_G5）之 harness 追加三跑：正向两跑 rc=0、5 PASS/0 FAIL、G5 与 G5c2 含 late 采样全 PASS（ages 集内 0.007–0.093s、单值 0.099s 出自**设计内阴性对照跑**不入正向带）、G5c1 明细 ages 全 PASS、dev_odom 0.161–0.180、dt 8.4–8.5、四口 TCP/UDP 逐跑全零、逐跑退净落件
+- ；报告见 [M2/进度文档.md](v7/S2/M2/进度文档.md)〔同被测件（XAC b32f49fd／PLG a32e70ff／SO 零重编译）、判据集为超集（gate 十字键，新增 press_late_G5）之 harness 追加三跑：正向两跑 rc=0、5 PASS/0 FAIL、G5 与 G5c2 含 late 采样全 PASS（ages 集内 0.007–0.093s、单值 0.099s 出自**设计内阴性对照跑**不入正向带）、G5c1 明细 ages 全 PASS、dev_odom 0.161–0.180、dt 8.4–8.5、四口 TCP/UDP 逐跑全零、逐跑退净落件
 - ；阴性对照跑 press_late_G5=False 把整跑判死（rc=1、未发 goal）〕〔小美 M2R6 待决③ 分代际句，2026-10-08
 - ；F1n–F5n 原句数字不回改〕）〔小美 R29（三）落册、小明执行（2026-10-08 11:42）〕第五代（批1 改后件：SM 28a49f89／647 行 ＋ XAC ef23da2d）新五连全绿（5 跑 rc=0、判定 7 PASS/0 FAIL、E3 base_link 父帧唯一 odom、加压档 sim2=62.39 span=39.70），**但它不充 M2-2 的连击**，只算批1 的复跑（回归）证据
 - ；M2-2 回填的唯一连击仍是 F1n–F5n，**禁写 10 连**。dev 带自终稿 0.166–0.176 外扩到 0.156–0.178（下沿亦破）⇒ 依「给带不给门」，0.35 门值不动、分代际列带。M2-1／M2-4（stageA 面）批1 **未取得有效跑**（rtf_motion 0.240／0.233 两跑作废，第二次跑未收口）⇒ 在册证据仍停在改前代际，取得有效 stageA 前不得声称已复取。
@@ -92,7 +92,7 @@
 - ；**口径①②追认**：mbf 组合 action 透传阶段码（move_base_action.h:116 源码注释「copy outcome…」+MoveBase.action 13 vs ExePath 105 双表实证，修法#4 回退分流语义零漂移）、「ExePath 到达」T1 结构性不可达（mode_nav_sim.launch 头注边界原文逐字核验「NOT 验证：闭环导航效果」，到达归 T2=M2 stageB teb 在案，非判据弱化）
 - ；隔离终态活体抽检全过（11313/11312 无监听、foxy 零触碰、oscillation_timeout 终态 0.0）
 - ；注记 3 件移交小明（4.8s 口径注记/55 分支补留底/5 尝试中 2 跑补留底）
-- ；证据 [仿真测试台/证据/log/matrix_w1/](仿真测试台/证据/log/matrix_w1/)，报告见 [仿真测试台/进度文档.md](仿真测试台/进度文档.md)）
+- ；证据 [仿真测试台/证据/log/matrix_w1/](v7/S3/仿真测试台/证据/log/matrix_w1/)，报告见 [仿真测试台/进度文档.md](v7/S3/仿真测试台/进度文档.md)）
 ### 矩阵 v2 定稿
 - **追认通过**（2026-10-07 小美核验＋主理人预裁决采纳：五件齐（manifest+A/B/C(D)/E(F)）
 - ；3D 维 T0–T3r 自洽+X4 延伸口径互锁（仅证路径形状、真越障归真机/MuJoCo）
@@ -113,7 +113,7 @@
 - ；实测过 M2R2 门 0.25、不过 C 文 0.3→全矩阵统一 0.25 为有效性前提）/D-W2-4+3D 维**采纳附修正边界**（2.5D 自研 elevation→costmap 层承载 T2r 路径形状判据、零 lvr2 依赖链
 - ；诚实入册=永久放弃悬挑/多层场景，mesh_navigation ROS2 列观察）。**★新发现 N1（重大）**：perlin3d 勘察选点缺陷——mockamap perlin3D y∈[−10,10]（y_length=20 中心对称源码实证）而 w2_survey free=~occ 把云外区判自由+bridge「其余=free」→goals 3/4 个（y=−19.45）在图外假自由带，正向对弧长≈直线距实证路径走在不存在地形上，**perlin3d 6/8 数据整体无效，「75% 记档」改判「勘察修法+重做」移交 Wave3 必办**（不采纳判据修订
 - ；maze20/post2d 正方形模板核验无缺陷）
-- ；N2 RTF 实测矛盾/N3 DWA 败#1#2 与 perlin3d 第二轮无原件/归档脚本≠执行版/N4 口径差——均注记+路由小明补登 4 项、小张勘察修法与矩阵稿 v2.1 勘误。证据 [仿真测试台/证据/log/matrix_w2/](仿真测试台/证据/log/matrix_w2/) 48 件，报告见 [仿真测试台/进度文档.md](仿真测试台/进度文档.md) Wave2 验收节）
+- ；N2 RTF 实测矛盾/N3 DWA 败#1#2 与 perlin3d 第二轮无原件/归档脚本≠执行版/N4 口径差——均注记+路由小明补登 4 项、小张勘察修法与矩阵稿 v2.1 勘误。证据 [仿真测试台/证据/log/matrix_w2/](v7/S3/仿真测试台/证据/log/matrix_w2/) 48 件，报告见 [仿真测试台/进度文档.md](v7/S3/仿真测试台/进度文档.md) Wave2 验收节）
 ### 测试矩阵 Wave3
 - **验收 PASS（2026-10-07 小美：补登四项核验落账+A5 双 PASS 独立复核+3D spike 设计件在档
 - ；perlin3d 0/8 红线停手如实记档→移交 R2 两轮封顶，终局见下行「矩阵收官」
@@ -125,7 +125,7 @@
 - ；对齐 stageB 基线 8.6s/0.179m）
 - ；④3D spike 设计确认（不实现）：/tmp/simtb_payload/spike3d_elevation_costmap_design.md（01f30b8b）=elevation_mapping_cupy 契约对照（CPU numpy 不取 GPU）+w3_elevation_node 接口表（unknown=−1 不做「其余=free」N1 教训写死）+costmap 集成两档+预检 4 项，实现前置=小张接口复核+主理人批准
 - ；壳包三件零改动（fd4c62a4/aba9b658/cbbb8f0b 不变）
-- ｜证据 [仿真测试台/证据/log/matrix_w3/](仿真测试台/证据/log/matrix_w3/) 34 件+对账链，施工记录见 [仿真测试台/进度文档.md](仿真测试台/进度文档.md) Wave3 节）
+- ｜证据 [仿真测试台/证据/log/matrix_w3/](v7/S3/仿真测试台/证据/log/matrix_w3/) 34 件+对账链，施工记录见 [仿真测试台/进度文档.md](v7/S3/仿真测试台/进度文档.md) Wave3 节）
 ### 测试矩阵收官（W3-R2+全矩阵终局）
 - **收官 PASS（2026-10-07 小美，矩阵终局关闭）**——W3-R2 证据 53 件 sha256 链 52/52 全 OK+68 点单逐单复读（sector1 8/8 过、其余 60/60 确定性 55@3.0s，n_selected=1/4）
 - ；A 表 perlin3d 行「裁撤：planner 长程能力不足，图与栈无责」三处口径对账一致
@@ -133,16 +133,16 @@
 - ；04 补登四条+p3b 关闭 a4ae3eb+端口表 b55d9d7 在案。**最终状态表：M5✅/全局对比✅（20/20）/局部✅（teb 定型，DWA 裁撤）/组合✅（双 PASS）/多地图✅（perlin3d 除外）/定位仿真❌（hdl segv 转真机 G8）/perlin3d 远角❌（裁撤，两轮封顶）/3D 地形规划⏸（spike 设计件 01f30b8b 待二期）**。**边界注记定稿=仿真覆盖 faster_lio✅ teb✅ hdl❌ perlin3d 远角❌**（两层仿真不可替代 G8/G9 真机 Gate，X4 不动）。勘误 2 处（wave1 T2 引用误标→实为 W3 A5
 - ；「860 万点 perlin3d」口径混引→perlin3d 云实测 116,747 点）+补档 2 件（W3 T2 stdout，w3_t2_stdout_补录.sha256）随收官落账
 - ；遗留=真机域 hdl+G8/G9 本体、二期 3D spike，矩阵自身零未闭合施工项
-- ｜报告见 [仿真测试台/进度文档.md](仿真测试台/进度文档.md) 收官验收节
+- ｜报告见 [仿真测试台/进度文档.md](v7/S3/仿真测试台/进度文档.md) 收官验收节
 ### P0 波次 M5.1（roadmap C #2）
 - **验收 PASS（口径 A 收口 · 边界注记：到达归 T2）**（2026-10-07 小美正式验收·独立核验未启节点：施工面复核——Q11 对账四 action×五件套类型/话题全一致+bak↔现役 diff 独立复算仅注释级（b93ce4c2→44e1161f）/修法#1–#6 留底 sha256 链尾 9f661722 实测全等/双跑 log 关键行逐行复读（run1/run2 同签名：wait 1.00s→get_path outcome=0 0.05s→exe_path 101 看门狗 90.01s→aborted 91.8s，101 收尾=契约路由非悬挂）/v_task_smach.sh bash-n+双跑独立复跑与留档判定逐字一致（False/exit=1）/隔离终态+foxy 五 PID+180237 抽检全过/违规项无
 - ；**主理人裁决口径 A 复核成立**——①边界原文一致（mode_nav_sim.launch L12「NOT 验证：闭环导航效果」逐字在案，W1 追认+矩阵收官 M5✅ 同口径）②判据本体零弱化（到达归位 T2 闭环域已四轮实证 0.171–0.183m，M5.2 SCAN 后 T2 再验到达，判据保留在案
 - ；B3 判据系设计期信息差非施工偏差）③收口目标=C12 契约链可运行（Q11+GetPath+C11 路由+判据件）已全证
 - ；样张前缀勘误成立（现值 aaa09362…，c034c906 系旧值，04 P0-5 注记+验收追认）
 - ；C12 覆盖=wait/get_path/exe_path 实链验+recover 经 C11 注入（W1）+navigate_to_pose 契约/Q11 在册（任务级随 M5.2 覆盖）+scan_navigate 属 M5.2（前置=SCAN Gazebo 集成 C #3）
-- ｜验收 log [M5/证据/log/m51/G_M51_验收_小美复核.log](M5/证据/log/m51/G_M51_验收_小美复核.log)，报告见 [M5/进度文档.md](M5/进度文档.md) M5.1 正式验收节）
+- ｜验收 log [M5/证据/log/m51/G_M51_验收_小美复核.log](v7/S4/M5/证据/log/m51/G_M51_验收_小美复核.log)，报告见 [M5/进度文档.md](v7/S4/M5/进度文档.md) M5.1 正式验收节）
 - ｜施工申报（2026-10-07 小明，commit aa8a6c7）：设计稿 A–E 五件入库（sha256 全等）+Q11 头注回填+双跑 aborted 判据一/二未达按红线停手+判据件新增（13 CHECK 零触碰）+04 P0-1..P0-5
-- ｜证据 [M5/证据/log/m51/](M5/证据/log/m51/)）
+- ｜证据 [M5/证据/log/m51/](v7/S4/M5/证据/log/m51/)）
 
 ### P0 波次 SCAN 集成（roadmap C #3 · A7 P1+P2）
 - **P1 判据① PASS(6/6) + P2 判据② PASS(7/7)
@@ -165,4 +165,4 @@
 
 
 > 备注（2026-10-04）：**P4 依赖核对（21/21 命中全 /opt/ros）+ P5 编译构建（五批全 PASS 零 OOM + WRAP2 纯默认收尾）已完成，Gate G4 PASS**（devel 产物可解析、teb/mbf/adapter 系统版证明齐备、swap 撤净、CATKIN_IGNORE/模板修正落账完整
-> ；证据 [P5/证据/G4.log](P5/证据/G4.log)，报告已追加 [P5/进度文档.md](P5/进度文档.md)）。P3a 全部施工（S1–S3，C0–C13 共 26 文件）已完成且 Gate G3a PASS（[P3a/证据/G3a.log](P3a/证据/G3a.log)）。P3a.0 mbf 组件实测证据 690 行：[P3a0_mbf组件实测.log](计划书v4升级/证据/P3a0_mbf组件实测.log)。S9（ros-noetic-nav-core-adapter 0.3.0）已装、Q9 关闭。
+> ；证据 [P5/证据/G4.log](v7/S4/P5/证据/G4.log)，报告已追加 [P5/进度文档.md](v7/S4/P5/进度文档.md)）。P3a 全部施工（S1–S3，C0–C13 共 26 文件）已完成且 Gate G3a PASS（[P3a/证据/G3a.log](v7/S1/P3a/证据/G3a.log)）。P3a.0 mbf 组件实测证据 690 行：[P3a0_mbf组件实测.log](v7/S0/计划书v4升级/证据/P3a0_mbf组件实测.log)。S9（ros-noetic-nav-core-adapter 0.3.0）已装、Q9 关闭。
