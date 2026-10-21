@@ -12,7 +12,8 @@
 #   --BR_WATCH＝★自测面（正例＋反例各一组、夹具只在 /tmp）★＝
 #     ①★阳性对照★＝造一枚「正文齐而清单缺席」的目录、★连跑两遍 phase=post★ ⇒ 第二遍必须 firing=YES（rc=5）＝证明「跨过一整批」这枚比对真有牙
 #     ②★阴性对照★＝同一枚夹具把★正文齐★这层门加上（在途＝非清单件 2 枚）连跑两遍 ⇒ 必须★恒 NO★＝证明丙案那枚门真在起作用、不是见缺就红
-#     ★两枚期望任一不合＝本件自己有缺陷 ⇒ 当场红（rc=5）并点名★
+#     ③★空集字面回归控★（★批188 加＝本批那枚在册缺陷的直接靶★）＝夹具内★零枚缺席★连跑两遍 ⇒ 第二遍打印的「上一次集合枚数」必须＝★0★（★旧版给 1＝把状态面的占位符「无」当成了成员★）且 rc=0
+#     ★三枚期望任一不合＝本件自己有缺陷 ⇒ 当场红（rc=5）并点名★
 # 退出码＝0（无 firing＝含「首次行使无前值＝只报不判」）‖ 5（★firing★ 或 ★自测不合期望★）‖ 9（前置缺失＝被试 raw/ 不在位）
 set -u
 ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
@@ -48,11 +49,20 @@ if [ "$BRW" = 1 ]; then
   bash "$0" --phase post --batch S3 >/dev/null 2>&1; C=$?
   bash "$0" --phase post --batch S4 >/dev/null 2>&1; D=$?
   echo "  阴性对照（在途＝正文不齐、连跑两批）＝第三遍 rc=$C ‖ 第四遍 rc=$D（两枚期望★均 0★＝丙案那枚门在起作用）"
+  # ★第三控＝空集字面回归控★（＝批187 在册那枚「无」被当成员数的★直接靶★）＝夹具里★一枚缺清单目录都没有★、连跑两遍 post
+  #   期望＝★第二遍打印的「上一条记录集合枚数」＝0★（旧版给 1）且 rc=0；★这控不过＝状态面读数仍在虚报★
+  mkdir -p "$T/raw/r902q_demo_有清单"
+  : > "$T/raw/r902q_demo_有清单/00_独立裁定.txt"; : > "$T/raw/r902q_demo_有清单/_sha256_manifest.txt"
+  OUT2=$(bash "$0" --phase post --batch S5 2>&1); E5=$?
+  N0=$(printf '%s\n' "$OUT2" | grep -oE '集合枚数＝[0-9]+' | grep -oE '[0-9]+' | head -1)
+  echo "  空集字面回归控（★夹具内零枚缺席★、连跑两批）＝第五遍打印的上一次集合枚数＝[$N0]（期望★0★）‖ rc=$E5（期望★0★）"
   BAD=""
   [ "$A" = 0 ] || BAD="$BAD 阳性第一遍应0实=$A"
   [ "$B" = 5 ] || BAD="$BAD ★阳性第二遍应5实=$B＝「跨过一整批」这枚比对没牙★"
   [ "$C" = 0 ] && [ "$D" = 0 ] || BAD="$BAD ★阴性应恒0实=$C/$D＝见缺就红＝丙案的门没起作用★"
-  if [ -n "$BAD" ]; then echo "  ★自测不合期望★＝$BAD"; RC=5; else echo "  自测合期望＝★这枚件的牙已被两组对照跑证★"; RC=0; fi
+  [ "$N0" = "0" ] || BAD="$BAD ★空集字面「无」被当成一枚成员＝枚数实=[$N0]★"
+  [ "$E5" = 0 ] || BAD="$BAD ★零枚缺席却红＝rc=$E5★"
+  if [ -n "$BAD" ]; then echo "  ★自测不合期望★＝$BAD"; RC=5; else echo "  自测合期望＝★这枚件的牙已被三组对照跑证（阳性／阴性／空集字面回归）★"; RC=0; fi
   rm -rf "$T"
   echo "本件（自测面）rc=$RC"; exit $RC
 fi
@@ -62,6 +72,7 @@ import io, os, re, sys, datetime
 
 RAW, STATE, BATCH, PHASE = sys.argv[1:5]
 MIN_CONTENT = 3
+EMPTY = "无"   # ★状态面空集占位符★＝★只作字面、不作成员★（批187 在册缺陷＝旧版把它 split 成 1 枚成员⇒枚数读数系统性 +1；firing 判定本身未坏＝本集合取自盘上实扫）
 print("== firing 探测（★丙案口径·常驻第九枚·只报不拦、不入门禁串★）==")
 rows = []
 for name in sorted(os.listdir(RAW)):
@@ -85,9 +96,10 @@ if os.path.exists(STATE):
             continue
         f = l.split("\t")
         if len(f) >= 4 and f[1] == "post":
-            prev_batch, prev = f[2], set(x for x in f[3].split(",") if x)
+            prev_batch = f[2]
+            prev = set(x for x in f[3].split(",") if x and x != EMPTY)
     if prev is not None:
-        print("  上一条 phase=post 记录＝批%s ‖ 其「正文齐而缺清单」集合枚数＝%d" % (prev_batch, len(prev)))
+        print("  上一条 phase=post 记录＝批%s ‖ 其「正文齐而缺清单」集合枚数＝%d（★已滤空集字面「%s」＝批187 在册缺陷的修★）" % (prev_batch, len(prev), EMPTY))
 cross = sorted(set(ready) & (prev if prev is not None else set()))
 if prev is None:
     print("  ★首次行使＝无前值 ⇒「跨过一整批」不可判 ⇒ 只报不判★（★这不等于「无缺」★）")
