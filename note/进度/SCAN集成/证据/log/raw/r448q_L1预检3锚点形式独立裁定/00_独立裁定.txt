@@ -2,7 +2,7 @@
 
 裁定时刻＝2026-10-19 04:45—04:55 UTC（宿主机 CST 12:45—12:55；落盘 12:55 CST）
 机名＝宿主机 `jack`（工作区副本 `/home/jack/ysc-code/ros1-slam`）‖ 被试容器＝`ros1-slam-sim`（99957655604a，Up 9 hours）
-裁定对象＝设计件 `note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` §8 第 72 行「零行为变化锚点＝W2-0 同款 13 CHECK」的**可接受形式**，＋ 退净口径「与 R419 同标可比」这条历史待办在基线回到 0 之后的去向
+裁定对象＝设计件 `note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` §8 第 72 行「零行为变化锚点＝W2-0 同款 13 CHECK」的**可接受形式**，＋ 退净口径「与 R419 同标可比」这条历史待办在基线回到 0 之后的去向
 纪律自报＝**零窗批**（未起任何 ROS 节点／master／gazebo／roslaunch，未跑冒烟件）、**只读**（未 kill 任何进程、未 git add/commit、未动 `scripts/`、未动 `ws/`、除本目录外未写任何件）
 bridge 纪律自报＝跑过 `python3 .ai/bridge.py resume --as qoder`（epoch=163，只读命令）；**未 claim**——本实例是被指派的独立裁定实例，不是 HANDOFF 里的 current 任务（current＝T-20261018-01），claim 会写 `state.json`、违反指派句「只写本目录」，故按红线 1／3 的优先级让位于指派句并如实登记。
 时钟警示＝容器内读数用 **UTC**（04:47:xx），宿主机用 **CST**（12:47:xx），固定 +8；本件时刻一律双标。
@@ -13,7 +13,7 @@ bridge 纪律自报＝跑过 `python3 .ai/bridge.py resume --as qoder`（epoch=1
 
 | 件 | 现读 sha（前16） | 读法与取到什么 |
 |---|---|---|
-| `note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` | 01f30b8bd4addcb | 全文读（78 行）；§8 第 69—73 行、§9 第 76—77 行逐字 |
+| `note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` | 01f30b8bd4addcb | 全文读（78 行）；§8 第 69—73 行、§9 第 76—77 行逐字 |
 | `ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh` | 837cd647606450b0 | 全文读（现读 162 行）；13 个 `chk()` 名与判据式逐条 |
 | `scripts/verify/syn_face.txt` | f68676d77103fa22 | 现读 106 行；`awk NR==81`＝该冒烟件（在册门禁面坐实） |
 | `…/raw/r448_预检3本体起量探针窗/run/smoke_stdout.txt` | 7a21333b16093748 | 全文读（37 行）；13 行 CHECK 逐字 |
@@ -27,7 +27,7 @@ bridge 纪律自报＝跑过 `python3 .ai/bridge.py resume --as qoder`（epoch=1
 | `…/raw/r447_真人六句到签落地批/01_收孤儿前逐条归因.txt` | b69a281055da7097 | 全文读；三枚孤儿 pid 与 uuid 逐条在册 |
 | 同批 `07_预检3本体可行性_两格要紧与R448七处风险.txt` | 42c0c152bfe09298 | 全文读；含**假锚点**发现（合同件 A1 只 grep 那五个字） |
 | `…/raw/r441_双实例零变化替身窗/witness.sh` ＋ `…/raw/r419_M3归因窗/witness.sh` | 两者全等＝1727dc594b3cf110 | 全文读七名式；用于我的现读计数（复现6） |
-| `note/进度/仿真测试台/证据/log/matrix_w2/W2-0_smoke_default_13CHECK.log` | 47067448f4a6ef18 | 全文读；13 行逐字（复现3） |
+| `note/进度/v7/S3/仿真测试台/证据/log/matrix_w2/W2-0_smoke_default_13CHECK.log` | 47067448f4a6ef18 | 全文读；13 行逐字（复现3） |
 | 同目录 `matrix_w1/W1-0_smoke_baseline_13CHECK.log`／`W1-F_smoke_after_navfn_13CHECK.log`／`run3_smoke_stdout.log`／`SCAN集成/证据/log/scan_C后回归_13CHECK.log` | 3cfb3b5f8d89929b／48210b8fee4b0f49／ff4bbea92b61cc19／060d13ea8a5faeb0 | 五份 13 行名集与状态逐字（复现3） |
 | `.Trash-0/files/00_总览.new.md` | 2780e42e1b7794e3 | 按行抽取：第 1843／1884／1983／2190／**2294** 行（复现4） |
 | `note/进度/00_裁定请求单_2026-10-09.md` | e630f945b25c0b00 | 抽取 R 补一百六十（第 2303—2317 行）＝送来裁的甲／乙／丙原文 |
@@ -44,7 +44,7 @@ bridge 纪律自报＝跑过 `python3 .ai/bridge.py resume --as qoder`（epoch=1
 ### 复现1 ── §8.3 原话与 §9 验收式（设计件真身，逐字）
 
 ```
-$ awk 'NR==72 || NR==76 || NR==77' note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md
+$ awk 'NR==72 || NR==76 || NR==77' note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md
 3. costmap_2d StaticLayer 双实例同栈实测（maze2d 上零行为变化锚点=W2-0 同款 13 CHECK）；
 - 接口逐项与本 §4 表一致；§8 预检 1–3 通过；maze2d 零默认行为变化锚点全 PASS；perlin3d 上 T2r 采数一跑（绕坡/直线对照）形状可辨、A0 RTF≥0.25。
 - 本文档 sha256 于落账时登记 04；实现开工前须小张接口复核+主理人批准（设计域裁决）。

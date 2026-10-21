@@ -1,0 +1,63 @@
+# G7-① D-L1 复验 · v3_isolation.sh 全量 [1]–[9] 复跑 · 2026-10-08 01:00 / 01:02（两次，结果一致确定性复现）
+# 命令：unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION; source /opt/ros/noetic/setup.bash; source /home/ros1-slam/scripts/env.sh; bash scripts/verify/v3_isolation.sh
+# ★ 结果 = ISOLATION FAILED EXIT=1（两次一致）——本单判据本体（map_server 装载）不受影响，隔离回归判定为预存在，归因见文末
+
+===== 第一次全文 =====
+[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+[2] 自研壳中是否含 /home/ysc
+[3] .bashrc 是否 source 了其他 devel
+[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+[5] ★ 平级模块间是否互相 include launch（20 号 K3）—— P7 修订（主理人裁决，04 台账）：豁免 lite3_bringup（TOP 编排层 = include 合法主体，mode 级组合 launch include 各平级模块属 TOP 职责）；K3 语义 = 平级 lite3_* 模块禁互 include（TOP 下行不豁免）—— v3 修复子 shell 丢 FAIL bug 口径不变
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_mapping.launch -> lite3_slam
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch -> lite3_localization
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch -> lite3_slam
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch -> lite3_navigation
+[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug；v4 语义注记：lite3_supervisor 亦在扫描范围（SUP 红线：绝不写 /cmd_vel，N5/C13）
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:3:       链路：gazebo(M2 xacro) → lite3_planar_drive 吃 /cmd_vel（M1 已证 cmd_vel 可驱动）
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:7:       红线：全链 11313 隔离域（调用方设）；/cmd_vel 写者唯一=m2_cmd_relay（本 sim 域，无 M6/SUP）；
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:20:  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="cmd_vel_relay"
+[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.cc/.h）
+=== ISOLATION FAILED ===
+EXIT=1
+
+===== 第二次全文（确定性复现）=====
+[1] ROS_PACKAGE_PATH 中是否含 /home/ysc
+[2] 自研壳中是否含 /home/ysc
+[3] .bashrc 是否 source 了其他 devel
+[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）
+[5] ★ 平级模块间是否互相 include launch（20 号 K3）—— P7 修订（主理人裁决，04 台账）：豁免 lite3_bringup（TOP 编排层 = include 合法主体，mode 级组合 launch include 各平级模块属 TOP 职责）；K3 语义 = 平级 lite3_* 模块禁互 include（TOP 下行不豁免）—— v3 修复子 shell 丢 FAIL bug 口径不变
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_mapping.launch -> lite3_slam
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch -> lite3_localization
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch -> lite3_slam
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch -> lite3_navigation
+[6] ★ 是否有人绕过 M6 直写 /cmd_vel（20 号 K2）—— v3 修复管道计数 bug；v4 语义注记：lite3_supervisor 亦在扫描范围（SUP 红线：绝不写 /cmd_vel，N5/C13）
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:3:       链路：gazebo(M2 xacro) → lite3_planar_drive 吃 /cmd_vel（M1 已证 cmd_vel 可驱动）
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:7:       红线：全链 11313 隔离域（调用方设）；/cmd_vel 写者唯一=m2_cmd_relay（本 sim 域，无 M6/SUP）；
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch:20:  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="cmd_vel_relay"
+[7] 磁盘余量 ≥ 15 GB（19 号反判据④）
+[8] ★★ 全 ws/src 扫描 /home/ysc 硬编码（v3 新增：覆盖第三方包，补 V2 盲区）
+[9] ★★ 40_navigation 壳包禁算法源码（v4 新增，N2/§2.6 硬规则 b：policy 层零 .cpp/.cc/.h）
+=== ISOLATION FAILED ===
+
+===== 归因证据（全部只读采集）=====
+-- [I-1] 涉事文件 mtime 全部早于本次运行（本次运行 00:55:22 起）--
+-rw-rwxr--+ 1 ros1-slam ros1-slam 1227 2026-10-05 20:36:29.241731661 +0800 /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_mapping.launch
+-rw-rwxr--+ 1 ros1-slam ros1-slam 1487 2026-10-06 13:40:23.579621228 +0800 /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch
+-rw-rwxr--+ 1 ros1-slam ros1-slam  895 2026-10-06 08:19:13.070333804 +0800 /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch
+-rw-rwxr--+ 1 ros1-slam ros1-slam 1892 2026-10-06 08:19:13.070333804 +0800 /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m2_teb.launch
+-- [I-2] 最后一次在册全量 [1]–[9] ISOLATION OK 留证 = 2026-10-05 04:33--
+-rw-rwxr--+ 1 ros1-slam ros1-slam 1059 2026-10-05 04:33:33.579235956 +0800 /home/ros1-slam/note/进度/v7/S4/P8prep/证据/ISOLATION_P8prep.log
+   涉事 sim launch 落位时间 2026-10-05 20:36 / 10-06 08:19 / 10-06 13:40 → 均晚于该 OK 留证 → 时序自洽
+-- [I-3] 脚本本体零改动（未被人凑过）--
+   (无输出=工作树干净)
+d5e16cd P7 变更批+三 mode 演练：modes/ 组合落地、SUP 真源、[5] 豁免 TOP 层
+2735be6 P6 分层验证：foxy 停/恢全过闸+Q11 五项裁决+mux 六源全过+SUP hold 链路+D-L1 nan 实测；v3_isolation 含[9]重落盘
+f09a2cc chore: 初始化 git 仓库 —— P0–P2 完成态快照（G0/G1/G1.5/G2 全 PASS，隔离自检 8 项通过）
+-- [I-4] 命中域归属：[5] 四条全在 95_simulation/lite3_gazebo_sim，[6] 三条同源；生产域零命中 --
+   生产域（非 95_simulation）复扫结果：（无输出=零命中）
+   即：[1][2][3][4][7][8][9] 全过；仅 [5][6] 由仿真测试台域触发
+-- [I-5] 本单零写入 ws/ 佐证：ws/ tracked 文件 git status 零 M --
+   ws/ 与 data/ 无任何 tracked 修改
+   现存 ?? 七件均为 M2 期 .bak/.orig 留底（10-06 落位），非本单产物

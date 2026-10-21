@@ -1,0 +1,32 @@
+# mbf_navigation.yaml —— M4 服务器主配置（mbf_costmap_nav 0.4.0 联邦式，v4 C0）
+# 转换自：opt/ref/navigation_params_orig/move_base_params.yaml（mbf 不带样例 yaml/launch，实测 find 空 → 全自研）
+# 字段权威：note/进度/v7/S0/计划书v4升级/证据/P3a0_mbf组件实测.log（P3a.0，2026-10-04）——参数名禁止凭记忆增删
+# ---- 插件注册表：[{name, type}] 元组列表（strings libmbf_abstract_server.so 实测；默认取各列表第一个，log 原文）----
+planners:
+  - name: "GlobalPlanner"
+    type: "global_planner/GlobalPlanner"   # 串源=原版 move_base_params.yaml base_global_planner 实测值；
+                                           # 该插件仅注册 nav_core::BaseGlobalPlanner（rospack plugins 实测）→ 加载须经 S9 nav_core_adapter（Q9）
+controllers:
+  - name: "TebLocalPlannerROS"
+    type: "teb_local_planner/TebLocalPlannerROS"   # 串源=teb_local_planner_plugin.xml 双注册实测（mbf_costmap_core::CostmapController）→ mbf 原生可载
+recovery_behaviors:    # 注册表来自 C11 recovery_policy.yaml；type 串与可加载性见 Q11（P3a.0 log 无 recovery 插件描述符）
+  - name: "clear_costmaps"
+    type: "clear_costmap_recovery/ClearCostmapRecovery"
+    # ★ Q11 联调首查：log 仅含包名 clear_costmap_recovery 与 ccr_plugin.xml 路径，未含 class 串；
+    #   且该插件只注册 nav_core 命名空间，mbf 侧加载路径（是否同样需 adapter）未实测。
+    #   兜底：加载失败则本列表退空 + recovery_enabled 保持 false，恢复全走 M5 层 C11 分级（G3a 该子项随 Q11 决议修订）。
+# ---- 改名参数（move_base_legacy_relay.py:93/102/104 实测映射）----
+planner_max_retries: -1       # ← 底稿 max_planning_retries: -1（六底稿中唯一在稿的改名项）
+recovery_enabled: false       # ← 底稿未含（mbf 默认开）。★ v4 设计裁决：mbf 内置自动恢复链关闭，恢复编排收口 M5（C11 分级映射），
+                              #   避免双重恢复；注册表保留供 M5 显式按名调用 Recovery 原语（C12 recover）。
+# controller_max_retries（← max_controller_retries）：底稿未含该参数，mbf 默认值生效，不虚设。
+# ---- 同名保留参数（底稿原值原样迁移，P3a.0 实测同名）----
+planner_frequency: 0.0
+controller_frequency: 10.0
+planner_patience: 3.0
+controller_patience: 3.0
+oscillation_timeout: 0.0
+oscillation_distance: 0.1
+# ---- move_base 特有参数 make_plan_clear_costmap / make_plan_add_unreachable_goal 不迁移（GlobalPlanner 等价物 Q11）----
+# ---- costmap 三底稿结构原样沿用，launch 按命名空间分别加载；挂载命名空间未实测（Q11）：P6 下 rosparam get
+#      复核 ~global_costmap / ~local_costmap 后回填固化；底稿子键以 opt/ref 实际为准 ----

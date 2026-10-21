@@ -66,7 +66,7 @@ v4.3 补丁稿（X1–X30）2026-10-10 产出后**未落册**，其间计划书�
   3. 「合并栅格与 B 档自研 Layer 两条路线，四格未跑齐前不得择定」→ 句末加「；四格第③格（static＋stvl＋sob）**须同时给 `combination_method` 在 STVL 参数面的对照，不得据"StaticLayer 无此键"划掉**。」
 - **另两条由中间件带入、最终件未撤回**＝①§四 第 2 条末句括号"（判据面须小美会签）"**须删**（已由本会签替代，落进正文会被读成已决）；②**AMBER 是否入门禁＝须人类**，她只出验收色、不自装闸。
 - **她为 X2 提供的其余读数，施工侧复跑状态须分开引**（A32⑧＋Y6）：
-  - 我**已复跑同值**＝R59 探针目录内 `grep -rl use_maximum|first_map_only` 命中 **＝0 件**（目录真身＝`note/进度/仿真测试台/证据/raw/r59_w3_precheck_20261009_0522`）；StaticLayer 实例数 **global＝1、local＝0**；`r89_b1_w4_try5_ABORTED_waitcap/mbf.log` 内 `static_layer/use_maximum: True` **＝2 处**、`first_map_only: True` **＝2 处**。
+  - 我**已复跑同值**＝R59 探针目录内 `grep -rl use_maximum|first_map_only` 命中 **＝0 件**（目录真身＝`note/进度/v7/S3/仿真测试台/证据/raw/r59_w3_precheck_20261009_0522`）；StaticLayer 实例数 **global＝1、local＝0**；`r89_b1_w4_try5_ABORTED_waitcap/mbf.log` 内 `static_layer/use_maximum: True` **＝2 处**、`first_map_only: True` **＝2 处**。
   - 我**未复跑**＝`cost3.txt` 的 `data:` 长度 1600 格、直方 {0:1595, 100:5}、清单 19/19 OK——**引用时须带"小美跑、施工侧未复"**。
   - **★一条引用限定（本批新立）**＝那份活体读回来自目录名自带 `ABORTED_waitcap` 的留底窗，其 `index.txt` 自述＝"我主动中止的窗（**无 rc 判定**）…作'改动引入的第二个缺陷'的反例" ⇒ **只可作"参数加载态"引用、不得作"窗判定"或计入窗数分母**。
 - **禁词面（中间件提出、结论成立）**＝描述 R59 结论时「**推翻／被实证推翻／覆盖／等价透传**」四词禁入正文（在册 `05` 追加八的六词表**未含此四词的这一用法**）；计数口径见 5.4③（她的"6 行"不成立、v5.3 单件面＝2 处且都在规矩⑨词表句 ⇒ **v5.3 确无专条**这一结论成立）。

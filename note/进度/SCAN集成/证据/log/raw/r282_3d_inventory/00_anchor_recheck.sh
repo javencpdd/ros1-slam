@@ -7,7 +7,7 @@ cd /home/ros1-slam
 D=note/进度/SCAN集成/设计
 S=ws/src/95_simulation/lite3_gazebo_sim
 R=note/进度/SCAN集成/证据/log/raw
-R64=note/进度/仿真测试台/证据/raw/r64_stair_fourth_channel_precheck
+R64=note/进度/v7/S3/仿真测试台/证据/raw/r64_stair_fourth_channel_precheck
 fail=0; tot=0
 chk(){ tot=$((tot+1)); if grep -qF -- "$2" "$1" 2>/dev/null; then printf 'OK    %-22s ← %s\n' "$(basename "$1")" "$2"; else printf '★不符 %-22s ← %s\n' "$(basename "$1")" "$2"; fail=$((fail+1)); fi; }
 echo "== m 稿（第五节原句）=="

@@ -1,0 +1,37 @@
+# G8-sim 返工R2 · 对策 A/B 落地 + 静态校验（小明 2026-10-05）
+# 留底链：raw/sim_adapter.py.before_R2.bak、raw/traj_maze.yaml.before_R2.bak（与 git HEAD 2485d93=R1 终态 diff 全等已核）
+# 另存中间态：前次中断会话遗留 on-rails 草稿（实测 |a_b|峰值=3.51m/s²/夹角=π，与 manifest §二.1「沿自身航向推进」冲突，按「冲突以 manifest 为准」改写）
+[中间态 sha256（改写前，留查）]
+bb008624c14635c9b706f348064d427ce4f8efbbc458cbec5c61f57047a16e6b  /home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py
+4987f14dfcdcdda27da9d19d45c95541a71671f1b4ac63e2e6a7c30ca834848c  /home/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml
+[起前=R1 终态 sha256]
+c9b2fb8ae20c2d4e63d9f67ab2748d2574ffc31af3b6d76fa96c391dc8ad9b06  /home/ros1-slam/note/进度/v7/S4/G8sim/证据/raw/sim_adapter.py.before_R2.bak
+f02153aeb0a5e65288ee09281b3a9d9dd25bec86e3405f17d8abf754f4b924a0  /home/ros1-slam/note/进度/v7/S4/G8sim/证据/raw/traj_maze.yaml.before_R2.bak
+[改后 sha256 + 行数]
+7168f9540a360e7ac99d4d3149d4cfcdef26c9d1d985e4ca99dc2fde49bb2e78  /home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py
+4987f14dfcdcdda27da9d19d45c95541a71671f1b4ac63e2e6a7c30ca834848c  /home/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml
+  347 /home/ros1-slam/ws/src/00_drivers/lite3_drivers/scripts/sim_adapter.py
+   73 /home/ros1-slam/ws/src/00_drivers/lite3_drivers/config/traj_maze.yaml
+  420 total
+
+== py_compile ==
+OK
+== selfcheck（含 R1 zcut 断言）==
+[selfcheck] |acc|误差峰值=0.0000(≤0.05) |w|峰值=0.000000(<0.01) 点云布局=True zcut剔除=True → PASS
+== traj_maze.yaml safe_load（对策 B 三键）==
+{'turn_omega': 1.0, 'v_ramp_s': 0.5, 'align_gate': 0.15, 'speed': 0.5, 'hold_start_s': 5.0, 'hold_end_s': 5.0}
+waypoints: 59
+== load_traj 缺省兼容（无三键 yaml）==
+缺省 turn_omega=1.0 v_ramp_s=0.5 align_gate=0.15（=现行为兼容）
+== R2 施工内自检（真实 spin_traj 离线重放 50Hz 全程，工具 /tmp/g8sim_r2_trajcheck.py → raw/ 留痕）==
+== R2 施工内自检（真实 spin_traj 离线重放 50Hz 全程）==
+waypoints=59 段数=58 总长=69.6m  采集 tick=20500
+运动起始（速度首>0.05m/s）t=6.52s   运动结束 t=205.04s   起点误差=0.00e+00m  末位置抵近 wp[-1] 误差=0.007m（≤0.02）
+全程 wall（含静置5s×2）≈ 211.0s → 3 连 sleep 建议 ≥ 218s
+[判据] ω 峰值=1.0000 rad/s @t=134.04s（≤1.0）
+[判据] |a_b| 平面动态峰值=1.0056 m/s² @t=107.34s（≤1.5）  |a_b| 总峰值=9.8614（含 g）  |‖a_b|−9.81| 峰值=0.0514
+[判据] 速度∥heading 夹角峰值=0.0000 rad（≤align_gate=0.15）@t=78.56s
+[判据] 轨迹-折线最大偏离=0.0073m（≤0.02，角点圆滑化）  waypoint 最大抵近误差=0.0072m（≤0.02）=True
+[参考] 速度峰值=0.500 m/s（门控 speed=0.5）  原地换向次数≈2606  ACC_CLAMP=39.2 未触发=True
+== 自检裁决：PASS ==
+trajcheck_exit=0

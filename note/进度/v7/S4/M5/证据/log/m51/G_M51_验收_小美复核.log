@@ -1,0 +1,57 @@
+== M5.1 验收 · 小美独立复核 log（2026-10-07，只读+离线复算，未启任何节点）==
+
+[1] Q11 对账独立复算：bak↔现役 task_primitives.yaml diff（P0-2「仅注释级」复核）
+$ diff raw/task_primitives.yaml.before_m51.bak ws/src/50_task/lite3_task/config/task_primitives.yaml
+2c2,4
+< # 目标权威：…；action/service 话题名未实测 → Q11 回填
+---
+> # 目标权威：…；action/service 话题名 2026-10-07 M5.1 会话实测闭合（Q11）：/move_base_flex/{get_path,exe_path,recovery,move_base}
+> #   五件套（goal/result/feedback/cancel/status）全组在册且类型=本表 target 声明，与脚本 ~mbf_ns 缺省拼接一致 → Q11 闭合
+> #   （证据 note/进度/v7/S4/M5/证据/log/m51/q11_duizhang.txt；改前留底 …b93ce4c2…）
+→ 3 行变更全为 # 注释，非注释内容零改动 ✔（与 P0-2 申报一致）
+$ sha256sum：
+b93ce4c2250e0b7d3b9bfee5e986a5d420d92bf4527037b7031f29b4ca40fe4a  bak
+44e1161f7ef83000ad2df126424517a56e8c29af2942c9e95173ba5b23b5d19d  现役（=P0-2 申报值）
+bak target 行号 6/10/15/20 = q11_duizhang.txt「yaml target 声明类型对照」引行逐条对应 ✔
+
+[2] 修法 #1–#6 留底+sha256 复核（04「矩阵W1」条目）
+$ sha256sum ws/src/50_task/lite3_task/scripts/task_smach_min.py
+9f661722f6ecb9a8e0e562c38f5c753936e7e88ec9620f0e06409f8807b760dc  现役
+= sha256_task_smach.txt 链尾值=W1 终版，全链 8 点（49393bfd 桩版→…→9f661722）✔
+留底 raw/task_smach_min.py.before_w1.bak=49393bfd ✔（04 L228 申报一致）
+
+[3] 判据件独立复验（v_task_smach.sh 90a0c82e…）
+$ bash -n v_task_smach.sh → OK（语法过）
+$ bash v_task_smach.sh M51_run1_AHEAD3.log
+FAIL 判据一: 未见 task outcome: succeeded（…task outcome: aborted（总时长 91.8s））
+FAIL 判据二: dt=91.8s > 60s
+PASS 判据三: wait/get_path/exe_path phase log 三连在册（3 行原语 log）
+False / exit=1
+$ bash v_task_smach.sh M51_run2_tolfromaction.log → 同上 False / exit=1
+→ 与留档 v_task_smach_判定输出.txt 逐字一致 ✔（判据三达成复证）
+
+[4] 双跑 log 关键行逐行复读
+run1（M51_run1_AHEAD3.log）：L23 wait succeeded 1.00s｜L25 get_path outcome=0 Plan found 0.05s｜
+  L27 exe_path outcome=101 看门狗超时 cancel 90.01s｜L28 EXE_PATH:aborted 终态转移｜L29 task outcome: aborted（总时长 91.8s）
+run2（M51_run2_tolfromaction.log）：L23–29 同签名（wait@1791385380.99，run1 后 126s 顺序复跑）
+W1 同型对照（matrix_w1/M5_exepath_101_tolfromaction.log L27/29）：outcome=101 看门狗 90.04s/aborted 92.2s ✔
+SMACH 拓扑（双跑 L1–20）：WAIT/GET_PATH/EXE_PATH/NAVIGATE/RECOVER 五态+transitions 全按 C11 注册，无缺转移 ✔
+
+[5] C12 契约覆盖（task_primitives.yaml 现役 safe_load）
+primitives = exe_path/get_path/navigate_to_pose/recover/wait（5 活跃）+clear_costmaps 注释注销（并入 recover）
+task_smach_min.py：recovery_policy.yaml outcome_tables/disposition/recovery_actions 接线在案（L22/L28-29/L42/L165/L203）
+
+[6] 隔离/安全验收时点抽检（只读）
+$ ss -tlnp | grep 11311/11312/11313/11314/11345 → 无监听 ✔
+$ pgrep roscore/rosmaster/roslaunch/move_base_flex/gzserver/mockamap → 零残留 ✔
+$ ps -p 115711,115792,115795,115797,115799,180237 → foxy 五 PID+base2lidar_tf_broadcaster 在位零触碰 ✔
+
+[7] 样张前缀勘误复核（裁决 2）
+$ sha256sum /home/ros1-slam/data/maps/lite3.pcd
+aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34（mtime 2026-10-07 02:30:50 先于 M5.1 开工）
+→ 派单 c034c906 系旧值（04 W2 节裁定：随旧场图退役由 p3b 采图合法替代）✔ 现值 aaa09362 与 P0-5 ★注记一致
+
+[8] 边界原文（裁决 1 依据）
+mode_nav_sim.launch L12：「NOT 验证：闭环导航效果、定位精度、真机动力学。」✔
+
+== 复核终判：M5.1 验收 PASS（口径 A 收口·边界注记：到达归 T2）——证据齐、零违规、裁决合理 ==

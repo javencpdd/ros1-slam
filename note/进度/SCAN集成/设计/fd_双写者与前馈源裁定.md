@@ -3,7 +3,7 @@
 # A7 P3 硬前置 F-D 设计 payload · 仿真域 /Odometry 双写者 与 SCAN 前馈源（保真度）裁定
 
 - 作者：小张（部署架构师）。性质：**只做设计，不施工**。本档涉及的三个待办（F-D、J3、坑25 修法）实现状态一律 **未施工**；本档不产生任何 ws/ 与 scripts/ 改动，不产生任何 git 提交。
-- 派单来源：note/进度/SCAN集成/进度文档.md:488-493（主理人裁决 R6）＋ note/04_配置改动diff.md:299（R1–R6 答复批）＋ note/进度/SCAN集成/设计/o1_到达信号与联锁设计.md:47（事实 D，F-D 出处）＋ note/进度/00_总览.md:121 ＋ note/进度/M2/进度文档.md:587/606 与 note/02_问题与坑.md:214（坑25 修法与 J3、F-D 同排 P3 起点）。
+- 派单来源：note/进度/SCAN集成/进度文档.md:488-493（主理人裁决 R6）＋ note/04_配置改动diff.md:299（R1–R6 答复批）＋ note/进度/SCAN集成/设计/o1_到达信号与联锁设计.md:47（事实 D，F-D 出处）＋ note/进度/00_总览.md:121 ＋ note/进度/v7/S2/M2/进度文档.md:587/606 与 note/02_问题与坑.md:214（坑25 修法与 J3、F-D 同排 P3 起点）。
 - 取证纪律：本轮全只读。**未启动任何 ROS 节点、未跑任何 roslaunch/仿真、未占任何端口**；生产 11312 零接触，隔离域 11313/11345 未触碰（现况为空，主理人随时可复跑）。所有行号均为本轮实开文件核对所得。正文零 markdown 反引号（02 坑18，note/02_问题与坑.md:151-160），路径与标识符一律裸词或「」。
 
 ---
@@ -42,28 +42,28 @@
 
 | 跑 | 证据文件 | drift | gt_drift | 形态 |
 |---|---|---|---|---|
-| stageA_M2R2 run2 | note/进度/M2/证据/log/stageA_M2R2/run2_stageA.txt:5 | 0.475 | 0.483 | 不等 |
+| stageA_M2R2 run2 | note/进度/v7/S2/M2/证据/log/stageA_M2R2/run2_stageA.txt:5 | 0.475 | 0.483 | 不等 |
 | stageA_M2R2 run1/run3 | 同目录 run1:5 / run3:5 | 0.489/0.489 | 0.489/0.489 | 逐位相等 |
 | M2R3 stageA | note/进度/SCAN集成/证据/log/raw/m2r3_stageA.log:7 | 0.468 | 0.485 | 不等 |
 | M2R5 stageA | note/进度/SCAN集成/证据/log/raw/m2r5_stageA.log:7 | 0.490 | 0.490 | 逐位相等 |
-| R1run1（IMU 键名缺失那次） | note/进度/M2/证据/log/stageA/stageA_R1run1_105540_INVALID-RTF0.278_IMU1Hz-updateRate键名缺失.txt:5 | 0.229 | 0.250 | 不等 |
+| R1run1（IMU 键名缺失那次） | note/进度/v7/S2/M2/证据/log/stageA/stageA_R1run1_105540_INVALID-RTF0.278_IMU1Hz-updateRate键名缺失.txt:5 | 0.229 | 0.250 | 不等 |
 
 ⇒ harness 的 S['odom'] 是「最后到达的那条」，源身份随跑漂移（插件 50Hz 对 LIO 约 10Hz ⇒ 概率上真值常胜，但非必然）。另有一条同族旧案已在验收里被主理人补强：GazeboM1/进度文档.md:83 明记「**/Odometry 实为 planar_move 输出，非 faster_lio 自身**」，当时靠 traj.txt CSV 旁证才把 LIO 精度补齐。
 
 二、**「真值自证」的判据空转已被抓过一次，且被小美追认降格**：
 
 - stageB 五连的 dev_odom 与 dev_gt **逐位相同**：note/进度/SCAN集成/证据/log/raw/m2r5_fresh1n.log:19（0.172/0.172）、fresh2n.log:23（0.166/0.166）、fresh3n.log:27（0.176/0.176）、fresh4n.log:19（0.170/0.170）、fresh5n.log:23（0.173/0.173）。机读点：m2_smoke.sh:193 取 /Odometry、:379 算 dev_odom、:380 算 dev_gt——两者在 stageB 里同源（WorldPose）。⇒ M2-2 的 0.35m 门今天测的是「teb 把真值位姿开到目标没有」，**结构上不含任何估计层误差**。
-- 同一形态的 evo APE 已被降格：note/进度/仿真测试台/进度文档.md:167 记「planar_move 里程计 vs WorldPose 毫米级」，小美在 :211 注记① 明判「**本次=planar_move odom vs WorldPose 的工具链演示，非定位算法精度数据**」。⇒ F-D 的要害不是话题名打架，而是**判据可能测不到它声称测的东西**；这条先例比任何论证都硬。
+- 同一形态的 evo APE 已被降格：note/进度/v7/S3/仿真测试台/进度文档.md:167 记「planar_move 里程计 vs WorldPose 毫米级」，小美在 :211 注记① 明判「**本次=planar_move odom vs WorldPose 的工具链演示，非定位算法精度数据**」。⇒ F-D 的要害不是话题名打架，而是**判据可能测不到它声称测的东西**；这条先例比任何论证都硬。
 
 三、**契约在册面**（谁拥有 /Odometry 这个名字）：
 
-- 设计侧把它写成 faster_lio 的输出：note/进度/仿真测试台/设计稿/A_SCAN松耦合集成设计.md:9（入向话题表）、:41（链路图 faster_lio → /Odometry）、:63（P3 链路「Gazebo 仿真雷达 → faster_lio → SCAN」）；note/进度/仿真测试台/设计稿/C_全局任务优先级总排序.md:11（A7 行前置明写「faster_lio 仿真链（已有）」）。
+- 设计侧把它写成 faster_lio 的输出：note/进度/v7/S3/仿真测试台/设计稿/A_SCAN松耦合集成设计.md:9（入向话题表）、:41（链路图 faster_lio → /Odometry）、:63（P3 链路「Gazebo 仿真雷达 → faster_lio → SCAN」）；note/进度/v7/S3/仿真测试台/设计稿/C_全局任务优先级总排序.md:11（A7 行前置明写「faster_lio 仿真链（已有）」）。
 - 计划书把它列为真机对账名：note/计划书v4/21_ros1-slam隔离部署计划书-v4.1-雷达翻案补丁.md:282（R15：上游真实发布名 /Odometry ← laser_mapping.cc）；note/计划书v4/21_ros1-slam隔离部署计划书-v4.md:829（M1 判据 rostopic hz /Odometry ≥10Hz）、:889（Q4「/Odometry 话题名与频率（二期 SCAN 输入）」状态=开）。
 - 另有第三写者潜伏在别的仿真 mode：ws/src/70_bringup/lite3_bringup/scripts/sim_pose_tf.py:30（~odom_topic 缺省 /Odometry）、:39 publish，其头注 :11 自述「话题名**沿用 faster_lio 输出名**，估计层按坑14 排除后该名无冲突」；装载点 ws/src/70_bringup/lite3_bringup/launch/mode_nav_sim.launch:107。它与插件不同 mode（mode_nav_sim 走 95_sim 渲染链、无 Gazebo，见该件 :8/:16/:75），但**「该名无冲突」是以「估计层不在场」为前提的**，P3 把估计层拉回来，该前提即失效 ⇒ §6 的 FD-4 就是钉这一条。
 
 ### 1.4 两条连带发现（同族、必须登记）
 
-- **FD-G：lio_relay 的静态 body→base_link 会在 P3 窗里再造 base_link 双父（M2R4 复核节 ③ 的同型缺陷）。** 机理：lio_relay.launch:57-58 无条件发静态 body→base_link；插件 lite3_planar_drive.cpp:127-128 动态发 odom→base_link；两者同窗（v_scan_p1.sh:79/88/96 的形态）⇒ base_link 在 tf2 图有两条入边。这正是小美 M2R4 判定成立的前置③（note/进度/M2/进度文档.md:368、04_配置改动diff.md:289）与 U1 修正要根除的形态。P1/P2 之所以没炸：SCAN 不消费 TF（lio_relay.launch:52-53 自述「规划器不消费 TF，无影响」），窗内也无 mbf。**该件的约束**：lio_relay.launch 属 30_3rd 基线件（note/进度/SCAN集成/证据/scan_src_baseline_49.sha256:29，sha 1d0aa3f4…），且完整性判据是两条件（内容全等＋find 计数=49，v_scan_o1.sh:50-53、04:298）⇒ 改它=失基线事件，须主理人裁＋重发基线＋03/04 登记。处置选项与代价见 §8 R-FD-3。
+- **FD-G：lio_relay 的静态 body→base_link 会在 P3 窗里再造 base_link 双父（M2R4 复核节 ③ 的同型缺陷）。** 机理：lio_relay.launch:57-58 无条件发静态 body→base_link；插件 lite3_planar_drive.cpp:127-128 动态发 odom→base_link；两者同窗（v_scan_p1.sh:79/88/96 的形态）⇒ base_link 在 tf2 图有两条入边。这正是小美 M2R4 判定成立的前置③（note/进度/v7/S2/M2/进度文档.md:368、04_配置改动diff.md:289）与 U1 修正要根除的形态。P1/P2 之所以没炸：SCAN 不消费 TF（lio_relay.launch:52-53 自述「规划器不消费 TF，无影响」），窗内也无 mbf。**该件的约束**：lio_relay.launch 属 30_3rd 基线件（note/进度/SCAN集成/证据/scan_src_baseline_49.sha256:29，sha 1d0aa3f4…），且完整性判据是两条件（内容全等＋find 计数=49，v_scan_o1.sh:50-53、04:298）⇒ 改它=失基线事件，须主理人裁＋重发基线＋03/04 登记。处置选项与代价见 §8 R-FD-3。
 - **FD-H：hdl 的输出话题名与 harness 期望名不一致（名字契约漂移，同属 F-D 家族）。** hdl nodelet 实发 /odom（ws/src/20_localization/hdl_localization/apps/hdl_localization_nodelet.cpp:68），而 ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch:6 注「输出 /hdl_odom」、m2_smoke.sh:450/464/485 的 stageC 门控等的就是 /hdl_odom，承载件 ws/src/20_localization/lite3_localization/launch/hdl_localization.launch:75-111 内无该 remap。⇒ 即使 hdl 健康，gateC 的 hdl_odom 键也恒 False。与本切片判据无涉（stageC 已由 M2-R2C 裁决终止、转真机 G8），但它是 F-D 的同一条教训的第二实例：**名字不能靠注释与记忆，必须对账上游发布点**（R15 口径）。列为 G8 前置核对项，本档不动。
 
 ---
@@ -76,7 +76,7 @@
 - **为什么改话题名而不改帧名**（本候选的关键取舍）：odom→base_link 这条边是 M2R5/U1 结构修正的产物，被 E3 签名（m2_smoke.sh:333-355，期望 base_link_parents 恰 [odom]）、G5c1 阻断门（:324-326）、m2_tf_fresh.py 的 map→odom 段（m2_teb.launch:22-33）以及 costmap 的 robot_base_frame=base_link（config/costmap_common.yaml:5）共同锚定。帧名一改，这些刚回填的判据全部失去可比性；话题名一改，它们的读数通道（TF）一个字节都不变。
 - **影响半径（仿真域读 /Odometry 的件，逐条实见）**：m2_smoke.sh:109/125/126/144/161（stageA A③）、:193/379（stageB dev_odom）、:415（stageC）；m1_smoke.sh:86/121/178（M1 台，同引该 xacro，见 m1_gazebo.launch:23）；v_scan_p1.sh:90、v_scan_p2.sh:74（wait_topic /Odometry）；p2_goal_plan.py:155-158（**注释与代码都假定读到的就是 camera_init 系的 LIO**）；rviz 面 faster_lio/rviz_cfg/loam_livox.rviz:220。生产域（10_slam/20_localization/40_navigation/60_safety/70_bringup 的 mode 件）零命中 ⇒ 不外溢。
 - **风险**：
-  1. **判据语义变更**（不是数值抖动）：A③「drift ≤0.5」自此由「混合流读数」变成「LIO 估计的真实回原点误差」。历史观察带 0.475–0.497（04_配置改动diff.md:306 按小美 R12 补全的带）距门 0.5 只剩 3mm 量级 ⇒ **重取有破门风险**。处置写死：任一跑破门即停手上报，门值调整权在小美/主理人，施工方不得自改阈值（note/进度/M2/进度文档.md:313「自降我设的判据——定权在验收而非施工/主理人」的教训已在案）。
+  1. **判据语义变更**（不是数值抖动）：A③「drift ≤0.5」自此由「混合流读数」变成「LIO 估计的真实回原点误差」。历史观察带 0.475–0.497（04_配置改动diff.md:306 按小美 R12 补全的带）距门 0.5 只剩 3mm 量级 ⇒ **重取有破门风险**。处置写死：任一跑破门即停手上报，门值调整权在小美/主理人，施工方不得自改阈值（note/进度/v7/S2/M2/进度文档.md:313「自降我设的判据——定权在验收而非施工/主理人」的教训已在案）。
   2. stageB 若 P3 也把 faster_lio 拉进窗（保真度口径要求），dev_odom 将从「真值自证」变为「估计＋控制复合误差」，0.35m 门也可能破——同上一条处置。
   3. 「顺手把插件 odom 关掉」是禁手：关掉发布同时会断掉 odom→base_link 的 TF（同一函数体 lite3_planar_drive.cpp:104-128），mbf/costmap 位姿源即失效（见候选 D1）。
 - **Gate 重取清单（这是被测件变更，必须写清；口径依据＝小美 M2R4 复核节 L376「被测件即变 ⇒ 5 连必须重新起算，旧跑不得与新配置混计」＋我自己 m2r5 设计件 §7 L210-214 的回归面）**：
@@ -250,7 +250,7 @@
 
 ### 10.0 本节的边界与取证代际声明
 
-- **触发件**：note/进度/M2/进度文档.md:683（R24 原文：F-D 设计件里请附「改动文件 × 触及判据」矩阵，我据矩阵批「正交同批／相交分批」；坑25 根除件（打戳统一 SimTime）在矩阵核过前不动 PLG；本批我不裁 F-D）＋ 同文件 :666（待决④：批准登记为待排期修法、批准进 A7 P3 起点候选；不批准三件同批共取一次 5 连；批次原则四条：同批只动一个病因变量／判据面相交者必须分批／判据面正交者同批内逐件留独立读数／5 连永远按被测件变一次即重新起算不得共用）。本节**只交矩阵与批次建议**，不重设计、不扩范围、不改 §0–§9 正文（历史记录不回改，向前指向，与 05 A2、小美待决③ 同例）。
+- **触发件**：note/进度/v7/S2/M2/进度文档.md:683（R24 原文：F-D 设计件里请附「改动文件 × 触及判据」矩阵，我据矩阵批「正交同批／相交分批」；坑25 根除件（打戳统一 SimTime）在矩阵核过前不动 PLG；本批我不裁 F-D）＋ 同文件 :666（待决④：批准登记为待排期修法、批准进 A7 P3 起点候选；不批准三件同批共取一次 5 连；批次原则四条：同批只动一个病因变量／判据面相交者必须分批／判据面正交者同批内逐件留独立读数／5 连永远按被测件变一次即重新起算不得共用）。本节**只交矩阵与批次建议**，不重设计、不扩范围、不改 §0–§9 正文（历史记录不回改，向前指向，与 05 A2、小美待决③ 同例）。
 - **纪律回执**：零 ROS 节点、零 roslaunch、零端口占用（11312/11313/11345 我全程未触）、零 ws/ 与 scripts/ 改动、零 git 写、无 sudo；本节新增动作只有只读 grep/sed/awk/stat/sha256sum/diff/find/setfacl，以及对 ws/src/30_3rd 跑了一次 sha256sum -c（只读校验，见 10.6 表 #1）、对端口做了一次只读 ss 查询。口径澄清（防误读）：「零端口占用」说的是我，不是隔离域现况——09:31 实测 11313 有 1 名监听者、生产 11312 为 0，该活体窗由施工方在飞批次（roslaunch lite3_bringup mode_sim_teb.launch，起于本节写作期间）持有，我未启停任何进程、未进入该域；这也是下一条 harness 代际连跳的直接原因。正文零 markdown 反引号（02 坑18）。
 - **判据载体代际（必须先声明，否则行号不可用）**：harness 现件在我核对期间被并行施工连改三代——09:05 前小美 M2R6 所记 **568 行 / sha 1570339f88f0**；09:17 我实测 **621 行 / sha 81b7f3b9**；09:25 实测 **644 行 / sha 35962c6d / mtime 09:24:59**（git 侧仍停在 3c12fec，工作树为脏）。⇒ 本节引 harness 处**以判据键名为主键、行号为辅**（键名在三代内稳定：tf_fresh／tf_fresh_mapodom_G5c2／tf_fresh_G5c1／tf_fresh_late_G5／tf_fresh_mapodom_late_G5c2／press_late_G5，现件 :426-427），行号按 35962c6d 代际写，施工方须按键名对号；这正是小美待决③「按 harness 代际分列不合并」口径在改动面的落地。
 - **§1/§2/§6 旧引号的向前指向更正（三条，均不回改原文）**：①§1.3 二引「m2_smoke.sh:193 取 /Odometry、:379 算 dev_odom、:380 算 dev_gt」→ 现件为 :250（订阅）、:440（取 S['odom'] 算 d）、:441（算 gd）、:442（打印行）；②§1.2 更正一引「:109 订阅、:125 断言、:144 drift、:161 门 ≤0.5」→ 现件为 :166（订阅）、:182（断言 no /Odometry）、:201（drift）、:218（A③ ≤0.5 判定行）；③§2-A 引「E3 直读 :333-355」→ 现件为 :391（注释：期望签名 base_link_parents 恰 ['odom']）与 :415（打印行）。

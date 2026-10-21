@@ -12,7 +12,7 @@
 - **全包穷尽扫描**（本轮新增，小美只点了那一条）：该包 launch 内所有 static_transform_publisher 的父子对里，
   以 body 为子的**只有 :64 一处**；其余为 /base_link→camera_*、base_link→rslidar、base_link→imu、/base_link→/dummy，不与本仓在册边反向。
 - **死件与不可起两面**：全仓（ws/src、scripts、note、根 md）对 height_map_mini 的消费性引用 0 命中
-  （唯一命中是 note/进度/REPO_INIT/证据/git_init.log 的 create mode 清单行，非消费性）；
+  （唯一命中是 note/进度/v4/公共/REPO_INIT/证据/git_init.log 的 create mode 清单行，非消费性）；
   且该包根有 CATKIN_IGNORE（0 字节，实测存在）⇒ 不参与建沙箱编译；
   同件 :65 引用 mini 包的 urdf，而 **mini 包在本沙箱不存在**（rospack find 与 find 双查皆空）⇒ 即便有人起它，
   缺省态下 $(find mini) 亦会让 roslaunch 报错。故它不是「会静默发作」的活雷，而是「换环境即可能发作」的埋雷（真机侧带 mini 包与 height map 栈时）。

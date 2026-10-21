@@ -27,7 +27,7 @@ B40～B47 为本次读取的全部 v4 系列文件。后续追加勘误优先于
 - E3：`/usr/local/lib/liblivox_lidar_sdk_static.a` 及三件头文件在位；`livox_ros_driver2/CMakeLists.txt` 第 2 行按 `ROS_EDITION STREQUAL "ROS1"` 分支，第 94 行查找 /usr/local 的静态库。
 - E4：`/opt/ros/noetic/include/mbf_costmap_nav/costmap_navigation_server.h` 含 planner/controller/recovery 的 mbf 与 nav_core 三对加载器，复核 B41 的 S9 裁定依据。
 - E5：当前 `lite3_navigation/launch/mbf_navigation.launch` 内有 `<remap from="cmd_vel" to="cmd_vel_raw"/>`；v5 所列 `40_navigation.launch` 不在该目录。当前 `11_postprocess.launch` 不存在，第三方 `pcd2grid/launch/pcd2grid.launch` 在位。
-- E6：归档的 `note/进度/计划书v4升级/证据/P3a0_mbf组件实测.log` 在位；v5 多处作为权威引用的 /tmp 同名副本已不存在。
+- E6：归档的 `note/进度/v7/S0/计划书v4升级/证据/P3a0_mbf组件实测.log` 在位；v5 多处作为权威引用的 /tmp 同名副本已不存在。
 - E7：`note/进度/00_总览.md` 记载 P3a/P4/P5 与 P3b/G3 已完成，Q12 关闭、Q3 关闭及 Q13 俯仰延后；其中陈旧抬头与追加新状态仍并存。引用这些记录不等于本次重跑验收。
 - E8：当前主机为 aarch64，根文件系统约 42G 可用，/tmp 此次由 ext4 根盘承载；现役 SUP 文件已有 startup_grace、recover_beats 和 hold 自动复位内容。资源/文件值仅在本次抽查时有效。
 - W1：[ROS Noetic rospy.Timer/Rate 源码](https://raw.githubusercontent.com/ros/ros_comm/noetic-devel/clients/rospy/src/rospy/timer.py)：Timer 的周期调度依赖 ROS 时间；用于下表时基风险的静态分析。

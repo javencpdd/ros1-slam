@@ -24,7 +24,7 @@ ps -o pid,lstart,cmd -p $(pgrep -d, -f 'ros2 launch transfer|jetson2app|jetson2m
 sha256sum "$SAMPLE" > "$RUN/sample_before.sha" 2>&1
 
 # 轨迹源：原 /tmp/matrix_w3/ 工作集与 launch 默认件均不在盘上 ⇒ 只用在册证据树里的存档副本（静止于 0.05,0.05）
-TRAJ_SRC="/home/ros1-slam/note/进度/仿真测试台/证据/log/matrix_w3/traj_perlin3d.yaml"
+TRAJ_SRC="/home/ros1-slam/note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/traj_perlin3d.yaml"
 TRAJ="$RUN/traj_perlin3d.yaml"
 TRAJ_WANT="9d40854314764843383d849e439541660fcc908e77ba79fa9ae67302c5c8a97e"   # 出处＝matrix_w3/w3_证据对账.sha256 第 34 行
 [ -f "$TRAJ_SRC" ] || { echo "前置不成立：存档轨迹源不在盘 ⇒ 无法复现在册形状（rc=9）"; exit 9; }

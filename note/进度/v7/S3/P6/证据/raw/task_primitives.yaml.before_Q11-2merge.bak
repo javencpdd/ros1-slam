@@ -1,0 +1,29 @@
+# task_primitives.yaml —— M5 任务原语注册表 v1（v4 新增 C12，N4）
+# 目标权威：action 类型与 Goal 字段名 = P3a.0 实测 log（note/进度/v7/S0/计划书v4升级/证据/P3a0_mbf组件实测.log）；action/service 话题名未实测 → Q11 回填
+version: 1
+primitives:
+  navigate_to_pose:
+    target: "action:mbf_msgs/MoveBaseAction"     # action 话题名随 mbf 服务器节点名，Q11 联调确认
+    goal_fields: [target_pose, planner, controller, recovery_behaviors]   # MoveBaseGoal 实测字段；点单值取 C0 注册表 name
+    outcome_semantics: "recovery_policy.yaml#outcome_tables.move_base"
+  get_path:
+    target: "action:mbf_msgs/GetPathAction"
+    goal_fields: [use_start_pose, start_pose, target_pose, tolerance, planner, concurrency_slot]
+    by_name_field: planner                       # 按名点单（§2.6 决策 5）
+    outcome_semantics: "recovery_policy.yaml#outcome_tables.get_path"
+  exe_path:
+    target: "action:mbf_msgs/ExePathAction"
+    goal_fields: [path, controller, concurrency_slot, tolerance_from_action, dist_tolerance, angle_tolerance]
+    by_name_field: controller
+    outcome_semantics: "recovery_policy.yaml#outcome_tables.exe_path"
+  recover:
+    target: "action:mbf_msgs/RecoveryAction"
+    goal_fields: [behavior, concurrency_slot]
+    by_name_field: behavior                      # behavior 点单值仅限 C0 recovery_behaviors 注册表 name（当前仅 clear_costmaps）
+    outcome_semantics: "recovery_policy.yaml#outcome_tables.recovery"
+    # ★ 命名空间边界：C11 recovery_actions 键（retry_local 等）为 M5 处置分级键，非点单值；处置键→behavior 点单值的映射由 SMACH 原语实现层决定（P6 接线按此实现，按 C11 键字面点单会被拒）
+  wait:
+    target: "local:timer"                        # 无 ROS 目标：本地定时器（params 默认 duration_s: 1.0）
+    outcome_semantics: "succeeded/aborted 二态"
+  clear_costmaps:
+    target: "service:挂载点联调确认"              # ★ 实测未覆盖：mbf 侧 clear_costmaps 服务名/类型 → Q11（并入）；succeeded/aborted 二态

@@ -59,7 +59,7 @@
 - **唯一相关的一处**：`ws/src/30_perception/deeprobotics_local_height_map/`（高程图**载体包**）。实测三条：①`CATKIN_IGNORE` **在位 ⇒ 不参与构建**；②`.cpp/.h/.py` 文件数 **＝0**（只有 `CMakeLists.txt`＋`launch/`＋`config/`＋`rviz/`＋`include/` 骨架）；③体积 **360K**。⇒ 它**不是半成品代码、也不是构建对象**，别在 `ws` 里找 2.5D 的实现。
 - **`ws/src` 下 `CATKIN_IGNORE` 全量只有两处**（另一处是 `ws/src/00_drivers/lslidar_msgs/.obj-x86_64-linux-gnu`，属构建产物目录、不是包）⇒ **除上面那个载体包外，`ws` 内没有被「IGNORE 起来」的搁置件**。
 - **别「见零源码就删」**：`ws/src` 下零源码包共 6 个（`10_slam/pcd2grid`、`10_slam/lite3_slam`、`20_localization/lite3_localization`、`30_perception/lite3_perception`、`95_simulation/lite3_description`、`30_perception/deeprobotics_local_height_map`），**前 5 个是配置／launch／描述类包、都在用**；只有最后一个是被 IGNORE 的搁置载体——**形状一样、性质不同，删错就是删功能**。
-- **将来若复活 2.5D**：起点在志文侧两份件（`进度/SCAN集成/设计/m_3d多层_载体缺口与出路.md` 的载体缺口盘点、`进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` 的接口设计件），**不在 `ws` 里翻代码**；另实测 dpkg **未装** elevation／mesh 类包（命中 0）⇒ 复活的第一步是装／建载体，不是改现有件。
+- **将来若复活 2.5D**：起点在志文侧两份件（`进度/SCAN集成/设计/m_3d多层_载体缺口与出路.md` 的载体缺口盘点、`进度/v7/S3/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md` 的接口设计件），**不在 `ws` 里翻代码**；另实测 dpkg **未装** elevation／mesh 类包（命中 0）⇒ 复活的第一步是装／建载体，不是改现有件。
 - 本条只**登记裁定与落点**：未动 `ws` 下任何文件、未删任何件、未改构建配置。P8＝计划书未定稿、以 v4.3 补丁稿为准；不构成收口。登记人：小明（施工）· 2026-10-11。
 
 ---

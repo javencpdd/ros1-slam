@@ -370,7 +370,7 @@ grep -rn "/home/ysc" ws/src 2>/dev/null | wc -l   # 复扫：期望 0（laser_ma
 
 ### 8.0 ★ P3a.0 导航栈组件只读实测（✅ 2026-10-04 完成，收编 N1）
 
-执行者：小明，只读实测（未起节点、未 roscore、未 apt install、未写 ws/opt、未触碰 `/home/ysc/lite_cog/`）。原始证据：`note/进度/计划书v4升级/证据/P3a0_mbf组件实测.log`（690 行；P3a.0 时因 sudo 受限先暂存 /tmp，**已按坑4 规约归档至证据目录**，/tmp 留同内容副本）。**本节及全文一切 mbf 字段名/参数名/插件 type 串以该 log 为唯一权威。**
+执行者：小明，只读实测（未起节点、未 roscore、未 apt install、未写 ws/opt、未触碰 `/home/ysc/lite_cog/`）。原始证据：`note/进度/v7/S0/计划书v4升级/证据/P3a0_mbf组件实测.log`（690 行；P3a.0 时因 sudo 受限先暂存 /tmp，**已按坑4 规约归档至证据目录**，/tmp 留同内容副本）。**本节及全文一切 mbf 字段名/参数名/插件 type 串以该 log 为唯一权威。**
 
 **组件清单裁决表**：
 

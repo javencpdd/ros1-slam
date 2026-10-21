@@ -27,14 +27,14 @@
 | 型 | 条数 | 代表条（**本档位置**＋证据） | 这是不是活错 |
 |---|---|---|---|
 | 硬错·越界（历史从未达该行） | 1 | `note/06_三态通道普查.md:35` ⇒ `m2_mapping.launch` 第 15 行：该件现 12 行、git 史仅 1 版且恒 12 行 | **是**，须改 |
-| 符号链接件·越界（git 史不可判） | 4 | `note/00_README.md:82`〔在册勘误句〕、`note/04_配置改动diff.md:237`、`note/进度/仿真测试台/进度文档.md:164`（三处皆引 `CMakeLists.txt` 第 192 行）；`note/计划书v4/21_…-v4.1-雷达翻案补丁.md` 第 125 行（引 `CMakeLists.txt` 第 94 行） | **2 活 2 在册**；且不是"行号错"那么轻，见 §3 甲乙 |
+| 符号链接件·越界（git 史不可判） | 4 | `note/00_README.md:82`〔在册勘误句〕、`note/04_配置改动diff.md:237`、`note/进度/v7/S3/仿真测试台/进度文档.md:164`（三处皆引 `CMakeLists.txt` 第 192 行）；`note/计划书v4/21_…-v4.1-雷达翻案补丁.md` 第 125 行（引 `CMakeLists.txt` 第 94 行） | **2 活 2 在册**；且不是"行号错"那么轻，见 §3 甲乙 |
 | 漂移·已证（写下时逐字正确，后被顶走） | 4 | `note/02_问题与坑.md:190` ⇒ `70_scan.launch` 第 61 行 的 `remap`（`d981a06` 版该行含锚，现锚在 9/10/14/15/45/47）；`设计/fd_双写者与前馈源裁定.md:95` ⇒ `hdl_localization.launch` 第 89 行（`dfb3ef0` 为证，现 52/95）；`00_裁定请求单_2026-10-09.md:135` 与 `仿真测试台/设计稿/H_第四通道离线分辨力预检结论.md:155` ⇒ **同一处** `faster_lio_outdoor.yaml` 第 32 行 的 `preprocess`（`33721ae` 为证，现 31/33） | **不是**——坑60 的形状；后两条是 v 稿没见到的**新副本**（v 稿只扫 20 件，这两条在扩出去的 54 件里，同一漂移被两个件各引一次） |
 | 漂移候选（锚在别处、历史未证） | 1 活 ＋ 3 在册（共 4） | 活：`note/04_配置改动diff.md:82` ⇒ `maps.cpp` 第 599 行 的 `block`（现锚 468/500/600/602/606/608；件名唯一）；在册：`04:748`（`02:314` 坑42）、`README:82` 与 `04:748/761`（`global_planner_params.yaml` 第 12 行 allow_unknown，现锚第 8 行） | 活的这条 v 稿已给真值（第 599 行⇒第 600 行一族），04:761 的勘误句在位 ⇒ **不回改** |
 | 面外件（系统域已定位·行在、未给键名＝口径松） | 14 | 例：`abstract_planner_execution.h` 第 292 行 ⇒ `/opt/ros/noetic/include/mbf_abstract_nav/…` 现该行 `ros::Duration patience_;`；`mbf_msgs/GetPathResult.h` 第 111 行⇒`PAT_EXCEEDED = 55u`、`ExePathResult.h` 第 126 行⇒`103u`、`RecoveryResult.h` 第 87 行⇒`152u` | **不是错**：VCC 只索引仓根 ⇒ 系统头**必然**黄。**实测到哪一步**：14 条全部在 `/opt/ros` 定位到件、被引行**存在**；但 VCC 明细里这些条**没带键名**，所以件无法逐字比对（我不写"全对"）——其中 4 条我手工读了该行（上列四条），读数与 v 稿丙类 12 条的结论同向 |
 | 面外件·无法定位（有近名候选⇒疑省写名） | 14 | `fresh{2..5}n.log` 四处 ⇒ 近名 `m2r5_fresh{2..5}n.log`（fd 稿＋请求单＋README/04）；`nodelet.cpp` 第 68 行 ⇒ 近名 `globalmap_server_nodelet.cpp` 等 5 件 | 省写名，**须给全名**（坑52）；v 稿已把 fd 稿这一项列为移交 |
-| 面外件·无法定位（盘上无同名⇒须给全名） | 1 | `note/进度/M2/进度文档.md:587` ⇒ `buffer_core.cpp` 第 278 行：仓内与系统域**都无同名件** | 唯一一条"点不到任何件"的活引用 |
+| 面外件·无法定位（盘上无同名⇒须给全名） | 1 | `note/进度/v7/S2/M2/进度文档.md:587` ⇒ `buffer_core.cpp` 第 278 行：仓内与系统域**都无同名件** | 唯一一条"点不到任何件"的活引用 |
 | 口径松（在册写点路径、件内是嵌套键） | 2 | `note/04_配置改动diff.md:88/:89` ⇒ `faster_lio_sim.yaml` 第 29 行的 `mapping.extrinsic_est_en`（叶名在 :7/:30）、`:37 preprocess.blind`（叶名在 :7/:38） | **不是错**：yaml 嵌套 ⇒ 点路径永不字面出现。是本件首版的假错，见 §6③ |
-| 符号链接件·键名错（锚全文不现） | 1 | `note/进度/P5/进度文档.md:28` ⇒ `CMakeLists.txt` 第 40 行 的 `catkin_package`：符号链接实身（catkin toplevel.cmake）内**无此串** | **活的**，但根因是件名多义（§3 甲），不是行号 |
+| 符号链接件·键名错（锚全文不现） | 1 | `note/进度/v7/S4/P5/进度文档.md:28` ⇒ `CMakeLists.txt` 第 40 行 的 `catkin_package`：符号链接实身（catkin toplevel.cmake）内**无此串** | **活的**，但根因是件名多义（§3 甲），不是行号 |
 
 ## 3. 本稿新暴露的三格（是"规矩"缺口，不是"错题"）
 
@@ -44,7 +44,7 @@
 
 ## 4. 结论（四要素口径）
 
-- **实现状态**：**零改动**。本稿是核实件，不是整改件。§2 的九型里须改的**活错共 5 条**：`06_三态通道普查.md:35`（硬错越界）、`04_配置改动diff.md:237`、`进度/仿真测试台/进度文档.md:164`、`进度/P5/进度文档.md:28`、`进度/M2/进度文档.md:587`。其中 **04:237 的勘误其实已在册**（v 稿＋04:761 那句"写成⇒实为"），只是本件的 FIXUP 判据**只看同句**、看不见跨行勘误 ⇒ 仍被算成活错（这是 §3 丙的第二个缺口，不是漏改）。其余四条都在别人的件里 ⇒ 一律走 §5 移交，我不代改；台账正文（00／02／04）一字未回改。
+- **实现状态**：**零改动**。本稿是核实件，不是整改件。§2 的九型里须改的**活错共 5 条**：`06_三态通道普查.md:35`（硬错越界）、`04_配置改动diff.md:237`、`进度/v7/S3/仿真测试台/进度文档.md:164`、`进度/v7/S4/P5/进度文档.md:28`、`进度/v7/S2/M2/进度文档.md:587`。其中 **04:237 的勘误其实已在册**（v 稿＋04:761 那句"写成⇒实为"），只是本件的 FIXUP 判据**只看同句**、看不见跨行勘误 ⇒ 仍被算成活错（这是 §3 丙的第二个缺口，不是漏改）。其余四条都在别人的件里 ⇒ 一律走 §5 移交，我不代改；台账正文（00／02／04）一字未回改。
 - **自动化验收**：`w_drift_survey.sh` rc=0；自证条在位（解析到的 RED/AMBER 条数 **必须等于** VCC 自己打印的 `[计数]`，对不上即 rc=9 且普查结果一律不采信）；本件输出 45 条**每条都给了「本档位置＝哪个件的哪一行」**，可直接点。引用形状全部按坑60 给**件名＋锚文本**，不给裸行号。
 - **目标环境验收**：不适用——纯离线只读，零节点、零链窗、零端口。
 - **证据路径**：[../证据/log/raw/r104_drift_survey/](../证据/log/raw/r104_drift_survey/)（普查件＋`vcc_full.out`/`vcc_live.out`/`vcc_evidence.out` 三个面的 VCC 原件输出＋本件输出＋index＋`_sha256_manifest.txt`）。
@@ -54,8 +54,8 @@
 先说一条不可机判的事实：`git blame` 在这些行上只有 `ros1-slam` 与 `小王` **两种署名** ⇒ "落到哪个人"不能只靠 blame（本轮实测），所以本单按件的属主约定路由，署名证据一并给出：
 
 1. `note/06_三态通道普查.md:35` 的 `m2_mapping.launch` 第 15 行——**硬错越界**（该 launch git 史 1 版恒 12 行）。blame 署名＝**小王**。
-2. `note/进度/仿真测试台/进度文档.md:164`（`CMakeLists.txt` 第 192 行）与 `note/进度/P5/进度文档.md:28`（`CMakeLists.txt` 第 40 行 `catkin_package`）——**须给到根全名**（同名 348 件）。两件都是验收/施工在册文档，我只登读数不代改正文。
-3. `note/进度/M2/进度文档.md:587` 的 `buffer_core.cpp` 第 278 行——盘上**无同名件**，须给全名或改成锚文本（小美志文）。
+2. `note/进度/v7/S3/仿真测试台/进度文档.md:164`（`CMakeLists.txt` 第 192 行）与 `note/进度/v7/S4/P5/进度文档.md:28`（`CMakeLists.txt` 第 40 行 `catkin_package`）——**须给到根全名**（同名 348 件）。两件都是验收/施工在册文档，我只登读数不代改正文。
+3. `note/进度/v7/S2/M2/进度文档.md:587` 的 `buffer_core.cpp` 第 278 行——盘上**无同名件**，须给全名或改成锚文本（小美志文）。
 4. `fresh{2..5}n.log` 四处省写名（近名 `m2r5_fresh{2..5}n.log`）与 `nodelet.cpp` 第 68 行 一族——fd 稿／请求单侧，v 稿已列，本轮由件**自动复现**同一结论，不重复开单。
 
 
@@ -116,9 +116,9 @@ R111 我往 `ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh`／`v_scan_p2.s
 | # | 单（本档位置） | 实测真值 | 可粘贴改法 | 属主 |
 |---|---|---|---|---|
 | 1 | `note/06_三态通道普查.md:35` 引 `m2_mapping.launch` 第 15 行 | 该 launch 全文 **12 行**、git 史 1 版恒 12 行；`run_mapping_online` 那个 node 行实为**第 11 行**（`sed -n '11p' \| grep -c run_mapping_online`＝1） | 「而 `ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch` 第 11 行的 `<node pkg=\"faster_lio\" type=\"run_mapping_online\"`（绝对名 /Odometry 发布者）」 | blame 署名 **小王** |
-| 2 | `note/进度/仿真测试台/进度文档.md:164` 与 `note/04_配置改动diff.md:237` 引 `CMakeLists.txt` 第 192 行 | 真身＝**`opt/upstream/lvr2/CMakeLists.txt`**（**984 行**），第 192 行＝`find_package(GSL REQUIRED)`；裸名 `CMakeLists.txt` **仓内同名 348 件**，VCC 因此把它解析到 `ws/src/CMakeLists.txt`（符号链接→catkin 71 行）才报越界 | 把裸名换成到根全路径 `opt/upstream/lvr2/CMakeLists.txt` 第 192 行（v 稿 §2 已给同一真值，本条是**同型第二、三副本**） | ①仿真测试台志文（验收侧）②04 是在册台账：**原文不回改**，勘误句已在 04:761／v 稿 |
-| 3 | `note/进度/P5/进度文档.md:28` 引 `CMakeLists.txt` 第 40 行 `catkin_package(INCLUDE_DIRS include …)` | 该句**上一小句已点名** `deeprobotics_local_height_map`，实测 `ws/src/30_perception/deeprobotics_local_height_map/CMakeLists.txt` **第 40 行＝`catkin_package(`**（＝内容一直对，只有引用形状用了裸名 ⇒ 被 VCC 判成符号链接件·键名错） | 换成 `ws/src/30_perception/deeprobotics_local_height_map/CMakeLists.txt` 第 40 行 | P5 进度文档（在册验收/施工文档，不代改） |
-| 4 | `note/进度/M2/进度文档.md:587` 引 `buffer_core.cpp` 第 278 行 | **盘上没有这个件**：`/opt/ros/noetic/include/tf2/` 只有 `buffer_core.h`，且 `grep -rl TF_REPEATED_DATA /opt/ros/noetic/include`＝**零命中** ⇒ 那是上游 tf2 源文件里的**运行期日志串**，本机既无源码也无符号可指 | 去掉行号，降档为机理引用：「tf2 上游 `buffer_core.cpp` 的重复检测日志串（本机仅装头文件、无该串 ⇒ 行号与头文件均不可用；结论以 **02 坑25** 在册归因为准）」 | 小美志文（M2 进度文档） |
+| 2 | `note/进度/v7/S3/仿真测试台/进度文档.md:164` 与 `note/04_配置改动diff.md:237` 引 `CMakeLists.txt` 第 192 行 | 真身＝**`opt/upstream/lvr2/CMakeLists.txt`**（**984 行**），第 192 行＝`find_package(GSL REQUIRED)`；裸名 `CMakeLists.txt` **仓内同名 348 件**，VCC 因此把它解析到 `ws/src/CMakeLists.txt`（符号链接→catkin 71 行）才报越界 | 把裸名换成到根全路径 `opt/upstream/lvr2/CMakeLists.txt` 第 192 行（v 稿 §2 已给同一真值，本条是**同型第二、三副本**） | ①仿真测试台志文（验收侧）②04 是在册台账：**原文不回改**，勘误句已在 04:761／v 稿 |
+| 3 | `note/进度/v7/S4/P5/进度文档.md:28` 引 `CMakeLists.txt` 第 40 行 `catkin_package(INCLUDE_DIRS include …)` | 该句**上一小句已点名** `deeprobotics_local_height_map`，实测 `ws/src/30_perception/deeprobotics_local_height_map/CMakeLists.txt` **第 40 行＝`catkin_package(`**（＝内容一直对，只有引用形状用了裸名 ⇒ 被 VCC 判成符号链接件·键名错） | 换成 `ws/src/30_perception/deeprobotics_local_height_map/CMakeLists.txt` 第 40 行 | P5 进度文档（在册验收/施工文档，不代改） |
+| 4 | `note/进度/v7/S2/M2/进度文档.md:587` 引 `buffer_core.cpp` 第 278 行 | **盘上没有这个件**：`/opt/ros/noetic/include/tf2/` 只有 `buffer_core.h`，且 `grep -rl TF_REPEATED_DATA /opt/ros/noetic/include`＝**零命中** ⇒ 那是上游 tf2 源文件里的**运行期日志串**，本机既无源码也无符号可指 | 去掉行号，降档为机理引用：「tf2 上游 `buffer_core.cpp` 的重复检测日志串（本机仅装头文件、无该串 ⇒ 行号与头文件均不可用；结论以 **02 坑25** 在册归因为准）」 | 小美志文（M2 进度文档） |
 
 **这一节自己过 VCC**：本稿新增 22 条引用里 RED 0／AMBER 0——做法是把「旧行号」写成「第 N 行」叙述、把「真值」给到根全路径（坑60 修法①的正用）。**§5 开头那条事实照留**：`git blame` 在这些行上只出 `ros1-slam` 与 `小王` 两种署名 ⇒ **「落到哪个人」不可机判**，所以本表按件属主路由，blame 只作附证。
 

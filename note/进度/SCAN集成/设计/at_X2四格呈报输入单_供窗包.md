@@ -20,7 +20,7 @@
 |---|---|---|---|
 | X2 四格已跑扇数 | `grep -c 'X2' note/进度/_window_receipt.tsv`（非注释条目第 3 列主题） | **0 扇**（单位＝扇；窗回执册现跑 **13** 行非注释，无一行主题为 X2） | `scripts/verify/_window_receipt.tsv` |
 | 在册对 X2 的定性句 | v5.3 §16.9 同条首句 | 逐字＝「**未证实可叠加**，非『被推翻』（Y2 降档）」⇒ 本格**不写达成、不写推翻**，两档都不动 | v5.3 §16.9 |
-| 探针面唯一有原始读数的那格 | `grep -c 'data:' cost3.txt` | `data_行数=1`；`cost3.txt` 现跑 **25 行**；`cost.txt` 与 `cost2.txt` 各 **1 行**（单位＝行）＝那两格各只留了一行 `WARNING: topic … does not appear` | `note/进度/仿真测试台/证据/raw/r59_w3_precheck_20261009_0522/probe/` |
+| 探针面唯一有原始读数的那格 | `grep -c 'data:' cost3.txt` | `data_行数=1`；`cost3.txt` 现跑 **25 行**；`cost.txt` 与 `cost2.txt` 各 **1 行**（单位＝行）＝那两格各只留了一行 `WARNING: topic … does not appear` | `note/进度/v7/S3/仿真测试台/证据/raw/r59_w3_precheck_20261009_0522/probe/` |
 | 那一格的读数 | 同件内 python 解算面（40×40＝1600 格） | `distinct=[0,100]`、100 区在位、−1 区读 0、全图 `254_格数=0` | 同上 `cost3.txt`＋`run3.log` |
 
 **(c) 「在册参数面」到底写了什么（★格① 的被试面本体，现跑逐字）**
