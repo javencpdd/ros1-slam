@@ -11,7 +11,7 @@
 - **乙类＝声称从盘上取的取数面（★这才是该逐条核的）**，现跑（02:33—02:36）全中、★无缺：
   - §2.3 数据件 **7/7 在**＝`data/maps/lite3.pcd` 6184931 字节（★sha 前 12 现跑 `aaa09362c5f1`＝与 §2.3 所钉值**仍中**）／`lite3.pgm` 86725／`lite3.yaml` 151／`sim_venue.pcd` 8858907／`lite3_1007.pcd` 105328317／`lite3_1007_polished.pcd` 6184931／`data/waypoints/README.md` 676（单位＝字节）。
   - §2.2 白名单包名 **18/18 在**＝三方 8 枚（`ws/src/00_drivers/lslidar_msgs`、`…/lslidar_driver`、`10_slam/faster_lio`、`10_slam/pcd2grid`、`20_localization/ndt_omp`、`…/fast_gicp`、`…/hdl_localization`、`…/hdl_global_localization`）＋自研壳 10 枚（`message_transformer`、`lite3_drivers`、`lite3_slam`、`lite3_localization`、`lite3_perception`、`lite3_navigation`、`lite3_task`、`lite3_safety`、`lite3_bringup`、`lite3_supervisor`，各在 `ws/src/00／10／20／30／40／50／60／70／90_*` 下）。
-  - 判据件面三处计数**与他现跑同值**＝`scripts/verify/`＝**27** 枚（内含 `gate_chain.txt` 在＋`_window_receipt.tsv` 在＋四张面清单 **4** 枚）／`ws/src/40_navigation/lite3_scan/verify/`＝**33** 枚（＝他 §2.2 所报值）／`note/进度/SCAN集成/设计/scripts/`＝**10** 枚（除 `s1_offline_frames_smoke.py` 外 9 枚＝我 R347-a 修⑩ 那一格、★仍待真人点名，本段不改判）。
+  - 判据件面三处计数**与他现跑同值**＝`scripts/verify/`＝**27** 枚（内含 `gate_chain.txt` 在＋`_window_receipt.tsv` 在＋四张面清单 **4** 枚）／`ws/src/40_navigation/lite3_scan/verify/`＝**33** 枚（＝他 §2.2 所报值）／`note/进度/v7/S1/SCAN集成/设计/scripts/`＝**10** 枚（除 `s1_offline_frames_smoke.py` 外 9 枚＝我 R347-a 修⑩ 那一格、★仍待真人点名，本段不改判）。
   - §1.6 两枚否定式**仍中**＝`find . -name '*.bag' -not -path './.git/*' | wc -l`＝0（★我复跑＝**0**）、`ls data/maps/slices | wc -l`＝**0**（目录在、内容为空＝他所写形状精确）。
 - ★唯一一枚要提请注意的**不是缺陷、是读法限定**＝§6 字段表第 **239** 行那条 `ls <仓根>/ws` 期望「**只有 `src`**」系**解包侧（异机）专用式**；本机现跑 `ls ws`＝`build devel README.md src`＝**4 项**（单位＝项，02:36:42）⇒ ★若执行者在**本机**跑该式必得假红（＝我 4a 式族分辨力那一族）。可抄注（★只给形、不代改）＝`（本式仅解包侧跑；发包侧本机 ws 含 build／devel＝排除项、非不一致）`。
 

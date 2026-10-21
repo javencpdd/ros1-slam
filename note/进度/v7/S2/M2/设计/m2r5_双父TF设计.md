@@ -4,7 +4,7 @@
 
 - 作者：小张（部署架构师）。性质：**只做设计，不施工**。实现状态：**未施工**（本档不产生任何 ws/ 改动）。
 - 派单来源：note/进度/v7/S2/M2/进度文档.md 「## M2R4 复核（小美，2026-10-08）」节（L332 起）——二节 ③ 成立（L368）、三节第 3 项「被测件即变、5 连必须重新起算」（L376）、四节 R2（L390）、五节候补句处置（L399–L404）。她的原文为唯一权威，本档所有引证均已回原件逐行核对。
-- 简称沿用她的定义：**XAC** ＝ ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro；**PLG** ＝ 同包 src/lite3_planar_drive.cpp；**SM** ＝ 同包 verify/m2_smoke.sh；**G4/G5** ＝ note/进度/SCAN集成/证据/log/raw/m2r4_fresh4.log / m2r4_fresh5.log；**RSP** ＝ robot_state_publisher。
+- 简称沿用她的定义：**XAC** ＝ ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro；**PLG** ＝ 同包 src/lite3_planar_drive.cpp；**SM** ＝ 同包 verify/m2_smoke.sh；**G4/G5** ＝ note/进度/v7/S1/SCAN集成/证据/log/raw/m2r4_fresh4.log / m2r4_fresh5.log；**RSP** ＝ robot_state_publisher。
 
 ## 0. 结论速览
 
@@ -243,13 +243,13 @@
 
 - 她更正后的判据文本（逐字，出 note/进度/v7/S2/M2/进度文档.md L560 的 R13 条；L506 表 #31 与 L430 的〔小美 R13〕括注同值）：「**个数不变 ＋ 成员名允许且仅允许跟随 root link ＋ 数值面逐位全等 ＋ canonical_body_name 不作锚（两态皆空串）**」。
 - 本件 L161 的字面「**集合成员与个数不得增减**。任一增减 ⇒ root 变更确实改了合并行为 ⇒ 立即停手上报，不得进入 5 连」**已被实测否证**：改 URDF root 后 lumped body 名**必然**跟随 root —— body_names 由 [TORSO] 变 [base_link]（V6a2 L6 对 V6b2 L6），geom_names 由 [TORSO_collision] 变 [base_link_fixed_joint_lump__TORSO_collision]（V6a2 L7 对 V6b2 L7），而**个数两态皆为 1、未增减**；joint_names 两态皆空列表（V6a2 L8、V6b2 L8）；canonical_body_name 两态皆空串（V6a2 L5、V6b2 L5），该字段本就**不可作锚**。
-- **字面被否证 ≠ 物理面受损**：改 root 使 lumped body 名随 root，是 Gazebo 对 fixed 关节做合并（lump）的**应有行为**（02 坑21 L178–L183；机理面的直接物证我本轮复核为 geom 名内嵌 fixed_joint_lump 串 V6b2 L7 ＋ 改后 URDF 仅 1 个 collision 块（实开 note/进度/SCAN集成/证据/m2r5_baseline/urdf_after_M2R5.urdf：L36 起，grep 计数 1）＋ 非 root 名两态皆回 link not found（V6a2 L9、V6b2 L11））。施工方未走我这条停手条、亦未申报该判据字面被否证，是她 #31 记的**程序面偏差**一条，不归物理面。
+- **字面被否证 ≠ 物理面受损**：改 root 使 lumped body 名随 root，是 Gazebo 对 fixed 关节做合并（lump）的**应有行为**（02 坑21 L178–L183；机理面的直接物证我本轮复核为 geom 名内嵌 fixed_joint_lump 串 V6b2 L7 ＋ 改后 URDF 仅 1 个 collision 块（实开 note/进度/v7/S1/SCAN集成/证据/m2r5_baseline/urdf_after_M2R5.urdf：L36 起，grep 计数 1）＋ 非 root 名两态皆回 link not found（V6a2 L9、V6b2 L11））。施工方未走我这条停手条、亦未申报该判据字面被否证，是她 #31 记的**程序面偏差**一条，不归物理面。
 - **替代判据（可机判写法，下轮起用）**：
   1. 个数面：len(body_names)、len(geom_names)、len(joint_names) 三值改前改后逐位相等。
   2. 成员名面：body_names 的每个元素只允许两种取值 —— 与改前同名，或等于改后的 root link 名；geom_names 只允许 root_fixed_joint_lump__（改前 geom 名）这一形态；出现其他新名、或条目增删 ⇒ 停手上报。
   3. 数值面：mass 与 ixx/iyy/izz/ixy/ixz/iyz 六惯量分量 ＋ com 三分量 ＋ gravity_mode，改前取 lite3_planar::TORSO、改后取 lite3_planar::base_link，要求**逐位全等**（打印逐位对照，相等为过；本件 L162 的 ≤1e-6／≤1e-4 容差本轮实测为逐位全等，容差只可收不可放）。
   4. canonical_body_name **不作锚**：该字段两态皆空串，凡以它为基线或锚点的判据一律视为无效判据，不得据其写停手条。
-- **主证锚点（batch2 四行，点名）**：note/进度/SCAN集成/证据/log/raw/m2r5_v6r2_pre.txt **L10、L11** 与 m2r5_v6r2_post.txt **L9、L10** —— mass=15.060000、ixx=0.347906、iyy=0.187906、izz=0.281110、ixy=ixz=iyz=0.000000、com=0.000000,0.000000,0.001262、gravity_mode=True，两态逐位相同（拓扑面另见 V6a2／V6b2 各 L5–L8）。
+- **主证锚点（batch2 四行，点名）**：note/进度/v7/S1/SCAN集成/证据/log/raw/m2r5_v6r2_pre.txt **L10、L11** 与 m2r5_v6r2_post.txt **L9、L10** —— mass=15.060000、ixx=0.347906、iyy=0.187906、izz=0.281110、ixy=ixz=iyz=0.000000、com=0.000000,0.000000,0.001262、gravity_mode=True，两态逐位相同（拓扑面另见 V6a2／V6b2 各 L5–L8）。
 
 ### 11.2 batch1／batch2 取证口径（本件无「以 batch1 为准」字样，但链上表述一并指向正确处置）
 
