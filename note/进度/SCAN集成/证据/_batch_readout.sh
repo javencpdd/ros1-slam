@@ -2,8 +2,10 @@
 # _batch_readout.sh —— ★批末读数面五枚的可复跑采集件★（登记面纪律件、★不是闸★：不进任何件的 rc、不入门禁串、不改成员与语义）
 # 起意＝追加七十九③ 立的「批末读数面固定五枚、缺一即自曝」连犯四次（批137—139 漏 P8、批142 漏两枚、批150 取的是提交前的丁案源、
 #         ④ 甲/乙累计 自批143 起一律报"未动"却从没跑过式）⇒ 把"当次同调用现取"从脑子里的动作变成一件能跑、会翻红的东西。
-# 用法＝bash _batch_readout.sh [--phase pre|post] [--skip-chain] [--BR_SKIP=<①..⑤|6=附二|7=附三|8=附四|9=附五>]
+# 用法＝bash _batch_readout.sh [--phase pre|post] [--skip-chain] [--batch N] [--BR_SKIP=<①..⑤|6=附二|7=附三|8=附四|9=附五>]
 #   --phase post 只影响⑤的措辞（★提交前跑⇒本批那次提交不在丁案源内★）；--skip-chain 用于同一批内早先已跑过串的那一遍；
+#   ★--batch N＝把本批批号显式传给附三的 firing 探测件（★批201 补★：此前本件不接 --batch ⇒ BR_BATCH 恒空
+#     ⇒ 附三只能收到 --batch "?" ⇒ 状态面印出批号「?」两行；★现由调用方显式给★、不给则缺省仍是 ?＝向后兼容）★
 #   --BR_SKIP=3 是★负例开关★：故意让第③枚取不到 ⇒ 本件必须翻红（rc=5）并点名缺哪枚。
 # 附面（★全部只报不拦＝不进 MISS、不进任何件的 rc★）＝附 清盘计数 ‖ 附二 清单覆盖面（第六枚）‖ 附三 firing 探测（第九枚）
 #            ‖ ★附四 governance 漂移闸（第十枚＝2026-10-21 真人点出四处陈旧后建）★＝红档面必须归零、笔权与历史面走旁报★
@@ -12,10 +14,11 @@
 #              容器面只跑门禁串与清盘计数。
 set -u
 ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
-PHASE=pre; SKIPCHAIN=0; BRSKIP=""
+PHASE=pre; SKIPCHAIN=0; BRSKIP=""; BR_BATCH=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --phase) PHASE="$2"; shift 2 ;;
+    --batch) BR_BATCH="$2"; shift 2 ;;
     --skip-chain) SKIPCHAIN=1; shift ;;
     --BR_SKIP=*) BRSKIP="${1#--BR_SKIP=}"; shift ;;
     *) echo "未知参数 $1"; exit 9 ;;

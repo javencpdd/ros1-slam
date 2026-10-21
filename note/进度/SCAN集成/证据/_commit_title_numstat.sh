@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# _commit_title_numstat.sh —— ★「提交标题声称的动作 vs 该提交 numstat」对表件（★常驻、施工侧自有＝第十二枚；
+#   ★不入门禁串、不改任何在册件的 rc 语义、只报不拦★）
+#
+# 起意＝批200（56759b4）标题自陈「★新规矩第一次行使＝「声称的动作 vs 该提交 numstat」真对表★…
+#       ★本批人眼对表过一次、还没有件★」；批201 号位①把它固化成★能跑、会翻红★的东西。
+#       ⇒ 此前这枚对表★只存在于人眼与标题散文里★＝姿势依赖人记（追加一百零六⑥「到签的守卫要落成件」同族）。
+#
+# ★判据三级（★扫哪一档写进件头★＝追加一百二十六：只在脑子里的规矩＝没有规矩）★：
+#   A 行数级（最硬）＝标题「<面名>…追加 N 行」且★行紧跟数字★ ⇒ numstat 该面 additions 必须＝N
+#       （N 认阿拉伯数字与中文 一二三四五六七八九十两；★不认复合数如「五十」★＝那是追加编号不是行数）
+#   B 面级存在性＝标题某单元形如「<面名><≤3 字符>动作词」⇒ numstat 必须出现该面（★缺一即红★）
+#       ★仅两面可判★＝04:段（ ｜ 00_总览:档头滚｜档头｜条目区
+#       （05／留底／状态面／档头历史 的 B ★已放弃★：引用在册条目与声称动了完全同形、不可区分 ⇒ 见 act_re 注）
+#   C 未动形＝标题某单元形如「<面名><≤14 字符>未动」⇒ numstat 必须★不★出现该面
+#
+# ★四枚必守技术点（全部有存量实证）★：
+#   ①★必须带 -c core.quotepath=false★（不带时 CJK 路径被 git 转义成八进制、grep 中文全给 0＝★假零★）
+#   ②★04／05 面名必须带左右边界★＝`(^|[^0-9A-Za-z_])04([^0-9A-Za-z_]|$)`：
+#      否则 ★r205★ 里的子串「05」会被当成面名（批201 存量扫第一版实测假阳 91 条的主因之一）
+#   ③★「行」必须紧跟数字★＝否则「05 追加五十（★整行余值…」里的"整行"会被当成行数（同批实测假阳）
+#   ④★声称行数按 numstat additions 列★、不按 wc -l（numstat 已把空行算进去）
+#
+# 用法＝bash _commit_title_numstat.sh <sha>            # 对表单枚提交
+#       bash _commit_title_numstat.sh --selftest       # 正负控自证（三枚真实提交、只读 git、零写盘）
+#       bash _commit_title_numstat.sh --scan-all       # 扫存量（★新闸上线必须先扫已入库违例★）
+# 退出码＝0（全部对得上 ‖ 自测全合期望）‖ 5（★有不符★ ‖ 自测不合期望）‖ 9（前置缺失：sha 不存在／git 不可用）
+set -u
+ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
+cd "$ROOT" || { echo "前置缺失：仓根不在位"; exit 9; }
+[ -d .git ] || { echo "前置缺失：不是 git 仓"; exit 9; }
+
+FACES="04 05 00_总览 档头历史 状态面 留底"
+
+face_path() {
+  case "$1" in
+    04)        echo "note/04_配置改动diff.md" ;;
+    05)        echo "note/05_复验作业单.md" ;;
+    00_总览)   echo "note/进度/00_总览.md" ;;
+    档头历史)  echo "note/进度/总览分册/00_档头历史.md" ;;
+    状态面)    echo "note/进度/SCAN集成/证据/_rqq_watch.state.tsv" ;;
+    留底)      echo "note/进度/SCAN集成/证据/log/raw/" ;;
+  esac
+}
+
+# 动作词正则（B 判据用；04 带左右边界）
+# ★B 的辖域★只保留两类★最明确★的「动了」形（★批201 存量扫第二版实证★：
+#   「R247 刚写进 05 追加二十五」这种★引用在册条目★与「05 追加一百二十七」这种★声称动了★完全同形、
+#   无法可靠区分 ⇒ 05／留底／状态面／档头历史 四面的 B ★整体放弃★（它们由 A 行数级与 C 未动形覆盖）；
+#   ★第三版又收窄★＝「条目区」也放弃（bb54f6d 实证：「00_总览 条目区『志 220 行』」是★在读一个数★、
+#   不是说动了该面）⇒ 现只留「档头滚」与「段（」两形：
+#   宁可少判一面，不可把「引用／读数」当「动了」＝假阳比漏判更坏（假阳会训练人忽略本件）★）
+act_re() {
+  case "$1" in
+    04)       echo '(^|[^0-9A-Za-z_])04[^0-9]{0,3}(R[0-9]+ 段（|段（)' ;;
+    00_总览)  echo '00_总览[^。；]{0,3}档头滚' ;;
+    *)        echo '@@NONE@@' ;;
+  esac
+}
+
+cn2num() { # ★阿拉伯数字原样返回；中文单字转换；复合数（如「五十」）与空串一律返回空⇒调用方跳过★
+  case "$1" in
+    一) echo 1 ;; 二) echo 2 ;; 两) echo 2 ;; 三) echo 3 ;; 四) echo 4 ;;
+    五) echo 5 ;; 六) echo 6 ;; 七) echo 7 ;; 八) echo 8 ;; 九) echo 9 ;; 十) echo 10 ;;
+    '') echo "" ;;
+    *) printf '%s' "$1" | grep -qE '^[0-9]+$' && echo "$1" || echo "" ;;
+  esac
+}
+
+get_title()   { git -c core.quotepath=false log -1 --format=%s "$1" 2>/dev/null; }
+get_numstat() { git -c core.quotepath=false show --numstat --format='' "$1" 2>/dev/null; }
+
+ns_add() { printf '%s\n' "$1" | awk -v p="$2" '$3==p {print $1; f=1} END{if(!f) print "-"}'; }
+
+check_one() { # $1=sha ⇒ stdout=不合行；return=不合枚数（9＝前置缺失）
+  local sha="$1" title numstat bad=0
+  title=$(get_title "$sha"); numstat=$(get_numstat "$sha")
+  [ -n "$title" ] || { echo "前置缺失：取不到 $sha 的标题"; return 9; }
+
+  local units u face path re n want got frag has any_unit
+  units=$(printf '%s' "$title" | sed 's/｜/\n/g; s/‖/\n/g; s/；/\n/g; s/。/\n/g; s/＝/\n/g; s/＋/\n/g')
+
+  # ★快速排除★：标题不含「未动」⇒ C 判据整体跳过（省掉 6 次全标题 grep）
+  local has_static=0
+  case "$title" in *未动*) has_static=1 ;; esac
+
+  # ★只留可能相关的单元★（含六个面名之一 或 含未动）⇒ 单元数从几十降到个位数
+  local slim=""
+  while IFS= read -r u; do
+    [ -n "$u" ] || continue
+    case "$u" in
+      *04*|*05*|*00_总览*|*档头历史*|*状态面*|*留底*|*未动*) slim="$slim$u"$'\n' ;;
+    esac
+  done <<EOF
+$units
+EOF
+
+  for face in $FACES; do
+    path=$(face_path "$face"); re=$(act_re "$face")
+    # ---- C 未动形（★面名也要带边界★＝否则 r505q 里的「05」会被当成面名：批201 第三版实证 c54db29 假阳）----
+    if [ "$has_static" = 1 ]; then
+      local cre
+      case "$face" in
+        04|05) cre='(^|[^0-9A-Za-z_])'$face'[^。；]{0,14}未动' ;;
+        *)     cre="$face[^。；]{0,14}未动" ;;
+      esac
+      if printf '%s\n' "$slim" | grep -qE "$cre"; then
+        got=$(ns_add "$numstat" "$path")
+        if [ "$got" != "-" ]; then
+          echo "  [C 未动形不合] 标题称「$face … 未动」但 numstat 有该面：additions=$got"
+          bad=$((bad+1))
+        fi
+      fi
+    fi
+    # ---- 逐单元：A 行数级 ＋ B 面级存在 ----
+    while IFS= read -r u; do
+      [ -n "$u" ] || continue
+      # ★先确认本单元含此面（04／05 带左右边界，否则 r205 里的「05」会被当成面名）★
+      case "$u" in
+        *"$face"*) ;;
+        *) continue ;;
+      esac
+      has=0
+      case "$face" in
+        04|05) printf '%s' "$u" | grep -qE '(^|[^0-9A-Za-z_])'$face'([^0-9A-Za-z_]|$)' && has=1 ;;
+        *)     has=1 ;;
+      esac
+      [ "$has" = 1 ] || continue
+      # A：追加 N 行（★宽松取片段、再由 cn2num 收口★：复合数如「五十」返回空⇒自动跳过＝那是追加编号不是行数）
+      frag=$(printf '%s' "$u" | grep -oE '追加[^。；]{0,6}行' | head -1)
+      if [ -n "$frag" ]; then
+        n=$(printf '%s' "$frag" | grep -oE '[0-9一二三四五六七八九十两]+' | head -1)
+        want=$(cn2num "$n")
+        if [ -n "$want" ]; then
+          got=$(ns_add "$numstat" "$path")
+          if [ "$got" != "$want" ]; then
+            echo "  [A 行数级不合] 标题称「$face 追加 $n 行」(=$want) 但 numstat additions=$got"
+            bad=$((bad+1))
+          fi
+        fi
+      fi
+      # B：面级存在（面名后紧跟动作词；★该单元若含「未动」则归 C 辖域、B 不重复判★）
+      case "$u" in *未动*) continue ;; esac
+      if printf '%s' "$u" | grep -qE "$re"; then
+        got=$(ns_add "$numstat" "$path")
+        if [ "$got" = "-" ]; then
+          echo "  [B 面级不合] 标题称动了「$face」但 numstat 无该面"
+          bad=$((bad+1))
+        fi
+      fi
+    done <<EOF
+$slim
+EOF
+  done
+  return $bad
+}
+
+MODE="${1:-}"
+case "$MODE" in
+  --selftest)
+    echo "== 自测（三枚真实提交、只读 git、零写盘）=="
+    echo "   ★判读★＝不合枚数 0 ⇒ 期望绿；≠0 ⇒ 期望翻红（单枚对表模式统一映射为退出码 5）"
+    fail=0
+    out=$(check_one 578b186); rc=$?
+    echo "负控 578b186（批199·补，裸·补形）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -eq 0 ]; then echo "  X 期望翻红（≠0），实得 0 ⇒ 本件无牙"; fail=$((fail+1));
+    else echo "  ✔ 翻红如期望"; fi
+    out=$(check_one 56759b4); rc=$?
+    echo "正控一 56759b4（批200·补一）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -ne 0 ]; then echo "  X 期望绿（0），实得 $rc"; fail=$((fail+1));
+    else echo "  ✔ 全绿如期望"; fi
+    out=$(check_one 13594c7); rc=$?
+    echo "正控二 13594c7（批200）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -ne 0 ]; then echo "  X 期望绿（0），实得 $rc"; fail=$((fail+1));
+    else echo "  ✔ 全绿如期望"; fi
+    echo "--"
+    if [ "$fail" -eq 0 ]; then echo "✔ 自测三枚全合期望 ⇒ 本件有牙"; exit 0
+    else echo "X 自测有 $fail 枚不合 ⇒ 本件有缺陷"; exit 5; fi
+    ;;
+  --scan-all)
+    echo "== 存量扫（★新闸上线必须先扫已入库违例、否则绿会被读成从来没违例过＝假绿★）=="
+    total=0; bad_n=0
+    for sha in $(git -c core.quotepath=false log --format=%H); do
+      total=$((total+1))
+      out=$(check_one "$sha"); rc=$?
+      if [ "$rc" -ne 0 ] && [ "$rc" -ne 9 ]; then
+        bad_n=$((bad_n+1)); echo "X $sha"
+        [ -n "$out" ] && printf '%s\n' "$out"
+      fi
+    done
+    echo "--"
+    echo "存量提交=$total ‖ 不合=$bad_n"
+    if [ "$bad_n" -eq 0 ]; then echo "（零不合＝存量无违例）"; exit 0; else exit 5; fi
+    ;;
+  "")
+    echo "用法：bash _commit_title_numstat.sh <sha> | --selftest | --scan-all"; exit 9 ;;
+  *)
+    out=$(check_one "$MODE"); rc=$?
+    echo "== 对表 $MODE =="
+    if [ "$rc" -eq 9 ]; then printf '%s\n' "$out"; exit 9; fi
+    if [ "$rc" -eq 0 ]; then echo "✔ 全部对得上（rc=0）"; exit 0; fi
+    echo "X 不合 $rc 枚："; printf '%s\n' "$out"; exit 5 ;;
+esac
