@@ -12,6 +12,7 @@ set -u
 # ★打印面★＝★不截目录名★＝本仓目录名多含中文、`cut -c1-90` 会★按字节★截断产生非法 UTF-8（批180 实测：下游 python 解码 UnicodeDecodeError）
 
 base=$(cd "$(dirname "$0")" && pwd)
+ROOTQ=$(cd "$base/../../../.." && pwd)
 MODE=build; BR_EMPTY=0; DIRS=""
 for a in "$@"; do
   case "$a" in
@@ -22,13 +23,35 @@ for a in "$@"; do
   esac
 done
 [ -n "$DIRS" ] || DIRS="."
+# ★★G19/R534＝负例开关的写出面必须在★夹具目录★里（旧形＝--BR_EMPTY 往★真目标★写一枚空清单＝
+#   本批 14:14 实测＝我从证据面跑 --BR_EMPTY、没带目录参数 ⇒ 在 证据/ 落了一枚 68 字节的空清单
+#   ＝批186 自曝④那条铁律（★反控与干跑一律不许指向已入库目录★）在★自家常驻件的自测分支★里成真＝已删、已改形★）
+BR_TMP=""
+if [ "$BR_EMPTY" = 1 ]; then
+  BR_TMP=$(mktemp -d /tmp/manifest_br_empty.XXXXXX)
+  case "$BR_TMP" in /tmp/*) : ;; *) echo "★夹具写出面不在 /tmp＝$BR_TMP ⇒ 负例不跑★"; exit 9 ;; esac
+  echo "  ★负例开关★＝写出面★强制换到夹具★＝$BR_TMP（★原参数里的目录一枚不写★）"
+  DIRS="$BR_TMP"
+fi
 
 fail=0
 for d in $DIRS; do
   [ -d "$d" ] || { echo "★目录不在位★ $d"; fail=1; continue; }
+  d=$(cd "$d" && pwd)   # ★G19 牙根／R534＝目标先归★绝对面★（旧形＝相对参数直接拼＝`${mf#$ROOTQ/}` 削不出相对键⇒闸恒不响⇒本批三次重写已入库 r533 清单都靠 git checkout 还原＝★一枚闸连着两遍没牙、第三遍才对上键★）
   mf="$d/_sha256_manifest.txt"
   # ★独立式子①＝文件数（不含清单本体）★
   n=$(find "$d" -type f ! -name '_sha256_manifest.txt' | wc -l)
+  # ★G19 反控②／R534＝已入库清单不许被★重建★覆写。旧形＝`git ls-files --error-unmatch` 拿★绝对路径★查
+  #   ⇒ 恒查不中＝这枚闸★没牙★＝本批实测两次：我拿 --build 对已入库的 r533 各跑一次、清单的时刻行被重写两次（都靠 git checkout 还原＝已入库⇒可逆）
+  #   正形＝路径先★削掉仓根★再问 git（git 的键是★相对面★）；查不到＝未入库⇒准建（本窗留底就是未入库那支）
+  if [ "$MODE" = build ] && [ "$BR_EMPTY" != 1 ] && [ -f "$mf" ]; then
+    REL="${mf#$ROOTQ/}"
+    if git -C "$ROOTQ" ls-files --error-unmatch "$REL" >/dev/null 2>&1; then
+      echo "  ★拒绝＝$d 的清单★已入库★（git 相对面＝$REL 查得到）＝已入库只读不写、清单零回填 ⇒ 要复核请用 --check"
+      fail=1
+      continue
+    fi
+  fi
   if [ "$MODE" = build ]; then
     if [ "$BR_EMPTY" = 1 ]; then
       # 负例开关：复现批177 那枚事故＝列表为空仍去喂 sha256sum
@@ -56,6 +79,7 @@ for d in $DIRS; do
   printf "  %-92s 文件数(不含清单)=%-4s sha条目=%-4s 注释行=%-3s -c_rc=%s ⇒ %s\n" \
     "$(basename "$d")" "$n" "$m" "$cm" "$rc" "$verdict"
 done
+[ -n "$BR_TMP" ] && rm -rf "$BR_TMP" && echo "  ★夹具已删＝$BR_TMP 现读 $([ -d "$BR_TMP" ] && echo 在 || echo 无)★"
 if [ "$fail" = 0 ]; then echo "建单闸全过（★三枚断言逐枚真取：条目＞0 ‖ 条目＝文件数 ‖ -c rc=0★）"; exit 0; fi
 echo "★建单闸翻红＝登记面自曝（本件只作用于★建单方自己★：不进门禁串、不改任何在册件的 rc 语义）★"
 exit 5

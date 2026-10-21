@@ -1,0 +1,37 @@
+[smoke] 起 mode_nav_sim.launch（日志 /tmp/sim_nav_smoke_launch.log）...
+[smoke] ★G17 自证★＝win_root=/opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r534_活体窗落G1到G12十二枚件内修_G16根现取与三枚开窗断言真拦一次与退出点枚数静态牙与rc不变量进合取七与段标题挂条件与表字段无走红档与面标签真取utcoffset与哨兵替None（现取 dirname /opt/ros1-slam/note/进度/SCAN集成/证据/log/raw/r534_活体窗落G1到G12十二枚件内修_G16根现取与三枚开窗断言真拦一次与退出点枚数静态牙与rc不变量进合取七与段标题挂条件与表字段无走红档与面标签真取utcoffset与哨兵替None/sim_nav_smoke_r534.sh）
+CHECK|venue_map_cloud|PASS|/map_generator/global_cloud 有发布者（mockamap）
+CHECK|rslidar_points|PASS|/rslidar_points 实测 10.00Hz（≥0.5，G8 适配链活性）
+CHECK|truth_map|PASS|/map 有数据且占据格=5041（sim_map_bridge）
+CHECK|tf_robot|PASS|TF map→base_link 可查（sim_pose_tf）
+CHECK|costmap_data|PASS|全局 costmap 占据格=12415（static+stvl 有数据）
+CHECK|getpath_server|PASS|mbf get_path action server 在位
+CHECK|getpath_1|FAIL|outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=1.9m，判据≤35.6m）
+CHECK|getpath_2|FAIL|outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=3.0m，判据≤35.6m）
+CHECK|getpath_3|FAIL|outcome=55 Global planner exceeded the patience time | 末点偏差=9000000000.00m 长度=0.0m（当前位姿直线距=5.1m，判据≤35.6m）
+CHECK|exepath_cmdvel|FAIL|无可用 GetPath 路径，ExePath 跳过
+CHECK|cmdvel_writer|PASS|/cmd_vel publisher=['/safe_cmd_vel_mux (http://99957655604a:44113/)']（唯一写者=M6 safe_cmd_vel_mux，§2.6-a）
+[smoke] launch 日志尾 20 行（失败时排查用）：
+[INFO] [1792565392.759977]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[0m[ INFO] [1792565393.402578564]: Global planner patience has been exceeded! Cancel planning...[0m
+[33m[ WARN] [1792565393.402832884]: Cancel planning failed or is not supported by the plugin. Wait until the current planning finished![0m
+[0m[ INFO] [1792565393.404223566]: Planning patience (3s) has been exceeded; planner canceled![0m
+[INFO] [1792565393.598315]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[33m[ WARN] [1792565393.731515566]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1080 seconds[0m
+[INFO] [1792565394.664495]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[31m[ERROR] [1792565395.411925460]: Failed to get a plan.[0m
+[INFO] [1792565395.669300]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[0m[ INFO] [1792565396.470125824]: Planning patience (3s) has been exceeded[0m
+[INFO] [1792565396.675563]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792565397.675555]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792565398.717191]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[0m[ INFO] [1792565399.478470892]: Global planner patience has been exceeded! Cancel planning...[0m
+[33m[ WARN] [1792565399.478839460]: Cancel planning failed or is not supported by the plugin. Wait until the current planning finished![0m
+[33m[ WARN] [1792565399.494756777]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1710 seconds[0m
+[0m[ INFO] [1792565399.506237423]: Planning patience (3s) has been exceeded; planner canceled![0m
+[33m[ WARN] [1792565399.541862992]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1181 seconds[0m
+[INFO] [1792565399.707472]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[INFO] [1792565400.647984]: [sim_map_bridge] /map 已物化：120x120 @0.10m，占据格=5041（z∈[0.05,2.00]）
+[smoke] 退净中...
+CHECK|ros2qnx_exit|PASS|ros2qnx 全程不存在
+CHECK|teardown|PASS|launch 内关键节点已退净
