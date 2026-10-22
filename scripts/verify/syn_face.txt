@@ -51,6 +51,12 @@ scripts/verify/v_py_static.sh
 scripts/verify/v_sh_py_syntax.sh
 scripts/verify/v_verdict_field_parity.sh
 scripts/verify/v_window_preflight.sh
+# ★R573 刷新（批225：P8 判据失效的替代式落盘＝v7.3 Y9 那枚能力退化的正形）
+#   新增 scripts/verify/v_patch_landing.sh ⇒ 清单数 93→**94**＝派生式现拼数 94（两次同数＝验收式过；反向差集为空；正向差集仅此一条）。
+#   ★该件是门禁件（不只是被检件）★，落面理由与 v_py_static.sh／v_sh_py_syntax.sh 同族：门禁件自身的内嵌 python 段必须受静态检查。
+#   ★SYN 单件实测★＝段数 1（L24-L187，定界符 PYEOF）；植入一行语法错即 FAIL rc=1，还原即 rc=0 ⇒ 该段真受检、非默认绿。
+#   ★本件写作形有一条非风格约束★：`python3 -` 与其 heredoc 重定向必须在同一行——否则 SYN 的双条件跨行、判「无内嵌 python 段」而印绿（本批自曝）。
+scripts/verify/v_patch_landing.sh
 tooling/skill/RESTORE.sh
 ws/src/20_localization/lite3_localization/verify/v_fd_h_name_contract.sh
 ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh
