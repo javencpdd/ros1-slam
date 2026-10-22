@@ -1,152 +1,90 @@
-# ros1-slam 跨 Agent 协作黑板 — 使用说明
+# ros1-slam · 四足机器人 SLAM 与导航开发仓
 
-**解决的问题：** 在 `192.168.1.103` 的 `/home/ros1-slam` 项目上，zcode 和 qoder 交替干活时
-能不能无缝接力，且任务不串台。
-
----
-
-## 一、为什么这么设计
-
-| 手段 | 结论 |
-|---|---|
-| 直接同步 zcode / qoder 的私有记忆文件 | ✘ 格式闭源（sqlite / 压缩 jsonl）+ 厂商随时变更 + 有写坏库的风险 |
-| memU（14.5k star, Apache-2.0） | △ 定位正合适，但官方 host 矩阵不覆盖 zcode / qoder，需自写 adapter + 自备 embedding |
-| MCP 记忆服务 | △ 两边都支持 MCP，但为一个 ROS 项目引入 DB 依赖过重 |
-| **共享黑板 + bridge.py** ✔ | 零依赖、纯文本、可 git diff、人和 LLM 都能读、换任何工具都不失效 |
-
-**关键突破口：** zcode 和 qoder 都会读工作区的 `AGENTS.md`。这是唯一可靠公共面。
-
-> ⚠️ zcode **不展开 `@import`**（官网明确），所以所有必读规则都**内联**在 `AGENTS.md` 里，
-> 长篇内容靠「指路让 Agent 自己去读」，而不是塞进去。
+> 一句话：**机器狗（Lite3）的激光 SLAM 与自主导航开发仓**（ROS1／Noetic）——
+> 源码在 `ws/`，进度·验收·证据·台账在 `note/`，门禁在 `scripts/verify/`，容器环境在 `docker/`。
+>
+> ★本文件是**项目门面**：只回答「这是什么、东西在哪、先读哪个」。
+> ★跨 Agent 接力黑板（zcode／qoder／WorkBuddy）不在这里★，见第五节指针。
 
 ---
 
-## 二、部署到 103
+## 一、这仓是什么
 
-在本机（能 ssh 到 103 的机器上）执行：
-
-```bash
-cd ~/ros1-slam-agent-bridge          # 本目录
-bash install.sh user@192.168.1.103 /home/ros1-slam
-```
-
-`install.sh` 会做：
-
-1. 把 `AGENTS.md` 放到 `/home/ros1-slam/AGENTS.md`（已存在则先备份成 `AGENTS.md.bak-<时间戳>`）
-2. 把 `.ai/` 整体放到 `/home/ros1-slam/.ai/`
-3. 把 `.qoder/rules/` 放到 `/home/ros1-slam/.qoder/rules/`
-4. 远端跑 `python3 .ai/bridge.py init` 生成 `state.json` / `TASKS.md` / `HANDOFF.md`
-
-已有 103 上的 `.ai/` 数据不会被覆盖（脚本会跳过已存在的 `.ai/state.json`）。
+面向四足机器人（Lite3）的**激光 SLAM 与自主导航**开发仓。当前主线＝在既有 2D 导航栈
+（`move_base_flex`）之上做 **3D 化改造**（高程与台阶可通行性、多楼层规划），
+并配套一整套**可复跑门禁**（`scripts/verify/`，十一件）与**逐批台账**（`note/`）。
 
 ---
 
-## 三、日常工作流
+## 二、三条分工线（★本仓最要紧的一条纪律★）
 
-### 场景 A：qoder 干了一半，换 zcode 接手
+| 面 | 放什么 | 不放什么 |
+|---|---|---|
+| `ws/` | 源码与配置，**只放代码** | 不放进度、不放台账 |
+| `note/` | 进度真身／坑台账／判据表／计划书／证据目录 | 不放源码 |
+| `scripts/verify/` | 门禁判据件，串跑入口 `run_gate_chain.sh` | 不放业务代码 |
 
-```bash
-# 在 zcode 里，第一句话直接说：
-读取 AGENTS.md，执行 cd /home/ros1-slam && python3 .ai/bridge.py resume --as zcode，然后按指示继续。
-```
-
-`resume` 会吐出：当前任务是谁、要去读哪几个文件、作用域限定、上一棒的交接摘要、最近 Journal。
-
-### 场景 B：zcode 干完，交回给 qoder
-
-```bash
-cd /home/ros1-slam
-python3 .ai/bridge.py note    T-20261016-01 "已完成 xxx，验证命令 catkin_make 通过"
-python3 .ai/bridge.py handoff T-20261016-01 --to qoder \
-  --summary "下一步跑 xxx.bag 回归并对比轨迹误差；坑：g2o 别升级；别碰 params.yaml"
-```
-
-### 场景 C：查看全局 / 排查串台
-
-```bash
-python3 .ai/bridge.py status
-python3 .ai/bridge.py check          # 会报：多个 in_progress、任务卡缺失、scope 未限定、烂尾任务
-```
+> ⚠️ **进度真身只有一个＝`note/进度/00_总览.md`**。
+> 换机器、换工具、换 Agent 都一样；任何摘要（含 `.ai/HANDOFF.md`）都只是「某次交接时」的快照。
 
 ---
 
-## 四、目录结构
-
-```
-/home/ros1-slam/
-├── AGENTS.md                        ← 两个工具共同读取的入口（精简，靠 AGENTS.md 引用）
-├── .ai/
-│   ├── bridge.py                    ← 状态机 CLI，唯一的状态写入者
-│   ├── state.json                   ← 单一真相源（机器读写）
-│   ├── TASKS.md                     ← 自动生成，任务账本
-│   ├── HANDOFF.md                   ← 自动生成，当前交接游标
-│   ├── JOURNAL.md                   ← 只追加的操作流水
-│   ├── knowledge.md                 ← 跨工具长期知识（手写沉淀）
-│   └── tasks/
-│       ├── _template.md
-│       └── T-YYYYMMDD-NN.md         ← 每个任务一张卡，含全部历史
-└── .qoder/rules/
-    └── ros1-slam-collab.md          ← qoder 侧常驻提醒（带 alwaysApply）
-```
-
----
-
-## 五、防串台的三道保险
-
-1. **单 current 游标**：全局只有 `current_task` 一个，`resume` 只吐它。
-2. **scope 白名单**：每个任务卡写明允许改动的文件目录，越界按违规处理。
-3. **epoch 版本号**：任何状态迁移 +1；Agent 读到旧 epoch 会被要求重跑 `resume`。
-   外加 `check` 命令主动检测「多个 in_progress」「任务卡缺失」「N 天未更新的烂尾任务」。
-
-> AGENTS.md 类指令的遵守率天然是**概率性**的（<200 行、指令冲突会随机取舍）。
-> 所以**状态迁移务必走 bridge.py**，让脚本而不是 LLM 来保证一致性。
-
----
-
-## 六、可选增强
-
-- **zcode 全局提醒**：在 `~/.zcode/AGENTS.md`（用户全局）追加一句
-  「进入 /home/ros1-slam 工作区时，先跑 `python3 .ai/bridge.py resume --as zcode`」，
-  省得每次手动说。
-- **git 版本化**：把 `AGENTS.md` 和 `.ai/` 提交进 git（`.gitignore` 里排除 `.ai/.state.lock`），
-  交接记录就有了 diff 历史。
-- **文件监听自动拉起**（进阶）：参考 Markdown Blackboard 的 watcher 模式，
-  用 `nodemon --watch .ai/HANDOFF.md` 在交接时自动唤起另一个 CLI。
-  通常没必要——你手动切工具已经够快。
-
----
-
-## 七、参考
-
-- zcode 官方：项目指令文件 AGENTS.md <https://zcode.z.ai/cn/docs/agents>
-- qoder 官方：静态记忆与 Rules <https://docs.qoder.com/zh/cli/memory>
-- 黑板 vs监督者 模式：<https://www.agentpatternscatalog.org/patterns/blackboard>
-- Agent 交接四模式（Handoff Envelope / Relay Ledger / 显式 ACK / 上下文压缩）：
-  <https://askpatrick.co/guides/agent-handoff-patterns>
-- memU（日后要跨机/语义检索再升级）：<https://github.com/NevaMind-AI/memU>
-
----
-
-## 八、全仓目录导航（★补·对齐到 R518／批174★）
-
-> 上面第一—七节讲的是**跨工具接力黑白**；本节补的是**这个仓库本身是什么、东西在哪**。
-> （★插入节、上方旧文一字未回改★）
+## 三、全仓目录导航
 
 | 顶层目录 | 是什么 | 入口 |
 |---|---|---|
-| `ws/` | catkin 工作区＝**源码面**（只放代码与配置；`build/` `devel/` 是编译产物、不入库） | [`ws/README.md`](ws/README.md) |
-| `note/` | **台账志文面**＝进度真身／坑台账／判据表／计划书 v3—v7 | [`note/00_README.md`](note/00_README.md)＝三条硬规则 |
-| `scripts/` | 门禁件 `scripts/verify/`（★十件套★）＋采图脚本族 `scripts/mapping/` | [`scripts/mapping/README.md`](scripts/mapping/README.md) |
-| `docker/` | 容器开发环境（复刻 Jetson aarch64 的 Noetic 隔离沙箱）＋ `foxglove/` 布局件 | [`docker/README.md`](docker/README.md) |
-| `tooling/` | 项目自持清单（含 skill 逐字镜像＋ `*_sha256_manifest.txt` 见证清单） | [`tooling/README.md`](tooling/README.md) |
-| `data/` | 底图与输出面（`maps/`＝建图三件套 .pcd/.pgm/.yaml，`waypoints/`＝航点 JSON） | [`data/waypoints/README.md`](data/waypoints/README.md) |
-| `opt/` | **第三方与原件区**（★原样复制、一字不改★；唯一许可例外＝faster-lio 存盘路径隔离） | `opt/upstream/`、`opt/3rdparty/` |
-| `.ai/` | 跨工具接力黑白（`bridge.py`＝唯一状态写入者） | `python3 .ai/bridge.py resume --as <工具名>` |
+| `ws/` | catkin 工作区＝**源码面**（`build/` `devel/` 是编译产物、不入库） | `ws/README.md` |
+| `note/` | **台账志文面**＝进度真身／坑台账／判据表／计划书 v3—v7 | `note/00_README.md`＝三条硬规则 |
+| `note/tools/` | 工具教程面（跨 Agent 协作黑板教程在此） | `note/tools/跨Agent协作黑板-使用教程.md` |
+| `scripts/` | 门禁件 `scripts/verify/`（★十一件★）＋采图脚本族 `scripts/mapping/` | `scripts/mapping/README.md` |
+| `docker/` | 容器开发环境（复刻 Jetson aarch64 的 Noetic 隔离沙箱）＋ `foxglove/` 布局件 | `docker/README.md` |
+| `tooling/` | 项目自持清单（含 skill 逐字镜像＋ `*_sha256_manifest.txt` 见证清单） | `tooling/README.md` |
+| `data/` | 底图与输出面（`maps/`＝建图三件套 .pcd/.pgm/.yaml，`waypoints/`＝航点 JSON） | `data/waypoints/README.md` |
+| `opt/` | **第三方与原件区**（★原样复制、一字不改★；唯一许可例外＝faster-lio 存盘路径隔离） | `opt/upstream/`／`opt/3rdparty/` |
+| `.ai/` | 跨工具接力黑板的状态目录（`bridge.py`＝唯一状态写入者） | `python3 .ai/bridge.py resume --as <工具名>` |
 | `.qoder/rules/` | qoder 侧常驻提醒（带 `alwaysApply`） | `ros1-slam-collab.md` |
-
-**分工一句话**：`ws/` 只放代码与配置，进度／验收／证据／台账全在 `note/`，门禁跑批在 `scripts/verify/`。
 
 ⚠️ `logs/` 与 `data/maps/` 下的产物**不入库**（`.gitignore` 已排除），换机只拿代码与台账即可重建。
 
-- 同步时刻＝2026-10-21 03:29 CST（整串从 `date` 取，不心算）。
-- ★本节为插入节：上方第一—七节一字未回改★。
+---
+
+## 四、新接手先读哪三件
+
+1. **`note/00_README.md`** —— 台账志文面的三条硬规则（进门先看这个）
+2. **`note/09_跨工具协作契约.md`** —— 跨工具进场的唯一契约件（三家工具必读）
+3. **`AGENTS.md`** —— 仓根三行指针（★不入仓★，只指向上面那件）
+
+跑门禁前的固定姿势（★顺序错＝假红★）：
+
+```bash
+source /opt/ros/noetic/setup.bash
+source ws/devel/setup.bash
+bash scripts/verify/run_gate_chain.sh
+```
+
+---
+
+## 五、跨 Agent 接力黑板（zcode／qoder／WorkBuddy）
+
+**不在这里。** 三家工具怎么接力、`bridge.py` 怎么用、踩过哪些坑，全部在：
+
+→ **`note/tools/跨Agent协作黑板-使用教程.md`**
+
+---
+
+## 六、本文件的变更留痕
+
+- ★R579／批231（2026-10-23）★＝真人明令「**项目根目录下的 README 应该是对项目整体的介绍，
+  跨 Agent 协作黑板这部分应该归纳到 tools 目录**」⇒ 本文件由「跨 Agent 协作黑板 — 使用说明」
+  重写为**项目整体介绍**；黑板内容归位 `note/tools/跨Agent协作黑板-使用教程.md`
+  （该件 2026-10-17 已存在，十节＋附，内容比旧版更全）。
+- 归纳时逐节比对：根 README 旧版第一—七节中，**「可选增强」与「参考外链」两节**是教程件没有的，
+  已按「内容不丢」原样并进教程件的**附二**；其余各节教程件均已覆盖。
+- 同时销项一笔在册旧债：`note/04_配置改动diff.md` 第 3117 行登记的「丁类第一件」
+  （仓根 README 门面与黑板并存两读，可勾形＝并存／保留指针各归各／搬到 `.ai/`），
+  真人所勾＝**「保留一句指针后各归各」形，落点＝`note/tools/`**（非 `.ai/`）。
+- 旧版正文一字未删：可从 git 取回，基准提交＝`fcc2634`。
+
+---
+
+- 同步时刻＝2026-10-23 01:31 CST（整串从 `date` 取，不心算）。

@@ -369,3 +369,39 @@ cat .ai/tasks/T-20261017-02.md   # 第三节那个实战例子的完整任务卡
 ```
 
 跨机器防护的实现细节在 `.ai/bridge.py` 的 docstring 里（`_sync_root` / `epoch_drift`）。
+
+---
+
+## 附二：可选增强与参考外链（★R579／批231 从仓根 README.md 归纳过来★）
+
+> 来历：仓根 `README.md` 的**第一—七节**原本标题是「跨 Agent 协作黑板 — 使用说明」，与本教程正文重复。
+> 真人 2026-10-23 明令＝**根 README 应当是对项目整体的介绍，黑板这块归到 `note/tools/`**。
+> 本附二把根 README 里**本教程正文没有的**两节原样归纳过来；★上方旧文一字未回改★；有冲突一律以本教程正文为准。
+
+### 附二·一 可选增强
+
+- **zcode 全局提醒**：在 `~/.zcode/AGENTS.md`（用户全局）追加一句
+  「进入工作区时，先跑 `python3 .ai/bridge.py resume --as zcode`」，省得每次手动说。
+- **git 版本化**：把 `AGENTS.md` 和 `.ai/` 提交进 git（`.ai/.gitignore` 已排除 `.ai/.state.lock`），
+  交接记录就有了 diff 历史（做法见第六节 6.1）。
+- **文件监听自动拉起**（进阶）：参考 Markdown Blackboard 的 watcher 模式，
+  用 `nodemon --watch .ai/HANDOFF.md` 在交接时自动唤起另一个 CLI。
+  通常没必要——手动切工具已经够快。
+
+### 附二·二 参考外链
+
+- zcode 官方：项目指令文件 AGENTS.md <https://zcode.z.ai/cn/docs/agents>
+- qoder 官方：静态记忆与 Rules <https://docs.qoder.com/zh/cli/memory>
+- 黑板 vs 监督者模式：<https://www.agentpatternscatalog.org/patterns/blackboard>
+- Agent 交接四模式（Handoff Envelope / Relay Ledger / 显式 ACK / 上下文压缩）：
+  <https://askpatrick.co/guides/agent-handoff-patterns>
+- memU（日后要跨机／语义检索再升级）：<https://github.com/NevaMind-AI/memU>
+
+### 附二·三 早期部署脚本 `install.sh` 在哪
+
+仓根 `install.sh` 是**早期**的远端部署脚本（用法 `bash install.sh <user@host> <目标项目根>`），
+把 `AGENTS.md`／`.ai/`／`.qoder/rules/` 推到远端主机。
+
+★当前推荐走第六节 6.3 的 `ssh + tar` 法★——更直接，且第六节 6.2 坑 1 讲过：
+`install.sh` 会跳过已存在的 `.ai/state.json`，跨机首次部署时容易留下「两边 epoch 从 1 开始」的断裂。
+`install.sh` **保留仅作历史入口，未删、未改**。
