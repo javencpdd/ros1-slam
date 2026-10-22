@@ -22,13 +22,14 @@ set -u
 SELF=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$SELF" && git rev-parse --show-toplevel 2>/dev/null)
 [ -n "$ROOT" ] || ROOT=$(cd "$SELF/../../../../.." && pwd)
-MSG=""; TASKS=0; BRK=0; SAMPLE=""
+MSG=""; TASKS=0; BRK=0; SAMPLE=""; MIGR=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --msg) MSG="$2"; shift 2 ;;
     --file) SAMPLE="$2"; shift 2 ;;
     --tasks) TASKS=1; shift ;;
     --BR_FORM) BRK=1; shift ;;
+    --MIGR) MIGR="$2"; shift 2 ;;
     *) echo "未知参数 $1"; exit 9 ;;
   esac
 done
@@ -37,6 +38,28 @@ git rev-parse HEAD >/dev/null 2>&1 || { echo "★前置缺失＝无 HEAD 可比�
 for f in "$MSG" "$SAMPLE"; do
   [ -z "$f" ] || [ -f "$f" ] || { echo "★前置缺失＝给的文件读不到★ $f"; exit 9; }
 done
+
+if [ -n "$MIGR" ]; then
+  # ★迁移伪影判定的可测入口（R570／批222 裁① 勾 b）★＝把「剥指针后与被删行逐字比对」这一式单独喂样本，
+  #   让自测面能测前置本身，而不是只测「前置没把闸跑坏」。
+  #   neg＝同一行只换了行尾指针路径（期望：豁免）  pos＝正文里真多一个字（期望：不豁免）
+  python3 - "$MIGR" <<'PYMIG'
+import re, sys
+mode = sys.argv[1]
+PTR = re.compile(r"（全文＝\[[^\]]*\]\([^)]*\)）\s*$")
+def sp(l): return PTR.sub("", l).strip()
+DEL = "2026-10-22：**R103 档头同步（#89）：「更新时间」从 R91 滚到本轮**（全文＝[R103](v4/公共/26-10-10/R103.md)）"
+if mode == "neg":
+    # 正文一字不动，只把指针里的路径换到新目录（这正是批205／批206 发生的事）
+    ADD = "2026-10-22：**R103 档头同步（#89）：「更新时间」从 R91 滚到本轮**（全文＝[R103](v7/公共/治理登记/26-10-10/R103.md)）"
+else:
+    # 正文真多一个字（「本轮」→「本批次」）
+    ADD = "2026-10-22：**R103 档头同步（#89）：「更新时间」从 R91 滚到本批次**（全文＝[R103](v4/公共/26-10-10/R103.md)）"
+hit = bool(sp(ADD)) and sp(ADD) == sp(DEL)
+print("迁移伪影判定＝%s" % ("豁免（纯指针改写）" if hit else "不豁免（正文有真变）"))
+PYMIG
+  exit 0
+fi
 
 if [ "$BRK" = 1 ]; then
   T=$(mktemp -d /tmp/ledger_form.XXXXXX)
@@ -67,6 +90,14 @@ if [ "$BRK" = 1 ]; then
   [ -f "$BAK.selftest_bak" ] && mv "$BAK.selftest_bak" "$BAK"
   F4N=$(printf '%s\n' "$OUT_F4N" | grep -c 'F4 本件无消费者')
   echo "  F4 正控＝在位 $F4P（期望≥1） ‖ F4 反控＝撞名态报死件 $F4N 枚、rc=$RC_F4N（期望≥1 且 rc=5）"
+  # ★迁移伪影前置的 阴性用例 ／ 阳性对照（R570／批222 裁① 勾 b；★缺一不动本体★）
+  #   阴性＝「同一行、只换了行尾指针路径」⇒ 剥完指针后与被删行逐字相同 ⇒ 期望判「迁移伪影」（豁免）
+  #   阳性＝「同一行、正文里真多了一个字」⇒ 剥完指针后仍与被删行不同 ⇒ 期望判「真改」（必须点名）
+  #   反控保证锚不过宽：阳性那条只要被误豁免，就说明锚把「真改」也吞了。
+  MIG_N=$(bash "$0" --MIGR neg 2>&1 | grep -c '迁移伪影判定＝豁免')
+  MIG_P=$(bash "$0" --MIGR pos 2>&1 | grep -c '迁移伪影判定＝不豁免')
+  MIG_PJ=$(bash "$0" --MIGR pos 2>&1 | grep -c '迁移伪影判定＝豁免')
+  echo "  迁移伪影前置＝阴性（只换指针路径）判豁免 $MIG_N(★1★) ‖ 阳性（正文真多一字）判不豁免 $MIG_P(★1★)／被误豁免 $MIG_PJ(★0★)"
   BAD=""
   [ "$B1" -ge 1 ] || BAD="$BAD ★F5：F1 没抓到已知反引号＝式子坏＝比漏报更坏★"
   [ "$B2" -ge 1 ] || BAD="$BAD ★F5：F2 没抓到已知 ASCII 双引号＝式子坏★"
@@ -78,10 +109,13 @@ if [ "$BRK" = 1 ]; then
   [ "$RC_F4N" = 5 ] || BAD="$BAD ★F4 反控没翻红（实 rc=$RC_F4N）＝反控无牙★"
   [ "$F4N" -ge 1 ] || BAD="$BAD ★F4 反控没点名死件（实=$F4N）★"
   [ "$F3G" = 0 ] || BAD="$BAD ★好标题被判不过＝F3 锚过宽★"
+  [ "$MIG_N" = 1 ] || BAD="$BAD ★迁移伪影阴性用例没判豁免（实=$MIG_N）＝前置没接上★"
+  [ "$MIG_P" = 1 ] || BAD="$BAD ★迁移伪影阳性对照没判「真改」（实=$MIG_P）＝锚把真改也吞了★"
+  [ "$MIG_PJ" = 0 ] || BAD="$BAD ★阳性对照被误豁免（实=$MIG_PJ）＝锚过宽★"
   rm -rf "$T"
   echo "  夹具已删＝$([ -d "$T" ] && echo 在 || echo 无)"
   if [ -n "$BAD" ]; then echo "★自测不合期望★＝$BAD"; echo "本件（自测面）rc=5"; exit 5; fi
-  echo "  自测合期望＝★七枚期望判定全合（禁形抓 2 ‖ 不误报 2 ‖ 标题抓 3 ‖ 好标题 1）★"
+  echo "  自测合期望＝★十枚期望判定全合（禁形抓 2 ‖ 不误报 2 ‖ 标题抓 3 ‖ 好标题 1 ‖ 迁移伪影 3）★"
   echo "本件（自测面）rc=0"; exit 0
 fi
 
@@ -97,7 +131,17 @@ if TASKS:
         FILES += [os.path.join(".ai", "tasks", f) for f in sorted(os.listdir(d)) if f.endswith(".md")]
 TICK = re.compile(r"`")
 DQ = re.compile(r'"')
+# ★迁移伪影前置（R570／批222 裁① 勾 b 落地）★
+#   病灶＝条目区原主行整段重写成「原主行逐字 ＋ 行尾全文指针」时，闸把所有 + 行当「新写」，
+#          连同历史行自带的禁形一并点名（批205 / 批206 两次各报 312＝F1 210＋F2 102，独立 249 行）。
+#   判据＝去掉行尾指针后缀后，若与本次被删的某一行逐字相同 ⇒ 判为「纯指针改写」＝迁移伪影、不检。
+#   锚的宽窄＝由自测面的反控保证（改一个字必须落回「真改」侧、必须被点名）；正则按 R568 §2.2 字面。
+PTR = re.compile(r"（全文＝\[[^\]]*\]\([^)]*\)）\s*$")
+def strip_ptr(l):
+    return PTR.sub("", l).strip()
 n1 = n2 = 0
+mig = []          # 判为迁移伪影、不检的行（带面名）
+mig_n = 0
 def judge(where, l):
     global n1, n2
     t = len(TICK.findall(l)); q = len(DQ.findall(l))
@@ -112,16 +156,39 @@ if SAMPLE:
         judge("%s:%d（样本）" % (os.path.basename(SAMPLE), i), l)
     print("  ★模式＝样本通道★（与被检新增行走同一对式子） ‖ F1＝%d ‖ F2＝%d" % (n1, n2))
 else:
-    def added(path):
+    def _diff(path):
         out = subprocess.run(["git", "-c", "core.quotepath=false", "diff", "--unified=0", "--", path],
                              cwd=ROOT, capture_output=True, text=True, errors="replace").stdout
-        return [l[1:] for l in out.split("\n") if l.startswith("+") and not l.startswith("+++")]
+        add, dele = [], []
+        for l in out.split("\n"):
+            if l.startswith("+") and not l.startswith("+++"):
+                add.append(l[1:])
+            elif l.startswith("-") and not l.startswith("---"):
+                dele.append(l[1:])
+        return add, dele
+    def added(path):
+        return _diff(path)[0]
     tot = 0
     print("  被检面名册枚数＝%d%s（★只检新增行★＝历史行照留）" % (len(FILES), " ‖ ★含卡面 --tasks★" if TASKS else " ‖ 卡面未入（加 --tasks 才扫）"))
     for f in FILES:
-        ls = added(f); tot += len(ls)
-        for l in ls: judge(f, l)
+        ls, dl = _diff(f)
+        tot += len(ls)
+        # 被删行按剥指针后归集（迁移伪影的比对池）
+        pool = set()
+        for d in dl:
+            s = strip_ptr(d)
+            if s: pool.add(s)
+        for l in ls:
+            s = strip_ptr(l)
+            # ★只有「本行剥完指针后仍非空、且能在被删池里逐字找到」才算迁移伪影★
+            if s and s in pool:
+                mig_n += 1
+                if len(mig) < 5: mig.append(s[:36])
+                continue
+            judge(f, l)
     print("  新增行合计＝%d 行 ‖ F1 反引号行＝%d 枚 ‖ F2 ASCII 双引号行＝%d 枚" % (tot, n1, n2))
+    print("  ★迁移伪影前置★＝判为纯指针改写而豁免 %d 行（★不检★；锚的宽窄由 --BR_FORM 反控保证）%s"
+          % (mig_n, (" ‖ 样本＝" + " ／ ".join(mig)) if mig else ""))
 if MSG and not SAMPLE:
     p = MSG if os.path.isabs(MSG) else os.path.join(ROOT, MSG)
     s = io.open(p, encoding="utf-8").read()
