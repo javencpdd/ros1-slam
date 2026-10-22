@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>lite3_costmap_layers</name>
+  <version>0.1.0</version>
+  <description>B 线自研代价层插件包：ElevationMergedLayer（高程 → 合并代价，单一层直接产出，按 R441—R453 已验证路径钉 use_maximum: true）</description>
+  <maintainer email="ros1-slam@lite3.local">ysc</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- 为什么必须有这个包（裁11，真人 2026-10-22 勾）：
+       lite3_navigation 是壳包、ISO 项[9] 红线禁 .cpp/.cc/.h（v3_isolation.sh 可执行校验），
+       而 R561 §3.4 那个"自写 200—300 行 C++ 层"不能落进壳包 ⇒ 另立本包承载自研代价层源码。
+       本包不引入任何门值、不改 nav 侧任何在册件；在册配置要挂本层时由真人另行裁定。 -->
+  <build_depend>roscpp</build_depend>
+  <build_depend>costmap_2d</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>grid_map_core</build_depend>
+  <build_depend>grid_map_msgs</build_depend>
+  <build_depend>grid_map_ros</build_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>costmap_2d</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
+  <exec_depend>grid_map_ros</exec_depend>
+  <exec_depend>grid_map_msgs</exec_depend>
+  <exec_depend>grid_map_core</exec_depend>
+
+  <!-- costmap_2d::Layer 插件导出（pluginlib 约定，与在册 sob_layer／STVL 同形：
+       <costmap_2d plugin="${prefix}/plugins.xml"/>，rospack plugins（attrib=plugin、参数 costmap_2d）
+       据此枚举；${prefix} 在 devel 空间指源码目录（plugins.xml 就在包根），安装空间指向 share）。 -->
+  <export>
+    <costmap_2d plugin="${prefix}/plugins.xml"/>
+  </export>
+</package>

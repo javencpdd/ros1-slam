@@ -1,0 +1,12 @@
+<library path="lib/liblite3_costmap_layers">
+  <class type="lite3_costmap_layers::ElevationMergedLayer" base_class_type="costmap_2d::Layer">
+    <description>
+      B 线高程合并代价层：订阅 grid_map_msgs/GridMap，把超过高度阈格的格子直接写进主代价图。
+      与 sob_layer 同角色（costmap_2d::Layer，进 global/local_costmap 的 plugins 列表），
+      ★不是第二层障碍层、不另开 layer★（R59／X2 在册结论）。
+      合并语义★必须显式 use_maximum: true★：R445 实测两枚层同栈时第二枚 use_maximum=false
+      能把底层致命格 100→0；R446 实测本镜像这条链路上"漏写"与"写 false"同形（非零 9→0）。
+      本层因此自带两道闸：漏写取默认 true 并 WARN；显式写 false ⇒ ERROR 且拒绝写入任何代价。
+    </description>
+  </class>
+</library>

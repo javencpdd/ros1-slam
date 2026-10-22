@@ -1,0 +1,36 @@
+# elevation_merged_layer.yaml —— ElevationMergedLayer 的★示例★参数块（本包自带，未挂进任何在册配置）
+#
+# ★怎么用★：把下面这段（去掉本注释头）作为一段插件块，并到 global_costmap_params.yaml 的 plugins 列表里：
+#   - {name: elevation_merged_layer, type: "lite3_costmap_layers::ElevationMergedLayer"}
+#   然后把本件的插件参数块塞到同一份 yaml 的根部（与 plugins: 同级）。
+#   ★本批不做这两步★——改在册 nav 配置须真人另行裁定（壳包／配置面属授权面外）。
+#
+# ★为什么 use_maximum 必须显式写 true（R445／R446，2026-10-19 活体窗实测）★：
+#   R445：两枚 StaticLayer 同栈时，第二枚 use_maximum=false ⇒ 那 9 枚致命格从 100 变 0（非零 9→0）。
+#         ⇒ 在册原话「S3 加 elevation 层必须显式钉 use_maximum: true；漏写／写 false＝安全侧反例」。
+#   R446：elevation_layer 漏写两个组合键 ⇒ 同样把那 9 枚致命格整片抹成 0（distinct=[0]），
+#         与显式 false 同形 ⇒ ★在本镜像这条链路上"漏写＝覆盖"★；且声明通路（父级插件 cfg 默认 1=Maximum）
+#         与行为通路相反 ⇒ 采行为路。
+#   本层因此把这三档都做成显式行为：漏写⇒取 true＋WARN；显式 true⇒取大合并；显式 false⇒ERROR 且不写任何代价。
+
+elevation_merged_layer:
+  # ---- 合并语义（★唯一一枚安全侧开关，必填★）----
+  use_maximum: true
+
+  # ---- 输入 ----
+  input_topic: /elevation_mapping/elevation_map   # grid_map_msgs/GridMap
+  layer_name: elevation                            # GridMap 里代表"离地高"的层名
+
+  # ---- 判据（★我方自定值，无在册实测锚★，与 X5「step>0.15m 出自我方设计稿」同族）----
+  height_threshold: 0.15   # 格子高程 − ground_z 超过此值 ⇒ 记为障碍
+  ground_z: 0.0            # 地面基准高（世界系 z）
+  obstacle_cost: 254        # 写入的代价；254＝LETHAL_OBSTACLE（安全侧默认，可调）
+
+  # ---- 基键（与在册 X2 消融探针同式，照抄自 costmap_common.yaml 的公共面）----
+  global_frame: map
+  robot_radius: 0.35
+  resolution: 0.1
+  width: 4.0
+  height: 4.0
+  trinary_costmap: true
+  lethal_threshold: 100
