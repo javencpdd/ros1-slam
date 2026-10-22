@@ -6361,3 +6361,60 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 4. v7.2／v7.3／v7.4 三稿仍「尚未落册」（本批只对 v7.3 稿正文做销项另起句，未改其落册态）。
 
 **未动面**：「v_patch_landing.sh」 一字未动｜「gate_chain.txt」 成员行一字未动（只加注释段）｜任何件的 rc 语义｜四枚门值三枚系数｜「ws/」 全部｜镜像与 Dockerfile｜v7.2／v7.4 两稿正文 —— 全未动。A6 未破、无 sudo。
+
+## R576〔x86〕（2026-10-23 00:3x，★零窗·L1「批228＝VAR 首跑」★）批228＝账号就位后 VAR 首跑读数原样入册 ＝ ★账号就位的收益当场兑现：P1a／P1b 双双 PASS（此前 P1b 恒 None）★ ｜ 5 件「违规」逐件定性＝★全部不是权限债★（4 件悬空链接＋1 件 namespace 判据失真）｜ 另挖三枚新坑（负查询无缓存慢 100 倍／EVD glob 过期／悬空链接被误判成权限违规）
+
+**背景**：R575 落了机侧作业单（造 ros1-slam 系统账号＋ACL）。机侧已执行完：uid=998、nologin、note/（含默认 ACL）＋ws/src/＋scripts/ 已开 rX、mask 未掐空。本批按作业单第四节复跑 VAR，读数原样入册。
+
+**一、先说收益：探针恢复分辨力（这是勾甲的直接兑现）**
+补账号前 P1b 恒报「实得=None」（pwd.getpwnam 抛 KeyError ⇒ 算法返回 None ⇒ rc=9 且普查不采信）。本批首跑：
+- [PASS] P1a 阳性对照·可达侧（664＋具名条目）⇒ 实得 **True**
+- [PASS] P1b 阳性对照·不可达侧（600＋mask::---）⇒ 实得 **False**
+⇒ ★探针两面都有分辨力，P1 过，普查结果自此可采信★。这证明 ③ 勾甲是对的：判据件一字未动，只把账号补上，那一整条判据就活了。
+
+**二、★重大判读前提：本会话在 user namespace 内，ACL 判据失真★**
+「cat /proc/self/uid_map」 ⇒ 「0 1000 1」（**只映射 1 个 uid**）⇒ uid 998 在本 namespace 内**无映射**。后果三处，全部实测：
+1. ACL 二进制 xattr 里存的 uid 读成 「0xffffffff」（-1）；getfacl 打印成 「user:4294967295:r--」 而非 「user:ros1-slam:r--」。
+2. 「setuid(998)」 后访问文件必失败（本批用 fork+setuid 实测 5 个件全 False）。
+3. 「sudo」 本身起不来（sudo.conf 属主 65534），故作业单里的 「sudo -u ... test -r」 在本会话恒 FAIL——★那个 FAIL 是 sudo 坏了，不是权限坏了，绝不可据此让机侧返工★。
+⇒ ★判 VAR 的红之前，必须先 「cat /proc/self/uid_map」。只映射 1 个 uid 时，VAR 的 P2 读数不可作为权限债判据。★（已写进作业单第四节）
+
+**三、P2 普查读数（统一口径 VAR_USERS=ros1-slam，三根分跑）**
+| 根 | 件数 | P2 结果 |
+|---|---|---|
+| scripts | 55 | PASS 零违规 |
+| ws/src | 4597 | FAIL 违规 1 件 |
+| note | 7668 | FAIL 违规 4 件 |
+| 合计 | **12320** | 5 件「违规」 |
+
+**四、★5 件「违规」逐件定性：没有一件是权限债★**
+1—3. 「note/进度/v7/S1/SCAN集成/证据/log/raw/r93_batch2_live_20261010_{152710,153503,153849}/roslog/latest」 —— 异常标注 「FileNotFoundError」。实测均为**悬空符号链接**，目标＝「/home/ros1-slam/note/进度/SCAN集成/...」（**开发机仓根的绝对路径**）⇒ 跨机失效。（顺带解出账号名由来：开发机用户即 ros1-slam，仓在其 home 下。）
+4. 「ws/src/CMakeLists.txt」 —— 同样 「FileNotFoundError」。catkin 标准结构的符号链接，目标 「/opt/ros/noetic/share/catkin/cmake/toplevel.cmake」，而**本机 /opt/ros/noetic 根本不存在**（ROS 在容器里）⇒ 悬空。
+5. 「note/进度/v7/S3/note/R561建议稿原件_3D仿真环境搭建解决方案.md」 —— ★唯一值得细看的一件★。mode 0640（other 无 r），ACL 里**有**条目 「user:4294967295:r--」、mask=「r--」（**未掐空**）。按 POSIX 手算：查询者 uid 998 ≠ owner、other 无 r、具名条目给 r 且 mask 含 r ⇒ **可读**。VAR 判不可读，是因为 getfacl 把 uid 998 打印成 「4294967295」，而件内判据用 「who in nu」（who＝'ros1-slam'）查名字 ⇒ 查不到 ⇒ 误判。**这是 namespace 的 uid 未映射所致，不是文件权限问题。**
+⇒ ★结论＝本仓权限面实质已通过，全仓无真正私锁件★。★全仓「other 位无 r、靠 ACL 才能读」的件只有这一件★（其余 12319 件靠 other 位即可读）——这也说明 ACL 面开得比实际需要宽（宽开无害，且默认 ACL 保证新建件继承）。
+
+**五、rc 为何仍为 9：P3 证据面 glob 过期（与 P8 那个病根同族）**
+「VAR_EVD」 缺省＝「note/进度/*/证据/log/raw/*/」，**命中 0**。而盘上实际路径＝「note/进度/v7/S1/SCAN集成/证据/log/raw/...」（R547 后目录结构从两层变「版本/阶段/场景」多层）。正确 glob＝「note/进度/*/*/*/证据/log/raw/*/」 ⇒ **命中 406 个证据目录**。
+⇒ 旧 glob 空集 ≠ 没有证据目录，是**判据件与盘面结构漂移**（又一次「归纳/重构后判据饿死」）。★用件自带的 「VAR_EVD」 覆写口即可修正，未改判据件一字。★
+
+**六、本批挖出的三枚新坑（均未修，只登记；改判据件属判据面变更，须先落笔验收）**
+1. ★**负查询无缓存**★：「readable()」 里 「cache[who] = ...」 写在 try **末行**，「pwd.getpwnam」 抛 KeyError 时**不写缓存** ⇒ 账号不存在时每个文件都重试一次失败的 getpwnam。实测：USERS 含不存在的 「ysc」 时 note 普查 **>115 秒仍跑不完**；只留 「ros1-slam」 后 **1.102 秒** ⇒ **慢 100 倍以上**，大到任务被超时杀掉，看起来像「跑不完」实为「缓存失效」。
+2. ★**悬空符号链接被算作权限违规**★：普查循环用 「except Exception」 兜底，把 「FileNotFoundError」 一律记成「不可读」并点名。悬空链接与权限是两回事，混在一起会让「证据可达」这条判据的读数失真（本批 5 件里 4 件是这类）。
+3. ★**EVD glob 与盘面结构漂移**★（见第五节）。附带：P3 真正跑要对 406 个证据目录做 sha256 校验，耗时远超单次调用窗口，本批**未取得 P3 完整读数**（属未证项，不冒充已证）。
+
+**七、本批读数（原样，未修饰）**
+- P1a PASS（True）／P1b PASS（False）；
+- P2：scripts 55 件零违规｜ws/src 4597 件违规 1｜note 7668 件违规 4；合计 12320 件／5 件，全部定性为非权限债；
+- rc＝**9**（P3 证据面 glob 为空／未取得完整读数）；
+- 「id ros1-slam」＝uid=998、shell=/usr/sbin/nologin；「getent passwd ros1-slam」 在位；
+- 「getent passwd ysc」＝rc 2（本机无此账号，VAR 的 USERS 缺省含它）；
+- 「/proc/self/uid_map」＝「0 1000 1」（仅 1 个 uid 映射）。
+
+**八、遗留与待真人**
+1. ★P3 可验面未取得读数★：406 个证据目录的 sha256 校验需长时间或真机执行；建议机侧在真机跑 「VAR_EVD=“note/进度/*/*/*/证据/log/raw/*/”」 的完整 VAR，取 rc。
+2. ★「仅靠 ACL 授权」那一件的真机交叉验证★：请机侧在真机 「sudo -u ros1-slam test -r “note/进度/v7/S3/note/R561建议稿原件_3D仿真环境搭建解决方案.md”」 —— 期望 READ-OK（本机 namespace 内判不可读是假象）。这一条是「ACL 到底生效没有」的**唯一可证伪判据**（其余件靠 other 位，测了也不能证明 ACL）。
+3. 4 件悬空链接是否重指（改绝对路径为相对路径）＝动证据原件，属施工动作且须人定，本批**未动一条**。
+4. 三枚新坑（负查询无缓存／悬空链接混判／EVD glob 过期）是否修、怎么修，属判据面变更，待裁。
+5. R574 增运行器四支＝越档执行一次，仍待追认（R575 遗留）。
+
+**未动面**：「v_evidence_reachability.sh」 **一字未动**（未改探针、未调阈值、未改 glob 缺省值，全程只用件自带的 「VAR_ROOT」／「VAR_USERS」／「VAR_EVD」 三个覆写口）｜任何件 rc 语义｜门值｜ws 源码｜镜像｜计划书三稿。A6 未破、无 sudo。
