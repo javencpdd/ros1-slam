@@ -6187,3 +6187,38 @@
   - 冲突面（裁④ 第二问）＝**零冲突**，但理由是「它压根没有可运行的实体」：包内**无任何源码**⇒ 无 publish／subscribe ⇒ 话题层面不可能与 STVL／sob_layer 竞争；launch 里出现的全是参数文件路径与 rviz 配置引用（「/config/*」、「/rviz/*」、「/urdf/mini」），不含节点级话题竞争。⇒ 冲突面判定为「不适用」，不是「已排除冲突」——这两者不能混说。
   - ★★对后续路的含义（呈报、不自裁）★★＝甲案作废后，优化零的三条出路只剩乙＝引第三方 「elevation_mapping」（新第三方入仓、碰「第三方原样复制、一字不改」红线）与丙＝自写最小生产者（要写新代码、且发布面须与合并层的 「input_topic」 对齐）。二者都落在裁定面外，须真人另勾。★同时给一条减轻事实★：合并层只需要一个「发 「grid_map_msgs/GridMap」 到 「/elevation_mapping/elevation_map」」的最小生产者，不需要 elevation_mapping 的全套（传感器处理器／运动更新／融合），所以丙的实际工作量可能远小于包名字面给人的印象——但这仍是裁定，不代拍。
   - 未动面＝仓内 「ws/src/30_perception/deeprobotics_local_height_map/」 63 件一字未改（CATKIN_IGNORE 仍在位）；容器内测试副本 「/tmp/optzero_probe」 已删（复核残留 0）；未起任何节点、未改容器内 devel、未改镜像、未改 Dockerfile；未 commit 该判定相关的任何文件改动。
+
+## R571〔x86〕（2026-10-22 15:4x，★窗态·L1「批223＝丙案落地」★）批223＝高程 2.5D 网格最小生产者落地（丙案）＋ h 语义自定与正反控
+
+- 做了什么＝真人 2026-10-22 裁「优化零＝勾丙（自写最小生产者）、乙否」后，本批把丙落地：新建 「ws/src/40_navigation/lite3_costmap_layers/scripts/elevation_gridmap_publisher.py」（只订仿真点云 → 滚动窗 xy 栅格化 → 发 「grid_map_msgs/GridMap」 到 「/elevation_mapping/elevation_map」）＋同目录 「elevation_probe.sh」（stats／positive／negative 三模式的消费侧验活）＋ PYST 面清单 60→61。全文＝「note/进度/v7/S3/26-10-22/R571.md」。
+- ★★必须要报的一处差异（不静默改用户原话）★★＝真人原文写的话题名是 「/elevation_mapping/vation_map」（疑笔误），盘上合并层 「yaml」／「h」／「cpp」 三处逐字为 **「/elevation_mapping/elevation_map」** ⇒ 施工按盘上现值，用户原话未改、在册件未改。
+- ★落点合规（盘上现取）★＝「lite3_costmap_layers」 有 「src/」＋「include/」＋「CMakeLists.txt」（「add_library」 单源）＋「plugins.xml」＋「package.xml」 导出 「costmap_2d plugin」 ⇒ 非壳包、可放源码，本批在其下新建 「scripts/」；「lite3_navigation」 壳包（ISO 项[9] 红线禁 「.cpp/.cc/.h」）一字未碰。
+- ★不复用 S1／S2 已搁置件★＝「ws/src/30_perception/lite3_perception/scripts/w3_elevation_node.py」（R280 已在仓、订 「/rslidar_points」、已做 bincount 栅格化）**不发 GridMap 而发 「OccupancyGrid」**，且 v6 计划书 :122 明令「不复活 S1/S2」⇒ 本批新写，该件一字未动。
+- ★h 语义写死（自此由我方持有）★＝**h ＝ 相对局部地面的离地高、单位米·正上**；「h = z_点 − z_局部地面」，同格取最大，地面 h≡0。与合并层 yaml 逐项对表：层名 「elevation」（一致）、分辨率 「0.1」（一致）、话题 「/elevation_mapping/elevation_map」（一致）、判据 「h > ground_z + height_threshold」（归消费侧，生产侧不设）。局部地面＝竖窗 「[-2.0, 0.5]」 内按 z 取第 20 分位。
+- ★附带收益（用户明写要求入设计件）★＝R569 §三 优化一「h 语义取决于生产者」的不确定**自此消项**：零点由局部地面现算，与雷达架高、下倾角、机器人俯仰全部解耦。⇒ 优化一·甲随丙自然销项。
+
+- ★★本批修掉的两个真缺陷（不是调参，是错）★★——
+  - **缺陷 A：未命中填充点被当成地面。** 「livox_laser_simulation」 对射线未命中填 「(0,0,0)」（不是 NaN），本批实测 20000 点里 **16675 点 range=0（83%）**，经 tf 变到 odom 后恰好全部落在 z=0.45＝「MID360_MOUNT_Z」 那一层 ⇒ 地面分位法把它们当地面，「ground_z」 读出 0.45（真地面是 0）、「h_max=0」、有效格只剩 308。**这段最危险**：长得像「链路通但算法没效果」，极易误判成栅格化写错。修法＝「drop_invalid_points()」，在**求地面之前**按 range 剔（缺省 「min_range=0.20」），顺序不可换。
+  - **缺陷 B：「np.maximum.at」 铺在 NaN 初值上整片仍是 NaN**（NaN 参与 maximum 结果仍 NaN，且抛 「invalid value encountered in maximum」）。修法＝先用 「-inf」 铺底取大，再把**从未被写到**的格显式改回 NaN。★「无点 ≠ 高 0」★——不显式处理，消费侧会把真空格当平地放行。
+- 另有两条实现坑（防再踩）＝①点云解码不能写 「buf[idx:idx+4]」（切片窗口恒定长度 ⇒ numpy 降维，抛 「only integer scalar arrays」），正解＝「reshape(n, point_step)」 后按列取偏移；②「pkill -f <脚本名>」 会杀掉自己所在的 bash 命令行（匹配串命中自身），必须按 PID 或写脚本文件（本批实测两次）。
+
+- ★读数（全部本批活体实测）★——
+  - 自测十二枚 「--selftest」（不上 ROS）：**12 枚全 PASS、rc=0**。★T5 是「取大 vs 取中位」的分辨器★：同格内平地回波与第一级台面共存，取大读到 0.0632、取中位只读到 0.0109。T11／T12 是本批新加的回归项（未命中填充）、T12 是对照（不剔时 ground 被拉走至 0.363）。
+  - 真实仿真台三行（「stairs_easy」 ×2 ＋ 「stair_lab_blank」 ×1）——
+
+| 场景 | 世界断言 | ground_z | h_min | h_max | 有效格 | h>0.15 的格 |
+|---|---|---|---|---|---|---|
+| 「stairs_easy」，车在 x=−1.5 | PASS（loaded=[ground_plane, stairs_easy]） | −0.000 | 0.0000 | 0.1200 | 312 | **0** |
+| 「stairs_easy」，车开到 x=−0.31 | 同上 | −0.000 | 0.0000 | 0.3600 | 297 | **99** |
+| 「stair_lab_blank」（空白对照） | PASS（loaded=**[ground_plane]**） | −0.000 | 0.0000 | **0.0000** | 336 | **0** |
+
+  - 三条读数各证什么＝①h 零点真在局部地面（三行 「h_min」 全 0.0000、平地 「h_max」 也 0.0000）②台阶高度读得出（梯前 「h_max=0.36」＝6 级×0.06，「stairs_easy」 级高 0.06 世界件实测，逐级对得上）③反控干净（空白景一格都不过阈）。
+  - ★「车在远处时 0 格过阈」不是缺陷、是几何事实★：4×4 m 窗口右边界只到 x≈0.5，第一级台阶在 x=0.30，只够扫到前两级（0.06、0.12）都低于阈值 0.15 ⇒ **挂载实验必须把车开到梯前**，站着不动就下结论会得到假「无效果」。
+  - 消息形状（消费侧脚本实测）＝「layers=['elevation']」、「basic_layers=['elevation']」、「res=0.100」、「4.00×4.00」、「dim=[('column_index',40,1600),('row_index',40,40)]」、「flat=1600=ncols*nrows」。★存储序一条要注意★：「grid_map_ros」 **无 Python 绑定**（本镜像实核 「import grid_map_ros」 → ModuleNotFoundError）⇒ MultiArray 存储序与维度标签只能按 C++ 头逐字照抄（「storageIndexNames[Column]=「column_index」」／「[Row]=「row_index」」，「GridMap::Matrix」＝「Eigen::MatrixXf」 列主序），本节点一律按列主序填、标签写 「column_index」，不做猜测。
+
+- ★门禁读数★＝SYN rc=0（93 件；★新 「.sh」 未被 SYN 面覆盖，只做 「bash -n」 单独验，面未扩★）｜PYST rc=0（**61 件**＝原 60＋本批 1；新件单件亦 rc=0、未定义名 0）｜账构 rc=0（C4 滞后 0 批、C2 新增无、C5 新增 0／存量 57）｜VCC rc=0（RED 0／AMBER 0／OK 0；★本轮解析到仓内目标 0 件 ⇒ 面条件无从判，空集不当「两面等价」读★）。
+- ★未推送提交数★＝「git fetch origin main」 本机失败（无网），「git rev-list --count origin/main..HEAD」 得 0 是**假读数** ⇒ 本批不据此下结论。
+
+- ★遗留与待真人★＝①★★挂载两步本批没跑★★：用户令是「优化零解后按 R569 §五 走：生产者落地＋h 语义验证 → 挂载两步 → 摩擦/接触刚度扫 → TEB 阶梯速度带扫」，本批完成第 1 步，第 2 步（挂进 global/local costmap 并验三行日志）**需改在册 nav 配置**、属授权面外（R570 前哨已写明须真人另行裁定）⇒ 停在门口等一句 ②★帧口径待定★：消费侧 「global_frame=map」，但仿真台上 「map→odom」 只在 m2_teb 链路里由 「m2_tf_fresh」 提供，「stairstudy」／「m1_gazebo」 台子上**没有 map 帧**（tf 实测只有 「odom→base_link→rslidar」）；现行按 「frame_candidates=[map, odom, base_link]」 探第一个可达帧、把实际用的帧写进头，消费侧本就会对「帧≠全局帧」做 tf 平面变换 ⇒ 语义不变。**是否一律补 「map→odom」 恒等桥（与 m2_teb 同式）让图上恒定在 map 帧＝待真人一句，本批未自裁** ③每批复跑门禁必产 pyc（在册坑84），本批已清（末态 0）④未推送提交数 fetch 失败不可取 ⑤批222 归位批（T-20261018-01，R355—R357 线）**仍让位**——本批按依赖序插（用户令：「批222 归位批的排位由按依赖序插，不再等我逐句」）。
+- ★未动面★＝在册 nav 配置四件（「costmap_common」／「global_costmap_params」／「local_costmap_params」／「elevation_merged_layer.yaml」）一字未动（挂载未做）｜合并层 C++ 三件（「.cpp」／「.h」／「plugins.xml」）一字未动｜「w3_elevation_node.py」 一字未动（v6 :122 禁复活）｜四枚门值与三枚系数一字未动、不代裁｜「CMakeLists.txt」 未改（Python 节点不需 「add_executable」，「rosrun」 直跑 「scripts/」 下可执行件，与仓内 「m2_*.py」 同式）｜镜像／Dockerfile／容器 devel 未动（「ws/src」 是 bind 挂载，容器内即仓内，未产生第二份副本）｜A6 未破、无 sudo｜★未 push（05 追加一百三十一管辖，最终 push 归真人）★。
+- ★号位★＝本批号 R571、批223；未提交批数＝1；未推送提交数＝fetch 失败不可取。
