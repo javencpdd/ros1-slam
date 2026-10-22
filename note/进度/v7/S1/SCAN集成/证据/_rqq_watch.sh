@@ -22,9 +22,11 @@
 #     ★五枚期望任一不合＝本件自己有缺陷 ⇒ 当场红（rc=5）并点名★
 # 退出码＝0（无 firing＝含「首次行使无前值＝只报不判」）‖ 5（★firing★ 或 ★自测不合期望★）‖ 9（前置缺失＝被试 raw/ 不在位）
 set -u
-ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
-RAW="${RQQ_RAW:-$ROOT/note/进度/SCAN集成/证据/log/raw}"
-STATE="${RQQ_STATE:-$ROOT/note/进度/SCAN集成/证据/_rqq_watch.state.tsv}"
+# ★R589／批242 修 ROOT★＝本件随 SCAN集成 于批208 搬入 note/进度/v7/S1/… ⇒ 实际深 6 级，原式四跳只到 note/进度
+#   ⇒ 该件自批208 起★恒报「前置缺失＝不在位／不是 git 仓」★，批末读数面四枚附面同步恒报「件不在位」（本批现跑抓到）
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=$(cd "$(dirname "$0")/../../../../.." && pwd)
+RAW="${RQQ_RAW:-$ROOT/note/进度/v7/S1/SCAN集成/证据/log/raw}"
+STATE="${RQQ_STATE:-$ROOT/note/进度/v7/S1/SCAN集成/证据/_rqq_watch.state.tsv}"
 BATCH="?"; PHASE=pre; RO=0
 while [ $# -gt 0 ]; do
   case "$1" in

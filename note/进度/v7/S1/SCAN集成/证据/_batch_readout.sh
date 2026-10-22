@@ -2,7 +2,7 @@
 # _batch_readout.sh —— ★批末读数面五枚的可复跑采集件★（登记面纪律件、★不是闸★：不进任何件的 rc、不入门禁串、不改成员与语义）
 # 起意＝追加七十九③ 立的「批末读数面固定五枚、缺一即自曝」连犯四次（批137—139 漏 P8、批142 漏两枚、批150 取的是提交前的丁案源、
 #         ④ 甲/乙累计 自批143 起一律报"未动"却从没跑过式）⇒ 把"当次同调用现取"从脑子里的动作变成一件能跑、会翻红的东西。
-# 用法＝bash _batch_readout.sh [--phase pre|post] [--skip-chain] [--batch N] [--BR_SKIP=<①..⑤|6=附二|7=附三|8=附四|9=附五>]
+# 用法＝bash _batch_readout.sh [--phase pre|post] [--skip-chain] [--batch N] [--BR_SKIP=<①..⑤|6=附二|7=附三|8=附四|9=附五|10=附六|9=附五>]
 #   --phase post 只影响⑤的措辞（★提交前跑⇒本批那次提交不在丁案源内★）；--skip-chain 用于同一批内早先已跑过串的那一遍；
 #   ★--batch N＝把本批批号显式传给附三的 firing 探测件（★批201 补★：此前本件不接 --batch ⇒ BR_BATCH 恒空
 #     ⇒ 附三只能收到 --batch "?" ⇒ 状态面印出批号「?」两行；★现由调用方显式给★、不给则缺省仍是 ?＝向后兼容）★
@@ -13,7 +13,9 @@
 # 面（★两面分别写死★）＝①②③④⑤ 全在★宿主面★跑（账构与引用件必须显式传根 VLB_ROOT／VCC_ROOT，容器内无 .git ⇒ 账构恒 rc=9）；
 #              容器面只跑门禁串与清盘计数。
 set -u
-ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
+# ★R589／批242 修 ROOT★＝本件随 SCAN集成 于批208 搬入 note/进度/v7/S1/… ⇒ 实际深 6 级，原式四跳只到 note/进度
+#   ⇒ 该件自批208 起★恒报「前置缺失＝不在位／不是 git 仓」★，批末读数面四枚附面同步恒报「件不在位」（本批现跑抓到）
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=$(cd "$(dirname "$0")/../../../../.." && pwd)
 PHASE=pre; SKIPCHAIN=0; BRSKIP=""; BR_BATCH=""
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -40,7 +42,7 @@ else
          /窗数回执/ {l=$0; sub(/^.*窗数回执＝/,"",l); print "  窗数回执＝" l}
          /面：/ {print "  "$0}'
 fi
-BASE=note/进度/SCAN集成/证据/log/raw/r447_真人六句到签落地批/04_baseline_note71w40_r447.tsv
+BASE=note/进度/v7/S1/SCAN集成/证据/log/raw/r447_真人六句到签落地批/04_baseline_note71w40_r447.tsv
 if [ -f "$BASE" ]; then
   VCC_ROOT=$PWD bash scripts/verify/v_ledger_citation_baseline.sh --check "$BASE" $(grep -vE '^ *(#|$)' scripts/verify/claim_face.txt) 2>&1 |
     awk '/^ +(文档|单点引用|OK|RED|AMBER|勘误句|非单点形状|豁免红|豁免表命中|豁免表未命中) /{printf "%s%s",sep,$4; sep="/"} END{printf "\n"}' |
@@ -134,7 +136,7 @@ fi
 echo
 echo "── 附二：留底清单覆盖面（★第六枚·只报不拦＝跑不到才算缺一枚；漏件本身不拦★）──"
 if [ "$BRSKIP" = "6" ]; then note "附二"; echo "  （负例开关跳过）"; else
-  MCC="$ROOT/note/进度/SCAN集成/证据/_manifest_coverage_check.sh"
+  MCC="$ROOT/note/进度/v7/S1/SCAN集成/证据/_manifest_coverage_check.sh"   # ★R589／批242＝三处路径随批208 搬迁改指（原写死旧路径⇒附二三四恒报「不在位」）★
   if [ -f "$MCC" ]; then
     bash "$MCC" 2>&1 | awk '/漏件|★无清单★|★目录不在位★/ {c++; if (c<=6) print "   " $0} /全部覆盖OK|★有留底目录漏件|小结＝/ {print "  " $0} END {printf "  （★未覆盖OK 的行共 %d 枚、只列前 6；★历史目录不回填＝R506 全仓盘点在册★）\n", c}'
   else note "附二"; echo "  ★覆盖面自检件不在位＝不可现取★"; fi
@@ -143,7 +145,7 @@ fi
 echo
 echo "── 附三：firing 探测（★第九枚·丙案口径＝正文齐而清单缺席跨过一整批★；★只报不拦、不入门禁串★）──"
 if [ "$BRSKIP" = "7" ]; then note "附三"; echo "  （负例开关跳过）"; else
-  RQ="$ROOT/note/进度/SCAN集成/证据/_rqq_watch.sh"
+  RQ="$ROOT/note/进度/v7/S1/SCAN集成/证据/_rqq_watch.sh"
   if [ -f "$RQ" ]; then
     bash "$RQ" --batch "${BR_BATCH:-?}" --phase "$PHASE" 2>&1 | sed 's/^/  /'
     echo "  ★本枚的 rc 只作登记面读数、不进 MISS、不改任何在册件的 rc★（★红＝人要看一眼：按 R355 同规格扩、不等句★）"
@@ -153,7 +155,7 @@ fi
 echo
 echo "── 附四：governance 漂移闸（★第十枚＝真人 2026-10-21 点出四处陈旧后建的格子★；★只报不拦、不入门禁串★）──"
 if [ "$BRSKIP" = "8" ]; then note "附四"; echo "  （负例开关跳过）"; else
-  GDC="$ROOT/note/进度/SCAN集成/证据/_governance_drift_check.sh"
+  GDC="$ROOT/note/进度/v7/S1/SCAN集成/证据/_governance_drift_check.sh"
   if [ -f "$GDC" ]; then
     bash "$GDC" 2>&1 | sed 's/^/  /'
     echo "  ★红档＝施工侧★有写入通道★的面（技能包／仓根 README／门面现行指针节）＝必须归零；旁报＝笔权面（计划书正文）与不回改面（门面历史行）＝只点名★不记红★"
@@ -172,4 +174,15 @@ fi
 
 echo
 if [ -n "$MISS" ]; then echo "★缺一枚＝本批自曝★ 缺＝$MISS"; exit 5; fi
+echo "── 附六：提交声称与成形闸（★第十二枚＝把「声称的动作也是读数」从人眼落成件★；★只报不拦★）──"
+if [ "$BRSKIP" = "10" ]; then note "附六"; echo "  （负例开关跳过）"; else
+  CC="$ROOT/note/进度/v7/S1/SCAN集成/证据/_commit_title_numstat.sh"   # ★第十二枚（批201 建、批208 搬深后本批修好 ROOT）＝标题声称动作 vs numstat★
+  if [ -f "$CC" ]; then
+    bash "$CC" HEAD 2>&1 | tail -12 | sed 's/^/  /'
+    CRC=${PIPESTATUS[0]:-0}
+    echo "  ★本枚判据＝对上一枚提交（HEAD）跑三级＝A 行数级（标题「追加 N 行」须＝numstat additions）‖ B 面级存在性（04 段／00_总览 档头与条目区）‖ C 未动形（声称未动的面不得出现在 numstat）★"
+    [ "$CRC" = 0 ] || echo "  ★红档＝上一枚提交有声称未落地或不合 Y15 形＝本批收尾前必须补登记或另起句更正★"
+  else note "附六"; echo "  ★第十二枚不在位＝不可现取★"; fi
+fi
+echo "  ★辖域分句★＝禁形（反引号／ASCII 双引号）＋标题五谓词由第十一枚管；动作对表三级由第十二枚管；★Y15 三枚字数与段数至今无件＝已排下一格★"
 echo "五枚齐（①—⑤ 全部现取到数）；★本件只报不拦、不进任何件的 rc★"

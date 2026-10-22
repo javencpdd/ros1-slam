@@ -19,8 +19,10 @@
 #   ⇒ 本件★必须记红档并点名那枚键＋那个字段★、★绝不许 traceback★（在册 S34／S27 那族＝「查不到」的三种形里★只有红档算被检到★＝崩与空值都不算）；
 #   ★旧形＝`set(int(x) for ...)` 直接 ValueError 崩整个件★＝一行坏表让复核面★整枚失明★＝坏得比红更坏（追加一百二十四②「面名册要逐枚配坏样本」的执行形）
 set -u
-ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
-RAW="$ROOT/note/进度/SCAN集成/证据/log/raw"
+# ★R589／批242 修 ROOT★＝本件随 SCAN集成 于批208 搬入 note/进度/v7/S1/… ⇒ 实际深 6 级，原式四跳只到 note/进度
+#   ⇒ 该件自批208 起★恒报「前置缺失＝不在位／不是 git 仓」★，批末读数面四枚附面同步恒报「件不在位」（本批现跑抓到）
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=$(cd "$(dirname "$0")/../../../../.." && pwd)
+RAW="$ROOT/note/进度/v7/S1/SCAN集成/证据/log/raw"
 MODE=""; BRK=""
 DIRS=""
 while [ $# -gt 0 ]; do

@@ -26,7 +26,9 @@
 #       bash _commit_title_numstat.sh --scan-all       # 扫存量（★新闸上线必须先扫已入库违例★）
 # 退出码＝0（全部对得上 ‖ 自测全合期望）‖ 5（★有不符★ ‖ 自测不合期望）‖ 9（前置缺失：sha 不存在／git 不可用）
 set -u
-ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
+# ★R589／批242 修 ROOT★＝本件随 SCAN集成 于批208 搬入 note/进度/v7/S1/… ⇒ 实际深 6 级，原式四跳只到 note/进度
+#   ⇒ 该件自批208 起★恒报「前置缺失＝不在位／不是 git 仓」★，批末读数面四枚附面同步恒报「件不在位」（本批现跑抓到）
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=$(cd "$(dirname "$0")/../../../../.." && pwd)
 cd "$ROOT" || { echo "前置缺失：仓根不在位"; exit 9; }
 [ -d .git ] || { echo "前置缺失：不是 git 仓"; exit 9; }
 
@@ -38,8 +40,8 @@ face_path() {
     05)        echo "note/05_复验作业单.md" ;;
     00_总览)   echo "note/进度/00_总览.md" ;;
     档头历史)  echo "note/进度/总览分册/00_档头历史.md" ;;
-    状态面)    echo "note/进度/SCAN集成/证据/_rqq_watch.state.tsv" ;;
-    留底)      echo "note/进度/SCAN集成/证据/log/raw/" ;;
+    状态面)    echo "note/进度/v7/S1/SCAN集成/证据/_rqq_watch.state.tsv" ;;
+    留底)      echo "note/进度/v7/S1/SCAN集成/证据/log/raw/" ;;
   esac
 }
 
