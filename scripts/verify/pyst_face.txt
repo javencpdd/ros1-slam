@@ -77,3 +77,5 @@ note/进度/v7/S1/SCAN集成/设计/scripts/t3_decidable_input_offline.py
 note/进度/v7/S1/SCAN集成/设计/scripts/derive_stvl_mark.py
 # ★R571 刷新（批223：真人 2026-10-22 裁「优化零＝勾丙」落地件＝高程 2.5D 网格最小生产者）：新增 `ws/src/40_navigation/lite3_costmap_layers/scripts/elevation_gridmap_publisher.py` ⇒ 清单数 60→**61**＝派生式现拼数 61（两次同数＝验收式过；反向差集为空 ⇒ 无失效条目；正向差集仅此一条）。★该件是**生产面**件（不是留档件），落在批220 新立的 lite3_costmap_layers 包（非壳包、可放源码）；PYST 单件实测干净＝`py_compile` OK、`pyflakes` 未定义名 0、`PY STATIC OK（被检件数=1）` rc=0。★同批新增的 `elevation_probe.sh` 是 .sh（由 SYN 面按 git 索引派生，不在本清单）。
 ws/src/40_navigation/lite3_costmap_layers/scripts/elevation_gridmap_publisher.py
+# ★R572 刷新（批224：真机面 tf 帧源唯一性断言件落盘＝「配置面已、运行面未生效」取证过程中新立）：新增 `ws/src/95_simulation/lite3_gazebo_sim/scripts/tf_frame_assert.py` ⇒ 清单数 61→**62**＝派生式现拼数 62（两次同数＝验收式过；反向差集为空 ⇒ 无失效条目；正向差集仅此一条）。★该件是**生产面**件，与同批 `world_load_assert.py`（R565）同目录、同形态（读 `/tf` 与 `/tf_static`，对 `child_frame_id == protected_child` 收集父帧集合，`len>1` ⇒ rc=1）⇒ 落入本清单正因它是**闸门件**、闸门自身必须受静态检查。PYST 单件实测干净＝`py_compile` OK、`pyflakes` 未定义名 0、`PY STATIC OK（被检件数=1）` rc=0。★同批新增的 `.r572_*.sh` 是容器内临时诊断件（落 `/opt/ros1-slam/`、不入仓、不在本清单、不入 SYN 面）。
+ws/src/95_simulation/lite3_gazebo_sim/scripts/tf_frame_assert.py

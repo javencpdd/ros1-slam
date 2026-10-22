@@ -224,14 +224,13 @@ class ElevationGridMapPublisher(object):
         self.layer_name = rospy.get_param("~layer_name", "elevation")
         self.grid_frame = rospy.get_param("~grid_frame", "map")
         self.robot_frame = rospy.get_param("~robot_frame", "base_link")
-        # 帧候选序：首选 grid_frame（＝消费侧 global_frame），不可达时依次退。
-        # 为什么 odom 是最稳的退路：仿真里 odom→base_link 由 lite3_planar_drive 闭环发、恒在；
-        # 而 map→odom 只在 m2_teb 链路里有。★退到 odom 不是降级、是同一几何的等价表述★。
-        # ★这一段必须在 robot_frame 之后★（本批实测踩过：先引用后定义 ⇒ AttributeError 起不来）。
-        cands = rospy.get_param("~frame_candidates", "")
-        if isinstance(cands, str):
-            cands = [c.strip() for c in cands.split(",") if c.strip()]
-        self.frame_candidates = cands if cands else [self.grid_frame, "odom", self.robot_frame]
+        # ★R572（批224）：帧口径钉死 grid_frame，候选序 fallback 已退役★
+        # 真人 2026-10-22 裁定：帧口径自此唯一＝map，由测试台上的 map→odom 恒等桥供给
+        # （先例 m2_teb.launch:31-32）。原先那套「map 不可达就退 odom、并把实际用的帧写进
+        # GridMap 头」的分支已删除，理由是：不同拍可能跑在不同帧口径上，跨拍读数就失去
+        # 同一基准，这正是「名=口径」要防的漂移。缺 tf 时本节点 INVALID 不发，绝不静默降级。
+        # 由于帧唯一，消费侧 ElevationMergedLayer 的「帧 ≠ global_frame ⇒ tf 平面变换」
+        # 分支在正常跑法下一次都不该触发——那正是本口径的可判据。
         self.resolution = float(rospy.get_param("~grid_resolution", 0.1))
         self.size_x = float(rospy.get_param("~grid_size_x", 4.0))
         self.size_y = float(rospy.get_param("~grid_size_y", 4.0))
@@ -307,42 +306,35 @@ class ElevationGridMapPublisher(object):
         return out[np.isfinite(out).all(axis=1)]
 
     def _to_map(self, pts, cloud_frame, stamp):
-        """把点云从 cloud_frame 变到目标网格帧。返回 (points_target 或 None, 说明, 实际使用帧)。
+        """把点云从 cloud_frame 变到 grid_frame（★唯一目标帧，R572 起不再有候选序★）。
 
-        ★目标帧不是死取的★：消费侧成本图的 global_frame 是 map，但**仿真台上 map→odom 段
-        只在 m2_teb 链路里由 m2_tf_fresh 提供**，stairstudy / m1_gazebo 这些台子上根本没有 map 帧
-        （本批实测：tf 树只有 odom→base_link→rslidar）。硬取 map ⇒ 本节点在那些台子上永远 INVALID。
-        正解＝按 frame_candidates 顺序**探第一个能查到的祖先帧**，并把**实际用的那个帧**写进
-        GridMap 头；消费侧 ElevationMergedLayer 本来就会对"帧 ≠ 全局帧"做 tf 平面变换
-        （updateBounds 里 map.getFrameId() != global_frame 分支），所以换成 odom 不改变其语义，
-        只是少绕一层 map→odom 的恒等变换。
+        返回 (points 或 None, 说明)。
+        真人 2026-10-22 裁定「帧口径钉死 map」：map→odom 由测试台 launch 里的恒等桥供给
+        （先例 m2_teb.launch:31-32）；桥不在＝本节点 INVALID 不发，★不再退到 odom★。
+        退避分支被删的代价是「台上没桥就跑不起来」，收益是「每拍的 GridMap 头恒为 map、
+        跨拍可对表」——后者才是判据面要的。
         """
         if not self.use_tf:
-            return pts, "no-tf", self.grid_frame
+            return pts, "no-tf(use_tf=false，假定点云已在 target 帧)"
         ts = stamp if not stamp.is_zero() else self._rospy.Time(0)
-        for cand in self.frame_candidates:
-            if cloud_frame == cand:
-                return pts, "identity", cand
-            try:
-                tr = self.tf_buffer.lookup_transform(cand, cloud_frame, ts, self._rospy.Duration(0.2))
-            except Exception:                       # tf2 的异常族较杂，统一捕获后换下一个候选
-                continue
-            q = tr.transform.rotation
-            tx = tr.transform.translation.x
-            ty = tr.transform.translation.y
-            tz = tr.transform.translation.z
-            x, y, z, w = q.x, q.y, q.z, q.w
-            R = np.array([
-                [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
-                [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
-                [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
-            ], dtype=np.float64)
-            if cand != self.grid_frame:
-                self._rospy.loginfo_throttle(
-                    10.0, "[elevation_gridmap_publisher] 首选帧 %s 不可达 ⇒ 本轮用 %s（消费侧按 tf 平面变换）",
-                    self.grid_frame, cand)
-            return pts.astype(np.float64).dot(R.T) + np.array([tx, ty, tz]), "tf:" + cand, cand
-        return None, "tf-fail:no-candidate", self.grid_frame
+        if cloud_frame == self.grid_frame:
+            return pts, "identity"
+        try:
+            tr = self.tf_buffer.lookup_transform(self.grid_frame, cloud_frame, ts,
+                                                 self._rospy.Duration(0.2))
+        except Exception as exc:
+            return None, "tf-fail:%s->%s(%s)" % (cloud_frame, self.grid_frame, type(exc).__name__)
+        q = tr.transform.rotation
+        tx = tr.transform.translation.x
+        ty = tr.transform.translation.y
+        tz = tr.transform.translation.z
+        x, y, z, w = q.x, q.y, q.z, q.w
+        R = np.array([
+            [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+            [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+        ], dtype=np.float64)
+        return pts.astype(np.float64).dot(R.T) + np.array([tx, ty, tz]), "tf:" + self.grid_frame
 
     def _robot_xy(self):
         if self.latest_odom is None:
@@ -381,13 +373,16 @@ class ElevationGridMapPublisher(object):
             return
 
         cloud_frame = self.latest_cloud.header.frame_id.lstrip("/")
-        pts_map, how, used_frame = self._to_map(pts, cloud_frame, self.latest_cloud.header.stamp)
+        pts_map, how = self._to_map(pts, cloud_frame, self.latest_cloud.header.stamp)
         if pts_map is None:
             self.n_invalid += 1
-            rospy.logwarn_throttle(5.0, "[elevation_gridmap_publisher] 点云变到 %s 失败（%s）⇒ INVALID，不发",
-                                   self.frame_candidates, how)
+            # R572：不再有候选序，失败即「台上缺 map 帧」——多半是没起恒等桥，日志里直说。
+            rospy.logwarn_throttle(
+                5.0, "[elevation_gridmap_publisher] 点云变到 %s 失败（%s）⇒ INVALID，不发；"
+                     "请确认测试台已起 map→odom 恒等桥（stairstudy／m1_gazebo 自带）",
+                self.grid_frame, how)
             return
-        self.used_frame = used_frame
+        self.used_frame = self.grid_frame
 
         ground_z, n_ground = estimate_ground_z(pts_map, self.ground_z_min, self.ground_z_max,
                                                self.ground_percentile)
@@ -406,7 +401,7 @@ class ElevationGridMapPublisher(object):
         grid, _valid = rasterize_elevation(pts_map, center, self.size_x, self.size_y, self.resolution,
                                            ground_z, self.height_clip)
 
-        msg = self._build_message(grid, center, self.latest_cloud.header.stamp, used_frame)
+        msg = self._build_message(grid, center, self.latest_cloud.header.stamp)
         self.pub.publish(msg)
         self.n_frames_in += 1
         self.n_frames_out += 1
@@ -417,11 +412,11 @@ class ElevationGridMapPublisher(object):
         rospy.loginfo_throttle(
             2.0, "[elevation_gridmap_publisher] 发出 GridMap（%dx%d、res=%.3f、frame=%s、ground_z=%.3f、"
                  "有效格 %d、h_max=%.3f、点数 %d）",
-            grid.shape[1], grid.shape[0], self.resolution, used_frame, ground_z, n_valid, h_max, len(pts_map))
+            grid.shape[1], grid.shape[0], self.resolution, self.grid_frame, ground_z, n_valid, h_max, len(pts_map))
 
     def _build_message(self, grid, center, stamp, frame_id=None):
         rospy = self._rospy
-        # ★帧取实际使用的那个★（首选 map 不可达时是 odom），不是死写 grid_frame
+        # ★帧恒为 grid_frame★（R572 候选序已退役，frame_id 形参只为自测注入保留）
         fid = frame_id or self.grid_frame
         f = grid_to_gridmap_message_fields(grid, self.resolution, center, fid,
                                            stamp.to_sec(), self.layer_name)

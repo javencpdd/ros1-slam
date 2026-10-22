@@ -53,9 +53,31 @@ private:
   ros::NodeHandle nh_;
   ros::Subscriber sub_;
 
+  // ★R572（批224）★ 本层自有启用开关，★不再复用基类的 enabled_ 做订阅门★。
+  // 基类 enabled_ 的真实行为（本批 objdump 逐条落实，前一版注释里的说法据此更正）：
+  //   ① Layer::Layer() @0x4b320：`xor eax,eax; mov %ax,0x10(%rdi)` —— 一次写 2 字节，
+  //      把 current_(0x10) 与 enabled_(0x11) 一起置 0；
+  //   ② Layer::initialize() @0x4b380 全文只有三件事：赋 layered_costmap_、tf_、name_，
+  //      然后虚调 onInitialize()。★它一次都不读 "enabled" 参数、也一次不写 0x11★
+  //      （libcostmap_2d.so 的字节流里根本没有 "enabled" 这个串，count=0，本批实测）；
+  //   ③ LayeredCostmap::updateMap() @0x4b9c0：`cmpb $0x0,0x11(%rdi); je ...` ——
+  //      ★框架在更新回路里按 enabled_ 逐层跳★，false 的层 updateBounds/updateCosts 一次都不进。
+  // 合起来：基类 enabled_ 恒为 false ⇒ 任何不自带启用的层都被静默排除出回路。
+  // sob_layer 与 spatio_temporal_voxel_layer 都自带 "enabled"（各自 .so 里各 2 处），我们这层原先没有。
+  // 所以本层要做两件事，缺一不可：本层参数门用自己的 enabled_param_（管订阅），
+  // ★同时 onInitialize 末尾必须把基类 enabled_ 显式置 true（管进不进更新回路）★。
+  // 只做前者＝能收到 GridMap、却永远不写代价（本批就是死在这里：Received 双侧 74/74 对称，
+  // 而 check_pose_cost 沿 x 扫出来的 2783/17257/17253/17249/6589 全是 static+inflation 的代价）。
+  bool enabled_param_ = true;
+
   std::mutex data_mutex_;
   grid_map::GridMap map_;
   bool has_data_ = false;
+  unsigned long callback_count_ = 0;   // R572：回调计数（判两侧同名层是否都在收）
+  // ★R572 常设★：写入计数（判本层真的往主代价图写过东西，而不只是收到了 GridMap）。
+  // 这四项与 callback_count_ 一起构成「本层活体四联」：收包数／写窗数／写格数／拒写次数。
+  unsigned long write_windows_ = 0;
+  unsigned long write_cells_ = 0;
   ros::Time last_map_stamp_;
 
   // 参数（onInitialize 里从 ~/<name> 读）

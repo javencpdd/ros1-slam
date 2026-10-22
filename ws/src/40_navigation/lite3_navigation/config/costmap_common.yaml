@@ -73,6 +73,39 @@ sob_layer:
   inflation_radius: 0.2
   cost_scaling_factor: 10
 
+# R572（批224）：高程合并层参数块。落位＝本件根部（与 static_layer／stvl_obstacle_layer／sob_layer 同级），
+#   由 mbf_navigation.launch:12-15 的四次 rosparam load（common×global、global、common×local、local）
+#   双向 ns 灌入 ⇒ global_costmap 与 local_costmap 两支都吃得到，参数实际落 <costmap_ns>/elevation_merged_layer/。
+#   use_maximum 显式钉 true 为安全侧硬要求，理由见 R445／R446（漏写＝覆盖，会把致命格抹成 0）。
+elevation_merged_layer:
+  # ---- 启用开关（★R572 活体取证后补：漏写＝不订阅，在本镜像上恒静默★）----
+  # costmap_2d::Layer::enabled_ 由 Layer::initialize 从插件私有 ns 读 <层名>/enabled，
+  # 而本层 onInitialize 里「if (enabled_) 才 sub_ = nh_.subscribe(...)」⇒ enabled 缺省时
+  # 订阅根本不建立：插件装载成功（Using plugin 与在位行都在）、但一次 Received a grid map 都不出现。
+  # ★这是一枚静默失效★：没有任何 WARN，只能靠「收没收到」这一行区分。显式写 true 把它钉死。
+  enabled: true
+
+  # ---- 合并语义（★唯一一枚安全侧开关，必填★）----
+  use_maximum: true
+
+  # ---- 输入 ----
+  input_topic: /elevation_mapping/elevation_map   # grid_map_msgs/GridMap
+  layer_name: elevation                            # GridMap 里代表「离地高」的层名
+
+  # ---- 判据（我方自定值，无在册实测锚；R571 正反控已验）----
+  height_threshold: 0.15   # 格子高程 − ground_z 超过此值 ⇒ 记为障碍
+  ground_z: 0.0            # 地面基准高（世界系 z）
+  obstacle_cost: 254        # 写入的代价；254＝LETHAL_OBSTACLE（安全侧默认，可调）
+
+  # ---- 基键（照抄本件公共面口径；R572 起帧口径钉死 map）----
+  global_frame: map
+  robot_radius: 0.35
+  resolution: 0.1
+  width: 4.0
+  height: 4.0
+  trinary_costmap: true
+  lethal_threshold: 100
+
 
 ###################################
 #

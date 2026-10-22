@@ -20,4 +20,9 @@
        依赖静默消失、只在运行期炸。新节点上线即同步声明，不留给下一个人去猜。 -->
   <exec_depend>rospy</exec_depend>
   <exec_depend>gazebo_msgs</exec_depend>
+  <!-- ★R572／批224 补声明★：scripts/tf_frame_assert.py import tf2_ros 与 tf2_msgs.msg.TFMessage；
+       两个 launch 也新增 pkg="tf2_ros" 的 static_transform_publisher 节点。
+       同 R563 口径：新节点上线即同步声明，不留给下一个人去猜。 -->
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_msgs</exec_depend>
 </package>

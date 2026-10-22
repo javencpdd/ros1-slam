@@ -25,6 +25,22 @@
   <node name="spawn_lite3_planar" pkg="gazebo_ros" type="spawn_model"
         args="-urdf -param robot_description -model lite3_planar -x 0 -y 0 -z 0.15"/>
 
+  <!-- ★R572（批224）：帧口径钉死 map，由本恒等桥供给★
+       先例＝m2_teb.launch:31-32。本台原本只有 odom→base_link→rslidar，独缺 map；而消费侧
+       global_frame=map、高程生产者 grid_frame=map ⇒ 桥不在即整段 INVALID（R572 已退役「退到 odom」分支）。
+       ★无定位节点的占位桥，真定位接入时不起★——凡本台引入 hdl／faster_lio 等发 map 系的节点，
+       必须注释掉本节点；下面的 tf_frame_assert 是它的在位闸。 -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom_static"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <!-- 父边唯一断言（R572 新建）：odom 父帧唯一且＝map、map 帧可达；结论写 /tf_frame_assert/ok -->
+  <node pkg="lite3_gazebo_sim" type="tf_frame_assert.py" name="tf_frame_assert" output="screen">
+    <param name="protected_child" value="odom"/>
+    <param name="expect_parent" value="map"/>
+    <param name="observe_sec" value="3.0"/>
+    <param name="timeout" value="30.0"/>
+  </node>
+
   <!-- sim_adapter（Gazebo 变体）：
        参数 input=custommsg：吃 fratopa /livox/lidar（livox_laser_simulation/CustomMsg）→ /rslidar_points（C16 契约布局不变）
        参数 no-imu：/livox/imu 由 Gazebo IMU 插件直发（200Hz 真传感器语义），不再由位姿差分合成（④） -->

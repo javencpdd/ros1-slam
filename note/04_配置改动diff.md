@@ -6222,3 +6222,35 @@
 - ★遗留与待真人★＝①★★挂载两步本批没跑★★：用户令是「优化零解后按 R569 §五 走：生产者落地＋h 语义验证 → 挂载两步 → 摩擦/接触刚度扫 → TEB 阶梯速度带扫」，本批完成第 1 步，第 2 步（挂进 global/local costmap 并验三行日志）**需改在册 nav 配置**、属授权面外（R570 前哨已写明须真人另行裁定）⇒ 停在门口等一句 ②★帧口径待定★：消费侧 「global_frame=map」，但仿真台上 「map→odom」 只在 m2_teb 链路里由 「m2_tf_fresh」 提供，「stairstudy」／「m1_gazebo」 台子上**没有 map 帧**（tf 实测只有 「odom→base_link→rslidar」）；现行按 「frame_candidates=[map, odom, base_link]」 探第一个可达帧、把实际用的帧写进头，消费侧本就会对「帧≠全局帧」做 tf 平面变换 ⇒ 语义不变。**是否一律补 「map→odom」 恒等桥（与 m2_teb 同式）让图上恒定在 map 帧＝待真人一句，本批未自裁** ③每批复跑门禁必产 pyc（在册坑84），本批已清（末态 0）④未推送提交数 fetch 失败不可取 ⑤批222 归位批（T-20261018-01，R355—R357 线）**仍让位**——本批按依赖序插（用户令：「批222 归位批的排位由按依赖序插，不再等我逐句」）。
 - ★未动面★＝在册 nav 配置四件（「costmap_common」／「global_costmap_params」／「local_costmap_params」／「elevation_merged_layer.yaml」）一字未动（挂载未做）｜合并层 C++ 三件（「.cpp」／「.h」／「plugins.xml」）一字未动｜「w3_elevation_node.py」 一字未动（v6 :122 禁复活）｜四枚门值与三枚系数一字未动、不代裁｜「CMakeLists.txt」 未改（Python 节点不需 「add_executable」，「rosrun」 直跑 「scripts/」 下可执行件，与仓内 「m2_*.py」 同式）｜镜像／Dockerfile／容器 devel 未动（「ws/src」 是 bind 挂载，容器内即仓内，未产生第二份副本）｜A6 未破、无 sudo｜★未 push（05 追加一百三十一管辖，最终 push 归真人）★。
 - ★号位★＝本批号 R571、批223；未提交批数＝1；未推送提交数＝fetch 失败不可取。
+
+## R572〔x86〕（2026-10-22 17:1x，★窗态·L1「批224＝贯通活体」★）批224＝高程合并层「配置面已、运行面未生效」取证与修通 ＝ ★名改正★（不写「挂载已通、生效未证」）＋ 只读取证三件套（H1／H2 双否定）＋ 真根因 「Layer::enabled_」 恒 false 并修通
+
+> ★全文＝「note/进度/v7/S3/26-10-22/R572.md」★（本段只放结论与指针，论证链、objdump 逐条、负向控制读数全在全文里）。
+> ★真人 2026-10-22 裁定逐字★：「本批收口，但名改正：不写「挂载已通、生效未证」，写**「配置面已、运行面未生效——活体代价签名＝static＋inflation（mbf 默认插件表），两支 costmap 未读正册配置」**。名＝口径，这四个字之差就是下一层假活的入口。」
+
+- ★本批名（改正后，入册口径）★＝**「配置面已、运行面未生效——活体代价签名＝static＋inflation，两支 costmap 未读正册配置」**。★但本批下半段已把这枚归因否证，见下★——名字按真人令**不改回**（名＝当时口径的留痕），实际结论是「配置读对了、层也被装载了，卡在框架的回路门」。★这两句话不冲突，前者是症状签名、后者是根因★。
+- ★活体代价签名★＝「check_pose_cost」 沿 x 扫出 2783／17257／17253／17249／6589。★这组值全部可由 「static_layer」＋「inflation_layer」 复现★，无一处能归到本层写的 254 ⇒ 「本层根本没写」。★值超 254 是 mbf 按 footprint 全足印格求和的特性，不是异常（真人注脚）★。
+- ★取证①（H1＝命名卷旧快照，坑87 族）⇒ 否定★＝容器卷与宿主三件 sha16 全同：「costmap_common.yaml」 「d52fd29a7ecc9aea」／「global_costmap_params.yaml」 「3dc730b1a766c626」／「local_costmap_params.yaml」 「9e7fc08f537ab748」 ⇒ 容器读的就是正册那份，★坑87 的「下次重建镜像带」本批不必提前兑现★。
+- ★取证②（H2＝ns 错位回退默认表）⇒ 否定★＝「rosparam get」 活体现 「/move_base_flex/global_costmap/plugins」 4 项（static／stvl／sob／elevation）、「local_costmap/plugins」 3 项（stvl／sob／elevation），双路径真实存在、取值＝正册两张表。★本批据此推翻了自己上一轮的归因★（签名半边对、归因半边错）。
+- ★取证③★＝本层 「Using plugin」 行在位、在位行齐（含 「enabled」／「use_maximum」／「refuse_write」 三枚自印字段）⇒ 配置对、表对、插件装载了，问题只能在「装载之后」。
+- ★★★真根因（本批头号，坑88）★＝「costmap_2d::Layer::enabled_」 恒 false，框架按它逐层筛掉本层★★：
+  - 「LayeredCostmap::updateMap」 @「0x4b9c0」：「cmpb $0x0,0x11(%rdi); je <跳过>」 ⇒ 按 「enabled_(0x11)」 逐层筛；
+  - 「Layer::Layer()」 @「0x4b320」：「xor %eax,%eax; mov %ax,0x10(%rdi)」 —— 一次写 2 字节，同时盖住 「current_(0x10)」 与 「enabled_(0x11)」；
+  - 「Layer::initialize()」 @「0x4b380」 ★全文只有三件事★（赋 「layered_costmap_」／「tf_」／「name_」，末尾虚调 「onInitialize()」），★一次不读 「“enabled”」 参数、一次不写 0x11★；「strings libcostmap_2d.so | grep -c enabled」 = **0**；
+  - 对照件 「sob_layer」／「spatio_temporal_voxel_layer」 各自 「.so」 里各 **2 处** 「enabled」，★本层 0 处★；
+  - ⇒ ★任何不自带启用的层都被框架静默排除出更新回路★（「updateBounds」／「updateCosts」 一次不进、无任何 WARN）。
+- ★修法（两件事，缺一不可）★＝①**订阅门**：本层自有 「enabled_param_」（「pnh.param(“enabled”, …)」）管订阅（上一轮已修；缺 「enabled」 ⇒ 不订阅 ⇒ 连 「Received」 都没有）②★**回路门**：「onInitialize()」 末尾显式 「enabled_ = true」★（本批修、决定性）。★只做①的症状最阴＝收得到、用不上★（「Received」 双侧正常增长、代价零写入），本批就死在这里。
+- ★定位链里两条被本批自己否掉的假设（另起句记，防后人重走）★＝①「探针进 「updateBounds」/「updateCosts」 首位编进 「.so」 却一行不打印」⇒ 不是「进去早退」，是★两个函数根本没被调用★ ②「头文件注释原写『基类 「Layer::initialize」 从插件私有 ns 读 「enabled」』」⇒ ★该说法错误、已按 objdump 结论重写注释★，现在那行 「enabled: true」 是**本层自读**、管的是订阅门。
+- ★负向控制带出的第二枚真缺陷（坑89）★＝「refuse_write_」 分支 「ROS_ERROR」 原形 「if (refuse_log_count_++ % 100 == 0)」：该计数器★只在拒写分支自增、而拒写分支恰恰每次早退★ ⇒ 第一次 「++」 后为 1、「1 % 100 != 0」 ⇒ **一行都不打**；实测在位行 「refuse_write=1」 打印 2 次、解释行 0 次。修＝「++」 后判 「<= 3 || % 100 == 0」，修后同窗留痕。
+- ★第三枚（同族，属判读口径）★＝「本窗写入」原是 「ROS_DEBUG」、默认不可见 ⇒「到底写没写」在日志上无从判定，这也是绕圈的另一半。修＝提为 「ROS_INFO」 常设计数并加累计口径（「本窗 N 格（累计 W 窗 / C 格；use_maximum=…、res=…）」）。头文件补 「write_windows_」／「write_cells_」，与 「callback_count_」 构成★本层活体四联＝收包数／写窗数／写格数／拒写次数★。
+- ★修通读数（决定性，同台同配置前后对照）★＝「spawn_x:=1.5 spawn_z:=0.9」 ⇒ 生产者 「h_max=0.720」（>0.15）｜本层 「updateCosts」 进入 **137/582** 次｜每窗写 **86 格**｜累计 **300 窗 / 30902 格**｜「use_maximum=1(explicit=1)」｜「world_load_assert」 PASS（「loaded=[ground_plane, stairs_easy]」）｜「tf_frame_assert」 PASS｜无 ERROR／FATAL。
+- ★负向控制（「use_maximum=false」）读数★＝在位行双侧 「use_maximum=0(explicit=1 refuse_write=1)」｜「use_maximum=false」 告警 2 条｜订阅仍建立、两侧仍在收（56/59、55/60）｜拒写日志修复后留痕（修前 0 行）⇒ ★安全侧开关生效，不是静默抹平★。
+- ★配置面（保留，不回滚）★＝「costmap_common.yaml」 根部 「elevation_merged_layer:」 块（「:80」 起 33 行新增）：「enabled: true」（本批新增，注释已按活体取证重写）／「use_maximum: true」（唯一安全侧开关，必填，理由 R445／R446）／「height_threshold: 0.15」／「ground_z: 0.0」／「obstacle_cost: 254」／「layer_name: elevation」／「input_topic: /elevation_mapping/elevation_map」／「global_frame: map」（本批钉死）。两支 costmap 的 「plugins:」 各追加 「- {name: elevation_merged_layer, type: “lite3_costmap_layers::ElevationMergedLayer”}」（global +1 行、local +1 行）。落位由 「mbf_navigation.launch:12-15」 的四次 「rosparam load」 双向 ns 灌入。
+- ★同批另一件★＝「ws/src/95_simulation/lite3_gazebo_sim/scripts/tf_frame_assert.py」（新，读 「/tf」＋「/tf_static」，对 「child_frame_id == protected_child」 收集父帧集合、「len>1」 ⇒ rc=1）；「stairstudy.launch」／「m1_gazebo.launch」 各插 「tf2_ros/static_transform_publisher … map odom」 恒等桥（注释含「无定位节点的占位桥，真定位接入时不起」）＋本断言节点；「package.xml」 补 「tf2_ros」／「tf2_msgs」 两枚 「exec_depend」；「scripts/verify/pyst_face.txt」 **61→62**（派生式现拼数 62，两次同数＝验收式过，正向差集仅此一条、反向空）。
+- ★新登两坑★＝**坑88**（costmap 层不自带启用就被框架静默筛出回路；含★本层控自此必须含「plugins 表活体回读」★＝只信 「Using plugin」 行＝未证；同族第二枚＝「mbf_costmap_nav」 「「plugins」 参数缺失时静默回退默认表、无 FATAL/WARN」——本批否定了它**这次**是原因，但**该行为本身仍成立、未做正反控**，备查）／**坑89**（节流写成 「(count++ % N == 0)」 对「只在异常路径自增」的计数器等于恒不打，安全侧告警反而最静默）。
+- ★门禁读数（本批末态）★＝PYST rc=0（**62 件**）｜SYN rc=0（93 件，内嵌 python 段 47）｜VCC rc=0（文档=1／RED 0／AMBER 0／豁免表未命中 4＝存量 STALE 只报不判）｜账构 rc=0（C4 滞后 0 批／C5 新增 0／存量 57／C2 与 C3 只报存量）｜形检 rc=0、红档 0。
+- ★编译★＝「catkin_make --only-pkg-with-deps lite3_costmap_layers」 多次 「Built target」。
+- ★未推送提交数★＝「git fetch origin main」 成功；「git rev-list --count origin/main..HEAD」 见提交后读数（05 追加一百三十一：★只 commit 不 push★）。
+- ★遗留与待真人★＝①「mbf_costmap_nav」 的 plugins 回退**行为**未做正反控（需造缺 「plugins」 的窗），已记坑88 备查 ②「check_pose_cost」 超 254 的口径已按真人注脚入册，但**判据面在册件里若有「cost ≤ 254」类断言需看一眼有无冲突——本批未查，留批225** ③「tf_frame_assert.py」 只验了正向 PASS，**负向控制（造两个父帧看它真能红）未做** ④摩擦／接触刚度扫 → TEB 阶梯速度带扫未开。
+- ★未动面★＝四枚门值、三枚系数、第三方包、计划书 v7.1／v7.2／v7.3／v7.4 正文、「elevation_merged_layer.yaml」、「CMakeLists.txt」、镜像与 「Dockerfile」 全部一字未动｜A6 未破、无 sudo｜「.r572_*.sh」 容器内临时诊断件不入仓、不入 SYN 面。
+- ★号位★＝本批号 R572、批224；★批225＝归位批★（回到 R355-R357 线，已连让十四次）。
