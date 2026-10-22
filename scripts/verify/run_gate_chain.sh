@@ -44,6 +44,15 @@ run_one() { # 代号 件路径 rc语义
     #   一份靠符号链接的视图（★R406 现读＝除 tooling 外全部是链接）⇒ 而件第 90 行的 os.walk 默认不跟随链接 ⇒ 不设根时目标解析不到、被归 AMBER 而非 RED（现跑同张面：正确根 RED=7／rc=6 ‖ 缺省根 RED=0／AMBER=554／rc=5；★R407 起该情形由件自己的根自检当场 rc=9 拒跑）。
     #   ★只改传根，不改成员、不改任何件的 rc 语义；后果＝本仓 VCC 由 5 变 6（真现 7 条 RED），基线换档已按 04 R400 并报。
     VCC)   ( cd "$ROOT" && VCC_ROOT="$ROOT" bash "$path" $(grep -vE '^ *(#|$)' scripts/verify/claim_face.txt) ) > "$out" 2>&1 ;;
+    # ★R574（批226）＝GTC／VAR／DC／账构 四支补根，与上方 VCC 支**同一理由、同一修法**：
+    #   这四件把仓根写死 /home/ros1-slam（或只在件内认自己的环境变量），在异机（本仓）该路径不存在
+    #   ⇒ 串内恒报 GTC rc=5／VAR rc=9／DC rc=9／账构 rc=9，而**独立跑（带根）全 rc=0**。
+    #   此前的处置是"登记为未归因项"，R574 查实＝根没传进去，不是件本身的缺陷。
+    #   ★只传根，不改成员、不改任何件的 rc 语义、不改各件缺省值★。
+    GTC)   ( cd "$ROOT" && GTC_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
+    VAR)   ( cd "$ROOT" && VAR_ROOT="$ROOT" bash "$path" $(grep -vE '^ *(#|$)' scripts/verify/claim_face.txt) ) > "$out" 2>&1 ;;
+    DC)    ( cd "$ROOT" && DC_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
+    账构)  ( cd "$ROOT" && VLB_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
     规矩⑨) ( cd "$ROOT" && python3 "$path" ) > "$out" 2>&1 ;;
     *)     ( cd "$ROOT" && bash "$path" ) > "$out" 2>&1 ;;
   esac

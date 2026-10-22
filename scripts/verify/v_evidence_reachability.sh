@@ -17,13 +17,19 @@
 #   也不进 v3_isolation.sh：新判据入共同门禁属判据面变更，依 05 A3 须验收先落笔；入不入归 A15/#54/A16 并案。
 # 用法：bash scripts/verify/v_evidence_reachability.sh [根 ...]（缺省三根＝note ws/src scripts）
 #   环境变量：VAR_USERS="ros1-slam ysc"（要保证的协作账号）｜VAR_EVD（证据目录 glob，缺省 note/进度/*/证据/log/raw/*/）
+#             VAR_ROOT（仓根，缺省 /home/ros1-slam；★R574 补，异机须覆写）
 #             VAR_MAX（明细最多列几件，缺省 25）｜VAR_SECRETS（保密件 glob，空格分隔；缺省见代码）
 #   保密面（P4）是**反向断言**：列在 VAR_SECRETS 里的件**必须** other 位不给读——本件绝不建议也不改动它们放开，
 #     且普查时**只 stat 不 open**（密码/凭据类件的正文在本件任何路径下都不会被读）。
 #   退出码：0 全过｜5 有 FAIL｜9 前置缺失（根不存在／普查面为空／getfacl 不可用／P1 未过）
 # 性质：零 ROS 节点、零链窗、零仓内写（临时件只在 /tmp 且跑完即删）、无 sudo。
 set -u
-cd /home/ros1-slam || exit 9
+# ★R574（批226）＝仓根补可覆写口：原第 26 行 `cd /home/ros1-slam || exit 9` 把仓根写死，
+#   在异机（本仓／容器：该路径是符号链接视图或根本不存在）必 rc=9 ⇒ 串内 VAR 恒红，与件本身对不对无关。
+#   修法与 VCC（v_citation_check.sh:36 的 VCC_ROOT）、账构（v_ledger_batch_consistency.sh:38 的 VLB_ROOT）同款：
+#   ★只补覆写口、缺省值一字不改、rc 语义与普查面一字不改★。
+ROOT="${VAR_ROOT:-/home/ros1-slam}"
+cd "$ROOT" || { echo "[前置缺失] 仓根不可达：$ROOT（可用 VAR_ROOT=仓根 覆写）"; echo "VAR VERDICT rc=9"; exit 9; }
 command -v getfacl >/dev/null 2>&1 || { echo "[前置缺失] getfacl 不可用 ⇒ 无法判 effective"; echo "VAR VERDICT rc=9"; exit 9; }
 SELF=$(readlink -f "$0")
 # --selftest：把"能红也能绿"打包成例（R187；来源＝本会话 VAR 逮到我 7 次，但它此前只有内建 P1 探针、没有可复跑的 P2/P3 用例）

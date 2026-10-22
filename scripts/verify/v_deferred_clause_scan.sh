@@ -17,7 +17,9 @@
 # 用法：bash scripts/verify/v_deferred_clause_scan.sh            全仓巡检
 #       bash scripts/verify/v_deferred_clause_scan.sh --selftest  阳性对照（两处已知实例）＋阴性对照（合成一例必判红）
 set -u
-ROOT=/home/ros1-slam
+# ★R574（批226）＝仓根补可覆写口：原第 20 行写死 ROOT=/home/ros1-slam，异机（本仓）不存在该路径
+#   ⇒ SCAN_ROOT／LEDGER_ROOT 双双解析不到、rc=9。修法与 VCC／账构同款：只补覆写口、缺省值与 rc 语义一字不改。
+ROOT="${DC_ROOT:-/home/ros1-slam}"
 SCAN_ROOT=${DC_SCAN_ROOT:-$ROOT}
 LEDGER_ROOT=${DC_LEDGER_ROOT:-$ROOT}
 SELF=$(readlink -f "$0")
