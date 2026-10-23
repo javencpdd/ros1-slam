@@ -29,9 +29,15 @@
 #   ③★「行」必须紧跟数字★＝否则「05 追加五十（★整行余值…」里的"整行"会被当成行数（同批实测假阳）
 #   ④★声称行数按 numstat additions 列★、不按 wc -l（numstat 已把空行算进去）
 #
+#   E 件级两态对表（★R606／批258 问三硬要求、批260 落件★）＝给定 <件路径>，从 git 取
+#     改前版（缺省 base＝HEAD）与工作树改后版各跑一遍，报 rc／输出行数／三档断言计数
+#     （[PASS|FAIL|ABSENT]）两态差；★硬要求★＝改后三档计数★不得小于***改前（除非显式
+#     给 --allow-shrink 并附理由）；★计数为 0 只对旧态合法***＝改前 0 是常态、不是缺陷。
+#     ★与 A—D 的分工★＝A—D 管「提交标题声称 vs numstat」，E 管「改一件件之前 vs 之后」。
 # 用法＝bash _commit_title_numstat.sh <sha>            # 对表单枚提交
 #       bash _commit_title_numstat.sh --selftest       # 正负控自证（★九枚＝三枚真实提交对表＋六枚 D 级尺★、只读 git、零写盘）
 #       bash _commit_title_numstat.sh --scan-all       # 扫存量（★新闸上线必须先扫已入库违例★）
+#       bash _commit_title_numstat.sh --two-state <件> [--base <sha>] [--allow-shrink 理由]   # E 级
 # 退出码＝0（全部对得上 ‖ 自测全合期望）‖ 5（★有不符★ ‖ 自测不合期望）‖ 9（前置缺失：sha 不存在／git 不可用）
 set -u
 # ★R589／批242 修 ROOT★＝本件随 SCAN集成 于批208 搬入 note/进度/v7/S1/… ⇒ 实际深 6 级，原式四跳只到 note/进度
@@ -223,6 +229,40 @@ EOF
 }
 
 MODE="${1:-}"
+
+# ---------- E 级：件级两态对表（问三硬要求） ----------
+two_state() {
+  local f="" base="HEAD" allow="" why=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --base) base="$2"; shift 2 ;;
+      --allow-shrink) allow=1; why="$2"; shift 2 ;;
+      *) if [ -z "$f" ]; then f="$1"; fi; shift ;;
+    esac
+  done
+  [ -n "$f" ] || { echo "E 级要一个件路径"; return 9; }
+  [ -f "$f" ] || { echo "件不在位：$f"; return 9; }
+  local td; td=$(mktemp -d "${TMPDIR:-/tmp}/ts.XXXXXX") || return 9
+  git -C "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" show "$base:$f" > "$td/before.sh" 2>/dev/null
+  if [ ! -s "$td/before.sh" ]; then echo "改前版取不到：$base:$f"; rm -rf "$td"; return 9; fi
+  local ROOTD; ROOTD=$(git rev-parse --show-toplevel 2>/dev/null || echo .)
+  local rb ra rcb rca lb la cb ca
+  rb=$(cd "$ROOTD" && bash "$td/before.sh" 2>&1); rcb=$?
+  ra=$(cd "$ROOTD" && bash "$f" 2>&1); rca=$?
+  lb=$(printf '%s\n' "$rb" | wc -l); la=$(printf '%s\n' "$ra" | wc -l)
+  cb=$(printf '%s\n' "$rb" | grep -c -E '\[(PASS|FAIL|ABSENT)\]')
+  ca=$(printf '%s\n' "$ra" | grep -c -E '\[(PASS|FAIL|ABSENT)\]')
+  echo "E 两态对表 $f（base=$base）"
+  echo "  改前 rc=$rcb 行=$lb 三档=$cb ‖ 改后 rc=$rca 行=$la 三档=$ca"
+  if [ "$cb" -eq 0 ]; then echo "  ★旧态三档 0＝常态（该件此前不执行）★ 不计缺陷"; fi
+  if [ "$ca" -lt "$cb" ]; then
+    if [ -n "$allow" ]; then echo "  ★三档变小但已显式批准★ 理由＝$why"; rm -rf "$td"; return 0; fi
+    echo "  X 改后三档小于改前＝覆盖面受损（问三硬要求）⇒ 须给 --allow-shrink 与理由"; rm -rf "$td"; return 5
+  fi
+  echo "  OK 改后三档不小于改前"
+  rm -rf "$td"; return 0
+}
+
 case "$MODE" in
   --selftest)
     echo "== 自测（★九枚＝三枚真实提交对表＋六枚 D 级尺★、只读 git、零写盘）=="
@@ -272,6 +312,13 @@ case "$MODE" in
     if [ "$fail" -eq 0 ]; then echo "✔ 自测九枚全合期望 ⇒ 本件有牙"; exit 0
     else echo "X 自测有 $fail 枚不合 ⇒ 本件有缺陷"; exit 5; fi
     ;;
+  --two-state)
+    shift
+    out=$(two_state "$@"); rc=$?
+    echo "== E 级 =="
+    printf '%s\n' "$out"
+    if [ "$rc" -eq 0 ]; then echo "✔ 两态对表合（rc=0）"; exit 0; fi
+    echo "X 两态对表不合 rc=$rc"; exit 5 ;;
   --scan-all)
     echo "== 存量扫（★新闸上线必须先扫已入库违例、否则绿会被读成从来没违例过＝假绿★）=="
     total=0; bad_n=0
@@ -288,7 +335,7 @@ case "$MODE" in
     if [ "$bad_n" -eq 0 ]; then echo "（零不合＝存量无违例）"; exit 0; else exit 5; fi
     ;;
   "")
-    echo "用法：bash _commit_title_numstat.sh <sha> | --selftest | --scan-all"; exit 9 ;;
+    echo "用法：bash _commit_title_numstat.sh <sha> | --selftest | --scan-all | --two-state <件> [--base <sha>]"; exit 9 ;;
   *)
     out=$(check_one "$MODE"); rc=$?
     echo "== 对表 $MODE =="

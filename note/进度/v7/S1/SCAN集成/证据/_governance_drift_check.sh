@@ -34,7 +34,8 @@
 #      三枚排除（★逐档报枚数、不静默★）＝变量拼接（前一位是 $ ％）‖ 夹具行（含 夹具｜mktemp｜正控｜反控）‖ 绝对面（本支只管相对面）
 # 许可括注（★全行豁免★）＝行内含 现读＝／写就时／指针／归档／旧版／不再更新／历史／取代／一字未动／不写死／不硬编码／不得读成
 #   ⇒ 那一枚版本号是★快照注记或历史叙述★，不是硬编码引用＝真人 2026-10-21 的指针形判据正是「门面现读为准（本稿写就时＝v7）」这一形。
-# 用法＝bash _governance_drift_check.sh [--max-age N] [--root DIR] [--BR_DRIFT]
+# 用法＝bash _governance_drift_check.sh [--max-age N] [--root DIR] [--BR_DRIFT] [--settlement]
+#       --settlement＝问二收口三式（R606／批258 裁、批260 落件）：只报不拦、不立豁免表
 #   --BR_DRIFT＝★自测面（夹具只在 /tmp、跑完自报已删）★＝七枚坏样本（硬编码现行断言／书目号同句钉版本／真身钉版本／转录门值／★带出处的门值行＝豁免不能吃掉门值牙★／终稿不带层／悬空版本路径）必须全被抓进红档
 #              ＋三枚好样本（指针形括注、现存版本路径的书目引用、版本并列简写 v3/v4）必须不被记红，
 #              另三枚分流对照（现存路径引用★必须落旁报★、门面历史行★必须落旁报不落红★、简写★不进任何档★）；任一不合＝本件自带缺陷⇒ rc=5 并点名
@@ -43,16 +44,35 @@ set -u
 # ★R589／批242 修 ROOT★＝本件随 SCAN集成 于批208 搬入 note/进度/v7/S1/… ⇒ 实际深 6 级，原式四跳只到 note/进度
 #   ⇒ 该件自批208 起★恒报「前置缺失＝不在位／不是 git 仓」★，批末读数面四枚附面同步恒报「件不在位」（本批现跑抓到）
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=$(cd "$(dirname "$0")/../../../../.." && pwd)
-MAXAGE=21; BRK=0; TARGET="$ROOT"
+MAXAGE=21; BRK=0; SETTLE=0; TARGET="$ROOT"
 while [ $# -gt 0 ]; do
   case "$1" in
     --max-age) MAXAGE="$2"; shift 2 ;;
     --root) TARGET="$2"; shift 2 ;;
     --BR_DRIFT) BRK=1; shift ;;
+    --settlement) SETTLE=1; shift ;;
     *) echo "未知参数 $1"; exit 9 ;;
   esac
 done
 [ -d "$TARGET" ] || { echo "★前置缺失＝被扫面不在位★ $TARGET"; exit 9; }
+if [ "$SETTLE" = 1 ]; then
+  ST=$(mktemp -d "${TMPDIR:-/tmp}/gov_settle.XXXXXX")
+  SARGS=""
+  [ -n "$MAXAGE" ] && SARGS="$SARGS --max-age $MAXAGE"
+  bash "$0" $SARGS --root "$TARGET" > "$ST/out.txt" 2>&1
+  SRC=$?
+  S1=$(grep -c '^     \[旁\] D7旁 ws/' "$ST/out.txt")
+  S2=$(grep -c '^     \[旁\] D7旁 scripts/' "$ST/out.txt")
+  S3=$(grep -o '抽得相对路径 [0-9]*' "$ST/out.txt" | grep -o '[0-9]*$' | head -1)
+  echo "== 问二收口三式（R606／批258 裁、批260 落件；★只报不拦、不立豁免表★） =="
+  echo "  一式＝ws 档旁报＝$S1（期望 2＝丁档两枚按问五永留旁报；甲乙丙八枚改指后归零）"
+  echo "  二式＝scripts 档旁报＝$S2（期望 10＝运行时造面、不许降；降了＝有人往排除档塞东西）"
+  echo "  三式＝抽得相对路径总数＝$S3（★只增不减★；减＝有人删引用；增须能归因到加指针）"
+  echo "  主扫描 rc=$SRC（三式只报不拦，不改本件 rc 语义）"
+  rm -rf "$ST"
+  exit $SRC
+fi
+
 SELF=$(cd "$(dirname "$0")" && pwd)/_batch_readout.sh
 
 if [ "$BRK" = 1 ]; then
@@ -298,5 +318,6 @@ for _s in soft: print("     [旁] %s" % _s)
 sys.exit(5 if red else 0)
 PYEOF
 RC=$?
+
 echo "本件 rc=$RC（0＝红档全过 ‖ 5＝红档任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★"
 exit $RC
