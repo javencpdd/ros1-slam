@@ -26,6 +26,12 @@
 #      的每一条「sha ↔ 盘上现值」⇒ 不合即点名在册值与现读值两枚、并给修法＝★重生成（`tooling/_build_tooling_manifests.sh`）、不是手改★
 #      起意＝本批现读抓到★顶层清单对 README.md 那枚 sha 从 批174·补二（6a01532）起就漂了★（在册 85d8c47e ‖ 现读 9edf5a7a）＝
 #      同批只动了 README、没同批刷顶层＝在册规矩 4 的一次漏执行、十四枚在册面里没有任何格子盯它
+#   D7 ★件内路径在盘性★（★R603／批255 新增★）＝扫三档件名册里的★仓内相对路径字面★、逐枚问「盘上有没有」
+#      起意＝两枚同族缺陷先后由人眼抓到＝批244（VCC 的 glob 仍写搬迁前路径＝★一面失明 35 批★）‖ 批254（高程合同件第 146 行同样指旧路径、
+#      且该件 ROOT 写死容器路径⇒本机恒不可跑＝★W8 段从未执行★）＝在册只有「搬家后要回头扫一遍取路径的件」这句★程序性话★、没有格子盯；
+#      ★本支牙盯的是状态（路径在不在盘）、不是程序（有没有人扫过）＝程序那半按追加一百八十第一节挂触发式、不假装能机判★
+#      名册＝★派生式、不写死枚数★（＝追加一百八十第一节的第二次行使）＝自有件（红档）‖ 判据件 scripts/verify（旁报＝动它须先裁）‖ 包内 ws/**/verify（旁报＝红线面）
+#      三枚排除（★逐档报枚数、不静默★）＝变量拼接（前一位是 $ ％）‖ 夹具行（含 夹具｜mktemp｜正控｜反控）‖ 绝对面（本支只管相对面）
 # 许可括注（★全行豁免★）＝行内含 现读＝／写就时／指针／归档／旧版／不再更新／历史／取代／一字未动／不写死／不硬编码／不得读成
 #   ⇒ 那一枚版本号是★快照注记或历史叙述★，不是硬编码引用＝真人 2026-10-21 的指针形判据正是「门面现读为准（本稿写就时＝v7）」这一形。
 # 用法＝bash _governance_drift_check.sh [--max-age N] [--root DIR] [--BR_DRIFT]
@@ -69,6 +75,11 @@ if [ "$BRK" = 1 ]; then
   TS=$(cd "$T/tooling" && sha256sum skill/x/good_ptr.md | cut -d' ' -f1)
   printf -- '%s  x/good_ptr.md\n0000000000000000000000000000000000000000000000000000000000000000  x/d6_bad.md\n' "$GS" > "$T/tooling/skill/_sha256_manifest.txt"
   printf -- '# 顶层清单（夹具）\n%s  skill/x/good_ptr.md\n' "$TS" > "$T/tooling/_sha256_manifest.txt"
+  # ★D7 的三枚控（被试面内容一律不带「夹具／正控／反控／mktemp」字样＝否则被豁免锚吃掉＝★这本身就是这支牙的口径★）★
+  mkdir -p "$T/note/进度/v7/S1/SCAN集成/证据" "$T/scripts/verify" "$T/note/进度/v7/S1/SCAN集成/设计"
+  printf -- '# 被试面甲\n- 引用＝note/计划书v9/21_中心计划书-v9.md（换代后的旧形）\n' > "$T/note/进度/v7/S1/SCAN集成/证据/_d7_own_bad.sh"
+  printf -- '# 被试面乙\n- 引用＝note/计划书v6/23_v6任务队列.md（盘上有）\n- 目录形＝note/进度/v7/S1/SCAN集成/设计/*.md（glob 取前缀）\n' > "$T/note/进度/v7/S1/SCAN集成/证据/_d7_own_ok.sh"
+  printf -- '# 被试面丙\n- 引用＝note/进度/SCAN集成/证据/log/raw/r278_3d_release/21_xiaozhang_landing.txt\n' > "$T/scripts/verify/v_d7_crit.sh"
   OUT=$(bash "$0" --root "$T" --max-age 21 2>&1); RC=$?
   RED=$(printf '%s\n' "$OUT" | grep '\[红\]')
   SOFT=$(printf '%s\n' "$OUT" | grep '\[旁\]')
@@ -81,6 +92,8 @@ if [ "$BRK" = 1 ]; then
   C12=$(printf '%s\n' "$RED" | grep -c bad_pin); C13=$(printf '%s\n' "$RED" | grep -c bad_21hao)
   C14=$(printf '%s\n' "$RED" | grep -c 'sha 不合.*d6_bad'); C15=$(printf '%s\n' "$RED" | grep -c 'sha 不合.*good_ptr')
   C16=$(printf '%s\n' "$RED" | grep -c bad_gate_src)
+  C17=$(printf '%s\n' "$RED" | grep -c '_d7_own_bad'); C18=$(printf '%s\n' "$RED" | grep -c '_d7_own_ok')
+  C19=$(printf '%s\n' "$SOFT" | grep -c 'v_d7_crit');  C20=$(printf '%s\n' "$RED" | grep -c 'v_d7_crit')
   echo "  阳性对照（红档抓＝期望≥1 ‖ 红档不抓＝期望★0★ ‖ 旁报抓＝期望≥1）"
   echo "    硬编码现行版本=$C1(≥1) ‖ 转录门值=$C2(≥1) ‖ 终稿不带层=$C3(≥1) ‖ 悬空版本路径=$C7(≥1)"
   echo "    ★带出处的门值行（旧形被整行豁免那一枚）＝$C16(≥1＝豁免不能当门值转录的通行证)★"
@@ -88,6 +101,7 @@ if [ "$BRK" = 1 ]; then
   echo "    指针形好样本误报=$C4(0) ‖ 现存路径引用误报=$C5(0)且落旁报=$C6(≥1)"
   echo "    版本并列简写（v3/v4）误报=$C10(★0★)且落旁报=$C11(0＝★简写本就不是路径、不进任何档★)"
   echo "    门面历史行：记红=$C8(★0★) ‖ 记旁报=$C9(≥1)"
+  echo "    ★D7 件内路径在盘性＝自有件坏样本记红=$C17(≥1) ‖ 好样本（含 glob 取前缀）记红=$C18(★0★) ‖ 判据件坏样本记旁报=$C19(≥1)且不记红=$C20(★0★)★"
   BAD=""
   [ "$C1" -ge 1 ] || BAD="$BAD ★A1 硬编码现行版本没抓到★"
   [ "$C2" -ge 1 ] || BAD="$BAD ★D3 转录门值没抓到★"
@@ -104,10 +118,14 @@ if [ "$BRK" = 1 ]; then
   [ "$C10" = 0 ] || BAD="$BAD ★版本并列简写被当路径抓＝锚把非路径形也算进去了★"
   [ "$C8" = 0 ] || BAD="$BAD ★无写入通道的历史行被记红＝闸没有牙只能靠我改旧文★"
   [ "$C9" -ge 1 ] || BAD="$BAD ★历史行没进旁报＝漂了没人知道★"
+  [ "$C17" -ge 1 ] || BAD="$BAD ★D7 自有件里的不在盘路径没被抓＝这支牙根本没接上名册★"
+  [ "$C18" = 0 ] || BAD="$BAD ★D7 把在盘路径或 glob 前缀报成不在盘＝会造永红闸★"
+  [ "$C19" -ge 1 ] || BAD="$BAD ★D7 判据件的不在盘路径没进旁报＝失明面没人点名★"
+  [ "$C20" = 0 ] || BAD="$BAD ★D7 把须先裁的判据件记成红＝越了施工侧的界★"
   rm -rf "$T"
   echo "  夹具已删＝$([ -d $T ] && echo 在 || echo 无)"
   if [ -n "$BAD" ]; then echo "★自测不合期望★＝$BAD"; echo "本件（自测面）rc=5"; exit 5; fi
-  echo "  自测合期望＝★十五枚期望判定全合（红档抓 8 ‖ 不误报 4 ‖ 两档分流 3）★"
+  echo "  自测合期望＝★十九枚期望判定全合（红档抓 9 ‖ 不误报与不记红 6 ‖ 两档分流 4）★"
   echo "本件（自测面）rc=0"; exit 0
 fi
 
@@ -231,6 +249,49 @@ for mf, base, tag in ((os.path.join(ROOT, "tooling", "_sha256_manifest.txt"), os
         elif sha_of(q) != s: bad.append("sha 不合 %s（在册 %s ‖ 现读 %s）" % (relp, s[:16], sha_of(q)[:16]))
     print("  %s 条目＝%d ‖ 不合＝%d ‖ 缺＝%d" % (tag, len(ents), len(bad), len([b for b in bad if b.startswith("缺件")])))
     for b in bad: red.append("%s %s ⇒ ★修法＝重生成（--build --by-order）、不是手改★" % (tag, b))
+# ★D7＝件内路径在盘性★（R603／批255）＝名册＝派生式（★不写死枚数★＝追加一百八十第一节第二次行使）；盯状态、不盯程序
+D7_HEAD = re.compile(r"(?<![A-Za-z0-9_.\-])((?:note|scripts|tooling|ws|opt|data)/[^\s'\"`|（）()，,；;：:*<>＝、。\[\]^{}]+)")   # ★前一位允许斜杠＝$ROOT/note/… 这一形必须能判；容器面靠 D7_CONT 挡、不靠斜杠挡★
+D7_TAIL = ".,;:-—…/」』】”’"          # ★句末标点与目录尾巴一律先剥掉再判＝否则「路径后面黏一个句号」这一形会假不在盘★
+D7_CONT = ("opt/ros", "ws/devel", "opt/ros1-slam")   # ★容器面与编译产物＝本机按定义不存在＝不判、单报一枚数★
+D7_JIAJU = re.compile(r"(夹具|mktemp|正控|反控|探针|BR_|\$T)")   # ★含 $T 那一行＝自测夹具的写出面＝路径按 $T 为根、不按仓根判★
+def d7_roster(base, keep):
+    out = []
+    for root, dirs, fs in os.walk(base):
+        dirs[:] = [x for x in dirs if x not in (".git", "__pycache__", "log", "run", "build", "devel", "node_modules")]
+        for f in fs:
+            p = os.path.join(root, f)
+            if keep(os.path.relpath(p, ROOT), f): out.append(p)
+    return sorted(out)
+own_f = d7_roster(os.path.join(ROOT, "note"), lambda r, f: f.startswith("_") and f.endswith(".sh"))
+crit_f = d7_roster(os.path.join(ROOT, "scripts"), lambda r, f: f.endswith(".sh") and os.sep + "verify" + os.sep in r)
+pkg_f = d7_roster(os.path.join(ROOT, "ws"), lambda r, f: f.endswith(".sh") and os.sep + "verify" + os.sep in r)
+d7_tot = d7_ok = d7_own_bad = d7_soft_bad = x_var = x_jiaju = x_cont = x_noext = x_egedu = 0
+for p, tier in [(x, "own") for x in own_f] + [(x, "crit") for x in crit_f] + [(x, "pkg") for x in pkg_f]:
+    rel = os.path.relpath(p, ROOT)
+    for i, l in enumerate(read(p).split("\n"), 1):
+        if D7_JIAJU.search(l):
+            x_jiaju += len(D7_HEAD.findall(l)); continue
+        for m in D7_HEAD.finditer(l):
+            prev = l[m.start()-1] if m.start() else ""
+            if prev in "$%": x_var += 1; continue
+            tok = m.group(0).strip(D7_TAIL)
+            if "*" in tok: tok = tok.split("*")[0].strip(D7_TAIL)   # ★glob＝取目录前缀再判★
+            if len(tok.split("/")) < 2: continue
+            if any(tok.startswith(c) for c in D7_CONT): x_cont += 1; continue   # ★容器面与产物＝不判★
+            if "..." in tok or "…" in tok: x_egedu += 1; continue                 # ★省略号＝散文里的例句形＝不判★
+            if not os.path.exists(os.path.join(ROOT, tok)) and "." not in os.path.basename(tok):
+                x_noext += 1; continue                                          # ★无扩展名又不是目录＝散文里的书名片段＝不判（宁漏不误红）★
+            d7_tot += 1
+            if os.path.exists(os.path.join(ROOT, tok)): d7_ok += 1; continue
+            if tier == "own":
+                d7_own_bad += 1; red.append("D7 %s:%d 件内路径不在盘＝%s ‖ 句＝%s" % (rel, i, tok, snip(l)))
+            else:
+                d7_soft_bad += 1
+                soft.append("D7旁 %s:%d 件内路径不在盘＝%s（★%s＝只点名★）‖ 句＝%s" % (
+                    rel, i, tok, "判据件＝动它须先裁" if tier == "crit" else "ws 包内＝红线面", snip(l)))
+print("  D7 名册（★派生式＝文件系统筛，与 05 追加一百八十那枚 git 索引面式子同职不同面★）＝自有件 %d ‖ 判据件 %d ‖ 包内 %d 枚件" % (len(own_f), len(crit_f), len(pkg_f)))
+print("  D7 取数＝抽得相对路径 %d 枚 ‖ 在盘 %d ‖ ★不在盘 %d（自有件记红 %d ‖ 判据与包内记旁报 %d）★ ‖ 排除五档并报＝容器面与产物 %d ‖ 无扩展名散文形 %d ‖ 省略号例句形 %d ‖ 变量拼接 %d ‖ 夹具行 %d" % (
+    d7_tot, d7_ok, d7_own_bad + d7_soft_bad, d7_own_bad, d7_soft_bad, x_cont, x_noext, x_egedu, x_var, x_jiaju))
 print("  ★红档枚数＝%d‖ 旁报枚数＝%d★（★只报不拦★）" % (len(red), len(soft)))
 for _r in red: print("     [红] %s" % _r)     # ★逐枚全列＝截前 8 枚会让下游数不到真枚数（追加一百二十二③同族）★
 for _s in soft: print("     [旁] %s" % _s)
