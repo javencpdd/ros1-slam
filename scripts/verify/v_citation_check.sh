@@ -48,7 +48,7 @@ import glob, os, re, shutil, subprocess, sys, tempfile
 
 MODE, ROOT, MAXD = sys.argv[1], sys.argv[2], int(sys.argv[3])
 docs = sys.argv[4:] or (['note/04_配置改动diff.md', 'note/02_问题与坑.md', 'note/进度/00_总览.md']
-                        + sorted(glob.glob('note/进度/SCAN集成/设计/*.md')))
+                        + sorted(glob.glob('note/进度/v7/S1/SCAN集成/设计/*.md')))  # 批244／R592＝真人明令甲：glob 随批208 搬迁失效，本机恒命中 0 枚＝一面失明 35 批
 CITE = re.compile(r'([A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:sh|py|md|ya?ml|launch|world|pcd|csv|txt|xacro|json|cpp|cc|hpp|h|c|xml|bak|log))[:：](\d+)')
 # 键名的两种在册写法都要认（自测 C3 首版就是因为只认第一种而漏判）：
 #   甲 "`global_planner_params.yaml:12 allow_unknown: false`"——**同一对反引号内**跟着键名；
