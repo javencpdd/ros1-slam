@@ -6,9 +6,11 @@
 #   ③ 壳包件内不得存在任何以 base_link 为**子帧**的静态边（U1 单父不变式）
 #   ④ 30_3rd 基线双条件不被触动（本件只读上游件）
 # 零节点、零 roslaunch：纯 XML 解析与集合比对，可在任何窗执行（含真机采集时）。
+# ★R606／批258 核出、批259 落裁★＝原 ROOT 写死容器面路径，宿主面恒不可达；按 L1 问三裁甲改成 git 派生＋缺根即退（与 D7 件第 45 行同形）。
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=/home/ros1-slam
 set -u
-UP=/home/ros1-slam/ws/src/30_3rd/plan_manage/launch/lio_relay.launch
-SH=/home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/lio_relay_sim.launch
+UP=$ROOT/ws/src/30_3rd/plan_manage/launch/lio_relay.launch
+SH=$ROOT/ws/src/40_navigation/lite3_scan/launch/lio_relay_sim.launch
 FAIL=0
 chk() { if [ "$1" = "0" ]; then echo "[PASS] $2"; else echo "[FAIL] $2"; FAIL=1; fi; }
 [ -f "$SH" ]; chk $? "壳包 relay 件在位 $SH"
@@ -42,11 +44,11 @@ print('[PASS] U1 单父不变式：壳包件无以 base_link 为子帧的静态�
 raise SystemExit(bad)
 PYEOF
 chk $? "relay 等价与单父静态断言（上列四项）"
-cd /home/ros1-slam/ws/src/30_3rd && sha256sum -c /home/ros1-slam/note/进度/SCAN集成/证据/scan_src_baseline_49.sha256 > /tmp/relay_equiv_base.txt 2>&1
+cd "$ROOT/ws/src/30_3rd" && sha256sum -c "$ROOT/note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256" > /tmp/relay_equiv_base.txt 2>&1
 N=$(grep -vc ': OK$' /tmp/relay_equiv_base.txt); [ "$N" = 0 ] && [ "$(find . -type f | wc -l)" = 49 ]
 chk $? "30_3rd 基线双条件未被触动（非 OK=$N，计数=$(find . -type f | wc -l)）"
 # ---- 批2 接线回归断言：70_scan.launch 必须指壳包自持件，且不得再指上游件（两者同时成立才算接线生效）----
-L7=/home/ros1-slam/ws/src/40_navigation/lite3_scan/launch/70_scan.launch
+L7=$ROOT/ws/src/40_navigation/lite3_scan/launch/70_scan.launch
 grep -q "find lite3_scan)/launch/lio_relay_sim.launch" "$L7" && ! grep -q "find scan_planner)/launch/lio_relay.launch" "$L7"
 chk $? "批2 接线在位：70_scan.launch 的 include 目标＝壳包 lio_relay_sim.launch，且上游件引用已消失"
 [ "$FAIL" = 0 ] && echo "RELAY EQUIV VERDICT: PASS" || echo "RELAY EQUIV VERDICT: FAIL"

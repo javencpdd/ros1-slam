@@ -23,16 +23,17 @@
 #         9 前置件缺失（门禁/归档/基线面，含「清单不在位」与「结论行不可指认」两类）。
 set +u
 unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION
+# ★R606／批258 核出、批259 落裁★＝原 ROOT 写死容器面路径，宿主面恒不可达；按 L1 问三裁甲改成 git 派生＋缺根即退（与 D7 件第 45 行同形）。
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=/home/ros1-slam
 source /opt/ros/noetic/setup.bash
-source /home/ros1-slam/ws/devel/setup.bash
+source "$ROOT/ws/devel/setup.bash"
 set -u
-export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:/home/ros1-slam/ws/devel/lib
+export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:$ROOT/ws/devel/lib
 export ROS_MASTER_URI=http://127.0.0.1:11313 GAZEBO_MASTER_URI=http://127.0.0.1:11345
-ROOT=/home/ros1-slam
 PKG=$ROOT/ws/src/95_simulation/lite3_gazebo_sim
 PAY=/tmp/m2_payload
 OUT=${OUT:-/tmp/rt_drive}
-EV=${EV:-$ROOT/note/进度/SCAN集成/证据/log/raw}
+EV=${EV:-$ROOT/note/进度/v7/S1/SCAN集成/证据/log/raw}
 mkdir -p "$OUT"
 RD_STDOUT_IS_LOG=0
 if [ -e "/proc/self/fd/1" ]; then
@@ -187,7 +188,7 @@ sec_scan() {
 sec_gate() {
   log "===== 5) 共同门禁＋基线双条件＋样张＋退净 $(now) ====="
   bash "$ROOT/scripts/verify/v3_isolation.sh" > "$OUT/gate.log" 2>&1; log "  门禁 EXIT=$?"; tail -2 "$OUT/gate.log" | sed 's/^/    /'
-  _BL=$ROOT/note/进度/SCAN集成/证据/scan_src_baseline_49.sha256   # 上一版误写 $EV（=证据/log/raw）⇒ 清单找不到，
+_BL=$ROOT/note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256   # 上一版误写 $EV
   if [ ! -f "$_BL" ]; then                                        #   却被打印成「非OK行数=1」＝一条假红灯。
     log "  [停手] 基线清单不在位（$_BL）⇒ 属前置缺失 rc=9，本件拒绝打印任何基线读数"
     return 9

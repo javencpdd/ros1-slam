@@ -20,11 +20,11 @@
 # 退出码（本件自有层，不与 G35／FDH／ISOLATION 各层互认）：0=对账全过；1=有 FAIL；9=前置不成立（设计稿/基线缺件）；
 #   5=阴性对照未真红（即本件无分辨力）
 set -u
-ROOT=/home/ros1-slam
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=/home/ros1-slam
 SELF=$(readlink -f "$0")
-DOC=$ROOT/note/进度/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md
-BASE=$ROOT/note/进度/仿真测试台/证据/w3_design_baseline_01f30b8b.sha256
-B3=$ROOT/note/进度/SCAN集成/证据/scan_src_baseline_49.sha256
+DOC=$ROOT/note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/spike3d_elevation_costmap_design.md
+BASE=$ROOT/note/进度/v7/S3/仿真测试台/证据/w3_design_baseline_01f30b8b.sha256
+B3=$ROOT/note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256
 PKG_LITE40=$ROOT/ws/src/40_navigation
 # 在册只写「参数规范位 lite3_bringup/config/」（§4.3），**没写它在哪一层** ⇒ 路径按包名发现，不硬编码层号
 #   （第一版我把它写成 ws/src/10_bringup/… 而实际在 70_bringup/…，于是"目录不存在"被判成 FAIL——
@@ -143,7 +143,7 @@ echo "--- W8 口径空白清单（在册就是空的，我不替他/她补数；
 echo "  1) T2r 的「路径长差」在册只有'形状可辨'，**无数值阈** ⇒ 交小美定档"
 echo "  2) T2r harness 是单跑还是三连在册未写 ⇒ 交小美（P3 已有两轴口径可参照，不自动套用）"
 echo "  3) w3_elevation_node 落哪个壳包/是否新建包：原为口径空白 ⇒ 已由小张 R278 落点裁定填上（留底 21_xiaozhang_landing.txt），本条升为实断言"
-XZ_LB="$ROOT/note/进度/SCAN集成/证据/log/raw/r278_3d_release/21_xiaozhang_landing.txt"
+XZ_LB="$ROOT/note/进度/v7/S1/SCAN集成/证据/log/raw/r278_3d_release/21_xiaozhang_landing.txt"
 if [ -f "$XZ_LB" ] && grep -q 'w3_elevation_node.py' "$XZ_LB"; then
   ok "W8-3 落点裁定留底在位且点名 w3_elevation_node.py（$(grep -c 'w3_elevation_node.py' "$XZ_LB") 处）"
 else

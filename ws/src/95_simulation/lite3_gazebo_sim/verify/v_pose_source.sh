@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # v_pose_source.sh —— 位姿源身份断言（F-D 前置断言的可执行化，小明 2026-10-08）
-# 设计出处：note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md §10.5（小张）＋判据 FD-2（同件 §6 表）。
+# 设计出处：note/进度/SCAN集成/设计/fd_双写者与前馈源裁定.md §10.5（小张）＋判据 FD-2（同件 §6 表）。（★路径已迁★＝真身＝note/进度/v7/S1/SCAN集成/设计/fd_双写者与前馈源裁定.md；R606／批258 按 L1 问一丁档处置＝加向前指针、★本行原文不回改★）
 #   主判 = 「/Odometry 的 Publishers 段行数恰 1」**加**「消息头帧对去重集合符合该窗口径」——
 #   两条都要，因为单看发布者数抓不到「同一进程发两系」，单看帧对抓不到「两个进程发同一名」。
 # 分档（**必须分档，否则 F-D 的正确结果会被判成红**，小张原话）：
@@ -11,8 +11,10 @@
 # 用法：bash v_pose_source.sh <档> <窗口秒=8>（须在被检话题已在位的窗内调用；本件不起链，避免与被试仿真争资源）
 set +u
 unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION
+# ★R606／批258 核出、批259 落裁★＝原 ROOT 写死容器面路径，宿主面恒不可达；按 L1 问三裁甲改成 git 派生＋缺根即退（与 D7 件第 45 行同形）。
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=/home/ros1-slam
 source /opt/ros/noetic/setup.bash
-source /home/ros1-slam/ws/devel/setup.bash
+source "$ROOT/ws/devel/setup.bash"
 set -u
 MODE=${1:?用法: v_pose_source.sh pre|post_a|post_b|legacy_b [秒]}
 WIN=${2:-8}

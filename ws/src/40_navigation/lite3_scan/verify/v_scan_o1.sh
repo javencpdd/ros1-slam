@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # v_scan_o1.sh —— O-1「到达信号口径」验收件（小明，2026-10-08）
-# 判据表 A/B 出自小张设计件 note/进度/SCAN集成/设计/o1_到达信号与联锁设计.md §5。
+# 判据表 A/B 出自小张设计件 note/进度/SCAN集成/设计/o1_到达信号与联锁设计.md §5。（★路径已迁★＝真身＝note/进度/v7/S1/SCAN集成/设计/o1_到达信号与联锁设计.md；R606／批258 按 L1 问一丁档处置＝加向前指针、★本行原文不回改★）
 # 覆盖：J1 观测件（A-1 只读归属 / A-2 唯一发布者 / A-3 类型与命名 / 注入式功能四用例）
 #       J2 参数单源（B-1 全名对账 / B-2 活体取值 / B-4 反双嵌套 / B-5 arg 联动 / B-6 死配置件已删+上游基线全等）
 # 不覆盖（明确留 P3，不在本件造绿）：A-4 到达真值、A-6 双 goal 连发的运动学面 —— 需车真动，
@@ -8,8 +8,10 @@
 # 隔离域：master 由 roslaunch 自启在 11313（**不得另起 roscore**：它会绑默认 11311 留孤儿 master，
 #   本件首版即踩此坑，见 04 台账）；不启 Gazebo；生产 11312 零接触。
 set -u
+# ★R606／批258 核出、批259 落裁★＝原 ROOT 写死容器面路径，宿主面恒不可达；按 L1 问三裁甲改成 git 派生＋缺根即退（与 D7 件第 45 行同形）。
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=/home/ros1-slam
 PKG=$(rospack find lite3_scan)
-BASE_DIR=/home/ros1-slam/note/进度/SCAN集成/证据
+BASE_DIR=$ROOT/note/进度/v7/S1/SCAN集成/证据
 O=${O1_OUT:-/tmp/o1_out}
 mkdir -p "$O"
 export ROS_MASTER_URI=http://127.0.0.1:11313
@@ -47,9 +49,9 @@ D=$(grep -c "/closed_loop_controller/closed_loop_controller" "$O/dump_default.tx
 roslaunch --dump-params "$L" max_vel:=0.55 2>/dev/null | grep -qx "/closed_loop_controller/max_vx: 0.55"
 chk $? "B-5 max_vel:=0.55 联动到 max_vx（无第二源劫持）"
 [ ! -f "$PKG/config/scan_params.yaml" ]; chk $? "B-6a 死配置件 config/scan_params.yaml 已不在位"
-( cd /home/ros1-slam/ws/src/30_3rd && sha256sum -c "$BASE_DIR/scan_src_baseline_49.sha256" >/dev/null 2>&1 )
+( cd "$ROOT/ws/src/30_3rd" && sha256sum -c "$BASE_DIR/scan_src_baseline_49.sha256" >/dev/null 2>&1 )
 chk $? "B-6b 30_3rd 基线 49 件内容全等（advanced_param.xml 等上游件未被改动）"
-CNT=$(find /home/ros1-slam/ws/src/30_3rd -type f | wc -l)
+CNT=$(find "$ROOT/ws/src/30_3rd" -type f | wc -l)
 [ "$CNT" = "49" ]; chk $? "C-7 30_3rd 文件集合计数 = 49（sha256sum -c 只检清单内内容、对新增文件不敏感，故补此断言）"
 echo "### 二、活体判据（SCAN 计算链自启 master 于 11313，不另起 roscore）"
 roslaunch lite3_scan 70_scan.launch > "$O/launch.log" 2>&1 & RL=$!

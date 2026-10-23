@@ -8,7 +8,7 @@
 # 边界：本件不进门禁 v3_isolation.sh（把新判据塞进共同门禁属判据面变更，依 05 A3／A3b 需验收先落笔）。
 # 性质：零 ROS 节点、零 roslaunch、零活体、零 ws 写、无 sudo。二态 rc（0 全过／5 有 FAIL），件内无有效性门可折。
 set -u
-ROOT=/home/ros1-slam
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=/home/ros1-slam
 cd "$ROOT" || exit 5
 NP=0; NF=0
 mark() { if [ "$1" = "1" ]; then NP=$((NP+1)); echo "[PASS] $2"; else NF=$((NF+1)); echo "[FAIL] $2"; fi; }
@@ -144,7 +144,7 @@ fi
 rm -f "$JOUT"
 
 # ---- C5 30_3rd 基线双条件未被触动（动 30_perception 侧不得波及 30_3rd）----
-_BASE="$ROOT/note/进度/SCAN集成/证据/scan_src_baseline_49.sha256"
+_BASE="$ROOT/note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256"
 _ok=$(cd ws/src/30_3rd && sha256sum -c "$_BASE" 2>&1 | grep -vc ": OK$")
 _cnt2=$(find ws/src/30_3rd -type f ! -name 'scan_src_baseline_49.sha256' | wc -l)
 [ "$_ok" = "0" ] && [ "$_cnt2" = "49" ] && mark 1 "C5 30_3rd 基线双条件全过（非 OK 行数=$_ok，计数=$_cnt2）" \
