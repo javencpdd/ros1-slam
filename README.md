@@ -10,9 +10,13 @@
 
 ## 一、这仓是什么
 
-面向四足机器人（Lite3）的**激光 SLAM 与自主导航**开发仓。当前主线＝在既有 2D 导航栈
-（`move_base_flex`）之上做 **3D 化改造**（高程与台阶可通行性、多楼层规划），
-并配套一整套**可复跑门禁**（`scripts/verify/`，十一件）与**逐批台账**（`note/`）。
+面向四足机器人（Lite3）的**激光 SLAM 与自主导航**开发仓，已有 ROS1/Noetic、
+`move_base_flex` 二维导航、SCAN 与仿真基础，以及可复跑检查和逐批台账。
+
+**现行规划指针**：[计划书 v8](note/计划书v8/README.md)，目标是按场景与能力标签组合
+2D/3D 定位、建图、全局与局部规划算法，并完成可信的三维导航仿真。
+**当前状态：计划已落册，平台改造尚未实施；现有代码不等于已具备全部目标能力。**
+具体任务见 [执行队列](note/计划书v8/23_v8任务队列.md)，最新批次见 [进度入口](note/进度/README.md)。
 
 ---
 
@@ -34,7 +38,7 @@
 | 顶层目录 | 是什么 | 入口 |
 |---|---|---|
 | `ws/` | catkin 工作区＝**源码面**（`build/` `devel/` 是编译产物、不入库） | `ws/README.md` |
-| `note/` | **台账志文面**＝进度真身／坑台账／判据表／计划书 v3—v7 | `note/00_README.md`＝三条硬规则 |
+| `note/` | **台账志文面**＝进度真身／坑台账／判据表／历代计划书 | `note/00_README.md`＝硬规则与现行规划指针 |
 | `note/tools/` | 工具教程面（跨 Agent 协作黑板教程在此） | `note/tools/跨Agent协作黑板-使用教程.md` |
 | `scripts/` | 门禁件 `scripts/verify/`（★十一件★）＋采图脚本族 `scripts/mapping/` | `scripts/mapping/README.md` |
 | `docker/` | 容器开发环境（复刻 Jetson aarch64 的 Noetic 隔离沙箱）＋ `foxglove/` 布局件 | `docker/README.md` |
