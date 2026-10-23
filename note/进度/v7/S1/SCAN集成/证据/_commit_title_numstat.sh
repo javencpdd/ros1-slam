@@ -17,6 +17,8 @@
 #     「git merge-base --is-ancestor」判，形如账构的判定域下限＝早于闸的史文不回填）：
 #       D1 首句（第一个全角「＝」之前）≤40 字 ‖ D2 正文（其后）≤400 字
 #       D3 段数＝三段＝★做了什么／为什么做／去看哪里★ 三枚段名各恰 1 次★且按序★
+#         ★段边界只认「段名＋全角＝」★——正文里把段名当★词★引用不算段（批247 上线第一跑就把自己的
+#         提交判红两枚＝拿裸词计数的假红，见 note/02 坑95；该枚提交标题自此留作★假红反例的正控★）
 #     ★字数按 Unicode 字符数、不按字节★（件内走 python3 len，绝不在 LC_ALL=C 下用 wc -m＝坑94 同族）
 #     ★标题里没有「＝」＝不代判、只印「D 不可证」★（那是形检 F3 的辖域，两枚尺不互相顶替）
 #
@@ -28,7 +30,7 @@
 #   ④★声称行数按 numstat additions 列★、不按 wc -l（numstat 已把空行算进去）
 #
 # 用法＝bash _commit_title_numstat.sh <sha>            # 对表单枚提交
-#       bash _commit_title_numstat.sh --selftest       # 正负控自证（★八枚＝三枚真实提交对表＋五枚 D 级尺★、只读 git、零写盘）
+#       bash _commit_title_numstat.sh --selftest       # 正负控自证（★九枚＝三枚真实提交对表＋六枚 D 级尺★、只读 git、零写盘）
 #       bash _commit_title_numstat.sh --scan-all       # 扫存量（★新闸上线必须先扫已入库违例★）
 # 退出码＝0（全部对得上 ‖ 自测全合期望）‖ 5（★有不符★ ‖ 自测不合期望）‖ 9（前置缺失：sha 不存在／git 不可用）
 set -u
@@ -96,16 +98,18 @@ else:
     segs = ["做了什么", "为什么做", "去看哪里"]
     pos = []; miss = []
     for s in segs:
-        c = body.count(s)
+        # ★段边界只认「段名＋全角＝」这一种形★：正文里把三枚段名当★词★引用（如「三段（做了什么／为什么做／
+        # 去看哪里）各恰 1 次」）不该算段＝批247 的标题被第一版判红两枚，就是拿裸词计数造的假红（坑95）
+        c = body.count(s + "＝")
         if c == 0:
             miss.append(s)
         elif c > 1:
-            red.append("  [D3 段名重] 段名「%s」出现 %d 次＞1（Y15 只三段）" % (s, c))
-        pos.append(body.find(s))
+            red.append("  [D3 段名重] 段边界「%s＝」出现 %d 次＞1（Y15 只三段）" % (s, c))
+        pos.append(body.find(s + "＝"))
     if miss:
-        red.append("  [D3 段缺] 缺段名：%s（Y15 三段＝做了什么／为什么做／去看哪里）" % "、".join(miss))
+        red.append("  [D3 段缺] 缺段边界：%s（Y15 三段＝做了什么／为什么做／去看哪里，★只认后跟全角＝的那一处★）" % "、".join(miss))
     elif pos != sorted(pos):
-        red.append("  [D3 段序乱] 三枚段名出现位 %s 非升序（Y15 按段排）" % pos)
+        red.append("  [D3 段序乱] 三枚段边界出现位 %s 非升序（Y15 按段排）" % pos)
 for x in red:
     print("R\t%s" % x)
 for x in info:
@@ -221,7 +225,7 @@ EOF
 MODE="${1:-}"
 case "$MODE" in
   --selftest)
-    echo "== 自测（★八枚＝三枚真实提交对表＋五枚 D 级尺★、只读 git、零写盘）=="
+    echo "== 自测（★九枚＝三枚真实提交对表＋六枚 D 级尺★、只读 git、零写盘）=="
     echo "   ★判读★＝不合枚数 0 ⇒ 期望绿；≠0 ⇒ 期望翻红（单枚对表模式统一映射为退出码 5）"
     fail=0
     out=$(check_one 578b186); rc=$?
@@ -239,11 +243,15 @@ case "$MODE" in
     [ -n "$out" ] && printf '%s\n' "$out"
     if [ "$rc" -ne 0 ]; then echo "  X 期望绿（0），实得 $rc"; fail=$((fail+1));
     else echo "  ✔ 全绿如期望"; fi
-    echo "-- D 级五枚（★正控取真提交的那一行标题、负控与反控取合成串＝只测尺、不掺 A/B/C★）--"
+    echo "-- D 级六枚（★正控取真提交的那一行标题、负控与反控取合成串＝只测尺、不掺 A/B/C★）--"
     out=$(d_eval "$(get_title d414fd2)"); rc=$?
     echo "D 正控 d414fd2（批243 真提交标题）：不合枚数=$rc"
     [ -n "$out" ] && printf '%s\n' "$out"
     if [ "$rc" -ne 0 ]; then echo "  X 期望绿（0），实得 $rc"; fail=$((fail+1)); else echo "  ✔ 全绿如期望"; fi
+    out=$(d_eval "$(get_title a3710d6)"); rc=$?
+    echo "D 正控二 a3710d6（批247 真提交★＝正文里把三枚段名当词引用＝第一版假红的那一枚★）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -ne 0 ]; then echo "  X 期望绿（0），实得 $rc ⇒ 段边界计数仍把词引用算成段"; fail=$((fail+1)); else echo "  ✔ 全绿如期望（词引用不算段边界）"; fi
     out=$(d_eval "x86侧批999（这一枚提交把三件事都写了进去所以首句故意写得很长很长超过四十字）＝做了什么＝甲‖为什么做＝乙‖去看哪里＝丙"); rc=$?
     echo "D 负控一（首句＞40）：不合枚数=$rc"
     [ -n "$out" ] && printf '%s\n' "$out"
@@ -261,7 +269,7 @@ case "$MODE" in
     if [ "$rc" -ne 0 ]; then echo "  X 期望 0（不代判、不冒红），实得 $rc"; fail=$((fail+1));
     else case "$out" in *不可证*) echo "  ✔ 判 0 且印「不可证」＝没把不判冒充无缺" ;; *) echo "  X 期望印出不可证一行，实没印"; fail=$((fail+1));; esac; fi
     echo "--"
-    if [ "$fail" -eq 0 ]; then echo "✔ 自测八枚全合期望 ⇒ 本件有牙"; exit 0
+    if [ "$fail" -eq 0 ]; then echo "✔ 自测九枚全合期望 ⇒ 本件有牙"; exit 0
     else echo "X 自测有 $fail 枚不合 ⇒ 本件有缺陷"; exit 5; fi
     ;;
   --scan-all)
