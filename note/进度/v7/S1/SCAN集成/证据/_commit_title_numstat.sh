@@ -13,6 +13,12 @@
 #       ★仅两面可判★＝04:段（ ｜ 00_总览:档头滚｜档头｜条目区
 #       （05／留底／状态面／档头历史 的 B ★已放弃★：引用在册条目与声称动了完全同形、不可区分 ⇒ 见 act_re 注）
 #   C 未动形＝标题某单元形如「<面名><≤14 字符>未动」⇒ numstat 必须★不★出现该面
+#   D Y15 三枚尺（★批247／R595 上牙★）＝★只对 Y15 落册批及其后的提交生效★（域下限＝5ce95b2，用
+#     「git merge-base --is-ancestor」判，形如账构的判定域下限＝早于闸的史文不回填）：
+#       D1 首句（第一个全角「＝」之前）≤40 字 ‖ D2 正文（其后）≤400 字
+#       D3 段数＝三段＝★做了什么／为什么做／去看哪里★ 三枚段名各恰 1 次★且按序★
+#     ★字数按 Unicode 字符数、不按字节★（件内走 python3 len，绝不在 LC_ALL=C 下用 wc -m＝坑94 同族）
+#     ★标题里没有「＝」＝不代判、只印「D 不可证」★（那是形检 F3 的辖域，两枚尺不互相顶替）
 #
 # ★四枚必守技术点（全部有存量实证）★：
 #   ①★必须带 -c core.quotepath=false★（不带时 CJK 路径被 git 转义成八进制、grep 中文全给 0＝★假零★）
@@ -22,7 +28,7 @@
 #   ④★声称行数按 numstat additions 列★、不按 wc -l（numstat 已把空行算进去）
 #
 # 用法＝bash _commit_title_numstat.sh <sha>            # 对表单枚提交
-#       bash _commit_title_numstat.sh --selftest       # 正负控自证（三枚真实提交、只读 git、零写盘）
+#       bash _commit_title_numstat.sh --selftest       # 正负控自证（★八枚＝三枚真实提交对表＋五枚 D 级尺★、只读 git、零写盘）
 #       bash _commit_title_numstat.sh --scan-all       # 扫存量（★新闸上线必须先扫已入库违例★）
 # 退出码＝0（全部对得上 ‖ 自测全合期望）‖ 5（★有不符★ ‖ 自测不合期望）‖ 9（前置缺失：sha 不存在／git 不可用）
 set -u
@@ -68,6 +74,52 @@ cn2num() { # ★阿拉伯数字原样返回；中文单字转换；复合数（�
     *) printf '%s' "$1" | grep -qE '^[0-9]+$' && echo "$1" || echo "" ;;
   esac
 }
+
+Y15_SINCE="5ce95b2"   # ★D 级域下限★＝批239（Y15 落进正文 §5 的那枚提交）；早于它的史文不回填
+
+d_eval() { # $1＝提交标题（★整个提交信息那一行★）⇒ stdout＝不合行／不可证行；return＝不合枚数
+  local raw n
+  raw=$(Y15_T="$1" python3 - <<'PY'
+import os
+t = os.environ.get("Y15_T", "").strip()
+red = []; info = []
+if not t:
+    red.append("  [D 前置不合] 提交标题为空")
+elif "＝" not in t:
+    info.append("  [D 不可证] 标题无「＝」＝首句与正文分不开（属形检 F3 辖域，本件不代判、不写成无缺）")
+else:
+    i = t.index("＝"); head, body = t[:i], t[i + 1:]
+    if len(head) > 40:
+        red.append("  [D1 首句超] 首句 %d 字＞40（Y15 在册上限）" % len(head))
+    if len(body) > 400:
+        red.append("  [D2 正文超] 正文 %d 字＞400（Y15 在册上限）" % len(body))
+    segs = ["做了什么", "为什么做", "去看哪里"]
+    pos = []; miss = []
+    for s in segs:
+        c = body.count(s)
+        if c == 0:
+            miss.append(s)
+        elif c > 1:
+            red.append("  [D3 段名重] 段名「%s」出现 %d 次＞1（Y15 只三段）" % (s, c))
+        pos.append(body.find(s))
+    if miss:
+        red.append("  [D3 段缺] 缺段名：%s（Y15 三段＝做了什么／为什么做／去看哪里）" % "、".join(miss))
+    elif pos != sorted(pos):
+        red.append("  [D3 段序乱] 三枚段名出现位 %s 非升序（Y15 按段排）" % pos)
+for x in red:
+    print("R\t%s" % x)
+for x in info:
+    print("I\t%s" % x)
+print("N\t%d" % len(red))
+PY
+)
+  n=$(printf '%s\n' "$raw" | awk -F'\t' '$1=="N"{print $2}')
+  printf '%s\n' "$raw" | awk -F'\t' '$1!="N"{print $2}'
+  case "$n" in ''|*[!0-9]*) n=0 ;; esac
+  return "$n"
+}
+
+d_in_domain() { git merge-base --is-ancestor "$Y15_SINCE" "$1" 2>/dev/null; }
 
 get_title()   { git -c core.quotepath=false log -1 --format=%s "$1" 2>/dev/null; }
 get_numstat() { git -c core.quotepath=false show --numstat --format='' "$1" 2>/dev/null; }
@@ -154,13 +206,22 @@ EOF
 $slim
 EOF
   done
+  # ---- D：Y15 三枚尺（★只对域内提交生效★＝5ce95b2 及其后；域外只印一行、不写成无缺）----
+  local dout drc
+  if d_in_domain "$sha"; then
+    dout=$(d_eval "$title"); drc=$?
+    if [ -n "$dout" ]; then printf '%s\n' "$dout"; fi
+    bad=$((bad+drc))
+  else
+    echo "  [D 域外] 早于 Y15 落册批 $Y15_SINCE ⇒ 三枚尺不判（史文不回填）"
+  fi
   return $bad
 }
 
 MODE="${1:-}"
 case "$MODE" in
   --selftest)
-    echo "== 自测（三枚真实提交、只读 git、零写盘）=="
+    echo "== 自测（★八枚＝三枚真实提交对表＋五枚 D 级尺★、只读 git、零写盘）=="
     echo "   ★判读★＝不合枚数 0 ⇒ 期望绿；≠0 ⇒ 期望翻红（单枚对表模式统一映射为退出码 5）"
     fail=0
     out=$(check_one 578b186); rc=$?
@@ -178,8 +239,29 @@ case "$MODE" in
     [ -n "$out" ] && printf '%s\n' "$out"
     if [ "$rc" -ne 0 ]; then echo "  X 期望绿（0），实得 $rc"; fail=$((fail+1));
     else echo "  ✔ 全绿如期望"; fi
+    echo "-- D 级五枚（★正控取真提交的那一行标题、负控与反控取合成串＝只测尺、不掺 A/B/C★）--"
+    out=$(d_eval "$(get_title d414fd2)"); rc=$?
+    echo "D 正控 d414fd2（批243 真提交标题）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -ne 0 ]; then echo "  X 期望绿（0），实得 $rc"; fail=$((fail+1)); else echo "  ✔ 全绿如期望"; fi
+    out=$(d_eval "x86侧批999（这一枚提交把三件事都写了进去所以首句故意写得很长很长超过四十字）＝做了什么＝甲‖为什么做＝乙‖去看哪里＝丙"); rc=$?
+    echo "D 负控一（首句＞40）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -eq 0 ]; then echo "  X 期望翻红（≠0），实得 0 ⇒ 尺无牙"; fail=$((fail+1)); else echo "  ✔ 翻红如期望"; fi
+    out=$(d_eval "x86侧批999（少了一段）＝做了什么＝甲‖为什么做＝乙"); rc=$?
+    echo "D 负控二（缺段名「去看哪里」）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -eq 0 ]; then echo "  X 期望翻红（≠0），实得 0 ⇒ 尺无牙"; fail=$((fail+1)); else echo "  ✔ 翻红如期望"; fi
+    out=$(d_eval "x86侧批999（正文超长反控）＝做了什么＝甲‖为什么做＝乙‖去看哪里＝$(python3 -c 'print("字"*401)')"); rc=$?
+    echo "D 反控三（正文＞400）：不合枚数=$rc"
+    [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -eq 0 ]; then echo "  X 期望翻红（≠0），实得 0 ⇒ 尺无牙"; fail=$((fail+1)); else echo "  ✔ 翻红如期望"; fi
+    out=$(d_eval "x86侧批999 没有等号的一枚标题"); rc=$?
+    echo "D 不可证（无「＝」）：不合枚数=$rc"; [ -n "$out" ] && printf '%s\n' "$out"
+    if [ "$rc" -ne 0 ]; then echo "  X 期望 0（不代判、不冒红），实得 $rc"; fail=$((fail+1));
+    else case "$out" in *不可证*) echo "  ✔ 判 0 且印「不可证」＝没把不判冒充无缺" ;; *) echo "  X 期望印出不可证一行，实没印"; fail=$((fail+1));; esac; fi
     echo "--"
-    if [ "$fail" -eq 0 ]; then echo "✔ 自测三枚全合期望 ⇒ 本件有牙"; exit 0
+    if [ "$fail" -eq 0 ]; then echo "✔ 自测八枚全合期望 ⇒ 本件有牙"; exit 0
     else echo "X 自测有 $fail 枚不合 ⇒ 本件有缺陷"; exit 5; fi
     ;;
   --scan-all)
