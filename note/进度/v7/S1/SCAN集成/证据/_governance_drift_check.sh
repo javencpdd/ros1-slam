@@ -8,6 +8,7 @@
 #   【旁报＝施工侧★无写入通道★的面】`note/计划书v7/*.md` 正文（官方表述笔权）＋ `note/00_README.md` 历史行（旧文不回改）
 #     ⇒ 理由＝把无通道面记红＝造一枚★永红闸★＝等于关掉报警器；但完全不扫＝漂了没人知道 ⇒ 记旁报、逐枚点名、批末并报枚数。
 #   ★另起句（★R606／批258 核出 ‖ R607／批259 呈报 ‖ 真人勾甲 ‖ 批261 落★）★＝上一行那句「旁报＝施工侧无写入通道」的★辖域只有 note/计划书v7/*.md 一档***；ws 包内件与 scripts 判据件的旁报★不是***这个理由，而是另两种＝「ws 包内＝红线面＝只点名」‖「判据件＝动它须先裁＝只点名」。⇒ ★旁报分两种理由***＝①无写入通道面（note/计划书v7 正文）②红线／须先裁面（ws 包内 ‖ scripts 判据件）；本件的实现按名册档位分红／旁，★与上一行那句不同源***，读时★不许把上一行那句套到 ws 与 scripts 两档上***（R606 反证一的照登更正、旧行一字未动）。
+# ★问五标签档（R606 裁／批262 落）★＝旁报里命中「写盘目标位」（重定向／删除／open 写模式的操作数）的那几枚，仍★点名并计数***、只另列一档打印（前缀 [标]）；★不加滤、不写死名册、不新增夹具***。
 # 断言（★逐枚并报、任一红档不合＝本件 rc=5★）＝
 #   D1 ★现行指针行在位且不老★＝`note/00_README.md` 的「现行指针」节里那行「日期现取＝YYYY-MM-DD」，距令日 ≤ N 天（缺省 21）
 #   D2 ★下游不许硬编码现行版本★＝五支牙（只作用红档面）＝
@@ -154,7 +155,7 @@ python3 - "$TARGET" "$MAXAGE" "$SELF" <<'PYEOF'
 import io, os, re, sys, datetime
 ROOT, MAXAGE, READOUT = sys.argv[1], int(sys.argv[2]), sys.argv[3]
 D = os.path.join(ROOT, "note", "00_README.md")
-red, soft = [], []   # ★先定义＝read() 要往里记红档★
+red, soft, wtag = [], [], []   # ★先定义＝read() 要往里记红档★；★tag＝问五标签档（R606 裁／批262 落）＝soft 里命中「写盘目标位」的那几枚的★视图档***（仍计在 soft 内、只另列不另判、不加滤不写死名册）
 def read(p):
     # ★★本件自曝的牙根修★＝第一版夹具缺 README.md 时本件★直接崩（traceback、rc=1）★＝
     #   正是我在册 S34／S27 那族「查不到只有红档算被检到、崩与空值都不算」★我自己又犯了一次★
@@ -286,6 +287,7 @@ def d7_roster(base, keep):
 own_f = d7_roster(os.path.join(ROOT, "note"), lambda r, f: f.startswith("_") and f.endswith(".sh"))
 crit_f = d7_roster(os.path.join(ROOT, "scripts"), lambda r, f: f.endswith(".sh") and os.sep + "verify" + os.sep in r)
 pkg_f = d7_roster(os.path.join(ROOT, "ws"), lambda r, f: f.endswith(".sh") and os.sep + "verify" + os.sep in r)
+WRITE_OP = re.compile(r'(?:rm\s+-[A-Za-z]+\s|>>?\s*["\']?\$?[A-Za-z_/](?!/dev/null)|open\(\s*[^)]*,\s*["\']w)')   # ★问五标签档的识别形★＝重定向／删除／open 写模式的操作数；★只给已在 soft 里的行打标、不加滤、不写死名册***
 d7_tot = d7_ok = d7_own_bad = d7_soft_bad = x_var = x_jiaju = x_cont = x_noext = x_egedu = 0
 for p, tier in [(x, "own") for x in own_f] + [(x, "crit") for x in crit_f] + [(x, "pkg") for x in pkg_f]:
     rel = os.path.relpath(p, ROOT)
@@ -310,12 +312,17 @@ for p, tier in [(x, "own") for x in own_f] + [(x, "crit") for x in crit_f] + [(x
                 d7_soft_bad += 1
                 soft.append("D7旁 %s:%d 件内路径不在盘＝%s（★%s＝只点名★）‖ 句＝%s" % (
                     rel, i, tok, "判据件＝动它须先裁" if tier == "crit" else "ws 包内＝红线面", snip(l)))
+                if WRITE_OP.search(l): wtag.append(soft[-1])
 print("  D7 名册（★派生式＝文件系统筛，与 05 追加一百八十那枚 git 索引面式子同职不同面★）＝自有件 %d ‖ 判据件 %d ‖ 包内 %d 枚件" % (len(own_f), len(crit_f), len(pkg_f)))
 print("  D7 取数＝抽得相对路径 %d 枚 ‖ 在盘 %d ‖ ★不在盘 %d（自有件记红 %d ‖ 判据与包内记旁报 %d）★ ‖ 排除五档并报＝容器面与产物 %d ‖ 无扩展名散文形 %d ‖ 省略号例句形 %d ‖ 变量拼接 %d ‖ 夹具行 %d" % (
     d7_tot, d7_ok, d7_own_bad + d7_soft_bad, d7_own_bad, d7_soft_bad, x_cont, x_noext, x_egedu, x_var, x_jiaju))
 print("  ★红档枚数＝%d‖ 旁报枚数＝%d★（★只报不拦★）" % (len(red), len(soft)))
 for _r in red: print("     [红] %s" % _r)     # ★逐枚全列＝截前 8 枚会让下游数不到真枚数（追加一百二十二③同族）★
 for _s in soft: print("     [旁] %s" % _s)
+if wtag:
+    print("  ★写盘目标位档＝%d 枚★（★问五标签档、R606 裁／批262 落★）＝上列旁报里命中「写盘目标位」的★视图子集***，"
+          "仍计在旁报枚数内、★只另列不另判、不加滤不写死名册***；期望 10（v3_isolation 9 ‖ v_deferred_clause_scan 1）" % len(wtag))
+    for _t in wtag: print("     [标] %s" % _t)
 sys.exit(5 if red else 0)
 PYEOF
 RC=$?
