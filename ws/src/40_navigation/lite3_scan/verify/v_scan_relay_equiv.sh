@@ -44,7 +44,9 @@ print('[PASS] U1 单父不变式：壳包件无以 base_link 为子帧的静态�
 raise SystemExit(bad)
 PYEOF
 chk $? "relay 等价与单父静态断言（上列四项）"
-cd "$ROOT/ws/src/30_3rd" && sha256sum -c "$ROOT/note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256" > /tmp/relay_equiv_base.txt 2>&1
+rm -f /tmp/relay_equiv_base.txt   # ★乙档在场断言（问一乙档欠的那半、批263 落）★＝先删陈旧证人，防止校验行没跑成时读到上一次的文件给绿
+LC_ALL=C; cd "$ROOT/ws/src/30_3rd" && LC_ALL=C sha256sum -c "$ROOT/note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256" > /tmp/relay_equiv_base.txt 2>&1; LC_ALL=C
+[ -s /tmp/relay_equiv_base.txt ]; chk $? "乙档在场断言：证人文件本轮真被生成（非陈旧）"
 N=$(grep -vc ': OK$' /tmp/relay_equiv_base.txt); [ "$N" = 0 ] && [ "$(find . -type f | wc -l)" = 49 ]
 chk $? "30_3rd 基线双条件未被触动（非 OK=$N，计数=$(find . -type f | wc -l)）"
 # ---- 批2 接线回归断言：70_scan.launch 必须指壳包自持件，且不得再指上游件（两者同时成立才算接线生效）----
