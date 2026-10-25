@@ -56,7 +56,7 @@ class ScenarioTests(unittest.TestCase):
 
     def test_slots_guarded(self):
         with self.assertRaises(KeyError):
-            scn.scenario('SC07')
+            scn.scenario('SC04')  # 槽位（SC07/SC08/SC10 已落构造器，R657）
         self.assertEqual(len(scn.SCENARIOS), 14)  # SC01—SC14 全登记
 
     def test_a7_no_leakage_surface(self):

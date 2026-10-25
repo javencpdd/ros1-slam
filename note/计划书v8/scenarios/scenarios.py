@@ -80,13 +80,32 @@ SCENARIOS = {
     # SC04—SC14 槽位（登记名与判定面，待后续批次填充构造器）
     'SC04': {'name': '短转层段（<0.5 m）', 'slot': True,
              'verdict_face': 'mode3 抽稀吞段对照（V8-03 B2）'},
+    'SC07': {
+        'name': '断桥不可达（负例）',
+        'map': lambda: _two_layer(oneway=True),
+        'start': (3.0, 2.0, 0.6), 'goal': (-4.0, -4.0, 0.0),
+        'truth': {'route_exists': False, 'must_surfaces': [], 'forbidden_zones': [],
+                  'expected_reason': 'E_PLAN_NO_ROUTE'},
+    },
+    'SC08': {
+        'name': '单向边限制（负例，同 SC07 图正向可达）',
+        'map': lambda: _two_layer(oneway=True),
+        'start': (-4.0, -4.0, 0.0), 'goal': (3.0, 2.0, 0.6),
+        'truth': {'route_exists': True, 'must_surfaces': ['ground', 'mezz'],
+                  'forbidden_zones': []},
+    },
+    'SC10': {
+        'name': '预算耗尽（负例）',
+        'map': lambda: _two_layer(),
+        'start': (-4.0, -4.0, 0.0), 'goal': (3.0, 2.0, 0.6),
+        'truth': {'route_exists': True, 'must_surfaces': ['ground', 'mezz'],
+                  'forbidden_zones': [], 'planner_budget': 3,
+                  'expected_reason': 'E_PLAN_BUDGET_EXCEEDED'},
+    },
     'SC05': {'name': '同高天桥（非单调剖面）', 'slot': True,
              'verdict_face': '备选裁决（R655）'},
     'SC06': {'name': '同 XY 双层列', 'slot': True, 'verdict_face': '备选裁决＋检查器'},
-    'SC07': {'name': '断桥不可达', 'slot': True, 'verdict_face': '负例无路（E_PLAN_NO_ROUTE）'},
-    'SC08': {'name': '单向边限制', 'slot': True, 'verdict_face': '方向敏感负例'},
     'SC09': {'name': '净空不足', 'slot': True, 'verdict_face': 'E_TRAJ_CLEARANCE'},
-    'SC10': {'name': '预算耗尽', 'slot': True, 'verdict_face': 'E_PLAN_BUDGET_EXCEEDED'},
     'SC11': {'name': '跟踪偏差撤销', 'slot': True, 'verdict_face': '跟踪闭环＋达限停'},
     'SC12': {'name': '多任务隔离', 'slot': True, 'verdict_face': 'A2 判据3'},
     'SC13': {'name': '障碍动态更新', 'slot': True, 'verdict_face': '版本升版＋漂移拒判'},
@@ -101,7 +120,9 @@ def scenario(name):
     map_value = spec['map']()
     return {'id': name, 'name': spec['name'], 'map': map_value,
             'task': _goal_task(map_value, spec['start'], spec['goal']),
-            'start': spec['start'], 'goal': spec['goal'], 'truth': dict(spec['truth'])}
+            'start': spec['start'], 'goal': spec['goal'],
+            'truth': dict(spec['truth']),
+            'planner_budget': spec['truth'].get('planner_budget')}
 
 
 def evaluate(scenario_def, trajectory, use_truth_map=None):
