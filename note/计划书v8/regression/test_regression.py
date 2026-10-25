@@ -19,10 +19,11 @@ class MatrixTests(unittest.TestCase):
         cls.result = reg.run_matrix('official')
 
     def test_matrix_all_green(self):
+        """v2 分母（14 场景×4 组合×2 轨=112 cell）：pass=11 场景×8；预期失败=SC07/09/10×8。"""
         s = self.result['summary']
-        self.assertEqual(s['cells'], 6 * 4 * 2)
-        self.assertEqual(s['passed'], 4 * 4 * 2)          # 正例 SC01/02/03/08 ×4×2
-        self.assertEqual(s['expected_failures'], 2 * 4 * 2)  # 负例 SC07/10 ×4×2
+        self.assertEqual(s['cells'], 14 * 4 * 2)
+        self.assertEqual(s['passed'], 11 * 4 * 2)
+        self.assertEqual(s['expected_failures'], 3 * 4 * 2)
         self.assertEqual(s['unexpected_failures'], 0)
 
     def test_negative_localized_at_plan(self):
@@ -48,6 +49,26 @@ class MatrixTests(unittest.TestCase):
         self.assertEqual(len(digests), 4)  # 组合四款锁互异且全部在矩阵中
         combos = {c['combo'] for c in self.result['cells']}
         self.assertEqual(combos, set(cal.FROZEN['denominators']['combos']['value']))
+
+    def test_sc09_clearance_expected_at_eval(self):
+        """SC09：低顶下穿＝eval 期预期失败（E_TRAJ_CLEARANCE），plan 期正常出径。"""
+        sc09 = [c for c in self.result['cells'] if c['scenario'] == 'SC09']
+        self.assertEqual(len(sc09), 8)
+        self.assertTrue(all(c['stage'] == 'eval' and c['outcome'] == 'expected_failure'
+                            and 'E_TRAJ_CLEARANCE' in c['reason'] for c in sc09))
+
+    def test_non_planning_kinds_pass(self):
+        """SC11（跟踪撤销）/SC12（多任务隔离）/SC13（版本漂移）/SC14（子矩阵）全过。"""
+        for sid in ('SC11', 'SC12', 'SC13', 'SC14'):
+            cells = [c for c in self.result['cells'] if c['scenario'] == sid]
+            self.assertEqual(len(cells), 8, sid)
+            self.assertEqual({c['outcome'] for c in cells}, {'pass'}, sid)
+            self.assertEqual({c['kind'] for c in cells}, {cells[0]['kind']}, sid)
+
+    def test_sc05_bridge_solved_by_support_graph(self):
+        """SC05 同高天桥：支撑图原生可解（非单调剖面，对照 mode3 不可表达）。"""
+        sc05 = [c for c in self.result['cells'] if c['scenario'] == 'SC05']
+        self.assertEqual({c['outcome'] for c in sc05}, {'pass'})
 
     def test_failure_injection_localizes(self):
         """注入：目标面外（map 有效但 goal 无支撑）→ plan 阶段 E_PLAN_GOAL_INVALID。"""

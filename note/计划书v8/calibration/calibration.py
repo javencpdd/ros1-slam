@@ -16,7 +16,12 @@ import scenarios as scn  # noqa: E402
 
 # 冻结值来源＝各批次已定判据（引用在 evidence 字段）
 FROZEN = {
-    'calibration_version': 1,
+    'calibration_version': 2,
+    # 解封记录（R657 封版 v1 → R661 v2）：official_scenarios 6→14（SC04—06/09/11—14
+    # 构造器已落，V8-13 矩阵按 kind 分派执行）；其余五节零变更。
+    'unfreeze_log': {'to_version': 2, 'when': '2026-10-26',
+                     'change': 'denominators.official_scenarios 扩至全 14 场景',
+                     'reason': 'SC 构造器填充完成（R661），分母只认构造器在册场景的原则维持'},
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
         'tracking_longitudinal_m': {'value': 0.20, 'evidence': 'R655'},
@@ -36,8 +41,10 @@ FROZEN = {
         'perturbation_seeds': {'value': [], 'evidence': '设计层无随机；运行面注入另批'},
     },
     'denominators': {
-        'official_scenarios': {'value': ['SC01', 'SC02', 'SC03', 'SC07', 'SC08', 'SC10'],
-                               'evidence': '已落构造器的场景；SC04—06/09/11—14 槽位不入分母'},
+        'official_scenarios': {'value': ['SC01', 'SC02', 'SC03', 'SC04', 'SC05', 'SC06',
+                                        'SC07', 'SC08', 'SC09', 'SC10', 'SC11', 'SC12',
+                                        'SC13', 'SC14'],
+                               'evidence': 'v1＝已落构造器六场景；v2 解封扩至全 14（构造器齐，R661）'},
         'calibration_scenarios': {'value': ['SC01', 'SC08'],
                                   'evidence': '定标集（正向＋单向正例）'},
         'combos': {'value': ['hdl+dwa', 'hdl+teb', 'lite3+dwa', 'lite3+teb'],
@@ -63,6 +70,8 @@ def validate_frozen(config=None):
     """无待定关键值＋引用完整性：每个值具体、场景 id 在册、集合可分离。"""
     config = config or FROZEN
     for section, entries in config.items():
+        if section == 'unfreeze_log':
+            continue
         if isinstance(entries, dict):
             for key, record in entries.items():
                 if not isinstance(record, dict) or 'value' not in record or 'evidence' not in record:

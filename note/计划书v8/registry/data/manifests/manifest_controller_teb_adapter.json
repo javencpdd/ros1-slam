@@ -22,7 +22,7 @@
     ]
   },
   "capability": {
-    "kinematics": "differential",
+    "kinematics": "holonomic",
     "cancellation": "cooperative",
     "supports_dynamic_obstacles": true
   },
@@ -43,5 +43,5 @@
     "license": "宿主不可证（apt 侧）",
     "commit": "宿主不可证"
   },
-  "adapter_entry": "move_base/mbf 控制器适配（teb_local_planner）；kinematics 按 differential 声明——佐证＝历史证据面「TEB 2D 刚体假设」与实栈无横向速度迹象；定案须容器面读配置（宿主 ws 无 teb/dwa 配置件，R616 十六件引用在容器侧），留运行批"
+  "adapter_entry": "move_base/mbf 控制器适配（teb_local_planner）；kinematics＝holonomic 定案（R660 容器读实证：lite3_navigation/config/planner_teb.yaml:38 max_vel_y=0.1 横向速度显式非零；Lite3 官方 SDK vy±0.5 支持横移）——R642 的 differential 声明系宿主无配置可读时的不足佐证，本批更正"
 }

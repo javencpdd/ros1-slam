@@ -43,7 +43,7 @@ class ScenarioTests(unittest.TestCase):
         hover = [(-4.0, -4.0, 0.0), (-2.0, -4.0, 0.55), (3.0, 2.0, 0.6)]
         verdict = scn.evaluate(case, hover)
         self.assertFalse(verdict['ok'])
-        self.assertIn('checker', verdict['failures'])
+        self.assertIn('checker:E_TRAJ_UNSUPPORTED', verdict['failures'])
         self.assertTrue(verdict['check_violations'])  # 违例如实带出，非静默
 
     def test_evaluator_rejects_wrong_goal(self):
@@ -54,10 +54,15 @@ class ScenarioTests(unittest.TestCase):
         self.assertFalse(verdict['ok'])
         self.assertIn('goal_not_reached', verdict['failures'])
 
-    def test_slots_guarded(self):
-        with self.assertRaises(KeyError):
-            scn.scenario('SC04')  # 槽位（SC07/SC08/SC10 已落构造器，R657）
-        self.assertEqual(len(scn.SCENARIOS), 14)  # SC01—SC14 全登记
+    def test_all_constructors_and_kinds(self):
+        """R661 后全 14 场景有构造器；kind 五类分布正确。"""
+        kinds = {}
+        for sid, spec in scn.SCENARIOS.items():
+            case = scn.scenario(sid)  # 构造不抛即通过
+            kinds[case['kind']] = kinds.get(case['kind'], 0) + 1
+        self.assertEqual(len(scn.SCENARIOS), 14)
+        self.assertEqual(kinds, {'planning': 10, 'tracking': 1,
+                                 'orchestration': 1, 'versioning': 1, 'matrix': 1})
 
     def test_a7_no_leakage_surface(self):
         """A7 结构面：评价器源不 import 被测规划链（数据不回流的结构保证）。"""

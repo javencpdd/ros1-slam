@@ -41,11 +41,11 @@ class CalibrationTests(unittest.TestCase):
             cal.validate_frozen(bad)
         self.assertEqual(caught.exception.code, 'E_CAL_UNKNOWN_SCENARIO')
 
-    def test_slot_scenarios_not_in_denominator(self):
-        """槽位场景（无构造器）不得入正式分母——分母只认已落构造器场景。"""
+    def test_all_scenarios_in_denominator(self):
+        """v2 解封后：正式分母＝全 14 场景（构造器齐，R661）。"""
         official = set(cal.FROZEN['denominators']['official_scenarios']['value'])
-        slots = {k for k, v in scn.SCENARIOS.items() if v.get('slot')}
-        self.assertFalse(official & slots)
+        self.assertEqual(official, set(scn.SCENARIOS))
+        self.assertEqual(cal.FROZEN['calibration_version'], 2)
 
     def test_separation_guard(self):
         records = [{'run_class': 'calibration', 'calibration_only': True},
@@ -62,6 +62,7 @@ class CalibrationTests(unittest.TestCase):
         """定标集两场景真实可跑（正向＋单向正例）——封版不只纸面。"""
         for name in cal.FROZEN['denominators']['calibration_scenarios']['value']:
             case = scn.scenario(name)
+            self.assertEqual(case['kind'], 'planning')
             if case['truth']['route_exists']:
                 route = pln.plan(case['map'], case['start'], case['goal'])
                 self.assertTrue(route['ok'], name)
