@@ -1,0 +1,51 @@
+<launch>
+  <!-- R665 A1 换后端：m1 Gazebo + map_server（真值图）+ move_base（后端参数化 dwa|teb）。
+       帧链＝m1 自带 map→odom 恒等桥 + 插件 odom→base_link（WorldPose 闭环）；
+       move_base 的 cmd_vel 直达 lite3_planar_drive（真实执行循环）。 -->
+  <arg name="backend" default="dwa"/>
+  <include file="$(find lite3_gazebo_sim)/launch/m1_gazebo.launch"/>
+
+  <node pkg="map_server" type="map_server" name="map_server" output="screen"
+        args="/opt/ros1-slam/r665/m1_map.yaml"/>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" if="$(eval arg('backend') == 'dwa')"/>
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" if="$(eval arg('backend') == 'teb')"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="planner_frequency" value="1.0"/>
+    <param name="footprint" value="[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]"/>
+
+    <!-- 全局代价图：静态真值图 -->
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_link"/>
+    <param name="global_costmap/static_map" value="true"/>
+    <param name="global_costmap/track_unknown_space" value="false"/>
+    <param name="global_costmap/inflation_radius" value="0.45"/>
+    <param name="global_costmap/cost_scaling_factor" value="5.0"/>
+    <param name="global_costmap/obstacle_range" value="8.0"/>
+    <param name="global_costmap/raytrace_range" value="9.0"/>
+
+    <!-- 局部代价图：滚动窗（静态源，无传感器层——换后端对照的公平最小配置） -->
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_link"/>
+    <param name="local_costmap/rolling_window" value="true"/>
+    <param name="local_costmap/width" value="6.0"/>
+    <param name="local_costmap/height" value="6.0"/>
+    <param name="local_costmap/resolution" value="0.05"/>
+    <param name="local_costmap/static_map" value="false"/>
+    <param name="local_costmap/inflation_radius" value="0.45"/>
+    <param name="local_costmap/cost_scaling_factor" value="5.0"/>
+
+    <!-- 公平速度界（两后端同值；teb 的 vy=0.1＝其 lite3 实配口径 R660） -->
+    <param name="max_vel_x" value="0.4"/>
+    <param name="max_vel_x_backwards" value="0.2"/>
+    <param name="max_vel_theta" value="1.0"/>
+    <param name="acc_lim_x" value="1.0"/>
+    <param name="acc_lim_theta" value="2.0"/>
+    <param name="max_vel_y" value="0.1"/>
+    <param name="acc_lim_y" value="0.5"/>
+    <param name="xy_goal_tolerance" value="0.25"/>
+    <param name="yaw_goal_tolerance" value="0.5"/>
+  </node>
+</launch>

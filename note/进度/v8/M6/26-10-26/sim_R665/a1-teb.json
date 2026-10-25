@@ -1,0 +1,3336 @@
+{
+  "stage": "sim",
+  "case": "teb",
+  "started_at": "2026-10-25T20:37:01.075038+00:00",
+  "name": "ros1-slam-r665-sim-teb-4789b8f69996",
+  "token": "4789b8f69996",
+  "errors": [],
+  "driver_sha256": "96b1691d6273ffe8782fe6c11cdb5bb29b71e02cc9394e2143a8c68b82e33765",
+  "before": {
+    "containers": {
+      "ad48d180cc08a11b09726ae36347948c56db10a719dc26c2a048674d7d1e8567": {
+        "Name": "/ros1-slam-sim",
+        "Image": "sha256:59f759dd5001f3b40da2c2678644ab9f578e7d45a62e757c9a7ba44195caf7d7",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 127,
+          "Error": "failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting \"/run/user/1000/gdm/Xauthority\" to rootfs at \"/tmp/.Xauthority\": mount src=/run/user/1000/gdm/Xauthority, dst=/tmp/.Xauthority, dstFd=/proc/thread-self/fd/15, flags=MS_BIND|MS_REC: not a directory: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type",
+          "StartedAt": "2026-10-21T23:53:14.219483607Z",
+          "FinishedAt": "2026-10-24T09:48:31.356798887Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/run/user/1000/gdm/Xauthority",
+            "Destination": "/tmp/.Xauthority",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/home/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ros_home",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ros_home/_data",
+            "Destination": "/opt/ros1-slam/.ros",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/data",
+            "Destination": "/opt/ros1-slam/data",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/docker",
+            "Destination": "/opt/ros1-slam/docker",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_logs",
+            "Source": "/var/lib/docker/volumes/docker_ros1_logs/_data",
+            "Destination": "/opt/ros1-slam/logs",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/note",
+            "Destination": "/opt/ros1-slam/note",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/opt",
+            "Destination": "/opt/ros1-slam/opt",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/scripts",
+            "Destination": "/opt/ros1-slam/scripts",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/opt/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_build",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_build/_data",
+            "Destination": "/opt/ros1-slam/ws/build",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_devel",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_devel/_data",
+            "Destination": "/opt/ros1-slam/ws/devel",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/ws/src",
+            "Destination": "/opt/ros1-slam/ws/src",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      "587ced5cd5b2149e870b0e67f0a7f33979f5f2b19fc8188c51bda880e1adf2c7": {
+        "Name": "/ros1-slam-sim-viz",
+        "Image": "sha256:63b951657efbdb6099a11e0aff3a392511e31c92151cff9eba018599d8c0e886",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 143,
+          "Error": "",
+          "StartedAt": "2026-10-17T11:26:33.224102185Z",
+          "FinishedAt": "2026-10-17T11:37:50.620084239Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/run/user/1000/gdm/Xauthority",
+            "Destination": "/tmp/.Xauthority",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/home/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ros_home",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ros_home/_data",
+            "Destination": "/opt/ros1-slam/.ros",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/data",
+            "Destination": "/opt/ros1-slam/data",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/docker",
+            "Destination": "/opt/ros1-slam/docker",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_logs",
+            "Source": "/var/lib/docker/volumes/docker_ros1_logs/_data",
+            "Destination": "/opt/ros1-slam/logs",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/note",
+            "Destination": "/opt/ros1-slam/note",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/opt",
+            "Destination": "/opt/ros1-slam/opt",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/scripts",
+            "Destination": "/opt/ros1-slam/scripts",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/opt/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_build",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_build/_data",
+            "Destination": "/opt/ros1-slam/ws/build",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_devel",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_devel/_data",
+            "Destination": "/opt/ros1-slam/ws/devel",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/ws/src",
+            "Destination": "/opt/ros1-slam/ws/src",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      "a84f8138a281bea8956a8610d16375e5f913013989b744cac953fed20f7d5618": {
+        "Name": "/campusos-dev-admin-1",
+        "Image": "sha256:2e33b25fda8446430e4fd3061815091e8ad8d43d902dfe88b177e84625079b39",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:26.920779229Z",
+          "FinishedAt": "2026-09-14T05:48:57.288849031Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:36.824965412+08:00",
+                "End": "2026-09-04T15:49:37.038830506+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:42.039663892+08:00",
+                "End": "2026-09-04T15:49:42.230901045+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:47.232555316+08:00",
+                "End": "2026-09-04T15:49:47.410634619+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:52.412013693+08:00",
+                "End": "2026-09-04T15:49:52.688491883+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:57.690614054+08:00",
+                "End": "2026-09-04T15:49:57.893857519+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/admin",
+            "Destination": "/workspace/admin",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/.campusos/logs",
+            "Destination": "/workspace/.campusos/logs",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_admin-node-modules",
+            "Source": "/var/lib/docker/volumes/campusos-dev_admin-node-modules/_data",
+            "Destination": "/workspace/admin/node_modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "45953a9bc10759f76d58693df43e4399f2880c0ef6c6f43f37acebe2766f4e2d": {
+        "Name": "/campusos-dev-web-1",
+        "Image": "sha256:086f1ae3909448f2d9c6824b8d7b3e0374ed83b3898748a24e94baa5a8beefbd",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:27.267395008Z",
+          "FinishedAt": "2026-09-14T05:48:57.288912109Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:36.938226001+08:00",
+                "End": "2026-09-04T15:49:37.142537679+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:42.144187171+08:00",
+                "End": "2026-09-04T15:49:42.328353873+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:47.32973877+08:00",
+                "End": "2026-09-04T15:49:47.520053777+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:52.522406053+08:00",
+                "End": "2026-09-04T15:49:52.853580669+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:57.854967712+08:00",
+                "End": "2026-09-04T15:49:58.060840897+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/web",
+            "Destination": "/workspace/web",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/.campusos/logs",
+            "Destination": "/workspace/.campusos/logs",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_web-node-modules",
+            "Source": "/var/lib/docker/volumes/campusos-dev_web-node-modules/_data",
+            "Destination": "/workspace/web/node_modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "6ed6ef1a510c27f5036ade8b099301592b4e699da9e632c53e80e8ccef752656": {
+        "Name": "/campusos-dev-api-1",
+        "Image": "sha256:e876015606340889c479eab71dbfd1b4a330580b45128c22a7ee059c36a315f1",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:16.084381446Z",
+          "FinishedAt": "2026-09-14T05:48:57.288942274Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:38.687368517+08:00",
+                "End": "2026-09-04T15:49:38.765304273+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"bfea34ff-c7ca-4d17-adf4-809f92ea49d0\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:43.767243064+08:00",
+                "End": "2026-09-04T15:49:43.842847377+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"ec9082eb-8cb9-4c0f-849b-d2e115c3df4a\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:48.844369208+08:00",
+                "End": "2026-09-04T15:49:48.926391839+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"9e7c90ce-1638-46e6-9c15-d99e85c5b7a9\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:53.928621181+08:00",
+                "End": "2026-09-04T15:49:54.012723101+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"5fd73b19-e7ac-412e-9f20-4095f45146a7\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:59.01477517+08:00",
+                "End": "2026-09-04T15:49:59.094599132+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"aa42acee-1e2f-495d-84c9-eb3f745c3075\"}"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS",
+            "Destination": "/workspace",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_go-build-cache",
+            "Source": "/var/lib/docker/volumes/campusos-dev_go-build-cache/_data",
+            "Destination": "/go-cache/build",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_go-module-cache",
+            "Source": "/var/lib/docker/volumes/campusos-dev_go-module-cache/_data",
+            "Destination": "/go-cache/modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "94b30ab4b715d204c3e20efcacc3701be2d2ae45863b874289c51220022a586c": {
+        "Name": "/campusos-dev-postgres-1",
+        "Image": "sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:10.231112637Z",
+          "FinishedAt": "2026-09-14T05:48:57.288632561Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:35.591258488+08:00",
+                "End": "2026-09-04T15:49:35.670337933+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:40.672305082+08:00",
+                "End": "2026-09-04T15:49:40.743417531+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:45.744312517+08:00",
+                "End": "2026-09-04T15:49:45.830588599+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:50.83302243+08:00",
+                "End": "2026-09-04T15:49:50.916711388+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:55.918947933+08:00",
+                "End": "2026-09-04T15:49:55.990081787+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_postgres-data",
+            "Source": "/var/lib/docker/volumes/campusos-dev_postgres-data/_data",
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "917ac15010aa33271a45ad7f8d2a5d40b326d474e63c7850db2d16b692da76b2": {
+        "Name": "/campusos-dev-redis-1",
+        "Image": "sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:09.875546038Z",
+          "FinishedAt": "2026-09-14T05:48:57.288896256Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:39.167910824+08:00",
+                "End": "2026-09-04T15:49:39.239102077+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:44.240532414+08:00",
+                "End": "2026-09-04T15:49:44.316466578+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:49.318806186+08:00",
+                "End": "2026-09-04T15:49:49.390631682+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:54.391820911+08:00",
+                "End": "2026-09-04T15:49:54.472086763+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:59.473608814+08:00",
+                "End": "2026-09-04T15:49:59.546264662+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_redis-data",
+            "Source": "/var/lib/docker/volumes/campusos-dev_redis-data/_data",
+            "Destination": "/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "090e89b6326775962b7894779ecc639c08697eaf5c7cb19e3a16597028729a40": {
+        "Name": "/campusos-dev-nats-1",
+        "Image": "sha256:952d157e28d5394a211229bd57a7b37ff9f184e58e2c8486a08fa909fd254e32",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:09.146723629Z",
+          "FinishedAt": "2026-09-14T05:48:57.288646123Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:38.632184498+08:00",
+                "End": "2026-09-04T15:49:38.70988879+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:43.712347739+08:00",
+                "End": "2026-09-04T15:49:43.776818811+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:48.778941114+08:00",
+                "End": "2026-09-04T15:49:48.853509293+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:53.856059368+08:00",
+                "End": "2026-09-04T15:49:53.937757693+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:58.939966904+08:00",
+                "End": "2026-09-04T15:49:59.008392769+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_nats-data",
+            "Source": "/var/lib/docker/volumes/campusos-dev_nats-data/_data",
+            "Destination": "/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "807058e9aaa716003d13a5fbe36f59e693b2ffc19255708f5631b7b1ddf4dc28": {
+        "Name": "/campusos-dev-docs-1",
+        "Image": "sha256:0fa23eb00afec775b0d619f916ee63032febe985d1c14719b9ce58f52939d622",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:09.547572352Z",
+          "FinishedAt": "2026-09-14T05:48:57.288835637Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:36.819850609+08:00",
+                "End": "2026-09-04T15:49:37.037400732+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:42.039750441+08:00",
+                "End": "2026-09-04T15:49:42.27130314+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:47.272621584+08:00",
+                "End": "2026-09-04T15:49:47.471119355+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:52.472633645+08:00",
+                "End": "2026-09-04T15:49:52.68796685+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:57.690586841+08:00",
+                "End": "2026-09-04T15:49:57.898082755+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/docs-site",
+            "Destination": "/workspace/docs-site",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/.campusos/logs",
+            "Destination": "/workspace/.campusos/logs",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_docs-node-modules",
+            "Source": "/var/lib/docker/volumes/campusos-dev_docs-node-modules/_data",
+            "Destination": "/workspace/docs-site/node_modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "9faf282d2ed0fd711cf0fa2e0872f9fbeaa2085d955d63ad3766c88ae0986a07": {
+        "Name": "/campusos-postgres",
+        "Image": "sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-07-29T14:01:02.725604773Z",
+          "FinishedAt": "2026-07-31T05:59:26.042810635Z",
+          "Health": {
+            "Status": "unhealthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-07-31T13:58:42.689497652+08:00",
+                "End": "2026-07-31T13:58:42.776730244+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:58:52.779194106+08:00",
+                "End": "2026-07-31T13:58:52.893022902+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:02.895436271+08:00",
+                "End": "2026-07-31T13:59:03.010578612+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:13.012662083+08:00",
+                "End": "2026-07-31T13:59:13.173226918+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:23.176314517+08:00",
+                "End": "2026-07-31T13:59:23.27702923+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos_postgres-data",
+            "Source": "/var/lib/docker/volumes/campusos_postgres-data/_data",
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "641af62777ec86d12d30e66c2c42229413e3b3b0dcf114a82cd8e1e3811d14c3": {
+        "Name": "/campusos-pgadmin",
+        "Image": "sha256:40fa840c5bb7c8463957f1255b01283732c2d8c9396a956d180f8e6c296753b3",
+        "State": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 2958,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-10-24T10:26:10.632783197Z",
+          "FinishedAt": "2026-10-24T10:24:48.087594563Z"
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos_pgadmin-data",
+            "Source": "/var/lib/docker/volumes/campusos_pgadmin-data/_data",
+            "Destination": "/var/lib/pgadmin",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "799117b27051dac34d718c4e9da5c112fab62c8d528ec2da0fe1fe74c6ba6120": {
+        "Name": "/campusos-redis",
+        "Image": "sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-07-02T02:37:16.817219588Z",
+          "FinishedAt": "2026-07-03T17:19:39.935370572Z",
+          "Health": {
+            "Status": "unhealthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-07-04T01:18:56.194418882+08:00",
+                "End": "2026-07-04T01:18:56.286900133+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:06.287988471+08:00",
+                "End": "2026-07-04T01:19:06.367878588+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:16.368962972+08:00",
+                "End": "2026-07-04T01:19:16.443457559+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:26.444565095+08:00",
+                "End": "2026-07-04T01:19:26.542508816+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:36.543629252+08:00",
+                "End": "2026-07-04T01:19:36.628611939+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos_redis-data",
+            "Source": "/var/lib/docker/volumes/campusos_redis-data/_data",
+            "Destination": "/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "229c72731ae8f870b45266425b0dcef0e6c55ba2223381bbb4f5d909117b2198": {
+        "Name": "/campusos-nats",
+        "Image": "sha256:952d157e28d5394a211229bd57a7b37ff9f184e58e2c8486a08fa909fd254e32",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-07-29T14:01:02.727665871Z",
+          "FinishedAt": "2026-07-31T05:59:26.042636907Z",
+          "Health": {
+            "Status": "unhealthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-07-31T13:58:42.445941526+08:00",
+                "End": "2026-07-31T13:58:42.549568081+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:58:52.551847723+08:00",
+                "End": "2026-07-31T13:58:52.667462083+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:02.670134989+08:00",
+                "End": "2026-07-31T13:59:02.76331054+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:12.765675162+08:00",
+                "End": "2026-07-31T13:59:12.854129179+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:22.856945867+08:00",
+                "End": "2026-07-31T13:59:22.983369856+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              }
+            ]
+          }
+        },
+        "Mounts": []
+      },
+      "ea8d44646d59557402e3b95ca0703503c5acf602a8c430b86e78095e2ae2a685": {
+        "Name": "/jaeger",
+        "Image": "sha256:ab6f1a1f0fb49ea08bcd19f6b84f6081d0d44b364b6de148e1798eb5816bacac",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-06-24T11:15:06.351619847Z",
+          "FinishedAt": "2026-06-25T13:32:18.792657272Z"
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a",
+            "Source": "/var/lib/docker/volumes/8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a/_data",
+            "Destination": "/tmp",
+            "Driver": "local",
+            "Mode": "",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "7c11b215c5c4089fc60ef1d5a52c3d14bf19d0dc479625a0bec68ef1e7f67759": {
+        "Name": "/ros1111",
+        "Image": "sha256:4a7705e75022cc5ff60cecb7b5b40bc16492e94b1391a82ab1dda93ab1436b4c",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-06-19T22:19:42.615738289Z",
+          "FinishedAt": "2026-06-24T09:44:14.109409676Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/dev",
+            "Destination": "/dev",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/dev/dri",
+            "Destination": "/dev/dri",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack",
+            "Destination": "/home/jack",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      "3c715ec82fa3b3717fe8aa58e52b343f80bc321969e97f32d03e480ea3747805": {
+        "Name": "/my_foxy_env",
+        "Image": "sha256:bd98a36b501ead93655694cb39561f1af21ef73c67d2882765cc9e72826daeea",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-06-13T10:43:18.283750911Z",
+          "FinishedAt": "2026-06-17T23:04:01.520989403Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/lidar",
+            "Destination": "/root/lidar",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      }
+    },
+    "volumes": [
+      {
+        "CreatedAt": "2026-06-24T19:15:06+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.volume.anonymous": ""
+        },
+        "Mountpoint": "/var/lib/docker/volumes/8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a/_data",
+        "Name": "8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T18:02:47+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.volume.anonymous": ""
+        },
+        "Mountpoint": "/var/lib/docker/volumes/b7e29939e6037c40c3730727113ad09b7f92d5ccce54aeb757690df6736591a7/_data",
+        "Name": "b7e29939e6037c40c3730727113ad09b7f92d5ccce54aeb757690df6736591a7",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "72b28aa4244da13031f3e93d5f940ab2a5d7a576dc1fab71cf1badc219df508b",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "admin-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_admin-node-modules/_data",
+        "Name": "campusos-dev_admin-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "009638b51a6983b5ab3cb1d9cb92a131ba3278c1be5a6b73629d767acbb6ae87",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "docs-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_docs-node-modules/_data",
+        "Name": "campusos-dev_docs-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "c8105870d41752085e92e893fdad6f92e3e9fa54b4d6ebbf899c4a3fe3fc1500",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "go-build-cache"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_go-build-cache/_data",
+        "Name": "campusos-dev_go-build-cache",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "bf34413bae27af941a6045512bcb315c7f252de02b53fc52ee740fc3233420e9",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "go-module-cache"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_go-module-cache/_data",
+        "Name": "campusos-dev_go-module-cache",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "2a3650f272c8342a269129a581914d8c61f5279c1d975a80ec11856dc4262f2a",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "nats-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_nats-data/_data",
+        "Name": "campusos-dev_nats-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-09-26T18:33:26+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "2c01b1b5ef5cd467ac222a1f68845a95023f4de84ed3e1e7899573bf312a95e2",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.5.1",
+          "com.docker.compose.volume": "plugin-ui-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_plugin-ui-node-modules/_data",
+        "Name": "campusos-dev_plugin-ui-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "ecdfc8ee27452bcff168c1e9278694c613d665ec39f685cdc6bc8b975b0c9176",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "postgres-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_postgres-data/_data",
+        "Name": "campusos-dev_postgres-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "e4c9d7e2a27ee9f332f41978a5d4c434ef444cdb049a818878774abd7f6540d2",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "redis-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_redis-data/_data",
+        "Name": "campusos-dev_redis-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "b942054964f865af18a38c609a5ef089ee576d7f12f65febd24308b896eed30a",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "web-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_web-node-modules/_data",
+        "Name": "campusos-dev_web-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-06-26T20:05:34+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "a84fcb262a83c98ce441a8fc134d105fceee74d61bf9bfd2c36ec867a45069c2",
+          "com.docker.compose.project": "campusos",
+          "com.docker.compose.version": "5.2.0",
+          "com.docker.compose.volume": "pgadmin-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos_pgadmin-data/_data",
+        "Name": "campusos_pgadmin-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-06-24T21:25:13+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "20e7c4b998366302494170fa83676414b32affc0169355375f8d83ae00206bb1",
+          "com.docker.compose.project": "campusos",
+          "com.docker.compose.version": "5.2.0",
+          "com.docker.compose.volume": "postgres-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos_postgres-data/_data",
+        "Name": "campusos_postgres-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-06-25T21:24:06+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "82bf4b2518e5680982bda586d373201ccbf15314af4253fffce52618a2a17909",
+          "com.docker.compose.project": "campusos",
+          "com.docker.compose.version": "5.2.0",
+          "com.docker.compose.volume": "redis-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos_redis-data/_data",
+        "Name": "campusos_redis-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "31d6191b21e506dd34638484059082efee5e9594ad2017e961471856baa4a2b8",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_logs"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_logs/_data",
+        "Name": "docker_ros1_logs",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "cd149ee43068a07c571958e035abdb4a186da2ffd7c0bf78ebc55d07fde3c735",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_ros_home"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_ros_home/_data",
+        "Name": "docker_ros1_ros_home",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "556c08a2774c61707b7e3bd0724eea481a4307e48328128bc4b0757867b4d176",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_ws_build"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_ws_build/_data",
+        "Name": "docker_ros1_ws_build",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "0b9645f239ac758a652e330c0ec2a424958e5a0918c81a9d090ccc7f8d44db60",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_ws_devel"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_ws_devel/_data",
+        "Name": "docker_ros1_ws_devel",
+        "Options": null,
+        "Scope": "local"
+      }
+    ]
+  },
+  "input_before": {
+    "scripts/verify/_iso_alt_wrapper.sh": {
+      "sha256": "88768ee3f96fad20943e525bf4500dccc238666a9a20154db0603032e141c014"
+    },
+    "scripts/verify/_window_receipt.tsv": {
+      "sha256": "a137af453b5379a63f756defc7b99e70f4bf7fdb5596c943174e8e711ea49163"
+    },
+    "scripts/verify/batch_c5_known_lines.tsv": {
+      "sha256": "00773ea3ed3bd8359d4ea2e4a3081349e80d57d4db240b0c7f6d1504a7642469"
+    },
+    "scripts/verify/batch_known_findings.tsv": {
+      "sha256": "c1878c5521150abf28604358ba7da0b4039b6fa7b29d991a075b11410fa447d8"
+    },
+    "scripts/verify/citation_known_pseudo_reds.tsv": {
+      "sha256": "cd7bcd76a43da75ef9b669cbfe4e63b98df5a043ab9b6365e827864010c43b52"
+    },
+    "scripts/verify/claim_audit_known_lines.tsv": {
+      "sha256": "0f0a0fc2747a86e7251723448564174d1de604e0a99dc3550eb767793292a7b5"
+    },
+    "scripts/verify/claim_face.txt": {
+      "sha256": "1b1e7480d6691cf0ce2523310159cb22a5625dbf13684e8ad95aff43cbc64530"
+    },
+    "scripts/verify/gate_chain.txt": {
+      "sha256": "28a1d82c164f540cd4d7ec4beb678f273422d94ba44a736a7b90b1af7cb8f634"
+    },
+    "scripts/verify/parity_face.txt": {
+      "sha256": "c7dfc7e5cf4142115e249add1b679d302d11e4341911f0d8a4860f8f1127d686"
+    },
+    "scripts/verify/parity_known_findings.tsv": {
+      "sha256": "ffcf6574e5170a1e7187897453c853c78272513177899f51d91e9b33738949bb"
+    },
+    "scripts/verify/premap_check.sh": {
+      "sha256": "24e605afa3102c23e42bc13dc375bb1a1d8221671fcbce3cd9f1e28e36e5e2dd"
+    },
+    "scripts/verify/pyst_face.txt": {
+      "sha256": "111e5cd51fd1b6bf3927bc3ed573c78fd59bca814ef59cf59018d78b51843ffd"
+    },
+    "scripts/verify/run_gate_chain.sh": {
+      "sha256": "4039d7eb43a650c974ee3b39ce067dd3797f0fac62112e6f1fbc1d4a865ba8c9"
+    },
+    "scripts/verify/syn_face.txt": {
+      "sha256": "2f39f0d20e17bcea7b6381124a4427d8c11596d41509101ef7acf985d4a0784c"
+    },
+    "scripts/verify/test_v8_isolation.py": {
+      "sha256": "bc8e13266f85ce24ec533d3a7360e6b47a7db747b79a99865ed34fa3821cfad6"
+    },
+    "scripts/verify/v3_isolation.sh": {
+      "sha256": "8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117"
+    },
+    "scripts/verify/v8_isolation.py": {
+      "sha256": "4a8d2cd7ab0b7ecec6a1b759a9b4849f97e89575c3ab898ab71eb76407d750c9"
+    },
+    "scripts/verify/v8_isolation.sh": {
+      "sha256": "c08df6319262a64ce653363084546628470faf623f39b7599fe43af822f18df8"
+    },
+    "scripts/verify/v8_window_preflight.sh": {
+      "sha256": "11c706e86fc3464d6878736e86f44f831c74bd7601e8c8ac2d35235e85e30ab0"
+    },
+    "scripts/verify/v_citation_check.sh": {
+      "sha256": "6bd0cf130b38117aa9ac207ada60ab17ff0defc5110565b747d2f2573dd4ca84"
+    },
+    "scripts/verify/v_citation_refscan.sh": {
+      "sha256": "92e5802af26df7a072f3001f26c73bc3e8748861de9f517dd211292e9bb83710"
+    },
+    "scripts/verify/v_claim_field_audit.py": {
+      "sha256": "e6b6bd7173e85b647897cdf4a667656cfa18a2f48d04a40de7d7c7d4577f87e0"
+    },
+    "scripts/verify/v_deferred_clause_scan.sh": {
+      "sha256": "af497558d16151c2418200c27bfd22d02d3f580c88db1bc1a29cb681b280ae82"
+    },
+    "scripts/verify/v_evidence_reachability.sh": {
+      "sha256": "7c8cd8ffdd0c2378f8e5450bf5d1796299ec3a9fa1dc68ef2dfb34e95c1581db"
+    },
+    "scripts/verify/v_harness_generation_table.sh": {
+      "sha256": "7cfc0f6830cafdcd4248741a9919f6711a297431e42a78770afecddc353d2237"
+    },
+    "scripts/verify/v_ledger_batch_consistency.sh": {
+      "sha256": "0f84d0d1823f3c9a464216dfc0a09672a9bc7769d772340487f8e1ed1d319179"
+    },
+    "scripts/verify/v_ledger_citation_baseline.sh": {
+      "sha256": "ce02c8c27b49178cd3480e3f86a9e983257b27d19172cae4d0a3afa1cb836c20"
+    },
+    "scripts/verify/v_patch_landing.sh": {
+      "sha256": "faef88cb63150483af5008da0ad95b2bbb0378668948e97256cb92ec9af8b221"
+    },
+    "scripts/verify/v_py_static.sh": {
+      "sha256": "9124a19ace6cabdd06c57cbe0f73ca69066a79019474657e3b46cd1b2e31d199"
+    },
+    "scripts/verify/v_sh_py_syntax.sh": {
+      "sha256": "547dc1d2853c2b9d3770bd20c215ce9358aaba65ba151f64716f7dcb1b889555"
+    },
+    "scripts/verify/v_verdict_field_parity.sh": {
+      "sha256": "6bfa08e86ddf6a90d69958cc717e556f2caa897ec21539dde8bbdafa332694ab"
+    },
+    "scripts/verify/v_window_preflight.sh": {
+      "sha256": "556604af26504cf5d87e1650e4c59bdc4fa7dc2e17a5f5a4e58ed1885c66e5ac"
+    },
+    "scripts/verify/v_window_preflight_x86_variant.sh": {
+      "sha256": "900058b0336d2ac9d9708717cc8cbbb1e6c2f7aa3cd906436fa56144e4ea240c"
+    },
+    "scripts/verify/vcc_known_findings.tsv": {
+      "sha256": "4a78a1bd1fc203d66bd0a4ab38336fdc7caeee9dbadd592aac87512e9f8ee2a8"
+    },
+    "scripts/verify/__pycache__/v_claim_field_audit.cpython-313.pyc": {
+      "sha256": "9233dc35ba2de142bb307ba8b46390775ebd4b9afaad6c41af72a843de112321"
+    }
+  },
+  "source_before": {},
+  "execution_snapshot": "execution-4789b8f69996",
+  "execution_inputs_before": {
+    "a1.launch": "9f9cc850b966707cdf866127c07770775b88ff5f4e4b5a033de69d083d83cf39",
+    "a1.sh": "e3504282c533d019c91a3e557f247bdea08d049e3ba755d6508bc2661d685366",
+    "a1_driver.py": "dd246ca9c772a0d87595ad7b963c8d1b603756542cc08ffd2a2abc7e70428756",
+    "a1_stage.py": "96b1691d6273ffe8782fe6c11cdb5bb29b71e02cc9394e2143a8c68b82e33765",
+    "probe_r665.py": "cb5757374abdf02965d94908bad5d18694d0cc2b3a9acde29c29e3c89e7be54c"
+  },
+  "create_argv": [
+    "docker",
+    "create",
+    "--name",
+    "ros1-slam-r665-sim-teb-4789b8f69996",
+    "--label",
+    "org.ros1-slam.r665-stage=4789b8f69996",
+    "--network",
+    "none",
+    "--read-only",
+    "--cap-drop",
+    "ALL",
+    "--security-opt",
+    "no-new-privileges",
+    "--cpus",
+    "4",
+    "--memory",
+    "8g",
+    "--memory-swap",
+    "8g",
+    "--pids-limit",
+    "512",
+    "--user",
+    "1000:1000",
+    "--tmpfs",
+    "/tmp:rw,nosuid,nodev,size=536870912,mode=1777",
+    "--env",
+    "ROS_HOME=/tmp/ros",
+    "--env",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "--env",
+    "PYTHONNOUSERSITE=1",
+    "--mount",
+    "type=bind,src=/home/jack/ysc-code/ros1-slam/ws/src,dst=/opt/ros1-slam/ws/src,readonly",
+    "--mount",
+    "type=bind,src=/home/jack/ysc-code/ros1-slam/scripts,dst=/opt/ros1-slam/scripts,readonly",
+    "--mount",
+    "type=bind,src=/home/jack/temp/ros1-slam-r665,dst=/opt/ros1-slam/r665",
+    "--mount",
+    "type=bind,src=/home/jack/ysc-code/ros1-slam/note/进度/v8/M6/26-10-26/sim_R665/execution-4789b8f69996,dst=/opt/ros1-slam/r665/inputs,readonly",
+    "--mount",
+    "type=bind,src=/home/jack/ysc-code/ros1-slam/note/计划书v8,dst=/opt/ros1-slam/v8lib,readonly",
+    "--entrypoint",
+    "/bin/bash",
+    "sha256:59f759dd5001f3b40da2c2678644ab9f578e7d45a62e757c9a7ba44195caf7d7",
+    "-c",
+    "mkdir -p /tmp/ros; bash /opt/ros1-slam/scripts/verify/v8_window_preflight.sh || exit $?; exec env -i HOME=/tmp/ros USER=ros1-slam PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ROS_HOSTNAME=127.0.0.1 GAZEBO_MASTER_URI=http://127.0.0.1:11345 ROS_HOME=/tmp/ros ROS_LOG_DIR=/opt/ros1-slam/r665/logs PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 R665_RUN_TOKEN=4789b8f69996 /bin/bash /opt/ros1-slam/r665/inputs/a1.sh teb"
+  ],
+  "id": "a86c26d99a71c10d713d16ebb8c8bf3ded177ecdeeb46b398f6c51ad011b20f5",
+  "isolation": {
+    "Id": "a86c26d99a71c10d713d16ebb8c8bf3ded177ecdeeb46b398f6c51ad011b20f5",
+    "Image": "sha256:59f759dd5001f3b40da2c2678644ab9f578e7d45a62e757c9a7ba44195caf7d7",
+    "HostConfig": {
+      "Binds": null,
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "none",
+      "PortBindings": {},
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "CapAdd": null,
+      "CapDrop": [
+        "ALL"
+      ],
+      "CgroupnsMode": "private",
+      "Dns": null,
+      "DnsOptions": [],
+      "DnsSearch": [],
+      "ExtraHosts": null,
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": true,
+      "SecurityOpt": [
+        "no-new-privileges"
+      ],
+      "Tmpfs": {
+        "/tmp": "rw,nosuid,nodev,size=536870912,mode=1777"
+      },
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 67108864,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 8589934592,
+      "NanoCpus": 4000000000,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": [],
+      "BlkioDeviceReadBps": [],
+      "BlkioDeviceWriteBps": [],
+      "BlkioDeviceReadIOps": [],
+      "BlkioDeviceWriteIOps": [],
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": [],
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 8589934592,
+      "MemorySwappiness": null,
+      "OomKillDisable": false,
+      "PidsLimit": 512,
+      "Ulimits": null,
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "Mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/jack/ysc-code/ros1-slam/ws/src",
+          "Target": "/opt/ros1-slam/ws/src",
+          "ReadOnly": true
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/jack/ysc-code/ros1-slam/scripts",
+          "Target": "/opt/ros1-slam/scripts",
+          "ReadOnly": true
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/jack/temp/ros1-slam-r665",
+          "Target": "/opt/ros1-slam/r665"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/jack/ysc-code/ros1-slam/note/进度/v8/M6/26-10-26/sim_R665/execution-4789b8f69996",
+          "Target": "/opt/ros1-slam/r665/inputs",
+          "ReadOnly": true
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/jack/ysc-code/ros1-slam/note/计划书v8",
+          "Target": "/opt/ros1-slam/v8lib",
+          "ReadOnly": true
+        }
+      ],
+      "MaskedPaths": [
+        "/proc/acpi",
+        "/proc/asound",
+        "/proc/interrupts",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/sys/devices/virtual/powercap",
+        "/sys/firmware",
+        "/sys/devices/system/cpu/cpu0/thermal_throttle",
+        "/sys/devices/system/cpu/cpu1/thermal_throttle",
+        "/sys/devices/system/cpu/cpu2/thermal_throttle",
+        "/sys/devices/system/cpu/cpu3/thermal_throttle",
+        "/sys/devices/system/cpu/cpu4/thermal_throttle",
+        "/sys/devices/system/cpu/cpu5/thermal_throttle",
+        "/sys/devices/system/cpu/cpu6/thermal_throttle",
+        "/sys/devices/system/cpu/cpu7/thermal_throttle",
+        "/sys/devices/system/cpu/cpu8/thermal_throttle",
+        "/sys/devices/system/cpu/cpu9/thermal_throttle",
+        "/sys/devices/system/cpu/cpu10/thermal_throttle",
+        "/sys/devices/system/cpu/cpu11/thermal_throttle",
+        "/sys/devices/system/cpu/cpu12/thermal_throttle",
+        "/sys/devices/system/cpu/cpu13/thermal_throttle",
+        "/sys/devices/system/cpu/cpu14/thermal_throttle",
+        "/sys/devices/system/cpu/cpu15/thermal_throttle",
+        "/sys/devices/system/cpu/cpu16/thermal_throttle",
+        "/sys/devices/system/cpu/cpu17/thermal_throttle",
+        "/sys/devices/system/cpu/cpu18/thermal_throttle",
+        "/sys/devices/system/cpu/cpu19/thermal_throttle",
+        "/sys/devices/system/cpu/cpu20/thermal_throttle",
+        "/sys/devices/system/cpu/cpu21/thermal_throttle",
+        "/sys/devices/system/cpu/cpu22/thermal_throttle",
+        "/sys/devices/system/cpu/cpu23/thermal_throttle",
+        "/sys/devices/system/cpu/cpu24/thermal_throttle",
+        "/sys/devices/system/cpu/cpu25/thermal_throttle",
+        "/sys/devices/system/cpu/cpu26/thermal_throttle",
+        "/sys/devices/system/cpu/cpu27/thermal_throttle",
+        "/sys/devices/system/cpu/cpu28/thermal_throttle",
+        "/sys/devices/system/cpu/cpu29/thermal_throttle",
+        "/sys/devices/system/cpu/cpu30/thermal_throttle",
+        "/sys/devices/system/cpu/cpu31/thermal_throttle",
+        "/sys/devices/system/cpu/cpu32/thermal_throttle",
+        "/sys/devices/system/cpu/cpu33/thermal_throttle",
+        "/sys/devices/system/cpu/cpu34/thermal_throttle",
+        "/sys/devices/system/cpu/cpu35/thermal_throttle",
+        "/sys/devices/system/cpu/cpu36/thermal_throttle",
+        "/sys/devices/system/cpu/cpu37/thermal_throttle",
+        "/sys/devices/system/cpu/cpu38/thermal_throttle",
+        "/sys/devices/system/cpu/cpu39/thermal_throttle",
+        "/sys/devices/system/cpu/cpu40/thermal_throttle",
+        "/sys/devices/system/cpu/cpu41/thermal_throttle",
+        "/sys/devices/system/cpu/cpu42/thermal_throttle",
+        "/sys/devices/system/cpu/cpu43/thermal_throttle",
+        "/sys/devices/system/cpu/cpu44/thermal_throttle",
+        "/sys/devices/system/cpu/cpu45/thermal_throttle",
+        "/sys/devices/system/cpu/cpu46/thermal_throttle",
+        "/sys/devices/system/cpu/cpu47/thermal_throttle",
+        "/sys/devices/system/cpu/cpu48/thermal_throttle",
+        "/sys/devices/system/cpu/cpu49/thermal_throttle",
+        "/sys/devices/system/cpu/cpu50/thermal_throttle",
+        "/sys/devices/system/cpu/cpu51/thermal_throttle",
+        "/sys/devices/system/cpu/cpu52/thermal_throttle",
+        "/sys/devices/system/cpu/cpu53/thermal_throttle",
+        "/sys/devices/system/cpu/cpu54/thermal_throttle",
+        "/sys/devices/system/cpu/cpu55/thermal_throttle",
+        "/sys/devices/system/cpu/cpu56/thermal_throttle",
+        "/sys/devices/system/cpu/cpu57/thermal_throttle",
+        "/sys/devices/system/cpu/cpu58/thermal_throttle",
+        "/sys/devices/system/cpu/cpu59/thermal_throttle",
+        "/sys/devices/system/cpu/cpu60/thermal_throttle",
+        "/sys/devices/system/cpu/cpu61/thermal_throttle",
+        "/sys/devices/system/cpu/cpu62/thermal_throttle",
+        "/sys/devices/system/cpu/cpu63/thermal_throttle",
+        "/sys/devices/system/cpu/cpu64/thermal_throttle",
+        "/sys/devices/system/cpu/cpu65/thermal_throttle",
+        "/sys/devices/system/cpu/cpu66/thermal_throttle",
+        "/sys/devices/system/cpu/cpu67/thermal_throttle",
+        "/sys/devices/system/cpu/cpu68/thermal_throttle",
+        "/sys/devices/system/cpu/cpu69/thermal_throttle",
+        "/sys/devices/system/cpu/cpu70/thermal_throttle",
+        "/sys/devices/system/cpu/cpu71/thermal_throttle"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "/home/jack/temp/ros1-slam-r665",
+        "Destination": "/opt/ros1-slam/r665",
+        "Mode": "",
+        "RW": true,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/home/jack/ysc-code/ros1-slam/scripts",
+        "Destination": "/opt/ros1-slam/scripts",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/home/jack/ysc-code/ros1-slam/note/计划书v8",
+        "Destination": "/opt/ros1-slam/v8lib",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/home/jack/ysc-code/ros1-slam/note/进度/v8/M6/26-10-26/sim_R665/execution-4789b8f69996",
+        "Destination": "/opt/ros1-slam/r665/inputs",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/home/jack/ysc-code/ros1-slam/ws/src",
+        "Destination": "/opt/ros1-slam/ws/src",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      }
+    ]
+  },
+  "execution": {
+    "argv": [
+      "docker",
+      "start",
+      "-a",
+      "a86c26d99a71c10d713d16ebb8c8bf3ded177ecdeeb46b398f6c51ad011b20f5"
+    ],
+    "rc": 0,
+    "stdout": "[①ISO] ISO_RC=0 尾行＝# self-attest: at=2026-10-25 20:37:06 script=be46d766cbd71ac14871e5a4af436d555c9e33d522d05f7349f58cde2a1fb13d ws_src_files=4629 user=ros1-slam home=/h\n[②库来源] numpy=1.19.4 path=/usr/local/lib/python3.8/dist-packages/numpy/__init__.py 要求前缀=/usr/local\n[③机况] load1=7.96 上限=36.00｜核归一化＝核数 72 × 每核阈值 0.5（2026-10-18 真人改判基：绝对值 4.0 对多核机失真）\nPREFLIGHT VERDICT rc=0（放行：ISO_RC=0／numpy 在 /usr/local 下／load1=7.96≤36.00｜核归一化＝核数 72 × 每核阈值 0.5（2026-10-18 真人改判基：绝对值 4.0 对多核机失真））\n[勾对] 清单枚数=3／在场枚数=3／缺项=无｜清单来源＝在册本体头部注释逐条／在场来源＝本跑实际打印行\nrc_勾对=0\nUnable to register with master node [http://127.0.0.1:11311]: master may not be running yet. Will keep trying.\nA1 {\"stage\": \"a1_backend_swap\", \"backend\": \"teb\", \"goal\": [4.0, 0.3], \"map_received\": true, \"goal_sent_after_s\": 16.1, \"movebase_result_status\": 3, \"status_text\": \"Goal reached.\", \"cmd_vel_messages\": 84, \"odom_samples\": 884, \"path_length_m\": 3.85, \"final_pos\": [3.834752057265879, 0.29057749376507164], \"dist_to_goal_m\": 0.166, \"obstacle_min_clearance_m\": 0.479, \"wall_duration_s\": 57.6, \"arrived_by_track\": true, \"accepted\": true}\nCLEAN\n",
+    "stderr": ""
+  },
+  "exit_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-10-25T20:37:01.968387364Z",
+    "FinishedAt": "2026-10-25T20:38:36.234913913Z"
+  },
+  "remove": {
+    "argv": [
+      "docker",
+      "rm",
+      "a86c26d99a71c10d713d16ebb8c8bf3ded177ecdeeb46b398f6c51ad011b20f5"
+    ],
+    "rc": 0,
+    "stdout": "a86c26d99a71c10d713d16ebb8c8bf3ded177ecdeeb46b398f6c51ad011b20f5\n",
+    "stderr": ""
+  },
+  "after": {
+    "containers": {
+      "ad48d180cc08a11b09726ae36347948c56db10a719dc26c2a048674d7d1e8567": {
+        "Name": "/ros1-slam-sim",
+        "Image": "sha256:59f759dd5001f3b40da2c2678644ab9f578e7d45a62e757c9a7ba44195caf7d7",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 127,
+          "Error": "failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting \"/run/user/1000/gdm/Xauthority\" to rootfs at \"/tmp/.Xauthority\": mount src=/run/user/1000/gdm/Xauthority, dst=/tmp/.Xauthority, dstFd=/proc/thread-self/fd/15, flags=MS_BIND|MS_REC: not a directory: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type",
+          "StartedAt": "2026-10-21T23:53:14.219483607Z",
+          "FinishedAt": "2026-10-24T09:48:31.356798887Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/run/user/1000/gdm/Xauthority",
+            "Destination": "/tmp/.Xauthority",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/home/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ros_home",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ros_home/_data",
+            "Destination": "/opt/ros1-slam/.ros",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/data",
+            "Destination": "/opt/ros1-slam/data",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/docker",
+            "Destination": "/opt/ros1-slam/docker",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_logs",
+            "Source": "/var/lib/docker/volumes/docker_ros1_logs/_data",
+            "Destination": "/opt/ros1-slam/logs",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/note",
+            "Destination": "/opt/ros1-slam/note",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/opt",
+            "Destination": "/opt/ros1-slam/opt",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/scripts",
+            "Destination": "/opt/ros1-slam/scripts",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/opt/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_build",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_build/_data",
+            "Destination": "/opt/ros1-slam/ws/build",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_devel",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_devel/_data",
+            "Destination": "/opt/ros1-slam/ws/devel",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/ws/src",
+            "Destination": "/opt/ros1-slam/ws/src",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      "587ced5cd5b2149e870b0e67f0a7f33979f5f2b19fc8188c51bda880e1adf2c7": {
+        "Name": "/ros1-slam-sim-viz",
+        "Image": "sha256:63b951657efbdb6099a11e0aff3a392511e31c92151cff9eba018599d8c0e886",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 143,
+          "Error": "",
+          "StartedAt": "2026-10-17T11:26:33.224102185Z",
+          "FinishedAt": "2026-10-17T11:37:50.620084239Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/run/user/1000/gdm/Xauthority",
+            "Destination": "/tmp/.Xauthority",
+            "Mode": "ro",
+            "RW": false,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/home/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ros_home",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ros_home/_data",
+            "Destination": "/opt/ros1-slam/.ros",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/data",
+            "Destination": "/opt/ros1-slam/data",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/docker",
+            "Destination": "/opt/ros1-slam/docker",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_logs",
+            "Source": "/var/lib/docker/volumes/docker_ros1_logs/_data",
+            "Destination": "/opt/ros1-slam/logs",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/note",
+            "Destination": "/opt/ros1-slam/note",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/opt",
+            "Destination": "/opt/ros1-slam/opt",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/scripts",
+            "Destination": "/opt/ros1-slam/scripts",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/tooling",
+            "Destination": "/opt/ros1-slam/tooling",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_build",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_build/_data",
+            "Destination": "/opt/ros1-slam/ws/build",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "docker_ros1_ws_devel",
+            "Source": "/var/lib/docker/volumes/docker_ros1_ws_devel/_data",
+            "Destination": "/opt/ros1-slam/ws/devel",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/ysc-code/ros1-slam/ws/src",
+            "Destination": "/opt/ros1-slam/ws/src",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      "a84f8138a281bea8956a8610d16375e5f913013989b744cac953fed20f7d5618": {
+        "Name": "/campusos-dev-admin-1",
+        "Image": "sha256:2e33b25fda8446430e4fd3061815091e8ad8d43d902dfe88b177e84625079b39",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:26.920779229Z",
+          "FinishedAt": "2026-09-14T05:48:57.288849031Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:36.824965412+08:00",
+                "End": "2026-09-04T15:49:37.038830506+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:42.039663892+08:00",
+                "End": "2026-09-04T15:49:42.230901045+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:47.232555316+08:00",
+                "End": "2026-09-04T15:49:47.410634619+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:52.412013693+08:00",
+                "End": "2026-09-04T15:49:52.688491883+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:57.690614054+08:00",
+                "End": "2026-09-04T15:49:57.893857519+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/admin",
+            "Destination": "/workspace/admin",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/.campusos/logs",
+            "Destination": "/workspace/.campusos/logs",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_admin-node-modules",
+            "Source": "/var/lib/docker/volumes/campusos-dev_admin-node-modules/_data",
+            "Destination": "/workspace/admin/node_modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "45953a9bc10759f76d58693df43e4399f2880c0ef6c6f43f37acebe2766f4e2d": {
+        "Name": "/campusos-dev-web-1",
+        "Image": "sha256:086f1ae3909448f2d9c6824b8d7b3e0374ed83b3898748a24e94baa5a8beefbd",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:27.267395008Z",
+          "FinishedAt": "2026-09-14T05:48:57.288912109Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:36.938226001+08:00",
+                "End": "2026-09-04T15:49:37.142537679+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:42.144187171+08:00",
+                "End": "2026-09-04T15:49:42.328353873+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:47.32973877+08:00",
+                "End": "2026-09-04T15:49:47.520053777+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:52.522406053+08:00",
+                "End": "2026-09-04T15:49:52.853580669+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:57.854967712+08:00",
+                "End": "2026-09-04T15:49:58.060840897+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/web",
+            "Destination": "/workspace/web",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/.campusos/logs",
+            "Destination": "/workspace/.campusos/logs",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_web-node-modules",
+            "Source": "/var/lib/docker/volumes/campusos-dev_web-node-modules/_data",
+            "Destination": "/workspace/web/node_modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "6ed6ef1a510c27f5036ade8b099301592b4e699da9e632c53e80e8ccef752656": {
+        "Name": "/campusos-dev-api-1",
+        "Image": "sha256:e876015606340889c479eab71dbfd1b4a330580b45128c22a7ee059c36a315f1",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:16.084381446Z",
+          "FinishedAt": "2026-09-14T05:48:57.288942274Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:38.687368517+08:00",
+                "End": "2026-09-04T15:49:38.765304273+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"bfea34ff-c7ca-4d17-adf4-809f92ea49d0\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:43.767243064+08:00",
+                "End": "2026-09-04T15:49:43.842847377+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"ec9082eb-8cb9-4c0f-849b-d2e115c3df4a\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:48.844369208+08:00",
+                "End": "2026-09-04T15:49:48.926391839+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"9e7c90ce-1638-46e6-9c15-d99e85c5b7a9\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:53.928621181+08:00",
+                "End": "2026-09-04T15:49:54.012723101+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"5fd73b19-e7ac-412e-9f20-4095f45146a7\"}"
+              },
+              {
+                "Start": "2026-09-04T15:49:59.01477517+08:00",
+                "End": "2026-09-04T15:49:59.094599132+08:00",
+                "ExitCode": 0,
+                "Output": "{\"code\":0,\"msg\":\"success\",\"data\":{\"service\":\"CampusOS\",\"status\":\"ok\",\"version\":\"0.13.0\"},\"request_id\":\"aa42acee-1e2f-495d-84c9-eb3f745c3075\"}"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS",
+            "Destination": "/workspace",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_go-build-cache",
+            "Source": "/var/lib/docker/volumes/campusos-dev_go-build-cache/_data",
+            "Destination": "/go-cache/build",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_go-module-cache",
+            "Source": "/var/lib/docker/volumes/campusos-dev_go-module-cache/_data",
+            "Destination": "/go-cache/modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "94b30ab4b715d204c3e20efcacc3701be2d2ae45863b874289c51220022a586c": {
+        "Name": "/campusos-dev-postgres-1",
+        "Image": "sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:10.231112637Z",
+          "FinishedAt": "2026-09-14T05:48:57.288632561Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:35.591258488+08:00",
+                "End": "2026-09-04T15:49:35.670337933+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:40.672305082+08:00",
+                "End": "2026-09-04T15:49:40.743417531+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:45.744312517+08:00",
+                "End": "2026-09-04T15:49:45.830588599+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:50.83302243+08:00",
+                "End": "2026-09-04T15:49:50.916711388+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:55.918947933+08:00",
+                "End": "2026-09-04T15:49:55.990081787+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_postgres-data",
+            "Source": "/var/lib/docker/volumes/campusos-dev_postgres-data/_data",
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "917ac15010aa33271a45ad7f8d2a5d40b326d474e63c7850db2d16b692da76b2": {
+        "Name": "/campusos-dev-redis-1",
+        "Image": "sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:09.875546038Z",
+          "FinishedAt": "2026-09-14T05:48:57.288896256Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:39.167910824+08:00",
+                "End": "2026-09-04T15:49:39.239102077+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:44.240532414+08:00",
+                "End": "2026-09-04T15:49:44.316466578+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:49.318806186+08:00",
+                "End": "2026-09-04T15:49:49.390631682+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:54.391820911+08:00",
+                "End": "2026-09-04T15:49:54.472086763+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:59.473608814+08:00",
+                "End": "2026-09-04T15:49:59.546264662+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_redis-data",
+            "Source": "/var/lib/docker/volumes/campusos-dev_redis-data/_data",
+            "Destination": "/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "090e89b6326775962b7894779ecc639c08697eaf5c7cb19e3a16597028729a40": {
+        "Name": "/campusos-dev-nats-1",
+        "Image": "sha256:952d157e28d5394a211229bd57a7b37ff9f184e58e2c8486a08fa909fd254e32",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:09.146723629Z",
+          "FinishedAt": "2026-09-14T05:48:57.288646123Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:38.632184498+08:00",
+                "End": "2026-09-04T15:49:38.70988879+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:43.712347739+08:00",
+                "End": "2026-09-04T15:49:43.776818811+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:48.778941114+08:00",
+                "End": "2026-09-04T15:49:48.853509293+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:53.856059368+08:00",
+                "End": "2026-09-04T15:49:53.937757693+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-09-04T15:49:58.939966904+08:00",
+                "End": "2026-09-04T15:49:59.008392769+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_nats-data",
+            "Source": "/var/lib/docker/volumes/campusos-dev_nats-data/_data",
+            "Destination": "/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "807058e9aaa716003d13a5fbe36f59e693b2ffc19255708f5631b7b1ddf4dc28": {
+        "Name": "/campusos-dev-docs-1",
+        "Image": "sha256:0fa23eb00afec775b0d619f916ee63032febe985d1c14719b9ce58f52939d622",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 255,
+          "Error": "",
+          "StartedAt": "2026-09-09T10:42:09.547572352Z",
+          "FinishedAt": "2026-09-14T05:48:57.288835637Z",
+          "Health": {
+            "Status": "starting",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-09-04T15:49:36.819850609+08:00",
+                "End": "2026-09-04T15:49:37.037400732+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:42.039750441+08:00",
+                "End": "2026-09-04T15:49:42.27130314+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:47.272621584+08:00",
+                "End": "2026-09-04T15:49:47.471119355+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:52.472633645+08:00",
+                "End": "2026-09-04T15:49:52.68796685+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              },
+              {
+                "Start": "2026-09-04T15:49:57.690586841+08:00",
+                "End": "2026-09-04T15:49:57.898082755+08:00",
+                "ExitCode": 0,
+                "Output": ""
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/docs-site",
+            "Destination": "/workspace/docs-site",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack/bbs/bbs01/CampusOS/.campusos/logs",
+            "Destination": "/workspace/.campusos/logs",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "volume",
+            "Name": "campusos-dev_docs-node-modules",
+            "Source": "/var/lib/docker/volumes/campusos-dev_docs-node-modules/_data",
+            "Destination": "/workspace/docs-site/node_modules",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "9faf282d2ed0fd711cf0fa2e0872f9fbeaa2085d955d63ad3766c88ae0986a07": {
+        "Name": "/campusos-postgres",
+        "Image": "sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-07-29T14:01:02.725604773Z",
+          "FinishedAt": "2026-07-31T05:59:26.042810635Z",
+          "Health": {
+            "Status": "unhealthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-07-31T13:58:42.689497652+08:00",
+                "End": "2026-07-31T13:58:42.776730244+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:58:52.779194106+08:00",
+                "End": "2026-07-31T13:58:52.893022902+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:02.895436271+08:00",
+                "End": "2026-07-31T13:59:03.010578612+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:13.012662083+08:00",
+                "End": "2026-07-31T13:59:13.173226918+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:23.176314517+08:00",
+                "End": "2026-07-31T13:59:23.27702923+08:00",
+                "ExitCode": 0,
+                "Output": "/var/run/postgresql:5432 - accepting connections\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos_postgres-data",
+            "Source": "/var/lib/docker/volumes/campusos_postgres-data/_data",
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "641af62777ec86d12d30e66c2c42229413e3b3b0dcf114a82cd8e1e3811d14c3": {
+        "Name": "/campusos-pgadmin",
+        "Image": "sha256:40fa840c5bb7c8463957f1255b01283732c2d8c9396a956d180f8e6c296753b3",
+        "State": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 2958,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-10-24T10:26:10.632783197Z",
+          "FinishedAt": "2026-10-24T10:24:48.087594563Z"
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos_pgadmin-data",
+            "Source": "/var/lib/docker/volumes/campusos_pgadmin-data/_data",
+            "Destination": "/var/lib/pgadmin",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "799117b27051dac34d718c4e9da5c112fab62c8d528ec2da0fe1fe74c6ba6120": {
+        "Name": "/campusos-redis",
+        "Image": "sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-07-02T02:37:16.817219588Z",
+          "FinishedAt": "2026-07-03T17:19:39.935370572Z",
+          "Health": {
+            "Status": "unhealthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-07-04T01:18:56.194418882+08:00",
+                "End": "2026-07-04T01:18:56.286900133+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:06.287988471+08:00",
+                "End": "2026-07-04T01:19:06.367878588+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:16.368962972+08:00",
+                "End": "2026-07-04T01:19:16.443457559+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:26.444565095+08:00",
+                "End": "2026-07-04T01:19:26.542508816+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              },
+              {
+                "Start": "2026-07-04T01:19:36.543629252+08:00",
+                "End": "2026-07-04T01:19:36.628611939+08:00",
+                "ExitCode": 0,
+                "Output": "PONG\n"
+              }
+            ]
+          }
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "campusos_redis-data",
+            "Source": "/var/lib/docker/volumes/campusos_redis-data/_data",
+            "Destination": "/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "229c72731ae8f870b45266425b0dcef0e6c55ba2223381bbb4f5d909117b2198": {
+        "Name": "/campusos-nats",
+        "Image": "sha256:952d157e28d5394a211229bd57a7b37ff9f184e58e2c8486a08fa909fd254e32",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-07-29T14:01:02.727665871Z",
+          "FinishedAt": "2026-07-31T05:59:26.042636907Z",
+          "Health": {
+            "Status": "unhealthy",
+            "FailingStreak": 0,
+            "Log": [
+              {
+                "Start": "2026-07-31T13:58:42.445941526+08:00",
+                "End": "2026-07-31T13:58:42.549568081+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:58:52.551847723+08:00",
+                "End": "2026-07-31T13:58:52.667462083+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:02.670134989+08:00",
+                "End": "2026-07-31T13:59:02.76331054+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:12.765675162+08:00",
+                "End": "2026-07-31T13:59:12.854129179+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              },
+              {
+                "Start": "2026-07-31T13:59:22.856945867+08:00",
+                "End": "2026-07-31T13:59:22.983369856+08:00",
+                "ExitCode": 0,
+                "Output": "\nUsage: nats-server [options]\n\nServer Options:\n    -a, --addr, --net <host>         Bind to host address (default: 0.0.0.0)\n    -p, --port <port>                Use port for clients (default: 4222)\n    -n, --name\n        --server_name <server_name>  Server name (default: auto)\n    -P, --pid <file>                 File to store PID\n    -m, --http_port <port>           Use port for http monitoring\n    -ms,--https_port <port>          Use port for https monitoring\n    -c, --config <file>              Configuration file\n    -t                               Test configuration and exit\n    -sl,--signal <signal>[=<pid>]    Send signal to nats-server process (ldm, stop, quit, term, reopen, reload)\n                                     <pid> can be either a PID (e.g. 1) or the path to a PID file (e.g. /var/run/nats-server.pid)\n        --client_advertise <string>  Client URL to advertise to other servers\n        --ports_file_dir <dir>       Creates a ports file in the specified directory (<executable_name>_<pid>.ports).\n\nLogging Options:\n    -l, --log <file>                 File to redirect log output\n    -T, --logtime                    Timestamp log entries (default: true)\n    -s, --syslog                     Log to syslog or windows event log\n    -r, --remote_syslog <addr>       Syslog server addr (udp://localhost:514)\n    -D, --debug                      Enable debugging output\n    -V, --trace                      Trace the raw protocol\n    -VV                              Verbose trace (traces system account as well)\n    -DV                              Debug and trace\n    -DVV                             Debug and verbose trace (traces system account as well)\n        --log_size_limit <limit>     Logfile size limit (default: auto)\n        --max_traced_msg_len <len>   Maximum printable length for traced messages (default: unlimited)\n\nJetStream Options:\n    -js, --jetstream                 Enable JetStream functionality\n    -sd, --store_dir <dir>           Set the storage directory\n\nAuthorization Options:\n        --user <user>                User required for connections\n        --pass <password>            Password required for connections\n        --auth <token>               Authorization token required for connections\n\nTLS Options:\n        --tls                        Enable TLS, do not verify clients (default: false)\n        --tlscert <file>             Server certificate file\n        --tlskey <file>              Private key for server certificate\n        --tlsverify                  Enable TLS, verify client certificates\n        --tlscacert <file>           Client certificate CA for verification\n\nCluster Options:\n        --routes <rurl-1, rurl-2>    Routes to solicit and connect\n        --cluster <cluster-url>      Cluster URL for solicited routes\n        --cluster_name <string>      Cluster Name, if not set one will be dynamically generated\n        --no_advertise <bool>        Do not advertise known cluster information to clients\n        --cluster_advertise <string> Cluster URL to advertise to other servers\n        --connect_retries <number>   For implicit routes, number of connect retries\n        --cluster_listen <url>       Cluster url from which members can solicit routes\n\nProfiling Options:\n        --profile <port>             Profiling HTTP port\n\nCommon Options:\n    -h, --help                       Show this message\n    -v, --version                    Show version\n        --help_tls                   TLS help\n\n"
+              }
+            ]
+          }
+        },
+        "Mounts": []
+      },
+      "ea8d44646d59557402e3b95ca0703503c5acf602a8c430b86e78095e2ae2a685": {
+        "Name": "/jaeger",
+        "Image": "sha256:ab6f1a1f0fb49ea08bcd19f6b84f6081d0d44b364b6de148e1798eb5816bacac",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-06-24T11:15:06.351619847Z",
+          "FinishedAt": "2026-06-25T13:32:18.792657272Z"
+        },
+        "Mounts": [
+          {
+            "Type": "volume",
+            "Name": "8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a",
+            "Source": "/var/lib/docker/volumes/8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a/_data",
+            "Destination": "/tmp",
+            "Driver": "local",
+            "Mode": "",
+            "RW": true,
+            "Propagation": ""
+          }
+        ]
+      },
+      "7c11b215c5c4089fc60ef1d5a52c3d14bf19d0dc479625a0bec68ef1e7f67759": {
+        "Name": "/ros1111",
+        "Image": "sha256:4a7705e75022cc5ff60cecb7b5b40bc16492e94b1391a82ab1dda93ab1436b4c",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-06-19T22:19:42.615738289Z",
+          "FinishedAt": "2026-06-24T09:44:14.109409676Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/dev",
+            "Destination": "/dev",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/dev/dri",
+            "Destination": "/dev/dri",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/jack",
+            "Destination": "/home/jack",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      },
+      "3c715ec82fa3b3717fe8aa58e52b343f80bc321969e97f32d03e480ea3747805": {
+        "Name": "/my_foxy_env",
+        "Image": "sha256:bd98a36b501ead93655694cb39561f1af21ef73c67d2882765cc9e72826daeea",
+        "State": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-06-13T10:43:18.283750911Z",
+          "FinishedAt": "2026-06-17T23:04:01.520989403Z"
+        },
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/jack/lidar",
+            "Destination": "/root/lidar",
+            "Mode": "",
+            "RW": true,
+            "Propagation": "rprivate"
+          },
+          {
+            "Type": "bind",
+            "Source": "/tmp/.X11-unix",
+            "Destination": "/tmp/.X11-unix",
+            "Mode": "rw",
+            "RW": true,
+            "Propagation": "rprivate"
+          }
+        ]
+      }
+    },
+    "volumes": [
+      {
+        "CreatedAt": "2026-06-24T19:15:06+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.volume.anonymous": ""
+        },
+        "Mountpoint": "/var/lib/docker/volumes/8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a/_data",
+        "Name": "8920b78d57f6a3427a2e26051002b66ff4377b26f6ca6332977d2d36fb1aba9a",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T18:02:47+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.volume.anonymous": ""
+        },
+        "Mountpoint": "/var/lib/docker/volumes/b7e29939e6037c40c3730727113ad09b7f92d5ccce54aeb757690df6736591a7/_data",
+        "Name": "b7e29939e6037c40c3730727113ad09b7f92d5ccce54aeb757690df6736591a7",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "72b28aa4244da13031f3e93d5f940ab2a5d7a576dc1fab71cf1badc219df508b",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "admin-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_admin-node-modules/_data",
+        "Name": "campusos-dev_admin-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "009638b51a6983b5ab3cb1d9cb92a131ba3278c1be5a6b73629d767acbb6ae87",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "docs-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_docs-node-modules/_data",
+        "Name": "campusos-dev_docs-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "c8105870d41752085e92e893fdad6f92e3e9fa54b4d6ebbf899c4a3fe3fc1500",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "go-build-cache"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_go-build-cache/_data",
+        "Name": "campusos-dev_go-build-cache",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "bf34413bae27af941a6045512bcb315c7f252de02b53fc52ee740fc3233420e9",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "go-module-cache"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_go-module-cache/_data",
+        "Name": "campusos-dev_go-module-cache",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "2a3650f272c8342a269129a581914d8c61f5279c1d975a80ec11856dc4262f2a",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "nats-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_nats-data/_data",
+        "Name": "campusos-dev_nats-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-09-26T18:33:26+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "2c01b1b5ef5cd467ac222a1f68845a95023f4de84ed3e1e7899573bf312a95e2",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.5.1",
+          "com.docker.compose.volume": "plugin-ui-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_plugin-ui-node-modules/_data",
+        "Name": "campusos-dev_plugin-ui-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "ecdfc8ee27452bcff168c1e9278694c613d665ec39f685cdc6bc8b975b0c9176",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "postgres-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_postgres-data/_data",
+        "Name": "campusos-dev_postgres-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "e4c9d7e2a27ee9f332f41978a5d4c434ef444cdb049a818878774abd7f6540d2",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "redis-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_redis-data/_data",
+        "Name": "campusos-dev_redis-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-07-29T21:35:41+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "b942054964f865af18a38c609a5ef089ee576d7f12f65febd24308b896eed30a",
+          "com.docker.compose.project": "campusos-dev",
+          "com.docker.compose.version": "5.3.1",
+          "com.docker.compose.volume": "web-node-modules"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos-dev_web-node-modules/_data",
+        "Name": "campusos-dev_web-node-modules",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-06-26T20:05:34+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "a84fcb262a83c98ce441a8fc134d105fceee74d61bf9bfd2c36ec867a45069c2",
+          "com.docker.compose.project": "campusos",
+          "com.docker.compose.version": "5.2.0",
+          "com.docker.compose.volume": "pgadmin-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos_pgadmin-data/_data",
+        "Name": "campusos_pgadmin-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-06-24T21:25:13+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "20e7c4b998366302494170fa83676414b32affc0169355375f8d83ae00206bb1",
+          "com.docker.compose.project": "campusos",
+          "com.docker.compose.version": "5.2.0",
+          "com.docker.compose.volume": "postgres-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos_postgres-data/_data",
+        "Name": "campusos_postgres-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-06-25T21:24:06+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "82bf4b2518e5680982bda586d373201ccbf15314af4253fffce52618a2a17909",
+          "com.docker.compose.project": "campusos",
+          "com.docker.compose.version": "5.2.0",
+          "com.docker.compose.volume": "redis-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/campusos_redis-data/_data",
+        "Name": "campusos_redis-data",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "31d6191b21e506dd34638484059082efee5e9594ad2017e961471856baa4a2b8",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_logs"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_logs/_data",
+        "Name": "docker_ros1_logs",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "cd149ee43068a07c571958e035abdb4a186da2ffd7c0bf78ebc55d07fde3c735",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_ros_home"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_ros_home/_data",
+        "Name": "docker_ros1_ros_home",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "556c08a2774c61707b7e3bd0724eea481a4307e48328128bc4b0757867b4d176",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_ws_build"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_ws_build/_data",
+        "Name": "docker_ros1_ws_build",
+        "Options": null,
+        "Scope": "local"
+      },
+      {
+        "CreatedAt": "2026-10-17T06:06:48+08:00",
+        "Driver": "local",
+        "Labels": {
+          "com.docker.compose.config-hash": "0b9645f239ac758a652e330c0ec2a424958e5a0918c81a9d090ccc7f8d44db60",
+          "com.docker.compose.project": "docker",
+          "com.docker.compose.version": "5.6.0",
+          "com.docker.compose.volume": "ros1_ws_devel"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/docker_ros1_ws_devel/_data",
+        "Name": "docker_ros1_ws_devel",
+        "Options": null,
+        "Scope": "local"
+      }
+    ]
+  },
+  "existing_state_unchanged": true,
+  "input_after": {
+    "scripts/verify/_iso_alt_wrapper.sh": {
+      "sha256": "88768ee3f96fad20943e525bf4500dccc238666a9a20154db0603032e141c014"
+    },
+    "scripts/verify/_window_receipt.tsv": {
+      "sha256": "a137af453b5379a63f756defc7b99e70f4bf7fdb5596c943174e8e711ea49163"
+    },
+    "scripts/verify/batch_c5_known_lines.tsv": {
+      "sha256": "00773ea3ed3bd8359d4ea2e4a3081349e80d57d4db240b0c7f6d1504a7642469"
+    },
+    "scripts/verify/batch_known_findings.tsv": {
+      "sha256": "c1878c5521150abf28604358ba7da0b4039b6fa7b29d991a075b11410fa447d8"
+    },
+    "scripts/verify/citation_known_pseudo_reds.tsv": {
+      "sha256": "cd7bcd76a43da75ef9b669cbfe4e63b98df5a043ab9b6365e827864010c43b52"
+    },
+    "scripts/verify/claim_audit_known_lines.tsv": {
+      "sha256": "0f0a0fc2747a86e7251723448564174d1de604e0a99dc3550eb767793292a7b5"
+    },
+    "scripts/verify/claim_face.txt": {
+      "sha256": "1b1e7480d6691cf0ce2523310159cb22a5625dbf13684e8ad95aff43cbc64530"
+    },
+    "scripts/verify/gate_chain.txt": {
+      "sha256": "28a1d82c164f540cd4d7ec4beb678f273422d94ba44a736a7b90b1af7cb8f634"
+    },
+    "scripts/verify/parity_face.txt": {
+      "sha256": "c7dfc7e5cf4142115e249add1b679d302d11e4341911f0d8a4860f8f1127d686"
+    },
+    "scripts/verify/parity_known_findings.tsv": {
+      "sha256": "ffcf6574e5170a1e7187897453c853c78272513177899f51d91e9b33738949bb"
+    },
+    "scripts/verify/premap_check.sh": {
+      "sha256": "24e605afa3102c23e42bc13dc375bb1a1d8221671fcbce3cd9f1e28e36e5e2dd"
+    },
+    "scripts/verify/pyst_face.txt": {
+      "sha256": "111e5cd51fd1b6bf3927bc3ed573c78fd59bca814ef59cf59018d78b51843ffd"
+    },
+    "scripts/verify/run_gate_chain.sh": {
+      "sha256": "4039d7eb43a650c974ee3b39ce067dd3797f0fac62112e6f1fbc1d4a865ba8c9"
+    },
+    "scripts/verify/syn_face.txt": {
+      "sha256": "2f39f0d20e17bcea7b6381124a4427d8c11596d41509101ef7acf985d4a0784c"
+    },
+    "scripts/verify/test_v8_isolation.py": {
+      "sha256": "bc8e13266f85ce24ec533d3a7360e6b47a7db747b79a99865ed34fa3821cfad6"
+    },
+    "scripts/verify/v3_isolation.sh": {
+      "sha256": "8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117"
+    },
+    "scripts/verify/v8_isolation.py": {
+      "sha256": "4a8d2cd7ab0b7ecec6a1b759a9b4849f97e89575c3ab898ab71eb76407d750c9"
+    },
+    "scripts/verify/v8_isolation.sh": {
+      "sha256": "c08df6319262a64ce653363084546628470faf623f39b7599fe43af822f18df8"
+    },
+    "scripts/verify/v8_window_preflight.sh": {
+      "sha256": "11c706e86fc3464d6878736e86f44f831c74bd7601e8c8ac2d35235e85e30ab0"
+    },
+    "scripts/verify/v_citation_check.sh": {
+      "sha256": "6bd0cf130b38117aa9ac207ada60ab17ff0defc5110565b747d2f2573dd4ca84"
+    },
+    "scripts/verify/v_citation_refscan.sh": {
+      "sha256": "92e5802af26df7a072f3001f26c73bc3e8748861de9f517dd211292e9bb83710"
+    },
+    "scripts/verify/v_claim_field_audit.py": {
+      "sha256": "e6b6bd7173e85b647897cdf4a667656cfa18a2f48d04a40de7d7c7d4577f87e0"
+    },
+    "scripts/verify/v_deferred_clause_scan.sh": {
+      "sha256": "af497558d16151c2418200c27bfd22d02d3f580c88db1bc1a29cb681b280ae82"
+    },
+    "scripts/verify/v_evidence_reachability.sh": {
+      "sha256": "7c8cd8ffdd0c2378f8e5450bf5d1796299ec3a9fa1dc68ef2dfb34e95c1581db"
+    },
+    "scripts/verify/v_harness_generation_table.sh": {
+      "sha256": "7cfc0f6830cafdcd4248741a9919f6711a297431e42a78770afecddc353d2237"
+    },
+    "scripts/verify/v_ledger_batch_consistency.sh": {
+      "sha256": "0f84d0d1823f3c9a464216dfc0a09672a9bc7769d772340487f8e1ed1d319179"
+    },
+    "scripts/verify/v_ledger_citation_baseline.sh": {
+      "sha256": "ce02c8c27b49178cd3480e3f86a9e983257b27d19172cae4d0a3afa1cb836c20"
+    },
+    "scripts/verify/v_patch_landing.sh": {
+      "sha256": "faef88cb63150483af5008da0ad95b2bbb0378668948e97256cb92ec9af8b221"
+    },
+    "scripts/verify/v_py_static.sh": {
+      "sha256": "9124a19ace6cabdd06c57cbe0f73ca69066a79019474657e3b46cd1b2e31d199"
+    },
+    "scripts/verify/v_sh_py_syntax.sh": {
+      "sha256": "547dc1d2853c2b9d3770bd20c215ce9358aaba65ba151f64716f7dcb1b889555"
+    },
+    "scripts/verify/v_verdict_field_parity.sh": {
+      "sha256": "6bfa08e86ddf6a90d69958cc717e556f2caa897ec21539dde8bbdafa332694ab"
+    },
+    "scripts/verify/v_window_preflight.sh": {
+      "sha256": "556604af26504cf5d87e1650e4c59bdc4fa7dc2e17a5f5a4e58ed1885c66e5ac"
+    },
+    "scripts/verify/v_window_preflight_x86_variant.sh": {
+      "sha256": "900058b0336d2ac9d9708717cc8cbbb1e6c2f7aa3cd906436fa56144e4ea240c"
+    },
+    "scripts/verify/vcc_known_findings.tsv": {
+      "sha256": "4a78a1bd1fc203d66bd0a4ab38336fdc7caeee9dbadd592aac87512e9f8ee2a8"
+    },
+    "scripts/verify/__pycache__/v_claim_field_audit.cpython-313.pyc": {
+      "sha256": "9233dc35ba2de142bb307ba8b46390775ebd4b9afaad6c41af72a843de112321"
+    }
+  },
+  "inputs_unchanged": true,
+  "source_after": {},
+  "source_unchanged": true,
+  "execution_inputs_after": {
+    "a1.launch": "9f9cc850b966707cdf866127c07770775b88ff5f4e4b5a033de69d083d83cf39",
+    "a1.sh": "e3504282c533d019c91a3e557f247bdea08d049e3ba755d6508bc2661d685366",
+    "a1_driver.py": "dd246ca9c772a0d87595ad7b963c8d1b603756542cc08ffd2a2abc7e70428756",
+    "a1_stage.py": "96b1691d6273ffe8782fe6c11cdb5bb29b71e02cc9394e2143a8c68b82e33765",
+    "probe_r665.py": "cb5757374abdf02965d94908bad5d18694d0cc2b3a9acde29c29e3c89e7be54c"
+  },
+  "execution_inputs_unchanged": true,
+  "result_sha256": "fba532bfe3f5d41b8d786f7fd554f6876eb3c71f39ed3055ca461d15d3d80860",
+  "accepted": true
+}
