@@ -1,4 +1,4 @@
-# v8 轨迹监督（V8-10 首切片，R653）
+# v8 轨迹监督（V8-10，R653—R654：检查器＋运动学/撤销）
 
 > 2026-10-26 起。M4 首件首切片：**独立轨迹检查器**设计层——22 号「独立轨迹检查器核验
 > 支撑、净空、时间有效性、地图版本」；被拒轨迹不算规划成功（A5 面）。
@@ -16,9 +16,11 @@
 
 R633 烟测实测的悬空轨迹点（坡脚 x≈0.29 处 z=0.598，真实坡面体心 0.30）穿检＝**逐点 E_TRAJ_UNSUPPORTED**——「优化器兜底掩盖 A* 失败」产出的那类轨迹，正是本检查器要拦的。
 
+| [enforcement.py](enforcement.py) | 运动学上限（robot.v1：台阶/坡度/制动三上限；**declared+prohibited 能力拒绝判定 E_TRAJ_CAPABILITY_UNVERIFIED——铁则面**）；失效撤销（on_rejection→停止链动作联动 V8-06；RejectionTracker 连续被拒达限强制停） | E_TRAJ_STEP／SLOPE／DECEL／CAPABILITY_UNVERIFIED／E_ENF_* |
+
 ## 3. 未覆盖（V8-10 后续切片）
 
-运动学上限核验（robot.v1 profile 接线，declared 值 composition_use=prohibited 铁则面）；失效撤销（被拒→V8-06 停止链联动）；跟踪面；SCAN 适配或备选裁决（消费 V8-03 四前提）。A5 正式判据归仿真矩阵。
+跟踪面（参考 vs 实际偏差、越限→撤销）；三维到达；SCAN 适配或备选裁决登记。A5 正式判据归仿真矩阵。
 
 ## 4. 运行方式
 
