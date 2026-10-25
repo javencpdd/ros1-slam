@@ -1,4 +1,4 @@
-# 跨 Agent 协作黑板 · 使用教程（zcode / qoder / WorkBuddy 接力）
+# 跨 Agent 协作黑板 · 使用教程（zcode / qoder / WorkBuddy / Codex 接力）
 
 创建：2026-10-17 ｜ 更新：2026-10-17（补本机实战实录）
 适用工作区：`/home/jack/ysc-code/ros1-slam`（本机，开发主场）
@@ -6,33 +6,36 @@
 
 ---
 
-## 一、三家记忆是怎么互通的
+## 一、四家记忆是怎么互通的
 
-同一台机器上有 **zcode、qoder、WorkBuddy** 在 ros1-slam 上交替干活。它们各有一套「自动记忆」，
-但**三家互不相通、且大多不可导出**：
+同一台机器上有 **zcode、qoder、WorkBuddy、Codex** 在 ros1-slam 上交替干活。它们各有一套「自动记忆」，
+但**四家互不相通、且大多不可导出**：
 
 | 工具 | 私有记忆位置 | 能给别的工具用吗 |
 |---|---|---|
 | zcode | 本地 sqlite | ✘ 官方明确「不能查看或清除」，不进 Git |
 | qoder | `~/.qoder/projects/<工作区slug>/memory/` | ✘ 只对 qoder 可见，且要 `QODER_MEMORY=1` 才开 |
-| WorkBuddy | `<项目>/.workbuddy/memory/MEMORY.md`（项目级）<br>`~/.workbuddy/MEMORY.md`（用户级） | ✘ 另两家不读 |
+| WorkBuddy | `<项目>/.workbuddy/memory/MEMORY.md`（项目级）<br>`~/.workbuddy/MEMORY.md`（用户级） | ✘ 另三家不读 |
+| Codex | 无项目级记忆；会话流水在 `~/.codex/sessions/` | ✘ 每次启动都是新上下文，全靠黑板 |
 
-**唯一公共面是 `<项目根>/AGENTS.md`** —— 三个工具都原生读它。WorkBuddy 的官方文档原文：
+**唯一公共面是 `<项目根>/AGENTS.md`** —— 四个工具都原生读它。WorkBuddy 的官方文档原文：
 
 > 进行代码开发时，WorkBuddy 支持读取项目工作目录下的 `.codebuddy/` 项目级配置……
 > **兼容现有配置：与 `CODEBUDDY.md`、`.codebuddy/CODEBUDDY.md`、`AGENTS.md` 及用户级 `~/.codebuddy/` 配置兼容，可并存使用**
 
-所以做法**不是**打通三家私有记忆，而是**在仓库里放一份纯文本共享状态（黑板）**，
-三家各自用自己的机制去读它：
+所以做法**不是**打通四家私有记忆，而是**在仓库里放一份纯文本共享状态（黑板）**，
+四家各自用自己的机制去读它：
 
 ```
    zcode ──── 私有 sqlite（不可导出）───┐
                                         │
-   /AGENTS.md  ◄── 三家唯一公共面 ───────┤
+   /AGENTS.md  ◄── 四家唯一公共面 ───────┤
    （共读入口）                          │
    qoder ──── ~/.qoder/projects/ ───────┤
                                         │
-   workbuddy ─ .workbuddy/memory/ ──────┘
+   workbuddy ─ .workbuddy/memory/ ──────┤
+                                        │
+   codex ──── 无项目记忆（靠本件）───────┘
                      │
                      ▼
              .ai/  ← 共享黑板（唯一真相源）
@@ -48,7 +51,7 @@
 
 | 文件 | 谁写 | 作用 |
 |---|---|---|
-| `AGENTS.md` | 人 | 三工具共读入口。硬规则**全部内联**（zcode 不展开 `@import`），长内容指向 `.ai/` 让 Agent 自己去读 |
+| `AGENTS.md` | 人 | 四工具共读入口。**现只留指针**（3 行，指向 `note/09_跨工具协作契约.md`）；正文全在 note/09，硬规则一律内联（zcode 不展开 `@import`），长内容指向 `.ai/` 让 Agent 自己去读 |
 | `.ai/bridge.py` | 人 | 状态机 CLI，**唯一的状态写入者**。所有状态迁移必须走它 |
 | `.ai/state.json` | bridge.py | 机器读的单一真相源 |
 | `.ai/TASKS.md` | bridge.py 自动生成 | 任务账本（人类/Agent 可读） |
@@ -232,7 +235,7 @@ python3 .ai/bridge.py knowledge "..."                           # 沉淀工具�
 python3 .ai/bridge.py json                                      # 给脚本读的状态快照
 ```
 
-`--as` 合法值：`zcode` / `qoder` / `workbuddy` / `human` / `unknown`。
+`--as` 合法值：`zcode` / `qoder` / `workbuddy` / `codex` / `human` / `unknown`（2026-10-24 起加入 `codex`）。
 
 **省事技巧**：`export AI_BRIDGE_AGENT=qoder`，之后所有命令可省略 `--as`。
 
@@ -310,6 +313,9 @@ ssh ysc@192.168.1.103 'cd /home/ros1-slam && tar czf - --exclude=.ai/.state.lock
 | 现象 | 原因 | 处置 |
 |---|---|---|
 | `invalid choice: 'workbuddy'` | 旧版 bridge.py 身份枚举没有 workbuddy | 更新 `bridge.py`（现版本已含） |
+| `invalid choice: 'codex'` | 2026-10-24 前的 bridge.py 身份枚举没有 codex | 更新 `bridge.py`（现版本已含） |
+| Codex 完全不认识黑板、不读项目规则 | 该项目在 Codex 里是 untrusted（0.150.0 起 untrusted 不加载项目件） | `~/.codex/config.toml` 给该项目加 `trust_level = "trusted"`；ros1-slam 已配好 |
+| Codex 跑了 `note`/`handoff` 但状态没变 | 沙箱拦下了写 `.ai/` 的动作 | 重跑并审批放行（或用 `--full-auto`）；只读命令不受影响 |
 | `检测到状态脱节，已阻止写入` | `state.json` 是旧快照（见 6.2 坑 1） | 确认以哪侧为准，同步 `state.json` 后重试 |
 | `找不到 .ai/state.json` | 还没初始化 | `python3 .ai/bridge.py init` |
 | `ERROR: 没有任务 \`T-xxx\`` | 任务 ID 打错 | `python3 .ai/bridge.py status` 看真实 ID |
@@ -353,9 +359,9 @@ ssh ysc@192.168.1.103 'cd /home/ros1-slam && tar czf - --exclude=.ai/.state.lock
 
 | 方案 | 结论 |
 |---|---|
-| 互导三家私有记忆 | ✘ 格式闭源 + 厂商随时变更 + 有写坏库的风险 |
-| memU（14.5k star, Apache-2.0） | △ 定位正合适，但官方 host 矩阵不覆盖 zcode / qoder，需自写 adapter + 自备 embedding provider |
-| MCP 记忆服务（pgvector 类） | △ 两家都支持 MCP，但为一个 ROS 沙箱引入 DB 依赖过重 |
+| 互导四家私有记忆 | ✘ 格式闭源 + 厂商随时变更 + 有写坏库的风险 |
+| memU（14.5k star, Apache-2.0） | △ 定位正合适，但官方 host 矩阵不覆盖 zcode / qoder / codex，需自写 adapter + 自备 embedding provider |
+| MCP 记忆服务（pgvector 类） | △ 至少三家支持 MCP（codex 的 `~/.codex/config.toml` 里就有 mcp_servers），但为一个 ROS 沙箱引入 DB 依赖过重 |
 | **共享黑板 + bridge.py** ✔ | 零依赖、纯文本、可 git diff、人和 LLM 都能读、换任何工具都不失效 |
 
 ---
@@ -392,6 +398,7 @@ cat .ai/tasks/T-20261017-02.md   # 第三节那个实战例子的完整任务卡
 
 - zcode 官方：项目指令文件 AGENTS.md <https://zcode.z.ai/cn/docs/agents>
 - qoder 官方：静态记忆与 Rules <https://docs.qoder.com/zh/cli/memory>
+- Codex 官方：AGENTS.md 自定义指令 <https://developers.openai.com/codex/guides/agents-md>
 - 黑板 vs 监督者模式：<https://www.agentpatternscatalog.org/patterns/blackboard>
 - Agent 交接四模式（Handoff Envelope / Relay Ledger / 显式 ACK / 上下文压缩）：
   <https://askpatrick.co/guides/agent-handoff-patterns>

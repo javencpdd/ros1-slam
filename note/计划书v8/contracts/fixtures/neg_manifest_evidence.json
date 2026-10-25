@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "v8.support_graph.astar",
+  "version": "0.1.0-design",
+  "roles": [
+    "global_planner"
+  ],
+  "tags": [
+    "ground",
+    "multilevel",
+    "mesh",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "support_map/v1",
+    "dimensions": 3,
+    "inputs": [
+      "support_map/v1",
+      "ground_goal/v1"
+    ],
+    "outputs": [
+      "support_route/v1"
+    ]
+  },
+  "capability": {
+    "kinematics": "quadruped_kinematic",
+    "cancellation": "cooperative_with_process_watchdog",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/v8_plan",
+    "stop": "process_group_signal"
+  },
+  "requires": {
+    "sensors": [],
+    "resources": [
+      "cpu"
+    ]
+  },
+  "evidence": {
+    "level": "contract_tested",
+    "reports": []
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "v8.local_planner.lite3_scan",
+  "version": "0.1.0",
+  "roles": [
+    "local_planner"
+  ],
+  "tags": [
+    "indoor",
+    "multilevel",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 3,
+    "inputs": [
+      "引用 scan_planner 全部输入"
+    ],
+    "outputs": [
+      "引用 scan_planner 输出（经隔离 remap）"
+    ]
+  },
+  "capability": {
+    "kinematics": "quadruped_kinematic",
+    "cancellation": "cooperative",
+    "supports_dynamic_obstacles": true
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [
+      "/scan_planner/cmd_vel（安全网中继）"
+    ],
+    "namespace": "/",
+    "stop": "none"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "ws/src/40_navigation/lite3_scan",
+    "license": "Proprietary",
+    "commit": "0.1.0"
+  },
+  "adapter_entry": "scan_planner 接线壳包（A6 复用清单「拷入壳包后改造」：goal→/scan_planner/goal、cmd_vel 安全网 remap；SCAN 源码零改动）"
+}

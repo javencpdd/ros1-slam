@@ -1,0 +1,200 @@
+{
+  "captured_at_utc": "2026-10-24T18:28:03.003651+00:00",
+  "status": "offline_observation_not_runtime_acceptance",
+  "source_head": "25a820de992c7e2fb89de35e6c5f903c4f98993c",
+  "source_sha256": {
+    "docker/Dockerfile": "9c3f937980f3a1412499072ae3eb38c0ac7ae0041fec282b01d004c09f43914d",
+    "docker/docker-compose.yml": "6c3564687bb02fa39c7c017669057e6ce38707d24cacadd313a8ed248825771d",
+    "docker/catkin_build.sh": "fe815db033182fb13fbc3c978880280bef9afeba9b07b630f79b2d3ce97e683e",
+    "docker/build.sh": "7cf078f32f76abc7da9aa9705c7d367b3c231e41336527042fa5f62d85b19f11",
+    "docker/entrypoint.sh": "e81d16d8d97adfd75c717cce27cf4a17488c381ce2046c6f98e34fa6b972d762",
+    "docker/env.sh": "9dcbad6ee0372d68dd32ad16f092ccc6dee690ad165ed6d252f5dcce4ada089d",
+    "docker/sim.sh": "0184222a3f915941982d769beb78a34224d6718dadbec6a1de675b1748dc0de8",
+    "scripts/verify/v_window_preflight.sh": "556604af26504cf5d87e1650e4c59bdc4fa7dc2e17a5f5a4e58ed1885c66e5ac",
+    "ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh": "fa8e57359a17daf9f0c1457318e49e63d675027de3ecad11f6e5c401515dfeed",
+    "note/计划书v8/21_ros1-slam中心计划书-v8.md": "86e68c96746447548966f66d525b4c9cb2739b6d6cb66190533245f8422b227a",
+    "note/计划书v8/22_组件契约与组合架构.md": "5a2d271aef7161b59a056b93e24282c2552123eac7147b8a955e3746fdab6d10",
+    "note/计划书v8/24_仿真验收与迁移方案.md": "ab29ea82d6514c5386350512bc660b62090fa2645058fae44962d07824530000",
+    "note/计划书v8/25_v8自动调度作业单.md": "738c6423e412b308c7c5670c98f66d659a903224338a0939389319905e878eb0",
+    "note/进度/v8/M0/26-10-25/environment_R617/environment-lock.json": "0c50bb16c4d51aa3cbc92f5ec6d36f7ebd5f0845e253c691047e22ba9bcba254"
+  },
+  "protected_sha256": {
+    "note/09_跨工具协作契约.md": "6bea0606b0a1c44843473fbf6f0b831c27c7d25b07cc63d7e55cc8a75bff626c",
+    "note/tools/跨Agent协作黑板-使用教程.md": "baae85b0ccdaee2b3f31e64e18f15392fe74bc1fa46d25e20667a86684feec8c"
+  },
+  "host": {
+    "architecture": "x86_64",
+    "kernel": "6.8.0-138-generic",
+    "cpu": [
+      {
+        "field": "CPU(s):",
+        "data": "72"
+      },
+      {
+        "field": "Model name:",
+        "data": "Intel(R) Xeon(R) CPU E5-2686 v4 @ 2.30GHz"
+      },
+      {
+        "field": "Thread(s) per core:",
+        "data": "2"
+      },
+      {
+        "field": "Core(s) per socket:",
+        "data": "18"
+      },
+      {
+        "field": "Socket(s):",
+        "data": "2"
+      }
+    ],
+    "affinity_cpu_count": 72,
+    "nproc": "72",
+    "memory": {
+      "MemTotal": "32733684 kB",
+      "MemAvailable": "15009216 kB",
+      "SwapTotal": "21609716 kB",
+      "SwapFree": "21553652 kB"
+    },
+    "disk_bytes": {
+      "total": 501862064128,
+      "free": 117819674624
+    },
+    "loadavg": "7.22 8.31 8.99 14/4589 611200"
+  },
+  "env_capture_semantics": "Raw right-hand sides from docker/.env allowlisted assignments at capture time, including inline comments; not dotenv-parsed or effective Compose values. The full .env was not hashed or archived.",
+  "current_env_raw_assignments": {
+    "ROS_BASE_IMAGE": "fishros2/ros",
+    "ROS_BASE_TAG": "noetic-desktop-full",
+    "IMAGE": "ros1-slam:noetic",
+    "SIM_IMAGE": "ros1-slam:noetic-sim       # 本机已构建好的仿真镜像",
+    "JOBS": "8",
+    "SLIM": "0                               # 异机基线对齐要全量编译（不留白名单）"
+  },
+  "r617_reference": {
+    "path": "note/进度/v8/M0/26-10-25/environment_R617/environment-lock.json",
+    "captured_at_utc": "2026-10-24T17:26:33.326970+00:00",
+    "completed_at_utc": "2026-10-24T17:26:38.993695+00:00",
+    "host_config": {
+      "NetworkMode": "ros1-slam-net",
+      "ReadonlyRootfs": false,
+      "Memory": 0,
+      "NanoCpus": 0,
+      "CpusetCpus": "",
+      "ShmSize": 2147483648
+    },
+    "container_state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 127,
+      "Error": "failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting \"/run/user/1000/gdm/Xauthority\" to rootfs at \"/tmp/.Xauthority\": mount src=/run/user/1000/gdm/Xauthority, dst=/tmp/.Xauthority, dstFd=/proc/thread-self/fd/15, flags=MS_BIND|MS_REC: not a directory: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type",
+      "StartedAt": "2026-10-21T23:53:14.219483607Z",
+      "FinishedAt": "2026-10-24T09:48:31.356798887Z"
+    },
+    "named_volumes": [
+      {
+        "Type": "volume",
+        "Name": "docker_ros1_ros_home",
+        "Source": "/var/lib/docker/volumes/docker_ros1_ros_home/_data",
+        "Destination": "/opt/ros1-slam/.ros",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      },
+      {
+        "Type": "volume",
+        "Name": "docker_ros1_logs",
+        "Source": "/var/lib/docker/volumes/docker_ros1_logs/_data",
+        "Destination": "/opt/ros1-slam/logs",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      },
+      {
+        "Type": "volume",
+        "Name": "docker_ros1_ws_build",
+        "Source": "/var/lib/docker/volumes/docker_ros1_ws_build/_data",
+        "Destination": "/opt/ros1-slam/ws/build",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      },
+      {
+        "Type": "volume",
+        "Name": "docker_ros1_ws_devel",
+        "Source": "/var/lib/docker/volumes/docker_ros1_ws_devel/_data",
+        "Destination": "/opt/ros1-slam/ws/devel",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      }
+    ],
+    "image_id": "sha256:59f759dd5001f3b40da2c2678644ab9f578e7d45a62e757c9a7ba44195caf7d7",
+    "unverified": [
+      "existing_container_writable_layer_packages",
+      "named_volume_build_and_devel",
+      "runtime_python_import_resolution",
+      "image_build_source_commit",
+      "registry_digest_fetchability",
+      "apt_and_pip_artifact_availability",
+      "clean_rebuild",
+      "ros_gazebo_runtime",
+      "upstream_source_commits"
+    ]
+  },
+  "same_config_as_r617": {
+    "docker/Dockerfile": true,
+    "docker/docker-compose.yml": true,
+    "docker/catkin_build.sh": true,
+    "docker/build.sh": true,
+    "docker/entrypoint.sh": true,
+    "docker/env.sh": true
+  },
+  "not_executed": [
+    "docker_daemon_operations",
+    "ros",
+    "gazebo",
+    "build",
+    "network_fetch",
+    "preflight",
+    "hardware"
+  ],
+  "command_records": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "rc": 0,
+      "stdout": "25a820de992c7e2fb89de35e6c5f903c4f98993c\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "lscpu",
+        "--json"
+      ],
+      "rc": 0,
+      "stdout": "{\n   \"lscpu\": [\n      {\n         \"field\": \"Architecture:\",\n         \"data\": \"x86_64\"\n      },{\n         \"field\": \"CPU op-mode(s):\",\n         \"data\": \"32-bit, 64-bit\"\n      },{\n         \"field\": \"Address sizes:\",\n         \"data\": \"46 bits physical, 48 bits virtual\"\n      },{\n         \"field\": \"Byte Order:\",\n         \"data\": \"Little Endian\"\n      },{\n         \"field\": \"CPU(s):\",\n         \"data\": \"72\"\n      },{\n         \"field\": \"On-line CPU(s) list:\",\n         \"data\": \"0-71\"\n      },{\n         \"field\": \"Vendor ID:\",\n         \"data\": \"GenuineIntel\"\n      },{\n         \"field\": \"Model name:\",\n         \"data\": \"Intel(R) Xeon(R) CPU E5-2686 v4 @ 2.30GHz\"\n      },{\n         \"field\": \"CPU family:\",\n         \"data\": \"6\"\n      },{\n         \"field\": \"Model:\",\n         \"data\": \"79\"\n      },{\n         \"field\": \"Thread(s) per core:\",\n         \"data\": \"2\"\n      },{\n         \"field\": \"Core(s) per socket:\",\n         \"data\": \"18\"\n      },{\n         \"field\": \"Socket(s):\",\n         \"data\": \"2\"\n      },{\n         \"field\": \"Stepping:\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"CPU max MHz:\",\n         \"data\": \"3000.0000\"\n      },{\n         \"field\": \"CPU min MHz:\",\n         \"data\": \"1200.0000\"\n      },{\n         \"field\": \"BogoMIPS:\",\n         \"data\": \"4589.34\"\n      },{\n         \"field\": \"Flags:\",\n         \"data\": \"fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cdp_l3 pti intel_ppin ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a rdseed adx smap intel_pt xsaveopt cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local dtherm ida arat pln pts vnmi md_clear flush_l1d ibpb_exit_to_user\"\n      },{\n         \"field\": \"Virtualization:\",\n         \"data\": \"VT-x\"\n      },{\n         \"field\": \"L1d cache:\",\n         \"data\": \"1.1 MiB (36 instances)\"\n      },{\n         \"field\": \"L1i cache:\",\n         \"data\": \"1.1 MiB (36 instances)\"\n      },{\n         \"field\": \"L2 cache:\",\n         \"data\": \"9 MiB (36 instances)\"\n      },{\n         \"field\": \"L3 cache:\",\n         \"data\": \"90 MiB (2 instances)\"\n      },{\n         \"field\": \"NUMA node(s):\",\n         \"data\": \"2\"\n      },{\n         \"field\": \"NUMA node0 CPU(s):\",\n         \"data\": \"0-17,36-53\"\n      },{\n         \"field\": \"NUMA node1 CPU(s):\",\n         \"data\": \"18-35,54-71\"\n      },{\n         \"field\": \"Vulnerability Gather data sampling:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Indirect target selection:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Itlb multihit:\",\n         \"data\": \"KVM: Mitigation: VMX disabled\"\n      },{\n         \"field\": \"Vulnerability L1tf:\",\n         \"data\": \"Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable\"\n      },{\n         \"field\": \"Vulnerability Mds:\",\n         \"data\": \"Mitigation; Clear CPU buffers; SMT vulnerable\"\n      },{\n         \"field\": \"Vulnerability Meltdown:\",\n         \"data\": \"Mitigation; PTI\"\n      },{\n         \"field\": \"Vulnerability Mmio stale data:\",\n         \"data\": \"Mitigation; Clear CPU buffers; SMT vulnerable\"\n      },{\n         \"field\": \"Vulnerability Reg file data sampling:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Retbleed:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Spec rstack overflow:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Spec store bypass:\",\n         \"data\": \"Mitigation; Speculative Store Bypass disabled via prctl\"\n      },{\n         \"field\": \"Vulnerability Spectre v1:\",\n         \"data\": \"Mitigation; usercopy/swapgs barriers and __user pointer sanitization\"\n      },{\n         \"field\": \"Vulnerability Spectre v2:\",\n         \"data\": \"Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP conditional; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\"\n      },{\n         \"field\": \"Vulnerability Srbds:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Tsa:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Tsx async abort:\",\n         \"data\": \"Mitigation; Clear CPU buffers; SMT vulnerable\"\n      },{\n         \"field\": \"Vulnerability Vmscape:\",\n         \"data\": \"Mitigation; IBPB before exit to userspace\"\n      }\n   ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "nproc"
+      ],
+      "rc": 0,
+      "stdout": "72\n",
+      "stderr": ""
+    }
+  ],
+  "completed_at_utc": "2026-10-24T18:28:03.103294+00:00"
+}

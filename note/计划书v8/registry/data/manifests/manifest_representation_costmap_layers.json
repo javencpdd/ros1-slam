@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "v8.representation.costmap_layers",
+  "version": "0.1.0",
+  "roles": [
+    "representation"
+  ],
+  "tags": [
+    "indoor",
+    "multisurface",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "occupancy_grid/v1",
+    "dimensions": 2,
+    "inputs": [
+      "sensor_msgs/PointCloud2"
+    ],
+    "outputs": [
+      "costmap_2d/Costmap（层插件 ElevationMergedLayer，聚合进 costmap 服务）"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "none",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/",
+    "stop": "none"
+  },
+  "evidence": {
+    "level": "contract_tested",
+    "reports": [
+      "note/进度/v8/M0/26-10-25/packages_R625/build-result.json",
+      "note/进度/v8/M0/26-10-25/R625.md"
+    ]
+  },
+  "source": {
+    "uri": "ws/src/40_navigation/lite3_costmap_layers",
+    "license": "Proprietary",
+    "commit": "0.1.0"
+  },
+  "adapter_entry": "costmap_2d 插件（plugins.xml 一枚 class；add_library:28）"
+}

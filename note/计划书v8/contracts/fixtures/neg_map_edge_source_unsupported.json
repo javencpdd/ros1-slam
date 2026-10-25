@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "map_id": "two_level_boxes",
+  "map_version": 2,
+  "frame": "map",
+  "kind": "support_map",
+  "resolution": 0.1,
+  "origin": [
+    -5.0,
+    -5.0,
+    0.0
+  ],
+  "extent": {
+    "width": 100,
+    "height": 100
+  },
+  "cell_states": [
+    "free",
+    "occupied",
+    "unknown"
+  ],
+  "unknown_policy": "unknown_not_traversable",
+  "multiple_surfaces_per_xy": true,
+  "source": {
+    "uri": "fixtures/map_ml_two_surfaces.json",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+  },
+  "surfaces": [
+    {
+      "surface_id": "ground",
+      "z_reference": 0.0,
+      "thickness_m": 0.05,
+      "representation": "elevation_grid",
+      "data_uri": "fixtures/ground.json",
+      "traversability": "unsupported",
+      "clearance_min_m": 0.4,
+      "footprint": {
+        "min_x": -5,
+        "min_y": -5,
+        "max_x": 5,
+        "max_y": 5
+      },
+      "edges": [
+        {
+          "to": "mezz",
+          "kind": "slope",
+          "max_slope_deg": 12.0,
+          "bidirectional": true
+        }
+      ]
+    },
+    {
+      "surface_id": "mezz",
+      "z_reference": 0.6,
+      "thickness_m": 0.05,
+      "representation": "elevation_grid",
+      "data_uri": "fixtures/mezz.json",
+      "traversability": "supported",
+      "clearance_min_m": 0.4,
+      "footprint": {
+        "min_x": 2,
+        "min_y": 1,
+        "max_x": 4,
+        "max_y": 3
+      },
+      "edges": [
+        {
+          "to": "ground",
+          "kind": "slope",
+          "max_slope_deg": 12.0,
+          "bidirectional": true
+        }
+      ]
+    }
+  ]
+}

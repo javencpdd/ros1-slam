@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "robot_id": "lite3_design_ref",
+  "reference_point": {
+    "frame": "base_link",
+    "xyz": [
+      0.0,
+      0.0,
+      0.28
+    ],
+    "note": "design reference, not measured"
+  },
+  "footprint": {
+    "type": "polygon",
+    "points": [
+      [
+        0.31,
+        0.19
+      ],
+      [
+        0.31,
+        -0.19
+      ],
+      [
+        -0.31,
+        -0.19
+      ],
+      [
+        -0.31,
+        0.19
+      ]
+    ],
+    "height_m": 0.4
+  },
+  "kinematics": "quadruped_kinematic",
+  "mass_kg": 12.0,
+  "capability": {
+    "max_slope_deg": {
+      "value": 15.0,
+      "unit": "deg",
+      "source": "unverified design assumption",
+      "level": "declared",
+      "composition_use": "prohibited"
+    },
+    "max_step_height_m": {
+      "value": 0.08,
+      "unit": "m",
+      "source": "unverified design assumption",
+      "level": "declared",
+      "composition_use": "prohibited"
+    },
+    "min_clearance_m": {
+      "value": 0.35,
+      "unit": "m",
+      "source": "body envelope of this design reference, not a measured test",
+      "level": "declared",
+      "composition_use": "prohibited"
+    }
+  },
+  "brake": {
+    "max_decel_mps2": 1.0,
+    "latency_s": 0.1,
+    "source": "unverified design assumption",
+    "level": "declared",
+    "composition_use": "prohibited"
+  }
+}

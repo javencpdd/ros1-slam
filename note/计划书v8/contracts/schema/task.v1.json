@@ -1,0 +1,166 @@
+{
+  "title": "navigation_task/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "map",
+    "frame",
+    "goal_reference",
+    "start",
+    "goal",
+    "timeout"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "map_id",
+        "map_version"
+      ],
+      "properties": {
+        "map_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "map_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "frame": {
+      "type": "string",
+      "pattern": "[A-Za-z0-9_./-]+"
+    },
+    "goal_reference": {
+      "enum": [
+        "plane_xy",
+        "support_surface"
+      ]
+    },
+    "start": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xyz",
+        "yaw"
+      ],
+      "properties": {
+        "xyz": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "yaw": {
+          "type": "number"
+        }
+      }
+    },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xyz",
+        "yaw",
+        "tolerance",
+        "surface_hint",
+        "surface_disambiguation"
+      ],
+      "properties": {
+        "xyz": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "yaw": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "tolerance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "position_m",
+            "yaw_rad",
+            "source"
+          ],
+          "properties": {
+            "position_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "yaw_rad": {
+              "type": "number",
+              "minimum": 0
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "surface_hint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "surface_disambiguation": {
+          "enum": [
+            "explicit_hint",
+            "declared_search",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "timeout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "budget_s",
+        "harness_deadline_s",
+        "source"
+      ],
+      "properties": {
+        "budget_s": {
+          "type": "number",
+          "minimum": 0.001
+        },
+        "harness_deadline_s": {
+          "type": "number",
+          "minimum": 0.001
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

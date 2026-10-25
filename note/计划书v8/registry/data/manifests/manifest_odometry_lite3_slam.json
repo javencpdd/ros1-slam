@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "v8.odometry.lite3_slam",
+  "version": "0.1.0",
+  "roles": [
+    "odometry",
+    "mapping"
+  ],
+  "tags": [
+    "indoor",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 3,
+    "inputs": [
+      "sensor_msgs/Imu",
+      "sensor_msgs/PointCloud2（雷达）"
+    ],
+    "outputs": [
+      "nav_msgs/Odometry",
+      "建图链产物（lite3_slam+pcd2grid，历史证据 v7/S1）"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "none",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/lite3",
+    "stop": "none"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "ws/src/10_slam/lite3_slam",
+    "license": "Proprietary",
+    "commit": "0.1.0"
+  },
+  "adapter_entry": "自研包装（faster_lio 在线建图入口＋liveness /lite3/liveness/m1_slam）"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "v8.controller.teb_adapter",
+  "version": "0.1.0-design",
+  "roles": [
+    "controller"
+  ],
+  "tags": [
+    "indoor",
+    "ground",
+    "differential",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "occupancy_grid/v1",
+    "dimensions": 2,
+    "inputs": [
+      "local_trajectory/v1"
+    ],
+    "outputs": [
+      "motion_advice/v1"
+    ]
+  },
+  "capability": {
+    "kinematics": "differential",
+    "cancellation": "cooperative_with_process_watchdog",
+    "supports_dynamic_obstacles": true
+  },
+  "ownership": {
+    "tf_edges": [
+      {
+        "parent": "odom",
+        "child": "base_link"
+      }
+    ],
+    "command_topics": [
+      "/v8/cmd_advice"
+    ],
+    "namespace": "/v8_ctl",
+    "stop": "service_stop"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "id": "v8.odometry.lite3_slam",
+  "version": "0.1.0-design",
+  "roles": [
+    "odometry"
+  ],
+  "tags": [
+    "indoor",
+    "flat",
+    "planar",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 3,
+    "inputs": [
+      "occupancy_grid/v1"
+    ],
+    "outputs": [
+      "map_query/v1"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "cooperative",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/v8_map",
+    "stop": "service_stop"
+  },
+  "requires": {
+    "sensors": [],
+    "resources": [
+      "cpu"
+    ]
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "ws/src/10_slam/lite3_slam",
+    "license": "Proprietary",
+    "commit": "0.1.0-design"
+  },
+  "adapter_entry": "lite3_slam_adapter",
+  "param_schema": "adapters/lite3_slam.params.json"
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "v8.map_server.apt",
+  "version": "apt",
+  "roles": [
+    "map_server"
+  ],
+  "tags": [
+    "indoor",
+    "flat",
+    "planar",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "occupancy_grid/v1",
+    "dimensions": 2,
+    "inputs": [
+      "静态地图文件（pgm/yaml）"
+    ],
+    "outputs": [
+      "nav_msgs/OccupancyGrid（/map）"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "none",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/",
+    "stop": "none"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "apt ros-noetic-map-server（R616 G6：不在仓内）",
+    "license": "宿主不可证",
+    "commit": "宿主不可证"
+  },
+  "adapter_entry": "ROS 标准 map_server"
+}

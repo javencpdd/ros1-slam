@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "v8.global_planner.apt",
+  "version": "apt",
+  "roles": [
+    "global_planner"
+  ],
+  "tags": [
+    "indoor",
+    "flat",
+    "planar",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "occupancy_grid/v1",
+    "dimensions": 2,
+    "inputs": [
+      "nav_msgs/OccupancyGrid（/map）"
+    ],
+    "outputs": [
+      "nav_msgs/Path（全局路径）"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "cooperative",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/move_base",
+    "stop": "process_group_signal"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "apt ros-noetic-global-planner（Dockerfile:146—149；实栈 /planners=[GlobalPlanner]）",
+    "license": "宿主不可证（apt 侧）",
+    "commit": "宿主不可证"
+  },
+  "adapter_entry": "move_base 全局规划器（NavFn 系，纯 2D——历史判读：多楼层结构上无解）"
+}

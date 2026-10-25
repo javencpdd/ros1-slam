@@ -1,0 +1,39 @@
+{
+  "global_frame": "map",
+  "robot_base_frame": "base_link",
+  "update_frequency": 5.0,
+  "publish_frequency": 5.0,
+  "transform_tolerance": 1.0,
+  "width": 10.0,
+  "height": 10.0,
+  "resolution": 0.1,
+  "origin_x": -5.0,
+  "origin_y": -5.0,
+  "robot_radius": 0.1,
+  "rolling_window": false,
+  "track_unknown_space": false,
+  "always_send_full_costmap": true,
+  "plugins": [
+    {
+      "name": "static",
+      "type": "costmap_2d::StaticLayer"
+    },
+    {
+      "name": "elevation",
+      "type": "lite3_costmap_layers::ElevationMergedLayer"
+    }
+  ],
+  "static": {
+    "map_topic": "/map",
+    "use_maximum": true
+  },
+  "elevation": {
+    "enabled": true,
+    "use_maximum": true,
+    "input_topic": "/r625/elevation",
+    "layer_name": "elevation",
+    "height_threshold": 0.15,
+    "ground_z": 0.0,
+    "obstacle_cost": 254
+  }
+}

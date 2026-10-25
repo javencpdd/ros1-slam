@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "v8.global_localization.hdl",
+  "version": "0.0.0",
+  "roles": [
+    "global_localization"
+  ],
+  "tags": [
+    "indoor",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 3,
+    "inputs": [
+      "sensor_msgs/PointCloud2",
+      "sensor_msgs/Imu"
+    ],
+    "outputs": [
+      "geometry_msgs/PoseWithCovarianceStamped"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "none",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/",
+    "stop": "none"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "ws/src/20_localization/hdl_localization（＋hdl_global_localization/ndt_omp/fast_gicp）",
+    "license": "BSD",
+    "commit": "0.0.0"
+  },
+  "adapter_entry": "nodelet 链：GlobalmapServerNodelet＋HdlLocalizationNodelet"
+}

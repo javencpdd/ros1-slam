@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "v8.safety_arbiter.lite3",
+  "version": "0.1.0",
+  "roles": [
+    "safety_arbiter"
+  ],
+  "tags": [
+    "indoor",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 2,
+    "inputs": [
+      "geometry_msgs/Twist（各源速度建议）",
+      "health/liveness（M6 watch）"
+    ],
+    "outputs": [
+      "geometry_msgs/Twist（/cmd_vel 唯一写者，M6 硬规则）"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "cooperative_with_process_watchdog",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [
+      "/cmd_vel（唯一写者）"
+    ],
+    "namespace": "/",
+    "stop": "process_group_signal"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "ws/src/60_safety/lite3_safety（＋lite3_supervisor）",
+    "license": "Proprietary",
+    "commit": "0.1.0"
+  },
+  "adapter_entry": "safe_cmd_vel_mux（cmd_vel_mux.yaml 配置）＋liveness /lite3/liveness/m6_safety"
+}

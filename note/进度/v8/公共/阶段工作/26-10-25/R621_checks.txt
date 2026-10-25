@@ -1,0 +1,257 @@
+Initial check failed: six-step regex scanned whole document, including two prerequisite entries. Corrected to section one; no production script changed.
+TARGET PASS: relative load, rc=0, six steps, stop rules, preflight unchanged
+
+COMMAND ['bash', 'scripts/verify/v_sh_py_syntax.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w2/scripts/m2_w2_localcmp.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w2/scripts/w2_t1_smoke.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_survey_run.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_diag.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe2.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_smoke.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t2_run.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_healthcheck.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_preverify.sh', 'note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_t1_rerun.sh', 'scripts/as_ros1slam.sh', 'scripts/env.sh', 'scripts/gen_shell_pkgs.sh', 'scripts/mapping/m_check.sh', 'scripts/mapping/m_clean.sh', 'scripts/mapping/m_env.sh', 'scripts/mapping/m_polish.sh', 'scripts/mapping/m_pose.sh', 'scripts/mapping/m_run_core.sh', 'scripts/mapping/m_run_drv.sh', 'scripts/mapping/m_run_slam.sh', 'scripts/mapping/m_slice.sh', 'scripts/mapping/m_start.sh', 'scripts/mapping/m_stop.sh', 'scripts/mapping/m_verify.sh', 'scripts/mapping/m_view.sh', 'scripts/mapping/m_viz.sh', 'scripts/ops/b3_pre_chown.sh', 'scripts/ops/passability_pre_acl.sh', 'scripts/verify/premap_check.sh', 'scripts/verify/run_gate_chain.sh', 'scripts/verify/v3_isolation.sh', 'scripts/verify/v_citation_check.sh', 'scripts/verify/v_citation_refscan.sh', 'scripts/verify/v_deferred_clause_scan.sh', 'scripts/verify/v_evidence_reachability.sh', 'scripts/verify/v_harness_generation_table.sh', 'scripts/verify/v_ledger_batch_consistency.sh', 'scripts/verify/v_ledger_citation_baseline.sh', 'scripts/verify/v_py_static.sh', 'scripts/verify/v_sh_py_syntax.sh', 'scripts/verify/v_verdict_field_parity.sh', 'scripts/verify/v_window_preflight.sh', 'scripts/verify/v_patch_landing.sh', 'tooling/skill/RESTORE.sh', 'ws/src/20_localization/lite3_localization/verify/v_fd_h_name_contract.sh', 'ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh', 'ws/src/40_navigation/lite3_navigation/verify/v_dwr_exitclean_selftest.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_o1.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p2.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p3.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p3_triple.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_body_frame_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_boxface_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_cloud_map_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_geom_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_inject_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_layer_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_prepost_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_p4_selfmask_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_relay_equiv.sh', 'ws/src/40_navigation/lite3_scan/verify/v_scan_tf_parent_probe.sh', 'ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh', 'ws/src/40_navigation/lite3_scan/verify/witness_units.sh', 'ws/src/50_task/lite3_task/verify/v_scan_task_live.sh', 'ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh', 'ws/src/50_task/lite3_task/verify/v_task_smach.sh', 'ws/src/60_safety/lite3_safety/verify/v_mux_sources.sh', 'ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/m2_batch_runner.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/m2_negctl_tf_runner.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/v_br_expect_negative_selftest.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/v_m2_exitclean_selftest.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/v_pose_source.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/v_rd_archive_selftest.sh', 'ws/src/95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh', 'ws/src/40_navigation/lite3_scan/verify/t_p4_occ_tol_selftest.sh', 'note/进度/v7/S1/SCAN集成/设计/scripts/probe_x2_fourcells.sh', 'tooling/skill/window-scheduler/scripts/window_watch.sh', 'scripts/ops/window_watch.sh', 'scripts/verify/_iso_alt_wrapper.sh', 'scripts/verify/v_window_preflight_x86_variant.sh', 'note/进度/v7/S1/SCAN集成/设计/scripts/x2_ablate_stvl.sh', 'tooling/_build_tooling_manifests.sh']
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w2/scripts/m2_w2_localcmp.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 41 行，非默认绿）
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w2/scripts/w2_t1_smoke.sh
+  [OK] python 段 L21-L97 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w2/scripts/w2_t1_smoke.sh
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_survey_run.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 29 行，非默认绿）
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_diag.sh
+  [OK] python 段 L18-L69 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_diag.sh
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe.sh
+  [OK] python 段 L17-L71 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe.sh
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe2.sh
+  [OK] python 段 L17-L62 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_probe2.sh
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_smoke.sh
+  [OK] python 段 L21-L97 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t1_smoke.sh
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3/scripts/w3_t2_run.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 34 行，非默认绿）
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_healthcheck.sh
+  [OK] python 段 L28-L86 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_healthcheck.sh
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_preverify.sh
+  [OK] python 段 L32-L150 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_preverify.sh
+[OK] bash -n   note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_t1_rerun.sh
+  [OK] python 段 L29-L144 定界符=PYEOF note/进度/v7/S3/仿真测试台/证据/log/matrix_w3_r2/scripts/w3r2_t1_rerun.sh
+[OK] bash -n   scripts/as_ros1slam.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 17 行，非默认绿）
+[OK] bash -n   scripts/env.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 22 行，非默认绿）
+[OK] bash -n   scripts/gen_shell_pkgs.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 32 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_check.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_clean.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 8 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_env.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 9 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_polish.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 24 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_pose.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_run_core.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 5 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_run_drv.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 5 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_run_slam.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_slice.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 19 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_start.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 44 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_stop.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 40 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_verify.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 14 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_view.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 28 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_viz.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] bash -n   scripts/ops/b3_pre_chown.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 58 行，非默认绿）
+[OK] bash -n   scripts/ops/passability_pre_acl.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 76 行，非默认绿）
+[OK] bash -n   scripts/verify/premap_check.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 67 行，非默认绿）
+[OK] bash -n   scripts/verify/run_gate_chain.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 78 行，非默认绿）
+[OK] bash -n   scripts/verify/v3_isolation.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 151 行，非默认绿）
+[OK] bash -n   scripts/verify/v_citation_check.sh
+  [OK] python 段 L46-L615 定界符=PYEOF scripts/verify/v_citation_check.sh
+[OK] bash -n   scripts/verify/v_citation_refscan.sh
+  [OK] python 段 L28-L136 定界符=PYEOF scripts/verify/v_citation_refscan.sh
+[OK] bash -n   scripts/verify/v_deferred_clause_scan.sh
+  [OK] python 段 L29-L214 定界符=PYEOF scripts/verify/v_deferred_clause_scan.sh
+[OK] bash -n   scripts/verify/v_evidence_reachability.sh
+  [OK] python 段 L158-L431 定界符=PYEOF scripts/verify/v_evidence_reachability.sh
+[OK] bash -n   scripts/verify/v_harness_generation_table.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 143 行，非默认绿）
+[OK] bash -n   scripts/verify/v_ledger_batch_consistency.sh
+  [OK] python 段 L45-L317 定界符=PYEOF scripts/verify/v_ledger_batch_consistency.sh
+[OK] bash -n   scripts/verify/v_ledger_citation_baseline.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 142 行，非默认绿）
+[OK] bash -n   scripts/verify/v_py_static.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 118 行，非默认绿）
+[OK] bash -n   scripts/verify/v_sh_py_syntax.sh
+  [OK] python 段 L20-L24 定界符=MKFIX scripts/verify/v_sh_py_syntax.sh
+  [OK] python 段 L62-L99 定界符=SYNPY scripts/verify/v_sh_py_syntax.sh
+[OK] bash -n   scripts/verify/v_verdict_field_parity.sh
+  [OK] python 段 L24-L35 定界符=PYEOF scripts/verify/v_verdict_field_parity.sh
+  [OK] python 段 L39-L45 定界符=PYFIX scripts/verify/v_verdict_field_parity.sh
+  [OK] python 段 L118-L263 定界符=PYEOF scripts/verify/v_verdict_field_parity.sh
+[OK] bash -n   scripts/verify/v_window_preflight.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 130 行，非默认绿）
+[OK] bash -n   scripts/verify/v_patch_landing.sh
+  [OK] python 段 L24-L187 定界符=PYEOF scripts/verify/v_patch_landing.sh
+[OK] bash -n   tooling/skill/RESTORE.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 15 行，非默认绿）
+[OK] bash -n   ws/src/20_localization/lite3_localization/verify/v_fd_h_name_contract.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 86 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_navigation/verify/v_dwa_recheck.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 151 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_navigation/verify/v_dwr_exitclean_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 118 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh
+  [OK] python 段 L30-L32 定界符=PYEOF ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh
+  [OK] python 段 L47-L48 定界符=PYEOF ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh
+  [OK] python 段 L56-L59 定界符=PYEOF ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh
+  [OK] python 段 L68-L71 定界符=PYEOF ws/src/40_navigation/lite3_scan/verify/v_scan_launch_expand.sh
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_o1.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 90 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh
+  [OK] python 段 L128-L145 定界符=PY ws/src/40_navigation/lite3_scan/verify/v_scan_p1.sh
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p2.sh
+  [OK] python 段 L102-L108 定界符=PY ws/src/40_navigation/lite3_scan/verify/v_scan_p2.sh
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p3.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 164 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p3_triple.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 283 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 162 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_body_frame_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 109 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_boxface_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 108 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_cloud_map_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 108 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_geom_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 108 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_inject_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 83 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_layer_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 108 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_prepost_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 108 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_p4_selfmask_probe.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 92 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_relay_equiv.sh
+  [OK] python 段 L18-L44 定界符=PYEOF ws/src/40_navigation/lite3_scan/verify/v_scan_relay_equiv.sh
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_scan_tf_parent_probe.sh
+  [OK] python 段 L45-L215 定界符=PYEOF ws/src/40_navigation/lite3_scan/verify/v_scan_tf_parent_probe.sh
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh
+  [OK] python 段 L21-L45 定界符=PYEOF ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh
+  [OK] python 段 L96-L129 定界符=PYJ ws/src/40_navigation/lite3_scan/verify/v_tf_edge_conflict.sh
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/witness_units.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 64 行，非默认绿）
+[OK] bash -n   ws/src/50_task/lite3_task/verify/v_scan_task_live.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 85 行，非默认绿）
+[OK] bash -n   ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L24-L26 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L34-L38 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L46-L51 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L58-L61 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L72-L78 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L86-L89 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L97-L104 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L112-L122 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+  [OK] python 段 L130-L133 定界符=PYEOF ws/src/50_task/lite3_task/verify/v_task_scan_primitive.sh
+[OK] bash -n   ws/src/50_task/lite3_task/verify/v_task_smach.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 44 行，非默认绿）
+[OK] bash -n   ws/src/60_safety/lite3_safety/verify/v_mux_sources.sh
+  [OK] python 段 L20-L31 定界符=PYEOF ws/src/60_safety/lite3_safety/verify/v_mux_sources.sh
+[OK] bash -n   ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh
+  [OK] python 段 L42-L157 定界符=PY ws/src/70_bringup/lite3_bringup/verify/sim_nav_smoke.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh
+  [OK] python 段 L74-L166 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_batch_runner.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 100 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 168 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_negctl_tf_runner.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 21 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L107-L174 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L205-L406 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L443-L465 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+  [OK] python 段 L487-L548 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 304 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh
+  [OK] python 段 L48-L111 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/v_b3_timebase_contract.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_br_expect_negative_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 118 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh
+  [OK] python 段 L67-L228 定界符=PYEOF ws/src/95_simulation/lite3_gazebo_sim/verify/v_g35_branch_calibration.sh
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_m2_exitclean_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 189 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_pose_source.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 60 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_rd_archive_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 94 行，非默认绿）
+[OK] bash -n   ws/src/95_simulation/lite3_gazebo_sim/verify/v_w3_terrain_design_contract.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 160 行，非默认绿）
+[OK] bash -n   ws/src/40_navigation/lite3_scan/verify/t_p4_occ_tol_selftest.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 43 行，非默认绿）
+[OK] bash -n   note/进度/v7/S1/SCAN集成/设计/scripts/probe_x2_fourcells.sh
+  [OK] python 段 L62-L75 定界符=PYGEN note/进度/v7/S1/SCAN集成/设计/scripts/probe_x2_fourcells.sh
+[OK] bash -n   tooling/skill/window-scheduler/scripts/window_watch.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 43 行，非默认绿）
+[OK] bash -n   scripts/ops/window_watch.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 35 行，非默认绿）
+[OK] bash -n   scripts/verify/_iso_alt_wrapper.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 28 行，非默认绿）
+[OK] bash -n   scripts/verify/v_window_preflight_x86_variant.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 122 行，非默认绿）
+[OK] bash -n   note/进度/v7/S1/SCAN集成/设计/scripts/x2_ablate_stvl.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 110 行，非默认绿）
+[OK] bash -n   tooling/_build_tooling_manifests.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 146 行，非默认绿）
+PY SYNTAX OK（被检件数=94，内嵌 python 段合计=48）
+
+RC=0
+
+COMMAND ['bash', 'scripts/verify/v_harness_generation_table.sh', '--check']
+  [WARN] 被测件面前向漂移：末行 PLG=a32e70ff 而 HEAD PLG=839fe931，且注记不匹配（注记 PLG=839fe931）
+  [WARN] 被测件面前向漂移：末行 XAC=ef23da2d 而 HEAD XAC=bdf62e44，且注记不匹配（注记 XAC=ef23da2d）
+  分母面：在册行=14 唯一H#=14 git载体提交数=14（重复与漏行同判红）
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+
+RC=0
+
+Initial BATCHCHECK rc=9: header R621／批273 同步 did not match required R621 批同步. Corrected new header only.
+FINAL PASS: append-only ledger/header preservation, protected files/source unchanged, R621 links exist (checked before final header correction; overview byte preservation rechecked after).
+COMMAND ['git', 'diff', '--check']
+
+RC=0
+COMMAND ['bash', 'note/进度/v7/S1/SCAN集成/证据/_ledger_form_check.sh']
+== 志面与标题禁形闸（★第十一枚·只报不拦、不入门禁串★）==
+  被检面名册枚数＝5 ‖ 卡面未入（加 --tasks 才扫）（★只检新增行★＝历史行照留）
+  新增行合计＝12 行 ‖ F1 反引号行＝0 枚 ‖ F2 ASCII 双引号行＝0 枚
+  ★迁移伪影前置★＝判为纯指针改写而豁免 0 行（★不检★；锚的宽窄由 --BR_FORM 反控保证）
+  F3 标题面＝★本行未给 --msg＝不可证（★不写成「无缺」★）
+  F4 消费者＝_batch_readout.sh 引用本件枚数＝1 ⇒ 在位
+  ★红档枚数＝0★（★只报不拦★）
+本件 rc=0（0＝全过 ‖ 5＝任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★
+
+RC=0
+COMMAND ['bash', 'scripts/verify/v_ledger_batch_consistency.sh']
+[C1 档头 vs 实际] 声明=R621／实动档头=R未取到 ⇒ **不同值（账实不符）**
+[C2 git 有而总览条目区无（域内）] [146, 153]
+[C3 总览条目批号缺号（域内）] [146, 153, 188, 298, 318, 343, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 450, 453, 454, 455, 459, 537, 543, 545, 561, 564, 577, 620]
+[C4 档头滞后] 0 批（条目区域内最大 R621 − 档头 R621）
+[C5 行首自测锁（只报不判；日期≥2026-10-05 的条目行须以「- 日期：**R<号>」开头）] 不合规=57 行｜样=['2026-10-05|：**P7 场景组合启动完成（小明，Q8 方案 A：foxy 停/恢照 P6.0', '2026-10-05|：**P7 修正批（小明，D-P7-1 主理人派单落地）**——SUP 启动宽限', '2026-10-05|：**P7 G-组合正式验收（小美，独立静态核验，未启任何节点）**——证据链核', '2026-10-05|：**P3b 正式底图重采 + G3 正式验收 PASS（小美，只读复核+离线 ']
+[C5 入集态] FAIL 集=C2+C4+C5 ⇒ C5 已入集（仅拦新增）
+[面] 条目行=526 域内号=368 无自有号=71 域外号=74 ｜ 判定域≥R140 ｜ git 提交=798 域内号=155
+[域下限的来历] R 号写进条目是 R100 前后才成形的事，早于它的条目文体不带号 ⇒ 不设域就会把整段早期史报成"缺条目"（坑53 假红制造机形状）。域下限本身＝A26 要勾的参数之一。
+[判定] FAIL集=C2+C4+C5／域下限=R140／滞后阈值=2 批
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+
+RC=0
+
+Document self-check PASS: queue_exists=True no_background=1 steps=6 stop_reference=1 current_pointer=1; git diff --check rc=0

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "v8.odometry.faster_lio",
+  "version": "0.0.0",
+  "roles": [
+    "odometry"
+  ],
+  "tags": [
+    "indoor",
+    "outdoor",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 3,
+    "inputs": [
+      "sensor_msgs/Imu（/livox/imu）"
+    ],
+    "outputs": [
+      "nav_msgs/Odometry（/Odometry，child_frame_id=body）",
+      "sensor_msgs/PointCloud2（/cloud_registered_body）"
+    ]
+  },
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "none",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/",
+    "stop": "none"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "ws/src/10_slam/faster_lio",
+    "license": "BSD（package.xml:14；与件内 LICENSE 冲突见 R616 G1，未裁）",
+    "commit": "0.0.0"
+  },
+  "adapter_entry": "lite3_slam 包装：run_mapping_online（ws/src/10_slam/lite3_slam/launch）"
+}

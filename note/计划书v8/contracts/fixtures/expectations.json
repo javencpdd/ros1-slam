@@ -1,0 +1,928 @@
+[
+  {
+    "file": "manifest_map_server_2d.json",
+    "kind": "manifest",
+    "ok": true
+  },
+  {
+    "file": "manifest_controller_2d.json",
+    "kind": "manifest",
+    "ok": true
+  },
+  {
+    "file": "manifest_support_planner.json",
+    "kind": "manifest",
+    "ok": true
+  },
+  {
+    "file": "robot_lite3_design.json",
+    "kind": "robot",
+    "ok": true
+  },
+  {
+    "file": "map_2d_flat.json",
+    "kind": "map",
+    "ok": true
+  },
+  {
+    "file": "map_ml_two_surfaces.json",
+    "kind": "map",
+    "ok": true
+  },
+  {
+    "file": "task_2d_goal.json",
+    "kind": "task",
+    "ok": true
+  },
+  {
+    "file": "task_ml_goal.json",
+    "kind": "task",
+    "ok": true
+  },
+  {
+    "file": "neg_manifest_unknown_field.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_SCHEMA_UNKNOWN_FIELD",
+    "repair": [
+      {
+        "op": "remove",
+        "path": "magic"
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_evidence.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_MANIFEST_EVIDENCE",
+    "repair": [
+      {
+        "op": "set",
+        "path": "evidence.reports",
+        "value": [
+          "contracts/test_contracts.py"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_dim.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_MANIFEST_DIM",
+    "repair": [
+      {
+        "op": "set",
+        "path": "io.dimensions",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_stop.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_MANIFEST_STOP",
+    "repair": [
+      {
+        "op": "set",
+        "path": "ownership.stop",
+        "value": "service_stop"
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_control.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_MANIFEST_CONTROL",
+    "repair": [
+      {
+        "op": "set",
+        "path": "ownership.command_topics",
+        "value": [
+          "/v8/cmd_advice"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_tf_dup.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_OWNERSHIP_TF_DUP",
+    "repair": [
+      {
+        "op": "set",
+        "path": "ownership.tf_edges",
+        "value": [
+          {
+            "parent": "odom",
+            "child": "base_link"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_version_bool.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_VERSION",
+    "repair": [
+      {
+        "op": "set",
+        "path": "schema_version",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "file": "neg_robot_unsourced.json",
+    "kind": "robot",
+    "ok": false,
+    "reason": "E_ROBOT_UNSOURCED",
+    "repair": [
+      {
+        "op": "set",
+        "path": "capability.max_slope_deg.composition_use",
+        "value": "prohibited"
+      }
+    ]
+  },
+  {
+    "file": "neg_robot_tested_no_report.json",
+    "kind": "robot",
+    "ok": false,
+    "reason": "E_ROBOT_EVIDENCE",
+    "repair": [
+      {
+        "op": "set",
+        "path": "capability.min_clearance_m.level",
+        "value": "declared"
+      },
+      {
+        "op": "set",
+        "path": "capability.min_clearance_m.composition_use",
+        "value": "prohibited"
+      }
+    ]
+  },
+  {
+    "file": "neg_robot_footprint.json",
+    "kind": "robot",
+    "ok": false,
+    "reason": "E_ROBOT_FOOTPRINT",
+    "repair": [
+      {
+        "op": "set",
+        "path": "footprint.type",
+        "value": "polygon"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_2d_surfaces.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_2D_SURFACES",
+    "repair": [
+      {
+        "op": "remove",
+        "path": "surfaces"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_layers_missing.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_LAYERS_MISSING",
+    "repair": [
+      {
+        "op": "set",
+        "path": "layers",
+        "value": [
+          {
+            "layer_id": "occupancy",
+            "type": "occupancy",
+            "data_uri": "fixtures/map_2d_flat.pgm",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_map_surfaces_missing.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_SURFACES_MISSING",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces",
+        "value": [
+          {
+            "surface_id": "ground",
+            "z_reference": 0.0,
+            "thickness_m": 0.05,
+            "representation": "elevation_grid",
+            "data_uri": "fixtures/ground.json",
+            "traversability": "supported",
+            "clearance_min_m": 0.4,
+            "footprint": {
+              "min_x": -5,
+              "min_y": -5,
+              "max_x": 5,
+              "max_y": 5
+            },
+            "edges": [
+              {
+                "to": "mezz",
+                "kind": "slope",
+                "max_slope_deg": 12.0,
+                "bidirectional": true
+              }
+            ]
+          },
+          {
+            "surface_id": "mezz",
+            "z_reference": 0.6,
+            "thickness_m": 0.05,
+            "representation": "elevation_grid",
+            "data_uri": "fixtures/mezz.json",
+            "traversability": "supported",
+            "clearance_min_m": 0.4,
+            "footprint": {
+              "min_x": 2,
+              "min_y": 1,
+              "max_x": 4,
+              "max_y": 3
+            },
+            "edges": [
+              {
+                "to": "ground",
+                "kind": "slope",
+                "max_slope_deg": 12.0,
+                "bidirectional": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_map_collapse.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_ML_COLLAPSE",
+    "repair": [
+      {
+        "op": "set",
+        "path": "multiple_surfaces_per_xy",
+        "value": true
+      }
+    ]
+  },
+  {
+    "file": "neg_map_ml_count.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_ML_COUNT",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces",
+        "value": [
+          {
+            "surface_id": "ground",
+            "z_reference": 0.0,
+            "thickness_m": 0.05,
+            "representation": "elevation_grid",
+            "data_uri": "fixtures/ground.json",
+            "traversability": "supported",
+            "clearance_min_m": 0.4,
+            "footprint": {
+              "min_x": -5,
+              "min_y": -5,
+              "max_x": 5,
+              "max_y": 5
+            },
+            "edges": [
+              {
+                "to": "mezz",
+                "kind": "slope",
+                "max_slope_deg": 12.0,
+                "bidirectional": true
+              }
+            ]
+          },
+          {
+            "surface_id": "mezz",
+            "z_reference": 0.6,
+            "thickness_m": 0.05,
+            "representation": "elevation_grid",
+            "data_uri": "fixtures/mezz.json",
+            "traversability": "supported",
+            "clearance_min_m": 0.4,
+            "footprint": {
+              "min_x": 2,
+              "min_y": 1,
+              "max_x": 4,
+              "max_y": 3
+            },
+            "edges": [
+              {
+                "to": "ground",
+                "kind": "slope",
+                "max_slope_deg": 12.0,
+                "bidirectional": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_map_floor_id.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_FLOOR_ID",
+    "repair": [
+      {
+        "op": "remove",
+        "path": "surfaces.0.floor_id"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_unknown_free.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_UNKNOWN_AS_FREE",
+    "repair": [
+      {
+        "op": "remove",
+        "path": "treat_unknown_as_free"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_edge_target.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_EDGE_TARGET",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.0.edges.0.to",
+        "value": "mezz"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_edge_param.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_EDGE_PARAM",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.0.edges.0.max_slope_deg",
+        "value": 12.0
+      }
+    ]
+  },
+  {
+    "file": "neg_map_edge_z.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_EDGE_Z",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.0.edges.0.kind",
+        "value": "slope"
+      },
+      {
+        "op": "set",
+        "path": "surfaces.0.edges.0.max_slope_deg",
+        "value": 12.0
+      }
+    ]
+  },
+  {
+    "file": "neg_map_edge_traversability.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_EDGE_TRAVERSABILITY",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.1.traversability",
+        "value": "supported"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_disconnected.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_DISCONNECTED",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.0.edges",
+        "value": [
+          {
+            "to": "mezz",
+            "kind": "slope",
+            "max_slope_deg": 12.0,
+            "bidirectional": true
+          }
+        ]
+      },
+      {
+        "op": "set",
+        "path": "surfaces.1.edges",
+        "value": [
+          {
+            "to": "ground",
+            "kind": "slope",
+            "max_slope_deg": 12.0,
+            "bidirectional": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_map_no_overlap.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_ML_NO_OVERLAP",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.1.footprint",
+        "value": {
+          "min_x": 2.0,
+          "min_y": 1.0,
+          "max_x": 4.0,
+          "max_y": 3.0
+        }
+      }
+    ]
+  },
+  {
+    "file": "neg_map_surface_dup.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_SURFACE_DUP",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.1.surface_id",
+        "value": "mezz"
+      }
+    ]
+  },
+  {
+    "file": "neg_task_ambiguous.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_SURFACE_AMBIGUOUS",
+    "repair": [
+      {
+        "op": "set",
+        "path": "goal.surface_hint",
+        "value": "mezz"
+      }
+    ]
+  },
+  {
+    "file": "neg_task_missing_z.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_MISSING_Z",
+    "repair": [
+      {
+        "op": "set",
+        "path": "goal.xyz",
+        "value": [
+          3.0,
+          2.0,
+          0.6
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_task_xy_null.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_XY_NULL",
+    "repair": [
+      {
+        "op": "set",
+        "path": "goal.xyz",
+        "value": [
+          3.0,
+          2.0,
+          null
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_task_plane_z.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_PLANE_Z",
+    "repair": [
+      {
+        "op": "set",
+        "path": "goal.xyz",
+        "value": [
+          3.0,
+          2.0,
+          null
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_task_disambiguation.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_DISAMBIGUATION",
+    "repair": [
+      {
+        "op": "set",
+        "path": "goal.surface_disambiguation",
+        "value": "declared_search"
+      }
+    ]
+  },
+  {
+    "file": "neg_task_budget.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_BUDGET",
+    "repair": [
+      {
+        "op": "set",
+        "path": "timeout.budget_s",
+        "value": 30.0
+      }
+    ]
+  },
+  {
+    "file": "neg_task_short_xyz.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_SCHEMA_MINITEMS",
+    "repair": [
+      {
+        "op": "set",
+        "path": "start.xyz",
+        "value": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_task_long_xyz.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_SCHEMA_MAXITEMS",
+    "repair": [
+      {
+        "op": "set",
+        "path": "start.xyz",
+        "value": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_task_blank_source.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_SCHEMA_BLANK",
+    "repair": [
+      {
+        "op": "set",
+        "path": "goal.tolerance.source",
+        "value": "v8 M0 declared tolerance, not final calibration"
+      }
+    ]
+  },
+  {
+    "file": "neg_task_nonfinite_budget.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_SCHEMA_NONFINITE",
+    "repair": [
+      {
+        "op": "set",
+        "path": "timeout.budget_s",
+        "value": 30.0
+      }
+    ]
+  },
+  {
+    "file": "neg_map_footprint_degenerate.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_FOOTPRINT_DEGENERATE",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.1.footprint",
+        "value": {
+          "min_x": 2,
+          "min_y": 1,
+          "max_x": 4,
+          "max_y": 3
+        }
+      }
+    ]
+  },
+  {
+    "file": "neg_map_same_z.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_ML_SAME_Z",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.1.z_reference",
+        "value": 0.6
+      }
+    ]
+  },
+  {
+    "file": "neg_map_edge_source_unsupported.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_EDGE_TRAVERSABILITY",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.0.traversability",
+        "value": "supported"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_origin_maxitems.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_SCHEMA_MAXITEMS",
+    "repair": [
+      {
+        "op": "set",
+        "path": "origin",
+        "value": [
+          -5.0,
+          -5.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_map_id_pattern.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_SCHEMA_PATTERN",
+    "repair": [
+      {
+        "op": "set",
+        "path": "map_id",
+        "value": "two_level_boxes"
+      }
+    ]
+  },
+  {
+    "file": "neg_task_start_z_missing.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_MISSING_Z",
+    "repair": [
+      {
+        "op": "set",
+        "path": "start.xyz",
+        "value": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_task_plane_hint.json",
+    "kind": "task",
+    "ok": false,
+    "reason": "E_TASK_SURFACE_AMBIGUOUS",
+    "repair": [
+      {
+        "op": "set",
+        "path": "goal.surface_hint",
+        "value": null
+      }
+    ]
+  },
+  {
+    "file": "neg_robot_ref_xyz_long.json",
+    "kind": "robot",
+    "ok": false,
+    "reason": "E_SCHEMA_MAXITEMS",
+    "repair": [
+      {
+        "op": "set",
+        "path": "reference_point.xyz",
+        "value": [
+          0.0,
+          0.0,
+          0.28
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_robot_points_3d.json",
+    "kind": "robot",
+    "ok": false,
+    "reason": "E_SCHEMA_MAXITEMS",
+    "repair": [
+      {
+        "op": "set",
+        "path": "footprint.points",
+        "value": [
+          [
+            0.31,
+            0.19
+          ],
+          [
+            0.31,
+            -0.19
+          ],
+          [
+            -0.31,
+            -0.19
+          ],
+          [
+            -0.31,
+            0.19
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_robot_circle_points.json",
+    "kind": "robot",
+    "ok": false,
+    "reason": "E_ROBOT_FOOTPRINT",
+    "repair": [
+      {
+        "op": "remove",
+        "path": "footprint.points"
+      }
+    ]
+  },
+  {
+    "file": "neg_robot_polygon_radius.json",
+    "kind": "robot",
+    "ok": false,
+    "reason": "E_ROBOT_FOOTPRINT",
+    "repair": [
+      {
+        "op": "remove",
+        "path": "footprint.radius_m"
+      }
+    ]
+  },
+  {
+    "file": "neg_map_edge_flat_param.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_EDGE_PARAM",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.0.edges",
+        "value": [
+          {
+            "to": "mezz",
+            "kind": "slope",
+            "max_slope_deg": 12.0,
+            "bidirectional": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "neg_map_edge_mixed_param.json",
+    "kind": "map",
+    "ok": false,
+    "reason": "E_MAP_EDGE_PARAM",
+    "repair": [
+      {
+        "op": "set",
+        "path": "surfaces.0.edges",
+        "value": [
+          {
+            "to": "mezz",
+            "kind": "slope",
+            "max_slope_deg": 12.0,
+            "bidirectional": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "manifest_odometry_v11.json",
+    "kind": "manifest",
+    "ok": true
+  },
+  {
+    "file": "neg_manifest_v11_source_missing.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_SCHEMA_REQUIRED",
+    "repair": [
+      {
+        "op": "set",
+        "path": "source.license",
+        "value": "Proprietary"
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_v11_kinematics.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_SCHEMA_ENUM",
+    "repair": [
+      {
+        "op": "set",
+        "path": "capability.kinematics",
+        "value": "not_applicable"
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_v11_source_unknown.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_SCHEMA_UNKNOWN_FIELD",
+    "repair": [
+      {
+        "op": "remove",
+        "path": "source.magic"
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_v11_map_none.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_SCHEMA_ENUM",
+    "repair": [
+      {
+        "op": "set",
+        "path": "io.map_schema",
+        "value": "occupancy_grid/v1"
+      }
+    ]
+  },
+  {
+    "file": "neg_manifest_v11_ns.json",
+    "kind": "manifest",
+    "ok": false,
+    "reason": "E_SCHEMA_PATTERN",
+    "repair": [
+      {
+        "op": "set",
+        "path": "ownership.namespace",
+        "value": "/move_base"
+      }
+    ]
+  }
+]

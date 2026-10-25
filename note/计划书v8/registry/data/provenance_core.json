@@ -1,0 +1,80 @@
+{
+  "v8.odometry.faster_lio": {
+    "source": "ws/src/10_slam/faster_lio",
+    "version": "0.0.0",
+    "license": "BSD（package.xml:14；与件内 LICENSE 冲突，见 R616 G1）",
+    "build_entry": "纯 CMake（非 catkin_package）＋内嵌 add_subdirectory(thirdparty/livox_ros_driver)"
+  },
+  "v8.odometry.lite3_slam": {
+    "source": "ws/src/10_slam/lite3_slam",
+    "version": "0.1.0",
+    "license": "Proprietary",
+    "build_entry": "catkin_package()"
+  },
+  "v8.global_localization.hdl": {
+    "source": "ws/src/20_localization/hdl_localization（＋hdl_global_localization/ndt_omp/fast_gicp）",
+    "version": "0.0.0",
+    "license": "BSD",
+    "build_entry": "catkin_package()＋nodelet add_library（CMakeLists:66,:82）"
+  },
+  "v8.global_localization.lite3": {
+    "source": "ws/src/20_localization/lite3_localization",
+    "version": "0.1.0",
+    "license": "Proprietary",
+    "build_entry": "catkin"
+  },
+  "v8.representation.costmap_layers": {
+    "source": "ws/src/40_navigation/lite3_costmap_layers",
+    "version": "0.1.0",
+    "license": "Proprietary",
+    "build_entry": "add_library:28＋install(plugins.xml):40（一枚 class＝ElevationMergedLayer，base costmap_2d::Layer）"
+  },
+  "v8.local_planner.lite3_scan": {
+    "source": "ws/src/40_navigation/lite3_scan",
+    "version": "0.1.0",
+    "license": "Proprietary",
+    "build_entry": "catkin"
+  },
+  "v8.local_planner.scan_planner": {
+    "source": "ws/src/30_3rd/plan_manage（＋plan_env/path_searching/bspline_opt/traj_utils）",
+    "version": "0.0.0",
+    "license": "TODO（R616 G2，九枚之一）",
+    "build_entry": "plan_manage/CMakeLists:59 起多枚 add_executable（含 scan_planner_node）"
+  },
+  "v8.controller.dwa_adapter": {
+    "source": "apt ros-noetic-dwa-local-planner（Dockerfile:149；配置面 16 件引用 DWAPlannerROS/move_base）",
+    "version": "宿主不可证（apt 侧）",
+    "license": "宿主不可证（apt 侧）",
+    "build_entry": "Dockerfile:146—149 apt 段"
+  },
+  "v8.controller.teb_adapter": {
+    "source": "apt ros-noetic-teb-local-planner（Dockerfile:148）",
+    "version": "宿主不可证（apt 侧）",
+    "license": "宿主不可证（apt 侧）",
+    "build_entry": "Dockerfile:146—149 apt 段"
+  },
+  "v8.map_server.apt": {
+    "source": "apt ros-noetic-map-server（R616 G6：不在仓内）",
+    "version": "宿主不可证",
+    "license": "宿主不可证",
+    "build_entry": "Dockerfile apt 段"
+  },
+  "v8.safety_arbiter.lite3": {
+    "source": "ws/src/60_safety/lite3_safety（＋lite3_supervisor）",
+    "version": "0.1.0",
+    "license": "Proprietary",
+    "build_entry": "catkin"
+  },
+  "v8.simulator.lite3_gazebo": {
+    "source": "ws/src/95_simulation/lite3_gazebo_sim（＋local_sensing GPLv3、mockamap GPLv3、Mid360 插件 TODO、map_generator TODO）",
+    "version": "0.1.0/0.0.0",
+    "license": "Proprietary／GPLv3／TODO（分件，见 R616）",
+    "build_entry": "catkin＋xacro/launch（lite3_planar_drive add_library:8）"
+  },
+  "v8.global_planner.apt": {
+    "source": "apt ros-noetic-global-planner（Dockerfile:146—149）",
+    "version": "宿主不可证（apt 侧）",
+    "license": "宿主不可证（apt 侧）",
+    "build_entry": "Dockerfile:146—149 apt 段；实栈 /planners=[GlobalPlanner]（NavFn 纯 2D）"
+  }
+}

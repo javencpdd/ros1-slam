@@ -1,0 +1,256 @@
+{
+  "title": "map/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "map_id",
+    "map_version",
+    "frame",
+    "kind",
+    "resolution",
+    "origin",
+    "extent",
+    "cell_states",
+    "unknown_policy",
+    "multiple_surfaces_per_xy",
+    "source"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "map_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "map_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "frame": {
+      "type": "string",
+      "pattern": "[A-Za-z0-9_./-]+"
+    },
+    "kind": {
+      "enum": [
+        "occupancy_grid",
+        "support_map"
+      ]
+    },
+    "resolution": {
+      "type": "number",
+      "minimum": 0.001
+    },
+    "origin": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "extent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "cell_states": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "free",
+          "occupied",
+          "unknown"
+        ]
+      }
+    },
+    "unknown_policy": {
+      "enum": [
+        "unknown_not_traversable"
+      ]
+    },
+    "multiple_surfaces_per_xy": {
+      "type": "boolean"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uri",
+        "sha256"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer_id",
+          "type",
+          "data_uri",
+          "sha256"
+        ],
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "occupancy"
+            ]
+          },
+          "data_uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "surface_id",
+          "z_reference",
+          "thickness_m",
+          "representation",
+          "data_uri",
+          "traversability",
+          "clearance_min_m",
+          "footprint",
+          "edges"
+        ],
+        "properties": {
+          "surface_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "z_reference": {
+            "type": "number"
+          },
+          "thickness_m": {
+            "type": "number",
+            "minimum": 0
+          },
+          "representation": {
+            "enum": [
+              "elevation_grid",
+              "mesh"
+            ]
+          },
+          "data_uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "traversability": {
+            "enum": [
+              "supported",
+              "unsupported"
+            ]
+          },
+          "clearance_min_m": {
+            "type": "number",
+            "minimum": 0
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "to",
+                "kind",
+                "bidirectional"
+              ],
+              "properties": {
+                "to": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9_]+$"
+                },
+                "kind": {
+                  "enum": [
+                    "flat",
+                    "slope",
+                    "step"
+                  ]
+                },
+                "max_slope_deg": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 90
+                },
+                "max_step_height_m": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "bidirectional": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "footprint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "min_x",
+              "min_y",
+              "max_x",
+              "max_y"
+            ],
+            "properties": {
+              "min_x": {
+                "type": "number"
+              },
+              "min_y": {
+                "type": "number"
+              },
+              "max_x": {
+                "type": "number"
+              },
+              "max_y": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

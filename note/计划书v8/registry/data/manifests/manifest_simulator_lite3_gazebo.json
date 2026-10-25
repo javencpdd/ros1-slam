@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "v8.simulator.lite3_gazebo",
+  "version": "0.1.0",
+  "roles": [
+    "simulator"
+  ],
+  "tags": [
+    "simulation",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 3,
+    "inputs": [
+      "控制/驱动指令"
+    ],
+    "outputs": [
+      "传感器仿真（点云/IMU/里程计真值）"
+    ]
+  },
+  "capability": {
+    "kinematics": "quadruped_kinematic",
+    "cancellation": "none",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/",
+    "stop": "process_group_signal"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "ws/src/95_simulation/lite3_gazebo_sim（＋local_sensing GPLv3、mockamap GPLv3、Mid360 插件 TODO、map_generator TODO）",
+    "license": "Proprietary／GPLv3／TODO（分件，R616 原文）",
+    "commit": "0.1.0/0.0.0"
+  },
+  "adapter_entry": "lite3_planar_drive（add_library:8）＋xacro/launch"
+}

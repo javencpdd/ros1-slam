@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "v8.local_planner.scan_planner",
+  "version": "0.0.0",
+  "roles": [
+    "local_planner"
+  ],
+  "tags": [
+    "indoor",
+    "multilevel",
+    "mesh",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "not_applicable",
+    "dimensions": 3,
+    "inputs": [
+      "sensor_msgs/PointCloud2（/pcl_render_node/cloud 等可配）",
+      "nav_msgs/Odometry（body_pose）",
+      "nav_msgs/Path（/initial_path，mode3）"
+    ],
+    "outputs": [
+      "scan_planner/Bspline（/planning/bspline）"
+    ]
+  },
+  "capability": {
+    "kinematics": "quadruped_kinematic",
+    "cancellation": "cooperative",
+    "supports_dynamic_obstacles": true
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [
+      "/scan_planner/cmd_vel（安全网中继，经 lite3_safety mux）"
+    ],
+    "namespace": "/",
+    "stop": "none"
+  },
+  "evidence": {
+    "level": "contract_tested",
+    "reports": [
+      "note/计划书v8/probe_mode3/mode3_probe.py",
+      "note/进度/v8/M0/26-10-25/R633.md",
+      "note/进度/v8/M0/26-10-25/R635.md"
+    ]
+  },
+  "source": {
+    "uri": "ws/src/30_3rd/plan_manage（＋plan_env/path_searching/bspline_opt/traj_utils）",
+    "license": "TODO（R616 G2 九枚之一，未裁）",
+    "commit": "0.0.0"
+  },
+  "adapter_entry": "mode3 参考路径跟随＋局部重规划（body_height 抬升、0.5 m 抽稀、A* 平面修复；V8-03 探针四批判定见 reports）",
+  "param_schema": "scan_planner/launch/advanced_param.xml"
+}

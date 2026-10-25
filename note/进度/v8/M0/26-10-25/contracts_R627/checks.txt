@@ -1,0 +1,88 @@
+R627 checks. Format: COMMAND / output / RC. No container, compile or ROS run in this batch.
+
+COMMAND ['python3', '-B', '/home/jack/ysc-code/ros1-slam/note/计划书v8/contracts/test_contracts.py']
+test_cases (__main__.ContractTests.test_cases) ... ok
+test_cli_rc_and_reason (__main__.ContractTests.test_cli_rc_and_reason) ... ok
+test_positive_control_removing_required_fails (__main__.ContractTests.test_positive_control_removing_required_fails) ... ok
+test_two_kinds_expressible (__main__.ContractTests.test_two_kinds_expressible) ... ok
+test_validator_rejects_extra_type_name (__main__.ContractTests.test_validator_rejects_extra_type_name) ... ok
+test_validator_rejects_unsupported_keyword (__main__.ContractTests.test_validator_rejects_unsupported_keyword) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.269s
+
+OK
+RC 0
+
+COMMAND ['bash', 'note/进度/v7/S1/SCAN集成/证据/_ledger_form_check.sh', '--file', '/home/jack/ysc-code/ros1-slam/note/进度/v8/M0/26-10-25/R627.md']
+== 志面与标题禁形闸（★第十一枚·只报不拦、不入门禁串★）==
+  ★模式＝样本通道★（与被检新增行走同一对式子） ‖ F1＝8 ‖ F2＝0
+  ★红档枚数＝8★（★只报不拦★）
+     [红] F1 R627.md:13（样本） 含反引号 4 枚 ‖ 片段＝| [map schema](../../../../计划书v8/contrac
+     [红] F1 R627.md:23（样本） 含反引号 12 枚 ‖ 片段＝1. **可表达**：二维地图（单 `layers`、禁 `surfaces`）
+     [红] F1 R627.md:24（样本） 含反引号 10 枚 ‖ 片段＝2. **不可冒充**：15 个反例各自命中指定理由码，含把多层压成单层（`E_
+     [红] F1 R627.md:25（样本） 含反引号 2 枚 ‖ 片段＝3. **校验器自身可被否证**：另外两例专测校验器——未支持关键字与未知类型名
+     [红] F1 R627.md:31（样本） 含反引号 10 枚 ‖ 片段＝- 能力数值四元组 `value/unit/source/level/compo
+     [红] F1 R627.md:32（样本） 含反引号 2 枚 ‖ 片段＝- 预算必须严格小于 harness 等待时限（`E_TASK_BUDGET`）
+     [红] F1 R627.md:33（样本） 含反引号 8 枚 ‖ 片段＝- 多层目标必须给 z；`explicit_hint` 必须带 `surface
+     [红] F1 R627.md:34（样本） 含反引号 6 枚 ‖ 片段＝- 连通性只能由 `edges` 表达；多层地图 `multiple_surfa
+本件 rc=5（0＝全过 ‖ 5＝任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★
+RC 5
+
+COMMAND ['bash', 'note/进度/v7/S1/SCAN集成/证据/_ledger_form_check.sh', '--tasks']
+== 志面与标题禁形闸（★第十一枚·只报不拦、不入门禁串★）==
+  被检面名册枚数＝24 ‖ ★含卡面 --tasks★（★只检新增行★＝历史行照留）
+  新增行合计＝100 行 ‖ F1 反引号行＝0 枚 ‖ F2 ASCII 双引号行＝0 枚
+  ★迁移伪影前置★＝判为纯指针改写而豁免 0 行（★不检★；锚的宽窄由 --BR_FORM 反控保证）
+  F3 标题面＝★本行未给 --msg＝不可证（★不写成「无缺」★）
+  F4 消费者＝_batch_readout.sh 引用本件枚数＝1 ⇒ 在位
+  ★红档枚数＝0★（★只报不拦★）
+本件 rc=0（0＝全过 ‖ 5＝任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★
+RC 0
+
+COMMAND ['bash', 'scripts/verify/v_sh_py_syntax.sh', '/home/jack/ysc-code/ros1-slam/note/计划书v8/contracts/validate.py', '/home/jack/ysc-code/ros1-slam/note/计划书v8/contracts/test_contracts.py', '/home/jack/ysc-code/ros1-slam/note/进度/v8/M0/26-10-25/contracts_R627/guard.py']
+[OK] python ast /home/jack/ysc-code/ros1-slam/note/计划书v8/contracts/validate.py
+[OK] python ast /home/jack/ysc-code/ros1-slam/note/计划书v8/contracts/test_contracts.py
+[OK] python ast /home/jack/ysc-code/ros1-slam/note/进度/v8/M0/26-10-25/contracts_R627/guard.py
+PY SYNTAX OK（被检件数=3，内嵌 python 段合计=0）
+RC 0
+
+COMMAND ['bash', 'scripts/verify/v_harness_generation_table.sh', '--check']
+  [WARN] 被测件面前向漂移：末行 PLG=a32e70ff 而 HEAD PLG=839fe931，且注记不匹配（注记 PLG=839fe931）
+  [WARN] 被测件面前向漂移：末行 XAC=ef23da2d 而 HEAD XAC=bdf62e44，且注记不匹配（注记 XAC=ef23da2d）
+  分母面：在册行=14 唯一H#=14 git载体提交数=14（重复与漏行同判红）
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+RC 0
+
+COMMAND ['bash', 'scripts/verify/v_ledger_batch_consistency.sh']
+[C1 档头 vs 实际] 声明=R627／实动档头=R未取到 ⇒ **不同值（账实不符）**
+[C2 git 有而总览条目区无（域内）] [146, 153]
+[C3 总览条目批号缺号（域内）] [146, 153, 188, 298, 318, 343, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 450, 453, 454, 455, 459, 537, 543, 545, 561, 564, 577]
+[C4 档头滞后] 0 批（条目区域内最大 R627 − 档头 R627）
+[C5 行首自测锁（只报不判；日期≥2026-10-05 的条目行须以「- 日期：**R<号>」开头）] 不合规=57 行｜样=['2026-10-05|：**P7 场景组合启动完成（小明，Q8 方案 A：foxy 停/恢照 P6.0', '2026-10-05|：**P7 修正批（小明，D-P7-1 主理人派单落地）**——SUP 启动宽限', '2026-10-05|：**P7 G-组合正式验收（小美，独立静态核验，未启任何节点）**——证据链核', '2026-10-05|：**P3b 正式底图重采 + G3 正式验收 PASS（小美，只读复核+离线 ']
+[C5 入集态] FAIL 集=C2+C4+C5 ⇒ C5 已入集（仅拦新增）
+[面] 条目行=533 域内号=375 无自有号=71 域外号=74 ｜ 判定域≥R140 ｜ git 提交=798 域内号=155
+[域下限的来历] R 号写进条目是 R100 前后才成形的事，早于它的条目文体不带号 ⇒ 不设域就会把整段早期史报成"缺条目"（坑53 假红制造机形状）。域下限本身＝A26 要勾的参数之一。
+[判定] FAIL集=C2+C4+C5／域下限=R140／滞后阈值=2 批
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+RC 0
+
+COMMAND ['git', 'diff', '--check']
+RC 0
+
+COMMAND ['git', 'status', '--short', '--', 'ws/src', 'opt/3rdparty', 'docker']
+RC 0
+
+FIX form check first pass rc=5: R627.md 含反引号 6 枚 (line 34 sample). 已逐枚改为「」，复跑 rc=0；首跑打印保留不覆盖。
+
+COMMAND rerun form check --file R627.md
+== 志面与标题禁形闸（★第十一枚·只报不拦、不入门禁串★）==
+  ★模式＝样本通道★（与被检新增行走同一对式子） ‖ F1＝0 ‖ F2＝0
+  ★红档枚数＝0★（★只报不拦★）
+本件 rc=0（0＝全过 ‖ 5＝任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★
+RC 0
+PASS R627 manifest: 33 entries covering contracts/ (all files), this evidence directory except checks.txt and the manifest itself, and ../R627.md; every hash recomputed equal.

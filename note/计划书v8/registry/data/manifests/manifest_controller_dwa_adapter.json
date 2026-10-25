@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "v8.controller.dwa_adapter",
+  "version": "apt:149",
+  "roles": [
+    "controller"
+  ],
+  "tags": [
+    "indoor",
+    "flat",
+    "cpu"
+  ],
+  "io": {
+    "map_schema": "occupancy_grid/v1",
+    "dimensions": 2,
+    "inputs": [
+      "nav_msgs/Path（全局路径）",
+      "costmap_2d/Costmap（局部代价图）"
+    ],
+    "outputs": [
+      "geometry_msgs/Twist（经 safe_cmd_vel_mux 仲裁）"
+    ]
+  },
+  "capability": {
+    "kinematics": "differential",
+    "cancellation": "cooperative",
+    "supports_dynamic_obstacles": true
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [
+      "/cmd_vel_advice/dwa（建议输出，经 safe_cmd_vel_mux 仲裁；/cmd_vel 唯一写者＝safety_arbiter，22 号差异表）"
+    ],
+    "namespace": "/move_base",
+    "stop": "process_group_signal"
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "source": {
+    "uri": "apt ros-noetic-dwa-local-planner（Dockerfile:149；配置面 16 件引用 DWAPlannerROS/move_base）",
+    "license": "宿主不可证（apt 侧）",
+    "commit": "宿主不可证"
+  },
+  "adapter_entry": "move_base/mbf 控制器适配（DWAPlannerROS）"
+}

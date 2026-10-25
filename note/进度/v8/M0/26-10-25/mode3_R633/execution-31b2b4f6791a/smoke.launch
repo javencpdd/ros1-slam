@@ -1,0 +1,19 @@
+<launch>
+  <!-- V8-03 第二切片无头烟测：只起 scan_planner_node（mode3=REFERENCE_PATH），
+       不含控制器/仿真器/机器人模型。参数面复用官方 advanced_param.xml 仿真档。 -->
+  <include file="$(find scan_planner)/launch/advanced_param.xml">
+    <arg name="is_real_world" value="false"/>
+    <arg name="navi_mode" value="3"/>
+    <arg name="sensor_type" value="lidar"/>
+    <arg name="body_pose_topic" value="/quad_0/body_pose"/>
+    <arg name="sensor_pose_topic" value="/quad_0/lidar_pose"/>
+    <arg name="cloud_topic" value="/pcl_render_node/cloud"/>
+    <arg name="cloud_is_world" value="true"/>
+    <arg name="depth_topic" value="/pcl_render_node/depth"/>
+    <arg name="cx" value="321.04638671875"/>
+    <arg name="cy" value="243.44969147246094"/>
+    <arg name="fx" value="387.229248046875"/>
+    <arg name="fy" value="387.229248046875"/>
+    <arg name="need_extrinsic" value="false"/>
+  </include>
+</launch>

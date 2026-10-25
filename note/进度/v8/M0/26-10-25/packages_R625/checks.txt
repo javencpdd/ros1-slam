@@ -1,0 +1,263 @@
+R625 final checks; runtime observations are in the original per-attempt JSON files.
+
+COMMAND ['python3', '-B', 'scripts/verify/test_v8_isolation.py']
+[9-v8] approved packages=3 sources=2; shell sources=0
+v8-isolation legacy_sha=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 derived_sha=78f66d6a54e3475e265d286bc8b06e9fc588ca257b97032fb97f5242c245a495 checker_sha=4a8d2cd7ab0b7ecec6a1b759a9b4849f97e89575c3ab898ab71eb76407d750c9
+[9-v8] approved packages=3 sources=2; shell sources=0
+[9-v8] approved packages=3 sources=2; shell sources=0
+test_comment_not_cmake_declaration (__main__.IsolationTests.test_comment_not_cmake_declaration) ... ok
+test_current_snapshot (__main__.IsolationTests.test_current_snapshot) ... ok
+test_dead_cmake_declaration (__main__.IsolationTests.test_dead_cmake_declaration) ... ok
+test_directory_symlink (__main__.IsolationTests.test_directory_symlink) ... ok
+test_empty_source (__main__.IsolationTests.test_empty_source) ... ok
+test_entrypoint_fixed_target_and_exit_propagation (__main__.IsolationTests.test_entrypoint_fixed_target_and_exit_propagation) ... ok
+test_extra_source_suffixes (__main__.IsolationTests.test_extra_source_suffixes) ... ok
+test_full_derived_alias_negative_and_recovery (__main__.IsolationTests.test_full_derived_alias_negative_and_recovery) ... ok
+test_full_derived_baseline_and_environment_negative (__main__.IsolationTests.test_full_derived_baseline_and_environment_negative) ... ok
+test_full_derived_source_negative (__main__.IsolationTests.test_full_derived_source_negative) ... ok
+test_full_main_lifecycle_and_rc (__main__.IsolationTests.test_full_main_lifecycle_and_rc) ... ok
+test_independent_cmake_suffix_cases (__main__.IsolationTests.test_independent_cmake_suffix_cases) ... ok
+test_legacy_mutation_rejected (__main__.IsolationTests.test_legacy_mutation_rejected) ... ok
+test_malformed_xml (__main__.IsolationTests.test_malformed_xml) ... ok
+test_missing_export (__main__.IsolationTests.test_missing_export) ... ok
+test_missing_root (__main__.IsolationTests.test_missing_root) ... ok
+test_missing_source (__main__.IsolationTests.test_missing_source) ... ok
+test_only_section_nine_changes (__main__.IsolationTests.test_only_section_nine_changes) ... ok
+test_package_rename (__main__.IsolationTests.test_package_rename) ... ok
+test_plugin_extra_class (__main__.IsolationTests.test_plugin_extra_class) ... ok
+test_plugin_wrong_class (__main__.IsolationTests.test_plugin_wrong_class) ... ok
+test_preflight_argument_cannot_skip_full_check (__main__.IsolationTests.test_preflight_argument_cannot_skip_full_check) ... ok
+test_public_iso_rejects_partial_check (__main__.IsolationTests.test_public_iso_rejects_partial_check) ... ok
+test_root_symlink (__main__.IsolationTests.test_root_symlink) ... ok
+test_shell_injection_and_recovery (__main__.IsolationTests.test_shell_injection_and_recovery) ... ok
+test_source_symlink (__main__.IsolationTests.test_source_symlink) ... ok
+test_unapproved_package (__main__.IsolationTests.test_unapproved_package) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 3.313s
+
+OK
+
+RC 0
+
+COMMAND ['python3', '-B', '/home/jack/ysc-code/ros1-slam/note/进度/v8/M0/26-10-25/packages_R625/test_capture.py']
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.007s
+
+OK
+
+RC 0
+
+COMMAND ['python3', '-B', '/home/jack/ysc-code/ros1-slam/note/进度/v8/M0/26-10-25/packages_R625/test_evidence.py']
+test_duplicate_sensor_time (__main__.EvidenceTests.test_duplicate_sensor_time) ... ok
+test_duplicate_tf (__main__.EvidenceTests.test_duplicate_tf) ... ok
+test_empty_map (__main__.EvidenceTests.test_empty_map) ... ok
+test_empty_sensor (__main__.EvidenceTests.test_empty_sensor) ... ok
+test_empty_snapshot (__main__.EvidenceTests.test_empty_snapshot) ... ok
+test_fake_publisher (__main__.EvidenceTests.test_fake_publisher) ... ok
+test_false_check (__main__.EvidenceTests.test_false_check) ... ok
+test_forced_stop (__main__.EvidenceTests.test_forced_stop) ... ok
+test_host_network (__main__.EvidenceTests.test_host_network) ... ok
+test_loaded_library (__main__.EvidenceTests.test_loaded_library) ... ok
+test_missing_check (__main__.EvidenceTests.test_missing_check) ... ok
+test_old_workspace (__main__.EvidenceTests.test_old_workspace) ... ok
+test_outside_map (__main__.EvidenceTests.test_outside_map) ... ok
+test_positive (__main__.EvidenceTests.test_positive) ... ok
+test_result_hash (__main__.EvidenceTests.test_result_hash) ... ok
+test_script_drift (__main__.EvidenceTests.test_script_drift) ... ok
+test_shared_resource_change (__main__.EvidenceTests.test_shared_resource_change) ... ok
+test_source_drift (__main__.EvidenceTests.test_source_drift) ... ok
+test_wrong_run (__main__.EvidenceTests.test_wrong_run) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 1.594s
+
+OK
+
+RC 0
+
+COMMAND ['python3', '-B', '/home/jack/ysc-code/ros1-slam/note/进度/v8/M0/26-10-25/packages_R625/verify_evidence.py']
+PASS third-run evidence bindings and raw observations; 65 finite ray endpoints in map
+LIMIT clock monotonicity and process readiness retain runtime checks; this is not a full bag replay
+PASS 12 historical binary packages: Version/Architecture/Status/Source equal R617 and R622
+
+RC 0
+
+COMMAND ['python3', '-B', '/home/jack/ysc-code/ros1-slam/note/进度/v8/M0/26-10-25/packages_R625/verify_protection.py']
+PASS registration baseline: 49 files; historical prefixes and queue/entry boundaries preserved
+PASS implementation baseline: 37 files; old checkers unchanged, only approved plan additions
+
+RC 0
+
+COMMAND ['bash', 'scripts/verify/v_sh_py_syntax.sh', 'scripts/as_ros1slam.sh', 'scripts/env.sh', 'scripts/gen_shell_pkgs.sh', 'scripts/mapping/m_check.sh', 'scripts/mapping/m_clean.sh', 'scripts/mapping/m_env.sh', 'scripts/mapping/m_polish.sh', 'scripts/mapping/m_pose.sh', 'scripts/mapping/m_run_core.sh', 'scripts/mapping/m_run_drv.sh', 'scripts/mapping/m_run_slam.sh', 'scripts/mapping/m_slice.sh', 'scripts/mapping/m_start.sh', 'scripts/mapping/m_stop.sh', 'scripts/mapping/m_verify.sh', 'scripts/mapping/m_view.sh', 'scripts/mapping/m_viz.sh', 'scripts/mapping/pcd_latch_pub.py', 'scripts/mapping/pcd_polish.py', 'scripts/mapping/pcd_slice.py', 'scripts/ops/b3_pre_chown.sh', 'scripts/ops/passability_pre_acl.sh', 'scripts/ops/window_watch.sh', 'scripts/raw_preview_pub.py', 'scripts/verify/_iso_alt_wrapper.sh', 'scripts/verify/premap_check.sh', 'scripts/verify/run_gate_chain.sh', 'scripts/verify/test_v8_isolation.py', 'scripts/verify/v3_isolation.sh', 'scripts/verify/v8_isolation.py', 'scripts/verify/v8_isolation.sh', 'scripts/verify/v8_window_preflight.sh', 'scripts/verify/v_citation_check.sh', 'scripts/verify/v_citation_refscan.sh', 'scripts/verify/v_claim_field_audit.py', 'scripts/verify/v_deferred_clause_scan.sh', 'scripts/verify/v_evidence_reachability.sh', 'scripts/verify/v_harness_generation_table.sh', 'scripts/verify/v_ledger_batch_consistency.sh', 'scripts/verify/v_ledger_citation_baseline.sh', 'scripts/verify/v_patch_landing.sh', 'scripts/verify/v_py_static.sh', 'scripts/verify/v_sh_py_syntax.sh', 'scripts/verify/v_verdict_field_parity.sh', 'scripts/verify/v_window_preflight.sh', 'scripts/verify/v_window_preflight_x86_variant.sh', 'note/进度/v8/M0/26-10-25/packages_R625/build.sh', 'note/进度/v8/M0/26-10-25/packages_R625/capture.py', 'note/进度/v8/M0/26-10-25/packages_R625/probe.py', 'note/进度/v8/M0/26-10-25/packages_R625/probe_paths.py', 'note/进度/v8/M0/26-10-25/packages_R625/run_stage.py', 'note/进度/v8/M0/26-10-25/packages_R625/runtime.py', 'note/进度/v8/M0/26-10-25/packages_R625/runtime.sh', 'note/进度/v8/M0/26-10-25/packages_R625/runtime_assets.py', 'note/进度/v8/M0/26-10-25/packages_R625/test_capture.py', 'note/进度/v8/M0/26-10-25/packages_R625/test_evidence.py', 'note/进度/v8/M0/26-10-25/packages_R625/verify_evidence.py', 'note/进度/v8/M0/26-10-25/packages_R625/verify_protection.py']
+[OK] bash -n   scripts/as_ros1slam.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 17 行，非默认绿）
+[OK] bash -n   scripts/env.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 22 行，非默认绿）
+[OK] bash -n   scripts/gen_shell_pkgs.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 32 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_check.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_clean.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 8 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_env.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 9 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_polish.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 24 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_pose.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_run_core.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 5 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_run_drv.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 5 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_run_slam.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_slice.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 19 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_start.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 44 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_stop.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 40 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_verify.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 14 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_view.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 28 行，非默认绿）
+[OK] bash -n   scripts/mapping/m_viz.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 6 行，非默认绿）
+[OK] python ast scripts/mapping/pcd_latch_pub.py
+[OK] python ast scripts/mapping/pcd_polish.py
+[OK] python ast scripts/mapping/pcd_slice.py
+[OK] bash -n   scripts/ops/b3_pre_chown.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 58 行，非默认绿）
+[OK] bash -n   scripts/ops/passability_pre_acl.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 76 行，非默认绿）
+[OK] bash -n   scripts/ops/window_watch.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 35 行，非默认绿）
+[OK] python ast scripts/raw_preview_pub.py
+[OK] bash -n   scripts/verify/_iso_alt_wrapper.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 28 行，非默认绿）
+[OK] bash -n   scripts/verify/premap_check.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 67 行，非默认绿）
+[OK] bash -n   scripts/verify/run_gate_chain.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 78 行，非默认绿）
+[OK] python ast scripts/verify/test_v8_isolation.py
+[OK] bash -n   scripts/verify/v3_isolation.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 151 行，非默认绿）
+[OK] python ast scripts/verify/v8_isolation.py
+[OK] bash -n   scripts/verify/v8_isolation.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 9 行，非默认绿）
+[OK] bash -n   scripts/verify/v8_window_preflight.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 10 行，非默认绿）
+[OK] bash -n   scripts/verify/v_citation_check.sh
+  [OK] python 段 L46-L615 定界符=PYEOF scripts/verify/v_citation_check.sh
+[OK] bash -n   scripts/verify/v_citation_refscan.sh
+  [OK] python 段 L28-L136 定界符=PYEOF scripts/verify/v_citation_refscan.sh
+[OK] python ast scripts/verify/v_claim_field_audit.py
+[OK] bash -n   scripts/verify/v_deferred_clause_scan.sh
+  [OK] python 段 L29-L214 定界符=PYEOF scripts/verify/v_deferred_clause_scan.sh
+[OK] bash -n   scripts/verify/v_evidence_reachability.sh
+  [OK] python 段 L158-L431 定界符=PYEOF scripts/verify/v_evidence_reachability.sh
+[OK] bash -n   scripts/verify/v_harness_generation_table.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 143 行，非默认绿）
+[OK] bash -n   scripts/verify/v_ledger_batch_consistency.sh
+  [OK] python 段 L45-L317 定界符=PYEOF scripts/verify/v_ledger_batch_consistency.sh
+[OK] bash -n   scripts/verify/v_ledger_citation_baseline.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 142 行，非默认绿）
+[OK] bash -n   scripts/verify/v_patch_landing.sh
+  [OK] python 段 L24-L187 定界符=PYEOF scripts/verify/v_patch_landing.sh
+[OK] bash -n   scripts/verify/v_py_static.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 118 行，非默认绿）
+[OK] bash -n   scripts/verify/v_sh_py_syntax.sh
+  [OK] python 段 L20-L24 定界符=MKFIX scripts/verify/v_sh_py_syntax.sh
+  [OK] python 段 L62-L99 定界符=SYNPY scripts/verify/v_sh_py_syntax.sh
+[OK] bash -n   scripts/verify/v_verdict_field_parity.sh
+  [OK] python 段 L24-L35 定界符=PYEOF scripts/verify/v_verdict_field_parity.sh
+  [OK] python 段 L39-L45 定界符=PYFIX scripts/verify/v_verdict_field_parity.sh
+  [OK] python 段 L118-L263 定界符=PYEOF scripts/verify/v_verdict_field_parity.sh
+[OK] bash -n   scripts/verify/v_window_preflight.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 130 行，非默认绿）
+[OK] bash -n   scripts/verify/v_window_preflight_x86_variant.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 122 行，非默认绿）
+[OK] bash -n   note/进度/v8/M0/26-10-25/packages_R625/build.sh
+  [OK] python 段 L10-L22 定界符=PY note/进度/v8/M0/26-10-25/packages_R625/build.sh
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/capture.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/probe.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/probe_paths.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/run_stage.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/runtime.py
+[OK] bash -n   note/进度/v8/M0/26-10-25/packages_R625/runtime.sh
+  [OK] 该件无内嵌 python 段（已按 python 调用＋heredoc 双条件扫全 13 行，非默认绿）
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/runtime_assets.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/test_capture.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/test_evidence.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/verify_evidence.py
+[OK] python ast note/进度/v8/M0/26-10-25/packages_R625/verify_protection.py
+PY SYNTAX OK（被检件数=58，内嵌 python 段合计=12）
+
+RC 0
+
+COMMAND ['bash', 'scripts/verify/v_harness_generation_table.sh', '--check']
+  [WARN] 被测件面前向漂移：末行 PLG=a32e70ff 而 HEAD PLG=839fe931，且注记不匹配（注记 PLG=839fe931）
+  [WARN] 被测件面前向漂移：末行 XAC=ef23da2d 而 HEAD XAC=bdf62e44，且注记不匹配（注记 XAC=ef23da2d）
+  分母面：在册行=14 唯一H#=14 git载体提交数=14（重复与漏行同判红）
+== 07 档对账：在册 14 行（SM 与 LIB 双列同核，R47），不符 0 行 ==
+GENERATION TABLE CHECK: PASS（14 行逐行与 git 现算同值 ⇒ 表未与仓脱钩）
+
+RC 0
+
+COMMAND ['bash', 'scripts/verify/v_ledger_batch_consistency.sh']
+[C1 档头 vs 实际] 声明=R625／实动档头=R未取到 ⇒ **不同值（账实不符）**
+[C2 git 有而总览条目区无（域内）] [146, 153]
+[C3 总览条目批号缺号（域内）] [146, 153, 188, 298, 318, 343, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 450, 453, 454, 455, 459, 537, 543, 545, 561, 564, 577]
+[C4 档头滞后] 0 批（条目区域内最大 R625 − 档头 R625）
+[C5 行首自测锁（只报不判；日期≥2026-10-05 的条目行须以「- 日期：**R<号>」开头）] 不合规=57 行｜样=['2026-10-05|：**P7 场景组合启动完成（小明，Q8 方案 A：foxy 停/恢照 P6.0', '2026-10-05|：**P7 修正批（小明，D-P7-1 主理人派单落地）**——SUP 启动宽限', '2026-10-05|：**P7 G-组合正式验收（小美，独立静态核验，未启任何节点）**——证据链核', '2026-10-05|：**P3b 正式底图重采 + G3 正式验收 PASS（小美，只读复核+离线 ']
+[C5 入集态] FAIL 集=C2+C4+C5 ⇒ C5 已入集（仅拦新增）
+[面] 条目行=531 域内号=373 无自有号=71 域外号=74 ｜ 判定域≥R140 ｜ git 提交=798 域内号=155
+[域下限的来历] R 号写进条目是 R100 前后才成形的事，早于它的条目文体不带号 ⇒ 不设域就会把整段早期史报成"缺条目"（坑53 假红制造机形状）。域下限本身＝A26 要勾的参数之一。
+[判定] FAIL集=C2+C4+C5／域下限=R140／滞后阈值=2 批
+[判定] C2 新增=无（拦）／C2 存量命中=[146, 153]（放，逐条带出处）
+[判定] C4 滞后 0 批≤阈值 2 ⇒ 放
+[判定] C5 不合规 57 行＝新增 0／存量 57 ⇒ 放（C1／C3 只报不判）
+BATCHCHECK VERDICT: rc=0（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+
+RC 0
+
+COMMAND ['bash', 'note/进度/v7/S1/SCAN集成/证据/_ledger_form_check.sh', '--file', 'note/进度/v8/M0/26-10-25/R625.md']
+== 志面与标题禁形闸（★第十一枚·只报不拦、不入门禁串★）==
+  ★模式＝样本通道★（与被检新增行走同一对式子） ‖ F1＝0 ‖ F2＝0
+  ★红档枚数＝0★（★只报不拦★）
+本件 rc=0（0＝全过 ‖ 5＝任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★
+
+RC 0
+
+COMMAND ['bash', 'note/进度/v7/S1/SCAN集成/证据/_ledger_form_check.sh', '--tasks']
+== 志面与标题禁形闸（★第十一枚·只报不拦、不入门禁串★）==
+  被检面名册枚数＝24 ‖ ★含卡面 --tasks★（★只检新增行★＝历史行照留）
+  新增行合计＝68 行 ‖ F1 反引号行＝0 枚 ‖ F2 ASCII 双引号行＝0 枚
+  ★迁移伪影前置★＝判为纯指针改写而豁免 0 行（★不检★；锚的宽窄由 --BR_FORM 反控保证）
+  F3 标题面＝★本行未给 --msg＝不可证（★不写成「无缺」★）
+  F4 消费者＝_batch_readout.sh 引用本件枚数＝1 ⇒ 在位
+  ★红档枚数＝0★（★只报不拦★）
+本件 rc=0（0＝全过 ‖ 5＝任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★
+
+RC 0
+
+COMMAND ['git', 'diff', '--check']
+
+RC 0
+
+COMMAND ['git', 'status', '--short', '--', 'ws/src', 'opt/3rdparty', 'docker']
+
+RC 0
+
+FINAL REPORT FORM
+== 志面与标题禁形闸（★第十一枚·只报不拦、不入门禁串★）==
+  ★模式＝样本通道★（与被检新增行走同一对式子） ‖ F1＝0 ‖ F2＝0
+  ★红档枚数＝0★（★只报不拦★）
+本件 rc=0（0＝全过 ‖ 5＝任一名点 ‖ 9＝前置缺失）；★不进任何在册件的 rc、不入门禁串★
+RC 0
+PASS report local links: 35 existing targets/anchors; 1 final manifest target deferred until sealing
+PASS no remaining containers for org.ros1-slam.r625-stage
+PASS no remaining containers for org.ros1-slam.r625-preflight
+FINAL SEAL SCOPE: 101 evidence files plus ../R625.md; 102 entries, manifest excluded.
