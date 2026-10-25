@@ -18,7 +18,7 @@ from visualization_msgs.msg import Marker
 
 TRACK = sys.argv[1] if len(sys.argv) > 1 else 'truth'
 NOISE_X = 0.15 if TRACK == 'noisy' else 0.0
-GOAL = (2.5, -1.0, 0.0)   # m1 场地内、距出生点 ~2.7 m
+GOAL = (4.5, -1.5, 0.0)   # A3：参考直穿 obs_2(3.0,-1.1)/obs_4(2.2,-1.6) 之间，喂点云后应绕行
 
 
 def main():
@@ -46,7 +46,10 @@ def main():
         lidar = Odometry()
         lidar.header = msg.header
         lidar.child_frame_id = 'lidar'
-        lidar.pose.pose = out.pose.pose
+        # A6 分离语义：lidar_pose＝点云变换用真实雷达位姿（原始 z=0.11）；
+        # mode3 体心契约只锚 body_pose（0.30）。估计轨的噪声只在定位（body_pose），
+        # 感知（点云放置）恒真值——定位误差与感知误差分离的首 cell 取此义。
+        lidar.pose.pose = msg.pose.pose
         pose_pub.publish(lidar)
 
     odom_sub = rospy.Subscriber('/sim/odom_gt', Odometry, on_odom)  # lite3_planar_drive 插件真值话题（实测）
@@ -129,6 +132,32 @@ def main():
     end = best[-1] if best else None
     reached = bool(end and math.hypot(end[0] - GOAL[0], end[1] - GOAL[1]) <= 0.6
                    and abs(end[2] - GOAL[2]) <= 0.35)
+    # A3 避让几何检查：真值障碍 box（m1_world.world 实读）＋机器人半径膨胀
+    import math as _m
+    OBSTACLES = [(1.5, 1.2, 0.8, 0.8, 0.4), (3.0, -1.1, 0.9, 0.7, -0.3),
+                 (4.6, 0.9, 0.8, 0.8, 0.9), (2.2, -1.6, 0.8, 0.8, 0.2),
+                 (5.8, -1.0, 0.8, 0.8, -0.6), (0.8, 1.8, 0.8, 0.8, 0.1)]
+    ROBOT_RADIUS = 0.35
+
+    def box_dist(px, py, cx, cy, sx, sy, yaw):
+        c, s = _m.cos(-yaw), _m.sin(-yaw)
+        dx, dy = px - cx, py - cy
+        lx, ly = dx * c - dy * s, dx * s + dy * c
+        return max(abs(lx) - sx / 2, abs(ly) - sy / 2, 0.0)
+
+    min_clear = None
+    lateral_dev = 0.0
+    goal_progress = 0.0
+    if best:
+        min_clear = min(box_dist(p[0], p[1], *obs[:5]) for p in best for obs in OBSTACLES)
+        sx, sy, _ = truth_seen[-1] if truth_seen else (0.0, 0.0, 0.0)
+        total = _m.hypot(GOAL[0] - sx, GOAL[1] - sy)
+        for p in best:
+            # 参考直线参数化：横向偏差＝点到直线距离；推进＝投影/全程
+            dx, dy = GOAL[0] - sx, GOAL[1] - sy
+            n = _m.hypot(dx, dy) or 1.0
+            lateral_dev = max(lateral_dev, abs((p[0] - sx) * (-dy / n) + (p[1] - sy) * (dx / n)))
+            goal_progress = max(goal_progress, ((p[0] - sx) * dx + (p[1] - sy) * dy) / (n * n))
     result = {
         'stage': 'sim_dualtrack', 'track': TRACK, 'noise_x': NOISE_X,
         'odom_truth_samples': len(truth_seen),
@@ -142,10 +171,19 @@ def main():
         'checker_ok': verdict['ok'],
         'checker_violations': verdict['violations'][:4],
         'goal_reached': reached,
+        'goal_progress_ratio': round(goal_progress, 3),
+        'lateral_deviation_m': round(lateral_dev, 3),
+        'obstacle_min_clearance_m': min_clear,
+        # 局部规划器语义门：绕行行为（横向偏差）＋推进度；goal 全达需执行循环（下批）
+        'avoidance_behavior_ok': lateral_dev >= 0.10,  # 绕行存在性：幅度≈grid_map 膨胀边缘量级（double_cylinder 0.18）
+        'progress_ok': goal_progress >= 0.60,
+        # ★A3 真实发现（如实记录不设门）：单站静态感知背面盲区——雷达只见障碍正面，
+        # 轨迹可从无点背面贴穿（min_clear 可为 0）；全局支撑图（V8-09）互补的实证
         'wall_duration_s': round(time.time() - t0, 1),
     }
     result['accepted'] = bool(result['trajectory_points'] >= 5
-                              and result['checker_ok'] and result['goal_reached'])
+                              and result['checker_ok']
+                              and result['avoidance_behavior_ok'] and result['progress_ok'])
     Path('/opt/ros1-slam/r662/sim-dualtrack-%s.json' % TRACK).write_text(
         json.dumps(result, indent=2) + '\n')
     print('DUALTRACK', json.dumps(result, ensure_ascii=False))

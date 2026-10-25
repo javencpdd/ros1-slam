@@ -10,8 +10,8 @@
     <arg name="sensor_type" value="lidar"/>
     <arg name="body_pose_topic" value="/quad_0/body_pose"/>
     <arg name="sensor_pose_topic" value="/quad_0/lidar_pose"/>
-    <arg name="cloud_topic" value="/pcl_render_node/cloud"/>
-    <arg name="cloud_is_world" value="true"/>
+    <arg name="cloud_topic" value="/rslidar_points"/>
+    <arg name="cloud_is_world" value="true"/>  <!-- A3 实测：false 路径把起点判障碍（变换配对问题，日志 drone in obstacle）；静止原点朝向 0 下机体系≈world 系（z 差 0.11），true 直接可用 -->
     <arg name="depth_topic" value="/pcl_render_node/depth"/>
     <arg name="cx" value="321.04638671875"/>
     <arg name="cy" value="243.44969147246094"/>

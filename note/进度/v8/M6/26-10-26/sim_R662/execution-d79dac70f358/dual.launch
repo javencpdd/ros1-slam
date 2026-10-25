@@ -1,0 +1,22 @@
+<launch>
+  <!-- R662 运行面双轨首切片：Gazebo m1 + scan_planner(mode3)。
+       odom 源＝lite3_planar_drive 插件的 /Odometry（WorldPose 闭环真值）；
+       驱动按 track 转发（truth 直转 / noisy 加确定性偏置）到 mode3 消费面。
+       首切片不喂点云（与 R633 同构：grid_map 空载、纯几何规划），传感融合归下批。 -->
+  <include file="$(find lite3_gazebo_sim)/launch/m1_gazebo.launch"/>
+  <include file="$(find scan_planner)/launch/advanced_param.xml">
+    <arg name="is_real_world" value="false"/>
+    <arg name="navi_mode" value="3"/>
+    <arg name="sensor_type" value="lidar"/>
+    <arg name="body_pose_topic" value="/quad_0/body_pose"/>
+    <arg name="sensor_pose_topic" value="/quad_0/lidar_pose"/>
+    <arg name="cloud_topic" value="/rslidar_points"/>
+    <arg name="cloud_is_world" value="false"/>  <!-- sim_adapter 输出机体系（frame=rslidar），配 sensor_pose 变换 -->
+    <arg name="depth_topic" value="/pcl_render_node/depth"/>
+    <arg name="cx" value="321.04638671875"/>
+    <arg name="cy" value="243.44969147246094"/>
+    <arg name="fx" value="387.229248046875"/>
+    <arg name="fy" value="387.229248046875"/>
+    <arg name="need_extrinsic" value="false"/>
+  </include>
+</launch>
