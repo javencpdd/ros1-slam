@@ -1,8 +1,6 @@
 # v8 多层表征（V8-08 首切片，R649）
 
-> 2026-10-26 起。M3 首件首切片：support_map **生产者设计层**——多高度列、空闲证据、
-> 净空查询、extent 语义定界（R631 挂账闭合）、edges 显式声明制。消费契约层 map.v1（已冻结）。
-> 建图算法（传感器→面的提取）与运行时地图服务归后续切片；不 import ROS。
+> 2026-10-26 起。M3 首件（R649—R651 三切片，已窄口径收口）：support_map **生产者设计层**（多高度列／空闲证据／净空／extent 定界）、**版本与更新服务**（MapService：防膨胀防回退／漂移检查／证据随版管理／净空 API）、**建图算法设计层**（elevation.py：点云→格桶→z 聚类全保留→连通成面小簇拒→咨询边全链）。消费契约层 map.v1（已冻结）。传感面（真实雷达数据、滤波配准）与运行时服务归仿真阶段；不 import ROS。
 
 ## 1. 交付内容
 
@@ -21,6 +19,15 @@
 
 同高同足迹重叠拒（E_MAP_ML_SAME_Z）、边指幽灵面拒（E_MAP_EDGE_TARGET）、不可通行面持边拒（E_MAP_EDGE_TRAVERSABILITY）、三层列 0/0.6/1.2 全保留＋净空 0.6、建议器高差阈值边界——全 PASS（两枚探针数据错误留痕：未真设 unsupported、屋顶 3.0 超 step 上限被契约正确拒绝＝fail-closed 正证）。
 
-## 4. 未覆盖（后续切片）
+## 4. 模块清单（三切片后）
 
-版本与更新服务（增量更新、版本一致性服务面）、空闲证据入图（EvidenceGrid→map cell_states 的成图集成）、净空服务查询 API 化、建图算法（传感器→面提取）、运行时地图服务（25 号窗）。运行面 A3 正式验收归仿真。
+| 件 | 作用 |
+| --- | --- |
+| [support_map.py](support_map.py) | 多高度列（无『取最高』入口）／证据网格（无默认 free）／咨询边建议／build→map.v1 fail-closed／extent 定界 |
+| [map_service.py](map_service.py) | 版本与更新服务（内容身份 digest、防膨胀防回退、source.sha256＝内容身份）／消费者漂移检查／证据随版管理／净空 API |
+| [elevation.py](elevation.py) | 建图算法设计层：extract_columns（z 聚类全保留）／extract_surfaces（连通成面、小簇拒且数据不丢）／mapping_pipeline（全链，咨询边不自动成图） |
+| 测试 | test_support_map 9＋test_map_service 5＋test_elevation 5＝**19 项** |
+
+## 5. 未覆盖（移交）
+
+传感面建图（真实点云滤波/配准）、地图服务运行时（话题/更新流）——归仿真阶段（25 号窗）；A3 正式判据归 V8-13 矩阵。
