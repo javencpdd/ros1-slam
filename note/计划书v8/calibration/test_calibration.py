@@ -81,6 +81,109 @@ class CalibrationTests(unittest.TestCase):
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 9)
 
+    # ------------------------------------------------------------------
+    # 整改（2026-10-27，独立复核 P0）：fail-closed / 放宽守卫 / golden digest
+    # ------------------------------------------------------------------
+    def test_missing_key_rejected(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        del bad['tolerances']['goal_position_m']
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        self.assertIn('goal_position_m', caught.exception.detail)
+
+    def test_missing_section_rejected(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        del bad['tolerances']
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        self.assertIn('tolerances', caught.exception.detail)
+
+    def test_empty_evidence_rejected(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['tolerances']['tracking_lateral_m']['evidence'] = '   '
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_none_type_and_empty_table_rejected(self):
+        cases = {
+            'none_value': lambda c: c['budgets']['task_budget_s'].__setitem__('value', None),
+            'wrong_type': lambda c: c['tolerances']['tracking_lateral_m'].__setitem__('value', '0.15'),
+            'empty_table': lambda c: c['denominators']['combos'].__setitem__('value', []),
+            'todo_value': lambda c: c['tolerances']['tracking_lateral_m'].__setitem__('value', 'TODO'),
+        }
+        for label, mutate in cases.items():
+            with self.subTest(label=label):
+                bad = copy.deepcopy(cal.FROZEN)
+                mutate(bad)
+                with self.assertRaises(cal.CalibrationError) as caught:
+                    cal.validate_frozen(bad)
+                self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_loosened_without_unfreeze_rejected(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        current['tolerances']['tracking_lateral_m']['value'] = 0.30
+        current['tolerances']['min_clearance_m']['value'] = 0.10
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('tracking_lateral_m', caught.exception.detail)
+        self.assertIn('min_clearance_m', caught.exception.detail)
+
+    def test_loosened_with_unfreeze_passes(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        current['calibration_version'] = 3
+        current['tolerances']['tracking_lateral_m']['value'] = 0.30
+        current['tolerances']['min_clearance_m']['value'] = 0.10
+        current['unfreeze_log'] = {
+            'to_version': 3, 'when': '2026-10-27', 'from': 2, 'to': 3,
+            'change': '临时放宽失败样本以复跑',
+            'reason': '复跑定位需要，显式解封',
+        }
+        loosened = cal.check_loosening(previous, current)
+        self.assertEqual(sorted(loosened),
+                         ['tolerances.min_clearance_m.value',
+                          'tolerances.tracking_lateral_m.value'])
+
+    def test_loosened_with_empty_reason_rejected(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        current['tolerances']['tracking_lateral_m']['value'] = 0.30
+        current['unfreeze_log'] = {'from': 0.15, 'to': 0.30, 'reason': '  '}
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+
+    def test_digest_golden_rejects_value_change(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['tolerances']['tracking_lateral_m']['value'] = 0.99
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.assert_digest(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_DIGEST')
+        self.assertEqual(cal.assert_digest(), cal.DIGEST)
+        self.assertEqual(len(cal.DIGEST), 64)
+
+    def test_pending_report_not_green(self):
+        report = cal.validate_frozen()
+        self.assertFalse(report['ok'])
+        self.assertTrue(report['blocked'])
+        self.assertEqual(report['status'], 'blocked')
+        self.assertFalse(report['freeze_allowed'])
+        pending = report['pending']
+        self.assertTrue(pending)
+        for token in ('sampling.scenario_repetitions', 'sampling.perturbation_seeds',
+                      'latency.p95_global_s', 'latency.p95_local_s',
+                      'budgets.cancel_time_s', 'budgets.stop_time_s',
+                      'budgets.stop_distance_m', 'tolerances.max_localization_error_m',
+                      'resources.max_cpu_percent', 'success_rate.min_pass_rate'):
+            self.assertTrue(any(token in key for key in pending), token)
+        reasons = '; '.join(item['reason'] for item in report['pending_detail'])
+        self.assertIn('4.1', reasons)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
