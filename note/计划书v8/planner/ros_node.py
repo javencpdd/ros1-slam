@@ -43,6 +43,27 @@ def plan_route(request, cancel=None):
                                 budget=request['budget'], cancel=cancel)
 
 
+def pose_xyz(pose):
+    """从 PoseStamped 取 xyz 三元组；z 缺失即拒，不用 0 冒充。"""
+    point = (float(pose.pose.position.x), float(pose.pose.position.y), float(pose.pose.position.z))
+    return point
+
+
+def to_path_message(result, frame, stamp):
+    from geometry_msgs.msg import PoseStamped
+    from nav_msgs.msg import Path
+    message = Path()
+    message.header.frame_id = frame
+    message.header.stamp = stamp
+    for x, y, z, _ in to_path_points(result):
+        pose = PoseStamped()
+        pose.header = message.header
+        pose.pose.position.x, pose.pose.position.y, pose.pose.position.z = x, y, z
+        pose.pose.orientation.w = 1.0
+        message.poses.append(pose)
+    return message
+
+
 def to_path_points(result):
     """把设计层结果折成 (x, y, z, surface_id) 列表；供 nav_msgs/Path 与检查器共用。"""
     points = []
@@ -83,19 +104,36 @@ def main(argv=None):
         rospy.set_param(status, info)
         rospy.logerr('support_planner refused: %s', info)
         return 5
-    message = Path()
-    message.header.frame_id = frame
-    message.header.stamp = rospy.Time.now()
-    for x, y, z, _ in to_path_points(result):
-        pose = PoseStamped()
-        pose.header = message.header
-        pose.pose.position.x, pose.pose.position.y, pose.pose.position.z = x, y, z
-        pose.pose.orientation.w = 1.0
-        message.poses.append(pose)
+    message = to_path_message(result, frame, rospy.Time.now())
     publisher.publish(message)
     rospy.set_param(status, {'ok': True, 'segments': result['segments'],
                              'transitions': result['transitions'],
                              'expansions': result['expansions'], 'length': result['length']})
+    def make_plan(request):
+        from nav_msgs.srv import GetPlanResponse
+        try:
+            planned = plan_route({'map': request_map(), 'start': pose_xyz(request.start),
+                                  'goal': pose_xyz(request.goal), 'budget': budget,
+                                  'hint': hint} if hint else
+                                 {'map': request_map(), 'start': pose_xyz(request.start),
+                                  'goal': pose_xyz(request.goal), 'budget': budget})
+        except (ValueError, support_planner.PlannerError) as error:
+            rospy.set_param(status, refusal(error) if hasattr(error, 'code')
+                            else {'ok': False, 'reason': 'E_PLAN_INPUT', 'detail': str(error)})
+            rospy.logerr('make_plan refused: %s', error)
+            return GetPlanResponse()
+        answer = to_path_message(planned, frame, rospy.Time.now())
+        rospy.set_param(status, {'ok': True, 'segments': planned['segments'],
+                                 'transitions': planned['transitions'],
+                                 'expansions': planned['expansions'], 'length': planned['length']})
+        return GetPlanResponse(plan=answer)
+
+    def request_map():
+        with open(map_path, encoding='utf-8') as stream:
+            return json.load(stream)
+
+    from nav_msgs.srv import GetPlan
+    rospy.Service(rospy.get_param('~make_plan_service', '/make_plan'), GetPlan, make_plan)
     rospy.loginfo('support_route published: %s points on %s', len(message.poses), publisher.name)
     if not rospy.get_param('~exit_after_publish', False):
         deadline = rospy.Time.now() + rospy.Duration(rospy.get_param('~keep_alive_s', 10.0))
