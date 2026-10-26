@@ -97,6 +97,7 @@ def main(argv=None):
     publisher = rospy.Publisher(rospy.get_param('~path_topic', 'support_route'), Path, queue_size=1, latch=True)
     status = rospy.get_param('~status_topic', 'support_route_status')
     request = to_request(map_path, start, goal, budget, hint)
+    start_xyz = tuple(start)
     try:
         result = plan_route(request)
     except (ValueError, support_planner.PlannerError) as error:
@@ -133,7 +134,38 @@ def main(argv=None):
             return json.load(stream)
 
     from nav_msgs.srv import GetPlan
-    rospy.Service(rospy.get_param('~make_plan_service', '/make_plan'), GetPlan, make_plan)
+    service_enabled = rospy.get_param('~make_plan_service', '/make_plan')
+    if service_enabled:
+        rospy.Service(service_enabled, GetPlan, make_plan)
+    if rospy.get_param('~enable_getpath', False):
+        import actionlib
+        from mbf_msgs.msg import GetPathAction, GetPathResult
+        def getpath(goal_handle):
+            goal = goal_handle.get_goal()
+            start = pose_xyz(goal.start_pose) if goal.use_start_pose else tuple(start_xyz)
+            keys = {'map': request_map(), 'start': start,
+                    'goal': pose_xyz(goal.goal), 'budget': budget}
+            if hint:
+                keys['hint'] = hint
+            result = GetPathResult()
+            try:
+                planned = plan_route(keys)
+            except (ValueError, support_planner.PlannerError) as error:
+                result.outcome = 1
+                result.message = (refusal(error) if hasattr(error, 'code')
+                                  else {'reason': 'E_PLAN_INPUT', 'detail': str(error)})['reason'] + ': ' + str(error)
+                rospy.set_param(status, {'ok': False, 'reason': result.message.split(':')[0]})
+                goal_handle.set_aborted(result)
+                return
+            result.path = to_path_message(planned, frame, rospy.Time.now())
+            result.message = 'route found'
+            rospy.set_param(status, {'ok': True, 'segments': planned['segments'],
+                                     'transitions': planned['transitions'],
+                                     'expansions': planned['expansions'], 'length': planned['length']})
+            goal_handle.set_succeeded(result)
+        server = actionlib.SimpleActionServer(rospy.get_param('~getpath_action', '/move_base_flex/get_path'),
+                                              GetPathAction, execute_cb=getpath, auto_start=False)
+        server.start()
     rospy.loginfo('support_route published: %s points on %s', len(message.poses), publisher.name)
     if not rospy.get_param('~exit_after_publish', False):
         deadline = rospy.Time.now() + rospy.Duration(rospy.get_param('~keep_alive_s', 10.0))
