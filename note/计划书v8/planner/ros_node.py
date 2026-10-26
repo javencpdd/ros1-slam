@@ -5,6 +5,7 @@
 """
 import json
 import math
+import time
 
 import support_planner
 
@@ -105,7 +106,14 @@ def main(argv=None):
         rospy.set_param(status, info)
         rospy.logerr('support_planner refused: %s', info)
         return 5
-    message = to_path_message(result, frame, rospy.Time.now())
+    def sim_stamp():
+        # 用仿真时钟盖戳；仿真未起时不要拿 0 冒充时间，最多等 10 s 墙钟。
+        deadline = time.monotonic() + 10.0
+        while rospy.Time.now().to_sec() == 0 and time.monotonic() < deadline and not rospy.is_shutdown():
+            time.sleep(0.1)
+        return rospy.Time.now()
+
+    message = to_path_message(result, frame, sim_stamp())
     publisher.publish(message)
     rospy.set_param(status, {'ok': True, 'segments': result['segments'],
                              'transitions': result['transitions'],
@@ -157,7 +165,7 @@ def main(argv=None):
                 rospy.set_param(status, {'ok': False, 'reason': result.message.split(':')[0]})
                 goal_handle.set_aborted(result)
                 return
-            result.path = to_path_message(planned, frame, rospy.Time.now())
+            result.path = to_path_message(planned, frame, sim_stamp())
             result.message = 'route found'
             rospy.set_param(status, {'ok': True, 'segments': planned['segments'],
                                      'transitions': planned['transitions'],
@@ -168,9 +176,10 @@ def main(argv=None):
         server.start()
     rospy.loginfo('support_route published: %s points on %s', len(message.poses), publisher.name)
     if not rospy.get_param('~exit_after_publish', False):
-        deadline = rospy.Time.now() + rospy.Duration(rospy.get_param('~keep_alive_s', 10.0))
-        while not rospy.is_shutdown() and rospy.Time.now() < deadline:
-            rospy.sleep(0.2)
+        # 生命周期一律用单调墙钟：仿真时钟未推进或停钟时，不能用它算超时。
+        deadline = time.monotonic() + float(rospy.get_param('~keep_alive_s', 10.0))
+        while not rospy.is_shutdown() and time.monotonic() < deadline:
+            time.sleep(0.1)
     return 0
 
 
