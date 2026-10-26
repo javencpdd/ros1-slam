@@ -74,6 +74,12 @@ FROZEN = {
          'change': '新增制动段峰值时间分量 0.387 s（同带域）',
          'reason': '同 9 次 hold→前冲峰值时间最大 0.387 s；确认静止 0.8—2.0 s 属另一指标、不并入；'
                    '全链 budgets.stop_time_s 仍 pending；属新增判据非放宽'},
+        {'when': '2026-10-27',
+         'key': 'latency.p95_local_s.value',
+         'from': '未定标（pending）', 'to': 0.8966,
+         'change': '新增局部层响应 p95 0.8966 s（带域 scan_sim_consumed_cloud_to_bspline_27run）',
+         'reason': 'R722 27 独立 run/470 周期实测；grid_map 记实际消费点云 stamp、FSM 计划起点打点；'
+                   'scope 仅 SCAN 局部层，含输入年龄、非纯计算；0.5/f_out 不适用；属新增判据'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -114,6 +120,19 @@ FROZEN = {
     # 时延：带域冻结（2026-10-27 判据面，小美，R715）。p95_global 只覆盖
     # /make_plan 服务端；全栈/全场景时延未测，不得据此扩域或报正式验收。
     'latency': {
+        # 局部层响应（2026-10-27 判据面，小美，R722）：仅 SCAN 运行面 consumed→bspline，
+        # 含输入快照年龄、非纯计算；不含 v8 support_map/执行/全栈。
+        'p95_local_s': {'value': 0.8966,
+                        'scope': 'scan_sim_consumed_cloud_to_bspline_27run',
+                        'sample_n': 470,
+                        'evidence': 'R722 27 独立 run/470 周期（3 路径×3 seed×3 重复，每次全新 roslaunch，45 s）；'
+                                    'ROS 墙钟无 /clock、RTF≈1、/cmd_vel 102—104 Hz；grid_map 记实处理点云 stamp，'
+                                    'FSM 于 callReboundReplan 起点取值、bspline 发布打点；c2b p95=896.63 ms'
+                                    '（p50 327.85、max 1499.95）；plan compute p95=7.97（max 125.37 离群）；'
+                                    'b2c p95=9.42（max 10.06，控制器轮询）。重规划 0.333—0.511 Hz，含输入快照年龄、'
+                                    '慢节拍主导，非纯计算；每 run p95 401.9—1104.9，5/27>896.63，本值 27-run 汇总口径、'
+                                    '非单 run 保证；scope 仅 SCAN 随机箱体地图＋go2_kinematic_sim 局部层响应，'
+                                    '不含 v8 support_map/执行/全栈；0.5/f_out 不适用，不作高频控制判定'},
         'p95_global_s': {'value': 0.1394,
                          'scope': 'planner_service_only',
                          'sample_n': 9,
@@ -210,6 +229,10 @@ REQUIRED = {
     'latency.p95_global_s.scope': {'types': (str,), 'non_empty': True},
     'latency.p95_global_s.sample_n': {'types': (int,)},
     'latency.p95_global_s.evidence': {'types': (str,), 'non_empty': True},
+    'latency.p95_local_s.value': {'types': (int, float)},
+    'latency.p95_local_s.scope': {'types': (str,), 'non_empty': True},
+    'latency.p95_local_s.sample_n': {'types': (int,)},
+    'latency.p95_local_s.evidence': {'types': (str,), 'non_empty': True},
     'resources': {'types': (dict,), 'non_empty': True},
     'resources.max_cpu_percent.value': {'types': (int, float)},
     'resources.max_cpu_percent.evidence': {'types': (str,), 'non_empty': True},
@@ -254,9 +277,9 @@ REQUIRED = {
 # 2026-10-27（R720）：动态载体矩阵已补（9 次有效/0.3 平地三相、9 次/0.4、低摩擦 3、坡 3、
 # 台阶 6 无效），但 24 §4.1 的全链口径仍缺感知/规划/控制上游与台阶有效样本；
 # 判据面只批准另立制动分量键（stop_brake_peak_*），本表两条全链键继续 pending。
+# 2026-10-27（R722）：p95_local 已按 27 独立 run、实际消费点云 stamp 的口径带域冻结，
+# 从本表移出；scope 只含 SCAN 局部层响应、含输入年龄，不含 v8 support_map/全栈。
 PENDING_REQUIRED = [
-    {'key': 'latency.p95_local_s.value', 'types': (int, float),
-     'reason': '24 §4.1 要求 p95 局部时延；当前未定标（缺项，禁 freeze）'},
     {'key': 'budgets.stop_time_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车时间；当前未定标（缺项，禁 freeze）'},
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
@@ -276,6 +299,8 @@ PENDING_REQUIRED = [
 # 分量 scope 不含感知/规划/控制上游，不得据此替代全链预算。
 SCOPED_REQUIRED = {
     'latency.p95_global_s': {'scope': 'planner_service_only', 'min_sample_n': 3},
+    'latency.p95_local_s': {'scope': 'scan_sim_consumed_cloud_to_bspline_27run',
+                            'min_sample_n': 3},
     'budgets.cancel_time_s': {'scope': 'mux_hold_only', 'min_sample_n': 3},
     'budgets.stop_brake_peak_distance_m': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
                                            'min_sample_n': 3},
@@ -287,10 +312,10 @@ SCOPED_REQUIRED = {
 SAMPLING_MIN_SEEDS = 3
 SAMPLING_MIN_REPETITIONS = 3
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R720 制动分量冻结后）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R722 p95_local 带域冻结后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = '3641c040abd1ad51191a6d5e79d4bc0c0e89b67f00b5ff71453a206e79bf3af2'
+DIGEST = '4504444e5b03b96b08dbb8977a05b94124f58eac11099f32387b8859fb28b481'
 
 
 class CalibrationError(Exception):

@@ -174,15 +174,14 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(report['status'], 'blocked')
         self.assertFalse(report['freeze_allowed'])
         pending = report['pending']
-        self.assertEqual(len(pending), 5)
-        for token in ('latency.p95_local_s', 'budgets.stop_time_s',
-                      'budgets.stop_distance_m', 'tolerances.max_localization_error_m',
-                      'success_rate.min_pass_rate'):
+        self.assertEqual(len(pending), 4)
+        for token in ('budgets.stop_time_s', 'budgets.stop_distance_m',
+                      'tolerances.max_localization_error_m', 'success_rate.min_pass_rate'):
             self.assertTrue(any(token in key for key in pending), token)
         # 2026-10-27 判据面已落实的项不得再 pending（资源/采样/两个带域字段/制动分量）。
         for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
                       'sampling.scenario_repetitions', 'sampling.perturbation_seeds',
-                      'latency.p95_global_s', 'budgets.cancel_time_s',
+                      'latency.p95_global_s', 'latency.p95_local_s', 'budgets.cancel_time_s',
                       'budgets.stop_brake_peak_distance_m', 'budgets.stop_brake_peak_time_s'):
             self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
@@ -191,7 +190,7 @@ class CalibrationTests(unittest.TestCase):
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R713）：resources 两项＋sampling 两项落实。
     # 判据面裁定（2026-10-27，小美，R715）：p95_global 与 cancel_time 带域冻结；
-    # p95_local、stop_time、stop_distance、定位误差、成功率保持 pending。
+    # stop_time、stop_distance、定位误差、成功率保持 pending（p95_local 已在 R722 带域冻结）。
     # ------------------------------------------------------------------
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R720）：制动分量另立两键；
@@ -232,6 +231,32 @@ class CalibrationTests(unittest.TestCase):
         self.assertIn('budgets.stop_distance_m.value', keys)
         self.assertNotIn('budgets.stop_brake_peak_time_s.value', keys)
         self.assertNotIn('budgets.stop_brake_peak_distance_m.value', keys)
+
+    def test_p95_local_frozen_scoped_r722(self):
+        item = cal.FROZEN['latency']['p95_local_s']
+        self.assertEqual(item['scope'], 'scan_sim_consumed_cloud_to_bspline_27run')
+        self.assertEqual(item['sample_n'], 470)
+        self.assertAlmostEqual(item['value'], 0.8966)
+        self.assertIn('latency.p95_local_s', cal.SCOPED_REQUIRED)
+        self.assertEqual(cal.SCOPED_REQUIRED['latency.p95_local_s']['scope'],
+                         'scan_sim_consumed_cloud_to_bspline_27run')
+        report = cal.validate_frozen()
+        self.assertEqual(report['status'], 'blocked')
+        self.assertEqual(len(report['pending']), 4)
+        keys = [x['key'] for x in report['pending_detail']]
+        self.assertNotIn('latency.p95_local_s.value', keys)
+
+    def test_p95_local_scope_and_sample_guard(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['latency']['p95_local_s']['scope'] = 'full_stack'
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['latency']['p95_local_s']['sample_n'] = 2
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
 
     def test_resources_and_sampling_frozen_shape(self):
         cfg = cal.FROZEN
