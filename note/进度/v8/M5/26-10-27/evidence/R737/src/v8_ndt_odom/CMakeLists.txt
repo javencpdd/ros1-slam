@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(v8_ndt_odom)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs nav_msgs pcl_ros)
+find_package(PCL REQUIRED)
+catkin_package()
+include_directories(${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS}
+  /opt/ros1-slam/ws/src/20_localization/ndt_omp/include)
+link_directories(/opt/ros1-slam/ws/devel/lib)
+add_executable(ndt_odom_node src/ndt_odom_node.cpp)
+target_link_libraries(ndt_odom_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} ndt_omp)
+set_target_properties(ndt_odom_node PROPERTIES COMPILE_FLAGS "-O2 -fopenmp")
