@@ -1,0 +1,105 @@
+{
+ "schema_version": 1,
+ "map_id": "stairs_obs",
+ "map_version": 1,
+ "frame": "map",
+ "kind": "support_map",
+ "resolution": 0.1,
+ "origin": [
+  -2.0,
+  -2.0,
+  0.0
+ ],
+ "extent": {
+  "width": 80,
+  "height": 40
+ },
+ "cell_states": [
+  "free",
+  "occupied",
+  "unknown"
+ ],
+ "unknown_policy": "unknown_not_traversable",
+ "multiple_surfaces_per_xy": true,
+ "source": {
+  "uri": "observation:mujoco-depth",
+  "sha256": "00000000000000000000000000000000000000000000000000000001a0dab2e4"
+ },
+ "surfaces": [
+  {
+   "surface_id": "obs_0",
+   "z_reference": -0.0,
+   "thickness_m": 0.1,
+   "representation": "elevation_grid",
+   "data_uri": "observation:mujoco-depth",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -0.71,
+    "min_y": -1.72,
+    "max_x": 1.99,
+    "max_y": 1.73
+   },
+   "edges": [
+    {
+     "to": "obs_1",
+     "kind": "step",
+     "max_step_height_m": 0.2,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "obs_1",
+   "z_reference": 0.18,
+   "thickness_m": 0.1,
+   "representation": "elevation_grid",
+   "data_uri": "observation:mujoco-depth",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": 1.51,
+    "min_y": -0.58,
+    "max_x": 2.51,
+    "max_y": 0.61
+   },
+   "edges": [
+    {
+     "to": "obs_0",
+     "kind": "step",
+     "max_step_height_m": 0.2,
+     "bidirectional": true
+    },
+    {
+     "to": "obs_2",
+     "kind": "step",
+     "max_step_height_m": 0.2,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "obs_2",
+   "z_reference": 0.36,
+   "thickness_m": 0.1,
+   "representation": "elevation_grid",
+   "data_uri": "observation:mujoco-depth",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": 2.5,
+    "min_y": -0.58,
+    "max_x": 3.62,
+    "max_y": 0.61
+   },
+   "edges": [
+    {
+     "to": "obs_1",
+     "kind": "step",
+     "max_step_height_m": 0.2,
+     "bidirectional": true
+    }
+   ]
+  }
+ ]
+}
