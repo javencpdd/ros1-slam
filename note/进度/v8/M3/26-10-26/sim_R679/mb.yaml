@@ -1,0 +1,22 @@
+base_global_planner: v8_support_global_planner/SupportGlobalPlanner
+base_local_planner: base_local_planner/TrajectoryPlannerROS
+planner_frequency: 0.5
+controller_frequency: 5.0
+global_costmap:
+  global_frame: map
+  robot_base_frame: base_link
+  rolling_window: true
+  width: 6.0
+  height: 6.0
+  resolution: 0.1
+  plugins: []
+  update_frequency: 1.0
+  publish_frequency: 1.0
+local_costmap:
+  global_frame: map
+  robot_base_frame: base_link
+  rolling_window: true
+  width: 3.0
+  height: 3.0
+  resolution: 0.1
+  plugins: []
