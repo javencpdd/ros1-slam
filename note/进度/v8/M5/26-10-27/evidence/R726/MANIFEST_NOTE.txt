@@ -1,0 +1,4 @@
+R726 证据口径说明（R728 补）：
+- raw/ 下 15 份 bridge JSON 的 vx 列来自旧桥接（墙体自由关节速度，恒 -0.0）；本批数值全部用 base_x 差分重算，不依赖该列。
+- 本目录归档的 haz_chain_bridge.py / haz_chain_metrics.py / haz_rest_recompute.py 是修复后版本（vx 用 jnt_dofadr；确认静止用 base_x 差分）；修复后复跑见 R727。
+- hashes.sha256 为相对路径、覆盖本目录 5 个核心件；raw.sha256 覆盖 raw/ 全部 30 份文件。

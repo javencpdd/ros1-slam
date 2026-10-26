@@ -205,7 +205,7 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(t['scope'], d['scope'])
         self.assertEqual(d['sample_n'], 9)
         self.assertEqual(t['sample_n'], 9)
-        self.assertAlmostEqual(d['value'], 0.125)
+        self.assertAlmostEqual(d['value'], 0.124)
         self.assertAlmostEqual(t['value'], 1.17)
         self.assertIn('budgets.stop_brake_peak_distance_m', cal.SCOPED_REQUIRED)
         self.assertIn('budgets.stop_brake_peak_time_s', cal.SCOPED_REQUIRED)
@@ -286,10 +286,27 @@ class CalibrationTests(unittest.TestCase):
             cal.validate_frozen(bad)
         self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
 
+    def test_stop_chain_osmesa_distance_guard(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['budgets']['stop_chain_osmesa_distance_m']['scope'] = 'full_chain'
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['budgets']['stop_chain_osmesa_distance_m']['sample_n'] = 2
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_budget_raise_not_flagged_by_loosening(self):
+        prev = copy.deepcopy(cal.FROZEN)
+        prev['budgets']['stop_brake_peak_distance_m']['value'] = 0.076
+        self.assertEqual(cal.check_loosening(prev, cal.FROZEN), [])  # 已知盲区：budgets 仅识别下调；靠独立复核
+
     def test_stop_component_raise_logged(self):
         log = cal.FROZEN['unfreeze_log']
         found = [e for e in log if e.get('key') == 'budgets.stop_brake_peak_distance_m.value'
-                 and e.get('from') == 0.076 and e.get('to') == 0.125]
+                 and e.get('from') == 0.076 and e.get('to') == 0.124]
         self.assertEqual(len(found), 1)
         found = [e for e in log if e.get('key') == 'budgets.stop_brake_peak_time_s.value'
                  and e.get('from') == 0.387 and e.get('to') == 1.17]
