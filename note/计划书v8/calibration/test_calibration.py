@@ -182,7 +182,8 @@ class CalibrationTests(unittest.TestCase):
         for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
                       'sampling.scenario_repetitions', 'sampling.perturbation_seeds',
                       'latency.p95_global_s', 'latency.p95_local_s', 'budgets.cancel_time_s',
-                      'budgets.stop_brake_peak_distance_m', 'budgets.stop_brake_peak_time_s'):
+                      'budgets.stop_brake_peak_distance_m', 'budgets.stop_brake_peak_time_s',
+                      'budgets.stop_chain_osmesa_time_s', 'budgets.stop_chain_osmesa_distance_m'):
             self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
         self.assertIn('4.1', reasons)
@@ -204,8 +205,8 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(t['scope'], d['scope'])
         self.assertEqual(d['sample_n'], 9)
         self.assertEqual(t['sample_n'], 9)
-        self.assertAlmostEqual(d['value'], 0.076)
-        self.assertAlmostEqual(t['value'], 0.387)
+        self.assertAlmostEqual(d['value'], 0.125)
+        self.assertAlmostEqual(t['value'], 1.17)
         self.assertIn('budgets.stop_brake_peak_distance_m', cal.SCOPED_REQUIRED)
         self.assertIn('budgets.stop_brake_peak_time_s', cal.SCOPED_REQUIRED)
         report = cal.validate_frozen()
@@ -231,6 +232,8 @@ class CalibrationTests(unittest.TestCase):
         self.assertIn('budgets.stop_distance_m.value', keys)
         self.assertNotIn('budgets.stop_brake_peak_time_s.value', keys)
         self.assertNotIn('budgets.stop_brake_peak_distance_m.value', keys)
+        self.assertNotIn('budgets.stop_chain_osmesa_time_s.value', keys)
+        self.assertNotIn('budgets.stop_chain_osmesa_distance_m.value', keys)
 
     def test_p95_local_frozen_scoped_r722(self):
         item = cal.FROZEN['latency']['p95_local_s']
@@ -257,6 +260,40 @@ class CalibrationTests(unittest.TestCase):
         with self.assertRaises(cal.CalibrationError) as caught:
             cal.validate_frozen(bad)
         self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_stop_chain_osmesa_proxies_scoped_r726(self):
+        b = cal.FROZEN['budgets']
+        t = b['stop_chain_osmesa_time_s']
+        d = b['stop_chain_osmesa_distance_m']
+        self.assertAlmostEqual(t['value'], 2.471)
+        self.assertAlmostEqual(d['value'], 0.3306)
+        self.assertEqual(t['scope'], 'lite3_mj_depth_osmesa_perception_to_rest_flat_0p3_3x3')
+        self.assertEqual(d['scope'], 'lite3_mj_depth_osmesa_perception_to_peak_flat_0p3_3x3')
+        self.assertEqual(t['sample_n'], 9)
+        self.assertEqual(d['sample_n'], 9)
+        self.assertIn('budgets.stop_chain_osmesa_time_s', cal.SCOPED_REQUIRED)
+        self.assertIn('budgets.stop_chain_osmesa_distance_m', cal.SCOPED_REQUIRED)
+        report = cal.validate_frozen()
+        self.assertEqual(len(report['pending']), 4)
+        keys = [x['key'] for x in report['pending_detail']]
+        self.assertIn('budgets.stop_time_s.value', keys)
+        self.assertIn('budgets.stop_distance_m.value', keys)
+
+    def test_stop_chain_osmesa_scope_guard(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['budgets']['stop_chain_osmesa_time_s']['scope'] = 'full_chain'
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_stop_component_raise_logged(self):
+        log = cal.FROZEN['unfreeze_log']
+        found = [e for e in log if e.get('key') == 'budgets.stop_brake_peak_distance_m.value'
+                 and e.get('from') == 0.076 and e.get('to') == 0.125]
+        self.assertEqual(len(found), 1)
+        found = [e for e in log if e.get('key') == 'budgets.stop_brake_peak_time_s.value'
+                 and e.get('from') == 0.387 and e.get('to') == 1.17]
+        self.assertEqual(len(found), 1)
 
     def test_resources_and_sampling_frozen_shape(self):
         cfg = cal.FROZEN

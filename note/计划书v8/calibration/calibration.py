@@ -75,6 +75,33 @@ FROZEN = {
          'reason': '同 9 次 hold→前冲峰值时间最大 0.387 s；确认静止 0.8—2.0 s 属另一指标、不并入；'
                    '全链 budgets.stop_time_s 仍 pending；属新增判据非放宽'},
         {'when': '2026-10-27',
+         'key': 'budgets.stop_brake_peak_distance_m.value',
+         'from': 0.076, 'to': 0.125,
+         'change': '同域重定：制动段前冲距离 0.076→0.125 m（scope 不变）',
+         'reason': 'R726 同域 3×3/15 次 hold→峰值 0.1075/0.1081 m，旧 3 相位漏掉长制动相；'
+                   '×1.15 取 0.125；含墙/渲染线程。抬高停车上限在验收语义上算放宽，'
+                   'check_loosening 对 budgets 仅识别下调（规则盲区），须独立复核'},
+        {'when': '2026-10-27',
+         'key': 'budgets.stop_brake_peak_time_s.value',
+         'from': 0.387, 'to': 1.17,
+         'change': '同域重定：制动段峰值时间 0.387→1.17 s（scope 不变）',
+         'reason': 'R726 同域 hold→峰值 max 1.17 s（实测最大，未加 15%）；含墙/渲染线程；'
+                   '同属抬高停车上限，须独立复核'},
+        {'when': '2026-10-27',
+         'key': 'budgets.stop_chain_osmesa_time_s.value',
+         'from': '未定标（pending）', 'to': 2.471,
+         'change': '新增 osmesa 全链代理时间 2.471 s（scope 限深度 osmesa 感知→静止）',
+         'reason': 'R726 3×3 base_x 静止 max 2.471 s（0_a），15 次同；同载体同 run 同 sim 钟，'
+                   '含墙/渲染；osmesa 约 3 Hz；无规划段、非目标传感器、仅平地 0.3 m/s；'
+                   '不替代 budgets.stop_time_s（仍 pending）'},
+        {'when': '2026-10-27',
+         'key': 'budgets.stop_chain_osmesa_distance_m.value',
+         'from': '未定标（pending）', 'to': 0.3306,
+         'change': '新增 osmesa 全链代理距离 0.3306 m（scope 限深度 osmesa 感知→峰值）',
+         'reason': 'R726 3×3 峰值前冲 max 0.3306 m（0_b），15 次同；取峰值非静止 0.3242；'
+                   '同载体同 run 同 sim 钟，含墙/渲染；osmesa 约 3 Hz；无规划段、非目标传感器、'
+                   '仅平地 0.3 m/s；不替代 budgets.stop_distance_m（仍 pending）'},
+        {'when': '2026-10-27',
          'key': 'latency.p95_local_s.value',
          'from': '未定标（pending）', 'to': 0.8966,
          'change': '新增局部层响应 p95 0.8966 s（带域 scan_sim_consumed_cloud_to_bspline_27run）',
@@ -101,21 +128,37 @@ FROZEN = {
                           'evidence': 'R715 定标首轮 3 次 hold→/cmd_vel 归零，最大 37.2 ms（n=3）；'
                                       'scope=mux_hold_only 仅 mux 保持归零，不含 follower 收尾/底盘减速/进程退出；'
                                       '全链停车由 budgets.stop_time_s（仍 pending）把关'},
-        # 制动分量（2026-10-27 判据面，小美，R720）：只覆盖 hold→前冲峰值这一段，
-        # 不含感知/规划/控制上游；全链 stop_time_s / stop_distance_m 仍 pending。
-        'stop_brake_peak_distance_m': {'value': 0.076,
+        # 制动分量（2026-10-27 判据面，小美，R720；R727 同域重定）：只覆盖
+        # hold→前冲峰值这一段，不含感知/规划/控制上游；全链两键仍 pending。
+        'stop_brake_peak_distance_m': {'value': 0.125,
                                        'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
                                        'sample_n': 9,
-                                       'evidence': 'R719/R720 0.3 m/s 平地 3 相位×3=9 次'
-                                                   '（seeds 6—8/31—33/34—36，均带运行日志），触发后最大前冲'
-                                                   ' max 0.0656 m，按判据面 +15% 取 0.076 m（0.0656×1.15=0.0754，进位到毫米）；'
-                                                   'scope 只含平坦地面制动段，不含感知/规划/控制上游与静止回摆；'
-                                                   '台阶 6 次无效、坡组触发速度 0.418—0.423 不计入本域'},
-        'stop_brake_peak_time_s': {'value': 0.387,
+                                       'evidence': 'R726 同域 3×3/15 次 hold→峰值最大 0.1075/0.1081 m'
+                                                   '（旧 9 次 0.0656 漏了长制动相）；×1.15=0.124315，取 0.125 m；'
+                                                   '含墙/渲染线程；scope 只含平坦地面制动段，不含感知/规划/控制上游'
+                                                   '与静止回摆；台阶 6 次无效、坡组触发速度 0.418—0.423 不计入本域；'
+                                                   '全链 budgets.stop_distance_m 仍 pending'},
+        'stop_brake_peak_time_s': {'value': 1.17,
                                    'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
                                    'sample_n': 9,
-                                   'evidence': '同 9 次 hold→前冲峰值时间 max 0.387 s；确认静止 0.8—2.0 s 属另一指标，'
-                                               '不并入本键；不含感知/规划/控制上游'},
+                                   'evidence': 'R726 同域 hold→峰值时间 max 1.17 s（实测最大，未加 15%）；'
+                                               'hold→静止 0.83—2.05 s 不并入；含墙/渲染线程；'
+                                               '不含感知/规划/控制上游；全链 budgets.stop_time_s 仍 pending'},
+        # 全链 osmesa 代理键（2026-10-27 判据面，小美，R726）：只覆盖
+        # 深度 osmesa 感知→制动，不含规划段；不替代 24 §4.1 全链两键。
+        'stop_chain_osmesa_time_s': {'value': 2.471,
+                                     'scope': 'lite3_mj_depth_osmesa_perception_to_rest_flat_0p3_3x3',
+                                     'sample_n': 9,
+                                     'evidence': 'R726 3×3 base_x 静止 max 2.471 s（0_a），15 次同；'
+                                                 '同载体同 run 同 sim 钟，含墙/渲染；osmesa 96×72 约 3 Hz；'
+                                                 '无规划段；非目标传感器；仅平地 0.3 m/s；不替代 budgets.stop_time_s'},
+        'stop_chain_osmesa_distance_m': {'value': 0.3306,
+                                         'scope': 'lite3_mj_depth_osmesa_perception_to_peak_flat_0p3_3x3',
+                                         'sample_n': 9,
+                                         'evidence': 'R726 3×3 峰值前冲 max 0.3306 m（0_b），15 次同；'
+                                                     '取峰值非静止 0.3242 m；同载体同 run 同 sim 钟，含墙/渲染；'
+                                                     'osmesa 约 3 Hz；无规划段；非目标传感器；仅平地 0.3 m/s；'
+                                                     '不替代 budgets.stop_distance_m'},
     },
     # 时延：带域冻结（2026-10-27 判据面，小美，R715）。p95_global 只覆盖
     # /make_plan 服务端；全栈/全场景时延未测，不得据此扩域或报正式验收。
@@ -224,6 +267,14 @@ REQUIRED = {
     'budgets.stop_brake_peak_time_s.scope': {'types': (str,), 'non_empty': True},
     'budgets.stop_brake_peak_time_s.sample_n': {'types': (int,)},
     'budgets.stop_brake_peak_time_s.evidence': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_osmesa_time_s.value': {'types': (int, float)},
+    'budgets.stop_chain_osmesa_time_s.scope': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_osmesa_time_s.sample_n': {'types': (int,)},
+    'budgets.stop_chain_osmesa_time_s.evidence': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_osmesa_distance_m.value': {'types': (int, float)},
+    'budgets.stop_chain_osmesa_distance_m.scope': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_osmesa_distance_m.sample_n': {'types': (int,)},
+    'budgets.stop_chain_osmesa_distance_m.evidence': {'types': (str,), 'non_empty': True},
     'latency': {'types': (dict,), 'non_empty': True},
     'latency.p95_global_s.value': {'types': (int, float)},
     'latency.p95_global_s.scope': {'types': (str,), 'non_empty': True},
@@ -281,9 +332,11 @@ REQUIRED = {
 # 从本表移出；scope 只含 SCAN 局部层响应、含输入年龄，不含 v8 support_map/全栈。
 PENDING_REQUIRED = [
     {'key': 'budgets.stop_time_s.value', 'types': (int, float),
-     'reason': '24 §4.1 要求停车时间；当前未定标（缺项，禁 freeze）'},
+     'reason': '24 §4.1 要求停车时间；当前只有制动分量与 osmesa 代理键，全链仍缺规划段、'
+               'osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
-     'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前缺失（禁 freeze）'},
+     'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前只有制动分量与 osmesa 代理键，'
+               '全链仍缺规划段、osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
     {'key': 'tolerances.max_localization_error_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求最大定位误差上限；当前未定标（缺项，禁 freeze）'},
     {'key': 'success_rate.min_pass_rate.value', 'types': (int, float),
@@ -306,16 +359,22 @@ SCOPED_REQUIRED = {
                                            'min_sample_n': 3},
     'budgets.stop_brake_peak_time_s': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
                                        'min_sample_n': 3},
+    'budgets.stop_chain_osmesa_time_s': {
+        'scope': 'lite3_mj_depth_osmesa_perception_to_rest_flat_0p3_3x3',
+        'min_sample_n': 3},
+    'budgets.stop_chain_osmesa_distance_m': {
+        'scope': 'lite3_mj_depth_osmesa_perception_to_peak_flat_0p3_3x3',
+        'min_sample_n': 3},
 }
 
 # 24 §4.1 采样要求：每个适用闭环场景至少 3 个预登记 seed、每 seed 3 次重复。
 SAMPLING_MIN_SEEDS = 3
 SAMPLING_MIN_REPETITIONS = 3
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R722 p95_local 带域冻结后）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R727 制动分量重定与 osmesa 代理键后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = '4504444e5b03b96b08dbb8977a05b94124f58eac11099f32387b8859fb28b481'
+DIGEST = '2b8b23ac4bcb01d4e507f52caa67339fd68b1892053aba072acf8ba66e13979a'
 
 
 class CalibrationError(Exception):
