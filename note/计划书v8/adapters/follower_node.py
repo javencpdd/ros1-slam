@@ -11,6 +11,7 @@ class FollowerNode(object):
     def __init__(self):
         raw = rospy.get_param('~path', []) or []
         self.path = [tuple(map(float, p)) for p in raw]
+        rospy.loginfo('[follower] raw=%r', raw)
         rospy.loginfo('[follower] waypoints=%d pose=%s out=%s', len(self.path),
                       rospy.get_param('~pose_topic', '/test/pose'),
                       rospy.get_param('~out_topic', '/follow/cmd_vel'))
