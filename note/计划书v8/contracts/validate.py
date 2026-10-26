@@ -219,13 +219,13 @@ def semantic(kind, value):
             if len(value.get('layers', [])) != 1:
                 raise ContractError('E_MAP_LAYERS', 'occupancy_grid requires exactly one occupancy layer')
         else:
-            if not value['multiple_surfaces_per_xy']:
-                raise ContractError('E_MAP_ML_COLLAPSE', 'support_map must keep multiple surfaces per XY')
             if 'layers' in value:
                 raise ContractError('E_MAP_LAYERS', 'support_map stores surfaces, not occupancy layers')
             surfaces = value['surfaces']
-            if len(surfaces) < 2:
-                raise ContractError('E_MAP_ML_COUNT', 'support_map requires at least two surfaces')
+            if value['multiple_surfaces_per_xy'] and len(surfaces) < 2:
+                raise ContractError('E_MAP_ML_COUNT', 'multi-surface map requires at least two surfaces')
+            if not value['multiple_surfaces_per_xy'] and len(surfaces) != 1:
+                raise ContractError('E_MAP_ML_COLLAPSE', 'single-layer map must declare exactly one surface')
             ids = [surface['surface_id'] for surface in surfaces]
             if len(ids) != len(set(ids)):
                 raise ContractError('E_MAP_SURFACE_DUP', 'duplicate surface_id %s' % (ids,))
@@ -264,7 +264,7 @@ def semantic(kind, value):
             reached = _reachable(surfaces)
             if len(reached) != len(ids):
                 raise ContractError('E_MAP_DISCONNECTED', 'unreachable %s' % sorted(set(ids) - reached))
-            overlap = False
+            overlap = not value['multiple_surfaces_per_xy']
             for index, left in enumerate(surfaces):
                 for right in surfaces[index + 1:]:
                     if (left['footprint']['min_x'] < right['footprint']['max_x']

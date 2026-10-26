@@ -65,7 +65,7 @@ class ContractTests(unittest.TestCase):
                     self.assertEqual(reason(case['kind'], repaired), 'OK',
                                      'repair did not clear ' + case['reason'])
         self.assertEqual(len(seen), len(EXPECT))
-        self.assertEqual((len(EXPECT), len([c for c in EXPECT if c['ok']])), (61, 9))
+        self.assertEqual((len(EXPECT), len([c for c in EXPECT if c['ok']])), (62, 10))
 
     def test_two_kinds_expressible(self):
         flat = load('map_2d_flat.json')
