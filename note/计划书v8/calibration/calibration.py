@@ -19,9 +19,31 @@ FROZEN = {
     'calibration_version': 2,
     # 解封记录（R657 封版 v1 → R661 v2）：official_scenarios 6→14（SC04—06/09/11—14
     # 构造器已落，V8-13 矩阵按 kind 分派执行）；其余五节零变更。
-    'unfreeze_log': {'to_version': 2, 'when': '2026-10-26',
-                     'change': 'denominators.official_scenarios 扩至全 14 场景',
-                     'reason': 'SC 构造器填充完成（R661），分母只认构造器在册场景的原则维持'},
+    # 2026-10-27 判据面（小美，R713 #137）：sampling 两项按 24 §4.1 补齐、resources
+    # 两项按开发机采样冻结；每条带 key/from/to/reason，供 check_loosening 识别。
+    'unfreeze_log': [
+        {'to_version': 2, 'when': '2026-10-26',
+         'change': 'denominators.official_scenarios 扩至全 14 场景',
+         'reason': 'SC 构造器填充完成（R661），分母只认构造器在册场景的原则维持'},
+        {'when': '2026-10-27',
+         'key': 'sampling.scenario_repetitions.value', 'from': 1, 'to': 3,
+         'change': '每场景重复次数 1→3（24 §4.1 采样补齐）',
+         'reason': '24 §4.1 要求每 seed 3 次重复；原 1 次不足，按 R713 #137 显式解封，属收紧非放宽'},
+        {'when': '2026-10-27',
+         'key': 'sampling.perturbation_seeds.value', 'from': [], 'to': ['0', '1', '2'],
+         'change': '预登记 seed 空表→0/1/2（24 §4.1 采样补齐）',
+         'reason': '24 §4.1 要求每适用闭环场景至少 3 个预登记 seed；按 R713 #137 预登记 0/1/2，属收紧非放宽'},
+        {'when': '2026-10-27',
+         'key': 'resources.max_cpu_percent.value',
+         'from': '未定标（pending）', 'to': 50.0,
+         'change': '新增宿主相对负载上限 50%（开发机采样）',
+         'reason': 'R625/R626 load1 8.29、R713 汇总 7.96 对 72 逻辑核≈11.1%—11.5%；按 R621 load1÷核数≤0.5 取 36 核当量，余量≈4.3 倍；开发机采样、非正式定标'},
+        {'when': '2026-10-27',
+         'key': 'resources.max_memory_mb.value',
+         'from': '未定标（pending）', 'to': 6144,
+         'change': '新增单 run 内存上限 6144 MB（开发机采样）',
+         'reason': 'R625 MemAvailable=15315600 kB≈15.3 GB；运行容器内存上限 8 GiB（R625/R660），取 75%＝6144 MB 留 2 GiB 余量；开发机采样、非正式定标'},
+    ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
         'tracking_longitudinal_m': {'value': 0.20, 'evidence': 'R655'},
@@ -36,9 +58,23 @@ FROZEN = {
         'task_budget_s': {'value': 30.0, 'evidence': 'R656 任务夹具'},
         'harness_deadline_s': {'value': 60.0, 'evidence': 'R656'},
     },
+    # 资源上限：开发机采样口径（R625/R626 load1 8.29/72 核、MemAvailable 15315600 kB；
+    # R713 汇总 7.96/72），非正式峰值定标；正式定标须用定标集实测峰值替换。
+    'resources': {
+        'max_cpu_percent': {'value': 50.0,
+                            'evidence': '宿主 load1 占 72 逻辑核百分比：R625/R626 8.29、R713 7.96 → 11.1%—11.5%；'
+                                        '按 R621 load1÷核数≤0.5 取 50%（=36 核当量，与 R625/R633 预检 load1≤36 同口径），'
+                                        '余量≈4.3 倍；开发机采样、非正式定标'},
+        'max_memory_mb': {'value': 6144,
+                          'evidence': 'R625 同批 /proc/meminfo MemAvailable=15315600 kB≈15.3 GB（宿主 32 GiB）；'
+                                      '运行容器内存上限 8 GiB（R625/R660），取 75%＝6144 MB，留 2 GiB 页缓存/节点余量；'
+                                      '开发机采样、非正式定标'},
+    },
     'sampling': {
-        'scenario_repetitions': {'value': 1, 'evidence': '设计层确定性（无随机源）'},
-        'perturbation_seeds': {'value': [], 'evidence': '设计层无随机；运行面注入另批'},
+        'scenario_repetitions': {'value': 3,
+                                 'evidence': '24 §4.1 每 seed 3 次重复；原 1 次为采样欠账，2026-10-27 解封补至 3（R713 #137）'},
+        'perturbation_seeds': {'value': ['0', '1', '2'],
+                               'evidence': '24 §4.1 每适用闭环场景至少 3 个预登记 seed；2026-10-27 预登记 0/1/2（R713 #137）'},
     },
     'denominators': {
         'official_scenarios': {'value': ['SC01', 'SC02', 'SC03', 'SC04', 'SC05', 'SC06',
@@ -65,9 +101,9 @@ FROZEN = {
 
 # 必需键：键路径 → 允许类型 / 是否非空 / 列表元素类型。
 # 缺键、None、空表、类型不符一律 E_CAL_PENDING（fail-closed）。
-# 覆盖五节（tolerances/budgets/sampling/denominators/rerun_rules）全部叶子的
-# value 与 evidence；sampling.perturbation_seeds 的空表属 4.1 采样欠账，
-# 由 PENDING_REQUIRED 报告，不在此处误判为形状缺项。
+# 覆盖六节（tolerances/budgets/resources/sampling/denominators/rerun_rules）
+# 全部叶子的 value 与 evidence；sampling 是否达到 4.1 门槛由 _pending_report
+# 按值核验（3 seed×3 重复），空表在形状层只判合法、不据此判绿。
 REQUIRED = {
     'calibration_version': {'types': (int,)},
     'unfreeze_log': {'types': (dict, list), 'non_empty': True},
@@ -93,6 +129,11 @@ REQUIRED = {
     'budgets.task_budget_s.evidence': {'types': (str,), 'non_empty': True},
     'budgets.harness_deadline_s.value': {'types': (int, float)},
     'budgets.harness_deadline_s.evidence': {'types': (str,), 'non_empty': True},
+    'resources': {'types': (dict,), 'non_empty': True},
+    'resources.max_cpu_percent.value': {'types': (int, float)},
+    'resources.max_cpu_percent.evidence': {'types': (str,), 'non_empty': True},
+    'resources.max_memory_mb.value': {'types': (int, float)},
+    'resources.max_memory_mb.evidence': {'types': (str,), 'non_empty': True},
     'sampling': {'types': (dict,), 'non_empty': True},
     'sampling.scenario_repetitions.value': {'types': (int,)},
     'sampling.scenario_repetitions.evidence': {'types': (str,), 'non_empty': True},
@@ -116,6 +157,8 @@ REQUIRED = {
 
 # 当前确实缺失、24 §4.1 要求但尚未定标的项：只报告 pending+blocked，
 # 不塞进 FROZEN（不改已冻结数值），也绝不据此判绿。
+# 2026-10-27 判据面（小美，R713 #137）：resources 两项已按开发机采样冻结，
+# 从本表移出；sampling 两项由 _pending_report 按 4.1 门槛核验，达标后不再 pending。
 PENDING_REQUIRED = [
     {'key': 'latency.p95_global_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求 p95 全局时延；当前未定标（缺项，禁 freeze）'},
@@ -129,10 +172,6 @@ PENDING_REQUIRED = [
      'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前缺失（禁 freeze）'},
     {'key': 'tolerances.max_localization_error_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求最大定位误差上限；当前未定标（缺项，禁 freeze）'},
-    {'key': 'resources.max_cpu_percent.value', 'types': (int, float),
-     'reason': '24 §4.1 要求资源上限；当前未定标（缺项，禁 freeze）'},
-    {'key': 'resources.max_memory_mb.value', 'types': (int, float),
-     'reason': '24 §4.1 要求资源上限；当前未定标（缺项，禁 freeze）'},
     {'key': 'success_rate.min_pass_rate.value', 'types': (int, float),
      'reason': '24 §4.1 要求成功率门槛；当前未定标（缺项，禁 freeze）'},
 ]
@@ -144,7 +183,7 @@ SAMPLING_MIN_REPETITIONS = 3
 # golden digest：由当前 FROZEN 实算后填入（2026-10-27）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = '9a00d49bdd8bed7b7f922fcfe84c2867de17d5b707db6c349767642d48a52f1b'
+DIGEST = '3083af9325a9ce30b10e34b353358c1bd8c095b9fc8e451f156882f2493b696d'
 
 
 class CalibrationError(Exception):
@@ -341,6 +380,10 @@ def _loosening_reason(path, old, new):
         if _is_number(old) and _is_number(new) and new < old:
             return '预算/上限下调'
         return None
+    if path.startswith('resources.') and path.endswith('.value'):
+        if _is_number(old) and _is_number(new) and new > old:
+            return '资源上限上调'
+        return None
     if path == 'sampling.scenario_repetitions.value':
         if _is_number(old) and _is_number(new) and new < old:
             return '重复次数下调'
@@ -399,8 +442,9 @@ def _authorizes(entry, path, old, new):
 def check_loosening(previous, current):
     """纯函数：相对 previous，current 的放宽项须有 from/to 且 reason 非空的 unfreeze。
 
-    放宽口径：容差上调（min_clearance 为下调）、预算/上限下调、分母/矩阵条目减少、
-    采样重复与 seed 减少、重跑上限上调、定标 run 改为计入正式分母；删除受控键亦算。
+    放宽口径：容差上调（min_clearance 为下调）、预算/上限下调、资源上限上调、
+    分母/矩阵条目减少、采样重复与 seed 减少、重跑上限上调、定标 run 改为计入正式分母；
+    删除受控键亦算。
     返回被放宽的键路径列表；无放宽返回 []；未授权抛 E_CAL_LOOSENED。
     """
     previous_values = dict(_iter_value_leaves(previous))

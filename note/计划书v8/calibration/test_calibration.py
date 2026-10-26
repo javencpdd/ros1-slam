@@ -174,15 +174,88 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(report['status'], 'blocked')
         self.assertFalse(report['freeze_allowed'])
         pending = report['pending']
-        self.assertTrue(pending)
-        for token in ('sampling.scenario_repetitions', 'sampling.perturbation_seeds',
-                      'latency.p95_global_s', 'latency.p95_local_s',
+        self.assertEqual(len(pending), 7)
+        for token in ('latency.p95_global_s', 'latency.p95_local_s',
                       'budgets.cancel_time_s', 'budgets.stop_time_s',
                       'budgets.stop_distance_m', 'tolerances.max_localization_error_m',
-                      'resources.max_cpu_percent', 'success_rate.min_pass_rate'):
+                      'success_rate.min_pass_rate'):
             self.assertTrue(any(token in key for key in pending), token)
+        # 2026-10-27 判据面已落实的四项不得再 pending（资源降级为可复核值）。
+        for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
+                      'sampling.scenario_repetitions', 'sampling.perturbation_seeds'):
+            self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
         self.assertIn('4.1', reasons)
+
+    # ------------------------------------------------------------------
+    # 判据面裁定（2026-10-27，小美）：resources 两项＋sampling 两项落实；
+    # 其余 7 项（p95×2、cancel/stop、定位误差、成功率）保持 pending。
+    # ------------------------------------------------------------------
+    def test_resources_and_sampling_frozen_shape(self):
+        cfg = cal.FROZEN
+        cpu = cfg['resources']['max_cpu_percent']['value']
+        mem = cfg['resources']['max_memory_mb']['value']
+        self.assertIsInstance(cpu, (int, float))
+        self.assertNotIsInstance(cpu, bool)
+        self.assertTrue(0 < cpu <= 100)
+        self.assertIsInstance(mem, int)
+        self.assertNotIsInstance(mem, bool)
+        self.assertGreater(mem, 0)
+        self.assertLessEqual(mem, 8 * 1024)  # 运行容器 8 GiB 上限内（R625/R660）
+        for key in ('max_cpu_percent', 'max_memory_mb'):
+            evidence = cfg['resources'][key]['evidence']
+            self.assertIn('开发机采样', evidence)
+            self.assertIn('非正式定标', evidence)
+        self.assertEqual(cfg['sampling']['scenario_repetitions']['value'], 3)
+        seeds = cfg['sampling']['perturbation_seeds']['value']
+        self.assertEqual(seeds, ['0', '1', '2'])
+        self.assertEqual(len(seeds), len(set(seeds)))
+        self.assertTrue(all(isinstance(seed, str) for seed in seeds))
+        # unfreeze 记录须带守卫期望的 key/from/to/reason。
+        entries = {entry.get('key'): entry for entry in cfg['unfreeze_log']
+                   if isinstance(entry, dict) and entry.get('key')}
+        repetitions = entries['sampling.scenario_repetitions.value']
+        self.assertEqual((repetitions['from'], repetitions['to']), (1, 3))
+        perturbation = entries['sampling.perturbation_seeds.value']
+        self.assertEqual(perturbation['from'], [])
+        self.assertEqual(perturbation['to'], ['0', '1', '2'])
+        for entry in (repetitions, perturbation):
+            self.assertTrue(entry['reason'].strip())
+        report = cal.validate_frozen()
+        self.assertFalse(any(key.startswith(('resources.', 'sampling.'))
+                             for key in report['pending']))
+
+    def test_repetitions_revert_caught(self):
+        """把 repetitions 从 3 改回 1：golden digest 必红且 pending 复现。"""
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['sampling']['scenario_repetitions']['value'] = 1
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.assert_digest(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_DIGEST')
+        report = cal.validate_frozen(bad)
+        self.assertIn('sampling.scenario_repetitions.value', report['pending'])
+        self.assertFalse(report['freeze_allowed'])
+        # 回退属放宽：无 3→1 的 unfreeze from/to（现有记录是 1→3），守卫须拒。
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(cal.FROZEN, bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+
+    def test_resources_section_required(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        del bad['resources']
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        self.assertIn('resources', caught.exception.detail)
+
+    def test_resource_cap_raise_requires_unfreeze(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        current['resources']['max_cpu_percent']['value'] = 60.0
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('max_cpu_percent', caught.exception.detail)
 
 
 if __name__ == '__main__':
