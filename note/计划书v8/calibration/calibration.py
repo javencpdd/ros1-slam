@@ -61,6 +61,19 @@ FROZEN = {
          'reason': 'R715 定标首轮 3 次 hold→/cmd_vel 归零实测最大 37.2 ms，sample_n=3；'
                    'scope=mux_hold_only（仅 mux 保持归零，不含 follower 收尾/底盘减速/进程退出）；'
                    '全链停车仍由 budgets.stop_time_s（pending）把关；属新增判据非放宽'},
+        {'when': '2026-10-27',
+         'key': 'budgets.stop_brake_peak_distance_m.value',
+         'from': '未定标（pending）', 'to': 0.076,
+         'change': '新增制动段前冲距离分量 0.076 m（带域 lite3_mj_dyn_hold_peak_0p3_flat）',
+         'reason': 'R719/R720 0.3 m/s 平地 3 相位×3=9 次（seeds 6—8/31—33/34—36，均带运行日志）'
+                   '最大前冲 0.0656 m，按判据面 +15% 取 0.076 m；只覆盖 hold→前冲峰值，'
+                   '不含感知/规划/控制上游；全链 budgets.stop_distance_m 仍 pending；属新增判据非放宽'},
+        {'when': '2026-10-27',
+         'key': 'budgets.stop_brake_peak_time_s.value',
+         'from': '未定标（pending）', 'to': 0.387,
+         'change': '新增制动段峰值时间分量 0.387 s（同带域）',
+         'reason': '同 9 次 hold→前冲峰值时间最大 0.387 s；确认静止 0.8—2.0 s 属另一指标、不并入；'
+                   '全链 budgets.stop_time_s 仍 pending；属新增判据非放宽'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -82,6 +95,21 @@ FROZEN = {
                           'evidence': 'R715 定标首轮 3 次 hold→/cmd_vel 归零，最大 37.2 ms（n=3）；'
                                       'scope=mux_hold_only 仅 mux 保持归零，不含 follower 收尾/底盘减速/进程退出；'
                                       '全链停车由 budgets.stop_time_s（仍 pending）把关'},
+        # 制动分量（2026-10-27 判据面，小美，R720）：只覆盖 hold→前冲峰值这一段，
+        # 不含感知/规划/控制上游；全链 stop_time_s / stop_distance_m 仍 pending。
+        'stop_brake_peak_distance_m': {'value': 0.076,
+                                       'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+                                       'sample_n': 9,
+                                       'evidence': 'R719/R720 0.3 m/s 平地 3 相位×3=9 次'
+                                                   '（seeds 6—8/31—33/34—36，均带运行日志），触发后最大前冲'
+                                                   ' max 0.0656 m，按判据面 +15% 取 0.076 m（0.0656×1.15=0.0754，进位到毫米）；'
+                                                   'scope 只含平坦地面制动段，不含感知/规划/控制上游与静止回摆；'
+                                                   '台阶 6 次无效、坡组触发速度 0.418—0.423 不计入本域'},
+        'stop_brake_peak_time_s': {'value': 0.387,
+                                   'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+                                   'sample_n': 9,
+                                   'evidence': '同 9 次 hold→前冲峰值时间 max 0.387 s；确认静止 0.8—2.0 s 属另一指标，'
+                                               '不并入本键；不含感知/规划/控制上游'},
     },
     # 时延：带域冻结（2026-10-27 判据面，小美，R715）。p95_global 只覆盖
     # /make_plan 服务端；全栈/全场景时延未测，不得据此扩域或报正式验收。
@@ -169,6 +197,14 @@ REQUIRED = {
     'budgets.cancel_time_s.scope': {'types': (str,), 'non_empty': True},
     'budgets.cancel_time_s.sample_n': {'types': (int,)},
     'budgets.cancel_time_s.evidence': {'types': (str,), 'non_empty': True},
+    'budgets.stop_brake_peak_distance_m.value': {'types': (int, float)},
+    'budgets.stop_brake_peak_distance_m.scope': {'types': (str,), 'non_empty': True},
+    'budgets.stop_brake_peak_distance_m.sample_n': {'types': (int,)},
+    'budgets.stop_brake_peak_distance_m.evidence': {'types': (str,), 'non_empty': True},
+    'budgets.stop_brake_peak_time_s.value': {'types': (int, float)},
+    'budgets.stop_brake_peak_time_s.scope': {'types': (str,), 'non_empty': True},
+    'budgets.stop_brake_peak_time_s.sample_n': {'types': (int,)},
+    'budgets.stop_brake_peak_time_s.evidence': {'types': (str,), 'non_empty': True},
     'latency': {'types': (dict,), 'non_empty': True},
     'latency.p95_global_s.value': {'types': (int, float)},
     'latency.p95_global_s.scope': {'types': (str,), 'non_empty': True},
@@ -215,6 +251,9 @@ REQUIRED = {
 #      感知/控制延迟**与制动**，无制动平台测得值物理上不含制动段，不能代表该预算；
 #      stop_time 同理只含消息/控制器链路时延，不能代表含制动收尾的停车时间。
 # 待 n≥3 且 stop_distance 在有制动/动力学底盘上复测后，再交判据面带域冻结。
+# 2026-10-27（R720）：动态载体矩阵已补（9 次有效/0.3 平地三相、9 次/0.4、低摩擦 3、坡 3、
+# 台阶 6 无效），但 24 §4.1 的全链口径仍缺感知/规划/控制上游与台阶有效样本；
+# 判据面只批准另立制动分量键（stop_brake_peak_*），本表两条全链键继续 pending。
 PENDING_REQUIRED = [
     {'key': 'latency.p95_local_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求 p95 局部时延；当前未定标（缺项，禁 freeze）'},
@@ -233,19 +272,25 @@ PENDING_REQUIRED = [
 # 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
 # R716 的 stop_time/stop_distance 未列入本表（n=1＜3 且载体无制动），
 # 不得为了收下这两项把对应条目的 min_sample_n 调低——那是放宽守卫。
+# R720：制动分量（stop_brake_peak_*）入表；全链 stop_time/stop_distance 仍 pending，
+# 分量 scope 不含感知/规划/控制上游，不得据此替代全链预算。
 SCOPED_REQUIRED = {
     'latency.p95_global_s': {'scope': 'planner_service_only', 'min_sample_n': 3},
     'budgets.cancel_time_s': {'scope': 'mux_hold_only', 'min_sample_n': 3},
+    'budgets.stop_brake_peak_distance_m': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+                                           'min_sample_n': 3},
+    'budgets.stop_brake_peak_time_s': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+                                       'min_sample_n': 3},
 }
 
 # 24 §4.1 采样要求：每个适用闭环场景至少 3 个预登记 seed、每 seed 3 次重复。
 SAMPLING_MIN_SEEDS = 3
 SAMPLING_MIN_REPETITIONS = 3
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R715 带域冻结后）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R720 制动分量冻结后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'b7f8eba7e766f5d74339520306e70f39f0917cae493ee893ad9221af0c9b60a7'
+DIGEST = '3641c040abd1ad51191a6d5e79d4bc0c0e89b67f00b5ff71453a206e79bf3af2'
 
 
 class CalibrationError(Exception):

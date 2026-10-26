@@ -179,10 +179,11 @@ class CalibrationTests(unittest.TestCase):
                       'budgets.stop_distance_m', 'tolerances.max_localization_error_m',
                       'success_rate.min_pass_rate'):
             self.assertTrue(any(token in key for key in pending), token)
-        # 2026-10-27 判据面已落实的项不得再 pending（资源/采样/两个带域字段）。
+        # 2026-10-27 判据面已落实的项不得再 pending（资源/采样/两个带域字段/制动分量）。
         for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
                       'sampling.scenario_repetitions', 'sampling.perturbation_seeds',
-                      'latency.p95_global_s', 'budgets.cancel_time_s'):
+                      'latency.p95_global_s', 'budgets.cancel_time_s',
+                      'budgets.stop_brake_peak_distance_m', 'budgets.stop_brake_peak_time_s'):
             self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
         self.assertIn('4.1', reasons)
@@ -192,6 +193,46 @@ class CalibrationTests(unittest.TestCase):
     # 判据面裁定（2026-10-27，小美，R715）：p95_global 与 cancel_time 带域冻结；
     # p95_local、stop_time、stop_distance、定位误差、成功率保持 pending。
     # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # 判据面裁定（2026-10-27，小美，R720）：制动分量另立两键；
+    # 全链 stop_time/stop_distance 继续 pending。
+    # ------------------------------------------------------------------
+    def test_stop_brake_components_frozen_scoped(self):
+        b = cal.FROZEN['budgets']
+        d = b['stop_brake_peak_distance_m']
+        t = b['stop_brake_peak_time_s']
+        self.assertEqual(d['scope'], 'lite3_mj_dyn_hold_peak_0p3_flat')
+        self.assertEqual(t['scope'], d['scope'])
+        self.assertEqual(d['sample_n'], 9)
+        self.assertEqual(t['sample_n'], 9)
+        self.assertAlmostEqual(d['value'], 0.076)
+        self.assertAlmostEqual(t['value'], 0.387)
+        self.assertIn('budgets.stop_brake_peak_distance_m', cal.SCOPED_REQUIRED)
+        self.assertIn('budgets.stop_brake_peak_time_s', cal.SCOPED_REQUIRED)
+        report = cal.validate_frozen()
+        self.assertEqual(report['status'], 'blocked')
+        self.assertFalse(report['freeze_allowed'])
+
+    def test_stop_brake_component_scope_and_sample_guard(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['budgets']['stop_brake_peak_distance_m']['scope'] = 'full_stack'
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['budgets']['stop_brake_peak_time_s']['sample_n'] = 2
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(bad)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_stop_full_chain_keys_stay_pending_r720(self):
+        report = cal.validate_frozen()
+        keys = [item['key'] for item in report['pending_detail']]
+        self.assertIn('budgets.stop_time_s.value', keys)
+        self.assertIn('budgets.stop_distance_m.value', keys)
+        self.assertNotIn('budgets.stop_brake_peak_time_s.value', keys)
+        self.assertNotIn('budgets.stop_brake_peak_distance_m.value', keys)
+
     def test_resources_and_sampling_frozen_shape(self):
         cfg = cal.FROZEN
         cpu = cfg['resources']['max_cpu_percent']['value']
