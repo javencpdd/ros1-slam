@@ -77,7 +77,7 @@ FROZEN = {
         {'when': '2026-10-27',
          'key': 'budgets.stop_brake_peak_distance_m.value',
          'from': 0.076, 'to': 0.124,
-         'change': '同域重定：制动段前冲距离 0.076→0.124 m（scope 不变）',
+         'change': '同域重定：制动段前冲距离 0.076→0.124 m（scope 加 wall_render，域语义不变）',
          'reason': 'R726 同域 3×3 九次 hold→峰值 max 0.1075 m，旧 3 相位漏掉长制动相；'
                    '×1.15 取 0.124；15 次补充 0.1081 仅绝对覆盖、不享受余量；scope 加 wall_render 编码测试条件，'
                    '域语义未变。抬高停车上限在验收语义上算放宽，'
@@ -85,7 +85,7 @@ FROZEN = {
         {'when': '2026-10-27',
          'key': 'budgets.stop_brake_peak_time_s.value',
          'from': 0.387, 'to': 1.17,
-         'change': '同域重定：制动段峰值时间 0.387→1.17 s（scope 不变）',
+         'change': '同域重定：制动段峰值时间 0.387→1.17 s（scope 加 wall_render，域语义不变）',
          'reason': 'R726 同域 hold→峰值 max 1.17 s（实测最大，未加 15%）；含墙/渲染线程；'
                    'scope 加 wall_render 编码测试条件；同属抬高停车上限，须独立复核'},
         {'when': '2026-10-27',
@@ -376,7 +376,7 @@ SAMPLING_MIN_REPETITIONS = 3
 # golden digest：由当前 FROZEN 实算后填入（2026-10-27，R729 scope 编码后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'd998e4d09355ea82fd9c897097dc080ddda221b28bbbd2b7c6db22bcfe459b77'
+DIGEST = '6d0fadf66b40035b17e3bdb997844bc1d92564e59a678e79877114a132350d29'
 
 
 class CalibrationError(Exception):
