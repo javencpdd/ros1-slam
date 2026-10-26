@@ -148,8 +148,8 @@ def main(argv=None):
     if rospy.get_param('~enable_getpath', False):
         import actionlib
         from mbf_msgs.msg import GetPathAction, GetPathResult
-        def getpath(goal_handle):
-            goal = goal_handle.get_goal()
+        def getpath(goal):
+            # SimpleActionServer 的 execute_cb 收到的是 goal 消息本身，不是 handle。
             target = getattr(goal, 'target_pose', None) or goal.goal   # 字段名为 target_pose
             start = pose_xyz(goal.start_pose) if goal.use_start_pose else tuple(start_xyz)
             keys = {'map': request_map(), 'start': start,
@@ -157,21 +157,23 @@ def main(argv=None):
             if hint:
                 keys['hint'] = hint
             result = GetPathResult()
+            rospy.loginfo('getpath: start=%s target=%s hint=%s', start, pose_xyz(target), hint)
             try:
                 planned = plan_route(keys)
+                rospy.loginfo('getpath: planned %s points', len(planned['path']))
             except (ValueError, support_planner.PlannerError) as error:
                 result.outcome = 53 if 'GOAL_INVALID' in str(getattr(error, 'code', '')) else 50
                 result.message = (refusal(error) if hasattr(error, 'code')
                                   else {'reason': 'E_PLAN_INPUT', 'detail': str(error)})['reason'] + ': ' + str(error)
                 rospy.set_param(status, {'ok': False, 'reason': result.message.split(':')[0]})
-                goal_handle.set_aborted(result)
+                server.set_aborted(result, result.message)
                 return
             result.path = to_path_message(planned, frame, sim_stamp())
             result.message = 'route found'
             rospy.set_param(status, {'ok': True, 'segments': planned['segments'],
                                      'transitions': planned['transitions'],
                                      'expansions': planned['expansions'], 'length': planned['length']})
-            goal_handle.set_succeeded(result)
+            server.set_succeeded(result)
         server = actionlib.SimpleActionServer(rospy.get_param('~getpath_action', '/move_base_flex/get_path'),
                                               GetPathAction, execute_cb=getpath, auto_start=False)
         server.start()
