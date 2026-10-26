@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="nodelet" type="nodelet" name="hdl_manager5" args="manager" output="screen"/>
+  <node pkg="nodelet" type="nodelet" name="globalmap_server5"
+        args="load hdl_localization/GlobalmapServerNodelet hdl_manager5 --no-bond">
+    <param name="globalmap_pcd" value="/opt/ros1-slam/ws/src/20_localization/hdl_localization/data/map.pcd"/>
+    <param name="convert_utm_to_local" value="false"/>
+    <param name="downsample_resolution" value="0.1"/>
+  </node>
+</launch>

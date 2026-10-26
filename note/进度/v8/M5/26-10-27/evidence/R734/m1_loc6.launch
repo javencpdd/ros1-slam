@@ -1,0 +1,23 @@
+<launch>
+  <node pkg="nodelet" type="nodelet" name="hdl_loc6"
+        args="load hdl_localization/HdlLocalizationNodelet hdl_manager6 --no-bond">
+    <remap from="/velodyne_points" to="/rslidar_points"/>
+    <remap from="/odom" to="/hdl_odom"/>
+    <param name="odom_child_frame_id" value="base_link"/>
+    <param name="use_imu" value="false"/>
+    <param name="reg_method" value="NDT_OMP"/>
+    <param name="ndt_neighbor_search_method" value="DIRECT7"/>
+    <param name="ndt_neighbor_search_radius" value="2.0"/>
+    <param name="ndt_resolution" value="1.0"/>
+    <param name="downsample_resolution" value="0.1"/>
+    <param name="specify_init_pose" value="true"/>
+    <param name="init_pos_x" value="0.0"/>
+    <param name="init_pos_y" value="0.0"/>
+    <param name="init_pos_z" value="0.0"/>
+    <param name="init_ori_w" value="1.0"/>
+    <param name="init_ori_x" value="0.0"/>
+    <param name="init_ori_y" value="0.0"/>
+    <param name="init_ori_z" value="0.0"/>
+    <param name="use_global_localization" value="false"/>
+  </node>
+</launch>

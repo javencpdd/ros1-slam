@@ -1,0 +1,35 @@
+<launch>
+  <arg name="map" default="/work/maps/m1_world.pcd"/>
+  <node pkg="nodelet" type="nodelet" name="hdl_manager" args="manager" output="screen"/>
+  <node pkg="nodelet" type="nodelet" name="globalmap_server_nodelet"
+        args="load hdl_localization/GlobalmapServerNodelet hdl_manager --no-bond">
+    <param name="globalmap_pcd" value="$(arg map)"/>
+    <param name="convert_utm_to_local" value="false"/>
+    <param name="downsample_resolution" value="0.1"/>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="hdl_localization_nodelet"
+        args="load hdl_localization/HdlLocalizationNodelet hdl_manager --no-bond">
+    <remap from="/velodyne_points" to="/rslidar_points"/>
+    <remap from="/gpsimu_driver/imu_data" to="/livox/imu"/>
+    <remap from="/odom" to="/hdl_odom"/>
+    <param name="odom_child_frame_id" value="base_link"/>
+    <param name="use_imu" value="true"/>
+    <param name="invert_acc" value="false"/>
+    <param name="invert_gyro" value="false"/>
+    <param name="cool_time_duration" value="2.0"/>
+    <param name="reg_method" value="NDT_OMP"/>
+    <param name="ndt_neighbor_search_method" value="DIRECT7"/>
+    <param name="ndt_neighbor_search_radius" value="2.0"/>
+    <param name="ndt_resolution" value="1.0"/>
+    <param name="downsample_resolution" value="0.1"/>
+    <param name="specify_init_pose" value="true"/>
+    <param name="init_pos_x" value="0.0"/>
+    <param name="init_pos_y" value="0.0"/>
+    <param name="init_pos_z" value="0.0"/>
+    <param name="init_ori_w" value="1.0"/>
+    <param name="init_ori_x" value="0.0"/>
+    <param name="init_ori_y" value="0.0"/>
+    <param name="init_ori_z" value="0.0"/>
+    <param name="use_global_localization" value="false"/>
+  </node>
+</launch>

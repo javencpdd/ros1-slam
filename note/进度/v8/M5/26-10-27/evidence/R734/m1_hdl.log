@@ -1,0 +1,66 @@
+[31m[ERROR] [1793056567.515633106, 247.748000000]: globalmap has not been received!![0m
+[31m[ERROR] [1793056567.708943802, 247.835000000]: globalmap has not been received!![0m
+[31m[ERROR] [1793056567.931515852, 247.937000000]: globalmap has not been received!![0m
+[31m[ERROR] [1793056568.082333447, 248.003000000]: globalmap has not been received!![0m
+[31m[ERROR] [1793056568.372113559, 248.133000000]: globalmap has not been received!![0m
+[33m[ WARN] [1793056787.457147722, 344.412000000]: Shutdown request received. Reason: [[/globalmap_server_nodelet] Reason: new node registered with same name][0m
+[33m[ WARN] [1793056787.462936994, 344.415000000]: Shutdown request received. Reason: [[/hdl_localization_nodelet] Reason: new node registered with same name][0m
+[33m[ WARN] [1793056787.499719294, 344.433000000]: Couldn't find service hdl_manager/unload_nodelet, perhaps the manager is already shut down[0m
+[33m[ WARN] [1793056787.542053361, 344.454000000]: Couldn't find service hdl_manager/unload_nodelet, perhaps the manager is already shut down[0m
+[31m[hdl_manager-1] process has died [pid 71925, exit code -11, cmd /opt/ros/noetic/lib/nodelet/nodelet manager __name:=hdl_manager __log:=/work/logs/df682f46-d191-11f1-b30a-52ee044d117f/hdl_manager-1.log].
+log file: /work/logs/df682f46-d191-11f1-b30a-52ee044d117f/hdl_manager-1*.log[0m
+... logging to /work/logs/df682f46-d191-11f1-b30a-52ee044d117f/roslaunch-1b2d74d00d24-71848.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/work/m1_hdl.launch
+[1mstarted roslaunch server http://127.0.0.1:43927/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /globalmap_server_nodelet/convert_utm_to_local: False
+ * /globalmap_server_nodelet/downsample_resolution: 0.1
+ * /globalmap_server_nodelet/globalmap_pcd: /work/maps/m1_wor...
+ * /hdl_localization_nodelet/cool_time_duration: 2.0
+ * /hdl_localization_nodelet/downsample_resolution: 0.1
+ * /hdl_localization_nodelet/init_ori_w: 1.0
+ * /hdl_localization_nodelet/init_ori_x: 0.0
+ * /hdl_localization_nodelet/init_ori_y: 0.0
+ * /hdl_localization_nodelet/init_ori_z: 0.0
+ * /hdl_localization_nodelet/init_pos_x: 0.0
+ * /hdl_localization_nodelet/init_pos_y: 0.0
+ * /hdl_localization_nodelet/init_pos_z: 0.0
+ * /hdl_localization_nodelet/invert_acc: False
+ * /hdl_localization_nodelet/invert_gyro: False
+ * /hdl_localization_nodelet/ndt_neighbor_search_method: DIRECT7
+ * /hdl_localization_nodelet/ndt_neighbor_search_radius: 2.0
+ * /hdl_localization_nodelet/ndt_resolution: 1.0
+ * /hdl_localization_nodelet/odom_child_frame_id: base_link
+ * /hdl_localization_nodelet/reg_method: NDT_OMP
+ * /hdl_localization_nodelet/specify_init_pose: True
+ * /hdl_localization_nodelet/use_global_localization: False
+ * /hdl_localization_nodelet/use_imu: True
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+
+NODES
+  /
+    globalmap_server_nodelet (nodelet/nodelet)
+    hdl_localization_nodelet (nodelet/nodelet)
+    hdl_manager (nodelet/nodelet)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11317[0m
+]2;/work/m1_hdl.launch http://127.0.0.1:11317
+[1mprocess[hdl_manager-1]: started with pid [71925][0m
+[1mprocess[globalmap_server_nodelet-2]: started with pid [71926][0m
+[1mprocess[hdl_localization_nodelet-3]: started with pid [71927][0m
+[1m[globalmap_server_nodelet-2] process has finished cleanly
+log file: /work/logs/df682f46-d191-11f1-b30a-52ee044d117f/globalmap_server_nodelet-2*.log[0m
+[1m[hdl_localization_nodelet-3] process has finished cleanly
+log file: /work/logs/df682f46-d191-11f1-b30a-52ee044d117f/hdl_localization_nodelet-3*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
