@@ -150,16 +150,17 @@ def main(argv=None):
         from mbf_msgs.msg import GetPathAction, GetPathResult
         def getpath(goal_handle):
             goal = goal_handle.get_goal()
+            target = getattr(goal, 'target_pose', None) or goal.goal   # 字段名为 target_pose
             start = pose_xyz(goal.start_pose) if goal.use_start_pose else tuple(start_xyz)
             keys = {'map': request_map(), 'start': start,
-                    'goal': pose_xyz(goal.goal), 'budget': budget}
+                    'goal': pose_xyz(target), 'budget': budget}
             if hint:
                 keys['hint'] = hint
             result = GetPathResult()
             try:
                 planned = plan_route(keys)
             except (ValueError, support_planner.PlannerError) as error:
-                result.outcome = 1
+                result.outcome = 53 if 'GOAL_INVALID' in str(getattr(error, 'code', '')) else 50
                 result.message = (refusal(error) if hasattr(error, 'code')
                                   else {'reason': 'E_PLAN_INPUT', 'detail': str(error)})['reason'] + ': ' + str(error)
                 rospy.set_param(status, {'ok': False, 'reason': result.message.split(':')[0]})
