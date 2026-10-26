@@ -21,6 +21,9 @@ FROZEN = {
     # 构造器已落，V8-13 矩阵按 kind 分派执行）；其余五节零变更。
     # 2026-10-27 判据面（小美，R713 #137）：sampling 两项按 24 §4.1 补齐、resources
     # 两项按开发机采样冻结；每条带 key/from/to/reason，供 check_loosening 识别。
+    # 2026-10-27 判据面（小美，R715 #137）：latency.p95_global_s 与
+    # budgets.cancel_time_s 按带域冻结（scope/sample_n/evidence 三件齐全）；
+    # 值仅在声明域内成立，全栈时延/全链停车仍由 PENDING_REQUIRED 把关。
     'unfreeze_log': [
         {'to_version': 2, 'when': '2026-10-26',
          'change': 'denominators.official_scenarios 扩至全 14 场景',
@@ -43,6 +46,21 @@ FROZEN = {
          'from': '未定标（pending）', 'to': 6144,
          'change': '新增单 run 内存上限 6144 MB（开发机采样）',
          'reason': 'R625 MemAvailable=15315600 kB≈15.3 GB；运行容器内存上限 8 GiB（R625/R660），取 75%＝6144 MB 留 2 GiB 余量；开发机采样、非正式定标'},
+        {'when': '2026-10-27',
+         'key': 'latency.p95_global_s.value',
+         'from': '未定标（pending）', 'to': 0.1394,
+         'change': '新增全局规划 p95 预算 0.1394 s（带域 planner_service_only）',
+         'reason': 'R715 定标首轮 3 组起终点×3 次重复共 9 次 /make_plan 实测 p95=139.4 ms'
+                   '（中位 118.6 ms），与 R714 n=20 的 136.1 ms 同量级；'
+                   'scope=planner_service_only（仅规划服务端到端，不含感知/调度/路径下发/执行），'
+                   'sample_n=9；仅在该域内可作预算，全栈时延未测、不据此扩域；属新增判据非放宽'},
+        {'when': '2026-10-27',
+         'key': 'budgets.cancel_time_s.value',
+         'from': '未定标（pending）', 'to': 0.0372,
+         'change': '新增取消时间预算 0.0372 s（带域 mux_hold_only）',
+         'reason': 'R715 定标首轮 3 次 hold→/cmd_vel 归零实测最大 37.2 ms，sample_n=3；'
+                   'scope=mux_hold_only（仅 mux 保持归零，不含 follower 收尾/底盘减速/进程退出）；'
+                   '全链停车仍由 budgets.stop_time_s（pending）把关；属新增判据非放宽'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -57,6 +75,24 @@ FROZEN = {
         'rejection_limit_consecutive': {'value': 3, 'evidence': 'R654 MAX_REJECTIONS'},
         'task_budget_s': {'value': 30.0, 'evidence': 'R656 任务夹具'},
         'harness_deadline_s': {'value': 60.0, 'evidence': 'R656'},
+        # 带域冻结（2026-10-27 判据面，小美，R715）：仅在 scope 声明域内可作预算。
+        'cancel_time_s': {'value': 0.0372,
+                          'scope': 'mux_hold_only',
+                          'sample_n': 3,
+                          'evidence': 'R715 定标首轮 3 次 hold→/cmd_vel 归零，最大 37.2 ms（n=3）；'
+                                      'scope=mux_hold_only 仅 mux 保持归零，不含 follower 收尾/底盘减速/进程退出；'
+                                      '全链停车由 budgets.stop_time_s（仍 pending）把关'},
+    },
+    # 时延：带域冻结（2026-10-27 判据面，小美，R715）。p95_global 只覆盖
+    # /make_plan 服务端；全栈/全场景时延未测，不得据此扩域或报正式验收。
+    'latency': {
+        'p95_global_s': {'value': 0.1394,
+                         'scope': 'planner_service_only',
+                         'sample_n': 9,
+                         'evidence': 'R715 定标首轮 3 组起终点×3 次重复，n=9，p95=139.4 ms、中位 118.6 ms；'
+                                     'scope=planner_service_only 仅 /make_plan 服务端到端，'
+                                     '不含感知/调度/路径下发/执行；与 R714 n=20 的 136.1 ms 同量级；'
+                                     '单图三组起终点，非全栈定标'},
     },
     # 资源上限：开发机采样口径（R625/R626 load1 8.29/72 核、MemAvailable 15315600 kB；
     # R713 汇总 7.96/72），非正式峰值定标；正式定标须用定标集实测峰值替换。
@@ -129,6 +165,15 @@ REQUIRED = {
     'budgets.task_budget_s.evidence': {'types': (str,), 'non_empty': True},
     'budgets.harness_deadline_s.value': {'types': (int, float)},
     'budgets.harness_deadline_s.evidence': {'types': (str,), 'non_empty': True},
+    'budgets.cancel_time_s.value': {'types': (int, float)},
+    'budgets.cancel_time_s.scope': {'types': (str,), 'non_empty': True},
+    'budgets.cancel_time_s.sample_n': {'types': (int,)},
+    'budgets.cancel_time_s.evidence': {'types': (str,), 'non_empty': True},
+    'latency': {'types': (dict,), 'non_empty': True},
+    'latency.p95_global_s.value': {'types': (int, float)},
+    'latency.p95_global_s.scope': {'types': (str,), 'non_empty': True},
+    'latency.p95_global_s.sample_n': {'types': (int,)},
+    'latency.p95_global_s.evidence': {'types': (str,), 'non_empty': True},
     'resources': {'types': (dict,), 'non_empty': True},
     'resources.max_cpu_percent.value': {'types': (int, float)},
     'resources.max_cpu_percent.evidence': {'types': (str,), 'non_empty': True},
@@ -159,13 +204,11 @@ REQUIRED = {
 # 不塞进 FROZEN（不改已冻结数值），也绝不据此判绿。
 # 2026-10-27 判据面（小美，R713 #137）：resources 两项已按开发机采样冻结，
 # 从本表移出；sampling 两项由 _pending_report 按 4.1 门槛核验，达标后不再 pending。
+# 2026-10-27 判据面（小美，R715 #137）：p95_global 与 cancel_time 已带域冻结，从本表
+# 移出；两者只在 scope 声明域内成立，全栈时延/全链停车仍由本表把关。
 PENDING_REQUIRED = [
-    {'key': 'latency.p95_global_s.value', 'types': (int, float),
-     'reason': '24 §4.1 要求 p95 全局时延；当前未定标（缺项，禁 freeze）'},
     {'key': 'latency.p95_local_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求 p95 局部时延；当前未定标（缺项，禁 freeze）'},
-    {'key': 'budgets.cancel_time_s.value', 'types': (int, float),
-     'reason': '24 §4.1 要求取消时间；当前未定标（缺项，禁 freeze）'},
     {'key': 'budgets.stop_time_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车时间；当前未定标（缺项，禁 freeze）'},
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
@@ -173,17 +216,25 @@ PENDING_REQUIRED = [
     {'key': 'tolerances.max_localization_error_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求最大定位误差上限；当前未定标（缺项，禁 freeze）'},
     {'key': 'success_rate.min_pass_rate.value', 'types': (int, float),
-     'reason': '24 §4.1 要求成功率门槛；当前未定标（缺项，禁 freeze）'},
+     'reason': '24 §4.1 要求成功率门槛；定标集尚无成功率读数，0.9 无本地依据'
+               '（v7 ≥90% 属另一任务面，22 号明令不得移作 3D 全场景验收标准），'
+               '保持 pending（禁 freeze）'},
 ]
+
+# 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
+SCOPED_REQUIRED = {
+    'latency.p95_global_s': {'scope': 'planner_service_only', 'min_sample_n': 3},
+    'budgets.cancel_time_s': {'scope': 'mux_hold_only', 'min_sample_n': 3},
+}
 
 # 24 §4.1 采样要求：每个适用闭环场景至少 3 个预登记 seed、每 seed 3 次重复。
 SAMPLING_MIN_SEEDS = 3
 SAMPLING_MIN_REPETITIONS = 3
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-27）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R715 带域冻结后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = '3083af9325a9ce30b10e34b353358c1bd8c095b9fc8e451f156882f2493b696d'
+DIGEST = 'b7f8eba7e766f5d74339520306e70f39f0917cae493ee893ad9221af0c9b60a7'
 
 
 class CalibrationError(Exception):
@@ -259,6 +310,29 @@ def _validate_unfreeze_log(config):
             _raise_pending(label + '.reason', '缺失或为空（解封须记录理由）')
 
 
+def _validate_scoped_fields(config):
+    """带域冻结项：scope 精确匹配、sample_n 为不低于采样下限的整数。
+
+    scope 是口径本身：改 scope 等于改判据语义，必须重走解封与独立复核，
+    不允许在值不变时静默把「组件域」扩成「全栈域」。
+    """
+    for path in sorted(SCOPED_REQUIRED):
+        rule = SCOPED_REQUIRED[path]
+        node = _resolve(config, path)
+        if not isinstance(node, dict):
+            _raise_pending(path, '不是带域对象')
+        scope = node.get('scope')
+        if scope != rule['scope']:
+            _raise_pending(path + '.scope',
+                           '须为 %r（当前 %r）；带域冻结不许静默扩域'
+                           % (rule['scope'], scope))
+        sample_n = node.get('sample_n')
+        if not _type_ok(sample_n, (int,)) or sample_n < rule['min_sample_n']:
+            _raise_pending(path + '.sample_n',
+                           '须为 ≥%d 的整数（当前 %r）；样本不足不得带域冻结'
+                           % (rule['min_sample_n'], sample_n))
+
+
 def _pending_report(config):
     """24 §4.1 尚未定标/采样的项：列出 pending 键，不判绿。"""
     pending = []
@@ -301,6 +375,7 @@ def validate_frozen(config=None):
     config = FROZEN if config is None else config
     _validate_shape(config)
     _validate_unfreeze_log(config)
+    _validate_scoped_fields(config)
 
     official = set(config['denominators']['official_scenarios']['value'])
     calibration = set(config['denominators']['calibration_scenarios']['value'])
@@ -380,6 +455,10 @@ def _loosening_reason(path, old, new):
         if _is_number(old) and _is_number(new) and new < old:
             return '预算/上限下调'
         return None
+    if path.startswith('latency.') and path.endswith('.value'):
+        if _is_number(old) and _is_number(new) and new > old:
+            return '时延上限上调'
+        return None
     if path.startswith('resources.') and path.endswith('.value'):
         if _is_number(old) and _is_number(new) and new > old:
             return '资源上限上调'
@@ -442,9 +521,9 @@ def _authorizes(entry, path, old, new):
 def check_loosening(previous, current):
     """纯函数：相对 previous，current 的放宽项须有 from/to 且 reason 非空的 unfreeze。
 
-    放宽口径：容差上调（min_clearance 为下调）、预算/上限下调、资源上限上调、
-    分母/矩阵条目减少、采样重复与 seed 减少、重跑上限上调、定标 run 改为计入正式分母；
-    删除受控键亦算。
+    放宽口径：容差上调（min_clearance 为下调）、预算/上限下调、时延上限上调、
+    资源上限上调、分母/矩阵条目减少、采样重复与 seed 减少、重跑上限上调、
+    定标 run 改为计入正式分母；删除受控键亦算。
     返回被放宽的键路径列表；无放宽返回 []；未授权抛 E_CAL_LOOSENED。
     """
     previous_values = dict(_iter_value_leaves(previous))

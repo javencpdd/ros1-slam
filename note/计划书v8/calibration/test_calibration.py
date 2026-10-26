@@ -174,22 +174,23 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(report['status'], 'blocked')
         self.assertFalse(report['freeze_allowed'])
         pending = report['pending']
-        self.assertEqual(len(pending), 7)
-        for token in ('latency.p95_global_s', 'latency.p95_local_s',
-                      'budgets.cancel_time_s', 'budgets.stop_time_s',
+        self.assertEqual(len(pending), 5)
+        for token in ('latency.p95_local_s', 'budgets.stop_time_s',
                       'budgets.stop_distance_m', 'tolerances.max_localization_error_m',
                       'success_rate.min_pass_rate'):
             self.assertTrue(any(token in key for key in pending), token)
-        # 2026-10-27 判据面已落实的四项不得再 pending（资源降级为可复核值）。
+        # 2026-10-27 判据面已落实的项不得再 pending（资源/采样/两个带域字段）。
         for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
-                      'sampling.scenario_repetitions', 'sampling.perturbation_seeds'):
+                      'sampling.scenario_repetitions', 'sampling.perturbation_seeds',
+                      'latency.p95_global_s', 'budgets.cancel_time_s'):
             self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
         self.assertIn('4.1', reasons)
 
     # ------------------------------------------------------------------
-    # 判据面裁定（2026-10-27，小美）：resources 两项＋sampling 两项落实；
-    # 其余 7 项（p95×2、cancel/stop、定位误差、成功率）保持 pending。
+    # 判据面裁定（2026-10-27，小美，R713）：resources 两项＋sampling 两项落实。
+    # 判据面裁定（2026-10-27，小美，R715）：p95_global 与 cancel_time 带域冻结；
+    # p95_local、stop_time、stop_distance、定位误差、成功率保持 pending。
     # ------------------------------------------------------------------
     def test_resources_and_sampling_frozen_shape(self):
         cfg = cal.FROZEN
@@ -256,6 +257,79 @@ class CalibrationTests(unittest.TestCase):
             cal.check_loosening(previous, current)
         self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
         self.assertIn('max_cpu_percent', caught.exception.detail)
+
+    # ------------------------------------------------------------------
+    # 带域冻结（2026-10-27，小美，R715）：p95_global=0.1394 s
+    # （scope=planner_service_only, n=9）、cancel_time=0.0372 s
+    # （scope=mux_hold_only, n=3）；域外不得冒用，放宽须显式解封。
+    # ------------------------------------------------------------------
+    def test_scoped_fields_frozen_with_scope_sample_evidence(self):
+        p95 = cal.FROZEN['latency']['p95_global_s']
+        cancel = cal.FROZEN['budgets']['cancel_time_s']
+        self.assertEqual(p95['value'], 0.1394)
+        self.assertEqual(p95['scope'], 'planner_service_only')
+        self.assertEqual(p95['sample_n'], 9)
+        self.assertEqual(cancel['value'], 0.0372)
+        self.assertEqual(cancel['scope'], 'mux_hold_only')
+        self.assertEqual(cancel['sample_n'], 3)
+        for entry, scope in ((p95, 'planner_service_only'),
+                             (cancel, 'mux_hold_only')):
+            self.assertTrue(entry['evidence'].strip())
+            self.assertIn('R715', entry['evidence'])
+            self.assertIn(scope, entry['evidence'])
+            self.assertGreaterEqual(entry['sample_n'], 3)
+        report = cal.validate_frozen()
+        for key in ('latency.p95_global_s', 'budgets.cancel_time_s'):
+            self.assertNotIn(key, report['pending'])
+        # 带域冻结不改变总体可冻结性：尚有 5 项系统级读数缺失。
+        self.assertFalse(report['freeze_allowed'])
+
+    def test_scoped_field_metadata_required(self):
+        cases = {
+            'missing_scope': lambda c: c['latency']['p95_global_s'].pop('scope'),
+            'missing_sample_n': lambda c: c['latency']['p95_global_s'].pop('sample_n'),
+            'missing_evidence': lambda c: c['budgets']['cancel_time_s'].pop('evidence'),
+            'wrong_scope': lambda c: c['latency']['p95_global_s'].__setitem__(
+                'scope', 'full_stack'),
+            'low_sample_n': lambda c: c['budgets']['cancel_time_s'].__setitem__(
+                'sample_n', 1),
+        }
+        for label, mutate in cases.items():
+            with self.subTest(label=label):
+                bad = copy.deepcopy(cal.FROZEN)
+                mutate(bad)
+                with self.assertRaises(cal.CalibrationError) as caught:
+                    cal.validate_frozen(bad)
+                self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_p95_global_raise_blocked_without_unfreeze(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        current['latency']['p95_global_s']['value'] = 0.20
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('latency.p95_global_s.value', caught.exception.detail)
+
+    def test_p95_global_raise_with_scoped_unfreeze_passes(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        current['latency']['p95_global_s']['value'] = 0.20
+        current['unfreeze_log'] = list(current['unfreeze_log']) + [{
+            'when': '2026-10-27', 'key': 'latency.p95_global_s.value',
+            'from': 0.1394, 'to': 0.20,
+            'reason': 'scope=planner_service_only 实测漂移，显式解封放宽'}]
+        self.assertEqual(cal.check_loosening(previous, current),
+                         ['latency.p95_global_s.value'])
+
+    def test_cancel_time_lower_requires_unfreeze(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        current['budgets']['cancel_time_s']['value'] = 0.02
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('budgets.cancel_time_s.value', caught.exception.detail)
 
 
 if __name__ == '__main__':
