@@ -73,7 +73,7 @@ def main(argv=None):
     budget = rospy.get_param('~budget', 20000)
     hint = rospy.get_param('~surface_hint', None)
     frame = rospy.get_param('~frame', 'map')
-    publisher = rospy.Publisher(rospy.get_param('~path_topic', 'support_route'), Path, queue_size=1)
+    publisher = rospy.Publisher(rospy.get_param('~path_topic', 'support_route'), Path, queue_size=1, latch=True)
     status = rospy.get_param('~status_topic', 'support_route_status')
     request = to_request(map_path, start, goal, budget, hint)
     try:
@@ -96,7 +96,11 @@ def main(argv=None):
     rospy.set_param(status, {'ok': True, 'segments': result['segments'],
                              'transitions': result['transitions'],
                              'expansions': result['expansions'], 'length': result['length']})
-    rospy.loginfo('support_route published: %s points', len(message.poses))
+    rospy.loginfo('support_route published: %s points on %s', len(message.poses), publisher.name)
+    if not rospy.get_param('~exit_after_publish', False):
+        deadline = rospy.Time.now() + rospy.Duration(rospy.get_param('~keep_alive_s', 10.0))
+        while not rospy.is_shutdown() and rospy.Time.now() < deadline:
+            rospy.sleep(0.2)
     return 0
 
 
