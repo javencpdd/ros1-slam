@@ -331,6 +331,34 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
         self.assertIn('budgets.cancel_time_s.value', caught.exception.detail)
 
+    # ------------------------------------------------------------------
+    # 判据面裁定（2026-10-27，小美，R716）：全链停车读数 0.1265 m／108.4 ms
+    # 为 n=1，且载体是 kinematic planar 底盘、无制动模型；stop 两项**不解冻**，
+    # 保持 pending；作废首轮读数（0.3568 m／1648.5 ms）不得入配置。
+    # ------------------------------------------------------------------
+    def test_stop_fields_stay_pending_r716(self):
+        report = cal.validate_frozen()
+        pending = report['pending']
+        for key in ('budgets.stop_time_s.value', 'budgets.stop_distance_m.value'):
+            self.assertIn(key, pending)
+            self.assertTrue(any(item['key'] == key and item['reason'].strip()
+                                for item in report['pending_detail']), key)
+        self.assertEqual(report['status'], 'blocked')
+        self.assertFalse(report['freeze_allowed'])
+        # 保持 pending ⇒ FROZEN 中不得出现这两键，也不许先写半套 scope/sample_n。
+        for name in ('stop_time_s', 'stop_distance_m'):
+            self.assertNotIn(name, cal.FROZEN['budgets'])
+        # 守卫不得为收下 n=1 而放宽：两项不在带域表，全表样本下限仍为 3。
+        for key in ('budgets.stop_time_s', 'budgets.stop_distance_m'):
+            self.assertNotIn(key, cal.SCOPED_REQUIRED)
+        self.assertTrue(all(rule['min_sample_n'] >= 3
+                            for rule in cal.SCOPED_REQUIRED.values()))
+        # 本次读数与作废首轮读数都不得写进冻结配置。
+        text = repr(cal.FROZEN)
+        for token in ('0.3568', '1648.5', '0.1265', '108.4'):
+            self.assertNotIn(token, text)
+        self.assertEqual(cal.assert_digest(), cal.DIGEST)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

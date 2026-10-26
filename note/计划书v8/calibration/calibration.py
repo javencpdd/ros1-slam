@@ -206,6 +206,15 @@ REQUIRED = {
 # 从本表移出；sampling 两项由 _pending_report 按 4.1 门槛核验，达标后不再 pending。
 # 2026-10-27 判据面（小美，R715 #137）：p95_global 与 cancel_time 已带域冻结，从本表
 # 移出；两者只在 scope 声明域内成立，全栈时延/全链停车仍由本表把关。
+# 2026-10-27 判据面（小美，R716 #137）：stop_time/stop_distance 虽有全链读数
+# （follower→mux→Gazebo planar 底盘，0.3 m/s 行进中 hold：0.1265 m／108.4 ms），
+# 仍裁定**不解冻、保持 pending**，两条独立理由：
+#   1) 样本 n=1，低于 SCOPED_REQUIRED 的 min_sample_n=3；把下限降到 1 属放宽守卫，
+#      明令禁止（同测首轮 0.3568 m／1648.5 ms 因脚本 bug 作废，R716 §3，不得计入样本）；
+#   2) 载体为 kinematic planar 底盘、无制动模型：24 §4.1 的 stop_distance 预算须覆盖
+#      感知/控制延迟**与制动**，无制动平台测得值物理上不含制动段，不能代表该预算；
+#      stop_time 同理只含消息/控制器链路时延，不能代表含制动收尾的停车时间。
+# 待 n≥3 且 stop_distance 在有制动/动力学底盘上复测后，再交判据面带域冻结。
 PENDING_REQUIRED = [
     {'key': 'latency.p95_local_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求 p95 局部时延；当前未定标（缺项，禁 freeze）'},
@@ -222,6 +231,8 @@ PENDING_REQUIRED = [
 ]
 
 # 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
+# R716 的 stop_time/stop_distance 未列入本表（n=1＜3 且载体无制动），
+# 不得为了收下这两项把对应条目的 min_sample_n 调低——那是放宽守卫。
 SCOPED_REQUIRED = {
     'latency.p95_global_s': {'scope': 'planner_service_only', 'min_sample_n': 3},
     'budgets.cancel_time_s': {'scope': 'mux_hold_only', 'min_sample_n': 3},
