@@ -201,7 +201,7 @@ class CalibrationTests(unittest.TestCase):
         b = cal.FROZEN['budgets']
         d = b['stop_brake_peak_distance_m']
         t = b['stop_brake_peak_time_s']
-        self.assertEqual(d['scope'], 'lite3_mj_dyn_hold_peak_0p3_flat')
+        self.assertEqual(d['scope'], 'lite3_mj_dyn_hold_peak_0p3_flat_wall_render')
         self.assertEqual(t['scope'], d['scope'])
         self.assertEqual(d['sample_n'], 9)
         self.assertEqual(t['sample_n'], 9)

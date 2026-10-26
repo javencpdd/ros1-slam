@@ -79,14 +79,15 @@ FROZEN = {
          'from': 0.076, 'to': 0.124,
          'change': '同域重定：制动段前冲距离 0.076→0.124 m（scope 不变）',
          'reason': 'R726 同域 3×3 九次 hold→峰值 max 0.1075 m，旧 3 相位漏掉长制动相；'
-                   '×1.15 取 0.124；15 次补充 0.1081 仍被覆盖；含墙/渲染线程。抬高停车上限在验收语义上算放宽，'
+                   '×1.15 取 0.124；15 次补充 0.1081 仅绝对覆盖、不享受余量；scope 加 wall_render 编码测试条件，'
+                   '域语义未变。抬高停车上限在验收语义上算放宽，'
                    'check_loosening 对 budgets 仅识别下调（规则盲区），须独立复核'},
         {'when': '2026-10-27',
          'key': 'budgets.stop_brake_peak_time_s.value',
          'from': 0.387, 'to': 1.17,
          'change': '同域重定：制动段峰值时间 0.387→1.17 s（scope 不变）',
          'reason': 'R726 同域 hold→峰值 max 1.17 s（实测最大，未加 15%）；含墙/渲染线程；'
-                   '同属抬高停车上限，须独立复核'},
+                   'scope 加 wall_render 编码测试条件；同属抬高停车上限，须独立复核'},
         {'when': '2026-10-27',
          'key': 'budgets.stop_chain_osmesa_time_s.value',
          'from': '未定标（pending）', 'to': 2.471,
@@ -131,15 +132,16 @@ FROZEN = {
         # 制动分量（2026-10-27 判据面，小美，R720；R727 同域重定）：只覆盖
         # hold→前冲峰值这一段，不含感知/规划/控制上游；全链两键仍 pending。
         'stop_brake_peak_distance_m': {'value': 0.124,
-                                       'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+                                       'scope': 'lite3_mj_dyn_hold_peak_0p3_flat_wall_render',
                                        'sample_n': 9,
-                                       'evidence': 'R726 同域 3×3 九次 hold→峰值最大 0.1075 m（旧 9 次 0.0656 漏了长制动相）；'
-                                                   '×1.15=0.123625，取 0.124 m；15 次补充的 0.1081 m 仍被 0.124 覆盖；'
-                                                   '含墙/渲染线程；scope 只含平坦地面制动段，不含感知/规划/控制上游'
-                                                   '与静止回摆；台阶 6 次无效、坡组触发速度 0.418—0.423 不计入本域；'
+                                       'evidence': 'R726 同域 3×3 九次 hold→峰值最大 0.1075 m（旧 9 次隔离无渲染，物理域同 flat hold→peak，'
+                                                   '但不在本 token 的 wall_render 测试条件内；旧 9 次 0.0656 漏了长制动相）；×1.15=0.123625，取 0.124 m；'
+                                                   '15 次补充的 0.1081 m 仅绝对覆盖（0.1081×1.15=0.124315>0.124），不享受 15% 余量；'
+                                                   'scope token 加 wall_render 编码 3×3 测试条件，域语义仍为 flat hold→peak；'
+                                                   '不含感知/规划/控制上游与静止回摆；台阶 6 次无效、坡组触发速度 0.418—0.423 不计入本域；'
                                                    '全链 budgets.stop_distance_m 仍 pending'},
         'stop_brake_peak_time_s': {'value': 1.17,
-                                   'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+                                   'scope': 'lite3_mj_dyn_hold_peak_0p3_flat_wall_render',
                                    'sample_n': 9,
                                    'evidence': 'R726 同域 hold→峰值时间 max 1.17 s（实测最大，未加 15%）；'
                                                'hold→静止 0.83—2.05 s 不并入；含墙/渲染线程；'
@@ -355,9 +357,9 @@ SCOPED_REQUIRED = {
     'latency.p95_local_s': {'scope': 'scan_sim_consumed_cloud_to_bspline_27run',
                             'min_sample_n': 3},
     'budgets.cancel_time_s': {'scope': 'mux_hold_only', 'min_sample_n': 3},
-    'budgets.stop_brake_peak_distance_m': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+    'budgets.stop_brake_peak_distance_m': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat_wall_render',
                                            'min_sample_n': 3},
-    'budgets.stop_brake_peak_time_s': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat',
+    'budgets.stop_brake_peak_time_s': {'scope': 'lite3_mj_dyn_hold_peak_0p3_flat_wall_render',
                                        'min_sample_n': 3},
     'budgets.stop_chain_osmesa_time_s': {
         'scope': 'lite3_mj_depth_osmesa_perception_to_rest_flat_0p3_3x3',
@@ -371,10 +373,10 @@ SCOPED_REQUIRED = {
 SAMPLING_MIN_SEEDS = 3
 SAMPLING_MIN_REPETITIONS = 3
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R728 复核修正 0.124 后）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R729 scope 编码后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'dee8b7be5e9a642bd782dfe549938115d365d57db3064b59f0159e3886f39f84'
+DIGEST = 'd998e4d09355ea82fd9c897097dc080ddda221b28bbbd2b7c6db22bcfe459b77'
 
 
 class CalibrationError(Exception):
