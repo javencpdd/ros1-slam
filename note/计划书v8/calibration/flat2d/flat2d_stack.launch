@@ -1,0 +1,64 @@
+<launch>
+  <!-- flat2d 定标栈（v2）：m1 真值图 + move_base(DWA) + 感知层。
+       v1 缺口：v1 栈里没有 mux（日志 "Subscribed to Topics:" 为空、无 mux 进程），
+       与 manifest 的 combo=lite3_dwa_mux 不符 ⇒ v1 对冻结 scope 无效，只作 smoke。
+       mux 与 scan_relay 由运行脚本另起（mux 需先 rosparam set /mux/mux_config），
+       odom→base_link 由仿真适配器提供，此处不得再发静态 TF。 -->
+  <node pkg="map_server" type="map_server" name="map_server" output="screen"
+        args="/work/pilot_map.yaml"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <remap from="cmd_vel" to="/follow/cmd_vel"/>
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="planner_frequency" value="1.0"/>
+    <param name="footprint" value="[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]"/>
+    <param name="xy_goal_tolerance" value="0.25"/>
+    <param name="yaw_goal_tolerance" value="1.57"/>
+    <param name="max_vel_x" value="0.4"/>
+    <param name="max_vel_x_backwards" value="0.2"/>
+    <param name="max_vel_theta" value="1.0"/>
+    <param name="acc_lim_x" value="1.0"/>
+    <param name="acc_lim_theta" value="2.0"/>
+    <param name="max_vel_y" value="0.1"/>
+    <param name="acc_lim_y" value="0.5"/>
+
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_link"/>
+    <rosparam param="global_costmap/plugins">
+      - {name: static_layer, type: "costmap_2d::StaticLayer"}
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="global_costmap/obstacle_layer/observation_sources" value="cloud"/>
+    <param name="global_costmap/obstacle_layer/cloud/topic" value="/scan_points"/>
+    <param name="global_costmap/obstacle_layer/cloud/data_type" value="PointCloud2"/>
+    <param name="global_costmap/obstacle_layer/cloud/marking" value="true"/>
+    <param name="global_costmap/obstacle_layer/cloud/clearing" value="true"/>
+    <param name="global_costmap/obstacle_layer/cloud/min_obstacle_height" value="0.10"/>
+    <param name="global_costmap/obstacle_layer/cloud/max_obstacle_height" value="1.20"/>
+    <param name="global_costmap/inflation_layer/inflation_radius" value="0.45"/>
+    <param name="global_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
+
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_link"/>
+    <param name="local_costmap/rolling_window" value="true"/>
+    <param name="local_costmap/width" value="6.0"/>
+    <param name="local_costmap/height" value="6.0"/>
+    <param name="local_costmap/resolution" value="0.05"/>
+    <rosparam param="local_costmap/plugins">
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="local_costmap/obstacle_layer/observation_sources" value="cloud"/>
+    <param name="local_costmap/obstacle_layer/cloud/topic" value="/scan_points"/>
+    <param name="local_costmap/obstacle_layer/cloud/data_type" value="PointCloud2"/>
+    <param name="local_costmap/obstacle_layer/cloud/marking" value="true"/>
+    <param name="local_costmap/obstacle_layer/cloud/clearing" value="true"/>
+    <param name="local_costmap/obstacle_layer/cloud/min_obstacle_height" value="0.10"/>
+    <param name="local_costmap/obstacle_layer/cloud/max_obstacle_height" value="1.20"/>
+    <param name="local_costmap/inflation_layer/inflation_radius" value="0.45"/>
+    <param name="local_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
+  </node>
+</launch>
