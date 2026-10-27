@@ -22,7 +22,9 @@ from sensor_msgs.msg import PointCloud2, PointField
 
 SELF_FILTER_M = 0.60
 # roi：只转发注入块附近点、剔除静态地图已覆盖点（both_stvl 栈用，与局部 static 层分工）；
-# full：全点云进 STVL（目标配置无局部 static 层，靠感知看见静态障碍，与真机同构）。
+# full：全点云进 STVL（目标配置无局部 static 层，靠感知看见静态障碍，与真机同构）；
+# volume：按 /sc09/box 的位姿与尺寸生成箱体体积点（R792 实测 STVL 只标可见面、箱内
+#         在代价图里仍是自由，规划会穿箱；此模式用已知真值把整个箱体标成障碍）。
 RELAY_MODE = os.environ.get('RELAY_MODE', 'roi')
 FIELDS = [PointField('x', 0, PointField.FLOAT32, 1),
           PointField('y', 4, PointField.FLOAT32, 1),
@@ -73,6 +75,28 @@ def main():
         if not pts:
             return
         arr = np.asarray(pts, dtype=np.float64)
+        if RELAY_MODE == 'volume':
+            if roi['box'] is None:
+                return
+            cx, cy, byaw, sx, sy, sz = roi['box']
+            step = 0.10
+            xs = np.arange(-sx / 2, sx / 2 + 1e-9, step)
+            ys = np.arange(-sy / 2, sy / 2 + 1e-9, step)
+            zs = np.arange(step, sz + 1e-9, step)
+            grid = np.array([(x, y, z) for x in xs for y in ys for z in zs])
+            c, s2 = np.cos(byaw), np.sin(byaw)
+            world = np.empty_like(grid)
+            world[:, 0] = grid[:, 0] * c - grid[:, 1] * s2 + cx
+            world[:, 1] = grid[:, 0] * s2 + grid[:, 1] * c + cy
+            world[:, 2] = grid[:, 2]
+            base = world @ rot.T + np.array([t.x, t.y, t.z])
+            out = [(float(base[i, 0]), float(base[i, 1]), float(base[i, 2]), 50.0)
+                   for i in range(len(base))]
+            header = msg.header
+            header.frame_id = 'base_link'
+            pub.publish(pc2.create_cloud(header, FIELDS, out))
+            stats['out'] += 1
+            return
         if RELAY_MODE == 'roi':
             # 方块 ROI：本栈只感知注入块；静态世界由 static_layer 负责。
             # 方块位姿由 driver 经 /sc09/box 发布，点仍是真实雷达点。
