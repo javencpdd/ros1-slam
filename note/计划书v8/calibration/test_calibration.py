@@ -1,6 +1,9 @@
 """V8-12 测试：无待定关键值铁则、集合分离、封版 digest、负例注入、定标集真实可跑。"""
 import copy
+import json
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -605,6 +608,45 @@ class CalibrationTests(unittest.TestCase):
         previous['success_rate'] = self._success_rate_node()
         current['success_rate'] = self._success_rate_node()
         self.assertEqual(cal.check_loosening(previous, current), [])
+
+    # ------------------------------------------------------------------
+    # R758（R751 P2-2）：freeze 流程对上一版冻结基线跑 loosening。
+    # ------------------------------------------------------------------
+    def test_freeze_guard_first_freeze_without_baseline_r758(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = os.path.join(td, 'none.json')
+            self.assertEqual(cal.freeze_guard(copy.deepcopy(cal.FROZEN), path), [])
+
+    def test_freeze_guard_detects_loosening_r758(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = os.path.join(td, 'baseline.json')
+            previous = copy.deepcopy(cal.FROZEN)
+            previous['success_rate'] = self._success_rate_node(value=0.90)
+            current = copy.deepcopy(cal.FROZEN)
+            current['success_rate'] = self._success_rate_node(value=0.80)
+            with open(path, 'w') as handle:
+                json.dump({'frozen': previous, 'digest': 'x'}, handle)
+            with self.assertRaises(cal.CalibrationError) as caught:
+                cal.freeze_guard(current, path)
+            self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+
+    def test_freeze_guard_same_config_passes_r758(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = os.path.join(td, 'baseline.json')
+            previous = copy.deepcopy(cal.FROZEN)
+            previous['success_rate'] = self._success_rate_node()
+            with open(path, 'w') as handle:
+                json.dump({'frozen': previous, 'digest': 'x'}, handle)
+            self.assertEqual(cal.freeze_guard(copy.deepcopy(previous), path), [])
+
+    def test_freeze_guard_bad_baseline_r758(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = os.path.join(td, 'baseline.json')
+            with open(path, 'w') as handle:
+                json.dump({'nope': 1}, handle)
+            with self.assertRaises(cal.CalibrationError) as caught:
+                cal.freeze_guard(copy.deepcopy(cal.FROZEN), path)
+            self.assertEqual(caught.exception.code, 'E_CAL_BASELINE')
 
 
 if __name__ == '__main__':

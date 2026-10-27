@@ -754,6 +754,28 @@ def _success_rate_metadata_changes(previous, current):
     return changes
 
 
+BASELINE_FILE = HERE / 'frozen_baseline.json'
+
+
+def freeze_guard(config, baseline_path=None):
+    """R758（R751 P2-2）：freeze 前对上一版冻结基线跑 loosening。
+
+    无基线＝首次冻结（允许）；基线不可读或结构不对＝E_CAL_BASELINE；
+    基线存在时任何未授权放宽＝E_CAL_LOOSENED。纯读，不写文件。
+    """
+    path = Path(baseline_path) if baseline_path is not None else BASELINE_FILE
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError) as exc:
+        raise CalibrationError('E_CAL_BASELINE', '基线不可读：%s' % exc)
+    previous = data.get('frozen') if isinstance(data, dict) else None
+    if not isinstance(previous, dict):
+        raise CalibrationError('E_CAL_BASELINE', '基线缺少 frozen 对象')
+    return check_loosening(previous, config)
+
+
 def check_loosening(previous, current):
     """纯函数：相对 previous，current 的放宽项须有 from/to 且 reason 非空的 unfreeze。
 
@@ -795,12 +817,18 @@ def main(argv):
         try:
             report = validate_frozen()
             current_digest = assert_digest()
+            freeze_guard(FROZEN)
         except CalibrationError as exc:
             print(json.dumps({'ok': False, 'code': exc.code, 'detail': exc.detail},
                              ensure_ascii=False))
             return 2
         # ok 仅表示形状/契约校验无硬错（兼容既有 CLI 断言）；pending 未清时
         # freeze_allowed=False、status=blocked，不得当作可封版。
+        if report['freeze_allowed']:
+            BASELINE_FILE.write_text(json.dumps(
+                {'frozen': FROZEN, 'digest': current_digest,
+                 'calibration_version': FROZEN['calibration_version']},
+                ensure_ascii=False, sort_keys=True))
         print(json.dumps({'ok': True,
                           'ok_scope': 'shape_and_contract_only',
                           'status': report['status'],
@@ -808,7 +836,8 @@ def main(argv):
                           'freeze_allowed': report['freeze_allowed'],
                           'pending': report['pending'],
                           'calibration_version': FROZEN['calibration_version'],
-                          'digest': current_digest}, ensure_ascii=False))
+                          'digest': current_digest,
+                          'baseline': str(BASELINE_FILE)}, ensure_ascii=False))
         return 0
     print('usage: calibration.py freeze', file=sys.stderr)
     return 9

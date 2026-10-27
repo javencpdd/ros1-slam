@@ -1,0 +1,122 @@
+diff --git "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py" "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py"
+index 4e4735c..3e3b0cf 100644
+--- "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py"
++++ "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py"
+@@ -754,6 +754,28 @@ def _success_rate_metadata_changes(previous, current):
+     return changes
+ 
+ 
++BASELINE_FILE = HERE / 'frozen_baseline.json'
++
++
++def freeze_guard(config, baseline_path=None):
++    """R758（R751 P2-2）：freeze 前对上一版冻结基线跑 loosening。
++
++    无基线＝首次冻结（允许）；基线不可读或结构不对＝E_CAL_BASELINE；
++    基线存在时任何未授权放宽＝E_CAL_LOOSENED。纯读，不写文件。
++    """
++    path = Path(baseline_path) if baseline_path is not None else BASELINE_FILE
++    if not path.exists():
++        return []
++    try:
++        data = json.loads(path.read_text())
++    except (OSError, ValueError) as exc:
++        raise CalibrationError('E_CAL_BASELINE', '基线不可读：%s' % exc)
++    previous = data.get('frozen') if isinstance(data, dict) else None
++    if not isinstance(previous, dict):
++        raise CalibrationError('E_CAL_BASELINE', '基线缺少 frozen 对象')
++    return check_loosening(previous, config)
++
++
+ def check_loosening(previous, current):
+     """纯函数：相对 previous，current 的放宽项须有 from/to 且 reason 非空的 unfreeze。
+ 
+@@ -795,12 +817,18 @@ def main(argv):
+         try:
+             report = validate_frozen()
+             current_digest = assert_digest()
++            freeze_guard(FROZEN)
+         except CalibrationError as exc:
+             print(json.dumps({'ok': False, 'code': exc.code, 'detail': exc.detail},
+                              ensure_ascii=False))
+             return 2
+         # ok 仅表示形状/契约校验无硬错（兼容既有 CLI 断言）；pending 未清时
+         # freeze_allowed=False、status=blocked，不得当作可封版。
++        if report['freeze_allowed']:
++            BASELINE_FILE.write_text(json.dumps(
++                {'frozen': FROZEN, 'digest': current_digest,
++                 'calibration_version': FROZEN['calibration_version']},
++                ensure_ascii=False, sort_keys=True))
+         print(json.dumps({'ok': True,
+                           'ok_scope': 'shape_and_contract_only',
+                           'status': report['status'],
+@@ -808,7 +836,8 @@ def main(argv):
+                           'freeze_allowed': report['freeze_allowed'],
+                           'pending': report['pending'],
+                           'calibration_version': FROZEN['calibration_version'],
+-                          'digest': current_digest}, ensure_ascii=False))
++                          'digest': current_digest,
++                          'baseline': str(BASELINE_FILE)}, ensure_ascii=False))
+         return 0
+     print('usage: calibration.py freeze', file=sys.stderr)
+     return 9
+diff --git "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py" "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py"
+index 50bbfa7..e5800b8 100644
+--- "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py"
++++ "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py"
+@@ -1,6 +1,9 @@
+ """V8-12 测试：无待定关键值铁则、集合分离、封版 digest、负例注入、定标集真实可跑。"""
+ import copy
++import json
++import os
+ import sys
++import tempfile
+ import unittest
+ from pathlib import Path
+ 
+@@ -606,6 +609,45 @@ class CalibrationTests(unittest.TestCase):
+         current['success_rate'] = self._success_rate_node()
+         self.assertEqual(cal.check_loosening(previous, current), [])
+ 
++    # ------------------------------------------------------------------
++    # R758（R751 P2-2）：freeze 流程对上一版冻结基线跑 loosening。
++    # ------------------------------------------------------------------
++    def test_freeze_guard_first_freeze_without_baseline_r758(self):
++        with tempfile.TemporaryDirectory() as td:
++            path = os.path.join(td, 'none.json')
++            self.assertEqual(cal.freeze_guard(copy.deepcopy(cal.FROZEN), path), [])
++
++    def test_freeze_guard_detects_loosening_r758(self):
++        with tempfile.TemporaryDirectory() as td:
++            path = os.path.join(td, 'baseline.json')
++            previous = copy.deepcopy(cal.FROZEN)
++            previous['success_rate'] = self._success_rate_node(value=0.90)
++            current = copy.deepcopy(cal.FROZEN)
++            current['success_rate'] = self._success_rate_node(value=0.80)
++            with open(path, 'w') as handle:
++                json.dump({'frozen': previous, 'digest': 'x'}, handle)
++            with self.assertRaises(cal.CalibrationError) as caught:
++                cal.freeze_guard(current, path)
++            self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
++
++    def test_freeze_guard_same_config_passes_r758(self):
++        with tempfile.TemporaryDirectory() as td:
++            path = os.path.join(td, 'baseline.json')
++            previous = copy.deepcopy(cal.FROZEN)
++            previous['success_rate'] = self._success_rate_node()
++            with open(path, 'w') as handle:
++                json.dump({'frozen': previous, 'digest': 'x'}, handle)
++            self.assertEqual(cal.freeze_guard(copy.deepcopy(previous), path), [])
++
++    def test_freeze_guard_bad_baseline_r758(self):
++        with tempfile.TemporaryDirectory() as td:
++            path = os.path.join(td, 'baseline.json')
++            with open(path, 'w') as handle:
++                json.dump({'nope': 1}, handle)
++            with self.assertRaises(cal.CalibrationError) as caught:
++                cal.freeze_guard(copy.deepcopy(cal.FROZEN), path)
++            self.assertEqual(caught.exception.code, 'E_CAL_BASELINE')
++
+ 
+ if __name__ == '__main__':
+     unittest.main(verbosity=2)
