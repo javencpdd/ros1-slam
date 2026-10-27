@@ -727,6 +727,33 @@ def _authorizes(entry, path, old, new):
     return entry.get('from') == old and entry.get('to') == new
 
 
+def _success_rate_metadata_changes(previous, current):
+    """R755（R751 P2-1）：成功率节点级口径变更也算放宽。
+
+    带域冻结的 scope 是判据语义本体；scope/分母/聚合口径变更或样本数下调
+    都必须重走 unfreeze，不能只比较 .value 叶子。
+    """
+    prev = _resolve(previous, 'success_rate.min_pass_rate') if isinstance(previous, dict) else _MISSING
+    cur = _resolve(current, 'success_rate.min_pass_rate') if isinstance(current, dict) else _MISSING
+    if not (isinstance(prev, dict) and isinstance(cur, dict)):
+        return []
+    path = 'success_rate.min_pass_rate'
+    changes = []
+    for field, reason in (('scope', '成功率 scope 变更/扩域'),
+                          ('sample_n', '成功率样本数下调'),
+                          ('denominator', '成功率分母口径变更'),
+                          ('aggregation', '成功率聚合口径变更')):
+        old, new = prev.get(field), cur.get(field)
+        if old is None and new is None:
+            continue
+        if field == 'sample_n':
+            if _is_number(old) and _is_number(new) and new < old:
+                changes.append((path + '.' + field, old, new, reason))
+        elif old != new:
+            changes.append((path + '.' + field, old, new, reason))
+    return changes
+
+
 def check_loosening(previous, current):
     """纯函数：相对 previous，current 的放宽项须有 from/to 且 reason 非空的 unfreeze。
 
@@ -748,6 +775,7 @@ def check_loosening(previous, current):
         reason = _loosening_reason(path, old, new)
         if reason:
             changes.append((path, old, new, reason))
+    changes.extend(_success_rate_metadata_changes(previous, current))
     if not changes:
         return []
     entries = _unfreeze_entries(current)

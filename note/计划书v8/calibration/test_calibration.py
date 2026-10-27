@@ -573,6 +573,36 @@ class CalibrationTests(unittest.TestCase):
         current['success_rate'] = self._success_rate_node(value=0.95)
         self.assertEqual(cal.check_loosening(previous, current), [])
 
+    # ------------------------------------------------------------------
+    # R751 P2-1：scope/样本数/分母/聚合口径变更也算放宽（节点级比较）。
+    # ------------------------------------------------------------------
+    def test_success_rate_scope_change_requires_unfreeze_r755(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        previous['success_rate'] = self._success_rate_node(scope='x')
+        current['success_rate'] = self._success_rate_node(scope='y')
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('success_rate.min_pass_rate.scope', caught.exception.detail)
+
+    def test_success_rate_sample_n_down_requires_unfreeze_r755(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        previous['success_rate'] = self._success_rate_node(sample_n=100)
+        current['success_rate'] = self._success_rate_node(sample_n=36)
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('success_rate.min_pass_rate.sample_n', caught.exception.detail)
+
+    def test_success_rate_same_metadata_no_change_r755(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        previous['success_rate'] = self._success_rate_node()
+        current['success_rate'] = self._success_rate_node()
+        self.assertEqual(cal.check_loosening(previous, current), [])
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
