@@ -1,0 +1,9 @@
+# m1_lio.pcd 来源与指纹（仓外件，此处只记哈希与头）
+
+- 构建：v8loc 容器内 faster_lio（faster_lio_sim.yaml，use_sim_time=true，pcd_save_en=true）
+- 构建 run：仿真钟 12.567 m 走廊往返（lio_dual.py，与 R733 同路径），GT 双轨读数见 lio_map_run.log
+- 保存时刻：2026-10-26 23:54（容器内路径 /home/ros1-slam/data/maps/lite3.pcd，复制为 /work/maps/m1_lio.pcd）
+- sha256：dcb03a35d5a15d68062c4d6c4596ba4e49821aa288b972249924f2e9a0869759
+- 大小：10,970,971 字节
+- PCD 头：FIELDS x y z intensity normal_x normal_y normal_z curvature；SIZE 4×8；TYPE F×8；WIDTH/POINTS 342835；DATA binary
+- 说明：该图由被测激光/IMU 数据自建，构建过程未用 /sim/odom_gt；图内位姿系为 LIO 起始位姿系。
