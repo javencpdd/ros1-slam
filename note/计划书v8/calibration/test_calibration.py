@@ -478,6 +478,61 @@ class CalibrationTests(unittest.TestCase):
         for token in ('0.3568', '1648.5', '0.1265', '108.4'):
             self.assertNotIn(token, text)
         self.assertEqual(cal.assert_digest(), cal.DIGEST)
+    # ------------------------------------------------------------------
+    # 判据面裁定（2026-10-27，小美，R748）：成功率是比例门槛；裸 value 不得
+    # 离开 pending，必须有 scope/sample_n/method/alpha/denominator/aggregation/
+    # evidence，且 36-run 下限与 CP95 方法不得缺省；下调按放宽处理。
+    # ------------------------------------------------------------------
+    def _success_rate_node(self, **overrides):
+        node = {
+            'value': 0.90,
+            'scope': 'v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_truth_mux_per_combo_ref_lite3_dwa',
+            'sample_n': 36,
+            'method': 'clopper_pearson_lower_95',
+            'alpha': 0.05,
+            'denominator': 'N_valid_positive',
+            'aggregation': 'per_config_per_track',
+            'evidence': '36/36 valid positive runs; CP one-sided 0.9202, two-sided 0.9026',
+        }
+        node.update(overrides)
+        return {'min_pass_rate': node}
+
+    def test_success_rate_bare_value_stays_pending_r748(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['success_rate'] = {'min_pass_rate': {'value': 0.90}}
+        report = cal.validate_frozen(bad)
+        self.assertEqual(report['status'], 'blocked')
+        self.assertIn('success_rate.min_pass_rate', report['pending'])
+        self.assertTrue(any('缺元数据' in item['reason']
+                            for item in report['pending_detail']
+                            if item['key'] == 'success_rate.min_pass_rate'))
+
+    def test_success_rate_metadata_complete_only_other_three_pending_r748(self):
+        good = copy.deepcopy(cal.FROZEN)
+        good['success_rate'] = self._success_rate_node()
+        report = cal.validate_frozen(good)
+        self.assertNotIn('success_rate.min_pass_rate', report['pending'])
+        self.assertEqual(report['status'], 'blocked')
+        self.assertEqual(len(report['pending']), 3)
+        self.assertEqual(cal.assert_digest(), cal.DIGEST)
+
+    def test_success_rate_sample_and_method_guard_r748(self):
+        bad = copy.deepcopy(cal.FROZEN)
+        bad['success_rate'] = self._success_rate_node(sample_n=18,
+                                                      method='max_times_1.15')
+        report = cal.validate_frozen(bad)
+        self.assertIn('success_rate.min_pass_rate.sample_n', report['pending'])
+        self.assertIn('success_rate.min_pass_rate.method', report['pending'])
+
+    def test_success_rate_lower_requires_unfreeze_r748(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        previous['success_rate'] = self._success_rate_node(value=0.90)
+        current['success_rate'] = self._success_rate_node(value=0.80)
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, current)
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('success_rate.min_pass_rate.value', caught.exception.detail)
 
 
 if __name__ == '__main__':

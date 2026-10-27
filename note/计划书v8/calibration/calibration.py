@@ -493,6 +493,43 @@ def _pending_report(config):
             bad = True
         if bad:
             pending.append({'key': path, 'reason': item['reason']})
+    # R748 判据面：成功率是比例门槛，裸 value 不得离开 pending；必须有 scope/
+    # sample_n/method/alpha/denominator/aggregation/evidence，且 36-run 下限与
+    # Clopper-Pearson 方法不得缺省（fail-closed，不因填了数就判绿）。
+    sr_node = _resolve(config, 'success_rate.min_pass_rate')
+    if sr_node is not _MISSING and sr_node is not None:
+        if not isinstance(sr_node, dict):
+            pending.append({
+                'key': 'success_rate.min_pass_rate',
+                'reason': '须为对象（含 value/scope/sample_n/method/alpha/denominator/'
+                          'aggregation/evidence）；裸值不得冻结（R748）'})
+        elif sr_node.get('value') is not None:
+            missing = []
+            for field in ('scope', 'sample_n', 'method', 'alpha',
+                          'denominator', 'aggregation', 'evidence'):
+                item = sr_node.get(field)
+                if item is None or (isinstance(item, str) and not item.strip()):
+                    missing.append(field)
+            if missing:
+                pending.append({
+                    'key': 'success_rate.min_pass_rate',
+                    'reason': '值已填但缺元数据 %s；无 scope/sample_n/evidence 不得冻结（R748）'
+                              % ','.join(missing)})
+            else:
+                if sr_node.get('method') != 'clopper_pearson_lower_95':
+                    pending.append({
+                        'key': 'success_rate.min_pass_rate.method',
+                        'reason': '方法须为 clopper_pearson_lower_95（R748）'})
+                if (not isinstance(sr_node.get('sample_n'), int)
+                        or sr_node['sample_n'] < 36):
+                    pending.append({
+                        'key': 'success_rate.min_pass_rate.sample_n',
+                        'reason': '36-run 定标下限：sample_n 须为 ≥36 的整数（R748）'})
+                alpha = sr_node.get('alpha')
+                if not (_is_number(alpha) and 0 < alpha <= 0.5):
+                    pending.append({
+                        'key': 'success_rate.min_pass_rate.alpha',
+                        'reason': 'alpha 须在 (0,0.5]（R748）'})
     repetitions = config['sampling']['scenario_repetitions']['value']
     seeds = config['sampling']['perturbation_seeds']['value']
     if repetitions < SAMPLING_MIN_REPETITIONS:
@@ -623,6 +660,11 @@ def _loosening_reason(path, old, new):
         return None
     if path == 'rerun_rules.calibration_runs_count_official.value':
         return '定标 run 计入正式分母' if old is False and new is True else None
+    # R748 判据面：成功率/覆盖率类门槛只能上调（更严）；下调一律按放宽处理。
+    if path.startswith('success_rate.') and path.endswith('.value'):
+        if not (_is_number(old) and _is_number(new)):
+            return None
+        return '成功率/覆盖率门槛下调' if new < old else None
     return None
 
 
