@@ -534,6 +534,45 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
         self.assertIn('success_rate.min_pass_rate.value', caught.exception.detail)
 
+    # ------------------------------------------------------------------
+    # R750 独立复核（R751）查出的 P1 缺口：值域、元数据类型、scope 精确匹配
+    # 与 alpha 边界；R752 补齐并锁测试。
+    # ------------------------------------------------------------------
+    def test_success_rate_value_domain_r752(self):
+        for bad_value in (0, -0.5, 1.5, float('nan'), float('inf')):
+            cfg = copy.deepcopy(cal.FROZEN)
+            cfg['success_rate'] = self._success_rate_node(value=bad_value)
+            report = cal.validate_frozen(cfg)
+            self.assertIn('success_rate.min_pass_rate.value', report['pending'], bad_value)
+
+    def test_success_rate_scope_exact_and_type_r752(self):
+        cfg = copy.deepcopy(cal.FROZEN)
+        cfg['success_rate'] = self._success_rate_node(scope='x')
+        report = cal.validate_frozen(cfg)
+        self.assertIn('success_rate.min_pass_rate.scope', report['pending'])
+        cfg = copy.deepcopy(cal.FROZEN)
+        cfg['success_rate'] = self._success_rate_node(scope=123)
+        report = cal.validate_frozen(cfg)
+        self.assertIn('success_rate.min_pass_rate', report['pending'])
+
+    def test_success_rate_missing_evidence_and_alpha_r752(self):
+        cfg = copy.deepcopy(cal.FROZEN)
+        node = self._success_rate_node()
+        del node['min_pass_rate']['evidence']
+        cfg['success_rate'] = node
+        self.assertIn('success_rate.min_pass_rate', cal.validate_frozen(cfg)['pending'])
+        cfg = copy.deepcopy(cal.FROZEN)
+        cfg['success_rate'] = self._success_rate_node(alpha=0)
+        self.assertIn('success_rate.min_pass_rate.alpha',
+                      cal.validate_frozen(cfg)['pending'])
+
+    def test_success_rate_raise_not_loosening_r752(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        current = copy.deepcopy(cal.FROZEN)
+        previous['success_rate'] = self._success_rate_node(value=0.90)
+        current['success_rate'] = self._success_rate_node(value=0.95)
+        self.assertEqual(cal.check_loosening(previous, current), [])
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

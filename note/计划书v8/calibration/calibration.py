@@ -373,6 +373,11 @@ SCOPED_REQUIRED = {
 SAMPLING_MIN_SEEDS = 3
 SAMPLING_MIN_REPETITIONS = 3
 
+# R748/R752：成功率带域 token（flat2d 定标集）。值域、元数据类型与 scope 精确匹配
+# 在 pending 阶段就 fail-closed；真正冻结仍需改 FROZEN＋digest＋unfreeze＋独立复核。
+SUCCESS_RATE_SCOPE = ('v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_'
+                      'truth_mux_per_combo_ref_lite3_dwa')
+
 # golden digest：由当前 FROZEN 实算后填入（2026-10-27，R729 scope 编码后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
@@ -504,11 +509,25 @@ def _pending_report(config):
                 'reason': '须为对象（含 value/scope/sample_n/method/alpha/denominator/'
                           'aggregation/evidence）；裸值不得冻结（R748）'})
         elif sr_node.get('value') is not None:
+            value = sr_node.get('value')
+            # R752：比例域 (0,1]；负值/0/NaN/Inf 不得靠“填了数”离开 pending。
+            if not (_is_number(value) and 0 < value <= 1):
+                pending.append({
+                    'key': 'success_rate.min_pass_rate.value',
+                    'reason': '成功率须在 (0,1]（当前 %r）；域外值不得冻结（R752）'
+                              % (value,)})
+            text_fields = ('scope', 'denominator', 'aggregation', 'evidence')
             missing = []
             for field in ('scope', 'sample_n', 'method', 'alpha',
                           'denominator', 'aggregation', 'evidence'):
                 item = sr_node.get(field)
-                if item is None or (isinstance(item, str) and not item.strip()):
+                if item is None:
+                    missing.append(field)
+                elif field in text_fields and (not isinstance(item, str)
+                                               or not item.strip()):
+                    missing.append(field)
+                elif field not in text_fields and isinstance(item, str) \
+                        and not item.strip():
                     missing.append(field)
             if missing:
                 pending.append({
@@ -516,11 +535,17 @@ def _pending_report(config):
                     'reason': '值已填但缺元数据 %s；无 scope/sample_n/evidence 不得冻结（R748）'
                               % ','.join(missing)})
             else:
+                if sr_node.get('scope') != SUCCESS_RATE_SCOPE:
+                    pending.append({
+                        'key': 'success_rate.min_pass_rate.scope',
+                        'reason': 'scope 须精确为 %r（R752，带域冻结不许静默扩域）'
+                                  % SUCCESS_RATE_SCOPE})
                 if sr_node.get('method') != 'clopper_pearson_lower_95':
                     pending.append({
                         'key': 'success_rate.min_pass_rate.method',
                         'reason': '方法须为 clopper_pearson_lower_95（R748）'})
                 if (not isinstance(sr_node.get('sample_n'), int)
+                        or isinstance(sr_node.get('sample_n'), bool)
                         or sr_node['sample_n'] < 36):
                     pending.append({
                         'key': 'success_rate.min_pass_rate.sample_n',
