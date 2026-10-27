@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import cp  # noqa: E402
 import geometry as geo  # noqa: E402
 import validate_goals as vg  # noqa: E402
 
@@ -69,6 +70,21 @@ class WorldModelTests(unittest.TestCase):
         report = vg.check_goals(self.model, {'scenarios': [
             {'id': 'SC02', 'goals': [[4.0, -1.8]]}]})
         self.assertTrue(report['all_ok'])
+
+
+class ClopperPearsonTests(unittest.TestCase):
+    def test_all_success_24(self):
+        self.assertAlmostEqual(cp.cp_lower(24, 24), 0.05 ** (1 / 24), places=4)
+
+    def test_all_success_36(self):
+        self.assertAlmostEqual(cp.cp_lower(36, 36), 0.9202, places=3)
+
+    def test_partial_is_lower(self):
+        self.assertLess(cp.cp_lower(20, 24), cp.cp_lower(24, 24))
+        self.assertGreater(cp.cp_lower(20, 24), 0.6)
+
+    def test_zero_success_is_zero(self):
+        self.assertEqual(cp.cp_lower(0, 24), 0.0)
 
 
 if __name__ == '__main__':

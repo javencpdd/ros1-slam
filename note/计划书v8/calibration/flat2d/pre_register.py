@@ -10,9 +10,10 @@ import pathlib
 import sys
 
 BASE = pathlib.Path(__file__).resolve().parent
-SET = json.loads((BASE / 'scenarios.json').read_text())
+SET_PATH = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else BASE / 'scenarios.json'
+SET = json.loads(SET_PATH.read_text())
 NOW = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')
-RUNS = BASE / 'runs'
+RUNS = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else BASE / 'runs'
 RUNS.mkdir(exist_ok=True)
 
 created = []
@@ -42,6 +43,7 @@ for scenario in SET['scenarios']:
                 'world': SET['world'],
                 'map': SET['map'],
                 'config_lock': SET['config_lock'],
+                'criteria': SET.get('criteria', {'goal_position_m': 0.30, 'min_clearance_m': 0.20}),
                 'evaluator': 'R665 a1_driver.py, goal parameterized (GT trajectory vs known boxes)',
                 'pre_registered_at': NOW,
                 'status': 'pre_registered',

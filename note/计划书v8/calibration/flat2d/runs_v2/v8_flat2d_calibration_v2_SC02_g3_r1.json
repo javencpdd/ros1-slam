@@ -1,0 +1,50 @@
+{
+ "run_id": "v8_flat2d_calibration_v2_SC02_g3_r1",
+ "run_class": "calibration",
+ "calibration_only": true,
+ "set_id": "v8_flat2d_calibration_v2",
+ "scenario_id": "SC02",
+ "scenario_name": "flat_obstacle_avoidance",
+ "scenario_semantics": "24§3",
+ "expected_outcome": "reach",
+ "seed": 3,
+ "repetition": 1,
+ "track": "truth",
+ "combo": "lite3_dwa_mux",
+ "start": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "goal": [
+  4.0,
+  2.6
+ ],
+ "world": "m1_gazebo",
+ "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)，由 m1_world.world 盒/墙几何生成",
+ "config_lock": {
+  "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+  "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+  "speed": "max_vel_x 0.4",
+  "footprint": "[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]",
+  "goal_tolerance_m": 0.3,
+  "clearance_min_m": 0.2,
+  "stack": "flat2d_stack.launch（map_server + map→odom + move_base；静态层；感知层关闭）"
+ },
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2,
+  "clearance_definition": "robot_center_to_box_surface_m",
+  "deadline_s": 120
+ },
+ "evaluator": "R665 a1_driver.py, goal parameterized (GT trajectory vs known boxes)",
+ "pre_registered_at": "2026-10-27T06:04:34+00:00",
+ "status": "pre_registered",
+ "counts_planned": {
+  "N_total": 1,
+  "N_valid": 1,
+  "N_invalid": 0,
+  "N_pass": null,
+  "N_fail": null
+ }
+}
