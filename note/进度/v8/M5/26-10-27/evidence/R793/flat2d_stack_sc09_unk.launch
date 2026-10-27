@@ -1,0 +1,110 @@
+<launch>
+  <!-- flat2d SC09 探针 U：track_unknown_space=true（未观测当未知/不可通行）。
+       原注：SC09 正式栈（v5 预登记配套）：both_stvl 几何/层不变（inflation 0.45、局部 static），
+       运动参数移入 DWAPlannerROS 命名空间（manifest 声明的 max_vel_x 0.4 等此前写在 /move_base/* 下、
+       DWA 从不读取，实跑一直是默认 0.55；R791）。
+       原说明：全局 STVL + 局部 STVL，中继静态过滤）：obstacle_layer 换成 spatio_temporal_voxel_layer。
+       背景：R778—R781 证明 obstacle_layer 在这套 /scan_points 上不可用（无云时标死
+       一大片、标死格与点位置对不上）；STVL 带 voxel_decay，可验证「标对→撤走→衰减」。
+       与 flat2d_stack_sense.launch 的差别只有感知层与参数；static/move_base/TF 保持一致。 -->
+  <node pkg="map_server" type="map_server" name="map_server" output="screen"
+        args="/work/pilot_map.yaml"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <remap from="cmd_vel" to="/follow/cmd_vel"/>
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="planner_frequency" value="1.0"/>
+    <param name="footprint" value="[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]"/>
+    <param name="xy_goal_tolerance" value="0.25"/>
+    <param name="yaw_goal_tolerance" value="1.57"/>
+    <param name="DWAPlannerROS/max_vel_x" value="0.4"/>
+    <param name="DWAPlannerROS/max_vel_x_backwards" value="0.2"/>
+    <param name="DWAPlannerROS/max_vel_theta" value="1.0"/>
+    <param name="DWAPlannerROS/acc_lim_x" value="1.0"/>
+    <param name="DWAPlannerROS/acc_lim_theta" value="2.0"/>
+    <param name="DWAPlannerROS/max_vel_y" value="0.1"/>
+    <param name="DWAPlannerROS/acc_lim_y" value="0.5"/>
+
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/rolling_window" value="false"/>
+    <param name="global_costmap/width" value="10.0"/>
+    <param name="global_costmap/height" value="10.0"/>
+    <param name="global_costmap/resolution" value="0.05"/>
+    <param name="global_costmap/origin_x" value="-2.5"/>
+    <param name="global_costmap/origin_y" value="-5.0"/>
+    <param name="global_costmap/robot_base_frame" value="base_link"/>
+    <param name="global_costmap/update_frequency" value="2.0"/>
+    <param name="global_costmap/publish_frequency" value="2.0"/>
+    <rosparam param="global_costmap/plugins">
+      - {name: static_layer, type: "costmap_2d::StaticLayer"}
+      - {name: stvl_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="global_costmap/static_layer/track_unknown_space" value="false"/>
+    <param name="global_costmap/stvl_layer/observation_sources" value="cloud"/>
+    <param name="global_costmap/stvl_layer/cloud/topic" value="/scan_points"/>
+    <param name="global_costmap/stvl_layer/cloud/data_type" value="PointCloud2"/>
+    <param name="global_costmap/stvl_layer/cloud/marking" value="true"/>
+    <param name="global_costmap/stvl_layer/cloud/clearing" value="true"/>
+    <param name="global_costmap/stvl_layer/cloud/min_obstacle_height" value="0.05"/>
+    <param name="global_costmap/stvl_layer/cloud/max_obstacle_height" value="1.20"/>
+    <param name="global_costmap/stvl_layer/cloud/expected_update_rate" value="0.0"/>
+    <param name="global_costmap/stvl_layer/cloud/observation_persistence" value="0.0"/>
+    <param name="global_costmap/stvl_layer/cloud/filter" value="passthrough"/>
+    <param name="global_costmap/stvl_layer/cloud/voxel_min_points" value="0"/>
+    <param name="global_costmap/stvl_layer/cloud/clear_after_reading" value="false"/>
+    <param name="global_costmap/stvl_layer/voxel_size" value="0.05"/>
+    <param name="global_costmap/stvl_layer/voxel_decay" value="5.0"/>
+    <param name="global_costmap/stvl_layer/decay_model" value="0"/>
+    <param name="global_costmap/stvl_layer/combination_method" value="1"/>
+    <param name="global_costmap/stvl_layer/track_unknown_space" value="true"/>
+    <param name="global_costmap/stvl_layer/mark_threshold" value="0"/>
+    <param name="global_costmap/stvl_layer/update_footprint_enabled" value="false"/>
+    <param name="global_costmap/stvl_layer/publish_voxel_map" value="false"/>
+    <param name="global_costmap/stvl_layer/transform_tolerance" value="0.5"/>
+    <param name="global_costmap/inflation_layer/inflation_radius" value="0.45"/>
+    <param name="global_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
+
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_link"/>
+    <param name="local_costmap/rolling_window" value="true"/>
+    <param name="local_costmap/width" value="6.0"/>
+    <param name="local_costmap/height" value="6.0"/>
+    <param name="local_costmap/resolution" value="0.05"/>
+    <param name="local_costmap/update_frequency" value="5.0"/>
+    <param name="local_costmap/publish_frequency" value="2.0"/>
+    <rosparam param="local_costmap/plugins">
+      - {name: static_layer, type: "costmap_2d::StaticLayer"}
+      - {name: stvl_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="local_costmap/static_layer/track_unknown_space" value="false"/>
+    <param name="local_costmap/stvl_layer/observation_sources" value="cloud"/>
+    <param name="local_costmap/stvl_layer/cloud/topic" value="/scan_points"/>
+    <param name="local_costmap/stvl_layer/cloud/data_type" value="PointCloud2"/>
+    <param name="local_costmap/stvl_layer/cloud/marking" value="true"/>
+    <param name="local_costmap/stvl_layer/cloud/clearing" value="true"/>
+    <param name="local_costmap/stvl_layer/cloud/min_obstacle_height" value="0.05"/>
+    <param name="local_costmap/stvl_layer/cloud/max_obstacle_height" value="1.20"/>
+    <param name="local_costmap/stvl_layer/cloud/expected_update_rate" value="0.0"/>
+    <param name="local_costmap/stvl_layer/cloud/observation_persistence" value="0.0"/>
+    <param name="local_costmap/stvl_layer/cloud/filter" value="passthrough"/>
+    <param name="local_costmap/stvl_layer/cloud/voxel_min_points" value="0"/>
+    <param name="local_costmap/stvl_layer/cloud/clear_after_reading" value="false"/>
+    <param name="local_costmap/stvl_layer/voxel_size" value="0.05"/>
+    <param name="local_costmap/stvl_layer/voxel_decay" value="5.0"/>
+    <param name="local_costmap/stvl_layer/decay_model" value="0"/>
+    <param name="local_costmap/stvl_layer/combination_method" value="1"/>
+    <param name="local_costmap/stvl_layer/track_unknown_space" value="true"/>
+    <param name="local_costmap/stvl_layer/mark_threshold" value="0"/>
+    <param name="local_costmap/stvl_layer/update_footprint_enabled" value="false"/>
+    <param name="local_costmap/stvl_layer/publish_voxel_map" value="false"/>
+    <param name="local_costmap/stvl_layer/transform_tolerance" value="0.5"/>
+    <param name="local_costmap/inflation_layer/inflation_radius" value="0.45"/>
+    <param name="local_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
+  </node>
+</launch>
