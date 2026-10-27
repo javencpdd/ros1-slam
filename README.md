@@ -42,6 +42,7 @@
 | `note/tools/` | 工具教程面（跨 Agent 协作黑板教程在此） | `note/tools/跨Agent协作黑板-使用教程.md` |
 | `scripts/` | 门禁件 `scripts/verify/`（★十一件★）＋采图脚本族 `scripts/mapping/` | `scripts/mapping/README.md` |
 | `docker/` | 容器开发环境（复刻 Jetson aarch64 的 Noetic 隔离沙箱）＋ `foxglove/` 布局件 | `docker/README.md` |
+| `web/` | 项目官网（静态单页）：架构、里程碑、判据现状、仿真入口 | `web/README.md` |
 | `tooling/` | 项目自持清单（含 skill 逐字镜像＋ `*_sha256_manifest.txt` 见证清单） | `tooling/README.md` |
 | `data/` | 底图与输出面（`maps/`＝建图三件套 .pcd/.pgm/.yaml，`waypoints/`＝航点 JSON） | `data/waypoints/README.md` |
 | `opt/` | **第三方与原件区**（★原样复制、一字不改★；唯一许可例外＝faster-lio 存盘路径隔离） | `opt/upstream/`／`opt/3rdparty/` |
@@ -49,6 +50,33 @@
 | `.qoder/rules/` | qoder 侧常驻提醒（带 `alwaysApply`） | `ros1-slam-collab.md` |
 
 ⚠️ `logs/` 与 `data/maps/` 下的产物**不入库**（`.gitignore` 已排除），换机只拿代码与台账即可重建。
+
+---
+
+## 三·五、官网介绍（`/web`）
+
+仓库自带一份**静态单页**项目官网（零依赖、可离线打开）：定位、能力地图、架构、里程碑、
+当前判据状态、仿真与观察入口、新算法接入方式、文档索引。
+
+**启动方式**（必须从仓库根目录起服务，页面里的 `note/`、`docker/` 文档链接才可达）：
+
+```bash
+cd /home/jack/ysc-code/ros1-slam
+python3 web/serve.py
+# 浏览器打开 http://127.0.0.1:8000/web/
+```
+
+`web/serve.py` 会把服务根指到仓库根，并给文本补 `charset=utf-8`（否则中文 Markdown 会乱码）。
+改端口或局域网访问：`python3 web/serve.py --port 8080 --bind 0.0.0.0`。
+
+不需要文档链接时，也可以只服务站点目录：
+
+```bash
+python3 -m http.server -d web 8000   # 打开 http://127.0.0.1:8000/
+```
+
+细节与更新约定见 `web/README.md`。页面数字是快照，权威仍以
+[进度总览](note/进度/00_总览.md) 与 `note/计划书v8/calibration/` 现跑为准。
 
 ---
 
