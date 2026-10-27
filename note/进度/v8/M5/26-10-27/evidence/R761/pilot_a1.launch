@@ -1,0 +1,45 @@
+<launch>
+  <!-- 成功率官方正例 pilot：m1 真值图 + move_base(dwa) + 真 mux（cmd_vel→/follow/cmd_vel→mux→/cmd_vel） -->
+  <node pkg="map_server" type="map_server" name="map_server" output="screen"
+        args="/work/pilot_map.yaml"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <remap from="cmd_vel" to="/follow/cmd_vel"/>
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="planner_frequency" value="1.0"/>
+    <param name="footprint" value="[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]"/>
+
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_link"/>
+    <param name="global_costmap/static_map" value="true"/>
+    <param name="global_costmap/track_unknown_space" value="false"/>
+    <param name="global_costmap/inflation_radius" value="0.45"/>
+    <param name="global_costmap/cost_scaling_factor" value="5.0"/>
+    <param name="global_costmap/obstacle_range" value="8.0"/>
+    <param name="global_costmap/raytrace_range" value="9.0"/>
+
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_link"/>
+    <param name="local_costmap/rolling_window" value="true"/>
+    <param name="local_costmap/width" value="6.0"/>
+    <param name="local_costmap/height" value="6.0"/>
+    <param name="local_costmap/resolution" value="0.05"/>
+    <param name="local_costmap/static_map" value="false"/>
+    <param name="local_costmap/inflation_radius" value="0.45"/>
+    <param name="local_costmap/cost_scaling_factor" value="5.0"/>
+
+    <param name="max_vel_x" value="0.4"/>
+    <param name="max_vel_x_backwards" value="0.2"/>
+    <param name="max_vel_theta" value="1.0"/>
+    <param name="acc_lim_x" value="1.0"/>
+    <param name="acc_lim_theta" value="2.0"/>
+    <param name="max_vel_y" value="0.1"/>
+    <param name="acc_lim_y" value="0.5"/>
+    <param name="xy_goal_tolerance" value="0.25"/>
+    <param name="yaw_goal_tolerance" value="1.57"/>
+  </node>
+</launch>

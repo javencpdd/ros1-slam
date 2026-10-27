@@ -1,0 +1,42 @@
+{
+  "run_id": "pilot-20261027-01",
+  "run_class": "pilot",
+  "calibration_only": true,
+  "scenario_id": "FLAT2D_GOAL_4p0_0p3",
+  "scenario_semantics": "pilot_not_24§3_SC",
+  "expected_outcome": "reach",
+  "seed": 0,
+  "repetition": 1,
+  "track": "truth",
+  "combo": "lite3_dwa_mux",
+  "goal_xy": [4.0, 0.3],
+  "config_lock": {
+    "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+    "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+    "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0), regenerated from known box list",
+    "world": "m1 Gazebo",
+    "speed": "max_vel_x 0.4"
+  },
+  "evaluator": "R665 a1_driver.py (GT trajectory vs known obstacle geometry), output path adapted",
+  "pre_registration": "NOT pre-registered — manifest reconstructed after the run; pilot only, not counted in calibration denominator",
+  "result": {
+    "map_received": true,
+    "movebase_result_status": null,
+    "cmd_vel_messages": 4084,
+    "odom_samples": 10211,
+    "path_length_m": 16.36,
+    "final_pos": [3.8305447745539625, 0.3023249742485473],
+    "dist_to_goal_m": 0.169,
+    "obstacle_min_clearance_m": 0.384,
+    "arrived_by_track": true,
+    "accepted": true
+  },
+  "counts": {"N_total": 1, "N_valid": 1, "N_invalid": 0, "N_pass": 1, "N_fail": 0},
+  "disclosures": [
+    "single pilot, not calibration sample",
+    "MoveBaseActionResult not received; PASS uses trajectory-arrival fallback (dist<=0.35) and R665 driver 'accepted' rule (dist<=0.35, clearance>=0.25, cmd>=10)",
+    "yaw tolerance key still pending; yaw not evaluated",
+    "map regenerated from the known obstacle list, not parsed from the world file",
+    "cmd_vel writer uniqueness checked via rostopic info before run (mux sole publisher)"
+  ]
+}
