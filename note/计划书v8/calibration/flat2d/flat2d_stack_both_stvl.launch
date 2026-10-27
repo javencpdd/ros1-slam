@@ -36,9 +36,11 @@
     <param name="global_costmap/update_frequency" value="2.0"/>
     <param name="global_costmap/publish_frequency" value="2.0"/>
     <rosparam param="global_costmap/plugins">
+      - {name: static_layer, type: "costmap_2d::StaticLayer"}
       - {name: stvl_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
       - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     </rosparam>
+    <param name="global_costmap/static_layer/track_unknown_space" value="false"/>
     <param name="global_costmap/stvl_layer/observation_sources" value="cloud"/>
     <param name="global_costmap/stvl_layer/cloud/topic" value="/scan_points"/>
     <param name="global_costmap/stvl_layer/cloud/data_type" value="PointCloud2"/>
@@ -77,7 +79,6 @@
       - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     </rosparam>
     <param name="local_costmap/static_layer/track_unknown_space" value="false"/>
-    <param name="local_costmap/static_layer/track_unknown_space" value="false"/>
     <param name="local_costmap/stvl_layer/observation_sources" value="cloud"/>
     <param name="local_costmap/stvl_layer/cloud/topic" value="/scan_points"/>
     <param name="local_costmap/stvl_layer/cloud/data_type" value="PointCloud2"/>
@@ -99,8 +100,6 @@
     <param name="local_costmap/stvl_layer/update_footprint_enabled" value="false"/>
     <param name="local_costmap/stvl_layer/publish_voxel_map" value="false"/>
     <param name="local_costmap/stvl_layer/transform_tolerance" value="0.5"/>
-    <param name="local_costmap/inflation_layer/inflation_radius" value="0.45"/>
-    <param name="local_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
     <param name="local_costmap/inflation_layer/inflation_radius" value="0.45"/>
     <param name="local_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
   </node>
