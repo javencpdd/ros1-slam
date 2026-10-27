@@ -72,6 +72,41 @@ class WorldModelTests(unittest.TestCase):
         self.assertTrue(report['all_ok'])
 
 
+class PreRegisterInjectTests(unittest.TestCase):
+    def test_pre_register_writes_inject_per_group(self):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            td = pathlib.Path(td)
+            setp = td / 'set.json'
+            setp.write_text(json.dumps({
+                'set_id': 't', 'world': 'w', 'map': 'm', 'combo': 'c',
+                'start': [0.0, 0.0, 0.0], 'repetitions': 1, 'config_lock': {},
+                'scenarios': [{
+                    'id': 'SC09', 'name': 'n', 'expected_outcome': 'reach',
+                    'goals': [[1.0, 0.0], [2.0, 0.0]],
+                    'injects': [
+                        {'at_progress_m': 0.5, 'model_name': 'b0',
+                         'size': [0.8, 0.8, 0.8], 'pose_xy_yaw': [1.0, 0.0, 0.0]},
+                        {'at_progress_m': 0.5, 'model_name': 'b1',
+                         'size': [0.8, 0.8, 0.8], 'pose_xy_yaw': [2.0, 0.0, 0.0]},
+                    ]}]}))
+            out = td / 'runs'
+            subprocess.run([sys.executable, str(HERE / 'pre_register.py'),
+                            str(setp), str(out)], check=True, capture_output=True)
+            m0 = json.loads((out / 't_SC09_g0_r1.json').read_text())
+            m1 = json.loads((out / 't_SC09_g1_r1.json').read_text())
+            self.assertEqual(m0['inject']['model_name'], 'b0')
+            self.assertEqual(m1['inject']['pose_xy_yaw'], [2.0, 0.0, 0.0])
+
+    def test_sc09_set_has_four_groups_and_three_reps(self):
+        s = json.loads((HERE / 'scenarios_v3_sc09.json').read_text())
+        sc = s['scenarios'][0]
+        self.assertEqual(len(sc['goals']), 4)
+        self.assertEqual(len(sc['injects']), 4)
+        self.assertEqual(s['repetitions'], 3)
+
+
 class ClopperPearsonTests(unittest.TestCase):
     def test_all_success_24(self):
         self.assertAlmostEqual(cp.cp_lower(24, 24), 0.05 ** (1 / 24), places=4)

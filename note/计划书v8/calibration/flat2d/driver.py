@@ -50,6 +50,12 @@ def main(argv):
 
     world = json.loads((HERE / 'world_model.json').read_text())
     boxes = [tuple(b) for b in world['boxes']]
+    inject_box = None
+    if inject:
+        # 注入块也进净空判据；否则「穿过方块也到点」会被误判 PASS（R789）。
+        ix, iy, iyaw = inject['pose_xy_yaw']
+        inject_box = (ix, iy, inject['size'][0], inject['size'][1], iyaw)
+        boxes.append(inject_box)
 
     rospy.init_node('flat2d_driver', anonymous=True, disable_signals=True)
     odom = []
@@ -88,6 +94,7 @@ def main(argv):
 
     injected_at = None
     injection_ok = None
+    inject_idx = None
     stable = 0.0
     last = time.time()
     deadline = time.time() + deadline_s
@@ -102,6 +109,7 @@ def main(argv):
                 if travelled >= float(inject['at_progress_m']):
                     injection_ok = spawn_box(inject['model_name'], inject['size'], inject['pose_xy_yaw'])
                     injected_at = round(now - t0, 1)
+                    inject_idx = len(odom)
             if math.hypot(px - goal[0], py - goal[1]) <= ARRIVE_RADIUS_M:
                 stable += dt
                 if stable >= ARRIVE_HOLD_S:
@@ -131,6 +139,10 @@ def main(argv):
         'final_pos': list(end) if end else None,
         'dist_to_goal_m': round(dist_goal, 3) if dist_goal is not None else None,
         'obstacle_min_clearance_m': round(clear, 3) if clear is not None else None,
+        'injected_box_clearance_m': (
+            round(min_clearance(odom[inject_idx:], [inject_box]), 3)
+            if (inject_box is not None and inject_idx is not None
+                and odom[inject_idx:]) else None),
         'inject': inject,
         'injected_at_s': injected_at,
         'injection_ok': injection_ok,

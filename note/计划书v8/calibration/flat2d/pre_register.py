@@ -50,6 +50,9 @@ for scenario in SET['scenarios']:
                 'counts_planned': {'N_total': 1, 'N_valid': 1, 'N_invalid': 0,
                                    'N_pass': None, 'N_fail': None},
             }
+            injects = scenario.get('injects')
+            if injects:
+                manifest['inject'] = injects[group]
             path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + '\n')
             created.append(path.name)
 
