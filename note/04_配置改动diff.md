@@ -7079,3 +7079,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 复核＝第二次独立复核判仍需修（足迹退化穿透、不可通行面作边源/双向计入、配对 KeyError、起点 z 可空、step 超声明上限、origin 与标识可过、平面目标带 hint、例数未锁）。全文＝[R630](进度/v8/M0/26-10-25/R630.md)。
 - 修订＝足迹非退化与同高重叠判定、边两端 supported、配对先判类型与 frame 且安全取值、起点 z 必填、step 去额外容差、origin 定长与 pattern 全串匹配、plane_xy 禁 hint；夹具 42→49、测试锁定 (49,8) 共 10 项全过。
 - 边界＝A1 仍不自行签署，等第三次复核；坡度几何/净空与 goal 越界等归 V8-08/09、V8-04/05/06。R625 102 条与 R626 4 条复算不变，R628 清单 contracts/ 条目失效不重写。未建容器、未编译、不提交、不push。
+
+## R787 · 批436（2026-10-27）：定位键按 B 方案冻结 0.22 m（LIO 单后端 9run）
+
+- 变更＝`note/计划书v8/calibration/calibration.py`：`tolerances.max_localization_error_m` 由 pending 冻结为 0.22 m，scope `m1_corridor_12p57m_xy_base_link_se2init_9runs_lio_only_b_ndt_monitor`、sample_n=9；unfreeze_log 记 `from=未定标（pending）→to=0.22`；digest `6d0fadf6…`→`a6fe8fb9…`；pending 4→3（剩 stop_time／stop_distance／success_rate）。全文＝[R787](进度/v8/M5/26-10-27/R787.md)。
+- 依据＝真人 2026-10-27「开启 B 方案，继续任务，将三个问题解决」。B 方案＝NDT 降级为只做重定位/失效检测，定位精度门只压 LIO 单后端；NDT 不再进精度主键。
+- 数值＝R785 9 个有效 run（l9b 六＋l9c 三；s4—s6 出生跌落作废由 9c 同起点替换）LIO xy/base_link max 0.1167—0.1903（9/9≤0.194）、p95 0.1051—0.1566（4/9≤0.12，仅报告）；按 R742 乙案 `T=min(ceil_cm(1.15×0.1903),0.22)=0.22`，低于几何硬顶 0.2236。0.194→0.22 属上限上调（+13.4%），已在 unfreeze 注明并按放宽纪律另做独立增量复核。
+- 判据面回文＝独立实例小美（零协商）认为 Q1 取值成立、Q4 手续照办，但 Q2 旧 p95≤0.12 子门退役属 R775 L2⑥ 需真人补勾；本批按真人「B＋解决」明令执行并标注可撤销，原文见 `evidence/R787/xiaomei_b_loc.txt`。Q3 指 NDT 重定位证据不足（正确初值下的局部收敛，非全局重定位），另案不阻塞本键。
+- 边界＝仅 m1 单走廊 11.5—12.57 m、平地、base_link、xy、9 run、LIO 单后端；不含 z/yaw/跨层/真机。测试＝`test_calibration` 59 项＋`test_flat2d` 15 项全绿。第三方未改；未 push。

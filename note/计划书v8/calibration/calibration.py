@@ -108,6 +108,16 @@ FROZEN = {
          'change': '新增局部层响应 p95 0.8966 s（带域 scan_sim_consumed_cloud_to_bspline_27run）',
          'reason': 'R722 27 独立 run/470 周期实测；grid_map 记实际消费点云 stamp、FSM 计划起点打点；'
                    'scope 仅 SCAN 局部层，含输入年龄、非纯计算；0.5/f_out 不适用；属新增判据'},
+        # B 方案（真人 2026-10-27 明令：NDT 降级为只做重定位/失效检测，精度门只压 LIO）。
+        {'when': '2026-10-27',
+         'key': 'tolerances.max_localization_error_m.value',
+         'from': '未定标（pending）', 'to': 0.22,
+         'change': '新增定位最大误差 0.22 m（带域 9run LIO 单后端，B 方案）',
+         'reason': 'R785 9 个有效 run（3 起点×3 次，l9b 六＋l9c 三；s4—s6 出生跌落作废由 9c 同起点替换）'
+                   'LIO 单后端 xy/base_link max 0.1167—0.1903（9/9≤0.194）；'
+                   '按 R742 乙案取值式 T=min(ceil_cm(1.15×0.1903),0.22)=0.22，仍低于几何硬顶 0.2236；'
+                   '真人 B 方案授权单后端主键；p95 0.105—0.157（4/9≤0.12）随 NDT 双后端目标退役，只作报告统计量；'
+                   '0.194→0.22 属上限上调（+13.4%），按放宽纪律另做独立增量复核'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -116,6 +126,18 @@ FROZEN = {
         'goal_position_m': {'value': 0.30, 'evidence': 'R656 场景任务夹具'},
         'z_support_tol_m': {'value': 0.10, 'evidence': 'R653 检查器默认'},
         'min_clearance_m': {'value': 0.20, 'evidence': 'R653'},
+        # B 方案（真人 2026-10-27）：定位输出＝LIO（map→odom 启动固定），
+        # NDT 只做重定位/失效检测，不进精度主键。值按 R742 乙案取值式。
+        'max_localization_error_m': {
+            'value': 0.22,
+            'scope': 'm1_corridor_12p57m_xy_base_link_se2init_9runs_lio_only_b_ndt_monitor',
+            'sample_n': 9,
+            'evidence': 'R785 9 有效 run（3 起点×3 次；l9b 六＋l9c 三，s4—s6 出生跌落作废由 9c 同起点替换）'
+                        'LIO 单后端 xy/base_link 对齐后 max 0.1167—0.1903（9/9≤0.194）、p95 0.105—0.157'
+                        '（4/9≤0.12，仅报告不入阈值）；R742 乙案 T=min(ceil_cm(1.15×0.1903),0.22)=0.22，'
+                        '低于 RSS 硬顶 0.2236；B 方案（真人 2026-10-27）令 NDT 仅重定位/失效检测，'
+                        '故主键只压 LIO；z/yaw 不覆盖；11.5—12.57 m 单走廊、平地、base_link，'
+                        '不含跨层/真机；NDT 监控器证据另案（非本键）'},
     },
     'budgets': {
         'planner_max_expansions': {'value': 20000, 'evidence': 'R652 plan 默认'},
@@ -248,6 +270,10 @@ REQUIRED = {
     'tolerances.z_support_tol_m.evidence': {'types': (str,), 'non_empty': True},
     'tolerances.min_clearance_m.value': {'types': (int, float)},
     'tolerances.min_clearance_m.evidence': {'types': (str,), 'non_empty': True},
+    'tolerances.max_localization_error_m.value': {'types': (int, float)},
+    'tolerances.max_localization_error_m.scope': {'types': (str,), 'non_empty': True},
+    'tolerances.max_localization_error_m.sample_n': {'types': (int,)},
+    'tolerances.max_localization_error_m.evidence': {'types': (str,), 'non_empty': True},
     'budgets': {'types': (dict,), 'non_empty': True},
     'budgets.planner_max_expansions.value': {'types': (int,)},
     'budgets.planner_max_expansions.evidence': {'types': (str,), 'non_empty': True},
@@ -332,6 +358,8 @@ REQUIRED = {
 # 判据面只批准另立制动分量键（stop_brake_peak_*），本表两条全链键继续 pending。
 # 2026-10-27（R722）：p95_local 已按 27 独立 run、实际消费点云 stamp 的口径带域冻结，
 # 从本表移出；scope 只含 SCAN 局部层响应、含输入年龄，不含 v8 support_map/全栈。
+# 2026-10-27（R787）：定位键按 B 方案冻结（LIO 单后端 9run），从本表移出；
+# 真人明令「NDT 降级为只做重定位/失效检测，精度门只压 LIO」。剩两停车键+成功率。
 PENDING_REQUIRED = [
     {'key': 'budgets.stop_time_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车时间；当前只有制动分量与 osmesa 代理键，全链仍缺规划段、'
@@ -339,8 +367,6 @@ PENDING_REQUIRED = [
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前只有制动分量与 osmesa 代理键，'
                '全链仍缺规划段、osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
-    {'key': 'tolerances.max_localization_error_m.value', 'types': (int, float),
-     'reason': '24 §4.1 要求最大定位误差上限；当前未定标（缺项，禁 freeze）'},
     {'key': 'success_rate.min_pass_rate.value', 'types': (int, float),
      'reason': '24 §4.1 要求成功率门槛；定标集尚无成功率读数，0.9 无本地依据'
                '（v7 ≥90% 属另一任务面，22 号明令不得移作 3D 全场景验收标准），'
@@ -367,6 +393,10 @@ SCOPED_REQUIRED = {
     'budgets.stop_chain_osmesa_distance_m': {
         'scope': 'lite3_mj_depth_osmesa_perception_to_peak_flat_0p3_3x3',
         'min_sample_n': 3},
+    # B 方案（真人 2026-10-27）：LIO 单后端主键；scope 精确匹配，9run 下限防缩样。
+    'tolerances.max_localization_error_m': {
+        'scope': 'm1_corridor_12p57m_xy_base_link_se2init_9runs_lio_only_b_ndt_monitor',
+        'min_sample_n': 9},
 }
 
 # 24 §4.1 采样要求：每个适用闭环场景至少 3 个预登记 seed、每 seed 3 次重复。
@@ -381,7 +411,7 @@ SUCCESS_RATE_SCOPE = ('v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_'
 # golden digest：由当前 FROZEN 实算后填入（2026-10-27，R729 scope 编码后）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = '6d0fadf66b40035b17e3bdb997844bc1d92564e59a678e79877114a132350d29'
+DIGEST = 'a6fe8fb96adad42a518c461028ae972735a21b97ff5f62efc908a19a510368a0'
 
 
 class CalibrationError(Exception):
@@ -555,10 +585,10 @@ def _pending_report(config):
                     pending.append({
                         'key': 'success_rate.min_pass_rate.alpha',
                         'reason': 'alpha 须在 (0,0.5]（R748）'})
-    # R759（R751 P3-1）：另三个 pending 键与 success_rate 同族——填了值不算数，
+    # R759（R751 P3-1）：另两个 pending 键与 success_rate 同族——填了值不算数，
     # 必须有 scope/evidence 且为正数；否则仍 pending（fail-closed）。
-    for key in ('budgets.stop_time_s', 'budgets.stop_distance_m',
-                'tolerances.max_localization_error_m'):
+    # （定位键已于 R787 按 B 方案带域冻结，移出本循环。）
+    for key in ('budgets.stop_time_s', 'budgets.stop_distance_m'):
         node = _resolve(config, key)
         if not isinstance(node, dict) or node.get('value') is None:
             continue

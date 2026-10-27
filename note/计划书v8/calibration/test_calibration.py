@@ -180,9 +180,9 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(report['status'], 'blocked')
         self.assertFalse(report['freeze_allowed'])
         pending = report['pending']
-        self.assertEqual(len(pending), 4)
+        self.assertEqual(len(pending), 3)
         for token in ('budgets.stop_time_s', 'budgets.stop_distance_m',
-                      'tolerances.max_localization_error_m', 'success_rate.min_pass_rate'):
+                      'success_rate.min_pass_rate'):
             self.assertTrue(any(token in key for key in pending), token)
         # 2026-10-27 判据面已落实的项不得再 pending（资源/采样/两个带域字段/制动分量）。
         for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
@@ -197,7 +197,8 @@ class CalibrationTests(unittest.TestCase):
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R713）：resources 两项＋sampling 两项落实。
     # 判据面裁定（2026-10-27，小美，R715）：p95_global 与 cancel_time 带域冻结；
-    # stop_time、stop_distance、定位误差、成功率保持 pending（p95_local 已在 R722 带域冻结）。
+    # stop_time、stop_distance、成功率保持 pending（p95_local 已在 R722 带域冻结；
+    # 定位误差已在 R787 按 B 方案带域冻结）。
     # ------------------------------------------------------------------
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R720）：制动分量另立两键；
@@ -251,7 +252,7 @@ class CalibrationTests(unittest.TestCase):
                          'scan_sim_consumed_cloud_to_bspline_27run')
         report = cal.validate_frozen()
         self.assertEqual(report['status'], 'blocked')
-        self.assertEqual(len(report['pending']), 4)
+        self.assertEqual(len(report['pending']), 3)
         keys = [x['key'] for x in report['pending_detail']]
         self.assertNotIn('latency.p95_local_s.value', keys)
 
@@ -280,7 +281,7 @@ class CalibrationTests(unittest.TestCase):
         self.assertIn('budgets.stop_chain_osmesa_time_s', cal.SCOPED_REQUIRED)
         self.assertIn('budgets.stop_chain_osmesa_distance_m', cal.SCOPED_REQUIRED)
         report = cal.validate_frozen()
-        self.assertEqual(len(report['pending']), 4)
+        self.assertEqual(len(report['pending']), 3)
         keys = [x['key'] for x in report['pending_detail']]
         self.assertIn('budgets.stop_time_s.value', keys)
         self.assertIn('budgets.stop_distance_m.value', keys)
@@ -519,7 +520,7 @@ class CalibrationTests(unittest.TestCase):
         report = cal.validate_frozen(good)
         self.assertNotIn('success_rate.min_pass_rate', report['pending'])
         self.assertEqual(report['status'], 'blocked')
-        self.assertEqual(len(report['pending']), 3)
+        self.assertEqual(len(report['pending']), 2)
         self.assertEqual(cal.assert_digest(), cal.DIGEST)
 
     def test_success_rate_sample_and_method_guard_r748(self):
@@ -662,19 +663,61 @@ class CalibrationTests(unittest.TestCase):
         cfg['budgets']['stop_time_s'] = {'value': 1.5, 'scope': 'x', 'evidence': 'y'}
         report = cal.validate_frozen(cfg)
         self.assertNotIn('budgets.stop_time_s', report['pending'])
-        self.assertEqual(len(report['pending']), 3)
+        self.assertEqual(len(report['pending']), 2)
 
-    def test_localization_bare_value_stays_pending_r759(self):
+    def test_localization_bare_value_rejected_r787(self):
         cfg = copy.deepcopy(cal.FROZEN)
         cfg['tolerances']['max_localization_error_m'] = {'value': 0.2}
-        report = cal.validate_frozen(cfg)
-        self.assertIn('tolerances.max_localization_error_m', report['pending'])
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(cfg)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        self.assertIn('max_localization_error_m', caught.exception.detail)
 
     def test_stop_distance_negative_rejected_r759(self):
         cfg = copy.deepcopy(cal.FROZEN)
         cfg['budgets']['stop_distance_m'] = {'value': -1, 'scope': 'x', 'evidence': 'y'}
         report = cal.validate_frozen(cfg)
         self.assertIn('budgets.stop_distance_m.value', report['pending'])
+
+    # ------------------------------------------------------------------
+    # R787：B 方案（真人 2026-10-27）——NDT 降级为只做重定位/失效检测，
+    # 定位精度主键只压 LIO 单后端；值按 R742 乙案取值式冻结为 0.22。
+    # ------------------------------------------------------------------
+    def test_localization_frozen_scoped_r787(self):
+        item = cal.FROZEN['tolerances']['max_localization_error_m']
+        self.assertAlmostEqual(item['value'], 0.22)
+        self.assertEqual(item['scope'],
+                         'm1_corridor_12p57m_xy_base_link_se2init_9runs_lio_only_b_ndt_monitor')
+        self.assertEqual(item['sample_n'], 9)
+        self.assertIn('tolerances.max_localization_error_m', cal.SCOPED_REQUIRED)
+        self.assertEqual(
+            cal.SCOPED_REQUIRED['tolerances.max_localization_error_m']['min_sample_n'], 9)
+        report = cal.validate_frozen()
+        self.assertNotIn('tolerances.max_localization_error_m.value', report['pending'])
+        self.assertEqual(len(report['pending']), 3)
+
+    def test_localization_scope_and_sample_guard_r787(self):
+        for field, val in (('scope', 'full_stack'), ('sample_n', 3)):
+            cfg = copy.deepcopy(cal.FROZEN)
+            cfg['tolerances']['max_localization_error_m'][field] = val
+            with self.assertRaises(cal.CalibrationError) as caught:
+                cal.validate_frozen(cfg)
+            self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    def test_localization_raise_requires_unfreeze_r787(self):
+        previous = copy.deepcopy(cal.FROZEN)
+        previous['tolerances']['max_localization_error_m']['value'] = 0.194
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.check_loosening(previous, copy.deepcopy(cal.FROZEN))
+        self.assertEqual(caught.exception.code, 'E_CAL_LOOSENED')
+        self.assertIn('tolerances.max_localization_error_m.value',
+                      caught.exception.detail)
+        current = copy.deepcopy(cal.FROZEN)
+        current['unfreeze_log'] = list(current['unfreeze_log']) + [{
+            'when': '2026-10-27', 'key': 'tolerances.max_localization_error_m.value',
+            'from': 0.194, 'to': 0.22, 'reason': 'B 方案单后端主键，R787 显式解封'}]
+        self.assertEqual(cal.check_loosening(previous, current),
+                         ['tolerances.max_localization_error_m.value'])
 
 
 if __name__ == '__main__':
