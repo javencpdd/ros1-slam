@@ -16,7 +16,10 @@ import support_planner as pln  # noqa: E402
 
 class CalibrationTests(unittest.TestCase):
     def test_frozen_valid_and_digest_stable(self):
-        self.assertTrue(cal.validate_frozen())
+        report = cal.validate_frozen()
+        self.assertIsInstance(report, dict)
+        self.assertIn(report['status'], ('blocked', 'pass'))
+        self.assertEqual(report['digest'], cal.DIGEST)
         self.assertEqual(len(cal.digest()), 64)
         self.assertEqual(cal.digest(), cal.digest())  # 确定性
 
