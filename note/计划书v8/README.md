@@ -19,22 +19,22 @@
 
 ## 交付件总览（用户指南，R614 落册／R659 增补）
 
-V8-00—V8-14 主线十五件已按窄口径收口（各件证据见 [进度 v8](../进度/v8/README.md)）。设计层交付树（本目录下，零 ROS 依赖、`python3 -B test_*.py` 可复跑）：
+V8-00—V8-14 主线十五件已按窄口径收口（各件证据见 [进度 v8](../进度/v8/README.md)）。可执行件位置：**R795 起迁至 [`ws/src/90_platform/v8_platform/`](../../ws/src/90_platform/v8_platform/)**（本目录只留计划书与说明）。下表链接指向新位置；测试仍可 `python3 -B test_*.py` 按源码路径复跑：
 
 | 模块 | 件 | 回答什么 |
 | --- | --- | --- |
-| [contracts/](contracts/) | 四 schema＋validate.py（61 例） | 组件/机器人/地图/任务的契约与拒绝语义 |
-| [probe_mode3/](probe_mode3/) | mode3 数学探针（14 例） | SCAN 接缝数学的可用边界（V8-03） |
-| [registry/](registry/) | registry.py（19 项）＋13 manifest＋provenance | 组件注册、检索、声明/实测分离、溯源 |
-| [composer/](composer/) | composer.py（17 项） | 组合结构/兼容检测、确定性锁文件 |
-| [orchestrator/](orchestrator/) | orchestrator.py（13 项） | 任务状态机、条件就绪、停止链、预算 |
-| [adapters/](adapters/) | io_match＋declarations（10 项） | 消息级接线、损失声明、组合矩阵 |
-| [representation/](representation/) | support_map/map_service/elevation（19 项） | 多层表征、版本服务、建图管线 |
-| [planner/](planner/) | support_planner.py（8 项） | 有界 A* 支撑图全局规划 |
-| [validator/](validator/) | checker/enforcement/tracking（23 项）＋SCAN 裁决 | 轨迹监督、运动学铁则、失效撤销、跟踪 |
-| [scenarios/](scenarios/) | scenarios.py（7 项） | SC01—SC14 场景框架＋独立评价器（A7） |
-| [calibration/](calibration/) | calibration.py（8 项） | 冻结判据、定标/正式分离、封版 digest |
-| [regression/](regression/) | regression.py（6 项） | 双轨×组合×场景 48 cell 矩阵＋失败定位 |
+| [contracts/](../../ws/src/90_platform/v8_platform/contracts/) | 四 schema＋validate.py（61 例） | 组件/机器人/地图/任务的契约与拒绝语义 |
+| [probe_mode3/](../../ws/src/90_platform/v8_platform/probe_mode3/) | mode3 数学探针（14 例） | SCAN 接缝数学的可用边界（V8-03） |
+| [registry/](../../ws/src/90_platform/v8_platform/registry/) | registry.py（19 项）＋13 manifest＋provenance | 组件注册、检索、声明/实测分离、溯源 |
+| [composer/](../../ws/src/90_platform/v8_platform/composer/) | composer.py（17 项） | 组合结构/兼容检测、确定性锁文件 |
+| [orchestrator/](../../ws/src/90_platform/v8_platform/orchestrator/) | orchestrator.py（13 项） | 任务状态机、条件就绪、停止链、预算 |
+| [adapters/](../../ws/src/90_platform/v8_platform/adapters/) | io_match＋declarations（10 项） | 消息级接线、损失声明、组合矩阵 |
+| [representation/](../../ws/src/90_platform/v8_platform/representation/) | support_map/map_service/elevation（19 项） | 多层表征、版本服务、建图管线 |
+| [planner/](../../ws/src/90_platform/v8_platform/planner/) | support_planner.py（8 项） | 有界 A* 支撑图全局规划 |
+| [validator/](../../ws/src/90_platform/v8_platform/validator/) | checker/enforcement/tracking（23 项）＋SCAN 裁决 | 轨迹监督、运动学铁则、失效撤销、跟踪 |
+| [scenarios/](../../ws/src/90_platform/v8_platform/scenarios/) | scenarios.py（7 项） | SC01—SC14 场景框架＋独立评价器（A7） |
+| [calibration/](../../ws/src/90_platform/v8_platform/calibration/) | calibration.py（8 项） | 冻结判据、定标/正式分离、封版 digest |
+| [regression/](../../ws/src/90_platform/v8_platform/regression/) | regression.py（6 项） | 双轨×组合×场景 48 cell 矩阵＋失败定位 |
 | [delivery/](delivery/delivery.py) | 规模曲线＋复现清单（5 项） | 性能定界与复现自证 |
 
 **未接入说明（如实）**：apt 侧后端（map_server／GlobalPlanner／DWA／TEB）与 SCAN 运行面**未在本设计层实装运行**——其在册声明（registry 13 manifest）、组合与接线（composer/adapters）已经设计层验证，实装运行、双轨实跑与 A1—A7 正式判据归仿真阶段（25 号窗纪律）；teb kinematics 定案与 slab A* 成因插桩须容器面（运行批）。复现：`python3 -B delivery/delivery.py manifest` 输出交付树逐件 sha256 清单（再生成一致）。

@@ -4,7 +4,7 @@
 仿真与观察入口、新算法接入方式、文档索引。
 
 > 页面数字是**快照**，权威真身仍是 `note/进度/00_总览.md` 与
-> `note/计划书v8/calibration/calibration.py` 的现跑结果。
+> `ws/src/90_platform/v8_platform/calibration/calibration.py` 的现跑结果。
 
 ## 启动方式（推荐：仓库自带的 `web/serve.py`）
 
@@ -101,7 +101,7 @@ sudo python3 web/serve.py --port 80 --bind 0.0.0.0
 
 1. **状态数字**：先跑校准件现读，再抄进页面，禁止凭记忆写。
    ```bash
-   cd note/计划书v8/calibration
+   cd ws/src/90_platform/v8_platform/calibration
    python3 -B -c "import calibration,json;r=calibration.validate_frozen();print(json.dumps({k:r[k] for k in ('status','pending','digest','freeze_allowed')},ensure_ascii=False,indent=1))"
    ```
 2. **页脚快照日期**与 digest 前缀。
