@@ -19,6 +19,7 @@ import time
 import rospy
 from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Float32MultiArray
 
 from geometry import min_clearance, sdf_box
 
@@ -75,6 +76,7 @@ def main(argv):
     rospy.Subscriber('/cmd_vel', Twist, on_cmd)
     rospy.Subscriber('/map', rospy.AnyMsg, lambda _m: map_seen.__setitem__(0, True))
     goal_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1, latch=True)
+    box_pub = rospy.Publisher('/sc09/box', Float32MultiArray, queue_size=1, latch=True)
 
     t0 = time.time()
     rate = rospy.Rate(10)
@@ -95,6 +97,7 @@ def main(argv):
     injected_at = None
     injection_ok = None
     inject_idx = None
+    start_ref = None
     stable = 0.0
     last = time.time()
     deadline = time.time() + deadline_s
@@ -105,11 +108,17 @@ def main(argv):
         if odom:
             px, py = odom[-1]
             if inject and injection_ok is None:
-                travelled = math.hypot(px - start[0], py - start[1])
+                if start_ref is None:
+                    start_ref = (px, py)  # 复位后首帧为里程基准，避免遥测跳变提前触发
+                travelled = math.hypot(px - start_ref[0], py - start_ref[1])
                 if travelled >= float(inject['at_progress_m']):
                     injection_ok = spawn_box(inject['model_name'], inject['size'], inject['pose_xy_yaw'])
                     injected_at = round(now - t0, 1)
                     inject_idx = len(odom)
+                    if injection_ok:
+                        box_pub.publish(Float32MultiArray(
+                            data=list(inject['pose_xy_yaw'][:2]) + [inject['pose_xy_yaw'][2]]
+                            + list(inject['size'][:3])))
             if math.hypot(px - goal[0], py - goal[1]) <= ARRIVE_RADIUS_M:
                 stable += dt
                 if stable >= ARRIVE_HOLD_S:
@@ -162,6 +171,7 @@ def main(argv):
         'injection_failed' if injection_ok is False else
         'not_at_goal' if (dist_goal is None or dist_goal > goal_tol) else
         'clearance_violation')
+    box_pub.publish(Float32MultiArray())  # 撤方块：中继停止 ROI 转发，STVL 衰减
     pathlib.Path(out_path).write_text(json.dumps(result, ensure_ascii=False, indent=1))
     print('FLAT2D', json.dumps(result, ensure_ascii=False))
     return 0 if passed else 6

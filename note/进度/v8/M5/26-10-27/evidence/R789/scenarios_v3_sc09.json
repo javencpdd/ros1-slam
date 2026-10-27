@@ -1,0 +1,121 @@
+{
+  "set_id": "v8_flat2d_calibration_v2_sc09dyn",
+  "semantics": "SC09 动态替代（SC09-dyn）：官方 SC09 是低顶净空负例；本集是 R769 明定的动态堵路正例替代——从 (0,0) 起步行进 1.2 m 后在前方路径生成 0.8 m 方块，要求感知后绕行并到达。12 组=4 组起终点×3 次；与既有 SC01/SC02 的 24 组合成 36 组正例口径。",
+  "world": "m1_gazebo",
+  "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)，由 m1_world.world 盒/墙几何生成",
+  "combo": "lite3_dwa_mux",
+  "criteria": {
+    "goal_position_m": 0.3,
+    "min_clearance_m": 0.2,
+    "clearance_definition": "robot_center_to_box_surface_m",
+    "deadline_s": 240
+  },
+  "config_lock": {
+    "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+    "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+    "speed": "max_vel_x 0.4",
+    "footprint": "[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]",
+    "goal_tolerance_m": 0.3,
+    "clearance_min_m": 0.2,
+    "stack": "flat2d_stack_stvl.launch（map_server + map→odom + move_base；STVL 感知层；scan_relay 按 map→base_link 变换）"
+  },
+  "start": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "repetitions": 3,
+  "scenarios": [
+    {
+      "id": "SC09",
+      "name": "flat_dynamic_block_substitute",
+      "expected_outcome": "reach",
+      "goals": [
+        [
+          4.0,
+          -0.3
+        ],
+        [
+          3.5,
+          0.3
+        ],
+        [
+          4.0,
+          -0.3
+        ],
+        [
+          3.5,
+          0.3
+        ]
+      ],
+      "injects": [
+        {
+          "at_progress_m": 1.0,
+          "model_name": "sc09_block_g0",
+          "size": [
+            0.8,
+            0.8,
+            0.8
+          ],
+          "pose_xy_yaw": [
+            2.5,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "at_progress_m": 1.0,
+          "model_name": "sc09_block_g1",
+          "size": [
+            0.8,
+            0.8,
+            0.8
+          ],
+          "pose_xy_yaw": [
+            2.0,
+            0.1,
+            0.0
+          ]
+        },
+        {
+          "at_progress_m": 1.0,
+          "model_name": "sc09_block_g2",
+          "size": [
+            0.8,
+            0.8,
+            0.8
+          ],
+          "pose_xy_yaw": [
+            2.8,
+            -0.1,
+            0.0
+          ]
+        },
+        {
+          "at_progress_m": 1.0,
+          "model_name": "sc09_block_g3",
+          "size": [
+            0.8,
+            0.8,
+            0.8
+          ],
+          "pose_xy_yaw": [
+            2.5,
+            0.2,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "counts_planned": {
+    "positive_runs": 12,
+    "positive_runs_combined_with_v2": 36,
+    "note": "起点 (2.0,-0.5) 避开 obs_8/obs_3 窄缝；deadline 240 s（动态场景）；与 runs_v2 的 24 次合并为 36"
+  }
+}
