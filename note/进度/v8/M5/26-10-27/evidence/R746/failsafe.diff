@@ -1,0 +1,36 @@
+--- /work/scan_priv/src/plan_manage/launch/advanced_param.xml.before_failsafe	2026-10-27 00:53:48.689793249 +0000
++++ /work/scan_priv/src/plan_manage/launch/advanced_param.xml	2026-10-27 00:54:46.864369696 +0000
+@@ -26,6 +26,7 @@
+        机体系点云 (/cloud_registered_body, frame_id="body"), 再叠 Go2 外参是错的。
+        → 真机接 103 的 FAST-LIO 时务必显式传 need_extrinsic:=false -->
+   <arg name="need_extrinsic" default="$(arg is_real_world)"/>
++  <arg name="fail_safe" default="true"/>
+ 
+   <!-- main node -->
+   <node pkg="scan_planner" name="scan_planner_node" type="scan_planner_node" output="screen" clear_params="true">
+@@ -43,7 +44,7 @@
+     <param name="fsm/thresh_no_replan" value="0.1" type="double"/>
+     <param name="fsm/planning_horizon" value="$(arg planning_horizon)" type="double"/>
+     <param name="fsm/emergency_time_" value="1.0" type="double"/>
+-    <param name="fsm/fail_safe" value="true" type="bool"/> 
++    <param name="fsm/fail_safe" value="$(arg fail_safe)" type="bool"/>
+     <param name="fsm/max_replan_fail_count" value="1000" type="int"/>
+     <param name="fsm/is_real_world" value="$(arg is_real_world)" type="bool"/>
+ 
+--- /work/scan_priv/src/plan_manage/launch/run.launch.before_failsafe	2026-10-27 00:53:56.236737720 +0000
++++ /work/scan_priv/src/plan_manage/launch/run.launch	2026-10-27 00:53:56.283737375 +0000
+@@ -41,12 +41,14 @@
+     <arg name="is_real_world" value="$(arg is_real_world)"/>
+     <arg name="navi_mode" value="$(arg navi_mode)" />
+     <arg name="need_extrinsic" value="$(arg need_extrinsic)" />
++    <arg name="fail_safe" value="$(arg fail_safe)" />
+   </include>
+ 
+   <!-- controller mode -->
+   <!-- open_loop: publish trajectory-following odometry for multi-floor simulation -->
+   <!-- closed_loop: track the trajectory for 2D simulation or real-world control -->
+   <arg name="controller_mode" default="closed_loop"/>
++  <arg name="fail_safe" default="true"/>
+ 
+   <node if="$(eval arg('controller_mode') == 'open_loop')" pkg="scan_planner" name="open_loop_controller" type="open_loop_controller" output="screen"/>
+   <group if="$(eval arg('controller_mode') == 'closed_loop')">

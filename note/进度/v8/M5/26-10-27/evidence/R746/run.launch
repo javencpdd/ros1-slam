@@ -1,0 +1,79 @@
+<launch>
+  <!-- real or sim -->
+  <arg name="is_real_world" default="false"/>
+
+  <!-- navigation mode -->
+  <!-- 1: use 2D Nav Goal to select final goal  -->
+  <!-- 2: use keypoints to navigate in multi-floor scene -->
+  <!-- 3: use reference path to follow and avoid obstacles -->
+  <arg name="navi_mode" default="1"/>
+  <arg name="sensor_type" default="lidar"/>
+
+  <!-- 雷达->机体外参补偿开关。
+       接 103 的 FAST-LIO 时传 need_extrinsic:=false（它给的就是机体系位姿+机体系点云）；
+       若自己另接"雷达系点云 + IMU 位姿", 才需要 true 并把 grid_map.cpp 里的
+       mp_.lidar_extrinsic_ 改成 Lite3 的真实安装外参。 -->
+  <arg name="need_extrinsic" default="$(arg is_real_world)"/>
+
+  <!-- body topic -->
+  <arg name="body_pose_topic" value="$(eval '/LIO/odom_vehicle' if arg('is_real_world') else '/quad_0/body_pose')" />
+  <param name="body_pose_topic" value="$(arg body_pose_topic)" type="str"/>
+
+  <!-- main algorithm params -->
+  <include file="$(find scan_planner)/launch/advanced_param.xml">
+
+    <!-- sensor choose -->
+    <arg name="sensor_type" value="$(arg sensor_type)"/>
+    <arg name="body_pose_topic" value="$(arg body_pose_topic)" />
+    <arg name="sensor_pose_topic" value="$(eval '/LIO/odom_imu' if arg('is_real_world') else ('/quad_0/camera_pose' if arg('sensor_type') == 'depth' else '/quad_0/lidar_pose'))" />
+    
+    <!-- lidar topic -->
+    <arg name="cloud_topic" value="$(eval '/LIO/clouds_lidar' if arg('is_real_world') else '/pcl_render_node/cloud')"/>
+    <arg name="cloud_is_world" value="$(eval 'false' if arg('is_real_world') else 'true')"/>
+    
+    <!-- depth topic -->
+    <arg name="depth_topic" value="$(eval '/camera/aligned_depth_to_color/image_raw' if arg('is_real_world') else '/pcl_render_node/depth')"/>
+    <arg name="cx" value="$(eval 317.19183349609375 if arg('is_real_world') else 321.04638671875)"/>
+    <arg name="cy" value="$(eval 256.4806823730469 if arg('is_real_world') else 243.44969177246094)"/>
+    <arg name="fx" value="$(eval 609.5884399414062 if arg('is_real_world') else 387.229248046875)"/>
+    <arg name="fy" value="$(eval 609.22021484375 if arg('is_real_world') else 387.229248046875)"/>
+
+    <arg name="is_real_world" value="$(arg is_real_world)"/>
+    <arg name="navi_mode" value="$(arg navi_mode)" />
+    <arg name="need_extrinsic" value="$(arg need_extrinsic)" />
+    <arg name="fail_safe" value="$(arg fail_safe)" />
+  </include>
+
+  <!-- controller mode -->
+  <!-- open_loop: publish trajectory-following odometry for multi-floor simulation -->
+  <!-- closed_loop: track the trajectory for 2D simulation or real-world control -->
+  <arg name="controller_mode" default="closed_loop"/>
+  <arg name="fail_safe" default="true"/>
+
+  <node if="$(eval arg('controller_mode') == 'open_loop')" pkg="scan_planner" name="open_loop_controller" type="open_loop_controller" output="screen"/>
+  <group if="$(eval arg('controller_mode') == 'closed_loop')">
+    <node pkg="scan_planner" name="closed_loop_controller" type="closed_loop_controller" output="screen">
+    <!-- 真机安全网: 绝不直接往 /cmd_vel 发速度指令。
+         ROS2 侧的 transfer_ros2 就在消费 /cmd_vel, 一旦有桥接会直接驱动机器人。
+         真机一律改发 /scan_planner/cmd_vel, 由人工确认后再用 parameter_bridge 单独桥过去。 -->
+    <remap if="$(arg is_real_world)" from="cmd_vel" to="/scan_planner/cmd_vel"/>
+  </node>
+    <node unless="$(arg is_real_world)" pkg="scan_planner" name="go2_kinematic_sim" type="go2_kinematic_sim" output="screen"/>
+  </group>
+
+  <!-- robot model: lite3_description（DeepRobotics 官方 URDF）或 go2_description -->
+  <arg name="robot_pkg" default="lite3_description"/>
+  <param name="robot_description" textfile="$(find lite3_description)/urdf/Lite3.urdf" if="$(eval arg('robot_pkg') == 'lite3_description')"/>
+  <param name="robot_description" textfile="$(find go2_description)/urdf/go2_description.urdf" if="$(eval arg('robot_pkg') == 'go2_description')"/>
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+  <!-- gait publisher 仅仿真使用（发布 quad_0 步态驱动 go2_kinematic_sim），真机不启动 -->
+  <node unless="$(arg is_real_world)" pkg="scan_planner" name="go2_gait_publisher" type="go2_gait_publisher" output="screen"/>
+
+  <!-- use simulator -->
+  <include file="$(find scan_planner)/launch/simulator.xml">
+    <arg name="is_real_world" value="$(arg is_real_world)" />
+    <arg name="navi_mode" value="$(arg navi_mode)" />
+    <arg name="sensor_type" value="$(arg sensor_type)" />
+  </include>
+
+</launch>

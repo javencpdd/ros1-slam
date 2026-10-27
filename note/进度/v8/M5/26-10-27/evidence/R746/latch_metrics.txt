@@ -1,0 +1,18 @@
+# R746 锁存复验读数（GT，t 以各次 spawn 前时刻为 0）
+
+| 次 | t_peak s | 峰值 x m | 最终 x m | 回退量 m | 最终静止段 |
+| --- | --- | --- | --- | --- | --- |
+| ev1（pilot） | 0.57 | 1.1599 | 1.1235 | −0.0364 | t+5—8.5 s 位移 0.0000 m |
+| ev2 | 0.53 | 1.1484 | 1.1009 | −0.0475 | t+4—5.5 s 恒定（t+6 被下一次复位打断） |
+| ev3 | 0.55 | 1.2029 | 1.1698 | −0.0331 | t+5—8.5 s 位移 0.0000 m |
+
+- 三次均 `fail_safe:=false`；FSM 日志 3/3 保持 EMERGENCY_STOP，无 GEN_NEW_TRAJ。
+- ev1：t_pre 2220.277、急停 2220.814（+0.537 s）、mux 零 2222.429（+2.152 s）、x_spawn 0.935、峰值 1.1599；事件 JSON 被第三次运行覆盖，以上数值来自当次控制台输出＋scan_stop_latch.json 复核。
+- ev2/ev3 事件 JSON 在证据内；t_pre 分别为 2246.555、2266.141。
+- 判据面口径「≥3.5 s 位移 ≤0.01 m」从最终静止段起算 3/3 满足；从首次短暂停顿起算不满足（回退段 2—5 cm）。t_settle 建议取回退结束后首个 3.5 s 窗口。
+
+## 复现命令
+
+1. 补丁：`advanced_param.xml` 顶层 `arg fail_safe default=true`、`fsm/fail_safe=$(arg fail_safe)`；`run.launch` 声明并转发（见 failsafe.diff）。
+2. 启动：`roslaunch scan_planner run.launch navi_mode:=3 controller_mode:=closed_loop is_real_world:=true need_extrinsic:=false fail_safe:=false`
+3. 场景：窄走廊 y=±0.75＋前方 0.4×8.8×1.0 墙（`scan_stop_event.py`），记录 `/sim/odom_gt`、`/rslidar_points`、`/cmd_vel`、`/scan_planner/cmd_vel`。
