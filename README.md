@@ -75,6 +75,9 @@ python3 web/serve.py
 python3 -m http.server -d web 8000   # 打开 http://127.0.0.1:8000/
 ```
 
+局域网访问：`python3 web/serve.py --port 8000 --bind 0.0.0.0` 走 `http://<本机IP>:8000/`；
+需要 80 端口又无 sudo 时，用 `bash web/publish.sh` 发布为 `http://<本机IP>/`（自动跳到 `/web/`）。
+
 细节与更新约定见 `web/README.md`。页面数字是快照，权威仍以
 [进度总览](note/进度/00_总览.md) 与 `note/计划书v8/calibration/` 现跑为准。
 

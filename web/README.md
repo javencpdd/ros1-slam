@@ -56,6 +56,45 @@ python3 -m http.server -d web 8000
 `index.html` 不依赖任何外部资源（无 CDN、无字体下载、无构建产物），
 文件管理器里双击即可打开；同样，跨目录文档链接在 `file://` 下不可用。
 
+## 局域网发布（宿主 80 端口）
+
+`serve.py` 自带根路径跳转：访问 `/` 会 302 到 `/web/`，所以对外只需要一个短地址。
+
+无 sudo（不能直接绑 80）时，用 Docker 把站点发布到宿主 80，容器内仍跑 `serve.py`。
+一条命令：
+
+```bash
+cd /home/jack/ysc-code/ros1-slam
+bash web/publish.sh          # 默认 80 端口
+bash web/publish.sh 8080     # 或指定端口
+```
+
+等价于：
+
+```bash
+docker run -d --name ros1-slam-web --restart unless-stopped \
+  -p 80:8000 \
+  -v /home/jack/ysc-code/ros1-slam:/srv:ro \
+  --entrypoint python3 ros1-slam:noetic-sim \
+  -u /srv/web/serve.py --port 8000 --bind 0.0.0.0
+```
+
+访问 `http://<本机IP>/`（例如 `http://10.63.23.135/`），会自动跳到 `/web/`。
+
+- 查看日志：`docker logs -f ros1-slam-web`
+- 停止：`docker stop ros1-slam-web`
+- 删除：`docker rm -f ros1-slam-web`
+- 重新发布（改端口/清状态）：再跑一次 `bash web/publish.sh <端口>`，脚本会先删同名容器。
+- 仓库是**只读挂载**，改完页面刷新即生效，不用重建容器。
+- 若局域网打不开：先确认宿主 `80/tcp` 已放行、且访问的是本机网卡 IP（`hostname -I` 可查）。
+  本方法不改防火墙；需要放开端口时属系统配置，另行处理。
+
+有 sudo 时也可以直接绑 80：
+
+```bash
+sudo python3 web/serve.py --port 80 --bind 0.0.0.0
+```
+
 ## 更新约定
 
 改动页面时同步三处：

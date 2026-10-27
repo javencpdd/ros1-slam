@@ -37,6 +37,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Cache-Control', 'no-cache')
         super().end_headers()
 
+    def do_GET(self):
+        # 服务根是仓库根；访问 / 直接进站点，省得记 /web/ 路径。
+        if self.path in ('', '/', '/index.html'):
+            self.send_response(302)
+            self.send_header('Location', '/web/')
+            self.end_headers()
+            return
+        super().do_GET()
+
+    def do_HEAD(self):
+        if self.path in ('', '/', '/index.html'):
+            self.send_response(302)
+            self.send_header('Location', '/web/')
+            self.end_headers()
+            return
+        super().do_HEAD()
+
 
 class Server(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
