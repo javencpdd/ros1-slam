@@ -1,0 +1,21 @@
+# R743 场景与口径（目标激光全链停车 9 次）
+
+## 场景
+
+- 世界：m1 Gazebo；载体 `lite3_planar`（平面运动学底盘，0.5×0.1×0.12 TORSO）；Mid360 仿真插件经 sim_adapter 发布 `/rslidar_points`（PointCloud2，10 Hz，frame `rslidar`；base_link→rslidar 平移 (0,0,0.34)、pitch +15°）。
+- 走廊：两条静态侧墙 `corr_north/south`，y=±0.75、厚 0.1、x∈[0,5.5]、高 1.0，spawn 后不再动。
+- 触发：机器人沿 y≈0 直行、x>0.9 且实测速度 >0.2 m/s 时，在 `robot_x + 1.05` 生成第三面静态墙（0.4×8.8×1.0，前表面距机体系中心 0.85 m、距车体前缘 0.6 m）；`t_pre` 取 spawn 服务调用前时刻，`t_post` 取返回后时刻。
+- 规划/控制：SCAN 私有覆盖层（`is_real_world:=true navi_mode:=3 controller_mode:=closed_loop`，`max_vel=0.40`，`fsm/emergency_time_=1.0`）；`/rslidar_points` 经 numpy 外参转 base_link 后送 `/LIO/clouds_lidar`，`/sim/odom_gt` 转 `/LIO/odom_vehicle`、`/LIO/odom_imu`；控制器发 `/scan_planner/cmd_vel`；真 `safe_cmd_vel_mux`（20 Hz，源 `/scan_planner/cmd_vel`，hold 不触发）输出 `/cmd_vel` 驱动 Gazebo 底盘。
+
+## 口径（全部仿真钟）
+
+- `t_perc`＝首帧含新墙点云（前表面 ±0.15 m 薄片、|y−墙心|<0.5、z>0.2，且点数>1000）的 `header.stamp` − `t_pre`；`t_perc_recv` 同帧接收时刻 − `t_pre`。
+- `t_plan`＝`/scan_planner/cmd_vel` 首个 |vx|<0.01 样本时刻 − 首帧 stamp；`t_ctrl`＝`/cmd_vel`（mux 输出）首个零样本 − 规划器零样本。
+- `t_upstream`＝mux 零样本 − `t_pre`；`t_rest`＝GT x 首次连续 0.25 s |dx|<0.003 的时刻；`d_total`＝GT x_rest − x_spawn；`clearance_rest`＝墙前表面 −(x_rest+0.25)。
+- 机器人经急停后约 2.4—2.7 s 重新规划出“倒退绕行”新轨迹（本试验不把这段算进停车段）。
+
+## 边界（不得外推）
+
+- 载体是运动学底盘：`/cmd_vel` 到零后立即静止，**没有动力学制动段**；`d_total` 只覆盖感知＋规划＋控制上游，不是全链停车距离。
+- 仅平地、直线、0.4 m/s、单面墙几何；目标传感器是仿真 Mid360，不是硬件；SCAN 为私有覆盖层（仅加打点补丁），NDT/定位不在本链。
+- 急停后自动倒退绕行是本次栈的真实行为，安全含义另行评估。

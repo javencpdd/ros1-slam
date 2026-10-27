@@ -1,0 +1,5 @@
+output_topic: /cmd_vel
+output_rate_hz: 20
+hold_topic: /test/hold
+sources:
+  - {name: scan, topic: /scan_planner/cmd_vel, priority: 1, timeout_s: 0.5}
