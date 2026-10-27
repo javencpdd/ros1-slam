@@ -1,0 +1,332 @@
+<?xml version="1.0" ?>
+<!--
+  m1_world_v2.world —— 在 m1_world.world 基础上加非对称定位特征（R786 方案 A，2026-10-27）；原世界未改
+  · 障碍布局：机器人 (0,0) 朝 +x 起步，|y|<0.6 的 0≤x≤5.5 走廊内无障碍（planar 伪狗直行 5m 通行保证）；
+    6 静态盒分布在走廊两侧 0.8~1.8m 处，最近边距走廊中线 ≥0.8m，给 Mid360 提供回环特征又不挡路
+  · 物理：1ms 步长；real_time_update_rate=500 → RTF 上限 0.5（落在目标 0.3~0.8 中值，Jetson 上减半物理 CPU；
+    若实测 RTF>0.8 可回调 1000，见 manifest「可调参数」）
+  · gazebo_ros_init/factory：noetic 标配世界插件（/clock、/use_sim_time、spawn_model、/gazebo/model_states 真值）
+-->
+<sdf version="1.6">
+  <world name="m1_sparse_plain">
+
+    <!-- 物理参数：1ms 步长 / RTF 目标 0.3~0.8（rate=500 → 上限 0.5） -->
+    <physics type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+      <max_contacts>20</max_contacts>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+          <sor>1.3</sor>
+        </solver>
+        <constraints>
+          <cfm>0.0</cfm>
+          <erp>0.2</erp>
+        </constraints>
+      </ode>
+    </physics>
+
+    <!-- 全局 ROS 桥：/clock + /use_sim_time + spawn_model + /gazebo/model_states（真值交叉核对用） -->
+    <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so"/>
+    <plugin name="gazebo_ros_factory" filename="libgazebo_ros_factory.so"/>
+
+    <!-- 光照与地面 -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <!-- 场景边界墙（可选防跑飞，距走廊 4m，M1 判据不依赖） -->
+    <model name="perimeter_north">
+      <static>true</static>
+      <pose>2.5 4.5 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>9 0.2 1.0</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>9 0.2 1.0</size></box></geometry><material><ambient>0.5 0.5 0.55 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="perimeter_south">
+      <static>true</static>
+      <pose>2.5 -4.5 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>9 0.2 1.0</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>9 0.2 1.0</size></box></geometry><material><ambient>0.5 0.5 0.55 1</ambient></material></visual>
+      </link>
+    </model>
+
+
+
+    <!-- 非对称定位特征（R786 方案 A）：沿墙 12 根肋 + 4 根独立柱；
+         x 位置左右不等间距 → 给沿航向一维观测；|y|≥3.2 远离所有任务路线。 -->
+    <model name="rib_n0">
+      <static>true</static>
+      <pose>0.4 4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_n1">
+      <static>true</static>
+      <pose>1.7 4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_n2">
+      <static>true</static>
+      <pose>3.1 4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_n3">
+      <static>true</static>
+      <pose>4.4 4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_n4">
+      <static>true</static>
+      <pose>5.9 4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_n5">
+      <static>true</static>
+      <pose>7.0 4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_s0">
+      <static>true</static>
+      <pose>-0.3 -4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_s1">
+      <static>true</static>
+      <pose>1.1 -4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_s2">
+      <static>true</static>
+      <pose>2.4 -4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_s3">
+      <static>true</static>
+      <pose>3.8 -4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_s4">
+      <static>true</static>
+      <pose>5.1 -4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="rib_s5">
+      <static>true</static>
+      <pose>6.5 -4.15 0.70 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 0.3 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.25 0.3 1.4</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="pyl_1">
+      <static>true</static>
+      <pose>2.2 3.2 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 0.3 1.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 0.3 1.5</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="pyl_2">
+      <static>true</static>
+      <pose>4.8 3.4 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 0.3 1.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 0.3 1.5</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="pyl_3">
+      <static>true</static>
+      <pose>3.4 -3.2 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 0.3 1.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 0.3 1.5</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="pyl_4">
+      <static>true</static>
+      <pose>6.0 -3.4 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 0.3 1.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 0.3 1.5</size></box></geometry><material><ambient>0.9 0.75 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+
+
+
+    <!-- R786 方案 A 加强：南侧三片垂直于 x 的短隔墙（内沿 y=-2.0，远离所有任务路线）。
+         面法向 ±x → 直接约束沿航向一维位置。 -->
+    <model name="jut_s0">
+      <static>true</static>
+      <pose>1.2 -3.2 0.7 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.2 2.4 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.2 2.4 1.4</size></box></geometry><material><ambient>0.2 0.8 0.6 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="jut_s1">
+      <static>true</static>
+      <pose>3.6 -3.2 0.7 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.2 2.4 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.2 2.4 1.4</size></box></geometry><material><ambient>0.2 0.8 0.6 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="jut_s2">
+      <static>true</static>
+      <pose>6.0 -3.2 0.7 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.2 2.4 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.2 2.4 1.4</size></box></geometry><material><ambient>0.2 0.8 0.6 1</ambient></material></visual>
+      </link>
+    </model>
+
+
+
+    <!-- R786 方案 A 三招：走廊内四根柱（离中心线约 1 m，最近的 x 观测量）。
+         位置避开六个稀障盒与三层楼梯场景。 -->
+    <model name="pil_c0">
+      <static>true</static>
+      <pose>0.6 -1.0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.36 0.36 1.6</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.36 0.36 1.6</size></box></geometry><material><ambient>0.9 0.3 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="pil_c1">
+      <static>true</static>
+      <pose>2.6 1.0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.36 0.36 1.6</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.36 0.36 1.6</size></box></geometry><material><ambient>0.9 0.3 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="pil_c2">
+      <static>true</static>
+      <pose>4.0 -1.0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.36 0.36 1.6</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.36 0.36 1.6</size></box></geometry><material><ambient>0.9 0.3 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="pil_c3">
+      <static>true</static>
+      <pose>5.4 1.0 0.8 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.36 0.36 1.6</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.36 0.36 1.6</size></box></geometry><material><ambient>0.9 0.3 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+
+
+
+    <!-- R786 方案 A 第四式：x=2.6 带门洞的横墙（门洞 y∈[-0.9,0.9] 走定位路线，
+         北侧 y>1.6 留任务路线）。门框面垂直于 x 且近距正对 → 直接约束沿航向。 -->
+    <model name="door_s">
+      <static>true</static>
+      <pose>2.6 -2.65 0.7 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.2 3.5 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.2 3.5 1.4</size></box></geometry><material><ambient>0.7 0.2 0.7 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="door_n">
+      <static>true</static>
+      <pose>2.6 1.25 0.7 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.2 0.7 1.4</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.2 0.7 1.4</size></box></geometry><material><ambient>0.7 0.2 0.7 1</ambient></material></visual>
+      </link>
+    </model>
+
+    <!-- 稀障盒×6：size 0.6~1.0m，走|x|向走廊(0..5.5, |y|<0.6)外，给 LIO 特征 -->
+    <model name="obs_1">
+      <static>true</static>
+      <pose>1.5 1.2 0.4 0 0 0.4</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.8 0.8 0.8</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.8 0.8 0.8</size></box></geometry><material><ambient>0.8 0.4 0.2 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="obs_2">
+      <static>true</static>
+      <pose>3.0 -1.1 0.45 0 0 -0.3</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.9 0.7 0.9</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.9 0.7 0.9</size></box></geometry><material><ambient>0.2 0.6 0.8 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="obs_3">
+      <static>true</static>
+      <pose>4.6 0.9 0.35 0 0 0.9</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.7 0.7 0.7</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.7 0.7 0.7</size></box></geometry><material><ambient>0.8 0.8 0.2 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="obs_4">
+      <static>true</static>
+      <pose>2.2 -1.6 0.5 0 0 0.2</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>1.0 0.6 1.0</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>1.0 0.6 1.0</size></box></geometry><material><ambient>0.4 0.8 0.4 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="obs_5">
+      <static>true</static>
+      <pose>5.8 -1.0 0.4 0 0 -0.6</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.8 0.8 0.8</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.8 0.8 0.8</size></box></geometry><material><ambient>0.8 0.3 0.6 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="obs_6">
+      <static>true</static>
+      <pose>0.8 1.8 0.5 0 0 0.1</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.6 0.6 1.0</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.6 0.6 1.0</size></box></geometry><material><ambient>0.6 0.6 0.2 1</ambient></material></visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
