@@ -1,0 +1,69 @@
+diff --git "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py" "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py"
+index 3e3b0cf..f9c8504 100644
+--- "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py"
++++ "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/calibration.py"
+@@ -555,6 +555,25 @@ def _pending_report(config):
+                     pending.append({
+                         'key': 'success_rate.min_pass_rate.alpha',
+                         'reason': 'alpha 须在 (0,0.5]（R748）'})
++    # R759（R751 P3-1）：另三个 pending 键与 success_rate 同族——填了值不算数，
++    # 必须有 scope/evidence 且为正数；否则仍 pending（fail-closed）。
++    for key in ('budgets.stop_time_s', 'budgets.stop_distance_m',
++                'tolerances.max_localization_error_m'):
++        node = _resolve(config, key)
++        if not isinstance(node, dict) or node.get('value') is None:
++            continue
++        value = node.get('value')
++        if not (_is_number(value) and value > 0):
++            pending.append({
++                'key': key + '.value',
++                'reason': '须为正数（当前 %r）；域外值不得冻结（R759）' % (value,)})
++        missing = [field for field in ('scope', 'evidence')
++                   if not isinstance(node.get(field), str) or not node.get(field).strip()]
++        if missing:
++            pending.append({
++                'key': key,
++                'reason': '值已填但缺元数据 %s；无 scope/evidence 不得冻结（R759）'
++                          % ','.join(missing)})
+     repetitions = config['sampling']['scenario_repetitions']['value']
+     seeds = config['sampling']['perturbation_seeds']['value']
+     if repetitions < SAMPLING_MIN_REPETITIONS:
+diff --git "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py" "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py"
+index e5800b8..580d915 100644
+--- "a/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py"
++++ "b/note/\350\256\241\345\210\222\344\271\246v8/calibration/test_calibration.py"
+@@ -648,6 +648,34 @@ class CalibrationTests(unittest.TestCase):
+                 cal.freeze_guard(copy.deepcopy(cal.FROZEN), path)
+             self.assertEqual(caught.exception.code, 'E_CAL_BASELINE')
+ 
++    # ------------------------------------------------------------------
++    # R759（R751 P3-1）：另三个 pending 键填值也必须带 scope/evidence 且为正数。
++    # ------------------------------------------------------------------
++    def test_stop_time_bare_value_stays_pending_r759(self):
++        cfg = copy.deepcopy(cal.FROZEN)
++        cfg['budgets']['stop_time_s'] = {'value': 1.5}
++        report = cal.validate_frozen(cfg)
++        self.assertIn('budgets.stop_time_s', report['pending'])
++
++    def test_stop_time_with_metadata_leaves_pending_r759(self):
++        cfg = copy.deepcopy(cal.FROZEN)
++        cfg['budgets']['stop_time_s'] = {'value': 1.5, 'scope': 'x', 'evidence': 'y'}
++        report = cal.validate_frozen(cfg)
++        self.assertNotIn('budgets.stop_time_s', report['pending'])
++        self.assertEqual(len(report['pending']), 3)
++
++    def test_localization_bare_value_stays_pending_r759(self):
++        cfg = copy.deepcopy(cal.FROZEN)
++        cfg['tolerances']['max_localization_error_m'] = {'value': 0.2}
++        report = cal.validate_frozen(cfg)
++        self.assertIn('tolerances.max_localization_error_m', report['pending'])
++
++    def test_stop_distance_negative_rejected_r759(self):
++        cfg = copy.deepcopy(cal.FROZEN)
++        cfg['budgets']['stop_distance_m'] = {'value': -1, 'scope': 'x', 'evidence': 'y'}
++        report = cal.validate_frozen(cfg)
++        self.assertIn('budgets.stop_distance_m.value', report['pending'])
++
+ 
+ if __name__ == '__main__':
+     unittest.main(verbosity=2)

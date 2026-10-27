@@ -648,6 +648,34 @@ class CalibrationTests(unittest.TestCase):
                 cal.freeze_guard(copy.deepcopy(cal.FROZEN), path)
             self.assertEqual(caught.exception.code, 'E_CAL_BASELINE')
 
+    # ------------------------------------------------------------------
+    # R759（R751 P3-1）：另三个 pending 键填值也必须带 scope/evidence 且为正数。
+    # ------------------------------------------------------------------
+    def test_stop_time_bare_value_stays_pending_r759(self):
+        cfg = copy.deepcopy(cal.FROZEN)
+        cfg['budgets']['stop_time_s'] = {'value': 1.5}
+        report = cal.validate_frozen(cfg)
+        self.assertIn('budgets.stop_time_s', report['pending'])
+
+    def test_stop_time_with_metadata_leaves_pending_r759(self):
+        cfg = copy.deepcopy(cal.FROZEN)
+        cfg['budgets']['stop_time_s'] = {'value': 1.5, 'scope': 'x', 'evidence': 'y'}
+        report = cal.validate_frozen(cfg)
+        self.assertNotIn('budgets.stop_time_s', report['pending'])
+        self.assertEqual(len(report['pending']), 3)
+
+    def test_localization_bare_value_stays_pending_r759(self):
+        cfg = copy.deepcopy(cal.FROZEN)
+        cfg['tolerances']['max_localization_error_m'] = {'value': 0.2}
+        report = cal.validate_frozen(cfg)
+        self.assertIn('tolerances.max_localization_error_m', report['pending'])
+
+    def test_stop_distance_negative_rejected_r759(self):
+        cfg = copy.deepcopy(cal.FROZEN)
+        cfg['budgets']['stop_distance_m'] = {'value': -1, 'scope': 'x', 'evidence': 'y'}
+        report = cal.validate_frozen(cfg)
+        self.assertIn('budgets.stop_distance_m.value', report['pending'])
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

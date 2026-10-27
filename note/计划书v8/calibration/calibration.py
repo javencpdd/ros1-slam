@@ -555,6 +555,25 @@ def _pending_report(config):
                     pending.append({
                         'key': 'success_rate.min_pass_rate.alpha',
                         'reason': 'alpha 须在 (0,0.5]（R748）'})
+    # R759（R751 P3-1）：另三个 pending 键与 success_rate 同族——填了值不算数，
+    # 必须有 scope/evidence 且为正数；否则仍 pending（fail-closed）。
+    for key in ('budgets.stop_time_s', 'budgets.stop_distance_m',
+                'tolerances.max_localization_error_m'):
+        node = _resolve(config, key)
+        if not isinstance(node, dict) or node.get('value') is None:
+            continue
+        value = node.get('value')
+        if not (_is_number(value) and value > 0):
+            pending.append({
+                'key': key + '.value',
+                'reason': '须为正数（当前 %r）；域外值不得冻结（R759）' % (value,)})
+        missing = [field for field in ('scope', 'evidence')
+                   if not isinstance(node.get(field), str) or not node.get(field).strip()]
+        if missing:
+            pending.append({
+                'key': key,
+                'reason': '值已填但缺元数据 %s；无 scope/evidence 不得冻结（R759）'
+                          % ','.join(missing)})
     repetitions = config['sampling']['scenario_repetitions']['value']
     seeds = config['sampling']['perturbation_seeds']['value']
     if repetitions < SAMPLING_MIN_REPETITIONS:
