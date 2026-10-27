@@ -1,0 +1,31 @@
+{
+  "set_id": "v8_flat2d_calibration_v1",
+  "semantics": "24§3 SC01/SC02 subset; SC09/SC10/SC12 placeholders pending runtime support",
+  "world": "m1_gazebo",
+  "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0), regenerated from known box list",
+  "combo": "lite3_dwa_mux",
+  "config_lock": {
+    "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+    "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+    "speed": "max_vel_x 0.4",
+    "footprint": "[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]",
+    "goal_tolerance_m": 0.30,
+    "clearance_min_m": 0.25
+  },
+  "start": [0.0, 0.0, 0.0],
+  "seeds": [0, 1, 2, 3],
+  "repetitions": 3,
+  "scenarios": [
+    {"id": "SC01", "name": "flat_open_corridor", "expected_outcome": "reach",
+     "goals": [[3.0, 0.0], [3.5, 0.3], [4.0, -0.3], [2.5, 0.2]]},
+    {"id": "SC02", "name": "flat_obstacle_avoidance", "expected_outcome": "reach",
+     "goals": [[5.2, 1.8], [5.5, -1.8], [4.0, -1.8], [5.0, 2.2]]}
+  ],
+  "placeholders": [
+    {"id": "SC09", "reason": "dynamic block with alternative requires obstacle-layer/event injection; not yet wired"},
+    {"id": "SC10", "reason": "dynamic no-alternative stop+reason requires event injection and reason return; not yet wired"},
+    {"id": "SC12", "reason": "TF/clock/sensor fault injection requires harness hooks; not yet wired"}
+  ],
+  "counts_planned": {"positive_static_runs": 24, "negative_runs": 0,
+                     "note": "SC09/SC10/SC12 excluded until runtime support exists"}
+}

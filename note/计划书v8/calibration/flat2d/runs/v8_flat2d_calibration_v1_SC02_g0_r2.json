@@ -1,0 +1,43 @@
+{
+ "run_id": "v8_flat2d_calibration_v1_SC02_g0_r2",
+ "run_class": "calibration",
+ "calibration_only": true,
+ "set_id": "v8_flat2d_calibration_v1",
+ "scenario_id": "SC02",
+ "scenario_name": "flat_obstacle_avoidance",
+ "scenario_semantics": "24§3",
+ "expected_outcome": "reach",
+ "seed": 0,
+ "repetition": 2,
+ "track": "truth",
+ "combo": "lite3_dwa_mux",
+ "start": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "goal": [
+  5.2,
+  1.8
+ ],
+ "world": "m1_gazebo",
+ "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0), regenerated from known box list",
+ "config_lock": {
+  "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+  "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+  "speed": "max_vel_x 0.4",
+  "footprint": "[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]",
+  "goal_tolerance_m": 0.3,
+  "clearance_min_m": 0.25
+ },
+ "evaluator": "R665 a1_driver.py, goal parameterized (GT trajectory vs known boxes)",
+ "pre_registered_at": "2026-10-27T02:42:32+00:00",
+ "status": "pre_registered",
+ "counts_planned": {
+  "N_total": 1,
+  "N_valid": 1,
+  "N_invalid": 0,
+  "N_pass": null,
+  "N_fail": null
+ }
+}
