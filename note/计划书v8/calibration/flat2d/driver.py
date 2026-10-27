@@ -31,11 +31,37 @@ ARRIVE_RADIUS_M = 0.28
 
 
 def spawn_box(name, size, pose_xy_yaw):
-    from gazebo_msgs.srv import SpawnModel
+    from gazebo_msgs.srv import DeleteModel, GetModelState, SpawnModel
+    from geometry_msgs.msg import Pose
     rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=10.0)
+    # 同名模型跨 run 复用；上一轮 delete 若滞后会让 spawn 直接失败（R792 实测间歇
+    # injection_failed）。生成前先删一次同名实体，删不到也无害。
+    try:
+        rospy.wait_for_service('/gazebo/delete_model', timeout=5.0)
+        rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)(name)
+    except Exception:
+        pass
     spawn = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
-    resp = spawn(name, sdf_box(name, size, pose_xy_yaw, size[2] / 2), '/', PoseStamped().pose, 'world')
-    return bool(resp.success)
+    pose = Pose()
+    pose.position.x, pose.position.y = pose_xy_yaw[0], pose_xy_yaw[1]
+    pose.position.z = size[2] / 2
+    pose.orientation.w = 1.0
+    # gazebo_ros 的 spawn 用 initial_pose，SDF 里的 <pose> 被忽略（R792 实测：
+    # 旧版传全零 Pose，方块一直生成在原点，ROI 里永远看不到它）。SDF 位姿写零。
+    resp = spawn(name, sdf_box(name, size, (0.0, 0.0, 0.0), 0.0), '/', pose, 'world')
+    if not resp.success:
+        return False
+    try:
+        rospy.wait_for_service('/gazebo/get_model_state', timeout=5.0)
+        get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+        state = get_state(name, 'world')
+        if not state.success:
+            return False
+        dx = state.pose.position.x - pose_xy_yaw[0]
+        dy = state.pose.position.y - pose_xy_yaw[1]
+        return dx * dx + dy * dy <= 0.15 ** 2
+    except Exception:
+        return False
 
 
 def main(argv):

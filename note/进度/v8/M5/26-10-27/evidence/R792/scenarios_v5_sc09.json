@@ -1,0 +1,120 @@
+{
+ "set_id": "v8_flat2d_calibration_v2_sc09dyn_v5",
+ "semantics": "SC09 动态替代（SC09-dyn v5）：R791 定位 v4 的注入时序缺陷——方块在 1.0 m 进度出现时，机器人已越过最后可绕行点，只剩约 15 m 倒车绕行，DWA 做不出（R790/R791）。v5 把注入提前到 0.3 m（机器人仍在起点区、三条通道都开），BFS 0.05 网格验过：四个组在 0.45 阈值下从 (0.3,0) 到目标均有路（8.2—9.0 m，绕行不倒车）。判据、目标、方块位姿、deadline 均与 v4 相同，仅改注入进度；12 组=4 组×3 次。",
+ "world": "m1_gazebo",
+ "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)，由 m1_world.world 盒/墙几何生成",
+ "combo": "lite3_dwa_mux",
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2,
+  "clearance_definition": "robot_center_to_box_surface_m",
+  "deadline_s": 240
+ },
+ "config_lock": {
+  "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+  "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+  "speed": "max_vel_x 0.4",
+  "footprint": "[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]",
+  "goal_tolerance_m": 0.3,
+  "clearance_min_m": 0.2,
+  "stack": "flat2d_stack_sc09.launch（map_server + map→odom + move_base；global static+STVL+inflation 0.45；local static+STVL+inflation 0.45；DWA 参数在 DWAPlannerROS ns，max_vel_x 0.4；scan_relay RELAY_MODE=roi）"
+ },
+ "start": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "repetitions": 3,
+ "scenarios": [
+  {
+   "id": "SC09",
+   "name": "flat_dynamic_block_substitute",
+   "expected_outcome": "reach",
+   "goals": [
+    [
+     4.0,
+     -0.3
+    ],
+    [
+     3.5,
+     0.3
+    ],
+    [
+     4.0,
+     -0.3
+    ],
+    [
+     3.5,
+     0.3
+    ]
+   ],
+   "injects": [
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g0",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      2.5,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g1",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      2.0,
+      0.1,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g2",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      2.8,
+      -0.1,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g3",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      2.5,
+      0.2,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "counts_planned": {
+  "positive_runs": 12,
+  "note": "v5 只改注入进度 1.0→0.3（R791 倒车陷阱）；判据与几何不动；不并入 v4"
+ }
+}

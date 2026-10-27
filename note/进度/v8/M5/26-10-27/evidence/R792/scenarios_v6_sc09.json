@@ -1,0 +1,120 @@
+{
+ "set_id": "v8_flat2d_calibration_v2_sc09dyn_v6",
+ "semantics": "SC09 动态替代（SC09-dyn v6）：v5 实跑证明中段几何容不下 0.7×0.6 车体（全局规划抄 0.2 m 中心缝、DWA 卡到净空 0.012）。v6 把场景移到东侧宽通道（墙 y=4.45 与 obs_3 顶 y≈1.72 之间宽约 2.68 m）：start (2.5,3.0)，4 组目标 (6.0,3.0)/(6.0,2.7)/(6.2,3.2)/(5.8,2.8)，方块在目标前 1.4—1.6 m（0.8 m 立方体，两侧各余约 0.94 m）；注入 0.3 m。BFS 0.05 网格、0.45 阈值：四组均有路、最差净空 0.45、路径 4.9—5.4 m；目标/方块/起点静态净空 0.94—1.70。判据、deadline、方块尺寸不变；12 组=4 组×3 次。",
+ "world": "m1_gazebo",
+ "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)，由 m1_world.world 盒/墙几何生成",
+ "combo": "lite3_dwa_mux",
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2,
+  "clearance_definition": "robot_center_to_box_surface_m",
+  "deadline_s": 240
+ },
+ "config_lock": {
+  "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+  "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+  "speed": "max_vel_x 0.4",
+  "footprint": "[[0.35,0.3],[-0.35,0.3],[-0.35,-0.3],[0.35,-0.3]]",
+  "goal_tolerance_m": 0.3,
+  "clearance_min_m": 0.2,
+  "stack": "flat2d_stack_sc09.launch（map_server + map→odom + move_base；global static+STVL+inflation 0.45；local static+STVL+inflation 0.45；DWA 参数在 DWAPlannerROS ns，max_vel_x 0.4；scan_relay RELAY_MODE=roi）"
+ },
+ "start": [
+  2.5,
+  3.0,
+  0.0
+ ],
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "repetitions": 3,
+ "scenarios": [
+  {
+   "id": "SC09",
+   "name": "flat_dynamic_block_substitute",
+   "expected_outcome": "reach",
+   "goals": [
+    [
+     6.0,
+     3.0
+    ],
+    [
+     6.0,
+     2.7
+    ],
+    [
+     6.2,
+     3.2
+    ],
+    [
+     5.8,
+     2.8
+    ]
+   ],
+   "injects": [
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g0",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      4.4,
+      3.0,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g1",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      4.4,
+      2.7,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g2",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      4.6,
+      3.2,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g3",
+     "size": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "pose_xy_yaw": [
+      4.4,
+      2.8,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "counts_planned": {
+  "positive_runs": 12,
+  "note": "v6 移到东侧宽通道（v5 中段几何容不下车体）；判据不变；不并入 v4/v5"
+ }
+}

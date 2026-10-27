@@ -1,0 +1,5 @@
+R792 代价图活体探针（v8loc, master 11319, sc09 栈；手工 spawn probe_box @ (4.4,3.0,0.4) + 发布 /sc09/box 4 s）
+spawn True
+cost at box 99   north y3.9 0   south y2.1 68
+path on costmap(cost<253) from (3.79,3.0) to (6.0,3.0) exists: True  visited 3936
+结论：方块中心非 lethal（99），且已标记代价图上存在非致命通路 ⇒ 全局规划穿箱、DWA 顶在可见面停死。
