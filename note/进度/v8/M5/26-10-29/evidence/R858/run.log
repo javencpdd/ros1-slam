@@ -1,0 +1,17 @@
+== scene list
+{"scenes": ["blank", "ramp_envelope", "sidewall_envelope", "stairs_blocked_mid", "stairs_easy", "stairs_mid", "stairs_steep", "wall_h045", "wall_h080"]}
+
+== scene stairs_easy
+{"scene": "stairs_easy", "deleted": [], "spawned": ["stairs_easy"], "models": ["ground_plane", "perimeter_north", "perimeter_south", "obs_1", "obs_2", "obs_3", "obs_4", "obs_5", "obs_6", "lite3_planar", "stairs_easy"]}
+
+== scene wall_h045
+{"scene": "wall_h045", "deleted": [{"model": "stairs_easy", "success": true, "status": "DeleteModel: successfully deleted model"}], "spawned": ["wall_h045"], "models": ["ground_plane", "perimeter_north", "perimeter_south", "obs_1", "obs_2", "obs_3", "obs_4", "obs_5", "obs_6", "lite3_planar", "wall_h045"]}
+
+== clear
+{"deleted": [{"model": "wall_h045", "success": true, "status": "DeleteModel: successfully deleted model"}], "models": ["ground_plane", "perimeter_north", "perimeter_south", "obs_1", "obs_2", "obs_3", "obs_4", "obs_5", "obs_6", "lite3_planar"]}
+
+== set_start -> status
+{"state": {"model": "lite3_planar", "x": 2.0, "y": -1.0, "z": 0.11, "yaw_deg": 30.0}, "odom": {"frame": "odom", "x": 2.0, "y": -1.0, "yaw_deg": 30.0}}
+
+== initialpose -> status
+{"state": {"model": "lite3_planar", "x": 0.0, "y": 0.0, "z": 0.11, "yaw_deg": 0.0}, "odom": {"frame": "odom", "x": 0.0, "y": 0.0, "yaw_deg": 0.0}}

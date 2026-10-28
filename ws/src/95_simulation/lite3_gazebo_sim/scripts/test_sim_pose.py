@@ -30,6 +30,13 @@ class QuaternionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sim_pose.pose_xyz(value, 'start')
 
+    def test_yaw_from_quaternion(self):
+        self.assertAlmostEqual(sim_pose.yaw_deg_from_quaternion(0, 0, 0, 1), 0.0)
+        self.assertAlmostEqual(sim_pose.yaw_deg_from_quaternion(0, 0, math.sqrt(0.5), math.sqrt(0.5)), 90.0)
+        for value in ((0, 0, float('nan'), 1), (0, 0, 0, float('inf')), (0, 0, 'x', 1)):
+            with self.assertRaises(ValueError):
+                sim_pose.yaw_deg_from_quaternion(*value)
+
 
 if __name__ == '__main__':
     unittest.main()

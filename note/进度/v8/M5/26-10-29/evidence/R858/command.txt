@@ -1,0 +1,21 @@
+Foxglove 起点控制 + 3D 场景热插拔实测（容器 v8codex-20261028，headless m1）
+
+ROS_MASTER_URI=http://127.0.0.1:11381 / GAZEBO_MASTER_URI=http://127.0.0.1:11385
+roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false
+
+# 场景热插拔（不重启世界；只换场景模型，不动 ground/robot）
+python3 sim_scene.py --list
+python3 sim_scene.py --scene stairs_easy
+python3 sim_scene.py --scene wall_h045
+python3 sim_scene.py --clear
+
+# Foxglove/网页端的起点控制：桥订阅 /sim/set_start 与 /initialpose
+python3 sim_pose_bridge.py
+rostopic pub -1 /sim/set_start geometry_msgs/PoseStamped '{header: {frame_id: "map"},
+  pose: {position: {x: 2.0, y: -1.0}, orientation: {z: 0.258819, w: 0.965926}}}'
+python3 sim_pose.py --status
+rostopic pub -1 /initialpose geometry_msgs/PoseWithCovarianceStamped '{header: {frame_id: "map"},
+  pose: {pose: {position: {x: 0.0, y: 0.0}, orientation: {z: 0.0, w: 1.0}}}}'
+python3 sim_pose.py --status
+
+边界：本批未起 move_base（不验行驶到点）；场景切换不更新静态地图，正式导航需重启对应世界。

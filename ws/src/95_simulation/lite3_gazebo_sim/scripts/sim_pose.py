@@ -27,6 +27,15 @@ def quaternion_from_yaw_deg(yaw_deg):
     return 0.0, 0.0, math.sin(half), math.cos(half)
 
 
+def yaw_deg_from_quaternion(qx, qy, qz, qw):
+    values = (qx, qy, qz, qw)
+    if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v)
+           for v in values):
+        raise ValueError('quaternion must be four finite numbers')
+    return math.degrees(math.atan2(2 * (qw * qz + qx * qy),
+                                   1 - 2 * (qy ** 2 + qz ** 2)))
+
+
 def pose_xyz(values, name):
     if len(values) != 2:
         raise ValueError('%s needs X Y' % name)
@@ -115,9 +124,8 @@ def model_state(model):
     if not response.success:
         raise RuntimeError('get_model_state refused: ' + response.status_message)
     pose = response.pose
-    yaw = math.degrees(math.atan2(2 * (pose.orientation.w * pose.orientation.z
-                                       + pose.orientation.x * pose.orientation.y),
-                                  1 - 2 * (pose.orientation.y ** 2 + pose.orientation.z ** 2)))
+    yaw = yaw_deg_from_quaternion(pose.orientation.x, pose.orientation.y,
+                                  pose.orientation.z, pose.orientation.w)
     return {'model': model,
             'x': round(pose.position.x, 4), 'y': round(pose.position.y, 4),
             'z': round(pose.position.z, 4), 'yaw_deg': round(yaw, 2)}
@@ -128,9 +136,8 @@ def odom_state(topic='/sim/odom_gt'):
     from nav_msgs.msg import Odometry
     message = rospy.wait_for_message(topic, Odometry, timeout=10)
     pose = message.pose.pose
-    yaw = math.degrees(math.atan2(2 * (pose.orientation.w * pose.orientation.z
-                                       + pose.orientation.x * pose.orientation.y),
-                                  1 - 2 * (pose.orientation.y ** 2 + pose.orientation.z ** 2)))
+    yaw = yaw_deg_from_quaternion(pose.orientation.x, pose.orientation.y,
+                                  pose.orientation.z, pose.orientation.w)
     return {'frame': message.header.frame_id,
             'x': round(pose.position.x, 4), 'y': round(pose.position.y, 4),
             'yaw_deg': round(yaw, 2)}

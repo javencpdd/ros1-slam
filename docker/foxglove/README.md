@@ -64,3 +64,11 @@ bash /home/ros1-slam/scripts/mapping/m_viz.sh
 - **对齐到**＝进度真身末号 **R518** ／ 本 boot **批174**（零窗·派单批）。
 - 本目录＝`viz.sh` **路线 B** 的布局件与连接口径；**红线＝只订阅不发布**。
 - 同步时刻＝2026-10-21 03:32 CST。
+
+## ★追加（2026-10-29，R858）：起终点控制与场景热切换
+
+- 连接：`Rosbridge (ROS 1)` → `ws://<主机>:9090`。本镜像已装 `rosbridge_server`；无 `foxglove_bridge`（后者是 ROS2）。
+- **终点**：Publish 面板发 `geometry_msgs/PoseStamped` → `/move_base_simple/goal`（需 `flat2d_stack` 的 move_base）。
+- **起点**：先起 `ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose_bridge.py`，再发 `geometry_msgs/PoseStamped` → `/sim/set_start`（或 `PoseWithCovarianceStamped` → `/initialpose`）；状态回 `/sim/set_start/status`。桥只接受 frame 为空/`map`/`odom`。
+- **场景热切换**：`sim_scene.py --scene stairs_easy` / `--scene wall_h045` / `--clear`；只换场景模型，不重启世界。静态地图不随动，正式导航需重启对应世界。
+- 实测读数见 `note/进度/v8/M5/26-10-29/R858.md`。
