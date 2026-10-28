@@ -108,7 +108,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         lift_h=0.10, swing_fwd=0.06, drive_fwd=0.08, shift_mag=0.05, slip_tol=0.02, y_tol=0.03,
         swing_kp=40.0, swing_kd=1.5, cycle=False, margin_min=0.05,
         step_x=None, step_h=0.0, step_swing=0.0, climb_x=0.0, climb_dz=0.0,
-        rear_rounds=0, rear_swing=0.10, climb2_x=0.0, climb2_dz=0.0):
+        rear_rounds=0, rear_swing=0.10, climb2_x=0.0, climb2_dz=0.0,
+        rear_margin=0.05, rear_shift=0.05):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
@@ -464,9 +465,12 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             z_end = rec.get('land_z', state['zg'] + 0.004)
             return {'landed': abs(f1[rec['leg']][2] - z_end) <= 0.03}
 
-        def do_step(cur_leg, tag, advance=True, swing=None, allow_step=True):
+        def do_step(cur_leg, tag, advance=True, swing=None, allow_step=True,
+                    margin=None, shift=None):
             """单腿一步：闭环移重→（竖直抬升）→（高度上前摆）→落足→可选推进。"""
             sw = swing_fwd if swing is None else swing
+            mreq = margin_min if margin is None else margin
+            smag = shift_mag if shift is None else shift
             stance = {n: foot_body_pos(model, data, n) for n in LEGS}
             relz = ground_relz()
             _, nvec = support_margin(cur_leg, want_normal=True)
@@ -476,7 +480,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             shift_goal = None
             for attempt in range(4):
                 prev_dist, shift_dist = shift_dist, shift_dist + (
-                    shift_mag if attempt == 0 else 0.03)
+                    smag if attempt == 0 else 0.03)
                 shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_dist
                 inc = (shift_dist - prev_dist) * dir_xy
                 shift_goal = with_z({n: stance[n] + shift_delta for n in LEGS}, relz)
@@ -485,9 +489,9 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 if state['fell']:
                     return False
                 state['m0'] = support_margin(cur_leg)
-                if state['m0'] >= margin_min:
+                if state['m0'] >= mreq:
                     break
-            if state['fell'] or state['m0'] < margin_min:
+            if state['fell'] or state['m0'] < mreq:
                 return False
             lift_goal = dict(shift_goal)
             is_step = (allow_step and step_x is not None
@@ -566,7 +570,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 for cur_leg in ('HL', 'HR'):
                     if state['fell'] or not ok_all:
                         break
-                    if not do_step(cur_leg, 'r%d' % r, advance=True, swing=rear_swing):
+                    if not do_step(cur_leg, 'r%d' % r, advance=True, swing=rear_swing,
+                                   margin=rear_margin, shift=rear_shift):
                         ok_all = False
                         break
             if ok_all and not state['fell']:
@@ -679,6 +684,8 @@ def main():
     parser.add_argument('--rear-swing', type=float, default=0.10)
     parser.add_argument('--climb2-x', type=float, default=0.0)
     parser.add_argument('--climb2-dz', type=float, default=0.0)
+    parser.add_argument('--rear-margin', type=float, default=0.02)
+    parser.add_argument('--rear-shift', type=float, default=0.02)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -694,7 +701,8 @@ def main():
                  step_x=args.step_x, step_h=args.step_h, step_swing=args.step_swing,
                  climb_x=args.climb_x, climb_dz=args.climb_dz,
                  rear_rounds=args.rear_rounds, rear_swing=args.rear_swing,
-                 climb2_x=args.climb2_x, climb2_dz=args.climb2_dz)
+                 climb2_x=args.climb2_x, climb2_dz=args.climb2_dz,
+                 rear_margin=args.rear_margin, rear_shift=args.rear_shift)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
