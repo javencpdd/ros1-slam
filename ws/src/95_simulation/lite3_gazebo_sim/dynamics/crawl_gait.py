@@ -79,7 +79,7 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
     return tau
 
 
-def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0):
+def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     data = mujoco.MjData(model)
@@ -107,10 +107,15 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
     dt = model.opt.timestep
     steps = int(seconds / dt)
     start_targets = DEF.copy()
+    stage_two = targets + np.array([shift2_x, 0.0, 0.0] * 4) if shift2_x else targets
     zmin, trace = 9.0, []
     for i in range(steps):
-        if ramp > 0.0:
-            alpha = min(1.0, i * dt / ramp)
+        t = i * dt
+        if ramp > 0.0 and shift2_x and t >= ramp:
+            alpha = min(1.0, (t - ramp) / ramp)
+            now_targets = targets + alpha * (stage_two - targets)
+        elif ramp > 0.0:
+            alpha = min(1.0, t / ramp)
             now_targets = start_targets + alpha * (targets - start_targets)
         else:
             now_targets = targets
@@ -149,12 +154,13 @@ def main():
     parser.add_argument('--xml', default='')
     parser.add_argument('--start-x', type=float, default=0.0)
     parser.add_argument('--forward', type=float, default=0.0)
+    parser.add_argument('--shift2-x', type=float, default=0.0)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
                  kp=args.kp, kd=args.kd, shift_y=args.shift_y, shift_x=args.shift_x,
                  ramp=args.ramp, xml=args.xml or None, start_x=args.start_x,
-                 forward=args.forward)
+                 forward=args.forward, shift2_x=args.shift2_x)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
