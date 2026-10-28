@@ -138,6 +138,13 @@ FROZEN = {
          'reason': '真人 2026-10-28 勾选：①scope 改用 v8_flat2d_calibration_… 专用名；'
                    '②时限不并入（成功=到点+净空），先补仿真钟记录再裁是否并入。'
                    '36/36、CP 0.920153（名义值）；R798 复核三条已逐项处置（scope/时限/CP 日志）'},
+        {'when': '2026-10-28',
+         'key': 'success_rate.min_pass_rate.scope',
+         'from': 'v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_truth_mux_volume_relay_lite3_dwa_f64nli',
+         'to': 'v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_truth_mux_volume_relay_lite3_dwa_f64nli25',
+         'change': '栈后缀 _f64nli→_f64nli25（值 0.90 不变；证据切 v12 R803 36/36）',
+         'reason': '真人 2026-10-28 勾选采纳 f64nli25：R801 复现 f64nli 低频切角死锁（1/72），'
+                   'R802 候选两卡点 6/6、R803 v12 全矩阵 36/36（净空 min 0.324）；属 scope 表述同步，非放宽'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -258,24 +265,24 @@ FROZEN = {
         'tracks': {'value': ['truth', 'estimate'],
                    'evidence': 'V8-13 双轨（真值轨/估计轨）'},
     },
-    # 成功率：带域冻结（2026-10-28 重新冻结，R800；真人勾选：flat2d 专用 token＋时限不并入）。
-    # 36 组 v11 读数见 R797/R798；时限只作报告量，不并入成功判定（仿真钟另补，R800 已给 driver 加字段）。
+    # 成功率：带域冻结（2026-10-28 R800 起；R804 按真人勾选把栈后缀切到 f64nli25，值不变）。
+    # 证据为 v12 36/36（R803）；时限只作报告量、不并入成功判定（仿真钟数据见 R801/R803）。
     'success_rate': {
         'min_pass_rate': {
             'value': 0.9,
             'scope': 'v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_'
-                     'truth_mux_volume_relay_lite3_dwa_f64nli',
+                     'truth_mux_volume_relay_lite3_dwa_f64nli25',
             'sample_n': 36,
             'method': 'clopper_pearson_lower_95',
             'alpha': 0.05,
-            'denominator': '36 = SC01 12 + SC02 12 + SC09 12（v11 预登记，FAIL 全计）',
+            'denominator': '36 = SC01 12 + SC02 12 + SC09 12（v12 预登记，FAIL 全计）',
             'aggregation': '36 组逐组 PASS/FAIL 后按 36 聚合；INVALID 不入串（本次 0 例）；'
                            '时限（task_budget_s/harness_deadline_s）不并入成功判定，只作报告量',
-            'evidence': 'R800（读取自 R797/R798）：runs_v11/（12）+ runs_v11_sc0102/（24），'
-                        'index.sha256 36/36 一致；flat2d_stack_sc09_f64nli.launch sha256 63c80d9e…d583；'
-                        'RELAY_MODE=volume；36/36 PASS，到点 max 0.120、净空 min 0.208；'
+            'evidence': 'R803（证据切自 v12）：runs_v12/（12）+ runs_v12_sc0102/（24），'
+                        'index.sha256 36/36 一致；flat2d_stack_sc09_f64nli25.launch sha256 cc03065e…7386；'
+                        'RELAY_MODE=volume；36/36 PASS，到点 max 0.133、净空 min 0.324；'
                         'CP 下限 0.920153（k=36/n=36, α=0.05）为名义值（3 次重复非独立样本）；'
-                        '补齐哈希见 evidence/R797/hashes_extra.sha256；时限读数见 tally_corrected.txt',
+                        '前批 v11/v11b（f64nli 36/36、35/36）与 R798 复核记录作历史留档',
         },
     },
     'rerun_rules': {
@@ -446,14 +453,16 @@ SAMPLING_MIN_REPETITIONS = 3
 # 在 pending 阶段就 fail-closed；真正冻结仍需改 FROZEN＋digest＋unfreeze＋独立复核。
 # 2026-10-28（R800，真人勾选）：token 由 `official_positive…` 改为 flat2d 专用名。
 # 理由（R798 复核 #1）：实跑是 run_class=calibration 的 flat2d 替代场景（SC01/02/09 与官方同号
-# 不同义，官方 SC09 为净空负例）、单组合 lite3_dwa、volume 中继、f64nli 栈；旧名字实不符。
+# 不同义，官方 SC09 为净空负例）、单组合 lite3_dwa、volume 中继；旧名字实不符。
+# 2026-10-28（R804，真人勾选）：栈后缀 _f64nli→_f64nli25——R803 证明 f64nli 有低频切角死锁
+# （1/72），f64nli25（局部 inflation 0.25/5.0）在 v12 36 组上 36/36；值 0.90 与判据不变。
 SUCCESS_RATE_SCOPE = ('v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_'
-                      'truth_mux_volume_relay_lite3_dwa_f64nli')
+                      'truth_mux_volume_relay_lite3_dwa_f64nli25')
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-28，R800 重新冻结后重算）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-28，R804 切 f64nli25 后重算）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'f6888a4aca71b90e9ba9b897d943dc3c6d0a2d658101a3a617da3872de0a416b'
+DIGEST = 'ddc8f9f04ad2f3491729a2ecbe9e173b9dec1e2dc98a2d2d6d1d95b10d47a4fa'
 
 
 class CalibrationError(Exception):

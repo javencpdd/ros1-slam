@@ -493,7 +493,7 @@ class CalibrationTests(unittest.TestCase):
     def _success_rate_node(self, **overrides):
         node = {
             'value': 0.90,
-            'scope': 'v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_truth_mux_volume_relay_lite3_dwa_f64nli',
+            'scope': 'v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_truth_mux_volume_relay_lite3_dwa_f64nli25',
             'sample_n': 36,
             'method': 'clopper_pearson_lower_95',
             'alpha': 0.05,
