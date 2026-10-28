@@ -79,7 +79,7 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
     return tau
 
 
-def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0):
+def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0):
     import mujoco
     model = mujoco.MjModel.from_xml_path(XML)
     data = mujoco.MjData(model)
@@ -96,7 +96,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             targets[k:k + 3] = q
         data.qpos[7:19] = DEF
         mujoco.mj_forward(model, data)
-    if mode in ('lift', 'step'):
+    if mode in ('lift', 'step') and leg in LEGS:
         goal = nominal[leg] + np.array([0.0, 0.0, height])
         q = leg_ik(model, data, leg, goal)
         k = 3 * LEGS.index(leg)
@@ -105,9 +105,15 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         mujoco.mj_forward(model, data)
     dt = model.opt.timestep
     steps = int(seconds / dt)
+    start_targets = DEF.copy()
     zmin, trace = 9.0, []
     for i in range(steps):
-        pd_hold(model, data, targets, kp=kp, kd=kd)
+        if ramp > 0.0:
+            alpha = min(1.0, i * dt / ramp)
+            now_targets = start_targets + alpha * (targets - start_targets)
+        else:
+            now_targets = targets
+        pd_hold(model, data, now_targets, kp=kp, kd=kd)
         mujoco.mj_step(model, data)
         zmin = min(zmin, float(data.qpos[2]))
         if i % int(round(0.25 / dt)) == 0:
@@ -117,7 +123,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             break
     feet = {name: [round(float(x), 3) for x in foot_body_pos(model, data, name)]
             for name in LEGS}
-    return {'mode': mode, 'leg': leg if mode != 'stand' else None, 'height': height,
+    return {'mode': mode, 'leg': leg if mode in ('lift', 'step') else None, 'height': height,
             'seconds': seconds, 'final_z': round(float(data.qpos[2]), 3),
             'final_x': round(float(data.qpos[0]), 3), 'zmin': round(zmin, 3),
             'fell': bool(zmin < 0.18),
@@ -127,7 +133,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['stand', 'lift', 'step'])
+    parser.add_argument('mode', choices=['stand', 'shift', 'lift', 'step'])
     parser.add_argument('--leg', default='FL')
     parser.add_argument('--height', type=float, default=0.05)
     parser.add_argument('--seconds', type=float, default=3.0)
@@ -135,10 +141,12 @@ def main():
     parser.add_argument('--kd', type=float, default=1.5)
     parser.add_argument('--shift-y', type=float, default=0.0)
     parser.add_argument('--shift-x', type=float, default=0.0)
+    parser.add_argument('--ramp', type=float, default=0.0)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
-                 kp=args.kp, kd=args.kd, shift_y=args.shift_y, shift_x=args.shift_x)
+                 kp=args.kp, kd=args.kd, shift_y=args.shift_y, shift_x=args.shift_x,
+                 ramp=args.ramp)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
