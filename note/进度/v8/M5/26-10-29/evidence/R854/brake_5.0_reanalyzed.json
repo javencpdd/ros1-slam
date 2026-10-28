@@ -1,0 +1,30 @@
+{
+  "scope": "torque_policy_braking_component",
+  "hardware": false,
+  "full_chain": false,
+  "parameters": {
+    "speed_limit_m_s": 0.02,
+    "xy_range_limit_m": 0.01,
+    "hold_seconds": 0.5,
+    "motion_epsilon_m": 1e-09,
+    "pre_motion_window_s": 0.5,
+    "base_height_floor_m": 0.18,
+    "post_confirmation_motion": "reject through trace end",
+    "xy_range_definition": "norm of XY axis peak-to-peak ranges",
+    "interpolation": "piecewise linear; window starts at recorded samples",
+    "distance_interval": "trigger through confirmation, or trace end",
+    "forward_axis": "world +X",
+    "criteria_151_frozen": false
+  },
+  "completed": true,
+  "status": "PASS",
+  "reason": "stationary_window_observed",
+  "trigger_time": 5.019999999999669,
+  "first_stationary_time": 6.501999999999506,
+  "confirmation_time": 7.001999999999506,
+  "peak_forward_m": 0.03151439124016342,
+  "cumulative_xy_m": 0.0894809731224441,
+  "pre_trigger_moving": true,
+  "measurement_end_time": 7.001999999999506,
+  "source_sha256": "039baf4d6beff6f9f70858766f86a230af446afadafa877037bb5cb54c3a0056"
+}

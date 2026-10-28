@@ -356,11 +356,12 @@ def run_minimal(xml_path, mode='stand', leg='HR', backend='force', seconds=2.):
 
 
 @contextmanager
-def rear_force_bridge():
+def rear_force_bridge(swing_pd=False, stance_force=False):
     """Swap only the rear swing bridge controller in this process; restore on exit."""
     import crawl_gait as crawl
     original_hold = crawl.pd_hold
-    active = {'key': None, 'controller': None, 'reports': []}
+    active = {'key': None, 'controller': None, 'reports': [],
+              'swing_pd': swing_pd, 'stance_force': stance_force}
 
     def wrapped(model, data, targets, kp=40., kd=1.5, max_tau=30.):
         gains = np.asarray(kp)
@@ -368,7 +369,8 @@ def rear_force_bridge():
                       if gains.ndim and gains[3 * index] < np.max(gains) - 1e-6)
         front_height = min(float(data.xpos[crawl._ids(model, name)[1]][2]) for name in ('FL', 'FR'))
         rear_height = min(float(data.xpos[crawl._ids(model, name)[1]][2]) for name in ('HL', 'HR'))
-        enabled = len(swing) == 1 and swing[0] in ('HL', 'HR') and front_height - rear_height > .03
+        enabled = front_height - rear_height > .03 and (
+            (len(swing) == 1 and swing[0] in ('HL', 'HR')) or (stance_force and not swing))
         if not enabled:
             if active['controller'] is not None:
                 active['reports'].append(active['controller'].report())
@@ -380,7 +382,14 @@ def rear_force_bridge():
                 active['reports'].append(active['controller'].report())
             active['key'] = key
             active['controller'] = ForceController(model, data, swing=swing)
-        return active['controller'].command(targets)
+        if not swing_pd or not swing:
+            return active['controller'].command(targets)
+        pd_torque = original_hold(model, data, targets, kp=kp, kd=kd, max_tau=max_tau).copy()
+        torque = active['controller'].command(targets).copy()
+        first = 3 * LEGS.index(swing[0])
+        torque[first:first + 3] = pd_torque[first:first + 3]
+        data.qfrc_applied[6:18] = torque
+        return torque
 
     crawl.pd_hold = wrapped
     try:

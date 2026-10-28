@@ -82,6 +82,25 @@ class ForceStaticsTests(unittest.TestCase):
             self.assertTrue(Path(tree.find('compiler').get('meshdir')).is_absolute())
             self.assertEqual(tree.find('asset/mesh').get('file'), str(Path(directory) / 'meshes' / 'foot.STL'))
 
+    def test_mixed_bridge_preserves_pd_only_for_the_swing_leg(self):
+        import crawl_gait
+        data = types.SimpleNamespace(xpos=np.array([[0., 0., .08], [0., 0., .08],
+                                                   [0., 0., .02], [0., 0., .02]]),
+                                     qfrc_applied=np.zeros(18))
+        controller = types.SimpleNamespace(command=lambda targets: np.full(12, 2.),
+                                           report=lambda: {'swing': ['HL']})
+        kp = np.repeat([150., 150., 100., 150.], 3)
+        with patch.object(crawl_gait, '_ids', side_effect=lambda model, name: (None, force.LEGS.index(name))), \
+                patch.object(crawl_gait, 'pd_hold', return_value=np.arange(12.)) as pd, \
+                patch.object(force, 'ForceController', return_value=controller):
+            with force.rear_force_bridge(swing_pd=True) as active:
+                torque = crawl_gait.pd_hold(object(), data, np.zeros(12), kp=kp)
+                np.testing.assert_array_equal(torque[6:9], [6., 7., 8.])
+                np.testing.assert_array_equal(torque[[0, 1, 2, 3, 4, 5, 9, 10, 11]], 2.)
+                np.testing.assert_array_equal(data.qfrc_applied[6:18], torque)
+            self.assertIs(crawl_gait.pd_hold, pd)
+            self.assertEqual(len(active['reports']), 1)
+
     def test_partial_stair_never_passes_and_model_loader_is_restored(self):
         import crawl_gait
         class Model:

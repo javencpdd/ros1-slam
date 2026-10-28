@@ -1,0 +1,467 @@
+{
+  "mode": "stair",
+  "leg": "FL",
+  "lift_h": 0.1,
+  "swing_fwd": 0.06,
+  "drive_fwd": 0.05,
+  "shift_mag": 0.05,
+  "shift_policy": "incenter",
+  "shift_penalty_x": 9.0,
+  "normalize_step_x": false,
+  "rear_advance_pair": true,
+  "front_refresh": false,
+  "shift_attempts": 4,
+  "start_yaw": -0.3490658503988659,
+  "slip_tol": 0.02,
+  "y_tol": 0.03,
+  "kp": 150.0,
+  "kd": 1.0,
+  "swing_kp": 100.0,
+  "swing_kd": 1.0,
+  "cycle": [
+    "FL"
+  ],
+  "z_ref": 0.3365,
+  "requested_steps": 10,
+  "completed_steps": 0,
+  "completed_step_legs": [],
+  "abort_reason": "E_GAIT_LIFT_FAILED",
+  "margin_min": 0.05,
+  "step_x": 1.0,
+  "step_h": 0.06,
+  "climb_x": 0.1,
+  "climb_dz": 0.03,
+  "rear_rounds": 4,
+  "rear_swing": 0.08,
+  "climb2_x": 0.06,
+  "climb2_dz": 0.02,
+  "z_ground": 0.0152,
+  "pass": false,
+  "final_x": 0.929,
+  "final_y": 0.07,
+  "final_z": 0.294,
+  "zmin": 0.294,
+  "fell": false,
+  "phases": [
+    {
+      "phase": "settle",
+      "kind": "settle",
+      "leg": null,
+      "t0": 0.0,
+      "dur": 0.6,
+      "body_dx": 0.0059,
+      "body_dy": 0.0093,
+      "body_z_end": 0.3365,
+      "slip": {
+        "FL": 0.0045,
+        "FR": 0.009,
+        "HL": 0.0069,
+        "HR": 0.0037
+      },
+      "support_slip_max": 0.009,
+      "foot_z_end": {
+        "FL": 0.0001,
+        "FR": 0.0199,
+        "HL": 0.0192,
+        "HR": 0.0214
+      },
+      "feet_w0": {
+        "FL": [
+          1.024,
+          0.088
+        ],
+        "FR": [
+          0.915,
+          -0.212
+        ],
+        "HL": [
+          0.696,
+          0.207
+        ],
+        "HR": [
+          0.587,
+          -0.092
+        ]
+      },
+      "feet_w1": {
+        "FL": [
+          1.021,
+          0.091
+        ],
+        "FR": [
+          0.918,
+          -0.22
+        ],
+        "HL": [
+          0.7,
+          0.213
+        ],
+        "HR": [
+          0.586,
+          -0.096
+        ]
+      },
+      "checks": {
+        "support_slip": true,
+        "y_drift": true,
+        "no_fall": true
+      },
+      "ok": true
+    },
+    {
+      "phase": "shifts0_FL_0",
+      "kind": "shift",
+      "leg": "FL",
+      "t0": 0.6,
+      "dur": 1.0,
+      "body_dx": -0.0705,
+      "body_dy": -0.0276,
+      "body_z_end": 0.3292,
+      "slip": {
+        "FL": 0.0032,
+        "FR": 0.0054,
+        "HL": 0.0066,
+        "HR": 0.0047
+      },
+      "support_slip_max": 0.0066,
+      "foot_z_end": {
+        "FL": -0.0002,
+        "FR": 0.0208,
+        "HL": 0.0205,
+        "HR": 0.0201
+      },
+      "feet_w0": {
+        "FL": [
+          1.021,
+          0.091
+        ],
+        "FR": [
+          0.918,
+          -0.22
+        ],
+        "HL": [
+          0.7,
+          0.213
+        ],
+        "HR": [
+          0.586,
+          -0.096
+        ]
+      },
+      "feet_w1": {
+        "FL": [
+          1.017,
+          0.091
+        ],
+        "FR": [
+          0.913,
+          -0.223
+        ],
+        "HL": [
+          0.704,
+          0.219
+        ],
+        "HR": [
+          0.584,
+          -0.1
+        ]
+      },
+      "checks": {
+        "support_slip": true,
+        "y_drift": true,
+        "no_fall": true
+      },
+      "swing_rise": -0.0003,
+      "ok": true
+    },
+    {
+      "phase": "lifts0_FL",
+      "kind": "lift",
+      "leg": "FL",
+      "t0": 1.6,
+      "dur": 2.0,
+      "body_dx": 0.1934,
+      "body_dy": 0.0881,
+      "body_z_end": 0.2945,
+      "slip": {
+        "FL": 0.0408,
+        "FR": 0.0267,
+        "HL": 0.027,
+        "HR": 0.0454
+      },
+      "support_slip_max": 0.0454,
+      "foot_z_end": {
+        "FL": -0.0012,
+        "FR": 0.021,
+        "HL": 0.0205,
+        "HR": 0.1735
+      },
+      "feet_w0": {
+        "FL": [
+          1.017,
+          0.091
+        ],
+        "FR": [
+          0.913,
+          -0.223
+        ],
+        "HL": [
+          0.704,
+          0.219
+        ],
+        "HR": [
+          0.584,
+          -0.1
+        ]
+      },
+      "feet_w1": {
+        "FL": [
+          1.055,
+          0.106
+        ],
+        "FR": [
+          0.888,
+          -0.232
+        ],
+        "HL": [
+          0.678,
+          0.211
+        ],
+        "HR": [
+          0.617,
+          -0.068
+        ]
+      },
+      "checks": {
+        "support_slip": false,
+        "y_drift": false,
+        "no_fall": true,
+        "lifted": false,
+        "margin_ok": true
+      },
+      "loads0": {
+        "FR": 0.919,
+        "HL": 1.032,
+        "HR": -0.951
+      },
+      "load_min": -0.951,
+      "margin0_m": 0.0728,
+      "margin1_m": -0.1662,
+      "swing_rise": -0.001,
+      "ok": false
+    }
+  ],
+  "world_feet_end": {
+    "FL": [
+      1.055,
+      0.106,
+      -0.001
+    ],
+    "FR": [
+      0.888,
+      -0.232,
+      0.021
+    ],
+    "HL": [
+      0.678,
+      0.211,
+      0.02
+    ],
+    "HR": [
+      0.617,
+      -0.068,
+      0.174
+    ]
+  },
+  "final_feet": {
+    "FL": [
+      0.221,
+      0.192,
+      -0.137
+    ],
+    "FR": [
+      0.221,
+      -0.142,
+      -0.314
+    ],
+    "HL": [
+      -0.127,
+      0.203,
+      -0.317
+    ],
+    "HR": [
+      -0.13,
+      -0.122,
+      -0.315
+    ]
+  },
+  "trace": [
+    [
+      0.0,
+      "settle",
+      0.35,
+      0.8,
+      0.0,
+      -0.0,
+      0.0
+    ],
+    [
+      0.25,
+      "settle",
+      0.339,
+      0.813,
+      0.012,
+      -0.044,
+      0.039
+    ],
+    [
+      0.5,
+      "settle",
+      0.337,
+      0.808,
+      0.008,
+      -0.035,
+      0.029
+    ],
+    [
+      0.6,
+      "shifts0_FL_0",
+      0.337,
+      0.806,
+      0.009,
+      -0.035,
+      0.027
+    ],
+    [
+      0.85,
+      "shifts0_FL_0",
+      0.337,
+      0.794,
+      0.0,
+      -0.023,
+      0.024
+    ],
+    [
+      1.1,
+      "shifts0_FL_0",
+      0.336,
+      0.773,
+      -0.005,
+      -0.015,
+      0.01
+    ],
+    [
+      1.35,
+      "shifts0_FL_0",
+      0.333,
+      0.754,
+      -0.012,
+      -0.005,
+      -0.002
+    ],
+    [
+      1.6,
+      "lifts0_FL",
+      0.329,
+      0.735,
+      -0.018,
+      0.005,
+      -0.016
+    ],
+    [
+      1.85,
+      "lifts0_FL",
+      0.325,
+      0.749,
+      -0.008,
+      -0.046,
+      0.02
+    ],
+    [
+      2.1,
+      "lifts0_FL",
+      0.324,
+      0.775,
+      0.005,
+      -0.112,
+      0.093
+    ],
+    [
+      2.35,
+      "lifts0_FL",
+      0.328,
+      0.838,
+      0.027,
+      -0.252,
+      0.245
+    ],
+    [
+      2.6,
+      "lifts0_FL",
+      0.315,
+      0.91,
+      0.058,
+      -0.446,
+      0.408
+    ],
+    [
+      2.85,
+      "lifts0_FL",
+      0.298,
+      0.927,
+      0.07,
+      -0.546,
+      0.481
+    ],
+    [
+      3.1,
+      "lifts0_FL",
+      0.297,
+      0.928,
+      0.069,
+      -0.545,
+      0.483
+    ],
+    [
+      3.35,
+      "lifts0_FL",
+      0.294,
+      0.93,
+      0.07,
+      -0.554,
+      0.488
+    ]
+  ],
+  "run_class": "pilot",
+  "hardware": false,
+  "backend": "pd",
+  "pilot_config": {
+    "xml": "/tmp/r854-stair/Lite3_step06.xml",
+    "start_x": 0.8,
+    "step_x": 1.0,
+    "step_h": 0.06,
+    "step_swing": 0.06,
+    "drive_fwd": 0.05,
+    "swing_fwd": 0.06,
+    "margin_min": 0.05,
+    "climb_x": 0.1,
+    "climb_dz": 0.03,
+    "rear_rounds": 4,
+    "rear_swing": 0.08,
+    "climb2_x": 0.06,
+    "climb2_dz": 0.02,
+    "kp": 150.0,
+    "kd": 1.0,
+    "swing_kp": 100.0,
+    "swing_kd": 1.0,
+    "rear_advance_pair": true,
+    "front_refresh": false,
+    "shift_attempts": 4,
+    "start_yaw": -0.3490658503988659
+  },
+  "full_stair_completed": false,
+  "force_reports": [],
+  "world_xml_sha256": "d5b77a6b596ca90baad36bce139231aff0e2008424c1f68bdf271ac2ad37fab9",
+  "comparison_valid": true,
+  "verdict": "FAIL"
+}

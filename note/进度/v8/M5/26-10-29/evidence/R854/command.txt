@@ -1,0 +1,17 @@
+run_class=pilot; no hardware; #151 remains pending
+
+Approved preflight:
+docker exec v8codex-20261028 bash /opt/ros1-slam/scripts/verify/v8_window_preflight.sh
+
+Runtime environment:
+PYTHONPATH=/tmp/r854-policy-runtime (onnxruntime 1.16.3 copied unchanged from v8cal)
+MuJoCo 2.3.7; input XML and referenced meshes copied unchanged to /tmp/r854-stair.
+
+For each stop_at in 5.0, 5.2, 5.4:
+PYTHONPATH=/tmp/r854-policy-runtime python3 -B /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_baseline.py --xml /tmp/r854-stair/Lite3_rl_deploy-main/third_party/deep_robotics_model/Lite3/mjcf/Lite3.xml --policy /tmp/r854-stair/policy.onnx --seconds 12 --stop-at <stop_at> --flat-only --out /tmp/r854-stair/brake_<stop_at>.json
+
+Detached window started with /home/jack/.qoder/skills/sim-run-evidence-window/scripts/start_batch.sh:
+--container v8codex-20261028 --script /tmp/r854-stair/run2.sh --log /tmp/r854-stair/run2.log --lock /tmp/r854-stair/run2.lock
+
+Reanalysis uses analyze_braking(physics_trace, trigger_time) from the committed mj_step_baseline.py; preserves original raw records.
+Tests: python3 -B ws/src/95_simulation/lite3_gazebo_sim/dynamics/test_mj_braking.py (14 cases).
