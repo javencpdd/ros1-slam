@@ -7112,3 +7112,8 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - support_planner与ROS三入口新增显式radius/height，节点、连续边、转层门户和端点连接碰撞拒绝／改线；修非对齐栅格越界、0/False分辨率默认吞值、输出舍入穿箱及独立评价器面ID漏核。
 - 定向16项、派生9/9、独立180探针、全仓40套413项（含获批HTTP复跑4项）、修改件静态9件过；共同门禁六绿／历史红与INVALID分列，不宣称全串绿。
 - 详见note/进度/v8/M5/26-10-29/R860.md及evidence/R860；MuJoCo真实运行未开始，受磁盘预检rc5限制；#151／冻结值／第三方／历史证据不改。
+
+## R861（2026-10-29，Codex）：MuJoCo阶面箱体用例实现
+
+- 实现01d00657：新增mj_step_obstacles.py、15项test_mj_step_obstacles负控与README；mj_step_baseline只新增一次性initial_xyz和只读逐步observer，默认路径不变。
+- 同源编译geom回读deck/box到map.v2，三种已知图阶面初始化用例；实际策略／力矩执行与逐步评价已接代码，目标实跑NOT_RUN，磁盘8.6GB不足既有15GB门、预检rc5；未改第三方或门值、未以代码存在替代运行。详见R861与evidence/R861。

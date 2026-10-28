@@ -1,0 +1,70 @@
+{
+  "created_at": "2026-10-28T18:35:11.106528+00:00",
+  "run_class": "pilot",
+  "scope": "declared_geom_map_global_route_policy_torque_on_step_deck",
+  "hardware": false,
+  "initialized_on_deck": true,
+  "ascent_acceptance": false,
+  "formal_151_acceptance": false,
+  "cases": [
+    {
+      "id": "clear",
+      "expected": "global path and physical arrival without fall"
+    },
+    {
+      "id": "offset_box",
+      "expected": "global route around actual box and physical arrival without contact"
+    },
+    {
+      "id": "blocked_box",
+      "expected": "E_PLAN_NO_ROUTE and exact zero command throughout"
+    }
+  ],
+  "declared_geometry": {
+    "deck": {
+      "min": [
+        -1.0,
+        -1.6,
+        0.0
+      ],
+      "max": [
+        5.0,
+        1.6,
+        0.06
+      ]
+    },
+    "offset_box": {
+      "min": [
+        1.6,
+        0.1,
+        0.06
+      ],
+      "max": [
+        2.0,
+        0.8,
+        0.66
+      ]
+    },
+    "blocked_box": {
+      "min": [
+        1.6,
+        -1.6,
+        0.06
+      ],
+      "max": [
+        2.0,
+        1.6,
+        0.66
+      ]
+    }
+  },
+  "robot_envelope": {
+    "radius_m": 0.5,
+    "height_m": 0.5
+  },
+  "simulation_seconds_per_case": 24,
+  "planning_domain": "inset deck top only; no declared connection to surrounding ground",
+  "existing_ascent_baseline": "NOT_PASSED; R855 rear-foot transfer unresolved",
+  "sampling": "all physics steps with true robot collision AABB, box contacts, feet, commands",
+  "source_script": "ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_obstacles.py"
+}

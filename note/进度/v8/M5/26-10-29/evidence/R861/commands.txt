@@ -1,0 +1,4 @@
+After approved cleanup, run unchanged preflight in v8codex-20261028; require rc0.
+mkdir -p /tmp/ros1-obstacles-mujoco (inside target container)
+docker exec -e PYTHONPATH=/tmp/r854-policy-runtime v8codex-20261028 python3 -B /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_obstacles.py --xml /tmp/mjcf/Lite3.xml --policy /tmp/r854-stair/policy.onnx --case all --seconds 24 --out /tmp/ros1-obstacles-mujoco/results.json
+These physics commands are prepared, not executed. Increase duration only as separately registered pilot if arrival fails; do not relax evaluation.

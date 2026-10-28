@@ -1,0 +1,148 @@
+{
+  "scope": "synthetic_negative_controls_not_physics",
+  "results": {
+    "F3_nan_physics_aabb": {
+      "verdict": "FAIL",
+      "checks": {
+        "physics_trace_present": false,
+        "physics_measurements_valid": false
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "reason": "invalid_physics_measurements",
+      "measurement_problems": [
+        {
+          "sample": 0,
+          "field": "robot_aabb",
+          "reason": "missing, malformed, non-real or nonfinite measurement"
+        }
+      ]
+    },
+    "F4_roundtrip_with_zero_decisions": {
+      "verdict": "FAIL",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "physics_measurements_valid": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": true,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": false
+      },
+      "final_goal_error_m": 3.5,
+      "base_displacement_m": 0.0,
+      "maximum_xy_excursion_m": 0.95,
+      "cumulative_xy_m": 1.9,
+      "controller_nonzero_command_observed": false,
+      "physics_nonzero_command_observed": false,
+      "minimum_geometry_gap_m": 0.20000000000000018,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 0,
+      "deck_departure_sample_count": 0,
+      "first_contact": [],
+      "first_overlap": [],
+      "world_feet_end": {
+        "FL": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "FR": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "HL": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ],
+        "HR": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ]
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "collision_scope": "all recorded physics steps: actual collision-geom AABB and contacts"
+    },
+    "F4_roundtrip_with_empty_decisions": {
+      "verdict": "FAIL",
+      "checks": {
+        "physics_trace_present": true,
+        "physics_measurements_valid": false
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "reason": "invalid_physics_measurements",
+      "measurement_problems": [
+        {
+          "field": "decisions",
+          "reason": "empty controller history cannot establish zero commands"
+        }
+      ]
+    },
+    "F4_physics_commands_disagree_with_zero_decisions": {
+      "verdict": "FAIL",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "physics_measurements_valid": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": true,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": false
+      },
+      "final_goal_error_m": 3.5,
+      "base_displacement_m": 0.0,
+      "maximum_xy_excursion_m": 0.0,
+      "cumulative_xy_m": 0.0,
+      "controller_nonzero_command_observed": false,
+      "physics_nonzero_command_observed": true,
+      "minimum_geometry_gap_m": 1.1500000000000001,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 0,
+      "deck_departure_sample_count": 0,
+      "first_contact": [],
+      "first_overlap": [],
+      "world_feet_end": {
+        "FL": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "FR": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "HL": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ],
+        "HR": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ]
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "collision_scope": "all recorded physics steps: actual collision-geom AABB and contacts"
+    }
+  }
+}
