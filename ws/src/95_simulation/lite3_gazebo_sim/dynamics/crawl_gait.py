@@ -551,8 +551,10 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                                                stance[cur_leg][1] + shift_delta[1],
                                                step_h + 0.022 - state['z_ref'] + lift_h])
             else:
+                # 落足点按名义站姿归一（x 用相对量、y 用名义宽度）：抑制一圈后站姿横向变宽
+                nr = state['nominal_rel'][cur_leg]
                 lift_goal[cur_leg] = np.array([stance[cur_leg][0] + shift_delta[0] + sw,
-                                               stance[cur_leg][1] + shift_delta[1],
+                                               nr[1],
                                                relz[cur_leg] + lift_h])
             execute('lift%s_%s' % (tag, cur_leg), 'lift', lift_sec,
                     make_ramp(lift_goal, lift_sec, frac=0.6), swing=(cur_leg,),
@@ -602,6 +604,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         state['zg'] = float(np.mean([feet_world()[n][2] for n in LEGS]))
         state['z_ref'] = float(data.qpos[2])
         state['y_ref'] = float(data.qpos[1])
+        state['nominal_rel'] = {n: foot_body_pos(model, data, n) for n in LEGS}
         if mode == 'crawl':
             for step_i, cur_leg in enumerate(legs_seq):
                 if state['fell']:
