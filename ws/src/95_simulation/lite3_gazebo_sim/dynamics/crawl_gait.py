@@ -425,6 +425,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         execute('settle', 'settle', 0.6, lambda i, t: None)
         state['zg'] = float(np.mean([feet_world()[n][2] for n in LEGS]))
         state['z_ref'] = float(data.qpos[2])
+        state['y_ref'] = float(data.qpos[1])
         for step_i, cur_leg in enumerate(legs_seq):
             if state['fell']:
                 break
@@ -466,10 +467,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 break
             # 四足推进用斜坡式站姿平移（与 shift 同构）：积分驱动在轻载前足上会打滑
             stance4 = {n: foot_body_pos(model, data, n) for n in LEGS}
-            adv_goal = with_z({n: stance4[n] - np.array([drive_fwd, 0.0, 0.0]) for n in LEGS},
-                              ground_relz())
+            # 推进相位同时把机体 y 拉回 y_ref：移重产生的 ±y 不会被纯 +x 推进抵消
+            dy_fix = float(body_pose()[0][1] - state['y_ref'])
+            adv_goal = with_z({n: stance4[n] - np.array([drive_fwd, -dy_fix, 0.0])
+                               for n in LEGS}, ground_relz())
             execute('advance%d_%s' % (step_i, cur_leg), 'advance', 1.5,
-                    make_ramp(adv_goal, 1.5), checks=drive_check, leg=cur_leg)
+                    make_ramp(adv_goal, 1.5), checks=drive_check, leg=cur_leg,
+                    expect_dy=-dy_fix)
             if state['fell']:
                 break
             execute('settle%d_%s' % (step_i, cur_leg), 'settle', 0.4,
