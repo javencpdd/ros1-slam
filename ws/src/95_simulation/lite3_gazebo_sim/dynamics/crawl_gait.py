@@ -197,6 +197,9 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
     dt = model.opt.timestep
     steps = int(seconds / dt)
     start_targets = DEF.copy()
+    def world_feet():
+        return {name: np.array(data.xpos[_ids(model, name)[1]], dtype=float) for name in LEGS}
+    feet_t0 = world_feet()
     stage_two = targets + np.array([shift2_x, 0.0, 0.0] * 4) if shift2_x else targets
     zmin, trace = 9.0, []
     for i in range(steps):
@@ -219,10 +222,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             break
     feet = {name: [round(float(x), 3) for x in foot_body_pos(model, data, name)]
             for name in LEGS}
-    world_feet = {name: [round(float(x), 3) for x in
-                         (data.xpos[_ids(model, name)[1]] if False else data.xpos[_ids(model, name)[1]])]
-                  for name in LEGS}
+    feet_t1 = world_feet()
+    slip = {name: [round(float(x), 4) for x in (feet_t1[name] - feet_t0[name])] for name in LEGS}
     return {'mode': mode, 'leg': leg if mode in ('lift', 'step') else None, 'height': height,
+            'world_slip': slip,
+            'final_y': round(float(data.qpos[1]), 3),
+            'world_feet_end': {name: [round(float(x), 3) for x in data.xpos[_ids(model, name)[1]]]
+                               for name in LEGS},
             'seconds': seconds, 'final_z': round(float(data.qpos[2]), 3),
             'final_x': round(float(data.qpos[0]), 3), 'zmin': round(zmin, 3),
             'fell': bool(zmin < 0.18),
