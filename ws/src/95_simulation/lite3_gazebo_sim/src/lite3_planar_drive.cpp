@@ -48,6 +48,17 @@ class Lite3PlanarDrive : public ModelPlugin {
              drive_mode_.c_str(), cmd_topic_.c_str(), odom_topic_.c_str(), base_frame_.c_str());
   }
 
+  ~Lite3PlanarDrive() override {
+    // gzserver tears the plugin down while the callback thread may still be
+    // inside queue_.callAvailable(); stop the queue, shut the node down and join
+    // before the members are destroyed, otherwise shutdown aborts with
+    // "boost: mutex lock failed in pthread_mutex_lock".
+    update_conn_.reset();
+    queue_.disable();
+    if (rosnode_) rosnode_->shutdown();
+    if (queue_thread_.joinable()) queue_thread_.join();
+  }
+
  private:
   void OnCmd(const geometry_msgs::Twist::ConstPtr& msg) {
     boost::mutex::scoped_lock l(lock_);

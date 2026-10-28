@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(lite3_gazebo_sim)
 
-catkin_package()
+find_package(catkin REQUIRED COMPONENTS roscpp tf nav_msgs geometry_msgs)
+catkin_package(CATKIN_DEPENDS roscpp tf nav_msgs geometry_msgs)
 find_package(gazebo REQUIRED)
 include_directories(${GAZEBO_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 link_directories(${GAZEBO_LIBRARY_DIRS})

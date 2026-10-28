@@ -7149,3 +7149,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `ws/src/90_platform/v8_platform/package.xml`：maintainer 邮箱 `dev@local` 改为 `dev@example.com`。catkin 工作区扫描会校验邮箱，非法值使 `roslaunch` 的 `$(find ...)` 直接抛 `InvalidPackage`，roslaunch 立即退出（R865 首跑阻塞点）。
 - 运行面：`runtime_lab --gazebo --backend {dwa,teb} --localization {truth,noisy} --scenario SC01 --seed 0`，四格 4/4 PASS（预登记 `parameters_sha256=11811fc9…`）：dwa 0.104 m/0.509 m、0.114 m/0.455 m；teb 0.214 m/0.504 m、0.209 m/0.465 m（终点误差/最小间隙）。
 - 未改判据、冻结门值、第三方或 `sim` 服务；noisy 轨为注入 map→odom 噪声，非 LIO/NDT 切换。详见 R865 与 `evidence/R865`。
+
+## R865 追加（2026-10-29，qoder）：planar 驱动插件关机崩溃与构建声明
+
+- `ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp`：新增析构函数，按 `update_conn_.reset()`→`queue_.disable()`→`rosnode_->shutdown()`→`queue_thread_.join()` 顺序停机，修 gzserver 关机期 `boost::lock_error`（core 已证为 gzserver）。
+- `CMakeLists.txt`：补 `find_package(catkin REQUIRED COMPONENTS roscpp tf nav_msgs geometry_msgs)` 与 `catkin_package(CATKIN_DEPENDS …)`；此前只有 `catkin_package()`，干净构建找不到 ROS 头（现存 .so 为陈旧产物）。
+- `package.xml`：补 `roscpp/tf/nav_msgs/geometry_msgs` 四项 `depend`。
+- 验证：重建 rc=0；同参重跑 EXIT=0、无 core、gazebo 正常 `done`。未改第三方与判据。
