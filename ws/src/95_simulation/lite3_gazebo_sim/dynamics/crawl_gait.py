@@ -104,7 +104,7 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
 
 def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0, umax=0.35, kgain=0.8,
         lift_h=0.10, swing_fwd=0.06, drive_fwd=0.08, shift_mag=0.05, slip_tol=0.02, y_tol=0.03,
-        swing_kp=40.0, swing_kd=1.5, cycle=False):
+        swing_kp=40.0, swing_kd=1.5, cycle=False, margin_min=0.05):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     data = mujoco.MjData(model)
@@ -414,7 +414,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             rec['margin0_m'] = round(state['m0'], 4)
             rec['margin1_m'] = round(support_margin(rec['leg']), 4)
             return {'lifted': (f1[rec['leg']][2] - f0[rec['leg']][2]) >= 0.7 * lift_h,
-                    'margin_ok': state['m0'] >= 0.02}
+                    'margin_ok': state['m0'] >= margin_min}
 
         def drive_check(rec, f1, f0):
             return {'drive_ok': drive_fwd - 0.05 <= rec['body_dx'] <= drive_fwd + 0.06}
@@ -433,19 +433,22 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             relz = ground_relz()
             dir_xy = stance[cur_leg][:2] / np.linalg.norm(stance[cur_leg][:2])
             # 闭环移重：CoM 到三支撑三角形垂距 ≥2 cm 才允许抬腿，否则每次再加 3 cm
-            shift_dist = shift_mag
+            shift_dist = 0.0
             for attempt in range(4):
+                prev_dist, shift_dist = shift_dist, shift_dist + (
+                    shift_mag if attempt == 0 else 0.03)
                 shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_dist
+                inc = (shift_dist - prev_dist) * dir_xy
                 shift_goal = with_z({n: stance[n] + shift_delta for n in LEGS}, relz)
                 execute('shift%d_%s_%d' % (step_i, cur_leg, attempt), 'shift', 1.0,
-                        make_ramp(shift_goal, 1.0), expect_dy=-shift_delta[1], leg=cur_leg)
+                        make_ramp(shift_goal, 1.0), expect_dy=-inc[1], leg=cur_leg)
                 if state['fell']:
                     break
                 state['m0'] = support_margin(cur_leg)
-                if state['m0'] >= 0.02:
+                if state['m0'] >= margin_min:
                     break
                 shift_dist += 0.03
-            if state['fell'] or state['m0'] < 0.02:
+            if state['fell'] or state['m0'] < margin_min:
                 break
             lift_goal = dict(shift_goal)
             lift_goal[cur_leg] = np.array([stance[cur_leg][0] + shift_delta[0] + swing_fwd,
@@ -478,6 +481,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 'slip_tol': slip_tol, 'y_tol': y_tol,
                 'kp': kp, 'kd': kd, 'swing_kp': swing_kp, 'swing_kd': swing_kd,
                 'cycle': list(legs_seq), 'z_ref': round(state['z_ref'] or 0.0, 4),
+                'margin_min': margin_min,
                 'z_ground': round(state['zg'], 4),
                 'pass': passed,
                 'final_x': round(float(data.qpos[0]), 3),
@@ -562,6 +566,7 @@ def main():
     parser.add_argument('--swing-kp', type=float, default=40.0)
     parser.add_argument('--swing-kd', type=float, default=1.5)
     parser.add_argument('--cycle', nargs='?', const=True, default=False)
+    parser.add_argument('--margin-min', type=float, default=0.05)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -573,7 +578,7 @@ def main():
                  slip_tol=args.slip_tol, y_tol=args.y_tol,
                  swing_kp=args.swing_kp, swing_kd=args.swing_kd,
                  cycle=(tuple(args.cycle.split(',')) if isinstance(args.cycle, str)
-                        else args.cycle))
+                        else args.cycle), margin_min=args.margin_min)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
