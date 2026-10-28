@@ -210,6 +210,21 @@ FROZEN = {
                                                      '取峰值非静止 0.3242 m；同载体同 run 同 sim 钟，含墙/渲染；'
                                                      'osmesa 约 3 Hz；无规划段；非目标传感器；仅平地 0.3 m/s；'
                                                      '不替代 budgets.stop_distance_m'},
+        # 全链两键（R850，2026-10-28；真人「你自行判断」授权，口径见 R849）：
+        # 全链＝感知/规划触发→物理停住；仿真钟；0.4 m/s；不含 staleness 等待；
+        # Gazebo lite3_planar 动力学平面载体；三次 sensed_no_route。
+        'stop_time_s': {'value': 0.50,
+                        'scope': 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness',
+                        'sample_n': 3,
+                        'evidence': 'R850 三次 sensed_no_route（0.4 m/s、Gazebo 动力学平面载体、仿真钟）：'
+                                    '0.372/0.365/0.385 s，max 0.385×1.30≈0.50；不含 staleness 等待'
+                                    '（另立输入看门狗）、不含真机/台阶/跨层；墙钟不并入（受 OS 调度影响）'},
+        'stop_distance_m': {'value': 0.15,
+                            'scope': 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness',
+                            'sample_n': 3,
+                            'evidence': 'R850 三次 sensed_no_route：0.1221/0.1153/0.1157 m，max 0.1221×1.23≈0.15；'
+                                        '口径同 stop_time_s（全链、仿真钟、0.4 m/s、不含 staleness）；'
+                                        '不代表腿部载体制动段，也不含真机'},
     },
     # 时延：带域冻结（2026-10-27 判据面，小美，R715）。p95_global 只覆盖
     # /make_plan 服务端；全栈/全场景时延未测，不得据此扩域或报正式验收。
@@ -410,14 +425,8 @@ REQUIRED = {
 # 2026-10-27（R787）：定位键按 B 方案冻结（LIO 单后端 9run），从本表移出；
 # 真人明令「NDT 降级为只做重定位/失效检测，精度门只压 LIO」。
 # 2026-10-28（R797）：成功率键按 36 组 v11 定标冻结；R798 复核否决回退；R800 按真人勾选（flat2d token＋时限不并入）重新冻结，从本表移出。剩两停车键。
-PENDING_REQUIRED = [
-    {'key': 'budgets.stop_time_s.value', 'types': (int, float),
-     'reason': '24 §4.1 要求停车时间；当前只有制动分量与 osmesa 代理键，全链仍缺规划段、'
-               'osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
-    {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
-     'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前只有制动分量与 osmesa 代理键，'
-               '全链仍缺规划段、osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
-]
+PENDING_REQUIRED = []  # R850：全链两键按 n=3 带域冻结，从本表移出；其余项均已落实
+
 
 # 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
 # R716 的 stop_time/stop_distance 未列入本表（n=1＜3 且载体无制动），
@@ -439,6 +448,10 @@ SCOPED_REQUIRED = {
     'budgets.stop_chain_osmesa_distance_m': {
         'scope': 'lite3_mj_depth_osmesa_perception_to_peak_flat_0p3_3x3',
         'min_sample_n': 3},
+    'budgets.stop_time_s': {'scope': 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness',
+                           'min_sample_n': 3},
+    'budgets.stop_distance_m': {'scope': 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness',
+                               'min_sample_n': 3},
     # B 方案（真人 2026-10-27）：LIO 单后端主键；scope 精确匹配，9run 下限防缩样。
     'tolerances.max_localization_error_m': {
         'scope': 'm1_corridor_12p57m_xy_base_link_se2init_9runs_lio_only_b_ndt_monitor',
@@ -462,7 +475,7 @@ SUCCESS_RATE_SCOPE = ('v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_'
 # golden digest：由当前 FROZEN 实算后填入（2026-10-28，R804 切 f64nli25 后重算）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'ddc8f9f04ad2f3491729a2ecbe9e173b9dec1e2dc98a2d2d6d1d95b10d47a4fa'
+DIGEST = '4f570e94f9ffad14620a23fd3f6c34f701baeb5aa2da9f3e65205714fbfeee36'
 
 
 class CalibrationError(Exception):

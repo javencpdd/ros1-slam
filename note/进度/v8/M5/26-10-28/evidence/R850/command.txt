@@ -1,0 +1,16 @@
+R850 #151 n=3（2026-10-28，qoder）
+容器 v8codex-20261028；仓库 /repo；source /opt/ros/noetic + /opt/ros1-slam/ws/devel。
+每个 run 由 runtime_lab 自起 roscore + m1 Gazebo + mux，跑 a5_gazebo_runtime 的 sensed_no_route，收工清组。
+
+for i in 1 2 3; do
+  docker exec v8codex-20261028 bash -lc '
+    source /opt/ros/noetic/setup.bash
+    source /opt/ros1-slam/ws/devel/setup.bash
+    cd /repo
+    timeout 380 python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+      --out /tmp/r151_run'"$i"' --gazebo --local-gazebo --local-cases sensed_no_route'
+  docker cp v8codex-20261028:/tmp/r151_run'"$i"'/a5_gazebo.json /tmp/r151_run'"$i"'.json
+done
+
+# 停车距离：从 raw.physics 取 trigger wall→physical stop wall 的 xy 路径长度
+# （脚本见 R847/command.txt 同式；本批结果见 R850.md 表）

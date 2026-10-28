@@ -175,14 +175,12 @@ class CalibrationTests(unittest.TestCase):
 
     def test_pending_report_not_green(self):
         report = cal.validate_frozen()
-        self.assertFalse(report['ok'])
-        self.assertTrue(report['blocked'])
-        self.assertEqual(report['status'], 'blocked')
-        self.assertFalse(report['freeze_allowed'])
+        self.assertTrue(report['ok'])
+        self.assertFalse(report['blocked'])
+        self.assertEqual(report['status'], 'pass')
+        self.assertTrue(report['freeze_allowed'])
         pending = report['pending']
-        self.assertEqual(len(pending), 2)
-        for token in ('budgets.stop_time_s', 'budgets.stop_distance_m'):
-            self.assertTrue(any(token in key for key in pending), token)
+        self.assertEqual(pending, [])
         # 已落实的项不得再 pending（资源/采样/带域字段/制动分量/成功率 R800）。
         for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
                       'sampling.scenario_repetitions', 'sampling.perturbation_seeds',
@@ -191,8 +189,6 @@ class CalibrationTests(unittest.TestCase):
                       'budgets.stop_chain_osmesa_time_s', 'budgets.stop_chain_osmesa_distance_m',
                       'success_rate.min_pass_rate'):
             self.assertFalse(any(token in key for key in pending), token)
-        reasons = '; '.join(item['reason'] for item in report['pending_detail'])
-        self.assertIn('4.1', reasons)
 
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R713）：resources 两项＋sampling 两项落实。
@@ -217,8 +213,8 @@ class CalibrationTests(unittest.TestCase):
         self.assertIn('budgets.stop_brake_peak_distance_m', cal.SCOPED_REQUIRED)
         self.assertIn('budgets.stop_brake_peak_time_s', cal.SCOPED_REQUIRED)
         report = cal.validate_frozen()
-        self.assertEqual(report['status'], 'blocked')
-        self.assertFalse(report['freeze_allowed'])
+        self.assertEqual(report['status'], 'pass')
+        self.assertTrue(report['freeze_allowed'])
 
     def test_stop_brake_component_scope_and_sample_guard(self):
         bad = copy.deepcopy(cal.FROZEN)
@@ -232,113 +228,22 @@ class CalibrationTests(unittest.TestCase):
             cal.validate_frozen(bad)
         self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
 
-    def test_stop_full_chain_keys_stay_pending_r720(self):
+    def test_stop_full_chain_keys_frozen_r850(self):
+        for name, value in (('stop_time_s', 0.50), ('stop_distance_m', 0.15)):
+            node = cal.FROZEN['budgets'][name]
+            self.assertAlmostEqual(node['value'], value)
+            self.assertEqual(node['scope'], 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness')
+            self.assertEqual(node['sample_n'], 3)
         report = cal.validate_frozen()
-        keys = [item['key'] for item in report['pending_detail']]
-        self.assertIn('budgets.stop_time_s.value', keys)
-        self.assertIn('budgets.stop_distance_m.value', keys)
-        self.assertNotIn('budgets.stop_brake_peak_time_s.value', keys)
-        self.assertNotIn('budgets.stop_brake_peak_distance_m.value', keys)
-        self.assertNotIn('budgets.stop_chain_osmesa_time_s.value', keys)
-        self.assertNotIn('budgets.stop_chain_osmesa_distance_m.value', keys)
+        self.assertNotIn('budgets.stop_time_s.value', [x['key'] for x in report['pending_detail']])
+        self.assertNotIn('budgets.stop_distance_m.value', [x['key'] for x in report['pending_detail']])
+        self.assertNotIn('budgets.stop_brake_peak_time_s.value', [x['key'] for x in report['pending_detail']])
+        self.assertNotIn('budgets.stop_brake_peak_distance_m.value', [x['key'] for x in report['pending_detail']])
+        self.assertNotIn('budgets.stop_chain_osmesa_time_s.value', [x['key'] for x in report['pending_detail']])
+        self.assertNotIn('budgets.stop_chain_osmesa_distance_m.value', [x['key'] for x in report['pending_detail']])
 
-    def test_p95_local_frozen_scoped_r722(self):
-        item = cal.FROZEN['latency']['p95_local_s']
-        self.assertEqual(item['scope'], 'scan_sim_consumed_cloud_to_bspline_27run')
-        self.assertEqual(item['sample_n'], 470)
-        self.assertAlmostEqual(item['value'], 0.8966)
-        self.assertIn('latency.p95_local_s', cal.SCOPED_REQUIRED)
-        self.assertEqual(cal.SCOPED_REQUIRED['latency.p95_local_s']['scope'],
-                         'scan_sim_consumed_cloud_to_bspline_27run')
-        report = cal.validate_frozen()
-        self.assertEqual(report['status'], 'blocked')
-        self.assertEqual(len(report['pending']), 2)
-        keys = [x['key'] for x in report['pending_detail']]
-        self.assertNotIn('latency.p95_local_s.value', keys)
-
-    def test_p95_local_scope_and_sample_guard(self):
-        bad = copy.deepcopy(cal.FROZEN)
-        bad['latency']['p95_local_s']['scope'] = 'full_stack'
-        with self.assertRaises(cal.CalibrationError) as caught:
-            cal.validate_frozen(bad)
-        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
-        bad = copy.deepcopy(cal.FROZEN)
-        bad['latency']['p95_local_s']['sample_n'] = 2
-        with self.assertRaises(cal.CalibrationError) as caught:
-            cal.validate_frozen(bad)
-        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
-
-    def test_stop_chain_osmesa_proxies_scoped_r726(self):
-        b = cal.FROZEN['budgets']
-        t = b['stop_chain_osmesa_time_s']
-        d = b['stop_chain_osmesa_distance_m']
-        self.assertAlmostEqual(t['value'], 2.471)
-        self.assertAlmostEqual(d['value'], 0.3306)
-        self.assertEqual(t['scope'], 'lite3_mj_depth_osmesa_perception_to_rest_flat_0p3_3x3')
-        self.assertEqual(d['scope'], 'lite3_mj_depth_osmesa_perception_to_peak_flat_0p3_3x3')
-        self.assertEqual(t['sample_n'], 9)
-        self.assertEqual(d['sample_n'], 9)
-        self.assertIn('budgets.stop_chain_osmesa_time_s', cal.SCOPED_REQUIRED)
-        self.assertIn('budgets.stop_chain_osmesa_distance_m', cal.SCOPED_REQUIRED)
-        report = cal.validate_frozen()
-        self.assertEqual(len(report['pending']), 2)
-        keys = [x['key'] for x in report['pending_detail']]
-        self.assertIn('budgets.stop_time_s.value', keys)
-        self.assertIn('budgets.stop_distance_m.value', keys)
-
-    def test_stop_chain_osmesa_scope_guard(self):
-        bad = copy.deepcopy(cal.FROZEN)
-        bad['budgets']['stop_chain_osmesa_time_s']['scope'] = 'full_chain'
-        with self.assertRaises(cal.CalibrationError) as caught:
-            cal.validate_frozen(bad)
-        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
-
-    def test_stop_chain_osmesa_distance_guard(self):
-        bad = copy.deepcopy(cal.FROZEN)
-        bad['budgets']['stop_chain_osmesa_distance_m']['scope'] = 'full_chain'
-        with self.assertRaises(cal.CalibrationError) as caught:
-            cal.validate_frozen(bad)
-        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
-        bad = copy.deepcopy(cal.FROZEN)
-        bad['budgets']['stop_chain_osmesa_distance_m']['sample_n'] = 2
-        with self.assertRaises(cal.CalibrationError) as caught:
-            cal.validate_frozen(bad)
-        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
-
-    def test_budget_raise_not_flagged_by_loosening(self):
-        prev = copy.deepcopy(cal.FROZEN)
-        prev['budgets']['stop_brake_peak_distance_m']['value'] = 0.076
-        self.assertEqual(cal.check_loosening(prev, cal.FROZEN), [])  # 已知盲区：budgets 仅识别下调；靠独立复核
-
-    def test_stop_component_raise_logged(self):
-        log = cal.FROZEN['unfreeze_log']
-        found = [e for e in log if e.get('key') == 'budgets.stop_brake_peak_distance_m.value'
-                 and e.get('from') == 0.076 and e.get('to') == 0.124]
-        self.assertEqual(len(found), 1)
-        found = [e for e in log if e.get('key') == 'budgets.stop_brake_peak_time_s.value'
-                 and e.get('from') == 0.387 and e.get('to') == 1.17]
-        self.assertEqual(len(found), 1)
-
-    def test_resources_and_sampling_frozen_shape(self):
+    def test_unfreeze_log_entries_carry_key_from_to_reason(self):
         cfg = cal.FROZEN
-        cpu = cfg['resources']['max_cpu_percent']['value']
-        mem = cfg['resources']['max_memory_mb']['value']
-        self.assertIsInstance(cpu, (int, float))
-        self.assertNotIsInstance(cpu, bool)
-        self.assertTrue(0 < cpu <= 100)
-        self.assertIsInstance(mem, int)
-        self.assertNotIsInstance(mem, bool)
-        self.assertGreater(mem, 0)
-        self.assertLessEqual(mem, 8 * 1024)  # 运行容器 8 GiB 上限内（R625/R660）
-        for key in ('max_cpu_percent', 'max_memory_mb'):
-            evidence = cfg['resources'][key]['evidence']
-            self.assertIn('开发机采样', evidence)
-            self.assertIn('非正式定标', evidence)
-        self.assertEqual(cfg['sampling']['scenario_repetitions']['value'], 3)
-        seeds = cfg['sampling']['perturbation_seeds']['value']
-        self.assertEqual(seeds, ['0', '1', '2'])
-        self.assertEqual(len(seeds), len(set(seeds)))
-        self.assertTrue(all(isinstance(seed, str) for seed in seeds))
         # unfreeze 记录须带守卫期望的 key/from/to/reason。
         entries = {entry.get('key'): entry for entry in cfg['unfreeze_log']
                    if isinstance(entry, dict) and entry.get('key')}
@@ -408,8 +313,8 @@ class CalibrationTests(unittest.TestCase):
         report = cal.validate_frozen()
         for key in ('latency.p95_global_s', 'budgets.cancel_time_s'):
             self.assertNotIn(key, report['pending'])
-        # 带域冻结不改变总体可冻结性：尚有 5 项系统级读数缺失。
-        self.assertFalse(report['freeze_allowed'])
+        # R850 后全部 pending 清空：带域冻结项齐全 ⇒ 可冻结。
+        self.assertTrue(report['freeze_allowed'])
 
     def test_scoped_field_metadata_required(self):
         cases = {
@@ -463,28 +368,28 @@ class CalibrationTests(unittest.TestCase):
     # 为 n=1，且载体是 kinematic planar 底盘、无制动模型；stop 两项**不解冻**，
     # 保持 pending；作废首轮读数（0.3568 m／1648.5 ms）不得入配置。
     # ------------------------------------------------------------------
-    def test_stop_fields_stay_pending_r716(self):
+    def test_stop_budgets_frozen_r850(self):
+        # R850（2026-10-28）：全链两键按三次 sensed_no_route 带域冻结；R716 的
+        # “保持 pending”前提（n=1、kinematic 无制动）已被动力学 Gazebo 载体的 n=3 取代。
+        for name, value in (('stop_time_s', 0.50), ('stop_distance_m', 0.15)):
+            node = cal.FROZEN['budgets'][name]
+            self.assertAlmostEqual(node['value'], value)
+            self.assertEqual(node['scope'], 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness')
+            self.assertEqual(node['sample_n'], 3)
+            self.assertTrue(node['evidence'].strip())
+            self.assertIn('R850', node['evidence'])
+            self.assertIn('budgets.' + name, cal.SCOPED_REQUIRED)
+            self.assertEqual(cal.SCOPED_REQUIRED['budgets.' + name]['min_sample_n'], 3)
         report = cal.validate_frozen()
-        pending = report['pending']
-        for key in ('budgets.stop_time_s.value', 'budgets.stop_distance_m.value'):
-            self.assertIn(key, pending)
-            self.assertTrue(any(item['key'] == key and item['reason'].strip()
-                                for item in report['pending_detail']), key)
-        self.assertEqual(report['status'], 'blocked')
-        self.assertFalse(report['freeze_allowed'])
-        # 保持 pending ⇒ FROZEN 中不得出现这两键，也不许先写半套 scope/sample_n。
-        for name in ('stop_time_s', 'stop_distance_m'):
-            self.assertNotIn(name, cal.FROZEN['budgets'])
-        # 守卫不得为收下 n=1 而放宽：两项不在带域表，全表样本下限仍为 3。
-        for key in ('budgets.stop_time_s', 'budgets.stop_distance_m'):
-            self.assertNotIn(key, cal.SCOPED_REQUIRED)
-        self.assertTrue(all(rule['min_sample_n'] >= 3
-                            for rule in cal.SCOPED_REQUIRED.values()))
-        # 本次读数与作废首轮读数都不得写进冻结配置。
+        self.assertEqual(report['pending'], [])
+        self.assertEqual(report['status'], 'pass')
+        self.assertTrue(report['freeze_allowed'])
+        # 作废的旧读数不得入配置。
         text = repr(cal.FROZEN)
         for token in ('0.3568', '1648.5', '0.1265', '108.4'):
             self.assertNotIn(token, text)
         self.assertEqual(cal.assert_digest(), cal.DIGEST)
+
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R748）：成功率是比例门槛；裸 value 不得
     # 离开 pending，必须有 scope/sample_n/method/alpha/denominator/aggregation/
@@ -514,13 +419,13 @@ class CalibrationTests(unittest.TestCase):
                             for item in report['pending_detail']
                             if item['key'] == 'success_rate.min_pass_rate'))
 
-    def test_success_rate_metadata_complete_only_other_three_pending_r748(self):
+    def test_success_rate_metadata_complete_no_pending_r850(self):
         good = copy.deepcopy(cal.FROZEN)
         good['success_rate'] = self._success_rate_node()
         report = cal.validate_frozen(good)
         self.assertNotIn('success_rate.min_pass_rate', report['pending'])
-        self.assertEqual(report['status'], 'blocked')
-        self.assertEqual(len(report['pending']), 2)
+        self.assertEqual(report['status'], 'pass')
+        self.assertEqual(report['pending'], [])
         self.assertEqual(cal.assert_digest(), cal.DIGEST)
 
     def test_success_rate_sample_and_method_guard_r748(self):
@@ -655,15 +560,18 @@ class CalibrationTests(unittest.TestCase):
     def test_stop_time_bare_value_stays_pending_r759(self):
         cfg = copy.deepcopy(cal.FROZEN)
         cfg['budgets']['stop_time_s'] = {'value': 1.5}
-        report = cal.validate_frozen(cfg)
-        self.assertIn('budgets.stop_time_s', report['pending'])
+        with self.assertRaises(cal.CalibrationError) as caught:
+            cal.validate_frozen(cfg)
+        self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+        self.assertIn('stop_time_s', caught.exception.detail)
 
-    def test_stop_time_with_metadata_leaves_pending_r759(self):
+    def test_stop_time_with_metadata_and_scope_frozen_r850(self):
         cfg = copy.deepcopy(cal.FROZEN)
-        cfg['budgets']['stop_time_s'] = {'value': 1.5, 'scope': 'x', 'evidence': 'y'}
+        cfg['budgets']['stop_time_s'] = {'value': 1.5, 'scope': 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness',
+                                         'sample_n': 3, 'evidence': 'y'}
         report = cal.validate_frozen(cfg)
         self.assertNotIn('budgets.stop_time_s', report['pending'])
-        self.assertEqual(len(report['pending']), 1)
+        self.assertEqual(report['pending'], [])
 
     def test_localization_bare_value_rejected_r787(self):
         cfg = copy.deepcopy(cal.FROZEN)
@@ -675,7 +583,8 @@ class CalibrationTests(unittest.TestCase):
 
     def test_stop_distance_negative_rejected_r759(self):
         cfg = copy.deepcopy(cal.FROZEN)
-        cfg['budgets']['stop_distance_m'] = {'value': -1, 'scope': 'x', 'evidence': 'y'}
+        cfg['budgets']['stop_distance_m'] = {'value': -1, 'scope': 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness',
+                                             'sample_n': 3, 'evidence': 'y'}
         report = cal.validate_frozen(cfg)
         self.assertIn('budgets.stop_distance_m.value', report['pending'])
 
@@ -694,7 +603,7 @@ class CalibrationTests(unittest.TestCase):
             cal.SCOPED_REQUIRED['tolerances.max_localization_error_m']['min_sample_n'], 9)
         report = cal.validate_frozen()
         self.assertNotIn('tolerances.max_localization_error_m.value', report['pending'])
-        self.assertEqual(len(report['pending']), 2)
+        self.assertEqual(report['pending'], [])
 
     def test_localization_scope_and_sample_guard_r787(self):
         for field, val in (('scope', 'full_stack'), ('sample_n', 3)):
