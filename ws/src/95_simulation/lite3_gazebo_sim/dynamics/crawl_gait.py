@@ -317,6 +317,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                    'slip': {n: round(v, 4) for n, v in slip.items()},
                    'support_slip_max': round(max(slip[n] for n in sup), 4),
                    'foot_z_end': {n: round(float(f1[n][2]), 4) for n in LEGS},
+                   'feet_w0': {n: [round(float(v), 3) for v in f0[n][:2]] for n in LEGS},
+                   'feet_w1': {n: [round(float(v), 3) for v in f1[n][:2]] for n in LEGS},
                    'checks': {}}
             rec['checks']['support_slip'] = bool(rec['support_slip_max'] <= slip_tol)
             rec['checks']['y_drift'] = bool(abs(rec['body_dy'] - expect_dy) <= y_tol)
@@ -388,8 +390,31 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             ctrl.log = log
             return ctrl
 
+        def support_margin(lift_leg):
+            """CoM 到其余三足支撑三角形各边的带符号垂距（正=在三角内）。"""
+            fw = feet_world()
+            p = body_pose()[0]
+            sup = [n for n in LEGS if n != lift_leg]
+            best = None
+            for i in range(3):
+                a = fw[sup[i]][:2]
+                b = fw[sup[(i + 1) % 3]][:2]
+                e = b - a
+                nvec = np.array([-e[1], e[0]])
+                nvec /= max(np.linalg.norm(nvec), 1e-9)
+                # 三角内部方向：以第三足为参考
+                c = fw[sup[(i + 2) % 3]][:2]
+                if np.dot(nvec, c - a) < 0:
+                    nvec = -nvec
+                d = float(np.dot(nvec, p[:2] - a))
+                best = d if best is None else min(best, d)
+            return best
+
         def lift_check(rec, f1, f0):
-            return {'lifted': (f1[rec['leg']][2] - f0[rec['leg']][2]) >= 0.7 * lift_h}
+            rec['margin0_m'] = round(state['m0'], 4)
+            rec['margin1_m'] = round(support_margin(rec['leg']), 4)
+            return {'lifted': (f1[rec['leg']][2] - f0[rec['leg']][2]) >= 0.7 * lift_h,
+                    'margin_ok': state['m0'] >= 0.02}
 
         def drive_check(rec, f1, f0):
             return {'drive_ok': drive_fwd - 0.05 <= rec['body_dx'] <= drive_fwd + 0.06}
@@ -407,11 +432,20 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             stance = {n: foot_body_pos(model, data, n) for n in LEGS}
             relz = ground_relz()
             dir_xy = stance[cur_leg][:2] / np.linalg.norm(stance[cur_leg][:2])
-            shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_mag
-            shift_goal = with_z({n: stance[n] + shift_delta for n in LEGS}, relz)
-            execute('shift%d_%s' % (step_i, cur_leg), 'shift', 1.0,
-                    make_ramp(shift_goal, 1.0), expect_dy=-shift_delta[1], leg=cur_leg)
-            if state['fell']:
+            # 闭环移重：CoM 到三支撑三角形垂距 ≥2 cm 才允许抬腿，否则每次再加 3 cm
+            shift_dist = shift_mag
+            for attempt in range(4):
+                shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_dist
+                shift_goal = with_z({n: stance[n] + shift_delta for n in LEGS}, relz)
+                execute('shift%d_%s_%d' % (step_i, cur_leg, attempt), 'shift', 1.0,
+                        make_ramp(shift_goal, 1.0), expect_dy=-shift_delta[1], leg=cur_leg)
+                if state['fell']:
+                    break
+                state['m0'] = support_margin(cur_leg)
+                if state['m0'] >= 0.02:
+                    break
+                shift_dist += 0.03
+            if state['fell'] or state['m0'] < 0.02:
                 break
             lift_goal = dict(shift_goal)
             lift_goal[cur_leg] = np.array([stance[cur_leg][0] + shift_delta[0] + swing_fwd,
