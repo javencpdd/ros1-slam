@@ -1,7 +1,7 @@
 {
- "source": "R862 results-initial.json first frame (clear) + R863 exact bounds",
- "method": "same wrapper, same qpos; exact = mesh vertices / analytic sphere; conservative = rotated local AABB as in mj_step_baseline.sample()",
- "initial_frame": {
+ "source": "R862 results-initial.json first frame (clear) + R863 results-rerun5.json",
+ "method": "same wrapper/qpos replay; exact = mesh vertices / analytic sphere; conservative = rotated local AABB as in mj_step_baseline.sample()",
+ "initial_frame_r862": {
   "base_z_m": 0.41,
   "conservative_aabb_low_z": 0.051833,
   "exact_shank_low_z": 0.061013,
@@ -9,12 +9,11 @@
   "deck_top_z": 0.06,
   "conclusion": "at t=0 the lowest geometry was 1.0-1.5 mm ABOVE the deck top; R862 section 7's '7.32 mm low' was a rotated-AABB artifact"
  },
- "steady_sample": {
-  "note": "clear case, t=0.2 s, R863 rerun",
-  "conservative_foot_low_z": 0.0499,
-  "exact_foot_low_z": 0.05983,
-  "exact_shank_low_z": 0.05924,
-  "mujoco_contact_dist_m": -0.00017
- },
+ "steady_samples_rerun5_clear": [
+  {"time_s": 0.2, "conservative_aabb_low_z": 0.049692, "exact_low_z": 0.05898, "lowest_geom": "FL_SHANK_collision", "deck_contact_dist_m": -0.00102},
+  {"time_s": 0.534, "conservative_aabb_low_z": 0.045873, "exact_low_z": 0.055674, "lowest_geom": "HL_SHANK_collision", "deck_contact_dist_m": -0.004326, "foot_contact_dist_m": -0.003434}
+ ],
+ "interpretation": "the 12001/12001 old-AABB violations were measurement artifacts, but exact replay shows real deck penetration up to 4.3 mm (within the 5 mm tolerance, margin 0.7 mm at this sample)",
+ "initial_base_rerun5": {"base_z_m": 0.40848988746093884, "exact_foot_bottom_z_m": 0.06000000000000002, "method": "compiled foot collision geometry, exact"},
  "gate_unchanged": {"z_low_min": 0.055, "z_high_max": 0.56, "xy_radius_m": 0.5, "height_m": 0.5}
 }

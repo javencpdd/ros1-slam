@@ -157,7 +157,7 @@ class StepObstacleCaseTests(unittest.TestCase):
             self.assertEqual(cases.evaluate_physics(run, plan, geometry, controller, 'clear')['verdict'], 'FAIL')
 
     def test_nonfinite_geometry_decisions_and_time_are_rejected(self):
-        for target in ('geometry', 'decisions', 'time', 'inverted_bounds'):
+        for target in ('geometry', 'decisions', 'time', 'inverted_bounds', 'exact_nan', 'exact_inverted'):
             run, plan, geometry, controller = synthetic()
             if target == 'geometry':
                 geometry['deck']['max'][2] = float('nan')
@@ -165,6 +165,11 @@ class StepObstacleCaseTests(unittest.TestCase):
                 controller.decisions[0]['command'][0] = float('nan')
             elif target == 'inverted_bounds':
                 run['physics_trace'][0]['robot_aabb'][0][0] = 100.
+            elif target == 'exact_nan':
+                run['physics_trace'][0]['observation']['robot_bounds_exact'][0][2] = float('nan')
+            elif target == 'exact_inverted':
+                run['physics_trace'][0]['observation']['robot_bounds_exact'][0][2] = 1.
+                run['physics_trace'][0]['observation']['robot_bounds_exact'][1][2] = .5
             else:
                 run['physics_trace'][1]['time'] = run['physics_trace'][0]['time']
             result = cases.evaluate_physics(run, plan, geometry, controller, 'clear')
@@ -205,14 +210,28 @@ class StepObstacleCaseTests(unittest.TestCase):
         self.assertFalse(report['checks']['physics_measurements_valid'])
 
     def test_initial_base_height_uses_measured_foot_bottom(self):
-        # R862: 0.41 was hard-coded while the measured foot bottom at that base was
-        # 0.052682, i.e. 7.32 mm below the 0.06 deck top.
-        self.assertAlmostEqual(cases.base_z_from_foot_reference(1., .6426821680), .417317832)
-        self.assertAlmostEqual(cases.base_z_from_foot_reference(.41, .052682168), .417317832)
+        # Exact foot bottom at base 0.41 is 0.061510 (the 0.052682 rotated-box
+        # value is a measurement artifact, see R862 section 8).
+        self.assertAlmostEqual(cases.base_z_from_foot_reference(1., .651510), .408490)
+        self.assertAlmostEqual(cases.base_z_from_foot_reference(.41, .061510), .408490)
 
     def test_initial_base_height_is_invariant_to_reference_offset(self):
-        self.assertAlmostEqual(cases.base_z_from_foot_reference(1., .642682168),
-                               cases.base_z_from_foot_reference(.41, .052682168))
+        self.assertAlmostEqual(cases.base_z_from_foot_reference(1., .651510),
+                               cases.base_z_from_foot_reference(.41, .061510))
+
+    def test_geom_bounds_sphere_is_rotation_invariant(self):
+        centre, aabb = np.array([1., 2., 3.]), np.array([0., 0., 0., .022, .022, .022])
+        rotation = np.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 1.]])
+        lo, hi = cases.collision_geom_bounds(None, rotation, centre, aabb, True)
+        self.assertTrue(np.allclose(lo, centre - .022))
+        self.assertTrue(np.allclose(hi, centre + .022))
+
+    def test_geom_bounds_uses_mesh_vertices_not_rotated_box(self):
+        verts = np.array([[0., 0., 0.], [1., 0., 0.], [0., 1., 0.]])
+        aabb = np.array([0., 0., 0., .5, .5, .5])
+        lo, hi = cases.collision_geom_bounds(verts, np.eye(3), np.zeros(3), aabb, False)
+        self.assertTrue(np.allclose(lo, [0., 0., 0.]))
+        self.assertTrue(np.allclose(hi, [1., 1., 0.]))
 
     def test_actual_nonzero_physics_commands_cannot_be_hidden_by_zero_decisions(self):
         run, plan, geometry, controller = synthetic('blocked_box')

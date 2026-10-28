@@ -186,19 +186,11 @@ class PhysicsObserver:
         import mujoco
         lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
         for index, verts, aabb, gtype in self.geoms:
-            rotation = np.asarray(data.geom_xmat[index]).reshape(3, 3)
-            centre = np.asarray(data.geom_xpos[index])
-            if verts is not None:
-                world = verts @ rotation.T + centre
-                lo, hi = np.minimum(lo, world.min(axis=0)), np.maximum(hi, world.max(axis=0))
-            elif gtype == mujoco.mjtGeom.mjGEOM_SPHERE:
-                # A sphere's AABB does not rotate; the generic rotated-box branch
-                # inflates a 22 mm foot by up to sqrt(3) and hid the real clearance.
-                lo, hi = np.minimum(lo, centre - aabb[3]), np.maximum(hi, centre + aabb[3])
-            else:
-                box_centre = centre + rotation @ aabb[:3]
-                extent = np.abs(rotation) @ aabb[3:]
-                lo, hi = np.minimum(lo, box_centre - extent), np.maximum(hi, box_centre + extent)
+            geom_lo, geom_hi = collision_geom_bounds(
+                verts, np.asarray(data.geom_xmat[index]).reshape(3, 3),
+                np.asarray(data.geom_xpos[index]), aabb,
+                gtype == mujoco.mjtGeom.mjGEOM_SPHERE)
+            lo, hi = np.minimum(lo, geom_lo), np.maximum(hi, geom_hi)
         return [lo.tolist(), hi.tolist()]
 
     def __call__(self, model, data, snapshot):
@@ -418,6 +410,18 @@ def base_z_from_foot_reference(reference_z, foot_bottom_at_reference, deck_top=S
     return reference_z + deck_top - foot_bottom_at_reference
 
 
+def collision_geom_bounds(verts, rotation, centre, aabb, sphere):
+    """World bounds of one collision geom: mesh vertices, analytic sphere, else box."""
+    if verts is not None:
+        world = verts @ rotation.T + centre
+        return world.min(axis=0), world.max(axis=0)
+    if sphere:
+        return centre - aabb[3], centre + aabb[3]
+    box_centre = centre + rotation @ aabb[:3]
+    extent = np.abs(rotation) @ aabb[3:]
+    return box_centre - extent, box_centre + extent
+
+
 def foot_bottom_z(model, x, y, base_z):
     """Lowest world z of the four foot collision geoms at the default stance."""
     import mujoco
@@ -433,9 +437,17 @@ def foot_bottom_z(model, x, y, base_z):
         name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_BODY, body)
         if name is None or not name.endswith('_FOOT'):
             continue
-        rotation = np.asarray(probe.geom_xmat[index]).reshape(3, 3)
-        extent = np.abs(rotation) @ model.geom_aabb[index, 3:]
-        lowest = min(lowest, float((np.asarray(probe.geom_xpos[index]) - extent)[2]))
+        verts = None
+        if model.geom_type[index] == mujoco.mjtGeom.mjGEOM_MESH:
+            mesh = model.geom_dataid[index]
+            start, count = model.mesh_vertadr[mesh], model.mesh_vertnum[mesh]
+            verts = np.array(model.mesh_vert[start:start + count], dtype=float)
+        lo, _ = collision_geom_bounds(verts,
+                                      np.asarray(probe.geom_xmat[index]).reshape(3, 3),
+                                      np.asarray(probe.geom_xpos[index]),
+                                      np.asarray(model.geom_aabb[index]),
+                                      model.geom_type[index] == mujoco.mjtGeom.mjGEOM_SPHERE)
+        lowest = min(lowest, float(lo[2]))
         found.append(name)
     if len(found) != 4:
         raise ValueError('four foot collision geoms are required')
