@@ -104,7 +104,7 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
 
 def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0, umax=0.35, kgain=0.8,
         lift_h=0.10, swing_fwd=0.06, drive_fwd=0.08, shift_mag=0.05, slip_tol=0.02, y_tol=0.03,
-        swing_kp=40.0, swing_kd=1.5):
+        swing_kp=40.0, swing_kd=1.5, cycle=False):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     data = mujoco.MjData(model)
@@ -273,11 +273,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                     _rotmat(data.xquat[torso_id]))
 
         tgt = {n: DEF[3 * i:3 * i + 3].copy() for i, n in enumerate(LEGS)}
-        state = {'zmin': 9.0, 'fell': False, 'zg': None}
+        state = {'zmin': 9.0, 'fell': False, 'zg': None, 'z_ref': None, 'z_int': 0.0}
+        legs_seq = tuple(cycle) if isinstance(cycle, (tuple, list)) else (
+            ('FL', 'HR', 'FR', 'HL') if cycle else (leg,))
         records, trace = [], []
         t_global = [0.0]
 
-        def execute(name, kind, dur, ctrl, swing=(), checks=None, expect_dy=0.0):
+        def execute(name, kind, dur, ctrl, swing=(), checks=None, expect_dy=0.0, leg=None):
             f0, p0 = feet_world(), body_pose()[0]
             # 支撑腿高增益（100/5）；摆动腿惯量小，kd*dt/m 会越界自振，用 40/1.5
             kp_vec = np.array([swing_kp if n in swing else kp for n in LEGS for _ in range(3)])
@@ -307,7 +309,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             f1, p1 = feet_world(), body_pose()[0]
             slip = {n: float(np.linalg.norm((f1[n] - f0[n])[:2])) for n in LEGS}
             sup = [n for n in LEGS if n not in swing]
-            rec = {'phase': name, 'kind': kind, 't0': round(t_global[0] - dur, 2),
+            rec = {'phase': name, 'kind': kind, 'leg': leg, 't0': round(t_global[0] - dur, 2),
                    'dur': dur,
                    'body_dx': round(float(p1[0] - p0[0]), 4),
                    'body_dy': round(float(p1[1] - p0[1]), 4),
@@ -340,6 +342,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                     tgt[n] = start[n] + a * (goal[n] - start[n])
             return ctrl
 
+        def ground_relz():
+            # 相对 z 统一按机体高度参考 z_ref：直立时等于实测相对 z，机体下沉时把腿伸回去
+            return {n: feet_world()[n][2] - state['z_ref'] for n in LEGS}
+
+        def with_z(rel, relz):
+            return {n: np.array([rel[n][0], rel[n][1], relz[n]]) for n in LEGS}
+
         def make_place(dur, place_leg):
             anchor = feet_world()[place_leg].copy()
             zg = state['zg']
@@ -347,11 +356,12 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             landed = [False]
             log = []
             j0 = 7 + 3 * LEGS.index(place_leg)
-            # 支撑腿锁到当前实测关节角：落足段不携带前序相位残差
+            # 支撑腿保持落足起点站姿（z 参考 z_ref）
+            sup_rel = with_z({n: foot_body_pos(model, data, n) for n in LEGS},
+                             ground_relz())
             for n in LEGS:
                 if n != place_leg:
-                    a0 = 7 + 3 * LEGS.index(n)
-                    tgt[n] = data.qpos[a0:a0 + 3].copy()
+                    tgt[n] = solve_leg(model, data, n, sup_rel[n])
 
             def ctrl(i, t):
                 if landed[0]:
@@ -379,44 +389,61 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             return ctrl
 
         def lift_check(rec, f1, f0):
-            return {'lifted': (f1[leg][2] - f0[leg][2]) >= 0.7 * lift_h}
+            return {'lifted': (f1[rec['leg']][2] - f0[rec['leg']][2]) >= 0.7 * lift_h}
 
         def drive_check(rec, f1, f0):
             return {'drive_ok': drive_fwd - 0.05 <= rec['body_dx'] <= drive_fwd + 0.06}
 
         def place_check(rec, f1, f0):
-            return {'landed': f1[leg][2] <= state['zg'] + 0.03}
+            return {'landed': f1[rec['leg']][2] <= state['zg'] + 0.03}
 
         execute('settle', 'settle', 0.6, lambda i, t: None)
         state['zg'] = float(np.mean([feet_world()[n][2] for n in LEGS]))
-        # 站位基座用实测站姿，不用 initial 的 nominal（避免把早期漂移当成待补误差）
-        stance = {n: foot_body_pos(model, data, n) for n in LEGS}
-        dir_xy = stance[leg][:2] / np.linalg.norm(stance[leg][:2])
-        shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_mag
-        shift_goal = {n: stance[n] + shift_delta for n in LEGS}
-        execute('shift', 'shift', 1.0, make_ramp(shift_goal, 1.0), expect_dy=-shift_delta[1])
-        if not state['fell']:
+        state['z_ref'] = float(data.qpos[2])
+        for step_i, cur_leg in enumerate(legs_seq):
+            if state['fell']:
+                break
+            # x/y 用相对意图（不受相位间漂移放大），z 参考 z_ref
+            stance = {n: foot_body_pos(model, data, n) for n in LEGS}
+            relz = ground_relz()
+            dir_xy = stance[cur_leg][:2] / np.linalg.norm(stance[cur_leg][:2])
+            shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_mag
+            shift_goal = with_z({n: stance[n] + shift_delta for n in LEGS}, relz)
+            execute('shift%d_%s' % (step_i, cur_leg), 'shift', 1.0,
+                    make_ramp(shift_goal, 1.0), expect_dy=-shift_delta[1], leg=cur_leg)
+            if state['fell']:
+                break
             lift_goal = dict(shift_goal)
-            lift_goal[leg] = stance[leg] + shift_delta + np.array([swing_fwd, 0.0, lift_h])
-            execute('lift', 'lift', 1.5, make_ramp(lift_goal, 1.5, frac=0.6),
-                    swing=(leg,), checks=lift_check)
-        if not state['fell']:
-            execute('place', 'place', 2.4, make_place(2.4, leg),
-                    swing=(leg,), checks=place_check)
-        if not state['fell']:
+            lift_goal[cur_leg] = np.array([stance[cur_leg][0] + shift_delta[0] + swing_fwd,
+                                           stance[cur_leg][1] + shift_delta[1],
+                                           relz[cur_leg] + lift_h])
+            execute('lift%d_%s' % (step_i, cur_leg), 'lift', 2.0,
+                    make_ramp(lift_goal, 2.0, frac=0.6), swing=(cur_leg,),
+                    checks=lift_check, leg=cur_leg)
+            if state['fell']:
+                break
+            execute('place%d_%s' % (step_i, cur_leg), 'place', 2.4,
+                    make_place(2.4, cur_leg), swing=(cur_leg,), checks=place_check,
+                    leg=cur_leg)
+            if state['fell']:
+                break
             # 四足推进用斜坡式站姿平移（与 shift 同构）：积分驱动在轻载前足上会打滑
             stance4 = {n: foot_body_pos(model, data, n) for n in LEGS}
-            adv_goal = {n: stance4[n] - np.array([drive_fwd, 0.0, 0.0]) for n in LEGS}
-            execute('advance', 'advance', 1.5, make_ramp(adv_goal, 1.5),
-                    checks=drive_check, expect_dy=0.0)
-        if not state['fell']:
-            execute('settle2', 'settle', 0.8, lambda i, t: None)
+            adv_goal = with_z({n: stance4[n] - np.array([drive_fwd, 0.0, 0.0]) for n in LEGS},
+                              ground_relz())
+            execute('advance%d_%s' % (step_i, cur_leg), 'advance', 1.5,
+                    make_ramp(adv_goal, 1.5), checks=drive_check, leg=cur_leg)
+            if state['fell']:
+                break
+            execute('settle%d_%s' % (step_i, cur_leg), 'settle', 0.4,
+                    lambda i, t: None, leg=cur_leg)
         feet = {n: [round(float(x), 3) for x in foot_body_pos(model, data, n)] for n in LEGS}
         passed = bool(records) and all(r['ok'] for r in records) and not state['fell']
         return {'mode': mode, 'leg': leg, 'lift_h': lift_h, 'swing_fwd': swing_fwd,
                 'drive_fwd': drive_fwd, 'shift_mag': shift_mag,
                 'slip_tol': slip_tol, 'y_tol': y_tol,
                 'kp': kp, 'kd': kd, 'swing_kp': swing_kp, 'swing_kd': swing_kd,
+                'cycle': list(legs_seq), 'z_ref': round(state['z_ref'] or 0.0, 4),
                 'z_ground': round(state['zg'], 4),
                 'pass': passed,
                 'final_x': round(float(data.qpos[0]), 3),
@@ -428,10 +455,11 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                                    for n in LEGS},
                 'final_feet': feet, 'trace': trace}
 
-        goal = nominal[leg] + np.array([forward, 0.0, height])
-        q = solve_leg(model, data, leg, goal)
-        k = 3 * LEGS.index(leg)
-        targets[k:k + 3] = q
+        if mode in ('lift', 'step') and leg in LEGS:
+            goal = nominal[leg] + np.array([forward, 0.0, height])
+            q = solve_leg(model, data, leg, goal)
+            k = 3 * LEGS.index(leg)
+            targets[k:k + 3] = q
     dt = model.opt.timestep
     steps = int(seconds / dt)
     start_targets = DEF.copy()
@@ -499,6 +527,7 @@ def main():
     parser.add_argument('--y-tol', type=float, default=0.03)
     parser.add_argument('--swing-kp', type=float, default=40.0)
     parser.add_argument('--swing-kd', type=float, default=1.5)
+    parser.add_argument('--cycle', nargs='?', const=True, default=False)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -508,7 +537,9 @@ def main():
                  kgain=args.kgain, lift_h=args.lift_h, swing_fwd=args.swing_fwd,
                  drive_fwd=args.drive_fwd, shift_mag=args.shift_mag,
                  slip_tol=args.slip_tol, y_tol=args.y_tol,
-                 swing_kp=args.swing_kp, swing_kd=args.swing_kd)
+                 swing_kp=args.swing_kp, swing_kd=args.swing_kd,
+                 cycle=(tuple(args.cycle.split(',')) if isinstance(args.cycle, str)
+                        else args.cycle))
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
