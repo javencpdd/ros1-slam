@@ -113,11 +113,21 @@ def main(argv=None):
             time.sleep(0.1)
         return rospy.Time.now()
 
+    def map_meta():
+        """A3：运行面暴露地图 id/version，供版本追踪与消费者核对（直接读文件，避开定义顺序）。"""
+        try:
+            with open(map_path, encoding='utf-8') as stream:
+                value = json.load(stream)
+        except Exception:
+            return {}
+        return {'map_id': value.get('map_id'), 'map_version': value.get('map_version')}
+
     message = to_path_message(result, frame, sim_stamp())
     publisher.publish(message)
-    rospy.set_param(status, {'ok': True, 'segments': result['segments'],
-                             'transitions': result['transitions'],
-                             'expansions': result['expansions'], 'length': result['length']})
+    rospy.set_param(status, dict({'ok': True, 'segments': result['segments'],
+                                  'transitions': result['transitions'],
+                                  'expansions': result['expansions'], 'length': result['length']},
+                                 **map_meta()))
     # A4 取消通道：Trigger 服务把「下一次规划前取消」置位；规划入口消费一次后复位。
     # 说明：rospy 默认串行回调，规划本身毫秒级，故运行期取消是「预取消」语义（等价于任务在
     # 开算前被撤销）；这与 A4「取消可区分」的证据口径一致，不代表支持规划中途抢占。
@@ -144,14 +154,16 @@ def main(argv=None):
                                   'goal': pose_xyz(request.goal), 'budget': budget},
                                  cancel=(lambda: True) if take_cancel else None)
         except (ValueError, support_planner.PlannerError) as error:
-            rospy.set_param(status, refusal(error) if hasattr(error, 'code')
-                            else {'ok': False, 'reason': 'E_PLAN_INPUT', 'detail': str(error)})
+            info = refusal(error) if hasattr(error, 'code') \
+                else {'ok': False, 'reason': 'E_PLAN_INPUT', 'detail': str(error)}
+            rospy.set_param(status, dict(info, **map_meta()))
             rospy.logerr('make_plan refused: %s', error)
             return GetPlanResponse()
         answer = to_path_message(planned, frame, rospy.Time.now())
-        rospy.set_param(status, {'ok': True, 'segments': planned['segments'],
-                                 'transitions': planned['transitions'],
-                                 'expansions': planned['expansions'], 'length': planned['length']})
+        rospy.set_param(status, dict({'ok': True, 'segments': planned['segments'],
+                                      'transitions': planned['transitions'],
+                                      'expansions': planned['expansions'], 'length': planned['length']},
+                                     **map_meta()))
         return GetPlanResponse(plan=answer)
 
     def request_map():

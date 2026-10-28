@@ -11,6 +11,7 @@ ROS 只在 call_node 内导入：纯逻辑可在无 ROS 的宿主上被测试。
     python3 -m a4_runtime run [--out /work/a4_runtime.json]
 """
 import argparse
+import copy
 import json
 import os
 import subprocess
@@ -192,6 +193,94 @@ def run_cancel(ids=('SC01', 'SC02'), call_node_fn=None):
     return cells
 
 
+def _call_versions(name, scenario_id):
+    """起一个节点，在同一临时地图文件上跑 v1→v2（删边）→v3（恢复），记录状态里的版本。"""
+    import rospy
+    from geometry_msgs.msg import PoseStamped
+    from nav_msgs.srv import GetPlan
+
+    case = scn.scenario(scenario_id)
+    v1 = case['map']
+    v2 = copy.deepcopy(v1)
+    v2['map_version'] = v1.get('map_version', 1) + 1
+    # 合法更新：分辨率 0.1→0.2（不破坏契约连通/足迹），路径应随之变化
+    v2['resolution'] = 0.2
+    v3 = copy.deepcopy(v1)
+    v3['map_version'] = v1.get('map_version', 1) + 2
+
+    handle, map_path = tempfile.mkstemp(prefix='a3_', suffix='.json')
+    with os.fdopen(handle, 'w', encoding='utf-8') as stream:
+        json.dump(v1, stream)
+    cmd = [sys.executable, NODE_PATH, '__name:=' + name,
+           '_map_json:=' + map_path,
+           '_start:=' + json.dumps(list(case['start'])),
+           '_goal:=' + json.dumps(list(case['goal'])),
+           '_budget:=' + str(int(cal.FROZEN['budgets']['planner_max_expansions']['value'])),
+           '_frame:=map',
+           '_make_plan_service:=/' + name + '/make_plan',
+           '_status_topic:=/' + name + '/support_route_status',
+           '_keep_alive_s:=60']
+    env = dict(os.environ)
+    env['PYTHONPATH'] = str(ROOT / 'planner') + os.pathsep + env.get('PYTHONPATH', '')
+    try:
+        rospy.delete_param('/' + name + '/support_route_status')
+    except Exception:
+        pass
+    proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    observed = []
+    try:
+        rospy.wait_for_service('/' + name + '/make_plan', timeout=30.0)
+        proxy = rospy.ServiceProxy('/' + name + '/make_plan', GetPlan)
+        start, goal = PoseStamped(), PoseStamped()
+        for msg, xyz in ((start, case['start']), (goal, case['goal'])):
+            msg.header.frame_id = 'map'
+            msg.header.stamp = rospy.Time.now()
+            msg.pose.position.x, msg.pose.position.y, msg.pose.position.z = xyz
+            msg.pose.orientation.w = 1.0
+        for label, value in (('v1', None), ('v2', v2), ('v3', v3)):
+            if value is not None:
+                with open(map_path, 'w', encoding='utf-8') as stream:
+                    json.dump(value, stream)
+            response = proxy(start, goal, 0.0)
+            info = rospy.get_param('/' + name + '/support_route_status', {}) or {}
+            observed.append((label, bool(info.get('ok')),
+                             info.get('reason') or 'ok',
+                             info.get('map_version'),
+                             len(response.plan.poses)))
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+        os.unlink(map_path)
+    return observed
+
+
+def run_version(scenario_id='SC02', call_versions_fn=None):
+    """A3 版本追踪：v1 可规划→v2 无路（E_PLAN_NO_ROUTE）→v3 恢复；状态须带对应版本号。"""
+    observed = call_versions_fn() if call_versions_fn else _call_versions('a4_version', scenario_id)
+    base = scn.scenario(scenario_id)['map'].get('map_version', 1)
+    expect = {'v1': ('ok', base), 'v2': ('ok', base + 1), 'v3': ('ok', base + 2)}
+    cells = []
+    for label, ok, reason, version, points in observed:
+        want_ok, want_version = expect[label]
+        good = (ok if want_ok == 'ok' else (not ok and reason == want_ok)) \
+            and version == want_version
+        cells.append({'label': label, 'ok': ok, 'reason': reason, 'map_version': version,
+                      'points': points, 'expected_version': want_version,
+                      'outcome': 'pass' if good else 'unexpected_failure'})
+    # 版本更新必须真的生效：v2 的路径形状应与 v1 不同，v3 回到 v1
+    if len(cells) == 3 and cells[0]['points'] is not None:
+        if cells[1]['points'] == cells[0]['points']:
+            cells[1]['outcome'] = 'unexpected_failure'
+            cells[1]['reason'] = 'v2_no_effect'
+        if cells[2]['points'] != cells[0]['points']:
+            cells[2]['outcome'] = 'unexpected_failure'
+            cells[2]['reason'] = 'v3_not_restored'
+    return cells
+
+
 def summary(cells):
     return {'cells': len(cells),
             'passed': sum(1 for c in cells if c['outcome'] == 'pass'),
@@ -202,17 +291,18 @@ def summary(cells):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['run', 'cancel'])
+    parser.add_argument('command', choices=['run', 'cancel', 'version'])
     parser.add_argument('--out', default='')
     args = parser.parse_args(argv)
     import rospy
     rospy.init_node('a4_runtime_runner')
-    cells = run_cancel() if args.command == 'cancel' else run()
+    cells = run_cancel() if args.command == 'cancel' else (run_version() if args.command == 'version' else run())
     result = {'summary': summary(cells), 'cells': cells}
     print(json.dumps(result['summary'], ensure_ascii=False))
     for cell in cells:
-        print('%-4s %-8s %-18s %s %s' % (cell['scenario'], cell['track'],
-                                         cell['outcome'], cell['stage'], cell['reason']))
+        print('%-10s %-8s %-18s %s %s' % (cell.get('scenario', cell.get('label')),
+                                          cell.get('track', '-'), cell['outcome'],
+                                          cell.get('stage', '-'), cell.get('reason', '-')))
     if args.out:
         Path(args.out).write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n')
     return 0 if result['summary']['unexpected_failures'] == 0 else 6

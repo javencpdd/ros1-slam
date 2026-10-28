@@ -86,5 +86,27 @@ class A4RuntimeTests(unittest.TestCase):
         self.assertTrue(all(c['outcome'] == 'unexpected_failure' for c in cells))
 
 
+    def test_run_version_tracks_versions_and_effect(self):
+        """A3 版本追踪：版本号递增、v2 更新须真生效（路径变化）、v3 恢复与 v1 同形。"""
+        good = [('v1', True, 'ok', 1, 16), ('v2', True, 'ok', 2, 9),
+                ('v3', True, 'ok', 3, 16)]
+        cells = a4.run_version(call_versions_fn=lambda: list(good))
+        self.assertEqual([c['outcome'] for c in cells], ['pass', 'pass', 'pass'])
+        no_effect = [('v1', True, 'ok', 1, 16), ('v2', True, 'ok', 2, 16),
+                     ('v3', True, 'ok', 3, 16)]
+        cells = a4.run_version(call_versions_fn=lambda: list(no_effect))
+        self.assertEqual(cells[1]['outcome'], 'unexpected_failure')
+        self.assertEqual(cells[1]['reason'], 'v2_no_effect')
+        stale = [('v1', True, 'ok', 1, 16), ('v2', True, 'ok', 1, 9),
+                 ('v3', True, 'ok', 3, 16)]
+        cells = a4.run_version(call_versions_fn=lambda: list(stale))
+        self.assertEqual(cells[1]['outcome'], 'unexpected_failure')
+        not_restored = [('v1', True, 'ok', 1, 16), ('v2', True, 'ok', 2, 9),
+                        ('v3', True, 'ok', 3, 11)]
+        cells = a4.run_version(call_versions_fn=lambda: list(not_restored))
+        self.assertEqual(cells[2]['outcome'], 'unexpected_failure')
+        self.assertEqual(cells[2]['reason'], 'v3_not_restored')
+
+
 if __name__ == '__main__':
     unittest.main()
