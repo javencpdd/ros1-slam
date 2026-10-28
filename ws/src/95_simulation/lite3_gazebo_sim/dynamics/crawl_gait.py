@@ -109,7 +109,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         swing_kp=40.0, swing_kd=1.5, cycle=False, margin_min=0.05,
         step_x=None, step_h=0.0, step_swing=0.0, climb_x=0.0, climb_dz=0.0,
         rear_rounds=0, rear_swing=0.10, climb2_x=0.0, climb2_dz=0.0,
-        rear_margin=0.05, rear_shift=0.05, lift_sec=2.0, shift_sec=1.0):
+        rear_margin=0.05, rear_shift=0.05, lift_sec=2.0, shift_sec=1.0,
+        pitch_dz=0.0):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
@@ -382,9 +383,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                     tgt[n] = start[n] + a * (goal[n] - start[n])
             return ctrl
 
-        def ground_relz():
-            # 相对 z 统一按机体高度参考 z_ref：直立时等于实测相对 z，机体下沉时把腿伸回去
-            return {n: feet_world()[n][2] - state['z_ref'] for n in LEGS}
+        def ground_relz(pitch=0.0):
+            # 相对 z 按机体高度参考 z_ref；pitch>0 时机体前压：前腿缩短、后腿伸长
+            out = {}
+            for n in LEGS:
+                zr = state['z_ref'] + (-pitch if n in ('FL', 'FR') else pitch)
+                out[n] = feet_world()[n][2] - zr
+            return out
 
         def with_z(rel, relz):
             return {n: np.array([rel[n][0], rel[n][1], relz[n]]) for n in LEGS}
@@ -495,13 +500,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             return {'landed': abs(f1[rec['leg']][2] - z_end) <= 0.03}
 
         def do_step(cur_leg, tag, advance=True, swing=None, allow_step=True,
-                    margin=None, shift=None):
+                    margin=None, shift=None, pitch=0.0):
             """单腿一步：闭环移重→（竖直抬升）→（高度上前摆）→落足→可选推进。"""
             sw = swing_fwd if swing is None else swing
             mreq = margin_min if margin is None else margin
             smag = shift_mag if shift is None else shift
             stance = {n: foot_body_pos(model, data, n) for n in LEGS}
-            relz = ground_relz()
+            relz = ground_relz(pitch)
             _, nvec = support_margin(cur_leg, want_normal=True)
             dir_xy = -nvec
             shift_dist = 0.0
@@ -553,11 +558,11 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 stance4 = {n: foot_body_pos(model, data, n) for n in LEGS}
                 dy_fix = float(body_pose()[0][1] - state['y_ref'])
                 adv_half = with_z({n: stance4[n] - np.array([drive_fwd / 2, -dy_fix / 2, 0.0])
-                                   for n in LEGS}, ground_relz())
+                                   for n in LEGS}, ground_relz(pitch))
                 execute('advance%s_%s_a' % (tag, cur_leg), 'advance', 0.75,
                         make_ramp(adv_half, 0.75), leg=cur_leg, expect_dy=-dy_fix / 2)
                 adv_goal = with_z({n: stance4[n] - np.array([drive_fwd, -dy_fix, 0.0])
-                                   for n in LEGS}, ground_relz())
+                                   for n in LEGS}, ground_relz(pitch))
                 execute('advance%s_%s_b' % (tag, cur_leg), 'advance', 0.75,
                         make_ramp(adv_goal, 0.75), checks=drive_check, leg=cur_leg,
                         expect_dy=-dy_fix / 2)
@@ -600,7 +605,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                     if state['fell'] or not ok_all:
                         break
                     if not do_step(cur_leg, 'r%d' % r, advance=True, swing=rear_swing,
-                                   margin=rear_margin, shift=rear_shift):
+                                   margin=rear_margin, shift=rear_shift, pitch=pitch_dz):
                         ok_all = False
                         break
             if ok_all and not state['fell']:
@@ -717,6 +722,7 @@ def main():
     parser.add_argument('--rear-shift', type=float, default=0.05)
     parser.add_argument('--lift-sec', type=float, default=2.0)
     parser.add_argument('--shift-sec', type=float, default=1.0)
+    parser.add_argument('--pitch-dz', type=float, default=0.0)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -734,7 +740,8 @@ def main():
                  rear_rounds=args.rear_rounds, rear_swing=args.rear_swing,
                  climb2_x=args.climb2_x, climb2_dz=args.climb2_dz,
                  rear_margin=args.rear_margin, rear_shift=args.rear_shift,
-                 lift_sec=args.lift_sec, shift_sec=args.shift_sec)
+                 lift_sec=args.lift_sec, shift_sec=args.shift_sec,
+                 pitch_dz=args.pitch_dz)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
