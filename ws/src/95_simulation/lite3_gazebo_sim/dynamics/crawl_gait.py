@@ -110,7 +110,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         step_x=None, step_h=0.0, step_swing=0.0, climb_x=0.0, climb_dz=0.0,
         rear_rounds=0, rear_swing=0.10, climb2_x=0.0, climb2_dz=0.0,
         rear_margin=0.05, rear_shift=0.05, lift_sec=2.0, shift_sec=1.0,
-        pitch_dz=0.0):
+        pitch_dz=0.0, drag_mode=False):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
@@ -394,6 +394,22 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         def with_z(rel, relz):
             return {n: np.array([rel[n][0], rel[n][1], relz[n]]) for n in LEGS}
 
+        def make_drag(dur, drag_leg, dx):
+            """后足拖步：足端贴地沿 +x 慢推，靠打滑前移（不抬腿，避开桥接抬升）。"""
+            anchor = feet_world()[drag_leg].copy()
+
+            def ctrl(i, t):
+                f = min(1.0, t / dur) if dur > 0 else 1.0
+                wp = anchor + np.array([dx * f, 0.0, 0.0])
+                p, R = body_pose()
+                tgt[drag_leg] = solve_leg(model, data, drag_leg, R.T @ (wp - p))
+            return ctrl
+
+        def drag_check(rec, f1, f0):
+            moved = float(f1[rec['leg']][0] - f0[rec['leg']][0])
+            rec['drag_moved'] = round(moved, 3)
+            return {'dragged': moved >= 0.6 * rec.get('drag_req', 1.0)}
+
         def make_place(dur, place_leg, land_z=None):
             anchor = feet_world()[place_leg].copy()
             zg = state['zg']
@@ -604,6 +620,20 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 for cur_leg in ('HL', 'HR'):
                     if state['fell'] or not ok_all:
                         break
+                    if drag_mode:
+                        # 贴地拖步前移；够到台阶前沿后再走正常抬升上阶
+                        need_step = (step_x is not None
+                                     and feet_world()[cur_leg][0] + rear_swing > step_x)
+                        if not need_step:
+                            ctrl_drag = make_drag(1.5, cur_leg, rear_swing)
+                            rec_d = execute('drag%d_%s' % (r, cur_leg), 'drag', 1.5,
+                                            ctrl_drag, swing=(cur_leg,), leg=cur_leg)
+                            rec_d['drag_req'] = rear_swing
+                            rec_d['checks']['dragged'] = (
+                                rec_d['feet_w1'][cur_leg][0] - rec_d['feet_w0'][cur_leg][0]
+                                >= 0.6 * rear_swing)
+                            rec_d['ok'] = all(rec_d['checks'].values())
+                            continue
                     if not do_step(cur_leg, 'r%d' % r, advance=True, swing=rear_swing,
                                    margin=rear_margin, shift=rear_shift, pitch=pitch_dz):
                         ok_all = False
@@ -723,6 +753,7 @@ def main():
     parser.add_argument('--lift-sec', type=float, default=2.0)
     parser.add_argument('--shift-sec', type=float, default=1.0)
     parser.add_argument('--pitch-dz', type=float, default=0.0)
+    parser.add_argument('--drag', action='store_true')
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -741,7 +772,7 @@ def main():
                  climb2_x=args.climb2_x, climb2_dz=args.climb2_dz,
                  rear_margin=args.rear_margin, rear_shift=args.rear_shift,
                  lift_sec=args.lift_sec, shift_sec=args.shift_sec,
-                 pitch_dz=args.pitch_dz)
+                 pitch_dz=args.pitch_dz, drag_mode=args.drag)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
