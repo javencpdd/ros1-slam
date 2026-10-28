@@ -136,6 +136,8 @@ def main():
     parser.add_argument('--stop-test', action='store_true')
     parser.add_argument('--local-gazebo', action='store_true')
     parser.add_argument('--global-route', action='store_true')
+    parser.add_argument('--localization', choices=['truth', 'noisy'], default='truth')
+    parser.add_argument('--noise-seed', type=int, default=0)
     parser.add_argument('--local-cases', default='arrival,sensed_no_route,localization,sensor_freshness')
     args = parser.parse_args()
     output = Path(args.out).resolve()
@@ -163,8 +165,11 @@ def main():
                                               '--out', str(output / (name + '.json'))])
                 results[name] = proc.wait(timeout=150)
         if args.gazebo:
-            processes.start('gazebo', ['roslaunch', str(SIM / 'launch/m1_gazebo.launch'),
-                                      'payload_dir:=' + str(SIM), 'gui:=false'])
+            gazebo = ['roslaunch', str(SIM / 'launch/m1_gazebo.launch'),
+                      'payload_dir:=' + str(SIM), 'gui:=false']
+            if args.localization == 'noisy':
+                gazebo.append('map_to_odom:=false')
+            processes.start('gazebo', gazebo)
             import rospy
             from gazebo_msgs.msg import ModelStates
             rospy.init_node('runtime_lab', anonymous=True, disable_signals=True)
@@ -177,6 +182,10 @@ def main():
                            '  - {name: follow, topic: /follow/cmd_vel, priority: 1, timeout_s: 0.5}\n')
             processes.start('mux', [sys.executable, str(REPO / 'ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py'),
                                     '__name:=mux', '_mux_config:=' + str(cfg)])
+            if args.localization == 'noisy':
+                processes.start('estimated', [sys.executable, '-B',
+                                              str(BASE / 'regression/noisy_localization.py'),
+                                              '--seed', str(args.noise_seed)])
             if args.backend:
                 make_map(output)
                 launch = backend_launch(output, args.backend)
@@ -202,12 +211,23 @@ def main():
                 state.pose.orientation.z = math.sin(perturbation[2] / 2)
                 state.pose.orientation.w = math.cos(perturbation[2] / 2)
                 rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)(state)
-                manifest.update(run_id='runtime_%s_%s_s%d_r%d' % (
-                    args.backend, args.scenario, args.seed, args.repetition),
+                localization_source = (
+                    'Gazebo ground-truth TF; not LIO or NDT' if args.localization == 'truth'
+                    else 'seeded map->odom perturbation (amp 0.05 m / 0.03 rad); '
+                         'truth /sim/odom_gt used for evaluation')
+                seed_effect = {'start_xy_yaw': perturbation}
+                if args.localization == 'noisy':
+                    seed_effect['estimated_track'] = {
+                        'seed': args.noise_seed, 'amp_xy_m': 0.05, 'amp_yaw_rad': 0.03}
+                track_suffix = '' if args.localization == 'truth' else '_' + args.localization
+                manifest.update(run_id='runtime_%s_%s_s%d%s_r%d' % (
+                    args.backend, args.scenario, args.seed, track_suffix, args.repetition),
                                 run_class='runtime_experimental', calibration_only=False,
                                 seed=args.seed, repetition=args.repetition,
-                                start=perturbation, seed_effect={'start_xy_yaw': perturbation},
-                                localization_source='Gazebo ground-truth TF; not LIO or NDT',
+                                start=perturbation, seed_effect=seed_effect,
+                                track=('truth' if args.localization == 'truth' else 'estimated'),
+                                localization_source=localization_source,
+                                localization_track=args.localization,
                                 source_manifest_sha256=hashlib.sha256(template.read_bytes()).hexdigest(),
                                 telemetry_json=str(output / 'trajectory.json'))
                 if manifest.get('inject') and args.seed != 0:

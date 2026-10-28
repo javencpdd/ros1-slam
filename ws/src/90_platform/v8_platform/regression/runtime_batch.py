@@ -20,14 +20,19 @@ def main():
     parser.add_argument('--backend', default='teb', choices=['teb', 'dwa'])
     parser.add_argument('--seeds', default='0,1,2')
     parser.add_argument('--scenarios', default='SC01,SC02,SC09')
+    parser.add_argument('--localization', choices=['truth', 'noisy'], default='truth')
+    parser.add_argument('--noise-seed', type=int, default=0)
     args = parser.parse_args()
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=True)
     registration = output / 'preregistered.json'
     if registration.exists():
         raise ValueError('output already registered; use a new directory')
+    localization = ('gazebo_ground_truth' if args.localization == 'truth'
+                    else 'seeded_map_to_odom_perturbation_amp0p05_0p03')
     jobs = [{'backend': args.backend, 'scenario': scenario, 'seed': seed,
-             'repetition': 1, 'localization': 'gazebo_ground_truth'}
+             'repetition': 1, 'localization': localization,
+             'localization_track': args.localization, 'noise_seed': args.noise_seed}
             for scenario in args.scenarios.split(',') for seed in map(int, args.seeds.split(','))]
     registration.write_text(json.dumps({'run_class': 'runtime_experimental', 'jobs': jobs,
         'criteria': {'goal_position_m': .30, 'min_clearance_m': .20, 'wall_deadline_s': 120},
@@ -35,12 +40,15 @@ def main():
                                            .read_bytes()).hexdigest()}, indent=2))
     cells = []
     for job in jobs:
-        name = '%s_%s_s%d' % (job['backend'], job['scenario'], job['seed'])
+        name = '%s_%s_s%d%s' % (job['backend'], job['scenario'], job['seed'],
+                                '' if job['localization_track'] == 'truth' else '_' + job['localization_track'])
         directory = output / name
         started = time.monotonic()
         code = subprocess.call([sys.executable, '-B', str(HERE / 'runtime_lab.py'),
             '--out', str(directory), '--gazebo', '--backend', job['backend'],
-            '--scenario', job['scenario'], '--seed', str(job['seed'])])
+            '--scenario', job['scenario'], '--seed', str(job['seed']),
+            '--localization', job['localization_track'],
+            '--noise-seed', str(job['noise_seed'])])
         result_path = directory / 'driver.json'
         result = json.loads(result_path.read_text()) if result_path.exists() else {}
         cells.append(dict(job, returncode=code, result=result,

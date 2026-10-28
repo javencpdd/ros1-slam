@@ -1,0 +1,566 @@
+# R851 独立验收 · 复现日志
+
+- 时间：2026-10-28 22:05—22:24 +08:00
+- 主体：`6a689be01ff55620d3b4ba7589173536771f948f`
+- 冻结副本：`/tmp/r851`；`git -C /home/jack/ysc-code/ros1-slam archive 6a689be | tar -x -C /tmp/r851`
+- 仓态：live repo 未改 tracked 文件；唯一仓内写盘为
+  `note/进度/v8/M5/26-10-28/evidence/R851/independent_round3/`。
+- 说明：下列命令中的 `[...]` 为省略；其余为原命令或原命令的只读等价式。
+
+---
+
+## 0. 仓态与副本
+
+```bash
+$ git -C /home/jack/ysc-code/ros1-slam rev-parse HEAD
+6a689be01ff55620d3b4ba7589173536771f948f
+
+$ git -C /home/jack/ysc-code/ros1-slam log --oneline -10
+6a689be R850 补代码引用与证据哈希
+8de88d0 #151 冻结两停车键：0.50 s / 0.15 m（n=3 全链，R850）
+7ccf816 四条口径自行判断并落件：151 全链候选、台阶④、04/05 乙（R844/R849）
+...
+052f5e9 第二轮复核处置：撤销 R842 死分支 hunk、补不确定度回归、TEB 补跑轨迹入仓（R845）
+
+$ mkdir -p /tmp/r851 && git -C /home/jack/ysc-code/ros1-slam archive 6a689be | tar -x -C /tmp/r851
+OK
+```
+
+live 工作树在 22:08—22:14 出现未提交改动（非本审查所改，也不在 6a689be 内）：
+
+```
+ M ws/src/90_platform/v8_platform/calibration/flat2d/driver.py
+ M ws/src/90_platform/v8_platform/regression/runtime_batch.py
+ M ws/src/90_platform/v8_platform/regression/runtime_lab.py
+ M ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch
+?? ws/src/90_platform/v8_platform/regression/estimated_track.py
+?? ws/src/90_platform/v8_platform/regression/noisy_localization.py
+?? ws/src/90_platform/v8_platform/regression/test_estimated_track.py
+```
+
+本审查的代码/测试全部用 `/tmp/r851`；门禁 live 读数可能含上述未提交改动（VCC 面差见 §8）。
+
+证据哈希（R850/R845/R846/R848 逐目录 `sha256sum -c hashes.sha256`）：
+
+```
+R850: code_ref.txt 成功; command.txt 成功; noroute_run1.json 成功;
+      noroute_run2.json 成功; noroute_run3.json 成功; rc=0
+R845: 14 枚全部成功; rc=0
+R846: 12 枚全部成功; rc=0
+R848: 13 枚全部成功; rc=0
+```
+
+---
+
+## 1. #151 三次原始 physics 重算
+
+### 1.1 主重算（R847 方法，从 `wall>=trigger` 的第一个采样起算）
+
+```bash
+$ cd /tmp/r851 && python3 - <<'PY'
+import json, math
+for i in (1,2,3):
+    d=json.load(open(f'note/进度/v8/M5/26-10-28/evidence/R850/noroute_run{i}.json')); c=d['cases'][0]
+    rows=sorted([r for r in d['raw']['physics'] if r['phase']=='sensed_no_route'], key=lambda r:r['wall'])
+    tr=c['trigger']['wall']; stop=tr+c['trigger_to_physical_stop_wall_s']
+    seg=[r for r in rows if r['wall']>=tr and r['wall']<=stop+1e-6]
+    path=0.; prev=None
+    for r in seg:
+        if prev is not None: path+=math.dist(prev['xyz'][:2], r['xyz'][:2])
+        prev=r
+    print(i, c['case'], c['speed_before_m_s'], round(path,6),
+          c['trigger_to_physical_stop_wall_s'], c['trigger_to_physical_stop_sim_s'])
+PY
+1 sensed_no_route 0.4 0.1221  1.1263135059853084 0.3720000000000001
+2 sensed_no_route 0.4 0.115317 1.4978944067868040 0.365
+3 sensed_no_route 0.4 0.115716 0.9921854099447676 0.385
+```
+
+停后漂移：
+
+```
+run 1 post-window drift 0.0 final_xyz [0.16, 0.0, 0.11] tail_s 4.933
+run 2 post-window drift 0.0 final_xyz [0.1576, -0.0, 0.11] tail_s 5.522
+run 3 post-window drift 0.0 final_xyz [0.1596, 0.0, 0.11] tail_s 4.313
+```
+
+三例均 `ok=True`、`reason=E_LOCAL_NO_ROUTE`、`hardware=False`、
+`four_foot_contact_or_cross_layer=False`、`budget_151_frozen=False`。
+
+### 1.2 触发点截断（本轮新发现）
+
+```bash
+$ cd /tmp/r851 && python3 - <<'PY'
+import json
+for i in (1,2,3):
+    d=json.load(open(f'note/进度/v8/M5/26-10-28/evidence/R850/noroute_run{i}.json')); c=d['cases'][0]
+    rows=sorted([r for r in d['raw']['physics'] if r['phase']=='sensed_no_route'], key=lambda r:r['wall'])
+    tr=c['trigger']['wall']; stop=tr+c['trigger_to_physical_stop_wall_s']
+    before=max([r for r in rows if r['wall']<tr], key=lambda r:r['wall'])
+    after=min([r for r in rows if r['wall']>=tr], key=lambda r:r['wall'])
+    frac=(tr-before['wall'])/(after['wall']-before['wall'])
+    xtr=before['xyz'][0]+frac*(after['xyz'][0]-before['xyz'][0])
+    last=max([r for r in rows if r['wall']<=stop+1e-6], key=lambda r:r['wall'])
+    print(i, round(before['xyz'][0],5), round(after['xyz'][0],5), round(xtr,5),
+          round(last['xyz'][0],5), round(last['xyz'][0]-after['xyz'][0],4),
+          round(last['xyz'][0]-xtr,4), round(last['xyz'][0]-before['xyz'][0],4))
+PY
+1 0.02634 0.03791 0.02892 0.16001 0.1221 0.1311 0.1337
+2 0.03033 0.04230 0.03236 0.15761 0.1153 0.1253 0.1273
+3 0.03591 0.04389 0.03638 0.15961 0.1157 0.1232 0.1237
+```
+
+### 1.3 速度剖面（无制动段）
+
+```bash
+$ cd /tmp/r851 && python3 - <<'PY'
+import json
+d=json.load(open('note/进度/v8/M5/26-10-28/evidence/R850/noroute_run1.json'))
+tr=d['cases'][0]['trigger']['wall']; stop=tr+d['cases'][0]['trigger_to_physical_stop_wall_s']
+for r in d['raw']['physics']:
+    if r['phase']!='sensed_no_route': continue
+    if tr-0.01 <= r['wall'] <= stop+0.10:
+        print(round(r['wall']-tr,3), r['sim'], round(r['xyz'][0],5), round(r['linear'][0],3))
+PY
+0.030 1.254 0.03791 0.4
+...
+1.046 1.550 0.15602 0.4
+1.086 1.571 0.16001 -0.0
+1.126 1.611 0.16001 -0.0
+```
+
+`lite3_planar_drive.cpp`（6a689be）：
+
+```
+drive_mode_ == "kinematic" -> SetWorldPose
+else                      -> parent_->SetLinearVel(v_world...)
+```
+
+`lite3_planar.urdf.xacro` 第 148 行 `<driveMode>dynamic</driveMode>`。
+
+---
+
+## 2. 配置面
+
+```bash
+$ cd /tmp/r851 && python3 -B - <<'PY'
+import sys
+sys.path.insert(0,'ws/src/90_platform/v8_platform/calibration')
+import calibration as c
+print('validate:', {k:v for k,v in c.validate_frozen().items() if k!='pending_detail'})
+print('assert_digest:', c.assert_digest())
+print('freeze_guard:', c.freeze_guard(c.FROZEN))
+PY
+validate: {'ok': True, 'status': 'pass', 'blocked': False, 'freeze_allowed': True,
+ 'pending': [], 'calibration_version': 2,
+ 'digest': '4f570e94f9ffad14620a23fd3f6c34f701baeb5aa2da9f3e65205714fbfeee36'}
+assert_digest: 4f570e94f9ffad14620a23fd3f6c34f701baeb5aa2da9f3e65205714fbfeee36
+freeze_guard: []
+```
+
+```bash
+$ cd /tmp/r851/ws/src/90_platform/v8_platform/calibration && python3 -B calibration.py freeze
+{"ok": true, "ok_scope": "shape_and_contract_only", "status": "pass", "blocked": false,
+ "freeze_allowed": true, "pending": [], "calibration_version": 2,
+ "digest": "4f570e94...", "baseline": "/tmp/r851/.../frozen_baseline.json"}
+rc=0
+```
+
+基线与 FROZEN：
+
+```
+baseline digest 4f570e94f9ffad14620a23fd3f6c34f701baeb5aa2da9f3e65205714fbfeee36
+baseline frozen == FROZEN: True
+baseline digest == digest(baseline frozen): True
+baseline keys include stop_distance_m, stop_time_s
+```
+
+`052f5e9 → 6a689be` 的 calibration.py diff：
+
+```
+@@ FROZEN budgets @@
++        'stop_time_s': {'value': 0.50, ...}
++        'stop_distance_m': {'value': 0.15, ...}
+@@ PENDING_REQUIRED @@
+-PENDING_REQUIRED = [ ... 两条 ... ]
++PENDING_REQUIRED = []
+@@ SCOPED_REQUIRED @@
++    'budgets.stop_time_s': {... min_sample_n 3}
++    'budgets.stop_distance_m': {... min_sample_n 3}
+@@ DIGEST @@
+-DIGEST = 'ddc8f9f0...'
++DIGEST = '4f570e94...'
+```
+
+叶子级 diff（旧 FROZEN → 新 FROZEN）：
+
+```
+removed []
+added ['budgets.stop_distance_m.evidence', 'budgets.stop_distance_m.sample_n',
+       'budgets.stop_distance_m.scope', 'budgets.stop_distance_m.value',
+       'budgets.stop_time_s.evidence', 'budgets.stop_time_s.sample_n',
+       'budgets.stop_time_s.scope', 'budgets.stop_time_s.value']
+changed []
+check_loosening(old,new) -> []
+```
+
+形状缺口：
+
+```bash
+$ cd /tmp/r851 && python3 -B - <<'PY'
+import sys, copy
+sys.path.insert(0,'ws/src/90_platform/v8_platform/calibration')
+import calibration as cal
+for name in ('stop_time_s','stop_distance_m'):
+    for label, mutate in (
+        ('missing value', lambda n: n.pop('value')),
+        ('value None', lambda n: n.__setitem__('value', None)),
+        ('value inf', lambda n: n.__setitem__('value', float('inf'))),
+        ('missing evidence', lambda n: n.pop('evidence')),
+    ):
+        cfg=copy.deepcopy(cal.FROZEN); mutate(cfg['budgets'][name])
+        try:
+            r=cal.validate_frozen(cfg); print(name,label,'->',r['status'],r['pending'])
+        except cal.CalibrationError as e: print(name,label,'->',e.code)
+PY
+stop_time_s missing value -> pass []
+stop_time_s value None -> pass []
+stop_time_s value inf -> pass []
+stop_time_s missing evidence -> blocked ['budgets.stop_time_s']
+stop_distance_m missing value -> pass []
+stop_distance_m value None -> pass []
+stop_distance_m value inf -> pass []
+stop_distance_m missing evidence -> blocked ['budgets.stop_distance_m']
+```
+
+放宽方向：
+
+```bash
+$ cd /tmp/r851 && python3 -B - <<'PY'
+import sys, copy
+sys.path.insert(0,'ws/src/90_platform/v8_platform/calibration')
+import calibration as cal
+for new in (0.10, 0.30, 0.50):
+    cur=copy.deepcopy(cal.FROZEN); cur['budgets']['stop_distance_m']['value']=new
+    try:
+        print('0.15 ->',new,'result',cal.check_loosening(cal.FROZEN,cur))
+    except cal.CalibrationError as e:
+        print('0.15 ->',new,'RAISED',e.code,e.detail[:100])
+PY
+0.15 -> 0.1 RAISED E_CAL_LOOSENED 放宽缺 unfreeze_log 的 from/to/reason: budgets.stop_distance_m.value: 0.15→0.1（预算/上限下调）
+0.15 -> 0.3 result []
+0.15 -> 0.5 result []
+```
+
+unfreeze_log：
+
+```
+2026-10-26 None None -> None
+2026-10-27 sampling.scenario_repetitions.value 1 -> 3
+...
+2026-10-28 success_rate.min_pass_rate.scope ...
+（共 19 条；无 budgets.stop_time_s.value / budgets.stop_distance_m.value）
+```
+
+---
+
+## 3. 测试
+
+### 3.1 calibration 52 项
+
+```bash
+$ cd /tmp/r851 && python3 -B ws/src/90_platform/v8_platform/calibration/test_calibration.py
+Ran 52 tests in 0.325s
+OK
+```
+
+### 3.2 全量 33 套件
+
+```bash
+$ for f in ws/src/90_platform/v8_platform/*/test_*.py \
+           ws/src/95_simulation/lite3_gazebo_sim/dynamics/test_*.py; do
+    timeout 300 python3 -B "$f"; done
+TOTAL=33 FAILURES=0 CASES=308
+```
+
+对比第二轮：`calibration 59 → 52`、`test_execution 12 → 13`、总用例 `314 → 308`。
+
+### 3.3 冻结测试有牙
+
+```bash
+# /tmp/r851_cal = 副本；仅改 stop_time_s.value 0.50 -> 0.60
+$ cd /tmp/r851_cal/calibration && python3 -B test_calibration.py
+FAIL: test_cli
+FAIL: test_frozen_valid_and_digest_stable
+FAIL: test_stop_budgets_frozen_r850
+FAIL: test_stop_full_chain_keys_frozen_r850
+ERROR: test_digest_golden_rejects_value_change
+ERROR: test_success_rate_metadata_complete_no_pending_r850
+Ran 52 tests ... FAILED (failures=4, errors=2)
+```
+
+scope/sample_n：
+
+```bash
+$ cd /tmp/r851 && python3 -B - <<'PY'
+import sys, copy
+sys.path.insert(0,'ws/src/90_platform/v8_platform/calibration')
+import calibration as cal
+bad=copy.deepcopy(cal.FROZEN); bad['budgets']['stop_time_s'].pop('scope')
+cal.validate_frozen(bad)
+PY
+E_CAL_PENDING budgets.stop_time_s.scope 须为 'gazebo_planar_full_chain_sensed_no_route_0p4_simtime_n3_no_staleness'（当前 None）；带域冻结不许静默扩域（fail-closed）
+
+$ ... sample_n=2
+E_CAL_PENDING budgets.stop_time_s.sample_n 须为 ≥3 的整数（当前 2）；样本不足不得带域冻结（fail-closed）
+```
+
+### 3.4 R845 uncertainty 测试有牙
+
+```bash
+# /tmp/r851_teeth/v8_platform = 副本；把
+#   if max(distance, observed_distance) + uncertainty_m <= 1e-6:
+# 改为
+#   if max(distance, observed_distance) <= 1e-6:
+$ cd /tmp/r851_teeth/v8_platform/local_planner && \
+  python3 -B -m unittest test_execution.ExecutionTests.test_in_flight_uncertainty_blocks_contact_certification -v
+FAIL: AssertionError: True is not false
+Ran 1 test ... FAILED (failures=1)
+
+# 原仓副本：
+$ cd /tmp/r851 && python3 -B -m unittest ...test_in_flight_uncertainty... -v
+OK
+```
+
+### 3.5 被删测试对当前配置重跑
+
+```bash
+$ cd /tmp/r851_deltests && PYTHONPATH=/tmp/r851/ws/src/90_platform/v8_platform/calibration:... \
+  python3 -B - <<'PY'
+# 用 052f5e9 的 test_calibration.py 作为 test_old_deleted，逐个跑 8 条被删测试
+PY
+test_p95_local_frozen_scoped_r722 FAIL （只因 assertEqual(report['status'],'blocked')，旧 pending 态）
+test_p95_local_scope_and_sample_guard PASS
+test_stop_chain_osmesa_proxies_scoped_r726 FAIL （只因 assertEqual(len(report['pending']),2)，旧 pending 态）
+test_stop_chain_osmesa_scope_guard PASS
+test_stop_chain_osmesa_distance_guard PASS
+test_budget_raise_not_flagged_by_loosening PASS
+test_stop_component_raise_logged PASS
+test_resources_and_sampling_frozen_shape PASS
+```
+
+`git diff 052f5e9..6a689be -- test_calibration.py`：
+
+```
+removed defs: 12
+added defs: 5
+numstat: 54 145  ws/src/90_platform/v8_platform/calibration/test_calibration.py
+```
+
+---
+
+## 4. R845
+
+### 4.1 R842 hunk
+
+```bash
+$ cd /tmp/r851 && grep -n "planned_distance <= 1e-12" -A 5 ws/src/90_platform/v8_platform/local_planner/local_native.py
+197:    if planned_distance <= 1e-12:
+198-        if now >= target[3]:
+199-            return dict(zero, reason='segment_complete', complete=True)
+200-        collision = body_collision(...)
+201-        return dict(zero, reason='E_LOCAL_COLLISION' if collision else 'hold')
+```
+
+R842 的“终段时钟接触认证”块不在；`844c735..6a689be` 的 `local_native.py` diff 只有 8 行
+（撤销 R842 并恢复原形）。
+
+### 4.2 F5 16
+
+```bash
+$ cd /tmp/r851 && python3 -B - <<'PY'
+import json
+d=json.load(open('note/进度/v8/M5/26-10-28/evidence/R841/a5_ros_initial_fail.json'))
+c=d['cases'][0]; ie=c['independent_evaluation']
+print(ie['failures'], ie['samples'], len(ie['collisions']), len(ie['static_collisions']))
+print(c['name'], c['final_contact_xyz'], c['goal_xyz'])
+PY
+['dynamic_collision'] 545 16 0
+dynamic [1.2000000000000002, -5.637851296924623e-18, 0.0] [1.2, 0.0, 0.0]
+```
+
+### 4.3 TEB 两条轨迹 sha256
+
+```bash
+$ sha256sum note/进度/v8/M5/26-10-28/evidence/R845/sc01_s0_trajectory.json
+9d60cb5d6a98bf0962c280e745d551bae95892f8299aef2f42fdeec9e313d481
+$ sha256sum note/进度/v8/M5/26-10-28/evidence/R845/sc09_s2_trajectory.json
+316170584f33394fa13caa76a7efd3e7495cf21bf8a2fca99148a8ce31f63ecb
+
+# driver.json：
+sc01_s0_driver.json  telemetry_sha256 = 9d60cb5d...e313d481
+sc09_s2_driver.json  telemetry_sha256 = 31617058...f63ecb
+```
+
+manifest 的 `telemetry_json` 仍为 `/tmp/r841-teb-clock-repair*/trajectory.json`（旧容器路径）。
+
+### 4.4 hardware
+
+```
+R850 noroute_run*.json 顶层: hardware=False
+R845 a5_ros_v4_full.json 顶层: keys ['ok','cases','complete_suite','gazebo','dynamics']（无 hardware）
+R845 a5_ros_v4_full.json 5 个 case: hardware=False（逐 case）
+```
+
+---
+
+## 5. R846 效率复跑（容器 v8cal）
+
+```bash
+$ docker exec v8cal bash -lc 'cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && \
+  python3 -B crawl_gait.py crawl --cycle FL,HR,FR,HL,FL,HR,FR,HL --skip-final-advance \
+  --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --drive-fwd 0.06 --swing-fwd 0.04 \
+  --margin-min 0.05 --shift-policy incenter --normalize-step-x \
+  --out /work/r851_efficiency.json'
+# rc=0；/home/jack/temp/r851_efficiency.json
+```
+
+读数：
+
+```
+pass True
+requested_steps 8 / completed_steps 8
+final_x 0.214 / final_y -0.06 / final_z 0.337 / zmin 0.33 / fell False
+phases 58
+lift_h 0.1 / margin_min 0.05 / slip_tol 0.02 / y_tol 0.03 / step_h 0.0
+normalize_step_x True / shift_policy incenter / shift_mag 0.05
+phase names identical to R846 sweep_norm_d0.06.json: True
+world_feet_end identical: True
+sha256 941361366638ce1b39febb74aea8d5854cfa57cab5ed09a07783d68991b16d31
+```
+
+代码哈希：
+
+```
+sha256(crawl_gait.py) = f7cf6c556bf14e0eab781cd5403100a1606953a29f81aae4b7ec8493866754a7
+git blob              = d84cccbd3f89217fbc1239ff0149c910ede11b43
+```
+
+R846 负结果：
+
+```
+sweep_norm_d0.065.json       pass=False steps=4/8 final_x=0.538 abort=E_GAIT_SUPPORT_MARGIN
+crawl_2lap_closest.json      pass=False steps=8/8 final_x=0.119
+sweep_match_d0.06_s0.06.json pass=False steps=4/8 final_x=0.082 abort=E_GAIT_SUPPORT_MARGIN
+```
+
+---
+
+## 6. R848
+
+```bash
+$ cd /tmp/r851 && python3 -B - <<'PY'
+import json, glob, os
+for p in sorted(glob.glob('note/进度/v8/M5/26-10-28/evidence/R848/force_stair_*.json')):
+    r=json.load(open(p))['results'][0]
+    wf=r.get('world_feet_end') or {}
+    print(os.path.basename(p), 'steps',r['completed_steps'],'/',r['requested_steps'],
+          'max_feet_x',max(v[0] for v in wf.values()), 'force_experiment',r.get('force_experiment'))
+PY
+force_stair_006.json        steps 1/10 max_feet_x 0.099  force_experiment []
+force_stair_force070.json   steps 4/10 max_feet_x 0.958  force_experiment []
+force_stair_pd070.json      steps 4/10 max_feet_x 0.958  force_experiment None
+force_stair_pd080.json      steps 1/10 max_feet_x 0.099  force_experiment None
+force_stair_sX070_h04.json  steps 4/10 max_feet_x 0.961  force_experiment []
+force_stair_sX070_h05.json  steps 4/10 max_feet_x 0.959  force_experiment []
+force_stair_sX072_h06.json  steps 4/10 max_feet_x 0.978  force_experiment []
+force_stair_sX075_h06.json  steps 4/10 max_feet_x 0.980  force_experiment []
+
+# force070 vs pd070 的 32 个相位逐条相同：identical True
+```
+
+有效件：
+
+```
+force_world_stair06b.json  pass=False steps=5/10 force_reports=3
+  liftr0_HL dz=3.99 cm lifted=False
+  liftr0_HR dz=5.64 cm lifted=False
+  liftr1_HL dz=5.59 cm lifted=False
+plain_world_stair06b.json  pass=False steps=5/10
+  liftr0_HL dz=8.11 cm lifted=True
+  liftr0_HR dz=8.37 cm lifted=True
+  liftr1_HL dz=8.96 cm lifted=True
+plain_step04.json          pass=False steps=5/10
+  first failed check: advancer0_HL_b support_slip
+  front feet z=0.061; rear world_feet_end z=0.236/0.322
+```
+
+R848 §4.2 原文：“世界 0.04 是单级低台阶，不是字面‘两级踏面’楼梯”。
+
+---
+
+## 7. 04/05
+
+```bash
+$ git diff --stat 7ccf816^..7ccf816 -- note/04_配置改动diff.md note/05_复验作业单.md
+ note/04... | 11 +++++++++++
+ note/05... |  4 ++++
+ 2 files changed, 15 insertions(+)
+
+$ git diff --unified=0 7ccf816^..7ccf816 -- note/04... note/05...
+@@ -7089,0 +7090,11 @@
+@@ -2579,0 +2580,4 @@
+（无删除行；均在文件末尾）
+```
+
+R850 对 04/05：`git diff 6a689be^..6a689be -- note/04... note/05...` 为空。
+
+---
+
+## 8. 门禁
+
+```bash
+$ VLB_ROOT=/home/jack/ysc-code/ros1-slam bash scripts/verify/v_ledger_batch_consistency.sh
+[C4 档头滞后] 220 批（条目区域内最大 R850 − 档头 R630）
+BATCHCHECK VERDICT: rc=5（0 干净或仅存量／5 FAIL 集命中新增／9 前置缺失）
+
+$ DC_ROOT=/home/jack/ysc-code/ros1-slam bash scripts/verify/v_deferred_clause_scan.sh
+DC SCAN VERDICT: A 类到期未回收=1 B 类待人工=16 ... rc=1
+
+$ VCC_ROOT=/home/jack/ysc-code/ros1-slam bash scripts/verify/v_citation_check.sh $(...claim_face...)
+[计数] 文档=68 单点引用=742 OK=600 RED=20 AMBER=46 ...
+VCC VERDICT rc=6（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+RED 目标：hdl_localization.launch:89 ×12；note/进度/v7/S3/进度文档.md:972 ×8
+
+$ cd /tmp/r851 && VCC_ROOT=/tmp/r851 bash scripts/verify/v_citation_check.sh $(...claim_face...)
+[计数] 文档=68 单点引用=742 OK=606 RED=14 AMBER=47 ...
+[面条件] git 忽略集内=0 件＝未核（fatal: 不是 git 仓库）
+VCC VERDICT rc=6（0 干净／5 有 AMBER／6 有 RED／9 前置缺失）
+# rc 两面一致；RED 计数 20 vs 14 是工作树面差（archive 缺 4 个 git-ignored/untracked 目标）
+```
+
+ISO/VAR 未重跑；R843 归因（ISO=1、VAR=9 INVALID）与脚本未变。A1 两格：
+
+```
+teb_matrix/results.json:
+SC01_s0 sim=None rtf=None PASS
+SC09_s2 sim=None rtf=None PASS
+其余 7 格 sim 9.3—19.6、rtf 0.354—0.432
+```
+
+F6/G6：
+
+```
+runtime_probe.py:45 def start_node(...): return subprocess.Popen(...)  # 无 start_new_session
+git log --follow: runtime_lab.py/evaluate.py/ros_node.py/local_native.py/runtime_probe.py
+  → 首次 d74c4ab；trajectory_checker.py → 5f646f9 可比（收紧）
+```
+
+---
+
+## 9. 备注
+
+- R846 复跑只写 `/home/jack/temp/r851_efficiency.json`（容器 `/work`），未改仓。
+- 所有 `/tmp` 副本（`/tmp/r851_cal`、`/tmp/r851_teeth`、`/tmp/r851_deltests`、`/tmp/r851_r2`）
+  只用于本日志的对照，未回写 live repo。
+- 未启停 `v8codex-20261028`／`v8loc`／`v8cal`／`ros1-slam-web`；R846 只在 `v8cal` 内执行只读仓 + `/work` 写。

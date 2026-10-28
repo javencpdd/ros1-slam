@@ -1,0 +1,11 @@
+R853 12 格矩阵（2026-10-28，qoder）
+容器 v8codex-20261028；source noetic + /opt/ros1-slam/ws/devel；仓库 /repo。
+每格由 runtime_lab 自起 roscore + m1 Gazebo + mux（估计轨另起 noisy_localization），跑完清组。
+
+# 首次估计轨（20 Hz）0/3：TF 外推 13 ms → 改 50 Hz + 60 ms 前瞻后重跑
+for be in dwa teb; do for tr in truth noisy; do
+  timeout 760 python3 -B ws/src/90_platform/v8_platform/regression/runtime_batch.py \
+    --out /tmp/r851_matrix12/${be}_${tr} --backend $be \
+    --scenarios SC01,SC02,SC09 --seeds 0 --localization $tr --noise-seed 0
+done; done
+# 12/12 PASS；证据＝4 results.json + 4 preregistered.json + matrix_summary.json

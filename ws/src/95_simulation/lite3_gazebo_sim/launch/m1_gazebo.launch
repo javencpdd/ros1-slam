@@ -3,6 +3,7 @@
        （小张 payload，2026-10-05）。headless 实现：empty_world.launch gui:=false → 只起 gzserver。
        前置：fratopa 包 livox_laser_simulation 原样复制进 ws/src 并 catkin build（见 04 台账 D-02）。 -->
   <arg name="gui" default="false"/>
+  <arg name="map_to_odom" default="true"/>
   <arg name="payload_dir" default="$(find lite3_gazebo_sim)"/>
   <arg name="world" default="$(arg payload_dir)/worlds/m1_world.world"/>
 
@@ -31,7 +32,7 @@
        ★无定位节点的占位桥，真定位接入时不起★——凡本台引入 hdl／faster_lio 等发 map 系的节点，
        必须注释掉本节点；下面的 tf_frame_assert 是它的在位闸。 -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom_static"
-        args="0 0 0 0 0 0 map odom"/>
+        if="$(arg map_to_odom)" args="0 0 0 0 0 0 map odom"/>
 
   <!-- 父边唯一断言（R572 新建）：odom 父帧唯一且＝map、map 帧可达；结论写 /tf_frame_assert/ok -->
   <node pkg="lite3_gazebo_sim" type="tf_frame_assert.py" name="tf_frame_assert" output="screen">

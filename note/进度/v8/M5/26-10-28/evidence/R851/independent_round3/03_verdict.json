@@ -1,0 +1,160 @@
+{
+  "round": 3,
+  "sealed_at": "2026-10-28T22:24:00+08:00",
+  "reviewer": "independent_round3",
+  "head": "6a689be01ff55620d3b4ba7589173536771f948f",
+  "budget_151_freeze": "PARTIAL",
+  "runtime_release": "PARTIAL",
+  "findings": [
+    {
+      "id": "F1",
+      "status": "PASS",
+      "evidence": "evidence/R850/noroute_run1..3.json raw.physics; independent recompute per R847 method",
+      "observation": "#151 stop distances 0.1221/0.115317/0.115716 m and sim stop times 0.372/0.365/0.385 s reproduce; max 0.1221 m / 0.385 s; all ok=true, E_LOCAL_NO_ROUTE, 0.4 m/s; post-stop xy drift 0.0 over 4.3-5.5 s."
+    },
+    {
+      "id": "F2",
+      "status": "PARTIAL",
+      "evidence": "same three raw runs; trigger lies between physics samples; interpolation and last-pre-trigger recompute",
+      "observation": "The reported distance starts at the first sample with wall>=trigger, omitting 7.5-11.6 mm of travel. Trigger-interpolated distances are 0.1311/0.1253/0.1232 m; from the last pre-trigger sample 0.1337/0.1273/0.1237 m. The 0.15 m budget still covers corrected max 0.1337 m (margin 0.0163 m, ~11%), not the claimed 23%; the reported 6.8 mm spread is a method artifact (true spread ~10.5 mm)."
+    },
+    {
+      "id": "F3",
+      "status": "FAIL",
+      "evidence": "raw.physics velocity profile run1; ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp SetLinearVel; URDF driveMode=dynamic",
+      "observation": "The carrier is velocity-actuated: vx=0.4 at sim 1.550 (x=0.15602), vx=0.0 at sim 1.571 (x=0.16001), i.e. a one-sample (~4 mm) stop with no braking model. 0.1221 m is perception+local-planning+mux latency, not a braking-inclusive stop distance. The original R716/24 4.1 requirement explicitly asked for braking; 'Gazebo dynamics' and 'full_chain' overstate, and the chain excludes the global planner (R850 4.3 admits this)."
+    },
+    {
+      "id": "F4",
+      "status": "PASS",
+      "evidence": "calibration.py FROZEN/PENDING_REQUIRED/SCOPED_REQUIRED/DIGEST; frozen_baseline.json; git diff 052f5e9..6a689be; leaf diff; check_loosening(old,new)",
+      "observation": "stop_time_s=0.50 and stop_distance_m=0.15 with the declared scope/sample_n=3/evidence; PENDING_REQUIRED=[]; both keys in SCOPED_REQUIRED with min_sample_n=3 and exact scope; DIGEST=4f570e94... matches calibration.digest(); baseline is deep-equal to FROZEN and digest matches; only the two keys were added, no other frozen value changed; check_loosening(round-2 FROZEN, HEAD FROZEN) returns []."
+    },
+    {
+      "id": "F5",
+      "status": "FAIL",
+      "evidence": "calibration.py unfreeze_log (19 entries); git diff 052f5e9..6a689be",
+      "observation": "No unfreeze_log entry exists for budgets.stop_time_s.value or budgets.stop_distance_m.value. Every prior new key frozen from pending (cancel_time, brake peak, osmesa, p95_local, localization, success_rate) has a from='未定标（pending）'/to=value/reason record. R850 added two frozen keys silently, contrary to the module's explicit-unfreeze contract."
+    },
+    {
+      "id": "F6",
+      "status": "FAIL",
+      "evidence": "calibration.py REQUIRED table; validate_frozen mutations",
+      "observation": "REQUIRED has no budgets.stop_time_s.* or budgets.stop_distance_m.* shape entries. With scope/sample_n/evidence present, validate_frozen returns status=pass and pending=[] when value is missing, None, or inf; only assert_digest catches those mutations. Missing evidence is caught by the ad-hoc loop. The new keys have weaker shape validation than every other frozen budget key."
+    },
+    {
+      "id": "F7",
+      "status": "FAIL",
+      "evidence": "calibration._loosening_reason; check_loosening experiments; deleted test_budget_raise_not_flagged_by_loosening",
+      "observation": "For budget keys the guard flags a decrease as loosening and ignores an increase: 0.15->0.50 returns []; 0.15->0.10 raises E_CAL_LOOSENED. The test that documented this blind spot was deleted by R850 and still passes against current config. No remaining test covers a stop-budget raise."
+    },
+    {
+      "id": "F8",
+      "status": "FAIL",
+      "evidence": "git diff 052f5e9..6a689be -- test_calibration.py; 33-suite run; re-executed deleted tests",
+      "observation": "Calibration tests shrank 59->52 (12 removed, 5 added); 8 deletions are collateral beyond the 4 stop/state replacements. 6 of the 8 still pass against current config; the other 2 fail only because they assert the obsolete blocked/pending=2 state. Deleted tests include test_budget_raise_not_flagged_by_loosening, test_stop_component_raise_logged, the p95_local guards, the osmesa guards, and resources/sampling shape checks. Total suite cases fell 314->308 (calibration -7, test_execution +1). R850.md/timeline say only the R716 test was replaced; this understates the shrinkage."
+    },
+    {
+      "id": "F9",
+      "status": "PARTIAL",
+      "evidence": "local_native.py lines 197-201 at 6a689be; test_execution.py rename; R845 proof",
+      "observation": "The R842 hunk is gone: the zero-length branch again returns complete when now>=target[3], certifying contact from the clock alone. R845's unreachability proof covers plan() results only; no test pins the zero-length branch or enforces unreachability, and an external caller passing a zero-length trajectory could still hit it. The revert removed a hardening without a replacement guard."
+    },
+    {
+      "id": "F10",
+      "status": "PASS",
+      "evidence": "/tmp copy with + uncertainty_m removed; test_execution.ExecutionTests",
+      "observation": "test_in_flight_uncertainty_blocks_contact_certification fails (complete=True) when + uncertainty_m is removed and passes on HEAD. It protects the uncertainty term, not the zero-length step branch."
+    },
+    {
+      "id": "F11",
+      "status": "PASS",
+      "evidence": "evidence/R841/a5_ros_initial_fail.json case0 independent_evaluation",
+      "observation": "F5 collision count is 16 (all dynamic_collision, segment 3, samples=545), not 17; trace has 9 points, no execution_trace, old domain string. R845's correction is accurate."
+    },
+    {
+      "id": "F12",
+      "status": "PARTIAL",
+      "evidence": "evidence/R845 driver/manifest/trajectory; a5_ros_v4_full.json",
+      "observation": "sc01_s0_trajectory.json sha256=9d60cb5d...e313d481 and sc09_s2_trajectory.json sha256=31617058...f63ecb match their driver telemetry_sha256; both files are in the repo. Manifests still point telemetry_json to old /tmp container paths. R850 runs have top-level hardware=false; R845 a5_ros_v4_full.json has hardware=false only per case, no top-level hardware key, so G4 is only half closed."
+    },
+    {
+      "id": "F13",
+      "status": "PASS",
+      "evidence": "docker exec v8cal crawl_gait.py; /home/jack/temp/r851_efficiency.json",
+      "observation": "Two-lap winning command reproduces exactly: pass=true, 58 phases, completed 8/8, final_x=0.214, final_y=-0.06, final_z=0.337; lift_h=0.10, margin_min=0.05, slip_tol=0.02, y_tol=0.03, step_h=0.0; phase names and world_feet_end identical to evidence/R846/sweep_norm_d0.06.json. Code blob/sha256 match R846 code_ref."
+    },
+    {
+      "id": "F14",
+      "status": "PASS",
+      "evidence": "evidence/R848 force_stair_*.json, force_world_stair06b.json, plain_world_stair06b.json, plain_step04.json",
+      "observation": "Retraction is honest: bad-batch world_feet_end max x 0.099-0.980 (<1.0), force_experiment=[] for the six force runs and None for the two pd runs; force070 vs pd070 have 32 identical phases. Valid force run has force_reports length 3; rear lifts 3.99/5.64/5.59 cm vs plain 8.11/8.37/8.96 cm, all force lifted=False and plain lifted=True. 0.04 m is a single low step, and R848 4.2 says so; R849's 'two-level/low step' shorthand is looser but the primary evidence is honest. Minor: R848 1's blanket '8 JSON force_experiment=[]' is actually 6/8 [] + 2 None."
+    },
+    {
+      "id": "F15",
+      "status": "PASS",
+      "evidence": "git diff --unified=0 7ccf816^..7ccf816 -- note/04 note/05; git diff 6a689be^..6a689be -- note/04 note/05",
+      "observation": "R849 appended 11 lines to note/04 and 4 lines to note/05 at EOF (15 insertions, 0 deletions); no old lines/numbers changed. R850 did not touch 04/05."
+    },
+    {
+      "id": "F16",
+      "status": "PARTIAL",
+      "evidence": "runtime_probe.start_node; git log --follow six files; v_ledger_batch_consistency.sh; v_citation_check.sh; v_deferred_clause_scan.sh; teb_matrix/results.json",
+      "observation": "F6 still closed (start_node has no start_new_session; unchanged). G6 still stands: five of six files first appear at d74c4ab, only trajectory_checker.py has a comparable 5f646f9 (tightening). DC rc=1 (A=1/B=16) unchanged on both live and frozen-copy faces; ledger rc=5 with C4 lag 220 (up from 213; new R844/R849/R850 entries without header roll); VCC rc=6 on both faces, RED=20 on live (hdl:89 x12 + v7 972 x8) but RED=14 on git archive because 4 git-ignored/untracked targets are absent, so the RED count is face-dependent; the R843 18 was then-current. ISO 1/VAR 9 not rerun this round, scripts unchanged, VAR remains INVALID. A1 still has SC01_s0/SC09_s2 sim/rtf null (2/9 INVALID)."
+    },
+    {
+      "id": "F17",
+      "status": "PARTIAL",
+      "evidence": "calibration.py FROZEN evidence strings; note/05; 00 timeline",
+      "observation": "Three FROZEN evidence strings still say stop_time_s/stop_distance_m are pending (cancel_time_s, stop_brake_peak_distance_m, stop_brake_peak_time_s), which is false after R850. R850 changed a judgment carrier but note/05 has no same-batch F-section entry (only R849's ledger pointer); 00 header still R630. Documentation/sync debt, not a numeric change."
+    }
+  ],
+  "unresolved": [
+    "step code-level root cause remains unattributed; no test covers the zero-length terminal branch or enforces its unreachability.",
+    "A1 TEB SC01_s0 and SC09_s2 sim_duration_s/rtf are null (7 valid + 2 INVALID); denominator unchanged.",
+    "Six-file delta old side unrecoverable (five files first at d74c4ab; only trajectory_checker.py comparable).",
+    "Full A1-A7 remains NOT_VALIDATED: four-combo x dual-track, real dual-localization switch, native 3D planner in contact dynamics, four-foot stair climb, real-robot migration have no round-3 evidence.",
+    "#151 has no braking-inclusive stop distance on a legged/real carrier; global planning is not in the chain; 0.15/0.50 is a planar, sim-time, latency budget.",
+    "R850 governance gaps (no unfreeze_log, no REQUIRED shape entries, inverted budget loosening guard, deleted audit tests) are not fixed in this round.",
+    "ISO and VAR were not rerun; their R843 attributions stand by unchanged scripts, but VAR remains INVALID.",
+    "R845 a5_ros_v4_full.json has no top-level hardware key (per-case false only)."
+  ],
+  "invalid_metrics": [
+    "VAR rc=9 (runner input/evidence-glob precondition) is INVALID per the three-state channel and not counted as a reading.",
+    "Ledger original rc=9 (container git ownership) is INVALID; the corrected rc=5 is the reading.",
+    "A1 TEB SC01_s0 and SC09_s2 sim_duration_s/rtf=null are INVALID; the 9-cell denominator is not 9 valid.",
+    "R843 VCC 18 RED was then-current; live VCC RED=20 (12 hdl:89 + 8 v7 S3:972), git-archive VCC RED=14 (missing ignored targets); rc=6 is stable but the RED count is face-dependent.",
+    "R850 reported stop-distance max 0.1221 m, spread 6.8 mm and 23% margin are computed on a one-sample-truncated window; corrected max is 0.1337 m, spread ~10.5 mm, margin ~11%.",
+    "R848's blanket '8 JSON force_experiment=[]' is 6/8 [] plus 2 pd None."
+  ],
+  "test_suites": {
+    "count": 33,
+    "failures": [],
+    "cases": 308,
+    "calibration_cases": 52,
+    "note": "33/33 rc=0; 308 cases vs 314 in round 2 (calibration 59->52, test_execution 12->13)."
+  },
+  "efficiency_recheck": {
+    "container": "v8cal",
+    "command": "python3 -B crawl_gait.py crawl --cycle FL,HR,FR,HL,FL,HR,FR,HL --skip-final-advance --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --drive-fwd 0.06 --swing-fwd 0.04 --margin-min 0.05 --shift-policy incenter --normalize-step-x --out /work/r851_efficiency.json",
+    "pass": true,
+    "phase_count": 58,
+    "completed_steps": 8,
+    "requested_steps": 8,
+    "final_x": 0.214,
+    "final_y": -0.06,
+    "final_z": 0.337,
+    "thresholds": {
+      "lift_h": 0.1,
+      "margin_min": 0.05,
+      "slip_tol": 0.02,
+      "y_tol": 0.03,
+      "step_h": 0.0
+    },
+    "phase_names_identical_to_R846": true,
+    "world_feet_end_identical_to_R846": true,
+    "artifact": "/home/jack/temp/r851_efficiency.json",
+    "sha256": "941361366638ce1b39febb74aea8d5854cfa57cab5ed09a07783d68991b16d31",
+    "note": "Deterministic rerun; same 58 phases, 8/8 steps, final_x and thresholds as evidence/R846/sweep_norm_d0.06.json."
+  }
+}
