@@ -79,10 +79,11 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
     return tau
 
 
-def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0):
+def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0):
     import mujoco
-    model = mujoco.MjModel.from_xml_path(XML)
+    model = mujoco.MjModel.from_xml_path(xml or XML)
     data = mujoco.MjData(model)
+    data.qpos[0] = start_x
     data.qpos[2] = 0.35
     data.qpos[7:19] = DEF
     mujoco.mj_forward(model, data)
@@ -97,7 +98,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         data.qpos[7:19] = DEF
         mujoco.mj_forward(model, data)
     if mode in ('lift', 'step') and leg in LEGS:
-        goal = nominal[leg] + np.array([0.0, 0.0, height])
+        goal = nominal[leg] + np.array([forward, 0.0, height])
         q = leg_ik(model, data, leg, goal)
         k = 3 * LEGS.index(leg)
         targets[k:k + 3] = q
@@ -123,6 +124,9 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             break
     feet = {name: [round(float(x), 3) for x in foot_body_pos(model, data, name)]
             for name in LEGS}
+    world_feet = {name: [round(float(x), 3) for x in
+                         (data.xpos[_ids(model, name)[1]] if False else data.xpos[_ids(model, name)[1]])]
+                  for name in LEGS}
     return {'mode': mode, 'leg': leg if mode in ('lift', 'step') else None, 'height': height,
             'seconds': seconds, 'final_z': round(float(data.qpos[2]), 3),
             'final_x': round(float(data.qpos[0]), 3), 'zmin': round(zmin, 3),
@@ -142,11 +146,15 @@ def main():
     parser.add_argument('--shift-y', type=float, default=0.0)
     parser.add_argument('--shift-x', type=float, default=0.0)
     parser.add_argument('--ramp', type=float, default=0.0)
+    parser.add_argument('--xml', default='')
+    parser.add_argument('--start-x', type=float, default=0.0)
+    parser.add_argument('--forward', type=float, default=0.0)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
                  kp=args.kp, kd=args.kd, shift_y=args.shift_y, shift_x=args.shift_x,
-                 ramp=args.ramp)
+                 ramp=args.ramp, xml=args.xml or None, start_x=args.start_x,
+                 forward=args.forward)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
