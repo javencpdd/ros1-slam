@@ -7136,3 +7136,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 实现 `mj_step_obstacles.py`（blob `c1a34765`）：初始高度由编译后足球几何（精确）反解（base `0.4084899`、足底 0.06）；`PhysicsObserver` 逐步记录精确世界包围盒（mesh 顶点／球体解析／仅真盒用旋转盒）；包络检查改用精确包围盒，门值仍 0.055／0.56／±0.5；`RouteController` 改 0.5 m 前瞻、最近点推进、最小指令 0.2 m/s、到达 0.12 m。
 - `mj_step_baseline.py` 仅把默认关节角提为模块级 `DEFAULT_POSE`（行为不变）；`test_mj_step_obstacles.py` 增 7 项测试（5 负控＋2 几何回归，共 22 项全过）。
 - 三例重跑 PASS：clear 位移 3.409 m／终点误差 0.122 m；offset_box 3.418 m／0.123 m／最小间隙 0.269 m；blocked_box `E_PLAN_NO_ROUTE`＋双路零命令（位移 0.011 m）。判据门值未改；`hardware=false`、`ascent_completed=false`、#151 pending。详见 R863 与 `evidence/R863`。
+
+## R864（2026-10-29，qoder）：主机侧仿真可视化
+
+- `docker/docker-compose.yml`：移除 `${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority` 挂载（容器创建时源路径常不存在，导致 sim-viz Exit 127）；保留 `/tmp/.X11-unix`；`sim-viz` 的 NVIDIA 透传与 `NVIDIA_DRIVER_CAPABILITIES: all` 生效。认证改由宿主 `xhost +si:localuser:root`（临时、可撤销）。
+- `docker/viz.sh`：不再要求 `/tmp/.Xauthority`，改为提示宿主放行 root。
+- 新增 `scripts/ops/sim_viz.sh`：doctor／start／status／stop；停止按 PID，不用 `pkill -f`；宿主 world 路径自动换算到容器 `/opt/ros1-slam/...`。
+- 实测：glxinfo renderer=NVIDIA RTX 2060 SUPER；gzclient 宿主窗口 3988×2176；stop→start 可复跑。headless `sim` 域未改；第三方世界未改。详见 R864 与 `evidence/R864`。

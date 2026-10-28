@@ -62,7 +62,13 @@ x-ros-base: &ros-base
     # X 认证 cookie 路径（容器内）。可视化时配合 VIZ_HOST_X=1 使用；
     # 无头跑 smoke 时没有任何程序读它，无害。
     # ★ 不要写成 ${XAUTHORITY:-...}：调用方 shell 里的值会被继承进容器，见 README 4.6
-    XAUTHORITY: /tmp/.Xauthority
+    # ★ 2026-10-29 停用（登录循环断根；勿恢复）：原先写死 /tmp/.Xauthority，与下面
+    #   ros-volumes 里那条 ${X_AUTH_FILE...} 挂载配套。该挂载的源路径只在图形会话建立
+    #   之后才存在 ⇒ 容器若先于登录启动，docker 会对不存在的 bind 源自动 mkdir -p，
+    #   生成 root:root 的空目录占住 GDM 写 cookie 的位置 ⇒ 登录闪回登录页。
+    #   挂载已注释 ⇒ 这里一并停用；可视化改走宿主机 xhost +si:localuser:root，
+    #   只经 /tmp/.X11-unix 直连，容器内不再需要任何 XAUTHORITY 文件。
+    # XAUTHORITY: /tmp/.Xauthority
   volumes: &ros-volumes
     # ---- 源码热更新：改宿主机文件，容器里立刻可见 ----
     - ../ws/src:/opt/ros1-slam/ws/src
@@ -84,9 +90,14 @@ x-ros-base: &ros-base
     - ros1_ws_devel:/opt/ros1-slam/ws/devel
     - ros1_logs:/opt/ros1-slam/logs
     - ros1_ros_home:/opt/ros1-slam/.ros
-    # ---- 宿主机 X 服务器 + 认证 cookie（可视化用；无头跑 smoke 时挂着也不影响）----
+    # ---- 宿主机 X 服务器（可视化用；无头跑 smoke 时挂着也不影响）----
     - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
+    # ★ 2026-10-29 停用（登录循环断根；勿恢复）：源路径 /run/user/1000/gdm/Xauthority
+    #   只在图形会话建立之后才存在；容器先于登录启动时，docker 对不存在的 bind 源会
+    #   自动 mkdir -p，生成 root:root 的空目录占住 GDM 写 cookie 的位置 ⇒ gdm-x-session
+    #   拿不到有效 -auth ⇒ DISPLAY 为空 ⇒ 登录闪回。认证改走宿主机
+    #   xhost +si:localuser:root（容器内进程以 uid 0 连 X，SO_PEERCRED 认到的就是 root）。
+    # - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
   working_dir: /opt/ros1-slam
   tty: true
   stdin_open: true
@@ -137,6 +148,19 @@ services:
       - "56301:56301/udp"
       - "56401:56401/udp"
     shm_size: "2gb"                 # Gazebo / 点云传输需要大 /dev/shm
+    # ★ NVIDIA GPU 透传（同 sim-viz 那段）
+    #   这里刻意【不加】 environment 里的 NVIDIA_DRIVER_CAPABILITIES：
+    #   本服务用 <<: *ros-base 继承 environment，一旦自己再写 environment 键就会**整体覆盖**
+    #   掉 anchor 里的 ROS1_MASTER_URI 等一大串（YAML merge key 是覆盖不是深合并）⇒ ROS 直接失联。
+    #   默认 capabilities 含 compute/utility，跑 GPU 加速的 SLAM 算法够用；
+    #   要 rviz/gzclient 图形渲染请用 sim-viz 服务（那里有 graphics capability）。
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     # 需要 GUI（rviz/gzclient）时打开下面三行，并在宿主机执行 xhost +local:root
     # environment:
     #   - DISPLAY=${DISPLAY:-:0}
@@ -191,6 +215,11 @@ services:
     environment:
       USE_XVFB: "1"                 # entrypoint 据此起 Xvfb :99（gzserver 需要 GL 上下文）
       LIBGL_ALWAYS_SOFTWARE: "1"    # 强制 Mesa 软渲染，不要去找 NVIDIA
+                                    # ★ 保持 1，别动：本服务是 headless 仿真域（跑 gzserver +
+                                    #   m2_smoke.sh 门禁），要求无 DISPLAY 环境下稳定可复现。
+                                    #   一旦走 NVIDIA 驱动栈，Xvfb(:99) 场景反而容易挂。
+                                    #   需要真 GPU 渲染请改用 sim-viz 服务（GPU 透传已配好）。
+                                    #   所以本服务也【不加】 deploy.devices.nvidia —— 故意的。
       GAZEBO_MASTER_URI: http://127.0.0.1:11345
       ROS1_MASTER_URI: http://127.0.0.1:11313
       # ★ 必须同时给 ROS_MASTER_URI：entrypoint 只在它自己的进程树里把
@@ -239,7 +268,9 @@ services:
       LIBGL_ALWAYS_SOFTWARE: "0"    # ★ 覆盖镜像里的全局 1：直通宿主机 X 时要用真 GPU，
                                     #   否则 glxinfo 只会看到 llvmpipe（软件渲染）
       DISPLAY: ${X_DISPLAY:-:1}     # 宿主机 X 显示器（实测 :1）
-      XAUTHORITY: /tmp/.Xauthority  # ★ 写死，不要用 ${XAUTHORITY:-...}：
+      # ★ 2026-10-29 停用（登录循环断根；勿恢复）：cookie 挂载已移除，容器内不再指向
+      #   任何 XAUTHORITY 文件；认证改走宿主机 xhost +si:localuser:root。
+      # XAUTHORITY: /tmp/.Xauthority  # ★ 写死，不要用 ${XAUTHORITY:-...}：
                                     # 调用方 shell 里通常有 XAUTHORITY=/run/user/1000/gdm/Xauthority，
                                     # 会被 compose 继承进容器，而那个路径在容器里不存在
                                     # ⇒ 报 Authorization required（和 HTTP_PROXY 那次同型的坑）
@@ -255,6 +286,19 @@ services:
       ROS_DISTRO: noetic
       PYTHONNOUSERSITE: "1"
       TERM: xterm-256color
+      # ★ GPU 透传的 capability：默认只给 compute/utility，缺 graphics 时
+      #   glxinfo 只会看到 llvmpipe。要 all 才能真正硬件渲染 gzclient / rviz。
+      NVIDIA_DRIVER_CAPABILITIES: all
+    # ★ NVIDIA GPU 透传：容器内直接用宿主机 RTX 2060 SUPER 渲染
+    #   宿主机前置：nvidia-container-toolkit 已装 + /etc/docker/daemon.json 配了 nvidia runtime
+    #   （docker info 的 Default Runtime 仍是 runc，所以必须显式写这段，不能靠全局默认）
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     volumes:
       - ../ws/src:/opt/ros1-slam/ws/src
       - ../scripts:/opt/ros1-slam/scripts
@@ -269,12 +313,13 @@ services:
       - ros1_ws_devel:/opt/ros1-slam/ws/devel
       - ros1_logs:/opt/ros1-slam/logs
       - ros1_ros_home:/opt/ros1-slam/.ros
-      # ---- 宿主机 X 服务器 + 认证 cookie（可视化用：gzclient / rviz 直通宿主机 GPU）----
-      # ★ 默认取 /run/user/1000/gdm/Xauthority —— 实测本机桌面 X(:1) 的 cookie 在这里；
-      #   /home/jack/.Xauthority 里只有 unix:10 / unix:11 的 cookie，对不上 :1，
-      #   拿它会导致 "Authorization required"。找不到对的可以用 xhost +local:root 绕过（见 README 4.6）。
+      # ---- 宿主机 X 服务器（可视化用：gzclient / rviz 直通宿主机 GPU）----
+      # ★ 2026-10-29 停用（登录循环断根；勿恢复）：源路径只在图形会话建立后才存在，
+      #   容器先于登录启动时 docker 会自动 mkdir -p 出 root:root 的空目录，占住 GDM
+      #   写 cookie 的位置 ⇒ 登录闪回登录页（本机 2026-10-29 两次闪退即此因）。
+      #   认证改走宿主机 xhost +si:localuser:root，只经下面这条 unix socket 直连。
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
+      # - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
     working_dir: /opt/ros1-slam
     shm_size: "2gb"
     ports:

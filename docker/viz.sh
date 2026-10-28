@@ -42,7 +42,10 @@ export GAZEBO_MASTER_URI="${OBSERVE_GAZEBO_URI:-${GAZEBO_MASTER_URI:-http://127.
 #   sim 容器的 ROS_IP 是 127.0.0.1，跨容器时 master 会把 127.0.0.1 通告给别人，连不上。
 use_host_x() {
     export DISPLAY="${X_DISPLAY:-:1}"
-    export XAUTHORITY=/tmp/.Xauthority
+    # ★ 2026-10-29 停用：/tmp/.Xauthority 的 bind 挂载已从 compose 移除
+    #   （登录循环断根，见 docker-compose.yml 里那条注释）。认证改由宿主机放行：
+    #   宿主机执行 xhost +si:localuser:root（容器内进程以 uid 0 连 X，SO_PEERCRED 认到的就是 root）。
+    # export XAUTHORITY=/tmp/.Xauthority
     # ★ 默认强制软件渲染（LIBGL_ALWAYS_SOFTWARE=1）：
     #   实测这台机器宿主机 X 自己就是 llvmpipe（glxinfo: Accelerated: no），
     #   容器里也没有 NVIDIA 容器运行时 ⇒ 若放任它去试硬件，只会得到一堆
@@ -54,9 +57,8 @@ use_host_x() {
     if [ ! -S "/tmp/.X11-unix/X${DISPLAY#:}" ]; then
         echo "[viz] 警告：/tmp/.X11-unix/X${DISPLAY#:} 不存在 —— 宿主机 X 没挂进来？"
     fi
-    if [ ! -f /tmp/.Xauthority ]; then
-        echo "[viz] 警告：/tmp/.Xauthority 不存在 —— 认证 cookie 没挂进来，会报 Authorization required"
-    fi
+    # 2026-10-29：cookie 挂载已移除，不再检查 /tmp/.Xauthority，改为提示前置动作。
+    echo "[viz] 提示：本模式不再挂 X cookie；宿主机须先执行：xhost +si:localuser:root"
 }
 [ "${VIZ_HOST_X:-0}" = "1" ] && use_host_x
 
@@ -75,9 +77,9 @@ check() {
         else
             echo "OpenGL renderer       = 取不到 —— 真实错误："
             timeout 15 glxinfo -B 2>&1 | head -2 | sed 's/^/                         /'
-            echo "                         ⇒ 九成是 X 认证。看 README 4.6 的坑表"
-            echo "                           （cookie 文件要对上 DISPLAY 的编号；"
-            echo "                            本机桌面 :1 的 cookie 在 /run/user/1000/gdm/Xauthority）"
+            echo "                         ⇒ 九成是 X 认证。2026-10-29 起不再挂 cookie："
+            echo "                           先在宿主机执行 xhost +si:localuser:root 再重试"
+            echo "                           （容器内进程以 uid 0 连 X，所以放行的是 root）"
         fi
     else
         echo "OpenGL renderer       = 无 glxinfo（镜像未装 mesa-utils）"
