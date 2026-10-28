@@ -47,7 +47,7 @@ def cp_lower(k,n,alpha=0.05):
     for _ in range(80):
         p=(lo+hi)/2
         tail=sum(comb(n,i)*p**i*(1-p)**(n-i) for i in range(k,n+1))
-        if tail>alpha: lo=p
+        if tail<alpha: lo=p
         else: hi=p
     return (lo+hi)/2
 if rows: print('CP lower95 = %.4f (k=%d n=%d)' % (cp_lower(ok,len(rows)), ok, len(rows)))

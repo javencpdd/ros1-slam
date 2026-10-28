@@ -124,6 +124,13 @@ FROZEN = {
          'change': '新增成功率门槛 0.90（带域 36 组 v11：SC01/SC02/SC09 各 4 目标×3 次）',
          'reason': 'R797 预登记 36 组一遍跑完 36/36 PASS（到点 max 0.120、净空 min 0.208）；'
                    'Clopper-Pearson 单侧 95% 下限 0.9202≥0.90；判据未改，属新增判据非放宽'},
+        {'when': '2026-10-28',
+         'key': 'success_rate.min_pass_rate.value',
+         'from': 0.9, 'to': '未定标（pending）',
+         'change': '回退 R797 的冻结：独立复核（R798）不签，恢复 pending',
+         'reason': '复核三问：scope 字面与实跑不符（official_positive vs run_class=calibration/替代场景）；'
+                   '时限口径未裁（30 s 计 2/36、60 s 计 27/36）；批日志 CP 行二分方向反（0.0000）。'
+                   '36 组读数保留作旁证，不据此判绿'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -243,25 +250,6 @@ FROZEN = {
                    'evidence': 'R648 组合矩阵'},
         'tracks': {'value': ['truth', 'estimate'],
                    'evidence': 'V8-13 双轨（真值轨/估计轨）'},
-    },
-    # 成功率：带域冻结（2026-10-28，R797）。scope token 在下方 SUCCESS_RATE_SCOPE 定义、
-    # 校验时精确匹配；36 组预登记定标集（SC01/SC02/SC09 各 4 目标×3 次）在 v11 配置下
-    # 一遍跑完 36/36 PASS，CP 单侧 95% 下限 0.9202≥0.90。判据本身未改（到点 0.30/净空 0.20）。
-    'success_rate': {
-        'min_pass_rate': {
-            'value': 0.9,
-            'scope': 'v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_'
-                     'truth_mux_per_combo_ref_lite3_dwa',
-            'sample_n': 36,
-            'method': 'clopper_pearson_lower_95',
-            'alpha': 0.05,
-            'denominator': '36 = SC01 12 + SC02 12 + SC09 12（v11 预登记，FAIL 全计）',
-            'aggregation': '36 组逐组 PASS/FAIL 后按 36 聚合；INVALID 不入串（本次 0 例）',
-            'evidence': 'R797：runs_v11/（12）+ runs_v11_sc0102/（24），index.sha256 36/36 一致；'
-                        'flat2d_stack_sc09_f64nli.launch sha256 63c80d9e…d583；RELAY_MODE=volume；'
-                        '36/36 PASS，到点 max 0.120、净空 min 0.208、墙钟 28.7—72.6 s，'
-                        'SC09 注入 12/12 true；CP 下限 0.9202（k=36/n=36, α=0.05）',
-        },
     },
     'rerun_rules': {
         'max_reruns': {'value': 1, 'evidence': '失败可复跑一次，二次失败计失败'},
@@ -395,6 +383,12 @@ PENDING_REQUIRED = [
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前只有制动分量与 osmesa 代理键，'
                '全链仍缺规划段、osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
+    {'key': 'success_rate.min_pass_rate.value', 'types': (int, float),
+     'reason': 'R797 的 36/36 读数（到点+净空）成立，但冻结动作经独立复核（R798）否决、已回退 pending：'
+               '①scope token 字面 `official_positive…` 与实跑 run_class=calibration、flat2d 替代场景不符；'
+               '②时限口径未裁——若按冻结 task_budget_s=30 计仅 2/36、按 harness_deadline_s=60 计 27/36（CP 0.6043），'
+               '均不支持 0.90；③批日志 CP 行有二分方向 bug（0.0000），需更正后重生成。'
+               '待判据面裁定 scope 与时限口径后再冻结'},
 ]
 
 # 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
@@ -432,10 +426,10 @@ SAMPLING_MIN_REPETITIONS = 3
 SUCCESS_RATE_SCOPE = ('v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_'
                       'truth_mux_per_combo_ref_lite3_dwa')
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-28，R797 冻成功率后重算）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-28，R798 回退成功率冻结后重算）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'd4514b0a7bb21a5ad4b16dc06d4e0f110a1e9c532cc98f89664e30f7455e7a5d'
+DIGEST = 'fe9ef8dd476a6413da52241ebc2ca6ad51b84b26ea2ff4fba5d3b405f974872f'
 
 
 class CalibrationError(Exception):
