@@ -1,0 +1,59 @@
+R848 命令（2026-10-28，qoder）
+容器 v8cal（/repo＝本仓，/work＝/home/jack/temp，MuJoCo 2.3.7）。
+
+# ── A. 坏夹具（作废，仅留反例）────────────────────────────────
+# force_crawl stair 在内存里再叠一块台阶；四足从未过 x=1.0，force_experiment=[]
+for sx in 0.70 0.72 0.75 0.80; do
+ docker exec v8cal bash -lc "cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && \
+  timeout 480 python3 -B force_crawl.py stair \
+   --xml /work/Lite3_rl_deploy-main/third_party/deep_robotics_model/Lite3/mjcf/Lite3.xml \
+   --backend force --step-h 0.06 --start-x $sx --out /work/force_stair_sX${sx}_h06.json"
+done
+
+# ── B. 有效：世界台阶 + rear_force_bridge 包装 ────────────────
+cat > /work/force_world_stair2.py <<'PY'
+import json, sys
+sys.path.insert(0, '/repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics')
+import crawl_gait as crawl
+from force_crawl import rear_force_bridge
+kw=dict(xml='/work/Lite3_step06.xml', start_x=.80, step_x=1.0, step_h=.06, step_swing=.14,
+        drive_fwd=.05, swing_fwd=.06, margin_min=.05, climb_x=.10, climb_dz=.03,
+        rear_rounds=4, rear_swing=.08, climb2_x=.06, climb2_dz=.02,
+        kp=150., kd=1., swing_kp=100., swing_kd=1.)
+with rear_force_bridge() as exp:
+    r=crawl.run('stair', **kw)
+r['force_reports']=exp['reports']
+json.dump(r, open('/work/force_world_stair06b.json','w'), ensure_ascii=False, indent=1)
+print(json.dumps({'pass':r.get('pass'),'fell':r.get('fell'),'completed':r.get('completed_steps'),
+                  'final_x':r.get('final_x'),'final_z':r.get('final_z'),
+                  'force_reports':len(exp['reports'])}))
+PY
+cat > /work/plain_world_stair2.py <<'PY'
+import json, sys
+sys.path.insert(0, '/repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics')
+import crawl_gait as crawl
+r=crawl.run('stair', xml='/work/Lite3_step06.xml', start_x=.80, step_x=1.0, step_h=.06,
+            step_swing=.14, drive_fwd=.05, swing_fwd=.06, margin_min=.05,
+            climb_x=.10, climb_dz=.03, rear_rounds=4, rear_swing=.08,
+            climb2_x=.06, climb2_dz=.02, kp=150., kd=1., swing_kp=100., swing_kd=1.)
+json.dump(r, open('/work/plain_world_stair06b.json','w'), ensure_ascii=False, indent=1)
+print(json.dumps({'pass':r.get('pass'),'fell':r.get('fell'),'completed':r.get('completed_steps'),
+                  'final_x':r.get('final_x'),'final_z':r.get('final_z')}))
+PY
+docker exec v8cal bash -lc 'cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && \
+  timeout 600 python3 -B /work/plain_world_stair2.py && timeout 600 python3 -B /work/force_world_stair2.py'
+
+# ── C. 有效：0.04 m 世界台阶（低台阶路线）────────────────────
+cat > /work/plain_step04.py <<'PY'
+import json, sys
+sys.path.insert(0, '/repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics')
+import crawl_gait as crawl
+r=crawl.run('stair', xml='/work/Lite3_step04.xml', start_x=.80, step_x=1.0, step_h=.04,
+            step_swing=.14, drive_fwd=.05, swing_fwd=.06, margin_min=.05,
+            climb_x=.10, climb_dz=.03, rear_rounds=4, rear_swing=.08,
+            climb2_x=.06, climb2_dz=.02, kp=150., kd=1., swing_kp=100., swing_kd=1.)
+json.dump(r, open('/work/plain_step04.json','w'), ensure_ascii=False, indent=1)
+print(json.dumps({'pass':r.get('pass'),'fell':r.get('fell'),'completed':r.get('completed_steps'),
+                  'final_x':r.get('final_x'),'final_z':r.get('final_z')}))
+PY
+docker exec v8cal bash -lc 'cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && timeout 600 python3 -B /work/plain_step04.py'
