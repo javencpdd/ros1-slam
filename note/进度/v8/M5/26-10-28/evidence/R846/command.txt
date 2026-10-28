@@ -1,0 +1,39 @@
+R846 命令（2026-10-28，qoder）
+容器：v8cal（挂载本仓 /repo 与 /home/jack/temp→/work，MuJoCo 2.3.7）。
+基线＝R840：incenter、drive 0.05、swing 0.04、shift 0.05、margin 0.05、--skip-final-advance：
+两圈 60/60、净 0.157 m。
+
+# 1) closest 移重策略（负结果）
+docker exec v8cal bash -lc 'cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && \
+  python3 -B crawl_gait.py crawl --cycle FL,HR,FR,HL,FL,HR,FR,HL --skip-final-advance \
+  --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --drive-fwd 0.05 --swing-fwd 0.04 \
+  --margin-min 0.05 --shift-policy closest --out /work/crawl_2lap_closest.json'
+
+# 2) 推进步长扫描 + 步长滞后归一
+for drive in 0.06 0.065 0.07; do
+  docker exec v8cal bash -lc "cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && \
+    python3 -B crawl_gait.py crawl --cycle FL,HR,FR,HL,FL,HR,FR,HL --skip-final-advance \
+    --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --drive-fwd $drive --swing-fwd 0.04 \
+    --margin-min 0.05 --shift-policy incenter --normalize-step-x \
+    --out /work/sweep_norm_d${drive}.json"
+done
+
+# 3) 摆步长与推进匹配
+for pair in "0.06 0.06" "0.07 0.07" "0.08 0.08"; do set -- $pair
+  docker exec v8cal bash -lc "cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && \
+    python3 -B crawl_gait.py crawl --cycle FL,HR,FR,HL,FL,HR,FR,HL --skip-final-advance \
+    --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --drive-fwd $1 --swing-fwd $2 \
+    --margin-min 0.05 --shift-policy incenter --normalize-step-x \
+    --out /work/sweep_match_d$1_s$2.json"
+done
+
+# 4) 加大移重步长
+for pair in "0.065 0.06" "0.07 0.06" "0.07 0.07"; do set -- $pair
+  docker exec v8cal bash -lc "cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && \
+    python3 -B crawl_gait.py crawl --cycle FL,HR,FR,HL,FL,HR,FR,HL --skip-final-advance \
+    --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --drive-fwd $1 --swing-fwd 0.04 \
+    --shift-mag $2 --margin-min 0.05 --shift-policy incenter --normalize-step-x \
+    --out /work/sweep_shift_d$1_sm$2.json"
+done
+
+# 注：--shift-policy/--normalize-step-x 是 d74c4ab 入仓的既有选项；本批未改代码。
