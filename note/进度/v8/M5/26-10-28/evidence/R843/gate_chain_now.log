@@ -1,0 +1,17 @@
+== 门禁串逐件（2026-10-28 13:03，身份 root）｜成员名单＝/repo/scripts/verify/gate_chain.txt（11 行）==
+   面：syn_face=94 pyst_face=62 parity_face=54 claim_face=71
+   窗数回执＝64 行（A27 口径）
+   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／VAR／账构：直接 bash 件｜R326 起两件＝VCC：bash 件＋显式喂 claim_face.txt（门用面写死，件内缺省面只有 42 件）＋VCC_ROOT＝仓根（R400 甲，★不设则件内缺省 /home/ros1-slam 在异机是符号链接视图、而件的 os.walk 不跟随链接 ⇒ 面近乎空、把 RED 抹成 0；★R407 起该情形由件的根自检当场 rc=9 拒跑）｜规矩⑨：python3 件（件内缺省面＝claim_face.txt）
+SYN     rc=0   ｜ PY SYNTAX OK（被检件数=94，内嵌 python 段合计=48）
+GTC     rc=0   ｜ == 共 0 版载体 ==
+ISO     rc=1   ｜ # self-attest: at=2026-10-28 13:03:53 script=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117 ws_src_files=4313 user=root home=/root rc=1
+DC      rc=1   ｜ DC rc=1
+PYST    rc=0   ｜ PY STATIC OK（被检件数=62）
+VAR     rc=9   ｜ VAR rc=9（0 全过／5 有 FAIL／9 前置缺失或探针无分辨力）
+PARITY  rc=0   ｜ [计数] json=67 并排文本件=204 原始疑点=7 去重跳过=53 claim只计数=0 规则档=A 已知=7 新增=0 存量表=parity_known_findings.tsv（**新增才拦、存量逐条带出处**）
+账构  rc=9   ｜ BATCHCHECK rc=9
+VCC     rc=6   ｜ VCC rc=6
+规矩⑨ rc=0   ｜ CLAIMAUDIT VERDICT: rc=0（**本件只报不拦**，报了行也返 0；9＝前置缺失。入门与阈值归 #12／#19／A32）
+PATCHLAND rc=0   ｜ [判定] 双向差集皆空 ⇒ 有稿必有形迹、有形迹必有稿
+== 本件只报不判（退出码恒 0）；判定看各件自身 rc 与 05 的在册调用式，成员增减与 rc 语义变更须裁定者明令 ==
+   ★收尾跑序提示（05 追加三十一②；只提示、不动盘、不判定）：本串内 PYST／SYN 对 .py 跑过 py_compile ⇒ 源件旁会留下 __pycache__/*.pyc；接下来若跑任何按 find 计数的件，先按追加三十一①的三条核对式清产物，否则计数会虚高（R281／R282／R284 三次实测同源，产物在场数 19）

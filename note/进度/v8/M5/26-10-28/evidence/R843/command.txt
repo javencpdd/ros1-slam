@@ -1,0 +1,31 @@
+R843 门禁串残红定性（2026-10-28，qoder）
+环境：容器 ros1-slam:noetic-sim（sha 59f759dd5001），--network none，
+      仓库挂到 /home/ros1-slam（与件内硬编码根一致），-w /home/ros1-slam；
+      source /opt/ros/noetic/setup.bash；PYTHONNOUSERSITE=1；
+      git config --global --add safe.directory "*"（容器 root 对 ros1-slam 属主仓库）。
+      本克隆无 catkin 产物 ws/devel；为把 ISO[4] 与“没编译”分开，额外挂了一个两行
+      /home/ros1-slam/ws/devel/setup.bash（只 export ROS_PACKAGE_PATH=/home/ros1-slam/ws/src:$ROS_PACKAGE_PATH），
+      该文件只在容器内、仓内未落盘。
+
+# 整串（官方运行器）
+docker run --rm --network none -v /home/jack/ysc-code/ros1-slam:/repo -w /repo \
+  --entrypoint bash ros1-slam:noetic-sim -lc '
+    source /opt/ros/noetic/setup.bash; export PYTHONNOUSERSITE=1
+    bash scripts/verify/run_gate_chain.sh'
+
+# 逐件（正确根 + safe.directory + ISO 路径桩）
+docker run --rm --network none \
+  -v /home/jack/ysc-code/ros1-slam:/home/ros1-slam \
+  -v /tmp/a5devel:/home/ros1-slam/ws/devel -v /tmp/r843:/out \
+  -w /home/ros1-slam --entrypoint bash ros1-slam:noetic-sim -lc '
+    source /opt/ros/noetic/setup.bash; export PYTHONNOUSERSITE=1
+    git config --global --add safe.directory "*"; cd /home/ros1-slam
+    face() { grep -vE "^ *(#|$)" "$1"; }
+    bash scripts/verify/v3_isolation.sh > /out/iso.log 2>&1; echo "ISO=$?"
+    DC_ROOT=/home/ros1-slam bash scripts/verify/v_deferred_clause_scan.sh > /out/dc.log 2>&1; echo "DC=$?"
+    VAR_ROOT=/home/ros1-slam bash scripts/verify/v_evidence_reachability.sh > /out/var.log 2>&1; echo "VAR=$?"
+    VLB_ROOT=/home/ros1-slam bash scripts/verify/v_ledger_batch_consistency.sh > /out/ledger.log 2>&1; echo "LEDGER=$?"
+    VCC_ROOT=/home/ros1-slam bash scripts/verify/v_citation_check.sh $(face scripts/verify/claim_face.txt) > /out/vcc.log 2>&1; echo "VCC=$?"'
+
+# 观测到的 rc：ISO=1 DC=1 VAR=9 LEDGER=5 VCC=6（官方运行器：ISO1/DC1/VAR9/账构9/VCC6）
+# 未改任何闸件、成员名单、rc 语义、阈值与旧文。
