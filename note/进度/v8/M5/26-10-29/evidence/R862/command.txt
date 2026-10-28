@@ -1,0 +1,14 @@
+R862 原始件恢复（容器被 SIGKILL 后从可写层找回）
+
+[v8codex-20261028 状态] Exited (137), OOMKilled=false, finished=2026-10-28T19:57:06Z
+docker start v8codex-20261028
+docker cp v8codex-20261028:/tmp/ros1-obstacles-mujoco/results-initial.json \
+  note/进度/v8/M5/26-10-29/evidence/R862/results-initial.json
+
+原始运行（R861 实现；实际 out 名为 results-initial.json）：
+docker exec -e PYTHONPATH=/tmp/r854-policy-runtime v8codex-20261028 python3 -B \
+  /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_obstacles.py \
+  --xml /tmp/mjcf/Lite3.xml --policy /tmp/r854-stair/policy.onnx \
+  --case all --seconds 24 --out /tmp/ros1-obstacles-mujoco/results-initial.json
+
+本批只找回/复核，不改 R861 实现、R860 map/v2、冻结门值或历史证据。

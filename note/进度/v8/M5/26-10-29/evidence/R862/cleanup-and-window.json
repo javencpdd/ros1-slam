@@ -1,0 +1,11 @@
+{
+  "user_authorization": "2026-10-29: allow clearing Docker and other caches unused within the last 10 hours",
+  "executed_command": "docker builder prune --filter until=10h --reserved-space 20GB --max-used-space 25GB --force",
+  "reclaimed_reported": "7.656GB",
+  "disk_available_bytes": 17018998784,
+  "images_containers_volumes_deleted": false,
+  "docker_system_df_after": "TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          32        12        19.17GB   1.102GB (5%)\nContainers      20        8         93.06GB   1.038GB (1%)\nLocal Volumes   18        16        115.3GB   0B (0%)\nBuild Cache     385       0         45.54GB   33.29GB\n",
+  "preflight_rc": 0,
+  "physical_evidence_pending": true,
+  "hardware": false
+}

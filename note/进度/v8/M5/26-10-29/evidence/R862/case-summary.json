@@ -1,0 +1,482 @@
+{
+  "source": "results-initial.json",
+  "source_size": 62496475,
+  "source_sha256": "d9f219a3e228f8a01392a98699033925d8322d6472b7020da281d04a2685ada0",
+  "source_mtime_utc": "2026-10-28T19:06:54Z",
+  "recovered_from": "v8codex-20261028:/tmp/ros1-obstacles-mujoco/results-initial.json",
+  "top": {
+    "scope": "declared_geom_map_global_route_policy_torque_on_step_deck",
+    "hardware": false,
+    "initialized_on_deck": true,
+    "ascent_completed": false,
+    "verdict": "FAIL"
+  },
+  "robot_envelope": {
+    "radius_m": 0.5,
+    "height_m": 0.5,
+    "xy_shape": "conservative square",
+    "ground_contact_penetration_tolerance_m": 0.005
+  },
+  "declared_geometry_from_R861": {
+    "deck": {
+      "min": [
+        -1.0,
+        -1.6,
+        0.0
+      ],
+      "max": [
+        5.0,
+        1.6,
+        0.06
+      ]
+    },
+    "offset_box": {
+      "min": [
+        1.6,
+        0.1,
+        0.06
+      ],
+      "max": [
+        2.0,
+        0.8,
+        0.66
+      ]
+    },
+    "blocked_box": {
+      "min": [
+        1.6,
+        -1.6,
+        0.06
+      ],
+      "max": [
+        2.0,
+        1.6,
+        0.66
+      ]
+    }
+  },
+  "cases": [
+    {
+      "case": "clear",
+      "verdict": "FAIL",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "physics_measurements_valid": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": false,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": false
+      },
+      "final_goal_error_m": 2.910806353312385,
+      "base_displacement_m": 0.5926628023035427,
+      "maximum_xy_excursion_m": 0.5961623809817711,
+      "cumulative_xy_m": 0.6263266188233417,
+      "minimum_geometry_gap_m": null,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 12001,
+      "deck_departure_sample_count": 0,
+      "controller_nonzero_command_observed": true,
+      "physics_nonzero_command_observed": true,
+      "global_plan": {
+        "ok": true,
+        "reason": null,
+        "detail": null,
+        "length": 3.5,
+        "expansions": 35
+      },
+      "start": [
+        0.05,
+        0.05,
+        0.06
+      ],
+      "goal": [
+        3.55,
+        0.05,
+        0.06
+      ],
+      "world_feet_end": {
+        "FL": [
+          0.7991949527965225,
+          0.16155216743832837,
+          0.08222558692435034
+        ],
+        "FR": [
+          0.7969146883655185,
+          -0.19482670812326883,
+          0.08252783879931205
+        ],
+        "HL": [
+          0.4588591841356803,
+          0.16340907412072433,
+          0.0820708782721978
+        ],
+        "HR": [
+          0.45762421998548974,
+          -0.16411569998176978,
+          0.0817944649955556
+        ]
+      },
+      "compiled_fixture_geometry": {
+        "deck": {
+          "geom_name": "step_obstacles_deck",
+          "min": [
+            -1.0,
+            -1.6,
+            0.0
+          ],
+          "max": [
+            5.0,
+            1.6,
+            0.06
+          ]
+        },
+        "boxes": []
+      },
+      "support_surfaces": [
+        {
+          "surface_id": "deck",
+          "z_reference": 0.06,
+          "thickness_m": 0.06
+        }
+      ],
+      "support_obstacles": [],
+      "envelope": {
+        "threshold_lower_z": 0.055,
+        "threshold_upper_z": 0.56,
+        "lower_z_min": 0.0467849874302656,
+        "lower_z_max": 0.05183262654103908,
+        "upper_z_min": 0.4629425425357713,
+        "upper_z_max": 0.4892617563659186,
+        "samples": 12001,
+        "lower_z_violations": 12001,
+        "upper_z_violations": 0,
+        "xy_violations": 0
+      },
+      "rollout_meta": {
+        "initial_xyz": [
+          0.05,
+          0.05,
+          0.41
+        ],
+        "seconds": 24.0,
+        "timestep": 0.002,
+        "seed": 0
+      },
+      "existing_ascent_baseline": {
+        "status": "NOT_PASSED",
+        "reference": "R855",
+        "reason": "rear-foot support/slide bottleneck not solved by these cases"
+      },
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "ascent_completed": false,
+      "initialized_on_deck": true,
+      "hardware": false,
+      "scope": "declared_geom_map_global_route_policy_torque_on_step_deck"
+    },
+    {
+      "case": "offset_box",
+      "verdict": "FAIL",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "physics_measurements_valid": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": false,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": false
+      },
+      "final_goal_error_m": 2.092633921114428,
+      "base_displacement_m": 1.572376688649987,
+      "maximum_xy_excursion_m": 1.5779381893716466,
+      "cumulative_xy_m": 1.7275567097555893,
+      "minimum_geometry_gap_m": 0.30546519403596567,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 12001,
+      "deck_departure_sample_count": 0,
+      "controller_nonzero_command_observed": true,
+      "physics_nonzero_command_observed": true,
+      "global_plan": {
+        "ok": true,
+        "reason": null,
+        "detail": null,
+        "length": 3.914214,
+        "expansions": 222
+      },
+      "start": [
+        0.05,
+        0.05,
+        0.06
+      ],
+      "goal": [
+        3.55,
+        0.05,
+        0.06
+      ],
+      "world_feet_end": {
+        "FL": [
+          1.6901494563982604,
+          -0.31902273749860804,
+          0.08222985431944166
+        ],
+        "FR": [
+          1.6842574434745137,
+          -0.675495954874192,
+          0.08252801725020056
+        ],
+        "HL": [
+          1.3493345612347936,
+          -0.31345733889626737,
+          0.08209957653256622
+        ],
+        "HR": [
+          1.340502531680057,
+          -0.6407226698644779,
+          0.0817750597478272
+        ]
+      },
+      "compiled_fixture_geometry": {
+        "deck": {
+          "geom_name": "step_obstacles_deck",
+          "min": [
+            -1.0,
+            -1.6,
+            0.0
+          ],
+          "max": [
+            5.0,
+            1.6,
+            0.06
+          ]
+        },
+        "boxes": [
+          {
+            "geom_name": "step_obstacles_box",
+            "min": [
+              1.6,
+              0.10000000000000003,
+              0.06
+            ],
+            "max": [
+              2.0,
+              0.8,
+              0.6599999999999999
+            ]
+          }
+        ]
+      },
+      "support_surfaces": [
+        {
+          "surface_id": "deck",
+          "z_reference": 0.06,
+          "thickness_m": 0.06
+        }
+      ],
+      "support_obstacles": [
+        {
+          "obstacle_id": "step_obstacles_box",
+          "min": [
+            1.6,
+            0.10000000000000003,
+            0.06
+          ],
+          "max": [
+            2.0,
+            0.8,
+            0.6599999999999999
+          ]
+        }
+      ],
+      "envelope": {
+        "threshold_lower_z": 0.055,
+        "threshold_upper_z": 0.56,
+        "lower_z_min": 0.04649638910468583,
+        "lower_z_max": 0.05183262654103908,
+        "upper_z_min": 0.4608464954280151,
+        "upper_z_max": 0.4892617563659186,
+        "samples": 12001,
+        "lower_z_violations": 12001,
+        "upper_z_violations": 0,
+        "xy_violations": 0
+      },
+      "rollout_meta": {
+        "initial_xyz": [
+          0.05,
+          0.05,
+          0.41
+        ],
+        "seconds": 24.0,
+        "timestep": 0.002,
+        "seed": 0
+      },
+      "existing_ascent_baseline": {
+        "status": "NOT_PASSED",
+        "reference": "R855",
+        "reason": "rear-foot support/slide bottleneck not solved by these cases"
+      },
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "ascent_completed": false,
+      "initialized_on_deck": true,
+      "hardware": false,
+      "scope": "declared_geom_map_global_route_policy_torque_on_step_deck"
+    },
+    {
+      "case": "blocked_box",
+      "verdict": "FAIL",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "physics_measurements_valid": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": false,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": true
+      },
+      "final_goal_error_m": 3.4916188353506064,
+      "base_displacement_m": 0.009056312045027052,
+      "maximum_xy_excursion_m": 0.013078193296290468,
+      "cumulative_xy_m": 0.029372233099015793,
+      "minimum_geometry_gap_m": 1.2551665179731457,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 12001,
+      "deck_departure_sample_count": 0,
+      "controller_nonzero_command_observed": false,
+      "physics_nonzero_command_observed": false,
+      "global_plan": {
+        "ok": false,
+        "reason": "E_PLAN_NO_ROUTE",
+        "detail": "起点 ('deck', 0, 0) 到目标 ('deck', 35, 0) 无路（展开 452）",
+        "length": null,
+        "expansions": null
+      },
+      "start": [
+        0.05,
+        0.05,
+        0.06
+      ],
+      "goal": [
+        3.55,
+        0.05,
+        0.06
+      ],
+      "world_feet_end": {
+        "FL": [
+          0.22520986556150102,
+          0.22097525431413484,
+          0.0824187768516727
+        ],
+        "FR": [
+          0.212942145052115,
+          -0.1343959751203334,
+          0.08234061500787887
+        ],
+        "HL": [
+          -0.12834582855291382,
+          0.2183466396246367,
+          0.08201930764200585
+        ],
+        "HR": [
+          -0.09709951366525438,
+          -0.10780287062753002,
+          0.08177253916561641
+        ]
+      },
+      "compiled_fixture_geometry": {
+        "deck": {
+          "geom_name": "step_obstacles_deck",
+          "min": [
+            -1.0,
+            -1.6,
+            0.0
+          ],
+          "max": [
+            5.0,
+            1.6,
+            0.06
+          ]
+        },
+        "boxes": [
+          {
+            "geom_name": "step_obstacles_box",
+            "min": [
+              1.6,
+              -1.6,
+              0.06
+            ],
+            "max": [
+              2.0,
+              1.6,
+              0.6599999999999999
+            ]
+          }
+        ]
+      },
+      "support_surfaces": [
+        {
+          "surface_id": "deck",
+          "z_reference": 0.06,
+          "thickness_m": 0.06
+        }
+      ],
+      "support_obstacles": [
+        {
+          "obstacle_id": "step_obstacles_box",
+          "min": [
+            1.6,
+            -1.6,
+            0.06
+          ],
+          "max": [
+            2.0,
+            1.6,
+            0.6599999999999999
+          ]
+        }
+      ],
+      "envelope": {
+        "threshold_lower_z": 0.055,
+        "threshold_upper_z": 0.56,
+        "lower_z_min": 0.04920802353035181,
+        "lower_z_max": 0.05183262654103908,
+        "upper_z_min": 0.4848686019345283,
+        "upper_z_max": 0.48926332511334036,
+        "samples": 12001,
+        "lower_z_violations": 12001,
+        "upper_z_violations": 0,
+        "xy_violations": 0
+      },
+      "rollout_meta": {
+        "initial_xyz": [
+          0.05,
+          0.05,
+          0.41
+        ],
+        "seconds": 24.0,
+        "timestep": 0.002,
+        "seed": 0
+      },
+      "existing_ascent_baseline": {
+        "status": "NOT_PASSED",
+        "reference": "R855",
+        "reason": "rear-foot support/slide bottleneck not solved by these cases"
+      },
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "ascent_completed": false,
+      "initialized_on_deck": true,
+      "hardware": false,
+      "scope": "declared_geom_map_global_route_policy_torque_on_step_deck"
+    }
+  ]
+}

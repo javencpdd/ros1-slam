@@ -7117,3 +7117,16 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 
 - 实现01d00657：新增mj_step_obstacles.py、15项test_mj_step_obstacles负控与README；mj_step_baseline只新增一次性initial_xyz和只读逐步observer，默认路径不变。
 - 同源编译geom回读deck/box到map.v2，三种已知图阶面初始化用例；实际策略／力矩执行与逐步评价已接代码，目标实跑NOT_RUN，磁盘8.6GB不足既有15GB门、预检rc5；未改第三方或门值、未以代码存在替代运行。详见R861与evidence/R861。
+
+
+## R862（2026-10-29，qoder）：阶面三例首跑原始件找回与包络读数
+
+- 原始件从 v8codex 可写层 `/tmp/ros1-obstacles-mujoco/results-initial.json` 找回（62,496,475 B，sha256 `d9f219a3…`），已落 `evidence/R862/`。
+- 三例 `verdict=FAIL`；唯一共同失败为 `actual_body_within_planning_envelope`：12001/12001 个样本 AABB z 下界 0.0465—0.0518 < 0.055；上界/XY 零违例；blocked 例 `E_PLAN_NO_ROUTE`＋双路零命令成立；clear/offset 另有未到达。
+- 编译 deck/box 与 R861 manifest `declared_geometry` 逐面一致；AABB 组成/真实穿透待核；本批不改 R861/R860 实现、冻结门值或判据。
+- 边界：`hardware=false`、`ascent_completed=false`、`four_foot_ascent_acceptance=NOT_TESTED`；#151 仍 pending、无真机。
+
+## R858（2026-10-29，qoder）：仿真起终点与场景热插拔工具（无配置改动）
+
+- 新增 `sim_pose.py`／`sim_pose_bridge.py`／`sim_scene.py` 及测试；m1 实测起点 (0,0,0)→(2,−1,30°)、`/sim/set_start` 与 `/initialpose` 均改模型位姿；9 个 stairstudy 场景 spawn/delete 热插拔通过。
+- 无第三方、冻结门值或既有配置改动；web 不跟踪。详见 R857／R858。
