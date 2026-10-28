@@ -79,7 +79,7 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
     return tau
 
 
-def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0):
+def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0, umax=0.35, kgain=0.8):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     data = mujoco.MjData(model)
@@ -97,6 +97,49 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             targets[k:k + 3] = q
         data.qpos[7:19] = DEF
         mujoco.mj_forward(model, data)
+    if mode == 'drive':
+        # 闭环机体位移：错误 e=desired-actual 积分成足端目标偏移 u（负 e 使 u 减小→机体前移）
+        dt = model.opt.timestep
+        steps = int(seconds / dt)
+        x0 = float(data.qpos[0])
+        target_x = x0 + forward
+        u = 0.0
+        k = kgain
+        tick = int(round(0.02 / dt))
+        now_targets = DEF.copy()
+        zmin, trace = 9.0, []
+        used = 0.0
+        for i in range(steps):
+            t = i * dt
+            desired = min(x0 + 0.06 * t, target_x)
+            if i % tick == 0:
+                e = desired - float(data.qpos[0])
+                u = max(-umax, min(0.05, u - k * e * (tick * dt)))
+                vec = DEF.copy()
+                for name in LEGS:
+                    q = leg_ik(model, data, name, nominal[name] + np.array([u, 0.0, 0.0]))
+                    kk = 3 * LEGS.index(name)
+                    vec[kk:kk + 3] = q
+                    data.qpos[7:19] = DEF
+                    mujoco.mj_forward(model, data)
+                now_targets = vec
+                used = u
+            pd_hold(model, data, now_targets, kp=kp, kd=kd)
+            mujoco.mj_step(model, data)
+            zmin = min(zmin, float(data.qpos[2]))
+            if i % int(round(0.25 / dt)) == 0:
+                trace.append((round(i * dt, 2), round(float(data.qpos[2]), 3),
+                              round(float(data.qpos[0]), 3)))
+            if data.qpos[2] < 0.12:
+                break
+        feet = {name: [round(float(x), 3) for x in foot_body_pos(model, data, name)]
+                for name in LEGS}
+        return {'mode': mode, 'leg': None, 'height': height, 'seconds': seconds,
+                'target_x': round(target_x, 3), 'u_final': round(used, 3),
+                'desired_x_final': round(min(x0 + 0.06 * seconds, target_x), 3),
+                'final_z': round(float(data.qpos[2]), 3),
+                'final_x': round(float(data.qpos[0]), 3), 'zmin': round(zmin, 3),
+                'fell': bool(zmin < 0.18), 'final_feet': feet, 'trace': trace}
     if mode == 'seq':
         k = lambda name: 3 * LEGS.index(name)
         def set_leg(vec, name, delta):
@@ -189,7 +232,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['stand', 'shift', 'lift', 'step', 'seq'])
+    parser.add_argument('mode', choices=['stand', 'shift', 'lift', 'step', 'seq', 'drive'])
     parser.add_argument('--leg', default='FL')
     parser.add_argument('--height', type=float, default=0.05)
     parser.add_argument('--seconds', type=float, default=3.0)
@@ -202,12 +245,15 @@ def main():
     parser.add_argument('--start-x', type=float, default=0.0)
     parser.add_argument('--forward', type=float, default=0.0)
     parser.add_argument('--shift2-x', type=float, default=0.0)
+    parser.add_argument('--umax', type=float, default=0.35)
+    parser.add_argument('--kgain', type=float, default=0.8)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
                  kp=args.kp, kd=args.kd, shift_y=args.shift_y, shift_x=args.shift_x,
                  ramp=args.ramp, xml=args.xml or None, start_x=args.start_x,
-                 forward=args.forward, shift2_x=args.shift2_x)
+                 forward=args.forward, shift2_x=args.shift2_x, umax=args.umax,
+                 kgain=args.kgain)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
