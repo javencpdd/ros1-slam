@@ -1,0 +1,2 @@
+docker exec v8cal bash -lc 'cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && python3 -B crawl_gait.py crawl --leg FL --xml /work/Lite3_step10.xml --start-x 0.80 --step-x 1.0 --step-h 0.10 --step-swing 0.14 --drive-fwd 0.0 --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --out /work/step_FL2.json'
+docker exec v8cal bash -lc 'cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics && python3 -B crawl_gait.py crawl --cycle --kp 150 --kd 1.0 --swing-kp 100 --swing-kd 1.0 --drive-fwd 0.05 --swing-fwd 0.04 --margin-min 0.05 --out /work/crawl_reg.json'
