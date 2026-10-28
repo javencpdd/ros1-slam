@@ -88,13 +88,23 @@ def solve_leg(model, data, leg, rel_target):
     return q
 
 
+def _rotmat(quat):
+    w, x, y, z = quat
+    return np.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+        [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+        [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]])
+
+
 def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
     tau = np.clip(kp * (targets - data.qpos[7:19]) - kd * data.qvel[6:18], -max_tau, max_tau)
     data.qfrc_applied[6:18] = tau
     return tau
 
 
-def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0, umax=0.35, kgain=0.8):
+def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0, umax=0.35, kgain=0.8,
+        lift_h=0.10, swing_fwd=0.06, drive_fwd=0.08, shift_mag=0.05, slip_tol=0.02, y_tol=0.03,
+        swing_kp=40.0, swing_kd=1.5):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     data = mujoco.MjData(model)
@@ -248,7 +258,176 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 'final_z': round(float(data.qpos[2]), 3),
                 'final_x': round(float(data.qpos[0]), 3), 'zmin': round(zmin, 3),
                 'fell': bool(zmin < 0.18), 'final_feet': feet, 'trace': trace}
-    if mode in ('lift', 'step') and leg in LEGS:
+    if mode == 'crawl':
+        # 离散爬行一步：稳态→重心移位→抬腿→小步驱动（摆动足世界锚定）→世界坐标慢落足→保持。
+        # 每相位后机检：支撑足滑移、机体 y 漂移、抬腿高度、驱动位移、落足触地。
+        dt = model.opt.timestep
+        tick = max(1, int(round(0.02 / dt)))
+        torso_id = _ids(model, leg)[2]
+
+        def feet_world():
+            return {n: np.array(data.xpos[_ids(model, n)[1]], dtype=float) for n in LEGS}
+
+        def body_pose():
+            return (np.array(data.xpos[torso_id], dtype=float),
+                    _rotmat(data.xquat[torso_id]))
+
+        tgt = {n: DEF[3 * i:3 * i + 3].copy() for i, n in enumerate(LEGS)}
+        state = {'zmin': 9.0, 'fell': False, 'zg': None}
+        records, trace = [], []
+        t_global = [0.0]
+
+        def execute(name, kind, dur, ctrl, swing=(), checks=None, expect_dy=0.0):
+            f0, p0 = feet_world(), body_pose()[0]
+            # 支撑腿高增益（100/5）；摆动腿惯量小，kd*dt/m 会越界自振，用 40/1.5
+            kp_vec = np.array([swing_kp if n in swing else kp for n in LEGS for _ in range(3)])
+            kd_vec = np.array([swing_kd if n in swing else kd for n in LEGS for _ in range(3)])
+            nsteps = max(1, int(round(dur / dt)))
+            for i in range(nsteps):
+                t = i * dt
+                ctrl(i, t)
+                vec = np.concatenate([tgt[n] for n in LEGS])
+                pd_hold(model, data, vec, kp=kp_vec, kd=kd_vec)
+                mujoco.mj_step(model, data)
+                state['zmin'] = min(state['zmin'], float(data.qpos[2]))
+                if data.qpos[2] < 0.18:
+                    state['fell'] = True
+                if i % int(round(0.25 / dt)) == 0:
+                    w, qx, qy, qz = data.qpos[3:7]
+                    roll = float(np.arctan2(2 * (w * qx + qy * qz), 1 - 2 * (qx * qx + qy * qy)))
+                    pitch = float(np.arcsin(np.clip(2 * (w * qy - qz * qx), -1.0, 1.0)))
+                    trace.append([round(t_global[0] + t, 2), name,
+                                  round(float(data.qpos[2]), 3),
+                                  round(float(data.qpos[0]), 3),
+                                  round(float(data.qpos[1]), 3),
+                                  round(roll, 3), round(pitch, 3)])
+                if data.qpos[2] < 0.12:
+                    break
+            t_global[0] += dur
+            f1, p1 = feet_world(), body_pose()[0]
+            slip = {n: float(np.linalg.norm((f1[n] - f0[n])[:2])) for n in LEGS}
+            sup = [n for n in LEGS if n not in swing]
+            rec = {'phase': name, 'kind': kind, 't0': round(t_global[0] - dur, 2),
+                   'dur': dur,
+                   'body_dx': round(float(p1[0] - p0[0]), 4),
+                   'body_dy': round(float(p1[1] - p0[1]), 4),
+                   'body_z_end': round(float(data.qpos[2]), 4),
+                   'slip': {n: round(v, 4) for n, v in slip.items()},
+                   'support_slip_max': round(max(slip[n] for n in sup), 4),
+                   'foot_z_end': {n: round(float(f1[n][2]), 4) for n in LEGS},
+                   'checks': {}}
+            rec['checks']['support_slip'] = bool(rec['support_slip_max'] <= slip_tol)
+            rec['checks']['y_drift'] = bool(abs(rec['body_dy'] - expect_dy) <= y_tol)
+            rec['checks']['no_fall'] = not state['fell']
+            if checks:
+                extra = checks(rec, f1, f0)
+                rec['checks'].update({k: bool(v) for k, v in extra.items()})
+            if hasattr(ctrl, 'u'):
+                rec['u_final'] = round(ctrl.u[0], 4)
+            if hasattr(ctrl, 'log'):
+                rec['log'] = ctrl.log
+            rec['ok'] = all(rec['checks'].values())
+            records.append(rec)
+            return rec
+
+        def make_ramp(goal_rel, dur, frac=1.0):
+            start = {n: tgt[n].copy() for n in LEGS}
+            goal = {n: solve_leg(model, data, n, goal_rel[n]) for n in LEGS}
+
+            def ctrl(i, t):
+                a = 1.0 if dur <= 0 else min(1.0, t / (dur * frac))
+                for n in LEGS:
+                    tgt[n] = start[n] + a * (goal[n] - start[n])
+            return ctrl
+
+        def make_place(dur, place_leg):
+            anchor = feet_world()[place_leg].copy()
+            zg = state['zg']
+            z_mid = zg + 0.035
+            landed = [False]
+            log = []
+            j0 = 7 + 3 * LEGS.index(place_leg)
+            # 支撑腿锁到当前实测关节角：落足段不携带前序相位残差
+            for n in LEGS:
+                if n != place_leg:
+                    a0 = 7 + 3 * LEGS.index(n)
+                    tgt[n] = data.qpos[a0:a0 + 3].copy()
+
+            def ctrl(i, t):
+                if landed[0]:
+                    if i % int(round(0.25 / dt)) == 0:
+                        log.append([round(t, 2), round(float(feet_world()[place_leg][2]), 3),
+                                    'held', round(float(data.qpos[0]), 3),
+                                    round(float(data.qpos[1]), 3)])
+                    return
+                f = t / dur if dur > 0 else 1.0
+                if f < 0.5:
+                    z = anchor[2] + (z_mid - anchor[2]) * (f / 0.5)
+                else:
+                    z = z_mid + (zg + 0.004 - z_mid) * min(1.0, (f - 0.5) / 0.35)
+                p, R = body_pose()
+                tgt[place_leg] = solve_leg(model, data, place_leg,
+                                           R.T @ (np.array([anchor[0], anchor[1], z]) - p))
+                if i % int(round(0.25 / dt)) == 0:
+                    log.append([round(t, 2), round(float(feet_world()[place_leg][2]), 3),
+                                round(z, 3), round(float(data.qpos[0]), 3),
+                                round(float(data.qpos[1]), 3)])
+                if feet_world()[place_leg][2] <= zg + 0.006:
+                    landed[0] = True
+                    tgt[place_leg] = data.qpos[j0:j0 + 3].copy()
+            ctrl.log = log
+            return ctrl
+
+        def lift_check(rec, f1, f0):
+            return {'lifted': (f1[leg][2] - f0[leg][2]) >= 0.7 * lift_h}
+
+        def drive_check(rec, f1, f0):
+            return {'drive_ok': drive_fwd - 0.05 <= rec['body_dx'] <= drive_fwd + 0.06}
+
+        def place_check(rec, f1, f0):
+            return {'landed': f1[leg][2] <= state['zg'] + 0.03}
+
+        execute('settle', 'settle', 0.6, lambda i, t: None)
+        state['zg'] = float(np.mean([feet_world()[n][2] for n in LEGS]))
+        # 站位基座用实测站姿，不用 initial 的 nominal（避免把早期漂移当成待补误差）
+        stance = {n: foot_body_pos(model, data, n) for n in LEGS}
+        dir_xy = stance[leg][:2] / np.linalg.norm(stance[leg][:2])
+        shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_mag
+        shift_goal = {n: stance[n] + shift_delta for n in LEGS}
+        execute('shift', 'shift', 1.0, make_ramp(shift_goal, 1.0), expect_dy=-shift_delta[1])
+        if not state['fell']:
+            lift_goal = dict(shift_goal)
+            lift_goal[leg] = stance[leg] + shift_delta + np.array([swing_fwd, 0.0, lift_h])
+            execute('lift', 'lift', 1.5, make_ramp(lift_goal, 1.5, frac=0.6),
+                    swing=(leg,), checks=lift_check)
+        if not state['fell']:
+            execute('place', 'place', 2.4, make_place(2.4, leg),
+                    swing=(leg,), checks=place_check)
+        if not state['fell']:
+            # 四足推进用斜坡式站姿平移（与 shift 同构）：积分驱动在轻载前足上会打滑
+            stance4 = {n: foot_body_pos(model, data, n) for n in LEGS}
+            adv_goal = {n: stance4[n] - np.array([drive_fwd, 0.0, 0.0]) for n in LEGS}
+            execute('advance', 'advance', 1.5, make_ramp(adv_goal, 1.5),
+                    checks=drive_check, expect_dy=0.0)
+        if not state['fell']:
+            execute('settle2', 'settle', 0.8, lambda i, t: None)
+        feet = {n: [round(float(x), 3) for x in foot_body_pos(model, data, n)] for n in LEGS}
+        passed = bool(records) and all(r['ok'] for r in records) and not state['fell']
+        return {'mode': mode, 'leg': leg, 'lift_h': lift_h, 'swing_fwd': swing_fwd,
+                'drive_fwd': drive_fwd, 'shift_mag': shift_mag,
+                'slip_tol': slip_tol, 'y_tol': y_tol,
+                'kp': kp, 'kd': kd, 'swing_kp': swing_kp, 'swing_kd': swing_kd,
+                'z_ground': round(state['zg'], 4),
+                'pass': passed,
+                'final_x': round(float(data.qpos[0]), 3),
+                'final_y': round(float(data.qpos[1]), 3),
+                'final_z': round(float(data.qpos[2]), 3),
+                'zmin': round(state['zmin'], 3), 'fell': state['fell'],
+                'phases': records,
+                'world_feet_end': {n: [round(float(x), 3) for x in feet_world()[n]]
+                                   for n in LEGS},
+                'final_feet': feet, 'trace': trace}
+
         goal = nominal[leg] + np.array([forward, 0.0, height])
         q = solve_leg(model, data, leg, goal)
         k = 3 * LEGS.index(leg)
@@ -297,7 +476,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['stand', 'shift', 'lift', 'step', 'seq', 'drive', 'place'])
+    parser.add_argument('mode', choices=['stand', 'shift', 'lift', 'step', 'seq', 'drive', 'place', 'crawl'])
     parser.add_argument('--leg', default='FL')
     parser.add_argument('--height', type=float, default=0.05)
     parser.add_argument('--seconds', type=float, default=3.0)
@@ -312,18 +491,29 @@ def main():
     parser.add_argument('--shift2-x', type=float, default=0.0)
     parser.add_argument('--umax', type=float, default=0.35)
     parser.add_argument('--kgain', type=float, default=0.8)
+    parser.add_argument('--lift-h', type=float, default=0.10)
+    parser.add_argument('--swing-fwd', type=float, default=0.06)
+    parser.add_argument('--drive-fwd', type=float, default=0.08)
+    parser.add_argument('--shift-mag', type=float, default=0.05)
+    parser.add_argument('--slip-tol', type=float, default=0.02)
+    parser.add_argument('--y-tol', type=float, default=0.03)
+    parser.add_argument('--swing-kp', type=float, default=40.0)
+    parser.add_argument('--swing-kd', type=float, default=1.5)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
                  kp=args.kp, kd=args.kd, shift_y=args.shift_y, shift_x=args.shift_x,
                  ramp=args.ramp, xml=args.xml or None, start_x=args.start_x,
                  forward=args.forward, shift2_x=args.shift2_x, umax=args.umax,
-                 kgain=args.kgain)
+                 kgain=args.kgain, lift_h=args.lift_h, swing_fwd=args.swing_fwd,
+                 drive_fwd=args.drive_fwd, shift_mag=args.shift_mag,
+                 slip_tol=args.slip_tol, y_tol=args.y_tol,
+                 swing_kp=args.swing_kp, swing_kd=args.swing_kd)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
         Path(args.out).write_text(text + '\n')
-    return 0 if not result['fell'] else 6
+    return 0 if result.get('pass', not result['fell']) else 6
 
 
 if __name__ == '__main__':
