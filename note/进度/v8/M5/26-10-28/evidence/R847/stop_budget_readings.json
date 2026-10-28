@@ -1,0 +1,58 @@
+{
+ "source": "note/进度/v8/M5/26-10-28/evidence/R841/a5_gazebo_full.json",
+ "speed_m_s": 0.4,
+ "basis": "raw Gazebo physics samples; path length in xy from trigger wall to physical-stop wall",
+ "cases": [
+  {
+   "case": "sensed_no_route",
+   "trigger": "sensed_no_route",
+   "speed_before_m_s": 0.4000000000873772,
+   "stop_time_wall_s": 0.9450711560202762,
+   "stop_time_sim_s": 0.4140000000000015,
+   "stop_distance_m": 0.100553,
+   "mux_zero_wall_s": 0.9393810400215443,
+   "reason": "E_LOCAL_NO_ROUTE",
+   "n_samples": 78
+  },
+  {
+   "case": "localization",
+   "trigger": "localization",
+   "speed_before_m_s": 0.39999999991159135,
+   "stop_time_wall_s": 0.1697896529803984,
+   "stop_time_sim_s": 0.07699999999999996,
+   "stop_distance_m": 0.022345,
+   "mux_zero_wall_s": 0.1383222559816204,
+   "reason": "E_LOCAL_LOCALIZATION",
+   "n_samples": 55
+  },
+  {
+   "case": "sensor_freshness",
+   "trigger": "sensor_freshness",
+   "speed_before_m_s": 0.4000000000873771,
+   "stop_time_wall_s": 2.0784724559925962,
+   "stop_time_sim_s": 0.9260000000000002,
+   "stop_distance_m": 0.32161,
+   "mux_zero_wall_s": 2.0700908720027655,
+   "reason": "E_LOCAL_OBSTACLES_STALE",
+   "n_samples": 121
+  }
+ ],
+ "actuation_only_0p2": [
+  {
+   "case": "source_crash",
+   "speed_before_m_s": 0.20000000008737717,
+   "mux_zero_wall_s": 1.5123800979927182,
+   "physical_stop_wall_s": 1.5185854359879158,
+   "coast_displacement_xy_m": 0.10966002004130378,
+   "scope": "A2.Gazebo_mux_candidate_crash_and_hold;no_perception_trigger;no_151_freeze"
+  },
+  {
+   "case": "supervisor_hold",
+   "speed_before_m_s": 0.19999999991159131,
+   "mux_zero_wall_s": 0.09248194799874909,
+   "physical_stop_wall_s": 0.09422633401118219,
+   "coast_displacement_xy_m": 0.009353940003557437,
+   "scope": "A2.Gazebo_mux_candidate_crash_and_hold;no_perception_trigger;no_151_freeze"
+  }
+ ]
+}

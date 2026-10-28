@@ -1,0 +1,25 @@
+R847 命令（2026-10-28，qoder）
+不新跑仿真；从既有证据的原始 physics 采样重算全链停车距离。
+
+python3 - <<'PY'
+import json, math
+src='note/进度/v8/M5/26-10-28/evidence/R841/a5_gazebo_full.json'
+d=json.load(open(src)); rows=d['raw']['physics']; by={}
+for r in rows: by.setdefault(r['phase'], []).append(r)
+for c in d['cases']:
+    if 'trigger' not in c: continue
+    ph=c['trigger']['phase']; tr=c['trigger']['wall']; stop=tr+c['trigger_to_physical_stop_wall_s']
+    seg=sorted([r for r in by.get(ph,[]) if r['wall']>=tr], key=lambda r:r['wall'])
+    path=0.; prev=None; at=None
+    for r in seg:
+        if r['wall']>stop+1e-6: break
+        if prev is not None: path+=math.dist(prev['xyz'][:2], r['xyz'][:2])
+        prev=r; at=r
+    print(c['case'], 'wall', round(c['trigger_to_physical_stop_wall_s'],4),
+          'sim', round(c['trigger_to_physical_stop_sim_s'],4), 'dist', round(path,6))
+PY
+
+# 对照（无感知）：evidence/R841/a2_gazebo_stop.json 的
+#   mux_zero_wall_s / physical_stop_wall_s / coast_displacement_xy_m 直接引用。
+# 输出摘要：evidence/R847/stop_budget_readings.json
+# 未改 calibration 任何键；#151 仍 pending。
