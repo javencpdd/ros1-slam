@@ -436,23 +436,52 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             fw = feet_world()
             p = body_pose()[0]
             sup = [n for n in LEGS if n != lift_leg]
+            pts = [fw[n][:2] for n in sup]
             best, best_n = None, None
             for i in range(3):
-                a = fw[sup[i]][:2]
-                b = fw[sup[(i + 1) % 3]][:2]
+                a = pts[i]
+                b = pts[(i + 1) % 3]
                 e = b - a
                 nvec = np.array([-e[1], e[0]])
                 nvec /= max(np.linalg.norm(nvec), 1e-9)
                 # 三角内部方向：以第三足为参考
-                c = fw[sup[(i + 2) % 3]][:2]
+                c = pts[(i + 2) % 3]
                 if np.dot(nvec, c - a) < 0:
                     nvec = -nvec
                 d = float(np.dot(nvec, p[:2] - a))
                 if best is None or d < best:
                     best, best_n = d, nvec
-            return (best, best_n) if want_normal else best
+            # 内切圆心＝最小裕度最大点；移重朝它走（沿单边法线不收敛的情形用它）
+            la = float(np.linalg.norm(pts[1] - pts[2]))
+            lb = float(np.linalg.norm(pts[0] - pts[2]))
+            lc = float(np.linalg.norm(pts[0] - pts[1]))
+            incenter = (la * pts[0] + lb * pts[1] + lc * pts[2]) / max(la + lb + lc, 1e-9)
+            to_in = incenter - p[:2]
+            n_to_in = to_in / max(np.linalg.norm(to_in), 1e-9)
+            if want_normal:
+                return best, n_to_in
+            return best
+
+        def support_loads(lift_leg):
+            """三支撑足的法向载荷份额（Σ=1）：解 Fz/Mx/My 三式。
+            CoM 的 xy 为荷载重心；负份额表示该足需要受拉（实际会抬离地面）。"""
+            fw = feet_world()
+            p = body_pose()[0]
+            sup = [n for n in LEGS if n != lift_leg]
+            A = np.array([[1.0, 1.0, 1.0],
+                          [fw[n][1] for n in sup],
+                          [fw[n][0] for n in sup]])
+            b = np.array([1.0, p[1], p[0]])
+            try:
+                shares = np.linalg.solve(A, b)
+            except np.linalg.LinAlgError:
+                return {n: 0.0 for n in sup}
+            return {n: float(v) for n, v in zip(sup, shares)}
 
         def lift_check(rec, f1, f0):
+            loads = support_loads(rec['leg'])
+            rec['loads0'] = {n: round(v, 3) for n, v in loads.items()}
+            rec['load_min'] = round(min(loads.values()), 3)
             rec['margin0_m'] = round(state['m0'], 4)
             rec['margin1_m'] = round(support_margin(rec['leg']), 4)
             return {'lifted': (f1[rec['leg']][2] - f0[rec['leg']][2]) >= 0.7 * lift_h,
@@ -684,8 +713,8 @@ def main():
     parser.add_argument('--rear-swing', type=float, default=0.10)
     parser.add_argument('--climb2-x', type=float, default=0.0)
     parser.add_argument('--climb2-dz', type=float, default=0.0)
-    parser.add_argument('--rear-margin', type=float, default=0.02)
-    parser.add_argument('--rear-shift', type=float, default=0.02)
+    parser.add_argument('--rear-margin', type=float, default=0.05)
+    parser.add_argument('--rear-shift', type=float, default=0.05)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
