@@ -220,8 +220,10 @@ class StepObstacleCaseTests(unittest.TestCase):
                                cases.base_z_from_foot_reference(.41, .061510))
 
     def test_geom_bounds_sphere_is_rotation_invariant(self):
+        # 45 deg about x: a rotated-box formula would inflate z by sqrt(2).
+        half = 2 ** -.5
         centre, aabb = np.array([1., 2., 3.]), np.array([0., 0., 0., .022, .022, .022])
-        rotation = np.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 1.]])
+        rotation = np.array([[1., 0., 0.], [0., half, -half], [0., half, half]])
         lo, hi = cases.collision_geom_bounds(None, rotation, centre, aabb, True)
         self.assertTrue(np.allclose(lo, centre - .022))
         self.assertTrue(np.allclose(hi, centre + .022))

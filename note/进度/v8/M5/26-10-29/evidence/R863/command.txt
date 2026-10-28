@@ -3,22 +3,22 @@
 预检（容器内，rc=0）：
 docker exec v8codex-20261028 bash -lc 'cd /repo && bash scripts/verify/v8_window_preflight.sh'
 
-三例正式跑（分离启动，24 s，输出 results-rerun5.json）：
+三例正式跑（分离启动，24 s，输出 results-rerun6.json）：
 docker exec -d v8codex-20261028 bash -lc 'cd /tmp/ros1-obstacles-mujoco && setsid bash -c "PYTHONPATH=/tmp/r854-policy-runtime python3 -B \
   /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_obstacles.py \
   --xml /tmp/mjcf/Lite3.xml --policy /tmp/r854-stair/policy.onnx \
-  --case all --seconds 24 --out /tmp/ros1-obstacles-mujoco/results-rerun5.json \
-  > /tmp/ros1-obstacles-mujoco/rerun5.log 2>&1; echo EXIT=\$? >> /tmp/ros1-obstacles-mujoco/rerun5.log" </dev/null'
+  --case all --seconds 24 --out /tmp/ros1-obstacles-mujoco/results-rerun6.json \
+  > /tmp/ros1-obstacles-mujoco/rerun6.log 2>&1; echo EXIT=\$? >> /tmp/ros1-obstacles-mujoco/rerun6.log" </dev/null'
 EXIT=0
 
-初始基座由编译后足球几何反解：base z = 0.40848988746093884，精确足底 z = 0.06（阶面顶）。
+初始基座由编译后足球碰撞几何（精确）反解：base z = 0.40848988746093884，精确足底 z = 0.06。
 
 中间批（未入证据）：
 - rerun：只修初始高度（当时仍用旧 AABB 口径），三例仍 FAIL。
 - rerun2：加精确包围盒＋前瞻，blocked PASS；正例位移 1.788/0.931 m（索引冻结）。
 - rerun3：修索引推进，三例 PASS；到达门限与评估器同为 0.18（自证嫌疑）。
-- rerun4：控制器到达 0.12／最小指令 0.2，三例 PASS；但初始高度仍按旧 AABB 球体口径，
-  实际起始离地 8.8 mm（独立复核指出）。
-- rerun5（本批证据）：初始高度改用精确几何，三例 PASS。
+- rerun4：控制器到达 0.12／最小指令 0.2，三例 PASS；初始高度仍按旧 AABB 球体口径，实际离地 8.8 mm（复核指出）。
+- rerun5：初始高度改精确几何，三例 PASS；`initial_state.method` 仍写 AABB、球体负控用轴对齐旋转无分辨力（复核指出）。
+- rerun6（本批证据）：修 method 文案与球体负控，三例 PASS（与 rerun5 指标一致，确定性复现）。
 
-原始件：results-rerun5.json.gz（解压 71,364,598 B；sha256 见 results.sha256）。
+原始件：results-rerun6.json.gz（解压 71,364,724 B；sha256 见 results.sha256）。

@@ -490,8 +490,9 @@ def run_case(xml, policy, case, seconds=24.):
                   initial_state={'base_xyz_m': [START[0], START[1], base_z],
                                  'foot_bottom_z_m': initial_foot_bottom,
                                  'deck_top_z_m': STEP_HEIGHT,
-                                 'method': 'compiled foot collision AABB; base solved so the '
-                                           'lowest foot geoms touch the deck top'},
+                                 'method': 'compiled foot collision geometry (mesh vertices / '
+                                           'analytic sphere); base solved so the lowest foot '
+                                           'surface touches the deck top'},
                   rollout=run, composed_xml_sha256=hashlib.sha256(wrapper.encode()).hexdigest(),
                   original_xml=str(Path(xml).resolve()),
                   original_xml_sha256=hashlib.sha256(Path(xml).read_bytes()).hexdigest(),
