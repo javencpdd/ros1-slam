@@ -134,9 +134,28 @@ def _controller_command(value):
     return command
 
 
-def rollout(xml, policy, seconds=10.0, v_cmd=0.3, stop_at=None, seed=0, controller=None):
+def rollout(xml, policy, seconds=10.0, v_cmd=0.3, stop_at=None, seed=0, controller=None,
+            initial_xyz=None, physics_observer=None):
+    """Run torque dynamics, with an optional read-only observation callback.
+
+    ``initial_xyz`` is applied once, before the first physics step. The observer
+    receives (model, dynamics_data, kinematics_snapshot) at every recorded step;
+    its JSON-compatible return value is stored as ``observation``.
+    """
     if controller is not None and (stop_at is not None or not callable(controller)):
         raise ValueError('controller must be callable and is mutually exclusive with stop_at')
+    if physics_observer is not None and not callable(physics_observer):
+        raise ValueError('physics_observer must be callable')
+    if initial_xyz is None:
+        initial_xyz = [0., 0., .35]
+    raw_initial = np.asarray(initial_xyz, dtype=object)
+    if (raw_initial.shape != (3,) or
+            not all(isinstance(v, (int, float, np.integer, np.floating))
+                    and not isinstance(v, (bool, np.bool_)) for v in raw_initial)):
+        raise ValueError('initial_xyz must contain three finite real coordinates, z > 0')
+    initial_xyz = raw_initial.astype(float)
+    if not np.all(np.isfinite(initial_xyz)) or initial_xyz[2] <= 0:
+        raise ValueError('initial_xyz must contain three finite real coordinates, z > 0')
     if stop_at is not None and not (np.isfinite(stop_at) and 0 < stop_at < seconds):
         raise ValueError('stop_at must be finite and satisfy 0 < stop_at < seconds')
     import mujoco
@@ -154,7 +173,7 @@ def rollout(xml, policy, seconds=10.0, v_cmd=0.3, stop_at=None, seed=0, controll
                                 ((model.geom_contype != 0) | (model.geom_conaffinity != 0)))
     default_pose = np.array([0, -0.65, 1.3] * 4)
     scale = np.array([0.125, 0.25, 0.25] * 4)
-    data.qpos[2] = 0.35
+    data.qpos[:3] = initial_xyz
     data.qpos[7:19] = default_pose
     mujoco.mj_forward(model, data)
     dt = model.opt.timestep
@@ -179,10 +198,13 @@ def rollout(xml, policy, seconds=10.0, v_cmd=0.3, stop_at=None, seed=0, controll
             extent = np.einsum('nij,nj->ni', np.abs(rotation), local_box[:, 3:])
             bounds = [(centre - extent).min(axis=0).tolist(),
                       (centre + extent).max(axis=0).tolist()]
-        return {'time': float(data.time), 'xyz': data.qpos[:3].tolist(),
-                'base_vxy': data.qvel[:2].tolist(), 'command': command.tolist(),
-                'robot_aabb': bounds, 'qpos': data.qpos.tolist(),
-                'tau_max': float(np.max(np.abs(data.qfrc_applied[6:18])))}
+        value = {'time': float(data.time), 'xyz': data.qpos[:3].tolist(),
+                 'base_vxy': data.qvel[:2].tolist(), 'command': command.tolist(),
+                 'robot_aabb': bounds, 'qpos': data.qpos.tolist(),
+                 'tau_max': float(np.max(np.abs(data.qfrc_applied[6:18])))}
+        if physics_observer is not None:
+            value['observation'] = physics_observer(model, data, geometry_data)
+        return value
 
     physics_trace = [sample()]
     for i in range(steps):
@@ -231,6 +253,7 @@ def rollout(xml, policy, seconds=10.0, v_cmd=0.3, stop_at=None, seed=0, controll
         'model_hash_scope': 'input XML bytes only; excludes referenced assets',
         'scope': 'torque_policy_braking_component', 'hardware': False, 'full_chain': False,
         'seed': seed, 'stop_at': stop_at, 'trigger_time': trigger_time,
+        'initial_xyz': initial_xyz.tolist(),
         'trigger_semantics': ('first nonzero-to-zero controller policy tick' if controller is not None
                               else 'first scheduled policy tick at or after stop_at'),
         'trigger_boundary': trigger_boundary, 'physics_trace': physics_trace,
