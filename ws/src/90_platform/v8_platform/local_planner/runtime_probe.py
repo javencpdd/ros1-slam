@@ -189,7 +189,7 @@ def run_case(name, value, start, goal, obstacles, behavior, deadline_s):
                                                   'violations': latency_violations},
                             'independent_evaluation': independent,
                             'domain': 'ROS_messages_with_continuous_command_receipt_integrator',
-                            'gazebo': False, 'dynamics': False}
+                            'gazebo': False, 'dynamics': False, 'hardware': False}
         finally:
             try:
                 proc.terminate()

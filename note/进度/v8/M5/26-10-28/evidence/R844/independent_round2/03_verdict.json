@@ -1,0 +1,200 @@
+{
+  "round": 2,
+  "sealed_at": "2026-10-28T21:16:40+08:00",
+  "reviewer": "independent_round2",
+  "runtime_release": "PARTIAL",
+  "full_A1_A7_acceptance": "NOT_VALIDATED",
+  "head": "844c735dff55701cca0c24292181015c992cdac2",
+  "commits": {
+    "d74c4ab": "d74c4ab7e545fca044c4457db6c1bb63c47ea1f4",
+    "55a777b": "55a777b71e91171b388e91e026a5ce80353cd16b",
+    "b82d909": "b82d909fb1834c67724c8ed81b0e4ed7554b7d58",
+    "844c735": "844c735dff55701cca0c24292181015c992cdac2"
+  },
+  "findings": [
+    {
+      "id": "F1_F6_nested_session",
+      "status": "PASS",
+      "evidence": "local_planner/runtime_probe.py:45-47 start_node = Popen without start_new_session; /tmp/r844/f6_orphan.py counterexample",
+      "observation": "Child now inherits the probe PGID. Counterexample current: group_members_before_kill=[parent,child], after killpg=[], child_live=false. Reverted pre-fix shape: child_live_after_group_kill=true (discriminating). No survivors left after cleanup."
+    },
+    {
+      "id": "F2_step_fix_attribution",
+      "status": "NOT_PROVEN",
+      "evidence": "local_planner/test_execution.py:90-107; /tmp/r844/run_reverted_test.py; /tmp/r844/track_old_full.jsonl; a5_ros_v2_step_fail.json",
+      "observation": "The new unit test passes with the hunk reverted (planned_distance=0.618, terminal branch never entered). Instrumented live runs: 0 of 90 (step) and 0 of 166 (full suite) track_segment calls have planned_distance<=1e-12; the pre-fix copy still passes 5/5. The v2 red artifact's trace already ends within 1e-6 of the deck (0.19999908,0,0.14999975) and only drifts to 9.66e-6 afterwards, 0.39996 m from goal, so a zero-length first leg (required by the claimed mechanism) does not exist there. The commit/note causal claim is unsupported; the change is not load-bearing for any A5 case."
+    },
+    {
+      "id": "F3_F5_dynamic_collision",
+      "status": "PASS_SUPERSEDED",
+      "evidence": "evidence/R841/a5_ros_initial_fail.json; a5_ros_v2_step_fail.json; evidence/R842/a5_ros_v3_full.json; /tmp/r844/a5_round2.json",
+      "observation": "Initial artifact has 16 (not 17) dynamic_collision samples, all segment 3, 9 trace points, no execution_trace key, domain 'ROS_messages_with_experimental_discrete_contact_integrator' -> produced by a superseded probe. v2 (755 pts), R842 suite (733 pts) and this round (739 pts, 1970 independent samples) are all green with independent_evaluation.ok=true. F5 is not a current-code defect, but it is not code-level root-caused either; round-1/R841 count of 17 is off by one."
+    },
+    {
+      "id": "F4_TEB_timebase_INVALID",
+      "status": "INVALID",
+      "evidence": "evidence/R841/teb_matrix/results.json; teb_clock_repair_SC01_s0.json; teb_clock_repair_SC09_s2.json",
+      "observation": "SC01_s0 and SC09_s2 still have null sim_duration_s/rtf; 7/9 cells valid. Repair artifacts report 9.5 s/0.444 and 20.4 s/0.435 (PASS) but their telemetry_json points to /tmp paths inside a deleted container; only telemetry_sha256 is archived, so the repair cannot be independently re-checked. Not counted as a new denominator."
+    },
+    {
+      "id": "F5_six_file_delta",
+      "status": "PARTIAL",
+      "evidence": "git show HEAD:<path> vs R841 03_verdict.json snapshot; git diff 5f646f9..HEAD -- validator/trajectory_checker.py",
+      "observation": "Exactly six files differ, as registered. Five have no pre-d74c4ab blob (first commit is d74c4ab), so the delta itself is unrecoverable. Current files retain every safeguard named in round 1 (unsupported-surface refusal, same-group cleanup, NaN ready budget, A4 clearance, TEB clock wait in unchanged driver.py, nested-session cleanup). The only diffable file (trajectory_checker.py) was tightened, not weakened."
+    },
+    {
+      "id": "F6_gate_chain",
+      "status": "PASS_WITH_COUNT_DRIFT",
+      "evidence": "/tmp/r844/gate_chain_ro.log; /tmp/r844/gate/{iso,dc,var,ledger,vcc,iso_nostub}.log",
+      "observation": "Official runner: SYN 0, GTC 0, ISO 1, DC 1, PYST 123 (read-only mount blocks __pycache__), VAR 9, ledger 9, VCC 6, rule-9 0, PATCHLAND 0. Corrected per-gate invocation: ISO 1, DC 1, VAR 9, LEDGER 5, VCC 6. ISO = [9] two C++ files + [4] 4 BAD only without the ws/devel stub; DC = 1 A + 16 B; VAR = runner arg mismatch + default EVID glob miss + 3 broken roslog/latest; ledger 9 = git dubious ownership, 5 = C4 lag. VCC attribution to exactly two stale targets holds, but the count at HEAD is 20 (12+8), not R843's 18 (11+7); ledger lag is 213, not 212."
+    },
+    {
+      "id": "F7_hardware_flag",
+      "status": "MINOR_GAP",
+      "evidence": "/tmp/r844/a5_round2.json top-level keys",
+      "observation": "ROS probe artifact carries gazebo=false and dynamics=false but no hardware key; hardware=false exists only in a5_gazebo_full.json. No reviewed note claims hardware or dynamics for the ROS probe, so this is a traceability gap rather than a false claim."
+    },
+    {
+      "id": "F8_step_contact_check",
+      "status": "PASS",
+      "evidence": "runtime_probe.py:166-167; a5_round2.json step case",
+      "observation": "Arrival uses a 0.08 m 3D tolerance but z must match a surface z_reference within 1e-6. Live step: |z-0.15|=6.8e-10, horizontal distance 0.074566 m. goal_tolerance_m is 0.08 in Config, so the 0.08 is the planner's own goal tolerance, not an ad-hoc widening."
+    },
+    {
+      "id": "F9_evaluator_independence",
+      "status": "PASS_WITH_CAVEAT",
+      "evidence": "ast scan of local_planner/evaluate.py imports",
+      "observation": "evaluate.py imports only math, sys, pathlib and trajectory_checker; no planner import. Caveat (pre-existing): it takes radius_m/clearance_m from result['config'], i.e. planner-declared envelope values."
+    }
+  ],
+  "unresolved": [
+    "R842 causal claim for the step case (terminal clock) is unsupported and its unit test is non-discriminating; no regression test fails without the hunk",
+    "Root-cause of a5_ros_initial_fail.json (16 collisions) versus v2/current green is not code-attributed",
+    "A1 TEB SC01_s0 / SC09_s2 remain INVALID; repair telemetry not archived (sha256 only)",
+    "Six-file delta old blobs unrecoverable; only current-state safeguards could be verified",
+    "Gate chain reds (ISO 1, DC 1, VAR 9/INVALID, ledger 5, VCC 6) unchanged; VCC count drifted 18->20 and ledger lag 212->213 at HEAD"
+  ],
+  "invalid_metrics": [
+    {
+      "id": "SC01_s0",
+      "metric": "sim_duration_s/rtf",
+      "status": "INVALID",
+      "note": "repair run reports 9.5 s / 0.444 PASS, telemetry not archived -> not independently re-checkable, not a new denominator"
+    },
+    {
+      "id": "SC09_s2",
+      "metric": "sim_duration_s/rtf",
+      "status": "INVALID",
+      "note": "repair run reports 20.4 s / 0.435 PASS, telemetry not archived -> not independently re-checkable, not a new denominator"
+    }
+  ],
+  "test_suites": {
+    "count": 33,
+    "failures": [],
+    "test_cases": 314
+  },
+  "gate_chain": {
+    "official_runner": {
+      "SYN": 0,
+      "GTC": 0,
+      "ISO": 1,
+      "DC": 1,
+      "PYST": 123,
+      "PYST_note": "read-only /repo mount prevents __pycache__ writes; not a code red",
+      "VAR": 9,
+      "ledger": 9,
+      "VCC": 6,
+      "rule9": 0,
+      "PATCHLAND": 0
+    },
+    "corrected_invocation": {
+      "ISO": 1,
+      "DC": 1,
+      "VAR": 9,
+      "ledger": 5,
+      "VCC": 6
+    },
+    "vcc_red_targets": {
+      "hdl_localization.launch:89": 12,
+      "note/进度/v7/S3/进度文档.md:972": 8,
+      "total": 20
+    },
+    "ledger_c4_lag": 213
+  },
+  "probe": {
+    "artifact": "/tmp/r844/a5_round2.json",
+    "sha256": "c8aea421a83e345dd69c306fe92037538689fdacf36cc418aead7cd107cb9a2b",
+    "log_sha256": "9b19b2d9f47c2be1a5bab3c18851df8c7fb2da431b2c674d23c966b9400291ed",
+    "ok": true,
+    "complete_suite": true,
+    "gazebo": false,
+    "dynamics": false,
+    "cases": {
+      "dynamic": {
+        "ok": true,
+        "final_contact_xyz": [1.1252346861914613, 9.278487966339513e-07, 0.0],
+        "trajectory_points": 739,
+        "execution_samples": 739,
+        "eval_ok": true,
+        "eval_samples": 1970,
+        "eval_collisions": 0,
+        "latency_max_s": 0.003056288
+      },
+      "step": {
+        "ok": true,
+        "final_contact_xyz": [0.525433936406068, 0.0, 0.15000000068004735],
+        "abs_z_minus_0_15": 6.800473517643013e-10,
+        "distance_to_goal_m": 0.07456606359393203,
+        "trajectory_points": 110,
+        "execution_samples": 248,
+        "eval_ok": true,
+        "eval_samples": 658,
+        "eval_collisions": 0,
+        "latency_max_s": 0.003269672
+      },
+      "blocked": {
+        "ok": true,
+        "final_contact_xyz": [-0.4, 0.0, 0.0],
+        "trajectory_points": 33,
+        "latency_max_s": 0.001624823
+      },
+      "localization": {
+        "ok": true,
+        "final_contact_xyz": [0.030275058746337895, 0.0, 0.0],
+        "trajectory_points": 36,
+        "latency_max_s": 0.001051903
+      },
+      "expiry": {
+        "ok": true,
+        "final_contact_xyz": [0.19999773140842986, 0.0, 0.0],
+        "trajectory_points": 110,
+        "latency_max_s": 0.001426458
+      }
+    }
+  },
+  "six_file_delta": {
+    "differs": [
+      "regression/runtime_lab.py",
+      "validator/trajectory_checker.py",
+      "local_planner/local_native.py",
+      "local_planner/evaluate.py",
+      "local_planner/ros_node.py",
+      "local_planner/runtime_probe.py"
+    ],
+    "head_sha256": {
+      "regression/runtime_lab.py": "9659ecdcdd6282e6d86d51b3753b428ca986ebb1b0eae377ff6dc5da14a2f3b0",
+      "validator/trajectory_checker.py": "a06ec266676198fb123e613870abc4c032916c0fbfad4864c991a2688e0c4dd9",
+      "local_planner/local_native.py": "ea0615b36ad37c972a8c523c3ea7af68d6d67bb80a6608889942a09bcb9999eb",
+      "local_planner/evaluate.py": "3fc27aa026ae43d43997a9f2f9af63c127b4de2af87ba690fd4565aabaaa4134",
+      "local_planner/ros_node.py": "fe20dbadfdd22c6d76ec698b8eab29ba00508ad1730612561f0021c65bebf1b9",
+      "local_planner/runtime_probe.py": "164c8dd7de049b6cc7ef00ac4d4d894173093e84fb1a0cacf78580d64290b8c4"
+    },
+    "old_blobs_recoverable": false,
+    "safeguards_present": true
+  },
+  "notes": [
+    "This round does not release the A1-A7 package. Only the A5 ROS five-case behaviour on HEAD is green.",
+    "Raw probe artifact is left in /tmp/r844 (ephemeral); its sha256 is recorded above.",
+    "No tracked file, .ai entry, or historical evidence was modified; only this directory and /tmp were written."
+  ]
+}

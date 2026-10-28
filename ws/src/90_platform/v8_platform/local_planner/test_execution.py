@@ -87,10 +87,11 @@ class ExecutionTests(unittest.TestCase):
         verdict = evaluate.evaluate(value, record(value, contacts, cfg, execution), [])
         self.assertTrue(verdict['ok'], (verdict['failures'], max(p[2] for p in execution),
                                        verdict['static_collisions'][:2]))
-    def test_terminal_clock_does_not_certify_contact_with_command_in_flight(self):
-        # R841 step case ended 9.66e-6 above the deck after the terminal stamp;
-        # the old rule reported completion from the clock alone, so the next
-        # plan refused with E_LOCAL_SUPPORT forever.
+    def test_slightly_off_target_is_docked_not_completed(self):
+        # General completion check: a pose 9.66e-6 past the deck target is not
+        # certified; the controller commands toward the target. (This is not the
+        # R841 step regression: the plan's first segment is 0.618 m, so the
+        # zero-length terminal branch never runs here.)
         value = layers()
         cfg = replace(native.Config(), tick_s=1.2, validity_s=4.)
         result = native.plan(value, (-.4, 0., 0.), (.6, 0., .15), config=cfg)
@@ -105,6 +106,22 @@ class ExecutionTests(unittest.TestCase):
         settle = native.track_segment(value, result, target[:3], after, [], config=cfg)
         self.assertTrue(settle['complete'])
         self.assertEqual(settle['velocity'], [0., 0., 0.])
+
+    def test_in_flight_uncertainty_blocks_contact_certification(self):
+        # An in-flight command can still move the carrier off the support after
+        # the pose sample; completion must wait until gap + uncertainty <= 1e-6.
+        # Removing the uncertainty term from track_segment makes this red.
+        value = layers()
+        cfg = replace(native.Config(), tick_s=1.2, validity_s=4.)
+        result = native.plan(value, (-.4, 0., 0.), (.6, 0., .15), config=cfg)
+        target = result['trajectory'][1]
+        when = result['created_at'] + .1
+        blocked = native.track_segment(value, result, target[:3], when, [], config=cfg,
+                                       feedback_pose=target[:3], uncertainty_m=5e-6)
+        self.assertFalse(blocked.get('complete', False))
+        settled = native.track_segment(value, result, target[:3], when, [], config=cfg,
+                                       feedback_pose=target[:3], uncertainty_m=0.)
+        self.assertTrue(settled['complete'])
 
     def test_receipt_integrator_keeps_hold_and_all_command_changes(self):
         position, stamp, velocity, samples = runtime_probe.integrate_received(
