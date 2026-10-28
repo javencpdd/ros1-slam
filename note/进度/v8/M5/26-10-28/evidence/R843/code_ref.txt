@@ -1,0 +1,19 @@
+R843 闸件快照＝git 提交 b82d909（本件未改闸件；下表为定性时的在册版本）
+口径：blob＝git 对象 id；sha256＝git show 内容哈希（复核：git show b82d909:<path> | sha256sum）
+
+scripts/verify/run_gate_chain.sh
+  blob=595f9d762c804446dfa99c8b5a4d9d385c4883ad  sha256=4039d7eb43a650c974ee3b39ce067dd3797f0fac62112e6f1fbc1d4a865ba8c9
+scripts/verify/gate_chain.txt
+  blob=2460737204bbc88cc03cdb9eb333b0d90f5d7f00  sha256=28a1d82c164f540cd4d7ec4beb678f273422d94ba44a736a7b90b1af7cb8f634
+scripts/verify/v3_isolation.sh
+  blob=27e813e0769e0185e21696b21ea5bbbeb376fa9b  sha256=8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117
+scripts/verify/v_deferred_clause_scan.sh
+  blob=6c213539508cc577014bfab2eef2aa216b2896e9  sha256=af497558d16151c2418200c27bfd22d02d3f580c88db1bc1a29cb681b280ae82
+scripts/verify/v_evidence_reachability.sh
+  blob=b6af930910a14feac25ed1263f124fa51201a88f  sha256=7c8cd8ffdd0c2378f8e5450bf5d1796299ec3a9fa1dc68ef2dfb34e95c1581db
+scripts/verify/v_ledger_batch_consistency.sh
+  blob=013460d31cf434b2b272b8700125963e4eae82f1  sha256=0f84d0d1823f3c9a464216dfc0a09672a9bc7769d772340487f8e1ed1d319179
+scripts/verify/v_citation_check.sh
+  blob=69df6a1c20b8b63d3192f3b507c4d9f9994f38d9  sha256=6bd0cf130b38117aa9ac207ada60ab17ff0defc5110565b747d2f2573dd4ca84
+
+边界：未改任何闸件、成员名单、rc 语义、阈值与旧文；VAR 的 rc=9 与账构原 rc=9 记 INVALID，不入串。
