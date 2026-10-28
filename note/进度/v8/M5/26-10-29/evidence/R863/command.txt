@@ -1,0 +1,20 @@
+批：R863（T-20261026-08）；容器 v8codex-20261028；物理运行，无真机
+
+预检（容器内，rc=0）：
+docker exec v8codex-20261028 bash -lc 'cd /repo && bash scripts/verify/v8_window_preflight.sh'
+
+三例正式跑（分离启动，24 s，输出 results-rerun4.json）：
+docker exec -d v8codex-20261028 bash -lc 'cd /tmp/ros1-obstacles-mujoco && setsid bash -c "PYTHONPATH=/tmp/r854-policy-runtime python3 -B \
+  /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_obstacles.py \
+  --xml /tmp/mjcf/Lite3.xml --policy /tmp/r854-stair/policy.onnx \
+  --case all --seconds 24 --out /tmp/ros1-obstacles-mujoco/results-rerun4.json \
+  > /tmp/ros1-obstacles-mujoco/rerun4.log 2>&1; echo EXIT=\$? >> /tmp/ros1-obstacles-mujoco/rerun4.log" </dev/null'
+EXIT=0
+
+中间批（未入证据，仅记录）：
+- results-rerun.json：只修初始高度，三例仍 FAIL（包络 12001/12001；正例位移 0.389 m）。
+- results-rerun2.json：加精确包围盒＋前瞻，blocked PASS；正例位移 1.788/0.931 m（索引冻结）。
+- results-rerun3.json：修索引推进，三例 PASS；到达门限与评估器同为 0.18（自证嫌疑）。
+- 最终版：控制器到达 0.12、最小指令 0.2 m/s，评估器 0.18 不变。
+
+原始件：results-rerun4.json.gz（解压 71,362,476 B；sha256 见 results.sha256）。

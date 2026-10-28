@@ -23,6 +23,9 @@ from pathlib import Path
 import numpy as np
 
 
+DEFAULT_POSE = np.array([0, -0.65, 1.3] * 4)
+
+
 def rot(q):
     w, x, y, z = q
     return np.array([
@@ -171,7 +174,7 @@ def rollout(xml, policy, seconds=10.0, v_cmd=0.3, stop_at=None, seed=0, controll
     geometry_data = mujoco.MjData(model)
     robot_geoms = np.flatnonzero((model.geom_bodyid != 0) &
                                 ((model.geom_contype != 0) | (model.geom_conaffinity != 0)))
-    default_pose = np.array([0, -0.65, 1.3] * 4)
+    default_pose = DEFAULT_POSE
     scale = np.array([0.125, 0.25, 0.25] * 4)
     data.qpos[:3] = initial_xyz
     data.qpos[7:19] = default_pose

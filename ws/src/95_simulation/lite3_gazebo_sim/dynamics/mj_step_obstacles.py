@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 
-from mj_step_baseline import rollout
+from mj_step_baseline import DEFAULT_POSE, rollout
 
 PLATFORM = Path(__file__).resolve().parents[3] / '90_platform' / 'v8_platform'
 sys.path.insert(0, str(PLATFORM / 'planner'))
@@ -101,7 +101,15 @@ def support_map(model, data, case):
 
 
 class RouteController:
-    """Track a precomputed global route with body vx/vy commands and yaw hold."""
+    """Track a precomputed global route with body vx/vy commands and yaw hold.
+
+    The route arrives as 0.1 m waypoints; commanding the next waypoint directly
+    caps speed at 0.1 m/s, below the policy's sustainable gait speed, and the
+    robot stalls. Track a lookahead point instead.
+    """
+    LOOKAHEAD = .5
+    MIN_COMMAND = .2
+
     def __init__(self, plan):
         self.plan = plan
         self.points = np.asarray([p[:2] for p in plan.get('path', [])], dtype=float)
@@ -115,14 +123,26 @@ class RouteController:
         pose = np.asarray(data.qpos[:2])
         command = np.zeros(3)
         if self.plan.get('ok'):
-            while self.index < len(self.points) - 1 and np.linalg.norm(self.points[self.index] - pose) < .12:
+            # Track the nearest path point, not "within 0.12 m": a lateral drift
+            # larger than that freezes the index and the lookahead point stays behind.
+            while (self.index < len(self.points) - 1
+                   and np.linalg.norm(self.points[self.index + 1] - pose)
+                   <= np.linalg.norm(self.points[self.index] - pose)):
                 self.index += 1
-            delta = self.points[self.index] - pose
-            if self.index == len(self.points) - 1 and np.linalg.norm(delta) <= .12:
+            target = self.index
+            while (target < len(self.points) - 1
+                   and np.linalg.norm(self.points[target] - pose) < self.LOOKAHEAD):
+                target += 1
+            delta = self.points[target] - pose
+            if np.linalg.norm(self.points[-1] - pose) <= .12:
                 self.arrived = True
             if not self.arrived:
                 norm = float(np.linalg.norm(delta))
                 world = delta / max(1., norm / .23)
+                # Below ~0.1 m/s the policy stops walking; keep a floor on the
+                # command magnitude so the goal approach does not deadlock.
+                if 0 < norm < self.MIN_COMMAND:
+                    world = delta / norm * self.MIN_COMMAND
                 w, x, y, z = data.qpos[3:7]
                 yaw = math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
                 c, s = math.cos(yaw), math.sin(yaw)
@@ -136,7 +156,50 @@ class RouteController:
 
 class PhysicsObserver:
     def __init__(self, case):
-        self.case, self.box_id, self.feet = case, None, None
+        self.case, self.box_id, self.feet, self.geoms = case, None, None, None
+
+    @staticmethod
+    def _collision_geoms(model):
+        """Per-geom source data for exact world bounds.
+
+        Treating every geom as a rotated box inflates the lower bound here by
+        ~9 mm for the foot spheres and ~10 mm for the shank meshes, so the
+        envelope measurement uses transformed vertices for meshes, the analytic
+        sphere, and the rotated box only for true box geoms.
+        """
+        import mujoco
+        geoms = []
+        for index in range(model.ngeom):
+            body = model.geom_bodyid[index]
+            if not body or not (model.geom_contype[index] or model.geom_conaffinity[index]):
+                continue
+            verts = None
+            if model.geom_type[index] == mujoco.mjtGeom.mjGEOM_MESH:
+                mesh = model.geom_dataid[index]
+                start, count = model.mesh_vertadr[mesh], model.mesh_vertnum[mesh]
+                verts = np.array(model.mesh_vert[start:start + count], dtype=float)
+            geoms.append((index, verts, np.array(model.geom_aabb[index], dtype=float),
+                          int(model.geom_type[index])))
+        return geoms
+
+    def exact_bounds(self, data):
+        import mujoco
+        lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
+        for index, verts, aabb, gtype in self.geoms:
+            rotation = np.asarray(data.geom_xmat[index]).reshape(3, 3)
+            centre = np.asarray(data.geom_xpos[index])
+            if verts is not None:
+                world = verts @ rotation.T + centre
+                lo, hi = np.minimum(lo, world.min(axis=0)), np.maximum(hi, world.max(axis=0))
+            elif gtype == mujoco.mjtGeom.mjGEOM_SPHERE:
+                # A sphere's AABB does not rotate; the generic rotated-box branch
+                # inflates a 22 mm foot by up to sqrt(3) and hid the real clearance.
+                lo, hi = np.minimum(lo, centre - aabb[3]), np.maximum(hi, centre + aabb[3])
+            else:
+                box_centre = centre + rotation @ aabb[:3]
+                extent = np.abs(rotation) @ aabb[3:]
+                lo, hi = np.minimum(lo, box_centre - extent), np.maximum(hi, box_centre + extent)
+        return [lo.tolist(), hi.tolist()]
 
     def __call__(self, model, data, snapshot):
         import mujoco
@@ -146,6 +209,7 @@ class PhysicsObserver:
             if any(index < 0 for index in self.feet.values()):
                 raise ValueError('four-foot body identities are required')
             self.box_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, BOX)
+            self.geoms = self._collision_geoms(model)
         contacts = []
         for index in range(data.ncon):
             contact = data.contact[index]
@@ -155,7 +219,7 @@ class PhysicsObserver:
                     contacts.append({'geom1': int(contact.geom1), 'geom2': int(contact.geom2),
                                      'distance': float(contact.dist)})
         return {'feet': {leg: snapshot.xpos[index].tolist() for leg, index in self.feet.items()},
-                'box_contacts': contacts}
+                'box_contacts': contacts, 'robot_bounds_exact': self.exact_bounds(snapshot)}
 
 
 def finite_array(value, shape):
@@ -214,6 +278,9 @@ def validate_measurements(run, geometry, decisions, case):
         else:
             for leg, point in feet.items():
                 check(point, (3,), 'feet.' + leg, index)
+        exact = check(observation.get('robot_bounds_exact'), (2, 3), 'robot_bounds_exact', index)
+        if exact is not None and np.any(exact[0] > exact[1]):
+            problems.append({'sample': index, 'field': 'robot_bounds_exact', 'reason': 'inverted exact bounds'})
         contacts = observation.get('box_contacts')
         if not isinstance(contacts, list):
             problems.append({'sample': index, 'field': 'box_contacts', 'reason': 'must be an observed list'})
@@ -271,6 +338,7 @@ def evaluate_physics(run, plan, geometry, controller, case):
     trace = run['physics_trace']
     boxes = geometry['boxes']
     penetrations, contacts, missing, envelope_violations, deck_departures = [], [], [], [], []
+    conservative_envelope_samples = 0
     deck_lo, deck_hi = geometry['deck']['min'], geometry['deck']['max']
     minimum_gap = math.inf
     for sample in trace:
@@ -280,16 +348,23 @@ def evaluate_physics(run, plan, geometry, controller, case):
             missing.append(sample['time'])
             continue
         aabb = np.asarray(bounds)
+        exact = np.asarray(observation['robot_bounds_exact'])
         position = np.asarray(sample['xyz'])
         if np.any(aabb[0, :2] < np.asarray(deck_lo[:2]) - 1e-6) or np.any(
                 aabb[1, :2] > np.asarray(deck_hi[:2]) + 1e-6):
             deck_departures.append(sample['time'])
-        # Validate the planning body envelope against the actual collision geometry.
+        # The planning envelope is checked against exact world bounds: rotating a
+        # long shank mesh's local AABB inflates its lower corner by ~1 cm here.
+        if (np.any(exact[0, :2] < position[:2] - RADIUS - 1e-6) or
+                np.any(exact[1, :2] > position[:2] + RADIUS + 1e-6) or
+                exact[0, 2] < STEP_HEIGHT - .005 or
+                exact[1, 2] > STEP_HEIGHT + BODY_HEIGHT + 1e-6):
+            envelope_violations.append(sample['time'])
         if (np.any(aabb[0, :2] < position[:2] - RADIUS - 1e-6) or
                 np.any(aabb[1, :2] > position[:2] + RADIUS + 1e-6) or
                 aabb[0, 2] < STEP_HEIGHT - .005 or
                 aabb[1, 2] > STEP_HEIGHT + BODY_HEIGHT + 1e-6):
-            envelope_violations.append(sample['time'])
+            conservative_envelope_samples += 1
         if observation['box_contacts']:
             contacts.append({'time': sample['time'], 'contacts': observation['box_contacts']})
         for box in boxes:
@@ -329,11 +404,46 @@ def evaluate_physics(run, plan, geometry, controller, case):
             'minimum_geometry_gap_m': minimum_gap if math.isfinite(minimum_gap) else None,
             'contact_sample_count': len(contacts), 'aabb_overlap_sample_count': len(penetrations),
             'envelope_violation_sample_count': len(envelope_violations),
+            'envelope_bounds': 'exact world bounds: mesh vertices, analytic primitives',
+            'conservative_aabb_envelope_violation_sample_count': conservative_envelope_samples,
             'deck_departure_sample_count': len(deck_departures),
             'first_contact': contacts[:1], 'first_overlap': penetrations[:1],
             'world_feet_end': feet, 'initialized_on_deck': True,
             'ascent_completed': False, 'four_foot_ascent_acceptance': 'NOT_TESTED',
             'collision_scope': 'all recorded physics steps: actual collision-geom AABB and contacts'}
+
+
+def base_z_from_foot_reference(reference_z, foot_bottom_at_reference, deck_top=STEP_HEIGHT):
+    """Shift the base so the lowest foot geom lands on the deck top."""
+    return reference_z + deck_top - foot_bottom_at_reference
+
+
+def foot_bottom_z(model, x, y, base_z):
+    """Lowest world z of the four foot collision geoms at the default stance."""
+    import mujoco
+    probe = mujoco.MjData(model)
+    probe.qpos[0], probe.qpos[1], probe.qpos[2] = x, y, base_z
+    probe.qpos[7:19] = DEFAULT_POSE
+    mujoco.mj_kinematics(model, probe)
+    lowest, found = math.inf, []
+    for index in range(model.ngeom):
+        body = model.geom_bodyid[index]
+        if not body or not (model.geom_contype[index] or model.geom_conaffinity[index]):
+            continue
+        name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_BODY, body)
+        if name is None or not name.endswith('_FOOT'):
+            continue
+        rotation = np.asarray(probe.geom_xmat[index]).reshape(3, 3)
+        extent = np.abs(rotation) @ model.geom_aabb[index, 3:]
+        lowest = min(lowest, float((np.asarray(probe.geom_xpos[index]) - extent)[2]))
+        found.append(name)
+    if len(found) != 4:
+        raise ValueError('four foot collision geoms are required')
+    return lowest
+
+
+def initial_base_z(model, x, y):
+    return base_z_from_foot_reference(1., foot_bottom_z(model, x, y, 1.))
 
 
 def run_case(xml, policy, case, seconds=24.):
@@ -353,8 +463,10 @@ def run_case(xml, policy, case, seconds=24.):
             plan = {'ok': False, 'reason': error.code, 'detail': error.detail, 'path': []}
         controller = RouteController(plan)
         observer = PhysicsObserver(case)
+        base_z = initial_base_z(model, START[0], START[1])
+        initial_foot_bottom = foot_bottom_z(model, START[0], START[1], base_z)
         run = rollout(str(path), policy, seconds, controller=controller,
-                      initial_xyz=[START[0], START[1], STEP_HEIGHT + .35], physics_observer=observer)
+                      initial_xyz=[START[0], START[1], base_z], physics_observer=observer)
     result = evaluate_physics(run, plan, geometry, controller, case)
     result.update(case=case, scope=SCOPE, hardware=False, sensed_map=False,
                   formal_151_acceptance=False, calibration_changed=False,
@@ -363,6 +475,11 @@ def run_case(xml, policy, case, seconds=24.):
                                   'xy_shape': 'conservative square',
                                   'ground_contact_penetration_tolerance_m': .005},
                   start=list(START), goal=list(GOAL), decisions=controller.decisions,
+                  initial_state={'base_xyz_m': [START[0], START[1], base_z],
+                                 'foot_bottom_z_m': initial_foot_bottom,
+                                 'deck_top_z_m': STEP_HEIGHT,
+                                 'method': 'compiled foot collision AABB; base solved so the '
+                                           'lowest foot geoms touch the deck top'},
                   rollout=run, composed_xml_sha256=hashlib.sha256(wrapper.encode()).hexdigest(),
                   original_xml=str(Path(xml).resolve()),
                   original_xml_sha256=hashlib.sha256(Path(xml).read_bytes()).hexdigest(),

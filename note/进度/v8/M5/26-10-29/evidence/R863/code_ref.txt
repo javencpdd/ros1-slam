@@ -1,0 +1,18 @@
+R863 代码引用（note 不放代码；以提交 blob 为准）
+
+- ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_obstacles.py
+  git blob 83714e71a7efc81775eaf3c2bc35a8b68150bcf9
+  sha256 8f6190d40c4a1621a14fcf88fb43d969f76c5d7012b250cd3bbb5365033447af
+  变更：初始高度由编译后足球 AABB 反解；PhysicsObserver 记录精确世界包围盒
+  （mesh 顶点 / 球体解析）；包络检查改用精确包围盒（门值不变）；
+  RouteController 改为 0.5 m 前瞻、最近点推进、最小指令 0.2 m/s、到达 0.12 m。
+
+- ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_baseline.py
+  git blob 5cd95ed237db3463498454c94e74684849655fad
+  sha256 c7755f45ccd7596db97207e6a57755f5f08281da046eff02cd19bd919f4f034a
+  变更：仅把默认关节角提为模块级 DEFAULT_POSE 常量，rollout 行为不变。
+
+- ws/src/95_simulation/lite3_gazebo_sim/dynamics/test_mj_step_obstacles.py
+  git blob 179731ed9c50aa8563fd2e3349719721249047f1
+  sha256 b25fcf1c9724c73d91416c7f1e4629c031dd619351a123a922cc7b59b82375d6
+  变更：新增 5 项负控（初始高度两式、精确包围盒三式），共 20 项（原 15 项）全过。

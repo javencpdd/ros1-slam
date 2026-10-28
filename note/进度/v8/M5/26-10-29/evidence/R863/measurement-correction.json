@@ -1,0 +1,20 @@
+{
+ "source": "R862 results-initial.json first frame (clear) + R863 exact bounds",
+ "method": "same wrapper, same qpos; exact = mesh vertices / analytic sphere; conservative = rotated local AABB as in mj_step_baseline.sample()",
+ "initial_frame": {
+  "base_z_m": 0.41,
+  "conservative_aabb_low_z": 0.051833,
+  "exact_shank_low_z": 0.061013,
+  "exact_foot_low_z": 0.061510,
+  "deck_top_z": 0.06,
+  "conclusion": "at t=0 the lowest geometry was 1.0-1.5 mm ABOVE the deck top; R862 section 7's '7.32 mm low' was a rotated-AABB artifact"
+ },
+ "steady_sample": {
+  "note": "clear case, t=0.2 s, R863 rerun",
+  "conservative_foot_low_z": 0.0499,
+  "exact_foot_low_z": 0.05983,
+  "exact_shank_low_z": 0.05924,
+  "mujoco_contact_dist_m": -0.00017
+ },
+ "gate_unchanged": {"z_low_min": 0.055, "z_high_max": 0.56, "xy_radius_m": 0.5, "height_m": 0.5}
+}

@@ -30,7 +30,9 @@ def synthetic(case='clear'):
                         'command': [0., 0., 0.] if case == 'blocked_box' else [.2, 0., 0.],
                         'tau_max': 12.,
                         'robot_aabb': [[x - .4, -.25, .06], [x + .4, .35, .5]],
-                        'observation': {'feet': feet, 'box_contacts': []}})
+                        'observation': {'feet': feet, 'box_contacts': [],
+                                        'robot_bounds_exact': [[x - .4, -.25, .06],
+                                                               [x + .4, .35, .5]]}})
     return {'physics_trace': samples, 'fell': False}, plan, geometry, controller
 
 
@@ -86,8 +88,8 @@ class StepObstacleCaseTests(unittest.TestCase):
     def test_contacts_missing_geometry_and_wrong_envelope_cannot_inherit_green(self):
         for modification, failed in ((lambda s: s['observation']['box_contacts'].append({'geom1': 1, 'geom2': 2, 'distance': -.01}), 'no_box_contact'),
                                      (lambda s: s.pop('robot_aabb'), 'physics_trace_present'),
-                                     (lambda s: s['robot_aabb'][1].__setitem__(2, .6), 'actual_body_within_planning_envelope'),
-                                     (lambda s: s['robot_aabb'][0].__setitem__(2, .04), 'actual_body_within_planning_envelope'),
+                                     (lambda s: s['observation']['robot_bounds_exact'][1].__setitem__(2, .6), 'actual_body_within_planning_envelope'),
+                                     (lambda s: s['observation']['robot_bounds_exact'][0].__setitem__(2, .04), 'actual_body_within_planning_envelope'),
                                      (lambda s: s['observation']['feet']['HR'].__setitem__(2, .022), 'all_four_feet_end_on_deck')):
             run, plan, geometry, controller = synthetic()
             modification(run['physics_trace'][-1])
@@ -179,6 +181,38 @@ class StepObstacleCaseTests(unittest.TestCase):
         self.assertEqual(report['base_displacement_m'], 0.)
         self.assertAlmostEqual(report['maximum_xy_excursion_m'], .95)
         self.assertFalse(report['checks']['motion_or_rejection_verified'])
+
+    def test_envelope_uses_exact_bounds_not_inflated_local_aabb(self):
+        run, plan, geometry, controller = synthetic()
+        for sample in run['physics_trace']:
+            sample['robot_aabb'][0][2] = .0495  # rotated local AABB corner below the gate
+            sample['observation']['robot_bounds_exact'][0][2] = .0595
+        self.assertEqual(cases.evaluate_physics(run, plan, geometry, controller, 'clear')['verdict'], 'PASS')
+
+    def test_exact_bounds_below_the_gate_still_fail(self):
+        run, plan, geometry, controller = synthetic()
+        for sample in run['physics_trace']:
+            sample['observation']['robot_bounds_exact'][0][2] = .0495
+        report = cases.evaluate_physics(run, plan, geometry, controller, 'clear')
+        self.assertEqual(report['verdict'], 'FAIL')
+        self.assertFalse(report['checks']['actual_body_within_planning_envelope'])
+
+    def test_missing_exact_bounds_are_invalid_not_green(self):
+        run, plan, geometry, controller = synthetic()
+        del run['physics_trace'][0]['observation']['robot_bounds_exact']
+        report = cases.evaluate_physics(run, plan, geometry, controller, 'clear')
+        self.assertEqual(report['verdict'], 'FAIL')
+        self.assertFalse(report['checks']['physics_measurements_valid'])
+
+    def test_initial_base_height_uses_measured_foot_bottom(self):
+        # R862: 0.41 was hard-coded while the measured foot bottom at that base was
+        # 0.052682, i.e. 7.32 mm below the 0.06 deck top.
+        self.assertAlmostEqual(cases.base_z_from_foot_reference(1., .6426821680), .417317832)
+        self.assertAlmostEqual(cases.base_z_from_foot_reference(.41, .052682168), .417317832)
+
+    def test_initial_base_height_is_invariant_to_reference_offset(self):
+        self.assertAlmostEqual(cases.base_z_from_foot_reference(1., .642682168),
+                               cases.base_z_from_foot_reference(.41, .052682168))
 
     def test_actual_nonzero_physics_commands_cannot_be_hidden_by_zero_decisions(self):
         run, plan, geometry, controller = synthetic('blocked_box')
