@@ -1,0 +1,3 @@
+bash /work/start_mux.sh   # 起 mux（/cmd_vel 唯一写者=/mux）
+python3 -B /repo/ws/src/90_platform/v8_platform/regression/a2_stop_chain.py --out /work/a2_stop.json
+pkill -f "[s]afe_cmd_vel_mux.py"  # 清场核验：进程 1→0、无 /mux 节点、/cmd_vel 无发布者
