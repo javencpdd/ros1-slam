@@ -1,0 +1,13 @@
+仿真起点/终点设置工具实测（容器 v8codex-20261028，headless m1 Gazebo）
+
+ROS_MASTER_URI=http://127.0.0.1:11371
+GAZEBO_MASTER_URI=http://127.0.0.1:11375
+roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false
+
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose.py --status
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose.py --start 2.0 -1.0 --yaw 30 --settle 1
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose.py --status
+rostopic echo -n1 /move_base_simple/goal > r857_goal.txt &
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose.py --goal 3.0 0.5 --yaw 45
+
+边界：本批未起 flat2d_stack/move_base（只验位姿与目标消息，不验行驶到点）；无真机。
