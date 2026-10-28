@@ -1,0 +1,199 @@
+{
+  "provisional": false,
+  "suites": [
+    {
+      "suite": "orchestrator/test_orchestrator.py",
+      "sha256": "dce28f28c39ba9a50f568d1778a2ba1d6a0d708fc7321bbae8cb9881eb650e19",
+      "rc": 0,
+      "wall_s": 0.644
+    },
+    {
+      "suite": "orchestrator/test_process_runner.py",
+      "sha256": "6196e4f8b5558502e5391c3c93134fcec9d3714e6a278853f25d4a1fbce4e7ba",
+      "rc": 0,
+      "wall_s": 3.585
+    },
+    {
+      "suite": "representation/test_support_map.py",
+      "sha256": "16ccd54dcfb4fade72a3f48390709e6c8344ebf7a3b5dcfb6d09eb730b40a495",
+      "rc": 0,
+      "wall_s": 0.416
+    },
+    {
+      "suite": "representation/test_map_service.py",
+      "sha256": "05c6f8ab4458504b47ddb93a3eedb061007d7fa5982d89a1562bbdca4f42e9ac",
+      "rc": 0,
+      "wall_s": 0.434
+    },
+    {
+      "suite": "planner/test_support_planner.py",
+      "sha256": "ce114db717c695e5f1ed03a7cbfec8d83e6f4f45bda5340d1cf9d70a2f06e80a",
+      "rc": 0,
+      "wall_s": 0.466
+    },
+    {
+      "suite": "planner/test_ros_node.py",
+      "sha256": "80dce78ca7871afccd0a178d4f5ee594a535ed8374a097553b6baaa48485c93d",
+      "rc": 0,
+      "wall_s": 0.377
+    },
+    {
+      "suite": "validator/test_trajectory_checker.py",
+      "sha256": "d9c4e8a7f2cd23dbdf6f27a8ae066745e98433f4948bf9fb0fdf877250b23a39",
+      "rc": 0,
+      "wall_s": 0.356
+    },
+    {
+      "suite": "validator/test_enforcement.py",
+      "sha256": "144bae5b86cc1de4b2f9e409a286b826fafe707a83950892893ebb9d047fb548",
+      "rc": 0,
+      "wall_s": 0.35
+    },
+    {
+      "suite": "local_planner/test_local_native.py",
+      "sha256": "7e923f34802b24743812c15406184c1e085cf336bbb002535149811331854c53",
+      "rc": 0,
+      "wall_s": 0.795
+    },
+    {
+      "suite": "adapters/test_localization_state.py",
+      "sha256": "98a05e174fa292a0ea9dfe1218921ea888a19cb7953be0ccb038b051ca02ab27",
+      "rc": 0,
+      "wall_s": 0.342
+    },
+    {
+      "suite": "regression/test_a3_runtime.py",
+      "sha256": "c2aa48566f7c005b0bc496e7de19500094f7ca5db054b78b67ebcf909544373b",
+      "rc": 0,
+      "wall_s": 0.462
+    },
+    {
+      "suite": "regression/test_a4_runtime.py",
+      "sha256": "5dfe53b271463597e114df25b6fe88556cb6dbb41598fd8b9f3c8fb9e43baa8e",
+      "rc": 0,
+      "wall_s": 0.787
+    },
+    {
+      "suite": "regression/test_a6_runtime.py",
+      "sha256": "f484cb39c09489c0f76cef4533cce66bbb4288f895d4bb8a89e070c7d5c7fc9b",
+      "rc": 0,
+      "wall_s": 0.356
+    },
+    {
+      "suite": "registry/test_runtime.py",
+      "sha256": "b21b89c628133838cffd08a708520dd9024255fe6187d9fff755b4b8f7b7f408",
+      "rc": 0,
+      "wall_s": 0.57
+    }
+  ],
+  "incremental_suites": [
+    {
+      "suite": "orchestrator/test_orchestrator.py",
+      "sha256": "763411ca2d3be03b18044a5c0f88f150fb2321bdd61e1f26ac3072d5abf7e178",
+      "rc": 0
+    },
+    {
+      "suite": "orchestrator/test_process_runner.py",
+      "sha256": "6196e4f8b5558502e5391c3c93134fcec9d3714e6a278853f25d4a1fbce4e7ba",
+      "rc": 0
+    },
+    {
+      "suite": "local_planner/test_local_native.py",
+      "sha256": "7e27db9e4d4ee058001a1ee0fed6e630f79c7b7a6030b007ca41492a06026114",
+      "rc": 0
+    }
+  ],
+  "round": 1,
+  "sealed_at": "2026-10-28T20:03:05.985100+08:00",
+  "reviewer": "independent_xiaomei",
+  "runtime_release": "FAIL",
+  "full_A1_A7_acceptance": "NOT_VALIDATED",
+  "latest_python_test_count": 119,
+  "cpp_history_conditions": 5,
+  "fixed_findings": [
+    {
+      "id": "F1_static_low_roof",
+      "recheck": "PASS",
+      "observation": "planner E_LOCAL_CLEARANCE and independent static_collision"
+    },
+    {
+      "id": "F2_same_group_orphan",
+      "recheck": "PASS",
+      "observation": "no non-zombie survivor after close"
+    },
+    {
+      "id": "F3_unsupported_surface",
+      "recheck": "PASS",
+      "observation": "supported=false; layers retain unsupported tag"
+    },
+    {
+      "id": "F4_nonfinite_ready_budget",
+      "recheck": "PASS",
+      "observation": "E_ORCH_READY_BUDGET_INVALID before startup"
+    }
+  ],
+  "unresolved": [
+    {
+      "id": "F5_A5_ROS_dynamic_collision",
+      "status": "FAIL",
+      "evidence": "v8codex-20261028:/tmp/r841-a5/a5_runtime.json",
+      "observation": "arrival reached but independent geometry found dynamic_collision; 17 sampled collisions in segment 3"
+    },
+    {
+      "id": "F6_A5_nested_session_cleanup",
+      "status": "FAIL",
+      "path": "local_planner/runtime_probe.py",
+      "observation": "start_new_session=True moves node outside runtime_lab tracked process group; orphan repro returned child_live=true and empty reported group"
+    }
+  ],
+  "invalid_metrics": [
+    {
+      "id": "SC01_s0",
+      "metric": "sim_duration_s/rtf",
+      "status": "INVALID",
+      "repair": "root reports repair complete; not yet independently read"
+    },
+    {
+      "id": "SC09_s2",
+      "metric": "sim_duration_s/rtf",
+      "status": "INVALID",
+      "repair": "root reports repair in progress"
+    }
+  ],
+  "narrow_evidence": {
+    "A1": "independently recomputed telemetry hashes and L-infinity clearances: 9/9 geometry pass; TEB and truth only; flat2d substitute SC09",
+    "A2": "6/6 actual OS fault cells; 2/2 Gazebo source-crash/hold physical stop; no perception trigger or #151 freeze",
+    "A3": "13/13 recorded ROS query cells; no sensors; unsupported-surface fix separately verified",
+    "A4": "4/4 explicit clearance-policy ROS cells; official geometry safe detour and derived low-roof target refusal, not original official goal no-route",
+    "A5": "native planner 16 unit tests pass; ROS dynamic case fails; discrete contact integrator is not Gazebo/dynamics",
+    "A6": "3 distinct seeded input profiles, 12 fault hold windows all observed zero; actual LIO/NDT precision switch not tested",
+    "A7": "independent static/dynamic and recorded-command evaluators plus actual seed differences; four-combo dual-track navigation remains uncovered",
+    "NDT": "independent C++ history test 5 conditions pass; real NDT synthetic-cloud monitor record 7/7; neither proves physical sensor precision"
+  },
+  "uncovered": [
+    "LIO/NDT accuracy backend switch",
+    "four-combination dual-track navigation matrix",
+    "native 3D local planner into contact-dynamics Gazebo carrier",
+    "perception-planning-braking #151 formal stop budget",
+    "V8-X1 full-body stair completion",
+    "V8-X2 real hardware migration",
+    "gait net-step efficiency redesign"
+  ],
+  "current_source_snapshot_sha256": {
+    "orchestrator/orchestrator.py": "3afdc84e9feb87165a66c3a38faab96f4c85ee4170302ac4de25732b85b6d039",
+    "orchestrator/process_runner.py": "c87a43fa00a068d6d1c65da78a59de73e3117aa4b444480aa3befefab811e53f",
+    "regression/runtime_lab.py": "05c9c42fbda89ffcc70fa17c0270c1539fc812abb28e6a86575d88b8080ae2b7",
+    "representation/map_service.py": "e57c6a9ead35701f42cdb89d83f22b1c55c160ff70c9b57226782f4b776dd37d",
+    "planner/support_planner.py": "c8b15637750fcf09fca5d9911382e3b5d7403042e675a059f577c01d752fec5e",
+    "validator/trajectory_checker.py": "ae9011f725cd8564f80d60cb4ea5ec8b0ad04a09547b9354684b447342d5eae3",
+    "local_planner/local_native.py": "43837a960bfd460e7e0e401b180ee227bd1c27857c80239ccd193d962dcbe01f",
+    "local_planner/evaluate.py": "33191a01e819d4aae676b01a7c53253b3581555ed6002ea62f55a0ffcba43d71",
+    "local_planner/ros_node.py": "929099e58c3d8ee44b0401f915647c4bf6696f1919526c7a148abca205b311e2",
+    "local_planner/runtime_probe.py": "06f88921baae367f8298fbe62dcec32bf868f04f39806fb35f508e2ba27f1a0b",
+    "adapters/localization_state.py": "d0f0b0a56b53562dfe46ccaab6059a9a710fe14b65116295dafc33563c927720",
+    "regression/runtime_evaluator.py": "69913d2fd8897952e9cb108c70945090455a82955c5a113d6b4456583ff1f774",
+    "registry/runtime.py": "39200ed297b92fe697d652b8fb0ed448d950371bdd0587ab392acb8cde93cb22",
+    "calibration/flat2d/driver.py": "77df4a127bdd875cd353d4b056bf3678efceb848d96bfd51f46ddc5c51b662b5"
+  },
+  "initial_invalid_attempt": "Host Python subprocess Docker calls were sandbox-denied; initial batch INVALID, no test verdict inferred. Same commands retried outside sandbox and all completed."
+}
