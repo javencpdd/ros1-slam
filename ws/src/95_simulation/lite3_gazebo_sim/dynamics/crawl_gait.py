@@ -109,7 +109,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         swing_kp=40.0, swing_kd=1.5, cycle=False, margin_min=0.05,
         step_x=None, step_h=0.0, step_swing=0.0, climb_x=0.0, climb_dz=0.0,
         rear_rounds=0, rear_swing=0.10, climb2_x=0.0, climb2_dz=0.0,
-        rear_margin=0.05, rear_shift=0.05):
+        rear_margin=0.05, rear_shift=0.05, lift_sec=2.0, shift_sec=1.0):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
@@ -513,8 +513,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_dist
                 inc = (shift_dist - prev_dist) * dir_xy
                 shift_goal = with_z({n: stance[n] + shift_delta for n in LEGS}, relz)
-                execute('shift%s_%s_%d' % (tag, cur_leg, attempt), 'shift', 1.0,
-                        make_ramp(shift_goal, 1.0), expect_dy=-inc[1], leg=cur_leg)
+                execute('shift%s_%s_%d' % (tag, cur_leg, attempt), 'shift', shift_sec,
+                        make_ramp(shift_goal, shift_sec), expect_dy=-inc[1], leg=cur_leg)
                 if state['fell']:
                     return False
                 state['m0'] = support_margin(cur_leg)
@@ -533,8 +533,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 lift_goal[cur_leg] = np.array([stance[cur_leg][0] + shift_delta[0] + sw,
                                                stance[cur_leg][1] + shift_delta[1],
                                                relz[cur_leg] + lift_h])
-            execute('lift%s_%s' % (tag, cur_leg), 'lift', 2.0,
-                    make_ramp(lift_goal, 2.0, frac=0.6), swing=(cur_leg,),
+            execute('lift%s_%s' % (tag, cur_leg), 'lift', lift_sec,
+                    make_ramp(lift_goal, lift_sec, frac=0.6), swing=(cur_leg,),
                     checks=lift_check, leg=cur_leg)
             if state['fell']:
                 return False
@@ -715,6 +715,8 @@ def main():
     parser.add_argument('--climb2-dz', type=float, default=0.0)
     parser.add_argument('--rear-margin', type=float, default=0.05)
     parser.add_argument('--rear-shift', type=float, default=0.05)
+    parser.add_argument('--lift-sec', type=float, default=2.0)
+    parser.add_argument('--shift-sec', type=float, default=1.0)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -731,7 +733,8 @@ def main():
                  climb_x=args.climb_x, climb_dz=args.climb_dz,
                  rear_rounds=args.rear_rounds, rear_swing=args.rear_swing,
                  climb2_x=args.climb2_x, climb2_dz=args.climb2_dz,
-                 rear_margin=args.rear_margin, rear_shift=args.rear_shift)
+                 rear_margin=args.rear_margin, rear_shift=args.rear_shift,
+                 lift_sec=args.lift_sec, shift_sec=args.shift_sec)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
