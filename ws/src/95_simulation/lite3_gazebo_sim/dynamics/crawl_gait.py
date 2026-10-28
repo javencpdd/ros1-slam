@@ -110,7 +110,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         step_x=None, step_h=0.0, step_swing=0.0, climb_x=0.0, climb_dz=0.0,
         rear_rounds=0, rear_swing=0.10, climb2_x=0.0, climb2_dz=0.0,
         rear_margin=0.05, rear_shift=0.05, lift_sec=2.0, shift_sec=1.0,
-        pitch_dz=0.0, drag_mode=False):
+        pitch_dz=0.0, drag_mode=False, skip_final_advance=False):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
@@ -609,7 +609,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             for step_i, cur_leg in enumerate(legs_seq):
                 if state['fell']:
                     break
-                if not do_step(cur_leg, str(step_i), advance=True):
+                last = step_i == len(legs_seq) - 1
+                if not do_step(cur_leg, str(step_i), advance=not (last and skip_final_advance)):
                     break
             do_climb(climb_x, climb_dz)
         else:
@@ -757,6 +758,7 @@ def main():
     parser.add_argument('--shift-sec', type=float, default=1.0)
     parser.add_argument('--pitch-dz', type=float, default=0.0)
     parser.add_argument('--drag', action='store_true')
+    parser.add_argument('--skip-final-advance', action='store_true')
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -775,7 +777,8 @@ def main():
                  climb2_x=args.climb2_x, climb2_dz=args.climb2_dz,
                  rear_margin=args.rear_margin, rear_shift=args.rear_shift,
                  lift_sec=args.lift_sec, shift_sec=args.shift_sec,
-                 pitch_dz=args.pitch_dz, drag_mode=args.drag)
+                 pitch_dz=args.pitch_dz, drag_mode=args.drag,
+                 skip_final_advance=args.skip_final_advance)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
