@@ -65,7 +65,7 @@ def same_points(a, b):
 
 
 def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_alive_s=5.0,
-              cancel_first=False):
+              cancel_first=False, min_clearance_m=None):
     """起一个 ros_node 子进程，调 make_plan；返回 (route|None, error_code|None, info)。
 
     cancel_first=True 时先调节点的 Trigger 取消服务（预取消），期望本次规划返回 E_PLAN_CANCELLED。
@@ -86,6 +86,8 @@ def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_a
            '_make_plan_service:=/' + name + '/make_plan',
            '_status_topic:=/' + name + '/support_route_status',
            '_keep_alive_s:=%g' % keep_alive_s]
+    if min_clearance_m is not None:
+        cmd.append('_min_clearance_m:=%g' % min_clearance_m)
     env = dict(os.environ)
     env['PYTHONPATH'] = str(ROOT / 'planner') + os.pathsep + env.get('PYTHONPATH', '')
     try:
@@ -140,6 +142,7 @@ def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_a
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
+            proc.wait(timeout=5)
         os.unlink(map_path)
 
 
@@ -190,6 +193,39 @@ def run_cancel(ids=('SC01', 'SC02'), call_node_fn=None):
                       'points': None if route is None else len(route),
                       'stage': 'plan', 'reason': error_code or 'route_returned',
                       'outcome': outcome, 'info': info})
+    return cells
+
+
+def run_clearance(call_node_fn=None):
+    """SC09 原几何安全规划＋派生低顶目标请求负例；不改旧冻结场景的预期。
+
+    原场景有合法绕行，因此不能将其整幅图硬判无路。负例只改变请求目标到低顶下方，
+    保持原始地图与冻结净空值，必须在 plan 阶段拒绝，不由评价器代判。
+    """
+    case = scn.scenario('SC09')
+    call = call_node_fn or call_node
+    limit = cal.FROZEN['tolerances']['min_clearance_m']['value']
+    budget = cal.FROZEN['budgets']['planner_max_expansions']['value']
+    cells = []
+    for track in ('truth', 'estimate'):
+        map_value = reg._perturbed(case['map']) if track == 'estimate' else case['map']
+        for label, goal, expected in (('official_geometry_safe_route', case['goal'], None),
+                                      ('derived_low_roof_goal', (0.0, 0.0, 0.0),
+                                       'E_PLAN_CLEARANCE')):
+            route, reason, info = call(map_value, case['start'], goal, budget,
+                                      'a4_clearance_%s_%s' % (track, label),
+                                      min_clearance_m=limit)
+            checked = None
+            if expected:
+                good = route is None and reason == expected
+            else:
+                checked = scn.evaluate(case, route) if route else None
+                good = bool(checked and checked['ok'])
+            cells.append({'scenario': 'SC09', 'request': label, 'track': track,
+                          'min_clearance_m': limit, 'stage': 'plan' if route is None else 'eval',
+                          'reason': reason or 'ok', 'points': 0 if route is None else len(route),
+                          'info': info, 'evaluation': checked,
+                          'outcome': 'pass' if good else 'unexpected_failure'})
     return cells
 
 
@@ -291,12 +327,13 @@ def summary(cells):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['run', 'cancel', 'version'])
+    parser.add_argument('command', choices=['run', 'cancel', 'version', 'clearance'])
     parser.add_argument('--out', default='')
     args = parser.parse_args(argv)
     import rospy
     rospy.init_node('a4_runtime_runner')
-    cells = run_cancel() if args.command == 'cancel' else (run_version() if args.command == 'version' else run())
+    cells = {'cancel': run_cancel, 'version': run_version,
+             'clearance': run_clearance, 'run': run}[args.command]()
     result = {'summary': summary(cells), 'cells': cells}
     print(json.dumps(result['summary'], ensure_ascii=False))
     for cell in cells:

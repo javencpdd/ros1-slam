@@ -49,7 +49,8 @@ def _nearest_cell_pair(cells_a, cells_b):
     return best
 
 
-def plan(value, start, goal, budget=20000, cancel=None, resolution=None):
+def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
+         min_clearance_m=None):
     """start/goal＝(x, y, z)；多层面同 XY 时按 z 最近面消歧。返回路径与诊断。"""
     try:
         contract.validate('map', value)
@@ -57,6 +58,46 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None):
         raise PlannerError('E_PLAN_MAP_INVALID', '%s: %s' % (error.code, error.detail))
     resolution = resolution or value['resolution']
     surfaces = {s['surface_id']: s for s in value['surfaces']}
+    if min_clearance_m is not None and (
+            isinstance(min_clearance_m, bool) or not isinstance(min_clearance_m, (int, float))
+            or not math.isfinite(min_clearance_m) or min_clearance_m < 0):
+        raise PlannerError('E_PLAN_INPUT', 'min_clearance_m must be finite and nonnegative')
+
+    def has_clearance(x, y, z):
+        if min_clearance_m is None:
+            return True
+        for surface in value['surfaces']:
+            box = surface['footprint']
+            if (surface['z_reference'] > z + 1e-9
+                    and box['min_x'] <= x <= box['max_x']
+                    and box['min_y'] <= y <= box['max_y']
+                    and surface['z_reference'] - z < min_clearance_m - 1e-9):
+                return False
+        return True
+
+    def segment_has_clearance(a, b, z):
+        """面内边也核验连续线段，防止细低顶落在两个栅格中心之间。"""
+        if min_clearance_m is None:
+            return True
+        for surface in value['surfaces']:
+            height = surface['z_reference'] - z
+            if not (1e-9 < height < min_clearance_m - 1e-9):
+                continue
+            box = surface['footprint']
+            lo, hi = 0.0, 1.0
+            for axis, lower, upper in ((0, 'min_x', 'max_x'), (1, 'min_y', 'max_y')):
+                delta = b[axis] - a[axis]
+                if abs(delta) <= 1e-12:
+                    if not box[lower] <= a[axis] <= box[upper]:
+                        lo, hi = 1.0, 0.0
+                        break
+                else:
+                    near, far = sorted(((box[lower] - a[axis]) / delta,
+                                        (box[upper] - a[axis]) / delta))
+                    lo, hi = max(lo, near), min(hi, far)
+            if lo <= hi:
+                return False
+        return True
 
     def resolve(point, label):
         px, py, pz = point
@@ -70,8 +111,17 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None):
 
     start_surface, goal_surface = resolve(start, 'start'), resolve(goal, 'goal')
 
+    for label, point, surface in (('start', start, start_surface), ('goal', goal, goal_surface)):
+        if not has_clearance(point[0], point[1], surface['z_reference']):
+            raise PlannerError('E_PLAN_CLEARANCE', '%s clearance < %.6g m' % (label, min_clearance_m))
+
     cells = {sid: _cells(s['footprint'], resolution) for sid, s in surfaces.items()
              if s['traversability'] == 'supported'}
+    if min_clearance_m is not None:
+        cells = {sid: {(ix, iy) for ix, iy in layer
+                       if has_clearance(*_cell_center(ix, iy, resolution),
+                                        surfaces[sid]['z_reference'])}
+                 for sid, layer in cells.items()}
 
     def node_of(point, surface):
         ix = int(math.floor(point[0] / resolution))
@@ -81,6 +131,8 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None):
                      int(math.ceil(surface['footprint']['max_x'] / resolution)) - 1)
             iy = min(max(iy, int(math.ceil(surface['footprint']['min_y'] / resolution))),
                      int(math.ceil(surface['footprint']['max_y'] / resolution)) - 1)
+        if (ix, iy) not in cells[surface['surface_id']]:
+            raise PlannerError('E_PLAN_CLEARANCE', 'endpoint cell has insufficient clearance')
         return (surface['surface_id'], ix, iy)
 
     start_node = node_of(start, start_surface)
@@ -93,7 +145,7 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None):
             continue
         for edge in s['edges']:
             other = edge['to']
-            if other not in cells or sid not in cells:
+            if other not in cells or sid not in cells or not cells[sid] or not cells[other]:
                 continue
             pair = _nearest_cell_pair(cells[sid], cells[other])
             bridges.setdefault((sid, other), set()).add(pair)
@@ -108,7 +160,10 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None):
                 if dx == dy == 0:
                     continue
                 nxt = (ix + dx, iy + dy)
-                if nxt in cells[sid]:
+                if (nxt in cells[sid]
+                        and segment_has_clearance(_cell_center(ix, iy, resolution),
+                                                  _cell_center(*nxt, resolution),
+                                                  surfaces[sid]['z_reference'])):
                     out.append((sid, nxt[0], nxt[1]))
         for (a, b), pairs in bridges.items():
             if a == sid:
@@ -130,7 +185,10 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None):
             raise PlannerError('E_PLAN_CANCELLED', '展开 %d 节点后取消' % expansions)
         _, g, node = heapq.heappop(open_heap)
         if node == goal_node:
-            return _result(node, came, surfaces, resolution, expansions)
+            result = _result(node, came, surfaces, resolution, expansions)
+            if min_clearance_m is not None:
+                result['policy'] = {'min_clearance_m': min_clearance_m}
+            return result
         expansions += 1
         if expansions > budget:
             raise PlannerError('E_PLAN_BUDGET_EXCEEDED',

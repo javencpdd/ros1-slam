@@ -53,6 +53,27 @@ class BudgetTests(unittest.TestCase):
 
 
 class LifecycleTests(unittest.TestCase):
+    def test_invalid_readiness_budget_never_starts_a_worker(self):
+        for budget in (float('nan'), float('inf'), -1, True, None):
+            with self.subTest(budget=budget):
+                engine = orch.Orchestrator()
+                task = engine.submit('g', STACK)
+                runners = make(STACK, scan={'ready_polls': 10 ** 99})
+                with self.assertRaises(orch.OrchestratorError) as caught:
+                    engine.start(task, runners, ready_timeout=budget)
+                self.assertEqual(caught.exception.code, 'E_ORCH_READY_BUDGET_INVALID')
+                self.assertTrue(all(not r.is_alive() for r in runners.values()))
+                self.assertEqual(task.events, [])
+
+    def test_invalid_polling_and_stop_budgets_fail_before_side_effects(self):
+        with self.assertRaises(orch.OrchestratorError):
+            orch.wait_ready([], timeout=float('nan'))
+        for interval in (0, float('nan'), float('inf')):
+            with self.assertRaises(orch.OrchestratorError):
+                orch.wait_ready([], interval=interval)
+        with self.assertRaises(orch.OrchestratorError):
+            orch.stop_chain({}, [], grace=float('inf'))
+
     def test_happy_path_and_stop_order(self):
         engine = orch.Orchestrator()
         task = engine.submit('patrol', STACK)

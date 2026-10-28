@@ -88,6 +88,41 @@ class PlannerTests(unittest.TestCase):
                                           cancel=lambda: True))
         self.assertEqual(code, 'E_PLAN_CANCELLED')
 
+    def test_clearance_policy_rejects_low_roof_goal_before_returning_path(self):
+        value = floors()
+        value['surfaces'][1]['z_reference'] = 0.15
+        code, _ = reason(lambda: pln.plan(value, (-4, -4, 0), (3, 2, 0),
+                                         min_clearance_m=0.20))
+        self.assertEqual(code, 'E_PLAN_CLEARANCE')
+
+    def test_clearance_policy_preserves_reachable_detour(self):
+        value = floors()
+        value['surfaces'][1]['z_reference'] = 0.15
+        result = pln.plan(value, (-4, 2, 0), (4.5, 2, 0), min_clearance_m=0.20)
+        roof = value['surfaces'][1]['footprint']
+        for x, y, z, sid in result['path']:
+            under_roof = roof['min_x'] <= x <= roof['max_x'] and roof['min_y'] <= y <= roof['max_y']
+            self.assertFalse(under_roof and z == 0.0, (x, y, z, sid))
+        self.assertEqual(result['policy'], {'min_clearance_m': 0.20})
+
+    def test_clearance_policy_invalid_values_are_input_errors(self):
+        for limit in (-0.1, float('nan'), float('inf'), True, '0.2'):
+            with self.subTest(limit=limit):
+                code, _ = reason(lambda: pln.plan(floors(), (-4, -4, 0), (4, 4, 0),
+                                                 min_clearance_m=limit))
+                self.assertEqual(code, 'E_PLAN_INPUT')
+
+    def test_thin_low_roof_between_grid_centers_is_not_crossed(self):
+        value = floors(oneway=True)
+        value['surfaces'][1]['z_reference'] = 0.15
+        value['surfaces'][1]['footprint'] = {'min_x': -0.1, 'max_x': 0.1,
+                                            'min_y': -5, 'max_y': 5}
+        # No ground-grid center is under this 20 cm roof at 50 cm resolution.
+        # Its one-way edge cannot provide a path back down to the ground goal.
+        code, _ = reason(lambda: pln.plan(value, (-1, 0, 0), (1, 0, 0),
+                                         min_clearance_m=0.20))
+        self.assertEqual(code, 'E_PLAN_NO_ROUTE')
+
     def test_invalid_map_rejected(self):
         bad = floors()
         bad['surfaces'][0]['edges'] = []  # 断连通（双向边两边都要清）

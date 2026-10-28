@@ -123,18 +123,36 @@ class MapService:
     # -- 净空查询 API（对当前版本）--
     def clearance_at(self, x, y, z):
         self._require_current()
-        column = rep.columns_of(self.current).get((int(x), int(y)))
-        if column is None:
+        column = rep.column_at(self.current, x, y)
+        if not column.heights():
             return None
         return column.clearance(z)
 
     def clearance_profile(self, x, y):
         """该 XY 列的全部 (高度, 上方净距)；开顶层净距＝None。"""
         self._require_current()
-        column = rep.columns_of(self.current).get((int(x), int(y)))
-        if column is None:
+        column = rep.column_at(self.current, x, y)
+        if not column.heights():
             return []
         return [(z, column.clearance(z)) for z in column.heights()]
+
+    def query(self, x, y, z):
+        """支撑、净空和观测证据是独立字段；支撑面存在不等于观测为 free。"""
+        self._require_current()
+        column = rep.column_at(self.current, x, y)
+        sid = column.surface_at(z)
+        surfaces = {surface['surface_id']: surface for surface in self.current['surfaces']}
+        supported = sid is not None and surfaces[sid]['traversability'] == 'supported'
+        state = (self.evidence or {}).get((x, y, z), 'unknown')
+        if state not in ('free', 'occupied', 'unknown'):
+            raise MapServiceError('E_MAPSERVICE_EVIDENCE', 'invalid evidence state %r' % state)
+        return {'x': x, 'y': y, 'z': z, 'surface_id': sid,
+                'supported': supported, 'state': state,
+                'layers': [{'surface_id': column.surface_at(height), 'z': height,
+                            'traversability': surfaces[column.surface_at(height)]['traversability'],
+                            'clearance_m': column.clearance(height)}
+                           for height in column.heights()],
+                'clearance_m': column.clearance(z) if supported else None}
 
     def _require_current(self):
         if self.current is None:

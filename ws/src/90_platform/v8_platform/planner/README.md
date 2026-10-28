@@ -24,3 +24,21 @@ z 消歧取最近面、同输入确定性（逐字段一致）、夹层内直达
 ```bash
 python3 -B test_support_planner.py   # 8 项
 ```
+
+## 5. 显式净空策略与运行负例
+
+`plan(..., min_clearance_m=...)` 会在展开前筛掉净空不足的格，并检查面内连接线段，
+避免细低顶落在格中心之间时被跨过。起点或目标净空不足返回 `E_PLAN_CLEARANCE`；
+安全图上无路仍返回 `E_PLAN_NO_ROUTE`。未提供策略时保留原有调用语义。
+ROS 节点通过私有参数 `~min_clearance_m` 接收该值，状态的 `policy` 字段回显。
+
+`regression/a4_runtime.py clearance` 从冻结定标读取净空值，不改场景定义：
+官方 SC09 低顶有限且存在安全绕路，应产出检查器可接受的路径；派生请求只把目标
+放到同一地图的低顶下，应由规划器直接拒绝。两者分别记录，不把评价器拒绝计为
+规划器拒绝，也不把派生请求称为官方 SC09 无路。
+
+```bash
+PYTHONPATH=../regression:$PYTHONPATH python3 -B -m a4_runtime clearance --out /tmp/a4-clearance.json
+```
+
+命令需要已经启动的 ROS master。所得证据覆盖规划服务接口，未包含底盘执行。

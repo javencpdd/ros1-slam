@@ -163,3 +163,14 @@ def columns_of(value):
                 columns.setdefault((x, y), HeightColumn(x, y)).add(
                     surface['z_reference'], surface['surface_id'])
     return columns
+
+
+def column_at(value, x, y):
+    """精确世界坐标查询；不把小数坐标截断为整数，也不向足迹外扩张。"""
+    column = HeightColumn(x, y)
+    for surface in value['surfaces']:
+        fp = surface['footprint']
+        if (fp['min_x'] <= x <= fp['max_x']
+                and fp['min_y'] <= y <= fp['max_y']):
+            column.add(surface['z_reference'], surface['surface_id'])
+    return column

@@ -12,6 +12,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -20,8 +21,29 @@ sys.path.insert(0, str(HERE))
 import orchestrator as orch  # noqa: E402
 
 
+def process_group_members(pgid):
+    """Live non-zombie members, including descendants of an exited leader."""
+    if pgid is None:
+        return []
+    members = []
+    for entry in Path('/proc').iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            fields = (entry / 'stat').read_text().rpartition(')')[2].split()
+            if int(fields[2]) == pgid and fields[0] != 'Z':
+                members.append(int(entry.name))
+        except (OSError, ValueError, IndexError):
+            continue
+    return sorted(members)
+
+
 class ProcessRunner(orch.ComponentRunner):
-    """真实进程运行件：cmd 为 argv 列表；ready_marker 为就绪行（缺省进程即绪）。"""
+    """真实进程运行件：cmd 为 argv 列表；ready_marker 为就绪行（缺省进程即绪）。
+
+    ready_timeout 保留为旧调用兼容参数；实际就绪期限由 wait_ready 的 timeout
+    一处控制，ready() 每次只做非阻塞观测。Linux /proc 用于核验同进程组后代。
+    """
 
     def __init__(self, spec, cmd, ready_marker=None, ready_timeout=10.0):
         self.id = spec.id
@@ -32,66 +54,102 @@ class ProcessRunner(orch.ComponentRunner):
         self.proc = None
         self._ready_line_seen = False
         self.stops = []
+        self.pgid = None
+        self._reader = None
 
     def start(self):
+        # Orchestrator.start() owns startup. Repeated calls for an already live runner
+        # must not overwrite the Popen handle and strand the original process group.
+        if self.proc is not None:
+            if self.is_alive():
+                return self
+            raise orch.OrchestratorError('E_ORCH_RUNNER_RESTART',
+                                         '%s 运行件已用过，请创建新实例' % self.id)
         self.proc = subprocess.Popen(
             self.cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            text=True, start_new_session=True)
+            start_new_session=True)
+        self.pgid = self.proc.pid
         if self.ready_marker is None:
             self._ready_line_seen = True
+        self._reader = threading.Thread(target=self._drain_stdout, daemon=True)
+        self._reader.start()
         return self
 
-    def _drain_ready(self, deadline):
-        """非阻塞读 stdout 找就绪行（条件式就绪门）。"""
-        import select
-        while time.monotonic() < deadline and not self._ready_line_seen:
-            ready, _, _ = select.select([self.proc.stdout], [], [], 0.2)
-            if ready:
-                line = self.proc.stdout.readline()
-                if not line:
+    def _drain_stdout(self):
+        """持续读出，避免 READY 后日志塞满管道反过来挂住任务。
+
+        ready() 本身不等待；外层 wait_ready 的墙钟截止是唯一就绪预算。
+        半行或很长的日志都不让主线程阻塞，也不无界保存日志。
+        """
+        pending = b''
+        marker = self.ready_marker.encode() if self.ready_marker else None
+        try:
+            while True:
+                chunk = self.proc.stdout.read1(4096)
+                if not chunk:
                     break
-                if self.ready_marker in line:
-                    self._ready_line_seen = True
-        return self._ready_line_seen
+                pending += chunk
+                while b'\n' in pending:
+                    line, pending = pending.split(b'\n', 1)
+                    if marker and marker in line:
+                        self._ready_line_seen = True
+                pending = pending[-65536:]
+        except (OSError, ValueError):
+            pass  # reap() may close the stream once all group members have stopped.
 
     def ready(self):
-        if self.proc is None:
-            return False
-        if self._ready_line_seen:
-            return True
-        return self._drain_ready(time.monotonic() + self.ready_timeout)
+        return self.is_alive() and self._ready_line_seen
 
     def is_alive(self):
         return self.proc is not None and self.proc.poll() is None
 
-    def stop(self, method):
-        self.stops.append(method)
-        if not self.is_alive():
-            return
-        if method in ('service_stop', 'process_group_signal', 'none', 'kill'):
-            # 组信号：service_stop 语义上应走服务调用，此处以 TERM 组等价实现（运行面
-            # ROS 适配器按 manifest 声明接入；纯进程面 TERM 即「请求停止」）
+    def group_members(self):
+        """Linux 运行面列出同组非僵尸 PID；leader 已死仍计入存活后代。"""
+        return process_group_members(self.pgid)
+
+    def is_stopped(self):
+        leader_dead = not self.is_alive()  # poll also reaps the direct child
+        return leader_dead and not self.group_members()
+
+    def _signal_group(self, sig):
+        if self.pgid is not None:
             try:
-                os.killpg(self.proc.pid, signal.SIGTERM)
+                os.killpg(self.pgid, sig)
             except ProcessLookupError:
                 pass
 
+    def stop(self, method):
+        self.stops.append(method)
+        if method in ('service_stop', 'process_group_signal', 'none', 'kill'):
+            # 组信号：service_stop 语义上应走服务调用，此处以 TERM 组等价实现（运行面
+            # ROS 适配器按 manifest 声明接入；纯进程面 TERM 即「请求停止」）
+            self._signal_group(signal.SIGTERM)
+
     def force(self):
         self.stops.append('force')
-        if self.is_alive():
-            try:
-                os.killpg(self.proc.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+        self._signal_group(signal.SIGKILL)
 
     def reap(self, timeout=5.0):
         """收尸：等退出并 join，防僵尸。"""
         if self.proc is None:
             return
         try:
+            self.proc.wait(timeout=min(timeout, 0.05))
+        except subprocess.TimeoutExpired:
+            pass
+        if not self.is_stopped():
+            self.force()
+        try:
             self.proc.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             self.force()
             self.proc.wait(timeout=5)
+        deadline = time.monotonic() + timeout
+        while self.group_members() and time.monotonic() < deadline:
+            time.sleep(0.005)
+        if self.group_members():
+            raise orch.OrchestratorError('E_ORCH_STOP_FAILED', '%s 后代未退净' % self.id)
+        if self._reader:
+            self._reader.join(timeout=1.0)
         if self.proc.stdout:
             self.proc.stdout.close()

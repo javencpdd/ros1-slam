@@ -104,13 +104,20 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
     return tau
 
 
+def complete_sequence(records, requested_steps, completed_steps, fell, abort_reason=None):
+    """A prefix of green phases is not a completed requested gait."""
+    return (bool(records) and requested_steps > 0 and completed_steps == requested_steps
+            and not fell and abort_reason is None and all(r['ok'] for r in records))
+
+
 def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0, umax=0.35, kgain=0.8,
         lift_h=0.10, swing_fwd=0.06, drive_fwd=0.08, shift_mag=0.05, slip_tol=0.02, y_tol=0.03,
         swing_kp=40.0, swing_kd=1.5, cycle=False, margin_min=0.05,
         step_x=None, step_h=0.0, step_swing=0.0, climb_x=0.0, climb_dz=0.0,
         rear_rounds=0, rear_swing=0.10, climb2_x=0.0, climb2_dz=0.0,
         rear_margin=0.05, rear_shift=0.05, lift_sec=2.0, shift_sec=1.0,
-        pitch_dz=0.0, drag_mode=False, skip_final_advance=False):
+        pitch_dz=0.0, drag_mode=False, skip_final_advance=False,
+        shift_policy='incenter', shift_penalty_x=9.0, normalize_step_x=False):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
@@ -286,7 +293,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                     _rotmat(data.xquat[torso_id]))
 
         tgt = {n: DEF[3 * i:3 * i + 3].copy() for i, n in enumerate(LEGS)}
-        state = {'zmin': 9.0, 'fell': False, 'zg': None, 'z_ref': None, 'z_int': 0.0}
+        state = {'zmin': 9.0, 'fell': False, 'zg': None, 'z_ref': None, 'z_int': 0.0,
+                 'completed_steps': [], 'abort_reason': None}
         legs_seq = tuple(cycle) if isinstance(cycle, (tuple, list)) else (
             ('FL', 'HR', 'FR', 'HL') if cycle else (leg,))
         records, trace = [], []
@@ -529,10 +537,27 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             shift_delta = np.array([0.0, 0.0, 0.0])
             shift_goal = None
             for attempt in range(4):
-                prev_dist, shift_dist = shift_dist, shift_dist + (
-                    smag if attempt == 0 else 0.03)
-                shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_dist
-                inc = (shift_dist - prev_dist) * dir_xy
+                if shift_policy == 'closest':
+                    from support_shift import closest_shift_target
+                    fw = feet_world()
+                    body_xy = body_pose()[0][:2]
+                    target_xy = closest_shift_target(body_xy,
+                        [fw[n][:2] for n in LEGS if n != cur_leg], mreq + .01,
+                        longitudinal_weight=shift_penalty_x)
+                    if target_xy is None:
+                        state['abort_reason'] = 'E_GAIT_NO_SUPPORT_REGION'
+                        return False
+                    move = target_xy - body_xy
+                    length = float(np.linalg.norm(move))
+                    if length > smag:
+                        move *= smag / length
+                    inc = -move
+                    shift_delta += np.array([inc[0], inc[1], 0.0])
+                else:
+                    prev_dist, shift_dist = shift_dist, shift_dist + (
+                        smag if attempt == 0 else 0.03)
+                    shift_delta = np.array([dir_xy[0], dir_xy[1], 0.0]) * shift_dist
+                    inc = (shift_dist - prev_dist) * dir_xy
                 shift_goal = with_z({n: stance[n] + shift_delta for n in LEGS}, relz)
                 execute('shift%s_%s_%d' % (tag, cur_leg, attempt), 'shift', shift_sec,
                         make_ramp(shift_goal, shift_sec), expect_dy=-inc[1], leg=cur_leg)
@@ -542,6 +567,12 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 if state['m0'] >= mreq:
                     break
             if state['fell'] or state['m0'] < mreq:
+                state['abort_reason'] = 'E_GAIT_FALL' if state['fell'] else 'E_GAIT_SUPPORT_MARGIN'
+                if records:
+                    records[-1]['checks']['support_margin'] = state['m0'] >= mreq
+                    records[-1]['observed_margin_m'] = float(state['m0'])
+                    records[-1]['required_margin_m'] = float(mreq)
+                    records[-1]['ok'] = all(records[-1]['checks'].values())
                 return False
             lift_goal = dict(shift_goal)
             is_step = (allow_step and step_x is not None
@@ -553,7 +584,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             else:
                 # 落足点按名义站姿归一（x 用相对量、y 用名义宽度）：抑制一圈后站姿横向变宽
                 nr = state['nominal_rel'][cur_leg]
-                lift_goal[cur_leg] = np.array([stance[cur_leg][0] + shift_delta[0] + sw,
+                step_x_rel = stance[cur_leg][0] + shift_delta[0] + sw
+                if normalize_step_x:
+                    # Correct a lagging foot toward nominal stance in bounded
+                    # increments. Never move a nominally forward step backward,
+                    # or demand a long single swing to erase accumulated lag.
+                    step_x_rel += min(.04, max(0., nr[0] + sw - step_x_rel))
+                lift_goal[cur_leg] = np.array([step_x_rel,
                                                nr[1],
                                                relz[cur_leg] + lift_h])
             execute('lift%s_%s' % (tag, cur_leg), 'lift', lift_sec,
@@ -588,6 +625,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                     return False
             execute('settle%s_%s' % (tag, cur_leg), 'settle', 0.4,
                     lambda i, t: None, leg=cur_leg)
+            state['completed_steps'].append(cur_leg)
             return True
 
         def do_climb(dist, dz, tag='climb'):
@@ -647,12 +685,20 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             if ok_all and not state['fell']:
                 execute('settle_final', 'settle', 0.6, lambda i, t: None)
         feet = {n: [round(float(x), 3) for x in foot_body_pos(model, data, n)] for n in LEGS}
-        passed = bool(records) and all(r['ok'] for r in records) and not state['fell']
+        requested_steps = len(legs_seq) if mode == 'crawl' else 2 + 2 * rear_rounds
+        passed = complete_sequence(records, requested_steps, len(state['completed_steps']),
+                                   state['fell'], state['abort_reason'])
         return {'mode': mode, 'leg': leg, 'lift_h': lift_h, 'swing_fwd': swing_fwd,
                 'drive_fwd': drive_fwd, 'shift_mag': shift_mag,
+                'shift_policy': shift_policy, 'shift_penalty_x': shift_penalty_x,
+                'normalize_step_x': normalize_step_x,
                 'slip_tol': slip_tol, 'y_tol': y_tol,
                 'kp': kp, 'kd': kd, 'swing_kp': swing_kp, 'swing_kd': swing_kd,
                 'cycle': list(legs_seq), 'z_ref': round(state['z_ref'] or 0.0, 4),
+                'requested_steps': requested_steps,
+                'completed_steps': len(state['completed_steps']),
+                'completed_step_legs': state['completed_steps'],
+                'abort_reason': state['abort_reason'],
                 'margin_min': margin_min, 'step_x': step_x, 'step_h': step_h,
                 'climb_x': climb_x, 'climb_dz': climb_dz,
                 'rear_rounds': rear_rounds, 'rear_swing': rear_swing,
@@ -759,6 +805,9 @@ def main():
     parser.add_argument('--pitch-dz', type=float, default=0.0)
     parser.add_argument('--drag', action='store_true')
     parser.add_argument('--skip-final-advance', action='store_true')
+    parser.add_argument('--shift-policy', choices=['incenter', 'closest'], default='incenter')
+    parser.add_argument('--shift-penalty-x', type=float, default=9.0)
+    parser.add_argument('--normalize-step-x', action='store_true')
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -778,7 +827,9 @@ def main():
                  rear_margin=args.rear_margin, rear_shift=args.rear_shift,
                  lift_sec=args.lift_sec, shift_sec=args.shift_sec,
                  pitch_dz=args.pitch_dz, drag_mode=args.drag,
-                 skip_final_advance=args.skip_final_advance)
+                 skip_final_advance=args.skip_final_advance,
+                 shift_policy=args.shift_policy, shift_penalty_x=args.shift_penalty_x,
+                 normalize_step_x=args.normalize_step_x)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:

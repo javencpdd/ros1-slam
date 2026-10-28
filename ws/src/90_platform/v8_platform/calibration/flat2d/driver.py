@@ -105,6 +105,17 @@ def main(argv):
     box_pub = rospy.Publisher('/sc09/box', Float32MultiArray, queue_size=1, latch=True)
 
     t0 = time.time()
+    # A running ROS master does not imply that /clock has delivered its first
+    # nonzero sample. Missing timing is INVALID, never a silently null metric.
+    clock_deadline = time.monotonic() + 10.0
+    while not rospy.is_shutdown() and rospy.Time.now().to_sec() <= 0:
+        if time.monotonic() >= clock_deadline:
+            invalid = {'run_id': man['run_id'], 'verdict': 'INVALID',
+                       'fail_reason': 'no_nonzero_sim_clock', 'clock_ready': False}
+            pathlib.Path(out_path).write_text(json.dumps(invalid, indent=1))
+            print('FLAT2D', json.dumps(invalid))
+            return 9
+        time.sleep(0.02)
     sim_t0 = rospy.Time.now().to_sec()   # R800：仿真钟与墙钟同录（RTF 随宿主负载波动，须随结果报告）
     rate = rospy.Rate(10)
     while not rospy.is_shutdown() and time.time() - t0 < 90:
@@ -169,6 +180,7 @@ def main(argv):
         'goal': list(goal),
         'criteria': {'goal_position_m': goal_tol, 'min_clearance_m': clearance_min},
         'map_received': map_seen[0],
+        'clock_ready': sim_t0 > 0,
         'cmd_vel_messages': cmd_count[0],
         'motion_command_messages': motion_count[0],
         'odom_samples': len(odom),
@@ -203,6 +215,14 @@ def main(argv):
         'not_at_goal' if (dist_goal is None or dist_goal > goal_tol) else
         'clearance_violation')
     box_pub.publish(Float32MultiArray())  # 撤方块：中继停止 ROI 转发，STVL 衰减
+    if man.get('telemetry_json'):
+        import hashlib
+        raw = json.dumps({'frame': 'world', 'source': '/sim/odom_gt',
+                          'points': odom, 'boxes': boxes,
+                          'goal': list(goal)}, separators=(',', ':')).encode()
+        pathlib.Path(man['telemetry_json']).write_bytes(raw)
+        result['telemetry_json'] = man['telemetry_json']
+        result['telemetry_sha256'] = hashlib.sha256(raw).hexdigest()
     pathlib.Path(out_path).write_text(json.dumps(result, ensure_ascii=False, indent=1))
     print('FLAT2D', json.dumps(result, ensure_ascii=False))
     return 0 if passed else 6

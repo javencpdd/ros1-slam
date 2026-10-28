@@ -31,3 +31,21 @@
 ## 5. 未覆盖（移交）
 
 传感面建图（真实点云滤波/配准）、地图服务运行时（话题/更新流）——归仿真阶段（25 号窗）；A3 正式判据归 V8-13 矩阵。
+
+## 6. ROS1 查询接口
+
+`map_node.py` 在独立适配层提供 `std_srvs/Trigger` 查询，JSON 响应包含地图版本、
+内容身份和 `query_points` 中每点的全部层、支撑、净空、观测状态。
+`map_json` 指定合法 map.v1 文件；可选 `evidence_json` 的格式为
+`[{"xyz":[0.25,0.25,0],"state":"free"}]`。未列出的点为 `unknown`，
+有支撑面不等于已观测为空闲。每次查询重新加载文件与 `query_points` 参数。
+正负小数坐标用精确足迹包含测试，不以整数截断外扩屋顶。
+
+在已经启动的 ROS master 中运行接口证据驱动：
+
+```bash
+PYTHONPATH=../regression:$PYTHONPATH python3 -B -m a3_runtime --out /tmp/a3-runtime.json
+```
+
+该驱动使用显式声明地图夹具，验证同 XY 双层、证据未知/空闲/占据、版本更新、
+单向反向无路；不构成 Gazebo 传感流建图验收。map.v1 冻结契约保持原样。

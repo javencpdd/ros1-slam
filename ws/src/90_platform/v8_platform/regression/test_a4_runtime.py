@@ -79,6 +79,27 @@ class A4RuntimeTests(unittest.TestCase):
         cells = a4.run_cancel(call_node_fn=route_returned)
         self.assertTrue(all(c['outcome'] == 'unexpected_failure' for c in cells))
 
+    def test_clearance_safe_route_and_planner_refusal_are_distinct_requests(self):
+        def call(map_value, start, goal, budget, name, **kwargs):
+            try:
+                planned = pln.plan(map_value, start, goal, budget=budget, **kwargs)
+                return [point[:3] for point in planned['path']], None, planned
+            except pln.PlannerError as error:
+                return None, error.code, {'reason': error.code}
+        cells = a4.run_clearance(call)
+        self.assertEqual(len(cells), 4)
+        self.assertTrue(all(c['outcome'] == 'pass' for c in cells), cells)
+        negative = [c for c in cells if c['request'] == 'derived_low_roof_goal']
+        self.assertTrue(all(c['stage'] == 'plan' and c['reason'] == 'E_PLAN_CLEARANCE'
+                            and c['evaluation'] is None for c in negative))
+
+    def test_clearance_negative_does_not_accept_evaluator_refusal(self):
+        def returns_unsafe_path(map_value, start, goal, budget, name, **kwargs):
+            planned = pln.plan(map_value, start, goal, budget=budget)
+            return [point[:3] for point in planned['path']], None, planned
+        cells = a4.run_clearance(returns_unsafe_path)
+        self.assertTrue(all(c['outcome'] == 'unexpected_failure' for c in cells))
+
         def wrong_refusal(map_value, start, goal, budget, name, **kwargs):
             return None, 'E_PLAN_NO_ROUTE', {'ok': False, 'reason': 'E_PLAN_NO_ROUTE'}
 

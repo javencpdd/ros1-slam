@@ -54,7 +54,6 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
     max_step = max_step if max_step is not None else 2.5 * resolution
 
     surfaces = [s for s in map_value['surfaces'] if s['traversability'] == 'supported']
-    columns = rep.columns_of(map_value)
     # 有向边集合（单向边只登记声明方向）
     edges = set()
     for s in map_value['surfaces']:
@@ -84,12 +83,18 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
                                '(%.2f,%.2f,%.2f) 无支撑（悬空或面外）' % (x, y, z)))
         else:
             # 净空：该 XY 列上方向最近面距离
-            column = columns.get((int(math.floor(x)), int(math.floor(y))))
-            if column is not None:
-                clearance = column.clearance(z)
-                if clearance is not None and clearance < min_clearance:
-                    violations.append(('E_TRAJ_CLEARANCE', index,
-                                       '净空 %.2f < %.2f' % (clearance, min_clearance)))
+            # 世界坐标精确查询：整数列会把小屋顶的边缘外扩到整米，误拒合法绕行。
+            column = rep.column_at(map_value, x, y)
+            # A point already resolved to this support may be a sub-micrometre
+            # below its reference. That same support is not a ceiling. Keep
+            # every OTHER layer, and do not use the broad default z_tol=.1 as
+            # permission to erase a genuinely low roof.
+            above = [h for h in column.heights() if h > z + 1e-9 and not (
+                column.surface_at(h) == surface['surface_id'] and abs(h - z) <= min(z_tol, 1e-6))]
+            clearance = min(above) - z if above else None
+            if clearance is not None and clearance < min_clearance:
+                violations.append(('E_TRAJ_CLEARANCE', index,
+                                   '净空 %.2f < %.2f' % (clearance, min_clearance)))
         if prev is not None:
             step = math.hypot(x - prev[0], y - prev[1])
             if surface is not None and prev_surface is not None:

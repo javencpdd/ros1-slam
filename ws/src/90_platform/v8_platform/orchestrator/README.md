@@ -33,3 +33,28 @@
 ```bash
 python3 -B test_orchestrator.py   # 13 项
 ```
+
+## 5. A2 真实进程故障与资源回收
+
+`ProcessRunner.ready()` 为非阻塞条件观测，只有 `wait_ready(timeout=...)` 控制
+就绪期限。stdout 在后台持续排空，半行和大量日志都不阻塞就绪轮询。重复
+`start()` 不覆盖已有 PID；leader 死亡后，停止链仍清理其原进程组内后代，
+TERM 无效则 KILL 并等待可观测退净。`Orchestrator.start(..., run_timeout=秒)`
+可设单调墙钟运行截止，由 `health_check` 触发失败和清理；调用方须持续调用
+健康检查。Popen 失败也回收已启动的其他组件。
+
+```bash
+python3 -B ws/src/90_platform/v8_platform/orchestrator/test_process_runner.py
+python3 -B ws/src/90_platform/v8_platform/regression/a2_process_lifecycle.py --out /tmp/a2-process.json
+```
+
+第二条从仓根运行：六个真实 OS cell 注入父进程崩溃、就绪超时、运行超时、
+后续 exec 失败、取消和双任务隔离；TERM 忽略子进程继承文件锁和 TCP 监听端口，
+评价端必须重新取得锁和端口，不能只凭父 PID 已退出判清理成功。脚本以 Linux
+subreaper 回收自己的孤儿子进程。此证据补强 R664 的六项旧进程测试，不声称
+R664 完全没有崩溃验证。
+
+`regression/a2_gazebo_stop.py` 消费现成隔离 master、Gazebo 与 mux，另测候选源
+真实进程 SIGKILL、监督 hold 到物理停车。速度来自 `/gazebo/model_states`；
+原始位姿、物理速度、命令和墙钟／仿真钟均落 JSON。它不覆盖感知触发，不冻结
+V8-12 #151 预算，也不把 `/sim/odom_gt.twist` 的命令回显当物理速度。

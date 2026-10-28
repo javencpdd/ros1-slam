@@ -10,12 +10,14 @@
 消费 composer 锁文件（流程6 产物）构造组件规格。
 """
 import enum
+import math
 import time
 from collections import defaultdict
 
 READY_TIMEOUT = 1.0
 READY_INTERVAL = 0.005
 STOP_GRACE = 0.05
+STOP_FORCE_GRACE = 1.0
 
 # 停止序：消费方先停、生产方后停；safety_arbiter 永远最后（拆除期间 /cmd_vel 仍被闸住）
 ROLE_STOP_ORDER = ['controller', 'trajectory_validator', 'local_planner', 'global_planner',
@@ -66,6 +68,8 @@ class Task:
         self.specs = specs
         self.state = TaskState.PENDING
         self.events = []  # (timestamp, from, to, cause) —— 事件留痕（P8 面）
+        self.run_deadline = None  # monotonic；None 表示调用方未设运行超时
+        self.stop_record = []
 
     def transition(self, new_state, cause):
         if new_state not in TRANSITIONS.get(self.state, set()):
@@ -94,12 +98,21 @@ def check_budget(specs, budget):
     return dict(demand)
 
 
+def _finite_seconds(value, code, positive=False):
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not math.isfinite(value) or value < 0 or (positive and value == 0)):
+        raise OrchestratorError(code, '预算必须为有限%s秒数' % ('正' if positive else '非负'))
+    return value
+
+
 def wait_ready(runners, timeout=READY_TIMEOUT, interval=READY_INTERVAL):
     """就绪＝可观测条件（runner.ready()），条件轮询＋超时拒绝。
 
     A2 判据「无固定等待冒充就绪」：永不因睡满一段时间而宣布就绪，只认条件成立；
     条件在超时内不成立＝E_ORCH_READY_TIMEOUT（进入停止链，不冒充 RUNNING）。
     """
+    _finite_seconds(timeout, 'E_ORCH_READY_BUDGET_INVALID')
+    _finite_seconds(interval, 'E_ORCH_READY_BUDGET_INVALID', positive=True)
     deadline = time.monotonic() + timeout
     while True:
         pending = [r.id for r in runners if not r.ready()]
@@ -127,6 +140,7 @@ def stop_chain(runners, specs, grace=STOP_GRACE):
 
     返回逐件停止记录（id, method, outcome）；终态仍有活件＝E_ORCH_STOP_FAILED。
     """
+    _finite_seconds(grace, 'E_ORCH_STOP_BUDGET_INVALID')
     record = []
     for spec in stop_order(specs):
         runner = runners.get(spec.id)
@@ -135,15 +149,20 @@ def stop_chain(runners, specs, grace=STOP_GRACE):
         method = spec.stop_method if spec.stop_method != 'none' else 'kill'
         runner.stop(method)
         deadline = time.monotonic() + grace
-        while runner.is_alive() and time.monotonic() < deadline:
+        while not runner.is_stopped() and time.monotonic() < deadline:
             time.sleep(0.002)
-        if runner.is_alive():
+        if not runner.is_stopped():
             runner.force()
+            deadline = time.monotonic() + STOP_FORCE_GRACE
+            while not runner.is_stopped() and time.monotonic() < deadline:
+                time.sleep(0.002)
             outcome = 'forced'
         else:
             outcome = 'stopped'
+        if runner.is_stopped() and hasattr(runner, 'reap'):
+            runner.reap()
         record.append({'id': spec.id, 'method': method, 'outcome': outcome})
-    alive = [r.id for r in runners.values() if r.is_alive()]
+    alive = [r.id for r in runners.values() if not r.is_stopped()]
     if alive:
         raise OrchestratorError('E_ORCH_STOP_FAILED', '无法退净: %s' % ','.join(sorted(alive)))
     return record
@@ -166,6 +185,10 @@ class ComponentRunner:
 
     def is_alive(self):
         raise NotImplementedError
+
+    def is_stopped(self):
+        """停止判定允许运行件计入子进程/资源，健康判定仍检查主进程。"""
+        return not self.is_alive()
 
 
 class SimulatedRunner(ComponentRunner):
@@ -219,29 +242,54 @@ class Orchestrator:
         self.tasks[task.id] = task
         return task
 
-    def start(self, task, runners, ready_timeout=READY_TIMEOUT):
+    def start(self, task, runners, ready_timeout=READY_TIMEOUT, run_timeout=None):
+        _finite_seconds(ready_timeout, 'E_ORCH_READY_BUDGET_INVALID')
+        if run_timeout is not None:
+            _finite_seconds(run_timeout, 'E_ORCH_RUN_TIMEOUT_INVALID')
         task.transition(TaskState.STARTING, 'start')
         try:
+            expected = {spec.id for spec in task.specs}
+            if set(runners) != expected:
+                raise OrchestratorError('E_ORCH_NO_RUNNER', '运行件与任务组件不一致')
             for runner in runners.values():
                 runner.start()
             wait_ready(list(runners.values()), timeout=ready_timeout)
-        except OrchestratorError as error:
-            stop_chain(runners, task.specs)
-            task.transition(TaskState.FAILED, error.code)
-            raise
+        except Exception as error:
+            # Popen/OSError 也必须收回之前成功启动的组件；不得留下半启动任务。
+            cleanup_specs = [s for s in task.specs if s.id in runners]
+            try:
+                task.stop_record = stop_chain(runners, cleanup_specs)
+            finally:
+                code = error.code if isinstance(error, OrchestratorError) else 'E_ORCH_START_FAILED'
+                task.transition(TaskState.FAILED, code)
+            if isinstance(error, OrchestratorError):
+                raise
+            raise OrchestratorError(code, str(error)) from error
         task.transition(TaskState.RUNNING, 'ready')
+        if run_timeout is not None:
+            task.run_deadline = time.monotonic() + float(run_timeout)
         return task
 
     def health_check(self, task, runners):
+        if task.state != TaskState.RUNNING:
+            return []
         dead = sorted(r.id for r in runners.values() if not r.is_alive())
         if dead:
-            stop_chain(runners, task.specs)
-            task.transition(TaskState.FAILED, 'died:%s' % ','.join(dead))
+            try:
+                task.stop_record = stop_chain(runners, task.specs)
+            finally:
+                task.transition(TaskState.FAILED, 'died:%s' % ','.join(dead))
+        elif task.run_deadline is not None and time.monotonic() >= task.run_deadline:
+            try:
+                task.stop_record = stop_chain(runners, task.specs)
+            finally:
+                task.transition(TaskState.FAILED, 'E_ORCH_RUN_TIMEOUT')
         return dead
 
     def cancel(self, task, runners):
         task.transition(TaskState.CANCELLING, 'cancel')
         record = stop_chain(runners, task.specs)
+        task.stop_record = record
         task.transition(TaskState.CANCELLED, 'stopped')
         return record
 
@@ -250,5 +298,6 @@ class Orchestrator:
             raise OrchestratorError('E_ORCH_TRANSITION',
                                     '%s 状态不得完成（当前 %s）' % (task.id, task.state.value))
         record = stop_chain(runners, task.specs)
+        task.stop_record = record
         task.transition(TaskState.COMPLETED, 'done')
         return record

@@ -10,7 +10,7 @@ import time
 import support_planner
 
 
-def to_request(map_path, start, goal, budget, hint):
+def to_request(map_path, start, goal, budget, hint, min_clearance_m=None):
     """把节点参数折算成 plan() 的入参；缺项一律显式报错，不取缺省。"""
     with open(map_path, encoding='utf-8') as stream:
         value = json.load(stream)
@@ -22,7 +22,8 @@ def to_request(map_path, start, goal, budget, hint):
         raise ValueError('support map goal requires z')
     if budget <= 0:
         raise ValueError('budget must be positive')
-    request = {'map': value, 'start': tuple(start), 'goal': tuple(goal), 'budget': int(budget)}
+    request = {'map': value, 'start': tuple(start), 'goal': tuple(goal), 'budget': int(budget),
+               'min_clearance_m': min_clearance_m}
     if hint is not None:
         request['goal'] = (goal[0], goal[1], goal[2])
         request['hint'] = hint
@@ -41,7 +42,8 @@ def plan_route(request, cancel=None):
         if abs(surface['z_reference'] - z) > 0.5:
             raise support_planner.PlannerError('E_PLAN_GOAL_INVALID', 'hint z mismatch')
     return support_planner.plan(value, request['start'], request['goal'],
-                                budget=request['budget'], cancel=cancel)
+                                budget=request['budget'], cancel=cancel,
+                                min_clearance_m=request.get('min_clearance_m'))
 
 
 def pose_xyz(pose):
@@ -95,15 +97,19 @@ def main(argv=None):
     budget = rospy.get_param('~budget', 20000)
     hint = rospy.get_param('~surface_hint', None)
     frame = rospy.get_param('~frame', 'map')
+    min_clearance_m = rospy.get_param('~min_clearance_m', None)
     publisher = rospy.Publisher(rospy.get_param('~path_topic', 'support_route'), Path, queue_size=1, latch=True)
     status = rospy.get_param('~status_topic', 'support_route_status')
-    request = to_request(map_path, start, goal, budget, hint)
+    request = to_request(map_path, start, goal, budget, hint, min_clearance_m)
     start_xyz = tuple(start)
     try:
         result = plan_route(request)
     except (ValueError, support_planner.PlannerError) as error:
         info = refusal(error) if hasattr(error, 'code') else {'ok': False, 'reason': 'E_PLAN_INPUT', 'detail': str(error)}
-        rospy.set_param(status, info)
+        rospy.set_param(status, dict(info, map_id=request['map'].get('map_id'),
+                                    map_version=request['map'].get('map_version'),
+                                    policy={} if min_clearance_m is None else
+                                    {'min_clearance_m': min_clearance_m}))
         rospy.logerr('support_planner refused: %s', info)
         return 5
     def sim_stamp():
@@ -120,7 +126,9 @@ def main(argv=None):
                 value = json.load(stream)
         except Exception:
             return {}
-        return {'map_id': value.get('map_id'), 'map_version': value.get('map_version')}
+        return {'map_id': value.get('map_id'), 'map_version': value.get('map_version'),
+                'policy': {} if min_clearance_m is None else
+                {'min_clearance_m': min_clearance_m}}
 
     message = to_path_message(result, frame, sim_stamp())
     publisher.publish(message)
@@ -149,9 +157,10 @@ def main(argv=None):
         try:
             planned = plan_route({'map': request_map(), 'start': pose_xyz(request.start),
                                   'goal': pose_xyz(request.goal), 'budget': budget,
-                                  'hint': hint} if hint else
+                                  'hint': hint, 'min_clearance_m': min_clearance_m} if hint else
                                  {'map': request_map(), 'start': pose_xyz(request.start),
-                                  'goal': pose_xyz(request.goal), 'budget': budget},
+                                  'goal': pose_xyz(request.goal), 'budget': budget,
+                                  'min_clearance_m': min_clearance_m},
                                  cancel=(lambda: True) if take_cancel else None)
         except (ValueError, support_planner.PlannerError) as error:
             info = refusal(error) if hasattr(error, 'code') \
@@ -182,7 +191,8 @@ def main(argv=None):
             target = getattr(goal, 'target_pose', None) or goal.goal   # 字段名为 target_pose
             start = pose_xyz(goal.start_pose) if goal.use_start_pose else tuple(start_xyz)
             keys = {'map': request_map(), 'start': start,
-                    'goal': pose_xyz(target), 'budget': budget}
+                    'goal': pose_xyz(target), 'budget': budget,
+                    'min_clearance_m': min_clearance_m}
             if hint:
                 keys['hint'] = hint
             result = GetPathResult()
@@ -194,14 +204,16 @@ def main(argv=None):
                 result.outcome = 53 if 'GOAL_INVALID' in str(getattr(error, 'code', '')) else 50
                 result.message = (refusal(error) if hasattr(error, 'code')
                                   else {'reason': 'E_PLAN_INPUT', 'detail': str(error)})['reason'] + ': ' + str(error)
-                rospy.set_param(status, {'ok': False, 'reason': result.message.split(':')[0]})
+                rospy.set_param(status, dict({'ok': False, 'reason': result.message.split(':')[0]},
+                                            **map_meta()))
                 server.set_aborted(result, result.message)
                 return
             result.path = to_path_message(planned, frame, sim_stamp())
             result.message = 'route found'
-            rospy.set_param(status, {'ok': True, 'segments': planned['segments'],
+            rospy.set_param(status, dict({'ok': True, 'segments': planned['segments'],
                                      'transitions': planned['transitions'],
-                                     'expansions': planned['expansions'], 'length': planned['length']})
+                                     'expansions': planned['expansions'], 'length': planned['length']},
+                                        **map_meta()))
             server.set_succeeded(result)
         server = actionlib.SimpleActionServer(rospy.get_param('~getpath_action', '/move_base_flex/get_path'),
                                               GetPathAction, execute_cb=getpath, auto_start=False)

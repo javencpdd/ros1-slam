@@ -57,6 +57,16 @@ class RosNodeTests(unittest.TestCase):
         self.assertTrue(info['reason'].startswith('E_PLAN_'))
         self.assertTrue(info['detail'])
 
+    def test_clearance_policy_reaches_planner(self):
+        self.map['surfaces'][1]['z_reference'] = 0.15
+        with open(self.path, 'w') as stream:
+            json.dump(self.map, stream)
+        request = ros_node.to_request(self.path, [-4, -4, 0], [3, 2, 0], 2000, None,
+                                      min_clearance_m=0.20)
+        with self.assertRaises(support_planner.PlannerError) as caught:
+            ros_node.plan_route(request)
+        self.assertEqual(caught.exception.code, 'E_PLAN_CLEARANCE')
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

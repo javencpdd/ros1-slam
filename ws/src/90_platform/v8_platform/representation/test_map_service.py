@@ -118,6 +118,42 @@ class MapServiceTests(unittest.TestCase):
         self.assertEqual(service.clearance_profile(3, 2), [(0.0, 0.6), (0.6, None)])
         self.assertEqual(service.clearance_profile(-4, -4), [(0.0, None)])
 
+    def test_fractional_query_does_not_extend_roof_past_footprint(self):
+        service = svc.MapService('svc_map')
+        service.publish(two_floors(), evidence={(3.5, 2.5, 0.0): 'free'})
+        self.assertAlmostEqual(service.clearance_at(3.5, 2.5, 0.0), 0.6)
+        self.assertIsNone(service.clearance_at(4.01, 2.5, 0.0))
+        query = service.query(3.5, 2.5, 0.6)
+        self.assertTrue(query['supported'])
+        self.assertEqual(query['state'], 'unknown')
+        self.assertEqual([row['z'] for row in query['layers']], [0.0, 0.6])
+        self.assertFalse(service.query(3.5, 2.5, 0.3)['supported'])
+        self.assertEqual(service.query(3.5, 2.5, 0.0)['state'], 'free')
+
+    def test_negative_fractional_query_does_not_truncate_toward_zero(self):
+        value = two_floors()
+        value['surfaces'][1]['footprint'] = {'min_x': -0.5, 'max_x': 0.5,
+                                            'min_y': -0.5, 'max_y': 0.5}
+        service = svc.MapService('svc_map')
+        service.publish(value)
+        self.assertEqual(service.clearance_profile(-0.25, 0.25), [(0.0, 0.6), (0.6, None)])
+        self.assertEqual(service.clearance_profile(-0.75, 0.25), [(0.0, None)])
+
+    def test_existing_unsupported_surface_is_not_reported_as_support(self):
+        value = two_floors()
+        value['multiple_surfaces_per_xy'] = False
+        value['surfaces'] = [value['surfaces'][0]]
+        value['surfaces'][0]['traversability'] = 'unsupported'
+        value['surfaces'][0]['edges'] = []
+        service = svc.MapService('svc_map')
+        service.publish(value, evidence={(0.5, 0.5, 0): 'free'})
+        query = service.query(0.5, 0.5, 0)
+        self.assertEqual(query['surface_id'], 'ground')
+        self.assertEqual(query['state'], 'free')
+        self.assertFalse(query['supported'])
+        self.assertEqual(query['layers'][0]['traversability'], 'unsupported')
+        self.assertIsNone(query['clearance_m'])
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

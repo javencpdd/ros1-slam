@@ -39,6 +39,28 @@ def floors(roof=False, oneway=False):
 
 
 class CheckerTests(unittest.TestCase):
+    def test_accepted_support_roundoff_is_not_its_own_ceiling(self):
+        value = floors()
+        point = (3., 2., .6 - 2.5e-7)
+        self.assertTrue(chk.check(value, [point], z_tol=1e-6, min_clearance=.2)['ok'])
+        # A real neighbouring ceiling must remain in the query even though the
+        # current support is excluded by its ID.
+        import copy
+        roof = copy.deepcopy(value['surfaces'][1])
+        roof.update(surface_id='real_roof', z_reference=.7, edges=[])
+        value['surfaces'].append(roof)
+        value['surfaces'][1]['edges'].append({'to': 'real_roof', 'kind': 'step',
+                                            'max_step_height_m': .2, 'bidirectional': True})
+        blocked = chk.check(value, [point], z_tol=1e-6, min_clearance=.2)
+        self.assertFalse(blocked['ok'])
+        self.assertIn('E_TRAJ_CLEARANCE', {v[0] for v in blocked['violations']})
+
+    def test_broad_support_tolerance_cannot_erase_low_roof(self):
+        value = floors(roof=True)
+        rejected = chk.check(value, [(0., 0., .95)], z_tol=.1, min_clearance=.2)
+        self.assertFalse(rejected['ok'])
+        self.assertIn('E_TRAJ_CLEARANCE', {v[0] for v in rejected['violations']})
+
     def test_planner_output_passes(self):
         """全链：V8-09 规划器路径→检查器通过（支撑/净空/连续安全齐）。"""
         value = floors()
@@ -82,6 +104,16 @@ class CheckerTests(unittest.TestCase):
         result = chk.check(value, low, min_clearance=1.1)
         self.assertFalse(result['ok'])
         self.assertTrue(any(v[0] == 'E_TRAJ_CLEARANCE' for v in result['violations']))
+
+    def test_clearance_uses_exact_positive_and_negative_roof_boundaries(self):
+        value = floors(roof=True)
+        for point, safe in (((1.01, 0.25, 0.0), True),
+                            ((-1.01, 0.25, 0.0), True),
+                            ((0.99, 0.25, 0.0), False),
+                            ((-0.99, 0.25, 0.0), False)):
+            with self.subTest(point=point):
+                result = chk.check(value, [point], min_clearance=1.1)
+                self.assertEqual(result['ok'], safe, result['violations'])
 
     def test_time_validity(self):
         value = floors()

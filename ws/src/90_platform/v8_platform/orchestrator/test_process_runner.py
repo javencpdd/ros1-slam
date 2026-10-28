@@ -42,6 +42,7 @@ class ProcessRunnerTests(unittest.TestCase):
         r = ProcessRunner(s, [PY, '-c', SLEEPER], ready_marker='READY')
         r.start()
         self.addCleanup(r.reap)
+        orch.wait_ready([r], timeout=2)
         self.assertTrue(r.ready())          # 条件式：看到 READY 行
         self.assertFalse(r.stops)
 
@@ -52,8 +53,10 @@ class ProcessRunnerTests(unittest.TestCase):
         r.start()
         self.addCleanup(r.reap)
         t0 = time.monotonic()
-        self.assertFalse(r.ready())         # 不打印＝超时拒（无固定等待冒充）
-        self.assertLess(time.monotonic() - t0, 3.0)
+        with self.assertRaises(orch.OrchestratorError) as caught:
+            orch.wait_ready([r], timeout=0.1)
+        self.assertEqual(caught.exception.code, 'E_ORCH_READY_TIMEOUT')
+        self.assertLess(time.monotonic() - t0, 0.8)
 
     def test_stop_chain_order_and_clean(self):
         specs = [spec('scan', ['local_planner']), spec('dwa', ['controller']),
@@ -79,7 +82,7 @@ class ProcessRunnerTests(unittest.TestCase):
         r = ProcessRunner(s, [PY, '-c', HANGER], ready_marker='READY')
         r.start()
         self.addCleanup(r.reap)
-        self.assertTrue(r.ready())
+        orch.wait_ready([r], timeout=2)
         r.stop('process_group_signal')
         deadline = time.monotonic() + 1.5
         while r.is_alive() and time.monotonic() < deadline:
@@ -89,6 +92,67 @@ class ProcessRunnerTests(unittest.TestCase):
         r.reap()
         self.assertFalse(r.is_alive())              # KILL 退净
         self.assertEqual(r.stops, ['process_group_signal', 'force'])
+
+    def test_repeated_start_keeps_original_process(self):
+        r = ProcessRunner(spec('a', ['odometry']), [PY, '-c', SLEEPER], ready_marker='READY')
+        self.addCleanup(r.reap)
+        r.start()
+        original = r.proc.pid
+        r.start()
+        self.assertEqual(r.proc.pid, original)
+        orch.wait_ready([r], timeout=2)
+        self.assertEqual(r.group_members(), [original])
+
+    def test_partial_stdout_cannot_block_readiness_deadline(self):
+        r = ProcessRunner(spec('a', ['odometry']),
+                          [PY, '-c', "import time; print('READY', end='', flush=True); time.sleep(3600)"],
+                          ready_marker='READY', ready_timeout=10)
+        self.addCleanup(r.reap)
+        r.start()
+        t0 = time.monotonic()
+        with self.assertRaises(orch.OrchestratorError):
+            orch.wait_ready([r], timeout=0.1)
+        self.assertLess(time.monotonic() - t0, 0.8)
+
+    def test_stdout_after_ready_is_drained(self):
+        # Pipe capacity is much smaller than 2 MiB; DONE appears only if logging is drained.
+        r = ProcessRunner(spec('a', ['odometry']),
+                          [PY, '-c', "import sys,time; print('READY',flush=True); "
+                           "sys.stdout.write('x'*2097152+'\\nDONE\\n'); sys.stdout.flush(); time.sleep(3600)"],
+                          ready_marker='DONE')
+        self.addCleanup(r.reap)
+        r.start()
+        orch.wait_ready([r], timeout=3)
+        self.assertTrue(r.ready())
+
+    def test_start_failure_cleans_previous_real_process(self):
+        specs = [spec('first', ['controller']), spec('bad', ['odometry'])]
+        runners = {
+            'first': ProcessRunner(specs[0], [PY, '-c', SLEEPER]),
+            'bad': ProcessRunner(specs[1], ['/nonexistent/a2-runner-program'])}
+        self.addCleanupRunners(runners)
+        engine = orch.Orchestrator()
+        task = engine.submit('g', specs)
+        with self.assertRaises(orch.OrchestratorError) as caught:
+            engine.start(task, runners)
+        self.assertEqual(caught.exception.code, 'E_ORCH_START_FAILED')
+        self.assertEqual(task.state, orch.TaskState.FAILED)
+        self.assertTrue(all(r.is_stopped() for r in runners.values()))
+
+    def test_runtime_timeout_cleans_processes(self):
+        s = spec('scan', ['local_planner'])
+        r = ProcessRunner(s, [PY, '-c', HANGER], ready_marker='READY')
+        self.addCleanup(r.reap)
+        engine = orch.Orchestrator()
+        task = engine.submit('g', [s])
+        engine.start(task, {'scan': r}, run_timeout=0.02, ready_timeout=2)
+        deadline = time.monotonic() + 2
+        while task.state == orch.TaskState.RUNNING and time.monotonic() < deadline:
+            engine.health_check(task, {'scan': r})
+            time.sleep(0.005)
+        self.assertEqual(task.state, orch.TaskState.FAILED)
+        self.assertEqual(task.events[-1][3], 'E_ORCH_RUN_TIMEOUT')
+        self.assertTrue(r.is_stopped())
 
     def test_orchestrator_full_loop_real_processes(self):
         """全链：submit→start（就绪门）→运行中死亡→健康检查→停止链→FAILED＋退净。"""
