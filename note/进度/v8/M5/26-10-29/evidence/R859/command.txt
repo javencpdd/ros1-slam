@@ -1,0 +1,21 @@
+官网教程配图截图（容器 v8codex-20261028，Xvfb :99，无宿主 X）
+
+抓屏器：
+  gcc -O2 -o /tmp/xshot scripts/ops/xshot.c -lX11
+  DISPLAY=:99 /tmp/xshot /tmp/shot.ppm   # 宿主 convert 转 PNG
+
+Gazebo 图（stairstudy 楼梯世界）：
+  roslaunch /repo/ws/src/95_simulation/lite3_gazebo_sim/launch/stairstudy.launch \
+    payload_dir:=/repo/ws/src/95_simulation/lite3_gazebo_sim \
+    world_file:=stair_lab_stairs_easy.world gui:=false
+  gzclient   # DISPLAY=:99, GAZEBO_MASTER_URI=:11415
+  /tmp/xshot /tmp/r859_gazebo_stairs.ppm
+
+RViz 图（m1 世界，点云＋TF＋目标箭头）：
+  roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false
+  # 本容器 /opt 包为旧版、缺 map→odom；截图时手工补：
+  rosrun tf2_ros static_transform_publisher 0 0 0 0 0 0 map odom
+  rostopic pub -1 /move_base_simple/goal geometry_msgs/PoseStamped \
+    '{header: {frame_id: "map"}, pose: {position: {x: 3.0, y: 0.5}, orientation: {z: 0.382683, w: 0.923880}}}'
+  rviz -d /repo/docker/rviz_sim_preview.rviz   # DISPLAY=:99, DISABLE_ROS1_EOL_WARNINGS=1
+  /tmp/xshot /tmp/r859_rviz.ppm
