@@ -1,0 +1,13 @@
+R845 代码快照＝git 提交 052f5e9
+口径：blob＝git 对象 id；sha256＝git show 内容哈希（复核：git show 052f5e9:<path> | sha256sum）
+
+ws/src/90_platform/v8_platform/local_planner/local_native.py
+  blob=3f7a3a20b1f62eb0dafe223d7a1e742f52ee3c8f  sha256=d07b6f7f7bbe3f1be0de72cfcb1f2b9595085a489df8c64185afd52fa0637096
+ws/src/90_platform/v8_platform/local_planner/test_execution.py
+  blob=fca4bc76c1535e8d375ee2661f17e232506bc1b0  sha256=3768b0846cf9ddd2ddb9504480825efe1e154a1e8332ada5c8ff60273b275b20
+ws/src/90_platform/v8_platform/local_planner/runtime_probe.py
+  blob=5deda22f03bc3823122bb26a298cd46b2573516b  sha256=d37e84fd5e820ef45f701c281514d1ce76544888f32fcc5b6caa42574cb9d556
+
+另起句：R842 的终段 hunk 已撤销；step 行为可复现但根因未归因；
+新回归测试对“去掉 + uncertainty_m”有分辨力（当前 False／去项 True）。
+TEB 补跑轨迹两枚 sha256 与 R841 登记 telemetry_sha256 一致；两格时基仍 INVALID。
