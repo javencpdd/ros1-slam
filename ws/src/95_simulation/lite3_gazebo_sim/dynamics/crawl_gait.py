@@ -428,12 +428,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             ctrl.land_z = z_end
             return ctrl
 
-        def support_margin(lift_leg):
-            """CoM 到其余三足支撑三角形各边的带符号垂距（正=在三角内）。"""
+        def support_margin(lift_leg, want_normal=False):
+            """CoM 到其余三足支撑三角形各边的带符号垂距（正=在三角内）；
+            want_normal=True 时同时返回最紧边的内法线（移重应沿它走）。"""
             fw = feet_world()
             p = body_pose()[0]
             sup = [n for n in LEGS if n != lift_leg]
-            best = None
+            best, best_n = None, None
             for i in range(3):
                 a = fw[sup[i]][:2]
                 b = fw[sup[(i + 1) % 3]][:2]
@@ -445,8 +446,9 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 if np.dot(nvec, c - a) < 0:
                     nvec = -nvec
                 d = float(np.dot(nvec, p[:2] - a))
-                best = d if best is None else min(best, d)
-            return best
+                if best is None or d < best:
+                    best, best_n = d, nvec
+            return (best, best_n) if want_normal else best
 
         def lift_check(rec, f1, f0):
             rec['margin0_m'] = round(state['m0'], 4)
@@ -471,7 +473,9 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             # x/y 用相对意图（不受相位间漂移放大），z 参考 z_ref
             stance = {n: foot_body_pos(model, data, n) for n in LEGS}
             relz = ground_relz()
-            dir_xy = stance[cur_leg][:2] / np.linalg.norm(stance[cur_leg][:2])
+            # 移重方向＝支撑三角最紧边的内法线（机体沿 +n 走；shift_delta 是足端相对量，取反）
+            _, nvec = support_margin(cur_leg, want_normal=True)
+            dir_xy = -nvec
             # 闭环移重：CoM 到三支撑三角形垂距 ≥2 cm 才允许抬腿，否则每次再加 3 cm
             shift_dist = 0.0
             for attempt in range(4):
