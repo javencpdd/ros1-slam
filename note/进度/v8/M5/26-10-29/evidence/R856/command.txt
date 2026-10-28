@@ -1,0 +1,11 @@
+3D 导航测试（设计层，无 ROS/Gazebo/真机）
+
+cd ws/src/90_platform/v8_platform
+python3 -B regression/a45_3d_test.py --out /tmp/3d_nav.json --svg /tmp/3d_nav.svg
+
+落库：
+cp /tmp/3d_nav.json note/进度/v8/M5/26-10-29/evidence/R856/3d_nav.json
+cp /tmp/3d_nav.svg  note/进度/v8/M5/26-10-29/evidence/R856/3d_nav.svg
+cp /tmp/3d_nav.svg  web/assets/3d-nav.svg   # 官网教程配图，web 不跟踪
+
+边界：载体＝experimental_kinematic_carrier；无四足接触/跨层；#151 仍 pending。
