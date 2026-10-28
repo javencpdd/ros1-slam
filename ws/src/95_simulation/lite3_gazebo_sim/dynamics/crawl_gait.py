@@ -107,7 +107,7 @@ def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
 def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift_y=0.0, shift_x=0.0, ramp=0.0, xml=None, start_x=0.0, forward=0.0, shift2_x=0.0, umax=0.35, kgain=0.8,
         lift_h=0.10, swing_fwd=0.06, drive_fwd=0.08, shift_mag=0.05, slip_tol=0.02, y_tol=0.03,
         swing_kp=40.0, swing_kd=1.5, cycle=False, margin_min=0.05,
-        step_x=None, step_h=0.0, step_swing=0.0):
+        step_x=None, step_h=0.0, step_swing=0.0, climb_x=0.0, climb_dz=0.0):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
     # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
@@ -541,6 +541,14 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 break
             execute('settle%d_%s' % (step_i, cur_leg), 'settle', 0.4,
                     lambda i, t: None, leg=cur_leg)
+        # 机体上阶：抬高高度参考后分两段把机体前移（前腿压缩、后腿拉伸，IK 可达由残差查）
+        if climb_x > 0 and not state['fell']:
+            state['z_ref'] = float(state['z_ref']) + climb_dz
+            st_climb = {n: foot_body_pos(model, data, n) for n in LEGS}
+            for k in range(2):
+                g = with_z({n: st_climb[n] - np.array([climb_x * (k + 1) / 2, 0.0, 0.0])
+                            for n in LEGS}, ground_relz())
+                execute('climb_%d' % k, 'climb', 1.2, make_ramp(g, 1.2), leg=None)
         feet = {n: [round(float(x), 3) for x in foot_body_pos(model, data, n)] for n in LEGS}
         passed = bool(records) and all(r['ok'] for r in records) and not state['fell']
         return {'mode': mode, 'leg': leg, 'lift_h': lift_h, 'swing_fwd': swing_fwd,
@@ -549,6 +557,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 'kp': kp, 'kd': kd, 'swing_kp': swing_kp, 'swing_kd': swing_kd,
                 'cycle': list(legs_seq), 'z_ref': round(state['z_ref'] or 0.0, 4),
                 'margin_min': margin_min, 'step_x': step_x, 'step_h': step_h,
+                'climb_x': climb_x, 'climb_dz': climb_dz,
                 'z_ground': round(state['zg'], 4),
                 'pass': passed,
                 'final_x': round(float(data.qpos[0]), 3),
@@ -637,6 +646,8 @@ def main():
     parser.add_argument('--step-x', type=float, default=None)
     parser.add_argument('--step-h', type=float, default=0.0)
     parser.add_argument('--step-swing', type=float, default=0.0)
+    parser.add_argument('--climb-x', type=float, default=0.0)
+    parser.add_argument('--climb-dz', type=float, default=0.0)
     parser.add_argument('--out', default='')
     args = parser.parse_args()
     result = run(args.mode, args.leg, args.height, args.seconds,
@@ -649,7 +660,8 @@ def main():
                  swing_kp=args.swing_kp, swing_kd=args.swing_kd,
                  cycle=(tuple(args.cycle.split(',')) if isinstance(args.cycle, str)
                         else args.cycle), margin_min=args.margin_min,
-                 step_x=args.step_x, step_h=args.step_h, step_swing=args.step_swing)
+                 step_x=args.step_x, step_h=args.step_h, step_swing=args.step_swing,
+                 climb_x=args.climb_x, climb_dz=args.climb_dz)
     text = json.dumps(result, ensure_ascii=False, indent=1)
     print(text)
     if args.out:
