@@ -561,14 +561,17 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 if state['fell'] or not do_step(cur_leg, 's%d' % step_i, advance=True):
                     break
             do_climb(climb_x, climb_dz, 'climb1')
+            ok_all = True
             for r in range(int(rear_rounds)):
                 for cur_leg in ('HL', 'HR'):
-                    if state['fell']:
+                    if state['fell'] or not ok_all:
                         break
                     if not do_step(cur_leg, 'r%d' % r, advance=True, swing=rear_swing):
+                        ok_all = False
                         break
-            do_climb(climb2_x, climb2_dz, 'climb2')
-            if not state['fell']:
+            if ok_all and not state['fell']:
+                do_climb(climb2_x, climb2_dz, 'climb2')
+            if ok_all and not state['fell']:
                 execute('settle_final', 'settle', 0.6, lambda i, t: None)
         feet = {n: [round(float(x), 3) for x in foot_body_pos(model, data, n)] for n in LEGS}
         passed = bool(records) and all(r['ok'] for r in records) and not state['fell']
