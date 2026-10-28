@@ -7143,3 +7143,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `docker/viz.sh`：不再要求 `/tmp/.Xauthority`，改为提示宿主放行 root。
 - 新增 `scripts/ops/sim_viz.sh`：doctor／start／status／stop；停止按 PID，不用 `pkill -f`；宿主 world 路径自动换算到容器 `/opt/ros1-slam/...`。
 - 实测：glxinfo renderer=NVIDIA RTX 2060 SUPER；gzclient 宿主窗口 3988×2176；stop→start 可复跑。headless `sim` 域未改；第三方世界未改。详见 R864 与 `evidence/R864`。
+
+## R865（2026-10-29，qoder）：A1/A7 四格切片与 package.xml 修复
+
+- `ws/src/90_platform/v8_platform/package.xml`：maintainer 邮箱 `dev@local` 改为 `dev@example.com`。catkin 工作区扫描会校验邮箱，非法值使 `roslaunch` 的 `$(find ...)` 直接抛 `InvalidPackage`，roslaunch 立即退出（R865 首跑阻塞点）。
+- 运行面：`runtime_lab --gazebo --backend {dwa,teb} --localization {truth,noisy} --scenario SC01 --seed 0`，四格 4/4 PASS（预登记 `parameters_sha256=11811fc9…`）：dwa 0.104 m/0.509 m、0.114 m/0.455 m；teb 0.214 m/0.504 m、0.209 m/0.465 m（终点误差/最小间隙）。
+- 未改判据、冻结门值、第三方或 `sim` 服务；noisy 轨为注入 map→odom 噪声，非 LIO/NDT 切换。详见 R865 与 `evidence/R865`。

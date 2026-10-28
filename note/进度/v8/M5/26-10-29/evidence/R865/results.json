@@ -1,0 +1,78 @@
+{
+  "set_id": "v8_a1a7_matrix_v1",
+  "run_class": "runtime_experimental",
+  "criteria": {
+    "goal_position_m": 0.3,
+    "min_clearance_m": 0.2,
+    "clearance_definition": "robot_center_to_box_surface_m",
+    "deadline_s": 120
+  },
+  "parameters_sha256": "11811fc957755a05f0dbabc08713fc0d9485f2b39df8c15fbde306481a2644d5",
+  "counts": {
+    "N_total": 4,
+    "N_valid": 4,
+    "N_invalid": 0,
+    "N_pass": 4,
+    "N_fail": 0
+  },
+  "cells": [
+    {
+      "cell": "dwa_SC01_s0_truth",
+      "backend": "dwa",
+      "localization": "truth",
+      "track": "truth",
+      "verdict": "PASS",
+      "dist_to_goal_m": 0.104,
+      "obstacle_min_clearance_m": 0.509,
+      "path_length_m": 2.91,
+      "cmd_vel_messages": 316,
+      "goal_ok": true,
+      "clearance_ok": true,
+      "manifest_sha256": "f20a76c7a41a23587eb4853a74261bff00957ca3863a4ed47fda63b44ae65049"
+    },
+    {
+      "cell": "dwa_SC01_s0_noisy",
+      "backend": "dwa",
+      "localization": "noisy",
+      "track": "estimated",
+      "verdict": "PASS",
+      "dist_to_goal_m": 0.114,
+      "obstacle_min_clearance_m": 0.455,
+      "path_length_m": 2.91,
+      "cmd_vel_messages": 318,
+      "goal_ok": true,
+      "clearance_ok": true,
+      "manifest_sha256": "cd8a0b1a7e8a0b5a674bc72391d9102b000b000bbf2ad03590e7d3727e839203"
+    },
+    {
+      "cell": "teb_SC01_s0_truth",
+      "backend": "teb",
+      "localization": "truth",
+      "track": "truth",
+      "verdict": "PASS",
+      "dist_to_goal_m": 0.214,
+      "obstacle_min_clearance_m": 0.504,
+      "path_length_m": 2.8,
+      "cmd_vel_messages": 188,
+      "goal_ok": true,
+      "clearance_ok": true,
+      "manifest_sha256": "387c4e7d4393cdd07d0b4eefa33f034cf882407f41e62b5a7be6ae3b8c813380"
+    },
+    {
+      "cell": "teb_SC01_s0_noisy",
+      "backend": "teb",
+      "localization": "noisy",
+      "track": "estimated",
+      "verdict": "PASS",
+      "dist_to_goal_m": 0.209,
+      "obstacle_min_clearance_m": 0.465,
+      "path_length_m": 2.82,
+      "cmd_vel_messages": 188,
+      "goal_ok": true,
+      "clearance_ok": true,
+      "manifest_sha256": "b469a159fdc3b93feefba0421f8a030e5778e6dafbe5ce5f02b17464f23fee16"
+    }
+  ],
+  "finished_at": "2026-10-28T22:34:02+00:00",
+  "scope": "runtime_lab two backends x two localization tracks on SC01, seed 0; truth /sim/odom_gt evaluation; no hardware"
+}
