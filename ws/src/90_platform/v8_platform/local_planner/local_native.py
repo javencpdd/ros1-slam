@@ -194,11 +194,13 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     observed_distance = distance if feedback_pose is None else _distance(feedback_pose, target)
     planned_distance = _distance(a, target)
     contacts = tuple(result['surfaces'][:2])
-    if planned_distance <= 1e-12:
-        if now >= target[3]:
-            return dict(zero, reason='segment_complete', complete=True)
+    if planned_distance <= 1e-12 and now < target[3]:
         collision = body_collision(map_value, (*pose, now), (*pose, target[3]), obstacles, config, contacts)
         return dict(zero, reason='E_LOCAL_COLLISION' if collision else 'hold')
+    # The terminal clock alone cannot certify contact: an in-flight command may
+    # still be moving the carrier past the last contact plane. Completion needs
+    # the actual gap check below, so a slightly-off pose is docked, not accepted
+    # (and not left to make the next plan refuse for want of a support).
     if max(distance, observed_distance) + uncertainty_m <= 1e-6:
         return dict(zero, reason='segment_complete', complete=True)
     # The geometric segment is committed; its actual-time collision check below

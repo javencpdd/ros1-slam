@@ -87,6 +87,25 @@ class ExecutionTests(unittest.TestCase):
         verdict = evaluate.evaluate(value, record(value, contacts, cfg, execution), [])
         self.assertTrue(verdict['ok'], (verdict['failures'], max(p[2] for p in execution),
                                        verdict['static_collisions'][:2]))
+    def test_terminal_clock_does_not_certify_contact_with_command_in_flight(self):
+        # R841 step case ended 9.66e-6 above the deck after the terminal stamp;
+        # the old rule reported completion from the clock alone, so the next
+        # plan refused with E_LOCAL_SUPPORT forever.
+        value = layers()
+        cfg = replace(native.Config(), tick_s=1.2, validity_s=4.)
+        result = native.plan(value, (-.4, 0., 0.), (.6, 0., .15), config=cfg)
+        target = result['trajectory'][1]
+        after = target[3] + .01
+        self.assertLess(after, result['valid_until'])
+        pose = (target[0] + 3.9e-5, 0., target[2] + 9.66e-6)
+        out = native.track_segment(value, result, pose, after, [], config=cfg,
+                                   feedback_pose=pose, uncertainty_m=0.)
+        self.assertFalse(out.get('complete', False))
+        self.assertLess(out['velocity'][2], 0.)
+        settle = native.track_segment(value, result, target[:3], after, [], config=cfg)
+        self.assertTrue(settle['complete'])
+        self.assertEqual(settle['velocity'], [0., 0., 0.])
+
     def test_receipt_integrator_keeps_hold_and_all_command_changes(self):
         position, stamp, velocity, samples = runtime_probe.integrate_received(
             (0., 0., 0.), 0., (0., 0., 0.), [(.4, (1., 0., 0.)), (.5, (0., 1., 0.))], .6)
