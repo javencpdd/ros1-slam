@@ -209,6 +209,14 @@ def semantic(kind, value):
             if 'radius_m' in footprint:
                 raise ContractError('E_ROBOT_FOOTPRINT', 'polygon footprint must not carry radius_m')
     elif kind == 'map':
+        obstacles = value.get('obstacles', [])
+        ids = [item['obstacle_id'] for item in obstacles]
+        if len(ids) != len(set(ids)):
+            raise ContractError('E_MAP_OBSTACLE_DUP', 'duplicate obstacle_id')
+        for item in obstacles:
+            if any(lo >= hi for lo, hi in zip(item['min'], item['max'])):
+                raise ContractError('E_MAP_OBSTACLE_BOUNDS',
+                                    '%s requires min < max on all axes' % item['obstacle_id'])
         if sorted(value['cell_states']) != ['free', 'occupied', 'unknown']:
             raise ContractError('E_MAP_CELL_STATES', 'cell_states must be exactly free/occupied/unknown')
         if value['kind'] == 'occupancy_grid':
@@ -314,10 +322,16 @@ def load(kind):
     return json.loads((HERE / 'schema' / SCHEMAS[kind]).read_text())
 
 
-def validate(kind, value):
+def validate(kind, value, *, allow_obstacles=False):
+    """Obstacle-aware consumers explicitly opt into map/v2; v1 consumers fail closed."""
     if kind == 'map' and isinstance(value, dict):
         _pre_map(value)
-    root = load(kind)
+    if kind == 'map' and isinstance(value, dict) and value.get('schema_version') == 2:
+        if not allow_obstacles:
+            raise ContractError('E_VERSION', 'map/v2 requires an obstacle-aware consumer')
+        root = json.loads((HERE / 'schema/map.v2.json').read_text())
+    else:
+        root = load(kind)
     _walk(root, value, root, '')
     semantic(kind, value)
     return True
@@ -350,7 +364,7 @@ def main(argv):
         print(json.dumps({'ok': False, 'reason': 'E_INPUT_MISSING', 'detail': str(path)}))
         return 9
     try:
-        validate(kind, json.loads(path.read_text()))
+        validate(kind, json.loads(path.read_text()), allow_obstacles=True)
     except ContractError as error:
         print(json.dumps({'ok': False, 'reason': error.code, 'detail': error.detail}, ensure_ascii=False))
         return 5

@@ -42,3 +42,37 @@ PYTHONPATH=../regression:$PYTHONPATH python3 -B -m a4_runtime clearance --out /t
 ```
 
 命令需要已经启动的 ROS master。所得证据覆盖规划服务接口，未包含底盘执行。
+
+## 6. 障碍体积输入
+
+全局规划器同时接收 `map/v1` 与显式声明 `obstacles` 的 `map/v2`。
+`build_support_map(..., obstacles=[...])` 生产 v2；不传该参数时保留 v1。
+输入形状与消费者版本边界见 [契约说明](../contracts/README.md#9-显式障碍体积mapv2)。
+
+```python
+route = plan(mapping, start, goal, robot_radius_m=0.5, robot_height_m=0.5)
+```
+
+非空障碍要求显式给出有限的水平半径和正高度，否则返回 `E_PLAN_INPUT`。
+这里的数字只是调用示例，须由调用方按实际几何给出，不是 Lite3 能力定标。
+参考点为支撑高度；检查支撑 z 到 z+height 的竖直包络，XY 使用包住圆足迹的
+保守正方形。侧面相切判碰撞，站在实体顶面时仅接触顶面不算穿入。
+
+起终点包络碰撞返回 `E_PLAN_OBSTACLE`；无安全栅格连接或全部路线被挡返回
+`E_PLAN_NO_ROUTE`。格中心、连续面内边、对角边、显式转层边、实际起终点到格中心
+的连接均核验。转层保留原支撑几何的所有等距最近门户；障碍不能把门户挪到更远处
+制造新桥。v2 返回精确起终点连接并保留浮点精度，避免输出舍入后穿箱。
+搜索仍是离散有界图，不承诺连续空间全局完备或四足跨阶能力。
+
+ROS 的初始发布、GetPlan 与 GetPath 共用 `~robot_radius_m`、`~robot_height_m`；
+拒绝时路径为空，状态回显障碍版本、数量和包络参数。
+
+```bash
+python3 -B test_obstacles.py
+python3 -B ../regression/global_obstacles.py --out /tmp/global-obstacles.json
+```
+
+回归为 SC02／SC05／SC06 的派生请求，各含无遮挡、箱体改线、封路三例。
+SC02／SC06 的封路体贯穿地面与夹层，因只放阶面小箱可从下层绕到箱后；
+SC06 改线可合法使用 `ground→mezz→ground`。原场景真值与冻结判据不改。
+独立评价器采用六面相交检查，旧无障碍路线须在新箱体场景下被判碰撞，防止假改线。

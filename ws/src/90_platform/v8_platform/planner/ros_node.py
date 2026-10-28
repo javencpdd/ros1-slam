@@ -10,7 +10,8 @@ import time
 import support_planner
 
 
-def to_request(map_path, start, goal, budget, hint, min_clearance_m=None):
+def to_request(map_path, start, goal, budget, hint, min_clearance_m=None,
+               robot_radius_m=None, robot_height_m=None):
     """把节点参数折算成 plan() 的入参；缺项一律显式报错，不取缺省。"""
     with open(map_path, encoding='utf-8') as stream:
         value = json.load(stream)
@@ -23,7 +24,8 @@ def to_request(map_path, start, goal, budget, hint, min_clearance_m=None):
     if budget <= 0:
         raise ValueError('budget must be positive')
     request = {'map': value, 'start': tuple(start), 'goal': tuple(goal), 'budget': int(budget),
-               'min_clearance_m': min_clearance_m}
+               'min_clearance_m': min_clearance_m, 'robot_radius_m': robot_radius_m,
+               'robot_height_m': robot_height_m}
     if hint is not None:
         request['goal'] = (goal[0], goal[1], goal[2])
         request['hint'] = hint
@@ -43,7 +45,9 @@ def plan_route(request, cancel=None):
             raise support_planner.PlannerError('E_PLAN_GOAL_INVALID', 'hint z mismatch')
     return support_planner.plan(value, request['start'], request['goal'],
                                 budget=request['budget'], cancel=cancel,
-                                min_clearance_m=request.get('min_clearance_m'))
+                                min_clearance_m=request.get('min_clearance_m'),
+                                robot_radius_m=request.get('robot_radius_m'),
+                                robot_height_m=request.get('robot_height_m'))
 
 
 def pose_xyz(pose):
@@ -98,9 +102,20 @@ def main(argv=None):
     hint = rospy.get_param('~surface_hint', None)
     frame = rospy.get_param('~frame', 'map')
     min_clearance_m = rospy.get_param('~min_clearance_m', None)
+    robot_radius_m = rospy.get_param('~robot_radius_m', None)
+    robot_height_m = rospy.get_param('~robot_height_m', None)
+    policy_args = {'min_clearance_m': min_clearance_m, 'robot_radius_m': robot_radius_m,
+                   'robot_height_m': robot_height_m}
+
+    def policy(value):
+        result = {key: number for key, number in policy_args.items() if number is not None}
+        if value.get('schema_version') == 2:
+            result.update(obstacle_schema='map/v2', obstacle_count=len(value.get('obstacles', [])))
+        return result
+
     publisher = rospy.Publisher(rospy.get_param('~path_topic', 'support_route'), Path, queue_size=1, latch=True)
     status = rospy.get_param('~status_topic', 'support_route_status')
-    request = to_request(map_path, start, goal, budget, hint, min_clearance_m)
+    request = to_request(map_path, start, goal, budget, hint, **policy_args)
     start_xyz = tuple(start)
     try:
         result = plan_route(request)
@@ -108,8 +123,7 @@ def main(argv=None):
         info = refusal(error) if hasattr(error, 'code') else {'ok': False, 'reason': 'E_PLAN_INPUT', 'detail': str(error)}
         rospy.set_param(status, dict(info, map_id=request['map'].get('map_id'),
                                     map_version=request['map'].get('map_version'),
-                                    policy={} if min_clearance_m is None else
-                                    {'min_clearance_m': min_clearance_m}))
+                                    policy=policy(request['map'])))
         rospy.logerr('support_planner refused: %s', info)
         return 5
     def sim_stamp():
@@ -127,8 +141,7 @@ def main(argv=None):
         except Exception:
             return {}
         return {'map_id': value.get('map_id'), 'map_version': value.get('map_version'),
-                'policy': {} if min_clearance_m is None else
-                {'min_clearance_m': min_clearance_m}}
+                'policy': policy(value)}
 
     message = to_path_message(result, frame, sim_stamp())
     publisher.publish(message)
@@ -157,10 +170,10 @@ def main(argv=None):
         try:
             planned = plan_route({'map': request_map(), 'start': pose_xyz(request.start),
                                   'goal': pose_xyz(request.goal), 'budget': budget,
-                                  'hint': hint, 'min_clearance_m': min_clearance_m} if hint else
+                                  'hint': hint, **policy_args} if hint else
                                  {'map': request_map(), 'start': pose_xyz(request.start),
                                   'goal': pose_xyz(request.goal), 'budget': budget,
-                                  'min_clearance_m': min_clearance_m},
+                                  **policy_args},
                                  cancel=(lambda: True) if take_cancel else None)
         except (ValueError, support_planner.PlannerError) as error:
             info = refusal(error) if hasattr(error, 'code') \
@@ -192,7 +205,7 @@ def main(argv=None):
             start = pose_xyz(goal.start_pose) if goal.use_start_pose else tuple(start_xyz)
             keys = {'map': request_map(), 'start': start,
                     'goal': pose_xyz(target), 'budget': budget,
-                    'min_clearance_m': min_clearance_m}
+                    **policy_args}
             if hint:
                 keys['hint'] = hint
             result = GetPathResult()

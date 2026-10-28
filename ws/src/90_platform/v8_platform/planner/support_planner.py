@@ -28,10 +28,10 @@ class PlannerError(Exception):
 
 
 def _cells(footprint, resolution):
-    x0 = int(math.ceil(footprint['min_x'] / resolution))
-    x1 = int(math.ceil(footprint['max_x'] / resolution)) - 1
-    y0 = int(math.ceil(footprint['min_y'] / resolution))
-    y1 = int(math.ceil(footprint['max_y'] / resolution)) - 1
+    x0 = int(math.ceil(footprint['min_x'] / resolution - .5))
+    x1 = int(math.ceil(footprint['max_x'] / resolution - .5)) - 1
+    y0 = int(math.ceil(footprint['min_y'] / resolution - .5))
+    y1 = int(math.ceil(footprint['max_y'] / resolution - .5)) - 1
     return {(ix, iy) for ix in range(x0, x1 + 1) for iy in range(y0, y1 + 1)}
 
 
@@ -49,15 +49,84 @@ def _nearest_cell_pair(cells_a, cells_b):
     return best
 
 
+def _nearest_cell_pairs(cells_a, cells_b):
+    """All equally near portals on the declared, unfiltered surfaces.
+
+    Occupancy must not move a portal to a more distant pair and thereby create
+    a new bridge across a blocked region. Keeping ties permits a safe portal
+    alongside a box instead of depending on set iteration order.
+    """
+    best, distance = [], float('inf')
+    for a in sorted(cells_a):
+        for b in sorted(cells_b):
+            squared = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+            if squared < distance:
+                best, distance = [(a, b)], squared
+            elif squared == distance:
+                best.append((a, b))
+    return best
+
+
+def _intersects_box(a, b, lower, upper):
+    """Closed 3D segment/AABB intersection, including tangency (no sampling)."""
+    lo, hi = 0.0, 1.0
+    for axis in range(3):
+        delta = b[axis] - a[axis]
+        if abs(delta) <= 1e-12:
+            if not lower[axis] <= a[axis] <= upper[axis]:
+                return False
+        else:
+            near, far = sorted(((lower[axis] - a[axis]) / delta,
+                                (upper[axis] - a[axis]) / delta))
+            lo, hi = max(lo, near), min(hi, far)
+            if lo > hi:
+                return False
+    return True
+
+
 def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
-         min_clearance_m=None):
+         min_clearance_m=None, robot_radius_m=None, robot_height_m=None):
     """start/goal＝(x, y, z)；多层面同 XY 时按 z 最近面消歧。返回路径与诊断。"""
     try:
-        contract.validate('map', value)
+        contract.validate('map', value, allow_obstacles=True)
     except contract.ContractError as error:
         raise PlannerError('E_PLAN_MAP_INVALID', '%s: %s' % (error.code, error.detail))
-    resolution = resolution or value['resolution']
+    resolution = value['resolution'] if resolution is None else resolution
     surfaces = {s['surface_id']: s for s in value['surfaces']}
+    obstacles = value.get('obstacles', [])
+    for name, number in (('robot_radius_m', robot_radius_m), ('robot_height_m', robot_height_m)):
+        if number is None and not obstacles:
+            continue
+        if (isinstance(number, bool) or not isinstance(number, (int, float))
+                or not math.isfinite(number) or number < 0
+                or (name == 'robot_height_m' and number == 0)):
+            raise PlannerError('E_PLAN_INPUT', '%s must be explicit, finite and %s' %
+                               (name, 'positive' if name == 'robot_height_m' else 'nonnegative'))
+    if (isinstance(resolution, bool) or not isinstance(resolution, (int, float))
+            or not math.isfinite(resolution) or resolution <= 0):
+        raise PlannerError('E_PLAN_INPUT', 'resolution must be finite and positive')
+    for label, point in (('start', start), ('goal', goal)):
+        if (not isinstance(point, (tuple, list)) or len(point) != 3
+                or any(isinstance(n, bool) or not isinstance(n, (int, float))
+                       or not math.isfinite(n) for n in point)):
+            raise PlannerError('E_PLAN_INPUT', '%s must contain three finite numbers' % label)
+
+    def obstacle_free(a, b):
+        # Conservative square enclosing the circular XY footprint, extruded
+        # from support z through robot_height_m. Touching an obstacle's top
+        # from above is support contact, not penetration; sides/top are closed.
+        for obstacle in obstacles:
+            lower = [obstacle['min'][0] - robot_radius_m,
+                     obstacle['min'][1] - robot_radius_m,
+                     obstacle['min'][2] - robot_height_m]
+            upper = [obstacle['max'][0] + robot_radius_m,
+                     obstacle['max'][1] + robot_radius_m, obstacle['max'][2] - 1e-9]
+            if _intersects_box(a, b, lower, upper):
+                return False
+        return True
+
+    def xyz(sid, cell):
+        return (*_cell_center(*cell, resolution), surfaces[sid]['z_reference'])
     if min_clearance_m is not None and (
             isinstance(min_clearance_m, bool) or not isinstance(min_clearance_m, (int, float))
             or not math.isfinite(min_clearance_m) or min_clearance_m < 0):
@@ -112,18 +181,40 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
     start_surface, goal_surface = resolve(start, 'start'), resolve(goal, 'goal')
 
     for label, point, surface in (('start', start, start_surface), ('goal', goal, goal_surface)):
+        support_point = (point[0], point[1], surface['z_reference'])
+        if not obstacle_free(support_point, support_point):
+            raise PlannerError('E_PLAN_OBSTACLE', '%s envelope intersects an obstacle' % label)
         if not has_clearance(point[0], point[1], surface['z_reference']):
             raise PlannerError('E_PLAN_CLEARANCE', '%s clearance < %.6g m' % (label, min_clearance_m))
 
     cells = {sid: _cells(s['footprint'], resolution) for sid, s in surfaces.items()
              if s['traversability'] == 'supported'}
+    # Keep geometry before masking: occupancy never invents a longer portal.
+    geometry_cells = cells
     if min_clearance_m is not None:
         cells = {sid: {(ix, iy) for ix, iy in layer
                        if has_clearance(*_cell_center(ix, iy, resolution),
                                         surfaces[sid]['z_reference'])}
                  for sid, layer in cells.items()}
+    if obstacles:
+        cells = {sid: {cell for cell in layer if obstacle_free(xyz(sid, cell), xyz(sid, cell))}
+                 for sid, layer in cells.items()}
 
     def node_of(point, surface):
+        if value['schema_version'] == 2:
+            sid = surface['surface_id']
+            support_point = (point[0], point[1], surface['z_reference'])
+            # Do not snap a free endpoint through a thin box into another cell.
+            candidates = [cell for cell in cells[sid]
+                          if abs(xyz(sid, cell)[0] - point[0]) <= resolution + 1e-9
+                          and abs(xyz(sid, cell)[1] - point[1]) <= resolution + 1e-9
+                          and obstacle_free(support_point, xyz(sid, cell))
+                          and segment_has_clearance(support_point, xyz(sid, cell),
+                                                    surface['z_reference'])]
+            if not candidates:
+                raise PlannerError('E_PLAN_NO_ROUTE', 'no safe grid connector for endpoint')
+            ix, iy = min(candidates, key=lambda cell: (math.dist(support_point, xyz(sid, cell)), cell))
+            return sid, ix, iy
         ix = int(math.floor(point[0] / resolution))
         iy = int(math.floor(point[1] / resolution))
         if (ix, iy) not in cells[surface['surface_id']]:
@@ -147,10 +238,16 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
             other = edge['to']
             if other not in cells or sid not in cells or not cells[sid] or not cells[other]:
                 continue
-            pair = _nearest_cell_pair(cells[sid], cells[other])
-            bridges.setdefault((sid, other), set()).add(pair)
-            if edge['bidirectional']:
-                bridges.setdefault((other, sid), set()).add((pair[1], pair[0]))
+            pairs = (_nearest_cell_pairs(geometry_cells[sid], geometry_cells[other])
+                     if value['schema_version'] == 2 else
+                     [_nearest_cell_pair(cells[sid], cells[other])])
+            for pair in pairs:
+                if (pair[0] not in cells[sid] or pair[1] not in cells[other]
+                        or not obstacle_free(xyz(sid, pair[0]), xyz(other, pair[1]))):
+                    continue
+                bridges.setdefault((sid, other), set()).add(pair)
+                if edge['bidirectional']:
+                    bridges.setdefault((other, sid), set()).add((pair[1], pair[0]))
 
     def neighbors(node):
         sid, ix, iy = node
@@ -161,13 +258,14 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
                     continue
                 nxt = (ix + dx, iy + dy)
                 if (nxt in cells[sid]
+                        and obstacle_free(xyz(sid, (ix, iy)), xyz(sid, nxt))
                         and segment_has_clearance(_cell_center(ix, iy, resolution),
                                                   _cell_center(*nxt, resolution),
                                                   surfaces[sid]['z_reference'])):
                     out.append((sid, nxt[0], nxt[1]))
         for (a, b), pairs in bridges.items():
             if a == sid:
-                for ca, cb in pairs:
+                for ca, cb in sorted(pairs):
                     if (ix, iy) == ca:
                         out.append((b, cb[0], cb[1]))
         return out
@@ -185,9 +283,26 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
             raise PlannerError('E_PLAN_CANCELLED', '展开 %d 节点后取消' % expansions)
         _, g, node = heapq.heappop(open_heap)
         if node == goal_node:
-            result = _result(node, came, surfaces, resolution, expansions)
+            result = _result(node, came, surfaces, resolution, expansions,
+                             exact=value['schema_version'] == 2)
+            if value['schema_version'] == 2:
+                first = (start[0], start[1], start_surface['z_reference'], start_surface['surface_id'])
+                last = (goal[0], goal[1], goal_surface['z_reference'], goal_surface['surface_id'])
+                if result['path'][0] != first:
+                    result['path'].insert(0, first)
+                    result['segments'][0]['cells'] += 1
+                if result['path'][-1] != last:
+                    result['path'].append(last)
+                    result['segments'][-1]['cells'] += 1
+                result['length'] = round(sum(math.dist(a[:2], b[:2]) for a, b in
+                                             zip(result['path'], result['path'][1:]))
+                                         + .1 * len(result['transitions']), 6)
+                result['policy'] = {'obstacle_schema': 'map/v2',
+                                    'robot_radius_m': robot_radius_m,
+                                    'robot_height_m': robot_height_m,
+                                    'obstacle_count': len(obstacles)}
             if min_clearance_m is not None:
-                result['policy'] = {'min_clearance_m': min_clearance_m}
+                result.setdefault('policy', {})['min_clearance_m'] = min_clearance_m
             return result
         expansions += 1
         if expansions > budget:
@@ -206,7 +321,7 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
                        '起点 %s 到目标 %s 无路（展开 %d）' % (start_node, goal_node, expansions))
 
 
-def _result(node, came, surfaces, resolution, expansions):
+def _result(node, came, surfaces, resolution, expansions, exact=False):
     chain = []
     while node is not None:
         chain.append(node)
@@ -215,7 +330,8 @@ def _result(node, came, surfaces, resolution, expansions):
     path, segments, transitions = [], [], []
     for sid, ix, iy in chain:
         x, y = _cell_center(ix, iy, resolution)
-        path.append((round(x, 6), round(y, 6), surfaces[sid]['z_reference'], sid))
+        path.append((x if exact else round(x, 6), y if exact else round(y, 6),
+                     surfaces[sid]['z_reference'], sid))
     run = [chain[0]]
     for prev, nxt in zip(chain, chain[1:]):
         if nxt[0] != prev[0]:

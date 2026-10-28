@@ -83,3 +83,21 @@ python3 -B test_contracts.py                                     # 61 例＋5 �
 ## 8. 本批未覆盖
 
 GlobalRoute／LocalTrajectory／MotionCommand／PoseEstimate／SceneProfile 的消息级契约、后端替换与兼容报告归 V8-04/05/06/07/09/10/11；本目录不预写注册表或求解器代码，A1 的正式结论须独立复核后另记。
+
+## 9. 显式障碍体积（map/v2）
+
+`schema/map.v2.json` 单独定义含静态占据体的支撑图，保留 `map.v1.json` 原件。
+v2 的 `schema_version=2`、`kind=support_map`，必须携带 `obstacles` 数组：
+
+```json
+{"obstacle_id": "deck_box", "min": [1.0, -0.2, 0.06], "max": [1.4, 0.2, 0.5]}
+```
+
+每项是地图 `frame` 内以米计的轴对齐实体体积，三轴均须 `min < max`；
+ID 唯一，数组定长三，布尔、NaN、Inf、未知字段一律拒绝。空数组只说明没有声明体积，
+不生成观测空闲证据。障碍内容变化需上游更新 `map_version`，不可沿用旧路线身份。
+
+消费方须显式调用 `validate('map', value, allow_obstacles=True)`；默认调用拒 v2，
+使旧局部规划器、地图服务与轨迹监督器不会默默忽略障碍。CLI `validate.py map FILE`
+可检查两个版本，校验成功只表示输入合规。当前已接入的消费入口是支撑图全局规划器及
+其 ROS 包装；不声明组合器或旧局部执行链支持 v2。

@@ -16,6 +16,7 @@ resolution 换算的格数（width/height 整数，≥1），即「证据与面�
 分层：消费契约层（../contracts/validate.py 的 map.v1），不 import ROS、不读写运行目录。
 """
 import math
+import copy
 import sys
 from pathlib import Path
 
@@ -107,7 +108,7 @@ def _footprint_gap(fa, fb):
 
 
 def build_support_map(map_id, resolution, origin, surfaces, edges, source,
-                      map_version=1, unknown_policy='unknown_not_traversable'):
+                      map_version=1, unknown_policy='unknown_not_traversable', obstacles=None):
     """由显式面＋显式边构造 map.v1 合法的 support_map（经契约层校验 fail-closed）。
 
     extent 定界：支撑面足迹并集外包框按 resolution 换算格数（见模块 docstring）。
@@ -146,8 +147,12 @@ def build_support_map(map_id, resolution, origin, surfaces, edges, source,
              'edges': list(s.get('edges', []))}
             for s in surfaces],
     }
+    if obstacles is not None:
+        value['schema_version'] = 2
+        value['multiple_surfaces_per_xy'] = len(surfaces) > 1
+        value['obstacles'] = copy.deepcopy(obstacles)
     try:
-        contract.validate('map', value)
+        contract.validate('map', value, allow_obstacles=obstacles is not None)
     except contract.ContractError as error:
         raise RepresentationError('E_REP_CONTRACT', '%s: %s' % (error.code, error.detail))
     return value
