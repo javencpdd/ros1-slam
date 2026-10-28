@@ -1,0 +1,5 @@
+python3 -B ws/src/90_platform/v8_platform/planner/test_obstacles.py
+docker exec v8codex-20261028 python3 -B /repo/ws/src/90_platform/v8_platform/regression/global_obstacles.py --out /tmp/ros1-global-obstacles.json
+full tests: each test_*.py in v8_platform and lite3_gazebo_sim/dynamics, subprocess per module, python3 -B
+runtime retry: python3 -B ws/src/90_platform/v8_platform/registry/test_runtime.py (approved outside sandbox)
+docker exec v8codex-20261028 bash -lc: cd /repo; PYTHONPYCACHEPREFIX=/tmp/ros1-obstacles-gate-pycache bash scripts/verify/run_gate_chain.sh

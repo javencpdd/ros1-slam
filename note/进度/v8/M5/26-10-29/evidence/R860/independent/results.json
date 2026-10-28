@@ -1,0 +1,2585 @@
+{
+  "observations.initial.json": {
+    "out_of_support": {
+      "route": [
+        [
+          0.02,
+          0.05,
+          0.0,
+          "ground"
+        ],
+        [
+          0.05,
+          0.05,
+          0.0,
+          "ground"
+        ],
+        [
+          0.15,
+          0.05,
+          0.0,
+          "ground"
+        ],
+        [
+          0.11,
+          0.05,
+          0.0,
+          "ground"
+        ]
+      ],
+      "outside": [
+        [
+          0.15,
+          0.05,
+          0.0,
+          "ground"
+        ]
+      ]
+    },
+    "resolution_invalid": {
+      "0": "ACCEPTED",
+      "False": "ACCEPTED"
+    },
+    "nan_physics_aabb": {
+      "verdict": "PASS",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": true,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": true
+      },
+      "final_goal_error_m": 0.0,
+      "base_displacement_m": 3.5,
+      "minimum_geometry_gap_m": null,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 0,
+      "deck_departure_sample_count": 0,
+      "first_contact": [],
+      "first_overlap": [],
+      "world_feet_end": {
+        "FL": [
+          3.75,
+          0.2,
+          0.082
+        ],
+        "FR": [
+          3.75,
+          0.2,
+          0.082
+        ],
+        "HL": [
+          3.3499999999999996,
+          0.2,
+          0.082
+        ],
+        "HR": [
+          3.3499999999999996,
+          0.2,
+          0.082
+        ]
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "collision_scope": "all recorded physics steps: actual collision-geom AABB and contacts"
+    },
+    "rejected_motion_returns_to_start": {
+      "verdict": "PASS",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": true,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": true
+      },
+      "final_goal_error_m": 3.5,
+      "base_displacement_m": 0.0,
+      "minimum_geometry_gap_m": 0.20000000000000018,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 0,
+      "deck_departure_sample_count": 0,
+      "first_contact": [],
+      "first_overlap": [],
+      "world_feet_end": {
+        "FL": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "FR": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "HL": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ],
+        "HR": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ]
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "collision_scope": "all recorded physics steps: actual collision-geom AABB and contacts"
+    },
+    "actual_commands_nonzero": {
+      "verdict": "PASS",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": true,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": true
+      },
+      "final_goal_error_m": 3.5,
+      "base_displacement_m": 0.0,
+      "minimum_geometry_gap_m": 1.1500000000000001,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 0,
+      "deck_departure_sample_count": 0,
+      "first_contact": [],
+      "first_overlap": [],
+      "world_feet_end": {
+        "FL": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "FR": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "HL": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ],
+        "HR": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ]
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "collision_scope": "all recorded physics steps: actual collision-geom AABB and contacts"
+    }
+  },
+  "observations.rounding.json": {
+    "path": [
+      [
+        0.0617283945,
+        0.0617283945,
+        0.0,
+        "ground"
+      ],
+      [
+        0.061728,
+        0.061728,
+        0.0,
+        "ground"
+      ],
+      [
+        0.185185,
+        0.061728,
+        0.0,
+        "ground"
+      ],
+      [
+        0.1851851835,
+        0.0617283945,
+        0.0,
+        "ground"
+      ]
+    ],
+    "inflated_obstacle": {
+      "min": [
+        -0.01,
+        0.01,
+        -0.2
+      ],
+      "max": [
+        0.26,
+        0.0617281945,
+        0.29999999899999996
+      ]
+    },
+    "returned_path_collision_segments": [
+      0,
+      1,
+      2
+    ]
+  },
+  "observations.identity.json": {
+    "last_point": [
+      4.0,
+      0.0,
+      0.0,
+      "ground_a"
+    ],
+    "verdict": {
+      "ok": true,
+      "failures": [],
+      "checked_points": 21,
+      "checked_segments": 20
+    }
+  },
+  "observations.fixed.json": {
+    "F1": {
+      "outside": [],
+      "route": [
+        [
+          0.02,
+          0.05,
+          0.0,
+          "ground"
+        ],
+        [
+          0.05,
+          0.05,
+          0.0,
+          "ground"
+        ],
+        [
+          0.11,
+          0.05,
+          0.0,
+          "ground"
+        ]
+      ]
+    },
+    "F2": {
+      "0": "E_PLAN_INPUT",
+      "False": "E_PLAN_INPUT"
+    },
+    "F3": {
+      "verdict": "FAIL",
+      "checks": {
+        "physics_trace_present": false,
+        "physics_measurements_valid": false
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "reason": "invalid_physics_measurements",
+      "measurement_problems": [
+        {
+          "sample": 0,
+          "field": "robot_aabb",
+          "reason": "missing, malformed, non-real or nonfinite measurement"
+        }
+      ]
+    },
+    "F4_excursion": {
+      "verdict": "FAIL",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "physics_measurements_valid": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": true,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": false
+      },
+      "final_goal_error_m": 3.5,
+      "base_displacement_m": 0.0,
+      "maximum_xy_excursion_m": 0.95,
+      "cumulative_xy_m": 1.9,
+      "controller_nonzero_command_observed": false,
+      "physics_nonzero_command_observed": false,
+      "minimum_geometry_gap_m": 0.20000000000000018,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 0,
+      "deck_departure_sample_count": 0,
+      "first_contact": [],
+      "first_overlap": [],
+      "world_feet_end": {
+        "FL": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "FR": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "HL": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ],
+        "HR": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ]
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "collision_scope": "all recorded physics steps: actual collision-geom AABB and contacts"
+    },
+    "F4_commands": {
+      "verdict": "FAIL",
+      "checks": {
+        "expected_planner_behavior": true,
+        "physics_trace_present": true,
+        "physics_measurements_valid": true,
+        "no_fall": true,
+        "actual_body_within_planning_envelope": true,
+        "no_box_contact": true,
+        "no_box_aabb_overlap": true,
+        "actual_body_stays_over_deck": true,
+        "all_four_feet_end_on_deck": true,
+        "motion_or_rejection_verified": false
+      },
+      "final_goal_error_m": 3.5,
+      "base_displacement_m": 0.0,
+      "maximum_xy_excursion_m": 0.0,
+      "cumulative_xy_m": 0.0,
+      "controller_nonzero_command_observed": false,
+      "physics_nonzero_command_observed": true,
+      "minimum_geometry_gap_m": 1.1500000000000001,
+      "contact_sample_count": 0,
+      "aabb_overlap_sample_count": 0,
+      "envelope_violation_sample_count": 0,
+      "deck_departure_sample_count": 0,
+      "first_contact": [],
+      "first_overlap": [],
+      "world_feet_end": {
+        "FL": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "FR": [
+          0.25,
+          0.2,
+          0.082
+        ],
+        "HL": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ],
+        "HR": [
+          -0.15000000000000002,
+          0.2,
+          0.082
+        ]
+      },
+      "initialized_on_deck": true,
+      "ascent_completed": false,
+      "four_foot_ascent_acceptance": "NOT_TESTED",
+      "collision_scope": "all recorded physics steps: actual collision-geom AABB and contacts"
+    },
+    "F5": {
+      "ok": true,
+      "failures": [],
+      "checked_points": 2,
+      "checked_segments": 1
+    },
+    "F6": {
+      "ok": false,
+      "failures": [
+        [
+          "surface_identity",
+          20
+        ],
+        [
+          "surface_transition",
+          20
+        ]
+      ],
+      "checked_points": 21,
+      "checked_segments": 20
+    }
+  },
+  "observations.fuzz.json": {
+    "seed": 20261029,
+    "total": 180,
+    "counts": {
+      "route": 180
+    },
+    "failures": []
+  },
+  "observations.compatibility.json": {
+    "contract_default": {
+      "accepted": false,
+      "reason": "E_VERSION",
+      "detail": "E_VERSION: map/v2 requires an obstacle-aware consumer"
+    },
+    "local_native": {
+      "accepted": false,
+      "reason": "E_VERSION",
+      "detail": "E_VERSION: E_VERSION: map/v2 requires an obstacle-aware consumer"
+    },
+    "map_service": {
+      "accepted": false,
+      "reason": "E_MAPSERVICE_CONTRACT",
+      "detail": "E_MAPSERVICE_CONTRACT: E_VERSION: map/v2 requires an obstacle-aware consumer"
+    },
+    "trajectory_checker": {
+      "accepted": false,
+      "reason": "E_TRAJ_MAP_INVALID",
+      "detail": "E_TRAJ_MAP_INVALID: E_VERSION: map/v2 requires an obstacle-aware consumer"
+    },
+    "map_v1_unchanged": true,
+    "map_v1_sha256": "fa3a55587b50cc77645a15a468371563eea143b3ad350f5f031f4a2b9de23b7f"
+  },
+  "observations.existing-tests.json": [
+    {
+      "command": [
+        "/home/jack/miniconda3/bin/python3",
+        "-B",
+        "ws/src/90_platform/v8_platform/contracts/test_contracts.py"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_cases (__main__.ContractTests.test_cases) ... ok\ntest_cli_rc_and_reason (__main__.ContractTests.test_cli_rc_and_reason) ... ok\ntest_one_way_edge_is_legal (__main__.ContractTests.test_one_way_edge_is_legal) ... ok\ntest_pair_task_and_map (__main__.ContractTests.test_pair_task_and_map) ... ok\ntest_positive_control_removing_required_fails (__main__.ContractTests.test_positive_control_removing_required_fails) ... ok\ntest_two_kinds_expressible (__main__.ContractTests.test_two_kinds_expressible) ... ok\ntest_two_separate_rings_rejected (__main__.ContractTests.test_two_separate_rings_rejected) ... ok\ntest_validator_rejects_array_without_items (__main__.ContractTests.test_validator_rejects_array_without_items) ... ok\ntest_validator_rejects_nested_additional_properties (__main__.ContractTests.test_validator_rejects_nested_additional_properties) ... ok\ntest_validator_rejects_unsupported_keyword (__main__.ContractTests.test_validator_rejects_unsupported_keyword) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.266s\n\nOK\n"
+    },
+    {
+      "command": [
+        "/home/jack/miniconda3/bin/python3",
+        "-B",
+        "ws/src/90_platform/v8_platform/representation/test_support_map.py"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_build_valid_and_extent_defined (__main__.BuilderTests.test_build_valid_and_extent_defined)\nR631 挂账闭合：support_map 的 extent＝足迹并集外包框格数。 ... ok\ntest_disconnected_rejected_per_component_split (__main__.BuilderTests.test_disconnected_rejected_per_component_split)\n不连通支撑域按契约拒（E_MAP_DISCONNECTED）——登记的语义裁定＝按连通分量拆 map。 ... ok\ntest_extent_scales_with_footprints (__main__.BuilderTests.test_extent_scales_with_footprints) ... ok\ntest_no_surfaces_rejected (__main__.BuilderTests.test_no_surfaces_rejected) ... ok\ntest_clearance (__main__.ColumnTests.test_clearance) ... ok\ntest_same_xy_keeps_all_layers (__main__.ColumnTests.test_same_xy_keeps_all_layers)\nA3-1：同 XY 双层不丢层——构造上无『取最高』入口，查询返回全部。 ... ok\ntest_z_conflict_rejected (__main__.ColumnTests.test_z_conflict_rejected) ... ok\ntest_suggest_edges_advisory_only (__main__.EdgeTests.test_suggest_edges_advisory_only)\nA3-3：几何邻近只出咨询候选，不自动成边。 ... ok\ntest_unknown_never_free_by_default (__main__.EvidenceTests.test_unknown_never_free_by_default)\nA3-2：缺证＝unknown，没有默认 free 路径。 ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.004s\n\nOK\n"
+    },
+    {
+      "command": [
+        "/home/jack/miniconda3/bin/python3",
+        "-B",
+        "ws/src/90_platform/v8_platform/planner/test_support_planner.py"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_budget_exceeded (__main__.PlannerTests.test_budget_exceeded) ... ok\ntest_cancelled (__main__.PlannerTests.test_cancelled) ... ok\ntest_clearance_policy_invalid_values_are_input_errors (__main__.PlannerTests.test_clearance_policy_invalid_values_are_input_errors) ... ok\ntest_clearance_policy_preserves_reachable_detour (__main__.PlannerTests.test_clearance_policy_preserves_reachable_detour) ... ok\ntest_clearance_policy_rejects_low_roof_goal_before_returning_path (__main__.PlannerTests.test_clearance_policy_rejects_low_roof_goal_before_returning_path) ... ok\ntest_goal_off_any_surface (__main__.PlannerTests.test_goal_off_any_surface) ... ok\ntest_invalid_map_rejected (__main__.PlannerTests.test_invalid_map_rejected) ... ok\ntest_oneway_edge_unreachable (__main__.PlannerTests.test_oneway_edge_unreachable)\n单向边：map 合法（首面 ground 可达全图），mezz 出发回不去 ground＝无路。 ... ok\ntest_positive_route_supported_and_continuous (__main__.PlannerTests.test_positive_route_supported_and_continuous)\nA4 正例：地面→坡→夹层；路径逐点落其分段面足迹内（有支撑且连续安全）。 ... ok\ntest_same_surface_short_route (__main__.PlannerTests.test_same_surface_short_route) ... ok\ntest_thin_low_roof_between_grid_centers_is_not_crossed (__main__.PlannerTests.test_thin_low_roof_between_grid_centers_is_not_crossed) ... ok\ntest_unsupported_surface_inexpressible_in_map (__main__.PlannerTests.test_unsupported_surface_inexpressible_in_map)\n语义发现断言：合法 support_map 结构性容不下 unsupported 面。 ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.045s\n\nOK\n"
+    },
+    {
+      "command": [
+        "/home/jack/miniconda3/bin/python3",
+        "-B",
+        "ws/src/90_platform/v8_platform/planner/test_ros_node.py"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_clearance_policy_reaches_planner (__main__.RosNodeTests.test_clearance_policy_reaches_planner) ... ok\ntest_refusal_is_reportable (__main__.RosNodeTests.test_refusal_is_reportable) ... ok\ntest_request_shape_and_z_required (__main__.RosNodeTests.test_request_shape_and_z_required) ... ok\ntest_route_points_match_plan (__main__.RosNodeTests.test_route_points_match_plan) ... ok\ntest_unknown_hint_refused (__main__.RosNodeTests.test_unknown_hint_refused) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.013s\n\nOK\n"
+    }
+  ],
+  "global-matrix.json": {
+    "schema": "v8-global-obstacles/1",
+    "scope": {
+      "hardware": false,
+      "dynamics": false,
+      "derived_scenarios": true,
+      "robot_geometry": "declared_experiment_only"
+    },
+    "robot_radius_m": 0.12,
+    "robot_height_m": 0.35,
+    "cases": [
+      {
+        "scenario": "SC02",
+        "variant": "clear",
+        "map": {
+          "schema_version": 2,
+          "map_id": "scenario_map_sc02_clear",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "g",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "mezz",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "mezz",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "m",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 2,
+                "min_y": 1,
+                "max_x": 4,
+                "max_y": 3
+              },
+              "edges": [
+                {
+                  "to": "ground",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": []
+        },
+        "start": [
+          -4.0,
+          -4.0,
+          0.0
+        ],
+        "goal": [
+          3.0,
+          2.0,
+          0.6
+        ],
+        "expected": "route",
+        "ok": true,
+        "reason": "route",
+        "route": {
+          "ok": true,
+          "path": [
+            [
+              -4.0,
+              -4.0,
+              0.0,
+              "ground"
+            ],
+            [
+              -4.25,
+              -4.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.75,
+              -3.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.25,
+              -3.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.75,
+              -2.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.25,
+              -2.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.75,
+              -1.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.25,
+              -1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.75,
+              -0.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.25,
+              0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.75,
+              0.75,
+              0.0,
+              "ground"
+            ],
+            [
+              1.25,
+              1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              1.75,
+              1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              2.25,
+              1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              2.75,
+              1.75,
+              0.0,
+              "ground"
+            ],
+            [
+              2.75,
+              1.75,
+              0.6,
+              "mezz"
+            ],
+            [
+              3.0,
+              2.0,
+              0.6,
+              "mezz"
+            ]
+          ],
+          "segments": [
+            {
+              "surface": "ground",
+              "cells": 16
+            },
+            {
+              "surface": "mezz",
+              "cells": 2
+            }
+          ],
+          "transitions": [
+            {
+              "from": "ground",
+              "to": "mezz"
+            }
+          ],
+          "expansions": 51,
+          "length": 10.292388,
+          "policy": {
+            "obstacle_schema": "map/v2",
+            "robot_radius_m": 0.12,
+            "robot_height_m": 0.35,
+            "obstacle_count": 0
+          }
+        },
+        "evaluation": {
+          "ok": true,
+          "failures": [],
+          "checked_points": 18,
+          "checked_segments": 17
+        },
+        "deterministic": true,
+        "changed_from_clear": true
+      },
+      {
+        "scenario": "SC02",
+        "variant": "detour",
+        "map": {
+          "schema_version": 2,
+          "map_id": "scenario_map_sc02_detour",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "g",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "mezz",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "mezz",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "m",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 2,
+                "min_y": 1,
+                "max_x": 4,
+                "max_y": 3
+              },
+              "edges": [
+                {
+                  "to": "ground",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": [
+            {
+              "obstacle_id": "mezz_box",
+              "min": [
+                2.3,
+                1.35,
+                0.6
+              ],
+              "max": [
+                2.7,
+                2.65,
+                1.2
+              ]
+            }
+          ]
+        },
+        "start": [
+          -4.0,
+          -4.0,
+          0.0
+        ],
+        "goal": [
+          3.0,
+          2.0,
+          0.6
+        ],
+        "expected": "route",
+        "ok": true,
+        "reason": "route",
+        "route": {
+          "ok": true,
+          "path": [
+            [
+              -4.0,
+              -4.0,
+              0.0,
+              "ground"
+            ],
+            [
+              -4.25,
+              -4.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.75,
+              -3.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.25,
+              -3.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.75,
+              -2.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.25,
+              -2.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.75,
+              -1.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.25,
+              -1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.75,
+              -0.75,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.25,
+              0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.75,
+              0.75,
+              0.0,
+              "ground"
+            ],
+            [
+              1.25,
+              0.75,
+              0.0,
+              "ground"
+            ],
+            [
+              1.75,
+              1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              2.25,
+              1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              2.75,
+              1.25,
+              0.0,
+              "ground"
+            ],
+            [
+              3.25,
+              1.75,
+              0.0,
+              "ground"
+            ],
+            [
+              3.25,
+              1.75,
+              0.6,
+              "mezz"
+            ],
+            [
+              3.0,
+              2.0,
+              0.6,
+              "mezz"
+            ]
+          ],
+          "segments": [
+            {
+              "surface": "ground",
+              "cells": 17
+            },
+            {
+              "surface": "mezz",
+              "cells": 2
+            }
+          ],
+          "transitions": [
+            {
+              "from": "ground",
+              "to": "mezz"
+            }
+          ],
+          "expansions": 66,
+          "length": 10.792388,
+          "policy": {
+            "obstacle_schema": "map/v2",
+            "robot_radius_m": 0.12,
+            "robot_height_m": 0.35,
+            "obstacle_count": 1
+          }
+        },
+        "evaluation": {
+          "ok": true,
+          "failures": [],
+          "checked_points": 19,
+          "checked_segments": 18
+        },
+        "deterministic": true,
+        "changed_from_clear": true,
+        "unaware_route_evaluation": {
+          "ok": false,
+          "failures": [
+            [
+              "obstacle",
+              "mezz_box",
+              15
+            ],
+            [
+              "obstacle",
+              "mezz_box",
+              16
+            ]
+          ],
+          "checked_points": 18,
+          "checked_segments": 17
+        }
+      },
+      {
+        "scenario": "SC02",
+        "variant": "blocked",
+        "map": {
+          "schema_version": 2,
+          "map_id": "scenario_map_sc02_blocked",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "g",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "mezz",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "mezz",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "m",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 2,
+                "min_y": 1,
+                "max_x": 4,
+                "max_y": 3
+              },
+              "edges": [
+                {
+                  "to": "ground",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": [
+            {
+              "obstacle_id": "both_layers_barrier",
+              "min": [
+                0.2,
+                -5.5,
+                -0.05
+              ],
+              "max": [
+                0.4,
+                5.5,
+                1.3
+              ]
+            }
+          ]
+        },
+        "start": [
+          -4.0,
+          -4.0,
+          0.0
+        ],
+        "goal": [
+          3.0,
+          2.0,
+          0.6
+        ],
+        "expected": "E_PLAN_NO_ROUTE",
+        "ok": true,
+        "reason": "E_PLAN_NO_ROUTE",
+        "detail": "起点 ('ground', -9, -9) 到目标 ('mezz', 5, 3) 无路（展开 336）",
+        "route": null
+      },
+      {
+        "scenario": "SC05",
+        "variant": "clear",
+        "map": {
+          "schema_version": 2,
+          "map_id": "bridge_map_sc05_clear",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground_a",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "a",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": -1,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "bridge",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "bridge",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "b",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -2,
+                "min_y": -1,
+                "max_x": 2,
+                "max_y": 1
+              },
+              "edges": [
+                {
+                  "to": "ground_a",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                },
+                {
+                  "to": "ground_b",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "ground_b",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "c",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 1,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "bridge",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": []
+        },
+        "start": [
+          -4.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          4.0,
+          0.0,
+          0.0
+        ],
+        "expected": "route",
+        "ok": true,
+        "reason": "route",
+        "route": {
+          "ok": true,
+          "path": [
+            [
+              -4.0,
+              0.0,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -4.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -3.75,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -3.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -2.75,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -2.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -1.75,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -1.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -1.25,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              -0.75,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              -0.25,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              0.25,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              0.75,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              1.25,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              1.75,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              1.75,
+              -0.25,
+              0.0,
+              "ground_b"
+            ],
+            [
+              2.25,
+              -0.25,
+              0.0,
+              "ground_b"
+            ],
+            [
+              2.75,
+              -0.25,
+              0.0,
+              "ground_b"
+            ],
+            [
+              3.25,
+              -0.25,
+              0.0,
+              "ground_b"
+            ],
+            [
+              3.75,
+              -0.25,
+              0.0,
+              "ground_b"
+            ],
+            [
+              4.0,
+              0.0,
+              0.0,
+              "ground_b"
+            ]
+          ],
+          "segments": [
+            {
+              "surface": "ground_a",
+              "cells": 8
+            },
+            {
+              "surface": "bridge",
+              "cells": 7
+            },
+            {
+              "surface": "ground_b",
+              "cells": 6
+            }
+          ],
+          "transitions": [
+            {
+              "from": "ground_a",
+              "to": "bridge"
+            },
+            {
+              "from": "bridge",
+              "to": "ground_b"
+            }
+          ],
+          "expansions": 20,
+          "length": 8.907107,
+          "policy": {
+            "obstacle_schema": "map/v2",
+            "robot_radius_m": 0.12,
+            "robot_height_m": 0.35,
+            "obstacle_count": 0
+          }
+        },
+        "evaluation": {
+          "ok": true,
+          "failures": [],
+          "checked_points": 21,
+          "checked_segments": 20
+        },
+        "deterministic": true,
+        "changed_from_clear": true
+      },
+      {
+        "scenario": "SC05",
+        "variant": "detour",
+        "map": {
+          "schema_version": 2,
+          "map_id": "bridge_map_sc05_detour",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground_a",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "a",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": -1,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "bridge",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "bridge",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "b",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -2,
+                "min_y": -1,
+                "max_x": 2,
+                "max_y": 1
+              },
+              "edges": [
+                {
+                  "to": "ground_a",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                },
+                {
+                  "to": "ground_b",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "ground_b",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "c",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 1,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "bridge",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": [
+            {
+              "obstacle_id": "bridge_box",
+              "min": [
+                -0.2,
+                -0.25,
+                0.6
+              ],
+              "max": [
+                0.2,
+                0.25,
+                1.0
+              ]
+            }
+          ]
+        },
+        "start": [
+          -4.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          4.0,
+          0.0,
+          0.0
+        ],
+        "expected": "route",
+        "ok": true,
+        "reason": "route",
+        "route": {
+          "ok": true,
+          "path": [
+            [
+              -4.0,
+              0.0,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -4.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -3.75,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -3.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -2.75,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -2.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -1.75,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -1.25,
+              -0.25,
+              0.0,
+              "ground_a"
+            ],
+            [
+              -1.25,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              -0.75,
+              -0.25,
+              0.6,
+              "bridge"
+            ],
+            [
+              -0.25,
+              -0.75,
+              0.6,
+              "bridge"
+            ],
+            [
+              0.25,
+              -0.75,
+              0.6,
+              "bridge"
+            ],
+            [
+              0.75,
+              -0.75,
+              0.6,
+              "bridge"
+            ],
+            [
+              1.25,
+              -0.75,
+              0.6,
+              "bridge"
+            ],
+            [
+              1.75,
+              -0.75,
+              0.6,
+              "bridge"
+            ],
+            [
+              1.75,
+              -0.75,
+              0.0,
+              "ground_b"
+            ],
+            [
+              2.25,
+              -0.75,
+              0.0,
+              "ground_b"
+            ],
+            [
+              2.75,
+              -0.75,
+              0.0,
+              "ground_b"
+            ],
+            [
+              3.25,
+              -0.75,
+              0.0,
+              "ground_b"
+            ],
+            [
+              3.75,
+              -0.25,
+              0.0,
+              "ground_b"
+            ],
+            [
+              4.0,
+              0.0,
+              0.0,
+              "ground_b"
+            ]
+          ],
+          "segments": [
+            {
+              "surface": "ground_a",
+              "cells": 8
+            },
+            {
+              "surface": "bridge",
+              "cells": 7
+            },
+            {
+              "surface": "ground_b",
+              "cells": 6
+            }
+          ],
+          "transitions": [
+            {
+              "from": "ground_a",
+              "to": "bridge"
+            },
+            {
+              "from": "bridge",
+              "to": "ground_b"
+            }
+          ],
+          "expansions": 60,
+          "length": 9.32132,
+          "policy": {
+            "obstacle_schema": "map/v2",
+            "robot_radius_m": 0.12,
+            "robot_height_m": 0.35,
+            "obstacle_count": 1
+          }
+        },
+        "evaluation": {
+          "ok": true,
+          "failures": [],
+          "checked_points": 21,
+          "checked_segments": 20
+        },
+        "deterministic": true,
+        "changed_from_clear": true,
+        "unaware_route_evaluation": {
+          "ok": false,
+          "failures": [
+            [
+              "obstacle",
+              "bridge_box",
+              9
+            ],
+            [
+              "obstacle",
+              "bridge_box",
+              10
+            ],
+            [
+              "obstacle",
+              "bridge_box",
+              11
+            ]
+          ],
+          "checked_points": 21,
+          "checked_segments": 20
+        }
+      },
+      {
+        "scenario": "SC05",
+        "variant": "blocked",
+        "map": {
+          "schema_version": 2,
+          "map_id": "bridge_map_sc05_blocked",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground_a",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "a",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": -1,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "bridge",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "bridge",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "b",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -2,
+                "min_y": -1,
+                "max_x": 2,
+                "max_y": 1
+              },
+              "edges": [
+                {
+                  "to": "ground_a",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                },
+                {
+                  "to": "ground_b",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "ground_b",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "c",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 1,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "bridge",
+                  "kind": "step",
+                  "max_step_height_m": 0.7,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": [
+            {
+              "obstacle_id": "bridge_barrier",
+              "min": [
+                -0.1,
+                -1.2,
+                0.6
+              ],
+              "max": [
+                0.1,
+                1.2,
+                1.3
+              ]
+            }
+          ]
+        },
+        "start": [
+          -4.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          4.0,
+          0.0,
+          0.0
+        ],
+        "expected": "E_PLAN_NO_ROUTE",
+        "ok": true,
+        "reason": "E_PLAN_NO_ROUTE",
+        "detail": "起点 ('ground_a', -9, -1) 到目标 ('ground_b', 7, -1) 无路（展开 251）",
+        "route": null
+      },
+      {
+        "scenario": "SC06",
+        "variant": "clear",
+        "map": {
+          "schema_version": 2,
+          "map_id": "scenario_map_sc06_clear",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "g",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "mezz",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "mezz",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "m",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 0,
+                "min_y": -2,
+                "max_x": 3,
+                "max_y": 2
+              },
+              "edges": [
+                {
+                  "to": "ground",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": []
+        },
+        "start": [
+          -4.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          4.0,
+          0.0,
+          0.0
+        ],
+        "expected": "route",
+        "ok": true,
+        "reason": "route",
+        "route": {
+          "ok": true,
+          "path": [
+            [
+              -4.0,
+              0.0,
+              0.0,
+              "ground"
+            ],
+            [
+              -4.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              1.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              1.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              2.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              2.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              3.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              3.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              4.0,
+              0.0,
+              0.0,
+              "ground"
+            ]
+          ],
+          "segments": [
+            {
+              "surface": "ground",
+              "cells": 19
+            }
+          ],
+          "transitions": [],
+          "expansions": 16,
+          "length": 8.707107,
+          "policy": {
+            "obstacle_schema": "map/v2",
+            "robot_radius_m": 0.12,
+            "robot_height_m": 0.35,
+            "obstacle_count": 0
+          }
+        },
+        "evaluation": {
+          "ok": true,
+          "failures": [],
+          "checked_points": 19,
+          "checked_segments": 18
+        },
+        "deterministic": true,
+        "changed_from_clear": true
+      },
+      {
+        "scenario": "SC06",
+        "variant": "detour",
+        "map": {
+          "schema_version": 2,
+          "map_id": "scenario_map_sc06_detour",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "g",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "mezz",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "mezz",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "m",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 0,
+                "min_y": -2,
+                "max_x": 3,
+                "max_y": 2
+              },
+              "edges": [
+                {
+                  "to": "ground",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": [
+            {
+              "obstacle_id": "ground_box",
+              "min": [
+                0.4,
+                -0.6,
+                0
+              ],
+              "max": [
+                1.1,
+                0.6,
+                0.4
+              ]
+            }
+          ]
+        },
+        "start": [
+          -4.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          4.0,
+          0.0,
+          0.0
+        ],
+        "expected": "route",
+        "ok": true,
+        "reason": "route",
+        "route": {
+          "ok": true,
+          "path": [
+            [
+              -4.0,
+              0.0,
+              0.0,
+              "ground"
+            ],
+            [
+              -4.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -3.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -2.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -1.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              -0.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              0.25,
+              -0.25,
+              0.6,
+              "mezz"
+            ],
+            [
+              0.75,
+              -0.25,
+              0.6,
+              "mezz"
+            ],
+            [
+              1.25,
+              -0.25,
+              0.6,
+              "mezz"
+            ],
+            [
+              1.75,
+              -0.25,
+              0.6,
+              "mezz"
+            ],
+            [
+              2.25,
+              -0.25,
+              0.6,
+              "mezz"
+            ],
+            [
+              2.75,
+              -0.25,
+              0.6,
+              "mezz"
+            ],
+            [
+              2.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              3.25,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              3.75,
+              -0.25,
+              0.0,
+              "ground"
+            ],
+            [
+              4.0,
+              0.0,
+              0.0,
+              "ground"
+            ]
+          ],
+          "segments": [
+            {
+              "surface": "ground",
+              "cells": 11
+            },
+            {
+              "surface": "mezz",
+              "cells": 6
+            },
+            {
+              "surface": "ground",
+              "cells": 4
+            }
+          ],
+          "transitions": [
+            {
+              "from": "ground",
+              "to": "mezz"
+            },
+            {
+              "from": "mezz",
+              "to": "ground"
+            }
+          ],
+          "expansions": 21,
+          "length": 8.907107,
+          "policy": {
+            "obstacle_schema": "map/v2",
+            "robot_radius_m": 0.12,
+            "robot_height_m": 0.35,
+            "obstacle_count": 1
+          }
+        },
+        "evaluation": {
+          "ok": true,
+          "failures": [],
+          "checked_points": 21,
+          "checked_segments": 20
+        },
+        "deterministic": true,
+        "changed_from_clear": true,
+        "unaware_route_evaluation": {
+          "ok": false,
+          "failures": [
+            [
+              "obstacle",
+              "ground_box",
+              10
+            ],
+            [
+              "obstacle",
+              "ground_box",
+              11
+            ]
+          ],
+          "checked_points": 19,
+          "checked_segments": 18
+        }
+      },
+      {
+        "scenario": "SC06",
+        "variant": "blocked",
+        "map": {
+          "schema_version": 2,
+          "map_id": "scenario_map_sc06_blocked",
+          "map_version": 1,
+          "frame": "map",
+          "kind": "support_map",
+          "resolution": 0.5,
+          "origin": [
+            -5.0,
+            -5.0,
+            0.0
+          ],
+          "extent": {
+            "width": 20,
+            "height": 20
+          },
+          "cell_states": [
+            "free",
+            "occupied",
+            "unknown"
+          ],
+          "unknown_policy": "unknown_not_traversable",
+          "multiple_surfaces_per_xy": true,
+          "source": {
+            "uri": "design://scenario",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "surfaces": [
+            {
+              "surface_id": "ground",
+              "z_reference": 0.0,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "g",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": -5,
+                "min_y": -5,
+                "max_x": 5,
+                "max_y": 5
+              },
+              "edges": [
+                {
+                  "to": "mezz",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            },
+            {
+              "surface_id": "mezz",
+              "z_reference": 0.6,
+              "thickness_m": 0.05,
+              "representation": "elevation_grid",
+              "data_uri": "m",
+              "traversability": "supported",
+              "clearance_min_m": 0.4,
+              "footprint": {
+                "min_x": 0,
+                "min_y": -2,
+                "max_x": 3,
+                "max_y": 2
+              },
+              "edges": [
+                {
+                  "to": "ground",
+                  "kind": "slope",
+                  "max_slope_deg": 12.0,
+                  "bidirectional": true
+                }
+              ]
+            }
+          ],
+          "obstacles": [
+            {
+              "obstacle_id": "both_layers_barrier",
+              "min": [
+                0.2,
+                -5.5,
+                -0.05
+              ],
+              "max": [
+                0.4,
+                5.5,
+                1.3
+              ]
+            }
+          ]
+        },
+        "start": [
+          -4.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          4.0,
+          0.0,
+          0.0
+        ],
+        "expected": "E_PLAN_NO_ROUTE",
+        "ok": true,
+        "reason": "E_PLAN_NO_ROUTE",
+        "detail": "起点 ('ground', -9, -1) 到目标 ('ground', 7, -1) 无路（展开 280）",
+        "route": null
+      }
+    ],
+    "passed": 9,
+    "total": 9,
+    "ok": true
+  },
+  "selected_new_test_outputs": {
+    "planner_obstacle_test": {
+      "command": "python3 -B ws/src/90_platform/v8_platform/planner/test_obstacles.py",
+      "returncode": 0,
+      "observed_tail": "Ran 16 tests in 0.939s\n\nOK"
+    },
+    "physics_negative_controls": {
+      "command": "python3 -B -m unittest discover -s ws/src/95_simulation/lite3_gazebo_sim/dynamics -p test_mj_step_obstacles.py -v",
+      "returncode": 0,
+      "observed_tail": "Ran 15 tests in 0.031s\n\nOK"
+    }
+  },
+  "summary": {
+    "global_design_obstacles": "PASS",
+    "mujoco_case_evaluator": "PASS",
+    "mujoco_target_execution": "NOT_RUN",
+    "full_ascent": "NOT_TESTED",
+    "global_matrix": [
+      9,
+      9
+    ],
+    "new_planner_tests": [
+      16,
+      16
+    ],
+    "new_physics_negative_tests": [
+      15,
+      15
+    ],
+    "existing_tests": [
+      36,
+      36
+    ],
+    "seeded_probes": [
+      180,
+      180
+    ],
+    "all_initial_findings_resolved": true
+  }
+}

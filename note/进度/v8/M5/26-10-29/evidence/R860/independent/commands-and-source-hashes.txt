@@ -1,0 +1,23 @@
+reviewed_head=a9bff793310c6ec24ded02265c5a1310cb8f6367
+reviewed_at=2026-10-28T18:52:14.024368+00:00
+source hashes reflect working-tree bytes before commit:
+fa3a55587b50cc77645a15a468371563eea143b3ad350f5f031f4a2b9de23b7f  ws/src/90_platform/v8_platform/contracts/schema/map.v1.json
+a4fbf16464ff4f61aee4fc7abdc0cd0e42b91f2be53358e9ecadb25bfa3ec72e  ws/src/90_platform/v8_platform/contracts/schema/map.v2.json
+3b285897d67ec6220cc962709f73355305d6b43400c3894d0d7c3377d580a85c  ws/src/90_platform/v8_platform/contracts/validate.py
+aa37457833cb30b82a251355aa894f2e1124d5fb0d5e9d84516f1c51169c7a97  ws/src/90_platform/v8_platform/representation/support_map.py
+336b4fbdf9263baf94a3f28c7c1cd3939cacff8612a70bc732a72f0a67d9d017  ws/src/90_platform/v8_platform/planner/support_planner.py
+424c33608fab610f736ddd17b32e11c1fb752be1575ff5e0684194d292b0f38f  ws/src/90_platform/v8_platform/planner/ros_node.py
+56b7d06a16ab3c30939c7aabbae224d912f94247df6fc2a0f507707147801f08  ws/src/90_platform/v8_platform/planner/test_obstacles.py
+c4849033d0f410534ffce0cd9c019ef6aa3d7b2a958ffdf74e2b4b5193d0cade  ws/src/90_platform/v8_platform/regression/global_obstacles.py
+f51642670e27f8bb9c3383afbb57adcd9df64247b6277cfc941d3a1cc9096c4c  ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_baseline.py
+1a0386a6709ec3f69ecca2fb4b955620dbf061381b4b5af98739d42e57a02c6f  ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_step_obstacles.py
+007ac7263d505d138ac40e382a9866f9a7bf9365544a9fd9b7be6040eedf4cbe  ws/src/95_simulation/lite3_gazebo_sim/dynamics/test_mj_step_obstacles.py
+
+Executed commands:
+python3 -B ws/src/90_platform/v8_platform/planner/test_obstacles.py
+python3 -B -m unittest discover -s ws/src/95_simulation/lite3_gazebo_sim/dynamics -p test_mj_step_obstacles.py -v
+python3 -B ws/src/90_platform/v8_platform/regression/global_obstacles.py --out /tmp/ros1-obstacles-review/global-matrix.json
+python3 -B ws/src/90_platform/v8_platform/contracts/test_contracts.py
+python3 -B ws/src/90_platform/v8_platform/representation/test_support_map.py
+python3 -B ws/src/90_platform/v8_platform/planner/test_support_planner.py
+python3 -B ws/src/90_platform/v8_platform/planner/test_ros_node.py
