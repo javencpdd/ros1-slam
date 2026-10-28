@@ -131,6 +131,13 @@ FROZEN = {
          'reason': '复核三问：scope 字面与实跑不符（official_positive vs run_class=calibration/替代场景）；'
                    '时限口径未裁（30 s 计 2/36、60 s 计 27/36）；批日志 CP 行二分方向反（0.0000）。'
                    '36 组读数保留作旁证，不据此判绿'},
+        {'when': '2026-10-28',
+         'key': 'success_rate.min_pass_rate.value',
+         'from': '未定标（pending）', 'to': 0.9,
+         'change': '重新冻结成功率 0.90（scope 改 flat2d 专用 token；时限不并入成功判定）',
+         'reason': '真人 2026-10-28 勾选：①scope 改用 v8_flat2d_calibration_… 专用名；'
+                   '②时限不并入（成功=到点+净空），先补仿真钟记录再裁是否并入。'
+                   '36/36、CP 0.920153（名义值）；R798 复核三条已逐项处置（scope/时限/CP 日志）'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -250,6 +257,26 @@ FROZEN = {
                    'evidence': 'R648 组合矩阵'},
         'tracks': {'value': ['truth', 'estimate'],
                    'evidence': 'V8-13 双轨（真值轨/估计轨）'},
+    },
+    # 成功率：带域冻结（2026-10-28 重新冻结，R800；真人勾选：flat2d 专用 token＋时限不并入）。
+    # 36 组 v11 读数见 R797/R798；时限只作报告量，不并入成功判定（仿真钟另补，R800 已给 driver 加字段）。
+    'success_rate': {
+        'min_pass_rate': {
+            'value': 0.9,
+            'scope': 'v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_'
+                     'truth_mux_volume_relay_lite3_dwa_f64nli',
+            'sample_n': 36,
+            'method': 'clopper_pearson_lower_95',
+            'alpha': 0.05,
+            'denominator': '36 = SC01 12 + SC02 12 + SC09 12（v11 预登记，FAIL 全计）',
+            'aggregation': '36 组逐组 PASS/FAIL 后按 36 聚合；INVALID 不入串（本次 0 例）；'
+                           '时限（task_budget_s/harness_deadline_s）不并入成功判定，只作报告量',
+            'evidence': 'R800（读取自 R797/R798）：runs_v11/（12）+ runs_v11_sc0102/（24），'
+                        'index.sha256 36/36 一致；flat2d_stack_sc09_f64nli.launch sha256 63c80d9e…d583；'
+                        'RELAY_MODE=volume；36/36 PASS，到点 max 0.120、净空 min 0.208；'
+                        'CP 下限 0.920153（k=36/n=36, α=0.05）为名义值（3 次重复非独立样本）；'
+                        '补齐哈希见 evidence/R797/hashes_extra.sha256；时限读数见 tally_corrected.txt',
+        },
     },
     'rerun_rules': {
         'max_reruns': {'value': 1, 'evidence': '失败可复跑一次，二次失败计失败'},
@@ -375,7 +402,7 @@ REQUIRED = {
 # 从本表移出；scope 只含 SCAN 局部层响应、含输入年龄，不含 v8 support_map/全栈。
 # 2026-10-27（R787）：定位键按 B 方案冻结（LIO 单后端 9run），从本表移出；
 # 真人明令「NDT 降级为只做重定位/失效检测，精度门只压 LIO」。
-# 2026-10-28（R797）：成功率键按 36 组 v11 定标冻结（36/36，CP 0.9202），从本表移出；剩两停车键。
+# 2026-10-28（R797）：成功率键按 36 组 v11 定标冻结；R798 复核否决回退；R800 按真人勾选（flat2d token＋时限不并入）重新冻结，从本表移出。剩两停车键。
 PENDING_REQUIRED = [
     {'key': 'budgets.stop_time_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车时间；当前只有制动分量与 osmesa 代理键，全链仍缺规划段、'
@@ -383,12 +410,6 @@ PENDING_REQUIRED = [
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前只有制动分量与 osmesa 代理键，'
                '全链仍缺规划段、osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
-    {'key': 'success_rate.min_pass_rate.value', 'types': (int, float),
-     'reason': 'R797 的 36/36 读数（到点+净空）成立，但冻结动作经独立复核（R798）否决、已回退 pending：'
-               '①scope token 字面 `official_positive…` 与实跑 run_class=calibration、flat2d 替代场景不符；'
-               '②时限口径未裁——若按冻结 task_budget_s=30 计仅 2/36、按 harness_deadline_s=60 计 27/36（CP 0.6043），'
-               '均不支持 0.90；③批日志 CP 行有二分方向 bug（0.0000），需更正后重生成。'
-               '待判据面裁定 scope 与时限口径后再冻结'},
 ]
 
 # 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
@@ -423,13 +444,16 @@ SAMPLING_MIN_REPETITIONS = 3
 
 # R748/R752：成功率带域 token（flat2d 定标集）。值域、元数据类型与 scope 精确匹配
 # 在 pending 阶段就 fail-closed；真正冻结仍需改 FROZEN＋digest＋unfreeze＋独立复核。
-SUCCESS_RATE_SCOPE = ('v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_'
-                      'truth_mux_per_combo_ref_lite3_dwa')
+# 2026-10-28（R800，真人勾选）：token 由 `official_positive…` 改为 flat2d 专用名。
+# 理由（R798 复核 #1）：实跑是 run_class=calibration 的 flat2d 替代场景（SC01/02/09 与官方同号
+# 不同义，官方 SC09 为净空负例）、单组合 lite3_dwa、volume 中继、f64nli 栈；旧名字实不符。
+SUCCESS_RATE_SCOPE = ('v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_'
+                      'truth_mux_volume_relay_lite3_dwa_f64nli')
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-28，R798 回退成功率冻结后重算）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-28，R800 重新冻结后重算）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'fe9ef8dd476a6413da52241ebc2ca6ad51b84b26ea2ff4fba5d3b405f974872f'
+DIGEST = 'f6888a4aca71b90e9ba9b897d943dc3c6d0a2d658101a3a617da3872de0a416b'
 
 
 class CalibrationError(Exception):

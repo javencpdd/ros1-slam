@@ -180,16 +180,16 @@ class CalibrationTests(unittest.TestCase):
         self.assertEqual(report['status'], 'blocked')
         self.assertFalse(report['freeze_allowed'])
         pending = report['pending']
-        self.assertEqual(len(pending), 3)
-        for token in ('budgets.stop_time_s', 'budgets.stop_distance_m',
-                      'success_rate.min_pass_rate'):
+        self.assertEqual(len(pending), 2)
+        for token in ('budgets.stop_time_s', 'budgets.stop_distance_m'):
             self.assertTrue(any(token in key for key in pending), token)
-        # 已落实的项不得再 pending（资源/采样/带域字段/制动分量）。
+        # 已落实的项不得再 pending（资源/采样/带域字段/制动分量/成功率 R800）。
         for token in ('resources.max_cpu_percent', 'resources.max_memory_mb',
                       'sampling.scenario_repetitions', 'sampling.perturbation_seeds',
                       'latency.p95_global_s', 'latency.p95_local_s', 'budgets.cancel_time_s',
                       'budgets.stop_brake_peak_distance_m', 'budgets.stop_brake_peak_time_s',
-                      'budgets.stop_chain_osmesa_time_s', 'budgets.stop_chain_osmesa_distance_m'):
+                      'budgets.stop_chain_osmesa_time_s', 'budgets.stop_chain_osmesa_distance_m',
+                      'success_rate.min_pass_rate'):
             self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
         self.assertIn('4.1', reasons)
@@ -197,8 +197,8 @@ class CalibrationTests(unittest.TestCase):
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R713）：resources 两项＋sampling 两项落实。
     # 判据面裁定（2026-10-27，小美，R715）：p95_global 与 cancel_time 带域冻结；
-    # stop_time、stop_distance、成功率保持 pending（p95_local 在 R722、定位误差在 R787、
-    # 成功率 R797 冻结经 R798 复核否决已回退）。
+    # stop_time、stop_distance 保持 pending（p95_local 在 R722、定位误差在 R787、
+    # 成功率在 R800 按真人勾选重新冻结）。
     # ------------------------------------------------------------------
     # ------------------------------------------------------------------
     # 判据面裁定（2026-10-27，小美，R720）：制动分量另立两键；
@@ -252,7 +252,7 @@ class CalibrationTests(unittest.TestCase):
                          'scan_sim_consumed_cloud_to_bspline_27run')
         report = cal.validate_frozen()
         self.assertEqual(report['status'], 'blocked')
-        self.assertEqual(len(report['pending']), 3)
+        self.assertEqual(len(report['pending']), 2)
         keys = [x['key'] for x in report['pending_detail']]
         self.assertNotIn('latency.p95_local_s.value', keys)
 
@@ -281,7 +281,7 @@ class CalibrationTests(unittest.TestCase):
         self.assertIn('budgets.stop_chain_osmesa_time_s', cal.SCOPED_REQUIRED)
         self.assertIn('budgets.stop_chain_osmesa_distance_m', cal.SCOPED_REQUIRED)
         report = cal.validate_frozen()
-        self.assertEqual(len(report['pending']), 3)
+        self.assertEqual(len(report['pending']), 2)
         keys = [x['key'] for x in report['pending_detail']]
         self.assertIn('budgets.stop_time_s.value', keys)
         self.assertIn('budgets.stop_distance_m.value', keys)
@@ -493,7 +493,7 @@ class CalibrationTests(unittest.TestCase):
     def _success_rate_node(self, **overrides):
         node = {
             'value': 0.90,
-            'scope': 'v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_truth_mux_per_combo_ref_lite3_dwa',
+            'scope': 'v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_truth_mux_volume_relay_lite3_dwa_f64nli',
             'sample_n': 36,
             'method': 'clopper_pearson_lower_95',
             'alpha': 0.05,
@@ -650,7 +650,7 @@ class CalibrationTests(unittest.TestCase):
             self.assertEqual(caught.exception.code, 'E_CAL_BASELINE')
 
     # ------------------------------------------------------------------
-    # R759（R751 P3-1）：另三个 pending 键填值也必须带 scope/evidence 且为正数。
+    # R759（R751 P3-1）：另两个 pending 键填值也必须带 scope/evidence 且为正数（R800 后成功率已冻结）。
     # ------------------------------------------------------------------
     def test_stop_time_bare_value_stays_pending_r759(self):
         cfg = copy.deepcopy(cal.FROZEN)
@@ -663,7 +663,7 @@ class CalibrationTests(unittest.TestCase):
         cfg['budgets']['stop_time_s'] = {'value': 1.5, 'scope': 'x', 'evidence': 'y'}
         report = cal.validate_frozen(cfg)
         self.assertNotIn('budgets.stop_time_s', report['pending'])
-        self.assertEqual(len(report['pending']), 2)
+        self.assertEqual(len(report['pending']), 1)
 
     def test_localization_bare_value_rejected_r787(self):
         cfg = copy.deepcopy(cal.FROZEN)
@@ -694,7 +694,7 @@ class CalibrationTests(unittest.TestCase):
             cal.SCOPED_REQUIRED['tolerances.max_localization_error_m']['min_sample_n'], 9)
         report = cal.validate_frozen()
         self.assertNotIn('tolerances.max_localization_error_m.value', report['pending'])
-        self.assertEqual(len(report['pending']), 3)
+        self.assertEqual(len(report['pending']), 2)
 
     def test_localization_scope_and_sample_guard_r787(self):
         for field, val in (('scope', 'full_stack'), ('sample_n', 3)):

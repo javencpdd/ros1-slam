@@ -105,6 +105,7 @@ def main(argv):
     box_pub = rospy.Publisher('/sc09/box', Float32MultiArray, queue_size=1, latch=True)
 
     t0 = time.time()
+    sim_t0 = rospy.Time.now().to_sec()   # R800：仿真钟与墙钟同录（RTF 随宿主负载波动，须随结果报告）
     rate = rospy.Rate(10)
     while not rospy.is_shutdown() and time.time() - t0 < 90:
         if map_seen[0] and len(odom) >= 30:
@@ -154,6 +155,8 @@ def main(argv):
         rate.sleep()
 
     end = odom[-1] if odom else None
+    wall_s = time.time() - t0
+    sim_s = rospy.Time.now().to_sec() - sim_t0
     dist_goal = math.hypot(end[0] - goal[0], end[1] - goal[1]) if end else None
     clear = min_clearance(odom, boxes)
     result = {
@@ -181,7 +184,9 @@ def main(argv):
         'inject': inject,
         'injected_at_s': injected_at,
         'injection_ok': injection_ok,
-        'wall_duration_s': round(time.time() - t0, 1),
+        'wall_duration_s': round(wall_s, 1),
+        'sim_duration_s': round(sim_s, 2) if sim_t0 > 0 else None,
+        'rtf': round(sim_s / wall_s, 3) if sim_t0 > 0 and wall_s > 0 else None,
         'deadline_hit': time.time() >= deadline,
     }
     passed = bool(
