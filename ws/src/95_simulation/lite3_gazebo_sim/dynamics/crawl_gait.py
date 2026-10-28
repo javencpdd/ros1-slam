@@ -13,11 +13,13 @@
 """
 import argparse
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 
 XML = '/work/Lite3_rl_deploy-main/third_party/deep_robotics_model/Lite3/Lite3_mjcf/mjcf/Lite3.xml'
+DEBUG_CONTACTS = os.environ.get('CRAWL_CONTACTS') == '1'
 STEP_FRONT_X = 1.0   # Lite3_step10.xml 台阶前沿（世界系）
 LEGS = ('FL', 'FR', 'HL', 'HR')
 DEF = np.array([0, -0.65, 1.3] * 4)
@@ -107,6 +109,13 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         swing_kp=40.0, swing_kd=1.5, cycle=False, margin_min=0.05):
     import mujoco
     model = mujoco.MjModel.from_xml_path(xml or XML)
+    # 该 MJCF 的小腿网格在标称站姿就压在地面承重（站立实测：小腿 22—36 N/腿、足端球仅 0.4—1.5 N），
+    # 与真机（足端胶垫承重）不符。关闭小腿与地面的碰撞，让足端球成为唯一触地点（仅内存，不改第三方文件）。
+    for g in range(model.ngeom):
+        bname = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_BODY, model.geom_bodyid[g]) or ''
+        if bname.endswith('_SHANK'):
+            model.geom_contype[g] = 0
+            model.geom_conaffinity[g] = 0
     data = mujoco.MjData(model)
     data.qpos[0] = start_x
     data.qpos[2] = 0.35
@@ -279,8 +288,22 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
         records, trace = [], []
         t_global = [0.0]
 
+        def foot_normals():
+            f = {n: 0.0 for n in LEGS}
+            for c in range(data.ncon):
+                con = data.contact[c]
+                f6 = np.zeros(6)
+                mujoco.mj_contactForce(model, data, c, f6)
+                for g in (con.geom1, con.geom2):
+                    nm = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_BODY,
+                                           model.geom_bodyid[g]) or ''
+                    if nm.endswith('_FOOT'):
+                        f[nm[:2]] += float(f6[0])
+            return f
+
         def execute(name, kind, dur, ctrl, swing=(), checks=None, expect_dy=0.0, leg=None):
             f0, p0 = feet_world(), body_pose()[0]
+            contacts = []
             # 支撑腿高增益（100/5）；摆动腿惯量小，kd*dt/m 会越界自振，用 40/1.5
             kp_vec = np.array([swing_kp if n in swing else kp for n in LEGS for _ in range(3)])
             kd_vec = np.array([swing_kd if n in swing else kd for n in LEGS for _ in range(3)])
@@ -303,6 +326,12 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                                   round(float(data.qpos[0]), 3),
                                   round(float(data.qpos[1]), 3),
                                   round(roll, 3), round(pitch, 3)])
+                    if DEBUG_CONTACTS:
+                        nf = foot_normals()
+                        fw = feet_world()
+                        contacts.append([round(t_global[0] + t, 2)] +
+                                        [round(nf[n], 1) for n in LEGS] +
+                                        [round(float(v), 3) for n in LEGS for v in fw[n][:2]])
                 if data.qpos[2] < 0.12:
                     break
             t_global[0] += dur
@@ -330,6 +359,10 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 rec['u_final'] = round(ctrl.u[0], 4)
             if hasattr(ctrl, 'log'):
                 rec['log'] = ctrl.log
+            if leg:
+                rec['swing_rise'] = round(float(f1[leg][2] - f0[leg][2]), 4)
+            if contacts:
+                rec['contacts'] = contacts
             rec['ok'] = all(rec['checks'].values())
             records.append(rec)
             return rec
@@ -469,11 +502,16 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
             stance4 = {n: foot_body_pos(model, data, n) for n in LEGS}
             # 推进相位同时把机体 y 拉回 y_ref：移重产生的 ±y 不会被纯 +x 推进抵消
             dy_fix = float(body_pose()[0][1] - state['y_ref'])
+            # 拆两段斜坡：末步单段推进曾把四足拖滑 13—26 mm，分半降低瞬态推力
+            adv_half = with_z({n: stance4[n] - np.array([drive_fwd / 2, -dy_fix / 2, 0.0])
+                               for n in LEGS}, ground_relz())
+            execute('advance%d_%s_a' % (step_i, cur_leg), 'advance', 0.75,
+                    make_ramp(adv_half, 0.75), leg=cur_leg, expect_dy=-dy_fix / 2)
             adv_goal = with_z({n: stance4[n] - np.array([drive_fwd, -dy_fix, 0.0])
                                for n in LEGS}, ground_relz())
-            execute('advance%d_%s' % (step_i, cur_leg), 'advance', 1.5,
-                    make_ramp(adv_goal, 1.5), checks=drive_check, leg=cur_leg,
-                    expect_dy=-dy_fix)
+            execute('advance%d_%s_b' % (step_i, cur_leg), 'advance', 0.75,
+                    make_ramp(adv_goal, 0.75), checks=drive_check, leg=cur_leg,
+                    expect_dy=-dy_fix / 2)
             if state['fell']:
                 break
             execute('settle%d_%s' % (step_i, cur_leg), 'settle', 0.4,
