@@ -1,0 +1,120 @@
+{
+ "set_id": "v8_flat2d_calibration_v2_sc09dyn_v9",
+ "semantics": "SC09 动态替代（SC09-dyn v9）：v8 诊断显示全局路径走北侧中心带约 0.5 m，而夹具 footprint 0.7×0.6 的车体在物理上进不去。v9 把夹具 footprint 对齐目标配置 0.6×0.4（内切 0.2），方块/起终点/注入与 v8 相同；北侧中心带增至约 0.7 m，车体 0.4 m 可通过。判据不变；12 组=4 组×3 次。",
+ "world": "m1_gazebo",
+ "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)，由 m1_world.world 盒/墙几何生成",
+ "combo": "lite3_dwa_mux",
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2,
+  "clearance_definition": "robot_center_to_box_surface_m",
+  "deadline_s": 240
+ },
+ "config_lock": {
+  "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+  "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+  "speed": "max_vel_x 0.4",
+  "footprint": "[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]",
+  "goal_tolerance_m": 0.3,
+  "clearance_min_m": 0.2,
+  "stack": "flat2d_stack_sc09_f64.launch（map_server + map→odom + move_base；global static+STVL+inflation 0.45；local static+STVL+inflation 0.45；footprint 0.6×0.4；DWA 参数在 DWAPlannerROS ns，max_vel_x 0.4；scan_relay RELAY_MODE=volume）"
+ },
+ "start": [
+  2.5,
+  3.0,
+  0.0
+ ],
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "repetitions": 3,
+ "scenarios": [
+  {
+   "id": "SC09",
+   "name": "flat_dynamic_block_substitute",
+   "expected_outcome": "reach",
+   "goals": [
+    [
+     6.0,
+     3.0
+    ],
+    [
+     6.0,
+     2.7
+    ],
+    [
+     6.2,
+     3.2
+    ],
+    [
+     5.8,
+     2.8
+    ]
+   ],
+   "injects": [
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g0",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      5.2,
+      3.0,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g1",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      5.2,
+      2.7,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g2",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      5.4,
+      3.2,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g3",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      5.0,
+      2.8,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "counts_planned": {
+  "positive_runs": 12,
+  "note": "v9 只把夹具 footprint 对齐目标 0.6×0.4；场景几何/判据不动"
+ }
+}

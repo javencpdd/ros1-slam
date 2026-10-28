@@ -118,6 +118,12 @@ FROZEN = {
                    '按 R742 乙案取值式 T=min(ceil_cm(1.15×0.1903),0.22)=0.22，仍低于几何硬顶 0.2236；'
                    '真人 B 方案授权单后端主键；p95 0.105—0.157（4/9≤0.12）随 NDT 双后端目标退役，只作报告统计量；'
                    '0.194→0.22 属上限上调（+13.4%），按放宽纪律另做独立增量复核'},
+        {'when': '2026-10-28',
+         'key': 'success_rate.min_pass_rate.value',
+         'from': '未定标（pending）', 'to': 0.9,
+         'change': '新增成功率门槛 0.90（带域 36 组 v11：SC01/SC02/SC09 各 4 目标×3 次）',
+         'reason': 'R797 预登记 36 组一遍跑完 36/36 PASS（到点 max 0.120、净空 min 0.208）；'
+                   'Clopper-Pearson 单侧 95% 下限 0.9202≥0.90；判据未改，属新增判据非放宽'},
     ],
     'tolerances': {
         'tracking_lateral_m': {'value': 0.15, 'evidence': 'R655 tracking 默认'},
@@ -238,6 +244,25 @@ FROZEN = {
         'tracks': {'value': ['truth', 'estimate'],
                    'evidence': 'V8-13 双轨（真值轨/估计轨）'},
     },
+    # 成功率：带域冻结（2026-10-28，R797）。scope token 在下方 SUCCESS_RATE_SCOPE 定义、
+    # 校验时精确匹配；36 组预登记定标集（SC01/SC02/SC09 各 4 目标×3 次）在 v11 配置下
+    # 一遍跑完 36/36 PASS，CP 单侧 95% 下限 0.9202≥0.90。判据本身未改（到点 0.30/净空 0.20）。
+    'success_rate': {
+        'min_pass_rate': {
+            'value': 0.9,
+            'scope': 'v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_'
+                     'truth_mux_per_combo_ref_lite3_dwa',
+            'sample_n': 36,
+            'method': 'clopper_pearson_lower_95',
+            'alpha': 0.05,
+            'denominator': '36 = SC01 12 + SC02 12 + SC09 12（v11 预登记，FAIL 全计）',
+            'aggregation': '36 组逐组 PASS/FAIL 后按 36 聚合；INVALID 不入串（本次 0 例）',
+            'evidence': 'R797：runs_v11/（12）+ runs_v11_sc0102/（24），index.sha256 36/36 一致；'
+                        'flat2d_stack_sc09_f64nli.launch sha256 63c80d9e…d583；RELAY_MODE=volume；'
+                        '36/36 PASS，到点 max 0.120、净空 min 0.208、墙钟 28.7—72.6 s，'
+                        'SC09 注入 12/12 true；CP 下限 0.9202（k=36/n=36, α=0.05）',
+        },
+    },
     'rerun_rules': {
         'max_reruns': {'value': 1, 'evidence': '失败可复跑一次，二次失败计失败'},
         'calibration_runs_count_official': {'value': False, 'evidence': '铁则：定标不入正式分母'},
@@ -331,6 +356,8 @@ REQUIRED = {
     'denominators.combos.evidence': {'types': (str,), 'non_empty': True},
     'denominators.tracks.value': {'types': (list,), 'items': (str,), 'non_empty': True},
     'denominators.tracks.evidence': {'types': (str,), 'non_empty': True},
+    # success_rate 不进 REQUIRED：它有专用的 fail-closed 校验块（R748/R752），
+    # 半填节点按 pending 报告而不是抛异常，R748 裸值测试锁的就是这条语义。
     'rerun_rules': {'types': (dict,), 'non_empty': True},
     'rerun_rules.max_reruns.value': {'types': (int,)},
     'rerun_rules.max_reruns.evidence': {'types': (str,), 'non_empty': True},
@@ -359,7 +386,8 @@ REQUIRED = {
 # 2026-10-27（R722）：p95_local 已按 27 独立 run、实际消费点云 stamp 的口径带域冻结，
 # 从本表移出；scope 只含 SCAN 局部层响应、含输入年龄，不含 v8 support_map/全栈。
 # 2026-10-27（R787）：定位键按 B 方案冻结（LIO 单后端 9run），从本表移出；
-# 真人明令「NDT 降级为只做重定位/失效检测，精度门只压 LIO」。剩两停车键+成功率。
+# 真人明令「NDT 降级为只做重定位/失效检测，精度门只压 LIO」。
+# 2026-10-28（R797）：成功率键按 36 组 v11 定标冻结（36/36，CP 0.9202），从本表移出；剩两停车键。
 PENDING_REQUIRED = [
     {'key': 'budgets.stop_time_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车时间；当前只有制动分量与 osmesa 代理键，全链仍缺规划段、'
@@ -367,10 +395,6 @@ PENDING_REQUIRED = [
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求停车距离预算并覆盖感知/控制延迟与制动；当前只有制动分量与 osmesa 代理键，'
                '全链仍缺规划段、osmesa 非目标传感器、仅平地 0.3 m/s，保持 pending（禁 freeze）'},
-    {'key': 'success_rate.min_pass_rate.value', 'types': (int, float),
-     'reason': '24 §4.1 要求成功率门槛；定标集尚无成功率读数，0.9 无本地依据'
-               '（v7 ≥90% 属另一任务面，22 号明令不得移作 3D 全场景验收标准），'
-               '保持 pending（禁 freeze）'},
 ]
 
 # 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
@@ -408,10 +432,10 @@ SAMPLING_MIN_REPETITIONS = 3
 SUCCESS_RATE_SCOPE = ('v8_official_positive_sc01_sc02_sc09_4group_3rep_n36_'
                       'truth_mux_per_combo_ref_lite3_dwa')
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-27，R729 scope 编码后）。
+# golden digest：由当前 FROZEN 实算后填入（2026-10-28，R797 冻成功率后重算）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = 'a6fe8fb96adad42a518c461028ae972735a21b97ff5f62efc908a19a510368a0'
+DIGEST = 'd4514b0a7bb21a5ad4b16dc06d4e0f110a1e9c532cc98f89664e30f7455e7a5d'
 
 
 class CalibrationError(Exception):

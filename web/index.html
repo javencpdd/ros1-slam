@@ -296,7 +296,7 @@
     <div class="hero-stats">
       <div class="stat"><b>15</b><span>V8 主线交付件（窄口径收口）</span></div>
       <div class="stat"><b>7</b><span>M0—M6 里程碑阶段</span></div>
-      <div class="stat warn"><b>3</b><span>冻结判据仍 pending</span></div>
+      <div class="stat warn"><b>2</b><span>冻结判据仍 pending</span></div>
       <div class="stat"><b>0.22 m</b><span>定位误差上限（已冻，LIO 单后端）</span></div>
     </div>
   </div>
@@ -457,7 +457,7 @@
             <tr><td class="mono">V8-09 / V8-10</td><td>支撑图有界 A*、轨迹检查器与运动学铁则</td><td><span class="badge ok">窄口径收口</span></td></tr>
             <tr><td class="mono">V8-11 — V8-15</td><td>场景框架、冻结配置、双轨矩阵、规模曲线与迁移</td><td><span class="badge ok">窄口径收口</span></td></tr>
             <tr><td class="mono">运行面矩阵</td><td>双轨 × 组合 × 正式场景的实跑与判据</td><td><span class="badge pend">进行中</span></td></tr>
-            <tr><td class="mono">V8-12 定标重跑</td><td>成功率、停车时间、停车距离三项冻结判据</td><td><span class="badge pend">pending</span></td></tr>
+            <tr><td class="mono">V8-12 定标重跑</td><td>成功率 36/36 已冻；停车时间、停车距离两项待 V8-X1 载体</td><td><span class="badge info">部分收口</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -470,8 +470,8 @@
       <div class="sec-head">
         <div>
           <div class="sec-kicker">Live Status</div>
-          <h2>现状：一个已冻，三个待定</h2>
-          <p class="sec-desc">数字来自校准件现跑（<span class="mono">validate_frozen()</span>），不是页面手写。冻结配置 digest 前缀 <span class="mono">a6fe8fb9…</span>。</p>
+          <h2>现状：成功率已冻，剩两个停车键</h2>
+          <p class="sec-desc">数字来自校准件现跑（<span class="mono">validate_frozen()</span>），不是页面手写。冻结配置 digest 前缀 <span class="mono">d4514b0a…</span>。</p>
         </div>
       </div>
 
@@ -496,8 +496,8 @@
             </tr>
             <tr>
               <td class="mono">success_rate.min_pass_rate</td>
-              <td>36 组定标集未拼齐：24 组 SC01/02 与 12 组 SC09 配置不同源</td>
-              <td><span class="badge pend">pending</span></td>
+              <td>0.90 · 36 组 v11 全 PASS · CP 单侧 95% 下限 0.9202</td>
+              <td><span class="badge ok">已冻结</span></td>
             </tr>
             <tr>
               <td class="mono">budgets.stop_time_s</td>
@@ -673,7 +673,7 @@ bash scripts/verify/run_gate_chain.sh</code><button class="copy">复制</button>
   <div class="wrap foot">
     <div>
       ros1-slam · 四足机器人 SLAM 与自主导航开发仓 · ROS1 Noetic
-      <br>状态快照：2026-10-28 · 冻结 digest 前缀 <span class="mono">a6fe8fb9…</span> · pending 3
+      <br>状态快照：2026-10-28 · 冻结 digest 前缀 <span class="mono">d4514b0a…</span> · pending 2
     </div>
     <div>
       本页为静态介绍，不连接运行中的 ROS。<br>页面数字以 <a href="../note/进度/00_总览.md">进度真身</a> 为准，过期即改。

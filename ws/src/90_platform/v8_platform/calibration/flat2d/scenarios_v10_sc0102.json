@@ -1,0 +1,100 @@
+{
+ "set_id": "v8_flat2d_calibration_v2_sc01sc02_v10",
+ "semantics": "SC01/SC02 正例在 v10 配置下的重基（真人 2026-10-28 授权）：与 SC09 v10 同栈（flat2d_stack_sc09_f64.launch、footprint 0.6×0.4、volume 中继、DWA 默认），无注入；24 组=2 场景×4 组×3 次，用于与 SC09 12 组拼 36。判据不变。",
+ "world": "m1_gazebo",
+ "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)，由 m1_world.world 盒/墙几何生成",
+ "combo": "lite3_dwa_mux",
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2,
+  "clearance_definition": "robot_center_to_box_surface_m",
+  "deadline_s": 120
+ },
+ "config_lock": {
+  "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+  "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+  "speed": "max_vel_x 0.4",
+  "footprint": "[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]",
+  "goal_tolerance_m": 0.3,
+  "clearance_min_m": 0.2,
+  "stack": "flat2d_stack_sc09_f64.launch（map_server + map→odom + move_base；global static+STVL+inflation 0.45；local static+STVL+inflation 0.45；footprint 0.6×0.4；DWA 默认；无注入，scan_relay RELAY_MODE=volume 空闲）"
+ },
+ "start": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "seeds": [
+  0,
+  1,
+  2,
+  3
+ ],
+ "repetitions": 3,
+ "scenarios": [
+  {
+   "id": "SC01",
+   "name": "flat_open_corridor",
+   "expected_outcome": "reach",
+   "goals": [
+    [
+     3.0,
+     0.0
+    ],
+    [
+     3.5,
+     0.3
+    ],
+    [
+     4.0,
+     -0.3
+    ],
+    [
+     2.5,
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "SC02",
+   "name": "flat_obstacle_avoidance",
+   "expected_outcome": "reach",
+   "goals": [
+    [
+     5.0,
+     2.2
+    ],
+    [
+     5.2,
+     2.6
+    ],
+    [
+     6.2,
+     2.2
+    ],
+    [
+     4.0,
+     2.6
+    ]
+   ]
+  }
+ ],
+ "blocked": [
+  {
+   "id": "SC09",
+   "reason": "动态堵路需感知层；obstacle_layer 一开即产生大片虚假障碍（R777 §4 留证），12 组暂缺"
+  },
+  {
+   "id": "SC10",
+   "reason": "同 SC09，需事件注入与原因返回"
+  },
+  {
+   "id": "SC12",
+   "reason": "TF/时钟/传感器故障注入未接"
+  }
+ ],
+ "counts_planned": {
+  "positive_runs": 24,
+  "note": "与 SC09 v10 同配置重基；旧 runs_v2 24 组保留为历史证据、不合并"
+ }
+}

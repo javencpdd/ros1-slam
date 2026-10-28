@@ -1,0 +1,120 @@
+{
+ "set_id": "v8_flat2d_calibration_v2_sc09dyn_v11",
+ "semantics": "SC09 动态替代（SC09-dyn v10）：v9 诊断显示通道中心带约 0.5—0.7 m，DWA 在通道口进入「原地转+恢复」循环。v10 把方块抬到路线北侧（y 比目标高约 0.4—0.5 m），让南侧留出约 1.0—1.6 m 的表面间隙（中心带约 0.6—1.2 m）；方块仍挡直路，机器人须向南绕行。footprint 0.6×0.4、方块 0.6 m、判据、起终点不变。",
+ "world": "m1_gazebo",
+ "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)，由 m1_world.world 盒/墙几何生成",
+ "combo": "lite3_dwa_mux",
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2,
+  "clearance_definition": "robot_center_to_box_surface_m",
+  "deadline_s": 240
+ },
+ "config_lock": {
+  "planner": "move_base global_planner/GlobalPlanner + dwa_local_planner/DWAPlannerROS",
+  "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+  "speed": "max_vel_x 0.4",
+  "footprint": "[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]",
+  "goal_tolerance_m": 0.3,
+  "clearance_min_m": 0.2,
+  "stack": "flat2d_stack_sc09_f64nli.launch（map_server + map→odom + move_base；global static+STVL+inflation 0.45；local static+STVL、无局部 inflation（对齐真机局部层无 inflation）；footprint 0.6×0.4；DWA 参数在 DWAPlannerROS ns，max_vel_x 0.4；scan_relay RELAY_MODE=volume）"
+ },
+ "start": [
+  2.5,
+  3.0,
+  0.0
+ ],
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "repetitions": 3,
+ "scenarios": [
+  {
+   "id": "SC09",
+   "name": "flat_dynamic_block_substitute",
+   "expected_outcome": "reach",
+   "goals": [
+    [
+     6.0,
+     3.0
+    ],
+    [
+     6.0,
+     2.7
+    ],
+    [
+     6.2,
+     3.2
+    ],
+    [
+     5.8,
+     2.8
+    ]
+   ],
+   "injects": [
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g0",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      4.4,
+      3.4,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g1",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      4.4,
+      3.2,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g2",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      4.6,
+      3.7,
+      0.0
+     ]
+    },
+    {
+     "at_progress_m": 0.3,
+     "model_name": "sc09_block_g3",
+     "size": [
+      0.6,
+      0.6,
+      0.6
+     ],
+     "pose_xy_yaw": [
+      4.4,
+      3.3,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "counts_planned": {
+  "positive_runs": 12,
+  "note": "v10 方块抬到路线北侧，南侧留 1.0—1.6 m 绕行；判据/尺寸/起终点不动"
+ }
+}
