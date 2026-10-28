@@ -118,14 +118,31 @@ def main(argv=None):
     rospy.set_param(status, {'ok': True, 'segments': result['segments'],
                              'transitions': result['transitions'],
                              'expansions': result['expansions'], 'length': result['length']})
+    # A4 取消通道：Trigger 服务把「下一次规划前取消」置位；规划入口消费一次后复位。
+    # 说明：rospy 默认串行回调，规划本身毫秒级，故运行期取消是「预取消」语义（等价于任务在
+    # 开算前被撤销）；这与 A4「取消可区分」的证据口径一致，不代表支持规划中途抢占。
+    from std_srvs.srv import Trigger, TriggerResponse
+    cancel_flag = {'requested': False}
+
+    def request_cancel(_request):
+        cancel_flag['requested'] = True
+        rospy.logwarn('cancel requested: next plan will be cancelled')
+        return TriggerResponse(success=True, message='cancel requested')
+
+    cancel_srv = rospy.get_param('~cancel_service', rospy.get_name() + '/cancel')
+    rospy.Service(cancel_srv, Trigger, request_cancel)
+
     def make_plan(request):
         from nav_msgs.srv import GetPlanResponse
+        take_cancel = cancel_flag['requested']
+        cancel_flag['requested'] = False
         try:
             planned = plan_route({'map': request_map(), 'start': pose_xyz(request.start),
                                   'goal': pose_xyz(request.goal), 'budget': budget,
                                   'hint': hint} if hint else
                                  {'map': request_map(), 'start': pose_xyz(request.start),
-                                  'goal': pose_xyz(request.goal), 'budget': budget})
+                                  'goal': pose_xyz(request.goal), 'budget': budget},
+                                 cancel=(lambda: True) if take_cancel else None)
         except (ValueError, support_planner.PlannerError) as error:
             rospy.set_param(status, refusal(error) if hasattr(error, 'code')
                             else {'ok': False, 'reason': 'E_PLAN_INPUT', 'detail': str(error)})

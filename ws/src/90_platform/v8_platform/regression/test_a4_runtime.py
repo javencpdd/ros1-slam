@@ -47,7 +47,7 @@ class A4RuntimeTests(unittest.TestCase):
 
     def test_run_with_design_backend_is_green_and_consistent(self):
         """注入「设计层即运行时」的调用：全 cell 按预期、且运行面路径与参考解逐点一致。"""
-        def fake_call(map_value, start, goal, budget, name):
+        def fake_call(map_value, start, goal, budget, name, **kwargs):
             try:
                 planned = pln.plan(map_value, start, goal, budget=budget)
             except pln.PlannerError as error:
@@ -62,6 +62,28 @@ class A4RuntimeTests(unittest.TestCase):
         self.assertEqual(s['passed'], 7 * 2)          # SC01—06、SC08 双轨
         self.assertEqual(s['expected_failures'], 3 * 2)  # SC07 无路、SC09 净空、SC10 预算
         self.assertEqual(s['same_as_design'], 20)
+
+    def test_run_cancel_expects_cancelled_code(self):
+        """A4 取消可区分：预取消必须返回 E_PLAN_CANCELLED；返回路径或其他拒绝都不合格。"""
+        def cancelled(map_value, start, goal, budget, name, **kwargs):
+            self.assertTrue(kwargs.get('cancel_first'))
+            return None, 'E_PLAN_CANCELLED', {'ok': False, 'reason': 'E_PLAN_CANCELLED'}
+
+        cells = a4.run_cancel(call_node_fn=cancelled)
+        self.assertEqual(len(cells), 2)
+        self.assertTrue(all(c['outcome'] == 'pass' for c in cells))
+
+        def route_returned(map_value, start, goal, budget, name, **kwargs):
+            return [(0.0, 0.0, 0.0)], None, {'ok': True}
+
+        cells = a4.run_cancel(call_node_fn=route_returned)
+        self.assertTrue(all(c['outcome'] == 'unexpected_failure' for c in cells))
+
+        def wrong_refusal(map_value, start, goal, budget, name, **kwargs):
+            return None, 'E_PLAN_NO_ROUTE', {'ok': False, 'reason': 'E_PLAN_NO_ROUTE'}
+
+        cells = a4.run_cancel(call_node_fn=wrong_refusal)
+        self.assertTrue(all(c['outcome'] == 'unexpected_failure' for c in cells))
 
 
 if __name__ == '__main__':

@@ -63,8 +63,12 @@ def same_points(a, b):
                for (x1, y1, z1), (x2, y2, z2) in zip(a, b))
 
 
-def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_alive_s=5.0):
-    """起一个 ros_node 子进程，调 make_plan；返回 (route|None, error_code|None, info)。"""
+def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_alive_s=5.0,
+              cancel_first=False):
+    """起一个 ros_node 子进程，调 make_plan；返回 (route|None, error_code|None, info)。
+
+    cancel_first=True 时先调节点的 Trigger 取消服务（预取消），期望本次规划返回 E_PLAN_CANCELLED。
+    """
     import rospy
     from geometry_msgs.msg import PoseStamped
     from nav_msgs.srv import GetPlan
@@ -108,6 +112,10 @@ def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_a
         if not ready:
             return None, 'E_RUNTIME_SERVICE_TIMEOUT', None
         proxy = rospy.ServiceProxy('/' + name + '/make_plan', GetPlan)
+        if cancel_first:
+            from std_srvs.srv import Trigger
+            rospy.wait_for_service('/' + name + '/cancel', timeout=service_timeout)
+            rospy.ServiceProxy('/' + name + '/cancel', Trigger)()
         request_start, request_goal = PoseStamped(), PoseStamped()
         for msg, xyz in ((request_start, start), (request_goal, goal)):
             msg.header.frame_id = 'map'
@@ -165,22 +173,41 @@ def run(tracks=('truth', 'estimate'), ids=None, call_node_fn=None):
     return cells
 
 
+def run_cancel(ids=('SC01', 'SC02'), call_node_fn=None):
+    """A4 取消可区分：预取消后规划必须返回 E_PLAN_CANCELLED，而不是路径/无路/超预算。"""
+    cells = []
+    call = call_node_fn or call_node
+    for sid in ids:
+        case = scn.scenario(sid)
+        budget = cal.FROZEN['budgets']['planner_max_expansions']['value']
+        name = 'a4_%s_cancel' % sid.lower()
+        route, error_code, info = call(case['map'], case['start'], case['goal'], budget, name,
+                                       cancel_first=True)
+        outcome = 'pass' if (route is None and error_code == 'E_PLAN_CANCELLED') \
+            else 'unexpected_failure'
+        cells.append({'scenario': sid, 'track': 'cancel', 'budget': budget,
+                      'points': None if route is None else len(route),
+                      'stage': 'plan', 'reason': error_code or 'route_returned',
+                      'outcome': outcome, 'info': info})
+    return cells
+
+
 def summary(cells):
     return {'cells': len(cells),
             'passed': sum(1 for c in cells if c['outcome'] == 'pass'),
             'expected_failures': sum(1 for c in cells if c['outcome'] == 'expected_failure'),
             'unexpected_failures': sum(1 for c in cells if c['outcome'] == 'unexpected_failure'),
-            'same_as_design': sum(1 for c in cells if c['same_as_design'])}
+            'same_as_design': sum(1 for c in cells if c.get('same_as_design'))}
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['run'])
+    parser.add_argument('command', choices=['run', 'cancel'])
     parser.add_argument('--out', default='')
     args = parser.parse_args(argv)
     import rospy
     rospy.init_node('a4_runtime_runner')
-    cells = run()
+    cells = run_cancel() if args.command == 'cancel' else run()
     result = {'summary': summary(cells), 'cells': cells}
     print(json.dumps(result['summary'], ensure_ascii=False))
     for cell in cells:
