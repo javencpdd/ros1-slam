@@ -18,6 +18,7 @@ from pathlib import Path
 import numpy as np
 
 XML = '/work/Lite3_rl_deploy-main/third_party/deep_robotics_model/Lite3/Lite3_mjcf/mjcf/Lite3.xml'
+STEP_FRONT_X = 1.0   # Lite3_step10.xml 台阶前沿（世界系）
 LEGS = ('FL', 'FR', 'HL', 'HR')
 DEF = np.array([0, -0.65, 1.3] * 4)
 
@@ -73,6 +74,20 @@ def leg_ik(model, data, leg, target, iters=80, damping=0.02):
     return q
 
 
+def solve_leg(model, data, leg, rel_target):
+    """解 IK 并**还原** data 的积分状态（IK 只是探测，不能改仿真状态）。"""
+    import mujoco
+    qpos_backup = data.qpos.copy()
+    qvel_backup = data.qvel.copy()
+    try:
+        q = leg_ik(model, data, leg, rel_target)
+    finally:
+        data.qpos[:] = qpos_backup
+        data.qvel[:] = qvel_backup
+        mujoco.mj_forward(model, data)
+    return q
+
+
 def pd_hold(model, data, targets, kp=40.0, kd=1.5, max_tau=30.0):
     tau = np.clip(kp * (targets - data.qpos[7:19]) - kd * data.qvel[6:18], -max_tau, max_tau)
     data.qfrc_applied[6:18] = tau
@@ -92,11 +107,61 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
     if shift_y or shift_x:
         for name in LEGS:
             goal = nominal[name] + np.array([shift_x, shift_y, 0.0])
-            q = leg_ik(model, data, name, goal)
-            k = 3 * LEGS.index(name)      # targets 是 12 维关节向量（qpos 7..18 去掉偏移）
+            q = solve_leg(model, data, name, goal)
+            k = 3 * LEGS.index(name)
             targets[k:k + 3] = q
-        data.qpos[7:19] = DEF
-        mujoco.mj_forward(model, data)
+    if mode == 'place':
+        # 世界坐标落足：先抬到台阶顶面+2 cm，再前移到台阶上方，保持；每拍按当前机体位姿换算相对目标
+        dt = model.opt.timestep
+        steps = int(seconds / dt)
+        foot_id = _ids(model, leg)[1]
+        torso_id = _ids(model, leg)[2]
+        p0 = np.array(data.xpos[foot_id], dtype=float)
+        step_top = height
+        safe_z = step_top + 0.024 + 0.02      # 足端 body 在台阶顶面之上 2 cm（常态足端偏移 0.024）
+        wp = [p0, np.array([p0[0], p0[1], safe_z]),
+              np.array([STEP_FRONT_X + 0.15, p0[1], safe_z]),
+              np.array([STEP_FRONT_X + 0.15, p0[1], step_top + 0.024])]
+        seg_t = 1.2
+        now_targets = DEF.copy()
+        zmin, trace = 9.0, []
+        for i in range(steps):
+            t = i * dt
+            k = min(int(t / seg_t), len(wp) - 2)
+            a = min(1.0, (t - k * seg_t) / seg_t)
+            world_goal = wp[k] + a * (wp[k + 1] - wp[k])
+            if i % int(round(0.02 / dt)) == 0:
+                body = np.array(data.xpos[torso_id], dtype=float)
+                quat = data.xquat[torso_id]
+                w, x, y, z = quat
+                R = np.array([
+                    [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+                    [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+                    [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]])
+                rel = R.T @ (world_goal - body)
+                vec = DEF.copy()
+                q = solve_leg(model, data, leg, rel)
+                kk = 3 * LEGS.index(leg)
+                vec[kk:kk + 3] = q
+                now_targets = vec
+            pd_hold(model, data, now_targets, kp=kp, kd=kd)
+            mujoco.mj_step(model, data)
+            zmin = min(zmin, float(data.qpos[2]))
+            if i % int(round(0.25 / dt)) == 0:
+                trace.append((round(i * dt, 2), round(float(data.qpos[2]), 3),
+                              round(float(data.qpos[0]), 3)))
+            if data.qpos[2] < 0.12:
+                break
+        feet = {name: [round(float(x), 3) for x in foot_body_pos(model, data, name)]
+                for name in LEGS}
+        feet_t1 = {name: np.array(data.xpos[_ids(model, name)[1]], dtype=float) for name in LEGS}
+        return {'mode': mode, 'leg': leg, 'height': height, 'seconds': seconds,
+                'final_x': round(float(data.qpos[0]), 3),
+                'final_y': round(float(data.qpos[1]), 3),
+                'final_z': round(float(data.qpos[2]), 3), 'zmin': round(zmin, 3),
+                'fell': bool(zmin < 0.18),
+                'world_feet_end': {name: [round(float(v), 3) for v in feet_t1[name]] for name in LEGS},
+                'final_feet': feet, 'trace': trace}
     if mode == 'drive':
         # 闭环机体位移：错误 e=desired-actual 积分成足端目标偏移 u（负 e 使 u 减小→机体前移）
         dt = model.opt.timestep
@@ -117,11 +182,9 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 u = max(-umax, min(0.05, u - k * e * (tick * dt)))
                 vec = DEF.copy()
                 for name in LEGS:
-                    q = leg_ik(model, data, name, nominal[name] + np.array([u, 0.0, 0.0]))
+                    q = solve_leg(model, data, name, nominal[name] + np.array([u, 0.0, 0.0]))
                     kk = 3 * LEGS.index(name)
                     vec[kk:kk + 3] = q
-                    data.qpos[7:19] = DEF
-                    mujoco.mj_forward(model, data)
                 now_targets = vec
                 used = u
             pd_hold(model, data, now_targets, kp=kp, kd=kd)
@@ -143,10 +206,8 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
     if mode == 'seq':
         k = lambda name: 3 * LEGS.index(name)
         def set_leg(vec, name, delta):
-            q = leg_ik(model, data, name, nominal[name] + np.array(delta))
+            q = solve_leg(model, data, name, nominal[name] + np.array(delta))
             vec[k(name):k(name) + 3] = q
-            data.qpos[7:19] = DEF
-            mujoco.mj_forward(model, data)
             return vec
         p1 = DEF.copy(); p1 = set_leg(p1, 'FL', [0.22, 0.0, 0.10])
         p2 = DEF.copy()
@@ -189,11 +250,9 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
                 'fell': bool(zmin < 0.18), 'final_feet': feet, 'trace': trace}
     if mode in ('lift', 'step') and leg in LEGS:
         goal = nominal[leg] + np.array([forward, 0.0, height])
-        q = leg_ik(model, data, leg, goal)
+        q = solve_leg(model, data, leg, goal)
         k = 3 * LEGS.index(leg)
         targets[k:k + 3] = q
-        data.qpos[7:19] = DEF
-        mujoco.mj_forward(model, data)
     dt = model.opt.timestep
     steps = int(seconds / dt)
     start_targets = DEF.copy()
@@ -238,7 +297,7 @@ def run(mode='stand', leg='FL', height=0.05, seconds=3.0, kp=40.0, kd=1.5, shift
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['stand', 'shift', 'lift', 'step', 'seq', 'drive'])
+    parser.add_argument('mode', choices=['stand', 'shift', 'lift', 'step', 'seq', 'drive', 'place'])
     parser.add_argument('--leg', default='FL')
     parser.add_argument('--height', type=float, default=0.05)
     parser.add_argument('--seconds', type=float, default=3.0)
