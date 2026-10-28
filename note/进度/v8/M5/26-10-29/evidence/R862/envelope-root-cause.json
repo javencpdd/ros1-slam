@@ -1,0 +1,20 @@
+{
+  "source": "results-initial.json",
+  "initial_qpos_z": 0.41,
+  "deck_top_z": 0.06,
+  "method": "compose wrapper from R861, set raw first qpos, mj_forward, collision geoms with (contype|conaffinity)!=0",
+  "baseline_lowest_geoms": [
+    {"name": "FL_SHANK_collision", "body": "FL_SHANK", "type": 7, "size": [0.017031715484823514, 0.026067416336514528, 0.17463508611971137], "contype": 0, "conaffinity": 1, "world_min_z": 0.05183262654103908},
+    {"name": "FR_SHANK_collision", "body": "FR_SHANK", "type": 7, "size": [0.017031715484823514, 0.026067416336514528, 0.17463508611971137], "contype": 0, "conaffinity": 1, "world_min_z": 0.05183262654103908},
+    {"name": "HL_SHANK_collision", "body": "HL_SHANK", "type": 7, "size": [0.017031715484823514, 0.026067416336514528, 0.17463508611971137], "contype": 0, "conaffinity": 1, "world_min_z": 0.05183262654103908},
+    {"name": "HR_SHANK_collision", "body": "HR_SHANK", "type": 7, "size": [0.017031715484823514, 0.026067416336514528, 0.17463508611971137], "contype": 0, "conaffinity": 1, "world_min_z": 0.05183262654103908},
+    {"name": "FL_FOOT_collision", "body": "FL_FOOT", "type": 2, "size": [0.022, 0.0, 0.0], "contype": 0, "conaffinity": 1, "world_min_z": 0.0526821680447033}
+  ],
+  "variants": [
+    {"disable_shank": false, "dz": 0.0, "min_robot_aabb_z": 0.05183262654103908, "passes_0_055": false},
+    {"disable_shank": true, "dz": 0.0, "min_robot_aabb_z": 0.0526821680447033, "passes_0_055": false},
+    {"disable_shank": false, "dz": 0.00732, "min_robot_aabb_z": 0.059153, "passes_0_055": true},
+    {"disable_shank": true, "dz": 0.00732, "min_robot_aabb_z": 0.060002, "passes_0_055": true}
+  ],
+  "conclusion": "初始基座高度比足球落阶面低 7.32 mm，是包络下界失败的主因；小腿碰撞是次要模型问题（contype=0 但 conaffinity=1 仍与 deck 相撞，且 AABB 选取包含它）。不据此放宽 0.055 门。"
+}
