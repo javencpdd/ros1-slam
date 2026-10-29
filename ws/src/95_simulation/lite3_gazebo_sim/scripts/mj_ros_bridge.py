@@ -53,6 +53,8 @@ def main():
     parser.add_argument('--scan-rate', type=float, default=10.0)
     parser.add_argument('--scan-rays', type=int, default=360)
     parser.add_argument('--scan-range', type=float, default=8.0)
+    parser.add_argument('--scan-tilt-deg', type=float, default=0.0)
+    parser.add_argument('--scan-fov-deg', type=float, default=360.0)
     parser.add_argument('--odom-frame', default='odom')
     parser.add_argument('--base-frame', default='base_link')
     parser.add_argument('--initial-z', type=float, default=0.35)
@@ -65,6 +67,8 @@ def main():
     args = parser.parse_args()
     if args.realtime_factor <= 0 or args.scan_rate <= 0 or args.scan_rays < 8:
         raise SystemExit('positive realtime/scan rate and >=8 rays required')
+    if not 0 <= args.scan_tilt_deg < 89 or not 0 < args.scan_fov_deg <= 360:
+        raise SystemExit('scan tilt in [0,89) and fov in (0,360] required')
 
     import mujoco
     import onnxruntime as ort
@@ -100,6 +104,9 @@ def main():
 
     command = np.zeros(3)
     command_time = 0.0
+    acceleration = np.zeros(3)
+    previous_velocity = None
+    previous_time = None
 
     def on_cmd(message):
         nonlocal command, command_time
@@ -161,6 +168,9 @@ def main():
             pose.pose.pose.orientation.w, pose.pose.pose.orientation.x = quat[0], quat[1]
             pose.pose.pose.orientation.y, pose.pose.pose.orientation.z = quat[2], quat[3]
             body_velocity = rot(quat).T @ data.qvel[:3]
+            if previous_velocity is not None and data.time > previous_time + 1e-9:
+                acceleration = (body_velocity - previous_velocity) / (data.time - previous_time)
+            previous_velocity, previous_time = body_velocity.copy(), float(data.time)
             pose.twist.twist.linear.x, pose.twist.twist.linear.y, pose.twist.twist.linear.z = body_velocity
             pose.twist.twist.angular.x, pose.twist.twist.angular.y, pose.twist.twist.angular.z = data.qvel[3:6]
             odom_pub.publish(pose)
@@ -179,6 +189,9 @@ def main():
             imu.orientation.w, imu.orientation.x = quat[0], quat[1]
             imu.orientation.y, imu.orientation.z = quat[2], quat[3]
             imu.angular_velocity.x, imu.angular_velocity.y, imu.angular_velocity.z = data.qvel[3:6]
+            imu.linear_acceleration.x = float(acceleration[0])
+            imu.linear_acceleration.y = float(acceleration[1])
+            imu.linear_acceleration.z = float(acceleration[2] + 9.81)
             imu_pub.publish(imu)
 
             if tick % scan_every == 0:
@@ -187,15 +200,19 @@ def main():
                 scan = LaserScan()
                 scan.header.stamp = stamp
                 scan.header.frame_id = args.base_frame
-                scan.angle_min = -math.pi
-                scan.angle_max = math.pi
-                scan.angle_increment = 2 * math.pi / args.scan_rays
+                fov = math.radians(args.scan_fov_deg)
+                tilt = math.radians(args.scan_tilt_deg)
+                scan.angle_min = -fov / 2
+                scan.angle_max = fov / 2
+                scan.angle_increment = fov / args.scan_rays
                 scan.range_min, scan.range_max = 0.1, args.scan_range
                 ranges = []
                 geom_id = np.zeros(1, dtype=np.int32)
                 for ray in range(args.scan_rays):
                     angle = scan.angle_min + ray * scan.angle_increment + yaw
-                    vector = np.array([math.cos(angle), math.sin(angle), 0.])
+                    vector = np.array([math.cos(angle) * math.cos(tilt),
+                                       math.sin(angle) * math.cos(tilt),
+                                       -math.sin(tilt)])
                     distance = mujoco.mj_ray(model, data, lidar, vector, scan_group, 1, -1, geom_id)
                     ranges.append(args.scan_range if distance < 0 else min(distance, args.scan_range))
                 scan.ranges = ranges

@@ -1,0 +1,69 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /LaserScan1
+        - /Odometry1
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Grid
+      Enabled: true
+      Name: Grid
+      Plane: XY
+      Plane Cell Count: 40
+      Cell Size: 1
+      Color: 160; 160; 164
+    - Class: rviz/TF
+      Enabled: true
+      Name: TF
+      Marker Scale: 0.5
+      Show Names: true
+      Show Axes: true
+      Show Arrows: false
+    - Class: rviz/LaserScan
+      Enabled: true
+      Name: LaserScan
+      Topic: /scan
+      Style: Flat Squares
+      Size (m): 0.05
+      Color Transformer: FlatColor
+      Color: 255; 0; 0
+      Queue Size: 10
+    - Class: rviz/Odometry
+      Enabled: true
+      Name: Odometry
+      Topic: /odom
+      Keep: 200
+      Shape: Arrow
+      Color: 0; 255; 0
+      Position Tolerance: 0.05
+      Angle Tolerance: 0.1
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: odom
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+  Views:
+    Current:
+      Class: rviz/TopDownOrtho
+      Name: Current View
+      Scale: 40
+      Target Frame: <Fixed Frame>
+      X: 1
+      Y: 0
+    Saved: ~
+Window Geometry:
+  Height: 900
+  Width: 1400
+  Displays:
+    collapsed: false
+  Hide Left Dock: false
+  Hide Right Dock: true

@@ -1,0 +1,13 @@
+R880 桥剩余项验证
+
+# scan 俯仰/视场 + IMU 线加速度（v8codex）
+mj_ros_bridge.py ... --scan-tilt-deg 15 --scan-fov-deg 180 --scan-rays 90 --max-seconds 12
+feature_probe.py: 记录 /scan 角度范围 + /imu linear_acceleration；期间 /cmd_vel 0.2 m/s ×3 s
+
+# RViz（sim-viz）
+rviz -d /opt/ros1-slam/docker/rviz_mj_bridge.rviz   # Fixed Frame odom, Grid/TF/LaserScan/Odometry
+桥同容器运行；截图宿主窗口 1400x900
+
+# ROS2 录制（my_foxy_env）
+ros2 bag record -o /tmp/mj_bag /odom /scan /tf   # 6 s
+ros2 bag info /tmp/mj_bag

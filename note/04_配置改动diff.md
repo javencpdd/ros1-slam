@@ -7233,3 +7233,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `mj_ros_bridge.py` 增 `--viewer`（mujoco.viewer.launch_passive，每拍 sync，退出 close）；在 sim-viz（宿主 X + NVIDIA）跑通，窗口 `MuJoCo : Lite3` 1706×960。
 - GPU 矩阵：sim-viz 可见 RTX 2060 SUPER（glxinfo 硬件渲染）；sim/v8codex/foxy 无 GPU 设备。viewer 期间整卡 util 33—35%、mem 2501/8192 MiB（含桌面）。
 - 运行在外挂 `/tmp/mjviz` 运行时上；未改物理/判据。详见 R879。
+
+## R880（2026-10-29，qoder）：桥剩余项
+
+- `mj_ros_bridge.py`/`mj_ros2_bridge.py` 增 `--scan-tilt-deg`/`--scan-fov-deg`（默认 0/360，保 R876 口径）与 IMU `linear_acceleration`（机体系速度差分 + 9.81 比力）。
+- 新增 `docker/rviz_mj_bridge.rviz`（Fixed Frame odom，Grid/TF/LaserScan/Odometry）与 `scripts/ops/mj_runtime_stage.sh`（跨容器搬运 mujoco/glfw/ORT，必要时 numpy）。
+- 实测：15°/180° 扫描 angle ±1.5708、inc 0.03491、90 线；IMU 199/200 非零 x/y、z 7.59—13.50；RViz Status Ok/31 fps；ROS2 bag 5.236 s（odom 262/scan 53/tf 263）。详见 R880。
