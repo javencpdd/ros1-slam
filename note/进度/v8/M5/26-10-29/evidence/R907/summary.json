@@ -1,0 +1,15 @@
+{
+  "domain": "a2_process_and_gazebo_stop",
+  "process_lifecycle": {"verdict": "PASS", "cell_count": 6,
+    "cells": {"crash": "PASS", "ready_timeout": "PASS", "run_timeout": "PASS",
+              "startup_error": "PASS", "cancel": "PASS", "isolation": "PASS"},
+    "group_survivors": [], "resources_released": true},
+  "gazebo_stop": {"verdict": "PASS", "scope": "A2.Gazebo_mux_candidate_crash_and_hold;no_perception_trigger;no_151_freeze",
+    "source_crash": {"verdict": "PASS", "mux_zero_sim_s": 0.498, "physical_stop_sim_s": 0.498,
+                     "coast_displacement_xy_m": 0.09931, "speed_after_m_s": 1.04e-10},
+    "supervisor_hold": {"verdict": "PASS", "mux_zero_sim_s": 0.046, "physical_stop_sim_s": 0.049,
+                        "coast_displacement_xy_m": 0.009553, "speed_after_m_s": 2.33e-11}},
+  "runtime_lab": {"stop": 0, "process_group_survivors": {"stop": [], "mux": [], "gazebo": [], "master": []}},
+  "boundary": {"no_perception_trigger": true, "no_151_budget": true, "no_real_robot": true},
+  "a2_status": "process crash/timeout/cleanup and Gazebo candidate crash/hold PASS; perception-trigger/#151 not covered"
+}

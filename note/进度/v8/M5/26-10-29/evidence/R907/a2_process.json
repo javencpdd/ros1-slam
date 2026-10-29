@@ -1,0 +1,132 @@
+{
+  "scope": "A2.real_os_processes;not_gazebo;no_151_budget_freeze",
+  "verdict": "PASS",
+  "cell_count": 6,
+  "cells": [
+    {
+      "case": "crash",
+      "verdict": "PASS",
+      "state": "failed",
+      "cause": "died:planner",
+      "error": null,
+      "elapsed_wall_s": 1.461116,
+      "pid": 4089608,
+      "child_pid": 4089614,
+      "group_survivors": [],
+      "resources_released": true,
+      "peer_unaffected": null,
+      "stop_record": [
+        {
+          "id": "planner",
+          "method": "process_group_signal",
+          "outcome": "forced"
+        }
+      ]
+    },
+    {
+      "case": "ready_timeout",
+      "verdict": "PASS",
+      "state": "failed",
+      "cause": "E_ORCH_READY_TIMEOUT",
+      "error": "E_ORCH_READY_TIMEOUT",
+      "elapsed_wall_s": 1.091247,
+      "pid": 4089840,
+      "child_pid": 4089845,
+      "group_survivors": [],
+      "resources_released": true,
+      "peer_unaffected": null,
+      "stop_record": [
+        {
+          "id": "planner",
+          "method": "process_group_signal",
+          "outcome": "forced"
+        }
+      ]
+    },
+    {
+      "case": "run_timeout",
+      "verdict": "PASS",
+      "state": "failed",
+      "cause": "E_ORCH_RUN_TIMEOUT",
+      "error": null,
+      "elapsed_wall_s": 0.916862,
+      "pid": 4089950,
+      "child_pid": 4089953,
+      "group_survivors": [],
+      "resources_released": true,
+      "peer_unaffected": null,
+      "stop_record": [
+        {
+          "id": "planner",
+          "method": "process_group_signal",
+          "outcome": "forced"
+        }
+      ]
+    },
+    {
+      "case": "startup_error",
+      "verdict": "PASS",
+      "state": "failed",
+      "cause": "E_ORCH_START_FAILED",
+      "error": "E_ORCH_START_FAILED",
+      "elapsed_wall_s": 0.827582,
+      "pid": 4090039,
+      "child_pid": 4090050,
+      "group_survivors": [],
+      "resources_released": true,
+      "peer_unaffected": null,
+      "stop_record": [
+        {
+          "id": "planner",
+          "method": "process_group_signal",
+          "outcome": "forced"
+        },
+        {
+          "id": "bad",
+          "method": "kill",
+          "outcome": "stopped"
+        }
+      ]
+    },
+    {
+      "case": "cancel",
+      "verdict": "PASS",
+      "state": "cancelled",
+      "cause": "stopped",
+      "error": null,
+      "elapsed_wall_s": 0.824538,
+      "pid": 4090095,
+      "child_pid": 4090132,
+      "group_survivors": [],
+      "resources_released": true,
+      "peer_unaffected": null,
+      "stop_record": [
+        {
+          "id": "planner",
+          "method": "process_group_signal",
+          "outcome": "forced"
+        }
+      ]
+    },
+    {
+      "case": "isolation",
+      "verdict": "PASS",
+      "state": "failed",
+      "cause": "died:planner",
+      "error": null,
+      "elapsed_wall_s": 1.336467,
+      "pid": 4090244,
+      "child_pid": 4090247,
+      "group_survivors": [],
+      "resources_released": true,
+      "peer_unaffected": true,
+      "stop_record": [
+        {
+          "id": "planner",
+          "method": "process_group_signal",
+          "outcome": "forced"
+        }
+      ]
+    }
+  ]
+}

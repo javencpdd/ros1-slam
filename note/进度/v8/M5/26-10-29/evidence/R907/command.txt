@@ -1,0 +1,19 @@
+R907 命令（2026-10-30 01:30—01:36 CST，qoder；A2 进程/Gazebo 停止链）
+
+# 1) 真进程六腿（host）
+cd ws/src/90_platform/v8_platform/regression
+python3 -B a2_process_lifecycle.py --out /tmp/r907_a2.json
+# verdict=PASS，6 cells：crash/ready_timeout/run_timeout/startup_error/cancel/isolation；
+# 每组 group_survivors=[]、resources_released=true。
+
+# 2) Gazebo 闭环候选源（独立容器，network none，master 11871）
+# 容器内 source /opt/ros/noetic + /opt/ros1-slam/ws/devel；
+docker run -d --name r907-a2 --network none -e ROS_IP=127.0.0.1 -e ROS_HOSTNAME=127.0.0.1 \
+  -v /home/jack/ysc-code/ros1-slam:/repo:ro -v /tmp/r907:/out ros1-slam:noetic-sim bash -lc \
+  'source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash; \
+   cd /repo/ws/src/90_platform/v8_platform/regression; ulimit -c 0; \
+   python3 -B runtime_lab.py --out /out/out --port 11871 --gazebo --stop-test'
+# stop.json verdict=PASS；source_crash mux_zero_sim=0.498 s、physical_stop_sim=0.498 s、
+# coast=0.0993 m；supervisor_hold mux_zero_sim=0.046 s、physical_stop_sim=0.049 s、coast=0.00955 m。
+# 无进程组残留（stop/mux/gazebo/master 均空）。
+# 边界：不含感知触发、不含 #151 停车预算冻结、非真机。

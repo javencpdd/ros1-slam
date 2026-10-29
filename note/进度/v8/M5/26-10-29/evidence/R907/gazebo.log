@@ -1,0 +1,64 @@
+[33m[ WARN] [1793295260.576932587]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[0m[ INFO] [1793295261.659235079]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1793295261.664805478]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+Couldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+Couldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+Couldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+Couldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+[0m[ INFO] [1793295262.085798235]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1793295262.122869675, 0.006000000]: Physics dynamic reconfigure ready.[0m
+[0m[ INFO] [1793295263.167599760, 0.155000000]: load csv file name:/opt/ros1-slam/ws/src/95_simulation/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+terminate called recursively
+terminate called after throwing an instance of 'boost::wrapexcept<boost::lock_error>'
+  what():  boost: mutex lock failed in pthread_mutex_lock: Invalid argument
+Aborted
+[INFO] [1793295261.455591, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+[31mERROR: cannot launch node of type [lite3_gazebo_sim/tf_frame_assert.py]: Cannot locate node of type [tf_frame_assert.py] in package [lite3_gazebo_sim]. Make sure file exists in package path and permission is set to executable (chmod +x)[0m
+... logging to /out/out/logs/f70903a8-d3be-11f1-b63f-61e0451339f6/roslaunch-40fd8b9151ae-225.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/repo/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch
+[1mstarted roslaunch server http://127.0.0.1:33645/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /tf_frame_assert/expect_parent: map
+ * /tf_frame_assert/observe_sec: 3.0
+ * /tf_frame_assert/protected_child: odom
+ * /tf_frame_assert/timeout: 30.0
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    map_to_odom_static (tf2_ros/static_transform_publisher)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+    tf_frame_assert (lite3_gazebo_sim/tf_frame_assert.py)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11871[0m
+]2;/repo/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch http://127.0.0.1:11871
+[1mprocess[gazebo-1]: started with pid [449][0m
+[1mprocess[robot_state_publisher-2]: started with pid [452][0m
+[1mprocess[spawn_lite3_planar-3]: started with pid [455][0m
+[1mprocess[map_to_odom_static-4]: started with pid [456][0m
+[1mprocess[sim_adapter-6]: started with pid [457][0m
+[1m[spawn_lite3_planar-3] process has finished cleanly
+log file: /out/out/logs/f70903a8-d3be-11f1-b63f-61e0451339f6/spawn_lite3_planar-3*.log[0m
+[sim_adapter-6] killing on exit
+[map_to_odom_static-4] killing on exit
+[robot_state_publisher-2] killing on exit
+[gazebo-1] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
