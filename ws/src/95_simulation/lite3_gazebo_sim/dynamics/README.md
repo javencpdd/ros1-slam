@@ -63,3 +63,26 @@ planner errors, nonzero commands after refusal, false ascent claims, reused step
 worlds that would stack fixtures, and an actual body exceeding the planning
 envelope. Target-environment evidence must additionally run the command above;
 the pure tests do not certify physical navigation.
+
+## DreamWaQ 270-state adapter
+
+`mj_dreamwaq_walk.py` consumes a 270-input DreamWaQ-style policy: 45 current
+proprioceptive values plus five 45-value history frames (newest first), encoded
+to a 19-value latent; the actor outputs 12 joint actions. It is not the 45-input
+flat policy and the 225 history is not a height scan. Defaults follow the Lite3
+history-5 training configs: pose `[0,-1.0,1.8]x4`, action scale
+`[0.125,0.25,0.25]x4`, command scale `[2,2,0.25]`, 50 Hz, Kp 25, Kd 0.5,
+30 N.m torque limit. The adapter can generate a temporary 3-step world from a
+flat MJCF; it never edits the external model.
+
+```bash
+python3 -B mj_dreamwaq_walk.py --policy /path/to/lite3_walk_policy.onnx \
+  --xml /path/to/Lite3.xml --mode stairs --step-h .06 \
+  --seconds 10 --v-cmd .3 --out /tmp/dreamwaq-stairs.json
+```
+
+`stand`/`walk` use the flat XML. `stairs` reports `crossed_once` (xmax past the
+top without falling and with |y|<1 m at each step boundary) and `stable_finish`
+(pass plus final x past the top and |final y| within half the stair width);
+they are different claims. This is MuJoCo torque dynamics only: no real robot,
+no ROS execution, no #151 budget, and no contact-state acceptance.
