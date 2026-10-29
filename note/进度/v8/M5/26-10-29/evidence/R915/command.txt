@@ -1,0 +1,17 @@
+R915 命令（2026-10-30 02:16—02:24 CST，qoder；A7 执行面扩样）
+# 容器 ros1-slam-sim；source noetic + /opt/ros1-slam/ws/devel；独立 master 11425/11426；
+# ROS_HOSTNAME=127.0.0.1；实验配置 tick_s=1.2 / validity_s=2.0（与 R914 相同）；无 Gazebo/四足/#151。
+
+# SC01 第 1—3 次：3/3 到达，r1 运输 13.81 ms>10 ms、r2/r3 6.88/6.18 ms 全门通过
+python3 -B .../a7_exec_runtime.py --scenario SC01 --out /tmp/r915/SC01.json --wall-deadline-s 150
+python3 -B .../a7_exec_runtime.py --scenario SC01 --out /tmp/r915b/SC01_2.json --wall-deadline-s 150
+python3 -B .../a7_exec_runtime.py --scenario SC01 --out /tmp/r915b/SC01_3.json --wall-deadline-s 150
+
+# SC09 一次：越顶路线在计划过期前未完成终端爬行，末态 z=0.1499964（低 3.6 µm）→
+# 重新规划 resolve 判 E_LOCAL_SUPPORT；独立评价器报 execution_contact_mismatch /
+# execution_unsupported / static_collision（roof）。
+python3 -B .../a7_exec_runtime.py --scenario SC09 --out /tmp/r915/SC09.json --wall-deadline-s 150
+
+# 纯规划计时（无 ROS）：见 plan_timing.txt，SC01/SC06/SC09 = 0.864/0.982/1.044 s。
+# 测试：a7_exec 4 项参数测试；39 套件 0 失败（python3 -B 逐文件）。
+# 边界：SC09 是真实负例；不据离线模拟改判，也不改 local_native/evaluator/判据。

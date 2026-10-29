@@ -1,0 +1,23 @@
+{
+  "domain": "a7_3d_execution_runtime_probe_extension",
+  "config": {"tick_s": 1.2, "validity_s": 2.0},
+  "sc01": {"runs": 3, "arrived": 3, "all_gate_pass": 2,
+           "final_distance_m": [0.0784, 0.0784, 0.0796],
+           "transport_max_ms": [13.81, 6.88, 6.18],
+           "span_s": [99.05, 95.68, 94.38],
+           "evaluation_ok": [true, true, true],
+           "r1_gate": "only transport 13.81 ms > 10 ms"},
+  "sc09": {"runs": 1, "final_xyz": [-0.76745, -0.06143, 0.1499964],
+           "goal_xyz": [4.0, 0.0, 0.0], "status": "E_LOCAL_SUPPORT",
+           "evaluation_ok": false,
+           "failures": ["execution_contact_mismatch", "execution_unsupported", "static_collision"],
+           "static_collision_n": 40268,
+           "cause": "plan latency 0.86-1.04 s leaves <1 s of validity; terminal creep did not finish at expiry (z 2.7-3.6 um below roof top), then replan resolve rejects the start support"},
+  "plan_timing_s": {"SC01": 0.864, "SC06": 0.982, "SC09": 1.044},
+  "code": "5d81e1ae a7_exec_runtime + test; experimental config from a5655686",
+  "tests": {"a7_exec_args": 4, "v8_suites": 39, "failures": 0},
+  "scope": "3D multi-layer kinematic execution; no Gazebo; no four-leg contact; no #151",
+  "a7_execution": "SC06 positive 3/3 clean; SC01 positive 2/3 clean (3/3 arrived); SC09 negative (validity vs planning latency)",
+  "a7_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
