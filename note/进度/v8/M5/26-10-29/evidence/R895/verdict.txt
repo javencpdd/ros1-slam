@@ -1,0 +1,26 @@
+R895 · A5 step 容差 L1 裁定（独立实例 小美-L1-A5容差，只读）
+
+A. r1/r5 判假红/测量容差：11 点均在 ground→deck 转移线延长线上，残差≤5.6e-17；
+   仅越端点 6.7e-5/3.9e-5 m，z 高出 deck 1.67e-5/0.98e-5 m；x>0.2 后仍在 deck
+   footprint 内，static/dynamic=0/0；fraction 1.000111/1.000060 仅超 1e-6 门
+   111/60 倍，属 0.1 s 落地修正瞬态。物理语义是假红，但按现行 1e-6 仍是合法 FAIL。
+
+B. r2/r3 不同因，不能一起放宽：r2 6090、r3 5326 unsupported；起点 z=-1.99e-6/-2.73e-5，
+   contact_mismatch（r2 末点差>1e-5；r3 差 0.6 m）、static、末态在起点、E_LOCAL_SUPPORT、
+   未到达、transport 17.7/17.0 ms>10 ms。落点虽在 contact 1e-6 内，但离线 native.plan
+   从该落点选择绕路；r1 直行、r3 多次往返、r2 回退卡死。是真实规划/状态机行为；
+   放宽 evaluator 不会让它到达，且会吞掉负漂移与 mismatch。
+
+C. 处置：甲（保留 1e-6，A5 step 继续 FAIL）。
+   - 乙（contact 1e-6→≥2e-5、fraction 1e-6→≥1.5e-4）属放宽现行判据门值，L2 红线，需真人签；
+     本 L1 实例不自行改。若将来只余 r1/r5 型瞬态，再按乙提 L2 单。
+   - 丙（probe 吸附/量化）违反 local_planner README“不吸附回面/never snaps a wrong result
+     onto a support”，会掩盖真实 unsupported，且不改 r2/r3，禁止。
+   - 当前零协商可执行者只有甲：不放宽、不属 L2、不需真人。
+
+D. A5 仍不能升 PASS：r2/r3 根因、dynamic 2/5 运输门、R845 5/5 在 HEAD 不可复现；
+   仍缺修复后空载 5/5（带 code_ref）、A5 三维到达/跨层、A1—A7 全矩阵。
+   若走乙/丙，最小回归＝r1/r5 step PASS、r2/r3 仍 FAIL；反例（层间 z=0.075、
+   离转移线>2e-6、错误层、端点外 2 倍新容差、真实 static/dynamic 碰撞）均须 FAIL。
+
+E. 结论：A5 step 当前 FAIL；A5 整体 PARTIAL；A1—A7 仍 PARTIAL，整体验收 NOT_VALIDATED。
