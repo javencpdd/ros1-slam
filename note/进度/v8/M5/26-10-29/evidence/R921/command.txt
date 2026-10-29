@@ -1,0 +1,9 @@
+R921 命令（2026-10-30 03:14—03:22 CST，qoder；A6 NDT res0.25 探索）
+# 容器 ros1-slam-sim；NDT 二进制 /opt/ros1-slam/ws/devel/lib/v8_ndt_odom/ndt_odom_node；
+# 同一 R868 bag、m1_world_synth_v1.pcd、ext_z=0.34/ext_pitch=0.2617993878、score_max=100。
+# 每例：roscore + /use_sim_time true；ndt_odom_node _resolution:=0.25 _init_x:=X；
+# a6_ndt_replay.py 记录 /a6_ndt/odom /score /debug /sim/odom_gt；rosbag play --clock。
+# init_x=0.0/0.5/0.75/1.0，另 0.5 复跑一次。
+# 读数：ATE 0.01688/0.21246/0.05206/0.08724，0.5 复跑 0.20202；覆盖 99.5%；
+# 所有例 accepted/converged 85/85（0.5 为 84/84）；score 均值 5.46—5.98，不排序 ATE。
+# 边界：单 bag/单图/单场景；NDT 仍 monitor；不是后端切换。

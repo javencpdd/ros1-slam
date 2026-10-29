@@ -1,0 +1,20 @@
+{
+  "domain": "a6_ndt_resolution_0p25_exploratory",
+  "setup": {"bag": "R868 stream.bag.gz (/tmp/r874_stream.bag)", "map": "data/maps/m1_world_synth_v1.pcd",
+            "resolution_m": 0.25, "score_max": 100.0, "ext_z_m": 0.34,
+            "ext_pitch_rad": 0.2617993878, "scans": 85, "gt_samples": 433},
+  "offsets": {
+    "0.00": {"ate_rmse_m": 0.01688, "ate_max_m": 0.0377, "score_mean": 5.4606, "score_max": 13.704, "accepted": 85, "converged": 85},
+    "0.50": {"ate_rmse_m": 0.21246, "ate_max_m": 0.3318, "score_mean": 5.9692, "score_max": 14.715, "accepted": 84, "converged": 84},
+    "0.75": {"ate_rmse_m": 0.05206, "ate_max_m": 0.1261, "score_mean": 5.9387, "score_max": 14.725, "accepted": 85, "converged": 85},
+    "1.00": {"ate_rmse_m": 0.08724, "ate_max_m": 0.1819, "score_mean": 5.9846, "score_max": 14.743, "accepted": 85, "converged": 85},
+    "0.50_repeat": {"ate_rmse_m": 0.20202, "ate_max_m": 0.3353, "score_mean": 5.9358, "accepted": 85, "converged": 85}
+  },
+  "coverage": 0.995,
+  "finding": "res0.25 recovers the 0.75/1.0 m offsets that res0.5 failed; worst is 0.50 m at 0.202-0.212; all offsets accepted/converged; score varies 5.46-5.98 and does not rank ATE",
+  "limitations": ["single bag/map/scene", "no no-GT quality gate", "not a backend switch"],
+  "accuracy_backend_switch_tested": false,
+  "code": "a6_ndt_replay.py unchanged; NDT source d74c4ab7",
+  "a6_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
