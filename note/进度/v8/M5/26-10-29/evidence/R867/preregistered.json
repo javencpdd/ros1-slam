@@ -1,0 +1,40 @@
+{
+  "run_class": "runtime_experimental",
+  "set_id": "v8_a6_lio_ndt_same_stream_v1",
+  "slice": "same live /rslidar_points+/livox/imu stream; LIO /Odometry vs NDT monitor ~odom vs /sim/odom_gt",
+  "criteria": {
+    "pass_threshold": "none; measurement window, no frozen gate",
+    "reported": [
+      "ate_rmse_m",
+      "ate_max_m",
+      "ate_final_m",
+      "yaw_rmse_rad",
+      "rpe_1m_mean",
+      "rpe_1m_max",
+      "coverage",
+      "ndt_health",
+      "ndt_score"
+    ]
+  },
+  "config_lock": {
+    "lio": "faster_lio via m1_mapping.launch (faster_lio_outdoor.yaml, use_sim_time=true, pcd_save_en=false)",
+    "lio_topics": "/rslidar_points + /livox/imu -> /Odometry",
+    "ndt": "v8_ndt_odom ndt_odom_node output_role=monitor, map=data/maps/m1_world_synth_v1.pcd, resolution=1.0, score_max=2.0, ext=(0,0,0.34,0,15deg,0), init=(0,0,0)",
+    "ndt_topics": "/rslidar_points -> ~odom, ~healthy, ~score",
+    "world": "m1_world.world via m1_gazebo.launch gui:=false map_to_odom:=false",
+    "drive": "/cmd_vel 0.25 m/s for 12 s, then zero 3 s",
+    "truth": "/sim/odom_gt; both backends origin-aligned to GT first sample",
+    "evaluation": "ATE RMSE/max/final, yaw RMSE, RPE over 1 m GT displacement, coverage, NDT healthy/score"
+  },
+  "parameters_sha256": "b2e099653bddd59c9fbb391fbc6b711497999c0d5fb98ce4de89e534ea45e31b",
+  "evaluator": "a6_backend_compare.py (new, this batch)",
+  "pre_registered_at": "2026-10-29T03:51:14+00:00",
+  "status": "pre_registered",
+  "counts_planned": {
+    "N_total": 1,
+    "N_valid": null,
+    "N_invalid": null,
+    "N_pass": null,
+    "N_fail": null
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "set_id": "v8_a6_lio_ndt_same_stream_v1",
+  "run_class": "runtime_experimental",
+  "criteria": {
+    "pass_threshold": "none; measurement window, no frozen gate",
+    "reported": [
+      "ate_rmse_m",
+      "ate_max_m",
+      "ate_final_m",
+      "yaw_rmse_rad",
+      "rpe_1m_mean",
+      "rpe_1m_max",
+      "coverage",
+      "ndt_health",
+      "ndt_score"
+    ]
+  },
+  "parameters_sha256": "b2e099653bddd59c9fbb391fbc6b711497999c0d5fb98ce4de89e534ea45e31b",
+  "window": {
+    "t0": 2.6929999999999996,
+    "t1": 17.893,
+    "drive_seconds": 12.0,
+    "speed_m_s": 0.25
+  },
+  "samples": {
+    "gt": 755,
+    "lio": 149,
+    "ndt": 8
+  },
+  "lio": {
+    "matched": 748,
+    "covered": 0.990728476821192,
+    "ate_rmse_m": 0.06963493043231225,
+    "ate_max_m": 0.11646049107715017,
+    "ate_final_m": 0.10597247023516694,
+    "yaw_rmse_rad": 0.0034891433098326453,
+    "rpe_1m_mean": 0.03573548043809355,
+    "rpe_1m_max": 0.08088095943206167,
+    "rpe_pairs": 21900
+  },
+  "ndt": {
+    "matched": 60,
+    "covered": 0.07947019867549669,
+    "ate_rmse_m": 0.03709722227024566,
+    "ate_max_m": 0.0786074352120764,
+    "ate_final_m": 0.038305076218634326,
+    "yaw_rmse_rad": 0.0015394260060230213,
+    "rpe_1m_mean": null,
+    "rpe_1m_max": null,
+    "rpe_pairs": 0
+  },
+  "ndt_health": {
+    "messages": 151,
+    "healthy_true": 8,
+    "healthy_false": 143
+  },
+  "ndt_score": {
+    "messages": 150,
+    "mean": 6.798759351571401,
+    "max": 12.56396770477295
+  },
+  "verdict": "NDT_MONITOR_NOT_COMPARABLE",
+  "reason": "NDT accepted 8 of 151 health messages (5.3%); accepted poses only t=2.70-4.59 s (x 0.177-0.598 m); score mean 6.80 > configured score_max 2.00; LIO covered 99.1% of the window.",
+  "accuracy_backend_switch_tested": false,
+  "scope": "same live /rslidar_points+/livox/imu; LIO /Odometry vs NDT monitor ~odom vs /sim/odom_gt; no hardware",
+  "finished_at": "2026-10-29T03:52:41+00:00"
+}

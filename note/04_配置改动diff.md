@@ -7162,3 +7162,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 无配置改动：`runtime_lab` 按 R865 的构建（插件析构＋catkin 依赖）运行 2 后端×2 定位轨×3 场景×3 seed＝36 格，全部 `rc=0`、零 core。
 - 计数 `N_total=36/N_valid=36/N_invalid=0/N_pass=36`；最差终点 0.234 m、最小间隙 0.295 m（门 0.3/0.2）。noisy 轨使间隙下降（SC02 dwa 0.359→0.300），未越门。
 - 未改判据、冻结门值、第三方或 `sim` 服务；SC09 为可达障碍场景，不是 `E_PLAN_NO_ROUTE` 负控。详见 R866 与 `evidence/R866`。
+
+## R867（2026-10-29，qoder）：A6 同流对照驱动
+
+- 新增 `ws/src/90_platform/v8_platform/regression/a6_backend_compare.py`：同一 `/rslidar_points`＋`/livox/imu` 上同时记录 LIO `/Odometry`、NDT monitor `~odom` 与 `/sim/odom_gt`，驱动 `/cmd_vel` 0.25 m/s×12 s，输出 ATE/偏航/RPE@1m/覆盖率/健康与分数。
+- 运行配置：`m1_gazebo.launch gui:=false map_to_odom:=false`、`m1_mapping.launch`、`v8_ndt_odom output_role=monitor`、`map=m1_world_synth_v1.pcd`、`score_max=2.0`。
+- 结果：LIO 覆盖 99.1%、ATE 0.0696 m；NDT 仅 8/151 帧健康、覆盖 7.9%、score 均值 6.80>2.0。`accuracy_backend_switch_tested` 维持 false。未改第三方、判据与冻结值。详见 R867 与 `evidence/R867`。
