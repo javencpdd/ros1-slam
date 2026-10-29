@@ -1,0 +1,59 @@
+R889 命令（2026-10-29 20:18 CST，qoder；官网仿真段重排，web/ 本地）
+
+环境：宿主 /home/jack/ysc-code/ros1-slam；web 容器 ros1-slam-web（0.0.0.0:80->8000，只读挂载 /srv）。
+
+# 1) HTML 标签平衡（自建解析器，不入库）
+python3 - <<'PY'
+from html.parser import HTMLParser
+class P(HTMLParser):
+    def __init__(self):
+        super().__init__(); self.stack=[]; self.errors=[]
+    def handle_starttag(self,tag,attrs):
+        if tag not in ('img','br','meta','link','input','hr','source'):
+            self.stack.append((tag,self.getpos()))
+    def handle_endtag(self,tag):
+        if not self.stack:
+            self.errors.append(f'extra </{tag}>'); return
+        t,pos=self.stack.pop()
+        if t!=tag: self.errors.append(f'mismatch <{t}> {pos} </{tag}>')
+p=P(); p.feed(open('web/index.html',encoding='utf-8').read())
+print('errors',p.errors,'unclosed',p.stack)
+PY
+# 输出：errors [] unclosed []
+
+# 2) 服务与内容
+curl -s -H 'Cache-Control: no-cache' http://10.63.23.135/web/ | grep -o \
+  "仿真与界面：Gazebo 官方，MuJoCo 实验\|界面入口对照\|实拍图集\|本次更新（2026-10-29）" | sort | uniq -c
+# 输出：每项 1 次
+curl -sI http://10.63.23.135/web/ | head -20
+# 输出：HTTP/1.0 200 OK；Server: SimpleHTTP/0.6 Python/3.8.10
+
+# 3) 浏览器交互（browser-use；CSS 视口 868×871，DPR 2）
+# 页面：http://10.63.23.135/web/index.html?v=20261029e#sim
+# - [data-jump="sim-ui"].click() + 900ms：window.scrollY=1578，目标 #sim-ui top=86px
+# - details.acc.open=true：opened=true
+# - 控制台消息：0 条
+# - documentElement.scrollWidth - innerWidth = -15（无横向溢出）
+# - simmap：396.5px 396.5px（该视口两列）
+
+# 4) 三档截图（Chrome headless；URL 加 ?v= 破缓存）
+google-chrome --headless=new --disable-gpu --hide-scrollbars \
+  --window-size=1440,5000 --virtual-time-budget=3500 \
+  --screenshot=/tmp/r889_1440_full.png \
+  'http://10.63.23.135/web/index.html?v=20261029i#sim'
+google-chrome --headless=new --disable-gpu --hide-scrollbars \
+  --window-size=390,9000 --virtual-time-budget=3500 \
+  --screenshot=/tmp/r889_390_full.png \
+  'http://10.63.23.135/web/index.html?v=20261029i#sim'
+# 证据裁切（去掉页脚以下空白）
+python3 - <<'PY'
+from PIL import Image
+Image.open('/tmp/r889_1440_full.png').crop((0,0,1440,4750)).save(
+  'note/进度/v8/M5/26-10-29/evidence/R889/sim-page-1440.png')
+Image.open('/tmp/r889_390_full.png').crop((0,0,390,8860)).save(
+  'note/进度/v8/M5/26-10-29/evidence/R889/sim-page-390.png')
+PY
+
+# 5) 回归边界
+# 未启动仿真、未改 ws/、未改 calibration、未改 #151/A5 判据；
+# web/ 在 .gitignore，无提交。
