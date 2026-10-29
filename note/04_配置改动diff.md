@@ -7198,3 +7198,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 无配置/代码改动；更正：①（0.04 m 低台阶）与③（力控后腿）已在 R848 做过并证伪（0.04 m 仍 5/10；力控抬升 8.1→4.0 cm），不能再列为“未选项”。
 - 复核：`stair_pilot` 默认与 mixed 均止于 `E_GAIT_SHIFT_FAILED`、`force_reports=0`；改用 R848 世界件（sha256 `d5b77a6b…`）＋`step_swing=0.14`，pd/force/mixed/mixed+stance 四组均只 2 步（ADVANCE/LIFT/PLACE/CLIMB 四种失败相位）。
 - 照抄 R848 有效脚本在当前 v8codex 仍为 2/10（R848 v8cal 为 5/10）⇒ 基线不可直接复用，修力控抬升前须先对齐 harness。未改判据/第三方/冻结值。详见 R873。
+
+## R874（2026-10-29，qoder）：A6 score 分辨力标定
+
+- 无配置/代码改动：同一 R868 bag 回放，NDT res0.5、score_max=100（全放行），init_x 偏移 0/0.5/1.0 m。
+- 读数：0 m → 覆盖 99.5%、ATE 0.0162、score 5.44；0.5 m → 95.6%、0.0924、5.44；1.0 m → 85.5%、**3.0027**、**4.49**。
+- 判定：fitness 与对齐误差不单调，错位反而分数更低 ⇒ score_max 路线否决；NDT 仍 monitor。未改判据/第三方。详见 R874。
