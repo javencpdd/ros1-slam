@@ -21,6 +21,7 @@ BASE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE / 'orchestrator'))
 import orchestrator as orch  # noqa: E402
 from process_runner import ProcessRunner  # noqa: E402
+from a5_gazebo_runtime import sensed_box  # noqa: E402
 
 
 def owned_source(topic, speed):
@@ -56,12 +57,16 @@ def probe(args):
     import rospy
     from gazebo_msgs.msg import ModelStates
     from geometry_msgs.msg import Twist
+    from sensor_msgs.msg import PointCloud2
+    from sensor_msgs import point_cloud2 as pc2
     from std_msgs.msg import Bool
 
     rospy.init_node('a2_gazebo_stop', anonymous=True, disable_signals=True)
     guard = threading.Lock()
     physics = deque(maxlen=50000)
     commands = deque(maxlen=50000)
+    perception = {'enabled': False, 'trigger': None}
+    hold_active = False
 
     def model_cb(msg):
         if args.model not in msg.name:
@@ -79,16 +84,31 @@ def probe(args):
             commands.append({'wall': time.monotonic(), 'sim': rospy.Time.now().to_sec(),
                              'v': [msg.linear.x, msg.linear.y, msg.angular.z]})
 
+    def cloud_cb(msg):
+        nonlocal hold_active
+        if not perception['enabled'] or perception['trigger'] is not None:
+            return
+        points = list(pc2.read_points(msg, field_names=('x', 'y', 'z'), skip_nans=True))
+        observed, _roi = sensed_box(points)
+        if observed is None:
+            return
+        with guard:
+            perception['trigger'] = {'wall': time.monotonic(),
+                                     'sim': rospy.Time.now().to_sec(), 'obstacle': observed}
+        hold.publish(Bool(data=True))
+        hold_active = True
+
     def samples(queue):
         with guard:
             return list(queue)
 
     rospy.Subscriber('/gazebo/model_states', ModelStates, model_cb, queue_size=100)
+    rospy.Subscriber('/rslidar_points', PointCloud2, cloud_cb, queue_size=1)
     rospy.Subscriber(args.command_topic, Twist, cmd_cb, queue_size=100)
     hold = rospy.Publisher(args.hold_topic, Bool, queue_size=1, latch=True)
     runner = None
-    hold_active = False
     cases = []
+    box_name = None
     raw = []
     try:
         wait_for(lambda: len(samples(physics)) > 2, 30, 'Gazebo physical samples')
@@ -101,7 +121,22 @@ def probe(args):
         if existing_sources:
             raise RuntimeError('candidate source already owned: %r' % existing_sources)
         hold.publish(Bool(data=False))
-        for case in ('source_crash', 'supervisor_hold'):
+        for case in ('source_crash', 'supervisor_hold', 'perception_hold'):
+            if case == 'perception_hold':
+                from gazebo_msgs.srv import SpawnModel
+                from geometry_msgs.msg import Pose
+                box_name = 'a2_perception_box_%d' % os.getpid()
+                xml = ('<sdf version="1.6"><model name="%s"><static>true</static><link name="body">'
+                       '<collision name="collision"><geometry><box><size>.4 .4 .6</size></box></geometry></collision>'
+                       '<visual name="visual"><geometry><box><size>.4 .4 .6</size></box></geometry></visual>'
+                       '</link></model></sdf>') % box_name
+                pose = Pose()
+                pose.position.x, pose.position.z, pose.orientation.w = 1., .3, 1.
+                response = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)(
+                    box_name, xml, '', pose, 'world')
+                if not response.success:
+                    raise RuntimeError(response.status_message)
+                perception.update(enabled=False, trigger=None)
             # Start a new named source for each segment; readiness is connection-based.
             spec = orch.ComponentSpec('a2_owned_candidate', ['controller'], 'process_group_signal')
             runner = ProcessRunner(spec, [sys.executable, '-B', str(Path(__file__).resolve()),
@@ -122,14 +157,20 @@ def probe(args):
                 return p if moved >= 0.02 and speed >= 0.03 else None
 
             before = wait_for(moving, args.observation_timeout, 'physical movement: ' + case)
-            trigger_wall = time.monotonic()
-            trigger_sim = rospy.Time.now().to_sec()
-            if case == 'source_crash':
-                os.kill(runner.proc.pid, signal.SIGKILL)
-                wait_for(lambda: not runner.is_alive(), 3, 'candidate leader death')
+            if case == 'perception_hold':
+                perception['enabled'] = True
+                trigger = wait_for(lambda: perception['trigger'], args.observation_timeout,
+                                   'lidar perception: ' + case)
+                trigger_wall, trigger_sim = trigger['wall'], trigger['sim']
             else:
-                hold.publish(Bool(data=True))
-                hold_active = True
+                trigger_wall = time.monotonic()
+                trigger_sim = rospy.Time.now().to_sec()
+                if case == 'source_crash':
+                    os.kill(runner.proc.pid, signal.SIGKILL)
+                    wait_for(lambda: not runner.is_alive(), 3, 'candidate leader death')
+                else:
+                    hold.publish(Bool(data=True))
+                    hold_active = True
 
             def zero_after_trigger():
                 return next((c for c in samples(commands)
@@ -172,6 +213,11 @@ def probe(args):
                         'commands': [c for c in samples(commands) if c['wall'] >= begin_wall]})
             runner.reap()
             runner = None
+            if box_name is not None:
+                from gazebo_msgs.srv import DeleteModel
+                rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)(box_name)
+                box_name = None
+                perception.update(enabled=False, trigger=None)
             if case == 'supervisor_hold':
                 # A dead publisher can leave a still-fresh nonzero candidate in the
                 # mux cache. Keep hold until that final message has really expired.
@@ -180,7 +226,7 @@ def probe(args):
                          args.observation_timeout, 'candidate cache expiry before hold release')
             hold.publish(Bool(data=False))
             hold_active = False
-        return {'scope': 'A2.Gazebo_mux_candidate_crash_and_hold;no_perception_trigger;no_151_freeze',
+        return {'scope': 'A2.Gazebo_mux_candidate_crash_hold_perception;no_151_freeze',
                 'verdict': 'PASS', 'command_writers': cmd_writers,
                 'measurement_timebase': {'wall': 'time.monotonic receipt/trigger',
                                          'sim': 'current /clock at callback receipt; ModelStates has no header'},
@@ -189,7 +235,7 @@ def probe(args):
                              'stable_excursion_xy_m': 0.005, 'budget_frozen': False},
                 'cases': cases, 'raw_segments': raw}
     except Exception as exc:
-        return {'scope': 'A2.Gazebo_mux_candidate_crash_and_hold;no_151_freeze',
+        return {'scope': 'A2.Gazebo_mux_candidate_crash_hold_perception;no_151_freeze',
                 'verdict': 'FAIL', 'error': str(exc), 'cases': cases,
                 'raw_segments': raw + [{'case': 'failure_snapshot',
                                         'physics': samples(physics), 'commands': samples(commands)}]}
@@ -224,7 +270,7 @@ def main():
         result = probe(args)
     except Exception as exc:
         result = {'verdict': 'FAIL', 'error': str(exc),
-                  'scope': 'A2.Gazebo_mux_candidate_crash_and_hold;no_151_freeze'}
+                  'scope': 'A2.Gazebo_mux_candidate_crash_hold_perception;no_151_freeze'}
     encoded = json.dumps(result, ensure_ascii=False, indent=2) + '\n'
     if args.out:
         Path(args.out).write_text(encoded)
