@@ -405,8 +405,11 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
         cursor = parents.get(cursor)
     chain.reverse()
     points = [(*xyz(node), now + tick * config.tick_s) for node, tick in chain]
-    # A terminal hold makes stale command cutoff explicit and permits decel checking.
-    points.append((*points[-1][:3], points[-1][3] + config.tick_s))
+    # A terminal hold makes stale command cutoff explicit and permits decel
+    # checking. Keep it just inside the horizon: a full tick can exceed the
+    # checker's time budget through floating-point roundoff at some start times.
+    hold_s = max(1e-6, min(config.tick_s, config.horizon_s - (points[-1][3] - now)) - 1e-6)
+    points.append((*points[-1][:3], points[-1][3] + hold_s))
     layers = [state[0][0] for state in chain] + [chain[-1][0][0]]
     try:
         verdict = checker.check(map_value, points, z_tol=SUPPORT_TOL_S, min_clearance=required_ceiling,

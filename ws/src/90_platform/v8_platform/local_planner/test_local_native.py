@@ -159,6 +159,17 @@ class NativeTests(unittest.TestCase):
         self.assertLessEqual(result['trajectory'][-1][3], 2.)
         self.assertLess(result['valid_until'], result['trajectory'][-1][3])
 
+    def test_full_horizon_terminal_hold_stays_inside_time_budget(self):
+        # These start times reproduced E_TRAJ_TIME from a full tick hold appended
+        # at the horizon boundary (floating roundoff, ~12% of sampled starts).
+        value = flat()
+        value['surfaces'][0]['footprint']['max_x'] = 50.
+        for k in (1701, 1714, 1717, 1730, 1733):
+            result = native.plan(value, (0., 0., 0.), (20., 0., 0.),
+                                 now=k * .002,
+                                 config=replace(native.Config(), tick_s=.5))
+            self.assertLessEqual(result['trajectory'][-1][3] - result['trajectory'][0][3], 6.)
+
     def test_input_heartbeats_fail_closed(self):
         self.assertIsNone(ros_node.freshness(10., 9.5, 9.5, 9.5, True, 1.))
         self.assertEqual(ros_node.freshness(10., 9.5, 9.5, 9.5, False, 1.), 'E_LOCAL_LOCALIZATION')
