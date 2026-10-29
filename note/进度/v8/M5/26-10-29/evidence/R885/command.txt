@@ -19,6 +19,14 @@ for s in 0 1 2 3 4; do
   done
 done
 
+# 补跑 15 cm 的 seed 5-9（同一命令，仅 --seed 5..9、--step-h .15）
+for s in 5 6 7 8 9; do
+  python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+    --xml /tmp/mjcf/Lite3.xml --mode stairs --seconds 10 --v-cmd .3 \
+    --step-h .15 --heading-hold --yaw-gain 2.0 --y-gain 1.0 --max-wz .5 \
+    --seed $s --perturb --out /tmp/R885/stairs_s${s}_h.15.json
+done
+
 # 初值扰动（只改基座位姿，不改策略）：
 #   dx ±0.05 m，dy ±0.10 m，dyaw ±5°，dz ±0.005 m；同 seed 可复现。
 # 纯负控

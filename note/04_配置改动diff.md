@@ -7275,5 +7275,5 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 ## R885（2026-10-29，qoder）：#151 参数核对与多 seed 台阶
 
 - #151 核对：`PENDING_REQUIRED` 仍只有 `budgets.stop_time_s.value`／`budgets.stop_distance_m.value`，`SCOPED_REQUIRED` 无此二键；calibration 最后提交仍 `4fc80e57`（R852 回滚），本轮未改。R883/R884/R885 无停车触发/制动段，不能给两键定值。
-- 适配器增 `--seed/--perturb`（dx±0.05、dy±0.10、dyaw±5°、dz±0.005；只改初值）。5 seed：平地 walk 5/5；3×6/10 cm 台阶各 5/5 stable；3×15 cm 4/5（seed1 越顶后跌落，zmin .1191、动作爆到 6.26e20）。14/15 stable。
+- 适配器增 `--seed/--perturb`（dx±0.05、dy±0.10、dyaw±5°、dz±0.005；只改初值）。seed 0—4：平地 walk 5/5、3×6/10 cm 各 5/5 stable；3×15 cm 补到 seed 0—9 共 6/10（seed1/6/8 跌落、seed5 动作 NaN 数值发散）。
 - 未改判据/冻结值；非真机、非 #151 数据。详见 R885。
