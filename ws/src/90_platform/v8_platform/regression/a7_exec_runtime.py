@@ -2,10 +2,10 @@
 
 This is a scenario-level execution cell, not Gazebo dynamics and not a four-leg
 capability claim. It reuses the A5 runtime probe (ROS messages, continuous
-receipt-time integration and independent evaluator) with an SC03/SC04/SC06/SC08
-map. Long paths use the same experimental 1.2 s tick / 2.0 s validity as the A5
-step cell: the default 0.75 s validity is shorter than planning latency plus one
-tick, so such a plan would be expired before it is published.
+receipt-time integration and independent evaluator) with an SC01/SC03/SC04/SC06/
+SC08/SC09 map. Long paths use the same experimental 1.2 s tick / 2.0 s validity as
+the A5 step cell: the default 0.75 s validity is shorter than planning latency plus
+one tick, so such a plan would be expired before it is published.
 """
 import argparse
 import json
@@ -32,7 +32,8 @@ def case_args(sid):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--scenario', default='SC03', choices=['SC03', 'SC04', 'SC06', 'SC08'])
+    parser.add_argument('--scenario', default='SC03',
+                        choices=['SC01', 'SC03', 'SC04', 'SC06', 'SC08', 'SC09'])
     parser.add_argument('--out', required=True)
     parser.add_argument('--wall-deadline-s', type=float, default=90.)
     args = parser.parse_args()

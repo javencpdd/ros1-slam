@@ -33,6 +33,13 @@ class ExecRuntimeArgsTests(unittest.TestCase):
         self.assertEqual(goal, (4.0, 0.0, 0.0))
         self.assertIn('mezz', {s['surface_id'] for s in value['surfaces']})
 
+    def test_sc01_flat_diagonal_and_sc09_low_ceiling(self):
+        name, value, start, goal = a7_exec_runtime.case_args('SC01')
+        self.assertEqual((name, start, goal), ('sc01', (-4.0, -4.0, 0.0), (4.0, 4.0, 0.0)))
+        name, value, start, goal = a7_exec_runtime.case_args('SC09')
+        self.assertEqual((name, start, goal), ('sc09', (-4.0, 0.0, 0.0), (4.0, 0.0, 0.0)))
+        self.assertGreater(len(value['surfaces']), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
