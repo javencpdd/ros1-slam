@@ -1,0 +1,30 @@
+R888 命令（2026-10-29，qoder；sim 容器 + v8codex）
+
+# Gazebo 可选视觉层（原 stairstudy.launch / lite3_planar 物理不变）
+docker exec -d ros1-slam-sim bash -lc '
+  export DISPLAY=:99; export ROS_HOSTNAME=127.0.0.1; export ROS_IP=127.0.0.1
+  set +u; source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash
+  cd /opt/ros1-slam
+  setsid roslaunch lite3_gazebo_sim stairstudy_visual.launch gui:=true \
+    world_file:=stair_lab_stairs_easy.world spawn_x:=0.5 > /tmp/dogviz2.log 2>&1 < /dev/null'
+
+# 在位与位姿（模型名必须是 lite3_visual，来自 Lite3.urdf 的静态 SDF）
+rosservice call /gazebo/get_world_properties
+# model_names: ground_plane, stairs_easy, lite3_planar, lite3_visual
+rosservice call /gazebo/get_model_state "{model_name: lite3_visual}"
+# pose.position ≈ (0.623, 0.000, 0.590)，z_offset=0.30
+
+# 抓图（Xvfb :99 + scripts/ops/xshot.c -> PPM -> PNG）
+DISPLAY=:99 /tmp/xshot /tmp/dog4.ppm
+convert /tmp/dog4.ppm -crop 570x435+270+65 +repage -resize 1066x516 \
+  web/assets/sim-gazebo-stairs-dog.png
+
+# MuJoCo 真机模型单帧（可复现；三级 15 cm 台阶由 flat XML 生成）
+cd /repo
+MUJOCO_GL=osmesa python3 -B scripts/ops/mujoco_snapshot.py \
+  --flat-xml /tmp/mjcf/Lite3.xml --step-h .15 \
+  --out /tmp/mujoco_snapshot.png
+# 输出 web/assets/sim-mujoco-dog-stairs.png
+
+# 边界：视觉狗 static、无 collision、无关节动画；物理/判据仍是 lite3_planar；
+# Gazebo 楼梯场景不判爬楼；MuJoCo 图不替代 Gazebo/冻结判据/真机。
