@@ -1,0 +1,8 @@
+R911 命令（2026-10-30 01:47—01:52 CST，qoder；A7 非规划类归并）
+# 容器 network none；source noetic + /opt/ros1-slam/ws/devel；master 11911。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a4_runtime.py version --out /out/version.json
+python3 -B a4_runtime.py cancel  --out /out/cancel.json
+# version 3/3 PASS：v1 16 点/版本1、v2 39 点/版本2、v3 16 点/版本3；
+# cancel 2/2 PASS：SC01/SC02 均 plan 阶段 E_PLAN_CANCELLED。
+# 边界：ROS 规划服务；无 Gazebo/执行；SC11/SC14 仍设计层；不是四组合全矩阵。

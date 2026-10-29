@@ -1,0 +1,23 @@
+{
+  "domain": "a7_nonplanning_coverage",
+  "sc13_version": {"cells": 3, "passed": 3, "versions": [1, 2, 3], "points": [16, 39, 16]},
+  "a4_cancel": {"cells": 2, "passed": 2, "reasons": ["E_PLAN_CANCELLED", "E_PLAN_CANCELLED"]},
+  "coverage": {
+    "SC01": "flat2d runtime 36-cell slice (R893)",
+    "SC02": "flat2d runtime 36-cell slice (R893)",
+    "SC09": "flat2d runtime 36-cell slice (R893)",
+    "SC03": "ROS GetPlan runtime (R910)", "SC04": "ROS GetPlan runtime (R910)",
+    "SC05": "ROS GetPlan runtime (R910)", "SC06": "ROS GetPlan runtime (R910)",
+    "SC07": "ROS GetPlan expected failure (R910)", "SC08": "ROS GetPlan runtime (R910)",
+    "SC10": "ROS GetPlan expected failure (R910)",
+    "SC11": "design matrix tracking cell (R906); no ROS runtime",
+    "SC12": "A2 process isolation 6/6 + Gazebo 3/3 (R907/R909)",
+    "SC13": "A3 runtime 15/15 + A4 version 3/3 + A4 cancel 2/2 (R908/R911)",
+    "SC14": "design matrix sub-matrix cell (R906); no ROS runtime"
+  },
+  "planning_runtime_covered": "10/10",
+  "nonplanning_runtime_covered": ["SC12", "SC13"],
+  "nonplanning_design_only": ["SC11", "SC14"],
+  "a7_overall": "PARTIAL (no unified four-combo runtime/execution matrix)",
+  "a1_a7": "NOT_VALIDATED"
+}
