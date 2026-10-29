@@ -6,6 +6,8 @@ or silently convert a 3D velocity into the existing planar cmd_vel interface.
 """
 import json
 import math
+import multiprocessing as mp
+import queue
 import threading
 import time
 
@@ -58,6 +60,103 @@ def feedback_uncertainty(observed_at, now, commands, latency_bound_s):
     return latency_bound_s * (variation + math.sqrt(sum(v * v for v in velocity)))
 
 
+NON_LATCHING = {'E_LOCAL_WORLD_UPDATED', 'E_LOCAL_EXPIRED', 'E_LOCAL_NO_TRAJECTORY',
+                'E_LOCAL_NOT_READY', 'E_LOCAL_INPUT'}
+
+
+def stop_reason(fresh, latched, latched_reason, result, result_at, wall_now,
+                wall_watchdog_s, sim_now, generation, result_generation, last_error):
+    """Ordered fail-closed policy; plan validity is sim time, wall is a fallback.
+
+    World updates precede plan expiry so a sensed change is not relabelled as
+    an expired plan. A terminal reason latches until a new goal arrives.
+    """
+    if fresh is not None:
+        return fresh
+    if latched:
+        return latched_reason or 'E_LOCAL_STOP_LATCHED'
+    if result is None:
+        return last_error if last_error and last_error != 'ok' else 'E_LOCAL_NO_TRAJECTORY'
+    if generation != result_generation:
+        return 'E_LOCAL_WORLD_UPDATED'
+    valid_until = result.get('valid_until')
+    if sim_now and sim_now > 0 and valid_until is not None and sim_now >= valid_until:
+        return 'E_LOCAL_EXPIRED'
+    if wall_now - result_at >= wall_watchdog_s:
+        return 'E_LOCAL_WALL_EXPIRED'
+    return None
+
+
+def _planner_worker(requests, responses):
+    """Run pure-Python planning away from ROS callbacks and the control loop."""
+    while True:
+        item = requests.get()
+        if item is None:
+            return
+        try:
+            result = native.plan(item['map'], item['pose'], item['goal'], item['obstacles'],
+                                 now=item['now'], config=item['config'],
+                                 robot_profile=item['profile'])
+            responses.put({'seq': item['seq'], 'generation': item['generation'],
+                           'ok': True, 'result': result})
+        except native.LocalError as error:
+            responses.put({'seq': item['seq'], 'generation': item['generation'],
+                           'ok': False, 'error': getattr(error, 'code', 'E_LOCAL_INPUT'),
+                           'message': str(error)})
+        except Exception as error:
+            responses.put({'seq': item['seq'], 'generation': item['generation'],
+                           'ok': False, 'error': 'E_LOCAL_INPUT', 'message': repr(error)})
+
+
+class PlannerWorker:
+    """Single fork worker; the parent keeps ROS callbacks and control responsive."""
+
+    def __init__(self, config, profile):
+        ctx = mp.get_context('fork')
+        self.requests = ctx.Queue(maxsize=1)
+        self.responses = ctx.Queue(maxsize=1)
+        self.process = ctx.Process(target=_planner_worker, args=(self.requests, self.responses),
+                                   daemon=True)
+        self.process.start()
+        self.config = config
+        self.profile = profile
+        self.seq = 0
+        self.pending = None
+
+    def submit(self, map_value, pose, goal, obstacles, now, generation):
+        if self.pending is not None or not self.process.is_alive():
+            return False
+        self.seq += 1
+        try:
+            self.requests.put_nowait({'seq': self.seq, 'map': map_value, 'pose': pose,
+                                      'goal': goal, 'obstacles': obstacles, 'now': now,
+                                      'generation': generation, 'config': self.config,
+                                      'profile': self.profile})
+        except queue.Full:
+            return False
+        self.pending = self.seq
+        return True
+
+    def poll(self):
+        try:
+            payload = self.responses.get_nowait()
+        except queue.Empty:
+            return None
+        if payload.get('seq') != self.pending:
+            return None
+        self.pending = None
+        return payload
+
+    def close(self):
+        try:
+            self.requests.put_nowait(None)
+        except queue.Full:
+            pass
+        self.process.join(timeout=1.)
+        if self.process.is_alive():
+            self.process.terminate()
+
+
 def main():
     import rospy
     from geometry_msgs.msg import PoseStamped, TwistStamped
@@ -69,6 +168,9 @@ def main():
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
     if max_age <= 0:
         raise ValueError('input_max_age_s must be positive')
+    wall_watchdog_s = float(rospy.get_param('~wall_watchdog_s', max(5., 4. * config.validity_s)))
+    if wall_watchdog_s <= 0:
+        raise ValueError('wall_watchdog_s must be positive')
     map_path = rospy.get_param('~map_json')
     profile_path = rospy.get_param('~robot_profile_json', '')
     profile = None
@@ -80,7 +182,7 @@ def main():
               'obstacles_at': -1e100, 'localization_at': -1e100, 'localization_ok': False,
               'result': None, 'result_at': -1e100, 'map': None, 'generation': 0,
               'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'obstacle_key': None,
-              'pose_ros_stamp': 0.}
+              'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None}
     lock = threading.Lock()
     command_pub = rospy.Publisher(rospy.get_param('~command_topic', '/v8/local/cmd_vel_3d'),
                                   TwistStamped, queue_size=1)
@@ -105,7 +207,8 @@ def main():
                 shared.update(goal=None, last_error='E_LOCAL_FRAME')
                 return
             p = msg.pose.position
-            shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None)
+            shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
+                          stop_latched=False, stop_reason=None, last_error='ok')
 
     def on_obstacles(msg):
         try:
@@ -141,15 +244,13 @@ def main():
             wall_now = time.monotonic()
             with lock:
                 snapshot = dict(shared)
-            reason = freshness(wall_now, snapshot['pose_at'], snapshot['obstacles_at'],
-                               snapshot['localization_at'], snapshot['localization_ok'], max_age)
-            if reason is None and snapshot['result'] is None:
-                reason = snapshot['last_error']
-            if reason is None and wall_now - snapshot['result_at'] >= config.validity_s:
-                reason = 'E_LOCAL_WALL_EXPIRED'
-            if reason is None and snapshot['generation'] != snapshot['result_generation']:
-                reason = 'E_LOCAL_WORLD_UPDATED'
+            fresh = freshness(wall_now, snapshot['pose_at'], snapshot['obstacles_at'],
+                              snapshot['localization_at'], snapshot['localization_ok'], max_age)
             stamp = rospy.Time.now()
+            reason = stop_reason(fresh, snapshot['stop_latched'], snapshot['stop_reason'],
+                                 snapshot['result'], snapshot['result_at'], wall_now,
+                                 wall_watchdog_s, stamp.to_sec(), snapshot['generation'],
+                                 snapshot['result_generation'], snapshot['last_error'])
             if not reason and snapshot['map'] is not None:
                 try:
                     estimated = feedback_at(snapshot['pose'], snapshot['pose_ros_stamp'], stamp.to_sec(), command_history)
@@ -172,16 +273,25 @@ def main():
             command_history.append((stamp.to_sec(), tuple(out['velocity'])))
             command_history[:] = command_history[-200:]
             previous_control_stamp = stamp.to_sec()
-            status_pub.publish(String(data=json.dumps(dict(out, clock='ros+wall_watchdog',
-                                                           capability_domain='experimental_kinematic_carrier'
-                                                           if profile is None else 'validated_robot_profile'))))
+            status = dict(out, clock='ros_plan+wall_watchdog', wall_watchdog_s=wall_watchdog_s,
+                          capability_domain='experimental_kinematic_carrier'
+                          if profile is None else 'validated_robot_profile')
+            if snapshot['result'] is not None:
+                status['plan_valid_until'] = snapshot['result'].get('valid_until')
+            status_pub.publish(String(data=json.dumps(status)))
             if out.get('complete') or out['reason'].startswith('E_LOCAL_'):
                 with lock:
                     if shared['result'] is snapshot['result']:
-                        shared.update(result=None, last_error=out['reason'])
+                        terminal = (out['reason'].startswith('E_LOCAL_')
+                                    and out['reason'] not in NON_LATCHING
+                                    and snapshot['result_at'] > 0)
+                        shared.update(result=None, last_error=out['reason'],
+                                      stop_latched=terminal,
+                                      stop_reason=out['reason'] if terminal else None)
             # Intentionally wall time: paused /clock cannot suspend the zero-command watchdog.
             time.sleep(.05)
 
+    worker = PlannerWorker(config, profile)
     thread = threading.Thread(target=control_loop, daemon=True)
     thread.start()
     try:
@@ -192,6 +302,23 @@ def main():
             if rospy.get_param('~pause_planning', False):
                 time.sleep(.05)
                 continue
+            with lock:
+                if shared['stop_latched']:
+                    time.sleep(.05)
+                    continue
+            payload = worker.poll()
+            publish = False
+            if payload is not None:
+                with lock:
+                    if payload['generation'] == shared['generation']:
+                        if payload['ok']:
+                            shared.update(result=payload['result'], result_at=time.monotonic(),
+                                          result_generation=payload['generation'], last_error='ok')
+                            publish = True
+                        else:
+                            shared.update(result=None, last_error=payload['error'])
+                if publish:
+                    path_pub.publish(String(data=json.dumps(payload['result'])))
             with lock:
                 snapshot = dict(shared)
             try:
@@ -209,24 +336,23 @@ def main():
                                    snapshot['localization_at'], snapshot['localization_ok'], max_age)
                 stamp = rospy.Time.now().to_sec()
                 if reason is None and snapshot['pose'] is not None and snapshot['goal'] is not None and stamp > 0:
-                    result = native.plan(value, snapshot['pose'], snapshot['goal'], snapshot['obstacles'],
-                                         now=stamp, config=config, robot_profile=profile)
-                    with lock:
-                        if snapshot['generation'] == shared['generation']:
-                            shared.update(result=result, result_at=started,
-                                          result_generation=snapshot['generation'], last_error='ok')
-                    path_pub.publish(String(data=json.dumps(result)))
+                    if not worker.submit(value, snapshot['pose'], snapshot['goal'],
+                                         snapshot['obstacles'], stamp, snapshot['generation']):
+                        if not worker.process.is_alive():
+                            with lock:
+                                shared.update(result=None, last_error='E_LOCAL_PLANNER_DEAD')
                 else:
                     with lock:
                         shared.update(result=None, last_error=reason or 'E_LOCAL_NOT_READY')
-            except (native.LocalError, OSError, ValueError, KeyError) as error:
+            except (OSError, ValueError, KeyError) as error:
                 with lock:
                     shared.update(result=None, last_error=getattr(error, 'code', 'E_LOCAL_INPUT'))
-                rospy.logwarn_throttle(2., 'local planner refused: %s', error)
+                rospy.logwarn_throttle(2., 'local planner input error: %s', error)
             time.sleep(max(.01, .2 - (time.monotonic() - started)))
     finally:
         command_pub.publish(TwistStamped())
         thread.join(timeout=1.)
+        worker.close()
 
 
 if __name__ == '__main__':

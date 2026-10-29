@@ -2,7 +2,7 @@
 """Negative controls for the A5 refusal-chain measurement gate."""
 import unittest
 
-from a5_gazebo_runtime import classify_measurement
+from a5_gazebo_runtime import classify_measurement, first_terminal_zero
 
 WANTED = 'E_LOCAL_NO_ROUTE'
 
@@ -59,6 +59,15 @@ class MeasurementGateTest(unittest.TestCase):
         wanted = 'E_LOCAL_OBSTACLES_STALE'
         self.assertEqual(classify_measurement(
             'sensor_freshness', wanted, row(wanted, 1.0), row(wanted, 1.0), None), 'VALID')
+
+    def test_transient_zero_is_skipped(self):
+        rows = [row('E_LOCAL_EXPIRED', 1.0), row('E_LOCAL_NO_TRAJECTORY', 1.1),
+                row(WANTED, 1.2)]
+        self.assertEqual(first_terminal_zero(rows)['reason'], WANTED)
+
+    def test_world_update_is_a_terminal_zero(self):
+        rows = [row('E_LOCAL_WORLD_UPDATED', 1.0)]
+        self.assertEqual(first_terminal_zero(rows)['reason'], 'E_LOCAL_WORLD_UPDATED')
 
 
 if __name__ == '__main__':

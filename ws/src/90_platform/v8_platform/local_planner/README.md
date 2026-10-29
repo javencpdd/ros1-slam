@@ -88,4 +88,9 @@ PoseStamped `map/(0,0,0)`、Bool `true`、String `{"obstacles":[]}`，各 10 Hz�
 （出现零→非零→零）、`reason=ok` 也发零速、零后复动；修好并复测前，不得用本节点测全链
 停车预算。R881 修后四例回归只有 `arrival`/`localization` 为 VALID；`sensed_no_route` 与
 `sensor_freshness` 均被墙钟到期抢先（后者 `input_max_age_s=1.0` > `validity_s=0.9`），
-故 R841 的 4/4 不再作为当前运行面声明。
+故 R841 的 4/4 不再作为当前运行面声明。R882 起规划改在独立 fork worker 中执行（父进程只提交/
+轮询，不让规划长循环占用 ROS 回调与 50 ms 控制循环），计划有效期按自带的仿真 `valid_until`
+判，墙钟 `~wall_watchdog_s`（默认 max(5, 4×validity_s)）只作 /clock 停转兜底；零速锁存只在
+已有计划后生效，启动期 stale 不锁存；重规划间隙的 `E_LOCAL_NO_TRAJECTORY`/`E_LOCAL_EXPIRED`
+等瞬态零速不记为终端停车。修后四例 4/4 VALID（新口径），仍是 kinematic、无制动、
+单速度/单起点，不改变 #151 两键 pending 与 A5 三维到达/跨层未验收。

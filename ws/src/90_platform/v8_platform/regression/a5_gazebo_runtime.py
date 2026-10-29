@@ -74,6 +74,16 @@ def classify_measurement(case, wanted, first_zero, target, sense, status_rows=No
     return 'VALID'
 
 
+TRANSIENT_ZEROS = {'E_LOCAL_NO_TRAJECTORY', 'E_LOCAL_EXPIRED', 'E_LOCAL_NOT_READY',
+                   'E_LOCAL_INPUT', 'segment_complete', 'ok', 'hold'}
+
+
+def first_terminal_zero(status_rows):
+    """Skip replanning gaps; a terminal stop is the first non-transient zero."""
+    return next((r for r in status_rows
+                 if r.get('stop') and r.get('reason') not in TRANSIENT_ZEROS), None)
+
+
 def adapter(prefix, source_topic):
     import rospy
     from geometry_msgs.msg import Twist, TwistStamped
@@ -513,8 +523,11 @@ class Probe:
                 wanted = 'E_LOCAL_LOCALIZATION' if case == 'localization' else 'E_LOCAL_OBSTACLES_STALE'
                 localization, sensor_forward = case != 'localization', case != 'sensor_freshness'
             first_zero = self.wait(
-                lambda: next((r for r in self.rows('status', trigger['wall']) if r.get('stop')), None),
-                'first zero after trigger', localization=localization, sensor_forward=sensor_forward)
+                lambda: first_terminal_zero(self.rows('status', trigger['wall'])),
+                'first terminal zero after trigger', localization=localization, sensor_forward=sensor_forward)
+            transient_zeros = [r for r in self.rows('status', trigger['wall'])
+                               if r.get('stop') and r.get('reason') in TRANSIENT_ZEROS
+                               and r['wall'] <= first_zero['wall']]
             mux = self.wait(
                 lambda: next((r for r in self.rows('cmd_mux', first_zero['wall'])
                               if max(map(abs, r['xyz'])) <= 1e-6), None),
@@ -571,6 +584,7 @@ class Probe:
                                'reason': wanted, 'speed_before_m_s': math.hypot(*moving['linear'][:2]),
                                'trigger': trigger, 'refusal': first_zero,
                                'target_reason': target, 'first_obstacle_input': sense,
+                               'transient_zeros_before_stop': transient_zeros,
                                'latch_wall_s': latch_wall - trigger['wall'],
                                'trigger_to_first_zero_wall_s': first_zero['wall'] - trigger['wall'],
                                'trigger_to_first_zero_sim_s': first_zero['sim'] - trigger['sim'],
