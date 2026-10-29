@@ -158,8 +158,11 @@ def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
             obs = observation(data.qpos, data.qvel, command, last_action, default_pose)
             state = state_vector(obs, history, newest_first=history_newest_first)
             action = session.run(None, {input_name: state.reshape(1, -1)})[0].reshape(-1)
-            last_action = action.astype(np.float32)
             target = joint_target(action, default_pose)
+            if not np.all(np.isfinite(action)) or not np.all(np.isfinite(target)):
+                unstable = True
+                break
+            last_action = action.astype(np.float32)
             history = history[1:] + [obs]
         tau = np.clip(kp * (target - data.qpos[7:19]) - kd * data.qvel[6:18],
                       -TORQUE_LIMIT, TORQUE_LIMIT)
