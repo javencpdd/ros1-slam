@@ -17,6 +17,21 @@ from gazebo_msgs.srv import DeleteModel, SpawnModel, SetModelState
 from geometry_msgs.msg import Pose
 from nav_msgs.msg import Odometry
 
+# STL has no texture; tint the visual copy so the dog reads against white stairs.
+LINK_COLORS = {
+    'TORSO': ('0.10 0.12 0.15 1', '0.16 0.19 0.23 1'),
+    'HIP': ('0.85 0.35 0.05 1', '0.95 0.45 0.08 1'),
+    'THIGH': ('0.18 0.21 0.25 1', '0.28 0.32 0.37 1'),
+    'SHANK': ('0.55 0.58 0.62 1', '0.72 0.75 0.78 1'),
+}
+
+
+def link_color(name):
+    for key, value in LINK_COLORS.items():
+        if key in name:
+            return value
+    return ('0.20 0.23 0.27 1', '0.30 0.34 0.39 1')
+
 
 def visual_sdf(urdf, name, mesh_root):
     raw = subprocess.check_output(['gz', 'sdf', '-p', str(urdf)],
@@ -33,11 +48,22 @@ def visual_sdf(urdf, name, mesh_root):
     for parent in list(root.iter()):
         for collision in list(parent.findall('collision')):
             parent.remove(collision)
-    prefix = 'package://lite3_description/meshes/'
+    prefixes = ('package://lite3_description/meshes/',
+                'model://lite3_description/meshes/')
     for uri in root.iter('uri'):
         text = uri.text or ''
-        if text.startswith(prefix):
-            uri.text = 'file://' + str(Path(mesh_root) / text[len(prefix):])
+        for prefix in prefixes:
+            if text.startswith(prefix):
+                uri.text = 'file://' + str(Path(mesh_root) / text[len(prefix):])
+                break
+    for link in root.iter('link'):
+        ambient, diffuse = link_color(link.get('name', ''))
+        for visual in link.findall('visual'):
+            for material in visual.findall('material'):
+                visual.remove(material)
+            material = ET.SubElement(visual, 'material')
+            ET.SubElement(material, 'ambient').text = ambient
+            ET.SubElement(material, 'diffuse').text = diffuse
     return ET.tostring(root, encoding='unicode')
 
 

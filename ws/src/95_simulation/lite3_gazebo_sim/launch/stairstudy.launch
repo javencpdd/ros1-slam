@@ -20,6 +20,7 @@
   <arg name="payload_dir" default="$(find lite3_gazebo_sim)"/>
   <arg name="world_file" default="stair_lab_stairs_easy.world"/>
   <arg name="assert_timeout" default="30.0"/>
+  <arg name="carrier_visual" default="true"/>
 
   <!-- 起始位姿：八枚世界件的楼梯/墙/坡都在原点附近，生在原点会穿模 ⇒ 默认退到 -1.5 m。
        ★这是场景配置、不是门值★；按实验需要覆盖 spawn_x / spawn_y 即可。 -->
@@ -44,7 +45,7 @@
   </include>
 
   <!-- 机器人：与 m1_gazebo 同款 xacro → robot_description → spawn（gen1 载体：离地 0.34＋下倾 15°） -->
-  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/urdf/lite3_planar.urdf.xacro"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/urdf/lite3_planar.urdf.xacro carrier_visual:=$(arg carrier_visual)"/>
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
   <node name="spawn_lite3_planar" pkg="gazebo_ros" type="spawn_model"
         args="-urdf -param robot_description -model lite3_planar -x $(arg spawn_x) -y $(arg spawn_y) -z $(arg spawn_z)"/>
