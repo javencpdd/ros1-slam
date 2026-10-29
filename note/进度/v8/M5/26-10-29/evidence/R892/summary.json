@@ -1,0 +1,123 @@
+{
+  "a3": {
+    "passed": 15,
+    "total": 15
+  },
+  "a4": {
+    "cells": 4,
+    "passed": 4,
+    "expected_failures": 0,
+    "unexpected_failures": 0,
+    "same_as_design": 0
+  },
+  "a5_run1": {
+    "ok": false,
+    "complete_suite": true,
+    "hardware": false,
+    "cases": [
+      {
+        "name": "dynamic",
+        "ok": false,
+        "reason": "track",
+        "transport_max_s": 0.011324167251586914,
+        "transport_limit_s": 0.01,
+        "transport_violations": [
+          0.011324167251586914
+        ]
+      },
+      {
+        "name": "step",
+        "ok": true,
+        "reason": "track",
+        "transport_max_s": 0.0031113624572753906,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      },
+      {
+        "name": "blocked",
+        "ok": true,
+        "reason": "E_LOCAL_NO_ROUTE",
+        "transport_max_s": 0.0007429122924804688,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      },
+      {
+        "name": "localization",
+        "ok": true,
+        "reason": "E_LOCAL_LOCALIZATION",
+        "transport_max_s": 0.0017628669738769531,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      },
+      {
+        "name": "expiry",
+        "ok": true,
+        "reason": "E_LOCAL_EXPIRED",
+        "transport_max_s": 0.0016491413116455078,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      }
+    ]
+  },
+  "a5_run2": {
+    "ok": false,
+    "complete_suite": true,
+    "hardware": false,
+    "cases": [
+      {
+        "name": "dynamic",
+        "ok": true,
+        "reason": "track",
+        "transport_max_s": 0.0055882930755615234,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      },
+      {
+        "name": "step",
+        "ok": false,
+        "reason": "E_LOCAL_SUPPORT",
+        "transport_max_s": 0.01151895523071289,
+        "transport_limit_s": 0.01,
+        "transport_violations": [
+          0.01151895523071289
+        ]
+      },
+      {
+        "name": "blocked",
+        "ok": true,
+        "reason": "E_LOCAL_NO_ROUTE",
+        "transport_max_s": 0.0017476081848144531,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      },
+      {
+        "name": "localization",
+        "ok": true,
+        "reason": "E_LOCAL_LOCALIZATION",
+        "transport_max_s": 0.003280162811279297,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      },
+      {
+        "name": "expiry",
+        "ok": true,
+        "reason": "E_LOCAL_EXPIRED",
+        "transport_max_s": 0.0023713111877441406,
+        "transport_limit_s": 0.01,
+        "transport_violations": []
+      }
+    ]
+  },
+  "teb_cell": {
+    "verdict": "PASS",
+    "dist_to_goal_m": 0.199,
+    "wall_duration_s": 21.5,
+    "manifest": {
+      "run_id": "runtime_teb_SC01_s0_r1",
+      "backend": "teb",
+      "combo": "lite3_teb_mux",
+      "local_planner": "teb_local_planner/TebLocalPlannerROS"
+    },
+    "stack_has_DWA": false
+  }
+}

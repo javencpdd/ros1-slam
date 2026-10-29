@@ -1,0 +1,55 @@
+R892 命令（2026-10-29 21:31—21:35 CST，qoder；HEAD 复验＋TEB 清单修正）
+
+环境：宿主 /home/jack/ysc-code/ros1-slam；临时容器 r892-probe（ros1-slam:noetic-sim，
+--network none，/repo:ro，/out 可写）；镜像内 /opt/ros1-slam/ws/devel 已 source；
+仓库 HEAD=0e45a5b7，代码改动后提交 3d59c5f8。
+
+# 1) HEAD A3/A4/A5 复验（同一容器、同一 roscore:11311）
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11311 ROS_IP=127.0.0.1
+nohup roscore -p 11311 >/out/roscore.log 2>&1 </dev/null &
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a3_runtime.py --out /out/a3_head.json        # A3_RC=0；15/15
+python3 -B a4_runtime.py clearance --out /out/a4_head.json # A4_RC=0；4/4
+cd ../local_planner
+python3 -B runtime_probe.py --out /out/a5_head.json --wall-deadline-s 60
+# A5_RC=6；complete_suite=true，dynamic 失败：transport max 0.011324 s > limit 0.010 s
+python3 -B runtime_probe.py --out /out/a5_head2.json --wall-deadline-s 60
+# A5_RC=6；complete_suite=true，step 失败：transport max 0.011519 s > limit 0.010 s；
+# last_status reason=E_LOCAL_SUPPORT；independent_evaluation=false
+# A3/A4 JSON 与 A5 原始件见本目录；A5 第二跑大件 gzip 为 a5_head2.json.gz。
+
+# 2) TEB cell：修正后的 manifest 实测
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B runtime_lab.py --out /out/teb_cell --port 11401 \
+  --gazebo --backend teb --scenario SC01 --seed 0 --repetition 1
+# TEB_RC=0；driver verdict=PASS，dist_to_goal_m=0.199，wall=21.5 s
+python3 - <<'PY'
+import json
+m=json.load(open('/out/teb_cell/manifest.json'))
+print(m['backend'], m['combo'], m['local_planner'])
+print('stack_has_DWA', 'DWA' in m['config_lock']['stack'])
+PY
+# 输出：teb lite3_teb_mux teb_local_planner/TebLocalPlannerROS
+#       stack_has_DWA False
+
+# 3) 单测与全量
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B -m unittest -v test_runtime_lab.py
+# 2 tests OK
+cd /repo
+# 36 个 v8_platform test_*.py，逐件 python3 -B，全 rc0
+# 输出：SUITES=36 FAIL=0
+
+# 4) 审计结论（独立实例“小美-独立复核”，只读）
+# A1 PARTIAL／A2 PASS*（窄域）／A3 PARTIAL／A4 PARTIAL／A5 PARTIAL／A6 PARTIAL（切换 FAIL）／A7 PARTIAL；
+# runtime_release 维持 PARTIAL、full_A1_A7_acceptance 维持 NOT_VALIDATED，不可升格。
+# 关键缺口：A6 无第二可切换后端；A7 3/14 场景、1 次/seed；A5 无三维到达/跨层；
+# R866 36/36 是切片且 18 个 TEB 格 manifest 误写 DWA；12/36 墙钟>60 s（R866 用 120 s）。
+
+# 5) 环境事故与清理
+# /tmp 为 4.0G tmpfs，运行中曾 100% 满；已只清本批 /tmp/r892 临时目录及 r892-* 容器，
+# 未删用户数据；清理后 /tmp 可用 2.5G。A5/A4/A3/TEB 读数均在清理后重跑并落盘。
+
+# 边界：A1—A7 未升格；A5 仍未三维到达/跨层；未改判据、冻结值、R866 旧证据与第三方。

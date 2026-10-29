@@ -1,0 +1,18 @@
+R892 引用（代码提交 3d59c5f8 + 路径 + git blob sha1 + sha256）
+
+ws/src/90_platform/v8_platform/regression/runtime_lab.py
+  commit=3d59c5f8 blob=138a842c5fda32be5eba7b67ce4a9f2983c34acf
+  sha256=108f040f4f18459185530a4efe93af67ae99c238310170c3cee9076a2a6bae98
+ws/src/90_platform/v8_platform/regression/test_runtime_lab.py
+  commit=3d59c5f8 blob=80af46d25764cf0667ded988821cf41d1db93fd5
+  sha256=847c6fbe858a771de7650307c4d9e843d2b50c982bb8a11c0337ea0b6a0505f2
+
+改动：
+  - runtime_lab.manifest_for_backend：按实际 backend 改写 combo/planner/stack；
+    TEB 格不再继承 v12 模板的 lite3_dwa_mux／dwa_local_planner／DWA 参数块。
+  - test_runtime_lab：DWA/TEB 双态断言；TEB stack 不得残留 DWA。
+  - 未改 runtime_lab 的判据、冻结值、后端参数或 R866 旧证据。
+
+边界：A1—A7 仍 PARTIAL/NOT_VALIDATED；A5 的运行读数来自
+runtime_probe 的 ROS 消息夹具（gazebo=false／dynamics=false／hardware=false），
+不是 Gazebo 动力学或真机。
