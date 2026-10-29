@@ -1,0 +1,8 @@
+R906 命令（2026-10-30 01:45—01:50 CST，qoder；A7 正式集设计层）
+cd ws/src/90_platform/v8_platform/regression
+python3 -B regression.py run official > /tmp/r906_a7.jsonl
+# rc=0；首行 summary: cells=112, passed=88, expected_failures=24, unexpected_failures=0
+python3 -B test_regression.py
+# 9 项测试 OK（矩阵全绿、负例定位、估计轨、锁 digest、SC09、非 planning、SC05、注入、CLI）
+# 设计层纯 Python；无 ROS/Gazebo/真机。
+# 运行面正式集仍是 SC01/02/09 三场景 36 格（R893），不是 14 场景 112 格。
