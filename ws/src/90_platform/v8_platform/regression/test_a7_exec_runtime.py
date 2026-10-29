@@ -6,9 +6,19 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import a7_exec_runtime
+import runtime_probe
 
 
 class ExecRuntimeArgsTests(unittest.TestCase):
+    def test_long_path_uses_experimental_validity_explicitly(self):
+        self.assertEqual(a7_exec_runtime.execution_config(),
+                         {'tick_s': 1.2, 'validity_s': 2.0})
+        self.assertIsNone(runtime_probe.experimental_config('sc06'))
+        self.assertEqual(runtime_probe.experimental_config('sc06', a7_exec_runtime.execution_config()),
+                         {'tick_s': 1.2, 'validity_s': 2.0})
+        self.assertEqual(runtime_probe.experimental_config('step'),
+                         {'tick_s': 1.2, 'validity_s': 2.0})
+
     def test_sc03_two_layer_reverse(self):
         name, value, start, goal = a7_exec_runtime.case_args('SC03')
         self.assertEqual(name, 'sc03')

@@ -66,7 +66,22 @@ def motion_transport_latencies(receipts, epoch):
     return samples
 
 
-def run_case(name, value, start, goal, obstacles, behavior, deadline_s):
+def experimental_config(name, override=None):
+    """Execution-domain config: a plan must outlive its own planning latency.
+
+    The default 0.75 s validity is shorter than planning (0.6 s on long paths)
+    plus one tick, so such a plan is already expired when it is published. The
+    step case proved the experimental 1.2 s tick / 2.0 s validity; other callers
+    opt in explicitly and record the resulting config in their evidence.
+    """
+    if override is not None:
+        return dict(override)
+    if name == 'step':
+        return {'tick_s': 1.2, 'validity_s': 2.0}
+    return None
+
+
+def run_case(name, value, start, goal, obstacles, behavior, deadline_s, experimental=None):
     import rospy
     from geometry_msgs.msg import PoseStamped, TwistStamped
     from std_msgs.msg import Bool, String
@@ -106,8 +121,9 @@ def run_case(name, value, start, goal, obstacles, behavior, deadline_s):
                 '_obstacles_topic:=' + prefix + '/obstacles', '_localization_topic:=' + prefix + '/localization',
                 '_command_topic:=' + prefix + '/cmd', '_status_topic:=' + prefix + '/status',
                 '_trajectory_topic:=' + prefix + '/trajectory']
-        if name == 'step':
-            argv.append('_experimental_config:=' + json.dumps({'tick_s': 1.2, 'validity_s': 2.0}))
+        config = experimental_config(name, experimental)
+        if config is not None:
+            argv.append('_experimental_config:=' + json.dumps(config))
         with log_path.open('w') as stream:
             # Inherit probe PGID so a runtime-lab group timeout also kills this
             # node. Normal cleanup targets this child PID, never our own group.
