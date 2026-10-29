@@ -1,0 +1,28 @@
+R881 引用代码（提交 + 路径 + git blob sha1 + blob sha256）
+
+# 初始三例 a5_run1..3 使用的采集框架（提交态）
+ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py
+  commit=d74c4ab7 blob=99ed8712d8c385c22ea863742b088b567045995f
+  sha256=8c31611380cbb3ebacacb760166e88d4231f643d49673e83f74edff2b181dbc2
+
+# 框架修复后的工作区件（a5_fixcheck 使用；提交后以提交 blob 为准）
+ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py
+  baseline=d74c4ab7 working_sha256=646167e390df6dedf85f73eaf3b38c397cbe344a1922f7fee7540fbfec50e060
+ws/src/90_platform/v8_platform/regression/test_a5_gazebo_runtime.py
+  worktree_sha256=dcd7fb8b020d09b6da76eb23d32e979308406daf17e2a07f923ca8e6462f742e
+
+ws/src/90_platform/v8_platform/regression/runtime_lab.py
+  commit=4fc80e57 blob=7c65b607ac5291f9c99747016ffa3cf4012495e1
+  sha256=0acc7546183bf987dfaf913f5e71789b772416920b26756e2c8a5ce61194d2a0
+ws/src/90_platform/v8_platform/local_planner/local_native.py
+  commit=052f5e94 blob=3f7a3a20b1f62eb0dafe223d7a1e742f52ee3c8f
+  sha256=d07b6f7f7bbe3f1be0de72cfcb1f2b9595085a489df8c64185afd52fa0637096
+ws/src/90_platform/v8_platform/local_planner/ros_node.py
+  commit=d74c4ab7 blob=757aec3e3843548ec0413fd0f814f1aedcf40d49
+  sha256=fe20dbadfdd22c6d76ec698b8eab29ba00508ad1730612561f0021c65bebf1b9
+ws/src/90_platform/v8_platform/local_planner/evaluate.py
+  commit=d74c4ab7 blob=05269855fe04c700023c524f234d49b4914fdc38
+  sha256=3fc27aa026ae43d43997a9f2f9af63c127b4de2af87ba690fd4565aabaaa4134
+
+边界：初始三例未改代码、判据、冻结值或第三方；随后只改采集框架与新增负控，
+未改 ros_node/local_native/evaluate、未改 calibration 键。

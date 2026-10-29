@@ -1,0 +1,27 @@
+R881 命令（2026-10-29，qoder；容器 ros1-slam-sim，仓挂 /opt/ros1-slam）
+
+# 三条独立 lab，各只跑 sensed_no_route（run.log 的 START/EXIT 三条）
+# 命令按 runtime_lab.py 分支与 lab.json/run.log 复原，不是原始 argv；
+# 三条分别在 06:54:58 / 06:55:23 / 06:55:49 UTC 起
+cd /opt/ros1-slam
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R881/a5_run1 \
+  --gazebo --local-gazebo --local-cases sensed_no_route
+# run2 / run3 同，仅把 --out 换成 a5_run2 / a5_run3
+
+# 框架修复复核（1 例，同夹具）：--out 换成 a5_fixcheck
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R881/a5_fixcheck \
+  --gazebo --local-gazebo --local-cases sensed_no_route
+
+# 距离重算：按 R847 同式，在各 run 的 raw.physics 上，从触发墙钟到真实静止墙钟
+# 逐相邻采样累加 xy 位移。实现与负控见 code_ref.txt 所列 a5_gazebo_runtime.py 的
+# first_stable_stop / stop_distance_from_trigger_m / stop_distance_from_sense_m 字段。
+# 输出摘要：stop_budget_n3.json。
+
+# 首个零速/目标原因/首个障碍输入三时刻：同一 JSON 的 raw.status / raw.inputs，
+# 取 trigger.wall 之后的首个 stop=True、首个 reason=E_LOCAL_NO_ROUTE、首个带 obstacles
+# 的 measured_lidar_obstacles。输出摘要：first_zero_n3.json。
+
+# 真实静止口径：≤0.01 m/s、漂移 ≤5 mm、≥0.2—0.3 s 仿真，且首个零速后不得再出现非零命令。
+# 墙钟为主，仿真钟并列记 RTF；3D/mux 零速只作诊断。

@@ -55,6 +55,25 @@ def sensed_box(points):
     return {'min': lo, 'max': hi, 'velocity': [0., 0., 0.], 'stamp': 0.}, selected
 
 
+def classify_measurement(case, wanted, first_zero, target, sense, status_rows=None, rest_wall=None):
+    """Refusal chain must be causal and latched: an earlier zero, a missing cause,
+    a non-target cause, or a nonzero command before rest is INVALID, not PASS."""
+    if first_zero is None:
+        return 'INVALID_NO_ZERO'
+    if target is None:
+        return 'INVALID_NO_TARGET_REASON'
+    if first_zero.get('reason') != wanted:
+        return 'INVALID_PREEMPTED_' + str(first_zero.get('reason'))
+    if status_rows is not None and rest_wall is not None and any(
+            r.get('stop') is False and first_zero.get('wall', 0.) < r.get('wall', 0.) <= rest_wall
+            for r in status_rows):
+        return 'INVALID_UNLATCHED'
+    if case == 'sensed_no_route' and (sense is None or
+                                      first_zero.get('wall', 0.) < sense.get('wall', 0.)):
+        return 'INVALID_BEFORE_SENSING'
+    return 'VALID'
+
+
 def adapter(prefix, source_topic):
     import rospy
     from geometry_msgs.msg import Twist, TwistStamped
@@ -407,6 +426,24 @@ class Probe:
             return None
         return tail[0]
 
+    def first_stable_stop(self, after, status_after=None):
+        """First completed 0.3 s sim rest window; later nonzero commands disqualify it."""
+        rows = self.rows('physics', after)
+        status = self.rows('status', status_after if status_after is not None else after)
+        for i, first in enumerate(rows):
+            tail = [r for r in rows[i:] if r['sim'] - first['sim'] <= .3]
+            if len(tail) < 4 or tail[-1]['sim'] - first['sim'] < .2:
+                continue
+            if any(math.hypot(*r['linear'][:2]) > .01 or abs(r['angular'][2]) > .01 for r in tail):
+                continue
+            if max(math.dist(r['xyz'][:2], first['xyz'][:2]) for r in tail) > .005:
+                continue
+            if any(r.get('stop') is False and first['wall'] < r['wall'] <= tail[-1]['wall']
+                   for r in status):
+                continue
+            return first
+        return None
+
     def spawn(self):
         from gazebo_msgs.srv import SpawnModel, GetModelState
         from geometry_msgs.msg import Pose
@@ -460,6 +497,7 @@ class Probe:
             stopped = self.wait(lambda: self.stable_stop(trigger['wall']), 'arrival physical stop')
             last = self.rows('physics')[-1]
             self.cases.append({'case': case, 'ok': math.dist(last['xyz'][:2], (2., 0.)) <= .10,
+                               'measurement': 'VALID',
                                'actual_final_body_xyz': last['xyz'], 'goal_support_xyz': [2., 0., 0.],
                                'global_route': self.global_route,
                                'global_waypoints_consumed': self.route_goal_index + 1 if self.global_route else None,
@@ -474,28 +512,82 @@ class Probe:
                 trigger = self.event('localization_false' if case == 'localization' else 'drop_obstacle_forwarding')
                 wanted = 'E_LOCAL_LOCALIZATION' if case == 'localization' else 'E_LOCAL_OBSTACLES_STALE'
                 localization, sensor_forward = case != 'localization', case != 'sensor_freshness'
-            status = self.wait(lambda: next((r for r in self.rows('status', trigger['wall']) if r.get('reason') == wanted), None),
-                               'local rejection ' + wanted, localization=localization, sensor_forward=sensor_forward)
-            zero3d = self.wait(lambda: next((r for r in self.rows('cmd3d', status['wall']) if max(map(abs, r['xyz'])) <= 1e-6), None),
-                               '3D zero after refusal', localization=localization, sensor_forward=sensor_forward)
-            mux = self.wait(lambda: next((r for r in self.rows('cmd_mux', zero3d['wall']) if max(map(abs, r['xyz'])) <= 1e-6), None),
-                            'mux zero after 3D refusal', localization=localization, sensor_forward=sensor_forward)
-            stopped = self.wait(lambda: self.stable_stop(mux['wall']), 'physical stop after refusal',
-                                localization=localization, sensor_forward=sensor_forward)
+            first_zero = self.wait(
+                lambda: next((r for r in self.rows('status', trigger['wall']) if r.get('stop')), None),
+                'first zero after trigger', localization=localization, sensor_forward=sensor_forward)
+            mux = self.wait(
+                lambda: next((r for r in self.rows('cmd_mux', first_zero['wall'])
+                              if max(map(abs, r['xyz'])) <= 1e-6), None),
+                'mux zero after first zero', localization=localization, sensor_forward=sensor_forward)
+            target = None
+            target_deadline = time.monotonic() + 2.
+            while time.monotonic() < target_deadline:
+                self.pump(localization, sensor_forward)
+                target = next((r for r in self.rows('status', trigger['wall'])
+                               if r.get('reason') == wanted), None)
+                if target is not None:
+                    break
+                time.sleep(.02)
+            status = self.rows('status', trigger['wall'])
+            latch_end = target['wall'] if target is not None else first_zero['wall'] + 1.
+            nonzero = [r for r in status
+                       if first_zero['wall'] <= r['wall'] <= latch_end and r.get('stop') is False]
+            latch_wall = max([r['wall'] for r in nonzero], default=first_zero['wall'])
+            while True:
+                stopped = self.wait(
+                    lambda: self.first_stable_stop(latch_wall, status_after=latch_wall),
+                    'first physical rest after latch', localization=localization,
+                    sensor_forward=sensor_forward)
+                status = self.rows('status', trigger['wall'])
+                late = [r for r in status
+                        if first_zero['wall'] <= r['wall'] <= latch_end and r.get('stop') is False]
+                if not late:
+                    break
+                new_latch = max(r['wall'] for r in late)
+                if new_latch <= latch_wall:
+                    break
+                latch_wall = new_latch
+            sense = next((r for r in self.rows('inputs', trigger['wall'])
+                          if r.get('kind') == 'measured_lidar_obstacles'
+                          and r.get('payload', {}).get('obstacles')), None)
+            measurement = classify_measurement(case, wanted, first_zero, target, sense,
+                                               status_rows=status, rest_wall=stopped['wall'])
+
+            def path_between(start_wall, end_wall):
+                seg = [r for r in self.rows('physics', start_wall) if r['wall'] <= end_wall]
+                return sum(math.dist(a['xyz'][:2], b['xyz'][:2]) for a, b in zip(seg, seg[1:]))
+
             truth = self.rows('physics', trigger['wall'])
             min_box_gap = None
             if case == 'sensed_no_route':
                 # Independent known-spawn-geometry metric; never fed to planner.
                 min_box_gap = min(math.hypot(max(abs(r['xyz'][0] - 1.) - .2, 0.),
                                              max(abs(r['xyz'][1]) - .2, 0.)) - self.execution_config['radius_m'] for r in truth)
-            self.cases.append({'case': case, 'ok': min_box_gap is None or min_box_gap >= self.execution_config['clearance_m'],
+            self.cases.append({'case': case,
+                               'ok': (min_box_gap is None or min_box_gap >= self.execution_config['clearance_m'])
+                                     and measurement == 'VALID',
+                               'measurement': measurement,
                                'required_body_clearance_m': self.execution_config['clearance_m'],
                                'reason': wanted, 'speed_before_m_s': math.hypot(*moving['linear'][:2]),
-                               'trigger': trigger, 'refusal': status,
-                               'trigger_to_3d_zero_wall_s': zero3d['wall'] - trigger['wall'],
+                               'trigger': trigger, 'refusal': first_zero,
+                               'target_reason': target, 'first_obstacle_input': sense,
+                               'latch_wall_s': latch_wall - trigger['wall'],
+                               'trigger_to_first_zero_wall_s': first_zero['wall'] - trigger['wall'],
+                               'trigger_to_first_zero_sim_s': first_zero['sim'] - trigger['sim'],
+                               'trigger_to_target_reason_wall_s':
+                                   (target['wall'] - trigger['wall']) if target else None,
+                               'trigger_to_3d_zero_wall_s': first_zero['wall'] - trigger['wall'],
                                'trigger_to_mux_zero_wall_s': mux['wall'] - trigger['wall'],
                                'trigger_to_physical_stop_wall_s': stopped['wall'] - trigger['wall'],
                                'trigger_to_physical_stop_sim_s': stopped['sim'] - trigger['sim'],
+                               'stop_from_sense_wall_s':
+                                   (stopped['wall'] - sense['wall']) if sense else None,
+                               'stop_from_sense_sim_s':
+                                   (stopped['sim'] - sense['sim']) if sense else None,
+                               'stop_distance_from_sense_m':
+                                   path_between(sense['wall'], stopped['wall']) if sense else None,
+                               'stop_distance_from_trigger_m':
+                                   path_between(trigger['wall'], stopped['wall']),
                                'GT_min_radial_box_clearance_m': min_box_gap})
         self.stop_owned()
         if case == 'sensed_no_route':
@@ -542,6 +634,10 @@ class Probe:
 
     def record(self, error=None):
         return {'ok': error is None and bool(self.cases) and all(c['ok'] for c in self.cases),
+                'measurement_valid': error is None and all(
+                    c.get('measurement') == 'VALID' for c in self.cases),
+                'measurement_rule': 'first zero/cause after trigger; sensed_no_route requires '
+                                    'first zero after first obstacle input; preemption is INVALID',
                 'error': error, 'cases': self.cases, 'events': self.events,
                 'domain': 'native_3D_planner_flat_explicitly_gated_planar_Gazebo_dynamics',
                 'hardware': False, 'four_foot_contact_or_cross_layer': False, 'budget_151_frozen': False,

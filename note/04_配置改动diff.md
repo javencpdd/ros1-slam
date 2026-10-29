@@ -7239,3 +7239,14 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `mj_ros_bridge.py`/`mj_ros2_bridge.py` 增 `--scan-tilt-deg`/`--scan-fov-deg`（默认 0/360，保 R876 口径）与 IMU `linear_acceleration`（机体系速度差分 + 9.81 比力）。
 - 新增 `docker/rviz_mj_bridge.rviz`（Fixed Frame odom，Grid/TF/LaserScan/Odometry）与 `scripts/ops/mj_runtime_stage.sh`（跨容器搬运 mujoco/glfw/ORT，必要时 numpy）。
 - 实测：15°/180° 扫描 angle ±1.5708、inc 0.03491、90 线；IMU 199/200 非零 x/y、z 7.59—13.50；RViz Status Ok/31 fps；ROS2 bag 5.236 s（odom 262/scan 53/tf 263）。详见 R880。
+
+## R881（2026-10-29，qoder）：#151 两停车键口径与 A5 路线
+
+- 无配置/代码改动；A5 `sensed_no_route` 三例重跑（0.4 m/s、kinematic 载体、单起点、n=3）。
+- 首个零速 +0.6017/+0.6637/+0.6324 s 墙钟（+0.242/+0.263/+0.269 s 仿真），原因均 `E_LOCAL_WALL_EXPIRED`；首个障碍输入比首个零速晚 33/55/153 ms ⇒ 物理停车非避障触发，对 #151 判 **INVALID（因果前置）**。
+- 框架 `trigger_to_3d_zero_wall_s` 0.7030/0.8166/0.9870 s 是先等 `E_LOCAL_NO_ROUTE` 再取零速，掩盖更早零速；mux 首个零速 +0.6669/+0.8002/+0.6433 s。
+- 物理真实静止 +0.6865/+0.8340/+0.9208 s 墙钟、+0.285/+0.343/+0.394 s 仿真（旧框架记录 0.7874/0.9538/1.0876 是晚 mux 后稳定尾窗起点，偏晚 0.101—0.167 s）；触发→静止距离 0.107336/0.123696/0.123696 m，感知→静止仅 0.004389/0.013168/0.012769 m；RTF 0.409—0.439。
+- run3 零速未锁存：+0.6324 零（WALL_EXPIRED）→+0.7339/+0.7843 非零（track）→+0.8352 零（reason=ok）→+0.9359 NO_ROUTE。
+- 根因：计划 `valid_until` 为仿真钟（1.926/1.727/2.085），节点看门狗按墙钟 0.9 s 撤销（墙钟距计划创建 0.908/0.912/0.908 s），RTF≈0.41 时声明有效期还剩 0.509—0.528 s；且 `E_LOCAL_WALL_EXPIRED` 判定先于 `E_LOCAL_WORLD_UPDATED`。
+- 采集框架已改 `ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py`（首个零速/目标原因/首个障碍输入/锁存点/首个稳定静止窗，前置与未锁存判 INVALID），新增 `test_a5_gazebo_runtime.py` 9 项负控；`a5_fixcheck` 单例输出 `INVALID_PREEMPTED_E_LOCAL_WALL_EXPIRED`、rc=6。
+- 结论：#151 两键继续 pending；需有制动载体、≥3 起点×3 次、距离窗从首个障碍输入起算。A5 采用 `local_native` 作算法/申报域正式路线，不采用当前 `ros_node.py` 运行时接线。详见 R881。
