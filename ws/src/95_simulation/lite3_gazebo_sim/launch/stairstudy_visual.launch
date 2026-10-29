@@ -1,0 +1,26 @@
+<launch>
+  <!-- Optional visual layer for stairstudy: a static, collision-free Lite3 URDF
+       follows /sim/odom_gt. The planar carrier remains the only physics body and
+       all official criteria stay unchanged. -->
+
+  <arg name="gui" default="true"/>
+  <arg name="world_file" default="stair_lab_stairs_easy.world"/>
+  <arg name="spawn_x" default="-1.5"/>
+  <arg name="spawn_y" default="0.0"/>
+  <arg name="spawn_z" default="0.15"/>
+  <arg name="assert_timeout" default="30.0"/>
+  <arg name="z_offset" default="0.30"/>
+
+  <include file="$(find lite3_gazebo_sim)/launch/stairstudy.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="world_file" value="$(arg world_file)"/>
+    <arg name="spawn_x" value="$(arg spawn_x)"/>
+    <arg name="spawn_y" value="$(arg spawn_y)"/>
+    <arg name="spawn_z" value="$(arg spawn_z)"/>
+    <arg name="assert_timeout" value="$(arg assert_timeout)"/>
+  </include>
+
+  <node name="gazebo_dog_visual" pkg="lite3_gazebo_sim" type="gazebo_dog_visual.py"
+        output="screen"
+        args="--urdf $(find lite3_description)/urdf/Lite3.urdf --model-name lite3_visual --odom-topic /sim/odom_gt --z-offset $(arg z_offset) --rate 20.0"/>
+</launch>
