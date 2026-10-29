@@ -7265,3 +7265,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 新增 `ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_dreamwaq_walk.py`：45 当前本体＋5×45 历史（最新在前）→19 latent→12 动作；默认姿态 `[0,-1,1.8]×4`、动作缩放 `[0.125,.25,.25]×4`、命令缩放 `[2,2,.25]`、50 Hz、Kp25/Kd0.5、30 N·m；可临时生成 3 级台阶世界，不改外部 MJCF。
 - 平地：stand PASS（终点 z 0.2307、xy 漂移 0.033）；walk PASS（3 s 2.6594 m、zmin 0.2167）。
 - 台阶：3×6 cm crossed_once PASS，3×10 cm crossed_once PASS（越过后回退/横漂，stable_finish=false），3×15 cm FAIL（跌落，zmin 0.1193）。未改判据/冻结值，非真机、非 #151。详见 R883。
+
+## R884（2026-10-29，qoder）：DreamWaQ 航向纠偏
+
+- `mj_dreamwaq_walk.py` 增 `--heading-hold`：`wz=clip(-yaw_gain·yaw - y_gain·y, ±max_wz)`，vx 不变；R884 用 2.0/1.0/0.5。
+- 平地 max|y| 0.1429→0.0478（x 2.659→2.589 m/3 s）；3×6/10/15 cm 台阶 `stable_finish` 全部 true；15 cm 无纠偏时 zmin 0.1193 跌落，有纠偏 zmin 0.1702 通过。
+- 航向外环用 MuJoCo 世界 y/yaw 真值；非真机、非 #151，未改冻结值。详见 R884。

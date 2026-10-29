@@ -1,0 +1,31 @@
+R884 命令（2026-10-29，qoder；v8codex-20261028，仓挂 /repo 只读，脚本副本 /tmp 与提交 3ecc08c8 字节一致）
+
+# 模型/场地
+# /tmp/lite3_walk_policy.onnx  sha256 881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f
+# /tmp/mjcf/Lite3.xml          sha256 9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa
+export PYTHONPATH=/tmp/r854-policy-runtime
+
+# 平地增益筛选（3 s，0.3 m/s，heading hold）
+for g in "1.0 .5 .4" "2.0 1.0 .5" "0.5 .25 .3"; do
+  set -- $g
+  python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+    --xml /tmp/mjcf/Lite3.xml --mode walk --seconds 3 --v-cmd .3 \
+    --heading-hold --yaw-gain $1 --y-gain $2 --max-wz $3 \
+    --out /tmp/R884_walk_$1_$2.json
+done
+
+# 选定 2.0/1.0/0.5，跑 3 级台阶（6/10/15 cm，深 .5 m，宽 3 m，10 s）
+for h in .06 .10 .15; do
+  python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+    --xml /tmp/mjcf/Lite3.xml --mode stairs --seconds 10 --v-cmd .3 \
+    --step-h $h --steps 3 --step-depth .5 --step-width 3.0 --step-front 1.0 \
+    --heading-hold --yaw-gain 2.0 --y-gain 1.0 --max-wz .5 \
+    --out /tmp/R884_stairs_$h.json
+done
+
+# 无纠偏对照：R883 的 stairs_.06/.10/.15.json（同一模型/场地/时长）
+# 纯负控
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/dynamics/test_mj_dreamwaq_walk.py
+
+# 判读：pass=crossed_once；stable_finish=pass 且终点 x 过最高阶、终点 |y| < 半阶宽。
+# heading hold 使用 MuJoCo 世界 y/yaw（真值），不是真机状态估计。
