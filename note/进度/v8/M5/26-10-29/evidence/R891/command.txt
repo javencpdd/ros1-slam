@@ -1,0 +1,99 @@
+R891 命令（2026-10-29 20:52 CST，qoder；官网全站口径审计，web/ 本地）
+
+# 1) 台账依据（只读）
+grep -n "V8-15" note/计划书v8/23_v8任务队列.md | tail -3
+# 输出：V8-15 已完成；主线 V8-00—V8-14 十五件全部收口（R659），R663 追加 V8-15 后为十六件
+grep -n "主线十六件\|主线十五件" note/进度/v8/README.md
+# 输出：R663 行＝主线十六件全齐；R659 行＝主线十五件全部收口（历史）
+grep -n "NOT_VALIDATED\|PARTIAL" note/进度/00_总览.md | tail -5
+# 输出：R844 runtime_release=PARTIAL、A1—A7 NOT_VALIDATED（官网不得写成“验收证据/进行中”）
+grep -n "DIGEST =\|'max_localization_error_m'\|'min_pass_rate'\|'stop_time_s'\|'stop_distance_m'" \
+  ws/src/90_platform/v8_platform/calibration/calibration.py | head -12
+# 输出：digest ddc8f9f0…；0.22/0.90；stop 两键 pending（R852 回滚后）
+
+# 2) 页面文本审计（提取各 section 文本）
+python3 - <<'PY'
+from html.parser import HTMLParser
+import re, html
+s=open('web/index.html',encoding='utf-8').read()
+for m in re.finditer(r'<section id="([^"]+)" class="page">(.*?)</section>', s, re.S):
+    sid, body=m.group(1), m.group(2)
+    body=re.sub(r'<[^>]+>',' ',body); body=html.unescape(body); body=re.sub(r'\s+',' ',body)
+    print('\n###', sid, len(body)); print(body[:900])
+PY
+
+# 3) 过期短语检查（均应为 0 命中；Gazebo 侧三选一 是保留的正确表述）
+grep -n "十五件\|验收证据\|进行中\|当前唯一开放\|成功率键卡" web/index.html || true
+grep -n "界面三选一" web/index.html || true
+# 输出：空
+grep -n "十六件\|V8-00\|NOT_VALIDATED\|四入口\|R891" web/index.html
+# 输出：新口径命中
+
+# 4) HTML 结构与链接
+python3 - <<'PY'
+from html.parser import HTMLParser
+class P(HTMLParser):
+    def __init__(self): super().__init__(); self.stack=[]; self.errors=[]
+    def handle_starttag(self,tag,attrs):
+        if tag not in ('img','br','meta','link','input','hr','source'): self.stack.append(tag)
+    def handle_endtag(self,tag):
+        if not self.stack: self.errors.append('extra '+tag); return
+        t=self.stack.pop()
+        if t!=tag: self.errors.append(f'{t}!={tag}')
+p=P(); p.feed(open('web/index.html',encoding='utf-8').read())
+print('errors',p.errors,'unclosed',p.stack)
+PY
+# 输出：errors [] unclosed []
+python3 - <<'PY'
+from html.parser import HTMLParser
+from pathlib import Path
+root=Path('web'); s=(root/'index.html').read_text(encoding='utf-8')
+class P(HTMLParser):
+    def __init__(self): super().__init__(); self.ids=set(); self.hrefs=[]; self.srcs=[]
+    def handle_starttag(self,tag,attrs):
+        d=dict(attrs)
+        if 'id' in d: self.ids.add(d['id'])
+        if tag=='a' and 'href' in d: self.hrefs.append(d['href'])
+        if tag in ('img','script') and 'src' in d: self.srcs.append(d['src'])
+        if tag=='link' and 'href' in d: self.srcs.append(d['href'])
+p=P(); p.feed(s); miss=[]
+for h in p.hrefs:
+    if h.startswith('#'):
+        if h[1:] and h[1:] not in p.ids: miss.append(('anchor',h))
+    elif h.startswith(('http:','https:','mailto:','javascript:')) or h=='': continue
+    elif not (root/h.split('#')[0].split('?')[0]).resolve().exists(): miss.append(('href',h))
+for x in p.srcs:
+    if x.startswith(('http:','https:','data:')): continue
+    if not (root/x.split('?')[0]).resolve().exists(): miss.append(('src',x))
+print('hrefs',len(p.hrefs),'srcs',len(p.srcs),'missing',miss)
+PY
+# 输出：hrefs 32 srcs 5 missing []
+
+# 5) 浏览器（browser-use；CSS 视口 868×871，DPR 2）
+# 页面：http://10.63.23.135/web/index.html?v=20261029v#milestones
+# - table.stack=5，首格 data-label＝交付件/判据键/入口/维度/中间件
+# - scrollWidth-innerWidth=-15（无横向溢出）；console 0 条
+# - #status h2＝现状：成功率已冻，停车两键待载体
+# - #milestones 描述＝主线十六件（V8-00—V8-15）…
+
+# 6) 390 宽截图（Chrome headless）
+google-chrome --headless=new --disable-gpu --hide-scrollbars \
+  --window-size=390,2600 --virtual-time-budget=2500 \
+  --screenshot=/tmp/r891_status_390.png \
+  'http://10.63.23.135/web/index.html?v=20261029u#status'
+google-chrome --headless=new --disable-gpu --hide-scrollbars \
+  --window-size=390,2600 --virtual-time-budget=2500 \
+  --screenshot=/tmp/r891_milestones_390.png \
+  'http://10.63.23.135/web/index.html?v=20261029u#milestones'
+google-chrome --headless=new --disable-gpu --hide-scrollbars \
+  --window-size=390,2400 --virtual-time-budget=2500 \
+  --screenshot=/tmp/r891_sim_390.png \
+  'http://10.63.23.135/web/index.html?v=20261029u#sim'
+# 三张均无横向溢出；表格 390 下按 data-label 堆叠。
+
+# 7) 服务
+curl -sI http://10.63.23.135/web/ | head -5
+# HTTP/1.0 200 OK
+
+# 边界：仅改 web/index.html（gitignored）；未改 ws/、calibration、#151/A5、
+# 冻结判据、计划书正文；15 cm 仍按上批暂缓。
