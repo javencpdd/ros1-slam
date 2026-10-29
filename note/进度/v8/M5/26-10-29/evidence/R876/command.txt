@@ -1,0 +1,7 @@
+R876 ROS1 导航闭环（容器 v8codex-20261028）
+
+地图：/tmp/mj_map.pgm 200x200@0.05 origin(-5,-5)，全 free
+roscore -p 11432
+mj_ros_bridge.py --xml /tmp/mjcf/Lite3.xml --policy /tmp/r854-stair/policy.onnx --max-seconds 34
+roslaunch lite3_gazebo_sim/launch/mj_bridge_nav.launch        # map_server + static map->odom + move_base(/scan)
+nav_probe.py：6 s 后发 /move_base_simple/goal (map 2.0,0)，监视 26 s

@@ -1,0 +1,114 @@
+[0m[ INFO] [1793251860.915145953]: Loading map from image "/tmp/mj_map.pgm"[0m
+[0m[ INFO] [1793251861.978342044, 0.280000000]: Read a 200 X 200 map @ 0.050 m/cell[0m
+[0m[ INFO] [1793251862.017903712, 0.320000000]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1793251862.033012836, 0.340000000]: Requesting the map...[0m
+[0m[ INFO] [1793251862.234052895, 0.540000000]: Resizing costmap to 200 X 200 at 0.050000 m/pix[0m
+[0m[ INFO] [1793251862.333823918, 0.640000000]: Received a 200 X 200 map at 0.050000 m/pix[0m
+[0m[ INFO] [1793251862.346783846, 0.640000000]: global_costmap: Using plugin "obstacle_layer"[0m
+[0m[ INFO] [1793251862.355503014, 0.660000000]:     Subscribed to Topics: scan[0m
+[0m[ INFO] [1793251862.383644185, 0.680000000]: global_costmap: Using plugin "inflation_layer"[0m
+[0m[ INFO] [1793251862.467673093, 0.760000000]: local_costmap: Using plugin "obstacle_layer"[0m
+[0m[ INFO] [1793251862.472105344, 0.760000000]:     Subscribed to Topics: scan[0m
+[0m[ INFO] [1793251862.495572240, 0.800000000]: local_costmap: Using plugin "inflation_layer"[0m
+[0m[ INFO] [1793251862.545020677, 0.840000000]: Created local_planner dwa_local_planner/DWAPlannerROS[0m
+[0m[ INFO] [1793251862.550092152, 0.840000000]: Sim period is set to 0.10[0m
+[0m[ INFO] [1793251863.143443414, 1.440000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1793251863.156833441, 1.440000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1793251863.217920874, 1.520000000]: odom received![0m
+[0m[ INFO] [1793251866.436833859, 4.739999999]: Got new plan[0m
+[0m[ INFO] [1793251866.633431172, 4.939999999]: Got new plan[0m
+[0m[ INFO] [1793251866.733755703, 5.039999999]: Got new plan[0m
+[0m[ INFO] [1793251866.834051961, 5.139999999]: Got new plan[0m
+[0m[ INFO] [1793251866.932196036, 5.239999999]: Got new plan[0m
+[0m[ INFO] [1793251867.433374352, 5.739999999]: Got new plan[0m
+[0m[ INFO] [1793251867.933768732, 6.239999999]: Got new plan[0m
+[0m[ INFO] [1793251868.434423494, 6.739999999]: Got new plan[0m
+[0m[ INFO] [1793251868.934875087, 7.239999999]: Got new plan[0m
+[0m[ INFO] [1793251869.435914856, 7.739999999]: Got new plan[0m
+[0m[ INFO] [1793251869.933216016, 8.239999999]: Got new plan[0m
+[0m[ INFO] [1793251870.436770442, 8.739999999]: Got new plan[0m
+[0m[ INFO] [1793251870.934353957, 9.239999999]: Got new plan[0m
+[0m[ INFO] [1793251871.434095142, 9.739999999]: Got new plan[0m
+[0m[ INFO] [1793251871.934050158, 10.240000000]: Got new plan[0m
+[0m[ INFO] [1793251872.434990543, 10.740000000]: Got new plan[0m
+[0m[ INFO] [1793251872.932535062, 11.240000000]: Got new plan[0m
+[0m[ INFO] [1793251873.434702575, 11.740000000]: Got new plan[0m
+[0m[ INFO] [1793251873.834520553, 12.140000000]: Got new plan[0m
+[0m[ INFO] [1793251874.434482179, 12.740000000]: Got new plan[0m
+[0m[ INFO] [1793251874.932328339, 13.240000000]: Got new plan[0m
+[0m[ INFO] [1793251875.433217952, 13.740000000]: Got new plan[0m
+[0m[ INFO] [1793251875.932503874, 14.240000000]: Got new plan[0m
+[0m[ INFO] [1793251876.434445542, 14.740000000]: Got new plan[0m
+[0m[ INFO] [1793251876.534806860, 14.840000000]: Goal reached[0m
+... logging to /opt/ros1-slam/logs/eb40d678-d359-11f1-826f-3b74465bc2d0/roslaunch-fcb9b0dde1f1-10993.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/repo/ws/src/95_simulation/lite3_gazebo_sim/launch/mj_bridge_nav.launch
+[1mstarted roslaunch server http://127.0.0.1:40373/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /move_base/acc_lim_theta: 2.0
+ * /move_base/acc_lim_x: 1.0
+ * /move_base/base_global_planner: global_planner/Gl...
+ * /move_base/base_local_planner: dwa_local_planner...
+ * /move_base/controller_frequency: 10.0
+ * /move_base/footprint: [[0.3,0.2],[0.3,-...
+ * /move_base/global_costmap/global_frame: map
+ * /move_base/global_costmap/height: 20.0
+ * /move_base/global_costmap/inflation_layer/cost_scaling_factor: 5.0
+ * /move_base/global_costmap/inflation_layer/inflation_radius: 0.45
+ * /move_base/global_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/global_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/global_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/global_costmap/obstacle_layer/scan/marking: True
+ * /move_base/global_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/global_costmap/plugins: [{'name': 'static...
+ * /move_base/global_costmap/publish_frequency: 1.0
+ * /move_base/global_costmap/resolution: 0.05
+ * /move_base/global_costmap/robot_base_frame: base_link
+ * /move_base/global_costmap/update_frequency: 2.0
+ * /move_base/global_costmap/width: 20.0
+ * /move_base/local_costmap/global_frame: odom
+ * /move_base/local_costmap/height: 6.0
+ * /move_base/local_costmap/inflation_layer/cost_scaling_factor: 5.0
+ * /move_base/local_costmap/inflation_layer/inflation_radius: 0.45
+ * /move_base/local_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/local_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/local_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/local_costmap/obstacle_layer/scan/marking: True
+ * /move_base/local_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/local_costmap/plugins: [{'name': 'obstac...
+ * /move_base/local_costmap/resolution: 0.05
+ * /move_base/local_costmap/robot_base_frame: base_link
+ * /move_base/local_costmap/rolling_window: True
+ * /move_base/local_costmap/width: 6.0
+ * /move_base/max_vel_theta: 1.0
+ * /move_base/max_vel_x: 0.4
+ * /move_base/planner_frequency: 2.0
+ * /move_base/xy_goal_tolerance: 0.25
+ * /move_base/yaw_goal_tolerance: 1.57
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /use_sim_time: True
+
+NODES
+  /
+    map_server (map_server/map_server)
+    map_to_odom (tf2_ros/static_transform_publisher)
+    move_base (move_base/move_base)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11432[0m
+]2;/repo/ws/src/95_simulation/lite3_gazebo_sim/launch/mj_bridge_nav.launch http://127.0.0.1:11432
+[1mprocess[map_server-1]: started with pid [11211][0m
+[1mprocess[map_to_odom-2]: started with pid [11212][0m
+[1mprocess[move_base-3]: started with pid [11213][0m
+[move_base-3] killing on exit
+[map_to_odom-2] killing on exit
+[map_server-1] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

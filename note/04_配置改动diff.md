@@ -7210,3 +7210,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 新增 `ws/src/95_simulation/lite3_gazebo_sim/scripts/mj_ros_bridge.py`（blob `80a33c3c`）：订阅 `/cmd_vel`，推进 MuJoCo（同 `mj_step_baseline` 的 45 维 PPO/±30 N·m 口径），发布 `/odom`、`/sim/odom_gt`、`/joint_states`、`/imu`、`/scan`、`/clock` 与 TF `odom→base_link`；0.5 s 命令超时归零。
 - 冒烟（v8codex，7 s，0.2 m/s×3 s）：odom/joint/imu 各 284（≈50 Hz）、tf/clock 283、scan 57（10 Hz）、dx 0.535 m，正常退出。
 - 运行需 `ROS_HOSTNAME/ROS_IP=127.0.0.1`；镜像需 mujoco+onnxruntime（sim 镜像当前没有）。ROS2 未实现。详见 R875 与 `evidence/R875`。
+
+## R876（2026-10-29，qoder）：ROS1 导航闭环
+
+- 新增 `ws/src/95_simulation/lite3_gazebo_sim/launch/mj_bridge_nav.launch`：map_server＋静态 map→odom＋move_base（/scan LaserScan 观测，GlobalPlanner＋DWA，footprint 0.6×0.4，goal tol 0.25）。
+- 闭环（v8codex）：目标 (2,0) → move_base 状态 **3 SUCCEEDED**、终点误差 0.0805 m、位移 1.989 m、odom 794、scan 159、cmd 99（max 0.55 m/s）。
+- 空图直行，未测避障/噪声；未改判据、第三方与冻结值。详见 R876。

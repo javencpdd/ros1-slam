@@ -1,0 +1,63 @@
+<launch>
+  <!-- Minimal move_base stack for the MuJoCo ROS1 bridge (mj_ros_bridge.py).
+       Uses the bridge's LaserScan /scan and odom->base_link TF; the map is a
+       flat free-space PGM supplied by the caller. Test harness only. -->
+  <arg name="map" default="/tmp/mj_map.yaml"/>
+  <param name="/use_sim_time" value="true"/>
+
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map)" output="screen"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <param name="controller_frequency" value="10.0"/>
+    <param name="planner_frequency" value="2.0"/>
+    <param name="footprint" value="[[0.3,0.2],[0.3,-0.2],[-0.3,-0.2],[-0.3,0.2]]"/>
+    <param name="xy_goal_tolerance" value="0.25"/>
+    <param name="yaw_goal_tolerance" value="1.57"/>
+    <param name="max_vel_x" value="0.4"/>
+    <param name="max_vel_theta" value="1.0"/>
+    <param name="acc_lim_x" value="1.0"/>
+    <param name="acc_lim_theta" value="2.0"/>
+
+    <param name="global_costmap/global_frame" value="map"/>
+    <param name="global_costmap/robot_base_frame" value="base_link"/>
+    <param name="global_costmap/width" value="20.0"/>
+    <param name="global_costmap/height" value="20.0"/>
+    <param name="global_costmap/resolution" value="0.05"/>
+    <param name="global_costmap/update_frequency" value="2.0"/>
+    <param name="global_costmap/publish_frequency" value="1.0"/>
+    <rosparam param="global_costmap/plugins">
+      - {name: static_layer, type: "costmap_2d::StaticLayer"}
+      - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="global_costmap/obstacle_layer/observation_sources" value="scan"/>
+    <param name="global_costmap/obstacle_layer/scan/topic" value="/scan"/>
+    <param name="global_costmap/obstacle_layer/scan/data_type" value="LaserScan"/>
+    <param name="global_costmap/obstacle_layer/scan/marking" value="true"/>
+    <param name="global_costmap/obstacle_layer/scan/clearing" value="true"/>
+    <param name="global_costmap/inflation_layer/inflation_radius" value="0.45"/>
+    <param name="global_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
+
+    <param name="local_costmap/global_frame" value="odom"/>
+    <param name="local_costmap/robot_base_frame" value="base_link"/>
+    <param name="local_costmap/rolling_window" value="true"/>
+    <param name="local_costmap/width" value="6.0"/>
+    <param name="local_costmap/height" value="6.0"/>
+    <param name="local_costmap/resolution" value="0.05"/>
+    <rosparam param="local_costmap/plugins">
+      - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="local_costmap/obstacle_layer/observation_sources" value="scan"/>
+    <param name="local_costmap/obstacle_layer/scan/topic" value="/scan"/>
+    <param name="local_costmap/obstacle_layer/scan/data_type" value="LaserScan"/>
+    <param name="local_costmap/obstacle_layer/scan/marking" value="true"/>
+    <param name="local_costmap/obstacle_layer/scan/clearing" value="true"/>
+    <param name="local_costmap/inflation_layer/inflation_radius" value="0.45"/>
+    <param name="local_costmap/inflation_layer/cost_scaling_factor" value="5.0"/>
+  </node>
+</launch>
