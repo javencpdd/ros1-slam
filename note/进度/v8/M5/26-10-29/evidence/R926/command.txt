@@ -1,0 +1,7 @@
+R926 命令（2026-10-30 03:33—03:36 CST，qoder；A7 跨层负例复验）
+# 容器 ros1-slam-sim；master 11448；代码 99e22fcf；config tick 1.2/validity 3.0。
+python3 -B .../a7_exec_runtime.py --scenario SC03 --out /tmp/r926/SC03.json --wall-deadline-s 80
+python3 -B .../a7_exec_runtime.py --scenario SC04 --out /tmp/r926/SC04.json --wall-deadline-s 80
+python3 -B .../a7_exec_runtime.py --scenario SC08 --out /tmp/r926/SC08.json --wall-deadline-s 80
+# 三例均 E_LOCAL_NO_ROUTE，评价器 ok/无碰撞；末距 8.1142/1.4318/0.6633 m。
+# 与 R925 正向 SC06/SC01/SC09、负例 SC02 同一代码/配置口径。
