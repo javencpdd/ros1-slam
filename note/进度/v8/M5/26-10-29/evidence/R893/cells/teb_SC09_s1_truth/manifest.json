@@ -1,0 +1,78 @@
+{
+  "run_id": "runtime_teb_SC09_s1_r1",
+  "run_class": "runtime_experimental",
+  "calibration_only": false,
+  "set_id": "v8_flat2d_calibration_v2_sc09dyn_v12",
+  "scenario_id": "SC09",
+  "scenario_name": "flat_dynamic_block_substitute",
+  "scenario_semantics": "24\u00a73",
+  "expected_outcome": "reach",
+  "seed": 1,
+  "repetition": 1,
+  "track": "truth",
+  "combo": "lite3_teb_mux",
+  "start": [
+    -0.021938145353255924,
+    0.02084602421623396,
+    0.01055098475906456
+  ],
+  "goal": [
+    6.0,
+    3.0
+  ],
+  "world": "m1_gazebo",
+  "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)\uff0c\u7531 m1_world.world \u76d2/\u5899\u51e0\u4f55\u751f\u6210",
+  "config_lock": {
+    "planner": "move_base global_planner/GlobalPlanner + teb_local_planner/TebLocalPlannerROS",
+    "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+    "speed": "max_vel_x 0.4",
+    "footprint": "[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]",
+    "goal_tolerance_m": 0.3,
+    "clearance_min_m": 0.2,
+    "stack": "flat2d_stack_sc09_f64nli25_teb.launch\uff08map_server + map\u2192odom + move_base\uff1bglobal static+STVL+inflation 0.45\uff1blocal static+STVL+inflation 0.25/5.0\uff08\u5c0f\u534a\u5f84\uff1a\u4fdd\u7559 0.2 m \u5185\u5207\u786c\u8fb9\u754c\uff0c\u8f6f\u573a\u4ec5 0.05 m\uff09\uff1bfootprint 0.6\u00d70.4\uff1bTEB \u53c2\u6570\u5728 TebLocalPlannerROS ns\uff0cmax_vel_x 0.4\uff1bscan_relay RELAY_MODE=volume\uff09"
+  },
+  "criteria": {
+    "goal_position_m": 0.3,
+    "min_clearance_m": 0.2,
+    "clearance_definition": "robot_center_to_box_surface_m",
+    "deadline_s": 120
+  },
+  "evaluator": "R665 a1_driver.py, goal parameterized (GT trajectory vs known boxes)",
+  "pre_registered_at": "2026-10-28T04:15:58+00:00",
+  "status": "pre_registered",
+  "counts_planned": {
+    "N_total": 1,
+    "N_valid": 1,
+    "N_invalid": 0,
+    "N_pass": null,
+    "N_fail": null
+  },
+  "inject": {
+    "at_progress_m": 0.2853041415443653,
+    "model_name": "sc09_block_g0",
+    "size": [
+      0.6,
+      0.6,
+      0.6
+    ],
+    "pose_xy_yaw": [
+      4.4,
+      3.4,
+      0.0
+    ]
+  },
+  "backend": "teb",
+  "local_planner": "teb_local_planner/TebLocalPlannerROS",
+  "seed_effect": {
+    "start_xy_yaw": [
+      -0.021938145353255924,
+      0.02084602421623396,
+      0.01055098475906456
+    ],
+    "inject_at_progress_m": 0.2853041415443653
+  },
+  "localization_source": "Gazebo ground-truth TF; not LIO or NDT",
+  "localization_track": "truth",
+  "source_manifest_sha256": "db8f7a4362d7692c95e00c395867a8230759df622b09cd4d1644ceea9438c40c",
+  "telemetry_json": "/out/teb_SC09_s1_truth/trajectory.json"
+}

@@ -1,0 +1,43 @@
+{
+ "run_id": "runtime_dwa_SC01_s2_noisy_r1",
+ "run_class": "runtime_experimental",
+ "calibration_only": false,
+ "scenario_id": "SC01",
+ "seed": 2,
+ "repetition": 1,
+ "track": "estimated",
+ "localization_source": "seeded map->odom perturbation (amp 0.05 m / 0.03 rad); truth /sim/odom_gt used for evaluation",
+ "localization_track": "noisy",
+ "goal": [
+  3.0,
+  0.0
+ ],
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2
+ },
+ "map_received": true,
+ "clock_ready": true,
+ "cmd_vel_messages": 314,
+ "motion_command_messages": 298,
+ "odom_samples": 785,
+ "path_length_m": 2.9,
+ "final_pos": [
+  2.904904787759585,
+  -0.03427106255015871
+ ],
+ "dist_to_goal_m": 0.101,
+ "obstacle_min_clearance_m": 0.449,
+ "injected_box_clearance_m": null,
+ "inject": null,
+ "injected_at_s": null,
+ "injection_ok": null,
+ "wall_duration_s": 35.3,
+ "sim_duration_s": 15.7,
+ "rtf": 0.444,
+ "deadline_hit": false,
+ "verdict": "PASS",
+ "fail_reason": null,
+ "telemetry_json": "/out/dwa_SC01_s2_noisy/trajectory.json",
+ "telemetry_sha256": "f87696a48a242b63f264d63f9d73cceea3edf536d10278223f9406ada0f58987"
+}

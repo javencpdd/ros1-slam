@@ -1,0 +1,68 @@
+{
+  "run_id": "runtime_teb_SC01_s2_noisy_r1",
+  "run_class": "runtime_experimental",
+  "calibration_only": false,
+  "set_id": "v8_flat2d_calibration_v2_sc01sc02_v12",
+  "scenario_id": "SC01",
+  "scenario_name": "flat_open_corridor",
+  "scenario_semantics": "24\u00a73",
+  "expected_outcome": "reach",
+  "seed": 2,
+  "repetition": 1,
+  "track": "estimated",
+  "combo": "lite3_teb_mux",
+  "start": [
+    0.027362056313354963,
+    0.026869649223560964,
+    -0.01773794529092765
+  ],
+  "goal": [
+    3.0,
+    0.0
+  ],
+  "world": "m1_gazebo",
+  "map": "pilot_map.yaml 200x200@0.05 origin(-2.5,-5.0)\uff0c\u7531 m1_world.world \u76d2/\u5899\u51e0\u4f55\u751f\u6210",
+  "config_lock": {
+    "planner": "move_base global_planner/GlobalPlanner + teb_local_planner/TebLocalPlannerROS",
+    "mux": "safe_cmd_vel_mux 20 Hz, source /follow/cmd_vel -> /cmd_vel",
+    "speed": "max_vel_x 0.4",
+    "footprint": "[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]",
+    "goal_tolerance_m": 0.3,
+    "clearance_min_m": 0.2,
+    "stack": "flat2d_stack_sc09_f64nli25_teb.launch\uff08map_server + map\u2192odom + move_base\uff1bglobal static+STVL+inflation 0.45\uff1blocal static+STVL+inflation 0.25/5.0\uff1bfootprint 0.6\u00d70.4\uff1bTEB \u53c2\u6570\u5757\uff1b\u65e0\u6ce8\u5165\uff0cscan_relay RELAY_MODE=volume \u7a7a\u95f2\uff09"
+  },
+  "criteria": {
+    "goal_position_m": 0.3,
+    "min_clearance_m": 0.2,
+    "clearance_definition": "robot_center_to_box_surface_m",
+    "deadline_s": 120
+  },
+  "evaluator": "R665 a1_driver.py, goal parameterized (GT trajectory vs known boxes)",
+  "pre_registered_at": "2026-10-28T04:15:58+00:00",
+  "status": "pre_registered",
+  "counts_planned": {
+    "N_total": 1,
+    "N_valid": 1,
+    "N_invalid": 0,
+    "N_pass": null,
+    "N_fail": null
+  },
+  "backend": "teb",
+  "local_planner": "teb_local_planner/TebLocalPlannerROS",
+  "seed_effect": {
+    "start_xy_yaw": [
+      0.027362056313354963,
+      0.026869649223560964,
+      -0.01773794529092765
+    ],
+    "estimated_track": {
+      "seed": 0,
+      "amp_xy_m": 0.05,
+      "amp_yaw_rad": 0.03
+    }
+  },
+  "localization_source": "seeded map->odom perturbation (amp 0.05 m / 0.03 rad); truth /sim/odom_gt used for evaluation",
+  "localization_track": "noisy",
+  "source_manifest_sha256": "db39abdd852345f0504ca7934f78ac0ffffd51aa6bded444d2fbd4f7116c2100",
+  "telemetry_json": "/out/teb_SC01_s2_noisy/trajectory.json"
+}

@@ -1,0 +1,18 @@
+R893 引用（本批只跑证据，无代码改动）
+
+代码沿用 R892 提交：
+  commit=3d59c5f8
+  runtime_lab.py blob=138a842c5fda32be5eba7b67ce4a9f2983c34acf
+  test_runtime_lab.py blob=80af46d25764cf0667ded988821cf41d1db93fd5
+
+本批证据：
+  cells/<cell>/manifest.json、driver.json（36 格）
+  results.json（36 格汇总）
+  batch.log
+  a5_r1—a5_r5.json.gz、a5_summary.json
+  command.txt、hashes.sha256
+
+说明：36 格 manifest 由 R892 的 manifest_for_backend 生成；TEB 18 格
+backend=teb、combo=lite3_teb_mux、local_planner=TebLocalPlannerROS、stack 无 DWA。
+A5 为 runtime_probe 的 ROS 消息夹具（gazebo=false/dynamics=false/hardware=false）。
+未改判据、冻结值、R866 旧证据或第三方资产。

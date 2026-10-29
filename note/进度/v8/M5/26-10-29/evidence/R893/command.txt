@@ -1,0 +1,51 @@
+R893 命令（2026-10-29 22:28 CST，qoder；36 格全矩阵 + A5 并行复跑）
+
+# 0) 并行隔离
+# 36 格：容器 r895-batch，--network none，/repo:ro，/out=/tmp/r895；
+#   独立 master 端口 11651—11686，Gazebo 在容器网络内，core dump 关闭（ulimit -c 0）。
+# A5 复跑：容器 r896-a5，--network none，/out=/tmp/r896；
+#   独立 master 11711；与 36 格同时运行，不共享 master/端口/输出。
+# 两容器均不写仓库；A5 为 ROS 消息夹具（gazebo=false/dynamics=false/hardware=false）。
+
+# 1) 36 格循环（脚本 /tmp/r895_batch.sh）
+# backend {dwa,teb} × track {truth,noisy} × scenario {SC01,SC02,SC09} × seed {0,1,2}
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B runtime_lab.py --out "$out" --port "$port" --gazebo \
+  --backend "$backend" --scenario "$scenario" --seed "$seed" \
+  --localization "$track" --repetition 1
+# 36/36 rc=0；首格 2026-10-29T13:41:59Z，末格 14:26:30Z，DONE 14:27:54Z。
+
+# 2) 36 格汇总（host）
+python3 - <<'PY'
+import json,glob,os
+rows=[]
+for d in sorted(glob.glob('/tmp/r895/*_SC*')):
+    m=json.load(open(d+'/manifest.json')); r=json.load(open(d+'/driver.json'))
+    rows.append({'cell':os.path.basename(d),'backend':m['backend'],'combo':m['combo'],
+                 'local_planner':m['local_planner'],'verdict':r['verdict'],
+                 'dist_to_goal_m':r['dist_to_goal_m'],
+                 'obstacle_min_clearance_m':r['obstacle_min_clearance_m'],
+                 'wall_duration_s':r['wall_duration_s'],
+                 'stack_has_DWA':('DWA' in m.get('config_lock',{}).get('stack','')) if m['backend']=='teb' else None})
+json.dump(rows,open('results.json','w'),ensure_ascii=False,indent=2)
+PY
+# 读数：N=36，PASS=36，goal_max=0.244，clear_min=0.297；
+# wall 21.4—80.5 s，>60 s 共 13/36；TEB 18 格 stack_has_DWA 全为 False。
+
+# 3) A5 五次复跑（并行负载下）
+cd /repo/ws/src/90_platform/v8_platform/local_planner
+for i in 1 2 3 4 5; do
+  timeout 360 python3 -B runtime_probe.py --out /out/a5_r${i}.json --wall-deadline-s 60
+done
+# 结果：r4 全 5/5 PASS；r1/r2/r3/r5 均 4/5。
+# dynamic 失败 2/5：transport 12.47/11.02 ms > 10 ms，independent_evaluation ok。
+# step 失败 4/5：r1 execution_unsupported（transport 4.13 ms）、r2 17.67 ms + contact_mismatch/
+#   unsupported/static_collision、r3 17.04 ms + 同三项、r5 7.56 ms + execution_unsupported。
+# 结论：A5 step 不是单纯运输抖动；并行负载下 1/5 全过，不能记 5/5。
+
+# 4) 证据
+# cells/<cell>/manifest.json + driver.json（36 格）；results.json；batch.log；
+# a5_r1—r5.json.gz；a5_summary.json；本命令。
+
+# 边界：36 格仍只是 SC01/02/09 切片，不是 A1—A7 全矩阵；冻结 harness_deadline_s=60
+# 与本次 criteria.deadline_s=120 的差异未裁；A5/A6/A7 仍阻断升格。
