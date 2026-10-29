@@ -40,6 +40,12 @@ class ExecRuntimeArgsTests(unittest.TestCase):
         self.assertEqual((name, start, goal), ('sc09', (-4.0, 0.0, 0.0), (4.0, 0.0, 0.0)))
         self.assertGreater(len(value['surfaces']), 1)
 
+    def test_sc02_slope_scene(self):
+        name, value, start, goal = a7_exec_runtime.case_args('SC02')
+        self.assertEqual((name, start, goal), ('sc02', (-4.0, -4.0, 0.0), (3.0, 2.0, 0.6)))
+        kinds = {edge['kind'] for surface in value['surfaces'] for edge in surface['edges']}
+        self.assertIn('slope', kinds)
+
 
 if __name__ == '__main__':
     unittest.main()

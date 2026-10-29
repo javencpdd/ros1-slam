@@ -33,7 +33,7 @@ def case_args(sid):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--scenario', default='SC03',
-                        choices=['SC01', 'SC03', 'SC04', 'SC06', 'SC08', 'SC09'])
+                        choices=['SC01', 'SC02', 'SC03', 'SC04', 'SC06', 'SC08', 'SC09'])
     parser.add_argument('--out', required=True)
     parser.add_argument('--wall-deadline-s', type=float, default=90.)
     args = parser.parse_args()
