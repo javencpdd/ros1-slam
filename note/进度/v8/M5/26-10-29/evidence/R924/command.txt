@@ -1,0 +1,8 @@
+R924 命令（2026-10-30 03:09—03:16 CST，qoder；A6 res0.25 无 GT 门）
+# 容器 ros1-slam-sim；原 R868 bag、m1_world_synth_v1.pcd、res0.25、init_x=0.0/0.5/0.75。
+# 临时记录器（未入仓）订阅 /rslidar_points /a6_ndt/odom /sim/odom_gt，扫描 stride=4；
+# 离线 KD-tree 计算 map XY 内点率（noext/ext × ndt/gt 四口径）。
+# 读数：inlier@0.15 = 0.99583/0.99457/0.99453（noext ndt），GT 对照 0.99589/0.99593/0.99589；
+# inlier@0.05 = 0.3998/0.5046/0.5403，低阈值也不按 ATE 排序。
+# 结论：0/0.5/0.75 m 在 0.15 m 内全一致，无 no-GT 门；NDT 仍 monitor。
+# 原始扫描件未入仓（临时记录器/分析脚本同 R904 口径不保留）；保留 inlier JSON 与汇总。
