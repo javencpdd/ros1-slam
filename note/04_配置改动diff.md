@@ -7192,3 +7192,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 
 - 无配置改动：`stair_pilot.py --backend pd` 默认配置对 0.06 m 台阶复跑，结果 FAIL（`completed_step_legs=['FL']`、`abort_reason=E_GAIT_SHIFT_FAILED`、未摔）。
 - 四足末位：FL/FR x≈0.99、z≈0.021；HL/HR x≈0.62、z≈0.020；`all_feet_on_step=false`。与 R848/R855 的后腿换位瓶颈一致；不改判据、第三方与冻结值。详见 R872 与 `evidence/R872`。
+
+## R873（2026-10-29，qoder）：V8-X1 选项表更正与 harness 复核
+
+- 无配置/代码改动；更正：①（0.04 m 低台阶）与③（力控后腿）已在 R848 做过并证伪（0.04 m 仍 5/10；力控抬升 8.1→4.0 cm），不能再列为“未选项”。
+- 复核：`stair_pilot` 默认与 mixed 均止于 `E_GAIT_SHIFT_FAILED`、`force_reports=0`；改用 R848 世界件（sha256 `d5b77a6b…`）＋`step_swing=0.14`，pd/force/mixed/mixed+stance 四组均只 2 步（ADVANCE/LIFT/PLACE/CLIMB 四种失败相位）。
+- 照抄 R848 有效脚本在当前 v8codex 仍为 2/10（R848 v8cal 为 5/10）⇒ 基线不可直接复用，修力控抬升前须先对齐 harness。未改判据/第三方/冻结值。详见 R873。

@@ -1,0 +1,45 @@
+{
+  "run_class": "pilot",
+  "set_id": "v8x1_force_bridge_lift_v2",
+  "slice": "R848 world step06 + step_swing=0.14; plain/force/mixed/mixed+stance",
+  "jobs": [
+    {
+      "backend": "pd",
+      "stance_force": false
+    },
+    {
+      "backend": "force",
+      "stance_force": false
+    },
+    {
+      "backend": "mixed",
+      "stance_force": false
+    },
+    {
+      "backend": "mixed",
+      "stance_force": true
+    }
+  ],
+  "criteria": {
+    "landed": "four feet x>=1.02 and |z-0.082|<=0.03",
+    "lift": ">=0.07 m per rear lift",
+    "note": "pilot only"
+  },
+  "config_lock": {
+    "step_swing": 0.14,
+    "start_x": 0.8,
+    "step_x": 1.0,
+    "step_h": 0.06,
+    "swing_fwd": 0.06,
+    "drive_fwd": 0.05,
+    "margin_min": 0.05,
+    "rear_rounds": 4,
+    "xml": "/tmp/r854-stair/Lite3_step06.xml"
+  },
+  "parameters_sha256": "8604500cf464bfc7412ebae7ca1225cc8749d8d6bf0568b01d51e8022e33e4ca",
+  "pre_registered_at": "2026-10-29T04:59:43+00:00",
+  "status": "pre_registered",
+  "counts_planned": {
+    "N_total": 4
+  }
+}
