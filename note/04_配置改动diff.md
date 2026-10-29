@@ -7204,3 +7204,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 无配置/代码改动：同一 R868 bag 回放，NDT res0.5、score_max=100（全放行），init_x 偏移 0/0.5/1.0 m。
 - 读数：0 m → 覆盖 99.5%、ATE 0.0162、score 5.44；0.5 m → 95.6%、0.0924、5.44；1.0 m → 85.5%、**3.0027**、**4.49**。
 - 判定：fitness 与对齐误差不单调，错位反而分数更低 ⇒ score_max 路线否决；NDT 仍 monitor。未改判据/第三方。详见 R874。
+
+## R875（2026-10-29，qoder）：MuJoCo↔ROS1 话题桥
+
+- 新增 `ws/src/95_simulation/lite3_gazebo_sim/scripts/mj_ros_bridge.py`（blob `80a33c3c`）：订阅 `/cmd_vel`，推进 MuJoCo（同 `mj_step_baseline` 的 45 维 PPO/±30 N·m 口径），发布 `/odom`、`/sim/odom_gt`、`/joint_states`、`/imu`、`/scan`、`/clock` 与 TF `odom→base_link`；0.5 s 命令超时归零。
+- 冒烟（v8codex，7 s，0.2 m/s×3 s）：odom/joint/imu 各 284（≈50 Hz）、tf/clock 283、scan 57（10 Hz）、dx 0.535 m，正常退出。
+- 运行需 `ROS_HOSTNAME/ROS_IP=127.0.0.1`；镜像需 mujoco+onnxruntime（sim 镜像当前没有）。ROS2 未实现。详见 R875 与 `evidence/R875`。

@@ -1,0 +1,11 @@
+R875 MuJoCo↔ROS1 桥冒烟（容器 v8codex-20261028）
+
+export ROS_MASTER_URI=http://127.0.0.1:11430
+export ROS_HOSTNAME=127.0.0.1 ROS_IP=127.0.0.1
+export PYTHONPATH=/tmp/r854-policy-runtime:$PYTHONPATH
+roscore -p 11430
+python3 -B /tmp/bridge_probe.py &
+python3 -B /repo/ws/src/95_simulation/lite3_gazebo_sim/scripts/mj_ros_bridge.py \
+  --xml /tmp/mjcf/Lite3.xml --policy /tmp/r854-stair/policy.onnx --max-seconds 7
+
+probe 在 1.2 s 后发 /cmd_vel 0.2 m/s ×3 s 再归零；7 s 到时桥退出。
