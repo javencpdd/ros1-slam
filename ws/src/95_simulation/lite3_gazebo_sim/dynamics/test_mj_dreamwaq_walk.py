@@ -53,6 +53,16 @@ class AdapterTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             walk.state_vector(np.zeros(45), [np.zeros(45)] * 4)
 
+    def test_yaw_of_and_heading_sign(self):
+        self.assertAlmostEqual(np.degrees(walk.yaw_of([np.sqrt(.5), 0., 0., np.sqrt(.5)])),
+                               90., places=6)
+        left = walk.heading_command(.3, .2, 0.)
+        self.assertTrue(left[2] < 0)
+        right = walk.heading_command(.3, 0., .5)
+        self.assertTrue(right[2] < 0)
+        self.assertAlmostEqual(left[0], .3)
+        self.assertLessEqual(abs(walk.heading_command(.3, 1.0, 1.0, max_wz=.2)[2]), .2)
+
     def test_joint_target_scaling(self):
         target = walk.joint_target(np.ones(12), POSE)
         self.assertTrue(np.allclose(target, POSE + walk.ACTION_SCALE))

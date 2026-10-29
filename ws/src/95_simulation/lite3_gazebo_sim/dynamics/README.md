@@ -86,3 +86,11 @@ top without falling and with |y|<1 m at each step boundary) and `stable_finish`
 (pass plus final x past the top and |final y| within half the stair width);
 they are different claims. This is MuJoCo torque dynamics only: no real robot,
 no ROS execution, no #151 budget, and no contact-state acceptance.
+
+Heading hold (`--heading-hold`) adds a bounded body yaw-rate command
+`wz = clip(-yaw_gain*yaw - y_gain*y, +/-max_wz)` while keeping `vx`; R884 used
+`--yaw-gain 2 --y-gain 1 --max-wz .5`. On the flat walk it reduced max|y| from
+0.1429 to 0.0478; on 3-step 6/10/15 cm staircases all `stable_finish` became
+true (15 cm had fallen without heading hold). This loop consumes simulated
+world yaw/lateral position, so it is a MuJoCo command-level correction, not a
+real-robot state-estimation result.

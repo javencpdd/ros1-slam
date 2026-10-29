@@ -31,6 +31,17 @@ def rot(q):
         [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]])
 
 
+def yaw_of(q):
+    w, x, y, z = q
+    return float(np.arctan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z)))
+
+
+def heading_command(v_cmd, yaw, y, yaw_gain=1.0, y_gain=.5, max_wz=.4):
+    """Hold world +X heading and the y=0 line with a bounded body yaw-rate command."""
+    wz = float(np.clip(-yaw_gain * yaw - y_gain * y, -max_wz, max_wz))
+    return np.array([v_cmd, 0., wz], dtype=np.float32)
+
+
 def observation(qpos, qvel, command, last_action, default_pose=DEFAULT_POSE):
     """DreamWaQ 45: body ang vel, body gravity, scaled command, joints, last action."""
     rotation = rot(qpos[3:7])
@@ -100,7 +111,7 @@ def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0):
 
 def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
                 kp=25.0, kd=.5, initial_z=.40, history_newest_first=True,
-                stair=None):
+                stair=None, heading_hold=False, yaw_gain=1.0, y_gain=.5, max_wz=.4):
     import mujoco
     import onnxruntime as ort
 
@@ -128,6 +139,9 @@ def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
         mark_x.append(mark_x[-1] + .2)
     for step in range(int(seconds / dt)):
         if step % stride == 0:
+            if heading_hold and v_cmd:
+                command = heading_command(v_cmd, yaw_of(data.qpos[3:7]), float(data.qpos[1]),
+                                          yaw_gain, y_gain, max_wz)
             obs = observation(data.qpos, data.qvel, command, last_action, default_pose)
             state = state_vector(obs, history, newest_first=history_newest_first)
             action = session.run(None, {input_name: state.reshape(1, -1)})[0].reshape(-1)
@@ -168,6 +182,8 @@ def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
         'command_scale': COMMAND_SCALE.tolist(), 'kp': kp, 'kd': kd,
         'torque_limit': TORQUE_LIMIT, 'history': HISTORY,
         'history_newest_first': bool(history_newest_first),
+        'heading_hold': bool(heading_hold), 'yaw_gain': yaw_gain, 'y_gain': y_gain,
+        'max_wz_command': max_wz,
         'observation_layout': ['body_ang_vel*0.25', 'body_gravity', 'command*[2,2,0.25]',
                                'joint_pos-default', 'joint_vel*0.05', 'last_action'],
         'final_xyz': final, 'xmax': round(xmax, 4), 'zmin': round(zmin, 4),
@@ -204,6 +220,10 @@ def main():
     parser.add_argument('--step-depth', type=float, default=.5)
     parser.add_argument('--step-width', type=float, default=3.0)
     parser.add_argument('--step-front', type=float, default=1.0)
+    parser.add_argument('--heading-hold', action='store_true')
+    parser.add_argument('--yaw-gain', type=float, default=1.0)
+    parser.add_argument('--y-gain', type=float, default=.5)
+    parser.add_argument('--max-wz', type=float, default=.4)
     parser.add_argument('--out')
     args = parser.parse_args()
     seconds = args.seconds if args.seconds is not None else {
@@ -217,7 +237,9 @@ def main():
                               args.step_width, args.step_front)
     try:
         result = run_rollout(xml, args.policy, seconds,
-                             0. if args.mode == 'stand' else args.v_cmd, stair=stairs)
+                             0. if args.mode == 'stand' else args.v_cmd, stair=stairs,
+                             heading_hold=args.heading_hold, yaw_gain=args.yaw_gain,
+                             y_gain=args.y_gain, max_wz=args.max_wz)
     finally:
         if stairs:
             shutil.rmtree(Path(xml).parent, ignore_errors=True)
