@@ -1,0 +1,29 @@
+R883 命令（2026-10-29，qoder；v8codex-20261028，仓挂 /repo 只读，脚本副本 /tmp 与提交字节一致）
+
+# 模型与场地
+# /tmp/lite3_walk_policy.onnx  sha256 881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f
+# /tmp/mjcf/Lite3.xml          sha256 9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa
+
+export PYTHONPATH=/tmp/r854-policy-runtime
+
+# 平地站立
+python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+  --xml /tmp/mjcf/Lite3.xml --mode stand --seconds 2 --out /tmp/R883/stand.json
+
+# 平地行走（0.3 m/s，3 s）
+python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+  --xml /tmp/mjcf/Lite3.xml --mode walk --seconds 3 --v-cmd .3 --out /tmp/R883/walk.json
+
+# 3 级台阶（每级 6/10/15 cm，深 0.5 m，宽 3 m，前沿 x=1.0，10 s）
+for h in .06 .10 .15; do
+  python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+    --xml /tmp/mjcf/Lite3.xml --mode stairs --seconds 10 --v-cmd .3 \
+    --step-h $h --steps 3 --step-depth .5 --step-width 3.0 --step-front 1.0 \
+    --out /tmp/R883/stairs_$h.json
+done
+
+# 纯负控（主机，无 MuJoCo/ONNX）
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/dynamics/test_mj_dreamwaq_walk.py
+
+# 判读：pass=crossed_once（越过最高阶、未跌、每级越线 |y|<1 m）；
+# stable_finish=pass 且终点 x 过最高阶、终点 |y| < 半阶宽。

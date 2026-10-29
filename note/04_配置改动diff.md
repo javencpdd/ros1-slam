@@ -7259,3 +7259,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 采集框架把 `NO_TRAJECTORY`/`EXPIRED`/`NOT_READY`/`INPUT`/`segment_complete`/`ok`/`hold` 记为瞬态零速，首终端零速才作因果停车。
 - 四例 4/4 VALID：`sensed_no_route` 首终端 `NO_ROUTE` +0.9696 s、感知→静止 0.012769 m；`sensor_freshness` `OBSTACLES_STALE` +1.9633 s；`arrival`/`localization` 正常。仍是 kinematic、无制动、单速度/单起点。
 - #151 仅得 kinematic 分量 n=3：感知→静止 0.011971—0.019552 m、0.3818—0.4243 s 墙钟；两键继续 pending。详见 R882。
+
+## R883（2026-10-29，qoder）：DreamWaQ 270 状态适配器
+
+- 新增 `ws/src/95_simulation/lite3_gazebo_sim/dynamics/mj_dreamwaq_walk.py`：45 当前本体＋5×45 历史（最新在前）→19 latent→12 动作；默认姿态 `[0,-1,1.8]×4`、动作缩放 `[0.125,.25,.25]×4`、命令缩放 `[2,2,.25]`、50 Hz、Kp25/Kd0.5、30 N·m；可临时生成 3 级台阶世界，不改外部 MJCF。
+- 平地：stand PASS（终点 z 0.2307、xy 漂移 0.033）；walk PASS（3 s 2.6594 m、zmin 0.2167）。
+- 台阶：3×6 cm crossed_once PASS，3×10 cm crossed_once PASS（越过后回退/横漂，stable_finish=false），3×15 cm FAIL（跌落，zmin 0.1193）。未改判据/冻结值，非真机、非 #151。详见 R883。
