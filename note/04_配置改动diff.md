@@ -7222,3 +7222,8 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 新增 `ws/src/95_simulation/lite3_gazebo_sim/scripts/mj_ros2_bridge.py`：ROS2 同构节点（/cmd_vel→PPO→MuJoCo→/odom、/sim/odom_gt、/joint_states、/imu、/scan、/clock、TF）。
 - 环境：my_foxy_env + /tmp/mjros2（numpy 1.24.4/mujoco 2.3.7/glfw/ORT 1.16.3，从 v8codex 复制）；ROS_DOMAIN_ID=42。
 - 冒烟 12.3 s：odom 122、joint 121、imu 121、scan 122（应为 1/5，异常待查）、dx 0.345 m。未接 ROS2 导航栈。详见 R877。
+
+## R878（2026-10-29，qoder）：ROS2 /scan 计数更正
+
+- 无代码改动。桥内 `BRIDGE_STATS tick=100 odom=100 scans=20 sim=2.000`（50 Hz 控制、10 Hz scan）；独立订阅器 9 s 收 90 帧、戳间隔 0.1 s；`/scan` 发布者仅 1 个。
+- R877 的「scan 计数异常」撤回：多话题探针只来得及处理约 10 Hz 的 odom，scan 全收，导致四计数相等。详见 R878。

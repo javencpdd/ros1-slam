@@ -1,0 +1,6 @@
+R878 ROS2 /scan 计数异常定位（my_foxy_env）
+
+桥自证：python3 mj_ros2_dbg.py ... --max-seconds 2
+  → BRIDGE_STATS tick=100 odom=100 scans=20 sim=2.000（50 Hz tick、10 Hz scan）
+独立订阅：scan_ts.py 记录 /scan 戳间隔 9 s → 90 帧、0.1 s 间隔
+发布者：ros2 topic info /scan → Publisher count: 1；ros2 node list → mj_ros2_bridge + ros2_probe
