@@ -1,0 +1,25 @@
+R885 命令（2026-10-29，qoder；v8codex-20261028，仓挂 /repo 只读，脚本副本 /tmp 与提交 57518efc 字节一致）
+
+# 模型/场地
+# /tmp/lite3_walk_policy.onnx  sha256 881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f
+# /tmp/mjcf/Lite3.xml          sha256 9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa
+export PYTHONPATH=/tmp/r854-policy-runtime
+
+# 5 个 seed：walk 3 s；stairs 3×6/10/15 cm，10 s
+for s in 0 1 2 3 4; do
+  python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+    --xml /tmp/mjcf/Lite3.xml --mode walk --seconds 3 --v-cmd .3 \
+    --heading-hold --yaw-gain 2.0 --y-gain 1.0 --max-wz .5 \
+    --seed $s --perturb --out /tmp/R885/walk_s$s.json
+  for h in .06 .10 .15; do
+    python3 -B /tmp/mj_dreamwaq_walk.py --policy /tmp/lite3_walk_policy.onnx \
+      --xml /tmp/mjcf/Lite3.xml --mode stairs --seconds 10 --v-cmd .3 \
+      --step-h $h --heading-hold --yaw-gain 2.0 --y-gain 1.0 --max-wz .5 \
+      --seed $s --perturb --out /tmp/R885/stairs_s${s}_h${h}.json
+  done
+done
+
+# 初值扰动（只改基座位姿，不改策略）：
+#   dx ±0.05 m，dy ±0.10 m，dyaw ±5°，dz ±0.005 m；同 seed 可复现。
+# 纯负控
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/dynamics/test_mj_dreamwaq_walk.py

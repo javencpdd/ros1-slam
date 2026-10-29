@@ -7271,3 +7271,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `mj_dreamwaq_walk.py` 增 `--heading-hold`：`wz=clip(-yaw_gain·yaw - y_gain·y, ±max_wz)`，vx 不变；R884 用 2.0/1.0/0.5。
 - 平地 max|y| 0.1429→0.0478（x 2.659→2.589 m/3 s）；3×6/10/15 cm 台阶 `stable_finish` 全部 true；15 cm 无纠偏时 zmin 0.1193 跌落，有纠偏 zmin 0.1702 通过。
 - 航向外环用 MuJoCo 世界 y/yaw 真值；非真机、非 #151，未改冻结值。详见 R884。
+
+## R885（2026-10-29，qoder）：#151 参数核对与多 seed 台阶
+
+- #151 核对：`PENDING_REQUIRED` 仍只有 `budgets.stop_time_s.value`／`budgets.stop_distance_m.value`，`SCOPED_REQUIRED` 无此二键；calibration 最后提交仍 `4fc80e57`（R852 回滚），本轮未改。R883/R884/R885 无停车触发/制动段，不能给两键定值。
+- 适配器增 `--seed/--perturb`（dx±0.05、dy±0.10、dyaw±5°、dz±0.005；只改初值）。5 seed：平地 walk 5/5；3×6/10 cm 台阶各 5/5 stable；3×15 cm 4/5（seed1 越顶后跌落，zmin .1191、动作爆到 6.26e20）。14/15 stable。
+- 未改判据/冻结值；非真机、非 #151 数据。详见 R885。
