@@ -1,0 +1,18 @@
+R917 命令（2026-10-30 02:37—02:46 CST，qoder；hold 修复＋运动学楼梯）
+# 容器 ros1-slam-sim；source noetic + /opt/ros1-slam/ws/devel；独立 master。
+
+# 1) hold 修复复现（无 ROS）：200 个起点、tick 0.5、goal 20 m；修复前 24/200 抛 E_TRAJ_TIME，
+#    修复后 0/200；5 个已知起点 span=5.999999。见 hold_fix.txt。
+
+# 2) A5 step 复验（master 11429/11430）：单例 + 30 连跑
+python3 -B .../local_planner/runtime_probe.py --case step --out /tmp/r917step/step.json --wall-deadline-s 120
+for i in $(seq 1 30); do python3 -B .../runtime_probe.py --case step --out /tmp/r917a/step_$i.json --wall-deadline-s 60; done
+# 30/30 PASS；末距 max 0.079938；z 误差 max 8.0e-8；运输 max 5.893 ms；评价器 30/30 ok。
+
+# 3) 运动学楼梯（master 11428）：五级 0.15 m，tick 1.2/validity 2.0
+python3 -B .../regression/a5_cross_layer_runtime.py --out /tmp/r917/staircase.json --wall-deadline-s 100
+# 末态 [-2.2757,0,0]，E_LOCAL_NO_ROUTE；评价器 ok/无碰撞；span 99.3 s、运动 83、运输 max 2.27 ms。
+# 根因：当前位姿锚定网格与“安全停点→台阶支撑内缩”不匹配，0.72 m 单段内无可行转层候选；
+# resolution=0.1 规划 >150 s，未采用。
+
+# 测试：40 套件 0 失败（python3 -B 逐文件）。

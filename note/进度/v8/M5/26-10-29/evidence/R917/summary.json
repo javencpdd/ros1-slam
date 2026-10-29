@@ -1,0 +1,21 @@
+{
+  "domain": "a5_hold_horizon_fix_and_kinematic_staircase",
+  "hold_fix": {"starts_checked": 200, "bad_before": 24, "bad_after": 0,
+               "known_starts": [3.402, 3.428, 3.434, 3.46, 3.466],
+               "span_at_known_starts_s": 5.999999,
+               "cause": "full-tick terminal hold crossed horizon_s through floating roundoff and tripped E_TRAJ_TIME"},
+  "a5_step_recheck": {"runs": 30, "pass": 30, "evaluation_ok": 30,
+                      "final_distance_max_m": 0.079938, "z_error_max_m": 8.0e-08,
+                      "transport_max_ms": 5.893, "violations": 0,
+                      "span_max_s": 3.18},
+  "staircase": {"final_xyz": [-2.2757026168, 0.0, 0.0], "status": "E_LOCAL_NO_ROUTE",
+                "evaluation_ok": true, "failures": [], "span_s": 99.3,
+                "motion_samples": 83, "transport_max_ms": 2.27,
+                "cause": "grid anchored at the current pose; safe ground stop (radius+clearance) and the step support inset leave transfer targets that fall between grid points and exceed the 0.72 m segment; resolution 0.1 planning exceeded 150 s and was not used"},
+  "code": "0ac0fb49 hold fix + a5_cross_layer_runtime",
+  "tests": {"v8_suites": 40, "failures": 0},
+  "scope": "kinematic cross-layer chain; no Gazebo; no four-leg contact; no #151",
+  "a5_cross_layer": "NOT achieved (staircase negative)",
+  "a7_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
