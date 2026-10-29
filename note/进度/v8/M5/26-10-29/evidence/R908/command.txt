@@ -1,0 +1,11 @@
+R908 命令（2026-10-30 01:37—01:42 CST，qoder；A3/A4 ROS 服务复跑）
+# 独立容器、network none、master 11881；source noetic + /opt/ros1-slam/ws/devel
+docker run -d --name r908-a34 --network none -e ROS_IP=127.0.0.1 -e ROS_HOSTNAME=127.0.0.1 \
+  -v /home/jack/ysc-code/ros1-slam:/repo:ro -v /tmp/r908:/out ros1-slam:noetic-sim bash -lc \
+  'source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash; \
+   cd /repo/ws/src/90_platform/v8_platform/regression; ulimit -c 0; \
+   python3 -B runtime_lab.py --out /out/out --port 11881 --interfaces'
+# a3_runtime=0：15/15；a4_runtime=0：4/4；stop/mux 无，master/a3/a4 进程组均空。
+# A3：真多层同 XY 双层、free/unknown、净空、无支撑、版本/占据、单向拒绝。
+# A4：SC09 truth/estimate 17 点/8.828427 m；低顶派生目标 plan 阶段 E_PLAN_CLEARANCE（规划器拒绝）。
+# 边界：声明夹具、无传感器/Gazebo；不冒充传感器建图或 Gazebo 运行面。

@@ -1,0 +1,18 @@
+{
+  "domain": "a3_a4_ros_service_runtime",
+  "a3": {"passed": 15, "total": 15,
+         "cases": ["same_xy_layers", "positive_free", "upper_unknown", "unsupported_height",
+                   "fractional_outside_upper", "negative_outside_upper", "ground_clearance",
+                   "open_top", "updated_version", "updated_clearance", "updated_occupied",
+                   "digest_changed", "unsupported_surface_not_support",
+                   "unsupported_layer_traversability", "oneway_planner_refusal"]},
+  "a4": {"cells": 4, "passed": 4, "unexpected_failures": 0,
+         "routes": [{"scenario": "SC09", "track": "truth", "points": 17, "length_m": 8.828427},
+                    {"scenario": "SC09", "track": "estimate", "points": 17, "length_m": 8.828427}],
+         "negative": "derived_low_roof_goal -> E_PLAN_CLEARANCE at plan stage (planner-side)"},
+  "lab": {"a3_runtime": 0, "a4_runtime": 0,
+          "process_group_survivors": {"a3_runtime": [], "a4_runtime": [], "master": []}},
+  "scope": "ROS1 map/planner services; declared fixtures; no sensors, no Gazebo",
+  "a3_a4_review_status": "PARTIAL (independent review, unchanged)",
+  "a1_a7": "NOT_VALIDATED"
+}
