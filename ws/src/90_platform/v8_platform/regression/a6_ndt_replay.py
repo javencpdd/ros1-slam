@@ -22,10 +22,10 @@ def main():
     args = parser.parse_args()
     import rospy
     from nav_msgs.msg import Odometry
-    from std_msgs.msg import Bool, Float32
+    from std_msgs.msg import Bool, Float32, Float32MultiArray
 
     rospy.init_node('a6_ndt_replay', anonymous=True, disable_signals=True)
-    records = {'odom': [], 'health': [], 'score': [], 'gt': []}
+    records = {'odom': [], 'health': [], 'score': [], 'gt': [], 'debug': []}
 
     def record(store):
         def callback(message):
@@ -44,6 +44,11 @@ def main():
             {'t': rospy.Time.now().to_sec(), 'healthy': bool(m.data)}), queue_size=500),
         rospy.Subscriber('/a6_ndt/score', Float32, lambda m: records['score'].append(
             {'t': rospy.Time.now().to_sec(), 'score': float(m.data)}), queue_size=500),
+        rospy.Subscriber('/a6_ndt/debug', Float32MultiArray, lambda m: records['debug'].append(
+            {'t': rospy.Time.now().to_sec(),
+             'accepted': bool(m.data[0]) if len(m.data) > 0 else None,
+             'score': float(m.data[1]) if len(m.data) > 1 else None,
+             'converged': bool(m.data[2]) if len(m.data) > 2 else None}), queue_size=500),
     ]
     deadline = time.monotonic() + args.timeout
     last_gt_time = None
@@ -69,6 +74,11 @@ def main():
                       'mean': (sum(s['score'] for s in records['score']) / len(records['score']))
                               if records['score'] else None,
                       'max': max((s['score'] for s in records['score']), default=None)},
+        'ndt_debug': {'messages': len(records['debug']),
+                      'converged_true': sum(1 for d in records['debug'] if d['converged']),
+                      'converged_false': sum(1 for d in records['debug'] if d['converged'] is False),
+                      'accepted_true': sum(1 for d in records['debug'] if d['accepted'])},
+        'debug_raw': records['debug'],
     }
     Path(args.out).write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result, ensure_ascii=False))

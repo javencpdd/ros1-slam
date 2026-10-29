@@ -79,10 +79,10 @@ def main():
     import rospy
     from geometry_msgs.msg import Twist
     from nav_msgs.msg import Odometry
-    from std_msgs.msg import Bool, Float32
+    from std_msgs.msg import Bool, Float32, Float32MultiArray
 
     rospy.init_node('a6_backend_compare', anonymous=True, disable_signals=True)
-    records = {'lio': [], 'ndt': [], 'gt': [], 'health': [], 'score': []}
+    records = {'lio': [], 'ndt': [], 'gt': [], 'health': [], 'score': [], 'debug': []}
 
     def odom(key):
         def callback(message):
@@ -100,6 +100,11 @@ def main():
             {'t': rospy.Time.now().to_sec(), 'healthy': bool(m.data)}), queue_size=200),
         rospy.Subscriber('/a6_ndt/score', Float32, lambda m: records['score'].append(
             {'t': rospy.Time.now().to_sec(), 'score': float(m.data)}), queue_size=200),
+        rospy.Subscriber('/a6_ndt/debug', Float32MultiArray, lambda m: records['debug'].append(
+            {'t': rospy.Time.now().to_sec(),
+             'accepted': bool(m.data[0]) if len(m.data) > 0 else None,
+             'score': float(m.data[1]) if len(m.data) > 1 else None,
+             'converged': bool(m.data[2]) if len(m.data) > 2 else None}), queue_size=200),
     ]
     publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=20)
     deadline = time.monotonic() + args.timeout
@@ -149,6 +154,11 @@ def main():
         'ndt_score': {'messages': len(scores),
                       'mean': (sum(s['score'] for s in scores) / len(scores)) if scores else None,
                       'max': max((s['score'] for s in scores), default=None)},
+        'ndt_debug': {'messages': len(records['debug']),
+                      'converged_true': sum(1 for d in records['debug'] if d['converged']),
+                      'converged_false': sum(1 for d in records['debug'] if d['converged'] is False),
+                      'accepted_true': sum(1 for d in records['debug'] if d['accepted'])},
+        'debug_raw': records['debug'],
         'samples_raw': {'gt': gt, 'lio': lio, 'ndt': ndt},
     }
     Path(args.out).write_text(json.dumps(result, indent=2) + '\n')

@@ -1,0 +1,23 @@
+{
+  "run_class": "runtime_experimental",
+  "set_id": "v8_a6_ndt_debug_v1",
+  "slice": "live vs bag replay with converged flag",
+  "criteria": {
+    "pass_threshold": "none; diagnostic"
+  },
+  "config_lock": {
+    "ndt": "v8_ndt_odom monitor res0.5 score8.0 map=m1_world_synth_v1.pcd",
+    "windows": [
+      "live m1 Gazebo NDT-only",
+      "same bag replay (R868 bag)"
+    ],
+    "extra": "record /a6_ndt/debug [accepted,score,converged]",
+    "drive": "0.25 m/s x12 s + 3 s zero"
+  },
+  "parameters_sha256": "c053a689a3a43236fabf178ffbcdab277971371000d41b828f67b0a0ba4fe82a",
+  "pre_registered_at": "2026-10-29T04:02:34+00:00",
+  "status": "pre_registered",
+  "counts_planned": {
+    "N_total": 2
+  }
+}

@@ -7181,3 +7181,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - R869 活流（LIO＋NDT res0.5/score8.0）：NDT 覆盖 60.5%、ATE 0.1057 m、终点 0.4767；LIO 99.1%/0.0693。
 - R870 NDT 单独：覆盖 59.7%、ATE 0.1006 m、终点 0.3740；与 R869 同量级 ⇒ 非 LIO 争用。
 - 对照 R868 同 bag 回放（92.1%/0.0210）⇒ 校准配置不迁移到活流；NDT 仍 monitor，不接导航。未改判据/第三方。详见 R869 与 `evidence/R869|R870`。
+
+## R871（2026-10-29，qoder）：A6 收敛诊断
+
+- `a6_backend_compare.py` 与 `a6_ndt_replay.py` 增记 `/a6_ndt/debug=[accepted,score,converged]`；其余未改。
+- 活流：152 帧全收敛、接受 71（46.7%）、score 均值 7.86、覆盖 60.5%、ATE 0.0962；回放：85 帧全收敛、接受 67（78.8%）、score 5.44、覆盖 92.1%、ATE 0.0210。
+- 判读：拒绝全部来自 score≥8.0，非不收敛；score 分布随传输变化，阈值不可迁移。NDT 仍 monitor，不接导航。详见 R871 与 `evidence/R871`。
