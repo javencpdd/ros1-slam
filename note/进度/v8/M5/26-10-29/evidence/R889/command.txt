@@ -32,7 +32,7 @@ curl -sI http://10.63.23.135/web/ | head -20
 # 页面：http://10.63.23.135/web/index.html?v=20261029j#sim
 # - [data-jump="sim-ui"].click() + 900ms：window.scrollY=1578，目标 #sim-ui top=86px
 # - details.acc.open=true：opened=true
-# - table.stack 首格 data-label=入口；#sim .subhead=5；#sim .shots img=4
+# - table.stack 首格 data-label=入口；全站 table.stack=5；#sim .subhead=5；#sim .shots img=4
 # - 控制台消息：0 条
 # - documentElement.scrollWidth - innerWidth = -15（无横向溢出）
 # - simmap：396.5px 396.5px（该视口两列）
@@ -55,6 +55,19 @@ Image.open('/tmp/r889_390_full.png').crop((0,0,390,8860)).save(
   'note/进度/v8/M5/26-10-29/evidence/R889/sim-page-390.png')
 PY
 
-# 5) 回归边界
+# 5) 全站其余三表窄屏堆叠（现状页示例）
+google-chrome --headless=new --disable-gpu --hide-scrollbars \
+  --window-size=390,3200 --virtual-time-budget=2500 \
+  --screenshot=/tmp/status_390.png \
+  'http://10.63.23.135/web/index.html?v=20261029k#status'
+python3 - <<'PY'
+from PIL import Image
+Image.open('/tmp/status_390.png').crop((0,0,390,1450)).save(
+  'note/进度/v8/M5/26-10-29/evidence/R889/status-390.png')
+PY
+# 读数：#status 判据表 6 行按“判据键／当前值 / 依据／状态”纵向堆叠；
+# 里程碑表与接入页中间件表同用 class=stack。
+
+# 6) 回归边界
 # 未启动仿真、未改 ws/、未改 calibration、未改 #151/A5 判据；
 # web/ 在 .gitignore，无提交。
