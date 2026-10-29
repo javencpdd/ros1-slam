@@ -1,0 +1,20 @@
+R894 引用（本批只做只读诊断，无代码改动）
+
+沿用 R892 代码提交：
+  commit=3d59c5f8
+  runtime_lab.py blob=138a842c5fda32be5eba7b67ce4a9f2983c34acf
+  test_runtime_lab.py blob=80af46d25764cf0667ded988821cf41d1db93fd5
+
+涉及但未修改的运行时文件：
+  ws/src/90_platform/v8_platform/local_planner/evaluate.py
+  ws/src/90_platform/v8_platform/local_planner/runtime_probe.py
+  ws/src/90_platform/v8_platform/local_planner/test_local_native.py
+
+诊断输入：
+  note/进度/v8/M5/26-10-29/evidence/R893/a5_r1.json.gz
+  note/进度/v8/M5/26-10-29/evidence/R893/a5_r5.json.gz
+输出：
+  diagnosis.json
+
+边界：未改 evaluator 容差、probe、runtime、判据或冻结值；
+A5 step 仍未 PASS，A1—A7 仍 PARTIAL/NOT_VALIDATED。

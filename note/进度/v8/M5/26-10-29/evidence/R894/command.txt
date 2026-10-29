@@ -1,0 +1,33 @@
+R894 命令（2026-10-29 22:40 CST，qoder；A5 step 失败诊断，只读）
+
+# 1) 复现评价器（宿主 Python；无 ROS）
+# 读 evidence/R893/a5_r1.json.gz / a5_r5.json.gz 的 step case；
+# 用 test_local_native.layers() 重建 ground(z=0)/deck(z=.15) 地图；
+# 按 evaluate.py 同式重建 contact（|z-z_ref|<=1e-6）和 transfer_at
+# （时间窗、fraction∈[-1e-6,1+1e-6]、residual<=2e-6）。
+
+# 2) 读数（见 diagnosis.json）
+# r1：execution 271 点，unsupported 11 个（索引 157—167）。
+#   首样本 x=0.20006694、z=0.15001673；最近 transfer 的 fraction=1.000111，
+#   residual=5.55e-17；即执行轨迹刚越过端点约 6.7e-5 m、高于 deck 1.67e-5 m。
+# r5：execution 988 点，unsupported 11 个（156—166）；首样本 x=0.20003916、
+#   z=0.15000979，fraction=1.000060，residual=0.0。
+# r2/r3：unsupported 6090/5326 个，首样本在起点 x=-0.4、z=-1.99e-6/-2.73e-5
+#   （低于地面 z=0 的数值漂移，contact 容差 1e-6 判 None）；同时带
+#   execution_contact_mismatch/static_collision，不能全归为容差。
+# r4：5/5 PASS，无 unsupported。
+
+# 3) 判读
+# - r1/r5 的 execution_unsupported 是“执行积分刚越过 transfer 端点 + z 数值
+#   高出 deck 1.6e-5/1.0e-5”触发 contact 1e-6 与 fraction 1e-6 两道窄门，
+#   残差到转移线段仅 1e-16 级；不是碰撞，也不是实际不支撑。
+# - r2/r3 还包含起点 z 负漂移导致的大量 unsupported，以及 contact_mismatch/
+#   static_collision；其中有真实行为/测量问题，不能简单放宽。
+# - 结论：A5 step 仍未 PASS；若要修，需在判据面裁“接触容差/执行端点容差/
+#   执行轨迹吸附”哪一种，不能施工侧自行放宽 evaluator。
+
+# 4) 边界
+# 只读 R893 原始件；未改 evaluator、probe、runtime、判据或冻结值；
+# 未启动 ROS/Gazebo；未写仓库代码。
+
+# 证据：diagnosis.json；R893/a5_r1.json.gz、a5_r5.json.gz。
