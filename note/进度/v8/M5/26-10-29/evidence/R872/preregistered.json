@@ -1,0 +1,35 @@
+{
+  "run_class": "pilot",
+  "set_id": "v8x1_stair_pilot_pd_v1",
+  "slice": "scripted crawl_gait against 0.06 m step, PD backend (existing stair_pilot defaults)",
+  "criteria": {
+    "landed": "four feet x>=1.02 and |z-0.082|<=0.03",
+    "note": "pilot only; not four-foot ascent acceptance"
+  },
+  "config_lock": {
+    "backend": "pd",
+    "step_h": 0.06,
+    "step_x": 1.0,
+    "start_x": 0.8,
+    "step_swing": 0.06,
+    "drive_fwd": 0.05,
+    "swing_fwd": 0.06,
+    "margin_min": 0.05,
+    "climb_x": 0.1,
+    "climb_dz": 0.03,
+    "rear_rounds": 4,
+    "rear_swing": 0.08,
+    "climb2_x": 0.06,
+    "climb2_dz": 0.02,
+    "kp": 150,
+    "kd": 1,
+    "swing_kp": 100,
+    "swing_kd": 1
+  },
+  "parameters_sha256": "a4b19f598e6c6dcdfaf0fecb39cdbdcbc6be1cad5176d065906c4a09e18a2153",
+  "pre_registered_at": "2026-10-29T04:05:40+00:00",
+  "status": "pre_registered",
+  "counts_planned": {
+    "N_total": 1
+  }
+}
