@@ -1,0 +1,16 @@
+{
+  "domain": "a7_3d_execution_runtime_probe",
+  "sc03": {"final_xyz": [2.301634, 1.301634, 0.6], "status": "E_LOCAL_NO_ROUTE",
+           "evaluation_ok": true, "failures": [],
+           "reason": "0.6 m layer edge exceeds local_native 0.2 m grid / 35 deg slope"},
+  "sc06": {"final_xyz": [-4.0, 0.0, 0.0], "status": "E_LOCAL_EXPIRED",
+           "evaluation_ok": true, "failures": [],
+           "reason": "8 m path with default validity 0.75 s; no motion before expiry"},
+  "code": "e5245c83 a7_exec_runtime.py + test",
+  "tests": {"a7_exec_args": 2, "v8_suites": 39, "failures": 0},
+  "scope": "3D multi-layer kinematic execution; no Gazebo; no four-leg contact; no #151",
+  "a7_execution": "NEGATIVE (SC03/SC06 not reached)",
+  "a7_planning_runtime": "10/10",
+  "a7_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
