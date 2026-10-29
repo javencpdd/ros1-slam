@@ -1,0 +1,18 @@
+{
+  "domain": "a7_execution_recheck_after_map_anchored_lattice",
+  "config": {"tick_s": 1.2, "validity_s": 3.0},
+  "sc06": {"runs": 2, "pass": 2, "final_distance_m": [0.07541, 0.07460], "transport_max_ms": [6.13, 6.32]},
+  "sc01": {"runs": 2, "pass": 2, "final_distance_m": [0.07562, 0.07428], "transport_max_ms": [6.22, 6.92]},
+  "sc09": {"runs": 1, "pass": 1, "final_distance_m": 0.07976, "transport_max_ms": 7.26,
+           "note": "over-roof route; not the under-roof clearance cell (A4 R908)"},
+  "sc02": {"runs": 1, "status": "E_LOCAL_NO_ROUTE", "final_distance_m": 0.66333,
+           "evaluation_ok": true, "transport_max_ms": 3.78},
+  "all_positive_transport_below_10ms": true,
+  "supersedes": "R914/R915 2.0 s A7 execution positives (code changed by R919 map-anchored lattice)",
+  "code": "99e22fcf a7_exec_runtime validity 3.0",
+  "tests": {"v8_suites": 40, "failures": 0},
+  "scope": "kinematic execution; no Gazebo; no four-leg; no #151",
+  "a7_execution": "SC06 2/2, SC01 2/2, SC09 1/1 positive; SC02 negative; SC03/04/08 expected refusals (R914/R916)",
+  "a7_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
