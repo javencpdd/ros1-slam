@@ -1,0 +1,8 @@
+R923 命令（2026-10-30 03:06—03:08 CST，qoder；楼梯反向）
+# 容器 ros1-slam-sim；source noetic + /opt/ros1-slam/ws/devel；master 11441/11442；
+# a5_cross_layer_runtime.py --reverse（start 0.8,0,0.6 → goal -4,0,0），tick 1.2/validity 3.0。
+python3 -B .../a5_cross_layer_runtime.py --reverse --out /tmp/r923/down.json --wall-deadline-s 110
+python3 -B .../a5_cross_layer_runtime.py --reverse --out /tmp/r923b/down.json --wall-deadline-s 110
+# 两跑均 PASS：末距 0.077234/0.074251 m、运输 max 6.79/5.96 ms、trace z 五层、
+# 评价器 ok/无碰撞。上行见 R919（2/2 到达）。
+# 测试：40 套件 0 失败；反向端点/五面拓扑回归。
