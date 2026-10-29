@@ -16,7 +16,7 @@ for sub in ('scenarios', 'planner', 'local_planner', 'representation', 'contract
 import support_map as rep  # noqa: E402
 
 SOURCE = {'uri': 'design://kinematic_staircase', 'sha256': '6' * 64}
-EXPERIMENTAL = {'tick_s': 1.2, 'validity_s': 2.0}
+EXPERIMENTAL = {'tick_s': 1.2, 'validity_s': 3.0}
 
 
 def staircase():

@@ -1,14 +1,26 @@
 """A5 kinematic staircase topology (no ROS)."""
 import sys
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent / 'local_planner'))
 import a5_cross_layer_runtime as staircase_runtime
+import local_native as native
 
 
 class StaircaseMapTests(unittest.TestCase):
+    def test_replan_from_between_transfer_points_reaches_step1(self):
+        # The ROS run stopped here under a pose-anchored lattice; a map-anchored
+        # lattice puts -1.6 back inside the step1 candidate set.
+        _name, value, _start, goal = staircase_runtime.case_args()
+        config = replace(native.Config(), tick_s=1.2, validity_s=3.)
+        result = native.plan(value, (-2.2757026168, 0., 0.), goal, [], now=100.,
+                             config=config)
+        self.assertIn('step1', result['surfaces'])
+        self.assertIn('step2', result['surfaces'])
     def test_five_levels_in_order(self):
         name, value, start, goal = staircase_runtime.case_args()
         self.assertEqual(name, 'staircase')

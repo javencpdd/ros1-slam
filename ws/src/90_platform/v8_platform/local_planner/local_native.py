@@ -294,6 +294,12 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
 
     first = (first_sid, 0, 0)
     last = (goal_sid, 'goal', 'goal')
+    # Anchor the lattice to the map frame: a pose-anchored lattice can strand a
+    # replan between two feasible transfer points of a narrow step.
+    grid_x = map_value['origin'][0] + round(
+        (start[0] - map_value['origin'][0]) / config.resolution) * config.resolution
+    grid_y = map_value['origin'][1] + round(
+        (start[1] - map_value['origin'][1]) / config.resolution) * config.resolution
     reach_cells = int(math.ceil(config.max_speed_mps * config.tick_s / config.resolution))
     offsets = [(dx, dy) for dx in range(-reach_cells, reach_cells + 1)
                for dy in range(-reach_cells, reach_cells + 1)]
@@ -321,8 +327,8 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
             return start
         if node == last:
             return goal
-        return (start[0] + node[1] * config.resolution,
-                start[1] + node[2] * config.resolution, surfaces[node[0]]['z_reference'])
+        return (grid_x + node[1] * config.resolution,
+                grid_y + node[2] * config.resolution, surfaces[node[0]]['z_reference'])
 
     def neighbors(node):
         if node == last:
