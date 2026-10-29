@@ -1,0 +1,13 @@
+R920 命令（2026-10-30 03:09—03:13 CST，qoder；A7 规划运行面补齐）
+# 容器 ros1-slam-sim；source noetic + /opt/ros1-slam/ws/devel；独立 master 11436。
+# 起 support_planner ROS 节点，GetPlan 双轨（truth/estimate）；评价按真值图。
+python3 - <<'PY'
+import sys, json, rospy
+sys.path.insert(0, ".../v8_platform/regression")
+rospy.init_node("a7_missing_planning")
+import a4_runtime
+cells = a4_runtime.run(ids=("SC01", "SC02", "SC09"))
+...
+PY
+# 6 cell：SC01/SC02 双轨 PASS（17/16 点）；SC09 双轨预期失败 E_TRAJ_CLEARANCE（17 点）；
+# 0 意外、6/6 与设计层同点。与 R910 的 14 cell 合计 20/20（10 场景×2 轨）。
