@@ -1,0 +1,9 @@
+R912 命令（2026-10-30 01:50—01:55 CST，qoder；SC11 跟踪撤销 ROS 运行面）
+# 容器 network none；source noetic + /opt/ros1-slam/ws/devel；master 11921。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a7_tracking_runtime.py --out /out/tracking.json
+# 参考：support_planner 由 SC11 场景生成 17 点；monitor 节点订阅 reference/pose。
+# 17 个清洁位姿全部 accept，无 hold/stop；
+# 注入 pose [0.75,0.25,0.0] 两次（横向/纵向偏差 0.354）：
+# 第一次 replan，第二次 E_TRACK_DEVIATION + tracker stop + hold=true。
+# 4 项 monitor 单测；38 套件 0 失败；无 Gazebo/真机/#151。
