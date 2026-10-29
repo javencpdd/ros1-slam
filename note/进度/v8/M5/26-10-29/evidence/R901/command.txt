@@ -1,0 +1,20 @@
+R901 命令（2026-10-30 00:56—01:00 CST，qoder；A5 三维/跨层设计层复跑）
+
+# HEAD：d6d7503b（R900 docs）；本批零代码变更。
+# 入口：ws/src/90_platform/v8_platform/regression/a45_3d_test.py（commit f1cfeb48）
+cd /home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform
+for i in 1 2 3; do
+  python3 -B regression/a45_3d_test.py --out /tmp/r901_3d_${i}.json --svg /tmp/r901_3d.svg
+done
+# 3 次 rc=0；原始 JSON sha256 均为 ab91db205b8f77d96187cf0776666fa4d948ca7064c2a7f3d4780bf4de3d596d
+
+# 读数
+# 全局：SC02 16 点/2 段/1 转层/9.5853 m；SC05 19 点/3 段/2 转层/8.6142 m；
+#       SC06 17 点/1 段/0 转层/8.0000 m；三者 scenarios.evaluate 全过且两次规划逐字一致。
+# 局部：SC06 0.5 s 滚动 40 步/20.0 s、终点误差 0.0、40 次评价全过；
+#       0.15 m 台阶 4 点、surfaces=['ground','deck','deck','deck']、评价 ok。
+# 跨层：SC02 E_LOCAL_NO_ROUTE，推进 8.607 m，末态 [2.8,2.0,0.0]；
+#       SC05 E_LOCAL_NO_ROUTE，推进 2.800 m，末态 [-1.2,0.0,0.0]；两次评价全过。
+
+# 边界：纯 Python 设计层；无 ROS/Gazebo/真机；0.6 m 跨层是契约拒绝，不是执行通过；
+#       A5 三维到达/跨层运行面仍无 3D 载体取证；未改判据、冻结值或代码。

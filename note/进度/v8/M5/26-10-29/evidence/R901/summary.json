@@ -1,0 +1,132 @@
+{
+  "runs": 3,
+  "all_ok": true,
+  "json_sha256": {
+    "a45_3d_run1.json.gz": "307ea4dacb01089b68b5c8b54646643a598606fe1566ec3c94478e484f7cc802",
+    "a45_3d_run2.json.gz": "307ea4dacb01089b68b5c8b54646643a598606fe1566ec3c94478e484f7cc802",
+    "a45_3d_run3.json.gz": "307ea4dacb01089b68b5c8b54646643a598606fe1566ec3c94478e484f7cc802"
+  },
+  "summary": {
+    "global_pass": 3,
+    "global_total": 3,
+    "local_roll_pass": 1,
+    "local_roll_total": 1,
+    "local_step_pass": 1,
+    "cross_layer_refusals": 2
+  },
+  "claims": {
+    "global_3d": "support_planner 在 SC02/SC05/SC06 支撑图全局路线，独立评价 PASS",
+    "local_3d": "SC06 层下列 0.5 s 周期滚动到达；0.15 m 台阶单段到达",
+    "refused": "SC02 坡道 / SC05 天桥 0.6 m 跨层在局部入口按 max_step 0.2 m 拒绝",
+    "not_claimed": [
+      "四足跨层",
+      "Gazebo 运行面",
+      "真机",
+      "#151 停车预算",
+      "A5 三维到达已验收"
+    ]
+  },
+  "global": [
+    {
+      "scenario": "SC02",
+      "name": "坡道爬升（地面→夹层）",
+      "ok": true,
+      "points": 16,
+      "segments": 2,
+      "transitions": 1,
+      "length_m": 9.5853,
+      "surfaces": [
+        "ground",
+        "mezz"
+      ],
+      "deterministic": true
+    },
+    {
+      "scenario": "SC05",
+      "name": "同高天桥（非单调剖面：上—跨—下）",
+      "ok": true,
+      "points": 19,
+      "segments": 3,
+      "transitions": 2,
+      "length_m": 8.6142,
+      "surfaces": [
+        "ground_a",
+        "bridge",
+        "ground_b"
+      ],
+      "deterministic": true
+    },
+    {
+      "scenario": "SC06",
+      "name": "同 XY 双层列（路径穿夹层下方）",
+      "ok": true,
+      "points": 17,
+      "segments": 1,
+      "transitions": 0,
+      "length_m": 8.0,
+      "surfaces": [
+        "ground"
+      ],
+      "deterministic": true
+    }
+  ],
+  "local_roll": [
+    {
+      "scenario": "SC06",
+      "ok": true,
+      "steps": 40,
+      "sim_time_s": 20.0,
+      "final_error_m": 0.0,
+      "all_evaluations_ok": true,
+      "reason": "arrived"
+    }
+  ],
+  "local_step": {
+    "case": "local_step_0.15m",
+    "ok": true,
+    "reason": "arrived",
+    "points": 4,
+    "surfaces": [
+      "ground",
+      "deck",
+      "deck",
+      "deck"
+    ]
+  },
+  "cross_layer_attempts": [
+    {
+      "scenario": "SC02",
+      "ok": false,
+      "refusal": "E_LOCAL_NO_ROUTE",
+      "progress_m": 8.607,
+      "final_state": [
+        2.8,
+        2.0,
+        0.0
+      ],
+      "all_evaluations_ok": true
+    },
+    {
+      "scenario": "SC05",
+      "ok": false,
+      "refusal": "E_LOCAL_NO_ROUTE",
+      "progress_m": 2.8,
+      "final_state": [
+        -1.2,
+        0.0,
+        0.0
+      ],
+      "all_evaluations_ok": true
+    }
+  ],
+  "boundary": {
+    "design_layer": true,
+    "ros": false,
+    "gazebo": false,
+    "hardware": false,
+    "cross_layer_execution": false,
+    "four_leg_contact": false,
+    "runtime_3d_arrival": "仅 R900 的 0.15 m step（30/30）",
+    "a5_overall": "PARTIAL"
+  }
+}
