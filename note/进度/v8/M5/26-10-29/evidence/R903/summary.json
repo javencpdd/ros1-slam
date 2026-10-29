@@ -1,0 +1,28 @@
+{
+  "domain": "a6_scan_map_inlier_gate_control",
+  "setup": {
+    "bag": "R868 stream.bag.gz",
+    "map": "data/maps/m1_world_synth_v1.pcd",
+    "ndt": "v8_ndt_odom source d74c4ab7",
+    "resolution_m": 0.5,
+    "score_max": 100.0,
+    "ext_z_m": 0.34,
+    "ext_pitch_rad": 0.2617993878,
+    "init_x_offsets_m": [0.0, 0.5, 1.0],
+    "scans": 85,
+    "gt_samples": 433
+  },
+  "ndt": {
+    "0.0": {"ate_rmse_m": 0.01613, "ate_max_m": 0.03729, "score_mean": 5.44197,
+            "inlier_0.10": 0.7925, "inlier_0.15": 0.9351, "inlier_0.20": 0.9460, "matched_scans": 85},
+    "0.5": {"ate_rmse_m": 0.09249, "ate_max_m": 0.12808, "score_mean": 5.44319,
+            "inlier_0.10": 0.8216, "inlier_0.15": 0.9348, "inlier_0.20": 0.9458, "matched_scans": 80},
+    "1.0": {"ate_rmse_m": 3.01029, "ate_max_m": 3.48591, "score_mean": 4.48946,
+            "inlier_0.10": 0.1298, "inlier_0.15": 0.1780, "inlier_0.20": 0.2180, "matched_scans": 70}
+  },
+  "gt_control": {"inlier_0.10": 0.2089, "inlier_0.15": 0.9363, "inlier_0.20": 0.9485},
+  "finding": "inlier@0.15 separates acceptable 0/0.5 from catastrophic 1.0 (0.935/0.935/0.178); fitness ranks 1.0 better (4.49 < 5.44)",
+  "candidate_gate": "inlier_0.15 >= 0.5 (gross-failure gate); not yet calibrated on held-out offsets/scenes",
+  "limitations": ["single bag/map/scene", "0.5 m case (ATE 0.092, within 0.194 gate) is not separated from 0", "no NDT integration yet; NDT remains monitor"],
+  "accuracy_backend_switch_tested": false
+}

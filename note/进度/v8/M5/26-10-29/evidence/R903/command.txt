@@ -1,0 +1,14 @@
+R903 命令（2026-10-30 01:25—01:35 CST，qoder；A6 内点率门槛对照）
+
+# 1) NDT 构建：同 R902，v8_ndt_odom 源码 d74c4ab7，catkin_make rc=0。
+# 2) 回放：同一 R868 bag，NDT 默认外参（ext_z=0.34、ext_pitch=0.2617993878），
+#    res0.5、score_max=100，init_x=0/0.5/1.0；full quaternion recorder。
+#    rosbag play --clock；记录 /a6_ndt/odom 与 /sim/odom_gt。
+# 3) 分析：扫描点（lidar/base 口径）经 NDT 位姿+外参变换到 map，KD-tree；
+#    统计 0.05/0.10/0.15/0.20 m 内点率；GT 对照同脚本。
+# 4) 读数：
+#    ATE 0.0161/0.0925/3.0103 m；score 5.442/5.443/4.489；
+#    inlier@0.15 0.9351/0.9348/0.1780；GT 对照 0.9363。
+#    候选门槛 inlier@0.15 >= 0.5（粗差门），未标定留出偏置/场景。
+# 边界：NDT 仍 monitor、不切导航；未改判据/冻结值/第三方；
+#       R902 的 ext_pitch=0 口径不是 R874 默认口径，本批另起句更正。
