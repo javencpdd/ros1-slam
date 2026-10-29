@@ -38,6 +38,13 @@ class StaircaseMapTests(unittest.TestCase):
         self.assertEqual(start, (-4., 0., 0.))
         self.assertEqual(goal, (.8, 0., .6))
 
+    def test_reverse_starts_on_deck(self):
+        name, value, start, goal = staircase_runtime.case_args(reverse=True)
+        self.assertEqual(name, 'staircase_down')
+        self.assertEqual(start, (.8, 0., .6))
+        self.assertEqual(goal, (-4., 0., 0.))
+        self.assertEqual(len(value['surfaces']), 5)
+
 
 if __name__ == '__main__':
     unittest.main()

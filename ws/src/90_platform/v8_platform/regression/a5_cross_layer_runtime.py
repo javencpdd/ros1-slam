@@ -43,7 +43,9 @@ def staircase():
     return rep.build_support_map('kinematic_staircase', .2, [-5., -1., 0.], surfaces, None, SOURCE)
 
 
-def case_args():
+def case_args(reverse=False):
+    if reverse:
+        return 'staircase_down', staircase(), (.8, 0., .6), (-4., 0., 0.)
     return 'staircase', staircase(), (-4., 0., 0.), (.8, 0., .6)
 
 
@@ -51,15 +53,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', required=True)
     parser.add_argument('--wall-deadline-s', type=float, default=90.)
+    parser.add_argument('--reverse', action='store_true')
     args = parser.parse_args()
     import rospy
     rospy.init_node('a5_cross_layer_runtime', anonymous=True)
     import runtime_probe
-    name, value, start, goal = case_args()
+    name, value, start, goal = case_args(args.reverse)
     result = runtime_probe.run_case(name, value, start, goal, [], 'arrival',
                                     deadline_s=args.wall_deadline_s,
                                     experimental=dict(EXPERIMENTAL))
-    payload = {'scenario': 'kinematic_staircase', 'config': dict(EXPERIMENTAL),
+    payload = {'scenario': name, 'config': dict(EXPERIMENTAL),
                'scope': 'kinematic cross-layer chain; no Gazebo; no four-leg contact; no #151',
                'result': result,
                'ok': bool(result.get('ok') and result.get('independent_evaluation', {}).get('ok'))}
