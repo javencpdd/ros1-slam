@@ -72,6 +72,7 @@ def main():
     parser.add_argument('--lio-topic', default='/Odometry')
     parser.add_argument('--ndt-topic', default='/a6_ndt/odom')
     parser.add_argument('--gt-topic', default='/sim/odom_gt')
+    parser.add_argument('--no-lio', action='store_true')
     args = parser.parse_args()
     if not (args.drive_seconds > 0 and args.speed > 0 and args.settle_seconds >= 0 and args.timeout > 0):
         raise SystemExit('drive, speed and timeout must be positive')
@@ -103,10 +104,11 @@ def main():
     publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=20)
     deadline = time.monotonic() + args.timeout
     while time.monotonic() < deadline:
-        if records['gt'] and records['lio'] and records['ndt']:
+        ready = records['gt'] and records['ndt'] and (args.no_lio or records['lio'])
+        if ready:
             break
         rospy.sleep(0.1)
-    if not (records['gt'] and records['lio'] and records['ndt']):
+    if not (records['gt'] and records['ndt'] and (args.no_lio or records['lio'])):
         data = {'ready': False, 'topics': {k: len(records[k]) for k in ('gt', 'lio', 'ndt')}}
         Path(args.out).write_text(json.dumps(data, indent=2) + '\n')
         return 2
@@ -139,7 +141,7 @@ def main():
         'topics': {'lio': args.lio_topic, 'ndt': args.ndt_topic, 'gt': args.gt_topic},
         'window': {'t0': t0, 't1': t1, 'drive_seconds': args.drive_seconds, 'speed_m_s': args.speed},
         'samples': {'gt': len(gt), 'lio': len(lio), 'ndt': len(ndt)},
-        'lio': metrics(gt, lio),
+        'lio': {'matched': 0, 'note': 'not run'} if args.no_lio else metrics(gt, lio),
         'ndt': metrics(gt, ndt),
         'ndt_health': {'messages': len(health),
                        'healthy_true': sum(1 for h in health if h['healthy']),

@@ -1,0 +1,33 @@
+{
+  "run_class": "runtime_experimental",
+  "set_id": "v8_a6_live_calibrated_v1",
+  "slice": "same live stream, LIO vs NDT monitor at res0.5/score8.0",
+  "criteria": {
+    "pass_threshold": "none; measurement window",
+    "reported": [
+      "coverage",
+      "ate_rmse_m",
+      "ate_max_m",
+      "yaw_rmse_rad",
+      "rpe_1m_mean",
+      "rpe_1m_max",
+      "healthy",
+      "score"
+    ]
+  },
+  "config_lock": {
+    "lio": "faster_lio m1_mapping.launch",
+    "ndt": "v8_ndt_odom monitor, map=m1_world_synth_v1.pcd, resolution=0.5, score_max=8.0, ext defaults, init (0,0,0)",
+    "world": "m1_gazebo.launch gui:=false map_to_odom:=false",
+    "drive": "/cmd_vel 0.25 m/s for 12 s, then zero 3 s",
+    "truth": "/sim/odom_gt; origin-aligned ATE/RPE",
+    "purpose": "live-stream validation of R868 calibrated NDT config"
+  },
+  "parameters_sha256": "8f0aae10cc5908819a07ea52caeb3bf61edb4836185f25778b2eb0f7361825da",
+  "evaluator": "a6_backend_compare.py",
+  "pre_registered_at": "2026-10-29T03:58:10+00:00",
+  "status": "pre_registered",
+  "counts_planned": {
+    "N_total": 1
+  }
+}

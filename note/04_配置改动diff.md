@@ -7174,3 +7174,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 新增 `ws/src/90_platform/v8_platform/regression/a6_ndt_replay.py`：回放冻结 bag 时只记录 NDT monitor 输出与 GT，输出与 R867 同式的 ATE/RPE/覆盖/健康/score。
 - 同一 bag（gz 7.1 MB，含 `/clock,/rslidar_points,/livox/imu,/sim/odom_gt`）扫 4 组配置：`score_max=2.0` 仅接受 8/86；`score_max=8.0` 接受 66—67/86；`res=0.5+score=8.0` 覆盖 92.1%、ATE 0.0210 m、RPE@1m 0.0254。
 - `score` 为 PCL fitness（对稀疏体素目标点的最近距离均值平方），绝对值受地图点数支配，阈值不可迁移；NDT 仍 monitor，不接导航。未改第三方、判据与冻结值。详见 R868 与 `evidence/R868`。
+
+## R869／R870（2026-10-29，qoder）：A6 校准配置活流复跑
+
+- `a6_backend_compare.py` 增 `--no-lio`（不要求 LIO 话题，用于 NDT 单独诊断）；其余未改。
+- R869 活流（LIO＋NDT res0.5/score8.0）：NDT 覆盖 60.5%、ATE 0.1057 m、终点 0.4767；LIO 99.1%/0.0693。
+- R870 NDT 单独：覆盖 59.7%、ATE 0.1006 m、终点 0.3740；与 R869 同量级 ⇒ 非 LIO 争用。
+- 对照 R868 同 bag 回放（92.1%/0.0210）⇒ 校准配置不迁移到活流；NDT 仍 monitor，不接导航。未改判据/第三方。详见 R869 与 `evidence/R869|R870`。

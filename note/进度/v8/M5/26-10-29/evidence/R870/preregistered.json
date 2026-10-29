@@ -1,0 +1,19 @@
+{
+  "run_class": "runtime_experimental",
+  "set_id": "v8_a6_ndt_only_live_v1",
+  "slice": "NDT monitor alone on the live stream at res0.5/score8.0",
+  "criteria": {
+    "pass_threshold": "none; diagnostic window"
+  },
+  "config_lock": {
+    "ndt": "v8_ndt_odom monitor, map=m1_world_synth_v1.pcd, resolution=0.5, score_max=8.0",
+    "world": "m1_gazebo gui:=false map_to_odom:=false",
+    "lio": "not started; GT from /sim/odom_gt",
+    "drive": "/cmd_vel 0.25 m/s for 12 s, then zero 3 s",
+    "purpose": "diagnose whether R869 degradation is LIO/NDT CPU contention or NDT itself"
+  },
+  "parameters_sha256": "5f912f2097cc0d7742acc8efd72ea8a8fc6b09e2b145c987281c42a58bddae21",
+  "evaluator": "a6_backend_compare.py (LIO topic will be absent; ndt metrics still evaluated against GT)",
+  "pre_registered_at": "2026-10-29T03:59:55+00:00",
+  "status": "pre_registered"
+}
