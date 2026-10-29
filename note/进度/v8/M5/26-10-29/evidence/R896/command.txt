@@ -1,0 +1,31 @@
+R896 命令（2026-10-29 23:30 CST，qoder；A5 local_native 支撑容差修复）
+
+# 1) 代码修复（host）
+# local_native.py 新增 SUPPORT_TOL_S=1e-6；resolve/safe_ceiling/static_collision/
+# checker z_tol 统一使用该常量，替代 1e-6 与 1e-9 混用。
+# 新增 test_local_native_tolerance.py：容差内 (z=0.14999994) 必须规划到达；
+# 容差外 (z=0.149999) 必须 E_LOCAL_SUPPORT。
+
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_local_native_tolerance.py
+# 2 tests OK
+
+# 2) 全量单测（host）
+# 37 个 v8_platform test_*.py，逐件 python3 -B
+# 输出：SUITES=37 FAIL=0
+
+# 3) 空载 A5 step-only ×5（容器 r896-step，network none，roscore:11811）
+cd /repo/ws/src/90_platform/v8_platform/local_planner
+for i in 1..5:
+  python3 -B runtime_probe.py --case step --out /out/step_r${i}.json --wall-deadline-s 60
+# r1/r2/r4/r5 PASS；r3 FAIL：transport 16.44 ms>10 ms，contact_mismatch/unsupported。
+# transport max 其余 2.6—9.5 ms。
+
+# 4) 空载 A5 完整五例 ×3
+for i in 1..3:
+  python3 -B runtime_probe.py --out /out/full_r${i}.json --wall-deadline-s 60
+# 3/3 全 5/5 PASS；transport max 8.32 ms（step r2），其余 <6.1 ms；
+# dynamic/step independent_evaluation 全 ok。
+
+# 5) 结论
+# 修复前 A5 step 1/5（R893 并行）/4/5（R892）；修复后空载完整 3/3×5/5，
+# 但 step-only 仍有 1/5 运输抖动，A5 不能直接升 PASS；A1—A7 仍 NOT_VALIDATED。
