@@ -1,0 +1,56 @@
+{
+ "run_id": "runtime_dwa_SC09_s1_noisy_r1",
+ "run_class": "runtime_experimental",
+ "calibration_only": false,
+ "scenario_id": "SC09",
+ "seed": 1,
+ "repetition": 1,
+ "track": "estimated",
+ "localization_source": "seeded map->odom perturbation (amp 0.05 m / 0.03 rad); truth /sim/odom_gt used for evaluation",
+ "localization_track": "noisy",
+ "goal": [
+  6.0,
+  3.0
+ ],
+ "criteria": {
+  "goal_position_m": 0.3,
+  "min_clearance_m": 0.2
+ },
+ "map_received": true,
+ "clock_ready": true,
+ "cmd_vel_messages": 696,
+ "motion_command_messages": 680,
+ "odom_samples": 1741,
+ "path_length_m": 6.93,
+ "final_pos": [
+  5.889305507367832,
+  3.0205247528677925
+ ],
+ "dist_to_goal_m": 0.113,
+ "obstacle_min_clearance_m": 0.308,
+ "injected_box_clearance_m": 0.657,
+ "inject": {
+  "at_progress_m": 0.2853041415443653,
+  "model_name": "sc09_block_g0",
+  "size": [
+   0.6,
+   0.6,
+   0.6
+  ],
+  "pose_xy_yaw": [
+   4.4,
+   3.4,
+   0.0
+  ]
+ },
+ "injected_at_s": 4.8,
+ "injection_ok": true,
+ "wall_duration_s": 77.1,
+ "sim_duration_s": 34.8,
+ "rtf": 0.452,
+ "deadline_hit": false,
+ "verdict": "PASS",
+ "fail_reason": null,
+ "telemetry_json": "/opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R866/dwa_SC09_s1_noisy/trajectory.json",
+ "telemetry_sha256": "c4d9b6931dc8cc43a1a7cae23c9c55ae21392e492b0f74c258b82659f779af9e"
+}

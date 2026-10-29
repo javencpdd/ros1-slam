@@ -7156,3 +7156,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `CMakeLists.txt`：补 `find_package(catkin REQUIRED COMPONENTS roscpp tf nav_msgs geometry_msgs)` 与 `catkin_package(CATKIN_DEPENDS …)`；此前只有 `catkin_package()`，干净构建找不到 ROS 头（现存 .so 为陈旧产物）。
 - `package.xml`：补 `roscpp/tf/nav_msgs/geometry_msgs` 四项 `depend`。
 - 验证：重建 rc=0；同参重跑 EXIT=0、无 core、gazebo 正常 `done`。未改第三方与判据。
+
+## R866（2026-10-29，qoder）：A1/A7 三十六格运行面
+
+- 无配置改动：`runtime_lab` 按 R865 的构建（插件析构＋catkin 依赖）运行 2 后端×2 定位轨×3 场景×3 seed＝36 格，全部 `rc=0`、零 core。
+- 计数 `N_total=36/N_valid=36/N_invalid=0/N_pass=36`；最差终点 0.234 m、最小间隙 0.295 m（门 0.3/0.2）。noisy 轨使间隙下降（SC02 dwa 0.359→0.300），未越门。
+- 未改判据、冻结门值、第三方或 `sim` 服务；SC09 为可达障碍场景，不是 `E_PLAN_NO_ROUTE` 负控。详见 R866 与 `evidence/R866`。

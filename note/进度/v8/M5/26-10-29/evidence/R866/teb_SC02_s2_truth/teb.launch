@@ -1,0 +1,111 @@
+<launch>
+  
+  <node pkg="map_server" type="map_server" name="map_server" output="screen" args="/opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R866/teb_SC02_s2_truth/map.yaml" />
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <remap from="cmd_vel" to="/follow/cmd_vel" />
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+    <param name="controller_frequency" value="5.0" />
+    <param name="planner_frequency" value="1.0" />
+    <param name="footprint" value="[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]" />
+    <param name="xy_goal_tolerance" value="0.25" />
+    <param name="yaw_goal_tolerance" value="1.57" />
+    <param name="DWAPlannerROS/max_vel_x" value="0.4" />
+    <param name="DWAPlannerROS/max_vel_x_backwards" value="0.2" />
+    <param name="DWAPlannerROS/max_vel_theta" value="1.0" />
+    <param name="DWAPlannerROS/acc_lim_x" value="1.0" />
+    <param name="DWAPlannerROS/acc_lim_theta" value="2.0" />
+    <param name="DWAPlannerROS/max_vel_y" value="0.1" />
+    <param name="DWAPlannerROS/acc_lim_y" value="0.5" />
+    <param name="TebLocalPlannerROS/max_vel_x" value="0.4" />
+    <param name="TebLocalPlannerROS/max_vel_x_backwards" value="0.2" />
+    <param name="TebLocalPlannerROS/max_vel_theta" value="1.0" />
+    <param name="TebLocalPlannerROS/acc_lim_x" value="1.0" />
+    <param name="TebLocalPlannerROS/acc_lim_theta" value="2.0" />
+    <param name="TebLocalPlannerROS/min_turning_radius" value="0.0" />
+    <param name="TebLocalPlannerROS/wheelbase" value="0.4" />
+    <param name="TebLocalPlannerROS/xy_goal_tolerance" value="0.25" />
+    <param name="TebLocalPlannerROS/yaw_goal_tolerance" value="1.57" />
+    <param name="TebLocalPlannerROS/footprint_model/type" value="polygon" />
+    <rosparam param="TebLocalPlannerROS/footprint_model/vertices">[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]</rosparam>
+    <param name="TebLocalPlannerROS/weight_kinematics_forward_drive" value="1.0" />
+
+    <param name="global_costmap/global_frame" value="map" />
+    <param name="global_costmap/rolling_window" value="false" />
+    <param name="global_costmap/width" value="10.0" />
+    <param name="global_costmap/height" value="10.0" />
+    <param name="global_costmap/resolution" value="0.05" />
+    <param name="global_costmap/origin_x" value="-2.5" />
+    <param name="global_costmap/origin_y" value="-5.0" />
+    <param name="global_costmap/robot_base_frame" value="base_link" />
+    <param name="global_costmap/update_frequency" value="2.0" />
+    <param name="global_costmap/publish_frequency" value="2.0" />
+    <rosparam param="global_costmap/plugins">
+      - {name: static_layer, type: "costmap_2d::StaticLayer"}
+      - {name: stvl_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="global_costmap/static_layer/track_unknown_space" value="false" />
+    <param name="global_costmap/stvl_layer/observation_sources" value="cloud" />
+    <param name="global_costmap/stvl_layer/cloud/topic" value="/scan_points" />
+    <param name="global_costmap/stvl_layer/cloud/data_type" value="PointCloud2" />
+    <param name="global_costmap/stvl_layer/cloud/marking" value="true" />
+    <param name="global_costmap/stvl_layer/cloud/clearing" value="true" />
+    <param name="global_costmap/stvl_layer/cloud/min_obstacle_height" value="0.05" />
+    <param name="global_costmap/stvl_layer/cloud/max_obstacle_height" value="1.20" />
+    <param name="global_costmap/stvl_layer/cloud/expected_update_rate" value="0.0" />
+    <param name="global_costmap/stvl_layer/cloud/observation_persistence" value="0.0" />
+    <param name="global_costmap/stvl_layer/cloud/filter" value="passthrough" />
+    <param name="global_costmap/stvl_layer/cloud/voxel_min_points" value="0" />
+    <param name="global_costmap/stvl_layer/cloud/clear_after_reading" value="false" />
+    <param name="global_costmap/stvl_layer/voxel_size" value="0.05" />
+    <param name="global_costmap/stvl_layer/voxel_decay" value="5.0" />
+    <param name="global_costmap/stvl_layer/decay_model" value="0" />
+    <param name="global_costmap/stvl_layer/combination_method" value="1" />
+    <param name="global_costmap/stvl_layer/track_unknown_space" value="false" />
+    <param name="global_costmap/stvl_layer/mark_threshold" value="0" />
+    <param name="global_costmap/stvl_layer/update_footprint_enabled" value="false" />
+    <param name="global_costmap/stvl_layer/publish_voxel_map" value="false" />
+    <param name="global_costmap/stvl_layer/transform_tolerance" value="0.5" />
+    <param name="global_costmap/inflation_layer/inflation_radius" value="0.45" />
+    <param name="global_costmap/inflation_layer/cost_scaling_factor" value="5.0" />
+
+    <param name="local_costmap/global_frame" value="odom" />
+    <param name="local_costmap/robot_base_frame" value="base_link" />
+    <param name="local_costmap/rolling_window" value="true" />
+    <param name="local_costmap/width" value="6.0" />
+    <param name="local_costmap/height" value="6.0" />
+    <param name="local_costmap/resolution" value="0.05" />
+    <param name="local_costmap/update_frequency" value="5.0" />
+    <param name="local_costmap/publish_frequency" value="2.0" />
+    <rosparam param="local_costmap/plugins">
+      - {name: static_layer, type: "costmap_2d::StaticLayer"}
+      - {name: stvl_layer, type: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"}
+      - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    </rosparam>
+    <param name="local_costmap/static_layer/track_unknown_space" value="false" />
+    <param name="local_costmap/stvl_layer/observation_sources" value="cloud" />
+    <param name="local_costmap/stvl_layer/cloud/topic" value="/scan_points" />
+    <param name="local_costmap/stvl_layer/cloud/data_type" value="PointCloud2" />
+    <param name="local_costmap/stvl_layer/cloud/marking" value="true" />
+    <param name="local_costmap/stvl_layer/cloud/clearing" value="true" />
+    <param name="local_costmap/stvl_layer/cloud/min_obstacle_height" value="0.05" />
+    <param name="local_costmap/stvl_layer/cloud/max_obstacle_height" value="1.20" />
+    <param name="local_costmap/stvl_layer/cloud/expected_update_rate" value="0.0" />
+    <param name="local_costmap/stvl_layer/cloud/observation_persistence" value="0.0" />
+    <param name="local_costmap/stvl_layer/cloud/filter" value="passthrough" />
+    <param name="local_costmap/stvl_layer/cloud/voxel_min_points" value="0" />
+    <param name="local_costmap/stvl_layer/cloud/clear_after_reading" value="false" />
+    <param name="local_costmap/stvl_layer/voxel_size" value="0.05" />
+    <param name="local_costmap/stvl_layer/voxel_decay" value="5.0" />
+    <param name="local_costmap/stvl_layer/decay_model" value="0" />
+    <param name="local_costmap/stvl_layer/combination_method" value="1" />
+    <param name="local_costmap/stvl_layer/track_unknown_space" value="false" />
+    <param name="local_costmap/stvl_layer/mark_threshold" value="0" />
+    <param name="local_costmap/stvl_layer/update_footprint_enabled" value="false" />
+    <param name="local_costmap/stvl_layer/publish_voxel_map" value="false" />
+    <param name="local_costmap/stvl_layer/transform_tolerance" value="0.5" />
+    <param name="local_costmap/inflation_layer/inflation_radius" value="0.25" />
+    <param name="local_costmap/inflation_layer/cost_scaling_factor" value="5.0" />
+  <param name="TebLocalPlannerROS/max_vel_y" value="0.1" /><param name="TebLocalPlannerROS/acc_lim_y" value="0.5" /><param name="TebLocalPlannerROS/min_obstacle_dist" value="0.2" /><param name="TebLocalPlannerROS/inflation_dist" value="0.35" /><param name="TebLocalPlannerROS/max_global_plan_lookahead_dist" value="2.0" /><param name="TebLocalPlannerROS/global_plan_viapoint_sep" value="0.3" /><param name="TebLocalPlannerROS/weight_viapoint" value="2.0" /><param name="TebLocalPlannerROS/weight_kinematics_nh" value="1.0" /><param name="TebLocalPlannerROS/enable_homotopy_class_planning" value="false" /><param name="TebLocalPlannerROS/feasibility_check_no_poses" value="10" /></node>
+</launch>

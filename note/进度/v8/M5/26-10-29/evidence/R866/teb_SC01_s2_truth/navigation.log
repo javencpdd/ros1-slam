@@ -1,0 +1,165 @@
+[0m[ INFO] [1793227877.570628577]: Loading map from image "/opt/ros1-slam/note/??????/v8/M5/26-10-29/evidence/R866/teb_SC01_s2_truth/map.pgm"[0m
+[0m[ INFO] [1793227877.806230346, 0.962000000]: Read a 200 X 200 map @ 0.050 m/cell[0m
+[0m[ INFO] [1793227877.828729467, 0.973000000]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1793227877.847654630, 0.982000000]: Requesting the map...[0m
+[0m[ INFO] [1793227878.076363719, 1.084000000]: Resizing costmap to 200 X 200 at 0.050000 m/pix[0m
+[0m[ INFO] [1793227878.322331798, 1.195000000]: Received a 200 X 200 map at 0.050000 m/pix[0m
+[0m[ INFO] [1793227878.328381099, 1.198000000]: global_costmap: Using plugin "stvl_layer"[0m
+[0m[ INFO] [1793227878.481446990, 1.260000000]: global_costmap/stvl_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1793227878.481543924, 1.260000000]: global_costmap/stvl_layer's global frame is map.[0m
+[0m[ INFO] [1793227878.492213986, 1.266000000]: global_costmap/stvl_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1793227878.494169180, 1.267000000]: global_costmap/stvl_layer created underlying voxel grid.[0m
+[0m[ INFO] [1793227878.516177729, 1.278000000]: Passthough filter activated.[0m
+[0m[ INFO] [1793227878.562462900, 1.301000000]: global_costmap/stvl_layer initialization complete![0m
+[0m[ INFO] [1793227878.562539567, 1.301000000]: global_costmap: Using plugin "inflation_layer"[0m
+[0m[ INFO] [1793227878.642190367, 1.329000000]: local_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1793227878.649513994, 1.333000000]: Requesting the map...[0m
+[0m[ INFO] [1793227878.652126973, 1.334000000]: Resizing static layer to 200 X 200 at 0.050000 m/pix[0m
+[0m[ INFO] [1793227878.878271753, 1.434000000]: Received a 200 X 200 map at 0.050000 m/pix[0m
+[0m[ INFO] [1793227878.884967311, 1.437000000]: local_costmap: Using plugin "stvl_layer"[0m
+[0m[ INFO] [1793227878.885442675, 1.437000000]: local_costmap/stvl_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1793227878.885503650, 1.437000000]: local_costmap/stvl_layer's global frame is odom.[0m
+[0m[ INFO] [1793227878.898258207, 1.443000000]: local_costmap/stvl_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1793227878.900397491, 1.445000000]: local_costmap/stvl_layer created underlying voxel grid.[0m
+[0m[ INFO] [1793227878.913431393, 1.451000000]: Passthough filter activated.[0m
+[0m[ INFO] [1793227878.935343976, 1.462000000]: local_costmap/stvl_layer initialization complete![0m
+[0m[ INFO] [1793227878.935381235, 1.462000000]: local_costmap: Using plugin "inflation_layer"[0m
+[0m[ INFO] [1793227879.010918698, 1.500000000]: Created local_planner teb_local_planner/TebLocalPlannerROS[0m
+[0m[ INFO] [1793227879.087228507, 1.527000000]: Footprint model 'polygon' loaded for trajectory optimization.[0m
+[0m[ INFO] [1793227879.088069076, 1.527000000]: Parallel planning in distinctive topologies disabled.[0m
+[0m[ INFO] [1793227879.088155315, 1.527000000]: No costmap conversion plugin specified. All occupied costmap cells are treaten as point obstacles.[0m
+[0m[ INFO] [1793227879.947672915, 1.897000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1793227879.961347546, 1.903000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1793227899.040368129, 10.588000000]: GOAL Reached![0m
+... logging to /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R866/teb_SC01_s2_truth/logs/0d25eaea-d322-11f1-888f-bbc66fe4aeb3/roslaunch-f7a4b0f5d685-21477.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R866/teb_SC01_s2_truth/teb.launch
+[1mstarted roslaunch server http://127.0.0.1:35597/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /move_base/DWAPlannerROS/acc_lim_theta: 2.0
+ * /move_base/DWAPlannerROS/acc_lim_x: 1.0
+ * /move_base/DWAPlannerROS/acc_lim_y: 0.5
+ * /move_base/DWAPlannerROS/max_vel_theta: 1.0
+ * /move_base/DWAPlannerROS/max_vel_x: 0.4
+ * /move_base/DWAPlannerROS/max_vel_x_backwards: 0.2
+ * /move_base/DWAPlannerROS/max_vel_y: 0.1
+ * /move_base/TebLocalPlannerROS/acc_lim_theta: 2.0
+ * /move_base/TebLocalPlannerROS/acc_lim_x: 1.0
+ * /move_base/TebLocalPlannerROS/acc_lim_y: 0.5
+ * /move_base/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base/TebLocalPlannerROS/feasibility_check_no_poses: 10
+ * /move_base/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base/TebLocalPlannerROS/footprint_model/vertices: [[-0.3, -0.2], [-...
+ * /move_base/TebLocalPlannerROS/global_plan_viapoint_sep: 0.3
+ * /move_base/TebLocalPlannerROS/inflation_dist: 0.35
+ * /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist: 2.0
+ * /move_base/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/max_vel_x: 0.4
+ * /move_base/TebLocalPlannerROS/max_vel_x_backwards: 0.2
+ * /move_base/TebLocalPlannerROS/max_vel_y: 0.1
+ * /move_base/TebLocalPlannerROS/min_obstacle_dist: 0.2
+ * /move_base/TebLocalPlannerROS/min_turning_radius: 0.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive: 1.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_nh: 1.0
+ * /move_base/TebLocalPlannerROS/weight_viapoint: 2.0
+ * /move_base/TebLocalPlannerROS/wheelbase: 0.4
+ * /move_base/TebLocalPlannerROS/xy_goal_tolerance: 0.25
+ * /move_base/TebLocalPlannerROS/yaw_goal_tolerance: 1.57
+ * /move_base/base_global_planner: global_planner/Gl...
+ * /move_base/base_local_planner: teb_local_planner...
+ * /move_base/controller_frequency: 5.0
+ * /move_base/footprint: [[-0.3,-0.2],[-0....
+ * /move_base/global_costmap/global_frame: map
+ * /move_base/global_costmap/height: 10.0
+ * /move_base/global_costmap/inflation_layer/cost_scaling_factor: 5.0
+ * /move_base/global_costmap/inflation_layer/inflation_radius: 0.45
+ * /move_base/global_costmap/origin_x: -2.5
+ * /move_base/global_costmap/origin_y: -5.0
+ * /move_base/global_costmap/plugins: [{'name': 'static...
+ * /move_base/global_costmap/publish_frequency: 2.0
+ * /move_base/global_costmap/resolution: 0.05
+ * /move_base/global_costmap/robot_base_frame: base_link
+ * /move_base/global_costmap/rolling_window: False
+ * /move_base/global_costmap/static_layer/track_unknown_space: False
+ * /move_base/global_costmap/stvl_layer/cloud/clear_after_reading: False
+ * /move_base/global_costmap/stvl_layer/cloud/clearing: True
+ * /move_base/global_costmap/stvl_layer/cloud/data_type: PointCloud2
+ * /move_base/global_costmap/stvl_layer/cloud/expected_update_rate: 0.0
+ * /move_base/global_costmap/stvl_layer/cloud/filter: passthrough
+ * /move_base/global_costmap/stvl_layer/cloud/marking: True
+ * /move_base/global_costmap/stvl_layer/cloud/max_obstacle_height: 1.2
+ * /move_base/global_costmap/stvl_layer/cloud/min_obstacle_height: 0.05
+ * /move_base/global_costmap/stvl_layer/cloud/observation_persistence: 0.0
+ * /move_base/global_costmap/stvl_layer/cloud/topic: /scan_points
+ * /move_base/global_costmap/stvl_layer/cloud/voxel_min_points: 0
+ * /move_base/global_costmap/stvl_layer/combination_method: 1
+ * /move_base/global_costmap/stvl_layer/decay_model: 0
+ * /move_base/global_costmap/stvl_layer/mark_threshold: 0
+ * /move_base/global_costmap/stvl_layer/observation_sources: cloud
+ * /move_base/global_costmap/stvl_layer/publish_voxel_map: False
+ * /move_base/global_costmap/stvl_layer/track_unknown_space: False
+ * /move_base/global_costmap/stvl_layer/transform_tolerance: 0.5
+ * /move_base/global_costmap/stvl_layer/update_footprint_enabled: False
+ * /move_base/global_costmap/stvl_layer/voxel_decay: 5.0
+ * /move_base/global_costmap/stvl_layer/voxel_size: 0.05
+ * /move_base/global_costmap/update_frequency: 2.0
+ * /move_base/global_costmap/width: 10.0
+ * /move_base/local_costmap/global_frame: odom
+ * /move_base/local_costmap/height: 6.0
+ * /move_base/local_costmap/inflation_layer/cost_scaling_factor: 5.0
+ * /move_base/local_costmap/inflation_layer/inflation_radius: 0.25
+ * /move_base/local_costmap/plugins: [{'name': 'static...
+ * /move_base/local_costmap/publish_frequency: 2.0
+ * /move_base/local_costmap/resolution: 0.05
+ * /move_base/local_costmap/robot_base_frame: base_link
+ * /move_base/local_costmap/rolling_window: True
+ * /move_base/local_costmap/static_layer/track_unknown_space: False
+ * /move_base/local_costmap/stvl_layer/cloud/clear_after_reading: False
+ * /move_base/local_costmap/stvl_layer/cloud/clearing: True
+ * /move_base/local_costmap/stvl_layer/cloud/data_type: PointCloud2
+ * /move_base/local_costmap/stvl_layer/cloud/expected_update_rate: 0.0
+ * /move_base/local_costmap/stvl_layer/cloud/filter: passthrough
+ * /move_base/local_costmap/stvl_layer/cloud/marking: True
+ * /move_base/local_costmap/stvl_layer/cloud/max_obstacle_height: 1.2
+ * /move_base/local_costmap/stvl_layer/cloud/min_obstacle_height: 0.05
+ * /move_base/local_costmap/stvl_layer/cloud/observation_persistence: 0.0
+ * /move_base/local_costmap/stvl_layer/cloud/topic: /scan_points
+ * /move_base/local_costmap/stvl_layer/cloud/voxel_min_points: 0
+ * /move_base/local_costmap/stvl_layer/combination_method: 1
+ * /move_base/local_costmap/stvl_layer/decay_model: 0
+ * /move_base/local_costmap/stvl_layer/mark_threshold: 0
+ * /move_base/local_costmap/stvl_layer/observation_sources: cloud
+ * /move_base/local_costmap/stvl_layer/publish_voxel_map: False
+ * /move_base/local_costmap/stvl_layer/track_unknown_space: False
+ * /move_base/local_costmap/stvl_layer/transform_tolerance: 0.5
+ * /move_base/local_costmap/stvl_layer/update_footprint_enabled: False
+ * /move_base/local_costmap/stvl_layer/voxel_decay: 5.0
+ * /move_base/local_costmap/stvl_layer/voxel_size: 0.05
+ * /move_base/local_costmap/update_frequency: 5.0
+ * /move_base/local_costmap/width: 6.0
+ * /move_base/planner_frequency: 1.0
+ * /move_base/xy_goal_tolerance: 0.25
+ * /move_base/yaw_goal_tolerance: 1.57
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+
+NODES
+  /
+    map_server (map_server/map_server)
+    move_base (move_base/move_base)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11413[0m
+]2;/opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R866/teb_SC01_s2_truth/teb.launch http://127.0.0.1:11413
+[1mprocess[map_server-1]: started with pid [21645][0m
+[1mprocess[move_base-2]: started with pid [21646][0m
+[move_base-2] killing on exit
+[map_server-1] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
