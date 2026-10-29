@@ -133,6 +133,31 @@ class ExecutionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             runtime_probe.integrate_received(position, stamp, velocity, [(.59, (1., 0., 0.))], .7)
 
+    def test_transport_gate_keeps_stop_zero_and_ignores_idle_zero(self):
+        epoch = 100.
+        receipts = [
+            {'source_stamp': 90., 'received_at': 99.9, 'velocity': [0., 0., 0.]},
+            {'source_stamp': 100.1, 'received_at': 100.105, 'velocity': [.5, 0., 0.]},
+            {'source_stamp': 100.2, 'received_at': 100.211, 'velocity': [0., 0., 0.]},
+            {'source_stamp': 100.3, 'received_at': 100.4, 'velocity': [0., 0., 0.]},
+            {'source_stamp': 100.4, 'received_at': 100.402, 'velocity': [.5, 0., 0.]},
+            {'source_stamp': 100.5, 'received_at': 100.501, 'velocity': [0., 0., 0.]},
+        ]
+        latencies = runtime_probe.motion_transport_latencies(receipts, epoch)
+        for actual, expected in zip(latencies, [.005, .011, .002, .001]):
+            self.assertAlmostEqual(actual, expected, places=9)
+        self.assertEqual(len(latencies), 4)
+        violations = [v for v in latencies if v > .01]
+        self.assertEqual(len(violations), 1)
+        self.assertAlmostEqual(violations[0], .011, places=9)
+
+    def test_transport_gate_ignores_all_zero_stream(self):
+        receipts = [
+            {'source_stamp': 10. + index * .1, 'received_at': 10. + index * .1 + .05,
+             'velocity': [0., 0., 0.]}
+            for index in range(20)]
+        self.assertEqual(runtime_probe.motion_transport_latencies(receipts, 10.), [])
+
     def test_original_dynamic_failure_requires_actual_hold_trace(self):
         # Fixed numerical counterexample derived from the preserved failed ROS
         # artifact: omitting the wait starts lateral movement too early relative

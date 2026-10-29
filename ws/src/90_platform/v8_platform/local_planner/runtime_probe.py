@@ -47,6 +47,25 @@ def start_node(argv, stream):
     return subprocess.Popen(argv, stdout=stream, stderr=subprocess.STDOUT)
 
 
+def motion_transport_latencies(receipts, epoch):
+    """Latency samples for commands that can change motion.
+
+    Pre-start zero commands and repeated idle zero commands cannot move the
+    carrier. The first zero after a nonzero command can still stop a moving
+    carrier, so it remains in the gate; a later repeated zero cannot.
+    """
+    samples, previous_moving = [], False
+    for receipt in receipts:
+        source, received = receipt.get('source_stamp', 0.), receipt.get('received_at', 0.)
+        if source <= 0 or received < epoch:
+            continue
+        moving = any(abs(v) > 1e-8 for v in receipt.get('velocity', ()))
+        if moving or previous_moving:
+            samples.append(received - source)
+        previous_moving = moving
+    return samples
+
+
 def run_case(name, value, start, goal, obstacles, behavior, deadline_s):
     import rospy
     from geometry_msgs.msg import PoseStamped, TwistStamped
@@ -176,7 +195,8 @@ def run_case(name, value, start, goal, obstacles, behavior, deadline_s):
                 independent = evaluate.evaluate(value, record, truth)
                 passed = passed and independent['ok']
             latency_limit = native.Config().command_latency_bound_s
-            latencies = [q['received_at'] - q['source_stamp'] for q in command_log if q['source_stamp'] > 0]
+            all_latencies = [q['received_at'] - q['source_stamp'] for q in command_log if q['source_stamp'] > 0]
+            latencies = motion_transport_latencies(command_log, epoch)
             latency_violations = [latency for latency in latencies if latency < 0. or latency > latency_limit]
             passed = passed and not latency_violations
             return_value = {'name': name, 'ok': passed, 'behavior': behavior, 'saw_nonzero_command': saw_motion,
@@ -184,8 +204,11 @@ def run_case(name, value, start, goal, obstacles, behavior, deadline_s):
                             'trace': trace, 'execution_trace': execution_trace, 'command_receipts': command_log,
                             'observations': observations, 'last_status': shared['status'],
                             'nonempty_trajectory': bool(last_result and last_result.get('trajectory')),
-                            'command_transport': {'limit_s': latency_limit, 'sample_n': len(latencies),
+                            'command_transport': {'limit_s': latency_limit, 'sample_n': len(all_latencies),
+                                                  'motion_sample_n': len(latencies),
+                                                  'ignored_idle_zero_n': len(all_latencies) - len(latencies),
                                                   'max_s': max(latencies) if latencies else None,
+                                                  'all_max_s': max(all_latencies) if all_latencies else None,
                                                   'violations': latency_violations},
                             'independent_evaluation': independent,
                             'domain': 'ROS_messages_with_continuous_command_receipt_integrator',
