@@ -1,0 +1,17 @@
+{
+  "domain": "a2_gazebo_candidate_crash_hold_perception",
+  "verdict": "PASS",
+  "cases": {
+    "source_crash": {"verdict": "PASS", "mux_zero_sim_s": 0.551, "physical_stop_sim_s": 0.553,
+                     "coast_displacement_xy_m": 0.11006, "speed_after_m_s": 8.95e-11},
+    "supervisor_hold": {"verdict": "PASS", "mux_zero_sim_s": 0.046, "physical_stop_sim_s": 0.047,
+                        "coast_displacement_xy_m": 0.009354, "speed_after_m_s": 1.04e-10},
+    "perception_hold": {"verdict": "PASS", "mux_zero_sim_s": 0.042, "physical_stop_sim_s": 0.045,
+                        "coast_displacement_xy_m": 0.029455, "speed_after_m_s": 4.35e-13}
+  },
+  "test": {"sensed_box_tests": 3, "v8_suites": 37, "failures": 0},
+  "lab": {"stop": 0, "process_group_survivors": {"stop": [], "mux": [], "gazebo": [], "master": []}},
+  "scope": "A2.Gazebo_mux_candidate_crash_hold_perception;no_151_freeze",
+  "boundary": {"perception_trigger": true, "no_151_budget": true, "no_real_robot": true},
+  "a2_status": "process 6/6 + Gazebo 3/3 PASS*; #151/perception-to-budget not covered"
+}

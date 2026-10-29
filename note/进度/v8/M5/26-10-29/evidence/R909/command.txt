@@ -1,0 +1,14 @@
+R909 命令（2026-10-30 01:42—01:46 CST，qoder；A2 Gazebo 感知触发）
+# 代码：a2_gazebo_stop.py 新增 perception_hold；test_a5_gazebo_runtime.py 加 sensed_box 正反例。
+# 37 套件 0 失败。
+# Gazebo：独立容器、network none、master 11891，m1_gazebo + safe mux + stop probe。
+docker run -d --name r909-a2p --network none -e ROS_IP=127.0.0.1 -e ROS_HOSTNAME=127.0.0.1 \
+  -v /home/jack/ysc-code/ros1-slam:/repo:ro -v /tmp/r909:/out ros1-slam:noetic-sim bash -lc \
+  'source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash; \
+   cd /repo/ws/src/90_platform/v8_platform/regression; ulimit -c 0; \
+   python3 -B runtime_lab.py --out /out/out --port 11891 --gazebo --stop-test'
+# 3/3 PASS：
+# 源崩溃 mux 0.551 s sim / 物理停 0.553 s / 滑行 0.1101 m；
+# supervisor hold 0.046/0.047 s / 0.00935 m；
+# 感知触发 0.042/0.045 s / 0.02945 m（spawn 盒 + /rslidar_points ROI + hold）。
+# 无进程组残留；不含 #151 停车预算冻结/真机。
