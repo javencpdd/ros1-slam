@@ -7251,3 +7251,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 采集框架已改 `ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py`（首个零速/目标原因/首个障碍输入/锁存点/首个稳定静止窗，前置与未锁存判 INVALID），新增 `test_a5_gazebo_runtime.py` 9 项负控；`a5_fixcheck` 单例输出 `INVALID_PREEMPTED_E_LOCAL_WALL_EXPIRED`、rc=6。
 - 四例回归（框架修后）：`arrival`/`localization` VALID；`sensed_no_route`/`sensor_freshness` 均 `INVALID_PREEMPTED_E_LOCAL_WALL_EXPIRED`（sensor_freshness 首零 +0.6354 s、目标 `E_LOCAL_OBSTACLES_STALE` +1.9601 s）。⇒ **R841 4/4 在新口径下不复现**；根因含 `input_max_age_s=1.0` > `validity_s=0.9` 的阈值顺序。
 - 结论：#151 两键继续 pending；需有制动载体、≥3 起点×3 次、距离窗从首个障碍输入起算。A5 采用 `local_native` 作算法/申报域正式路线，不采用当前 `ros_node.py` 运行时接线。详见 R881。
+
+## R882（2026-10-29，qoder）：规划进程隔离与 A5 四例 4/4
+
+- `ros_node.py` 新增 `PlannerWorker`（fork 单 worker，父进程只提交/轮询）；`ros_node.py` 增 `~wall_watchdog_s`（默认 max(5, 4×validity_s)，仅 /clock 停转兜底）、仿真 `valid_until` 判期、`E_LOCAL_WORLD_UPDATED` 先判、终端锁存（仅已有计划后）、`ok` 零速映射 `NO_TRAJECTORY`。
+- 心跳负控：1.201 s 纯 Python 规划期间父心跳最大间隔 in-thread 11.2 ms、worker 5.8 ms ⇒ GIL 不是饿死主因；隔离保留。
+- 采集框架把 `NO_TRAJECTORY`/`EXPIRED`/`NOT_READY`/`INPUT`/`segment_complete`/`ok`/`hold` 记为瞬态零速，首终端零速才作因果停车。
+- 四例 4/4 VALID：`sensed_no_route` 首终端 `NO_ROUTE` +0.9696 s、感知→静止 0.012769 m；`sensor_freshness` `OBSTACLES_STALE` +1.9633 s；`arrival`/`localization` 正常。仍是 kinematic、无制动、单速度/单起点。
+- #151 仅得 kinematic 分量 n=3：感知→静止 0.011971—0.019552 m、0.3818—0.4243 s 墙钟；两键继续 pending。详见 R882。

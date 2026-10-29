@@ -1,0 +1,26 @@
+R882 命令（2026-10-29，qoder；容器 ros1-slam-sim，仓挂 /opt/ros1-slam）
+
+# 四例（隔离＋策略修复后；输出 a5_fourcase）
+cd /opt/ros1-slam
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R882/a5_fourcase \
+  --gazebo --local-gazebo \
+  --local-cases arrival,sensed_no_route,localization,sensor_freshness
+
+# #151 的 kinematic 分量 n=3（每例独立 lab；先建好 run$i 目录再重定向）
+for i in 1 2 3; do
+  python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+    --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R882/n3_valid/run$i \
+    --gazebo --local-gazebo --local-cases sensed_no_route
+done
+
+# 负控与心跳间隔（isolation_heartbeat.txt 即本条输出）
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_planner_worker.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_ros_node_policy.py
+python3 -B ws/src/90_platform/v8_platform/regression/test_a5_gazebo_runtime.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_local_native.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_execution.py
+
+# 读数口径：首终端零速＝跳过 NO_TRAJECTORY/EXPIRED/NOT_READY/INPUT/segment_complete/ok/hold
+# 后的首个 stop；瞬态零速另记 transient_zeros_before_stop。真实静止＝首个 ≥0.2—0.3 s 仿真稳定窗，
+# 墙钟为主、仿真钟并列；感知→静止从首个带障碍的 measured_lidar_obstacles 起算。
