@@ -1,0 +1,46 @@
+{
+ "domain": "a7_planning_runtime_missing_scenarios",
+ "ids": [
+  "SC03",
+  "SC04",
+  "SC05",
+  "SC06",
+  "SC07",
+  "SC08",
+  "SC10"
+ ],
+ "tracks": [
+  "truth",
+  "estimate"
+ ],
+ "cells": 14,
+ "passed": 10,
+ "expected_failures": 4,
+ "unexpected_failures": 0,
+ "same_as_design": 14,
+ "coverage": {
+  "planning_runtime_scenarios_before": [
+   "SC01",
+   "SC02",
+   "SC09"
+  ],
+  "planning_runtime_scenarios_after": [
+   "SC01",
+   "SC02",
+   "SC03",
+   "SC04",
+   "SC05",
+   "SC06",
+   "SC07",
+   "SC08",
+   "SC09",
+   "SC10"
+  ],
+  "planning_covered": 10,
+  "planning_total": 10,
+  "note": "SC07 is negative and covered as expected_failure; SC11-SC14 are non-planning kinds"
+ },
+ "scope": "ROS1 support planner GetPlan; declared synthetic maps; truth/estimate; no Gazebo, no execution",
+ "a7_overall": "PARTIAL (runtime four-combo matrix and execution not covered)",
+ "a1_a7": "NOT_VALIDATED"
+}

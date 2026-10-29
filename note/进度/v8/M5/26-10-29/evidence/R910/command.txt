@@ -1,0 +1,8 @@
+R910 命令（2026-10-30 01:44—01:49 CST，qoder；A7 缺失规划场景运行面）
+# 容器 network none；source noetic + /opt/ros1-slam/ws/devel；master 11901。
+# 调用 a4_runtime.run(ids=['SC03','SC04','SC05','SC06','SC07','SC08','SC10'])，
+# 每场景 truth/estimate 两轨；support_planner ROS GetPlan；独立 scenarios.evaluate 按真值图。
+# 读数：14 cell；10 PASS；4 预期失败（SC07 E_PLAN_NO_ROUTE、SC10 E_PLAN_BUDGET_EXCEEDED）；
+# 0 意外；same_as_design=14。
+# 点列：SC03 16、SC04 16、SC05 19、SC06 17、SC08 16。
+# 边界：声明合成图、ROS 规划服务、无 Gazebo/执行；不是四组合运行面全矩阵。
