@@ -7216,3 +7216,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 新增 `ws/src/95_simulation/lite3_gazebo_sim/launch/mj_bridge_nav.launch`：map_server＋静态 map→odom＋move_base（/scan LaserScan 观测，GlobalPlanner＋DWA，footprint 0.6×0.4，goal tol 0.25）。
 - 闭环（v8codex）：目标 (2,0) → move_base 状态 **3 SUCCEEDED**、终点误差 0.0805 m、位移 1.989 m、odom 794、scan 159、cmd 99（max 0.55 m/s）。
 - 空图直行，未测避障/噪声；未改判据、第三方与冻结值。详见 R876。
+
+## R877（2026-10-29，qoder）：MuJoCo↔ROS2(Foxy) 桥
+
+- 新增 `ws/src/95_simulation/lite3_gazebo_sim/scripts/mj_ros2_bridge.py`：ROS2 同构节点（/cmd_vel→PPO→MuJoCo→/odom、/sim/odom_gt、/joint_states、/imu、/scan、/clock、TF）。
+- 环境：my_foxy_env + /tmp/mjros2（numpy 1.24.4/mujoco 2.3.7/glfw/ORT 1.16.3，从 v8codex 复制）；ROS_DOMAIN_ID=42。
+- 冒烟 12.3 s：odom 122、joint 121、imu 121、scan 122（应为 1/5，异常待查）、dx 0.345 m。未接 ROS2 导航栈。详见 R877。

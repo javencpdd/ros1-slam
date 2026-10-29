@@ -1,0 +1,5 @@
+R877 ROS2(Foxy) 桥冒烟（容器 my_foxy_env，osrf/ros:foxy-desktop）
+运行时：/tmp/mjros2（numpy 1.24.4 + mujoco 2.3.7 + glfw + onnxruntime 1.16.3，从 v8codex 复制）
+export PYTHONPATH=/tmp/mjros2:$PYTHONPATH ROS_DOMAIN_ID=42
+python3 mj_ros2_bridge.py --xml /tmp/mjcf/mjcf-copy3/Lite3.xml --policy /tmp/policy.onnx --scan-rays 36
+2 s 后起 probe：发 /cmd_vel 0.2 m/s ×2 s，再观测 12 s
