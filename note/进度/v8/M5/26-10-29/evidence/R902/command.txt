@@ -1,0 +1,17 @@
+R902 命令（2026-10-30 01:20—01:30 CST，qoder；A6 质量度量首测）
+
+# 1) NDT 构建（临时 catkin 工作区；repo 只读）
+#    cp ws/src/20_localization/ndt_omp + ws/src/90_platform/v8_ndt_odom
+#    catkin_make -j4 -DCMAKE_BUILD_TYPE=Release → rc=0；见 ndt_build.log。
+# 2) 同一 bag 回放（R868 stream.bag.gz，85 scans/433 GT）
+#    ndt_odom_node _map_path:=data/maps/m1_world_synth_v1.pcd
+#      _cloud_topic:=/rslidar_points _resolution:=0.5 _score_max:=100
+#      _ext_z:=0.34 _ext_pitch:=0.0
+#      _init_x:={0.0,0.5,1.0} _init_y:=0 _init_yaw_deg:=0
+#    rosbag play --clock；recorder 记录 /a6_ndt/odom 与 /sim/odom_gt。
+# 3) 分析：扫描点经 NDT 位姿变换到 map，cKDTree 最近邻；
+#    统计 0.02/0.05/0.10/0.15/0.20 m 内点率；GT 对照同一脚本。
+# 4) 读数见 summary.json；0.10/0.15 m 内点率随 0/0.5/1.0 m 偏置单调下降，
+#    fitness 均值 5.44/5.45/5.51（不分离）。
+# 边界：NDT 仍 monitor、不切导航；未改判据/冻结值/第三方；
+#       R874 的 1.0 m 3.0 m 发散本窗未复现（0.734 m），ext/init 口径待对齐。

@@ -1,0 +1,31 @@
+{
+  "domain": "a6_quality_metric_first_pass",
+  "setup": {
+    "bag": "R868 stream.bag.gz",
+    "map": "data/maps/m1_world_synth_v1.pcd",
+    "ndt": "v8_ndt_odom rebuilt from source d74c4ab7",
+    "resolution_m": 0.5,
+    "score_max": 100.0,
+    "ext_z_m": 0.34,
+    "ext_pitch_rad": 0.0,
+    "init_x_offsets_m": [0.0, 0.5, 1.0],
+    "scans": 85,
+    "gt_samples": 433
+  },
+  "ndt": {
+    "0.0": {"ate_rmse_m": 0.02828, "ate_max_m": 0.05887, "covered": 0.9954,
+            "ndt_samples": 85, "score_mean": 5.4418,
+            "inlier_0.10": 0.8229, "inlier_0.15": 0.9318},
+    "0.5": {"ate_rmse_m": 0.26463, "ate_max_m": 0.49393, "covered": 0.9954,
+            "ndt_samples": 85, "score_mean": 5.4456,
+            "inlier_0.10": 0.7299, "inlier_0.15": 0.9155},
+    "1.0": {"ate_rmse_m": 0.73371, "ate_max_m": 1.04790, "covered": 0.9954,
+            "ndt_samples": 85, "score_mean": 5.5081,
+            "inlier_0.10": 0.7213, "inlier_0.15": 0.8994}
+  },
+  "gt_control": {"inlier_0.15": 0.9363},
+  "finding": "scan-to-map inlier fraction falls monotonically with NDT offset at 0.1/0.15m; fitness does not; 0.5 vs 1.0 separation is small (0.9-1.6 points)",
+  "limitations": ["R874 1.0 m 3.0 m divergence not reproduced (0.734 m here); ext/init handling differs",
+                  "no threshold calibrated; NDT remains monitor", "single bag/map/scene"],
+  "accuracy_backend_switch_tested": false
+}
