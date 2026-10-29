@@ -1,0 +1,29 @@
+R900 命令（2026-10-30 00:20—00:35 CST，qoder）
+
+# 0) L2 授权（真人 2026-10-30）
+# 选乙：step validity 1.5→2.0，contact 1e-6 不变。
+# 代码提交 512eb21b：runtime_probe step _experimental_config validity_s=2.0；
+# local_native.track_segment 增加 previous_velocity，尾量 = latency*|v_prev|，
+#   完成条件 = 实测剩余距离 + 尾量 <= 1e-6；
+#   fast 段预留 (T+10ms) 行程，末段 distance<=5e-6 时速度上限 5e-5 m/s；
+# ros_node.control_loop 传上一命令；测试同步 2.0 并加 10-seed 抖动回归。
+
+# 1) 全量单测（host）
+# 37 个 v8_platform test_*.py：SUITES=37 FAIL=0。
+
+# 2) 离线 60 seed（/tmp/sim60.py；未入仓）
+# 控制 50.6ms、位姿 10.5ms、命令运输 U(0,10)ms、仿真步长 1ms、validity 2.0。
+# 60/60 收口、0 失败、峰值 0.670 µm、末点 |z|<=0.301 µm、1 次重规划、
+# tdone_max=3.239 s（该 seed 含一次过期重规划）。
+
+# 3) 真实 ROS 探针（独立容器、network none、master 11851/11852/11853）
+# 批1：10 次 step-only（step_r1—r10）DONE 2026-10-29T16:29:49Z
+# 批2/3：20 次 step-only（step_r11—r30）DONE 2026-10-29T16:34:45Z
+# 完整：3 次五例（full_r1—r3）DONE 2026-10-29T16:31:09Z
+# 汇总：45 例（30 step-only + 3×5 完整），step 33/33 PASS，0 evaluator 失败；
+# step 末点 |z-0.15| 最大 0.063 µm；运动命令运输最大 8.443 ms；
+# 全命令最大 17.371 ms（空闲零，按 R898 口径不计入门）；violations=[]。
+
+# 4) 边界
+# 未改 evaluate.py、contact 1e-6/fraction 1e-6、10 ms 运输门、50 ms 控制周期或第三方；
+# 仅 step validity 依 L2 授权改为 2.0 s。A5 step 在新口径下稳定；A5 整体仍 PARTIAL。
