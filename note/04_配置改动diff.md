@@ -7168,3 +7168,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 新增 `ws/src/90_platform/v8_platform/regression/a6_backend_compare.py`：同一 `/rslidar_points`＋`/livox/imu` 上同时记录 LIO `/Odometry`、NDT monitor `~odom` 与 `/sim/odom_gt`，驱动 `/cmd_vel` 0.25 m/s×12 s，输出 ATE/偏航/RPE@1m/覆盖率/健康与分数。
 - 运行配置：`m1_gazebo.launch gui:=false map_to_odom:=false`、`m1_mapping.launch`、`v8_ndt_odom output_role=monitor`、`map=m1_world_synth_v1.pcd`、`score_max=2.0`。
 - 结果：LIO 覆盖 99.1%、ATE 0.0696 m；NDT 仅 8/151 帧健康、覆盖 7.9%、score 均值 6.80>2.0。`accuracy_backend_switch_tested` 维持 false。未改第三方、判据与冻结值。详见 R867 与 `evidence/R867`。
+
+## R868（2026-10-29，qoder）：A6 同包回放与 NDT 配置扫描
+
+- 新增 `ws/src/90_platform/v8_platform/regression/a6_ndt_replay.py`：回放冻结 bag 时只记录 NDT monitor 输出与 GT，输出与 R867 同式的 ATE/RPE/覆盖/健康/score。
+- 同一 bag（gz 7.1 MB，含 `/clock,/rslidar_points,/livox/imu,/sim/odom_gt`）扫 4 组配置：`score_max=2.0` 仅接受 8/86；`score_max=8.0` 接受 66—67/86；`res=0.5+score=8.0` 覆盖 92.1%、ATE 0.0210 m、RPE@1m 0.0254。
+- `score` 为 PCL fitness（对稀疏体素目标点的最近距离均值平方），绝对值受地图点数支配，阈值不可迁移；NDT 仍 monitor，不接导航。未改第三方、判据与冻结值。详见 R868 与 `evidence/R868`。

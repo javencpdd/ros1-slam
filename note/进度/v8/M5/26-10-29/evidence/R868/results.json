@@ -1,0 +1,123 @@
+{
+  "set_id": "v8_a6_ndt_replay_sweep_v1",
+  "run_class": "runtime_experimental",
+  "scope": "same frozen bag (/rslidar_points,/livox/imu,/sim/odom_gt,/clock); NDT monitor only; no navigation switch",
+  "bag": {
+    "file": "stream.bag.gz",
+    "sha256_gz": "b03937b1b6784d019b80c4e465fc03e3faf61396bd1c0c7b111689478cd85a4f"
+  },
+  "cells": [
+    {
+      "resolution": 1.0,
+      "score_max": 2.0,
+      "gt_samples": 433,
+      "ndt_samples": 8,
+      "healthy": {
+        "messages": 86,
+        "healthy_true": 8,
+        "healthy_false": 78
+      },
+      "score": {
+        "messages": 85,
+        "mean": 5.394477876494912,
+        "max": 13.2907075881958
+      },
+      "metrics": {
+        "matched": 69,
+        "covered": 0.15935334872979215,
+        "ate_rmse_m": 0.04896757117000951,
+        "ate_max_m": 0.10593063981922654,
+        "ate_final_m": 0.01727104494239493,
+        "yaw_rmse_rad": 0.0015484687706694385,
+        "rpe_1m_mean": null,
+        "rpe_1m_max": null,
+        "rpe_pairs": 0
+      }
+    },
+    {
+      "resolution": 0.5,
+      "score_max": 2.0,
+      "gt_samples": 433,
+      "ndt_samples": 8,
+      "healthy": {
+        "messages": 86,
+        "healthy_true": 8,
+        "healthy_false": 78
+      },
+      "score": {
+        "messages": 85,
+        "mean": 5.225675193001242,
+        "max": 12.793821334838867
+      },
+      "metrics": {
+        "matched": 69,
+        "covered": 0.15935334872979215,
+        "ate_rmse_m": 0.041489226371665834,
+        "ate_max_m": 0.09872166715430404,
+        "ate_final_m": 0.09872166715430404,
+        "yaw_rmse_rad": 0.0015140400839299961,
+        "rpe_1m_mean": null,
+        "rpe_1m_max": null,
+        "rpe_pairs": 0
+      }
+    },
+    {
+      "resolution": 1.0,
+      "score_max": 8.0,
+      "gt_samples": 433,
+      "ndt_samples": 66,
+      "healthy": {
+        "messages": 86,
+        "healthy_true": 66,
+        "healthy_false": 20
+      },
+      "score": {
+        "messages": 85,
+        "mean": 5.515904054922216,
+        "max": 13.817973136901855
+      },
+      "metrics": {
+        "matched": 394,
+        "covered": 0.9099307159353349,
+        "ate_rmse_m": 0.03979437363419045,
+        "ate_max_m": 0.11181623373484854,
+        "ate_final_m": 0.03544588936369133,
+        "yaw_rmse_rad": 0.0035322595127079168,
+        "rpe_1m_mean": 0.061237330362017096,
+        "rpe_1m_max": 0.20056604606290027,
+        "rpe_pairs": 7660
+      }
+    },
+    {
+      "resolution": 0.5,
+      "score_max": 8.0,
+      "gt_samples": 433,
+      "ndt_samples": 67,
+      "healthy": {
+        "messages": 86,
+        "healthy_true": 67,
+        "healthy_false": 19
+      },
+      "score": {
+        "messages": 85,
+        "mean": 5.440542272960438,
+        "max": 13.689203262329102
+      },
+      "metrics": {
+        "matched": 399,
+        "covered": 0.9214780600461894,
+        "ate_rmse_m": 0.020973904888380968,
+        "ate_max_m": 0.06822502840192661,
+        "ate_final_m": 0.01812158833521073,
+        "yaw_rmse_rad": 0.002215314517458648,
+        "rpe_1m_mean": 0.02539959828281508,
+        "rpe_1m_max": 0.08719145575339522,
+        "rpe_pairs": 7855
+      }
+    }
+  ],
+  "verdict": "CONFIG_SENSITIVE",
+  "finding": "score_max=2.0 rejects 91% of frames (8/86); score_max=8.0 accepts 77-78%; best res=0.5+score=8.0: coverage 92.1%, ATE 0.0210 m, RPE@1m 0.0254",
+  "accuracy_backend_switch_tested": false,
+  "finished_at": "2026-10-29T03:57:26+00:00"
+}
