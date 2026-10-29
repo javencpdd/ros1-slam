@@ -1,0 +1,10 @@
+R904 命令（2026-10-30 01:28—01:38 CST，qoder；A6 内点率留出验证）
+
+# 同一 R868 bag、NDT 默认外参 ext_z=0.34/ext_pitch=0.2617993878、res0.5/score_max100；
+# 新增留出偏置 init_x=0.25/0.75 m，full quaternion recorder；rosbag play --clock。
+# 分析：扫描点经 NDT 位姿到 map，KD-tree 内点率，阈值 0.05/0.10/0.15/0.20 m。
+# 读数：0.25 m ATE 0.01937、score 5.44199、inlier@0.15 0.9351；
+#       0.75 m ATE 0.44592、score 5.44958、inlier@0.15 0.9342。
+# 对照 R903：1.0 m ATE 3.01029、score 4.48946、inlier@0.15 0.1780。
+# 结论：度量只抓 3 m 级换盆地，抓不到 0.75 m（超 0.194 门）；不能当 A6 精度门。
+# 边界：NDT 仍 monitor、不切导航；未改判据/冻结值/第三方；单 bag/单图/单场景。

@@ -1,0 +1,16 @@
+{
+  "domain": "a6_inlier_gate_holdout",
+  "setup": {"bag": "R868 stream.bag.gz", "map": "m1_world_synth_v1.pcd",
+            "ext_z_m": 0.34, "ext_pitch_rad": 0.2617993878,
+            "offsets_m": [0.25, 0.75], "scans": 85, "gt_samples": 433},
+  "readings": {
+    "0.00": {"ate_rmse_m": 0.01613, "score_mean": 5.44197, "inlier_0.15": 0.9351},
+    "0.25": {"ate_rmse_m": 0.01937, "score_mean": 5.44199, "inlier_0.15": 0.9351},
+    "0.50": {"ate_rmse_m": 0.09249, "score_mean": 5.44319, "inlier_0.15": 0.9348},
+    "0.75": {"ate_rmse_m": 0.44592, "score_mean": 5.44958, "inlier_0.15": 0.9342},
+    "1.00": {"ate_rmse_m": 3.01029, "score_mean": 4.48946, "inlier_0.15": 0.1780}
+  },
+  "finding": "inlier@0.15 catches only the 3.0 m basin divergence; 0.75 m (ATE 0.446, outside 0.194) is indistinguishable from correct (0.9342 vs 0.9351)",
+  "conclusion": "candidate metric cannot enforce the 0.194 m A6 accuracy gate; NDT remains monitor; no switch",
+  "accuracy_backend_switch_tested": false
+}
