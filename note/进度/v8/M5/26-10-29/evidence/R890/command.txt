@@ -1,0 +1,75 @@
+R890 命令（2026-10-29 20:43 CST，qoder；Gazebo 视觉狗修正与近景截图）
+
+环境：宿主 /home/jack/ysc-code/ros1-slam；sim 容器 ros1-slam-sim；Xvfb :99；
+临时 payload 目录 /tmp/r890_payload（仅截图用，不入仓）。
+
+# 1) xacro 双态（容器内）
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+xacro /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro \
+  carrier_visual:=false > /tmp/planar_noviz2.urdf
+xacro /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro \
+  carrier_visual:=true > /tmp/planar_viz2.urdf
+python3 - <<PY
+import xml.etree.ElementTree as ET
+for p in ["/tmp/planar_noviz2.urdf","/tmp/planar_viz2.urdf"]:
+    r=ET.parse(p).getroot(); print(p, "visuals", len(r.findall(".//visual")))
+PY
+# 输出：/tmp/planar_noviz2.urdf visuals 0；/tmp/planar_viz2.urdf visuals 2
+
+# 2) 视觉 SDF 生成（容器内；不启动 Gazebo）
+python3 -B - <<PY
+import sys
+sys.path.insert(0, "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts")
+import gazebo_dog_visual as g
+s = g.visual_sdf("/opt/ros1-slam/ws/src/95_simulation/lite3_description/urdf/Lite3.urdf",
+                 "lite3_visual",
+                 "/opt/ros1-slam/ws/src/95_simulation/lite3_description/meshes")
+print("file_uri", "file:///opt/ros1-slam/ws/src/95_simulation/lite3_description/meshes/torso.STL" in s)
+print("orange", "0.95 0.45 0.08 1" in s)
+print("collision", "<collision" in s)
+print("model://", "model://lite3_description/meshes" in s)
+PY
+# 输出：file_uri True / orange True / collision False / model:// False
+
+# 3) 截图用临时世界（只加 GUI 相机；不改仓库世界）
+mkdir -p /tmp/r890_payload/stairstudy/worlds
+ln -s /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/urdf /tmp/r890_payload/urdf
+cp /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/stairstudy/worlds/stair_lab_stairs_easy.world \
+   /tmp/r890_payload/stairstudy/worlds/stair_lab_stairs_easy.world
+# 在 <world name="stair_lab"> 后插入：
+# <gui fullscreen="0"><camera name="user_camera">
+#   <pose>1.70 -1.70 1.00 0 0.30 2.20</pose>
+# </camera></gui>
+
+# 载体图（官方物理载体可见；stairstudy.launch 默认 carrier_visual=true）
+roslaunch lite3_gazebo_sim stairstudy.launch gui:=true \
+  payload_dir:=/tmp/r890_payload world_file:=stair_lab_stairs_easy.world spawn_x:=0.5
+# 模型：ground_plane, stairs_easy, lite3_planar
+
+# 视觉狗图（白盒载体隐藏；stairstudy_visual.launch 默认 carrier_visual=false）
+roslaunch lite3_gazebo_sim stairstudy_visual.launch gui:=true \
+  payload_dir:=/tmp/r890_payload world_file:=stair_lab_stairs_easy.world spawn_x:=0.5
+# 模型：ground_plane, stairs_easy, lite3_planar, lite3_visual
+# lite3_visual pose z≈0.33；get_world_properties 四枚在位
+
+# 4) 抓图与裁切
+docker exec ros1-slam-sim bash -lc 'DISPLAY=:99 /tmp/xshot /tmp/dog_clean.ppm'
+docker cp ros1-slam-sim:/tmp/dog_clean.ppm /tmp/dog_clean.ppm
+convert /tmp/dog_clean.ppm -resize 1280x1024 /tmp/dog_clean.png
+python3 - <<PY
+from PIL import Image
+Image.open('/tmp/dog_clean.png').crop((400,330,1280,880)).save(
+  '/tmp/dog_clean_crop.png')
+PY
+# 载体图同理：/tmp/carrier_close.png -> /tmp/carrier_close_crop.png
+# 两张裁切均为 880×550（16/10），无 GUI 面板。
+
+# 5) 官网
+# 替换 web/assets/sim-gazebo-stairs.png（白盒）与 ...-stairs-dog.png（深色狗）；
+# 首图说明“只有白盒”，次图说明“白色物理载体已隐藏”。
+curl -sI http://10.63.23.135/web/ | head -5
+# HTTP/1.0 200 OK
+
+# 边界：视觉狗 static、无 collision、无关节动画；物理/判据仍是 lite3_planar；
+# 不改官方 world、不改 calibration、不改 #151；截图相机只用于取景，不是新判据。
