@@ -1,0 +1,25 @@
+R898 命令（2026-10-30 00:00—00:15 CST，qoder）
+
+# A. 探针运输口径（已提交 e6155070）
+# 文件：ws/src/90_platform/v8_platform/local_planner/runtime_probe.py
+#       test_execution.py
+# 规则：只计非零命令 + 非零命令后的首条零命令；忽略起步前零与停住后重复零；
+#       command_log 限 epoch 之后；保留 10 ms 与 command_latency_bound_s。
+# 测试：python3 -B test_execution.py（15 项，含 2 项新正反例）
+# 全量：37 个 v8_platform test_*.py，SUITES=37 FAIL=0。
+
+# B. 执行器安全律离线夹具（/tmp/sim_a5.py、/tmp/sim_fix4.py、/tmp/sim_gain.py；
+#    临时脚本未入仓，读数见 offline_sim.txt）
+# 现行律：60 seeds、U(0,10)ms → 10/60 失败、峰值 1.08—16.15 µm。
+# 候选安全律：0 超调，但 33—53/60 在 1.5 s 内未收口。
+# 增益 1.5—3.0：峰值 385—3723 µm，失败 57—60/60。
+
+# C. 真实 ROS 探针（候选安全律+转移段停靠；local_native 临时改动，已 git checkout 回退）
+docker run -d --name r898-a5 --network none \
+  -v /home/jack/ysc-code/ros1-slam:/repo:ro -v /tmp/r898:/out \
+  ros1-slam:noetic-sim bash /out/run.sh
+# 容器内 roscore -p 11831；runtime_probe.py --case step --wall-deadline-s 60
+# r1 rc=6：final=(0.1999578,0.14998946)，E_LOCAL_SUPPORT，60 s 未到达。
+# 仅跑 r1 后停批；该件是负结果诊断，不作为 A5 PASS 证据。
+
+# 边界：未改 evaluate.py、判据、冻结值；未提交执行器改动；B 的通过数不计入 A。
