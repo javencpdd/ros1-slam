@@ -1,0 +1,11 @@
+R899 离线执行夹具读数（2026-10-30 00:20—00:30 CST；诊断脚本未入仓）
+夹具同 R898：60 seeds、命令运输 U(0,10) ms、控制 50.6 ms、位姿 10.5 ms、0.5 ms 仿真步长。
+
+1) L1 v3 契约（尾量 completion + 1e-4 爬行，fast 段仍用原式）：
+   done 1/60，expired 59/60，evaluator 失败 39/60，峰值 15.46 µm。
+2) 尾量 + 本命令 (T+10ms) 预留 + 爬行带：
+   - band 0/5e-6/1e-5/2e-5 µm；creep 1e-4 或 5e-5：
+     最好组合 band=5 µm、creep=5e-5：done 29/60、expired 31/60、evaluator 失败 0/60、峰值 0.561 µm。
+   - band=10/15 µm：done 1/60、expired 39/60、失败 25/60、峰值 4.01 µm。
+3) 结论：尾量/爬行组合能把超调压到 0—0.56 µm，但在 1.5 s validity 内只有约半数收口；
+   其余在计划过期时仍低于 deck，重规划被 E_LOCAL_SUPPORT 拒绝。

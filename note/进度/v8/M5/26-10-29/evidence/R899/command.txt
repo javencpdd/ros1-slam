@@ -1,0 +1,25 @@
+R899 命令（2026-10-30 00:20—00:32 CST，qoder）
+
+# A. 执行器候选（L1 v3 + 尾量/爬行变体；未提交、已回退）
+# 文件（临时改，已 git checkout）：local_native.py、ros_node.py
+# 核心：
+#   tail = command_latency_bound_s * |previous_velocity|
+#   completion: 实际剩余距离 + tail <= 1e-6
+#   fast scale: (distance - tail - 5e-8) / ((T + latency) * distance)
+#   末段 distance<=5e-6 时速度上限 5e-5 m/s
+#   ros_node 传入上一控制周期命令 previous_velocity
+# 离线夹具：/tmp/sim_v3.py、/tmp/sim_v3b.py、/tmp/sim_v3c.py（未入仓）；
+#   最好配置 60 seeds：done 29/60、expired 31/60、失败 0、峰值 0.561 µm。
+
+# B. 真实 ROS 探针（新容器、独立 master 11841）
+docker run -d --name r899-a5 --network none \
+  -v /home/jack/ysc-code/ros1-slam:/repo:ro -v /tmp/r899:/out \
+  ros1-slam:noetic-sim bash /out/run.sh
+# runtime_probe.py --case step --wall-deadline-s 60
+# r1 rc=6：final=(0.1998783,0.14996957)，距目标 121.7 µm、低于 deck 30.4 µm；
+#   E_LOCAL_SUPPORT；运动运输 max 2.39 ms、无违规。
+# 仅跑 r1 后停批；r2 未完成。
+
+# C. 回退
+# git checkout -- local_native.py ros_node.py；执行器回到 92880f21。
+# 保留 R898 的运输口径提交 e6155070。
