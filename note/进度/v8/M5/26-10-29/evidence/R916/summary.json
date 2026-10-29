@@ -1,0 +1,15 @@
+{
+  "domain": "a7_3d_execution_runtime_probe_slope",
+  "config": {"tick_s": 1.2, "validity_s": 2.0},
+  "sc02": {"final_xyz": [2.875501, 1.970214, 0.0], "goal_xyz": [3.0, 2.0, 0.6],
+           "final_distance_m": 0.6135, "status": "E_LOCAL_NO_ROUTE",
+           "evaluation_ok": true, "failures": [], "span_s": 149.4,
+           "motion_samples": 337, "transport_max_ms": 2.14,
+           "cause": "support map has ground z=0 and mezz z=0.6 only; the 12 deg slope edge has no intermediate elevation surface, so ground->mezz is a 0.6 m rise over at most 0.72 m (>=39.8 deg) and exceeds the 35 deg local limit"},
+  "code": "7bb33a97 SC02 scenario + test",
+  "tests": {"a7_exec_args": 5, "v8_suites": 39, "failures": 0},
+  "scope": "3D multi-layer kinematic execution; no Gazebo; no four-leg contact; no #151",
+  "a7_execution": "SC02 slope NEGATIVE (representation limit); SC06/SC01 positive; SC09 negative",
+  "a7_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
