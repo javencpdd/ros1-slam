@@ -5,6 +5,7 @@ explicit writable directory, never into the read-only source tree. No hardware
 bridge is launched. Backend tuning is experimental and does not modify locks.
 """
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -120,6 +121,27 @@ def backend_launch(output, backend):
     return path
 
 
+def manifest_for_backend(manifest, backend):
+    """Keep the copied v12 manifest honest about which local planner ran."""
+    result = copy.deepcopy(manifest)
+    result['backend'] = backend
+    result['combo'] = 'lite3_%s_mux' % backend
+    lock = result.setdefault('config_lock', {})
+    if backend == 'teb':
+        result['local_planner'] = 'teb_local_planner/TebLocalPlannerROS'
+        lock['planner'] = lock.get('planner', '').replace(
+            'dwa_local_planner/DWAPlannerROS', 'teb_local_planner/TebLocalPlannerROS')
+        stack = lock.get('stack', '')
+        lock['stack'] = stack.replace(
+            'flat2d_stack_sc09_f64nli25.launch',
+            'flat2d_stack_sc09_f64nli25_teb.launch').replace(
+            'DWA 参数在 DWAPlannerROS ns', 'TEB 参数在 TebLocalPlannerROS ns').replace(
+            'DWA 默认块', 'TEB 参数块')
+    else:
+        result['local_planner'] = 'dwa_local_planner/DWAPlannerROS'
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', required=True)
@@ -200,7 +222,7 @@ def main():
                 from gazebo_msgs.msg import ModelState
                 manifest_dir = FLAT / ('runs_v12' if args.scenario == 'SC09' else 'runs_v12_sc0102')
                 template = next(manifest_dir.glob('*_%s_g0_r1.json' % args.scenario))
-                manifest = json.loads(template.read_text())
+                manifest = manifest_for_backend(json.loads(template.read_text()), args.backend)
                 generator = random.Random(args.seed)
                 perturbation = [0., 0., 0.] if args.seed == 0 else [
                     generator.uniform(-.03, .03), generator.uniform(-.03, .03),
