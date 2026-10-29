@@ -1,0 +1,20 @@
+{
+  "domain": "a6_ndt_res0.25_stability_3x3",
+  "setup": {"bag": "R868 stream.bag.gz", "map": "data/maps/m1_world_synth_v1.pcd",
+            "resolution_m": 0.25, "score_max": 100.0, "ext_z_m": 0.34,
+            "ext_pitch_rad": 0.2617993878, "scans": 85, "gt_samples": 433},
+  "offsets": {
+    "0.00": {"ate_rmse_m": [0.01688, 0.01688, 0.01688], "mean": 0.01688, "max": 0.01688},
+    "0.50": {"ate_rmse_m": [0.21246, 0.20202, 0.20202], "mean": 0.20550, "max": 0.21246},
+    "0.75": {"ate_rmse_m": [0.05206, 0.05206, 0.05206], "mean": 0.05206, "max": 0.05206}
+  },
+  "overall_max_ate_m": 0.21246,
+  "all_accepted_converged": true,
+  "coverage": 0.995,
+  "score_mean_range": [5.4606, 5.9692],
+  "finding": "results are deterministic; 0.75 m is corrected; worst is 0.50 m at 0.2125, below the 0.22 frozen gate but above the 0.194 LIO metric",
+  "decision_boundary": "using NDT as a backend would require re-scoping the localization gate (LIO-only scope) and a no-GT quality gate; not done here",
+  "accuracy_backend_switch_tested": false,
+  "a6_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
