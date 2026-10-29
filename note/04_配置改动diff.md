@@ -7249,4 +7249,5 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - run3 零速未锁存：+0.6324 零（WALL_EXPIRED）→+0.7339/+0.7843 非零（track）→+0.8352 零（reason=ok）→+0.9359 NO_ROUTE。
 - 根因：计划 `valid_until` 为仿真钟（1.926/1.727/2.085），节点看门狗按墙钟 0.9 s 撤销（墙钟距计划创建 0.908/0.912/0.908 s），RTF≈0.41 时声明有效期还剩 0.509—0.528 s；且 `E_LOCAL_WALL_EXPIRED` 判定先于 `E_LOCAL_WORLD_UPDATED`。
 - 采集框架已改 `ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py`（首个零速/目标原因/首个障碍输入/锁存点/首个稳定静止窗，前置与未锁存判 INVALID），新增 `test_a5_gazebo_runtime.py` 9 项负控；`a5_fixcheck` 单例输出 `INVALID_PREEMPTED_E_LOCAL_WALL_EXPIRED`、rc=6。
+- 四例回归（框架修后）：`arrival`/`localization` VALID；`sensed_no_route`/`sensor_freshness` 均 `INVALID_PREEMPTED_E_LOCAL_WALL_EXPIRED`（sensor_freshness 首零 +0.6354 s、目标 `E_LOCAL_OBSTACLES_STALE` +1.9601 s）。⇒ **R841 4/4 在新口径下不复现**；根因含 `input_max_age_s=1.0` > `validity_s=0.9` 的阈值顺序。
 - 结论：#151 两键继续 pending；需有制动载体、≥3 起点×3 次、距离窗从首个障碍输入起算。A5 采用 `local_native` 作算法/申报域正式路线，不采用当前 `ros_node.py` 运行时接线。详见 R881。

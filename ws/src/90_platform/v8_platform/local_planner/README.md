@@ -86,4 +86,6 @@ PoseStamped `map/(0,0,0)`、Bool `true`、String `{"obstacles":[]}`，各 10 Hz�
 同基准对照，不声称优于第三方。R881 实测出的运行时缺陷必须先修：`validity_s` 的仿真/墙钟
 时基未统一（RTF<1 时墙钟看门狗会先于计划的 `valid_until` 撤销输出）、零速不锁存
 （出现零→非零→零）、`reason=ok` 也发零速、零后复动；修好并复测前，不得用本节点测全链
-停车预算。
+停车预算。R881 修后四例回归只有 `arrival`/`localization` 为 VALID；`sensed_no_route` 与
+`sensor_freshness` 均被墙钟到期抢先（后者 `input_max_age_s=1.0` > `validity_s=0.9`），
+故 R841 的 4/4 不再作为当前运行面声明。
