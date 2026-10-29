@@ -42,6 +42,17 @@ def heading_command(v_cmd, yaw, y, yaw_gain=1.0, y_gain=.5, max_wz=.4):
     return np.array([v_cmd, 0., wz], dtype=np.float32)
 
 
+def sample_initial(seed, perturb=True):
+    """Reproducible initial base perturbation; seed alone changes the start state."""
+    if not perturb:
+        return {'dx': 0., 'dy': 0., 'dyaw': 0., 'dz': 0.}
+    rng = np.random.default_rng(seed)
+    return {'dx': float(rng.uniform(-.05, .05)),
+            'dy': float(rng.uniform(-.10, .10)),
+            'dyaw': float(rng.uniform(-.0873, .0873)),
+            'dz': float(rng.uniform(-.005, .005))}
+
+
 def observation(qpos, qvel, command, last_action, default_pose=DEFAULT_POSE):
     """DreamWaQ 45: body ang vel, body gravity, scaled command, joints, last action."""
     rotation = rot(qpos[3:7])
@@ -111,7 +122,8 @@ def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0):
 
 def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
                 kp=25.0, kd=.5, initial_z=.40, history_newest_first=True,
-                stair=None, heading_hold=False, yaw_gain=1.0, y_gain=.5, max_wz=.4):
+                stair=None, heading_hold=False, yaw_gain=1.0, y_gain=.5, max_wz=.4,
+                initial_perturbation=None):
     import mujoco
     import onnxruntime as ort
 
@@ -120,8 +132,9 @@ def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
     model = mujoco.MjModel.from_xml_path(str(xml))
     data = mujoco.MjData(model)
     default_pose = np.asarray(default_pose, dtype=float)
-    data.qpos[:3] = [0., 0., initial_z]
-    data.qpos[3:7] = [1., 0., 0., 0.]
+    perturb = initial_perturbation or {'dx': 0., 'dy': 0., 'dyaw': 0., 'dz': 0.}
+    data.qpos[:3] = [perturb['dx'], perturb['dy'], initial_z + perturb['dz']]
+    data.qpos[3:7] = [np.cos(perturb['dyaw'] / 2.), 0., 0., np.sin(perturb['dyaw'] / 2.)]
     data.qpos[7:19] = default_pose
     mujoco.mj_forward(model, data)
     dt = model.opt.timestep
@@ -183,7 +196,7 @@ def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
         'torque_limit': TORQUE_LIMIT, 'history': HISTORY,
         'history_newest_first': bool(history_newest_first),
         'heading_hold': bool(heading_hold), 'yaw_gain': yaw_gain, 'y_gain': y_gain,
-        'max_wz_command': max_wz,
+        'max_wz_command': max_wz, 'initial_perturbation': perturb,
         'observation_layout': ['body_ang_vel*0.25', 'body_gravity', 'command*[2,2,0.25]',
                                'joint_pos-default', 'joint_vel*0.05', 'last_action'],
         'final_xyz': final, 'xmax': round(xmax, 4), 'zmin': round(zmin, 4),
@@ -224,6 +237,8 @@ def main():
     parser.add_argument('--yaw-gain', type=float, default=1.0)
     parser.add_argument('--y-gain', type=float, default=.5)
     parser.add_argument('--max-wz', type=float, default=.4)
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--out')
     args = parser.parse_args()
     seconds = args.seconds if args.seconds is not None else {
@@ -239,7 +254,8 @@ def main():
         result = run_rollout(xml, args.policy, seconds,
                              0. if args.mode == 'stand' else args.v_cmd, stair=stairs,
                              heading_hold=args.heading_hold, yaw_gain=args.yaw_gain,
-                             y_gain=args.y_gain, max_wz=args.max_wz)
+                             y_gain=args.y_gain, max_wz=args.max_wz,
+                             initial_perturbation=sample_initial(args.seed, args.perturb))
     finally:
         if stairs:
             shutil.rmtree(Path(xml).parent, ignore_errors=True)

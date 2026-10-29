@@ -63,6 +63,16 @@ class AdapterTest(unittest.TestCase):
         self.assertAlmostEqual(left[0], .3)
         self.assertLessEqual(abs(walk.heading_command(.3, 1.0, 1.0, max_wz=.2)[2]), .2)
 
+    def test_seeded_initial_perturbation(self):
+        a = walk.sample_initial(7, True)
+        self.assertEqual(a, walk.sample_initial(7, True))
+        self.assertLessEqual(abs(a['dx']), .05)
+        self.assertLessEqual(abs(a['dy']), .10)
+        self.assertLessEqual(abs(a['dyaw']), .0873)
+        self.assertLessEqual(abs(a['dz']), .005)
+        self.assertEqual(walk.sample_initial(7, False),
+                         {'dx': 0., 'dy': 0., 'dyaw': 0., 'dz': 0.})
+
     def test_joint_target_scaling(self):
         target = walk.joint_target(np.ones(12), POSE)
         self.assertTrue(np.allclose(target, POSE + walk.ACTION_SCALE))

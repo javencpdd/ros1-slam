@@ -94,3 +94,8 @@ Heading hold (`--heading-hold`) adds a bounded body yaw-rate command
 true (15 cm had fallen without heading hold). This loop consumes simulated
 world yaw/lateral position, so it is a MuJoCo command-level correction, not a
 real-robot state-estimation result.
+
+Seeded initial perturbations (`--seed N --perturb`) sample reproducible
+`dx ±0.05 m`, `dy ±0.10 m`, `dyaw ±5°`, `dz ±0.005 m`; they change only the
+initial base pose, not the policy. R885 used seeds 0-4 on flat walk and 3×6/10/15 cm
+stairs with heading hold.
