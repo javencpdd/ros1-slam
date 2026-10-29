@@ -19,6 +19,8 @@ import validate as contract
 import trajectory_checker as checker
 import enforcement
 
+SUPPORT_TOL_S = 1e-6
+
 
 class LocalError(Exception):
     def __init__(self, code, detail):
@@ -154,10 +156,10 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
         if transfer and surface['surface_id'] in (source, target):
             continue
         if source == target == surface['surface_id'] and all(
-                abs(p[2] - surface['z_reference']) <= 1e-6 for p in (a, b)):
+                abs(p[2] - surface['z_reference']) <= SUPPORT_TOL_S for p in (a, b)):
             continue
         top = surface['z_reference']
-        if top <= min(a[2], b[2]) + 1e-9:
+        if top <= min(a[2], b[2]) + SUPPORT_TOL_S:
             continue
         fp = surface['footprint']
         volume = ((fp['min_x'], fp['min_y'], top - surface.get('thickness_m', 0.)),
@@ -250,15 +252,15 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
 
     def safe_ceiling(point, current_sid=None):
         padding = config.radius_m + config.clearance_m
-        return not any(not (s['surface_id'] == current_sid and abs(point[2] - s['z_reference']) <= 1e-6)
+        return not any(not (s['surface_id'] == current_sid and abs(point[2] - s['z_reference']) <= SUPPORT_TOL_S)
                        and inside(s, point, margin=-padding)
-                       and point[2] + 1e-9 < s['z_reference']
+                       and point[2] + SUPPORT_TOL_S < s['z_reference']
                        and s['z_reference'] - s.get('thickness_m', 0.) - point[2] < required_ceiling
                        for s in map_value['surfaces'])
 
     def resolve(point, label):
         choices = [s for s in surfaces.values() if inside(s, point, margin=config.radius_m)
-                   and abs(point[2] - s['z_reference']) <= 1e-6]
+                   and abs(point[2] - s['z_reference']) <= SUPPORT_TOL_S]
         if len(choices) != 1:
             raise LocalError('E_LOCAL_SUPPORT', label + ' requires exactly one matching z support')
         if not safe_ceiling(point, choices[0]['surface_id']):
@@ -298,7 +300,7 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
             if contact_transfer and surface['surface_id'] in (source, target):
                 continue
             top = surface['z_reference']
-            if top <= min(a[2], b[2]) + 1e-9:
+            if top <= min(a[2], b[2]) + SUPPORT_TOL_S:
                 continue
             fp = surface['footprint']
             volume = ((fp['min_x'], fp['min_y'], top - surface.get('thickness_m', .0)),
@@ -400,7 +402,7 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     points.append((*points[-1][:3], points[-1][3] + config.tick_s))
     layers = [state[0][0] for state in chain] + [chain[-1][0][0]]
     try:
-        verdict = checker.check(map_value, points, z_tol=1e-6, min_clearance=required_ceiling,
+        verdict = checker.check(map_value, points, z_tol=SUPPORT_TOL_S, min_clearance=required_ceiling,
                                 max_step=config.max_speed_mps * config.tick_s + 1e-9,
                                 time_budget=config.horizon_s, expected_map_version=map_value['map_version'])
     except checker.CheckerError as error:
