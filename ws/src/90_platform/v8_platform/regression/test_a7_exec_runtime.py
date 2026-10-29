@@ -12,10 +12,10 @@ import runtime_probe
 class ExecRuntimeArgsTests(unittest.TestCase):
     def test_long_path_uses_experimental_validity_explicitly(self):
         self.assertEqual(a7_exec_runtime.execution_config(),
-                         {'tick_s': 1.2, 'validity_s': 2.0})
+                         {'tick_s': 1.2, 'validity_s': 3.0})
         self.assertIsNone(runtime_probe.experimental_config('sc06'))
         self.assertEqual(runtime_probe.experimental_config('sc06', a7_exec_runtime.execution_config()),
-                         {'tick_s': 1.2, 'validity_s': 2.0})
+                         {'tick_s': 1.2, 'validity_s': 3.0})
         self.assertEqual(runtime_probe.experimental_config('step'),
                          {'tick_s': 1.2, 'validity_s': 2.0})
 

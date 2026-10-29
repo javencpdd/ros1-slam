@@ -18,7 +18,7 @@ for sub in ('scenarios', 'planner', 'local_planner'):
     sys.path.insert(0, str(ROOT / sub))
 import scenarios as scn  # noqa: E402
 
-EXPERIMENTAL = {'tick_s': 1.2, 'validity_s': 2.0}
+EXPERIMENTAL = {'tick_s': 1.2, 'validity_s': 3.0}
 
 
 def execution_config():
