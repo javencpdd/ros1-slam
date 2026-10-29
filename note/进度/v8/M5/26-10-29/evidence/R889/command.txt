@@ -29,9 +29,10 @@ curl -sI http://10.63.23.135/web/ | head -20
 # 输出：HTTP/1.0 200 OK；Server: SimpleHTTP/0.6 Python/3.8.10
 
 # 3) 浏览器交互（browser-use；CSS 视口 868×871，DPR 2）
-# 页面：http://10.63.23.135/web/index.html?v=20261029e#sim
+# 页面：http://10.63.23.135/web/index.html?v=20261029j#sim
 # - [data-jump="sim-ui"].click() + 900ms：window.scrollY=1578，目标 #sim-ui top=86px
 # - details.acc.open=true：opened=true
+# - table.stack 首格 data-label=入口；#sim .subhead=5；#sim .shots img=4
 # - 控制台消息：0 条
 # - documentElement.scrollWidth - innerWidth = -15（无横向溢出）
 # - simmap：396.5px 396.5px（该视口两列）
