@@ -107,7 +107,7 @@ def run_case(name, value, start, goal, obstacles, behavior, deadline_s):
                 '_command_topic:=' + prefix + '/cmd', '_status_topic:=' + prefix + '/status',
                 '_trajectory_topic:=' + prefix + '/trajectory']
         if name == 'step':
-            argv.append('_experimental_config:=' + json.dumps({'tick_s': 1.2, 'validity_s': 1.5}))
+            argv.append('_experimental_config:=' + json.dumps({'tick_s': 1.2, 'validity_s': 2.0}))
         with log_path.open('w') as stream:
             # Inherit probe PGID so a runtime-lab group timeout also kills this
             # node. Normal cleanup targets this child PID, never our own group.

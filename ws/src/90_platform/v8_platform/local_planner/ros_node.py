@@ -240,6 +240,7 @@ def main():
     def control_loop():
         command_history = []
         previous_control_stamp = None
+        previous_command = (0., 0., 0.)
         while not rospy.is_shutdown():
             wall_now = time.monotonic()
             with lock:
@@ -261,7 +262,8 @@ def main():
                     out = native.track_segment(snapshot['map'], snapshot['result'], estimated,
                                                stamp.to_sec(), snapshot['obstacles'], config=config,
                                                control_period_s=base_period,
-                                               feedback_pose=snapshot['pose'], uncertainty_m=uncertainty)
+                                               feedback_pose=snapshot['pose'], uncertainty_m=uncertainty,
+                                               previous_velocity=previous_command)
                 except ValueError:
                     out = {'velocity': [0., 0., 0.], 'stop': True, 'reason': 'E_LOCAL_CLOCK'}
             else:
@@ -273,6 +275,7 @@ def main():
             command_history.append((stamp.to_sec(), tuple(out['velocity'])))
             command_history[:] = command_history[-200:]
             previous_control_stamp = stamp.to_sec()
+            previous_command = tuple(out['velocity'])
             status = dict(out, clock='ros_plan+wall_watchdog', wall_watchdog_s=wall_watchdog_s,
                           capability_domain='experimental_kinematic_carrier'
                           if profile is None else 'validated_robot_profile')

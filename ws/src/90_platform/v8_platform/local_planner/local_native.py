@@ -173,7 +173,7 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
 
 
 def track_segment(map_value, result, pose, now, obstacles, config=None, control_period_s=.05,
-                  feedback_pose=None, uncertainty_m=0.):
+                  feedback_pose=None, uncertainty_m=0., previous_velocity=None):
     """Execute one accepted local segment using actual position feedback.
 
     The node must finish/reject this segment before searching from a new pose.
@@ -193,7 +193,6 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     a, target = points[0], points[1]
     duration = target[3] - a[3]
     distance = _distance(pose, target)
-    observed_distance = distance if feedback_pose is None else _distance(feedback_pose, target)
     planned_distance = _distance(a, target)
     contacts = tuple(result['surfaces'][:2])
     if planned_distance <= 1e-12:
@@ -201,7 +200,10 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
             return dict(zero, reason='segment_complete', complete=True)
         collision = body_collision(map_value, (*pose, now), (*pose, target[3]), obstacles, config, contacts)
         return dict(zero, reason='E_LOCAL_COLLISION' if collision else 'hold')
-    if max(distance, observed_distance) + uncertainty_m <= 1e-6:
+    observed = pose if feedback_pose is None else tuple(feedback_pose)
+    previous_speed = math.sqrt(sum(v * v for v in previous_velocity)) if previous_velocity else 0.
+    tail = config.command_latency_bound_s * previous_speed
+    if _distance(observed, target) + tail <= 1e-6:
         return dict(zero, reason='segment_complete', complete=True)
     # The geometric segment is committed; its actual-time collision check below
     # permits feedback tracking up to the existing experimental speed cap. This
@@ -212,11 +214,16 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
                                obstacles, replace(config, radius_m=config.radius_m + uncertainty_m), contacts)
     if collision:
         return dict(zero, reason='E_LOCAL_COLLISION', collision=collision)
-    # Do not spend the terminal distance already committed to in-flight old
-    # commands. This bound decays with command speed/variation, so it avoids
-    # both crossing the contact plane and stalling at a fixed artificial gap.
-    scale = (0. if distance <= 1e-15 else min(speed / distance,
-             max(0., distance - uncertainty_m) / (control_period_s * distance)))
+    # Reserve the old command's in-flight tail and this command's own travel
+    # over one control period plus the transport bound. The final creep band
+    # caps the terminal speed so the tail itself stays inside the 1e-6 band.
+    if distance <= 1e-15:
+        return dict(zero, reason='hold')
+    if distance <= 5e-6:
+        scale = min(speed / distance, 5e-5 / distance)
+    else:
+        horizon = control_period_s + config.command_latency_bound_s
+        scale = min(speed / distance, max(0., distance - tail - 5e-8) / (horizon * distance))
     return {'velocity': [(target[i] - pose[i]) * scale for i in range(3)],
             'stop': False, 'complete': False, 'reason': 'track',
             'segment_target': list(target[:3]), 'execution_checked_at': now}

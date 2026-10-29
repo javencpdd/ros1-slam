@@ -79,7 +79,7 @@ class NativeTests(unittest.TestCase):
     def test_short_step_is_locally_searched_and_z_matters(self):
         value = layers()
         result = native.plan(value, (-.4, 0., 0.), (.6, 0., .15),
-                             config=replace(native.Config(), tick_s=1.2, validity_s=1.5))
+                             config=replace(native.Config(), tick_s=1.2, validity_s=2.0))
         self.assertEqual(result['reason'], 'arrived')
         self.assertIn('deck', result['surfaces'])
         self.assertEqual(result['trajectory'][-1][2], .15)

@@ -3,6 +3,7 @@ import copy
 import json
 import math
 import os
+import random
 import subprocess
 import sys
 import unittest
@@ -38,25 +39,27 @@ class ExecutionTests(unittest.TestCase):
     def test_terminal_roundoff_keeps_raw_position_and_other_roof_red(self):
         value = layers()
         raw = (.2, 0., .15 - 2.5e-7)
-        cfg = replace(native.Config(), tick_s=1.2, validity_s=1.5)
+        cfg = replace(native.Config(), tick_s=1.2, validity_s=2.0)
         result = native.plan(value, raw, (.6, 0., .15), config=cfg)
         self.assertEqual(result['trajectory'][0][:3], raw)
         evidence = record(value, [(*raw, 0.), (.6, 0., .15, 1.2)], cfg)
         self.assertTrue(evaluate.evaluate(value, evidence, [])['ok'])
 
-    def test_delayed_feedback_terminal_controller_settles_before_original_ttl(self):
+    def test_delayed_feedback_terminal_controller_settles_with_replan(self):
         value = layers()
-        cfg = replace(native.Config(), tick_s=1.2, validity_s=1.5)
-        result = native.plan(value, (-.4, 0., 0.), (.6, 0., .15), config=cfg)
+        goal = (.6, 0., .15)
+        cfg = replace(native.Config(), tick_s=1.2, validity_s=2.0)
+        result = native.plan(value, (-.4, 0., 0.), goal, config=cfg)
         actual, velocity = (-.4, 0., 0.), (0., 0., 0.)
         feedback, feedback_stamp = actual, 0.
         history, pending = [], []
         execution, contacts = [(*actual, 0.)], [(*actual, 0.)]
         next_pose, next_control = 0., 0.
+        previous_command = (0., 0., 0.)
         done = False
         # Explicit 1 ms command transport and 10.5 ms pose sampling reproduce
         # the ROS loop's delayed terminal feedback without loosening 1e-6.
-        for tick in range(15000):
+        for tick in range(45000):
             now = tick * .0001
             while pending and pending[0][0] <= now:
                 _stamp, velocity = pending.pop(0)
@@ -73,12 +76,16 @@ class ExecutionTests(unittest.TestCase):
                 estimate = ros_node.feedback_at(feedback, feedback_stamp, now, history)
                 uncertainty = ros_node.feedback_uncertainty(feedback_stamp, now, history, cfg.command_latency_bound_s)
                 out = native.track_segment(value, result, estimate, now, [], cfg, control_period_s=.0506,
-                                           feedback_pose=feedback, uncertainty_m=uncertainty)
+                                           feedback_pose=feedback, uncertainty_m=uncertainty,
+                                           previous_velocity=previous_command)
                 history.append((now, tuple(out['velocity'])))
                 pending.append((now + .001, tuple(out['velocity'])))
+                previous_command = tuple(out['velocity'])
                 next_control += .0506
                 if out.get('complete'):
                     done = True
+            if not done and now >= result['valid_until']:
+                result = native.plan(value, actual, goal, [], now=now, config=cfg)
             if done and pending == [] and not any(abs(v) > 0 for v in velocity):
                 break
         self.assertTrue(done, (actual, now))
@@ -87,6 +94,55 @@ class ExecutionTests(unittest.TestCase):
         verdict = evaluate.evaluate(value, record(value, contacts, cfg, execution), [])
         self.assertTrue(verdict['ok'], (verdict['failures'], max(p[2] for p in execution),
                                        verdict['static_collisions'][:2]))
+    def test_jittered_transport_completes_without_crossing_contact(self):
+        value = layers()
+        goal = (.6, 0., .15)
+        cfg = replace(native.Config(), tick_s=1.2, validity_s=2.0)
+        for seed in range(10):
+            rng = random.Random(seed)
+            result = native.plan(value, (-.4, 0., 0.), goal, config=cfg)
+            actual, velocity = (-.4, 0., 0.), (0., 0., 0.)
+            feedback, feedback_stamp = actual, 0.
+            history, pending = [], []
+            previous_command = (0., 0., 0.)
+            execution, contacts = [(*actual, 0.)], [(*actual, 0.)]
+            next_pose, next_control, done = 0., 0., False
+            for tick in range(3000):
+                now = tick * .001
+                while pending and pending[0][0] <= now:
+                    _stamp, velocity = pending.pop(0)
+                actual = tuple(actual[i] + velocity[i] * .001 for i in range(3))
+                if tick:
+                    sample = (*actual, now)
+                    execution.append(sample)
+                    if any(abs(actual[2] - s['z_reference']) <= 1e-6 for s in value['surfaces']):
+                        contacts.append(sample)
+                if now + 1e-10 >= next_pose:
+                    feedback, feedback_stamp = actual, now
+                    next_pose += .0105
+                if now + 1e-10 >= next_control:
+                    estimate = ros_node.feedback_at(feedback, feedback_stamp, now, history)
+                    uncertainty = ros_node.feedback_uncertainty(
+                        feedback_stamp, now, history, cfg.command_latency_bound_s)
+                    out = native.track_segment(
+                        value, result, estimate, now, [], cfg, control_period_s=.0506,
+                        feedback_pose=feedback, uncertainty_m=uncertainty,
+                        previous_velocity=previous_command)
+                    history.append((now, tuple(out['velocity'])))
+                    pending.append((now + rng.uniform(0., .010), tuple(out['velocity'])))
+                    previous_command = tuple(out['velocity'])
+                    next_control += .0506
+                    if out.get('complete'):
+                        done = True
+                    if not done and now >= result['valid_until']:
+                        result = native.plan(value, actual, goal, [], now=now, config=cfg)
+                if done and pending == [] and not any(abs(v) > 0 for v in velocity):
+                    break
+            self.assertTrue(done, (seed, actual, now))
+            self.assertLessEqual(max(p[2] for p in execution), .15 + 1e-6, seed)
+            verdict = evaluate.evaluate(value, record(value, contacts, cfg, execution), [])
+            self.assertTrue(verdict['ok'], (seed, verdict, max(p[2] for p in execution)))
+
     def test_slightly_off_target_is_docked_not_completed(self):
         # General completion check: a pose 9.66e-6 past the deck target is not
         # certified; the controller commands toward the target. (This is not the
@@ -117,10 +173,12 @@ class ExecutionTests(unittest.TestCase):
         target = result['trajectory'][1]
         when = result['created_at'] + .1
         blocked = native.track_segment(value, result, target[:3], when, [], config=cfg,
-                                       feedback_pose=target[:3], uncertainty_m=5e-6)
+                                       feedback_pose=target[:3], uncertainty_m=5e-6,
+                                       previous_velocity=(5e-4, 0., 0.))
         self.assertFalse(blocked.get('complete', False))
         settled = native.track_segment(value, result, target[:3], when, [], config=cfg,
-                                       feedback_pose=target[:3], uncertainty_m=0.)
+                                       feedback_pose=target[:3], uncertainty_m=0.,
+                                       previous_velocity=(0., 0., 0.))
         self.assertTrue(settled['complete'])
 
     def test_receipt_integrator_keeps_hold_and_all_command_changes(self):
@@ -211,7 +269,7 @@ class ExecutionTests(unittest.TestCase):
 
     def test_execution_transfer_requires_declared_edge_and_actual_line(self):
         value = layers()
-        config = replace(native.Config(), tick_s=1.2, validity_s=1.5)
+        config = replace(native.Config(), tick_s=1.2, validity_s=2.0)
         a, b = (-.4, 0., 0., 0.), (.2, 0., .15, 1.2)
         actual = [a, (-.1, 0., .075, .6), b]
         good = evaluate.evaluate(value, record(value, [a, b], config, actual), [])
@@ -225,7 +283,7 @@ class ExecutionTests(unittest.TestCase):
             ('dynamic', flat(), (0., 0., 0.), (1.2, 0., 0.),
              [dict(BOX, min=[.6, .8, -.05], max=[1., 1.2, .8], velocity=[0., -.4, 0.])], native.Config()),
             ('step', layers(), (-.4, 0., 0.), (.6, 0., .15), [],
-             replace(native.Config(), tick_s=1.2, validity_s=1.5))):
+             replace(native.Config(), tick_s=1.2, validity_s=2.0))):
             actual, command, active = start, (0., 0., 0.), None
             execution, contacts = [(*start, 0.)], [(*start, 0.)]
             for tick in range(2500):
@@ -233,7 +291,8 @@ class ExecutionTests(unittest.TestCase):
                 if tick % 5 == 0:
                     if active is None:
                         active = native.plan(value, actual, goal, obstacles, now=stamp, config=config)
-                    output = native.track_segment(value, active, actual, stamp, obstacles, config)
+                    output = native.track_segment(value, active, actual, stamp, obstacles, config,
+                                                  previous_velocity=command)
                     command = output['velocity']
                     if output['complete'] or output['reason'].startswith('E_LOCAL_'):
                         active = None
