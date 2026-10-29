@@ -7227,3 +7227,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 
 - 无代码改动。桥内 `BRIDGE_STATS tick=100 odom=100 scans=20 sim=2.000`（50 Hz 控制、10 Hz scan）；独立订阅器 9 s 收 90 帧、戳间隔 0.1 s；`/scan` 发布者仅 1 个。
 - R877 的「scan 计数异常」撤回：多话题探针只来得及处理约 10 Hz 的 odom，scan 全收，导致四计数相等。详见 R878。
+
+## R879（2026-10-29，qoder）：MuJoCo 仿真可视化 viewer
+
+- `mj_ros_bridge.py` 增 `--viewer`（mujoco.viewer.launch_passive，每拍 sync，退出 close）；在 sim-viz（宿主 X + NVIDIA）跑通，窗口 `MuJoCo : Lite3` 1706×960。
+- GPU 矩阵：sim-viz 可见 RTX 2060 SUPER（glxinfo 硬件渲染）；sim/v8codex/foxy 无 GPU 设备。viewer 期间整卡 util 33—35%、mem 2501/8192 MiB（含桌面）。
+- 运行在外挂 `/tmp/mjviz` 运行时上；未改物理/判据。详见 R879。

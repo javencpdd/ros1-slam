@@ -60,6 +60,8 @@ def main():
     parser.add_argument('--cmd-timeout', type=float, default=0.5)
     parser.add_argument('--max-seconds', type=float, default=0.0,
                         help='0 = run until shutdown')
+    parser.add_argument('--viewer', action='store_true',
+                        help='open the passive MuJoCo viewer (needs a display)')
     args = parser.parse_args()
     if args.realtime_factor <= 0 or args.scan_rate <= 0 or args.scan_rays < 8:
         raise SystemExit('positive realtime/scan rate and >=8 rays required')
@@ -86,6 +88,10 @@ def main():
         if model.geom_bodyid[index] != 0:
             model.geom_group[index] = 1
     scan_group = np.array([1, 0, 0, 0, 0, 0], dtype=np.uint8)
+    viewer = None
+    if args.viewer:
+        import mujoco.viewer
+        viewer = mujoco.viewer.launch_passive(model, data)
 
     session = ort.InferenceSession(args.policy, providers=['CPUExecutionProvider'])
     inp = session.get_inputs()[0].name
@@ -206,6 +212,8 @@ def main():
             transform.transform.rotation.y, transform.transform.rotation.z = quat[2], quat[3]
             broadcaster.sendTransform(transform)
 
+            if viewer is not None:
+                viewer.sync()
             tick += 1
             if args.max_seconds > 0 and data.time - sim_start >= args.max_seconds:
                 break
@@ -214,6 +222,8 @@ def main():
             if sleep > 0:
                 time.sleep(sleep)
     finally:
+        if viewer is not None:
+            viewer.close()
         rospy.signal_shutdown('bridge stopped')
     return 0
 
