@@ -1,0 +1,284 @@
+{
+ "schema": "assembly_plan/v1",
+ "name": "nav2d_loc_faster_lio",
+ "digest": "2d9ecc31e4405bb865cdcb465e9c25d1a03b1ceaa51c54904d1ebfbc1d1a4c91",
+ "catalog": {
+  "path": "framework/fixtures/manifests",
+  "sha256": "618d1a4d0b54a28b8c5ea0204644d09f8192a44b1cf985f620e20158fb70a7cc"
+ },
+ "instances": [
+  {
+   "id": "map",
+   "component": "v8.fw.map2d",
+   "launch": {
+    "kind": "node",
+    "package": "map_server",
+    "test_double": false,
+    "type": "map_server",
+    "param_files": [],
+    "remap": []
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {}
+  },
+  {
+   "id": "sensors",
+   "component": "v8.fw.sensors",
+   "launch": {
+    "kind": "node",
+    "package": "lite3_drivers",
+    "test_double": false,
+    "type": "sim_adapter.py",
+    "param_files": [],
+    "remap": []
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {}
+  },
+  {
+   "id": "loc",
+   "component": "v8.fw.faster_lio",
+   "launch": {
+    "kind": "include",
+    "package": "lite3_slam",
+    "test_double": false,
+    "launch_file": "launch/10_slam_mapping.launch",
+    "args": {}
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "points": {
+     "source": "edge",
+     "from": "sensors.points",
+     "type": "sensor_msgs/PointCloud2",
+     "schema": null
+    },
+    "imu": {
+     "source": "edge",
+     "from": "sensors.imu",
+     "type": "sensor_msgs/Imu",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "global",
+   "component": "v8.fw.global2d",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true,
+    "type": "global2d_test_double",
+    "param_files": [],
+    "remap": []
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "odom": {
+     "source": "edge",
+     "from": "loc.odom",
+     "type": "nav_msgs/Odometry",
+     "schema": null
+    },
+    "map": {
+     "source": "edge",
+     "from": "map.map",
+     "type": "nav_msgs/OccupancyGrid",
+     "schema": "occupancy_grid/v1"
+    },
+    "goal": {
+     "source": "external:operator",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "local",
+   "component": "v8.fw.local2d",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true,
+    "type": "local2d_test_double",
+    "param_files": [],
+    "remap": []
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "odom": {
+     "source": "edge",
+     "from": "loc.odom",
+     "type": "nav_msgs/Odometry",
+     "schema": null
+    },
+    "map": {
+     "source": "edge",
+     "from": "map.map",
+     "type": "nav_msgs/OccupancyGrid",
+     "schema": "occupancy_grid/v1"
+    },
+    "path": {
+     "source": "edge",
+     "from": "global.path",
+     "type": "nav_msgs/Path",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "mux",
+   "component": "v8.fw.mux",
+   "launch": {
+    "kind": "node",
+    "package": "lite3_safety",
+    "test_double": false,
+    "type": "safe_cmd_vel_mux.py",
+    "param_files": [
+     "config/cmd_vel_mux.yaml"
+    ],
+    "remap": []
+   },
+   "namespace": null,
+   "params": {
+    "default_priority": "navigation"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "cmd": {
+     "source": "edge",
+     "from": "local.cmd",
+     "type": "geometry_msgs/TwistStamped",
+     "schema": null
+    },
+    "hold": {
+     "source": "external:supervisor",
+     "type": "std_msgs/Bool",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "robot",
+   "component": "v8.fw.robot_lite3",
+   "launch": {
+    "kind": "node",
+    "package": "message_transformer",
+    "test_double": false,
+    "type": "ros2qnx",
+    "param_files": [],
+    "remap": []
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "cmd": {
+     "source": "edge",
+     "from": "mux.cmd",
+     "type": "geometry_msgs/TwistStamped",
+     "schema": null
+    }
+   }
+  }
+ ],
+ "edges": [
+  {
+   "from": "sensors.points",
+   "to": "loc.points",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "sensors.imu",
+   "to": "loc.imu",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "loc.odom",
+   "to": "global.odom",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "loc.odom",
+   "to": "local.odom",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "map.map",
+   "to": "global.map",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "map.map",
+   "to": "local.map",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "global.path",
+   "to": "local.path",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "local.cmd",
+   "to": "mux.cmd",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "mux.cmd",
+   "to": "robot.cmd",
+   "feedback": false,
+   "policy": {}
+  }
+ ],
+ "external": [
+  {
+   "to": "global.goal",
+   "type": "geometry_msgs/PoseStamped",
+   "source": "operator"
+  },
+  {
+   "to": "mux.hold",
+   "type": "std_msgs/Bool",
+   "source": "supervisor"
+  }
+ ],
+ "startup_order": [
+  "map",
+  "sensors",
+  "loc",
+  "global",
+  "local",
+  "mux",
+  "robot"
+ ],
+ "feedback": [],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_advice/local": "local"
+ }
+}

@@ -1,0 +1,146 @@
+{
+ "ok": true,
+ "name": "nav2d_loc_faster_lio",
+ "digest": "2d9ecc31e4405bb865cdcb465e9c25d1a03b1ceaa51c54904d1ebfbc1d1a4c91",
+ "startup_order": [
+  "map",
+  "sensors",
+  "loc",
+  "global",
+  "local",
+  "mux",
+  "robot"
+ ],
+ "feedback": [],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_advice/local": "local"
+ },
+ "safety": {
+  "ok": true,
+  "command_owner": "mux",
+  "advice": [
+   {
+    "endpoint": "local.cmd",
+    "topic": "/cmd_vel_advice/local"
+   }
+  ],
+  "validator": "absent"
+ },
+ "configs": {},
+ "launch": {
+  "components": 18,
+  "real": 9,
+  "test_double": 9,
+  "rows": [
+   {
+    "component": "v8.fw.faster_lio",
+    "kind": "include",
+    "package": "lite3_slam",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.global2d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.global3d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.hdl_localization",
+    "kind": "include",
+    "package": "lite3_localization",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.local2d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.local3d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map2d",
+    "kind": "node",
+    "package": "map_server",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.map3d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map3d_v2",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map_cache",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map_merge",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.mux",
+    "kind": "node",
+    "package": "lite3_safety",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.robot_lite3",
+    "kind": "node",
+    "package": "message_transformer",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.robot_test_b",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.sensors",
+    "kind": "node",
+    "package": "lite3_drivers",
+    "test_double": false
+   },
+   {
+    "component": "v8.nav2d.dwa_stack",
+    "kind": "include",
+    "package": "v8_platform",
+    "test_double": false
+   },
+   {
+    "component": "v8.nav2d.mux",
+    "kind": "include",
+    "package": "lite3_safety",
+    "test_double": false
+   },
+   {
+    "component": "v8.nav2d.teb_stack",
+    "kind": "include",
+    "package": "v8_platform",
+    "test_double": false
+   }
+  ]
+ }
+}

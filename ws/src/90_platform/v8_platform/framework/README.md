@@ -68,7 +68,7 @@ python3 -B framework/cli.py check framework/fixtures/manifests \
 python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 23 项
+python3 -B framework/test_framework.py      # 24 项
 python3 -B framework/test_runtime.py        # 6 项（F3 假命令/真实 include 参数）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
@@ -118,8 +118,10 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 
 ## 5. 边界（如实）
 
-- 真实入口：包索引已对上 17 个组件（8 个真实 + 9 个 `*_test_double`）；R981 的真实 2D
-  nav+mux 已由 Assembly 在 Gazebo 启动，定位/3D/其他算法仍未 v2 化或未真实 launch。
+- 真实入口：包索引已对上 18 个 v2 组件（9 个真实 + 9 个 `*_test_double`）；R981 的真实 2D
+  nav+mux 已由 Assembly 在 Gazebo 启动。R982 增加 `v8.fw.hdl_localization` 与两张定位图，
+  但 hdl 真实 launch 未执行（stock nodelet 需 `/leg_odom2`；M2-R2C 终止仿真域；GT 辅助 probe
+  不计独立定位）；faster_lio 仍为 include，3D/其他算法仍未 v2 化。
 - 实例 `config` 在 plan/launch 渲染层生效，但真实 `rosrun` 命令不加载 node 的
   `rosparam` 文件；当前真实接入用 include 组件（参数走 launch args）。
 - include 组件没有通用 `remap` 入口：图中连入 include 的边必须让端口 topic 与上游一致，

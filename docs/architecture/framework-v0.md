@@ -3,7 +3,7 @@
 > 2026-10-30 起；R956 把组件源并入 registry manifest v2，R963/R964 接上独立验证与安全接线，
 > R981 完成真实 2D 栈的 graph→plan→Assembly 启动四格实测。
 > 目标框架的第一片：**配置、装配计划与运行装配**；数据面仍走 ROS 话题。
-> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 23 项＋runtime 6 项＋robot 4 项＋
+> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 24 项＋runtime 6 项＋robot 4 项＋
 > verification 5 项＋safety 7 项＋selector 3 项＋hotswap 5 项＋契约 v2 6 项＋registry/composer v2 4 项；
 > V8 全树 59 套件 0 失败。
 
@@ -56,8 +56,9 @@ safe_cmd_vel_mux，`/cmd_vel` 唯一发布者为 mux；四格 driver 全 PASS，
 
 ## 3. 边界（如实）
 
-- catalog 中 8 个真实组件已对上包索引，9 个 `*_test_double` 是测试替身；R981 的真实 2D
-  nav+mux 已由 Assembly 在 Gazebo 启动，定位/3D/其他算法仍未 v2 化或未真实 launch。
+- catalog 中 9 个真实组件已对上包索引，9 个 `*_test_double` 是测试替身；R981 的真实 2D
+  nav+mux 已由 Assembly 在 Gazebo 启动。R982 增加 hdl v2 清单和两张定位图（faster_lio / hdl），
+  但 hdl 真实 launch 未执行：`/leg_odom2`、M2-R2C 与 GT 辅助 probe；3D/其他算法仍未 v2 化。
 - node 实例的 `config` 只在 plan/launch 渲染层生效，真实 `rosrun` 不加载其 rosparam；include
   没有通用 remap 入口，连入 include 的边必须 topic 一致。`kind: plugin` 托管未实现。
 - 真实验证测试仍用假后端，未启动 MuJoCo/Gazebo；validator 否决是编排层停止，不是 msg 级

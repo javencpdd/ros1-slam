@@ -1,0 +1,17 @@
+R982 命令（2026-10-31 04:18—04:24 CST，qoder；定位组件 v2 选择）
+# 纯离线 check/plan；不启动 ROS/Gazebo。目的＝证明同一 2D 导航链只换 loc 组件。
+cd ws/src/90_platform/v8_platform
+for cell in faster_lio hdl; do
+  graph=framework/fixtures/graphs/graph_2d_loc_$cell.yaml
+  python3 -B framework/cli.py check framework/fixtures/manifests "$graph" \
+    --package-index framework/fixtures/package_index.json
+  python3 -B framework/cli.py plan framework/fixtures/manifests "$graph" \
+    --package-index framework/fixtures/package_index.json \
+    --out-plan /tmp/r982/$cell/plan.json --out-launch /tmp/r982/$cell/graph.launch
+done
+# 读数：两图 digest 不同（2d9ecc31… / a08f2d4f…），启动序相同，命令写者相同；
+#   hdl 图在 global/local 上生成 /Odometry -> /hdl_odom remap 骨架。
+# 边界：hdl 真实 launch 未执行。stock nodelet 在云到达前解引用 /leg_odom2（probe 需补零速），
+#   M2-R2C 已终止仿真域 hdl 验证；hdl_runtime_probe 是 GT 辅助传感器夹具，不是独立定位运行。
+#   本批只证明“图可选、可预检、可生成装配计划”，不冒充真实定位替换实测。
+# 测试：framework 24/24、registry v2 4/4；V8 全树 59 套件 0 失败（R983 持久化改动后同批复跑）。

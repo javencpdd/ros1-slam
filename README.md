@@ -16,7 +16,7 @@
 **现行规划指针**：[计划书 v8](note/计划书v8/README.md)，目标是按场景与能力标签组合
 2D/3D 定位、建图、全局与局部规划算法，并完成可信的三维导航仿真。
 **当前状态：框架改造 F0—F8 的机制层已落册（图、预检、装配、MapDelta、安全、热替换），
-真实 2D 栈已由 v2 graph + Assembly 启动并四格闭环（R981）；定位/3D/其他算法仍未 v2 化或未真实 launch。
+真实 2D 栈已由 v2 graph + Assembly 启动并四格闭环（R981）；定位已有 v2 清单与两张同链图（R982），但真实 hdl launch 未验；3D/其他算法仍未 v2 化或未真实 launch。
 现有代码不等于已具备全部目标能力。**
 具体任务见 [执行队列](note/计划书v8/23_v8任务队列.md)，最新批次见 [进度入口](note/进度/README.md)。
 
@@ -34,12 +34,12 @@
 | 状态 | 内容 |
 | --- | --- |
 | **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
-| **未实现/未接** | 定位/3D/其他算法的 v2 化与真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl/faster_lio/LIO/3D 仍为 v1 或裸包）、plugin 托管、M20/真机 S5、语义地图、真实 map_cache/map_merge、MuJoCo/Gazebo 验证后端、零中断热替换、#151 停车预算 |
+| **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、plugin 托管、M20/真机 S5、语义地图、真实 map_cache/map_merge、MuJoCo/Gazebo 验证后端、零中断热替换、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界适配器接主链、MapDelta 证据层、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
-**边界**：A1—A7 仍 `NOT_VALIDATED`；真实定位/全局/局部算法的统一配置替换，必须先完成 v2 适配与真实 launch。
+**边界**：A1—A7 仍 `NOT_VALIDATED`；R982 只证明定位组件可在图中替换并生成装配计划，hdl 真实 launch 仍未执行（`/leg_odom2`、M2-R2C、GT 辅助 probe 不计独立运行）。
 
 ---
 

@@ -1,0 +1,94 @@
+{
+ "rows": [
+  {
+   "cell": "faster_lio",
+   "graph": "graph_2d_loc_faster_lio.yaml",
+   "component": "v8.fw.faster_lio",
+   "digest": "2d9ecc31e4405bb865cdcb465e9c25d1a03b1ceaa51c54904d1ebfbc1d1a4c91",
+   "startup_order": [
+    "map",
+    "sensors",
+    "loc",
+    "global",
+    "local",
+    "mux",
+    "robot"
+   ],
+   "command_writers": {
+    "/cmd_vel": "mux",
+    "/cmd_vel_advice/local": "local"
+   },
+   "loc_launch": {
+    "kind": "include",
+    "package": "lite3_slam",
+    "test_double": false,
+    "launch_file": "launch/10_slam_mapping.launch",
+    "args": {}
+   },
+   "loc_inputs": {
+    "points": {
+     "source": "edge",
+     "from": "sensors.points",
+     "type": "sensor_msgs/PointCloud2",
+     "schema": null
+    },
+    "imu": {
+     "source": "edge",
+     "from": "sensors.imu",
+     "type": "sensor_msgs/Imu",
+     "schema": null
+    }
+   }
+  },
+  {
+   "cell": "hdl",
+   "graph": "graph_2d_loc_hdl.yaml",
+   "component": "v8.fw.hdl_localization",
+   "digest": "a08f2d4f99c0e0319a04130c0d3632616d9d019d82c283b2e429455f4025d26f",
+   "startup_order": [
+    "map",
+    "sensors",
+    "loc",
+    "global",
+    "local",
+    "mux",
+    "robot"
+   ],
+   "command_writers": {
+    "/cmd_vel": "mux",
+    "/cmd_vel_advice/local": "local"
+   },
+   "loc_launch": {
+    "kind": "include",
+    "package": "lite3_localization",
+    "test_double": false,
+    "launch_file": "launch/hdl_localization.launch",
+    "args": {
+     "points_topic": "/rslidar_points",
+     "imu_topic": "/livox/imu",
+     "map_name": "lite3"
+    }
+   },
+   "loc_inputs": {
+    "points": {
+     "source": "edge",
+     "from": "sensors.points",
+     "type": "sensor_msgs/PointCloud2",
+     "schema": null
+    },
+    "imu": {
+     "source": "edge",
+     "from": "sensors.imu",
+     "type": "sensor_msgs/Imu",
+     "schema": null
+    }
+   }
+  }
+ ],
+ "selection_only": true,
+ "boundary": "hdl real launch not executed: stock nodelet dereferences /leg_odom2; M2-R2C terminated sim hdl; hdl_runtime_probe is GT-assisted, not an independent localization run. This batch proves graph selection/plan only.",
+ "tests": {
+  "framework": 24,
+  "registry_v2": 4
+ }
+}
