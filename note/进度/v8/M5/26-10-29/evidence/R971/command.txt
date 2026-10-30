@@ -1,0 +1,14 @@
+R971 命令（2026-10-31 01:50—01:54 CST，qoder；V8-X1 0.6 m 四步定向实验）
+# 容器 ros1-slam-sim；同一 270 策略 / Lite3.xml；4×0.15 m、深 .5、宽 3、front 1、landing 2 m。
+cd ws/src/95_simulation/lite3_gazebo_sim/dynamics
+python3 - <<'PY'
+xml=walk.make_stairs_xml("/tmp/mjcf/Lite3.xml",.15,steps=4,depth=.5,width=3.0,front=1.0,landing_depth=2.0)
+for v in (.2,.25,.3):
+  walk.run_rollout(xml,policy,12,v,stair=...,heading_hold=True,yaw_gain=3.0,y_gain=1.5,max_wz=.5,initial_perturbation=walk.sample_initial(seed0,True))
+for sec in (7,8,9,10): ... v=.3
+for seed in 0..4, 3 repeats: ... sec=7, v=.3
+PY
+# 读数：v .2/.25 在 12 s 跌落；v .3 在 7 s clean=true/stable=true（x 4.81,z .838）。
+# 5 seed×3：clean 15/15、stable 12/15、fell 0、unstable 0；seed1 stable 0/3（走下 landing，不摔）。
+# 8/9/10 s 均 clean 但走下 landing；R934 的“无 landing 12 s”负例仍独立成立。
+# 边界：MuJoCo 单策略、确定性；无 ROS/真机/#151；正式 V8-X1 判据未签。
