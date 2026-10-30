@@ -1,0 +1,12 @@
+R958 命令（2026-10-31 00:10—00:22 CST，qoder；F1 去掉 v2 io/ports 重复）
+# 宿主直跑（纯标准库 + PyYAML；不启 ROS）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py          # 18
+python3 -B contracts/test_manifest_v2.py        # 6
+python3 -B registry/test_v2_manifest.py         # 4
+python3 -B framework/cli.py check framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_3d_cache.yaml
+# 派生读数脚本：读 v2 清单，确认文件无 io、normalize 后 map2d=occupancy/dims2、
+#   map3d=support_map/dims3、map_merge/sensors=not_applicable；见 normalize_readout.json。
+# 容器同版（Python 3.8 + PyYAML 5.3.1）：V8 全树 49 套件 0 失败。
+# 边界：未启动 ROS；v1 清单原样；v2 精确端口 schema 保留版本，派生 io 只用 v1 枚举。

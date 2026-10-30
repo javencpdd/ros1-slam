@@ -1,0 +1,53 @@
+{
+ "manifest_map2d.json": {
+  "has_io_in_file": false,
+  "derived_io": {
+   "map_schema": "occupancy_grid/v1",
+   "dimensions": 2,
+   "inputs": [],
+   "outputs": [
+    "nav_msgs/OccupancyGrid（map）"
+   ]
+  }
+ },
+ "manifest_map3d.json": {
+  "has_io_in_file": false,
+  "derived_io": {
+   "map_schema": "support_map/v1",
+   "dimensions": 3,
+   "inputs": [
+    "sensor_msgs/PointCloud2（cloud）",
+    "v8_msgs/MapDelta（delta）"
+   ],
+   "outputs": [
+    "v8_msgs/SupportMap（map）"
+   ]
+  }
+ },
+ "manifest_map_merge.json": {
+  "has_io_in_file": false,
+  "derived_io": {
+   "map_schema": "not_applicable",
+   "dimensions": 3,
+   "inputs": [
+    "v8_msgs/MapDelta（delta_a）",
+    "v8_msgs/MapDelta（delta_b）"
+   ],
+   "outputs": [
+    "v8_msgs/MapDelta（delta）"
+   ]
+  }
+ },
+ "manifest_sensors.json": {
+  "has_io_in_file": false,
+  "derived_io": {
+   "map_schema": "not_applicable",
+   "dimensions": 3,
+   "inputs": [],
+   "outputs": [
+    "sensor_msgs/PointCloud2（points）",
+    "sensor_msgs/Imu（imu）"
+   ]
+  }
+ }
+}
