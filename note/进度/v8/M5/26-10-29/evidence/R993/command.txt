@@ -1,0 +1,13 @@
+R993 命令（2026-10-31 05:02—05:05 CST，qoder；A5 相位门变体）
+# 同 seed0/perturb/lockstep/stall-retry；两组各 3 次。
+# A：hold 2.0 s，bridge cmd_timeout 默认 0.5 s。
+# B：hold 1.0 s + runtime --bridge-cmd-timeout 3.0（让门后旧命令不过早 stale）。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --hold-until-sim-s <2.0|1.0> [--bridge-cmd-timeout 3.0] \
+  --out /tmp/r99X_s0_$i.json --wall-deadline-s 150
+# 读数：A 3/3 PASS，首个非零命令 2.52/2.54/2.62 s（0.10 s 散差）；
+#   B 1/3 PASS，首个非零 1.22/1.28/1.34 s（0.12 s 散差），两次停在 z .7175。
+# 结论：门只改变起始零命令长度；锁存旧命令并没有钉住 planner→bridge 的更新相位，
+#   且放宽 stale 会带来新的失败。A5 仍 PARTIAL。
