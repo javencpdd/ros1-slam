@@ -1,0 +1,37 @@
+digraph system_context {
+  graph [rankdir=TB, splines=spline, nodesep=.5, ranksep=.6, fontname="Noto Sans CJK SC", fontsize=12,
+         labelloc="t", label="ros1-slam · 系统上下文（当前态 2026-10-30）\n实线=已接通；橙=仿真实验；红虚线=L2 未授权；灰点线=规划中", compound=true];
+  node  [fontname="Noto Sans CJK SC", fontsize=11, shape=box, style="rounded,filled", color="#455a64", fillcolor="#eceff1"];
+  edge  [fontname="Noto Sans CJK SC", fontsize=9, color="#455a64"];
+
+  operator [shape=oval, label="操作员 / 任务下发\n目标点 · 取消 · 急停", fillcolor="#fff8e1", color="#f9a825"];
+  developer [shape=oval, label="开发者 / 回归跑批\n门禁 · 证据封存", fillcolor="#fff8e1", color="#f9a825"];
+
+  subgraph cluster_system {
+    label="ros1-slam 仓（ROS1 Noetic 开发系统）";
+    style="rounded,dashed"; color="#90a4ae"; fontsize=12;
+    core [label="ROS1 导航与 SLAM 主干\n驱动 · faster-lio · hdl · MBF/SCAN · mux", fillcolor="#e8f5e9", color="#2e7d32"];
+    v8   [label="v8 组件平台\n契约/注册/组合/编排 · 规划 · 检查器", fillcolor="#e3f2fd", color="#1565c0", style="rounded,filled,dashed"];
+    sim  [label="仿真与载体域\nGazebo 平面/三维载体 · MuJoCo 四足", fillcolor="#fff3e0", color="#ef6c00"];
+    bnd  [label="机器人边界适配器 S1\n帧契约+速率桥（仅回环）", fillcolor="#f5f5f5", color="#616161", style="rounded,filled,dotted"];
+    evid [label="证据与门禁\n回归 · 标定 · VLB/VCC", fillcolor="#eceff1", color="#455a64"];
+  }
+
+  sensors [shape=box3d, label="激光雷达 + IMU\nMid-360 / 仿真插件"];
+  robot   [shape=box3d, label="Lite3 真机\nQNX 控制器\n(真机链路未授权 L2)"];
+  simenv  [shape=box3d, label="Gazebo / MuJoCo\n物理与场景"];
+  viz     [label="RViz / Foxglove / Web\n观测面", fillcolor="#f3e5f5", color="#6a1b9a"];
+
+  operator -> core [label="目标 / 任务", color="#f9a825"];
+  developer -> evid [label="跑批 / 复核", color="#f9a825"];
+  sensors -> core [label="points · imu", color="#2e7d32"];
+  core -> viz [label="topics / TF", color="#6a1b9a"];
+  core -> simenv [label="cmd / model_state", color="#ef6c00"];
+  simenv -> core [label="odom / pose / clock", color="#ef6c00"];
+  core -> robot [label="/cmd_vel → QNX 43893", color="#c62828", style=dashed];
+  robot -> core [label="IMU / 遥测", color="#c62828", style=dashed];
+  bnd -> simenv [label="UDP 50–500 Hz（S2/S3 未接）", color="#616161", style=dotted];
+  core -> bnd [label="mux 输出（未接）", color="#616161", style=dotted];
+  v8 -> core [label="设计层/局部件（仅单测）", color="#1565c0", style=dashed];
+  evid -> core [label="门禁", color="#455a64", style=dotted];
+}

@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ros1-slam · 当前态系统架构</title>
+<style>body { margin:0; padding:24px; background:#f6f8f9; }</style>
+</head>
+<body>
+<div class="arch-root">
+<style>
+.arch-root { --ink:#1f2a30; --muted:#5f6b73; --line:#dfe5e8; --green:#2e7d32; --orange:#ef6c00; --blue:#1565c0; --red:#c62828; --gray:#616161; font-family: "Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif; color:var(--ink); max-width:1180px; margin:0 auto; line-height:1.65; }
+.arch-root * { box-sizing:border-box; }
+.arch-root h1 { font-size:26px; margin:0 0 6px; letter-spacing:.2px; }
+.arch-root h2 { font-size:19px; margin:34px 0 10px; padding-left:10px; border-left:4px solid var(--ink); }
+.arch-root h3 { font-size:15px; margin:18px 0 6px; }
+.arch-root p { margin:6px 0; }
+.arch-root .sub { color:var(--muted); font-size:13px; }
+.arch-root .chips { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px; }
+.arch-root .chip { font-size:12px; padding:4px 9px; border-radius:999px; border:1px solid var(--line); background:#fff; color:var(--muted); }
+.arch-root .chip.g { border-color:#a5d6a7; background:#e8f5e9; color:#1b5e20; }
+.arch-root .chip.o { border-color:#ffcc80; background:#fff3e0; color:#b23c00; }
+.arch-root .chip.b { border-color:#90caf9; background:#e3f2fd; color:#0d47a1; }
+.arch-root .chip.r { border-color:#ef9a9a; background:#ffebee; color:#8e0000; }
+.arch-root .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 4px; }
+.arch-root .card { border:1px solid var(--line); border-radius:12px; padding:12px; background:#fff; }
+.arch-root .card b { display:block; font-size:13px; }
+.arch-root .card span { font-size:12px; color:var(--muted); }
+.arch-root .card .n { font-size:22px; font-weight:700; margin-top:2px; }
+.arch-root .card.g { border-top:3px solid var(--green); }
+.arch-root .card.o { border-top:3px solid var(--orange); }
+.arch-root .card.b { border-top:3px solid var(--blue); }
+.arch-root .card.r { border-top:3px solid var(--red); }
+.arch-root figure { margin:16px 0; border:1px solid var(--line); border-radius:12px; padding:10px; background:#fcfdfd; overflow:auto; }
+.arch-root figcaption { font-size:12px; color:var(--muted); padding:6px 4px 0; border-top:1px dashed var(--line); margin-top:8px; }
+.arch-root table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+.arch-root th, .arch-root td { border-bottom:1px solid var(--line); padding:7px 8px; text-align:left; vertical-align:top; }
+.arch-root th { background:#f3f6f7; font-weight:600; }
+.arch-root ul { margin:6px 0 6px 20px; padding:0; }
+.arch-root li { margin:4px 0; }
+.arch-root .seam { border-left:3px solid var(--red); background:#fffafa; padding:8px 12px; margin:8px 0; border-radius:0 8px 8px 0; }
+.arch-root .seam b { color:#8e0000; }
+.arch-root code { background:#f2f4f5; padding:1px 5px; border-radius:4px; font-size:12px; }
+.arch-root .foot { margin-top:26px; padding-top:10px; border-top:1px solid var(--line); font-size:12px; color:var(--muted); }
+@media (max-width:820px) { .arch-root .cards { grid-template-columns:repeat(2,1fr); } }
+</style>
+
+<h1>ros1-slam · 当前态系统架构</h1>
+<p class="sub">2026-10-30 只读建模 · 依据代码/配置/近期证据 · 不改变任何验收状态（A5 PARTIAL；A1—A7 NOT_VALIDATED）</p>
+<div class="chips">
+  <span class="chip g">已接通运行</span>
+  <span class="chip o">仿真实验（有读数）</span>
+  <span class="chip b">设计层/仅单测</span>
+  <span class="chip r">L2 未授权</span>
+  <span class="chip">灰点线=待接</span>
+</div>
+
+<div class="cards">
+  <div class="card g"><b>ROS1 导航平面</b><span>驱动→SLAM→代价图→MBF/SCAN→mux</span><div class="n">已接通</div></div>
+  <div class="card o"><b>v8 三维爬楼平面</b><span>A5→MuJoCo/3D 载体</span><div class="n">实验</div></div>
+  <div class="card b"><b>v8 平台治理</b><span>契约/注册/组合/编排/检查器</span><div class="n">设计+单测</div></div>
+  <div class="card r"><b>机器人边界</b><span>S1 回环完成；S2/S3 待开；真机 L2</span><div class="n">未接通</div></div>
+</div>
+
+<h2>① 系统上下文：谁在用、边界在哪</h2>
+<figure><svg style="width:100%;height:auto;display:block"
+ viewBox="0.00 0.00 1349.80 417.88" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 413.88)">
+<title>system_context</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-413.88 1345.8,-413.88 1345.8,4 -4,4"/>
+<text text-anchor="middle" x="670.9" y="-396.28" font-family="Noto Sans CJK SC" font-size="12.00">ros1&#45;slam · 系统上下文（当前态 2026&#45;10&#45;30）</text>
+<text text-anchor="middle" x="670.9" y="-383.28" font-family="Noto Sans CJK SC" font-size="12.00">实线=已接通；橙=仿真实验；红虚线=L2 未授权；灰点线=规划中</text>
+<g id="clust1" class="cluster">
+<title>cluster_system</title>
+<path fill="none" stroke="#90a4ae" stroke-dasharray="5,2" d="M218.8,-8C218.8,-8 840.8,-8 840.8,-8 846.8,-8 852.8,-14 852.8,-20 852.8,-20 852.8,-278.63 852.8,-278.63 852.8,-284.63 846.8,-290.63 840.8,-290.63 840.8,-290.63 218.8,-290.63 218.8,-290.63 212.8,-290.63 206.8,-284.63 206.8,-278.63 206.8,-278.63 206.8,-20 206.8,-20 206.8,-14 212.8,-8 218.8,-8"/>
+<text text-anchor="middle" x="529.8" y="-277.03" font-family="Noto Sans CJK SC" font-size="12.00">ros1&#45;slam 仓（ROS1 Noetic 开发系统）</text>
+</g>
+<!-- operator -->
+<g id="node1" class="node">
+<title>operator</title>
+<ellipse fill="#fff8e1" stroke="#f9a825" cx="89.8" cy="-222.63" rx="89.61" ry="22.76"/>
+<text text-anchor="middle" x="89.8" y="-225.83" font-family="Noto Sans CJK SC" font-size="11.00">操作员 / 任务下发</text>
+<text text-anchor="middle" x="89.8" y="-213.83" font-family="Noto Sans CJK SC" font-size="11.00">目标点 · 取消 · 急停</text>
+</g>
+<!-- core -->
+<g id="node3" class="node">
+<title>core</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M832.8,-146C832.8,-146 616.8,-146 616.8,-146 610.8,-146 604.8,-140 604.8,-134 604.8,-134 604.8,-122 604.8,-122 604.8,-116 610.8,-110 616.8,-110 616.8,-110 832.8,-110 832.8,-110 838.8,-110 844.8,-116 844.8,-122 844.8,-122 844.8,-134 844.8,-134 844.8,-140 838.8,-146 832.8,-146"/>
+<text text-anchor="middle" x="724.8" y="-131.2" font-family="Noto Sans CJK SC" font-size="11.00">ROS1 导航与 SLAM 主干</text>
+<text text-anchor="middle" x="724.8" y="-119.2" font-family="Noto Sans CJK SC" font-size="11.00">驱动 · faster&#45;lio · hdl · MBF/SCAN · mux</text>
+</g>
+<!-- operator&#45;&gt;core -->
+<g id="edge1" class="edge">
+<title>operator&#45;&gt;core</title>
+<path fill="none" stroke="#f9a825" d="M157.1,-207.54C170.56,-204.9 184.61,-202.26 197.8,-200 332.46,-176.96 487.52,-156.83 594.42,-143.95"/>
+<polygon fill="#f9a825" stroke="#f9a825" points="595.1,-147.39 604.61,-142.73 594.26,-140.44 595.1,-147.39"/>
+<text text-anchor="middle" x="422.3" y="-170.8" font-family="Noto Sans CJK SC" font-size="9.00">目标 / 任务</text>
+</g>
+<!-- developer -->
+<g id="node2" class="node">
+<title>developer</title>
+<ellipse fill="#fff8e1" stroke="#f9a825" cx="283.8" cy="-353.25" rx="73.58" ry="22.76"/>
+<text text-anchor="middle" x="283.8" y="-356.45" font-family="Noto Sans CJK SC" font-size="11.00">开发者 / 回归跑批</text>
+<text text-anchor="middle" x="283.8" y="-344.45" font-family="Noto Sans CJK SC" font-size="11.00">门禁 · 证据封存</text>
+</g>
+<!-- evid -->
+<g id="node7" class="node">
+<title>evid</title>
+<path fill="#eceff1" stroke="#455a64" d="M340.3,-240.63C340.3,-240.63 227.3,-240.63 227.3,-240.63 221.3,-240.63 215.3,-234.63 215.3,-228.63 215.3,-228.63 215.3,-216.63 215.3,-216.63 215.3,-210.63 221.3,-204.63 227.3,-204.63 227.3,-204.63 340.3,-204.63 340.3,-204.63 346.3,-204.63 352.3,-210.63 352.3,-216.63 352.3,-216.63 352.3,-228.63 352.3,-228.63 352.3,-234.63 346.3,-240.63 340.3,-240.63"/>
+<text text-anchor="middle" x="283.8" y="-225.83" font-family="Noto Sans CJK SC" font-size="11.00">证据与门禁</text>
+<text text-anchor="middle" x="283.8" y="-213.83" font-family="Noto Sans CJK SC" font-size="11.00">回归 · 标定 · VLB/VCC</text>
+</g>
+<!-- developer&#45;&gt;evid -->
+<g id="edge2" class="edge">
+<title>developer&#45;&gt;evid</title>
+<path fill="none" stroke="#f9a825" d="M283.8,-330.43C283.8,-308.56 283.8,-274.8 283.8,-251.11"/>
+<polygon fill="#f9a825" stroke="#f9a825" points="287.3,-251.01 283.8,-241.01 280.3,-251.01 287.3,-251.01"/>
+<text text-anchor="middle" x="306.3" y="-301.43" font-family="Noto Sans CJK SC" font-size="9.00">跑批 / 复核</text>
+</g>
+<!-- bnd -->
+<g id="node6" class="node">
+<title>bnd</title>
+<path fill="#f5f5f5" stroke="#616161" stroke-dasharray="1,5" d="M732.8,-52C732.8,-52 610.8,-52 610.8,-52 604.8,-52 598.8,-46 598.8,-40 598.8,-40 598.8,-28 598.8,-28 598.8,-22 604.8,-16 610.8,-16 610.8,-16 732.8,-16 732.8,-16 738.8,-16 744.8,-22 744.8,-28 744.8,-28 744.8,-40 744.8,-40 744.8,-46 738.8,-52 732.8,-52"/>
+<text text-anchor="middle" x="671.8" y="-37.2" font-family="Noto Sans CJK SC" font-size="11.00">机器人边界适配器 S1</text>
+<text text-anchor="middle" x="671.8" y="-25.2" font-family="Noto Sans CJK SC" font-size="11.00">帧契约+速率桥（仅回环）</text>
+</g>
+<!-- core&#45;&gt;bnd -->
+<g id="edge10" class="edge">
+<title>core&#45;&gt;bnd</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M604.5,-110.37C581.54,-104.74 562.3,-97.41 554.8,-88 539.01,-68.18 560.3,-55.51 588.86,-47.55"/>
+<polygon fill="#616161" stroke="#616161" points="589.95,-50.88 598.78,-45.03 588.23,-44.1 589.95,-50.88"/>
+<text text-anchor="middle" x="592.3" y="-80.8" font-family="Noto Sans CJK SC" font-size="9.00">mux 输出（未接）</text>
+</g>
+<!-- robot -->
+<g id="node9" class="node">
+<title>robot</title>
+<polygon fill="#eceff1" stroke="#455a64" points="978.3,-56 865.3,-56 861.3,-52 861.3,-12 974.3,-12 978.3,-16 978.3,-56"/>
+<polyline fill="none" stroke="#455a64" points="974.3,-52 861.3,-52 "/>
+<polyline fill="none" stroke="#455a64" points="974.3,-52 974.3,-12 "/>
+<polyline fill="none" stroke="#455a64" points="974.3,-52 978.3,-56 "/>
+<text text-anchor="middle" x="919.8" y="-43.2" font-family="Noto Sans CJK SC" font-size="11.00">Lite3 真机</text>
+<text text-anchor="middle" x="919.8" y="-31.2" font-family="Noto Sans CJK SC" font-size="11.00">QNX 控制器</text>
+<text text-anchor="middle" x="919.8" y="-19.2" font-family="Noto Sans CJK SC" font-size="11.00">(真机链路未授权 L2)</text>
+</g>
+<!-- core&#45;&gt;robot -->
+<g id="edge7" class="edge">
+<title>core&#45;&gt;robot</title>
+<path fill="none" stroke="#c62828" stroke-dasharray="5,2" d="M687.73,-109.95C673.02,-100.9 661.73,-89.33 671.8,-78 697.56,-49.02 801.53,-62.9 851.16,-56.88"/>
+<polygon fill="#c62828" stroke="#c62828" points="851.86,-60.31 861.15,-55.21 850.71,-53.41 851.86,-60.31"/>
+<text text-anchor="middle" x="721.8" y="-80.8" font-family="Noto Sans CJK SC" font-size="9.00">/cmd_vel → QNX 43893</text>
+</g>
+<!-- simenv -->
+<g id="node10" class="node">
+<title>simenv</title>
+<polygon fill="#eceff1" stroke="#455a64" points="1120.8,-52 1018.8,-52 1014.8,-48 1014.8,-16 1116.8,-16 1120.8,-20 1120.8,-52"/>
+<polyline fill="none" stroke="#455a64" points="1116.8,-48 1014.8,-48 "/>
+<polyline fill="none" stroke="#455a64" points="1116.8,-48 1116.8,-16 "/>
+<polyline fill="none" stroke="#455a64" points="1116.8,-48 1120.8,-52 "/>
+<text text-anchor="middle" x="1067.8" y="-37.2" font-family="Noto Sans CJK SC" font-size="11.00">Gazebo / MuJoCo</text>
+<text text-anchor="middle" x="1067.8" y="-25.2" font-family="Noto Sans CJK SC" font-size="11.00">物理与场景</text>
+</g>
+<!-- core&#45;&gt;simenv -->
+<g id="edge5" class="edge">
+<title>core&#45;&gt;simenv</title>
+<path fill="none" stroke="#ef6c00" d="M844.83,-116.12C885.25,-110.3 930.13,-101.45 969.8,-88 991.8,-80.54 1014.72,-68.42 1032.86,-57.65"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="1035.15,-60.36 1041.88,-52.18 1031.51,-54.37 1035.15,-60.36"/>
+<text text-anchor="middle" x="1031.3" y="-80.8" font-family="Noto Sans CJK SC" font-size="9.00">cmd / model_state</text>
+</g>
+<!-- viz -->
+<g id="node11" class="node">
+<title>viz</title>
+<path fill="#f3e5f5" stroke="#6a1b9a" d="M1329.8,-52C1329.8,-52 1229.8,-52 1229.8,-52 1223.8,-52 1217.8,-46 1217.8,-40 1217.8,-40 1217.8,-28 1217.8,-28 1217.8,-22 1223.8,-16 1229.8,-16 1229.8,-16 1329.8,-16 1329.8,-16 1335.8,-16 1341.8,-22 1341.8,-28 1341.8,-28 1341.8,-40 1341.8,-40 1341.8,-46 1335.8,-52 1329.8,-52"/>
+<text text-anchor="middle" x="1279.8" y="-37.2" font-family="Noto Sans CJK SC" font-size="11.00">RViz / Foxglove / Web</text>
+<text text-anchor="middle" x="1279.8" y="-25.2" font-family="Noto Sans CJK SC" font-size="11.00">观测面</text>
+</g>
+<!-- core&#45;&gt;viz -->
+<g id="edge4" class="edge">
+<title>core&#45;&gt;viz</title>
+<path fill="none" stroke="#6a1b9a" d="M844.91,-121.81C957.06,-116.02 1115.88,-105.15 1175.8,-88 1199.85,-81.12 1224.89,-68.55 1244.37,-57.38"/>
+<polygon fill="#6a1b9a" stroke="#6a1b9a" points="1246.33,-60.28 1253.19,-52.2 1242.79,-54.25 1246.33,-60.28"/>
+<text text-anchor="middle" x="1224.8" y="-80.8" font-family="Noto Sans CJK SC" font-size="9.00">topics / TF</text>
+</g>
+<!-- v8 -->
+<g id="node4" class="node">
+<title>v8</title>
+<path fill="#e3f2fd" stroke="#1565c0" stroke-dasharray="5,2" d="M832.8,-240.63C832.8,-240.63 648.8,-240.63 648.8,-240.63 642.8,-240.63 636.8,-234.63 636.8,-228.63 636.8,-228.63 636.8,-216.63 636.8,-216.63 636.8,-210.63 642.8,-204.63 648.8,-204.63 648.8,-204.63 832.8,-204.63 832.8,-204.63 838.8,-204.63 844.8,-210.63 844.8,-216.63 844.8,-216.63 844.8,-228.63 844.8,-228.63 844.8,-234.63 838.8,-240.63 832.8,-240.63"/>
+<text text-anchor="middle" x="740.8" y="-225.83" font-family="Noto Sans CJK SC" font-size="11.00">v8 组件平台</text>
+<text text-anchor="middle" x="740.8" y="-213.83" font-family="Noto Sans CJK SC" font-size="11.00">契约/注册/组合/编排 · 规划 · 检查器</text>
+</g>
+<!-- v8&#45;&gt;core -->
+<g id="edge11" class="edge">
+<title>v8&#45;&gt;core</title>
+<path fill="none" stroke="#1565c0" stroke-dasharray="5,2" d="M737.79,-204.2C735.45,-190.66 732.17,-171.64 729.49,-156.11"/>
+<polygon fill="#1565c0" stroke="#1565c0" points="732.9,-155.29 727.74,-146.03 726,-156.48 732.9,-155.29"/>
+<text text-anchor="middle" x="784.3" y="-170.8" font-family="Noto Sans CJK SC" font-size="9.00">设计层/局部件（仅单测）</text>
+</g>
+<!-- sim -->
+<g id="node5" class="node">
+<title>sim</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M588.8,-240.63C588.8,-240.63 400.8,-240.63 400.8,-240.63 394.8,-240.63 388.8,-234.63 388.8,-228.63 388.8,-228.63 388.8,-216.63 388.8,-216.63 388.8,-210.63 394.8,-204.63 400.8,-204.63 400.8,-204.63 588.8,-204.63 588.8,-204.63 594.8,-204.63 600.8,-210.63 600.8,-216.63 600.8,-216.63 600.8,-228.63 600.8,-228.63 600.8,-234.63 594.8,-240.63 588.8,-240.63"/>
+<text text-anchor="middle" x="494.8" y="-225.83" font-family="Noto Sans CJK SC" font-size="11.00">仿真与载体域</text>
+<text text-anchor="middle" x="494.8" y="-213.83" font-family="Noto Sans CJK SC" font-size="11.00">Gazebo 平面/三维载体 · MuJoCo 四足</text>
+</g>
+<!-- bnd&#45;&gt;simenv -->
+<g id="edge9" class="edge">
+<title>bnd&#45;&gt;simenv</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M703.89,-52.04C724.9,-62.8 753.37,-75.42 780.3,-81 808.37,-86.82 880.91,-84.98 909.3,-81 949.36,-75.39 958.04,-67.54 996.8,-56 999.53,-55.19 1002.31,-54.35 1005.12,-53.51"/>
+<polygon fill="#616161" stroke="#616161" points="1006.18,-56.84 1014.73,-50.59 1004.14,-50.14 1006.18,-56.84"/>
+<text text-anchor="middle" x="844.8" y="-80.8" font-family="Noto Sans CJK SC" font-size="9.00">UDP 50–500 Hz（S2/S3 未接）</text>
+</g>
+<!-- evid&#45;&gt;core -->
+<g id="edge12" class="edge">
+<title>evid&#45;&gt;core</title>
+<path fill="none" stroke="#455a64" stroke-dasharray="1,5" d="M351.17,-204.56C357.8,-202.98 364.42,-201.43 370.8,-200 455.94,-180.89 553.16,-161.57 624.15,-147.92"/>
+<polygon fill="#455a64" stroke="#455a64" points="624.82,-151.35 633.98,-146.03 623.5,-144.48 624.82,-151.35"/>
+<text text-anchor="middle" x="525.3" y="-170.8" font-family="Noto Sans CJK SC" font-size="9.00">门禁</text>
+</g>
+<!-- sensors -->
+<g id="node8" class="node">
+<title>sensors</title>
+<polygon fill="#eceff1" stroke="#455a64" points="992.3,-240.63 885.3,-240.63 881.3,-236.63 881.3,-204.63 988.3,-204.63 992.3,-208.63 992.3,-240.63"/>
+<polyline fill="none" stroke="#455a64" points="988.3,-236.63 881.3,-236.63 "/>
+<polyline fill="none" stroke="#455a64" points="988.3,-236.63 988.3,-204.63 "/>
+<polyline fill="none" stroke="#455a64" points="988.3,-236.63 992.3,-240.63 "/>
+<text text-anchor="middle" x="936.8" y="-225.83" font-family="Noto Sans CJK SC" font-size="11.00">激光雷达 + IMU</text>
+<text text-anchor="middle" x="936.8" y="-213.83" font-family="Noto Sans CJK SC" font-size="11.00">Mid&#45;360 / 仿真插件</text>
+</g>
+<!-- sensors&#45;&gt;core -->
+<g id="edge3" class="edge">
+<title>sensors&#45;&gt;core</title>
+<path fill="none" stroke="#2e7d32" d="M911.02,-204.6C893,-193.2 868.09,-178.43 844.8,-168 829.18,-161 811.91,-154.64 795.45,-149.18"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="796.47,-145.83 785.88,-146.07 794.31,-152.49 796.47,-145.83"/>
+<text text-anchor="middle" x="890.3" y="-170.8" font-family="Noto Sans CJK SC" font-size="9.00">points · imu</text>
+</g>
+<!-- robot&#45;&gt;core -->
+<g id="edge8" class="edge">
+<title>robot&#45;&gt;core</title>
+<path fill="none" stroke="#c62828" stroke-dasharray="5,2" d="M921.49,-56.09C921.19,-66.97 918.83,-79.66 910.8,-88 901.67,-97.49 880.16,-104.85 854.87,-110.49"/>
+<polygon fill="#c62828" stroke="#c62828" points="854.08,-107.08 845.01,-112.57 855.52,-113.93 854.08,-107.08"/>
+<text text-anchor="middle" x="938.8" y="-80.8" font-family="Noto Sans CJK SC" font-size="9.00">IMU / 遥测</text>
+</g>
+<!-- simenv&#45;&gt;core -->
+<g id="edge6" class="edge">
+<title>simenv&#45;&gt;core</title>
+<path fill="none" stroke="#ef6c00" d="M1078.64,-52.22C1084.33,-63.66 1088.49,-78.3 1079.8,-88 1064.62,-104.95 950.1,-115.28 855.18,-121.02"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="854.96,-117.52 845.18,-121.61 855.37,-124.51 854.96,-117.52"/>
+<text text-anchor="middle" x="1125.3" y="-80.8" font-family="Noto Sans CJK SC" font-size="9.00">odom / pose / clock</text>
+</g>
+</g>
+</svg>
+
+<figcaption>操作员与开发者是仅有的人类角色；真机 QNX 链路（红虚线）仍是 L2；仿真器是当前唯一可执行的运动验证环境。</figcaption>
+</figure>
+
+<h2>② 运行/模块分层：七层与状态</h2>
+<figure><svg style="width:100%;height:auto;display:block"
+ viewBox="0.00 0.00 1095.00 559.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 555)">
+<title>system_runtime</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-555 1091,-555 1091,4 -4,4"/>
+<text text-anchor="middle" x="543.5" y="-538.2" font-family="Noto Sans CJK SC" font-size="11.00">ros1&#45;slam · 运行/模块分层（当前态 2026&#45;10&#45;30）</text>
+<text text-anchor="middle" x="543.5" y="-526.2" font-family="Noto Sans CJK SC" font-size="11.00">绿=已接通运行　橙=仿真实验（有读数）　蓝虚线=设计层/仅单测　灰点线=待接　红虚线=L2 未授权</text>
+<!-- L1 -->
+<g id="node1" class="node">
+<title>L1</title>
+<path fill="lightgrey" stroke="transparent" d="M80,-519C80,-519 12,-519 12,-519 6,-519 0,-513 0,-507 0,-507 0,-495 0,-495 0,-489 6,-483 12,-483 12,-483 80,-483 80,-483 86,-483 92,-489 92,-495 92,-495 92,-507 92,-507 92,-513 86,-519 80,-519"/>
+<text text-anchor="middle" x="46" y="-498.5" font-family="Noto Sans CJK SC" font-size="10.00">① 传感/驱动</text>
+</g>
+<!-- lidar -->
+<g id="node7" class="node">
+<title>lidar</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M200,-519C200,-519 132,-519 132,-519 126,-519 120,-513 120,-507 120,-507 120,-495 120,-495 120,-489 126,-483 132,-483 132,-483 200,-483 200,-483 206,-483 212,-489 212,-495 212,-495 212,-507 212,-507 212,-513 206,-519 200,-519"/>
+<text text-anchor="middle" x="166" y="-503.8" font-family="Noto Sans CJK SC" font-size="9.00">雷达驱动</text>
+<text text-anchor="middle" x="166" y="-493.8" font-family="Noto Sans CJK SC" font-size="9.00">livox / lslidar</text>
+</g>
+<!-- L1&#45;&gt;lidar -->
+<!-- L2 -->
+<g id="node2" class="node">
+<title>L2</title>
+<path fill="lightgrey" stroke="transparent" d="M199,-450C199,-450 131,-450 131,-450 125,-450 119,-444 119,-438 119,-438 119,-426 119,-426 119,-420 125,-414 131,-414 131,-414 199,-414 199,-414 205,-414 211,-420 211,-426 211,-426 211,-438 211,-438 211,-444 205,-450 199,-450"/>
+<text text-anchor="middle" x="165" y="-429.5" font-family="Noto Sans CJK SC" font-size="10.00">② 定位/建图</text>
+</g>
+<!-- flio -->
+<g id="node10" class="node">
+<title>flio</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M321.5,-450C321.5,-450 250.5,-450 250.5,-450 244.5,-450 238.5,-444 238.5,-438 238.5,-438 238.5,-426 238.5,-426 238.5,-420 244.5,-414 250.5,-414 250.5,-414 321.5,-414 321.5,-414 327.5,-414 333.5,-420 333.5,-426 333.5,-426 333.5,-438 333.5,-438 333.5,-444 327.5,-450 321.5,-450"/>
+<text text-anchor="middle" x="286" y="-434.8" font-family="Noto Sans CJK SC" font-size="9.00">faster&#45;lio</text>
+<text text-anchor="middle" x="286" y="-424.8" font-family="Noto Sans CJK SC" font-size="9.00">Odometry/cloud/TF</text>
+</g>
+<!-- L2&#45;&gt;flio -->
+<!-- L3 -->
+<g id="node3" class="node">
+<title>L3</title>
+<path fill="lightgrey" stroke="transparent" d="M200,-381C200,-381 132,-381 132,-381 126,-381 120,-375 120,-369 120,-369 120,-357 120,-357 120,-351 126,-345 132,-345 132,-345 200,-345 200,-345 206,-345 212,-351 212,-357 212,-357 212,-369 212,-369 212,-375 206,-381 200,-381"/>
+<text text-anchor="middle" x="166" y="-360.5" font-family="Noto Sans CJK SC" font-size="10.00">③ 环境表征</text>
+</g>
+<!-- cost -->
+<g id="node12" class="node">
+<title>cost</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M320,-381C320,-381 252,-381 252,-381 246,-381 240,-375 240,-369 240,-369 240,-357 240,-357 240,-351 246,-345 252,-345 252,-345 320,-345 320,-345 326,-345 332,-351 332,-357 332,-357 332,-369 332,-369 332,-375 326,-381 320,-381"/>
+<text text-anchor="middle" x="286" y="-365.8" font-family="Noto Sans CJK SC" font-size="9.00">costmap_2d</text>
+<text text-anchor="middle" x="286" y="-355.8" font-family="Noto Sans CJK SC" font-size="9.00">global/local</text>
+</g>
+<!-- L3&#45;&gt;cost -->
+<!-- L4 -->
+<g id="node4" class="node">
+<title>L4</title>
+<path fill="lightgrey" stroke="transparent" d="M606,-312C606,-312 538,-312 538,-312 532,-312 526,-306 526,-300 526,-300 526,-288 526,-288 526,-282 532,-276 538,-276 538,-276 606,-276 606,-276 612,-276 618,-282 618,-288 618,-288 618,-300 618,-300 618,-306 612,-312 606,-312"/>
+<text text-anchor="middle" x="572" y="-291.5" font-family="Noto Sans CJK SC" font-size="10.00">④ 规划</text>
+</g>
+<!-- mbf -->
+<g id="node15" class="node">
+<title>mbf</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M274.5,-312C274.5,-312 181.5,-312 181.5,-312 175.5,-312 169.5,-306 169.5,-300 169.5,-300 169.5,-288 169.5,-288 169.5,-282 175.5,-276 181.5,-276 181.5,-276 274.5,-276 274.5,-276 280.5,-276 286.5,-282 286.5,-288 286.5,-288 286.5,-300 286.5,-300 286.5,-306 280.5,-312 274.5,-312"/>
+<text text-anchor="middle" x="228" y="-296.8" font-family="Noto Sans CJK SC" font-size="9.00">MBF</text>
+<text text-anchor="middle" x="228" y="-286.8" font-family="Noto Sans CJK SC" font-size="9.00">GlobalPlanner+TEB/DWA</text>
+</g>
+<!-- L4&#45;&gt;mbf -->
+<!-- L5 -->
+<g id="node5" class="node">
+<title>L5</title>
+<path fill="lightgrey" stroke="transparent" d="M500,-312C500,-312 432,-312 432,-312 426,-312 420,-306 420,-300 420,-300 420,-288 420,-288 420,-282 426,-276 432,-276 432,-276 500,-276 500,-276 506,-276 512,-282 512,-288 512,-288 512,-300 512,-300 512,-306 506,-312 500,-312"/>
+<text text-anchor="middle" x="466" y="-291.5" font-family="Noto Sans CJK SC" font-size="10.00">⑤ 任务/仲裁</text>
+</g>
+<!-- task -->
+<g id="node19" class="node">
+<title>task</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M712,-312C712,-312 644,-312 644,-312 638,-312 632,-306 632,-300 632,-300 632,-288 632,-288 632,-282 638,-276 644,-276 644,-276 712,-276 712,-276 718,-276 724,-282 724,-288 724,-288 724,-300 724,-300 724,-306 718,-312 712,-312"/>
+<text text-anchor="middle" x="678" y="-296.8" font-family="Noto Sans CJK SC" font-size="9.00">lite3_task</text>
+<text text-anchor="middle" x="678" y="-286.8" font-family="Noto Sans CJK SC" font-size="9.00">任务原语</text>
+</g>
+<!-- L5&#45;&gt;task -->
+<!-- L6 -->
+<g id="node6" class="node">
+<title>L6</title>
+<path fill="lightgrey" stroke="transparent" d="M418.5,-174C418.5,-174 345.5,-174 345.5,-174 339.5,-174 333.5,-168 333.5,-162 333.5,-162 333.5,-150 333.5,-150 333.5,-144 339.5,-138 345.5,-138 345.5,-138 418.5,-138 418.5,-138 424.5,-138 430.5,-144 430.5,-150 430.5,-150 430.5,-162 430.5,-162 430.5,-168 424.5,-174 418.5,-174"/>
+<text text-anchor="middle" x="382" y="-153.5" font-family="Noto Sans CJK SC" font-size="10.00">⑥ 执行/机器人边界</text>
+</g>
+<!-- bndros -->
+<g id="node23" class="node">
+<title>bndros</title>
+<path fill="#f5f5f5" stroke="#616161" stroke-dasharray="1,5" d="M538.5,-174C538.5,-174 469.5,-174 469.5,-174 463.5,-174 457.5,-168 457.5,-162 457.5,-162 457.5,-150 457.5,-150 457.5,-144 463.5,-138 469.5,-138 469.5,-138 538.5,-138 538.5,-138 544.5,-138 550.5,-144 550.5,-150 550.5,-150 550.5,-162 550.5,-162 550.5,-168 544.5,-174 538.5,-174"/>
+<text text-anchor="middle" x="504" y="-158.8" font-family="Noto Sans CJK SC" font-size="9.00">boundary ROS 节点</text>
+<text text-anchor="middle" x="504" y="-148.8" font-family="Noto Sans CJK SC" font-size="9.00">S2 待开</text>
+</g>
+<!-- L6&#45;&gt;bndros -->
+<!-- imu -->
+<g id="node8" class="node">
+<title>imu</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M320,-519C320,-519 252,-519 252,-519 246,-519 240,-513 240,-507 240,-507 240,-495 240,-495 240,-489 246,-483 252,-483 252,-483 320,-483 320,-483 326,-483 332,-489 332,-495 332,-495 332,-507 332,-507 332,-513 326,-519 320,-519"/>
+<text text-anchor="middle" x="286" y="-503.8" font-family="Noto Sans CJK SC" font-size="9.00">qnx2ros</text>
+<text text-anchor="middle" x="286" y="-493.8" font-family="Noto Sans CJK SC" font-size="9.00">/imu/data</text>
+</g>
+<!-- lidar&#45;&gt;imu -->
+<!-- lidar&#45;&gt;flio -->
+<g id="edge20" class="edge">
+<title>lidar&#45;&gt;flio</title>
+<path fill="none" stroke="#2e7d32" d="M196.59,-482.92C212.53,-474.02 232.15,-463.07 248.94,-453.69"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="250.55,-455.6 255.46,-450.05 248.16,-451.32 250.55,-455.6"/>
+<text text-anchor="middle" x="246.5" y="-464.6" font-family="Noto Sans CJK SC" font-size="8.00">points</text>
+</g>
+<!-- sims -->
+<g id="node9" class="node">
+<title>sims</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M440,-519C440,-519 372,-519 372,-519 366,-519 360,-513 360,-507 360,-507 360,-495 360,-495 360,-489 366,-483 372,-483 372,-483 440,-483 440,-483 446,-483 452,-489 452,-495 452,-495 452,-507 452,-507 452,-513 446,-519 440,-519"/>
+<text text-anchor="middle" x="406" y="-503.8" font-family="Noto Sans CJK SC" font-size="9.00">sim_adapter</text>
+<text text-anchor="middle" x="406" y="-493.8" font-family="Noto Sans CJK SC" font-size="9.00">仿真点云/IMU</text>
+</g>
+<!-- imu&#45;&gt;sims -->
+<!-- imu&#45;&gt;flio -->
+<g id="edge21" class="edge">
+<title>imu&#45;&gt;flio</title>
+<path fill="none" stroke="#2e7d32" d="M286,-482.75C286,-475.07 286,-465.89 286,-457.52"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="288.45,-457.43 286,-450.43 283.55,-457.43 288.45,-457.43"/>
+<text text-anchor="middle" x="293.5" y="-464.6" font-family="Noto Sans CJK SC" font-size="8.00">imu</text>
+</g>
+<!-- sims&#45;&gt;flio -->
+<g id="edge22" class="edge">
+<title>sims&#45;&gt;flio</title>
+<path fill="none" stroke="#2e7d32" d="M375.41,-482.92C359.47,-474.02 339.85,-463.07 323.06,-453.69"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="323.84,-451.32 316.54,-450.05 321.45,-455.6 323.84,-451.32"/>
+<text text-anchor="middle" x="375" y="-464.6" font-family="Noto Sans CJK SC" font-size="8.00">sim pts/imu</text>
+</g>
+<!-- hdl -->
+<g id="node11" class="node">
+<title>hdl</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M94,-381C94,-381 26,-381 26,-381 20,-381 14,-375 14,-369 14,-369 14,-357 14,-357 14,-351 20,-345 26,-345 26,-345 94,-345 94,-345 100,-345 106,-351 106,-357 106,-357 106,-369 106,-369 106,-375 100,-381 94,-381"/>
+<text text-anchor="middle" x="60" y="-365.8" font-family="Noto Sans CJK SC" font-size="9.00">hdl_localization</text>
+<text text-anchor="middle" x="60" y="-355.8" font-family="Noto Sans CJK SC" font-size="9.00">重定位（备用）</text>
+</g>
+<!-- flio&#45;&gt;hdl -->
+<g id="edge23" class="edge">
+<title>flio&#45;&gt;hdl</title>
+<path fill="none" stroke="#2e7d32" stroke-dasharray="5,2" d="M238.16,-417.58C203.37,-407.72 155.17,-393.85 113,-381 112.86,-380.96 112.72,-380.92 112.58,-380.87"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="113.64,-378.63 106.22,-378.91 112.19,-383.32 113.64,-378.63"/>
+<text text-anchor="middle" x="201.5" y="-395.6" font-family="Noto Sans CJK SC" font-size="8.00">map/odom</text>
+</g>
+<!-- flio&#45;&gt;cost -->
+<g id="edge24" class="edge">
+<title>flio&#45;&gt;cost</title>
+<path fill="none" stroke="#2e7d32" d="M286,-413.75C286,-406.07 286,-396.89 286,-388.52"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="288.45,-388.43 286,-381.43 283.55,-388.43 288.45,-388.43"/>
+<text text-anchor="middle" x="303" y="-395.6" font-family="Noto Sans CJK SC" font-size="8.00">odom/TF</text>
+</g>
+<!-- scan -->
+<g id="node16" class="node">
+<title>scan</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M394,-312C394,-312 326,-312 326,-312 320,-312 314,-306 314,-300 314,-300 314,-288 314,-288 314,-282 320,-276 326,-276 326,-276 394,-276 394,-276 400,-276 406,-282 406,-288 406,-288 406,-300 406,-300 406,-306 400,-312 394,-312"/>
+<text text-anchor="middle" x="360" y="-296.8" font-family="Noto Sans CJK SC" font-size="9.00">SCAN</text>
+<text text-anchor="middle" x="360" y="-286.8" font-family="Noto Sans CJK SC" font-size="9.00">plan_manage</text>
+</g>
+<!-- flio&#45;&gt;scan -->
+<g id="edge25" class="edge">
+<title>flio&#45;&gt;scan</title>
+<path fill="none" stroke="#2e7d32" d="M311.1,-413.93C321.6,-405.35 332.79,-394.01 339,-381 348.38,-361.34 353.81,-337.08 356.79,-319.35"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="359.25,-319.48 357.92,-312.18 354.41,-318.71 359.25,-319.48"/>
+<text text-anchor="middle" x="383" y="-361.1" font-family="Noto Sans CJK SC" font-size="8.00">cloud_registered</text>
+</g>
+<!-- sup -->
+<g id="node13" class="node">
+<title>sup</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M959,-377.73C959,-379.53 938.38,-381 913,-381 887.62,-381 867,-379.53 867,-377.73 867,-377.73 867,-348.27 867,-348.27 867,-346.47 887.62,-345 913,-345 938.38,-345 959,-346.47 959,-348.27 959,-348.27 959,-377.73 959,-377.73"/>
+<path fill="none" stroke="#2e7d32" d="M959,-377.73C959,-375.92 938.38,-374.45 913,-374.45 887.62,-374.45 867,-375.92 867,-377.73"/>
+<text text-anchor="middle" x="913" y="-365.8" font-family="Noto Sans CJK SC" font-size="9.00">支撑图 JSON</text>
+<text text-anchor="middle" x="913" y="-355.8" font-family="Noto Sans CJK SC" font-size="9.00">离线派生</text>
+</g>
+<!-- cost&#45;&gt;sup -->
+<!-- cost&#45;&gt;mbf -->
+<g id="edge26" class="edge">
+<title>cost&#45;&gt;mbf</title>
+<path fill="none" stroke="#2e7d32" d="M271.06,-344.75C263.95,-336.53 255.34,-326.58 247.7,-317.76"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="249.52,-316.12 243.09,-312.43 245.82,-319.32 249.52,-316.12"/>
+<text text-anchor="middle" x="279.5" y="-326.6" font-family="Noto Sans CJK SC" font-size="8.00">costmaps</text>
+</g>
+<!-- v8r -->
+<g id="node14" class="node">
+<title>v8r</title>
+<path fill="#e3f2fd" stroke="#1565c0" stroke-dasharray="5,2" d="M1072,-381C1072,-381 1002,-381 1002,-381 996,-381 990,-375 990,-369 990,-369 990,-357 990,-357 990,-351 996,-345 1002,-345 1002,-345 1072,-345 1072,-345 1078,-345 1084,-351 1084,-357 1084,-357 1084,-369 1084,-369 1084,-375 1078,-381 1072,-381"/>
+<text text-anchor="middle" x="1037" y="-365.8" font-family="Noto Sans CJK SC" font-size="9.00">v8 representation</text>
+<text text-anchor="middle" x="1037" y="-355.8" font-family="Noto Sans CJK SC" font-size="9.00">多层支撑图（设计）</text>
+</g>
+<!-- sup&#45;&gt;v8r -->
+<!-- a5 -->
+<g id="node17" class="node">
+<title>a5</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M955.5,-312C955.5,-312 870.5,-312 870.5,-312 864.5,-312 858.5,-306 858.5,-300 858.5,-300 858.5,-288 858.5,-288 858.5,-282 864.5,-276 870.5,-276 870.5,-276 955.5,-276 955.5,-276 961.5,-276 967.5,-282 967.5,-288 967.5,-288 967.5,-300 967.5,-300 967.5,-306 961.5,-312 955.5,-312"/>
+<text text-anchor="middle" x="913" y="-296.8" font-family="Noto Sans CJK SC" font-size="9.00">A5 局部规划</text>
+<text text-anchor="middle" x="913" y="-286.8" font-family="Noto Sans CJK SC" font-size="9.00">local_native+ros_node</text>
+</g>
+<!-- sup&#45;&gt;a5 -->
+<g id="edge27" class="edge">
+<title>sup&#45;&gt;a5</title>
+<path fill="none" stroke="#ef6c00" d="M913,-344.75C913,-337.07 913,-327.89 913,-319.52"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="915.45,-319.43 913,-312.43 910.55,-319.43 915.45,-319.43"/>
+<text text-anchor="middle" x="930.5" y="-326.6" font-family="Noto Sans CJK SC" font-size="8.00">map json</text>
+</g>
+<!-- v8p -->
+<g id="node18" class="node">
+<title>v8p</title>
+<path fill="#e3f2fd" stroke="#1565c0" stroke-dasharray="5,2" d="M1075,-312C1075,-312 1007,-312 1007,-312 1001,-312 995,-306 995,-300 995,-300 995,-288 995,-288 995,-282 1001,-276 1007,-276 1007,-276 1075,-276 1075,-276 1081,-276 1087,-282 1087,-288 1087,-288 1087,-300 1087,-300 1087,-306 1081,-312 1075,-312"/>
+<text text-anchor="middle" x="1041" y="-296.8" font-family="Noto Sans CJK SC" font-size="9.00">v8 planner</text>
+<text text-anchor="middle" x="1041" y="-286.8" font-family="Noto Sans CJK SC" font-size="9.00">有界 A*（设计）</text>
+</g>
+<!-- v8r&#45;&gt;v8p -->
+<g id="edge28" class="edge">
+<title>v8r&#45;&gt;v8p</title>
+<path fill="none" stroke="#1565c0" stroke-dasharray="5,2" d="M1038.03,-344.75C1038.49,-337.07 1039.04,-327.89 1039.54,-319.52"/>
+<polygon fill="#1565c0" stroke="#1565c0" points="1041.99,-319.56 1039.96,-312.43 1037.1,-319.27 1041.99,-319.56"/>
+<text text-anchor="middle" x="1051.5" y="-326.6" font-family="Noto Sans CJK SC" font-size="8.00">支撑图</text>
+</g>
+<!-- mbf&#45;&gt;scan -->
+<!-- mux -->
+<g id="node21" class="node">
+<title>mux</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M663,-243C663,-243 593,-243 593,-243 587,-243 581,-237 581,-231 581,-231 581,-219 581,-219 581,-213 587,-207 593,-207 593,-207 663,-207 663,-207 669,-207 675,-213 675,-219 675,-219 675,-231 675,-231 675,-237 669,-243 663,-243"/>
+<text text-anchor="middle" x="628" y="-227.8" font-family="Noto Sans CJK SC" font-size="9.00">safe_cmd_vel_mux</text>
+<text text-anchor="middle" x="628" y="-217.8" font-family="Noto Sans CJK SC" font-size="9.00">七源/0.5s/hold</text>
+</g>
+<!-- mbf&#45;&gt;mux -->
+<g id="edge31" class="edge">
+<title>mbf&#45;&gt;mux</title>
+<path fill="none" stroke="#2e7d32" d="M286.6,-278.77C319.98,-271 362.67,-261.64 401,-255 459.71,-244.82 527.54,-236.62 573.65,-231.57"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="574.17,-233.97 580.86,-230.78 573.64,-229.1 574.17,-233.97"/>
+<text text-anchor="middle" x="428.5" y="-257.6" font-family="Noto Sans CJK SC" font-size="8.00">/cmd_vel_raw</text>
+</g>
+<!-- scan&#45;&gt;a5 -->
+<!-- scan&#45;&gt;mux -->
+<g id="edge32" class="edge">
+<title>scan&#45;&gt;mux</title>
+<path fill="none" stroke="#2e7d32" d="M406.18,-277.94C408.48,-277.27 410.76,-276.62 413,-276 467.24,-261.02 529.98,-246.78 573.64,-237.35"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="574.42,-239.69 580.75,-235.82 573.39,-234.9 574.42,-239.69"/>
+<text text-anchor="middle" x="540.5" y="-257.6" font-family="Noto Sans CJK SC" font-size="8.00">/scan_planner/cmd_vel</text>
+</g>
+<!-- a5&#45;&gt;v8p -->
+<!-- carrier -->
+<g id="node28" class="node">
+<title>carrier</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M738,-36C738,-36 670,-36 670,-36 664,-36 658,-30 658,-24 658,-24 658,-12 658,-12 658,-6 664,0 670,0 670,0 738,0 738,0 744,0 750,-6 750,-12 750,-12 750,-24 750,-24 750,-30 744,-36 738,-36"/>
+<text text-anchor="middle" x="704" y="-20.8" font-family="Noto Sans CJK SC" font-size="9.00">Gazebo 3D 载体</text>
+<text text-anchor="middle" x="704" y="-10.8" font-family="Noto Sans CJK SC" font-size="9.00">SetModelState</text>
+</g>
+<!-- a5&#45;&gt;carrier -->
+<g id="edge41" class="edge">
+<title>a5&#45;&gt;carrier</title>
+<path fill="none" stroke="#ef6c00" d="M921.1,-268.85C924.64,-256.23 928,-240.45 928,-226 928,-226 928,-226 928,-86 928,-81.56 823.47,-51.92 757.22,-33.58"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="918.65,-268.48 919.01,-275.88 923.35,-269.87 918.65,-268.48"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="757.54,-31.13 750.14,-31.63 756.24,-35.85 757.54,-31.13"/>
+<text text-anchor="middle" x="951" y="-154.1" font-family="Noto Sans CJK SC" font-size="8.00">cmd ⇄ pose</text>
+</g>
+<!-- mjb -->
+<g id="node29" class="node">
+<title>mjb</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M866.5,-36C866.5,-36 789.5,-36 789.5,-36 783.5,-36 777.5,-30 777.5,-24 777.5,-24 777.5,-12 777.5,-12 777.5,-6 783.5,0 789.5,0 789.5,0 866.5,0 866.5,0 872.5,0 878.5,-6 878.5,-12 878.5,-12 878.5,-24 878.5,-24 878.5,-30 872.5,-36 866.5,-36"/>
+<text text-anchor="middle" x="828" y="-20.8" font-family="Noto Sans CJK SC" font-size="9.00">MuJoCo 桥</text>
+<text text-anchor="middle" x="828" y="-10.8" font-family="Noto Sans CJK SC" font-size="9.00">270 策略+500Hz 物理</text>
+</g>
+<!-- a5&#45;&gt;mjb -->
+<g id="edge40" class="edge">
+<title>a5&#45;&gt;mjb</title>
+<path fill="none" stroke="#ef6c00" d="M861.4,-272.53C843.58,-261.84 828,-246.6 828,-226 828,-226 828,-226 828,-86 828,-71.8 828,-55.92 828,-43.17"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="860.21,-274.68 867.51,-275.99 862.63,-270.41 860.21,-274.68"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="830.45,-43.07 828,-36.07 825.55,-43.07 830.45,-43.07"/>
+<text text-anchor="middle" x="864" y="-154.1" font-family="Noto Sans CJK SC" font-size="8.00">cmd ⇄ pose/status</text>
+</g>
+<!-- supv -->
+<g id="node20" class="node">
+<title>supv</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M832,-312C832,-312 764,-312 764,-312 758,-312 752,-306 752,-300 752,-300 752,-288 752,-288 752,-282 758,-276 764,-276 764,-276 832,-276 832,-276 838,-276 844,-282 844,-288 844,-288 844,-300 844,-300 844,-306 838,-312 832,-312"/>
+<text text-anchor="middle" x="798" y="-296.8" font-family="Noto Sans CJK SC" font-size="9.00">supervisor</text>
+<text text-anchor="middle" x="798" y="-286.8" font-family="Noto Sans CJK SC" font-size="9.00">心跳/hold</text>
+</g>
+<!-- task&#45;&gt;supv -->
+<!-- task&#45;&gt;mux -->
+<g id="edge29" class="edge">
+<title>task&#45;&gt;mux</title>
+<path fill="none" stroke="#2e7d32" d="M665.12,-275.75C659.11,-267.68 651.85,-257.96 645.36,-249.26"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="647.16,-247.57 641.01,-243.43 643.23,-250.5 647.16,-247.57"/>
+<text text-anchor="middle" x="681.5" y="-257.6" font-family="Noto Sans CJK SC" font-size="8.00">task_cmd_vel</text>
+</g>
+<!-- supv&#45;&gt;mux -->
+<g id="edge30" class="edge">
+<title>supv&#45;&gt;mux</title>
+<path fill="none" stroke="#2e7d32" d="M760.58,-275.91C745.31,-269.14 727.42,-261.44 711,-255 701.65,-251.33 691.62,-247.63 681.88,-244.16"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="682.61,-241.82 675.2,-241.8 680.98,-246.44 682.61,-241.82"/>
+<text text-anchor="middle" x="740.5" y="-257.6" font-family="Noto Sans CJK SC" font-size="8.00">hold</text>
+</g>
+<!-- val -->
+<g id="node22" class="node">
+<title>val</title>
+<path fill="#e3f2fd" stroke="#1565c0" stroke-dasharray="5,2" d="M793.5,-243C793.5,-243 714.5,-243 714.5,-243 708.5,-243 702.5,-237 702.5,-231 702.5,-231 702.5,-219 702.5,-219 702.5,-213 708.5,-207 714.5,-207 714.5,-207 793.5,-207 793.5,-207 799.5,-207 805.5,-213 805.5,-219 805.5,-219 805.5,-231 805.5,-231 805.5,-237 799.5,-243 793.5,-243"/>
+<text text-anchor="middle" x="754" y="-227.8" font-family="Noto Sans CJK SC" font-size="9.00">v8 validator</text>
+<text text-anchor="middle" x="754" y="-217.8" font-family="Noto Sans CJK SC" font-size="9.00">轨迹检查（未接运行）</text>
+</g>
+<!-- mux&#45;&gt;val -->
+<!-- mux&#45;&gt;bndros -->
+<g id="edge36" class="edge">
+<title>mux&#45;&gt;bndros</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M675.19,-212.17C706.43,-204.3 741.72,-195.36 742,-195 744.46,-191.84 744.73,-188.93 742,-186 729.01,-172.07 589.81,-177.02 571,-174 566.65,-173.3 562.16,-172.45 557.67,-171.51"/>
+<polygon fill="#616161" stroke="#616161" points="558,-169.07 550.64,-169.96 556.95,-173.86 558,-169.07"/>
+<text text-anchor="middle" x="760" y="-188.6" font-family="Noto Sans CJK SC" font-size="8.00">（规划）</text>
+</g>
+<!-- planar -->
+<g id="node25" class="node">
+<title>planar</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M658,-174C658,-174 590,-174 590,-174 584,-174 578,-168 578,-162 578,-162 578,-150 578,-150 578,-144 584,-138 590,-138 590,-138 658,-138 658,-138 664,-138 670,-144 670,-150 670,-150 670,-162 670,-162 670,-168 664,-174 658,-174"/>
+<text text-anchor="middle" x="624" y="-158.8" font-family="Noto Sans CJK SC" font-size="9.00">Gazebo 平面驱动</text>
+<text text-anchor="middle" x="624" y="-148.8" font-family="Noto Sans CJK SC" font-size="9.00">lite3_planar_drive</text>
+</g>
+<!-- mux&#45;&gt;planar -->
+<g id="edge33" class="edge">
+<title>mux&#45;&gt;planar</title>
+<path fill="none" stroke="#2e7d32" d="M580.74,-210.91C573.71,-206.92 567.37,-201.74 563,-195 557.09,-185.9 562.24,-178.6 571.61,-172.92"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="572.87,-175.02 577.92,-169.6 570.59,-170.69 572.87,-175.02"/>
+<text text-anchor="middle" x="597.5" y="-188.6" font-family="Noto Sans CJK SC" font-size="8.00">/cmd_vel（仿真）</text>
+</g>
+<!-- qnx -->
+<g id="node26" class="node">
+<title>qnx</title>
+<path fill="#ffebee" stroke="#c62828" stroke-dasharray="5,2" d="M778,-174C778,-174 710,-174 710,-174 704,-174 698,-168 698,-162 698,-162 698,-150 698,-150 698,-144 704,-138 710,-138 710,-138 778,-138 778,-138 784,-138 790,-144 790,-150 790,-150 790,-162 790,-162 790,-168 784,-174 778,-174"/>
+<text text-anchor="middle" x="744" y="-158.8" font-family="Noto Sans CJK SC" font-size="9.00">ros2qnx</text>
+<text text-anchor="middle" x="744" y="-148.8" font-family="Noto Sans CJK SC" font-size="9.00">→QNX:43893</text>
+</g>
+<!-- mux&#45;&gt;qnx -->
+<g id="edge34" class="edge">
+<title>mux&#45;&gt;qnx</title>
+<path fill="none" stroke="#c62828" stroke-dasharray="5,2" d="M634.99,-206.9C638.76,-199.55 644.08,-191.42 651,-186 657.82,-180.66 674.06,-174.95 691.1,-170.02"/>
+<polygon fill="#c62828" stroke="#c62828" points="691.84,-172.36 697.91,-168.11 690.51,-167.65 691.84,-172.36"/>
+<text text-anchor="middle" x="697" y="-188.6" font-family="Noto Sans CJK SC" font-size="8.00">/cmd_vel（真机 mode）</text>
+</g>
+<!-- bnd -->
+<g id="node24" class="node">
+<title>bnd</title>
+<path fill="#f5f5f5" stroke="#616161" stroke-dasharray="1,5" d="M658,-105C658,-105 590,-105 590,-105 584,-105 578,-99 578,-93 578,-93 578,-81 578,-81 578,-75 584,-69 590,-69 590,-69 658,-69 658,-69 664,-69 670,-75 670,-81 670,-81 670,-93 670,-93 670,-99 664,-105 658,-105"/>
+<text text-anchor="middle" x="624" y="-89.8" font-family="Noto Sans CJK SC" font-size="9.00">boundary S1</text>
+<text text-anchor="middle" x="624" y="-79.8" font-family="Noto Sans CJK SC" font-size="9.00">帧/速率桥（回环）</text>
+</g>
+<!-- bndros&#45;&gt;bnd -->
+<g id="edge37" class="edge">
+<title>bndros&#45;&gt;bnd</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M534.59,-137.92C550.53,-129.02 570.15,-118.07 586.94,-108.69"/>
+<polygon fill="#616161" stroke="#616161" points="588.55,-110.6 593.46,-105.05 586.16,-106.32 588.55,-110.6"/>
+</g>
+<!-- bndros&#45;&gt;planar -->
+<!-- robot -->
+<g id="node27" class="node">
+<title>robot</title>
+<polygon fill="#ffebee" stroke="#c62828" points="790,-105 702,-105 698,-101 698,-69 786,-69 790,-73 790,-105"/>
+<polyline fill="none" stroke="#c62828" points="786,-101 698,-101 "/>
+<polyline fill="none" stroke="#c62828" points="786,-101 786,-69 "/>
+<polyline fill="none" stroke="#c62828" points="786,-101 790,-105 "/>
+<text text-anchor="middle" x="744" y="-89.8" font-family="Noto Sans CJK SC" font-size="9.00">Lite3 真机</text>
+<text text-anchor="middle" x="744" y="-79.8" font-family="Noto Sans CJK SC" font-size="9.00">L2 未授权</text>
+</g>
+<!-- bnd&#45;&gt;robot -->
+<!-- bnd&#45;&gt;carrier -->
+<g id="edge39" class="edge">
+<title>bnd&#45;&gt;carrier</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M670.08,-68.97C675.86,-65.58 681.37,-61.61 686,-57 690.07,-52.94 693.35,-47.79 695.92,-42.59"/>
+<polygon fill="#616161" stroke="#616161" points="698.22,-43.46 698.82,-36.07 693.74,-41.47 698.22,-43.46"/>
+<text text-anchor="middle" x="722.5" y="-50.6" font-family="Noto Sans CJK SC" font-size="8.00">UDP（S3 待接）</text>
+</g>
+<!-- bnd&#45;&gt;mjb -->
+<g id="edge38" class="edge">
+<title>bnd&#45;&gt;mjb</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M618.07,-68.64C616.76,-61.41 617.01,-53.46 622,-48 632.17,-36.89 742.14,-38.43 757,-36 761.35,-35.29 765.83,-34.46 770.32,-33.55"/>
+<polygon fill="#616161" stroke="#616161" points="771.03,-35.91 777.38,-32.07 770.02,-31.11 771.03,-35.91"/>
+<text text-anchor="middle" x="652.5" y="-50.6" font-family="Noto Sans CJK SC" font-size="8.00">UDP（S2 待接）</text>
+</g>
+<!-- planar&#45;&gt;qnx -->
+<!-- qnx&#45;&gt;robot -->
+<g id="edge35" class="edge">
+<title>qnx&#45;&gt;robot</title>
+<path fill="none" stroke="#c62828" stroke-dasharray="5,2" d="M744,-137.75C744,-130.07 744,-120.89 744,-112.52"/>
+<polygon fill="#c62828" stroke="#c62828" points="746.45,-112.43 744,-105.43 741.55,-112.43 746.45,-112.43"/>
+<text text-anchor="middle" x="752.5" y="-119.6" font-family="Noto Sans CJK SC" font-size="8.00">UDP</text>
+</g>
+<!-- carrier&#45;&gt;mjb -->
+</g>
+</svg>
+
+<figcaption>绿=已接通运行；橙=仿真实验有读数；蓝虚线=设计层/仅单测；灰点线=待接；红虚线=L2。注意 v8 规划/检查器（蓝）与 A5（橙）是两条不同的规划来源，尚未合流。</figcaption>
+</figure>
+
+<h3>每层在做什么</h3>
+<table>
+<tr><th>层</th><th>内容</th><th>当前状态</th></tr>
+<tr><td>① 传感/驱动</td><td>雷达驱动、qnx2ros IMU、sim_adapter</td><td>已接通运行</td></tr>
+<tr><td>② 定位/建图</td><td>faster-lio（主）、hdl_localization（备用）</td><td>已接通运行 / 配置在位</td></tr>
+<tr><td>③ 环境表征</td><td>costmap_2d；离线支撑图 JSON；v8 representation（设计）</td><td>运行 / 离线 / 设计</td></tr>
+<tr><td>④ 规划</td><td>MBF(GlobalPlanner+TEB/DWA)、SCAN、A5 局部规划、v8 A*（设计）</td><td>运行 / 运行(仿真) / 实验 / 单测</td></tr>
+<tr><td>⑤ 任务/仲裁</td><td>lite3_task、supervisor、mux（七源/0.5s/hold）、v8 validator（设计）</td><td>运行 / 单测</td></tr>
+<tr><td>⑥ 执行与边界</td><td>Gazebo 平面驱动、ros2qnx（L2）、boundary S1/S2、Gazebo 3D 载体、MuJoCo 桥</td><td>运行 / L2 / 回环 / 实验</td></tr>
+</table>
+
+<h2>③ 命令链与反馈链：四条路径的现状</h2>
+<figure><svg style="width:100%;height:auto;display:block"
+ viewBox="0.00 0.00 1232.00 554.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 550)">
+<title>command_path</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-550 1228,-550 1228,4 -4,4"/>
+<text text-anchor="middle" x="612" y="-533.2" font-family="Noto Sans CJK SC" font-size="11.00">ros1&#45;slam · 命令链与反馈链（当前态）</text>
+<text text-anchor="middle" x="612" y="-521.2" font-family="Noto Sans CJK SC" font-size="11.00">A/B=已接通　C=仿真实验　D=目标边界（S2/S3 未接）　红虚线=L2</text>
+<g id="clust1" class="cluster">
+<title>cluster_a</title>
+<path fill="none" stroke="#2e7d32" d="M29.5,-8C29.5,-8 1204,-8 1204,-8 1210,-8 1216,-14 1216,-20 1216,-20 1216,-120 1216,-120 1216,-126 1210,-132 1204,-132 1204,-132 29.5,-132 29.5,-132 23.5,-132 17.5,-126 17.5,-120 17.5,-120 17.5,-20 17.5,-20 17.5,-14 23.5,-8 29.5,-8"/>
+<text text-anchor="middle" x="616.75" y="-119.2" font-family="Noto Sans CJK SC" font-size="11.00">A · ROS 2D/2.5D 导航（已接通；真机段 L2）</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_b</title>
+<path fill="none" stroke="#2e7d32" d="M29.5,-140C29.5,-140 533.5,-140 533.5,-140 539.5,-140 545.5,-146 545.5,-152 545.5,-152 545.5,-200 545.5,-200 545.5,-206 539.5,-212 533.5,-212 533.5,-212 29.5,-212 29.5,-212 23.5,-212 17.5,-206 17.5,-200 17.5,-200 17.5,-152 17.5,-152 17.5,-146 23.5,-140 29.5,-140"/>
+<text text-anchor="middle" x="281.5" y="-199.2" font-family="Noto Sans CJK SC" font-size="11.00">B · SCAN 规划路径（已接通仿真）</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_c</title>
+<path fill="none" stroke="#ef6c00" d="M25,-220C25,-220 692.5,-220 692.5,-220 698.5,-220 704.5,-226 704.5,-232 704.5,-232 704.5,-373 704.5,-373 704.5,-379 698.5,-385 692.5,-385 692.5,-385 25,-385 25,-385 19,-385 13,-379 13,-373 13,-373 13,-232 13,-232 13,-226 19,-220 25,-220"/>
+<text text-anchor="middle" x="358.75" y="-372.2" font-family="Noto Sans CJK SC" font-size="11.00">C · v8 楼梯 pilot：A5→四足/三维载体（实验，有读数）</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_d</title>
+<path fill="none" stroke="#616161" d="M20,-393C20,-393 879.5,-393 879.5,-393 885.5,-393 891.5,-399 891.5,-405 891.5,-405 891.5,-494 891.5,-494 891.5,-500 885.5,-506 879.5,-506 879.5,-506 20,-506 20,-506 14,-506 8,-500 8,-494 8,-494 8,-405 8,-405 8,-399 14,-393 20,-393"/>
+<text text-anchor="middle" x="449.75" y="-493.2" font-family="Noto Sans CJK SC" font-size="11.00">D · 统一机器人边界（S1 回环完成；S2/S3 待接）</text>
+</g>
+<!-- a_sensors -->
+<g id="node1" class="node">
+<title>a_sensors</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M67.5,-57C67.5,-57 37.5,-57 37.5,-57 31.5,-57 25.5,-51 25.5,-45 25.5,-45 25.5,-33 25.5,-33 25.5,-27 31.5,-21 37.5,-21 37.5,-21 67.5,-21 67.5,-21 73.5,-21 79.5,-27 79.5,-33 79.5,-33 79.5,-45 79.5,-45 79.5,-51 73.5,-57 67.5,-57"/>
+<text text-anchor="middle" x="52.5" y="-36.8" font-family="Noto Sans CJK SC" font-size="9.00">雷达/IMU</text>
+</g>
+<!-- a_flio -->
+<g id="node2" class="node">
+<title>a_flio</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M312,-57C312,-57 192,-57 192,-57 186,-57 180,-51 180,-45 180,-45 180,-33 180,-33 180,-27 186,-21 192,-21 192,-21 312,-21 312,-21 318,-21 324,-27 324,-33 324,-33 324,-45 324,-45 324,-51 318,-57 312,-57"/>
+<text text-anchor="middle" x="252" y="-41.8" font-family="Noto Sans CJK SC" font-size="9.00">faster&#45;lio</text>
+<text text-anchor="middle" x="252" y="-31.8" font-family="Noto Sans CJK SC" font-size="9.00">/Odometry · /cloud_registered</text>
+</g>
+<!-- a_sensors&#45;&gt;a_flio -->
+<g id="edge1" class="edge">
+<title>a_sensors&#45;&gt;a_flio</title>
+<path fill="none" stroke="#2e7d32" d="M79.73,-39C102.73,-39 137.45,-39 169.62,-39"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="169.96,-42.5 179.96,-39 169.96,-35.5 169.96,-42.5"/>
+</g>
+<!-- a_cost -->
+<g id="node3" class="node">
+<title>a_cost</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M510.5,-57C510.5,-57 472.5,-57 472.5,-57 466.5,-57 460.5,-51 460.5,-45 460.5,-45 460.5,-33 460.5,-33 460.5,-27 466.5,-21 472.5,-21 472.5,-21 510.5,-21 510.5,-21 516.5,-21 522.5,-27 522.5,-33 522.5,-33 522.5,-45 522.5,-45 522.5,-51 516.5,-57 510.5,-57"/>
+<text text-anchor="middle" x="491.5" y="-41.8" font-family="Noto Sans CJK SC" font-size="9.00">costmap_2d</text>
+<text text-anchor="middle" x="491.5" y="-31.8" font-family="Noto Sans CJK SC" font-size="9.00">global/local</text>
+</g>
+<!-- a_flio&#45;&gt;a_cost -->
+<g id="edge2" class="edge">
+<title>a_flio&#45;&gt;a_cost</title>
+<path fill="none" stroke="#2e7d32" d="M324.26,-39C365.49,-39 415.87,-39 450.29,-39"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="450.43,-42.5 460.43,-39 450.43,-35.5 450.43,-42.5"/>
+</g>
+<!-- a_mbf -->
+<g id="node4" class="node">
+<title>a_mbf</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M708,-57C708,-57 617,-57 617,-57 611,-57 605,-51 605,-45 605,-45 605,-33 605,-33 605,-27 611,-21 617,-21 617,-21 708,-21 708,-21 714,-21 720,-27 720,-33 720,-33 720,-45 720,-45 720,-51 714,-57 708,-57"/>
+<text text-anchor="middle" x="662.5" y="-41.8" font-family="Noto Sans CJK SC" font-size="9.00">MBF</text>
+<text text-anchor="middle" x="662.5" y="-31.8" font-family="Noto Sans CJK SC" font-size="9.00">GlobalPlanner+TEB/DWA</text>
+</g>
+<!-- a_cost&#45;&gt;a_mbf -->
+<g id="edge3" class="edge">
+<title>a_cost&#45;&gt;a_mbf</title>
+<path fill="none" stroke="#2e7d32" d="M522.71,-39C542.74,-39 569.82,-39 594.75,-39"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="594.9,-42.5 604.9,-39 594.9,-35.5 594.9,-42.5"/>
+</g>
+<!-- a_mux -->
+<g id="node5" class="node">
+<title>a_mux</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M879,-57C879,-57 811,-57 811,-57 805,-57 799,-51 799,-45 799,-45 799,-33 799,-33 799,-27 805,-21 811,-21 811,-21 879,-21 879,-21 885,-21 891,-27 891,-33 891,-33 891,-45 891,-45 891,-51 885,-57 879,-57"/>
+<text text-anchor="middle" x="845" y="-41.8" font-family="Noto Sans CJK SC" font-size="9.00">safe_cmd_vel_mux</text>
+<text text-anchor="middle" x="845" y="-31.8" font-family="Noto Sans CJK SC" font-size="9.00">七源/0.5s/hold</text>
+</g>
+<!-- a_mbf&#45;&gt;a_mux -->
+<g id="edge4" class="edge">
+<title>a_mbf&#45;&gt;a_mux</title>
+<path fill="none" stroke="#2e7d32" d="M720.12,-39C741.98,-39 766.92,-39 788.67,-39"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="788.73,-42.5 798.73,-39 788.73,-35.5 788.73,-42.5"/>
+<text text-anchor="middle" x="759.5" y="-41.6" font-family="Noto Sans CJK SC" font-size="8.00">/cmd_vel_raw</text>
+</g>
+<!-- a_gz -->
+<g id="node6" class="node">
+<title>a_gz</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M1075,-52C1075,-52 1019,-52 1019,-52 1013,-52 1007,-46 1007,-40 1007,-40 1007,-28 1007,-28 1007,-22 1013,-16 1019,-16 1019,-16 1075,-16 1075,-16 1081,-16 1087,-22 1087,-28 1087,-28 1087,-40 1087,-40 1087,-46 1081,-52 1075,-52"/>
+<text text-anchor="middle" x="1047" y="-31.8" font-family="Noto Sans CJK SC" font-size="9.00">Gazebo 平面驱动</text>
+</g>
+<!-- a_mux&#45;&gt;a_gz -->
+<g id="edge5" class="edge">
+<title>a_mux&#45;&gt;a_gz</title>
+<path fill="none" stroke="#2e7d32" d="M891.38,-37.87C922.79,-37.08 964.56,-36.04 996.77,-35.23"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="996.96,-38.73 1006.87,-34.98 996.79,-31.73 996.96,-38.73"/>
+<text text-anchor="middle" x="949" y="-39.6" font-family="Noto Sans CJK SC" font-size="8.00">/cmd_vel（仿真）</text>
+</g>
+<!-- a_qnx -->
+<g id="node7" class="node">
+<title>a_qnx</title>
+<path fill="#ffebee" stroke="#c62828" stroke-dasharray="5,2" d="M1068.5,-104C1068.5,-104 1025.5,-104 1025.5,-104 1019.5,-104 1013.5,-98 1013.5,-92 1013.5,-92 1013.5,-80 1013.5,-80 1013.5,-74 1019.5,-68 1025.5,-68 1025.5,-68 1068.5,-68 1068.5,-68 1074.5,-68 1080.5,-74 1080.5,-80 1080.5,-80 1080.5,-92 1080.5,-92 1080.5,-98 1074.5,-104 1068.5,-104"/>
+<text text-anchor="middle" x="1047" y="-88.8" font-family="Noto Sans CJK SC" font-size="9.00">ros2qnx</text>
+<text text-anchor="middle" x="1047" y="-78.8" font-family="Noto Sans CJK SC" font-size="9.00">→QNX:43893</text>
+</g>
+<!-- a_mux&#45;&gt;a_qnx -->
+<g id="edge6" class="edge">
+<title>a_mux&#45;&gt;a_qnx</title>
+<path fill="none" stroke="#c62828" stroke-dasharray="5,2" d="M891.38,-49.67C925.01,-57.57 970.54,-68.27 1003.47,-76.01"/>
+<polygon fill="#c62828" stroke="#c62828" points="1002.72,-79.42 1013.26,-78.31 1004.32,-72.61 1002.72,-79.42"/>
+<text text-anchor="middle" x="949" y="-75.6" font-family="Noto Sans CJK SC" font-size="8.00">/cmd_vel（真机 mode）</text>
+</g>
+<!-- a_gz&#45;&gt;a_flio -->
+<g id="edge8" class="edge">
+<title>a_gz&#45;&gt;a_flio</title>
+<path fill="none" stroke="#2e7d32" stroke-dasharray="5,2" d="M1015.24,-52.04C1012.25,-54.49 1009.43,-57.16 1007,-60 998.73,-69.67 1005.72,-79.14 995,-86 960.56,-108.04 943.88,-86.92 903,-86 696.62,-81.33 644.56,-83.98 439,-65 404.57,-61.82 366.76,-56.82 334.26,-52.04"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="334.77,-48.58 324.36,-50.57 333.74,-55.5 334.77,-48.58"/>
+<text text-anchor="middle" x="662.5" y="-84.6" font-family="Noto Sans CJK SC" font-size="8.00">odom/TF</text>
+</g>
+<!-- a_robot -->
+<g id="node8" class="node">
+<title>a_robot</title>
+<polygon fill="#ffebee" stroke="#c62828" points="1208,-104 1132,-104 1128,-100 1128,-68 1204,-68 1208,-72 1208,-104"/>
+<polyline fill="none" stroke="#c62828" points="1204,-100 1128,-100 "/>
+<polyline fill="none" stroke="#c62828" points="1204,-100 1204,-68 "/>
+<polyline fill="none" stroke="#c62828" points="1204,-100 1208,-104 "/>
+<text text-anchor="middle" x="1168" y="-83.8" font-family="Noto Sans CJK SC" font-size="9.00">Lite3 真机（L2）</text>
+</g>
+<!-- a_qnx&#45;&gt;a_robot -->
+<g id="edge7" class="edge">
+<title>a_qnx&#45;&gt;a_robot</title>
+<path fill="none" stroke="#c62828" stroke-dasharray="5,2" d="M1080.52,-86C1091.91,-86 1104.99,-86 1117.46,-86"/>
+<polygon fill="#c62828" stroke="#c62828" points="1117.75,-89.5 1127.75,-86 1117.75,-82.5 1117.75,-89.5"/>
+<text text-anchor="middle" x="1107.5" y="-88.6" font-family="Noto Sans CJK SC" font-size="8.00">UDP</text>
+</g>
+<!-- b_flio -->
+<g id="node9" class="node">
+<title>b_flio</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M67.5,-184C67.5,-184 37.5,-184 37.5,-184 31.5,-184 25.5,-178 25.5,-172 25.5,-172 25.5,-160 25.5,-160 25.5,-154 31.5,-148 37.5,-148 37.5,-148 67.5,-148 67.5,-148 73.5,-148 79.5,-154 79.5,-160 79.5,-160 79.5,-172 79.5,-172 79.5,-178 73.5,-184 67.5,-184"/>
+<text text-anchor="middle" x="52.5" y="-163.8" font-family="Noto Sans CJK SC" font-size="9.00">faster&#45;lio</text>
+</g>
+<!-- b_scan -->
+<g id="node10" class="node">
+<title>b_scan</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M311,-184C311,-184 193,-184 193,-184 187,-184 181,-178 181,-172 181,-172 181,-160 181,-160 181,-154 187,-148 193,-148 193,-148 311,-148 311,-148 317,-148 323,-154 323,-160 323,-160 323,-172 323,-172 323,-178 317,-184 311,-184"/>
+<text text-anchor="middle" x="252" y="-168.8" font-family="Noto Sans CJK SC" font-size="9.00">SCAN plan_manage</text>
+<text text-anchor="middle" x="252" y="-158.8" font-family="Noto Sans CJK SC" font-size="9.00">/grid_map · /planning/bspline</text>
+</g>
+<!-- b_flio&#45;&gt;b_scan -->
+<g id="edge9" class="edge">
+<title>b_flio&#45;&gt;b_scan</title>
+<path fill="none" stroke="#2e7d32" d="M79.73,-166C102.92,-166 138.02,-166 170.42,-166"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="170.82,-169.5 180.82,-166 170.82,-162.5 170.82,-169.5"/>
+<text text-anchor="middle" x="134.5" y="-168.6" font-family="Noto Sans CJK SC" font-size="8.00">/cloud_registered</text>
+</g>
+<!-- b_mux -->
+<g id="node11" class="node">
+<title>b_mux</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M525.5,-184C525.5,-184 457.5,-184 457.5,-184 451.5,-184 445.5,-178 445.5,-172 445.5,-172 445.5,-160 445.5,-160 445.5,-154 451.5,-148 457.5,-148 457.5,-148 525.5,-148 525.5,-148 531.5,-148 537.5,-154 537.5,-160 537.5,-160 537.5,-172 537.5,-172 537.5,-178 531.5,-184 525.5,-184"/>
+<text text-anchor="middle" x="491.5" y="-168.8" font-family="Noto Sans CJK SC" font-size="9.00">safe_cmd_vel_mux</text>
+<text text-anchor="middle" x="491.5" y="-158.8" font-family="Noto Sans CJK SC" font-size="9.00">(scan_planner 源)</text>
+</g>
+<!-- b_scan&#45;&gt;b_mux -->
+<g id="edge10" class="edge">
+<title>b_scan&#45;&gt;b_mux</title>
+<path fill="none" stroke="#2e7d32" d="M323.29,-166C359.12,-166 402.04,-166 435.43,-166"/>
+<polygon fill="#2e7d32" stroke="#2e7d32" points="435.47,-169.5 445.47,-166 435.47,-162.5 435.47,-169.5"/>
+<text text-anchor="middle" x="381.5" y="-168.6" font-family="Noto Sans CJK SC" font-size="8.00">/scan_planner/cmd_vel</text>
+</g>
+<!-- c_map -->
+<g id="node12" class="node">
+<title>c_map</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M84,-275.73C84,-277.53 69.88,-279 52.5,-279 35.12,-279 21,-277.53 21,-275.73 21,-275.73 21,-246.27 21,-246.27 21,-244.47 35.12,-243 52.5,-243 69.88,-243 84,-244.47 84,-246.27 84,-246.27 84,-275.73 84,-275.73"/>
+<path fill="none" stroke="#2e7d32" d="M84,-275.73C84,-273.92 69.88,-272.45 52.5,-272.45 35.12,-272.45 21,-273.92 21,-275.73"/>
+<text text-anchor="middle" x="52.5" y="-263.8" font-family="Noto Sans CJK SC" font-size="9.00">支撑图 JSON</text>
+<text text-anchor="middle" x="52.5" y="-253.8" font-family="Noto Sans CJK SC" font-size="9.00">(离线)</text>
+</g>
+<!-- c_a5 -->
+<g id="node13" class="node">
+<title>c_a5</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M289,-279C289,-279 215,-279 215,-279 209,-279 203,-273 203,-267 203,-267 203,-255 203,-255 203,-249 209,-243 215,-243 215,-243 289,-243 289,-243 295,-243 301,-249 301,-255 301,-255 301,-267 301,-267 301,-273 295,-279 289,-279"/>
+<text text-anchor="middle" x="252" y="-263.8" font-family="Noto Sans CJK SC" font-size="9.00">A5 局部规划</text>
+<text text-anchor="middle" x="252" y="-253.8" font-family="Noto Sans CJK SC" font-size="9.00">50 Hz 命令/轨迹/状态</text>
+</g>
+<!-- c_map&#45;&gt;c_a5 -->
+<g id="edge11" class="edge">
+<title>c_map&#45;&gt;c_a5</title>
+<path fill="none" stroke="#ef6c00" d="M84.36,-261C113.19,-261 156.99,-261 192.45,-261"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="192.69,-264.5 202.69,-261 192.69,-257.5 192.69,-264.5"/>
+<text text-anchor="middle" x="134.5" y="-263.6" font-family="Noto Sans CJK SC" font-size="8.00">map json</text>
+</g>
+<!-- c_mjb -->
+<g id="node14" class="node">
+<title>c_mjb</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M523,-264C523,-264 460,-264 460,-264 454,-264 448,-258 448,-252 448,-252 448,-240 448,-240 448,-234 454,-228 460,-228 460,-228 523,-228 523,-228 529,-228 535,-234 535,-240 535,-240 535,-252 535,-252 535,-258 529,-264 523,-264"/>
+<text text-anchor="middle" x="491.5" y="-248.8" font-family="Noto Sans CJK SC" font-size="9.00">MuJoCo 桥</text>
+<text text-anchor="middle" x="491.5" y="-238.8" font-family="Noto Sans CJK SC" font-size="9.00">270 策略+PD+接触</text>
+</g>
+<!-- c_a5&#45;&gt;c_mjb -->
+<g id="edge12" class="edge">
+<title>c_a5&#45;&gt;c_mjb</title>
+<path fill="none" stroke="#ef6c00" d="M301.06,-257.96C340.67,-255.46 396.78,-251.92 437.65,-249.34"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="437.93,-252.83 447.69,-248.7 437.49,-245.84 437.93,-252.83"/>
+<text text-anchor="middle" x="381.5" y="-257.6" font-family="Noto Sans CJK SC" font-size="8.00">cmd/trajectory/status</text>
+</g>
+<!-- c_car -->
+<g id="node15" class="node">
+<title>c_car</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M517.5,-316C517.5,-316 465.5,-316 465.5,-316 459.5,-316 453.5,-310 453.5,-304 453.5,-304 453.5,-292 453.5,-292 453.5,-286 459.5,-280 465.5,-280 465.5,-280 517.5,-280 517.5,-280 523.5,-280 529.5,-286 529.5,-292 529.5,-292 529.5,-304 529.5,-304 529.5,-310 523.5,-316 517.5,-316"/>
+<text text-anchor="middle" x="491.5" y="-300.8" font-family="Noto Sans CJK SC" font-size="9.00">Gazebo 3D 载体</text>
+<text text-anchor="middle" x="491.5" y="-290.8" font-family="Noto Sans CJK SC" font-size="9.00">SetModelState</text>
+</g>
+<!-- c_a5&#45;&gt;c_car -->
+<g id="edge15" class="edge">
+<title>c_a5&#45;&gt;c_car</title>
+<path fill="none" stroke="#ef6c00" d="M301.06,-268.49C342.55,-274.95 402.13,-284.23 443.35,-290.65"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="442.99,-294.14 453.41,-292.22 444.06,-287.22 442.99,-294.14"/>
+<text text-anchor="middle" x="381.5" y="-290.6" font-family="Noto Sans CJK SC" font-size="8.00">cmd</text>
+</g>
+<!-- c_body -->
+<g id="node16" class="node">
+<title>c_body</title>
+<path fill="#fff3e0" stroke="#ef6c00" d="M684.5,-264C684.5,-264 640.5,-264 640.5,-264 634.5,-264 628.5,-258 628.5,-252 628.5,-252 628.5,-240 628.5,-240 628.5,-234 634.5,-228 640.5,-228 640.5,-228 684.5,-228 684.5,-228 690.5,-228 696.5,-234 696.5,-240 696.5,-240 696.5,-252 696.5,-252 696.5,-258 690.5,-264 684.5,-264"/>
+<text text-anchor="middle" x="662.5" y="-243.8" font-family="Noto Sans CJK SC" font-size="9.00">机体/关节状态</text>
+</g>
+<!-- c_mjb&#45;&gt;c_body -->
+<g id="edge13" class="edge">
+<title>c_mjb&#45;&gt;c_body</title>
+<path fill="none" stroke="#ef6c00" d="M535.15,-246C560.58,-246 592.79,-246 618.33,-246"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="618.46,-249.5 628.46,-246 618.46,-242.5 618.46,-249.5"/>
+<text text-anchor="middle" x="574.5" y="-248.6" font-family="Noto Sans CJK SC" font-size="8.00">力矩/物理</text>
+</g>
+<!-- c_car&#45;&gt;c_a5 -->
+<g id="edge16" class="edge">
+<title>c_car&#45;&gt;c_a5</title>
+<path fill="none" stroke="#ef6c00" stroke-dasharray="5,2" d="M453.46,-303.69C421.84,-307.37 375.36,-309.99 336,-301 320.67,-297.5 304.87,-290.79 291.23,-283.85"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="292.63,-280.63 282.16,-279.04 289.36,-286.82 292.63,-280.63"/>
+<text text-anchor="middle" x="381.5" y="-309.6" font-family="Noto Sans CJK SC" font-size="8.00">pose（反馈）</text>
+</g>
+<!-- c_body&#45;&gt;c_a5 -->
+<g id="edge14" class="edge">
+<title>c_body&#45;&gt;c_a5</title>
+<path fill="none" stroke="#ef6c00" stroke-dasharray="5,2" d="M642.47,-264.13C620.92,-283.29 583.8,-312.32 545.5,-324 456.42,-351.16 424.15,-350.04 336,-320 315.1,-312.88 294.84,-298.67 279.57,-285.98"/>
+<polygon fill="#ef6c00" stroke="#ef6c00" points="281.49,-283.01 271.63,-279.14 276.92,-288.31 281.49,-283.01"/>
+<text text-anchor="middle" x="491.5" y="-345.6" font-family="Noto Sans CJK SC" font-size="8.00">pose/body（反馈）</text>
+</g>
+<!-- d_mux -->
+<g id="node17" class="node">
+<title>d_mux</title>
+<path fill="#e8f5e9" stroke="#2e7d32" d="M77,-437C77,-437 28,-437 28,-437 22,-437 16,-431 16,-425 16,-425 16,-413 16,-413 16,-407 22,-401 28,-401 28,-401 77,-401 77,-401 83,-401 89,-407 89,-413 89,-413 89,-425 89,-425 89,-431 83,-437 77,-437"/>
+<text text-anchor="middle" x="52.5" y="-421.8" font-family="Noto Sans CJK SC" font-size="9.00">mux / 上层命令</text>
+<text text-anchor="middle" x="52.5" y="-411.8" font-family="Noto Sans CJK SC" font-size="9.00">10–50 Hz</text>
+</g>
+<!-- d_bnd -->
+<g id="node18" class="node">
+<title>d_bnd</title>
+<path fill="#f5f5f5" stroke="#616161" stroke-dasharray="1,5" d="M291.5,-437C291.5,-437 212.5,-437 212.5,-437 206.5,-437 200.5,-431 200.5,-425 200.5,-425 200.5,-413 200.5,-413 200.5,-407 206.5,-401 212.5,-401 212.5,-401 291.5,-401 291.5,-401 297.5,-401 303.5,-407 303.5,-413 303.5,-413 303.5,-425 303.5,-425 303.5,-431 297.5,-437 291.5,-437"/>
+<text text-anchor="middle" x="252" y="-421.8" font-family="Noto Sans CJK SC" font-size="9.00">boundary</text>
+<text text-anchor="middle" x="252" y="-411.8" font-family="Noto Sans CJK SC" font-size="9.00">锁存/限幅/斜率/看门狗</text>
+</g>
+<!-- d_mux&#45;&gt;d_bnd -->
+<g id="edge17" class="edge">
+<title>d_mux&#45;&gt;d_bnd</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M89.27,-419C117.37,-419 157.16,-419 190.24,-419"/>
+<polygon fill="#616161" stroke="#616161" points="190.27,-422.5 200.27,-419 190.27,-415.5 190.27,-422.5"/>
+<text text-anchor="middle" x="134.5" y="-421.6" font-family="Noto Sans CJK SC" font-size="8.00">订阅</text>
+</g>
+<!-- d_udp -->
+<g id="node19" class="node">
+<title>d_udp</title>
+<polygon fill="#f5f5f5" stroke="#616161" stroke-dasharray="1,5" points="532,-431 439,-431 439,-407 532,-407 544,-419 532,-431"/>
+<text text-anchor="middle" x="491.5" y="-421.8" font-family="Noto Sans CJK SC" font-size="9.00">UDP</text>
+<text text-anchor="middle" x="491.5" y="-411.8" font-family="Noto Sans CJK SC" font-size="9.00">50–500 Hz · seq/CRC</text>
+</g>
+<!-- d_bnd&#45;&gt;d_udp -->
+<g id="edge18" class="edge">
+<title>d_bnd&#45;&gt;d_udp</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M303.66,-419C340.18,-419 389.67,-419 428.54,-419"/>
+<polygon fill="#616161" stroke="#616161" points="428.69,-422.5 438.69,-419 428.69,-415.5 428.69,-422.5"/>
+<text text-anchor="middle" x="381.5" y="-421.6" font-family="Noto Sans CJK SC" font-size="8.00">定拍发送</text>
+</g>
+<!-- d_vr -->
+<g id="node20" class="node">
+<title>d_vr</title>
+<path fill="#f5f5f5" stroke="#616161" stroke-dasharray="1,5" d="M702.5,-437C702.5,-437 622.5,-437 622.5,-437 616.5,-437 610.5,-431 610.5,-425 610.5,-425 610.5,-413 610.5,-413 610.5,-407 616.5,-401 622.5,-401 622.5,-401 702.5,-401 702.5,-401 708.5,-401 714.5,-407 714.5,-413 714.5,-413 714.5,-425 714.5,-425 714.5,-431 708.5,-437 702.5,-437"/>
+<text text-anchor="middle" x="662.5" y="-421.8" font-family="Noto Sans CJK SC" font-size="9.00">仿真虚拟机器人</text>
+<text text-anchor="middle" x="662.5" y="-411.8" font-family="Noto Sans CJK SC" font-size="9.00">MuJoCo / Gazebo 端点</text>
+</g>
+<!-- d_udp&#45;&gt;d_vr -->
+<g id="edge19" class="edge">
+<title>d_udp&#45;&gt;d_vr</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M544.12,-419C561.9,-419 581.97,-419 600.42,-419"/>
+<polygon fill="#616161" stroke="#616161" points="600.48,-422.5 610.48,-419 600.48,-415.5 600.48,-422.5"/>
+</g>
+<!-- d_tele -->
+<g id="node21" class="node">
+<title>d_tele</title>
+<path fill="#f5f5f5" stroke="#616161" stroke-dasharray="1,5" d="M871.5,-437C871.5,-437 818.5,-437 818.5,-437 812.5,-437 806.5,-431 806.5,-425 806.5,-425 806.5,-413 806.5,-413 806.5,-407 812.5,-401 818.5,-401 818.5,-401 871.5,-401 871.5,-401 877.5,-401 883.5,-407 883.5,-413 883.5,-413 883.5,-425 883.5,-425 883.5,-431 877.5,-437 871.5,-437"/>
+<text text-anchor="middle" x="845" y="-421.8" font-family="Noto Sans CJK SC" font-size="9.00">遥测上行</text>
+<text text-anchor="middle" x="845" y="-411.8" font-family="Noto Sans CJK SC" font-size="9.00">odom/imu/joint</text>
+</g>
+<!-- d_vr&#45;&gt;d_tele -->
+<g id="edge20" class="edge">
+<title>d_vr&#45;&gt;d_tele</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M714.74,-419C740.39,-419 771.25,-419 796.38,-419"/>
+<polygon fill="#616161" stroke="#616161" points="796.41,-422.5 806.41,-419 796.41,-415.5 796.41,-422.5"/>
+</g>
+<!-- d_tele&#45;&gt;d_mux -->
+<g id="edge21" class="edge">
+<title>d_tele&#45;&gt;d_mux</title>
+<path fill="none" stroke="#616161" stroke-dasharray="1,5" d="M806.33,-429.01C781.92,-434.98 749.32,-441.96 720,-445 481.28,-469.76 419.2,-464.55 180,-445 144.53,-442.1 135.76,-439.6 101,-432 100.4,-431.87 99.8,-431.73 99.19,-431.6"/>
+<polygon fill="#616161" stroke="#616161" points="99.73,-428.13 89.19,-429.2 98.1,-434.94 99.73,-428.13"/>
+<text text-anchor="middle" x="491.5" y="-463.6" font-family="Noto Sans CJK SC" font-size="8.00">状态回传</text>
+</g>
+</g>
+</svg>
+
+<figcaption>A/B 是 ROS 导航主干（真机段 L2）；C 是 v8 爬楼 pilot（实验，已有全矩阵读数）；D 是目标边界，目前只有 S1 回环核心，S2/S3 未接。</figcaption>
+</figure>
+
+<h2>④ 关键接缝（这些决定了“是不是一个系统”）</h2>
+<div class="seam"><b>mux → boundary 未接：</b>现有 <code>/cmd_vel</code> 是事件驱动；50–500 Hz 定拍 UDP 只在 127.0.0.1 回环验证过，未从 mux 取命令。</div>
+<div class="seam"><b>boundary 无上行：</b>没有遥测帧与状态回传，FAULT/断链安全状态机尚未落地；代码只做零速保持。</div>
+<div class="seam"><b>v8 治理层与运行层断开：</b>contracts/registry/composer/orchestrator 仅经 SimulatedRunner 验证；planner/validator/representation 未接 A5/MBF/SCAN。</div>
+<div class="seam"><b>两类仿真不等价：</b>MuJoCo 有接触动力学但只接 A5 支撑图 pilot；Gazebo 3D 载体是运动学 <code>SetModelState</code>，不能证明四足爬楼物理可行。</div>
+<div class="seam"><b>真机链路仍是厂商路径：</b><code>ros2qnx</code> 逐条 <code>sendto</code> QNX 43893（事件驱动），换定拍链路需 L2 与台架验证。</div>
+
+<h2>⑤ 证据与未知</h2>
+<ul>
+  <li><b>已核：</b>mux 七源/0.5 s/hold；MBF 的 GlobalPlanner+TEB/DWA；bringup 同时包含 mbf 与 safety；boundary 未被任何运行件引用；46 套件 0 失败。</li>
+  <li><b>中等置信：</b>ROS 2D 导航与 Gazebo 平面驱动按配置与历史跑批归入“已接通”，本次未活体复跑。</li>
+  <li><b>未知：</b>ros2qnx 完整帧语义与 QNX 看门狗；真机 <code>/cmd_vel</code> 唯一写者是否与仿真一致。</li>
+  <li><b>边界声明：</b>A1—A7 仍 NOT_VALIDATED；A5 PARTIAL；真机 V8-X2 属 L2；本模型不构成验收或授权。</li>
+</ul>
+
+<div class="foot">
+源文件（可再生成）：<code>architecture/system-context.dot</code>、<code>architecture/system-runtime.dot</code>、<code>architecture/command-path.dot</code>；
+证据索引：<code>architecture/system-model.evidence.md</code>；摘要：<code>architecture/system-model.summary.md</code>。
+生成命令：<code>dot -Tsvg &lt;view&gt;.dot -o &lt;view&gt;.svg</code>。
+</div>
+</div>
+</body>
+</html>

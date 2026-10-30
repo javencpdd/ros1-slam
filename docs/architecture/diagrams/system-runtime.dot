@@ -1,0 +1,86 @@
+digraph system_runtime {
+  graph [rankdir=TB, splines=spline, nodesep=.20, ranksep=.32,
+         fontname="Noto Sans CJK SC", fontsize=11, labelloc="t", ordering=out,
+         label="ros1-slam · 运行/模块分层（当前态 2026-10-30）\n绿=已接通运行　橙=仿真实验（有读数）　蓝虚线=设计层/仅单测　灰点线=待接　红虚线=L2 未授权"];
+  node [fontname="Noto Sans CJK SC", fontsize=9, shape=box, style="rounded,filled", margin="0.08,0.04", width=1.28];
+  edge [fontname="Noto Sans CJK SC", fontsize=8, arrowsize=.7];
+
+  L1 [shape=plaintext, label="① 传感/驱动", fontsize=10];
+  L2 [shape=plaintext, label="② 定位/建图", fontsize=10];
+  L3 [shape=plaintext, label="③ 环境表征", fontsize=10];
+  L4 [shape=plaintext, label="④ 规划", fontsize=10];
+  L5 [shape=plaintext, label="⑤ 任务/仲裁", fontsize=10];
+  L6 [shape=plaintext, label="⑥ 执行/机器人边界", fontsize=10];
+
+  lidar [label="雷达驱动\nlivox / lslidar", fillcolor="#e8f5e9", color="#2e7d32"];
+  imu   [label="qnx2ros\n/imu/data", fillcolor="#e8f5e9", color="#2e7d32"];
+  sims  [label="sim_adapter\n仿真点云/IMU", fillcolor="#e8f5e9", color="#2e7d32"];
+
+  flio [label="faster-lio\nOdometry/cloud/TF", fillcolor="#e8f5e9", color="#2e7d32"];
+  hdl  [label="hdl_localization\n重定位（备用）", fillcolor="#e8f5e9", color="#2e7d32"];
+
+  cost [label="costmap_2d\nglobal/local", fillcolor="#e8f5e9", color="#2e7d32"];
+  sup  [label="支撑图 JSON\n离线派生", shape=cylinder, fillcolor="#e8f5e9", color="#2e7d32"];
+  v8r  [label="v8 representation\n多层支撑图（设计）", fillcolor="#e3f2fd", color="#1565c0", style="rounded,filled,dashed"];
+
+  mbf  [label="MBF\nGlobalPlanner+TEB/DWA", fillcolor="#e8f5e9", color="#2e7d32"];
+  scan [label="SCAN\nplan_manage", fillcolor="#e8f5e9", color="#2e7d32"];
+  a5   [label="A5 局部规划\nlocal_native+ros_node", fillcolor="#fff3e0", color="#ef6c00"];
+  v8p  [label="v8 planner\n有界 A*（设计）", fillcolor="#e3f2fd", color="#1565c0", style="rounded,filled,dashed"];
+
+  task [label="lite3_task\n任务原语", fillcolor="#e8f5e9", color="#2e7d32"];
+  supv [label="supervisor\n心跳/hold", fillcolor="#e8f5e9", color="#2e7d32"];
+  mux  [label="safe_cmd_vel_mux\n七源/0.5s/hold", fillcolor="#e8f5e9", color="#2e7d32"];
+  val  [label="v8 validator\n轨迹检查（未接运行）", fillcolor="#e3f2fd", color="#1565c0", style="rounded,filled,dashed"];
+
+  bndros [label="boundary ROS 节点\nS2 待开", fillcolor="#f5f5f5", color="#616161", style="rounded,filled,dotted"];
+  bnd    [label="boundary S1\n帧/速率桥（回环）", fillcolor="#f5f5f5", color="#616161", style="rounded,filled,dotted"];
+  planar [label="Gazebo 平面驱动\nlite3_planar_drive", fillcolor="#e8f5e9", color="#2e7d32"];
+  qnx    [label="ros2qnx\n→QNX:43893", fillcolor="#ffebee", color="#c62828", style="rounded,filled,dashed"];
+  robot  [shape=box3d, label="Lite3 真机\nL2 未授权", fillcolor="#ffebee", color="#c62828"];
+  carrier[label="Gazebo 3D 载体\nSetModelState", fillcolor="#fff3e0", color="#ef6c00"];
+  mjb    [label="MuJoCo 桥\n270 策略+500Hz 物理", fillcolor="#fff3e0", color="#ef6c00"];
+
+  {rank=same; L1; lidar; imu; sims;}
+  {rank=same; L2; flio;}
+  {rank=same; hdl;}
+  {rank=same; L3; cost; sup; v8r;}
+  {rank=same; L4; mbf; scan; a5; v8p;}
+  {rank=same; L5; task; supv;}
+  {rank=same; mux; val;}
+  {rank=same; L6; bndros; planar; qnx;}
+  {rank=same; bnd; robot;}
+  {rank=same; carrier; mjb;}
+
+  L1 -> lidar [style=invis]; lidar -> imu [style=invis]; imu -> sims [style=invis];
+  L2 -> flio [style=invis];
+  L3 -> cost [style=invis]; cost -> sup [style=invis]; sup -> v8r [style=invis];
+  L4 -> mbf [style=invis]; mbf -> scan [style=invis]; scan -> a5 [style=invis]; a5 -> v8p [style=invis];
+  L5 -> task [style=invis]; task -> supv [style=invis];
+  mux -> val [style=invis];
+  L6 -> bndros [style=invis]; bndros -> planar [style=invis]; planar -> qnx [style=invis];
+  bnd -> robot [style=invis]; carrier -> mjb [style=invis];
+
+  lidar -> flio [label="points", color="#2e7d32"];
+  imu -> flio [label="imu", color="#2e7d32"];
+  sims -> flio [label="sim pts/imu", color="#2e7d32"];
+  flio -> hdl [label="map/odom", color="#2e7d32", style=dashed];
+  flio -> cost [label="odom/TF", color="#2e7d32"];
+  flio -> scan [label="cloud_registered", color="#2e7d32"];
+  cost -> mbf [label="costmaps", color="#2e7d32"];
+  sup -> a5 [label="map json", color="#ef6c00"];
+  v8r -> v8p [label="支撑图", color="#1565c0", style=dashed];
+  task -> mux [label="task_cmd_vel", color="#2e7d32"];
+  supv -> mux [label="hold", color="#2e7d32"];
+  mbf -> mux [label="/cmd_vel_raw", color="#2e7d32"];
+  scan -> mux [label="/scan_planner/cmd_vel", color="#2e7d32"];
+  mux -> planar [label="/cmd_vel（仿真）", color="#2e7d32"];
+  mux -> qnx [label="/cmd_vel（真机 mode）", color="#c62828", style=dashed];
+  qnx -> robot [label="UDP", color="#c62828", style=dashed];
+  mux -> bndros [label="（规划）", color="#616161", style=dotted];
+  bndros -> bnd [color="#616161", style=dotted];
+  bnd -> mjb [label="UDP（S2 待接）", color="#616161", style=dotted];
+  bnd -> carrier [label="UDP（S3 待接）", color="#616161", style=dotted];
+  a5 -> mjb [label="cmd ⇄ pose/status", color="#ef6c00", dir=both];
+  a5 -> carrier [label="cmd ⇄ pose", color="#ef6c00", dir=both];
+}

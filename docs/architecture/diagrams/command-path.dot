@@ -1,0 +1,63 @@
+digraph command_path {
+  graph [rankdir=LR, newrank=true, splines=spline, nodesep=.22, ranksep=.34,
+         fontname="Noto Sans CJK SC", fontsize=11, labelloc="t",
+         label="ros1-slam · 命令链与反馈链（当前态）\nA/B=已接通　C=仿真实验　D=目标边界（S2/S3 未接）　红虚线=L2"];
+  node [fontname="Noto Sans CJK SC", fontsize=9, shape=box, style="rounded,filled", margin="0.07,0.04"];
+  edge [fontname="Noto Sans CJK SC", fontsize=8];
+
+  subgraph cluster_a {
+    label="A · ROS 2D/2.5D 导航（已接通；真机段 L2）"; style="rounded"; color="#2e7d32";
+    a_sensors [label="雷达/IMU", fillcolor="#e8f5e9", color="#2e7d32"];
+    a_flio    [label="faster-lio\n/Odometry · /cloud_registered", fillcolor="#e8f5e9", color="#2e7d32"];
+    a_cost    [label="costmap_2d\nglobal/local", fillcolor="#e8f5e9", color="#2e7d32"];
+    a_mbf     [label="MBF\nGlobalPlanner+TEB/DWA", fillcolor="#e8f5e9", color="#2e7d32"];
+    a_mux     [label="safe_cmd_vel_mux\n七源/0.5s/hold", fillcolor="#e8f5e9", color="#2e7d32"];
+    a_gz      [label="Gazebo 平面驱动", fillcolor="#e8f5e9", color="#2e7d32"];
+    a_qnx     [label="ros2qnx\n→QNX:43893", fillcolor="#ffebee", color="#c62828", style="rounded,filled,dashed"];
+    a_robot   [shape=box3d, label="Lite3 真机（L2）", fillcolor="#ffebee", color="#c62828"];
+    a_sensors -> a_flio -> a_cost -> a_mbf [color="#2e7d32"];
+    a_mbf -> a_mux [label="/cmd_vel_raw", color="#2e7d32"];
+    a_mux -> a_gz [label="/cmd_vel（仿真）", color="#2e7d32"];
+    a_mux -> a_qnx [label="/cmd_vel（真机 mode）", color="#c62828", style=dashed];
+    a_qnx -> a_robot [label="UDP", color="#c62828", style=dashed];
+    a_gz -> a_flio [label="odom/TF", color="#2e7d32", style=dashed, constraint=false];
+  }
+
+  subgraph cluster_b {
+    label="B · SCAN 规划路径（已接通仿真）"; style="rounded"; color="#2e7d32";
+    b_flio [label="faster-lio", fillcolor="#e8f5e9", color="#2e7d32"];
+    b_scan [label="SCAN plan_manage\n/grid_map · /planning/bspline", fillcolor="#e8f5e9", color="#2e7d32"];
+    b_mux  [label="safe_cmd_vel_mux\n(scan_planner 源)", fillcolor="#e8f5e9", color="#2e7d32"];
+    b_flio -> b_scan [label="/cloud_registered", color="#2e7d32"];
+    b_scan -> b_mux [label="/scan_planner/cmd_vel", color="#2e7d32"];
+  }
+
+  subgraph cluster_c {
+    label="C · v8 楼梯 pilot：A5→四足/三维载体（实验，有读数）"; style="rounded"; color="#ef6c00";
+    c_map  [label="支撑图 JSON\n(离线)", shape=cylinder, fillcolor="#e8f5e9", color="#2e7d32"];
+    c_a5   [label="A5 局部规划\n50 Hz 命令/轨迹/状态", fillcolor="#fff3e0", color="#ef6c00"];
+    c_mjb  [label="MuJoCo 桥\n270 策略+PD+接触", fillcolor="#fff3e0", color="#ef6c00"];
+    c_car  [label="Gazebo 3D 载体\nSetModelState", fillcolor="#fff3e0", color="#ef6c00"];
+    c_body [label="机体/关节状态", fillcolor="#fff3e0", color="#ef6c00"];
+    c_map -> c_a5 [label="map json", color="#ef6c00"];
+    c_a5 -> c_mjb [label="cmd/trajectory/status", color="#ef6c00"];
+    c_mjb -> c_body [label="力矩/物理", color="#ef6c00"];
+    c_body -> c_a5 [label="pose/body（反馈）", color="#ef6c00", style=dashed, constraint=false];
+    c_a5 -> c_car [label="cmd", color="#ef6c00"];
+    c_car -> c_a5 [label="pose（反馈）", color="#ef6c00", style=dashed, constraint=false];
+  }
+
+  subgraph cluster_d {
+    label="D · 统一机器人边界（S1 回环完成；S2/S3 待接）"; style="rounded"; color="#616161";
+    d_mux  [label="mux / 上层命令\n10–50 Hz", fillcolor="#e8f5e9", color="#2e7d32"];
+    d_bnd  [label="boundary\n锁存/限幅/斜率/看门狗", fillcolor="#f5f5f5", color="#616161", style="rounded,filled,dotted"];
+    d_udp  [label="UDP\n50–500 Hz · seq/CRC", fillcolor="#f5f5f5", color="#616161", shape=cds, style="filled,dotted"];
+    d_vr   [label="仿真虚拟机器人\nMuJoCo / Gazebo 端点", fillcolor="#f5f5f5", color="#616161", style="rounded,filled,dotted"];
+    d_tele [label="遥测上行\nodom/imu/joint", fillcolor="#f5f5f5", color="#616161", style="rounded,filled,dotted"];
+    d_mux -> d_bnd [label="订阅", color="#616161", style=dotted];
+    d_bnd -> d_udp [label="定拍发送", color="#616161", style=dotted];
+    d_udp -> d_vr [color="#616161", style=dotted];
+    d_vr -> d_tele [color="#616161", style=dotted];
+    d_tele -> d_mux [label="状态回传", color="#616161", style=dotted, constraint=false];
+  }
+}
