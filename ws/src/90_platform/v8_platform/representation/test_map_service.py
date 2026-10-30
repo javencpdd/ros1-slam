@@ -150,6 +150,31 @@ class MapServiceTests(unittest.TestCase):
                 svc.MapService.load(path)
             self.assertEqual(caught.exception.code, 'E_MAPSERVICE_SNAPSHOT')
 
+    def test_store_round_trips_multiple_map_ids(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = svc.MapStore(directory)
+            for map_id in ('svc_map', 'other_map'):
+                value = two_floors()
+                value['map_id'] = map_id
+                service = svc.MapService(map_id)
+                service.publish(value)
+                service.update(changed_floors(value))
+                store.save(service)
+            self.assertEqual(store.ids(), ['other_map', 'svc_map'])
+            loaded = store.load_all()
+            self.assertEqual(sorted(loaded), ['other_map', 'svc_map'])
+            self.assertEqual(loaded['svc_map'].current['map_version'], 2)
+            self.assertEqual(loaded['other_map'].current['map_version'], 2)
+            self.assertNotEqual(loaded['svc_map'].current['map_id'],
+                                loaded['other_map'].current['map_id'])
+            with self.assertRaises(svc.MapServiceError) as caught:
+                store.path_for('../escape')
+            self.assertEqual(caught.exception.code, 'E_MAPSERVICE_MAP_ID')
+            (Path(directory) / 'bad.json').write_text('{not json')
+            with self.assertRaises(svc.MapServiceError) as caught:
+                store.load_all()
+            self.assertEqual(caught.exception.code, 'E_MAPSERVICE_SNAPSHOT')
+
     def test_clearance_api(self):
         service = svc.MapService('svc_map')
         service.publish(two_floors())

@@ -15,6 +15,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -26,6 +27,7 @@ import validate as contract  # noqa: E402
 
 
 SNAPSHOT_SCHEMA = 'map_service_snapshot/v1'
+MAP_ID = re.compile(r'^[A-Za-z0-9_.-]+$')
 
 
 class MapServiceError(Exception):
@@ -47,6 +49,33 @@ def content_digest(value, evidence=None):
         payload['#evidence'] = sorted(evidence.items())
     canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+class MapStore:
+    """Directory of per-map snapshots; map_id is the filename key, not a path."""
+
+    def __init__(self, root):
+        self.root = Path(root)
+
+    def path_for(self, map_id):
+        if not isinstance(map_id, str) or not MAP_ID.match(map_id):
+            raise MapServiceError('E_MAPSERVICE_MAP_ID', 'unsafe map_id %r' % (map_id,))
+        return self.root / (map_id + '.json')
+
+    def save(self, service):
+        saved = service.save(self.path_for(service.map_id))
+        return saved
+
+    def load(self, map_id):
+        return MapService.load(self.path_for(map_id), map_id=map_id)
+
+    def ids(self):
+        if not self.root.is_dir():
+            return []
+        return sorted(path.stem for path in self.root.glob('*.json'))
+
+    def load_all(self):
+        return {map_id: self.load(map_id) for map_id in self.ids()}
 
 
 class MapService:

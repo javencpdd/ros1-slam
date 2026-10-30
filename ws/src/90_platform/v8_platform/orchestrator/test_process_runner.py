@@ -113,9 +113,15 @@ class ProcessRunnerTests(unittest.TestCase):
         r.start()
         orch.wait_ready([r], timeout=3)
         deadline = time.monotonic() + 3
-        while not pidfile.exists() and time.monotonic() < deadline:
+        text = ''
+        while time.monotonic() < deadline:
+            if pidfile.exists():
+                text = pidfile.read_text().strip()
+                if text.isdigit():
+                    break
             time.sleep(0.01)
-        child = int(pidfile.read_text())
+        self.assertTrue(text.isdigit(), repr(text))
+        child = int(text)
         r.stop('process_group_signal')
         r.reap(timeout=3)
         self.assertTrue(r.is_stopped())
