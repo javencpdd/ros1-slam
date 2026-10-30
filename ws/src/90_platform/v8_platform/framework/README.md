@@ -112,6 +112,9 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
   只记录启动 check+plan 的 p95。
 - 不改 `contracts/registry/composer/orchestrator` 既有语义；A1—A7 状态不变。
 
-## 6. 下一片
+## 6. 收口状态
 
-F8 收口：证据索引、旧入口/旧文档指针清理、未接入项与回滚说明；不再新增并行组件模型。
+F0—F8 已完成：证据索引、未接入项与回滚说明见
+[27 号补丁 §11/§12](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)；
+每批读数在 `note/进度/v8/M5/26-10-29/evidence/R955—R965`。
+不再新增并行组件模型；v1 manifest 与既有运行链语义不变。

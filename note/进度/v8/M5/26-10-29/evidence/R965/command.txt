@@ -1,0 +1,16 @@
+R965 命令（2026-10-31 01:00—01:05 CST，qoder；F8 收口）
+# 代码清理：CLI usage/prog 由 framework.py 改为 cli.py（提交 ffbdece8）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py           # 22
+python3 -B - <<'EOF'                             # v1/v2 加载读数
+import sys; sys.path.insert(0,'registry'); sys.path.insert(0,'framework')
+import registry as reg, config
+print('v1_manifests_loaded=%d' % len(reg.Registry().load_dir('registry/data/manifests').entries))
+print('v2_components_loaded=%d' % len(config.load_components('framework/fixtures/manifests')['components']))
+EOF
+python3 -B framework/cli.py check registry/data/manifests \
+  framework/fixtures/graphs/graph_2d.yaml        # rc=5 E_CFG_MANIFEST_V1（拒进图，不拒加载）
+# 容器同版（Python 3.8）：V8 全树 54 套件 0 失败。
+# 门禁：账构（VLB）rc=0；VCC rc=6＝在册基线（7 条 RED 全属异机目标差）。
+# 残留：framework/fixtures 下 components.yaml 命中 0；framework 下 catalog 文件 0。
+# A1—A7：总览末条仍 NOT_VALIDATED。

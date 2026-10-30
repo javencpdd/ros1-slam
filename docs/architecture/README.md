@@ -12,7 +12,7 @@
 | [current-system.md](current-system.md) | 系统由哪些部分组成、什么真的接通、边界在哪 |
 | [algorithm-swap.md](algorithm-swap.md) | 建图/定位/全局/局部/中间件今天分别怎么换 |
 | [target-framework.md](target-framework.md) | 目标框架（多地图/多机器人/任意中间件/仿真通行性）与当前差距、改造路线 |
-| [framework-v0.md](framework-v0.md) | 统一 YAML 组件图 v0.1：实例/命名端口/显式连线/锁与 launch 骨架 |
+| [framework-v0.md](framework-v0.md) | 统一 YAML 组件图 v0.1：实例/命名端口/显式连线/锁、运行装配、MapDelta、机器人/验证配置、安全接线（F0—F8） |
 | [architecture-ros1-slam.html](architecture-ros1-slam.html) | 一页版：三张图＋状态卡（可直接浏览器打开） |
 
 ## 三张图
@@ -53,7 +53,7 @@ done
 
 ## 证据与未知（摘要）
 
-- **高置信**：mux 七源/0.5 s/hold；MBF 的 GlobalPlanner+TEB/DWA；bringup 同时包含 mbf 与 safety；boundary 未被任何运行件引用；46 套件 0 失败。
+- **高置信**：mux 七源/0.5 s/hold；MBF 的 GlobalPlanner+TEB/DWA；bringup 同时包含 mbf 与 safety；boundary 未被任何运行件引用；V8 全树 54 套件 0 失败（R965）。
 - **中置信**：ROS 2D 导航与 Gazebo 平面驱动按配置与历史跑批归入“已接通”，本次未活体复跑。
 - **未知**：`ros2qnx` 完整帧语义与 QNX 看门狗；真机 `/cmd_vel` 是否确为 mux 唯一写者。
 - 逐条 sourceRefs 与置信度见 [evidence.md](evidence.md)；仓库内正式登记以 `note/进度/00_总览.md` 与相关 R 记录为准。

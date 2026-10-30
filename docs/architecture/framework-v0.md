@@ -50,9 +50,10 @@
 - 独立验证用假后端，未启动 MuJoCo/Gazebo。
 - 不改既有 contracts/registry/composer/orchestrator 语义；A1—A7 仍 `NOT_VALIDATED`。
 
-## 4. 下一片
+## 4. 收口状态
 
-F8 收口：F1—F7 证据索引、旧 catalog/旧入口/旧文档指针清理、未接入项清单与回滚说明；
-验证“无第二套组件模型、v1 清单仍可加载、A1—A7 状态不变、VLB/VCC 门禁通过”。
+F0—F8 已完成；F1—F7 证据索引与“未接入项/回滚说明”见
+[27 号补丁 §11/§12](../../note/计划书v8/27_框架改造补丁-v0.1.md)。每批读数位于
+`note/进度/v8/M5/26-10-29/evidence/R955—R965`。A1—A7 状态不变，仍 `NOT_VALIDATED`。
 
 完整说明见 [framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md)。
