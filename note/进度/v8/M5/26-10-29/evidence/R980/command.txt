@@ -1,0 +1,12 @@
+R980 命令（2026-10-31 03:20—03:40 CST，qoder；2D 全局/局部后端四格实测）
+# 同一 Gazebo m1 地图、SC09 动态方块注入、起点(0,0)、终点(6,3)、seed0、truth odom。
+# 仅改 base_global_planner 与 base_local_planner；runtime_lab 新增 --global-backend。
+for cell in gp_dwa gp_teb navfn_dwa navfn_teb; do
+  python3 -B regression/runtime_lab.py --out /tmp/r980_$cell --port ... --gazebo \
+    --scenario SC09 --seed 0 --backend <dwa|teb> --global-backend <global_planner|navfn>
+done
+# 读数：四格全部 PASS；GP+DWA 6.85 m/34.4 s/688 cmd、GP+TEB 6.64/19.6/392、
+#   Navfn+DWA 6.85/34.4/688、Navfn+TEB 6.66/19.6/392；注入避让均 >0.57 m；
+#   进程组全部退净。真实类由 navigation.log 的 Created local_planner 与 base_global_planner 复核。
+# 测试：runtime_lab 3/3；V8 全树 59 套件 0 失败。
+# 边界：这是 move_base 真实 2D 栈的后端级实测，尚未经 v2 graph YAML 装配；无 LIO/NDT、无真机。
