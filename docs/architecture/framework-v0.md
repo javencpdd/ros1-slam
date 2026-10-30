@@ -36,6 +36,8 @@
 | 安全接线 | 双 `/cmd_vel` 写者/越权建议拒绝；validator 否决走停止链 |
 | 性能预算 | 启动 check+plan p50/p95/max；500 Hz 发送不经 Python 编排环 |
 | 图形化选配 | 同角色候选预检、拒绝码、导出 JSON/YAML 兼容图 |
+| 实例配置预检 | 每实例 `config` 文件解析/重复键/映射/摘要；取代 manifest param_files |
+| 维度配对 | Path 跨 2D/3D 直连拒绝；地图 schema 与组件 dimensions 不一致拒绝 |
 | 热替换合同 | `hot_swap/v1`：角色/端口/所有权门＋停止后换组合 |
 
 3D 双缓存 fixture 验证了：两个同类型实例、命名端口不混淆、`merge.delta → map.delta`

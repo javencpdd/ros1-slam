@@ -54,6 +54,9 @@ cd ws/src/90_platform/v8_platform
 python3 -B framework/cli.py check framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --package-index framework/fixtures/package_index.json
+# 每实例配置文件：graph 的 config: 指向 YAML/JSON；运行前解析并计入 digest
+python3 -B framework/cli.py check framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d_config.yaml
 python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
@@ -84,6 +87,10 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 | v1 清单缺命名端口 | `E_CFG_MANIFEST_V1` |
 | launch 未知包/文件/可执行/参数文件 | `E_LAUNCH_PACKAGE` / `E_LAUNCH_FILE` / `E_LAUNCH_TYPE` |
 | launch 规格非法（node/include/plugin/路径） | `E_CFG_LAUNCH` / `E_CFG_LAUNCH_KIND` / `E_CFG_LAUNCH_PATH` |
+| 实例 config 缺失/非法 YAML/重复键/非映射 | `E_CFG_MISSING` / `E_CFG_YAML` / `E_CFG_DUP_KEY` / `E_CFG_TYPE` |
+| config 用在 include 组件 | `E_CFG_CONFIG_KIND` |
+| Path 跨 2D/3D 组件直连 | `E_GRAPH_DIMENSION` |
+| 组件 dimensions 与其地图 schema 不一致 | `E_GRAPH_MAP_DIMENSION` |
 | `/cmd_vel` 写者不唯一或非 `safety_arbiter` | `E_SAFETY_ARBITER`（`Assembly.start` 同拒） |
 | 命令建议未接到仲裁器 | `E_SAFETY_ADVICE` |
 | validator 多于一个或不在 path 上 | `E_SAFETY_VALIDATOR` |
@@ -112,14 +119,25 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
   只记录启动 check+plan 的 p95。
 - 不改 `contracts/registry/composer/orchestrator` 既有语义；A1—A7 状态不变。
 
-## 6. 收口状态
+## 6. 实例配置文件与预检
+
+- graph 的实例可加 `config: path/to/params.yaml`（相对 graph 文件或绝对路径）；该文件顶层必须是映射，
+  重复键、语法错误、缺失文件均在启动前拒绝，内容 sha256 进入 assembly digest 与 plan。
+- `config` 取代该实例 manifest 的 `launch.param_files`；graph 的 `params` 仍在其后覆盖。
+  `include` 组件不接受实例 `config`，用 `args`/`params`。
+- 预检同时检查：`nav_msgs/Path` 边两端组件 `dimensions` 必须一致（`E_GRAPH_DIMENSION`）；
+  组件自身的 `dimensions` 必须与 `occupancy_grid/v1`/`support_map/v1|v2` 输入输出匹配
+  （`E_GRAPH_MAP_DIMENSION`）。这能提前拦住“2D 局部接 3D 全局/地图”的直连。
+- 参数 schema（manifest 的 `param_schema`）目前只登记、未做字段级校验；字段级 schema 校验是后续切片。
+
+## 7. 收口状态
 
 F0—F8 已完成：证据索引、未接入项与回滚说明见
 [27 号补丁 §11/§12](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)；
 每批读数在 `note/进度/v8/M5/26-10-29/evidence/R955—R965`。
 不再新增并行组件模型；v1 manifest 与既有运行链语义不变。
 
-## 7. V8-X3 v0.1 图形化选配与热替换
+## 8. V8-X3 v0.1 图形化选配与热替换
 
 ```bash
 cd ws/src/90_platform/v8_platform

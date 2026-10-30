@@ -1,0 +1,12 @@
+R978 命令（2026-10-31 02:25—02:39 CST，qoder；实例配置与 2D/3D 预检）
+# 每实例 config：graph instance {config: ../configs/local2d.yaml}
+python3 -B framework/cli.py check framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d_config.yaml     # rc=0, digest 24203072…
+python3 -B framework/cli.py plan framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d_config.yaml --out-plan /tmp/plan_cfg.json \
+  --out-launch /tmp/plan_cfg.launch                 # launch 含绝对 rosparam 文件
+python3 -B framework/test_preflight.py              # 5
+# 反例：缺失 config → E_CFG_MISSING rc=5；语法错 → E_CFG_YAML rc=5；
+#   重复键/顶层非映射/2D local ↔ 3D global/地图 schema 不一致由测试覆盖。
+# 选配页 local3d 现显示 E_GRAPH_DIMENSION（global.path 2→3）。
+# V8 全树 59 套件 0 失败；未改判据/真实算法清单。

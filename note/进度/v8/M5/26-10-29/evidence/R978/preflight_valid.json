@@ -1,0 +1,36 @@
+{
+ "ok": true,
+ "name": "nav2d_ros1",
+ "digest": "242030722484901a0a03a61f66f57696d33c72830c80122937449f2cad77f51e",
+ "startup_order": [
+  "map",
+  "sensors",
+  "lio",
+  "global",
+  "local",
+  "mux",
+  "robot"
+ ],
+ "feedback": [],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_advice/local": "local"
+ },
+ "safety": {
+  "ok": true,
+  "command_owner": "mux",
+  "advice": [
+   {
+    "endpoint": "local.cmd",
+    "topic": "/cmd_vel_advice/local"
+   }
+  ],
+  "validator": "absent"
+ },
+ "configs": {
+  "local": {
+   "path": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/configs/local2d.yaml",
+   "sha256": "7bf25efeecd3dbf09bb9e210468dd45010526a9ab5e46e38ff01f847adaa5053"
+  }
+ }
+}
