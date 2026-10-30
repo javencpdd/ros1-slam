@@ -1,0 +1,32 @@
+R966 命令（2026-10-31 01:08—01:21 CST，qoder；边界适配器 S2/S3/S4）
+# 容器 ros1-slam-sim；S2 用独立 master 11439/11441，S3 用 11440；真机 S5 未触碰。
+# S2 UDP：适配器侧 500 Hz 发命令，MuJoCo 端点 50 Hz 回遥测
+cd ws/src/90_platform/v8_platform
+python3 -m boundary.s2_loopback --target 127.0.0.1:5006 --bind 127.0.0.1:5005 \
+  --seconds 7 --command 0.2,0,0 --record /tmp/s4_frames5.jsonl
+cd ../95_simulation/lite3_gazebo_sim/dynamics
+PYTHONPATH=/tmp/mjrt/mujoco/mujoco-pkg:/tmp/mjrt/glfw:/tmp/ortrt python3 boundary_endpoint.py \
+  --xml /tmp/mjcf/Lite3.xml --policy /tmp/new_policy.onnx \
+  --bind 127.0.0.1:5006 --target 127.0.0.1:5005 --seconds 4
+# S2 ROS：200 Hz 适配器 + 假机器人 50 Hz 遥测 + /cmd_vel 20 Hz
+roscore -p 11441 &
+python3 -m boundary.ros_bridge _target:=127.0.0.1:5016 _bind:=127.0.0.1:5015 \
+  _rate_hz:=200 _command_topic:=/cmd_vel &
+python3 -m boundary.s2_ros_check --seconds 3
+# S3 Gazebo：empty_world + 静态 s3_box，UDP 500 Hz 命令、50 Hz 遥测
+roscore -p 11440 & roslaunch gazebo_ros empty_world.launch gui:=false &
+rosrun gazebo_ros spawn_model -sdf -model s3_box -file /tmp/s3_box.sdf -x 0 -y 0 -z 0
+python3 -m boundary.gazebo_endpoint --model s3_box --bind 127.0.0.1:5026 \
+  --telemetry-target 127.0.0.1:5025 --seconds 5 &
+python3 -m boundary.s3_gazebo_check --seconds 3
+# S4 报告与回放
+python3 -m boundary.recording summarize --file /tmp/s4_frames5.jsonl
+python3 -m boundary.recording replay --file /tmp/s4_frames5.jsonl --kind command \
+  --target 127.0.0.1:5017 --rate-hz 500
+# 读数：S2 UDP 500 Hz/50 Hz、0 丢包；ROS 200 Hz/50 Hz，odom/imu/joint 149/148/149；
+#   S3 1500 命令/149 遥测、0 丢包、载体 x=0.5913（预期 0.60）、moved=true；
+#   S4 500.13 Hz/50.4 Hz、率误差 0.807%、遥测间隔 p99 1.277×、命令 p99 1.191×、
+#   序号丢包 0、应用层到达延迟 p99 3.371 ms（含接收线程调度，非 S1 纯传输口径）；
+#   回放 3500 帧 0 丢失/0 坏帧。
+# 测试：boundary 14/14、endpoint 4/4；V8 全树 55 套件 0 失败。
+# 边界：未接 QNX/真机；MuJoCo 策略端点与 Gazebo 运动学载体均不构成 V8-X1 正式验收。
