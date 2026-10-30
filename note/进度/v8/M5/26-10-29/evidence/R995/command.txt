@@ -1,0 +1,11 @@
+R995 命令（2026-10-31 05:11—05:14 CST，qoder；A5 trajectory-resume）
+# bridge/runtime 新增 --trajectory-resume（默认关闭）：status 心跳不能置 active，
+# 只有 trajectory/已有 target 才能恢复 sim clock。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --trajectory-resume \
+  --out /tmp/r995b_s0_$i.json --wall-deadline-s 150
+# 读数：1/3 PASS；首个非零命令 0.20/0.38/0.60 s（0.40 s 散差）；
+#   两次 E_LOCAL_COLLISION 停在 z .7175；比默认 R987（2/3）更差。
+# 结论：不保留为默认；A5 仍 PARTIAL。
