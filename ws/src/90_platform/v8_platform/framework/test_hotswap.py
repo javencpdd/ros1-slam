@@ -69,6 +69,51 @@ class HotSwapTests(unittest.TestCase):
         with self.assertRaises(config.FrameworkError):
             hotswap.validate_record(broken)
 
+    def test_instance_swap_keeps_other_instances_alive(self):
+        plan, catalog = plan_for()
+        record, new_plan = hotswap.prepare(plan, catalog, 'robot', 'v8.fw.robot_test_b',
+                                           {'task': 'nav'})
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake, ready_timeout=10)
+        assembly.start()
+        self.addCleanup(assembly.stop)
+        old_robot = assembly.runners['robot'].proc.pid
+        others = {key: runner.proc.pid for key, runner in assembly.runners.items()
+                  if key != 'robot'}
+        record, runner = hotswap.apply_instance(assembly, catalog, record, new_plan,
+                                                ready_timeout=10)
+        self.assertEqual(record['epoch'], 1)
+        self.assertTrue(record['preconditions']['target_stopped'])
+        self.assertTrue(record['postconditions']['new_ready'])
+        self.assertFalse(record['postconditions']['rolled_back'])
+        self.assertNotEqual(runner.proc.pid, old_robot)
+        self.assertTrue(runner.is_alive())
+        self.assertTrue(all(assembly.runners[key].proc.pid == pid
+                            for key, pid in others.items()))
+        self.assertTrue(all(assembly.runners[key].is_alive() for key in others))
+        self.assertEqual(assembly.task.state.value, 'running')
+
+    def test_instance_swap_rolls_back_on_start_failure(self):
+        plan, catalog = plan_for()
+        record, new_plan = hotswap.prepare(plan, catalog, 'robot', 'v8.fw.robot_test_b')
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake, ready_timeout=10)
+        assembly.start()
+        self.addCleanup(assembly.stop)
+        old_pid = assembly.runners['robot'].proc.pid
+
+        def bad_new(instance, component):
+            if component['id'] == 'v8.fw.robot_test_b':
+                return ['/nonexistent/v8-hotswap-new'], 'READY'
+            return [PY, '-c', SLEEPER], 'READY'
+
+        assembly.command_factory = bad_new
+        with self.assertRaises(config.FrameworkError) as caught:
+            hotswap.apply_instance(assembly, catalog, record, new_plan, ready_timeout=2)
+        self.assertEqual(caught.exception.code, 'E_SWAP_START')
+        self.assertTrue(record['postconditions']['rolled_back'])
+        self.assertTrue(assembly.runners['robot'].is_alive())
+        self.assertNotEqual(assembly.runners['robot'].proc.pid, old_pid)
+        self.assertEqual(assembly.task.state.value, 'running')
+
     def test_apply_stops_old_before_new_starts(self):
         plan, catalog = plan_for()
         record, new_plan = hotswap.prepare(plan, catalog, 'robot', 'v8.fw.robot_test_b',

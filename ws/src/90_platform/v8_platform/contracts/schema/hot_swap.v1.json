@@ -27,6 +27,7 @@
       "required": ["assembly_stopped", "no_command_overlap", "tf_edges_preserved"],
       "properties": {
         "assembly_stopped": {"type": "boolean"},
+        "target_stopped": {"type": "boolean"},
         "no_command_overlap": {"type": "boolean"},
         "tf_edges_preserved": {"type": "boolean"}
       }
@@ -37,7 +38,8 @@
       "required": ["new_ready", "single_command_writer"],
       "properties": {
         "new_ready": {"type": "boolean"},
-        "single_command_writer": {"type": "boolean"}
+        "single_command_writer": {"type": "boolean"},
+        "rolled_back": {"type": "boolean"}
       }
     }
   }

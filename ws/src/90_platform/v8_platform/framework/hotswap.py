@@ -104,3 +104,74 @@ def apply(assembly, catalog, record, new_plan, ready_timeout=10.0):
                                 'single_command_writer': True}
     record['epoch'] += 1
     return record, new_assembly
+
+
+def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):
+    """Replace one instance while the rest of the assembly keeps running.
+
+    The old process is stopped and reaped before the new one starts, so there is
+    no command/TF overlap. On start failure the old component is restarted; the
+    task object stays RUNNING and carries the opaque state record.
+    """
+    import orchestrator as orch
+    from process_runner import ProcessRunner
+
+    validate_record(record)
+    instance_id = record['instance_id']
+    old_runner = assembly.runners.get(instance_id)
+    if old_runner is None:
+        raise FrameworkError('E_SWAP_INSTANCE', instance_id)
+    old_spec = next((spec for spec in assembly.task.specs if spec.id == instance_id), None)
+    if old_spec is None:
+        raise FrameworkError('E_SWAP_INSTANCE', instance_id)
+    old_instance = next(item for item in assembly.plan['instances']
+                        if item['id'] == instance_id)
+    old_component = catalog['components'][record['old_component']]
+    old_argv, old_marker = assembly.command_factory(old_instance, old_component)
+    old_runner.stop(old_spec.stop_method)
+    old_runner.reap()
+    if old_runner.is_alive():
+        raise FrameworkError('E_SWAP_STOP', 'old instance still alive')
+    record['preconditions']['target_stopped'] = True
+
+    new_component = catalog['components'][record['new_component']]
+    new_instance = next(item for item in new_plan['instances']
+                        if item['id'] == instance_id)
+    new_spec = orch.ComponentSpec(instance_id, new_component['roles'],
+                                  stop_method=new_component['stop'],
+                                  resources=new_component.get('resources', []))
+    new_argv, new_marker = assembly.command_factory(new_instance, new_component)
+    new_runner = ProcessRunner(new_spec, new_argv, ready_marker=new_marker)
+    try:
+        new_runner.start()
+        from orchestrator import wait_ready
+        wait_ready([new_runner], timeout=ready_timeout)
+    except Exception as error:
+        new_runner.stop(new_component['stop'])
+        new_runner.reap()
+        rollback = ProcessRunner(old_spec, old_argv, ready_marker=old_marker)
+        try:
+            rollback.start()
+            from orchestrator import wait_ready
+            wait_ready([rollback], timeout=ready_timeout)
+        except Exception as rollback_error:
+            record['postconditions'] = {'new_ready': False,
+                                        'single_command_writer': False,
+                                        'rolled_back': False}
+            raise FrameworkError('E_SWAP_ROLLBACK',
+                                 '%s; rollback: %s' % (error, rollback_error))
+        assembly.runners[instance_id] = rollback
+        record['postconditions'] = {'new_ready': False,
+                                    'single_command_writer': True,
+                                    'rolled_back': True}
+        raise FrameworkError('E_SWAP_START', '%s; rolled back' % error)
+    assembly.runners[instance_id] = new_runner
+    for index, spec in enumerate(assembly.task.specs):
+        if spec.id == instance_id:
+            assembly.task.specs[index] = new_spec
+            break
+    assembly.plan = new_plan
+    record['postconditions'] = {'new_ready': True, 'single_command_writer': True,
+                                'rolled_back': False}
+    record['epoch'] += 1
+    return record, new_runner
