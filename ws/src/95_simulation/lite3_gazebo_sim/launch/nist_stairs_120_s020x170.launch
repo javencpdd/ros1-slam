@@ -1,0 +1,22 @@
+<launch>
+  <!-- NIST stairs 120 的 x/y×1.70、z×0.51 缩放世界（与 R940/R941 支撑图同尺寸）。
+       资产在仓内 gitignored 的 data/maps/worlds/nist_stairs_120_s020x170；
+       网格引用原模型 model://nist_stairs_120，仅改 scale。原始资产 CC0（OpenRobotics/Fuel）。
+       本件只做绝对路径 + 模型库注入；不含机器人、不含 support_map 或判据。 -->
+  <arg name="gui" default="false"/>
+  <arg name="world" default="$(find lite3_gazebo_sim)/worlds/nist_stairs_120_s020x170.world"/>
+  <arg name="model_path" default="$(find lite3_gazebo_sim)/../../../../data/maps/worlds"/>
+
+  <param name="use_sim_time" value="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+    <arg name="verbose" value="false"/>
+    <env name="GAZEBO_MODEL_PATH" value="$(arg model_path):/usr/share/gazebo-11/models:$(optenv GAZEBO_MODEL_PATH)"/>
+  </include>
+</launch>
