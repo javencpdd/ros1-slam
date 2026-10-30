@@ -43,6 +43,7 @@
 | 热替换合同 | `hot_swap/v1`：角色/端口/所有权门＋停止后换组合 |
 | 真实 2D 装配 | `v8.nav2d.dwa_stack`/`teb_stack` + `v8.nav2d.mux` 四张 graph；Assembly 启动 nav+mux，GlobalPlanner/Navfn × DWA/TEB 4/4 PASS（R981） |
 | 真实停止 | `ProcessRunner` 快照 roslaunch 后代并对独立会话发信号，避免只杀 roslaunch 遗留节点 |
+| 边界主链 | mux `/cmd_vel` → `v8.boundary.adapter` 200 Hz UDP → Gazebo 运动学端点 → `/boundary/odom`；R984 实测 |
 
 3D 双缓存 fixture 验证了：两个同类型实例、命名端口不混淆、`merge.delta → map.delta`
 反馈边不阻塞启动；v1 清单以 `E_CFG_MANIFEST_V1` 明确拒绝进图。
@@ -57,9 +58,10 @@ safe_cmd_vel_mux，`/cmd_vel` 唯一发布者为 mux；四格 driver 全 PASS，
 
 ## 3. 边界（如实）
 
-- catalog 中 9 个真实组件已对上包索引，9 个 `*_test_double` 是测试替身；R981 的真实 2D
+- catalog 中 10 个真实组件已对上包索引，9 个 `*_test_double` 是测试替身；R981 的真实 2D
   nav+mux 已由 Assembly 在 Gazebo 启动。R982 增加 hdl v2 清单和两张定位图（faster_lio / hdl），
-  但 hdl 真实 launch 未执行：`/leg_odom2`、M2-R2C 与 GT 辅助 probe；3D/其他算法仍未 v2 化。
+  但 hdl 真实 launch 未执行：`/leg_odom2`、M2-R2C 与 GT 辅助 probe；R984 的边界主链只证明
+  mux→UDP→运动学端点，不证明接触动力学；3D/其他算法仍未 v2 化。
 - node 实例的 `config` 只在 plan/launch 渲染层生效，真实 `rosrun` 不加载其 rosparam；include
   没有通用 remap 入口，连入 include 的边必须 topic 一致。`kind: plugin` 托管未实现。
 - 真实验证测试仍用假后端，未启动 MuJoCo/Gazebo；validator 否决是编排层停止，不是 msg 级

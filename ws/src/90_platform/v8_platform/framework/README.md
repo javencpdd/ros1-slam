@@ -44,6 +44,10 @@ basename）。启动、READY 就绪、停止序（mux 最后）、失败清理�
 原子替换，恢复时重算 digest 并核对 history 末行，坏文件/异 map_id/回退 fail-closed。
 `delta_map_node` 的 `~state_path` 在每次成功 delta 后落盘，ROS 重启恢复版本与幂等表（R983）。
 
+`v8.boundary.adapter` 把 mux 的 `/cmd_vel` 接到边界 UDP：`ros_bridge.py` 支持
+`command_type=twist|twist_stamped`，`snapshot` 图 `graph_boundary_mux.yaml` 用真实
+`v8.nav2d.mux` + 边界节点；R984 已用 Gazebo 运动学端点跑通 mux→UDP→端点→遥测回链。
+
 `safety.py` 是接线门：`/cmd_vel` 必须恰好一个写者且角色为 `safety_arbiter`；其他
 `command_topic` 输出必须显式连到该写者，否则 `E_SAFETY_ADVICE`；`trajectory_validator`
 最多一个，且必须同时有 path 入/出边。`Assembly.start` 启动前强制此检查
@@ -71,8 +75,8 @@ python3 -B framework/cli.py check framework/fixtures/manifests \
 python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 24 项
-python3 -B framework/test_runtime.py        # 6 项（F3 假命令/真实 include 参数）
+python3 -B framework/test_framework.py      # 25 项
+python3 -B framework/test_runtime.py        # 7 项（F3 假命令/真实 include 参数）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
 python3 -B framework/test_safety.py         # 7 项（F7 接线/否决即停/启动基准）
@@ -121,7 +125,7 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 
 ## 5. 边界（如实）
 
-- 真实入口：包索引已对上 18 个 v2 组件（9 个真实 + 9 个 `*_test_double`）；R981 的真实 2D
+- 真实入口：包索引已对上 19 个 v2 组件（10 个真实 + 9 个 `*_test_double`）；R981 的真实 2D
   nav+mux 已由 Assembly 在 Gazebo 启动。R982 增加 `v8.fw.hdl_localization` 与两张定位图，
   但 hdl 真实 launch 未执行（stock nodelet 需 `/leg_odom2`；M2-R2C 终止仿真域；GT 辅助 probe
   不计独立定位）；faster_lio 仍为 include，3D/其他算法仍未 v2 化。
