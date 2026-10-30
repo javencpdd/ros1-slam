@@ -36,6 +36,6 @@ V8-00—V8-14 主线十五件已按窄口径收口（各件证据见 [进度 v8]
 | [scenarios/](../../ws/src/90_platform/v8_platform/scenarios/) | scenarios.py（7 项） | SC01—SC14 场景框架＋独立评价器（A7） |
 | [calibration/](../../ws/src/90_platform/v8_platform/calibration/) | calibration.py（8 项） | 冻结判据、定标/正式分离、封版 digest |
 | [regression/](../../ws/src/90_platform/v8_platform/regression/) | regression.py（6 项） | 双轨×组合×场景 48 cell 矩阵＋失败定位 |
-| [delivery/](delivery/delivery.py) | 规模曲线＋复现清单（5 项） | 性能定界与复现自证 |
+| [delivery/](../../ws/src/90_platform/v8_platform/delivery/delivery.py) | 规模曲线＋复现清单（5 项） | 性能定界与复现自证 |
 
 **未接入说明（如实）**：apt 侧后端（map_server／GlobalPlanner／DWA／TEB）与 SCAN 运行面**未在本设计层实装运行**——其在册声明（registry 13 manifest）、组合与接线（composer/adapters）已经设计层验证，实装运行、双轨实跑与 A1—A7 正式判据归仿真阶段（25 号窗纪律）；teb kinematics 定案与 slab A* 成因插桩须容器面（运行批）。复现：`python3 -B delivery/delivery.py manifest` 输出交付树逐件 sha256 清单（再生成一致）。
