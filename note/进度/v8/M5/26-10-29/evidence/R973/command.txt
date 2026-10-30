@@ -1,0 +1,8 @@
+R973 命令（2026-10-31 01:58—02:01 CST，qoder；A5 plan_ms 诊断）
+# 代码：worker plan_ms、节点 status plan_ms/plan_ms_max、runner status_log 保留。
+# 容器 ros1-slam-sim；独立 master 11443/11444；seed0 1 次、seed2 5 次。
+python3 -B a5_v8x1_runtime.py --map ... --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --seed 0/2 --perturb --lockstep --stall-retry --out ... --wall-deadline-s 150
+# 读数：6 次运行 plan_ms_max 2447.8—5120.8 ms；无 E_LOCAL_WALL_EXPIRED；
+#   seed0 失败碰撞，seed2 3/5（两次 E_LOCAL_COLLISION）。
+# 测试：planner worker 2/2；V8 全树 57 套件 0 失败。不改判据/预算。
