@@ -1,0 +1,16 @@
+{
+  "domain": "v8x1_new_policy_0p6m_with_landing",
+  "policy_sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f",
+  "config": {"steps": 4, "step_h_m": 0.15, "depth_m": 0.5, "width_m": 3.0,
+             "landing_depth_m": 2.0, "seconds": 12, "v_cmd": 0.3,
+             "heading_hold": [3.0, 1.5, 0.5], "seed_perturb": true},
+  "matrix": {"seeds": 5, "pass": 5, "stable": 5, "fell": 0, "unstable": 0},
+  "final_xyz": [[10.0753,0.0756,0.2213],[11.3421,0.0708,0.236],[9.0455,0.0559,0.235],
+                [10.5793,0.0623,0.228],[10.4527,0.0694,0.2243]],
+  "zmin_range": [0.1733, 0.2165],
+  "max_abs_y_range": [0.1348, 0.1711],
+  "root_cause": "the old 0.6 m failure was the 0.6 m cliff after the last step, not the climb; adding a 2 m top landing makes 4x0.15 m stable",
+  "v8x1": "0.45 m 15/15 (R933) and 0.6 m 5/5 (R935) stair pilots pass; formal V8-X1 acceptance still needs independent dynamics criteria",
+  "a5_overall": "PARTIAL (no ROS/planning integration; no real robot)",
+  "a1_a7": "NOT_VALIDATED"
+}
