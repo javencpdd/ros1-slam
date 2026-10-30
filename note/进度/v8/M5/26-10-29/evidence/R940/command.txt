@@ -1,0 +1,8 @@
+R940 命令（2026-10-30 13:34—13:45 CST，qoder；NIST 踏面放大到 0.7 m）
+# 生成：xy 1.70、z 0.51、前侧地面
+python3 -B planner/mesh_support.py --dae data/maps/worlds/nist_stairs_120/meshes/nist_stairs_120.dae \
+  --out data/maps/nist_stairs_120_s020x170_support.json --resolution .15 --z-scale .51 --xy-scale 1.70 --ground-front-only
+# 局部执行：tick 1.2 / validity 3.0 / resolution .15 / clearance .1
+# 末态 [0,-1.6344,0.1543]，E_LOCAL_SUPPORT；评价器 contact_mismatch/unsupported/static_collision(step1)。
+# clearance .2 时从 step1 无法规划（下一级进入低顶包络）；.1 可规划。
+# 42 套件 0 失败。

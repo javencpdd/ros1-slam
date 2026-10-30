@@ -1,0 +1,18 @@
+{
+  "domain": "nist_scaled_tread_0p7",
+  "xy_scale": 1.70, "z_scale": 0.51,
+  "levels_m": [0.198798, 0.371688, 0.544578, 0.717468, 0.890358],
+  "tread_depth_m": 0.7203,
+  "max_step_m": 0.198798,
+  "plan": {"clearance_0.2": "no route from step1 (next step low-ceiling envelope)",
+           "clearance_0.1": "plan reaches step1/step2 (native plan horizon)"},
+  "local_execution": {"config": {"tick_s": 1.2, "validity_s": 3.0, "resolution": 0.15, "clearance_m": 0.1},
+                      "final": [-4.44e-16, -1.634384, 0.154273],
+                      "status": "E_LOCAL_SUPPORT",
+                      "evaluation_failures": ["execution_contact_mismatch", "execution_unsupported", "static_collision"],
+                      "static_collision_surface": "step1"},
+  "finding": "0.7 m tread makes the design plan feasible at clearance 0.1, but the kinematic executor still stops below step1 top (z 0.154 vs 0.1988) and fails support/contact checks",
+  "tests": {"mesh_support": 2, "v8_suites": 42, "failures": 0},
+  "scope": "derived support map; no A4/A5 acceptance",
+  "a1_a7": "NOT_VALIDATED"
+}
