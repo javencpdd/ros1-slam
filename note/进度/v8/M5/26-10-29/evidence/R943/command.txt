@@ -1,0 +1,43 @@
+R943 命令（2026-10-30 14:08—14:11 CST，qoder；楼梯稳定判据补末态 z）
+# 依据：真人 2026-10-30「先按建议修改 stable_finish 增加末态 z 检查」。
+# 判据：stable_finish 增加 final_z > step_h*steps + 0.1（站立余量 0.1 m）。
+# 单元测试：
+cd /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/dynamics && python3 -B test_mj_dreamwaq_walk.py
+# 13 项 OK（原 10 项 + 3 项判据测试）。
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform && for f in $(find . -name 'test_*.py'); do python3 -B "$f"; done
+# 43 套件 0 失败。
+# 存盘读数离线重算（不重跑 MuJoCo）：
+python3 - <<'PY'
+import glob, gzip, json, sys
+sys.path.insert(0, 'ws/src/95_simulation/lite3_gazebo_sim/dynamics')
+import mj_dreamwaq_walk as walk
+base = 'note/进度/v8/M5/26-10-29/evidence'
+def classify(path):
+    d = json.load(gzip.open(path, 'rt'))
+    v = walk.stair_verdict(d['final_xyz'], d['xmax'], d['marks'], d['stair'], d['fell'], d['unstable'])
+    return {'file': path.replace(base + '/', ''), 'old_pass': d.get('pass'),
+            'old_stable': d.get('stable_finish'), 'clean_climb': v['clean_climb'],
+            'stable_finish': v['stable_finish'], 'final_xyz': d['final_xyz'],
+            'top_z': round(d['stair']['step_h'] * d['stair']['steps'], 4)}
+batches = {
+    'R933_3x0.15_no_landing': sorted(glob.glob(base + '/R933/matrix/h.15_s*.json.gz')),
+    'R933_h0.06_h0.10_no_landing': sorted(glob.glob(base + '/R933/matrix/h.06_s*.json.gz')) + sorted(glob.glob(base + '/R933/matrix/h.10_s*.json.gz')),
+    'R935_4x0.15_landing2': sorted(glob.glob(base + '/R935/matrix/s*.json.gz')),
+    'R942_5x0.1988_landing12': sorted(glob.glob(base + '/R942/l12/*.json.gz')),
+    'R942_5x0.1988_landing6': sorted(glob.glob(base + '/R942/l6/*.json.gz')),
+    'R942_5x0.1988_landing2': sorted(glob.glob(base + '/R942/l2/*.json.gz')),
+}
+out = {}
+for name, files in batches.items():
+    rows = [classify(f) for f in files]
+    out[name] = {'runs': len(rows),
+                 'old_pass': sum(1 for r in rows if r['old_pass']),
+                 'old_stable': sum(1 for r in rows if r['old_stable']),
+                 'clean_climb': sum(1 for r in rows if r['clean_climb']),
+                 'new_stable': sum(1 for r in rows if r['stable_finish']),
+                 'rows': rows}
+open(base + '/R943/reclassify.json', 'w').write(json.dumps(out, ensure_ascii=False, indent=1) + '\n')
+PY
+# 读数：R933 h.15 5→0、R933 h.06/h.10 10→0、R935 5→0；
+#   R942 L12 5→5、L6 5→2、L2 0→0（clean_climb 均不变）。
+# 改后集成复跑（L12 seed0）：pass/clean/stable=true，末态 [9.4639,0.0679,1.2177]。
