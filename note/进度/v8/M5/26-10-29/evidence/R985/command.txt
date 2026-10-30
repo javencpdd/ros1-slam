@@ -1,0 +1,26 @@
+R985 命令（2026-10-31 04:35—04:37 CST，qoder；V8-X1 无 landing 多 seed）
+# 容器 v8codex-20261028；仓库挂载 /repo；MuJoCo 2.3.7 + onnxruntime 1.16.3。
+# /tmp/new_policy.onnx 从 ros1-slam-sim 复制（sha256 881b6604…）；
+# /tmp/mjcf/Lite3.xml 同容器；4×0.15 m、深 .5、宽 3、front 1、landing 0。
+cd /repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics
+PYTHONPATH=/tmp/r854-policy-runtime python3 - <<'PY'
+import json
+from pathlib import Path
+import mj_dreamwaq_walk as walk
+xml = walk.make_stairs_xml("/tmp/mjcf/Lite3.xml", .15, steps=4, depth=.5,
+                           width=3.0, front=1.0, landing_depth=0.0)
+stair = {"step_h": .15, "steps": 4, "depth": .5, "width": 3.0,
+         "front": 1.0, "landing_depth": 0.0}
+rows = []
+for seed in range(5):
+    for rep in range(3):
+        result = walk.run_rollout(xml, "/tmp/new_policy.onnx", 5.5, .3,
+                                  stair=stair, heading_hold=True, yaw_gain=3.0,
+                                  y_gain=1.5, max_wz=.5,
+                                  initial_perturbation=walk.sample_initial(seed, True))
+        rows.append({...})
+PY
+# 读数：5 seed×3、5.5 s、v .3：clean 12/15、stable 3/15、fell 0、unstable 0。
+#   seed0 3/3 stable；seed1/3/4 clean 但 final z .27/.53/.64（未留顶层）；
+#   seed2 xmax 2.59 < 2.70（未到顶层判据），clean 0/3。
+# 边界：MuJoCo 单策略、确定性；无 ROS/真机/#151；R977 判据未改；A1—A7 不变。
