@@ -11,6 +11,7 @@
 | --- | --- |
 | [current-system.md](current-system.md) | 系统由哪些部分组成、什么真的接通、边界在哪 |
 | [algorithm-swap.md](algorithm-swap.md) | 建图/定位/全局/局部/中间件今天分别怎么换 |
+| [target-framework.md](target-framework.md) | 目标框架（多地图/多机器人/任意中间件/仿真通行性）与当前差距、改造路线 |
 | [architecture-ros1-slam.html](architecture-ros1-slam.html) | 一页版：三张图＋状态卡（可直接浏览器打开） |
 
 ## 三张图
