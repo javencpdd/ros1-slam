@@ -1,0 +1,10 @@
+R939 命令（2026-10-30 13:20—13:34 CST，qoder；NIST ≤0.2 m 高度分段）
+# 生成缩放支撑图（z 0.51、前侧地面）：
+python3 -B planner/mesh_support.py --dae data/maps/worlds/nist_stairs_120/meshes/nist_stairs_120.dae \
+  --out data/maps/nist_stairs_120_s020_support.json --resolution .1 --z-scale .51 --ground-front-only
+# 局部执行（runtime_probe，容器，tick 1.2/validity 3.0）：
+#   res0.2 → E_LOCAL_NO_ROUTE（0.2 栅格错过 0.124 m 支撑带）
+#   res0.1 → E_LOCAL_EXPIRED（规划 ~7.5 s > validity 3 s）
+#   res0.15 → 到 y=-1.4 后 E_LOCAL_NO_ROUTE（步深 .424 m < radius .15+height .35）
+# 旧全地面版先走到台阶下方 y=.785/z=0 再 NO_ROUTE。
+# 结论：高度分段≤0.2 m 成立，但 NIST 步深不足，局部执行仍不可用。

@@ -1,0 +1,20 @@
+{
+  "domain": "nist_scaled_steps_0p2",
+  "z_scale": 0.51,
+  "levels_m": [0.198798, 0.371688, 0.544578, 0.717468, 0.890358],
+  "max_step_m": 0.198798,
+  "ground": "front-only strip with 0.05 m overlap under step1",
+  "local_execution": {
+    "old_full_ground": {"final": [-0.0446, 0.785, 0.0], "status": "E_LOCAL_NO_ROUTE",
+                        "note": "walked under the staircase at ground level"},
+    "front_res0.2": {"status": "E_LOCAL_NO_ROUTE", "note": "0.2 m grid misses 0.124 m support strip"},
+    "front_res0.1": {"status": "E_LOCAL_EXPIRED", "note": "plan takes ~7.5 s > validity 3.0 s"},
+    "front_res0.15": {"final": [0.0, -1.4, 0.0], "status": "E_LOCAL_NO_ROUTE",
+                      "note": "tread depth 0.424 m < radius 0.15 + height 0.35; next step is low ceiling"},
+    "result": "NEGATIVE: height segmentation <=0.2 m alone is insufficient"
+  },
+  "design_plan": "support_planner can still plan the 6 surfaces (R938); local_native cannot stand on the shallow treads",
+  "tests": {"mesh_support": 2, "v8_suites": 42, "failures": 0},
+  "scope": "derived NIST support map; no A4/A5 acceptance; no Gazebo scaled model",
+  "a1_a7": "NOT_VALIDATED"
+}
