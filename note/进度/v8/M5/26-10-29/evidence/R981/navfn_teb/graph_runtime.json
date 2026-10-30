@@ -1,0 +1,222 @@
+{
+ "source": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_2d_stack_navfn_teb.yaml",
+ "source_sha256": "17fb806701d10163a82fcde186dc0235c8ae6d2c38c309f5bc1b1666c6cb0724",
+ "materialized": "/tmp/r981_navfn_teb/graph.materialized.yaml",
+ "digest": "e165bf0d689a5167c41405bb8f0fcfebdc76c929d884827da8b6801dd1c63d55",
+ "startup_order": [
+  "nav",
+  "mux"
+ ],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_raw": "nav"
+ },
+ "launch_check": {
+  "components": 17,
+  "real": 8,
+  "test_double": 9,
+  "rows": [
+   {
+    "component": "v8.fw.faster_lio",
+    "kind": "include",
+    "package": "lite3_slam",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.global2d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.global3d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.local2d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.local3d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map2d",
+    "kind": "node",
+    "package": "map_server",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.map3d",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map3d_v2",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map_cache",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.map_merge",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.mux",
+    "kind": "node",
+    "package": "lite3_safety",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.robot_lite3",
+    "kind": "node",
+    "package": "message_transformer",
+    "test_double": false
+   },
+   {
+    "component": "v8.fw.robot_test_b",
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": true
+   },
+   {
+    "component": "v8.fw.sensors",
+    "kind": "node",
+    "package": "lite3_drivers",
+    "test_double": false
+   },
+   {
+    "component": "v8.nav2d.dwa_stack",
+    "kind": "include",
+    "package": "v8_platform",
+    "test_double": false
+   },
+   {
+    "component": "v8.nav2d.mux",
+    "kind": "include",
+    "package": "lite3_safety",
+    "test_double": false
+   },
+   {
+    "component": "v8.nav2d.teb_stack",
+    "kind": "include",
+    "package": "v8_platform",
+    "test_double": false
+   }
+  ]
+ },
+ "planners": {
+  "global": "navfn",
+  "local": "teb"
+ },
+ "ready_after_start": true,
+ "commands": {
+  "nav": [
+   "roslaunch",
+   "/opt/ros1-slam/ws/src/90_platform/v8_platform/calibration/flat2d/flat2d_stack_sc09_f64nli25_teb.launch",
+   "cmd_topic:=/cmd_vel_raw",
+   "global_planner:=navfn/NavfnROS",
+   "local_planner:=teb_local_planner/TebLocalPlannerROS",
+   "map_yaml:=/tmp/r981_navfn_teb/map.yaml"
+  ],
+  "mux": [
+   "roslaunch",
+   "/opt/ros1-slam/ws/src/60_safety/lite3_safety/launch/60_safety.launch"
+  ]
+ },
+ "planner_params": {
+  "base_global_planner": "navfn/NavfnROS",
+  "base_local_planner": "teb_local_planner/TebLocalPlannerROS"
+ },
+ "nodes": [
+  "/gazebo",
+  "/liveness_m6",
+  "/map_server",
+  "/map_to_odom",
+  "/map_to_odom_static",
+  "/move_base",
+  "/robot_state_publisher",
+  "/rosout",
+  "/runtime_lab_303901_1793391114323",
+  "/safe_cmd_vel_mux",
+  "/scan_relay",
+  "/sim_adapter",
+  "/tf_frame_assert"
+ ],
+ "topics": {
+  "/cmd_vel": "Type: geometry_msgs/Twist\n\nPublishers: \n * /safe_cmd_vel_mux (http://127.0.0.1:39743/)\n\nSubscribers: \n * /gazebo (http://127.0.0.1:32783/)\n\n\n",
+  "/cmd_vel_raw": "Type: geometry_msgs/Twist\n\nPublishers: \n * /move_base (http://127.0.0.1:42747/)\n\nSubscribers: \n * /safe_cmd_vel_mux (http://127.0.0.1:39743/)\n\n\n"
+ },
+ "health_before_goal": [],
+ "health_after_goal": [],
+ "stop_record": [
+  {
+   "id": "nav",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "mux",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  }
+ ],
+ "unstopped": {
+  "nav": false,
+  "mux": false
+ },
+ "runner_state": {
+  "nav": {
+   "alive": false,
+   "groups": [],
+   "tracked_pids": [
+    304981,
+    304982,
+    304983
+   ],
+   "tracked_pgids": [
+    304981,
+    304982,
+    304983
+   ],
+   "reader_alive": false,
+   "pid_states": {
+    "304981": "gone",
+    "304982": "gone",
+    "304983": "gone"
+   }
+  },
+  "mux": {
+   "alive": false,
+   "groups": [],
+   "tracked_pids": [
+    304998,
+    305000
+   ],
+   "tracked_pgids": [
+    304998,
+    305000
+   ],
+   "reader_alive": false,
+   "pid_states": {
+    "304998": "gone",
+    "305000": "gone"
+   }
+  }
+ }
+}

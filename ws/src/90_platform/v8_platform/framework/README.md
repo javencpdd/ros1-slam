@@ -19,8 +19,16 @@
 校验 package/launch file/executable/param file，不启动 ROS。
 
 `runtime.py` 把 assembly plan 转成 `ComponentSpec` 并交给现有 `ProcessRunner/Orchestrator`；
-默认命令为 `rosrun`/`roslaunch`，测试注入假命令。启动、READY 就绪、停止序（mux 最后）、
-失败清理与健康检测均有测试；真实 ROS 启动不在本片。
+默认命令为 `rosrun`/`roslaunch`，测试注入假命令。include 的 manifest/graph 参数以
+`key:=value` 传给 `roslaunch`，node 的 graph `params` 以 `_key:=value` 私有参数传给 `rosrun`；
+嵌套路径 launch 先用 `rospack find` 解析为绝对路径（`roslaunch pkg nested/file.launch` 只认
+basename）。启动、READY 就绪、停止序（mux 最后）、失败清理与健康检测均有测试。
+
+真实 2D 栈已接入：`v8.nav2d.dwa_stack`/`v8.nav2d.teb_stack` 是 include 组件，
+`v8.nav2d.mux` 拉起真实 `60_safety.launch`，四张 `graph_2d_stack_*.yaml` 只改
+`global_planner`/`local_planner` 参数。R981 在 Gazebo m1/SC09/seed0 上由 Assembly
+启动 nav+mux，四格（GlobalPlanner/Navfn × DWA/TEB）全 PASS；`ProcessRunner` 在停止前
+快照 roslaunch 后代并对其独立会话发信号，否则只杀 roslaunch 会遗留各节点。
 
 `robot.py` 读取 robot.v1 profile：declared/prohibited 值不得驱动规划（`E_ROBOT_UNVERIFIED`），
 仅 tested/allowed 值可用；robot_adapter 必须提供 `cmd`（TwistStamped）与 `odom`/`imu` 遥测端口。
@@ -60,8 +68,8 @@ python3 -B framework/cli.py check framework/fixtures/manifests \
 python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 22 项
-python3 -B framework/test_runtime.py        # 5 项（F3 假命令运行器）
+python3 -B framework/test_framework.py      # 23 项
+python3 -B framework/test_runtime.py        # 6 项（F3 假命令/真实 include 参数）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
 python3 -B framework/test_safety.py         # 7 项（F7 接线/否决即停/启动基准）
@@ -110,11 +118,14 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 
 ## 5. 边界（如实）
 
-- "真实入口"仅指包/launch/可执行/参数文件在**声明索引**中对上（5 个），未在宿主执行；
-  `v8_platform/*_test_double` 有 9 个（含第二个机器人适配器）。`kind: plugin` 托管未实现。
-- runtime 测试用假命令；真实 `rosrun/roslaunch` 未执行。包索引是声明快照，不是 rospack 活体扫描；
-  验证测试用假后端，未启动 MuJoCo/Gazebo；ready_marker 需按组件配置，plugin 托管、热插拔、
-  状态迁移、运行期改线未实现。
+- 真实入口：包索引已对上 17 个组件（8 个真实 + 9 个 `*_test_double`）；R981 的真实 2D
+  nav+mux 已由 Assembly 在 Gazebo 启动，定位/3D/其他算法仍未 v2 化或未真实 launch。
+- 实例 `config` 在 plan/launch 渲染层生效，但真实 `rosrun` 命令不加载 node 的
+  `rosparam` 文件；当前真实接入用 include 组件（参数走 launch args）。
+- include 组件没有通用 `remap` 入口：图中连入 include 的边必须让端口 topic 与上游一致，
+  否则真实启动不会改线；node 组件的边 remap 仍只在渲染骨架里。
+- 包索引是声明快照，不是 rospack 活体扫描；验证测试用假后端，未启动 MuJoCo/Gazebo；
+  plugin 托管、热插拔、状态迁移、运行期改线未实现。
 - validator 否决走的是**编排层停止链**，不是 msg 级实时看门狗；50/500 Hz 的承载路径未做实测对比，
   只记录启动 check+plan 的 p95。
 - 不改 `contracts/registry/composer/orchestrator` 既有语义；A1—A7 状态不变。

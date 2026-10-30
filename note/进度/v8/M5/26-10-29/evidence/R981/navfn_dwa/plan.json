@@ -1,0 +1,89 @@
+{
+ "schema": "assembly_plan/v1",
+ "name": "nav2d_navfn_dwa_mux",
+ "digest": "3c17d4ce85c3bd32e622887c22c86facb50bc09b1d27beac2e580609c033e323",
+ "catalog": {
+  "path": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/manifests",
+  "sha256": "690036b6dba35e944ac81f07e23dea901d0d9a81342ed2d0f6f143e830c5feb0"
+ },
+ "instances": [
+  {
+   "id": "nav",
+   "component": "v8.nav2d.dwa_stack",
+   "launch": {
+    "kind": "include",
+    "package": "v8_platform",
+    "test_double": false,
+    "launch_file": "calibration/flat2d/flat2d_stack_sc09_f64nli25.launch",
+    "args": {
+     "global_planner": "global_planner/GlobalPlanner",
+     "local_planner": "dwa_local_planner/DWAPlannerROS",
+     "map_yaml": "/work/pilot_map.yaml",
+     "cmd_topic": "/cmd_vel_raw"
+    }
+   },
+   "namespace": null,
+   "params": {
+    "global_planner": "navfn/NavfnROS",
+    "local_planner": "dwa_local_planner/DWAPlannerROS",
+    "map_yaml": "/tmp/r981_navfn_dwa/map.yaml",
+    "cmd_topic": "/cmd_vel_raw"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {}
+  },
+  {
+   "id": "mux",
+   "component": "v8.nav2d.mux",
+   "launch": {
+    "kind": "include",
+    "package": "lite3_safety",
+    "test_double": false,
+    "launch_file": "launch/60_safety.launch",
+    "args": {}
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "cmd": {
+     "source": "edge",
+     "from": "nav.cmd",
+     "type": "geometry_msgs/Twist",
+     "schema": null
+    },
+    "hold": {
+     "source": "external:supervisor",
+     "type": "std_msgs/Bool",
+     "schema": null
+    }
+   }
+  }
+ ],
+ "edges": [
+  {
+   "from": "nav.cmd",
+   "to": "mux.cmd",
+   "feedback": false,
+   "policy": {}
+  }
+ ],
+ "external": [
+  {
+   "to": "mux.hold",
+   "type": "std_msgs/Bool",
+   "source": "supervisor"
+  }
+ ],
+ "startup_order": [
+  "nav",
+  "mux"
+ ],
+ "feedback": [],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_raw": "nav"
+ }
+}

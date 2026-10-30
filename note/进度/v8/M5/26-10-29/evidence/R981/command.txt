@@ -1,0 +1,24 @@
+R981 命令（2026-10-31 03:56—04:14 CST，qoder；2D 栈 v2 graph + Assembly 真实启动四格）
+# 容器 ros1-slam-sim；源码挂载 /opt/ros1-slam/ws/src；输出 /tmp/r981_<cell>。
+# 同 Gazebo m1/SC09/起点(0,0)/终点(6,3)/seed0/truth odom；图只改 nav 实例的
+# global_planner/local_planner，mux 仍是真实 60_safety.launch。
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+# 端口/输出与四格对应：gp_dwa 11356；gp_teb 11360（首跑 11357 因 TEB 参数缺失未达终点，
+#   对齐 R980 的 teb_runtime.json 参数后重跑）；navfn_dwa 11361；navfn_teb 11362。
+for spec in "gp_dwa gp_dwa 11356" "gp_teb gp_teb2 11360" \
+            "navfn_dwa navfn_dwa 11361" "navfn_teb navfn_teb 11362"; do
+  set -- $spec; cell=$1; out=$2; port=$3
+  python3 -B regression/runtime_lab.py --out /tmp/r981_$out --port $port \
+    --gazebo --scenario SC09 --seed 0 \
+    --graph framework/fixtures/graphs/graph_2d_stack_$cell.yaml
+done
+# runtime_lab 在运行前：读取 graph、把 map_yaml 改到本次输出 map.yaml、写 materialized graph，
+# 再走 config.load_components / graph.check / render_plan / render_launch / Assembly.start。
+# 运行后：从 /move_base/base_global_planner 与 base_local_planner 读实际类，rostopic info
+# 记录 /cmd_vel 与 /cmd_vel_raw 的发布/订阅；driver 结束后 Assembly.health 为空，停止链退净。
+# 读数：四格全 PASS；GP+DWA 6.87 m/34.8 s/696 cmd、GP+TEB 6.60/18.9/378、
+#   Navfn+DWA 6.90/34.4/688、Navfn+TEB 6.64/19.0/380；注入净距 0.581—0.660 m；
+#   四格 health []、unstopped {nav:false,mux:false}、进程组 survivors 全空。
+# 测试：framework 23/23、runtime 6/6、process_runner 12/12、V8 全树 59 套件 0 失败。
+# 边界：truth odom；无 LIO/NDT、无真机/#151；A1—A7 仍 NOT_VALIDATED。

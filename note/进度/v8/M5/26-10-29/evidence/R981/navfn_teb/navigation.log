@@ -1,0 +1,12 @@
+# graph=graph_2d_stack_navfn_teb
+# digest=e165bf0d689a5167c41405bb8f0fcfebdc76c929d884827da8b6801dd1c63d55
+# planner_params={"base_global_planner": "navfn/NavfnROS", "base_local_planner": "teb_local_planner/TebLocalPlannerROS"}
+# startup_order=nav,mux
+mux: 活跃源切换: INIT -> NONE
+move_base: teb_local_planner/TebLocalPlannerROS
+mux: 活跃源切换: NONE -> navigation
+mux: 活跃源切换: navigation -> NONE
+mux: safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+mux: 活跃源切换: INIT -> NONE
+mux: 活跃源切换: NONE -> navigation
+mux: 活跃源切换: navigation -> NONE

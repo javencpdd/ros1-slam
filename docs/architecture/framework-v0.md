@@ -1,10 +1,11 @@
 # 统一 YAML 组件图 v0.1（ROS1）
 
-> 2026-10-30 起；R956 把组件源并入 registry manifest v2，R963/R964 接上独立验证与安全接线。
+> 2026-10-30 起；R956 把组件源并入 registry manifest v2，R963/R964 接上独立验证与安全接线，
+> R981 完成真实 2D 栈的 graph→plan→Assembly 启动四格实测。
 > 目标框架的第一片：**配置、装配计划与运行装配**；数据面仍走 ROS 话题。
-> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 22 项＋runtime 5 项＋robot 4 项＋
+> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 23 项＋runtime 6 项＋robot 4 项＋
 > verification 5 项＋safety 7 项＋selector 3 项＋hotswap 5 项＋契约 v2 6 项＋registry/composer v2 4 项；
-> V8 全树 57 套件 0 失败。
+> V8 全树 59 套件 0 失败。
 
 ## 1. 解决什么
 
@@ -39,18 +40,27 @@
 | 实例配置预检 | 每实例 `config` 文件解析/重复键/映射/摘要；取代 manifest param_files |
 | 维度配对 | Path 跨 2D/3D 直连拒绝；地图 schema 与组件 dimensions 不一致拒绝 |
 | 热替换合同 | `hot_swap/v1`：角色/端口/所有权门＋停止后换组合 |
+| 真实 2D 装配 | `v8.nav2d.dwa_stack`/`teb_stack` + `v8.nav2d.mux` 四张 graph；Assembly 启动 nav+mux，GlobalPlanner/Navfn × DWA/TEB 4/4 PASS（R981） |
+| 真实停止 | `ProcessRunner` 快照 roslaunch 后代并对独立会话发信号，避免只杀 roslaunch 遗留节点 |
 
 3D 双缓存 fixture 验证了：两个同类型实例、命名端口不混淆、`merge.delta → map.delta`
 反馈边不阻塞启动；v1 清单以 `E_CFG_MANIFEST_V1` 明确拒绝进图。
+
+R981 的四张 2D graph 只把 `nav` 实例指向 DWA/TEB 栈并覆盖 `global_planner`/`local_planner`；
+`mux` 实例仍拉起真实 `60_safety.launch`。运行后从参数服务器读到实际
+`base_global_planner`/`base_local_planner`；`/cmd_vel_raw` 发布者为 move_base、订阅者为
+safe_cmd_vel_mux，`/cmd_vel` 唯一发布者为 mux；四格 driver 全 PASS，停止后无残留进程。
 
 运行时只做启动/停止：50 Hz 规划与控制走 ROS 话题；500 Hz 命令发送在边界适配器专用进程
 （33B UDP），不进 Python 编排环。`perf.py` 只记录启动前 check+plan 的开销，`startup_only=True`。
 
 ## 3. 边界（如实）
 
-- catalog 中的 `*_test_double` 是测试替身；真实包的 launch 条目尚未逐项对表，也未在宿主执行
-  `rosrun/roslaunch`。`kind: plugin` 托管未实现。
-- 运行装配测试用假命令/假进程；未启动真实 ROS 组件。validator 否决是编排层停止，不是 msg 级
+- catalog 中 8 个真实组件已对上包索引，9 个 `*_test_double` 是测试替身；R981 的真实 2D
+  nav+mux 已由 Assembly 在 Gazebo 启动，定位/3D/其他算法仍未 v2 化或未真实 launch。
+- node 实例的 `config` 只在 plan/launch 渲染层生效，真实 `rosrun` 不加载其 rosparam；include
+  没有通用 remap 入口，连入 include 的边必须 topic 一致。`kind: plugin` 托管未实现。
+- 真实验证测试仍用假后端，未启动 MuJoCo/Gazebo；validator 否决是编排层停止，不是 msg 级
   实时看门狗；运行中热插拔/状态迁移未实现（V8-X3 仅停止后换组合）。
 - 独立验证用假后端，未启动 MuJoCo/Gazebo。
 - 不改既有 contracts/registry/composer/orchestrator 语义；A1—A7 仍 `NOT_VALIDATED`。
@@ -59,7 +69,7 @@
 
 F0—F8 已完成；F1—F7 证据索引与“未接入项/回滚说明”见
 [27 号补丁 §11/§12](../../note/计划书v8/27_框架改造补丁-v0.1.md)。每批读数位于
-`note/进度/v8/M5/26-10-29/evidence/R955—R965`。A1—A7 状态不变，仍 `NOT_VALIDATED`。
+`note/进度/v8/M5/26-10-29/evidence/R955—R981`。A1—A7 状态不变，仍 `NOT_VALIDATED`。
 
 ## 5. V8-X3 v0.1
 

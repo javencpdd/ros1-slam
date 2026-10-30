@@ -1,0 +1,10 @@
+# graph=graph_2d_stack_navfn_dwa
+# digest=3c17d4ce85c3bd32e622887c22c86facb50bc09b1d27beac2e580609c033e323
+# planner_params={"base_global_planner": "navfn/NavfnROS", "base_local_planner": "dwa_local_planner/DWAPlannerROS"}
+# startup_order=nav,mux
+mux: 活跃源切换: INIT -> NONE
+move_base: dwa_local_planner/DWAPlannerROS
+mux: 活跃源切换: NONE -> navigation
+mux: safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+mux: 活跃源切换: INIT -> NONE
+mux: 活跃源切换: NONE -> navigation

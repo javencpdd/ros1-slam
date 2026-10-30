@@ -1,0 +1,19 @@
+schema: pipeline_graph/v1
+name: nav2d_gp_teb_mux
+instances:
+- id: nav
+  component: v8.nav2d.teb_stack
+  params:
+    global_planner: global_planner/GlobalPlanner
+    local_planner: teb_local_planner/TebLocalPlannerROS
+    map_yaml: /tmp/r981_gp_teb2/map.yaml
+    cmd_topic: /cmd_vel_raw
+- id: mux
+  component: v8.nav2d.mux
+edges:
+- from: nav.cmd
+  to: mux.cmd
+external:
+- to: mux.hold
+  type: std_msgs/Bool
+  source: supervisor

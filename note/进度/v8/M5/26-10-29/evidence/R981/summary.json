@@ -1,0 +1,138 @@
+{
+ "runs": 4,
+ "pass": 4,
+ "rows": [
+  {
+   "cell": "gp_dwa",
+   "run_id": "runtime_global_planner_dwa_SC09_s0_r1",
+   "graph": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_2d_stack_gp_dwa.yaml",
+   "graph_sha256": "b9ffec4a2e45152c9550c15d90a8c33d3e4567a5b9aa8b79e6cd2f40e80bcdb8",
+   "assembly_digest": "f59cc888fd24bfbfcc2b9376d8d62c74fc1a224bc2c1cae72a8e8a534b259909",
+   "verdict": "PASS",
+   "fail_reason": null,
+   "planner_params": {
+    "base_global_planner": "global_planner/GlobalPlanner",
+    "base_local_planner": "dwa_local_planner/DWAPlannerROS"
+   },
+   "path_length_m": 6.87,
+   "wall_duration_s": 77.3,
+   "sim_duration_s": 34.8,
+   "cmd_vel_messages": 696,
+   "dist_to_goal_m": 0.115,
+   "obstacle_min_clearance_m": 0.379,
+   "injected_box_clearance_m": 0.601,
+   "injection_ok": true,
+   "startup_order": [
+    "nav",
+    "mux"
+   ],
+   "health_before_goal": [],
+   "health_after_goal": [],
+   "unstopped": {
+    "nav": false,
+    "mux": false
+   },
+   "cmd_vel_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /safe_cmd_vel_mux (http://127.0.0.1:33629/)\n\nSubscribers: \n * /gazebo (http://127.0.0.1:38165/)\n\n\n",
+   "cmd_vel_raw_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /move_base (http://127.0.0.1:35631/)\n\nSubscribers: \n * /safe_cmd_vel_mux (http://127.0.0.1:33629/)\n\n\n"
+  },
+  {
+   "cell": "gp_teb",
+   "run_id": "runtime_global_planner_teb_SC09_s0_r1",
+   "graph": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_2d_stack_gp_teb.yaml",
+   "graph_sha256": "7c9f94fe039dfdb0b4242a7976562f285293aa1772bdd535f3ed33bb5b0de9c2",
+   "assembly_digest": "4fcd8ac3fa464faf748ba8258eb0a65ad84009fbd6e9b1ce16b96b0d71b14cc1",
+   "verdict": "PASS",
+   "fail_reason": null,
+   "planner_params": {
+    "base_global_planner": "global_planner/GlobalPlanner",
+    "base_local_planner": "teb_local_planner/TebLocalPlannerROS"
+   },
+   "path_length_m": 6.6,
+   "wall_duration_s": 41.9,
+   "sim_duration_s": 18.9,
+   "cmd_vel_messages": 378,
+   "dist_to_goal_m": 0.222,
+   "obstacle_min_clearance_m": 0.416,
+   "injected_box_clearance_m": 0.581,
+   "injection_ok": true,
+   "startup_order": [
+    "nav",
+    "mux"
+   ],
+   "health_before_goal": [],
+   "health_after_goal": [],
+   "unstopped": {
+    "nav": false,
+    "mux": false
+   },
+   "cmd_vel_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /safe_cmd_vel_mux (http://127.0.0.1:41731/)\n\nSubscribers: \n * /gazebo (http://127.0.0.1:42149/)\n\n\n",
+   "cmd_vel_raw_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /move_base (http://127.0.0.1:46237/)\n\nSubscribers: \n * /safe_cmd_vel_mux (http://127.0.0.1:41731/)\n\n\n"
+  },
+  {
+   "cell": "navfn_dwa",
+   "run_id": "runtime_navfn_dwa_SC09_s0_r1",
+   "graph": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_2d_stack_navfn_dwa.yaml",
+   "graph_sha256": "21b189bb98e233ef30d4fb2ca89870c7e5c27c2dc092ee2261fc799c56bf921a",
+   "assembly_digest": "3c17d4ce85c3bd32e622887c22c86facb50bc09b1d27beac2e580609c033e323",
+   "verdict": "PASS",
+   "fail_reason": null,
+   "planner_params": {
+    "base_global_planner": "navfn/NavfnROS",
+    "base_local_planner": "dwa_local_planner/DWAPlannerROS"
+   },
+   "path_length_m": 6.9,
+   "wall_duration_s": 80.4,
+   "sim_duration_s": 34.4,
+   "cmd_vel_messages": 688,
+   "dist_to_goal_m": 0.104,
+   "obstacle_min_clearance_m": 0.356,
+   "injected_box_clearance_m": 0.66,
+   "injection_ok": true,
+   "startup_order": [
+    "nav",
+    "mux"
+   ],
+   "health_before_goal": [],
+   "health_after_goal": [],
+   "unstopped": {
+    "nav": false,
+    "mux": false
+   },
+   "cmd_vel_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /safe_cmd_vel_mux (http://127.0.0.1:45171/)\n\nSubscribers: \n * /gazebo (http://127.0.0.1:34867/)\n\n\n",
+   "cmd_vel_raw_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /move_base (http://127.0.0.1:45119/)\n\nSubscribers: \n * /safe_cmd_vel_mux (http://127.0.0.1:45171/)\n\n\n"
+  },
+  {
+   "cell": "navfn_teb",
+   "run_id": "runtime_navfn_teb_SC09_s0_r1",
+   "graph": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_2d_stack_navfn_teb.yaml",
+   "graph_sha256": "17fb806701d10163a82fcde186dc0235c8ae6d2c38c309f5bc1b1666c6cb0724",
+   "assembly_digest": "e165bf0d689a5167c41405bb8f0fcfebdc76c929d884827da8b6801dd1c63d55",
+   "verdict": "PASS",
+   "fail_reason": null,
+   "planner_params": {
+    "base_global_planner": "navfn/NavfnROS",
+    "base_local_planner": "teb_local_planner/TebLocalPlannerROS"
+   },
+   "path_length_m": 6.64,
+   "wall_duration_s": 42.3,
+   "sim_duration_s": 19.0,
+   "cmd_vel_messages": 380,
+   "dist_to_goal_m": 0.199,
+   "obstacle_min_clearance_m": 0.427,
+   "injected_box_clearance_m": 0.596,
+   "injection_ok": true,
+   "startup_order": [
+    "nav",
+    "mux"
+   ],
+   "health_before_goal": [],
+   "health_after_goal": [],
+   "unstopped": {
+    "nav": false,
+    "mux": false
+   },
+   "cmd_vel_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /safe_cmd_vel_mux (http://127.0.0.1:39743/)\n\nSubscribers: \n * /gazebo (http://127.0.0.1:32783/)\n\n\n",
+   "cmd_vel_raw_topic": "Type: geometry_msgs/Twist\n\nPublishers: \n * /move_base (http://127.0.0.1:42747/)\n\nSubscribers: \n * /safe_cmd_vel_mux (http://127.0.0.1:39743/)\n\n\n"
+  }
+ ]
+}

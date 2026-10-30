@@ -16,7 +16,8 @@
 **现行规划指针**：[计划书 v8](note/计划书v8/README.md)，目标是按场景与能力标签组合
 2D/3D 定位、建图、全局与局部规划算法，并完成可信的三维导航仿真。
 **当前状态：框架改造 F0—F8 的机制层已落册（图、预检、装配、MapDelta、安全、热替换），
-真实算法 v2 化与真实 ROS launch 仍未闭环；现有代码不等于已具备全部目标能力。**
+真实 2D 栈已由 v2 graph + Assembly 启动并四格闭环（R981）；定位/3D/其他算法仍未 v2 化或未真实 launch。
+现有代码不等于已具备全部目标能力。**
 具体任务见 [执行队列](note/计划书v8/23_v8任务队列.md)，最新批次见 [进度入口](note/进度/README.md)。
 
 ## 一·五、框架要达成的目标
@@ -32,9 +33,9 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner（假命令）、MapService/MapDelta + ROS provider、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4 |
-| **未实现/未接** | 真实算法 v2 化（DWA/TEB/Navfn/GlobalPlanner/hdl 等仍为 v1 或裸包）、真实 `roslaunch/rosrun` 闭环、plugin 托管、M20/真机 S5、语义地图、真实 map_cache/map_merge、MuJoCo/Gazebo 验证后端、零中断热替换、#151 停车预算 |
-| **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界适配器接主链、MapDelta 证据层、selector 组合级校验；2D 四格实测 4/4（R980） |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
+| **未实现/未接** | 定位/3D/其他算法的 v2 化与真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl/faster_lio/LIO/3D 仍为 v1 或裸包）、plugin 托管、M20/真机 S5、语义地图、真实 map_cache/map_merge、MuJoCo/Gazebo 验证后端、零中断热替换、#151 停车预算 |
+| **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界适配器接主链、MapDelta 证据层、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
@@ -144,6 +145,11 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R981（2026-10-31）★＝真实 2D 栈接入 v2 graph：`v8.nav2d.dwa_stack`/`teb_stack` +
+  `v8.nav2d.mux` + 四张 graph，Assembly 真实启动 nav+mux；Gazebo m1/SC09/seed0 四格
+  （GlobalPlanner/Navfn × DWA/TEB）4/4 PASS，参数服务器与话题信息确认实际 planner 和
+  `/cmd_vel` 唯一写者。真实 launch 路径经 rospack 解析；ProcessRunner 停止时快照并清理
+  roslaunch 的独立会话后代。A1—A7 仍 `NOT_VALIDATED`。
 
 ---
 
