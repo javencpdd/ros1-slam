@@ -1,0 +1,7 @@
+R977 命令（2026-10-31 02:16—02:18 CST，qoder；无 landing 台阶判据修改）
+# 改动：无 landing 时 crossed/stable 用 top_start+min(0.2, depth/2)，顶层顶沿不再要求 mark；
+#   landing>0 时保持原 edge+0.2 m 判据。stair dict 用 landing_depth 区分场景。
+# 复评：无 landing 4×0.15 m seed0 5.0—5.6 s；landing 2 m 7 s seed0—4。
+# 读数：无 landing 5.2/5.3/5.4/5.5 s clean+stable=true，5.0 false、5.6 stable false；
+#   landing 2 m clean 5/5、stable 4/5（seed1 走下 landing）。
+# 测试：MuJoCo 16/16；V8 全树 58 套件 0 失败。R975 已在 db95371b 登记并保留。
