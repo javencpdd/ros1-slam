@@ -1,0 +1,118 @@
+{
+ "domain": "a5_v8x1_seed1_finish_hold_experiment",
+ "variant": {
+  "finish_hold_distance_m": 0.15,
+  "condition": "top support + base z > top+0.1 + goal distance <= 0.15",
+  "code": "3768953d",
+  "runs": 3,
+  "pass": 0,
+  "rows": {
+   "d": {
+    "ok": false,
+    "checks": {
+     "climbed": true,
+     "final_on_top": false,
+     "goal_map": false,
+     "no_fall": true,
+     "a5_active": true
+    },
+    "final_body": [
+     1793345983.686397,
+     3.6091,
+     0.0068,
+     1.0274
+    ],
+    "final_map": [
+     1793345983.686397,
+     -0.0429,
+     0.8764,
+     0.7175
+    ],
+    "plans": 9,
+    "finish_samples": 1261
+   },
+   "e": {
+    "ok": false,
+    "checks": {
+     "climbed": true,
+     "final_on_top": false,
+     "goal_map": false,
+     "no_fall": true,
+     "a5_active": true
+    },
+    "final_body": [
+     1793346051.538961,
+     2.8597,
+     -0.0575,
+     0.7347
+    ],
+    "final_map": [
+     1793346051.538961,
+     0.0652,
+     0.1596,
+     0.5446
+    ],
+    "plans": 21,
+    "finish_samples": 26
+   },
+   "f": {
+    "ok": false,
+    "checks": {
+     "climbed": false,
+     "final_on_top": false,
+     "goal_map": false,
+     "no_fall": true,
+     "a5_active": true
+    },
+    "final_body": [
+     1793346208.1494083,
+     2.1502,
+     0.0333,
+     0.6304
+    ],
+    "final_map": [
+     1793346208.1494083,
+     -0.0333,
+     -0.5498,
+     0.3717
+    ],
+    "plans": 3,
+    "finish_samples": 0
+   }
+  }
+ },
+ "earlier_variant": {
+  "finish_hold_distance_m": 0.35,
+  "runs": 3,
+  "pass": 1,
+  "pass_run": {
+   "final_body": [
+    3.9465,
+    -0.003,
+    1.1333
+   ],
+   "finish_samples": 6
+  },
+  "fail_runs": [
+   {
+    "final_body": [
+     3.8261,
+     0.0192,
+     1.0814
+    ],
+    "finish_samples": 565
+   },
+   {
+    "final_body": [
+     3.2613,
+     0.0241,
+     0.9138
+    ],
+    "finish_samples": 0
+   }
+  ]
+ },
+ "baseline": "R946 no-hold seed matrix: 4/5; seed1 failed at the top edge",
+ "conclusion": "finish hold does not stabilise seed1; seed1 also fails mid-climb with timing-dependent E_LOCAL_COLLISION/stalls",
+ "scope": "MuJoCo single policy; no Gazebo/no real robot; A5 PARTIAL; A1-A7 NOT_VALIDATED"
+}
