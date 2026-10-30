@@ -8,7 +8,10 @@ import socket
 import time
 from collections import deque
 
-from .protocol import CommandFrame, ProtocolError, decode, decode_telemetry
+try:
+    from .protocol import CommandFrame, ProtocolError, decode, decode_telemetry
+except ImportError:  # direct script execution / rosrun from boundary directory
+    from protocol import CommandFrame, ProtocolError, decode, decode_telemetry
 
 
 class CommandSender:

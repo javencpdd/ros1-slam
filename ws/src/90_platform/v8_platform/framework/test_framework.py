@@ -48,6 +48,16 @@ def find_edge(value, source, target):
 
 
 class FrameworkTests(unittest.TestCase):
+    def test_boundary_mux_chain_uses_real_adapter_as_middleware(self):
+        catalog = config.load_components(MANIFESTS)
+        graph = config.load_graph(HERE / 'fixtures' / 'graphs' / 'graph_boundary_mux.yaml')
+        report = graph_mod.check(graph, catalog)
+        self.assertEqual(report['startup_order'], ['mux', 'boundary'])
+        self.assertEqual(report['command_writers'], {'/cmd_vel': 'mux'})
+        self.assertEqual(report['instances']['boundary']['component'], 'v8.boundary.adapter')
+        self.assertEqual(report['bindings']['boundary']['cmd']['from'], 'mux.cmd')
+        self.assertEqual(report['bindings']['mux']['cmd']['source'], 'external:operator')
+
     def test_localization_swap_keeps_nav_chain_and_changes_digest(self):
         catalog = config.load_components(MANIFESTS)
         reports, digests = {}, []
@@ -253,7 +263,7 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (18, 9, 9))
+                         (19, 10, 9))
 
     def test_launch_spec_rejects_bad_entries(self):
         cases = [
@@ -313,7 +323,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 9)
+        self.assertEqual(payload['launch']['real'], 10)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

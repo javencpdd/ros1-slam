@@ -15,6 +15,7 @@ import orchestrator as orch  # noqa: E402
 MANIFESTS = HERE / 'fixtures' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G2D_STACK = HERE / 'fixtures' / 'graphs' / 'graph_2d_stack_gp_teb.yaml'
+BOUNDARY = HERE / 'fixtures' / 'graphs' / 'graph_boundary_mux.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -92,6 +93,17 @@ class RuntimeTests(unittest.TestCase):
             mux, catalog['components'][mux['component']])
         self.assertIn('__ns:=/nav', command)
         self.assertIn('_default_priority:=navigation', command)
+
+    def test_boundary_graph_passes_twist_and_udp_params_to_real_node(self):
+        plan, catalog = plan_for(BOUNDARY)
+        boundary = next(item for item in plan['instances'] if item['id'] == 'boundary')
+        command, marker = runtime.default_command(
+            boundary, catalog['components'][boundary['component']])
+        self.assertEqual(command[:3], ['rosrun', 'v8_platform', 'boundary/ros_bridge.py'])
+        self.assertIn('_command_type:=twist', command)
+        self.assertIn('_target:=127.0.0.1:5026', command)
+        self.assertIn('_bind:=127.0.0.1:5025', command)
+        self.assertIsNone(marker)
 
     def test_nav2d_graph_passes_planner_args_to_real_include(self):
         plan, catalog = plan_for(G2D_STACK)

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """S2 ROS wrapper: mux-rate intent -> fixed-rate UDP frames; telemetry -> ROS.
 
 Pure core is importable without ROS. The node keeps the boundary as the single
@@ -99,7 +100,7 @@ def telemetry_status(frame):
 
 def main():
     import rospy
-    from geometry_msgs.msg import TwistStamped
+    from geometry_msgs.msg import Twist, TwistStamped
     from nav_msgs.msg import Odometry
     from sensor_msgs.msg import Imu, JointState
     from std_msgs.msg import String
@@ -138,12 +139,21 @@ def main():
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/boundary/status'),
                                  String, queue_size=10)
     command_topic = rospy.get_param('~command_topic', '/cmd_vel')
+    command_type = rospy.get_param('~command_type', 'twist_stamped')
 
-    def on_command(message):
+    def on_twist_stamped(message):
         core.on_command(message.twist.linear.x, message.twist.linear.y,
                         message.twist.linear.z)
 
-    rospy.Subscriber(command_topic, TwistStamped, on_command, queue_size=10)
+    def on_twist(message):
+        core.on_command(message.linear.x, message.linear.y, message.linear.z)
+
+    if command_type == 'twist_stamped':
+        rospy.Subscriber(command_topic, TwistStamped, on_twist_stamped, queue_size=10)
+    elif command_type == 'twist':
+        rospy.Subscriber(command_topic, Twist, on_twist, queue_size=10)
+    else:
+        raise ValueError('command_type must be twist_stamped or twist')
 
     def stamp():
         now = rospy.Time.now()
