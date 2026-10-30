@@ -1,0 +1,22 @@
+{
+  "domain": "mesh_to_support_map",
+  "asset": "data/maps/worlds/nist_stairs_120/meshes/nist_stairs_120.dae",
+  "converter": "planner/mesh_support.py",
+  "map": "data/maps/nist_stairs_120_support.json",
+  "surfaces": [
+    {"id": "ground", "z": 0.0, "edge_to_step1_m": 0.3898},
+    {"id": "step1", "z": 0.3898, "next_edge_m": 0.339},
+    {"id": "step2", "z": 0.7288, "next_edge_m": 0.339},
+    {"id": "step3", "z": 1.0678, "next_edge_m": 0.339},
+    {"id": "step4", "z": 1.4068, "next_edge_m": 0.339},
+    {"id": "step5", "z": 1.7458}
+  ],
+  "planner": {"start": [0.0, -1.5, 0.0], "goal": [0.0, 0.8, 1.7458],
+              "ok": true, "length_m": 4.345584, "points": 33,
+              "segments": 6, "transitions": 5, "expansions": 1706},
+  "tests": {"mesh_support": 2, "v8_suites": 42, "failures": 0},
+  "limits": ["native step 0.339 m exceeds local_native 0.2 m", "mesh bottom is 0.339 m above origin",
+             "design-layer support_planner does not validate physical contact"],
+  "scope": "geometry conversion + design-layer plan; no A4/A5/V8-X1 acceptance",
+  "a1_a7": "NOT_VALIDATED"
+}

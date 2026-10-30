@@ -1,0 +1,16 @@
+R938 命令（2026-10-30 12:45—12:52 CST，qoder；NIST 网格转 support_map）
+# 转换（仓内 planner/mesh_support.py）：
+python3 -B planner/mesh_support.py \
+  --dae data/maps/worlds/nist_stairs_120/meshes/nist_stairs_120.dae \
+  --out data/maps/nist_stairs_120_support.json --resolution .1
+# 设计层规划：
+python3 - <<PY
+import sys,json
+sys.path[:0]=['planner','representation','contracts']
+import support_planner as pln
+v=json.load(open('data/maps/nist_stairs_120_support.json'))
+print(pln.plan(v,(0.,-1.5,0.),(0.,0.8,1.7458),budget=50000))
+PY
+# 读数：6 面（ground+5 级）、33 点、4.345584 m、5 次转层、expansions 1706、ok=true。
+# 测试：mesh_support 2 项；42 套件 0 失败。
+# 边界：原生 0.339 m 步高超 local 0.2 m；网格底悬浮；设计层规划不代表 A4/A5 物理。
