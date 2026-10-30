@@ -168,6 +168,9 @@ def main():
 
     rospy.init_node('v8_native_local_planner')
     sim_clock = bool(rospy.get_param('/use_sim_time', False))
+    plan_sim_tick_s = float(rospy.get_param('~plan_sim_tick_s', 0.))
+    if plan_sim_tick_s < 0:
+        raise ValueError('plan_sim_tick_s must be non-negative')
     config = native.Config(**rospy.get_param('~experimental_config', {}))
     config.validate()
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
@@ -307,6 +310,7 @@ def main():
             time.sleep(.02 if sim_clock else .05)
 
     worker = PlannerWorker(config, profile)
+    last_plan_tick = -1
     thread = threading.Thread(target=control_loop, daemon=True)
     thread.start()
     try:
@@ -355,6 +359,12 @@ def main():
                                    snapshot['localization_at'], snapshot['localization_ok'], max_age)
                 stamp = rospy.Time.now().to_sec()
                 if reason is None and snapshot['pose'] is not None and snapshot['goal'] is not None and stamp > 0:
+                    if sim_clock and plan_sim_tick_s > 0:
+                        tick = int(math.floor(stamp / plan_sim_tick_s + 1e-9))
+                        if tick == last_plan_tick:
+                            time.sleep(max(.01, .2 - (time.monotonic() - started)))
+                            continue
+                        last_plan_tick = tick
                     if not worker.submit(value, snapshot['pose'], snapshot['goal'],
                                          snapshot['obstacles'], stamp, snapshot['generation']):
                         if not worker.process.is_alive():

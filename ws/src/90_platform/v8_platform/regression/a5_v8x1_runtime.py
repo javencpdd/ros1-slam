@@ -72,6 +72,7 @@ def main():
     parser.add_argument('--bridge-cmd-timeout', type=float, default=.5)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
     parser.add_argument('--trajectory-resume', action='store_true')
+    parser.add_argument('--plan-sim-tick-s', type=float, default=0.)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
@@ -175,7 +176,8 @@ def main():
                      '_localization_topic:=' + prefix + '/localization',
                      '_command_topic:=' + prefix + '/cmd', '_status_topic:=' + prefix + '/status',
                      '_trajectory_topic:=' + prefix + '/trajectory',
-                     '_experimental_config:=' + json.dumps(config)]
+                     '_experimental_config:=' + json.dumps(config),
+                     '_plan_sim_tick_s:=' + str(args.plan_sim_tick_s)]
         bridge_argv = [sys.executable, '-B', str(DYNAMICS / 'a5_v8x1_bridge.py'),
                        '--map', str(map_path), '--xml', stairs_xml, '--policy', args.policy,
                        '--prefix', prefix, '--seed', str(args.seed)]
