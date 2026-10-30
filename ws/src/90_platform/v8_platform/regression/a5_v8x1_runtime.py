@@ -93,7 +93,7 @@ def main():
     node_name = 'a5v8x1_%d' % os.getpid()
     prefix = '/' + node_name
     shared = {'body': None, 'map_pose': None, 'status': None, 'trajectories': 0, 'last_plan': None,
-              'applied': 0, 'fault': None}
+              'applied': 0, 'fault': None, 'terminal': None}
     body_trace, map_trace, status_log, applied_log = [], [], [], []
     lock = threading.Lock()
 
@@ -118,6 +118,8 @@ def main():
             return
         with lock:
             shared['status'] = payload
+            if payload.get('latched'):
+                shared['terminal'] = payload.get('reason')
             status_log.append([rospy.Time.now().to_sec(), payload.get('reason'),
                                payload.get('complete'), payload.get('velocity')])
 
@@ -200,6 +202,7 @@ def main():
             message.pose.position.x, message.pose.position.y, message.pose.position.z = goal
             goal_pub.publish(message)
             arrived = fell = False
+            terminal = None
             while time.monotonic() < deadline and not rospy.is_shutdown():
                 obstacle_pub.publish(String(data=json.dumps({'obstacles': []})))
                 loc_pub.publish(Bool(data=True))
@@ -213,7 +216,10 @@ def main():
                     break
                 with lock:
                     fault = shared['fault']
+                    terminal = shared['terminal']
                 if fault:
+                    break
+                if terminal:
                     break
                 distance = math.sqrt((pose[0] - goal[0]) ** 2 + (pose[1] - goal[1]) ** 2)
                 if distance <= .10 and body[2] > args.step_h * args.steps + .1:
@@ -282,6 +288,7 @@ def main():
         'scope': 'ROS local node + MuJoCo 270 policy; contact climbing; no Gazebo/no real robot/#151',
         'goal_map': list(goal), 'boundaries_world_x': boundaries,
         'ok': ok, 'arrived': arrived, 'fell': fell, 'bridge_fault': fault,
+        'terminal_reason': terminal,
         'checks': {'climbed': climbed, 'final_on_top': final_on_top, 'goal_map': goal_map,
                    'no_fall': no_fall, 'a5_active': active},
         'plans': plans, 'applied_samples': applied_n,

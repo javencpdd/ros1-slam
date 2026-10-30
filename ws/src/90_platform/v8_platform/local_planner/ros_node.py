@@ -278,7 +278,11 @@ def main():
             command_history[:] = command_history[-200:]
             previous_control_stamp = stamp.to_sec()
             previous_command = tuple(out['velocity'])
+            latched = (out['reason'].startswith('E_LOCAL_')
+                       and out['reason'] not in NON_LATCHING
+                       and snapshot['result_at'] > 0)
             status = dict(out, clock='ros_plan+wall_watchdog', wall_watchdog_s=wall_watchdog_s,
+                          latched=bool(latched),
                           capability_domain='experimental_kinematic_carrier'
                           if profile is None else 'validated_robot_profile')
             if snapshot['result'] is not None:
@@ -287,9 +291,7 @@ def main():
             if out.get('complete') or out['reason'].startswith('E_LOCAL_'):
                 with lock:
                     if shared['result'] is snapshot['result']:
-                        terminal = (out['reason'].startswith('E_LOCAL_')
-                                    and out['reason'] not in NON_LATCHING
-                                    and snapshot['result_at'] > 0)
+                        terminal = latched and snapshot['result_at'] > 0
                         shared.update(result=None, last_error=out['reason'],
                                       stop_latched=terminal,
                                       stop_reason=out['reason'] if terminal else None)
