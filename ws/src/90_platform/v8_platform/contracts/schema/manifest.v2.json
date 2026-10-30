@@ -7,7 +7,7 @@
     "id",
     "version",
     "roles",
-    "io",
+    "dimensions",
     "capability",
     "ownership",
     "evidence",
@@ -80,46 +80,6 @@
           "simulation",
           "real_robot"
         ]
-      }
-    },
-    "io": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "map_schema",
-        "dimensions",
-        "inputs",
-        "outputs"
-      ],
-      "properties": {
-        "map_schema": {
-          "enum": [
-            "occupancy_grid/v1",
-            "support_map/v1",
-            "not_applicable"
-          ]
-        },
-        "dimensions": {
-          "enum": [
-            2,
-            3
-          ]
-        },
-        "inputs": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "outputs": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
       }
     },
     "capability": {
@@ -319,9 +279,15 @@
           }
         }
       }
+    },
+    "dimensions": {
+      "enum": [
+        2,
+        3
+      ]
     }
   },
-  "description": "v2 adds named ports and launch identity; v1 manifests remain valid.",
+  "description": "v2: named ports + launch + dimensions; io is derived by the loader. v1 manifests remain valid.",
   "definitions": {
     "port": {
       "type": "object",

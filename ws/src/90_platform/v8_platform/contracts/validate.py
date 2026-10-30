@@ -3,6 +3,7 @@
 只支持本目录 schema 实际用到的关键字；子集外写法一律 E_SCHEMA_UNSUPPORTED，
 避免把「校验器不认识」误当成「实例合规」。不依赖第三方库。
 """
+import copy
 import json
 import math
 import re
@@ -189,15 +190,44 @@ def _manifest_v2(value):
         raise ContractError('E_MANIFEST_COMMAND_DUP', 'duplicate command topic in one component')
     for port in value['ports']['inputs'] + value['ports']['outputs']:
         schema = port.get('schema', '')
-        if schema.startswith('support_map/') and value['io']['dimensions'] != 3:
+        if schema.startswith('support_map/') and value['dimensions'] != 3:
             raise ContractError('E_MANIFEST_DIM', 'support_map port requires dimensions 3')
-        if schema.startswith('occupancy_grid/') and value['io']['dimensions'] != 2:
+        if schema.startswith('occupancy_grid/') and value['dimensions'] != 2:
             raise ContractError('E_MANIFEST_DIM', 'occupancy_grid port requires dimensions 2')
+
+
+def normalize_manifest(value):
+    """v2 -> v1-compatible view: derive io from ports + dimensions.
+
+    v1 manifests are returned unchanged. The derived map_schema only uses the
+    frozen v1 enum (support_map/* collapses to support_map/v1); exact port
+    schema keeps the version for graph checks.
+    """
+    if not isinstance(value, dict) or value.get('schema_version') != 2:
+        return value
+    ports = value['ports']
+    schemas = [port.get('schema', '') for port in ports['inputs'] + ports['outputs']]
+    occupancy = any(schema.startswith('occupancy_grid/') for schema in schemas)
+    support = any(schema.startswith('support_map/') for schema in schemas)
+    if occupancy and support:
+        raise ContractError('E_MANIFEST_MAP_MIXED',
+                            'occupancy_grid and support_map ports cannot mix in one component')
+    map_schema = ('occupancy_grid/v1' if occupancy else
+                  'support_map/v1' if support else 'not_applicable')
+    normalized = copy.deepcopy(value)
+    normalized['io'] = {
+        'map_schema': map_schema,
+        'dimensions': value['dimensions'],
+        'inputs': ['%s（%s）' % (port['type'], port['name']) for port in ports['inputs']],
+        'outputs': ['%s（%s）' % (port['type'], port['name']) for port in ports['outputs']],
+    }
+    return normalized
 
 
 def semantic(kind, value):
     if kind == 'manifest':
         _manifest_v2(value)
+        value = normalize_manifest(value)
         if value['evidence']['level'] != 'declared' and not value['evidence']['reports']:
             raise ContractError('E_MANIFEST_EVIDENCE', 'evidence above declared requires reports')
         if value['io']['map_schema'] == 'support_map/v1' and value['io']['dimensions'] != 3:

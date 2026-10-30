@@ -68,6 +68,7 @@ class Registry:
     def _register(self, value, filename, sha256):
         try:
             contract.validate('manifest', value)
+            normalized = contract.normalize_manifest(value)
         except contract.ContractError as error:
             raise RegistryError('E_REG_INVALID', '%s: %s: %s' % (filename, error.code, error.detail))
         if value['id'] in self.entries:
@@ -78,7 +79,7 @@ class Registry:
             'version': value['version'],
             'roles': sorted(value['roles']),
             'tags': sorted(value.get('tags', [])),
-            'io': value['io'],
+            'io': normalized['io'],
             'evidence': {
                 'level': value['evidence']['level'],
                 'reports': list(value['evidence']['reports']),

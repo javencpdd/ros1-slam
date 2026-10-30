@@ -20,7 +20,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'registry'))
+sys.path.insert(0, str(HERE.parent / 'contracts'))
 import registry as reg  # noqa: E402  领域层消费注册表
+import validate as contract  # noqa: E402  v2 manifest -> v1-compatible io
 
 ROLE_DEPS = {
     'odometry': set(),
@@ -260,8 +262,8 @@ def load(manifest_dir, provenance=None):
         store.load_provenance(provenance)
     store._composer_raws = {}
     for entry in store.all():
-        store._composer_raws[entry['id']] = json.loads(
-            (Path(manifest_dir) / entry['file']).read_text())
+        raw = json.loads((Path(manifest_dir) / entry['file']).read_text())
+        store._composer_raws[entry['id']] = contract.normalize_manifest(raw)
     return store
 
 

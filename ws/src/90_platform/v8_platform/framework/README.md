@@ -6,13 +6,14 @@
 
 ## 1. 组件清单 + 图 YAML
 
-- **组件源＝registry manifest v2**（`manifest.v2.json`）：在 v1 字段上增加 `ports`（命名输入输出、
-  消息类型、schema、topic、command_topic）与 `launch`（package/type）。v1 清单继续合法，
-  但无命名端口，不能进入图（`E_CFG_MANIFEST_V1`）。
+- **组件源＝registry manifest v2**（`manifest.v2.json`）：只有 `ports`（命名输入输出、
+  消息类型、schema、topic、command_topic）、`dimensions` 与 `launch`（package/type）；
+  `io` 不再落盘，由 registry/composer 加载时从 ports 派生（v1 清单继续带 io 且合法）。
+  v1 无命名端口，不能进入图（`E_CFG_MANIFEST_V1`）。
 - `graph.yaml`：选择实例、参数、namespace、显式 `from: instance.port` → `to: instance.port`、
   外部输入，以及反馈边与策略。
 
-不再维护独立的 `components.yaml`：组件定义只有 manifest 一份。
+不再维护独立的 `components.yaml`：组件定义只有 manifest 一份；v2 的 io 是**加载期派生视图**，不落盘。
 
 对应关系：**组件类型可复用，实例 ID 唯一；同名组件可起多个实例；连线必须显式到端口。**
 
@@ -26,6 +27,8 @@ python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
 python3 -B framework/test_framework.py      # 18 项
+python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
+python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者；`plan` 额外写 assembly plan 与 launch 骨架。
