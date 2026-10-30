@@ -1,0 +1,17 @@
+{
+  "domain": "v8x1_new_policy_four_step_0p6m",
+  "policy_sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f",
+  "config": {"steps": 4, "step_h_m": 0.15, "depth_m": 0.5, "width_m": 3.0,
+             "seconds": 12, "v_cmd": 0.3, "seed": 0, "perturb": true},
+  "runs": {
+    "3.0/1.5/0.5": {"crossed_once": true, "stable_finish": false, "fell": false, "unstable": true,
+                     "final_xyz": [3.9676, -0.0027, 0.2452], "zmin": 0.2082, "max_abs_y": 0.1523},
+    "2.5/1.25/0.55": {"fell": false, "unstable": true, "final_xyz": [3.5055, -0.0665, 0.2119]},
+    "3.0/1.5/0.6": {"fell": true, "final_xyz": [4.4669, 0.916, 0.1191]},
+    "2.0/1.0/0.5": {"fell": true, "final_xyz": [4.4037, 0.6361, 0.1167]}
+  },
+  "finding": "all four gains fail the four-step 0.6 m climb; some fall, one reaches z~0.819 then becomes unstable",
+  "v8x1": "0.45 m stair pilot 15/15; 0.6 m four-step NOT passed",
+  "a5_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
