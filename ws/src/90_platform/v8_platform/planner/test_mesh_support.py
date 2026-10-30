@@ -44,6 +44,11 @@ class MeshSupportTests(unittest.TestCase):
             self.assertEqual(value['surfaces'][1]['surface_id'], 'step1')
             self.assertAlmostEqual(
                 value['surfaces'][1]['edges'][0]['max_step_height_m'], .1, delta=1e-6)
+            scaled, _ = mesh_support.build(dae, 'one_step_scaled', resolution=.1,
+                                           margin=.5, z_scale=.8)
+            self.assertAlmostEqual(scaled['surfaces'][1]['z_reference'], .08, delta=1e-6)
+            front = mesh_support.faces_to_surfaces(faces, margin=.5, ground_y_max=0.)
+            self.assertAlmostEqual(front[0]['footprint']['max_y'], .05, delta=1e-9)
 
     def test_no_top_faces_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:

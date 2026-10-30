@@ -77,13 +77,16 @@ def top_faces(dae_path, normal_z=.9, z_tolerance=1e-4):
 
 
 def faces_to_surfaces(faces, ground_z=0., margin=1., thickness=.05,
-                      clearance=.4):
+                      clearance=.4, ground_y_max=None):
     if not faces:
         raise ValueError('faces must not be empty')
     min_x = min(face['min_x'] for face in faces) - margin
     max_x = max(face['max_x'] for face in faces) + margin
     min_y = min(face['min_y'] for face in faces) - margin
     max_y = max(face['max_y'] for face in faces) + margin
+    if ground_y_max is not None:
+        # A line touch is not an overlap; keep a small strip under the first step.
+        max_y = ground_y_max + min(0.05, max(0., max_y - ground_y_max))
     levels = [dict(face, surface_id='step%d' % (index + 1))
               for index, face in enumerate(sorted(faces, key=lambda f: f['z']))]
 
@@ -112,16 +115,21 @@ def faces_to_surfaces(faces, ground_z=0., margin=1., thickness=.05,
     return surfaces
 
 
-def build(dae_path, map_id='nist_stairs_120', resolution=.1, margin=1.):
-    faces = top_faces(dae_path)
-    surfaces = faces_to_surfaces(faces, margin=margin)
+def build(dae_path, map_id='nist_stairs_120', resolution=.1, margin=1., z_scale=1.,
+          ground_front_only=False):
+    if not (isinstance(z_scale, (int, float)) and z_scale > 0):
+        raise ValueError('z_scale must be positive')
+    faces = [dict(face, z=face['z'] * z_scale) for face in top_faces(dae_path)]
+    ground_y_max = min(face['min_y'] for face in faces) if ground_front_only else None
+    surfaces = faces_to_surfaces(faces, margin=margin, ground_y_max=ground_y_max)
     raw = Path(dae_path).read_bytes()
     value = representation.build_support_map(
         map_id, resolution,
         [min(s['footprint']['min_x'] for s in surfaces),
          min(s['footprint']['min_y'] for s in surfaces), 0.],
         surfaces, None,
-        {'uri': 'fuel://OpenRobotics/NIST stairs 120/' + Path(dae_path).name,
+        {'uri': 'fuel://OpenRobotics/NIST stairs 120/' + Path(dae_path).name +
+                ('#z_scale=%g' % z_scale),
          'sha256': hashlib.sha256(raw).hexdigest()})
     return value, faces
 
@@ -132,8 +140,11 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--map-id', default='nist_stairs_120')
     parser.add_argument('--resolution', type=float, default=.1)
+    parser.add_argument('--z-scale', type=float, default=1.)
+    parser.add_argument('--ground-front-only', action='store_true')
     args = parser.parse_args()
-    value, faces = build(args.dae, args.map_id, args.resolution)
+    value, faces = build(args.dae, args.map_id, args.resolution, z_scale=args.z_scale,
+                         ground_front_only=args.ground_front_only)
     Path(args.out).write_text(json.dumps(value, ensure_ascii=False, indent=1) + '\n')
     print(json.dumps({'map_id': value['map_id'], 'surfaces': len(value['surfaces']),
                       'faces': faces, 'out': args.out}, ensure_ascii=False))
