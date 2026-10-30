@@ -67,6 +67,7 @@ def main():
     parser.add_argument('--retry-hold-s', type=float, default=1.5)
     parser.add_argument('--max-retries', type=int, default=3)
     parser.add_argument('--contact-profile', choices=('A', 'B', 'C'), default='A')
+    parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
@@ -184,6 +185,7 @@ def main():
             bridge_argv.extend(['--stall-retry', '--stall-window-s', str(args.stall_window_s),
                                '--retry-hold-s', str(args.retry_hold_s),
                                '--max-retries', str(args.max_retries)])
+        bridge_argv.extend(['--max-nonfinite-ticks', str(args.max_nonfinite_ticks)])
         node_stream, bridge_stream = node_log.open('w'), bridge_log.open('w')
         node = start(node_argv, node_stream)
         bridge = start(bridge_argv, bridge_stream)
@@ -256,6 +258,10 @@ def main():
         applied_n = shared['applied']
         fault = shared['fault']
         finish_samples = sum(1 for record in applied_log if record.get('finish_hold'))
+        nonfinite_recoveries = max([record.get('nonfinite_recoveries', 0)
+                                    for record in applied_log] or [0])
+        nonfinite_streak_max = max([record.get('nonfinite_streak', 0)
+                                    for record in applied_log] or [0])
     levels = sorted({surface['z_reference'] for surface in value['surfaces']
                      if surface.get('traversability') == 'supported'})
     step_marks, order = support_marks(applied_log, levels)
@@ -282,6 +288,8 @@ def main():
         'contact_profile': args.contact_profile,
         'contact_profile_params': contact_profile,
         'finish_hold': bool(args.finish_hold), 'finish_samples': finish_samples,
+        'nonfinite_recoveries': nonfinite_recoveries,
+        'nonfinite_streak_max': nonfinite_streak_max,
         'stair': {'steps': args.steps, 'step_h': args.step_h,
                                     'depth': args.step_depth, 'front': 1.0,
                                     'landing_depth': args.landing_depth},

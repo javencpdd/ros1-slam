@@ -57,6 +57,12 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(bridge.path_scale(.6), 1.)
         self.assertAlmostEqual(bridge.path_scale(.15), .5)
 
+    def test_nonfinite_state_recovers_then_terminal(self):
+        self.assertEqual(bridge.walk.nonfinite_state(0, True), (0, False))
+        self.assertEqual(bridge.walk.nonfinite_state(0, False, 5), (1, False))
+        self.assertEqual(bridge.walk.nonfinite_state(4, False, 5), (5, True))
+        self.assertEqual(bridge.walk.nonfinite_state(3, True, 5), (0, False))
+
     def test_stall_verdict_retries_then_fails(self):
         self.assertEqual(bridge.stall_verdict(.09, 30., 10., 0, 3), 'progress')
         self.assertEqual(bridge.stall_verdict(.01, 9.9, 10., 0, 3), 'wait')

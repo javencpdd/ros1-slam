@@ -73,6 +73,7 @@ def main():
     parser.add_argument('--telemetry-hz', type=float, default=50.)
     parser.add_argument('--max-speed', type=float, default=.25)
     parser.add_argument('--max-wz', type=float, default=.5)
+    parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
     parser.add_argument('--command-timeout-s', type=float, default=.25)
     parser.add_argument('--initial-x', type=float, default=0.)
     parser.add_argument('--initial-y', type=float, default=0.)
@@ -124,7 +125,7 @@ def main():
     command_at = -1e9
     fault = 0
     fault_tick = fault_sim = None
-    nonfinite_actions = 0
+    nonfinite_streak = nonfinite_recoveries = 0
     seq = 0
     ticks = received = sent = 0
     stop = {'flag': False}
@@ -165,11 +166,16 @@ def main():
                                    last_action, walk.DEFAULT_POSE)
             state = walk.state_vector(obs, history, newest_first=True)
             action = session.run(None, {inp: state.reshape(1, -1)})[0].reshape(-1)
-            if not np.all(np.isfinite(action)):
-                fault |= FAULT_POLICY
-                nonfinite_actions += 1
-                if fault_tick is None:
-                    fault_tick, fault_sim = ticks, float(data.time)
+            finite = bool(np.all(np.isfinite(action)))
+            nonfinite_streak, terminal = walk.nonfinite_state(
+                nonfinite_streak, finite, args.max_nonfinite_ticks)
+            if not finite:
+                if terminal:
+                    fault |= FAULT_POLICY
+                    if fault_tick is None:
+                        fault_tick, fault_sim = ticks, float(data.time)
+                else:
+                    nonfinite_recoveries += 1
                 last_action = np.zeros(12, dtype=np.float32)
                 joint_target = walk.DEFAULT_POSE.copy()
             else:
@@ -211,7 +217,8 @@ def main():
                    'control_hz': args.control_hz, 'telemetry_hz': telemetry_hz,
                    'max_speed': args.max_speed, 'max_wz': args.max_wz,
                    'fault_tick': fault_tick, 'fault_sim_time': fault_sim,
-                   'nonfinite_actions': nonfinite_actions}
+                   'nonfinite_streak': nonfinite_streak,
+                   'nonfinite_recoveries': nonfinite_recoveries}
         if args.summary_out:
             Path(args.summary_out).write_text(json.dumps(summary, indent=1) + '\n',
                                               encoding='utf-8')

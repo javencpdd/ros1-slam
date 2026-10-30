@@ -116,6 +116,7 @@ def main():
     parser.add_argument('--retry-hold-s', type=float, default=1.5)
     parser.add_argument('--retry-back-speed', type=float, default=-.20)
     parser.add_argument('--max-retries', type=int, default=3)
+    parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -194,6 +195,7 @@ def main():
     last_pose = None
     fault = None
     finish = False
+    nonfinite_streak = nonfinite_recoveries = 0
     tick = 0
     stall_ref = [float(data.qpos[0]), float(data.qpos[1])]
     stall_t = float(data.time)
@@ -262,8 +264,14 @@ def main():
             obs = walk.observation(data.qpos, data.qvel, command, last_action, walk.DEFAULT_POSE)
             state = walk.state_vector(obs, history, newest_first=True)
             action = session.run(None, {inp: state.reshape(1, -1)})[0].reshape(-1)
-            if not np.all(np.isfinite(action)):
-                fault = 'action_nonfinite'
+            finite = bool(np.all(np.isfinite(action)))
+            nonfinite_streak, terminal = walk.nonfinite_state(
+                nonfinite_streak, finite, args.max_nonfinite_ticks)
+            if not finite:
+                if terminal:
+                    fault = 'action_nonfinite'
+                else:
+                    nonfinite_recoveries += 1
                 command = np.zeros(3, dtype=np.float32)
                 last_action = np.zeros(12, dtype=np.float32)
                 joint_target = walk.DEFAULT_POSE.copy()
@@ -311,7 +319,9 @@ def main():
                 'finish_hold': finish, 'lockstep': bool(args.lockstep),
                 'active': bool(shared['active']), 'sim_time': float(data.time),
                 'stall_retry': bool(args.stall_retry), 'retries': retries,
-                'retrying': retry_until is not None, 'fault': fault}, default=plain)))
+                'retrying': retry_until is not None, 'fault': fault,
+                'nonfinite_streak': nonfinite_streak,
+                'nonfinite_recoveries': nonfinite_recoveries}, default=plain)))
         tick += 1
         next_tick += .02
         delay = next_tick - time.monotonic()

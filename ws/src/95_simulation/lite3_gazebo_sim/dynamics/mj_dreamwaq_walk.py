@@ -149,6 +149,14 @@ def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0,
     return str(path)
 
 
+def nonfinite_state(streak, finite, limit=5):
+    """Count consecutive non-finite actions; terminal only after the limit."""
+    if finite:
+        return 0, False
+    streak += 1
+    return streak, streak >= limit
+
+
 def stair_verdict(final, xmax, marks, stair, fell, unstable):
     """Classify a stair rollout; a stable finish must remain on the top level.
 
