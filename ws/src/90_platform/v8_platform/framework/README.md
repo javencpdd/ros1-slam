@@ -135,5 +135,6 @@ python3 -B framework/selector.py framework/fixtures/manifests \
 热替换 `hotswap.py` 使用 `hot_swap/v1` 合同：`prepare` 要求新旧组件角色与命名端口签名一致、
 `/cmd_vel` 所有权不变，输出带 epoch 与不透明 `state` 的记录。`apply` 停整装配后换组合；
 `apply_instance` 只停目标实例，核验旧进程退净后启动替换，其他实例 PID 与任务 `RUNNING`
-保持不变，新实例启动失败则重启旧组件并记 `rolled_back`。仍是**先停后启**；组件内部状态
-未序列化，`state` 需新组件显式消费；运行期 TF 实际探测未做。
+保持不变，新实例启动失败则重启旧组件并记 `rolled_back`。记录中的 `state` 写成临时 JSON，
+经 `V8_HOT_SWAP_STATE`/`V8_HOT_SWAP_INSTANCE`/`V8_HOT_SWAP_EPOCH` 交给新进程；组件须显式
+读取。仍是**先停后启**，不是零中断；运行期 TF 实际探测未做。

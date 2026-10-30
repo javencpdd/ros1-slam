@@ -64,7 +64,7 @@ F0—F8 已完成；F1—F7 证据索引与“未接入项/回滚说明”见
 图形化选配页示例：[framework-selector.html](framework-selector.html)（生成命令见
 [framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md) §7）。
 热替换：`hotswap.prepare` 检查角色/端口/命令所有权；`apply` 停整装配后换组合，
-`apply_instance` 只停目标实例、保留其他实例与任务 `RUNNING`，启动失败回滚旧组件。
-仍是先停后启；组件内部状态未序列化，运行期 TF 实际探测未做。
+`apply_instance` 只停目标实例、保留其他实例与任务 `RUNNING`，启动失败回滚旧组件；
+`state` 经 `V8_HOT_SWAP_STATE` 临时 JSON 交给新进程。仍是先停后启，运行期 TF 实际探测未做。
 
 完整说明见 [framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md)。

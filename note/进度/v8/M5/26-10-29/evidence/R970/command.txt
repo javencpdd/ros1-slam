@@ -1,0 +1,7 @@
+R970 命令（2026-10-31 01:56—02:00 CST，qoder；V8-X3 状态交接）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_hotswap.py -v        # 8
+# 读数：新实例通过 V8_HOT_SWAP_STATE 读到临时 JSON，内容=prepare 的不透明 state；
+#   V8_HOT_SWAP_INSTANCE=robot、V8_HOT_SWAP_EPOCH=1；启动失败回滚时状态文件清理。
+# V8 全树 57 套件 0 失败。
+# 边界：先停后启；组件需显式读取环境变量；运行期 TF 实测未做；真机 L2。
