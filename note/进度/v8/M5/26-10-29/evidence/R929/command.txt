@@ -1,0 +1,8 @@
+R929 命令（2026-10-30 10:39—10:41 CST，qoder；A7 非规划运行面复验）
+# 容器 ros1-slam-sim；source noetic + /opt/ros1-slam/ws/devel；master 11450。
+python3 -B .../regression/a7_tracking_runtime.py --out /tmp/r929/tracking.json
+python3 -B .../regression/a4_runtime.py version --out /tmp/r929/version.json
+python3 -B .../regression/a4_runtime.py cancel --out /tmp/r929/cancel.json
+# SC11：17 点参考、清洁段不误停、偏差后 E_TRACK_DEVIATION/tracker stop/hold=true；
+# SC13：v1/v2/v3 3/3 PASS；取消：SC01/SC02 2/2 PASS（E_PLAN_CANCELLED）。
+# 与 R928 planning 20/20 同一 HEAD；零代码改动。
