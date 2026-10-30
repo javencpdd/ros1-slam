@@ -1,0 +1,10 @@
+R996 命令（2026-10-31 05:16—05:19 CST，qoder；A5 planner sim tick）
+# local_planner ~plan_sim_tick_s（默认 0）：sim clock 下跨 tick 才提交新规划；
+# runtime --plan-sim-tick-s 透传。其余同 R987。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --plan-sim-tick-s 0.5 \
+  --out /tmp/r996_s0_$i.json --wall-deadline-s 150
+# 读数：2/3 PASS；首个非零命令 0.34/0.44/0.36 s（0.10 s 散差）；
+#   一次 segment_complete 停在 z .5446；A5 仍 PARTIAL。

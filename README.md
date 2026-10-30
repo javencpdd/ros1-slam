@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R996（2026-10-31）★＝**A5 planner sim tick 绑定**：local planner 跨固定 sim tick
+  才提交新规划；0.5 s tick 三次 **2/3 PASS**，首个非零命令散差降到 **0.10 s**，一次
+  `segment_complete` 停 z .5446；未提升通过率，A5 仍 **PARTIAL**（代码 `1fe56f30`，全文＝
+  [R996](note/进度/v8/M5/26-10-29/R996.md)）。
 - ★R995（2026-10-31）★＝**A5 trajectory-resume 实验**：只在 trajectory/target 后恢复
   sim clock（默认关闭）→ seed0 **1/3 PASS**，首个非零命令 **0.20/0.38/0.60 s**（0.40 s 散差），
   两次停在 z .7175；桥侧三种尝试均不成立，A5 仍 **PARTIAL**（代码 `4e86439b`，全文＝
