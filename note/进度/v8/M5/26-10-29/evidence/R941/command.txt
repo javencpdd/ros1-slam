@@ -7,6 +7,7 @@ python3 -B nist_stairs_runtime.py \
   --out /tmp/nist_r941.json --wall-deadline-s 180
 # 读数：ok=true；start (0,-2.175,0) → goal (0,1.3398,0.890358)；
 #   末态 (0,1.2629,0.890358)，评价器 ok、samples 5505、0 碰撞；trace 1224 / dense 2058 / receipts 359。
+# 正向复跑（同命令，仅换 --out）：ok=true；末态 (0,1.2649,0.890358)、samples 5922、0 碰撞。
 # 对照（同图同起终点，仅 validity 3.0）：
 python3 -B - <<'PY'
 import json
