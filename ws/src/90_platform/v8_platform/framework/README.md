@@ -133,6 +133,7 @@ python3 -B framework/selector.py framework/fixtures/manifests \
 它不新增第二套组件模型，也不在浏览器里复制校验器。
 
 热替换 `hotswap.py` 使用 `hot_swap/v1` 合同：`prepare` 要求新旧组件角色与命名端口签名一致、
-`/cmd_vel` 所有权不变，输出带 epoch 与不透明 `state` 的记录；`apply` 先停旧装配并核验全部
-进程退净，再启动新装配（停止后换组合），失败不回滚到双写者。**不是**运行中状态迁移；
-组件必须显式消费 `state`，首版不序列化组件内部状态。
+`/cmd_vel` 所有权不变，输出带 epoch 与不透明 `state` 的记录。`apply` 停整装配后换组合；
+`apply_instance` 只停目标实例，核验旧进程退净后启动替换，其他实例 PID 与任务 `RUNNING`
+保持不变，新实例启动失败则重启旧组件并记 `rolled_back`。仍是**先停后启**；组件内部状态
+未序列化，`state` 需新组件显式消费；运行期 TF 实际探测未做。

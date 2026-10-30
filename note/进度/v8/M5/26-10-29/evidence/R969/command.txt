@@ -1,0 +1,8 @@
+R969 命令（2026-10-31 01:48—01:52 CST，qoder；V8-X3 运行中单实例热替换）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_hotswap.py -v        # 7
+# 读数：只停目标 robot 实例；其他 6 个实例 PID 不变且存活；任务状态仍 running；
+#   新 robot 实例 ready，旧 PID 已退净；新实例启动失败→旧组件重启回滚，rolled_back=true。
+# V8 全树 57 套件 0 失败。
+# 边界：state 仍是不透明交接记录，未序列化组件内部状态；TF 实际探测未做；
+#   未接真机/QNX（V8-X2/S5 L2）。
