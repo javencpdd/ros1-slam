@@ -1,0 +1,6 @@
+R963 命令（2026-10-31 00:55—01:00 CST，qoder；F6 独立仿真验证配置）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_verification.py   # 5
+# 读数：同一 graph_2d 算法 digest 不变，fake_a/fake_b 后端可切换；backend 进算法图拒绝；
+#   truth /v8_support_map 与算法话题重叠拒绝；runner 异常只记 status=error。
+# 容器同版：V8 全树 53 套件 0 失败。未启动 MuJoCo/Gazebo/ROS。
