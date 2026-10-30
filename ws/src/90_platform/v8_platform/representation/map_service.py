@@ -11,6 +11,7 @@
 证据摘要按支撑面足迹统计 free/unknown（缺证＝unknown，无默认 free）。
 分层：消费契约层（map.v1）与生产者（support_map.py），不 import ROS。
 """
+import copy
 import hashlib
 import json
 import sys
@@ -52,6 +53,9 @@ class MapService:
         self.current = None
         self.evidence = None
         self.history = []  # (map_version, digest)
+        self.applied_deltas = {}  # delta_id -> delta digest (idempotent replay)
+        self.listeners = []
+        self.listener_errors = []
 
     def publish(self, value, evidence=None):
         """首发（map_version 以传入值为准，≥1）；再发走 update。"""
@@ -64,6 +68,7 @@ class MapService:
         self.current = value
         self.evidence = dict(evidence) if evidence else None
         self.history.append((value['map_version'], content_digest(value, self.evidence)))
+        self._notify(value['map_version'])
         return value['map_version']
 
     def update(self, value, evidence=None):
@@ -88,6 +93,7 @@ class MapService:
         self.current = bumped
         self.evidence = dict(evidence) if evidence else None
         self.history.append((bumped['map_version'], content_digest(bumped, self.evidence)))
+        self._notify(bumped['map_version'])
         return bumped['map_version']
 
     def check_version(self, consumer_map):
@@ -119,6 +125,82 @@ class MapService:
                         unknown += 1
             summary.append({'surface': surface['surface_id'], 'free': free, 'unknown': unknown})
         return {'state': 'ok', 'surfaces': summary}
+
+
+    # -- 增量提交（局部缓存 → 全局地图）--
+    def subscribe(self, callback):
+        self.listeners.append(callback)
+
+    def _notify(self, version):
+        for callback in list(self.listeners):
+            try:
+                callback(version)
+            except Exception as error:  # a bad listener must not undo a commit
+                self.listener_errors.append(repr(error))
+
+    def propose_delta(self, delta):
+        """Apply a base-version delta atomically; replay returns the current version."""
+        self._require_current()
+        try:
+            contract.validate('map_delta', delta)
+        except contract.ContractError as error:
+            raise MapServiceError('E_DELTA_INVALID', '%s: %s' % (error.code, error.detail))
+        if delta['map_id'] != self.map_id:
+            raise MapServiceError('E_MAPSERVICE_MAP_ID',
+                                  '%s ≠ %s' % (delta['map_id'], self.map_id))
+        delta_digest = hashlib.sha256(
+            json.dumps(delta, sort_keys=True, ensure_ascii=False,
+                       separators=(',', ':')).encode()).hexdigest()
+        if delta['delta_id'] in self.applied_deltas:
+            if self.applied_deltas[delta['delta_id']] != delta_digest:
+                raise MapServiceError('E_DELTA_REPLAY_CONFLICT',
+                                      'delta_id %s reused with different content'
+                                      % delta['delta_id'])
+            return self.current['map_version']
+        if delta['base_version'] != self.current['map_version']:
+            raise MapServiceError('E_MAPSERVICE_STALE',
+                                  'delta base v%s, current v%s'
+                                  % (delta['base_version'], self.current['map_version']))
+        candidate = self._apply_delta(delta)
+        digest = content_digest(candidate, self.evidence)
+        if digest == self.history[-1][1]:
+            raise MapServiceError('E_DELTA_NO_CHANGE', 'delta changed nothing')
+        bumped = copy.deepcopy(candidate)
+        bumped['map_version'] = self.current['map_version'] + 1
+        bumped['source'] = dict(bumped.get('source', {}))
+        bumped['source']['uri'] = delta['source']['uri']
+        bumped['source']['sha256'] = digest
+        self._validate(bumped)
+        self.current = bumped
+        self.history.append((bumped['map_version'], content_digest(bumped, self.evidence)))
+        self.applied_deltas[delta['delta_id']] = delta_digest
+        self._notify(bumped['map_version'])
+        return bumped['map_version']
+
+    def _apply_delta(self, delta):
+        candidate = copy.deepcopy(self.current)
+        surfaces = candidate['surfaces']
+        index = {surface['surface_id']: position for position, surface in enumerate(surfaces)}
+        for op in delta['ops']:
+            if op['op'] == 'upsert_surface':
+                surface = copy.deepcopy(op['surface'])
+                surface_id = surface.get('surface_id')
+                if not isinstance(surface_id, str) or not surface_id:
+                    raise MapServiceError('E_DELTA_OP', 'surface_id missing')
+                if surface_id in index:
+                    surfaces[index[surface_id]] = surface
+                else:
+                    index[surface_id] = len(surfaces)
+                    surfaces.append(surface)
+            else:
+                surface_id = op['surface_id']
+                if surface_id not in index:
+                    raise MapServiceError('E_DELTA_OP', 'remove unknown %s' % surface_id)
+                surfaces.pop(index[surface_id])
+                index = {surface['surface_id']: position
+                         for position, surface in enumerate(surfaces)}
+        self._validate(candidate)
+        return candidate
 
     # -- 净空查询 API（对当前版本）--
     def clearance_at(self, x, y, z):

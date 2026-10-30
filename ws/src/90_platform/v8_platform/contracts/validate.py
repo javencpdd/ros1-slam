@@ -12,7 +12,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SCHEMAS = {'manifest': 'manifest.v1.json', 'robot': 'robot.v1.json',
-           'map': 'map.v1.json', 'task': 'task.v1.json'}
+           'map': 'map.v1.json', 'map_delta': 'map_delta.v1.json',
+           'task': 'task.v1.json'}
 KNOWN = {'title', 'description', 'type', 'required', 'properties', 'additionalProperties', 'enum', 'const',
          'pattern', 'minLength', 'minimum', 'maximum', 'items', 'minItems', 'maxItems', 'uniqueItems',
          'allOf', 'definitions', '$ref'}
@@ -245,6 +246,13 @@ def semantic(kind, value):
                 raise ContractError('E_MANIFEST_STOP', 'controller role requires a stop method')
             if not value['ownership']['command_topics']:
                 raise ContractError('E_MANIFEST_CONTROL', 'controller role requires command_topics')
+    elif kind == 'map_delta':
+        for op in value['ops']:
+            if op['op'] == 'upsert_surface':
+                if not isinstance(op.get('surface'), dict):
+                    raise ContractError('E_DELTA_OP', 'upsert_surface requires surface')
+            elif not op.get('surface_id'):
+                raise ContractError('E_DELTA_OP', 'remove_surface requires surface_id')
     elif kind == 'robot':
         items = [value['capability'][name] for name in ('max_slope_deg', 'max_step_height_m', 'min_clearance_m')]
         items.append(value['brake'])
