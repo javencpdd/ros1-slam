@@ -58,6 +58,7 @@ def main():
     parser.add_argument('--goal-map', default='0,1.34,0.890358')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--perturb', action='store_true')
+    parser.add_argument('--finish-hold', action='store_true')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
@@ -152,6 +153,8 @@ def main():
                        '--prefix', prefix, '--seed', str(args.seed)]
         if args.perturb:
             bridge_argv.append('--perturb')
+        if args.finish_hold:
+            bridge_argv.append('--finish-hold')
         node_stream, bridge_stream = node_log.open('w'), bridge_log.open('w')
         node = start(node_argv, node_stream)
         bridge = start(bridge_argv, bridge_stream)
@@ -216,6 +219,7 @@ def main():
         plans = shared['trajectories']
         applied_n = shared['applied']
         fault = shared['fault']
+        finish_samples = sum(1 for record in applied_log if record.get('finish_hold'))
     levels = sorted({surface['z_reference'] for surface in value['surfaces']
                      if surface.get('traversability') == 'supported'})
     step_marks, order = support_marks(applied_log, levels)
@@ -235,6 +239,7 @@ def main():
     payload = {
         'scenario': 'a5_ros_local_to_v8x1_nist_profile',
         'config': config, 'seed': args.seed, 'perturb': bool(args.perturb),
+        'finish_hold': bool(args.finish_hold), 'finish_samples': finish_samples,
         'stair': {'steps': args.steps, 'step_h': args.step_h,
                                     'depth': args.step_depth, 'front': 1.0,
                                     'landing_depth': args.landing_depth},

@@ -97,8 +97,11 @@ def main():
     parser.add_argument('--initial-z', type=float, default=.4)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--perturb', action='store_true')
+    parser.add_argument('--finish-hold', action='store_true')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
+    top_z = max(s['z_reference'] for s in value['surfaces']
+                if s.get('traversability') == 'supported')
 
     import mujoco
     import onnxruntime as ort
@@ -151,6 +154,7 @@ def main():
     last_support = None
     last_pose = None
     fault = None
+    finish = False
     tick = 0
     while not rospy.is_shutdown():
         now = time.monotonic()
@@ -171,11 +175,24 @@ def main():
         if snapped:
             map_x, map_y = target[0], target[1]
         distance = None if target is None else math.hypot(map_x - target[0], map_y - target[1])
-        yaw = walk.yaw_of(data.qpos[3:7])
-        body_vx, body_vy, wz = body_command(velocity[0], velocity[1], yaw,
-                                            args.speed_scale * path_scale(distance))
-        command = np.array([np.clip(body_vx, -args.max_command, args.max_command), body_vy, wz],
-                           dtype=np.float32)
+        actual_map_x, actual_map_y = world_to_map(world_x, world_y, args.x_offset, args.y_offset)
+        actual_support = support_z(value, actual_map_x, actual_map_y, args.radius)
+        actual_distance = None if target is None else math.hypot(
+            actual_map_x - target[0], actual_map_y - target[1])
+        if (args.finish_hold and not finish and target is not None
+                and abs(target[2] - top_z) <= 1e-6
+                and actual_support is not None and actual_support >= top_z - 1e-6
+                and float(data.qpos[2]) > top_z + .10
+                and actual_distance is not None and actual_distance <= .15):
+            finish = True
+        if finish:
+            command = np.zeros(3, dtype=np.float32)
+        else:
+            yaw = walk.yaw_of(data.qpos[3:7])
+            body_vx, body_vy, wz = body_command(velocity[0], velocity[1], yaw,
+                                                args.speed_scale * path_scale(distance))
+            command = np.array([np.clip(body_vx, -args.max_command, args.max_command), body_vy, wz],
+                               dtype=np.float32)
         if fault is None:
             obs = walk.observation(data.qpos, data.qvel, command, last_action, walk.DEFAULT_POSE)
             state = walk.state_vector(obs, history, newest_first=True)
@@ -219,7 +236,7 @@ def main():
                 'support_z': support, 'world_xyz': [world_x, world_y, float(data.qpos[2])],
                 'map_xyz': [map_x, map_y, support], 'velocity_age_s': now - shared['at'],
                 'waypoint': target, 'snapped': snapped, 'snap_error_m': snap_error,
-                'fault': fault}, default=plain)))
+                'finish_hold': finish, 'fault': fault}, default=plain)))
         tick += 1
         next_tick += .02
         delay = next_tick - time.monotonic()
