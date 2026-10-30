@@ -15,8 +15,30 @@
 
 **现行规划指针**：[计划书 v8](note/计划书v8/README.md)，目标是按场景与能力标签组合
 2D/3D 定位、建图、全局与局部规划算法，并完成可信的三维导航仿真。
-**当前状态：计划已落册，平台改造尚未实施；现有代码不等于已具备全部目标能力。**
+**当前状态：框架改造 F0—F8 的机制层已落册（图、预检、装配、MapDelta、安全、热替换），
+真实算法 v2 化与真实 ROS launch 仍未闭环；现有代码不等于已具备全部目标能力。**
 具体任务见 [执行队列](note/计划书v8/23_v8任务队列.md)，最新批次见 [进度入口](note/进度/README.md)。
+
+## 一·五、框架要达成的目标
+
+**不是再写一个算法，而是补齐可替换系统的脊柱：用契约描述能力，用 graph YAML 描述组合，
+用运行时收口安全，用独立验证产生可信结论。** 目标能力：
+
+- **地图可接入**：2D 栅格、3D 支撑/高程、语义地图；地图是版本化服务，支持增量、防回退、防膨胀。
+- **机器人可接入**：Lite3、M20 等共用机器人 profile 与命令/遥测边界。
+- **算法可替换**：建图、定位、全局、局部通过 manifest v2 的命名端口选择；算法内部策略留在自己的配置文件中。
+- **中间件可插入任意边**：例如局部地图缓存按周期向全局地图提交 `MapDelta`，两端代码不改。
+- **仿真独立验证**：MuJoCo/Gazebo 只验证组合，真值只进评价器；通行性 oracle 可查询但不冒充真机。
+
+| 状态 | 内容 |
+| --- | --- |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner（假命令）、MapService/MapDelta + ROS provider、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4 |
+| **未实现/未接** | 真实算法 v2 化（DWA/TEB/Navfn/GlobalPlanner/hdl 等仍为 v1 或裸包）、真实 `roslaunch/rosrun` 闭环、plugin 托管、M20/真机 S5、语义地图、真实 map_cache/map_merge、MuJoCo/Gazebo 验证后端、零中断热替换、#151 停车预算 |
+| **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界适配器接主链、MapDelta 证据层、selector 组合级校验 |
+
+框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
+[架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
+**边界**：A1—A7 仍 `NOT_VALIDATED`；真实定位/全局/局部算法的统一配置替换，必须先完成 v2 适配与真实 launch。
 
 ---
 
@@ -42,7 +64,7 @@
 | `note/tools/` | 工具教程面（跨 Agent 协作黑板教程在此） | `note/tools/跨Agent协作黑板-使用教程.md` |
 | `scripts/` | 门禁件 `scripts/verify/`（★十一件★）＋采图脚本族 `scripts/mapping/` | `scripts/mapping/README.md` |
 | `docker/` | 容器开发环境（复刻 Jetson aarch64 的 Noetic 隔离沙箱）＋ `foxglove/` 布局件 | `docker/README.md` |
-| `web/` | 项目官网（静态单页）：架构、里程碑、判据现状、仿真入口 | `web/README.md` |
+| `web/` | 项目官网（静态单页）：框架目标、架构、里程碑、判据现状、仿真入口 | `web/README.md` |
 | `tooling/` | 项目自持清单（含 skill 逐字镜像＋ `*_sha256_manifest.txt` 见证清单） | `tooling/README.md` |
 | `data/` | 底图与输出面（`maps/`＝建图三件套 .pcd/.pgm/.yaml，`waypoints/`＝航点 JSON） | `data/waypoints/README.md` |
 | `opt/` | **第三方与原件区**（★原样复制、一字不改★；唯一许可例外＝faster-lio 存盘路径隔离） | `opt/upstream/`／`opt/3rdparty/` |
@@ -56,7 +78,7 @@
 ## 三·五、官网介绍（`/web`）
 
 仓库自带一份**静态单页**项目官网（零依赖、可离线打开）：定位、能力地图、架构、里程碑、
-当前判据状态、仿真与观察入口、新算法接入方式、文档索引。
+框架目标与三态现状、当前判据状态、仿真与观察入口、新算法接入方式、文档索引。
 
 **启动方式**（必须从仓库根目录起服务，页面里的 `note/`、`docker/` 文档链接才可达）：
 
@@ -119,6 +141,9 @@ bash scripts/verify/run_gate_chain.sh
   （仓根 README 门面与黑板并存两读，可勾形＝并存／保留指针各归各／搬到 `.ai/`），
   真人所勾＝**「保留一句指针后各归各」形，落点＝`note/tools/`**（非 `.ai/`）。
 - 旧版正文一字未删：可从 git 取回，基准提交＝`fcc2634`。
+- ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
+  已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
+  同步官网 `#framework` 页。A1—A7 状态不变。
 
 ---
 
