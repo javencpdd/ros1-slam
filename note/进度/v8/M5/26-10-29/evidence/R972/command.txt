@@ -1,0 +1,6 @@
+R972 命令（2026-10-31 01:57—02:01 CST，qoder；无 landing 0.6 m 四步判据核对）
+# 容器 ros1-slam-sim；4×0.15 m、深 .5、宽 3、front 1、landing 0；v .3、增益 3.0/1.5/.5、seed0。
+# 时长扫 5.0—7.0 s，输出 final xyz / xmax / clean / stable。
+# 读数：5.0—5.4 s 已站在顶层（x 2.63—3.00、z 0.79—0.86），但 clean 需 x > 3.2 ⇒ 全 false；
+#   5.5 s 后越过顶沿下落；6 s 后 clean=true 但已在地面。无 landing 场景无法同时“clean + stable”。
+# 结论：R934 的无 landing 负例是地形/判据几何冲突，不是单纯步态失败；不改冻结判据。
