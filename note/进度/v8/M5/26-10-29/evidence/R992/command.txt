@@ -1,0 +1,12 @@
+R992 命令（2026-10-31 04:58—05:01 CST，qoder；A5 相位门 1.0 s）
+# 新增 bridge/runtime --hold-until-sim-s：sim 时间未到门前命令恒零，门后放行；
+# 其余同 R987（seed0、perturb、lockstep、stall-retry、150 s）。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --hold-until-sim-s 1.0 \
+  --out /tmp/r992_s0_$i.json --wall-deadline-s 150
+# 读数：3/3 PASS（8 plans），final map z 0.8904；
+#   首个非零命令 sim 1.16/1.32/1.20 s，仍有 0.16 s 散差；
+#   R987 无门 2/3 PASS、首个 active 命令 0.30/0.48 s。
+# 结论：1.0 s 门在本窗稳定到 3/3，但未消除相位散差，不能称相位锁定；A5 仍 PARTIAL。
