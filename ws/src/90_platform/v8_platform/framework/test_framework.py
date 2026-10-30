@@ -204,7 +204,7 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (13, 5, 8))
+                         (14, 5, 9))
 
     def test_launch_spec_rejects_bad_entries(self):
         cases = [

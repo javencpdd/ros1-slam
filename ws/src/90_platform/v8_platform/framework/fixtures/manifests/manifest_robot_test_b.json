@@ -1,0 +1,51 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.robot_test_b",
+ "version": "0.0.0",
+ "roles": [
+  "robot_adapter"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "robot_test_b",
+  "test_double": true
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/TwistStamped",
+    "topic": "/cmd_vel"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/odom"
+   },
+   {
+    "name": "imu",
+    "type": "sensor_msgs/Imu",
+    "topic": "/imu/data"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

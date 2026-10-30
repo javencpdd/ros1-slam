@@ -1,0 +1,14 @@
+{
+ "schema_version": 1,
+ "robot_id": "robot_b_tested",
+ "reference_point": {"frame": "base_link", "xyz": [0.0, 0.0, 0.25], "note": "test fixture"},
+ "footprint": {"type": "circle", "radius_m": 0.3, "height_m": 0.5},
+ "kinematics": "differential",
+ "mass_kg": 20.0,
+ "capability": {
+  "max_slope_deg": {"value": 20.0, "unit": "deg", "source": "test fixture", "level": "tested", "composition_use": "allowed", "report": "evidence://robot_b/slope"},
+  "max_step_height_m": {"value": 0.1, "unit": "m", "source": "test fixture", "level": "tested", "composition_use": "allowed", "report": "evidence://robot_b/step"},
+  "min_clearance_m": {"value": 0.3, "unit": "m", "source": "test fixture", "level": "tested", "composition_use": "allowed", "report": "evidence://robot_b/clearance"}
+ },
+ "brake": {"max_decel_mps2": 1.2, "latency_s": 0.08, "source": "test fixture", "level": "tested", "composition_use": "allowed", "report": "evidence://robot_b/brake"}
+}
