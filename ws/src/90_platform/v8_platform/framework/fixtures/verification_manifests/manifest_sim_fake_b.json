@@ -1,0 +1,40 @@
+{
+ "schema_version": 2,
+ "version": "0.0.0",
+ "roles": [
+  "simulator"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ },
+ "ports": {
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "truth",
+    "type": "std_msgs/String",
+    "topic": "/sim/truth_b"
+   }
+  ]
+ },
+ "id": "v8.fw.sim_fake_b",
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "sim_fake_b",
+  "test_double": true
+ }
+}

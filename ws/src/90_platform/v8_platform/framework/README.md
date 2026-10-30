@@ -25,6 +25,10 @@
 仅 tested/allowed 值可用；robot_adapter 必须提供 `cmd`（TwistStamped）与 `odom`/`imu` 遥测端口。
 `v8.fw.robot_lite3` 与 `v8.fw.robot_test_b` 同端口，仅改图 YAML 的实例组件即可切换。
 
+`verification.py` 选择独立验证后端（模拟器组件）与场景，**不进入算法图**；真值通道不得与算法话题
+重叠（`E_VERIFY_TRUTH_LEAK`）；后端通过注入 runner 运行，失败只记 status=error，不改算法 digest。
+本片用两个假后端验证切换，不启动 MuJoCo/Gazebo。
+
 不再维护独立的 `components.yaml`：组件定义只有 manifest 一份；v2 的 io 是**加载期派生视图**，不落盘。
 
 对应关系：**组件类型可复用，实例 ID 唯一；同名组件可起多个实例；连线必须显式到端口。**
@@ -42,6 +46,7 @@ python3 -B framework/cli.py plan framework/fixtures/manifests \
 python3 -B framework/test_framework.py      # 22 项
 python3 -B framework/test_runtime.py        # 5 项（F3 假命令运行器）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
+python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
 python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 ```
@@ -82,7 +87,8 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 - "真实入口"仅指包/launch/可执行/参数文件在**声明索引**中对上（5 个），未在宿主执行；
   `v8_platform/*_test_double` 有 9 个（含第二个机器人适配器）。`kind: plugin` 托管未实现。
 - runtime 测试用假命令；真实 `rosrun/roslaunch` 未执行。包索引是声明快照，不是 rospack 活体扫描；
-  ready_marker 需按组件配置，plugin 托管、热插拔、状态迁移、运行期改线未实现。
+  验证测试用假后端，未启动 MuJoCo/Gazebo；ready_marker 需按组件配置，plugin 托管、热插拔、
+  状态迁移、运行期改线未实现。
 - 地图 provider 的增量提交/版本事务、机器人 profile、MuJoCo 验证配置都不在本片。
 - 不改 `contracts/registry/composer/orchestrator` 既有语义；新图模型独立，下一片再决定
   是否复用 manifest 或迁移。
