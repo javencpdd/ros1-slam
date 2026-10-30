@@ -116,10 +116,15 @@ def faces_to_surfaces(faces, ground_z=0., margin=1., thickness=.05,
 
 
 def build(dae_path, map_id='nist_stairs_120', resolution=.1, margin=1., z_scale=1.,
-          ground_front_only=False):
+          xy_scale=1., ground_front_only=False):
     if not (isinstance(z_scale, (int, float)) and z_scale > 0):
         raise ValueError('z_scale must be positive')
-    faces = [dict(face, z=face['z'] * z_scale) for face in top_faces(dae_path)]
+    if not (isinstance(xy_scale, (int, float)) and xy_scale > 0):
+        raise ValueError('xy_scale must be positive')
+    faces = [dict(face, z=face['z'] * z_scale,
+                  min_x=face['min_x'] * xy_scale, max_x=face['max_x'] * xy_scale,
+                  min_y=face['min_y'] * xy_scale, max_y=face['max_y'] * xy_scale)
+             for face in top_faces(dae_path)]
     ground_y_max = min(face['min_y'] for face in faces) if ground_front_only else None
     surfaces = faces_to_surfaces(faces, margin=margin, ground_y_max=ground_y_max)
     raw = Path(dae_path).read_bytes()
@@ -129,7 +134,7 @@ def build(dae_path, map_id='nist_stairs_120', resolution=.1, margin=1., z_scale=
          min(s['footprint']['min_y'] for s in surfaces), 0.],
         surfaces, None,
         {'uri': 'fuel://OpenRobotics/NIST stairs 120/' + Path(dae_path).name +
-                ('#z_scale=%g' % z_scale),
+                ('#z_scale=%g&xy_scale=%g' % (z_scale, xy_scale)),
          'sha256': hashlib.sha256(raw).hexdigest()})
     return value, faces
 
@@ -141,10 +146,11 @@ def main():
     parser.add_argument('--map-id', default='nist_stairs_120')
     parser.add_argument('--resolution', type=float, default=.1)
     parser.add_argument('--z-scale', type=float, default=1.)
+    parser.add_argument('--xy-scale', type=float, default=1.)
     parser.add_argument('--ground-front-only', action='store_true')
     args = parser.parse_args()
     value, faces = build(args.dae, args.map_id, args.resolution, z_scale=args.z_scale,
-                         ground_front_only=args.ground_front_only)
+                         xy_scale=args.xy_scale, ground_front_only=args.ground_front_only)
     Path(args.out).write_text(json.dumps(value, ensure_ascii=False, indent=1) + '\n')
     print(json.dumps({'map_id': value['map_id'], 'surfaces': len(value['surfaces']),
                       'faces': faces, 'out': args.out}, ensure_ascii=False))
