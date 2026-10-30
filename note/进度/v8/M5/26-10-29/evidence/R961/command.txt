@@ -1,0 +1,7 @@
+R961 命令（2026-10-31 00:50—01:00 CST，qoder；F4 MapDelta）
+cd ws/src/90_platform/v8_platform
+python3 -B representation/test_map_delta.py    # 7
+python3 -B representation/test_map_service.py  # 8
+# 读数：upsert 升版+通知；同 delta_id 重放幂等；旧 base/同 id 异内容/无变化/非法结果/删除被引面均拒绝且 current 不变。
+# 容器同版：V8 全树 51 套件 0 失败。
+# 未启动 ROS；delta 由局部缓存组件产生，提交 API 在 MapService。
