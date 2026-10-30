@@ -97,7 +97,7 @@ def make_map(output):
         (output / 'map.pgm', resolution, ox, oy))
 
 
-def backend_launch(output, backend):
+def backend_launch(output, backend, global_backend='global_planner'):
     source = FLAT / ('flat2d_stack_sc09_f64nli25%s.launch' % ('_teb' if backend == 'teb' else ''))
     tree = ET.parse(source)
     root = tree.getroot()
@@ -106,8 +106,20 @@ def backend_launch(output, backend):
             root.remove(node)  # Gazebo launch already owns this exact TF child.
         if node.get('name') == 'map_server':
             node.set('args', str(output / 'map.yaml'))
+    move = next(node for node in root if node.get('name') == 'move_base')
+    planner = ('navfn/NavfnROS' if global_backend == 'navfn'
+               else 'global_planner/GlobalPlanner')
+    existing = next((p for p in move.findall('param')
+                     if p.get('name') == 'base_global_planner'), None)
+    if existing is None:
+        existing = ET.SubElement(move, 'param', {'name': 'base_global_planner'})
+    existing.set('value', planner)
+    if global_backend == 'navfn':
+        for key, value in (('allow_unknown', 'false'), ('default_tolerance', '0.0'),
+                           ('planner_window_x', '0.0'), ('planner_window_y', '0.0')):
+            param = ET.SubElement(move, 'param', {'name': 'NavfnROS/' + key,
+                                                  'value': value})
     if backend == 'teb':
-        move = next(node for node in root if node.get('name') == 'move_base')
         values = json.loads((FLAT / 'teb_runtime.json').read_text())
         for key, value in values.items():
             name = 'TebLocalPlannerROS/' + key
@@ -121,12 +133,19 @@ def backend_launch(output, backend):
     return path
 
 
-def manifest_for_backend(manifest, backend):
-    """Keep the copied v12 manifest honest about which local planner ran."""
+def manifest_for_backend(manifest, backend, global_backend='global_planner'):
+    """Keep the copied v12 manifest honest about which planners ran."""
     result = copy.deepcopy(manifest)
     result['backend'] = backend
-    result['combo'] = 'lite3_%s_mux' % backend
+    result['global_backend'] = global_backend
+    result['combo'] = 'lite3_%s_%s_mux' % (global_backend, backend)
     lock = result.setdefault('config_lock', {})
+    if global_backend == 'navfn':
+        result['global_planner'] = 'navfn/NavfnROS'
+        lock['planner'] = lock.get('planner', '').replace(
+            'global_planner/GlobalPlanner', 'navfn/NavfnROS')
+    else:
+        result['global_planner'] = 'global_planner/GlobalPlanner'
     if backend == 'teb':
         result['local_planner'] = 'teb_local_planner/TebLocalPlannerROS'
         lock['planner'] = lock.get('planner', '').replace(
@@ -152,6 +171,8 @@ def main():
     parser.add_argument('--ndt-probe', action='store_true')
     parser.add_argument('--gazebo', action='store_true')
     parser.add_argument('--backend', choices=['dwa', 'teb'])
+    parser.add_argument('--global-backend', choices=['global_planner', 'navfn'],
+                        default='global_planner')
     parser.add_argument('--scenario', choices=['SC01', 'SC02', 'SC09'], default='SC02')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--repetition', type=int, default=1)
@@ -210,7 +231,7 @@ def main():
                                               '--seed', str(args.noise_seed)])
             if args.backend:
                 make_map(output)
-                launch = backend_launch(output, args.backend)
+                launch = backend_launch(output, args.backend, args.global_backend)
                 processes.start('navigation', ['roslaunch', str(launch)])
                 processes.start('relay', [sys.executable, str(FLAT / 'scan_relay.py')],
                                 {'RELAY_MODE': 'volume'})
@@ -222,7 +243,8 @@ def main():
                 from gazebo_msgs.msg import ModelState
                 manifest_dir = FLAT / ('runs_v12' if args.scenario == 'SC09' else 'runs_v12_sc0102')
                 template = next(manifest_dir.glob('*_%s_g0_r1.json' % args.scenario))
-                manifest = manifest_for_backend(json.loads(template.read_text()), args.backend)
+                manifest = manifest_for_backend(json.loads(template.read_text()), args.backend,
+                                                args.global_backend)
                 generator = random.Random(args.seed)
                 perturbation = [0., 0., 0.] if args.seed == 0 else [
                     generator.uniform(-.03, .03), generator.uniform(-.03, .03),
@@ -242,8 +264,9 @@ def main():
                     seed_effect['estimated_track'] = {
                         'seed': args.noise_seed, 'amp_xy_m': 0.05, 'amp_yaw_rad': 0.03}
                 track_suffix = '' if args.localization == 'truth' else '_' + args.localization
-                manifest.update(run_id='runtime_%s_%s_s%d%s_r%d' % (
-                    args.backend, args.scenario, args.seed, track_suffix, args.repetition),
+                manifest.update(run_id='runtime_%s_%s_%s_s%d%s_r%d' % (
+                    args.global_backend, args.backend, args.scenario, args.seed,
+                    track_suffix, args.repetition),
                                 run_class='runtime_experimental', calibration_only=False,
                                 seed=args.seed, repetition=args.repetition,
                                 start=perturbation, seed_effect=seed_effect,

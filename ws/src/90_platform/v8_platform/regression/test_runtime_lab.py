@@ -23,7 +23,7 @@ class ManifestBackendTests(unittest.TestCase):
         original = copy.deepcopy(BASE)
         result = runtime_lab.manifest_for_backend(BASE, 'teb')
         self.assertEqual(result['backend'], 'teb')
-        self.assertEqual(result['combo'], 'lite3_teb_mux')
+        self.assertEqual(result['combo'], 'lite3_global_planner_teb_mux')
         self.assertIn('TebLocalPlannerROS', result['local_planner'])
         self.assertIn('teb_local_planner/TebLocalPlannerROS',
                       result['config_lock']['planner'])
@@ -35,10 +35,17 @@ class ManifestBackendTests(unittest.TestCase):
         self.assertNotIn('DWA', result['config_lock']['stack'])
         self.assertEqual(BASE, original)
 
+    def test_navfn_global_backend_is_named(self):
+        result = runtime_lab.manifest_for_backend(BASE, 'dwa', 'navfn')
+        self.assertEqual(result['global_backend'], 'navfn')
+        self.assertEqual(result['global_planner'], 'navfn/NavfnROS')
+        self.assertIn('navfn/NavfnROS', result['config_lock']['planner'])
+        self.assertEqual(result['combo'], 'lite3_navfn_dwa_mux')
+
     def test_dwa_names_dwa(self):
         result = runtime_lab.manifest_for_backend(BASE, 'dwa')
         self.assertEqual(result['backend'], 'dwa')
-        self.assertEqual(result['combo'], 'lite3_dwa_mux')
+        self.assertEqual(result['combo'], 'lite3_global_planner_dwa_mux')
         self.assertIn('DWAPlannerROS', result['local_planner'])
         self.assertIn('dwa_local_planner/DWAPlannerROS',
                       result['config_lock']['planner'])
