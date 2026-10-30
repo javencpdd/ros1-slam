@@ -160,17 +160,25 @@ def nonfinite_state(streak, finite, limit=5):
 def stair_verdict(final, xmax, marks, stair, fell, unstable):
     """Classify a stair rollout; a stable finish must remain on the top level.
 
-    Final x and |y| alone still call a rollout stable after it walks off the
-    landing and stops on the floor (R942, 6 m landing). The base must stay at
-    least a standing clearance above the top step surface; below 0.12 m total
-    rise that height cannot be separated from floor level by z alone.
+    No-landing stairs: the 0.5 m top step cannot be crossed by the old
+    "top edge + 0.2 m" rule without walking off the support, so reach/stand on
+    the top step is the crossing condition and the top edge itself is not
+    required as a mark. With a landing, the old edge+0.2 m rule is kept.
     """
     boundaries = [stair['front'] + stair['depth'] * (i + 1) for i in range(stair['steps'])]
-    crossed = xmax > boundaries[-1] + .2
+    landing = float(stair.get('landing_depth', 0.) or 0.)
+    top_start = boundaries[-2] if len(boundaries) > 1 else stair['front']
+    if landing > 0:
+        required_x = boundaries[-1] + .2
+        required_marks = boundaries
+    else:
+        required_x = top_start + min(.2, stair['depth'] / 2.)
+        required_marks = boundaries[:-1]
+    crossed = xmax > required_x
     within = all(('%.3f' % x) in marks and abs(marks['%.3f' % x][1]) < 1.0
-                 for x in boundaries)
+                 for x in required_marks)
     clean = not fell and not unstable and crossed and within
-    stable = (clean and final[0] > boundaries[-1] + .2
+    stable = (clean and final[0] > required_x
               and abs(final[1]) < stair['width'] / 2
               and final[2] > stair['step_h'] * stair['steps'] + .1)
     return {'crossed_once': bool(crossed), 'clean_climb': bool(clean),

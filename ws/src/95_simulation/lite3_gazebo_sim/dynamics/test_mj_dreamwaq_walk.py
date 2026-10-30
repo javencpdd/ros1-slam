@@ -148,6 +148,25 @@ class AdapterTest(unittest.TestCase):
         self.assertFalse(floor['stable_finish'])
         self.assertTrue(top['stable_finish'])
 
+    def test_no_landing_accepts_standing_on_top_step(self):
+        stair = {'step_h': .15, 'steps': 4, 'depth': .5, 'width': 3., 'front': 1.}
+        marks = self._marks(stair)
+        on_top = walk.stair_verdict((2.887, .08, .858), 2.887, marks, stair, False, False)
+        before_top = walk.stair_verdict((2.629, .08, .793), 2.629, marks, stair, False, False)
+        self.assertTrue(on_top['crossed_once'])
+        self.assertTrue(on_top['clean_climb'])
+        self.assertTrue(on_top['stable_finish'])
+        self.assertFalse(before_top['crossed_once'])
+        self.assertFalse(before_top['stable_finish'])
+
+    def test_landing_keeps_edge_margin_rule(self):
+        stair = {'step_h': .15, 'steps': 4, 'depth': .5, 'width': 3., 'front': 1.,
+                 'landing_depth': 2.}
+        marks = self._marks(stair)
+        on_top = walk.stair_verdict((2.887, .08, .858), 2.887, marks, stair, False, False)
+        self.assertFalse(on_top['crossed_once'])
+        self.assertFalse(on_top['stable_finish'])
+
     def test_stair_verdict_keeps_lateral_and_mark_conditions(self):
         stair = {'step_h': .2, 'steps': 5, 'depth': .7, 'width': 3., 'front': 1.}
         marks = self._marks(stair)
