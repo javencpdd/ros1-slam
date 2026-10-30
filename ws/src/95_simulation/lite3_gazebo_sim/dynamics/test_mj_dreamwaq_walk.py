@@ -107,6 +107,25 @@ class AdapterTest(unittest.TestCase):
             finally:
                 shutil.rmtree(Path(path).parent, ignore_errors=True)
 
+    def test_stairs_xml_contact_profile(self):
+        with tempfile.TemporaryDirectory() as directory:
+            flat = Path(directory) / 'flat.xml'
+            flat.write_text('<mujoco model="flat"><worldbody/></mujoco>\n')
+            profile = {'timestep': .001, 'integrator': 'implicitfast',
+                       'solref': '0.04 1', 'solimp': '0.9 0.95 0.001'}
+            path = walk.make_stairs_xml(flat, .10, steps=3, depth=.5, width=3., front=1.,
+                                        contact_profile=profile)
+            try:
+                copied = ET.parse(Path(path).parent / 'flat.xml').getroot()
+                option = copied.find('option')
+                self.assertEqual(option.get('timestep'), '0.001')
+                self.assertEqual(option.get('integrator'), 'implicitfast')
+                geoms = ET.parse(path).getroot().find('worldbody').findall('geom')
+                self.assertEqual(geoms[0].get('solref'), '0.04 1')
+                self.assertEqual(geoms[0].get('solimp'), '0.9 0.95 0.001')
+            finally:
+                shutil.rmtree(Path(path).parent, ignore_errors=True)
+
     def _marks(self, stair):
         return {'%.3f' % (stair['front'] + stair['depth'] * (i + 1)): [0., 0., 1.2]
                 for i in range(stair['steps'])}

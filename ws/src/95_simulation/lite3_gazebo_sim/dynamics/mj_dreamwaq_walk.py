@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import tempfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import numpy as np
@@ -84,13 +85,28 @@ def joint_target(action, default_pose=DEFAULT_POSE, action_scale=ACTION_SCALE):
 
 
 def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0,
-                    landing_depth=0.0):
-    """Create a temporary 3-step world that includes the supplied flat model."""
+                    landing_depth=0.0, contact_profile=None):
+    """Create a temporary 3-step world that includes the supplied flat model.
+
+    contact_profile optionally overrides the model option (timestep/integrator)
+    and the stair geoms' contact softness (solref/solimp); defaults unchanged.
+    """
     flat = Path(flat_xml).resolve()
     if steps < 1 or step_h <= 0 or depth <= 0 or width <= 0 or landing_depth < 0:
         raise ValueError('stairs need positive step height/depth/width and steps >= 1')
     work = Path(tempfile.mkdtemp(prefix='lite3_stairs_'))
     shutil.copy2(flat, work / flat.name)
+    if contact_profile:
+        tree = ET.parse(work / flat.name)
+        root = tree.getroot()
+        option = root.find('option')
+        if option is None:
+            option = ET.Element('option')
+            root.insert(1 if root.find('compiler') is not None else 0, option)
+        for key in ('timestep', 'integrator'):
+            if contact_profile.get(key) is not None:
+                option.set(key, str(contact_profile[key]))
+        tree.write(work / flat.name, encoding='utf-8', xml_declaration=True)
     for entry in flat.parent.iterdir():
         if entry == flat:
             continue
@@ -104,19 +120,25 @@ def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0,
                 shutil.copytree(entry, target)
             else:
                 shutil.copy2(entry, target)
+    contact = ''
+    if contact_profile:
+        if contact_profile.get('solref'):
+            contact += ' solref="%s"' % contact_profile['solref']
+        if contact_profile.get('solimp'):
+            contact += ' solimp="%s"' % contact_profile['solimp']
     geoms = []
     for i in range(steps):
         z = step_h * (i + 1) / 2.
         x = front + depth * i + depth / 2.
         geoms.append('    <geom name="step%d" type="box" size="%g %g %g" pos="%g 0 %g" '
-                     'friction="1 0.01 0.01" rgba="0.4 0.7 0.4 1"/>'
-                     % (i + 1, depth / 2., width / 2., z, x, z))
+                     'friction="1 0.01 0.01"%s rgba="0.4 0.7 0.4 1"/>'
+                     % (i + 1, depth / 2., width / 2., z, x, z, contact))
     if landing_depth:
         top = step_h * steps
         geoms.append('    <geom name="landing" type="box" size="%g %g %g" pos="%g 0 %g" '
-                     'friction="1 0.01 0.01" rgba="0.4 0.7 0.4 1"/>'
+                     'friction="1 0.01 0.01"%s rgba="0.4 0.7 0.4 1"/>'
                      % (landing_depth / 2., width / 2., top / 2.,
-                        front + depth * steps + landing_depth / 2., top / 2.))
+                        front + depth * steps + landing_depth / 2., top / 2., contact))
     xml = ('<mujoco model="Lite3_stairs_auto">\n'
            '  <compiler meshdir="%s"/>\n'
            '  <include file="%s"/>\n'

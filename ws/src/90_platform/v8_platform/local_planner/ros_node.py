@@ -163,6 +163,7 @@ def main():
     from std_msgs.msg import Bool, String
 
     rospy.init_node('v8_native_local_planner')
+    sim_clock = bool(rospy.get_param('/use_sim_time', False))
     config = native.Config(**rospy.get_param('~experimental_config', {}))
     config.validate()
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
@@ -241,6 +242,7 @@ def main():
         command_history = []
         previous_control_stamp = None
         previous_command = (0., 0., 0.)
+        rate = rospy.Rate(50) if sim_clock else None
         while not rospy.is_shutdown():
             wall_now = time.monotonic()
             with lock:
@@ -291,8 +293,13 @@ def main():
                         shared.update(result=None, last_error=out['reason'],
                                       stop_latched=terminal,
                                       stop_reason=out['reason'] if terminal else None)
-            # Intentionally wall time: paused /clock cannot suspend the zero-command watchdog.
-            time.sleep(.05)
+            # Wall sleep keeps the zero-command watchdog live when the clock is
+            # wall time; under the bridge-owned sim clock the clock paces the
+            # loop and the carrier is frozen with it.
+            if rate is not None:
+                rate.sleep()
+            else:
+                time.sleep(.05)
 
     worker = PlannerWorker(config, profile)
     thread = threading.Thread(target=control_loop, daemon=True)

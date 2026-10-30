@@ -61,17 +61,30 @@ def main():
     parser.add_argument('--finish-hold', action='store_true')
     parser.add_argument('--viewer', action='store_true')
     parser.add_argument('--viewer-hold-s', type=float, default=0.)
+    parser.add_argument('--lockstep', action='store_true')
+    parser.add_argument('--contact-profile', choices=('A', 'B', 'C'), default='A')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
+    if args.contact_profile == 'A':
+        contact_profile = None
+    elif args.contact_profile == 'B':
+        contact_profile = {'timestep': .001, 'integrator': 'implicitfast',
+                           'solref': '0.04 1', 'solimp': '0.9 0.95 0.001'}
+    else:
+        contact_profile = {'timestep': .001, 'integrator': 'implicitfast'}
     stairs_xml = walk.make_stairs_xml(args.xml, args.step_h, args.steps, args.step_depth,
-                                      3.0, 1.0, args.landing_depth)
+                                      3.0, 1.0, args.landing_depth,
+                                      contact_profile=contact_profile)
     boundaries = [1.0 + args.step_depth * i for i in range(1, args.steps + 1)]
 
     import rospy
     from geometry_msgs.msg import PoseStamped
     from std_msgs.msg import Bool, String
     rospy.init_node('a5_v8x1_runtime', anonymous=True)
+    if args.lockstep:
+        # The bridge owns /clock; the node plans and tracks in frozen sim time.
+        rospy.set_param('/use_sim_time', True)
 
     node_name = 'a5v8x1_%d' % os.getpid()
     prefix = '/' + node_name
@@ -159,18 +172,21 @@ def main():
             bridge_argv.append('--finish-hold')
         if args.viewer:
             bridge_argv.append('--viewer')
+        if args.lockstep:
+            bridge_argv.append('--lockstep')
         node_stream, bridge_stream = node_log.open('w'), bridge_log.open('w')
         node = start(node_argv, node_stream)
         bridge = start(bridge_argv, bridge_stream)
         try:
-            deadline = time.monotonic() + args.wall_deadline_s
-            while time.monotonic() < deadline and not all(p.get_num_connections() for p in pubs):
+            ready_deadline = time.monotonic() + 30.
+            while time.monotonic() < ready_deadline and not all(p.get_num_connections() for p in pubs):
                 if node.poll() is not None or bridge.poll() is not None:
                     raise RuntimeError('child exited: ' + node_log.read_text() +
                                        bridge_log.read_text())
                 time.sleep(.05)
             if not all(p.get_num_connections() for p in pubs):
                 raise RuntimeError('subscription readiness timeout')
+            deadline = time.monotonic() + args.wall_deadline_s
             message = PoseStamped()
             message.header.frame_id, message.pose.orientation.w = 'map', 1.
             message.pose.position.x, message.pose.position.y, message.pose.position.z = goal
@@ -245,6 +261,9 @@ def main():
     payload = {
         'scenario': 'a5_ros_local_to_v8x1_nist_profile',
         'config': config, 'seed': args.seed, 'perturb': bool(args.perturb),
+        'lockstep': bool(args.lockstep),
+        'contact_profile': args.contact_profile,
+        'contact_profile_params': contact_profile,
         'finish_hold': bool(args.finish_hold), 'finish_samples': finish_samples,
         'stair': {'steps': args.steps, 'step_h': args.step_h,
                                     'depth': args.step_depth, 'front': 1.0,

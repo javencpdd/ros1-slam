@@ -99,6 +99,8 @@ def main():
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--finish-hold', action='store_true')
     parser.add_argument('--viewer', action='store_true')
+    parser.add_argument('--lockstep', action='store_true')
+    parser.add_argument('--clock-offset', type=float, default=2.0)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -108,6 +110,7 @@ def main():
     import onnxruntime as ort
     import rospy
     from geometry_msgs.msg import PoseStamped, TwistStamped
+    from rosgraph_msgs.msg import Clock
     from std_msgs.msg import Bool, String
 
     rospy.init_node('a5_v8x1_bridge', anonymous=True, disable_signals=True)
@@ -131,11 +134,18 @@ def main():
     session = ort.InferenceSession(args.policy, providers=['CPUExecutionProvider'])
     inp = session.get_inputs()[0].name
 
-    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'target': None}
+    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'target': None, 'active': False}
 
     def on_cmd(message):
         shared['velocity'] = (message.twist.linear.x, message.twist.linear.y, message.twist.linear.z)
         shared['at'] = time.monotonic()
+
+    def on_status(message):
+        try:
+            payload = json.loads(message.data)
+        except ValueError:
+            return
+        shared['active'] = payload.get('reason') in ('track', 'hold')
 
     def on_trajectory(message):
         try:
@@ -143,16 +153,21 @@ def main():
             points = payload['trajectory']
             if len(points) >= 2:
                 shared['target'] = tuple(points[1][:3])
+                # A published plan is the resume edge: the node's sim-paced
+                # control loop waits on /clock while the bridge holds it.
+                shared['active'] = True
         except (ValueError, KeyError, TypeError):
             pass
 
     rospy.Subscriber(args.prefix + '/cmd', TwistStamped, on_cmd, queue_size=10)
     rospy.Subscriber(args.prefix + '/trajectory', String, on_trajectory, queue_size=10)
+    rospy.Subscriber(args.prefix + '/status', String, on_status, queue_size=10)
     pose_pub = rospy.Publisher(args.prefix + '/pose', PoseStamped, queue_size=10)
     body_pub = rospy.Publisher(args.prefix + '/body', PoseStamped, queue_size=50)
     applied_pub = rospy.Publisher(args.prefix + '/applied', String, queue_size=10)
     obstacle_pub = rospy.Publisher(args.prefix + '/obstacles', String, queue_size=1)
     loc_pub = rospy.Publisher(args.prefix + '/localization', Bool, queue_size=1)
+    clock_pub = rospy.Publisher('/clock', Clock, queue_size=50) if args.lockstep else None
 
     history = [np.zeros(walk.OBS_DIM, dtype=np.float32) for _ in range(walk.HISTORY)]
     last_action = np.zeros(12, dtype=np.float32)
@@ -167,7 +182,9 @@ def main():
     tick = 0
     while not rospy.is_shutdown():
         now = time.monotonic()
-        velocity = shared['velocity'] if now - shared['at'] <= args.cmd_timeout else (0., 0., 0.)
+        stepping = (not args.lockstep) or shared['active']
+        velocity = (shared['velocity'] if (stepping and now - shared['at'] <= args.cmd_timeout)
+                    else (0., 0., 0.))
         world_x, world_y = float(data.qpos[0]), float(data.qpos[1])
         map_x, map_y = world_to_map(world_x, world_y, args.x_offset, args.y_offset)
         support = support_z(value, map_x, map_y, args.radius)
@@ -218,10 +235,13 @@ def main():
         else:
             command = np.zeros(3, dtype=np.float32)
             joint_target = walk.DEFAULT_POSE.copy()
-        for _ in range(stride):
-            tau = np.clip(25. * (joint_target - data.qpos[7:19]) - .5 * data.qvel[6:18], -30., 30.)
-            data.qfrc_applied[6:18] = tau
-            mujoco.mj_step(model, data)
+        if stepping:
+            for _ in range(stride):
+                tau = np.clip(25. * (joint_target - data.qpos[7:19]) - .5 * data.qvel[6:18], -30., 30.)
+                data.qfrc_applied[6:18] = tau
+                mujoco.mj_step(model, data)
+        if clock_pub is not None:
+            clock_pub.publish(Clock(clock=rospy.Time.from_sec(args.clock_offset + float(data.time))))
         if viewer is not None and tick % 5 == 0:
             if not viewer.is_running():
                 break
@@ -249,7 +269,9 @@ def main():
                 'support_z': support, 'world_xyz': [world_x, world_y, float(data.qpos[2])],
                 'map_xyz': [map_x, map_y, support], 'velocity_age_s': now - shared['at'],
                 'waypoint': target, 'snapped': snapped, 'snap_error_m': snap_error,
-                'finish_hold': finish, 'fault': fault}, default=plain)))
+                'finish_hold': finish, 'lockstep': bool(args.lockstep),
+                'active': bool(shared['active']), 'sim_time': float(data.time),
+                'fault': fault}, default=plain)))
         tick += 1
         next_tick += .02
         delay = next_tick - time.monotonic()
