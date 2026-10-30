@@ -14,6 +14,8 @@ import time
 import xmlrpc.client
 from pathlib import Path
 
+import yaml
+
 HERE = Path(__file__).resolve().parent
 BASE = HERE.parent
 sys.path.insert(0, str(BASE / 'framework'))
@@ -64,6 +66,7 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--port', type=int, default=11371)
     parser.add_argument('--seconds', type=float, default=4.0)
+    parser.add_argument('--rate-hz', type=float, default=200.)
     args = parser.parse_args()
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -73,7 +76,8 @@ def main():
     master = gazebo = endpoint = None
     assembly = None
     result = {'graph': str(GRAPH), 'ros_master': args.port,
-              'model': 'lite3_planar', 'seconds': args.seconds}
+              'model': 'lite3_planar', 'seconds': args.seconds,
+              'requested_rate_hz': args.rate_hz}
     try:
         master = runner('master', ['roscore', '-p', str(args.port)], ['simulator'])
         master.start()
@@ -108,7 +112,13 @@ def main():
         time.sleep(1.0)
 
         catalog = fw_config.load_components(MANIFESTS)
-        graph = fw_config.load_graph(GRAPH)
+        raw, _ = fw_config.load_yaml(GRAPH)
+        for instance in raw['instances']:
+            if instance['id'] == 'boundary':
+                instance.setdefault('params', {})['rate_hz'] = args.rate_hz
+        materialized = output / 'graph.materialized.yaml'
+        materialized.write_text(yaml.safe_dump(raw, sort_keys=False, allow_unicode=True))
+        graph = fw_config.load_graph(materialized)
         report = fw_graph.check(graph, catalog)
         plan = fw_render.render_plan(graph, catalog, report)
         (output / 'plan.json').write_text(json.dumps(plan, ensure_ascii=False, indent=1) + '\n')
@@ -144,19 +154,28 @@ def main():
 
         publisher = rospy.Publisher('/cmd_vel_raw', Twist, queue_size=10)
         time.sleep(0.5)
+        status['frames_before'] = (status['last'] or {}).get('frames_sent', 0)
         rate = rospy.Rate(20)
-        deadline = time.monotonic() + args.seconds
+        command_started = time.monotonic()
+        deadline = command_started + args.seconds
         while time.monotonic() < deadline:
             publisher.publish(Twist(linear=__import__('geometry_msgs.msg').msg.Vector3(x=0.2),
                                     angular=__import__('geometry_msgs.msg').msg.Vector3(z=0.0)))
             rate.sleep()
+        command_wall_s = time.monotonic() - command_started
+        frames_after = (status['last'] or {}).get('frames_sent', 0)
         time.sleep(0.8)
         end = get_state('lite3_planar', 'world').pose.position
+        result['command_wall_s'] = round(command_wall_s, 3)
         result['end_position'] = [end.x, end.y, end.z]
         result['moved_m'] = round(math.hypot(end.x - start.x, end.y - start.y), 4)
         result['boundary_odom_count'] = odom['count']
         result['boundary_odom_last'] = odom['last']
         result['status_active'] = status['active']
+        result['frames_before'] = status.get('frames_before')
+        result['frames_after'] = frames_after
+        result['achieved_hz'] = round(
+            (frames_after - status.get('frames_before', 0)) / command_wall_s, 2)
         result['status_last'] = status['last']
         stop(endpoint)
         endpoint = None

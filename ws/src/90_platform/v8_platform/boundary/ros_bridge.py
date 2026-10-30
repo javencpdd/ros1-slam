@@ -7,6 +7,7 @@ vendor QNX stack (real-robot S5 stays L2).
 """
 import json
 import math
+import threading
 import time
 
 try:
@@ -193,12 +194,27 @@ def main():
     next_tick = time.monotonic()
     last_status = 0.
     ticks = 0
+    stop_telemetry = threading.Event()
+
+    def telemetry_loop():
+        # ROS publishers on 50 Hz telemetry must not sit inside the command
+        # tick: 50 Hz x 3 publishers was enough to limit the loop near 60 Hz.
+        while not rospy.is_shutdown() and not stop_telemetry.is_set():
+            try:
+                while True:
+                    frame = receiver.poll()
+                    if frame is None:
+                        break
+                    core.on_telemetry(frame)
+                    publish_telemetry(frame)
+            except Exception:
+                break
+            time.sleep(.0005)
+
+    telemetry_thread = threading.Thread(target=telemetry_loop, daemon=True)
+    telemetry_thread.start()
     try:
         while not rospy.is_shutdown():
-            frame = receiver.poll()
-            if frame is not None:
-                core.on_telemetry(frame)
-                publish_telemetry(frame)
             now = time.monotonic()
             (vx, vy, wz), mode, flags = core.tick(now)
             sender.send(vx, vy, wz, mode, flags)
@@ -217,6 +233,8 @@ def main():
             else:
                 next_tick = time.monotonic()
     finally:
+        stop_telemetry.set()
+        telemetry_thread.join(timeout=1.0)
         sender.close()
         receiver.close()
     return 0
