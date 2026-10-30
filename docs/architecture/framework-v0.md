@@ -1,7 +1,7 @@
 # 统一 YAML 组件图 v0.1（ROS1）
 
 > 2026-10-30 起；R956 已把组件源并入 registry manifest v2。目标框架的第一片：**配置与装配计划**，不是完整运行时。
-> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 22 项＋契约 v2 6 项＋registry/composer v2 4 项；V8 全树 49 套件 0 失败。
+> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 22 项＋runtime 5 项＋契约 v2 6 项＋registry/composer v2 4 项；V8 全树 50 套件 0 失败。
 
 ## 1. 解决什么
 

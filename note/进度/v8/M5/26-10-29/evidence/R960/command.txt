@@ -1,0 +1,9 @@
+R960 命令（2026-10-31 00:42—00:50 CST，qoder；F3 assembly plan→运行器）
+# 宿主直跑（纯标准库；假命令，不启 ROS）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_runtime.py        # 5
+python3 -B framework/test_framework.py      # 22
+# 运行用例：graph_2d plan → ProcessRunner/Orchestrator → 7 个 sleeper READY → stop
+#   stop_order=local→global→map→lio→sensors→robot→mux；all_stopped=true；mux_last=true
+# 容器同版：V8 全树 50 套件 0 失败。
+# 边界：真实 rosrun/roslaunch 未执行；ready_marker 需组件配置；plugin 托管未实现。
