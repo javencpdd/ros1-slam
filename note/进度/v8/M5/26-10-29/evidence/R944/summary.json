@@ -1,0 +1,150 @@
+{
+ "domain": "a5_ros_local_to_v8x1_nist_profile",
+ "config": {
+  "tick_s": 1.2,
+  "horizon_s": 12.0,
+  "validity_s": 12.0,
+  "clearance_m": 0.1,
+  "resolution": 0.15
+ },
+ "stair": {
+  "steps": 5,
+  "step_h": 0.1988,
+  "depth": 0.72,
+  "front": 1.0,
+  "landing_depth": 2.0
+ },
+ "goal_map": [
+  0.0,
+  1.34,
+  0.890358
+ ],
+ "adapter": {
+  "pose": "highest declared support under the body; hold the last supported pose in clearance gaps",
+  "waypoint_snap_m": 0.1,
+  "z_command": "dropped; MuJoCo contact climbing supplies Z",
+  "heading": "path-heading pursuit, yaw-rate clip 0.5",
+  "speed_scale": 0.4,
+  "support_marks_rule": "first applied record on each declared support, strictly increasing in time"
+ },
+ "scope": "ROS local node + MuJoCo 270 policy; no Gazebo/no real robot/#151; not A5 acceptance",
+ "runs": {
+  "run1": {
+   "ok": true,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    1793343492.0928862,
+    3.9699,
+    -0.029,
+    1.1253
+   ],
+   "final_map": [
+    1793343492.0928862,
+    0.0,
+    1.34,
+    0.8904
+   ],
+   "plans": 7,
+   "support_marks": {
+    "0.0000": [
+     0.5251966820443112,
+     4.9915195766485195e-05,
+     0.33269523433727344
+    ],
+    "0.1988": [
+     1.173856355123261,
+     0.007657027055208558,
+     0.3336570184381866
+    ],
+    "0.3717": [
+     1.8709505409036948,
+     0.039263116581710375,
+     0.5681027892934378
+    ],
+    "0.5446": [
+     2.564851276632208,
+     -0.003293845467501307,
+     0.7444344375995835
+    ],
+    "0.7175": [
+     3.16161570244441,
+     0.015612847809717063,
+     0.8891831707392482
+    ],
+    "0.8904": [
+     3.8327787457063978,
+     -0.03617508569480095,
+     1.0892587072497608
+    ]
+   },
+   "snap_samples": 1,
+   "max_snap_error_m": 0.044099832354744524,
+   "last_reason": "track"
+  },
+  "run2": {
+   "ok": true,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    1793343527.1171136,
+    3.9579,
+    0.0143,
+    1.1208
+   ],
+   "final_map": [
+    1793343527.1171136,
+    0.0,
+    1.34,
+    0.8904
+   ],
+   "plans": 9,
+   "support_marks": {
+    "0.0000": [
+     0.5159873367759044,
+     1.77197832558695e-05,
+     0.27054006354846605
+    ],
+    "0.1988": [
+     1.1519862652557613,
+     0.013114748841036174,
+     0.34287311252819686
+    ],
+    "0.3717": [
+     1.845806356006924,
+     0.017446882453601015,
+     0.5517489353006134
+    ],
+    "0.5446": [
+     2.526012409066571,
+     0.022983094274049924,
+     0.7294086880852189
+    ],
+    "0.7175": [
+     3.1599088356702136,
+     -0.046658546878550394,
+     0.8828313110534844
+    ],
+    "0.8904": [
+     3.8391193164904736,
+     -0.008627612441267874,
+     1.060843473300744
+    ]
+   },
+   "snap_samples": 4,
+   "max_snap_error_m": 0.06961791865679592,
+   "last_reason": "track"
+  }
+ },
+ "a1_a7": "NOT_VALIDATED"
+}

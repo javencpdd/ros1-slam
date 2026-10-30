@@ -1,0 +1,17 @@
+R944 命令（2026-10-30 14:38—14:58 CST，qoder；A5 ROS 本地规划→V8-X1 MuJoCo 整链）
+# 容器 ros1-slam-sim；独立 master 11411；source noetic + /opt/ros1-slam/ws/devel；
+# PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2:$PYTHONPATH（保留 ROS 路径）；策略 sha 881b6604…。
+docker exec -d ros1-slam-sim bash -lc 'source /opt/ros/noetic/setup.bash; export ROS_MASTER_URI=http://127.0.0.1:11411 ROS_HOSTNAME=127.0.0.1; setsid roscore -p 11411 > /tmp/roscore_11411.log 2>&1 < /dev/null &'
+# 正向（tick 1.2 / horizon 12 / validity 12 / clearance .1 / res .15；NIST 剖面 5×0.1988、踏面 .72、平台 2 m）：
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2:$PYTHONPATH python3 -B a5_v8x1_runtime.py \
+  --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --out /tmp/a5_v8x1_r944h.json --wall-deadline-s 150
+# run1：ok=true；checks climbed/final_on_top/goal_map/no_fall/a5_active 全 true；
+#   末态 body (3.9699,-0.0290,1.1253)、map (0,1.34,0.8904)、7 次规划。
+# run2（同命令换 --out）：ok=true；末态 body (3.9579,0.0143,1.1208)、map (0,1.34,0.8904)、9 次规划。
+# 支撑序列（两次）：0→0.1988→0.3717→0.5446→0.7175→0.8904。
+# 适配（已声明）：A5 map 速度→前向速度＋航向；z 命令丢弃、接触爬升；支撑 z 回喂；
+#   净空灰区保持最后支撑位姿；航点吸附 0.10 m（实测吸附误差 ≤0.070 m）。
+# 测试：V8 44 套件 0 失败；MuJoCo 13 项 OK。
