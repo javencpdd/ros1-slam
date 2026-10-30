@@ -1,0 +1,44 @@
+{
+  "title": "hot_swap/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "instance_id",
+    "old_component",
+    "new_component",
+    "state",
+    "epoch",
+    "preconditions",
+    "postconditions"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "instance_id": {"type": "string", "minLength": 1},
+    "old_component": {"type": "string", "minLength": 1},
+    "new_component": {"type": "string", "minLength": 1},
+    "state": {"type": "object"},
+    "epoch": {"type": "integer", "minimum": 0},
+    "preconditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assembly_stopped", "no_command_overlap", "tf_edges_preserved"],
+      "properties": {
+        "assembly_stopped": {"type": "boolean"},
+        "no_command_overlap": {"type": "boolean"},
+        "tf_edges_preserved": {"type": "boolean"}
+      }
+    },
+    "postconditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["new_ready", "single_command_writer"],
+      "properties": {
+        "new_ready": {"type": "boolean"},
+        "single_command_writer": {"type": "boolean"}
+      }
+    }
+  }
+}
