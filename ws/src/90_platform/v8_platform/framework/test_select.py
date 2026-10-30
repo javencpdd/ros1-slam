@@ -30,7 +30,7 @@ class SelectorTests(unittest.TestCase):
         local = {v['component']: v for v in by_id['local']['variants']}
         self.assertTrue(local['v8.fw.local2d']['ok'])
         self.assertFalse(local['v8.fw.local3d']['ok'])
-        self.assertEqual(local['v8.fw.local3d']['reason'], 'E_GRAPH_TYPE')
+        self.assertEqual(local['v8.fw.local3d']['reason'], 'E_GRAPH_DIMENSION')
 
     def test_selected_graph_passes_check_with_new_digest(self):
         catalog, graph = setup()

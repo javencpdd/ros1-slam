@@ -204,6 +204,9 @@ def load_components(path):
         outputs = [dict(port, direction='output') for port in value['ports']['outputs']]
         components[cid] = {'id': cid, 'launch': launch, 'roles': list(value['roles']),
                            'inputs': inputs, 'outputs': outputs,
+                           'dimensions': value['dimensions'],
+                           'kinematics': value['capability']['kinematics'],
+                           'param_schema': value.get('param_schema'),
                            'stop': value['ownership']['stop'],
                            'resources': list(value.get('requires', {}).get('resources', []))}
         digest.update(file.name.encode() + b'\0' + raw_bytes)
@@ -237,8 +240,13 @@ def load_graph(path):
         namespace = raw.get('namespace')
         if namespace is not None and (not isinstance(namespace, str) or not namespace.startswith('/')):
             raise FrameworkError('E_CFG_TYPE', '%s.namespace must be absolute' % where)
+        config_path = raw.get('config')
+        if config_path is not None and (not isinstance(config_path, str) or not config_path):
+            raise FrameworkError('E_CFG_CONFIG', '%s.config must be a non-empty path' % where)
         instances[iid] = {'id': iid, 'component': component, 'params': params,
                           'namespace': namespace}
+        if config_path is not None:
+            instances[iid]['config'] = config_path
     edges = []
     for index, raw in enumerate(value.get('edges', [])):
         where = 'edges[%d]' % index

@@ -32,6 +32,8 @@ def _run(args):
                    ('ok', 'name', 'digest', 'startup_order', 'feedback',
                     'command_writers')}
         summary['safety'] = safety_report
+        summary['configs'] = {key: {'path': value['path'], 'sha256': value['sha256']}
+                              for key, value in report.get('configs', {}).items()}
         if launch_summary is not None:
             summary['launch'] = launch_summary
         print(json.dumps(summary, ensure_ascii=False, indent=1))

@@ -7,8 +7,9 @@ not deadlock process startup.
 import hashlib
 import json
 import re
+from pathlib import Path
 
-from config import FrameworkError
+from config import FrameworkError, load_yaml
 
 
 def _endpoint(text, where):
@@ -48,6 +49,13 @@ def resolve(graph, catalog):
         if comp is None:
             raise FrameworkError('E_GRAPH_COMPONENT',
                                  'instance %s references unknown component %s' % (iid, rec['component']))
+        expected = {'occupancy_grid/v1': 2, 'support_map/v1': 3, 'support_map/v2': 3}
+        for port in comp['inputs'] + comp['outputs']:
+            want = expected.get(port.get('schema'))
+            if want is not None and comp['dimensions'] != want:
+                raise FrameworkError('E_GRAPH_MAP_DIMENSION',
+                                     '%s.%s: %s with dimensions=%s'
+                                     % (iid, port['name'], port['schema'], comp['dimensions']))
         instances[iid] = dict(rec)
     edges = []
     for edge in graph['edges']:
@@ -62,6 +70,13 @@ def resolve(graph, catalog):
                                  '%s -> %s: schema %r != %r' % (
                                      edge['from'], edge['to'],
                                      src_p.get('schema'), dst_p.get('schema')))
+        src_comp = catalog['components'][instances[src_i]['component']]
+        dst_comp = catalog['components'][instances[dst_i]['component']]
+        if src_p['type'] == 'nav_msgs/Path' and src_comp['dimensions'] != dst_comp['dimensions']:
+            raise FrameworkError('E_GRAPH_DIMENSION',
+                                 '%s -> %s: dimensions %s -> %s'
+                                 % (edge['from'], edge['to'],
+                                    src_comp['dimensions'], dst_comp['dimensions']))
         if edge['feedback'] and not edge['policy']:
             raise FrameworkError('E_GRAPH_FEEDBACK_POLICY',
                                  '%s -> %s feedback edge needs a policy' % (edge['from'], edge['to']))
@@ -117,12 +132,23 @@ def check(graph, catalog):
             'source': 'external:' + item['source'], 'type': item['type'],
             'schema': port.get('schema')}
 
+    configs = {}
     for iid, rec in instances.items():
         comp = catalog['components'][rec['component']]
         for port in comp['inputs']:
             if port.get('required', True) and port['name'] not in bindings[iid]:
                 raise FrameworkError('E_GRAPH_INPUT',
                                      '%s.%s is required but unbound' % (iid, port['name']))
+        if 'config' in rec:
+            if comp['launch']['kind'] != 'node':
+                raise FrameworkError('E_CFG_CONFIG_KIND',
+                                     '%s: config only applies to node components' % iid)
+            path = Path(rec['config'])
+            if not path.is_absolute():
+                path = Path(graph['path']).resolve().parent / path
+            value, sha = load_yaml(path)
+            configs[iid] = {'path': str(path.resolve()), 'sha256': sha,
+                            'keys': sorted(value)}
 
     writers = {}
     for iid, rec in instances.items():
@@ -144,7 +170,8 @@ def check(graph, catalog):
         'graph': {
             'name': graph['name'],
             'instances': [{'id': iid, 'component': rec['component'],
-                           'params': rec['params'], 'namespace': rec['namespace']}
+                           'params': rec['params'], 'namespace': rec['namespace'],
+                           'config_sha256': configs.get(iid, {}).get('sha256')}
                           for iid, rec in sorted(instances.items())],
             'edges': [{'from': e['from'], 'to': e['to'], 'feedback': e['feedback'],
                        'policy': e['policy']} for e in edges],
@@ -157,4 +184,5 @@ def check(graph, catalog):
     return {'ok': True, 'name': graph['name'], 'digest': digest,
             'instances': instances, 'edges': edges, 'external': external,
             'bindings': bindings, 'startup_order': order,
-            'feedback': feedback, 'command_writers': dict(sorted(writers.items()))}
+            'feedback': feedback, 'command_writers': dict(sorted(writers.items())),
+            'configs': configs}

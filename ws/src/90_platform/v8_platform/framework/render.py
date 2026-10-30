@@ -24,12 +24,15 @@ def render_plan(graph, catalog, report):
     for iid in report['startup_order']:
         rec = report['instances'][iid]
         comp = catalog['components'][rec['component']]
+        config = report.get('configs', {}).get(iid)
         instances.append({
             'id': iid,
             'component': rec['component'],
             'launch': comp['launch'],
             'namespace': rec['namespace'],
             'params': rec['params'],
+            'config': None if config is None else config['path'],
+            'config_sha256': None if config is None else config['sha256'],
             'inputs': report['bindings'][iid],
         })
     return {
@@ -75,9 +78,14 @@ def render_launch(graph, catalog, report):
         if rec['namespace']:
             attrs.append('ns=%s' % quoteattr(rec['namespace']))
         lines.append('  <node %s>' % ' '.join(attrs))
-        for param_file in spec.get('param_files', []):
+        config = report.get('configs', {}).get(iid)
+        if config is not None:
             lines.append('    <rosparam command="load" file=%s/>'
-                         % quoteattr('$(find %s)/%s' % (spec['package'], param_file)))
+                         % quoteattr(config['path']))
+        else:
+            for param_file in spec.get('param_files', []):
+                lines.append('    <rosparam command="load" file=%s/>'
+                             % quoteattr('$(find %s)/%s' % (spec['package'], param_file)))
         for key in sorted(rec['params']):
             lines.append('    <param name=%s value=%s/>'
                          % (quoteattr(str(key)), quoteattr(_value(rec['params'][key]))))
