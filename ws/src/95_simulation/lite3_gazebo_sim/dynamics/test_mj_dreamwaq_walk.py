@@ -92,6 +92,21 @@ class AdapterTest(unittest.TestCase):
             finally:
                 shutil.rmtree(Path(path).parent, ignore_errors=True)
 
+    def test_stairs_xml_optional_landing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            flat = Path(directory) / 'Lite3.xml'
+            flat.write_text('<mujoco model="fixture"/>')
+            path = walk.make_stairs_xml(flat, .15, steps=4, depth=.5, width=3., front=1.,
+                                        landing_depth=2.)
+            try:
+                root = ET.parse(path).getroot()
+                geoms = root.find('worldbody').findall('geom')
+                self.assertEqual(len(geoms), 5)
+                self.assertEqual(geoms[-1].get('name'), 'landing')
+                self.assertEqual(geoms[-1].get('size').split()[2], '0.3')
+            finally:
+                shutil.rmtree(Path(path).parent, ignore_errors=True)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -83,10 +83,11 @@ def joint_target(action, default_pose=DEFAULT_POSE, action_scale=ACTION_SCALE):
     return np.asarray(action, dtype=float) * action_scale + default_pose
 
 
-def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0):
+def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0,
+                    landing_depth=0.0):
     """Create a temporary 3-step world that includes the supplied flat model."""
     flat = Path(flat_xml).resolve()
-    if steps < 1 or step_h <= 0 or depth <= 0 or width <= 0:
+    if steps < 1 or step_h <= 0 or depth <= 0 or width <= 0 or landing_depth < 0:
         raise ValueError('stairs need positive step height/depth/width and steps >= 1')
     work = Path(tempfile.mkdtemp(prefix='lite3_stairs_'))
     shutil.copy2(flat, work / flat.name)
@@ -110,6 +111,12 @@ def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0):
         geoms.append('    <geom name="step%d" type="box" size="%g %g %g" pos="%g 0 %g" '
                      'friction="1 0.01 0.01" rgba="0.4 0.7 0.4 1"/>'
                      % (i + 1, depth / 2., width / 2., z, x, z))
+    if landing_depth:
+        top = step_h * steps
+        geoms.append('    <geom name="landing" type="box" size="%g %g %g" pos="%g 0 %g" '
+                     'friction="1 0.01 0.01" rgba="0.4 0.7 0.4 1"/>'
+                     % (landing_depth / 2., width / 2., top / 2.,
+                        front + depth * steps + landing_depth / 2., top / 2.))
     xml = ('<mujoco model="Lite3_stairs_auto">\n'
            '  <compiler meshdir="%s"/>\n'
            '  <include file="%s"/>\n'
@@ -236,6 +243,7 @@ def main():
     parser.add_argument('--step-depth', type=float, default=.5)
     parser.add_argument('--step-width', type=float, default=3.0)
     parser.add_argument('--step-front', type=float, default=1.0)
+    parser.add_argument('--landing-depth', type=float, default=0.0)
     parser.add_argument('--heading-hold', action='store_true')
     parser.add_argument('--yaw-gain', type=float, default=1.0)
     parser.add_argument('--y-gain', type=float, default=.5)
@@ -252,7 +260,7 @@ def main():
         stairs = {'step_h': args.step_h, 'steps': args.steps, 'depth': args.step_depth,
                   'width': args.step_width, 'front': args.step_front}
         xml = make_stairs_xml(args.xml, args.step_h, args.steps, args.step_depth,
-                              args.step_width, args.step_front)
+                              args.step_width, args.step_front, args.landing_depth)
     try:
         result = run_rollout(xml, args.policy, seconds,
                              0. if args.mode == 'stand' else args.v_cmd, stair=stairs,
