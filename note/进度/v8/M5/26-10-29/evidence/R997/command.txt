@@ -1,0 +1,13 @@
+R997 命令（2026-10-31 05:22—05:25 CST，qoder；MapRouter 多图路由）
+# 纯 Python：map_a/map_b 两图，向 map_a 发 delta，保存后重载；验证版本隔离、幂等、错误码。
+cd ws/src/90_platform/v8_platform/representation
+python3 -B test_map_router.py
+python3 -B - <<'PY'  # 见 route.json 的生成过程
+import map_router, test_map_service as tm, test_map_delta as td
+router=map_router.MapRouter('/tmp/r997_router',[value('map_a'),value('map_b')])
+router.apply_text(delta(map_id='map_a'))
+router=map_router.MapRouter('/tmp/r997_router',[value('map_a'),value('map_b')])
+PY
+# 读数：map_a v2、map_b v1；重载后仍各自版本；重放 a1 仍 v2；
+#   unknown map -> E_MAPSERVICE_MAP_ID；重复 add -> E_MAPSERVICE_DUPLICATE。
+# 测试：map_router 3/3；V8 全树 60 套件 0 失败。无 ROS 多图 provider。

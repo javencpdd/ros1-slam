@@ -1,0 +1,237 @@
+{
+ "root": "/tmp/r997_router",
+ "ids": [
+  "map_a",
+  "map_b"
+ ],
+ "version_after": 2,
+ "status_after": {
+  "map_a": {
+   "map_version": 2,
+   "history": [
+    [
+     1,
+     "a3f990e6d6e429f14872249acb11c48627fe5235c2683b5e125c05dfd514074c"
+    ],
+    [
+     2,
+     "8cbfad0927f241293dc075300845a3b826c1dd4c5f66f90fee068827a2688bee"
+    ]
+   ],
+   "applied_deltas": 1
+  },
+  "map_b": {
+   "map_version": 1,
+   "history": [
+    [
+     1,
+     "268ba13c3f2993d4a5ee2dbf11aa39e03a6c485864d2a28c1233551d56efc95a"
+    ]
+   ],
+   "applied_deltas": 0
+  }
+ },
+ "reloaded_status": {
+  "map_a": {
+   "map_version": 2,
+   "history": [
+    [
+     1,
+     "a3f990e6d6e429f14872249acb11c48627fe5235c2683b5e125c05dfd514074c"
+    ],
+    [
+     2,
+     "8cbfad0927f241293dc075300845a3b826c1dd4c5f66f90fee068827a2688bee"
+    ]
+   ],
+   "applied_deltas": 1
+  },
+  "map_b": {
+   "map_version": 1,
+   "history": [
+    [
+     1,
+     "268ba13c3f2993d4a5ee2dbf11aa39e03a6c485864d2a28c1233551d56efc95a"
+    ]
+   ],
+   "applied_deltas": 0
+  }
+ },
+ "reloaded_a": {
+  "ok": true,
+  "map_id": "map_a",
+  "map_version": 2,
+  "digest": "8cbfad0927f241293dc075300845a3b826c1dd4c5f66f90fee068827a2688bee",
+  "map": {
+   "cell_states": [
+    "free",
+    "occupied",
+    "unknown"
+   ],
+   "extent": {
+    "height": 100,
+    "width": 100
+   },
+   "frame": "map",
+   "kind": "support_map",
+   "map_id": "map_a",
+   "map_version": 2,
+   "multiple_surfaces_per_xy": true,
+   "origin": [
+    -5.0,
+    -5.0,
+    0.0
+   ],
+   "resolution": 0.1,
+   "schema_version": 1,
+   "source": {
+    "sha256": "0bfc2b36af436ed3067fb60ab3dccb860942414b852cec849ac2978841c4f718",
+    "uri": "local://cache"
+   },
+   "surfaces": [
+    {
+     "clearance_min_m": 0.4,
+     "data_uri": "g.json",
+     "edges": [
+      {
+       "bidirectional": true,
+       "kind": "slope",
+       "max_slope_deg": 12.0,
+       "to": "mezz"
+      }
+     ],
+     "footprint": {
+      "max_x": 5,
+      "max_y": 5,
+      "min_x": -5,
+      "min_y": -5
+     },
+     "representation": "elevation_grid",
+     "surface_id": "ground",
+     "thickness_m": 0.05,
+     "traversability": "supported",
+     "z_reference": 0.0
+    },
+    {
+     "clearance_min_m": 0.4,
+     "data_uri": "m.json",
+     "edges": [
+      {
+       "bidirectional": true,
+       "kind": "slope",
+       "max_slope_deg": 12.0,
+       "to": "ground"
+      }
+     ],
+     "footprint": {
+      "max_x": 4,
+      "max_y": 3,
+      "min_x": 2,
+      "min_y": 1
+     },
+     "representation": "elevation_grid",
+     "surface_id": "mezz",
+     "thickness_m": 0.05,
+     "traversability": "supported",
+     "z_reference": 0.8
+    }
+   ],
+   "unknown_policy": "unknown_not_traversable"
+  },
+  "evidence": {
+   "state": "no_evidence_layer"
+  }
+ },
+ "reloaded_b": {
+  "ok": true,
+  "map_id": "map_b",
+  "map_version": 1,
+  "digest": "268ba13c3f2993d4a5ee2dbf11aa39e03a6c485864d2a28c1233551d56efc95a",
+  "map": {
+   "cell_states": [
+    "free",
+    "occupied",
+    "unknown"
+   ],
+   "extent": {
+    "height": 100,
+    "width": 100
+   },
+   "frame": "map",
+   "kind": "support_map",
+   "map_id": "map_b",
+   "map_version": 1,
+   "multiple_surfaces_per_xy": true,
+   "origin": [
+    -5.0,
+    -5.0,
+    0.0
+   ],
+   "resolution": 0.1,
+   "schema_version": 1,
+   "source": {
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "uri": "design://two_floors"
+   },
+   "surfaces": [
+    {
+     "clearance_min_m": 0.4,
+     "data_uri": "g.json",
+     "edges": [
+      {
+       "bidirectional": true,
+       "kind": "slope",
+       "max_slope_deg": 12.0,
+       "to": "mezz"
+      }
+     ],
+     "footprint": {
+      "max_x": 5,
+      "max_y": 5,
+      "min_x": -5,
+      "min_y": -5
+     },
+     "representation": "elevation_grid",
+     "surface_id": "ground",
+     "thickness_m": 0.05,
+     "traversability": "supported",
+     "z_reference": 0.0
+    },
+    {
+     "clearance_min_m": 0.4,
+     "data_uri": "m.json",
+     "edges": [
+      {
+       "bidirectional": true,
+       "kind": "slope",
+       "max_slope_deg": 12.0,
+       "to": "ground"
+      }
+     ],
+     "footprint": {
+      "max_x": 4,
+      "max_y": 3,
+      "min_x": 2,
+      "min_y": 1
+     },
+     "representation": "elevation_grid",
+     "surface_id": "mezz",
+     "thickness_m": 0.05,
+     "traversability": "supported",
+     "z_reference": 0.6
+    }
+   ],
+   "unknown_policy": "unknown_not_traversable"
+  },
+  "evidence": {
+   "state": "no_evidence_layer"
+  }
+ },
+ "files": [
+  "map_a.json",
+  "map_b.json"
+ ],
+ "replay_version": 2,
+ "unknown_error": "E_MAPSERVICE_MAP_ID",
+ "duplicate_error": "E_MAPSERVICE_DUPLICATE"
+}

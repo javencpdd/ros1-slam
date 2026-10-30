@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R997（2026-10-31）★＝**MapRouter 多图路由**：MapDelta 按 map_id 分发到独立
+  MapService；`map_a` v2 / `map_b` v1 独立、重载后保持、重放幂等；未知图/坏 JSON/
+  重复图 fail-closed。`map_router` 3/3、V8 全树 **60 套件 0 失败**；ROS 多图 provider
+  未接（代码 `e2fcf485`，全文＝[R997](note/进度/v8/M5/26-10-29/R997.md)）。
 - ★R996（2026-10-31）★＝**A5 planner sim tick 绑定**：local planner 跨固定 sim tick
   才提交新规划；0.5 s tick 三次 **2/3 PASS**，首个非零命令散差降到 **0.10 s**，一次
   `segment_complete` 停 z .5446；未提升通过率，A5 仍 **PARTIAL**（代码 `1fe56f30`，全文＝
