@@ -107,6 +107,38 @@ class AdapterTest(unittest.TestCase):
             finally:
                 shutil.rmtree(Path(path).parent, ignore_errors=True)
 
+    def _marks(self, stair):
+        return {'%.3f' % (stair['front'] + stair['depth'] * (i + 1)): [0., 0., 1.2]
+                for i in range(stair['steps'])}
+
+    def test_stair_verdict_requires_final_height_on_top(self):
+        stair = {'step_h': .2, 'steps': 5, 'depth': .7, 'width': 3., 'front': 1.}
+        marks = self._marks(stair)
+        on_top = walk.stair_verdict((5., .1, 1.25), 5.2, marks, stair, False, False)
+        on_floor = walk.stair_verdict((8., .1, .25), 8.2, marks, stair, False, False)
+        self.assertTrue(on_top['stable_finish'])
+        self.assertTrue(on_floor['clean_climb'])
+        self.assertFalse(on_floor['stable_finish'])
+
+    def test_stair_verdict_rejects_floor_height_for_low_steps(self):
+        stair = {'step_h': .06, 'steps': 3, 'depth': .5, 'width': 3., 'front': 1.}
+        marks = self._marks(stair)
+        floor = walk.stair_verdict((4., 0., .22), 4.2, marks, stair, False, False)
+        top = walk.stair_verdict((4., 0., .35), 4.2, marks, stair, False, False)
+        self.assertFalse(floor['stable_finish'])
+        self.assertTrue(top['stable_finish'])
+
+    def test_stair_verdict_keeps_lateral_and_mark_conditions(self):
+        stair = {'step_h': .2, 'steps': 5, 'depth': .7, 'width': 3., 'front': 1.}
+        marks = self._marks(stair)
+        side = walk.stair_verdict((5., 2., 1.25), 5.2, marks, stair, False, False)
+        missed = dict(marks)
+        missed['%.3f' % 1.7] = [0., 1.2, 1.2]
+        off_mark = walk.stair_verdict((5., 0., 1.25), 5.2, missed, stair, False, False)
+        self.assertTrue(side['clean_climb'])
+        self.assertFalse(side['stable_finish'])
+        self.assertFalse(off_mark['clean_climb'])
+
 
 if __name__ == '__main__':
     unittest.main()

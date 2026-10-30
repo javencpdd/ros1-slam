@@ -127,6 +127,26 @@ def make_stairs_xml(flat_xml, step_h, steps=3, depth=.5, width=3.0, front=1.0,
     return str(path)
 
 
+def stair_verdict(final, xmax, marks, stair, fell, unstable):
+    """Classify a stair rollout; a stable finish must remain on the top level.
+
+    Final x and |y| alone still call a rollout stable after it walks off the
+    landing and stops on the floor (R942, 6 m landing). The base must stay at
+    least a standing clearance above the top step surface; below 0.12 m total
+    rise that height cannot be separated from floor level by z alone.
+    """
+    boundaries = [stair['front'] + stair['depth'] * (i + 1) for i in range(stair['steps'])]
+    crossed = xmax > boundaries[-1] + .2
+    within = all(('%.3f' % x) in marks and abs(marks['%.3f' % x][1]) < 1.0
+                 for x in boundaries)
+    clean = not fell and not unstable and crossed and within
+    stable = (clean and final[0] > boundaries[-1] + .2
+              and abs(final[1]) < stair['width'] / 2
+              and final[2] > stair['step_h'] * stair['steps'] + .1)
+    return {'crossed_once': bool(crossed), 'clean_climb': bool(clean),
+            'stable_finish': bool(stable)}
+
+
 def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
                 kp=25.0, kd=.5, initial_z=.40, history_newest_first=True,
                 stair=None, heading_hold=False, yaw_gain=1.0, y_gain=.5, max_wz=.4,
@@ -214,15 +234,9 @@ def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
         'marks': marks, 'trace': trace,
     }
     if stair:
-        boundaries = mark_x[:-1]
-        crossed = xmax > mark_x[-1]
-        within = all(('%.3f' % x) in marks and abs(marks['%.3f' % x][1]) < 1.0
-                     for x in boundaries)
-        clean = not fell and not unstable and crossed and within
-        stable = clean and final[0] > mark_x[-1] and abs(final[1]) < stair['width'] / 2
-        result.update(stair=stair, crossed_once=bool(crossed),
-                      clean_climb=bool(clean), stable_finish=bool(stable))
-        result['pass'] = bool(clean)
+        verdict = stair_verdict(final, xmax, marks, stair, fell, unstable)
+        result.update(stair=stair, **verdict)
+        result['pass'] = verdict['clean_climb']
     elif v_cmd == 0:
         result['pass'] = bool(not fell and not unstable and abs(final[0]) < .15 and
                               abs(final[1]) < .15 and final[2] > .15)
