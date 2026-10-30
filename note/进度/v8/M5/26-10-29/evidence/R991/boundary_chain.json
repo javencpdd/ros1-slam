@@ -1,0 +1,139 @@
+{
+ "graph": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_boundary_mux.yaml",
+ "ros_master": 11382,
+ "model": "lite3_planar",
+ "seconds": 60.0,
+ "requested_rate_hz": 500.0,
+ "digest": "a522ef2073d67a8e4947c96b2a64273217ae0814fbd782d232e69a895df752e7",
+ "startup_order": [
+  "mux",
+  "boundary"
+ ],
+ "commands": {
+  "mux": [
+   "roslaunch",
+   "/opt/ros1-slam/ws/src/60_safety/lite3_safety/launch/60_safety.launch"
+  ],
+  "boundary": [
+   "rosrun",
+   "v8_platform",
+   "boundary/ros_bridge.py",
+   "_bind:=127.0.0.1:5025",
+   "_command_topic:=/cmd_vel",
+   "_command_type:=twist",
+   "_imu_topic:=/boundary/imu",
+   "_joint_topic:=/boundary/joint_states",
+   "_odom_topic:=/boundary/odom",
+   "_rate_hz:=500.0",
+   "_status_topic:=/boundary/status",
+   "_target:=127.0.0.1:5026"
+  ]
+ },
+ "start_position": [
+  2.5579408399995992e-14,
+  4.0207150119017895e-15,
+  0.10999999999755493
+ ],
+ "command_wall_s": 60.0,
+ "end_position": [
+  11.912307139643799,
+  1.2769331823525463e-11,
+  0.10999999992620603
+ ],
+ "moved_m": 11.9123,
+ "boundary_odom_count": 3036,
+ "boundary_odom_last": {
+  "x": 11.910913467407227,
+  "y": 0.0,
+  "z": 0.0
+ },
+ "status_active": {
+  "bridge": {
+   "clamped": 0,
+   "holds": 0,
+   "updates": 551
+  },
+  "fault": null,
+  "frames_sent": 30725,
+  "planner_age_s": 0.0304,
+  "rate_hz": 500.0,
+  "receiver": {
+   "bad": 0,
+   "dup": 0,
+   "frames": 3039,
+   "loss": 0,
+   "reorder": 0
+  },
+  "robot_state": 1,
+  "state": "active",
+  "telemetry_age_s": 0.015,
+  "telemetry_frames": 3039,
+  "telemetry_jitter": {
+   "p50": 0.019967280008131638,
+   "p99": 0.04146416299045086
+  },
+  "ticks": 30725
+ },
+ "frames_before": 301,
+ "frames_after": 30325,
+ "achieved_hz": 500.4,
+ "status_last": {
+  "bridge": {
+   "clamped": 0,
+   "holds": 0,
+   "updates": 551
+  },
+  "fault": null,
+  "frames_sent": 30725,
+  "planner_age_s": 0.0304,
+  "rate_hz": 500.0,
+  "receiver": {
+   "bad": 0,
+   "dup": 0,
+   "frames": 3039,
+   "loss": 0,
+   "reorder": 0
+  },
+  "robot_state": 1,
+  "state": "active",
+  "telemetry_age_s": 0.015,
+  "telemetry_frames": 3039,
+  "telemetry_jitter": {
+   "p50": 0.019967280008131638,
+   "p99": 0.04146416299045086
+  },
+  "ticks": 30725
+ },
+ "endpoint_summary": {
+  "ticks": 3112,
+  "commands_received": 30744,
+  "telemetry_sent": 3112,
+  "fault": 0,
+  "wall_s": 63.078,
+  "control_hz": 50.0,
+  "telemetry_hz": 50.0,
+  "final_position": [
+   11.9149,
+   0.0,
+   0.0
+  ],
+  "final_yaw": 0.0
+ },
+ "ok": true,
+ "assembly_stop_record": [
+  {
+   "id": "boundary",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "mux",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  }
+ ],
+ "assembly_unstopped": {
+  "mux": false,
+  "boundary": false
+ }
+}

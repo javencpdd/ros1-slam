@@ -1,0 +1,10 @@
+R991 命令（2026-10-31 04:57 CST，qoder；边界 500 Hz 60 s）
+# 容器 ros1-slam-sim；主链同 R988；端点 life 改为 max(30, 命令窗+10) s。
+cd ws/src/90_platform/v8_platform
+source /opt/ros1-slam/ws/devel/setup.bash
+python3 -B regression/boundary_chain_runtime.py --out /tmp/r991_500_60 \
+  --port 11382 --seconds 60 --rate-hz 500
+# 读数：achieved 500.4 Hz；frames 301→30325（Δ30024）、odom 3036 帧、位移 11.912 m；
+#   endpoint commands_received=30744、telemetry_sent=3112、fault=0；
+#   loss/bad/dup=0；status active、stop 后 unstopped 全 false。
+# 边界：运动学端点，非接触/真机；S5=L2。
