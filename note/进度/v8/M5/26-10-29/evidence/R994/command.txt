@@ -1,0 +1,10 @@
+R994 命令（2026-10-31 05:07—05:10 CST，qoder；A5 sim 相位桶）
+# bridge 新增 --command-phase-sim-s：门后只按固定 sim 相位桶采样命令。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --hold-until-sim-s 2.0 --command-phase-sim-s 0.5 \
+  --out /tmp/r994b_s0_$i.json --wall-deadline-s 150
+# 读数：3/3 PASS、8 plans、final map z .8904；首个非零命令 2.28/2.34/2.56 s，
+#   散差 0.28 s（比 hold2.0 的 0.10 s 更大）。相位桶仍不能锁住 planner 更新；
+#   A5 仍 PARTIAL，未改判据。
