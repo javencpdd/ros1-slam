@@ -33,7 +33,7 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
 | **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、plugin 托管、M20/真机 S5、语义地图、真实 map_cache/map_merge、MuJoCo/Gazebo 验证后端、零中断热替换、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界适配器接主链、MapDelta 证据层、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R983（2026-10-31）★＝MapService 快照持久化：`save/load` 原子写、恢复时重算
+  digest 并核对 history 末行，损坏/异 map_id/回退拒绝；`delta_map_node` 增 `~state_path`，
+  ROS 重启冒烟 v2→v3，node2 恢复 v3/幂等重放，再升 v4，applied_deltas=2；
+  map_service 10/10、map_delta 8/8、delta_map 4/4、V8 全树 59 套件 0 失败；A1—A7 不变。
 - ★R981（2026-10-31）★＝真实 2D 栈接入 v2 graph：`v8.nav2d.dwa_stack`/`teb_stack` +
   `v8.nav2d.mux` + 四张 graph，Assembly 真实启动 nav+mux；Gazebo m1/SC09/seed0 四格
   （GlobalPlanner/Navfn × DWA/TEB）4/4 PASS，参数服务器与话题信息确认实际 planner 和

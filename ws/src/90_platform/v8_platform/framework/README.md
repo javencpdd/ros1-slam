@@ -40,6 +40,9 @@ basename）。启动、READY 就绪、停止序（mux 最后）、失败清理�
 
 `map_service.propose_delta` 接收 `map_delta/v1`：delta_id 幂等重放、旧 base/同 id 异内容/无变化
 拒绝；结果先过 map 契约再原子升版并通知监听者，失败不改变当前版本。
+`snapshot/save/load` 持久化当前地图、证据层、history 与 applied_deltas：临时文件+fsync+
+原子替换，恢复时重算 digest 并核对 history 末行，坏文件/异 map_id/回退 fail-closed。
+`delta_map_node` 的 `~state_path` 在每次成功 delta 后落盘，ROS 重启恢复版本与幂等表（R983）。
 
 `safety.py` 是接线门：`/cmd_vel` 必须恰好一个写者且角色为 `safety_arbiter`；其他
 `command_topic` 输出必须显式连到该写者，否则 `E_SAFETY_ADVICE`；`trajectory_validator`

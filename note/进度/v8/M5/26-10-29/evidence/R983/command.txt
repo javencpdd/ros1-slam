@@ -1,0 +1,14 @@
+R983 命令（2026-10-31 04:24—04:27 CST，qoder；MapService 快照持久化）
+# 纯测：MapService 10/10、MapDelta 8/8、DeltaNode 4/4；V8 全树 59 套件 0 失败。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/test_map_service.py
+python3 -B representation/test_map_delta.py
+python3 -B representation/test_delta_map.py
+# ROS 冒烟：独立 master 11450；map_ml_two_surfaces.json；state_path=/tmp/r983_state.json。
+# node1 v2 -> delta mezz z .6->.8 -> v3；停 node1；
+# node2 从 state 恢复 v3（restored=true），重放同一 delta 仍 v3，再发 base 3 的 d2 -> v4；
+# 终态 applied_deltas=2，state 快照 history [2,3,4]。
+python3 -B /tmp/r983_smoke.py
+# 读数：initial 2 / after_delta 3 / restored 3 / replay 3 / second 4 / applied 2；smoke ok=true。
+# 边界：只验证 MapService/DeltaNode 的单 map_id 快照与重启恢复；证据层/多 map_id/并发写者
+#   未在本窗实跑；真机/QNX 仍 L2；A1—A7 不变。
