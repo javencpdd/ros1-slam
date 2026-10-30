@@ -118,6 +118,7 @@ def main():
     parser.add_argument('--max-retries', type=int, default=3)
     parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
+    parser.add_argument('--command-phase-sim-s', type=float, default=0.)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -197,6 +198,8 @@ def main():
     fault = None
     finish = False
     nonfinite_streak = nonfinite_recoveries = 0
+    phase_command = np.zeros(3, dtype=np.float32)
+    phase_bucket = -1
     tick = 0
     stall_ref = [float(data.qpos[0]), float(data.qpos[1])]
     stall_t = float(data.time)
@@ -262,6 +265,13 @@ def main():
                                                 args.speed_scale * path_scale(distance))
             command = np.array([np.clip(body_vx, -args.max_command, args.max_command), body_vy, wz],
                                dtype=np.float32)
+        if (args.command_phase_sim_s > 0
+                and float(data.time) >= args.hold_until_sim_s):
+            bucket = int(math.floor(float(data.time) / args.command_phase_sim_s + 1e-9))
+            if bucket != phase_bucket:
+                phase_bucket = bucket
+                phase_command = command.copy()
+            command = phase_command.copy()
         if fault is None:
             obs = walk.observation(data.qpos, data.qvel, command, last_action, walk.DEFAULT_POSE)
             state = walk.state_vector(obs, history, newest_first=True)
