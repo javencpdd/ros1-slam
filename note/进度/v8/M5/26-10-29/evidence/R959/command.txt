@@ -1,0 +1,17 @@
+R959 命令（2026-10-31 00:30—00:42 CST，qoder；F2 launch 适配表）
+# 宿主直跑（纯标准库 + PyYAML；不启 ROS）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/cli.py check framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_3d_cache.yaml \
+  --package-index framework/fixtures/package_index.json
+python3 -B framework/cli.py plan framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_3d_cache.yaml \
+  --package-index framework/fixtures/package_index.json \
+  --out-plan .../plan_3d.json --out-launch .../graph_3d.launch
+python3 -B framework/cli.py check framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d.yaml --package-index /tmp/bad_index.json  # 缺 map_server
+# 容器同版：V8 全树 49 套件 0 失败。
+# 读数：launch 13 个组件＝真实 5（sensors/faster_lio include/map2d/mux/robot_lite3）＋替身 8；
+#   缺包 rc=5 E_LAUNCH_PACKAGE；缺 launch/执行/参数文件由 22 项测试覆盖。
+# 边界：包索引是声明快照，不是 rospack 活体扫描；未启动 ROS；plugin 托管未实现。
