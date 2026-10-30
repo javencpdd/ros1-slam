@@ -57,6 +57,15 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(bridge.path_scale(.6), 1.)
         self.assertAlmostEqual(bridge.path_scale(.15), .5)
 
+    def test_stall_verdict_retries_then_fails(self):
+        self.assertEqual(bridge.stall_verdict(.09, 30., 10., 0, 3), 'progress')
+        self.assertEqual(bridge.stall_verdict(.01, 9.9, 10., 0, 3), 'wait')
+        self.assertEqual(bridge.stall_verdict(.01, 10., 10., 0, 3), 'retry')
+        self.assertEqual(bridge.stall_verdict(.01, 10., 10., 2, 3), 'retry')
+        self.assertEqual(bridge.stall_verdict(.01, 10., 10., 3, 3), 'fail')
+        # A jump below the progress threshold still counts only by distance.
+        self.assertEqual(bridge.stall_verdict(.0799, 0., 10., 0, 3), 'wait')
+
 
 if __name__ == '__main__':
     unittest.main()

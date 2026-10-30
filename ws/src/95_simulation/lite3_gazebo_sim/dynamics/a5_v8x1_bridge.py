@@ -75,6 +75,15 @@ def should_snap(map_x, map_y, support, target, tolerance=.10):
     return (distance <= tolerance and abs(support - target[2]) <= 1e-6), distance
 
 
+def stall_verdict(moved_m, idle_s, window_s, retries, max_retries, progress_m=.08):
+    """Back off and re-approach when the blind policy pushes a riser without progress."""
+    if moved_m >= progress_m:
+        return 'progress'
+    if idle_s < window_s:
+        return 'wait'
+    return 'fail' if retries >= max_retries else 'retry'
+
+
 def plain(value):
     if hasattr(value, 'tolist'):
         return value.tolist()
@@ -101,6 +110,12 @@ def main():
     parser.add_argument('--viewer', action='store_true')
     parser.add_argument('--lockstep', action='store_true')
     parser.add_argument('--clock-offset', type=float, default=2.0)
+    parser.add_argument('--stall-retry', action='store_true')
+    parser.add_argument('--stall-window-s', type=float, default=10.0)
+    parser.add_argument('--stall-progress-m', type=float, default=.08)
+    parser.add_argument('--retry-hold-s', type=float, default=1.5)
+    parser.add_argument('--retry-back-speed', type=float, default=-.20)
+    parser.add_argument('--max-retries', type=int, default=3)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -180,12 +195,36 @@ def main():
     fault = None
     finish = False
     tick = 0
+    stall_ref = [float(data.qpos[0]), float(data.qpos[1])]
+    stall_t = float(data.time)
+    retry_until = None
+    retries = 0
     while not rospy.is_shutdown():
         now = time.monotonic()
         stepping = (not args.lockstep) or shared['active']
         velocity = (shared['velocity'] if (stepping and now - shared['at'] <= args.cmd_timeout)
                     else (0., 0., 0.))
         world_x, world_y = float(data.qpos[0]), float(data.qpos[1])
+        if retry_until is not None and (not stepping or float(data.time) >= retry_until):
+            retry_until = None
+            stall_ref = [world_x, world_y]
+            stall_t = float(data.time)
+        if (retry_until is None and args.stall_retry and stepping and shared['active']
+                and not finish and fault is None):
+            verdict = stall_verdict(
+                math.hypot(world_x - stall_ref[0], world_y - stall_ref[1]),
+                float(data.time) - stall_t, args.stall_window_s, retries,
+                args.max_retries, args.stall_progress_m)
+            if verdict == 'progress':
+                stall_ref = [world_x, world_y]
+                stall_t = float(data.time)
+            elif verdict == 'retry':
+                retries += 1
+                retry_until = float(data.time) + args.retry_hold_s
+            elif verdict == 'fail':
+                fault = 'stalled'
+        if retry_until is not None:
+            velocity = (args.retry_back_speed, 0., 0.)
         map_x, map_y = world_to_map(world_x, world_y, args.x_offset, args.y_offset)
         support = support_z(value, map_x, map_y, args.radius)
         if support is None:
@@ -271,7 +310,8 @@ def main():
                 'waypoint': target, 'snapped': snapped, 'snap_error_m': snap_error,
                 'finish_hold': finish, 'lockstep': bool(args.lockstep),
                 'active': bool(shared['active']), 'sim_time': float(data.time),
-                'fault': fault}, default=plain)))
+                'stall_retry': bool(args.stall_retry), 'retries': retries,
+                'retrying': retry_until is not None, 'fault': fault}, default=plain)))
         tick += 1
         next_tick += .02
         delay = next_tick - time.monotonic()

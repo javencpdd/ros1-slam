@@ -61,7 +61,8 @@ class AdapterTest(unittest.TestCase):
         right = walk.heading_command(.3, 0., .5)
         self.assertTrue(right[2] < 0)
         self.assertAlmostEqual(left[0], .3)
-        self.assertLessEqual(abs(walk.heading_command(.3, 1.0, 1.0, max_wz=.2)[2]), .2)
+        self.assertAlmostEqual(float(abs(walk.heading_command(.3, 1.0, 1.0, max_wz=.2)[2])),
+                               .2, places=6)
 
     def test_seeded_initial_perturbation(self):
         a = walk.sample_initial(7, True)

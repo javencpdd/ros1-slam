@@ -62,6 +62,10 @@ def main():
     parser.add_argument('--viewer', action='store_true')
     parser.add_argument('--viewer-hold-s', type=float, default=0.)
     parser.add_argument('--lockstep', action='store_true')
+    parser.add_argument('--stall-retry', action='store_true')
+    parser.add_argument('--stall-window-s', type=float, default=10.0)
+    parser.add_argument('--retry-hold-s', type=float, default=1.5)
+    parser.add_argument('--max-retries', type=int, default=3)
     parser.add_argument('--contact-profile', choices=('A', 'B', 'C'), default='A')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
@@ -174,6 +178,10 @@ def main():
             bridge_argv.append('--viewer')
         if args.lockstep:
             bridge_argv.append('--lockstep')
+        if args.stall_retry:
+            bridge_argv.extend(['--stall-retry', '--stall-window-s', str(args.stall_window_s),
+                               '--retry-hold-s', str(args.retry_hold_s),
+                               '--max-retries', str(args.max_retries)])
         node_stream, bridge_stream = node_log.open('w'), bridge_log.open('w')
         node = start(node_argv, node_stream)
         bridge = start(bridge_argv, bridge_stream)
@@ -262,6 +270,9 @@ def main():
         'scenario': 'a5_ros_local_to_v8x1_nist_profile',
         'config': config, 'seed': args.seed, 'perturb': bool(args.perturb),
         'lockstep': bool(args.lockstep),
+        'stall_retry': bool(args.stall_retry),
+        'stall_window_s': args.stall_window_s if args.stall_retry else None,
+        'retries_seen': sum(1 for record in applied_log if record.get('retrying')),
         'contact_profile': args.contact_profile,
         'contact_profile_params': contact_profile,
         'finish_hold': bool(args.finish_hold), 'finish_samples': finish_samples,
