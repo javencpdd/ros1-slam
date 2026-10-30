@@ -58,23 +58,41 @@ def render_launch(graph, catalog, report):
     for iid in report['startup_order']:
         rec = report['instances'][iid]
         comp = catalog['components'][rec['component']]
-        attrs = ['pkg=%s' % quoteattr(comp['launch']['package']),
-                 'type=%s' % quoteattr(comp['launch']['type']),
+        spec = comp['launch']
+        if spec['kind'] == 'include':
+            target = '$(find %s)/%s' % (spec['package'], spec['launch_file'])
+            lines.append('  <include file=%s>' % quoteattr(target))
+            args = dict(spec.get('args', {}))
+            args.update(rec['params'])
+            for key in sorted(args):
+                lines.append('    <arg name=%s value=%s/>'
+                             % (quoteattr(str(key)), quoteattr(_value(args[key]))))
+            lines.append('  </include>')
+            continue
+        attrs = ['pkg=%s' % quoteattr(spec['package']),
+                 'type=%s' % quoteattr(spec['type']),
                  'name=%s' % quoteattr(_name(iid))]
         if rec['namespace']:
             attrs.append('ns=%s' % quoteattr(rec['namespace']))
         lines.append('  <node %s>' % ' '.join(attrs))
+        for param_file in spec.get('param_files', []):
+            lines.append('    <rosparam command="load" file=%s/>'
+                         % quoteattr('$(find %s)/%s' % (spec['package'], param_file)))
         for key in sorted(rec['params']):
             lines.append('    <param name=%s value=%s/>'
                          % (quoteattr(str(key)), quoteattr(_value(rec['params'][key]))))
+        remaps = []
+        for item in spec.get('remap', []):
+            remaps.append((item['from'], item['to']))
         for edge in report['edges']:
             if edge['to_instance'] != iid:
                 continue
             source_topic = edge['from_port'].get('topic')
             target_topic = edge['to_port'].get('topic')
             if source_topic and target_topic:
-                lines.append('    <remap from=%s to=%s/>'
-                             % (quoteattr(target_topic), quoteattr(source_topic)))
+                remaps.append((target_topic, source_topic))
+        for source, target in sorted(set(remaps)):
+            lines.append('    <remap from=%s to=%s/>' % (quoteattr(source), quoteattr(target)))
         lines.append('  </node>')
     lines.extend(['</launch>', ''])
     return '\n'.join(lines)

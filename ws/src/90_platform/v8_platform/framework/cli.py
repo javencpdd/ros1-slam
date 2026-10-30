@@ -12,17 +12,24 @@ from pathlib import Path
 
 from config import FrameworkError, load_components, load_graph
 import graph as graph_mod
+import launch as launch_mod
 import render
 
 
 def _run(args):
     catalog = load_components(args.manifests)
+    launch_summary = None
+    if args.package_index:
+        launch_summary = launch_mod.check_components(
+            catalog, launch_mod.load_index(args.package_index))
     graph = load_graph(args.graph)
     report = graph_mod.check(graph, catalog)
     if args.command == 'check':
         summary = {key: report[key] for key in
                    ('ok', 'name', 'digest', 'startup_order', 'feedback',
                     'command_writers')}
+        if launch_summary is not None:
+            summary['launch'] = launch_summary
         print(json.dumps(summary, ensure_ascii=False, indent=1))
         return 0
     plan = render.render_plan(graph, catalog, report)
@@ -30,9 +37,11 @@ def _run(args):
                                    encoding='utf-8')
     launch = render.render_launch(graph, catalog, report)
     Path(args.out_launch).write_text(launch, encoding='utf-8')
-    print(json.dumps({'ok': True, 'digest': report['digest'],
-                      'plan': args.out_plan, 'launch': args.out_launch},
-                     ensure_ascii=False))
+    result = {'ok': True, 'digest': report['digest'],
+              'plan': args.out_plan, 'launch': args.out_launch}
+    if launch_summary is not None:
+        result['launch_check'] = launch_summary
+    print(json.dumps(result, ensure_ascii=False))
     return 0
 
 
@@ -42,9 +51,11 @@ def main(argv=None):
     check = sub.add_parser('check')
     check.add_argument('manifests')
     check.add_argument('graph')
+    check.add_argument('--package-index')
     plan = sub.add_parser('plan')
     plan.add_argument('manifests')
     plan.add_argument('graph')
+    plan.add_argument('--package-index')
     plan.add_argument('--out-plan', required=True)
     plan.add_argument('--out-launch', required=True)
     try:

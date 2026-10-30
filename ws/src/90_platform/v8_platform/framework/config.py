@@ -8,7 +8,7 @@ import hashlib
 import json
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import yaml
 
@@ -98,6 +98,72 @@ def _port(raw, where, direction):
     return port
 
 
+def _launch_spec(raw, cid):
+    """Normalize a launch entry: node(type) or include(launch_file).
+
+    plugin hosting is not part of F2; it must be rejected rather than silently
+    rendered as a node.
+    """
+    if not isinstance(raw, dict):
+        raise FrameworkError('E_CFG_LAUNCH', '%s launch must be a mapping' % cid)
+    kind = raw.get('kind', 'node')
+    if kind not in ('node', 'include', 'plugin'):
+        raise FrameworkError('E_CFG_LAUNCH_KIND', '%s kind=%r' % (cid, kind))
+    if kind == 'plugin':
+        raise FrameworkError('E_CFG_LAUNCH_KIND',
+                             '%s plugin hosting is not implemented in F2' % cid)
+    package = raw.get('package')
+    if not isinstance(package, str) or not package:
+        raise FrameworkError('E_CFG_LAUNCH', '%s package missing' % cid)
+    spec = {'kind': kind, 'package': package,
+            'test_double': bool(raw.get('test_double', False))}
+    if kind == 'node':
+        node_type = raw.get('type')
+        if not isinstance(node_type, str) or not node_type:
+            raise FrameworkError('E_CFG_LAUNCH', '%s node type missing' % cid)
+        if 'launch_file' in raw:
+            raise FrameworkError('E_CFG_LAUNCH', '%s node must not set launch_file' % cid)
+        spec['type'] = node_type
+        param_files = raw.get('param_files', [])
+        if not isinstance(param_files, list):
+            raise FrameworkError('E_CFG_LAUNCH', '%s param_files must be a list' % cid)
+        clean = []
+        for item in param_files:
+            if not isinstance(item, str) or not item:
+                raise FrameworkError('E_CFG_LAUNCH', '%s param file must be a path' % cid)
+            path = PurePosixPath(item)
+            if path.is_absolute() or '..' in path.parts:
+                raise FrameworkError('E_CFG_LAUNCH_PATH',
+                                     '%s param file escapes package: %s' % (cid, item))
+            clean.append(item)
+        spec['param_files'] = clean
+        remap = raw.get('remap', [])
+        if not isinstance(remap, list):
+            raise FrameworkError('E_CFG_LAUNCH', '%s remap must be a list' % cid)
+        for item in remap:
+            if (not isinstance(item, dict) or not isinstance(item.get('from'), str)
+                    or not isinstance(item.get('to'), str)
+                    or not item['from'] or not item['to']):
+                raise FrameworkError('E_CFG_LAUNCH', '%s remap needs from/to' % cid)
+        spec['remap'] = [{'from': item['from'], 'to': item['to']} for item in remap]
+        if 'args' in raw:
+            raise FrameworkError('E_CFG_LAUNCH', '%s node must not set args' % cid)
+    else:
+        launch_file = raw.get('launch_file')
+        if not isinstance(launch_file, str) or not launch_file.endswith('.launch'):
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s include needs a .launch file' % cid)
+        if 'type' in raw or 'param_files' in raw or 'remap' in raw:
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s include only takes launch_file/args' % cid)
+        spec['launch_file'] = launch_file
+        args = raw.get('args', {})
+        if not isinstance(args, dict):
+            raise FrameworkError('E_CFG_LAUNCH', '%s args must be a mapping' % cid)
+        spec['args'] = args
+    return spec
+
+
 def load_components(path):
     """Load v2 manifests (named ports + launch) as the single component source.
 
@@ -128,9 +194,7 @@ def load_components(path):
         cid = value['id']
         if cid in components:
             raise FrameworkError('E_CFG_DUP_COMPONENT', cid)
-        launch = value.get('launch')
-        if not isinstance(launch, dict):
-            raise FrameworkError('E_CFG_LAUNCH', '%s has no launch identity' % cid)
+        launch = _launch_spec(value.get('launch'), cid)
         inputs = [dict(port, direction='input') for port in value['ports']['inputs']]
         outputs = [dict(port, direction='output') for port in value['ports']['outputs']]
         components[cid] = {'id': cid, 'launch': launch, 'roles': list(value['roles']),

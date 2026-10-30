@@ -14,6 +14,7 @@ sys.path.insert(0, str(HERE))
 import cli  # noqa: E402
 import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
+import launch as launch_mod  # noqa: E402
 import render  # noqa: E402
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
@@ -22,6 +23,7 @@ G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G3D = HERE / 'fixtures' / 'graphs' / 'graph_3d_cache.yaml'
 MISSING = HERE / 'fixtures' / 'graphs' / 'invalid_missing_input.yaml'
 DUP_KEY = HERE / 'fixtures' / 'graphs' / 'invalid_dup_key.yaml'
+INDEX = HERE / 'fixtures' / 'package_index.json'
 
 
 def load_pair(path):
@@ -192,17 +194,83 @@ class FrameworkTests(unittest.TestCase):
                   for remap in node.findall('remap')]
         self.assertIn('/cloud_registered', remaps)
 
+    def test_launch_specs_and_index_counts(self):
+        catalog, _ = load_pair(G3D)
+        lio = catalog['components']['v8.fw.faster_lio']['launch']
+        self.assertEqual((lio['kind'], lio['launch_file']),
+                         ('include', 'launch/10_slam_mapping.launch'))
+        mux = catalog['components']['v8.fw.mux']['launch']
+        self.assertEqual(mux['param_files'], ['config/cmd_vel_mux.yaml'])
+        summary = launch_mod.check_components(
+            catalog, launch_mod.load_index(INDEX))
+        self.assertEqual((summary['components'], summary['real'], summary['test_double']),
+                         (13, 5, 8))
+
+    def test_launch_spec_rejects_bad_entries(self):
+        cases = [
+            ({'package': 'p'}, 'E_CFG_LAUNCH'),
+            ({'package': 'p', 'kind': 'nope'}, 'E_CFG_LAUNCH_KIND'),
+            ({'package': 'p', 'kind': 'plugin', 'type': 't'}, 'E_CFG_LAUNCH_KIND'),
+            ({'package': 'p', 'kind': 'include', 'launch_file': 'x'}, 'E_CFG_LAUNCH'),
+            ({'package': 'p', 'type': 't', 'launch_file': 'x.launch'}, 'E_CFG_LAUNCH'),
+            ({'package': 'p', 'type': 't', 'param_files': ['../x']}, 'E_CFG_LAUNCH_PATH'),
+        ]
+        for raw, code in cases:
+            with self.assertRaises(config.FrameworkError) as caught:
+                config._launch_spec(raw, 'probe')
+            self.assertEqual(caught.exception.code, code, raw)
+
+    def test_package_index_rejects_unknowns(self):
+        catalog, _ = load_pair(G3D)
+        index = launch_mod.load_index(INDEX)
+        launch_mod.check_components(catalog, index)
+        broken = copy.deepcopy(index)
+        del broken['map_server']
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, broken)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_PACKAGE')
+        broken = copy.deepcopy(index)
+        broken['lite3_slam']['launches'] = []
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, broken)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_FILE')
+        broken = copy.deepcopy(index)
+        broken['lite3_drivers']['executables'] = []
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, broken)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_TYPE')
+        broken = copy.deepcopy(index)
+        broken['lite3_safety']['files'] = []
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, broken)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_FILE')
+
+    def test_render_include_and_param_files(self):
+        catalog, value = load_pair(G3D)
+        report = graph_mod.check(value, catalog)
+        root = ET.fromstring(render.render_launch(value, catalog, report))
+        includes = [item.get('file') for item in root.findall('include')]
+        self.assertIn('$(find lite3_slam)/launch/10_slam_mapping.launch', includes)
+        mux = next(node for node in root.findall('node') if node.get('name') == 'mux')
+        loads = [item.get('file') for item in mux.findall('rosparam')]
+        self.assertIn('$(find lite3_safety)/config/cmd_vel_mux.yaml', loads)
+        sensors = next(node for node in root.findall('node') if node.get('name') == 'sensors')
+        self.assertEqual(sensors.get('pkg'), 'lite3_drivers')
+
     def test_cli_check_and_plan(self):
         json_out = io.StringIO()
         with redirect_stdout(json_out):
-            self.assertEqual(cli.main(['check', str(MANIFESTS), str(G3D)]), 0)
+            self.assertEqual(cli.main(['check', str(MANIFESTS), str(G3D),
+                                      '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
+        self.assertEqual(payload['launch']['real'], 5)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'
             with redirect_stdout(io.StringIO()):
                 rc = cli.main(['plan', str(MANIFESTS), str(G3D),
+                               '--package-index', str(INDEX),
                                '--out-plan', str(plan_path),
                                '--out-launch', str(launch_path)])
             self.assertEqual(rc, 0)

@@ -20,8 +20,12 @@
   "stop": "process_group_signal"
  },
  "launch": {
+  "kind": "node",
   "package": "lite3_safety",
-  "type": "safe_cmd_vel_mux.py"
+  "type": "safe_cmd_vel_mux.py",
+  "param_files": [
+   "config/cmd_vel_mux.yaml"
+  ]
  },
  "ports": {
   "inputs": [

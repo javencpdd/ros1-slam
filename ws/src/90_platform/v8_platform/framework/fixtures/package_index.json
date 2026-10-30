@@ -1,0 +1,19 @@
+{
+ "schema": "package_index/v1",
+ "packages": {
+  "lite3_drivers": {"launches": ["launch/01_sensors.launch"], "files": [], "executables": ["sim_adapter.py"]},
+  "lite3_slam": {"launches": ["launch/10_slam_mapping.launch"],
+                 "files": ["config/faster_lio_outdoor.yaml"],
+                 "executables": ["run_mapping_online"]},
+  "map_server": {"launches": [], "files": [], "executables": ["map_server"]},
+  "lite3_safety": {"launches": ["launch/60_safety.launch"],
+                   "files": ["config/cmd_vel_mux.yaml"],
+                   "executables": ["safe_cmd_vel_mux.py"]},
+  "message_transformer": {"launches": [], "files": [], "executables": ["ros2qnx"]},
+  "v8_platform": {"launches": [], "files": [],
+                  "executables": ["global2d_test_double", "local2d_test_double",
+                                  "map3d_test_double", "map_cache_test_double",
+                                  "map_merge_test_double", "global3d_test_double",
+                                  "local3d_test_double", "map3d_v2_test_double"]}
+ }
+}

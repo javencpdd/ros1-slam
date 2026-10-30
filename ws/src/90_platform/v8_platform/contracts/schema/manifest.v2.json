@@ -244,10 +244,16 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "package",
-        "type"
+        "package"
       ],
       "properties": {
+        "kind": {
+          "enum": [
+            "node",
+            "include",
+            "plugin"
+          ]
+        },
         "package": {
           "type": "string",
           "minLength": 1
@@ -255,6 +261,44 @@
         "type": {
           "type": "string",
           "minLength": 1
+        },
+        "launch_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "param_files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "args": {
+          "type": "object"
+        },
+        "remap": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "from",
+              "to"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "test_double": {
+          "type": "boolean"
         }
       }
     },
