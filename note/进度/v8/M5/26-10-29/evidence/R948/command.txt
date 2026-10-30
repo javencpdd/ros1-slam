@@ -1,0 +1,19 @@
+R948 命令（2026-10-30 15:47—16:00 CST，qoder；支撑保持退回释放实验）
+# 变体：体相对保持点后退 >0.30 m 时释放保持，回滚到上一支撑的最后有效位姿（未入最终代码，已回退）。
+# 容器 ros1-slam-sim；独立 master 11411；source noetic + /opt/ros1-slam/ws/devel。
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+# seed1 五次：
+for tag in g1 g2 g3 g4 g5; do
+  python3 -B a5_v8x1_runtime.py --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 1 --perturb \
+    --out /tmp/a5_v8x1_r948_$tag.json --wall-deadline-s 150
+done
+# 全矩阵 seed0—4（同命令换 --seed）：
+for s in 0 1 2 3 4; do
+  python3 -B a5_v8x1_runtime.py --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed $s --perturb \
+    --out /tmp/a5_v8x1_r948_matrix_s$s.json --wall-deadline-s 150
+done
+# 读数：seed1 3/5（g1/g2/g4 过；g3/g5 退到 x≈3.50/3.44）；全矩阵 3/5（s2/s3/s4 过；s0/s1 失败）。
+# 基线 R946 无释放 4/5。释放改动所有种子的间隙行为，s0 回退，seed1 仍 3/5 ⇒ 净变差，回退。
+# 测试：V8 45 套件 0 失败；MuJoCo 13 项 OK；代码回到 3768953d。

@@ -1,0 +1,120 @@
+{
+ "domain": "a5_v8x1_hold_release_experiment",
+ "variant": "support-pose hold released when body retreats >0.30 m; roll back to previous support",
+ "code": "uncommitted variant, reverted; base 3768953d",
+ "seed1": {
+  "runs": 5,
+  "pass": 3,
+  "rows": {
+   "g1": {
+    "ok": true,
+    "final_body": [
+     1793346654.0335462,
+     3.9582,
+     -0.0436,
+     1.1292
+    ],
+    "plans": 8
+   },
+   "g2": {
+    "ok": true,
+    "final_body": [
+     1793346683.0299604,
+     3.9711,
+     -0.0604,
+     1.1373
+    ],
+    "plans": 10
+   },
+   "g3": {
+    "ok": false,
+    "final_body": [
+     1793346835.240268,
+     3.5047,
+     0.0932,
+     1.0269
+    ],
+    "plans": 8
+   },
+   "g4": {
+    "ok": true,
+    "final_body": [
+     1793346865.3531075,
+     3.9498,
+     0.0196,
+     1.1099
+    ],
+    "plans": 9
+   },
+   "g5": {
+    "ok": false,
+    "final_body": [
+     1793346891.7797937,
+     3.4439,
+     0.1939,
+     0.8971
+    ],
+    "plans": 10
+   }
+  }
+ },
+ "matrix": {
+  "runs": 5,
+  "pass": 3,
+  "rows": {
+   "s0": {
+    "ok": false,
+    "final_body": [
+     1793347054.5876257,
+     3.4685,
+     -0.112,
+     1.0254
+    ],
+    "plans": 9
+   },
+   "s1": {
+    "ok": false,
+    "final_body": [
+     1793347084.276384,
+     3.5645,
+     0.2759,
+     0.9425
+    ],
+    "plans": 10
+   },
+   "s2": {
+    "ok": true,
+    "final_body": [
+     1793347113.1375291,
+     3.9949,
+     -0.0818,
+     1.1291
+    ],
+    "plans": 10
+   },
+   "s3": {
+    "ok": true,
+    "final_body": [
+     1793347138.5511963,
+     3.96,
+     0.0131,
+     1.1232
+    ],
+    "plans": 9
+   },
+   "s4": {
+    "ok": true,
+    "final_body": [
+     1793347170.7485065,
+     3.9614,
+     -0.0172,
+     1.1302
+    ],
+    "plans": 9
+   }
+  }
+ },
+ "baseline": "R946 no-release seed matrix: 4/5",
+ "conclusion": "release is net worse (3/5 matrix) and seed1 remains 3/5; reverted, no code kept",
+ "scope": "MuJoCo single policy; no Gazebo/no real robot; A5 PARTIAL; A1-A7 NOT_VALIDATED"
+}

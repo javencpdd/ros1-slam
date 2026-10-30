@@ -1,0 +1,8 @@
+R948 引用（变体未入最终代码；基线提交 3768953d）
+# 释放变体：a5_v8x1_bridge.py 临时加入 hold-release/rollback 分支，默认阈值 0.30 m；
+#   实验后回退，工作树与 3768953d 一致（bridge/test 无 diff）。
+# 基线文件：
+ws/src/95_simulation/lite3_gazebo_sim/dynamics/a5_v8x1_bridge.py  commit=3768953d
+ws/src/90_platform/v8_platform/regression/a5_v8x1_runtime.py     commit=3768953d
+# 策略 /tmp/new_policy.onnx sha256 881b6604…（仓外）；支持图沿用 R940 派生图。
+# 未改 A5 节点/planner/evaluator/判据/第三方；变体读数只作探索。
