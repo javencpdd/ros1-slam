@@ -2,8 +2,8 @@
 """Framework CLI (ROS1 v0): check a YAML graph and emit plan/launch skeletons.
 
 Usage:
-  framework.py check MANIFEST_DIR GRAPH
-  framework.py plan MANIFEST_DIR GRAPH --out-plan PLAN.json [--out-launch FILE.launch]
+  cli.py check MANIFEST_DIR GRAPH
+  cli.py plan MANIFEST_DIR GRAPH --out-plan PLAN.json [--out-launch FILE.launch]
 """
 import argparse
 import json
@@ -50,7 +50,7 @@ def _run(args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog='framework.py')
+    parser = argparse.ArgumentParser(prog='cli.py')
     sub = parser.add_subparsers(dest='command', required=True)
     check = sub.add_parser('check')
     check.add_argument('manifests')
