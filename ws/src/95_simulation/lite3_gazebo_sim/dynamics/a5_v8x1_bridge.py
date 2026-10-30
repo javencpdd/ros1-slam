@@ -98,6 +98,7 @@ def main():
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--finish-hold', action='store_true')
+    parser.add_argument('--viewer', action='store_true')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -119,6 +120,14 @@ def main():
     data.qpos[3:7] = [math.cos(perturb['dyaw'] / 2.), 0., 0., math.sin(perturb['dyaw'] / 2.)]
     data.qpos[7:19] = walk.DEFAULT_POSE
     mujoco.mj_forward(model, data)
+    viewer = None
+    if args.viewer:
+        import mujoco.viewer
+        viewer = mujoco.viewer.launch_passive(model, data)
+        viewer.cam.lookat[:] = [2.4, 0., .6]
+        viewer.cam.distance = 7.0
+        viewer.cam.azimuth = 90.
+        viewer.cam.elevation = -16.
     session = ort.InferenceSession(args.policy, providers=['CPUExecutionProvider'])
     inp = session.get_inputs()[0].name
 
@@ -213,6 +222,10 @@ def main():
             tau = np.clip(25. * (joint_target - data.qpos[7:19]) - .5 * data.qvel[6:18], -30., 30.)
             data.qfrc_applied[6:18] = tau
             mujoco.mj_step(model, data)
+        if viewer is not None and tick % 5 == 0:
+            if not viewer.is_running():
+                break
+            viewer.sync()
 
         stamp = rospy.Time.now()
         pose = PoseStamped()
@@ -242,6 +255,8 @@ def main():
         delay = next_tick - time.monotonic()
         if delay > 0:
             time.sleep(delay)
+    if viewer is not None:
+        viewer.close()
 
 
 if __name__ == '__main__':

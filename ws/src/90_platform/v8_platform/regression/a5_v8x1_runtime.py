@@ -59,6 +59,8 @@ def main():
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--finish-hold', action='store_true')
+    parser.add_argument('--viewer', action='store_true')
+    parser.add_argument('--viewer-hold-s', type=float, default=0.)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
@@ -155,6 +157,8 @@ def main():
             bridge_argv.append('--perturb')
         if args.finish_hold:
             bridge_argv.append('--finish-hold')
+        if args.viewer:
+            bridge_argv.append('--viewer')
         node_stream, bridge_stream = node_log.open('w'), bridge_log.open('w')
         node = start(node_argv, node_stream)
         bridge = start(bridge_argv, bridge_stream)
@@ -191,6 +195,8 @@ def main():
                 if distance <= .10 and body[2] > args.step_h * args.steps + .1:
                     arrived = True
                     break
+            if args.viewer and args.viewer_hold_s > 0:
+                time.sleep(args.viewer_hold_s)
         finally:
             for proc in (bridge, node):
                 if proc.poll() is None:
