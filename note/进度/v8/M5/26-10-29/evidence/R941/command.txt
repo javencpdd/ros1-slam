@@ -1,0 +1,34 @@
+R941 命令（2026-10-30 13:56—14:00 CST，qoder；NIST 0.7 m 踏面运动学实链）
+# 容器 ros1-slam-sim；独立 master 11411；source noetic + /opt/ros1-slam/ws/devel。
+docker exec -d ros1-slam-sim bash -lc 'source /opt/ros/noetic/setup.bash; export ROS_MASTER_URI=http://127.0.0.1:11411 ROS_HOSTNAME=127.0.0.1; setsid roscore -p 11411 > /tmp/roscore_11411.log 2>&1 < /dev/null &'
+# 正向（tick 1.2 / validity 6.0 / res .15 / clearance .1）：
+python3 -B nist_stairs_runtime.py \
+  --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+  --out /tmp/nist_r941.json --wall-deadline-s 180
+# 读数：ok=true；start (0,-2.175,0) → goal (0,1.3398,0.890358)；
+#   末态 (0,1.2629,0.890358)，评价器 ok、samples 5505、0 碰撞；trace 1224 / dense 2058 / receipts 359。
+# 对照（同图同起终点，仅 validity 3.0）：
+python3 -B - <<'PY'
+import json
+import nist_stairs_runtime as runner
+import runtime_probe
+import rospy
+value = json.load(open("/opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json"))
+name, value, start, goal = runner.case_from_map(value)
+config = runner.experimental_config(value)
+config["validity_s"] = 3.0
+rospy.init_node("nist_control_v3", anonymous=True)
+result = runtime_probe.run_case(name, value, start, goal, [], "arrival", deadline_s=90., experimental=config)
+payload = {"scenario": name, "config": config, "start": list(start), "goal": list(goal),
+           "ok": bool(result.get("ok") and result.get("independent_evaluation", {}).get("ok")),
+           "result": result}
+open("/tmp/nist_r941_control.json", "w").write(json.dumps(payload, ensure_ascii=False, indent=1) + "\n")
+print(json.dumps({"ok": payload["ok"], "final": result.get("final_contact_xyz"),
+                  "status": (result.get("last_status") or {}).get("reason"),
+                  "evaluation": result.get("independent_evaluation")}, ensure_ascii=False))
+PY
+# 读数：ok=false；末态 (0,-1.8222,0.1039)、E_LOCAL_SUPPORT；
+#   评价器 execution_contact_mismatch / execution_unsupported / static_collision(step1)、samples 27049。
+# 离线实测单次规划（res .15）：起点 1.778 s、step1 前 1.383 s、step1 上 1.360 s；后段 ≤0.662 s。
+# 测试：43 套件逐件运行 0 失败。
+# 支持图沿用 R940：x/y×1.70、z×0.51、前侧地面；source sha256 46825b44…；资产 gitignored。
