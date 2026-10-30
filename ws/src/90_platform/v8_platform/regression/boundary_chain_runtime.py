@@ -105,7 +105,7 @@ def main():
                                        '--model', 'lite3_planar',
                                        '--bind', '127.0.0.1:5026',
                                        '--telemetry-target', '127.0.0.1:5025',
-                                       '--seconds', '30',
+                                       '--seconds', str(max(30., args.seconds + 10.)),
                                        '--summary-out', str(endpoint_summary)],
                           ['simulator'])
         endpoint.start()
