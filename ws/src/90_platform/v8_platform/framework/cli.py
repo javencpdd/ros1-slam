@@ -2,21 +2,21 @@
 """Framework CLI (ROS1 v0): check a YAML graph and emit plan/launch skeletons.
 
 Usage:
-  framework.py check CATALOG GRAPH
-  framework.py plan CATALOG GRAPH --out-plan PLAN.json [--out-launch FILE.launch]
+  framework.py check MANIFEST_DIR GRAPH
+  framework.py plan MANIFEST_DIR GRAPH --out-plan PLAN.json [--out-launch FILE.launch]
 """
 import argparse
 import json
 import sys
 from pathlib import Path
 
-from config import FrameworkError, load_catalog, load_graph
+from config import FrameworkError, load_components, load_graph
 import graph as graph_mod
 import render
 
 
 def _run(args):
-    catalog = load_catalog(args.catalog)
+    catalog = load_components(args.manifests)
     graph = load_graph(args.graph)
     report = graph_mod.check(graph, catalog)
     if args.command == 'check':
@@ -40,10 +40,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='framework.py')
     sub = parser.add_subparsers(dest='command', required=True)
     check = sub.add_parser('check')
-    check.add_argument('catalog')
+    check.add_argument('manifests')
     check.add_argument('graph')
     plan = sub.add_parser('plan')
-    plan.add_argument('catalog')
+    plan.add_argument('manifests')
     plan.add_argument('graph')
     plan.add_argument('--out-plan', required=True)
     plan.add_argument('--out-launch', required=True)

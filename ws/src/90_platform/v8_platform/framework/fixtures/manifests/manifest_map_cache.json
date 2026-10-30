@@ -1,0 +1,74 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.map_cache",
+ "version": "0.0.0",
+ "roles": [
+  "map_cache"
+ ],
+ "io": {
+  "map_schema": "support_map/v1",
+  "dimensions": 3,
+  "inputs": [
+   "sensor_msgs/PointCloud2（observations）",
+   "nav_msgs/Odometry（odom）",
+   "v8_msgs/SupportMap（base_map）"
+  ],
+  "outputs": [
+   "v8_msgs/MapDelta（delta）",
+   "v8_msgs/SupportMap（cache）"
+  ]
+ },
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "v8_platform",
+  "type": "map_cache_test_double"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "observations",
+    "type": "sensor_msgs/PointCloud2",
+    "topic": "/cloud_registered"
+   },
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/Odometry"
+   },
+   {
+    "name": "base_map",
+    "type": "v8_msgs/SupportMap",
+    "schema": "support_map/v1",
+    "topic": "/v8_support_map"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "delta",
+    "type": "v8_msgs/MapDelta",
+    "schema": "support_map_delta/v1",
+    "topic": "/map_delta"
+   },
+   {
+    "name": "cache",
+    "type": "v8_msgs/SupportMap",
+    "schema": "support_map/v1",
+    "topic": "/cache_map"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

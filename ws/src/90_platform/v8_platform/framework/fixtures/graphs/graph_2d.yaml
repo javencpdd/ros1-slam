@@ -1,13 +1,13 @@
 schema: pipeline_graph/v1
 name: nav2d_ros1
 instances:
-  - {id: sensors, component: sensors}
-  - {id: lio, component: faster_lio}
-  - {id: map, component: map2d}
-  - {id: global, component: global2d}
-  - {id: local, component: local2d}
-  - {id: mux, component: mux, params: {default_priority: navigation}}
-  - {id: robot, component: robot_lite3}
+  - {id: sensors, component: v8.fw.sensors}
+  - {id: lio, component: v8.fw.faster_lio}
+  - {id: map, component: v8.fw.map2d}
+  - {id: global, component: v8.fw.global2d}
+  - {id: local, component: v8.fw.local2d}
+  - {id: mux, component: v8.fw.mux, params: {default_priority: navigation}}
+  - {id: robot, component: v8.fw.robot_lite3}
 edges:
   - {from: sensors.points, to: lio.points}
   - {from: sensors.imu, to: lio.imu}

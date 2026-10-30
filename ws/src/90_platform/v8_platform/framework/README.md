@@ -4,12 +4,15 @@
 > 启动依赖、命令唯一写者、地图 schema 兼容、锁摘要、ROS1 launch 骨架。
 > **不启动 ROS、不加载具体算法、不改现有判据/运行链。** launch 输出是骨架，真装配归下一片。
 
-## 1. 两份 YAML
+## 1. 组件清单 + 图 YAML
 
-- `components.yaml`（catalog）：组件类型、launch 包/类型、角色、命名输入输出端口、消息类型、
-  可选 schema、可选 `topic`、输出上的 `command_topic`。
-- `graph.yaml`（graph）：选择实例、参数、namespace、显式 `from: instance.port` → `to: instance.port`、
+- **组件源＝registry manifest v2**（`manifest.v2.json`）：在 v1 字段上增加 `ports`（命名输入输出、
+  消息类型、schema、topic、command_topic）与 `launch`（package/type）。v1 清单继续合法，
+  但无命名端口，不能进入图（`E_CFG_MANIFEST_V1`）。
+- `graph.yaml`：选择实例、参数、namespace、显式 `from: instance.port` → `to: instance.port`、
   外部输入，以及反馈边与策略。
+
+不再维护独立的 `components.yaml`：组件定义只有 manifest 一份。
 
 对应关系：**组件类型可复用，实例 ID 唯一；同名组件可起多个实例；连线必须显式到端口。**
 
@@ -17,12 +20,12 @@
 
 ```bash
 cd ws/src/90_platform/v8_platform
-python3 -B framework/cli.py check framework/fixtures/components.yaml \
+python3 -B framework/cli.py check framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml
-python3 -B framework/cli.py plan framework/fixtures/components.yaml \
+python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 17 项
+python3 -B framework/test_framework.py      # 18 项
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者；`plan` 额外写 assembly plan 与 launch 骨架。
@@ -40,6 +43,7 @@ python3 -B framework/test_framework.py      # 17 项
 | 同一命令话题多个写者 | `E_GRAPH_COMMAND` |
 | 实例 ID/ROS 节点名冲突 | `E_CFG_INSTANCE_ID` / `E_GRAPH_NAME_COLLISION` |
 | YAML 重复键、缺字段、类型错 | `E_CFG_DUP_KEY` / `E_CFG_FIELD` / `E_CFG_TYPE` |
+| v1 清单缺命名端口 | `E_CFG_MANIFEST_V1` |
 
 反馈边不参与启动 DAG：`merge.delta → map.delta` 可带 `policy.period_s`，启动不会互等。
 
@@ -55,7 +59,7 @@ python3 -B framework/test_framework.py      # 17 项
 
 ## 5. 边界（如实）
 
-- catalog 里 `v8_platform/*_test_double` 是测试替身；`faster_lio`、`map_server`、mux 等
+- 清单里 `v8_platform/*_test_double` 是测试替身；`faster_lio`、`map_server`、mux 等
   是真实 ROS1 包名，但 **launch 骨架尚未与真实参数/启动文件逐项对表**。
 - 未接 `Orchestrator/ProcessRunner` 运行；未生成 roslaunch 可用的参数全量映射；
   未实现热插拔、状态迁移、运行期改线。

@@ -1,0 +1,53 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.robot_lite3",
+ "version": "0.0.0",
+ "roles": [
+  "robot_adapter"
+ ],
+ "io": {
+  "map_schema": "not_applicable",
+  "dimensions": 3,
+  "inputs": [
+   "geometry_msgs/TwistStamped（cmd）"
+  ],
+  "outputs": [
+   "nav_msgs/Odometry（odom）"
+  ]
+ },
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "message_transformer",
+  "type": "ros2qnx"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/TwistStamped",
+    "topic": "/cmd_vel"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/odom"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

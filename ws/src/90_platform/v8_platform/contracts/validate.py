@@ -170,8 +170,34 @@ def _reachable(surfaces):
     return seen
 
 
+def _manifest_v2(value):
+    """Named-port invariants; v1 manifests are untouched."""
+    if value.get('schema_version') != 2:
+        return
+    seen = set()
+    for direction in ('inputs', 'outputs'):
+        for port in value['ports'][direction]:
+            key = (direction, port['name'])
+            if key in seen:
+                raise ContractError('E_MANIFEST_PORT_DUP', '%s %s' % key)
+            seen.add(key)
+            if direction == 'inputs' and 'command_topic' in port:
+                raise ContractError('E_MANIFEST_PORT_COMMAND', 'command_topic on input %s' % port['name'])
+    commands = [port['command_topic'] for port in value['ports']['outputs']
+                if 'command_topic' in port]
+    if len(commands) != len(set(commands)):
+        raise ContractError('E_MANIFEST_COMMAND_DUP', 'duplicate command topic in one component')
+    for port in value['ports']['inputs'] + value['ports']['outputs']:
+        schema = port.get('schema', '')
+        if schema.startswith('support_map/') and value['io']['dimensions'] != 3:
+            raise ContractError('E_MANIFEST_DIM', 'support_map port requires dimensions 3')
+        if schema.startswith('occupancy_grid/') and value['io']['dimensions'] != 2:
+            raise ContractError('E_MANIFEST_DIM', 'occupancy_grid port requires dimensions 2')
+
+
 def semantic(kind, value):
     if kind == 'manifest':
+        _manifest_v2(value)
         if value['evidence']['level'] != 'declared' and not value['evidence']['reports']:
             raise ContractError('E_MANIFEST_EVIDENCE', 'evidence above declared requires reports')
         if value['io']['map_schema'] == 'support_map/v1' and value['io']['dimensions'] != 3:
@@ -330,6 +356,8 @@ def validate(kind, value, *, allow_obstacles=False):
         if not allow_obstacles:
             raise ContractError('E_VERSION', 'map/v2 requires an obstacle-aware consumer')
         root = json.loads((HERE / 'schema/map.v2.json').read_text())
+    elif kind == 'manifest' and isinstance(value, dict) and value.get('schema_version') == 2:
+        root = json.loads((HERE / 'schema/manifest.v2.json').read_text())
     else:
         root = load(kind)
     _walk(root, value, root, '')

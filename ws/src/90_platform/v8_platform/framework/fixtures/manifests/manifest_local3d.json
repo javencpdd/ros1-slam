@@ -1,0 +1,70 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.local3d",
+ "version": "0.0.0",
+ "roles": [
+  "local_planner",
+  "controller"
+ ],
+ "io": {
+  "map_schema": "support_map/v1",
+  "dimensions": 3,
+  "inputs": [
+   "nav_msgs/Path（path）",
+   "v8_msgs/SupportMap（map）",
+   "nav_msgs/Odometry（odom）"
+  ],
+  "outputs": [
+   "geometry_msgs/TwistStamped（cmd）"
+  ]
+ },
+ "capability": {
+  "kinematics": "quadruped_kinematic",
+  "cancellation": "cooperative",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [
+   "/cmd_vel_advice/3d"
+  ],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "v8_platform",
+  "type": "local3d_test_double"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "path",
+    "type": "nav_msgs/Path",
+    "topic": "/global_path"
+   },
+   {
+    "name": "map",
+    "type": "v8_msgs/SupportMap",
+    "schema": "support_map/v1",
+    "topic": "/v8_support_map"
+   },
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/Odometry"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/TwistStamped",
+    "topic": "/cmd_vel_advice/3d",
+    "command_topic": "/cmd_vel_advice/3d"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.map2d",
+ "version": "0.0.0",
+ "roles": [
+  "map_server"
+ ],
+ "io": {
+  "map_schema": "occupancy_grid/v1",
+  "dimensions": 2,
+  "inputs": [],
+  "outputs": [
+   "nav_msgs/OccupancyGrid（map）"
+  ]
+ },
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "map_server",
+  "type": "map_server"
+ },
+ "ports": {
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "map",
+    "type": "nav_msgs/OccupancyGrid",
+    "schema": "occupancy_grid/v1",
+    "topic": "/map"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.sensors",
+ "version": "0.0.0",
+ "roles": [
+  "sensor_source"
+ ],
+ "io": {
+  "map_schema": "not_applicable",
+  "dimensions": 3,
+  "inputs": [],
+  "outputs": [
+   "sensor_msgs/PointCloud2（points）",
+   "sensor_msgs/Imu（imu）"
+  ]
+ },
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "lite3_drivers",
+  "type": "sim_adapter"
+ },
+ "ports": {
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "points",
+    "type": "sensor_msgs/PointCloud2",
+    "topic": "/rslidar_points"
+   },
+   {
+    "name": "imu",
+    "type": "sensor_msgs/Imu",
+    "topic": "/livox/imu"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

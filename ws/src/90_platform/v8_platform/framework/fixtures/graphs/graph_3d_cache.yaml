@@ -1,16 +1,16 @@
 schema: pipeline_graph/v1
 name: nav3d_two_caches
 instances:
-  - {id: sensors, component: sensors}
-  - {id: lio, component: faster_lio}
-  - {id: map, component: map3d}
-  - {id: cache_a, component: map_cache, params: {update_interval_s: 5.0, max_delta_cells: 2000}}
-  - {id: cache_b, component: map_cache, params: {update_interval_s: 10.0, max_delta_cells: 2000}}
-  - {id: merge, component: map_merge, params: {policy: newest_wins}}
-  - {id: global, component: global3d}
-  - {id: local, component: local3d}
-  - {id: mux, component: mux}
-  - {id: robot, component: robot_lite3}
+  - {id: sensors, component: v8.fw.sensors}
+  - {id: lio, component: v8.fw.faster_lio}
+  - {id: map, component: v8.fw.map3d}
+  - {id: cache_a, component: v8.fw.map_cache, params: {update_interval_s: 5.0, max_delta_cells: 2000}}
+  - {id: cache_b, component: v8.fw.map_cache, params: {update_interval_s: 10.0, max_delta_cells: 2000}}
+  - {id: merge, component: v8.fw.map_merge, params: {policy: newest_wins}}
+  - {id: global, component: v8.fw.global3d}
+  - {id: local, component: v8.fw.local3d}
+  - {id: mux, component: v8.fw.mux}
+  - {id: robot, component: v8.fw.robot_lite3}
 edges:
   - {from: sensors.points, to: lio.points}
   - {from: sensors.imu, to: lio.imu}

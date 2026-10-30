@@ -1,0 +1,70 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.local2d",
+ "version": "0.0.0",
+ "roles": [
+  "local_planner",
+  "controller"
+ ],
+ "io": {
+  "map_schema": "occupancy_grid/v1",
+  "dimensions": 2,
+  "inputs": [
+   "nav_msgs/Path（path）",
+   "nav_msgs/OccupancyGrid（map）",
+   "nav_msgs/Odometry（odom）"
+  ],
+  "outputs": [
+   "geometry_msgs/TwistStamped（cmd）"
+  ]
+ },
+ "capability": {
+  "kinematics": "differential",
+  "cancellation": "cooperative",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [
+   "/cmd_vel_advice/local"
+  ],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "teb_local_planner",
+  "type": "teb_local_planner"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "path",
+    "type": "nav_msgs/Path",
+    "topic": "/global_path"
+   },
+   {
+    "name": "map",
+    "type": "nav_msgs/OccupancyGrid",
+    "schema": "occupancy_grid/v1",
+    "topic": "/map"
+   },
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/Odometry"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/TwistStamped",
+    "topic": "/cmd_vel_advice/local",
+    "command_topic": "/cmd_vel_advice/local"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

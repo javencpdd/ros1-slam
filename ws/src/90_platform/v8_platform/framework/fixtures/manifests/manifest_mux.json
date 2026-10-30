@@ -1,0 +1,63 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.mux",
+ "version": "0.0.0",
+ "roles": [
+  "safety_arbiter"
+ ],
+ "io": {
+  "map_schema": "not_applicable",
+  "dimensions": 3,
+  "inputs": [
+   "geometry_msgs/TwistStamped（cmd）",
+   "std_msgs/Bool（hold）"
+  ],
+  "outputs": [
+   "geometry_msgs/TwistStamped（cmd）"
+  ]
+ },
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [
+   "/cmd_vel"
+  ],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "lite3_safety",
+  "type": "safe_cmd_vel_mux.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/TwistStamped",
+    "topic": "/cmd_vel_advice/local"
+   },
+   {
+    "name": "hold",
+    "type": "std_msgs/Bool",
+    "required": false,
+    "topic": "/lite3/supervisor/hold"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/TwistStamped",
+    "topic": "/cmd_vel",
+    "command_topic": "/cmd_vel"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

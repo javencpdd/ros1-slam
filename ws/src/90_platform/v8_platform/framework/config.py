@@ -5,10 +5,16 @@ parameters and external inputs. This module only parses structure; semantic
 checks live in graph.py and rendering in render.py.
 """
 import hashlib
+import json
 import re
+import sys
 from pathlib import Path
 
 import yaml
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent / 'contracts'))
+import validate as contract  # noqa: E402
 
 CATALOG_SCHEMA = 'component_catalog/v1'
 GRAPH_SCHEMA = 'pipeline_graph/v1'
@@ -92,43 +98,45 @@ def _port(raw, where, direction):
     return port
 
 
-def load_catalog(path):
-    value, sha = load_yaml(path)
-    if value.get('schema') != CATALOG_SCHEMA:
-        raise FrameworkError('E_CFG_SCHEMA', 'catalog schema must be %s' % CATALOG_SCHEMA)
-    raw_components = _require(value, 'components', list, 'catalog')
-    if not raw_components:
-        raise FrameworkError('E_CFG_EMPTY', 'catalog components is empty')
-    components = {}
-    for index, raw in enumerate(raw_components):
-        where = 'components[%d]' % index
-        if not isinstance(raw, dict):
-            raise FrameworkError('E_CFG_TYPE', '%s must be a mapping' % where)
-        cid = _require(raw, 'id', str, where)
+def load_components(path):
+    """Load v2 manifests (named ports + launch) as the single component source.
+
+    v1 manifests remain valid for the legacy registry/composer; they cannot enter
+    a graph because they have no named ports.
+    """
+    path = Path(path)
+    files = sorted(path.glob('manifest_*.json')) if path.is_dir() else [path]
+    if not files or (path.is_dir() and not any(f.is_file() for f in files)):
+        raise FrameworkError('E_CFG_MISSING', str(path))
+    components, digest = {}, hashlib.sha256()
+    for file in files:
+        if not file.is_file():
+            raise FrameworkError('E_CFG_MISSING', str(file))
+        raw_bytes = file.read_bytes()
+        try:
+            value = json.loads(raw_bytes)
+        except json.JSONDecodeError as error:
+            raise FrameworkError('E_CFG_YAML', '%s: %s' % (file.name, error))
+        try:
+            contract.validate('manifest', value)
+        except contract.ContractError as error:
+            raise FrameworkError('E_CFG_MANIFEST', '%s: %s: %s'
+                                 % (file.name, error.code, error.detail))
+        if value.get('schema_version') != 2 or 'ports' not in value:
+            raise FrameworkError('E_CFG_MANIFEST_V1',
+                                 '%s has no named ports; use manifest v2' % file.name)
+        cid = value['id']
         if cid in components:
             raise FrameworkError('E_CFG_DUP_COMPONENT', cid)
-        launch = _require(raw, 'launch', dict, where)
-        package = _require(launch, 'package', str, where + '.launch')
-        node_type = _require(launch, 'type', str, where + '.launch')
-        roles = raw.get('roles', [])
-        if not isinstance(roles, list) or not all(isinstance(r, str) and r for r in roles):
-            raise FrameworkError('E_CFG_TYPE', '%s.roles must be a string list' % where)
-        inputs, outputs = [], []
-        seen = set()
-        for direction, items in (('input', raw.get('inputs', [])),
-                                 ('output', raw.get('outputs', []))):
-            if not isinstance(items, list):
-                raise FrameworkError('E_CFG_TYPE', '%s.%ss must be a list' % (where, direction))
-            for pindex, item in enumerate(items):
-                port = _port(item, '%s.%ss[%d]' % (where, direction, pindex), direction)
-                key = (direction, port['name'])
-                if key in seen:
-                    raise FrameworkError('E_CFG_DUP_PORT', '%s %s.%s' % (where, direction, port['name']))
-                seen.add(key)
-                (inputs if direction == 'input' else outputs).append(port)
-        components[cid] = {'id': cid, 'launch': {'package': package, 'type': node_type},
-                           'roles': roles, 'inputs': inputs, 'outputs': outputs}
-    return {'components': components, 'sha256': sha, 'path': str(path)}
+        launch = value.get('launch')
+        if not isinstance(launch, dict):
+            raise FrameworkError('E_CFG_LAUNCH', '%s has no launch identity' % cid)
+        inputs = [dict(port, direction='input') for port in value['ports']['inputs']]
+        outputs = [dict(port, direction='output') for port in value['ports']['outputs']]
+        components[cid] = {'id': cid, 'launch': launch, 'roles': list(value['roles']),
+                           'inputs': inputs, 'outputs': outputs}
+        digest.update(file.name.encode() + b'\0' + raw_bytes)
+    return {'components': components, 'sha256': digest.hexdigest(), 'path': str(path)}
 
 
 def load_graph(path):

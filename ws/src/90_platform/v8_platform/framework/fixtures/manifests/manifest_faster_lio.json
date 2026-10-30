@@ -1,0 +1,66 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.faster_lio",
+ "version": "0.0.0",
+ "roles": [
+  "odometry",
+  "mapping"
+ ],
+ "io": {
+  "map_schema": "not_applicable",
+  "dimensions": 3,
+  "inputs": [
+   "sensor_msgs/PointCloud2（points）",
+   "sensor_msgs/Imu（imu）"
+  ],
+  "outputs": [
+   "nav_msgs/Odometry（odom）",
+   "sensor_msgs/PointCloud2（cloud）"
+  ]
+ },
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "package": "faster_lio",
+  "type": "run_mapping_online"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "points",
+    "type": "sensor_msgs/PointCloud2",
+    "topic": "/rslidar_points"
+   },
+   {
+    "name": "imu",
+    "type": "sensor_msgs/Imu",
+    "topic": "/livox/imu"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/Odometry"
+   },
+   {
+    "name": "cloud",
+    "type": "sensor_msgs/PointCloud2",
+    "topic": "/cloud_registered"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

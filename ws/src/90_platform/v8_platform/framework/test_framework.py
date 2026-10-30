@@ -16,7 +16,8 @@ import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
 import render  # noqa: E402
 
-CATALOG = HERE / 'fixtures' / 'components.yaml'
+MANIFESTS = HERE / 'fixtures' / 'manifests'
+V1_MANIFESTS = HERE.parent / 'registry' / 'data' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G3D = HERE / 'fixtures' / 'graphs' / 'graph_3d_cache.yaml'
 MISSING = HERE / 'fixtures' / 'graphs' / 'invalid_missing_input.yaml'
@@ -24,7 +25,7 @@ DUP_KEY = HERE / 'fixtures' / 'graphs' / 'invalid_dup_key.yaml'
 
 
 def load_pair(path):
-    return config.load_catalog(CATALOG), config.load_graph(path)
+    return config.load_components(MANIFESTS), config.load_graph(path)
 
 
 def find_edge(value, source, target):
@@ -91,7 +92,7 @@ class FrameworkTests(unittest.TestCase):
 
     def test_map_schema_mismatch_rejected(self):
         catalog, value = load_pair(G3D)
-        output = catalog['components']['map3d']['outputs'][0]
+        output = catalog['components']['v8.fw.map3d']['outputs'][0]
         output['schema'] = 'support_map/v2'
         with self.assertRaises(config.FrameworkError) as caught:
             graph_mod.check(value, catalog)
@@ -113,7 +114,7 @@ class FrameworkTests(unittest.TestCase):
 
     def test_duplicate_command_writer_rejected(self):
         catalog, value = load_pair(G3D)
-        value['instances']['mux_b'] = {'id': 'mux_b', 'component': 'mux',
+        value['instances']['mux_b'] = {'id': 'mux_b', 'component': 'v8.fw.mux',
                                        'params': {}, 'namespace': None}
         value['edges'].append({'from': 'local.cmd', 'to': 'mux_b.cmd',
                                'feedback': False, 'policy': {}, 'index': 99})
@@ -144,9 +145,9 @@ class FrameworkTests(unittest.TestCase):
 
     def test_sanitized_node_name_collision_rejected(self):
         catalog, value = load_pair(G2D)
-        value['instances']['map.a'] = {'id': 'map.a', 'component': 'map2d',
+        value['instances']['map.a'] = {'id': 'map.a', 'component': 'v8.fw.map2d',
                                        'params': {}, 'namespace': None}
-        value['instances']['map_a'] = {'id': 'map_a', 'component': 'map2d',
+        value['instances']['map_a'] = {'id': 'map_a', 'component': 'v8.fw.map2d',
                                        'params': {}, 'namespace': None}
         with self.assertRaises(config.FrameworkError) as caught:
             graph_mod.check(value, catalog)
@@ -160,6 +161,11 @@ class FrameworkTests(unittest.TestCase):
         with self.assertRaises(config.FrameworkError) as caught:
             graph_mod.check(value, catalog)
         self.assertEqual(caught.exception.code, 'E_GRAPH_TYPE')
+
+    def test_v1_manifest_rejected_for_graph(self):
+        with self.assertRaises(config.FrameworkError) as caught:
+            config.load_components(V1_MANIFESTS)
+        self.assertEqual(caught.exception.code, 'E_CFG_MANIFEST_V1')
 
     def test_duplicate_yaml_key_rejected(self):
         with self.assertRaises(config.FrameworkError) as caught:
@@ -189,14 +195,14 @@ class FrameworkTests(unittest.TestCase):
     def test_cli_check_and_plan(self):
         json_out = io.StringIO()
         with redirect_stdout(json_out):
-            self.assertEqual(cli.main(['check', str(CATALOG), str(G3D)]), 0)
+            self.assertEqual(cli.main(['check', str(MANIFESTS), str(G3D)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'
             with redirect_stdout(io.StringIO()):
-                rc = cli.main(['plan', str(CATALOG), str(G3D),
+                rc = cli.main(['plan', str(MANIFESTS), str(G3D),
                                '--out-plan', str(plan_path),
                                '--out-launch', str(launch_path)])
             self.assertEqual(rc, 0)
@@ -205,7 +211,7 @@ class FrameworkTests(unittest.TestCase):
 
     def test_cli_error_rc(self):
         with redirect_stdout(io.StringIO()):
-            self.assertEqual(cli.main(['check', str(CATALOG), str(MISSING)]), 5)
+            self.assertEqual(cli.main(['check', str(MANIFESTS), str(MISSING)]), 5)
 
 
 if __name__ == '__main__':
