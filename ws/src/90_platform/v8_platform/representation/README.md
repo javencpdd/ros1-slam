@@ -49,3 +49,10 @@ PYTHONPATH=../regression:$PYTHONPATH python3 -B -m a3_runtime --out /tmp/a3-runt
 
 该驱动使用显式声明地图夹具，验证同 XY 双层、证据未知/空闲/占据、版本更新、
 单向反向无路；不构成 Gazebo 传感流建图验收。map.v1 冻结契约保持原样。
+
+## 7. 运行时 MapDelta 消费（R976）
+
+`delta_map_node.py` 在 `MapService` 上提供 ROS 运行时：订阅 `/map_delta`（JSON String），
+原子应用 `map_delta/v1`，发布版本化 `/v8_support_map` 与 `/v8_map_status`，Trigger `~query`
+返回快照。坏 JSON/旧 base/异 map_id 只记错误、不改版本；回放同一 delta_id 幂等。
+真机/QNX 仍未接（L2）。

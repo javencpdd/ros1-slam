@@ -1,0 +1,8 @@
+R976 命令（2026-10-31 02:12—02:14 CST，qoder；MapDelta 运行时消费）
+# 纯测：delta_map_node 3/3；全树 58 套件 0 失败。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/test_delta_map.py
+# ROS 冒烟：独立 master 11449；map_ml_two_surfaces.json；发布 mezz z .6→.8 delta。
+python3 -B representation/delta_map_node.py _map_json:=.../map_ml_two_surfaces.json _keep_alive_s:=8
+# 读数：/v8_support_map 与 /v8_map_status 均 map_version=3，applied_deltas=1。
+# 边界：单 delta、无证据层；真机/QNX L2；未改判据。
