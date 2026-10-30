@@ -1,7 +1,9 @@
 # 统一 YAML 组件图 v0.1（ROS1）
 
-> 2026-10-30 起；R956 已把组件源并入 registry manifest v2。目标框架的第一片：**配置与装配计划**，不是完整运行时。
-> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 22 项＋runtime 5 项＋契约 v2 6 项＋registry/composer v2 4 项；V8 全树 50 套件 0 失败。
+> 2026-10-30 起；R956 把组件源并入 registry manifest v2，R963/R964 接上独立验证与安全接线。
+> 目标框架的第一片：**配置、装配计划与运行装配**；数据面仍走 ROS 话题。
+> 代码：`ws/src/90_platform/v8_platform/framework/`；framework 22 项＋runtime 5 项＋robot 4 项＋
+> verification 5 项＋safety 7 项＋契约 v2 6 项＋registry/composer v2 4 项；V8 全树 54 套件 0 失败。
 
 ## 1. 解决什么
 
@@ -23,25 +25,34 @@
 | 实例/端口 | 未知组件/端口、方向错、同名输入重复绑定拒绝 |
 | 连线 | 消息类型与地图 schema 必须一致；转换需显式组件 |
 | 启动 | 非反馈边构成 DAG；反馈边必须带策略，不参与启动排序 |
-| 命令 | 每个命令话题只允许一个写者 |
+| 命令 | 每个命令话题只允许一个写者；`/cmd_vel` 写者必须是 `safety_arbiter` |
 | 锁 | catalog sha256 + 归一化图 → assembly digest |
-| 输出 | `plan.json` 与 ROS1 launch 骨架（node/param/remap） |
+| 输出 | `plan.json` 与 ROS1 launch（node/include/param/remap/arg） |
+| 运行装配 | plan → `ComponentSpec` → `ProcessRunner/Orchestrator`；就绪/停止/清理，mux 最后 |
+| 地图增量 | `map_delta/v1`：delta_id 幂等、旧 base 拒绝、原子升版、监听通知 |
+| 机器人 profile | robot.v1：declared/prohibited 不驱动规划；Lite3 与 test_b 仅改 YAML 切换 |
+| 独立验证 | backend 不进算法图；真值不泄漏算法话题；失败只记 status=error |
+| 安全接线 | 双 `/cmd_vel` 写者/越权建议拒绝；validator 否决走停止链 |
+| 性能预算 | 启动 check+plan p50/p95/max；500 Hz 发送不经 Python 编排环 |
 
 3D 双缓存 fixture 验证了：两个同类型实例、命名端口不混淆、`merge.delta → map.delta`
-反馈边不阻塞启动；manifest v1 兼容性由 `E_CFG_MANIFEST_V1` 明确拒绝进入图；v2 不再落盘 io，派生视图通过 registry/composer 兼容测试。
+反馈边不阻塞启动；v1 清单以 `E_CFG_MANIFEST_V1` 明确拒绝进图。
+
+运行时只做启动/停止：50 Hz 规划与控制走 ROS 话题；500 Hz 命令发送在边界适配器专用进程
+（33B UDP），不进 Python 编排环。`perf.py` 只记录启动前 check+plan 的开销，`startup_only=True`。
 
 ## 3. 边界（如实）
 
-- catalog 中的 `*_test_double` 是测试替身；真实包的 launch 条目尚未逐项对表。
-- **没有启动 ROS**：launch 是骨架，参数/remap 还没有交给 `ProcessRunner/Orchestrator`。
-- 没有地图增量事务、机器人 profile、仿真验证配置、热插拔或运行期改线。
-- 不改既有 contracts/registry/composer/orchestrator 语义；新图模型独立演进。
+- catalog 中的 `*_test_double` 是测试替身；真实包的 launch 条目尚未逐项对表，也未在宿主执行
+  `rosrun/roslaunch`。`kind: plugin` 托管未实现。
+- 运行装配测试用假命令/假进程；未启动真实 ROS 组件。validator 否决是编排层停止，不是 msg 级
+  实时看门狗；热插拔、状态迁移、运行期改线未实现。
+- 独立验证用假后端，未启动 MuJoCo/Gazebo。
+- 不改既有 contracts/registry/composer/orchestrator 语义；A1—A7 仍 `NOT_VALIDATED`。
 
 ## 4. 下一片
 
-1. 组件 launch 适配表与真实参数映射；
-2. assembly plan → `ProcessRunner`/`Orchestrator` 的启动、就绪、停止；
-3. `MapDelta` 契约：基版本、原子合并、幂等、更新通知；
-4. 机器人 command/telemetry 端口与独立仿真验证配置。
+F8 收口：F1—F7 证据索引、旧 catalog/旧入口/旧文档指针清理、未接入项清单与回滚说明；
+验证“无第二套组件模型、v1 清单仍可加载、A1—A7 状态不变、VLB/VCC 门禁通过”。
 
 完整说明见 [framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md)。

@@ -1,8 +1,9 @@
 # framework · YAML 驱动的 ROS1 组件图（v0.1）
 
-> 2026-10-31 起。首版只做**配置与装配计划**：组件目录、实例、命名端口、显式连线、
-> 启动依赖、命令唯一写者、地图 schema 兼容、锁摘要、ROS1 launch 骨架。
-> **不启动 ROS、不加载具体算法、不改现有判据/运行链。** launch 输出是骨架，真装配归下一片。
+> 2026-10-31 起。做**配置、装配计划与运行装配**：组件目录、实例、命名端口、显式连线、
+> 启动依赖、命令唯一写者、地图 schema 兼容、锁摘要、ROS1 launch 骨架、运行器接线、
+> MapDelta 事务、机器人 profile、独立验证配置、安全接线与启动开销基准。
+> **不加载具体算法、不改现有判据/运行链。** 数据面仍走 ROS 话题，Python 编排环只在启动/停止。
 
 ## 1. 组件清单 + 图 YAML
 
@@ -29,6 +30,19 @@
 重叠（`E_VERIFY_TRUTH_LEAK`）；后端通过注入 runner 运行，失败只记 status=error，不改算法 digest。
 本片用两个假后端验证切换，不启动 MuJoCo/Gazebo。
 
+`map_service.propose_delta` 接收 `map_delta/v1`：delta_id 幂等重放、旧 base/同 id 异内容/无变化
+拒绝；结果先过 map 契约再原子升版并通知监听者，失败不改变当前版本。
+
+`safety.py` 是接线门：`/cmd_vel` 必须恰好一个写者且角色为 `safety_arbiter`；其他
+`command_topic` 输出必须显式连到该写者，否则 `E_SAFETY_ADVICE`；`trajectory_validator`
+最多一个，且必须同时有 path 入/出边。`Assembly.start` 启动前强制此检查
+（`E_SAFETY_ARBITER`/`E_SAFETY_ADVICE`/`E_SAFETY_VALIDATOR`）；validator 否决经
+`safety.enforce(assembly, verdict)` 直接走停止链（mux 最后），不是只记日志。
+
+`perf.py` 只测**启动前** check+plan 的开销（p50/p95/max，`startup_only=True`）。50 Hz 规划/控制
+走 ROS 话题，500 Hz 命令发送在边界适配器专用进程（33B UDP），都不经过 Python 编排环；
+本基准不冒充控制周期时延。
+
 不再维护独立的 `components.yaml`：组件定义只有 manifest 一份；v2 的 io 是**加载期派生视图**，不落盘。
 
 对应关系：**组件类型可复用，实例 ID 唯一；同名组件可起多个实例；连线必须显式到端口。**
@@ -47,12 +61,13 @@ python3 -B framework/test_framework.py      # 22 项
 python3 -B framework/test_runtime.py        # 5 项（F3 假命令运行器）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
+python3 -B framework/test_safety.py         # 7 项（F7 接线/否决即停/启动基准）
 python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 ```
 
-`check` 输出 digest、启动序、反馈边、命令话题写者；`plan` 额外写 assembly plan 与 launch 骨架。
-错误 rc=5（带理由码），用法错误 rc=9。
+`check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；
+`plan` 额外写 assembly plan 与 launch 骨架。错误 rc=5（带理由码），用法错误 rc=9。
 
 ## 3. 已覆盖的检查
 
@@ -69,6 +84,10 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 | v1 清单缺命名端口 | `E_CFG_MANIFEST_V1` |
 | launch 未知包/文件/可执行/参数文件 | `E_LAUNCH_PACKAGE` / `E_LAUNCH_FILE` / `E_LAUNCH_TYPE` |
 | launch 规格非法（node/include/plugin/路径） | `E_CFG_LAUNCH` / `E_CFG_LAUNCH_KIND` / `E_CFG_LAUNCH_PATH` |
+| `/cmd_vel` 写者不唯一或非 `safety_arbiter` | `E_SAFETY_ARBITER`（`Assembly.start` 同拒） |
+| 命令建议未接到仲裁器 | `E_SAFETY_ADVICE` |
+| validator 多于一个或不在 path 上 | `E_SAFETY_VALIDATOR` |
+| validator 否决缺少 `approved` 字段 | `E_SAFETY_VERDICT` |
 
 反馈边不参与启动 DAG：`merge.delta → map.delta` 可带 `policy.period_s`，启动不会互等。
 
@@ -89,13 +108,10 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 - runtime 测试用假命令；真实 `rosrun/roslaunch` 未执行。包索引是声明快照，不是 rospack 活体扫描；
   验证测试用假后端，未启动 MuJoCo/Gazebo；ready_marker 需按组件配置，plugin 托管、热插拔、
   状态迁移、运行期改线未实现。
-- 地图 provider 的增量提交/版本事务、机器人 profile、MuJoCo 验证配置都不在本片。
-- 不改 `contracts/registry/composer/orchestrator` 既有语义；新图模型独立，下一片再决定
-  是否复用 manifest 或迁移。
+- validator 否决走的是**编排层停止链**，不是 msg 级实时看门狗；50/500 Hz 的承载路径未做实测对比，
+  只记录启动 check+plan 的 p95。
+- 不改 `contracts/registry/composer/orchestrator` 既有语义；A1—A7 状态不变。
 
 ## 6. 下一片
 
-1. **launch 适配表**：组件 launch 包/类型 → 真实 launch/参数入口；测试替身逐步替换。
-2. **运行装配**：把 assembly plan 交给现有 `ProcessRunner`/`Orchestrator`，就绪/停止/清理复用。
-3. **地图增量契约**：`MapDelta`、基版本、原子合并、幂等与更新通知。
-4. **机器人适配与独立验证配置**：command/telemetry 端口、仿真场景独立选择，不并入核心图。
+F8 收口：证据索引、旧入口/旧文档指针清理、未接入项与回滚说明；不再新增并行组件模型。

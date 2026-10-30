@@ -1,0 +1,18 @@
+R964 命令（2026-10-31 00:55—01:00 CST，qoder；F7 安全接线与启动开销基准）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_safety.py -v            # 7
+python3 -B - <<'EOF'                              # 启动基准 iterations=200
+import json,sys; sys.path.insert(0,"framework")
+import config, perf
+for name in ("graph_2d.yaml","graph_3d_cache.yaml"):
+    cat=config.load_components("framework/fixtures/manifests")
+    gr=config.load_graph("framework/fixtures/graphs/"+name)
+    print(json.dumps(dict(graph=name, **perf.benchmark(gr,cat,iterations=200)), ensure_ascii=False))
+EOF
+python3 -B framework/cli.py check framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d.yaml          # digest 4760c582…、safety.command_owner=mux
+# 容器同版（Python 3.8）：V8 全树 54 套件 0 失败（全树含 test_safety 7 项）。
+# 读数：双 /cmd_vel 写者拒绝（E_SAFETY_ARBITER）、建议未接仲裁器拒绝（E_SAFETY_ADVICE）、
+#   validator 偏离 path 拒绝（E_SAFETY_VALIDATOR）；否决后真进程全停、stop_record 末位=mux。
+#   启动 check+plan：2D p50=0.189 ms / p95=0.346 ms；3D 双缓存 p50=0.279 / p95=0.314 ms。
+# 边界：未启动 ROS/MuJoCo/Gazebo；50/500 Hz 承载路径见 README，未做周期实测对比。
