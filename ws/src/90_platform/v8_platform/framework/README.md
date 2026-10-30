@@ -43,6 +43,8 @@ basename）。启动、READY 就绪、停止序（mux 最后）、失败清理�
 `snapshot/save/load` 持久化当前地图、证据层、history 与 applied_deltas：临时文件+fsync+
 原子替换，恢复时重算 digest 并核对 history 末行，坏文件/异 map_id/回退 fail-closed。
 `delta_map_node` 的 `~state_path` 在每次成功 delta 后落盘，ROS 重启恢复版本与幂等表（R983）。
+`MapStore(root)` 以 map_id 为文件名键管理多图快照：显式 `load/ids/load_all`，路径穿越与
+坏文件 fail-closed（R989）；ROS provider 仍单 map_id。
 
 `v8.boundary.adapter` 把 mux 的 `/cmd_vel` 接到边界 UDP：`ros_bridge.py` 支持
 `command_type=twist|twist_stamped`，`snapshot` 图 `graph_boundary_mux.yaml` 用真实

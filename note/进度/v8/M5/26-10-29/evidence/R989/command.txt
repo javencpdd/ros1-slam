@@ -1,0 +1,15 @@
+R989 命令（2026-10-31 04:54—04:55 CST，qoder；MapStore 多 map_id）
+# 纯 Python：两个 map_id 各自 publish→update→save，目录内两文件；换新 store load_all。
+cd ws/src/90_platform/v8_platform/representation
+python3 -B test_map_service.py
+python3 -B - <<'PY'  # 见 store_roundtrip.json 的生成过程
+import map_service as svc, test_map_service as tm
+store=svc.MapStore('/tmp/r989_store')
+for map_id in ('svc_map','other_map'):
+    value=tm.two_floors(); value['map_id']=map_id
+    service=svc.MapService(map_id); service.publish(value)
+    service.update(tm.changed_floors(value)); store.save(service)
+loaded=store.load_all()
+PY
+# 读数：ids=['other_map','svc_map']；两图 version=2、digest 各自独立；
+#   新 store load_all 两件；map_id 路径穿越拒绝；bad.json 使 load_all fail-closed。

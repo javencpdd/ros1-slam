@@ -32,7 +32,7 @@
 | 输出 | `plan.json` 与 ROS1 launch（node/include/param/remap/arg） |
 | 运行装配 | plan → `ComponentSpec` → `ProcessRunner/Orchestrator`；就绪/停止/清理，mux 最后 |
 | 地图增量 | `map_delta/v1`：delta_id 幂等、旧 base 拒绝、原子升版、监听通知；ROS provider 消费（R976） |
-| 地图持久化 | `MapService.save/load` 原子快照、恢复重算 digest/核对 history、跨 ROS 重启保留幂等表（R983） |
+| 地图持久化 | `MapService.save/load` 原子快照、恢复重算 digest/核对 history、跨 ROS 重启保留幂等表（R983）；`MapStore` 多 map_id 目录（R989） |
 | 机器人 profile | robot.v1：declared/prohibited 不驱动规划；Lite3 与 test_b 仅改 YAML 切换 |
 | 独立验证 | backend 不进算法图；真值不泄漏算法话题；失败只记 status=error |
 | 安全接线 | 双 `/cmd_vel` 写者/越权建议拒绝；validator 否决走停止链 |
