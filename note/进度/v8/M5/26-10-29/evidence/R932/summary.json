@@ -1,0 +1,21 @@
+{
+  "domain": "v8x1_new_policy_stair_matrix_gain_tuned",
+  "policy_sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f",
+  "config": {"steps": 3, "depth_m": 0.5, "width_m": 3.0, "front_m": 1.0,
+             "seed_perturb": "dx+-0.05, dy+-0.10, dyaw+-0.0873, dz+-0.005",
+             "heading_hold": [3.0, 1.5, 0.6], "v_cmd": 0.3, "seconds": 10},
+  "sweep_on_15cm_seed1": {"3.0/1.5/0.6": "pass stable", "1.0/0.5/0.4": "pass stable",
+                            "2.0/1.5/0.6": "fail no fall", "4.0/2.0/0.8": "fail no fall"},
+  "matrix": {"0.06": {"pass": 5, "stable": 5, "fell": 0},
+             "0.10": {"pass": 5, "stable": 5, "fell": 0},
+             "0.15": {"pass": 4, "stable": 4, "fell": 0}},
+  "total": {"runs": 15, "pass": 14, "stable": 14, "fell": 0},
+  "failure": {"height": 0.15, "seed": 3, "fell": false, "unstable": true,
+              "final_xyz": [2.9549, 0.2745, 0.2119], "zmin": 0.2107, "max_abs_y": 0.2825,
+              "note": "climbed past the top marks then z dropped from .66 to .45 and action/qpos became non-finite"},
+  "finding": "gain tuning moves the single failure (15cm seed1 -> seed3); no tested gain gives 15/15",
+  "scope": "MuJoCo torque policy; heading hold uses world truth; no ROS/no real robot/#151",
+  "v8x1": "REOPENED, NOT PASSED (14/15 in both gain sets)",
+  "a5_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}
