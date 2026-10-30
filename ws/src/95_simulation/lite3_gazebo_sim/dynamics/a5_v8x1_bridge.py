@@ -117,6 +117,7 @@ def main():
     parser.add_argument('--retry-back-speed', type=float, default=-.20)
     parser.add_argument('--max-retries', type=int, default=3)
     parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
+    parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -252,8 +253,9 @@ def main():
                 and float(data.qpos[2]) > top_z + .10
                 and actual_distance is not None and actual_distance <= .15):
             finish = True
-        if finish:
+        if finish or float(data.time) < args.hold_until_sim_s:
             command = np.zeros(3, dtype=np.float32)
+            velocity = (0., 0., 0.)
         else:
             yaw = walk.yaw_of(data.qpos[3:7])
             body_vx, body_vy, wz = body_command(velocity[0], velocity[1], yaw,
