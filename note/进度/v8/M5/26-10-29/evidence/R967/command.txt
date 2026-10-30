@@ -1,0 +1,13 @@
+R967 命令（2026-10-31 01:24—01:34 CST，qoder；V8-X1 非有限动作门）
+# 代码：nonfinite_state 连续计数；桥/边界端点恢复；runner 汇总 recovery。
+# 容器 ros1-slam-sim；独立 master 11442；R953 同资产（NIST 5 级支撑图、270 策略、seed 扰动）。
+for s in 2 4; do for r in 1 2 3 4 5; do
+  python3 -B a5_v8x1_runtime.py --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed $s --perturb \
+    --lockstep --stall-retry --max-nonfinite-ticks 5 --out /tmp/r967b_s${s}_r$r.json \
+    --wall-deadline-s 150
+done; done
+# 读数：9/10（seed2 5/5、seed4 4/5）；失败 s4r1＝E_LOCAL_COLLISION；recovery 计数全 0。
+# = R953 同两 seed 为 6/10（s2 3/5、s4 3/5），但本轮恢复门从未触发 ⇒ 通过率差异不归因于该门。
+# 测试：bridge 6/6；V8 全树 55 套件 0 失败。
+# 边界：未改判据/阈值/第三方；V8-X1 正式验收仍未宣布；A1—A7 NOT_VALIDATED。
