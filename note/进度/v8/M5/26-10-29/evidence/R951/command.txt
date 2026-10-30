@@ -1,0 +1,14 @@
+R951 命令（2026-10-30 18:05—18:24 CST，qoder；停滞检测＋退步重试，A＋重试 seed0/1 各 5 次）
+# 容器 ros1-slam-sim；独立 master 11437；source noetic + /opt/ros1-slam/ws/devel。
+# 环境坑：本批必须 export ROS_IP=127.0.0.1。容器 hostname f7a4b0f5d685 不在 /etc/hosts，
+#   节点能注册但 TCPROS 连不上，runner 就绪检查 30 s 超时（首批 10 次全因此失败）。
+# PYTHONPATH 用 /tmp/mjrt/mujoco/mujoco-pkg:/tmp/mjrt/glfw:/tmp/ortrt 且必须保留 ROS 路径。
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+for s in 0 1; do for r in 1 2 3 4 5; do
+  python3 -B a5_v8x1_runtime.py --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed $s --perturb \
+    --lockstep --stall-retry --contact-profile A --out /tmp/a5_retry_s${s}_r$r.json --wall-deadline-s 150
+done; done
+# 重试参数取默认：window 10 s、progress 0.08 m、倒退 -0.20 m/s 持续 1.5 s、最多 3 次。
+# 读数：seed0 3/5、seed1 3/5；10 次 retries_seen 全 0（一次都没触发）；失败 3 次 E_LOCAL_COLLISION、1 次 E_LOCAL_EXPIRED。
+# 测试：bridge 5 项 OK；MuJoCo 14 项 OK；V8 45 套件 0 失败。
