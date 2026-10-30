@@ -1,0 +1,642 @@
+Gazebo multi-robot simulator, version 11.15.1
+Copyright (C) 2012 Open Source Robotics Foundation.
+Released under the Apache 2 License.
+http://gazebosim.org
+
+[1;33m
+#     # ####### ####### ###  #####  #######
+##    # #     #    #     #  #     # #
+# #   # #     #    #     #  #       #
+#  #  # #     #    #     #  #       #####
+#   # # #     #    #     #  #       #
+#    ## #     #    #     #  #     # #
+#     # #######    #    ###  #####  #######
+
+This version of Gazebo, now called Gazebo classic, reaches end-of-life
+in January 2025. Users are highly encouraged to migrate to the new Gazebo
+using our migration guides (https://gazebosim.org/docs/latest/gazebo_classic_migration/)
+
+
+[0m[1;32m[Msg] [0m[1;32mWaiting for master.[0m[1;32m
+[0m[1;32m[0m[1;32m[Msg] [0m[1;32mConnected to gazebo master @ [0m[1;32mhttp://127.0.0.1:11356[0m[1;32m
+[0m[1;32m[0m[1;32m[Msg] [0m[1;32mPublicized address: [0m[1;32m127.0.0.1[0m[1;32m
+[0m[1;32m[0m[1;31m[Err] [RenderEngine.cc:749] [0m[1;31mCan't open display: [0m[1;31m[0m[1;31m
+[0m[1;33m[Wrn] [RenderEngine.cc:89] [0m[1;33mUnable to create X window. Rendering will be disabled
+[0m[1;33m[Wrn] [RenderEngine.cc:292] [0m[1;33mCannot initialize render engine since [0m[1;33mrender path type is NONE. Ignore this warning if [0m[1;33mrendering has been turned off on purpose.
+[0m[1;32m[Msg] [0m[1;32mLoading world file [[0m[1;32m/opt/ros1-slam/data/maps/worlds/urban_2_story_test.world[0m[1;32m][0m[1;32m
+[0m[1;32m[0mError: Non-unique names detected in type plugin in
+<model name='urban_2story'>
+  <static>1</static>
+  <link name='base_link'>
+    <collision name='collision'>
+      <pose>0 0 0 0 -0 0</pose>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='CorrugatedRoof_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>CorrugatedRoof</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/CorrugatedRoof_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/CorrugatedRoof_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/CorrugatedRoof_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/CorrugatedRoof_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/CorrugatedRoof_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='DumpsterLarge_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>DumpsterLarge</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/DumpsterLarge_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/DumpsterLarge_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/DumpsterLarge_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/DumpsterLarge_Roughtness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/DumpsterLarge_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Generator_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Generator</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Generator_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Generator_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Generator_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Generator_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/Generator_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Beam_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Beam</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Beam_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Beam_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Beam_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Beam_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/Beam_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='BeamGray_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>BeamGray</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/BeamGray_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/BeamGray_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/BeamGray_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/BeamGray_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/BeamGray_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Metal_Rusty_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Metal_Rusty</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Metal_Rusty_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Metal_Rusty_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Metal_Rusty_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Metal_Rusty_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/Metal_Rusty_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Chair_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Chair</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Chair_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Chair_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Chair_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Chair_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/Chair_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='ColumnH_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>ColumnH</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/ColumnH_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/ColumnH_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/ColumnH_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/ColumnH_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/ColumnH_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='LightDome_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>LightDome</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/LightDome_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/LightDome_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/LightDome_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/LightDome_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/LightDome_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='WallPanels_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>WallPanels</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/WallPanels_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/WallPanels_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/WallPanels_Metal.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/WallPanels_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/WallPanels_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='SpoolCable_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>SpoolCable</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/CableSpool_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/CableSpool_Normal.jpg</normal_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/CableSpool_Roughtness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/CableSpool_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='RubblePile_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>RubblePile</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/RubblePile_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/RubblePile_Normal.jpg</normal_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/RubblePile_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/RubblePile_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Table_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Table</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Table_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Table_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Table_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Table_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/Table_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Traschcan_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Traschcan</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Trashcan55_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Trashcan55_Normal.jpg</normal_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Trashcan55_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/Trashcan55_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Trashcan55Bag_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Trashcan55Bag</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Trashcan55Bag_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Trashcan55Bag_Normal.jpg</normal_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/Trashcan55Bag_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/Trashcan55Bag_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='StairsMetal_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>StairsMetal</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/StairsMetal_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/StairsMetal_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/StairsMetal_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/StairsMetal_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/StairsMetal_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='Generator_Platform_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>Generator_Platform</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/GeneratorPlatform_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/GeneratorPlatform_Normal.jpg</normal_map>
+            <metalness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/GeneratorPlatform_Metalness.jpg</metalness_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/GeneratorPlatform_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/GeneratorPlatform_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='FloorConcrete_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>FloorConcrete</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/FloorConcrete_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/FloorConcrete_Normal.jpg</normal_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/FloorConcrete_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/FloorConcrete_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='BrickWall_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>BrickWall</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/BrickWall_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/BrickWall_Normal.jpg</normal_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/BrickWall_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/BrickWall_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='WallLower_visual'>
+      <geometry>
+        <mesh>
+          <uri>meshes/2story.dae</uri>
+          <submesh>
+            <name>WallLower</name>
+            <center>0</center>
+          </submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>1 1 1 1</specular>
+        <pbr>
+          <metal>
+            <albedo_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/WallLower_Albedo.jpg</albedo_map>
+            <normal_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/WallLower_Normal.jpg</normal_map>
+            <roughness_map>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Urban Platform/tip/files/materials/textures/WallLower_Roughness.jpg</roughness_map>
+          </metal>
+        </pbr>
+        <script>
+          <uri>materials/scripts/</uri>
+          <uri>materials/textures/</uri>
+          <name>UrbanTile/WallLower_Diffuse</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <plugin name='ignition::gazebo::systems::PerformerDetector' filename='libignition-gazebo-performer-detector-system.so'>
+    <topic>/subt_performer_detector</topic>
+    <pose>10 -10 10 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>5 4 20</size>
+      </box>
+    </geometry>
+    <header_data>
+      <key>type</key>
+      <value>vertical</value>
+    </header_data>
+  </plugin>
+  <plugin name='ignition::gazebo::systems::PerformerDetector' filename='libignition-gazebo-performer-detector-system.so'>
+    <topic>/subt_performer_detector</topic>
+    <pose>0 -6 5 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>25 2 10</size>
+      </box>
+    </geometry>
+    <header_data>
+      <key>type</key>
+      <value>decision</value>
+    </header_data>
+  </plugin>
+  <plugin name='ignition::gazebo::systems::PerformerDetector' filename='libignition-gazebo-performer-detector-system.so'>
+    <topic>/subt_performer_detector</topic>
+    <pose>-10 -10 10 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>5 4 20</size>
+      </box>
+    </geometry>
+    <header_data>
+      <key>type</key>
+      <value>stair</value>
+    </header_data>
+  </plugin>
+  <pose>0 0 0 0 -0 0</pose>
+</model>
+
+[1;31m[Err] [Server.cc:98] [0m[1;31mSDF is not valid, see errors above. [0m[1;31mThis can lead to an unexpected behaviour.[0m[1;31m
+[0mCouldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+Couldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+Couldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+Couldn't find a preferred IP via the getifaddrs() call; I'm assuming that your IP address is 127.0.0.1.  This should work for local processes, but will almost certainly not work if you have remote processes.Report to the disc-zmq development team to seek a fix.
+[1;31m[Err] [ColladaLoader.cc:119] [0m[1;31mUnable to load collada file[[0m[1;31m/opt/ros1-slam/data/maps/worlds/urban_2_story/meshes/2story.dae[0m[1;31m]
+[0m

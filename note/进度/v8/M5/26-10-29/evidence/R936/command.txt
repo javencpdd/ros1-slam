@@ -1,0 +1,9 @@
+R936 命令（2026-10-30 12:32—12:36 CST，qoder；地图资产下载）
+# Fuel 模型文件树：GET /1.0/OpenRobotics/models/<name>/tip/files
+# 逐个下载 model.sdf/model.config/meshes/materials 到 data/maps/worlds（data/maps/* 已 gitignore）。
+# Gazebo 11 headless 加载：
+GAZEBO_MODEL_PATH=/opt/ros1-slam/data/maps/worlds:/usr/share/gazebo-11/models \
+  gzserver --verbose data/maps/worlds/nist_stairs_120_test.world
+gz model -m nist_stairs_120 -i   # id=8, static=true
+# Urban 2 Story：同样的文件树下载，但 ColladaLoader 无法加载 meshes/2story.dae，gzserver core；已删除。
+# NIST：CC0；Urban：CC-BY 4.0（仅记录，不入库）。
