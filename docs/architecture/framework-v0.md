@@ -3,7 +3,8 @@
 > 2026-10-30 起；R956 把组件源并入 registry manifest v2，R963/R964 接上独立验证与安全接线。
 > 目标框架的第一片：**配置、装配计划与运行装配**；数据面仍走 ROS 话题。
 > 代码：`ws/src/90_platform/v8_platform/framework/`；framework 22 项＋runtime 5 项＋robot 4 项＋
-> verification 5 项＋safety 7 项＋契约 v2 6 项＋registry/composer v2 4 项；V8 全树 54 套件 0 失败。
+> verification 5 项＋safety 7 项＋selector 3 项＋hotswap 5 项＋契约 v2 6 项＋registry/composer v2 4 项；
+> V8 全树 57 套件 0 失败。
 
 ## 1. 解决什么
 
@@ -34,6 +35,8 @@
 | 独立验证 | backend 不进算法图；真值不泄漏算法话题；失败只记 status=error |
 | 安全接线 | 双 `/cmd_vel` 写者/越权建议拒绝；validator 否决走停止链 |
 | 性能预算 | 启动 check+plan p50/p95/max；500 Hz 发送不经 Python 编排环 |
+| 图形化选配 | 同角色候选预检、拒绝码、导出 JSON/YAML 兼容图 |
+| 热替换合同 | `hot_swap/v1`：角色/端口/所有权门＋停止后换组合 |
 
 3D 双缓存 fixture 验证了：两个同类型实例、命名端口不混淆、`merge.delta → map.delta`
 反馈边不阻塞启动；v1 清单以 `E_CFG_MANIFEST_V1` 明确拒绝进图。
@@ -46,7 +49,7 @@
 - catalog 中的 `*_test_double` 是测试替身；真实包的 launch 条目尚未逐项对表，也未在宿主执行
   `rosrun/roslaunch`。`kind: plugin` 托管未实现。
 - 运行装配测试用假命令/假进程；未启动真实 ROS 组件。validator 否决是编排层停止，不是 msg 级
-  实时看门狗；热插拔、状态迁移、运行期改线未实现。
+  实时看门狗；运行中热插拔/状态迁移未实现（V8-X3 仅停止后换组合）。
 - 独立验证用假后端，未启动 MuJoCo/Gazebo。
 - 不改既有 contracts/registry/composer/orchestrator 语义；A1—A7 仍 `NOT_VALIDATED`。
 
@@ -55,5 +58,12 @@
 F0—F8 已完成；F1—F7 证据索引与“未接入项/回滚说明”见
 [27 号补丁 §11/§12](../../note/计划书v8/27_框架改造补丁-v0.1.md)。每批读数位于
 `note/进度/v8/M5/26-10-29/evidence/R955—R965`。A1—A7 状态不变，仍 `NOT_VALIDATED`。
+
+## 5. V8-X3 v0.1
+
+图形化选配页示例：[framework-selector.html](framework-selector.html)（生成命令见
+[framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md) §7）。
+热替换是停止后换组合：`hotswap.prepare` 检查角色/端口/命令所有权，`apply` 先停旧装配并核验退净，
+再启动新装配；不承诺运行中状态迁移。
 
 完整说明见 [framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md)。

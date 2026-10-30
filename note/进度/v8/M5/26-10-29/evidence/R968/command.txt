@@ -1,0 +1,13 @@
+R968 命令（2026-10-31 01:40—01:48 CST，qoder；V8-X3 v0.1）
+# 选配页（宿主直跑；不启 ROS）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/selector.py framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d.yaml \
+  --out-html ../../../../docs/architecture/framework-selector.html --out-json /tmp/selector.json
+# 浏览器实测（file:///tmp/selector.html → docs 同源页）：
+#   local2d→local3d 单实例替换＝card bad，E_GRAPH_TYPE（OccupancyGrid != SupportMap）；
+#   robot_lite3→robot_test_b＝card ok，digest 89674ee8d5bb…；导出 1791 B 含 robot_test_b、不含 local3d。
+python3 -B framework/cli.py check framework/fixtures/manifests /tmp/graph_selected.json   # rc=0
+# 热替换：hot_swap/v1 记录；prepare 角色/端口/所有权；apply 先停旧装配再启动新装配。
+# 测试：selector 3/3、hotswap 5/5；V8 全树 57 套件 0 失败。
+# 边界：不是运行中状态迁移；组件内部状态未序列化；未接真机/QNX（S5 L2）。

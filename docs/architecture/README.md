@@ -13,6 +13,7 @@
 | [algorithm-swap.md](algorithm-swap.md) | 建图/定位/全局/局部/中间件今天分别怎么换 |
 | [target-framework.md](target-framework.md) | 目标框架（多地图/多机器人/任意中间件/仿真通行性）与当前差距、改造路线 |
 | [framework-v0.md](framework-v0.md) | 统一 YAML 组件图 v0.1：实例/命名端口/显式连线/锁、运行装配、MapDelta、机器人/验证配置、安全接线（F0—F8） |
+| [framework-selector.html](framework-selector.html) | 图形化选配页示例：候选组件、拒绝码与导出 |
 | [architecture-ros1-slam.html](architecture-ros1-slam.html) | 一页版：三张图＋状态卡（可直接浏览器打开） |
 
 ## 三张图

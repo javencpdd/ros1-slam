@@ -1,0 +1,30 @@
+{
+ "ok": true,
+ "name": "nav2d_ros1",
+ "digest": "89674ee8d5bb463e7b5c497ed94842fa6243d5f59d6c03929ed4795d91b45ca4",
+ "startup_order": [
+  "map",
+  "sensors",
+  "lio",
+  "global",
+  "local",
+  "mux",
+  "robot"
+ ],
+ "feedback": [],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_advice/local": "local"
+ },
+ "safety": {
+  "ok": true,
+  "command_owner": "mux",
+  "advice": [
+   {
+    "endpoint": "local.cmd",
+    "topic": "/cmd_vel_advice/local"
+   }
+  ],
+  "validator": "absent"
+ }
+}

@@ -1,0 +1,345 @@
+{
+ "schema": "selector/v1",
+ "graph": "nav2d_ros1",
+ "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+ "catalog": "framework/fixtures/manifests",
+ "instances": [
+  {
+   "id": "sensors",
+   "current": "v8.fw.sensors",
+   "roles": [
+    "sensor_source"
+   ],
+   "namespace": null,
+   "params": {},
+   "variants": [
+    {
+     "component": "v8.fw.sensors",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lio",
+   "current": "v8.fw.faster_lio",
+   "roles": [
+    "odometry",
+    "mapping"
+   ],
+   "namespace": null,
+   "params": {},
+   "variants": [
+    {
+     "component": "v8.fw.faster_lio",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    }
+   ]
+  },
+  {
+   "id": "map",
+   "current": "v8.fw.map2d",
+   "roles": [
+    "map_server"
+   ],
+   "namespace": null,
+   "params": {},
+   "variants": [
+    {
+     "component": "v8.fw.map2d",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    }
+   ]
+  },
+  {
+   "id": "global",
+   "current": "v8.fw.global2d",
+   "roles": [
+    "global_planner"
+   ],
+   "namespace": null,
+   "params": {},
+   "variants": [
+    {
+     "component": "v8.fw.global2d",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    },
+    {
+     "component": "v8.fw.global3d",
+     "ok": false,
+     "reason": "E_GRAPH_TYPE",
+     "detail": "map.map -> global.map: nav_msgs/OccupancyGrid != v8_msgs/SupportMap"
+    }
+   ]
+  },
+  {
+   "id": "local",
+   "current": "v8.fw.local2d",
+   "roles": [
+    "local_planner",
+    "controller"
+   ],
+   "namespace": null,
+   "params": {},
+   "variants": [
+    {
+     "component": "v8.fw.local2d",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    },
+    {
+     "component": "v8.fw.local3d",
+     "ok": false,
+     "reason": "E_GRAPH_TYPE",
+     "detail": "map.map -> local.map: nav_msgs/OccupancyGrid != v8_msgs/SupportMap"
+    }
+   ]
+  },
+  {
+   "id": "mux",
+   "current": "v8.fw.mux",
+   "roles": [
+    "safety_arbiter"
+   ],
+   "namespace": null,
+   "params": {
+    "default_priority": "navigation"
+   },
+   "variants": [
+    {
+     "component": "v8.fw.mux",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    }
+   ]
+  },
+  {
+   "id": "robot",
+   "current": "v8.fw.robot_lite3",
+   "roles": [
+    "robot_adapter"
+   ],
+   "namespace": null,
+   "params": {},
+   "variants": [
+    {
+     "component": "v8.fw.robot_lite3",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "4760c582a21e6cc380b478c80c80469f78cb45eb29a662f1a6f82f105379c01e",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    },
+    {
+     "component": "v8.fw.robot_test_b",
+     "ok": true,
+     "reason": null,
+     "detail": null,
+     "digest": "89674ee8d5bb463e7b5c497ed94842fa6243d5f59d6c03929ed4795d91b45ca4",
+     "command_writers": {
+      "/cmd_vel": "mux",
+      "/cmd_vel_advice/local": "local"
+     },
+     "safety": {
+      "ok": true,
+      "command_owner": "mux",
+      "advice": [
+       {
+        "endpoint": "local.cmd",
+        "topic": "/cmd_vel_advice/local"
+       }
+      ],
+      "validator": "absent"
+     }
+    }
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "from": "sensors.points",
+   "to": "lio.points",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "sensors.imu",
+   "to": "lio.imu",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "lio.odom",
+   "to": "global.odom",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "map.map",
+   "to": "global.map",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "global.path",
+   "to": "local.path",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "lio.odom",
+   "to": "local.odom",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "map.map",
+   "to": "local.map",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "local.cmd",
+   "to": "mux.cmd",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "mux.cmd",
+   "to": "robot.cmd",
+   "feedback": false,
+   "policy": {}
+  }
+ ],
+ "external": [
+  {
+   "to": "global.goal",
+   "type": "geometry_msgs/PoseStamped",
+   "source": "operator"
+  },
+  {
+   "to": "mux.hold",
+   "type": "std_msgs/Bool",
+   "source": "supervisor"
+  }
+ ]
+}

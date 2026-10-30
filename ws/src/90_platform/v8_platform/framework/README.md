@@ -118,3 +118,21 @@ F0—F8 已完成：证据索引、未接入项与回滚说明见
 [27 号补丁 §11/§12](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)；
 每批读数在 `note/进度/v8/M5/26-10-29/evidence/R955—R965`。
 不再新增并行组件模型；v1 manifest 与既有运行链语义不变。
+
+## 7. V8-X3 v0.1 图形化选配与热替换
+
+```bash
+cd ws/src/90_platform/v8_platform
+python3 -B framework/selector.py framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d.yaml --out-html /tmp/selector.html
+```
+
+页面把每个实例的同角色候选组件列成下拉框；单实例替换的 `graph.check`/`safety.check_plan`
+结果（含拒绝码）预生成在页面里，组合结果导出为 JSON（YAML 兼容）后仍由 `cli.py check` 复核。
+仓库内示例：[framework-selector.html](../../../../../docs/architecture/framework-selector.html)。
+它不新增第二套组件模型，也不在浏览器里复制校验器。
+
+热替换 `hotswap.py` 使用 `hot_swap/v1` 合同：`prepare` 要求新旧组件角色与命名端口签名一致、
+`/cmd_vel` 所有权不变，输出带 epoch 与不透明 `state` 的记录；`apply` 先停旧装配并核验全部
+进程退净，再启动新装配（停止后换组合），失败不回滚到双写者。**不是**运行中状态迁移；
+组件必须显式消费 `state`，首版不序列化组件内部状态。
