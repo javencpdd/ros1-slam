@@ -1,0 +1,7 @@
+R975 命令（2026-10-31 02:08—02:11 CST，qoder；顶层 landing 深度扫描）
+# 容器 ros1-slam-sim；4×0.15 m、v .3、增益 3.0/1.5/.5、seed0；landing .5/1.0 m，6.0/6.5/7.0 s。
+# 追加 landing 1.0 m、6 s、seed0—4。
+# 读数：landing .5 m stable 0/3；landing 1.0 m stable 1/3（时长）＋3/5（seed）；
+#   landing 2.0 m（R971）clean 15/15、stable 12/15。landing 0（R972）无 stable。
+# 结论：顶层 landing 深度单调影响可达稳定；建议 ≥2 m 或加顶层停车策略。
+# 边界：MuJoCo 单策略、确定性；无 ROS/真机/#151；未改判据/场景。
