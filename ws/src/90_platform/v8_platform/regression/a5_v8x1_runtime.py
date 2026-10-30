@@ -71,6 +71,7 @@ def main():
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     parser.add_argument('--bridge-cmd-timeout', type=float, default=.5)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
+    parser.add_argument('--trajectory-resume', action='store_true')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
@@ -194,6 +195,8 @@ def main():
         bridge_argv.extend(['--hold-until-sim-s', str(args.hold_until_sim_s)])
         bridge_argv.extend(['--cmd-timeout', str(args.bridge_cmd_timeout)])
         bridge_argv.extend(['--command-phase-sim-s', str(args.command_phase_sim_s)])
+        if args.trajectory_resume:
+            bridge_argv.append('--trajectory-resume')
         node_stream, bridge_stream = node_log.open('w'), bridge_log.open('w')
         node = start(node_argv, node_stream)
         bridge = start(bridge_argv, bridge_stream)

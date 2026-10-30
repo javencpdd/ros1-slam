@@ -119,6 +119,7 @@ def main():
     parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
+    parser.add_argument('--trajectory-resume', action='store_true')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -163,7 +164,13 @@ def main():
             payload = json.loads(message.data)
         except ValueError:
             return
-        shared['active'] = payload.get('reason') in ('track', 'hold')
+        if args.trajectory_resume:
+            # Experimental R995: only a trajectory (or an existing target)
+            # may resume the sim clock; status heartbeats cannot.
+            shared['active'] = (shared['target'] is not None
+                                and payload.get('reason') in ('track', 'hold'))
+        else:
+            shared['active'] = payload.get('reason') in ('track', 'hold')
 
     def on_trajectory(message):
         try:
