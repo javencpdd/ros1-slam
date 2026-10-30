@@ -1,0 +1,31 @@
+{
+ "ok": true,
+ "name": "nav3d_two_caches",
+ "digest": "130badd38da5d2701ac3ca395a0566de142197471000b5b04c50b8c333a8194d",
+ "startup_order": [
+  "sensors",
+  "lio",
+  "map",
+  "cache_a",
+  "cache_b",
+  "global",
+  "local",
+  "merge",
+  "mux",
+  "robot"
+ ],
+ "feedback": [
+  {
+   "from": "merge.delta",
+   "to": "map.delta",
+   "policy": {
+    "period_s": 5.0,
+    "max_age_s": 10.0
+   }
+  }
+ ],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_advice/3d": "local"
+ }
+}

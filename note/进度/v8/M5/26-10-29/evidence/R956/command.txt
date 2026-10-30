@@ -1,0 +1,15 @@
+R956 命令（2026-10-31 00:00—00:10 CST，qoder；组件源并入 manifest v2）
+# 宿主直跑（纯标准库 + PyYAML；不启 ROS/仿真）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/cli.py check framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_3d_cache.yaml
+python3 -B framework/cli.py plan framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_3d_cache.yaml \
+  --out-plan .../plan_3d.json --out-launch .../graph_3d.launch
+python3 -B framework/cli.py check registry/data/manifests \
+  framework/fixtures/graphs/graph_2d.yaml      # v1 拒绝进图
+# 容器同版（Python 3.8 + PyYAML 5.3.1）：framework 18/18；V8 全树 47 套件 0 失败。
+# 读数：3D 双缓存 digest 130badd3…；v1 目录 rc=5 E_CFG_MANIFEST_V1；
+#   启动序/反馈/命令写者同 R955（sensors→lio→map→cache_a→cache_b→global→local→merge→mux→robot）。
+# 未启动 ROS；launch 仍为骨架；v2 暂保留 io 供 legacy composer/registry（下一片去重）。
