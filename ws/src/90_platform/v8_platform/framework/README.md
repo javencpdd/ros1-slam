@@ -46,7 +46,8 @@ basename）。启动、READY 就绪、停止序（mux 最后）、失败清理�
 
 `v8.boundary.adapter` 把 mux 的 `/cmd_vel` 接到边界 UDP：`ros_bridge.py` 支持
 `command_type=twist|twist_stamped`，`snapshot` 图 `graph_boundary_mux.yaml` 用真实
-`v8.nav2d.mux` + 边界节点；R984 已用 Gazebo 运动学端点跑通 mux→UDP→端点→遥测回链。
+`v8.nav2d.mux` + 边界节点；R984 已用 Gazebo 运动学端点跑通 mux→UDP→端点→遥测回链；R988 把遥测发布移出命令环，
+200 Hz 请求达 202.8 Hz、500 Hz 请求达 485.8 Hz（6 s 窗，零丢帧）。
 
 `safety.py` 是接线门：`/cmd_vel` 必须恰好一个写者且角色为 `safety_arbiter`；其他
 `command_topic` 输出必须显式连到该写者，否则 `E_SAFETY_ADVICE`；`trajectory_validator`

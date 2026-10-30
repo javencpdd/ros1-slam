@@ -1,0 +1,15 @@
+R988 命令（2026-10-31 04:46—04:49 CST，qoder；边界 500 Hz）
+# 修复：ros_bridge 把 50 Hz 遥测的 3 个 ROS 发布移出命令 tick，独立线程；
+#   boundary_chain_runtime 增 --rate-hz，运行前写 materialized graph，并用命令窗口
+#   首末 frames_sent 计算 achieved_hz。
+cd ws/src/90_platform/v8_platform
+source /opt/ros1-slam/ws/devel/setup.bash
+# 200 Hz / 500 Hz，各 6 s，独立 master 11380/11381：
+python3 -B regression/boundary_chain_runtime.py --out /tmp/r988_200d --port 11380 --seconds 6 --rate-hz 200
+python3 -B regression/boundary_chain_runtime.py --out /tmp/r988_500d --port 11381 --seconds 6 --rate-hz 500
+# 修复前（同一脚本旧版）200/500 请求实测 60.5/61.0 Hz；
+# 修复后 200 Hz 请求 → 202.83 Hz，500 Hz 请求 → 485.83 Hz（97.2%）。
+# 两格：loss/bad/dup=0、state=active、odom 377/374 帧、位移 1.33/1.30 m、
+#   assembly_unstopped 全 false；端点 commands_received 1518/3798。
+# 测试：boundary 14/14；V8 全树 59 套件 0 失败。
+# 边界：S3 SetModelState 运动学载体，不证明接触/步态或真机；S5=L2。

@@ -1,0 +1,100 @@
+{
+ "schema": "assembly_plan/v1",
+ "name": "boundary_mux_chain",
+ "digest": "a522ef2073d67a8e4947c96b2a64273217ae0814fbd782d232e69a895df752e7",
+ "catalog": {
+  "path": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/manifests",
+  "sha256": "1e91e565ff959a7357c991e91547f4b5937d69f57e9098f130046cedd5c4b9e6"
+ },
+ "instances": [
+  {
+   "id": "mux",
+   "component": "v8.nav2d.mux",
+   "launch": {
+    "kind": "include",
+    "package": "lite3_safety",
+    "test_double": false,
+    "launch_file": "launch/60_safety.launch",
+    "args": {}
+   },
+   "namespace": null,
+   "params": {},
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "cmd": {
+     "source": "external:operator",
+     "type": "geometry_msgs/Twist",
+     "schema": null
+    },
+    "hold": {
+     "source": "external:supervisor",
+     "type": "std_msgs/Bool",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "boundary",
+   "component": "v8.boundary.adapter",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": false,
+    "type": "boundary/ros_bridge.py",
+    "param_files": [],
+    "remap": []
+   },
+   "namespace": null,
+   "params": {
+    "target": "127.0.0.1:5026",
+    "bind": "127.0.0.1:5025",
+    "rate_hz": 500.0,
+    "command_topic": "/cmd_vel",
+    "command_type": "twist",
+    "odom_topic": "/boundary/odom",
+    "imu_topic": "/boundary/imu",
+    "joint_topic": "/boundary/joint_states",
+    "status_topic": "/boundary/status"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "cmd": {
+     "source": "edge",
+     "from": "mux.cmd",
+     "type": "geometry_msgs/Twist",
+     "schema": null
+    }
+   }
+  }
+ ],
+ "edges": [
+  {
+   "from": "mux.cmd",
+   "to": "boundary.cmd",
+   "feedback": false,
+   "policy": {}
+  }
+ ],
+ "external": [
+  {
+   "to": "mux.cmd",
+   "type": "geometry_msgs/Twist",
+   "source": "operator"
+  },
+  {
+   "to": "mux.hold",
+   "type": "std_msgs/Bool",
+   "source": "supervisor"
+  }
+ ],
+ "startup_order": [
+  "mux",
+  "boundary"
+ ],
+ "feedback": [],
+ "command_writers": {
+  "/cmd_vel": "mux"
+ }
+}

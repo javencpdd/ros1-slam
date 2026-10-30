@@ -43,7 +43,7 @@
 | 热替换合同 | `hot_swap/v1`：角色/端口/所有权门＋停止后换组合 |
 | 真实 2D 装配 | `v8.nav2d.dwa_stack`/`teb_stack` + `v8.nav2d.mux` 四张 graph；Assembly 启动 nav+mux，GlobalPlanner/Navfn × DWA/TEB 4/4 PASS（R981） |
 | 真实停止 | `ProcessRunner` 快照 roslaunch 后代并对独立会话发信号，避免只杀 roslaunch 遗留节点 |
-| 边界主链 | mux `/cmd_vel` → `v8.boundary.adapter` 200 Hz UDP → Gazebo 运动学端点 → `/boundary/odom`；R984 实测 |
+| 边界主链 | mux `/cmd_vel` → `v8.boundary.adapter` UDP → Gazebo 运动学端点 → `/boundary/odom`；R984 实测，R988 200/500 Hz 请求达 202.8/485.8 Hz |
 
 3D 双缓存 fixture 验证了：两个同类型实例、命名端口不混淆、`merge.delta → map.delta`
 反馈边不阻塞启动；v1 清单以 `E_CFG_MANIFEST_V1` 明确拒绝进图。

@@ -1,0 +1,27 @@
+schema: pipeline_graph/v1
+name: boundary_mux_chain
+instances:
+- id: mux
+  component: v8.nav2d.mux
+- id: boundary
+  component: v8.boundary.adapter
+  params:
+    target: 127.0.0.1:5026
+    bind: 127.0.0.1:5025
+    rate_hz: 200.0
+    command_topic: /cmd_vel
+    command_type: twist
+    odom_topic: /boundary/odom
+    imu_topic: /boundary/imu
+    joint_topic: /boundary/joint_states
+    status_topic: /boundary/status
+edges:
+- from: mux.cmd
+  to: boundary.cmd
+external:
+- to: mux.cmd
+  type: geometry_msgs/Twist
+  source: operator
+- to: mux.hold
+  type: std_msgs/Bool
+  source: supervisor
