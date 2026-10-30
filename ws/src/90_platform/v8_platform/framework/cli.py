@@ -14,6 +14,7 @@ from config import FrameworkError, load_components, load_graph
 import graph as graph_mod
 import launch as launch_mod
 import render
+import safety
 
 
 def _run(args):
@@ -24,21 +25,24 @@ def _run(args):
             catalog, launch_mod.load_index(args.package_index))
     graph = load_graph(args.graph)
     report = graph_mod.check(graph, catalog)
+    plan = render.render_plan(graph, catalog, report)
+    safety_report = safety.check_plan(plan, catalog)
     if args.command == 'check':
         summary = {key: report[key] for key in
                    ('ok', 'name', 'digest', 'startup_order', 'feedback',
                     'command_writers')}
+        summary['safety'] = safety_report
         if launch_summary is not None:
             summary['launch'] = launch_summary
         print(json.dumps(summary, ensure_ascii=False, indent=1))
         return 0
-    plan = render.render_plan(graph, catalog, report)
     Path(args.out_plan).write_text(json.dumps(plan, ensure_ascii=False, indent=1) + '\n',
                                    encoding='utf-8')
     launch = render.render_launch(graph, catalog, report)
     Path(args.out_launch).write_text(launch, encoding='utf-8')
     result = {'ok': True, 'digest': report['digest'],
-              'plan': args.out_plan, 'launch': args.out_launch}
+              'plan': args.out_plan, 'launch': args.out_launch,
+              'safety': safety_report}
     if launch_summary is not None:
         result['launch_check'] = launch_summary
     print(json.dumps(result, ensure_ascii=False))

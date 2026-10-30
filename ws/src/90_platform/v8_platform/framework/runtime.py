@@ -12,6 +12,7 @@ sys.path.insert(0, str(HERE.parent / 'orchestrator'))
 import orchestrator as orch  # noqa: E402
 from process_runner import ProcessRunner  # noqa: E402
 
+import safety
 from config import FrameworkError  # noqa: E402
 
 
@@ -60,6 +61,7 @@ class Assembly:
     def start(self):
         if self.started:
             raise FrameworkError('E_RUNTIME_STARTED', self.plan['name'])
+        safety.check_plan(self.plan, self.catalog)
         specs = build_specs(self.plan, self.catalog)
         runners = {}
         for instance in self.plan['instances']:
