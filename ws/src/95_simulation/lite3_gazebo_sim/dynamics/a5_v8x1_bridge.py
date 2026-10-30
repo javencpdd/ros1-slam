@@ -35,6 +35,8 @@ def body_command(vx_map, vy_map, yaw, scale):
 
     The policy's proven stair regime is forward speed plus a yaw-rate hold
     (R942); feeding the lateral component directly destabilised it at step 3.
+    A lateral position term was tried in R946 and worsened the seed matrix
+    (3/5 vs 4/5), so it is not kept.
     """
     vx_world, vy_world = map_velocity_to_world(vx_map, vy_map)
     speed = math.hypot(vx_world, vy_world)
@@ -93,6 +95,8 @@ def main():
     parser.add_argument('--max-command', type=float, default=.5)
     parser.add_argument('--cmd-timeout', type=float, default=.5)
     parser.add_argument('--initial-z', type=float, default=.4)
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--perturb', action='store_true')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
 
@@ -106,7 +110,10 @@ def main():
     model = mujoco.MjModel.from_xml_path(args.xml)
     data = mujoco.MjData(model)
     start_x, start_y = map_to_world(0., args.start_map_y, args.x_offset, args.y_offset)
-    data.qpos[:3] = [start_x, start_y, args.initial_z]
+    perturb = walk.sample_initial(args.seed, args.perturb)
+    data.qpos[:3] = [start_x + perturb['dx'], start_y + perturb['dy'],
+                     args.initial_z + perturb['dz']]
+    data.qpos[3:7] = [math.cos(perturb['dyaw'] / 2.), 0., 0., math.sin(perturb['dyaw'] / 2.)]
     data.qpos[7:19] = walk.DEFAULT_POSE
     mujoco.mj_forward(model, data)
     session = ort.InferenceSession(args.policy, providers=['CPUExecutionProvider'])
