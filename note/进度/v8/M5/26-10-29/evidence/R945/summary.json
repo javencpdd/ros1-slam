@@ -1,0 +1,126 @@
+{
+ "domain": "gazebo_scaled_nist_3d_carrier",
+ "world": {
+  "model_names": [
+   "ground_plane",
+   "nist_stairs_120_s020x170"
+  ],
+  "terrain_link_pose": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "original_dae_sha256": "46825b441947634f5a7c568aa22186bd27480918a3fa9d638ea3b5d73799be2f"
+ },
+ "scaled_model": {
+  "scale": [
+   1.7,
+   1.7,
+   0.51
+  ],
+  "origin": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "mesh_bottom_z": 0.172881,
+  "first_step_top_z": 0.198798,
+  "top_z": 0.890338,
+  "tread_m": 0.7203
+ },
+ "chain": {
+  "goal_map": [
+   0.0,
+   1.34,
+   0.890358
+  ],
+  "config": {
+   "tick_s": 1.2,
+   "horizon_s": 6.0,
+   "validity_s": 6.0,
+   "clearance_m": 0.1
+  },
+  "runs": {
+   "run1": {
+    "ok": true,
+    "checks": {
+     "terrain_loaded": true,
+     "climbed": true,
+     "arrived_goal": true,
+     "no_vertical_rejection": true,
+     "a5_active": true,
+     "gazebo_pose_matches": true
+    },
+    "support_sequence": [
+     0.0,
+     0.198798,
+     0.371688,
+     0.544578,
+     0.717468,
+     0.890358
+    ],
+    "final_pose": [
+     252.003,
+     -1.4439943549754314e-16,
+     1.29447777968869,
+     0.8903579961853657
+    ],
+    "gazebo_link_pose": [
+     -1.4439943549754314e-16,
+     1.29447777968869,
+     0.9903579961853657
+    ],
+    "plans": 8,
+    "world_models": [
+     "ground_plane",
+     "nist_stairs_120_s020x170",
+     "probe_carrier",
+     "a5_carrier_175511"
+    ]
+   },
+   "run2": {
+    "ok": true,
+    "checks": {
+     "terrain_loaded": true,
+     "climbed": true,
+     "arrived_goal": true,
+     "no_vertical_rejection": true,
+     "a5_active": true,
+     "gazebo_pose_matches": true
+    },
+    "support_sequence": [
+     0.0,
+     0.198798,
+     0.371688,
+     0.544578,
+     0.717468,
+     0.890358
+    ],
+    "final_pose": [
+     287.518,
+     -1.087466807374946e-16,
+     1.3057176791647627,
+     0.8903580821101827
+    ],
+    "gazebo_link_pose": [
+     -1.087466807374946e-16,
+     1.3057176791647627,
+     0.9903580821101827
+    ],
+    "plans": 9,
+    "world_models": [
+     "ground_plane",
+     "nist_stairs_120_s020x170",
+     "probe_carrier",
+     "a5_carrier_176655"
+    ]
+   }
+  }
+ },
+ "vertical": {
+  "planar_carrier": "gazebo_3d gate remains E_CARRIER_VERTICAL_UNSUPPORTED by design",
+  "new_carrier": "static box moved by SetModelState; z commands executed",
+  "rejection_seen": false
+ },
+ "scope": "Gazebo kinematic pose sink; no contact dynamics/no four-leg/no real robot; A5 PARTIAL; A1-A7 NOT_VALIDATED"
+}
