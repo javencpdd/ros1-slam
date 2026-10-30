@@ -1,5 +1,7 @@
 """V8-X3 hot swap: compatibility gate and stop-before-start apply."""
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -91,6 +93,33 @@ class HotSwapTests(unittest.TestCase):
                             for key, pid in others.items()))
         self.assertTrue(all(assembly.runners[key].is_alive() for key in others))
         self.assertEqual(assembly.task.state.value, 'running')
+
+    def test_instance_swap_hands_state_file_to_new_component(self):
+        plan, catalog = plan_for()
+        state = {'task': 'nav', 'progress': 7}
+        record, new_plan = hotswap.prepare(plan, catalog, 'robot', 'v8.fw.robot_test_b',
+                                           state)
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake, ready_timeout=10)
+        assembly.start()
+        self.addCleanup(assembly.stop)
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / 'state.json'
+
+            def handoff(instance, component):
+                if component['id'] == 'v8.fw.robot_test_b':
+                    code = ("import os,time;open(%r,'w').write("
+                            "os.environ.get('V8_HOT_SWAP_STATE',''));"
+                            "print('READY',flush=True);time.sleep(3600)" % str(target))
+                    return [PY, '-c', code], 'READY'
+                return [PY, '-c', SLEEPER], 'READY'
+
+            assembly.command_factory = handoff
+            record, runner = hotswap.apply_instance(assembly, catalog, record, new_plan,
+                                                    ready_timeout=10)
+            handed = target.read_text(encoding='utf-8')
+            self.assertEqual(json.loads(Path(handed).read_text(encoding='utf-8')), state)
+            self.assertEqual(runner.env['V8_HOT_SWAP_INSTANCE'], 'robot')
+            self.assertEqual(runner.env['V8_HOT_SWAP_EPOCH'], '1')
 
     def test_instance_swap_rolls_back_on_start_failure(self):
         plan, catalog = plan_for()

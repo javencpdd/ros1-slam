@@ -45,12 +45,13 @@ class ProcessRunner(orch.ComponentRunner):
     一处控制，ready() 每次只做非阻塞观测。Linux /proc 用于核验同进程组后代。
     """
 
-    def __init__(self, spec, cmd, ready_marker=None, ready_timeout=10.0):
+    def __init__(self, spec, cmd, ready_marker=None, ready_timeout=10.0, env=None):
         self.id = spec.id
         self.spec = spec
         self.cmd = list(cmd)
         self.ready_marker = ready_marker
         self.ready_timeout = ready_timeout
+        self.env = None if env is None else dict(env)
         self.proc = None
         self._ready_line_seen = False
         self.stops = []
@@ -67,7 +68,7 @@ class ProcessRunner(orch.ComponentRunner):
                                          '%s 运行件已用过，请创建新实例' % self.id)
         self.proc = subprocess.Popen(
             self.cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            start_new_session=True)
+            start_new_session=True, env=self.env)
         self.pgid = self.proc.pid
         if self.ready_marker is None:
             self._ready_line_seen = True

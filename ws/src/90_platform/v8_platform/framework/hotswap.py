@@ -6,6 +6,8 @@ component to consume explicitly.
 import copy
 import hashlib
 import json
+import tempfile
+from pathlib import Path
 
 import safety
 from config import FrameworkError
@@ -141,7 +143,18 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):
                                   stop_method=new_component['stop'],
                                   resources=new_component.get('resources', []))
     new_argv, new_marker = assembly.command_factory(new_instance, new_component)
-    new_runner = ProcessRunner(new_spec, new_argv, ready_marker=new_marker)
+    state_file = None
+    env = None
+    if record['state']:
+        handle = tempfile.NamedTemporaryFile('w', prefix='v8_swap_', suffix='.json',
+                                             delete=False, encoding='utf-8')
+        json.dump(record['state'], handle, ensure_ascii=False, sort_keys=True)
+        handle.close()
+        state_file = handle.name
+        env = {'V8_HOT_SWAP_STATE': state_file,
+               'V8_HOT_SWAP_INSTANCE': instance_id,
+               'V8_HOT_SWAP_EPOCH': str(record['epoch'] + 1)}
+    new_runner = ProcessRunner(new_spec, new_argv, ready_marker=new_marker, env=env)
     try:
         new_runner.start()
         from orchestrator import wait_ready
@@ -160,6 +173,8 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):
                                         'rolled_back': False}
             raise FrameworkError('E_SWAP_ROLLBACK',
                                  '%s; rollback: %s' % (error, rollback_error))
+        if state_file:
+            Path(state_file).unlink(missing_ok=True)
         assembly.runners[instance_id] = rollback
         record['postconditions'] = {'new_ready': False,
                                     'single_command_writer': True,
@@ -171,6 +186,7 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):
             assembly.task.specs[index] = new_spec
             break
     assembly.plan = new_plan
+    new_runner.state_file = state_file
     record['postconditions'] = {'new_ready': True, 'single_command_writer': True,
                                 'rolled_back': False}
     record['epoch'] += 1
