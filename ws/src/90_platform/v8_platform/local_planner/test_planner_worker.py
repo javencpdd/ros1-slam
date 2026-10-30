@@ -54,6 +54,7 @@ class IsolationTest(unittest.TestCase):
             self.assertIsNotNone(payload)
             self.assertTrue(payload['ok'])
             self.assertEqual(payload['result']['reason'], 'arrived')
+            self.assertGreater(payload['plan_ms'], 0.)
         finally:
             worker.close()
 

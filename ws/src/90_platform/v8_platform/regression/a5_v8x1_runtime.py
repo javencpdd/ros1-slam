@@ -122,7 +122,8 @@ def main():
             if payload.get('latched'):
                 shared['terminal'] = payload.get('reason')
             status_log.append([rospy.Time.now().to_sec(), payload.get('reason'),
-                               payload.get('complete'), payload.get('velocity')])
+                               payload.get('complete'), payload.get('velocity'),
+                               payload.get('plan_ms'), payload.get('plan_ms_max')])
 
     def on_trajectory(message):
         try:

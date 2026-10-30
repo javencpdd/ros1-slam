@@ -93,19 +93,23 @@ def _planner_worker(requests, responses):
         item = requests.get()
         if item is None:
             return
+        started = time.perf_counter()
         try:
             result = native.plan(item['map'], item['pose'], item['goal'], item['obstacles'],
                                  now=item['now'], config=item['config'],
                                  robot_profile=item['profile'])
             responses.put({'seq': item['seq'], 'generation': item['generation'],
-                           'ok': True, 'result': result})
+                           'ok': True, 'result': result,
+                           'plan_ms': round((time.perf_counter() - started) * 1e3, 3)})
         except native.LocalError as error:
             responses.put({'seq': item['seq'], 'generation': item['generation'],
                            'ok': False, 'error': getattr(error, 'code', 'E_LOCAL_INPUT'),
-                           'message': str(error)})
+                           'message': str(error),
+                           'plan_ms': round((time.perf_counter() - started) * 1e3, 3)})
         except Exception as error:
             responses.put({'seq': item['seq'], 'generation': item['generation'],
-                           'ok': False, 'error': 'E_LOCAL_INPUT', 'message': repr(error)})
+                           'ok': False, 'error': 'E_LOCAL_INPUT', 'message': repr(error),
+                           'plan_ms': round((time.perf_counter() - started) * 1e3, 3)})
 
 
 class PlannerWorker:
@@ -183,7 +187,8 @@ def main():
               'obstacles_at': -1e100, 'localization_at': -1e100, 'localization_ok': False,
               'result': None, 'result_at': -1e100, 'map': None, 'generation': 0,
               'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'obstacle_key': None,
-              'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None}
+              'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None,
+              'plan_ms': None, 'plan_ms_max': 0.}
     lock = threading.Lock()
     command_pub = rospy.Publisher(rospy.get_param('~command_topic', '/v8/local/cmd_vel_3d'),
                                   TwistStamped, queue_size=1)
@@ -281,6 +286,8 @@ def main():
                        and out['reason'] not in NON_LATCHING
                        and snapshot['result_at'] > 0)
             status = dict(out, clock='ros_plan+wall_watchdog', wall_watchdog_s=wall_watchdog_s,
+                          plan_ms=snapshot.get('plan_ms'),
+                          plan_ms_max=snapshot.get('plan_ms_max'),
                           latched=bool(latched),
                           capability_domain='experimental_kinematic_carrier'
                           if profile is None else 'validated_robot_profile')
@@ -320,8 +327,12 @@ def main():
                 with lock:
                     if payload['generation'] == shared['generation']:
                         if payload['ok']:
+                            plan_ms = payload.get('plan_ms')
                             shared.update(result=payload['result'], result_at=time.monotonic(),
-                                          result_generation=payload['generation'], last_error='ok')
+                                          result_generation=payload['generation'], last_error='ok',
+                                          plan_ms=plan_ms,
+                                          plan_ms_max=max(shared.get('plan_ms_max', 0.),
+                                                          plan_ms or 0.))
                             publish = True
                         else:
                             shared.update(result=None, last_error=payload['error'])
