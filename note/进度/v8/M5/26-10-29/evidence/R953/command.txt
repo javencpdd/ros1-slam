@@ -1,0 +1,14 @@
+R953 命令（2026-10-30 18:47—19:00 CST，qoder；节点墙钟节拍＋全 5 seed×5 次矩阵）
+# 容器 ros1-slam-sim；独立 master 11437；source noetic + /opt/ros1-slam/ws/devel。
+# 环境：export ROS_IP=127.0.0.1；PYTHONPATH=/tmp/mjrt/mujoco/mujoco-pkg:/tmp/mjrt/glfw:/tmp/ortrt 且保留 ROS 路径。
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+for s in 0 1 2 3 4; do for r in 1 2 3 4 5; do
+  python3 -B a5_v8x1_runtime.py --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed $s --perturb \
+    --lockstep --stall-retry --out /tmp/a5_fix_s${s}_r$r.json --wall-deadline-s 150
+done; done
+# 动机：R952 三次慢速超时的仿真时钟停在 10—14 s；节点改墙钟 20 ms 节拍后不再互等。
+# 读数：通过 18/25；每 seed 4/4/3/4/3；失败＝3 次 E_LOCAL_COLLISION（提前收口）、
+#   1 次 E_LOCAL_WALL_EXPIRED（首计划 >48 s）、3 次慢（sim 7.9/10.4/18.4 s，
+#   其中 x=5.65 一次是越过顶层后跌落）。
+# 测试：V8 45 套件 0 失败；MuJoCo 14 项 OK。
