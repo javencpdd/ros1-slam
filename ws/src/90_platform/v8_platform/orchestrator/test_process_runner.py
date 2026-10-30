@@ -1,5 +1,6 @@
 """A2 运行面测试：真进程停止链——就绪门（条件式）、停止序、TERM 挂起升级 KILL、
 双任务隔离、与 Orchestrator 全链（真 PID 真信号真退净）。"""
+import os
 import subprocess
 import sys
 import time
@@ -92,6 +93,35 @@ class ProcessRunnerTests(unittest.TestCase):
         r.reap()
         self.assertFalse(r.is_alive())              # KILL 退净
         self.assertEqual(r.stops, ['process_group_signal', 'force'])
+
+    def test_stop_kills_descendant_in_own_session(self):
+        """roslaunch starts each node in its own session; group-only stop strands them."""
+        pidfile = Path('/tmp/v8-process-runner-child-%d.pid' % os.getpid())
+        code = ("import os, time, sys\n"
+                "print('READY', flush=True)\n"
+                "p = os.fork()\n"
+                "if p == 0:\n"
+                "    os.setsid()\n"
+                "    open(sys.argv[1], 'w').write(str(os.getpid()))\n"
+                "    time.sleep(3600)\n"
+                "else:\n"
+                "    time.sleep(3600)\n")
+        r = ProcessRunner(spec('nav', ['global_planner']),
+                          [PY, '-c', code, str(pidfile)], ready_marker='READY')
+        self.addCleanup(r.reap)
+        self.addCleanup(lambda: pidfile.unlink() if pidfile.exists() else None)
+        r.start()
+        orch.wait_ready([r], timeout=3)
+        deadline = time.monotonic() + 3
+        while not pidfile.exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        child = int(pidfile.read_text())
+        r.stop('process_group_signal')
+        r.reap(timeout=3)
+        self.assertTrue(r.is_stopped())
+        stat = Path('/proc') / str(child) / 'stat'
+        if stat.exists():
+            self.assertEqual(stat.read_text().rpartition(')')[2].split()[0], 'Z')
 
     def test_repeated_start_keeps_original_process(self):
         r = ProcessRunner(spec('a', ['odometry']), [PY, '-c', SLEEPER], ready_marker='READY')

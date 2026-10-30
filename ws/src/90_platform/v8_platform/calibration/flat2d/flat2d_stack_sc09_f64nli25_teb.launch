@@ -1,4 +1,8 @@
 <launch>
+  <arg name="global_planner" default="global_planner/GlobalPlanner"/>
+  <arg name="local_planner" default="teb_local_planner/TebLocalPlannerROS"/>
+  <arg name="map_yaml" default="/work/pilot_map.yaml"/>
+  <arg name="cmd_topic" default="/follow/cmd_vel"/>
   <!-- flat2d SC09 栈（v14/teb 组合件）：A1 可插拔组合运行面 cell——任务/驱动/代价层与 v13 完全相同，
        只把 base_local_planner 换成 teb_local_planner/TebLocalPlannerROS（后端差异不触任务业务逻辑）。
        背景：f64nli（无局部 inflation）实测 DWA 切角贴箱后死锁（R801）；本候选只给 0.2 m 内切硬边界，
@@ -12,14 +16,18 @@
        一大片、标死格与点位置对不上）；STVL 带 voxel_decay，可验证「标对→撤走→衰减」。
        与 flat2d_stack_sense.launch 的差别只有感知层与参数；static/move_base/TF 保持一致。 -->
   <node pkg="map_server" type="map_server" name="map_server" output="screen"
-        args="/work/pilot_map.yaml"/>
+        args="$(arg map_yaml)"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
         args="0 0 0 0 0 0 map odom"/>
 
   <node pkg="move_base" type="move_base" name="move_base" output="screen">
-    <remap from="cmd_vel" to="/follow/cmd_vel"/>
-    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
-    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+    <remap from="cmd_vel" to="$(arg cmd_topic)"/>
+    <param name="base_global_planner" value="$(arg global_planner)"/>
+    <param name="base_local_planner" value="$(arg local_planner)"/>
+    <param name="NavfnROS/allow_unknown" value="false"/>
+    <param name="NavfnROS/default_tolerance" value="0.0"/>
+    <param name="NavfnROS/planner_window_x" value="0.0"/>
+    <param name="NavfnROS/planner_window_y" value="0.0"/>
     <param name="controller_frequency" value="5.0"/>
     <param name="planner_frequency" value="1.0"/>
     <param name="footprint" value="[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]"/>
@@ -43,7 +51,15 @@
     <param name="TebLocalPlannerROS/yaw_goal_tolerance" value="1.57"/>
     <param name="TebLocalPlannerROS/footprint_model/type" value="polygon"/>
     <rosparam param="TebLocalPlannerROS/footprint_model/vertices">[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]</rosparam>
-    <param name="TebLocalPlannerROS/weight_kinematics_forward_drive" value="100.0"/>
+    <param name="TebLocalPlannerROS/weight_kinematics_forward_drive" value="1.0"/>
+    <param name="TebLocalPlannerROS/min_obstacle_dist" value="0.20"/>
+    <param name="TebLocalPlannerROS/inflation_dist" value="0.35"/>
+    <param name="TebLocalPlannerROS/max_global_plan_lookahead_dist" value="2.0"/>
+    <param name="TebLocalPlannerROS/global_plan_viapoint_sep" value="0.3"/>
+    <param name="TebLocalPlannerROS/weight_viapoint" value="2.0"/>
+    <param name="TebLocalPlannerROS/weight_kinematics_nh" value="1.0"/>
+    <param name="TebLocalPlannerROS/enable_homotopy_class_planning" value="false"/>
+    <param name="TebLocalPlannerROS/feasibility_check_no_poses" value="10"/>
 
     <param name="global_costmap/global_frame" value="map"/>
     <param name="global_costmap/rolling_window" value="false"/>

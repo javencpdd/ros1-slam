@@ -1,0 +1,68 @@
+{
+ "schema_version": 2,
+ "id": "v8.nav2d.teb_stack",
+ "version": "0.1.0",
+ "roles": [
+  "global_planner",
+  "local_planner"
+ ],
+ "dimensions": 2,
+ "capability": {
+  "kinematics": "differential",
+  "cancellation": "cooperative",
+  "supports_dynamic_obstacles": true
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [
+   "/cmd_vel_raw"
+  ],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "include",
+  "package": "v8_platform",
+  "launch_file": "calibration/flat2d/flat2d_stack_sc09_f64nli25_teb.launch",
+  "args": {
+   "global_planner": "global_planner/GlobalPlanner",
+   "local_planner": "teb_local_planner/TebLocalPlannerROS",
+   "map_yaml": "/work/pilot_map.yaml",
+   "cmd_topic": "/cmd_vel_raw"
+  }
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "goal",
+    "type": "geometry_msgs/Twist",
+    "required": false,
+    "topic": "/move_base_simple/goal"
+   },
+   {
+    "name": "scan",
+    "type": "geometry_msgs/Twist",
+    "required": false,
+    "topic": "/scan_points"
+   },
+   {
+    "name": "odom",
+    "type": "geometry_msgs/Twist",
+    "required": false,
+    "topic": "/odom"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/Twist",
+    "topic": "/cmd_vel_raw",
+    "command_topic": "/cmd_vel_raw"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

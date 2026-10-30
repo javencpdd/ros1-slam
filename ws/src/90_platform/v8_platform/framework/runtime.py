@@ -4,6 +4,9 @@ No ROS import: the default command builder emits rosrun/roslaunch argv; tests
 inject a fake command factory so start/ready/stop/cleanup can be verified with
 plain subprocesses.
 """
+import json
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -16,6 +19,26 @@ import safety
 from config import FrameworkError  # noqa: E402
 
 
+def _resolve_launch(package, launch_file):
+    """Return an absolute launch path when rospack can find it.
+
+    roslaunch <pkg> <nested/file.launch> only resolves basenames; the
+    generated skeleton uses $(find pkg)/<file>, so the real command
+    must use the same absolute path rather than fail at launch time.
+    """
+    rospack = shutil.which('rospack')
+    if not rospack:
+        return None
+    try:
+        root = subprocess.check_output(
+            [rospack, 'find', package], text=True,
+            stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    candidate = Path(root) / launch_file
+    return str(candidate) if candidate.is_file() else None
+
+
 def default_command(instance, component):
     """Return (argv, ready_marker) for a plan instance."""
     spec = component['launch']
@@ -24,11 +47,33 @@ def default_command(instance, component):
         if namespace:
             raise FrameworkError('E_RUNTIME_NAMESPACE',
                                  '%s: include cannot take a namespace' % instance['id'])
-        return (['roslaunch', spec['package'], spec['launch_file']],
-                spec.get('ready_marker'))
+        args = dict(spec.get('args', {}))
+        args.update(instance.get('params', {}))
+        target = _resolve_launch(spec['package'], spec['launch_file'])
+        command = (['roslaunch', target] if target else
+                   ['roslaunch', spec['package'], spec['launch_file']])
+        for key in sorted(args):
+            value = args[key]
+            if isinstance(value, bool):
+                text = 'true' if value else 'false'
+            elif isinstance(value, (dict, list)):
+                text = json.dumps(value, separators=(',', ':'))
+            else:
+                text = str(value)
+            command.append('%s:=%s' % (key, text))
+        return command, spec.get('ready_marker')
     command = ['rosrun', spec['package'], spec['type']]
     if namespace:
         command.append('__ns:=' + namespace)
+    for key in sorted(instance.get('params', {})):
+        value = instance['params'][key]
+        if isinstance(value, bool):
+            text = 'true' if value else 'false'
+        elif isinstance(value, (dict, list)):
+            text = json.dumps(value, separators=(',', ':'))
+        else:
+            text = str(value)
+        command.append('_%s:=%s' % (key, text))
     return command, spec.get('ready_marker')
 
 

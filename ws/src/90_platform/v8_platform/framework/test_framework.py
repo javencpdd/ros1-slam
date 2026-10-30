@@ -21,6 +21,16 @@ MANIFESTS = HERE / 'fixtures' / 'manifests'
 V1_MANIFESTS = HERE.parent / 'registry' / 'data' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G3D = HERE / 'fixtures' / 'graphs' / 'graph_3d_cache.yaml'
+G2D_STACKS = [
+    ('graph_2d_stack_gp_dwa.yaml', 'global_planner/GlobalPlanner',
+     'dwa_local_planner/DWAPlannerROS'),
+    ('graph_2d_stack_gp_teb.yaml', 'global_planner/GlobalPlanner',
+     'teb_local_planner/TebLocalPlannerROS'),
+    ('graph_2d_stack_navfn_dwa.yaml', 'navfn/NavfnROS',
+     'dwa_local_planner/DWAPlannerROS'),
+    ('graph_2d_stack_navfn_teb.yaml', 'navfn/NavfnROS',
+     'teb_local_planner/TebLocalPlannerROS'),
+]
 MISSING = HERE / 'fixtures' / 'graphs' / 'invalid_missing_input.yaml'
 DUP_KEY = HERE / 'fixtures' / 'graphs' / 'invalid_dup_key.yaml'
 INDEX = HERE / 'fixtures' / 'package_index.json'
@@ -38,6 +48,19 @@ def find_edge(value, source, target):
 
 
 class FrameworkTests(unittest.TestCase):
+    def test_nav2d_stack_graphs_bind_real_planners_and_mux(self):
+        catalog = config.load_components(MANIFESTS)
+        for filename, global_name, local_name in G2D_STACKS:
+            graph = config.load_graph(HERE / 'fixtures' / 'graphs' / filename)
+            report = graph_mod.check(graph, catalog)
+            self.assertEqual(report['startup_order'], ['nav', 'mux'])
+            self.assertEqual(report['command_writers'],
+                             {'/cmd_vel': 'mux', '/cmd_vel_raw': 'nav'})
+            params = report['instances']['nav']['params']
+            self.assertEqual(params['global_planner'], global_name)
+            self.assertEqual(params['local_planner'], local_name)
+            self.assertEqual(params['cmd_topic'], '/cmd_vel_raw')
+
     def test_2d_startup_and_command_owner(self):
         catalog, value = load_pair(G2D)
         report = graph_mod.check(value, catalog)
@@ -204,7 +227,7 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (14, 5, 9))
+                         (17, 8, 9))
 
     def test_launch_spec_rejects_bad_entries(self):
         cases = [
@@ -264,7 +287,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 5)
+        self.assertEqual(payload['launch']['real'], 8)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

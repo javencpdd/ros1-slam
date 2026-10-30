@@ -14,6 +14,7 @@ import orchestrator as orch  # noqa: E402
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
+G2D_STACK = HERE / 'fixtures' / 'graphs' / 'graph_2d_stack_gp_teb.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -77,8 +78,9 @@ class RuntimeTests(unittest.TestCase):
         lio = by_id['lio']
         command, marker = runtime.default_command(
             lio, catalog['components'][lio['component']])
-        self.assertEqual(command, ['roslaunch', 'lite3_slam',
-                                   'launch/10_slam_mapping.launch'])
+        self.assertEqual(command[0], 'roslaunch')
+        self.assertTrue(any(item.endswith('launch/10_slam_mapping.launch')
+                            for item in command), command)
         self.assertIsNone(marker)
         map2d = by_id['map']
         command, marker = runtime.default_command(
@@ -89,6 +91,21 @@ class RuntimeTests(unittest.TestCase):
         command, _ = runtime.default_command(
             mux, catalog['components'][mux['component']])
         self.assertIn('__ns:=/nav', command)
+        self.assertIn('_default_priority:=navigation', command)
+
+    def test_nav2d_graph_passes_planner_args_to_real_include(self):
+        plan, catalog = plan_for(G2D_STACK)
+        nav = next(item for item in plan['instances'] if item['id'] == 'nav')
+        command, marker = runtime.default_command(
+            nav, catalog['components'][nav['component']])
+        self.assertEqual(command[0], 'roslaunch')
+        self.assertTrue(any(item.endswith('flat2d_stack_sc09_f64nli25_teb.launch')
+                            for item in command), command)
+        self.assertIn('global_planner:=global_planner/GlobalPlanner', command)
+        self.assertIn('local_planner:=teb_local_planner/TebLocalPlannerROS', command)
+        self.assertIn('cmd_topic:=/cmd_vel_raw', command)
+        self.assertIn('map_yaml:=/tmp/v8_graph_map.yaml', command)
+        self.assertIsNone(marker)
 
     def test_include_namespace_is_rejected(self):
         plan, catalog = plan_for(G2D)

@@ -1,4 +1,8 @@
 <launch>
+  <arg name="global_planner" default="global_planner/GlobalPlanner"/>
+  <arg name="local_planner" default="dwa_local_planner/DWAPlannerROS"/>
+  <arg name="map_yaml" default="/work/pilot_map.yaml"/>
+  <arg name="cmd_topic" default="/follow/cmd_vel"/>
   <!-- flat2d SC09 栈（v13/f64nli25 候选）：局部 static+stvl + 小半径 inflation 0.25/5.0。
        背景：f64nli（无局部 inflation）实测 DWA 切角贴箱后死锁（R801）；本候选只给 0.2 m 内切硬边界，
        软场仅多 0.05 m，避免 f64 的 0.45 软场与全局路径错配。
@@ -11,14 +15,18 @@
        一大片、标死格与点位置对不上）；STVL 带 voxel_decay，可验证「标对→撤走→衰减」。
        与 flat2d_stack_sense.launch 的差别只有感知层与参数；static/move_base/TF 保持一致。 -->
   <node pkg="map_server" type="map_server" name="map_server" output="screen"
-        args="/work/pilot_map.yaml"/>
+        args="$(arg map_yaml)"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
         args="0 0 0 0 0 0 map odom"/>
 
   <node pkg="move_base" type="move_base" name="move_base" output="screen">
-    <remap from="cmd_vel" to="/follow/cmd_vel"/>
-    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
-    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <remap from="cmd_vel" to="$(arg cmd_topic)"/>
+    <param name="base_global_planner" value="$(arg global_planner)"/>
+    <param name="base_local_planner" value="$(arg local_planner)"/>
+    <param name="NavfnROS/allow_unknown" value="false"/>
+    <param name="NavfnROS/default_tolerance" value="0.0"/>
+    <param name="NavfnROS/planner_window_x" value="0.0"/>
+    <param name="NavfnROS/planner_window_y" value="0.0"/>
     <param name="controller_frequency" value="5.0"/>
     <param name="planner_frequency" value="1.0"/>
     <param name="footprint" value="[[-0.3,-0.2],[-0.3,0.2],[0.3,0.2],[0.3,-0.2]]"/>

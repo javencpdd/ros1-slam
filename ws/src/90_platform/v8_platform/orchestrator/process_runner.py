@@ -57,6 +57,8 @@ class ProcessRunner(orch.ComponentRunner):
         self.stops = []
         self.pgid = None
         self._reader = None
+        self._tracked_pids = set()
+        self._tracked_pgids = set()
 
     def start(self):
         # Orchestrator.start() owns startup. Repeated calls for an already live runner
@@ -70,6 +72,7 @@ class ProcessRunner(orch.ComponentRunner):
             self.cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
             start_new_session=True, env=self.env)
         self.pgid = self.proc.pid
+        self._tracked_pids, self._tracked_pgids = set(), set()
         if self.ready_marker is None:
             self._ready_line_seen = True
         self._reader = threading.Thread(target=self._drain_stdout, daemon=True)
@@ -110,7 +113,48 @@ class ProcessRunner(orch.ComponentRunner):
 
     def is_stopped(self):
         leader_dead = not self.is_alive()  # poll also reaps the direct child
-        return leader_dead and not self.group_members()
+        if not leader_dead or self.group_members():
+            return False
+        for pid in self._tracked_pids:
+            try:
+                fields = (Path('/proc') / str(pid) / 'stat').read_text().rpartition(')')[2].split()
+            except (OSError, ValueError, IndexError):
+                continue
+            if fields[0] != 'Z':
+                return False
+        return not any(process_group_members(pgid)
+                       for pgid in self._tracked_pgids - {self.pgid})
+
+    @staticmethod
+    def _descendants(root_pid):
+        """Snapshot descendants before signalling: roslaunch puts each node in
+        its own session, so killing the roslaunch group alone strands the nodes.
+        """
+        table = {}
+        for entry in Path('/proc').iterdir():
+            if not entry.name.isdigit():
+                continue
+            try:
+                fields = (entry / 'stat').read_text().rpartition(')')[2].split()
+                table[int(entry.name)] = (int(fields[1]), int(fields[2]))
+            except (OSError, ValueError, IndexError):
+                continue
+        children = {}
+        for pid, (ppid, _pgrp) in table.items():
+            children.setdefault(ppid, []).append(pid)
+        found, stack = [], [root_pid]
+        while stack:
+            for pid in children.get(stack.pop(), []):
+                if pid in found:
+                    continue
+                found.append(pid)
+                stack.append(pid)
+        return found, {table[pid][1] for pid in found if pid in table}
+
+    def _track_tree(self):
+        if self.proc is None:
+            return
+        self._tracked_pids, self._tracked_pgids = self._descendants(self.proc.pid)
 
     def _signal_group(self, sig):
         if self.pgid is not None:
@@ -119,16 +163,32 @@ class ProcessRunner(orch.ComponentRunner):
             except ProcessLookupError:
                 pass
 
+    def _signal_tree(self, sig):
+        self._signal_group(sig)
+        for pgid in sorted(self._tracked_pgids - {self.pgid}):
+            try:
+                os.killpg(pgid, sig)
+            except ProcessLookupError:
+                pass
+        for pid in sorted(self._tracked_pids):
+            try:
+                os.kill(pid, sig)
+            except ProcessLookupError:
+                pass
+
     def stop(self, method):
         self.stops.append(method)
         if method in ('service_stop', 'process_group_signal', 'none', 'kill'):
             # 组信号：service_stop 语义上应走服务调用，此处以 TERM 组等价实现（运行面
             # ROS 适配器按 manifest 声明接入；纯进程面 TERM 即「请求停止」）
-            self._signal_group(signal.SIGTERM)
+            self._track_tree()
+            self._signal_tree(signal.SIGTERM)
 
     def force(self):
         self.stops.append('force')
-        self._signal_group(signal.SIGKILL)
+        if not self._tracked_pids:
+            self._track_tree()
+        self._signal_tree(signal.SIGKILL)
 
     def reap(self, timeout=5.0):
         """收尸：等退出并 join，防僵尸。"""
@@ -146,11 +206,15 @@ class ProcessRunner(orch.ComponentRunner):
             self.force()
             self.proc.wait(timeout=5)
         deadline = time.monotonic() + timeout
-        while self.group_members() and time.monotonic() < deadline:
+        while not self.is_stopped() and time.monotonic() < deadline:
             time.sleep(0.005)
-        if self.group_members():
+        if not self.is_stopped():
             raise orch.OrchestratorError('E_ORCH_STOP_FAILED', '%s 后代未退净' % self.id)
         if self._reader:
             self._reader.join(timeout=1.0)
+        if self._reader and self._reader.is_alive():
+            # A detached node may still hold the pipe write end; closing a stream
+            # an active reader is blocked on would deadlock reap indefinitely.
+            return
         if self.proc.stdout:
             self.proc.stdout.close()
