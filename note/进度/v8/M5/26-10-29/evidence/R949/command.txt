@@ -1,0 +1,17 @@
+R949 命令（2026-10-30 16:12—16:20 CST，qoder；MuJoCo viewer 接入整链）
+# 容器 ros1-slam-sim-viz（DISPLAY=:1，RTX 2060 SUPER）；master 11436；
+# 270 策略从 sim 复制到 /tmp/new_policy.onnx（sha 881b6604…）；运行时 /tmp/mjviz。
+docker exec ros1-slam-sim-viz bash -lc 'source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash;
+  export ROS_MASTER_URI=http://127.0.0.1:11436 ROS_HOSTNAME=127.0.0.1 DISPLAY=:1;
+  export PYTHONPATH=/tmp/mjviz:$PYTHONPATH;
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression;
+  python3 -B a5_v8x1_runtime.py \
+    --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+    --seed 0 --perturb --viewer --viewer-hold-s 15 \
+    --out /tmp/a5_viewer_run2.json --wall-deadline-s 150'
+# run1（sync 每帧 50 Hz）：崩，末态 (-0.07,-0.96,0.21)、E_LOCAL_COLLISION。
+# run2（sync 每 5 控制周期 10 Hz）：climbed=true、goal_map=true、no_fall=true；
+#   末态 body (3.9535,0.0123,1.0818)，比 top+0.1=1.094 低 12 mm，final_on_top=false；19 次规划。
+# viewer 相机：lookat [2.4,0,0.6]、distance 7、azimuth 90°、elevation -16°。
+# 测试：V8 45 套件 0 失败；MuJoCo 13 项 OK。

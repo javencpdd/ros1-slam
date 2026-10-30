@@ -1,0 +1,60 @@
+{
+ "domain": "a5_v8x1_mujoco_viewer",
+ "viewer": {
+  "display": ":1",
+  "sync_hz": 10,
+  "camera": "lookat [2.4,0,.6], dist 7, azim 90, elev -16"
+ },
+ "run1": {
+  "variant": "sync every tick (50 Hz)",
+  "ok": false,
+  "checks": {
+   "climbed": false,
+   "final_on_top": false,
+   "goal_map": false,
+   "no_fall": false,
+   "a5_active": true
+  },
+  "final_body": [
+   1793348088.0961108,
+   -0.0699,
+   -0.9576,
+   0.2102
+  ],
+  "final_map": [
+   1793348088.0961108,
+   0.9413,
+   -2.5428,
+   0.0
+  ],
+  "plans": 3,
+  "reason": "E_LOCAL_COLLISION"
+ },
+ "run2": {
+  "variant": "sync every 5 ticks (10 Hz)",
+  "ok": false,
+  "checks": {
+   "climbed": true,
+   "final_on_top": false,
+   "goal_map": true,
+   "no_fall": true,
+   "a5_active": true
+  },
+  "final_body": [
+   1793348140.669981,
+   3.9535,
+   0.0123,
+   1.0818
+  ],
+  "final_map": [
+   1793348140.669981,
+   0.0,
+   1.34,
+   0.8904
+  ],
+  "plans": 19,
+  "reason": "hold"
+ },
+ "conclusion": "viewer works; 50 Hz rendering destabilises the 50 Hz control loop; 10 Hz sync climbs and reaches the map goal, final 12 mm below the strict top+0.1 check",
+ "scope": "live MuJoCo viewer demo; headless R946 4/5 remains the evidence baseline; no Gazebo/no real robot; A5 PARTIAL; A1-A7 NOT_VALIDATED"
+}
