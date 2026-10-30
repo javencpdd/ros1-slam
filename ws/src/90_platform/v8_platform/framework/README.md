@@ -17,6 +17,10 @@
 （package/launch_file/args）；`plugin` 托管暂未实现（F2 明确拒绝）。`--package-index` 用包索引
 校验 package/launch file/executable/param file，不启动 ROS。
 
+`runtime.py` 把 assembly plan 转成 `ComponentSpec` 并交给现有 `ProcessRunner/Orchestrator`；
+默认命令为 `rosrun`/`roslaunch`，测试注入假命令。启动、READY 就绪、停止序（mux 最后）、
+失败清理与健康检测均有测试；真实 ROS 启动不在本片。
+
 不再维护独立的 `components.yaml`：组件定义只有 manifest 一份；v2 的 io 是**加载期派生视图**，不落盘。
 
 对应关系：**组件类型可复用，实例 ID 唯一；同名组件可起多个实例；连线必须显式到端口。**
@@ -32,6 +36,7 @@ python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
 python3 -B framework/test_framework.py      # 22 项
+python3 -B framework/test_runtime.py        # 5 项（F3 假命令运行器）
 python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 ```
@@ -71,8 +76,8 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 
 - "真实入口"仅指包/launch/可执行/参数文件在**声明索引**中对上（5 个），未在宿主执行；
   `v8_platform/*_test_double` 仍有 8 个。`kind: plugin` 托管未实现。
-- 未接 `Orchestrator/ProcessRunner` 运行；包索引是声明快照，不是 rospack 活体扫描；
-  未实现 plugin 托管、热插拔、状态迁移、运行期改线。
+- runtime 测试用假命令；真实 `rosrun/roslaunch` 未执行。包索引是声明快照，不是 rospack 活体扫描；
+  ready_marker 需按组件配置，plugin 托管、热插拔、状态迁移、运行期改线未实现。
 - 地图 provider 的增量提交/版本事务、机器人 profile、MuJoCo 验证配置都不在本片。
 - 不改 `contracts/registry/composer/orchestrator` 既有语义；新图模型独立，下一片再决定
   是否复用 manifest 或迁移。

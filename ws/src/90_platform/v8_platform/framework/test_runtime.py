@@ -1,0 +1,103 @@
+"""F3: assembly plan through ProcessRunner/Orchestrator with fake commands."""
+import copy
+import sys
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import config  # noqa: E402
+import graph as graph_mod  # noqa: E402
+import render  # noqa: E402
+import runtime  # noqa: E402
+import orchestrator as orch  # noqa: E402
+
+MANIFESTS = HERE / 'fixtures' / 'manifests'
+G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
+PY = sys.executable
+SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
+
+
+def plan_for(path):
+    catalog = config.load_components(MANIFESTS)
+    graph = config.load_graph(path)
+    report = graph_mod.check(graph, catalog)
+    return render.render_plan(graph, catalog, report), catalog
+
+
+def fake(_instance, _component):
+    return [PY, '-c', SLEEPER], 'READY'
+
+
+class RuntimeTests(unittest.TestCase):
+    def test_start_ready_stop_order_and_cleanup(self):
+        plan, catalog = plan_for(G2D)
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake,
+                                    ready_timeout=5)
+        assembly.start()
+        self.assertTrue(assembly.ready())
+        assembly.stop()
+        self.assertFalse(assembly.started)
+        self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
+        order = [row['id'] for row in assembly.stop_record]
+        self.assertEqual(order[-1], 'mux')
+        self.assertEqual(order[0], 'local')
+
+    def test_start_failure_cleans_previous(self):
+        plan, catalog = plan_for(G2D)
+
+        def bad(instance, _component):
+            if instance['id'] == 'local':
+                return ['/nonexistent/f3-runner'], None
+            return [PY, '-c', SLEEPER], 'READY'
+
+        assembly = runtime.Assembly(plan, catalog, command_factory=bad,
+                                    ready_timeout=2)
+        with self.assertRaises(orch.OrchestratorError):
+            assembly.start()
+        self.assertFalse(assembly.started)
+        self.assertTrue(assembly.runners)
+        self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
+
+    def test_health_detects_death_and_stops(self):
+        plan, catalog = plan_for(G2D)
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake,
+                                    ready_timeout=5)
+        assembly.start()
+        assembly.runners['global'].proc.terminate()
+        assembly.runners['global'].reap()
+        dead = assembly.health()
+        self.assertEqual(dead, ['global'])
+        assembly.stop()
+        self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
+
+    def test_default_commands_for_node_and_include(self):
+        plan, catalog = plan_for(G2D)
+        by_id = {item['id']: item for item in plan['instances']}
+        lio = by_id['lio']
+        command, marker = runtime.default_command(
+            lio, catalog['components'][lio['component']])
+        self.assertEqual(command, ['roslaunch', 'lite3_slam',
+                                   'launch/10_slam_mapping.launch'])
+        self.assertIsNone(marker)
+        map2d = by_id['map']
+        command, marker = runtime.default_command(
+            map2d, catalog['components'][map2d['component']])
+        self.assertEqual(command, ['rosrun', 'map_server', 'map_server'])
+        mux = copy.deepcopy(by_id['mux'])
+        mux['namespace'] = '/nav'
+        command, _ = runtime.default_command(
+            mux, catalog['components'][mux['component']])
+        self.assertIn('__ns:=/nav', command)
+
+    def test_include_namespace_is_rejected(self):
+        plan, catalog = plan_for(G2D)
+        lio = copy.deepcopy(next(item for item in plan['instances'] if item['id'] == 'lio'))
+        lio['namespace'] = '/nav'
+        with self.assertRaises(config.FrameworkError) as caught:
+            runtime.default_command(lio, catalog['components'][lio['component']])
+        self.assertEqual(caught.exception.code, 'E_RUNTIME_NAMESPACE')
+
+
+if __name__ == '__main__':
+    unittest.main()

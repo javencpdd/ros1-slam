@@ -117,6 +117,11 @@ def _launch_spec(raw, cid):
         raise FrameworkError('E_CFG_LAUNCH', '%s package missing' % cid)
     spec = {'kind': kind, 'package': package,
             'test_double': bool(raw.get('test_double', False))}
+    marker = raw.get('ready_marker')
+    if marker is not None:
+        if not isinstance(marker, str) or not marker:
+            raise FrameworkError('E_CFG_LAUNCH', '%s ready_marker must be a string' % cid)
+        spec['ready_marker'] = marker
     if kind == 'node':
         node_type = raw.get('type')
         if not isinstance(node_type, str) or not node_type:
@@ -198,7 +203,9 @@ def load_components(path):
         inputs = [dict(port, direction='input') for port in value['ports']['inputs']]
         outputs = [dict(port, direction='output') for port in value['ports']['outputs']]
         components[cid] = {'id': cid, 'launch': launch, 'roles': list(value['roles']),
-                           'inputs': inputs, 'outputs': outputs}
+                           'inputs': inputs, 'outputs': outputs,
+                           'stop': value['ownership']['stop'],
+                           'resources': list(value.get('requires', {}).get('resources', []))}
         digest.update(file.name.encode() + b'\0' + raw_bytes)
     return {'components': components, 'sha256': digest.hexdigest(), 'path': str(path)}
 
