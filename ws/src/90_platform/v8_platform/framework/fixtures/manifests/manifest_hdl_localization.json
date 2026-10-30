@@ -1,0 +1,67 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.hdl_localization",
+ "version": "0.1.0",
+ "roles": [
+  "global_localization",
+  "odometry"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [
+   {
+    "parent": "map",
+    "child": "base_link"
+   }
+  ],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "include",
+  "package": "lite3_localization",
+  "launch_file": "launch/hdl_localization.launch",
+  "args": {
+   "points_topic": "/rslidar_points",
+   "imu_topic": "/livox/imu",
+   "map_name": "lite3"
+  }
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "points",
+    "type": "sensor_msgs/PointCloud2",
+    "topic": "/rslidar_points"
+   },
+   {
+    "name": "imu",
+    "type": "sensor_msgs/Imu",
+    "topic": "/livox/imu"
+   },
+   {
+    "name": "leg_odom",
+    "type": "nav_msgs/Odometry",
+    "required": false,
+    "topic": "/leg_odom2"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/hdl_odom"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

@@ -48,6 +48,32 @@ def find_edge(value, source, target):
 
 
 class FrameworkTests(unittest.TestCase):
+    def test_localization_swap_keeps_nav_chain_and_changes_digest(self):
+        catalog = config.load_components(MANIFESTS)
+        reports, digests = {}, []
+        for filename, component in (
+                ('graph_2d_loc_faster_lio.yaml', 'v8.fw.faster_lio'),
+                ('graph_2d_loc_hdl.yaml', 'v8.fw.hdl_localization')):
+            graph = config.load_graph(HERE / 'fixtures' / 'graphs' / filename)
+            report = graph_mod.check(graph, catalog)
+            reports[filename] = report
+            digests.append(report['digest'])
+            self.assertEqual(report['instances']['loc']['component'], component)
+            self.assertEqual(report['bindings']['global']['odom']['from'], 'loc.odom')
+            self.assertEqual(report['bindings']['local']['odom']['from'], 'loc.odom')
+            self.assertEqual(report['command_writers'],
+                             {'/cmd_vel': 'mux', '/cmd_vel_advice/local': 'local'})
+            if filename.endswith('_hdl.yaml'):
+                root = ET.fromstring(render.render_launch(graph, catalog, report))
+                global_node = next(node for node in root.findall('node')
+                                   if node.get('name') == 'global')
+                self.assertIn(('/Odometry', '/hdl_odom'),
+                              [(item.get('from'), item.get('to'))
+                               for item in global_node.findall('remap')])
+        self.assertNotEqual(digests[0], digests[1])
+        self.assertEqual(reports['graph_2d_loc_hdl.yaml']['instances']['loc']['component'],
+                         'v8.fw.hdl_localization')
+
     def test_nav2d_stack_graphs_bind_real_planners_and_mux(self):
         catalog = config.load_components(MANIFESTS)
         for filename, global_name, local_name in G2D_STACKS:
@@ -227,7 +253,7 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (17, 8, 9))
+                         (18, 9, 9))
 
     def test_launch_spec_rejects_bad_entries(self):
         cases = [
@@ -287,7 +313,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 8)
+        self.assertEqual(payload['launch']['real'], 9)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'
