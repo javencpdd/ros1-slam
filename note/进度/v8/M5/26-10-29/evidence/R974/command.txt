@@ -1,0 +1,6 @@
+R974 命令（2026-10-31 02:03—02:10 CST，qoder；A5 非有限门实测）
+# guard 组：seed2 5 次，保留非有限恢复门。
+# reset 组：seed2 10 次，首非有限时重置 history；因 recovery 全 0、无证据，已回退，不在 HEAD。
+# 读数：guard 3/5，2 次 action_nonfinite；其中一次 recovery=6 后仍连续 5 次终止。
+#   reset 8/10，recovery 全 0；失败均为 E_LOCAL_COLLISION。结论：恢复门不解决持续非有限；碰撞仍是主失败。
+# 测试：bridge 6/6；全树 57 套件 0 失败。未改判据/预算。
