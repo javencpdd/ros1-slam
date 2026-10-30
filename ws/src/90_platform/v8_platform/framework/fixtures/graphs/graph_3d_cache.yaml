@@ -1,0 +1,37 @@
+schema: pipeline_graph/v1
+name: nav3d_two_caches
+instances:
+  - {id: sensors, component: sensors}
+  - {id: lio, component: faster_lio}
+  - {id: map, component: map3d}
+  - {id: cache_a, component: map_cache, params: {update_interval_s: 5.0, max_delta_cells: 2000}}
+  - {id: cache_b, component: map_cache, params: {update_interval_s: 10.0, max_delta_cells: 2000}}
+  - {id: merge, component: map_merge, params: {policy: newest_wins}}
+  - {id: global, component: global3d}
+  - {id: local, component: local3d}
+  - {id: mux, component: mux}
+  - {id: robot, component: robot_lite3}
+edges:
+  - {from: sensors.points, to: lio.points}
+  - {from: sensors.imu, to: lio.imu}
+  - {from: lio.cloud, to: map.cloud}
+  - {from: lio.cloud, to: cache_a.observations}
+  - {from: lio.cloud, to: cache_b.observations}
+  - {from: lio.odom, to: cache_a.odom}
+  - {from: lio.odom, to: cache_b.odom}
+  - {from: lio.odom, to: global.odom}
+  - {from: lio.odom, to: local.odom}
+  - {from: map.map, to: cache_a.base_map}
+  - {from: map.map, to: cache_b.base_map}
+  - {from: map.map, to: global.map}
+  - {from: map.map, to: local.map}
+  - {from: cache_a.delta, to: merge.delta_a}
+  - {from: cache_b.delta, to: merge.delta_b}
+  - {from: merge.delta, to: map.delta, feedback: true,
+     policy: {period_s: 5.0, max_age_s: 10.0}}
+  - {from: global.path, to: local.path}
+  - {from: local.cmd, to: mux.cmd}
+  - {from: mux.cmd, to: robot.cmd}
+external:
+  - {to: global.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: mux.hold, type: std_msgs/Bool, source: supervisor}

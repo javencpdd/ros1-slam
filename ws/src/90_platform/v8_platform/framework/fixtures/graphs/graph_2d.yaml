@@ -1,0 +1,23 @@
+schema: pipeline_graph/v1
+name: nav2d_ros1
+instances:
+  - {id: sensors, component: sensors}
+  - {id: lio, component: faster_lio}
+  - {id: map, component: map2d}
+  - {id: global, component: global2d}
+  - {id: local, component: local2d}
+  - {id: mux, component: mux, params: {default_priority: navigation}}
+  - {id: robot, component: robot_lite3}
+edges:
+  - {from: sensors.points, to: lio.points}
+  - {from: sensors.imu, to: lio.imu}
+  - {from: lio.odom, to: global.odom}
+  - {from: map.map, to: global.map}
+  - {from: global.path, to: local.path}
+  - {from: lio.odom, to: local.odom}
+  - {from: map.map, to: local.map}
+  - {from: local.cmd, to: mux.cmd}
+  - {from: mux.cmd, to: robot.cmd}
+external:
+  - {to: global.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: mux.hold, type: std_msgs/Bool, source: supervisor}
