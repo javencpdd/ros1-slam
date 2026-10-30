@@ -1,0 +1,14 @@
+R952 命令（2026-10-30 18:28—18:45 CST，qoder；锁存提前收口＋全 5 seed×5 次矩阵）
+# 容器 ros1-slam-sim；独立 master 11437；source noetic + /opt/ros1-slam/ws/devel。
+# 环境：export ROS_IP=127.0.0.1（容器 hostname 不解析，见 R951）；
+#   PYTHONPATH=/tmp/mjrt/mujoco/mujoco-pkg:/tmp/mjrt/glfw:/tmp/ortrt 且保留 ROS 路径。
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+for s in 0 1 2 3 4; do for r in 1 2 3 4 5; do
+  python3 -B a5_v8x1_runtime.py --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed $s --perturb \
+    --lockstep --stall-retry --out /tmp/a5_full_s${s}_r$r.json --wall-deadline-s 150
+done; done
+# 单跑验证：seed0 一次通过（24.7 s），确认 latched 不误杀启动期的 E_LOCAL_LOCALIZATION。
+# 读数：通过 20/25，每 seed 4/5；失败＝2 次 E_LOCAL_COLLISION（已提前收口）、1 次 E_LOCAL_EXPIRED、
+#   2 次慢速超时（A5 仍 track，墙钟预算到点）；retries_seen 全 0。
+# 测试：V8 45 套件 0 失败；MuJoCo 14 项 OK。
