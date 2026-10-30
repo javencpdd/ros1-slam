@@ -1,0 +1,9 @@
+R998 命令（2026-10-31 05:26—05:29 CST，qoder；多图 ROS provider）
+# 真实 ROS：master 11470；两份 map_ml_two_surfaces fixture（map_id map_a/map_b）；
+# /v8/maps/<id> latch、/v8/maps/status、/v8/maps/<id>/query；map_a delta v2→v3。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/multi_map_smoke.py
+# 读数：initial [2,2] → after_delta [3,2]；query map_a v3；status applied a=1/b=0；
+#   重启后 restored [3,2]；重放同一 delta 仍 v3。
+# 测试：multi_map_node 2/2、map_router 3/3；V8 全树 61 套件 0 失败。
+# 边界：本地多图 provider，无跨图事务/并发写者/跨机复制；A1—A7 不变。

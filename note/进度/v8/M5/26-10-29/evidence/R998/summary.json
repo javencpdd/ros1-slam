@@ -1,0 +1,41 @@
+{
+ "smoke": {
+  "maps": [
+   "map_a",
+   "map_b"
+  ],
+  "initial_versions": [
+   2,
+   2
+  ],
+  "after_delta_versions": [
+   3,
+   2
+  ],
+  "query_version": 3,
+  "status_applied": {
+   "map_a": 1,
+   "map_b": 0
+  },
+  "restored_versions": [
+   3,
+   2
+  ],
+  "replay_version": 3,
+  "ok": true
+ },
+ "tests": {
+  "multi_map_node": "2/2",
+  "multi_map_router": "3/3",
+  "v8_suites": "61/0"
+ },
+ "topics": {
+  "maps": [
+   "/v8/maps/map_a",
+   "/v8/maps/map_b"
+  ],
+  "status": "/v8/maps/status",
+  "query": "/v8/maps/<id>/query"
+ },
+ "interpretation": "two maps independent; restart restores; replay idempotent; no cross-map route"
+}
