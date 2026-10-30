@@ -1,0 +1,19 @@
+R987 命令（2026-10-31 04:41—04:43 CST，qoder；A5 seed0 单线程复跑）
+# 容器 v8codex-20261028；同 R986 配置；额外固定数值库线程：
+# OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1。
+source /opt/ros/noetic/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11462 ROS_IP=127.0.0.1 \
+       ROS_HOME=/tmp/r987_ros ROS_LOG_DIR=/tmp/r987_logs \
+       PYTHONPATH=/tmp/r854-policy-runtime:/opt/ros/noetic/lib/python3/dist-packages
+roscore -p 11462 & sleep 3
+cd /repo/ws/src/90_platform/v8_platform/regression
+for i in 1 2 3; do
+  python3 -B a5_v8x1_runtime.py \
+    --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+    --seed 0 --perturb --lockstep --stall-retry \
+    --out /tmp/r987_s0_$i.json --wall-deadline-s 150
+done
+# 读数：run1 FAIL（4 plans、final map z .3717、no_fall=true、未到顶层）；
+#   run2 PASS（9 plans、z .8904）；run3 PASS（8 plans、z .8904）。seed0 单线程 2/3 PASS。
+# 结论：单线程数值库没有消除分叉；A5 仍 PARTIAL。无代码/判据改动。

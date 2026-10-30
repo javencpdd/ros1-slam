@@ -1,0 +1,97 @@
+{
+ "scenario": "a5_ros_local_to_v8x1_nist_profile",
+ "seed": 0,
+ "runs": [
+  {
+   "run": 1,
+   "ok": false,
+   "checks": {
+    "climbed": false,
+    "final_on_top": false,
+    "goal_map": false,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "plans": 4,
+   "final_body": [
+    15.02,
+    2.0953,
+    0.1213,
+    0.6684
+   ],
+   "final_map": [
+    15.02,
+    -0.1299,
+    -0.5938,
+    0.3717
+   ],
+   "plan_ms_max": 2530.087
+  },
+  {
+   "run": 2,
+   "ok": true,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "plans": 9,
+   "final_body": [
+    16.02,
+    3.9507,
+    -0.0263,
+    1.1016
+   ],
+   "final_map": [
+    16.02,
+    0.0,
+    1.34,
+    0.8904
+   ],
+   "plan_ms_max": 2399.466
+  },
+  {
+   "run": 3,
+   "ok": true,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "plans": 8,
+   "final_body": [
+    15.4,
+    3.9625,
+    -0.0352,
+    1.111
+   ],
+   "final_map": [
+    15.4,
+    0.0,
+    1.34,
+    0.8904
+   ],
+   "plan_ms_max": 2649.056
+  }
+ ],
+ "pass": 2,
+ "total": 3,
+ "single_thread_env": {
+  "OMP_NUM_THREADS": "1",
+  "MKL_NUM_THREADS": "1",
+  "OPENBLAS_NUM_THREADS": "1",
+  "NUMEXPR_NUM_THREADS": "1"
+ },
+ "policy_sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f",
+ "xml_sha256": "9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa",
+ "environment": {
+  "container": "v8codex-20261028",
+  "mujoco": "2.3.7",
+  "onnxruntime": "1.16.3",
+  "numpy": "1.24.4"
+ }
+}
