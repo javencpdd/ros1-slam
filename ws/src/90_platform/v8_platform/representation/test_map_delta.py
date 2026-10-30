@@ -1,5 +1,6 @@
 """MapDelta: base-version, idempotent replay, atomic apply, notifications."""
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -57,6 +58,25 @@ class MapDeltaTests(unittest.TestCase):
                 {'op': 'remove_surface', 'surface_id': 'mezz'}]))
         self.assertEqual(caught.exception.code, 'E_DELTA_REPLAY_CONFLICT')
         self.assertEqual(service.current['map_version'], 2)
+
+    def test_replay_idempotency_survives_snapshot_restore(self):
+        service = self.service()
+        first = delta(1, [{'op': 'upsert_surface', 'surface': changed_surface()}])
+        self.assertEqual(service.propose_delta(first), 2)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'delta.state.json'
+            service.save(path)
+            restored = svc.MapService.load(path)
+            self.assertEqual(restored.propose_delta(first), 2)  # replay across restart
+            self.assertEqual(len(restored.applied_deltas), 1)
+            second = delta(2, [{'op': 'remove_surface', 'surface_id': 'mezz'}],
+                           delta_id='d2')
+            # removing mezz while ground references it is contract-rejected;
+            # keep the version and prove the restored base is usable.
+            with self.assertRaises(svc.MapServiceError) as caught:
+                restored.propose_delta(second)
+            self.assertEqual(caught.exception.code, 'E_MAPSERVICE_CONTRACT')
+            self.assertEqual(restored.current['map_version'], 2)
 
     def test_stale_base_and_unknown_remove_are_rejected(self):
         service = self.service()

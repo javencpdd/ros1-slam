@@ -16,10 +16,32 @@ import map_service as svc  # noqa: E402
 
 
 class DeltaNodeCore:
-    def __init__(self, map_value):
-        self.service = svc.MapService(map_value['map_id'])
-        self.service.publish(map_value)
+    def __init__(self, map_value, state_path=None):
+        self.state_path = Path(state_path) if state_path else None
+        self.restored = bool(self.state_path and self.state_path.is_file())
+        if self.restored:
+            self.service = svc.MapService.load(self.state_path,
+                                               map_id=map_value['map_id'])
+        else:
+            self.service = svc.MapService(map_value['map_id'])
+            self.service.publish(map_value)
         self.errors = []
+        self.persist_errors = []
+        if not self.restored:
+            self._persist()
+
+    def _persist(self):
+        if self.state_path is None:
+            return {'ok': True, 'skipped': True}
+        try:
+            saved = self.service.save(self.state_path)
+        except OSError as error:
+            self.persist_errors.append(str(error))
+            self.persist_errors = self.persist_errors[-10:]
+            return {'ok': False, 'reason': 'E_MAPSERVICE_PERSIST',
+                    'detail': str(error)}
+        return {'ok': True, 'path': saved['path'], 'sha256': saved['sha256'],
+                'map_version': saved['map_version']}
 
     def apply_text(self, text):
         try:
@@ -29,15 +51,19 @@ class DeltaNodeCore:
             self.errors.append(getattr(error, 'code', 'E_DELTA_JSON'))
             return {'ok': False, 'reason': getattr(error, 'code', 'E_DELTA_JSON'),
                     'detail': str(error)}
+        persisted = self._persist()
         return {'ok': True, 'map_id': self.service.map_id, 'map_version': version,
-                'digest': svc.content_digest(self.service.current, self.service.evidence)}
+                'digest': svc.content_digest(self.service.current, self.service.evidence),
+                'persisted': persisted['ok'], 'persist': persisted}
 
     def snapshot(self):
         return {'ok': True, 'map_id': self.service.map_id,
                 'map_version': self.service.current['map_version'],
                 'digest': svc.content_digest(self.service.current, self.service.evidence),
                 'map': self.service.current,
-                'evidence': self.service.evidence_summary()}
+                'evidence': self.service.evidence_summary(),
+                'restored': self.restored,
+                'state_path': None if self.state_path is None else str(self.state_path)}
 
     def status(self):
         return {'map_id': self.service.map_id,
@@ -45,6 +71,9 @@ class DeltaNodeCore:
                 'history': [list(row) for row in self.service.history],
                 'applied_deltas': len(self.service.applied_deltas),
                 'errors': self.errors[-10:],
+                'persist_errors': self.persist_errors[-10:],
+                'restored': self.restored,
+                'state_path': None if self.state_path is None else str(self.state_path),
                 'evidence': self.service.evidence_summary()}
 
 
@@ -56,7 +85,11 @@ def main():
     rospy.init_node('v8_delta_map')
     with open(rospy.get_param('~map_json'), encoding='utf-8') as stream:
         map_value = json.load(stream)
-    core = DeltaNodeCore(map_value)
+    state_path = rospy.get_param('~state_path', '')
+    core = DeltaNodeCore(map_value, state_path or None)
+    rospy.loginfo('v8_delta_map version=%s restored=%s state=%s',
+                  core.service.current['map_version'], core.restored,
+                  core.state_path or '-')
     map_topic = rospy.get_param('~map_topic', '/v8_support_map')
     status_topic = rospy.get_param('~status_topic', '/v8_map_status')
     delta_topic = rospy.get_param('~delta_topic', '/map_delta')

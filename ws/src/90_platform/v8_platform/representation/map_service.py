@@ -14,6 +14,7 @@
 import copy
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -22,6 +23,9 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / 'contracts'))
 import support_map as rep  # noqa: E402
 import validate as contract  # noqa: E402
+
+
+SNAPSHOT_SCHEMA = 'map_service_snapshot/v1'
 
 
 class MapServiceError(Exception):
@@ -201,6 +205,110 @@ class MapService:
                          for position, surface in enumerate(surfaces)}
         self._validate(candidate)
         return candidate
+
+    # -- 持久化：原子快照与恢复（跨进程重启保持版本/幂等表）--
+    def snapshot(self):
+        self._require_current()
+        evidence = None
+        if self.evidence is not None:
+            evidence = [[x, y, z, state]
+                        for (x, y, z), state in sorted(self.evidence.items())]
+        return {
+            'schema': SNAPSHOT_SCHEMA,
+            'map_id': self.map_id,
+            'current': copy.deepcopy(self.current),
+            'evidence': evidence,
+            'history': [[version, digest] for version, digest in self.history],
+            'applied_deltas': dict(sorted(self.applied_deltas.items())),
+        }
+
+    def save(self, path):
+        """Atomically persist the service state; readers see old or new, never partial."""
+        payload = self.snapshot()
+        data = json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                          separators=(',', ':')).encode() + b'\n'
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(path.name + '.tmp.%d' % os.getpid())
+        with open(tmp, 'wb') as stream:
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(tmp, path)
+        try:
+            directory = os.open(str(path.parent), os.O_DIRECTORY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
+        except OSError:
+            pass
+        return {'path': str(path), 'sha256': hashlib.sha256(data).hexdigest(),
+                'map_version': self.current['map_version'],
+                'digest': self.history[-1][1], 'bytes': len(data)}
+
+    @classmethod
+    def load(cls, path, map_id=None):
+        """Restore and verify a snapshot; corrupt/foreign/rewound files fail closed."""
+        path = Path(path)
+        try:
+            raw = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError) as error:
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT',
+                                  '%s: %s' % (path, error))
+        if not isinstance(raw, dict) or raw.get('schema') != SNAPSHOT_SCHEMA:
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'schema mismatch')
+        raw_id = raw.get('map_id')
+        if not isinstance(raw_id, str) or not raw_id:
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'map_id missing')
+        if map_id is not None and raw_id != map_id:
+            raise MapServiceError('E_MAPSERVICE_MAP_ID', '%s ≠ %s' % (raw_id, map_id))
+        current = raw.get('current')
+        if not isinstance(current, dict) or current.get('map_id') != raw_id:
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'current map_id mismatch')
+        cls._validate(current)
+        evidence = None
+        raw_evidence = raw.get('evidence')
+        if raw_evidence is not None:
+            if not isinstance(raw_evidence, list):
+                raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'evidence must be a list')
+            evidence = {}
+            for row in raw_evidence:
+                if (not isinstance(row, list) or len(row) != 4
+                        or row[3] not in ('free', 'occupied', 'unknown')):
+                    raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'bad evidence row')
+                try:
+                    key = (row[0], row[1], row[2])
+                    float(key[0]); float(key[1]); float(key[2])
+                except (TypeError, ValueError):
+                    raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'bad evidence key')
+                evidence[key] = row[3]
+        history = raw.get('history')
+        if not isinstance(history, list) or not history:
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'history missing')
+        clean_history = []
+        for row in history:
+            if (not isinstance(row, list) or len(row) != 2
+                    or not isinstance(row[0], int) or not isinstance(row[1], str)
+                    or len(row[1]) != 64):
+                raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'bad history row')
+            clean_history.append((row[0], row[1]))
+        if any(b[0] <= a[0] for a, b in zip(clean_history, clean_history[1:])):
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'history versions not increasing')
+        digest = content_digest(current, evidence)
+        if clean_history[-1][0] != current['map_version'] or clean_history[-1][1] != digest:
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'snapshot digest/version mismatch')
+        applied = raw.get('applied_deltas', {})
+        if not isinstance(applied, dict) or any(
+                not isinstance(key, str) or not isinstance(value, str) or len(value) != 64
+                for key, value in applied.items()):
+            raise MapServiceError('E_MAPSERVICE_SNAPSHOT', 'bad applied_deltas')
+        service = cls(raw_id)
+        service.current = current
+        service.evidence = evidence
+        service.history = clean_history
+        service.applied_deltas = dict(applied)
+        return service
 
     # -- 净空查询 API（对当前版本）--
     def clearance_at(self, x, y, z):

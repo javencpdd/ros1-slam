@@ -1,6 +1,8 @@
 """V8-08 次切片测试：版本语义（升版/拒膨胀/拒回退）、漂移检查、证据集成、净空 API。"""
 import copy
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -108,6 +110,45 @@ class MapServiceTests(unittest.TestCase):
         bare = svc.MapService('svc_map')
         bare.publish(two_floors())
         self.assertEqual(bare.evidence_summary(), {'state': 'no_evidence_layer'})
+
+    def test_snapshot_round_trip_restores_evidence_and_continues(self):
+        service = svc.MapService('svc_map')
+        evidence = {(0, 0, 0.0): 'free', (1, 0, 0.0): 'free'}
+        service.publish(two_floors(), evidence=evidence)
+        service.update(changed_floors(two_floors()), evidence=evidence)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'map.state.json'
+            saved = service.save(path)
+            self.assertEqual(saved['map_version'], 2)
+            self.assertEqual(saved['sha256'], __import__('hashlib').sha256(path.read_bytes()).hexdigest())
+            restored = svc.MapService.load(path, map_id='svc_map')
+            self.assertEqual(restored.current['map_version'], 2)
+            self.assertEqual(restored.evidence, evidence)
+            self.assertEqual(restored.history, service.history)
+            self.assertEqual(restored.evidence_summary(), service.evidence_summary())
+            continued = dict(evidence)
+            continued[(2, 0, 0.0)] = 'free'
+            self.assertEqual(restored.update(restored.current, evidence=continued), 3)
+
+    def test_snapshot_rejects_foreign_or_tampered_state(self):
+        service = svc.MapService('svc_map')
+        service.publish(two_floors())
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'map.state.json'
+            service.save(path)
+            with self.assertRaises(svc.MapServiceError) as caught:
+                svc.MapService.load(path, map_id='other')
+            self.assertEqual(caught.exception.code, 'E_MAPSERVICE_MAP_ID')
+            raw = json.loads(path.read_text())
+            raw['current']['surfaces'][0]['z_reference'] = 9.0
+            path.write_text(json.dumps(raw))
+            with self.assertRaises(svc.MapServiceError) as caught:
+                svc.MapService.load(path)
+            self.assertEqual(caught.exception.code, 'E_MAPSERVICE_SNAPSHOT')
+            path.write_text('{not json')
+            with self.assertRaises(svc.MapServiceError) as caught:
+                svc.MapService.load(path)
+            self.assertEqual(caught.exception.code, 'E_MAPSERVICE_SNAPSHOT')
 
     def test_clearance_api(self):
         service = svc.MapService('svc_map')

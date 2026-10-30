@@ -1,6 +1,7 @@
 """Runtime map provider core: apply map_delta/v1, snapshot/status."""
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -12,8 +13,8 @@ import test_map_delta as td  # noqa: E402
 import test_map_service as tm  # noqa: E402
 
 
-def core():
-    return node.DeltaNodeCore(tm.two_floors())
+def core(state_path=None):
+    return node.DeltaNodeCore(tm.two_floors(), state_path=state_path)
 
 
 def valid_delta(base=1, delta_id='d1'):
@@ -46,6 +47,23 @@ class DeltaMapNodeTests(unittest.TestCase):
             self.assertEqual(result['reason'], reason)
             self.assertEqual(value.snapshot()['map_version'], 1)
         self.assertEqual(len(value.status()['errors']), 3)
+
+    def test_state_path_restores_version_and_replay_idempotency(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'delta.state.json'
+            first = core(path)
+            self.assertFalse(first.restored)
+            self.assertTrue(first.apply_text(json.dumps(valid_delta()))['persisted'])
+            second = core(path)
+            self.assertTrue(second.restored)
+            self.assertEqual(second.snapshot()['map_version'], 2)
+            self.assertEqual(second.status()['applied_deltas'], 1)
+            replay = second.apply_text(json.dumps(valid_delta()))
+            self.assertEqual(replay['map_version'], 2)
+            self.assertEqual(second.status()['applied_deltas'], 1)
+            third = core(path)
+            self.assertEqual(third.snapshot()['map_version'], 2)
+            self.assertEqual(third.status()['applied_deltas'], 1)
 
     def test_status_reports_history_and_evidence(self):
         value = core()
