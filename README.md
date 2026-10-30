@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R990（2026-10-31）★＝**A5 分叉归因**：R987 FAIL/PASS 的首个 active applied 命令分别在
+  sim 0.30/0.48 s（相位差 **0.18 s**）；同一 sim 2.08 s 的 body z 仅差 0.0002 m。说明先
+  分叉的是命令到达仿真的相位，不是同一时刻策略输出；A5 仍 **PARTIAL**，下一件应做相位锁定
+  重复窗而非继续累计自由调度 PASS/FAIL（代码载体 `0e15667d`，全文＝[R990](note/进度/v8/M5/26-10-29/R990.md)）。
 - ★R989（2026-10-31）★＝**MapStore 多 map_id**：目录内按 map_id 原子快照、显式
   `load/ids/load_all`；`svc_map`/`other_map` 各自恢复 v2 与 digest，路径穿越与坏文件
   fail-closed；`map_service` 11/11、V8 全树 **59 套件 0 失败**。无 ROS/跨机路由，

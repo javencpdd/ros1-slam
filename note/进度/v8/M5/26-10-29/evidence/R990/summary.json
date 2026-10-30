@@ -1,0 +1,85 @@
+{
+ "fail_source": "r987_s0_1.json",
+ "pass_source": "r987_s0_2.json",
+ "fail_plans": 4,
+ "pass_plans": 9,
+ "first_active_applied": {
+  "fail": {
+   "index": 3,
+   "sim_time": 0.3000000000000002,
+   "body_command": [
+    0.22928555309772491,
+    0.0,
+    0.22510398924350739
+   ],
+   "waypoint": [
+    -4.440892098500626e-16,
+    -1.5,
+    0.198798
+   ],
+   "map_velocity": [
+    -0.04262245798437052,
+    0.5716270439505452,
+    0.1772733727882787
+   ]
+  },
+  "pass": {
+   "index": 3,
+   "sim_time": 0.48000000000000037,
+   "body_command": [
+    0.2276468127965927,
+    0.0,
+    0.29817795753479004
+   ],
+   "waypoint": [
+    -4.440892098500626e-16,
+    -1.5,
+    0.198798
+   ],
+   "map_velocity": [
+    -0.05262308380821504,
+    0.566678934306252,
+    0.19001525324048077
+   ]
+  },
+  "delta_s": 0.18
+ },
+ "same_time_state": {
+  "body": {
+   "sim_time": 2.08,
+   "fail": [
+    2.08,
+    0.539,
+    -0.046,
+    0.3489
+   ],
+   "pass": [
+    2.08,
+    0.5391,
+    -0.0461,
+    0.3487
+   ],
+   "max_abs_diff": 0.0002
+  },
+  "map": {
+   "sim_time": 2.08,
+   "fail": [
+    2.08,
+    0.0461,
+    -2.1607,
+    0.0
+   ],
+   "pass": [
+    2.08,
+    0.0461,
+    -2.1606,
+    0.0
+   ],
+   "max_abs_diff": 0.0001
+  }
+ },
+ "common_applied_times": [
+  0.0
+ ],
+ "interpretation": "first active applied command is at sim 0.30 s (fail) vs 0.48 s (pass), a 0.18 s schedule delta; at common sim 2.08 s body differs only 2e-4 m and map 1e-4 m"
+}

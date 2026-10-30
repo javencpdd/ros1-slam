@@ -1,0 +1,12 @@
+R990 命令（2026-10-31 04:54—04:55 CST，qoder；A5 分叉归因）
+# 对象：R987 的失败 r987_s0_1.json 与通过 r987_s0_2.json（同一 seed0/配置）。
+# 按 applied.sim_time / body_trace / map_trace 对齐，而不是按数组下标。
+python3 - <<'PY'
+import json
+f=json.load(open('r987_s0_1.json')); p=json.load(open('r987_s0_2.json'))
+# first active applied (waypoint not None), common sim-time traces
+PY
+# 读数：首个 active applied 命令 fail sim=0.30 s、pass sim=0.48 s（Δ0.18 s）；
+#   同一 sim=2.08 s 的 body z 差 0.0002 m、map 差 0.0001 m；
+#   applied 共同 sim_time 只有 0.0 s（其余调度时刻不同）。
+# 结论：先分叉的是命令到达的仿真相位，不是同一时刻的策略输出；A5 仍 PARTIAL。
