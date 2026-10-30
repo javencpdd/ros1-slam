@@ -1,0 +1,19 @@
+{
+  "domain": "v8x1_new_policy_stair_matrix_15of15",
+  "policy_sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f",
+  "config": {"steps": 3, "depth_m": 0.5, "width_m": 3.0, "front_m": 1.0,
+             "seed_perturb": "dx+-0.05, dy+-0.10, dyaw+-0.0873, dz+-0.005",
+             "heading_hold": [3.0, 1.5, 0.5], "v_cmd": 0.3, "seconds": 10},
+  "matrix": {"0.06": {"pass": 5, "stable": 5, "fell": 0},
+             "0.10": {"pass": 5, "stable": 5, "fell": 0},
+             "0.15": {"pass": 5, "stable": 5, "fell": 0}},
+  "total": {"runs": 15, "pass": 15, "stable": 15, "fell": 0, "unstable": 0},
+  "zmin_range": [0.1689, 0.2184],
+  "max_abs_y_range": [0.0341, 0.6237],
+  "gain_sweep": {"3.0/1.5/0.5": "seed1+seed3 pass", "2.5/1.25/0.55": "seed1+seed3 pass",
+                  "3.0/1.5/0.7": "seed3 fail", "2.0/1.0/0.5": "seed1 fall"},
+  "scope": "MuJoCo torque policy; heading hold uses world truth; 3 m wide steps; no ROS/no real robot/#151",
+  "v8x1": "stair pilot PASS 15/15; formal V8-X1 acceptance pending independent criteria",
+  "a5_overall": "PARTIAL (0.6 m four-step not yet)",
+  "a1_a7": "NOT_VALIDATED"
+}

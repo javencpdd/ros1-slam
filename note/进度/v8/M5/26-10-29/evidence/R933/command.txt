@@ -1,0 +1,8 @@
+R933 命令（2026-10-30 12:25—12:31 CST，qoder；V8-X1 新策略 3×15 矩阵）
+# 容器 ros1-slam-sim；PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2；策略 sha 881b6604…；模型 sha 7d98ed69…。
+# 3 级台阶、深 .5 m、宽 3 m、10 s、0.3 m/s；heading hold 3.0/1.5/0.5；seed0—4 --perturb。
+python3 -B .../mj_dreamwaq_walk.py --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --mode stairs --seconds 10 --v-cmd .3 --step-h $H --steps 3 --step-depth .5 --step-width 3.0 \
+  --step-front 1.0 --heading-hold --yaw-gain 3.0 --y-gain 1.5 --max-wz .5 --seed $S --perturb
+# 6/10/15 cm 各 5/5，总 15/15 stable、0 fall、0 unstable。
+# 增益扫（15cm seed1/seed3）：3.0/1.5/0.5 与 2.5/1.25/0.55 均过；3.0/1.5/0.7 与默认 2.0/1.0/0.5 各失败一格。
