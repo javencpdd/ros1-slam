@@ -1,0 +1,15 @@
+R955 命令（2026-10-30 23:30—23:58 CST，qoder；统一 YAML 组件图 v0.1）
+# 宿主直跑（纯标准库 + PyYAML 5.4.1；不启 ROS/仿真，不写运行目录）
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/cli.py check framework/fixtures/components.yaml \
+  framework/fixtures/graphs/graph_2d.yaml
+python3 -B framework/cli.py check framework/fixtures/components.yaml \
+  framework/fixtures/graphs/graph_3d_cache.yaml
+python3 -B framework/cli.py plan framework/fixtures/components.yaml \
+  framework/fixtures/graphs/graph_3d_cache.yaml \
+  --out-plan .../plan_3d.json --out-launch .../graph_3d.launch
+# 容器同版（Python 3.8 + PyYAML 5.3.1）：framework 17/17；V8 全树 47 套件 0 失败。
+# 读数：3D 双缓存 digest 9d070b94…；启动序 sensors→lio→map→cache_a→cache_b→global→local→merge→mux→robot；
+#   反馈 merge.delta→map.delta policy period_s 5.0；命令写者 /cmd_vel=mux、/cmd_vel_advice/3d=local。
+# 边界：未启动 ROS；未接 ProcessRunner；launch 为骨架；catalog 含 v8_platform 测试替身。
