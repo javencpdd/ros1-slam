@@ -1,0 +1,19 @@
+R942 命令（2026-10-30 14:03—14:06 CST，qoder；V8-X1 按 NIST 几何剖面跑楼）
+# 容器 ros1-slam-sim；source noetic；PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2；
+# 策略 /tmp/new_policy.onnx sha256 881b6604…（仓外运行物，未入库）。
+# 夹具：5×0.1988 m、深 0.72、宽 3、front 1，14 s、0.3 m/s、heading hold 3.0/1.5/0.5，seed0—4 均 --perturb。
+cd /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/dynamics
+for s in 0 1 2 3 4; do
+  PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2 python3 -B mj_dreamwaq_walk.py \
+    --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --mode stairs \
+    --step-h 0.1988 --steps 5 --step-depth 0.72 --step-width 3.0 --step-front 1.0 \
+    --landing-depth 12.0 --seconds 14 --v-cmd 0.3 --heading-hold --yaw-gain 3.0 --y-gain 1.5 \
+    --max-wz 0.5 --seed $s --perturb --out /tmp/v8x1_nistL12_s$s.json
+done
+# 读数 L12：5/5 pass/stable、0 摔 0 失稳；末态 z 1.216—1.2245、max|y| .0852—.1538；
+#   五级边界基座 z .467—.521 → 1.245—1.268。
+# 对照 L6（--landing-depth 6.0）：flags 仍 5/5，但 seed1/3/4 末态 z .263—.5335（走出平台落地），
+#   seed0/2 在平台 z 1.2264/1.1948。
+# 对照 L2（--landing-depth 2.0）：seed0 五级全过，随后掉下平台；unstable=true、pass=false。
+# 判据缺口：stable_finish 只看末态 x 与 |y|，不查末态 z／平台边缘 ⇒ 平台后下落仍报 pass/stable；
+#   本批不改判据，交 L1。
