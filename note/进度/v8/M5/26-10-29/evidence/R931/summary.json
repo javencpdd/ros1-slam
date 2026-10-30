@@ -1,0 +1,22 @@
+{
+  "domain": "v8x1_new_policy_stair_matrix",
+  "policy": "/home/jack/下载/lite3_walk_policy.onnx",
+  "policy_sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f",
+  "policy_input": "270 (45 current + 5x45 history), output 12",
+  "xml_sha256": "7d98ed6977e82f9400f55ebfa65cd859806c2efa9128a0304276eb750647504e",
+  "config": {"steps": 3, "depth_m": 0.5, "width_m": 3.0, "front_m": 1.0,
+             "seed_perturb": "dx+-0.05, dy+-0.10, dyaw+-0.0873, dz+-0.005",
+             "heading_hold": [2.0, 1.0, 0.5], "v_cmd": 0.3, "seconds": 10},
+  "matrix": {"0.06": {"pass": 5, "stable": 5, "fell": 0},
+             "0.10": {"pass": 5, "stable": 5, "fell": 0},
+             "0.15": {"pass": 4, "stable": 4, "fell": 1}},
+  "total": {"runs": 15, "pass": 14, "stable": 14, "fell": 1},
+  "failure": {"height": 0.15, "seed": 1, "zmin": 0.1191, "final_xyz": [3.5613, 0.4235, 0.1191],
+              "max_abs_y": 0.5798, "fell": true},
+  "zmin_range": [0.1756, 0.2188],
+  "max_abs_y_range": [0.1363, 0.7751],
+  "scope": "MuJoCo torque policy; heading hold uses world truth; no ROS/no real robot/#151",
+  "v8x1": "REOPENED, NOT PASSED (14/15 stable, one 15 cm fall)",
+  "a5_overall": "PARTIAL",
+  "a1_a7": "NOT_VALIDATED"
+}

@@ -1,0 +1,10 @@
+R931 命令（2026-10-30 12:14—12:18 CST，qoder；V8-X1 新策略楼梯矩阵）
+# 容器 ros1-slam-sim；PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2（mujoco 2.3.7 + ort 1.16.3）。
+# 策略 /home/jack/下载/lite3_walk_policy.onnx（270 输入/12 输出，sha 881b6604…）；
+# 模型 /tmp/mjcf/Lite3.xml（sha 7d98ed69…）；3 级台阶、深 .5 m、宽 3 m、10 s、0.3 m/s；
+# heading hold 2.0/1.0/0.5；--seed 0..4 --perturb（dx±.05, dy±.10, dyaw±5°, dz±.005）。
+python3 -B .../mj_dreamwaq_walk.py --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --mode stairs --seconds 10 --v-cmd .3 --step-h $H --steps 3 --step-depth .5 --step-width 3.0 \
+  --step-front 1.0 --heading-hold --yaw-gain 2.0 --y-gain 1.0 --max-wz .5 --seed $S --perturb
+# 6 cm 5/5、10 cm 5/5、15 cm 4/5；15 cm seed1 跌落（zmin 0.1191，final x=3.5613）。
+# 单例 smoke 6 cm seed0 与 R884 同读数（final 10.3293, maxy 0.1284）。
