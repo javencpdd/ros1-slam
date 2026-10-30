@@ -8,8 +8,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from boundary import protocol
 from boundary.rate_bridge import CommandBridge, Limits
-from boundary.protocol import CommandFrame, ProtocolError, decode
-from boundary.udp_link import CommandReceiver, CommandSender
+from boundary.protocol import (CommandFrame, ProtocolError, TelemetryFrame,
+                               decode, decode_telemetry)
+from boundary.udp_link import (CommandReceiver, CommandSender, TelemetryReceiver,
+                               TelemetrySender)
+from boundary.recording import Recorder, load, replay, summarize
+from boundary.ros_bridge import NodeCore, policy_command
 
 
 class ProtocolTests(unittest.TestCase):
@@ -36,6 +40,26 @@ class ProtocolTests(unittest.TestCase):
     def test_non_finite_command_is_rejected(self):
         with self.assertRaises(ProtocolError):
             CommandFrame(1, 2, float('nan'), 0., 0.).encode()
+
+    def test_telemetry_round_trip_and_rejections(self):
+        frame = TelemetryFrame(3, 99, 1., 2., .4, .1, .2, .3, 1., 0., 0., 0.,
+                               .01, .02, .03, 0., 0., 9.8,
+                               joint_pos=tuple(float(i) for i in range(12)),
+                               joint_vel=tuple(float(i) for i in range(12)))
+        back = decode_telemetry(frame.encode())
+        self.assertEqual((back.seq, back.t_ns, back.state, back.fault), (3, 99, 1, 0))
+        for got, want in ((back.x, 1.), (back.vx, .1), (back.gz, .03), (back.joint_pos[7], 7.)):
+            self.assertAlmostEqual(got, want, places=5)
+        bad = bytearray(frame.encode())
+        bad[-1] ^= 0xFF
+        with self.assertRaises(ProtocolError):
+            decode_telemetry(bytes(bad))
+        with self.assertRaises(ProtocolError):
+            TelemetryFrame(1, 2, 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.,
+                           0., 0., 0., 0., 0., float('nan')).encode()
+        with self.assertRaises(ProtocolError):
+            TelemetryFrame(1, 2, 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.,
+                           0., 0., 0., 0., 0., 0., joint_pos=(0.,)).encode()
 
 
 class BridgeTests(unittest.TestCase):
@@ -84,6 +108,99 @@ class LinkTests(unittest.TestCase):
         finally:
             sender.close()
             receiver.close()
+
+    def test_telemetry_link_counts_loss(self):
+        receiver = TelemetryReceiver(('127.0.0.1', 0))
+        sender = TelemetrySender(receiver.address)
+        try:
+            for seq in (0, 1, 4):
+                sender.seq = seq
+                sender.send(TelemetryFrame(seq, 1, 0., 0., 0., 0., 0., 0.,
+                                           1., 0., 0., 0., 0., 0., 0., 0., 0., 9.8))
+            frames = [receiver.poll() for _ in range(3)]
+            self.assertEqual([f.seq for f in frames], [0, 1, 4])
+            self.assertEqual(receiver.stats['loss'], 2)
+        finally:
+            sender.close()
+            receiver.close()
+
+    def test_core_holds_without_telemetry_and_faults_when_stale(self):
+        class Clock:
+            now = 0.
+
+            def __call__(self):
+                return self.now
+
+        clock = Clock()
+        core = NodeCore(link_timeout_s=.5, clock=clock)
+        (vx, vy, wz), mode, flags = core.tick()
+        self.assertEqual((vx, vy, wz, mode), (0., 0., 0., protocol.MODE_HOLD))
+        self.assertEqual(core.fault, 'telemetry_missing')
+        core.on_telemetry(TelemetryFrame(1, 1, 0., 0., 0., 0., 0., 0.,
+                                         1., 0., 0., 0., 0., 0., 0., 0., 0., 9.8))
+        core.on_command(.3, 0., .1)
+        self.assertEqual(core.tick()[1], protocol.MODE_ACTIVE)
+        clock.now = 1.
+        self.assertEqual(core.tick()[1], protocol.MODE_HOLD)
+        self.assertEqual(core.fault, 'telemetry_stale')
+
+    def test_core_holds_on_robot_fault_and_planner_silence(self):
+        class Clock:
+            now = 0.
+
+            def __call__(self):
+                return self.now
+
+        clock = Clock()
+        core = NodeCore(clock=clock, limits=Limits(command_timeout_s=.25))
+        core.on_telemetry(TelemetryFrame(1, 1, 0., 0., 0., 0., 0., 0.,
+                                         1., 0., 0., 0., 0., 0., 0., 0., 0., 9.8,
+                                         state=protocol.TELEM_FAULT, fault=1))
+        self.assertEqual(core.tick()[1], protocol.MODE_HOLD)
+        self.assertEqual(core.fault, 'robot_fault')
+        core.on_telemetry(TelemetryFrame(2, 2, 0., 0., 0., 0., 0., 0.,
+                                         1., 0., 0., 0., 0., 0., 0., 0., 0., 9.8))
+        core.on_command(.3, 0., 0.)
+        self.assertEqual(core.tick()[1], protocol.MODE_ACTIVE)
+        clock.now = .4
+        self.assertEqual(core.tick()[1], protocol.MODE_HOLD)
+        self.assertIsNone(core.fault)
+
+    def test_policy_command_maps_lateral_velocity_to_heading(self):
+        self.assertEqual(policy_command(0., 0., 0.), (0., 0.))
+        speed, wz = policy_command(.2, .2, 0.)
+        self.assertAlmostEqual(speed, math.hypot(.2, .2))
+        self.assertEqual(wz, .5)
+        speed, wz = policy_command(1., .1, 0.)
+        self.assertAlmostEqual(wz, 3. * math.atan(.1), places=6)
+        self.assertEqual(policy_command(0., 0., .9)[1], .5)
+
+    def test_record_summarize_and_exact_replay(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'frames.jsonl'
+            recorder = Recorder(path)
+            base = 1_000_000_000
+            for seq in range(3):
+                stamp = base + seq * 20_000_000
+                frame = TelemetryFrame(seq, stamp - 200_000, 0., 0., .3, 0., 0., 0.,
+                                       1., 0., 0., 0., 0., 0., 0., 0., 0., 9.8)
+                recorder.write('telemetry', frame.encode(), at_ns=stamp)
+                command = CommandFrame(seq, stamp, .1, 0., 0.)
+                recorder.write('command', command.encode(), at_ns=stamp)
+            recorder.close()
+            rows = load(path)
+            self.assertEqual(len(rows), 6)
+            report = summarize(rows)
+            self.assertEqual(report['telemetry_frames'], 3)
+            self.assertEqual(report['command_frames'], 3)
+            self.assertEqual(report['telemetry_loss'], 0)
+            self.assertAlmostEqual(report['telemetry_interval_p50_s'], .02, places=4)
+            self.assertAlmostEqual(report['telemetry_latency_p99_s'], .0002, places=6)
+            sent = []
+            count = replay(rows, 'command', lambda data, _row: sent.append(data), rate_hz=10000.)
+            self.assertEqual(count, 3)
+            self.assertEqual([decode(data).seq for data in sent], [0, 1, 2])
 
     def test_receiver_rejects_garbage(self):
         receiver = CommandReceiver(('127.0.0.1', 0))
