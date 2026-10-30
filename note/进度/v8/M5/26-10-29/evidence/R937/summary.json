@@ -1,0 +1,25 @@
+{
+  "domain": "gazebo_nist_stairs_integration",
+  "asset": {
+    "source": "https://fuel.gazebosim.org/1.0/OpenRobotics/models/NIST%20stairs%20120",
+    "license": "CC0 1.0",
+    "path": "data/maps/worlds/nist_stairs_120",
+    "geometry": {"steps": 5, "step_height_m": 0.338983, "top_z_m": 1.745762,
+                "bottom_z_m": 0.338983, "x_range_m": [-1.0, 1.0], "y_range_m": [-1.0, 1.0]},
+    "note": "description says 1.2 m but the mesh is 5x0.339 m and floats 0.339 m above its origin"
+  },
+  "integration": {
+    "world": "ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120.world",
+    "launch": "ws/src/95_simulation/lite3_gazebo_sim/launch/nist_stairs_120.launch",
+    "gazebo_model_path": "data/maps/worlds:/usr/share/gazebo-11/models"
+  },
+  "load_test": {
+    "command": "roslaunch lite3_gazebo_sim nist_stairs_120.launch gui:=false",
+    "ros_master": 11361, "gazebo_master": 11357,
+    "get_world_properties": {"sim_time": 7.312, "model_names": ["ground_plane", "nist_stairs_120"], "success": true},
+    "result": "PASS"
+  },
+  "support_map": "NOT wired: native step height 0.339 m > local 0.2 m and mesh floats; no A4/A5 claim",
+  "scope": "Gazebo visual/collision world only; no evaluator/criteria/third-party code change",
+  "a1_a7": "NOT_VALIDATED"
+}

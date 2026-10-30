@@ -1,0 +1,10 @@
+R937 命令（2026-10-30 12:36—12:41 CST，qoder；NIST 接入 Gazebo）
+# 资产：data/maps/worlds/nist_stairs_120（gitignored，CC0）。
+# 世界/launch：ws/src/95_simulation/lite3_gazebo_sim/{worlds/nist_stairs_120.world,launch/nist_stairs_120.launch}
+# 启动（容器内）：
+source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash
+ROS_MASTER_URI=http://127.0.0.1:11361 GAZEBO_MASTER_URI=http://127.0.0.1:11357 \
+  roslaunch lite3_gazebo_sim nist_stairs_120.launch gui:=false
+rosservice call /gazebo/get_world_properties
+# 返回 model_names=[ground_plane, nist_stairs_120]、success=true、sim_time=7.312。
+# 说明：NIST 网格实际 5 级×0.339 m、底面离地 0.339 m，未接 support_map（局部 0.2 m 步高）。
