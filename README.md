@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R986（2026-10-31）★＝**A5 seed0/seed2 复跑**：同配置 seed0 **1/2 PASS**（一次 8 plans
+  到顶层，一次 1 plan 约 5.1 s 跌落），seed2 1/1 PASS；R973 的 seed0 FAIL 形态仍可复现，
+  A5 仍 **PARTIAL**，不把单次 PASS 当收口。无代码/判据改动，A1—A7 不变（代码 `82872d42`，
+  全文＝[R986](note/进度/v8/M5/26-10-29/R986.md)）。
 - ★R985（2026-10-31）★＝**V8-X1 无 landing 多 seed**：4×0.15 m、5.5 s、v .3、seed0—4×3；
   clean **12/15**、stable **3/15**（仅 seed0）、fell 0、unstable 0；seed1/3/4 越过判据后
   未留顶层，seed2 xmax 2.59 < 2.70。未改 R977 判据/阈值；MuJoCo 单策略、无 ROS/真机，

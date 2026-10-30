@@ -1,0 +1,192 @@
+{
+ "schema_version": 1,
+ "map_id": "nist_stairs_120",
+ "map_version": 1,
+ "frame": "map",
+ "kind": "support_map",
+ "resolution": 0.15,
+ "origin": [
+  -2.7,
+  -2.7,
+  0.0
+ ],
+ "extent": {
+  "width": 37,
+  "height": 30
+ },
+ "cell_states": [
+  "free",
+  "occupied",
+  "unknown"
+ ],
+ "unknown_policy": "unknown_not_traversable",
+ "multiple_surfaces_per_xy": true,
+ "source": {
+  "uri": "fuel://OpenRobotics/NIST stairs 120/nist_stairs_120.dae#z_scale=0.51&xy_scale=1.7",
+  "sha256": "46825b441947634f5a7c568aa22186bd27480918a3fa9d638ea3b5d73799be2f"
+ },
+ "surfaces": [
+  {
+   "surface_id": "ground",
+   "z_reference": 0.0,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "mesh://ground",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -2.7,
+    "min_y": -2.7,
+    "max_x": 2.7,
+    "max_y": -1.65
+   },
+   "edges": [
+    {
+     "to": "step1",
+     "kind": "step",
+     "max_step_height_m": 0.198798001,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "step1",
+   "z_reference": 0.198798,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "mesh://step1",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7,
+    "min_y": -1.7,
+    "max_x": 1.7,
+    "max_y": -0.97966104
+   },
+   "edges": [
+    {
+     "to": "ground",
+     "kind": "step",
+     "max_step_height_m": 0.198798001,
+     "bidirectional": true
+    },
+    {
+     "to": "step2",
+     "kind": "step",
+     "max_step_height_m": 0.17289000100000002,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "step2",
+   "z_reference": 0.371688,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "mesh://step2",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7,
+    "min_y": -1.03008423,
+    "max_x": 1.7,
+    "max_y": -0.30974527
+   },
+   "edges": [
+    {
+     "to": "step1",
+     "kind": "step",
+     "max_step_height_m": 0.17289000100000002,
+     "bidirectional": true
+    },
+    {
+     "to": "step3",
+     "kind": "step",
+     "max_step_height_m": 0.172890001,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "step3",
+   "z_reference": 0.544578,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "mesh://step3",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7,
+    "min_y": -0.36016897,
+    "max_x": 1.7,
+    "max_y": 0.36016982
+   },
+   "edges": [
+    {
+     "to": "step2",
+     "kind": "step",
+     "max_step_height_m": 0.172890001,
+     "bidirectional": true
+    },
+    {
+     "to": "step4",
+     "kind": "step",
+     "max_step_height_m": 0.172890001,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "step4",
+   "z_reference": 0.717468,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "mesh://step4",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7,
+    "min_y": 0.30974595,
+    "max_x": 1.7,
+    "max_y": 1.03008542
+   },
+   "edges": [
+    {
+     "to": "step3",
+     "kind": "step",
+     "max_step_height_m": 0.172890001,
+     "bidirectional": true
+    },
+    {
+     "to": "step5",
+     "kind": "step",
+     "max_step_height_m": 0.172890001,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "step5",
+   "z_reference": 0.890358,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "mesh://step5",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7,
+    "min_y": 0.9796613799999999,
+    "max_x": 1.7,
+    "max_y": 1.7
+   },
+   "edges": [
+    {
+     "to": "step4",
+     "kind": "step",
+     "max_step_height_m": 0.172890001,
+     "bidirectional": true
+    }
+   ]
+  }
+ ]
+}
