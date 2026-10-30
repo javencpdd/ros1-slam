@@ -1,0 +1,6 @@
+R928 命令（2026-10-30 10:36—10:37 CST，qoder；A7 规划运行面一键矩阵）
+# 容器 ros1-slam-sim；source noetic + /opt/ros1-slam/ws/devel；master 11449。
+python3 -B .../regression/a7_runtime_matrix.py --out /tmp/r928/matrix.json
+# 20 cell（SC01—SC10 × truth/estimate）：14 PASS、6 预期失败、0 意外、20/20 同设计。
+# 预期失败：SC07（无路）、SC10（预算）、SC09（净空）各 truth/estimate。
+# 测试：2 项矩阵装配测试；41 套件 0 失败。
