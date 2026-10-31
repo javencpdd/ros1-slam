@@ -201,6 +201,14 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
         collision = body_collision(map_value, (*pose, now), (*pose, target[3]), obstacles, config, contacts)
         return dict(zero, reason='E_LOCAL_COLLISION' if collision else 'hold')
     observed = pose if feedback_pose is None else tuple(feedback_pose)
+    # A low-speed legged carrier can overshoot a short committed step.  Chasing
+    # that fixed waypoint backwards causes forward/backward oscillation; once
+    # the observed pose is past the waypoint along the segment, advance.
+    dx, dy = target[0] - a[0], target[1] - a[1]
+    horizontal = math.hypot(dx, dy)
+    if (planned_distance > 1e-12 and horizontal > 1e-9 and
+            (observed[0] - target[0]) * dx + (observed[1] - target[1]) * dy > 1e-3 * horizontal):
+        return dict(zero, reason='segment_complete', complete=True)
     previous_speed = math.sqrt(sum(v * v for v in previous_velocity)) if previous_velocity else 0.
     tail = config.command_latency_bound_s * previous_speed
     if _distance(observed, target) + tail <= 1e-6:

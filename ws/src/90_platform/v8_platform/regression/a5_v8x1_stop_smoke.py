@@ -144,6 +144,7 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--max-speed', type=float, default=.3)
     parser.add_argument('--resolution', type=float, default=.05)
+    parser.add_argument('--tick-s', type=float, default=1.2)
     parser.add_argument('--start-map-y', type=float, default=-2.175)
     parser.add_argument('--inject-map-y', type=float, default=-.2)
     parser.add_argument('--goal-y', type=float, default=1.0)
@@ -199,7 +200,7 @@ def main():
         rospy.init_node('a5_v8x1_stop_smoke', anonymous=True, disable_signals=True)
         node_name = 'a5stop_%d' % os.getpid()
         prefix = '/' + node_name
-        config = {'tick_s': 1.2, 'horizon_s': 12., 'validity_s': 12.,
+        config = {'tick_s': args.tick_s, 'horizon_s': 12., 'validity_s': 12.,
                   'clearance_m': .1, 'max_speed_mps': args.max_speed, 'resolution': args.resolution}
         node_argv = [sys.executable, '-u', '-B', str(LOCAL / 'ros_node.py'),
                      '__name:=' + node_name,

@@ -69,6 +69,15 @@ class NativeTests(unittest.TestCase):
         box = native._obstacles([moving])[0]
         self.assertTrue(native._swept_hit((1., 0., 0., 0.), (1., 0., 0., 1.), box, cfg))
 
+    def test_track_advances_when_pose_is_past_the_committed_waypoint(self):
+        value = flat()
+        result = native.plan(value, (0., 0., 0.), (1., 0., 0.), now=0.)
+        target = result['trajectory'][1]
+        out = native.track_segment(value, result, (target[0] + .2, target[1], target[2]),
+                                   .01, [], config=replace(native.Config(), validity_s=2.))
+        self.assertTrue(out['complete'])
+        self.assertEqual(out['reason'], 'segment_complete')
+
     def test_no_route_refuses_and_clears_command(self):
         wall = {'min': [-.15, -3., -.1], 'max': [.15, 3., 1.]}
         with self.assertRaises(native.LocalError) as caught:
