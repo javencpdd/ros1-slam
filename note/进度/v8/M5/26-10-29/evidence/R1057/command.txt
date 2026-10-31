@@ -1,0 +1,7 @@
+R1057：感知路径障碍早拒修复（1ce3fd42）
+# 先导负控（修复前）：--path-obstacle --sensor-range 1.4/1.5/1.6，
+#   .28/.45 × seed0/1/2，start -1.9；7/18 PASS，.45 全碰撞，.28 gap .007—.039，
+#   stop 7.5—8.9 s、path 1.5—1.9 m（局部规划部分推进到厘米级才拒）。
+# 修复：local_native.plan 未达目标且静态障碍挡目标线、计划仍在障碍横向范围内/未过前沿
+#   → E_LOCAL_NO_ROUTE；侧向绕行/已过前沿不拒。
+# 修复后单探针 .28：stop .5 s、forward .021 m、path .040 m、gap 1.65 m。
