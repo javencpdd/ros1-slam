@@ -1,0 +1,9 @@
+schema: pipeline_graph/v1
+name: global3d_topic
+instances:
+  - id: global
+    component: v8.fw.global3d_topic
+external:
+  - {to: global.map, type: std_msgs/String, source: map_provider}
+  - {to: global.start, type: geometry_msgs/PoseStamped, source: localization}
+  - {to: global.goal, type: geometry_msgs/PoseStamped, source: operator}

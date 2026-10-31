@@ -22,6 +22,7 @@ G_SEMANTIC_PLAN = HERE / 'fixtures' / 'graphs' / 'graph_semantic_planning.yaml'
 G_SEMANTIC_OBSTACLE = HERE / 'fixtures' / 'graphs' / 'graph_semantic_obstacle_planning.yaml'
 G_POSE_MUX = HERE / 'fixtures' / 'graphs' / 'graph_pose_mux.yaml'
 G_COMMAND_OVERLAP = HERE / 'fixtures' / 'graphs' / 'graph_command_overlap.yaml'
+G_GLOBAL3D_TOPIC = HERE / 'fixtures' / 'graphs' / 'graph_global3d_topic.yaml'
 
 
 def setup():
@@ -172,6 +173,18 @@ class PreflightTests(unittest.TestCase):
         plan = render.render_plan(graph, catalog, report)
         checked = __import__('safety').check_plan(plan, catalog)
         self.assertEqual(checked['command_owner'], 'mux')
+
+    def test_real_global3d_topic_graph_is_registrable(self):
+        catalog = config.load_components(MANIFESTS)
+        graph = config.load_graph(G_GLOBAL3D_TOPIC)
+        report = graph_mod.check(graph, catalog)
+        self.assertEqual(report['startup_order'], ['global'])
+        self.assertEqual(report['command_writers'], {})
+        self.assertEqual(report['bindings']['global']['map']['schema'], 'support_map/v1')
+        root = ET.fromstring(render.render_launch(graph, catalog, report))
+        node = root.find('node')
+        self.assertEqual((node.get('pkg'), node.get('type')),
+                         ('v8_platform', 'planner/topic_node.py'))
 
 
 if __name__ == '__main__':
