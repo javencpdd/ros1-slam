@@ -1,0 +1,19 @@
+R1063 命令（2026-11-01，qoder；容器 ros1-slam-sim，仓挂 /opt/ros1-slam）
+
+# 代码提交 23e5e9f8（ros_node plan_wake；a5_gazebo_runtime 箱体 x=2.0 + ownership 10 s 等待）
+cd /opt/ros1-slam
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /tmp/r1063/runN --port <11353|11355|11356> \
+  --gazebo --local-gazebo --local-cases sensed_no_route
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /tmp/r1063/arrival --port 11354 \
+  --gazebo --local-gazebo --local-cases arrival
+
+# 三跑 lab.json 均为 {"local_gazebo": 0, ...}；AABB 全同 [1.68,-0.32,0]-[2.02,0.32,0.62]。
+# 单测：test_a5_gazebo_runtime 15/15；local_planner 三件 35/35；v8 全树 70/0。
+
+# 本批之前、同一夹具的 1.5 m/2.0 m 无事件唤醒探针（不进证据）：
+#   1.5 m 三跑感知→静止 0-0.0088 m，物理停顿落在 0.1 m 分段边界；
+#   2.0 m 无唤醒时 1 跑分段中点、2 跑边界（感知→静止 0-0.0028 m）。
+# 唤醒后 2.0 m 三跑全部为分段中点感知，且输入后无 segment_complete。
+# 事件唤醒也修掉了一次启动竞态：ownership 预检在 mux 尚未注册时立即 rc=6；现最多等 10 s。
