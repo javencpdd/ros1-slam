@@ -5,6 +5,7 @@ through MapRouter/MapStore; the node does not change map or delta contracts.
 """
 import json
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -17,22 +18,26 @@ class MultiMapCore:
     def __init__(self, state_dir, maps):
         self.router = map_router.MapRouter(state_dir, maps)
         self.errors = []
+        self.lock = threading.Lock()
 
     def apply_text(self, text):
-        try:
-            version = self.router.apply_text(text)
-        except Exception as error:  # map_service errors are fail-closed
-            code = getattr(error, 'code', 'E_DELTA_JSON')
-            self.errors.append(code)
-            self.errors = self.errors[-10:]
-            return {'ok': False, 'reason': code, 'detail': str(error)}
-        return {'ok': True, 'map_version': version}
+        with self.lock:
+            try:
+                version = self.router.apply_text(text)
+            except Exception as error:  # map_service errors are fail-closed
+                code = getattr(error, 'code', 'E_DELTA_JSON')
+                self.errors.append(code)
+                self.errors = self.errors[-10:]
+                return {'ok': False, 'reason': code, 'detail': str(error)}
+            return {'ok': True, 'map_version': version}
 
     def snapshot(self, map_id):
-        return self.router.snapshot(map_id)
+        with self.lock:
+            return self.router.snapshot(map_id)
 
     def status(self):
-        return {'maps': self.router.status(), 'errors': self.errors}
+        with self.lock:
+            return {'maps': self.router.status(), 'errors': list(self.errors)}
 
 
 def _load_files(value):

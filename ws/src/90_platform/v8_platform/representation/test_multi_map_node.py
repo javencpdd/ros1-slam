@@ -1,6 +1,7 @@
 """Multi-map node core: map_id routing and restart persistence without ROS."""
 import json
 import sys
+import threading
 import tempfile
 import unittest
 from pathlib import Path
@@ -33,6 +34,27 @@ class MultiMapNodeCoreTests(unittest.TestCase):
             self.assertEqual(second.snapshot('map_a')['map_version'], 2)
             self.assertEqual(second.snapshot('map_b')['map_version'], 1)
             self.assertEqual(second.status()['maps']['map_a']['applied_deltas'], 1)
+
+    def test_snapshot_and_delta_are_serialized(self):
+        with tempfile.TemporaryDirectory() as directory:
+            core = node.MultiMapCore(directory, [value('map_a')])
+            seen = []
+
+            def reader():
+                for _ in range(300):
+                    seen.append(core.snapshot('map_a')['map_version'])
+                    core.status()
+
+            thread = threading.Thread(target=reader)
+            thread.start()
+            result = core.apply_text(json.dumps(td.delta(
+                1, [{'op': 'upsert_surface', 'surface': td.changed_surface()}],
+                delta_id='a1', map_id='map_a')))
+            thread.join(timeout=5)
+            self.assertFalse(thread.is_alive())
+            self.assertTrue(result['ok'])
+            self.assertEqual(core.snapshot('map_a')['map_version'], 2)
+            self.assertTrue(all(version in (1, 2) for version in seen))
 
     def test_bad_delta_does_not_change_maps(self):
         with tempfile.TemporaryDirectory() as directory:
