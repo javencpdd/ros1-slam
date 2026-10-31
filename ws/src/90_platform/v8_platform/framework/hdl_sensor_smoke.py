@@ -52,8 +52,18 @@ def main():
     if os.environ.get('V8_HDL_USE_IMU') == '0':
         catalog['components']['v8.fw.hdl_nodelet_group']['launch']['plugins'][1][
             'params']['use_imu'] = False
+    hdl_params = catalog['components']['v8.fw.hdl_nodelet_group']['launch']['plugins'][1][
+        'params']
+    for env_name, key, cast in (('V8_HDL_REG_METHOD', 'reg_method', str),
+                                ('V8_HDL_SEARCH', 'ndt_neighbor_search_method', str),
+                                ('V8_HDL_NDT_RES', 'ndt_resolution', float)):
+        if os.environ.get(env_name):
+            hdl_params[key] = cast(os.environ[env_name])
     plan = render.render_plan(graph, catalog, graph_mod.check(graph, catalog))
-    result = {'startup_order': [item['id'] for item in plan['instances']]}
+    result = {'startup_order': [item['id'] for item in plan['instances']],
+              'hdl_params': {key: hdl_params[key] for key in
+                             ('reg_method', 'ndt_neighbor_search_method',
+                              'ndt_resolution', 'use_imu')}}
     master = start(['roscore', '-p', str(PORT)], '/tmp/r1018_master.log')
     gazebo = None
     assembly = None
@@ -69,7 +79,9 @@ def main():
         rospy.init_node('r1018_smoke', anonymous=True, disable_signals=True)
         cloud = rospy.wait_for_message('/rslidar_points', PointCloud2, timeout=90)
         imu = rospy.wait_for_message('/livox/imu', Imu, timeout=90)
-        result['sensor'] = {'cloud_points': len(cloud.data), 'imu_frame': imu.header.frame_id}
+        result['sensor'] = {'cloud_points': len(cloud.data),
+                            'cloud_frame': cloud.header.frame_id,
+                            'imu_frame': imu.header.frame_id}
         cloud_pub = rospy.Publisher('/velodyne_points', PointCloud2, queue_size=5)
         imu_pub = rospy.Publisher('/gpsimu_driver/imu_data', Imu, queue_size=20)
         counts = {'cloud': 0, 'imu': 0}
@@ -114,6 +126,9 @@ def main():
                                            (message.pose.pose.position.x,
                                             message.pose.pose.position.y,
                                             message.pose.pose.position.z)]}
+        runner = assembly.runners.get('hdl')
+        result['manager_alive'] = bool(runner and runner.is_alive())
+        result['manager_crashed'] = not result['manager_alive']
         assembly.stop()
         result['stopped'] = all(r.is_stopped() for r in assembly.runners.values())
         result['ok'] = (result['started'] and result['nodelets']
