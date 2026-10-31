@@ -101,6 +101,7 @@ python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼�
 python3 -B framework/plugin_smoke.py        # 真实 ROS：nodelet plugin 装配/参数/IO/停止
 python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/truth/清理
 python3 -B framework/semantic_graph_smoke.py       # 语义 provider 经 graph/Assembly 启停
+python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替换 v1→v2
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；
@@ -162,7 +163,8 @@ python3 -B framework/semantic_graph_smoke.py       # 语义 provider 经 graph/A
 - 包索引是声明快照，不是 rospack 活体扫描；验证已接真实 Gazebo empty-world 后端（R1006），
   未接 MuJoCo 后端与场景化真值；`gazebo_truth.py` 以 ground_plane 静态位姿证明通道，
   不冒充算法评价；
-  热插拔、状态迁移、运行期改线未实现。
+  热插拔/状态迁移已有 v0.3 与只读实例 overlap（R1009）；运行期改线与命令/TF 链
+  零中断未实现。
 - validator 否决走的是**编排层停止链**，不是 msg 级实时看门狗；50/500 Hz 的承载路径未做实测对比，
   只记录启动 check+plan 的 p95。
 - 不改 `contracts/registry/composer/orchestrator` 既有语义；A1—A7 状态不变。
@@ -204,3 +206,9 @@ python3 -B framework/selector.py framework/fixtures/manifests \
 保持不变，新实例启动失败则重启旧组件并记 `rolled_back`。记录中的 `state` 写成临时 JSON，
 经 `V8_HOT_SWAP_STATE`/`V8_HOT_SWAP_INSTANCE`/`V8_HOT_SWAP_EPOCH` 交给新进程；组件须显式
 读取。仍是**先停后启**，不是零中断；运行期 TF 实际探测未做。
+
+`apply_overlap`（R1009）只用于**无命令、无 TF** 的实例（只读/遥测 provider）：先启动
+替换进程，`ready_check()` 通过后再停旧进程；失败则保留旧进程并记 `rolled_back`。
+替换实例用 `runtime_name` 得到独立 ROS 节点名，避免与旧节点同名互踢；`prepare` 支持
+`params` 覆盖，状态仍经 `V8_HOT_SWAP_*` 交给新进程。真实语义 provider 冒烟 v1→v2、
+查询零失败、`/sem_swap1` 接管。命令链/定位链因存在双写与 TF 所有权，不走 overlap。

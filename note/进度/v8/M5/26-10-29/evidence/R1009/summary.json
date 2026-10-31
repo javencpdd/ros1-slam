@@ -1,0 +1,49 @@
+{
+ "smoke": {
+  "initial_version": 1,
+  "command": [
+   "rosrun",
+   "v8_platform",
+   "representation/semantic_map_node.py",
+   "__name:=sem_swap1",
+   "_keep_alive_s:=60",
+   "_semantic_files:=/tmp/r1009_sem_v2.json"
+  ],
+  "preconditions": {
+   "assembly_stopped": false,
+   "no_command_overlap": true,
+   "tf_edges_preserved": true,
+   "new_ready_before_stop": true,
+   "old_alive_before_stop": true
+  },
+  "postconditions": {
+   "new_ready": true,
+   "single_command_writer": true,
+   "rolled_back": false,
+   "overlap": true,
+   "old_stopped": true
+  },
+  "old_runner_stopped": true,
+  "new_runner_alive": true,
+  "new_runtime_name": "sem_swap1",
+  "state_file": "/tmp/v8_swap_x6z68d9y.json",
+  "state_file_ok": true,
+  "query_failures_after_stop": 0,
+  "final_version": 2,
+  "final_features": 2,
+  "max_topic_version": 2,
+  "nodes_after_swap": [
+   "/r1009_smoke_44092_1793428017328",
+   "/rosout",
+   "/sem_swap1"
+  ],
+  "stopped": true,
+  "ok": true
+ },
+ "tests": {
+  "hotswap": "11/11",
+  "process_runner": "pass",
+  "v8_suites": "63/0"
+ },
+ "interpretation": "read-only semantic provider swaps with the replacement ready before the old process stops; query service has zero failures after the stop and the new node keeps serving v2"
+}

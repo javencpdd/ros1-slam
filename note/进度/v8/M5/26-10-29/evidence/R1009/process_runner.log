@@ -1,0 +1,20 @@
+test_env_extends_parent_environment (__main__.ProcessRunnerTests) ... ok
+test_orchestrator_full_loop_real_processes (__main__.ProcessRunnerTests)
+全链：submit→start（就绪门）→运行中死亡→健康检查→停止链→FAILED＋退净。 ... ok
+test_partial_stdout_cannot_block_readiness_deadline (__main__.ProcessRunnerTests) ... ok
+test_ready_gate_by_marker (__main__.ProcessRunnerTests) ... ok
+test_ready_timeout_rejected (__main__.ProcessRunnerTests) ... ok
+test_repeated_start_keeps_original_process (__main__.ProcessRunnerTests) ... ok
+test_runtime_timeout_cleans_processes (__main__.ProcessRunnerTests) ... ok
+test_start_failure_cleans_previous_real_process (__main__.ProcessRunnerTests) ... ok
+test_stdout_after_ready_is_drained (__main__.ProcessRunnerTests) ... ok
+test_stop_chain_order_and_clean (__main__.ProcessRunnerTests) ... ok
+test_stop_kills_descendant_in_own_session (__main__.ProcessRunnerTests)
+roslaunch starts each node in its own session; group-only stop strands them. ... ok
+test_term_hang_escalates_to_kill (__main__.ProcessRunnerTests) ... ok
+test_two_task_isolation_real (__main__.ProcessRunnerTests) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 3.125s
+
+OK

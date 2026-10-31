@@ -40,7 +40,7 @@
 | 图形化选配 | 同角色候选预检、拒绝码、导出 JSON/YAML 兼容图 |
 | 实例配置预检 | 每实例 `config` 文件解析/重复键/映射/摘要；取代 manifest param_files |
 | 维度配对 | Path 跨 2D/3D 直连拒绝；地图 schema 与组件 dimensions 不一致拒绝 |
-| 热替换合同 | `hot_swap/v1`：角色/端口/所有权门＋停止后换组合 |
+| 热替换合同 | `hot_swap/v1`：角色/端口/所有权门＋停止后换组合；只读无命令/无 TF 实例可重叠换（R1009） |
 | 真实 2D 装配 | `v8.nav2d.dwa_stack`/`teb_stack` + `v8.nav2d.mux` 四张 graph；Assembly 启动 nav+mux，GlobalPlanner/Navfn × DWA/TEB 4/4 PASS（R981） |
 | 真实停止 | `ProcessRunner` 快照 roslaunch 后代并对独立会话发信号，避免只杀 roslaunch 遗留节点 |
 | 边界主链 | mux `/cmd_vel` → `v8.boundary.adapter` UDP → Gazebo 运动学端点 → `/boundary/odom`；R984 实测，R988 200/500 Hz 请求达 202.8/485.8 Hz，R991 500 Hz 60 s 达 500.4 Hz |
@@ -81,6 +81,8 @@ F0—F8 已完成；F1—F7 证据索引与“未接入项/回滚说明”见
 [framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md) §7）。
 热替换：`hotswap.prepare` 检查角色/端口/命令所有权；`apply` 停整装配后换组合，
 `apply_instance` 只停目标实例、保留其他实例与任务 `RUNNING`，启动失败回滚旧组件；
-`state` 经 `V8_HOT_SWAP_STATE` 临时 JSON 交给新进程。仍是先停后启，运行期 TF 实际探测未做。
+`state` 经 `V8_HOT_SWAP_STATE` 临时 JSON 交给新进程。`apply_overlap`（R1009）只用于
+无命令、无 TF 的只读/遥测实例：先起替换并等待 `ready_check`，再停旧；失败保留旧进程。
+命令/定位链仍走先停后启，运行期 TF 实际探测未做。
 
 完整说明见 [framework/README.md](../../ws/src/90_platform/v8_platform/framework/README.md)。

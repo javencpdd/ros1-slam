@@ -1,0 +1,16 @@
+R1009 命令（2026-10-31 14:16—14:30 CST，qoder；只读 provider 重叠替换）
+# hotswap.apply_overlap：无命令/无 TF 实例先起替换，ready 后停旧；失败保留旧。
+# prepare 支持 params 覆盖；runtime_name 给替换节点独立 ROS 名；
+# ProcessRunner env 叠加父环境（修复状态交接丢 PATH）。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src:$ROS_PACKAGE_PATH。
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_hotswap.py
+python3 -B orchestrator/test_process_runner.py
+python3 -B framework/overlap_swap_smoke.py
+# 读数：hotswap 11/11、process_runner 通过；真实语义 provider v1→v2，
+#   new_ready_before_stop/old_alive_before_stop=true，overlap=true，
+#   query_failures_after_stop=0，final v2/2 要素，节点 /sem_swap1 接管，
+#   状态文件 map_version=1；V8 全树 63 套件 0 失败。
+# 边界：只允许无命令/无 TF 的只读/遥测实例；重叠窗内可能双发布；
+#   命令/定位链仍先停后启；运行期 TF 实际探测未做。
