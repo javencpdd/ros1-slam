@@ -288,6 +288,11 @@ class FrameworkTests(unittest.TestCase):
         with self.assertRaises(config.FrameworkError) as caught:
             launch_mod.check_components(catalog, broken)
         self.assertEqual(caught.exception.code, 'E_LAUNCH_PACKAGE')
+        broken = copy.deepcopy(index)
+        broken['nodelet_tutorial_math']['plugin_classes'] = []
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, broken)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_TYPE')
 
     def test_launch_spec_rejects_bad_entries(self):
         cases = [

@@ -80,6 +80,8 @@ def default_command(instance, component):
         else:
             text = str(value)
         command.append('_%s:=%s' % (key, text))
+    for item in spec.get('remap', []):
+        command.append('%s:=%s' % (item['from'], item['to']))
     return command, spec.get('ready_marker')
 
 

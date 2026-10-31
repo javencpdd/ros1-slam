@@ -123,6 +123,20 @@ class RuntimeTests(unittest.TestCase):
         assembly.stop()
         self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
 
+    def test_launch_remap_is_applied_to_node_and_plugin_commands(self):
+        node = {'launch': {'kind': 'node', 'package': 'p', 'type': 't',
+                           'remap': [{'from': 'in', 'to': '/abs/in'}]}}
+        command, _ = runtime.default_command(
+            {'id': 'n', 'params': {'k': 1}, 'namespace': None}, node)
+        self.assertEqual(command, ['rosrun', 'p', 't', '_k:=1', 'in:=/abs/in'])
+        plugin = {'launch': {'kind': 'plugin', 'package': 'nodelet',
+                             'plugin': 'pkg/Class',
+                             'remap': [{'from': 'out', 'to': '/abs/out'}]}}
+        command, _ = runtime.default_command(
+            {'id': 'n', 'params': {}, 'namespace': None}, plugin)
+        self.assertEqual(command, ['rosrun', 'nodelet', 'nodelet', 'standalone',
+                                   'pkg/Class', '__name:=n', 'out:=/abs/out'])
+
     def test_nav2d_graph_passes_planner_args_to_real_include(self):
         plan, catalog = plan_for(G2D_STACK)
         nav = next(item for item in plan['instances'] if item['id'] == 'nav')

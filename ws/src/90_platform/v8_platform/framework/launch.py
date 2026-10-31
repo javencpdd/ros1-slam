@@ -28,6 +28,10 @@ def load_index(path):
             items = entry.get(key, [])
             if not isinstance(items, list) or not all(isinstance(i, str) for i in items):
                 raise FrameworkError('E_LAUNCH_INDEX', '%s.%s must be string list' % (name, key))
+        classes = entry.get('plugin_classes', [])
+        if not isinstance(classes, list) or not all(isinstance(i, str) for i in classes):
+            raise FrameworkError('E_LAUNCH_INDEX',
+                                 '%s.plugin_classes must be string list' % name)
     return value['packages']
 
 
@@ -55,6 +59,11 @@ def check_components(catalog, packages):
                 raise FrameworkError('E_LAUNCH_PACKAGE',
                                      '%s needs plugin package %s'
                                      % (cid, plugin_package))
+            classes = packages[plugin_package].get('plugin_classes')
+            if classes is not None and spec['plugin'] not in classes:
+                raise FrameworkError('E_LAUNCH_TYPE',
+                                     '%s: %s not in plugin_classes'
+                                     % (cid, spec['plugin']))
         else:
             executables = entry.get('executables')
             if executables is not None and spec['type'] not in executables:
