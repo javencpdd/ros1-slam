@@ -1,0 +1,89 @@
+{
+ "experiment": "select commands by sim stamp in the published clock domain",
+ "runs": [
+  {
+   "run": "s0_18.json.gz",
+   "ok": false,
+   "checks": {
+    "climbed": false,
+    "final_on_top": false,
+    "goal_map": false,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    44.72,
+    0.5587,
+    -0.0903,
+    0.239
+   ],
+   "applied": 562
+  },
+  {
+   "run": "s0_19.json.gz",
+   "ok": false,
+   "checks": {
+    "climbed": false,
+    "final_on_top": false,
+    "goal_map": false,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    44.72,
+    0.542,
+    -0.0983,
+    0.2356
+   ],
+   "applied": 563
+  },
+  {
+   "run": "s0_20.json.gz",
+   "ok": true,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    35.679999999,
+    3.9582,
+    0.0172,
+    1.1169
+   ],
+   "applied": 389
+  },
+  {
+   "run": "s0_21.json.gz",
+   "ok": false,
+   "checks": {
+    "climbed": true,
+    "final_on_top": false,
+    "goal_map": false,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    15.3,
+    3.5507,
+    -0.1463,
+    1.2053
+   ],
+   "applied": 181
+  }
+ ],
+ "first_diff": {
+  "common": 291,
+  "first_command_sim": 0.18,
+  "first_qpos_sim": 0.18
+ },
+ "finding": "first divergence sim .18; run20 PASS, run21 FAIL; not a full fix",
+ "domain_bug": "first version compared to data.time (missing clock_offset) -> all commands zero",
+ "result": "negative for full determinism; option default off",
+ "tests": {
+  "bridge": "6/6",
+  "full_tree": "70/70"
+ }
+}

@@ -1,0 +1,5 @@
+R1068 命令（2026-11-01 05:15—05:30 CST，qoder；v8codex-20261028）
+# 代码提交 8c2d42a7；启动同 R1067，追加 --command-stamp-window .05 或 .3。
+# 首版误用 data.time 域（漏 clock_offset）→ 全零命令（run18/19 FAIL）；
+# 改到 clock_offset+data.time 后 run20 PASS、run21 FAIL，首分歧 sim .18。
+# 默认 0 关闭，不影响现有链。
