@@ -1,7 +1,10 @@
 """V8-X3 selector: variant precheck, selected graph, HTML page."""
+import io
+import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -39,6 +42,48 @@ class SelectorTests(unittest.TestCase):
         self.assertTrue(report['ok'])
         self.assertEqual(report['instances']['robot']['component'], 'v8.fw.robot_test_b')
         self.assertNotEqual(report['digest'], graph_mod.check(graph, catalog)['digest'])
+
+    def test_combination_validates_whole_choice_set(self):
+        catalog, graph = setup()
+        ok = selector.combination(graph, catalog, {'robot': 'v8.fw.robot_test_b'})
+        self.assertTrue(ok['ok'])
+        expected = graph_mod.check(
+            selector.selected_graph(graph, {'robot': 'v8.fw.robot_test_b'}), catalog)
+        self.assertEqual(ok['digest'], expected['digest'])
+        self.assertEqual(ok['command_writers'], expected['command_writers'])
+        bad = selector.combination(graph, catalog, {'local': 'v8.fw.local3d'})
+        self.assertFalse(bad['ok'])
+        self.assertEqual(bad['reason'], 'E_GRAPH_DIMENSION')
+        self.assertEqual(selector.combination(graph, catalog, {'nope': 'v8.fw.robot_test_b'})['reason'],
+                         'E_SELECT_INSTANCE')
+        self.assertEqual(selector.combination(graph, catalog, {'robot': 'v8.fw.nope'})['reason'],
+                         'E_SELECT_COMPONENT')
+        self.assertEqual(selector.combination(graph, catalog, {'robot': 'v8.fw.map2d'})['reason'],
+                         'E_SELECT_ROLE')
+
+    def test_cli_rejects_bad_combination_and_exports_good_one(self):
+        with tempfile.TemporaryDirectory() as directory:
+            html = Path(directory) / 'selector.html'
+            out = Path(directory) / 'selector.json'
+            selected = Path(directory) / 'graph_selected.json'
+            with redirect_stdout(io.StringIO()):
+                rc = selector.main([str(MANIFESTS), str(G2D), '--out-html', str(html),
+                                    '--choose', 'local=v8.fw.local3d'])
+            self.assertEqual(rc, 5)
+            self.assertFalse(html.exists())
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                rc = selector.main([str(MANIFESTS), str(G2D), '--out-html', str(html),
+                                    '--out-json', str(out), '--out-selected', str(selected),
+                                    '--choose', 'robot=v8.fw.robot_test_b'])
+            self.assertEqual(rc, 0)
+            payload = json.loads(out.read_text())
+            self.assertTrue(payload['combination']['ok'])
+            self.assertEqual(payload['combination']['choices'],
+                             {'robot': 'v8.fw.robot_test_b'})
+            saved = json.loads(selected.read_text())
+            self.assertEqual(saved['instances']['robot']['component'], 'v8.fw.robot_test_b')
+            self.assertTrue(json.loads(buffer.getvalue())['combination'])
 
     def test_html_is_self_contained_and_exportable(self):
         catalog, graph = setup()

@@ -71,6 +71,36 @@ def selected_graph(graph, choices):
     return result
 
 
+def combination(graph, catalog, choices):
+    """Validate one whole chosen set, not just one swap at a time."""
+    for instance_id, component_id in sorted(choices.items()):
+        if instance_id not in graph['instances']:
+            return {'ok': False, 'reason': 'E_SELECT_INSTANCE',
+                    'detail': instance_id, 'choices': dict(choices)}
+        current = catalog['components'][graph['instances'][instance_id]['component']]
+        chosen = catalog['components'].get(component_id)
+        if chosen is None:
+            return {'ok': False, 'reason': 'E_SELECT_COMPONENT',
+                    'detail': component_id, 'choices': dict(choices)}
+        if _signature(chosen) != _signature(current):
+            return {'ok': False, 'reason': 'E_SELECT_ROLE',
+                    'detail': '%s: %s != %s' % (instance_id, chosen['roles'],
+                                                current['roles']),
+                    'choices': dict(choices)}
+    selected = selected_graph(graph, choices)
+    try:
+        report = graph_mod.check(selected, catalog)
+        plan = render.render_plan(selected, catalog, report)
+        checked = safety.check_plan(plan, catalog)
+    except config.FrameworkError as error:
+        return {'ok': False, 'reason': error.code, 'detail': error.detail,
+                'choices': dict(choices)}
+    return {'ok': True, 'reason': None, 'detail': None, 'choices': dict(choices),
+            'digest': report['digest'],
+            'command_writers': report['command_writers'],
+            'safety': checked}
+
+
 def _html(data, manifest_dir, graph_path):
     payload = json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
     return '''<!doctype html>
@@ -154,17 +184,43 @@ def main(argv=None):
     parser.add_argument('graph')
     parser.add_argument('--out-html', required=True)
     parser.add_argument('--out-json')
+    parser.add_argument('--choose', action='append', default=[],
+                        help='instance=component; repeat to validate a combination')
+    parser.add_argument('--out-selected')
     args = parser.parse_args(argv)
     catalog = config.load_components(args.manifests)
     graph = config.load_graph(args.graph)
+    choices = {}
+    for item in args.choose:
+        instance_id, separator, component_id = item.partition('=')
+        if not separator or not instance_id or not component_id:
+            print(json.dumps({'ok': False, 'reason': 'E_SELECT_FORMAT', 'detail': item},
+                             ensure_ascii=False))
+            return 5
+        choices[instance_id] = component_id
+    combined = combination(graph, catalog, choices) if choices else None
+    if combined is not None and not combined['ok']:
+        print(json.dumps(combined, ensure_ascii=False))
+        return 5
     data = variant_matrix(graph, catalog)
+    if combined is not None:
+        data['combination'] = combined
+        if args.out_selected:
+            Path(args.out_selected).write_text(
+                json.dumps(selected_graph(graph, choices), ensure_ascii=False, indent=1) + '\n',
+                encoding='utf-8')
     Path(args.out_html).write_text(_html(data, args.manifests, args.graph), encoding='utf-8')
     if args.out_json:
         Path(args.out_json).write_text(json.dumps(data, ensure_ascii=False, indent=1) + '\n',
                                        encoding='utf-8')
     rejected = sum(1 for inst in data['instances'] for v in inst['variants'] if not v['ok'])
     print(json.dumps({'ok': True, 'html': args.out_html, 'instances': len(data['instances']),
-                      'variant_rejections': rejected}, ensure_ascii=False))
+                      'variant_rejections': rejected,
+                      'combination': None if combined is None else {
+                          'digest': combined['digest'],
+                          'command_writers': combined['command_writers'],
+                          'choices': combined['choices']}},
+                     ensure_ascii=False))
     return 0
 
 
