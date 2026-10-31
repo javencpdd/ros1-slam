@@ -43,6 +43,7 @@ def main():
     parser.add_argument('--cmd-timeout', type=float, default=.5)
     parser.add_argument('--initial-z', type=float, default=.35)
     parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--perturb', action='store_true')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text())
 
@@ -56,8 +57,11 @@ def main():
     model = mujoco.MjModel.from_xml_path(args.xml)
     data = mujoco.MjData(model)
     start_x, start_y = a5.map_to_world(0., args.start_map_y, args.x_offset, args.y_offset)
-    data.qpos[:3] = [start_x, start_y, args.initial_z]
-    data.qpos[3:7] = [1., 0., 0., 0.]
+    perturb = a5.walk.sample_initial(args.seed, args.perturb)
+    data.qpos[:3] = [start_x + perturb['dx'], start_y + perturb['dy'],
+                     args.initial_z + perturb['dz']]
+    data.qpos[3:7] = [math.cos(perturb['dyaw'] / 2.), 0., 0.,
+                      math.sin(perturb['dyaw'] / 2.)]
     data.qpos[7:19] = DEFAULT_POSE
     mujoco.mj_forward(model, data)
     session = ort.InferenceSession(args.policy, providers=['CPUExecutionProvider'])

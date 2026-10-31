@@ -141,6 +141,7 @@ def main():
     parser.add_argument('--xml', default='/tmp/mjcf/Lite3.xml')
     parser.add_argument('--policy', default='/tmp/new_policy.onnx')
     parser.add_argument('--bridge45', action='store_true')
+    parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--out', required=True)
     parser.add_argument('--max-speed', type=float, default=.3)
     parser.add_argument('--resolution', type=float, default=.05)
@@ -157,8 +158,8 @@ def main():
     parser.add_argument('--out-dir', default='')
     parser.add_argument('--port', type=int, default=0)
     args = parser.parse_args()
-    if not (0 < args.max_speed <= .4):
-        parser.error('max-speed must be in (0,.4]')
+    if not (0 < args.max_speed <= .5):
+        parser.error('max-speed must be in (0,.5]')
     if not args.start_map_y < args.inject_map_y < args.goal_y:
         parser.error('require start-map-y < inject-map-y < goal-y')
 
@@ -187,6 +188,8 @@ def main():
                              'goal_y': args.goal_y,
                              'speed_scale': args.speed_scale,
               'bridge45': bool(args.bridge45),
+              'seed': args.seed,
+              'perturb': bool(args.perturb),
                              'stop_hold_s': args.hold_s,
                              'stop_speed_limit_mps': args.speed_limit,
                              'stop_xy_limit_m': args.xy_limit,
@@ -217,8 +220,10 @@ def main():
             bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_stop_bridge45.py'),
                            '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
                            '--prefix', prefix, '--start-map-y', str(args.start_map_y),
-                           '--speed-scale', str(args.speed_scale), '--max-command', '.4',
+                           '--speed-scale', str(args.speed_scale), '--max-command', '.5',
                            '--cmd-timeout', '.5', '--initial-z', '.35', '--seed', str(args.seed)]
+            if args.perturb:
+                bridge_argv.append('--perturb')
         else:
             bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_bridge.py'),
                            '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
