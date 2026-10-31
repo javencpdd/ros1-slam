@@ -4,6 +4,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -16,6 +17,7 @@ import render  # noqa: E402
 MANIFESTS = HERE / 'fixtures' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G2D_CONFIG = HERE / 'fixtures' / 'graphs' / 'graph_2d_config.yaml'
+G_LOCAL_NATIVE = HERE / 'fixtures' / 'graphs' / 'graph_local_native.yaml'
 
 
 def setup():
@@ -102,6 +104,24 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaises(config.FrameworkError) as caught:
             graph_mod.check(graph, catalog)
         self.assertEqual(caught.exception.code, 'E_GRAPH_MAP_DIMENSION')
+
+    def test_native_planner_graph_binds_config_and_command(self):
+        catalog = config.load_components(MANIFESTS)
+        graph = config.load_graph(G_LOCAL_NATIVE)
+        report = graph_mod.check(graph, catalog)
+        self.assertEqual(report['startup_order'], ['local'])
+        self.assertEqual(report['command_writers'], {'/v8/local/cmd_vel_3d': 'local'})
+        config_row = report['configs']['local']
+        self.assertIn('experimental_config', config_row['keys'])
+        self.assertIn('wall_watchdog_s', config_row['keys'])
+        self.assertEqual(len(config_row['sha256']), 64)
+        root = ET.fromstring(render.render_launch(graph, catalog, report))
+        node = root.find('node')
+        self.assertEqual((node.get('pkg'), node.get('type'), node.get('name')),
+                         ('v8_platform', 'local_planner/ros_node.py', 'local'))
+        loads = [item.get('file') for item in node.findall('rosparam')]
+        self.assertTrue(any(item.endswith('configs/local_native.yaml') for item in loads))
+        self.assertEqual(report['bindings']['local']['map']['schema'], 'support_map/v1')
 
 
 if __name__ == '__main__':

@@ -44,6 +44,35 @@ def nodelet_group_lines(instance_id, spec, namespace, params):
     return lines
 
 
+def node_lines(instance_id, spec, namespace, params, config_path=None, remap=None):
+    """Render one node/plugin element, including config, params and remaps."""
+    if spec['kind'] == 'plugin':
+        attrs = ['pkg=%s' % quoteattr(spec['package']),
+                 'type=%s' % quoteattr('nodelet'),
+                 'name=%s' % quoteattr(_name(instance_id)),
+                 'args=%s' % quoteattr('standalone ' + spec['plugin'])]
+    else:
+        attrs = ['pkg=%s' % quoteattr(spec['package']),
+                 'type=%s' % quoteattr(spec['type']),
+                 'name=%s' % quoteattr(_name(instance_id))]
+    if namespace:
+        attrs.append('ns=%s' % quoteattr(namespace))
+    lines = ['  <node %s>' % ' '.join(attrs)]
+    if config_path is not None:
+        lines.append('    <rosparam command="load" file=%s/>' % quoteattr(config_path))
+    else:
+        for param_file in spec.get('param_files', []):
+            lines.append('    <rosparam command="load" file=%s/>'
+                         % quoteattr('$(find %s)/%s' % (spec['package'], param_file)))
+    for key in sorted(params):
+        lines.append('    <param name=%s value=%s/>'
+                     % (quoteattr(str(key)), quoteattr(_value(params[key]))))
+    for source, target in sorted(set(remap or ())):
+        lines.append('    <remap from=%s to=%s/>' % (quoteattr(source), quoteattr(target)))
+    lines.append('  </node>')
+    return lines
+
+
 def render_plan(graph, catalog, report):
     instances = []
     for iid in report['startup_order']:
@@ -100,32 +129,7 @@ def render_launch(graph, catalog, report):
         if spec['kind'] == 'nodelet_group':
             lines.extend(nodelet_group_lines(iid, spec, rec['namespace'], rec['params']))
             continue
-        if spec['kind'] == 'plugin':
-            attrs = ['pkg=%s' % quoteattr(spec['package']),
-                     'type=%s' % quoteattr('nodelet'),
-                     'name=%s' % quoteattr(_name(iid)),
-                     'args=%s' % quoteattr('standalone ' + spec['plugin'])]
-        else:
-            attrs = ['pkg=%s' % quoteattr(spec['package']),
-                     'type=%s' % quoteattr(spec['type']),
-                     'name=%s' % quoteattr(_name(iid))]
-        if rec['namespace']:
-            attrs.append('ns=%s' % quoteattr(rec['namespace']))
-        lines.append('  <node %s>' % ' '.join(attrs))
-        config = report.get('configs', {}).get(iid)
-        if config is not None:
-            lines.append('    <rosparam command="load" file=%s/>'
-                         % quoteattr(config['path']))
-        else:
-            for param_file in spec.get('param_files', []):
-                lines.append('    <rosparam command="load" file=%s/>'
-                             % quoteattr('$(find %s)/%s' % (spec['package'], param_file)))
-        for key in sorted(rec['params']):
-            lines.append('    <param name=%s value=%s/>'
-                         % (quoteattr(str(key)), quoteattr(_value(rec['params'][key]))))
-        remaps = []
-        for item in spec.get('remap', []):
-            remaps.append((item['from'], item['to']))
+        remaps = [(item['from'], item['to']) for item in spec.get('remap', [])]
         for edge in report['edges']:
             if edge['to_instance'] != iid:
                 continue
@@ -133,8 +137,8 @@ def render_launch(graph, catalog, report):
             target_topic = edge['to_port'].get('topic')
             if source_topic and target_topic:
                 remaps.append((target_topic, source_topic))
-        for source, target in sorted(set(remaps)):
-            lines.append('    <remap from=%s to=%s/>' % (quoteattr(source), quoteattr(target)))
-        lines.append('  </node>')
+        config = report.get('configs', {}).get(iid)
+        lines.extend(node_lines(iid, spec, rec['namespace'], rec['params'],
+                                None if config is None else config['path'], remaps))
     lines.extend(['</launch>', ''])
     return '\n'.join(lines)

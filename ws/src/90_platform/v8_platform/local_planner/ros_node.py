@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """ROS1 adapter for the native space-time planner; explicit map-frame 3D IO.
 
 Separate wall-clock controller and planning loops ensure a slow/failed planner

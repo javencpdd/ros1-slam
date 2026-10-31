@@ -1,5 +1,6 @@
 """F3: assembly plan through ProcessRunner/Orchestrator with fake commands."""
 import copy
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -20,6 +21,7 @@ GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
 GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
 GGROUP = HERE / 'fixtures' / 'graphs' / 'graph_nodelet_group.yaml'
 GMAPCACHE = HERE / 'fixtures' / 'graphs' / 'graph_map_cache_ros.yaml'
+G_LOCAL_NATIVE = HERE / 'fixtures' / 'graphs' / 'graph_local_native.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -95,8 +97,44 @@ class RuntimeTests(unittest.TestCase):
         mux['namespace'] = '/nav'
         command, _ = runtime.default_command(
             mux, catalog['components'][mux['component']])
-        self.assertIn('__ns:=/nav', command)
-        self.assertIn('_default_priority:=navigation', command)
+        self.assertEqual((command[0], Path(command[1]).name),
+                         ('python3', 'param_exec.py'))
+        payload = json.loads(Path(command[2]).read_text())
+        self.assertEqual(payload['namespace'], '/nav')
+        self.assertEqual(payload['param_files'],
+                         ['lite3_safety:config/cmd_vel_mux.yaml'])
+        self.assertEqual(payload['params'], {'default_priority': 'navigation'})
+        self.assertEqual(payload['argv'][:3],
+                         ['rosrun', 'lite3_safety', 'safe_cmd_vel_mux.py'])
+        self.assertIn('__name:=mux', payload['argv'])
+        self.assertIn('__ns:=/nav', payload['argv'])
+        Path(command[2]).unlink()
+
+    def test_node_config_is_loaded_through_param_exec(self):
+        plan, catalog = plan_for(G_LOCAL_NATIVE)
+        local = plan['instances'][0]
+        command, marker = runtime.default_command(
+            local, catalog['components'][local['component']])
+        self.assertEqual((command[0], Path(command[1]).name),
+                         ('python3', 'param_exec.py'))
+        self.assertIsNone(marker)
+        payload = json.loads(Path(command[2]).read_text())
+        self.assertEqual(payload['config_path'], local['config'])
+        self.assertEqual((payload['name'], payload['namespace']), ('local', None))
+        self.assertEqual(payload['argv'][:3],
+                         ['rosrun', 'v8_platform', 'local_planner/ros_node.py'])
+        self.assertIn('__name:=local', payload['argv'])
+        Path(command[2]).unlink()
+        plugin_plan, plugin_catalog = plan_for(GPLUGIN)
+        plus = copy.deepcopy(plugin_plan['instances'][0])
+        plus['config'] = local['config']
+        command, _ = runtime.default_command(
+            plus, plugin_catalog['components'][plus['component']])
+        payload = json.loads(Path(command[2]).read_text())
+        self.assertEqual(payload['argv'][:3], ['rosrun', 'nodelet', 'nodelet'])
+        self.assertIn('standalone', payload['argv'])
+        self.assertTrue(payload['config_path'].endswith('configs/local_native.yaml'))
+        Path(command[2]).unlink()
 
     def test_boundary_graph_passes_twist_and_udp_params_to_real_node(self):
         plan, catalog = plan_for(BOUNDARY)

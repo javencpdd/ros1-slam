@@ -268,7 +268,7 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (26, 17, 9))
+                         (27, 18, 9))
 
     def test_map_cache_ros_graph_binds_support_map_inputs(self):
         catalog, value = load_pair(GMAPCACHE)
@@ -407,7 +407,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 17)
+        self.assertEqual(payload['launch']['real'], 18)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

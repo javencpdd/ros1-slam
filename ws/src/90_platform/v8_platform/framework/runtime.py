@@ -99,6 +99,26 @@ def default_command(instance, component):
         command.append('_%s:=%s' % (key, text))
     for item in spec.get('remap', []):
         command.append('%s:=%s' % (item['from'], item['to']))
+    if instance.get('config') or spec.get('param_files'):
+        # rosrun cannot load YAML and roslaunch cannot resolve nested node
+        # paths, so preload the private parameters and then exec rosrun.
+        node_name = re.sub(r'[^A-Za-z0-9_]', '_',
+                           instance.get('runtime_name') or instance['id'])
+        if not any(item.startswith('__name:=') for item in command):
+            command.append('__name:=' + node_name)
+        payload = {'name': node_name, 'namespace': namespace,
+                   'config_path': instance.get('config'),
+                   'param_files': ['%s:%s' % (spec['package'], item)
+                                       for item in spec.get('param_files', [])],
+                   'params': instance.get('params', {}),
+                   'argv': command}
+        handle = tempfile.NamedTemporaryFile(
+            'w', prefix='v8_param_exec_', suffix='.json', delete=False,
+            encoding='utf-8')
+        json.dump(payload, handle, ensure_ascii=False)
+        handle.close()
+        return (['python3', str(HERE / 'param_exec.py'), handle.name],
+                spec.get('ready_marker'))
     return command, spec.get('ready_marker')
 
 

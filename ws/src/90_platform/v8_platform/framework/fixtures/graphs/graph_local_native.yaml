@@ -1,0 +1,12 @@
+schema: pipeline_graph/v1
+name: local_native_support
+instances:
+  - id: local
+    component: v8.fw.local_native
+    config: ../configs/local_native.yaml
+external:
+  - {to: local.map, type: std_msgs/String, source: map_provider}
+  - {to: local.pose, type: geometry_msgs/PoseStamped, source: localization}
+  - {to: local.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.obstacles, type: std_msgs/String, source: perception}
+  - {to: local.localization, type: std_msgs/Bool, source: localization}
