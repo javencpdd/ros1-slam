@@ -1,0 +1,31 @@
+{
+ "good": {
+  "ok": true,
+  "html": "/tmp/r1029_sel.html",
+  "instances": 7,
+  "variant_rejections": 4,
+  "combination": {
+   "digest": "8c9931d53953e08e1861ebcba81a7c742575a077124adb543dd85afb9694f463",
+   "command_writers": {
+    "/cmd_vel": "mux",
+    "/cmd_vel_advice/local": "local"
+   },
+   "choices": {
+    "robot": "v8.fw.robot_test_b"
+   }
+  }
+ },
+ "bad": {
+  "ok": false,
+  "reason": "E_GRAPH_DIMENSION",
+  "detail": "global.path -> local.path: dimensions 2 -> 3",
+  "choices": {
+   "local": "v8.fw.local3d"
+  }
+ },
+ "tests": {
+  "selector": "5/5",
+  "v8_suites": "65/0"
+ },
+ "interpretation": "the selector now validates a full chosen set once (graph + safety) before exporting; an invalid 2D/3D mix returns rc=5 with a reason code and writes no page"
+}

@@ -1,0 +1,220 @@
+{"ok": true, "html": "/tmp/r1029_sel.html", "instances": 7, "variant_rejections": 4, "combination": {"digest": "8c9931d53953e08e1861ebcba81a7c742575a077124adb543dd85afb9694f463", "command_writers": {"/cmd_vel": "mux", "/cmd_vel_advice/local": "local"}, "choices": {"robot": "v8.fw.robot_test_b"}}}
+{"ok": false, "reason": "E_GRAPH_DIMENSION", "detail": "global.path -> local.path: dimensions 2 -> 3", "choices": {"local": "v8.fw.local3d"}}
+---
+{
+ "name": "nav2d_ros1",
+ "instances": {
+  "sensors": {
+   "id": "sensors",
+   "component": "v8.fw.sensors",
+   "params": {},
+   "namespace": null
+  },
+  "lio": {
+   "id": "lio",
+   "component": "v8.fw.faster_lio",
+   "params": {},
+   "namespace": null
+  },
+  "map": {
+   "id": "map",
+   "component": "v8.fw.map2d",
+   "params": {},
+   "namespace": null
+  },
+  "global": {
+   "id": "global",
+   "component": "v8.fw.global2d",
+   "params": {},
+   "namespace": null
+  },
+  "local": {
+   "id": "local",
+   "component": "v8.fw.local2d",
+   "params": {},
+   "namespace": null
+  },
+  "mux": {
+   "id": "mux",
+   "component": "v8.fw.mux",
+   "params": {
+    "default_priority": "navigation"
+   },
+   "namespace": null
+  },
+  "robot": {
+   "id": "robot",
+   "component": "v8.fw.robot_test_b",
+   "params": {},
+   "namespace": null
+  }
+ },
+ "edges": [
+  {
+   "from": "sensors.points",
+   "to": "lio.points",
+   "feedback": false,
+   "policy": {},
+   "index": 0
+  },
+  {
+   "from": "sensors.imu",
+   "to": "lio.imu",
+   "feedback": false,
+   "policy": {},
+   "index": 1
+  },
+  {
+   "from": "lio.odom",
+   "to": "global.odom",
+   "feedback": false,
+   "policy": {},
+   "index": 2
+  },
+  {
+   "from": "map.map",
+   "to": "global.map",
+   "feedback": false,
+   "policy": {},
+   "index": 3
+  },
+  {
+   "from": "global.path",
+   "to": "local.path",
+   "feedback": false,
+   "policy": {},
+   "index": 4
+  },
+  {
+   "from": "lio.odom",
+   "to": "local.odom",
+   "feedback": false,
+   "policy": {},
+   "index": 5
+  },
+  {
+   "from": "map.map",
+   "to": "local.map",
+   "feedback": false,
+   "policy": {},
+   "index": 6
+  },
+  {
+   "from": "local.cmd",
+   "to": "mux.cmd",
+   "feedback": false,
+   "policy": {},
+   "index": 7
+  },
+  {
+   "from": "mux.cmd",
+   "to": "robot.cmd",
+   "feedback": false,
+   "policy": {},
+   "index": 8
+  }
+ ],
+ "external": [
+  {
+   "to": "global.goal",
+   "type": "geometry_msgs/PoseStamped",
+   "source": "operator",
+   "index": 0
+  },
+  {
+   "to": "mux.hold",
+   "type": "std_msgs/Bool",
+   "source": "supervisor",
+   "index": 1
+  }
+ ],
+ "sha256": "b9af2e9ef6e0fe26826567c1baed2b440d59accdad0d8818e56cc3e93ea6dcf5",
+ "path": "framework/fixtures/graphs/graph_2d.yaml",
+ "raw": {
+  "schema": "pipeline_graph/v1",
+  "name": "nav2d_ros1",
+  "instances": [
+   {
+    "id": "sensors",
+    "component": "v8.fw.sensors"
+   },
+   {
+    "id": "lio",
+    "component": "v8.fw.faster_lio"
+   },
+   {
+    "id": "map",
+    "component": "v8.fw.map2d"
+   },
+   {
+    "id": "global",
+    "component": "v8.fw.global2d"
+   },
+   {
+    "id": "local",
+    "component": "v8.fw.local2d"
+   },
+   {
+    "id": "mux",
+    "component": "v8.fw.mux",
+    "params": {
+     "default_priority": "navigation"
+    }
+   },
+   {
+    "id": "robot",
+    "component": "v8.fw.robot_lite3"
+   }
+  ],
+  "edges": [
+   {
+    "from": "sensors.points",
+    "to": "lio.points"
+   },
+   {
+    "from": "sensors.imu",
+    "to": "lio.imu"
+   },
+   {
+    "from": "lio.odom",
+    "to": "global.odom"
+   },
+   {
+    "from": "map.map",
+    "to": "global.map"
+   },
+   {
+    "from": "global.path",
+    "to": "local.path"
+   },
+   {
+    "from": "lio.odom",
+    "to": "local.odom"
+   },
+   {
+    "from": "map.map",
+    "to": "local.map"
+   },
+   {
+    "from": "local.cmd",
+    "to": "mux.cmd"
+   },
+   {
+    "from": "mux.cmd",
+    "to": "robot.cmd"
+   }
+  ],
+  "external": [
+   {
+    "to": "global.goal",
+    "type": "geometry_msgs/PoseStamped",
+    "source": "operator"
+   },
+   {
+    "to": "mux.hold",
+    "type": "std_msgs/Bool",
+    "source": "supervisor"
+   }
+  ]
+ }
+}

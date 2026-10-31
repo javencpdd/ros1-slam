@@ -1,0 +1,15 @@
+R1029 命令（2026-10-31 21:30 CST，qoder；选配器组合级校验）
+# 容器 v8codex-20261028；source /opt/ros/noetic/setup.bash。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/test_select.py
+python3 -B framework/selector.py framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d.yaml --out-html /tmp/r1029_sel.html \
+  --out-json /tmp/r1029_sel.json --out-selected /tmp/r1029_selected_graph.json \
+  --choose robot=v8.fw.robot_test_b
+python3 -B framework/selector.py framework/fixtures/manifests \
+  framework/fixtures/graphs/graph_2d.yaml --out-html /tmp/r1029_bad.html \
+  --choose local=v8.fw.local3d
+# 读数：test_select 5/5；合法组合 rc=0，digest 8c9931d5…，命令写者
+#   /cmd_vel=mux、/cmd_vel_advice/local=local，选配图写出；非法组合 rc=5，
+#   E_GRAPH_DIMENSION（global.path 2D → local 3D），不写 HTML。
+# 全树：SUITES=65 FAIL=0。
