@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R999（2026-10-31）★＝**多图 provider 并发串行化**：`MultiMapCore` 的 apply/snapshot/
+  status 共享锁，防查询读到半更新；并发测试 3/3、真实多图冒烟仍通过、V8 全树 **61 套件
+  0 失败**。锁只覆盖单节点，多进程写者仍待约束（代码 `df694fb2`，全文＝
+  [R999](note/进度/v8/M5/26-10-29/R999.md)）。
 - ★R998（2026-10-31）★＝**多图 ROS provider**：`multi_map_node` 按 map_id 路由 delta，
   逐图 latch `/v8/maps/<id>`、状态与 Trigger 查询；真实 ROS 冒烟 map_a v2→v3、map_b
   保持 v2，重启恢复、重放幂等。`multi_map_node` 2/2、V8 全树 **61 套件 0 失败**；

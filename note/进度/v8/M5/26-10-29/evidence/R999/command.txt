@@ -1,0 +1,8 @@
+R999 命令（2026-10-31 05:30—05:31 CST，qoder；多图 provider 并发串行化）
+# MultiMapCore 增加 threading.Lock，apply_text/snapshot/status 串行。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/test_multi_map_node.py
+python3 -B representation/multi_map_smoke.py
+# 读数：多图节点 3/3；真实 ROS 冒烟仍 map_a v2→v3、map_b v2，重启/重放同前；
+#   V8 全树 61 套件 0 失败。
+# 边界：锁只覆盖单节点内 ROS 回调/服务；多进程写者不在本批。
