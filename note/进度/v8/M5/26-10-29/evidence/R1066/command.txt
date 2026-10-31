@@ -1,0 +1,23 @@
+R1066 命令（2026-11-01 04:35—05:05 CST，qoder；容器 ros1-slam-sim）
+# 代码提交 d656c723。
+
+# landing 重跑（修复后 CLI，270 策略 /tmp/new_policy.onnx；PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2）：
+cd /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/dynamics
+# L12/L6/L2：5x0.1988 m、深 .72、宽 3、front 1、14 s、0.3 m/s、heading hold、seed0-4 --perturb
+python3 -B mj_dreamwaq_walk.py --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --mode stairs --step-h 0.1988 --steps 5 --step-depth 0.72 --step-width 3.0 --step-front 1.0 \
+  --landing-depth <12.0|6.0|2.0> --seconds 14 --v-cmd 0.3 --heading-hold \
+  --yaw-gain 3.0 --y-gain 1.5 --max-wz 0.5 --seed <0..4> --perturb --out /tmp/r1066/<group>/s<seed>.json
+# R935：4x0.15 m、landing 2.0、12 s，其余同；seed0-4。
+# 读数：L12 5/5 stable；L6 stable 2/5；L2 s0 pass=false；R935 clean 5/5 stable 0/5。
+# 判据未改；只把 landing_depth 真正送进 stair_verdict。
+
+# 测试：
+cd /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/dynamics && python3 -B -m unittest -q test_mj_dreamwaq_walk
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework && python3 -B -m unittest -q test_framework
+# 全树：70 个 test_*.py 逐文件 unittest，70/70。
+
+# faster_lio：新增 manifest_faster_lio_sim.json；7 个模拟图 component 改为 v8.fw.faster_lio_sim；
+# package_index 增补 launch/10_slam_mapping_sim.launch；sim launch yaml 改为
+# $(find lite3_slam)/../../95_simulation/config/faster_lio_sim.yaml。
+# 静态断言：test_framework.test_faster_lio_sim_and_real_configs_do_not_cross_load。

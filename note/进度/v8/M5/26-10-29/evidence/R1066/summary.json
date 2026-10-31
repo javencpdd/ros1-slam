@@ -1,0 +1,269 @@
+{
+ "fix_landing": {
+  "defect": "CLI built the stairs metadata without landing_depth, so stair_verdict used the no-landing branch for landing worlds",
+  "fix": "single stairs_metadata() source; CLI passes landing_depth; CLI->verdict test",
+  "criteria_unchanged": true,
+  "rerun": [
+   {
+    "group": "l12",
+    "seed": "s0",
+    "landing_depth": 12.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": true,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     9.4639,
+     0.0679,
+     1.2177
+    ]
+   },
+   {
+    "group": "l12",
+    "seed": "s1",
+    "landing_depth": 12.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": true,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     11.336,
+     0.069,
+     1.2245
+    ]
+   },
+   {
+    "group": "l12",
+    "seed": "s2",
+    "landing_depth": 12.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": true,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     10.6017,
+     0.0689,
+     1.2234
+    ]
+   },
+   {
+    "group": "l12",
+    "seed": "s3",
+    "landing_depth": 12.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": true,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     11.2911,
+     0.0721,
+     1.216
+    ]
+   },
+   {
+    "group": "l12",
+    "seed": "s4",
+    "landing_depth": 12.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": true,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     11.0421,
+     0.0709,
+     1.224
+    ]
+   },
+   {
+    "group": "l6",
+    "seed": "s0",
+    "landing_depth": 6.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": true,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     9.489,
+     0.0606,
+     1.2264
+    ]
+   },
+   {
+    "group": "l6",
+    "seed": "s1",
+    "landing_depth": 6.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     11.5593,
+     0.3069,
+     0.5335
+    ]
+   },
+   {
+    "group": "l6",
+    "seed": "s2",
+    "landing_depth": 6.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": true,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     10.6463,
+     0.0519,
+     1.1948
+    ]
+   },
+   {
+    "group": "l6",
+    "seed": "s3",
+    "landing_depth": 6.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     11.3495,
+     0.2774,
+     0.2957
+    ]
+   },
+   {
+    "group": "l6",
+    "seed": "s4",
+    "landing_depth": 6.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     11.291,
+     0.1303,
+     0.263
+    ]
+   },
+   {
+    "group": "l2",
+    "seed": "s0",
+    "landing_depth": 2.0,
+    "pass": false,
+    "clean_climb": false,
+    "stable_finish": false,
+    "unstable": true,
+    "fell": false,
+    "final_xyz": [
+     7.4362,
+     0.4659,
+     0.2119
+    ]
+   },
+   {
+    "group": "r935",
+    "seed": "s0",
+    "landing_depth": 2.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     10.0753,
+     0.0756,
+     0.2213
+    ]
+   },
+   {
+    "group": "r935",
+    "seed": "s1",
+    "landing_depth": 2.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     11.3421,
+     0.0708,
+     0.236
+    ]
+   },
+   {
+    "group": "r935",
+    "seed": "s2",
+    "landing_depth": 2.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     9.0455,
+     0.0559,
+     0.235
+    ]
+   },
+   {
+    "group": "r935",
+    "seed": "s3",
+    "landing_depth": 2.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     10.5793,
+     0.0623,
+     0.228
+    ]
+   },
+   {
+    "group": "r935",
+    "seed": "s4",
+    "landing_depth": 2.0,
+    "pass": true,
+    "clean_climb": true,
+    "stable_finish": false,
+    "unstable": false,
+    "fell": false,
+    "final_xyz": [
+     10.4527,
+     0.0694,
+     0.2243
+    ]
+   }
+  ],
+  "comparison": {
+   "l12": "L12 5/5 clean+stable (matches R942/R943)",
+   "l6": "L6 clean 5/5, stable 2/5 (s0,s2) (matches R943)",
+   "l2": "L2 s0 pass=false, unstable=true (matches R942)",
+   "r935": "R935 clean 5/5, stable 0/5 under the final-z rule (matches R943 reclassify)",
+   "verdict_changes": "none; the fixed branch is now actually exercised and recorded"
+  }
+ },
+ "fix_faster_lio": {
+  "defect": "simulation graphs referenced v8.fw.faster_lio, whose manifest includes the real launch and therefore loads faster_lio_outdoor.yaml",
+  "fix": "new v8.fw.faster_lio_sim manifest -> 10_slam_mapping_sim.launch; 7 simulation graphs switched; package_index includes the sim launch; sim launch uses a package-relative yaml path",
+  "assertion": "test_framework: sim/real configs do not cross-load; sim graphs use the sim component",
+  "impact": "R1042 graph_localization_compare ran through the generic manifest and thus the real yaml in Gazebo; its A6 dual-localization comparison needs a rerun with the sim config before citing the 0.309/0.0264 m numbers as current"
+ },
+ "tests": {
+  "test_mj_dreamwaq_walk": "17/17",
+  "framework": "30/30",
+  "v8_full_tree": "70/70"
+ },
+ "limits": "landing rerun is MuJoCo single-policy offline, not formal V8-X1; faster_lio config split does not by itself rerun A6; A1-A7 statuses unchanged",
+ "domain": "landing_cli_metadata_and_faster_lio_config_isolation"
+}
