@@ -33,7 +33,7 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016）、hdl nodelet_group 真实装载（R1017）、命令链安全 hold 门（R1020）、MapDelta 回接版本地图（R1022）、规划器消费版本地图（R1023）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016）、hdl nodelet_group 真实装载（R1017）、命令链安全 hold 门（R1020）、MapDelta 回接版本地图（R1022）、规划器消费版本地图并随更新重规划到达（R1023/R1024）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
 | **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已用 nodelet_group 真实装载两 nodelet（R1017），但喂入 Gazebo 点云/IMU 后 45 s 内无 `/odom`（R1018），传感器输入下的定位、`/leg_odom2` 与 M2-R2C 未验证；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、语义地图消费者/规划联动、旧 graph_3d_cache 内 cache/merge 仍替身（新 graph_map_cache_ros 为真实）、命令/定位链零中断热替换（命令链安全 hold 已 R1020）、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界 500 Hz 满速/长时标定、MapDelta 多 map_id/跨机持久化、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1024（2026-10-31）★＝**地图更新驱动重规划到达**：冒烟补喂位姿/目标/障碍/
+  定位心跳，goal 以闩锁一次性发布；v2 地图 mezz z=0.6 arrived，delta 抬高后 v3
+  地图 z=0.8 arrived，两条轨迹不同。policy 13/13、全树 **64 套件 0 失败**；
+  定位/障碍为冒烟注入，不声明物理可执行性（代码 `c439169f`，全文＝[R1024](note/进度/v8/M5/26-10-29/R1024.md)）。
 - ★R1023（2026-10-31）★＝**规划器消费版本地图**：`ros_node` 新增 `~map_topic`
   （raw map 或 delta_map snapshot），地图更新清 result/递增 generation，status 暴露
   map_version；真实冒烟 delta_map v2→v3、planner status 2→3。policy 13/13、全树

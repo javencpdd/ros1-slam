@@ -1,0 +1,14 @@
+R1024 命令（2026-10-31 19:00—19:10 CST，qoder；地图更新驱动重规划到达）
+# 冒烟补喂 pose/goal/obstacles/localization，goal 以闩锁一次性发布；
+# 首图 v2 得 mezz z=0.6 arrived，delta 抬高 mezz 后 v3 得 z=0.8 arrived。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11503。
+cd /repo/ws/src/90_platform/v8_platform/local_planner
+python3 -B test_ros_node_policy.py
+python3 -B map_update_smoke.py
+# 读数：policy 13/13；smoke ok=true，首轨迹 map_version=2 末点
+#   [3.5, 2.0, 0.6, ...]（arrived），次轨迹 map_version=3 末点
+#   [3.5, 2.0, 0.8, ...]（arrived），trajectory_changed=true，停止退净。
+# 全树：find . -name 'test_*.py' 共 64 件逐一跑，SUITES=64 FAIL=0。
+# 边界：验证地图版本更新会改变规划输出与到达高度；未接真实定位/感知，
+#   capability_domain 仍 experimental_kinematic_carrier；A1—A7 不变。

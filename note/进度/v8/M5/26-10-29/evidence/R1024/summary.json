@@ -1,0 +1,39 @@
+{
+ "smoke": {
+  "fixture_version": 2,
+  "first": {
+   "map_version": 2,
+   "reason": "arrived",
+   "last": [
+    3.5,
+    2.0,
+    0.6,
+    1793444379.3170578
+   ],
+   "surfaces": [
+    "mezz"
+   ]
+  },
+  "second": {
+   "map_version": 3,
+   "reason": "arrived",
+   "last": [
+    3.5,
+    2.0,
+    0.8,
+    1793444380.3177192
+   ],
+   "surfaces": [
+    "mezz"
+   ]
+  },
+  "trajectory_changed": true,
+  "ok": true,
+  "processes_after_stop": []
+ },
+ "tests": {
+  "policy": "13/13",
+  "v8_suites": "64/0"
+ },
+ "interpretation": "the planner consumes /v8_support_map; a delta that raises the mezzanine produces a new arrived trajectory at the new height and map version, so live map updates change planning output, not only status"
+}
