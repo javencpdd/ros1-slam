@@ -1,0 +1,25 @@
+{
+ "smoke": {
+  "cancellation": "cooperative",
+  "running_seen": true,
+  "cancel_service": true,
+  "cancelled": {
+   "ok": false,
+   "reason": "E_PLAN_CANCELLED",
+   "detail": "portal search cancelled",
+   "map_version": 3
+  },
+  "cancel_latency_s": 0.115,
+  "paths_after_cancel": 1,
+  "nonzero_paths_after_cancel": 0,
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "adapter": "4/4",
+  "support_planner": "12/12",
+  "v8_suites": "69/0"
+ },
+ "interpretation": "cancellation now aborts the pre-search (clearance/obstacle/portal loops) in about 0.1 s instead of after the full no-route search; the adapter publishes E_PLAN_CANCELLED and no non-empty path"
+}
