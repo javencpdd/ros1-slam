@@ -1,0 +1,50 @@
+{
+ "smoke": {
+  "startup_order": [
+   "global"
+  ],
+  "command": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "path": {
+   "poses": 6,
+   "checker_ok": true,
+   "violations": [],
+   "checked_points": 6
+  },
+  "no_route": {
+   "ok": false,
+   "reason": "E_PLAN_NO_ROUTE",
+   "detail": "起点 ('mezz', 29, 19) 到目标 ('mezz', 37, 19) 无路（展开 8200）",
+   "map_version": 3
+  },
+  "no_route_statuses": [
+   {
+    "ok": false,
+    "reason": "E_PLAN_OBSTACLE",
+    "detail": "goal envelope intersects an obstacle",
+    "map_version": 3
+   },
+   {
+    "ok": false,
+    "reason": "E_PLAN_NO_ROUTE",
+    "detail": "起点 ('mezz', 29, 19) 到目标 ('mezz', 37, 19) 无路（展开 8200）",
+    "map_version": 3
+   }
+  ],
+  "budget": {
+   "ok": false,
+   "reason": "E_PLAN_BUDGET_EXCEEDED",
+   "detail": "展开 2 超预算 1（拒绝，非无路）",
+   "map_version": 2
+  },
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "v8_suites": "69/0"
+ },
+ "interpretation": "the real 3D global planner passes an independent trajectory check, distinguishes a blocked map (E_PLAN_NO_ROUTE after the stale-goal obstacle refusal) from an exhausted budget (E_PLAN_BUDGET_EXCEEDED); cancel remains unexposed in the adapter"
+}
