@@ -45,6 +45,13 @@ def stop(process):
 def main():
     catalog = config.load_components(HERE / 'fixtures' / 'manifests')
     graph = config.load_graph(HERE / 'fixtures' / 'graphs' / 'graph_hdl_group.yaml')
+    pcd = os.environ.get('V8_HDL_PCD')
+    if pcd:
+        catalog['components']['v8.fw.hdl_nodelet_group']['launch']['plugins'][0][
+            'params']['globalmap_pcd'] = pcd
+    if os.environ.get('V8_HDL_USE_IMU') == '0':
+        catalog['components']['v8.fw.hdl_nodelet_group']['launch']['plugins'][1][
+            'params']['use_imu'] = False
     plan = render.render_plan(graph, catalog, graph_mod.check(graph, catalog))
     result = {'startup_order': [item['id'] for item in plan['instances']]}
     master = start(['roscore', '-p', str(PORT)], '/tmp/r1018_master.log')
@@ -75,6 +82,14 @@ def main():
             counts['imu'] += 1
             imu_pub.publish(message)
 
+        from geometry_msgs.msg import TransformStamped
+        from tf2_ros import StaticTransformBroadcaster
+        transform = TransformStamped()
+        transform.header.frame_id = 'base_link'
+        transform.child_frame_id = 'rslidar'
+        transform.transform.rotation.w = 1.0
+        broadcaster = StaticTransformBroadcaster()
+        broadcaster.sendTransform(transform)
         rospy.Subscriber('/rslidar_points', PointCloud2, on_cloud, queue_size=5)
         rospy.Subscriber('/livox/imu', Imu, on_imu, queue_size=20)
         assembly = runtime.Assembly(plan, catalog, ready_timeout=30)
