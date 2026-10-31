@@ -120,6 +120,8 @@ def main():
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
     parser.add_argument('--trajectory-resume', action='store_true')
+    parser.add_argument('--require-release', action='store_true',
+                        help='hold the sim clock until prefix/release is called')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
@@ -153,7 +155,9 @@ def main():
     session = ort.InferenceSession(args.policy, providers=['CPUExecutionProvider'])
     inp = session.get_inputs()[0].name
 
-    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'target': None, 'active': False}
+    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'target': None,
+              'active': False, 'wanted': False,
+              'gate': not args.require_release}
 
     def on_cmd(message):
         shared['velocity'] = (message.twist.linear.x, message.twist.linear.y, message.twist.linear.z)
@@ -167,10 +171,12 @@ def main():
         if args.trajectory_resume:
             # Experimental R995: only a trajectory (or an existing target)
             # may resume the sim clock; status heartbeats cannot.
-            shared['active'] = (shared['target'] is not None
+            shared['wanted'] = (shared['target'] is not None
                                 and payload.get('reason') in ('track', 'hold'))
+            shared['active'] = shared['gate'] and shared['wanted']
         else:
-            shared['active'] = payload.get('reason') in ('track', 'hold')
+            shared['wanted'] = payload.get('reason') in ('track', 'hold')
+            shared['active'] = shared['gate'] and shared['wanted']
 
     def on_trajectory(message):
         try:
@@ -180,10 +186,18 @@ def main():
                 shared['target'] = tuple(points[1][:3])
                 # A published plan is the resume edge: the node's sim-paced
                 # control loop waits on /clock while the bridge holds it.
-                shared['active'] = True
+                shared['wanted'] = True
+                shared['active'] = shared['gate'] and shared['wanted']
         except (ValueError, KeyError, TypeError):
             pass
 
+    if args.require_release:
+        from std_srvs.srv import Trigger, TriggerResponse
+        def on_release(_request):
+            shared['gate'] = True
+            shared['active'] = shared['wanted']
+            return TriggerResponse(success=True, message='released')
+        rospy.Service(args.prefix + '/release', Trigger, on_release)
     rospy.Subscriber(args.prefix + '/cmd', TwistStamped, on_cmd, queue_size=10)
     rospy.Subscriber(args.prefix + '/trajectory', String, on_trajectory, queue_size=10)
     rospy.Subscriber(args.prefix + '/status', String, on_status, queue_size=10)

@@ -73,6 +73,8 @@ def main():
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
     parser.add_argument('--trajectory-resume', action='store_true')
     parser.add_argument('--plan-sim-tick-s', type=float, default=0.)
+    parser.add_argument('--release-barrier', action='store_true',
+                        help='hold the bridge sim clock until goal/inputs are latched')
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
@@ -199,6 +201,8 @@ def main():
         bridge_argv.extend(['--command-phase-sim-s', str(args.command_phase_sim_s)])
         if args.trajectory_resume:
             bridge_argv.append('--trajectory-resume')
+        if args.release_barrier:
+            bridge_argv.append('--require-release')
         node_stream, bridge_stream = node_log.open('w'), bridge_log.open('w')
         node = start(node_argv, node_stream)
         bridge = start(bridge_argv, bridge_stream)
@@ -216,6 +220,15 @@ def main():
             message.header.frame_id, message.pose.orientation.w = 'map', 1.
             message.pose.position.x, message.pose.position.y, message.pose.position.z = goal
             goal_pub.publish(message)
+            obstacle_pub.publish(String(data=json.dumps({'obstacles': []})))
+            loc_pub.publish(Bool(data=True))
+            if args.release_barrier:
+                from std_srvs.srv import Trigger
+                try:
+                    rospy.wait_for_service(prefix + '/release', timeout=10)
+                    rospy.ServiceProxy(prefix + '/release', Trigger)()
+                except Exception as error:
+                    raise RuntimeError('release barrier: %r' % (error,))
             arrived = fell = False
             terminal = None
             while time.monotonic() < deadline and not rospy.is_shutdown():
@@ -309,6 +322,7 @@ def main():
         'scope': 'ROS local node + MuJoCo 270 policy; contact climbing; no Gazebo/no real robot/#151',
         'goal_map': list(goal), 'boundaries_world_x': boundaries,
         'ok': ok, 'arrived': arrived, 'fell': fell, 'bridge_fault': fault,
+        'release_barrier': bool(args.release_barrier),
         'terminal_reason': terminal,
         'checks': {'climbed': climbed, 'final_on_top': final_on_top, 'goal_map': goal_map,
                    'no_fall': no_fall, 'a5_active': active},
