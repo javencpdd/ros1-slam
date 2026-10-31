@@ -1,0 +1,16 @@
+R1005 命令（2026-10-31 13:47—13:55 CST，qoder；plugin 托管）
+# manifest kind=plugin → nodelet standalone；宿主固定 nodelet、type=pkg/Class；
+# 实例 id 作 __name、namespace 作 __ns、params 作私有参数；预检宿主/插件包/type。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash。
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/test_runtime.py
+python3 -B framework/test_safety.py
+python3 -B framework/plugin_smoke.py
+# 探针：nodelet standalone __name:=plus __ns:=/v8_plugin_smoke _value:=2.5
+#   → 节点 /v8_plugin_smoke/plus、param value=2.5、topic in/out、3.0→5.5。
+# 读数：framework 26/26、runtime 8/8、safety 8/8；真实冒烟 startup_order=[plus]，
+#   safety.command_owner=null，value_param=2.5，3.0→5.5，停止后进程退净；V8 全树
+#   63 套件 0 失败。
+# 边界：单进程 standalone，不支持外部 manager/nodelet load/bond；pluginlib 描述文件
+#   与类实现未校验；无命令话题的只读图允许启动，有命令时仍要求唯一 /cmd_vel 写者。
