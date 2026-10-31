@@ -17,6 +17,7 @@ G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G2D_STACK = HERE / 'fixtures' / 'graphs' / 'graph_2d_stack_gp_teb.yaml'
 BOUNDARY = HERE / 'fixtures' / 'graphs' / 'graph_boundary_mux.yaml'
 GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
+GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -136,6 +137,23 @@ class RuntimeTests(unittest.TestCase):
             {'id': 'n', 'params': {}, 'namespace': None}, plugin)
         self.assertEqual(command, ['rosrun', 'nodelet', 'nodelet', 'standalone',
                                    'pkg/Class', '__name:=n', 'out:=/abs/out'])
+
+    def test_semantic_provider_assembles_without_command_owner(self):
+        plan, catalog = plan_for(GSEMANTIC)
+        sem = plan['instances'][0]
+        command, marker = runtime.default_command(
+            sem, catalog['components'][sem['component']])
+        self.assertEqual(command, ['rosrun', 'v8_platform',
+                                   'representation/semantic_map_node.py',
+                                   '_keep_alive_s:=30',
+                                   '_semantic_files:=framework/fixtures/maps/sem_a.json'])
+        self.assertIsNone(marker)
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake,
+                                    ready_timeout=5)
+        assembly.start()
+        self.assertTrue(assembly.ready())
+        assembly.stop()
+        self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
 
     def test_nav2d_graph_passes_planner_args_to_real_include(self):
         plan, catalog = plan_for(G2D_STACK)

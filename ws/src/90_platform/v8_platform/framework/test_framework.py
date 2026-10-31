@@ -16,12 +16,14 @@ import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
 import launch as launch_mod  # noqa: E402
 import render  # noqa: E402
+import safety  # noqa: E402
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
 V1_MANIFESTS = HERE.parent / 'registry' / 'data' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G3D = HERE / 'fixtures' / 'graphs' / 'graph_3d_cache.yaml'
 GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
+GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
 G2D_STACKS = [
     ('graph_2d_stack_gp_dwa.yaml', 'global_planner/GlobalPlanner',
      'dwa_local_planner/DWAPlannerROS'),
@@ -264,7 +266,19 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (20, 11, 9))
+                         (21, 12, 9))
+
+    def test_semantic_provider_graph_has_no_command_owner(self):
+        catalog, value = load_pair(GSEMANTIC)
+        report = graph_mod.check(value, catalog)
+        self.assertEqual(report['startup_order'], ['sem'])
+        self.assertEqual(report['command_writers'], {})
+        self.assertIsNone(safety.check_plan(
+            render.render_plan(value, catalog, report), catalog)['command_owner'])
+        root = ET.fromstring(render.render_launch(value, catalog, report))
+        node = root.find('node')
+        self.assertEqual((node.get('pkg'), node.get('type')),
+                         ('v8_platform', 'representation/semantic_map_node.py'))
 
     def test_plugin_launch_spec_and_render(self):
         catalog, value = load_pair(GPLUGIN)
@@ -356,7 +370,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 11)
+        self.assertEqual(payload['launch']['real'], 12)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """ROS1 read-only semantic map provider (semantic_map/v1).
 
 Publishes one latched topic and one Trigger query service per map. The node is
