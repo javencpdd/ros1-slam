@@ -98,14 +98,18 @@ def main():
             message.data = grid['data']
             grid_publishers[map_id] = (publisher, message)
             grid_status[map_id] = {'ok': True, 'width': grid['width'],
-                                   'height': grid['height']}
+                                   'height': grid['height'], 'kind': value.get('kind'),
+                                   'frame_id': grid['frame_id'],
+                                   'map_version': core.router.service(map_id).current['map_version']}
         except Exception as error:
             grid_status[map_id] = {'ok': False, 'error': str(error)}
 
     def publish_all():
         for map_id, publisher in publishers.items():
-            publisher.publish(String(data=json.dumps(core.snapshot(map_id),
-                                                      ensure_ascii=False)))
+            snapshot = core.snapshot(map_id)
+            if map_id in grid_status and grid_status[map_id].get('ok'):
+                grid_status[map_id]['map_version'] = snapshot['map_version']
+            publisher.publish(String(data=json.dumps(snapshot, ensure_ascii=False)))
         for publisher, message in grid_publishers.values():
             publisher.publish(message)
         status_pub.publish(String(data=json.dumps(dict(core.status(), grids=grid_status),

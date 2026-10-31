@@ -104,6 +104,8 @@ def main():
         result['grid'] = {'width': grid.info.width, 'height': grid.info.height,
                           'resolution': grid.info.resolution, 'data': len(grid.data),
                           'occupied': sum(1 for value in grid.data if value == 100)}
+        status0 = json.loads(rospy.wait_for_message('/v8/maps/status', String, timeout=5).data)
+        result['grid_status'] = status0.get('grids', {}).get('map_c')
         publisher = rospy.Publisher('/map_delta', String, queue_size=1)
         time.sleep(0.5)
         publisher.publish(String(data=delta('map_a', 2, .8)))
@@ -136,6 +138,7 @@ def main():
                         and result['restored_versions'] == [3, 2, 1]
                         and result['grid']['width'] == 100 and result['grid']['height'] == 100
                         and result['grid']['data'] == 10000 and result['grid']['occupied'] == 20
+                        and result.get('grid_status', {}).get('map_version') == 1
                         and result['replay_version'] == 3)
     finally:
         if node is not None:
