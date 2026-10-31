@@ -1,0 +1,27 @@
+{
+ "smoke": {
+  "startup_order": [
+   "hdl"
+  ],
+  "sensor": {
+   "cloud_points": 640000,
+   "imu_frame": "rslidar"
+  },
+  "started": true,
+  "nodelets": [
+   "/v8/hdl/globalmap_server_nodelet",
+   "/v8/hdl/hdl_localization_nodelet"
+  ],
+  "counts": {
+   "cloud": 187,
+   "imu": 3822
+  },
+  "odom_frames": 0,
+  "stopped": true,
+  "ok": false
+ },
+ "tests": {
+  "v8_suites": "64/0"
+ },
+ "interpretation": "with the m1 world map, base_link-rslidar static TF and use_imu=false, sensors still reached hdl but no /odom was produced; localization matching is not validated"
+}
