@@ -1,0 +1,12 @@
+string surface_id
+float64 z_reference
+float64 thickness_m
+string representation
+string data_uri
+string traversability
+float64 clearance_min_m
+float64 min_x
+float64 min_y
+float64 max_x
+float64 max_y
+SurfaceEdge[] edges
