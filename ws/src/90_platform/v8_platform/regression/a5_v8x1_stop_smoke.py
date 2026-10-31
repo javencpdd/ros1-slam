@@ -141,6 +141,7 @@ def main():
     parser.add_argument('--xml', default='/tmp/mjcf/Lite3.xml')
     parser.add_argument('--policy', default='/tmp/new_policy.onnx')
     parser.add_argument('--bridge45', action='store_true')
+    parser.add_argument('--bridge-kin', action='store_true')
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--out', required=True)
     parser.add_argument('--max-speed', type=float, default=.3)
@@ -188,6 +189,7 @@ def main():
                              'goal_y': args.goal_y,
                              'speed_scale': args.speed_scale,
               'bridge45': bool(args.bridge45),
+              'bridge_kin': bool(args.bridge_kin),
               'seed': args.seed,
               'perturb': bool(args.perturb),
                              'stop_hold_s': args.hold_s,
@@ -216,7 +218,13 @@ def main():
                      '_status_topic:=' + prefix + '/status',
                      '_trajectory_topic:=' + prefix + '/trajectory',
                      '_experimental_config:=' + json.dumps(config)]
-        if args.bridge45:
+        if args.bridge_kin:
+            bridge_argv = [sys.executable, '-u', '-B',
+                           str(DYNAMICS / 'a5_kinematic_stop_bridge.py'),
+                           '--map', str(map_path), '--prefix', prefix,
+                           '--start-map-y', str(args.start_map_y),
+                           '--cmd-timeout', '.5']
+        elif args.bridge45:
             bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_stop_bridge45.py'),
                            '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
                            '--prefix', prefix, '--start-map-y', str(args.start_map_y),
