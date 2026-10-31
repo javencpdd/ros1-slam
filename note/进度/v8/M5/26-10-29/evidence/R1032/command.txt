@@ -1,0 +1,12 @@
+R1032 命令（2026-10-31 21:40—22:00 CST，qoder；语义障碍接入规划）
+# 容器 v8codex-20261028；source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11518。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B representation/test_semantic_obstacle_bridge.py
+python3 -B framework/test_preflight.py
+python3 -B representation/semantic_obstacle_planning_smoke.py
+# 读数：obstacle 单测 4/4、preflight 8/8；冒烟 detour band_min_y=2.8
+#   （避开 1.45—2.55 受阻带）arrived；obstacle count 1→0；语义 v2 后
+#   支撑图 v2 直行 band_min_y=2.4 arrived；changed=true；停止退净。
+# 全树：SUITES=67 FAIL=0。
+# 边界：只接障碍 box 消费者；语义标签/代价未接；不改冻结契约。

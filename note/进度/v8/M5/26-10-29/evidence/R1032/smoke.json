@@ -1,0 +1,75 @@
+{
+ "startup_order": [
+  "semantic",
+  "obstacles",
+  "support",
+  "local"
+ ],
+ "command_writers": {
+  "/v8/local/cmd_vel_3d": "local"
+ },
+ "config_sha256": "c978ecf14892b4376428df749e6d28b2454ce2c6008da03067cc645ce9577fa5",
+ "safety_gate": "E_SAFETY_ADVICE",
+ "fixture_map_version": 1,
+ "commands": {
+  "semantic": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "obstacles": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "support": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "local": [
+   "python3",
+   "/repo/ws/src/90_platform/v8_platform/framework/param_exec.py"
+  ]
+ },
+ "detour": {
+  "map_version": 1,
+  "reason": "arrived",
+  "last": [
+   3.8,
+   2.8,
+   0.6,
+   1793453154.7523708
+  ],
+  "band_min_y": 2.8,
+  "surfaces": [
+   "mezz"
+  ]
+ },
+ "obstacles_initial": {
+  "ok": true,
+  "count": 1,
+  "ids": [
+   "crate"
+  ],
+  "map_version": 1
+ },
+ "straight": {
+  "map_version": 2,
+  "reason": "arrived",
+  "last": [
+   3.8,
+   2.8,
+   0.6,
+   1793453154.0532448
+  ],
+  "band_min_y": 2.4
+ },
+ "obstacles_after": {
+  "ok": true,
+  "count": 0,
+  "ids": [],
+  "map_version": 2
+ },
+ "changed": true,
+ "ok": true,
+ "stopped": true,
+ "processes_after_stop": []
+}

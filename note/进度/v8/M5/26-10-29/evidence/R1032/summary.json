@@ -1,0 +1,78 @@
+{
+ "smoke": {
+  "startup_order": [
+   "semantic",
+   "obstacles",
+   "support",
+   "local"
+  ],
+  "commands": {
+   "semantic": [
+    "rosrun",
+    "v8_platform"
+   ],
+   "obstacles": [
+    "rosrun",
+    "v8_platform"
+   ],
+   "support": [
+    "rosrun",
+    "v8_platform"
+   ],
+   "local": [
+    "python3",
+    "/repo/ws/src/90_platform/v8_platform/framework/param_exec.py"
+   ]
+  },
+  "safety_gate": "E_SAFETY_ADVICE",
+  "detour": {
+   "map_version": 1,
+   "reason": "arrived",
+   "last": [
+    3.8,
+    2.8,
+    0.6,
+    1793453154.7523708
+   ],
+   "band_min_y": 2.8,
+   "surfaces": [
+    "mezz"
+   ]
+  },
+  "straight": {
+   "map_version": 2,
+   "reason": "arrived",
+   "last": [
+    3.8,
+    2.8,
+    0.6,
+    1793453154.0532448
+   ],
+   "band_min_y": 2.4
+  },
+  "obstacles_initial": {
+   "ok": true,
+   "count": 1,
+   "ids": [
+    "crate"
+   ],
+   "map_version": 1
+  },
+  "obstacles_after": {
+   "ok": true,
+   "count": 0,
+   "ids": [],
+   "map_version": 2
+  },
+  "changed": true,
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "obstacle": "4/4",
+  "preflight": "8/8",
+  "v8_suites": "67/0"
+ },
+ "interpretation": "semantic obstacle boxes reach the planner; the first plan detours around the inflated crate and still arrives, and a semantic version bump that removes the crate empties the obstacle list and produces a straight plan"
+}
