@@ -2,7 +2,7 @@
 """Negative controls for the local planner node stop/expiry ordering."""
 import unittest
 
-from ros_node import NON_LATCHING, stop_reason
+from ros_node import NON_LATCHING, map_from_message, stop_reason
 
 RESULT = {'valid_until': 1.9}
 
@@ -13,6 +13,20 @@ def call(**kw):
                 generation=1, result_generation=1, last_error='ok')
     base.update(kw)
     return stop_reason(**base)
+
+
+class MapMessageTest(unittest.TestCase):
+    def test_raw_map_and_snapshot_envelope(self):
+        self.assertEqual(map_from_message('{"map_id": "m", "map_version": 2}'),
+                         {'map_id': 'm', 'map_version': 2})
+        self.assertEqual(
+            map_from_message('{"map": {"map_id": "m", "map_version": 3}, "ok": true}'),
+            {'map_id': 'm', 'map_version': 3})
+
+    def test_non_object_is_rejected(self):
+        for text in ('[]', '"x"', '{"map": []}'):
+            with self.assertRaises(ValueError):
+                map_from_message(text)
 
 
 class StopPolicyTest(unittest.TestCase):

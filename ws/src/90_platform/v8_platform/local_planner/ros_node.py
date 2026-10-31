@@ -87,6 +87,16 @@ def stop_reason(fresh, latched, latched_reason, result, result_at, wall_now,
     return None
 
 
+def map_from_message(text):
+    """Accept a raw support_map or a delta_map_node snapshot envelope."""
+    value = json.loads(text)
+    if isinstance(value, dict) and 'map' in value:
+        value = value['map']
+    if not isinstance(value, dict):
+        raise ValueError('map message must be an object')
+    return value
+
+
 def _planner_worker(requests, responses):
     """Run pure-Python planning away from ROS callbacks and the control loop."""
     while True:
@@ -179,7 +189,10 @@ def main():
     wall_watchdog_s = float(rospy.get_param('~wall_watchdog_s', max(5., 4. * config.validity_s)))
     if wall_watchdog_s <= 0:
         raise ValueError('wall_watchdog_s must be positive')
-    map_path = rospy.get_param('~map_json')
+    map_path = rospy.get_param('~map_json', '')
+    map_topic = rospy.get_param('~map_topic', '')
+    if not map_path and not map_topic:
+        raise ValueError('map_json or map_topic is required')
     profile_path = rospy.get_param('~robot_profile_json', '')
     profile = None
     if profile_path:
@@ -191,7 +204,7 @@ def main():
               'result': None, 'result_at': -1e100, 'map': None, 'generation': 0,
               'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'obstacle_key': None,
               'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None,
-              'plan_ms': None, 'plan_ms_max': 0.}
+              'plan_ms': None, 'plan_ms_max': 0., 'map_version': None}
     lock = threading.Lock()
     command_pub = rospy.Publisher(rospy.get_param('~command_topic', '/v8/local/cmd_vel_3d'),
                                   TwistStamped, queue_size=1)
@@ -240,6 +253,20 @@ def main():
             if not msg.data:
                 shared.update(result=None, generation=shared['generation'] + 1)
 
+    def on_map(msg):
+        try:
+            value = map_from_message(msg.data)
+        except ValueError:
+            with lock:
+                shared.update(last_error='E_LOCAL_MAP_INVALID', result=None)
+            return
+        with lock:
+            shared.update(map=value, map_version=value.get('map_version'),
+                          generation=shared['generation'] + 1, result=None,
+                          last_error='ok')
+
+    if map_topic:
+        rospy.Subscriber(map_topic, String, on_map, queue_size=1)
     rospy.Subscriber(rospy.get_param('~pose_topic', '/v8/local/pose'), PoseStamped, on_pose, queue_size=1)
     rospy.Subscriber(rospy.get_param('~goal_topic', '/v8/local/goal'), PoseStamped, on_goal, queue_size=1)
     rospy.Subscriber(rospy.get_param('~obstacles_topic', '/v8/local/obstacles'), String, on_obstacles, queue_size=1)
@@ -290,6 +317,7 @@ def main():
                        and snapshot['result_at'] > 0)
             status = dict(out, clock='ros_plan+wall_watchdog', wall_watchdog_s=wall_watchdog_s,
                           plan_ms=snapshot.get('plan_ms'),
+                          map_version=snapshot.get('map_version'),
                           plan_ms_max=snapshot.get('plan_ms_max'),
                           latched=bool(latched),
                           capability_domain='experimental_kinematic_carrier'
@@ -345,10 +373,17 @@ def main():
             with lock:
                 snapshot = dict(shared)
             try:
-                with open(map_path, encoding='utf-8') as stream:
-                    value = json.load(stream)
-                with lock:
-                    shared['map'] = value
+                if map_topic:
+                    with lock:
+                        value = shared['map']
+                    if value is None:
+                        time.sleep(max(.01, .2 - (time.monotonic() - started)))
+                        continue
+                else:
+                    with open(map_path, encoding='utf-8') as stream:
+                        value = json.load(stream)
+                    with lock:
+                        shared['map'] = value
                 # Replanning from a held contact pose while its command is
                 # still being executed changes direction mid-phase and loses
                 # the state/time relation used by collision prediction.
