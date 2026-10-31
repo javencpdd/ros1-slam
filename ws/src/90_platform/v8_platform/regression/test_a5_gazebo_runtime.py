@@ -70,30 +70,38 @@ class MeasurementGateTest(unittest.TestCase):
         self.assertEqual(first_terminal_zero(rows)['reason'], 'E_LOCAL_WORLD_UPDATED')
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
-
 class SensedBoxTests(unittest.TestCase):
-    def test_roi_box_is_measured_from_points(self):
-        points = [(0.8 + 0.01 * i, 0.1 * (i % 3), 0.3 + 0.02 * i) for i in range(8)]
-        observed, roi = sensed_box(points)
+    POSE = (0.1, 0.05, 0.)
+
+    def face(self, x=0.65, y=-0.2, z=0.1, n=4):
+        return [(x + 0.01 * i, y + 0.1 * j, z + 0.05 * k)
+                for i in range(n) for j in range(5) for k in range(5)]
+
+    def test_roi_box_is_mapped_from_pitched_sensor_points(self):
+        observed, roi = sensed_box(self.face(), self.POSE)
         self.assertIsNotNone(observed)
-        self.assertGreaterEqual(len(roi), 4)
-        self.assertLessEqual(observed['min'][0], 0.8)
-        self.assertGreaterEqual(observed['max'][0], 0.8)
+        self.assertGreaterEqual(len(roi), 12)
+        self.assertLessEqual(observed['min'][0], 0.75)
+        self.assertGreaterEqual(observed['max'][0], 0.95)
+        self.assertLessEqual(observed['min'][1], -0.15)
+        self.assertGreaterEqual(observed['max'][1], 0.25)
+        self.assertAlmostEqual(observed['max'][2], 0.62, places=2)
         self.assertEqual(observed['min'][2], 0.0)
 
+    def test_side_object_corner_is_excluded(self):
+        corner = [(1.1 + 0.01 * i, 0.649, 0.3) for i in range(20)]
+        observed, _roi = sensed_box(corner, self.POSE)
+        self.assertIsNone(observed)
+
     def test_outside_roi_is_not_an_obstacle(self):
-        points = [(3.0 + 0.01 * i, 0.0, 0.3) for i in range(8)]
-        observed, roi = sensed_box(points)
+        points = [(3.0 + 0.01 * i, 0.0, 0.3) for i in range(20)]
+        observed, roi = sensed_box(points, self.POSE)
         self.assertIsNone(observed)
         self.assertEqual(roi, [])
 
-    def test_sparse_roi_is_not_an_obstacle(self):
+    def test_partial_scan_is_not_an_obstacle(self):
         points = [(0.8, 0.0, 0.3), (0.81, 0.0, 0.3), (0.82, 0.0, 0.3)]
-        observed, _roi = sensed_box(points)
+        observed, _roi = sensed_box(points, self.POSE)
         self.assertIsNone(observed)
 
 

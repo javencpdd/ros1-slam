@@ -40,17 +40,31 @@ def gated_planar_velocity(velocity, yaw, frame, max_vz=1e-6):
     return [c * velocity[0] + s * velocity[1], -s * velocity[0] + c * velocity[1], 0.], 'flat_supported'
 
 
-def sensed_box(points):
-    """Fixed experiment ROI, measured points only; padding represents uncertainty.
+LIDAR_MOUNT_Z = .34
+LIDAR_PITCH = math.radians(15.)  # m1 URDF base_to_rslidar after R409
 
-    This detects a newly introduced stationary object. It does not infer unseen
-    box volume from simulator state or claim general object tracking.
+
+def sensed_box(points, pose):
+    """Fixed experiment ROI in the rslidar frame, no simulator truth.
+
+    Live m1 scans are rslidar-local with the R409 pitched mount (a world box
+    front at x=.8 appears at x~.65-.71 while the body is at x~.1, and z fits
+    the 15 deg pitch), so the map AABB needs the measured planar pose plus that
+    mount. The ROI lateral bound stays inside m1 obs_1's nearest corner
+    (y~.649 in this frame) and requires a surface-sized hit count so a partial
+    scan cannot latch a corner. Padding represents .12 m uncertainty.
     """
-    selected = [p for p in points if .55 <= p[0] <= 1.45 and abs(p[1]) <= .65 and .05 <= p[2] <= .95]
-    if len(selected) < 4:
+    selected = [p for p in points if .55 <= p[0] <= 1.45 and abs(p[1]) <= .45 and .05 <= p[2] <= .95]
+    if len(selected) < 12:
         return None, selected
-    lo = [math.floor(min(p[i] for p in selected) * 10) / 10 - .12 for i in range(3)]
-    hi = [math.ceil(max(p[i] for p in selected) * 10) / 10 + .12 for i in range(3)]
+    x, y, yaw = pose
+    cp, sp, cy, sy = (math.cos(LIDAR_PITCH), math.sin(LIDAR_PITCH),
+                      math.cos(yaw), math.sin(yaw))
+    mapped = [(x + cy * (cp * px + sp * pz) - sy * py,
+               y + sy * (cp * px + sp * pz) + cy * py,
+               -sp * px + cp * pz + LIDAR_MOUNT_Z) for px, py, pz in selected]
+    lo = [math.floor(min(p[i] for p in mapped) * 10) / 10 - .12 for i in range(3)]
+    hi = [math.ceil(max(p[i] for p in mapped) * 10) / 10 + .12 for i in range(3)]
     lo[2] = 0.0  # supported object on the declared floor; no GT dimensions are read
     return {'min': lo, 'max': hi, 'velocity': [0., 0., 0.], 'stamp': 0.}, selected
 
@@ -278,7 +292,13 @@ class Probe:
     def on_cloud(self, message):
         from sensor_msgs import point_cloud2 as pc2
         points = list(pc2.read_points(message, field_names=('x', 'y', 'z'), skip_nans=True))
-        observed, roi = sensed_box(points) if self.detect_enabled else (None, [])
+        with self.lock:
+            odom = self.odom
+        pose = None
+        if odom is not None and time.monotonic() - odom[1] < 2.:
+            p = odom[0].pose.pose
+            pose = (p.position.x, p.position.y, yaw_of(p.orientation))
+        observed, roi = sensed_box(points, pose) if self.detect_enabled and pose else (None, [])
         received = self.stamp()
         with self.lock:
             self.cloud_seq += 1
@@ -291,7 +311,8 @@ class Probe:
             self.raw['clouds'].append(dict(sequence=self.cloud_seq, sensor_stamp=message.header.stamp.to_sec(),
                                            header_frame=message.header.frame_id, point_count=len(points),
                                            roi_point_count=len(roi), roi_points=[list(p) for p in roi[:300]],
-                                           assumed_numeric_frame='map/world per fixed m1 R788', **received))
+                                           numeric_frame='rslidar-local; map AABB via measured pose + R409 mount',
+                                           **received))
 
     def pump(self, localization=True, sensor_forward=True):
         with self.lock:
@@ -463,14 +484,14 @@ class Probe:
                '<visual name="visual"><geometry><box><size>.4 .4 .6</size></box></geometry></visual>'
                '</link></model></sdf>') % self.model_name
         pose = Pose()
-        pose.position.x, pose.position.z, pose.orientation.w = 1., .3, 1.
+        pose.position.x, pose.position.z, pose.orientation.w = 1.5, .3, 1.
         self.detect_enabled = True
         event = self.event('spawn_requested', model=self.model_name)
         response = self.rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)(self.model_name, xml, '', pose, 'world')
         if not response.success:
             raise RuntimeError(response.status_message)
         truth = self.rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)(self.model_name, 'world')
-        if not truth.success or abs(truth.pose.position.x - 1.) > .01:
+        if not truth.success or abs(truth.pose.position.x - 1.5) > .01:
             raise RuntimeError('spawn initial_pose was not honored')
         self.event('spawn_confirmed_GT_evaluation_only', xyz=[truth.pose.position.x, truth.pose.position.y, truth.pose.position.z])
         return event
@@ -574,7 +595,7 @@ class Probe:
             min_box_gap = None
             if case == 'sensed_no_route':
                 # Independent known-spawn-geometry metric; never fed to planner.
-                min_box_gap = min(math.hypot(max(abs(r['xyz'][0] - 1.) - .2, 0.),
+                min_box_gap = min(math.hypot(max(abs(r['xyz'][0] - 1.5) - .2, 0.),
                                              max(abs(r['xyz'][1]) - .2, 0.)) - self.execution_config['radius_m'] for r in truth)
             self.cases.append({'case': case,
                                'ok': (min_box_gap is None or min_box_gap >= self.execution_config['clearance_m'])
@@ -655,7 +676,7 @@ class Probe:
                 'error': error, 'cases': self.cases, 'events': self.events,
                 'domain': 'native_3D_planner_flat_explicitly_gated_planar_Gazebo_dynamics',
                 'hardware': False, 'four_foot_contact_or_cross_layer': False, 'budget_151_frozen': False,
-                'perception': 'actual /rslidar_points numeric world coordinates, fixed ROI, measured AABB + 0.12m uncertainty',
+                'perception': 'actual /rslidar_points rslidar-local fixed ROI; map AABB from measured planar pose + R409 pitched mount + 0.12m uncertainty',
                 'known_floor': getattr(self, 'map_fixture', None),
                 'execution_config': getattr(self, 'execution_config', None),
                 'node_stderr': {Path(p).name: Path(p).read_text(errors='replace')[-12000:]

@@ -235,6 +235,13 @@ def main():
                 processes.start('estimated', [sys.executable, '-B',
                                               str(BASE / 'regression/noisy_localization.py'),
                                               '--seed', str(args.noise_seed)])
+            if not args.graph:
+                cfg = output / 'mux.yaml'
+                cfg.write_text('output_topic: /cmd_vel\noutput_rate_hz: 20\n'
+                               'hold_topic: /lite3/supervisor/hold\nsources:\n'
+                               '  - {name: follow, topic: /follow/cmd_vel, priority: 1, timeout_s: 0.5}\n')
+                processes.start('mux', [sys.executable, str(REPO / 'ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py'),
+                                        '__name:=mux', '_mux_config:=' + str(cfg)])
             if args.backend or args.graph:
                 backend, global_backend = args.backend, args.global_backend
                 make_map(output)
@@ -283,12 +290,6 @@ def main():
                                      in graph_assembly.runners.items()},
                     })
                 else:
-                    cfg = output / 'mux.yaml'
-                    cfg.write_text('output_topic: /cmd_vel\noutput_rate_hz: 20\n'
-                                   'hold_topic: /lite3/supervisor/hold\nsources:\n'
-                                   '  - {name: follow, topic: /follow/cmd_vel, priority: 1, timeout_s: 0.5}\n')
-                    processes.start('mux', [sys.executable, str(REPO / 'ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py'),
-                                            '__name:=mux', '_mux_config:=' + str(cfg)])
                     launch = backend_launch(output, args.backend, args.global_backend)
                     processes.start('navigation', ['roslaunch', str(launch)])
                 processes.start('relay', [sys.executable, str(FLAT / 'scan_relay.py')],
