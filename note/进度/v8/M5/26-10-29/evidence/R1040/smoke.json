@@ -1,0 +1,72 @@
+{
+ "startup_order": [
+  "cache_a",
+  "cache_b",
+  "merge",
+  "relay",
+  "provider",
+  "global",
+  "local"
+ ],
+ "command_writers": {
+  "/v8/local/cmd_vel_3d": "local"
+ },
+ "safety_gate": "E_SAFETY_ADVICE",
+ "commands": {
+  "cache_a": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "cache_b": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "merge": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "relay": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "provider": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "global": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "local": [
+   "python3",
+   "/repo/ws/src/90_platform/v8_platform/framework/param_exec.py"
+  ]
+ },
+ "/v8/3d/cache_a/v8_map_cache/flush": true,
+ "/v8/3d/cache_b/v8_map_cache/flush": true,
+ "provider_status": {
+  "map_version": 3,
+  "deltas": 1
+ },
+ "path": {
+  "poses": 6,
+  "last": [
+   3.55,
+   2.05,
+   0.6
+  ]
+ },
+ "trajectory": {
+  "map_version": 3,
+  "reason": "arrived",
+  "last": [
+   3.5,
+   2.0,
+   0.6,
+   1793455664.901944
+  ]
+ },
+ "stopped": true,
+ "processes_after_stop": [],
+ "ok": true
+}

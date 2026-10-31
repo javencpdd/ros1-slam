@@ -1,0 +1,47 @@
+{
+ "smoke": {
+  "startup_order": [
+   "cache_a",
+   "cache_b",
+   "merge",
+   "relay",
+   "provider",
+   "global",
+   "local"
+  ],
+  "command_writers": {
+   "/v8/local/cmd_vel_3d": "local"
+  },
+  "safety_gate": "E_SAFETY_ADVICE",
+  "provider_status": {
+   "map_version": 3,
+   "deltas": 1
+  },
+  "path": {
+   "poses": 6,
+   "last": [
+    3.55,
+    2.05,
+    0.6
+   ]
+  },
+  "trajectory": {
+   "map_version": 3,
+   "reason": "arrived",
+   "last": [
+    3.5,
+    2.0,
+    0.6,
+    1793455664.901944
+   ]
+  },
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "preflight": "12/12",
+  "v8_suites": "69/0"
+ },
+ "interpretation": "two real caches and a real merge feed a typed relay and versioned map provider; the map advances to v3 and both the real 3D global and local planners consume it and plan/arrive; the F7 gate still refuses a full assembly without a 3D command arbiter"
+}

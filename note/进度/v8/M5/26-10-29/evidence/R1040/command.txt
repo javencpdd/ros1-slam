@@ -1,0 +1,11 @@
+R1040 命令（2026-10-31 23:50—00:05 CST，qoder；真实三维链）
+# 容器 v8codex-20261028；source noetic 与 /tmp/v8_msgs_ws/devel，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11526。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/test_preflight.py
+python3 -B framework/graph_3d_real_smoke.py
+# 读数：preflight 12/12；两 cache flush ok；provider v3（deltas 1）；
+#   全局路径 6 点（末 3.55,2.05,0.6）；局部轨迹 v3 arrived；停止退净。
+# 全树：SUITES=69 FAIL=0。
+# 边界：F7 仍 E_SAFETY_ADVICE（无三维命令仲裁器），冒烟按实例直启；
+#   不改判据，A1—A7 不变。
