@@ -1,0 +1,21 @@
+R1062 命令（2026-10-31，qoder；容器 ros1-slam-sim，仓挂 /opt/ros1-slam）
+
+# 代码提交 a3af4e9f；每次在容器内先 source /opt/ros/noetic/setup.bash 与 ws/devel/setup.bash
+cd /opt/ros1-slam
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /tmp/r1062/runN --port <11329|11341|11342> \
+  --gazebo --local-gazebo --local-cases sensed_no_route
+# run1=缺省 11329；run2/run3 独立端口；三跑 lab.json 均为 {"local_gazebo": 0, ...}
+
+# 同批单元测试：
+cd ws/src/90_platform/v8_platform/regression && python3 -B -m unittest test_a5_gazebo_runtime
+# 全树：对 ws/src/90_platform/v8_platform 下 70 个 test_*.py 逐文件 python3 -m unittest -q
+
+# 先跑过、已废弃的 1.0 m 箱体三跑（不进证据）：
+#   spawn x=1.0 时 ROI 可见窗口只有约 0.15 m，三跑物理停车都发生在感知之前
+#   （stop_distance_from_sense_m = 0 / 0 / 0.0003），故改 1.5 m 重做。
+# 事故：run2 首跑（缺省 11329）300 s 超时后 lab 被杀、roscore/gzserver/probe 残留；
+#   run3 接到旧 master，command/source ownership 预检 rc=6。清场后
+#   run2/run3 改用 11341/11342 独立端口重跑；下面三跑是重跑后的最终样本。
+# 运行中曾误锁 m1 世界 obs_1 角点（传感器系 y≈.649）为障碍；ROI 横向收至 ±0.45 m
+#   并加最少 12 点后消失。obst1 角点仍可被扫描到，但不再进 ROI。
