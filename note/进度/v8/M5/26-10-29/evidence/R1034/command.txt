@@ -1,0 +1,11 @@
+R1034 命令（2026-10-31 22:20—22:35 CST，qoder；命令源重叠交接）
+# 容器 v8codex-20261028；source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11520。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/test_preflight.py
+python3 -B framework/command_overlap_smoke.py
+# 读数：preflight 10/10；mux 唯一 /cmd_vel 写者；A 0.3 → B 0.15
+#   切换段最小输出 0.15；B 停发超时回落 A 段最小 0.3；无零速采样；
+#   停止退净。全树 SUITES=68 FAIL=0。
+# 边界：真实 safe_cmd_vel_mux + 本仓双源配置；A/B 为冒烟源，不是算法实例；
+#   重叠策略不等于可无条件替代 R1020 的 hold。

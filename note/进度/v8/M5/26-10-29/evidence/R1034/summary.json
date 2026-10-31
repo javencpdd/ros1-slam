@@ -1,0 +1,27 @@
+{
+ "smoke": {
+  "startup_order": [
+   "mux"
+  ],
+  "command_writers": {
+   "/cmd_vel": "mux"
+  },
+  "command": [
+   "rosrun",
+   "lite3_safety"
+  ],
+  "phase_a": 0.3,
+  "phase_overlap": 0.15,
+  "overlap_min": 0.15,
+  "phase_fallback": 0.3,
+  "fallback_min": 0.3,
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "preflight": "10/10",
+  "v8_suites": "68/0"
+ },
+ "interpretation": "with two live sources the real mux switches to the higher-priority source on the next tick and falls back on timeout; both transition windows contain no zero-velocity sample"
+}
