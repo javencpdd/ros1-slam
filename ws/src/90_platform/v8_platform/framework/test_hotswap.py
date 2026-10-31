@@ -60,6 +60,24 @@ class HotSwapTests(unittest.TestCase):
             hotswap.prepare(plan, catalog, 'robot', 'v8.fw.missing')
         self.assertEqual(caught.exception.code, 'E_SWAP_COMPONENT')
 
+    def test_instance_swap_callbacks_wrap_handoff(self):
+        plan, catalog = plan_for()
+        record, new_plan = hotswap.prepare(plan, catalog, 'robot',
+                                           'v8.fw.robot_test_b',
+                                           {'task': 'nav'})
+        events = []
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake,
+                                    ready_timeout=10)
+        assembly.start()
+        self.addCleanup(assembly.stop)
+        record, runner = hotswap.apply_instance(
+            assembly, catalog, record, new_plan, ready_timeout=10,
+            pre_stop=lambda: events.append('pre'),
+            post_start=lambda: events.append('post'))
+        self.assertEqual(events, ['pre', 'post'])
+        self.assertTrue(record['postconditions']['new_ready'])
+        self.assertTrue(runner.is_alive())
+
     def test_prepare_params_override_is_applied(self):
         plan, catalog = plan_for(GSEMANTIC)
         _record, new_plan = hotswap.prepare(

@@ -206,7 +206,8 @@ def apply_overlap(assembly, catalog, record, new_plan, ready_timeout=10.0,
     return record, new_runner
 
 
-def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):
+def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0,
+                   pre_stop=None, post_start=None):
     """Replace one instance while the rest of the assembly keeps running.
 
     The old process is stopped and reaped before the new one starts, so there is
@@ -228,6 +229,8 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):
                         if item['id'] == instance_id)
     old_component = catalog['components'][record['old_component']]
     old_argv, old_marker = assembly.command_factory(old_instance, old_component)
+    if pre_stop is not None:
+        pre_stop()
     old_runner.stop(old_spec.stop_method)
     old_runner.reap()
     if old_runner.is_alive():
@@ -288,4 +291,6 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):
     record['postconditions'] = {'new_ready': True, 'single_command_writer': True,
                                 'rolled_back': False}
     record['epoch'] += 1
+    if post_start is not None:
+        post_start()
     return record, new_runner
