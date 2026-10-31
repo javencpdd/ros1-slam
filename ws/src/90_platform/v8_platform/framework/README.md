@@ -120,6 +120,7 @@ python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替�
 python3 -B representation/map_cache_smoke.py       # 真实 ROS：cache flush/ack + merge
 python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache + merge
 python3 -B representation/map_cache_delta_smoke.py # typed delta → relay → 版本地图
+python3 -B local_planner/map_update_smoke.py       # 规划器消费 /v8_support_map 版本
 python3 -B framework/hdl_group_smoke.py            # 真实 hdl manager + 两 nodelet
 python3 -B framework/hdl_sensor_smoke.py           # hdl 喂 Gazebo 点云/IMU 探针
 python3 -B framework/command_hold_smoke.py         # 真实 mux hold 下换命令源

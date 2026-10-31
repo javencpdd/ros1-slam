@@ -1,0 +1,12 @@
+R1023 命令（2026-10-31 18:32—18:44 CST，qoder；规划器消费版本地图）
+# ros_node 新增 ~map_topic：raw map 或 delta_map snapshot envelope；地图更新
+# 递增 generation、清 result、status 暴露 map_version。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11502。
+cd /repo/ws/src/90_platform/v8_platform/local_planner
+python3 -B test_ros_node_policy.py
+python3 -B map_update_smoke.py
+# 读数：policy 13/13；delta_map v2→v3，planner status map_version 2→3；
+#   未喂 pose/goal/localization，停车原因为 E_LOCAL_LOCALIZATION（预期）；
+#   停止退净；V8 全树 64/64。
+# 边界：只证明地图版本消费；规划/到达仍需完整输入；A1—A7 不变。

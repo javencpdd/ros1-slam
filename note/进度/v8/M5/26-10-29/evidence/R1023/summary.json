@@ -1,0 +1,44 @@
+{
+ "smoke": {
+  "fixture_version": 2,
+  "initial": {
+   "velocity": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "stop": true,
+   "reason": "E_LOCAL_LOCALIZATION",
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 5.0,
+   "plan_ms": null,
+   "map_version": 2,
+   "plan_ms_max": 0.0,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier"
+  },
+  "updated": {
+   "velocity": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "stop": true,
+   "reason": "E_LOCAL_LOCALIZATION",
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 5.0,
+   "plan_ms": null,
+   "map_version": 3,
+   "plan_ms_max": 0.0,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier"
+  },
+  "ok": true,
+  "processes_after_stop": []
+ },
+ "tests": {
+  "policy": "13/13",
+  "v8_suites": "64/0"
+ },
+ "interpretation": "the local planner consumes /v8_support_map snapshots and exposes map_version 2→3 after a delta; no pose/goal inputs were provided so it remains stopped"
+}
