@@ -1,0 +1,53 @@
+{
+ "startup_order": [
+  "local"
+ ],
+ "command_writers": {
+  "/v8/local/cmd_vel_3d": "local"
+ },
+ "config_sha256": "0672c41a48d9b8676e2ca80d5a9de6791b5dfb1cf88f6c194348f9de52f4db6d",
+ "config_keys": [
+  "command_topic",
+  "experimental_config",
+  "goal_topic",
+  "input_max_age_s",
+  "localization_topic",
+  "map_topic",
+  "obstacles_topic",
+  "pose_topic",
+  "status_topic",
+  "trajectory_topic",
+  "wall_watchdog_s"
+ ],
+ "safety_gate": "E_SAFETY_ADVICE",
+ "command": [
+  "python3",
+  "/repo/ws/src/90_platform/v8_platform/framework/param_exec.py"
+ ],
+ "uses_param_exec": true,
+ "ready_marker": null,
+ "started": true,
+ "trajectory": {
+  "map_version": 2,
+  "reason": "arrived",
+  "last": [
+   3.5,
+   2.0,
+   0.6,
+   1793449408.5765395
+  ],
+  "surfaces": [
+   "mezz"
+  ]
+ },
+ "status": {
+  "map_version": 2,
+  "wall_watchdog_s": 7.5,
+  "plan_ms": 5.149,
+  "capability_domain": "experimental_kinematic_carrier"
+ },
+ "config_applied": true,
+ "stopped": true,
+ "processes_after_stop": [],
+ "ok": true
+}

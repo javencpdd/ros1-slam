@@ -1,0 +1,21 @@
+R1025 命令（2026-10-31 19:50—20:15 CST，qoder；原生三维规划器入 v2 图）
+# 新增 v8.fw.local_native（真实 local_planner/ros_node.py）、graph_local_native
+# 与 local_native.yaml；运行面改为 param_exec 预载 YAML 私有参数后 exec rosrun。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11504。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/test_runtime.py
+python3 -B framework/test_preflight.py
+python3 -B registry/test_v2_manifest.py
+python3 -B framework/local_native_graph_smoke.py
+# 读数：framework 29/29、runtime 13/13、preflight 6/6、registry 4/4；
+#   smoke ok=true：command=[python3, param_exec.py]，status 的
+#   wall_watchdog_s=7.5（来自 local_native.yaml，默认 5.0），轨迹
+#   map_version=2、末点 [3.5,2.0,0.6]、arrived；停止退净。
+#   F7 安全门返回 E_SAFETY_ADVICE（无三维命令仲裁器），故 Assembly 不启动，
+#   smoke 用 ProcessRunner 直启；未绕过安全门。
+# 全树：find . -name 'test_*.py' 共 64 件逐一跑，SUITES=64 FAIL=0。
+# 边界：验证图选择真实三维规划器、实例配置真实下发与规划到达；不声明
+#   三维命令已接入机器人；render_launch 的静态 launch 仍无法解析嵌套节点
+#   路径（运行面走 param_exec+rosrun）；A1—A7 不变。
