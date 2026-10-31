@@ -1,0 +1,12 @@
+schema: pipeline_graph/v1
+name: localization_compare
+instances:
+  - id: hdl
+    component: v8.fw.hdl_nodelet_group
+    namespace: /v8/hdl
+  - id: lio
+    component: v8.fw.faster_lio
+external:
+  - {to: hdl.points, type: sensor_msgs/PointCloud2, source: gazebo}
+  - {to: lio.points, type: sensor_msgs/PointCloud2, source: gazebo}
+  - {to: lio.imu, type: sensor_msgs/Imu, source: gazebo}
