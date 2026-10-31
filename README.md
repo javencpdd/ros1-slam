@@ -145,6 +145,7 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1046（2026-10-31）★＝**ROS 全链停车 pilot（partial）**：真实 `ros_node` + 270 策略桥在平地执行 blocked-goal 场景，0.3 m/s **PASS**（sensing→停 **2.30 s**、前向 **0.071 m**、净空 **0.674 m**）；0.2 m/s 60 s 未到触发点、0.4 m/s 策略跌落，**未形成有效双速度样本**。formal #151 两键仍不冻结；全树 **70/0**（代码 `69cb7a42`，全文＝[R1046](note/进度/v8/M5/26-10-29/R1046.md)）。
 - ★R1045（2026-10-31）★＝**A1—A7 正式签署矩阵**：按 R930 盘点＋R1035—R1044 增量，A2＝PASS*（真进程 6/6＋Gazebo 感知触发 3/3），A1/A3/A4/A5/A6/A7＝PARTIAL；明确不声称平台首版/3D 导航/真机/#151 formal。矩阵与回执入 `evidence/R1045/`（全文＝[R1045](note/进度/v8/M5/26-10-29/R1045.md)）。
 - ★R1044（2026-10-31）★＝**局部规划目标占据即拒 + MuJoCo 力矩停车 scoped 冻结**：`local_native.plan` 对目标落在活跃静态障碍膨胀盒内直接 `E_LOCAL_NO_ROUTE`，消除逼近到约 0.2 m 才拒的旧行为；18 run（0.2/0.4×3 起点×3 相位）全 PASS，sensing→stop 最坏 **2.744 s / 0.153 m**，最小净空 **0.454 m**；新增 scoped `stop_chain_mj_torque_time_s=3.6`、`stop_chain_mj_torque_distance_m=0.20`（n=10 互异）。in-process、无 ROS/真机，**formal 两停车键仍 pending**；全树 **69/0**（代码 `ed1cc260`，全文＝[R1044](note/进度/v8/M5/26-10-29/R1044.md)）。
 - ★R1042（2026-11-01）★＝**双定位后端同场对比与切换**：hdl 与 faster_lio 同时在线，各 30 样本；hdl 误差 mean **0.309 m**、faster_lio **0.026 m**；pose_mux 从 hdl 切到 faster_lio 被接受、输出最大间隔 **50.5 ms**。静态场景、非零跳变切换、未重定位，不代签 A6；全树 **69/0**（代码 `6c6a85b2`，全文＝[R1042](note/进度/v8/M5/26-10-29/R1042.md)）。

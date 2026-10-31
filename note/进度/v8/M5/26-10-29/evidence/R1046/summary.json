@@ -1,0 +1,159 @@
+{
+ "stop03": {
+  "verdict": "PASS",
+  "checks": {
+   "moving_observed": true,
+   "obstacle_injected_while_moving": true,
+   "planner_no_route": true,
+   "stop_completed": true,
+   "no_fall": true,
+   "collision_free": true,
+   "sensing_watchdog_ok": true
+  },
+  "measurement": {
+   "trigger_sim": 20.919999999999284,
+   "completed": true,
+   "status": "PASS",
+   "reason": "stationary_window_observed",
+   "stop_time_s": 2.2999999999990024,
+   "peak_forward_m": 0.07085229233803769,
+   "path_m": 0.3960228851662545,
+   "first_hold_sim": 22.719999999998286,
+   "confirmation_sim": 23.219999999998286
+  },
+  "gap_m": 0.6738189857546475,
+  "run_config": {
+   "max_speed_mps": 0.3,
+   "start_map_y": -2.175,
+   "inject_map_y": -0.2,
+   "goal_y": 1.0,
+   "speed_scale": 1.0,
+   "stop_hold_s": 0.5,
+   "stop_speed_limit_mps": 0.2,
+   "stop_xy_limit_m": 0.05,
+   "policy": "/tmp/new_policy.onnx",
+   "xml": "/tmp/mjcf/Lite3.xml"
+  },
+  "events": [
+   {
+    "event": "obstacle_publish",
+    "wall": 241773.472586157,
+    "map_y": -0.18693021950992827
+   }
+  ],
+  "first_zero_status": {
+   "wall": 1793461588.1721385,
+   "velocity": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "stop": true,
+   "reason": "E_LOCAL_NO_ROUTE",
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 48.0,
+   "plan_ms": 97.977,
+   "map_version": null,
+   "plan_ms_max": 2710.922,
+   "latched": true,
+   "capability_domain": "experimental_kinematic_carrier"
+  },
+  "final_world_xyz": [
+   2.5761810142453525,
+   -0.020416025332629404,
+   0.24616666389571995
+  ],
+  "scope": "ros_local_node_to_mujoco_270_flat_goal_blocked_stop_pilot",
+  "scope_note": "ROS local node + 270 policy; flat support map; static obstacle at goal; full-chain pilot, not formal #151"
+ },
+ "probe02": {
+  "verdict": "FAIL",
+  "checks": {
+   "moving_observed": true,
+   "obstacle_injected_while_moving": false,
+   "planner_no_route": false,
+   "stop_completed": false,
+   "no_fall": true,
+   "collision_free": true,
+   "sensing_watchdog_ok": true
+  },
+  "measurement": {
+   "trigger_sim": null,
+   "completed": false,
+   "status": "INVALID",
+   "reason": "trigger_not_observed",
+   "stop_time_s": null,
+   "peak_forward_m": null,
+   "path_m": null,
+   "first_hold_sim": null,
+   "confirmation_sim": null
+  },
+  "gap_m": 1.071174994273024,
+  "run_config": {
+   "max_speed_mps": 0.2,
+   "start_map_y": -2.175,
+   "inject_map_y": -0.2,
+   "goal_y": 1.0,
+   "speed_scale": 1.0,
+   "stop_hold_s": 0.5,
+   "stop_speed_limit_mps": 0.2,
+   "stop_xy_limit_m": 0.05,
+   "policy": "/tmp/new_policy.onnx",
+   "xml": "/tmp/mjcf/Lite3.xml"
+  },
+  "events": [],
+  "first_zero_status": null,
+  "final_world_xyz": [
+   2.178825005726976,
+   -0.014966223879469545,
+   0.25457916133988107
+  ],
+  "scope": "ros_local_node_to_mujoco_270_flat_goal_blocked_stop_pilot",
+  "scope_note": "ROS local node + 270 policy; flat support map; static obstacle at goal; full-chain pilot, not formal #151"
+ },
+ "probe04": {
+  "verdict": "FAIL",
+  "checks": {
+   "moving_observed": true,
+   "obstacle_injected_while_moving": false,
+   "planner_no_route": false,
+   "stop_completed": false,
+   "no_fall": false,
+   "collision_free": true,
+   "sensing_watchdog_ok": true
+  },
+  "measurement": {
+   "trigger_sim": null,
+   "completed": false,
+   "status": "INVALID",
+   "reason": "trigger_not_observed",
+   "stop_time_s": null,
+   "peak_forward_m": null,
+   "path_m": null,
+   "first_hold_sim": null,
+   "confirmation_sim": null
+  },
+  "gap_m": 2.7819952276470663,
+  "run_config": {
+   "max_speed_mps": 0.4,
+   "start_map_y": -2.175,
+   "inject_map_y": -0.2,
+   "goal_y": 1.0,
+   "speed_scale": 1.0,
+   "stop_hold_s": 0.5,
+   "stop_speed_limit_mps": 0.2,
+   "stop_xy_limit_m": 0.05,
+   "policy": "/tmp/new_policy.onnx",
+   "xml": "/tmp/mjcf/Lite3.xml"
+  },
+  "events": [],
+  "first_zero_status": null,
+  "final_world_xyz": [
+   0.46800477235293364,
+   0.05223488375517128,
+   0.07264902650704334
+  ],
+  "scope": "ros_local_node_to_mujoco_270_flat_goal_blocked_stop_pilot",
+  "scope_note": "ROS local node + 270 policy; flat support map; static obstacle at goal; full-chain pilot, not formal #151"
+ }
+}

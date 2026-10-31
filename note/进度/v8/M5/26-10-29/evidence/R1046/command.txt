@@ -1,0 +1,28 @@
+R1046 命令（2026-10-31 23:40—23:47 CST，qoder；ROS 全链停车 pilot，partial）
+# 容器 ros1-slam-sim；numpy 1.24.4 / onnxruntime 1.16.3 / mujoco 2.3.7。
+# 资产：
+#   /tmp/mjcf/Lite3.xml  sha256 9f2fb022…988fa
+#   /tmp/new_policy.onnx sha256 881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f
+#   （270 维 state[1,270]，R944 同一策略）
+# 运行：
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+  python3 -u -B a5_v8x1_stop_smoke.py --out /tmp/r1046_stop_final2.json \
+  --max-speed .3 --out-dir /tmp
+# 0.2/0.4 两个探针同命令，只改 --max-speed；结果分别未到触发/跌落。
+# 链路：roscore 11533 → local_planner/ros_node.py（真实 A5 本地节点，地图 frame）
+#   → a5_v8x1_bridge.py（270 策略，MuJoCo）→ body/pose/applied → 障碍注入
+#   （任务目标 map y=1.0 上的静态盒，机器人在运动中接收）→ 节点 E_LOCAL_NO_ROUTE
+#   → 桥零命令 → 物理停住。
+# 测量：applied 的 sim_time/world_xyz/base_vxy；sensing_to_stop 从注入后首个 applied
+#   起算；hold 0.5 s、xy 0.05 m、speed 0.2 m/s（270 策略原地步态带），并在确认窗后
+#   检查不再出现 >0.2 m/s 或 >0.10 m 漂移；碰撞净空用最终 world x 与障碍前缘 3.5 m。
+# 读数：
+#   .3 PASS：stop 2.30 s、forward 0.071 m、path 0.396 m、gap 0.674 m；
+#   .2 FAIL：60 s 未到 inject（270 平地实速过低，未触发）；
+#   .4 FAIL：策略在 sim≈6 s 跌落（z≈0.07），未触发。
+# 测试：test_a5_v8x1_stop_smoke 4/4；test_a5_v8x1_bridge 6/6；全树 70 套件 0 失败。
+# 边界：目标被障碍占据的 blocked-goal 场景；非 formal #151；非真机；270 策略平地
+#   低速域；0.2/0.4 未形成有效双速度样本。
