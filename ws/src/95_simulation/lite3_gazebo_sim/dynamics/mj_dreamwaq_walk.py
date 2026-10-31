@@ -283,6 +283,16 @@ def run_rollout(xml, policy, seconds, v_cmd, default_pose=DEFAULT_POSE,
     return result
 
 
+def stairs_metadata(step_h, steps, depth, width, front, landing_depth=0.0):
+    """Single source for the CLI and direct-call stair metadata.
+
+    stair_verdict branches on landing_depth; the XML generator must receive the
+    same value or the CLI judges a landing world with the no-landing rule.
+    """
+    return {'step_h': step_h, 'steps': steps, 'depth': depth, 'width': width,
+            'front': front, 'landing_depth': landing_depth}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--policy', required=True)
@@ -309,8 +319,8 @@ def main():
     stairs = None
     xml = args.xml
     if args.mode == 'stairs':
-        stairs = {'step_h': args.step_h, 'steps': args.steps, 'depth': args.step_depth,
-                  'width': args.step_width, 'front': args.step_front}
+        stairs = stairs_metadata(args.step_h, args.steps, args.step_depth,
+                                 args.step_width, args.step_front, args.landing_depth)
         xml = make_stairs_xml(args.xml, args.step_h, args.steps, args.step_depth,
                               args.step_width, args.step_front, args.landing_depth)
     try:

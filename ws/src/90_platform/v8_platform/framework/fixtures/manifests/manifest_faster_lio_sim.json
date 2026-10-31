@@ -1,0 +1,56 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.faster_lio_sim",
+ "version": "0.0.0",
+ "roles": [
+  "odometry",
+  "mapping"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "include",
+  "package": "lite3_slam",
+  "launch_file": "launch/10_slam_mapping_sim.launch"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "points",
+    "type": "sensor_msgs/PointCloud2",
+    "topic": "/rslidar_points"
+   },
+   {
+    "name": "imu",
+    "type": "sensor_msgs/Imu",
+    "topic": "/livox/imu"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "odom",
+    "type": "nav_msgs/Odometry",
+    "topic": "/Odometry"
+   },
+   {
+    "name": "cloud",
+    "type": "sensor_msgs/PointCloud2",
+    "topic": "/cloud_registered"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Pure checks for the DreamWaQ 270-state adapter (no MuJoCo/ONNX required)."""
 import shutil
+import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 
@@ -177,6 +179,18 @@ class AdapterTest(unittest.TestCase):
         self.assertTrue(side['clean_climb'])
         self.assertFalse(side['stable_finish'])
         self.assertFalse(off_mark['clean_climb'])
+
+
+class StairsCliMetadataTest(unittest.TestCase):
+    def test_cli_landing_depth_reaches_verdict_metadata(self):
+        with mock.patch.object(walk, 'make_stairs_xml', return_value='/tmp/fake/stairs.xml'), \
+                mock.patch.object(walk, 'run_rollout', return_value={'pass': True}) as run, \
+                mock.patch.object(walk.shutil, 'rmtree'):
+            argv = ['mj_dreamwaq_walk.py', '--policy', 'unused.onnx', '--mode', 'stairs',
+                    '--landing-depth', '2.0', '--seconds', '1']
+            with mock.patch.object(sys, 'argv', argv):
+                self.assertEqual(walk.main(), 0)
+        self.assertEqual(run.call_args.kwargs['stair']['landing_depth'], 2.0)
 
 
 if __name__ == '__main__':

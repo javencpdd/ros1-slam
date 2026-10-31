@@ -67,7 +67,7 @@ class FrameworkTests(unittest.TestCase):
         catalog = config.load_components(MANIFESTS)
         reports, digests = {}, []
         for filename, component in (
-                ('graph_2d_loc_faster_lio.yaml', 'v8.fw.faster_lio'),
+                ('graph_2d_loc_faster_lio.yaml', 'v8.fw.faster_lio_sim'),
                 ('graph_2d_loc_hdl.yaml', 'v8.fw.hdl_localization')):
             graph = config.load_graph(HERE / 'fixtures' / 'graphs' / filename)
             report = graph_mod.check(graph, catalog)
@@ -268,7 +268,32 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (34, 25, 9))
+                         (35, 26, 9))
+
+    def test_faster_lio_sim_and_real_configs_do_not_cross_load(self):
+        catalog = config.load_components(MANIFESTS)
+        self.assertEqual(catalog['components']['v8.fw.faster_lio']['launch']['launch_file'],
+                         'launch/10_slam_mapping.launch')
+        self.assertEqual(catalog['components']['v8.fw.faster_lio_sim']['launch']['launch_file'],
+                         'launch/10_slam_mapping_sim.launch')
+        root = HERE.parents[2]
+        real = (root / '10_slam/lite3_slam/launch/10_slam_mapping.launch').read_text()
+        sim = (root / '10_slam/lite3_slam/launch/10_slam_mapping_sim.launch').read_text()
+        self.assertIn('faster_lio_outdoor.yaml', real)
+        self.assertNotIn('faster_lio_sim.yaml', real)
+        self.assertIn('faster_lio_sim.yaml', sim)
+        self.assertNotIn('faster_lio_outdoor.yaml', sim)
+        self.assertNotIn('/home/ros1-slam', sim)
+        self.assertTrue((root / '95_simulation/config/faster_lio_sim.yaml').is_file())
+        for name in ('graph_2d.yaml', 'graph_3d_cache.yaml', 'graph_2d_loc_faster_lio.yaml',
+                     'graph_faster_lio.yaml', 'graph_localization_compare.yaml',
+                     'graph_2d_config.yaml'):
+            value = config.load_graph(HERE / 'fixtures/graphs' / name)
+            instances = value['instances']
+            rows = instances.values() if isinstance(instances, dict) else instances
+            components = [inst['component'] for inst in rows]
+            self.assertIn('v8.fw.faster_lio_sim', components)
+            self.assertNotIn('v8.fw.faster_lio', components)
 
     def test_map_cache_ros_graph_binds_support_map_inputs(self):
         catalog, value = load_pair(GMAPCACHE)
@@ -393,7 +418,7 @@ class FrameworkTests(unittest.TestCase):
         report = graph_mod.check(value, catalog)
         root = ET.fromstring(render.render_launch(value, catalog, report))
         includes = [item.get('file') for item in root.findall('include')]
-        self.assertIn('$(find lite3_slam)/launch/10_slam_mapping.launch', includes)
+        self.assertIn('$(find lite3_slam)/launch/10_slam_mapping_sim.launch', includes)
         mux = next(node for node in root.findall('node') if node.get('name') == 'mux')
         loads = [item.get('file') for item in mux.findall('rosparam')]
         self.assertIn('$(find lite3_safety)/config/cmd_vel_mux.yaml', loads)
@@ -407,7 +432,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 25)
+        self.assertEqual(payload['launch']['real'], 26)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

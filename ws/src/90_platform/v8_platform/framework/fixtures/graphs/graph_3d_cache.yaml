@@ -2,7 +2,7 @@ schema: pipeline_graph/v1
 name: nav3d_two_caches
 instances:
   - {id: sensors, component: v8.fw.sensors}
-  - {id: lio, component: v8.fw.faster_lio}
+  - {id: lio, component: v8.fw.faster_lio_sim}
   - {id: map, component: v8.fw.map3d}
   - {id: cache_a, component: v8.fw.map_cache, params: {update_interval_s: 5.0, max_delta_cells: 2000}}
   - {id: cache_b, component: v8.fw.map_cache, params: {update_interval_s: 10.0, max_delta_cells: 2000}}

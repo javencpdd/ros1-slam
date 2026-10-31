@@ -86,7 +86,7 @@ class RuntimeTests(unittest.TestCase):
         command, marker = runtime.default_command(
             lio, catalog['components'][lio['component']])
         self.assertEqual(command[0], 'roslaunch')
-        self.assertTrue(any(item.endswith('launch/10_slam_mapping.launch')
+        self.assertTrue(any(item.endswith('launch/10_slam_mapping_sim.launch')
                             for item in command), command)
         self.assertIsNone(marker)
         map2d = by_id['map']
