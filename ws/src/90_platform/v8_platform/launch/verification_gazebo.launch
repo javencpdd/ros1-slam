@@ -1,0 +1,18 @@
+<launch>
+  <!-- Real Gazebo verification backend: headless empty world + truth channel.
+       The truth topic is simulator-side only; algorithm graphs must not use it. -->
+  <arg name="gui" default="false"/>
+  <arg name="truth_topic" default="/v8/verify/truth"/>
+  <arg name="rate_hz" default="10.0"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="headless" value="true"/>
+  </include>
+  <node pkg="v8_platform" type="gazebo_truth.py" name="v8_gazebo_truth" output="screen">
+    <param name="truth_topic" value="$(arg truth_topic)"/>
+    <param name="rate_hz" value="$(arg rate_hz)"/>
+    <param name="model_timeout_s" value="60.0"/>
+  </node>
+</launch>
