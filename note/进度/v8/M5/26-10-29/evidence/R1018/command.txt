@@ -1,0 +1,14 @@
+R1018 命令（2026-10-31 16:19—16:28 CST，qoder；hdl 传感器喂入探针）
+# Gazebo m1（headless）+ hdl nodelet_group；把 /rslidar_points 与 /livox/imu
+# relay 到 hdl 期望的 /velodyne_points 与 /gpsimu_driver/imu_data，观察 /odom。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash 与
+# /opt/ros1-slam/ws/devel/setup.bash，ROS_PACKAGE_PATH=/repo/ws/src；
+# ROS master 11496、Gazebo master 11497；Gazebo launch 用绝对路径
+# /repo/ws/.../m1_gazebo.launch（/opt 与 /repo 两包同名）。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/hdl_sensor_smoke.py
+# 读数：点云 194 帧、IMU 3912 帧；两 nodelet 在位、manager 在；
+#   /odom 0 帧（45 s）；停止退净；ok=false。
+# 测试：V8 全树 64 套件 0 失败（本批只加探针）。
+# 边界：Gazebo m1 与 lite3.pcd 场景不一致，NDT 未收敛/未发布；不声明定位精度，
+#   不据此改判据；下一步需场景化地图或换匹配参数并另行取证。

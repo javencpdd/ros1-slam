@@ -1,0 +1,27 @@
+{
+ "smoke": {
+  "startup_order": [
+   "hdl"
+  ],
+  "sensor": {
+   "cloud_points": 640000,
+   "imu_frame": "rslidar"
+  },
+  "started": true,
+  "nodelets": [
+   "/v8/hdl/globalmap_server_nodelet",
+   "/v8/hdl/hdl_localization_nodelet"
+  ],
+  "counts": {
+   "cloud": 194,
+   "imu": 3912
+  },
+  "odom_frames": 0,
+  "stopped": true,
+  "ok": false
+ },
+ "tests": {
+  "v8_suites": "64/0"
+ },
+ "interpretation": "sensors reached the hdl inputs and both nodelets were loaded, but no /odom was produced in 45 s; sensor-fed localization is not validated"
+}
