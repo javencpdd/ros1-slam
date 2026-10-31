@@ -1,0 +1,11 @@
+R1042 命令（2026-11-01 00:25—00:50 CST，qoder；双定位后端对比与切换）
+# 容器 v8codex-20261028；source noetic 与 /opt/ros1-slam/ws/devel，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11527，Gazebo 11528。
+cd /repo/ws/src/90_platform/v8_platform/framework
+python3 -B localization_compare_smoke.py
+# 读数：hdl/lio 同场各 30 个对比样本；hdl 误差 mean 0.309 m /
+#   max 0.3318；lio mean 0.0264 / max 0.0287；pose_mux 从 hdl 切到
+#   lio 被接受，最大输出间隔 50.5 ms；停止退净。
+# 全树：SUITES=69 FAIL=0。
+# 边界：静态场景、真值仅评分；hdl 帧/地图对齐仍有 ~0.31 m 偏差，
+#   未做重定位/失效恢复/真机；不代签 A6。
