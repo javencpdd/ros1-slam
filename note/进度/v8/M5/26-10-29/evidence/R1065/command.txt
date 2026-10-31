@@ -1,0 +1,12 @@
+R1065 命令（2026-11-01 04:05—04:30 CST，qoder；容器 ros1-slam-sim）
+# 节点代码 23e5e9f8（plan_wake）；资产 /tmp/mjcf/Lite3.xml、/tmp/policy45.onnx。
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+for v in 0.28 0.45; do for s in -2.5 -2.2 -1.9; do for seed in 0 1 2; do
+  PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+    python3 -u -B a5_v8x1_stop_smoke.py --out /tmp/r1065/sense/rNN.json \
+    --max-speed $v --start-map-y $s --inject-map-y -0.20 --goal-y 1.0 --tick-s 4.8 \
+    --resolution 0.15 --path-obstacle --sensor-bridge --sensor-range 1.5 \
+    --bridge45 --policy /tmp/policy45.onnx --perturb --seed $seed --wall-deadline-s 120 --out-dir /tmp
+done; done; done
+# 18/18 rc=0；最坏 .90 s / .1684 m / 前向 .1342 / 净空 1.569 m；calibration.py 未改。
