@@ -484,14 +484,14 @@ class Probe:
                '<visual name="visual"><geometry><box><size>.4 .4 .6</size></box></geometry></visual>'
                '</link></model></sdf>') % self.model_name
         pose = Pose()
-        pose.position.x, pose.position.z, pose.orientation.w = 1.5, .3, 1.
+        pose.position.x, pose.position.z, pose.orientation.w = 2.0, .3, 1.
         self.detect_enabled = True
         event = self.event('spawn_requested', model=self.model_name)
         response = self.rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)(self.model_name, xml, '', pose, 'world')
         if not response.success:
             raise RuntimeError(response.status_message)
         truth = self.rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)(self.model_name, 'world')
-        if not truth.success or abs(truth.pose.position.x - 1.5) > .01:
+        if not truth.success or abs(truth.pose.position.x - 2.0) > .01:
             raise RuntimeError('spawn initial_pose was not honored')
         self.event('spawn_confirmed_GT_evaluation_only', xyz=[truth.pose.position.x, truth.pose.position.y, truth.pose.position.z])
         return event
@@ -595,7 +595,7 @@ class Probe:
             min_box_gap = None
             if case == 'sensed_no_route':
                 # Independent known-spawn-geometry metric; never fed to planner.
-                min_box_gap = min(math.hypot(max(abs(r['xyz'][0] - 1.5) - .2, 0.),
+                min_box_gap = min(math.hypot(max(abs(r["xyz"][0] - 2.0) - .2, 0.),
                                              max(abs(r['xyz'][1]) - .2, 0.)) - self.execution_config['radius_m'] for r in truth)
             self.cases.append({'case': case,
                                'ok': (min_box_gap is None or min_box_gap >= self.execution_config['clearance_m'])
@@ -633,9 +633,14 @@ class Probe:
     def run(self, directory):
         import rosgraph
         import tf2_ros
-        publishers = dict(rosgraph.Master(self.prefix).getSystemState()[0])
-        if publishers.get('/cmd_vel') != ['/mux'] or publishers.get('/follow/cmd_vel'):
-            raise RuntimeError('command/source ownership precondition failed')
+        deadline = time.monotonic() + 10.
+        while True:
+            publishers = dict(rosgraph.Master(self.prefix).getSystemState()[0])
+            if publishers.get('/cmd_vel') == ['/mux'] and not publishers.get('/follow/cmd_vel'):
+                break
+            if time.monotonic() >= deadline:
+                raise RuntimeError('command/source ownership precondition failed')
+            time.sleep(.1)
         self.wait(lambda: self.odom and self.cloud and self.rows('physics') and self.hold_pub.get_num_connections(),
                   'real odometry, lidar, model states and mux', timeout=40)
         buffer = tf2_ros.Buffer()

@@ -207,6 +207,7 @@ def main():
               'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None,
               'plan_ms': None, 'plan_ms_max': 0., 'map_version': None}
     lock = threading.Lock()
+    plan_wake = threading.Event()
     command_pub = rospy.Publisher(rospy.get_param('~command_topic', '/v8/local/cmd_vel_3d'),
                                   TwistStamped, queue_size=1)
     path_pub = rospy.Publisher(rospy.get_param('~trajectory_topic', '/v8/local/trajectory'),
@@ -232,6 +233,7 @@ def main():
             p = msg.pose.position
             shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
                           stop_latched=False, stop_reason=None, last_error='ok')
+            plan_wake.set()
 
     def on_obstacles(msg):
         try:
@@ -243,6 +245,7 @@ def main():
             with lock:
                 if key != shared['obstacle_key']:
                     shared.update(generation=shared['generation'] + 1, result=None)
+                    plan_wake.set()
                 shared.update(obstacles=values, obstacles_at=time.monotonic(), obstacle_key=key)
         except (ValueError, TypeError, KeyError, native.LocalError):
             with lock:
@@ -253,6 +256,7 @@ def main():
             shared.update(localization_ok=msg.data, localization_at=time.monotonic())
             if not msg.data:
                 shared.update(result=None, generation=shared['generation'] + 1)
+                plan_wake.set()
 
     def on_map(msg):
         try:
@@ -260,11 +264,13 @@ def main():
         except ValueError:
             with lock:
                 shared.update(last_error='E_LOCAL_MAP_INVALID', result=None)
+                plan_wake.set()
             return
         with lock:
             shared.update(map=value, map_version=value.get('map_version'),
                           generation=shared['generation'] + 1, result=None,
                           last_error='ok')
+            plan_wake.set()
 
     if map_topic:
         rospy.Subscriber(map_topic, String, on_map, queue_size=1)
@@ -333,6 +339,7 @@ def main():
                         shared.update(result=None, last_error=out['reason'],
                                       stop_latched=terminal,
                                       stop_reason=out['reason'] if terminal else None)
+                        plan_wake.set()
             # Wall pacing in both modes: under the bridge-owned sim clock, a
             # clock-paced loop would deadlock when the bridge freezes during
             # planning -- the node could never publish the replan that resumes it.
@@ -340,6 +347,10 @@ def main():
 
     worker = PlannerWorker(config, profile)
     last_plan_tick = -1
+
+    def pace(timeout):
+        plan_wake.wait(timeout)
+        plan_wake.clear()
     thread = threading.Thread(target=control_loop, daemon=True)
     thread.start()
     try:
@@ -348,11 +359,11 @@ def main():
             # Simulation fault injection: the independent control/watchdog loop
             # keeps running while planner refresh is deliberately suspended.
             if rospy.get_param('~pause_planning', False):
-                time.sleep(.05)
+                pace(.05)
                 continue
             with lock:
                 if shared['stop_latched']:
-                    time.sleep(.05)
+                    pace(.05)
                     continue
             payload = worker.poll()
             publish = False
@@ -378,7 +389,7 @@ def main():
                     with lock:
                         value = shared['map']
                     if value is None:
-                        time.sleep(max(.01, .2 - (time.monotonic() - started)))
+                        pace(max(.01, .2 - (time.monotonic() - started)))
                         continue
                 else:
                     with open(map_path, encoding='utf-8') as stream:
@@ -389,7 +400,7 @@ def main():
                 # still being executed changes direction mid-phase and loses
                 # the state/time relation used by collision prediction.
                 if snapshot['result'] is not None:
-                    time.sleep(max(.01, .2 - (time.monotonic() - started)))
+                    pace(max(.01, .2 - (time.monotonic() - started)))
                     continue
                 reason = freshness(started, snapshot['pose_at'], snapshot['obstacles_at'],
                                    snapshot['localization_at'], snapshot['localization_ok'], max_age)
@@ -398,7 +409,7 @@ def main():
                     if sim_clock and plan_sim_tick_s > 0:
                         tick = int(math.floor(stamp / plan_sim_tick_s + 1e-9))
                         if tick == last_plan_tick:
-                            time.sleep(max(.01, .2 - (time.monotonic() - started)))
+                            pace(max(.01, .2 - (time.monotonic() - started)))
                             continue
                         last_plan_tick = tick
                     if not worker.submit(value, snapshot['pose'], snapshot['goal'],
@@ -413,7 +424,8 @@ def main():
                 with lock:
                     shared.update(result=None, last_error=getattr(error, 'code', 'E_LOCAL_INPUT'))
                 rospy.logwarn_throttle(2., 'local planner input error: %s', error)
-            time.sleep(max(.01, .2 - (time.monotonic() - started)))
+            pending = worker.pending is not None
+            pace(.02 if pending else max(.01, .2 - (time.monotonic() - started)))
     finally:
         command_pub.publish(TwistStamped())
         thread.join(timeout=1.)
