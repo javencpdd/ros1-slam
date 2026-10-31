@@ -43,7 +43,10 @@ check/plan/Assembly 启停，`command_owner=null`（R1008）。
 `map_cache.py` 是 MapDelta 的缓存/合并核心（R1012）：`MapCache` 按 `surface_id`
 聚合 upsert/remove，`make_delta` 产出合法 `map_delta/v1`（source sha 为 ops 摘要），
 `ack(version)` 推进 base；`merge_deltas` 要求同 map_id/base，后者按 surface 覆盖前者。
-端到端测试接 `MapService` 升版；ROS `v8_msgs` 消息层仍是测试替身。
+R1014 增加 `v8_msgs`（`MapDelta/MapOp/SupportSurface/SurfaceEdge`）与真实
+`map_cache_node`（JSON ops → typed delta，flush/ack）和 `map_merge_node`（两路合并）；
+`map_cache_smoke.py` 在独立 `v8_msgs` 工作区编译后跑真实 ROS 冒烟。graph 里的
+`map_cache/map_merge` 仍是测试替身，SupportMap→ops 生产者尚未接。
 
 `robot.py` 读取 robot.v1 profile：declared/prohibited 值不得驱动规划（`E_ROBOT_UNVERIFIED`），
 仅 tested/allowed 值可用；robot_adapter 必须提供 `cmd`（TwistStamped）与 `odom`/`imu` 遥测端口。
@@ -111,6 +114,9 @@ python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/
 python3 -B framework/mujoco_verification_smoke.py  # 真实 MuJoCo 落体后端/truth/清理
 python3 -B framework/semantic_graph_smoke.py       # 语义 provider 经 graph/Assembly 启停
 python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替换 v1→v2
+# v8_msgs 先编译：mkdir -p /tmp/v8_msgs_ws/src && ln -s <repo>/ws/src/90_platform/v8_msgs \
+#   /tmp/v8_msgs_ws/src/v8_msgs && (cd /tmp/v8_msgs_ws && catkin_make) && source devel/setup.bash
+python3 -B representation/map_cache_smoke.py       # 真实 ROS：cache flush/ack + merge
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；

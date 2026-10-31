@@ -33,8 +33,8 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
-| **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、语义地图消费者/规划联动、map_cache/map_merge ROS 消息层、命令/定位链零中断热替换、#151 停车预算 |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
+| **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、语义地图消费者/规划联动、map_cache/map_merge 图内替身（真实节点走 JSON ops 入口）、命令/定位链零中断热替换、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界 500 Hz 满速/长时标定、MapDelta 多 map_id/跨机持久化、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
@@ -145,6 +145,12 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1014（2026-10-31）★＝**v8_msgs 与真实 cache/merge 节点**：新增 `v8_msgs`
+  （MapDelta/MapOp/SupportSurface/SurfaceEdge）；`map_cache_node` 接 JSON ops →
+  typed MapDelta（flush/ack），`map_merge_node` 合并两路（同 base，后者覆盖）。
+  独立工作区编译 rc=0，真实 ROS 冒烟 cache v1→v2 删除、merge 0.7→0.9、停止退净；
+  V8 全树 **64 套件 0 失败**。图内 cache/merge 仍为替身（缺 SupportMap→ops 生产者）
+  （代码 `f7bca16e`＋`c0295a14`，全文＝[R1014](note/进度/v8/M5/26-10-29/R1014.md)）。
 - ★R1013（2026-10-31）★＝**A5 启动屏障实验（负结果）**：桥 `--require-release`
   在 goal/障碍/定位就绪后才放行 sim clock，runtime `--release-barrier` 调 release；
   seed0 三次 **2/3 PASS**，首个非零命令 0.36/0.42/0.88 s（散差 0.52 s，比 R990/R996

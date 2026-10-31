@@ -1,0 +1,15 @@
+R1014 命令（2026-10-31 15:40—15:52 CST，qoder；v8_msgs 与真实 cache/merge 节点）
+# 建 v8_msgs（MapDelta/MapOp/SupportSurface/SurfaceEdge），在独立临时工作区编译；
+# map_cache_node 接 JSON ops→typed MapDelta；map_merge_node 合并两路 MapDelta。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash。
+mkdir -p /tmp/v8_msgs_ws/src && ln -s /repo/ws/src/90_platform/v8_msgs /tmp/v8_msgs_ws/src/v8_msgs
+cd /tmp/v8_msgs_ws && catkin_make -DCMAKE_BUILD_TYPE=Release
+source /tmp/v8_msgs_ws/devel/setup.bash
+export ROS_PACKAGE_PATH=/repo/ws/src:$ROS_PACKAGE_PATH
+cd /repo/ws/src/90_platform/v8_platform/representation
+python3 -B map_cache_smoke.py
+# 读数：BUILD_RC=0、MSGS_OK；cache flush v1 upsert mezz 0.8、ack 后 base 2、
+#   第二条 remove base 2；merge 两路同 base 后者 0.9 覆盖 0.7；停止退净；ok=true。
+# 测试：V8 全树 64 套件 0 失败。
+# 边界：cache 输入仍是 JSON ops（SupportMap→ops 生产者未接）；graph 内 map_cache/
+#   map_merge 仍为测试替身；消息包需在独立工作区编译后 source。
