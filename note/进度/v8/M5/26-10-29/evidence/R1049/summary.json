@@ -1,0 +1,125 @@
+{
+ "benchmark": {
+  "scope": "local_native.plan flat stop map start(0,-1.6,0) goal(0,1.0,0) tick1.2 horizon12 validity12 clearance.1",
+  "max_expansions": 20000,
+  "rows": [
+   {
+    "resolution": 0.05,
+    "max_speed_mps": 0.2,
+    "ok": false,
+    "error": "E_LOCAL_BUDGET",
+    "plan_ms": 10375.5
+   },
+   {
+    "resolution": 0.05,
+    "max_speed_mps": 0.3,
+    "ok": true,
+    "reason": "arrived",
+    "expansions": 1444,
+    "plan_ms": 1958.9,
+    "trajectory_points": 10
+   },
+   {
+    "resolution": 0.1,
+    "max_speed_mps": 0.2,
+    "ok": true,
+    "reason": "horizon",
+    "expansions": 3618,
+    "plan_ms": 601.8,
+    "trajectory_points": 11
+   },
+   {
+    "resolution": 0.1,
+    "max_speed_mps": 0.3,
+    "ok": true,
+    "reason": "arrived",
+    "expansions": 512,
+    "plan_ms": 177.1,
+    "trajectory_points": 11
+   },
+   {
+    "resolution": 0.15,
+    "max_speed_mps": 0.2,
+    "ok": true,
+    "reason": "horizon",
+    "expansions": 870,
+    "plan_ms": 76.1,
+    "trajectory_points": 11
+   },
+   {
+    "resolution": 0.15,
+    "max_speed_mps": 0.3,
+    "ok": true,
+    "reason": "arrived",
+    "expansions": 174,
+    "plan_ms": 37.8,
+    "trajectory_points": 11
+   },
+   {
+    "resolution": 0.2,
+    "max_speed_mps": 0.2,
+    "ok": true,
+    "reason": "horizon",
+    "expansions": 510,
+    "plan_ms": 37.9,
+    "trajectory_points": 11
+   },
+   {
+    "resolution": 0.2,
+    "max_speed_mps": 0.3,
+    "ok": true,
+    "reason": "horizon",
+    "expansions": 695,
+    "plan_ms": 61.1,
+    "trajectory_points": 11
+   }
+  ]
+ },
+ "stop02_res15": {
+  "verdict": "FAIL",
+  "checks": {
+   "moving_observed": true,
+   "obstacle_injected_while_moving": false,
+   "planner_no_route": false,
+   "stop_completed": false,
+   "no_fall": true,
+   "collision_free": true,
+   "sensing_watchdog_ok": true
+  },
+  "pose_count": 5942,
+  "pose_frame": "map",
+  "status": {
+   "wall": 1793464208.46689,
+   "velocity": [
+    -0.1485933687113086,
+    -0.08058614997402212,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -0.050000000000000044,
+    -1.5000000000000002,
+    0.0
+   ],
+   "execution_checked_at": 1793464208.4647992,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 48.0,
+   "plan_ms": 111.227,
+   "map_version": null,
+   "plan_ms_max": 111.227,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793464211.49159
+  },
+  "final_world_xyz": [
+   1.6949211664824742,
+   0.023401687612808485,
+   0.33721837599958837
+  ],
+  "gap_m": 1.5550788335175258,
+  "applied_samples": 1189
+ },
+ "conclusion": ".2 at res .05 E_LOCAL_BUDGET; at res .15 plan 76 ms but body_command ~.19 yields base_vxy~0; pose is fresh (5942), E_LOCAL_POSE_STALE is stale last_error"
+}

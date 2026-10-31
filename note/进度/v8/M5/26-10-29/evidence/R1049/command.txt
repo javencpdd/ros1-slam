@@ -1,0 +1,28 @@
+R1049 命令（2026-11-01 00:24—00:32 CST，qoder；0.2 停车根因诊断）
+# 直接规划 benchmark（容器 ros1-slam-sim；numpy 1.24.4 / mujoco 2.3.7）
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/src/90_platform/v8_platform/regression:/opt/ros1-slam/ws/src/90_platform/v8_platform/local_planner \
+  python3 - <<'PY'
+import sys,time
+sys.path.insert(0,"/opt/ros1-slam/ws/src/90_platform/v8_platform/regression")
+import a5_v8x1_stop_smoke as s, local_native as native
+value=s.map_value(1.0)
+for res in (.05,.1,.15,.2):
+  for v in (.2,.3):
+    cfg=native.Config(tick_s=1.2,horizon_s=12.,validity_s=12.,clearance_m=.1,max_speed_mps=v,resolution=res)
+    t=time.perf_counter()
+    try:
+      r=native.plan(value,(0.,-1.6,0.),(0.,1.0,0.),[],now=0.,config=cfg)
+      print(res,v,r["reason"],r["expansions"],round((time.perf_counter()-t)*1e3,1))
+    except Exception as e:
+      print(res,v,getattr(e,"code",type(e).__name__),round((time.perf_counter()-t)*1e3,1))
+PY
+# 0.2 res .15 smoke:
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+  python3 -u -B a5_v8x1_stop_smoke.py --out /tmp/r1049_02_res15.json \
+  --max-speed .2 --resolution .15 --start-map-y -1.6 --bridge45 \
+  --policy /tmp/policy45.onnx --wall-deadline-s 120 --port 11635 --out-dir /tmp
+# 结果：res .05/.2 = E_LOCAL_BUDGET（20000，10.4 s）；res .15/.2 = horizon 76 ms，
+#   但 body_command≈.19 时 base_vxy≈0（低命令死区），机器人停在触发点前；
+#   pose_count=5942、frame=map，node 的 E_LOCAL_POSE_STALE 是未清除的 last_error。
+# 测试：test_a5_v8x1_stop_smoke 4/4；V8 全树沿用 R1048 的 70/0（本批只改 smoke）。
