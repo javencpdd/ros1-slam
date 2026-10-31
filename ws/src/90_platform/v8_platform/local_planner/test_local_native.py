@@ -85,6 +85,13 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'E_LOCAL_NO_ROUTE')
         self.assertEqual(native.command(None, 0., 'single_floor', 2)['velocity'], [0., 0., 0.])
 
+    def test_blocked_goal_line_with_unreachable_horizon_refused_early(self):
+        box = {'min': [.8, -.3, 0.], 'max': [1., .3, .5]}
+        cfg = replace(native.Config(), horizon_s=2.)
+        with self.assertRaises(native.LocalError) as caught:
+            native.plan(flat(), (0., 0., 0.), (2., 0., 0.), [box], config=cfg)
+        self.assertEqual(caught.exception.code, 'E_LOCAL_NO_ROUTE')
+
     def test_goal_inside_inflated_obstacle_refused_before_partial_progress(self):
         box = {'min': [1.25, -.2, 0.], 'max': [1.55, .2, .5]}
         with self.assertRaises(native.LocalError) as caught:

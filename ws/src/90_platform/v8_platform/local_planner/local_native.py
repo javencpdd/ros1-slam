@@ -436,6 +436,36 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
         cursor = parents.get(cursor)
     chain.reverse()
     points = [(*xyz(node), now + tick * config.tick_s) for node, tick in chain]
+    # If the local horizon cannot reach the goal and a static obstacle blocks
+    # the direct goal line, stop now instead of driving up to the obstacle and
+    # refusing at centimetre range.  A detour that actually reaches the goal is
+    # unaffected; moving obstacles remain the time-aware search's job.
+    if _distance(points[-1], goal) > config.goal_tolerance_m:
+        last = points[-1]
+        for lo, hi, velocity, epoch, active_from, active_until in moving:
+            if any(abs(v) > 0 for v in velocity) or not active_from <= now <= active_until:
+                continue
+            if not _swept_hit((*start, now), (*goal, now + 1.),
+                              (lo, hi, velocity, epoch, active_from, active_until), config):
+                continue
+            # Project the blocker onto the goal-line axis and its lateral
+            # perpendicular; only a plan still inside the blocker's lateral
+            # span and short of its front is a head-on refusal.
+            dx, dy = goal[0] - start[0], goal[1] - start[1]
+            if abs(dy) >= abs(dx):
+                lateral, forward = 0, 1
+            else:
+                lateral, forward = 1, 0
+            pad_x = config.radius_m + config.clearance_m
+            inside_lateral = (lo[lateral] - pad_x - 1e-9 <= last[lateral]
+                              <= hi[lateral] + pad_x + 1e-9)
+            if goal[forward] >= start[forward]:
+                before_front = last[forward] < hi[forward] + pad_x
+            else:
+                before_front = last[forward] > lo[forward] - pad_x
+            if inside_lateral and before_front:
+                raise LocalError('E_LOCAL_NO_ROUTE',
+                                 'static obstacle blocks the direct goal line')
     # A terminal hold makes stale command cutoff explicit and permits decel
     # checking. Keep it just inside the horizon: a full tick can exceed the
     # checker's time budget through floating-point roundoff at some start times.

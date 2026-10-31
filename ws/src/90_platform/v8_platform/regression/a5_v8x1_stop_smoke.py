@@ -52,6 +52,10 @@ def obstacle():
     return {'min': [-.4, .8, 0.], 'max': [.4, 1.2, .5],
             'stamp': 0., 'velocity': [0., 0., 0.]}
 
+def path_obstacle():
+    return {'min': [-.4, .45, 0.], 'max': [.4, .55, .5],
+            'stamp': 0., 'velocity': [0., 0., 0.]}
+
 
 def start(argv, stream, cwd=None, env=None):
     return subprocess.Popen(argv, stdout=stream, stderr=subprocess.STDOUT,
@@ -147,6 +151,8 @@ def main():
     parser.add_argument('--max-speed', type=float, default=.3)
     parser.add_argument('--resolution', type=float, default=.05)
     parser.add_argument('--tick-s', type=float, default=1.2)
+    parser.add_argument('--path-obstacle', action='store_true')
+    parser.add_argument('--sensor-range', type=float, default=1.5)
     parser.add_argument('--start-map-y', type=float, default=-2.175)
     parser.add_argument('--inject-map-y', type=float, default=-.2)
     parser.add_argument('--goal-y', type=float, default=1.0)
@@ -195,6 +201,8 @@ def main():
                              'stop_hold_s': args.hold_s,
                              'stop_speed_limit_mps': args.speed_limit,
                              'stop_xy_limit_m': args.xy_limit,
+              'path_obstacle': bool(args.path_obstacle),
+              'sensor_range_m': args.sensor_range,
                              'policy': args.policy, 'xml': args.xml}}
     try:
         time.sleep(3.)
@@ -307,14 +315,32 @@ def main():
                 if applied:
                     pose = applied[-1].get('map_xyz')
                 moving = applied[-1].get('base_vxy') if applied else None
-            if injected['wall'] is None and pose is not None and pose[1] >= args.inject_map_y:
-                injected['wall'] = time.monotonic()
-                obstacle_events.append({'event': 'obstacle_publish', 'wall': injected['wall'],
-                                        'map_y': pose[1]})
-            if injected['wall'] is None:
-                obstacle_pub.publish(String(data=json.dumps({'obstacles': []})))
+            if args.path_obstacle:
+                if injected['wall'] is None and pose is not None:
+                    # Forward ray from the body: the obstacle is published only
+                    # after the sensor range reaches it, not at a scheduled time.
+                    origin_y = pose[1] + .45
+                    distance = .45 - origin_y
+                    if 0. <= distance <= args.sensor_range:
+                        injected['wall'] = time.monotonic()
+                        obstacle_events.append({
+                            'event': 'perception_hit', 'wall': injected['wall'],
+                            'map_y': pose[1], 'ray_distance_m': distance,
+                            'sensor_range_m': args.sensor_range})
+                if injected['wall'] is None:
+                    obstacle_pub.publish(String(data=json.dumps({'obstacles': []})))
+                else:
+                    obstacle_pub.publish(String(data=json.dumps(
+                        {'obstacles': [path_obstacle()]})))
             else:
-                obstacle_pub.publish(String(data=json.dumps({'obstacles': [obstacle()]})))
+                if injected['wall'] is None and pose is not None and pose[1] >= args.inject_map_y:
+                    injected['wall'] = time.monotonic()
+                    obstacle_events.append({'event': 'obstacle_publish', 'wall': injected['wall'],
+                                            'map_y': pose[1]})
+                if injected['wall'] is None:
+                    obstacle_pub.publish(String(data=json.dumps({'obstacles': []})))
+                else:
+                    obstacle_pub.publish(String(data=json.dumps({'obstacles': [obstacle()]})))
             loc_pub.publish(Bool(data=True))
             with lock:
                 if statuses:
@@ -364,7 +390,8 @@ def main():
     final = applied_view[-1] if applied_view else None
     final_xyz = final.get('world_xyz') if final else None
     # Barrier world x range: map y .8—1.2 + y_offset 2.7.
-    gap = None if final_xyz is None else 3.5 - (final_xyz[0] + .25)
+    barrier_face = 3.15 if args.path_obstacle else 3.5
+    gap = None if final_xyz is None else barrier_face - (final_xyz[0] + .25)
     zmin = min([s['xyz'][2] for s in body_view] or [0.])
     checks = {
         'moving_observed': bool(applied_view and max(
@@ -384,8 +411,9 @@ def main():
     result['zmin'] = zmin
     result['trigger_sim'] = trigger
     result['final_world_xyz'] = final_xyz
-    result['scope_note'] = ('ROS local node + 270 policy; flat support map; static obstacle at goal; '
-                            'full-chain pilot, not formal #151')
+    result['scope_note'] = ('ROS local node + MuJoCo/45 policy; flat support map; '
+                            + ('sensor-triggered path obstacle' if args.path_obstacle else 'static obstacle at goal')
+                            + '; full-chain pilot, not formal #151')
     Path(args.out).write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n')
     print(json.dumps({'verdict': result['verdict'], 'checks': checks,
                       'measurement': measurement, 'gap_m': gap}, ensure_ascii=False))
