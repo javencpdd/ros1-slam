@@ -5,6 +5,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -84,6 +85,7 @@ def main():
                             'imu_frame': imu.header.frame_id}
         cloud_pub = rospy.Publisher('/velodyne_points', PointCloud2, queue_size=5)
         imu_pub = rospy.Publisher('/gpsimu_driver/imu_data', Imu, queue_size=20)
+        leg_pub = rospy.Publisher('/leg_odom2', Odometry, queue_size=5)
         counts = {'cloud': 0, 'imu': 0}
 
         def on_cloud(message):
@@ -94,6 +96,15 @@ def main():
             counts['imu'] += 1
             imu_pub.publish(message)
 
+        def leg_loop():
+            while not rospy.is_shutdown():
+                message = Odometry()
+                message.header.frame_id, message.header.stamp = 'map', rospy.Time.now()
+                message.child_frame_id = 'base_link'
+                message.pose.pose.orientation.w = 1.0
+                leg_pub.publish(message)
+                time.sleep(.05)
+        threading.Thread(target=leg_loop, daemon=True).start()
         from geometry_msgs.msg import TransformStamped
         from tf2_ros import StaticTransformBroadcaster
         transform = TransformStamped()
@@ -116,8 +127,16 @@ def main():
         deadline = time.monotonic() + 45
         while time.monotonic() < deadline and not odom_messages:
             time.sleep(.2)
+        window_s = float(os.environ.get('V8_HDL_ODOM_WINDOW', '0'))
+        if odom_messages and window_s > 0:
+            window_deadline = time.monotonic() + window_s
+            while time.monotonic() < window_deadline:
+                time.sleep(.1)
         result['counts'] = dict(counts)
         result['odom_frames'] = len(odom_messages)
+        if odom_messages and window_s > 0:
+            result['odom_rate_hz'] = round(len(odom_messages) / max(window_s, 1e-9), 2)
+            result['leg_odom_heartbeat'] = True
         if odom_messages:
             message = odom_messages[-1]
             result['odom'] = {'frame_id': message.header.frame_id,
