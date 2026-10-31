@@ -1,0 +1,7 @@
+R1052 命令（2026-11-01 00:50—01:06 CST，qoder；tracker 低速修复）
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/local_planner
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:$PYTHONPATH python3 -B test_local_native.py
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:$PYTHONPATH python3 -B test_execution.py
+# 19/19、16/16；全树 SUITES=70 FAIL=0。
+# 行为：track_segment 当观测位姿越过本段目标水平投影 >1mm 时返回 segment_complete，
+#   不再反向追固定目标；<1mm 微越界仍按原安全规则回正。

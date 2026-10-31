@@ -145,6 +145,8 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1052（2026-11-01）★＝**tracker 越过段目标即推进**：修低速前后来回；local 19/19、execution 16/16、全树 70/0（代码 `2d280f1e`）。
+- ★R1053（2026-11-01）★＝**0.28/0.4 实速 18-run 矩阵**：实际净速 **0.208—0.239 / 0.341—0.389 m/s**、18/18 PASS、RTF 1.0；t_sense 最坏 **0.895 s / 0.136 m / 净空 0.575 m**；独立复核判 **formal 不冻结**（低组触发 2/9<0.2、高组 max .389、缺负控/seed/感知路径），formal 两键仍 pending（全文＝[R1053](note/进度/v8/M5/26-10-29/R1053.md)）。
 - ★R1051（2026-11-01）★＝**0.2 实速策略探针**：45 策略在平地命令 .22 时实际 **0.204 m/s**；但 ROS 单链 0.22/res .1 仅 **0.019 m/s 净前进**（tracker 低速横向/倒退振荡），不能作 .2 实速样本。formal #151 仍 pending；只做探针，不改判据（全文＝[R1051](note/进度/v8/M5/26-10-29/R1051.md)）。
 - ★R1050（2026-11-01）★＝**ROS45 停车 scoped 冻结**：新增 `stop_chain_ros45_time_s=1.2`、`stop_chain_ros45_distance_m=0.21`（scope=`ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_cmd0p3_0p4_3start_3phase_n18_simtime`、n=18）；按 t_sense 修正起算最坏 **0.8559 s / 0.1549 m**，净空 **0.582 m**。formal 两停车键仍 pending；digest `9c280489…8a28`；calibration 63/63、全树 **70/0**（代码 `b6fa94ea`，全文＝[R1050](note/进度/v8/M5/26-10-29/R1050.md)）。
 - ★R1049（2026-11-01）★＝**0.2 停车失败根因**：res .05 下 0.2 规划 **E_LOCAL_BUDGET**（20000、10.4 s）；res .15 可规划（76 ms）但 45 策略在 `body_command≈0.19` 时实速≈0（低命令死区）；`E_LOCAL_POSE_STALE` 是陈旧 last_error（pose 5942 帧、frame=map）。formal #151 仍 pending；只改 smoke 诊断开关（代码 `a1724b75`，全文＝[R1049](note/进度/v8/M5/26-10-29/R1049.md)）。
