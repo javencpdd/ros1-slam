@@ -1,0 +1,11 @@
+R1050 命令（2026-11-01 00:33—00:41 CST，qoder；ROS45 scoped 冻结）
+# 容器 ros1-slam-sim；calibration 测试与 freeze：
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/calibration
+PYTHONPATH=/opt/ros1-slam/ws/src/90_platform/v8_platform/calibration:/opt/ros1-slam/ws/src/90_platform/v8_platform/scenarios:/opt/ros1-slam/ws/src/90_platform/v8_platform/contracts:/opt/ros1-slam/ws/src/90_platform/v8_platform/planner \
+  python3 -B test_calibration.py
+PYTHONPATH=... python3 -B calibration.py freeze
+# 输出：63/63 OK；status=blocked；pending 仅 formal 两键；
+#   digest=9c280489f14edc3954016d6756eb74a3d3239d34b2a23276edfb8de454898a28
+# 全树：SUITES=70 FAIL=0。
+# 数据来源：R1048 18-run（/tmp/r1048_matrix）按 t_sense 重算的 corrected_summary；
+# 新增 scoped 键 1.2 s/0.21 m，scope 见 scope.json；formal 两键仍 pending。

@@ -1,0 +1,18 @@
+{
+ "keys": {
+  "budgets.stop_chain_ros45_time_s": 1.2,
+  "budgets.stop_chain_ros45_distance_m": 0.21
+ },
+ "scope": "ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_cmd0p3_0p4_3start_3phase_n18_simtime",
+ "sample_n": 18,
+ "min_sample_n": 18,
+ "source": "R1048 corrected_summary.json (t_sense from first obstacle input wall interpolation)",
+ "worst": {"stop_time_s": 0.8559, "path_m": 0.15492, "forward_m": 0.11904, "gap_m": 0.58210},
+ "margin": "x1.30 then round up to 0.1 s / 0.01 m",
+ "hold": "0.5 s, 0.05 m, 0.2 m/s; post-window no >0.2 m/s and drift <=0.10 m (measured <=16.4 mm)",
+ "calibration_digest": "9c280489f14edc3954016d6756eb74a3d3239d34b2a23276edfb8de454898a28",
+ "formal_keys": "budgets.stop_time_s / stop_distance_m remain pending",
+ "boundaries": ["0.2 not covered (planner budget/low-command deadband)",
+                "no real robot/Gazebo", "single seed/phase grid", "no same-batch kinematic negative control",
+                "18 condition cells, not 18 independent samples"]
+}
