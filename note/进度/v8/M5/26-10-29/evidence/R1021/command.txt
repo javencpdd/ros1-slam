@@ -1,0 +1,12 @@
+R1021 命令（2026-10-31 18:17—18:24 CST，qoder；A5 tick+phase 组合）
+# planner tick 0.5 s + bridge command phase 0.5 s 同时开启，其余同 R987。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# PYTHONPATH=/tmp/r854-policy-runtime，独立 roscore 11500。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --plan-sim-tick-s 0.5 --command-phase-sim-s 0.5 \
+  --out /tmp/r1021_s0_$i.json --wall-deadline-s 150
+# 读数：3/3 FAIL，均为 segment_complete，final z 0.1988（第二级），plans=2；
+#   停止退净；V8 全树 64 套件 0 失败（零代码改动）。
+# 边界：组合控制量反而使重规划跨段边界失败；A5 仍 PARTIAL，不再堆开关。

@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1021（2026-10-31）★＝**A5 tick+phase 组合（负结果）**：planner tick 0.5 s +
+  command phase 0.5 s 同时开启，seed0 三次 **3/3 FAIL**，均 segment_complete 停第二级
+  z 0.1988；A5 仍实验性 **PARTIAL**，不再堆相位开关。零代码改动、全树
+  **64 套件 0 失败**（全文＝[R1021](note/进度/v8/M5/26-10-29/R1021.md)）。
 - ★R1020（2026-10-31）★＝**命令链安全 hold 门**：`hotswap.apply_instance` 增加
   pre_stop/post_start 回调；真实 mux 下旧源 0.4→hold 零速→停旧起新→释放后 0.3 m/s，
   停止退净。hotswap 12/12、全树 **64 套件 0 失败**。是安全交接、不是零中断
