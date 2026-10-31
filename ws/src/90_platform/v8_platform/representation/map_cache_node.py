@@ -14,7 +14,7 @@ def main():
     import rospy
     from std_msgs.msg import String, UInt32
     from std_srvs.srv import Trigger, TriggerResponse
-    from v8_msgs.msg import MapDelta
+    from v8_msgs.msg import MapDelta, SupportMap
 
     rospy.init_node('v8_map_cache')
     map_id = rospy.get_param('~map_id')
@@ -24,6 +24,7 @@ def main():
     ack_topic = rospy.get_param('~ack_topic', '/v8/cache/ack')
     status_topic = rospy.get_param('~status_topic', '/v8/cache/status')
     source_uri = rospy.get_param('~source_uri', 'cache://node')
+    base_map_topic = rospy.get_param('~base_map_topic', '')
     cache = map_cache.MapCache(map_id, base_version)
     state = {'errors': [], 'last_delta': None, 'sequence': 0}
     delta_pub = rospy.Publisher(delta_topic, MapDelta, queue_size=10)
@@ -74,8 +75,20 @@ def main():
             state['errors'] = state['errors'][-10:]
             publish_status()
 
+    def on_base_map(message):
+        try:
+            for surface in ros_map_codec.surfaces_from_support_map(message):
+                cache.upsert(surface)
+            publish_status()
+        except Exception as error:
+            state['errors'].append(getattr(error, 'code', 'E_CACHE_BASE_MAP'))
+            state['errors'] = state['errors'][-10:]
+            publish_status()
+
     rospy.Subscriber(ops_topic, String, on_ops, queue_size=20)
     rospy.Subscriber(ack_topic, UInt32, on_ack, queue_size=10)
+    if base_map_topic:
+        rospy.Subscriber(base_map_topic, SupportMap, on_base_map, queue_size=5)
     rospy.Service('~flush', Trigger, flush)
     publish_status()
     rospy.spin()

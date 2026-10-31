@@ -19,7 +19,7 @@ CHAIN = ['v8.fw.sensors', 'v8.fw.faster_lio', 'v8.fw.map2d', 'v8.fw.global2d',
 class V2ManifestTests(unittest.TestCase):
     def test_registry_derives_io_from_ports(self):
         store = reg.Registry().load_dir(V2)
-        self.assertEqual(len(store.entries), 22)
+        self.assertEqual(len(store.entries), 24)
         self.assertEqual(store.get('v8.fw.map2d')['io']['map_schema'], 'occupancy_grid/v1')
         self.assertEqual(store.get('v8.fw.map2d')['io']['dimensions'], 2)
         self.assertEqual(store.get('v8.fw.map3d')['io']['map_schema'], 'support_map/v1')

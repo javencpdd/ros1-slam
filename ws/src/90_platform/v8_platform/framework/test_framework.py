@@ -25,6 +25,7 @@ G3D = HERE / 'fixtures' / 'graphs' / 'graph_3d_cache.yaml'
 GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
 GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
 GGROUP = HERE / 'fixtures' / 'graphs' / 'graph_nodelet_group.yaml'
+GMAPCACHE = HERE / 'fixtures' / 'graphs' / 'graph_map_cache_ros.yaml'
 G2D_STACKS = [
     ('graph_2d_stack_gp_dwa.yaml', 'global_planner/GlobalPlanner',
      'dwa_local_planner/DWAPlannerROS'),
@@ -267,7 +268,20 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (22, 13, 9))
+                         (24, 15, 9))
+
+    def test_map_cache_ros_graph_binds_support_map_inputs(self):
+        catalog, value = load_pair(GMAPCACHE)
+        report = graph_mod.check(value, catalog)
+        self.assertEqual(set(report['startup_order']), {'cache_a', 'cache_b', 'merge'})
+        self.assertEqual(report['command_writers'], {})
+        self.assertIsNone(safety.check_plan(
+            render.render_plan(value, catalog, report), catalog)['command_owner'])
+        root = ET.fromstring(render.render_launch(value, catalog, report))
+        types = sorted(node.get('type') for node in root.findall('node'))
+        self.assertEqual(types, ['representation/map_cache_node.py',
+                                 'representation/map_cache_node.py',
+                                 'representation/map_merge_node.py'])
 
     def test_nodelet_group_launch_spec_and_render(self):
         catalog, value = load_pair(GGROUP)
@@ -393,7 +407,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 13)
+        self.assertEqual(payload['launch']['real'], 15)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

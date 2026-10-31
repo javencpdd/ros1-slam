@@ -1,0 +1,51 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.map_cache_ros",
+ "version": "0.1.0",
+ "roles": [
+  "map_cache"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "representation/map_cache_node.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "base_map",
+    "type": "v8_msgs/SupportMap",
+    "topic": "base_map"
+   },
+   {
+    "name": "ops",
+    "type": "std_msgs/String",
+    "required": false,
+    "topic": "ops"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "delta",
+    "type": "v8_msgs/MapDelta",
+    "topic": "delta"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

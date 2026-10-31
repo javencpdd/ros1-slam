@@ -43,6 +43,46 @@ def surface_value(message):
     return value
 
 
+def support_map_msg(value):
+    message = msgs.SupportMap()
+    message.schema = value.get('schema', 'support_map/v1')
+    message.map_version = int(value.get('map_version', 1))
+    message.frame = value.get('frame', 'map')
+    message.kind = value.get('kind', 'support_map')
+    message.resolution = float(value.get('resolution', 0.0))
+    origin = value.get('origin', [0.0, 0.0, 0.0])
+    message.origin = [float(item) for item in origin[:3]]
+    extent = value.get('extent', {})
+    message.width = int(extent.get('width', 0))
+    message.height = int(extent.get('height', 0))
+    message.cell_states = list(value.get('cell_states', []))
+    message.unknown_policy = value.get('unknown_policy', '')
+    message.multiple_surfaces_per_xy = bool(value.get('multiple_surfaces_per_xy', False))
+    source = value.get('source', {})
+    message.source_uri = source.get('uri', '')
+    message.source_sha256 = source.get('sha256', '')
+    for surface in value.get('surfaces', []):
+        message.surfaces.append(surface_msg(surface))
+    return message
+
+
+def support_map_value(message):
+    return {'schema': message.schema, 'map_version': message.map_version,
+            'frame': message.frame, 'kind': message.kind,
+            'resolution': message.resolution, 'origin': list(message.origin),
+            'extent': {'width': message.width, 'height': message.height},
+            'cell_states': list(message.cell_states),
+            'unknown_policy': message.unknown_policy,
+            'multiple_surfaces_per_xy': message.multiple_surfaces_per_xy,
+            'source': {'uri': message.source_uri,
+                       'sha256': message.source_sha256},
+            'surfaces': [surface_value(item) for item in message.surfaces]}
+
+
+def surfaces_from_support_map(message):
+    return [surface_value(item) for item in message.surfaces]
+
+
 def delta_msg(value, header=None):
     message = msgs.MapDelta()
     if header is not None:

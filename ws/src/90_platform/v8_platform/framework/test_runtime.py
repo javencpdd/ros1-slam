@@ -19,6 +19,7 @@ BOUNDARY = HERE / 'fixtures' / 'graphs' / 'graph_boundary_mux.yaml'
 GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
 GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
 GGROUP = HERE / 'fixtures' / 'graphs' / 'graph_nodelet_group.yaml'
+GMAPCACHE = HERE / 'fixtures' / 'graphs' / 'graph_map_cache_ros.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -168,6 +169,17 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn('<param name="value" value="2.5"/>', text)
         self.assertIsNone(marker)
         Path(command[1]).unlink()
+
+    def test_map_cache_ros_command_carries_absolute_topics(self):
+        plan, catalog = plan_for(GMAPCACHE)
+        cache = next(item for item in plan['instances'] if item['id'] == 'cache_a')
+        command, _ = runtime.default_command(
+            cache, catalog['components'][cache['component']])
+        self.assertEqual(command[:3], ['rosrun', 'v8_platform',
+                                       'representation/map_cache_node.py'])
+        self.assertIn('__ns:=/v8/cache_a', command)
+        self.assertIn('_base_map_topic:=/v8/cache_a/base_map', command)
+        self.assertIn('_delta_topic:=/v8/cache_a/delta', command)
 
     def test_nav2d_graph_passes_planner_args_to_real_include(self):
         plan, catalog = plan_for(G2D_STACK)

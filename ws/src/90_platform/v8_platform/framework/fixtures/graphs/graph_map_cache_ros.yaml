@@ -1,0 +1,37 @@
+schema: pipeline_graph/v1
+name: map_cache_ros
+instances:
+  - id: cache_a
+    component: v8.fw.map_cache_ros
+    namespace: /v8/cache_a
+    params:
+      map_id: svc_map
+      base_version: 1
+      base_map_topic: /v8/cache_a/base_map
+      ops_topic: /v8/cache_a/ops
+      delta_topic: /v8/cache_a/delta
+      status_topic: /v8/cache_a/status
+  - id: cache_b
+    component: v8.fw.map_cache_ros
+    namespace: /v8/cache_b
+    params:
+      map_id: svc_map
+      base_version: 1
+      base_map_topic: /v8/cache_b/base_map
+      ops_topic: /v8/cache_b/ops
+      delta_topic: /v8/cache_b/delta
+      status_topic: /v8/cache_b/status
+  - id: merge
+    component: v8.fw.map_merge_ros
+    namespace: /v8/merge
+    params:
+      delta_a: /v8/cache_a/delta
+      delta_b: /v8/cache_b/delta
+      delta_topic: /v8/merge/delta
+      status_topic: /v8/merge/status
+external:
+  - {to: cache_a.base_map, type: v8_msgs/SupportMap, source: operator}
+  - {to: cache_b.base_map, type: v8_msgs/SupportMap, source: operator}
+edges:
+  - {from: cache_a.delta, to: merge.delta_a}
+  - {from: cache_b.delta, to: merge.delta_b}

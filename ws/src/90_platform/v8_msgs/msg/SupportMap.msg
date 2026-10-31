@@ -1,0 +1,15 @@
+std_msgs/Header header
+string schema
+uint32 map_version
+string frame
+string kind
+float64 resolution
+float64[3] origin
+uint32 width
+uint32 height
+string[] cell_states
+string unknown_policy
+bool multiple_surfaces_per_xy
+string source_uri
+string source_sha256
+SupportSurface[] surfaces

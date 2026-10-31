@@ -11,6 +11,7 @@ add_message_files(
   FILES
   SurfaceEdge.msg
   SupportSurface.msg
+  SupportMap.msg
   MapOp.msg
   MapDelta.msg
 )
