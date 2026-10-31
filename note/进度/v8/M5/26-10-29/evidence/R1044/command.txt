@@ -1,0 +1,34 @@
+R1044 命令（2026-10-31 23:29 CST，qoder；#151 scoped pilot + 局部规划器目标占据即拒）
+# 容器 ros1-slam-sim；numpy 1.24.4 / onnxruntime 1.16.3 / mujoco 2.3.7。
+# 资产固定：
+#   /tmp/mjcf/Lite3.xml    sha256 9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa
+#   /tmp/policy45.onnx     sha256 efa6581d314d8c0442881453d39fc082c09b28bbaa3029d328fcd61fa25b57c7
+#   （45 维 Lite3 policy，input obs[1,45]；运行 wrapper XML 的 model_sha256 另记 1029a9bb…b1ab）
+# 代码目录：
+cd /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/dynamics
+# 单 run 模板（18 次逐跑；速度/起点/触发相位见 manifest.tsv）：
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:$PYTHONPATH python3 -B mj_navigation_stop.py \
+  --xml /tmp/mjcf/Lite3.xml --policy /tmp/policy45.onnx --seconds 15 \
+  --inject-x 0.98 --max-speed 0.2 --resolution .05 --start-x 0.00 \
+  --out /tmp/r1044_matrix/r00.json
+# 矩阵：速度 0.2/0.4 × 起点 x 0.00/0.25/0.50 × inject-x 0.98/1.00/1.02 = 18 run；
+#   inject-x 为位置触发：机器人 x 到达该值时生成静态障碍，机器人仍在运动。
+# 读数口径：
+#   sensing_to_stop 从 spawn 后首个带点云 hit 的 stamp 起算；
+#   stop_time_s = confirmation_time − trigger_time，含 analyze_braking 的 0.5 s 静止确认窗；
+#   stop_distance_m 用 cumulative_xy（路径长），另报 peak_forward（前向投影）；
+#   碰撞真值为独立 AABB sweep（min_forward_geometry_gap_m），不喂规划器。
+# 局部规划器修复：local_native.plan 对“目标落在活跃静态障碍的 radius+clearance / height
+#   膨胀盒内”直接 E_LOCAL_NO_ROUTE；移动障碍仍交时变搜索（test_execution 覆盖）。
+# 测试：
+#   local_planner/test_local_native.py 18/18
+#   local_planner/test_execution.py 16/16
+#   calibration/test_calibration.py 61/61
+#   dynamics/test_mj_navigation_stop.py 31/31
+#   全树 SUITES=69 FAIL=0（每套件单独 python3 -B；见 tests.log）
+# 冻结：calibration.py 新增 scoped
+#   stop_chain_mj_torque_time_s=3.6、stop_chain_mj_torque_distance_m=0.20，
+#   sample_n=10（18 run/10 distinct），digest=7ecf752e90f8bad021fc7243d07e159594841f5c9fca252220509e36da04475c；
+#   formal budgets.stop_time_s/stop_distance_m 仍 pending（缺 ROS 中间件/真机全链）。
+# 边界：in-process；无 ROS 中间件、无真机；障碍由 fixture 静态生成；单载体；
+#   0.2 组命令值 0.2、实测平均体速 0.12—0.17（步态），0.4 组 0.42—0.43。

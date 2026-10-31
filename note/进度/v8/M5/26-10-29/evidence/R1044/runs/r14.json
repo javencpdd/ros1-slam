@@ -1,0 +1,7411 @@
+{
+ "scope": "inprocess_ray_global_local_policy_torque_full_chain_pilot",
+ "no_ros": true,
+ "hardware": false,
+ "budget_frozen": false,
+ "formal_151_acceptance": false,
+ "verdict": "PASS",
+ "checks": {
+  "moving_observed": true,
+  "sensor_hits": true,
+  "global_route_before": true,
+  "forward_command_before": true,
+  "sensed_planner_zero": true,
+  "local_trajectory_before": true,
+  "planner_blocked_no_route": true,
+  "latched_stop": true,
+  "no_fall": true,
+  "collision_free": true,
+  "braking_completed": true,
+  "supported_execution": true,
+  "sensing_watchdog_ok": true
+ },
+ "latch": {
+  "time": 2.1999999999999793,
+  "reason": "E_LOCAL_NO_ROUTE"
+ },
+ "events": [
+  {
+   "time": 0.0,
+   "event": "barrier_hidden"
+  },
+  {
+   "time": 2.119999999999988,
+   "event": "barrier_spawn",
+   "trigger_x": 1.027298676518859
+  }
+ ],
+ "first_sensor_hit_stamp": 2.1999999999999793,
+ "run_config": {
+  "initial_xyz": [
+   0.25,
+   0.0,
+   0.35
+  ],
+  "max_speed_mps": 0.4,
+  "inject_at": null,
+  "inject_x": 1.02,
+  "wall_clock_s": 4.924,
+  "sim_time_s": 15.000000000001679,
+  "rtf": 3.0463
+ },
+ "sensing_to_stop": {
+  "scope": "torque_policy_braking_component",
+  "hardware": false,
+  "full_chain": false,
+  "parameters": {
+   "speed_limit_m_s": 0.02,
+   "xy_range_limit_m": 0.01,
+   "hold_seconds": 0.5,
+   "motion_epsilon_m": 1e-09,
+   "pre_motion_window_s": 0.5,
+   "base_height_floor_m": 0.18,
+   "post_confirmation_motion": "reject through trace end",
+   "xy_range_definition": "norm of XY axis peak-to-peak ranges",
+   "interpolation": "piecewise linear; window starts at recorded samples",
+   "distance_interval": "trigger through confirmation, or trace end",
+   "forward_axis": "world +X",
+   "criteria_151_frozen": false
+  },
+  "completed": true,
+  "status": "PASS",
+  "reason": "stationary_window_observed",
+  "trigger_time": 2.1999999999999793,
+  "first_stationary_time": 3.181999999999871,
+  "confirmation_time": 3.681999999999871,
+  "peak_forward_m": 0.10487821506403527,
+  "cumulative_xy_m": 0.12596310624560456,
+  "pre_trigger_moving": true,
+  "measurement_end_time": 3.681999999999871,
+  "measurement_origin": "first_sensor_cloud_after_spawn",
+  "stop_time_s": 1.4819999999998918
+ },
+ "planner_braking": {
+  "scope": "torque_policy_braking_component",
+  "hardware": false,
+  "full_chain": false,
+  "parameters": {
+   "speed_limit_m_s": 0.02,
+   "xy_range_limit_m": 0.01,
+   "hold_seconds": 0.5,
+   "motion_epsilon_m": 1e-09,
+   "pre_motion_window_s": 0.5,
+   "base_height_floor_m": 0.18,
+   "post_confirmation_motion": "reject through trace end",
+   "xy_range_definition": "norm of XY axis peak-to-peak ranges",
+   "interpolation": "piecewise linear; window starts at recorded samples",
+   "distance_interval": "trigger through confirmation, or trace end",
+   "forward_axis": "world +X",
+   "criteria_151_frozen": false
+  },
+  "completed": true,
+  "status": "PASS",
+  "reason": "stationary_window_observed",
+  "trigger_time": 2.1999999999999793,
+  "first_stationary_time": 3.181999999999871,
+  "confirmation_time": 3.681999999999871,
+  "peak_forward_m": 0.10487821506403527,
+  "cumulative_xy_m": 0.12596310624560456,
+  "pre_trigger_moving": true,
+  "measurement_end_time": 3.681999999999871,
+  "measurement_origin": "planner_first_nonzero_to_zero",
+  "stop_time_s": 1.4819999999998918
+ },
+ "injection_to_stop": {
+  "scope": "torque_policy_braking_component",
+  "hardware": false,
+  "full_chain": false,
+  "parameters": {
+   "speed_limit_m_s": 0.02,
+   "xy_range_limit_m": 0.01,
+   "hold_seconds": 0.5,
+   "motion_epsilon_m": 1e-09,
+   "pre_motion_window_s": 0.5,
+   "base_height_floor_m": 0.18,
+   "post_confirmation_motion": "reject through trace end",
+   "xy_range_definition": "norm of XY axis peak-to-peak ranges",
+   "interpolation": "piecewise linear; window starts at recorded samples",
+   "distance_interval": "trigger through confirmation, or trace end",
+   "forward_axis": "world +X",
+   "criteria_151_frozen": false
+  },
+  "completed": true,
+  "status": "PASS",
+  "reason": "stationary_window_observed",
+  "trigger_time": 2.119999999999988,
+  "first_stationary_time": 3.181999999999871,
+  "confirmation_time": 3.681999999999871,
+  "peak_forward_m": 0.13701428813417538,
+  "cumulative_xy_m": 0.15811611517198296,
+  "pre_trigger_moving": true,
+  "measurement_end_time": 3.681999999999871,
+  "measurement_origin": "barrier_spawn_not_command_trigger",
+  "stop_time_s": 1.561999999999883
+ },
+ "planner_first_zero": {
+  "time": 2.1999999999999793,
+  "reason": "E_LOCAL_NO_ROUTE"
+ },
+ "faults": [],
+ "truth_collision_evaluation": {
+  "ok": true,
+  "collisions": [],
+  "min_forward_geometry_gap_m": 0.4539801773846015,
+  "scope": "sampled collision-geometry AABB sweep; no fixed centre-radius substitute"
+ },
+ "known_support_map": {
+  "schema_version": 1,
+  "map_id": "mj_known_flat_strip",
+  "map_version": 2,
+  "frame": "map",
+  "kind": "support_map",
+  "resolution": 0.2,
+  "origin": [
+   -1.0,
+   -0.4,
+   0.0
+  ],
+  "extent": {
+   "width": 25,
+   "height": 4
+  },
+  "cell_states": [
+   "free",
+   "occupied",
+   "unknown"
+  ],
+  "unknown_policy": "unknown_not_traversable",
+  "multiple_surfaces_per_xy": false,
+  "source": {
+   "uri": "fixture://declared_flat_floor_z0_x[-1,4]_y[-.4,.4]",
+   "sha256": "43c63140151bf5f49984d86a5624f60a6b8769ceee06a15b9973febdb265f8b0"
+  },
+  "surfaces": [
+   {
+    "surface_id": "floor",
+    "z_reference": 0.0,
+    "data_uri": "fixture://known_flat_strip",
+    "footprint": {
+     "min_x": -1.0,
+     "max_x": 4.0,
+     "min_y": -0.4,
+     "max_y": 0.4
+    },
+    "thickness_m": 0.05,
+    "edges": [],
+    "representation": "elevation_grid",
+    "traversability": "supported",
+    "clearance_min_m": 0.4
+   }
+  ]
+ },
+ "original_xml": "/tmp/mjcf/Lite3.xml",
+ "original_model_sha256": "9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa",
+ "model_hash_scope": "original + wrapper XML bytes; referenced assets excluded",
+ "tag": "r14",
+ "counts": {
+  "decisions": 750,
+  "global_plans": 16,
+  "local_plans": 7,
+  "raw_sensor": 75,
+  "physics_trace": 7501
+ },
+ "decisions": [
+  {
+   "stamp": 0.0,
+   "vx": 0.4,
+   "body_command": [
+    0.4,
+    0.0,
+    -0.0
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.4,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "stamp": 0.20000000000000015,
+   "vx": 0.3998912457077882,
+   "body_command": [
+    0.3998912457077882,
+    -0.009326929091256918,
+    0.005850298045204468
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.39982983738720224,
+    -0.011666239107929995,
+    0.0
+   ]
+  },
+  {
+   "stamp": 0.4000000000000003,
+   "vx": 0.39826371613744427,
+   "body_command": [
+    0.39826371613744427,
+    -0.037229187587069536,
+    0.006275324865134558
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.398022250696688,
+    -0.03972767234992304,
+    0.0
+   ]
+  },
+  {
+   "stamp": 0.6000000000000004,
+   "vx": 0.3998007250361916,
+   "body_command": [
+    0.3998007250361916,
+    0.01262458951948752,
+    0.003080978826571478
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.3998377235288558,
+    0.011392753980590569,
+    0.0
+   ]
+  },
+  {
+   "stamp": 0.8000000000000006,
+   "vx": 0.39826817623028726,
+   "body_command": [
+    0.39826817623028726,
+    0.03718144432644917,
+    0.007722220528724724
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.39854342184699215,
+    0.03410485159754313,
+    0.0
+   ]
+  },
+  {
+   "stamp": 1.0000000000000007,
+   "vx": 0.3830064065591957,
+   "body_command": [
+    0.3830064065591957,
+    0.11535203740988778,
+    0.00819229145887507
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.3839385410946602,
+    0.11221050156783013,
+    0.0
+   ]
+  },
+  {
+   "stamp": 1.2000000000000008,
+   "vx": 0.3960449379937269,
+   "body_command": [
+    0.3960449379937269,
+    0.05611066823292161,
+    -0.00901272643123477
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.395523149632123,
+    0.05967778569187403,
+    0.0
+   ]
+  },
+  {
+   "stamp": 1.400000000000001,
+   "vx": 0.3987279607685965,
+   "body_command": [
+    0.3987279607685965,
+    0.03187496355004339,
+    -0.0020265078600056313
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.3986625472140596,
+    0.032682922892509965,
+    0.0
+   ]
+  },
+  {
+   "stamp": 1.6000000000000012,
+   "vx": 0.395086029196222,
+   "body_command": [
+    0.395086029196222,
+    0.0625062359605989,
+    -0.007987312018045685
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.39457417508006204,
+    0.06565988394665791,
+    0.0
+   ]
+  },
+  {
+   "stamp": 1.8000000000000014,
+   "vx": 0.3984824883211711,
+   "body_command": [
+    0.3984824883211711,
+    0.034809574851866136,
+    -0.008274036665801364
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.3981808359942087,
+    0.03810540443235054,
+    0.0
+   ]
+  },
+  {
+   "stamp": 2.0000000000000013,
+   "vx": 0.3874949552401259,
+   "body_command": [
+    0.3874949552401259,
+    0.09923537506077577,
+    -0.0028676699329130686
+   ],
+   "reason": "track",
+   "local_xyz": [
+    0.38720878804155057,
+    0.10034617313776142,
+    0.0
+   ]
+  },
+  {
+   "stamp": 2.1999999999999793,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 2.3999999999999573,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 2.5999999999999353,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 2.7999999999999132,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 2.999999999999891,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 3.199999999999869,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 3.399999999999847,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 3.599999999999825,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 3.799999999999803,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 3.999999999999781,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 4.1999999999997595,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 4.3999999999997375,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 4.599999999999715,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 4.799999999999693,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 4.999999999999671,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 5.199999999999649,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 5.399999999999627,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 5.599999999999605,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 5.799999999999583,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 5.999999999999561,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 6.199999999999539,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 6.399999999999517,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 6.599999999999495,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 6.799999999999473,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 6.999999999999451,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 7.199999999999429,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 7.399999999999407,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 7.599999999999385,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 7.799999999999363,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 7.999999999999341,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 8.199999999999408,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 8.399999999999475,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 8.599999999999541,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 8.799999999999608,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 8.999999999999675,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 9.199999999999742,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 9.399999999999809,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 9.599999999999875,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 9.799999999999942,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 10.000000000000009,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 10.200000000000076,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 10.400000000000142,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 10.60000000000021,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 10.800000000000276,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 11.000000000000343,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 11.20000000000041,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 11.400000000000476,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 11.600000000000543,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 11.80000000000061,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 12.000000000000677,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 12.200000000000744,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 12.40000000000081,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 12.600000000000877,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 12.800000000000944,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 13.00000000000101,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 13.200000000001078,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 13.400000000001144,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 13.600000000001211,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 13.800000000001278,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 14.000000000001345,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 14.200000000001411,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 14.400000000001478,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 14.600000000001545,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  },
+  {
+   "stamp": 14.800000000001612,
+   "vx": 0.0,
+   "body_command": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "reason": "E_LOCAL_NO_ROUTE",
+   "local_xyz": null
+  }
+ ],
+ "local_plans": [
+  {
+   "stamp": 0.0,
+   "ok": true,
+   "reason": "arrived",
+   "goal": [
+    1.1,
+    0.0,
+    0.0
+   ],
+   "map_version": 2,
+   "valid_until": 0.75
+  },
+  {
+   "stamp": 0.6800000000000005,
+   "ok": true,
+   "reason": "arrived",
+   "goal": [
+    1.3,
+    -0.009599422792922016,
+    0.0
+   ],
+   "map_version": 2,
+   "valid_until": 1.4300000000000006
+  },
+  {
+   "stamp": 1.0400000000000007,
+   "ok": true,
+   "reason": "arrived",
+   "goal": [
+    1.5,
+    -0.015321675567175204,
+    0.0
+   ],
+   "map_version": 2,
+   "valid_until": 1.7900000000000007
+  },
+  {
+   "stamp": 1.400000000000001,
+   "ok": true,
+   "reason": "arrived",
+   "goal": [
+    1.7,
+    -0.015046510796285854,
+    0.0
+   ],
+   "map_version": 2,
+   "valid_until": 2.1500000000000012
+  },
+  {
+   "stamp": 1.7600000000000013,
+   "ok": true,
+   "reason": "arrived",
+   "goal": [
+    1.7,
+    -0.016695144475227755,
+    0.0
+   ],
+   "map_version": 2,
+   "valid_until": 2.5100000000000016
+  },
+  {
+   "stamp": 2.0999999999999903,
+   "ok": true,
+   "reason": "arrived",
+   "goal": [
+    1.9,
+    -0.019540559629971872,
+    0.0
+   ],
+   "map_version": 2,
+   "valid_until": 2.8499999999999903
+  },
+  {
+   "stamp": 2.1999999999999793,
+   "ok": false,
+   "reason": "E_LOCAL_NO_ROUTE",
+   "goal": null,
+   "map_version": null,
+   "valid_until": null
+  }
+ ],
+ "global_plans": [
+  {
+   "stamp": 0.0,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 0.20000000000000015,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 0.4000000000000003,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 0.6000000000000004,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 0.6800000000000005,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 0.8000000000000006,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 1.0000000000000007,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 1.0400000000000007,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 1.2000000000000008,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 1.400000000000001,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 1.6000000000000012,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 1.7600000000000013,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 1.8000000000000014,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 2.0000000000000013,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 2.0999999999999903,
+   "ok": true,
+   "reason": null
+  },
+  {
+   "stamp": 2.1999999999999793,
+   "ok": true,
+   "reason": null
+  }
+ ],
+ "raw_sensor": [
+  {
+   "stamp": 0.0,
+   "xyz": [],
+   "rays": [
+    {
+     "origin": [
+      0.7,
+      -0.4,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      -0.30000000000000004,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      -0.2,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      -0.09999999999999998,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      0.0,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      0.09999999999999998,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      0.20000000000000007,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      0.30000000000000004,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.7,
+      0.4,
+      0.35
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 1.0000000000000007,
+   "xyz": [],
+   "rays": [
+    {
+     "origin": [
+      0.9980547003770397,
+      -0.41518161763120964,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      -0.31518161763120967,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      -0.21518161763120966,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      -0.11518161763120961,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      -0.015181617631209636,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      0.08481838236879034,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      0.18481838236879042,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      0.2848183823687904,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      0.9980547003770397,
+      0.3848183823687904,
+      0.32237419770383163
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 2.0000000000000013,
+   "xyz": [],
+   "rays": [
+    {
+     "origin": [
+      1.4294760809660476,
+      -0.4182764586142995,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      -0.31827645861429954,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      -0.2182764586142995,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      -0.11827645861429947,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      -0.0182764586142995,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      0.08172354138570048,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      0.18172354138570057,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      0.28172354138570055,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    },
+    {
+     "origin": [
+      1.4294760809660476,
+      0.3817235413857005,
+      0.3249139178743445
+     ],
+     "distance": -1.0,
+     "valid": true,
+     "hit": false
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 2.999999999999891,
+   "xyz": [
+    [
+     1.9,
+     -0.44306956790664476,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     -0.3430695679066448,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     -0.24306956790664477,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     -0.14306956790664474,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     -0.043069567906644755,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     0.05693043209335522,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     0.1569304320933553,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     0.2569304320933553,
+     0.3436517239557347
+    ],
+    [
+     1.9,
+     0.3569304320933553,
+     0.3436517239557347
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6089926403792587,
+      -0.44306956790664476,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      -0.3430695679066448,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      -0.24306956790664477,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      -0.14306956790664474,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      -0.043069567906644755,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      0.05693043209335522,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      0.1569304320933553,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      0.2569304320933553,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6089926403792587,
+      0.3569304320933553,
+      0.3436517239557347
+     ],
+     "distance": 0.2910073596207413,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 3.999999999999781,
+   "xyz": [
+    [
+     1.9,
+     -0.44493300915828854,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     -0.34493300915828856,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     -0.24493300915828853,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     -0.1449330091582885,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     -0.044933009158288524,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     0.055066990841711454,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     0.15506699084171155,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     0.2550669908417115,
+     0.3431640306939905
+    ],
+    [
+     1.9,
+     0.3550669908417115,
+     0.3431640306939905
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6117801462916714,
+      -0.44493300915828854,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      -0.34493300915828856,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      -0.24493300915828853,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      -0.1449330091582885,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      -0.044933009158288524,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      0.055066990841711454,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      0.15506699084171155,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      0.2550669908417115,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6117801462916714,
+      0.3550669908417115,
+      0.3431640306939905
+     ],
+     "distance": 0.2882198537083286,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 4.999999999999671,
+   "xyz": [
+    [
+     1.9,
+     -0.4455973139315962,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     -0.3455973139315962,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     -0.24559731393159615,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     -0.1455973139315961,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     -0.04559731393159614,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     0.05440268606840384,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     0.15440268606840393,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     0.2544026860684039,
+     0.34254996418591044
+    ],
+    [
+     1.9,
+     0.35440268606840386,
+     0.34254996418591044
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6111505003101134,
+      -0.4455973139315962,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      -0.3455973139315962,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      -0.24559731393159615,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      -0.1455973139315961,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      -0.04559731393159614,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      0.05440268606840384,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      0.15440268606840393,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      0.2544026860684039,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6111505003101134,
+      0.35440268606840386,
+      0.34254996418591044
+     ],
+     "distance": 0.2888494996898866,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 5.999999999999561,
+   "xyz": [
+    [
+     1.9,
+     -0.44620022981213703,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     -0.34620022981213705,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     -0.24620022981213704,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     -0.146200229812137,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     -0.046200229812137034,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     0.053799770187862944,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     0.15379977018786303,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     0.25379977018786304,
+     0.3421405094059853
+    ],
+    [
+     1.9,
+     0.353799770187863,
+     0.3421405094059853
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.611131138419739,
+      -0.44620022981213703,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      -0.34620022981213705,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      -0.24620022981213704,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      -0.146200229812137,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      -0.046200229812137034,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      0.053799770187862944,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      0.15379977018786303,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      0.25379977018786304,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.611131138419739,
+      0.353799770187863,
+      0.3421405094059853
+     ],
+     "distance": 0.2888688615802609,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 6.999999999999451,
+   "xyz": [
+    [
+     1.9,
+     -0.44658860049082416,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     -0.3465886004908242,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     -0.24658860049082415,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     -0.14658860049082412,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     -0.04658860049082415,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     0.053411399509175825,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     0.15341139950917593,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     0.2534113995091759,
+     0.34185103624522034
+    ],
+    [
+     1.9,
+     0.3534113995091759,
+     0.34185103624522034
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6110830749496767,
+      -0.44658860049082416,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      -0.3465886004908242,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      -0.24658860049082415,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      -0.14658860049082412,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      -0.04658860049082415,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      0.053411399509175825,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      0.15341139950917593,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      0.2534113995091759,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110830749496767,
+      0.3534113995091759,
+      0.34185103624522034
+     ],
+     "distance": 0.2889169250503233,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 7.999999999999341,
+   "xyz": [
+    [
+     1.9,
+     -0.44687449743419216,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     -0.3468744974341922,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     -0.24687449743419215,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     -0.14687449743419212,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     -0.046874497434192156,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     0.05312550256580782,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     0.15312550256580792,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     0.2531255025658079,
+     0.3416515050288251
+    ],
+    [
+     1.9,
+     0.3531255025658079,
+     0.3416515050288251
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6110222089457429,
+      -0.44687449743419216,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      -0.3468744974341922,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      -0.24687449743419215,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      -0.14687449743419212,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      -0.046874497434192156,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      0.05312550256580782,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      0.15312550256580792,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      0.2531255025658079,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6110222089457429,
+      0.3531255025658079,
+      0.3416515050288251
+     ],
+     "distance": 0.28897779105425714,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 8.999999999999675,
+   "xyz": [
+    [
+     1.9,
+     -0.4470712566432532,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     -0.3470712566432532,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     -0.2470712566432532,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     -0.14707125664325316,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     -0.047071256643253186,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     0.05292874335674679,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     0.1529287433567469,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     0.25292874335674687,
+     0.3415178603532774
+    ],
+    [
+     1.9,
+     0.35292874335674684,
+     0.3415178603532774
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6109532033590652,
+      -0.4470712566432532,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      -0.3470712566432532,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      -0.2470712566432532,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      -0.14707125664325316,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      -0.047071256643253186,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      0.05292874335674679,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      0.1529287433567469,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      0.25292874335674687,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6109532033590652,
+      0.35292874335674684,
+      0.3415178603532774
+     ],
+     "distance": 0.2890467966409348,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 10.000000000000009,
+   "xyz": [
+    [
+     1.9,
+     -0.44720561442055323,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     -0.34720561442055325,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     -0.24720561442055322,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     -0.1472056144205532,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     -0.0472056144205532,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     0.052794385579446775,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     0.15279438557944686,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     0.25279438557944683,
+     0.3414297384498668
+    ],
+    [
+     1.9,
+     0.3527943855794468,
+     0.3414297384498668
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6108957064982752,
+      -0.44720561442055323,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      -0.34720561442055325,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      -0.24720561442055322,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      -0.1472056144205532,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      -0.0472056144205532,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      0.052794385579446775,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      0.15279438557944686,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      0.25279438557944683,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108957064982752,
+      0.3527943855794468,
+      0.3414297384498668
+     ],
+     "distance": 0.28910429350172484,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 11.000000000000343,
+   "xyz": [
+    [
+     1.9,
+     -0.44729610601707126,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     -0.3472961060170713,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     -0.24729610601707125,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     -0.14729610601707122,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     -0.04729610601707125,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     0.052703893982928726,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     0.15270389398292883,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     0.2527038939829288,
+     0.3413720403679454
+    ],
+    [
+     1.9,
+     0.3527038939829288,
+     0.3413720403679454
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6108512289688515,
+      -0.44729610601707126,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      -0.3472961060170713,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      -0.24729610601707125,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      -0.14729610601707122,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      -0.04729610601707125,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      0.052703893982928726,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      0.15270389398292883,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      0.2527038939829288,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108512289688515,
+      0.3527038939829288,
+      0.3413720403679454
+     ],
+     "distance": 0.28914877103114855,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 12.000000000000677,
+   "xyz": [
+    [
+     1.9,
+     -0.4473047663822889,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     -0.3473047663822889,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     -0.24730476638228885,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     -0.14730476638228882,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     -0.04730476638228884,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     0.05269523361771114,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     0.15269523361771123,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     0.2526952336177112,
+     0.34133521980309817
+    ],
+    [
+     1.9,
+     0.35269523361771116,
+     0.34133521980309817
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6108255534043046,
+      -0.4473047663822889,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      -0.3473047663822889,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      -0.24730476638228885,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      -0.14730476638228882,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      -0.04730476638228884,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      0.05269523361771114,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      0.15269523361771123,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      0.2526952336177112,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108255534043046,
+      0.35269523361771116,
+      0.34133521980309817
+     ],
+     "distance": 0.28917444659569547,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 13.00000000000101,
+   "xyz": [
+    [
+     1.9,
+     -0.4473129022824285,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     -0.3473129022824285,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     -0.24731290228242847,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     -0.14731290228242844,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     -0.047312902282428446,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     0.05268709771757153,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     0.1526870977175716,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     0.2526870977175716,
+     0.3413057597167831
+    ],
+    [
+     1.9,
+     0.35268709771757156,
+     0.3413057597167831
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6108095331689802,
+      -0.4473129022824285,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      -0.3473129022824285,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      -0.24731290228242847,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      -0.14731290228242844,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      -0.047312902282428446,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      0.05268709771757153,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      0.1526870977175716,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      0.2526870977175716,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6108095331689802,
+      0.35268709771757156,
+      0.3413057597167831
+     ],
+     "distance": 0.2891904668310198,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  },
+  {
+   "stamp": 14.000000000001345,
+   "xyz": [
+    [
+     1.9,
+     -0.4473248428426532,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     -0.34732484284265325,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     -0.2473248428426532,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     -0.14732484284265315,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     -0.04732484284265318,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     0.052675157157346796,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     0.1526751571573469,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     0.25267515715734684,
+     0.3412849023691361
+    ],
+    [
+     1.9,
+     0.3526751571573468,
+     0.3412849023691361
+    ]
+   ],
+   "rays": [
+    {
+     "origin": [
+      1.6107960641105676,
+      -0.4473248428426532,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      -0.34732484284265325,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      -0.2473248428426532,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      -0.14732484284265315,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      -0.04732484284265318,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      0.052675157157346796,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      0.1526751571573469,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      0.25267515715734684,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    },
+    {
+     "origin": [
+      1.6107960641105676,
+      0.3526751571573468,
+      0.3412849023691361
+     ],
+     "distance": 0.2892039358894324,
+     "valid": true,
+     "hit": true
+    }
+   ],
+   "ok": true
+  }
+ ],
+ "rollout": {
+  "initial_xyz": [
+   0.25,
+   0.0,
+   0.35
+  ],
+  "final_x": 1.161,
+  "final_z": 0.341,
+  "xmax": 1.164,
+  "zmin": 0.319,
+  "fell": false,
+  "timestep": 0.002,
+  "model_sha256": "1029a9bb5bdb0420fcf2ae77c001a7377f81bdb8e348848731a5bb777b8cb1ab",
+  "policy_sha256": "efa6581d314d8c0442881453d39fc082c09b28bbaa3029d328fcd61fa25b57c7",
+  "wall_clock_s": 4.924,
+  "sim_time_s": 15.000000000001679,
+  "rtf": 3.0463,
+  "trigger_time": 2.1999999999999793,
+  "trigger_boundary": {
+   "before": {
+    "time": 2.1999999999999793,
+    "xyz": [
+     1.059434749588999,
+     -0.01869770446731014,
+     0.3256829228246905
+    ],
+    "base_vxy": [
+     0.40902880145444026,
+     0.024799811196768655
+    ],
+    "command": [
+     0.3972218383968865,
+     0.047061779615711584,
+     -0.009597312136032394
+    ],
+    "robot_aabb": [
+     [
+      0.6808470384900513,
+      -0.25962399705004313,
+      -0.010744572292418972
+     ],
+     [
+      1.340420156947458,
+      0.20880561917791934,
+      0.4051252806074186
+     ]
+    ],
+    "qpos": [
+     1.059434749588999,
+     -0.01869770446731014,
+     0.3256829228246905,
+     0.9999863191401819,
+     4.2289799053267185e-05,
+     0.0003540166903315224,
+     0.005218660386172438,
+     0.019782239755931106,
+     -0.6835595601017483,
+     1.4800777398558276,
+     0.0756339606336578,
+     -0.8155050334496787,
+     1.6910262681880763,
+     0.020050089086680677,
+     -0.8601843409206232,
+     1.6657244673726963,
+     -0.018334962771683838,
+     -0.7345076549515208,
+     1.4823796403912575
+    ],
+    "tau_max": 8.62471663646243
+   },
+   "after": {
+    "time": 2.1999999999999793,
+    "xyz": [
+     1.059434749588999,
+     -0.01869770446731014,
+     0.3256829228246905
+    ],
+    "base_vxy": [
+     0.40902880145444026,
+     0.024799811196768655
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.6808470384900513,
+      -0.25962399705004313,
+      -0.010744572292418972
+     ],
+     [
+      1.340420156947458,
+      0.20880561917791934,
+      0.4051252806074186
+     ]
+    ],
+    "qpos": [
+     1.059434749588999,
+     -0.01869770446731014,
+     0.3256829228246905,
+     0.9999863191401819,
+     4.2289799053267185e-05,
+     0.0003540166903315224,
+     0.005218660386172438,
+     0.019782239755931106,
+     -0.6835595601017483,
+     1.4800777398558276,
+     0.0756339606336578,
+     -0.8155050334496787,
+     1.6910262681880763,
+     0.020050089086680677,
+     -0.8601843409206232,
+     1.6657244673726963,
+     -0.018334962771683838,
+     -0.7345076549515208,
+     1.4823796403912575
+    ],
+    "tau_max": 7.519891853096902
+   }
+  },
+  "trace": [
+   [
+    0.0,
+    0.25,
+    0.35
+   ],
+   [
+    0.5,
+    0.354,
+    0.327
+   ],
+   [
+    1.0,
+    0.549,
+    0.322
+   ],
+   [
+    1.5,
+    0.763,
+    0.324
+   ],
+   [
+    2.0,
+    0.98,
+    0.325
+   ],
+   [
+    2.5,
+    1.146,
+    0.328
+   ],
+   [
+    3.0,
+    1.159,
+    0.344
+   ],
+   [
+    3.5,
+    1.162,
+    0.343
+   ],
+   [
+    4.0,
+    1.162,
+    0.343
+   ],
+   [
+    4.5,
+    1.162,
+    0.343
+   ],
+   [
+    5.0,
+    1.161,
+    0.343
+   ],
+   [
+    5.5,
+    1.161,
+    0.342
+   ],
+   [
+    6.0,
+    1.161,
+    0.342
+   ],
+   [
+    6.5,
+    1.161,
+    0.342
+   ],
+   [
+    7.0,
+    1.161,
+    0.342
+   ],
+   [
+    7.5,
+    1.161,
+    0.342
+   ],
+   [
+    8.0,
+    1.161,
+    0.342
+   ],
+   [
+    8.5,
+    1.161,
+    0.342
+   ],
+   [
+    9.0,
+    1.161,
+    0.342
+   ],
+   [
+    9.5,
+    1.161,
+    0.341
+   ],
+   [
+    10.0,
+    1.161,
+    0.341
+   ],
+   [
+    10.5,
+    1.161,
+    0.341
+   ],
+   [
+    11.0,
+    1.161,
+    0.341
+   ],
+   [
+    11.5,
+    1.161,
+    0.341
+   ],
+   [
+    12.0,
+    1.161,
+    0.341
+   ],
+   [
+    12.5,
+    1.161,
+    0.341
+   ],
+   [
+    13.0,
+    1.161,
+    0.341
+   ],
+   [
+    13.5,
+    1.161,
+    0.341
+   ],
+   [
+    14.0,
+    1.161,
+    0.341
+   ],
+   [
+    14.5,
+    1.161,
+    0.341
+   ]
+  ],
+  "ncon_peak": 8,
+  "physics_trace": [
+   {
+    "time": 0.0,
+    "xyz": [
+     0.25,
+     0.0,
+     0.35
+    ],
+    "base_vxy": [
+     0.0,
+     0.0
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      -0.1024256362400534,
+      -0.23030859457276012,
+      -0.008167373458960944
+     ],
+     [
+      0.5298235585879156,
+      0.23030859429644482,
+      0.4292617563659186
+     ]
+    ],
+    "qpos": [
+     0.25,
+     0.0,
+     0.35,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     -0.65,
+     1.3,
+     0.0,
+     -0.65,
+     1.3,
+     0.0,
+     -0.65,
+     1.3,
+     0.0,
+     -0.65,
+     1.3
+    ],
+    "tau_max": 0.0
+   },
+   {
+    "time": 0.20000000000000015,
+    "xyz": [
+     0.2718758782224092,
+     0.005197307457409702,
+     0.3220970199521516
+    ],
+    "base_vxy": [
+     0.17806561526188144,
+     0.05489711502026465
+    ],
+    "command": [
+     0.39993802672221146,
+     -0.007040936126941916,
+     0.005067643184824534
+    ],
+    "robot_aabb": [
+     [
+      -0.10318424259304126,
+      -0.24061756137651463,
+      -0.01052858943952499
+     ],
+     [
+      0.5514543208886407,
+      0.23262767272703677,
+      0.4017250764031577
+     ]
+    ],
+    "qpos": [
+     0.2718758782224092,
+     0.005197307457409702,
+     0.3220970199521516,
+     0.9999868566834973,
+     -0.003132874403745969,
+     -0.0028042344573536993,
+     -0.002933909906132532,
+     0.012000719434942778,
+     -0.8515928504153522,
+     1.4998173465113027,
+     0.08973364666206471,
+     -0.7026237212120231,
+     1.6431236931725357,
+     0.031775879913902745,
+     -0.6929929809683478,
+     1.644979307805362,
+     0.011627905641278745,
+     -0.8366541353683705,
+     1.483096983362977
+    ],
+    "tau_max": 9.332238343937135
+   },
+   {
+    "time": 0.4000000000000003,
+    "xyz": [
+     0.32130567257454584,
+     0.012845327275806749,
+     0.32579858452195243
+    ],
+    "base_vxy": [
+     0.3239379893579078,
+     -0.0026645653117257284
+    ],
+    "command": [
+     0.3984621225679525,
+     -0.03504193029275102,
+     0.006639453569376498
+    ],
+    "robot_aabb": [
+     [
+      -0.06416360224393425,
+      -0.2338254811859063,
+      -0.009230414124837466
+     ],
+     [
+      0.6001949155836068,
+      0.23790660747947356,
+      0.4067405183098091
+     ]
+    ],
+    "qpos": [
+     0.32130567257454584,
+     0.012845327275806749,
+     0.32579858452195243,
+     0.9999508771339857,
+     -0.004969100240195455,
+     -0.00796606209967656,
+     -0.0031769822787729523,
+     0.029340495768750835,
+     -0.9712867205471772,
+     1.4265378839799268,
+     0.08272821377614371,
+     -0.5874861643151346,
+     1.5248596915015664,
+     0.044237986498761504,
+     -0.570963432721512,
+     1.5486249832865455,
+     0.033209230846903436,
+     -0.9540013410470326,
+     1.4025854279693581
+    ],
+    "tau_max": 6.025493688062159
+   },
+   {
+    "time": 0.6000000000000004,
+    "xyz": [
+     0.3849250215764047,
+     -0.0018542102854353518,
+     0.3256317739805878
+    ],
+    "base_vxy": [
+     0.3338280720155792,
+     -0.12295829287531272
+    ],
+    "command": [
+     0.39999872448429263,
+     -0.0010101539184447848,
+     0.004959581443958328
+    ],
+    "robot_aabb": [
+     [
+      0.01968841600161858,
+      -0.23562805397353564,
+      -0.010712622690674467
+     ],
+     [
+      0.6637750160625966,
+      0.2267970442010745,
+      0.403252886429173
+     ]
+    ],
+    "qpos": [
+     0.3849250215764047,
+     -0.0018542102854353518,
+     0.3256317739805878,
+     0.9999070230495768,
+     0.005934993761179551,
+     -0.012188789604296445,
+     -0.0014678260013582186,
+     0.03441496903599208,
+     -0.6301523402957238,
+     1.5506114473848767,
+     0.025175180417084837,
+     -0.8468667084912053,
+     1.4287406914048821,
+     0.028290703860280497,
+     -0.7782219070135997,
+     1.5078642829336228,
+     0.03850104029744901,
+     -0.7024213742858983,
+     1.5203478384082934
+    ],
+    "tau_max": 9.27202220155804
+   },
+   {
+    "time": 0.8000000000000006,
+    "xyz": [
+     0.45955418731116704,
+     -0.012018473613366805,
+     0.32418275059165547
+    ],
+    "base_vxy": [
+     0.41804594161463543,
+     0.013604514545437891
+    ],
+    "command": [
+     0.39843080810344,
+     0.035396202536992126,
+     0.006462768427249536
+    ],
+    "robot_aabb": [
+     [
+      0.08036466154310531,
+      -0.255394203573227,
+      -0.010422723463145447
+     ],
+     [
+      0.7399162887143271,
+      0.21681069700109415,
+      0.4042333588666303
+     ]
+    ],
+    "qpos": [
+     0.45955418731116704,
+     -0.012018473613366805,
+     0.32418275059165547,
+     0.9999881908465599,
+     0.0025926634691552973,
+     0.0014000393133647016,
+     -0.0038647320063862644,
+     0.024941770498184634,
+     -0.8114506280731836,
+     1.4961243949395144,
+     0.08765216536054454,
+     -0.7440519055956821,
+     1.645952223031859,
+     0.02826794047328222,
+     -0.731900388781215,
+     1.6677854540302681,
+     0.004567786233641956,
+     -0.8664168398222225,
+     1.466585162831858
+    ],
+    "tau_max": 7.873575776620394
+   },
+   {
+    "time": 1.0000000000000007,
+    "xyz": [
+     0.5480547003770397,
+     -0.015181617631209636,
+     0.32237419770383163
+    ],
+    "base_vxy": [
+     0.3927431092628599,
+     -0.007232214452385837
+    ],
+    "command": [
+     0.3869436595359383,
+     0.10136372302227203,
+     0.01041362920410684
+    ],
+    "robot_aabb": [
+     [
+      0.16350109971441082,
+      -0.251443085747483,
+      -0.01127981104445204
+     ],
+     [
+      0.8286522438878758,
+      0.2149498446384147,
+      0.4037908487665342
+     ]
+    ],
+    "qpos": [
+     0.5480547003770397,
+     -0.015181617631209636,
+     0.32237419770383163,
+     0.9999721460731917,
+     0.005598661185322906,
+     0.0027309550415546852,
+     -0.004111441993792288,
+     0.010700440850821578,
+     -0.8411470761310377,
+     1.680438734935188,
+     0.047631759148198366,
+     -0.7716831737342401,
+     1.4812061200621351,
+     0.05257128162449034,
+     -0.7045499061494002,
+     1.5051740085304854,
+     0.03512976041589874,
+     -0.9201331743394277,
+     1.6995249940543518
+    ],
+    "tau_max": 8.415954006855152
+   },
+   {
+    "time": 1.2000000000000008,
+    "xyz": [
+     0.6279532869369402,
+     -0.018414794667137194,
+     0.32593954748187953
+    ],
+    "base_vxy": [
+     0.41079679494816707,
+     -0.022602116188269832
+    ],
+    "command": [
+     0.39671134241994377,
+     0.05118701784013344,
+     -0.007629362490623255
+    ],
+    "robot_aabb": [
+     [
+      0.25055546733267137,
+      -0.2593514155723222,
+      -0.01067948046530319
+     ],
+     [
+      0.9085074872057683,
+      0.2073518219003706,
+      0.4045225519995932
+     ]
+    ],
+    "qpos": [
+     0.6279532869369402,
+     -0.018414794667137194,
+     0.32593954748187953,
+     0.9999881144767897,
+     -0.0008993145956417927,
+     -0.0016335084071536208,
+     0.0045048627833547,
+     0.02756933530363651,
+     -0.6881294617297095,
+     1.4815516896246594,
+     0.07312702615329622,
+     -0.810204778162079,
+     1.6918076923442396,
+     0.01305505876539187,
+     -0.8538377555524078,
+     1.6514836736950744,
+     -0.00475713713573049,
+     -0.7299674569899877,
+     1.472941754067328
+    ],
+    "tau_max": 8.397261858361913
+   },
+   {
+    "time": 1.400000000000001,
+    "xyz": [
+     0.7164643859896065,
+     -0.015046510796285854,
+     0.32492667361633265
+    ],
+    "base_vxy": [
+     0.4881394189586455,
+     -0.008139718610323188
+    ],
+    "command": [
+     0.3781405491026312,
+     0.1304213369213822,
+     -0.0021332704622015752
+    ],
+    "robot_aabb": [
+     [
+      0.33080077056118284,
+      -0.2507256905980062,
+      -0.009532115466534041
+     ],
+     [
+      0.9972893358434012,
+      0.2160928556058701,
+      0.40802198612627427
+     ]
+    ],
+    "qpos": [
+     0.7164643859896065,
+     -0.015046510796285854,
+     0.32492667361633265,
+     0.9999661053056735,
+     0.005740608505104787,
+     0.005820105846224367,
+     0.0009798069874269722,
+     0.04633051344999317,
+     -0.9426746287705406,
+     1.4677890459295087,
+     0.04382308506837858,
+     -0.6530674793683107,
+     1.5355553383975624,
+     0.0034849934211920383,
+     -0.614328789401729,
+     1.5892337651858104,
+     0.02302562220674784,
+     -0.9389287613601097,
+     1.3982539742495328
+    ],
+    "tau_max": 6.38658548161024
+   },
+   {
+    "time": 1.6000000000000012,
+    "xyz": [
+     0.8040037973303598,
+     -0.015974435035768605,
+     0.3247232817969827
+    ],
+    "base_vxy": [
+     0.43821873526016814,
+     -0.0043661997519765525
+    ],
+    "command": [
+     0.3958650921985009,
+     0.057365745690894816,
+     -0.0067641189420136905
+    ],
+    "robot_aabb": [
+     [
+      0.4256568172723919,
+      -0.25309737770607155,
+      -0.010346473113427845
+     ],
+     [
+      1.0835914482994005,
+      0.20797833750600353,
+      0.40022390555348714
+     ]
+    ],
+    "qpos": [
+     0.8040037973303598,
+     -0.015974435035768605,
+     0.3247232817969827,
+     0.9999629948450193,
+     -0.0012844911212304584,
+     -0.007515950124985945,
+     0.003983656217378173,
+     0.037145088237995144,
+     -0.5836110401217347,
+     1.4943782753156898,
+     0.02099030457951361,
+     -0.8928809059569164,
+     1.4163893532825045,
+     0.023372515156081214,
+     -0.8761976273879578,
+     1.5098286260364,
+     0.023987044338795036,
+     -0.6541851575516279,
+     1.5351827486793581
+    ],
+    "tau_max": 7.95896519129053
+   },
+   {
+    "time": 1.8000000000000014,
+    "xyz": [
+     0.8890443085313224,
+     -0.015403256924177532,
+     0.32522377269930214
+    ],
+    "base_vxy": [
+     0.4409132288478838,
+     0.028669730275850954
+    ],
+    "command": [
+     0.3985665958813274,
+     0.03383295209659682,
+     -0.009440844500740415
+    ],
+    "robot_aabb": [
+     [
+      0.5127215996347894,
+      -0.25534852415079035,
+      -0.010594171121986906
+     ],
+     [
+      1.1699659535095301,
+      0.2124195464692238,
+      0.4055665623609702
+     ]
+    ],
+    "qpos": [
+     0.8890443085313224,
+     -0.015403256924177532,
+     0.32522377269930214,
+     0.9999835822138019,
+     0.003661065128127601,
+     0.0015373712397908433,
+     0.004131391369908671,
+     0.053471230718076954,
+     -0.8397141225384147,
+     1.5026015925224232,
+     0.07126158780864689,
+     -0.7385428677123771,
+     1.6427945183726198,
+     0.007190608765745912,
+     -0.7273316624134173,
+     1.6580510244483257,
+     0.02005317675107484,
+     -0.8536194538016323,
+     1.4520048363645208
+    ],
+    "tau_max": 8.048064343397462
+   },
+   {
+    "time": 2.0000000000000013,
+    "xyz": [
+     0.9794760809660475,
+     -0.0182764586142995,
+     0.3249139178743445
+    ],
+    "base_vxy": [
+     0.40659501623654726,
+     -0.019627493125769314
+    ],
+    "command": [
+     0.3902468940810572,
+     0.08779158080413017,
+     -0.001767426524286222
+    ],
+    "robot_aabb": [
+     [
+      0.5967145330926156,
+      -0.25355462684840757,
+      -0.010996753432316847
+     ],
+     [
+      1.2599471005412282,
+      0.2107571775016108,
+      0.4063824743473587
+     ]
+    ],
+    "qpos": [
+     0.9794760809660475,
+     -0.0182764586142995,
+     0.3249139178743445,
+     0.9999745755010736,
+     0.006532516200048184,
+     0.002482922414959151,
+     0.0014176317664712594,
+     0.02210703130240607,
+     -0.8342841804067453,
+     1.6872642170040757,
+     0.03802085805751053,
+     -0.7651844841412682,
+     1.4712790458972553,
+     0.0474088206313935,
+     -0.7041492450511478,
+     1.4847987310812543,
+     0.042949104484226924,
+     -0.9130044242407642,
+     1.738586536136457
+    ],
+    "tau_max": 7.812809578019875
+   },
+   {
+    "time": 2.1999999999999793,
+    "xyz": [
+     1.059434749588999,
+     -0.01869770446731014,
+     0.3256829228246905
+    ],
+    "base_vxy": [
+     0.40902880145444026,
+     0.024799811196768655
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.6808470384900513,
+      -0.25962399705004313,
+      -0.010744572292418972
+     ],
+     [
+      1.340420156947458,
+      0.20880561917791934,
+      0.4051252806074186
+     ]
+    ],
+    "qpos": [
+     1.059434749588999,
+     -0.01869770446731014,
+     0.3256829228246905,
+     0.9999863191401819,
+     4.2289799053267185e-05,
+     0.0003540166903315224,
+     0.005218660386172438,
+     0.019782239755931106,
+     -0.6835595601017483,
+     1.4800777398558276,
+     0.0756339606336578,
+     -0.8155050334496787,
+     1.6910262681880763,
+     0.020050089086680677,
+     -0.8601843409206232,
+     1.6657244673726963,
+     -0.018334962771683838,
+     -0.7345076549515208,
+     1.4823796403912575
+    ],
+    "tau_max": 7.519891853096902
+   },
+   {
+    "time": 2.3999999999999573,
+    "xyz": [
+     1.126132637976015,
+     -0.020756913410343723,
+     0.3249268347292619
+    ],
+    "base_vxy": [
+     0.27330965453547873,
+     -0.09308766038758788
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.7452525462956646,
+      -0.2608667669078152,
+      -0.010076420084175086
+     ],
+     [
+      1.4088033398965183,
+      0.20900413702757795,
+      0.4146416805636251
+     ]
+    ],
+    "qpos": [
+     1.126132637976015,
+     -0.020756913410343723,
+     0.3249268347292619,
+     0.9998156692246382,
+     0.006386821517347144,
+     0.01793257047289848,
+     0.0025017993582536306,
+     0.017343038481867978,
+     -0.8635067445100775,
+     1.501048274866129,
+     0.07670633887727367,
+     -0.7367128915674289,
+     1.5309604615901418,
+     0.025439006464947622,
+     -0.7353268314807718,
+     1.6177085299301317,
+     -0.009986726589475541,
+     -0.8645154149597719,
+     1.4226262201595195
+    ],
+    "tau_max": 6.8426461803391145
+   },
+   {
+    "time": 2.5999999999999353,
+    "xyz": [
+     1.154078162051014,
+     -0.03556071238730868,
+     0.32854487568454543
+    ],
+    "base_vxy": [
+     0.0638877598793176,
+     -0.04660287431150847
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.7845891159614218,
+      -0.27568266973735245,
+      -0.010350082099591595
+     ],
+     [
+      1.4355459929620153,
+      0.1915192493031176,
+      0.4119443608512105
+     ]
+    ],
+    "qpos": [
+     1.154078162051014,
+     -0.03556071238730868,
+     0.32854487568454543,
+     0.9999538370561151,
+     0.006334308773618821,
+     0.006161784103295364,
+     0.0037726258464633013,
+     0.0342613500351275,
+     -0.7289228986212779,
+     1.5751221975119722,
+     0.031201378079957494,
+     -0.8023563363793508,
+     1.4537885548834548,
+     0.020300635994262257,
+     -0.7282000427461305,
+     1.4348308279927215,
+     0.06158459666370936,
+     -0.7814671169770194,
+     1.571562124465888
+    ],
+    "tau_max": 6.53110170526793
+   },
+   {
+    "time": 2.7999999999999132,
+    "xyz": [
+     1.1546526842528726,
+     -0.04378275518709499,
+     0.34140882102303266
+    ],
+    "base_vxy": [
+     -0.013214186541979603,
+     -0.026931319442116013
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.7963100650076869,
+      -0.27765799580778416,
+      -0.010164698346800116
+     ],
+     [
+      1.4344766385755763,
+      0.18914316507532117,
+      0.4218970641059263
+     ]
+    ],
+    "qpos": [
+     1.1546526842528726,
+     -0.04378275518709499,
+     0.34140882102303266,
+     0.9999912674140354,
+     -0.004114115230347851,
+     0.0006158554612400406,
+     -0.0003998419607311449,
+     -0.01473952233196626,
+     -0.6452521331451572,
+     1.3538475461894242,
+     -0.012414586154071447,
+     -0.7508400636594181,
+     1.3531468759856222,
+     -0.022547061341271882,
+     -0.6966683248000108,
+     1.3473334703475506,
+     0.014196842434123074,
+     -0.6630496208296893,
+     1.332303153973745
+    ],
+    "tau_max": 3.6825065067092084
+   },
+   {
+    "time": 2.999999999999891,
+    "xyz": [
+     1.1589926403792588,
+     -0.043069567906644755,
+     0.3436517239557347
+    ],
+    "base_vxy": [
+     0.03615736544368307,
+     0.016943500527222412
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.799804696875034,
+      -0.2751355356090871,
+      -0.01008916961844214
+     ],
+     [
+      1.4395960762619469,
+      0.1916332943801471,
+      0.4261063073031751
+     ]
+    ],
+    "qpos": [
+     1.1589926403792588,
+     -0.043069567906644755,
+     0.3436517239557347,
+     0.9999230218822049,
+     -0.011286803517581214,
+     0.0014430881396180128,
+     -0.004947309666489193,
+     -0.0325848263629736,
+     -0.65895593700053,
+     1.3441544415363182,
+     -0.022035386558558523,
+     -0.7415773110286119,
+     1.3250885083557151,
+     -0.031382415991486716,
+     -0.7085563884833049,
+     1.3375573093999664,
+     0.00468351468277902,
+     -0.6500621595246667,
+     1.3018036047880788
+    ],
+    "tau_max": 4.277230449798048
+   },
+   {
+    "time": 3.199999999999869,
+    "xyz": [
+     1.16406594287599,
+     -0.04356110229749738,
+     0.3438988133038981
+    ],
+    "base_vxy": [
+     0.009352291340359125,
+     -0.016492640584449637
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8035536286375023,
+      -0.27466044309065224,
+      -0.010052794762933595
+     ],
+     [
+      1.4456272093167564,
+      0.19336077385763226,
+      0.4267139861845187
+     ]
+    ],
+    "qpos": [
+     1.16406594287599,
+     -0.04356110229749738,
+     0.3438988133038981,
+     0.9999003513216486,
+     -0.010715247203735795,
+     0.0023769665023161113,
+     -0.008878115478732018,
+     -0.038140556236893025,
+     -0.6751732291996638,
+     1.3401492827462422,
+     -0.021004238962799494,
+     -0.7495045932823594,
+     1.324215566789531,
+     -0.02937269453422424,
+     -0.7234101677470954,
+     1.3319004694221483,
+     0.005105556733995039,
+     -0.652945711576402,
+     1.298834875980079
+    ],
+    "tau_max": 4.091476236686256
+   },
+   {
+    "time": 3.399999999999847,
+    "xyz": [
+     1.1632045913950055,
+     -0.04483036462053258,
+     0.3435505851219057
+    ],
+    "base_vxy": [
+     -0.013530106923585555,
+     -0.0014960093696073666
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8029950036025228,
+      -0.276139916201954,
+      -0.010077288325277114
+     ],
+     [
+      1.445054381987889,
+      0.1935685674167779,
+      0.4261810750589986
+     ]
+    ],
+    "qpos": [
+     1.1632045913950055,
+     -0.04483036462053258,
+     0.3435505851219057,
+     0.9998935848035286,
+     -0.01006007543714292,
+     0.002303144055882504,
+     -0.010310648786859692,
+     -0.04298702770205145,
+     -0.6751078016693057,
+     1.3375465290516773,
+     -0.019149981057277995,
+     -0.7467786138724133,
+     1.3279253279896477,
+     -0.031915769140853666,
+     -0.7236862367227125,
+     1.3314656925118675,
+     0.0016503174880818702,
+     -0.6490231561973845,
+     1.3057989152376765
+    ],
+    "tau_max": 4.018260758496965
+   },
+   {
+    "time": 3.599999999999825,
+    "xyz": [
+     1.160530022308246,
+     -0.04485313970751745,
+     0.3432645061896967
+    ],
+    "base_vxy": [
+     -0.009212243969359808,
+     0.0013648674226760386
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8010452283450409,
+      -0.2767593319377064,
+      -0.01012626906919481
+     ],
+     [
+      1.4426927746524751,
+      0.1945658845437781,
+      0.42566430741062644
+     ]
+    ],
+    "qpos": [
+     1.160530022308246,
+     -0.04485313970751745,
+     0.3432645061896967,
+     0.999876013568638,
+     -0.009936482925937472,
+     0.0019395347314858263,
+     -0.012060762918535885,
+     -0.045632918058500865,
+     -0.671828604597253,
+     1.3365009214330976,
+     -0.016274023170728836,
+     -0.7382572698056079,
+     1.3291479098985994,
+     -0.031618993600707294,
+     -0.7217394057188352,
+     1.3350554429972716,
+     0.0014588918547130533,
+     -0.6390262288818529,
+     1.3087540335452763
+    ],
+    "tau_max": 3.9402731714763797
+   },
+   {
+    "time": 3.799999999999803,
+    "xyz": [
+     1.1602288184809775,
+     -0.044602310897696576,
+     0.3431672578191394
+    ],
+    "base_vxy": [
+     0.005298883736236859,
+     8.858601846468193e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8007460958662143,
+      -0.2772375158626293,
+      -0.010142291194950026
+     ],
+     [
+      1.4426085032480882,
+      0.19534019156362425,
+      0.42565626927324285
+     ]
+    ],
+    "qpos": [
+     1.1602288184809775,
+     -0.044602310897696576,
+     0.3431672578191394,
+     0.9998634745402328,
+     -0.009966749269130628,
+     0.0021018183408056507,
+     -0.013010709012269556,
+     -0.04691813065013967,
+     -0.6743353739614237,
+     1.3368173674692663,
+     -0.012377728210676509,
+     -0.7350984013056185,
+     1.3278451010766428,
+     -0.03141850319594549,
+     -0.723039122472387,
+     1.3354918259264048,
+     0.0013012627691177327,
+     -0.6343433270768901,
+     1.3087879230677288
+    ],
+    "tau_max": 3.9381423630564014
+   },
+   {
+    "time": 3.999999999999781,
+    "xyz": [
+     1.1617801462916715,
+     -0.044933009158288524,
+     0.3431640306939905
+    ],
+    "base_vxy": [
+     0.007602461156656347,
+     -0.0027671292096894985
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8018841575061701,
+      -0.2779939797295785,
+      -0.01012058584181251
+     ],
+     [
+      1.4443971208831576,
+      0.19572041435034954,
+      0.4258648320465839
+     ]
+    ],
+    "qpos": [
+     1.1617801462916715,
+     -0.044933009158288524,
+     0.3431640306939905,
+     0.999853712472654,
+     -0.009701487908667452,
+     0.002603775195734173,
+     -0.0138439568671501,
+     -0.04905914646839672,
+     -0.6804732244013568,
+     1.3359265064700312,
+     -0.009538305603368099,
+     -0.7370037028015133,
+     1.327287712042657,
+     -0.032140999116258444,
+     -0.7267759919972551,
+     1.3324140149046013,
+     4.5916370926648445e-05,
+     -0.6347044417858573,
+     1.3091643459765847
+    ],
+    "tau_max": 3.9249705835938546
+   },
+   {
+    "time": 4.1999999999997595,
+    "xyz": [
+     1.1625687877489477,
+     -0.04538238940100862,
+     0.3430693388709989
+    ],
+    "base_vxy": [
+     -0.00014565080993800538,
+     -0.001224949487310581
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8024860435384354,
+      -0.2787945667348026,
+      -0.010114235939788968
+     ],
+     [
+      1.4453988396125013,
+      0.1960225520549297,
+      0.42586395499858787
+     ]
+    ],
+    "qpos": [
+     1.1625687877489477,
+     -0.04538238940100862,
+     0.3430693388709989,
+     0.9998437462240509,
+     -0.0093859384369379,
+     0.00290613929223073,
+     -0.014694953240078985,
+     -0.05139576110620573,
+     -0.6844880143059883,
+     1.3348456380352547,
+     -0.0071098510596470325,
+     -0.7374523386854518,
+     1.3276958396327956,
+     -0.03298780231047678,
+     -0.7291961455228185,
+     1.3305379327853115,
+     -0.0013962773004046864,
+     -0.6340607889725949,
+     1.3108596793949572
+    ],
+    "tau_max": 3.8970736267839188
+   },
+   {
+    "time": 4.3999999999997375,
+    "xyz": [
+     1.1619530377216214,
+     -0.04543006562688535,
+     0.34291388625316305
+    ],
+    "base_vxy": [
+     -0.004644391777425256,
+     0.00033344739876956447
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8020083560723675,
+      -0.27936411905158054,
+      -0.010133694068984761
+     ],
+     [
+      1.4449274659686293,
+      0.19647438220333532,
+      0.4256881204636808
+     ]
+    ],
+    "qpos": [
+     1.1619530377216214,
+     -0.04543006562688535,
+     0.34291388625316305,
+     0.9998341585974304,
+     -0.009270829864348226,
+     0.0029183947442697994,
+     -0.015400973589718625,
+     -0.05288985434395852,
+     -0.6852530213201456,
+     1.3346444027418372,
+     -0.004094342536185153,
+     -0.7342857248658001,
+     1.327522109639567,
+     -0.03326688421194833,
+     -0.7293527987854483,
+     1.3312712292868045,
+     -0.0021569479794660397,
+     -0.6302464890788613,
+     1.3124592348917186
+    ],
+    "tau_max": 3.8704857951210743
+   },
+   {
+    "time": 4.599999999999715,
+    "xyz": [
+     1.1612272714091405,
+     -0.04539467109344828,
+     0.3427810192376708
+    ],
+    "base_vxy": [
+     -0.001777387991660842,
+     -0.00017768596857673974
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014524007895522,
+      -0.27985785396077856,
+      -0.010152786905597011
+     ],
+     [
+      1.444324099540155,
+      0.19690785606315858,
+      0.4255519174755571
+     ]
+    ],
+    "qpos": [
+     1.1612272714091405,
+     -0.04539467109344828,
+     0.3427810192376708,
+     0.9998254990327304,
+     -0.00919746957932346,
+     0.002945121327360359,
+     -0.015990756631754775,
+     -0.05412180424563618,
+     -0.6856045823395521,
+     1.3346158536414867,
+     -0.0010806324588177106,
+     -0.7309251570453731,
+     1.3270676002274084,
+     -0.03343702484407337,
+     -0.72902206152961,
+     1.3320255488933774,
+     -0.002728342194677389,
+     -0.6261866246302807,
+     1.3135398226043937
+    ],
+    "tau_max": 3.8440487539781683
+   },
+   {
+    "time": 4.799999999999693,
+    "xyz": [
+     1.1610854397886752,
+     -0.04545209183599861,
+     0.3426298543616194
+    ],
+    "base_vxy": [
+     -7.66155042199617e-05,
+     -0.0004635324482630643
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013039644724809,
+      -0.28043432344940894,
+      -0.010158052677623541
+     ],
+     [
+      1.444269694517495,
+      0.19713668808077467,
+      0.42551992837552677
+     ]
+    ],
+    "qpos": [
+     1.1610854397886752,
+     -0.04545209183599861,
+     0.3426298543616194,
+     0.9998208387329248,
+     -0.009143512609374668,
+     0.003188565498990564,
+     -0.016264060458923257,
+     -0.05529845462962236,
+     -0.6870788805231522,
+     1.3354086051561747,
+     0.0020657429553199744,
+     -0.7292977498278194,
+     1.3268408293620648,
+     -0.034089822860624334,
+     -0.7291097299053807,
+     1.3318812880636257,
+     -0.0037248085662215298,
+     -0.6238689389686493,
+     1.314642110108279
+    ],
+    "tau_max": 3.8601535699741403
+   },
+   {
+    "time": 4.999999999999671,
+    "xyz": [
+     1.1611505003101135,
+     -0.04559731393159614,
+     0.34254996418591044
+    ],
+    "base_vxy": [
+     0.000533210517393295,
+     -0.0008916283938230614
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013516258869459,
+      -0.281008029446572,
+      -0.010158937461786463
+     ],
+     [
+      1.444445303593374,
+      0.19736412840326306,
+      0.4255106748322298
+     ]
+    ],
+    "qpos": [
+     1.1611505003101135,
+     -0.04559731393159614,
+     0.34254996418591044,
+     0.9998143949926686,
+     -0.00900861572728417,
+     0.003374272372381935,
+     -0.016692354359990055,
+     -0.05667400619666677,
+     -0.6886589474480393,
+     1.3351060658601734,
+     0.00475574120818199,
+     -0.7281771720726734,
+     1.326371121704249,
+     -0.034544876457743325,
+     -0.7296763131193336,
+     1.331203245861482,
+     -0.004565477607029184,
+     -0.6221172773949479,
+     1.3154866817967417
+    ],
+    "tau_max": 3.8402777222597626
+   },
+   {
+    "time": 5.199999999999649,
+    "xyz": [
+     1.161229926515507,
+     -0.045763723801016926,
+     0.34246163611130903
+    ],
+    "base_vxy": [
+     0.0001657639540040397,
+     -0.0007164500361529896
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014162451274719,
+      -0.2815492934210244,
+      -0.010160507429274462
+     ],
+     [
+      1.4446532042637978,
+      0.19761142693522668,
+      0.42547844016034386
+     ]
+    ],
+    "qpos": [
+     1.161229926515507,
+     -0.045763723801016926,
+     0.34246163611130903,
+     0.9998060572983687,
+     -0.008864263875857458,
+     0.0035373255010601266,
+     -0.017226721792901634,
+     -0.05813938944429338,
+     -0.690266644055643,
+     1.334692109087537,
+     0.007087343196302914,
+     -0.7272401588192119,
+     1.3261802818110622,
+     -0.034845508755302484,
+     -0.7304596093206325,
+     1.3307310528376817,
+     -0.005289213839068316,
+     -0.620498222287677,
+     1.3163934543754245
+    ],
+    "tau_max": 3.823212909445742
+   },
+   {
+    "time": 5.399999999999627,
+    "xyz": [
+     1.1612092415738262,
+     -0.04588505065375191,
+     0.3423725471254756
+    ],
+    "base_vxy": [
+     -0.0003084707902341376,
+     -0.0005422256456688857
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014045278425967,
+      -0.28203311634694883,
+      -0.010163845671565211
+     ],
+     [
+      1.4447526697299278,
+      0.197866201304637,
+      0.4254304686918169
+     ]
+    ],
+    "qpos": [
+     1.1612092415738262,
+     -0.04588505065375191,
+     0.3423725471254756,
+     0.9997976084774993,
+     -0.008741989362638158,
+     0.003663937064804413,
+     -0.01774528866605587,
+     -0.05946493415098294,
+     -0.6915935228958753,
+     1.3343404577584637,
+     0.009294996846770303,
+     -0.7261208977340109,
+     1.3259601587360792,
+     -0.035020233662551796,
+     -0.7310972445705824,
+     1.3305485469952667,
+     -0.005893349860835125,
+     -0.6187405987677776,
+     1.317230934077931
+    ],
+    "tau_max": 3.807902368769805
+   },
+   {
+    "time": 5.599999999999605,
+    "xyz": [
+     1.1611413850288488,
+     -0.04599141483212529,
+     0.34228741830535986
+    ],
+    "base_vxy": [
+     -0.0002817540783608316,
+     -0.0005336774464062299
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013605555737253,
+      -0.28247752041695406,
+      -0.010167624463364652
+     ],
+     [
+      1.4447948289807917,
+      0.19810320259894743,
+      0.42537948425419414
+     ]
+    ],
+    "qpos": [
+     1.1611413850288488,
+     -0.04599141483212529,
+     0.34228741830535986,
+     0.9997895622862152,
+     -0.008627006013948293,
+     0.003774433843047033,
+     -0.01822524512696668,
+     -0.06068662437889709,
+     -0.6927220510088057,
+     1.3340087099896258,
+     0.011352364093489112,
+     -0.7249935075320015,
+     1.3257573336135071,
+     -0.03515237954521893,
+     -0.7315798836750536,
+     1.330454289616654,
+     -0.00645086683510106,
+     -0.616987287264123,
+     1.3180154193774933
+    ],
+    "tau_max": 3.815391018914652
+   },
+   {
+    "time": 5.799999999999583,
+    "xyz": [
+     1.1611150644634796,
+     -0.04609715803515688,
+     0.34221051418912485
+    ],
+    "base_vxy": [
+     1.4147352777596586e-05,
+     -0.0005242810796829221
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013506565930193,
+      -0.28289204231887655,
+      -0.010170259994357278
+     ],
+     [
+      1.4448717826557766,
+      0.19831650661433187,
+      0.4253382597060641
+     ]
+    ],
+    "qpos": [
+     1.1611150644634796,
+     -0.04609715803515688,
+     0.34221051418912485,
+     0.9997818610316301,
+     -0.008514563540461388,
+     0.0038864327273000535,
+     -0.018671588055169486,
+     -0.06183320262911115,
+     -0.6938682956328968,
+     1.3336702845406605,
+     0.01324918782554702,
+     -0.7240661398570042,
+     1.3255731531928163,
+     -0.03526191448215525,
+     -0.7320599676308942,
+     1.3303088482210692,
+     -0.006984003822994646,
+     -0.6154398176432856,
+     1.31873037114529
+    ],
+    "tau_max": 3.8590639498604538
+   },
+   {
+    "time": 5.999999999999561,
+    "xyz": [
+     1.1611311384197391,
+     -0.046200229812137034,
+     0.3421405094059853
+    ],
+    "base_vxy": [
+     9.076710582846697e-05,
+     -0.0005030162001159398
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013743064659954,
+      -0.28327835141182356,
+      -0.010171839766942928
+     ],
+     [
+      1.444984674283469,
+      0.19850982076866955,
+      0.4253044285223104
+     ]
+    ],
+    "qpos": [
+     1.1611311384197391,
+     -0.046200229812137034,
+     0.3421405094059853,
+     0.9997744929480756,
+     -0.008406216357175334,
+     0.003997454115061388,
+     -0.019087145872881014,
+     -0.06290726944911955,
+     -0.6950441566136161,
+     1.3333309262559196,
+     0.015003891980873579,
+     -0.7233200434660856,
+     1.3253991259223745,
+     -0.03535136847908459,
+     -0.7325580574798778,
+     1.3301251090541062,
+     -0.007494014052726721,
+     -0.6141015081985691,
+     1.3193929496923003
+    ],
+    "tau_max": 3.8957812333023756
+   },
+   {
+    "time": 6.199999999999539,
+    "xyz": [
+     1.1611325593636068,
+     -0.04629238774841288,
+     0.34207237115480893
+    ],
+    "base_vxy": [
+     -8.91675073943257e-05,
+     -0.0004321262535821466
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.801386476900699,
+      -0.2836343523628847,
+      -0.010173522035181501
+     ],
+     [
+      1.4450760220012018,
+      0.1986968254385313,
+      0.42526702321952436
+     ]
+    ],
+    "qpos": [
+     1.1611325593636068,
+     -0.04629238774841288,
+     0.34207237115480893,
+     0.9997674423328271,
+     -0.008302384473220726,
+     0.004096412777027005,
+     -0.019476936763681226,
+     -0.06389913621462291,
+     -0.6961285859468138,
+     1.3330165715156646,
+     0.016642533174747422,
+     -0.7226106367002975,
+     1.3252504026878036,
+     -0.03543931611803192,
+     -0.7330095346036517,
+     1.3299837364020868,
+     -0.007962765070451076,
+     -0.6128348975873944,
+     1.3200344552034642
+    ],
+    "tau_max": 3.93157882544933
+   },
+   {
+    "time": 6.399999999999517,
+    "xyz": [
+     1.1611001240418861,
+     -0.04637536375114017,
+     0.3420075009881167
+    ],
+    "base_vxy": [
+     -0.00020021106303503512,
+     -0.00040177152331822175
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013762042175284,
+      -0.28396278448495005,
+      -0.010175504657352619
+     ],
+     [
+      1.4451258156875242,
+      0.1988675113677975,
+      0.42522749062230736
+     ]
+    ],
+    "qpos": [
+     1.1611001240418861,
+     -0.04637536375114017,
+     0.3420075009881167,
+     0.9997608125817744,
+     -0.008204605574805492,
+     0.004182801337564056,
+     -0.019836991862746456,
+     -0.06481720025545559,
+     -0.6970651805743691,
+     1.332717290476291,
+     0.018166620080967658,
+     -0.7218874832583102,
+     1.3251172139424932,
+     -0.0354934165807501,
+     -0.733340046832685,
+     1.3299178860723866,
+     -0.008404309236895202,
+     -0.6115807753375184,
+     1.3206434207117825
+    ],
+    "tau_max": 3.9680921644055864
+   },
+   {
+    "time": 6.599999999999495,
+    "xyz": [
+     1.1610652805757187,
+     -0.04645242246457046,
+     0.3419475697481091
+    ],
+    "base_vxy": [
+     -0.00012622433973102373,
+     -0.0003731839840317776
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013667943787935,
+      -0.2842666161781825,
+      -0.01017725304201833
+     ],
+     [
+      1.4451668856796185,
+      0.19902133560500446,
+      0.4251912695688193
+     ]
+    ],
+    "qpos": [
+     1.1610652805757187,
+     -0.04645242246457046,
+     0.3419475697481091,
+     0.9997545763226208,
+     -0.008112203596792818,
+     0.004263877785866339,
+     -0.020169249391306907,
+     -0.06566946667140112,
+     -0.6979347361331671,
+     1.332428593607073,
+     0.019579568079453172,
+     -0.7212227143501988,
+     1.3249935468774015,
+     -0.03552034905220221,
+     -0.7336035556615479,
+     1.329871379827182,
+     -0.008822113735249066,
+     -0.6104029610223547,
+     1.3212056053944448
+    ],
+    "tau_max": 4.002084041338519
+   },
+   {
+    "time": 6.799999999999473,
+    "xyz": [
+     1.1610506581460083,
+     -0.046525461797869205,
+     0.34189335744478566
+    ],
+    "base_vxy": [
+     -3.3064596917708235e-05,
+     -0.0003619694282742495
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8013745640135856,
+      -0.2845483268112604,
+      -0.010178417842209589
+     ],
+     [
+      1.4452229048255099,
+      0.19915905547624974,
+      0.4251611025434577
+     ]
+    ],
+    "qpos": [
+     1.1610506581460083,
+     -0.046525461797869205,
+     0.34189335744478566,
+     0.9997486963225712,
+     -0.008024918873237249,
+     0.004343402341459735,
+     -0.020476321312613264,
+     -0.06646354091383658,
+     -0.698795705016817,
+     1.3321451847612606,
+     0.020887613268946312,
+     -0.7206608874217995,
+     1.324872604671096,
+     -0.03552505520259962,
+     -0.7338477559089581,
+     1.3298143571370227,
+     -0.009219620558788597,
+     -0.6093501613512516,
+     1.3217188462491694
+    ],
+    "tau_max": 4.031573603393459
+   },
+   {
+    "time": 6.999999999999451,
+    "xyz": [
+     1.1610830749496768,
+     -0.04658860049082415,
+     0.34185103624522034
+    ],
+    "base_vxy": [
+     0.00028278521913211184,
+     -0.0003064977799622642
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014192551454145,
+      -0.28480731446428753,
+      -0.01017829938693146
+     ],
+     [
+      1.4453187790241873,
+      0.19927617269293924,
+      0.42515201302022854
+     ]
+    ],
+    "qpos": [
+     1.1610830749496768,
+     -0.04658860049082415,
+     0.34185103624522034,
+     0.9997434204376823,
+     -0.007954957138108273,
+     0.004433023168628558,
+     -0.02074030506239204,
+     -0.06719119350048768,
+     -0.6996953875823123,
+     1.3318846663477424,
+     0.022110471597360182,
+     -0.7202205296996399,
+     1.3246817995576197,
+     -0.03553178100912504,
+     -0.7340728799444831,
+     1.3296711491216655,
+     -0.009615578909040709,
+     -0.6084649320226733,
+     1.3221065773087886
+    ],
+    "tau_max": 4.05028688246123
+   },
+   {
+    "time": 7.199999999999429,
+    "xyz": [
+     1.1611184307424272,
+     -0.046657783630488135,
+     0.3418071223220794
+    ],
+    "base_vxy": [
+     9.69071667052408e-06,
+     -0.000371111318553076
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014675447571388,
+      -0.28505202975324995,
+      -0.01017787316029456
+     ],
+     [
+      1.4454141471695272,
+      0.19937996314887896,
+      0.42513416221866984
+     ]
+    ],
+    "qpos": [
+     1.1611184307424272,
+     -0.046657783630488135,
+     0.3418071223220794,
+     0.9997383859209746,
+     -0.007876788479714852,
+     0.004512383615578933,
+     -0.020994149505908898,
+     -0.067886830900671,
+     -0.7005563048216077,
+     1.3316120415013426,
+     0.02323195275224324,
+     -0.7198592226951882,
+     1.3245708178856008,
+     -0.03551480270652059,
+     -0.7342942984105453,
+     1.3295700184216712,
+     -0.009990260761215225,
+     -0.6077002736224375,
+     1.3225499570418398
+    ],
+    "tau_max": 4.0710779295089665
+   },
+   {
+    "time": 7.399999999999407,
+    "xyz": [
+     1.1610864975076953,
+     -0.046724716312133166,
+     0.3417618041158104
+    ],
+    "base_vxy": [
+     -0.000272572524020718,
+     -0.00028340419259391354
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014685291506378,
+      -0.2852805586698706,
+      -0.01017848435567259
+     ],
+     [
+      1.4454375823160435,
+      0.19947566638083775,
+      0.4251053457464735
+     ]
+    ],
+    "qpos": [
+     1.1610864975076953,
+     -0.046724716312133166,
+     0.3417618041158104,
+     0.9997335819843696,
+     -0.007799904109237411,
+     0.004573464682726189,
+     -0.02123699530028925,
+     -0.06854686104964984,
+     -0.7012102205818096,
+     1.3313441419757726,
+     0.024259447873874938,
+     -0.7193894153557429,
+     1.3245143229860274,
+     -0.03548145940370139,
+     -0.7343708950169825,
+     1.3295768850886702,
+     -0.010343175732962525,
+     -0.6068473612683707,
+     1.3230088644490645
+    ],
+    "tau_max": 4.097958818882349
+   },
+   {
+    "time": 7.599999999999385,
+    "xyz": [
+     1.1610349034970844,
+     -0.0467735936735835,
+     0.34172020851918966
+    ],
+    "base_vxy": [
+     -0.00019187247486108036,
+     -0.00022940571548359527
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014541458840249,
+      -0.28548480032728474,
+      -0.010179361146592694
+     ],
+     [
+      1.4454363911452401,
+      0.19956852517781734,
+      0.4250785571840033
+     ]
+    ],
+    "qpos": [
+     1.1610349034970844,
+     -0.0467735936735835,
+     0.34172020851918966,
+     0.999729093954622,
+     -0.007733810075376848,
+     0.004627170987834911,
+     -0.02145964051512054,
+     -0.06913445074064611,
+     -0.7017882356486064,
+     1.3311166396880978,
+     0.025233588474356458,
+     -0.718894660299655,
+     1.3244248050007141,
+     -0.03541525943223828,
+     -0.7343881008975375,
+     1.3296386917863554,
+     -0.010650631238599354,
+     -0.6059855087528738,
+     1.3233999315761824
+    ],
+    "tau_max": 4.12299047420771
+   },
+   {
+    "time": 7.799999999999363,
+    "xyz": [
+     1.1610171069258797,
+     -0.04682218979280328,
+     0.34168417305359705
+    ],
+    "base_vxy": [
+     -8.718558674948142e-07,
+     -0.000259863596162935
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8014660532131979,
+      -0.28567462023292767,
+      -0.010179578137258796
+     ],
+     [
+      1.4454658600787251,
+      0.19964978342474782,
+      0.42505981813392135
+     ]
+    ],
+    "qpos": [
+     1.1610171069258797,
+     -0.04682218979280328,
+     0.34168417305359705,
+     0.999724896897292,
+     -0.007671219236076949,
+     0.00468401654480329,
+     -0.021664323394436726,
+     -0.06968579404237177,
+     -0.7024025692231644,
+     1.330886568436557,
+     0.026129100104907904,
+     -0.7185186860451394,
+     1.3243347158806016,
+     -0.035347042540189826,
+     -0.7344256783342766,
+     1.3296512550085733,
+     -0.010945330583157381,
+     -0.6052556435613163,
+     1.3237466473988837
+    ],
+    "tau_max": 4.143084365988858
+   },
+   {
+    "time": 7.999999999999341,
+    "xyz": [
+     1.161022208945743,
+     -0.046874497434192156,
+     0.3416515050288251
+    ],
+    "base_vxy": [
+     1.8581726579047908e-05,
+     -0.0002552721028478516
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.801496451037931,
+      -0.2858538889738954,
+      -0.010179342997207505
+     ],
+     [
+      1.4455155964205635,
+      0.19971953742736304,
+      0.4250447596630535
+     ]
+    ],
+    "qpos": [
+     1.161022208945743,
+     -0.046874497434192156,
+     0.3416515050288251,
+     0.9997209324739917,
+     -0.007609786155115902,
+     0.004740896488738623,
+     -0.021855713863637306,
+     -0.07021349246894995,
+     -0.703029062024338,
+     1.3306483796426651,
+     0.026945580782217923,
+     -0.7182343728822181,
+     1.3242661878527147,
+     -0.0352810337836593,
+     -0.7344739248722918,
+     1.3296346880545111,
+     -0.011234111049283327,
+     -0.6046384942028545,
+     1.3240787895980424
+    ],
+    "tau_max": 4.160276595027155
+   },
+   {
+    "time": 8.199999999999408,
+    "xyz": [
+     1.1610157449467735,
+     -0.04692192290758798,
+     0.3416203633812729
+    ],
+    "base_vxy": [
+     -8.517909816679924e-05,
+     -0.0002201109304655388
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8015184844904388,
+      -0.2860195505457151,
+      -0.010179259445328423
+     ],
+     [
+      1.445550141014583,
+      0.19978310277929173,
+      0.4250285163973664
+     ]
+    ],
+    "qpos": [
+     1.1610157449467735,
+     -0.04692192290758798,
+     0.3416203633812729,
+     0.9997172311722218,
+     -0.007552579922650244,
+     0.00479106164382816,
+     -0.022033201360304917,
+     -0.07070338803957332,
+     -0.7035950757573256,
+     1.3304247803397153,
+     0.027704597414174685,
+     -0.7179465178211233,
+     1.3242045526899948,
+     -0.035206871990360954,
+     -0.7344831380369414,
+     1.3296497677562218,
+     -0.01150402991073495,
+     -0.6040438554435785,
+     1.3243952047058014
+    ],
+    "tau_max": 4.177369350620636
+   },
+   {
+    "time": 8.399999999999475,
+    "xyz": [
+     1.1609921823937965,
+     -0.04696301507440749,
+     0.34159089507608276
+    ],
+    "base_vxy": [
+     -0.0001298486689609209,
+     -0.00019503027095452594
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8015278445626361,
+      -0.2861714381591436,
+      -0.010179415026277241
+     ],
+     [
+      1.4455638581693346,
+      0.19984157012955395,
+      0.42501136034205234
+     ]
+    ],
+    "qpos": [
+     1.1609921823937965,
+     -0.04696301507440749,
+     0.34159089507608276,
+     0.9997138133913822,
+     -0.007499964778078647,
+     0.004834607789830282,
+     -0.022196135030829848,
+     -0.07115356874028796,
+     -0.7040889438994461,
+     1.3302191277080253,
+     0.02841262690084209,
+     -0.717640798000947,
+     1.3241443890039082,
+     -0.03512573116590939,
+     -0.734441981063034,
+     1.329696961348613,
+     -0.011753169888833199,
+     -0.6034511985086212,
+     1.3246892600525504
+    ],
+    "tau_max": 4.194742550961524
+   },
+   {
+    "time": 8.599999999999541,
+    "xyz": [
+     1.160970363864486,
+     -0.047000596986364086,
+     0.3415640855322437
+    ],
+    "base_vxy": [
+     -7.903132261310672e-05,
+     -0.00018390255109446317
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8015386490805171,
+      -0.28631144639942463,
+      -0.010179503061450629
+     ],
+     [
+      1.4455764516364726,
+      0.19989414267115424,
+      0.42499640882189604
+     ]
+    ],
+    "qpos": [
+     1.160970363864486,
+     -0.047000596986364086,
+     0.3415640855322437,
+     0.9997106396925195,
+     -0.007451115773690051,
+     0.004875801028527631,
+     -0.02234601359595849,
+     -0.0715710258728166,
+     -0.7045558871523758,
+     1.3300235942928058,
+     0.02906844350074795,
+     -0.7173625131618269,
+     1.3240854339248584,
+     -0.035041921929110126,
+     -0.7343829845147867,
+     1.3297438558180483,
+     -0.011985594457503003,
+     -0.6029009287819318,
+     1.3249560144329224
+    ],
+    "tau_max": 4.21061296251655
+   },
+   {
+    "time": 8.799999999999608,
+    "xyz": [
+     1.16096009857401,
+     -0.047036710570217244,
+     0.34154002581812476
+    ],
+    "base_vxy": [
+     -3.210013204492916e-05,
+     -0.00017821805067618274
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8015581853222082,
+      -0.28644138948668785,
+      -0.01017937622135534
+     ],
+     [
+      1.4455983202421938,
+      0.1999406615174938,
+      0.42498446200470386
+     ]
+    ],
+    "qpos": [
+     1.16096009857401,
+     -0.047036710570217244,
+     0.34154002581812476,
+     0.9997076711925055,
+     -0.007405292098124411,
+     0.00491624622314565,
+     -0.022484757745464254,
+     -0.071962121171874,
+     -0.7050203960381637,
+     1.329832586382528,
+     0.029672947564260404,
+     -0.7171327442045893,
+     1.3240295885870035,
+     -0.0349579762193776,
+     -0.7343269784219508,
+     1.3297773698991147,
+     -0.01220493039026417,
+     -0.6024157645297376,
+     1.325199519575609
+    ],
+    "tau_max": 4.224285798457102
+   },
+   {
+    "time": 8.999999999999675,
+    "xyz": [
+     1.1609532033590653,
+     -0.047071256643253186,
+     0.3415178603532774
+    ],
+    "base_vxy": [
+     -4.4235601045403734e-05,
+     -0.0001668558021679291
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8015802650783885,
+      -0.28656214202409125,
+      -0.010179178619590362
+     ],
+     [
+      1.4456212685846463,
+      0.19998197984550836,
+      0.42497366871044806
+     ]
+    ],
+    "qpos": [
+     1.1609532033590653,
+     -0.047071256643253186,
+     0.3415178603532774,
+     0.9997048997343395,
+     -0.007362154559948895,
+     0.004954239833859489,
+     -0.022613439257631856,
+     -0.07232888050736962,
+     -0.7054649364716196,
+     1.3296476155120054,
+     0.030230633442346583,
+     -0.7169295554819509,
+     1.3239800714662875,
+     -0.034874421185325785,
+     -0.7342633263964751,
+     1.3298104495026435,
+     -0.012411925879823935,
+     -0.6019757249722741,
+     1.3254276752699243
+    ],
+    "tau_max": 4.236809600059148
+   },
+   {
+    "time": 9.199999999999742,
+    "xyz": [
+     1.1609411118997592,
+     -0.04710283582986554,
+     0.3414970873463747
+    ],
+    "base_vxy": [
+     -7.308371882849599e-05,
+     -0.00014984193093484427
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8015982968820025,
+      -0.2866736839054671,
+      -0.01017905661069668
+     ],
+     [
+      1.4456366263801512,
+      0.20001936184729746,
+      0.4249628613811651
+     ]
+    ],
+    "qpos": [
+     1.1609411118997592,
+     -0.04710283582986554,
+     0.3414970873463747,
+     0.9997023264971072,
+     -0.007321997412398708,
+     0.004988444971266802,
+     -0.02273240345702261,
+     -0.07267006037115928,
+     -0.7058717484245126,
+     1.3294728691573365,
+     0.030747531880548108,
+     -0.71672990858373,
+     1.3239350464291821,
+     -0.03479018435578018,
+     -0.7341793460718451,
+     1.3298551713919875,
+     -0.012604784348688992,
+     -0.601556716943367,
+     1.3256412383227807
+    ],
+    "tau_max": 4.2489873482554135
+   },
+   {
+    "time": 9.399999999999809,
+    "xyz": [
+     1.1609259713329536,
+     -0.047131253757194076,
+     0.34147787658788187
+    ],
+    "base_vxy": [
+     -7.190458141357525e-05,
+     -0.00013642019707247439
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8016137473224285,
+      -0.2867763736679446,
+      -0.010178979260221543
+     ],
+     [
+      1.4456467367252657,
+      0.20005330777729663,
+      0.4249526633021085
+     ]
+    ],
+    "qpos": [
+     1.1609259713329536,
+     -0.047131253757194076,
+     0.34147787658788187,
+     0.9996999410858836,
+     -0.007284901432791784,
+     0.005019674468393467,
+     -0.022842085548981227,
+     -0.0729863845403061,
+     -0.7062475942935937,
+     1.3293084295817732,
+     0.031227082485343904,
+     -0.7165373256969514,
+     1.3238915761500778,
+     -0.03470553982990272,
+     -0.7340797022031132,
+     1.3299068162478407,
+     -0.012783354540001922,
+     -0.6011598591819451,
+     1.3258373269332824
+    ],
+    "tau_max": 4.260546046828985
+   },
+   {
+    "time": 9.599999999999875,
+    "xyz": [
+     1.1609136020498987,
+     -0.04715760025821141,
+     0.3414604017805364
+    ],
+    "base_vxy": [
+     -5.107463905197015e-05,
+     -0.0001284134689300754
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8016309557529607,
+      -0.28687123594824737,
+      -0.010178854195012702
+     ],
+     [
+      1.4456577728884086,
+      0.20008372598128638,
+      0.42494386482278956
+     ]
+    ],
+    "qpos": [
+     1.1609136020498987,
+     -0.04715760025821141,
+     0.3414604017805364,
+     0.9996977224956134,
+     -0.007250448074843365,
+     0.005049233033464192,
+     -0.022943406145806547,
+     -0.07328128891544929,
+     -0.7066070471678674,
+     1.3291512137780221,
+     0.031670402260406655,
+     -0.7163649063467946,
+     1.323849995621052,
+     -0.03462209373224641,
+     -0.7339755448633042,
+     1.3299556805483332,
+     -0.012949664029069684,
+     -0.6007970372385747,
+     1.326016308092846
+    ],
+    "tau_max": 4.271006311114976
+   },
+   {
+    "time": 9.799999999999942,
+    "xyz": [
+     1.1609046042992064,
+     -0.047182474347268424,
+     0.3414444631429841
+    ],
+    "base_vxy": [
+     -4.1750356787059734e-05,
+     -0.00012080340675625215
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8016503471162109,
+      -0.2869591350956759,
+      -0.010178676622919478
+     ],
+     [
+      1.4456705271804617,
+      0.20011081738291503,
+      0.42493624568330457
+     ]
+    ],
+    "qpos": [
+     1.1609046042992064,
+     -0.047182474347268424,
+     0.3414444631429841,
+     0.9996956547393188,
+     -0.0072182803415714,
+     0.0050772239519106315,
+     -0.023037276774335754,
+     -0.0735574033912125,
+     -0.7069526477808863,
+     1.328999849182465,
+     0.03207947555472295,
+     -0.7162128762216864,
+     1.3238116046125037,
+     -0.034540694821719946,
+     -0.7338698525852583,
+     1.3300010453577709,
+     -0.013105160129196276,
+     -0.600468679696254,
+     1.3261813012200094
+    ],
+    "tau_max": 4.280454825938897
+   },
+   {
+    "time": 10.000000000000009,
+    "xyz": [
+     1.1608957064982752,
+     -0.0472056144205532,
+     0.3414297384498668
+    ],
+    "base_vxy": [
+     -4.793598018505183e-05,
+     -0.00011103240180612765
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8016694028096091,
+      -0.2870404688885027,
+      -0.010178503718113116
+     ],
+     [
+      1.445681765312777,
+      0.20013513832720325,
+      0.4249291746199569
+     ]
+    ],
+    "qpos": [
+     1.1608957064982752,
+     -0.0472056144205532,
+     0.3414297384498668,
+     0.9996937309279582,
+     -0.007188318913055214,
+     0.005103110316731574,
+     -0.023124244412278647,
+     -0.07381545307289894,
+     -0.7072781993880107,
+     1.328855433833539,
+     0.032457575088452206,
+     -0.7160719226534926,
+     1.3237765078969597,
+     -0.03446117411926516,
+     -0.7337586561237704,
+     1.3300478570329541,
+     -0.013249919945338202,
+     -0.6001652737833246,
+     1.326334435381134
+    ],
+    "tau_max": 4.289273298136764
+   },
+   {
+    "time": 10.200000000000076,
+    "xyz": [
+     1.1608854439131282,
+     -0.047226731335682406,
+     0.3414161104905253
+    ],
+    "base_vxy": [
+     -5.254883450365856e-05,
+     -0.00010116844194742201
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8016869534433564,
+      -0.2871155110692022,
+      -0.010178361572522596
+     ],
+     [
+      1.4456900856233437,
+      0.20015715679222912,
+      0.4249224909076792
+     ]
+    ],
+    "qpos": [
+     1.1608854439131282,
+     -0.047226731335682406,
+     0.3414161104905253,
+     0.9996919450141574,
+     -0.007160570456388198,
+     0.005126812509410495,
+     -0.023204678365439463,
+     -0.07405583835128743,
+     -0.7075816117579654,
+     1.3287187393375295,
+     0.032807671797254245,
+     -0.7159372811298117,
+     1.323743613539461,
+     -0.034383354801958484,
+     -0.7336404215840376,
+     1.3300977495257928,
+     -0.013383851391538035,
+     -0.5998809735724092,
+     1.3264757160543568
+    ],
+    "tau_max": 4.297607815265295
+   },
+   {
+    "time": 10.400000000000142,
+    "xyz": [
+     1.1608752861990663,
+     -0.04724608697061225,
+     0.3414036041074145
+    ],
+    "base_vxy": [
+     -4.726056710064518e-05,
+     -9.33546030166167e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8017040646756441,
+      -0.28718475196324833,
+      -0.010178227402061452
+     ],
+     [
+      1.4456971145387092,
+      0.20017704007514878,
+      0.4249164286363051
+     ]
+    ],
+    "qpos": [
+     1.1608752861990663,
+     -0.04724608697061225,
+     0.3414036041074145,
+     0.9996902859765914,
+     -0.007134893382620036,
+     0.005148774402094369,
+     -0.023279079505347716,
+     -0.07428000453667792,
+     -0.7078673190048811,
+     1.3285888382993958,
+     0.033131508200298684,
+     -0.715811707201042,
+     1.3237123903367625,
+     -0.03430766501140622,
+     -0.7335184917997521,
+     1.330147886002976,
+     -0.01350770395553789,
+     -0.5996174210246719,
+     1.326605171824213
+    ],
+    "tau_max": 4.305341197037744
+   },
+   {
+    "time": 10.60000000000021,
+    "xyz": [
+     1.1608665908219291,
+     -0.04726404228624492,
+     0.3413921787679953
+    ],
+    "base_vxy": [
+     -3.9798222808803756e-05,
+     -8.69121776372316e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8017217356191527,
+      -0.2872487397481559,
+      -0.010178080735200157
+     ],
+     [
+      1.4457043652251411,
+      0.20019489597427148,
+      0.4249111117542523
+     ]
+    ],
+    "qpos": [
+     1.1608665908219291,
+     -0.04726404228624492,
+     0.3413921787679953,
+     0.9996887424462854,
+     -0.007111072644003453,
+     0.005169384728700587,
+     -0.023347983500569446,
+     -0.07448954447762131,
+     -0.7081394096739693,
+     1.3284648609157945,
+     0.033430677166773295,
+     -0.7156977106743535,
+     1.3236830997644606,
+     -0.03423451611225003,
+     -0.7333960233756579,
+     1.330196000140865,
+     -0.01362240439563256,
+     -0.5993764436902147,
+     1.326723709684433
+    ],
+    "tau_max": 4.312401202057607
+   },
+   {
+    "time": 10.800000000000276,
+    "xyz": [
+     1.1608588992443079,
+     -0.047280726321781465,
+     0.34138169792219675
+    ],
+    "base_vxy": [
+     -3.7635549815270624e-05,
+     -8.045420846509677e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8017395960261562,
+      -0.28730790587823485,
+      -0.010177930792621179
+     ],
+     [
+      1.4457114664923696,
+      0.20021094478688448,
+      0.4249063493631388
+     ]
+    ],
+    "qpos": [
+     1.1608588992443079,
+     -0.047280726321781465,
+     0.34138169792219675,
+     0.9996873057761849,
+     -0.007088971338453076,
+     0.005188597882064666,
+     -0.02341186894148594,
+     -0.07468563933168587,
+     -0.7083978021273356,
+     1.3283465143143023,
+     0.03370697859185798,
+     -0.715593383735558,
+     1.3236558883148835,
+     -0.034164056390172816,
+     -0.733273317496056,
+     1.330242859865255,
+     -0.013728594358573829,
+     -0.5991558445430986,
+     1.3268327782288791
+    ],
+    "tau_max": 4.318894428893871
+   },
+   {
+    "time": 11.000000000000343,
+    "xyz": [
+     1.1608512289688515,
+     -0.04729610601707125,
+     0.3413720403679454
+    ],
+    "base_vxy": [
+     -3.8641816529898184e-05,
+     -7.38381240688266e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8017568922440999,
+      -0.2873625616580303,
+      -0.01017779394141971
+     ],
+     [
+      1.4457174971024283,
+      0.20022544648293353,
+      0.42490195615638376
+     ]
+    ],
+    "qpos": [
+     1.1608512289688515,
+     -0.04729610601707125,
+     0.3413720403679454,
+     0.9996859697106456,
+     -0.007068482780302684,
+     0.00520633813277095,
+     -0.02347110048801029,
+     -0.07486897643983668,
+     -0.7086411285920018,
+     1.3282339392115603,
+     0.033962367772266654,
+     -0.715495627605886,
+     1.3236306494873467,
+     -0.03409618848611318,
+     -0.7331493778135381,
+     1.330289675019073,
+     -0.013826559241297682,
+     -0.5989518772903519,
+     1.3269331993849072
+    ],
+    "tau_max": 4.324944695282683
+   },
+   {
+    "time": 11.20000000000041,
+    "xyz": [
+     1.1608435170095242,
+     -0.04731018956188981,
+     0.341363149987166
+    ],
+    "base_vxy": [
+     -3.7526551632696844e-05,
+     -6.766269880797869e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8017735491500505,
+      -0.2874129945691264,
+      -0.010177672117944625
+     ],
+     [
+      1.4457224707380545,
+      0.20023859842443806,
+      0.42489792270754295
+     ]
+    ],
+    "qpos": [
+     1.1608435170095242,
+     -0.04731018956188981,
+     0.341363149987166,
+     0.9996847276427536,
+     -0.007049545632874841,
+     0.005222717112199015,
+     -0.023525995200404902,
+     -0.07504026144988572,
+     -0.7088701663337205,
+     1.328127114623164,
+     0.0341985258661138,
+     -0.7154036425969097,
+     1.3236069795420715,
+     -0.03403088682961637,
+     -0.7330246848795295,
+     1.330336351297104,
+     -0.013916659568156013,
+     -0.5987629755459419,
+     1.3270252616106177
+    ],
+    "tau_max": 4.330581464525594
+   },
+   {
+    "time": 11.400000000000476,
+    "xyz": [
+     1.1608364031765979,
+     -0.04732125436131172,
+     0.3413549845012241
+    ],
+    "base_vxy": [
+     -2.6827154076868725e-05,
+     6.77704286221098e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8017900791435935,
+      -0.28745827115074973,
+      -0.010177630410733399
+     ],
+     [
+      1.4457279568647605,
+      0.20025336353431977,
+      0.42489444403353727
+     ]
+    ],
+    "qpos": [
+     1.1608364031765979,
+     -0.04732125436131172,
+     0.3413549845012241,
+     0.9996834660931028,
+     -0.007032670845167593,
+     0.005238005281225971,
+     -0.023581188721896726,
+     -0.0752002937811296,
+     -0.7090918316544349,
+     1.3280271143226445,
+     0.03441693606804057,
+     -0.7153136553575463,
+     1.323583602378491,
+     -0.033959651415335634,
+     -0.7329081312593863,
+     1.3303885988129136,
+     -0.013985670447693901,
+     -0.5985796358467798,
+     1.3270978557287914
+    ],
+    "tau_max": 4.334839204665414
+   },
+   {
+    "time": 11.600000000000543,
+    "xyz": [
+     1.1608329997580673,
+     -0.04731000869006542,
+     0.34134870849453675
+    ],
+    "base_vxy": [
+     -1.2537368352860308e-05,
+     1.73262827879696e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8018071851037669,
+      -0.287486540179845,
+      -0.010177868603538892
+     ],
+     [
+      1.4457402185173467,
+      0.20028933900475673,
+      0.4248934535159219
+     ]
+    ],
+    "qpos": [
+     1.1608329997580673,
+     -0.04731000869006542,
+     0.34134870849453675,
+     0.9996817029547542,
+     -0.007028091916033956,
+     0.005249866383122811,
+     -0.023654547225893285,
+     -0.07533456608056997,
+     -0.7093434231313754,
+     1.327953582868723,
+     0.03463313043557273,
+     -0.7151923564330449,
+     1.3235065725171156,
+     -0.033837725872654226,
+     -0.7328549238474877,
+     1.3304983647247421,
+     -0.013980128554792961,
+     -0.5983678571195783,
+     1.3270884435212598
+    ],
+    "tau_max": 4.336041229504442
+   },
+   {
+    "time": 11.80000000000061,
+    "xyz": [
+     1.1608297230845348,
+     -0.04730609181784219,
+     0.34134202572730754
+    ],
+    "base_vxy": [
+     -1.8115985030405586e-05,
+     4.698414583025498e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8018256560134354,
+      -0.28751487710699963,
+      -0.010178247123145578
+     ],
+     [
+      1.4457527149861455,
+      0.2003237214169961,
+      0.4248899687026345
+     ]
+    ],
+    "qpos": [
+     1.1608297230845348,
+     -0.04730609181784219,
+     0.34134202572730754,
+     0.9996799165034415,
+     -0.007019967114094737,
+     0.0052592131481004525,
+     -0.023730260817200043,
+     -0.07548253782325218,
+     -0.7095747614124378,
+     1.3278571420555756,
+     0.034810820110812046,
+     -0.7150935602506496,
+     1.3234659738276198,
+     -0.03373631385397634,
+     -0.7328025042557598,
+     1.3305941425310288,
+     -0.013964581955574614,
+     -0.5981794668915361,
+     1.3270917127873774
+    ],
+    "tau_max": 4.337949911208243
+   },
+   {
+    "time": 12.000000000000677,
+    "xyz": [
+     1.1608255534043046,
+     -0.04730476638228884,
+     0.34133521980309817
+    ],
+    "base_vxy": [
+     -1.9954688700720644e-05,
+     4.666367897836243e-06
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.801843140559664,
+      -0.28754221263907814,
+      -0.010178647418696202
+     ],
+     [
+      1.4457623301877982,
+      0.2003538291554669,
+      0.424885584595101
+     ]
+    ],
+    "qpos": [
+     1.1608255534043046,
+     -0.04730476638228884,
+     0.34133521980309817,
+     0.9996783523104381,
+     -0.0070119322104514594,
+     0.005267043502699327,
+     -0.023796701059278367,
+     -0.07562494707456098,
+     -0.7097859417700575,
+     1.3277646147774758,
+     0.034970997508903964,
+     -0.7150087677208068,
+     1.3234360455552814,
+     -0.03365907404132807,
+     -0.7327373216218382,
+     1.3306791710721004,
+     -0.013949436197499474,
+     -0.5980156867181117,
+     1.3271030173599427
+    ],
+    "tau_max": 4.339805618473118
+   },
+   {
+    "time": 12.200000000000744,
+    "xyz": [
+     1.1608217818418858,
+     -0.04730526861625553,
+     0.3413285781675794
+    ],
+    "base_vxy": [
+     -1.920080487514801e-05,
+     -2.825668517559973e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8018603661173699,
+      -0.287568372071459,
+      -0.010179030422088217
+     ],
+     [
+      1.4457706074519172,
+      0.20038016137436582,
+      0.4248805445240838
+     ]
+    ],
+    "qpos": [
+     1.1608217818418858,
+     -0.04730526861625553,
+     0.3413285781675794,
+     0.999676982557199,
+     -0.00700378761160655,
+     0.005273357873324213,
+     -0.02385517137153775,
+     -0.07576052505726477,
+     -0.7099823702232939,
+     1.3276736851923256,
+     0.035117083106255914,
+     -0.7149366749347009,
+     1.323411765596494,
+     -0.03359894256971605,
+     -0.7326660326712775,
+     1.3307545136725523,
+     -0.013935200409221554,
+     -0.5978766146043305,
+     1.3271212800173262
+    ],
+    "tau_max": 4.342328921807182
+   },
+   {
+    "time": 12.40000000000081,
+    "xyz": [
+     1.1608183648975654,
+     -0.04730777941048158,
+     0.34132221106612837
+    ],
+    "base_vxy": [
+     -1.6103866921146823e-05,
+     -4.9838166543070885e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.801877913369559,
+      -0.287593499032902,
+      -0.01017941298387999
+     ],
+     [
+      1.4457787508891113,
+      0.2004046963353287,
+      0.4248756417926103
+     ]
+    ],
+    "qpos": [
+     1.1608183648975654,
+     -0.04730777941048158,
+     0.34132221106612837,
+     0.9996756692619896,
+     -0.0069954032522787195,
+     0.00527949562186957,
+     -0.023911243064925668,
+     -0.07589419517934368,
+     -0.7101667840863979,
+     1.3275821702309274,
+     0.03524607801565997,
+     -0.7148724765939378,
+     1.3233992975998927,
+     -0.03354860861061755,
+     -0.7325913095161641,
+     1.3308204752472774,
+     -0.013919826747363797,
+     -0.5977501702731933,
+     1.3271396699379538
+    ],
+    "tau_max": 4.344998824667092
+   },
+   {
+    "time": 12.600000000000877,
+    "xyz": [
+     1.1608162857156095,
+     -0.04730815842250966,
+     0.34131645401593697
+    ],
+    "base_vxy": [
+     -1.3822312168120528e-05,
+     -6.0202210663446794e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8018948001417999,
+      -0.2876162967491598,
+      -0.010179722018894041
+     ],
+     [
+      1.4457852280769812,
+      0.20042421209723943,
+      0.42487155193766124
+     ]
+    ],
+    "qpos": [
+     1.1608162857156095,
+     -0.04730815842250966,
+     0.34131645401593697,
+     0.9996747065331819,
+     -0.006989221276616689,
+     0.005285103229918842,
+     -0.023952026795079035,
+     -0.07600720633042929,
+     -0.710340223836002,
+     1.327509347410316,
+     0.03537744764228128,
+     -0.714816932589892,
+     1.323371476042668,
+     -0.03351422967187185,
+     -0.732505076487093,
+     1.3308773544968122,
+     -0.013907470311342549,
+     -0.5976486534948257,
+     1.3271564220511067
+    ],
+    "tau_max": 4.347041283616692
+   },
+   {
+    "time": 12.800000000000944,
+    "xyz": [
+     1.160813239613791,
+     -0.047310622923679484,
+     0.3413109410393697
+    ],
+    "base_vxy": [
+     -1.7870122104478367e-05,
+     -1.1472939727095227e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8019110284097664,
+      -0.28763829774026606,
+      -0.010180060996818827
+     ],
+     [
+      1.445790518731056,
+      0.20044231005789717,
+      0.4248672184485245
+     ]
+    ],
+    "qpos": [
+     1.160813239613791,
+     -0.047310622923679484,
+     0.3413109410393697,
+     0.9996737690173314,
+     -0.006982137104618479,
+     0.005290144182334943,
+     -0.02399207524716657,
+     -0.07611961901614285,
+     -0.7104991940837947,
+     1.327432584381994,
+     0.035492893356092466,
+     -0.7147653124996411,
+     1.3233559277654086,
+     -0.033485079318257095,
+     -0.7324164191035035,
+     1.3309280224763032,
+     -0.013893965597977717,
+     -0.5975538889088557,
+     1.3271746608559467
+    ],
+    "tau_max": 4.349419118948335
+   },
+   {
+    "time": 13.00000000000101,
+    "xyz": [
+     1.1608095331689803,
+     -0.047312902282428446,
+     0.3413057597167831
+    ],
+    "base_vxy": [
+     -1.4619618416668884e-05,
+     4.644493452627938e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8019260442411781,
+      -0.28765878429424097,
+      -0.010180403347387776
+     ],
+     [
+      1.44579404315102,
+      0.20045820033278794,
+      0.42486309090837293
+     ]
+    ],
+    "qpos": [
+     1.1608095331689803,
+     -0.047312902282428446,
+     0.3413057597167831,
+     0.9996729593413827,
+     -0.0069755884993569555,
+     0.0052947238873009795,
+     -0.024026681537141867,
+     -0.07622315229065693,
+     -0.710645996129055,
+     1.3273623345454537,
+     0.035601596694619,
+     -0.7147164166594161,
+     1.323340615555374,
+     -0.03346212194213744,
+     -0.732322974285526,
+     1.3309745848868197,
+     -0.013879933633014515,
+     -0.5974683433891796,
+     1.3271914908358649
+    ],
+    "tau_max": 4.351044391782188
+   },
+   {
+    "time": 13.200000000001078,
+    "xyz": [
+     1.1608064888720424,
+     -0.047315152170905816,
+     0.34130092639964577
+    ],
+    "base_vxy": [
+     -1.5281960408675675e-05,
+     -2.5752059479293896e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8019407252039356,
+      -0.2876779201170734,
+      -0.010180667348778927
+     ],
+     [
+      1.445797105069626,
+      0.20047166308704578,
+      0.42485930488101165
+     ]
+    ],
+    "qpos": [
+     1.1608064888720424,
+     -0.047315152170905816,
+     0.34130092639964577,
+     0.9996722798457629,
+     -0.006969863049378562,
+     0.005298953922180719,
+     -0.024055664704559585,
+     -0.0763190170000745,
+     -0.7107841481528073,
+     1.3272980909700398,
+     0.035703422913247275,
+     -0.714673552871498,
+     1.3233243934149124,
+     -0.03344607509360314,
+     -0.7322277579911174,
+     1.3310158262977954,
+     -0.013870372257229082,
+     -0.5973968271138694,
+     1.3272102801515318
+    ],
+    "tau_max": 4.353009280864269
+   },
+   {
+    "time": 13.400000000001144,
+    "xyz": [
+     1.160804077712995,
+     -0.04731715562528727,
+     0.3412965423937395
+    ],
+    "base_vxy": [
+     -1.3223473348280582e-05,
+     -5.896879904081619e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8019552231255854,
+      -0.2876957297434697,
+      -0.010180901111269777
+     ],
+     [
+      1.445799882516897,
+      0.20048307170738153,
+      0.4248562620950503
+     ]
+    ],
+    "qpos": [
+     1.160804077712995,
+     -0.04731715562528727,
+     0.3412965423937395,
+     0.9996717113660686,
+     -0.0069649623592786085,
+     0.005303392463714776,
+     -0.024079718066154217,
+     -0.07640699251617127,
+     -0.7109138754084972,
+     1.3272407556042793,
+     0.035799468756580195,
+     -0.7146351947788312,
+     1.3233072932961567,
+     -0.033435382539023534,
+     -0.7321294731739474,
+     1.3310508268759438,
+     -0.013861976327734612,
+     -0.5973344747346799,
+     1.3272259180653012
+    ],
+    "tau_max": 4.355347445463447
+   },
+   {
+    "time": 13.600000000001211,
+    "xyz": [
+     1.160801499274244,
+     -0.04731970297218047,
+     0.34129243521001873
+    ],
+    "base_vxy": [
+     -1.631445267059148e-05,
+     -4.48535524817757e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8019692116750162,
+      -0.28771239021114825,
+      -0.010181156199148111
+     ],
+     [
+      1.4458024653777355,
+      0.20049416272546464,
+      0.42485295122988714
+     ]
+    ],
+    "qpos": [
+     1.160801499274244,
+     -0.04731970297218047,
+     0.34129243521001873,
+     0.999671138977573,
+     -0.006959635033218418,
+     0.005306986244280049,
+     -0.02410421690264084,
+     -0.07649259246535928,
+     -0.7110356966574566,
+     1.3271805853051735,
+     0.03588548513489199,
+     -0.7145988398328178,
+     1.3232952162255567,
+     -0.03342352958418137,
+     -0.7320364180101151,
+     1.3310851522582945,
+     -0.013850314479986386,
+     -0.5972768783276585,
+     1.3272409875534112
+    ],
+    "tau_max": 4.357096926579842
+   },
+   {
+    "time": 13.800000000001278,
+    "xyz": [
+     1.1607984804714166,
+     -0.04732259107689231,
+     0.34128850281566725
+    ],
+    "base_vxy": [
+     -1.3701474091110734e-05,
+     -2.6674303905876365e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8019822381896289,
+      -0.2877281725414307,
+      -0.010181408294581001
+     ],
+     [
+      1.4458040898676088,
+      0.2005038033282393,
+      0.4248497345205281
+     ]
+    ],
+    "qpos": [
+     1.1607984804714166,
+     -0.04732259107689231,
+     0.34128850281566725,
+     0.9996706260781886,
+     -0.006954595807809265,
+     0.0053103100717693304,
+     -0.024126200706587393,
+     -0.07657361512398951,
+     -0.7111490073936727,
+     1.3271239709599139,
+     0.03596451633068624,
+     -0.7145646002429815,
+     1.3232861540342615,
+     -0.033414521855941716,
+     -0.731943397576954,
+     1.3311177523327404,
+     -0.01384108619411154,
+     -0.5972253387812462,
+     1.3272572061237402
+    ],
+    "tau_max": 4.358703731213914
+   },
+   {
+    "time": 14.000000000001345,
+    "xyz": [
+     1.1607960641105677,
+     -0.04732484284265318,
+     0.3412849023691361
+    ],
+    "base_vxy": [
+     -6.871986683252215e-06,
+     6.071437971581389e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8019949965273486,
+      -0.2877426191927771,
+      -0.010181638339223975
+     ],
+     [
+      1.4458057876113073,
+      0.20051247144392548,
+      0.42484690059639096
+     ]
+    ],
+    "qpos": [
+     1.1607960641105677,
+     -0.04732484284265318,
+     0.3412849023691361,
+     0.9996701734826038,
+     -0.006950167265511721,
+     0.005313485106221022,
+     -0.024145523400172182,
+     -0.0766480279884736,
+     -0.7112572309806569,
+     1.3270722105709836,
+     0.036039346694638145,
+     -0.7145328540899913,
+     1.3232754775018085,
+     -0.033406323548645894,
+     -0.73185256185881,
+     1.3311480873322175,
+     -0.013830830346756261,
+     -0.5971801748015053,
+     1.3272706185336096
+    ],
+    "tau_max": 4.360173528447397
+   },
+   {
+    "time": 14.200000000001411,
+    "xyz": [
+     1.160794134785113,
+     -0.04732708620738125,
+     0.34128171305594324
+    ],
+    "base_vxy": [
+     -1.0082671945559587e-05,
+     -6.758044017984511e-06
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8020076154178402,
+      -0.28775613215367757,
+      -0.010181804602629893
+     ],
+     [
+      1.4458074720775755,
+      0.20051988866815915,
+      0.4248445468785223
+     ]
+    ],
+    "qpos": [
+     1.160794134785113,
+     -0.04732708620738125,
+     0.34128171305594324,
+     0.9996697804806687,
+     -0.006946133206291452,
+     0.005316626653718964,
+     -0.02416225792920541,
+     -0.07671751624899317,
+     -0.7113588150122994,
+     1.3270230904615052,
+     0.036108960122478044,
+     -0.7145038908119904,
+     1.3232643975638319,
+     -0.03340048230712803,
+     -0.7317619615372112,
+     1.3311737665075787,
+     -0.013823765427599317,
+     -0.597141810684418,
+     1.3272836965360144
+    ],
+    "tau_max": 4.361757262299301
+   },
+   {
+    "time": 14.400000000001478,
+    "xyz": [
+     1.1607919721830515,
+     -0.047329381121744465,
+     0.34127869877980327
+    ],
+    "base_vxy": [
+     -1.3446884559573219e-05,
+     -6.36404403833308e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8020194566037468,
+      -0.28776877639498016,
+      -0.010181959744229432
+     ],
+     [
+      1.4458086261835763,
+      0.20052648222430608,
+      0.4248423486758732
+     ]
+    ],
+    "qpos": [
+     1.1607919721830515,
+     -0.047329381121744465,
+     0.34127869877980327,
+     0.9996694200861267,
+     -0.006942468629536593,
+     0.005319586196506265,
+     -0.02417756556588845,
+     -0.07678351679399777,
+     -0.7114538536722709,
+     1.3269767519257534,
+     0.03617273613259044,
+     -0.7144761226114527,
+     1.3232554036888022,
+     -0.033395705937860114,
+     -0.7316733886114924,
+     1.331198921792806,
+     -0.013818452559981091,
+     -0.5971072323619907,
+     1.327296860143489
+    ],
+    "tau_max": 4.363651867630387
+   },
+   {
+    "time": 14.600000000001545,
+    "xyz": [
+     1.1607895902580412,
+     -0.04733204758879546,
+     0.34127576588436465
+    ],
+    "base_vxy": [
+     -1.1640850890846225e-05,
+     -2.9973572158482176e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8020306672433646,
+      -0.2877806660760957,
+      -0.010182164241482008
+     ],
+     [
+      1.4458096656849595,
+      0.2005330674238761,
+      0.42483978479391765
+     ]
+    ],
+    "qpos": [
+     1.1607895902580412,
+     -0.04733204758879546,
+     0.34127576588436465,
+     0.9996690407192603,
+     -0.0069384552474377505,
+     0.005321855546997491,
+     -0.02419389839918958,
+     -0.07684791785981943,
+     -0.7115440943900091,
+     1.3269288759655495,
+     0.03622958541158614,
+     -0.7144493417726271,
+     1.3232506728475948,
+     -0.03338860247353888,
+     -0.7315913337706829,
+     1.3312254548662577,
+     -0.013809870749284225,
+     -0.5970748203075591,
+     1.3273097714694702
+    ],
+    "tau_max": 4.3647414517837
+   },
+   {
+    "time": 14.800000000001612,
+    "xyz": [
+     1.1607876383698146,
+     -0.04733430290203893,
+     0.34127312930416503
+    ],
+    "base_vxy": [
+     -6.487301407799682e-06,
+     2.197661689400752e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8020416931333256,
+      -0.28779165504156123,
+      -0.01018233430393263
+     ],
+     [
+      1.445810814081094,
+      0.2005389472735039,
+      0.4248377207646338
+     ]
+    ],
+    "qpos": [
+     1.1607876383698146,
+     -0.04733430290203893,
+     0.34127312930416503,
+     0.9996687008972588,
+     -0.006934885649969957,
+     0.005324325281209655,
+     -0.02420841522505323,
+     -0.07690726684254222,
+     -0.7116300078222549,
+     1.3268852483933622,
+     0.03628342002340448,
+     -0.7144239541259005,
+     1.3232452051547925,
+     -0.03338197848396658,
+     -0.7315103370566888,
+     1.3312489613283163,
+     -0.013801712085152037,
+     -0.5970459155537495,
+     1.327320182435197
+    ],
+    "tau_max": 4.365577535682257
+   },
+   {
+    "time": 15.000000000001679,
+    "xyz": [
+     1.1607860012889994,
+     -0.04733682356424251,
+     0.3412707339073997
+    ],
+    "base_vxy": [
+     -6.425885190144658e-06,
+     2.0121614924557257e-05
+    ],
+    "command": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "robot_aabb": [
+     [
+      0.8020525773586306,
+      -0.2878020107609902,
+      -0.010182479889056018
+     ],
+     [
+      1.4458123195199768,
+      0.20054463210552587,
+      0.42483581794589415
+     ]
+    ],
+    "qpos": [
+     1.1607860012889994,
+     -0.04733682356424251,
+     0.3412707339073997,
+     0.9996683533350711,
+     -0.006931360675035788,
+     0.005326632016914481,
+     -0.024223265075056618,
+     -0.07696514928738407,
+     -0.7117119379057507,
+     1.326840985437425,
+     0.03633136858028849,
+     -0.7143997707761306,
+     1.3232421218173158,
+     -0.0333745314864869,
+     -0.7314339144823301,
+     1.3312711709903537,
+     -0.013794732401636645,
+     -0.5970198766000286,
+     1.3273304357152995
+    ],
+    "tau_max": 4.36681604880529
+   }
+  ]
+ }
+}
