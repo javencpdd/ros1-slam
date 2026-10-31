@@ -1,0 +1,45 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.map_delta_relay",
+ "version": "0.1.0",
+ "roles": [
+  "middleware"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "representation/map_delta_relay.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "delta",
+    "type": "v8_msgs/MapDelta",
+    "topic": "delta"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "json",
+    "type": "std_msgs/String",
+    "topic": "json"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

@@ -1,0 +1,23 @@
+schema: pipeline_graph/v1
+name: map_cache_delta
+instances:
+  - id: cache
+    component: v8.fw.map_cache_ros
+    namespace: /v8/cache
+    params:
+      map_id: two_level_boxes
+      base_version: 2
+      base_map_topic: /v8/cache/base_map
+      ops_topic: /v8/cache/ops
+      delta_topic: /v8/cache/delta
+      status_topic: /v8/cache/status
+  - id: relay
+    component: v8.fw.map_delta_relay
+    namespace: /v8/relay
+    params:
+      delta_topic: /v8/cache/delta
+      json_topic: /map_delta
+external:
+  - {to: cache.base_map, type: v8_msgs/SupportMap, source: operator}
+edges:
+  - {from: cache.delta, to: relay.delta}
