@@ -1,0 +1,54 @@
+{
+ "experiment": "node /clock-gated command + bridge waits for a fresh header.seq each active tick",
+ "runs": [
+  {
+   "run": "s0_22.json.gz",
+   "ok": false,
+   "checks": {
+    "climbed": false,
+    "final_on_top": false,
+    "goal_map": false,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    18.44,
+    3.4549,
+    0.0485,
+    1.0405
+   ],
+   "applied": 213,
+   "terminal": "E_LOCAL_CLEARANCE"
+  },
+  {
+   "run": "s0_23.json.gz",
+   "ok": true,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "final_body": [
+    16.02,
+    4.0105,
+    -0.0887,
+    1.1415
+   ],
+   "applied": 188,
+   "terminal": null
+  }
+ ],
+ "first_diff": {
+  "common": 281,
+  "first_command_sim": 0.06,
+  "first_qpos_sim": 0.06
+ },
+ "finding": "first divergence .06; run22 E_LOCAL_CLEARANCE, run23 PASS; handshake does not fix command-side divergence and can add safety failure",
+ "result": "negative; flags default off",
+ "tests": {
+  "node_policy": "13/13",
+  "full_tree": "70/70"
+ }
+}
