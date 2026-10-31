@@ -120,6 +120,8 @@ def main():
     parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
+    parser.add_argument('--command-lockstep', action='store_true',
+                        help='wait for a fresh sequenced command each active tick')
     parser.add_argument('--command-stamp-window', type=float, default=0.,
                         help='select commands by sim stamp within this window (0=wall latest)')
     parser.add_argument('--trajectory-resume', action='store_true')
@@ -165,7 +167,7 @@ def main():
     inp = session.get_inputs()[0].name
 
     shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'velocity_stamp': -1e9,
-              'target': None, 'active': False, 'wanted': False,
+              'cmd_seq': -1, 'target': None, 'active': False, 'wanted': False,
               'gate': not args.require_release}
     command_history = deque(maxlen=64)
 
@@ -175,6 +177,7 @@ def main():
             stamp = rospy.Time.now().to_sec()
         shared['velocity'] = (message.twist.linear.x, message.twist.linear.y, message.twist.linear.z)
         shared['velocity_stamp'] = stamp
+        shared['cmd_seq'] = int(message.header.seq)
         shared['at'] = time.monotonic()
         command_history.append((stamp, shared['velocity']))
 
@@ -238,6 +241,7 @@ def main():
     phase_command = np.zeros(3, dtype=np.float32)
     phase_bucket = -1
     tick = 0
+    lockstep_last = None
     stall_ref = [float(data.qpos[0]), float(data.qpos[1])]
     stall_t = float(data.time)
     retry_until = None

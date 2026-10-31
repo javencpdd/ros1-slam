@@ -179,6 +179,9 @@ def main():
 
     rospy.init_node('v8_native_local_planner')
     sim_clock = bool(rospy.get_param('/use_sim_time', False))
+    lockstep_command = bool(rospy.get_param('~lockstep_command', False))
+    clock_event = threading.Event()
+    clock_sec = [None]
     plan_sim_tick_s = float(rospy.get_param('~plan_sim_tick_s', 0.))
     if plan_sim_tick_s < 0:
         raise ValueError('plan_sim_tick_s must be non-negative')
@@ -214,6 +217,15 @@ def main():
                                String, queue_size=1, latch=True)
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/v8/local/status'),
                                  String, queue_size=1, latch=True)
+
+    def on_clock(msg):
+        with lock:
+            clock_sec[0] = msg.clock.to_sec()
+        clock_event.set()
+
+    if lockstep_command:
+        from rosgraph_msgs.msg import Clock
+        rospy.Subscriber('/clock', Clock, on_clock, queue_size=1)
 
     def on_pose(msg):
         with lock:
@@ -284,13 +296,19 @@ def main():
         command_history = []
         previous_control_stamp = None
         previous_command = (0., 0., 0.)
+        command_seq = 0
         while not rospy.is_shutdown():
+            if lockstep_command:
+                if not clock_event.wait(1.0):
+                    continue
+                clock_event.clear()
             wall_now = time.monotonic()
             with lock:
                 snapshot = dict(shared)
             fresh = freshness(wall_now, snapshot['pose_at'], snapshot['obstacles_at'],
                               snapshot['localization_at'], snapshot['localization_ok'], max_age)
-            stamp = rospy.Time.now()
+            stamp = (rospy.Time.from_sec(clock_sec[0])
+                     if lockstep_command and clock_sec[0] is not None else rospy.Time.now())
             reason = stop_reason(fresh, snapshot['stop_latched'], snapshot['stop_reason'],
                                  snapshot['result'], snapshot['result_at'], wall_now,
                                  wall_watchdog_s, stamp.to_sec(), snapshot['generation'],
@@ -313,6 +331,8 @@ def main():
                 out = {'velocity': [0., 0., 0.], 'stop': True, 'reason': reason or snapshot['last_error']}
             message = TwistStamped()
             message.header.frame_id, message.header.stamp = 'map', stamp
+            message.header.seq = command_seq
+            command_seq += 1
             message.twist.linear.x, message.twist.linear.y, message.twist.linear.z = out['velocity']
             command_pub.publish(message)
             command_history.append((stamp.to_sec(), tuple(out['velocity'])))
