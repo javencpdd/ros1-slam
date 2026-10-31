@@ -1,0 +1,12 @@
+R1004 命令（2026-10-31 13:42—13:45 CST，qoder；语义地图扩展）
+# semantic_map/v1：point/line/polygon/box 校验、只读 SemanticCatalog；semantic_map_node
+# 逐图 latch 发布 /v8/semantics/<id>、Trigger 查询与状态；smoke 双图 + 重复 map_id 拒绝。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/test_semantic_map.py
+python3 -B representation/semantic_map_smoke.py
+# 读数：sem_a v2（line/point）、sem_b v1（box/polygon）；query sem_b frame=map、
+#   features=2；status 两图 summary 正确；重复文件 rc=1 且 stderr 含
+#   E_SEMANTIC_DUPLICATE；ok=true。
+# 测试：semantic_map 5/5；V8 全树 63 套件 0 失败。
+# 边界：语义层独立、不并入 map.v1；无消费者/版本联动；未动 A1 冻结判据。
