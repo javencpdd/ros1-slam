@@ -123,6 +123,7 @@ python3 -B representation/map_cache_delta_smoke.py # typed delta → relay → �
 python3 -B local_planner/map_update_smoke.py       # 规划器消费 /v8_support_map 版本
 python3 -B framework/local_native_graph_smoke.py   # 真实规划器入 v2 图 + 实例 YAML 下发
 python3 -B representation/semantic_planning_smoke.py  # 语义→支撑图→规划器全链
+python3 -B framework/faster_lio_smoke.py          # 真实 faster_lio 里程计/配准点云
 python3 -B framework/hdl_group_smoke.py            # 真实 hdl manager + 两 nodelet
 python3 -B framework/hdl_sensor_smoke.py           # hdl 喂 Gazebo 点云/IMU 探针
 python3 -B framework/command_hold_smoke.py         # 真实 mux hold 下换命令源

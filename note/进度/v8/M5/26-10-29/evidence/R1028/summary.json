@@ -1,0 +1,50 @@
+{
+ "smoke": {
+  "startup_order": [
+   "loc"
+  ],
+  "inputs": {
+   "points": "external:gazebo",
+   "imu": "external:gazebo"
+  },
+  "sensor": {
+   "cloud_frame": "rslidar",
+   "cloud_points": 20000
+  },
+  "started": true,
+  "odom_frames": 23,
+  "new_odom_in_5s": 22,
+  "mapped_clouds": 23,
+  "odom": {
+   "frame_id": "camera_init",
+   "child_frame_id": "body",
+   "first": [
+    0.0146,
+    0.0232,
+    -0.0456
+   ],
+   "last": [
+    0.017,
+    0.0226,
+    -0.0748
+   ]
+  },
+  "truth": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "truth_minus_odom_xy": [
+   -0.017,
+   -0.0226
+  ],
+  "alive_before_stop": true,
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "v8_suites": "65/0"
+ },
+ "interpretation": "FASTER-LIO is launched by the v2 graph on Gazebo m1 and continuously produces odometry and registered clouds; the last pose is within ~0.03 m XY of the simulator truth at standstill. This is a live backend check, not an accuracy or relocalization validation."
+}
