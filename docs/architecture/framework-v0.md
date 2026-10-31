@@ -5,7 +5,7 @@
 > 目标框架的第一片：**配置、装配计划与运行装配**；数据面仍走 ROS 话题。
 > 代码：`ws/src/90_platform/v8_platform/framework/`；framework 24 项＋runtime 6 项＋robot 4 项＋
 > verification 5 项＋safety 7 项＋selector 3 项＋hotswap 5 项＋契约 v2 6 项＋registry/composer v2 4 项；
-> V8 全树 61 套件 0 失败。
+> V8 全树 62 套件 0 失败。
 
 ## 1. 解决什么
 
@@ -32,7 +32,7 @@
 | 输出 | `plan.json` 与 ROS1 launch（node/include/param/remap/arg） |
 | 运行装配 | plan → `ComponentSpec` → `ProcessRunner/Orchestrator`；就绪/停止/清理，mux 最后 |
 | 地图增量 | `map_delta/v1`：delta_id 幂等、旧 base 拒绝、原子升版、监听通知；ROS provider 消费（R976） |
-| 地图持久化 | `MapService.save/load` 原子快照、恢复重算 digest/核对 history、跨 ROS 重启保留幂等表（R983）；`MapStore` 多 map_id 目录（R989）；`MapRouter` delta 按 map_id 路由（R997）；`multi_map_node` 逐图 latch/查询（R998）；2D/3D schema 共存与 `select(kind)`（R1000）；`MapStore` 单写者 flock（R1001） |
+| 地图持久化 | `MapService.save/load` 原子快照、恢复重算 digest/核对 history、跨 ROS 重启保留幂等表（R983）；`MapStore` 多 map_id 目录（R989）；`MapRouter` delta 按 map_id 路由（R997）；`multi_map_node` 逐图 latch/查询（R998）；2D/3D schema 共存与 `select(kind)`（R1000）；`MapStore` 单写者 flock（R1001）；2D PGM→OccupancyGrid 消费（R1002） |
 | 机器人 profile | robot.v1：declared/prohibited 不驱动规划；Lite3 与 test_b 仅改 YAML 切换 |
 | 独立验证 | backend 不进算法图；真值不泄漏算法话题；失败只记 status=error |
 | 安全接线 | 双 `/cmd_vel` 写者/越权建议拒绝；validator 否决走停止链 |

@@ -1,0 +1,49 @@
+{
+ "smoke": {
+  "maps": [
+   "map_a",
+   "map_b",
+   "map_c"
+  ],
+  "initial_versions": [
+   2,
+   2,
+   1
+  ],
+  "grid": {
+   "width": 100,
+   "height": 100,
+   "resolution": 0.10000000149011612,
+   "data": 10000,
+   "occupied": 20
+  },
+  "after_delta_versions": [
+   3,
+   2,
+   1
+  ],
+  "query_version": 3,
+  "status_applied": {
+   "map_a": 1,
+   "map_b": 0,
+   "map_c": 0
+  },
+  "restored_versions": [
+   3,
+   2,
+   1
+  ],
+  "replay_version": 3,
+  "ok": true
+ },
+ "tests": {
+  "occupancy_adapter": "3/3",
+  "v8_suites": "62/0"
+ },
+ "topics": {
+  "json": "/v8/maps/<id>",
+  "grid": "/v8/maps/<id>/grid",
+  "status": "/v8/maps/status"
+ },
+ "interpretation": "2D occupancy_grid served as nav_msgs/OccupancyGrid; support maps unchanged"
+}
