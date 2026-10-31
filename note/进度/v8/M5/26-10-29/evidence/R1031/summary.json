@@ -1,0 +1,53 @@
+{
+ "smoke": {
+  "before_relocation": {
+   "map_a": [
+    2,
+    3
+   ]
+  },
+  "exported": {
+   "bundle": "/tmp/r1031/bundle",
+   "maps": [
+    {
+     "map_id": "map_a",
+     "map_version": 3,
+     "digest": "5c81bb1a23ce72dd4ac7def2fd4078a563b0aab6700c36a5f853c27523f7f1d4"
+    },
+    {
+     "map_id": "map_b",
+     "map_version": 2,
+     "digest": "a430e625ce31f330ee39044485c2c6ff95c211efa29890f0ecd25cc39f1886a0"
+    }
+   ],
+   "files": 4
+  },
+  "imported": {
+   "state_dir": "/tmp/r1031/state_b",
+   "map_dir": "/tmp/r1031/maps_b",
+   "maps": [
+    {
+     "map_id": "map_a",
+     "map_version": 3
+    },
+    {
+     "map_id": "map_b",
+     "map_version": 2
+    }
+   ]
+  },
+  "after_relocation": {
+   "map_a": 3,
+   "map_b": 2,
+   "map_a_mezz_z": 0.8
+  },
+  "query_version": 3,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "map_bundle": "4/4",
+  "v8_suites": "66/0"
+ },
+ "interpretation": "a bundle carries state snapshots, referenced map files and a sha256 manifest; importing it into a new root restores map versions and the updated surface, with relocated data_uri re-sealed"
+}

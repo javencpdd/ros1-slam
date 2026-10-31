@@ -1,0 +1,11 @@
+R1031 命令（2026-10-31 21:25—21:40 CST，qoder；地图包迁移）
+# 容器 v8codex-20261028；source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11517。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B representation/test_map_bundle.py
+python3 -B representation/map_bundle_smoke.py
+# 读数：test_map_bundle 4/4；冒烟 map_a v2→v3 后导出 bundle（2 state + 2 maps，
+#   4 文件），导入新根；重启 multi_map_node 恢复 map_a v3、map_b v2、
+#   mezz z=0.8，query v3；停止退净。
+# 全树：SUITES=66 FAIL=0（新增 test_map_bundle 套件）。
+# 边界：data_uri 搬迁后重算摘要并同步 history/source.sha256；不改冻结契约。
