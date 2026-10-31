@@ -143,6 +143,7 @@ def main():
     parser.add_argument('--bridge45', action='store_true')
     parser.add_argument('--out', required=True)
     parser.add_argument('--max-speed', type=float, default=.3)
+    parser.add_argument('--resolution', type=float, default=.05)
     parser.add_argument('--start-map-y', type=float, default=-2.175)
     parser.add_argument('--inject-map-y', type=float, default=-.2)
     parser.add_argument('--goal-y', type=float, default=1.0)
@@ -176,6 +177,7 @@ def main():
     master = start(['roscore', '-p', str(port)], master_log.open('ab'))
     node = bridge = None
     body, applied, statuses, obstacle_events = [], [], [], []
+    pose_seen = {'count': 0, 'last': None, 'frame': None}
     result = {'scope': SCOPE, 'no_ros': False, 'hardware': False,
               'formal_151_acceptance': False, 'verdict': 'INVALID', 'checks': {},
               'run_config': {'max_speed_mps': args.max_speed,
@@ -198,7 +200,7 @@ def main():
         node_name = 'a5stop_%d' % os.getpid()
         prefix = '/' + node_name
         config = {'tick_s': 1.2, 'horizon_s': 12., 'validity_s': 12.,
-                  'clearance_m': .1, 'max_speed_mps': args.max_speed, 'resolution': .05}
+                  'clearance_m': .1, 'max_speed_mps': args.max_speed, 'resolution': args.resolution}
         node_argv = [sys.executable, '-u', '-B', str(LOCAL / 'ros_node.py'),
                      '__name:=' + node_name,
                      '_map_json:=' + str(map_path),
@@ -257,6 +259,13 @@ def main():
             with lock:
                 statuses.append({'wall': rospy.Time.now().to_sec(), **payload})
 
+        def on_pose(message):
+            pose_seen['count'] += 1
+            pose_seen['last'] = [message.pose.position.x, message.pose.position.y,
+                                 message.pose.position.z]
+            pose_seen['frame'] = message.header.frame_id
+
+        rospy.Subscriber(prefix + '/pose', PoseStamped, on_pose, queue_size=20)
         rospy.Subscriber(prefix + '/body', PoseStamped, on_body, queue_size=200)
         rospy.Subscriber(prefix + '/applied', String, on_applied, queue_size=200)
         rospy.Subscriber(prefix + '/status', String, on_status, queue_size=100)
@@ -317,6 +326,9 @@ def main():
         applied_view = list(applied)
         status_view = list(statuses)
     result['events'] = obstacle_events
+    result['pose_count'] = pose_seen['count']
+    result['pose_last'] = pose_seen['last']
+    result['pose_frame'] = pose_seen['frame']
     result['statuses'] = status_view[:200]
     result['body_trace'] = body_view[::5]
     result['applied'] = applied_view
