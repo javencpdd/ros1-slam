@@ -1,0 +1,36 @@
+{
+ "repeat": {
+  "runs": [
+   {
+    "truth_displacement": 0.3889,
+    "odom_displacement": 0.3516,
+    "mean_error_m": 0.0259,
+    "max_error_m": 0.0584,
+    "final_error_m": 0.0375,
+    "samples": 70
+   },
+   {
+    "truth_displacement": 0.3741,
+    "odom_displacement": 0.3168,
+    "mean_error_m": 0.0258,
+    "max_error_m": 0.0629,
+    "final_error_m": 0.058,
+    "samples": 70
+   }
+  ],
+  "both_ok": true,
+  "spread": {
+   "truth_displacement": 0.0148,
+   "odom_displacement": 0.0348,
+   "mean_error_m": 0.0001,
+   "max_error_m": 0.0045,
+   "final_error_m": 0.0205,
+   "samples": 0
+  },
+  "ok": true
+ },
+ "tests": {
+  "v8_suites": "69/0"
+ },
+ "interpretation": "two same-scenario runs both pass; mean relative error is stable (0.0259 vs 0.0258 m) while final error varies by 2.1 cm, showing simulator/ROS timing nondeterminism at short range"
+}

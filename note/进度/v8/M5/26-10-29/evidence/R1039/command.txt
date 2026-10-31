@@ -1,0 +1,11 @@
+R1039 命令（2026-10-31 23:40—23:50 CST，qoder；faster_lio 运动段重复性）
+# 容器 v8codex-20261028；source noetic 与 /opt/ros1-slam/ws/devel，
+# ROS_PACKAGE_PATH=/repo/ws/src；同一场景、同一命令连续两跑。
+cd /repo/ws/src/90_platform/v8_platform/framework
+python3 -B faster_lio_motion_smoke.py   # run 1
+python3 -B faster_lio_motion_smoke.py   # run 2
+# 读数：两跑均 ok、70 采样；真值位移 0.3889/0.3741（spread 0.0148），
+#   odom 0.3516/0.3168；平均误差 0.0259/0.0258（spread 0.0001）；
+#   最大 0.0584/0.0629；末帧 0.0375/0.0580（spread 0.0205）。
+# 全树：SUITES=69 FAIL=0。
+# 边界：同环境两跑，不是 A7 正式集多 seed 复现；不代签 A7。
