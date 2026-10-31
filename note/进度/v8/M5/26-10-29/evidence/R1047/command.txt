@@ -1,0 +1,22 @@
+R1047 命令（2026-10-31 23:50—23:56 CST，qoder；45 维策略 ROS 桥，partial）
+# 容器 ros1-slam-sim；numpy 1.24.4 / onnxruntime 1.16.3 / mujoco 2.3.7。
+# 资产：/tmp/mjcf/Lite3.xml 9f2fb022…988fa；/tmp/policy45.onnx efa6581d…57c7（45 维 obs）。
+# 运行：
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+  python3 -u -B a5_v8x1_stop_smoke.py --out /tmp/r1047_probe45_03c.json \
+  --max-speed .3 --bridge45 --policy /tmp/policy45.onnx --out-dir /tmp
+# .4 同命令改 --max-speed .4；.2 用 --max-speed .2 --start-map-y -1.6
+#   --wall-deadline-s 120（120 s 未到触发点）。
+# 链路：roscore 11533 → local_planner/ros_node.py（resolution .05）
+#   → a5_v8x1_stop_bridge45.py（45 维策略，map 速度转 world 后按机体保留横向）
+#   → pose/body/applied → 障碍注入（任务目标 map y=1.0 的静态盒）→
+#   E_LOCAL_NO_ROUTE → 零命令 → 物理停住。
+# 读数：
+#   .3 PASS：stop 0.60 s、forward 0.026 m、path 0.047 m、gap 0.685 m；
+#   .4 PASS：stop 0.70 s、forward 0.078 m、path 0.098 m、gap 0.606 m；
+#   .2 FAIL：120 s 未到触发点（策略低速死区），未形成 0.2/0.4 双速度样本。
+# 测试：test_a5_v8x1_stop_smoke 4/4；全树 70 套件 0 失败。
+# 边界：blocked-goal；ROS 全链但无真机/Gazebo；非 formal #151。
