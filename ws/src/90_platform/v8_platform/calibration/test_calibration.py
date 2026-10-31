@@ -189,6 +189,7 @@ class CalibrationTests(unittest.TestCase):
                       'latency.p95_global_s', 'latency.p95_local_s', 'budgets.cancel_time_s',
                       'budgets.stop_brake_peak_distance_m', 'budgets.stop_brake_peak_time_s',
                       'budgets.stop_chain_osmesa_time_s', 'budgets.stop_chain_osmesa_distance_m',
+                      'budgets.stop_chain_mj_torque_time_s', 'budgets.stop_chain_mj_torque_distance_m',
                       'success_rate.min_pass_rate'):
             self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
@@ -304,6 +305,50 @@ class CalibrationTests(unittest.TestCase):
         with self.assertRaises(cal.CalibrationError) as caught:
             cal.validate_frozen(bad)
         self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+
+    # ------------------------------------------------------------------
+    # R1044（2026-10-31）：in-process MuJoCo 力矩全链 pilot 带域冻结；
+    # 18 run/10 distinct，0.2 组实测平均体速 0.12—0.17（命令 0.2）；
+    # 两键为 scoped 代理，24 §4.1 的全链 stop_time_s/stop_distance_m 仍 pending。
+    # ------------------------------------------------------------------
+    def test_stop_chain_mj_torque_scoped_r1044(self):
+        b = cal.FROZEN['budgets']
+        t = b['stop_chain_mj_torque_time_s']
+        d = b['stop_chain_mj_torque_distance_m']
+        scope = ('mujoco_lite3_torque_inprocess_goal_blocked_flat_cmd0p2_0p4_'
+                 '18run_10distinct_simtime')
+        self.assertAlmostEqual(t['value'], 3.6)
+        self.assertAlmostEqual(d['value'], 0.20)
+        self.assertEqual(t['scope'], scope)
+        self.assertEqual(d['scope'], scope)
+        self.assertEqual(t['sample_n'], 10)
+        self.assertEqual(d['sample_n'], 10)
+        for node in (t, d):
+            self.assertIn('R1044', node['evidence'])
+            self.assertIn('10', node['evidence'])
+        self.assertIn('budgets.stop_chain_mj_torque_time_s', cal.SCOPED_REQUIRED)
+        self.assertIn('budgets.stop_chain_mj_torque_distance_m', cal.SCOPED_REQUIRED)
+        self.assertEqual(cal.SCOPED_REQUIRED['budgets.stop_chain_mj_torque_time_s']
+                         ['min_sample_n'], 10)
+        report = cal.validate_frozen()
+        self.assertEqual(len(report['pending']), 2)
+        self.assertNotIn('budgets.stop_chain_mj_torque_time_s', report['pending'])
+        self.assertNotIn('budgets.stop_chain_mj_torque_distance_m', report['pending'])
+        self.assertIn('budgets.stop_time_s.value', report['pending'])
+        self.assertIn('budgets.stop_distance_m.value', report['pending'])
+
+    def test_stop_chain_mj_torque_scope_and_sample_guard(self):
+        for key in ('stop_chain_mj_torque_time_s', 'stop_chain_mj_torque_distance_m'):
+            bad = copy.deepcopy(cal.FROZEN)
+            bad['budgets'][key]['scope'] = 'full_chain'
+            with self.assertRaises(cal.CalibrationError) as caught:
+                cal.validate_frozen(bad)
+            self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+            bad = copy.deepcopy(cal.FROZEN)
+            bad['budgets'][key]['sample_n'] = 9
+            with self.assertRaises(cal.CalibrationError) as caught:
+                cal.validate_frozen(bad)
+            self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
 
     def test_budget_raise_not_flagged_by_loosening(self):
         prev = copy.deepcopy(cal.FROZEN)

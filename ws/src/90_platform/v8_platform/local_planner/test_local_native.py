@@ -76,6 +76,17 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'E_LOCAL_NO_ROUTE')
         self.assertEqual(native.command(None, 0., 'single_floor', 2)['velocity'], [0., 0., 0.])
 
+    def test_goal_inside_inflated_obstacle_refused_before_partial_progress(self):
+        box = {'min': [1.25, -.2, 0.], 'max': [1.55, .2, .5]}
+        with self.assertRaises(native.LocalError) as caught:
+            native.plan(flat(), (0., 0., 0.), (1.4, 0., 0.), [box])
+        self.assertEqual(caught.exception.code, 'E_LOCAL_NO_ROUTE')
+        # Inactive or laterally clear obstacles do not refuse the goal.
+        inactive = dict(box, active_until=-1.)
+        self.assertTrue(native.plan(flat(), (0., 0., 0.), (1.4, 0., 0.), [inactive])['ok'])
+        aside = dict(box, min=[1.25, .8, 0.], max=[1.55, 1.2, .5])
+        self.assertTrue(native.plan(flat(), (0., 0., 0.), (1.4, 0., 0.), [aside])['ok'])
+
     def test_short_step_is_locally_searched_and_z_matters(self):
         value = layers()
         result = native.plan(value, (-.4, 0., 0.), (.6, 0., .15),

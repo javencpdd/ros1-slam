@@ -61,6 +61,14 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(controller.local_plans[-1]['reason'], 'E_LOCAL_NO_ROUTE')
         np.testing.assert_array_equal(controller(None, data(.3, x=1.37)), np.zeros(3))
 
+    def test_max_speed_with_tiny_rotation_lateral_component_is_supported(self):
+        vector = [.4, 1e-5, 0.]
+        controller = nav.NavigationController(sensor=lambda m, d: scan(d.time))
+        with patch.object(nav.local, 'track_segment', return_value={
+                'velocity': vector, 'reason': 'track', 'stop': False}):
+            np.testing.assert_allclose(controller(None, data()), vector)
+        self.assertIsNone(controller.latch)
+
     def test_lateral_velocity_is_explicitly_preserved(self):
         vector = [.3, .01, 0.]
         controller = nav.NavigationController(sensor=lambda m, d: scan(d.time))
@@ -92,7 +100,8 @@ class ControllerTests(unittest.TestCase):
     def test_nonzero_z_nonfinite_shape_and_speed_norm_fail_closed(self):
         for vector in ([.3, 0., .01], [.3, 0., 1e-12], [.3, 0., float('nan')],
                        [float('inf'), 0., 0.], [0., float('nan'), 0.], [.3, .3, 0.],
-                       [0.], [.1, 0., 0., .1], [[.1, 0., 0.]]):
+                       [0.], [.1, 0., 0., .1], [[.1, 0., 0.]],
+                       [.4, 1e-3, 0.]):
             with self.subTest(vector=vector):
                 controller = nav.NavigationController(sensor=lambda m, d: scan(d.time))
                 with patch.object(nav.local, 'track_segment', return_value={
@@ -177,6 +186,22 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(injection.spawn_time, 5.)
         self.assertEqual(mj.mj_name2id.call_count, 1)
         self.assertEqual([e['event'] for e in injection.events], ['barrier_hidden', 'barrier_spawn'])
+
+    def test_position_injection_spawns_while_moving_and_rejects_dual_trigger(self):
+        model = SimpleNamespace(geom_pos=np.array([[2., 0., .5]]))
+        mj = SimpleNamespace(mj_name2id=Mock(return_value=0), mj_forward=Mock(),
+                             mjtObj=SimpleNamespace(mjOBJ_GEOM=5))
+        injection = nav.BarrierInjection(at_x=1.1)
+        with patch.dict(sys.modules, mujoco=mj):
+            injection(model, data(9., x=1.0))
+            self.assertIsNone(injection.spawn_time)
+            injection(model, data(.5, x=1.1))
+            injection(model, data(2., x=1.2))
+        self.assertEqual(injection.spawn_time, .5)
+        self.assertEqual(injection.events[-1]['trigger_x'], 1.1)
+        for arguments in ({}, {'at': 1., 'at_x': 1.}):
+            with self.subTest(arguments=arguments), self.assertRaises(ValueError):
+                nav.BarrierInjection(**arguments)
 
     def test_wrapper_includes_original_and_preserves_asset_roots(self):
         with patch.object(ET, 'parse', return_value=ET.ElementTree(ET.fromstring(
@@ -344,8 +369,13 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(result['verdict'], 'PASS')  # synthetic report fixture only
         self.assertEqual(result['planner_braking']['trigger_time'], 1.)
         self.assertEqual(result['injection_to_stop']['trigger_time'], .8)
+        self.assertEqual(result['sensing_to_stop']['trigger_time'], .8)
+        self.assertEqual(result['sensing_to_stop']['measurement_origin'],
+                         'first_sensor_cloud_after_spawn')
+        self.assertEqual(result['first_sensor_hit_stamp'], .8)
         self.assertGreater(result['injection_to_stop']['cumulative_xy_m'],
                            result['planner_braking']['cumulative_xy_m'])
+        self.assertEqual(result['run_config']['max_speed_mps'], .3)
         self.assertFalse(result['hardware'])
         self.assertFalse(result['budget_frozen'])
         self.assertTrue(result['no_ros'])
@@ -408,12 +438,25 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(controller.faults[0]['reason'], 'carrier_heading')
 
     def test_cli_invalid_parameters_never_runs_rollout(self):
-        with patch.object(sys, 'argv', ['mj_navigation_stop.py', '--xml', 'unused',
-                          '--policy', 'unused', '--out', '/tmp/unused', '--inject-at', '20']), \
-                patch.object(nav, 'rollout') as run, contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                nav.main()
-        run.assert_not_called()
+        invalid = (['--inject-at', '20'],
+                   ['--inject-at', '5', '--inject-x', '1.1'],
+                   ['--inject-x', '.1'],
+                   ['--inject-x', '1.05', '--start-x', '.9'],
+                   ['--start-x', '-2'],
+                   ['--start-y', '.5'],
+                   ['--max-speed', '0'],
+                   ['--max-speed', '.41'],
+                   ['--resolution', '.01'],
+                   ['--resolution', '.21'])
+        for flags in invalid:
+            with self.subTest(flags=flags), \
+                    patch.object(sys, 'argv', ['mj_navigation_stop.py', '--xml', 'unused',
+                                               '--policy', 'unused', '--out', '/tmp/unused'] + flags), \
+                    patch.object(nav, 'rollout') as run, \
+                    contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit):
+                    nav.main()
+            run.assert_not_called()
 
 
 if __name__ == '__main__':

@@ -252,6 +252,23 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
                 if s['traversability'] == 'supported'}
     required_ceiling = max(config.height_m, config.clearance_m)
 
+    # A goal inside an inflated static obstacle can only be approached by
+    # partial progress and then refused at close range; refuse it first.
+    # Moving obstacles are left to the time-aware search, since a goal covered
+    # now may clear before arrival.
+    for lo, hi, velocity, epoch, active_from, active_until in moving:
+        if any(abs(v) > 0 for v in velocity) or not active_from <= now <= active_until:
+            continue
+        shift = [velocity[i] * (now - epoch) for i in range(3)]
+        lower = [lo[0] + shift[0] - config.radius_m - config.clearance_m,
+                 lo[1] + shift[1] - config.radius_m - config.clearance_m,
+                 lo[2] + shift[2] - config.height_m]
+        upper = [hi[0] + shift[0] + config.radius_m + config.clearance_m,
+                 hi[1] + shift[1] + config.radius_m + config.clearance_m,
+                 hi[2] + shift[2]]
+        if all(lower[i] - 1e-9 <= goal[i] <= upper[i] + 1e-9 for i in range(3)):
+            raise LocalError('E_LOCAL_NO_ROUTE', 'goal lies inside an inflated obstacle volume')
+
     def inside(surface, point, margin=0.0):
         box = surface['footprint']
         return (box['min_x'] + margin - 1e-9 <= point[0] <= box['max_x'] - margin + 1e-9

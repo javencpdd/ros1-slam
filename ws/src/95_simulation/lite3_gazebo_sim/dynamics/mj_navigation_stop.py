@@ -14,6 +14,7 @@ import math
 from pathlib import Path
 import sys
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -63,9 +64,16 @@ def wrapper_xml(xml):
 
 
 class BarrierInjection:
-    """The geom id is used only to hide/spawn the owned fixture, never for sensing."""
-    def __init__(self, at):
-        self.at, self.geom, self.spawn_time = at, None, None
+    """The geom id is used only to hide/spawn the owned fixture, never for sensing.
+
+    Exactly one trigger is declared: wall-clock ``at`` or transverse position
+    ``at_x``. Position triggering keeps the pre-barrier geometry identical when
+    start pose or commanded speed changes.
+    """
+    def __init__(self, at=None, at_x=None):
+        if (at is None) == (at_x is None):
+            raise ValueError('declare exactly one of at or at_x')
+        self.at, self.at_x, self.geom, self.spawn_time = at, at_x, None, None
         self.events = []
 
     def __call__(self, model, data):
@@ -77,10 +85,13 @@ class BarrierInjection:
             model.geom_pos[self.geom, 2] = -10.
             self.events.append({'time': float(data.time), 'event': 'barrier_hidden'})
             mujoco.mj_forward(model, data)
-        if self.spawn_time is None and data.time >= self.at:
+        triggered = (data.time >= self.at if self.at is not None
+                     else float(data.qpos[0]) >= self.at_x)
+        if self.spawn_time is None and triggered:
             model.geom_pos[self.geom, 2] = .5
             self.spawn_time = float(data.time)
-            self.events.append({'time': self.spawn_time, 'event': 'barrier_spawn'})
+            self.events.append({'time': self.spawn_time, 'event': 'barrier_spawn',
+                                'trigger_x': float(data.qpos[0])})
             mujoco.mj_forward(model, data)
 
 
@@ -117,10 +128,10 @@ def sensed_obstacles(scan):
 
 
 class NavigationController:
-    def __init__(self, sensor=ray_scan, injection=None):
+    def __init__(self, sensor=ray_scan, injection=None, max_speed_mps=.3, resolution=.1):
         self.sensor, self.injection = sensor, injection
         self.map = support_fixture()
-        self.config = local.Config(max_speed_mps=.3, resolution=.1)
+        self.config = local.Config(max_speed_mps=max_speed_mps, resolution=resolution)
         self.result, self.obstacles, self.scan = None, [], None
         self.last_tick, self.last_scan = None, -math.inf
         self.latch, self.first_zero, self.previous_command = None, None, np.zeros(3)
@@ -211,8 +222,10 @@ class NavigationController:
             incoming, reason = tracked['velocity'], tracked['reason']
             try:
                 world = np.asarray(incoming, dtype=float)
+                # Body-rotating a world command at the .4 m/s limit adds a tiny
+                # lateral component, so the norm needs 1e-6 of headroom.
                 supported = (world.shape == (3,) and np.all(np.isfinite(world)) and
-                             world[2] == 0. and np.linalg.norm(world) <= .4)
+                             world[2] == 0. and np.linalg.norm(world) <= .4 + 1e-6)
             except (TypeError, ValueError, OverflowError):
                 supported = False
             if not supported:
@@ -268,8 +281,13 @@ def report(run, controller, wrapper):
     first = controller.first_zero
     braking = analyze_braking(run['physics_trace'], first['time'] if first else None)
     injection_measurement = analyze_braking(run['physics_trace'], spawn)
+    hit_stamps = [c['stamp'] for c in controller.clouds
+                  if c.get('ok') and c.get('xyz') and spawn is not None and c['stamp'] >= spawn]
+    sensed = min(hit_stamps) if hit_stamps else None
+    sensing_measurement = analyze_braking(run['physics_trace'], sensed)
     for measurement, semantics in ((braking, 'planner_first_nonzero_to_zero'),
-                                   (injection_measurement, 'barrier_spawn_not_command_trigger')):
+                                   (injection_measurement, 'barrier_spawn_not_command_trigger'),
+                                   (sensing_measurement, 'first_sensor_cloud_after_spawn')):
         measurement['measurement_origin'] = semantics
         if measurement['completed']:
             measurement['stop_time_s'] = measurement['confirmation_time'] - measurement['trigger_time']
@@ -308,6 +326,16 @@ def report(run, controller, wrapper):
             'latch': controller.latch, 'planner_first_zero': first,
             'events': controller.injection.events if controller.injection else [],
             'planner_braking': braking, 'injection_to_stop': injection_measurement,
+            'first_sensor_hit_stamp': sensed, 'sensing_to_stop': sensing_measurement,
+            'run_config': {'initial_xyz': run.get('initial_xyz'),
+                           'max_speed_mps': controller.config.max_speed_mps,
+                           'inject_at': getattr(controller.injection, 'at', None)
+                           if controller.injection else None,
+                           'inject_x': getattr(controller.injection, 'at_x', None)
+                           if controller.injection else None,
+                           'wall_clock_s': run.get('wall_clock_s'),
+                           'sim_time_s': run.get('sim_time_s'),
+                           'rtf': run.get('rtf')},
             'truth_collision_evaluation': collision, 'rollout': run}
 
 
@@ -316,17 +344,43 @@ def main():
     parser.add_argument('--xml', required=True)
     parser.add_argument('--policy', required=True)
     parser.add_argument('--seconds', type=float, default=15.)
-    parser.add_argument('--inject-at', type=float, default=5.)
+    parser.add_argument('--inject-at', type=float)
+    parser.add_argument('--inject-x', type=float)
+    parser.add_argument('--start-x', type=float, default=0.)
+    parser.add_argument('--start-y', type=float, default=0.)
+    parser.add_argument('--max-speed', type=float, default=.3)
+    parser.add_argument('--resolution', type=float, default=.1)
     parser.add_argument('--out', required=True)
     args = parser.parse_args()
-    if not all(math.isfinite(v) for v in (args.seconds, args.inject_at)) or not 0 < args.inject_at < args.seconds:
+    if args.inject_at is None and args.inject_x is None:
+        args.inject_at = 5.
+    if args.inject_at is not None and args.inject_x is not None:
+        parser.error('declare exactly one of --inject-at or --inject-x')
+    if args.inject_at is not None and (not math.isfinite(args.inject_at)
+                                       or not 0 < args.inject_at < args.seconds):
         parser.error('require finite 0 < inject-at < seconds')
+    if args.inject_x is not None and (not math.isfinite(args.inject_x)
+                                      or not args.start_x + .2 <= args.inject_x <= 1.5):
+        parser.error('require start-x + 0.2 <= inject-x <= 1.5')
+    if (not all(math.isfinite(v) for v in (args.start_x, args.start_y, args.max_speed,
+                                          args.resolution))
+            or not -.9 <= args.start_x <= 3.9 or not -.35 <= args.start_y <= .35
+            or not 0 < args.max_speed <= .4 or not .02 <= args.resolution <= .2):
+        parser.error('require finite start-x in [-0.9, 3.9], start-y in [-0.35, 0.35], '
+                     '0 < max-speed <= 0.4, 0.02 <= resolution <= 0.2')
     xml = wrapper_xml(args.xml)
-    controller = NavigationController(injection=BarrierInjection(args.inject_at))
+    controller = NavigationController(
+        injection=BarrierInjection(args.inject_at, args.inject_x),
+        max_speed_mps=args.max_speed, resolution=args.resolution)
     with tempfile.TemporaryDirectory(prefix='mj-navigation-') as directory:
         path = Path(directory) / 'pilot.xml'
         path.write_text(xml)
-        run = rollout(str(path), args.policy, args.seconds, controller=controller)
+        started = time.monotonic()
+        run = rollout(str(path), args.policy, args.seconds, controller=controller,
+                      initial_xyz=[args.start_x, args.start_y, .35])
+        run['wall_clock_s'] = round(time.monotonic() - started, 3)
+    run['sim_time_s'] = float(run['physics_trace'][-1]['time'])
+    run['rtf'] = round(run['sim_time_s'] / run['wall_clock_s'], 4)
     result = report(run, controller, xml)
     result.update(original_xml=str(Path(args.xml).resolve()),
                   original_model_sha256=hashlib.sha256(Path(args.xml).read_bytes()).hexdigest(),
