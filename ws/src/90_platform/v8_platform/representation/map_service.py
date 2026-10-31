@@ -12,6 +12,7 @@
 分层：消费契约层（map.v1）与生产者（support_map.py），不 import ROS。
 """
 import copy
+import fcntl
 import hashlib
 import json
 import os
@@ -56,6 +57,26 @@ class MapStore:
 
     def __init__(self, root):
         self.root = Path(root)
+        self._lock_handle = None
+
+    def acquire(self, blocking=False):
+        """Single-writer lock for a state directory (provider process)."""
+        self.root.mkdir(parents=True, exist_ok=True)
+        handle = open(self.root / '.map_store.lock', 'a+')
+        try:
+            flags = fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB)
+            fcntl.flock(handle.fileno(), flags)
+        except OSError as error:
+            handle.close()
+            raise MapServiceError('E_MAPSERVICE_LOCKED', str(error))
+        self._lock_handle = handle
+        return self
+
+    def release(self):
+        if self._lock_handle is not None:
+            fcntl.flock(self._lock_handle.fileno(), fcntl.LOCK_UN)
+            self._lock_handle.close()
+            self._lock_handle = None
 
     def path_for(self, map_id):
         if not isinstance(map_id, str) or not MAP_ID.match(map_id):

@@ -15,8 +15,8 @@ import map_router  # noqa: E402
 
 
 class MultiMapCore:
-    def __init__(self, state_dir, maps):
-        self.router = map_router.MapRouter(state_dir, maps)
+    def __init__(self, state_dir, maps, exclusive=False):
+        self.router = map_router.MapRouter(state_dir, maps, exclusive=exclusive)
         self.errors = []
         self.lock = threading.Lock()
 
@@ -39,6 +39,9 @@ class MultiMapCore:
         with self.lock:
             return {'maps': self.router.status(), 'errors': list(self.errors)}
 
+    def close(self):
+        self.router.close()
+
 
 def _load_files(value):
     if isinstance(value, str):
@@ -58,7 +61,7 @@ def main():
     maps = _load_files(rospy.get_param('~map_files', []))
     if not maps:
         raise ValueError('map_files must contain at least one map')
-    core = MultiMapCore(state_dir, maps)
+    core = MultiMapCore(state_dir, maps, exclusive=True)
     prefix = rospy.get_param('~topic_prefix', '/v8/maps')
     status_topic = rospy.get_param('~status_topic', prefix + '/status')
     delta_topic = rospy.get_param('~delta_topic', '/map_delta')
@@ -96,10 +99,13 @@ def main():
     publish_all()
     keep_alive_s = float(rospy.get_param('~keep_alive_s', 0.0))
     deadline = time.monotonic() + keep_alive_s
-    while not rospy.is_shutdown():
-        if keep_alive_s > 0 and time.monotonic() >= deadline:
-            break
-        time.sleep(.05)
+    try:
+        while not rospy.is_shutdown():
+            if keep_alive_s > 0 and time.monotonic() >= deadline:
+                break
+            time.sleep(.05)
+    finally:
+        core.close()
     return 0
 
 

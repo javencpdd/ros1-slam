@@ -14,11 +14,21 @@ import map_service as svc  # noqa: E402
 
 
 class MapRouter:
-    def __init__(self, root, maps):
+    def __init__(self, root, maps, exclusive=False):
         self.store = svc.MapStore(root)
+        self.exclusive = bool(exclusive)
         self.services = {}
-        for value in maps:
-            self.add(value)
+        if self.exclusive:
+            self.store.acquire()
+        try:
+            for value in maps:
+                self.add(value)
+        except Exception:
+            self.close()
+            raise
+
+    def close(self):
+        self.store.release()
 
     def add(self, value):
         map_id = value.get('map_id')

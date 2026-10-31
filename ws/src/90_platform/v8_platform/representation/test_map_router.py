@@ -1,6 +1,7 @@
 """Multi-map router: map_id dispatch, independent versions and persistence."""
 import copy
 import json
+import multiprocessing
 import sys
 import tempfile
 import unittest
@@ -21,6 +22,13 @@ def map_value(map_id):
     value = tm.two_floors()
     value['map_id'] = map_id
     return value
+
+
+def hold_router(root, ready, release):
+    router = map_router.MapRouter(root, [map_value('map_a')], exclusive=True)
+    ready.set()
+    release.wait(10)
+    router.close()
 
 
 class MapRouterTests(unittest.TestCase):
@@ -58,6 +66,27 @@ class MapRouterTests(unittest.TestCase):
             with self.assertRaises(svc.MapServiceError) as caught:
                 second.add(map_value('map_a'))
             self.assertEqual(caught.exception.code, 'E_MAPSERVICE_DUPLICATE')
+
+    def test_single_writer_lock_blocks_second_process(self):
+        with tempfile.TemporaryDirectory() as directory:
+            context = multiprocessing.get_context('fork')
+            ready, release = context.Event(), context.Event()
+            child = context.Process(target=hold_router, args=(directory, ready, release))
+            child.start()
+            try:
+                self.assertTrue(ready.wait(5))
+                with self.assertRaises(svc.MapServiceError) as caught:
+                    map_router.MapRouter(directory, [map_value('map_a')], exclusive=True)
+                self.assertEqual(caught.exception.code, 'E_MAPSERVICE_LOCKED')
+            finally:
+                release.set()
+                child.join(timeout=5)
+                if child.is_alive():
+                    child.terminate()
+                    child.join(timeout=2)
+            # The lock is released when the first provider closes.
+            router = map_router.MapRouter(directory, [map_value('map_a')], exclusive=True)
+            router.close()
 
     def test_occupancy_grid_is_read_only_selectable_and_reloadable(self):
         flat = json.loads(FLAT.read_text())
