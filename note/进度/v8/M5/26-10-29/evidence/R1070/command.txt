@@ -1,0 +1,7 @@
+R1070 命令（2026-11-01 05:46—05:55 CST，qoder；v8codex-20261028）
+# 代码 d656c723（faster_lio sim manifest/launch 拆分）；容器已 source noetic 与 /opt/ros1-slam/ws/devel，
+# ROS_PACKAGE_PATH=/repo/ws/src；冒烟自带 master 11527 / Gazebo 11528。
+cd /repo/ws/src/90_platform/v8_platform/framework
+python3 -B localization_compare_smoke.py
+# 输出 /tmp/r1042_smoke.json：hdl 30 帧 mean .3063/max .3317；faster_lio 30 帧
+# mean .0013/max .0029；pose_mux 从 a 切 b accepted、最大间隔 .0505 s；退净。

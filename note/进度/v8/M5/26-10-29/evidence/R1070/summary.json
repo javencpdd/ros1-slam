@@ -1,0 +1,29 @@
+{
+ "run": "localization_compare_smoke with the simulation faster_lio manifest/launch",
+ "hdl": {
+  "frames": 30,
+  "error": {
+   "mean": 0.3063,
+   "max": 0.3317,
+   "last": 0.3298
+  }
+ },
+ "faster_lio": {
+  "frames": 30,
+  "error": {
+   "mean": 0.0013,
+   "max": 0.0029,
+   "last": 0.0013
+  }
+ },
+ "mux": {
+  "accepted": true,
+  "max_gap_s": 0.0505,
+  "outputs": 19
+ },
+ "processes_after_stop": [],
+ "comparison": "R1042 under the real yaml had faster_lio mean .0264 m; with the sim yaml it is .0013 m; hdl stays ~.306 m",
+ "result": "A6 sim-config re-sample is VALID as evidence; not an A6 sign-off",
+ "limits": "static scene; GT only for scoring; no relocalization/failure recovery; hdl ~.31 m offset; no real robot",
+ "tests": "v8 full tree 70/70"
+}
