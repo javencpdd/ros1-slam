@@ -153,13 +153,15 @@ def main():
     parser.add_argument('--speed-limit', type=float, default=.2)
     parser.add_argument('--xy-limit', type=float, default=.05)
     parser.add_argument('--out-dir', default='')
+    parser.add_argument('--port', type=int, default=0)
     args = parser.parse_args()
     if not (0 < args.max_speed <= .4):
         parser.error('max-speed must be in (0,.4]')
     if not args.start_map_y < args.inject_map_y < args.goal_y:
         parser.error('require start-map-y < inject-map-y < goal-y')
 
-    os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
+    port = args.port or (PORT + os.getpid() % 1000)
+    os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % port,
                       ROS_IP='127.0.0.1', ROS_HOME='/tmp/r1046_ros',
                       ROS_LOG_DIR='/tmp/r1046_logs', PYTHONDONTWRITEBYTECODE='1')
     Path('/tmp/r1046_ros').mkdir(exist_ok=True)
@@ -171,7 +173,7 @@ def main():
     node_log = work / 'node.log'
     bridge_log = work / 'bridge.log'
 
-    master = start(['roscore', '-p', str(PORT)], master_log.open('ab'))
+    master = start(['roscore', '-p', str(port)], master_log.open('ab'))
     node = bridge = None
     body, applied, statuses, obstacle_events = [], [], [], []
     result = {'scope': SCOPE, 'no_ros': False, 'hardware': False,
