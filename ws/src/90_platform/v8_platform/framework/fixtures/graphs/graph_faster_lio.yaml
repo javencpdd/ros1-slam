@@ -1,0 +1,7 @@
+schema: pipeline_graph/v1
+name: faster_lio_live
+instances:
+  - {id: loc, component: v8.fw.faster_lio}
+external:
+  - {to: loc.points, type: sensor_msgs/PointCloud2, source: gazebo}
+  - {to: loc.imu, type: sensor_msgs/Imu, source: gazebo}
