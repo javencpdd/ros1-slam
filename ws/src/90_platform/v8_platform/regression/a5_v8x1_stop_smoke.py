@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -51,6 +52,22 @@ def map_value(goal_y):
 def obstacle():
     return {'min': [-.4, .8, 0.], 'max': [.4, 1.2, .5],
             'stamp': 0., 'velocity': [0., 0., 0.]}
+
+def sensor_xml(xml):
+    root = ET.parse(Path(xml).resolve()).getroot()
+    root.set('model', 'stop_sensor_world')
+    compiler = root.find('compiler')
+    if compiler is None:
+        compiler = ET.SubElement(root, 'compiler')
+    for key in ('meshdir', 'texturedir'):
+        compiler.set(key, str((Path(xml).resolve().parent / compiler.get(key, '')).resolve()))
+    world = root.find('worldbody')
+    if world is None:
+        world = ET.SubElement(root, 'worldbody')
+    ET.SubElement(world, 'geom', name='perception_barrier', type='box',
+                  pos='3.2 0 0.5', size='0.05 1 0.5', rgba='0.8 0.2 0.1 1')
+    return ET.tostring(root, encoding='unicode')
+
 
 def path_obstacle():
     return {'min': [-.4, .45, 0.], 'max': [.4, .55, .5],
@@ -146,6 +163,7 @@ def main():
     parser.add_argument('--policy', default='/tmp/new_policy.onnx')
     parser.add_argument('--bridge45', action='store_true')
     parser.add_argument('--bridge-kin', action='store_true')
+    parser.add_argument('--sensor-bridge', action='store_true')
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--out', required=True)
     parser.add_argument('--max-speed', type=float, default=.3)
@@ -179,6 +197,11 @@ def main():
     work = Path(tempfile.mkdtemp(prefix='a5stop_', dir=args.out_dir or '/tmp'))
     map_path = work / 'map.json'
     map_path.write_text(json.dumps(map_value(args.goal_y)))
+    bridge_xml = args.xml
+    if args.sensor_bridge:
+        sensor_path = work / 'sensor.xml'
+        sensor_path.write_text(sensor_xml(args.xml))
+        bridge_xml = str(sensor_path)
     master_log = work / 'master.log'
     node_log = work / 'node.log'
     bridge_log = work / 'bridge.log'
@@ -203,6 +226,7 @@ def main():
                              'stop_xy_limit_m': args.xy_limit,
               'path_obstacle': bool(args.path_obstacle),
               'sensor_range_m': args.sensor_range,
+              'sensor_bridge': bool(args.sensor_bridge),
                              'policy': args.policy, 'xml': args.xml}}
     try:
         time.sleep(3.)
@@ -234,12 +258,14 @@ def main():
                            '--cmd-timeout', '.5']
         elif args.bridge45:
             bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_stop_bridge45.py'),
-                           '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
+                           '--map', str(map_path), '--xml', bridge_xml, '--policy', args.policy,
                            '--prefix', prefix, '--start-map-y', str(args.start_map_y),
                            '--speed-scale', str(args.speed_scale), '--max-command', '.5',
                            '--cmd-timeout', '.5', '--initial-z', '.35', '--seed', str(args.seed)]
             if args.perturb:
                 bridge_argv.append('--perturb')
+            if args.sensor_bridge:
+                bridge_argv.extend(['--sense', '--sensor-range', str(args.sensor_range)])
         else:
             bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_bridge.py'),
                            '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
@@ -315,7 +341,9 @@ def main():
                 if applied:
                     pose = applied[-1].get('map_xyz')
                 moving = applied[-1].get('base_vxy') if applied else None
-            if args.path_obstacle:
+            if args.sensor_bridge:
+                pass
+            elif args.path_obstacle:
                 if injected['wall'] is None and pose is not None:
                     # Forward ray from the body: the obstacle is published only
                     # after the sensor range reaches it, not at a scheduled time.
@@ -365,6 +393,12 @@ def main():
         body_view = list(body)
         applied_view = list(applied)
         status_view = list(statuses)
+    if args.sensor_bridge and injected['wall'] is None:
+        hit = next((s for s in applied_view if s.get('sensor_hit')), None)
+        if hit is not None:
+            injected['wall'] = hit.get('wall')
+            obstacle_events.append({'event': 'sensor_hit', 'wall': hit.get('wall'),
+                                    'sim_time': hit.get('sim_time')})
     result['events'] = obstacle_events
     result['pose_count'] = pose_seen['count']
     result['pose_last'] = pose_seen['last']

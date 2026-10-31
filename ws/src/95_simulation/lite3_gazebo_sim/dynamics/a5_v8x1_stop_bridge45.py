@@ -44,6 +44,8 @@ def main():
     parser.add_argument('--initial-z', type=float, default=.35)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--perturb', action='store_true')
+    parser.add_argument('--sense', action='store_true')
+    parser.add_argument('--sensor-range', type=float, default=2.0)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text())
 
@@ -91,8 +93,33 @@ def main():
     body_pub = rospy.Publisher(args.prefix + '/body', PoseStamped, queue_size=50)
     applied_pub = rospy.Publisher(args.prefix + '/applied', String, queue_size=20)
     loc_pub = rospy.Publisher(args.prefix + '/localization', Bool, queue_size=1)
+    obstacle_pub = rospy.Publisher(args.prefix + '/stop_obstacles', String, queue_size=1)
+
+    def ray_sense(model, data, sim_time):
+        """Real MuJoCo raycast against the physical barrier; map-frame box."""
+        if not args.sense:
+            return None
+        points = []
+        for lateral in np.linspace(-.4, .4, 9):
+            origin = np.array([data.qpos[0] + .45, data.qpos[1] + lateral, .35])
+            geom = np.array([-1], dtype=np.int32)
+            distance = float(mujoco.mj_ray(model, data, origin,
+                                           np.array([1., 0., 0.]), None, 1, -1, geom))
+            valid = math.isfinite(distance) and (distance < 0 or geom[0] >= 0)
+            if valid and 0 <= distance <= args.sensor_range:
+                points.append(origin + distance * np.array([1., 0., 0.]))
+        if not points:
+            return {'sensor_hit': False, 'stamp': sim_time, 'box': None}
+        mapped = np.array([[-p[1], p[0] - 2.7] for p in points])
+        lo, hi = mapped.min(axis=0), mapped.max(axis=0)
+        box = {'min': [float(lo[0] - .12), float(lo[1] - .12), 0.],
+               'max': [float(hi[0] + .12), float(hi[1] + .12), .5],
+               'stamp': 0., 'velocity': [0., 0., 0.]}
+        return {'sensor_hit': True, 'stamp': float(sim_time), 'box': box,
+                'points': [p.tolist() for p in points]}
     last_action = np.zeros(12, dtype=np.float32)
     target = DEFAULT_POSE.copy()
+    sensed_latched = {'box': None}
     dt = model.opt.timestep
     stride = max(1, int(round(.02 / dt)))
     next_tick = time.monotonic()
@@ -150,14 +177,26 @@ def main():
         body.pose.orientation.w, body.pose.orientation.x, body.pose.orientation.y, body.pose.orientation.z = (
             float(data.qpos[3]), float(data.qpos[4]), float(data.qpos[5]), float(data.qpos[6]))
         body_pub.publish(body)
+        sensed = ray_sense(model, data, float(data.time))
+        if args.sense:
+            if sensed and sensed.get('box') and sensed_latched['box'] is None:
+                sensed_latched['box'] = sensed['box']
+            box = sensed_latched['box']
+            if box is not None:
+                obstacle_pub.publish(String(data=json.dumps({'obstacles': [box]})))
+            else:
+                obstacle_pub.publish(String(data=json.dumps({'obstacles': []})))
         if tick % 5 == 0:
-            applied_pub.publish(String(data=json.dumps({
+            payload = {
                 'map_velocity': list(velocity), 'body_command': command.tolist(),
                 'support_z': support, 'world_xyz': [world_x, world_y, float(data.qpos[2])],
                 'base_vxy': [float(data.qvel[0]), float(data.qvel[1])],
                 'map_xyz': [map_x, map_y, support], 'sim_time': float(data.time),
                 'target': target_point, 'waypoint': target_point,
-                'scenario': 'a5_v8x1_stop_bridge45'})))
+                'sensor_hit': sensed_latched['box'] is not None,
+                'sensed_box': sensed_latched['box'],
+                'scenario': 'a5_v8x1_stop_bridge45_sensed' if args.sense else 'a5_v8x1_stop_bridge45'}
+            applied_pub.publish(String(data=json.dumps(payload)))
         loc_pub.publish(Bool(data=True))
         tick += 1
         next_tick += .02
