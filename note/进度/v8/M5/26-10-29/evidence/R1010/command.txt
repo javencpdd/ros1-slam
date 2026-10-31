@@ -1,0 +1,13 @@
+R1010 命令（2026-10-31 14:31—14:43 CST，qoder；MuJoCo 验证后端）
+# v8.verify.mujoco_truth：内置 MJCF 落体世界，mujoco_truth.py 推进物理并发
+# /v8/verify/truth_mj；后端不进算法图，truth 不在算法端口集合。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src:$ROS_PACKAGE_PATH。
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_verification.py
+python3 -B framework/mujoco_verification_smoke.py
+# 读数：verification 7/7；truth_in_algorithm_topics=false、backend_in_plan=false；
+#   run.status=ok，4 帧 truth（frame=world、child=probe、z 0.8058/0.5615/0.2191/0.0932）；
+#   runner_stopped=true，无 mujoco_truth/launch 存活；V8 全树 63 套件 0 失败。
+# 边界：仅落体/空世界通道，不做策略/场景评价；MJCF 为仓库内自建最小模型；
+#   未改 A1 冻结判据。

@@ -1,0 +1,54 @@
+{
+ "smoke": {
+  "checked": {
+   "ok": true,
+   "name": "mujoco_drop_truth",
+   "backend": "v8.verify.mujoco_truth",
+   "scenario": {
+    "name": "drop_world",
+    "seed": 0
+   },
+   "truth_channel": "/v8/verify/truth_mj",
+   "algorithm_digest": "14a3d0eede5efa44255094b2f79938f1c14e418eed798cbb940a7d12e4b842dc",
+   "verification_digest": "52a3aea5f0b318526285be6e0af983b21e731bd38544003734d9d4097b647c49"
+  },
+  "truth_in_algorithm_topics": false,
+  "backend_in_plan": false,
+  "command": [
+   "roslaunch",
+   "/repo/ws/src/90_platform/v8_platform/launch/verification_mujoco.launch"
+  ],
+  "run": {
+   "status": "ok",
+   "name": "mujoco_drop_truth",
+   "backend": "v8.verify.mujoco_truth",
+   "scenario": {
+    "name": "drop_world",
+    "seed": 0
+   },
+   "truth_channel": "/v8/verify/truth_mj",
+   "algorithm_digest": "14a3d0eede5efa44255094b2f79938f1c14e418eed798cbb940a7d12e4b842dc",
+   "verification_digest": "52a3aea5f0b318526285be6e0af983b21e731bd38544003734d9d4097b647c49",
+   "result": {
+    "frames": 4,
+    "z": [
+     0.8058,
+     0.5615,
+     0.2191,
+     0.0932
+    ],
+    "frame_id": "world",
+    "child_frame_id": "probe"
+   },
+   "error": null
+  },
+  "runner_stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "verification": "7/7",
+  "v8_suites": "63/0"
+ },
+ "interpretation": "in-repo MuJoCo drop world provides a real physics truth channel outside the algorithm graph; probe falls from 0.806 m to 0.093 m and the process stops cleanly"
+}

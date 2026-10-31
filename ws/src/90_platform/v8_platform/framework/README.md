@@ -47,8 +47,10 @@ check/plan/Assembly 启停，`command_owner=null`（R1008）。
 `verification.py` 选择独立验证后端（模拟器组件）与场景，**不进入算法图**；真值通道不得与算法话题
 重叠（`E_VERIFY_TRUTH_LEAK`）；后端通过注入 runner 运行，失败只记 status=error，不改算法 digest。
 两个假后端验证切换；R1006 增加真实 Gazebo 后端 `v8.verify.gazebo_truth`：headless
-empty world + `/gazebo/model_states` → `/v8/verify/truth`，由 `verification.run` 注入
-runner 启动并等待 truth；算法图不含该后端，truth 话题也不在算法端口集合中。
+empty world + `/gazebo/model_states` → `/v8/verify/truth`；R1010 增加真实 MuJoCo
+后端 `v8.verify.mujoco_truth`：仓库内置落体 MJCF，`mujoco_truth.py` 推进物理并发
+`/v8/verify/truth_mj`。两者都由 `verification.run` 注入 runner 启动并等待 truth；
+算法图不含后端，truth 话题也不在算法端口集合中。
 
 `map_service.propose_delta` 接收 `map_delta/v1`：delta_id 幂等重放、旧 base/同 id 异内容/无变化
 拒绝；结果先过 map 契约再原子升版并通知监听者，失败不改变当前版本。
@@ -100,6 +102,7 @@ python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 python3 -B framework/plugin_smoke.py        # 真实 ROS：nodelet plugin 装配/参数/IO/停止
 python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/truth/清理
+python3 -B framework/mujoco_verification_smoke.py  # 真实 MuJoCo 落体后端/truth/清理
 python3 -B framework/semantic_graph_smoke.py       # 语义 provider 经 graph/Assembly 启停
 python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替换 v1→v2
 ```
@@ -160,8 +163,9 @@ python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替�
 - include 组件没有通用 `remap` 入口：图中连入 include 的边必须让端口 topic 与上游一致，
   否则真实启动不会改线；node/plugin 的 manifest remap 已进运行命令，图边 remap 仍只在
   渲染骨架里。
-- 包索引是声明快照，不是 rospack 活体扫描；验证已接真实 Gazebo empty-world 后端（R1006），
-  未接 MuJoCo 后端与场景化真值；`gazebo_truth.py` 以 ground_plane 静态位姿证明通道，
+- 包索引是声明快照，不是 rospack 活体扫描；验证已接真实 Gazebo empty-world（R1006）
+  与 MuJoCo 落体（R1010）后端，未接场景化真值与算法轨迹评价；`gazebo_truth.py` 以
+  ground_plane 静态位姿、`mujoco_truth.py` 以自由落体探针证明通道，
   不冒充算法评价；
   热插拔/状态迁移已有 v0.3 与只读实例 overlap（R1009）；运行期改线与命令/TF 链
   零中断未实现。
