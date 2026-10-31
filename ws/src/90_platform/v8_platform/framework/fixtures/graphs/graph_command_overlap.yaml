@@ -1,0 +1,10 @@
+schema: pipeline_graph/v1
+name: command_overlap
+instances:
+  - id: mux
+    component: v8.fw.mux_dual
+    params:
+      mux_config: framework/fixtures/mux/dual_cmd_mux.yaml
+external:
+  - {to: mux.cmd_a, type: geometry_msgs/Twist, source: source_a}
+  - {to: mux.cmd_b, type: geometry_msgs/Twist, source: source_b}

@@ -21,6 +21,7 @@ G_LOCAL_NATIVE = HERE / 'fixtures' / 'graphs' / 'graph_local_native.yaml'
 G_SEMANTIC_PLAN = HERE / 'fixtures' / 'graphs' / 'graph_semantic_planning.yaml'
 G_SEMANTIC_OBSTACLE = HERE / 'fixtures' / 'graphs' / 'graph_semantic_obstacle_planning.yaml'
 G_POSE_MUX = HERE / 'fixtures' / 'graphs' / 'graph_pose_mux.yaml'
+G_COMMAND_OVERLAP = HERE / 'fixtures' / 'graphs' / 'graph_command_overlap.yaml'
 
 
 def setup():
@@ -161,6 +162,16 @@ class PreflightTests(unittest.TestCase):
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type')),
                          ('v8_platform', 'local_planner/pose_mux_node.py'))
+
+    def test_command_overlap_graph_keeps_single_arbiter(self):
+        catalog = config.load_components(MANIFESTS)
+        graph = config.load_graph(G_COMMAND_OVERLAP)
+        report = graph_mod.check(graph, catalog)
+        self.assertEqual(report['startup_order'], ['mux'])
+        self.assertEqual(report['command_writers'], {'/cmd_vel': 'mux'})
+        plan = render.render_plan(graph, catalog, report)
+        checked = __import__('safety').check_plan(plan, catalog)
+        self.assertEqual(checked['command_owner'], 'mux')
 
 
 if __name__ == '__main__':

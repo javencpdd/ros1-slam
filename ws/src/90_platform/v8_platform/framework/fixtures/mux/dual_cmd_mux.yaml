@@ -1,0 +1,7 @@
+# Dual-source handover config for the real safe_cmd_vel_mux (R1034).
+output_topic: /cmd_vel
+output_rate_hz: 20.0
+hold_topic: /lite3/supervisor/hold
+sources:
+  - {name: handover_a, topic: /v8/handover/cmd_a, priority: 5, timeout_s: 0.5}
+  - {name: handover_b, topic: /v8/handover/cmd_b, priority: 2, timeout_s: 0.5}
