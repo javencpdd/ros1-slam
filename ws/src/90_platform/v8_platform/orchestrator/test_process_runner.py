@@ -38,6 +38,22 @@ class ProcessRunnerTests(unittest.TestCase):
         for r in runners.values():
             self.addCleanup(r.reap)
 
+    def test_env_extends_parent_environment(self):
+        s = spec('a', ['odometry'])
+        out = Path('/tmp/v8_env_probe_%d.txt' % os.getpid())
+        code = ("import os; open(%r, 'w').write(os.environ.get('PATH', '') + '|'"
+                " + os.environ.get('V8_PROBE', '')); print('READY', flush=True);"
+                " import time; time.sleep(3600)" % str(out))
+        r = ProcessRunner(s, [PY, '-c', code], ready_marker='READY',
+                          env={'V8_PROBE': 'ok'})
+        r.start()
+        self.addCleanup(r.reap)
+        self.addCleanup(out.unlink, missing_ok=True)
+        orch.wait_ready([r], timeout=5)
+        text = out.read_text()
+        self.assertTrue(text.split('|')[0])
+        self.assertEqual(text.split('|')[1], 'ok')
+
     def test_ready_gate_by_marker(self):
         s = spec('a', ['odometry'])
         r = ProcessRunner(s, [PY, '-c', SLEEPER], ready_marker='READY')

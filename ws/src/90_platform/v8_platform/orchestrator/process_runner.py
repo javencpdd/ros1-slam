@@ -51,7 +51,7 @@ class ProcessRunner(orch.ComponentRunner):
         self.cmd = list(cmd)
         self.ready_marker = ready_marker
         self.ready_timeout = ready_timeout
-        self.env = None if env is None else dict(env)
+        self.env = None if env is None else {**os.environ, **env}
         self.proc = None
         self._ready_line_seen = False
         self.stops = []

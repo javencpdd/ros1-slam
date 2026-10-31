@@ -64,11 +64,15 @@ def default_command(instance, component):
             command.append('%s:=%s' % (key, text))
         return command, spec.get('ready_marker')
     if spec['kind'] == 'plugin':
-        node_name = re.sub(r'[^A-Za-z0-9_]', '_', instance['id'])
+        node_name = re.sub(r'[^A-Za-z0-9_]', '_',
+                           instance.get('runtime_name') or instance['id'])
         command = ['rosrun', spec['package'], 'nodelet', 'standalone', spec['plugin'],
                    '__name:=' + node_name]
     else:
         command = ['rosrun', spec['package'], spec['type']]
+        if instance.get('runtime_name'):
+            command.append('__name:=' + re.sub(
+                r'[^A-Za-z0-9_]', '_', instance['runtime_name']))
     if namespace:
         command.append('__ns:=' + namespace)
     for key in sorted(instance.get('params', {})):

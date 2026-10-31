@@ -7,6 +7,7 @@ import copy
 import hashlib
 import json
 import tempfile
+import time
 from pathlib import Path
 
 import safety
@@ -48,7 +49,7 @@ def validate_record(record):
 
 
 def prepare(plan, catalog, instance_id, new_component_id, state=None,
-            task_id=None, epoch=0):
+            task_id=None, epoch=0, params=None):
     """Check role/port/ownership compatibility; return (record, new_plan)."""
     instance = next((item for item in plan['instances'] if item['id'] == instance_id), None)
     if instance is None:
@@ -67,6 +68,8 @@ def prepare(plan, catalog, instance_id, new_component_id, state=None,
         if item['id'] == instance_id:
             item['component'] = new_component_id
             item['launch'] = new['launch']
+            if params is not None:
+                item['params'] = dict(params)
             break
     new_plan['digest'] = _digest(new_plan)
     checked = safety.check_plan(new_plan, catalog)
@@ -106,6 +109,101 @@ def apply(assembly, catalog, record, new_plan, ready_timeout=10.0):
                                 'single_command_writer': True}
     record['epoch'] += 1
     return record, new_assembly
+
+
+def _overlap_safe(component):
+    return (not component.get('tf_edges')
+            and not any(port.get('command_topic')
+                        for port in component.get('outputs', [])))
+
+
+def apply_overlap(assembly, catalog, record, new_plan, ready_timeout=10.0,
+                  ready_check=None):
+    """Start the replacement first, wait until ready, then stop the old one.
+
+    Restricted to instances without command topics and TF edges: during the
+    overlap both may publish ordinary data, which is acceptable only for
+    read-only/latched providers. `ready_check()` is polled when given; otherwise
+    the runner's ready marker is used.
+    """
+    import orchestrator as orch
+    from process_runner import ProcessRunner
+
+    validate_record(record)
+    instance_id = record['instance_id']
+    old_runner = assembly.runners.get(instance_id)
+    old_spec = next((spec for spec in assembly.task.specs if spec.id == instance_id), None)
+    if old_runner is None or old_spec is None:
+        raise FrameworkError('E_SWAP_INSTANCE', instance_id)
+    old_component = catalog['components'][record['old_component']]
+    new_component = catalog['components'][record['new_component']]
+    if not _overlap_safe(old_component) or not _overlap_safe(new_component):
+        raise FrameworkError('E_SWAP_OVERLAP', 'command or TF ownership')
+    new_instance = next(item for item in new_plan['instances']
+                        if item['id'] == instance_id)
+    new_instance['runtime_name'] = '%s_swap%d' % (instance_id, record['epoch'] + 1)
+    new_spec = orch.ComponentSpec(instance_id, new_component['roles'],
+                                  stop_method=new_component['stop'],
+                                  resources=new_component.get('resources', []))
+    new_argv, new_marker = assembly.command_factory(new_instance, new_component)
+    state_file = None
+    env = None
+    if record['state']:
+        handle = tempfile.NamedTemporaryFile('w', prefix='v8_swap_', suffix='.json',
+                                             delete=False, encoding='utf-8')
+        json.dump(record['state'], handle, ensure_ascii=False, sort_keys=True)
+        handle.close()
+        state_file = handle.name
+        env = {'V8_HOT_SWAP_STATE': state_file,
+               'V8_HOT_SWAP_INSTANCE': instance_id,
+               'V8_HOT_SWAP_EPOCH': str(record['epoch'] + 1)}
+    new_runner = ProcessRunner(new_spec, new_argv, ready_marker=new_marker, env=env)
+    try:
+        new_runner.start()
+        if ready_check is not None:
+            deadline = time.monotonic() + ready_timeout
+            while True:
+                try:
+                    if ready_check():
+                        break
+                except Exception:
+                    pass
+                if time.monotonic() >= deadline:
+                    raise TimeoutError('replacement not ready')
+                time.sleep(.1)
+        else:
+            from orchestrator import wait_ready
+            wait_ready([new_runner], timeout=ready_timeout)
+    except Exception as error:
+        new_runner.stop(new_component['stop'])
+        new_runner.reap()
+        if state_file:
+            Path(state_file).unlink(missing_ok=True)
+        record['postconditions'] = {'new_ready': False, 'single_command_writer': True,
+                                    'rolled_back': True, 'overlap': False}
+        raise FrameworkError('E_SWAP_START', '%s; old kept running' % error)
+    record['preconditions']['new_ready_before_stop'] = True
+    record['preconditions']['old_alive_before_stop'] = old_runner.is_alive()
+    old_runner.stop(old_spec.stop_method)
+    old_runner.reap()
+    if old_runner.is_alive():
+        new_runner.stop(new_component['stop'])
+        new_runner.reap()
+        if state_file:
+            Path(state_file).unlink(missing_ok=True)
+        raise FrameworkError('E_SWAP_STOP', 'old instance still alive')
+    assembly.runners[instance_id] = new_runner
+    for index, spec in enumerate(assembly.task.specs):
+        if spec.id == instance_id:
+            assembly.task.specs[index] = new_spec
+            break
+    assembly.plan = new_plan
+    new_runner.state_file = state_file
+    record['postconditions'] = {'new_ready': True, 'single_command_writer': True,
+                                'rolled_back': False, 'overlap': True,
+                                'old_stopped': True}
+    record['epoch'] += 1
+    return record, new_runner
 
 
 def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0):

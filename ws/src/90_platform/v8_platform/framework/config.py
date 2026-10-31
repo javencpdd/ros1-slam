@@ -223,6 +223,7 @@ def load_components(path):
                            'kinematics': value['capability']['kinematics'],
                            'param_schema': value.get('param_schema'),
                            'stop': value['ownership']['stop'],
+                           'tf_edges': list(value['ownership'].get('tf_edges', [])),
                            'resources': list(value.get('requires', {}).get('resources', []))}
         digest.update(file.name.encode() + b'\0' + raw_bytes)
     return {'components': components, 'sha256': digest.hexdigest(), 'path': str(path)}

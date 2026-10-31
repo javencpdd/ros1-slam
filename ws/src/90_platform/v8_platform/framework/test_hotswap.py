@@ -15,13 +15,14 @@ import runtime  # noqa: E402
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
+GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
 
-def plan_for():
+def plan_for(path=G2D):
     catalog = config.load_components(MANIFESTS)
-    graph = config.load_graph(G2D)
+    graph = config.load_graph(path)
     report = graph_mod.check(graph, catalog)
     return render.render_plan(graph, catalog, report), catalog
 
@@ -58,6 +59,73 @@ class HotSwapTests(unittest.TestCase):
         with self.assertRaises(config.FrameworkError) as caught:
             hotswap.prepare(plan, catalog, 'robot', 'v8.fw.missing')
         self.assertEqual(caught.exception.code, 'E_SWAP_COMPONENT')
+
+    def test_prepare_params_override_is_applied(self):
+        plan, catalog = plan_for(GSEMANTIC)
+        _record, new_plan = hotswap.prepare(
+            plan, catalog, 'sem', 'v8.fw.semantic_provider',
+            params={'semantic_files': '/tmp/sem_b.json', 'keep_alive_s': 9})
+        sem = new_plan['instances'][0]
+        self.assertEqual(sem['params']['semantic_files'], '/tmp/sem_b.json')
+        self.assertEqual(sem['params']['keep_alive_s'], 9)
+
+    def test_overlap_starts_replacement_before_stopping_old(self):
+        plan, catalog = plan_for(GSEMANTIC)
+        record, new_plan = hotswap.prepare(
+            plan, catalog, 'sem', 'v8.fw.semantic_provider',
+            params={'semantic_files': '/tmp/sem_b.json', 'keep_alive_s': 30})
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake,
+                                    ready_timeout=10)
+        assembly.start()
+        self.addCleanup(assembly.stop)
+        old_runner = assembly.runners['sem']
+        record, new_runner = hotswap.apply_overlap(
+            assembly, catalog, record, new_plan, ready_timeout=10)
+        self.assertTrue(record['preconditions']['new_ready_before_stop'])
+        self.assertTrue(record['postconditions']['overlap'])
+        self.assertTrue(old_runner.is_stopped())
+        self.assertIsNot(new_runner, old_runner)
+        self.assertTrue(new_runner.is_alive())
+        self.assertEqual(
+            next(item for item in assembly.plan['instances']
+                 if item['id'] == 'sem')['params']['semantic_files'],
+            '/tmp/sem_b.json')
+        self.assertTrue(new_plan['instances'][0]['runtime_name'].startswith('sem_swap'))
+
+    def test_overlap_rejects_command_owner_and_keeps_old_on_ready_failure(self):
+        plan, catalog = plan_for()
+        record, _new_plan = hotswap.prepare(plan, catalog, 'mux', 'v8.fw.mux')
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake,
+                                    ready_timeout=10)
+        assembly.start()
+        self.addCleanup(assembly.stop)
+        with self.assertRaises(config.FrameworkError) as caught:
+            hotswap.apply_overlap(assembly, catalog, record, plan)
+        self.assertEqual(caught.exception.code, 'E_SWAP_OVERLAP')
+
+        sem_plan, sem_catalog = plan_for(GSEMANTIC)
+        record, new_plan = hotswap.prepare(
+            sem_plan, sem_catalog, 'sem', 'v8.fw.semantic_provider',
+            params={'semantic_files': '/tmp/sem_b.json', 'keep_alive_s': 30})
+        calls = {'count': 0}
+
+        def flaky(instance, component):
+            calls['count'] += 1
+            if calls['count'] == 1:
+                return [PY, '-c', SLEEPER], 'READY'
+            return [PY, '-c', 'import sys; sys.exit(3)'], 'READY'
+
+        assembly = runtime.Assembly(sem_plan, sem_catalog, command_factory=flaky,
+                                    ready_timeout=2)
+        assembly.start()
+        self.addCleanup(assembly.stop)
+        old_runner = assembly.runners['sem']
+        with self.assertRaises(config.FrameworkError) as caught:
+            hotswap.apply_overlap(assembly, sem_catalog, record, new_plan,
+                                  ready_timeout=2)
+        self.assertEqual(caught.exception.code, 'E_SWAP_START')
+        self.assertTrue(old_runner.is_alive())
+        self.assertIs(assembly.runners['sem'], old_runner)
 
     def test_record_validation(self):
         plan, catalog = plan_for()
