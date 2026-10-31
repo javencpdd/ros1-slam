@@ -347,6 +347,7 @@ def main():
             applied_pub.publish(String(data=json.dumps({
                 'map_velocity': list(velocity), 'body_command': command.tolist(),
                 'support_z': support, 'world_xyz': [world_x, world_y, float(data.qpos[2])],
+                'base_vxy': [float(data.qvel[0]), float(data.qvel[1])],
                 'map_xyz': [map_x, map_y, support], 'velocity_age_s': now - shared['at'],
                 'waypoint': target, 'snapped': snapped, 'snap_error_m': snap_error,
                 'finish_hold': finish, 'lockstep': bool(args.lockstep),
