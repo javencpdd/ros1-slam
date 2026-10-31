@@ -1,0 +1,21 @@
+{
+ "component": "A6 RecoverySupervisor (pure state machine)",
+ "states": [
+  "TRACKING",
+  "RELOCALIZING",
+  "RECOVERING",
+  "FAILED"
+ ],
+ "sequence": "stale/LOST -> state.relocalize + injected relocalize -> candidate score/bounds -> switch_backend -> healthy samples -> new lease -> TRACKING",
+ "tests": {
+  "recovery_supervisor": "5/5",
+  "v8_full_tree": "71/71"
+ },
+ "not_done": [
+  "ROS service/topic wiring to hdl /relocalize and candidate source",
+  "GT error gate",
+  "live relocalization/lease recovery on Gazebo",
+  "real robot"
+ ],
+ "a6_status": "PARTIAL; no sign-off"
+}
