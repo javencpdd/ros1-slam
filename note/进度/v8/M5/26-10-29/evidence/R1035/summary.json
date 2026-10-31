@@ -1,0 +1,62 @@
+{
+ "smoke": {
+  "startup_order": [
+   "global"
+  ],
+  "command": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "first": {
+   "poses": 6,
+   "last": [
+    3.55,
+    2.05,
+    0.6
+   ],
+   "frame": "map"
+  },
+  "first_status": {
+   "ok": true,
+   "reason": null,
+   "points": 6,
+   "map_version": 2,
+   "expansions": 5,
+   "goal": [
+    3.5,
+    2.0,
+    0.6
+   ]
+  },
+  "second": {
+   "poses": 8,
+   "last": [
+    3.75,
+    2.05,
+    0.6
+   ],
+   "frame": "map"
+  },
+  "version_status": {
+   "ok": true,
+   "reason": null,
+   "points": 8,
+   "map_version": 3,
+   "expansions": 7,
+   "goal": [
+    3.8,
+    2.0,
+    0.6
+   ]
+  },
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "adapter": "3/3",
+  "preflight": "11/11",
+  "v8_suites": "69/0"
+ },
+ "interpretation": "the real support planner is launched by the v2 graph on map/start/goal topics; it replans for a new goal and for a map version bump, publishing Path and status without stale success"
+}

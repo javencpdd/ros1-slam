@@ -1,0 +1,11 @@
+R1035 命令（2026-10-31 22:35—22:50 CST，qoder；真实三维全局规划器入图）
+# 容器 v8codex-20261028；source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11521。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B planner/test_topic_node.py
+python3 -B framework/test_preflight.py
+python3 -B planner/global3d_topic_smoke.py
+# 读数：adapter 3/3、preflight 11/11；真实冒烟首目标 6 点到达、改目标
+#   8 点到达；地图升 v3 后按 v3 重规划（status map_version=3）；停止退净。
+# 全树：SUITES=69 FAIL=0。
+# 边界：几何来自 support map 夹具；不改冻结判据，A1—A7 不变。
