@@ -1,0 +1,9 @@
+R1001 命令（2026-10-31 05:35—05:37 CST，qoder；地图状态单写者锁）
+# MapStore.acquire/release 用 fcntl.flock；MapRouter(exclusive=True)；
+# multi_map_node 启动独占 state_dir、退出释放。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/test_map_router.py
+python3 -B representation/multi_map_smoke.py
+# 读数：第二个 provider 进程打开同 state_dir -> E_MAPSERVICE_LOCKED；第一个退出后可再打开。
+#   map_router 5/5；真实多图冒烟仍通过；V8 全树 61 套件 0 失败。
+# 边界：只约束同一文件系统上的 state_dir；不解决网络文件系统/跨机写者。

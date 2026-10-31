@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1001（2026-10-31）★＝**地图状态单写者锁**：`MapStore` 用 `fcntl.flock` 独占
+  `state_dir/.map_store.lock`，`MapRouter(exclusive=True)`/`multi_map_node` 启动取锁、
+  退出释放；第二个 provider 进程 `E_MAPSERVICE_LOCKED`。`map_router` 5/5、全树 **61 套件
+  0 失败**；网络文件系统/跨机写者未覆盖（代码 `18d9f133`，全文＝[R1001](note/进度/v8/M5/26-10-29/R1001.md)）。
 - ★R1000（2026-10-31）★＝**多图 schema 选择**：2D `occupancy_grid` 与 3D `support_map`
   同目录共存；`select(kind)` 可选，2D 只读（delta → `E_MAPSERVICE_UPDATE_SCHEMA`），
   3D 可更新；重载后 kind/version 保持。`map_router` 4/4、V8 全树 **61 套件 0 失败**；
