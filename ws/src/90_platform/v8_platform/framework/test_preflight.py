@@ -19,6 +19,7 @@ G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G2D_CONFIG = HERE / 'fixtures' / 'graphs' / 'graph_2d_config.yaml'
 G_LOCAL_NATIVE = HERE / 'fixtures' / 'graphs' / 'graph_local_native.yaml'
 G_SEMANTIC_PLAN = HERE / 'fixtures' / 'graphs' / 'graph_semantic_planning.yaml'
+G_SEMANTIC_OBSTACLE = HERE / 'fixtures' / 'graphs' / 'graph_semantic_obstacle_planning.yaml'
 
 
 def setup():
@@ -137,6 +138,17 @@ class PreflightTests(unittest.TestCase):
         self.assertEqual(types, ['local_planner/ros_node.py',
                                  'representation/semantic_map_node.py',
                                  'representation/semantic_support_bridge_node.py'])
+
+    def test_semantic_obstacle_graph_binds_both_consumers(self):
+        catalog = config.load_components(MANIFESTS)
+        graph = config.load_graph(G_SEMANTIC_OBSTACLE)
+        report = graph_mod.check(graph, catalog)
+        self.assertEqual(report['startup_order'], ['semantic', 'obstacles', 'support', 'local'])
+        self.assertEqual(report['bindings']['local']['obstacles']['from'], 'obstacles.obstacles')
+        self.assertEqual(report['bindings']['support']['semantic_map']['from'], 'semantic.map')
+        root = ET.fromstring(render.render_launch(graph, catalog, report))
+        types = sorted(node.get('type') for node in root.findall('node'))
+        self.assertIn('representation/semantic_obstacle_bridge_node.py', types)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,33 @@
+schema: pipeline_graph/v1
+name: semantic_obstacle_planning
+instances:
+  - id: semantic
+    component: v8.fw.semantic_provider_support
+    params:
+      semantic_files: framework/fixtures/maps/sem_obstacle.json
+      keep_alive_s: 90
+  - id: support
+    component: v8.fw.semantic_bridge
+    params:
+      semantic_topic: /v8/semantics/sem_support
+      support_map_topic: /v8/support_map_sem
+      status_topic: /v8/support_map_sem/status
+      resolution: 0.1
+  - id: obstacles
+    component: v8.fw.semantic_obstacles
+    params:
+      semantic_topic: /v8/semantics/sem_support
+      obstacles_topic: /v8/local/obstacles
+      status_topic: /v8/local/obstacles/status
+  - id: local
+    component: v8.fw.local_native
+    config: ../configs/local_native_sem.yaml
+edges:
+  - {from: semantic.map, to: support.semantic_map}
+  - {from: semantic.map, to: obstacles.semantic_map}
+  - {from: support.map, to: local.map}
+  - {from: obstacles.obstacles, to: local.obstacles}
+external:
+  - {to: local.pose, type: geometry_msgs/PoseStamped, source: localization}
+  - {to: local.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.localization, type: std_msgs/Bool, source: localization}
