@@ -31,6 +31,17 @@ class TopicNodeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 topic_node.map_from_message(text)
 
+    def test_cancel_predicate_is_honoured(self):
+        value = json.loads(FIXTURE.read_text())
+        calls = []
+
+        def cancel():
+            calls.append(1)
+            return len(calls) >= 2
+        with self.assertRaises(support_planner.PlannerError) as caught:
+            support_planner.plan(value, (3., 2., .6), (3.8, 2., .6), cancel=cancel)
+        self.assertEqual(caught.exception.code, 'E_PLAN_CANCELLED')
+
     def test_refusal_keeps_reason_code(self):
         try:
             support_planner.plan({}, (0., 0., 0.), (1., 0., 0.))

@@ -39,26 +39,32 @@ def _cell_center(ix, iy, resolution):
     return (ix + 0.5) * resolution, (iy + 0.5) * resolution
 
 
-def _nearest_cell_pair(cells_a, cells_b):
-    best, best_d = None, float('inf')
+def _nearest_cell_pair(cells_a, cells_b, cancel=None):
+    best, best_d, seen = None, float('inf'), 0
     for ca in cells_a:
         for cb in cells_b:
+            seen += 1
+            if cancel is not None and seen % 4096 == 0 and cancel():
+                raise PlannerError('E_PLAN_CANCELLED', 'portal search cancelled')
             d = math.hypot(ca[0] - cb[0], ca[1] - cb[1])
             if d < best_d:
                 best, best_d = (ca, cb), d
     return best
 
 
-def _nearest_cell_pairs(cells_a, cells_b):
+def _nearest_cell_pairs(cells_a, cells_b, cancel=None):
     """All equally near portals on the declared, unfiltered surfaces.
 
     Occupancy must not move a portal to a more distant pair and thereby create
     a new bridge across a blocked region. Keeping ties permits a safe portal
     alongside a box instead of depending on set iteration order.
     """
-    best, distance = [], float('inf')
+    best, distance, seen = [], float('inf'), 0
     for a in sorted(cells_a):
         for b in sorted(cells_b):
+            seen += 1
+            if cancel is not None and seen % 4096 == 0 and cancel():
+                raise PlannerError('E_PLAN_CANCELLED', 'portal search cancelled')
             squared = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
             if squared < distance:
                 best, distance = [(a, b)], squared
@@ -187,30 +193,55 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
         if not has_clearance(point[0], point[1], surface['z_reference']):
             raise PlannerError('E_PLAN_CLEARANCE', '%s clearance < %.6g m' % (label, min_clearance_m))
 
-    cells = {sid: _cells(s['footprint'], resolution) for sid, s in surfaces.items()
-             if s['traversability'] == 'supported'}
+    consumed = [0]
+
+    def check_cancel(marker):
+        consumed[0] += 1
+        if cancel is not None and consumed[0] % 128 == 0 and cancel():
+            raise PlannerError('E_PLAN_CANCELLED', '取消（%s）' % marker)
+
+    cells = {}
+    for sid, surface in surfaces.items():
+        if surface['traversability'] == 'supported':
+            cells[sid] = _cells(surface['footprint'], resolution)
     # Keep geometry before masking: occupancy never invents a longer portal.
     geometry_cells = cells
     if min_clearance_m is not None:
-        cells = {sid: {(ix, iy) for ix, iy in layer
-                       if has_clearance(*_cell_center(ix, iy, resolution),
-                                        surfaces[sid]['z_reference'])}
-                 for sid, layer in cells.items()}
+        filtered = {}
+        for sid, layer in cells.items():
+            kept = set()
+            for ix, iy in layer:
+                check_cancel('clearance')
+                if has_clearance(*_cell_center(ix, iy, resolution),
+                                 surfaces[sid]['z_reference']):
+                    kept.add((ix, iy))
+            filtered[sid] = kept
+        cells = filtered
     if obstacles:
-        cells = {sid: {cell for cell in layer if obstacle_free(xyz(sid, cell), xyz(sid, cell))}
-                 for sid, layer in cells.items()}
+        filtered = {}
+        for sid, layer in cells.items():
+            kept = set()
+            for cell in layer:
+                check_cancel('obstacle')
+                if obstacle_free(xyz(sid, cell), xyz(sid, cell)):
+                    kept.add(cell)
+            filtered[sid] = kept
+        cells = filtered
 
     def node_of(point, surface):
         if value['schema_version'] == 2:
             sid = surface['surface_id']
             support_point = (point[0], point[1], surface['z_reference'])
             # Do not snap a free endpoint through a thin box into another cell.
-            candidates = [cell for cell in cells[sid]
-                          if abs(xyz(sid, cell)[0] - point[0]) <= resolution + 1e-9
-                          and abs(xyz(sid, cell)[1] - point[1]) <= resolution + 1e-9
-                          and obstacle_free(support_point, xyz(sid, cell))
-                          and segment_has_clearance(support_point, xyz(sid, cell),
-                                                    surface['z_reference'])]
+            candidates = []
+            for cell in cells[sid]:
+                check_cancel('endpoint')
+                if (abs(xyz(sid, cell)[0] - point[0]) <= resolution + 1e-9
+                        and abs(xyz(sid, cell)[1] - point[1]) <= resolution + 1e-9
+                        and obstacle_free(support_point, xyz(sid, cell))
+                        and segment_has_clearance(support_point, xyz(sid, cell),
+                                                  surface['z_reference'])):
+                    candidates.append(cell)
             if not candidates:
                 raise PlannerError('E_PLAN_NO_ROUTE', 'no safe grid connector for endpoint')
             ix, iy = min(candidates, key=lambda cell: (math.dist(support_point, xyz(sid, cell)), cell))
@@ -235,12 +266,14 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
         if s['traversability'] != 'supported':
             continue
         for edge in s['edges']:
+            check_cancel('bridge')
             other = edge['to']
             if other not in cells or sid not in cells or not cells[sid] or not cells[other]:
                 continue
-            pairs = (_nearest_cell_pairs(geometry_cells[sid], geometry_cells[other])
+            pairs = (_nearest_cell_pairs(geometry_cells[sid], geometry_cells[other],
+                                         cancel=cancel)
                      if value['schema_version'] == 2 else
-                     [_nearest_cell_pair(cells[sid], cells[other])])
+                     [_nearest_cell_pair(cells[sid], cells[other], cancel=cancel)])
             for pair in pairs:
                 if (pair[0] not in cells[sid] or pair[1] not in cells[other]
                         or not obstacle_free(xyz(sid, pair[0]), xyz(other, pair[1]))):
