@@ -73,6 +73,7 @@ def main():
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
     parser.add_argument('--trajectory-resume', action='store_true')
     parser.add_argument('--plan-sim-tick-s', type=float, default=0.)
+    parser.add_argument('--trace-actions', default='', help='bridge per-tick JSONL trace path')
     parser.add_argument('--release-barrier', action='store_true',
                         help='hold the bridge sim clock until goal/inputs are latched')
     args = parser.parse_args()
@@ -187,6 +188,8 @@ def main():
             bridge_argv.append('--perturb')
         if args.finish_hold:
             bridge_argv.append('--finish-hold')
+        if args.trace_actions:
+            bridge_argv.extend(['--trace', args.trace_actions])
         if args.viewer:
             bridge_argv.append('--viewer')
         if args.lockstep:
@@ -314,6 +317,7 @@ def main():
         'contact_profile': args.contact_profile,
         'contact_profile_params': contact_profile,
         'finish_hold': bool(args.finish_hold), 'finish_samples': finish_samples,
+        'trace_actions': args.trace_actions or None,
         'nonfinite_recoveries': nonfinite_recoveries,
         'nonfinite_streak_max': nonfinite_streak_max,
         'stair': {'steps': args.steps, 'step_h': args.step_h,

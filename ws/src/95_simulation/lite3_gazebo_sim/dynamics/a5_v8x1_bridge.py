@@ -120,6 +120,7 @@ def main():
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
     parser.add_argument('--trajectory-resume', action='store_true')
+    parser.add_argument('--trace', default='', help='per-tick JSONL diagnostic trace path')
     parser.add_argument('--require-release', action='store_true',
                         help='hold the sim clock until prefix/release is called')
     args = parser.parse_args()
@@ -152,7 +153,12 @@ def main():
         viewer.cam.distance = 7.0
         viewer.cam.azimuth = 90.
         viewer.cam.elevation = -16.
-    session = ort.InferenceSession(args.policy, providers=['CPUExecutionProvider'])
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 1
+    options.inter_op_num_threads = 1
+    options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+    session = ort.InferenceSession(args.policy, sess_options=options,
+                                   providers=['CPUExecutionProvider'])
     inp = session.get_inputs()[0].name
 
     shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'target': None,
@@ -208,6 +214,7 @@ def main():
     loc_pub = rospy.Publisher(args.prefix + '/localization', Bool, queue_size=1)
     clock_pub = rospy.Publisher('/clock', Clock, queue_size=50) if args.lockstep else None
 
+    trace = open(args.trace, 'w', encoding='utf-8') if args.trace else None
     history = [np.zeros(walk.OBS_DIM, dtype=np.float32) for _ in range(walk.HISTORY)]
     last_action = np.zeros(12, dtype=np.float32)
     target = walk.DEFAULT_POSE.copy()
@@ -293,7 +300,8 @@ def main():
                 phase_bucket = bucket
                 phase_command = command.copy()
             command = phase_command.copy()
-        if fault is None:
+        action = None
+        if fault is None and stepping:
             obs = walk.observation(data.qpos, data.qvel, command, last_action, walk.DEFAULT_POSE)
             state = walk.state_vector(obs, history, newest_first=True)
             action = session.run(None, {inp: state.reshape(1, -1)})[0].reshape(-1)
@@ -320,6 +328,21 @@ def main():
                 tau = np.clip(25. * (joint_target - data.qpos[7:19]) - .5 * data.qvel[6:18], -30., 30.)
                 data.qfrc_applied[6:18] = tau
                 mujoco.mj_step(model, data)
+        if trace is not None:
+            trace.write(json.dumps({
+                'tick': tick, 'sim_time': float(data.time), 'wall': time.monotonic(),
+                'qpos': data.qpos.tolist(), 'qvel': data.qvel.tolist(),
+                'command': command.tolist(),
+                'action': None if action is None else action.tolist(),
+                'last_action': last_action.tolist(),
+                'joint_target': joint_target.tolist(),
+                'map_velocity': list(velocity), 'target': target,
+                'distance': distance, 'support': support, 'snap_error': snap_error,
+                'finish': finish, 'fault': fault, 'active': bool(shared['active']),
+                'stepping': bool(stepping), 'retries': retries,
+                'retrying': retry_until is not None,
+            }, default=plain) + '\n')
+            trace.flush()
         if clock_pub is not None:
             clock_pub.publish(Clock(clock=rospy.Time.from_sec(args.clock_offset + float(data.time))))
         if viewer is not None and tick % 5 == 0:
@@ -363,6 +386,8 @@ def main():
             time.sleep(delay)
     if viewer is not None:
         viewer.close()
+    if trace is not None:
+        trace.close()
 
 
 if __name__ == '__main__':
