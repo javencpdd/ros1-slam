@@ -233,6 +233,26 @@ FROZEN = {
                         '碰撞真值最小净空 0.454 m（r12），0.20 m 路径预算远低于净空；'
                         '静态障碍生成入口，机器人运动中首次感知；无 ROS 中间件/无真机；'
                         '不替代 budgets.stop_distance_m（仍 pending）'},
+        # 带域 ROS 全链（R1048/R1049）：真实 ros_node + 45 策略桥/MuJoCo，平地
+        # blocked-goal；0.3/0.4、3 起点×3 相位；formal 仍 pending。
+        'stop_chain_ros45_time_s': {
+            'value': 1.2,
+            'scope': 'ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_cmd0p3_0p4_3start_3phase_n18_simtime',
+            'sample_n': 18,
+            'evidence': 'R1048 18 run（0.3/0.4 ×3 起点 ×3 相位）全 PASS，每速 9 互异；'
+                        '按首个障碍输入 wall 插值 sim 起算最坏 0.8559 s；×1.30=1.1127 向上取 0.1 '
+                        '得 1.2 s；含 0.5 s hold（0.05 m/0.2 m/s；窗后无>0.2 m/s、漂≤0.10 m，'
+                        '实测≤16.4 mm）；t_sense→确认点；res .05/seed0 未入 run_config；'
+                        '18 条件格互异、非 18 独立样本；stop 仅 4/3 档；不含 0.2（res .05 预算耗尽/'
+                        'res .15 低命令死区）、真机、Gazebo；不替代 budgets.stop_time_s（仍 pending）'},
+        'stop_chain_ros45_distance_m': {
+            'value': 0.21,
+            'scope': 'ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_cmd0p3_0p4_3start_3phase_n18_simtime',
+            'sample_n': 18,
+            'evidence': 'R1048 同 18 run/9 互异；t_sense→确认点路径长最坏 0.15492 m，×1.30=0.2014 '
+                        '向上取 0.01 得 0.21 m；前向最坏 0.11904 m；净空=障碍面至机身前缘(+0.25 m) '
+                        '最坏 0.58210 m；18 条件格互异、非 18 独立样本；res .05/seed0 未入 run_config；'
+                        '不含 0.2、真机、Gazebo；不替代 budgets.stop_distance_m（仍 pending）'},
     },
     # 时延：带域冻结（2026-10-27 判据面，小美，R715）。p95_global 只覆盖
     # /make_plan 服务端；全栈/全场景时延未测，不得据此扩域或报正式验收。
@@ -381,6 +401,14 @@ REQUIRED = {
     'budgets.stop_chain_mj_torque_distance_m.scope': {'types': (str,), 'non_empty': True},
     'budgets.stop_chain_mj_torque_distance_m.sample_n': {'types': (int,)},
     'budgets.stop_chain_mj_torque_distance_m.evidence': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_ros45_time_s.value': {'types': (int, float)},
+    'budgets.stop_chain_ros45_time_s.scope': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_ros45_time_s.sample_n': {'types': (int,)},
+    'budgets.stop_chain_ros45_time_s.evidence': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_ros45_distance_m.value': {'types': (int, float)},
+    'budgets.stop_chain_ros45_distance_m.scope': {'types': (str,), 'non_empty': True},
+    'budgets.stop_chain_ros45_distance_m.sample_n': {'types': (int,)},
+    'budgets.stop_chain_ros45_distance_m.evidence': {'types': (str,), 'non_empty': True},
     'latency': {'types': (dict,), 'non_empty': True},
     'latency.p95_global_s.value': {'types': (int, float)},
     'latency.p95_global_s.scope': {'types': (str,), 'non_empty': True},
@@ -444,12 +472,11 @@ REQUIRED = {
 PENDING_REQUIRED = [
     {'key': 'budgets.stop_time_s.value', 'types': (int, float),
      'reason': '24 §4.1 要求全链停车时间；当前有制动分量、osmesa 代理键与 R1044 in-process '
-               'MuJoCo 力矩 pilot（scoped stop_chain_mj_torque_*），但全链仍缺 ROS 中间件/真机；'
+               'MuJoCo 力矩 pilot（scoped stop_chain_mj_torque_*），但全链仍缺 0.2 速度（res .05 预算耗尽/res .15 低命令死区）、真机、单 seed、同批负控；'
                'pilot 0.2 组实测平均体速 0.12—0.17、18 run 仅 10 条互异结果；保持 pending（禁 freeze）'},
     {'key': 'budgets.stop_distance_m.value', 'types': (int, float),
      'reason': '24 §4.1 要求全链停车距离并覆盖感知/控制延迟与制动；当前有制动分量、osmesa 代理键与 '
-               'R1044 in-process MuJoCo 力矩 pilot（scoped stop_chain_mj_torque_*），但全链仍缺 '
-               'ROS 中间件/真机；pilot 18 run 仅 10 条互异结果；保持 pending（禁 freeze）'},
+               'R1044 in-process MuJoCo 力矩 pilot（scoped stop_chain_mj_torque_*），但全链仍缺 0.2 速度、真机、单 seed、同批负控；pilot 18 run 仅 10 条互异结果；保持 pending（禁 freeze）'},
 ]
 
 # 带域冻结：值只在声明 scope 与最少样本内成立；scope 精确匹配，防静默扩域。
@@ -479,6 +506,13 @@ SCOPED_REQUIRED = {
     'budgets.stop_chain_mj_torque_distance_m': {
         'scope': 'mujoco_lite3_torque_inprocess_goal_blocked_flat_cmd0p2_0p4_18run_10distinct_simtime',
         'min_sample_n': 10},
+    # R1048/R1049：ROS 全链 scoped；18 条件格（非 18 独立样本）为下限。
+    'budgets.stop_chain_ros45_time_s': {
+        'scope': 'ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_cmd0p3_0p4_3start_3phase_n18_simtime',
+        'min_sample_n': 18},
+    'budgets.stop_chain_ros45_distance_m': {
+        'scope': 'ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_cmd0p3_0p4_3start_3phase_n18_simtime',
+        'min_sample_n': 18},
     # B 方案（真人 2026-10-27）：LIO 单后端主键；scope 精确匹配，9run 下限防缩样。
     'tolerances.max_localization_error_m': {
         'scope': 'm1_corridor_12p57m_xy_base_link_se2init_9runs_lio_only_b_ndt_monitor',
@@ -499,10 +533,10 @@ SAMPLING_MIN_REPETITIONS = 3
 SUCCESS_RATE_SCOPE = ('v8_flat2d_calibration_sc01_sc02_sc09_4group_3rep_n36_'
                       'truth_mux_volume_relay_lite3_dwa_f64nli25')
 
-# golden digest：由当前 FROZEN 实算后填入（2026-10-31，R1044 新增两道 scoped 键后重算）。
+# golden digest：由当前 FROZEN 实算后填入（2026-11-01，R1050 新增 ROS45 两道 scoped 键后重算）。
 # 重算：python3 -B -c "import calibration;print(calibration.digest())"
 # 任何值变更都会使 assert_digest() 抛 E_CAL_DIGEST；解封须同步重算并登记。
-DIGEST = '7ecf752e90f8bad021fc7243d07e159594841f5c9fca252220509e36da04475c'
+DIGEST = '9c280489f14edc3954016d6756eb74a3d3239d34b2a23276edfb8de454898a28'
 
 
 class CalibrationError(Exception):

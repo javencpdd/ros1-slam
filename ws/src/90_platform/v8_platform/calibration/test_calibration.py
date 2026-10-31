@@ -190,6 +190,7 @@ class CalibrationTests(unittest.TestCase):
                       'budgets.stop_brake_peak_distance_m', 'budgets.stop_brake_peak_time_s',
                       'budgets.stop_chain_osmesa_time_s', 'budgets.stop_chain_osmesa_distance_m',
                       'budgets.stop_chain_mj_torque_time_s', 'budgets.stop_chain_mj_torque_distance_m',
+                      'budgets.stop_chain_ros45_time_s', 'budgets.stop_chain_ros45_distance_m',
                       'success_rate.min_pass_rate'):
             self.assertFalse(any(token in key for key in pending), token)
         reasons = '; '.join(item['reason'] for item in report['pending_detail'])
@@ -336,6 +337,44 @@ class CalibrationTests(unittest.TestCase):
         self.assertNotIn('budgets.stop_chain_mj_torque_distance_m', report['pending'])
         self.assertIn('budgets.stop_time_s.value', report['pending'])
         self.assertIn('budgets.stop_distance_m.value', report['pending'])
+
+    def test_stop_chain_ros45_scoped_r1050(self):
+        b = cal.FROZEN['budgets']
+        t = b['stop_chain_ros45_time_s']
+        d = b['stop_chain_ros45_distance_m']
+        scope = ('ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_'
+                 'cmd0p3_0p4_3start_3phase_n18_simtime')
+        self.assertAlmostEqual(t['value'], 1.2)
+        self.assertAlmostEqual(d['value'], 0.21)
+        self.assertEqual(t['scope'], scope)
+        self.assertEqual(d['scope'], scope)
+        self.assertEqual(t['sample_n'], 18)
+        self.assertEqual(d['sample_n'], 18)
+        for node in (t, d):
+            self.assertIn('R1048', node['evidence'])
+        self.assertIn('budgets.stop_chain_ros45_time_s', cal.SCOPED_REQUIRED)
+        self.assertIn('budgets.stop_chain_ros45_distance_m', cal.SCOPED_REQUIRED)
+        self.assertEqual(cal.SCOPED_REQUIRED['budgets.stop_chain_ros45_time_s']
+                         ['min_sample_n'], 18)
+        report = cal.validate_frozen()
+        self.assertEqual(len(report['pending']), 2)
+        self.assertNotIn('budgets.stop_chain_ros45_time_s', report['pending'])
+        self.assertNotIn('budgets.stop_chain_ros45_distance_m', report['pending'])
+        self.assertIn('budgets.stop_time_s.value', report['pending'])
+        self.assertIn('budgets.stop_distance_m.value', report['pending'])
+
+    def test_stop_chain_ros45_scope_and_sample_guard(self):
+        for key in ('stop_chain_ros45_time_s', 'stop_chain_ros45_distance_m'):
+            bad = copy.deepcopy(cal.FROZEN)
+            bad['budgets'][key]['scope'] = 'full_chain'
+            with self.assertRaises(cal.CalibrationError) as caught:
+                cal.validate_frozen(bad)
+            self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
+            bad = copy.deepcopy(cal.FROZEN)
+            bad['budgets'][key]['sample_n'] = 17
+            with self.assertRaises(cal.CalibrationError) as caught:
+                cal.validate_frozen(bad)
+            self.assertEqual(caught.exception.code, 'E_CAL_PENDING')
 
     def test_stop_chain_mj_torque_scope_and_sample_guard(self):
         for key in ('stop_chain_mj_torque_time_s', 'stop_chain_mj_torque_distance_m'):
