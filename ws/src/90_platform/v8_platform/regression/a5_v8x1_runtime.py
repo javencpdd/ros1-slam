@@ -71,6 +71,7 @@ def main():
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     parser.add_argument('--bridge-cmd-timeout', type=float, default=.5)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
+    parser.add_argument('--command-stamp-window', type=float, default=0.)
     parser.add_argument('--trajectory-resume', action='store_true')
     parser.add_argument('--plan-sim-tick-s', type=float, default=0.)
     parser.add_argument('--trace-actions', default='', help='bridge per-tick JSONL trace path')
@@ -202,6 +203,7 @@ def main():
         bridge_argv.extend(['--hold-until-sim-s', str(args.hold_until_sim_s)])
         bridge_argv.extend(['--cmd-timeout', str(args.bridge_cmd_timeout)])
         bridge_argv.extend(['--command-phase-sim-s', str(args.command_phase_sim_s)])
+        bridge_argv.extend(['--command-stamp-window', str(args.command_stamp_window)])
         if args.trajectory_resume:
             bridge_argv.append('--trajectory-resume')
         if args.release_barrier:

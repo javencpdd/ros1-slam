@@ -7,6 +7,7 @@ under the body, not the floating base height. This is a chain pilot, not a
 four-leg or real-robot acceptance.
 """
 import argparse
+from collections import deque
 import json
 import math
 import time
@@ -119,6 +120,8 @@ def main():
     parser.add_argument('--max-nonfinite-ticks', type=int, default=5)
     parser.add_argument('--hold-until-sim-s', type=float, default=0.)
     parser.add_argument('--command-phase-sim-s', type=float, default=0.)
+    parser.add_argument('--command-stamp-window', type=float, default=0.,
+                        help='select commands by sim stamp within this window (0=wall latest)')
     parser.add_argument('--trajectory-resume', action='store_true')
     parser.add_argument('--trace', default='', help='per-tick JSONL diagnostic trace path')
     parser.add_argument('--require-release', action='store_true',
@@ -161,13 +164,19 @@ def main():
                                    providers=['CPUExecutionProvider'])
     inp = session.get_inputs()[0].name
 
-    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'target': None,
-              'active': False, 'wanted': False,
+    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'velocity_stamp': -1e9,
+              'target': None, 'active': False, 'wanted': False,
               'gate': not args.require_release}
+    command_history = deque(maxlen=64)
 
     def on_cmd(message):
+        stamp = message.header.stamp.to_sec()
+        if stamp <= 0:
+            stamp = rospy.Time.now().to_sec()
         shared['velocity'] = (message.twist.linear.x, message.twist.linear.y, message.twist.linear.z)
+        shared['velocity_stamp'] = stamp
         shared['at'] = time.monotonic()
+        command_history.append((stamp, shared['velocity']))
 
     def on_status(message):
         try:
@@ -236,8 +245,15 @@ def main():
     while not rospy.is_shutdown():
         now = time.monotonic()
         stepping = (not args.lockstep) or shared['active']
-        velocity = (shared['velocity'] if (stepping and now - shared['at'] <= args.cmd_timeout)
-                    else (0., 0., 0.))
+        if args.command_stamp_window > 0:
+            sim_now = args.clock_offset + float(data.time)
+            candidates = [row for row in command_history
+                          if sim_now - args.command_stamp_window <= row[0] <= sim_now + 1e-6]
+            velocity = (max(candidates, key=lambda row: row[0])[1]
+                        if stepping and candidates else (0., 0., 0.))
+        else:
+            velocity = (shared['velocity'] if (stepping and now - shared['at'] <= args.cmd_timeout)
+                        else (0., 0., 0.))
         world_x, world_y = float(data.qpos[0]), float(data.qpos[1])
         if retry_until is not None and (not stepping or float(data.time) >= retry_until):
             retry_until = None
@@ -336,7 +352,8 @@ def main():
                 'action': None if action is None else action.tolist(),
                 'last_action': last_action.tolist(),
                 'joint_target': joint_target.tolist(),
-                'map_velocity': list(velocity), 'target': target,
+                'map_velocity': list(velocity), 'command_stamp': shared['velocity_stamp'],
+                'target': target,
                 'distance': distance, 'support': support, 'snap_error': snap_error,
                 'finish': finish, 'fault': fault, 'active': bool(shared['active']),
                 'stepping': bool(stepping), 'retries': retries,
