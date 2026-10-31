@@ -1,0 +1,15 @@
+R1015 命令（2026-10-31 15:53—15:59 CST，qoder；A5 接触参数对照）
+# 同 R1013 之前的默认链，只改 --contact-profile B/C；barrier 关闭。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# PYTHONPATH=/tmp/r854-policy-runtime，独立 roscore 11493。
+cd /repo/ws/src/90_platform/v8_platform/regression
+for p in B C; do for i in 1 2 3; do
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --contact-profile $p \
+  --out /tmp/r1015_${p}_$i.json --wall-deadline-s 150
+done; done
+# 读数：B 0/3（首命令 0.16/0.30/0.48 s，1 plan 后卡住/碰撞）；C 2/3
+#   （首命令 0.62/1.00/0.98 s，pass 两 run 停在顶层 0.8904）。默认 A 为 2/3。
+# 测试：V8 全树 64 套件 0 失败（本批零代码改动）。
+# 边界：B/C 均不优于 A，不冻结任何 profile；A5 仍 PARTIAL。

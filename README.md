@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1015（2026-10-31）★＝**A5 接触参数对照（负结果）**：profile B 三次 **0/3**
+  （1 plan 后卡住/碰撞），profile C **2/3**（两次顶层、一次碰撞），均不优于默认 A
+  的 2/3；首命令散差 B 0.32 s、C 0.38 s。不冻结 profile，A5 仍实验性 **PARTIAL**；
+  本批零代码改动，全树 **64 套件 0 失败**（全文＝[R1015](note/进度/v8/M5/26-10-29/R1015.md)）。
 - ★R1014（2026-10-31）★＝**v8_msgs 与真实 cache/merge 节点**：新增 `v8_msgs`
   （MapDelta/MapOp/SupportSurface/SurfaceEdge）；`map_cache_node` 接 JSON ops →
   typed MapDelta（flush/ack），`map_merge_node` 合并两路（同 base，后者覆盖）。
