@@ -1,0 +1,5 @@
+R1060：MuJoCo 物理射线感知（22aab848）
+smoke --sensor-bridge --path-obstacle --sensor-range 1.5：以带 perception_barrier
+（world x3.2）的 wrapper XML 启动 bridge45 --sense；bridge 从前向 9 条 mj_ray
+打物理 barrier，命中后发布 map 帧 box（首帧锁定）；smoke 停发虚拟 box。
+.28 探针 PASS：stop .6 s/forward .045/path .057/gap 2.14。
