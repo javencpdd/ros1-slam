@@ -1,0 +1,6 @@
+同一 runtime_lab 调四例（arrival,localization,sensor_freshness,sensed_no_route）的挂起记录
+命令：runtime_lab.py --out /tmp/r1064/four --port 11357 --gazebo --local-gazebo --local-cases arrival,localization,sensor_freshness,sensed_no_route
+结果：500 s 外层 timeout rc=124；无 a5_gazebo.json；probe 与 sensor_freshness 的 local node 存活，
+  /a5_gazebo_492613/status 无消息；rosnode 里见到三个 a5_planar_adapter、一个 a5_owned_local；
+  机器人停在 (0.3046,0.0500)，与 sensor_freshness 结束位置吻合。清场用 PGID kill。
+未定位；逐例单 lab 复跑 arrival/sensor_freshness/localization/sensed_no_route 均通过。

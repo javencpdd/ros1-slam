@@ -1,0 +1,219 @@
+{
+ "four_cases": {
+  "arrival": {
+   "ok": true,
+   "measurement": "VALID",
+   "final_body_xyz": [
+    2.0069948070730343,
+    -0.003702614092692858,
+    0.10999999992620897
+   ],
+   "evidence": "evidence/R1063/arrival"
+  },
+  "sensor_freshness": {
+   "ok": true,
+   "measurement": true,
+   "reason": "E_LOCAL_OBSTACLES_STALE"
+  },
+  "localization": {
+   "ok": true,
+   "measurement": true,
+   "reason": "E_LOCAL_LOCALIZATION"
+  },
+  "sensed_no_route": {
+   "ok": true,
+   "measurement": true,
+   "evidence": "evidence/R1063"
+  },
+  "mode": "separate labs; one lab with all four cases hung after the third case"
+ },
+ "hang_fourcase": {
+  "lab": "arrival,localization,sensor_freshness,sensed_no_route in one runtime_lab call",
+  "observed": "runtime_lab 500 s timeout; probe and the sensor_freshness local node remained alive, status topic silent; three adapter nodes existed; no a5_gazebo.json was written; killed by PGID",
+  "not_localized": true,
+  "mitigation": "run each case in its own lab (all four pass individually)"
+ },
+ "ros45_matrix": {
+  "rows": [
+   {
+    "tag": "r01",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.7000000000000668,
+    "path_m": 0.06752524739651748,
+    "peak_forward_m": 0.04894430533557825,
+    "gap_m": 0.6862550863468124
+   },
+   {
+    "tag": "r02",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.6000000000000334,
+    "path_m": 0.0487619119681603,
+    "peak_forward_m": 0.03023955123585287,
+    "gap_m": 0.6920144751279715
+   },
+   {
+    "tag": "r03",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.8000000000001002,
+    "path_m": 0.08894496684512737,
+    "peak_forward_m": 0.06490210458468448,
+    "gap_m": 0.6270909100601227
+   },
+   {
+    "tag": "r04",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5999999999999446,
+    "path_m": 0.04362827327124101,
+    "peak_forward_m": 0.022189110156491942,
+    "gap_m": 0.7285217094932563
+   },
+   {
+    "tag": "r05",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.035327723849832675,
+    "peak_forward_m": 0.011735500142740829,
+    "gap_m": 0.7270754462000539
+   },
+   {
+    "tag": "r06",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5999999999999446,
+    "path_m": 0.08058942574561007,
+    "peak_forward_m": 0.05241741567319913,
+    "gap_m": 0.6387915179451724
+   },
+   {
+    "tag": "r07",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.04287606713104009,
+    "peak_forward_m": 0.01735886116974461,
+    "gap_m": 0.714717719122262
+   },
+   {
+    "tag": "r08",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.02058118651826492,
+    "peak_forward_m": 0.010606034630216143,
+    "gap_m": 0.6933272134279722
+   },
+   {
+    "tag": "r09",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.026276355075138966,
+    "peak_forward_m": 0.005303703868898335,
+    "gap_m": 0.6972736516391316
+   },
+   {
+    "tag": "r10",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.029599900793109993,
+    "peak_forward_m": 0.01663256495564669,
+    "gap_m": 0.6919003068173941
+   },
+   {
+    "tag": "r11",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.04837455245656742,
+    "peak_forward_m": 0.012624960721673073,
+    "gap_m": 0.7200739544278321
+   },
+   {
+    "tag": "r12",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.6000000000000334,
+    "path_m": 0.048067026809190214,
+    "peak_forward_m": 0.0362728781074062,
+    "gap_m": 0.6493360408088495
+   },
+   {
+    "tag": "r13",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.6999999999998892,
+    "path_m": 0.09657445771271839,
+    "peak_forward_m": 0.0525630219270532,
+    "gap_m": 0.6769945828368282
+   },
+   {
+    "tag": "r14",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.6999999999998892,
+    "path_m": 0.09403380631782546,
+    "peak_forward_m": 0.057389450407873355,
+    "gap_m": 0.6661857900898775
+   },
+   {
+    "tag": "r15",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.6999999999998892,
+    "path_m": 0.07609388590433327,
+    "peak_forward_m": 0.04873217053958401,
+    "gap_m": 0.6308662942349552
+   },
+   {
+    "tag": "r16",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.022984918869727068,
+    "peak_forward_m": 0.015142894608950908,
+    "gap_m": 0.6959469795195563
+   },
+   {
+    "tag": "r17",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.04308320302222302,
+    "peak_forward_m": 0.02643684052941131,
+    "gap_m": 0.6571401083563595
+   },
+   {
+    "tag": "r18",
+    "verdict": "PASS",
+    "status": "PASS",
+    "stop_time_s": 0.5,
+    "path_m": 0.016800905340426518,
+    "peak_forward_m": 0.00805503500443372,
+    "gap_m": 0.6932656269891235
+   }
+  ],
+  "passes": 18,
+  "n": 18,
+  "worst_stop_s": 0.8000000000001002,
+  "worst_path_m": 0.09657445771271839,
+  "min_gap_m": 0.6270909100601227,
+  "distinct_paths": 18,
+  "distinct_stops": 4,
+  "scoped_keys": {
+   "stop_chain_ros45_time_s": 1.2,
+   "stop_chain_ros45_distance_m": 0.21,
+   "scope": "ros_local_node_45policy_mujoco_flat_goal_blocked_obstacle_input_cmd0p3_0p4_3start_3phase_n18_simtime"
+  },
+  "comparison": "new worst 0.80 s / 0.0966 m is within the frozen scoped 1.2 s / 0.21 m; keys unchanged; this is a post-R1063 re-sample, not a refreeze"
+ },
+ "result": "four cases pass individually; ROS45 stop chain 18/18 PASS after the event-driven planner change, worst 0.80 s / 0.0966 m / gap 0.627 m, within scoped keys",
+ "limits": "one-lab four-case sequence hangs (not localized); planar Gazebo carrier + MuJoCo 45 policy are sim only; formal #151 keys unchanged/pending; calibration digest unchanged",
+ "timebase": "sim=/clock; stop_time from the smoke trigger; scoped comparison uses the smoke fields",
+ "domain": "ros_local_node_45policy_mujoco_flat_goal_blocked"
+}

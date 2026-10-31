@@ -1,0 +1,20 @@
+R1064 命令（2026-11-01 03:40—04:05 CST，qoder；容器 ros1-slam-sim）
+# 节点代码 23e5e9f8（plan_wake）。资产 /tmp/mjcf/Lite3.xml、/tmp/policy45.onnx。
+
+# 四例逐个（不用同一 lab；同 lab 串四例会挂，见 hang_fourcase/hang.txt）：
+cd /opt/ros1-slam
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /tmp/r1064/fresh --port 11358 --gazebo --local-gazebo --local-cases sensor_freshness
+python3 -B ws/src/90_platform/v8_platform/regression/runtime_lab.py \
+  --out /tmp/r1064/loc --port 11359 --gazebo --local-gazebo --local-cases localization
+# arrival 与 sensed_no_route 结果见 evidence/R1063。
+
+# ROS45 18-run（.3/.4 × 起点 -2.175/-1.900/-1.600 × 相位 -0.22/-0.20/-0.18）：
+cd ws/src/90_platform/v8_platform/regression
+for v in 0.3 0.4; do for s in -2.175 -1.900 -1.600; do for p in -0.22 -0.20 -0.18; do
+  PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+    python3 -u -B a5_v8x1_stop_smoke.py --out /tmp/r1065/matrix/rNN.json \
+    --max-speed $v --start-map-y $s --inject-map-y $p --bridge45 --policy /tmp/policy45.onnx \
+    --wall-deadline-s 120 --out-dir /tmp
+done; done; done
+# 18/18 rc=0；最坏 stop .80 s / path .0966 m / gap .627 m；calibration.py 未改。
