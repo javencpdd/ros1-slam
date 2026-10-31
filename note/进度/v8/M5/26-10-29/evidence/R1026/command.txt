@@ -1,0 +1,20 @@
+R1026 命令（2026-10-31 20:25—20:45 CST，qoder；语义地图接入规划）
+# 新增 semantic_support_bridge（box 支撑面→map.v1）、ROS 节点、语义 provider
+# 变体与 graph_semantic_planning；冒烟经 ProcessRunner 按图启动三实例。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11505。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B representation/test_semantic_support_bridge.py
+python3 -B framework/test_preflight.py
+python3 -B framework/test_framework.py
+python3 -B registry/test_v2_manifest.py
+python3 -B representation/semantic_planning_smoke.py
+# 读数：bridge 5/5、preflight 7/7、framework 29/29、registry 4/4；
+#   smoke ok=true：语义 v1 → 支撑图 v1 → 轨迹 mezz z=0.6 arrived；
+#   发布语义 v2（mezz 0.8、台阶声明同步 1.0）后支撑图 v2、轨迹 z=0.8
+#   arrived、changed=true；桥状态 surfaces=[ground,mezz]；停止退净。
+#   F7 安全门仍返回 E_SAFETY_ADVICE（无三维命令仲裁器），未绕过。
+# 全树：find . -name 'test_*.py' 共 65 件逐一跑，SUITES=65 FAIL=0。
+# 边界：证明语义支撑面可转换并驱动规划与版本更新；语义约定
+#   attributes.role=support_surface + box 几何为新增解释层，非冻结契约；
+#   语义更新由冒烟直接注入（provider 只读）；A1—A7 不变。

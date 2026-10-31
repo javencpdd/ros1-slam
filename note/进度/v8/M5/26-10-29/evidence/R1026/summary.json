@@ -1,0 +1,84 @@
+{
+ "smoke": {
+  "startup_order": [
+   "semantic",
+   "bridge",
+   "local"
+  ],
+  "commands": {
+   "semantic": [
+    "rosrun",
+    "v8_platform"
+   ],
+   "bridge": [
+    "rosrun",
+    "v8_platform"
+   ],
+   "local": [
+    "python3",
+    "/repo/ws/src/90_platform/v8_platform/framework/param_exec.py"
+   ]
+  },
+  "local_uses_param_exec": true,
+  "safety_gate": "E_SAFETY_ADVICE",
+  "fixture_map_version": 1,
+  "first": {
+   "map_version": 1,
+   "reason": "arrived",
+   "last": [
+    3.5,
+    2.0,
+    0.6,
+    1793449842.199592
+   ],
+   "surfaces": [
+    "mezz"
+   ]
+  },
+  "second": {
+   "map_version": 2,
+   "reason": "arrived",
+   "last": [
+    3.5,
+    2.0,
+    0.8,
+    1793449843.1989546
+   ],
+   "surfaces": [
+    "mezz"
+   ]
+  },
+  "bridge_initial": {
+   "ok": true,
+   "map_id": "sem_support",
+   "map_version": 1,
+   "resolution": 0.1,
+   "surfaces": [
+    "ground",
+    "mezz"
+   ]
+  },
+  "bridge_after": {
+   "ok": true,
+   "map_id": "sem_support",
+   "map_version": 2,
+   "resolution": 0.1,
+   "surfaces": [
+    "ground",
+    "mezz"
+   ]
+  },
+  "changed": true,
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "bridge": "5/5",
+  "preflight": "7/7",
+  "framework": "29/29",
+  "registry": "4/4",
+  "v8_suites": "65/0"
+ },
+ "interpretation": "semantic support surfaces convert into a contract-checked support_map; the planner arrives at z=0.6 on version 1, and a semantic version bump raises the bridge map to version 2 and the replanned height to z=0.8"
+}

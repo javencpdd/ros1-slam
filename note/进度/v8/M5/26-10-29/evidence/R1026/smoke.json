@@ -1,0 +1,78 @@
+{
+ "startup_order": [
+  "semantic",
+  "bridge",
+  "local"
+ ],
+ "command_writers": {
+  "/v8/local/cmd_vel_3d": "local"
+ },
+ "config_sha256": "c978ecf14892b4376428df749e6d28b2454ce2c6008da03067cc645ce9577fa5",
+ "safety_gate": "E_SAFETY_ADVICE",
+ "fixture_map_version": 1,
+ "commands": {
+  "semantic": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "bridge": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "local": [
+   "python3",
+   "/repo/ws/src/90_platform/v8_platform/framework/param_exec.py"
+  ]
+ },
+ "local_uses_param_exec": true,
+ "first": {
+  "map_version": 1,
+  "reason": "arrived",
+  "last": [
+   3.5,
+   2.0,
+   0.6,
+   1793449842.199592
+  ],
+  "surfaces": [
+   "mezz"
+  ]
+ },
+ "bridge_initial": {
+  "ok": true,
+  "map_id": "sem_support",
+  "map_version": 1,
+  "resolution": 0.1,
+  "surfaces": [
+   "ground",
+   "mezz"
+  ]
+ },
+ "second": {
+  "map_version": 2,
+  "reason": "arrived",
+  "last": [
+   3.5,
+   2.0,
+   0.8,
+   1793449843.1989546
+  ],
+  "surfaces": [
+   "mezz"
+  ]
+ },
+ "bridge_after": {
+  "ok": true,
+  "map_id": "sem_support",
+  "map_version": 2,
+  "resolution": 0.1,
+  "surfaces": [
+   "ground",
+   "mezz"
+  ]
+ },
+ "changed": true,
+ "stopped": true,
+ "processes_after_stop": [],
+ "ok": true
+}

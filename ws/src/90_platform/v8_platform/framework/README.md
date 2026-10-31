@@ -105,7 +105,7 @@ python3 -B framework/test_framework.py      # 29 项
 python3 -B framework/test_runtime.py        # 12 项（F3 假命令/include/plugin/remap/语义/group/cache）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 7 项（F6 独立验证配置）
-python3 -B framework/test_preflight.py   # 6 项（实例 config/维度/真实规划器图）
+python3 -B framework/test_preflight.py   # 7 项（实例 config/维度/真实规划器与语义图）
 python3 -B framework/test_safety.py      # 8 项（F7 接线/否决即停/启动基准）
 python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
@@ -122,6 +122,7 @@ python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache
 python3 -B representation/map_cache_delta_smoke.py # typed delta → relay → 版本地图
 python3 -B local_planner/map_update_smoke.py       # 规划器消费 /v8_support_map 版本
 python3 -B framework/local_native_graph_smoke.py   # 真实规划器入 v2 图 + 实例 YAML 下发
+python3 -B representation/semantic_planning_smoke.py  # 语义→支撑图→规划器全链
 python3 -B framework/hdl_group_smoke.py            # 真实 hdl manager + 两 nodelet
 python3 -B framework/hdl_sensor_smoke.py           # hdl 喂 Gazebo 点云/IMU 探针
 python3 -B framework/command_hold_smoke.py         # 真实 mux hold 下换命令源
