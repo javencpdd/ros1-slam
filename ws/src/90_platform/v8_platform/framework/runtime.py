@@ -5,6 +5,7 @@ inject a fake command factory so start/ready/stop/cleanup can be verified with
 plain subprocesses.
 """
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -62,7 +63,12 @@ def default_command(instance, component):
                 text = str(value)
             command.append('%s:=%s' % (key, text))
         return command, spec.get('ready_marker')
-    command = ['rosrun', spec['package'], spec['type']]
+    if spec['kind'] == 'plugin':
+        node_name = re.sub(r'[^A-Za-z0-9_]', '_', instance['id'])
+        command = ['rosrun', spec['package'], 'nodelet', 'standalone', spec['plugin'],
+                   '__name:=' + node_name]
+    else:
+        command = ['rosrun', spec['package'], spec['type']]
     if namespace:
         command.append('__ns:=' + namespace)
     for key in sorted(instance.get('params', {})):

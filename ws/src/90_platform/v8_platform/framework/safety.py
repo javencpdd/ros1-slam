@@ -13,11 +13,12 @@ def check_plan(plan, catalog):
         for port in _component(catalog, instance)['outputs']:
             if port.get('command_topic') == '/cmd_vel':
                 owners.append(iid)
-    if len(owners) != 1:
+    if len(owners) > 1:
         raise FrameworkError('E_SAFETY_ARBITER',
-                             'expected one /cmd_vel writer, got %s' % owners)
-    owner = owners[0]
-    if 'safety_arbiter' not in _component(catalog, instances[owner])['roles']:
+                             'expected at most one /cmd_vel writer, got %s' % owners)
+    owner = owners[0] if owners else None
+    if owner is not None and 'safety_arbiter' not in _component(
+            catalog, instances[owner])['roles']:
         raise FrameworkError('E_SAFETY_ARBITER', '%s is not safety_arbiter' % owner)
     advice = []
     for iid, instance in instances.items():
@@ -26,8 +27,9 @@ def check_plan(plan, catalog):
             if not topic or topic == '/cmd_vel':
                 continue
             endpoint = '%s.%s' % (iid, port['name'])
-            if not any(edge['from'] == endpoint and edge['to'].startswith(owner + '.')
-                       for edge in plan['edges']):
+            if owner is None or not any(
+                    edge['from'] == endpoint and edge['to'].startswith(owner + '.')
+                    for edge in plan['edges']):
                 raise FrameworkError('E_SAFETY_ADVICE',
                                      '%s not consumed by %s' % (endpoint, owner))
             advice.append({'endpoint': endpoint, 'topic': topic})

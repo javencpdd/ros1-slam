@@ -16,6 +16,7 @@ MANIFESTS = HERE / 'fixtures' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G2D_STACK = HERE / 'fixtures' / 'graphs' / 'graph_2d_stack_gp_teb.yaml'
 BOUNDARY = HERE / 'fixtures' / 'graphs' / 'graph_boundary_mux.yaml'
+GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -104,6 +105,23 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn('_target:=127.0.0.1:5026', command)
         self.assertIn('_bind:=127.0.0.1:5025', command)
         self.assertIsNone(marker)
+
+    def test_plugin_default_command_and_assembly_without_command_owner(self):
+        plan, catalog = plan_for(GPLUGIN)
+        plus = plan['instances'][0]
+        command, marker = runtime.default_command(
+            plus, catalog['components'][plus['component']])
+        self.assertEqual(command, ['rosrun', 'nodelet', 'nodelet', 'standalone',
+                                   'nodelet_tutorial_math/Plus', '__name:=plus',
+                                   '__ns:=/v8_plugin_smoke', '_value:=2.5'])
+        self.assertIsNone(marker)
+        assembly = runtime.Assembly(plan, catalog, command_factory=fake,
+                                    ready_timeout=5)
+        assembly.start()
+        self.assertTrue(assembly.ready())
+        self.assertIsNone(runtime.safety.check_plan(plan, catalog)['command_owner'])
+        assembly.stop()
+        self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
 
     def test_nav2d_graph_passes_planner_args_to_real_include(self):
         plan, catalog = plan_for(G2D_STACK)

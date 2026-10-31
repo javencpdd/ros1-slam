@@ -90,6 +90,18 @@ class SafetyTests(unittest.TestCase):
             safety.check_plan(broken, catalog)
         self.assertEqual(caught.exception.code, 'E_SAFETY_VALIDATOR')
 
+    def test_plan_without_command_topics_has_no_owner(self):
+        plan = {'instances': [{'id': 'readonly', 'component': 'probe'}], 'edges': []}
+        catalog = {'components': {'probe': {
+            'roles': ['middleware'],
+            'inputs': [],
+            'outputs': [{'name': 'out', 'type': 'std_msgs/Float64'}]}}}
+        self.assertIsNone(safety.check_plan(plan, catalog)['command_owner'])
+        catalog['components']['probe']['outputs'][0]['command_topic'] = '/cmd_vel_advice/x'
+        with self.assertRaises(config.FrameworkError) as caught:
+            safety.check_plan(plan, catalog)
+        self.assertEqual(caught.exception.code, 'E_SAFETY_ADVICE')
+
     def test_startup_benchmark_is_reported(self):
         graph, catalog, _ = setup()
         result = perf.benchmark(graph, catalog, iterations=10)

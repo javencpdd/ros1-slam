@@ -1,0 +1,6 @@
+schema: pipeline_graph/v1
+name: plugin_nodelet_plus
+instances:
+  - {id: plus, component: v8.fw.nodelet_plus, namespace: /v8_plugin_smoke, params: {value: 2.5}}
+external:
+  - {to: plus.in, type: std_msgs/Float64, source: operator}

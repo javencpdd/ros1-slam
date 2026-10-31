@@ -1,0 +1,45 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.nodelet_plus",
+ "version": "0.1.0",
+ "roles": [
+  "middleware"
+ ],
+ "dimensions": 2,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "plugin",
+  "package": "nodelet",
+  "type": "nodelet_tutorial_math/Plus"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "in",
+    "type": "std_msgs/Float64",
+    "topic": "in"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "out",
+    "type": "std_msgs/Float64",
+    "topic": "out"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

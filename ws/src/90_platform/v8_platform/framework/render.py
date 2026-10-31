@@ -72,9 +72,15 @@ def render_launch(graph, catalog, report):
                              % (quoteattr(str(key)), quoteattr(_value(args[key]))))
             lines.append('  </include>')
             continue
-        attrs = ['pkg=%s' % quoteattr(spec['package']),
-                 'type=%s' % quoteattr(spec['type']),
-                 'name=%s' % quoteattr(_name(iid))]
+        if spec['kind'] == 'plugin':
+            attrs = ['pkg=%s' % quoteattr(spec['package']),
+                     'type=%s' % quoteattr('nodelet'),
+                     'name=%s' % quoteattr(_name(iid)),
+                     'args=%s' % quoteattr('standalone ' + spec['plugin'])]
+        else:
+            attrs = ['pkg=%s' % quoteattr(spec['package']),
+                     'type=%s' % quoteattr(spec['type']),
+                     'name=%s' % quoteattr(_name(iid))]
         if rec['namespace']:
             attrs.append('ns=%s' % quoteattr(rec['namespace']))
         lines.append('  <node %s>' % ' '.join(attrs))

@@ -140,9 +140,9 @@ def check(graph, catalog):
                 raise FrameworkError('E_GRAPH_INPUT',
                                      '%s.%s is required but unbound' % (iid, port['name']))
         if 'config' in rec:
-            if comp['launch']['kind'] != 'node':
+            if comp['launch']['kind'] not in ('node', 'plugin'):
                 raise FrameworkError('E_CFG_CONFIG_KIND',
-                                     '%s: config only applies to node components' % iid)
+                                     '%s: config only applies to node/plugin components' % iid)
             path = Path(rec['config'])
             if not path.is_absolute():
                 path = Path(graph['path']).resolve().parent / path

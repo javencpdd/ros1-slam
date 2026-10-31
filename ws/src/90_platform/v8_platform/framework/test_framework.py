@@ -21,6 +21,7 @@ MANIFESTS = HERE / 'fixtures' / 'manifests'
 V1_MANIFESTS = HERE.parent / 'registry' / 'data' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G3D = HERE / 'fixtures' / 'graphs' / 'graph_3d_cache.yaml'
+GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
 G2D_STACKS = [
     ('graph_2d_stack_gp_dwa.yaml', 'global_planner/GlobalPlanner',
      'dwa_local_planner/DWAPlannerROS'),
@@ -263,13 +264,40 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (19, 10, 9))
+                         (20, 11, 9))
+
+    def test_plugin_launch_spec_and_render(self):
+        catalog, value = load_pair(GPLUGIN)
+        spec = catalog['components']['v8.fw.nodelet_plus']['launch']
+        self.assertEqual((spec['kind'], spec['package'], spec['plugin']),
+                         ('plugin', 'nodelet', 'nodelet_tutorial_math/Plus'))
+        report = graph_mod.check(value, catalog)
+        self.assertEqual(report['startup_order'], ['plus'])
+        root = ET.fromstring(render.render_launch(value, catalog, report))
+        node = root.find('node')
+        self.assertEqual((node.get('pkg'), node.get('type'), node.get('name')),
+                         ('nodelet', 'nodelet', 'plus'))
+        self.assertEqual(node.get('args'), 'standalone nodelet_tutorial_math/Plus')
+        self.assertEqual(node.get('ns'), '/v8_plugin_smoke')
+        params = {item.get('name'): item.get('value') for item in node.findall('param')}
+        self.assertEqual(params['value'], '2.5')
+        index = launch_mod.load_index(INDEX)
+        launch_mod.check_components(catalog, index)
+        broken = copy.deepcopy(index)
+        del broken['nodelet_tutorial_math']
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, broken)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_PACKAGE')
 
     def test_launch_spec_rejects_bad_entries(self):
         cases = [
             ({'package': 'p'}, 'E_CFG_LAUNCH'),
             ({'package': 'p', 'kind': 'nope'}, 'E_CFG_LAUNCH_KIND'),
-            ({'package': 'p', 'kind': 'plugin', 'type': 't'}, 'E_CFG_LAUNCH_KIND'),
+            ({'package': 'p', 'kind': 'plugin', 'type': 'pkg/Class'}, 'E_CFG_LAUNCH'),
+            ({'package': 'nodelet', 'kind': 'plugin', 'type': 'no_slash'},
+             'E_CFG_LAUNCH'),
+            ({'package': 'nodelet', 'kind': 'plugin', 'type': 'pkg/Class',
+              'launch_file': 'x.launch'}, 'E_CFG_LAUNCH'),
             ({'package': 'p', 'kind': 'include', 'launch_file': 'x'}, 'E_CFG_LAUNCH'),
             ({'package': 'p', 'type': 't', 'launch_file': 'x.launch'}, 'E_CFG_LAUNCH'),
             ({'package': 'p', 'type': 't', 'param_files': ['../x']}, 'E_CFG_LAUNCH_PATH'),
@@ -323,7 +351,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 10)
+        self.assertEqual(payload['launch']['real'], 11)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

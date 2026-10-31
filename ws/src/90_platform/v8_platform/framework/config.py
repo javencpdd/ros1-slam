@@ -98,20 +98,29 @@ def _port(raw, where, direction):
     return port
 
 
-def _launch_spec(raw, cid):
-    """Normalize a launch entry: node(type) or include(launch_file).
+def _launch_remap(raw, cid):
+    remap = raw.get('remap', [])
+    if not isinstance(remap, list):
+        raise FrameworkError('E_CFG_LAUNCH', '%s remap must be a list' % cid)
+    for item in remap:
+        if (not isinstance(item, dict) or not isinstance(item.get('from'), str)
+                or not isinstance(item.get('to'), str)
+                or not item['from'] or not item['to']):
+            raise FrameworkError('E_CFG_LAUNCH', '%s remap needs from/to' % cid)
+    return [{'from': item['from'], 'to': item['to']} for item in remap]
 
-    plugin hosting is not part of F2; it must be rejected rather than silently
-    rendered as a node.
+
+def _launch_spec(raw, cid):
+    """Normalize a launch entry: node(type), include(launch_file) or plugin.
+
+    plugin means one nodelet loaded through `nodelet standalone`: package is the
+    host (`nodelet`), type is the pluginlib name `pkg/Class`.
     """
     if not isinstance(raw, dict):
         raise FrameworkError('E_CFG_LAUNCH', '%s launch must be a mapping' % cid)
     kind = raw.get('kind', 'node')
     if kind not in ('node', 'include', 'plugin'):
         raise FrameworkError('E_CFG_LAUNCH_KIND', '%s kind=%r' % (cid, kind))
-    if kind == 'plugin':
-        raise FrameworkError('E_CFG_LAUNCH_KIND',
-                             '%s plugin hosting is not implemented in F2' % cid)
     package = raw.get('package')
     if not isinstance(package, str) or not package:
         raise FrameworkError('E_CFG_LAUNCH', '%s package missing' % cid)
@@ -142,17 +151,23 @@ def _launch_spec(raw, cid):
                                      '%s param file escapes package: %s' % (cid, item))
             clean.append(item)
         spec['param_files'] = clean
-        remap = raw.get('remap', [])
-        if not isinstance(remap, list):
-            raise FrameworkError('E_CFG_LAUNCH', '%s remap must be a list' % cid)
-        for item in remap:
-            if (not isinstance(item, dict) or not isinstance(item.get('from'), str)
-                    or not isinstance(item.get('to'), str)
-                    or not item['from'] or not item['to']):
-                raise FrameworkError('E_CFG_LAUNCH', '%s remap needs from/to' % cid)
-        spec['remap'] = [{'from': item['from'], 'to': item['to']} for item in remap]
+        spec['remap'] = _launch_remap(raw, cid)
         if 'args' in raw:
             raise FrameworkError('E_CFG_LAUNCH', '%s node must not set args' % cid)
+    elif kind == 'plugin':
+        if package != 'nodelet':
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s plugin host package must be nodelet' % cid)
+        plugin_type = raw.get('type')
+        parts = plugin_type.split('/') if isinstance(plugin_type, str) else []
+        if len(parts) != 2 or not all(parts):
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s plugin type must be pkg/Class' % cid)
+        if 'launch_file' in raw or 'param_files' in raw or 'args' in raw:
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s plugin only takes type/remap' % cid)
+        spec['plugin'] = plugin_type
+        spec['remap'] = _launch_remap(raw, cid)
     else:
         launch_file = raw.get('launch_file')
         if not isinstance(launch_file, str) or not launch_file.endswith('.launch'):
