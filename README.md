@@ -33,7 +33,7 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016）、hdl nodelet_group 真实装载（R1017）、命令链安全 hold 门（R1020）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016）、hdl nodelet_group 真实装载（R1017）、命令链安全 hold 门（R1020）、MapDelta 回接版本地图（R1022）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
 | **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已用 nodelet_group 真实装载两 nodelet（R1017），但喂入 Gazebo 点云/IMU 后 45 s 内无 `/odom`（R1018），传感器输入下的定位、`/leg_odom2` 与 M2-R2C 未验证；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、语义地图消费者/规划联动、旧 graph_3d_cache 内 cache/merge 仍替身（新 graph_map_cache_ros 为真实）、命令/定位链零中断热替换（命令链安全 hold 已 R1020）、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界 500 Hz 满速/长时标定、MapDelta 多 map_id/跨机持久化、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1022（2026-10-31）★＝**MapDelta 回接版本地图**：新增 `map_delta_relay`
+  （typed MapDelta→JSON）与 `graph_map_cache_delta`；真实冒烟 cache ops→typed
+  delta→relay→`delta_map_node`，地图 v2→v3、mezz z 0.8、停止退净；全树
+  **64 套件 0 失败**。未接规划消费（代码 `99b5e948`，全文＝[R1022](note/进度/v8/M5/26-10-29/R1022.md)）。
 - ★R1021（2026-10-31）★＝**A5 tick+phase 组合（负结果）**：planner tick 0.5 s +
   command phase 0.5 s 同时开启，seed0 三次 **3/3 FAIL**，均 segment_complete 停第二级
   z 0.1988；A5 仍实验性 **PARTIAL**，不再堆相位开关。零代码改动、全树

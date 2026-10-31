@@ -101,8 +101,8 @@ python3 -B framework/cli.py check framework/fixtures/manifests \
 python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 28 项
-python3 -B framework/test_runtime.py        # 11 项（F3 假命令/include/plugin/remap/语义/group）
+python3 -B framework/test_framework.py      # 29 项
+python3 -B framework/test_runtime.py        # 12 项（F3 假命令/include/plugin/remap/语义/group/cache）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 7 项（F6 独立验证配置）
 python3 -B framework/test_preflight.py   # 5 项（实例 config/维度预检）
@@ -119,6 +119,7 @@ python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替�
 #   /tmp/v8_msgs_ws/src/v8_msgs && (cd /tmp/v8_msgs_ws && catkin_make) && source devel/setup.bash
 python3 -B representation/map_cache_smoke.py       # 真实 ROS：cache flush/ack + merge
 python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache + merge
+python3 -B representation/map_cache_delta_smoke.py # typed delta → relay → 版本地图
 python3 -B framework/hdl_group_smoke.py            # 真实 hdl manager + 两 nodelet
 python3 -B framework/hdl_sensor_smoke.py           # hdl 喂 Gazebo 点云/IMU 探针
 python3 -B framework/command_hold_smoke.py         # 真实 mux hold 下换命令源

@@ -1,0 +1,10 @@
+R1022 命令（2026-10-31 18:27—18:31 CST，qoder；typed delta 回接版本地图）
+# cache JSON ops → typed MapDelta → map_delta_relay(JSON) → delta_map_node 升版。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash 与
+# /tmp/v8_msgs_ws/devel/setup.bash，ROS_PACKAGE_PATH=/repo/ws/src；master 11501。
+cd /repo/ws/src/90_platform/v8_platform/representation
+python3 -B map_cache_delta_smoke.py
+# 读数：fixture v2；初始 status v2；cache flush=true；最终 status/query v3；
+#   mezz z=0.8；停止退净；ok=true。V8 全树 64/64。
+# 边界：map fixture 为 two_level_boxes；relay 只做普通消息转发，不保证顺序/背压；
+#   未接规划消费；A1—A7 不变。
