@@ -1,0 +1,9 @@
+R1012 命令（2026-10-31 15:06—15:16 CST，qoder；map_cache/merge 核心）
+# MapCache 按 surface_id 聚合 upsert/remove；make_delta 生成合法 map_delta/v1
+# （source sha=ops 摘要），ack 推进 base；merge_deltas 同 map_id/base 后者覆盖。
+# 端到端接 MapService：v1→v2→v3。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/test_map_cache.py
+# 读数：4/4；V8 全树 64 套件 0 失败。
+# 边界：ROS v8_msgs 消息层仍未实现（manifest 的 map_cache/map_merge 仍为测试替身）；
+#   不新增判据/阈值，A1—A7 不变。

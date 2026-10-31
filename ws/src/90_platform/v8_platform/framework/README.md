@@ -40,6 +40,11 @@ manifest 端口 topic 与真实名一致。
 `representation/semantic_map_node.py`，只读、无命令/TF；`graph_semantic.yaml` 经
 check/plan/Assembly 启停，`command_owner=null`（R1008）。
 
+`map_cache.py` 是 MapDelta 的缓存/合并核心（R1012）：`MapCache` 按 `surface_id`
+聚合 upsert/remove，`make_delta` 产出合法 `map_delta/v1`（source sha 为 ops 摘要），
+`ack(version)` 推进 base；`merge_deltas` 要求同 map_id/base，后者按 surface 覆盖前者。
+端到端测试接 `MapService` 升版；ROS `v8_msgs` 消息层仍是测试替身。
+
 `robot.py` 读取 robot.v1 profile：declared/prohibited 值不得驱动规划（`E_ROBOT_UNVERIFIED`），
 仅 tested/allowed 值可用；robot_adapter 必须提供 `cmd`（TwistStamped）与 `odom`/`imu` 遥测端口。
 `v8.fw.robot_lite3` 与 `v8.fw.robot_test_b` 同端口，仅改图 YAML 的实例组件即可切换。
