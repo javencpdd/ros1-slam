@@ -1,0 +1,196 @@
+{
+ "changes": {
+  "trace": "bridge --trace / runtime --trace-actions records qpos/qvel/command/action/last_action/target per tick",
+  "onnx": "intra_op=1, inter_op=1, ORT_SEQUENTIAL",
+  "policy_gate": "the policy only runs when the sim clock is stepping; inactive ticks no longer advance last_action/history"
+ },
+ "experiments": {
+  "pre_gating_seed0_pair": {
+   "runs": [
+    "s0_3",
+    "s0_4"
+   ],
+   "finding": "first divergence at activation: one trace advances sim at tick 127, the other stays at sim 0.0; the inactive policy had run a different number of times"
+  },
+  "post_gating_seed0_pair": {
+   "first_divergence": {
+    "common_sim_samples": 799,
+    "first_command_diff_sim": 0.1,
+    "first_qpos_diff_sim": 0.1
+   },
+   "runs": {
+    "ok": true,
+    "checks": {
+     "climbed": true,
+     "final_on_top": true,
+     "goal_map": true,
+     "no_fall": true,
+     "a5_active": true
+    },
+    "plans": 8,
+    "applied_samples": 209,
+    "finish_hold": false,
+    "finish_samples": 0,
+    "final_body": [
+     17.96,
+     3.9933,
+     -0.0148,
+     1.112
+    ],
+    "terminal_reason": null,
+    "trace_actions": "/tmp/r1067/s0_9.trace.jsonl"
+   },
+   "partner": {
+    "ok": true,
+    "checks": {
+     "climbed": true,
+     "final_on_top": true,
+     "goal_map": true,
+     "no_fall": true,
+     "a5_active": true
+    },
+    "plans": 8,
+    "applied_samples": 269,
+    "finish_hold": false,
+    "finish_samples": 0,
+    "final_body": [
+     24.319999999,
+     4.0684,
+     0.0901,
+     1.1469
+    ],
+    "terminal_reason": null,
+    "trace_actions": "/tmp/r1067/s0_10.trace.jsonl"
+   },
+   "finding": "qpos and command are bit-identical through sim .08; the first difference is at .10 and is a command difference from the local node's wall-clock phase, not policy/physics"
+  },
+  "seed2_single": {
+   "ok": true,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "plans": 9,
+   "applied_samples": 200,
+   "finish_hold": false,
+   "finish_samples": 0,
+   "final_body": [
+    14.02,
+    3.9583,
+    0.0179,
+    1.12
+   ],
+   "terminal_reason": null,
+   "trace_actions": null
+  },
+  "finish_hold_pair": {
+   "runs": [
+    {
+     "ok": false,
+     "checks": {
+      "climbed": true,
+      "final_on_top": false,
+      "goal_map": false,
+      "no_fall": true,
+      "a5_active": true
+     },
+     "plans": 7,
+     "applied_samples": 193,
+     "finish_hold": true,
+     "finish_samples": 12,
+     "final_body": [
+      16.5,
+      3.5914,
+      -0.0976,
+      1.0403
+     ],
+     "terminal_reason": "E_LOCAL_CLEARANCE",
+     "trace_actions": "/tmp/r1067/s0_11.trace.jsonl"
+    },
+    {
+     "ok": false,
+     "checks": {
+      "climbed": true,
+      "final_on_top": false,
+      "goal_map": false,
+      "no_fall": true,
+      "a5_active": true
+     },
+     "plans": 60,
+     "applied_samples": 1494,
+     "finish_hold": true,
+     "finish_samples": 1280,
+     "final_body": [
+      145.459999999,
+      3.8469,
+      0.0487,
+      1.0767
+     ],
+     "terminal_reason": null,
+     "trace_actions": "/tmp/r1067/s0_12.trace.jsonl"
+    }
+   ],
+   "finding": "both fail; zero command is not a hold, one run ends at x=145 and one hits E_LOCAL_COLLISION"
+  },
+  "default_pose_hold_pair": {
+   "runs": [
+    {
+     "ok": false,
+     "checks": {
+      "climbed": true,
+      "final_on_top": false,
+      "goal_map": false,
+      "no_fall": true,
+      "a5_active": true
+     },
+     "plans": 16,
+     "applied_samples": 422,
+     "finish_hold": true,
+     "finish_samples": 226,
+     "final_body": [
+      38.999999999,
+      3.5803,
+      -0.0226,
+      1.0021
+     ],
+     "terminal_reason": "E_LOCAL_COLLISION",
+     "trace_actions": "/tmp/r1067/s0_13.trace.jsonl"
+    },
+    {
+     "ok": false,
+     "checks": {
+      "climbed": false,
+      "final_on_top": false,
+      "goal_map": false,
+      "no_fall": true,
+      "a5_active": true
+     },
+     "plans": 6,
+     "applied_samples": 168,
+     "finish_hold": true,
+     "finish_samples": 0,
+     "final_body": [
+      13.88,
+      2.1205,
+      0.5202,
+      0.6486
+     ],
+     "terminal_reason": null,
+     "trace_actions": "/tmp/r1067/s0_14.trace.jsonl"
+    }
+   ],
+   "finding": "both fail; one collision, one did not climb; reverted"
+  }
+ },
+ "result": "policy/physics deterministic start achieved; full run determinism not achieved; first remaining divergence is command timing at sim .10; 3/3 PASS but final x varies",
+ "next": "fixed logical tick + command sequence/handshake between the local node and bridge; top deceleration/support confirmation/zero-speed hold",
+ "tests": {
+  "test_a5_v8x1_bridge": "6/6",
+  "v8_full_tree": "70/70",
+  "test_mj_dreamwaq_walk": "17/17"
+ },
+ "limits": "MuJoCo single-policy; no Gazebo/real; A5 still PARTIAL; finish-hold experiment is negative; the trace is diagnostic evidence, not a formal V8-X1 acceptance"
+}

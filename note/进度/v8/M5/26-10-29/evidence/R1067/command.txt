@@ -1,0 +1,11 @@
+R1067 命令（2026-11-01 04:55—05:15 CST，qoder；v8codex-20261028）
+# 代码提交 93025b84。资产 /tmp/new_policy.onnx、/tmp/mjcf/Lite3.xml、地图
+# /repo/data/maps/nist_stairs_120_s020x170_support.json；PYTHONPATH=/tmp/r854-policy-runtime:/opt/ros/noetic/lib/python3/dist-packages。
+# 每次独立 master、ROS_HOME/ROS_LOG_DIR，wall deadline 150 s：
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb --lockstep \
+  --stall-retry --trace-actions /tmp/r1067/s0_N.trace.jsonl --out /tmp/r1067/s0_N.json --wall-deadline-s 150
+# 变体：--release-barrier；--finish-hold；seed 2。
+# 证据：runs/ 为运行 JSON.gz；traces/ 为 s0_9/s0_10 全轨迹与 s0_3/s0_4 前 300 tick。
+# 读数：pre-gating 首分歧在激活相位；post-gating qpos/命令到 sim .08 逐位相同、.10 首次分歧；
+#   3/3 PASS 但末态 x 17.96/24.32/14.02；finish-hold 两份失败，默认姿态保持两份失败并回退。
