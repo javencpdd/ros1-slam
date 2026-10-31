@@ -1,0 +1,28 @@
+{
+ "smoke": {
+  "startup_order": [
+   "hdl"
+  ],
+  "started": true,
+  "nodelets": [
+   "/v8/hdl/globalmap_server_nodelet",
+   "/v8/hdl/hdl_localization_nodelet"
+  ],
+  "nodes": [
+   "/r1017_smoke_59706_1793434658759",
+   "/rosout",
+   "/v8/hdl/globalmap_server_nodelet",
+   "/v8/hdl/hdl_localization_nodelet",
+   "/v8/hdl/hdl_manager"
+  ],
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "framework": "29/29",
+  "registry": "4/4",
+  "v8_suites": "64/0"
+ },
+ "interpretation": "hdl manager loads both hdl nodelets with the lite3 PCD; no sensor input was fed, so localization output/precision is not claimed"
+}

@@ -1,0 +1,14 @@
+R1017 命令（2026-10-31 16:11—16:18 CST，qoder；hdl nodelet_group 真实装载）
+# v8.fw.hdl_nodelet_group：manager + GlobalmapServerNodelet + HdlLocalizationNodelet，
+# 参数含 /repo/data/maps/lite3.pcd 与 NDT 配置；graph_hdl_group 经 Assembly 启动。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash 与
+# /opt/ros1-slam/ws/devel/setup.bash（hdl 插件库），ROS_PACKAGE_PATH=/repo/ws/src。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B registry/test_v2_manifest.py
+python3 -B framework/hdl_group_smoke.py
+# 读数：framework 29/29、registry 4/4；manager list 返回
+#   /v8/hdl/globalmap_server_nodelet 与 /v8/hdl/hdl_localization_nodelet，
+#   节点 /v8/hdl/hdl_manager 在位；PCD 加载成功；停止退净；V8 全树 64/64。
+# 边界：无 /velodyne_points 与 IMU 输入，未验证 /odom 输出/定位精度；
+#   nodelet 忽略 remap，topic 用绝对名；真机/#151 不在本批。

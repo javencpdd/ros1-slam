@@ -119,6 +119,7 @@ python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替�
 #   /tmp/v8_msgs_ws/src/v8_msgs && (cd /tmp/v8_msgs_ws && catkin_make) && source devel/setup.bash
 python3 -B representation/map_cache_smoke.py       # 真实 ROS：cache flush/ack + merge
 python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache + merge
+python3 -B framework/hdl_group_smoke.py            # 真实 hdl manager + 两 nodelet
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；
@@ -175,6 +176,9 @@ python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache
   `rosparam` 文件；当前真实接入用 include 组件（参数走 launch args）。
 - `plugin` 是 `nodelet standalone` 单进程宿主；`nodelet_group` 支持外部 manager +
   每个插件一条 `nodelet load ... --no-bond`，参数按插件节点名下发给 hosted nodelet。
+  R1017 用 `v8.fw.hdl_nodelet_group` 真实装载 `hdl_localization` 的
+  `GlobalmapServerNodelet` + `HdlLocalizationNodelet`（lite3.pcd），manager list 可核；
+  未喂点云/IMU，故不声明 `/odom` 精度。
   实测两者都忽略 remap 参数（topic 仍随节点名），端口 topic 需与真实名一致；
   pluginlib 类只按包索引 `plugin_classes` 静态校验，不解析 XML/不验证类实现。
   `nodelet_group` 运行期生成临时 launch（`/tmp/v8_nodelet_group_*.launch`），不回收。
