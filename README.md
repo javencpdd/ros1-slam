@@ -39,7 +39,7 @@
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
-**边界**：A1—A7 仍 `NOT_VALIDATED`；R982 只证明定位组件可在图中替换并生成装配计划，hdl 真实 launch 仍未执行（`/leg_odom2`、M2-R2C、GT 辅助 probe 不计独立运行）。
+**边界**：A1—A7 正式签署矩阵见 R1045（2026-10-31）：A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL；不是平台首版/3D 导航完成。R982 只证明定位组件可在图中替换并生成装配计划，hdl 真实 launch 仍未执行（`/leg_odom2`、M2-R2C、GT 辅助 probe 不计独立运行）。
 
 ---
 
@@ -145,6 +145,7 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1045（2026-10-31）★＝**A1—A7 正式签署矩阵**：按 R930 盘点＋R1035—R1044 增量，A2＝PASS*（真进程 6/6＋Gazebo 感知触发 3/3），A1/A3/A4/A5/A6/A7＝PARTIAL；明确不声称平台首版/3D 导航/真机/#151 formal。矩阵与回执入 `evidence/R1045/`（全文＝[R1045](note/进度/v8/M5/26-10-29/R1045.md)）。
 - ★R1044（2026-10-31）★＝**局部规划目标占据即拒 + MuJoCo 力矩停车 scoped 冻结**：`local_native.plan` 对目标落在活跃静态障碍膨胀盒内直接 `E_LOCAL_NO_ROUTE`，消除逼近到约 0.2 m 才拒的旧行为；18 run（0.2/0.4×3 起点×3 相位）全 PASS，sensing→stop 最坏 **2.744 s / 0.153 m**，最小净空 **0.454 m**；新增 scoped `stop_chain_mj_torque_time_s=3.6`、`stop_chain_mj_torque_distance_m=0.20`（n=10 互异）。in-process、无 ROS/真机，**formal 两停车键仍 pending**；全树 **69/0**（代码 `ed1cc260`，全文＝[R1044](note/进度/v8/M5/26-10-29/R1044.md)）。
 - ★R1042（2026-11-01）★＝**双定位后端同场对比与切换**：hdl 与 faster_lio 同时在线，各 30 样本；hdl 误差 mean **0.309 m**、faster_lio **0.026 m**；pose_mux 从 hdl 切到 faster_lio 被接受、输出最大间隔 **50.5 ms**。静态场景、非零跳变切换、未重定位，不代签 A6；全树 **69/0**（代码 `6c6a85b2`，全文＝[R1042](note/进度/v8/M5/26-10-29/R1042.md)）。
 - ★R1041（2026-11-01）★＝**hdl 定位打通**：所有探针缺 `/leg_odom2`，hdl 在配准后解引用空 `leg_odom2_msg` 崩溃；补 10 Hz leg odom 心跳后，原版 NDT_OMP 发布 `/odom` **10 帧/3 s（3.33 Hz）**，末位置 [0.1248,-0.0073,0]。授权下尝试的第三方补丁已全部回滚；R1027 归因更正为缺 leg odom。全树 **69/0**（代码 `58f35603`，全文＝[R1041](note/进度/v8/M5/26-10-29/R1041.md)）。
