@@ -33,8 +33,8 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
-| **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、语义地图消费者/规划联动、map_cache/map_merge 图内替身（真实节点走 JSON ops 入口）、命令/定位链零中断热替换、#151 停车预算 |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
+| **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、语义地图消费者/规划联动、旧 graph_3d_cache 内 cache/merge 仍替身（新 graph_map_cache_ros 为真实）、命令/定位链零中断热替换、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界 500 Hz 满速/长时标定、MapDelta 多 map_id/跨机持久化、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
@@ -145,6 +145,12 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1016（2026-10-31）★＝**cache/merge 进 graph**：v8_msgs 增 `SupportMap`，
+  `map_cache_node` 可把 base_map 整图转 pending ops；新增
+  `v8.fw.map_cache_ros`/`map_merge_ros` 与 `graph_map_cache_ros`。Assembly 真实
+  启动两 cache+merge，flush 后 merge 输出 ground/mezz 两面 delta，停止退净；
+  framework 29/29、runtime 12/12、全树 **64 套件 0 失败**。旧 graph_3d_cache
+  仍替身（代码 `b12ae982`，全文＝[R1016](note/进度/v8/M5/26-10-29/R1016.md)）。
 - ★R1015（2026-10-31）★＝**A5 接触参数对照（负结果）**：profile B 三次 **0/3**
   （1 plan 后卡住/碰撞），profile C **2/3**（两次顶层、一次碰撞），均不优于默认 A
   的 2/3；首命令散差 B 0.32 s、C 0.38 s。不冻结 profile，A5 仍实验性 **PARTIAL**；

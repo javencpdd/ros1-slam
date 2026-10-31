@@ -32,7 +32,7 @@
 | 输出 | `plan.json` 与 ROS1 launch（node/include/plugin/nodelet_group/param/remap/arg） |
 | 运行装配 | plan → `ComponentSpec` → `ProcessRunner/Orchestrator`；就绪/停止/清理，mux 最后；plugin 走 `nodelet standalone`（R1005），nodelet_group 走外部 manager + load（R1011）；launch remap 进运行命令、pluginlib 类静态校验（R1007） |
 | 地图增量 | `map_delta/v1`：delta_id 幂等、旧 base 拒绝、原子升版、监听通知；ROS provider 消费（R976） |
-| 地图持久化 | `MapService.save/load` 原子快照、恢复重算 digest/核对 history、跨 ROS 重启保留幂等表（R983）；`MapStore` 多 map_id 目录（R989）；`MapRouter` delta 按 map_id 路由（R997）；`multi_map_node` 逐图 latch/查询（R998）；2D/3D schema 共存与 `select(kind)`（R1000）；`MapStore` 单写者 flock（R1001）；2D PGM→OccupancyGrid 消费（R1002）；grid status 带 map_version/kind（R1003）；语义地图独立 `semantic_map/v1` 与只读 provider（R1004）；语义 provider 进 v2 graph/Assembly（R1008）；`map_cache/merge` 核心（R1012，ROS 消息层）、v8_msgs 与真实 cache/merge 节点（R1014） |
+| 地图持久化 | `MapService.save/load` 原子快照、恢复重算 digest/核对 history、跨 ROS 重启保留幂等表（R983）；`MapStore` 多 map_id 目录（R989）；`MapRouter` delta 按 map_id 路由（R997）；`multi_map_node` 逐图 latch/查询（R998）；2D/3D schema 共存与 `select(kind)`（R1000）；`MapStore` 单写者 flock（R1001）；2D PGM→OccupancyGrid 消费（R1002）；grid status 带 map_version/kind（R1003）；语义地图独立 `semantic_map/v1` 与只读 provider（R1004）；语义 provider 进 v2 graph/Assembly（R1008）；`map_cache/merge` 核心（R1012，ROS 消息层）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016） |
 | 机器人 profile | robot.v1：declared/prohibited 不驱动规划；Lite3 与 test_b 仅改 YAML 切换 |
 | 独立验证 | backend 不进算法图；真值不泄漏算法话题；失败只记 status=error；真实 Gazebo empty-world 与 MuJoCo 落体后端（R1006/R1010） |
 | 安全接线 | 双 `/cmd_vel` 写者/越权建议拒绝；validator 否决走停止链 |

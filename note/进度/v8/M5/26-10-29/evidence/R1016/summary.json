@@ -1,0 +1,31 @@
+{
+ "smoke": {
+  "startup_order": [
+   "cache_a",
+   "cache_b",
+   "merge"
+  ],
+  "started": true,
+  "/v8/cache_a/v8_map_cache/flush": true,
+  "/v8/cache_b/v8_map_cache/flush": true,
+  "merged": {
+   "map_id": "svc_map",
+   "base_version": 1,
+   "surface_ids": [
+    "ground",
+    "mezz"
+   ],
+   "ops": 2
+  },
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "framework": "29/29",
+  "runtime": "12/12",
+  "registry": "4/4",
+  "v8_suites": "64/0"
+ },
+ "interpretation": "two real map caches consume SupportMap into pending ops, flush typed deltas, and the merger publishes both surfaces under the same base version through Assembly"
+}

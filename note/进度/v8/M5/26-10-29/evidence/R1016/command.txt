@@ -1,0 +1,16 @@
+R1016 命令（2026-10-31 16:01—16:10 CST，qoder；cache/merge 进 graph）
+# v8_msgs 增 SupportMap；codec SupportMap↔JSON；map_cache_node 可订阅 base_map；
+# 新增 v8.fw.map_cache_ros/map_merge_ros + graph_map_cache_ros，Assembly 启动。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash 与
+# /tmp/v8_msgs_ws/devel/setup.bash，ROS_PACKAGE_PATH=/repo/ws/src。
+cd /tmp/v8_msgs_ws && catkin_make -DCMAKE_BUILD_TYPE=Release   # SupportMap 重建
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/test_runtime.py
+python3 -B registry/test_v2_manifest.py
+python3 -B framework/map_cache_graph_smoke.py
+# 读数：build rc=0；framework 29/29、runtime 12/12、registry 4/4；Assembly
+#   startup=[cache_a,cache_b,merge]；两 cache flush=true；merge 输出
+#   svc_map/base1/surface_ids [ground,mezz]/ops 2；停止退净；V8 全树 64/64。
+# 边界：BaseMap→ops 只做整图 upsert，不含点云观测融合；命令/定位链未接；
+#   A1—A7 不变。

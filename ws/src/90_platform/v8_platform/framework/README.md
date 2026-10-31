@@ -45,8 +45,9 @@ check/plan/Assembly 启停，`command_owner=null`（R1008）。
 `ack(version)` 推进 base；`merge_deltas` 要求同 map_id/base，后者按 surface 覆盖前者。
 R1014 增加 `v8_msgs`（`MapDelta/MapOp/SupportSurface/SurfaceEdge`）与真实
 `map_cache_node`（JSON ops → typed delta，flush/ack）和 `map_merge_node`（两路合并）；
-`map_cache_smoke.py` 在独立 `v8_msgs` 工作区编译后跑真实 ROS 冒烟。graph 里的
-`map_cache/map_merge` 仍是测试替身，SupportMap→ops 生产者尚未接。
+R1016 增 `SupportMap` 消息与 `v8.fw.map_cache_ros`/`v8.fw.map_merge_ros`：
+`graph_map_cache_ros.yaml` 的两 cache + merge 经 Assembly 真实启动，base_map 输入
+整图 upsert 后 flush/merge。旧的 `graph_3d_cache.yaml` 仍是测试替身。
 
 `robot.py` 读取 robot.v1 profile：declared/prohibited 值不得驱动规划（`E_ROBOT_UNVERIFIED`），
 仅 tested/allowed 值可用；robot_adapter 必须提供 `cmd`（TwistStamped）与 `odom`/`imu` 遥测端口。
@@ -117,6 +118,7 @@ python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替�
 # v8_msgs 先编译：mkdir -p /tmp/v8_msgs_ws/src && ln -s <repo>/ws/src/90_platform/v8_msgs \
 #   /tmp/v8_msgs_ws/src/v8_msgs && (cd /tmp/v8_msgs_ws && catkin_make) && source devel/setup.bash
 python3 -B representation/map_cache_smoke.py       # 真实 ROS：cache flush/ack + merge
+python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache + merge
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；
