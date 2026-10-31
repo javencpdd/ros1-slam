@@ -145,6 +145,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1003（2026-10-31）★＝**2D grid 版本绑定**：`multi_map_node.grid_status` 带
+  map_version/kind/frame_id，publish_all 刷新；map_c grid_status v1，三图版本 3/2/1
+  重启保持。V8 全树 **62 套件 0 失败**；2D grid 仍只读，语义地图未实现
+  （代码 `3192a4cb`，全文＝[R1003](note/进度/v8/M5/26-10-29/R1003.md)）。
 - ★R1002（2026-10-31）★＝**2D 消费适配**：PGM（P5/P2）→`nav_msgs/OccupancyGrid`，
   multi_map_node 为 2D 图发 `/v8/maps/<id>/grid`；真实冒烟 map_c 100×100、occupied=20，
   三图版本独立/重启恢复。`occupancy_adapter` 3/3、V8 全树 **62 套件 0 失败**；语义地图/

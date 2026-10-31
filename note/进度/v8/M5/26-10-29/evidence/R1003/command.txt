@@ -1,0 +1,7 @@
+R1003 命令（2026-10-31 13:36—13:38 CST，qoder；2D grid 版本绑定）
+# multi_map_node 的 grid_status 写入 map_version/kind/frame_id；publish_all 刷新版本。
+cd ws/src/90_platform/v8_platform
+python3 -B representation/multi_map_smoke.py
+# 读数：map_c grid_status {ok:true,width:100,height:100,kind:occupancy_grid,
+#   frame_id:map,map_version:1}；三图 initial [2,2,1]，map_a delta 后 [3,2,1]，
+#   重启恢复/重放不变；V8 全树 62 套件 0 失败。
