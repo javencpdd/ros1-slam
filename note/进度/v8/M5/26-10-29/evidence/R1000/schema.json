@@ -1,0 +1,154 @@
+{
+ "ids": [
+  "flat_two_boxes",
+  "map_a"
+ ],
+ "select_2d": [
+  "flat_two_boxes"
+ ],
+ "select_support": [
+  "map_a"
+ ],
+ "snapshot_2d": {
+  "ok": true,
+  "map_id": "flat_two_boxes",
+  "kind": "occupancy_grid",
+  "map_version": 1,
+  "digest": "79b331f4b4369b1d056570787ab1081265d8d9f1dcc7ebf3c5db08eb31372694",
+  "map": {
+   "schema_version": 1,
+   "map_id": "flat_two_boxes",
+   "map_version": 1,
+   "frame": "map",
+   "kind": "occupancy_grid",
+   "resolution": 0.1,
+   "origin": [
+    -5.0,
+    -5.0,
+    0.0
+   ],
+   "extent": {
+    "width": 100,
+    "height": 100
+   },
+   "cell_states": [
+    "free",
+    "occupied",
+    "unknown"
+   ],
+   "unknown_policy": "unknown_not_traversable",
+   "multiple_surfaces_per_xy": false,
+   "source": {
+    "uri": "fixtures/map_2d_flat.pgm",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+   },
+   "layers": [
+    {
+     "layer_id": "occupancy",
+     "type": "occupancy",
+     "data_uri": "fixtures/map_2d_flat.pgm",
+     "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+    }
+   ]
+  },
+  "evidence": {
+   "state": "not_applicable",
+   "kind": "occupancy_grid"
+  }
+ },
+ "snapshot_support": {
+  "ok": true,
+  "map_id": "map_a",
+  "kind": "support_map",
+  "map_version": 1,
+  "digest": "a3f990e6d6e429f14872249acb11c48627fe5235c2683b5e125c05dfd514074c",
+  "map": {
+   "schema_version": 1,
+   "map_id": "map_a",
+   "map_version": 1,
+   "frame": "map",
+   "kind": "support_map",
+   "resolution": 0.1,
+   "origin": [
+    -5.0,
+    -5.0,
+    0.0
+   ],
+   "extent": {
+    "width": 100,
+    "height": 100
+   },
+   "cell_states": [
+    "free",
+    "occupied",
+    "unknown"
+   ],
+   "unknown_policy": "unknown_not_traversable",
+   "multiple_surfaces_per_xy": true,
+   "source": {
+    "uri": "design://two_floors",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   },
+   "surfaces": [
+    {
+     "surface_id": "ground",
+     "z_reference": 0.0,
+     "thickness_m": 0.05,
+     "representation": "elevation_grid",
+     "data_uri": "g.json",
+     "traversability": "supported",
+     "clearance_min_m": 0.4,
+     "footprint": {
+      "min_x": -5,
+      "min_y": -5,
+      "max_x": 5,
+      "max_y": 5
+     },
+     "edges": [
+      {
+       "to": "mezz",
+       "kind": "slope",
+       "max_slope_deg": 12.0,
+       "bidirectional": true
+      }
+     ]
+    },
+    {
+     "surface_id": "mezz",
+     "z_reference": 0.6,
+     "thickness_m": 0.05,
+     "representation": "elevation_grid",
+     "data_uri": "m.json",
+     "traversability": "supported",
+     "clearance_min_m": 0.4,
+     "footprint": {
+      "min_x": 2,
+      "min_y": 1,
+      "max_x": 4,
+      "max_y": 3
+     },
+     "edges": [
+      {
+       "to": "ground",
+       "kind": "slope",
+       "max_slope_deg": 12.0,
+       "bidirectional": true
+      }
+     ]
+    }
+   ]
+  },
+  "evidence": {
+   "state": "no_evidence_layer"
+  }
+ },
+ "delta_2d_error": "E_MAPSERVICE_UPDATE_SCHEMA",
+ "support_version": 2,
+ "reloaded_select_2d": [
+  "flat_two_boxes"
+ ],
+ "reloaded_versions": {
+  "flat_two_boxes": 1,
+  "map_a": 2
+ }
+}

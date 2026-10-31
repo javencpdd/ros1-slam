@@ -1,0 +1,12 @@
+R1000 命令（2026-10-31 05:32—05:34 CST，qoder；多图 schema 选择）
+# 纯 Python：map_a(support_map) + flat_two_boxes(occupancy_grid) 同目录；
+# select(kind)、2D 只读 delta 拒绝、support delta 升 v2、重载 kind/version 保持。
+cd ws/src/90_platform/v8_platform/representation
+python3 -B test_map_router.py
+python3 -B - <<'PY'  # 见 schema.json
+import map_router
+router=map_router.MapRouter('/tmp/r1000_router',[support('map_a'),flat])
+PY
+# 读数：select_2d=['flat_two_boxes']、select_support=['map_a']；
+#   2D delta -> E_MAPSERVICE_UPDATE_SCHEMA；support map_a v2；重载后 kind/version 保持。
+# 测试：map_router 4/4；V8 全树 61 套件 0 失败。ROS 多图 provider 尚未带 2D 订阅。
