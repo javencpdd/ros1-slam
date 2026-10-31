@@ -1,0 +1,25 @@
+{
+ "smoke": {
+  "startup_order": [
+   "mux"
+  ],
+  "command": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "initial_outputs": 20,
+  "switch_accepted": true,
+  "max_gap_s": 0.0526,
+  "jump_rejected": true,
+  "last_x": 0.05,
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "pose_mux": "3/3",
+  "preflight": "9/9",
+  "v8_suites": "68/0"
+ },
+ "interpretation": "handover is seamless when the target source agrees within max_gap_m (max output gap 52.6 ms on a 20 Hz stream) and is rejected when it jumps 4.95 m, leaving the old source active"
+}

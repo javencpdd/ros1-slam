@@ -1,0 +1,12 @@
+R1033 命令（2026-10-31 22:00—22:20 CST，qoder；定位位姿交接）
+# 容器 v8codex-20261028；source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；master 11519。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B local_planner/test_pose_mux.py
+python3 -B framework/test_preflight.py
+python3 -B local_planner/pose_mux_smoke.py
+# 读数：pose_mux 3/3、preflight 9/9；真实交接 initial_outputs≥20、
+#   切源 accepted、最大输出间隔 52.6 ms、跳变 4.95 m 拒绝、末值 0.05；
+#   停止退净。
+# 全树：SUITES=68 FAIL=0。
+# 边界：位姿源为冒烟合成；真实定位算法间切换/坐标系一致性未验证。
