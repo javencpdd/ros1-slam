@@ -30,7 +30,7 @@ sys.path.insert(0, str(HERE.parent / 'contracts'))
 import support_planner  # noqa: E402
 
 PORT = 11533
-SCOPE = 'ros_local_node_to_mujoco_270_flat_goal_blocked_stop_pilot'
+SCOPE = 'ros_local_node_45policy_mujoco_flat_sensor_path_or_goal_stop_pilot'
 
 
 def map_value(goal_y):
