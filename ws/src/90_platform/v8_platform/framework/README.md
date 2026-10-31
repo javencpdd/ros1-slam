@@ -25,6 +25,9 @@
 嵌套路径 launch 先用 `rospack find` 解析为绝对路径（`roslaunch pkg nested/file.launch` 只认
 basename）。plugin 以 `rosrun nodelet nodelet standalone pkg/Class` 启动，实例 id 作为
 `__name`，graph namespace 作为 `__ns`，params 仍是 `_key:=value`；宿主固定为 `nodelet`。
+manifest 的 `launch.remap` 对 node/plugin 都以 `from:=to` 追加到运行命令；实测本环境
+`nodelet standalone` 不消费这些 remap（topic 仍随节点名），插件端口需用命名空间或
+manifest 端口 topic 与真实名一致。
 启动、READY 就绪、停止序（mux 最后）、失败清理与健康检测均有测试。
 
 真实 2D 栈已接入：`v8.nav2d.dwa_stack`/`v8.nav2d.teb_stack` 是 include 组件，
@@ -84,7 +87,7 @@ python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
 python3 -B framework/test_framework.py      # 26 项
-python3 -B framework/test_runtime.py        # 8 项（F3 假命令/真实 include 参数/plugin）
+python3 -B framework/test_runtime.py        # 9 项（F3 假命令/真实 include 参数/plugin/remap）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
 python3 -B framework/test_preflight.py   # 5 项（实例 config/维度预检）
@@ -115,6 +118,7 @@ python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/
 | launch 规格非法（node/include/plugin/路径） | `E_CFG_LAUNCH` / `E_CFG_LAUNCH_KIND` / `E_CFG_LAUNCH_PATH` |
 | plugin 宿主非 `nodelet`、type 非 `pkg/Class`、带 launch_file/param_files/args | `E_CFG_LAUNCH` |
 | plugin 插件包不在包索引 | `E_LAUNCH_PACKAGE` |
+| plugin 类不在索引 `plugin_classes`（索引给出该字段时） | `E_LAUNCH_TYPE` |
 | 实例 config 缺失/非法 YAML/重复键/非映射 | `E_CFG_MISSING` / `E_CFG_YAML` / `E_CFG_DUP_KEY` / `E_CFG_TYPE` |
 | config 用在 include 组件 | `E_CFG_CONFIG_KIND` |
 | Path 跨 2D/3D 组件直连 | `E_GRAPH_DIMENSION` |
@@ -145,9 +149,11 @@ python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/
 - 实例 `config` 在 plan/launch 渲染层生效，但真实 `rosrun` 命令不加载 node 的
   `rosparam` 文件；当前真实接入用 include 组件（参数走 launch args）。
 - plugin 只支持 `nodelet standalone` 单进程宿主：不支持外部 nodelet manager /
-  `nodelet load`、不支持 bond、不验证 pluginlib 描述文件与类实现（只用包索引声明）。
+  `nodelet load`、不支持 bond；pluginlib 类只按包索引 `plugin_classes` 静态校验，
+  不解析 XML/不验证类实现。实测 nodelet standalone 忽略 remap 参数。
 - include 组件没有通用 `remap` 入口：图中连入 include 的边必须让端口 topic 与上游一致，
-  否则真实启动不会改线；node 组件的边 remap 仍只在渲染骨架里。
+  否则真实启动不会改线；node/plugin 的 manifest remap 已进运行命令，图边 remap 仍只在
+  渲染骨架里。
 - 包索引是声明快照，不是 rospack 活体扫描；验证已接真实 Gazebo empty-world 后端（R1006），
   未接 MuJoCo 后端与场景化真值；`gazebo_truth.py` 以 ground_plane 静态位姿证明通道，
   不冒充算法评价；

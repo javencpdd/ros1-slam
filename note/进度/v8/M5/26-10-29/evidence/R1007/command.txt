@@ -1,0 +1,13 @@
+R1007 命令（2026-10-31 14:04—14:07 CST，qoder；manifest 运行面补齐）
+# default_command 把 launch.remap 以 from:=to 追加到 node/plugin 命令；包索引可选
+# plugin_classes 参与预检（不在册报 E_LAUNCH_TYPE）。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src:$ROS_PACKAGE_PATH。
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/test_runtime.py
+python3 -B framework/plugin_smoke.py
+# 读数：framework 26/26、runtime 9/9（新增 remap 命令测试）；插件冒烟仍 ok
+#   （param=2.5、3.0→5.5、停止退净）；V8 全树 63 套件 0 失败。
+# 边界：实测 nodelet standalone 忽略 remap 参数（topic 仍 <node>/in|out）；
+#   plugin_classes 是可选静态声明，不解析 pluginlib XML；图边 remap 仍只在渲染骨架。
