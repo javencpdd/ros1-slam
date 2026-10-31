@@ -12,7 +12,7 @@ R795（2026-10-28）从 `note/计划书v8/` 整体迁入本包；文档仍留在
 | `composer/` | 组合结构/兼容检测、确定性锁文件 |
 | `orchestrator/` | 任务状态机、条件就绪、停止链、预算 |
 | `adapters/` | 消息级接线、信息损失声明；`follower_node.py` 为 ROS 跟踪节点 |
-| `representation/` | 多层支撑图、版本服务、高程管线、2D 栅格适配、语义地图 `semantic_map/v1` |
+| `representation/` | 多层支撑图、版本服务、高程管线、2D 栅格适配、语义地图 `semantic_map/v1`（`v8.fw.semantic_provider` 可入 v2 图） |
 | `planner/` | 支撑图有界 A*；`ros_node.py` 为 ROS 包装 |
 | `validator/` | 独立轨迹检查器、运动学铁则、失效撤销、跟踪 |
 | `scenarios/` | SC01—SC14 场景框架与独立评价器 |

@@ -36,6 +36,10 @@ manifest 端口 topic 与真实名一致。
 启动 nav+mux，四格（GlobalPlanner/Navfn × DWA/TEB）全 PASS；`ProcessRunner` 在停止前
 快照 roslaunch 后代并对其独立会话发信号，否则只杀 roslaunch 会遗留各节点。
 
+`v8.fw.semantic_provider` 把 R1004 的语义节点纳入 v2：node launch 直跑
+`representation/semantic_map_node.py`，只读、无命令/TF；`graph_semantic.yaml` 经
+check/plan/Assembly 启停，`command_owner=null`（R1008）。
+
 `robot.py` 读取 robot.v1 profile：declared/prohibited 值不得驱动规划（`E_ROBOT_UNVERIFIED`），
 仅 tested/allowed 值可用；robot_adapter 必须提供 `cmd`（TwistStamped）与 `odom`/`imu` 遥测端口。
 `v8.fw.robot_lite3` 与 `v8.fw.robot_test_b` 同端口，仅改图 YAML 的实例组件即可切换。
@@ -86,8 +90,8 @@ python3 -B framework/cli.py check framework/fixtures/manifests \
 python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 26 项
-python3 -B framework/test_runtime.py        # 9 项（F3 假命令/真实 include 参数/plugin/remap）
+python3 -B framework/test_framework.py      # 27 项
+python3 -B framework/test_runtime.py        # 10 项（F3 假命令/include/plugin/remap/语义）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
 python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
 python3 -B framework/test_preflight.py   # 5 项（实例 config/维度预检）
@@ -96,6 +100,7 @@ python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 python3 -B framework/plugin_smoke.py        # 真实 ROS：nodelet plugin 装配/参数/IO/停止
 python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/truth/清理
+python3 -B framework/semantic_graph_smoke.py       # 语义 provider 经 graph/Assembly 启停
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；

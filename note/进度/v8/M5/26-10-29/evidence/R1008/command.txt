@@ -1,0 +1,14 @@
+R1008 命令（2026-10-31 14:09—14:15 CST，qoder；语义 provider 入 v2 graph）
+# v8.fw.semantic_provider：node launch 直跑 representation/semantic_map_node.py，
+# graph_semantic 经 check/plan/Assembly 启停；无命令/TF，command_owner=null。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src:$ROS_PACKAGE_PATH。
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_framework.py
+python3 -B framework/test_runtime.py
+python3 -B registry/test_v2_manifest.py
+python3 -B framework/semantic_graph_smoke.py
+# 读数：framework 27/27、runtime 10/10、registry 4/4；Assembly startup=[sem]，
+#   command_owner=null，query/topic sem_a v1/1 要素，停止退净；V8 全树 63 套件 0 失败。
+# 边界：语义 provider 只读、无 delta/消费者联动；graph params 的相对路径由调用方
+#   物化为绝对路径；未改 A1 冻结判据。
