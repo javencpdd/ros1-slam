@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """ROS1 map provider consuming map_delta/v1 (runtime update stream).
 
 The pure core owns a MapService; the node subscribes to std_msgs/String deltas,

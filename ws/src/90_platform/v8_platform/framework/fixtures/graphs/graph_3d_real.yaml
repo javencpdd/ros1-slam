@@ -1,0 +1,73 @@
+schema: pipeline_graph/v1
+name: nav3d_real_chain
+instances:
+  - id: cache_a
+    component: v8.fw.map_cache_ros
+    namespace: /v8/3d/cache_a
+    params:
+      map_id: two_level_boxes
+      base_version: 2
+      base_map_topic: /v8/3d/base_a
+      delta_topic: /v8/3d/delta_a
+      status_topic: /v8/3d/cache_a/status
+  - id: cache_b
+    component: v8.fw.map_cache_ros
+    namespace: /v8/3d/cache_b
+    params:
+      map_id: two_level_boxes
+      base_version: 2
+      base_map_topic: /v8/3d/base_b
+      delta_topic: /v8/3d/delta_b
+      status_topic: /v8/3d/cache_b/status
+  - id: merge
+    component: v8.fw.map_merge_ros
+    namespace: /v8/3d/merge
+    params:
+      delta_a: /v8/3d/delta_a
+      delta_b: /v8/3d/delta_b
+      delta_topic: /v8/3d/merged
+      status_topic: /v8/3d/merge/status
+  - id: relay
+    component: v8.fw.map_delta_relay
+    namespace: /v8/3d/relay
+    params:
+      delta_topic: /v8/3d/merged
+      json_topic: /map_delta
+  - id: provider
+    component: v8.fw.delta_map_provider
+    namespace: /v8/3d/provider
+    params:
+      map_json: contracts/fixtures/map_ml_two_surfaces.json
+      state_path: /tmp/r1040_state.json
+      delta_topic: /map_delta
+      map_topic: /v8_support_map
+      status_topic: /v8_map_status
+  - id: global
+    component: v8.fw.global3d_topic
+    namespace: /v8/3d/global
+    params:
+      map_topic: /v8_support_map
+      start_topic: /v8/3d/global/start
+      goal_topic: /v8/3d/global/goal
+      path_topic: /v8/3d/global/path
+      status_topic: /v8/3d/global/status
+  - id: local
+    component: v8.fw.local_native
+    namespace: /v8/3d/local
+    config: ../configs/local_native.yaml
+edges:
+  - {from: cache_a.delta, to: merge.delta_a}
+  - {from: cache_b.delta, to: merge.delta_b}
+  - {from: merge.delta, to: relay.delta}
+  - {from: relay.json, to: provider.delta}
+  - {from: provider.map, to: global.map}
+  - {from: provider.map, to: local.map}
+external:
+  - {to: cache_a.base_map, type: v8_msgs/SupportMap, source: map_provider}
+  - {to: cache_b.base_map, type: v8_msgs/SupportMap, source: map_provider}
+  - {to: global.start, type: geometry_msgs/PoseStamped, source: localization}
+  - {to: global.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.pose, type: geometry_msgs/PoseStamped, source: localization}
+  - {to: local.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.obstacles, type: std_msgs/String, source: perception}
+  - {to: local.localization, type: std_msgs/Bool, source: localization}

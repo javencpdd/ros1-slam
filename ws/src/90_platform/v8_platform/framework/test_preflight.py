@@ -23,6 +23,7 @@ G_SEMANTIC_OBSTACLE = HERE / 'fixtures' / 'graphs' / 'graph_semantic_obstacle_pl
 G_POSE_MUX = HERE / 'fixtures' / 'graphs' / 'graph_pose_mux.yaml'
 G_COMMAND_OVERLAP = HERE / 'fixtures' / 'graphs' / 'graph_command_overlap.yaml'
 G_GLOBAL3D_TOPIC = HERE / 'fixtures' / 'graphs' / 'graph_global3d_topic.yaml'
+G_3D_REAL = HERE / 'fixtures' / 'graphs' / 'graph_3d_real.yaml'
 
 
 def setup():
@@ -185,6 +186,17 @@ class PreflightTests(unittest.TestCase):
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type')),
                          ('v8_platform', 'planner/topic_node.py'))
+
+    def test_real_3d_chain_wires_cache_merge_and_planners(self):
+        catalog = config.load_components(MANIFESTS)
+        graph = config.load_graph(G_3D_REAL)
+        report = graph_mod.check(graph, catalog)
+        self.assertEqual(report['startup_order'],
+                         ['cache_a', 'cache_b', 'merge', 'relay', 'provider',
+                          'global', 'local'])
+        self.assertEqual(report['command_writers'], {'/v8/local/cmd_vel_3d': 'local'})
+        self.assertEqual(report['bindings']['provider']['delta']['from'], 'relay.json')
+        self.assertEqual(report['bindings']['local']['map']['from'], 'provider.map')
 
 
 if __name__ == '__main__':

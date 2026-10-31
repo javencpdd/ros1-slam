@@ -1,0 +1,52 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.delta_map_provider",
+ "version": "0.1.0",
+ "roles": [
+  "map_server",
+  "representation"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "representation/delta_map_node.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "delta",
+    "type": "std_msgs/String",
+    "topic": "/map_delta"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "map",
+    "type": "std_msgs/String",
+    "schema": "support_map/v1",
+    "topic": "/v8_support_map"
+   },
+   {
+    "name": "status",
+    "type": "std_msgs/String",
+    "topic": "/v8_map_status"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}
