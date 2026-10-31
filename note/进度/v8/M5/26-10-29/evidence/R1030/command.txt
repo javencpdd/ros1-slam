@@ -1,0 +1,10 @@
+R1030 命令（2026-10-31 21:15—21:20 CST，qoder；边界 500 Hz 长跑）
+# 容器 v8codex-20261028；source /opt/ros/noetic/setup.bash。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B -m boundary.loopback_demo --send-hz 500 --planner-hz 20 \
+  --duration-s 300 --stop-at 150 --stop-for 1.0 --timeout-s 0.25
+# 读数：duration 300.002 s；sent=received=149958，loss/dup/bad=0；
+#   tx/rx 499.9 Hz；inter-arrival p50 2.0 / p99 2.165 ms；
+#   transport p50 0.379 / p99 0.579 ms；deadman stop 202.5 ms（阈 250）；
+#   bridge updates 5980、clamped 0、holds 395。
+# 边界：本机 UDP 回环长跑，不是真机/不是 Ethernet 抖动；A1—A7 不变。

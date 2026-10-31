@@ -1,0 +1,29 @@
+{
+ "loopback": {
+  "send_hz": 500.0,
+  "planner_hz": 20.0,
+  "duration_s": 300.002,
+  "sent": 149958,
+  "received": 149958,
+  "loss": 0,
+  "dup": 0,
+  "bad": 0,
+  "tx_rate_hz": 499.9,
+  "rx_rate_hz": 499.9,
+  "interarrival_p50_ms": 2.0,
+  "interarrival_p99_ms": 2.165,
+  "period_ms": 2.0,
+  "transport_p50_ms": 0.379,
+  "transport_p99_ms": 0.579,
+  "deadman_stop_ms": 202.5,
+  "timeout_ms": 250.0,
+  "bridge": {
+   "updates": 5980,
+   "clamped": 0,
+   "holds": 395
+  },
+  "bridge_mode": "active"
+ },
+ "tests": "no code change",
+ "interpretation": "300 s at 500 Hz over UDP loopback sent and received 149958 frames with zero loss/duplicate/bad, 499.9 Hz both sides, p99 inter-arrival 2.165 ms and deadman stop 202.5 ms under the 250 ms budget; this is a host loopback result, not a real-robot link calibration"
+}
