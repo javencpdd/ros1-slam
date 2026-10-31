@@ -1,0 +1,11 @@
+R1020 命令（2026-10-31 16:40—18:16 CST，qoder；命令链安全 hold 门）
+# 真实 mux：旧源 0.4 m/s → 发 hold=true → 停旧源/起新源 → hold=false → 0.3 m/s。
+# hotswap.apply_instance 增加 pre_stop/post_start 回调（供 hold 门接入）。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src；mux launch 绝对路径。
+cd /repo/ws/src/90_platform/v8_platform
+python3 -B framework/test_hotswap.py
+python3 -B framework/command_hold_smoke.py
+# 读数：hotswap 12/12；mux_zero=0、pre_speed=0.4、held_zero=0（旧源停/新源起两段）、
+#   post_speed=0.3、停止退净、ok=true；V8 全树 64/64。
+# 边界：这是安全 hold 交接，不是零中断；定位/命令链零中断仍未做。

@@ -121,6 +121,7 @@ python3 -B representation/map_cache_smoke.py       # 真实 ROS：cache flush/ac
 python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache + merge
 python3 -B framework/hdl_group_smoke.py            # 真实 hdl manager + 两 nodelet
 python3 -B framework/hdl_sensor_smoke.py           # hdl 喂 Gazebo 点云/IMU 探针
+python3 -B framework/command_hold_smoke.py         # 真实 mux hold 下换命令源
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；
@@ -239,4 +240,5 @@ python3 -B framework/selector.py framework/fixtures/manifests \
 替换进程，`ready_check()` 通过后再停旧进程；失败则保留旧进程并记 `rolled_back`。
 替换实例用 `runtime_name` 得到独立 ROS 节点名，避免与旧节点同名互踢；`prepare` 支持
 `params` 覆盖，状态仍经 `V8_HOT_SWAP_*` 交给新进程。真实语义 provider 冒烟 v1→v2、
-查询零失败、`/sem_swap1` 接管。命令链/定位链因存在双写与 TF 所有权，不走 overlap。
+查询零失败、`/sem_swap1` 接管。命令链/定位链因存在双写与 TF 所有权，不走 overlap。R1020 给 `apply_instance`
+增加 pre_stop/post_start 回调，用 mux hold 做安全交接（换源窗口零速，非零中断）。

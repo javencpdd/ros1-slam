@@ -1,0 +1,18 @@
+{
+ "smoke": {
+  "launch": "/repo/ws/src/60_safety/lite3_safety/launch/60_safety.launch",
+  "mux_zero": 0.0,
+  "pre_speed": 0.4,
+  "held_zero": 0.0,
+  "held_zero_after_stop": 0.0,
+  "held_zero_with_new": 0.0,
+  "post_speed": 0.3,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "hotswap": "12/12",
+  "v8_suites": "64/0"
+ },
+ "interpretation": "real mux holds /cmd_vel at zero while the old command source stops and a new one starts; release restores 0.3 m/s. Safe handoff, not zero-interruption"
+}
