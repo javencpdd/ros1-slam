@@ -19,6 +19,7 @@ G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 VERIFY_A = HERE / 'fixtures' / 'verification_fake_a.yaml'
 VERIFY_B = HERE / 'fixtures' / 'verification_fake_b.yaml'
 VERIFY_G = HERE / 'fixtures' / 'verification_gazebo.yaml'
+VERIFY_M = HERE / 'fixtures' / 'verification_mujoco.yaml'
 
 
 def setup():
@@ -75,6 +76,14 @@ class VerificationTests(unittest.TestCase):
         self.assertEqual(checked['algorithm_digest'], plan['digest'])
         self.assertNotIn(checked['backend'],
                          {item['component'] for item in plan['instances']})
+
+    def test_mujoco_backend_is_selected_outside_algorithm_graph(self):
+        catalog, plan, backends, packages = setup()
+        checked = verification.check(verification.load_config(VERIFY_M), plan,
+                                     catalog, backends, packages)
+        self.assertEqual(checked['backend'], 'v8.verify.mujoco_truth')
+        self.assertEqual(checked['truth_channel'], '/v8/verify/truth_mj')
+        self.assertEqual(checked['algorithm_digest'], plan['digest'])
 
     def test_runner_success_and_failure_keep_algorithm_digest(self):
         catalog, plan, backends, packages = setup()

@@ -1,0 +1,9 @@
+<launch>
+  <!-- Minimal in-repo MuJoCo verification backend: free-fall probe truth. -->
+  <node pkg="v8_platform" type="mujoco_truth.py" name="v8_mujoco_truth" output="screen">
+    <param name="xml" value="$(find v8_platform)/framework/fixtures/mujoco/drop_world.xml"/>
+    <param name="truth_topic" value="/v8/verify/truth_mj"/>
+    <param name="rate_hz" value="10.0"/>
+    <param name="model_name" value="probe"/>
+  </node>
+</launch>

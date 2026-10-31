@@ -1,0 +1,39 @@
+{
+ "schema_version": 2,
+ "id": "v8.verify.mujoco_truth",
+ "version": "0.1.0",
+ "roles": [
+  "simulator"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "include",
+  "package": "v8_platform",
+  "launch_file": "launch/verification_mujoco.launch"
+ },
+ "ports": {
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "truth",
+    "type": "nav_msgs/Odometry",
+    "topic": "/v8/verify/truth_mj"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}
