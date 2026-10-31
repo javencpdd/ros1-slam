@@ -15,9 +15,9 @@
   外部输入，以及反馈边与策略。
 
 `launch` 支持 `kind: node`（package/type/param_files/remap）、`kind: include`
-（package/launch_file/args）与 `kind: plugin`（nodelet standalone）；
-`--package-index` 用包索引校验 package/launch file/executable/param file/插件包，
-不启动 ROS。
+（package/launch_file/args）、`kind: plugin`（nodelet standalone）与
+`kind: nodelet_group`（外部 manager + 多插件）；`--package-index` 用包索引校验
+package/launch file/executable/param file/插件包/插件类，不启动 ROS。
 
 `runtime.py` 把 assembly plan 转成 `ComponentSpec` 并交给现有 `ProcessRunner/Orchestrator`；
 默认命令为 `rosrun`/`roslaunch`，测试注入假命令。include 的 manifest/graph 参数以
@@ -92,15 +92,16 @@ python3 -B framework/cli.py check framework/fixtures/manifests \
 python3 -B framework/cli.py plan framework/fixtures/manifests \
   framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 27 项
-python3 -B framework/test_runtime.py        # 10 项（F3 假命令/include/plugin/remap/语义）
+python3 -B framework/test_framework.py      # 28 项
+python3 -B framework/test_runtime.py        # 11 项（F3 假命令/include/plugin/remap/语义/group）
 python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
-python3 -B framework/test_verification.py   # 5 项（F6 独立验证配置）
+python3 -B framework/test_verification.py   # 7 项（F6 独立验证配置）
 python3 -B framework/test_preflight.py   # 5 项（实例 config/维度预检）
 python3 -B framework/test_safety.py      # 8 项（F7 接线/否决即停/启动基准）
 python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 python3 -B framework/plugin_smoke.py        # 真实 ROS：nodelet plugin 装配/参数/IO/停止
+python3 -B framework/nodelet_group_smoke.py # 真实 ROS：外部 manager + 插件装载/参数/停止
 python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/truth/清理
 python3 -B framework/mujoco_verification_smoke.py  # 真实 MuJoCo 落体后端/truth/清理
 python3 -B framework/semantic_graph_smoke.py       # 语义 provider 经 graph/Assembly 启停
@@ -128,6 +129,8 @@ python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替�
 | plugin 宿主非 `nodelet`、type 非 `pkg/Class`、带 launch_file/param_files/args | `E_CFG_LAUNCH` |
 | plugin 插件包不在包索引 | `E_LAUNCH_PACKAGE` |
 | plugin 类不在索引 `plugin_classes`（索引给出该字段时） | `E_LAUNCH_TYPE` |
+| nodelet_group 非 nodelet 宿主、manager/插件名非法、插件 type 非 `pkg/Class` | `E_CFG_LAUNCH` |
+| nodelet_group 插件包/类不在索引 | `E_LAUNCH_PACKAGE` / `E_LAUNCH_TYPE` |
 | 实例 config 缺失/非法 YAML/重复键/非映射 | `E_CFG_MISSING` / `E_CFG_YAML` / `E_CFG_DUP_KEY` / `E_CFG_TYPE` |
 | config 用在 include 组件 | `E_CFG_CONFIG_KIND` |
 | Path 跨 2D/3D 组件直连 | `E_GRAPH_DIMENSION` |
@@ -157,9 +160,11 @@ python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替�
   不计独立定位）；faster_lio 仍为 include，3D/其他算法仍未 v2 化。
 - 实例 `config` 在 plan/launch 渲染层生效，但真实 `rosrun` 命令不加载 node 的
   `rosparam` 文件；当前真实接入用 include 组件（参数走 launch args）。
-- plugin 只支持 `nodelet standalone` 单进程宿主：不支持外部 nodelet manager /
-  `nodelet load`、不支持 bond；pluginlib 类只按包索引 `plugin_classes` 静态校验，
-  不解析 XML/不验证类实现。实测 nodelet standalone 忽略 remap 参数。
+- `plugin` 是 `nodelet standalone` 单进程宿主；`nodelet_group` 支持外部 manager +
+  每个插件一条 `nodelet load ... --no-bond`，参数按插件节点名下发给 hosted nodelet。
+  实测两者都忽略 remap 参数（topic 仍随节点名），端口 topic 需与真实名一致；
+  pluginlib 类只按包索引 `plugin_classes` 静态校验，不解析 XML/不验证类实现。
+  `nodelet_group` 运行期生成临时 launch（`/tmp/v8_nodelet_group_*.launch`），不回收。
 - include 组件没有通用 `remap` 入口：图中连入 include 的边必须让端口 topic 与上游一致，
   否则真实启动不会改线；node/plugin 的 manifest remap 已进运行命令，图边 remap 仍只在
   渲染骨架里。

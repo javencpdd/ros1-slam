@@ -1,0 +1,27 @@
+{
+ "smoke": {
+  "startup_order": "group",
+  "command": [
+   "roslaunch",
+   "/tmp/v8_nodelet_group_eyqqi9pb.launch"
+  ],
+  "started": true,
+  "value_param": 2.5,
+  "output": 5.5,
+  "nodes": [
+   "/r1011_smoke_48448_1793430097904",
+   "/rosout",
+   "/v8_group/plus",
+   "/v8_group/v8_group_mgr"
+  ],
+  "stopped": true,
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "framework": "28/28",
+  "runtime": "11/11",
+  "v8_suites": "63/0"
+ },
+ "interpretation": "nodelet_group launches an external manager and a Plus loader with plugin-level params; output 3.0+2.5 and clean stop"
+}

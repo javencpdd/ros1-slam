@@ -29,8 +29,8 @@
 | 启动 | 非反馈边构成 DAG；反馈边必须带策略，不参与启动排序 |
 | 命令 | 每个命令话题只允许一个写者；`/cmd_vel` 写者必须是 `safety_arbiter` |
 | 锁 | catalog sha256 + 归一化图 → assembly digest |
-| 输出 | `plan.json` 与 ROS1 launch（node/include/plugin/param/remap/arg） |
-| 运行装配 | plan → `ComponentSpec` → `ProcessRunner/Orchestrator`；就绪/停止/清理，mux 最后；plugin 走 `nodelet standalone`（R1005）；launch remap 进运行命令、pluginlib 类静态校验（R1007） |
+| 输出 | `plan.json` 与 ROS1 launch（node/include/plugin/nodelet_group/param/remap/arg） |
+| 运行装配 | plan → `ComponentSpec` → `ProcessRunner/Orchestrator`；就绪/停止/清理，mux 最后；plugin 走 `nodelet standalone`（R1005），nodelet_group 走外部 manager + load（R1011）；launch remap 进运行命令、pluginlib 类静态校验（R1007） |
 | 地图增量 | `map_delta/v1`：delta_id 幂等、旧 base 拒绝、原子升版、监听通知；ROS provider 消费（R976） |
 | 地图持久化 | `MapService.save/load` 原子快照、恢复重算 digest/核对 history、跨 ROS 重启保留幂等表（R983）；`MapStore` 多 map_id 目录（R989）；`MapRouter` delta 按 map_id 路由（R997）；`multi_map_node` 逐图 latch/查询（R998）；2D/3D schema 共存与 `select(kind)`（R1000）；`MapStore` 单写者 flock（R1001）；2D PGM→OccupancyGrid 消费（R1002）；grid status 带 map_version/kind（R1003）；语义地图独立 `semantic_map/v1` 与只读 provider（R1004）；语义 provider 进 v2 graph/Assembly（R1008） |
 | 机器人 profile | robot.v1：declared/prohibited 不驱动规划；Lite3 与 test_b 仅改 YAML 切换 |
