@@ -16,6 +16,8 @@ OUT = Path('/tmp/r998_smoke.json')
 STATE = Path('/tmp/r998_state')
 MAP_A = Path('/tmp/r998_map_a.json')
 MAP_B = Path('/tmp/r998_map_b.json')
+MAP_C = Path('/tmp/r998_map_c.json')
+PGM_C = Path('/tmp/r998_map_c.pgm')
 PORT = 11470
 os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
                   ROS_IP='127.0.0.1', ROS_HOME='/tmp/r998_ros',
@@ -74,25 +76,41 @@ def main():
         value = copy.deepcopy(base)
         value['map_id'] = map_id
         path.write_text(json.dumps(value))
+    flat = json.loads((HERE.parent / 'contracts/fixtures/map_2d_flat.json').read_text())
+    flat['map_id'] = 'map_c'
+    flat['layers'][0]['data_uri'] = str(PGM_C)
+    MAP_C.write_text(json.dumps(flat))
+    image = bytearray([254] * 10000)
+    for x in range(40, 60):
+        image[50 * 100 + x] = 0
+    PGM_C.write_bytes(b'P5\n100 100\n255\n' + bytes(image))
     master = start(['roscore', '-p', str(PORT)], '/tmp/r998_master.log')
     node = None
-    result = {'maps': ['map_a', 'map_b']}
+    result = {'maps': ['map_a', 'map_b', 'map_c']}
     try:
         time.sleep(3)
         rospy.init_node('r998_smoke', anonymous=True, disable_signals=True)
         node = start([sys.executable, '-B', str(NODE),
                       '_state_dir:=' + str(STATE),
-                      '_map_files:=%s,%s' % (MAP_A, MAP_B),
+                      '_map_files:=%s,%s,%s' % (MAP_A, MAP_B, MAP_C),
                       '_keep_alive_s:=40'], '/tmp/r998_node1.log')
         initial_a = wait_version(rospy, String, '/v8/maps/map_a', 2)
         initial_b = wait_version(rospy, String, '/v8/maps/map_b', 2)
-        result['initial_versions'] = [initial_a['map_version'], initial_b['map_version']]
+        initial_c = wait_version(rospy, String, '/v8/maps/map_c', 1)
+        from nav_msgs.msg import OccupancyGrid
+        grid = rospy.wait_for_message('/v8/maps/map_c/grid', OccupancyGrid, timeout=10)
+        result['initial_versions'] = [initial_a['map_version'], initial_b['map_version'],
+                                      initial_c['map_version']]
+        result['grid'] = {'width': grid.info.width, 'height': grid.info.height,
+                          'resolution': grid.info.resolution, 'data': len(grid.data),
+                          'occupied': sum(1 for value in grid.data if value == 100)}
         publisher = rospy.Publisher('/map_delta', String, queue_size=1)
         time.sleep(0.5)
         publisher.publish(String(data=delta('map_a', 2, .8)))
         after_a = wait_version(rospy, String, '/v8/maps/map_a', 3)
         after_b = wait_version(rospy, String, '/v8/maps/map_b', 2)
-        result['after_delta_versions'] = [after_a['map_version'], after_b['map_version']]
+        result['after_delta_versions'] = [after_a['map_version'], after_b['map_version'],
+                                          initial_c['map_version']]
         query = rospy.ServiceProxy('/v8/maps/map_a/query', Trigger)
         result['query_version'] = json.loads(query().message)['map_version']
         status = json.loads(rospy.wait_for_message('/v8/maps/status', String, timeout=5).data)
@@ -101,19 +119,23 @@ def main():
         stop(node)
         node = start([sys.executable, '-B', str(NODE),
                       '_state_dir:=' + str(STATE),
-                      '_map_files:=%s,%s' % (MAP_A, MAP_B),
+                      '_map_files:=%s,%s,%s' % (MAP_A, MAP_B, MAP_C),
                       '_keep_alive_s:=40'], '/tmp/r998_node2.log')
         restored_a = wait_version(rospy, String, '/v8/maps/map_a', 3)
         restored_b = wait_version(rospy, String, '/v8/maps/map_b', 2)
-        result['restored_versions'] = [restored_a['map_version'], restored_b['map_version']]
+        restored_c = wait_version(rospy, String, '/v8/maps/map_c', 1)
+        result['restored_versions'] = [restored_a['map_version'], restored_b['map_version'],
+                                       restored_c['map_version']]
         publisher.publish(String(data=delta('map_a', 3, .8)))
         time.sleep(1.0)
         replay = json.loads(rospy.wait_for_message('/v8/maps/map_a', String, timeout=5).data)
         result['replay_version'] = replay['map_version']
-        result['ok'] = (result['initial_versions'] == [2, 2]
-                        and result['after_delta_versions'] == [3, 2]
+        result['ok'] = (result['initial_versions'] == [2, 2, 1]
+                        and result['after_delta_versions'] == [3, 2, 1]
                         and result['query_version'] == 3
-                        and result['restored_versions'] == [3, 2]
+                        and result['restored_versions'] == [3, 2, 1]
+                        and result['grid']['width'] == 100 and result['grid']['height'] == 100
+                        and result['grid']['data'] == 10000 and result['grid']['occupied'] == 20
                         and result['replay_version'] == 3)
     finally:
         if node is not None:

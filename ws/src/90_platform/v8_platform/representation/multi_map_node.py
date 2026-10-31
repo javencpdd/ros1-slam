@@ -4,6 +4,7 @@ Each map gets its own latched topic and Trigger query service. State is persiste
 through MapRouter/MapStore; the node does not change map or delta contracts.
 """
 import json
+import math
 import sys
 import threading
 import time
@@ -12,6 +13,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import map_router  # noqa: E402
+import occupancy_adapter  # noqa: E402
 
 
 class MultiMapCore:
@@ -48,7 +50,8 @@ def _load_files(value):
         paths = [item.strip() for item in value.split(',') if item.strip()]
     else:
         paths = list(value)
-    return [json.loads(Path(path).read_text(encoding='utf-8')) for path in paths]
+    return [(Path(path), json.loads(Path(path).read_text(encoding='utf-8')))
+            for path in paths]
 
 
 def main():
@@ -58,9 +61,11 @@ def main():
 
     rospy.init_node('v8_multi_map')
     state_dir = rospy.get_param('~state_dir')
-    maps = _load_files(rospy.get_param('~map_files', []))
-    if not maps:
+    loaded = _load_files(rospy.get_param('~map_files', []))
+    if not loaded:
         raise ValueError('map_files must contain at least one map')
+    maps = [value for _path, value in loaded]
+    map_paths = {value['map_id']: path for path, value in loaded}
     core = MultiMapCore(state_dir, maps, exclusive=True)
     prefix = rospy.get_param('~topic_prefix', '/v8/maps')
     status_topic = rospy.get_param('~status_topic', prefix + '/status')
@@ -69,12 +74,42 @@ def main():
                                          queue_size=1, latch=True)
                   for map_id in core.router.ids()}
     status_pub = rospy.Publisher(status_topic, String, queue_size=10, latch=True)
+    from nav_msgs.msg import OccupancyGrid
+    grid_publishers, grid_status = {}, {}
+    for map_id in core.router.ids():
+        value = next(item for item in maps if item['map_id'] == map_id)
+        if value.get('kind') != 'occupancy_grid':
+            continue
+        try:
+            layer = value.get('layers', [{}])[0]
+            path = Path(layer.get('data_uri', ''))
+            if not path.is_absolute():
+                path = map_paths[map_id].parent / path
+            grid = occupancy_adapter.occupancy_grid(value, path)
+            publisher = rospy.Publisher('%s/%s/grid' % (prefix, map_id),
+                                              OccupancyGrid, queue_size=1, latch=True)
+            message = OccupancyGrid()
+            message.header.frame_id, message.header.stamp = grid['frame_id'], rospy.Time.now()
+            message.info.resolution = grid['resolution']
+            message.info.width, message.info.height = grid['width'], grid['height']
+            message.info.origin.position.x, message.info.origin.position.y = grid['origin'][:2]
+            message.info.origin.orientation.z = math.sin(grid['origin'][2] / 2.)
+            message.info.origin.orientation.w = math.cos(grid['origin'][2] / 2.)
+            message.data = grid['data']
+            grid_publishers[map_id] = (publisher, message)
+            grid_status[map_id] = {'ok': True, 'width': grid['width'],
+                                   'height': grid['height']}
+        except Exception as error:
+            grid_status[map_id] = {'ok': False, 'error': str(error)}
 
     def publish_all():
         for map_id, publisher in publishers.items():
             publisher.publish(String(data=json.dumps(core.snapshot(map_id),
                                                       ensure_ascii=False)))
-        status_pub.publish(String(data=json.dumps(core.status(), ensure_ascii=False)))
+        for publisher, message in grid_publishers.values():
+            publisher.publish(message)
+        status_pub.publish(String(data=json.dumps(dict(core.status(), grids=grid_status),
+                                                 ensure_ascii=False)))
 
     def on_delta(message):
         result = core.apply_text(message.data)
