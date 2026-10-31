@@ -1,0 +1,60 @@
+{
+ "smoke": {
+  "checked": {
+   "ok": true,
+   "name": "gazebo_empty_truth",
+   "backend": "v8.verify.gazebo_truth",
+   "scenario": {
+    "name": "empty_world",
+    "seed": 0
+   },
+   "truth_channel": "/v8/verify/truth",
+   "algorithm_digest": "cbe0aae10bafb1d436ea02c94302c5740ccf096eeca3f1351ae301e58e55faf3",
+   "verification_digest": "01e5226d30be608a027ff4fdc1b70a6d895285bc269595f88f4045cc7e4d7e04"
+  },
+  "truth_in_algorithm_topics": false,
+  "backend_in_plan": false,
+  "command": [
+   "roslaunch",
+   "/repo/ws/src/90_platform/v8_platform/launch/verification_gazebo.launch"
+  ],
+  "run": {
+   "status": "ok",
+   "name": "gazebo_empty_truth",
+   "backend": "v8.verify.gazebo_truth",
+   "scenario": {
+    "name": "empty_world",
+    "seed": 0
+   },
+   "truth_channel": "/v8/verify/truth",
+   "algorithm_digest": "cbe0aae10bafb1d436ea02c94302c5740ccf096eeca3f1351ae301e58e55faf3",
+   "verification_digest": "01e5226d30be608a027ff4fdc1b70a6d895285bc269595f88f4045cc7e4d7e04",
+   "result": {
+    "frames": 3,
+    "elapsed_s": 2.964,
+    "frame_id": "world",
+    "child_frame_id": "ground_plane",
+    "seq": [
+     1,
+     2,
+     3
+    ]
+   },
+   "error": null
+  },
+  "command_returncode": null,
+  "runner_stopped": true,
+  "zombies_after_stop": [
+   "[gzserver] <defunct>",
+   "[gzserver] <defunct>",
+   "[gzserver] <defunct>"
+  ],
+  "processes_after_stop": [],
+  "ok": true
+ },
+ "tests": {
+  "verification": "6/6",
+  "v8_suites": "63/0"
+ },
+ "interpretation": "real Gazebo empty-world backend selected outside the algorithm graph; truth channel reaches verification.run and is isolated from algorithm ports"
+}

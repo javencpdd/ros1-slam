@@ -39,7 +39,9 @@ basename）。plugin 以 `rosrun nodelet nodelet standalone pkg/Class` 启动，
 
 `verification.py` 选择独立验证后端（模拟器组件）与场景，**不进入算法图**；真值通道不得与算法话题
 重叠（`E_VERIFY_TRUTH_LEAK`）；后端通过注入 runner 运行，失败只记 status=error，不改算法 digest。
-本片用两个假后端验证切换，不启动 MuJoCo/Gazebo。
+两个假后端验证切换；R1006 增加真实 Gazebo 后端 `v8.verify.gazebo_truth`：headless
+empty world + `/gazebo/model_states` → `/v8/verify/truth`，由 `verification.run` 注入
+runner 启动并等待 truth；算法图不含该后端，truth 话题也不在算法端口集合中。
 
 `map_service.propose_delta` 接收 `map_delta/v1`：delta_id 幂等重放、旧 base/同 id 异内容/无变化
 拒绝；结果先过 map 契约再原子升版并通知监听者，失败不改变当前版本。
@@ -90,6 +92,7 @@ python3 -B framework/test_safety.py      # 8 项（F7 接线/否决即停/启动
 python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
 python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
 python3 -B framework/plugin_smoke.py        # 真实 ROS：nodelet plugin 装配/参数/IO/停止
+python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/truth/清理
 ```
 
 `check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；
@@ -145,7 +148,9 @@ python3 -B framework/plugin_smoke.py        # 真实 ROS：nodelet plugin 装配
   `nodelet load`、不支持 bond、不验证 pluginlib 描述文件与类实现（只用包索引声明）。
 - include 组件没有通用 `remap` 入口：图中连入 include 的边必须让端口 topic 与上游一致，
   否则真实启动不会改线；node 组件的边 remap 仍只在渲染骨架里。
-- 包索引是声明快照，不是 rospack 活体扫描；验证测试用假后端，未启动 MuJoCo/Gazebo；
+- 包索引是声明快照，不是 rospack 活体扫描；验证已接真实 Gazebo empty-world 后端（R1006），
+  未接 MuJoCo 后端与场景化真值；`gazebo_truth.py` 以 ground_plane 静态位姿证明通道，
+  不冒充算法评价；
   热插拔、状态迁移、运行期改线未实现。
 - validator 否决走的是**编排层停止链**，不是 msg 级实时看门狗；50/500 Hz 的承载路径未做实测对比，
   只记录启动 check+plan 的 p95。

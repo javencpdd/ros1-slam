@@ -33,8 +33,8 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
-| **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、外部 nodelet manager/pluginlib 校验、M20/真机 S5、语义地图消费者/规划联动、真实 map_cache/map_merge、MuJoCo/Gazebo 验证后端、零中断热替换、#151 停车预算 |
+| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
+| **未实现/未接** | 定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已有 v2 清单/图选择但真实启动受 `/leg_odom2` 与 M2-R2C 限制；faster_lio 仍 include；LIO/3D 未 v2 化）、外部 nodelet manager/pluginlib 校验、M20/真机 S5、语义地图消费者/规划联动、真实 map_cache/map_merge、MuJoCo 验证后端、零中断热替换、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界 500 Hz 满速/长时标定、MapDelta 多 map_id/跨机持久化、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
@@ -145,6 +145,12 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1006（2026-10-31）★＝**Gazebo 验证后端**：新增 `v8.verify.gazebo_truth`，
+  include headless empty-world，`gazebo_truth.py` 订阅 `/gazebo/model_states` 发布
+  `/v8/verify/truth`；truth 不在算法端口集合、后端不进算法图。真实后端经
+  `verification.run` 启动并等到 3 帧 truth（world/ground_plane），停止退净；
+  验证测试 6/6、V8 全树 **63 套件 0 失败**。仅空世界静态真值，未接 MuJoCo/场景评价
+  （代码 `f93ef0af`，全文＝[R1006](note/进度/v8/M5/26-10-29/R1006.md)）。
 - ★R1005（2026-10-31）★＝**plugin 托管**：manifest `launch.kind=plugin` 接
   `nodelet standalone`（宿主固定 `nodelet`，`type=pkg/Class`）；实例 id→`__name`、
   namespace→`__ns`、params→私有参数，预检查宿主/插件包/type 形。真实 ROS 冒烟

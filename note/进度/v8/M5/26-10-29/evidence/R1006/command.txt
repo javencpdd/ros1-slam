@@ -1,0 +1,13 @@
+R1006 命令（2026-10-31 13:57—14:03 CST，qoder；Gazebo 验证后端）
+# v8.verify.gazebo_truth：headless empty-world + /gazebo/model_states →
+# /v8/verify/truth；后端不进算法图，truth 不在算法端口集合。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# ROS_PACKAGE_PATH=/repo/ws/src:$ROS_PACKAGE_PATH（v8_platform 包发现）。
+cd ws/src/90_platform/v8_platform
+python3 -B framework/test_verification.py
+python3 -B framework/gazebo_verification_smoke.py
+# 读数：verification 6/6；truth_in_algorithm_topics=false、backend_in_plan=false；
+#   run.status=ok，3 帧 truth（frame=world、child=ground_plane、seq 1/2/3，约 3.0 s）；
+#   runner_stopped=true，无存活 gzserver/gazebo_truth 进程；V8 全树 63 套件 0 失败。
+# 边界：只证明空世界静态真值通道与后端隔离，不做场景评价；未接 MuJoCo 后端；
+#   容器 PID1 不回收，gzserver 以 defunct 残留（判活按 stat 排除 Z）。
