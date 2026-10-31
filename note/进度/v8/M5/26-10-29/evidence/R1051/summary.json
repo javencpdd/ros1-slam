@@ -1,0 +1,92 @@
+{
+ "policy_speed": {
+  "scope": "45 policy flat, mj_step_baseline.rollout, 8 s, mean base vx over t>=3 s",
+  "rows": [
+   {
+    "cmd_mps": 0.2,
+    "mean_vx_mps": 0.18,
+    "median": 0.176,
+    "final_x": 1.38
+   },
+   {
+    "cmd_mps": 0.21,
+    "mean_vx_mps": 0.193,
+    "median": 0.187,
+    "final_x": 1.481
+   },
+   {
+    "cmd_mps": 0.22,
+    "mean_vx_mps": 0.204,
+    "median": 0.196,
+    "final_x": 1.581
+   },
+   {
+    "cmd_mps": 0.23,
+    "mean_vx_mps": 0.22,
+    "median": 0.213,
+    "final_x": 1.7
+   },
+   {
+    "cmd_mps": 0.24,
+    "mean_vx_mps": 0.236,
+    "median": 0.228,
+    "final_x": 1.823
+   },
+   {
+    "cmd_mps": 0.25,
+    "mean_vx_mps": 0.246,
+    "median": 0.239,
+    "final_x": 1.91
+   },
+   {
+    "cmd_mps": 0.3,
+    "mean_vx_mps": 0.321,
+    "median": 0.315,
+    "final_x": 2.448
+   },
+   {
+    "cmd_mps": 0.35,
+    "mean_vx_mps": 0.376,
+    "median": 0.369,
+    "final_x": 2.89
+   },
+   {
+    "cmd_mps": 0.4,
+    "mean_vx_mps": 0.453,
+    "median": 0.444,
+    "final_x": 3.467
+   }
+  ],
+  "fell": false
+ },
+ "ros_022_res10": {
+  "verdict": "PASS",
+  "checks": {
+   "moving_observed": true,
+   "obstacle_injected_while_moving": true,
+   "planner_no_route": true,
+   "stop_completed": true,
+   "no_fall": true,
+   "collision_free": true,
+   "sensing_watchdog_ok": true
+  },
+  "measurement": {
+   "trigger_sim": 73.42000000001029,
+   "completed": true,
+   "status": "PASS",
+   "reason": "stationary_window_observed",
+   "stop_time_s": 0.5,
+   "peak_forward_m": 0.009609764201556903,
+   "path_m": 0.03569762646002737,
+   "first_hold_sim": 73.42000000001029,
+   "confirmation_sim": 73.92000000001029
+  },
+  "gap_m": 0.7144830715529373,
+  "net_x_m": 1.407,
+  "sim_span_s": 73.2,
+  "mean_base_vx": 0.061,
+  "mean_map_vel": 0.152,
+  "note": "policy can walk .2 actual; ROS tracker oscillates lateral/backward, net .019 m/s; not a .2-speed sample"
+ },
+ "conclusion": "0.2 policy is capable (cmd .22 -> actual .204); blocker is ROS local tracker/plan oscillation at low speed, not the policy"
+}

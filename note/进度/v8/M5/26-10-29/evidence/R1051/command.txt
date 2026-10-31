@@ -1,0 +1,13 @@
+R1051 命令（2026-11-01 00:42—00:48 CST，qoder；0.2 实速策略探针）
+# 45 策略实际速度（in-process mj_step_baseline.rollout，8 s，t>=3 s 均值）：
+#   cmd .20 -> mean vx .180；.22 -> .204；.25 -> .246；.30 -> .321；.35 -> .376；.40 -> .453
+# ROS 0.22/res .1 运行：
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+  python3 -u -B a5_v8x1_stop_smoke.py --out /tmp/r1051_022_res10.json \
+  --max-speed .22 --resolution .1 --start-map-y -1.6 --bridge45 \
+  --policy /tmp/policy45.onnx --wall-deadline-s 120 --port 11640 --out-dir /tmp
+# 结果：verdict PASS、stop .5 s/forward .0096/path .0357/gap .714，但 pre-trigger
+#   net 1.407 m / 73.2 s = .019 m/s；mean base vx .061、mean map velocity .152，
+#   map_velocity 多次横向/倒退；不是 .2 实速样本。policy 本身能走 .204。
+# 结论：0.2 策略能力已证实，下一阻塞是 ROS 本地 tracker/plan 低速振荡。
