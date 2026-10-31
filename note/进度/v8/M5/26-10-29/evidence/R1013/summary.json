@@ -1,0 +1,69 @@
+{
+ "runs": [
+  {
+   "run": 1,
+   "ok": true,
+   "plans": 8,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "first_nonzero_command_sim_s": 0.36,
+   "final_map": [
+    13.44,
+    0.0,
+    1.34,
+    0.8904
+   ],
+   "terminal_reason": null
+  },
+  {
+   "run": 2,
+   "ok": true,
+   "plans": 8,
+   "checks": {
+    "climbed": true,
+    "final_on_top": true,
+    "goal_map": true,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "first_nonzero_command_sim_s": 0.42,
+   "final_map": [
+    13.92,
+    0.0,
+    1.34,
+    0.8904
+   ],
+   "terminal_reason": null
+  },
+  {
+   "run": 3,
+   "ok": false,
+   "plans": 3,
+   "checks": {
+    "climbed": false,
+    "final_on_top": false,
+    "goal_map": false,
+    "no_fall": true,
+    "a5_active": true
+   },
+   "first_nonzero_command_sim_s": 0.88,
+   "final_map": [
+    10.539999998999999,
+    -0.1585,
+    -0.5955,
+    0.3717
+   ],
+   "terminal_reason": "E_LOCAL_COLLISION"
+  }
+ ],
+ "phase_spread_s": 0.52,
+ "tests": {
+  "v8_suites": "64/0"
+ },
+ "interpretation": "release barrier after goal/inputs does not lock planner command phase; 2/3 pass but first nonzero command spread 0.36-0.88 s and one collision"
+}

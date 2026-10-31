@@ -145,6 +145,11 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1013（2026-10-31）★＝**A5 启动屏障实验（负结果）**：桥 `--require-release`
+  在 goal/障碍/定位就绪后才放行 sim clock，runtime `--release-barrier` 调 release；
+  seed0 三次 **2/3 PASS**，首个非零命令 0.36/0.42/0.88 s（散差 0.52 s，比 R990/R996
+  更差），第三 run `E_LOCAL_COLLISION`。默认关闭，A5 维持实验性 **PARTIAL**；全树
+  **64 套件 0 失败**（代码 `b3df5d5b`，全文＝[R1013](note/进度/v8/M5/26-10-29/R1013.md)）。
 - ★R1012（2026-10-31）★＝**map_cache/merge 核心**：`MapCache` 按 surface_id
   聚合 upsert/remove，`make_delta` 生成合法 `map_delta/v1`（source sha=ops 摘要），
   `ack` 推进 base；`merge_deltas` 同 map_id/base 合并、后者覆盖前者。端到端接入

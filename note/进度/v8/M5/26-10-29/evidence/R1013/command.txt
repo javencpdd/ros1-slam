@@ -1,0 +1,14 @@
+R1013 命令（2026-10-31 15:17—15:39 CST，qoder；A5 启动屏障实验）
+# 桥 --require-release：prefix/release 前不放行 sim clock；runtime --release-barrier：
+# goal/障碍/定位就绪后调用 release。其余同 R987。
+# 容器 v8codex-20261028，source /opt/ros/noetic/setup.bash，
+# PYTHONPATH=/tmp/r854-policy-runtime（onnxruntime），独立 roscore 11491。
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_runtime.py --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml --seed 0 --perturb \
+  --lockstep --stall-retry --release-barrier \
+  --out /tmp/r1013_s0_$i.json --wall-deadline-s 150
+# 读数：2/3 PASS；首个非零命令 sim 0.36/0.42/0.88 s（散差 0.52 s，比 R990 0.18、
+#   R996 0.10 更差）；第三 run E_LOCAL_COLLISION、final z 0.3717。
+# 测试：V8 全树 64 套件 0 失败；默认关闭，不改判据。A5 仍 PARTIAL。
+# 边界：本批是负结果；不再堆相位开关，A5 维持实验性 PARTIAL。
