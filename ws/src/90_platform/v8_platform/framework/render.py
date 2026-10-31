@@ -19,6 +19,31 @@ def _value(value):
     return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
 
 
+def nodelet_group_lines(instance_id, spec, namespace, params):
+    """Manager + one `nodelet load` per plugin; no remap (nodelet ignores it)."""
+    manager = spec.get('manager') or _name(instance_id) + '_manager'
+    attrs = ['pkg="nodelet"', 'type="nodelet"', 'name=%s' % quoteattr(manager),
+             'args="manager"']
+    if namespace:
+        attrs.append('ns=%s' % quoteattr(namespace))
+    lines = ['  <node %s/>' % ' '.join(attrs)]
+    for plugin in spec['plugins']:
+        attrs = ['pkg="nodelet"', 'type="nodelet"',
+                 'name=%s' % quoteattr(plugin['name']),
+                 'args=%s' % quoteattr('load %s %s --no-bond'
+                                       % (plugin['type'], manager))]
+        if namespace:
+            attrs.append('ns=%s' % quoteattr(namespace))
+        lines.append('  <node %s>' % ' '.join(attrs))
+        merged = dict(plugin.get('params', {}))
+        merged.update(params)
+        for key in sorted(merged):
+            lines.append('    <param name=%s value=%s/>'
+                         % (quoteattr(str(key)), quoteattr(_value(merged[key]))))
+        lines.append('  </node>')
+    return lines
+
+
 def render_plan(graph, catalog, report):
     instances = []
     for iid in report['startup_order']:
@@ -71,6 +96,9 @@ def render_launch(graph, catalog, report):
                 lines.append('    <arg name=%s value=%s/>'
                              % (quoteattr(str(key)), quoteattr(_value(args[key]))))
             lines.append('  </include>')
+            continue
+        if spec['kind'] == 'nodelet_group':
+            lines.extend(nodelet_group_lines(iid, spec, rec['namespace'], rec['params']))
             continue
         if spec['kind'] == 'plugin':
             attrs = ['pkg=%s' % quoteattr(spec['package']),

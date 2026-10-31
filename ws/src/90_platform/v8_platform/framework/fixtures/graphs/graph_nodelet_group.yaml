@@ -1,0 +1,6 @@
+schema: pipeline_graph/v1
+name: nodelet_group_plus
+instances:
+  - {id: group, component: v8.fw.nodelet_group_plus, namespace: /v8_group}
+external:
+  - {to: group.in, type: std_msgs/Float64, source: operator}

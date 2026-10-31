@@ -64,6 +64,22 @@ def check_components(catalog, packages):
                 raise FrameworkError('E_LAUNCH_TYPE',
                                      '%s: %s not in plugin_classes'
                                      % (cid, spec['plugin']))
+        elif spec['kind'] == 'nodelet_group':
+            executables = entry.get('executables')
+            if executables is not None and 'nodelet' not in executables:
+                raise FrameworkError('E_LAUNCH_TYPE',
+                                     '%s: %s/nodelet not in index' % (cid, package))
+            for plugin in spec['plugins']:
+                plugin_package = plugin['type'].split('/')[0]
+                if plugin_package not in packages:
+                    raise FrameworkError('E_LAUNCH_PACKAGE',
+                                         '%s needs plugin package %s'
+                                         % (cid, plugin_package))
+                classes = packages[plugin_package].get('plugin_classes')
+                if classes is not None and plugin['type'] not in classes:
+                    raise FrameworkError('E_LAUNCH_TYPE',
+                                         '%s: %s not in plugin_classes'
+                                         % (cid, plugin['type']))
         else:
             executables = entry.get('executables')
             if executables is not None and spec['type'] not in executables:

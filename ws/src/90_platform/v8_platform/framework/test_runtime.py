@@ -18,6 +18,7 @@ G2D_STACK = HERE / 'fixtures' / 'graphs' / 'graph_2d_stack_gp_teb.yaml'
 BOUNDARY = HERE / 'fixtures' / 'graphs' / 'graph_boundary_mux.yaml'
 GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
 GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
+GGROUP = HERE / 'fixtures' / 'graphs' / 'graph_nodelet_group.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -154,6 +155,19 @@ class RuntimeTests(unittest.TestCase):
         self.assertTrue(assembly.ready())
         assembly.stop()
         self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
+
+    def test_nodelet_group_command_renders_manager_and_loaders(self):
+        plan, catalog = plan_for(GGROUP)
+        group = plan['instances'][0]
+        command, marker = runtime.default_command(
+            group, catalog['components'][group['component']])
+        self.assertEqual(command[0], 'roslaunch')
+        text = Path(command[1]).read_text()
+        self.assertIn('name="v8_group_mgr" args="manager"', text)
+        self.assertIn('load nodelet_tutorial_math/Plus v8_group_mgr --no-bond', text)
+        self.assertIn('<param name="value" value="2.5"/>', text)
+        self.assertIsNone(marker)
+        Path(command[1]).unlink()
 
     def test_nav2d_graph_passes_planner_args_to_real_include(self):
         plan, catalog = plan_for(G2D_STACK)

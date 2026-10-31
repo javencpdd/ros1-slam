@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -17,6 +18,7 @@ import orchestrator as orch  # noqa: E402
 from process_runner import ProcessRunner  # noqa: E402
 
 import safety
+import render
 from config import FrameworkError  # noqa: E402
 
 
@@ -44,6 +46,17 @@ def default_command(instance, component):
     """Return (argv, ready_marker) for a plan instance."""
     spec = component['launch']
     namespace = instance.get('namespace')
+    if spec['kind'] == 'nodelet_group':
+        lines = ['<?xml version="1.0"?>', '<launch>']
+        lines.extend(render.nodelet_group_lines(
+            instance['id'], spec, namespace, instance.get('params', {})))
+        lines.extend(['</launch>', ''])
+        handle = tempfile.NamedTemporaryFile(
+            'w', prefix='v8_nodelet_group_', suffix='.launch', delete=False,
+            encoding='utf-8')
+        handle.write('\n'.join(lines))
+        handle.close()
+        return ['roslaunch', handle.name], spec.get('ready_marker')
     if spec['kind'] == 'include':
         if namespace:
             raise FrameworkError('E_RUNTIME_NAMESPACE',

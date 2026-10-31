@@ -119,7 +119,7 @@ def _launch_spec(raw, cid):
     if not isinstance(raw, dict):
         raise FrameworkError('E_CFG_LAUNCH', '%s launch must be a mapping' % cid)
     kind = raw.get('kind', 'node')
-    if kind not in ('node', 'include', 'plugin'):
+    if kind not in ('node', 'include', 'plugin', 'nodelet_group'):
         raise FrameworkError('E_CFG_LAUNCH_KIND', '%s kind=%r' % (cid, kind))
     package = raw.get('package')
     if not isinstance(package, str) or not package:
@@ -168,6 +168,43 @@ def _launch_spec(raw, cid):
                                  '%s plugin only takes type/remap' % cid)
         spec['plugin'] = plugin_type
         spec['remap'] = _launch_remap(raw, cid)
+    elif kind == 'nodelet_group':
+        if package != 'nodelet':
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s nodelet_group host package must be nodelet' % cid)
+        if any(key in raw for key in ('launch_file', 'type', 'param_files',
+                                      'args', 'remap')):
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s nodelet_group takes manager/plugins only' % cid)
+        manager = raw.get('manager', '')
+        if manager and (not isinstance(manager, str)
+                        or not re.match(r'^[A-Za-z][A-Za-z0-9_]*$', manager)):
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s manager must be a ROS name' % cid)
+        plugins = raw.get('plugins')
+        if not isinstance(plugins, list) or not plugins:
+            raise FrameworkError('E_CFG_LAUNCH',
+                                 '%s plugins must be a non-empty list' % cid)
+        clean = []
+        for item in plugins:
+            if not isinstance(item, dict) or set(item) - {'type', 'name', 'params'}:
+                raise FrameworkError('E_CFG_LAUNCH', '%s bad plugin entry' % cid)
+            plugin_type = item.get('type')
+            parts = plugin_type.split('/') if isinstance(plugin_type, str) else []
+            if len(parts) != 2 or not all(parts):
+                raise FrameworkError('E_CFG_LAUNCH',
+                                     '%s plugin type must be pkg/Class' % cid)
+            name = item.get('name', parts[1])
+            if not isinstance(name, str) or not re.match(r'^[A-Za-z][A-Za-z0-9_]*$', name):
+                raise FrameworkError('E_CFG_LAUNCH',
+                                     '%s plugin name must be a ROS name' % cid)
+            params = item.get('params', {})
+            if not isinstance(params, dict):
+                raise FrameworkError('E_CFG_LAUNCH',
+                                     '%s plugin params must be a mapping' % cid)
+            clean.append({'type': plugin_type, 'name': name, 'params': params})
+        spec['manager'] = manager
+        spec['plugins'] = clean
     else:
         launch_file = raw.get('launch_file')
         if not isinstance(launch_file, str) or not launch_file.endswith('.launch'):

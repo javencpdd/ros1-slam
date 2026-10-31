@@ -24,6 +24,7 @@ G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G3D = HERE / 'fixtures' / 'graphs' / 'graph_3d_cache.yaml'
 GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
 GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
+GGROUP = HERE / 'fixtures' / 'graphs' / 'graph_nodelet_group.yaml'
 G2D_STACKS = [
     ('graph_2d_stack_gp_dwa.yaml', 'global_planner/GlobalPlanner',
      'dwa_local_planner/DWAPlannerROS'),
@@ -266,7 +267,29 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (21, 12, 9))
+                         (22, 13, 9))
+
+    def test_nodelet_group_launch_spec_and_render(self):
+        catalog, value = load_pair(GGROUP)
+        spec = catalog['components']['v8.fw.nodelet_group_plus']['launch']
+        self.assertEqual((spec['kind'], spec['manager']), ('nodelet_group', 'v8_group_mgr'))
+        self.assertEqual(spec['plugins'][0]['type'], 'nodelet_tutorial_math/Plus')
+        report = graph_mod.check(value, catalog)
+        root = ET.fromstring(render.render_launch(value, catalog, report))
+        nodes = {node.get('name'): node for node in root.findall('node')}
+        self.assertEqual(nodes['v8_group_mgr'].get('args'), 'manager')
+        plus = nodes['plus']
+        self.assertEqual(plus.get('args'), 'load nodelet_tutorial_math/Plus v8_group_mgr --no-bond')
+        self.assertEqual(plus.get('ns'), '/v8_group')
+        params = {item.get('name'): item.get('value') for item in plus.findall('param')}
+        self.assertEqual(params['value'], '2.5')
+        index = launch_mod.load_index(INDEX)
+        launch_mod.check_components(catalog, index)
+        broken = copy.deepcopy(index)
+        broken['nodelet_tutorial_math']['plugin_classes'] = []
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, broken)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_TYPE')
 
     def test_semantic_provider_graph_has_no_command_owner(self):
         catalog, value = load_pair(GSEMANTIC)
@@ -370,7 +393,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 12)
+        self.assertEqual(payload['launch']['real'], 13)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'
