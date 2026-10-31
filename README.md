@@ -34,7 +34,7 @@
 | 状态 | 内容 |
 | --- | --- |
 | **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016）、hdl nodelet_group 真实装载（R1017）、命令链安全 hold 门（R1020）、MapDelta 回接版本地图（R1022）、规划器消费版本地图并随更新重规划到达（R1023/R1024）、原生三维规划器入 v2 图与实例配置真实下发（R1025）、语义地图转支撑面并驱动规划（R1026）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
-| **未实现/未接** | 语义地图的障碍/标签消费者（支撑面消费者已 R1026）、定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已用 nodelet_group 真实装载两 nodelet（R1017），但喂入 Gazebo 点云/IMU 后 45 s 内无 `/odom`（R1018），传感器输入下的定位、`/leg_odom2` 与 M2-R2C 未验证；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、旧 graph_3d_cache 内 cache/merge 仍替身（新 graph_map_cache_ros 为真实）、命令/定位链零中断热替换（命令链安全 hold 已 R1020）、#151 停车预算 |
+| **未实现/未接** | 语义地图的障碍/标签消费者（支撑面消费者已 R1026）、定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已用 nodelet_group 真实装载两 nodelet（R1017）；R1027 确认需 source 已构建工作区、/globalmap 与点云回调可达，但 NDT 配准无输出、部分运行在 Eigen LU 处 -11，`/odom` 仍 0（R1018/R1027），传感器输入下的定位、`/leg_odom2` 与 M2-R2C 未验证；faster_lio 仍 include；LIO/3D 未 v2 化）、M20/真机 S5、旧 graph_3d_cache 内 cache/merge 仍替身（新 graph_map_cache_ros 为真实）、命令/定位链零中断热替换（命令链安全 hold 已 R1020）、#151 停车预算 |
 | **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链、边界 500 Hz 满速/长时标定、MapDelta 多 map_id/跨机持久化、selector 组合级校验；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
@@ -145,6 +145,7 @@ bash scripts/verify/run_gate_chain.sh
 - ★R979（2026-10-31）★＝新增「一·五、框架要达成的目标」：四层解耦、五项能力、
   已实现/未实现/开发中三态表；明确“机制层已成形、真实算法 v2 化与真实 launch 未闭环”；
   同步官网 `#framework` 页。A1—A7 状态不变。
+- ★R1027（2026-10-31）★＝**hdl 定位诊断（负结果）**：不 source 已构建工作区时 nodelet load 退出 255；source 后两 nodelet 在位、/globalmap 5 808 点、点云/IMU 与回调均通、参数已下发，但 lite3/m1 合成图、IMU 开关、DIRECT1/7、NDT 0.5/1.0/2.0 m 与临时重建全部 `odom_frames=0`；部分运行 -11，core RIP 在 `libhdl_localization_nodelet.so+0x487da`（Eigen PartialPivLU::compute）。未改第三方；全树 **65/0**（代码 `ba64afaf`，全文＝[R1027](note/进度/v8/M5/26-10-29/R1027.md)）。
 - ★R1026（2026-10-31）★＝**语义地图接入规划**：新增 `semantic_support_bridge`（role=support_surface 的 box → map.v1 支撑面，契约校验）、ROS 节点、`graph_semantic_planning`；语义 v1→支撑图 v1→mezz z=0.6 arrived，语义 v2→支撑图 v2→z=0.8 arrived，changed=true。bridge 5/5、preflight 7/7、全树 **65/0**（代码 `1f4661b5`，全文＝[R1026](note/进度/v8/M5/26-10-29/R1026.md)）。
 - ★R1025（2026-10-31）★＝**原生三维规划器入 v2 图**：新增 `v8.fw.local_native`、`graph_local_native` 与实例 YAML；运行面改由 `param_exec` 预载配置后再 exec `rosrun`，配置 `wall_watchdog_s=7.5` 真实生效、mezz z=0.6 arrived。F7 对无三维仲裁器的 Assembly 返回 `E_SAFETY_ADVICE`，未绕过。framework 29/29、runtime 13/13、preflight 6/6、全树 **64/0**（代码 `647428fa`，全文＝[R1025](note/进度/v8/M5/26-10-29/R1025.md)）。
 - ★R1024（2026-10-31）★＝**地图更新驱动重规划到达**：冒烟补喂位姿/目标/障碍/

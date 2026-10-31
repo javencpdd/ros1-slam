@@ -1,0 +1,13 @@
+R1027 命令（2026-10-31 20:45—21:05 CST，qoder；hdl 定位诊断，负结果）
+# 环境前提：source /opt/ros/noetic/setup.bash 与 /opt/ros1-slam/ws/devel/setup.bash，
+#   ROS_PACKAGE_PATH=/repo/ws/src；否则 hdl nodelet load 退出 255（插件库不在路径）。
+# 容器 v8codex-20261028；每个变体独立 roscore 端口；Gazebo m1（gui:=false）。
+cd /repo/ws/src/90_platform/v8_platform/framework
+V8_HDL_PCD=<pcd> [V8_HDL_USE_IMU=0] [V8_HDL_SEARCH=DIRECT7] [V8_HDL_NDT_RES=<m>] \
+  python3 -B hdl_sensor_smoke.py
+# 变体读数见 variants.json；canonical 三份：smoke_lite3.json、smoke_m1.json、
+#   smoke_fresh_build.json（均 odom_frames=0）。
+# core 分析见 core_analysis.txt：RIP=libhdl_localization_nodelet.so+0x487da，
+#   addr2line=Eigen::PartialPivLU<MatrixXf>::compute()。
+# 全树：find . -name 'test_*.py' 共 65 件逐一跑，SUITES=65 FAIL=0。
+# 边界：不改第三方；hdl 定位仍未验证；A1—A7 不变。

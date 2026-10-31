@@ -1,0 +1,16 @@
+R1027 hdl 崩溃核心分析（容器 v8codex-20261028，core 由 smoke 进程组产生）
+# 分析对象：/tmp/r1018_ros/core.96040（2026-10-31 12:56 CST，NDT_OMP DIRECT7 0.5）
+# 方法：readelf -n 解析 NT_PRSTATUS/NT_FILE，读 pr_reg.rip；按 NT_FILE 映射定位模块；
+#       addr2line -e <模块> <模块内偏移>。
+# 读数：
+#   RIP = 0x74d65779c7b0
+#   模块 = /opt/ros1-slam/ws/devel/lib/libhdl_localization_nodelet.so
+#   模块内偏移 = 0x487da
+#   addr2line = Eigen::PartialPivLU<Eigen::Matrix<float, -1, -1, 0, -1, -1>>::compute()
+#   （栈扫描同时命中 UnscentedKalmanFilterX<PoseSystem>::correct 与 triangular_solve_matrix）
+# 边界：内核为静态链接 pclomp NDT 的同一 .so；该符号既是 UKF 协方差求逆、也可能被 NDT
+#   内部求解使用，无法只凭符号把两处分开 ⇒ 本批只记「Eigen 动态 LU 求逆处崩溃」，
+#   不裁定是 NDT 还是 UKF 的哪一次调用；不修改第三方源码。
+# 同窗口内 smoke 的 canonical 复跑（lite3 / m1 synth / fresh build）manager_alive=true、
+# 仍 0 /odom；崩溃为非确定性（部分运行留 -11 core，部分运行存活但无输出）。
+# 核心文件在分析后已删除（每枚 0.7—2.6 GB，属本会话产生的 /tmp 临时产物）。

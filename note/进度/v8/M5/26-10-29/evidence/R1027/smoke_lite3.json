@@ -1,0 +1,30 @@
+{
+ "startup_order": [
+  "hdl"
+ ],
+ "hdl_params": {
+  "reg_method": "NDT_OMP",
+  "ndt_neighbor_search_method": "DIRECT1",
+  "ndt_resolution": 2.0,
+  "use_imu": true
+ },
+ "sensor": {
+  "cloud_points": 640000,
+  "cloud_frame": "rslidar",
+  "imu_frame": "rslidar"
+ },
+ "started": true,
+ "nodelets": [
+  "/v8/hdl/globalmap_server_nodelet",
+  "/v8/hdl/hdl_localization_nodelet"
+ ],
+ "counts": {
+  "cloud": 202,
+  "imu": 4093
+ },
+ "odom_frames": 0,
+ "manager_alive": true,
+ "manager_crashed": false,
+ "stopped": true,
+ "ok": false
+}

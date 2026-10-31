@@ -1,0 +1,107 @@
+{
+ "variants": [
+  {
+   "id": "lite3",
+   "lib": "prebuilt /opt/ros1-slam/ws",
+   "pcd": "lite3.pcd",
+   "reg": "NDT_OMP",
+   "search": "DIRECT1",
+   "res": 2.0,
+   "use_imu": true,
+   "odom": 0,
+   "manager_alive": true,
+   "source": "smoke_lite3.json"
+  },
+  {
+   "id": "m1_synth",
+   "lib": "prebuilt /opt/ros1-slam/ws",
+   "pcd": "m1_world_synth_v1.pcd",
+   "reg": "NDT_OMP",
+   "search": "DIRECT1",
+   "res": 2.0,
+   "use_imu": true,
+   "odom": 0,
+   "manager_alive": true,
+   "source": "smoke_m1.json"
+  },
+  {
+   "id": "m1_no_imu",
+   "lib": "prebuilt /opt/ros1-slam/ws",
+   "pcd": "m1_world_synth_v1.pcd",
+   "reg": "NDT_OMP",
+   "search": "DIRECT1",
+   "res": 2.0,
+   "use_imu": false,
+   "odom": 0,
+   "manager_alive": true,
+   "source": "terminal run"
+  },
+  {
+   "id": "m1_direct7_1m",
+   "lib": "prebuilt /opt/ros1-slam/ws",
+   "pcd": "m1_world_synth_v1.pcd",
+   "reg": "NDT_OMP",
+   "search": "DIRECT7",
+   "res": 1.0,
+   "use_imu": false,
+   "odom": 0,
+   "manager_alive": false,
+   "note": "roslaunch reported manager exit -11",
+   "source": "terminal run"
+  },
+  {
+   "id": "m1_direct7_05m",
+   "lib": "prebuilt /opt/ros1-slam/ws",
+   "pcd": "m1_world_synth_v1.pcd",
+   "reg": "NDT_OMP",
+   "search": "DIRECT7",
+   "res": 0.5,
+   "use_imu": false,
+   "odom": 0,
+   "manager_alive": false,
+   "note": "roslaunch reported manager exit -11; core.96040 analyzed",
+   "source": "terminal run"
+  },
+  {
+   "id": "fresh_build",
+   "lib": "temp rebuild /tmp/hdl_ws",
+   "pcd": "m1_world_synth_v1.pcd",
+   "reg": "NDT_OMP",
+   "search": "DIRECT1",
+   "res": 2.0,
+   "use_imu": false,
+   "odom": 0,
+   "manager_alive": true,
+   "source": "smoke_fresh_build.json"
+  },
+  {
+   "id": "map_derived_cloud",
+   "lib": "prebuilt /opt/ros1-slam/ws",
+   "pcd": "m1_world_synth_v1.pcd",
+   "cloud": "points baked from the same PCD, identity base_link",
+   "reg": "NDT_OMP",
+   "search": "DIRECT1",
+   "res": 2.0,
+   "use_imu": false,
+   "odom": 0,
+   "aligned": 0,
+   "manager_alive": true,
+   "source": "terminal probe"
+  }
+ ],
+ "common": {
+  "nodelets": [
+   "/v8/hdl/globalmap_server_nodelet",
+   "/v8/hdl/hdl_localization_nodelet"
+  ],
+  "globalmap_m1_synth_points": 5808,
+  "cloud_points_gazebo": 20000,
+  "manager_crash_core": {
+   "module": "libhdl_localization_nodelet.so",
+   "offset": "0x487da",
+   "symbol": "Eigen::PartialPivLU<MatrixXf>::compute()"
+  }
+ },
+ "finding": "hdl nodelets only load with the built workspace sourced; sensors and globalmap reach the nodelets and point callbacks run, but registration never yields /odom in any variant; some runs die with SIGSEGV in an Eigen dynamic LU solve. Sensor feed, TF, params and map load are ruled out; the remaining blocker is inside hdl/pclomp NDT registration, not the framework graph.",
+ "boundary": "third-party code stays unchanged; no blind patch. A matched dense map plus NDT tuning or a different localization backend is needed before hdl can be declared verified. A1-A7 remain NOT_VALIDATED."
+}
