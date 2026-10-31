@@ -140,6 +140,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--xml', default='/tmp/mjcf/Lite3.xml')
     parser.add_argument('--policy', default='/tmp/new_policy.onnx')
+    parser.add_argument('--bridge45', action='store_true')
     parser.add_argument('--out', required=True)
     parser.add_argument('--max-speed', type=float, default=.3)
     parser.add_argument('--start-map-y', type=float, default=-2.175)
@@ -180,6 +181,7 @@ def main():
                              'inject_map_y': args.inject_map_y,
                              'goal_y': args.goal_y,
                              'speed_scale': args.speed_scale,
+              'bridge45': bool(args.bridge45),
                              'stop_hold_s': args.hold_s,
                              'stop_speed_limit_mps': args.speed_limit,
                              'stop_xy_limit_m': args.xy_limit,
@@ -194,7 +196,7 @@ def main():
         node_name = 'a5stop_%d' % os.getpid()
         prefix = '/' + node_name
         config = {'tick_s': 1.2, 'horizon_s': 12., 'validity_s': 12.,
-                  'clearance_m': .1, 'max_speed_mps': args.max_speed, 'resolution': .1}
+                  'clearance_m': .1, 'max_speed_mps': args.max_speed, 'resolution': .05}
         node_argv = [sys.executable, '-u', '-B', str(LOCAL / 'ros_node.py'),
                      '__name:=' + node_name,
                      '_map_json:=' + str(map_path),
@@ -206,11 +208,18 @@ def main():
                      '_status_topic:=' + prefix + '/status',
                      '_trajectory_topic:=' + prefix + '/trajectory',
                      '_experimental_config:=' + json.dumps(config)]
-        bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_bridge.py'),
-                       '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
-                       '--prefix', prefix, '--start-map-y', str(args.start_map_y),
-                       '--speed-scale', str(args.speed_scale), '--max-command', '.45',
-                       '--cmd-timeout', '.5', '--seed', str(args.seed)]
+        if args.bridge45:
+            bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_stop_bridge45.py'),
+                           '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
+                           '--prefix', prefix, '--start-map-y', str(args.start_map_y),
+                           '--speed-scale', str(args.speed_scale), '--max-command', '.4',
+                           '--cmd-timeout', '.5', '--initial-z', '.35', '--seed', str(args.seed)]
+        else:
+            bridge_argv = [sys.executable, '-u', '-B', str(DYNAMICS / 'a5_v8x1_bridge.py'),
+                           '--map', str(map_path), '--xml', args.xml, '--policy', args.policy,
+                           '--prefix', prefix, '--start-map-y', str(args.start_map_y),
+                           '--speed-scale', str(args.speed_scale), '--max-command', '.45',
+                           '--cmd-timeout', '.5', '--seed', str(args.seed)]
         node = start(node_argv, node_log.open('ab'), cwd=str(LOCAL),
                      env=dict(os.environ, PYTHONPATH=str(DYNAMICS) + ':' +
                               str(HERE.parent / 'planner') + ':' +
