@@ -1,0 +1,60 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.pose_mux",
+ "version": "0.1.0",
+ "roles": [
+  "middleware"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "local_planner/pose_mux_node.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "pose_a",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/local/pose_in_a"
+   },
+   {
+    "name": "pose_b",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/local/pose_in_b"
+   },
+   {
+    "name": "select",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/pose_select"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "pose",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/local/pose"
+   },
+   {
+    "name": "status",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/pose_mux/status"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

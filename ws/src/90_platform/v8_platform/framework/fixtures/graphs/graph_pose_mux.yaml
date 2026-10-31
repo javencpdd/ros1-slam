@@ -1,0 +1,9 @@
+schema: pipeline_graph/v1
+name: pose_mux
+instances:
+  - id: mux
+    component: v8.fw.pose_mux
+external:
+  - {to: mux.pose_a, type: geometry_msgs/PoseStamped, source: localization_a}
+  - {to: mux.pose_b, type: geometry_msgs/PoseStamped, source: localization_b}
+  - {to: mux.select, type: std_msgs/String, source: supervisor}
