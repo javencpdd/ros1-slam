@@ -44,6 +44,10 @@ class MapRouter:
     def ids(self):
         return sorted(self.services)
 
+    def select(self, kind):
+        return [map_id for map_id, service in sorted(self.services.items())
+                if service.current.get('kind') == kind]
+
     def apply(self, delta):
         if not isinstance(delta, dict):
             raise svc.MapServiceError('E_DELTA_INVALID', 'delta must be an object')
@@ -61,14 +65,15 @@ class MapRouter:
 
     def snapshot(self, map_id):
         service = self.service(map_id)
-        return {'ok': True, 'map_id': map_id,
+        return {'ok': True, 'map_id': map_id, 'kind': service.current.get('kind'),
                 'map_version': service.current['map_version'],
                 'digest': svc.content_digest(service.current, service.evidence),
                 'map': service.current,
                 'evidence': service.evidence_summary()}
 
     def status(self):
-        return {map_id: {'map_version': service.current['map_version'],
+        return {map_id: {'kind': service.current.get('kind'),
+                         'map_version': service.current['map_version'],
                          'history': [list(row) for row in service.history],
                          'applied_deltas': len(service.applied_deltas)}
                 for map_id, service in sorted(self.services.items())}

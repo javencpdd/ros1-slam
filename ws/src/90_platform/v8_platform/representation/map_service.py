@@ -143,6 +143,8 @@ class MapService:
     def evidence_summary(self):
         """按支撑面足迹统计证据（缺证＝unknown；服务无证据层时如实报无）。"""
         self._require_current()
+        if 'surfaces' not in self.current:
+            return {'state': 'not_applicable', 'kind': self.current.get('kind')}
         if self.evidence is None:
             return {'state': 'no_evidence_layer'}
         summary = []
@@ -174,6 +176,10 @@ class MapService:
     def propose_delta(self, delta):
         """Apply a base-version delta atomically; replay returns the current version."""
         self._require_current()
+        if self.current.get('kind') != 'support_map':
+            raise MapServiceError('E_MAPSERVICE_UPDATE_SCHEMA',
+                                  'delta only applies to support_map, got %r'
+                                  % self.current.get('kind'))
         try:
             contract.validate('map_delta', delta)
         except contract.ContractError as error:
@@ -342,6 +348,7 @@ class MapService:
     # -- 净空查询 API（对当前版本）--
     def clearance_at(self, x, y, z):
         self._require_current()
+        self._require_support()
         column = rep.column_at(self.current, x, y)
         if not column.heights():
             return None
@@ -350,6 +357,7 @@ class MapService:
     def clearance_profile(self, x, y):
         """该 XY 列的全部 (高度, 上方净距)；开顶层净距＝None。"""
         self._require_current()
+        self._require_support()
         column = rep.column_at(self.current, x, y)
         if not column.heights():
             return []
@@ -358,6 +366,7 @@ class MapService:
     def query(self, x, y, z):
         """支撑、净空和观测证据是独立字段；支撑面存在不等于观测为 free。"""
         self._require_current()
+        self._require_support()
         column = rep.column_at(self.current, x, y)
         sid = column.surface_at(z)
         surfaces = {surface['surface_id']: surface for surface in self.current['surfaces']}
@@ -376,6 +385,12 @@ class MapService:
     def _require_current(self):
         if self.current is None:
             raise MapServiceError('E_MAPSERVICE_NOT_PUBLISHED', self.map_id)
+
+    def _require_support(self):
+        if 'surfaces' not in self.current:
+            raise MapServiceError('E_MAPSERVICE_UNSUPPORTED_KIND',
+                                  'expected support_map, got %r'
+                                  % self.current.get('kind'))
 
     @staticmethod
     def _validate(value):
