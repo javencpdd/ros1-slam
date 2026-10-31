@@ -1,0 +1,26 @@
+schema: pipeline_graph/v1
+name: semantic_planning
+instances:
+  - id: semantic
+    component: v8.fw.semantic_provider_support
+    params:
+      semantic_files: framework/fixtures/maps/sem_support.json
+      keep_alive_s: 90
+  - id: bridge
+    component: v8.fw.semantic_bridge
+    params:
+      semantic_topic: /v8/semantics/sem_support
+      support_map_topic: /v8/support_map_sem
+      status_topic: /v8/support_map_sem/status
+      resolution: 0.1
+  - id: local
+    component: v8.fw.local_native
+    config: ../configs/local_native_sem.yaml
+edges:
+  - {from: semantic.map, to: bridge.semantic_map}
+  - {from: bridge.map, to: local.map}
+external:
+  - {to: local.pose, type: geometry_msgs/PoseStamped, source: localization}
+  - {to: local.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.obstacles, type: std_msgs/String, source: perception}
+  - {to: local.localization, type: std_msgs/Bool, source: localization}

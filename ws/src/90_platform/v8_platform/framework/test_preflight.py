@@ -18,6 +18,7 @@ MANIFESTS = HERE / 'fixtures' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 G2D_CONFIG = HERE / 'fixtures' / 'graphs' / 'graph_2d_config.yaml'
 G_LOCAL_NATIVE = HERE / 'fixtures' / 'graphs' / 'graph_local_native.yaml'
+G_SEMANTIC_PLAN = HERE / 'fixtures' / 'graphs' / 'graph_semantic_planning.yaml'
 
 
 def setup():
@@ -122,6 +123,20 @@ class PreflightTests(unittest.TestCase):
         loads = [item.get('file') for item in node.findall('rosparam')]
         self.assertTrue(any(item.endswith('configs/local_native.yaml') for item in loads))
         self.assertEqual(report['bindings']['local']['map']['schema'], 'support_map/v1')
+
+    def test_semantic_planning_graph_wires_the_bridge(self):
+        catalog = config.load_components(MANIFESTS)
+        graph = config.load_graph(G_SEMANTIC_PLAN)
+        report = graph_mod.check(graph, catalog)
+        self.assertEqual(report['startup_order'], ['semantic', 'bridge', 'local'])
+        self.assertEqual(report['command_writers'], {'/v8/local/cmd_vel_3d': 'local'})
+        self.assertEqual(report['bindings']['bridge']['semantic_map']['from'], 'semantic.map')
+        self.assertIn('map_topic', report['configs']['local']['keys'])
+        root = ET.fromstring(render.render_launch(graph, catalog, report))
+        types = sorted(node.get('type') for node in root.findall('node'))
+        self.assertEqual(types, ['local_planner/ros_node.py',
+                                 'representation/semantic_map_node.py',
+                                 'representation/semantic_support_bridge_node.py'])
 
 
 if __name__ == '__main__':

@@ -1,0 +1,34 @@
+{
+ "schema": "semantic_map/v1",
+ "map_id": "sem_support",
+ "map_version": 1,
+ "frame": "map",
+ "features": [
+  {
+   "id": "ground",
+   "kind": "floor",
+   "geometry": {"type": "box", "min": [-5.0, -5.0, -0.05], "max": [5.0, 5.0, 0.0]},
+   "attributes": {
+    "role": "support_surface",
+    "traversability": "supported",
+    "edges": [{"to": "mezz", "kind": "step", "max_step_height_m": 0.7, "bidirectional": true}]
+   }
+  },
+  {
+   "id": "mezz",
+   "kind": "platform",
+   "geometry": {"type": "box", "min": [2.0, 1.0, 0.55], "max": [4.0, 3.0, 0.6]},
+   "attributes": {
+    "role": "support_surface",
+    "traversability": "supported",
+    "edges": [{"to": "ground", "kind": "step", "max_step_height_m": 0.7, "bidirectional": true}]
+   }
+  },
+  {
+   "id": "entry",
+   "kind": "point",
+   "geometry": {"type": "point", "point": [3.0, 2.0, 0.6]},
+   "attributes": {"source": "fixture"}
+  }
+ ]
+}
