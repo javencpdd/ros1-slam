@@ -1,0 +1,66 @@
+{
+ "experiment": "live Gazebo /rslidar_points -> hdl_global_localization BBS query",
+ "rows": [
+  {
+   "resolution": null,
+   "candidates": 1,
+   "top_pose": [
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.01666666567325592,
+    0.9998611211776733
+   ],
+   "truth_xy": [
+    1.1675510251623227e-12,
+    2.41201966042213e-12
+   ],
+   "xy_error_m": 0.49999999999883243,
+   "service_error": 24.800000369548798
+  },
+  {
+   "resolution": 0.2,
+   "candidates": 1,
+   "top_pose": [
+    0.0,
+    -0.20000000298023224,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "truth_xy": [
+    1.0932153329873622e-12,
+    2.411715678133689e-12
+   ],
+   "xy_error_m": 0.20000000298264395,
+   "service_error": 10.000000149011612
+  },
+  {
+   "resolution": 0.1,
+   "candidates": 1,
+   "top_pose": [
+    4.0,
+    -0.10000000149011612,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "truth_xy": [
+    0.0,
+    0.0
+   ],
+   "xy_error_m": 4.001249804785752,
+   "service_error": 6.800000101327896
+  }
+ ],
+ "result": "live query returns candidates, but the top candidate can be wrong: .5m at res .5, .2m at res .2, 4.0m at res .1; service error does not rank correctness",
+ "conclusion": "configuration/path/height band are not blockers; candidate validation/rescoring and a GT post-hoc gate are the real A6 gap",
+ "limits": "single static pose, one scan, no hdl /relocalize integration, no lease/recovery live, no real robot",
+ "tests": "v8 full tree 71/71; A6 still PARTIAL"
+}

@@ -1,0 +1,10 @@
+R1075 命令（2026-11-01 07:05—07:20 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+for r in .5 .2 .1; do
+  python3 -B hdl_global_live_smoke.py --pcd /opt/ros1-slam/data/maps/m1_world_synth_v1.pcd \
+    --map-resolution $r --out /tmp/r1075_hdl_live_$r.json
+done
+# 真实 /rslidar_points 20000 点；m1 PCD；BBS map z .05-1.0、scan -.3-.3。
+# res .5 -> (0.5,0,0) 误差 .5；res .2 -> (0,-.2,0) 误差 .2；
+# res .1 -> (4.0,-.1,0) 误差 4.0（服务 error 6.8 更低，候选落错盆地）。
