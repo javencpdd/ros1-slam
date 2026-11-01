@@ -1,0 +1,20 @@
+R1093 命令（2026-11-01 18:42—18:49 CST，qoder；容器 ros1-slam-sim）
+# 代码 b38d1198（只补 run_config resolution_m）。资产 /tmp/policy45.onnx
+# efa6581d…57c7、/tmp/mjcf/Lite3.xml 9f2fb022…988fa；numpy 1.24.4 /
+# onnxruntime 1.16.3 / mujoco 2.3.7。
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+# 0.2 m/s × 3 起点 × 3 注入位置，每格独立 ROS master 11751—11759：
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+  python3 -u -B a5_v8x1_stop_smoke.py \
+  --out /tmp/r1093_02matrix/rNN.json --max-speed 0.2 --resolution 0.10 \
+  --start-map-y < -2.175 | -1.900 | -1.600 > \
+  --inject-map-y < -0.22 | -0.20 | -0.18 > \
+  --bridge45 --policy /tmp/policy45.onnx \
+  --wall-deadline-s 90 --out-dir /tmp/r1093_02matrix --port <11751—11759>
+
+# 9/9 PASS；stop 全 .5 s，path max .049655 m，peak .030569 m，gap min .675064 m；
+# 触发前 .5 s 均速 .0919—.1757 m/s（不是稳定 .2）。
+# 测试：test_a5_v8x1_stop_smoke 4/4；v8 全树 73/73 文件 0 失败。
+# formal 两键仍 pending：缺真机、多 seed、0.2 同批 kinematic 负控、正式签署。
