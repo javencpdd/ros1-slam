@@ -45,6 +45,14 @@ class KinematicCarrierTests(unittest.TestCase):
         self.assertEqual(carrier.integrate((1., 2., 3.), .4, (0., 0., 0., 0.), 1.),
                          (1., 2., 3., .4))
 
+    def test_support_snap_clamps_to_declared_surface(self):
+        surfaces = [{'traversability': 'supported', 'z_reference': .198798,
+                     'footprint': {'min_x': -1.7, 'max_x': 1.7,
+                                   'min_y': -1.7, 'max_y': -.98}}]
+        self.assertEqual(carrier.snap_support(0., -1.4, .19923, surfaces), .198798)
+        self.assertEqual(carrier.snap_support(0., -1.4, .24, surfaces), .24)
+        self.assertEqual(carrier.snap_support(0., -2.2, .19923, surfaces), .19923)
+
 
 if __name__ == '__main__':
     unittest.main()

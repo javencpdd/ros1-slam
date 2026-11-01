@@ -80,7 +80,9 @@ instances:
       start_z: 0.6
       yaw: 0.0
       rate_hz: 50.0
+      snap_m: 0.03
       cmd_topic: /cmd_vel
+      map_topic: /v8_support_map
       pose_topic: /v8/local/pose
       localization_topic: /v8/local/localization_ok
       status_topic: /v8/3d/carrier/status
@@ -91,6 +93,7 @@ edges:
   - {from: relay.json, to: provider.delta}
   - {from: provider.map, to: global.map}
   - {from: provider.map, to: local.map}
+  - {from: provider.map, to: carrier.map}
   - {from: global.path, to: path_goal.path}
   - {from: path_goal.goal, to: local.goal}
   - {from: carrier.pose, to: local.pose, feedback: true,

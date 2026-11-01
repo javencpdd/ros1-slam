@@ -3,6 +3,8 @@
 
 No physics/contact.  It is a deterministic test carrier that lets the 3D
 global/local graph close through Assembly; it is not a robot or Gazebo model.
+When a declared support is within snap_m, z is clamped to that surface so the
+planar support resolver sees exactly one matching layer.
 """
 import json
 import math
@@ -17,6 +19,22 @@ def integrate(position, yaw, velocity, dt):
     return (x + vx * dt, y + vy * dt, z + vz * dt, yaw + wz * dt)
 
 
+def snap_support(x, y, z, surfaces, snap_m=.03):
+    """Clamp z to the highest declared support within snap_m of (x,y,z)."""
+    candidates = []
+    for surface in surfaces or []:
+        if surface.get('traversability') != 'supported':
+            continue
+        box = surface.get('footprint') or {}
+        if not (box.get('min_x', 0.) <= x <= box.get('max_x', 0.)
+                and box.get('min_y', 0.) <= y <= box.get('max_y', 0.)):
+            continue
+        level = float(surface.get('z_reference', 0.))
+        if abs(z - level) <= snap_m:
+            candidates.append(level)
+    return max(candidates) if candidates else z
+
+
 def main():
     import rospy
     from geometry_msgs.msg import PoseStamped, Twist
@@ -29,12 +47,15 @@ def main():
     yaw = float(rospy.get_param('~yaw', 0.))
     rate = float(rospy.get_param('~rate_hz', 50.))
     timeout_s = float(rospy.get_param('~timeout_s', .4))
+    snap_m = float(rospy.get_param('~snap_m', .03))
     cmd_topic = rospy.get_param('~cmd_topic', '/cmd_vel')
+    map_topic = rospy.get_param('~map_topic', '/v8_support_map')
     pose_topic = rospy.get_param('~pose_topic', '/v8/local/pose')
     localization_topic = rospy.get_param('~localization_topic', '/v8/local/localization_ok')
     status_topic = rospy.get_param('~status_topic', '/v8/3d/carrier/status')
     lock = threading.Lock()
     received = {'at': None, 'velocity': (0., 0., 0., 0.)}
+    surfaces = {'value': []}
     pose_pub = rospy.Publisher(pose_topic, PoseStamped, queue_size=20)
     localization_pub = rospy.Publisher(localization_topic, Bool, queue_size=20)
     status_pub = rospy.Publisher(status_topic, String, queue_size=20)
@@ -45,7 +66,17 @@ def main():
                                     message.linear.z, message.angular.z)
             received['at'] = time.monotonic()
 
+    def on_map(message):
+        try:
+            value = json.loads(message.data)
+            if isinstance(value, dict) and 'map' in value:
+                value = value['map']
+            surfaces['value'] = value.get('surfaces', [])
+        except (ValueError, TypeError):
+            pass
+
     rospy.Subscriber(cmd_topic, Twist, on_cmd, queue_size=20)
+    rospy.Subscriber(map_topic, String, on_map, queue_size=5)
     position, last = start[:], time.monotonic()
     try:
         while not rospy.is_shutdown():
@@ -61,6 +92,9 @@ def main():
                 applied = (0., 0., 0., 0.)
             position = list(integrate(position, yaw, applied, dt)[:3])
             yaw += applied[3] * dt
+            snapped = snap_support(position[0], position[1], position[2],
+                                   surfaces['value'], snap_m)
+            position[2] = snapped
             message = PoseStamped()
             message.header.frame_id = 'map'
             message.header.stamp = rospy.Time.now()
@@ -71,7 +105,7 @@ def main():
             localization_pub.publish(Bool(data=True))
             status_pub.publish(String(data=json.dumps({
                 'xyz': position, 'yaw': yaw, 'velocity': list(applied),
-                'stale': stale, 'mode': 'kinematic3d'})))
+                'stale': stale, 'snapped_z': position[2], 'mode': 'kinematic3d'})))
             time.sleep(1. / rate)
     finally:
         pose_pub.unpublish()
@@ -79,3 +113,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
