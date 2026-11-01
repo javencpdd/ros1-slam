@@ -1,0 +1,334 @@
+{
+ "scope": "navigation_app_A_B_C_D_E",
+ "code_commit": "a529f0f0",
+ "app": {
+  "config": "ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml",
+  "name": "nist_sensor_3d",
+  "map": {
+   "entry": {
+    "map_id": "nist_sensor",
+    "version": 2,
+    "path": "data/maps/generated/nist_sensor_v2.json",
+    "frame": "map",
+    "surfaces": 6,
+    "sha256": "99ca6ad0f4d0b75ba36b4d50d18835079cb61b84859ad2cbcc871200bb61e228",
+    "label": "R1102 generated"
+   },
+   "path": "/opt/ros1-slam/data/maps/generated/nist_sensor_v2.json",
+   "sha256": "99ca6ad0f4d0b75ba36b4d50d18835079cb61b84859ad2cbcc871200bb61e228"
+  },
+  "task_resolved": {
+   "schema_version": 1,
+   "task_id": "nist_sensor_top",
+   "map": {
+    "map_id": "nist_sensor",
+    "map_version": 2
+   },
+   "frame": "map",
+   "goal_reference": "support_surface",
+   "start": {
+    "xyz": [
+     0.0,
+     -3.06,
+     -1e-06
+    ],
+    "yaw": 0
+   },
+   "goal": {
+    "xyz": [
+     0.0,
+     1.34,
+     0.888142
+    ],
+    "yaw": 0,
+    "tolerance": {
+     "position_m": 0.15,
+     "yaw_rad": 0.1,
+     "source": "operator"
+    },
+    "surface_hint": null,
+    "surface_disambiguation": "declared_search"
+   },
+   "timeout": {
+    "budget_s": 120,
+    "harness_deadline_s": 180,
+    "source": "operator"
+   },
+   "resolved": {
+    "start_surface": "m0",
+    "start_surface_z": -1e-06,
+    "goal_surface": "m5",
+    "goal_surface_z": 0.888142,
+    "goal_candidates": [
+     {
+      "surface_id": "m5",
+      "z_reference": 0.888142
+     }
+    ]
+   }
+  },
+  "graph": {
+   "path": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_gazebo_app.yaml",
+   "digest": "e03cc82c7f239e05ad62e82482828371dcfb1c510133de31b538e7227b8f13c1",
+   "startup_order": [
+    "map",
+    "global",
+    "path_goal",
+    "local",
+    "mux3d",
+    "carrier"
+   ],
+   "command_writers": {
+    "/cmd_vel": "mux3d",
+    "/v8/local/cmd_vel_3d": "local"
+   }
+  },
+  "dry_run_ok": true
+ },
+ "app_run": {
+  "ok": true,
+  "checks": {
+   "assembly_ready": true,
+   "map_configured": true,
+   "global_path": true,
+   "local_arrived": true,
+   "carrier_at_local_goal": true,
+   "markers_published": true
+  },
+  "path": {
+   "poses": 25,
+   "last": [
+    0.15,
+    1.35,
+    0.888142
+   ]
+  },
+  "local_trajectory": {
+   "map_version": 2,
+   "reason": "arrived",
+   "last": [
+    0.15,
+    1.35,
+    0.888142,
+    19.753999
+   ]
+  },
+  "carrier_final": [
+   0.05149277472227724,
+   1.2514934499551646,
+   0.888142
+  ],
+  "local_goal": [
+   0.15,
+   1.35,
+   0.888142
+  ],
+  "carrier_distance_to_local_goal_m": 0.139309776518562,
+  "carrier_distance_to_task_goal_m": 0.10239587515831951,
+  "carrier_z_error_m": 0.0,
+  "markers": 17,
+  "local_status_tail": [
+   {
+    "velocity": [
+     0.4242655228059925,
+     0.42426261461288073,
+     0.0
+    ],
+    "stop": false,
+    "complete": false,
+    "reason": "track",
+    "segment_target": [
+     0.15,
+     1.35,
+     0.888142
+    ],
+    "execution_checked_at": 17.453,
+    "clock": "ros_plan+wall_watchdog",
+    "wall_watchdog_s": 7.5,
+    "plan_ms": 4.942,
+    "detail": null,
+    "map_version": 2,
+    "plan_ms_max": 838.693,
+    "latched": false,
+    "capability_domain": "experimental_kinematic_carrier",
+    "plan_valid_until": 19.753999
+   },
+   {
+    "velocity": [
+     0.4242655228059926,
+     0.4242626146128806,
+     0.0
+    ],
+    "stop": false,
+    "complete": false,
+    "reason": "track",
+    "segment_target": [
+     0.15,
+     1.35,
+     0.888142
+    ],
+    "execution_checked_at": 17.474,
+    "clock": "ros_plan+wall_watchdog",
+    "wall_watchdog_s": 7.5,
+    "plan_ms": 4.942,
+    "detail": null,
+    "map_version": 2,
+    "plan_ms_max": 838.693,
+    "latched": false,
+    "capability_domain": "experimental_kinematic_carrier",
+    "plan_valid_until": 19.753999
+   },
+   {
+    "velocity": [
+     0.4242655228059925,
+     0.4242626146128808,
+     0.0
+    ],
+    "stop": false,
+    "complete": false,
+    "reason": "track",
+    "segment_target": [
+     0.15,
+     1.35,
+     0.888142
+    ],
+    "execution_checked_at": 17.495,
+    "clock": "ros_plan+wall_watchdog",
+    "wall_watchdog_s": 7.5,
+    "plan_ms": 4.942,
+    "detail": null,
+    "map_version": 2,
+    "plan_ms_max": 838.693,
+    "latched": false,
+    "capability_domain": "experimental_kinematic_carrier",
+    "plan_valid_until": 19.753999
+   },
+   {
+    "velocity": [
+     0.42426552280599233,
+     0.42426261461288095,
+     0.0
+    ],
+    "stop": false,
+    "complete": false,
+    "reason": "track",
+    "segment_target": [
+     0.15,
+     1.35,
+     0.888142
+    ],
+    "execution_checked_at": 17.516,
+    "clock": "ros_plan+wall_watchdog",
+    "wall_watchdog_s": 7.5,
+    "plan_ms": 4.942,
+    "detail": null,
+    "map_version": 2,
+    "plan_ms_max": 838.693,
+    "latched": false,
+    "capability_domain": "experimental_kinematic_carrier",
+    "plan_valid_until": 19.753999
+   },
+   {
+    "velocity": [
+     0.42426552280599206,
+     0.4242626146128813,
+     0.0
+    ],
+    "stop": false,
+    "complete": false,
+    "reason": "track",
+    "segment_target": [
+     0.15,
+     1.35,
+     0.888142
+    ],
+    "execution_checked_at": 17.537,
+    "clock": "ros_plan+wall_watchdog",
+    "wall_watchdog_s": 7.5,
+    "plan_ms": 4.942,
+    "detail": null,
+    "map_version": 2,
+    "plan_ms_max": 838.693,
+    "latched": false,
+    "capability_domain": "experimental_kinematic_carrier",
+    "plan_valid_until": 19.753999
+   }
+  ]
+ },
+ "surface_picker": {
+  "ok": true,
+  "hint": "mezz",
+  "click": [
+   3.0,
+   2.0,
+   0.2
+  ],
+  "goals": [
+   [
+    3.0,
+    2.0,
+    0.6
+   ]
+  ],
+  "status": {
+   "ok": true,
+   "goal": [
+    3.0,
+    2.0,
+    0.6
+   ],
+   "surface_id": "mezz",
+   "z_reference": 0.6
+  }
+ },
+ "localization": {
+  "source": "faster_lio",
+  "launch": "10_slam_mapping_sim.launch + use_sim_time=true",
+  "static_pairs": 11,
+  "gt_samples": 60,
+  "lio_samples": 36,
+  "rigid": {
+   "samples": 11,
+   "xy_m_mean": 0.24663978234279008,
+   "xy_m_rms": 0.2891245481919404,
+   "xy_m_max": 0.49016638461144446,
+   "z_m_mean": 0.008545144137395702,
+   "z_m_rms": 0.010774670094505796,
+   "z_m_max": 0.02021704233474156,
+   "yaw_rad_mean": 0.008260032521116704,
+   "yaw_rad_rms": 0.00975526865438548,
+   "yaw_rad_max": 0.01725394972316363,
+   "distance_m_mean": 0.2468113274338072,
+   "distance_m_rms": 0.28932524584425584,
+   "distance_m_max": 0.4903116787746368
+  },
+  "raw": {
+   "samples": 11,
+   "xy_m_mean": 2.0134454544310176,
+   "xy_m_rms": 2.0151429900761806,
+   "xy_m_max": 2.149898553590971,
+   "z_m_mean": 0.46302861507619125,
+   "z_m_rms": 0.4630751260936957,
+   "z_m_max": 0.4715737592135869,
+   "yaw_rad_mean": 1.6621029706007826,
+   "yaw_rad_rms": 1.6621110739084846,
+   "yaw_rad_max": 1.6703630031218994,
+   "distance_m_mean": 2.06604297886002,
+   "distance_m_rms": 2.067665312099582,
+   "distance_m_max": 2.2010101319874438
+  },
+  "origin_offset": [
+   -1.813884429997699,
+   -1.1540741160534156,
+   -0.4715737592135869
+  ],
+  "moving_note": "GT /cmd_vel did not move the held survey robot; SetModelState teleport invalid for LIO; NDT deferred"
+ },
+ "tests": {
+  "unit_navigation_app": "12/12 OK",
+  "unit_localization_compare": "2/2 OK",
+  "full_tree": "79/79 test files OK, 0 fail",
+  "discovery": "122 tests OK"
+ },
+ "boundary": "Gazebo kinematic carrier + offline support-map + injected task; no contact/four-leg/real. RViz config is provided but not visually exercised headless. LIO baseline is not navigation-grade; NDT monitor deferred."
+}

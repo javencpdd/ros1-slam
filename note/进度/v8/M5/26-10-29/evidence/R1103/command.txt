@@ -1,0 +1,30 @@
+R1103 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+# 环境
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam
+
+# A: app 解析（x/y-only task 自动补 z；map registry + graph 预检）
+python3 ws/src/90_platform/v8_platform/framework/app_runner.py \
+  --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
+  --out /tmp/r1103_dry_final.json
+
+# D/A: 一键 app（自行起 roscore + NIST Gazebo 世界 + graph + Marker viz）
+python3 ws/src/90_platform/v8_platform/framework/app_runner.py \
+  --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
+  --execute --port 11546 --timeout-s 120 --out /tmp/r1103_app_gazebo4.json
+
+# B: 3D 点选（/clicked_point + hint -> 3D goal）
+python3 ws/src/90_platform/v8_platform/framework/operator_surface_picker.py \
+  __name:=picker_ev _map_topic:=/ev/map _click_topic:=/ev/click \
+  _goal_topic:=/ev/goal _status_topic:=/ev/status _surface_hint:=mezz
+# 点击 (3,2,.2) 后 goal=(3,2,.6) surface=mezz
+
+# E: GT/LIO（先补 use_sim_time=true，再静止对比；移动对比受 survey robot 驱动限制）
+python3 ws/src/90_platform/v8_platform/framework/localization_compare.py \
+  --launch --no-move --duration-s 8 --out /tmp/r1103_lio_simtime.json
+
+# 测试
+cd ws/src/90_platform/v8_platform
+python3 -m unittest discover -s . -p "test_*.py"   # 122 tests OK
+# 逐文件：79/79 test files OK, 0 fail
