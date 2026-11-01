@@ -9,6 +9,7 @@ No four-legged contact/step capability or #151 budget is established here.
 """
 import argparse
 from collections import deque
+import faulthandler
 import json
 import math
 import os
@@ -214,7 +215,9 @@ class OwnedChild:
             self.proc.wait(timeout=3)
         if self.reader is not None:
             self.reader.join(timeout=1)
-        self.proc.stdout.close()
+        # Do not close proc.stdout here: the daemon reader may still be blocked
+        # in read1() and BufferedReader.close() waits on its buffer lock.  That
+        # was the R1064 same-lab hang stack (reap -> stdout.close).
 
 
 class Probe:
@@ -730,6 +733,7 @@ class Probe:
 
 
 def main():
+    faulthandler.register(signal.SIGUSR1)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out')
     parser.add_argument('--adapter', action='store_true')
