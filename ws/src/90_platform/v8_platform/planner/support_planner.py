@@ -91,7 +91,8 @@ def _intersects_box(a, b, lower, upper):
 
 
 def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
-         min_clearance_m=None, robot_radius_m=None, robot_height_m=None):
+         min_clearance_m=None, robot_radius_m=None, robot_height_m=None,
+         goal_surface_id=None, start_surface_id=None):
     """start/goal＝(x, y, z)；多层面同 XY 时按 z 最近面消歧。返回路径与诊断。"""
     try:
         contract.validate('map', value, allow_obstacles=True)
@@ -174,7 +175,7 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
                 return False
         return True
 
-    def resolve(point, label):
+    def resolve(point, label, surface_id=None):
         px, py, pz = point
         candidates = [(abs(s['z_reference'] - pz), s) for s in value['surfaces']
                       if s['traversability'] == 'supported'
@@ -182,9 +183,16 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
                       and s['footprint']['min_y'] <= py <= s['footprint']['max_y']]
         if not candidates:
             raise PlannerError('E_PLAN_GOAL_INVALID', '%s 不在任何支撑面足迹内' % label)
+        if surface_id is not None:
+            matches = [item for item in candidates if item[1]['surface_id'] == surface_id]
+            if not matches:
+                raise PlannerError('E_PLAN_GOAL_INVALID',
+                                   '%s surface_hint %s 不在足迹内' % (label, surface_id))
+            return matches[0][1]
         return min(candidates, key=lambda c: c[0])[1]
 
-    start_surface, goal_surface = resolve(start, 'start'), resolve(goal, 'goal')
+    start_surface = resolve(start, 'start', start_surface_id)
+    goal_surface = resolve(goal, 'goal', goal_surface_id)
 
     for label, point, surface in (('start', start, start_surface), ('goal', goal, goal_surface)):
         support_point = (point[0], point[1], surface['z_reference'])

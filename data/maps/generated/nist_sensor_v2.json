@@ -1,0 +1,192 @@
+{
+ "schema_version": 1,
+ "map_id": "nist_sensor",
+ "map_version": 2,
+ "frame": "map",
+ "kind": "support_map",
+ "resolution": 0.3,
+ "origin": [
+  -2.1,
+  -3.5999999999999996,
+  0.0
+ ],
+ "extent": {
+  "width": 15,
+  "height": 18
+ },
+ "cell_states": [
+  "free",
+  "occupied",
+  "unknown"
+ ],
+ "unknown_policy": "unknown_not_traversable",
+ "multiple_surfaces_per_xy": true,
+ "source": {
+  "uri": "gazebo://lite3_planar/rslidar_points+sim_odom_gt?mode=full&poses=26&scans_per_pose=4&seed=0&odom_noise_m=0.0&odom_noise_deg=0.0&min_range_m=0.3&max_range_m=12.0&voxel_m=0.02&point_scale=1.7&z_max=0.0&survey_poses=26",
+  "sha256": "6624460b2d85c3eebd8e2da34319a2427af0c87e034045716565c8dc055261e4"
+ },
+ "surfaces": [
+  {
+   "surface_id": "m0",
+   "z_reference": -1e-06,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "elevation://m0",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -2.1,
+    "min_y": -3.5999999999999996,
+    "max_x": 2.1,
+    "max_y": -1.5
+   },
+   "edges": [
+    {
+     "to": "m1",
+     "kind": "step",
+     "max_step_height_m": 0.198575,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "m1",
+   "z_reference": 0.198474,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "elevation://m1",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7999999999999998,
+    "min_y": -1.7999999999999998,
+    "max_x": 1.7999999999999998,
+    "max_y": -0.8999999999999999
+   },
+   "edges": [
+    {
+     "to": "m0",
+     "kind": "step",
+     "max_step_height_m": 0.198575,
+     "bidirectional": true
+    },
+    {
+     "to": "m2",
+     "kind": "step",
+     "max_step_height_m": 0.173142,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "m2",
+   "z_reference": 0.371516,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "elevation://m2",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7999999999999998,
+    "min_y": -1.2,
+    "max_x": 1.7999999999999998,
+    "max_y": -0.3
+   },
+   "edges": [
+    {
+     "to": "m1",
+     "kind": "step",
+     "max_step_height_m": 0.173142,
+     "bidirectional": true
+    },
+    {
+     "to": "m3",
+     "kind": "step",
+     "max_step_height_m": 0.173543,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "m3",
+   "z_reference": 0.544959,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "elevation://m3",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7999999999999998,
+    "min_y": -0.6,
+    "max_x": 1.7999999999999998,
+    "max_y": 0.6
+   },
+   "edges": [
+    {
+     "to": "m2",
+     "kind": "step",
+     "max_step_height_m": 0.173543,
+     "bidirectional": true
+    },
+    {
+     "to": "m4",
+     "kind": "step",
+     "max_step_height_m": 0.174153,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "m4",
+   "z_reference": 0.719012,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "elevation://m4",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7999999999999998,
+    "min_y": 0.0,
+    "max_x": 1.7999999999999998,
+    "max_y": 1.2
+   },
+   "edges": [
+    {
+     "to": "m3",
+     "kind": "step",
+     "max_step_height_m": 0.174153,
+     "bidirectional": true
+    },
+    {
+     "to": "m5",
+     "kind": "step",
+     "max_step_height_m": 0.16923,
+     "bidirectional": true
+    }
+   ]
+  },
+  {
+   "surface_id": "m5",
+   "z_reference": 0.888142,
+   "thickness_m": 0.05,
+   "representation": "elevation_grid",
+   "data_uri": "elevation://m5",
+   "traversability": "supported",
+   "clearance_min_m": 0.4,
+   "footprint": {
+    "min_x": -1.7999999999999998,
+    "min_y": 0.8999999999999999,
+    "max_x": 1.7999999999999998,
+    "max_y": 1.7999999999999998
+   },
+   "edges": [
+    {
+     "to": "m4",
+     "kind": "step",
+     "max_step_height_m": 0.16923,
+     "bidirectional": true
+    }
+   ]
+  }
+ ]
+}

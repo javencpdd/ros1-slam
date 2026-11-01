@@ -6,6 +6,8 @@
        ★ 存盘路径硬编码 data/maps/lite3.pcd（拷贝包源码不可改）→ 起前备份/停后回迁，见 04 台账。 -->
   <rosparam command="load"
             file="$(find lite3_slam)/../../95_simulation/config/faster_lio_sim.yaml"/>
+  <!-- R1103: sim lidar/IMU stamps are sim time; without this the LIO clock drifts. -->
+  <param name="use_sim_time" value="true"/>
   <!-- rosparam 在 node 外：全局 NodeHandle 读全局命名空间（同 10_slam_mapping.launch 注记） -->
   <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
 </launch>

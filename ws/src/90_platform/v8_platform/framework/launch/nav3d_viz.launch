@@ -1,0 +1,15 @@
+<launch>
+  <arg name="rviz" default="true"/>
+  <arg name="map_topic" default="/v8_support_map"/>
+  <arg name="trajectory_topic" default="/v8/local/trajectory"/>
+  <arg name="path_topic" default="/v8/3d/global/path"/>
+  <arg name="pose_topic" default="/v8/local/pose"/>
+  <node name="nav3d_viz" pkg="v8_platform" type="framework/nav3d_viz_node.py" output="screen">
+    <param name="map_topic" value="$(arg map_topic)"/>
+    <param name="trajectory_topic" value="$(arg trajectory_topic)"/>
+    <param name="path_topic" value="$(arg path_topic)"/>
+    <param name="pose_topic" value="$(arg pose_topic)"/>
+  </node>
+  <node if="$(arg rviz)" name="rviz_nav3d" pkg="rviz" type="rviz"
+        args="-d $(find v8_platform)/framework/fixtures/rviz/nav3d.rviz"/>
+</launch>

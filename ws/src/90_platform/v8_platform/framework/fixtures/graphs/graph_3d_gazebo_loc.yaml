@@ -1,0 +1,81 @@
+schema: pipeline_graph/v1
+name: nav3d_gazebo_loc
+instances:
+  - id: map
+    component: v8.fw.map_file
+    namespace: /v8/3d/map
+    params:
+      map_json: data/maps/generated/nist_sensor_v2.json
+      map_topic: /v8_support_map
+      status_topic: /v8_map_status
+  - id: loc
+    component: v8.fw.localization_source
+    namespace: /v8/3d/loc
+    params:
+      source: faster_lio
+      frame: map
+      pose_topic: /v8/local/pose
+      localization_topic: /v8/local/localization_ok
+      status_topic: /v8/local/localization_status
+      error_topic: /v8/local/localization_error
+  - id: global
+    component: v8.fw.global3d_topic
+    namespace: /v8/3d/global
+    params:
+      map_topic: /v8_support_map
+      start_topic: /v8/3d/global/start
+      goal_topic: /v8/3d/global/goal
+      path_topic: /v8/3d/global/path
+      status_topic: /v8/3d/global/status
+  - id: path_goal
+    component: v8.fw.path_goal3d
+    namespace: /v8/3d/path_goal
+    params:
+      path_topic: /v8/3d/global/path
+      goal_topic: /v8/local/goal
+      status_topic: /v8/3d/path_goal/status
+  - id: local
+    component: v8.fw.local_native
+    namespace: /v8/3d/local
+    config: ../configs/local_native_app.yaml
+  - id: mux3d
+    component: v8.fw.cmd3d_mux
+    namespace: /v8/3d/mux
+    params:
+      cmd_topic: /v8/local/cmd_vel_3d
+      hold_topic: /lite3/supervisor/hold
+      output_topic: /cmd_vel
+      status_topic: /v8/3d/mux/status
+      timeout_s: 0.4
+  - id: carrier
+    component: v8.fw.gazebo_carrier3d
+    namespace: /v8/3d/carrier
+    params:
+      model_name: app_carrier
+      start_x: 0.0
+      start_y: -3.06
+      start_z: 0.0
+      center_z: 0.1
+      snap_m: 0.03
+      rate_hz: 50.0
+      cmd_topic: /cmd_vel
+      map_topic: /v8_support_map
+      pose_topic: /v8/3d/carrier/pose_raw
+      localization_topic: /v8/3d/carrier/loc_raw
+      status_topic: /v8/3d/carrier/status
+      spawn: true
+edges:
+  - {from: map.map, to: global.map}
+  - {from: map.map, to: local.map}
+  - {from: map.map, to: carrier.map}
+  - {from: global.path, to: path_goal.path}
+  - {from: path_goal.goal, to: local.goal}
+  - {from: loc.pose, to: local.pose, feedback: true, policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: loc.localization, to: local.localization, feedback: true, policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: local.cmd, to: mux3d.cmd}
+  - {from: mux3d.cmd, to: carrier.cmd}
+external:
+  - {to: global.start, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: global.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.obstacles, type: std_msgs/String, source: perception}
+  - {to: mux3d.hold, type: std_msgs/Bool, source: supervisor}

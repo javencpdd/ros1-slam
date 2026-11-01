@@ -47,7 +47,8 @@ def plan_route(request, cancel=None):
                                 budget=request['budget'], cancel=cancel,
                                 min_clearance_m=request.get('min_clearance_m'),
                                 robot_radius_m=request.get('robot_radius_m'),
-                                robot_height_m=request.get('robot_height_m'))
+                                robot_height_m=request.get('robot_height_m'),
+                                goal_surface_id=request.get('hint'))
 
 
 def pose_xyz(pose):

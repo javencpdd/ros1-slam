@@ -13,12 +13,14 @@ import ros_node as legacy  # noqa: E402
 
 
 def plan_request(map_value, start, goal, budget=20000, cancel=None,
-                 min_clearance_m=None, robot_radius_m=None, robot_height_m=None):
+                 min_clearance_m=None, robot_radius_m=None, robot_height_m=None,
+                 goal_surface_id=None):
     return support_planner.plan(map_value, tuple(start), tuple(goal), budget=budget,
                                 cancel=cancel,
                                 min_clearance_m=min_clearance_m,
                                 robot_radius_m=robot_radius_m,
-                                robot_height_m=robot_height_m)
+                                robot_height_m=robot_height_m,
+                                goal_surface_id=goal_surface_id)
 
 
 def map_from_message(text):
@@ -42,6 +44,7 @@ def main():
     budget = int(rospy.get_param('~budget', 20000))
     policy = {key: rospy.get_param('~' + key, None)
               for key in ('min_clearance_m', 'robot_radius_m', 'robot_height_m')}
+    goal_surface_id = rospy.get_param('~surface_hint', None)
     path_pub = rospy.Publisher(rospy.get_param('~path_topic', '/global_path'),
                                Path, queue_size=1, latch=True)
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/global_path/status'),
@@ -56,7 +59,8 @@ def main():
     def run(map_value, start, goal, version, generation, cancel):
         try:
             result = plan_request(map_value, start, goal, budget=budget,
-                                  cancel=cancel.is_set, **policy)
+                                  cancel=cancel.is_set,
+                                  goal_surface_id=goal_surface_id, **policy)
         except Exception as error:
             with lock:
                 if generation != job['generation']:
