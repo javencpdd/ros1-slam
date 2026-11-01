@@ -105,6 +105,8 @@ def main():
     parser.add_argument('--speed', type=float, default=.25)
     parser.add_argument('--drive-mode', choices=['cmd_vel', 'set_state'], default='cmd_vel')
     parser.add_argument('--model', default='lite3_planar')
+    parser.add_argument('--place-model', default='', help='x,y,z[,yaw] place before LIO starts')
+    parser.add_argument('--place-settle-s', type=float, default=.8)
     parser.add_argument('--max-age-s', type=float, default=.15)
     args = parser.parse_args()
     import rospy
@@ -113,6 +115,18 @@ def main():
     from geometry_msgs.msg import Twist
     from nav_msgs.msg import Odometry
     rospy.init_node('localization_compare', anonymous=True, disable_signals=True)
+    if args.place_model:
+        values = [float(v) for v in args.place_model.split(',')]
+        if len(values) not in (3, 4):
+            raise SystemExit('--place-model must be x,y,z[,yaw]')
+        yaw = values[3] if len(values) == 4 else 0.
+        state = ModelState()
+        state.model_name, state.reference_frame = args.model, 'world'
+        state.pose.position.x, state.pose.position.y, state.pose.position.z = values[:3]
+        state.pose.orientation.z, state.pose.orientation.w = math.sin(yaw / 2.), math.cos(yaw / 2.)
+        rospy.wait_for_service('/gazebo/set_model_state', timeout=20.)
+        rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)(state)
+        time.sleep(args.place_settle_s)
     lio = subprocess.Popen(['roslaunch', 'lite3_slam', '10_slam_mapping_sim.launch'],
                            start_new_session=True, stdout=open('/tmp/r1103_lio.log', 'ab'),
                            stderr=subprocess.STDOUT, env=dict(os.environ)) if args.launch else None
@@ -187,7 +201,7 @@ def main():
             if delta <= args.max_age_s:
                 pairs.append((nearest[2], pose))
     result = {'scope': 'gt_vs_faster_lio_localization', 'ok': bool(pairs),
-              'launch': args.launch, 'duration_s': args.duration_s,
+              'launch': args.launch, 'place_model': args.place_model, 'duration_s': args.duration_s,
               'speed_mps': args.speed, 'pairs': len(pairs),
               'gt_samples': len(gt), 'lio_samples': len(est),
               'compare': compare_samples(pairs),
