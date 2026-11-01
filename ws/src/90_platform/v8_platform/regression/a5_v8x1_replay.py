@@ -9,6 +9,7 @@ history, ONNX policy, MuJoCo stepping).
 import argparse
 import gzip
 import json
+import math
 import os
 from pathlib import Path
 import signal
@@ -17,6 +18,13 @@ import sys
 import time
 
 FIELDS = ('sim_time', 'qpos', 'qvel', 'command', 'joint_target', 'action')
+
+
+def same_special(a, b):
+    a, b = float(a), float(b)
+    if math.isnan(a) and math.isnan(b):
+        return True
+    return math.isinf(a) and math.isinf(b) and (a > 0) == (b > 0)
 
 
 def load_rows(path):
@@ -42,12 +50,16 @@ def compare_rows(first, second):
                         first_diff = {'tick': index, 'field': field, 'a': a, 'b': b}
                     continue
                 for x, y in zip(a, b):
+                    if same_special(x, y):
+                        continue
                     diff = abs(float(x) - float(y))
                     max_abs_diff = max(max_abs_diff, diff)
                     if diff != 0.0 and first_diff is None:
                         first_diff = {'tick': index, 'field': field, 'a': a, 'b': b,
                                       'max_abs_diff': diff}
             else:
+                if same_special(a, b):
+                    continue
                 diff = abs(float(a) - float(b))
                 max_abs_diff = max(max_abs_diff, diff)
                 if diff != 0.0 and first_diff is None:
