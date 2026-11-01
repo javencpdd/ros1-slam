@@ -315,7 +315,7 @@ def main():
                     obstacle_pub.publish(String(data=json.dumps(obstacle)))
                     obstacle_sent = True
                 dx, dy = raw[0] - goal_v2[0], raw[1] - goal_v2[1]
-                if math.hypot(dx, dy) <= .08 and abs(raw[2] - goal_v2[2]) <= .02:
+                if math.hypot(dx, dy) <= .08 and abs(raw[2] - goal_v2[2]) <= .005:
                     arrived_v2 = True
                     break
                 if status and status.get('reason') in ('E_LOCAL_NO_ROUTE', 'E_LOCAL_COLLISION'):
