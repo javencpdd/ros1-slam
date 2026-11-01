@@ -1,0 +1,123 @@
+{
+ "scenario": "SC09",
+ "seed": 0,
+ "repetition": 1,
+ "combos": [
+  "gp_dwa",
+  "gp_teb",
+  "navfn_dwa",
+  "navfn_teb"
+ ],
+ "tracks": [
+  "truth",
+  "noisy"
+ ],
+ "rows": [
+  {
+   "cell": "gp_dwa",
+   "track": "truth",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.115,
+   "path_length_m": 6.87,
+   "obstacle_min_clearance_m": 0.379,
+   "injected_box_clearance_m": 0.601,
+   "wall_s": 77.3,
+   "rtf": 0.45,
+   "cmd": 696
+  },
+  {
+   "cell": "gp_teb",
+   "track": "truth",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.222,
+   "path_length_m": 6.6,
+   "obstacle_min_clearance_m": 0.416,
+   "injected_box_clearance_m": 0.581,
+   "wall_s": 41.9,
+   "rtf": 0.451,
+   "cmd": 378
+  },
+  {
+   "cell": "navfn_dwa",
+   "track": "truth",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.104,
+   "path_length_m": 6.9,
+   "obstacle_min_clearance_m": 0.356,
+   "injected_box_clearance_m": 0.66,
+   "wall_s": 80.4,
+   "rtf": 0.428,
+   "cmd": 688
+  },
+  {
+   "cell": "navfn_teb",
+   "track": "truth",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.199,
+   "path_length_m": 6.64,
+   "obstacle_min_clearance_m": 0.427,
+   "injected_box_clearance_m": 0.596,
+   "wall_s": 42.3,
+   "rtf": 0.449,
+   "cmd": 380
+  },
+  {
+   "cell": "gp_dwa",
+   "track": "noisy",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.126,
+   "path_length_m": 6.9,
+   "obstacle_min_clearance_m": 0.32,
+   "injected_box_clearance_m": 0.631,
+   "wall_s": 81.6,
+   "rtf": 0.423,
+   "cmd": 691
+  },
+  {
+   "cell": "gp_teb",
+   "track": "noisy",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.247,
+   "path_length_m": 6.56,
+   "obstacle_min_clearance_m": 0.366,
+   "injected_box_clearance_m": 0.611,
+   "wall_s": 43.1,
+   "rtf": 0.439,
+   "cmd": 378
+  },
+  {
+   "cell": "navfn_dwa",
+   "track": "noisy",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.128,
+   "path_length_m": 6.92,
+   "obstacle_min_clearance_m": 0.312,
+   "injected_box_clearance_m": 0.587,
+   "wall_s": 79.7,
+   "rtf": 0.434,
+   "cmd": 692
+  },
+  {
+   "cell": "navfn_teb",
+   "track": "noisy",
+   "verdict": "PASS",
+   "dist_to_goal_m": 0.229,
+   "path_length_m": 6.59,
+   "obstacle_min_clearance_m": 0.396,
+   "injected_box_clearance_m": 0.629,
+   "wall_s": 43.8,
+   "rtf": 0.429,
+   "cmd": 376
+  }
+ ],
+ "passes": 8,
+ "n": 8,
+ "worst_noisy": {
+  "dist_to_goal_m": 0.247,
+  "min_clearance_m": 0.312,
+  "min_injected_clearance_m": 0.587
+ },
+ "source": "truth cells R981; noisy cells this batch; same graph YAML/SC09/seed0",
+ "limits": "one scenario, one seed, one repetition; truth cells from R981; not the full A7 matrix",
+ "result": "8/8 PASS; noisy track is slightly worse in goal distance but all clearances >= .312 m"
+}

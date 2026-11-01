@@ -1,0 +1,7 @@
+R1073 命令（2026-11-01 06:30—06:50 CST，qoder；容器 ros1-slam-sim）
+# 同 R981 的 SC09/seed0/graph YAML，只把 localization 改为 noisy（truth 四格引用 R981）。
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+for cell in gp_dwa gp_teb navfn_dwa navfn_teb; do
+  python3 -B regression/runtime_lab.py --out /tmp/r1073_noisy_ --port <11600..>     --gazebo --scenario SC09 --seed 0 --localization noisy     --graph framework/fixtures/graphs/graph_2d_stack_.yaml
+done
+# 8/8 PASS；noisy 最坏 dist .247 m、净空 .312、注入 .587。
