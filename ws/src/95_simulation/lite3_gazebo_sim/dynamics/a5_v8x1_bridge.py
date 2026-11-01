@@ -125,6 +125,8 @@ def main():
     parser.add_argument('--command-stamp-window', type=float, default=0.,
                         help='select commands by sim stamp within this window (0=wall latest)')
     parser.add_argument('--trajectory-resume', action='store_true')
+    parser.add_argument('--replay-trace', default='',
+                        help='JSONL/JSONL.gz of previous per-tick rows; replay command/stepping')
     parser.add_argument('--trace', default='', help='per-tick JSONL diagnostic trace path')
     parser.add_argument('--require-release', action='store_true',
                         help='hold the sim clock until prefix/release is called')
@@ -132,6 +134,21 @@ def main():
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     top_z = max(s['z_reference'] for s in value['surfaces']
                 if s.get('traversability') == 'supported')
+    replay_rows = None
+    if args.replay_trace:
+        import gzip
+        opener = gzip.open if args.replay_trace.endswith('.gz') else open
+        with opener(args.replay_trace, 'rt', encoding='utf-8') as stream:
+            replay_rows = [json.loads(line) for line in stream if line.strip()]
+        if not replay_rows:
+            raise SystemExit('empty replay trace')
+        args.stall_retry = False
+        args.finish_hold = False
+        args.hold_until_sim_s = 0.
+        args.command_phase_sim_s = 0.
+        args.command_stamp_window = 0.
+        args.lockstep = False
+        args.require_release = False
 
     import mujoco
     import onnxruntime as ort
@@ -144,11 +161,16 @@ def main():
     model = mujoco.MjModel.from_xml_path(args.xml)
     data = mujoco.MjData(model)
     start_x, start_y = map_to_world(0., args.start_map_y, args.x_offset, args.y_offset)
-    perturb = walk.sample_initial(args.seed, args.perturb)
-    data.qpos[:3] = [start_x + perturb['dx'], start_y + perturb['dy'],
-                     args.initial_z + perturb['dz']]
-    data.qpos[3:7] = [math.cos(perturb['dyaw'] / 2.), 0., 0., math.sin(perturb['dyaw'] / 2.)]
-    data.qpos[7:19] = walk.DEFAULT_POSE
+    if replay_rows is not None:
+        data.qpos[:] = np.asarray(replay_rows[0]['qpos'], dtype=float)
+        data.qvel[:] = np.asarray(replay_rows[0]['qvel'], dtype=float)
+    else:
+        perturb = walk.sample_initial(args.seed, args.perturb)
+        data.qpos[:3] = [start_x + perturb['dx'], start_y + perturb['dy'],
+                         args.initial_z + perturb['dz']]
+        data.qpos[3:7] = [math.cos(perturb['dyaw'] / 2.), 0., 0.,
+                          math.sin(perturb['dyaw'] / 2.)]
+        data.qpos[7:19] = walk.DEFAULT_POSE
     mujoco.mj_forward(model, data)
     viewer = None
     if args.viewer:
@@ -247,8 +269,16 @@ def main():
     retry_until = None
     retries = 0
     while not rospy.is_shutdown():
+        if replay_rows is not None and tick >= len(replay_rows):
+            break
+        replay_row = replay_rows[tick] if replay_rows is not None else None
         now = time.monotonic()
-        stepping = (not args.lockstep) or shared['active']
+        stepping = (bool(replay_row.get('stepping', True)) if replay_row is not None
+                    else ((not args.lockstep) or shared['active']))
+        if replay_row is not None:
+            shared['active'] = bool(replay_row.get('active', stepping))
+            if replay_row.get('target') is not None:
+                shared['target'] = tuple(replay_row['target'])
         if args.command_stamp_window > 0:
             sim_now = args.clock_offset + float(data.time)
             candidates = [row for row in command_history
@@ -320,6 +350,10 @@ def main():
                 phase_bucket = bucket
                 phase_command = command.copy()
             command = phase_command.copy()
+        if replay_row is not None:
+            velocity = tuple(replay_row.get('map_velocity') or (0., 0., 0.))
+            command = np.asarray(replay_row.get('command', [0., 0., 0.]),
+                                 dtype=np.float32)
         action = None
         if fault is None and stepping:
             obs = walk.observation(data.qpos, data.qvel, command, last_action, walk.DEFAULT_POSE)
@@ -362,6 +396,8 @@ def main():
                 'finish': finish, 'fault': fault, 'active': bool(shared['active']),
                 'stepping': bool(stepping), 'retries': retries,
                 'retrying': retry_until is not None,
+                'replay': replay_row is not None,
+                'replay_tick': tick if replay_row is not None else None,
             }, default=plain) + '\n')
             trace.flush()
         if clock_pub is not None:
