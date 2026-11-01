@@ -24,6 +24,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--source-trace', required=True)
     parser.add_argument('--hold-ticks', type=int, default=500)
+    parser.add_argument('--hold-vx', type=float, default=0.)
+    parser.add_argument('--hold-wz', type=float, default=0.)
+    parser.add_argument('--ramp-ticks', type=int, default=0)
     parser.add_argument('--hold-z-drop-m', type=float, default=.25)
     parser.add_argument('--out-dir', required=True)
     parser.add_argument('--replay', default=str(Path(__file__).resolve().parent / 'a5_v8x1_replay.py'))
@@ -33,13 +36,31 @@ def main(argv=None):
     rows = load_rows(args.source_trace)
     last = rows[-1]
     extended = list(rows)
-    for index in range(args.hold_ticks):
+    command0 = [float(v) for v in last.get('command', [0., 0., 0.])]
+    velocity0 = [float(v) for v in last.get('map_velocity', [0., 0., 0.])]
+    for index in range(args.ramp_ticks):
+        scale = 1. - (index + 1) / float(max(1, args.ramp_ticks))
         row = dict(last)
         row['tick'] = int(last['tick']) + index + 1
         row['sim_time'] = float(last['sim_time']) + .02 * (index + 1)
         row['wall'] = float(last.get('wall', 0.)) + .02 * (index + 1)
-        row['command'] = [0., 0., 0.]
-        row['map_velocity'] = [0., 0., 0.]
+        row['command'] = [scale * value for value in command0]
+        row['map_velocity'] = [scale * value for value in velocity0]
+        row['target'] = None
+        row['finish'] = False
+        row['fault'] = None
+        row['stepping'] = True
+        row['active'] = True
+        extended.append(row)
+    base_tick = int(last['tick']) + args.ramp_ticks
+    base_sim = float(last['sim_time']) + .02 * args.ramp_ticks
+    for index in range(args.hold_ticks):
+        row = dict(last)
+        row['tick'] = base_tick + index + 1
+        row['sim_time'] = base_sim + .02 * (index + 1)
+        row['wall'] = float(last.get('wall', 0.)) + .02 * (args.ramp_ticks + index + 1)
+        row['command'] = [args.hold_vx, 0., args.hold_wz]
+        row['map_velocity'] = [args.hold_vx, 0., args.hold_wz]
         row['target'] = None
         row['finish'] = False
         row['fault'] = None
