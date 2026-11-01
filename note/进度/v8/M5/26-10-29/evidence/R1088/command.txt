@@ -1,0 +1,20 @@
+R1088 命令（2026-11-01 16:05—16:20 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/representation
+# 地图：PCD -> map.pcd + map.pgm/map.yaml + open_map.json（哈希/边界/点数）
+python3 -B open_data_import.py map --pcd /opt/ros1-slam/data/maps/venue_prior_185k.pcd \
+  --id venue_prior_185k --out /opt/ros1-slam/data/imports/venue_prior_185k \
+  --resolution 0.1 --z-min -1.0 --z-max 2.0 --source /opt/ros1-slam/data/maps/venue_prior_185k.pcd \
+  --license "project-provided venue prior; license not stated in file"
+# 世界：SDF + model:// 依赖复制；ground_plane/sun 记系统模型
+python3 -B open_data_import.py world --world /opt/ros1-slam/data/maps/worlds/nist_stairs_120_test.world \
+  --id nist_stairs_120_test --out /opt/ros1-slam/data/imports/nist_stairs_120_test \
+  --model-path /opt/ros1-slam/data/maps/worlds \
+  --source /opt/ros1-slam/data/maps/worlds/nist_stairs_120_test.world \
+  --license "NIST stairs fixture vendored in data/maps/worlds; license not stated in file"
+# 数据集：描述符 -> map/world 子导入 + dataset.json，递归 verify
+python3 -B open_data_import.py dataset --descriptor /opt/ros1-slam/data/imports/venue_nist_dataset.source.json \
+  --id venue_nist_dataset --out /opt/ros1-slam/data/imports/venue_nist_dataset
+python3 -B open_data_import.py verify --root /opt/ros1-slam/data/imports/venue_nist_dataset
+# map_server 载入导入图：119x111@.1、data 13209、occupied 7774、unknown 5435
+# Gazebo 载入导入世界：clock .086，models ground_plane/nist_stairs_120/lite3_planar

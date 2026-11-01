@@ -1,0 +1,21 @@
+{
+ "experiment": "open map/world/dataset import with provenance and load checks",
+ "map": {"source_points": 185872, "bounds_min": [-38.42495346069336, -36.20491409301758, -10.652472496032715],
+         "bounds_max": [40.326812744140625, 37.4697265625, 10.311793327331543],
+         "z_band": [-1.0, 2.0], "grid": [119, 111], "resolution": 0.1,
+         "occupied_cells": 7774, "map_server_load": {"width": 119, "height": 111,
+         "data": 13209, "occupied": 7774, "unknown": 5435, "frame": "map"}},
+ "world": {"models": [{"name": "ground_plane", "system": true},
+                      {"name": "nist_stairs_120", "copied": true}],
+           "gazebo_load": {"clock": 0.086,
+                           "models": ["ground_plane", "nist_stairs_120", "lite3_planar"],
+                           "has_planet": true, "has_robot": true}},
+ "dataset": {"artifacts": ["map", "world"], "verify_records": ["dataset", "map", "world"]},
+ "findings": [
+  "the PCD projection loads in map_server with the recorded dimensions and occupied count",
+  "the imported SDF and model:// dependencies boot Gazebo with the stairs and the planar robot",
+  "dataset import verifies recursively through map/world records"
+ ],
+ "limits": "occupancy is a projection of a repo-provided PCD, not sensor mapping or an independently licensed open dataset; world is the NIST stairs fixture already vendored in data/maps/worlds; local copy only, no network/dual-machine transfer, no navigation/real-robot claim; A1-A7 unchanged",
+ "tests": {"open_data_import": "4/4", "full_tree": "73/73"}
+}
