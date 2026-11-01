@@ -1,0 +1,91 @@
+{
+ "scope": "a3_sensor_map_same_xy_multilayer_and_layer_selection",
+ "map": {
+  "map_id": "nist_sensor",
+  "version": 2,
+  "path": "data/maps/generated/nist_sensor_v2.json",
+  "sha256": "99ca6ad0f4d0b75ba36b4d50d18835079cb61b84859ad2cbcc871200bb61e228",
+  "surfaces": 6,
+  "multiple_surfaces_per_xy": true
+ },
+ "overlap_xy": [
+  1.0,
+  -1.05
+ ],
+ "candidates": [
+  {
+   "surface_id": "m1",
+   "z_reference": 0.198474
+  },
+  {
+   "surface_id": "m2",
+   "z_reference": 0.371516
+  }
+ ],
+ "ambiguous_without_hint": {
+  "code": "E_SURFACE_AMBIGUOUS",
+  "candidates": [
+   {
+    "surface_id": "m1",
+    "z_reference": 0.198474
+   },
+   {
+    "surface_id": "m2",
+    "z_reference": 0.371516
+   }
+  ]
+ },
+ "upper_hint": {
+  "goal_surface_id": "m2",
+  "path_points": 13,
+  "first": [
+   0.15,
+   -3.15,
+   -1e-06,
+   "m0"
+  ],
+  "last": [
+   1.05,
+   -1.05,
+   0.371516,
+   "m2"
+  ],
+  "transitions": [
+   {
+    "from": "m0",
+    "to": "m1"
+   },
+   {
+    "from": "m1",
+    "to": "m2"
+   }
+  ],
+  "length": 3.448528
+ },
+ "lower_z_control": {
+  "goal_z": 0.198474,
+  "path_points": 9,
+  "last": [
+   1.05,
+   -1.05,
+   0.198474,
+   "m1"
+  ],
+  "transitions": [
+   {
+    "from": "m0",
+    "to": "m1"
+   }
+  ]
+ },
+ "tests": {
+  "test_navigation_app": "17/17",
+  "v8_per_file": "80/80",
+  "discovery": 127
+ },
+ "boundary": [
+  "sensor map overlap is adjacent stair-surface cell footprints, not a stacked mezzanine",
+  "no Gazebo execution in this batch; planner/resolver only",
+  "no A1-A7 or formal #151 change"
+ ]
+}

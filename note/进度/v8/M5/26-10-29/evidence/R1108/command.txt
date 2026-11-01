@@ -1,0 +1,23 @@
+R1108 命令（2026-11-02，qoder；纯 Python，宿主/容器均可）
+
+# 0) 只读 R1102 生成的传感器图：
+#    map_registry.get_map('nist_sensor', 2) -> data/maps/generated/nist_sensor_v2.json
+#    sha256 99ca6ad0...；6 面；multiple_surfaces_per_xy=true。
+# 1) 在重叠 XY (1.0,-1.05) 查候选：
+#    candidates_at -> m1 z .198474、m2 z .371516
+#    resolve_surface(no hint/z) -> E_SURFACE_AMBIGUOUS
+#    resolve_surface(hint='m2') / z=.3715 -> m2
+# 2) 全局规划（真实 support_planner）：
+#    start (0,-3.06,0) start_surface_id=m0；goal (1,-1.05,.371516)
+#    goal_surface_id=m2 -> 13 点，末 (1.05,-1.05,.371516,m2)，
+#    transitions m0→m1、m1→m2，length 3.448528
+#    对照 goal z=.198474（不带 goal_surface_id）-> 9 点，末 m1 z .198474
+# 3) 测试：test_navigation_app 17/17；v8 逐文件 80/80；discovery 127。
+python3 -B test_navigation_app.py   # 在 framework/
+for f in $(find . -name "test_*.py" | sort); do
+  (cd $(dirname "$f") && python3 -B $(basename "$f")) || exit 1
+done
+python3 -B -m unittest discover -p "test_*.py"
+
+# 边界：该图的重叠来自相邻台阶面的单元格足迹（m1/m2 在 y −1.2…−0.9 重叠），
+# 不是真正的叠层楼板；本批不跑 Gazebo，不声称垂直交通/真双层建筑。
