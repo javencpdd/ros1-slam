@@ -1,0 +1,19 @@
+{
+ "experiment": "Gazebo perception generality: parameterized obstacle center/size",
+ "variants": [
+  {"box_center": [1.8, 0.2], "box_size": [0.5, 0.4, 0.7], "case": "sensed_no_route",
+   "ok": true, "measurement": "VALID", "reason": "E_LOCAL_NO_ROUTE",
+   "speed_before_m_s": 0.4, "stop_from_sense_m": 0.01997,
+   "GT_min_radial_box_clearance_m": 1.05768},
+  {"box_center": [2.1, -0.15], "box_size": [0.6, 0.5, 0.8], "case": "sensed_no_route",
+   "ok": true, "measurement": "VALID", "reason": "E_LOCAL_NO_ROUTE",
+   "speed_before_m_s": 0.4, "stop_from_sense_m": 0.00359,
+   "GT_min_radial_box_clearance_m": 1.14829}
+ ],
+ "findings": [
+  "the perceived AABB follows the spawned center/size in both variants (1.38..1.72 / -0.12..0.62 and 1.68..2.02 / -0.52..0.22)",
+  "both variants stop via planner E_LOCAL_NO_ROUTE with GT box clearance above 1.0 m"
+ ],
+ "limits": "planar Gazebo carrier, single case per variant, no four-leg/real robot; A5 remains PARTIAL",
+ "tests": {"a5": "16/16", "runtime_lab+a5": "19/19", "full_tree": "72/72"}
+}

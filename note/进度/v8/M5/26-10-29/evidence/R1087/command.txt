@@ -1,0 +1,13 @@
+R1087 命令（2026-11-01 15:45—15:50 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+# A：障碍中心 (1.8,0.2)、尺寸 .5,.4,.7
+python3 -B regression/runtime_lab.py --out /tmp/r1087_a --port 11800 --gazebo \
+  --local-gazebo --local-cases sensed_no_route \
+  --box-x 1.8 --box-y 0.2 --box-size .5,.4,.7
+# B：障碍中心 (2.1,-0.15)、尺寸 .6,.5,.8
+python3 -B regression/runtime_lab.py --out /tmp/r1087_b --port 11801 --gazebo \
+  --local-gazebo --local-cases sensed_no_route \
+  --box-x 2.1 --box-y -0.15 --box-size .6,.5,.8
+# A：ok=true VALID，E_LOCAL_NO_ROUTE，GT 净空 1.0577 m，感知后 0.0200 m 停；
+# B：ok=true VALID，E_LOCAL_NO_ROUTE，GT 净空 1.1483 m，感知后 0.0036 m 停。

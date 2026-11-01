@@ -1,0 +1,9 @@
+R1084 命令（2026-11-01 15:39—15:47 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+python3 -B regression/a1_combo_matrix.py --out /tmp/r1084_a1 \
+  --scenarios SC01,SC02,SC09 --seeds 0 --workers 5 --retries 1 --resume
+# preregistered.json 先写 24 jobs；每 cell 独立 ROS master + GAZEBO_MASTER_URI；
+# 结果 24/24 PASS、wall 416 s；最坏 dist .244 m / clearance .279 / injected .578。
+# 说明：原 72 cell（seed0/1/2）在 6 worker 下内存/RTF 塌缩，仅完成 9 个 seed1/2
+# 辅助 cell 后停止；本证据只登记 seed0 的 24-cell 全组合矩阵。

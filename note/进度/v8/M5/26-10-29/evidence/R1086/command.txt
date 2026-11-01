@@ -1,0 +1,14 @@
+R1086 命令（2026-11-01 15:30—15:40 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11761 ROS_IP=127.0.0.1
+roscore -p 11761 &
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+# 合并参考解与连续净空：同一图/预算/min_clearance 下节点路径须与设计层逐点一致
+python3 -B a4_runtime.py reference_clearance --out /tmp/r1086/a4_reference_clearance.json
+# 辅助：run/cancel/version/clearance（同一节点实现，此前 11760 窗）
+python3 -B a4_runtime.py run --out /tmp/r1085/a4_run.json
+python3 -B a4_runtime.py cancel --out /tmp/r1085/a4_cancel.json
+python3 -B a4_runtime.py version --out /tmp/r1085/a4_version.json
+python3 -B a4_runtime.py clearance --out /tmp/r1085/a4_clearance.json
+# reference_clearance：20 cell，16 pass + 4 expected（SC07 无路、SC10 预算），
+# unexpected=0、same_as_design=20；SC09 在 0.2 m 净空下走安全绕行并通过。

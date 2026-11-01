@@ -1,0 +1,15 @@
+{
+ "experiment": "A4 3D support-graph runtime: all planning scenarios, reference route + continuous clearance merged",
+ "run": {"cells": 20, "passed": 14, "expected_failures": 6, "unexpected_failures": 0, "same_as_design": 20},
+ "reference_clearance": {"cells": 20, "passed": 16, "expected_failures": 4, "unexpected_failures": 0, "same_as_design": 20, "min_clearance_m": 0.2},
+ "cancel": {"cells": 2, "passed": 2, "unexpected_failures": 0},
+ "version": {"cells": 3, "passed": 3, "unexpected_failures": 0},
+ "clearance": {"cells": 4, "passed": 4, "unexpected_failures": 0},
+ "findings": [
+  "the node and the in-process support_planner reference receive the same map, budget and min_clearance_m; all 20 cells match point-for-point",
+  "under the 0.2 m clearance rule SC09 takes the safe detour and passes (no longer only E_TRAJ_CLEARANCE expected failure)",
+  "SC07 no-route and SC10 budget remain planner-stage expected failures; no evaluator fallback"
+ ],
+ "limits": "ROS1 support-graph runtime only; no Gazebo full chain, no sensor-built map, no general 3D voxel global planner, no real robot; A4 remains PARTIAL",
+ "tests": {"test_a4_runtime": "10/10", "full_tree": "72/72"}
+}

@@ -1,0 +1,11 @@
+{
+ "experiment": "A3 multi-layer map query/planner runtime + multi-map provider smoke",
+ "a3_runtime": {"passed": 15, "total": 15, "scope": "ROS1 map query and planner services; declared fixture, no sensors"},
+ "multi_map": {"ok": true, "maps": ["map_a", "map_b", "map_c"], "initial_versions": [2, 2, 1], "after_delta_versions": [3, 2, 1], "restored_versions": [3, 2, 1], "replay_version": 3, "delta_applied": {"map_a": 1, "map_b": 0, "map_c": 0}, "grid": {"width": 100, "height": 100, "resolution": 0.1, "occupied": 20}},
+ "findings": [
+  "same-XY two layers, free/unknown, clearance, version/digest, unsupported surface, one-way refusal 15/15",
+  "multi-map A/B/C isolated deltas and restart/replay restore ok=true"
+ ],
+ "limits": "declared fixtures only; no sensor-built or Gazebo multi-floor run; no real robot; A3 remains PARTIAL",
+ "tests": {"test_a3_runtime": "3/3", "test_multi_map_node": "3/3", "full_tree": "72/72"}
+}
