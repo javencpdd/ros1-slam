@@ -1,0 +1,33 @@
+{
+ "component": "A6 recovery ROS wiring (fake relocalize/candidate)",
+ "smoke": {
+  "initial_tracking": true,
+  "initial_lease": 1,
+  "relocalizing": true,
+  "relocalize_calls_before": 2,
+  "backend_switch": {
+   "backend": "faster_lio",
+   "lease": 2,
+   "pose": [
+    1.0,
+    2.0,
+    0.0
+   ]
+  },
+  "recovered": true,
+  "new_lease": 2,
+  "final_phase": "TRACKING",
+  "relocalize_calls": 2,
+  "ok": true
+ },
+ "result": "initial lease1 TRACKING -> stale RELOCALIZING -> /relocalize -> candidate validation -> backend switch lease2 -> healthy -> TRACKING",
+ "not_done": [
+  "hdl /relocalize live service",
+  "real candidate source (hdl global localization)",
+  "GT error gate",
+  "Gazebo live recovery",
+  "real robot"
+ ],
+ "tests": "recovery 5/5; full tree 71/71",
+ "a6_status": "PARTIAL"
+}
