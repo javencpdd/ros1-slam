@@ -1,0 +1,42 @@
+{
+ "experiment": "native hdl /relocalize live chain: m1 Gazebo sensor-local lidar -> base_link -> hdl nodelet + BBS global localization -> native /relocalize -> /hdl_odom vs Gazebo truth",
+ "native_service": "/relocalize advertised by hdl_localization_nodelet (use_global_localization=true)",
+ "input_semantics": "sensor-local XYZ relabelled base_link; mount x/y offset zero, 15 deg pitch is z-only; Gazebo truth is scoring only",
+ "lost_mode": {
+  "prior_reset_xy": [-2.0, -3.0],
+  "scans_paused_during_relocalize": true,
+  "gate_m": 1.0,
+  "result": "PASS 3/3",
+  "poses": [
+   {"truth_xy": [1.5, 0.0], "error_after_m": 0.022851465494123924,
+    "yaw_error_after_rad": -0.006712785481660301,
+    "inlier_fraction": 0.8397436141967773, "matching_error": 0.01659291423857212,
+    "bbs_raw_scan_candidate_xy": [1.5, 0.0], "bbs_raw_scan_error_m": 0.0},
+   {"truth_xy": [0.0, 1.0], "error_after_m": 0.06430184587376826,
+    "yaw_error_after_rad": -0.0020275760168830363,
+    "inlier_fraction": 0.9616307020187378, "matching_error": 0.014255532063543797,
+    "bbs_raw_scan_candidate_xy": [0.8, 1.0], "bbs_raw_scan_error_m": 0.8000000119206956},
+   {"truth_xy": [-1.0, 0.8], "error_after_m": 0.06501454711589784,
+    "yaw_error_after_rad": -0.0033110116811773463,
+    "inlier_fraction": 0.9395017623901368, "matching_error": 0.010102824307978153,
+    "bbs_raw_scan_candidate_xy": [3.3, -0.8], "bbs_raw_scan_error_m": 4.588027858248731}
+  ]
+ },
+ "tracked_mode": {
+  "result": "FAIL: unconditional relocalize on an already-tracking pose",
+  "poses": [
+   {"truth_xy": [1.5, 0.0], "error_last_odom_m": 1.5129975505083921, "error_after_m": 0.04043987508457628},
+   {"truth_xy": [0.0, 1.0], "error_last_odom_m": 1.7556640970490913, "error_after_m": 0.09045845630129395},
+   {"truth_xy": [-1.0, 0.8], "error_last_odom_m": 0.0784544936715373, "error_after_m": 5.144045947899122,
+    "yaw_error_after_rad": -3.1415574803236397, "worse_than_last_odom": true}
+  ]
+ },
+ "findings": [
+  "native hdl service chain works end-to-end from a lost prior; 3/3 under 1 m, max .065 m",
+  "the same service called without a loss trigger can destroy a good pose (.078 m -> 5.144 m, yaw pi)",
+  "single-candidate BBS is unstable across scan representations (raw-scan cross-check 0 / .8 / 4.59 m), so A6 needs a loss trigger and candidate acceptance/consensus"
+ ],
+ "limits": "3 static poses, one run per mode, no motion, no real robot; GT posthoc only; mount pitch not applied (BBS x/y); A6 remains PARTIAL",
+ "tests": "v8 full tree 72/72",
+ "a6_status": "PARTIAL"
+}

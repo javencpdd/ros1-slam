@@ -1,0 +1,21 @@
+R1078 命令（2026-11-01 13:40—13:52 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+
+# 1) 失锁态：m1 Gazebo 传感器系点云 -> base_link -> hdl nodelet + BBS 全局定位；
+#    暂停扫描、把估计器重置到错误先验 (-2,-3)，再调 hdl 原生 /relocalize；
+#    3 个静态位姿，GT 仅事后计分，门 1.0 m。
+python3 -B hdl_native_relocalize_smoke.py --mode lost \
+  --poses "1.5,0;0,1.0;-1.0,0.8" --prior=-2,-3 \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R1078/native_lost.json
+
+# 2) 跟踪态对照：不暂停、不重置先验，直接调 /relocalize；其余同上。
+python3 -B hdl_native_relocalize_smoke.py --mode tracked \
+  --poses "1.5,0;0,1.0;-1.0,0.8" \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R1078/native_tracked.json
+
+# 3) v8 全树：逐文件 python3 -m unittest，72 个 test_*.py 全过。
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+for f in $(find . -name "test_*.py" | sort); do
+  (cd "$(dirname "$f")" && python3 -B -m unittest "$(basename "$f" .py)")
+done
