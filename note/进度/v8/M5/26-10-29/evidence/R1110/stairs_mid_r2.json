@@ -1,0 +1,438 @@
+{
+ "scope": "assembly_3d_global_local_kinematic_closed_loop",
+ "map": "/opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json",
+ "start": [
+  0.0,
+  -2.175,
+  0.0
+ ],
+ "goal": [
+  0.0,
+  -0.1,
+  0.544578
+ ],
+ "safety_gate": "ok",
+ "command_writers": {
+  "/cmd_vel": "mux3d",
+  "/v8/local/cmd_vel_3d": "local"
+ },
+ "startup_order": [
+  "cache_a",
+  "cache_b",
+  "merge",
+  "relay",
+  "provider",
+  "global",
+  "path_goal",
+  "local",
+  "mux3d",
+  "carrier"
+ ],
+ "path": {
+  "poses": 21,
+  "last": [
+   0.075,
+   -0.075,
+   0.544578
+  ]
+ },
+ "local_trajectory": {
+  "map_version": 1,
+  "reason": "arrived",
+  "last": [
+   0.075,
+   -0.075,
+   0.544578,
+   1793561273.6484644
+  ]
+ },
+ "carrier_final": [
+  0.07580639197187948,
+  -0.09515978659120414,
+  0.544578
+ ],
+ "mux": {
+  "samples": 324,
+  "track_samples": 324,
+  "stale_samples": 0,
+  "last": {
+   "reason": "track",
+   "velocity": [
+    -0.01419693828504184,
+    0.3549232334343113,
+    -0.09255327862551176,
+    0.0
+   ],
+   "input_frame": "map",
+   "age_s": 0.029221992008388042,
+   "hold": false
+  }
+ },
+ "error": null,
+ "assembly_health": [],
+ "stopped": true,
+ "assembly_ready": true,
+ "/v8/3d/cache_a/v8_map_cache/flush": true,
+ "/v8/3d/cache_b/v8_map_cache/flush": true,
+ "provider_status": {
+  "map_version": 1,
+  "deltas": 0
+ },
+ "carrier_distance_to_goal_m": 0.07596075782689982,
+ "local_status_samples": 130,
+ "local_status_tail": [
+  {
+   "velocity": [
+    -0.020966721951190103,
+    0.5241677184210313,
+    0.2912191606606816
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561271.8631113,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.020592493880477975,
+    0.5148120225496913,
+    0.3074809435299668
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561271.9140394,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.019914575415154637,
+    0.4978640715981198,
+    0.3342675214521692
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561271.96495,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.019373029842338737,
+    0.48432544081049655,
+    0.3536291180013972
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.0164363,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.01937202504555169,
+    0.48430032090665287,
+    0.3536635743405695
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.068097,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.01937199551896835,
+    0.4842995827425348,
+    0.35366458678389007
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.119991,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.019371995523823737,
+    0.4842995828639204,
+    0.35366458661740174
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.1718538,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.01937199552363186,
+    0.48429958285912456,
+    0.3536645866239795
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.222895,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.01937199552363135,
+    0.4842995828591119,
+    0.353664586623997
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.2743375,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.019371995523631287,
+    0.4842995828591108,
+    0.3536645866239982
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.326422,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.019371995523631343,
+    0.4842995828591103,
+    0.3536645866239992
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.3786786,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  },
+  {
+   "velocity": [
+    -0.01419693828504184,
+    0.3549232334343113,
+    -0.09255327862551176
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    0.075,
+    -0.075,
+    0.544578
+   ],
+   "execution_checked_at": 1793561272.4298844,
+   "clock": "ros_plan+wall_watchdog",
+   "wall_watchdog_s": 7.5,
+   "plan_ms": 8.281,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 75.516,
+   "latched": false,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 1793561273.6484644
+  }
+ ],
+ "stop_record": [
+  {
+   "id": "local",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "global",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "provider",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "cache_a",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "cache_b",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "merge",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "relay",
+   "method": "process_group_signal",
+   "outcome": "forced"
+  },
+  {
+   "id": "path_goal",
+   "method": "process_group_signal",
+   "outcome": "stopped"
+  },
+  {
+   "id": "carrier",
+   "method": "process_group_signal",
+   "outcome": "stopped"
+  },
+  {
+   "id": "mux3d",
+   "method": "process_group_signal",
+   "outcome": "stopped"
+  }
+ ],
+ "ok": true
+}

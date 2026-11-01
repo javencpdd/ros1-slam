@@ -1,0 +1,23 @@
+R1110 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+
+# 0) R1099 已有 repeat 0/1 的 8/8；本批只补第三轮 repeat 2 的四格。
+#    runner 新增 --repeat-indices（默认仍全跑）；不改场景/判据/载体。
+# 1) 运行（端口 12100 起；声明 support map + 3D Assembly 闭环）：
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+export PYTHONPATH=/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+python3 -B regression/a1_3d_combo_matrix.py --out /tmp/r1110_a1_3d \
+  --port-base 12100 --repeats 3 --repeat-indices 2 \
+  --scenarios flat,flat_alt,stairs_top,stairs_mid --timeout-s 60
+# 4/4 PASS，wall 119.94 s；flat .076904、flat_alt .083118、
+# stairs_top .097764、stairs_mid .075961 m；最坏 .097764 m。
+# 2) 与 R1099 repeat 0/1 的 8/8 合并 = 12/12。
+# 3) 测试：v8 逐文件 80/80；discovery 127。
+for f in $(find . -name "test_*.py" | sort); do
+  (cd $(dirname "$f") && python3 -B $(basename "$f")) || exit 1
+done
+python3 -B -m unittest discover -p "test_*.py"
+
+# 边界：3D Assembly 在声明 support map 上的 kinematic/static 载体闭环，
+# 不是 Gazebo 物理、四足或真机；repeat 2 是重复，不是新种子/被控对象扰动。
