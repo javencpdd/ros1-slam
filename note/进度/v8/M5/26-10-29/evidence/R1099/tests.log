@@ -1,0 +1,7 @@
+test_cmd3d_arbiter.py: 6/6 OK (support snap test added)
+test_graph_3d_assembly.py: 3/3 OK
+v8 full tree: 75/75 test files OK, 0 fail (container ros1-slam-sim)
+A1 3D Assembly matrix: 8/8 PASS; worst carrier distance .0998525 m.
+stairs_mid repeats: 3/3 PASS, distances .075955/.087283/.076173 m; no E_LOCAL_SUPPORT.
+Root cause fixed: local SUPPORT_TOL_S=1e-6 vs carrier z drift .000432 m; carrier now snaps z to declared support within .03 m.
+Boundary: kinematic 3D carrier + declared support map; not Gazebo/four-leg/real; A1 formal remains PARTIAL.
