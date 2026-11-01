@@ -1,0 +1,168 @@
+{
+ "scope": "r1064_root_cause_reap_stdout_close_fix",
+ "root_cause": "OwnedChild.reap blocked in proc.stdout.close() while daemon reader was still in read1(); hang stack captured at reap->stdout.close",
+ "fix": "do not close proc.stdout in reap; keep terminate/kill waits; add SIGUSR1 faulthandler",
+ "post_fix": {
+  "n": 5,
+  "pass": 5,
+  "seconds": [
+   61,
+   76,
+   62,
+   60,
+   75
+  ],
+  "runs": [
+   {
+    "run": "a5_gazebo_0.json.gz",
+    "ok": true,
+    "cases": [
+     [
+      "arrival",
+      true,
+      "VALID"
+     ],
+     [
+      "localization",
+      true,
+      "VALID"
+     ],
+     [
+      "sensor_freshness",
+      true,
+      "VALID"
+     ],
+     [
+      "sensed_no_route",
+      true,
+      "VALID"
+     ]
+    ],
+    "error": null
+   },
+   {
+    "run": "a5_gazebo_1.json.gz",
+    "ok": true,
+    "cases": [
+     [
+      "arrival",
+      true,
+      "VALID"
+     ],
+     [
+      "localization",
+      true,
+      "VALID"
+     ],
+     [
+      "sensor_freshness",
+      true,
+      "VALID"
+     ],
+     [
+      "sensed_no_route",
+      true,
+      "VALID"
+     ]
+    ],
+    "error": null
+   },
+   {
+    "run": "a5_gazebo_2.json.gz",
+    "ok": true,
+    "cases": [
+     [
+      "arrival",
+      true,
+      "VALID"
+     ],
+     [
+      "localization",
+      true,
+      "VALID"
+     ],
+     [
+      "sensor_freshness",
+      true,
+      "VALID"
+     ],
+     [
+      "sensed_no_route",
+      true,
+      "VALID"
+     ]
+    ],
+    "error": null
+   },
+   {
+    "run": "a5_gazebo_3.json.gz",
+    "ok": true,
+    "cases": [
+     [
+      "arrival",
+      true,
+      "VALID"
+     ],
+     [
+      "localization",
+      true,
+      "VALID"
+     ],
+     [
+      "sensor_freshness",
+      true,
+      "VALID"
+     ],
+     [
+      "sensed_no_route",
+      true,
+      "VALID"
+     ]
+    ],
+    "error": null
+   },
+   {
+    "run": "a5_gazebo_4.json.gz",
+    "ok": true,
+    "cases": [
+     [
+      "arrival",
+      true,
+      "VALID"
+     ],
+     [
+      "localization",
+      true,
+      "VALID"
+     ],
+     [
+      "sensor_freshness",
+      true,
+      "VALID"
+     ],
+     [
+      "sensed_no_route",
+      true,
+      "VALID"
+     ]
+    ],
+    "error": null
+   }
+  ]
+ },
+ "evidence": [
+  "hang_stack.log",
+  "hang.txt",
+  "a5_gazebo_0..4.json.gz"
+ ],
+ "boundary": [
+  "test-harness lifecycle fix; no local planner/planner algorithm change",
+  "still A5/Gazebo scoped; no A1-A7/formal #151 change"
+ ],
+ "tests": {
+  "test_a5_gazebo_runtime": "17/17",
+  "v8_per_file": "80/80",
+  "discovery": 127
+ },
+ "code": "396709ce"
+}

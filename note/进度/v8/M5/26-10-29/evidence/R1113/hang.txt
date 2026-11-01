@@ -1,0 +1,189 @@
+run=3 port=12526 HANG_AT=130s
+--- ps ---
+ 829736  829664  829736 Ssl     08:24:27 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 11913 -w 3 __log:=/opt/ros1-slam/logs/bfa69660-d5ed-11f1-81d3-cf7ce03cf9ff/master.log
+1492958 1492886 1492958 Ssl        15:03 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 12442 -w 3 __log:=/tmp/r1113_multi_1/logs/1df85098-d632-11f1-8401-55c66fa75fe3/master.log
+1493032       1 1493032 Ssl        15:02 /usr/bin/python3 /opt/ros/noetic/bin/roslaunch /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch payload_dir:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim gui:=false
+1493256 1493032 1493256 Ss         15:01 /bin/sh /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/tmp/r1113_multi_1/logs/1df85098-d632-11f1-8401-55c66fa75fe3/gazebo-1.log
+1493501 1493256 1493256 SLl        15:00 gzserver -e ode /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world -s /opt/ros/noetic/lib/libgazebo_ros_paths_plugin.so -s /opt/ros/noetic/lib/libgazebo_ros_api_plugin.so __name:=gazebo __log:=/tmp/r1113_multi_1/logs/1df85098-d632-11f1-8401-55c66fa75fe3/gazebo-1.log
+1493745       1 1493745 Ssl        14:47 /usr/bin/python3 /opt/ros1-slam/ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py --out /tmp/r1113_multi_1/a5_gazebo.json --cases arrival,localization,sensor_freshness,sensed_no_route --box-x 2.0 --box-y 0.0 --box-size .4,.4,.6 --max-speed 0.4 --clearance 0.2 --horizon-s 6.0 --tick-s 0.5 --validity-s 0.9 --resolution 0.1 --status-watchdog-s 20.0
+1494737       1 1493745 Sl         14:16 /usr/bin/python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/local_planner/ros_node.py __name:=a5_owned_local_1493745_sensed_no_route _map_json:=/tmp/v8_a5_gazebo_u13gu9d4/floor.json _input_max_age_s:=2.0 _experimental_config:={"resolution": 0.1, "tick_s": 0.5, "max_speed_mps": 0.4, "radius_m": 0.37, "height_m": 0.25, "clearance_m": 0.2, "horizon_s": 6.0, "validity_s": 0.9} _pose_topic:=/a5_gazebo_1493745/pose _goal_topic:=/a5_gazebo_1493745/goal _obstacles_topic:=/a5_gazebo_1493745/obstacles _localization_topic:=/a5_gazebo_1493745/localization _command_topic:=/a5_gazebo_1493745/cmd3d _trajectory_topic:=/a5_gazebo_1493745/trajectory _status_topic:=/a5_gazebo_1493745/status
+1502817 1497805 1502817 Ssl        02:11 python3 -B regression/runtime_lab.py --out /tmp/r1113_multi_3 --port 12526 --gazebo --local-gazebo --local-cases arrival,localization,sensor_freshness,sensed_no_route
+1502892 1502820 1502892 Ssl        02:09 /usr/bin/python3 /opt/ros/noetic/bin/rosmaster --core -p 12526 -w 3 __log:=/tmp/r1113_multi_3/logs/eb0c3562-d633-11f1-b05d-57d33348c49f/master.log
+1502966 1502817 1502966 Ssl        02:09 /usr/bin/python3 /opt/ros/noetic/bin/roslaunch /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch payload_dir:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim gui:=false
+1503189 1502966 1503189 Ss         02:06 /bin/sh /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/tmp/r1113_multi_3/logs/eb0c3562-d633-11f1-b05d-57d33348c49f/gazebo-1.log
+1503435 1503189 1503189 SLl        02:06 gzserver -e ode /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world -s /opt/ros/noetic/lib/libgazebo_ros_paths_plugin.so -s /opt/ros/noetic/lib/libgazebo_ros_api_plugin.so __name:=gazebo __log:=/tmp/r1113_multi_3/logs/eb0c3562-d633-11f1-b05d-57d33348c49f/gazebo-1.log
+1503682 1502817 1503682 Ssl        01:51 /usr/bin/python3 /opt/ros1-slam/ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py --out /tmp/r1113_multi_3/a5_gazebo.json --cases arrival,localization,sensor_freshness,sensed_no_route --box-x 2.0 --box-y 0.0 --box-size .4,.4,.6 --max-speed 0.4 --clearance 0.2 --horizon-s 6.0 --tick-s 0.5 --validity-s 0.9 --resolution 0.1 --status-watchdog-s 20.0
+1503864 1503682 1503682 Sl         01:50 /usr/bin/python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/regression/a5_gazebo_runtime.py --adapter --prefix /a5_gazebo_1503682 --source-topic /follow/cmd_vel
+1504187       1 1503682 Sl         01:30 /usr/bin/python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/local_planner/ros_node.py __name:=a5_owned_local_1503682_localization _map_json:=/tmp/v8_a5_gazebo_16j186vz/floor.json _input_max_age_s:=2.0 _experimental_config:={"resolution": 0.1, "tick_s": 0.5, "max_speed_mps": 0.4, "radius_m": 0.37, "height_m": 0.25, "clearance_m": 0.2, "horizon_s": 6.0, "validity_s": 0.9} _pose_topic:=/a5_gazebo_1503682/pose _goal_topic:=/a5_gazebo_1503682/goal _obstacles_topic:=/a5_gazebo_1503682/obstacles _localization_topic:=/a5_gazebo_1503682/localization _command_topic:=/a5_gazebo_1503682/cmd3d _trajectory_topic:=/a5_gazebo_1503682/trajectory _status_topic:=/a5_gazebo_1503682/status
+--- rosnode list ---
+/a5_gazebo_probe_1503682_1793565409569
+/a5_owned_local_1503682_localization
+/a5_planar_adapter_1503864_1793565411251
+/gazebo
+/map_to_odom_static
+/mux
+/robot_state_publisher
+/rosout
+/runtime_lab_1502817_1793565391692
+/sim_adapter
+--- status topics ---
+/a5_gazebo_1503682/adapter_status
+/a5_gazebo_1503682/cmd3d
+/a5_gazebo_1503682/goal
+/a5_gazebo_1503682/localization
+/a5_gazebo_1503682/obstacles
+/a5_gazebo_1503682/pose
+/a5_gazebo_1503682/status
+/a5_gazebo_1503682/trajectory
+/cmd_vel
+/follow/cmd_vel
+## /a5_gazebo_probe_1503682_1793565409569
+--------------------------------------------------------------------------------
+Node [/a5_gazebo_probe_1503682_1793565409569]
+Publications: 
+ * /a5_gazebo_1503682/goal [geometry_msgs/PoseStamped]
+ * /a5_gazebo_1503682/localization [std_msgs/Bool]
+ * /a5_gazebo_1503682/obstacles [std_msgs/String]
+ * /a5_gazebo_1503682/pose [geometry_msgs/PoseStamped]
+ * /lite3/supervisor/hold [std_msgs/Bool]
+ * /rosout [rosgraph_msgs/Log]
+
+Subscriptions: 
+ * /a5_gazebo_1503682/adapter_status [std_msgs/String]
+ * /a5_gazebo_1503682/cmd3d [geometry_msgs/TwistStamped]
+ * /a5_gazebo_1503682/status [std_msgs/String]
+ * /a5_gazebo_1503682/trajectory [std_msgs/String]
+ * /clock [rosgraph_msgs/Clock]
+ * /cmd_vel [geometry_msgs/Twist]
+ * /gazebo/model_states [gazebo_msgs/ModelStates]
+ * /rslidar_points [sensor_msgs/PointCloud2]
+ * /sim/odom_gt [nav_msgs/Odometry]
+ * /tf [tf2_msgs/TFMessage]
+ * /tf_static [tf2_msgs/TFMessage]
+
+Services: 
+ * /a5_gazebo_probe_1503682_1793565409569/get_loggers
+ * /a5_gazebo_probe_1503682_1793565409569/set_logger_level
+ * /a5_gazebo_probe_1503682_1793565409569/tf2_frames
+
+
+contacting node http://127.0.0.1:46661/ ...
+Pid: 1503682
+Connections:
+ * topic: /rosout
+    * to: /rosout
+    * direction: outbound (33197 - 127.0.0.1:49714) [30]
+    * transport: TCPROS
+ * topic: /a5_gazebo_1503682/pose
+    * to: /a5_owned_local_1503682_localization
+    * direction: outbound (33197 - 127.0.0.1:44032) [46]
+    * transport: TCPROS
+## /a5_owned_local_1503682_localization
+ERROR: Communication with node[http://127.0.0.1:40427/] failed!
+--------------------------------------------------------------------------------
+Node [/a5_owned_local_1503682_localization]
+Publications: 
+ * /a5_gazebo_1503682/cmd3d [geometry_msgs/TwistStamped]
+ * /a5_gazebo_1503682/status [std_msgs/String]
+ * /a5_gazebo_1503682/trajectory [std_msgs/String]
+ * /rosout [rosgraph_msgs/Log]
+
+Subscriptions: 
+ * /a5_gazebo_1503682/goal [geometry_msgs/PoseStamped]
+ * /a5_gazebo_1503682/localization [std_msgs/Bool]
+ * /a5_gazebo_1503682/obstacles [std_msgs/String]
+ * /a5_gazebo_1503682/pose [geometry_msgs/PoseStamped]
+ * /clock [rosgraph_msgs/Clock]
+
+Services: 
+ * /a5_owned_local_1503682_localization/get_loggers
+ * /a5_owned_local_1503682_localization/set_logger_level
+
+
+contacting node http://127.0.0.1:40427/ ...
+## /a5_planar_adapter_1503864_1793565411251
+--------------------------------------------------------------------------------
+Node [/a5_planar_adapter_1503864_1793565411251]
+Publications: 
+ * /a5_gazebo_1503682/adapter_status [std_msgs/String]
+ * /follow/cmd_vel [geometry_msgs/Twist]
+ * /rosout [rosgraph_msgs/Log]
+
+Subscriptions: 
+ * /a5_gazebo_1503682/cmd3d [geometry_msgs/TwistStamped]
+ * /clock [rosgraph_msgs/Clock]
+ * /sim/odom_gt [nav_msgs/Odometry]
+
+Services: 
+ * /a5_planar_adapter_1503864_1793565411251/get_loggers
+ * /a5_planar_adapter_1503864_1793565411251/set_logger_level
+
+
+contacting node http://127.0.0.1:46465/ ...
+Pid: 1503864
+Connections:
+ * topic: /rosout
+    * to: /rosout
+    * direction: outbound (33997 - 127.0.0.1:59992) [19]
+    * transport: TCPROS
+ * topic: /follow/cmd_vel
+    * to: /mux
+    * direction: outbound (33997 - 127.0.0.1:59978) [18]
+    * transport: TCPROS
+ * topic: /a5_gazebo_1503682/adapter_status
+    * to: /a5_gazebo_probe_1503682_1793565409569
+    * direction: outbound (33997 - 127.0.0.1:59982) [16]
+    * transport: TCPROS
+ * topic: /clock
+    * to: /gazebo (http://127.0.0.1:43821/)
+    * direction: inbound
+    * transport: TCPROS
+ * topic: /a5_gazebo_1503682/cmd3d
+    * to: /a5_owned_local_1503682_localization (http://127.0.0.1:40427/)
+    * direction: inbound
+    * transport: TCPROS
+## /sim_adapter
+--------------------------------------------------------------------------------
+Node [/sim_adapter]
+Publications: 
+ * /rosout [rosgraph_msgs/Log]
+ * /rslidar_points [sensor_msgs/PointCloud2]
+
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+ * /livox/lidar [livox_laser_simulation/CustomMsg]
+ * /quad_0/lidar_pose [unknown type]
+
+Services: 
+ * /sim_adapter/get_loggers
+ * /sim_adapter/set_logger_level
+
+
+contacting node http://127.0.0.1:46389/ ...
+Pid: 1503204
+Connections:
+ * topic: /rosout
+    * to: /rosout
+    * direction: outbound (43321 - 127.0.0.1:53808) [9]
+    * transport: TCPROS
+ * topic: /rslidar_points
+    * to: /a5_gazebo_probe_1503682_1793565409569
+    * direction: outbound (43321 - 127.0.0.1:48462) [13]
+    * transport: TCPROS
+ * topic: /clock
+    * to: /gazebo (http://127.0.0.1:43821/)
+    * direction: inbound
+    * transport: TCPROS
+ * topic: /livox/lidar
+    * to: /gazebo (http://127.0.0.1:43821/)
+    * direction: inbound
+    * transport: TCPROS
+
+## hz /a5_gazebo_1503682/status
+WARNING: may be using simulated time
+subscribed to [/a5_gazebo_1503682/status]
+no new messages
+no new messages
+no new messages
+no new messages
+no new messages

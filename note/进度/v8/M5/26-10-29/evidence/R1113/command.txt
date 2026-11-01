@@ -1,0 +1,12 @@
+R1113 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+
+# 0) 现场：同 lab 四例第二次跑到 sensed_no_route 时 130 s 仍存活，local status 无消息，
+#    四个 adapter 并存。对 a5_gazebo_runtime 发 SIGUSR1（faulthandler）得到栈：
+#    main -> run -> run_case -> stop_owned -> OwnedChild.reap -> proc.stdout.close()
+#    reader 线程仍卡在 read1；close 等 buffer 锁即挂起。
+# 1) 修复：reap 不再 close proc.stdout；保留 terminate/kill 等待；加 SIGUSR1 栈。
+#    local 节点每例唯一名；runtime_lab 每 lab 独立 GAZEBO_MASTER_URI（ROS port+1）。
+# 2) 清场后同 lab 四例连跑 5 次（12600/12602/12604/12606/12608）：
+#    5/5 rc=0，60—76 s；每跑四例全 VALID。
+# 3) 测试：test_a5_gazebo_runtime 17/17；v8 逐文件 80/80；discovery 127。
+# 边界：测试台生命周期修复；不改规划算法/A1—A7/#151。
