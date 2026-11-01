@@ -34,8 +34,17 @@ def main():
     parser.add_argument('--out', default='/tmp/r1097_3d_assembly.json')
     parser.add_argument('--port', type=int, default=11527)
     parser.add_argument('--state', default='/tmp/r1097_3d_state.json')
+    parser.add_argument('--map', default=str(ROOT / 'contracts' / 'fixtures'
+                                            / 'map_ml_two_surfaces.json'))
+    parser.add_argument('--graph', default=str(HERE / 'fixtures' / 'graphs'
+                                              / 'graph_3d_real.yaml'))
+    parser.add_argument('--start', default='3.0,2.0,0.6')
+    parser.add_argument('--goal', default='3.5,2.0,0.6')
     parser.add_argument('--timeout-s', type=float, default=25.)
     args = parser.parse_args()
+    map_path = Path(args.map).resolve()
+    start = tuple(float(v) for v in args.start.split(','))
+    goal = tuple(float(v) for v in args.goal.split(','))
     output = Path(args.out).resolve()
     state_path = Path(args.state).resolve()
     if state_path.exists():
@@ -46,14 +55,16 @@ def main():
     Path('/tmp/r1097_ros').mkdir(exist_ok=True)
     Path('/tmp/r1097_logs').mkdir(exist_ok=True)
     catalog = config.load_components(HERE / 'fixtures' / 'manifests')
-    graph = config.load_graph(HERE / 'fixtures' / 'graphs' / 'graph_3d_real.yaml')
+    graph = config.load_graph(Path(args.graph).resolve())
     report = graph_mod.check(graph, catalog)
     plan = render.render_plan(graph, catalog, report)
     provider = next(item for item in plan['instances'] if item['id'] == 'provider')
-    provider['params']['map_json'] = str(ROOT / 'contracts' / 'fixtures'
-                                         / 'map_ml_two_surfaces.json')
+    provider['params']['map_json'] = str(map_path)
     provider['params']['state_path'] = str(state_path)
+    carrier = next(item for item in plan['instances'] if item['id'] == 'carrier')
+    carrier['params'].update(start_x=start[0], start_y=start[1], start_z=start[2])
     result = {'scope': 'assembly_3d_global_local_kinematic_closed_loop',
+              'map': str(map_path), 'start': list(start), 'goal': list(goal),
               'safety_gate': None, 'command_writers': report['command_writers'],
               'startup_order': report['startup_order'], 'path': None,
               'local_trajectory': None, 'carrier_final': None, 'mux': {},
@@ -84,8 +95,7 @@ def main():
         result['assembly_ready'] = assembly.ready()
         pub_a = rospy.Publisher('/v8/3d/base_a', SupportMap, queue_size=1, latch=True)
         pub_b = rospy.Publisher('/v8/3d/base_b', SupportMap, queue_size=1, latch=True)
-        value = json.loads((ROOT / 'contracts' / 'fixtures'
-                            / 'map_ml_two_surfaces.json').read_text())
+        value = json.loads(map_path.read_text())
         support = ros_map_codec.support_map_msg(value)
         time.sleep(.8)
         pub_a.publish(support)
@@ -136,14 +146,14 @@ def main():
 
         time.sleep(.5)
         hold_pub.publish(Bool(data=False))
-        start_pub.publish(signed(3.0, 2.0, .6))
-        goal_pub.publish(signed(3.5, 2.0, .6))
+        start_pub.publish(signed(*start))
+        goal_pub.publish(signed(*goal))
         deadline = time.monotonic() + args.timeout_s
         while time.monotonic() < deadline:
             obstacle_pub.publish(String(data='[]'))
             hold_pub.publish(Bool(data=False))
             if trajectory['value'] and trajectory['value'].get('reason') == 'arrived':
-                if pose['value'] and math.dist(pose['value'], [3.5, 2.0, .6]) <= .10:
+                if pose['value'] and math.dist(pose['value'], goal) <= .10:
                     break
             if assembly.health():
                 result['assembly_health'] = assembly.health()
@@ -160,12 +170,13 @@ def main():
             'last': trajectory['value'].get('trajectory', [None])[-1]}
         result['carrier_final'] = pose['value']
         result['carrier_distance_to_goal_m'] = (None if pose['value'] is None else
-                                                math.dist(pose['value'], [3.5, 2.0, .6]))
+                                                math.dist(pose['value'], goal))
         result['mux'] = {'samples': len(mux_log),
                          'track_samples': sum(1 for row in mux_log if row.get('reason') == 'track'),
                          'stale_samples': sum(1 for row in mux_log if row.get('reason') == 'E_CMD3D_STALE'),
                          'last': mux_log[-1] if mux_log else None}
         result['local_status_samples'] = len(status_log)
+        result['local_status_tail'] = status_log[-12:]
     except Exception as error:
         import traceback
         result['error'] = repr(error)
@@ -185,12 +196,12 @@ def main():
         except Exception:
             pass
     result['ok'] = (result.get('safety_gate') == 'ok'
-                    and result.get('provider_status', {}).get('map_version') == 3
+                    and (result.get('provider_status') or {}).get('map_version') is not None
                     and result.get('path') is not None
-                    and result.get('local_trajectory', {}).get('reason') == 'arrived'
+                    and (result.get('local_trajectory') or {}).get('reason') == 'arrived'
                     and result.get('carrier_distance_to_goal_m') is not None
                     and result['carrier_distance_to_goal_m'] <= .10
-                    and result.get('mux', {}).get('track_samples', 0) > 0
+                    and (result.get('mux') or {}).get('track_samples', 0) > 0
                     and result.get('error') is None
                     and result.get('stopped'))
     output.write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n')
