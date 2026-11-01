@@ -325,8 +325,9 @@ def main():
                                                control_period_s=base_period,
                                                feedback_pose=snapshot['pose'], uncertainty_m=uncertainty,
                                                previous_velocity=previous_command)
-                except ValueError:
-                    out = {'velocity': [0., 0., 0.], 'stop': True, 'reason': 'E_LOCAL_CLOCK'}
+                except ValueError as error:
+                    out = {'velocity': [0., 0., 0.], 'stop': True, 'reason': 'E_LOCAL_CLOCK',
+                           'clock_error': str(error)}
             else:
                 out = {'velocity': [0., 0., 0.], 'stop': True, 'reason': reason or snapshot['last_error']}
             message = TwistStamped()

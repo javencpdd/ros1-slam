@@ -183,6 +183,8 @@ def main():
                      '_trajectory_topic:=' + prefix + '/trajectory',
                      '_experimental_config:=' + json.dumps(config),
                      '_plan_sim_tick_s:=' + str(args.plan_sim_tick_s)]
+        if args.command_lockstep:
+            node_argv.append('_lockstep_command:=true')
         bridge_argv = [sys.executable, '-B', str(DYNAMICS / 'a5_v8x1_bridge.py'),
                        '--map', str(map_path), '--xml', stairs_xml, '--policy', args.policy,
                        '--prefix', prefix, '--seed', str(args.seed)]

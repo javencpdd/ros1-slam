@@ -149,6 +149,9 @@ def main():
         args.command_stamp_window = 0.
         args.lockstep = False
         args.require_release = False
+        args.command_lockstep = False
+    if args.command_lockstep and not args.lockstep:
+        raise SystemExit('--command-lockstep requires --lockstep')
 
     import mujoco
     import onnxruntime as ort
@@ -402,6 +405,14 @@ def main():
             trace.flush()
         if clock_pub is not None:
             clock_pub.publish(Clock(clock=rospy.Time.from_sec(args.clock_offset + float(data.time))))
+            if args.command_lockstep and stepping:
+                start_seq = shared['cmd_seq']
+                deadline = time.monotonic() + 5.0
+                while shared['cmd_seq'] == start_seq and not rospy.is_shutdown():
+                    if time.monotonic() >= deadline:
+                        break
+                    time.sleep(.002)
+                lockstep_last = shared['cmd_seq']
         if viewer is not None and tick % 5 == 0:
             if not viewer.is_running():
                 break
