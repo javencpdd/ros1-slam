@@ -1,0 +1,15 @@
+{
+ "experiment": "replay source-fidelity check and top-hold re-attempt",
+ "source": "R1067 s0_10 full trace (1349 rows)",
+ "replay_vs_replay": {"identical": true, "ticks": 1349},
+ "replay_vs_source": {"first_qpos_diff": {"tick": 177, "sim_time": 1.12, "max_abs_diff": 0.006532918362376128},
+                      "max_qpos_diff_m": 347.8241084094843},
+ "replay_fault": {"tick": 1050, "sim_time": 16.42, "fault": "action_nonfinite"},
+ "source_at_fault": {"tick": 1050, "fault": null, "stepping": true, "active": true},
+ "variants": ["zero hold", "50-tick ramp + zero", "50-tick ramp + 0.05 m/s creep"],
+ "variant_final_z": 0.1857194055023823,
+ "conclusion": "the identical fall in all variants is caused by a replay trajectory that diverges from the source and terminal-faults at tick 1050; R1082's zero-command top-hold conclusion is invalid. R1080's replay-vs-replay determinism remains valid but not source reproduction.",
+ "top_finish_status": "OPEN",
+ "limits": "open-loop replay; no ROS replanning, no real robot; V8-X1 remains PARTIAL",
+ "tests": "v8 full tree 73/73"
+}

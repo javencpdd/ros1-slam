@@ -1,0 +1,13 @@
+R1089 命令（2026-11-01 16:30—16:40 CST，qoder；容器 v8codex-20261028）
+source /opt/ros/noetic/setup.bash
+cd /repo/ws/src/90_platform/v8_platform/regression
+# 源保真：用 R1067 s0_10 自身作为回放输入，两次回放仍确定，但与源逐 tick 比较
+python3 -B a5_v8x1_replay.py \
+  --source-trace "/repo/note/进度/v8/M5/26-10-29/evidence/R1067/traces/s0_10.trace.jsonl.gz" \
+  --out-dir /tmp/r1089cmp --port 11705
+# 顶部尝试：零/斜坡/0.05 前馈三种追加方式
+python3 -B a5_v8x1_top_hold.py --source-trace .../s0_10.trace.jsonl.gz \
+  --ramp-ticks 50 --hold-ticks 500 [--hold-vx 0.05] --out-dir /tmp/r1089[b]
+# 源首分歧 tick177 (sim1.12, qpos .00653 m)；回放 tick1050 action_nonfinite，
+# 源该 tick fault=None/action 有限；三变体末态均 .185719 z —— 由回放 fault 引起，
+# 不是零指令/斜坡本身的顶部行为。

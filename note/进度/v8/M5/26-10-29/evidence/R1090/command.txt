@@ -1,0 +1,9 @@
+R1090 命令（2026-11-01 16:43—17:02 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+python3 -B regression/a1_combo_matrix.py --out /tmp/r1084_a1_s12 \
+  --scenarios SC01,SC02,SC09 --seeds 1,2 \
+  --ros-port-base 12300 --gazebo-port-base 12400 \
+  --workers 5 --retries 1
+# 48/48 PASS，wall 1085.9 s；最坏 dist .248 / clearance .280 / injected .578。
+# 与 R1084 的 seed0 24/24 合并：72/72 PASS，总 wall 1501.9 s。
