@@ -1,0 +1,100 @@
+{
+ "gazebo_3d": {
+  "n": 2,
+  "pass": 2,
+  "runs": [
+   {
+    "run": 1,
+    "ok": true,
+    "checks": {
+     "terrain_loaded": true,
+     "climbed": true,
+     "arrived_goal": true,
+     "no_vertical_rejection": true,
+     "a5_active": true,
+     "gazebo_pose_matches": true
+    },
+    "support_sequence": [
+     0.0,
+     0.198798,
+     0.371688,
+     0.544578,
+     0.717468,
+     0.890358
+    ],
+    "final_pose": [
+     39.3,
+     -1.3057618471432876e-16,
+     1.2988354765931132,
+     0.8903579644319735
+    ],
+    "gazebo_link_pose": [
+     -1.3057618471432876e-16,
+     1.2988354765931132,
+     0.9903579644319734
+    ],
+    "plans": 9,
+    "terrain": "nist_stairs_120_s020x170"
+   },
+   {
+    "run": 2,
+    "ok": true,
+    "checks": {
+     "terrain_loaded": true,
+     "climbed": true,
+     "arrived_goal": true,
+     "no_vertical_rejection": true,
+     "a5_active": true,
+     "gazebo_pose_matches": true
+    },
+    "support_sequence": [
+     0.0,
+     0.198798,
+     0.371688,
+     0.544578,
+     0.717468,
+     0.890358
+    ],
+    "final_pose": [
+     64.14,
+     -1.1677476172752265e-16,
+     1.303186475824255,
+     0.8903579855815238
+    ],
+    "gazebo_link_pose": [
+     -1.1677476172752265e-16,
+     1.303186475824255,
+     0.9903579855815238
+    ],
+    "plans": 9,
+    "terrain": "nist_stairs_120_s020x170"
+   }
+  ]
+ },
+ "a1_3d_matrix": {
+  "n": 8,
+  "pass": 7,
+  "failures": [
+   {
+    "cell": "stairs_mid_r0",
+    "scenario": "stairs_mid",
+    "repeat": 0,
+    "port": 11604,
+    "returncode": 6,
+    "ok": false,
+    "provider_status": {
+     "map_version": 1,
+     "deltas": 0
+    },
+    "path_poses": 21,
+    "local_reason": "arrived",
+    "carrier_distance_m": 1.4440205611982726,
+    "mux_track_samples": 2962,
+    "mux_stale_samples": 0,
+    "error": ""
+   }
+  ],
+  "wall_s": 280.7397579079843
+ },
+ "boundary": "Gazebo 3D is kinematic pose sink, no contact/four-leg/real; A1 3D matrix is 3D Assembly kinematic, not formal 2D A1."
+}

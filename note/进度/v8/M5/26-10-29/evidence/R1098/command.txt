@@ -1,0 +1,28 @@
+R1098 命令（2026-11-01 20:12—20:52 CST，qoder；容器 ros1-slam-sim）
+# 代码 20e2f810（仲裁/闭环）+ a073a61a（场景参数化/stairs 配置/矩阵）。
+# Gazebo 3D 世界：ROS master 11913、Gazebo master 11914、DISPLAY=:99。
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11913 ROS_HOSTNAME=127.0.0.1
+export GAZEBO_MASTER_URI=http://127.0.0.1:11914 DISPLAY=:99 LIBGL_ALWAYS_SOFTWARE=1
+export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:/opt/ros1-slam/data/maps/worlds:/opt/ros1-slam/ws/src/95_simulation
+# roscore 11913；然后：
+gzserver --verbose -e ode -s libgazebo_ros_api_plugin.so \
+  /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world
+
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+for i in 1 2; do
+  python3 -B a5_gazebo3d_runtime.py \
+    --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+    --out /tmp/r1098_gz3d_run$i.json --wall-deadline-s 120
+done
+# 2/2 ok=true；支撑序列 6 级；末 link z .990358。
+
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+export PYTHONPATH=/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH
+python3 -B regression/a1_3d_combo_matrix.py --out /tmp/r1098_a1_3d \
+  --port-base 11600 --repeats 2 --scenarios flat,flat_alt,stairs_top,stairs_mid \
+  --timeout-s 60
+# 8 格 7/8 PASS；唯一失败 stairs_mid_r0：local arrived 但载体距目标 1.444021 m，
+# local 末态 E_LOCAL_SUPPORT；stairs_mid_r1 通过。
+# 测试：graph_3d_assembly 3/3、cmd3d_arbiter 5/5、v8 全树 75/75 文件 0 失败。
