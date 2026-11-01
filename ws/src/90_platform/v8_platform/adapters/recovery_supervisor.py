@@ -54,6 +54,9 @@ class RecoverySupervisor:
             self.phase = TRACKING
             return True
         if not healthy:
+            # Startup is not a loss: do not call the backend before the first sample.
+            if self.state.state == 'INITIALIZING':
+                return False
             if self.phase not in (RELOCALIZING, FAILED):
                 self._enter_relocalizing(now, self.state.reason)
             if self.phase == RELOCALIZING:

@@ -20,6 +20,7 @@ def main(argv=None):
     parser.add_argument('--health-topic', default='')
     parser.add_argument('--candidate-topic', default='')
     parser.add_argument('--lease-in-topic', default='')
+    parser.add_argument('--initial-lease', type=int, default=0)
     parser.add_argument('--relocalize-service', default='/relocalize')
     parser.add_argument('--score-min', type=float, default=0.5)
     parser.add_argument('--deadline-s', type=float, default=5.0)
@@ -41,6 +42,7 @@ def main(argv=None):
     lock = threading.RLock()
     callbacks = []
     pending = {'lease': None}
+    last_candidate_yaw = [None]
     relocalize_calls = [0]
 
     def relocalize():
@@ -56,7 +58,8 @@ def main(argv=None):
     def switch_backend(lease, pose):
         pending['lease'] = lease
         backend.publish(String(data=json.dumps({'backend': 'faster_lio', 'lease': lease,
-                                                'pose': list(pose)})))
+                                                'pose': list(pose),
+                                                'yaw': last_candidate_yaw[0]})))
 
     supervisor = RecoverySupervisor(
         state, relocalize, switch_backend, score_min=args.score_min,
@@ -81,9 +84,14 @@ def main(argv=None):
             payload = json.loads(message.data)
             pose = tuple(float(v) for v in payload['pose'][:3])
             score = float(payload['score'])
+            yaw = payload.get('yaw')
+            yaw = None if yaw is None else float(yaw)
         except (ValueError, KeyError, TypeError, IndexError):
             return
+        if yaw is not None and not math.isfinite(yaw):
+            return
         with lock:
+            last_candidate_yaw[0] = yaw
             supervisor.offer_candidate(pose, score, time.monotonic())
 
     def lease_in(message):
@@ -106,6 +114,9 @@ def main(argv=None):
         while not rospy.is_shutdown():
             now = time.monotonic()
             with lock:
+                if args.initial_lease > 0 and state.state == 'HEALTHY' \
+                        and state.active_lease is None and state.last_lease < args.initial_lease:
+                    state.activate(args.initial_lease, now)
                 ok = supervisor.tick(now)
                 active = state.active_lease
                 if active is not None and active != last_lease[0]:
