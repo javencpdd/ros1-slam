@@ -136,8 +136,10 @@
 
   <!-- ================= M2-1 修法 B：lite3_planar_drive（自研壳插件） =================
        落位：lite3_gazebo_sim/src/lite3_planar_drive.cpp，编译产出 liblite3_planar_drive.so（GAZEBO_PLUGIN_PATH 随 ws devel）。
-       driveMode 装配默认 kinematic —— 探针 M2-1-D 若判 H1（物理可转）则改 dynamic（保留碰撞物理）；
-       判 H2（物理不可转）维持 kinematic。两模式 odom/TF 均为 WorldPose 闭环。 -->
+       ★R1109 实测口径＝当前装配 driveMode=dynamic：插件用 SetLinearVel/SetAngularVel
+       回填当前 Z 线速与 X/Y 角速，地面/障碍接触由 Gazebo 物理求解；它仍是平面方盒，
+       不是四足步态/接触状态估计。kinematic 仅作 H2 回退（SetWorldPose 直推，免疫接触），
+       不得再用“kinematic 载体”称呼本当前装配。 -->
   <gazebo>
     <plugin name="lite3_planar_drive" filename="liblite3_planar_drive.so">
       <robotNamespace>/</robotNamespace>
