@@ -1,0 +1,12 @@
+R1080 命令（2026-11-01 14:44—14:50 CST，qoder；容器 v8codex-20261028）
+source /opt/ros/noetic/setup.bash
+cd /repo/ws/src/90_platform/v8_platform/regression
+PYTHONDONTWRITEBYTECODE=1 python3 -B a5_v8x1_replay.py \
+  --source-trace "/repo/note/进度/v8/M5/26-10-29/evidence/R1069/traces/s0_23.first500.jsonl.gz" \
+  --out-dir /tmp/a5_replay_r1080c --port 11693
+# 资产：/tmp/mjcf/Lite3.xml、/tmp/new_policy.onnx、
+# /repo/data/maps/nist_stairs_120_s020x170_support.json
+# 回放：两次独立 bridge（同首行 qpos/qvel、同 500 tick command/stepping），
+# 逐 tick 比较 sim_time/qpos/qvel/command/joint_target/action。
+# 读数：500 tick 完全一致（max_abs_diff 0.0），末态 qpos 同为
+# [3.111623782373993, -0.235792211314976, 0.2615289769684592]；两跑 rc=0。
