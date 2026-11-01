@@ -1,0 +1,22 @@
+{
+ "source_run": "fresh_2026-11-01_1816",
+ "world": "walk.make_stairs_xml(base_xml, step_h=.1988, steps=5, depth=.72, width=3.0, front=1.0, landing_depth=2.0, contact_profile=None)",
+ "stair": {"steps": 5, "step_h": 0.1988, "depth": 0.72, "front": 1.0, "landing_depth": 2.0, "width": 3.0},
+ "config": {"tick_s": 1.2, "horizon_s": 12.0, "validity_s": 12.0, "clearance_m": 0.1, "resolution": 0.15},
+ "runtime": {"seed": 0, "perturb": true, "lockstep": true, "stall_retry": true,
+             "wall_deadline_s": 150.0, "trace_actions": "/tmp/r1091src/s0_10.trace.jsonl"},
+ "assets": {
+  "map": {"path": "data/maps/nist_stairs_120_s020x170_support.json",
+          "sha256": "bd0cc6c4177aa7dc3b9cc12aee5f19fa4f40ed944e9979c6021ba6b194e1e366"},
+  "policy": {"path": "/tmp/new_policy.onnx",
+             "sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f"},
+  "base_xml": {"path": "/tmp/mjcf/Lite3.xml",
+               "sha256": "9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa"},
+  "stairs_xml": {"path": "stairs.xml",
+                 "sha256": "bb0a22e35b1eb6c250e4deea702cb79d179aa0e0690f0f75c03a7bf6eab0641c"},
+  "r1067_trace": {"path": "note/进度/v8/M5/26-10-29/evidence/R1067/traces/s0_10.trace.jsonl.gz",
+                  "sha256": "7a330e68128ba5a7e6ccb63df62a177f7338ed5528dc320e425632b13befd809"}
+ },
+ "trace_change": "fresh trace adds qacc_warmstart per tick; R1067 trace omits it",
+ "boundary": "R1067 full replay from row 0 matches because its initial warmstart is zero; resume from a later row of an old trace would need the missing warmstart."
+}

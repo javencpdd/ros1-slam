@@ -1,0 +1,103 @@
+{
+ "ok": true,
+ "source_rows": 1349,
+ "hold_rows": 550,
+ "resume_start_index": 1349,
+ "source_end": {
+  "qpos": [
+   4.06838276766814,
+   0.09013245811044397,
+   1.1469168346960479,
+   0.9562623607567132,
+   0.029023655861089372,
+   -0.07586930774497862,
+   -0.2810049340185201,
+   -0.10459439922602257,
+   -1.5573516566406491,
+   2.1856723909505558,
+   0.10862017075686094,
+   -1.3516255679181979,
+   2.4022587012972925,
+   -0.11853965801758537,
+   -1.84019891080787,
+   2.7468801015300923,
+   0.12131712182687027,
+   -1.0077630307074872,
+   1.4589742972515438
+  ],
+  "support": 0.890358,
+  "sim_time": 22.339999999998497
+ },
+ "hold_end_qpos": [
+  4.031160353268428,
+  0.09907881397080628,
+  1.164800778247398,
+  0.9615587624074864,
+  -0.026331036742674733,
+  -0.09493709727559067,
+  -0.25631693370186054,
+  0.0036425107573484117,
+  -1.38826058317357,
+  2.221375763526867,
+  0.06358037300719714,
+  -1.222662475799006,
+  2.1764467619419263,
+  -0.05332199219295807,
+  -1.1901807591610247,
+  2.5146284884097065,
+  0.02433355715727716,
+  -1.099965047967133,
+  1.3176573014958182
+ ],
+ "hold_min_z": 1.1480234583613718,
+ "hold_final_z": 1.164800778247398,
+ "hold_max_xy_drift_m": 0.0715709131453713,
+ "hold_z_drop_m": -0.0011066236653238803,
+ "z_drop_limit_m": 0.25,
+ "support_z": 0.890358,
+ "replay_ok": true,
+ "replay": {
+  "ok": true,
+  "source_trace": "/tmp/r1091oldhold_ramp/top_hold.trace.jsonl",
+  "source_rows": 1899,
+  "start_index": 1349,
+  "runs": [
+   {
+    "replay": 1,
+    "returncode": 0,
+    "trace": "/tmp/r1091oldhold_ramp/replay/replay_1.jsonl",
+    "rows": 550
+   },
+   {
+    "replay": 2,
+    "returncode": 0,
+    "trace": "/tmp/r1091oldhold_ramp/replay/replay_2.jsonl",
+    "rows": 550
+   }
+  ],
+  "comparison": {
+   "ticks": 550,
+   "identical": true,
+   "first_diff": null,
+   "max_abs_diff": 0.0
+  },
+  "source_comparison": null,
+  "final_qpos": [
+   [
+    4.031160353268428,
+    0.09907881397080628,
+    1.164800778247398
+   ],
+   [
+    4.031160353268428,
+    0.09907881397080628,
+    1.164800778247398
+   ]
+  ],
+  "scope": "executor replay only; ROS command generation bypassed"
+ },
+ "scope": "open-loop recorded climb + appended zero command; no ROS re-planning, no real robot",
+ "replay_rc": 0,
+ "replay_stdout": "{\n \"ok\": true,\n \"source_trace\": \"/tmp/r1091oldhold_ramp/top_hold.trace.jsonl\",\n \"source_rows\": 1899,\n \"start_index\": 1349,\n \"runs\": [\n  {\n   \"replay\": 1,\n   \"returncode\": 0,\n   \"trace\": \"/tmp/r1091oldhold_ramp/replay/replay_1.jsonl\",\n   \"rows\": 550\n  },\n  {\n   \"replay\": 2,\n   \"returncode\": 0,\n   \"trace\": \"/tmp/r1091oldhold_ramp/replay/replay_2.jsonl\",\n   \"rows\": 550\n  }\n ],\n \"comparison\": {\n  \"ticks\": 550,\n  \"identical\": true,\n  \"first_diff\": null,\n  \"max_abs_diff\": 0.0\n },\n \"source_comparison\": null,\n \"final_qpos\": [\n  [\n   4.031160353268428,\n   0.09907881397080628,\n   1.164800778247398\n  ],\n  [\n   4.031160353268428,\n   0.09907881397080628,\n   1.164800778247398\n  ]\n ],\n \"scope\": \"executor replay only; ROS command generation bypassed\"\n}\n",
+ "replay_stderr": ""
+}

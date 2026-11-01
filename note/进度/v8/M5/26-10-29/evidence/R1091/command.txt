@@ -1,0 +1,61 @@
+R1091 命令（2026-11-01 18:16—18:31 CST，qoder；容器 v8codex-20261028）
+# 代码提交 fcf8a0f5。资产 /tmp/new_policy.onnx、/tmp/mjcf/Lite3.xml；
+# PYTHONPATH=/tmp/r854-policy-runtime:/opt/ros/noetic/lib/python3/dist-packages；
+# 每次运行独立 ROS master 11721—11727。
+# 关键：回放必须传源运行生成的 stairs.xml；默认 /tmp/mjcf/Lite3.xml 是平地，
+# 会在进入台阶后产生假分歧（R1089 的根因）。
+
+# 1) 新源轨迹（带 qacc_warmstart），seed0、perturb、lockstep、stall-retry
+cd /repo/ws/src/90_platform/v8_platform/regression
+timeout 190 python3 -B a5_v8x1_runtime.py \
+  --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --seed 0 --perturb --lockstep --stall-retry \
+  --trace-actions /tmp/r1091src/s0_10.trace.jsonl \
+  --out /tmp/r1091src/s0_10.json --wall-deadline-s 150
+# ok=true；checks climbed/final_on_top/goal_map/no_fall/a5_active 全 true；
+# 1042 行、末 sim 14.44 s、末 z 1.1246448。
+
+# 2) 旧 R1067 s0_10 全量回放（1349 行）——用同一台阶世界
+python3 -B a5_v8x1_replay.py \
+  --source-trace "/repo/note/进度/v8/M5/26-10-29/evidence/R1067/traces/s0_10.trace.jsonl.gz" \
+  --xml /tmp/lite3_stairs_dv378won/stairs.xml --start-index 0 \
+  --out-dir /tmp/r1091replay0_old --port 11727
+# source_comparison 与 replay_comparison 均 identical=true、max_abs_diff=0.0，
+# 两侧各 1349 tick。
+
+# 3) 新源轨迹全量回放（1042 行）
+python3 -B a5_v8x1_replay.py \
+  --source-trace /tmp/r1091src/s0_10.trace.jsonl \
+  --xml /tmp/lite3_stairs_dv378won/stairs.xml --start-index 0 \
+  --out-dir /tmp/r1091replay0 --port 11726
+# source_comparison 与 replay_comparison 均 identical=true、max_abs_diff=0.0，
+# 两侧各 1042 tick。
+
+# 4) 从第 500 行恢复的源尾校验（warmstart + 五帧历史 + last_action）
+python3 -B a5_v8x1_replay.py \
+  --source-trace /tmp/r1091src/s0_10.trace.jsonl \
+  --xml /tmp/lite3_stairs_dv378won/stairs.xml --start-index 500 \
+  --out-dir /tmp/r1091resume500c --port 11724
+# 源尾 542 tick 与两次回放均 identical=true、max_abs_diff=0.0。
+
+# 5) 旧 R1067 顶段保持三变体（同一旧轨迹；500 tick hold）
+python3 -B a5_v8x1_top_hold.py \
+  --source-trace "/repo/note/进度/v8/M5/26-10-29/evidence/R1067/traces/s0_10.trace.jsonl.gz" \
+  --xml /tmp/lite3_stairs_dv378won/stairs.xml --hold-ticks 500 \
+  --out-dir /tmp/r1091oldhold_zero --replay a5_v8x1_replay.py
+python3 -B a5_v8x1_top_hold.py ... --ramp-ticks 50 --out-dir /tmp/r1091oldhold_ramp
+python3 -B a5_v8x1_top_hold.py ... --hold-vx 0.05 --out-dir /tmp/r1091oldhold_creep
+
+# 6) 新源轨迹顶段保持三变体（同样的 500 tick hold）
+python3 -B a5_v8x1_top_hold.py \
+  --source-trace /tmp/r1091src/s0_10.trace.jsonl \
+  --xml /tmp/lite3_stairs_dv378won/stairs.xml --hold-ticks 500 \
+  --out-dir /tmp/r1091hold_zero
+python3 -B a5_v8x1_top_hold.py ... --ramp-ticks 50 --out-dir /tmp/r1091hold_ramp
+python3 -B a5_v8x1_top_hold.py ... --hold-vx 0.05 --out-dir /tmp/r1091hold_creep
+
+# 7) 测试
+python3 -B test_a5_v8x1_bridge.py          # 8/8
+find . -name 'test_*.py' | sort | while read f; do python3 -B "$f"; done
+# 73/73 文件全过（0 失败）
