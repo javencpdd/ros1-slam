@@ -1,0 +1,63 @@
+{
+ "scope": "r1064_four_case_same_lab_hang_not_reproduced_plus_status_watchdog",
+ "pre_watchdog_repeats": {
+  "n": 5,
+  "pass": 5,
+  "seconds": [
+   62,
+   64,
+   64,
+   65,
+   62
+  ],
+  "cases_each": [
+   "arrival",
+   "localization",
+   "sensor_freshness",
+   "sensed_no_route"
+  ],
+  "evidence": [
+   "iter_0.txt",
+   "iter_1.txt",
+   "iter_2.txt",
+   "iter_3.txt",
+   "iter_4.txt"
+  ]
+ },
+ "post_watchdog": {
+  "n": 1,
+  "pass": 1,
+  "ok": true,
+  "cases": [
+   "arrival",
+   "localization",
+   "sensor_freshness",
+   "sensed_no_route"
+  ],
+  "evidence": [
+   "a5_gazebo_post_watchdog.json.gz",
+   "lab_post_watchdog.json"
+  ]
+ },
+ "watchdog": {
+  "default_s": 20.0,
+  "module": "regression/a5_gazebo_runtime.py",
+  "runtime_lab_arg": "--a5-status-watchdog-s",
+  "unit_tests": "test_a5_gazebo_runtime 17/17"
+ },
+ "tests": {
+  "v8_per_file": "80/80",
+  "discovery": 122
+ },
+ "r1064": {
+  "reproduced": false,
+  "root_cause": "not located",
+  "claim": "same-lab four-case run passes 5/5 at current HEAD; no product-chain change"
+ },
+ "not_covered": [
+  "watchdog covers status silence only after owned-node readiness",
+  "startup/cleanup ROS TCP handshake or master loss is not covered",
+  "forced-status-silence attempts were invalid due to test orchestration and stale masters; not used as evidence",
+  "no A1-A7 or formal #151 change"
+ ]
+}

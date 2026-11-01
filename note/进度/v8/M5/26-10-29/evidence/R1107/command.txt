@@ -1,0 +1,36 @@
+R1107 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+
+# 0) R1064 负项背景：四例同 lab 在第三例后挂起；逐例单 lab 全过。
+#    本轮先在当前 HEAD 连跑 5 次四例同 lab，每次独立端口/输出目录。
+#    端口 11990/11992/11994/11996/11998；外层每跑最多 130 s，正常 62—65 s。
+for i in 0 1 2 3 4; do
+  PORT=$((11990 + i * 2)); OUT=/tmp/r1107_multi_$i
+  ROS_MASTER_URI=http://127.0.0.1:$PORT ROS_IP=127.0.0.1 \
+  timeout 130 python3 -B regression/runtime_lab.py --out "$OUT" --port "$PORT" \
+    --gazebo --local-gazebo \
+    --local-cases arrival,localization,sensor_freshness,sensed_no_route
+done
+
+# 1) 看门狗（a5_gazebo_runtime）：
+#    - 自有节点/适配器就绪后 arm；on_status 刷新 last_status_wall；
+#    - pump 中若 status 超过 --status-watchdog-s（默认 20 s）没有新消息，
+#      抛 "status watchdog: ..." 并带 phase/runner/last_status；
+#    - stop_owned/run_case 处 disarm，避免清理阶段误报。
+#    runtime_lab 增加 --a5-status-watchdog-s 透传。
+# 2) 看门狗后的四例同 lab 回归（独立端口 12004）：
+ROS_MASTER_URI=http://127.0.0.1:12004 ROS_IP=127.0.0.1 \
+timeout 180 python3 -B regression/runtime_lab.py --out /tmp/r1107_armed --port 12004 \
+  --gazebo --local-gazebo \
+  --local-cases arrival,localization,sensor_freshness,sensed_no_route
+
+# 3) 测试：a5 套件 17/17；v8 逐文件 80/80；discovery 122。
+python3 -B -m unittest test_a5_gazebo_runtime -v      # 在 regression/
+for f in $(find . -name "test_*.py" | sort); do
+  (cd $(dirname "$f") && python3 -B $(basename "$f")) || exit 1
+done
+python3 -B -m unittest discover -p "test_*.py"
+
+# 4) 边界：R1064 的第三例后挂起在 5 次复跑中未复现；未定位到产品级根因。
+#    看门狗只覆盖“自有节点已就绪后 status 静默”，不覆盖启动/清理阶段的
+#    ROS TCP 握手或 master 消失；强制 status 静默的两次尝试因测试编排
+#    （误 STOP wrapper/残留 master）无效，未作为证据。
