@@ -21,7 +21,10 @@ def main(argv=None):
     parser.add_argument('--candidate-topic', default='')
     parser.add_argument('--lease-in-topic', default='')
     parser.add_argument('--initial-lease', type=int, default=0)
+    parser.add_argument('--backend-name', default='faster_lio')
     parser.add_argument('--relocalize-service', default='/relocalize')
+    parser.add_argument('--relocalize-service-type', choices=('empty', 'trigger'),
+                        default='empty')
     parser.add_argument('--score-min', type=float, default=0.5)
     parser.add_argument('--deadline-s', type=float, default=5.0)
     parser.add_argument('--timeout-s', type=float, default=0.25)
@@ -31,7 +34,7 @@ def main(argv=None):
     from geometry_msgs.msg import PoseStamped
     from nav_msgs.msg import Odometry
     from std_msgs.msg import Bool, String, UInt64
-    from std_srvs.srv import Empty
+    from std_srvs.srv import Empty, Trigger
 
     rospy.init_node('a6_recovery', anonymous=True, disable_signals=True)
     prefix = args.namespace.rstrip('/')
@@ -50,14 +53,15 @@ def main(argv=None):
         def call():
             try:
                 rospy.wait_for_service(args.relocalize_service, timeout=2.0)
-                rospy.ServiceProxy(args.relocalize_service, Empty)()
+                service = Trigger if args.relocalize_service_type == 'trigger' else Empty
+                rospy.ServiceProxy(args.relocalize_service, service)()
             except Exception as error:
                 rospy.logwarn('relocalize service: %r', error)
         threading.Thread(target=call, daemon=True).start()
 
     def switch_backend(lease, pose):
         pending['lease'] = lease
-        backend.publish(String(data=json.dumps({'backend': 'faster_lio', 'lease': lease,
+        backend.publish(String(data=json.dumps({'backend': args.backend_name, 'lease': lease,
                                                 'pose': list(pose),
                                                 'yaw': last_candidate_yaw[0]})))
 
@@ -92,7 +96,13 @@ def main(argv=None):
             return
         with lock:
             last_candidate_yaw[0] = yaw
-            supervisor.offer_candidate(pose, score, time.monotonic())
+            accepted = supervisor.offer_candidate(pose, score, time.monotonic())
+        if accepted:
+            rospy.loginfo('candidate accepted pose=%s score=%.3f', pose, score)
+        else:
+            rospy.logwarn('candidate rejected pose=%s score=%.3f phase=%s requested=%s last_lease=%s',
+                          pose, score, supervisor.phase, supervisor.requested,
+                          state.last_lease)
 
     def lease_in(message):
         with lock:

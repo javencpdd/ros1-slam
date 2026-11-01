@@ -44,3 +44,34 @@ g++ -std=c++14 -I/usr/include/eigen3 -Iinclude test/history_test.cpp -o /tmp/ndt
 ROS 构建使用私有 catkin 工作区并消费已安装的 Noetic/ndt_omp 导出，不复制
 第三方源码，不复用历史私有 `build/devel`。真实点云精度、失效监视正控及全局
 重锁时限需要另外取目标环境证据；不得把这里的单测作为两后端精度验收。
+
+## A6 重定位接口（R1106）
+
+新增三个接口，仍只允许 `output_role=monitor`：
+
+- `~relocalize`（`std_srvs/Trigger`）：请求一次**有界**短时失锁重定位。服务只负责
+  置位，不阻塞等待搜索完成；成功后 `~relocalized=true`，失败/预算耗尽保持 false。
+- `~initialpose`（`geometry_msgs/PoseWithCovarianceStamped`）：把外部候选位姿作为
+  局部跟踪种子；种子本身不算健康观测，必须等下一帧配准被接受。
+- `~relocalized`（`std_msgs/Bool`）：`false` = 尚未在本次请求后验收，`true` =
+  已发布一帧由重定位搜索直接产生的观测。
+
+重定位语义（刻意保守）：
+
+1. 搜索中心＝最后一次接受的监控位姿，范围由 `relocalize_radius_m`（默认 .5）、
+   `relocalize_xy_step_m`（.2）、`relocalize_yaw_span_deg`（10）、
+   `relocalize_yaw_step_deg`（5）定义；**不**做全图全局搜索。
+2. `relocalize_budget_s`（8 s）内必须跑完整张网格；预算耗尽即失败，不接受未跑完的
+   当前最优。`relocalize_score_max` 默认沿用 `score_max`，可单独收紧。
+3. 候选先按 `relocalize_score_max` 过滤，再按到中心的位移（加小权重 yaw）取**最近**
+   的可接受假设，而不是取全场最低 fitness；结果还必须落在
+   `relocalize_max_displacement_m`（默认 radius＋step）与 yaw 界内。理由是 NDT 在
+   走廊场景存在更低 fitness 的错误盆地（R902—R905），单看 fitness 会选错。
+4. 搜索成功后直接发布该搜索位姿为观测，不再用局部跟踪器二次精修；避免精修把
+   已验证的候选拉进更差的盆地。搜索失败则撤销健康、拒绝后续局部观测直到新的
+   `relocalize`/`initialpose`。
+
+边界：该接口只覆盖**短时失锁、先验附近的静态重定位**；不做 kidnapped/长时失联的
+全图重定位，也不把本监控器提升为连续导航后端。R1106 的 Gazebo 活体只在静态位姿
+验证了“失锁→有界搜索→A6 候选→`~initialpose`→新 lease→租约门恢复”，运动中的
+NDT 连续跟踪仍会漂移（同一场景 0.3 m 传送后漂到 .95 m），未通过运动恢复门。

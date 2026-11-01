@@ -31,6 +31,7 @@ class LocalizationState:
         self.recoveries = 0
         self.faults = 0
         self.backend_valid = True
+        self.seen_observation = False
 
     def _invalidate(self, reason, state='LOST'):
         # One transition invalidates once; repeated timer ticks must not grow epochs.
@@ -75,6 +76,7 @@ class LocalizationState:
         if old_position is not None and math.dist(old_position, position) > self.max_jump_m:
             self._invalidate('E_LOC_JUMP')
             return False
+        self.seen_observation = True
         self.samples += 1
         if self.samples >= self.stable_samples:
             if self.state != 'HEALTHY' and self.faults:
@@ -109,6 +111,10 @@ def main(argv=None):
     parser.add_argument('--health-topic', default='')
     parser.add_argument('--timeout-s', type=float, default=0.25)
     parser.add_argument('--command-timeout-s', type=float, default=0.20)
+    parser.add_argument('--lease-topic', default='')
+    parser.add_argument('--candidate-topic', default='')
+    parser.add_argument('--output-topic', default='')
+    parser.add_argument('--status-topic', default='')
     parser.add_argument('--keep-alive-s', type=float, default=60)
     args = parser.parse_args(argv)
     import rospy
@@ -121,8 +127,8 @@ def main(argv=None):
     state = LocalizationState(timeout_s=args.timeout_s)
     lock = threading.RLock()
     candidate = {'twist': Twist(), 'received': None}
-    output = rospy.Publisher(prefix + '/cmd_vel', Twist, queue_size=20)
-    status = rospy.Publisher(prefix + '/status', String, queue_size=20)
+    output = rospy.Publisher(args.output_topic or prefix + '/cmd_vel', Twist, queue_size=20)
+    status = rospy.Publisher(args.status_topic or prefix + '/status', String, queue_size=20)
 
     def odometry(message):
         point = message.pose.pose.position
@@ -159,8 +165,10 @@ def main(argv=None):
 
     subscriptions = [
         rospy.Subscriber(args.odom_topic or prefix + '/odom', Odometry, odometry, queue_size=20),
-        rospy.Subscriber(prefix + '/candidate', Twist, command, queue_size=20),
-        rospy.Subscriber(prefix + '/lease', UInt64, activate, queue_size=20),
+        rospy.Subscriber(args.candidate_topic or prefix + '/candidate', Twist,
+                         command, queue_size=20),
+        rospy.Subscriber(args.lease_topic or prefix + '/lease', UInt64,
+                         activate, queue_size=20),
         rospy.Subscriber(prefix + '/relocalized', Bool, relocated, queue_size=20),
     ]
     if args.health_topic:

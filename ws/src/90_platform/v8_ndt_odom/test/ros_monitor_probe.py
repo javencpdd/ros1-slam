@@ -1,7 +1,10 @@
 """Real NDT/ROS monitor interface test using declared synthetic point clouds.
 
-This validates acceptance, rejection freshness and reset. It is not a physical
-sensor accuracy trial and does not promote NDT to a navigation backend.
+This validates acceptance, rejection freshness, reset, initialpose and the
+bounded relocalize handshake.  The synthetic target is locally degenerate, so
+the relocalize case checks a finite accepted pose, not a fixed displacement;
+live Gazebo truth covers accuracy.  It does not promote NDT to a navigation
+backend.
 """
 import argparse
 import json
@@ -30,6 +33,7 @@ def main():
     from sensor_msgs.msg import PointCloud2, PointField
     from sensor_msgs import point_cloud2
     from nav_msgs.msg import Odometry
+    from geometry_msgs.msg import PoseWithCovarianceStamped
     from std_msgs.msg import Bool, Header
     from std_srvs.srv import Trigger
     rospy.init_node('ndt_monitor_probe', anonymous=True)
@@ -42,14 +46,18 @@ def main():
             a, b = i * .05, j * .04
             points.extend([(a, -1., b, 1.), (a, 1.3, b, 1.),
                            (2.4, a - 1., b, 1.), (a, b - .6, -.2, 1.)])
-    records = {'odom': [], 'health': []}
+    records = {'odom': [], 'health': [], 'relocalized': []}
     subs = [rospy.Subscriber('/r841_ndt/odom', Odometry, lambda msg: records['odom'].append(
         {'stamp': msg.header.stamp.to_sec(), 'xyz': [msg.pose.pose.position.x,
           msg.pose.pose.position.y, msg.pose.pose.position.z],
          'covariance_diagonal': [msg.pose.covariance[i * 7] for i in range(6)]})),
         rospy.Subscriber('/r841_ndt/healthy', Bool, lambda msg: records['health'].append(
-            {'wall': time.monotonic(), 'healthy': bool(msg.data)}))]
+            {'wall': time.monotonic(), 'healthy': bool(msg.data)})),
+        rospy.Subscriber('/r841_ndt/relocalized', Bool, lambda msg: records['relocalized'].append(
+            {'wall': time.monotonic(), 'relocalized': bool(msg.data)}))]
     publisher = rospy.Publisher('/r841_ndt/cloud', PointCloud2, queue_size=1)
+    initialpose_pub = rospy.Publisher('/r841_ndt/initialpose',
+                                      PoseWithCovarianceStamped, queue_size=3)
     fields = [PointField(name, i * 4, PointField.FLOAT32, 1)
               for i, name in enumerate(('x', 'y', 'z', 'intensity'))]
     result = {'domain': 'synthetic_pointcloud_ROS_real_NDT_monitor',
@@ -104,6 +112,43 @@ def main():
                 wait_for(lambda: len(records['odom']) > before_odom, 'accept after reset')
                 result['cases'].append({'case': 'reset_clears_timestamp',
                     'ok': records['odom'][-1]['stamp'] == .5 and records['health'][-1]['healthy']})
+                # A native initialpose is a seed, never a healthy observation by itself.
+                before_health, before_odom = len(records['health']), len(records['odom'])
+                seed = PoseWithCovarianceStamped()
+                seed.header.stamp, seed.header.frame_id = rospy.Time.from_sec(.6), 'map'
+                seed.pose.pose.position.x, seed.pose.pose.position.y = 1.0, 0.0
+                seed.pose.pose.orientation.w = 1.
+                initialpose_pub.publish(seed)
+                wait_for(lambda: len(records['health']) > before_health, 'initialpose health')
+                time.sleep(.1)
+                result['cases'].append({'case': 'initialpose_is_not_healthy',
+                    'ok': not records['health'][-1]['healthy']})
+                send(1.0, 1.0)
+                wait_for(lambda: len(records['odom']) > before_odom, 'accept from initialpose')
+                result['cases'].append({'case': 'initialpose_seed_accepts',
+                    'ok': abs(records['odom'][-1]['xyz'][0] - 1.0) < .05
+                          and records['health'][-1]['healthy']})
+                # A relocalize request must search around the current pose and
+                # publish a new accepted observation before reporting success.
+                before_health, before_odom = len(records['health']), len(records['odom'])
+                before_relocalized = len(records['relocalized'])
+                response = rospy.ServiceProxy('/r841_ndt/relocalize', Trigger)()
+                wait_for(lambda: len(records['health']) > before_health, 'relocalize health')
+                time.sleep(.1)
+                result['cases'].append({'case': 'relocalize_revokes_health',
+                    'ok': response.success and not records['health'][-1]['healthy']})
+                send(2.0, 1.4)
+                wait_for(lambda: len(records['relocalized']) > before_relocalized
+                         and records['relocalized'][-1]['relocalized'], 'relocalized true')
+                wait_for(lambda: len(records['odom']) > before_odom, 'accept after relocalize')
+                # The synthetic target is locally degenerate, so the nearest
+                # accepted hypothesis is not a fixed x; accuracy is covered by
+                # the live GT gate.  Here we only require a finite accepted pose
+                # and the health/relocalized handshake.
+                result['cases'].append({'case': 'relocalize_bounded_search_publishes',
+                    'ok': all(math.isfinite(v) for v in records['odom'][-1]['xyz'])
+                          and records['health'][-1]['healthy'],
+                    'observed': records['odom'][-1]})
                 result['ok'] = all(row['ok'] for row in result['cases'])
             except Exception as error:
                 result.update(ok=False, error=str(error))

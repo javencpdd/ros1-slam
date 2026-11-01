@@ -54,8 +54,14 @@ class RecoverySupervisor:
             self.phase = TRACKING
             return True
         if not healthy:
-            # Startup is not a loss: do not call the backend before the first sample.
-            if self.state.state == 'INITIALIZING':
+            # Startup is not a loss: do not call the backend before the first
+            # valid pose has ever been observed (a latched health=false is not
+            # evidence that a previously tracked pose was lost).
+            if (self.state.state == 'INITIALIZING' or not self.state.seen_observation
+                    or self.state.last_lease == 0):
+                # Bootstrapping: no lease has ever been granted, so there is no
+                # tracked state to recover.  Wait for the initial lease instead
+                # of consuming a candidate that would claim the same lease id.
                 return False
             if self.phase not in (RELOCALIZING, FAILED):
                 self._enter_relocalizing(now, self.state.reason)
@@ -70,7 +76,9 @@ class RecoverySupervisor:
         return self.phase == TRACKING
 
     def offer_candidate(self, pose, score, now):
-        if self.phase != RELOCALIZING:
+        if self.phase != RELOCALIZING or not self.requested or self.state.last_lease == 0:
+            # A candidate is only meaningful after this supervisor asked for a
+            # relocalization and a previous lease exists to supersede.
             return False
         if (len(pose) != 3 or not all(isinstance(v, (int, float))
                                       and not isinstance(v, bool) and math.isfinite(v)

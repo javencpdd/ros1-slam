@@ -43,6 +43,40 @@ class RecoverySupervisorTests(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertEqual(supervisor.phase, RELOCALIZING)
 
+    def test_latched_health_false_before_first_pose_does_not_relocalize(self):
+        state = LocalizationState()
+        state.backend_health(False)
+        calls = []
+        supervisor = RecoverySupervisor(
+            state, lambda: calls.append('relocalize'),
+            lambda lease, pose: calls.append(('switch', lease, pose)),
+            score_min=0.5, deadline_s=5.0, bounds=((-10, 10), (-10, 10)))
+        self.assertFalse(supervisor.tick(1.0))
+        self.assertEqual(calls, [])
+        state.backend_health(True)
+        healthy(state)
+        self.assertTrue(state.activate(1, 1.11))
+        self.assertTrue(supervisor.tick(1.2))
+        self.assertEqual(supervisor.phase, TRACKING)
+        self.assertEqual(calls, [])
+
+    def test_no_lease_yet_does_not_consume_candidate_or_relocalize(self):
+        state = LocalizationState()
+        healthy(state)
+        calls = []
+        supervisor = RecoverySupervisor(
+            state, lambda: calls.append('relocalize'),
+            lambda lease, pose: calls.append(('switch', lease, pose)),
+            score_min=0.5, deadline_s=5.0, bounds=((-10, 10), (-10, 10)))
+        self.assertFalse(supervisor.offer_candidate((1, 2, 0), 0.9, 1.2))
+        self.assertTrue(state.activate(1, 1.15))
+        self.assertTrue(supervisor.tick(1.2))
+        self.assertEqual(supervisor.phase, TRACKING)
+        self.assertEqual(calls, [])
+        self.assertFalse(supervisor.tick(2.0))
+        self.assertEqual(supervisor.phase, RELOCALIZING)
+        self.assertEqual(calls, ['relocalize'])
+
     def test_preloaded_initial_lease_starts_tracking_without_relocalize(self):
         state = LocalizationState()
         healthy(state)
