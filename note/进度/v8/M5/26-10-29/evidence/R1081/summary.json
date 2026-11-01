@@ -1,0 +1,26 @@
+{
+ "experiment": "V8-X1 command-lockstep wiring fix and end-to-end run",
+ "wiring": {
+  "runtime_passes_node_lockstep_param": true,
+  "bridge_waits_for_new_header_seq": true,
+  "clock_published_before_pose": true,
+  "wait_placed_after_clock_before_pose": true,
+  "node_reports_clock_error_text": true
+ },
+ "run": {
+  "ok": false,
+  "final_body": [6.339999999, 1.2051, 0.1466, 0.3719],
+  "plans": 2,
+  "applied_entries": 8,
+  "terminal_reason": "E_LOCAL_CLOCK",
+  "clock_error": "pose timestamp is in the future",
+  "last_sim_time": 4.34,
+  "lockstep": true,
+  "release_barrier": true
+ },
+ "finding": "the lockstep couples the bridge clock to the node's control/plan latency; once the node lags, a pose arrives ahead of its clock and the run fails closed with E_LOCAL_CLOCK",
+ "correction": "R1069's bridge --command-lockstep was parsed but never used and the runtime never set ~lockstep_command; its handshake was a no-op. R1069 readings remain real but its handshake conclusion is invalid. R1081 is the first actual wiring and fails with E_LOCAL_CLOCK.",
+ "result": "negative; flags default off",
+ "limits": "single seed0/perturb run with release barrier; no top finish; no real robot; V8-X1 remains PARTIAL",
+ "tests": {"node_policy": "13/13", "full_tree": "72/72"}
+}
