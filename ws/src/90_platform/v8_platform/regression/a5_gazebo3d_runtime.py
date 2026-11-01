@@ -18,6 +18,7 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 LOCAL = HERE.parent / 'local_planner'
 SCRIPTS = HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'scripts'
 EXPERIMENTAL = {'tick_s': 1.2, 'horizon_s': 6.0, 'validity_s': 6.0, 'clearance_m': .1}
@@ -41,6 +42,9 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--wall-deadline-s', type=float, default=120.)
     parser.add_argument('--goal-map', default='0,1.34,0.890358')
+    parser.add_argument('--global-plan', action='store_true',
+                        help='run the real global planner node and use its last point as local goal')
+    parser.add_argument('--global-budget', type=int, default=20000)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
@@ -51,6 +55,17 @@ def main():
     from geometry_msgs.msg import Pose, PoseStamped
     from std_msgs.msg import Bool, String
     rospy.init_node('a5_gazebo3d_runtime', anonymous=True)
+    requested_goal = goal
+    global_route, global_info = None, None
+    if args.global_plan:
+        import a4_runtime
+        route, error, info = a4_runtime.call_node(
+            value, (0., -2.175, 0.), goal, args.global_budget,
+            'a5gz3d_global_%d' % os.getpid())
+        if route is None:
+            raise RuntimeError('global planner failed: %s' % error)
+        global_route, global_info = route, info
+        goal = tuple(route[-1][:3])
     carrier_name = 'a5_carrier_%d' % os.getpid()
     rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=20.)
     rospy.wait_for_service('/gazebo/get_link_state', timeout=20.)
@@ -194,6 +209,7 @@ def main():
     rejected = any(row[1] == 'E_CARRIER_VERTICAL_UNSUPPORTED' for row in status_view)
     checks = {
         'terrain_loaded': args.terrain in world_models,
+        'global_route': (not args.global_plan) or bool(global_route),
         'climbed': climbed,
         'arrived_goal': bool(arrived),
         'no_vertical_rejection': not rejected,
@@ -206,7 +222,8 @@ def main():
     ok = all(checks.values())
     payload = {
         'scenario': 'a5_ros_local_to_gazebo_3d_carrier',
-        'config': config, 'goal_map': list(goal), 'terrain': args.terrain,
+        'config': config, 'goal_map': list(goal), 'requested_goal': list(requested_goal),
+        'global_route': global_route, 'global_info': global_info, 'terrain': args.terrain,
         'carrier_model': carrier_name, 'carrier_scope': 'static box moved by SetModelState',
         'scope': 'Gazebo kinematic pose sink; no contact dynamics/no four-leg/no real robot',
         'ok': ok, 'checks': checks, 'support_sequence': sequence, 'support_levels': levels,
