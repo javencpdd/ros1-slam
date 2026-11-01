@@ -268,7 +268,7 @@ class FrameworkTests(unittest.TestCase):
         summary = launch_mod.check_components(
             catalog, launch_mod.load_index(INDEX))
         self.assertEqual((summary['components'], summary['real'], summary['test_double']),
-                         (35, 26, 9))
+                         (38, 29, 9))
 
     def test_faster_lio_sim_and_real_configs_do_not_cross_load(self):
         catalog = config.load_components(MANIFESTS)
@@ -432,7 +432,7 @@ class FrameworkTests(unittest.TestCase):
                                       '--package-index', str(INDEX)]), 0)
         payload = json.loads(json_out.getvalue())
         self.assertTrue(payload['ok'])
-        self.assertEqual(payload['launch']['real'], 26)
+        self.assertEqual(payload['launch']['real'], 29)
         with tempfile.TemporaryDirectory() as directory:
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'

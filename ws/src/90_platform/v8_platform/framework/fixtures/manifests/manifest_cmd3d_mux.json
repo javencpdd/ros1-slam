@@ -1,0 +1,58 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.cmd3d_mux",
+ "version": "0.1.0",
+ "roles": [
+  "safety_arbiter"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [
+   "/cmd_vel"
+  ],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "local_planner/cmd3d_mux_node.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/TwistStamped",
+    "topic": "/v8/local/cmd_vel_3d"
+   },
+   {
+    "name": "hold",
+    "type": "std_msgs/Bool",
+    "topic": "/lite3/supervisor/hold"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/Twist",
+    "topic": "/cmd_vel",
+    "command_topic": "/cmd_vel"
+   },
+   {
+    "name": "status",
+    "type": "std_msgs/String",
+    "topic": "/v8/3d/mux/status"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

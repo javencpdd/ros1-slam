@@ -193,10 +193,13 @@ class PreflightTests(unittest.TestCase):
         report = graph_mod.check(graph, catalog)
         self.assertEqual(report['startup_order'],
                          ['cache_a', 'cache_b', 'merge', 'relay', 'provider',
-                          'global', 'local'])
-        self.assertEqual(report['command_writers'], {'/v8/local/cmd_vel_3d': 'local'})
+                          'global', 'path_goal', 'local', 'mux3d', 'carrier'])
+        self.assertEqual(report['command_writers'],
+                         {'/cmd_vel': 'mux3d', '/v8/local/cmd_vel_3d': 'local'})
         self.assertEqual(report['bindings']['provider']['delta']['from'], 'relay.json')
         self.assertEqual(report['bindings']['local']['map']['from'], 'provider.map')
+        self.assertEqual(report['bindings']['local']['goal']['from'], 'path_goal.goal')
+        self.assertEqual(report['bindings']['local']['pose']['from'], 'carrier.pose')
 
 
 if __name__ == '__main__':

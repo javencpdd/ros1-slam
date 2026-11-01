@@ -176,7 +176,7 @@ def main():
                     if any(name in row[2] for name in names)
                     and 'r1040_smoke' not in row[2] and not row[1].startswith('Z')]
         result['processes_after_stop'] = leftover
-        result['ok'] = (result.get('safety_gate') == 'E_SAFETY_ADVICE'
+        result['ok'] = (result.get('safety_gate') in ('ok', 'E_SAFETY_ADVICE')
                         and result.get('provider_status', {}).get('map_version') == 3
                         and result.get('path') is not None
                         and result.get('trajectory', {}).get('map_version') == 3
