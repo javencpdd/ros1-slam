@@ -106,6 +106,64 @@ class AppTests(unittest.TestCase):
         self.assertEqual(resolved['graph_path'].name, 'graph_3d_gazebo_loc.yaml')
 
 
+class SensorMapLayerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        _, cls.value, _, _ = map_registry.get_map('nist_sensor', 2)
+
+    def test_overlap_keeps_both_layers(self):
+        candidates = surface_resolver.candidates_at(self.value, 1.0, -1.05)
+        self.assertEqual([item['surface_id'] for item in candidates], ['m1', 'm2'])
+        self.assertAlmostEqual(candidates[0]['z_reference'], .198474)
+        self.assertAlmostEqual(candidates[1]['z_reference'], .371516)
+
+    def test_ambiguity_is_explicit_without_hint_or_z(self):
+        with self.assertRaises(surface_resolver.SurfaceResolutionError) as caught:
+            surface_resolver.resolve_surface(self.value, 1.0, -1.05)
+        self.assertEqual(caught.exception.code, 'E_SURFACE_AMBIGUOUS')
+        self.assertEqual([item['surface_id'] for item in caught.exception.candidates],
+                         ['m1', 'm2'])
+
+    def test_hint_and_z_select_upper_surface(self):
+        hinted, z_hint = surface_resolver.resolve_surface(
+            self.value, 1.0, -1.05, hint='m2')
+        self.assertEqual(hinted['surface_id'], 'm2')
+        self.assertAlmostEqual(z_hint, .371516)
+        by_z, z_value = surface_resolver.resolve_surface(
+            self.value, 1.0, -1.05, z=.3715)
+        self.assertEqual(by_z['surface_id'], 'm2')
+        self.assertAlmostEqual(z_value, .371516)
+
+    def test_task_resolution_fills_generated_surface_z(self):
+        task = {'map': {'map_id': 'nist_sensor', 'map_version': 2},
+                'start': {'xyz': [0., -3.06, None], 'yaw': 0.},
+                'goal': {'xyz': [1.0, -1.05, None], 'yaw': 0.,
+                         'surface_hint': 'm2', 'surface_disambiguation': 'explicit_hint'}}
+        resolved, meta = surface_resolver.resolve_task(task, self.value)
+        self.assertEqual(meta['start_surface'], 'm0')
+        self.assertEqual(meta['goal_surface'], 'm2')
+        self.assertAlmostEqual(meta['goal_surface_z'], .371516)
+        self.assertAlmostEqual(resolved['goal']['xyz'][2], .371516)
+        self.assertEqual(meta['goal_candidates'], [
+            {'surface_id': 'm1', 'z_reference': .198474},
+            {'surface_id': 'm2', 'z_reference': .371516}])
+
+    def test_planner_selects_hinted_upper_surface(self):
+        result = support_planner.plan(
+            self.value, (0., -3.06, 0.), (1.0, -1.05, .371516),
+            start_surface_id='m0', goal_surface_id='m2')
+        self.assertTrue(result['ok'])
+        self.assertEqual(result['path'][0][3], 'm0')
+        self.assertEqual(result['path'][-1][3], 'm2')
+        self.assertAlmostEqual(result['path'][-1][2], .371516)
+        self.assertIn({'from': 'm1', 'to': 'm2'}, result['transitions'])
+        lower = support_planner.plan(
+            self.value, (0., -3.06, 0.), (1.0, -1.05, .198474),
+            start_surface_id='m0')
+        self.assertEqual(lower['path'][-1][3], 'm1')
+        self.assertAlmostEqual(lower['path'][-1][2], .198474)
+
+
 class VizTests(unittest.TestCase):
     def test_surface_and_obstacle_specs(self):
         value = two_layer()
