@@ -3,7 +3,7 @@
 import unittest
 
 from a5_gazebo_runtime import (classify_measurement, first_terminal_zero,
-                               radial_box_gap, sensed_box)
+                               radial_box_gap, sensed_box, status_watchdog_tripped)
 
 WANTED = 'E_LOCAL_NO_ROUTE'
 
@@ -104,6 +104,14 @@ class SensedBoxTests(unittest.TestCase):
         points = [(0.8, 0.0, 0.3), (0.81, 0.0, 0.3), (0.82, 0.0, 0.3)]
         observed, _roi = sensed_box(points, self.POSE)
         self.assertIsNone(observed)
+
+
+class StatusWatchdogTests(unittest.TestCase):
+    def test_stale_status_trips_after_limit(self):
+        self.assertTrue(status_watchdog_tripped(21.0, 0.0, 20.0))
+        self.assertFalse(status_watchdog_tripped(20.0, 0.0, 20.0))
+        self.assertFalse(status_watchdog_tripped(1.0, None, 20.0))
+        self.assertFalse(status_watchdog_tripped(1.0, 0.0, 0.0))
 
 
 class BoxGapTests(unittest.TestCase):

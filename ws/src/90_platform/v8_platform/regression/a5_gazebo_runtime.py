@@ -98,6 +98,11 @@ TRANSIENT_ZEROS = {'E_LOCAL_NO_TRAJECTORY', 'E_LOCAL_EXPIRED', 'E_LOCAL_NOT_READ
                    'E_LOCAL_INPUT', 'segment_complete', 'ok', 'hold'}
 
 
+def status_watchdog_tripped(now, last_status_wall, limit):
+    return (last_status_wall is not None and limit > 0
+            and now - last_status_wall > limit)
+
+
 def first_terminal_zero(status_rows):
     """Skip replanning gaps; a terminal stop is the first non-transient zero."""
     return next((r for r in status_rows
@@ -258,6 +263,8 @@ class Probe:
         self.node_streams = []
         self.node_logs = []
         self.hold_active = False
+        self.status_watchdog_armed = False
+        self.last_status_wall = None
 
     def stamp(self):
         return {'wall': time.monotonic(), 'sim': self.rospy.Time.now().to_sec(), 'phase': self.phase}
@@ -281,6 +288,7 @@ class Probe:
     def on_status(self, message):
         value = json.loads(message.data)
         self.latest_status = value
+        self.last_status_wall = time.monotonic()
         self.capture('status', value)
 
     def on_models(self, message):
@@ -324,6 +332,14 @@ class Probe:
                                            **received))
 
     def pump(self, localization=True, sensor_forward=True):
+        if (self.status_watchdog_armed and status_watchdog_tripped(
+                time.monotonic(), self.last_status_wall, self.args.status_watchdog_s)):
+            raise RuntimeError(
+                'status watchdog: no /status for %.1f s; phase=%s status_messages=%d '
+                'runners=%s latest_status=%s' % (
+                    time.monotonic() - self.last_status_wall, self.phase,
+                    len(self.raw['status']), [(r.id, r.is_alive()) for r in self.runners],
+                    self.latest_status))
         with self.lock:
             odom, cloud = self.odom, dict(self.cloud) if self.cloud else None
         if odom is not None and time.monotonic() - odom[1] < 2.:
@@ -412,6 +428,8 @@ class Probe:
         self.wait(lambda: all(pub.get_num_connections() for pub in
                              [self.pose_pub, self.goal_pub, self.obstacle_pub, self.loc_pub]) and bridge.ready(),
                   'owned node subscriptions and adapter readiness', timeout=30)
+        self.last_status_wall = time.monotonic()
+        self.status_watchdog_armed = True
         self.global_route = None
         self.route_goals = [[2., 0., 0.]]
         self.route_goal_index = 0
@@ -524,6 +542,7 @@ class Probe:
         for runner in reversed(self.runners):
             runner.stop('process_group_signal')
             runner.reap()
+        self.status_watchdog_armed = False
         self.runners = []
         # Do not release hold while the mux may still cache a nonzero candidate.
         expiry_start = self.rospy.Time.now().to_sec()
@@ -532,6 +551,7 @@ class Probe:
 
     def run_case(self, case, directory):
         self.phase = case
+        self.status_watchdog_armed = False
         self.latest_status, self.detect_enabled, self.obstacle = {}, False, None
         self.reset()
         self.start_owned(directory, case)
@@ -728,6 +748,7 @@ def main():
     parser.add_argument('--resolution', type=float, default=.1)
     parser.add_argument('--cases', default='arrival,sensed_no_route,localization,sensor_freshness')
     parser.add_argument('--case-timeout', type=float, default=100.)
+    parser.add_argument('--status-watchdog-s', type=float, default=20.)
     parser.add_argument('--global-route', action='store_true')
     args = parser.parse_args()
     allowed = {'arrival', 'sensed_no_route', 'localization', 'sensor_freshness'}
