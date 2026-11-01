@@ -1,0 +1,10 @@
+R1082 命令（2026-11-01 15:03—15:09 CST，qoder；容器 v8codex-20261028）
+source /opt/ros/noetic/setup.bash
+cd /repo/ws/src/90_platform/v8_platform/regression
+python3 -B a5_v8x1_top_hold.py \
+  --source-trace "/repo/note/进度/v8/M5/26-10-29/evidence/R1067/traces/s0_10.trace.jsonl.gz" \
+  --hold-ticks 500 --out-dir /tmp/r1082d
+# 源 = R1067 s0_10 全轨迹（1349 行，登顶 support .890358、末 z 1.1469）；
+# 追加 500 行零 command/map_velocity（active/stepping 仍 true）；两次回放
+# 1849 tick，qpos/qvel/command/joint_target/action 全同（NaN/Inf 同值判定）；
+# 保持段 final z .1857、z 降 .9612 m、xy 漂移 5.3478 m；tick≈967 ±Inf action。
