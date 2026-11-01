@@ -46,9 +46,13 @@ class RecoverySupervisor:
                 self.phase = TRACKING
                 self.recoveries += 1
                 return True
-            if self.state.state != 'HEALTHY':
-                self._enter_relocalizing(now, self.state.reason)
+            if self.deadline is not None and now > self.deadline:
+                self.phase = FAILED
+            return False
         healthy = self.state.state == 'HEALTHY' and self.state.active_lease is not None
+        if healthy and self.phase == RELOCALIZING:
+            self.phase = TRACKING
+            return True
         if not healthy:
             if self.phase not in (RELOCALIZING, FAILED):
                 self._enter_relocalizing(now, self.state.reason)
