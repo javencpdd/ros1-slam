@@ -1,0 +1,35 @@
+{
+ "experiment": "live A6 native recovery: m1 Gazebo scan -> hdl tracking; loss -> finest BBS candidates over 2 recent scans, prior-guided -> A6 backend -> native hdl /initialpose -> new lease",
+ "native_service_used": "hdl /initialpose (reset); hdl /relocalize single-candidate service covered by R1078",
+ "input_semantics": "sensor-local scan relabelled base_link, voxel .3; Gazebo truth scoring only",
+ "candidate_source": {
+  "mode": "fine",
+  "node": ".1 BBS (map data .2, grid .1, query .2, scan z -.5..6, full m1 PCD)",
+  "scan_queries": 2,
+  "selection": "nearest to last healthy /hdl_odom within prior radius 1.5 m",
+  "score": 1.0
+ },
+ "runs": [
+  {"spawn_xy": [1.5, 0.0], "cycles": 2, "ok": true, "healthy_relocalize_calls": 0,
+   "lease_sequence": [2, 3], "gt_errors_m": [0.014118360870610813, 0.013407670402121334],
+   "negative": {"phase": "FAILED", "allowed": false, "new_reset": false}},
+  {"spawn_xy": [0.0, 1.0], "cycles": 1, "ok": true, "healthy_relocalize_calls": 0,
+   "lease_sequence": [2], "gt_errors_m": [0.07400846972356205],
+   "negative": {"phase": "FAILED", "allowed": false, "new_reset": false}},
+  {"spawn_xy": [-1.0, 0.8], "cycles": 1, "ok": true, "healthy_relocalize_calls": 0,
+   "lease_sequence": [2], "gt_errors_m": [0.0986726421394643],
+   "negative": {"phase": "FAILED", "allowed": false, "new_reset": false}}
+ ],
+ "negative_control": "empty scan -> all BBS queries return no candidate -> supervisor deadline -> FAILED, command_allowed=false, no /initialpose",
+ "findings": [
+  "coarse-resolution majority can override the correct fine candidate; at (0,1) the coarse .5/.2 pair sat near 1.0 m while the fine .1 candidate was 0.0-0.2 m, so recovery now trusts the finest candidate with a short-horizon prior",
+  "BBS on a single rotating scan flips basins; two recent scans plus prior radius 1.5 m removed the observed 0.6-4.3 m flips",
+  "a third BBS query could hang past the 20 s deadline; two scans keep the recovery inside the deadline",
+  "supervisor startup (INITIALIZING) no longer triggers relocalize; --initial-lease allows a known healthy lease to be restored",
+  "candidate/backend messages now carry yaw; the native /initialpose reset applies the BBS orientation",
+  "fed clouds use monotonic sim stamps, avoiding E_LOC_STAMP_NONMONOTONIC after reset"
+ ],
+ "limits": "static simulation, 3 spawn poses, 1-2 cycles, no motion/real robot; prior-guided recovery assumes the last healthy pose bounds a short outage, so kidnapped/long-outage recovery is not covered; GT posthoc only; A6 remains PARTIAL",
+ "tests": "supervisor 7/7, consensus 4/4, v8 full tree 72/72",
+ "a6_status": "PARTIAL"
+}

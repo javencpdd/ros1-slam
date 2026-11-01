@@ -1,0 +1,30 @@
+R1079 命令（2026-11-01 14:20—14:35 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/adapters
+
+# 1) 主切片：spawn (1.5,0)，两次失锁-恢复，lease 1->2->3；最后空扫描拒绝控制。
+python3 -B a6_native_recovery_live_smoke.py --spawn "1.5,0" --cycles 2 \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R1079/pose_1p5_2cycles.json
+
+# 2) 位姿扫描：(0,1)
+python3 -B a6_native_recovery_live_smoke.py --spawn "0,1.0" --cycles 1 \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R1079/pose_0_1.json
+
+# 3) 位姿扫描：(-1,0.8)（负坐标须用 --spawn=... 形式）
+python3 -B a6_native_recovery_live_smoke.py --spawn=-1.0,0.8 --cycles 1 \
+  --out /opt/ros1-slam/note/进度/v8/M5/26-10-29/evidence/R1079/pose_-1_0p8.json
+
+# 语义：m1 传感器系扫描按 base_link 原值 + voxel .3；三个真实 BBS 实例，决策取
+# 最细 .1 节点（map data .2 / grid .1 / query .2，scan z -.5—.6）在最近两次扫描
+# 的候选，按最后健康 /hdl_odom 位置先验 1.5 m 内选最近；A6 backend 消息 -> hdl
+# 原生 /initialpose -> 新 lease。Gazebo 真值只做后验 XY 门（0.5 m），不进入输入。
+# 最后空扫描负控：BBS 返回空 -> 无候选 -> supervisor 到 deadline FAILED、
+# allowed=false、无 /initialpose。
+
+# 4) 单元与全树
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/adapters
+python3 -B -m unittest test_recovery_supervisor test_candidate_consensus
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+for f in $(find . -name "test_*.py" | sort); do
+  (cd "$(dirname "$f")" && python3 -B -m unittest "$(basename "$f" .py)")
+done

@@ -1,0 +1,212 @@
+{
+ "ok": true,
+ "spawn_xy": [
+  1.5,
+  0.0
+ ],
+ "initial_truth_xy": [
+  1.5000000000002331,
+  5.756850289367133e-13
+ ],
+ "initial_odom_xy": [
+  1.4684323072433472,
+  -0.007490063551813364
+ ],
+ "initial_phase": "TRACKING",
+ "initial_lease": 1,
+ "healthy_relocalize_calls": 0,
+ "cycles": [
+  {
+   "lease": 2,
+   "truth_xy": [
+    1.5000000000003075,
+    5.61222174087402e-13
+   ],
+   "odom_xy": [
+    1.5002397298812866,
+    -0.014116325415670872
+   ],
+   "error_m": 0.014118360870610813,
+   "truth_yaw": 1.3416968313260244e-15,
+   "odom_yaw": -0.009409769588984521,
+   "yaw_error_rad": -0.009409769588985862,
+   "reset": {
+    "lease": 2,
+    "pose": [
+     1.600000023841858,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.01333335871006718
+   },
+   "query": {
+    "samples": [
+     {
+      "source": 0.1,
+      "scan": 0,
+      "pose": [
+       1.600000023841858,
+       0.0,
+       0.0
+      ],
+      "yaw": 0.01333335871006718
+     },
+     {
+      "source": 0.1,
+      "scan": 1,
+      "pose": [
+       1.600000023841858,
+       0.0,
+       0.0
+      ],
+      "yaw": 0.020000038418250432
+     }
+    ],
+    "accepted": {
+     "pose": [
+      1.600000023841858,
+      0.0
+     ],
+     "source": 0.1,
+     "support": 2,
+     "scan": 0,
+     "prior_distance_m": 0.10568351487243234,
+     "members": [
+      {
+       "source": 0.1,
+       "scan": 0,
+       "pose": [
+        1.600000023841858,
+        0.0,
+        0.0
+       ],
+       "yaw": 0.01333335871006718
+      }
+     ]
+    },
+    "accepted_yaw": 0.01333335871006718,
+    "prior_xy": [
+     1.4950038194656372,
+     -0.012033386155962944
+    ],
+    "prior_radius_m": 1.5,
+    "scan_queries": 2,
+    "reject": false,
+    "errors": []
+   },
+   "phase": "TRACKING",
+   "allowed": true
+  },
+  {
+   "lease": 3,
+   "truth_xy": [
+    1.5000000000003075,
+    5.470903251731984e-13
+   ],
+   "odom_xy": [
+    1.505508303642273,
+    -0.012223919853568077
+   ],
+   "error_m": 0.013407670402121334,
+   "truth_yaw": 1.3416967335877223e-15,
+   "odom_yaw": -0.008692797992174527,
+   "yaw_error_rad": -0.008692797992175868,
+   "reset": {
+    "lease": 3,
+    "pose": [
+     1.5,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.01333335871006718
+   },
+   "query": {
+    "samples": [
+     {
+      "source": 0.1,
+      "scan": 0,
+      "pose": [
+       1.5,
+       0.0,
+       0.0
+      ],
+      "yaw": 0.01333335871006718
+     },
+     {
+      "source": 0.1,
+      "scan": 1,
+      "pose": [
+       1.600000023841858,
+       0.0,
+       0.0
+      ],
+      "yaw": 0.01333335871006718
+     }
+    ],
+    "accepted": {
+     "pose": [
+      1.5,
+      0.0
+     ],
+     "source": 0.1,
+     "support": 2,
+     "scan": 0,
+     "prior_distance_m": 0.01411836087005489,
+     "members": [
+      {
+       "source": 0.1,
+       "scan": 0,
+       "pose": [
+        1.5,
+        0.0,
+        0.0
+       ],
+       "yaw": 0.01333335871006718
+      }
+     ]
+    },
+    "accepted_yaw": 0.01333335871006718,
+    "prior_xy": [
+     1.5002397298812866,
+     -0.014116325415670872
+    ],
+    "prior_radius_m": 1.5,
+    "scan_queries": 2,
+    "reject": false,
+    "errors": []
+   },
+   "phase": "TRACKING",
+   "allowed": true
+  }
+ ],
+ "negative": {
+  "phase": "FAILED",
+  "allowed": false,
+  "query": {
+   "samples": [],
+   "accepted": null,
+   "accepted_yaw": null,
+   "prior_xy": [
+    1.505508303642273,
+    -0.012223919853568077
+   ],
+   "prior_radius_m": 1.5,
+   "scan_queries": 0,
+   "reject": true,
+   "errors": [
+    "res01:0:ServiceException(\"service [/res01/query] responded with an error: b''\")"
+   ]
+  },
+  "new_reset": false
+ },
+ "gate_m": 0.5,
+ "deadline_s": 20.0,
+ "scan_downsample_m": 0.3,
+ "candidate_mode": "fine",
+ "scan_queries": 2,
+ "prior_radius_m": 1.5,
+ "input_semantics": "sensor-local scan relabelled base_link, voxel .3; Gazebo truth scoring only",
+ "candidate_source": "finest BBS .1 over 2 recent scans, nearest to last odom within 1.5 m",
+ "reset_path": "A6 backend message -> native hdl /initialpose",
+ "native_relocalize_service": "not used (single-candidate service covered by R1078)"
+}

@@ -1,0 +1,135 @@
+ADAPTER_CALL 1 reject=False
+ADAPTER_QUERY 1 {"samples": [{"source": 0.1, "scan": 0, "pose": [-1.0, 0.800000011920929, 0.0], "yaw": -0.006666679256097676}, {"source": 0.1, "scan": 1, "pose": [-1.0, 0.800000011920929, 0.0], "yaw": -0.01333335871006718}], "accepted": {"pose": [-1.0, 0.800000011920929], "source": 0.1, "support": 2, "scan": 0, "prior_distance_m": 0.09131439281456018, "members": [{"source": 0.1, "scan": 0, "pose": [-1.0, 0.800000011920929, 0.0], "yaw": -0.006666679256097676}]}, "accepted_yaw": -0.006666679256097676, "prior_xy": [-0.908866286277771, 0.7942585349082947], "prior_radius_m": 1.5, "scan_queries": 2, "reject": false, "errors": []}
+ADAPTER_CALL 2 reject=True
+ADAPTER_QUERY 2 {"samples": [], "accepted": null, "accepted_yaw": null, "prior_xy": [-0.9014232158660889, 0.7956516742706299], "prior_radius_m": 1.5, "scan_queries": 0, "reject": true, "errors": ["res01:0:ServiceException(\"service [/res01/query] responded with an error: b''\")"]}
+{
+ "ok": true,
+ "spawn_xy": [
+  -1.0,
+  0.8
+ ],
+ "initial_truth_xy": [
+  -0.9999999999997355,
+  0.8000000000005606
+ ],
+ "initial_odom_xy": [
+  -0.9221822023391724,
+  0.7929829955101013
+ ],
+ "initial_phase": "TRACKING",
+ "initial_lease": 1,
+ "healthy_relocalize_calls": 0,
+ "cycles": [
+  {
+   "lease": 2,
+   "truth_xy": [
+    -0.9999999999997236,
+    0.8000000000005606
+   ],
+   "odom_xy": [
+    -0.9014232158660889,
+    0.7956516742706299
+   ],
+   "error_m": 0.0986726421394643,
+   "truth_yaw": 1.3631449356265384e-15,
+   "odom_yaw": -0.0025114566353127395,
+   "yaw_error_rad": -0.0025114566353141026,
+   "reset": {
+    "lease": 2,
+    "pose": [
+     -1.0,
+     0.800000011920929,
+     0.0
+    ],
+    "yaw": -0.006666679256097676
+   },
+   "query": {
+    "samples": [
+     {
+      "source": 0.1,
+      "scan": 0,
+      "pose": [
+       -1.0,
+       0.800000011920929,
+       0.0
+      ],
+      "yaw": -0.006666679256097676
+     },
+     {
+      "source": 0.1,
+      "scan": 1,
+      "pose": [
+       -1.0,
+       0.800000011920929,
+       0.0
+      ],
+      "yaw": -0.01333335871006718
+     }
+    ],
+    "accepted": {
+     "pose": [
+      -1.0,
+      0.800000011920929
+     ],
+     "source": 0.1,
+     "support": 2,
+     "scan": 0,
+     "prior_distance_m": 0.09131439281456018,
+     "members": [
+      {
+       "source": 0.1,
+       "scan": 0,
+       "pose": [
+        -1.0,
+        0.800000011920929,
+        0.0
+       ],
+       "yaw": -0.006666679256097676
+      }
+     ]
+    },
+    "accepted_yaw": -0.006666679256097676,
+    "prior_xy": [
+     -0.908866286277771,
+     0.7942585349082947
+    ],
+    "prior_radius_m": 1.5,
+    "scan_queries": 2,
+    "reject": false,
+    "errors": []
+   },
+   "phase": "TRACKING",
+   "allowed": true
+  }
+ ],
+ "negative": {
+  "phase": "FAILED",
+  "allowed": false,
+  "query": {
+   "samples": [],
+   "accepted": null,
+   "accepted_yaw": null,
+   "prior_xy": [
+    -0.9014232158660889,
+    0.7956516742706299
+   ],
+   "prior_radius_m": 1.5,
+   "scan_queries": 0,
+   "reject": true,
+   "errors": [
+    "res01:0:ServiceException(\"service [/res01/query] responded with an error: b''\")"
+   ]
+  },
+  "new_reset": false
+ },
+ "gate_m": 0.5,
+ "deadline_s": 20.0,
+ "scan_downsample_m": 0.3,
+ "candidate_mode": "fine",
+ "scan_queries": 2,
+ "prior_radius_m": 1.5,
+ "input_semantics": "sensor-local scan relabelled base_link, voxel .3; Gazebo truth scoring only",
+ "candidate_source": "finest BBS .1 over 2 recent scans, nearest to last odom within 1.5 m",
+ "reset_path": "A6 backend message -> native hdl /initialpose",
+ "native_relocalize_service": "not used (single-candidate service covered by R1078)"
+}
