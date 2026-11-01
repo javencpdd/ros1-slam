@@ -1,0 +1,144 @@
+{
+ "domain": "a6_ndt_recovery_live_gazebo",
+ "hardware": false,
+ "spawn_xy": [
+  1.5,
+  0.0
+ ],
+ "move_xy": [
+  0.0,
+  0.0
+ ],
+ "initial": {
+  "odom": [
+   1.5564090013504028,
+   -0.0013936352916061878,
+   0.00025835633277893066,
+   -0.003642723075571166
+  ],
+  "truth": [
+   1.5000000000002642,
+   5.543164749679336e-13,
+   0.10999999992620897,
+   1.3900676885598115e-15
+  ],
+  "health": true,
+  "lease": 1,
+  "phase": "TRACKING",
+  "allowed": true,
+  "gate": {
+   "state": "HEALTHY",
+   "reason": "ok",
+   "generation": 0,
+   "active_lease": 1,
+   "last_lease": 1,
+   "revocations": 0,
+   "recoveries": 0,
+   "faults": 0,
+   "stable_samples": 3
+  },
+  "gate_command": [
+   0.1,
+   0.0
+  ],
+  "ok": true
+ },
+ "cycles": [
+  {
+   "lease": 2,
+   "truth_xy": [
+    1.5000000000002642,
+    5.437918926196847e-13
+   ],
+   "odom_xy": [
+    1.5526264905929565,
+    -0.0012884675525128841
+   ],
+   "error_m": 0.05264226116665213,
+   "candidate_error_m": 0.05740009682185429,
+   "yaw_error_rad": -0.005458583014982156,
+   "reset": {
+    "lease": 2,
+    "pose": [
+     1.557307243347168,
+     -0.0032635831739753485,
+     -0.012389421463012695
+    ],
+    "yaw": -0.00456712820994333
+   },
+   "backend": {
+    "backend": "ndt",
+    "lease": 2,
+    "pose": [
+     1.557307243347168,
+     -0.0032635831739753485,
+     -0.012389421463012695
+    ],
+    "yaw": -0.00456712820994333
+   },
+   "relocalized_events": 1,
+   "gate": {
+    "state": "HEALTHY",
+    "reason": "ok",
+    "generation": 1,
+    "active_lease": 2,
+    "last_lease": 2,
+    "revocations": 1,
+    "recoveries": 1,
+    "faults": 1,
+    "stable_samples": 9
+   },
+   "gate_before_loss": [
+    0.1,
+    0.0
+   ],
+   "gate_during_loss": [
+    0.0,
+    0.0
+   ],
+   "phase": "TRACKING",
+   "allowed": true
+  }
+ ],
+ "negative": {
+  "phase": "FAILED",
+  "allowed": false,
+  "lease_before": 2,
+  "lease_after": 2,
+  "new_reset": false,
+  "gate": {
+   "state": "LOST",
+   "reason": "E_LOC_STALE",
+   "generation": 2,
+   "active_lease": null,
+   "last_lease": 2,
+   "revocations": 2,
+   "recoveries": 1,
+   "faults": 2,
+   "stable_samples": 0
+  },
+  "gate_cmd": [
+   0.0,
+   0.0
+  ]
+ },
+ "relocalize_budget_s": 8.0,
+ "deadline_s": 25.0,
+ "gate_m": 0.3,
+ "gate_rejection": {
+  "gate_before_loss": [
+   0.1,
+   0.0
+  ],
+  "gate_during_loss": [
+   [
+    0.0,
+    0.0
+   ]
+  ]
+ },
+ "input_semantics": "live Gazebo /rslidar_points through a pausable relay; Gazebo truth used only for the post-recovery XY gate",
+ "reset_path": "A6 backend message -> NDT native /initialpose",
+ "relocalize_path": "A6 /relocalize trigger -> NDT bounded local search",
+ "ok": true
+}

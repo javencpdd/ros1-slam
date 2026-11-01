@@ -1,0 +1,60 @@
+{
+ "scope": "a6_ndt_relocalize_and_lease_gate_static_gazebo",
+ "static": {
+  "n": 1,
+  "pass": 1,
+  "initial_error_m": 0.056426,
+  "initial_lease": 1,
+  "gate_command_healthy": [
+   0.1,
+   0.0
+  ],
+  "recovery_lease": 2,
+  "final_error_m": 0.052642,
+  "candidate_error_m": 0.0574,
+  "yaw_error_rad": -0.005459,
+  "gate_command_before_loss": [
+   0.1,
+   0.0
+  ],
+  "gate_command_during_loss": [
+   0.0,
+   0.0
+  ],
+  "relocalized_events": 1,
+  "negative_phase": "FAILED",
+  "negative_allowed": false,
+  "negative_lease_before": 2,
+  "negative_lease_after": 2,
+  "negative_new_reset": false,
+  "negative_gate_command": [
+   0.0,
+   0.0
+  ],
+  "ok": true
+ },
+ "synthetic_interface": {
+  "cases": 11,
+  "pass": 11,
+  "result": "ndt_probe_result.json"
+ },
+ "tests": {
+  "per_file": "80/80",
+  "discovery": 122,
+  "adapters_discovery": 44,
+  "history": "5/5"
+ },
+ "motion_exploratory": {
+  "n": 1,
+  "ok": true,
+  "candidate_error_m": 0.247788,
+  "final_error_m": 0.050512,
+  "note": "candidate stayed at the prior pose; later rerun failed at the initial gate, so moving recovery is not certified"
+ },
+ "boundaries": [
+  "static Gazebo planar robot; kinematic carrier; no physical contact/quadruped/real hardware",
+  "NDT remains monitor-only and is not a navigation backend; continuous NDT tracking is not certified",
+  "short-loss bounded local relocalization only; no kidnapped/long-loss full-map search",
+  "A6 remains PARTIAL; no A1-A7 change; no formal #151 keys"
+ ]
+}
