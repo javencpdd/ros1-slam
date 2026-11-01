@@ -219,6 +219,7 @@ def main():
                              'speed_scale': args.speed_scale,
               'bridge45': bool(args.bridge45),
               'bridge_kin': bool(args.bridge_kin),
+              'resolution_m': args.resolution,
               'seed': args.seed,
               'perturb': bool(args.perturb),
                              'stop_hold_s': args.hold_s,
