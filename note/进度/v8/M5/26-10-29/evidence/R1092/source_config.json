@@ -1,0 +1,21 @@
+{
+ "source_runs": [
+  {"seed": 1, "ok": true, "rows": 972, "end_z": 1.171238481527631,
+   "end_sim_time": 14.440000000001492, "trace": "s1.trace.jsonl.gz",
+   "trace_sha256": "ec178cf0572eb126d81961e8bc2e4f616fac628e559ace8008be30f0eb7a9bdc",
+   "json_sha256": "28ede17e9cb6a9996152421b6074d604e2657d5909690d7f08fcbd06111f8414"},
+  {"seed": 2, "ok": false, "rows": 1057, "end_z": 0.6958,
+   "end_support": 0.3717, "note": "did not reach top; not a top-hold sample",
+   "trace_sha256": "7392a659787caa6b450e1c174d4c954c3c89246998ff811b3c2526262fdfe9e1",
+   "json_sha256": "bad45585a163b512de00b658f407c22fd07e4f7064c453a251559e9a5d927e6c"}
+ ],
+ "world": "same stairs.xml as R1091 (step_h=.1988, steps=5, depth=.72, front=1.0, landing_depth=2.0)",
+ "config": {"tick_s": 1.2, "horizon_s": 12.0, "validity_s": 12.0, "clearance_m": 0.1, "resolution": 0.15},
+ "assets": {
+  "policy_sha256": "881b6604494fcddaee7b70e5a06cbb8eaa223b8bb17abf4d9c341e2aad55824f",
+  "base_xml_sha256": "9f2fb022793b4c8c0f1c2dbb2e76416c8a377c48313deb44aa4c1f78afb988fa",
+  "stairs_xml_sha256": "bb0a22e35b1eb6c250e4deea702cb79d179aa0e0690f0f75c03a7bf6eab0641c",
+  "map_sha256": "bd0cc6c4177aa7dc3b9cc12aee5f19fa4f40ed944e9979c6021ba6b194e1e366"
+ },
+ "boundary": "seed2 is a non-top negative; no 3/3 seed claim. All holds are open-loop, no ROS replanning, no Gazebo/real robot."
+}

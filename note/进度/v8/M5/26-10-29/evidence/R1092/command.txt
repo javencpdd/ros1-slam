@@ -1,0 +1,33 @@
+R1092 命令（2026-11-01 18:35—18:39 CST，qoder；容器 v8codex-20261028）
+# 代码沿用 fcf8a0f5；资产与 R1091 相同：
+# /tmp/new_policy.onnx、/tmp/mjcf/Lite3.xml、/tmp/lite3_stairs_dv378won/stairs.xml；
+# PYTHONPATH=/tmp/r854-policy-runtime:/opt/ros/noetic/lib/python3/dist-packages。
+
+# seed1 / seed2 源轨迹（各自独立 ROS master 11731/11732）
+cd /repo/ws/src/90_platform/v8_platform/regression
+timeout 190 python3 -B a5_v8x1_runtime.py \
+  --map /repo/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --seed 1 --perturb --lockstep --stall-retry \
+  --trace-actions /tmp/r1091src/s1.trace.jsonl \
+  --out /tmp/r1091src/s1.json --wall-deadline-s 150
+# seed1 ok=true、972 行、末 z 1.171238。
+timeout 190 python3 -B a5_v8x1_runtime.py ... --seed 2 ...
+# seed2 ok=false、末 z .6958、support .3717，未登顶。
+
+# seed1 全量回放
+python3 -B a5_v8x1_replay.py \
+  --source-trace /tmp/r1091src/s1.trace.jsonl \
+  --xml /tmp/lite3_stairs_dv378won/stairs.xml --start-index 0 \
+  --out-dir /tmp/r1091replay0_s1 --port 11733
+# 源尾 972 tick max_abs_diff=2.22e-16（1 ULP）；两次回放 max=0.0。
+
+# seed1 顶部保持三变体
+python3 -B a5_v8x1_top_hold.py \
+  --source-trace /tmp/r1091src/s1.trace.jsonl \
+  --xml /tmp/lite3_stairs_dv378won/stairs.xml --hold-ticks 500 \
+  --out-dir /tmp/r1091hold_s1_zero
+python3 -B a5_v8x1_top_hold.py ... --ramp-ticks 50 --out-dir /tmp/r1091hold_s1_ramp
+python3 -B a5_v8x1_top_hold.py ... --hold-vx 0.05 --out-dir /tmp/r1091hold_s1_creep
+
+# 测试：R1091 代码 73/73；本批无代码改动
