@@ -1,0 +1,21 @@
+R1083 命令（2026-11-01 15:12—15:17 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+# seed1 truth：四组合，端口 11700—11703
+port=11700
+for cell in gp_dwa gp_teb navfn_dwa navfn_teb; do
+  python3 -B regression/runtime_lab.py --out /tmp/r1083_truth_$cell --port $port \
+    --gazebo --scenario SC09 --seed 1 --localization truth \
+    --graph framework/fixtures/graphs/graph_2d_stack_$cell.yaml
+  port=$((port+1))
+done
+# seed1 noisy：四组合，端口 11704—11707
+port=11704
+for cell in gp_dwa gp_teb navfn_dwa navfn_teb; do
+  python3 -B regression/runtime_lab.py --out /tmp/r1083_noisy_$cell --port $port \
+    --gazebo --scenario SC09 --seed 1 --localization noisy \
+    --graph framework/fixtures/graphs/graph_2d_stack_$cell.yaml
+  port=$((port+1))
+done
+# 8/8 新格 PASS；seed0 八格引用 R1073/R981；合 16/16。
+# worst dist .247 m、clearance .312 m、injected .581 m（全 16 格）。
