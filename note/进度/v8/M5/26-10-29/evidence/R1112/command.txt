@@ -1,0 +1,29 @@
+R1112 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+
+# 0) 复用 R944 的 MuJoCo 运行时/策略；新增 --global-route：
+#    先用真实 support_planner 从 (0,-2.175,0) 规划到 (0,1.34,.890358)，
+#    取其末点作为 local 目标，再走 local→a5_v8x1_bridge→270 策略接触爬升。
+# 1) 运行（独立 master；策略/ XML 在 /tmp；PYTHONPATH 保留 ROS）：
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:12304 ROS_HOSTNAME=127.0.0.1
+setsid roscore -p 12304 >/tmp/r1112_roscore2.log 2>&1 < /dev/null &
+sleep 3
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+PYTHONPATH=/tmp/mjrt:/tmp/ortpkg2:$PYTHONPATH python3 -B a5_v8x1_runtime.py \
+  --map /opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json \
+  --policy /tmp/new_policy.onnx --xml /tmp/mjcf/Lite3.xml \
+  --global-route --global-start 0,-2.175,0 --goal-map 0,1.34,0.890358 \
+  --out /tmp/r1112_global_mj2.json --wall-deadline-s 180
+# run1/run2 均 ok=true，checks climbed/final_on_top/goal_map/no_fall/a5_active 全真；
+# global 34 点、末 (0.075,1.275,.890358)、五级过渡；plans 8/7；
+# final map (0.075,1.275,0.8904)，body z 1.0998/1.1010。
+# 2) 测试：test_a5_v8x1_bridge + v8 逐文件 80/80 + discovery 127。
+python3 -B -m unittest test_a5_v8x1_bridge
+for f in $(find . -name "test_*.py" | sort); do
+  (cd $(dirname "$f") && python3 -B $(basename "$f")) || exit 1
+done
+python3 -B -m unittest discover -p "test_*.py"
+
+# 边界：single policy/declared support map；接触只负责 Z；全局路径预计算一次，
+# 不是在线全局重规划；无 Gazebo 感知/四足步态分类/真机；A1/A5 仍 PARTIAL。
