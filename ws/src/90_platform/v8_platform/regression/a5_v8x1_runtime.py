@@ -18,6 +18,9 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent / 'planner'))
+sys.path.insert(0, str(HERE.parent / 'contracts'))
+import support_planner  # noqa: E402
 LOCAL = HERE.parent / 'local_planner'
 DYNAMICS = HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'dynamics'
 sys.path.insert(0, str(DYNAMICS))
@@ -56,6 +59,9 @@ def main():
     parser.add_argument('--step-depth', type=float, default=.72)
     parser.add_argument('--landing-depth', type=float, default=2.0)
     parser.add_argument('--goal-map', default='0,1.34,0.890358')
+    parser.add_argument('--global-route', action='store_true',
+                        help='prepend the real 3D support planner; use its endpoint as local goal')
+    parser.add_argument('--global-start', default='0,-2.175,0')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--finish-hold', action='store_true')
@@ -81,6 +87,18 @@ def main():
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
+    global_route = None
+    if args.global_route:
+        global_start = tuple(float(v) for v in args.global_start.split(','))
+        result = support_planner.plan(value, global_start, goal)
+        if not result.get('ok') or not result.get('path'):
+            raise SystemExit('global 3D planner refused: %r' % (result,))
+        global_route = {'start': list(global_start), 'requested_goal': list(goal),
+                        'points': len(result['path']),
+                        'end': list(result['path'][-1][:3]),
+                        'length': result['length'],
+                        'transitions': result['transitions']}
+        goal = tuple(result['path'][-1][:3])
     if args.contact_profile == 'A':
         contact_profile = None
     elif args.contact_profile == 'B':
@@ -331,7 +349,8 @@ def main():
                                     'depth': args.step_depth, 'front': 1.0,
                                     'landing_depth': args.landing_depth},
         'scope': 'ROS local node + MuJoCo 270 policy; contact climbing; no Gazebo/no real robot/#151',
-        'goal_map': list(goal), 'boundaries_world_x': boundaries,
+        'goal_map': list(goal), 'global_route': global_route,
+        'boundaries_world_x': boundaries,
         'ok': ok, 'arrived': arrived, 'fell': fell, 'bridge_fault': fault,
         'release_barrier': bool(args.release_barrier),
         'terminal_reason': terminal,
