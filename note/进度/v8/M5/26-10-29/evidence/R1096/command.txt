@@ -1,0 +1,31 @@
+R1096 命令（2026-11-01 19:37—19:53 CST，qoder；容器 ros1-slam-sim）
+# 代码 ca31264d。Gazebo m1 + 真实 /rslidar_points + mux；每次独立 master 11810—11817。
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+
+# 0.4 m/s 三格（全部 VALID）
+python3 -B regression/runtime_lab.py --out /tmp/r1096_a04 --port 11810 --gazebo \
+  --local-gazebo --local-cases sensed_no_route --box-x 1.8 --box-y 0.2 \
+  --box-size .5,.4,.7 --a5-max-speed .4 --a5-clearance .20 --a5-horizon-s 6
+python3 -B regression/runtime_lab.py --out /tmp/r1096_b04 --port 11812 --gazebo \
+  --local-gazebo --local-cases sensed_no_route --box-x 2.1 --box-y -0.15 \
+  --box-size .6,.5,.8 --a5-max-speed .4 --a5-clearance .20 --a5-horizon-s 6
+python3 -B regression/runtime_lab.py --out /tmp/r1096_c04 --port 11817 --gazebo \
+  --local-gazebo --local-cases sensed_no_route --box-x 1.6 --box-y -0.2 \
+  --box-size .5,.5,.7 --a5-max-speed .4 --a5-clearance .20 --a5-horizon-s 6
+
+# 0.2 m/s 尝试（全部失败：无 obstacle input，先 track→segment_complete→E_LOCAL_NO_ROUTE）
+python3 -B regression/runtime_lab.py --out /tmp/r1096_a02h12 --port 11814 --gazebo \
+  --local-gazebo --local-cases sensed_no_route --box-x 1.8 --box-y 0.2 \
+  --box-size .5,.4,.7 --a5-max-speed .2 --a5-clearance .20 --a5-horizon-s 12
+python3 -B regression/runtime_lab.py --out /tmp/r1096_b02h12 --port 11815 --gazebo \
+  --local-gazebo --local-cases sensed_no_route --box-x 2.1 --box-y -0.15 \
+  --box-size .6,.5,.8 --a5-max-speed .2 --a5-clearance .20 --a5-horizon-s 12
+python3 -B regression/runtime_lab.py --out /tmp/r1096_a02gr --port 11816 --gazebo \
+  --local-gazebo --global-route --local-cases sensed_no_route --box-x 1.8 --box-y 0.2 \
+  --box-size .5,.4,.7 --a5-max-speed .2 --a5-clearance .20 --a5-horizon-s 12
+
+# 读数：0.4 三格 worst stop_from_sense wall .172593 s / sim .081 s / path .011970 m /
+# GT 净空 .831905 m；0.2 三次均无 obstacle input，未出 sensing→stop。
+# 测试：test_a5_gazebo_runtime 16/16、test_runtime_lab 3/3、v8 全树 73/73 文件 0 失败。
