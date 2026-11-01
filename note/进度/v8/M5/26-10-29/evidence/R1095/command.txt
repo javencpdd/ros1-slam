@@ -1,0 +1,16 @@
+R1095 命令（2026-11-01 18:56—18:59 CST，qoder；容器 ros1-slam-sim）
+# 代码 b38d1198；无新代码改动。与 R1093 同条件，补 seed1/2、固定注入 -.20：
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+# 0.2 m/s × seed 1/2 × 3 起点，每格独立 ROS master 11771—11776：
+PYTHONPATH=/tmp/np124:/tmp/mjrt:/tmp/ortpkg2:/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH \
+  python3 -u -B a5_v8x1_stop_smoke.py \
+  --out /tmp/r1095_02seed/rNN.json --max-speed 0.2 --resolution 0.10 \
+  --start-map-y < -2.175 | -1.900 | -1.600 > --inject-map-y -0.20 \
+  --bridge45 --policy /tmp/policy45.onnx --seed <1|2> --perturb \
+  --wall-deadline-s 90 --out-dir /tmp/r1095_02seed --port <11771—11776>
+
+# 6/6 PASS；stop 全 .5 s，path max .039313 m，peak max .038342 m，gap min .695472 m；
+# 触发前均速 .1357—.1699 m/s。与 R1093 合并 15 格（3 seed）。
+# 测试：test_a5_v8x1_stop_smoke 4/4；v8 全树 73/73 文件 0 失败。
