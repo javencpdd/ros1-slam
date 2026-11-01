@@ -2,10 +2,13 @@
 """Replay a recorded V8-X1 bridge command trace at fixed ticks and compare two runs.
 
 This removes ROS command timing from the determinism question: both runs start
-from the same recorded qpos/qvel and receive the same recorded per-tick command
-and stepping flag.  Any remaining difference is inside the executor (observation
-history, ONNX policy, MuJoCo stepping).
-"""
+from the same recorded state and receive the same recorded per-tick command
+and stepping flag.  Any remaining difference is inside the executor
+(observation history, ONNX policy, MuJoCo stepping).  Pass the source run's
+world XML (stairs, not the flat model) or the replay will use different
+collision geometry.  With --start-index, row-1 qpos/qvel, warmstart and the
+last five observations are restored first, so the replay can be checked
+against the source tail."""
 import argparse
 import gzip
 import json
@@ -88,6 +91,7 @@ def run_bridge(bridge, args, prefix, trace_out, replay_trace, port):
     command = [sys.executable, '-B', bridge, '--map', args.map, '--xml', args.xml,
                '--policy', args.policy, '--prefix', prefix,
                '--replay-trace', replay_trace, '--trace', trace_out,
+               '--replay-start-index', str(args.start_index),
                '--seed', '0', '--perturb']
     with open(trace_out + '.log', 'wb') as log:
         process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT,
@@ -106,6 +110,10 @@ def main(argv=None):
     parser.add_argument('--xml', default='/tmp/mjcf/Lite3.xml')
     parser.add_argument('--policy', default='/tmp/new_policy.onnx')
     parser.add_argument('--source-trace', required=True)
+    parser.add_argument('--start-index', type=int, default=0,
+                        help='restore row-1 state/history and replay from this row')
+    parser.add_argument('--skip-source-compare', action='store_true',
+                        help='appended rows are not source rows; omit the tail comparison')
     parser.add_argument('--out-dir', required=True)
     parser.add_argument('--port', type=int, default=11690)
     parser.add_argument('--timeout-s', type=float, default=120.0)
@@ -134,10 +142,14 @@ def main(argv=None):
         first = load_rows(runs[0]['trace'])
         second = load_rows(runs[1]['trace'])
         comparison = compare_rows(first, second)
+        source_comparison = (compare_rows(source[args.start_index:], first)
+                             if not args.skip_source_compare else None)
         result = {'ok': all(run['returncode'] == 0 for run in runs)
                   and comparison['identical'],
                   'source_trace': args.source_trace, 'source_rows': len(source),
+                  'start_index': args.start_index,
                   'runs': runs, 'comparison': comparison,
+                  'source_comparison': source_comparison,
                   'final_qpos': [first[-1]['qpos'][:3] if first else None,
                                  second[-1]['qpos'][:3] if second else None],
                   'scope': 'executor replay only; ROS command generation bypassed'}

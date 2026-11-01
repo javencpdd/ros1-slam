@@ -91,6 +91,33 @@ def plain(value):
     return float(value)
 
 
+def resume_history(rows, start):
+    """Rebuild the policy history at a source row boundary.
+
+    Trace rows store post-step state, so observation k uses row k-1 state and
+    row k command.  Only ticks where the source appended a finite action enter
+    the history; non-finite actions reset last_action exactly as the bridge did.
+    """
+    history = [np.zeros(walk.OBS_DIM, dtype=np.float32) for _ in range(walk.HISTORY)]
+    last_action = np.zeros(12, dtype=np.float32)
+    for index in range(1, start):
+        row = rows[index]
+        if not row.get('stepping', True) or row.get('action') is None:
+            continue
+        action = np.asarray(row['action'], dtype=np.float32)
+        if not np.all(np.isfinite(action)):
+            last_action = np.zeros(12, dtype=np.float32)
+            continue
+        prior = rows[index - 1]
+        obs = walk.observation(np.asarray(prior['qpos'], dtype=float),
+                               np.asarray(prior['qvel'], dtype=float),
+                               np.asarray(row.get('command', [0., 0., 0.]), dtype=np.float32),
+                               last_action, walk.DEFAULT_POSE)
+        history = history[1:] + [obs]
+        last_action = action
+    return history, last_action
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--map', required=True)
@@ -127,6 +154,8 @@ def main():
     parser.add_argument('--trajectory-resume', action='store_true')
     parser.add_argument('--replay-trace', default='',
                         help='JSONL/JSONL.gz of previous per-tick rows; replay command/stepping')
+    parser.add_argument('--replay-start-index', type=int, default=0,
+                        help='start replay at this row after restoring row-1 state and history')
     parser.add_argument('--trace', default='', help='per-tick JSONL diagnostic trace path')
     parser.add_argument('--require-release', action='store_true',
                         help='hold the sim clock until prefix/release is called')
@@ -142,6 +171,10 @@ def main():
             replay_rows = [json.loads(line) for line in stream if line.strip()]
         if not replay_rows:
             raise SystemExit('empty replay trace')
+        if not 0 <= args.replay_start_index < len(replay_rows):
+            raise SystemExit('replay start index outside trace')
+        if args.replay_start_index and args.replay_start_index <= walk.HISTORY:
+            raise SystemExit('replay start index must exceed policy history')
         args.stall_retry = False
         args.finish_hold = False
         args.hold_until_sim_s = 0.
@@ -165,8 +198,13 @@ def main():
     data = mujoco.MjData(model)
     start_x, start_y = map_to_world(0., args.start_map_y, args.x_offset, args.y_offset)
     if replay_rows is not None:
-        data.qpos[:] = np.asarray(replay_rows[0]['qpos'], dtype=float)
-        data.qvel[:] = np.asarray(replay_rows[0]['qvel'], dtype=float)
+        if args.replay_start_index:
+            data.qpos[:] = np.asarray(replay_rows[args.replay_start_index - 1]['qpos'], dtype=float)
+            data.qvel[:] = np.asarray(replay_rows[args.replay_start_index - 1]['qvel'], dtype=float)
+            data.time = float(replay_rows[args.replay_start_index - 1]['sim_time'])
+        else:
+            data.qpos[:] = np.asarray(replay_rows[0]['qpos'], dtype=float)
+            data.qvel[:] = np.asarray(replay_rows[0]['qvel'], dtype=float)
     else:
         perturb = walk.sample_initial(args.seed, args.perturb)
         data.qpos[:3] = [start_x + perturb['dx'], start_y + perturb['dy'],
@@ -175,6 +213,10 @@ def main():
                           math.sin(perturb['dyaw'] / 2.)]
         data.qpos[7:19] = walk.DEFAULT_POSE
     mujoco.mj_forward(model, data)
+    if replay_rows is not None and args.replay_start_index:
+        warmstart = replay_rows[args.replay_start_index - 1].get('qacc_warmstart')
+        if warmstart is not None:
+            data.qacc_warmstart[:] = np.asarray(warmstart, dtype=float)
     viewer = None
     if args.viewer:
         import mujoco.viewer
@@ -254,6 +296,8 @@ def main():
     trace = open(args.trace, 'w', encoding='utf-8') if args.trace else None
     history = [np.zeros(walk.OBS_DIM, dtype=np.float32) for _ in range(walk.HISTORY)]
     last_action = np.zeros(12, dtype=np.float32)
+    if replay_rows is not None and args.replay_start_index:
+        history, last_action = resume_history(replay_rows, args.replay_start_index)
     target = walk.DEFAULT_POSE.copy()
     dt = model.opt.timestep
     stride = max(1, int(round(.02 / dt)))
@@ -265,7 +309,7 @@ def main():
     nonfinite_streak = nonfinite_recoveries = 0
     phase_command = np.zeros(3, dtype=np.float32)
     phase_bucket = -1
-    tick = 0
+    tick = args.replay_start_index if replay_rows is not None else 0
     lockstep_last = None
     stall_ref = [float(data.qpos[0]), float(data.qpos[1])]
     stall_t = float(data.time)
@@ -389,6 +433,7 @@ def main():
             trace.write(json.dumps({
                 'tick': tick, 'sim_time': float(data.time), 'wall': time.monotonic(),
                 'qpos': data.qpos.tolist(), 'qvel': data.qvel.tolist(),
+                'qacc_warmstart': data.qacc_warmstart.tolist(),
                 'command': command.tolist(),
                 'action': None if action is None else action.tolist(),
                 'last_action': last_action.tolist(),

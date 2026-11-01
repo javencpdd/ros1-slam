@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Extend a recorded V8-X1 climb trace with a zero-command hold and measure it.
+"""Extend a recorded V8-X1 climb trace with a hold and measure it.
 
-The climb is replayed deterministically (R1080); the appended rows only change
-command/map_velocity to zero, so the test isolates the policy/physics top-hold
-behaviour from ROS command timing.  No new climb or learning is claimed.
+The bridge restores the source end state, MuJoCo warmstart, last action and
+five-frame observation history, then runs only the appended rows.  The source
+run's world XML must be supplied; using the flat model instead makes the body
+leave the stairs and invalidates the hold measurement.  No new climb or
+learning is claimed.
 """
 import argparse
 import gzip
@@ -23,6 +25,8 @@ def load_rows(path):
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--source-trace', required=True)
+    parser.add_argument('--xml', default='/tmp/mjcf/Lite3.xml',
+                        help='same world XML used for the source run (stairs, not flat)')
     parser.add_argument('--hold-ticks', type=int, default=500)
     parser.add_argument('--hold-vx', type=float, default=0.)
     parser.add_argument('--hold-wz', type=float, default=0.)
@@ -73,6 +77,8 @@ def main(argv=None):
             stream.write(json.dumps(row) + '\n')
     replay_dir = out / 'replay'
     command = [sys.executable, '-B', args.replay, '--source-trace', str(extended_path),
+               '--xml', args.xml,
+               '--start-index', str(len(rows)), '--skip-source-compare',
                '--out-dir', str(replay_dir), '--port', '11698']
     replay = subprocess.run(command, capture_output=True, text=True, timeout=300)
     comparison = None
@@ -80,7 +86,7 @@ def main(argv=None):
     if summary_path.exists():
         comparison = json.loads(summary_path.read_text())
     replay_rows = load_rows(str(replay_dir / 'replay_1.jsonl')) if (replay_dir / 'replay_1.jsonl').exists() else []
-    hold = replay_rows[len(rows):]
+    hold = replay_rows
     support = float(last.get('support') or 0.)
     z0 = float(rows[-1]['qpos'][2])
     xy0 = rows[-1]['qpos'][:2]
@@ -91,6 +97,7 @@ def main(argv=None):
                    and min(zs) >= z0 - args.hold_z_drop_m
                    and float(hold[-1]['qpos'][2]) >= support + .10),
         'source_rows': len(rows), 'hold_rows': len(hold),
+        'resume_start_index': len(rows),
         'source_end': {'qpos': rows[-1]['qpos'], 'support': support, 'sim_time': rows[-1]['sim_time']},
         'hold_end_qpos': hold[-1]['qpos'] if hold else None,
         'hold_min_z': min(zs) if zs else None,

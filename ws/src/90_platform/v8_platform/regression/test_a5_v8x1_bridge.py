@@ -3,6 +3,8 @@ import sys
 import unittest
 from pathlib import Path
 
+import numpy as np
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'dynamics'))
 import a5_v8x1_bridge as bridge
@@ -71,6 +73,54 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(bridge.stall_verdict(.01, 10., 10., 3, 3), 'fail')
         # A jump below the progress threshold still counts only by distance.
         self.assertEqual(bridge.stall_verdict(.0799, 0., 10., 0, 3), 'wait')
+
+    def test_resume_history_matches_source_observations(self):
+        rows = []
+        for index in range(7):
+            qpos = np.zeros(19)
+            qpos[3] = 1.
+            qpos[0] = .01 * index
+            qpos[7:19] = bridge.walk.DEFAULT_POSE + .001 * index
+            qvel = np.zeros(18)
+            qvel[0] = .02 * index
+            action = [.01 * index] * 12
+            rows.append({'stepping': True, 'qpos': qpos.tolist(), 'qvel': qvel.tolist(),
+                         'command': [.1, 0., .02 * index], 'action': action})
+        history, last_action = bridge.resume_history(rows, 6)
+        expected = []
+        last = np.zeros(12, dtype=np.float32)
+        for index in range(1, 6):
+            expected.append(bridge.walk.observation(
+                np.asarray(rows[index - 1]['qpos']), np.asarray(rows[index - 1]['qvel']),
+                np.asarray(rows[index]['command'], dtype=np.float32), last,
+                bridge.walk.DEFAULT_POSE))
+            last = np.asarray(rows[index]['action'], dtype=np.float32)
+        for got, want in zip(history, expected):
+            np.testing.assert_array_equal(got, want)
+        np.testing.assert_array_equal(last_action, np.asarray(rows[5]['action'],
+                                                              dtype=np.float32))
+
+    def test_resume_history_skips_nonfinite_and_resets_last_action(self):
+        rows = []
+        for index in range(7):
+            qpos = np.zeros(19)
+            qpos[3] = 1.
+            qvel = np.zeros(18)
+            action = [.01 * index] * 12
+            if index == 3:
+                action[0] = float('inf')
+            rows.append({'stepping': True, 'qpos': qpos.tolist(), 'qvel': qvel.tolist(),
+                         'command': [0., 0., 0.], 'action': action})
+        history, last_action = bridge.resume_history(rows, 6)
+        self.assertTrue(np.all(np.isfinite(history[-1])))
+        self.assertTrue(np.all(np.isfinite(last_action)))
+        # Tick 3 is dropped; tick 4 uses the reset last_action and is present.
+        obs4 = bridge.walk.observation(np.asarray(rows[3]['qpos']),
+                                       np.asarray(rows[3]['qvel']),
+                                       np.asarray(rows[4]['command'], dtype=np.float32),
+                                       np.zeros(12, dtype=np.float32),
+                                       bridge.walk.DEFAULT_POSE)
+        np.testing.assert_array_equal(history[-2], obs4)
 
 
 if __name__ == '__main__':
