@@ -35,6 +35,8 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--port-base', type=int, default=11600)
     parser.add_argument('--repeats', type=int, default=2)
+    parser.add_argument('--repeat-indices', default='',
+                        help='comma-separated repeat indices; default all 0..repeats-1')
     parser.add_argument('--scenarios', default='flat,flat_alt,stairs_top,stairs_mid')
     parser.add_argument('--timeout-s', type=float, default=60.)
     args = parser.parse_args()
@@ -44,9 +46,13 @@ def main():
     unknown = [name for name in names if name not in SCENARIOS]
     if unknown:
         parser.error('unknown scenarios: %s' % ','.join(unknown))
+    repeat_indices = ([int(value) for value in args.repeat_indices.split(',') if value.strip()]
+                      if args.repeat_indices else list(range(args.repeats)))
+    if any(index < 0 or index >= args.repeats for index in repeat_indices):
+        parser.error('--repeat-indices must be within 0..%d' % (args.repeats - 1))
     jobs = []
     index = 0
-    for repeat in range(args.repeats):
+    for repeat in repeat_indices:
         for name in names:
             index += 1
             scenario = SCENARIOS[name]
@@ -59,7 +65,8 @@ def main():
                          'start': scenario['start'], 'goal': scenario['goal'],
                          'out': str(output / ('%s_r%d.json' % (name, repeat)))})
     (output / 'preregistered.json').write_text(
-        json.dumps({'jobs': jobs, 'repeats': args.repeats, 'scenarios': names},
+        json.dumps({'jobs': jobs, 'repeats': args.repeats,
+                    'repeat_indices': repeat_indices, 'scenarios': names},
                    ensure_ascii=False, indent=1) + '\n')
     rows = []
     started = time.monotonic()
