@@ -1,0 +1,7 @@
+R1074 命令（2026-11-01 06:50—07:05 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/regression
+python3 -B hdl_global_map_smoke.py --pcd /opt/ros1-slam/data/maps/m1_world_synth_v1.pcd \
+  --out /tmp/r1074_hdl_global.json
+# 参数：BBS map_min_z=.05/max_z=1.0、scan_min_z=-.3/max_z=.3；set_global_map + query。
+# 读数：map_points 16382、scan_points 1952、1 个候选（identity），节点日志无告警。

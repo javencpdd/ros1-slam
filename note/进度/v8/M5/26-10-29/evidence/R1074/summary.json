@@ -1,0 +1,36 @@
+{
+ "experiment": "hdl_global_localization BBS on m1 synthetic PCD with m1-height slice",
+ "smoke": {
+  "ok": true,
+  "candidates": 1,
+  "poses": [
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "errors": [
+   63.20000094175339
+  ],
+  "inlier_fractions": [
+   63.20000094175339
+  ],
+  "map_points": 16382,
+  "scan_points": 1952,
+  "bbs_slice": {
+   "map_min_z": 0.05,
+   "map_max_z": 1.0,
+   "scan_min_z": -0.3,
+   "scan_max_z": 0.3
+  }
+ },
+ "correction": "prior wording called these blockers; they are configuration/path prerequisites: use_global_localization is a launch default, the PCD can be repo/sim, and BBS z slice is a parameter",
+ "result": "engine loads the m1 PCD, builds the BBS map, and returns one candidate for a synthetic query",
+ "limits": "query cloud is derived from the same map, not a live Gazebo scan; candidate is identity; errors/inlier_fractions=63.2 is the service field, not a meter accuracy; hdl_localization use_global_localization=true and /relocalize live are not yet wired",
+ "tests": "v8 full tree 71/71; A6 still PARTIAL"
+}
