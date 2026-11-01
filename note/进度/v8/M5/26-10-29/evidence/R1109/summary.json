@@ -1,0 +1,51 @@
+{
+ "scope": "gazebo_carrier_drive_mode_measurement_and_label_correction",
+ "urdf_drive_mode": "dynamic",
+ "plugin_log": {
+  "loaded": true,
+  "mode": "dynamic",
+  "beat_cmd_linear": 0.2,
+  "beat_v_phy_linear": 0.199,
+  "beat_cmd_angular": 0.5,
+  "beat_w_phy_angular": 0.481
+ },
+ "pose": {
+  "initial": [
+   1.1243188176762203e-12,
+   2.381984200809235e-12,
+   0.10999999992620897,
+   5.136422989431994e-15
+  ],
+  "after_straight": [
+   0.14747382006528403,
+   2.380655891788615e-12,
+   0.10999999992620853,
+   4.71250642544805e-15
+  ],
+  "after_turn": [
+   0.1474738200652763,
+   2.4353870762741753e-12,
+   0.10999999992620842,
+   0.19045699013250952
+  ],
+  "z_initial": 0.10999999992620897,
+  "z_after_straight": 0.10999999992620853,
+  "z_after_turn": 0.10999999992620842
+ },
+ "wall_time_observation": {
+  "straight_displacement_m": 0.1474738200641597,
+  "turn_yaw_change_rad": 0.1904569901325048,
+  "note": "wall-time command windows are not sim-time windows; use plugin beat v_phy/w_phy for tracking, not displacement/command ratio"
+ },
+ "correction": "current assembly is a dynamic planar box with Gazebo contact physics, not a kinematic pose sink; still no quadruped gait/contact-state estimator",
+ "not_changed": [
+  "old R notes are not rewritten; this is a separate correction sentence",
+  "no A1-A7 or formal #151 change",
+  "no quadruped/real-robot claim"
+ ],
+ "tests": {
+  "xacro_parse": "see command.txt",
+  "v8_per_file": "80/80",
+  "discovery": 127
+ }
+}

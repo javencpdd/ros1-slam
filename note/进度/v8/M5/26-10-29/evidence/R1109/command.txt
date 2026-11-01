@@ -1,0 +1,21 @@
+R1109 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+
+# 0) 先核实 URDF 实际值：lite3_planar.urdf.xacro:153 = <driveMode>dynamic</driveMode>，
+#    与旧注释“装配默认 kinematic”不一致。
+# 1) 启动 m1 Gazebo（默认 dynamic），向 /cmd_vel 发 .2 m/s 直行 2 s、.5 rad/s 转向 1 s；
+#    记录 /gazebo/model_states、/sim/odom_gt、/clock；插件 1 Hz beat 日志给出
+#    cmd vs 步骤起物理速度。
+#    端口 ROS 12022 / Gazebo 12023；见 /tmp/carrier_probe.py（临时探针，不入仓）。
+docker exec ros1-slam-sim bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  timeout 140 python3 -B /tmp/carrier_probe.py'
+# 2) 读数：插件 loaded mode=dynamic；beat cmd=(0.20,0,0) v_phy=(0.199,0,0)；
+#    cmd=(0,0,0.50) w_phy=(0,0,0.481)；z 始终 .1100；/sim/odom_gt 与 model_states 同位姿。
+#    墙钟 2 s 直行位移 .1475 m、1 s 转向 .1905 rad 是墙钟窗与 sim 窗不同造成的，
+#    不据此算跟踪比；跟踪以 beat 的 v_phy/w_phy 为准。
+# 3) 标注校正：当前装配是“动态平面方盒 + Gazebo 接触物理”，不是 kinematic pose sink；
+#    仍不是四足步态/接触状态估计。旧 R 文不回改，本批另起句更正。
+# 4) 回归：xacro parse ok；test_a5_gazebo_runtime 17/17；v8 80/80；discovery 127。
+xacro ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro >/dev/null
+python3 -B -m unittest test_a5_gazebo_runtime
