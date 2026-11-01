@@ -1,0 +1,24 @@
+R1111 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+
+# 0) 在 R1099/R1110 的固定起点矩阵外，给每个 seed 在场景起点 x/y 加 ±.03 m：
+#    seed 0/1/2 × flat/flat_alt/stairs_top/stairs_mid = 12 格；z/地图/目标不改。
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+export PYTHONPATH=/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+python3 -B regression/a1_3d_combo_matrix.py --out /tmp/r1111_a1_seeds2 \
+  --port-base 12220 --repeats 1 --repeat-indices 0 --seed-values 0,1,2 \
+  --scenarios flat,flat_alt,stairs_top,stairs_mid --timeout-s 60
+# 12/12 PASS，wall 331.42 s；最坏载体误差 .099712 m。
+
+# 首轮 10/12：seed1 的负起点被 `--start -0.01...` 当 argparse 选项；
+# 改为 `--start=<value>`/`--goal=<value>` 后复跑全过。此修复也写入 runner。
+
+# 测试：v8 逐文件 80/80；discovery 127。
+for f in $(find . -name "test_*.py" | sort); do
+  (cd $(dirname "$f") && python3 -B $(basename "$f")) || exit 1
+done
+python3 -B -m unittest discover -p "test_*.py"
+
+# 边界：声明 support map 上的 kinematic/static 3D Assembly；起点 x/y 扰动，
+# 不是 Gazebo 物理/四足/真机，也不是 formal A1 签署。

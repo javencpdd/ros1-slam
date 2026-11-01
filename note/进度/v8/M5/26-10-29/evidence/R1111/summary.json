@@ -1,0 +1,160 @@
+{
+ "scope": "a1_3d_three_seed_start_perturbation_matrix",
+ "n": 12,
+ "pass": 12,
+ "worst_carrier_distance_m": 0.09971176458804386,
+ "wall_s": 331.41644119797274,
+ "jobs": [
+  {
+   "cell": "flat_s0",
+   "scenario": "flat",
+   "seed": 0,
+   "start": "3.020665,2.015477,0.600000",
+   "ok": true,
+   "carrier_distance_m": 0.09788928616718852,
+   "path_poses": 6,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "flat_alt_s0",
+   "scenario": "flat_alt",
+   "seed": 0,
+   "start": "3.020665,2.015477,0.600000",
+   "ok": true,
+   "carrier_distance_m": 0.07521434054554454,
+   "path_poses": 9,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "stairs_top_s0",
+   "scenario": "stairs_top",
+   "seed": 0,
+   "start": "0.020665,-2.159523,0.000000",
+   "ok": true,
+   "carrier_distance_m": 0.09971176458804386,
+   "path_poses": 34,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "stairs_mid_s0",
+   "scenario": "stairs_mid",
+   "seed": 0,
+   "start": "0.020665,-2.159523,0.000000",
+   "ok": true,
+   "carrier_distance_m": 0.09751625443534104,
+   "path_poses": 21,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "flat_s1",
+   "scenario": "flat",
+   "seed": 1,
+   "start": "2.978062,2.020846,0.600000",
+   "ok": true,
+   "carrier_distance_m": 0.04568680188667417,
+   "path_poses": 7,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "flat_alt_s1",
+   "scenario": "flat_alt",
+   "seed": 1,
+   "start": "2.978062,2.020846,0.600000",
+   "ok": true,
+   "carrier_distance_m": 0.07827107746465242,
+   "path_poses": 8,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "stairs_top_s1",
+   "scenario": "stairs_top",
+   "seed": 1,
+   "start": "-0.021938,-2.154154,0.000000",
+   "ok": true,
+   "carrier_distance_m": 0.09936523921957259,
+   "path_poses": 34,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "stairs_mid_s1",
+   "scenario": "stairs_mid",
+   "seed": 1,
+   "start": "-0.021938,-2.154154,0.000000",
+   "ok": true,
+   "carrier_distance_m": 0.0875170944847181,
+   "path_poses": 21,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "flat_s2",
+   "scenario": "flat",
+   "seed": 2,
+   "start": "3.027362,2.026870,0.600000",
+   "ok": true,
+   "carrier_distance_m": 0.04570598984359867,
+   "path_poses": 6,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "flat_alt_s2",
+   "scenario": "flat_alt",
+   "seed": 2,
+   "start": "3.027362,2.026870,0.600000",
+   "ok": true,
+   "carrier_distance_m": 0.08359390106272467,
+   "path_poses": 9,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "stairs_top_s2",
+   "scenario": "stairs_top",
+   "seed": 2,
+   "start": "0.027362,-2.148130,0.000000",
+   "ok": true,
+   "carrier_distance_m": 0.09962718155351155,
+   "path_poses": 34,
+   "local_reason": "arrived",
+   "error": ""
+  },
+  {
+   "cell": "stairs_mid_s2",
+   "scenario": "stairs_mid",
+   "seed": 2,
+   "start": "0.027362,-2.148130,0.000000",
+   "ok": true,
+   "carrier_distance_m": 0.09111780595067162,
+   "path_poses": 21,
+   "local_reason": "arrived",
+   "error": ""
+  }
+ ],
+ "seed_perturbation": {
+  "axis": "x/y",
+  "amplitude_m": 0.03,
+  "z": "unchanged"
+ },
+ "arg_bug": {
+  "first_run": "10/12; negative seed-1 start was passed as --start -0.01... and parsed as an option",
+  "fix": "pass --start=<value> and --goal=<value>; final run 12/12"
+ },
+ "boundary": [
+  "3D Assembly closed loop over declared support maps; kinematic/static carrier, not Gazebo physics/quadruped/real robot",
+  "seeded starts are x/y perturbations only; no map/odom noise injection; not formal A1",
+  "no A1 formal sign-off; no A4/A5/#151 change"
+ ],
+ "tests": {
+  "v8_per_file": "80/80",
+  "discovery": 127
+ },
+ "code": "13d62dac (+1432df1f result-row seed/start)"
+}
