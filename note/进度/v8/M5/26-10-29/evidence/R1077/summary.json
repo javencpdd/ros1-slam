@@ -1,0 +1,51 @@
+{
+ "experiment": "live A6 recovery: Gazebo scan -> 3 BBS consensus -> /relocalize adapter -> A6 node",
+ "initial_tracking": true,
+ "initial_lease": 1,
+ "loss_phase": "RELOCALIZING",
+ "candidate": {
+  "pose": [
+   0.0,
+   -0.20000000298023224
+  ],
+  "source": 0.2,
+  "support": 2,
+  "members": [
+   {
+    "source": 0.5,
+    "pose": [
+     0.5,
+     0.0
+    ]
+   },
+   {
+    "source": 0.2,
+    "pose": [
+     0.0,
+     -0.20000000298023224
+    ]
+   }
+  ]
+ },
+ "backend_after_relocalize": {
+  "backend": "faster_lio",
+  "lease": 2,
+  "pose": [
+   0.0,
+   -0.20000000298023224,
+   0.0
+  ]
+ },
+ "recovered": true,
+ "final_lease": 2,
+ "final_phase": "TRACKING",
+ "candidate_error_m": 0.20000000298023224,
+ "truth_xy": [
+  0.0,
+  0.0
+ ],
+ "result": "loss -> RELOCALIZING -> consensus candidate -> faster_lio lease 2 -> TRACKING, GT error .2 m",
+ "limits": "/relocalize is a smoke adapter over real scan+BBS, not hdl native; single static pose/run; GT only posthoc; no real robot",
+ "tests": "candidate_consensus 4/4; v8 full tree 72/72",
+ "a6_status": "PARTIAL"
+}

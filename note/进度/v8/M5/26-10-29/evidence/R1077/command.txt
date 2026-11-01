@@ -1,0 +1,8 @@
+R1077 命令（2026-11-01 07:35—07:55 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/adapters
+python3 -B a6_recovery_live_smoke.py
+# m1 Gazebo 真实扫描；三 BBS 实例 .5/.2/.1；CandidateConsensus radius .6/min_support 2；
+# 假 /relocalize 服务内部走真实扫描+BBS；A6 节点 odom/candidate/lease_in。
+# lease1 TRACKING -> 停 odom -> RELOCALIZING -> 候选 (0,-.2,0) -> backend faster_lio lease2
+# -> 恢复 TRACKING、allowed=true；GT 误差 .2 m。
