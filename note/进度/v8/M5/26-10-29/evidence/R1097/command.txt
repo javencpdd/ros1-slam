@@ -1,0 +1,24 @@
+R1097 命令（2026-11-01 19:59—20:11 CST，qoder；容器 ros1-slam-sim）
+# 代码 20e2f810。先构建消息包（只构建，不改源码）：
+source /opt/ros/noetic/setup.bash
+cd /opt/ros1-slam/ws
+catkin_make --only-pkg-with-deps v8_msgs -DCMAKE_BUILD_TYPE=Release
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+export PYTHONPATH=/opt/ros1-slam/ws/devel/lib/python3/dist-packages:$PYTHONPATH
+
+# 3D 图预检 + Assembly 两次闭环（独立 master 11527/11528）：
+python3 -B framework/graph_3d_assembly_smoke.py \
+  --out /tmp/r1097_3d_assembly.json --port 11527 --timeout-s 25
+python3 -B framework/graph_3d_assembly_smoke.py \
+  --out /tmp/r1097_3d_assembly_run2.json --port 11528 --timeout-s 25
+
+# 旧实例直启烟测对照：
+python3 -B framework/graph_3d_real_smoke.py
+
+# 读数：
+# run1：safety ok，provider v3/delta1，path 6 点，local v3/arrived，
+#       carrier (3.435019,2.011675,.6)，距目标 .066022 m，mux 270 track/0 stale；
+# run2：carrier (3.400003,2.0,.6)，距目标 .099997 m，mux 314 track/0 stale。
+# legacy：safety ok、v3/delta1、path 6、arrived、无残留。
+# 测试：graph_3d_assembly 3/3、cmd3d_arbiter 5/5、v8 全树 75/75 文件 0 失败。

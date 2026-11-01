@@ -1,0 +1,88 @@
+{
+ "startup_order": [
+  "cache_a",
+  "cache_b",
+  "merge",
+  "relay",
+  "provider",
+  "global",
+  "path_goal",
+  "local",
+  "mux3d",
+  "carrier"
+ ],
+ "command_writers": {
+  "/cmd_vel": "mux3d",
+  "/v8/local/cmd_vel_3d": "local"
+ },
+ "safety_gate": "ok",
+ "commands": {
+  "cache_a": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "cache_b": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "merge": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "relay": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "provider": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "global": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "path_goal": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "local": [
+   "python3",
+   "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/param_exec.py"
+  ],
+  "mux3d": [
+   "rosrun",
+   "v8_platform"
+  ],
+  "carrier": [
+   "rosrun",
+   "v8_platform"
+  ]
+ },
+ "/v8/3d/cache_a/v8_map_cache/flush": true,
+ "/v8/3d/cache_b/v8_map_cache/flush": true,
+ "provider_status": {
+  "map_version": 3,
+  "deltas": 1
+ },
+ "path": {
+  "poses": 6,
+  "last": [
+   3.55,
+   2.05,
+   0.6
+  ]
+ },
+ "trajectory": {
+  "map_version": 3,
+  "reason": "arrived",
+  "last": [
+   3.5,
+   2.0,
+   0.6,
+   1793535017.9976058
+  ]
+ },
+ "stopped": true,
+ "processes_after_stop": [],
+ "ok": true
+}
