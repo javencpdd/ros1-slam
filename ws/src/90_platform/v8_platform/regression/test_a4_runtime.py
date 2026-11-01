@@ -63,6 +63,33 @@ class A4RuntimeTests(unittest.TestCase):
         self.assertEqual(s['expected_failures'], 3 * 2)  # SC07 无路、SC09 净空、SC10 预算
         self.assertEqual(s['same_as_design'], 20)
 
+    def test_reference_clearance_merges_design_and_continuous_check(self):
+        def fake_call(map_value, start, goal, budget, name, **kwargs):
+            try:
+                planned = pln.plan(map_value, start, goal, budget=budget, **kwargs)
+            except pln.PlannerError as error:
+                return None, error.code, {'ok': False, 'reason': error.code}
+            return [point[:3] for point in planned['path']], None, planned
+
+        cells = a4.run_reference_clearance(call_node_fn=fake_call)
+        s = a4.summary(cells)
+        self.assertEqual(s['cells'], 20)
+        self.assertEqual(s['same_as_design'], 20)
+        self.assertEqual(s['unexpected_failures'], 0)
+        self.assertTrue(all(cell['min_clearance_m'] == 0.2 for cell in cells))
+
+    def test_reference_clearance_detects_a_route_that_differs_from_design(self):
+        def altered(map_value, start, goal, budget, name, **kwargs):
+            try:
+                planned = pln.plan(map_value, start, goal, budget=budget, **kwargs)
+            except pln.PlannerError as error:
+                return None, error.code, {'ok': False, 'reason': error.code}
+            route = [point[:3] for point in planned['path']]
+            return route[:-1], None, planned
+
+        cells = a4.run_reference_clearance(call_node_fn=altered)
+        self.assertTrue(any(not cell['same_as_design'] for cell in cells))
+
     def test_run_cancel_expects_cancelled_code(self):
         """A4 取消可区分：预取消必须返回 E_PLAN_CANCELLED；返回路径或其他拒绝都不合格。"""
         def cancelled(map_value, start, goal, budget, name, **kwargs):

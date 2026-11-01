@@ -196,6 +196,43 @@ def run_cancel(ids=('SC01', 'SC02'), call_node_fn=None):
     return cells
 
 
+def run_reference_clearance(ids=None, call_node_fn=None):
+    """Merge the design reference route and the continuous clearance check.
+
+    The node and the in-process reference planner receive the same map, budget and
+    min_clearance_m; their routes must match point-for-point (or both reject).
+    """
+    cells = []
+    call = call_node_fn or call_node
+    limit = cal.FROZEN['tolerances']['min_clearance_m']['value']
+    for sid in ids or planning_ids():
+        case = scn.scenario(sid)
+        budget = case.get('planner_budget') or \
+            cal.FROZEN['budgets']['planner_max_expansions']['value']
+        for track in ('truth', 'estimate'):
+            map_for_plan = reg._perturbed(case['map']) if track == 'estimate' else case['map']
+            name = 'a4_ref_clear_%s_%s' % (sid.lower(), track)
+            route, error_code, info = call(map_for_plan, case['start'], case['goal'],
+                                           budget, name, min_clearance_m=limit)
+            design = None
+            try:
+                planned = pln.plan(map_for_plan, case['start'], case['goal'],
+                                   budget=budget, min_clearance_m=limit)
+                design = [(x, y, z) for x, y, z, _sid in planned['path']]
+            except pln.PlannerError:
+                design = None
+            cell = {'scenario': sid, 'track': track, 'budget': budget,
+                    'min_clearance_m': limit,
+                    'points': None if route is None else len(route),
+                    'design_points': None if design is None else len(design),
+                    'same_as_design': same_points(route, design),
+                    'expansions': None if not info else info.get('expansions'),
+                    'info': info}
+            cell.update(judge(case, route, error_code))
+            cells.append(cell)
+    return cells
+
+
 def run_clearance(call_node_fn=None):
     """SC09 原几何安全规划＋派生低顶目标请求负例；不改旧冻结场景的预期。
 
@@ -327,13 +364,15 @@ def summary(cells):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['run', 'cancel', 'version', 'clearance'])
+    parser.add_argument('command', choices=['run', 'cancel', 'version', 'clearance',
+                                            'reference_clearance'])
     parser.add_argument('--out', default='')
     args = parser.parse_args(argv)
     import rospy
     rospy.init_node('a4_runtime_runner')
     cells = {'cancel': run_cancel, 'version': run_version,
-             'clearance': run_clearance, 'run': run}[args.command]()
+             'clearance': run_clearance, 'run': run,
+             'reference_clearance': run_reference_clearance}[args.command]()
     result = {'summary': summary(cells), 'cells': cells}
     print(json.dumps(result['summary'], ensure_ascii=False))
     for cell in cells:
