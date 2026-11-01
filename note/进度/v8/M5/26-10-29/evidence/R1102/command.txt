@@ -1,0 +1,76 @@
+R1102 命令（2026-11-01 22:40—2026-11-02 CST，qoder；容器 ros1-slam-sim）
+# 环境：ROS master 11930 / Gazebo master 11931；世界 m1_world + nist_stairs_map
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11930 ROS_HOSTNAME=127.0.0.1
+
+# 1) 全量 survey：26 位姿 ×4 扫描；/rslidar_points + /sim/odom_gt；持位 + 掉自车 + 水平法向过滤
+python3 ws/src/90_platform/v8_platform/regression/gazebo3d_mapping.py \
+  --survey full --seed 0 --scans 4 --out-points /tmp/r1102/points_full_v2.npz \
+  --out-map /tmp/r1102/map_full_v2.json --out-json /tmp/r1102/full_v2.json
+
+# 2) 地图标定与构建：Gazebo 射线碰撞把网格解析为 SDF 视觉尺度的 1/1.7；
+#    点云乘 1.7，得到与声明 NIST 支撑图同尺度的 map v2；v1 是 z<=0.45 的部分图
+python3 ws/src/90_platform/v8_platform/regression/gazebo3d_mapping.py \
+  --points-npz /tmp/r1102/points_full_v2.npz --survey-poses 26 --point-scale 1.7 \
+  --resolution .30 --map-version 2 --out-map /tmp/r1102/map_sensor_v2_meta.json \
+  --out-json /tmp/r1102/sensor_v2_meta.json
+python3 ws/src/90_platform/v8_platform/regression/gazebo3d_mapping.py \
+  --points-npz /tmp/r1102/points_full_v2.npz --survey-poses 26 --point-scale 1.7 \
+  --z-max .45 --resolution .30 --map-version 1 \
+  --out-map /tmp/r1102/map_sensor_v1_partial_meta.json --out-json /tmp/r1102/sensor_v1_partial_meta.json
+
+# 3) 干净地图全局+局部：a4 全局节点 -> local_native -> Gazebo kinematic carrier
+python3 ws/src/90_platform/v8_platform/regression/a5_gazebo3d_runtime.py \
+  --map /tmp/r1102/map_sensor_v2_meta.json --terrain nist_stairs_map \
+  --start-map 0,-3.06,0 --goal-map 0,1.34,.888142 --global-plan \
+  --out /tmp/r1102/exec_sensor_map_final.json
+
+# 4) 地图版本切换：v1 局部图到第 2 层，v2 切换后到顶；同时记录 v1 顶端全局拒绝
+python3 ws/src/90_platform/v8_platform/regression/gazebo3d_live_map.py \
+  --map-v1 /tmp/r1102/map_sensor_v1_partial_meta.json \
+  --map-v2 /tmp/r1102/map_sensor_v2_meta.json \
+  --goal-v1 0,-1.0,0.371516 --goal-v2 0,1.34,0.888142 \
+  --carrier-snap --out /tmp/r1102/live_version_strict.json
+
+# 5) 动态障碍：侧向盒可绕行、全宽盒安全停车；盒为 Gazebo 模拟 AABB 注入
+python3 ws/src/90_platform/v8_platform/regression/gazebo3d_live_map.py \
+  --map-v1 /tmp/r1102/map_sensor_v1_partial_meta.json \
+  --map-v2 /tmp/r1102/map_sensor_v2_meta.json \
+  --goal-v1 0,-1.0,0.371516 --goal-v2 0,1.34,0.888142 \
+  --obstacle-json /tmp/r1102/obstacle_side.json --obstacle-after-s 1.0 \
+  --carrier-snap --out /tmp/r1102/live_obstacle_side_strict.json
+python3 ws/src/90_platform/v8_platform/regression/gazebo3d_live_map.py \
+  --map-v1 /tmp/r1102/map_sensor_v1_partial_meta.json \
+  --map-v2 /tmp/r1102/map_sensor_v2_meta.json \
+  --goal-v1 0,-1.0,0.371516 --goal-v2 0,1.34,0.888142 \
+  --obstacle-json /tmp/r1102/obstacle_block.json --obstacle-after-s 1.0 \
+  --carrier-snap --expect-block --out /tmp/r1102/live_obstacle_block_strict.json
+
+# 6) 定位噪声：建立 3 个带 odom 噪声的图（seed 0/1/2），再逐个 v2-only 执行
+for s in 0 1 2; do
+  python3 ws/src/90_platform/v8_platform/regression/gazebo3d_mapping.py \
+    --survey full --seed $s --odom-noise-m .01 --odom-noise-deg .5 \
+    --point-scale 1.7 --resolution .30 --map-version 2 \
+    --out-map /tmp/r1102/map_noise_s$s.json --out-json /tmp/r1102/noise_s$s.json \
+    --out-points /tmp/r1102/points_noise_s$s.npz
+  python3 ws/src/90_platform/v8_platform/regression/gazebo3d_live_map.py \
+    --map-v1 /tmp/r1102/map_sensor_v1_partial_meta.json \
+    --map-v2 /tmp/r1102/map_noise_s$s.json \
+    --goal-v1 0,-1.0,0.371516 --goal-v2 0,1.34,$(python3 -c "import json;print(json.load(open('/tmp/r1102/map_noise_s$s.json'))['surfaces'][-1]['z_reference'])") \
+    --top-goal 0,1.34,$(python3 -c "import json;print(json.load(open('/tmp/r1102/map_noise_s$s.json'))['surfaces'][-1]['z_reference'])") \
+    --skip-v1 --radius-m .10 --clearance-m .05 --max-step-m .25 --carrier-snap \
+    --out /tmp/r1102/live_noise_maponly_strict_s$s.json
+done
+# 执行侧定位噪声 .01 m/.5 deg（seed 0，干净 v2 图）
+python3 ws/src/90_platform/v8_platform/regression/gazebo3d_live_map.py \
+  --map-v1 /tmp/r1102/map_sensor_v1_partial_meta.json \
+  --map-v2 /tmp/r1102/map_sensor_v2_meta.json \
+  --goal-v1 0,-1.0,0.371516 --goal-v2 0,1.34,0.888142 \
+  --skip-v1 --pose-noise-m .01 --pose-noise-deg .5 --seed 0 --carrier-snap \
+  --out /tmp/r1102/live_posnoise_strict.json
+
+# 7) 测试
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform
+python3 -m unittest discover -s . -p "test_*.py"     # 108 tests OK
+# 逐文件：77/77 test files OK, 0 fail
