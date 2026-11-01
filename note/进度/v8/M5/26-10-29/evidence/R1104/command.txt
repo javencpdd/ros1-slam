@@ -1,0 +1,14 @@
+R1104 命令（2026-11-02，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11930 ROS_HOSTNAME=127.0.0.1
+cd /opt/ros1-slam
+# 先修 10_slam_mapping_sim.launch: use_sim_time=true (a529f0f0)
+# 启动 LIO 前把 survey robot 放到开阔地，再用 /cmd_vel 驱动
+python3 ws/src/90_platform/v8_platform/framework/localization_compare.py \
+  --launch --place-model 0,-3,.15 --duration-s 20 --speed .20 \
+  --out /tmp/r1104_lio_moving_place.json
+python3 ws/src/90_platform/v8_platform/framework/localization_compare.py \
+  --launch --place-model 0,-3,.15 --duration-s 20 --speed .20 \
+  --out /tmp/r1104_lio_moving_place2.json
+# 测试 79/79 files、122 tests
