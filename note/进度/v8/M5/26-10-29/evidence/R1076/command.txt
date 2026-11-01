@@ -1,0 +1,9 @@
+R1076 命令（2026-11-01 07:20—07:35 CST，qoder；容器 ros1-slam-sim）
+source /opt/ros/noetic/setup.bash && source /opt/ros1-slam/ws/devel/setup.bash
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/adapters
+python3 -B -m unittest -q test_candidate_consensus
+cd ../regression
+python3 -B hdl_global_consensus_smoke.py --pcd /opt/ros1-slam/data/maps/m1_world_synth_v1.pcd \
+  --out /tmp/r1076_hdl_consensus.json
+# m1 Gazebo 真实 /rslidar_points；三个 BBS 实例 .5/.2/.1；共识 radius .6、min_support 2。
+# 候选 (.5,0)/(0,-.2)/(1.0,-.1)，接受 .2 候选，事后误差 .2 m；1.0 m 候选被剔除。

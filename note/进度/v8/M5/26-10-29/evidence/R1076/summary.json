@@ -1,0 +1,77 @@
+{
+ "experiment": "live Gazebo scan -> three BBS resolutions -> CandidateConsensus",
+ "truth_xy": [
+  1.0932153327656324e-12,
+  2.4112157944933863e-12
+ ],
+ "nodes": [
+  {
+   "resolution": 0.5,
+   "top_pose": [
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.01666666567325592,
+    0.9998611211776733
+   ],
+   "service_error": 24.00000035762787
+  },
+  {
+   "resolution": 0.2,
+   "top_pose": [
+    0.0,
+    -0.20000000298023224,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "service_error": 10.000000149011612
+  },
+  {
+   "resolution": 0.1,
+   "top_pose": [
+    1.0,
+    -0.10000000149011612,
+    0.0,
+    0.0,
+    0.0,
+    -0.0033333334140479565,
+    0.9999944567680359
+   ],
+   "service_error": 6.600000098347664
+  }
+ ],
+ "consensus": {
+  "pose": [
+   0.0,
+   -0.20000000298023224
+  ],
+  "source": 0.2,
+  "support": 2,
+  "members": [
+   {
+    "source": 0.5,
+    "pose": [
+     0.5,
+     0.0
+    ]
+   },
+   {
+    "source": 0.2,
+    "pose": [
+     0.0,
+     -0.20000000298023224
+    ]
+   }
+  ]
+ },
+ "accepted_xy_error_m": 0.20000000298264345,
+ "result": "isolated .1 m candidate (1.0,-.1) rejected; accepted .2 m candidate; posthoc error .2 m",
+ "limits": "single static pose/scan; consensus is an engineering rule, not a formal criterion; hdl /relocalize/lease live not wired; no real robot",
+ "tests": "candidate_consensus 4/4; v8 full tree 72/72",
+ "a6_status": "PARTIAL"
+}
