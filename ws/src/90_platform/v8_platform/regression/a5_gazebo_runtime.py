@@ -69,6 +69,12 @@ def sensed_box(points, pose):
     return {'min': lo, 'max': hi, 'velocity': [0., 0., 0.], 'stamp': 0.}, selected
 
 
+def radial_box_gap(body_xy, center, half, radius):
+    """Independent known-spawn-geometry gap; never fed to perception/planner."""
+    return math.hypot(max(abs(body_xy[0] - center[0]) - half[0], 0.),
+                      max(abs(body_xy[1] - center[1]) - half[1], 0.)) - radius
+
+
 def classify_measurement(case, wanted, first_zero, target, sense, status_rows=None, rest_wall=None):
     """Refusal chain must be causal and latched: an earlier zero, a missing cause,
     a non-target cause, or a nonzero command before rest is INVALID, not PASS."""
@@ -218,6 +224,9 @@ class Probe:
         self.Pose, self.Bool, self.String = PoseStamped, Bool, String
         self.prefix = '/a5_gazebo_%d' % os.getpid()
         self.model_name = 'a5_sensor_box_%d' % os.getpid()
+        self.box_center = (args.box_x, args.box_y)
+        size = [float(v) for v in args.box_size.split(',')]
+        self.box_half = (size[0] / 2., size[1] / 2., size[2] / 2.)
         self.lock = threading.Lock()
         self.odom, self.cloud = None, None
         self.cloud_seq = 0
@@ -480,18 +489,24 @@ class Probe:
         from geometry_msgs.msg import Pose
         # Only the evaluator knows this geometry; perception receives lidar points.
         xml = ('<sdf version="1.6"><model name="%s"><static>true</static><link name="body">'
-               '<collision name="collision"><geometry><box><size>.4 .4 .6</size></box></geometry></collision>'
-               '<visual name="visual"><geometry><box><size>.4 .4 .6</size></box></geometry></visual>'
-               '</link></model></sdf>') % self.model_name
+               '<collision name="collision"><geometry><box><size>%g %g %g</size></box></geometry></collision>'
+               '<visual name="visual"><geometry><box><size>%g %g %g</size></box></geometry></visual>'
+               '</link></model></sdf>') % (
+                   self.model_name, *(2 * v for v in self.box_half), *(2 * v for v in self.box_half))
         pose = Pose()
-        pose.position.x, pose.position.z, pose.orientation.w = 2.0, .3, 1.
+        pose.position.x, pose.position.y = self.box_center
+        pose.position.z, pose.orientation.w = self.box_half[2], 1.
         self.detect_enabled = True
-        event = self.event('spawn_requested', model=self.model_name)
+        event = self.event('spawn_requested', model=self.model_name,
+                           center=[self.box_center[0], self.box_center[1], self.box_half[2]],
+                           size=[2 * v for v in self.box_half])
         response = self.rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)(self.model_name, xml, '', pose, 'world')
         if not response.success:
             raise RuntimeError(response.status_message)
         truth = self.rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)(self.model_name, 'world')
-        if not truth.success or abs(truth.pose.position.x - 2.0) > .01:
+        if (not truth.success
+                or abs(truth.pose.position.x - self.box_center[0]) > .01
+                or abs(truth.pose.position.y - self.box_center[1]) > .01):
             raise RuntimeError('spawn initial_pose was not honored')
         self.event('spawn_confirmed_GT_evaluation_only', xyz=[truth.pose.position.x, truth.pose.position.y, truth.pose.position.z])
         return event
@@ -595,8 +610,9 @@ class Probe:
             min_box_gap = None
             if case == 'sensed_no_route':
                 # Independent known-spawn-geometry metric; never fed to planner.
-                min_box_gap = min(math.hypot(max(abs(r["xyz"][0] - 2.0) - .2, 0.),
-                                             max(abs(r['xyz'][1]) - .2, 0.)) - self.execution_config['radius_m'] for r in truth)
+                min_box_gap = min(radial_box_gap(
+                    r['xyz'][:2], self.box_center, self.box_half[:2],
+                    self.execution_config['radius_m']) for r in truth)
             self.cases.append({'case': case,
                                'ok': (min_box_gap is None or min_box_gap >= self.execution_config['clearance_m'])
                                      and measurement == 'VALID',
@@ -696,6 +712,9 @@ def main():
     parser.add_argument('--adapter', action='store_true')
     parser.add_argument('--prefix', default='/a5_gazebo')
     parser.add_argument('--source-topic', default='/follow/cmd_vel')
+    parser.add_argument('--box-x', type=float, default=2.0)
+    parser.add_argument('--box-y', type=float, default=0.0)
+    parser.add_argument('--box-size', default='.4,.4,.6')
     parser.add_argument('--cases', default='arrival,sensed_no_route,localization,sensor_freshness')
     parser.add_argument('--case-timeout', type=float, default=100.)
     parser.add_argument('--global-route', action='store_true')
@@ -703,6 +722,12 @@ def main():
     allowed = {'arrival', 'sensed_no_route', 'localization', 'sensor_freshness'}
     if any(case not in allowed for case in args.cases.split(',')):
         parser.error('--cases contains an unsupported scenario')
+    try:
+        box_size = [float(v) for v in args.box_size.split(',')]
+    except ValueError:
+        box_size = []
+    if len(box_size) != 3 or any(value <= 0 for value in box_size):
+        parser.error('--box-size needs three positive numbers')
     if args.adapter:
         adapter(args.prefix, args.source_topic)
         return 0

@@ -2,7 +2,8 @@
 """Negative controls for the A5 refusal-chain measurement gate."""
 import unittest
 
-from a5_gazebo_runtime import classify_measurement, first_terminal_zero, sensed_box
+from a5_gazebo_runtime import (classify_measurement, first_terminal_zero,
+                               radial_box_gap, sensed_box)
 
 WANTED = 'E_LOCAL_NO_ROUTE'
 
@@ -103,6 +104,14 @@ class SensedBoxTests(unittest.TestCase):
         points = [(0.8, 0.0, 0.3), (0.81, 0.0, 0.3), (0.82, 0.0, 0.3)]
         observed, _roi = sensed_box(points, self.POSE)
         self.assertIsNone(observed)
+
+
+class BoxGapTests(unittest.TestCase):
+    def test_gap_uses_box_center_and_half_extents(self):
+        center, half, radius = (1.8, .2), (.3, .2), .15
+        self.assertAlmostEqual(radial_box_gap((1.8, .2), center, half, radius), -.15)
+        self.assertAlmostEqual(radial_box_gap((1.8, .85), center, half, radius), .30)
+        self.assertAlmostEqual(radial_box_gap((1.2, .2), center, half, radius), .15)
 
 
 if __name__ == '__main__':
