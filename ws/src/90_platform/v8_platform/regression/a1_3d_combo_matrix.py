@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import random
 import subprocess
 import sys
 import time
@@ -37,6 +38,8 @@ def main():
     parser.add_argument('--repeats', type=int, default=2)
     parser.add_argument('--repeat-indices', default='',
                         help='comma-separated repeat indices; default all 0..repeats-1')
+    parser.add_argument('--seed-values', default='',
+                        help='comma-separated start-perturbation seeds; default none')
     parser.add_argument('--scenarios', default='flat,flat_alt,stairs_top,stairs_mid')
     parser.add_argument('--timeout-s', type=float, default=60.)
     args = parser.parse_args()
@@ -50,23 +53,39 @@ def main():
                       if args.repeat_indices else list(range(args.repeats)))
     if any(index < 0 or index >= args.repeats for index in repeat_indices):
         parser.error('--repeat-indices must be within 0..%d' % (args.repeats - 1))
+    seed_values = ([int(value) for value in args.seed_values.split(',') if value.strip()]
+                   if args.seed_values else [None])
     jobs = []
     index = 0
-    for repeat in repeat_indices:
-        for name in names:
-            index += 1
-            scenario = SCENARIOS[name]
-            jobs.append({'cell': '%s_r%d' % (name, repeat), 'scenario': name,
-                         'repeat': repeat, 'port': args.port_base + index,
-                         'state': str(output / ('%s_state.json' % name)),
-                         'map': scenario['map'],
-                         'graph': str(HERE.parent / 'framework' / 'fixtures'
-                                      / 'graphs' / scenario['graph']),
-                         'start': scenario['start'], 'goal': scenario['goal'],
-                         'out': str(output / ('%s_r%d.json' % (name, repeat)))})
+    for seed in seed_values:
+        for repeat in repeat_indices:
+            for name in names:
+                index += 1
+                scenario = SCENARIOS[name]
+                start = scenario['start']
+                if seed is not None:
+                    rng = random.Random(seed)
+                    sx, sy, sz = (float(v) for v in start.split(','))
+                    start = '%.6f,%.6f,%.6f' % (
+                        sx + rng.uniform(-.03, .03), sy + rng.uniform(-.03, .03), sz)
+                if seed is None:
+                    cell = '%s_r%d' % (name, repeat)
+                    stem = '%s_r%d' % (name, repeat)
+                else:
+                    cell = '%s_s%d' % (name, seed)
+                    stem = '%s_s%d' % (name, seed)
+                jobs.append({'cell': cell, 'scenario': name, 'seed': seed,
+                             'repeat': repeat, 'port': args.port_base + index,
+                             'state': str(output / (stem + '_state.json')),
+                             'map': scenario['map'],
+                             'graph': str(HERE.parent / 'framework' / 'fixtures'
+                                          / 'graphs' / scenario['graph']),
+                             'start': start, 'goal': scenario['goal'],
+                             'out': str(output / (stem + '.json'))})
     (output / 'preregistered.json').write_text(
         json.dumps({'jobs': jobs, 'repeats': args.repeats,
-                    'repeat_indices': repeat_indices, 'scenarios': names},
+                    'repeat_indices': repeat_indices, 'seeds': seed_values,
+                    'scenarios': names},
                    ensure_ascii=False, indent=1) + '\n')
     rows = []
     started = time.monotonic()
@@ -74,8 +93,8 @@ def main():
         command = [sys.executable, '-B', str(SMOKE),
                    '--out', job['out'], '--port', str(job['port']),
                    '--state', job['state'], '--map', job['map'],
-                   '--graph', job['graph'], '--start', job['start'],
-                   '--goal', job['goal'], '--timeout-s', str(args.timeout_s)]
+                   '--graph', job['graph'], '--start=' + job['start'],
+                   '--goal=' + job['goal'], '--timeout-s', str(args.timeout_s)]
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
         try:
             completed = subprocess.run(command, capture_output=True, text=True,
