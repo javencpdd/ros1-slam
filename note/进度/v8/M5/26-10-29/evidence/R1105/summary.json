@@ -1,0 +1,133 @@
+{
+ "scope": "gazebo_laser_sensed_no_route_stop_02mps_3cells",
+ "n": 3,
+ "pass": 3,
+ "runs": [
+  {
+   "variant": "A",
+   "ok": true,
+   "measurement": "VALID",
+   "reason": "E_LOCAL_NO_ROUTE",
+   "speed_before_m_s": 0.19999999999971632,
+   "stop_from_sense_wall_s": 0.10779384203488007,
+   "stop_from_sense_sim_s": 0.051000000000000156,
+   "stop_distance_from_sense_m": 0.006357865759594756,
+   "stop_distance_from_trigger_m": 0.0751027775534961,
+   "GT_min_radial_box_clearance_m": 1.0822375967394455,
+   "trigger": {
+    "event": "spawn_requested",
+    "wall": 335941.2979835,
+    "sim": 1.2650000000000001,
+    "phase": "sensed_no_route",
+    "model": "a5_sensor_box_1325142",
+    "center": [
+     1.8,
+     0.2,
+     0.35
+    ],
+    "size": [
+     0.5,
+     0.4,
+     0.7
+    ]
+   },
+   "config": {
+    "resolution": 0.1,
+    "tick_s": 1.0,
+    "max_speed_mps": 0.2,
+    "radius_m": 0.37,
+    "height_m": 0.25,
+    "clearance_m": 0.2,
+    "horizon_s": 12.0,
+    "validity_s": 2.0
+   }
+  },
+  {
+   "variant": "B",
+   "ok": true,
+   "measurement": "VALID",
+   "reason": "E_LOCAL_NO_ROUTE",
+   "speed_before_m_s": 0.19999999993974368,
+   "stop_from_sense_wall_s": 0.13661699602380395,
+   "stop_from_sense_sim_s": 0.04599999999999982,
+   "stop_distance_from_sense_m": 0.00696541084913852,
+   "stop_distance_from_trigger_m": 0.23448647286956942,
+   "GT_min_radial_box_clearance_m": 1.1691400056164292,
+   "trigger": {
+    "event": "spawn_requested",
+    "wall": 335986.73164327,
+    "sim": 1.25,
+    "phase": "sensed_no_route",
+    "model": "a5_sensor_box_1326439",
+    "center": [
+     2.1,
+     -0.15,
+     0.4
+    ],
+    "size": [
+     0.6,
+     0.5,
+     0.8
+    ]
+   },
+   "config": {
+    "resolution": 0.1,
+    "tick_s": 1.0,
+    "max_speed_mps": 0.2,
+    "radius_m": 0.37,
+    "height_m": 0.25,
+    "clearance_m": 0.2,
+    "horizon_s": 12.0,
+    "validity_s": 2.0
+   }
+  },
+  {
+   "variant": "C",
+   "ok": true,
+   "measurement": "VALID",
+   "reason": "E_LOCAL_NO_ROUTE",
+   "speed_before_m_s": 0.19999999999971627,
+   "stop_from_sense_wall_s": 0.11231923202285543,
+   "stop_from_sense_sim_s": 0.050000000000000266,
+   "stop_distance_from_sense_m": 0.005165781038671999,
+   "stop_distance_from_trigger_m": 0.06357914094678281,
+   "GT_min_radial_box_clearance_m": 0.8911067755958798,
+   "trigger": {
+    "event": "spawn_requested",
+    "wall": 336022.103872376,
+    "sim": 1.405,
+    "phase": "sensed_no_route",
+    "model": "a5_sensor_box_1327679",
+    "center": [
+     1.6,
+     -0.2,
+     0.35
+    ],
+    "size": [
+     0.5,
+     0.5,
+     0.7
+    ]
+   },
+   "config": {
+    "resolution": 0.1,
+    "tick_s": 1.0,
+    "max_speed_mps": 0.2,
+    "radius_m": 0.37,
+    "height_m": 0.25,
+    "clearance_m": 0.2,
+    "horizon_s": 12.0,
+    "validity_s": 2.0
+   }
+  }
+ ],
+ "worst": {
+  "stop_from_sense_wall_s": 0.13661699602380395,
+  "stop_from_sense_sim_s": 0.051000000000000156,
+  "stop_distance_from_sense_m": 0.00696541084913852,
+  "GT_min_radial_box_clearance_m": 0.8911067755958798
+ },
+ "method": "m1 Gazebo real /rslidar_points, planar kinematic carrier, sensed_no_route box; max_speed .2, tick 1.0, validity 2.0, horizon 12, clearance .20, res .1",
+ "boundary": "Gazebo planar kinematic carrier; not four-leg/contact/real; #151 formal stop_time_s/stop_distance_m still pending.",
+ "code_commit": "072780c3"
+}
