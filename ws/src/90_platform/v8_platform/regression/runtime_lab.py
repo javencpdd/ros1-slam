@@ -198,6 +198,9 @@ def main():
     parser.add_argument('--a5-max-speed', type=float, default=.4)
     parser.add_argument('--a5-clearance', type=float, default=.20)
     parser.add_argument('--a5-horizon-s', type=float, default=6.)
+    parser.add_argument('--a5-tick-s', type=float, default=.5)
+    parser.add_argument('--a5-validity-s', type=float, default=.9)
+    parser.add_argument('--a5-resolution', type=float, default=.1)
     args = parser.parse_args()
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -383,7 +386,10 @@ def main():
                     '--box-size', args.box_size,
                     '--max-speed', str(args.a5_max_speed),
                     '--clearance', str(args.a5_clearance),
-                    '--horizon-s', str(args.a5_horizon_s)]
+                    '--horizon-s', str(args.a5_horizon_s),
+                    '--tick-s', str(args.a5_tick_s),
+                    '--validity-s', str(args.a5_validity_s),
+                    '--resolution', str(args.a5_resolution)]
                 if args.global_route:
                     command.append('--global-route')
                 proc = processes.start('local_gazebo', command)
