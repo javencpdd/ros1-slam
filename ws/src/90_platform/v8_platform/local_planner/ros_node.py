@@ -206,7 +206,8 @@ def main():
     shared = {'pose': None, 'goal': None, 'pose_at': -1e100, 'obstacles': [],
               'obstacles_at': -1e100, 'localization_at': -1e100, 'localization_ok': False,
               'result': None, 'result_at': -1e100, 'map': None, 'generation': 0,
-              'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'obstacle_key': None,
+              'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'last_error_detail': None,
+              'obstacle_key': None,
               'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None,
               'plan_ms': None, 'plan_ms_max': 0., 'map_version': None}
     lock = threading.Lock()
@@ -345,6 +346,7 @@ def main():
                        and snapshot['result_at'] > 0)
             status = dict(out, clock='ros_plan+wall_watchdog', wall_watchdog_s=wall_watchdog_s,
                           plan_ms=snapshot.get('plan_ms'),
+                          detail=snapshot.get('last_error_detail'),
                           map_version=snapshot.get('map_version'),
                           plan_ms_max=snapshot.get('plan_ms_max'),
                           latched=bool(latched),
@@ -400,7 +402,8 @@ def main():
                                                           plan_ms or 0.))
                             publish = True
                         else:
-                            shared.update(result=None, last_error=payload['error'])
+                            shared.update(result=None, last_error=payload['error'],
+                                          last_error_detail=payload.get('message'))
                 if publish:
                     path_pub.publish(String(data=json.dumps(payload['result'])))
             with lock:

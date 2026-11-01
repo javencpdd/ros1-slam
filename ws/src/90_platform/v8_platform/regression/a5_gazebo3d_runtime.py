@@ -42,12 +42,14 @@ def main():
     parser.add_argument('--out', required=True)
     parser.add_argument('--wall-deadline-s', type=float, default=120.)
     parser.add_argument('--goal-map', default='0,1.34,0.890358')
+    parser.add_argument('--start-map', default='0,-1.8,0')
     parser.add_argument('--global-plan', action='store_true',
                         help='run the real global planner node and use its last point as local goal')
     parser.add_argument('--global-budget', type=int, default=20000)
     args = parser.parse_args()
     value = json.loads(Path(args.map).read_text(encoding='utf-8'))
     goal = tuple(float(v) for v in args.goal_map.split(','))
+    start = tuple(float(v) for v in args.start_map.split(','))
 
     import rospy
     from gazebo_msgs.msg import ModelState
@@ -60,7 +62,7 @@ def main():
     if args.global_plan:
         import a4_runtime
         route, error, info = a4_runtime.call_node(
-            value, (0., -2.175, 0.), goal, args.global_budget,
+            value, start, goal, args.global_budget,
             'a5gz3d_global_%d' % os.getpid())
         if route is None:
             raise RuntimeError('global planner failed: %s' % error)
@@ -143,7 +145,7 @@ def main():
                      '_trajectory_topic:=' + prefix + '/trajectory',
                      '_experimental_config:=' + json.dumps(config)]
         carrier_argv = [sys.executable, '-B', str(SCRIPTS / 'gazebo_3d_carrier.py'),
-                        '--prefix', prefix, '--model', carrier_name, '--start', '0,-2.175,0']
+                        '--prefix', prefix, '--model', carrier_name, '--start', '%g,%g,%g' % start]
         node_stream, carrier_stream = node_log.open('w'), carrier_log.open('w')
         node = subprocess.Popen(node_argv, stdout=node_stream, stderr=subprocess.STDOUT)
         carrier = subprocess.Popen(carrier_argv, stdout=carrier_stream, stderr=subprocess.STDOUT)

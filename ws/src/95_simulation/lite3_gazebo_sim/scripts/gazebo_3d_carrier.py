@@ -29,8 +29,14 @@ def main():
     parser.add_argument('--start', default='0,-2.175,0')
     parser.add_argument('--center-z', type=float, default=0.1)
     parser.add_argument('--cmd-timeout', type=float, default=0.5)
+    parser.add_argument('--snap-map', default='')
+    parser.add_argument('--snap-m', type=float, default=0.05)
     args = parser.parse_args()
     start = tuple(float(v) for v in args.start.split(','))
+    snap_surfaces = []
+    if args.snap_map:
+        with open(args.snap_map, encoding='utf-8') as stream:
+            snap_surfaces = json.load(stream).get('surfaces', [])
     rospy.init_node('gazebo_3d_carrier', anonymous=True, disable_signals=True)
     rospy.wait_for_service('/gazebo/set_model_state', timeout=20.)
     set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
@@ -52,6 +58,17 @@ def main():
         now = time.monotonic()
         velocity = shared['velocity'] if now - shared['at'] <= args.cmd_timeout else (0., 0., 0.)
         position = advance(position, velocity, max(0., now - last))
+        candidates = [(abs(position[2] - surface['z_reference']), surface['z_reference'])
+                      for surface in snap_surfaces
+                      if (surface['footprint']['min_x'] <= position[0] <= surface['footprint']['max_x']
+                          and surface['footprint']['min_y'] <= position[1] <= surface['footprint']['max_y']
+                          and abs(position[2] - surface['z_reference']) <= args.snap_m)]
+        if velocity[2] > 1e-9:
+            candidates = [item for item in candidates if item[1] >= position[2] - 1e-9]
+        elif velocity[2] < -1e-9:
+            candidates = [item for item in candidates if item[1] <= position[2] + 1e-9]
+        if candidates:
+            position = (position[0], position[1], min(candidates)[1])
         last = now
         stamp = rospy.Time.now()
         pose = PoseStamped()
