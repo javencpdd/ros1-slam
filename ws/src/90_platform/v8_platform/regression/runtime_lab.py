@@ -206,6 +206,7 @@ def main():
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=True)
     os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % args.port,
+                      GAZEBO_MASTER_URI='http://127.0.0.1:%d' % (args.port + 1),
                       ROS_IP='127.0.0.1', ROS_HOME=str(output / 'ros'),
                       ROS_LOG_DIR=str(output / 'logs'), PYTHONDONTWRITEBYTECODE='1')
     processes = Processes(output)

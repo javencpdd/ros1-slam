@@ -405,8 +405,9 @@ class Probe:
                   'radius_m': .37, 'height_m': .25, 'clearance_m': self.args.clearance,
                   'horizon_s': self.args.horizon_s, 'validity_s': self.args.validity_s}
         self.execution_config = config
+        node_name = 'a5_owned_local_%d_%s' % (os.getpid(), case.replace('-', '_'))
         node_args = [sys.executable, '-B', str(BASE / 'local_planner/ros_node.py'),
-                     '__name:=a5_owned_local', '_map_json:=' + str(map_path), '_input_max_age_s:=2.0',
+                     '__name:=' + node_name, '_map_json:=' + str(map_path), '_input_max_age_s:=2.0',
                      '_experimental_config:=' + json.dumps(config)]
         for parameter, topic in [('pose', 'pose'), ('goal', 'goal'), ('obstacles', 'obstacles'),
                                  ('localization', 'localization'), ('command', 'cmd3d'),
