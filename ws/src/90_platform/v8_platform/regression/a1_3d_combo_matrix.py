@@ -109,6 +109,7 @@ def main():
             except ValueError:
                 payload = {}
         rows.append({'cell': job['cell'], 'scenario': job['scenario'],
+                     'seed': job.get('seed'), 'start': job['start'], 'goal': job['goal'],
                      'repeat': job['repeat'], 'port': job['port'],
                      'returncode': returncode,
                      'ok': bool(payload.get('ok')),
