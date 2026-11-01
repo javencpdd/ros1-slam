@@ -195,6 +195,9 @@ def main():
     parser.add_argument('--box-x', type=float, default=2.0)
     parser.add_argument('--box-y', type=float, default=0.0)
     parser.add_argument('--box-size', default='.4,.4,.6')
+    parser.add_argument('--a5-max-speed', type=float, default=.4)
+    parser.add_argument('--a5-clearance', type=float, default=.20)
+    parser.add_argument('--a5-horizon-s', type=float, default=6.)
     args = parser.parse_args()
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -377,7 +380,10 @@ def main():
                     str(BASE / 'regression/a5_gazebo_runtime.py'),
                     '--out', str(output / 'a5_gazebo.json'), '--cases', args.local_cases,
                     '--box-x', str(args.box_x), '--box-y', str(args.box_y),
-                    '--box-size', args.box_size]
+                    '--box-size', args.box_size,
+                    '--max-speed', str(args.a5_max_speed),
+                    '--clearance', str(args.a5_clearance),
+                    '--horizon-s', str(args.a5_horizon_s)]
                 if args.global_route:
                     command.append('--global-route')
                 proc = processes.start('local_gazebo', command)

@@ -384,8 +384,9 @@ class Probe:
         map_path = directory / 'floor.json'
         map_path.write_text(json.dumps(value))
         self.map_fixture = value
-        config = {'resolution': .1, 'tick_s': .5, 'max_speed_mps': .4, 'radius_m': .37,
-                  'height_m': .25, 'clearance_m': .20, 'horizon_s': 6., 'validity_s': .9}
+        config = {'resolution': .1, 'tick_s': .5, 'max_speed_mps': self.args.max_speed,
+                  'radius_m': .37, 'height_m': .25, 'clearance_m': self.args.clearance,
+                  'horizon_s': self.args.horizon_s, 'validity_s': .9}
         self.execution_config = config
         node_args = [sys.executable, '-B', str(BASE / 'local_planner/ros_node.py'),
                      '__name:=a5_owned_local', '_map_json:=' + str(map_path), '_input_max_age_s:=2.0',
@@ -715,6 +716,12 @@ def main():
     parser.add_argument('--box-x', type=float, default=2.0)
     parser.add_argument('--box-y', type=float, default=0.0)
     parser.add_argument('--box-size', default='.4,.4,.6')
+    parser.add_argument('--max-speed', type=float, default=.4,
+                        help='local planner speed cap for the stop measurement')
+    parser.add_argument('--clearance', type=float, default=.20,
+                        help='required body clearance in the stop measurement')
+    parser.add_argument('--horizon-s', type=float, default=6.,
+                        help='local planner horizon; low speed needs a longer horizon')
     parser.add_argument('--cases', default='arrival,sensed_no_route,localization,sensor_freshness')
     parser.add_argument('--case-timeout', type=float, default=100.)
     parser.add_argument('--global-route', action='store_true')
