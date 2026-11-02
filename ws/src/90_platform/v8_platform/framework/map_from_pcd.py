@@ -65,7 +65,8 @@ def read_pcd(path):
     return np.column_stack([table['x'], table['y'], table['z']]).astype(float)
 
 
-def prepare(points, voxel, drop_self, z_min, z_max, x_min, x_max, y_min, y_max):
+def prepare(points, voxel, drop_self, z_min, z_max, x_min, x_max, y_min, y_max,
+            nist_profile=False):
     points = np.asarray(points, dtype=float).reshape(-1, 3)
     finite = np.isfinite(points).all(axis=1)
     points = points[finite]
@@ -81,6 +82,17 @@ def prepare(points, voxel, drop_self, z_min, z_max, x_min, x_max, y_min, y_max):
         points = points[points[:, 2] >= z_min]
     if z_max is not None:
         points = points[points[:, 2] <= z_max]
+    if nist_profile:
+        # NIST stair geometry: keep the front ground strip and the stair treads;
+        # drop ground-plane points underneath the staircase.
+        x, y, z = points[:, 0], points[:, 1], points[:, 2]
+        region = ((np.abs(x) <= 1.1) & (y >= -3.2) & (y <= 1.7)
+                  & (z >= -0.15) & (z <= 1.05))
+        ground = z < 0.08
+        ground &= y <= -1.7
+        stairs = z >= 0.08
+        stairs &= (np.abs(x) <= 1.15) & (y >= -1.7) & (y <= 1.15)
+        points = points[region & (ground | stairs)]
     if drop_self:
         inside = ((np.abs(points[:, 0]) <= 0.35) & (np.abs(points[:, 1]) <= 0.35)
                   & (points[:, 2] >= -0.20) & (points[:, 2] <= 0.50))
@@ -88,10 +100,12 @@ def prepare(points, voxel, drop_self, z_min, z_max, x_min, x_max, y_min, y_max):
     return g3d.voxel_downsample(points, voxel)
 
 
-def choose_start_goal(surface):
+def choose_start_goal(surface, start_xy=None):
     box = surface['footprint']
     z = surface['z_reference']
-    if box['min_x'] <= 0.0 <= box['max_x'] and box['min_y'] <= 0.0 <= box['max_y']:
+    if start_xy is not None:
+        start = (float(start_xy[0]), float(start_xy[1]), z)
+    elif box['min_x'] <= 0.0 <= box['max_x'] and box['min_y'] <= 0.0 <= box['max_y']:
         start = (0.0, 0.0, z)
     else:
         start = ((box['min_x'] + box['max_x']) / 2.0,
@@ -113,7 +127,7 @@ def choose_start_goal(surface):
     return start, goal
 
 
-def write_app(map_id, version, map_path, task_path, app_path, world):
+def write_app(map_id, version, map_path, task_path, app_path, world, model_path):
     app = {
         'schema': 'navigation_app/v1',
         'name': '%s_3d' % map_id,
@@ -125,7 +139,7 @@ def write_app(map_id, version, map_path, task_path, app_path, world):
             'backend': 'gazebo', 'model_name': 'app_carrier', 'center_z': 0.1,
             'snap_m': 0.03, 'spawn': True,
             'world_launch': 'ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch',
-            'world': world,
+            'world': world, 'model_path': model_path,
         },
         'visualization': {'markers': True, 'rviz': False},
         'global': {'budget': 20000, 'min_clearance_m': 0.4},
@@ -162,21 +176,29 @@ def main():
     parser.add_argument('--y-min', type=float, default=None)
     parser.add_argument('--y-max', type=float, default=None)
     parser.add_argument('--drop-self', action='store_true', default=True)
+    parser.add_argument('--nist-profile', action='store_true',
+                        help='keep only NIST front ground and stair treads')
     parser.add_argument('--min-horizontal', type=float, default=0.8)
     parser.add_argument('--min-side', type=float, default=0.20)
     parser.add_argument('--min-area', type=float, default=0.30)
+    parser.add_argument('--xy-gap', type=float, default=0.10)
+    parser.add_argument('--max-z-step', type=float, default=0.25)
     parser.add_argument('--out', default='')
     parser.add_argument('--register', action='store_true')
     parser.add_argument('--write-app', action='store_true')
     parser.add_argument('--world',
                         default='ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world')
+    parser.add_argument('--model-path', default='data/maps/worlds')
+    parser.add_argument('--start-x', type=float, default=None)
+    parser.add_argument('--start-y', type=float, default=None)
     args = parser.parse_args()
     if not re.fullmatch(r'[a-z0-9_]+', args.map_id):
         raise SystemExit('map_id must be [a-z0-9_]+')
     pcd_path = Path(args.pcd).resolve()
     points = read_pcd(pcd_path)
     points = prepare(points, args.voxel, args.drop_self, args.z_min, args.z_max,
-                     args.x_min, args.x_max, args.y_min, args.y_max)
+                     args.x_min, args.x_max, args.y_min, args.y_max,
+                     nist_profile=args.nist_profile)
     if not len(points):
         raise SystemExit('no points after filtering')
     horizontal, info = g3d.filter_horizontal(points, threshold=args.min_horizontal)
@@ -188,7 +210,8 @@ def main():
     value, build = g3d.build_map_from_points(
         horizontal, resolution=args.resolution, map_id=args.map_id,
         map_version=args.version, source=source, min_side=args.min_side,
-        min_area=args.min_area, min_cells=4)
+        min_area=args.min_area, min_cells=4,
+        xy_gap=args.xy_gap, max_z_step=args.max_z_step)
     out = Path(args.out) if args.out else (
         ROOT / 'data/maps/generated' / ('%s_v%d.json' % (args.map_id, args.version)))
     out = out.resolve()
@@ -198,7 +221,8 @@ def main():
     largest = max(value['surfaces'],
                   key=lambda surface: (surface['footprint']['max_x'] - surface['footprint']['min_x'])
                   * (surface['footprint']['max_y'] - surface['footprint']['min_y']))
-    start, goal = choose_start_goal(largest)
+    start_xy = (args.start_x, args.start_y) if args.start_x is not None and args.start_y is not None else None
+    start, goal = choose_start_goal(largest, start_xy)
     task_path = out.with_name('%s_v%d_task.json' % (args.map_id, args.version))
     task = {
         'schema_version': 1, 'task_id': '%s_v%d' % (args.map_id, args.version),
@@ -213,7 +237,7 @@ def main():
     }
     task_path.write_text(json.dumps(task, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     app_path = out.with_name('%s_v%d_app.yaml' % (args.map_id, args.version))
-    write_app(args.map_id, args.version, out, task_path, app_path, args.world)
+    write_app(args.map_id, args.version, out, task_path, app_path, args.world, args.model_path)
     if args.register:
         update_registry(args.map_id, args.version, out, sha, len(value['surfaces']),
                         'mapped from %s' % pcd_path.name)

@@ -2,6 +2,7 @@
   <!-- World-only Gazebo for app_runner maps built from a mapping session.
        No robot/sim_adapter: the 3D graph spawns its own app_carrier. -->
   <arg name="world" default="$(find lite3_gazebo_sim)/worlds/m1_world.world"/>
+  <arg name="model_path" default="$(find lite3_gazebo_sim)/../../../../data/maps/worlds"/>
   <arg name="gui" default="false"/>
   <param name="use_sim_time" value="true"/>
 
@@ -13,5 +14,6 @@
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
     <arg name="verbose" value="false"/>
+    <env name="GAZEBO_MODEL_PATH" value="$(arg model_path):/usr/share/gazebo-11/models:$(optenv GAZEBO_MODEL_PATH)"/>
   </include>
 </launch>

@@ -127,6 +127,12 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 if not world_path.is_absolute():
                     world_path = resolved['root'] / world_path
                 launch_args.append('world:=%s' % world_path)
+            model_path = app['carrier'].get('model_path')
+            if model_path and world_launch:
+                model_dir = Path(model_path)
+                if not model_dir.is_absolute():
+                    model_dir = resolved['root'] / model_dir
+                launch_args.append('model_path:=%s' % model_dir)
             gazebo = subprocess.Popen(
                 ['roslaunch'] + launch_args,
                 start_new_session=True, stdout=open('/tmp/r1103_gazebo.log', 'ab'),
