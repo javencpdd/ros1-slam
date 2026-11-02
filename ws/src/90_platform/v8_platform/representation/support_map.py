@@ -134,7 +134,7 @@ def build_support_map(map_id, resolution, origin, surfaces, edges, source,
         'extent': extent,
         'cell_states': ['free', 'occupied', 'unknown'],
         'unknown_policy': unknown_policy,
-        'multiple_surfaces_per_xy': True,
+        'multiple_surfaces_per_xy': len(surfaces) > 1,
         'source': source,
         'surfaces': [
             {'surface_id': s['surface_id'], 'z_reference': s['z_reference'],

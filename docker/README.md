@@ -566,6 +566,85 @@ docker compose exec sim-viz bash -lc '
 - 退出在 app runner 终端按 Ctrl+C；会停 graph/Gazebo/RViz 并写
   `/tmp/nav3d_interactive.json`。这是操作员测试，不是 A1—A7 formal 或真机。
 
+#### 4.7 键盘建图 → 自建 3D 地图 → 交互导航
+
+这条链把「Gazebo 建图」和「RViz 交互导航」分成独立进程，键盘在单独终端控制：
+
+1. **Gazebo + Lite3**（终端 1）
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11345
+  roslaunch lite3_gazebo_sim m2_gazebo.launch'
+```
+
+2. **建图记录器**（终端 2；输出 PCD 与 summary）
+```bash
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  rosrun lite3_gazebo_sim mapping_recorder.py \
+    --out /home/ros1-slam/data/maps/mapped_m1.pcd --voxel 0.03'
+```
+记录器用 `/rslidar_points` + `/sim/odom_gt` + URDF 雷达安装角，把点云累积到 `odom` 系；
+这是**仿真 GT 位姿建图**，不是 LIO/SLAM。`m2_mapping.launch` 用真机 outdoor 配置，
+不要直接拿来跑仿真。
+
+3. **RViz 建图视图**（终端 3）
+```bash
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  rviz -d /opt/ros1-slam/docker/rviz_mapping3d.rviz'
+```
+显示 `Mapping cloud`（`/mapping/cloud`）、Lite3 模型和 GT odometry。
+
+4. **键盘遥控**（终端 4；必须在前台终端，不要放进 roslaunch）
+```bash
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  rosrun lite3_gazebo_sim keyboard_teleop.py'
+```
+`w/s` 前后、`a/d` 转向、`q/e` 横移、空格停、`Ctrl+C` 退出。走完一段后
+在终端 2 按 `Ctrl+C`，记录器写 `mapped_m1.pcd` 和 `mapped_m1.json`。
+
+5. **PCD → support_map + app/task/registry**（一次性离线）
+```bash
+cd /home/jack/ysc-code/ros1-slam
+cp data/maps/mapped_m1.pcd data/maps/mapped_m1_gt1.pcd
+python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+  --pcd data/maps/mapped_m1_gt1.pcd --map-id mapped_m1 --version 1 \
+  --x-min -5 --x-max 8 --y-min -5 --y-max 5 \
+  --write-app --register
+```
+生成 `data/maps/generated/mapped_m1_v1.json`、`_app.yaml`、`_task.json`，并登记 registry。
+需要时可加 `--z-min/--z-max`、`--min-area` 等过滤参数。
+
+6. **用自建图做 3D 交互导航**
+```bash
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  cd /opt/ros1-slam
+  python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+    --app data/maps/generated/mapped_m1_v1_app.yaml \
+    --execute --interactive --rviz \
+    --out /tmp/mapped_nav.json'
+```
+RViz 里 **Publish Point** 点自建支撑面，3D 全局/局部路径由 `/v8/3d/...` 发布；
+自建图使用 `graph_3d_gazebo_app_mapped.yaml`（仿真 wall watchdog 放宽到 30 s，
+避免慢 RTF 下局部规划先于仿真有效期超时）。
+
+边界：建图是 Gazebo GT 位姿 + 仿真 LiDAR，不是 LIO/SLAM、不是物理四足、不是真机；
+自建图仍走 `app_carrier` 运动学载体，导航结论不能当 A1—A7 formal。
+
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
 项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的

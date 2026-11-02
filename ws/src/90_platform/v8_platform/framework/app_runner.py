@@ -112,9 +112,23 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         from visualization_msgs.msg import MarkerArray
         rospy.init_node('navigation_app_runner', anonymous=True, disable_signals=True)
         if with_gazebo and app['carrier']['backend'] == 'gazebo':
+            world_launch = app['carrier'].get('world_launch')
+            if world_launch:
+                launch_path = Path(world_launch)
+                if not launch_path.is_absolute():
+                    launch_path = resolved['root'] / launch_path
+                launch_args = [str(launch_path)]
+            else:
+                launch_args = ['lite3_gazebo_sim', 'nist_stairs_120_s020x170.launch']
+            launch_args.append('gui:=%s' % ('true' if gui else 'false'))
+            world = app['carrier'].get('world')
+            if world:
+                world_path = Path(world)
+                if not world_path.is_absolute():
+                    world_path = resolved['root'] / world_path
+                launch_args.append('world:=%s' % world_path)
             gazebo = subprocess.Popen(
-                ['roslaunch', 'lite3_gazebo_sim', 'nist_stairs_120_s020x170.launch',
-                 'gui:=%s' % ('true' if gui else 'false')],
+                ['roslaunch'] + launch_args,
                 start_new_session=True, stdout=open('/tmp/r1103_gazebo.log', 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
             rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=30.)
