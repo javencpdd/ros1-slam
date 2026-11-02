@@ -398,6 +398,20 @@ EOL 的实际风险是上游不再修安全/兼容问题；对本仓离线仿真
 （`faster_lio/rviz_cfg/loam_livox.rviz` 看建图、`plan_manage/launch/default.rviz` 看导航），
 不用自己配。**R1119 的键盘建图 → 自建 3D 地图 → 交互导航是另一条四终端链，见 4.7。**
 
+**先分清技术面（R1121 后）**：
+
+| 技术面 | 入口/件 | 关系 |
+|---|---|---|
+| 2D 导航 | `interactive_2d.launch` + `mode_sim_teb`/MBF，RViz 2D Nav Goal | **另一套栈**：平面 `/map`、代价地图、MBF；不走 support_map |
+| 3D 导航 | `app_runner.py` + support_map + `support_planner` + `local_native` + `cmd3d_mux` + `gazebo_carrier3d` | 多层支撑面、带 z 的全局/局部规划；master 11537 / Gazebo 11538 |
+| 楼梯导航 | **同 3D 导航栈**；地图里出现 `step/slope` 边，局部启用踏面边界语义，必要时 `inflate_support_map` | **不是独立栈**，是 3D 导航在楼梯场景下的特化（R1121） |
+| 3D 建图 | `mapping_recorder.py` + `map_from_pcd.py` | 产 support_map/app/task，不执行导航 |
+| 四足物理爬楼 | V8-X1/MuJoCo 或真机 | 另一执行/动力学技术面，R1121 未覆盖；真机仍 L2 |
+
+**结论**：R1119 的平层 3D 导航与 R1121 的楼梯导航是**同一个 3D 技术面的两个场景**；
+§4.6.1 的 2D MBF 才是另一条技术面。楼梯只是把 3D 图上的 `step/slope` 边和踏面执行语义用起来，
+没有另起一套 app、规划器或载体。
+
 > ★ 项目纪律：`m2_smoke.sh` 是**判据载体**，改它要换代际、五连重算。
 > 所以可视化**不要**去改它 —— 另起一个 GUI 进程旁观同一套话题就行
 > （`viz.sh` 就是干这个的，判据域 11313/11345 不变）。
@@ -701,7 +715,8 @@ docker compose exec sim-viz bash -lc '
 RViz 里 **Publish Point** 点 step5 顶面（`0, 1.34, 0.890358`）。R1121 读数：
 全局 **39 点**、载体 `(0.075,1.275,0.890358)`、局部 `reason=arrived`、
 app 六项 checks 全 true、到局部目标 **1.26e-6 m**。局部规划 `plan_ms` 到达时
-4.1 ms、最大 907 ms。
+4.1 ms、最大 907 ms。**这不是第三套栈**：仍是 §4.6.2 的 `app_runner` + 3D graph +
+`local_native` 栈，只换成带 `step/slope` 边的图和对应局部配置。
 
 **边界（必须直说）**：
 - 执行载体是 **Gazebo ODE 运动学箱体 `app_carrier`**，不是四足物理步态/真机，不是 A1—A7 formal。

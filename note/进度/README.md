@@ -38,7 +38,7 @@
 |---|---|
 | 时间线真源 | `note/进度/00_总览.md` |
 | 当前 HEAD | R1121（以 `git log -1 --format='%h %s'` 现取为准；本文提交会再次前移） |
-| 未推送提交 | **175（本文写作时，`25ba5fac` 之后）**；现取 `git rev-list --count origin/main..HEAD`；只 commit 不 push |
+| 未推送提交 | 以现取为准：`git rev-list --count origin/main..HEAD`（写作时 175；本文档提交会前移）；只 commit 不 push |
 | 当前中心计划书 | `note/计划书v8/21_ros1-slam中心计划书-v8.md` |
 | 当前批次目录 | `note/进度/v8/M5/26-10-29/`（最新 R1121；逐批见 `00_总览`） |
 | 门禁串 | `scripts/verify/run_gate_chain.sh`（8 成员，成员表 `scripts/verify/gate_chain.txt`） |
