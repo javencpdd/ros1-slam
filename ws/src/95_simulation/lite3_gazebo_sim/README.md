@@ -63,6 +63,7 @@ scoped 读数，不是 formal/物理成功率。
 **当前有无多层建筑 world**：没有。现有 4 个顶层世界（m1/m1_v2/NIST 原始/NIST 缩放）＋9 个单层
 stairstudy 场景＋2 个 NIST 导入件；NIST 的 6 层是楼梯支撑面，不是多层楼板；`two_level_boxes`
 只是地图契约夹具；真叠层 mezzanine 尚未建（见 `representation/README.md`）。
+这里“没有”只指多层建筑 world；m1/NIST/stairstudy 仍是 Gazebo 导航测试世界。
 
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
