@@ -1,0 +1,84 @@
+# R1125 · AWS Hospital 大厅小环 SLAM scoped survey
+# 目的：只测 faster-lio 在 rich 单层医院场景的 GT-vs-LIO 误差；不跑导航、不发 /cmd_vel、不接 support_map。
+# 端口：独立 master 11413 / Gazebo 11445；不碰 11313/11345 的 NIST 仿真。
+# 资产：/opt/ros1-slam/data/imports/aws_hospital_probe/{worlds,models,fuel_models}（R1124 导入，未入库）
+
+# 1) 备份 faster-lio 硬编码输出，避免覆盖 data/maps/lite3.pcd
+docker exec ros1-slam-sim-viz bash -lc '
+  if [ -f /opt/ros1-slam/data/maps/lite3.pcd ]; then
+    cp -a /opt/ros1-slam/data/maps/lite3.pcd /tmp/lite3.pcd.hospital_bak
+  fi'
+
+# 2) 独立 ROS master（11413）
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  roscore -p 11413 >/tmp/demo_hospital_master.log 2>&1'
+sleep 4
+
+# 3) 起 hospital.world + Lite3（11445；模型库含 probe/models + probe/fuel_models）
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false \
+    world:=/opt/ros1-slam/data/imports/aws_hospital_probe/worlds/hospital.world \
+    model_path:=/opt/ros1-slam/data/imports/aws_hospital_probe/models:/opt/ros1-slam/data/imports/aws_hospital_probe/fuel_models \
+    spawn_x:=0 spawn_y:=-12 spawn_z:=0.15 spawn_yaw:=0 \
+    >/tmp/demo_hospital_gazebo.log 2>&1'
+
+# 4) 等传感器就绪（实测 /sim/odom_gt 50 Hz、/livox/imu 200 Hz、/rslidar_points ~10 Hz）
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  for i in $(seq 1 45); do
+    T=$(timeout 3 rostopic list 2>/dev/null)
+    if echo "$T" | grep -qx "/sim/odom_gt" \
+       && echo "$T" | grep -qx "/rslidar_points" \
+       && echo "$T" | grep -qx "/livox/imu"; then
+      echo topics-ready-$i; break
+    fi
+    sleep 2
+  done'
+
+# 5) 三次重复：8 m 大厅小环，0.2 m/s，40 s，GT teleport survey
+#    path = demo_hospital_path.json（已入库）；survey 内部启动 faster-lio
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  P=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path.json
+  timeout 150 python3 -B demo_slam_survey.py --path "$P" --duration-s 40 --rate-hz 20 \
+    --buffer 5000 --scope demo_hospital_lobby_small --launch \
+    --out /tmp/demo_hospital_lobby_small.json
+  timeout 150 python3 -B demo_slam_survey.py --path "$P" --duration-s 40 --rate-hz 20 \
+    --buffer 5000 --scope demo_hospital_lobby_small_r2 --launch \
+    --out /tmp/demo_hospital_lobby_small_r2.json
+  timeout 150 python3 -B demo_slam_survey.py --path "$P" --duration-s 40 --rate-hz 20 \
+    --buffer 5000 --scope demo_hospital_lobby_small_r3 --launch \
+    --out /tmp/demo_hospital_lobby_small_r3.json'
+
+# 6) 静止对照（36 pairs）：临时把 path 改成两点重合、speed 0.0，跑 20 s；
+#    之后恢复为 8 m 小环。该临时 path 内容未入库，正式 path 见 config/demo_hospital_path.json。
+#    --scope demo_hospital_static --duration-s 20 --out /tmp/demo_hospital_static.json
+#    读数：translated xy mean 0.0573 m、z 0.0329 m、rigid yaw 1.69 mrad。
+
+# 7) 逐次保存 LIO PCD；然后归档 JSON/PCD/日志，恢复 data/maps/lite3.pcd
+docker exec ros1-slam-sim-viz bash -lc '
+  cp /opt/ros1-slam/data/maps/lite3.pcd /tmp/hospital_lobby_small_r1.pcd'
+# r2/r3 同理在每次 survey 后复制；
+# 证据目录：/opt/ros1-slam/note/进度/v8/M5/26-11-03/evidence/R1125/
+
+# 8) 收口：先 rosnode kill -a（11413），再按精确 PID 停 roscore/gzserver；
+#    不要用宽泛 pkill -f，避免误伤 11313/11345 上正在跑的 NIST。
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  timeout 8 rosnode kill -a || true'
+# 随后 ps -eo pid,args | grep -E "11413|11445|hospital.world" 取精确 PID 后 kill -TERM。
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /tmp/lite3.pcd.hospital_bak /opt/ros1-slam/data/maps/lite3.pcd'

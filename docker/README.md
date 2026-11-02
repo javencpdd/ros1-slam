@@ -817,7 +817,7 @@ translated 409.9 mm、rigid yaw 2.97 rad，保留为负例。LIO PCD 已另存�
 #### 4.11 AWS Hospital 导入探针（R1124，未接入）
 
 `aws-robotics/aws-robomaker-hospital-world` 的 `ros1` 分支（commit `39969a9d`，许可为
-Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是探针，未接入 `ws/` 或 launch，也未跑 SLAM survey**。
+Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是导入探针，未接入 `ws/` 或 launch；R1125 已在其单层 world 跑大厅小环 scoped，两层/三层未跑**。
 
 | world | 运行时模型 | 加载到 service 就绪 | 空载 RTF | RSS |
 |---|---:|---:|---:|---:|
@@ -838,8 +838,8 @@ Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是探针�
 - 本机 `/usr/bin/python3` 没有 `pip`/`docopt`，官方 `setup.sh` 的 pip 行未端到端跑通；
   本次按同一 43 模型清单直接走 Fuel API，43/43 成功。资产留在
   `data/imports/aws_hospital_probe/`（未入库）。
-- **不是 SLAM 结果**：本次只加载世界并读数，Lite3 + faster-lio 的 survey 未跑；
-  09 的 SLAM 读数仍只有 v0/v1（R1122/R1123）。
+- **探针本身不是 SLAM 结果**：本次只加载世界并读数；R1125 已在单层 world 补大厅小环
+  scoped（0.422 m mean），两层/三层/楼梯仍未跑。
 
 ```bash
 # 源（默认分支只有归档 README）
@@ -865,6 +865,25 @@ gz stats -d 3
 
 完整读数、楼梯碰撞 bbox、Fuel manifest 与命令见
 `note/进度/v8/M5/26-11-03/evidence/R1124/`。
+
+#### 4.12 演示线 v2：AWS Hospital 大厅小环 SLAM survey（R1125）
+
+在 R1124 的 `hospital.world`（182 模型）上带 Lite3，用 GT teleport 沿 **8 m 大厅小环**
+（`config/demo_hospital_path.json`，0.2 m/s、40 s、20 Hz）跑 faster-lio vs `/sim/odom_gt`；
+独立 master 11413 / Gazebo 11445，不跑导航/步态、不发 `/cmd_vel`、不接 support_map。
+
+| 运行 | pairs | translated xy mean | translated xy max | translated z mean | rigid yaw mean |
+|---|---:|---:|---:|---:|---:|
+| r1 | 67 | 0.4513 m | 0.9785 m | 0.1292 m | 9.02 mrad |
+| r2 | 68 | 0.3551 m | 0.7557 m | 0.1354 m | 8.12 mrad |
+| r3 | 62 | 0.4597 m | 0.8258 m | 0.1498 m | 13.05 mrad |
+| 三次均值 | 197 | **0.4220 m** | 0.9785 m | **0.1381 m** | **10.06 mrad** |
+
+静止对照 36 pairs：translated xy mean **0.0573 m**、z 0.0329 m、rigid yaw 1.69 mrad。
+说明医院 rich 场景比 two_floor 难（248.7 mm→422 mm），静止稳定、运动中漂移；
+**不是 formal，也不是导航/通行结论**。路径可能穿过静态几何（teleport 不做碰撞确认）。
+完整命令与边界见 `note/进度/v8/M5/26-11-03/evidence/R1125/command.txt` 与
+[R1125](../note/进度/v8/M5/26-11-03/R1125.md)。
 
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 

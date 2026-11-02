@@ -1,0 +1,92 @@
+{
+ "scope": "demo_hospital_lobby_scoped",
+ "scene": "aws_hospital_probe/worlds/hospital.world",
+ "path": "ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path.json",
+ "duration_s": 40,
+ "rate_hz": 20,
+ "path_speed_mps": 0.2,
+ "path_note": "8 m lobby loop around (0,-3); GT teleport survey; no /cmd_vel",
+ "runs": [
+  {
+   "file": "demo_hospital_lobby_small_r1.json",
+   "scope": "demo_hospital_lobby_small",
+   "ok": true,
+   "pairs": 67,
+   "gt_samples": 371,
+   "lio_samples": 67,
+   "translated_xy_mean_m": 0.45129747056626607,
+   "translated_xy_max_m": 0.9785452012404798,
+   "translated_z_mean_m": 0.12919230184609334,
+   "translated_z_max_m": 0.20060205949947488,
+   "rigid_xy_mean_m": 0.44872882568664957,
+   "rigid_yaw_mean_rad": 0.009017048592122523,
+   "rigid_yaw_max_rad": 0.02017373210877107,
+   "duration_s": 40.0,
+   "rate_hz": 20.0,
+   "path_speed_mps": 0.2
+  },
+  {
+   "file": "demo_hospital_lobby_small_r2.json",
+   "scope": "demo_hospital_lobby_small_r2",
+   "ok": true,
+   "pairs": 68,
+   "gt_samples": 387,
+   "lio_samples": 68,
+   "translated_xy_mean_m": 0.3550760077203345,
+   "translated_xy_max_m": 0.7557400043708407,
+   "translated_z_mean_m": 0.13542699261291816,
+   "translated_z_max_m": 0.25530921352202796,
+   "rigid_xy_mean_m": 0.3527145057454835,
+   "rigid_yaw_mean_rad": 0.008123755934501013,
+   "rigid_yaw_max_rad": 0.035623506942311214,
+   "duration_s": 40.0,
+   "rate_hz": 20.0,
+   "path_speed_mps": 0.2
+  },
+  {
+   "file": "demo_hospital_lobby_small_r3.json",
+   "scope": "demo_hospital_lobby_small_r3",
+   "ok": true,
+   "pairs": 62,
+   "gt_samples": 365,
+   "lio_samples": 62,
+   "translated_xy_mean_m": 0.4597361888412482,
+   "translated_xy_max_m": 0.8257808126805822,
+   "translated_z_mean_m": 0.14975741261144682,
+   "translated_z_max_m": 0.2775214167872861,
+   "rigid_xy_mean_m": 0.4519375434291822,
+   "rigid_yaw_mean_rad": 0.013045514279696139,
+   "rigid_yaw_max_rad": 0.039637243328572665,
+   "duration_s": 40.0,
+   "rate_hz": 20.0,
+   "path_speed_mps": 0.2
+  }
+ ],
+ "aggregate": {
+  "runs": 3,
+  "pairs_total": 197,
+  "translated_xy_mean_of_means_m": 0.4220365557092829,
+  "translated_xy_min_of_means_m": 0.3550760077203345,
+  "translated_xy_max_of_means_m": 0.4597361888412482,
+  "translated_xy_max_m": 0.9785452012404798,
+  "translated_z_mean_of_means_m": 0.1381255690234861,
+  "translated_z_max_m": 0.2775214167872861,
+  "rigid_yaw_mean_of_means_rad": 0.010062106268773225,
+  "rigid_yaw_max_rad": 0.039637243328572665
+ },
+ "static": {
+  "translated_xy_mean_m": 0.05731289264267837,
+  "translated_xy_max_m": 0.33369908637445184,
+  "translated_z_mean_m": 0.032912245422054176,
+  "translated_z_max_m": 0.08512113961790602,
+  "rigid_yaw_mean_rad": 0.0016939471725026267,
+  "rigid_yaw_max_rad": 0.01260377705620408,
+  "pairs": 36
+ },
+ "comparison": {
+  "R1122_v0_translated_xy_mean_m": 0.009504,
+  "R1123_v1_translated_xy_mean_m": 0.248747,
+  "R1123_v1_rigid_yaw_mean_rad": 0.002415
+ },
+ "boundary": "demo/SLAM scoped only; GT teleport; no navigation/gait/support_map; not formal; 3 repeats same path, not 3 seeds; RPE/lost-tracking not computed"
+}
