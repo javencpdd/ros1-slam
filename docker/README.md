@@ -83,7 +83,7 @@ docker build -f docker/Dockerfile -t ros1-slam:noetic --build-arg JOBS=2 .
 ### 2 · 启动 / 停止
 
 ```bash
-cd docker
+cd /home/jack/ysc-code/ros1-slam/docker
 
 docker compose up -d --build        # 构建并后台启动（roscore + slam）
 docker compose ps                   # 看状态
@@ -243,7 +243,7 @@ docker compose exec sim bash /opt/ros1-slam/docker/build.sh --slim
 ### 4.4 跑起来
 
 ```bash
-cd docker
+cd /home/jack/ysc-code/ros1-slam/docker
 # ★ sim 与 sim-viz 共用 11313/11345，一次只能起一个。
 #   先确认 viz 已停；否则会报 "Bind for 0.0.0.0:11313 failed: port is already allocated"。
 docker compose --profile viz stop sim-viz 2>/dev/null || true
@@ -303,7 +303,7 @@ ss -ltnp | grep -E ':11313\b|:11345\b'
 把 X 套接字和**认证 cookie** 一起挂进容器即可，**不需要重建镜像**：
 
 ```bash
-cd docker
+cd /home/jack/ysc-code/ros1-slam/docker
 # ★ 先停 sim：sim 与 sim-viz 共用 11313/11345，不能同时起
 docker compose --profile sim stop sim 2>/dev/null || true
 docker compose --profile viz up -d sim-viz
@@ -539,7 +539,7 @@ NO_PROXY=localhost,127.0.0.1,::1
 ### 6.6 一次到位的构建命令（上面都配好后）
 
 ```bash
-cd docker && SLIM=1 docker compose --profile sim build sim
+cd /home/jack/ysc-code/ros1-slam/docker && SLIM=1 docker compose --profile sim build sim
 # 或者完全手工：
 docker build -f docker/Dockerfile -t ros1-slam:noetic-sim \
   --build-arg PROFILE=sim --build-arg SLIM=1 \
