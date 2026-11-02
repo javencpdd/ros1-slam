@@ -262,6 +262,27 @@ docker compose exec sim bash /opt/ros1-slam/docker/sim.sh gazebo   # 只起场�
 docker compose --profile sim up -d --no-build --force-recreate sim
 ```
 
+#### 4.4.1 `sim` ↔ `sim-viz` 切换
+
+两者共用 11313/11345，**不能同时起**；切换时先停一个再起另一个：
+
+```bash
+# 无头 sim → GUI sim-viz
+docker compose --profile sim stop sim
+docker compose --profile viz up -d sim-viz
+
+# GUI sim-viz → 无头 sim（镜像已构建，不重建）
+docker compose --profile viz stop sim-viz
+docker compose --profile sim up -d --no-build sim
+```
+
+判断谁占着端口：
+
+```bash
+docker ps --format '{{.Names}}\t{{.Status}}\t{{.Ports}}' | grep -E 'ros1-slam-sim|11313'
+ss -ltnp | grep -E ':11313\b|:11345\b'
+```
+
 `probe` 会打印：DISPLAY、`glxinfo` 软渲染器、gzserver 版本、sun/ground_plane 模型、
 `liblite3_planar_drive.so` / `liblivox_laser_simulation.so` 是否存在、端口是否干净。
 **任何一个 NOT OK 先修它，别直接跑 smoke。**
@@ -282,16 +303,20 @@ docker compose --profile sim up -d --no-build --force-recreate sim
 把 X 套接字和**认证 cookie** 一起挂进容器即可，**不需要重建镜像**：
 
 ```bash
-cd docker && docker compose --profile viz up -d sim-viz
+cd docker
+# ★ 先停 sim：sim 与 sim-viz 共用 11313/11345，不能同时起
+docker compose --profile sim stop sim 2>/dev/null || true
+docker compose --profile viz up -d sim-viz
 docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh check      # 先自检
 ```
 
 `viz.sh check` 会打印：`DISPLAY`、X 套接字是否存在、`OpenGL renderer`、
 gzclient/rviz 是否就位、当前话题。**renderer 那行拿不到值就先修 X，别急着起 GUI。**
 
-然后（仿真另起，见 4.4）：
+仿真就在 `sim-viz` 里起，**不要另起 `sim`**（否则端口冲突）。跑批时用同一个容器：
 
 ```bash
+docker compose exec sim-viz bash /opt/ros1-slam/docker/sim.sh smoke stageA
 docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient    # Gazebo 3D 客户端
 docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-raw    # rviz 看雷达原始点云（只要场地起着就能看）
 docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-map    # rviz 看建图（需 faster_lio 在跑）
@@ -362,9 +387,14 @@ docker compose exec sim bash -lc '
 
 #### 跑批时的建议搭配
 
-`m2_smoke.sh` 本身**不需要 GUI**，可以无头跑判据；想同时看过程就：
-另开一个终端跑路线 A 的 `gzclient` / `rviz-map` 旁观 —— 两者互不影响，
-也不会碰到判据载体。注意跑完按 `m2_smoke.sh` 的退净判据确认 11311/11312 零监听。
+`m2_smoke.sh` 本身**不需要 GUI**，两种跑法二选一：
+
+- **无头**：用 `sim`，`docker compose exec sim ... sim.sh smoke stageA`；跑完按退净判据确认 11311/11312 零监听。
+- **要同时看画面**：用 `sim-viz` 跑整条链（`docker compose exec sim-viz ... sim.sh smoke stageA`），
+  再在**同一个 `sim-viz` 容器**里 `viz.sh gzclient / rviz-map` 旁观。
+
+不要 `sim` 和 `sim-viz` 同时起：两者共用 11313/11345，第二个会直接报
+`Bind for 0.0.0.0:11313 failed: port is already allocated`。
 
 
 ### 4.5 没跑通的兜底判断顺序

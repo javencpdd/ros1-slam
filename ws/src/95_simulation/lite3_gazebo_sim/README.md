@@ -7,6 +7,12 @@
 
 本包速查：
 
+> **容器口径**：`sim`（headless，容器内 Xvfb）与 `sim-viz`（宿主 X/GUI）共用 11313/11345，
+> **一次只起一个**；首次 `--build`、之后 `--no-build`，启动/自检/排障见
+> [`docker/README.md`](../../../../docker/README.md) §4.4。端口被占时先
+> `docker compose --profile viz stop sim-viz`；容器 Up 但无端口则
+> `docker compose --profile sim up -d --no-build --force-recreate sim`。
+
 | 要做 | 位置 |
 |---|---|
 | 起世界 | `launch/m1_gazebo.launch`、`m2_gazebo.launch`（世界件本体 `worlds/m1_world.world`＝**红线件**，各跑取 `world_before.sha`／`world_after.sha`） |
