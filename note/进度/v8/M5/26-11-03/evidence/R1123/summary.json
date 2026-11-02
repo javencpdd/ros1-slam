@@ -1,0 +1,62 @@
+{
+ "record": "R1123",
+ "date": "2026-11-03",
+ "scope": "demo_line_v1_two_floor_slam_survey",
+ "world": "ws/src/95_simulation/lite3_gazebo_sim/worlds/demo_two_floor.world",
+ "path": "ws/src/95_simulation/lite3_gazebo_sim/config/demo_two_floor_path.json",
+ "world_geometry": {
+  "ground_room_m": [12.0, 8.0, 2.8],
+  "mezzanine_top_z_m": 1.6,
+  "stairs": {"count": 10, "rise_m": 0.16, "run_m": 0.30, "width_m": 1.2},
+  "features": "walls, railings, furniture-like boxes, columns"
+ },
+ "ports": {"ros_master": 11413, "gazebo_master": 11445},
+ "pipeline": [
+  "m2_gazebo.launch demo_two_floor.world spawn=(4.5,-2,0.15)",
+  "demo_slam_survey.py moves lite3_planar by /gazebo/set_model_state along GT path",
+  "faster-lio 10_slam_mapping_sim.launch; compare /sim/odom_gt vs /Odometry"
+ ],
+ "runs": {
+  "yaw_flip_path": {
+   "path": "path_yaw_flip.json",
+   "duration_s": 35,
+   "pairs": 20,
+   "gt_samples": 120,
+   "lio_samples": 120,
+   "translated_xy_m_mean": 0.4098940314170834,
+   "translated_xy_m_max": 0.48542142387758974,
+   "rigid_xy_m_mean": 1.2120006677443698,
+   "rigid_yaw_rad_mean": 2.9703714140938944,
+   "rigid_yaw_rad_max": 3.139738159535994,
+   "note": "yaw flips at ground-to-stairs/upper path; retained as negative observation"
+  },
+  "constant_yaw_path": {
+   "path": "path.json (constant yaw=0)",
+   "duration_s": 35,
+   "pairs": 21,
+   "gt_samples": 120,
+   "lio_samples": 120,
+   "translated_xy_m_mean": 0.24874677613817853,
+   "translated_xy_m_max": 0.3905369845235477,
+   "rigid_xy_m_mean": 0.2571674639854181,
+   "rigid_xy_m_max": 0.39572766273805304,
+   "rigid_yaw_rad_mean": 0.0024145874786184705,
+   "rigid_yaw_rad_max": 0.006268479872828216,
+   "rigid_z_m_mean": 0.01783171122104068,
+   "rigid_z_m_max": 0.04174115248820853,
+   "raw_xy_m_mean": 4.900055292681334,
+   "raw_z_m_mean": 0.7679526296098077,
+   "note": "flow works; position drift over teleport/stairs still ~0.257 m"
+  }
+ },
+ "artifacts": {
+  "json_negative": "two_floor_yaw_flip.json",
+  "json_flow": "two_floor_constant_yaw.json",
+  "lio_pcd_gz": "demo_two_floor_lio.pcd.gz (from constant-yaw run; original data/maps/lite3.pcd restored)",
+  "world_log": "gazebo.log",
+  "lio_log": "lio.log",
+  "tests": "tests.log"
+ },
+ "tests": {"test_demo_slam_survey": "2/2"},
+ "boundary": "Demo/SLAM only: set_model_state survey, no /cmd_vel, no navigation, no carrier gait/contact, no formal. faster-lio starts its own camera_init frame. Controlled two-floor local world; not a public rich multi-floor world. PCD is LIO output, not a support_map."
+}

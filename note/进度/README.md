@@ -1,10 +1,10 @@
 # 进度目录入口
 
-> 当前规划指针＝[计划书入口](../00_README.md)。本次更新：**2026-11-03，R1122**。
+> 当前规划指针＝[计划书入口](../00_README.md)。本次更新：**2026-11-03，R1123**。
 
-## 当前状态（R1122）
+## 当前状态（R1123）
 
-- 已完成并登记：2D v2 栈四格 4/4（R981）；3D Assembly 三轮 12/12＋起点扰动三种子 12/12（R1110/R1111）；传感器图 6/6＋同 XY 选面（R1102/R1108）；全局→MuJoCo 四足 2/2（R1112）；A6 NDT 静态失锁 `.0487 m`（R1106/R1114）与 0.3 m 局部劫持（R1114，候选仍 prior）；R1115 加 BBS 绝对源共识门，静态 `.0578 m`、0.3 m `.0531 m`，0.6 m 传送被拒（FAILED、lease 1）；R1064 同 lab 挂起根因修复（R1113）；R1116 加 2D/3D 交互式导航入口（2D MBF + RViz 2D Nav Goal；3D Publish Point 选面）；R1117 修 3D RViz 空白（补单位 `world→map` 静态 TF，markers 50 Hz，点击后 25 点路径到达）；R1118 补 2D/3D 地图与 Lite3 模型显示（3D 支撑面 6 层 + `map→TORSO` 模型跟随，2D `/map` 200×200@0.1 + RobotModel）；R1119 打通键盘建图→自建 3D 地图→交互导航（GT 位姿、72,762 点、1 面支撑图、点击后 31 点路径到达）；R1120 导入 NIST 世界（键盘采点 324,493 点、RViz 点云可，地面建图未覆盖上层踏步）；R1121 打通声明 NIST 楼梯导航（支撑面外扩 .20 m、全局 39 点到 step5、载体 `(0.075,1.275,0.890358)`、局部 `arrived`、六项 checks 全 true）；R1122 打通演示线 v0（m1_world_v2 + faster-lio vs GT：translated xy mean 9.504 mm、max 22.660 mm，rigid yaw mean 5.278 mrad；只测 SLAM，不跑导航/运动学，单次 scoped，rich world 未导入）。
+- 已完成并登记：2D v2 栈四格 4/4（R981）；3D Assembly 三轮 12/12＋起点扰动三种子 12/12（R1110/R1111）；传感器图 6/6＋同 XY 选面（R1102/R1108）；全局→MuJoCo 四足 2/2（R1112）；A6 NDT 静态失锁 `.0487 m`（R1106/R1114）与 0.3 m 局部劫持（R1114，候选仍 prior）；R1115 加 BBS 绝对源共识门，静态 `.0578 m`、0.3 m `.0531 m`，0.6 m 传送被拒（FAILED、lease 1）；R1064 同 lab 挂起根因修复（R1113）；R1116 加 2D/3D 交互式导航入口（2D MBF + RViz 2D Nav Goal；3D Publish Point 选面）；R1117 修 3D RViz 空白（补单位 `world→map` 静态 TF，markers 50 Hz，点击后 25 点路径到达）；R1118 补 2D/3D 地图与 Lite3 模型显示（3D 支撑面 6 层 + `map→TORSO` 模型跟随，2D `/map` 200×200@0.1 + RobotModel）；R1119 打通键盘建图→自建 3D 地图→交互导航（GT 位姿、72,762 点、1 面支撑图、点击后 31 点路径到达）；R1120 导入 NIST 世界（键盘采点 324,493 点、RViz 点云可，地面建图未覆盖上层踏步）；R1121 打通声明 NIST 楼梯导航（支撑面外扩 .20 m、全局 39 点到 step5、载体 `(0.075,1.275,0.890358)`、局部 `arrived`、六项 checks 全 true）；R1122 打通演示线 v0（m1_world_v2 + faster-lio vs GT：translated xy mean 9.504 mm、max 22.660 mm，rigid yaw mean 5.278 mrad；只测 SLAM，不跑导航/运动学，单次 scoped，rich world 未导入）；R1123 演示线 v1 受控两层 survey（demo_two_floor.world + demo_slam_survey.py：恒定 yaw translated xy mean 248.7 mm、rigid yaw 2.4 mrad；首轮 yaw 突变 409.9 mm/2.97 rad 为负例；LIO PCD 留证；仍非 formal）。
 - 当前矩阵：A2=`PASS*`，A1/A3/A4/A5/A6/A7=`PARTIAL`；#151 formal 两键 pending，V8-X2 真机未开工。
 - 下一步：真叠层 mezzanine 场景（新场景决定）；演示线继续选 rich/受控两层 world（仅 SLAM，不做运动学）；之后 A1/A4/A5 formal、#151 formal、V8-X2（L2）。
 - 时间线真源：[00_总览](00_总览.md)；版本内入口：[v8 进度](v8/README.md)。
@@ -37,8 +37,8 @@
 | 项 | 现行值 |
 |---|---|
 | 时间线真源 | `note/进度/00_总览.md` |
-| 当前 HEAD | R1122（以 `git log -1 --format='%h %s'` 现取为准；本文提交会再次前移） |
-| 未推送提交 | 以现取为准：`git rev-list --count origin/main..HEAD`（写作时 186；本文档提交会前移）；只 commit 不 push |
+| 当前 HEAD | R1123（以 `git log -1 --format='%h %s'` 现取为准；本文提交会再次前移） |
+| 未推送提交 | 以现取为准：`git rev-list --count origin/main..HEAD`（写作时 188；本文档提交会前移）；只 commit 不 push |
 | 当前中心计划书 | `note/计划书v8/21_ros1-slam中心计划书-v8.md` |
 | 当前批次目录 | `note/进度/v8/M5/26-11-03/`（最新 R1122；逐批见 `00_总览`） |
 | 门禁串 | `scripts/verify/run_gate_chain.sh`（8 成员，成员表 `scripts/verify/gate_chain.txt`） |

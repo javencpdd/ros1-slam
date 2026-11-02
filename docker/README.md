@@ -789,6 +789,30 @@ pairs 10、gt 60、lio 54；**translated xy mean 9.5 mm / max 22.7 mm**，
 rigid yaw mean 5.3 mrad / max 9.1 mrad，rigid z mean 25.6 mm / max 54.5 mm。
 单次 scoped，只作 demo/算法效果；证据 `note/进度/v8/M5/26-11-03/evidence/R1122/`。
 
+#### 4.10 演示线 v1：受控两层 SLAM survey
+
+`demo_two_floor.world` 是受控两层夹具（12×8 m 底层、1.6 m 上层、10×0.16 m 楼梯、
+墙体/家具特征）。`demo_slam_survey.py` 用 `/gazebo/set_model_state` 沿 GT 路径移动传感器，
+**不发布 `/cmd_vel`、不跑导航/运动学**；faster-lio 用 `/sim/odom_gt` 对拍。
+
+```bash
+# 独立 master/Gazebo 同 §4.9；世界与出生点
+roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false \
+  world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/demo_two_floor.world \
+  spawn_x:=4.5 spawn_y:=-2.0 spawn_z:=0.15 spawn_yaw:=0.0
+
+# 35 s GT survey；恒定 yaw 路径；脚本内部启动 faster-lio
+cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+python3 -B demo_slam_survey.py \
+  --path /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_two_floor_path.json \
+  --launch --duration-s 35 --rate-hz 20 --out /tmp/demo_two_floor.json
+```
+
+R1123 读数：恒定 yaw 版 pairs 21，translated xy mean **248.7 mm**、max 390.5 mm；
+rigid yaw mean **2.4 mrad**、rigid z mean 17.8 mm。首轮带 180° yaw 突变版
+translated 409.9 mm、rigid yaw 2.97 rad，保留为负例。LIO PCD 已另存；
+原 `data/maps/lite3.pcd` 已恢复。**只测 SLAM，不做导航/运动学；不是 formal。**
+
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
 项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的

@@ -60,17 +60,21 @@ scoped 读数，不是 formal/物理成功率。
 换世界后仍要声明地面/踏面、step 边、z 和足迹交叠，低台阶高度只是参数之一，还需 >0.18 m 的负控。
 推荐 NIST/m1 做 formal 前回归，另开一个许可明确的多层 demo 世界；真机/物理四足仍走 V8-X1/V8-X2。
 
-**当前有无多层建筑 world**：没有。现有 4 个顶层世界（m1/m1_v2/NIST 原始/NIST 缩放）＋9 个单层
-stairstudy 场景＋2 个 NIST 导入件；NIST 的 6 层是楼梯支撑面，不是多层楼板；`two_level_boxes`
-只是地图契约夹具；真叠层 mezzanine 尚未建（见 `representation/README.md`）。
-这里“没有”只指多层建筑 world；m1/NIST/stairstudy 仍是 Gazebo 导航测试世界。
+**当前多层 world**：已有受控两层 `demo_two_floor.world`（12×8 m 底层、1.6 m 上层、
+10×0.16 m 楼梯、墙/家具特征），用于演示线 v1 的纯 SLAM survey；它**不是 rich 公开
+多层建筑**，也没有 support_map/app 导航链。另有 4 个顶层世界（m1/m1_v2/NIST 原始/NIST 缩放）
+＋9 个单层 stairstudy 场景＋2 个 NIST 导入件；NIST 的 6 层是楼梯支撑面，不是多层楼板；
+`two_level_boxes` 只是地图契约夹具。m1/NIST/stairstudy 仍是 Gazebo 导航测试世界。
 
 **演示线（09）**：丰富/多层公开 world 单独做 demo/scoped，用于建图、定位、导航算法效果；
 演示结果带截图/录包/指标，但不签 formal，也不代表 Lite3 物理通行；流程与指标见官网
 「仿真与界面 → 09 演示线」。v0 已跑通 `m1_world_v2` + faster-lio vs GT：20 s / 0.25 m/s，
 translated xy mean **9.5 mm**、max **22.7 mm**，rigid yaw mean **5.3 mrad**；单次 scoped，
 只测 SLAM，不跑导航/运动学。证据 `note/进度/v8/M5/26-11-03/evidence/R1122/`；rich 多层 world
-仍未导入。
+仍未导入。v1 受控两层 `demo_two_floor.world` + `demo_slam_survey.py`：35 s GT teleport survey，
+恒定 yaw 版 translated xy mean **248.7 mm**、rigid yaw **2.4 mrad**；首轮 yaw 突变版
+translated 409.9 mm／rigid yaw 2.97 rad 作为负例；LIO PCD 已留证。仍只测 SLAM，
+无 `/cmd_vel`、无导航/运动学、非 formal。
 
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。

@@ -1,11 +1,11 @@
 # v8 进度入口
 
-> 最新登记：**R1122（2026-11-03）**，演示线 v0 纯 SLAM 打通（m1_world_v2 + faster-lio vs GT，translated xy mean 9.504 mm）。当前运行面：2D v2 四格 4/4；
+> 最新登记：**R1123（2026-11-03）**，演示线 v1 受控两层 SLAM survey（demo_two_floor + faster-lio vs GT，translated xy mean 248.7 mm）。当前运行面：2D v2 四格 4/4；
 > 3D Assembly 三轮 **12/12**、起点扰动三种子 **12/12**；传感器图 **6/6**＋同 XY 选面；
 > 全局路径→MuJoCo 四足接触 **2/2**；A6 NDT 静态 `.0578 m`、0.3 m `.0531 m`；
-> 0.6 m 共识 [2.2] 与 NDT 候选差 .648 → FAILED/lease 1；2D/3D 交互入口（MBF + RViz 2D Nav Goal / 3D Publish Point）；R1117 修 3D RViz 空白（`world→map` 静态 TF、markers 50 Hz、点击后 25 点路径）；R1118 补 RViz 支撑面与 Lite3 模型（`Marker Topic` 修正、`map→TORSO`、2D `/map`+RobotModel）；R1119 键盘建图→自建 3D 地图→交互导航（GT 位姿 72,762 点、1 面支撑图、31 点路径到达）；R1120 导入 NIST 世界（键盘采点 324,493 点、RViz 点云可，地面建图仍未覆盖上层踏步）；R1121 声明 NIST 楼梯导航打通（外扩 .20 m、39 点到 step5、局部 arrived、六项 checks 全 true；与 3D 导航同栈，2D MBF 才是另一面）；R1122 演示线 v0 纯 SLAM（m1_world_v2 + faster-lio vs GT，translated xy mean 9.504 mm，单次 scoped，不做导航/运动学，rich world 未导入）。A1/A3/A4/A5/A6/A7
+> 0.6 m 共识 [2.2] 与 NDT 候选差 .648 → FAILED/lease 1；2D/3D 交互入口（MBF + RViz 2D Nav Goal / 3D Publish Point）；R1117 修 3D RViz 空白（`world→map` 静态 TF、markers 50 Hz、点击后 25 点路径）；R1118 补 RViz 支撑面与 Lite3 模型（`Marker Topic` 修正、`map→TORSO`、2D `/map`+RobotModel）；R1119 键盘建图→自建 3D 地图→交互导航（GT 位姿 72,762 点、1 面支撑图、31 点路径到达）；R1120 导入 NIST 世界（键盘采点 324,493 点、RViz 点云可，地面建图仍未覆盖上层踏步）；R1121 声明 NIST 楼梯导航打通（外扩 .20 m、39 点到 step5、局部 arrived、六项 checks 全 true；与 3D 导航同栈，2D MBF 才是另一面）；R1122 演示线 v0 纯 SLAM（m1_world_v2 + faster-lio vs GT，translated xy mean 9.504 mm，单次 scoped，不做导航/运动学，rich world 未导入）；R1123 演示线 v1 受控两层（demo_two_floor + demo_slam_survey，恒定 yaw translated xy mean 248.7 mm，rigid yaw 2.4 mrad；首轮 yaw 突变为负例；仍非 formal）。A1/A3/A4/A5/A6/A7
 > 仍 **PARTIAL**，A2=PASS*；#151 formal 两键 pending，V8-X2 真机未开工。
-> 本文下面的早期批次表保留历史；最新逐批见 [00_总览](../00_总览.md) 与 [R1122](M5/26-11-03/R1122.md)。
+> 本文下面的早期批次表保留历史；最新逐批见 [00_总览](../00_总览.md) 与 [R1123](M5/26-11-03/R1123.md)。
 
 计划入口见 [计划书 v8](../../计划书v8/README.md)，任务状态见 [23 号队列](../../计划书v8/23_v8任务队列.md)，全项目时间线见 [总览](../00_总览.md)。
 

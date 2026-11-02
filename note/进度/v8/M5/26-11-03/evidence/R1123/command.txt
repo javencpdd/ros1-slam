@@ -1,0 +1,57 @@
+# R1123 演示线 v1：受控两层 Gazebo SLAM survey
+# 只做 SLAM：用 /gazebo/set_model_state 沿 GT 路径移动传感器；无 /cmd_vel、无导航、无运动学。
+
+# 1) 备份 faster-lio 硬编码输出
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /opt/ros1-slam/data/maps/lite3.pcd /tmp/lite3.pcd.demo_bak'
+
+# 2) 独立 master 11413
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  roscore -p 11413 >/tmp/demo2_master.log 2>&1'
+sleep 3
+
+# 3) 受控两层 world（headless）；载体出生 (4.5,-2,0.15)
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false \
+    world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/demo_two_floor.world \
+    spawn_x:=4.5 spawn_y:=-2.0 spawn_z:=0.15 spawn_yaw:=0.0 \
+    >/tmp/demo2_gazebo.log 2>&1'
+sleep 10
+
+# 4) GT 路径 survey；faster-lio 由脚本启动
+#    首轮使用 path_yaw_flip.json（楼梯/上层有 180° yaw 突变）；
+#    第二轮使用仓库 config/demo_two_floor_path.json（全部 yaw=0）。
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  python3 -B demo_slam_survey.py \
+    --path /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_two_floor_path.json \
+    --launch --duration-s 35 --rate-hz 20 \
+    --out /tmp/demo_two_floor_yaw0.json'
+# 首轮 yaw 突变版把 --path 换成 evidence/R1123/path_yaw_flip.json，输出 two_floor_yaw_flip.json。
+
+# 5) 保存 LIO PCD，再收口独立 master/Gazebo，恢复原 lite3.pcd
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /opt/ros1-slam/data/maps/lite3.pcd /tmp/demo_two_floor_lio.pcd'
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  timeout 8 rosnode kill -a || true'
+# 若 gzserver/roslaunch 未退：用 ps -eo pid,args | grep demo_two_floor 取精确 PID 后 kill -TERM
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /tmp/lite3.pcd.demo_bak /opt/ros1-slam/data/maps/lite3.pcd'
+
+# 6) 脚本单测
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  python3 -B -m unittest test_demo_slam_survey'   # 2/2
