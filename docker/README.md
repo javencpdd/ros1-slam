@@ -580,6 +580,15 @@ docker compose exec sim-viz bash -lc '
   载体位姿 +0.18 m；`rostopic echo /v8/3d/global/status` 在未发目标时应只有
   `E_PLAN_NOT_READY`，发目标后应出现 path points。
 - 这是独立 3D 栈：master **11537**、Gazebo **11538**，不要和 2D 的 11313/11345 链混用。
+- **这张卡只做 3D 导航**：固定 `nist_sensor_3d.yaml`（预生成 `nist_sensor@2` 图、
+  `localization.source=carrier`、默认 NIST 台阶世界）。它**不建图、不跑 faster-lio、
+  不能选数据集/世界**；`app_runner` 也没有 `--world` 参数。
+  - 选世界/数据集：用 §4.7/§4.8 的 `m2_gazebo.launch world:=... model_path:=...`，
+    或在 app YAML 的 `carrier.world_launch/world/model_path` 指定（R1121 的
+    `nist_stairs_120_nav_v1_app.yaml` 就是这种写法）。
+  - 建图：§4.7/§4.8 的记录器 + `map_from_pcd.py` 链（GT 位姿建图，不是 LIO/SLAM）。
+  - LIO 定位：`nist_sensor_3d_lio.yaml` + `graph_3d_gazebo_loc.yaml`，并**另起
+    faster-lio 源**（`/Odometry`）；本卡不会替你启动 LIO。
 - 用自己建的图走同一 3D 入口：见 §4.7（键盘建图 → PCD → support_map → app_runner）。
 - 退出在 app runner 终端按 Ctrl+C；会停 graph/Gazebo/RViz 并写
   `/tmp/nav3d_interactive.json`。这是操作员测试，不是 A1—A7 formal 或真机。

@@ -50,6 +50,10 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
 - **3D 交互（预生成图）**：`app_runner.py --app .../nist_sensor_3d.yaml --execute --interactive --rviz`；
   RViz 显示 support surface、Lite3 和路径，Publish Point 选面。
+  **这张卡只做 3D 导航**：固定预生成 `nist_sensor@2` 图、`localization.source=carrier`、
+  默认 NIST 台阶世界；**不建图、不跑 faster-lio、不能选数据集/世界**。
+  选世界用 `m2_gazebo.launch world:=... model_path:=...` 或 app YAML 的 `carrier.world*`；
+  建图见 §4.7/§4.8；LIO 定位需 `nist_sensor_3d_lio.yaml` + 另起 faster-lio 源。
 - **键盘建图 → 自建图 3D 导航（R1119）**：
   `m2_gazebo.launch gui:=true` + `mapping_recorder.py` + `rviz_mapping3d.rviz` +
   `keyboard_teleop.py`（四个独立进程）；记录器用 `/rslidar_points` + `/sim/odom_gt`
