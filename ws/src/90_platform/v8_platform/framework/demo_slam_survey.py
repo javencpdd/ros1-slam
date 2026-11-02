@@ -71,6 +71,9 @@ def main():
     parser.add_argument('--launch', action='store_true')
     parser.add_argument('--settle-s', type=float, default=3.)
     parser.add_argument('--max-age-s', type=float, default=.15)
+    parser.add_argument('--buffer', type=int, default=5000,
+                        help='max GT/LIO samples retained per topic')
+    parser.add_argument('--scope', default='demo_slam_survey')
     args = parser.parse_args()
     points, path_speed = load_waypoints(args.path)
     rospy.init_node('demo_slam_survey', anonymous=True, disable_signals=True)
@@ -89,7 +92,7 @@ def main():
                             start_new_session=True, stdout=open('/tmp/demo_slam_lio.log', 'ab'),
                             stderr=subprocess.STDOUT, env=dict(os.environ))
            if args.launch else None)
-    gt_buffer, est_buffer = deque(maxlen=120), deque(maxlen=120)
+    gt_buffer, est_buffer = deque(maxlen=args.buffer), deque(maxlen=args.buffer)
     lock = __import__('threading').Lock()
 
     def on_gt(message):
@@ -142,7 +145,7 @@ def main():
             if delta <= args.max_age_s:
                 pairs.append((nearest[2], pose))
     result = {
-        'scope': 'demo_two_floor_survey',
+        'scope': args.scope,
         'ok': bool(pairs),
         'launch': args.launch, 'path': str(Path(args.path).resolve()),
         'duration_s': args.duration_s, 'rate_hz': args.rate_hz,
