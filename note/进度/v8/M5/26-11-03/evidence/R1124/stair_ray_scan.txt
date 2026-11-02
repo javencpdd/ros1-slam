@@ -1,0 +1,37 @@
+R1124 addendum: downward ray probe at the stair volume
+
+Setup:
+  - world: hospital_two_floors.world (Gazebo 11.15.1)
+  - probe: static 1-beam ray sensor (libgazebo_ros_laser.so), sensor z=4.5,
+    pointing down; /stair_probe/scan
+  - movement: /gazebo/set_model_state (x,y fixed z=4.5)
+  - control: (0,0) -> hit_z 3.0000 (upper slab/ceiling); (30,0) -> hit_z -0.1000
+    (ground plane). This confirms the ray/motion path is live.
+
+Target scan (stair_ray_target output excerpt):
+  x=17.2..20.7 at y=0, +/-5, +/-10 -> hit_z -0.1000 (ground only)
+  i.e. no 0..3 m stair surface was found at the DAE-bbox-derived (x,y).
+
+Line scan (stair_ray_line.csv):
+  y=0: x=-9..11 -> hit_z 3.0000 (upper floor solid);
+       x=13..21 -> hit_z -0.1000 (ground below, no upper slab).
+  x=20 and x=-20, y=-12..12 -> hit_z -0.1000 (ground only).
+
+Grid scan of side wings (stair_ray_grid.csv):
+  non-3.0/non-ground hits are all above 3 m:
+    (-10,14) 3.030, (-10,16) 3.030, (-2,16) 3.061, (10,16) 4.116,
+    (-2,18) 3.176, (0,18) 3.176, (2,18) 3.176, (6,20) 3.200,
+    (12,-22) 3.797, (10,-18) 3.347, (12,-18) 3.862,
+    (-12,-16) 4.083, (-10,-14) 3.651
+  None of these is a 0..3 m stair surface at the assumed DAE coordinates.
+
+Interpretation / boundary:
+  - The source collision mesh does contain the stairs submesh (ID12, 252 verts,
+    0.20 m levels), so "stairs exist in the asset" stands.
+  - However, the DAE bbox cannot be treated as world coordinates: this quick
+    downward ray did not locate the stair surface at x=17..21, y=0 / +/-5 / +/-10.
+  - The stair's world placement, whether its collision is loaded as expected,
+    and whether the duplicated upper-floor opening aligns with the ascending
+    flight are NOT settled by this probe. Need a point cloud / support_map or a
+    robot/support-map run.
+  - No stair traversal is claimed; no formal claim.
