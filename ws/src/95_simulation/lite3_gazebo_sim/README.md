@@ -24,7 +24,7 @@
 | 推进插件源码 | `src/lite3_planar_drive.cpp`（dynamic 分支 `SetLinearVel`/`SetAngularVel` 保留接触；kinematic 回退 `SetWorldPose`；打戳统一 SimTime 的坑25 根除改点在此） |
 | **判据载体** | `verify/m2_smoke.sh` ＋ `verify/m2_exitclean_lib.sh` ⇒ **改这两个＝代际加行**（现值见 `note/07_判据载体代际对照表.md`） |
 | 批跑与自测件 | `verify/m2_batch_runner.sh`、`retake_driver.sh`、`v_m2_exitclean_selftest.sh`、`v_g35_branch_calibration.sh`、`v_b3_timebase_contract.sh`、`v_pose_source.sh`、`v_br_expect_negative_selftest.sh`、`v_rd_archive_selftest.sh`、`v_w3_terrain_design_contract.sh` |
-| 离线预检旁路（不被 launch 引用） | `stairstudy/{fixtures,precheck,sweep,bandstudy}.py` ＋ `stairstudy/worlds/stair_lab_*.world`（八件候选场景） |
+| 离线预检旁路（不被 launch 引用） | `stairstudy/{fixtures,precheck,sweep,bandstudy}.py` ＋ `stairstudy/worlds/stair_lab_*.world`（九件 Gazebo 候选场景，含 blank 对照） |
 | 探针小件 | `scripts/m2_tf_fresh.py`、`m2_free_map.py`、`m2_cmd_relay.py`、`m2_pose_source_audit.py`、`wait_sim_clock.sh` |
 
 **红线/契约**：载体能力边界（补丁 X7 物证）：刚体盒子**能验 ①–④（表征/判据/代价/规划），不能验 ⑤（踏步/落脚/摩擦）**；带腿描述在 `95_simulation/lite3_description/urdf/Lite3.urdf`（12 revolute）但无腿控制器。保真度缺口 O-10（仿真竖向 50 线摊 ±90° ⇒ 楼梯立面带内仅 8 条线）待裁＝B6。
@@ -48,7 +48,8 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 
 **world vs scene**：`m1_gazebo`／`m2_gazebo` 的参数是完整 `world:=...`（`worlds/*.world`），没有 `scene` 参数；
 `stairstudy` 场景库用 `stairstudy.launch world_file:=stair_lab_*.world`；`sim_scene.py --scene` 是运行中
-spawn/delete 模型，不换 world，也不更新静态导航图。
+spawn/delete 模型，不换 world，也不更新静态导航图。`stair_lab_*.world` 是 **Gazebo SDF 场景库**，
+不是 MuJoCo 地图，也不是导航 support_map；MuJoCo 走 MJCF/`make_stairs_xml` 生成链，不加载这些 world。
 
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
