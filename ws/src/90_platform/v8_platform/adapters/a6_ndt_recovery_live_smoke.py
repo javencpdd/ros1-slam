@@ -18,13 +18,20 @@ import subprocess
 import sys
 import threading
 import time
+from collections import deque
 from pathlib import Path
 
+import numpy as np
 import rospy
+import yaml
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from candidate_consensus import CandidateConsensus  # noqa: E402
+
 SIM = Path('/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim')
 PCD = '/opt/ros1-slam/data/maps/m1_world_synth_v1.pcd'
+BBS_RESOLUTIONS = ((0.5, 'res05'), (0.2, 'res02'), (0.1, 'res01'))
 PORT, GAZEBO_PORT = 11950, 11951
 os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
                   GAZEBO_MASTER_URI='http://127.0.0.1:%d' % GAZEBO_PORT,
@@ -60,6 +67,36 @@ def wrap(angle):
     return math.atan2(math.sin(angle), math.cos(angle))
 
 
+def read_pcd(path):
+    with open(path, 'rb') as stream:
+        header = []
+        while True:
+            line = stream.readline()
+            if not line:
+                raise ValueError('PCD header incomplete')
+            header.append(line)
+            if line.startswith(b'DATA'):
+                break
+        fields = [line.split()[1:] for line in header if line.startswith(b'FIELDS')][0]
+        sizes = [int(x) for x in [line.split() for line in header
+                                  if line.startswith(b'SIZE')][0][1:]]
+        points = int([line.split()[1] for line in header if line.startswith(b'POINTS')][0])
+        data = stream.read()
+    dtype = np.dtype([(fields[i].decode(), 'f%d' % sizes[i]) for i in range(len(fields))])
+    return np.frombuffer(data, dtype=dtype, count=points)
+
+
+def voxel_downsample(points, leaf):
+    if len(points) == 0:
+        return points
+    cells = np.floor(points / leaf).astype(np.int64)
+    unique, inverse = np.unique(cells, axis=0, return_inverse=True)
+    sums = np.zeros((len(unique), 3), dtype=float)
+    np.add.at(sums, inverse, points)
+    counts = np.bincount(inverse)
+    return sums / counts[:, None]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--spawn', default='1.5,0')
@@ -70,25 +107,39 @@ def main(argv=None):
     parser.add_argument('--relocalize-budget-s', type=float, default=8.0)
     parser.add_argument('--search-resume-delay-s', type=float, default=.5)
     parser.add_argument('--negative', action='store_true')
+    parser.add_argument('--consensus', action='store_true',
+                        help='require independent 3-resolution BBS consensus before lease restore')
+    parser.add_argument('--consensus-gate-m', type=float, default=.5)
+    parser.add_argument('--consensus-radius', type=float, default=.6)
+    parser.add_argument('--consensus-scan-queries', type=int, default=1)
+    parser.add_argument('--consensus-scan-downsample', type=float, default=.3)
+    parser.add_argument('--expect-fail-closed', action='store_true',
+                        help='the cycle must end FAILED without a new lease/reset')
     parser.add_argument('--out')
     args = parser.parse_args(argv)
     from gazebo_msgs.msg import ModelState, ModelStates
     from gazebo_msgs.srv import SetModelState
     from geometry_msgs.msg import PoseWithCovarianceStamped, Twist, Vector3
+    from hdl_global_localization.srv import QueryGlobalLocalization, SetGlobalMap
     from nav_msgs.msg import Odometry
     from rosgraph_msgs.msg import Clock
+    from sensor_msgs import point_cloud2 as pc2
     from sensor_msgs.msg import PointCloud2
     from std_msgs.msg import Bool, String, UInt64
 
     spawn_x, spawn_y = (float(v) for v in args.spawn.split(','))
     move_x, move_y = (float(v) for v in args.move.split(','))
     master = gazebo = ndt = bridge = a6 = gate = None
+    consensus_gate_proc = None
+    bbs_nodes = []
     relay = {'paused': False, 'clouds': 0}
     status = {'phase': None, 'allowed': False, 'lease': None, 'backend': None,
               'calls': 0, 'report': None}
     observations = {'odom': None, 'truth': None, 'gate_status': None,
                     'gate_cmd': None, 'gate_cmds': 0, 'health': None,
-                    'relocalized': 0, 'backend': None, 'resets': []}
+                    'relocalized': 0, 'backend': None, 'resets': [],
+                    'recent': deque(maxlen=max(1, args.consensus_scan_queries)),
+                    'consensus': None, 'consensus_events': 0}
     lock = threading.RLock()
     callbacks = []
 
@@ -124,6 +175,38 @@ def main(argv=None):
         place(spawn_x, spawn_y)
         time.sleep(2.0)
 
+        if args.consensus:
+            cloud_points = read_pcd(PCD)
+            xyz = np.stack([cloud_points['x'], cloud_points['y'],
+                            cloud_points['z']], axis=1).astype(np.float32)
+            xyz = xyz[np.isfinite(xyz).all(axis=1)]
+            header = rospy.Header()
+            header.frame_id, header.stamp = 'map', rospy.Time.now()
+            global_cloud = pc2.create_cloud_xyz32(header, xyz)
+            config_dir = (Path('/opt/ros1-slam/ws/src/20_localization/'
+                               'hdl_global_localization/config'))
+            for resolution, name in BBS_RESOLUTIONS:
+                for config_name in ('general_config.yaml', 'bbs_config.yaml'):
+                    for key, value in yaml.safe_load(
+                            (config_dir / config_name).read_text()).items():
+                        rospy.set_param('/%s/%s' % (name, key), value)
+                rospy.set_param('/%s/bbs/map_min_z' % name, .05)
+                rospy.set_param('/%s/bbs/map_max_z' % name, 1.0)
+                rospy.set_param('/%s/bbs/scan_min_z' % name, -.5)
+                rospy.set_param('/%s/bbs/scan_max_z' % name, .6)
+                rospy.set_param('/%s/bbs/map_resolution' % name, resolution)
+                rospy.set_param('/%s/globalmap_downsample_resolution' % name, .2)
+                rospy.set_param('/%s/query_downsample_resolution' % name, .2)
+                node = subprocess.Popen(['rosrun', 'hdl_global_localization',
+                                         'hdl_global_localization_node', '__name:=' + name],
+                                        start_new_session=True,
+                                        stdout=open('/tmp/a6_ndt_bbs_%s.log' % name, 'ab'),
+                                        stderr=subprocess.STDOUT, env=dict(os.environ))
+                bbs_nodes.append(node)
+                for service in ('/%s/set_global_map' % name, '/%s/query' % name):
+                    rospy.wait_for_service(service, timeout=30)
+                rospy.ServiceProxy('/%s/set_global_map' % name, SetGlobalMap)(global_cloud)
+
         ndt = subprocess.Popen(['rosrun', 'v8_ndt_odom', 'ndt_odom_node', '__name:=a6_ndt',
                                 '_map_path:=' + PCD, '_cloud_topic:=/a6_ndt/cloud',
                                 '_resolution:=0.5', '_score_max:=30.0',
@@ -149,28 +232,45 @@ def main(argv=None):
         wait_until(lambda: service_ready('/a6_ndt/relocalize'), 30, 'NDT relocalize service')
         wait_until(lambda: service_ready('/a6_ndt/reset'), 30, 'NDT reset service')
 
+        candidate_topic = ('/a6/recovery/candidate_raw' if args.consensus
+                           else '/a6/recovery/candidate')
         bridge = subprocess.Popen([sys.executable, '-B', str(HERE / 'ndt_recovery_bridge.py'),
                                    '--odom-topic', '/a6_ndt/odom',
                                    '--health-topic', '/a6_ndt/healthy',
                                    '--score-topic', '/a6_ndt/score',
                                    '--relocalized-topic', '/a6_ndt/relocalized',
-                                   '--candidate-topic', '/a6/recovery/candidate',
+                                   '--candidate-topic', candidate_topic,
                                    '--fitness-max', '15.0'],
                                   start_new_session=True,
                                   stdout=open('/tmp/a6_ndt_bridge.log', 'ab'),
                                   stderr=subprocess.STDOUT, env=dict(os.environ))
-        a6 = subprocess.Popen([sys.executable, '-B', str(HERE / 'a6_recovery_node.py'),
-                               '--namespace', '/a6/recovery',
-                               '--odom-topic', '/a6_ndt/odom',
-                               '--candidate-topic', '/a6/recovery/candidate',
-                               '--relocalize-service', '/a6_ndt/relocalize',
-                               '--relocalize-service-type', 'trigger',
-                               '--backend-name', 'ndt',
-                               '--initial-lease', '1',
-                               '--deadline-s', str(args.deadline_s),
-                               '--timeout-s', '1.0',
-                               '--score-min', '0.5',
-                               '--bounds=-3,8,-5,5'],
+        if args.consensus:
+            consensus_gate_proc = subprocess.Popen(
+                [sys.executable, '-B', str(HERE / 'consensus_gate.py'),
+                 '--input-topic', '/a6/recovery/candidate_raw',
+                 '--consensus-topic', '/a6/consensus/candidate',
+                 '--output-topic', '/a6/recovery/candidate',
+                 '--radius', str(args.consensus_gate_m),
+                 '--max-age-s', '8.0'],
+                start_new_session=True,
+                stdout=open('/tmp/a6_ndt_consensus_gate.log', 'ab'),
+                stderr=subprocess.STDOUT, env=dict(os.environ))
+        a6_argv = [sys.executable, '-B', str(HERE / 'a6_recovery_node.py'),
+                   '--namespace', '/a6/recovery',
+                   '--odom-topic', '/a6_ndt/odom',
+                   '--candidate-topic', '/a6/recovery/candidate',
+                   '--relocalize-service', '/a6_ndt/relocalize',
+                   '--relocalize-service-type', 'trigger',
+                   '--backend-name', 'ndt',
+                   '--initial-lease', '1',
+                   '--deadline-s', str(args.deadline_s),
+                   '--timeout-s', '1.0',
+                   '--score-min', '0.5',
+                   '--bounds=-3,8,-5,5']
+        if args.consensus:
+            a6_argv.extend(['--require-candidate-source', 'bbs_consensus',
+                            '--max-agreement-m', str(args.consensus_gate_m)])
+        a6 = subprocess.Popen(a6_argv,
                               start_new_session=True,
                               stdout=open('/tmp/a6_ndt_recovery.log', 'ab'),
                               stderr=subprocess.STDOUT, env=dict(os.environ))
@@ -187,7 +287,58 @@ def main(argv=None):
                                 stdout=open('/tmp/a6_ndt_gate.log', 'ab'),
                                 stderr=subprocess.STDOUT, env=dict(os.environ))
 
+        consensus_busy = {'busy': False}
+        consensus_pub = rospy.Publisher('/a6/consensus/candidate', String, queue_size=5)
+
+        def query_consensus():
+            try:
+                scans = list(observations['recent'])[-args.consensus_scan_queries:]
+                samples, errors = [], []
+                for scan_index, points_now in enumerate(scans):
+                    header_now = rospy.Header(stamp=rospy.Time.now(), frame_id='base_link')
+                    query_cloud = pc2.create_cloud_xyz32(
+                        header_now, voxel_downsample(points_now,
+                                                     args.consensus_scan_downsample))
+                    for resolution, name in BBS_RESOLUTIONS:
+                        try:
+                            response = rospy.ServiceProxy(
+                                '/%s/query' % name,
+                                QueryGlobalLocalization)(5, query_cloud)
+                            if response.poses:
+                                pose = response.poses[0]
+                                q = pose.orientation
+                                samples.append({
+                                    'source': resolution, 'scan': scan_index,
+                                    'pose': (pose.position.x, pose.position.y,
+                                             pose.position.z),
+                                    'yaw': math.atan2(2 * (q.w * q.z + q.x * q.y),
+                                                      1 - 2 * (q.y * q.y + q.z * q.z))})
+                        except Exception as error:
+                            errors.append('%s:%d:%r' % (name, scan_index, error))
+                accepted = CandidateConsensus(
+                    radius=args.consensus_radius, min_support=2).select(samples)
+                yaw = None
+                if accepted is not None:
+                    yaw = next((item['yaw'] for item in samples
+                                if item['source'] == accepted['source']), 0.0)
+                    score = accepted['support'] / float(len(BBS_RESOLUTIONS))
+                    consensus_pub.publish(String(data=json.dumps({
+                        'pose': [accepted['pose'][0], accepted['pose'][1], 0.0],
+                        'yaw': yaw, 'score': score, 'source': 'bbs_consensus'})))
+                with lock:
+                    observations['consensus'] = {
+                        'accepted': accepted, 'yaw': yaw, 'samples': samples,
+                        'errors': errors, 'scans': len(scans)}
+            finally:
+                consensus_busy['busy'] = False
+
         def on_cloud(message):
+            if args.consensus:
+                points_now = np.asarray(list(pc2.read_points(
+                    message, field_names=('x', 'y', 'z'), skip_nans=True)), dtype=float)
+                if len(points_now):
+                    with lock:
+                        observations['recent'].append(points_now)
             if not relay['paused']:
                 relay['clouds'] += 1
                 cloud_pub.publish(message)
@@ -220,6 +371,9 @@ def main(argv=None):
             with lock:
                 if message.data:
                     observations['relocalized'] += 1
+                    if args.consensus and not consensus_busy['busy']:
+                        consensus_busy['busy'] = True
+                        threading.Thread(target=query_consensus, daemon=True).start()
 
         def on_gate_status(message):
             with lock:
@@ -327,6 +481,26 @@ def main(argv=None):
                 place(spawn_x + move_x, spawn_y + move_y)
             with lock:
                 relay['paused'] = False
+            if args.expect_fail_closed:
+                wait_until(lambda: status['phase'] == 'FAILED',
+                           args.deadline_s + 5, 'expected fail-closed', diagnostic)
+                time.sleep(2.0)
+                with lock:
+                    truth = list(observations['truth'])
+                    odom = list(observations['odom'])
+                    gate_now = observations['gate_status']
+                    consensus = observations['consensus']
+                    new_reset = len(observations['resets']) > resets_before
+                cycles.append({
+                    'expected_fail_closed': True,
+                    'lease': status['lease'], 'lease_after': status['lease'],
+                    'truth_xy': truth[:2], 'odom_xy': odom[:2],
+                    'error_m': math.hypot(odom[0] - truth[0], odom[1] - truth[1]),
+                    'new_reset': new_reset, 'consensus': consensus,
+                    'gate': gate_now, 'gate_before_loss': gate_before,
+                    'gate_during_loss': gate_during_loss,
+                    'phase': status['phase'], 'allowed': status['allowed']})
+                continue
             wait_until(lambda: len(observations['resets']) > resets_before,
                        args.deadline_s + 5, 'backend seed lease %d' % expected, diagnostic)
             wait_until(lambda: status['phase'] == 'TRACKING' and status['allowed']
@@ -343,6 +517,7 @@ def main(argv=None):
                 backend = observations['backend']
                 relocalized = observations['relocalized']
                 gate_now = observations['gate_status']
+                consensus = observations['consensus']
             error = math.hypot(odom[0] - truth[0], odom[1] - truth[1])
             candidate_error = math.hypot(reset['pose'][0] - truth[0],
                                          reset['pose'][1] - truth[1])
@@ -353,7 +528,8 @@ def main(argv=None):
                            'backend': backend, 'relocalized_events': relocalized,
                            'gate': gate_now, 'gate_before_loss': gate_before,
                            'gate_during_loss': gate_during_loss,
-                           'phase': status['phase'], 'allowed': status['allowed']})
+                           'phase': status['phase'], 'allowed': status['allowed'],
+                           'consensus': consensus})
 
         negative = None
         if args.negative:
@@ -380,6 +556,9 @@ def main(argv=None):
             'initial': initial, 'cycles': cycles, 'negative': negative,
             'relocalize_budget_s': args.relocalize_budget_s,
             'deadline_s': args.deadline_s, 'gate_m': args.gate_m,
+            'consensus': args.consensus,
+            'consensus_gate_m': args.consensus_gate_m if args.consensus else None,
+            'expect_fail_closed': args.expect_fail_closed,
             'gate_rejection': {'gate_before_loss': initial.get('gate_command'),
                                'gate_during_loss': ([cycle['gate_during_loss']
                                                     for cycle in cycles]
@@ -389,12 +568,20 @@ def main(argv=None):
             'reset_path': 'A6 backend message -> NDT native /initialpose',
             'relocalize_path': 'A6 /relocalize trigger -> NDT bounded local search',
         }
+        def cycle_ok(item):
+            if item.get('expected_fail_closed'):
+                return (item['phase'] == 'FAILED' and not item['allowed']
+                        and not item['new_reset']
+                        and item['lease_after'] == item['lease']
+                        and item['gate_during_loss'] is not None
+                        and abs(item['gate_during_loss'][0]) < 1e-9)
+            return (item['error_m'] <= args.gate_m and item['phase'] == 'TRACKING'
+                    and item['allowed'] and item['gate_during_loss'] is not None
+                    and abs(item['gate_during_loss'][0]) < 1e-9)
+
         # The callbacks keep the latest gate output; sample it after loss above.
         result['ok'] = bool(
-            initial['ok']
-            and all(item['error_m'] <= args.gate_m and item['phase'] == 'TRACKING'
-                    and item['allowed'] and item['gate_during_loss'] is not None
-                    and abs(item['gate_during_loss'][0]) < 1e-9 for item in cycles)
+            initial['ok'] and all(cycle_ok(item) for item in cycles)
             and (negative is None or (negative['phase'] == 'FAILED'
                                       and not negative['allowed']
                                       and negative['lease_after'] == negative['lease_before']
@@ -407,7 +594,8 @@ def main(argv=None):
         stop_feed.set() if 'stop_feed' in locals() else None
         for subscription in callbacks:
             subscription.unregister()
-        for process in (gate, a6, bridge, ndt, gazebo, master):
+        for process in ([gate, a6, consensus_gate_proc, bridge, ndt] + bbs_nodes
+                        + [gazebo, master]):
             stop(process)
 
 

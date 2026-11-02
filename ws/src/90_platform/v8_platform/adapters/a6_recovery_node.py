@@ -26,6 +26,10 @@ def main(argv=None):
     parser.add_argument('--relocalize-service-type', choices=('empty', 'trigger'),
                         default='empty')
     parser.add_argument('--score-min', type=float, default=0.5)
+    parser.add_argument('--require-candidate-source', default='',
+                        help='reject candidates whose JSON source differs (e.g. bbs_consensus)')
+    parser.add_argument('--max-agreement-m', type=float, default=0.,
+                        help='reject candidates with agreement_m above this (0 disables)')
     parser.add_argument('--deadline-s', type=float, default=5.0)
     parser.add_argument('--timeout-s', type=float, default=0.25)
     parser.add_argument('--bounds', default='-100,100,-100,100')
@@ -90,10 +94,24 @@ def main(argv=None):
             score = float(payload['score'])
             yaw = payload.get('yaw')
             yaw = None if yaw is None else float(yaw)
+            source = payload.get('source')
+            agreement = payload.get('agreement_m')
         except (ValueError, KeyError, TypeError, IndexError):
             return
         if yaw is not None and not math.isfinite(yaw):
             return
+        if args.require_candidate_source and source != args.require_candidate_source:
+            rospy.logwarn('candidate rejected source=%s required=%s', source,
+                          args.require_candidate_source)
+            return
+        if args.max_agreement_m > 0:
+            try:
+                if agreement is None or float(agreement) > args.max_agreement_m:
+                    rospy.logwarn('candidate rejected agreement=%s max=%.3f',
+                                  agreement, args.max_agreement_m)
+                    return
+            except (TypeError, ValueError):
+                return
         with lock:
             last_candidate_yaw[0] = yaw
             accepted = supervisor.offer_candidate(pose, score, time.monotonic())
