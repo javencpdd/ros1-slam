@@ -242,20 +242,64 @@ docker compose exec sim bash /opt/ros1-slam/docker/build.sh --slim
 
 ### 4.4 跑起来
 
+> **命令读法（先看，能避免大半误会）**
+> 1. **每个代码块只做一件事**；标了 `终端 A/B/C` 的必须**另开 shell**，不要合并粘贴。
+> 2. `docker compose exec ... sim.sh smoke`、`sim.sh gazebo`、`gzclient`、`rviz-*` 都是**前台阻塞**：
+>    跑起来会占住当前终端；关窗或 Ctrl+C 才返回，后面的命令不会自动执行。
+> 3. `cd` 统一用绝对路径；已经在该目录时重复执行也无害。
+> 4. 先 `probe`，看到端口/模型/插件全 OK 再跑 `smoke`；不要跳过自检。
+
+#### 4.4.0 无头跑（推荐用于判据）
+
+**① 首次构建并启动 `sim`**
+
 ```bash
 cd /home/jack/ysc-code/ros1-slam/docker
-# ★ sim 与 sim-viz 共用 11313/11345，一次只能起一个。
-#   先确认 viz 已停；否则会报 "Bind for 0.0.0.0:11313 failed: port is already allocated"。
+
+# sim 与 sim-viz 共用 11313/11345：先停 viz
 docker compose --profile viz stop sim-viz 2>/dev/null || true
-# ★ 必须显式写服务名 sim：不带 profiles 的 roscore/slam 会被一起拉起，
-#   而 slam 与 sim 共用命名卷 ros1_ws_devel（一份 devel 两处写会互相覆盖）
+
+# 必须显式写服务名 sim；首次用 --build，之后改成 --no-build
 docker compose --profile sim up -d --build sim
-docker compose exec sim bash /opt/ros1-slam/docker/sim.sh probe    # 先自检
-docker compose exec sim bash /opt/ros1-slam/docker/sim.sh smoke stageA
-docker compose exec sim bash /opt/ros1-slam/docker/sim.sh gazebo   # 只起场地看日志
 ```
 
-镜像已经构建过时用 `--no-build` 跳过重建。若容器显示 `Up` 但 `docker port ros1-slam-sim`
+**② 自检 `probe`**（单次执行，几秒）
+
+```bash
+docker compose exec sim bash /opt/ros1-slam/docker/sim.sh probe
+```
+
+成功时应看到 `=== 仿真环境自检 ===`，最后一行是：
+
+```text
+11311/11312/11313/11345 均无监听 ✔
+```
+
+并且模型、`liblite3_planar_drive.so`、`liblivox_laser_simulation.so` 都在。
+**任何一项 NOT OK 或缺失，先修它，不要继续跑 smoke。**
+
+**③ Stage A 冒烟**（前台阻塞约 2 分钟，是本块最后一条命令）
+
+```bash
+docker compose exec sim bash /opt/ros1-slam/docker/sim.sh smoke stageA
+```
+
+成功时应看到：
+
+```text
+SUMMARY marks pass=11 fail=0
+M2 SMOKE: PASS
+```
+
+**④ 只看场地（可选，单独执行；它会保持 Gazebo 运行）**
+
+```bash
+docker compose exec sim bash /opt/ros1-slam/docker/sim.sh gazebo
+```
+
+> 不要把 ③ 和 ④ 连续放在同一个终端里：两者都会启动/占用 Gazebo；要换场景先 Ctrl+C 停掉当前进程。
+
+镜像已经构建过时，把 ① 的 `--build` 改成 `--no-build` 跳过重建。若容器显示 `Up` 但 `docker port ros1-slam-sim`
 为空（上一次端口冲突留下的半成品网络），重建一次即可：
 
 ```bash
@@ -337,7 +381,7 @@ docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh check      # 先�
 gzclient/rviz 是否就位、当前话题。**renderer 那行拿不到值就先修 X，别急着起 GUI。**
 
 仿真就在 `sim-viz` 里起，**不要另起 `sim`**（否则端口冲突）。`sim.sh smoke` 与 `gzclient` / `rviz-*`
-都是**前台阻塞**进程，必须分终端跑：
+都是**前台阻塞**进程，下面三块请**分别打开 shell**执行，不要整块复制成一条命令：
 
 ```bash
 # 终端 A：先跑链（会启动 Gazebo，约 2 分钟；看到 SMOKE start 再开 GUI）
