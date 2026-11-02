@@ -13,6 +13,7 @@
 | `app_config.py` / `app_runner.py` | 读 `navigation_app/v1` YAML＋地图 registry＋task；dry-run 或真实起 roscore/Gazebo/Assembly/viz，检查 `assembly_ready`/`map_configured`/`global_path`/`local_arrived`/`carrier_at_local_goal`/`markers_published` |
 | `map_registry.py` | `data/maps/registry.json` 的 map_id/version→path/sha 解析；防止 ID/版本/哈希漂移 |
 | `map_from_pcd.py` | 离线把 faster_lio/记录器 PCD 转 support_map；生成 app/task 并登记 registry（R1119） |
+| `inflate_support_map.py` | 把声明支撑面轮廓 XY 外扩指定 margin 并登记导航变体，消除台阶交叠死带（R1121） |
 | `surface_resolver.py` | x/y-only 任务自动补 start/goal z；`surface_hint` 优先、z 最近面、歧义显式 `E_SURFACE_AMBIGUOUS`；点选 `pick_goal` |
 | `operator_surface_picker.py` | RViz `/clicked_point` → 选面 → goal/status；歧义返回候选 |
 | `support_map_viz.py` / `nav3d_viz_node.py` / `fixtures/rviz/nav3d.rviz` | support_map MarkerArray、全局/局部 Path、起终点/位姿 Marker |
@@ -21,9 +22,10 @@
 
 - 一键 app：`fixtures/apps/nist_sensor_3d.yaml`（carrier）与 `..._lio.yaml`；任务 `fixtures/tasks/nist_sensor_top.json`。
 - 交互式 3D：`app_runner.py ... --execute --interactive --rviz`；RViz Publish Point 点 support surface，`operator_surface_picker` 解析面并发 goal；Ctrl+C 收尾。2D 交互入口见 `lite3_gazebo_sim/launch/interactive_2d.launch`。
-- 自建图（R1119）：`map_from_pcd.py --pcd <mapped.pcd> --map-id <id> --version 1 --write-app --register` 生成 support_map/app/task；生成的 app 用 `graph_3d_gazebo_app_mapped.yaml` + `app_world.launch`（仿真 wall watchdog 30 s / validity 20 s），`app_runner.py --execute --interactive --rviz` 直接消费。完整建图命令见 `docker/README.md` §4.7。
-- R1103：6/6 checks、25 全局点、17 Marker，载体到本地目标 `.138 m`；R1104：移动 GT/LIO rigid `.0095/.0158 m`；R1112：全局路径→MuJoCo 四足 2/2；R1119：GT 位姿建图 72,762 点→单面支撑图→3D 路径 31 点到达。
-- 测试：`test_navigation_app` 17/17、`test_localization_compare` 2/2；边界：kinematic/Gazebo 夹具，不是真机。
+- 自建图（R1119）：`map_from_pcd.py --pcd <mapped.pcd> --map-id <id> --version 1 --write-app --register` 生成 support_map/app/task；生成的 app 用 `graph_3d_gazebo_app_mapped.yaml` + `app_world.launch`（仿真 wall watchdog 90 s / validity 20 s），`app_runner.py --execute --interactive --rviz` 直接消费。完整建图命令见 `docker/README.md` §4.7。
+- 声明楼梯图（R1121）：`inflate_support_map.py --margin .20` 生成导航变体；局部规划器把声明 step/slope 的下一踏面当可跨越边界（仅靠边、机器人尺寸可容纳；真低顶仍拒绝），app 实际到达 step5。
+- R1103：6/6 checks、25 全局点、17 Marker，载体到本地目标 `.138 m`；R1104：移动 GT/LIO rigid `.0095/.0158 m`；R1112：全局路径→MuJoCo 四足 2/2；R1119：GT 位姿建图 72,762 点→单面支撑图→3D 路径 31 点到达；R1121：NIST 楼梯全局 39 点→step5、局部 arrived、六项 checks 全 true。
+- 测试：`test_navigation_app` 18/18、`test_localization_compare` 2/2；边界：kinematic/Gazebo 夹具，不是真机。
 
 ## 1. 组件清单 + 图 YAML
 

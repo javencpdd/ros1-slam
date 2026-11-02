@@ -644,13 +644,13 @@ docker compose exec sim-viz bash -lc '
     --out /tmp/mapped_nav.json'
 ```
 RViz 里 **Publish Point** 点自建支撑面，3D 全局/局部路径由 `/v8/3d/...` 发布；
-自建图使用 `graph_3d_gazebo_app_mapped.yaml`（仿真 wall watchdog 放宽到 30 s，
+自建图使用 `graph_3d_gazebo_app_mapped.yaml`（仿真 wall watchdog 放宽到 90 s，
 避免慢 RTF 下局部规划先于仿真有效期超时）。
 
 边界：建图是 Gazebo GT 位姿 + 仿真 LiDAR，不是 LIO/SLAM、不是物理四足、不是真机；
 自建图仍走 `app_carrier` 运动学载体，导航结论不能当 A1—A7 formal。
 
-#### 4.8 导入开放数据集世界（NIST）：建图可，楼梯导航未闭环
+#### 4.8 导入开放数据集世界（NIST）：建图可，楼梯导航已打通
 
 现有导入件 `open_data_import.py` 已把 NIST 世界落到 `data/imports/venue_nist_dataset/`；
 本仓还有缩放版世界 `ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world`
@@ -679,12 +679,35 @@ python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
   --model-path data/maps/worlds
 ```
 
-**现状（R1120，必须直说）**：地面键盘遥操上不了 .198 m 踏步，点云只看到下三层
-（z 0—0.525），自建 support_map 是 7 个重叠碎面；自建图目标会触发
-`E_LOCAL_CLEARANCE`，声明图 `nist_stairs_120@1` 也会在起点/地平段触发
-`E_LOCAL_SUPPORT`/`E_LOCAL_NO_ROUTE`。**导入世界 + 键盘建图 + RViz 3D 点云已通；
-楼梯导航未闭环**。平层 m1 的 §4.7 仍是可用的端到端链。下一步需要模型感知的
-地面/踏步分割 + 自遮挡过滤 + 局部踏步执行，或按 `gazebo3d_mapping.py` 的 survey 位姿上踏步采集。
+4. **跑声明 NIST 楼梯导航（R1121；不需要先建图）**
+```bash
+# 宿主机：把声明支撑面轮廓 XY 各外扩 .20 m，消除台阶交叠死带并登记 registry
+cd /home/jack/ysc-code/ros1-slam
+python3 -B ws/src/90_platform/v8_platform/framework/inflate_support_map.py \
+  --map data/maps/nist_stairs_120_s020x170_support.json \
+  --out data/maps/generated/nist_stairs_120_nav_v1.json \
+  --map-id nist_stairs_120_nav --version 1 --margin .20 --register
+
+# 容器：app_runner 自起 master 11537 / Gazebo 11538 / RViz
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  cd /opt/ros1-slam
+  python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+    --app data/maps/generated/nist_stairs_120_nav_v1_app.yaml \
+    --execute --interactive --rviz \
+    --out /tmp/nist_stair_nav.json'
+```
+RViz 里 **Publish Point** 点 step5 顶面（`0, 1.34, 0.890358`）。R1121 读数：
+全局 **39 点**、载体 `(0.075,1.275,0.890358)`、局部 `reason=arrived`、
+app 六项 checks 全 true、到局部目标 **1.26e-6 m**。局部规划 `plan_ms` 到达时
+4.1 ms、最大 907 ms。
+
+**边界（必须直说）**：
+- 执行载体是 **Gazebo ODE 运动学箱体 `app_carrier`**，不是四足物理步态/真机，不是 A1—A7 formal。
+- 楼梯图是**声明支撑面 + 外扩**，不是本次地面键盘建图直接产出的完整楼梯图；R1120 的
+  “地面键盘只看到下三层（z 0—0.525）、自建图 7 个碎面”仍是建图采集侧的边界。
+- 平层 m1 的 §4.7 链不受影响；导入世界 + 键盘建图 + RViz 3D 点云仍按 R1120 的步骤使用。
 
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 

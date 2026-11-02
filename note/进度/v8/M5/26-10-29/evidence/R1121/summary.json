@@ -1,0 +1,81 @@
+{
+ "record": "R1121",
+ "date": "2026-11-02",
+ "container": "ros1-slam-sim-viz",
+ "code": "c37a59a1",
+ "change": "declared NIST stair navigation reaches step5 with app_carrier",
+ "map": {
+  "id": "nist_stairs_120_nav",
+  "version": 1,
+  "path": "data/maps/generated/nist_stairs_120_nav_v1.json",
+  "sha256": "192d69fdcbcbea7903bb2b9d0629e8d76ef48a21a488e48e9017c3d0336bfbf0",
+  "source": "data/maps/nist_stairs_120_s020x170_support.json",
+  "margin_m": 0.20,
+  "surfaces": 6,
+  "levels": [0.0, 0.198798, 0.371688, 0.544578, 0.717468, 0.890358]
+ },
+ "task": {
+  "start": [0.0, -2.3, 0.0],
+  "goal": [0.0, 1.34, 0.890358],
+  "goal_surface": "step5"
+ },
+ "local_config": {
+  "resolution": 0.30,
+  "tick_s": 1.20,
+  "horizon_s": 6.0,
+  "max_speed_mps": 0.6,
+  "max_step_m": 0.30,
+  "max_slope_deg": 35.0,
+  "radius_m": 0.15,
+  "height_m": 0.35,
+  "clearance_m": 0.10,
+  "wall_watchdog_s": 90.0
+ },
+ "run": {
+  "command": "app_runner.py --app nist_stairs_120_nav_v1_app.yaml --execute --interactive --rviz",
+  "master": 11537,
+  "gazebo_master": 11538,
+  "global_status": {"ok": true, "points": 39, "expansions": 1200, "goal": [0.0, 1.34, 0.890358], "map_version": 1},
+  "carrier_status": {"position": [0.075000138861038, 1.2750012497482859, 0.890358], "velocity": [0.0, 0.0, 0.0], "surfaces": 6},
+  "local_at_arrival": {"reason": "hold", "stop": true, "plan_ms": 4.061, "plan_ms_max": 907.454, "wall_watchdog_s": 90.0},
+  "trajectory": {"reason": "arrived", "surfaces": ["step5", "step5"], "points": 2, "checker_ok": true, "checker_violations": 0},
+  "final_checks": {
+   "assembly_ready": true,
+   "markers_published": true,
+   "map_configured": true,
+   "global_path": true,
+   "local_arrived": true,
+   "carrier_at_local_goal": true
+  },
+  "carrier_distance_to_local_goal_m": 1.2574391302003592e-06,
+  "carrier_z_error_m": 0.0,
+  "markers": 17,
+  "post_arrival_note": "final.json local_status_tail=E_LOCAL_CLOCK after the 90 s wall watchdog; trajectory.reason=arrived and carrier remained 1.26e-6 m from the local goal. local_at_arrival.txt is the pre-watchdog hold reading.",
+  "second_run": "full_run_2.json: ok=true, same six checks, local trajectory arrived, carrier (0.07500000549706314,1.2750000494735951,0.890358)"
+ },
+ "evidence_files": {
+  "screenshot": "screenshot.png (1400x900, Gazebo stair world + RViz support slabs, global/local paths)",
+  "global": "global.txt",
+  "carrier": "carrier.txt",
+  "local_at_arrival": "local_at_arrival.txt",
+  "trajectory": "trajectory.txt",
+  "markers": "markers.txt",
+  "final_json": "final.json",
+  "full_run_2_json": "full_run_2.json"
+ },
+ "tests": {
+  "local_planner": "63/63",
+  "validator": "27/27",
+  "test_navigation_app": "18/18",
+  "test_a5_cross_layer_runtime": "4/4",
+  "representation": "74/74",
+  "test_sim_pose": "4/4"
+ },
+ "code_changes": [
+  "local_native: direct step/slope targets near a footprint edge are traversable, body-sized only; true low roofs still refuse",
+  "trajectory_checker: same step-edge exemption with max_step_height; true overhang counterexample retained",
+  "inflate_support_map: XY footprint margin and registry registration",
+  "local_native_app_mapped.yaml: tick 1.2 s, max_step 0.30 m, watchdog 90 s"
+ ],
+ "boundary": "Gazebo classic ODE kinematic carrier (app_carrier), not quadruped physics gait and not real robot; not A1-A7 formal; NIST asset is an imported fixture without a declared license in-file; no physical stair-climbing claim."
+}

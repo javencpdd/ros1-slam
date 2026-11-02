@@ -38,7 +38,7 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 
 本 README 是新建件（文档批次）：包内此前无 README，内容以上表为准；进度与证据不在本目录，见 `note/进度/`。
 
-## 交互式与自建图入口（R1116—R1119）
+## 交互式与自建图入口（R1116—R1121）
 
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
@@ -53,6 +53,12 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 - 边界：R1119 是**仿真 GT 位姿建图**，不是 LIO/SLAM；自建图目前是一层平地支撑面，
   导航载体是 `app_carrier` 运动学箱体，不是四足物理步态/真机。
 - **导入 NIST 世界（R1120）**：`m2_gazebo.launch world:=... model_path:=... spawn_*:=...`
-  可带 Lite3 进导入世界；键盘采点/RViz 3D 点云可跑，但地面遥操看不到上层踏步，
-  自建图/声明图的楼梯导航仍 `E_LOCAL_CLEARANCE`/`E_LOCAL_SUPPORT`/`E_LOCAL_NO_ROUTE`，
-  **未闭环**；平层 m1 的 §4.7 才是当前端到端链。详见 `docker/README.md` §4.8。
+  可带 Lite3 进导入世界；键盘采点/RViz 3D 点云可跑，但地面遥操看不到上层踏步。
+- **声明 NIST 楼梯导航（R1121）**：对声明图跑 `inflate_support_map.py --margin .20`
+  生成 `nist_stairs_120_nav@1`，再用 `app_runner.py --app
+  .../nist_stairs_120_nav_v1_app.yaml --execute --interactive --rviz`；
+  点 step5 后全局 39 点、局部 `arrived`、载体 `(0.075,1.275,0.890358)`，app 六项 checks 全 true。
+  局部规划把声明台阶的下一踏面当可跨越边界（真低顶仍拒绝），并把 tick 调到 1.2 s、
+  max_step .30 m、wall watchdog 90 s。详见 `docker/README.md` §4.8。
+- 边界：R1121 仍是 `app_carrier` 运动学箱体 + 声明支撑面外扩，不是键盘建图直接产出的
+  完整楼梯图、不是四足物理步态/真机；平层 m1 的 §4.7 链不受影响。

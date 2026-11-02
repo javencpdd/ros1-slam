@@ -1,0 +1,58 @@
+# R1121 复现命令（容器 ros1-slam-sim-viz；宿主机仓根 /home/jack/ysc-code/ros1-slam，
+# 容器内挂载点 /opt/ros1-slam）
+
+# 1) 生成导航变体：把声明 NIST 支撑面轮廓 XY 各外扩 0.20 m，消除台阶交叠死带
+#    输入 data/maps/nist_stairs_120_s020x170_support.json（6 面，声明图）
+#    输出 data/maps/generated/nist_stairs_120_nav_v1.json 并写 registry
+cd /opt/ros1-slam
+python3 -B ws/src/90_platform/v8_platform/framework/inflate_support_map.py \
+  --map data/maps/nist_stairs_120_s020x170_support.json \
+  --out data/maps/generated/nist_stairs_120_nav_v1.json \
+  --map-id nist_stairs_120_nav --version 1 --margin .20 --register
+# 读数：surfaces=6；sha256=192d69fdcbcbea7903bb2b9d0629e8d76ef48a21a488e48e9017c3d0336bfbf0
+
+# 2) 起 3D 交互 app（app_runner 自起 master 11537 / Gazebo 11538 / RViz）
+#    app 内 world_launch=app_world.launch，world=nist_stairs_120_s020x170.world，
+#    model_path=data/maps/worlds；载体 app_carrier 出生 (0,-2.3,0)
+cd /opt/ros1-slam
+source /opt/ros/noetic/setup.bash
+python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+  --app data/maps/generated/nist_stairs_120_nav_v1_app.yaml \
+  --execute --interactive --rviz --out /tmp/nist_stair_final.json
+# 终端打印 INTERACTIVE_READY start=(0.0, -2.3, 0.0)
+# 在 RViz 用 Publish Point 点 step5 顶面：goal=(0, 1.34, 0.890358)
+
+# 3) 取读数（app master 默认 11537；不是 docker sim 的 11313）
+docker exec ros1-slam-sim-viz bash -lc \
+  'source /opt/ros/noetic/setup.bash; export ROS_MASTER_URI=http://127.0.0.1:11537;
+   rostopic echo -n1 /v8/3d/global/status;
+   rostopic echo -n1 /v8/3d/carrier/status;
+   rostopic echo -n1 /v8/local/status;
+   rostopic echo -n1 /v8/local/trajectory;
+   rostopic echo -n1 /v8/support_markers'
+
+# 4) 到达后收口：SIGTERM app_runner，等待 app_runner 写 JSON 并回收子进程
+docker exec ros1-slam-sim-viz bash -lc 'kill -TERM 198643'
+docker exec ros1-slam-sim-viz cat /tmp/nist_stair_final.json
+# 读数：ok=true；checks 六项全 true；carrier=(0.075000138861038,1.2750012497482859,0.890358)；
+#       carrier_distance_to_local_goal_m=1.2574391302003592e-06；z_error=0.0
+
+# 5) 测试
+cd /home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/local_planner
+python3 -B -m unittest discover -p 'test_*.py'                                  # 63/63
+cd /home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/validator
+python3 -B -m unittest discover -p 'test_*.py'                                  # 27/27
+cd /home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework
+python3 -B -m unittest test_navigation_app                                      # 18/18
+cd /home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/regression
+python3 -B -m unittest test_a5_cross_layer_runtime                              # 4/4
+cd /home/jack/ysc-code/ros1-slam
+python3 -B -m unittest discover -s ws/src/90_platform/v8_platform/representation -p 'test_*.py'  # 74/74
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/test_sim_pose.py       # 4/4
+
+# 6) 说明
+# - app_runner 的 interactive 模式只记录读数，不自动判到达；JSON 的 checks 在
+#   SIGTERM 后按最后一帧 trajectory/carrier 计算。本次 final.json 的
+#   local_status_tail 为 E_LOCAL_CLOCK，是到达后 90 s wall watchdog 的结果；
+#   local_at_arrival.txt 记录到达时的 hold，trajectory.reason=arrived。
+# - full_run_2.json 是同配置的第二次完整交互运行（另一份 JSON 读数）。
