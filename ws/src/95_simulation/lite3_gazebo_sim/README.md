@@ -51,6 +51,11 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 spawn/delete 模型，不换 world，也不更新静态导航图。`stair_lab_*.world` 是 **Gazebo SDF 场景库**，
 不是 MuJoCo 地图，也不是导航 support_map；MuJoCo 走 MJCF/`make_stairs_xml` 生成链，不加载这些 world。
 
+**NIST 链定位**：`nist_stairs_120_s020x170.world` + `nist_stairs_120_nav@1` + `app_runner` 是
+**formal 前的受控回归/集成夹具**，用于验证局部台阶语义、地图死带、goal 选面、TF 和 3D 栈集成；
+它**不签 A1—A7 formal**，也不代表四足物理步态或真机。R1121 的 39 点到 step5 是这条夹具的
+scoped 读数，不是 formal/物理成功率。
+
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
 - **3D 交互（预生成图）**：`app_runner.py --app .../nist_sensor_3d.yaml --execute --interactive --rviz`；
