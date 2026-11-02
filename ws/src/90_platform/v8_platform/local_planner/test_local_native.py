@@ -229,6 +229,23 @@ class NativeTests(unittest.TestCase):
         self.assertGreater(max(abs(p[1]) for p in result['trajectory']), 0.)
         self.assertTrue(evaluate.evaluate(value, result, [])['ok'])
 
+    def test_step_edge_with_small_footprint_overlap_is_traversable(self):
+        value = support_map.build_support_map(
+            'dead_band', .2, [-2., -2., 0.],
+            [{'surface_id': 'ground', 'z_reference': 0., 'data_uri': 'fixture://ground',
+              'footprint': {'min_x': -2., 'max_x': 0., 'min_y': -1., 'max_y': 1.},
+              'edges': [{'to': 'step1', 'kind': 'step', 'max_step_height_m': .198,
+                         'bidirectional': True}]},
+             {'surface_id': 'step1', 'z_reference': .198, 'data_uri': 'fixture://step1',
+              'footprint': {'min_x': -.05, 'max_x': 3., 'min_y': -1., 'max_y': 1.}, 'edges': []}],
+            None, {'uri': 'fixture://dead_band', 'sha256': 'a' * 64})
+        config = replace(native.Config(), tick_s=1.2, max_step_m=.3, validity_s=2.)
+        result = native.plan(value, (-.3, 0., 0.), (.5, 0., .198), config=config)
+        self.assertEqual(result['reason'], 'arrived')
+        self.assertIn('step1', result['surfaces'])
+        self.assertEqual(result['trajectory'][-1][2], .198)
+        self.assertTrue(evaluate.evaluate(value, result, [])['ok'])
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

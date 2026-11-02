@@ -89,6 +89,32 @@ def _obstacles(values):
     return out
 
 
+def _near_boundary(surface, point, band):
+    box = surface['footprint']
+    distance = min(abs(point[0] - box['min_x']), abs(point[0] - box['max_x']),
+                   abs(point[1] - box['min_y']), abs(point[1] - box['max_y']))
+    return distance <= band + 1e-9
+
+
+def _steppable_surfaces(surfaces, start_id, max_step, max_slope, radius):
+    """Direct step/slope targets that the current robot limits can traverse."""
+    if start_id not in surfaces:
+        return set()
+    result = set()
+    for edge in surfaces[start_id].get('edges', []):
+        kind, target = edge.get('kind'), edge.get('to')
+        if target not in surfaces:
+            continue
+        box = surfaces[target]['footprint']
+        if min(box['max_x'] - box['min_x'], box['max_y'] - box['min_y']) <= 2 * radius + 1e-9:
+            continue
+        if kind == 'step' and edge.get('max_step_height_m', 0.) <= max_step + 1e-9:
+            result.add(target)
+        elif kind == 'slope' and edge.get('max_slope_deg', 0.) <= max_slope + 1e-9:
+            result.add(target)
+    return result
+
+
 def _swept_hit(a, b, obstacle, config):
     """Exact segment/linearly moving inflated AABB intersection, including time.
 
@@ -152,8 +178,14 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
             if edge['bidirectional']:
                 allowed.add((edge['to'], surface['surface_id']))
     transfer = source != target and (source, target) in allowed
+    by_id = {surface['surface_id']: surface for surface in map_value['surfaces']}
+    steppable = _steppable_surfaces(by_id, source, config.max_step_m,
+                                    config.max_slope_deg, config.radius_m)
     for surface in map_value['surfaces']:
         if transfer and surface['surface_id'] in (source, target):
+            continue
+        if (surface['surface_id'] in steppable and surface['surface_id'] != source
+                and _near_boundary(surface, b, config.radius_m + config.clearance_m)):
             continue
         if source == target == surface['surface_id'] and all(
                 abs(p[2] - surface['z_reference']) <= SUPPORT_TOL_S for p in (a, b)):
@@ -284,7 +316,10 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
 
     def safe_ceiling(point, current_sid=None):
         padding = config.radius_m + config.clearance_m
+        steppable = (_steppable_surfaces(surfaces, current_sid, max_step, max_slope, config.radius_m)
+                     if current_sid is not None else set())
         return not any(not (s['surface_id'] == current_sid and abs(point[2] - s['z_reference']) <= SUPPORT_TOL_S)
+                       and not (s['surface_id'] in steppable and _near_boundary(s, point, padding))
                        and inside(s, point, margin=-padding)
                        and point[2] + SUPPORT_TOL_S < s['z_reference']
                        and s['z_reference'] - s.get('thickness_m', 0.) - point[2] < required_ceiling
@@ -332,10 +367,16 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     def static_collision(a, b, source, target):
         # Explicit support-edge transfers are authorized contact transitions,
         # not a permission to cross any unrelated slab. Same-surface motion
-        # must clear every overlying slab along the complete swept body.
+        # must clear every overlying slab along the complete swept body, except
+        # the next tread of a declared step/slope edge (the stair approach).
         contact_transfer = source != target and (source, target) in allowed
+        steppable = _steppable_surfaces(surfaces, source, max_step, max_slope,
+                                        config.radius_m)
         for surface in map_value['surfaces']:
             if contact_transfer and surface['surface_id'] in (source, target):
+                continue
+            if (surface['surface_id'] in steppable and surface['surface_id'] != source
+                    and _near_boundary(surface, b, required_ceiling)):
                 continue
             top = surface['z_reference']
             if top <= min(a[2], b[2]) + SUPPORT_TOL_S:
@@ -475,7 +516,8 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     try:
         verdict = checker.check(map_value, points, z_tol=SUPPORT_TOL_S, min_clearance=required_ceiling,
                                 max_step=config.max_speed_mps * config.tick_s + 1e-9,
-                                time_budget=config.horizon_s, expected_map_version=map_value['map_version'])
+                                time_budget=config.horizon_s, expected_map_version=map_value['map_version'],
+                                max_step_height=config.max_step_m)
     except checker.CheckerError as error:
         raise LocalError('E_LOCAL_CHECKER', str(error))
     if not verdict['ok']:

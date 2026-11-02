@@ -9,6 +9,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / 'contracts'))
 sys.path.insert(0, str(HERE.parent / 'planner'))
 import app_config
+import inflate_support_map
 import map_registry
 import surface_resolver
 import support_map_viz
@@ -88,6 +89,23 @@ class RegistryTests(unittest.TestCase):
         registry = map_registry.load_registry()
         with self.assertRaises(map_registry.RegistryError):
             map_registry.resolve_entry(registry, 'nist_sensor', 99)
+
+
+class InflateTests(unittest.TestCase):
+    def test_margin_widens_every_footprint_without_mutating_source(self):
+        fixture = json.loads((HERE.parent / 'contracts' / 'fixtures'
+                              / 'map_ml_two_surfaces.json').read_text())
+        before = json.loads(json.dumps(fixture))
+        inflated = inflate_support_map.inflate_map(fixture, 'two_inflated', 2, .2)
+        self.assertEqual(fixture, before)
+        self.assertEqual((inflated['map_id'], inflated['map_version']),
+                         ('two_inflated', 2))
+        self.assertEqual(inflated['source'], fixture['source'])
+        for source, widened in zip(fixture['surfaces'], inflated['surfaces']):
+            self.assertAlmostEqual(widened['footprint']['min_x'],
+                                   source['footprint']['min_x'] - .2)
+            self.assertAlmostEqual(widened['footprint']['max_y'],
+                                   source['footprint']['max_y'] + .2)
 
 
 class AppTests(unittest.TestCase):

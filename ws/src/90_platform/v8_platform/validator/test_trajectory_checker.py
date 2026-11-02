@@ -61,6 +61,24 @@ class CheckerTests(unittest.TestCase):
         self.assertFalse(rejected['ok'])
         self.assertIn('E_TRAJ_CLEARANCE', {v[0] for v in rejected['violations']})
 
+    def test_step_target_near_edge_is_traversable_but_true_low_roof_is_not(self):
+        value = rep.build_support_map(
+            'stair_edge', .1, [-4., -4., 0.],
+            [{'surface_id': 'ground', 'z_reference': 0., 'data_uri': 'g',
+              'footprint': {'min_x': -4., 'min_y': -1., 'max_x': 4., 'max_y': 1.},
+              'edges': [{'to': 'step1', 'kind': 'step', 'max_step_height_m': .198,
+                         'bidirectional': True}]},
+             {'surface_id': 'step1', 'z_reference': .198, 'data_uri': 's',
+              'footprint': {'min_x': -.05, 'min_y': -1., 'max_x': 4., 'max_y': 1.},
+              'edges': [{'to': 'ground', 'kind': 'step', 'max_step_height_m': .198,
+                         'bidirectional': True}]}], None, SOURCE)
+        approach = [(-.3, 0., 0.), (-.1, 0., 0.), (-.04, 0., .198)]
+        self.assertTrue(chk.check(value, approach, min_clearance=.45)['ok'])
+        # The same tread farther from its edge is a genuine overhang, not a stair.
+        rejected = chk.check(value, [(.4, 0., 0.)], min_clearance=.45)
+        self.assertFalse(rejected['ok'])
+        self.assertIn('E_TRAJ_CLEARANCE', {v[0] for v in rejected['violations']})
+
     def test_planner_output_passes(self):
         """全链：V8-09 规划器路径→检查器通过（支撑/净空/连续安全齐）。"""
         value = floors()

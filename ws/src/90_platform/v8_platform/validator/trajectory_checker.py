@@ -32,7 +32,8 @@ class CheckerError(Exception):
 
 
 def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
-          time_budget=None, resolution=None, expected_map_version=None):
+          time_budget=None, resolution=None, expected_map_version=None,
+          max_step_height=0.2):
     """trajectory＝[(x, y, z[, t]), ...]；返回 {'ok', 'violations', 'checked_points'}。
 
     ok=False 时 violations 逐条 (code, index, detail)——被拒轨迹不算规划成功（A5 面），
@@ -62,6 +63,29 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
             if e['bidirectional']:
                 edges.add((e['to'], s['surface_id']))
 
+    surface_by_id = {s['surface_id']: s for s in surfaces}
+
+    def steppable(start_id):
+        current = surface_by_id.get(start_id)
+        if current is None:
+            return set()
+        result = set()
+        for edge in current.get('edges', []):
+            target = surface_by_id.get(edge.get('to'))
+            if target is None:
+                continue
+            if (edge.get('kind') == 'step'
+                    and edge.get('max_step_height_m', 0.) <= max_step_height + 1e-9):
+                result.add(target['surface_id'])
+            elif edge.get('kind') == 'slope':
+                result.add(target['surface_id'])
+        return result
+
+    def boundary_distance(surface, x, y):
+        box = surface['footprint']
+        return min(abs(x - box['min_x']), abs(x - box['max_x']),
+                   abs(y - box['min_y']), abs(y - box['max_y']))
+
     def surface_at(x, y, z):
         for s in surfaces:
             fp = s['footprint']
@@ -87,10 +111,14 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
             column = rep.column_at(map_value, x, y)
             # A point already resolved to this support may be a sub-micrometre
             # below its reference. That same support is not a ceiling. Keep
-            # every OTHER layer, and do not use the broad default z_tol=.1 as
-            # permission to erase a genuinely low roof.
+            # every OTHER layer, except the next tread of an explicitly
+            # declared step/slope edge: a stair tread is traversable, not a
+            # low ceiling. Unconnected low roofs are still rejected.
+            step_targets = steppable(surface['surface_id'])
             above = [h for h in column.heights() if h > z + 1e-9 and not (
-                column.surface_at(h) == surface['surface_id'] and abs(h - z) <= min(z_tol, 1e-6))]
+                column.surface_at(h) == surface['surface_id'] and abs(h - z) <= min(z_tol, 1e-6))
+                and not (column.surface_at(h) in step_targets
+                         and boundary_distance(surface_by_id[column.surface_at(h)], x, y) <= 0.30 + 1e-9)]
             clearance = min(above) - z if above else None
             if clearance is not None and clearance < min_clearance:
                 violations.append(('E_TRAJ_CLEARANCE', index,
