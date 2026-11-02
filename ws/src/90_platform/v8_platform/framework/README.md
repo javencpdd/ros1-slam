@@ -19,6 +19,7 @@
 | `localization_node.py` / `localization_compare.py` | sim_gt/faster_lio/ndt 源；NDT `navigation_allowed=false`；GT-LIO 的 raw/translated/rigid 误差与 receipt/stamp 对齐 |
 
 - 一键 app：`fixtures/apps/nist_sensor_3d.yaml`（carrier）与 `..._lio.yaml`；任务 `fixtures/tasks/nist_sensor_top.json`。
+- 交互式 3D：`app_runner.py ... --execute --interactive --rviz`；RViz Publish Point 点 support surface，`operator_surface_picker` 解析面并发 goal；Ctrl+C 收尾。2D 交互入口见 `lite3_gazebo_sim/launch/interactive_2d.launch`。
 - R1103：6/6 checks、25 全局点、17 Marker，载体到本地目标 `.138 m`；R1104：移动 GT/LIO rigid `.0095/.0158 m`；R1112：全局路径→MuJoCo 四足 2/2。
 - 测试：`test_navigation_app` 17/17、`test_localization_compare` 2/2；边界：kinematic/Gazebo 夹具，不是真机。
 

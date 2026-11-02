@@ -65,7 +65,8 @@ def _terminate(proc, group=False):
             pass
 
 
-def execute(app_path, out_path, port, with_gazebo, gui, timeout_s):
+def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
+            interactive=False, rviz=False):
     resolved = app_config.load_app(app_path)
     task = resolved['task_resolved']
     app = resolved['app']
@@ -83,13 +84,18 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s):
                               stderr=subprocess.STDOUT, env=dict(os.environ))
     gazebo = None
     viz = None
+    picker = None
+    rviz_proc = None
     assembly = None
+    old_handlers = {}
+    stop_requested = {'value': False}
     result = {'scope': 'navigation_app_execute', 'app': str(resolved['app_path']),
               'ok': False, 'map': {'id': resolved['map_entry']['map_id'],
                                    'version': resolved['map_entry']['version'],
                                    'path': str(resolved['map_path']),
                                    'sha256': resolved['map_sha256']},
               'task_resolved': task, 'start': list(start), 'goal': list(goal),
+              'interactive': bool(interactive), 'rviz': bool(rviz),
               'checks': {}, 'path': None, 'local_trajectory': None,
               'carrier_final': None, 'markers': 0, 'error': None,
               'logs': {}}
@@ -140,6 +146,16 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s):
                 ['rosrun', 'v8_platform', 'framework/nav3d_viz_node.py'],
                 start_new_session=True, stdout=open('/tmp/r1103_viz.log', 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
+        if interactive:
+            picker = subprocess.Popen(
+                ['rosrun', 'v8_platform', 'framework/operator_surface_picker.py'],
+                start_new_session=True, stdout=open('/tmp/r1103_picker.log', 'ab'),
+                stderr=subprocess.STDOUT, env=dict(os.environ))
+        if rviz:
+            rviz_proc = subprocess.Popen(
+                ['rviz', '-d', str(HERE / 'fixtures' / 'rviz' / 'nav3d.rviz')],
+                start_new_session=True, stdout=open('/tmp/r1103_rviz.log', 'ab'),
+                stderr=subprocess.STDOUT, env=dict(os.environ))
         state = {'path': None, 'trajectory': None, 'pose': None, 'markers': 0,
                  'statuses': [], 'carrier_status': None}
         rospy.Subscriber('/v8/3d/global/path', RosPath,
@@ -168,10 +184,29 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s):
             return message
         time.sleep(1.0)
         start_pub.publish(signed(start))
-        goal_pub.publish(signed(goal))
+        if not interactive:
+            goal_pub.publish(signed(goal))
         deadline = time.monotonic() + timeout_s
         arrived = False
-        while time.monotonic() < deadline and not rospy.is_shutdown():
+        if interactive:
+            def request_stop(_signum, _frame):
+                stop_requested['value'] = True
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                old_handlers[sig] = signal.signal(sig, request_stop)
+            result['checks']['assembly_ready'] = assembly.ready()
+            result['checks']['markers_published'] = state['markers'] > 0
+            print('INTERACTIVE_READY start=%s; RViz Publish Point 选 3D 目标' % (start,),
+                  flush=True)
+            try:
+                while not rospy.is_shutdown() and not stop_requested['value']:
+                    obstacle_pub.publish(String(data='[]'))
+                    hold_pub.publish(Bool(data=False))
+                    time.sleep(.2)
+            except KeyboardInterrupt:
+                result['interrupted'] = True
+            if stop_requested['value']:
+                result['interrupted'] = True
+        while not interactive and time.monotonic() < deadline and not rospy.is_shutdown():
             obstacle_pub.publish(String(data='[]'))
             hold_pub.publish(Bool(data=False))
             trajectory = state['trajectory']
@@ -227,7 +262,10 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s):
             'carrier_at_local_goal': at_local_goal,
             'markers_published': state['markers'] > 0,
         })
-        result['ok'] = all(result['checks'].values())
+        if interactive:
+            result['ok'] = bool(assembly.ready() and state['markers'] > 0)
+        else:
+            result['ok'] = all(result['checks'].values())
     except Exception as error:
         import traceback
         result['error'] = repr(error)
@@ -238,12 +276,17 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s):
                 assembly.stop()
             except Exception as error:
                 result['stop_error'] = repr(error)
+        for sig, handler in old_handlers.items():
+            signal.signal(sig, handler)
+        _terminate(picker, group=True)
+        _terminate(rviz_proc, group=True)
         _terminate(viz, group=True)
         _terminate(gazebo, group=True)
         _terminate(master, group=True)
         result['logs'] = {
             'master': '/tmp/r1103_master.log', 'gazebo': '/tmp/r1103_gazebo.log',
-            'viz': '/tmp/r1103_viz.log'}
+            'viz': '/tmp/r1103_viz.log', 'picker': '/tmp/r1103_picker.log',
+            'rviz': '/tmp/r1103_rviz.log'}
     Path(out_path).write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n')
     print(json.dumps({k: result[k] for k in ('ok', 'checks', 'path', 'local_trajectory',
                                              'carrier_final', 'markers', 'error')},
@@ -260,6 +303,10 @@ def main():
     parser.add_argument('--gui', action='store_true')
     parser.add_argument('--port', type=int, default=11537)
     parser.add_argument('--timeout-s', type=float, default=90.)
+    parser.add_argument('--interactive', action='store_true',
+                        help='keep the 3D stack alive; RViz Publish Point selects goals')
+    parser.add_argument('--rviz', action='store_true',
+                        help='start RViz with fixtures/rviz/nav3d.rviz (implies interactive)')
     args = parser.parse_args()
     if not args.execute:
         result = dry_run(args.app)
@@ -268,7 +315,9 @@ def main():
                           'graph': result['graph'], 'map': result['map']},
                          ensure_ascii=False))
         return 0
-    return execute(args.app, args.out, args.port, not args.no_gazebo, args.gui, args.timeout_s)
+    return execute(args.app, args.out, args.port, not args.no_gazebo, args.gui,
+                   args.timeout_s, interactive=args.interactive or args.rviz,
+                   rviz=args.rviz)
 
 
 if __name__ == '__main__':

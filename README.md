@@ -37,7 +37,7 @@ R1064 同 lab 挂起已抓栈根因并修复（R1113）。
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环/运行面）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapStore 多 map_id、边界 S1—S4、语义地图/障碍联动、plugin/nodelet 托管、2D v2 真实栈四格、3D Assembly 12/12×2、传感器图 6/6、同 XY 选面、A—E 应用层（app/task/map registry、surface resolver、nav3d Marker/RViz、Gazebo carrier、GT/LIO 对比）、全局→MuJoCo 四足 2/2、A6 NDT 静态 `~relocalize`/`~initialpose`/lease 门、R1064 挂起根因修复 |
+| **已实现（机制/假进程/回环/运行面）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapStore 多 map_id、边界 S1—S4、语义地图/障碍联动、plugin/nodelet 托管、2D v2 真实栈四格、3D Assembly 12/12×2、传感器图 6/6、同 XY 选面、A—E 应用层（app/task/map registry、surface resolver、nav3d Marker/RViz、Gazebo carrier、GT/LIO 对比）、全局→MuJoCo 四足 2/2、A6 NDT 静态 `~relocalize`/`~initialpose`/lease 门、R1064 挂起根因修复、2D/3D 交互式导航入口（MBF + RViz 2D Nav Goal；3D Publish Point 选面） |
 | **未实现/未接** | 真叠层 mezzanine 场景与重传感器建图、A1/A4/A5 formal 签署、A6 任意 kidnapping/运动认证/真机、#151 formal 两键、`mode_navigation` 与 `ros2qnx` 真机运动通路、V8-X2 真机、Gazebo 四足步态（现为动态平面方盒；物理四足仅在 MuJoCo） |
 | **开发中/边界** | 真叠层场景（新场景决定）、A1/A4/A5 formal 矩阵（L2）、#151 真机/稳定速度/同批负控（L2）、A6 长时失联/候选质量、V8-X1 0.6 m 阶沿鲁棒性；2D 四格 4/4、3D 12/12×2、MuJoCo 全局→四足 2/2 均仍非 formal/真机 |
 

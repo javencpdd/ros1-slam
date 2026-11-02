@@ -1,0 +1,16 @@
+<launch>
+  <!-- Interactive 2D navigation scene: Gazebo m1 + MBF + RViz 2D Nav Goal bridge. -->
+  <arg name="rviz" default="true"/>
+  <arg name="rviz_config" default="$(find lite3_gazebo_sim)/../../../../docker/rviz_sim_preview.rviz"/>
+
+  <include file="$(find lite3_bringup)/launch/mode_sim_teb.launch"/>
+
+  <node pkg="lite3_gazebo_sim" type="mbf_goal_bridge.py" name="mbf_goal_bridge"
+        output="screen">
+    <param name="goal_topic" value="/move_base_simple/goal"/>
+    <param name="action" value="/move_base_flex/move_base"/>
+  </node>
+
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz_nav2d"
+        args="-d $(arg rviz_config)"/>
+</launch>

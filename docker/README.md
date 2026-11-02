@@ -464,7 +464,22 @@ docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # 导�
 
 #### 4.6.1 交互式导航：自己设目标（MBF）
 
-Stage A 是**固定脚本测试**，跑完会杀掉 Gazebo，不能设任意目标。要交互式导航，另起 MBF 栈：
+Stage A 是**固定脚本测试**，跑完会杀掉 Gazebo，不能设任意目标。要交互式导航，最简用 2D 专用 launch：
+
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11345
+  roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true'
+```
+
+RViz 里用 **2D Nav Goal** 点目标即可；`mbf_goal_bridge` 会把 `/move_base_simple/goal`
+转成 `/move_base_flex/move_base` action。
+
+如果不在 launch 里带 RViz，也可以分终端手动起 `mode_sim_teb`：
 
 **终端 A · 起 MBF 导航栈**（前台阻塞）
 
@@ -513,6 +528,32 @@ docker compose exec sim-viz bash -lc '
   不要和 `smoke stageA` / `sim.sh gazebo` 同时跑，它们会抢同一个 Gazebo master。
 - `rviz_sim_nav.rviz` 订的是 `x2_g6` 命名空间，MBF 栈下需手动改 MBF 话题；
   最简单先用 `gzclient` + `sim_pose.py` 看机体是否移动。
+
+#### 4.6.2 交互式 3D：RViz Publish Point 选面
+
+3D 用 app runner 的 `--interactive`：起 NIST 台阶世界、3D graph、support-map Marker、
+RViz 和 `operator_surface_picker`；**不预设 task goal**，等你在 RViz 里点面。
+
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11537
+  export ROS_IP=127.0.0.1
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11538
+  python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/app_runner.py \
+    --app /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
+    --execute --interactive --rviz \
+    --out /tmp/nav3d_interactive.json'
+```
+
+- RViz 打开 `framework/fixtures/rviz/nav3d.rviz`；用 **Publish Point** 点在 support surface
+  Marker 上，`operator_surface_picker` 会把 x/y/z 解析成唯一面并发 `/v8/3d/global/goal`；
+  多面同 XY 时若点击歧义，status 返回候选而不是猜。
+- 这是独立 3D 栈：master **11537**、Gazebo **11538**，不要和 2D 的 11313/11345 链混用。
+- 退出在 app runner 终端按 Ctrl+C；会停 graph/Gazebo/RViz 并写
+  `/tmp/nav3d_interactive.json`。这是操作员测试，不是 A1—A7 formal 或真机。
 
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
