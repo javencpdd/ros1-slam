@@ -87,6 +87,9 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
     picker = None
     rviz_proc = None
     tf_static = None
+    robot_state = None
+    joint_state = None
+    pose_tf = None
     assembly = None
     old_handlers = {}
     stop_requested = {'value': False}
@@ -161,6 +164,38 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                  '0', '0', '0', '0', '0', '0', 'world', 'map'],
                 start_new_session=True, stdout=open('/tmp/r1103_tf_static.log', 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
+            urdf = None
+            for package_name, relative in (
+                    ('lite3_description', 'urdf/Lite3.urdf'),
+                    ('lite3_bringup', 'urdf/Lite3_prim.urdf')):
+                try:
+                    package = subprocess.check_output(
+                        ['rospack', 'find', package_name],
+                        env=dict(os.environ)).decode().strip()
+                    candidate = Path(package) / relative
+                    if candidate.is_file():
+                        urdf = candidate
+                        break
+                except Exception:
+                    continue
+            if urdf is not None and urdf.is_file():
+                rospy.set_param('/robot_description', urdf.read_text())
+                robot_state = subprocess.Popen(
+                    ['rosrun', 'robot_state_publisher', 'robot_state_publisher'],
+                    start_new_session=True,
+                    stdout=open('/tmp/r1103_robot_state.log', 'ab'),
+                    stderr=subprocess.STDOUT, env=dict(os.environ))
+                joint_state = subprocess.Popen(
+                    ['rosrun', 'joint_state_publisher', 'joint_state_publisher'],
+                    start_new_session=True,
+                    stdout=open('/tmp/r1103_joint_state.log', 'ab'),
+                    stderr=subprocess.STDOUT, env=dict(os.environ))
+                pose_tf = subprocess.Popen(
+                    ['rosrun', 'v8_platform', 'framework/pose_tf_broadcaster.py',
+                     '_z_offset:=0.18'],
+                    start_new_session=True,
+                    stdout=open('/tmp/r1103_pose_tf.log', 'ab'),
+                    stderr=subprocess.STDOUT, env=dict(os.environ))
             rviz_proc = subprocess.Popen(
                 ['rviz', '-d', str(HERE / 'fixtures' / 'rviz' / 'nav3d.rviz')],
                 start_new_session=True, stdout=open('/tmp/r1103_rviz.log', 'ab'),
@@ -289,6 +324,9 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
             signal.signal(sig, handler)
         _terminate(picker, group=True)
         _terminate(rviz_proc, group=True)
+        _terminate(pose_tf, group=True)
+        _terminate(joint_state, group=True)
+        _terminate(robot_state, group=True)
         _terminate(tf_static, group=True)
         _terminate(viz, group=True)
         _terminate(gazebo, group=True)
@@ -296,7 +334,10 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         result['logs'] = {
             'master': '/tmp/r1103_master.log', 'gazebo': '/tmp/r1103_gazebo.log',
             'viz': '/tmp/r1103_viz.log', 'picker': '/tmp/r1103_picker.log',
-            'rviz': '/tmp/r1103_rviz.log', 'tf_static': '/tmp/r1103_tf_static.log'}
+            'rviz': '/tmp/r1103_rviz.log', 'tf_static': '/tmp/r1103_tf_static.log',
+            'robot_state': '/tmp/r1103_robot_state.log',
+            'joint_state': '/tmp/r1103_joint_state.log',
+            'pose_tf': '/tmp/r1103_pose_tf.log'}
     Path(out_path).write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n')
     print(json.dumps({k: result[k] for k in ('ok', 'checks', 'path', 'local_trajectory',
                                              'carrier_final', 'markers', 'error')},

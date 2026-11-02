@@ -15,12 +15,20 @@ Visualization Manager:
     - Class: rviz/TF
       Enabled: true
       Name: TF
-      Show Names: true
+      Show Names: false
     - Class: rviz/MarkerArray
       Enabled: true
+      Marker Topic: /v8/3d/viz/markers
       Name: SupportMapAndPlans
-      Topic: /v8/3d/viz/markers
+      Namespaces: {}
       Queue Size: 5
+    - Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Name: Lite3 (display-only)
+      Robot Description: robot_description
+      Update Interval: 0
+      Visual Enabled: true
     - Class: rviz/Path
       Enabled: true
       Name: GlobalPath

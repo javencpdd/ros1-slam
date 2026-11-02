@@ -520,6 +520,8 @@ docker compose exec sim-viz bash -lc '
 
 说明：
 
+- RViz 默认显示 `/map` 底图、MID360 点云和 Lite3 模型（`robot_state_publisher` 已在
+  `m1_gazebo.launch` 启动）；若 `costmap`/`Lite3` 显示项未勾选，在 Displays 面板勾上。
 - **默认 `sim_pose.py --goal`** 发 `/move_base_simple/goal`，只适用于 flat2d `move_base`；
   MBF 栈必须加 `--goal-backend mbf`，否则目标没有消费者。
 - 重复设目标就重复终端 C 的命令，改 x/y/yaw。
@@ -550,11 +552,16 @@ docker compose exec sim-viz bash -lc '
 
 - RViz 打开 `framework/fixtures/rviz/nav3d.rviz`；`app_runner --rviz` 会先发一个
   `world→map` 静态 TF（graph 本身没有 TF 边），否则 Fixed Frame=`map` 会让 Marker/Grid 全空。
-  用 **Publish Point** 点在 support surface Marker 上，`operator_surface_picker` 会把 x/y/z
-  解析成唯一面并发 `/v8/3d/global/goal`；多面同 XY 时若点击歧义，status 返回候选而不是猜。
+  同时起 `robot_state_publisher` + `joint_state_publisher`，并用 `/v8/local/pose` 广播
+  `map→TORSO`，所以 RViz 里能看到 Lite3 模型跟随载体；模型是**显示件**，不参与规划。
+- support 面的 MarkerArray 显示项必须用 `Marker Topic: /v8/3d/viz/markers`
+  （Noetic 不认 `Topic:` 这个键，写错会静默订阅 `/visualization_marker_array`，
+  表现为 Grid/Path 有、支撑面全空）。
 - RViz 空白排查：`rosrun tf tf_echo world map` 应为单位变换；
-  `rostopic hz /v8/3d/viz/markers` 应约 50 Hz；`rostopic echo /v8/3d/global/status`
-  在未发目标时应只有 `E_PLAN_NOT_READY`，发目标后应出现 path points。
+  `rosnode info /rviz_...` 的 Subscriptions 应含 `/v8/3d/viz/markers`；
+  `rostopic hz /v8/3d/viz/markers` 应约 50 Hz；`rosrun tf tf_echo map TORSO` 应输出
+  载体位姿 +0.18 m；`rostopic echo /v8/3d/global/status` 在未发目标时应只有
+  `E_PLAN_NOT_READY`，发目标后应出现 path points。
 - 这是独立 3D 栈：master **11537**、Gazebo **11538**，不要和 2D 的 11313/11345 链混用。
 - 退出在 app runner 终端按 Ctrl+C；会停 graph/Gazebo/RViz 并写
   `/tmp/nav3d_interactive.json`。这是操作员测试，不是 A1—A7 formal 或真机。
