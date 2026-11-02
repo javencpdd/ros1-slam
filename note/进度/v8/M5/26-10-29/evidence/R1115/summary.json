@@ -1,0 +1,240 @@
+{
+ "record": "R1115",
+ "date": "2026-11-02",
+ "container": "ros1-slam-sim",
+ "code": "26eeb88d",
+ "change": "BBS absolute-source consensus gate + A6 candidate source/agreement guard",
+ "why": "NDT-only bounded search can accept a wrong-basin candidate; a second global localizer must agree before lease restore",
+ "gate": {
+  "agreement_radius_m": 0.5,
+  "bbs_resolutions": [
+   0.5,
+   0.2,
+   0.1
+  ],
+  "min_support": 2,
+  "output": "BBS consensus pose",
+  "a6_guard": "source=bbs_consensus and agreement_m<=0.5"
+ },
+ "static": {
+  "ok": true,
+  "phase": "TRACKING",
+  "allowed": true,
+  "lease": 2,
+  "lease_after": null,
+  "final_xy_error_m": 0.057751,
+  "candidate_error_m": 0.0,
+  "consensus_pose": [
+   1.5,
+   0.0
+  ],
+  "consensus_support": 3,
+  "consensus_samples": [
+   {
+    "source": 0.5,
+    "scan": 0,
+    "pose": [
+     2.0,
+     0.0,
+     0.0
+    ],
+    "yaw": -0.033334875405227546
+   },
+   {
+    "source": 0.2,
+    "scan": 0,
+    "pose": [
+     1.600000023841858,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.013333433220839252
+   },
+   {
+    "source": 0.1,
+    "scan": 0,
+    "pose": [
+     1.5,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.006666679256097676
+   }
+  ],
+  "gate_before_loss": [
+   0.1,
+   0.0
+  ],
+  "gate_during_loss": [
+   0.0,
+   0.0
+  ],
+  "gate_after": {
+   "state": "HEALTHY",
+   "reason": "ok",
+   "generation": 1,
+   "active_lease": 2,
+   "last_lease": 2,
+   "revocations": 1,
+   "recoveries": 1,
+   "faults": 1,
+   "stable_samples": 27
+  },
+  "new_reset": null,
+  "negative": {
+   "phase": "FAILED",
+   "allowed": false,
+   "lease_before": 2,
+   "lease_after": 2,
+   "new_reset": false,
+   "gate": {
+    "state": "LOST",
+    "reason": "E_LOC_STALE",
+    "generation": 2,
+    "active_lease": null,
+    "last_lease": 2,
+    "revocations": 2,
+    "recoveries": 1,
+    "faults": 2,
+    "stable_samples": 0
+   },
+   "gate_cmd": [
+    0.0,
+    0.0
+   ]
+  }
+ },
+ "move03": {
+  "ok": true,
+  "phase": "TRACKING",
+  "allowed": true,
+  "lease": 2,
+  "lease_after": null,
+  "final_xy_error_m": 0.053147,
+  "candidate_error_m": 0.1,
+  "consensus_pose": [
+   1.9,
+   0.0
+  ],
+  "consensus_support": 2,
+  "consensus_samples": [
+   {
+    "source": 0.5,
+    "scan": 0,
+    "pose": [
+     5.0,
+     0.0,
+     0.0
+    ],
+    "yaw": -3.1163719316557152
+   },
+   {
+    "source": 0.2,
+    "scan": 0,
+    "pose": [
+     2.0,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.053333732216737643
+   },
+   {
+    "source": 0.1,
+    "scan": 0,
+    "pose": [
+     1.899999976158142,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.006666679256097676
+   }
+  ],
+  "gate_before_loss": [
+   0.1,
+   0.0
+  ],
+  "gate_during_loss": [
+   0.0,
+   0.0
+  ],
+  "gate_after": {
+   "state": "HEALTHY",
+   "reason": "ok",
+   "generation": 1,
+   "active_lease": 2,
+   "last_lease": 2,
+   "revocations": 1,
+   "recoveries": 1,
+   "faults": 1,
+   "stable_samples": 28
+  },
+  "new_reset": null
+ },
+ "move06": {
+  "ok": true,
+  "phase": "FAILED",
+  "allowed": false,
+  "lease": 1,
+  "lease_after": 1,
+  "final_xy_error_m": 0.49781,
+  "candidate_error_m": null,
+  "consensus_pose": [
+   2.2,
+   0.0
+  ],
+  "consensus_support": 3,
+  "consensus_samples": [
+   {
+    "source": 0.5,
+    "scan": 0,
+    "pose": [
+     2.5,
+     0.0,
+     0.0
+    ],
+    "yaw": -0.10000463245463911
+   },
+   {
+    "source": 0.2,
+    "scan": 0,
+    "pose": [
+     2.200000047683716,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.026666865614973636
+   },
+   {
+    "source": 0.1,
+    "scan": 0,
+    "pose": [
+     2.200000047683716,
+     0.0,
+     0.0
+    ],
+    "yaw": 0.01333335871006718
+   }
+  ],
+  "gate_before_loss": [
+   0.1,
+   0.0
+  ],
+  "gate_during_loss": [
+   0.0,
+   0.0
+  ],
+  "gate_after": {
+   "state": "LOST",
+   "reason": "E_LOC_STALE",
+   "generation": 2,
+   "active_lease": null,
+   "last_lease": 1,
+   "revocations": 1,
+   "recoveries": 1,
+   "faults": 2,
+   "stable_samples": 0
+  },
+  "new_reset": false
+ },
+ "boundary": "single live Gazebo m1 run per condition; BBS is a separate absolute localizer (three resolutions + consensus) but not a real second sensor; 0.6 m is refused (fail-closed) rather than recovered; no quadruped/real robot."
+}

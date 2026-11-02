@@ -22,7 +22,7 @@
 
 - 定位面 hdl⇄lite3、控制器面 dwa⇄teb：**接线结构同形**（组件名归一后一致）＋**锁摘要可区分**——同任务接口换后端在组合层成立；运行面等价性归仿真（V8-13）。
 
-## 4. A6 恢复与 NDT 重定位（R1071—R1114）
+## 4. A6 恢复与 NDT 重定位（R1071—R1115）
 
 | 件 | 作用 |
 | --- | --- |
@@ -32,10 +32,12 @@
 | `ndt_recovery_bridge.py` | NDT `~relocalized` 事件→candidate；`score=1/(1+fitness/fitness_max)`；事件后 freshness 重试，不丢已认证位姿 |
 | `a6_native_recovery_live_smoke.py` / `a6_ndt_recovery_live_smoke.py` | Gazebo BBS/NDT 活体恢复；GT 只做后验门；空扫描 fail-closed 负控 |
 | `candidate_consensus.py`、`tracking_monitor.py`、`declarations.py`、`io_match.py` | 候选/跟踪/损失声明/消息级接线 |
+| `consensus_policy.py` / `consensus_gate.py` | NDT 候选与 BBS 绝对源共识在 0.5 m 内才放行并输出共识位姿；无/过期/不一致 fail-closed |
 
 - R1106 静态失锁最终 XY **.052642 m**、候选 **.057400 m**，lease 1→2；失锁期 gate `.1→0`；空扫描 FAILED、lease 2→2。运动候选停在 prior `.247788 m`，不作认证。
 - R1114：`/lease` 改为 latched，修掉 gate 晚订阅错过初始 lease 的启动竞态；静态复跑 **.048655 / .044988 m**，0.3 m 局部劫持两跑终态 **.043754 / .060690 m**，候选仍停在 prior（**.242—.250 m**），空扫描负控 FAILED、lease 2→2。0.6 m 探针（超出 0.4 m 搜索半径）候选/终态偏 **.5421/.5225 m**，A6 仍 `TRACKING`、gate 报 `HEALTHY`——系统级 fail-open 已登记，未修。
-- 测试：`adapters` discovery **44**；`test_localization_state` 6、`test_recovery_supervisor` 9、`test_ndt_recovery_bridge` 3。
+- R1115：加 BBS 三分辨率绝对源共识门，NDT 候选与共识差 >0.5 m 即拒绝；A6 可要求 `source=bbs_consensus`、`agreement<=0.5`。活体：静态 **.057751 m**（共识 [1.5,0]）、0.3 m **.053147 m**（共识 [1.9,0]）；0.6 m 共识 [2.2,0] 与 NDT 候选差 **.647609** → A6 FAILED、lease 1、无 reset。堵的是 R1114 的 fail-open；BBS 非真实第二传感器，生产图需显式接入。
+- 测试：A6/共识定向 **30/30**；`test_localization_state` 6、`test_recovery_supervisor` 9、`test_ndt_recovery_bridge` 3、`test_consensus_gate` 4。
 - 边界：NDT 仍 monitor-only；四足/真机/长时 kidnapped 未认证；A6 仍 PARTIAL。
 
 ## 5. 运行方式

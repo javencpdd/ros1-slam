@@ -1,0 +1,37 @@
+R1115 命令（2026-11-02 09:40—10:04 CST，qoder；容器 ros1-slam-sim）
+# 代码 26eeb88d：BBS 绝对源共识门 + A6 候选来源/一致度门。
+
+# 0) 准备可写 adapters 副本（/opt/ros1-slam/ws/src 为宿主仓 bind mount，
+#    此处复制到 /tmp 以避免测试进程与源码互相污染）
+rm -rf /tmp/a6_adapters
+cp -r /opt/ros1-slam/ws/src/90_platform/v8_platform/adapters /tmp/a6_adapters
+
+# 1) 静态：NDT + 3 分辨率 BBS 共识 + 空扫描负控
+source /opt/ros/noetic/setup.bash
+source /opt/ros1-slam/ws/devel/setup.bash
+cd /tmp/a6_adapters
+timeout 300 python3 -B a6_ndt_recovery_live_smoke.py \
+  --spawn 1.5,0 --cycles 1 --gate-m 0.3 --consensus --negative \
+  --out /tmp/a6_consensus_static3.json > /tmp/a6_consensus_static3.log 2>&1
+
+# 2) 0.3 m 传送：BBS 共识应和 NDT 候选在 0.5 m 内，恢复 lease
+timeout 300 python3 -B a6_ndt_recovery_live_smoke.py \
+  --spawn 1.5,0 --move 0.3,0 --cycles 1 --gate-m 0.3 --consensus \
+  --out /tmp/a6_consensus_move03c.json > /tmp/a6_consensus_move03c.log 2>&1
+
+# 3) 0.6 m 传送：BBS 给 2.2、NDT 候选仍 1.55，差 0.65 > 0.5
+#    预期 A6 FAILED、lease 保持 1、无 reset；--expect-fail-closed 把该结果记为 ok
+timeout 300 python3 -B a6_ndt_recovery_live_smoke.py \
+  --spawn 1.5,0 --move 0.6,0 --cycles 1 --gate-m 0.3 --consensus \
+  --expect-fail-closed \
+  --out /tmp/a6_consensus_move06_failclosed2.json \
+  > /tmp/a6_consensus_move06_failclosed2.log 2>&1
+
+# 4) A6/共识单测
+PYTHONPATH=/tmp/a6_adapters:/opt/ros1-slam/ws/src/90_platform/v8_platform/validator \
+PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest -v \
+  test_recovery_supervisor test_localization_state test_ndt_recovery_bridge \
+  test_candidate_consensus test_tracking_monitor test_consensus_gate
+
+# 注：BBS 三节点与 consensus_gate 由冒烟脚本内部启动/停止；
+# 门日志 /tmp/a6_ndt_consensus_gate.log 已保存为 consensus_gate.log。

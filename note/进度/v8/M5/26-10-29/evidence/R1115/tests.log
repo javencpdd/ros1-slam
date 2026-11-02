@@ -1,0 +1,35 @@
+test_candidate_after_failure_is_ignored (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_deadline_fails_closed (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_latched_health_false_before_first_pose_does_not_relocalize (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_low_score_or_out_of_bounds_candidate_is_rejected (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_no_lease_yet_does_not_consume_candidate_or_relocalize (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_preloaded_initial_lease_starts_tracking_without_relocalize (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_stale_triggers_one_relocalize_and_blocks_commands (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_startup_initializing_does_not_call_relocalize (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_valid_candidate_switches_and_new_lease_revives (test_recovery_supervisor.RecoverySupervisorTests) ... ok
+test_backend_rejection_holds_even_if_old_pose_is_republished (test_localization_state.LocalizationStateTests) ... ok
+test_invalid_covariance_flag_revokes (test_localization_state.LocalizationStateTests) ... ok
+test_jump_and_relocalization_invalidate_even_with_fresh_messages (test_localization_state.LocalizationStateTests) ... ok
+test_stale_or_invalid_sample_never_refreshes_receipt (test_localization_state.LocalizationStateTests) ... ok
+test_stale_revokes_once_and_old_lease_cannot_revive (test_localization_state.LocalizationStateTests) ... ok
+test_startup_requires_stable_samples_and_explicit_lease (test_localization_state.LocalizationStateTests) ... ok
+test_candidate_payload_and_rejection (test_ndt_recovery_bridge.NdtBridgeTest) ... ok
+test_score_boundary_matches_acceptance (test_ndt_recovery_bridge.NdtBridgeTest) ... ok
+test_yaw_of_quaternion (test_ndt_recovery_bridge.NdtBridgeTest) ... ok
+test_chain_does_not_absorb_third_point (test_candidate_consensus.CandidateConsensusTests) ... ok
+test_disjoint_candidates_are_rejected (test_candidate_consensus.CandidateConsensusTests) ... ok
+test_r1075_wrong_basin_is_rejected_by_consensus (test_candidate_consensus.CandidateConsensusTests) ... ok
+test_tied_clusters_are_rejected (test_candidate_consensus.CandidateConsensusTests) ... ok
+test_clean_sample_is_accepted (test_tracking_monitor.TrackingMonitorTests) ... ok
+test_clean_sample_resets_consecutive_count (test_tracking_monitor.TrackingMonitorTests) ... ok
+test_empty_reference_is_rejected (test_tracking_monitor.TrackingMonitorTests) ... ok
+test_two_consecutive_deviations_stop (test_tracking_monitor.TrackingMonitorTests) ... ok
+test_agreed_candidates_use_independent_pose (test_consensus_gate.ConsensusGateTests) ... ok
+test_disagreement_is_rejected (test_consensus_gate.ConsensusGateTests) ... ok
+test_malformed_pose_is_rejected (test_consensus_gate.ConsensusGateTests) ... ok
+test_missing_consensus_fails_closed (test_consensus_gate.ConsensusGateTests) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.003s
+
+OK

@@ -15,11 +15,12 @@
 
 **现行规划指针**：[计划书 v8](note/计划书v8/README.md)，目标是按场景与能力标签组合
 2D/3D 定位、建图、全局与局部规划算法，并完成可信的三维导航仿真。
-**当前状态（2026-11-02，R1114）：** 框架 F0—F8 的机制层与主要运行面已落册：真实 2D 栈由
+**当前状态（2026-11-02，R1115）：** 框架 F0—F8 的机制层与主要运行面已落册：真实 2D 栈由
 v2 graph + Assembly 四格闭环（R981）；3D Assembly 三轮 **12/12**、起点扰动三种子 **12/12**（R1110/R1111）；
 传感器建图 6/6（R1102）并验证同 XY 选面（R1108）；全局路径→MuJoCo 四足接触执行 **2/2**（R1112）；
 A6 NDT 静态失锁重定位/租约门通过（R1106）；R1114 修复 lease 晚订阅竞态并跑通 0.3 m
-局部失锁（候选仍停在 prior，靠 NDT 跟踪回正）。R1064 同 lab 挂起已抓栈根因并修复（R1113）。
+局部失锁（候选仍停在 prior）；R1115 加 BBS 绝对源共识门，0.6 m 传送被拒（FAILED、lease 1）。
+R1064 同 lab 挂起已抓栈根因并修复（R1113）。
 **A1/A3/A4/A5/A6/A7 仍 PARTIAL，A2=PASS***；formal 与真机仍未签署，现有代码不等于全部目标能力。**
 具体任务见 [执行队列](note/计划书v8/23_v8任务队列.md)，最新批次见 [进度入口](note/进度/README.md)。
 
@@ -42,7 +43,7 @@ A6 NDT 静态失锁重定位/租约门通过（R1106）；R1114 修复 lease 晚
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
-**边界（2026-11-02，R1114）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；R1114 的 A6 覆盖 0.3 m 局部失锁（候选仍 prior），0.6 m 探针超出搜索半径却仍恢复 lease/gate，属未修的系统级 fail-open；#151 formal 两键仍 pending，V8-X2 真机未开工。
+**边界（2026-11-02，R1115）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；R1114 的 A6 覆盖 0.3 m 局部失锁（候选仍 prior）；R1115 在带 BBS 绝对源共识门的活体链上闭合 0.6 m fail-open（不一致即 FAILED、lease 1），但 BBS 不是真实第二传感器、生产图需显式接入门；#151 formal 两键仍 pending，V8-X2 真机未开工。
 
 ---
 
@@ -417,3 +418,4 @@ bash scripts/verify/run_gate_chain.sh
 - ★R1112（2026-11-02）★＝**3D 全局→V8-X1 四足接触执行 2/2**：support_planner 34 点、末 `(0.075,1.275,.890358)`、五级过渡；checks 全真、final map `(0.075,1.275,.8904)`、body z `1.0998/1.1010`、plans `8/7`；仍单策略/声明图/预计算全局（代码 `b9ebca9f`，全文＝[R1112](note/进度/v8/M5/26-10-29/R1112.md)）。
 - ★R1113（2026-11-02）★＝**R1064 根因：reap 关闭被 reader 锁住的 stdout**：SIGUSR1 栈定位 `stop_owned→reap→proc.stdout.close()`；修复后同 lab 5/5、20/20 case VALID；加唯一 local 名/独立 Gazebo master/faulthandler（代码 `396709ce`＋`8ab300bc`，全文＝[R1113](note/进度/v8/M5/26-10-29/R1113.md)）。
 - ★R1114（2026-11-02）★＝**A6 lease 晚订阅竞态＋0.3 m 局部劫持**：首次 gate 侧 `last_lease=0` 而 A6 `lease=1`，冒烟在 gate lease 1 超时；`/lease` 改 latched 后静态 **.048655 / .044988 m**、0.3 m 两跑 **.043754 / .060690 m**，候选仍停在 prior **.242—.250 m**（靠 NDT 恢复后跟踪回正），空扫描 FAILED、lease 2→2。仍是短时局部失锁，非任意 kidnapping/全图重定位、无四足/真机（代码 `5f028d86`，全文＝[R1114](note/进度/v8/M5/26-10-29/R1114.md)）。
+- ★R1115（2026-11-02）★＝**BBS 绝对源共识门闭合 A6 0.6 m fail-open**：新增 `consensus_policy/gate`，NDT 候选与 3 分辨率 BBS 共识在 0.5 m 内才放行并输出 BBS 位姿；A6 可要求 `source=bbs_consensus` 且 `agreement<=0.5`。活体 m1：静态 **.057751 m**（共识 [1.5,0]）、0.3 m **.053147 m**（共识 [1.9,0]）；0.6 m 共识 [2.2,0] 与 NDT 候选差 **.647609** → A6 **FAILED**、lease 保持 1、无 reset。BBS 非真实第二传感器、0.6 m 不恢复；生产图需显式接入门；A6 仍 PARTIAL、无四足/真机（代码 `26eeb88d`，全文＝[R1115](note/进度/v8/M5/26-10-29/R1115.md)）。
