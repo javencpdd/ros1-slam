@@ -336,15 +336,26 @@ docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh check      # 先�
 `viz.sh check` 会打印：`DISPLAY`、X 套接字是否存在、`OpenGL renderer`、
 gzclient/rviz 是否就位、当前话题。**renderer 那行拿不到值就先修 X，别急着起 GUI。**
 
-仿真就在 `sim-viz` 里起，**不要另起 `sim`**（否则端口冲突）。跑批时用同一个容器：
+仿真就在 `sim-viz` 里起，**不要另起 `sim`**（否则端口冲突）。`sim.sh smoke` 与 `gzclient` / `rviz-*`
+都是**前台阻塞**进程，必须分终端跑：
 
 ```bash
+# 终端 A：先跑链（会启动 Gazebo，约 2 分钟；看到 SMOKE start 再开 GUI）
 docker compose exec sim-viz bash /opt/ros1-slam/docker/sim.sh smoke stageA
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient    # Gazebo 3D 客户端
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-raw    # rviz 看雷达原始点云（只要场地起着就能看）
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-map    # rviz 看建图（需 faster_lio 在跑）
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # rviz 看导航（走项目自带 rviz_sim_nav.rviz）
 ```
+
+```bash
+# 终端 B：另开一个 shell，旁观 Gazebo（前台窗口，关窗即退出）
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient
+
+# 终端 C：另开一个 shell 看 rviz
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-raw    # Stage A 推荐：雷达原始点云
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-map    # 建图视图（需 faster_lio）
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # 导航栈在跑时才用
+```
+
+如果只想持续看场地、不跑 Stage A，用 `sim.sh gazebo` 代替终端 A（它起 Gazebo 后保持运行），
+再按终端 B/C 开 GUI。**不要**把 `smoke stageA` 和 `sim.sh gazebo` 同时跑，两者会抢同一个 Gazebo master。
 
 > **排障先起 `rviz-raw`**：它只订 `/rslidar_points`、Fixed Frame=`rslidar`，不依赖 faster_lio／SCAN，
 > 场地起着就有画面。若它也是一片黑，问题在 X / GL（见上表），不在算法链。
