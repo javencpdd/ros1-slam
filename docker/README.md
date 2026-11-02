@@ -462,6 +462,58 @@ docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # 导�
 > 容器改不了。GL 上下文可用，gzclient/rviz 能正常开窗，只是帧率有限。
 > 想更快只能治宿主机 X（让它加载 NVIDIA GLX）。
 
+#### 4.6.1 交互式导航：自己设目标（MBF）
+
+Stage A 是**固定脚本测试**，跑完会杀掉 Gazebo，不能设任意目标。要交互式导航，另起 MBF 栈：
+
+**终端 A · 起 MBF 导航栈**（前台阻塞）
+
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11345
+  roslaunch lite3_bringup mode_sim_teb.launch'
+```
+
+**终端 B · Gazebo 窗口**（另开 shell）
+
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient
+```
+
+**终端 C · 发目标**（另开 shell；x/y 换成你要测的位置）
+
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  python3 -B /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose.py \
+    --goal 3.0 0.0 --goal-backend mbf --wait-result-s 60'
+```
+
+成功结果类似：
+
+```json
+{"goal":{"backend":"mbf","action":"/move_base_flex/move_base","sent":true,"state":3,"done":true}}
+```
+
+说明：
+
+- **默认 `sim_pose.py --goal`** 发 `/move_base_simple/goal`，只适用于 flat2d `move_base`；
+  MBF 栈必须加 `--goal-backend mbf`，否则目标没有消费者。
+- 重复设目标就重复终端 C 的命令，改 x/y/yaw。
+- 这是 `mode_sim_teb` 的 m2 free-map + 雷达障碍链；不是 Stage A，也不是正式 A1—A7 判据。
+- 收尾用 `docker compose exec sim-viz bash /opt/ros1-slam/docker/sim.sh clean`；
+  不要和 `smoke stageA` / `sim.sh gazebo` 同时跑，它们会抢同一个 Gazebo master。
+- `rviz_sim_nav.rviz` 订的是 `x2_g6` 命名空间，MBF 栈下需手动改 MBF 话题；
+  最简单先用 `gzclient` + `sim_pose.py` 看机体是否移动。
+
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
 项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的

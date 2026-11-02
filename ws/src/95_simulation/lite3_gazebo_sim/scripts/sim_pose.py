@@ -3,14 +3,18 @@
 
 用法：
   python3 sim_pose.py --start 1.0 0.5 --yaw 30      # 把 lite3_planar 放到 (1.0, 0.5)，朝向 30°
-  python3 sim_pose.py --goal 3.0 0.0 --yaw 0        # 向 move_base 发目标
+  python3 sim_pose.py --goal 3.0 0.0 --yaw 0        # 向 flat2d move_base 发目标
+  python3 sim_pose.py --goal 3.0 0.0 --goal-backend mbf --wait-result-s 60
+                                                     # 向 MBF move_base_flex 发目标并等结果
   python3 sim_pose.py --status                      # 读模型位姿与 /sim/odom_gt
 
 边界：
 - 起点＝Gazebo 模型世界位姿；本栈 odom 由插件取 WorldPose（闭环），map→odom 是恒等桥，
   所以模型位姿就是 map 系起点。RViz 的 “2D Pose Estimate” 发 /initialpose，
   本栈没有 AMCL 消费它，不会移动机器人。
-- 终点＝/move_base_simple/goal（frame=map），需 flat2d_stack 的 move_base 在跑。
+- 终点默认发 /move_base_simple/goal（frame=map），需 flat2d_stack 的 move_base 在跑。
+  MBF 栈（如 lite3_bringup/mode_sim_teb.launch）不订阅 /move_base_simple/goal，
+  必须用 --goal-backend mbf 发 /move_base_flex/move_base action。
 - 只动本仿真模型/发目标；不直接写底盘 cmd_vel，不取消 mux 与安全层。
 """
 import argparse
@@ -47,7 +51,8 @@ def pose_xyz(values, name):
     return out
 
 
-def set_start(model, x, y, z, yaw_deg, settle, cancel_goal=True):
+def set_start(model, x, y, z, yaw_deg, settle, cancel_goal=True,
+              goal_backend='move_base'):
     import rospy
     from gazebo_msgs.msg import ModelState
     from gazebo_msgs.srv import SetModelState
@@ -67,21 +72,29 @@ def set_start(model, x, y, z, yaw_deg, settle, cancel_goal=True):
 
     if cancel_goal:
         try:
-            from actionlib_msgs.msg import GoalID
-            publisher = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1)
-            deadline = time.time() + 1.0
-            while publisher.get_num_connections() == 0 and time.time() < deadline:
-                time.sleep(0.05)
-            publisher.publish(GoalID())
-        except Exception as error:  # noqa: BLE001 - move_base may not be running
-            rospy.logwarn('no move_base cancel channel: %s', error)
+            if goal_backend == 'mbf':
+                import actionlib
+                from mbf_msgs.msg import MoveBaseAction
+                client = actionlib.SimpleActionClient('/move_base_flex/move_base',
+                                                     MoveBaseAction)
+                if client.wait_for_server(rospy.Duration(1.0)):
+                    client.cancel_all_goals()
+            else:
+                from actionlib_msgs.msg import GoalID
+                publisher = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1)
+                deadline = time.time() + 1.0
+                while publisher.get_num_connections() == 0 and time.time() < deadline:
+                    time.sleep(0.05)
+                publisher.publish(GoalID())
+        except Exception as error:  # noqa: BLE001 - navigation stack may not be running
+            rospy.logwarn('no cancel channel: %s', error)
 
     if settle > 0:
         rospy.sleep(settle)
     return model_state(model)
 
 
-def publish_goal(x, y, yaw_deg, frame):
+def goal_pose_stamped(x, y, yaw_deg, frame):
     import rospy
     from geometry_msgs.msg import PoseStamped
 
@@ -96,6 +109,14 @@ def publish_goal(x, y, yaw_deg, frame):
     message.pose.orientation.y = qy
     message.pose.orientation.z = qz
     message.pose.orientation.w = qw
+    return message
+
+
+def publish_goal(x, y, yaw_deg, frame):
+    import rospy
+    from geometry_msgs.msg import PoseStamped
+
+    message = goal_pose_stamped(x, y, yaw_deg, frame)
     publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped,
                                 queue_size=1, latch=True)
     seen = 0
@@ -111,8 +132,32 @@ def publish_goal(x, y, yaw_deg, frame):
         seen = max(seen, publisher.get_num_connections())
     if seen == 0:
         rospy.logwarn('no subscriber on /move_base_simple/goal; move_base 未起？')
-    return {'frame': frame, 'x': x, 'y': y, 'yaw_deg': yaw_deg,
-            'subscribers_seen': seen}
+    return {'backend': 'move_base', 'frame': frame, 'x': x, 'y': y,
+            'yaw_deg': yaw_deg, 'subscribers_seen': seen}
+
+
+def publish_mbf_goal(x, y, yaw_deg, frame, action='/move_base_flex/move_base',
+                     wait_result_s=0.0):
+    import actionlib
+    import rospy
+    from mbf_msgs.msg import MoveBaseAction, MoveBaseGoal
+
+    goal = MoveBaseGoal()
+    goal.target_pose = goal_pose_stamped(x, y, yaw_deg, frame)
+    client = actionlib.SimpleActionClient(action, MoveBaseAction)
+    if not client.wait_for_server(rospy.Duration(5.0)):
+        raise RuntimeError('MBF action server unavailable: ' + action)
+    client.send_goal(goal)
+    result = {'backend': 'mbf', 'action': action, 'frame': frame, 'x': x,
+              'y': y, 'yaw_deg': yaw_deg, 'sent': True}
+    if wait_result_s > 0:
+        if not client.wait_for_result(rospy.Duration(wait_result_s)):
+            result['timed_out'] = True
+        else:
+            result['timed_out'] = False
+            result['state'] = client.get_state()
+            result['done'] = client.get_state() == 3
+    return result
 
 
 def model_state(model):
@@ -155,6 +200,13 @@ def main():
     parser.add_argument('--frame', default='map', help='goal frame (default map)')
     parser.add_argument('--odom-topic', default='/sim/odom_gt',
                         help='odometry topic for --status/--start (default /sim/odom_gt)')
+    parser.add_argument('--goal-backend', choices=('move_base', 'mbf'),
+                        default='move_base',
+                        help='move_base = /move_base_simple/goal; '
+                             'mbf = /move_base_flex/move_base action')
+    parser.add_argument('--mbf-action', default='/move_base_flex/move_base')
+    parser.add_argument('--wait-result-s', type=float, default=0.0,
+                        help='MBF only: wait this long for the goal result')
     parser.add_argument('--status', action='store_true')
     args = parser.parse_args()
     if not (args.start or args.goal or args.status):
@@ -165,14 +217,20 @@ def main():
     result = {}
     if args.start:
         x, y = pose_xyz(args.start, 'start')
-        result['start'] = set_start(args.model, x, y, args.z, args.yaw, args.settle)
+        result['start'] = set_start(args.model, x, y, args.z, args.yaw, args.settle,
+                                    goal_backend=args.goal_backend)
         try:
             result['odom'] = odom_state(args.odom_topic)
         except Exception as error:  # noqa: BLE001 - odom is informational here
             result['odom_error'] = str(error)
     if args.goal:
         x, y = pose_xyz(args.goal, 'goal')
-        result['goal'] = publish_goal(x, y, args.yaw, args.frame)
+        if args.goal_backend == 'mbf':
+            result['goal'] = publish_mbf_goal(
+                x, y, args.yaw, args.frame, action=args.mbf_action,
+                wait_result_s=args.wait_result_s)
+        else:
+            result['goal'] = publish_goal(x, y, args.yaw, args.frame)
     if args.status:
         result['state'] = model_state(args.model)
         try:
