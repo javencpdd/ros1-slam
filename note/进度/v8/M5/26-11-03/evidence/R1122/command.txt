@@ -1,0 +1,48 @@
+# R1122 演示线 v0：m1_world_v2 + faster-lio vs GT
+# 用途：只测 SLAM/定位算法，不跑导航、不跑运动学载体。
+# 端口：独立 master 11413 / Gazebo 11445；不碰用户正在使用的 11313/11345 NIST 仿真。
+
+# 1) 备份 faster-lio 硬编码输出，避免覆盖 data/maps/lite3.pcd
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /opt/ros1-slam/data/maps/lite3.pcd /tmp/lite3.pcd.demo_bak'
+
+# 2) 起独立 master
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  roscore -p 11413 >/tmp/demo_slam_master.log 2>&1'
+sleep 3
+
+# 3) 起带定位特征的 m1_world_v2（headless）；IMU/雷达由 Gazebo 插件给
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false \
+    world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world_v2.world \
+    >/tmp/demo_slam_gazebo.log 2>&1'
+sleep 8
+# 实测：/sim/odom_gt 50 Hz、/livox/imu 200 Hz、/rslidar_points ≈9.4 Hz
+
+# 4) 起 faster-lio、以 0.25 m/s 直行 20 s，记录 GT vs /Odometry
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  python3 -B localization_compare.py \
+    --launch --duration-s 20 --speed .25 \
+    --out /tmp/demo_slam_compare.json'
+
+# 5) 收口：杀独立 master/Gazebo（按 11413/11445 的 PID），再恢复 lite3.pcd
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  timeout 8 rosnode kill -a || true'
+# 随后按 ps 的精确 PID 停止 m1_world_v2 的 roslaunch/gzserver 与 rosmaster 11413
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /tmp/lite3.pcd.demo_bak /opt/ros1-slam/data/maps/lite3.pcd'
+
+# 结果：demo_slam_compare.json（见本目录）

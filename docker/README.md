@@ -734,6 +734,61 @@ app 六项 checks 全 true、到局部目标 **1.26e-6 m**。局部规划 `plan_
   “地面键盘只看到下三层（z 0—0.525）、自建图 7 个碎面”仍是建图采集侧的边界。
 - 平层 m1 的 §4.7 链不受影响；导入世界 + 键盘建图 + RViz 3D 点云仍按 R1120 的步骤使用。
 
+#### 4.9 演示线 v0：纯 SLAM（m1_world_v2 + faster-lio vs GT）
+
+这条线**只测 SLAM/定位算法**：不跑导航、不跑 `app_carrier`/运动学，也不签 formal。
+用独立端口 11413/11445，不碰正在跑的 11313/11345 仿真。
+
+```bash
+# 1) 备份 faster-lio 硬编码输出，避免覆盖 data/maps/lite3.pcd
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /opt/ros1-slam/data/maps/lite3.pcd /tmp/lite3.pcd.demo_bak'
+
+# 2) 独立 master 11413
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  roscore -p 11413 >/tmp/demo_slam_master.log 2>&1'
+sleep 3
+
+# 3) 带定位特征的 m1_world_v2（headless；IMU/雷达由 Gazebo 插件给）
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false \
+    world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world_v2.world \
+    >/tmp/demo_slam_gazebo.log 2>&1'
+sleep 8
+
+# 4) faster-lio + 0.25 m/s 直行 20 s；GT 对 /Odometry
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  python3 -B localization_compare.py \
+    --launch --duration-s 20 --speed .25 \
+    --out /tmp/demo_slam_compare.json'
+
+# 5) 收口：停独立 master/Gazebo 后恢复 lite3.pcd
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  timeout 8 rosnode kill -a || true'
+# 若 gzserver/roslaunch 未退：用 ps -eo pid,args | grep m1_world_v2 取精确 PID 后 kill -TERM，
+# 不要用宽泛 pkill -f，避免误伤 11313 上正在跑的 NIST。
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /tmp/lite3.pcd.demo_bak /opt/ros1-slam/data/maps/lite3.pcd'
+```
+
+R1122 读数：`/sim/odom_gt` 50 Hz、`/livox/imu` 200 Hz、`/rslidar_points` ≈9.4 Hz；
+pairs 10、gt 60、lio 54；**translated xy mean 9.5 mm / max 22.7 mm**，
+rigid yaw mean 5.3 mrad / max 9.1 mrad，rigid z mean 25.6 mm / max 54.5 mm。
+单次 scoped，只作 demo/算法效果；证据 `note/进度/v8/M5/26-11-03/evidence/R1122/`。
+
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
 项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的

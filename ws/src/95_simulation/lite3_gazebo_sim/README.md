@@ -66,8 +66,11 @@ stairstudy 场景＋2 个 NIST 导入件；NIST 的 6 层是楼梯支撑面，�
 这里“没有”只指多层建筑 world；m1/NIST/stairstudy 仍是 Gazebo 导航测试世界。
 
 **演示线（09）**：丰富/多层公开 world 单独做 demo/scoped，用于建图、定位、导航算法效果；
-当前尚未导入 rich world。演示结果带截图/录包/指标，但不签 formal，也不代表 Lite3 物理通行；
-流程与指标见官网「仿真与界面 → 09 演示线」。
+演示结果带截图/录包/指标，但不签 formal，也不代表 Lite3 物理通行；流程与指标见官网
+「仿真与界面 → 09 演示线」。v0 已跑通 `m1_world_v2` + faster-lio vs GT：20 s / 0.25 m/s，
+translated xy mean **9.5 mm**、max **22.7 mm**，rigid yaw mean **5.3 mrad**；单次 scoped，
+只测 SLAM，不跑导航/运动学。证据 `note/进度/v8/M5/26-11-03/evidence/R1122/`；rich 多层 world
+仍未导入。
 
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。

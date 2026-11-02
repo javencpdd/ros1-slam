@@ -1,0 +1,52 @@
+{
+ "record": "R1122",
+ "date": "2026-11-03",
+ "scope": "demo_line_v0_pure_slam",
+ "world": "ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world_v2.world",
+ "world_role": "m1 + asymmetric localization features; no navigation/kinematic run",
+ "ports": {"ros_master": 11413, "gazebo_master": 11445},
+ "pipeline": [
+  "m1_gazebo.launch gui:=false",
+  "10_slam_mapping_sim.launch via localization_compare.py --launch",
+  "20 s straight drive at 0.25 m/s",
+  "compare /sim/odom_gt vs /Odometry"
+ ],
+ "rates": {"gt_hz": 50.0, "imu_hz": 200.0, "lidar_hz_approx": 9.4},
+ "run": {
+  "ok": true,
+  "pairs": 10,
+  "gt_samples": 60,
+  "lio_samples": 54,
+  "translated": {
+   "xy_m_mean": 0.009504458305802302,
+   "xy_m_rms": 0.011226397202971507,
+   "xy_m_max": 0.02265955009923492,
+   "z_m_mean": 0.025604149277131904,
+   "z_m_max": 0.054510186997229065,
+   "yaw_rad_mean": 0.015629786200825814,
+   "yaw_rad_max": 0.019703068266573698
+  },
+  "rigid": {
+   "xy_m_mean": 0.010100120497903195,
+   "xy_m_rms": 0.011698512631005107,
+   "xy_m_max": 0.02266805491849784,
+   "z_m_mean": 0.025604149277131904,
+   "z_m_max": 0.054510186997229065,
+   "yaw_rad_mean": 0.005277804294691485,
+   "yaw_rad_max": 0.009094721140427649
+  },
+  "raw": {
+   "xy_m_mean": 0.10597466791323593,
+   "z_m_mean": 0.2471724593063184,
+   "origin_offset": [-0.11395160738023202, 9.160707067180224e-05, 0.22156831002918642],
+   "origin_yaw_rad": -0.01060834712614605
+  }
+ },
+ "artifacts": {
+  "json": "demo_slam_compare.json",
+  "gazebo_log": "gazebo.log",
+  "pcd": "faster-lio wrote data/maps/lite3.pcd; original was backed up and restored, not included"
+ },
+ "tests": "no code change; demo smoke only; R1104 baseline and R1122 evidence separate",
+ "boundary": "pure SLAM demo/scoped only: no navigation, no kinematic carrier, no Lite3 physical traversal, no formal; faster-lio starts its own camera_init frame; single 20 s run; m1_world_v2 is feature-rich flat, not rich multi-floor."
+}
