@@ -15,10 +15,11 @@
 
 **现行规划指针**：[计划书 v8](note/计划书v8/README.md)，目标是按场景与能力标签组合
 2D/3D 定位、建图、全局与局部规划算法，并完成可信的三维导航仿真。
-**当前状态（2026-11-02，R1113）：** 框架 F0—F8 的机制层与主要运行面已落册：真实 2D 栈由
+**当前状态（2026-11-02，R1114）：** 框架 F0—F8 的机制层与主要运行面已落册：真实 2D 栈由
 v2 graph + Assembly 四格闭环（R981）；3D Assembly 三轮 **12/12**、起点扰动三种子 **12/12**（R1110/R1111）；
 传感器建图 6/6（R1102）并验证同 XY 选面（R1108）；全局路径→MuJoCo 四足接触执行 **2/2**（R1112）；
-A6 NDT 静态失锁重定位/租约门通过（R1106）；R1064 同 lab 挂起已抓栈根因并修复（R1113）。
+A6 NDT 静态失锁重定位/租约门通过（R1106）；R1114 修复 lease 晚订阅竞态并跑通 0.3 m
+局部失锁（候选仍停在 prior，靠 NDT 跟踪回正）。R1064 同 lab 挂起已抓栈根因并修复（R1113）。
 **A1/A3/A4/A5/A6/A7 仍 PARTIAL，A2=PASS***；formal 与真机仍未签署，现有代码不等于全部目标能力。**
 具体任务见 [执行队列](note/计划书v8/23_v8任务队列.md)，最新批次见 [进度入口](note/进度/README.md)。
 
@@ -36,12 +37,12 @@ A6 NDT 静态失锁重定位/租约门通过（R1106）；R1064 同 lab 挂起�
 | 状态 | 内容 |
 | --- | --- |
 | **已实现（机制/假进程/回环/运行面）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapStore 多 map_id、边界 S1—S4、语义地图/障碍联动、plugin/nodelet 托管、2D v2 真实栈四格、3D Assembly 12/12×2、传感器图 6/6、同 XY 选面、A—E 应用层（app/task/map registry、surface resolver、nav3d Marker/RViz、Gazebo carrier、GT/LIO 对比）、全局→MuJoCo 四足 2/2、A6 NDT 静态 `~relocalize`/`~initialpose`/lease 门、R1064 挂起根因修复 |
-| **未实现/未接** | 真叠层 mezzanine 场景与重传感器建图、A1/A4/A5 formal 签署、A6 运动/kidnapped/真机、#151 formal 两键、`mode_navigation` 与 `ros2qnx` 真机运动通路、V8-X2 真机、Gazebo 四足步态（现为动态平面方盒；物理四足仅在 MuJoCo） |
+| **未实现/未接** | 真叠层 mezzanine 场景与重传感器建图、A1/A4/A5 formal 签署、A6 任意 kidnapping/运动认证/真机、#151 formal 两键、`mode_navigation` 与 `ros2qnx` 真机运动通路、V8-X2 真机、Gazebo 四足步态（现为动态平面方盒；物理四足仅在 MuJoCo） |
 | **开发中/边界** | 真叠层场景（新场景决定）、A1/A4/A5 formal 矩阵（L2）、#151 真机/稳定速度/同批负控（L2）、A6 长时失联/候选质量、V8-X1 0.6 m 阶沿鲁棒性；2D 四格 4/4、3D 12/12×2、MuJoCo 全局→四足 2/2 均仍非 formal/真机 |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
-**边界（2026-11-02，R1113）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；#151 formal 两键仍 pending，V8-X2 真机未开工。
+**边界（2026-11-02，R1114）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；R1114 的 A6 只覆盖 0.3 m 局部失锁、候选仍停在 prior；#151 formal 两键仍 pending，V8-X2 真机未开工。
 
 ---
 
@@ -415,3 +416,4 @@ bash scripts/verify/run_gate_chain.sh
 - ★R1111（2026-11-02）★＝**A1 3D 三种子起点扰动**：3 seed × 4 场景 **12/12**，起点 x/y ±.03 m，最坏 **.099712 m**；首轮两格负起点 argparse 缺陷已修（代码 `13d62dac`＋`1432df1f`，全文＝[R1111](note/进度/v8/M5/26-10-29/R1111.md)）。
 - ★R1112（2026-11-02）★＝**3D 全局→V8-X1 四足接触执行 2/2**：support_planner 34 点、末 `(0.075,1.275,.890358)`、五级过渡；checks 全真、final map `(0.075,1.275,.8904)`、body z `1.0998/1.1010`、plans `8/7`；仍单策略/声明图/预计算全局（代码 `b9ebca9f`，全文＝[R1112](note/进度/v8/M5/26-10-29/R1112.md)）。
 - ★R1113（2026-11-02）★＝**R1064 根因：reap 关闭被 reader 锁住的 stdout**：SIGUSR1 栈定位 `stop_owned→reap→proc.stdout.close()`；修复后同 lab 5/5、20/20 case VALID；加唯一 local 名/独立 Gazebo master/faulthandler（代码 `396709ce`＋`8ab300bc`，全文＝[R1113](note/进度/v8/M5/26-10-29/R1113.md)）。
+- ★R1114（2026-11-02）★＝**A6 lease 晚订阅竞态＋0.3 m 局部劫持**：首次 gate 侧 `last_lease=0` 而 A6 `lease=1`，冒烟在 gate lease 1 超时；`/lease` 改 latched 后静态 **.048655 / .044988 m**、0.3 m 两跑 **.043754 / .060690 m**，候选仍停在 prior **.242—.250 m**（靠 NDT 恢复后跟踪回正），空扫描 FAILED、lease 2→2。仍是短时局部失锁，非任意 kidnapping/全图重定位、无四足/真机（代码 `5f028d86`，全文＝[R1114](note/进度/v8/M5/26-10-29/R1114.md)）。

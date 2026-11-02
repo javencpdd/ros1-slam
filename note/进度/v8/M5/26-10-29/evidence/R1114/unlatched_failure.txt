@@ -1,0 +1,26 @@
+R1114 · 首次未加 latch 的 gate 超时现场（2026-11-02 09:21 CST，ros1-slam-sim）
+
+说明：失败跑在写 result JSON 前抛出 RuntimeError，下面是从会话 stdout 摘录的关键行；
+完整 DIAG 未单独落盘。同一命令在 09:25 重跑通过（unlatched_rerun_ok.json），
+因此这是启动时序竞态，不是每次必现。
+
+DIAG（节选字段）:
+  status.phase = TRACKING
+  status.allowed = true
+  status.lease = 1
+  observations.gate_status.state = HEALTHY
+  observations.gate_status.active_lease = null
+  observations.gate_status.last_lease = 0
+  observations.gate_cmds = 1019
+
+Traceback (most recent call last):
+  File "a6_ndt_recovery_live_smoke.py", line 415, in <module>
+    raise SystemExit(main())
+  File "a6_ndt_recovery_live_smoke.py", line 296, in main
+    wait_until(lambda: observations['gate_status'] is not None
+  File "a6_ndt_recovery_live_smoke.py", line 56, in wait_until
+    raise RuntimeError('timeout waiting for ' + label)
+RuntimeError: timeout waiting for gate lease 1
+
+解读：A6 在 gate 订阅前已激活 lease 1，且 /lease 只在变化时发一次，gate 晚订阅后
+永远收不到。把 /lease 改为 latched 后，晚订阅的 gate 可立即收到当前值。

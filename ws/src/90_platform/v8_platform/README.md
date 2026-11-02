@@ -39,12 +39,12 @@ python3 -B calibration/test_calibration.py   # 冻结判据
 python3 -B calibration/flat2d/test_flat2d.py # 夹具几何/中继
 ```
 
-## 当前运行面（截至 R1113）
+## 当前运行面（截至 R1114）
 
 - **2D**：`v8.nav2d.*` 真实栈由 v2 graph+Assembly 启动，SC09 四格 4/4（R981）。
 - **3D**：Assembly 三轮 12/12（R1110）＋三种子起点扰动 12/12（R1111）；全局 34 点→local→MuJoCo 四足接触 2/2（R1112，单策略/声明图/预计算全局）。
 - **传感器图**：Gazebo 激光+GT odom survey 生成 6 层 support_map（R1102），同 XY 选面/歧义（R1108）。
-- **A6**：NDT 静态失锁 `~relocalize`/`~initialpose`/lease 门（R1106）；NDT 仍 monitor-only；运动/kidnapped/真机未认证。
+- **A6**：NDT 静态失锁 `~relocalize`/`~initialpose`/lease 门（R1106）；R1114 修复 lease 晚订阅竞态并跑通 0.3 m 局部失锁（候选仍停在 prior，靠 NDT 跟踪回正）；NDT 仍 monitor-only；任意 kidnapping/运动认证/真机未过。
 - **测试**：v8 逐文件 **80/80**、discovery **127**、adapters **44**；A1/A3/A4/A5/A6/A7 仍 PARTIAL，A2=PASS*，#151 formal pending。
 
 ## 运行面入口

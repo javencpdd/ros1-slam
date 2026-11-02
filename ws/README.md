@@ -6,7 +6,7 @@
 
 > 蓝本与硬规则的正文不在本文档里，只给指针：隔离与真机安全三条硬规则＝[`../note/00_README.md`](../note/00_README.md)；
 > 现行施工规划指针＝[`../note/00_README.md`](../note/00_README.md)，本次落册见 [v8 计划入口](../note/计划书v8/README.md)；什么改动被许可过＝[`../note/04_配置改动diff.md`](../note/04_配置改动diff.md)。
-> **v8 平台层已落册**：`90_platform/v8_platform`（契约/图/装配/规划/表征/框架 app/回归）与 `90_platform/v8_ndt_odom`（NDT monitor + 短时失锁 relocalize）。当前状态见 [README 根文件](../README.md) 与 [`note/进度/00_总览.md`](../note/进度/00_总览.md)；截至 R1113，2D 四格、3D 12/12×2、传感器图 6/6、全局→MuJoCo 四足 2/2；A1/A3/A4/A5/A6/A7 仍 PARTIAL。
+> **v8 平台层已落册**：`90_platform/v8_platform`（契约/图/装配/规划/表征/框架 app/回归）与 `90_platform/v8_ndt_odom`（NDT monitor + 短时失锁 relocalize）。当前状态见 [README 根文件](../README.md) 与 [`note/进度/00_总览.md`](../note/进度/00_总览.md)；截至 R1114，2D 四格、3D 12/12×2、传感器图 6/6、全局→MuJoCo 四足 2/2；A1/A3/A4/A5/A6/A7 仍 PARTIAL。
 
 ## 一、模块层与归属（一层一件事）
 
