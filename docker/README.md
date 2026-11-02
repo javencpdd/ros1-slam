@@ -737,6 +737,7 @@ app 六项 checks 全 true、到局部目标 **1.26e-6 m**。局部规划 `plan_
 #### 4.9 演示线 v0：纯 SLAM（m1_world_v2 + faster-lio vs GT）
 
 这条线**只测 SLAM/定位算法**：不跑导航、不跑 `app_carrier`/运动学，也不签 formal。
+只验证 SLAM 时不需要 support_map/app/task/step 语义——这些是 §4.7/§4.8 导航链的输入。
 用独立端口 11413/11445，不碰正在跑的 11313/11345 仿真。
 
 ```bash
@@ -816,7 +817,7 @@ translated 409.9 mm、rigid yaw 2.97 rad，保留为负例。LIO PCD 已另存�
 #### 4.11 AWS Hospital 导入探针（R1124，未接入）
 
 `aws-robotics/aws-robomaker-hospital-world` 的 `ros1` 分支（commit `39969a9d`，许可为
-Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是探针，未接入 `ws/` 或 launch**。
+Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是探针，未接入 `ws/` 或 launch，也未跑 SLAM survey**。
 
 | world | 运行时模型 | 加载到 service 就绪 | 空载 RTF | RSS |
 |---|---:|---:|---:|---:|
@@ -837,6 +838,8 @@ Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是探针�
 - 本机 `/usr/bin/python3` 没有 `pip`/`docopt`，官方 `setup.sh` 的 pip 行未端到端跑通；
   本次按同一 43 模型清单直接走 Fuel API，43/43 成功。资产留在
   `data/imports/aws_hospital_probe/`（未入库）。
+- **不是 SLAM 结果**：本次只加载世界并读数，Lite3 + faster-lio 的 survey 未跑；
+  09 的 SLAM 读数仍只有 v0/v1（R1122/R1123）。
 
 ```bash
 # 源（默认分支只有归档 README）
