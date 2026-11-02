@@ -1,4 +1,4 @@
-# v8 适配器契约面（V8-07 首切片，R647）
+# v8 适配器契约面 + A6 恢复（V8-07 首切片 R647；A6 R1071—R1106）
 
 > 2026-10-26 起。M2 首件首切片：**消息级 io 匹配**（V8-05 流程3 留白闭合）＋外部输入白名单＋
 > 接线报告（composer 结果 adapters 槽位的前置）＋后端交换证据（A6 面设计层）。
@@ -22,7 +22,22 @@
 
 - 定位面 hdl⇄lite3、控制器面 dwa⇄teb：**接线结构同形**（组件名归一后一致）＋**锁摘要可区分**——同任务接口换后端在组合层成立；运行面等价性归仿真（V8-13）。
 
-## 4. 运行方式
+## 4. A6 恢复与 NDT 重定位（R1071—R1106）
+
+| 件 | 作用 |
+| --- | --- |
+| `localization_state.py` | 时效/跳变/稳定样本/lease generation 门；失效或 relocalize 撤销当前租约；旧轨迹不复活；CLI 可做 `cmd_vel` 拒绝门 |
+| `recovery_supervisor.py` | TRACKING→RELOCALIZING→候选→RECOVERING→新 lease→TRACKING；启动 bootstrap 只在 see observation 且有 lease 后收候选；deadline FAILED |
+| `a6_recovery_node.py` | ROS 包装：relocalize 服务、candidate JSON、backend/lease/status/command_allowed；支持 Empty/Trigger 服务与 backend 名 |
+| `ndt_recovery_bridge.py` | NDT `~relocalized` 事件→candidate；`score=1/(1+fitness/fitness_max)`；事件后 freshness 重试，不丢已认证位姿 |
+| `a6_native_recovery_live_smoke.py` / `a6_ndt_recovery_live_smoke.py` | Gazebo BBS/NDT 活体恢复；GT 只做后验门；空扫描 fail-closed 负控 |
+| `candidate_consensus.py`、`tracking_monitor.py`、`declarations.py`、`io_match.py` | 候选/跟踪/损失声明/消息级接线 |
+
+- R1106 静态失锁最终 XY **.052642 m**、候选 **.057400 m**，lease 1→2；失锁期 gate `.1→0`；空扫描 FAILED、lease 2→2。运动候选停在 prior `.247788 m`，不作认证。
+- 测试：`adapters` discovery **44**；`test_localization_state` 6、`test_recovery_supervisor` 9、`test_ndt_recovery_bridge` 3。
+- 边界：NDT 仍 monitor-only；四足/真机/长时 kidnapped 未认证；A6 仍 PARTIAL。
+
+## 5. 运行方式
 
 ```bash
 python3 -B io_match.py wiring ../registry/data/manifests --select=v8.controller.dwa_adapter,...  # rc0 报告

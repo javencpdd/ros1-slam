@@ -76,3 +76,12 @@ python3 -B ../regression/global_obstacles.py --out /tmp/global-obstacles.json
 SC02／SC06 的封路体贯穿地面与夹层，因只放阶面小箱可从下层绕到箱后；
 SC06 改线可合法使用 `ground→mezz→ground`。原场景真值与冻结判据不改。
 独立评价器采用六面相交检查，旧无障碍路线须在新箱体场景下被判碰撞，防止假改线。
+
+
+## 6. 当前运行面（R1101/R1102/R1112）
+
+- Gazebo 3D 全局+局部：NIST 支撑图 34 点、末 `(0.075,1.275,.890358)`，两次 2/2（R1101）；
+- 传感器生成图 `nist_sensor@2` 全局 25 点、局部 9 次到顶（R1102）；
+- R1112 把同一 34 点全局路径交给 local→MuJoCo V8-X1 接触执行，2/2 checks 全真、
+  final map `(0.075,1.275,.8904)`、body z `1.0998/1.1010`；全局路径预计算一次，不是在线重规划。
+- 边界：A4 仍 PARTIAL，formal 未签署；声明 support map/单策略，不是 Gazebo 感知/真机。

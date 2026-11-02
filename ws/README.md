@@ -6,7 +6,7 @@
 
 > 蓝本与硬规则的正文不在本文档里，只给指针：隔离与真机安全三条硬规则＝[`../note/00_README.md`](../note/00_README.md)；
 > 现行施工规划指针＝[`../note/00_README.md`](../note/00_README.md)，本次落册见 [v8 计划入口](../note/计划书v8/README.md)；什么改动被许可过＝[`../note/04_配置改动diff.md`](../note/04_配置改动diff.md)。
-> 下表描述既有工作区。v8 的组件平台、多层规划和新仿真合同尚待实现，本次只更新规划与入口。
+> **v8 平台层已落册**：`90_platform/v8_platform`（契约/图/装配/规划/表征/框架 app/回归）与 `90_platform/v8_ndt_odom`（NDT monitor + 短时失锁 relocalize）。当前状态见 [README 根文件](../README.md) 与 [`note/进度/00_总览.md`](../note/进度/00_总览.md)；截至 R1113，2D 四格、3D 12/12×2、传感器图 6/6、全局→MuJoCo 四足 2/2；A1/A3/A4/A5/A6/A7 仍 PARTIAL。
 
 ## 一、模块层与归属（一层一件事）
 
@@ -24,6 +24,7 @@
 | `60_safety` | `lite3_safety` | — | **`/cmd_vel` 唯一写者＝safe_cmd_vel_mux**（K2 红线：任何包绕过它直写即门禁红） |
 | `70_bringup` | `lite3_bringup` | — | TOP 编排层，`<include>` 各平级模块是它的职责（K3 语义：平级 `lite3_*` 禁互 include，TOP 下行不豁免） |
 | `90_supervisor` | `lite3_supervisor` | — | 心跳监管；**SUP 自身绝不写 `/cmd_vel`**（SUP 红线） |
+| `90_platform` | `v8_platform`、`v8_ndt_odom` | — | v8 契约/注册/组合/编排/表征/规划/框架/回归；NDT monitor＋短时失锁重定位；不接管连续导航 |
 | `95_simulation` | `lite3_gazebo_sim`、`lite3_description`、`config/`（自研侧仿真参数 `faster_lio_sim.yaml` ＋ 语义标注 `config/passability/`）、`tools/passability/`（标注工具，非 catkin 包） | `Mid360_simulation_plugin`、`local_sensing`、`mockamap`、`map_generator` | 仿真域全部入口、世界件、验收件、离线预检件都在 `lite3_gazebo_sim/` 下（见下节） |
 
 ## 二、"要找什么，去哪儿"（按问题查，不按目录查）
@@ -48,7 +49,7 @@
 
 ## 二·b、包级 README 索引（统一头，2026-10-09 起）
 
-**12 个自研壳/描述包各有一份 `README.md`，开头是同一块「统一索引头」**（层·角色·一句话 → 全局索引 → 本包速查表 → 红线契约）；要看某个包从哪儿起、验收件在哪、哪条红线管着它，先读它自己的 README，不必回到本文档翻。
+**14 个自研壳/描述/平台包各有一份 `README.md`，开头是同一块「统一索引头」**（层·角色·一句话 → 全局索引 → 本包速查表 → 红线契约）；要看某个包从哪儿起、验收件在哪、哪条红线管着它，先读它自己的 README，不必回到本文档翻。
 
 | 包 | 角色 | README |
 |---|---|---|
@@ -64,6 +65,8 @@
 | `90_supervisor/lite3_supervisor` | SUP 心跳监管 | [README](src/90_supervisor/lite3_supervisor/README.md) |
 | `95_simulation/lite3_gazebo_sim` | SIM 仿真域本体（含判据载体与离线预检旁路） | [README](src/95_simulation/lite3_gazebo_sim/README.md) |
 | `95_simulation/lite3_description` | DESC 机体描述（URDF/mesh） | [README](src/95_simulation/lite3_description/README.md) |
+| `90_platform/v8_platform` | v8 契约/图/装配/规划/表征/框架 app/回归 | [README](src/90_platform/v8_platform/README.md) |
+| `90_platform/v8_ndt_odom` | NDT monitor＋短时失锁 relocalize | [README](src/90_platform/v8_ndt_odom/README.md) |
 
 **故意不动的第三方副本 README**（保持上游原文，属"一字不改"承诺面）：`00_drivers/livox_ros_driver2`、`10_slam/pcd2grid`、`20_localization/{fast_gicp,hdl_global_localization,hdl_localization,ndt_omp}`、`95_simulation/Mid360_simulation_plugin`。
 **无 README 的一片**：`30_3rd/`（SCAN 上游五包，按基线不改，参数落点见上表 §二）与 `30_perception/libraries/`（kindr 系）。

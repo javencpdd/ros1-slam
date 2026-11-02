@@ -32,6 +32,16 @@
 
 传感面建图（真实点云滤波/配准）、地图服务运行时（话题/更新流）——归仿真阶段（25 号窗）；A3 正式判据归 V8-13 矩阵。
 
+## 5·b 传感器生成图与同 XY 选面（R1102/R1108）
+
+- `regression/gazebo3d_mapping.py` 用 Gazebo `/rslidar_points`＋`/sim/odom_gt` 做 26 位姿 survey，
+  经 `elevation.py`→`build_support_map` 生成 `nist_sensor@2`：6 层对声明图 6/6、层 MAE
+  `.000773 m`；NIST 射线碰撞尺度用 point_scale 1.7 标定。
+- `nist_sensor@2` 在重叠 XY `(1.0,−1.05)` 同时命中 m1 `.198474`、m2 `.371516`；
+  无 `surface_hint`/z 返回 `E_SURFACE_AMBIGUOUS`，hint 或 z 选上层；规划 hint m2 走
+  m0→m1→m2、末 z `.371516`（R1108）。
+- 该重叠来自相邻台阶面足迹，不是真正的上下楼板；真叠层 mezzanine 场景尚未建。
+
 ## 6. ROS1 查询接口
 
 `map_node.py` 在独立适配层提供 `std_srvs/Trigger` 查询，JSON 响应包含地图版本、

@@ -94,3 +94,13 @@ PoseStamped `map/(0,0,0)`、Bool `true`、String `{"obstacles":[]}`，各 10 Hz�
 已有计划后生效，启动期 stale 不锁存；重规划间隙的 `E_LOCAL_NO_TRAJECTORY`/`E_LOCAL_EXPIRED`
 等瞬态零速不记为终端停车。修后四例 4/4 VALID（新口径），仍是 kinematic、无制动、
 单速度/单起点，不改变 #151 两键 pending 与 A5 三维到达/跨层未验收。
+
+
+## 当前运行面（R1105/R1112）
+
+- Gazebo 真实激光 0.2 m/s 停车：tick 1.0 s、validity 2.0 s 后 A/B/C **3/3 VALID**，
+  最坏“感知→停” wall **.136617 s**、sim **.051 s**、path **.006965 m**、GT 净空 **.891107 m**（R1105）；
+- R1112：全局 34 点路径交给本节点→MuJoCo V8-X1 270 策略，两次 checks 全真、
+  final map `(0.075,1.275,.8904)`、plans 8/7；接触闭合 Z，本节点仍只出 3D 命令；
+- 载体（R1109）实际 `driveMode=dynamic`，是动态平面方盒＋Gazebo 接触，不是 kinematic pose sink；
+  仍无四足步态/真机，A5 仍 PARTIAL。

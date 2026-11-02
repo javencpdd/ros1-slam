@@ -10,7 +10,7 @@
 | 要做 | 位置 |
 |---|---|
 | 真机采图 | `launch/10_slam_mapping.launch` |
-| 仿真建图 | `launch/10_slam_mapping_sim.launch` |
+| 仿真建图 | `launch/10_slam_mapping_sim.launch`（已设 `use_sim_time=true`；R1104 移动 GT/LIO 基线 rigid .0095/.0158 m） |
 | LIO 参数 | `config/faster_lio_outdoor.yaml` |
 | 存盘产物 | `data/maps/`（**`data/maps/lite3.pcd` 是样张红线件**，各跑前后取 sha） |
 

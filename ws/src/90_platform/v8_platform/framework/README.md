@@ -3,7 +3,24 @@
 > 2026-10-31 起。做**配置、装配计划与运行装配**：组件目录、实例、命名端口、显式连线、
 > 启动依赖、命令唯一写者、地图 schema 兼容、锁摘要、ROS1 launch 骨架、运行器接线、
 > MapDelta 事务、机器人 profile、独立验证配置、安全接线与启动开销基准。
-> **不加载具体算法、不改现有判据/运行链。** 数据面仍走 ROS 话题，Python 编排环只在启动/停止。
+> **编排层不实现具体算法，但 Assembly 会真实启动算法进程；不改现有判据/运行链。**
+> 数据面仍走 ROS 话题，Python 编排环只在启动/停止。
+
+## 0. 应用层 A—E（R1103—R1104；当前入口）
+
+| 件 | 作用 |
+| --- | --- |
+| `app_config.py` / `app_runner.py` | 读 `navigation_app/v1` YAML＋地图 registry＋task；dry-run 或真实起 roscore/Gazebo/Assembly/viz，检查 `assembly_ready`/`map_configured`/`global_path`/`local_arrived`/`carrier_at_local_goal`/`markers_published` |
+| `map_registry.py` | `data/maps/registry.json` 的 map_id/version→path/sha 解析；防止 ID/版本/哈希漂移 |
+| `surface_resolver.py` | x/y-only 任务自动补 start/goal z；`surface_hint` 优先、z 最近面、歧义显式 `E_SURFACE_AMBIGUOUS`；点选 `pick_goal` |
+| `operator_surface_picker.py` | RViz `/clicked_point` → 选面 → goal/status；歧义返回候选 |
+| `support_map_viz.py` / `nav3d_viz_node.py` / `fixtures/rviz/nav3d.rviz` | support_map MarkerArray、全局/局部 Path、起终点/位姿 Marker |
+| `gazebo_carrier3d_node.py` | graph 兼容的 Gazebo 3D 载体（static box/SetModelState），带支撑 z 钳制与 pose/localization 回授 |
+| `localization_node.py` / `localization_compare.py` | sim_gt/faster_lio/ndt 源；NDT `navigation_allowed=false`；GT-LIO 的 raw/translated/rigid 误差与 receipt/stamp 对齐 |
+
+- 一键 app：`fixtures/apps/nist_sensor_3d.yaml`（carrier）与 `..._lio.yaml`；任务 `fixtures/tasks/nist_sensor_top.json`。
+- R1103：6/6 checks、25 全局点、17 Marker，载体到本地目标 `.138 m`；R1104：移动 GT/LIO rigid `.0095/.0158 m`；R1112：全局路径→MuJoCo 四足 2/2。
+- 测试：`test_navigation_app` 17/17、`test_localization_compare` 2/2；边界：kinematic/Gazebo 夹具，不是真机。
 
 ## 1. 组件清单 + 图 YAML
 

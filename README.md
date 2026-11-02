@@ -15,9 +15,11 @@
 
 **现行规划指针**：[计划书 v8](note/计划书v8/README.md)，目标是按场景与能力标签组合
 2D/3D 定位、建图、全局与局部规划算法，并完成可信的三维导航仿真。
-**当前状态：框架改造 F0—F8 的机制层已落册（图、预检、装配、MapDelta、安全、热替换），
-真实 2D 栈已由 v2 graph + Assembly 启动并四格闭环（R981）；定位已有 v2 清单与两张同链图（R982），但真实 hdl launch 未验；3D/其他算法仍未 v2 化或未真实 launch。
-现有代码不等于已具备全部目标能力。**
+**当前状态（2026-11-02，R1113）：** 框架 F0—F8 的机制层与主要运行面已落册：真实 2D 栈由
+v2 graph + Assembly 四格闭环（R981）；3D Assembly 三轮 **12/12**、起点扰动三种子 **12/12**（R1110/R1111）；
+传感器建图 6/6（R1102）并验证同 XY 选面（R1108）；全局路径→MuJoCo 四足接触执行 **2/2**（R1112）；
+A6 NDT 静态失锁重定位/租约门通过（R1106）；R1064 同 lab 挂起已抓栈根因并修复（R1113）。
+**A1/A3/A4/A5/A6/A7 仍 PARTIAL，A2=PASS***；formal 与真机仍未签署，现有代码不等于全部目标能力。**
 具体任务见 [执行队列](note/计划书v8/23_v8任务队列.md)，最新批次见 [进度入口](note/进度/README.md)。
 
 ## 一·五、框架要达成的目标
@@ -33,13 +35,13 @@
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapService 快照持久化（R983）、MapStore 多 map_id（R989）、边界适配器主链（R984）、语义地图独立契约与只读 provider（R1004）、plugin（nodelet）托管（R1005）、Gazebo 验证后端（R1006）、launch remap 生效与 pluginlib 类校验（R1007）、语义 provider 入 v2 graph（R1008）、只读 provider 重叠替换（R1009）、MuJoCo 验证后端（R1010）、外部 nodelet manager（R1011）、map_cache/merge 核心（R1012）、v8_msgs 与真实 cache/merge 节点（R1014）、cache/merge 进 graph/Assembly（R1016）、hdl nodelet_group 真实装载（R1017）、命令链安全 hold 门（R1020）、MapDelta 回接版本地图（R1022）、规划器消费版本地图并随更新重规划到达（R1023/R1024）、原生三维规划器入 v2 图与实例配置真实下发（R1025）、语义地图转支撑面并驱动规划（R1026）、语义障碍转规划障碍与绕行/移除重规划（R1032）、faster_lio 真实图启动与里程计/配准点云产出（R1028）、selector 组合级校验（R1029）、边界 500 Hz 300 s 零丢帧（R1030）、地图包导出/导入与迁移（R1031）、定位位姿交接 pose_mux（R1033）、命令源重叠交接无零速（R1034）、真实三维全局规划器 topic 入图（R1035）、真实三维链 cache/merge/relay/planner（R1040）、hdl 真实 /odom 打通（R1041）、MuJoCo 力矩停车全链 pilot 与目标占据即拒（R1044）、robot profile、verification 配置、safety、selector、hotswap v0.3、boundary S1—S4、**2D 真实栈 v2 graph 装配（R981，4/4）** |
-| **未实现/未接** | 语义地图标签消费者（支撑面/障碍已 R1026/R1032）、定位/3D/其他算法的真实 launch（DWA/TEB/Navfn/GlobalPlanner 已通过 2D 栈接入；hdl 已用 nodelet_group 真实装载两 nodelet（R1017）；R1041 更正：补 `/leg_odom2` 后原版 NDT_OMP 即发布 `/odom`（此前 0 帧是缺 leg odom 的空指针），定位精度/重定位/真机与 M2-R2C 仍未验证；faster_lio 已由 v2 图真实启动并产出 /Odometry+/cloud_registered（R1028，参数仍走 include 全局 rosparam）；3D 全局/局部规划器已真实入图（R1035/R1025），3D 建图/LIO 组件未全部 v2 化）、M20/真机 S5、旧 graph_3d_cache 仍为结构夹具（真实链见 graph_3d_real，R1040）、命令/定位链零中断热替换（安全 hold R1020；命令源重叠交接 R1034；定位位姿交接 R1033＝一致即切、跳变拒绝；真实算法实例间零中断切换未做）、#151 正式停车预算（R1044 仅 scoped in-process pilot；formal 两键仍 pending） |
-| **开发中** | V8-X1 0.6 m 与阶沿鲁棒性、A5 整链；边界真机链路抖动未测；2D 后端四格 4/4，v2 graph 装配 4/4（R980/R981） |
+| **已实现（机制/假进程/回环/运行面）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapStore 多 map_id、边界 S1—S4、语义地图/障碍联动、plugin/nodelet 托管、2D v2 真实栈四格、3D Assembly 12/12×2、传感器图 6/6、同 XY 选面、A—E 应用层（app/task/map registry、surface resolver、nav3d Marker/RViz、Gazebo carrier、GT/LIO 对比）、全局→MuJoCo 四足 2/2、A6 NDT 静态 `~relocalize`/`~initialpose`/lease 门、R1064 挂起根因修复 |
+| **未实现/未接** | 真叠层 mezzanine 场景与重传感器建图、A1/A4/A5 formal 签署、A6 运动/kidnapped/真机、#151 formal 两键、`mode_navigation` 与 `ros2qnx` 真机运动通路、V8-X2 真机、Gazebo 四足步态（现为动态平面方盒；物理四足仅在 MuJoCo） |
+| **开发中/边界** | 真叠层场景（新场景决定）、A1/A4/A5 formal 矩阵（L2）、#151 真机/稳定速度/同批负控（L2）、A6 长时失联/候选质量、V8-X1 0.6 m 阶沿鲁棒性；2D 四格 4/4、3D 12/12×2、MuJoCo 全局→四足 2/2 均仍非 formal/真机 |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
-**边界**：A1—A7 正式签署矩阵见 R1045（2026-10-31）：A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL；不是平台首版/3D 导航完成。R982 只证明定位组件可在图中替换并生成装配计划，hdl 真实 launch 仍未执行（`/leg_odom2`、M2-R2C、GT 辅助 probe 不计独立运行）。
+**边界（2026-11-02，R1113）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；#151 formal 两键仍 pending，V8-X2 真机未开工。
 
 ---
 
@@ -405,3 +407,11 @@ bash scripts/verify/run_gate_chain.sh
 ---
 
 - 同步时刻＝2026-10-23 01:31 CST（整串从 `date` 取，不心算）。
+- ★R1106（2026-11-02）★＝**A6 NDT 静态失锁重定位/租约门**：NDT `~relocalize`/`~initialpose`/`~relocalized`＋A6 bootstrap/候选门；Gazebo 静态最终 XY **.052642 m**、候选 **.057400 m**，lease 1→2，失锁期 gate `.1→0`；空扫描 FAILED、lease 2→2。运动候选停在 prior `.247788 m`，不作认证；NDT 仍 monitor-only，A6 PARTIAL（代码 `bb11009a`，全文＝[R1106](note/进度/v8/M5/26-10-29/R1106.md)）。
+- ★R1107（2026-11-02）★＝**R1064 未复现＋状态看门狗**：同 lab 四例 5/5（62—65 s）；写 20 s status 看门狗，把就绪后 status 静默变为确定性错误；根因当时未定位（代码 `b1ac355d`，全文＝[R1107](note/进度/v8/M5/26-10-29/R1107.md)）。
+- ★R1108（2026-11-02）★＝**A3 传感器图同 XY 选面**：`nist_sensor@2` 在 (1,−1.05) 命中 m1/m2；无 hint/z 显式 `E_SURFACE_AMBIGUOUS`，hint m2 规划走 m0→m1→m2、末 z `.371516`；该重叠是台阶邻接足迹，不是叠层楼板（代码 `17cdda62`，全文＝[R1108](note/进度/v8/M5/26-10-29/R1108.md)）。
+- ★R1109（2026-11-02）★＝**Gazebo 载体 driveMode 实测更正**：URDF/插件实际 `dynamic`；beat cmd `.2→v_phy .199`、`.5→w_phy .481`，z 稳定 `.11`；当前是动态平面方盒＋接触，不是 kinematic pose sink，仍无四足步态（代码 `74740c05`，全文＝[R1109](note/进度/v8/M5/26-10-29/R1109.md)）。
+- ★R1110（2026-11-02）★＝**A1 3D 第三轮 4 格**：flat/flat_alt/stairs_top/stairs_mid 4/4，最坏载体误差 **.097764 m**；与 R1099 的 8 格合并 **12/12**；仍 kinematic/声明图（代码 `9a12b37b`，全文＝[R1110](note/进度/v8/M5/26-10-29/R1110.md)）。
+- ★R1111（2026-11-02）★＝**A1 3D 三种子起点扰动**：3 seed × 4 场景 **12/12**，起点 x/y ±.03 m，最坏 **.099712 m**；首轮两格负起点 argparse 缺陷已修（代码 `13d62dac`＋`1432df1f`，全文＝[R1111](note/进度/v8/M5/26-10-29/R1111.md)）。
+- ★R1112（2026-11-02）★＝**3D 全局→V8-X1 四足接触执行 2/2**：support_planner 34 点、末 `(0.075,1.275,.890358)`、五级过渡；checks 全真、final map `(0.075,1.275,.8904)`、body z `1.0998/1.1010`、plans `8/7`；仍单策略/声明图/预计算全局（代码 `b9ebca9f`，全文＝[R1112](note/进度/v8/M5/26-10-29/R1112.md)）。
+- ★R1113（2026-11-02）★＝**R1064 根因：reap 关闭被 reader 锁住的 stdout**：SIGUSR1 栈定位 `stop_owned→reap→proc.stdout.close()`；修复后同 lab 5/5、20/20 case VALID；加唯一 local 名/独立 Gazebo master/faulthandler（代码 `396709ce`＋`8ab300bc`，全文＝[R1113](note/进度/v8/M5/26-10-29/R1113.md)）。
