@@ -284,7 +284,76 @@
      0.0
     ]
    }
-  ]
+  ],
+  "move06_final_xy_error_m": 0.522521,
+  "move06_candidate_error_m": 0.542063,
+  "move06_system_state": {
+   "a6_phase": "TRACKING",
+   "a6_allowed": true,
+   "gate_state": "HEALTHY",
+   "gate_lease": 2
+  }
  },
- "boundary": "0.3 m local teleport inside the 0.4 m bounded search radius, single Gazebo m1 run per condition; the candidate seed stays at the prior pose (0.24-0.25 m from truth) and NDT tracking converges after resume. Not arbitrary kidnapping, not global relocalization, no quadruped/real robot."
+ "boundary": "0.3 m local teleport inside the 0.4 m bounded search radius recovers; 0.6 m teleport outside the radius leaves candidate and final pose 0.52-0.54 m from truth while A6 still restores lease and gate reports HEALTHY (system-level fail-open). The smoke marks ok=false only through its post-hoc truth gate. Not arbitrary kidnapping, no quadruped/real robot.",
+ "move06_run_negative": {
+  "ok": false,
+  "cycle": {
+   "lease": 2,
+   "truth_xy": [
+    2.1000000000002337,
+    5.829265897942461e-13
+   ],
+   "odom_xy": [
+    1.5780527591705322,
+    -0.02448389306664467
+   ],
+   "error_m": 0.522521,
+   "candidate_error_m": 0.542063,
+   "yaw_error_rad": 0.004972,
+   "reset_pose": [
+    1.557944,
+    -0.002741,
+    -0.003691
+   ],
+   "gate_during_loss": [
+    0.0,
+    0.0
+   ],
+   "gate_after": {
+    "state": "HEALTHY",
+    "reason": "ok",
+    "generation": 1,
+    "active_lease": 2,
+    "last_lease": 2,
+    "revocations": 1,
+    "recoveries": 1,
+    "faults": 1,
+    "stable_samples": 4
+   },
+   "phase": "TRACKING",
+   "allowed": true
+  },
+  "negative": {
+   "phase": "FAILED",
+   "allowed": false,
+   "lease_before": 2,
+   "lease_after": 2,
+   "new_reset": false,
+   "gate": {
+    "state": "LOST",
+    "reason": "E_LOC_STALE",
+    "generation": 2,
+    "active_lease": null,
+    "last_lease": 2,
+    "revocations": 2,
+    "recoveries": 1,
+    "faults": 2,
+    "stable_samples": 0
+   },
+   "gate_cmd": [
+    0.0,
+    0.0
+   ]
+  }
+ }
 }

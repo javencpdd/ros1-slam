@@ -34,7 +34,7 @@
 | `candidate_consensus.py`、`tracking_monitor.py`、`declarations.py`、`io_match.py` | 候选/跟踪/损失声明/消息级接线 |
 
 - R1106 静态失锁最终 XY **.052642 m**、候选 **.057400 m**，lease 1→2；失锁期 gate `.1→0`；空扫描 FAILED、lease 2→2。运动候选停在 prior `.247788 m`，不作认证。
-- R1114：`/lease` 改为 latched，修掉 gate 晚订阅错过初始 lease 的启动竞态；静态复跑 **.048655 / .044988 m**，0.3 m 局部劫持两跑终态 **.043754 / .060690 m**，候选仍停在 prior（**.242—.250 m**），空扫描负控 FAILED、lease 2→2。仍是短时局部失锁，不是任意 kidnapping/全图重定位。
+- R1114：`/lease` 改为 latched，修掉 gate 晚订阅错过初始 lease 的启动竞态；静态复跑 **.048655 / .044988 m**，0.3 m 局部劫持两跑终态 **.043754 / .060690 m**，候选仍停在 prior（**.242—.250 m**），空扫描负控 FAILED、lease 2→2。0.6 m 探针（超出 0.4 m 搜索半径）候选/终态偏 **.5421/.5225 m**，A6 仍 `TRACKING`、gate 报 `HEALTHY`——系统级 fail-open 已登记，未修。
 - 测试：`adapters` discovery **44**；`test_localization_state` 6、`test_recovery_supervisor` 9、`test_ndt_recovery_bridge` 3。
 - 边界：NDT 仍 monitor-only；四足/真机/长时 kidnapped 未认证；A6 仍 PARTIAL。
 

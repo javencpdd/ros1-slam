@@ -42,7 +42,7 @@ A6 NDT 静态失锁重定位/租约门通过（R1106）；R1114 修复 lease 晚
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
-**边界（2026-11-02，R1114）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；R1114 的 A6 只覆盖 0.3 m 局部失锁、候选仍停在 prior；#151 formal 两键仍 pending，V8-X2 真机未开工。
+**边界（2026-11-02，R1114）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；R1114 的 A6 覆盖 0.3 m 局部失锁（候选仍 prior），0.6 m 探针超出搜索半径却仍恢复 lease/gate，属未修的系统级 fail-open；#151 formal 两键仍 pending，V8-X2 真机未开工。
 
 ---
 

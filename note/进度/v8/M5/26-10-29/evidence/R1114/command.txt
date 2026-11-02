@@ -1,4 +1,4 @@
-R1114 命令（2026-11-02 09:20—09:30 CST，qoder；容器 ros1-slam-sim）
+R1114 命令（2026-11-02 09:20—09:37 CST，qoder；容器 ros1-slam-sim）
 # 代码 5f028d86：A6 /lease 改为 latched。
 
 # 0) 首次现场（未加 latch，/opt 原脚本；在 gate lease 1 超时，未写 result JSON）
@@ -26,6 +26,11 @@ timeout 210 python3 -B a6_ndt_recovery_live_smoke.py \
 timeout 260 python3 -B a6_ndt_recovery_live_smoke.py \
   --spawn 1.5,0 --move 0.3,0 --cycles 1 --gate-m 0.3 --negative \
   --out /tmp/a6_move03_neg.json
+
+# 3b) 0.6 m 探针（超出 0.4 m 搜索半径；预期暴露 fail-open）
+timeout 260 python3 -B a6_ndt_recovery_live_smoke.py \
+  --spawn 1.5,0 --move 0.6,0 --cycles 1 --gate-m 0.3 --negative \
+  --out /tmp/a6_move06_neg.json > /tmp/a6_move06_neg.log 2>&1
 
 # 4) 对照：未加 latch 的原脚本重跑一次（本次未复现 gate 超时，ok=true）
 cd /opt/ros1-slam/ws/src/90_platform/v8_platform/adapters
