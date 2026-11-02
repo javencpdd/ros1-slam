@@ -1,0 +1,42 @@
+R1120 观测记录（2026-11-02 14:20—14:36 CST，qoder；容器 ros1-slam-sim-viz）
+# 目标：导入 NIST 开放数据集世界 → 键盘建图 → 自建图/声明图导航
+
+# 1) 导入世界 + 带 Lite3 的 Gazebo
+roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
+  world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
+  model_path:=/opt/ros1-slam/data/maps/worlds \
+  spawn_x:=0 spawn_y:=-2.6 spawn_z:=0.15 spawn_yaw:=1.5708
+# 世界模型：ground_plane / nist_stairs_120_s020x170 / lite3_planar ✔
+
+# 2) 键盘建图记录器 + RViz + 遥控
+rosrun lite3_gazebo_sim mapping_recorder.py \
+  --out /home/ros1-slam/data/maps/mapped_nist.pcd --voxel 0.03
+rviz -d /opt/ros1-slam/docker/rviz_mapping3d.rviz
+rosrun lite3_gazebo_sim keyboard_teleop.py    # 本批用 /cmd_vel 程序化模拟
+# 读数：324,493 点；x -12.69..17.13、y -15.43..10.18、z 0..0.525；
+# z 分位 1/5/50/95/99% = 0/0/0/.117/.423；截图 nist_mapping.png
+
+# 3) PCD → support_map（NIST 轮廓）
+python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+  --pcd data/maps/mapped_nist_gt1.pcd --map-id nist_evidence --version 1 \
+  --out note/.../evidence/R1120/map.json --write-app \
+  --nist-profile --xy-gap 0.30 --start-x 0 --start-y -2.6 \
+  --world ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
+  --model-path data/maps/worlds
+# 生成 7 面：ground + .117 + .219 + .321 的碎片；上层 .423/.508/.7/.89 未观测
+
+# 4) 自建图导航尝试
+# (0,-1.5) 点击：global 18 点、goal z=.117299；
+#   local E_LOCAL_CLEARANCE: goal is below a low ceiling
+# 声明图 nist_stairs_120@1：start -2.6 → E_LOCAL_SUPPORT（边缘 0.1 m，半径 .15）；
+#   start -2.3 → global 35 点，local E_LOCAL_NO_ROUTE at carrier (0,-2.1,0)
+# 结论：导入世界与键盘建图/3D 点云 ✔；楼梯图导航未闭环 ✘
+
+# 5) 仍可用的端到端：平层 m1 的 R1119 链
+# 见 docker/README §4.7；本 R1120 不改变 R1119 的 m1 结果。
+
+# 6) 测试
+cd ws/src/90_platform/v8_platform/framework && python3 -B -m unittest test_navigation_app  # 17/17
+cd /home/jack/ysc-code/ros1-slam && python3 -B -m unittest discover \
+  -s ws/src/90_platform/v8_platform/representation -p 'test_*.py'                         # 74/74
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/test_sim_pose.py                   # 4/4

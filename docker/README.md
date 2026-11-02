@@ -650,6 +650,42 @@ RViz 里 **Publish Point** 点自建支撑面，3D 全局/局部路径由 `/v8/3
 边界：建图是 Gazebo GT 位姿 + 仿真 LiDAR，不是 LIO/SLAM、不是物理四足、不是真机；
 自建图仍走 `app_carrier` 运动学载体，导航结论不能当 A1—A7 formal。
 
+#### 4.8 导入开放数据集世界（NIST）：建图可，楼梯导航未闭环
+
+现有导入件 `open_data_import.py` 已把 NIST 世界落到 `data/imports/venue_nist_dataset/`；
+本仓还有缩放版世界 `ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world`
+与模型库 `data/maps/worlds`。
+
+1. **带 Lite3 启动导入世界**（终端 1；`model_path` 必须包含 `nist_stairs_120_s020x170` 模型）
+```bash
+docker compose exec sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11345
+  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
+    world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
+    model_path:=/opt/ros1-slam/data/maps/worlds \
+    spawn_x:=0 spawn_y:=-2.6 spawn_z:=0.15 spawn_yaw:=1.5708'
+```
+2. 记录器/RViz/键盘终端同 §4.7 的 2—4 步；把 `--out` 换成 `mapped_nist.pcd`。
+3. **PCD → support_map**（NIST 轮廓只保地面前缘与踏步）
+```bash
+python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+  --pcd data/maps/mapped_nist_gt1.pcd --map-id mapped_nist --version 1 \
+  --out data/maps/generated/mapped_nist_v1.json --write-app --register \
+  --nist-profile --xy-gap 0.30 --start-x 0 --start-y -2.6 \
+  --world ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
+  --model-path data/maps/worlds
+```
+
+**现状（R1120，必须直说）**：地面键盘遥操上不了 .198 m 踏步，点云只看到下三层
+（z 0—0.525），自建 support_map 是 7 个重叠碎面；自建图目标会触发
+`E_LOCAL_CLEARANCE`，声明图 `nist_stairs_120@1` 也会在起点/地平段触发
+`E_LOCAL_SUPPORT`/`E_LOCAL_NO_ROUTE`。**导入世界 + 键盘建图 + RViz 3D 点云已通；
+楼梯导航未闭环**。平层 m1 的 §4.7 仍是可用的端到端链。下一步需要模型感知的
+地面/踏步分割 + 自遮挡过滤 + 局部踏步执行，或按 `gazebo3d_mapping.py` 的 survey 位姿上踏步采集。
+
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
 项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的

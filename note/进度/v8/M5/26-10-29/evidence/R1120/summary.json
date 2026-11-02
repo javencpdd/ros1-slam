@@ -1,0 +1,35 @@
+{
+ "record": "R1120",
+ "date": "2026-11-02",
+ "container": "ros1-slam-sim-viz",
+ "code": "3983cb45",
+ "change": "imported NIST world + keyboard mapping + nav-attempt boundary",
+ "world": {
+  "scaled": "ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world",
+  "model_path": "data/maps/worlds",
+  "robot_spawn": [0, -2.6, 0.15],
+  "spawn_yaw_rad": 1.5708,
+  "models": ["ground_plane", "nist_stairs_120_s020x170", "lite3_planar"]
+ },
+ "mapping": {
+  "points": 324493,
+  "bounds_min": [-12.685490608215332, -15.430810928344727, -0.0003665562253445387],
+  "bounds_max": [17.130216598510742, 10.183632850646973, 0.5252987146377563],
+  "z_percentiles_1_5_50_95_99": [-4.365814220363973e-06, -3.491836241664714e-06, -1.0043236216006335e-06, 0.11729966104030609, 0.4232993423938751],
+  "pcd_sha256": "8537cd2f6a03e0a0f6096239b8db9f9d7a04d61b5e70a26c30cfb4017aaef82f",
+  "screenshot": "nist_mapping.png"
+ },
+ "support_map": {
+  "surfaces": 7,
+  "levels": [-1e-06, 0.117299, 0.219299, 0.321299, 0.51],
+  "note": "fragmented lower treads; upper treads .423/.508/.7/.89 not observed from ground"
+ },
+ "navigation_attempts": [
+  {"map": "generated", "goal": [0, -1.5], "goal_z": 0.117299, "error": "E_LOCAL_CLEARANCE: goal is below a low ceiling"},
+  {"map": "declared nist_stairs_120@1", "start": [0, -2.6], "error": "E_LOCAL_SUPPORT: start requires exactly one matching z support"},
+  {"map": "declared nist_stairs_120@1", "start": [0, -2.3], "error": "E_LOCAL_NO_ROUTE at carrier (0,-2.1,0)"}
+ ],
+ "conclusion": "imported world + keyboard mapping + RViz 3D cloud works; stair navigation from the keyboard-built / declared map is not closed. Flat m1 R1119 remains the working end-to-end chain.",
+ "tests": {"test_navigation_app": "17/17", "representation": "74/74", "test_sim_pose": "4/4"},
+ "boundary": "Simulation only; NIST world is an imported fixture; no formal/real robot; the generated support map is partial because teleop stays on the ground."
+}

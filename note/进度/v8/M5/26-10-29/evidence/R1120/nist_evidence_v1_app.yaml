@@ -1,0 +1,31 @@
+{
+ "schema": "navigation_app/v1",
+ "name": "nist_evidence_3d",
+ "graph": "ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_gazebo_app_mapped.yaml",
+ "map": {
+  "id": "nist_evidence",
+  "version": 1
+ },
+ "task": "note/进度/v8/M5/26-10-29/evidence/R1120/nist_evidence_v1_task.json",
+ "localization": {
+  "source": "carrier"
+ },
+ "carrier": {
+  "backend": "gazebo",
+  "model_name": "app_carrier",
+  "center_z": 0.1,
+  "snap_m": 0.03,
+  "spawn": true,
+  "world_launch": "ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch",
+  "world": "ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world",
+  "model_path": "data/maps/worlds"
+ },
+ "visualization": {
+  "markers": true,
+  "rviz": false
+ },
+ "global": {
+  "budget": 20000,
+  "min_clearance_m": 0.4
+ }
+}

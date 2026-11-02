@@ -52,3 +52,7 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 - 端口：2D/建图 11313/11345；3D app 11537/11538；`sim` 与 `sim-viz` 一次只起一个。
 - 边界：R1119 是**仿真 GT 位姿建图**，不是 LIO/SLAM；自建图目前是一层平地支撑面，
   导航载体是 `app_carrier` 运动学箱体，不是四足物理步态/真机。
+- **导入 NIST 世界（R1120）**：`m2_gazebo.launch world:=... model_path:=... spawn_*:=...`
+  可带 Lite3 进导入世界；键盘采点/RViz 3D 点云可跑，但地面遥操看不到上层踏步，
+  自建图/声明图的楼梯导航仍 `E_LOCAL_CLEARANCE`/`E_LOCAL_SUPPORT`/`E_LOCAL_NO_ROUTE`，
+  **未闭环**；平层 m1 的 §4.7 才是当前端到端链。详见 `docker/README.md` §4.8。
