@@ -244,12 +244,22 @@ docker compose exec sim bash /opt/ros1-slam/docker/build.sh --slim
 
 ```bash
 cd docker
+# ★ sim 与 sim-viz 共用 11313/11345，一次只能起一个。
+#   先确认 viz 已停；否则会报 "Bind for 0.0.0.0:11313 failed: port is already allocated"。
+docker compose --profile viz stop sim-viz 2>/dev/null || true
 # ★ 必须显式写服务名 sim：不带 profiles 的 roscore/slam 会被一起拉起，
 #   而 slam 与 sim 共用命名卷 ros1_ws_devel（一份 devel 两处写会互相覆盖）
 docker compose --profile sim up -d --build sim
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh probe    # 先自检
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh smoke stageA
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh gazebo   # 只起场地看日志
+```
+
+镜像已经构建过时用 `--no-build` 跳过重建。若容器显示 `Up` 但 `docker port ros1-slam-sim`
+为空（上一次端口冲突留下的半成品网络），重建一次即可：
+
+```bash
+docker compose --profile sim up -d --no-build --force-recreate sim
 ```
 
 `probe` 会打印：DISPLAY、`glxinfo` 软渲染器、gzserver 版本、sun/ground_plane 模型、
