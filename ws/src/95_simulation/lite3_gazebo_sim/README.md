@@ -56,6 +56,10 @@ spawn/delete 模型，不换 world，也不更新静态导航图。`stair_lab_*.
 它**不签 A1—A7 formal**，也不代表四足物理步态或真机。R1121 的 39 点到 step5 是这条夹具的
 scoped 读数，不是 formal/物理成功率。
 
+**Rich world 不是替代品**：多层室内 world 可用于感知/SLAM/演示，但视觉/碰撞网格不等于 support_map；
+换世界后仍要声明地面/踏面、step 边、z 和足迹交叠，低台阶高度只是参数之一，还需 >0.18 m 的负控。
+推荐 NIST/m1 做 formal 前回归，另开一个许可明确的多层 demo 世界；真机/物理四足仍走 V8-X1/V8-X2。
+
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
 - **3D 交互（预生成图）**：`app_runner.py --app .../nist_sensor_3d.yaml --execute --interactive --rviz`；
