@@ -74,6 +74,8 @@ def main():
     parser.add_argument('--buffer', type=int, default=5000,
                         help='max GT/LIO samples retained per topic')
     parser.add_argument('--scope', default='demo_slam_survey')
+    parser.add_argument('--rpe-window-s', type=float, default=1.0)
+    parser.add_argument('--xy-threshold-m', type=float, default=0.5)
     args = parser.parse_args()
     points, path_speed = load_waypoints(args.path)
     rospy.init_node('demo_slam_survey', anonymous=True, disable_signals=True)
@@ -134,7 +136,7 @@ def main():
     with lock:
         gt = list(gt_buffer)
         est = list(est_buffer)
-    pairs = []
+    pairs, timed_pairs = [], []
     for stamp, received, pose in est:
         nearest = min(gt, key=lambda item: (abs(item[0] - stamp)
                                             if stamp > 0 and item[0] > 0
@@ -144,6 +146,7 @@ def main():
                      else abs(nearest[1] - received))
             if delta <= args.max_age_s:
                 pairs.append((nearest[2], pose))
+                timed_pairs.append((nearest[0], nearest[2], pose))
     result = {
         'scope': args.scope,
         'ok': bool(pairs),
@@ -152,6 +155,9 @@ def main():
         'path_speed_mps': path_speed, 'pairs': len(pairs),
         'gt_samples': len(gt), 'lio_samples': len(est),
         'compare': localization_compare.compare_samples(pairs),
+        'rpe': localization_compare.rpe_stats(timed_pairs, args.rpe_window_s),
+        'tracking': localization_compare.tracking_stats(
+            est, pairs, xy_threshold_m=args.xy_threshold_m),
         'gt_tail': [list(item[2][:3]) for item in gt[-3:]],
         'lio_tail': [list(item[2][:3]) for item in est[-3:]],
         'note': 'GT survey via set_model_state; no /cmd_vel, no navigation, no gait',

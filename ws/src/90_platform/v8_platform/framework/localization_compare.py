@@ -77,6 +77,95 @@ def compare_samples(pairs):
             'origin_offset': list(offset), 'origin_yaw_rad': dyaw}
 
 
+def _wrap_angle(value):
+    return math.atan2(math.sin(value), math.cos(value))
+
+
+def _metric_stats(values):
+    if not values:
+        return None
+    ordered = sorted(values)
+    return {'mean': sum(ordered) / len(ordered),
+            'rms': math.sqrt(sum(v * v for v in ordered) / len(ordered)),
+            'max': ordered[-1]}
+
+
+def _relative_xy(first, second):
+    """second position in first pose's yaw frame."""
+    yaw = yaw_of(first[3:])
+    dx, dy = second[0] - first[0], second[1] - first[1]
+    cos_y, sin_y = math.cos(-yaw), math.sin(-yaw)
+    return cos_y * dx - sin_y * dy, sin_y * dx + cos_y * dy
+
+
+def rpe_stats(timed_pairs, window_s=1.0):
+    """Relative pose error over a fixed time window.
+
+    timed_pairs = [(t, gt_pose, estimate_pose), ...]. Translation is measured in
+    the start pose's yaw frame; yaw error is the relative yaw difference.
+    """
+    if not timed_pairs:
+        return {'samples': 0, 'window_s': window_s}
+    samples, next_index = [], 1
+    for index, (stamp, gt0, est0) in enumerate(timed_pairs):
+        if next_index <= index:
+            next_index = index + 1
+        while (next_index < len(timed_pairs)
+               and timed_pairs[next_index][0] - stamp < window_s):
+            next_index += 1
+        if next_index >= len(timed_pairs):
+            break
+        end_stamp, gt1, est1 = timed_pairs[next_index]
+        gt_dx, gt_dy = _relative_xy(gt0, gt1)
+        est_dx, est_dy = _relative_xy(est0, est1)
+        gt_dyaw = _wrap_angle(yaw_of(gt1[3:]) - yaw_of(gt0[3:]))
+        est_dyaw = _wrap_angle(yaw_of(est1[3:]) - yaw_of(est0[3:]))
+        samples.append({
+            'dt_s': end_stamp - stamp,
+            'translation_m': math.hypot(gt_dx - est_dx, gt_dy - est_dy),
+            'z_m': abs((gt1[2] - gt0[2]) - (est1[2] - est0[2])),
+            'yaw_rad': abs(_wrap_angle(est_dyaw - gt_dyaw)),
+        })
+    if not samples:
+        return {'samples': 0, 'window_s': window_s}
+    return {
+        'samples': len(samples), 'window_s': window_s,
+        'dt_s_mean': sum(item['dt_s'] for item in samples) / len(samples),
+        'translation_m': _metric_stats([item['translation_m'] for item in samples]),
+        'z_m': _metric_stats([item['z_m'] for item in samples]),
+        'yaw_rad': _metric_stats([item['yaw_rad'] for item in samples]),
+    }
+
+
+def tracking_stats(est_samples, pairs, gap_s=1.0, xy_threshold_m=0.5):
+    """Descriptive LIO sample gaps and contiguous xy-error exceedances."""
+    stamps = sorted({float(item[0]) for item in est_samples if item[0] > 0})
+    gaps = [second - first for first, second in zip(stamps, stamps[1:]) if second > first]
+    errors = []
+    if pairs:
+        offset = tuple(pairs[0][1][i] - pairs[0][0][i] for i in range(3))
+        errors = [error_between(gt, aligned(gt, est, offset))['xy_m']
+                  for gt, est in pairs]
+    segments = 0
+    previous = False
+    for error in errors:
+        over = error > xy_threshold_m
+        if over and not previous:
+            segments += 1
+        previous = over
+    return {
+        'est_samples': len(stamps),
+        'max_gap_s': max(gaps) if gaps else None,
+        'mean_gap_s': (sum(gaps) / len(gaps)) if gaps else None,
+        'gaps_over_s': sum(1 for gap in gaps if gap > gap_s),
+        'gap_threshold_s': gap_s,
+        'max_xy_m': max(errors) if errors else None,
+        'xy_over_threshold_samples': sum(1 for error in errors if error > xy_threshold_m),
+        'xy_over_threshold_segments': segments,
+        'xy_threshold_m': xy_threshold_m,
+    }
+
+
 def _terminate(proc, group=False):
     if proc is None or proc.poll() is not None:
         return
