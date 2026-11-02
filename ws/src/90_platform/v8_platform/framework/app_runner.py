@@ -86,6 +86,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
     viz = None
     picker = None
     rviz_proc = None
+    tf_static = None
     assembly = None
     old_handlers = {}
     stop_requested = {'value': False}
@@ -152,6 +153,14 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 start_new_session=True, stdout=open('/tmp/r1103_picker.log', 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
         if rviz:
+            # 3D app markers/paths use frame_id=map, but the graph has no TF edge.
+            # Publish an identity world->map so RViz Fixed Frame=map and Publish
+            # Point both resolve; map is otherwise a floating frame.
+            tf_static = subprocess.Popen(
+                ['rosrun', 'tf2_ros', 'static_transform_publisher',
+                 '0', '0', '0', '0', '0', '0', 'world', 'map'],
+                start_new_session=True, stdout=open('/tmp/r1103_tf_static.log', 'ab'),
+                stderr=subprocess.STDOUT, env=dict(os.environ))
             rviz_proc = subprocess.Popen(
                 ['rviz', '-d', str(HERE / 'fixtures' / 'rviz' / 'nav3d.rviz')],
                 start_new_session=True, stdout=open('/tmp/r1103_rviz.log', 'ab'),
@@ -280,13 +289,14 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
             signal.signal(sig, handler)
         _terminate(picker, group=True)
         _terminate(rviz_proc, group=True)
+        _terminate(tf_static, group=True)
         _terminate(viz, group=True)
         _terminate(gazebo, group=True)
         _terminate(master, group=True)
         result['logs'] = {
             'master': '/tmp/r1103_master.log', 'gazebo': '/tmp/r1103_gazebo.log',
             'viz': '/tmp/r1103_viz.log', 'picker': '/tmp/r1103_picker.log',
-            'rviz': '/tmp/r1103_rviz.log'}
+            'rviz': '/tmp/r1103_rviz.log', 'tf_static': '/tmp/r1103_tf_static.log'}
     Path(out_path).write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n')
     print(json.dumps({k: result[k] for k in ('ok', 'checks', 'path', 'local_trajectory',
                                              'carrier_final', 'markers', 'error')},

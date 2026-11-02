@@ -548,9 +548,13 @@ docker compose exec sim-viz bash -lc '
     --out /tmp/nav3d_interactive.json'
 ```
 
-- RViz 打开 `framework/fixtures/rviz/nav3d.rviz`；用 **Publish Point** 点在 support surface
-  Marker 上，`operator_surface_picker` 会把 x/y/z 解析成唯一面并发 `/v8/3d/global/goal`；
-  多面同 XY 时若点击歧义，status 返回候选而不是猜。
+- RViz 打开 `framework/fixtures/rviz/nav3d.rviz`；`app_runner --rviz` 会先发一个
+  `world→map` 静态 TF（graph 本身没有 TF 边），否则 Fixed Frame=`map` 会让 Marker/Grid 全空。
+  用 **Publish Point** 点在 support surface Marker 上，`operator_surface_picker` 会把 x/y/z
+  解析成唯一面并发 `/v8/3d/global/goal`；多面同 XY 时若点击歧义，status 返回候选而不是猜。
+- RViz 空白排查：`rosrun tf tf_echo world map` 应为单位变换；
+  `rostopic hz /v8/3d/viz/markers` 应约 50 Hz；`rostopic echo /v8/3d/global/status`
+  在未发目标时应只有 `E_PLAN_NOT_READY`，发目标后应出现 path points。
 - 这是独立 3D 栈：master **11537**、Gazebo **11538**，不要和 2D 的 11313/11345 链混用。
 - 退出在 app runner 终端按 Ctrl+C；会停 graph/Gazebo/RViz 并写
   `/tmp/nav3d_interactive.json`。这是操作员测试，不是 A1—A7 formal 或真机。
