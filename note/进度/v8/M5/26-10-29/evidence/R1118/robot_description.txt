@@ -1,0 +1,201 @@
+"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- This URDF was automatically created\
+  \ by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com)\
+  \ \n     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578\n     For\
+  \ more information, please see http://wiki.ros.org/sw_urdf_exporter -->\n<robot\
+  \ name=\"Lite3\">\n    <mujoco>\n        <compiler meshdir=\"package://lite3_description/meshes/\"\
+  \ balanceinertia=\"false\" discardvisual=\"false\" fusestatic=\"false\"/>\n    </mujoco>\n\
+  \    <link name=\"TORSO\">\n        <inertial>\n            <origin/>\n        \
+  \    <mass value=\"5.6056\"/>\n            <inertia ixx=\"0.02456\" ixy=\"0\" ixz=\"\
+  0\" iyy=\"0.05518\" iyz=\"0\" izz=\"0.07016\"/>\n        </inertial>\n        <visual>\n\
+  \            <geometry>\n                <mesh filename=\"package://lite3_description/meshes/torso.STL\"\
+  />\n            </geometry>\n        </visual>\n        <collision>\n          \
+  \  <origin xyz=\"0 0 0.01\"/>\n            <geometry>\n                <box size=\"\
+  0.5 0.1 0.12\"/>\n            </geometry>\n        </collision>\n        <collision>\n\
+  \            <origin xyz=\"0 0 0.01\"/>\n            <geometry>\n              \
+  \  <box size=\"0.25 0.2 0.12\"/>\n            </geometry>\n        </collision>\n\
+  \    </link>\n\n    <!--!!!!!!!!!!!! Front Left Leg !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->\n\
+  \n    <link name=\"FL_HIP\">\n        <inertial>\n            <origin xyz=\"-0.00601\
+  \ -0.0066532 0.00034295\"/>\n            <mass value=\"0.550\"/>\n            <inertia\
+  \ ixx=\"0.0003949\" ixy=\"0\" ixz=\"0\" iyy=\"0.0004028\" iyz=\"0\" izz=\"0.0004472\"\
+  />\n        </inertial>\n        <visual>\n            <geometry>\n            \
+  \    <mesh filename=\"package://lite3_description/meshes/hip.STL\" scale=\"1 1 1\"\
+  />\n            </geometry>\n        </visual>\n        <collision>\n          \
+  \  <origin xyz=\"0 0.05 0\" rpy=\"1.57079632 0 0\"/>\n            <geometry>\n \
+  \               <cylinder length=\"0.15\" radius=\"0.04\"/>\n            </geometry>\n\
+  \        </collision>\n    </link>\n    <joint name=\"FL_HipX_joint\" type=\"revolute\"\
+  >\n        <origin xyz=\"0.1745 0.062 0\"/>\n        <parent link=\"TORSO\"/>\n\
+  \        <child link=\"FL_HIP\"/>\n        <axis xyz=\"-1 0 0\"/>\n        <limit\
+  \ lower=\"-0.523\" upper=\"0.523\" effort=\"24\" velocity=\"26.2\"/>\n    </joint>\n\
+  \    <link name=\"FL_THIGH\">\n        <inertial>\n            <origin xyz=\"-0.0039245\
+  \ -0.014632 -0.025146\"/>\n            <mass value=\"0.86\"/>\n            <inertia\
+  \ ixx=\"0.005736\" ixy=\"0\" ixz=\"0\" iyy=\"0.004960\" iyz=\"0\" izz=\"0.001436\"\
+  />\n        </inertial>\n        <visual>\n            <geometry>\n            \
+  \    <mesh filename=\"package://lite3_description/meshes/thigh.STL\"/>\n       \
+  \     </geometry>\n        </visual>\n        <collision>\n            <origin xyz=\"\
+  -0.015 0 -0.08\" />\n            <geometry>\n                <box size=\"0.04 0.045\
+  \ 0.2\"/>\n            </geometry>\n        </collision>\n    </link>\n    <joint\
+  \ name=\"FL_HipY_joint\" type=\"revolute\">\n        <origin xyz=\"0 0.09735 0\"\
+  />\n        <parent link=\"FL_HIP\"/>\n        <child link=\"FL_THIGH\"/>\n    \
+  \    <axis xyz=\"0 -1 0\"/>\n        <limit lower=\"-2.67\" upper=\"0.314\" effort=\"\
+  24\" velocity=\"26.2\"/>\n    </joint>\n    <link name=\"FL_SHANK\">\n        <inertial>\n\
+  \            <origin xyz=\"0.0064794 -1.4535E-06 -0.12157\"/>\n            <mass\
+  \ value=\"0.153\"/>\n            <inertia ixx=\"0.00089039\" ixy=\"0\" ixz=\"0\"\
+  \ iyy=\"0.00090672\" iyz=\"0\" izz=\"3.1266E-05\"/>\n        </inertial>\n     \
+  \   <visual>\n            <geometry>\n                <mesh filename=\"package://lite3_description/meshes/shank.STL\"\
+  />\n            </geometry>\n            <material name=\"\">\n                <color\
+  \ rgba=\"1 1 1 1\"/>\n            </material>\n        </visual>\n        <collision>\n\
+  \            <origin xyz=\"0.005 0 -0.03\" rpy=\"0 -0.2 0\"/>\n            <geometry>\n\
+  \                <cylinder length=\"0.12\" radius=\"0.015\"/>\n            </geometry>\n\
+  \        </collision>\n        <collision>\n            <origin xyz=\"0.01 0 -0.14\"\
+  \ rpy=\"0 0.15 0\"/>\n            <geometry>\n                <cylinder length=\"\
+  0.10\" radius=\"0.015\"/>\n            </geometry>\n        </collision>\n    </link>\n\
+  \    <joint name=\"FL_Knee_joint\" type=\"revolute\">\n        <origin xyz=\"0 0\
+  \ -0.20\"/>\n        <parent link=\"FL_THIGH\"/>\n        <child link=\"FL_SHANK\"\
+  />\n        <axis xyz=\"0 -1 0\"/>\n        <limit lower=\"0.524\" upper=\"2.792\"\
+  \ effort=\"36\" velocity=\"17.3\"/>\n    </joint>\n\n    <link name=\"FL_FOOT\"\
+  >\n        <collision>\n            <origin rpy=\"1.57079632679 0 0\" />\n     \
+  \       <geometry>\n                <sphere radius=\"0.022\"/>\n            </geometry>\n\
+  \        </collision>\n        <inertial>\n            <mass value=\"0.02\"/>\n\
+  \            <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"\
+  />\n        </inertial>\n    </link>\n\n    <joint name=\"FL_Ankle\" type=\"fixed\"\
+  \ dont_collapse=\"true\">\n        <parent link=\"FL_SHANK\"/>\n        <child link=\"\
+  FL_FOOT\"/>\n        <origin xyz=\"0 0 -0.21012\"/>\n    </joint>\n\n    <!--!!!!!!!!!!!!\
+  \ Front Right Leg !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->\n    <link name=\"FR_HIP\"\
+  >\n        <inertial>\n            <origin xyz=\"-0.010579 0.011358 0.00048546\"\
+  />\n            <mass value=\"0.550\"/>\n            <inertia ixx=\"0.0004472\"\
+  \ ixy=\"0\" ixz=\"0\" iyy=\"0.0004028\" iyz=\"0\" izz=\"0.0003949\"/>\n        </inertial>\n\
+  \        <visual>\n            <geometry>\n                <mesh filename=\"package://lite3_description/meshes/hip.STL\"\
+  \ scale=\"1 -1 1\"/>\n            </geometry>\n        </visual>\n        <collision>\n\
+  \            <origin xyz=\"0 -0.05 0\" rpy=\"1.57079632 0 0\"/>\n            <geometry>\n\
+  \                <cylinder length=\"0.15\" radius=\"0.04\"/>\n            </geometry>\n\
+  \        </collision>\n    </link>\n    <joint name=\"FR_HipX_joint\" type=\"revolute\"\
+  >\n        <origin xyz=\"0.1745 -0.062 0\"/>\n        <parent link=\"TORSO\"/>\n\
+  \        <child link=\"FR_HIP\"/>\n        <axis xyz=\"-1 0 0\"/>\n        <limit\
+  \ lower=\"-0.523\" upper=\"0.523\" effort=\"24\" velocity=\"26.2\"/>\n    </joint>\n\
+  \    <link name=\"FR_THIGH\">\n        <inertial>\n            <origin xyz=\"-0.0039245\
+  \ 0.014632 -0.025146\"/>\n            <mass value=\"0.86\"/>\n            <!-- inertia\
+  \ ixx=\"0.00433\" ixy=\"0.00001\" ixz=\"0.00034\" iyy=\"0.00403\"  iyz=\"-0.0000186\"\
+  \ izz=\"0.00143\" -->\n            <inertia ixx=\"0.005736\" ixy=\"0\" ixz=\"0\"\
+  \ iyy=\"0.004960\" iyz=\"0\" izz=\"0.001436\"/>\n        </inertial>\n        <visual>\n\
+  \            <geometry>\n                <mesh filename=\"package://lite3_description/meshes/thigh.STL\"\
+  \ scale=\"1 -1 1\"/>\n            </geometry>\n        </visual>\n        <collision>\n\
+  \            <origin xyz=\"-0.015 0 -0.08\" />\n            <geometry>\n       \
+  \         <box size=\"0.04 0.045 0.2\"/>\n            </geometry>\n        </collision>\n\
+  \    </link>\n    <joint name=\"FR_HipY_joint\" type=\"revolute\">\n        <origin\
+  \ xyz=\"0 -0.09735 0\"/>\n        <parent link=\"FR_HIP\"/>\n        <child link=\"\
+  FR_THIGH\"/>\n        <axis xyz=\"0 -1 0\"/>\n        <limit lower=\"-2.67\" upper=\"\
+  0.314\" effort=\"24\" velocity=\"26.2\"/>\n    </joint>\n    <link name=\"FR_SHANK\"\
+  >\n        <inertial>\n            <origin xyz=\"0.0064794 -1.4552E-06 -0.12157\"\
+  />\n            <mass value=\"0.153\"/>\n            <inertia ixx=\"0.00089039\"\
+  \ ixy=\"0\" ixz=\"0\" iyy=\"0.00090672\" iyz=\"0\" izz=\"3.1266E-05\"/>\n      \
+  \  </inertial>\n        <visual>\n            <geometry>\n                <mesh\
+  \ filename=\"package://lite3_description/meshes/shank.STL\"/>\n            </geometry>\n\
+  \        </visual>\n        <collision>\n            <origin xyz=\"0.005 0 -0.03\"\
+  \ rpy=\"0 -0.2 0\"/>\n            <geometry>\n                <cylinder length=\"\
+  0.12\" radius=\"0.015\"/>\n            </geometry>\n        </collision>\n     \
+  \   <collision>\n            <origin xyz=\"0.01 0 -0.14\" rpy=\"0 0.15 0\"/>\n \
+  \           <geometry>\n                <cylinder length=\"0.10\" radius=\"0.015\"\
+  />\n            </geometry>\n        </collision>\n    </link>\n    <joint name=\"\
+  FR_Knee_joint\" type=\"revolute\">\n        <origin xyz=\"0 0 -0.20\"/>\n      \
+  \  <parent link=\"FR_THIGH\"/>\n        <child link=\"FR_SHANK\"/>\n        <axis\
+  \ xyz=\"0 -1 0\"/>\n        <limit lower=\"0.524\" upper=\"2.792\" effort=\"36\"\
+  \ velocity=\"17.3\"/>\n    </joint>\n\n    <link name=\"FR_FOOT\">\n        <collision>\n\
+  \            <origin rpy=\"1.57079632679 0 0\" />\n            <geometry>\n    \
+  \            <sphere radius=\"0.022\"/>\n            </geometry>\n        </collision>\n\
+  \        <inertial>\n            <mass value=\"0.02\"/>\n            <inertia ixx=\"\
+  0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>\n        </inertial>\n \
+  \   </link>\n\n    <joint name=\"FR_Ankle\" type=\"fixed\" dont_collapse=\"true\"\
+  >\n        <parent link=\"FR_SHANK\"/>\n        <child link=\"FR_FOOT\"/>\n    \
+  \    <origin xyz=\"0 0 -0.21012\"/>\n    </joint>\n\n    <!--!!!!!!!!!!!! Back Left\
+  \ Leg !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->\n    <link name=\"HL_HIP\">\n    \
+  \    <inertial>\n            <origin xyz=\"0.010905 -0.012636 0.001051\"/>\n   \
+  \         <mass value=\"0.550\"/>\n            <inertia ixx=\"0.0003949\" ixy=\"\
+  0\" ixz=\"0\" iyy=\"0.0004028\" iyz=\"0\" izz=\"0.0004472\"/>\n        </inertial>\n\
+  \        <visual>\n            <geometry>\n                <mesh filename=\"package://lite3_description/meshes/hip.STL\"\
+  \ scale=\"-1 1 1\"/>\n            </geometry>\n        </visual>\n        <collision>\n\
+  \            <origin xyz=\"0 0.05 0\" rpy=\"1.57079632 0 0\"/>\n            <geometry>\n\
+  \                <cylinder length=\"0.15\" radius=\"0.04\"/>\n            </geometry>\n\
+  \        </collision>\n    </link>\n    <joint name=\"HL_HipX_joint\" type=\"revolute\"\
+  >\n        <origin xyz=\"-0.1745 0.062 0\"/>\n        <parent link=\"TORSO\"/>\n\
+  \        <child link=\"HL_HIP\"/>\n        <axis xyz=\"-1 0 0\"/>\n        <limit\
+  \ lower=\"-0.523\" upper=\"0.523\" effort=\"24\" velocity=\"26.2\"/>\n    </joint>\n\
+  \    <link name=\"HL_THIGH\">\n        <inertial>\n            <origin xyz=\"-0.0039245\
+  \ -0.014632 -0.025146\"/>\n            <mass value=\"0.86\"/>\n            <inertia\
+  \ ixx=\"0.005736\" ixy=\"0\" ixz=\"0\" iyy=\"0.004960\" iyz=\"0\" izz=\"0.001436\"\
+  />\n        </inertial>\n        <visual>\n            <geometry>\n            \
+  \    <mesh filename=\"package://lite3_description/meshes/thigh.STL\"/>\n       \
+  \     </geometry>\n        </visual>\n        <collision>\n            <origin xyz=\"\
+  -0.015 0 -0.08\" />\n            <geometry>\n                <box size=\"0.04 0.045\
+  \ 0.2\"/>\n            </geometry>\n        </collision>\n    </link>\n    <joint\
+  \ name=\"HL_HipY_joint\" type=\"revolute\">\n        <origin xyz=\"0 0.09735 0\"\
+  />\n        <parent link=\"HL_HIP\"/>\n        <child link=\"HL_THIGH\"/>\n    \
+  \    <axis xyz=\"0 -1 0\"/>\n        <limit lower=\"-2.67\" upper=\"0.314\" effort=\"\
+  24\" velocity=\"26.2\"/>\n    </joint>\n    <link name=\"HL_SHANK\">\n        <inertial>\n\
+  \            <origin xyz=\"0.0064794 -1.4558E-06 -0.12157\"/>\n            <mass\
+  \ value=\"0.153\"/>\n            <inertia ixx=\"0.00089039\" ixy=\"0\" ixz=\"0\"\
+  \ iyy=\"0.00090672\" iyz=\"0\" izz=\"3.1266E-05\"/>\n        </inertial>\n     \
+  \   <visual>\n            <geometry>\n                <mesh filename=\"package://lite3_description/meshes/shank.STL\"\
+  />\n            </geometry>\n        </visual>\n        <collision>\n          \
+  \  <origin xyz=\"0.005 0 -0.03\" rpy=\"0 -0.2 0\"/>\n            <geometry>\n  \
+  \              <cylinder length=\"0.12\" radius=\"0.015\"/>\n            </geometry>\n\
+  \        </collision>\n        <collision>\n            <origin xyz=\"0.01 0 -0.14\"\
+  \ rpy=\"0 0.15 0\"/>\n            <geometry>\n                <cylinder length=\"\
+  0.10\" radius=\"0.015\"/>\n            </geometry>\n        </collision>\n    </link>\n\
+  \    <joint name=\"HL_Knee_joint\" type=\"revolute\">\n        <origin xyz=\"0 0\
+  \ -0.20\"/>\n        <parent link=\"HL_THIGH\"/>\n        <child link=\"HL_SHANK\"\
+  />\n        <axis xyz=\"0 -1 0\"/>\n        <limit lower=\"0.524\" upper=\"2.792\"\
+  \ effort=\"36\" velocity=\"17.3\"/>\n    </joint>\n\n    <link name=\"HL_FOOT\"\
+  >\n        <collision>\n            <origin rpy=\"1.57079632679 0 0\" />\n     \
+  \       <geometry>\n                <sphere radius=\"0.022\"/>\n            </geometry>\n\
+  \        </collision>\n        <inertial>\n            <mass value=\"0.02\"/>\n\
+  \            <inertia ixx=\"0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"\
+  />\n        </inertial>\n    </link>\n\n    <joint name=\"HL_Ankle\" type=\"fixed\"\
+  \ dont_collapse=\"true\">\n        <parent link=\"HL_SHANK\"/>\n        <child link=\"\
+  HL_FOOT\"/>\n        <origin xyz=\"0 0 -0.21012\"/>\n    </joint>\n    <!--!!!!!!!!!!!!\
+  \ Back Right Leg !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-->\n\n    <link name=\"HR_HIP\"\
+  >\n        <inertial>\n            <origin xyz=\"0.010354 0.011423 0.00049498\"\
+  />\n            <mass value=\"0.550\"/>\n            <inertia ixx=\"0.0004472\"\
+  \ ixy=\"0\" ixz=\"0\" iyy=\"0.0004028\" iyz=\"0\" izz=\"0.0003949\"/>\n        </inertial>\n\
+  \        <visual>\n            <geometry>\n                <mesh filename=\"package://lite3_description/meshes/hip.STL\"\
+  \ scale=\"-1 -1 1\"/>\n            </geometry>\n        </visual>\n        <collision>\n\
+  \            <origin xyz=\"0 -0.05 0\" rpy=\"1.57079632 0 0\"/>\n            <geometry>\n\
+  \                <cylinder length=\"0.15\" radius=\"0.04\"/>\n            </geometry>\n\
+  \        </collision>\n    </link>\n    <joint name=\"HR_HipX_joint\" type=\"revolute\"\
+  >\n        <origin xyz=\"-0.1745 -0.062 0\"/>\n        <parent link=\"TORSO\"/>\n\
+  \        <child link=\"HR_HIP\"/>\n        <axis xyz=\"-1 0 0\"/>\n        <limit\
+  \ lower=\"-0.523\" upper=\"0.523\" effort=\"24\" velocity=\"26.2\"/>\n    </joint>\n\
+  \    <link name=\"HR_THIGH\">\n        <inertial>\n            <origin xyz=\"-0.0039245\
+  \ 0.014632 -0.025146\"/>\n            <mass value=\"0.86\"/>\n            <inertia\
+  \ ixx=\"0.005736\" ixy=\"0\" ixz=\"0\" iyy=\"0.004960\" iyz=\"0\" izz=\"0.001436\"\
+  />\n        </inertial>\n        <visual>\n            <geometry>\n            \
+  \    <mesh filename=\"package://lite3_description/meshes/thigh.STL\" scale=\"1 -1\
+  \ 1\"/>\n            </geometry>\n        </visual>\n        <collision>\n     \
+  \       <origin xyz=\"-0.015 0 -0.08\" />\n            <geometry>\n            \
+  \    <box size=\"0.04 0.045 0.2\"/>\n            </geometry>\n        </collision>\n\
+  \    </link>\n    <joint name=\"HR_HipY_joint\" type=\"revolute\">\n        <origin\
+  \ xyz=\"0 -0.09735 0\"/>\n        <parent link=\"HR_HIP\"/>\n        <child link=\"\
+  HR_THIGH\"/>\n        <axis xyz=\"0 -1 0\"/>\n        <limit lower=\"-2.67\" upper=\"\
+  0.314\" effort=\"24\" velocity=\"26.2\"/>\n    </joint>\n    <link name=\"HR_SHANK\"\
+  >\n        <inertial>\n            <origin xyz=\"0.0064794 -1.4529E-06 -0.12157\"\
+  />\n            <mass value=\"0.153\"/>\n            <inertia ixx=\"0.00089039\"\
+  \ ixy=\"0\" ixz=\"0\" iyy=\"0.00090672\" iyz=\"0\" izz=\"3.1266E-05\"/>\n      \
+  \  </inertial>\n        <visual>\n            <geometry>\n                <mesh\
+  \ filename=\"package://lite3_description/meshes/shank.STL\"/>\n            </geometry>\n\
+  \        </visual>\n        <collision>\n            <origin xyz=\"0.005 0 -0.03\"\
+  \ rpy=\"0 -0.2 0\"/>\n            <geometry>\n                <cylinder length=\"\
+  0.12\" radius=\"0.015\"/>\n            </geometry>\n        </collision>\n     \
+  \   <collision>\n            <origin xyz=\"0.01 0 -0.14\" rpy=\"0 0.15 0\"/>\n \
+  \           <geometry>\n                <cylinder length=\"0.10\" radius=\"0.015\"\
+  />\n            </geometry>\n        </collision>\n    </link>\n    <joint name=\"\
+  HR_Knee_joint\" type=\"revolute\">\n        <origin xyz=\"0 0 -0.20\"/>\n      \
+  \  <parent link=\"HR_THIGH\"/>\n        <child link=\"HR_SHANK\"/>\n        <axis\
+  \ xyz=\"0 -1 0\"/>\n        <limit lower=\"0.524\" upper=\"2.792\" effort=\"36\"\
+  \ velocity=\"17.3\"/>\n    </joint>\n\n    <link name=\"HR_FOOT\">\n        <collision>\n\
+  \            <origin rpy=\"1.57079632679 0 0\" />\n            <geometry>\n    \
+  \            <sphere radius=\"0.022\"/>\n            </geometry>\n        </collision>\n\
+  \        <inertial>\n            <mass value=\"0.02\"/>\n            <inertia ixx=\"\
+  0\" ixy=\"0\" ixz=\"0\" iyy=\"0\" iyz=\"0\" izz=\"0\"/>\n        </inertial>\n \
+  \   </link>\n\n    <joint name=\"HR_Ankle\" type=\"fixed\" dont_collapse=\"true\"\
+  >\n        <parent link=\"HR_SHANK\"/>\n        <child link=\"HR_FOOT\"/>\n    \
+  \    <origin xyz=\"0 0 -0.21012\"/>\n    </joint>\n</robot>\n"
+

@@ -1,10 +1,10 @@
 # 进度目录入口
 
-> 当前规划指针＝[计划书入口](../00_README.md)。本次更新：**2026-11-02，R1117**。
+> 当前规划指针＝[计划书入口](../00_README.md)。本次更新：**2026-11-02，R1118**。
 
-## 当前状态（R1117）
+## 当前状态（R1118）
 
-- 已完成并登记：2D v2 栈四格 4/4（R981）；3D Assembly 三轮 12/12＋起点扰动三种子 12/12（R1110/R1111）；传感器图 6/6＋同 XY 选面（R1102/R1108）；全局→MuJoCo 四足 2/2（R1112）；A6 NDT 静态失锁 `.0487 m`（R1106/R1114）与 0.3 m 局部劫持（R1114，候选仍 prior）；R1115 加 BBS 绝对源共识门，静态 `.0578 m`、0.3 m `.0531 m`，0.6 m 传送被拒（FAILED、lease 1）；R1064 同 lab 挂起根因修复（R1113）；R1116 加 2D/3D 交互式导航入口（2D MBF + RViz 2D Nav Goal；3D Publish Point 选面）；R1117 修 3D RViz 空白（补单位 `world→map` 静态 TF，markers 50 Hz，点击后 25 点路径到达）。
+- 已完成并登记：2D v2 栈四格 4/4（R981）；3D Assembly 三轮 12/12＋起点扰动三种子 12/12（R1110/R1111）；传感器图 6/6＋同 XY 选面（R1102/R1108）；全局→MuJoCo 四足 2/2（R1112）；A6 NDT 静态失锁 `.0487 m`（R1106/R1114）与 0.3 m 局部劫持（R1114，候选仍 prior）；R1115 加 BBS 绝对源共识门，静态 `.0578 m`、0.3 m `.0531 m`，0.6 m 传送被拒（FAILED、lease 1）；R1064 同 lab 挂起根因修复（R1113）；R1116 加 2D/3D 交互式导航入口（2D MBF + RViz 2D Nav Goal；3D Publish Point 选面）；R1117 修 3D RViz 空白（补单位 `world→map` 静态 TF，markers 50 Hz，点击后 25 点路径到达）；R1118 补 2D/3D 地图与 Lite3 模型显示（3D 支撑面 6 层 + `map→TORSO` 模型跟随，2D `/map` 200×200@0.1 + RobotModel）。
 - 当前矩阵：A2=`PASS*`，A1/A3/A4/A5/A6/A7=`PARTIAL`；#151 formal 两键 pending，V8-X2 真机未开工。
 - 下一步：真叠层 mezzanine 场景（新场景决定）；之后 A1/A4/A5 formal、#151 formal、V8-X2（L2）。
 - 时间线真源：[00_总览](00_总览.md)；版本内入口：[v8 进度](v8/README.md)。

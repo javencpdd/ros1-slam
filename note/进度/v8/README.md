@@ -1,11 +1,11 @@
 # v8 进度入口
 
-> 最新登记：**R1117（2026-11-02）**，3D 交互 RViz 空白根因修复（补 `world→map` 静态 TF）。当前运行面：2D v2 四格 4/4；
+> 最新登记：**R1118（2026-11-02）**，2D/3D 交互 RViz 补齐地图与 Lite3 模型。当前运行面：2D v2 四格 4/4；
 > 3D Assembly 三轮 **12/12**、起点扰动三种子 **12/12**；传感器图 **6/6**＋同 XY 选面；
 > 全局路径→MuJoCo 四足接触 **2/2**；A6 NDT 静态 `.0578 m`、0.3 m `.0531 m`；
-> 0.6 m 共识 [2.2] 与 NDT 候选差 .648 → FAILED/lease 1；2D/3D 交互入口（MBF + RViz 2D Nav Goal / 3D Publish Point）；R1117 修 3D RViz 空白（`world→map` 静态 TF、markers 50 Hz、点击后 25 点路径）。A1/A3/A4/A5/A6/A7
+> 0.6 m 共识 [2.2] 与 NDT 候选差 .648 → FAILED/lease 1；2D/3D 交互入口（MBF + RViz 2D Nav Goal / 3D Publish Point）；R1117 修 3D RViz 空白（`world→map` 静态 TF、markers 50 Hz、点击后 25 点路径）；R1118 补 RViz 支撑面与 Lite3 模型（`Marker Topic` 修正、`map→TORSO`、2D `/map`+RobotModel）。A1/A3/A4/A5/A6/A7
 > 仍 **PARTIAL**，A2=PASS*；#151 formal 两键 pending，V8-X2 真机未开工。
-> 本文下面的早期批次表保留历史；最新逐批见 [00_总览](../00_总览.md) 与 [R1117](M5/26-10-29/R1117.md)。
+> 本文下面的早期批次表保留历史；最新逐批见 [00_总览](../00_总览.md) 与 [R1118](M5/26-10-29/R1118.md)。
 
 计划入口见 [计划书 v8](../../计划书v8/README.md)，任务状态见 [23 号队列](../../计划书v8/23_v8任务队列.md)，全项目时间线见 [总览](../00_总览.md)。
 

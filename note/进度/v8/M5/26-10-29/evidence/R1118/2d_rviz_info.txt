@@ -1,0 +1,80 @@
+--------------------------------------------------------------------------------
+Node [/rviz_nav2d]
+Publications: 
+ * /clicked_point [geometry_msgs/PointStamped]
+ * /initialpose [geometry_msgs/PoseWithCovarianceStamped]
+ * /move_base_simple/goal [geometry_msgs/PoseStamped]
+ * /rosout [rosgraph_msgs/Log]
+
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+ * /map [nav_msgs/OccupancyGrid]
+ * /map_updates [unknown type]
+ * /move_base_simple/goal [geometry_msgs/PoseStamped]
+ * /planning/bspline [unknown type]
+ * /rslidar_points [sensor_msgs/PointCloud2]
+ * /sim/odom_gt [nav_msgs/Odometry]
+ * /tf [tf2_msgs/TFMessage]
+ * /tf_static [tf2_msgs/TFMessage]
+
+Services: 
+ * /rviz_nav2d/get_loggers
+ * /rviz_nav2d/load_config
+ * /rviz_nav2d/load_config_discarding_changes
+ * /rviz_nav2d/reload_shaders
+ * /rviz_nav2d/save_config
+ * /rviz_nav2d/set_logger_level
+
+
+contacting node http://14ec30912408:42847/ ...
+Pid: 100631
+Connections:
+ * topic: /rosout
+    * to: /rosout
+    * direction: outbound (45113 - 172.20.0.2:38568) [15]
+    * transport: TCPROS
+ * topic: /move_base_simple/goal
+    * to: /rviz_nav2d
+    * direction: outbound
+    * transport: INTRAPROCESS
+ * topic: /move_base_simple/goal
+    * to: /mbf_goal_bridge
+    * direction: outbound (45113 - 172.20.0.2:38570) [41]
+    * transport: TCPROS
+ * topic: /clock
+    * to: /gazebo (http://14ec30912408:33779/)
+    * direction: inbound (48304 - 14ec30912408:48771) [39]
+    * transport: TCPROS
+ * topic: /tf
+    * to: /robot_state_publisher (http://14ec30912408:45407/)
+    * direction: inbound (46688 - 14ec30912408:54519) [37]
+    * transport: TCPROS
+ * topic: /tf
+    * to: /m2_tf_fresh (http://14ec30912408:38599/)
+    * direction: inbound (56946 - 14ec30912408:40417) [38]
+    * transport: TCPROS
+ * topic: /tf
+    * to: /gazebo (http://14ec30912408:33779/)
+    * direction: inbound (48382 - 14ec30912408:48771) [44]
+    * transport: TCPROS
+ * topic: /tf_static
+    * to: /robot_state_publisher (http://14ec30912408:45407/)
+    * direction: inbound (46698 - 14ec30912408:54519) [40]
+    * transport: TCPROS
+ * topic: /map
+    * to: /m2_free_map (http://14ec30912408:38439/)
+    * direction: inbound (55766 - 14ec30912408:33623) [36]
+    * transport: TCPROS
+ * topic: /sim/odom_gt
+    * to: /gazebo (http://14ec30912408:33779/)
+    * direction: inbound (37592 - 14ec30912408:48771) [45]
+    * transport: TCPROS
+ * topic: /rslidar_points
+    * to: /sim_adapter (http://14ec30912408:42875/)
+    * direction: inbound (48338 - 14ec30912408:43703) [42]
+    * transport: TCPROS
+ * topic: /move_base_simple/goal
+    * to: /rviz_nav2d (http://14ec30912408:42847/)
+    * direction: inbound
+    * transport: INTRAPROCESS
+

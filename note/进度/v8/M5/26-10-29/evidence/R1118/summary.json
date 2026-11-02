@@ -1,0 +1,67 @@
+{
+ "record": "R1118",
+ "date": "2026-11-02",
+ "container": "ros1-slam-sim-viz",
+ "code": "6a4f2ece",
+ "change": "show support map, Lite3 model and 2D costmap in the interactive RViz",
+ "root_causes": {
+  "3d_support_map": "nav3d.rviz used 'Topic:' for rviz/MarkerArray; Noetic reads 'Marker Topic:', so RViz silently subscribed /visualization_marker_array and drew no support surfaces",
+  "3d_model": "3D graph has no robot model/TF; only world->map static existed",
+  "2d_map_model": "rviz_sim_preview.rviz had the /map display disabled and no RobotModel display"
+ },
+ "fix": {
+  "3d": [
+   "MarkerArray: Marker Topic=/v8/3d/viz/markers",
+   "start robot_state_publisher + joint_state_publisher with Lite3.urdf",
+   "pose_tf_broadcaster: /v8/local/pose -> map->TORSO (+0.18 m)",
+   "RobotModel display, TF names off"
+  ],
+  "2d": [
+   "enable /map costmap display",
+   "add RobotModel display (robot_description already published by m1_gazebo.launch)"
+  ]
+ },
+ "3d": {
+  "rviz_marker_subscription": "/v8/3d/viz/markers",
+  "marker_namespaces_before_goal": 14,
+  "markers_after_goal": 17,
+  "support_surfaces": 6,
+  "start_torso_map": [0.0, -3.06, 0.18],
+  "goal": [0.0, 1.34, 0.89],
+  "global_status": {
+   "ok": true,
+   "points": 25,
+   "expansions": 284,
+   "goal": [0.0, 1.34, 0.888142]
+  },
+  "carrier_final": [0.1499998142362338, 1.3499998142357514, 0.888142],
+  "local_pose_final": [0.1499998142362338, 1.3499998142357514, 0.888142],
+  "torso_final_map": [0.15, 1.35, 1.068],
+  "json": {
+   "ok": true,
+   "assembly_ready": true,
+   "markers_published": true,
+   "map_configured": true,
+   "global_path": true,
+   "local_arrived": true,
+   "carrier_at_local_goal": true
+  },
+  "screenshots": ["3d_start.png", "3d_goal.png"]
+ },
+ "2d": {
+  "map": {
+   "frame_id": "map",
+   "width": 200,
+   "height": 200,
+   "resolution": 0.1
+  },
+  "lidar_hz": 10.0,
+  "robot_state_publisher": true,
+  "rviz_subscriptions": ["/map", "/rslidar_points", "/tf", "/tf_static"],
+  "screenshot": "2d_rviz.png"
+ },
+ "tests": {
+  "test_navigation_app": "17/17"
+ },
+ "boundary": "Display-only changes: support surfaces and Lite3 model are not planning inputs; no planner/executor/judgement change. Not A1-A7 formal, not real robot. 3D master 11537/Gazebo 11538; 2D 11313/11345."
+}

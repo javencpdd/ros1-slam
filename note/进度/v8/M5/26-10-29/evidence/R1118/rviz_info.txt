@@ -1,0 +1,68 @@
+--------------------------------------------------------------------------------
+Node [/rviz_1793597688374799837]
+Publications: 
+ * /clicked_point [geometry_msgs/PointStamped]
+ * /initialpose [geometry_msgs/PoseWithCovarianceStamped]
+ * /rosout [rosgraph_msgs/Log]
+
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+ * /tf [tf2_msgs/TFMessage]
+ * /tf_static [tf2_msgs/TFMessage]
+ * /v8/3d/global/path [nav_msgs/Path]
+ * /v8/3d/viz/local_path [nav_msgs/Path]
+ * /v8/3d/viz/markers [visualization_msgs/MarkerArray]
+
+Services: 
+ * /rviz_1793597688374799837/get_loggers
+ * /rviz_1793597688374799837/load_config
+ * /rviz_1793597688374799837/load_config_discarding_changes
+ * /rviz_1793597688374799837/reload_shaders
+ * /rviz_1793597688374799837/save_config
+ * /rviz_1793597688374799837/set_logger_level
+
+
+contacting node http://127.0.0.1:39427/ ...
+Pid: 94802
+Connections:
+ * topic: /rosout
+    * to: /rosout
+    * direction: outbound (59741 - 127.0.0.1:41208) [18]
+    * transport: TCPROS
+ * topic: /clicked_point
+    * to: /operator_surface_picker
+    * direction: outbound (59741 - 127.0.0.1:41216) [42]
+    * transport: TCPROS
+ * topic: /clock
+    * to: /gazebo (http://127.0.0.1:42833/)
+    * direction: inbound (53120 - 127.0.0.1:56753) [16]
+    * transport: TCPROS
+ * topic: /tf
+    * to: /robot_state_publisher (http://127.0.0.1:46223/)
+    * direction: inbound (49414 - 127.0.0.1:45995) [35]
+    * transport: TCPROS
+ * topic: /tf
+    * to: /pose_tf_broadcaster (http://127.0.0.1:35185/)
+    * direction: inbound (59848 - 127.0.0.1:40865) [39]
+    * transport: TCPROS
+ * topic: /tf_static
+    * to: /static_transform_publisher_1793597688719680268 (http://127.0.0.1:42725/)
+    * direction: inbound (53980 - 127.0.0.1:33921) [40]
+    * transport: TCPROS
+ * topic: /tf_static
+    * to: /robot_state_publisher (http://127.0.0.1:46223/)
+    * direction: inbound (49422 - 127.0.0.1:45995) [41]
+    * transport: TCPROS
+ * topic: /v8/3d/global/path
+    * to: /v8/3d/global/v8_support_planner_topic (http://127.0.0.1:35415/)
+    * direction: inbound (44534 - 127.0.0.1:37145) [43]
+    * transport: TCPROS
+ * topic: /v8/3d/viz/markers
+    * to: /nav3d_viz (http://127.0.0.1:35127/)
+    * direction: inbound (38024 - 127.0.0.1:38029) [44]
+    * transport: TCPROS
+ * topic: /v8/3d/viz/local_path
+    * to: /nav3d_viz (http://127.0.0.1:35127/)
+    * direction: inbound (38032 - 127.0.0.1:38029) [34]
+    * transport: TCPROS
+
