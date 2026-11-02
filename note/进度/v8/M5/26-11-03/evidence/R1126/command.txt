@@ -1,0 +1,77 @@
+# R1126 · AWS Hospital 安全走廊 3 seeds + RPE/覆盖率 + 路径空隙
+# 目的：先证明路径不穿模，再在安全走廊上跑 SLAM；不跑导航、不发 /cmd_vel、不接 support_map。
+# 端口：独立 master 11413 / Gazebo 11445；不碰 11313/11345 的 NIST 仿真。
+# 资产：/opt/ros1-slam/data/imports/aws_hospital_probe/（R1124 导入，未入库）
+
+# 1) 起 hospital.world + Lite3（与 R1125 同一启动；这里从干净状态复现）
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  roscore -p 11413 >/tmp/demo_r1126_master.log 2>&1'
+sleep 4
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false \
+    world:=/opt/ros1-slam/data/imports/aws_hospital_probe/worlds/hospital.world \
+    model_path:=/opt/ros1-slam/data/imports/aws_hospital_probe/models:/opt/ros1-slam/data/imports/aws_hospital_probe/fuel_models \
+    spawn_x:=0 spawn_y:=-12 spawn_z:=0.15 spawn_yaw:=0 \
+    >/tmp/demo_r1126_gazebo.log 2>&1'
+# 等到 /sim/odom_gt /rslidar_points /livox/imu 三话题都在；实测 50/10/200 Hz。
+
+# 2) 路径空隙筛选（实时 LiDAR；不是物理碰撞证明）
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  C=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config
+  # 2a) R1125 大厅小环：min 0.168 m，9/41 < 0.35 -> 不合格
+  python3 -B path_clearance_live.py --path $C/demo_hospital_path.json \
+    --sample-m 0.2 --radius .35 --out /tmp/clearance_a.json
+  # 2b) 三条已入库安全走廊：min 0.52 m 左右，0 个 < 0.30
+  for s in a b c; do
+    python3 -B path_clearance_live.py --path $C/demo_hospital_path_safe_$s.json \
+      --sample-m 0.2 --radius .30 --out /tmp/clear_safe_$s.json
+  done'
+# 2c) 其它候选（/tmp，未保留）：x_m8 min .338（1 个 < .35）、x_m6 .130、
+#     x_m10 .135、y_n12_n6 .098、loop_m8 .080、loop_m10 .080；均不选。
+#     选 x 走廊 y=-8 的 8 m 段：A x[-4,4]、B[-3,5]、C[-5,3]。
+
+# 3) 三次 seed（同走廊、不同起止段；8 m、0.2 m/s、40 s、20 Hz）
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  C=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config
+  for s in a b c; do
+    timeout 150 python3 -B demo_slam_survey.py \
+      --path $C/demo_hospital_path_safe_$s.json \
+      --duration-s 40 --rate-hz 20 --buffer 5000 \
+      --rpe-window-s 1.0 --xy-threshold-m 0.5 \
+      --scope demo_hospital_safe_$s --launch \
+      --out /tmp/demo_hospital_safe_$s.json
+    cp -a /opt/ros1-slam/data/maps/lite3.pcd /tmp/hospital_safe_$s.pcd
+  done'
+# 每个 JSON 自带 compare / rpe / tracking；RPE 为 1 s 时间窗，tracking 的
+# xy 超阈段按首帧平移对齐后统计（避免把 LIO 自有 map 起点偏移算成丢跟踪）。
+
+# 4) PCD 统计（点数、bbox、z 分层、0.5 m XY 覆盖、密度）
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
+  E=/opt/ros1-slam/note/进度/v8/M5/26-11-03/evidence/R1126
+  for s in a b c; do
+    python3 -B pcd_stats.py --pcd /tmp/hospital_safe_$s.pcd --out "$E"/pcd_stats_$s.json
+  done'
+
+# 5) 收口：保存 JSON/PCD/日志/clearance，恢复 data/maps/lite3.pcd
+#    PCD 归档用 gzip；本批保留 3 份 PCD（约 1.4-1.7 MB gz）。
+#    停进程按精确 PID；不要宽泛 pkill -f，避免误伤 11313/11345。
+docker exec ros1-slam-sim-viz bash -lc '
+  cp -a /tmp/lite3.pcd.r1126_bak /opt/ros1-slam/data/maps/lite3.pcd'

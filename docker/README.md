@@ -883,7 +883,27 @@ gz stats -d 3
 说明医院 rich 场景比 two_floor 难（248.7 mm→422 mm），静止稳定、运动中漂移；
 **不是 formal，也不是导航/通行结论**。路径可能穿过静态几何（teleport 不做碰撞确认）。
 完整命令与边界见 `note/进度/v8/M5/26-11-03/evidence/R1125/command.txt` 与
-[R1125](../note/进度/v8/M5/26-11-03/R1125.md)。
+[R1125](../note/进度/v8/M5/26-11-03/R1125.md)。R1126 的实时 LiDAR 检查发现该大厅小环
+min clearance 0.168 m（9/41 < 0.35），所以 §4.12 的 xy 漂移含路径贴物因素；干净读数见 §4.13。
+
+#### 4.13 演示线 v2b：AWS Hospital 安全走廊 3 seeds（R1126）
+
+先做实时 LiDAR 路径空隙筛选：大厅小环 min 0.168 m（9/41 < 0.35）不合格；改走 y=-8 走廊
+三条 8 m 段（safe A/B/C，min 0.52 m、0 个 < 0.30）。每段 0.2 m/s、40 s、GT teleport；
+独立 11413/11445，不跑导航/步态、不发 `/cmd_vel`、不接 support_map。
+
+| seed | pairs | translated xy mean | translated xy max | translated z mean | translated z max | RPE trans mean/max | RPE z mean | RPE yaw mean |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| A | 79 | 0.2671 m | 0.4053 m | 0.9385 m | 1.9884 m | 0.0398 / 0.1715 m | 0.2587 m | 1.706 mrad |
+| B | 71 | 0.2790 m | 0.4175 m | 1.0055 m | 2.0306 m | 0.0497 / 0.1949 m | 0.2804 m | 1.699 mrad |
+| C | 88 | 0.2625 m | 0.3943 m | 0.9699 m | 2.0209 m | 0.0374 / 0.1696 m | 0.2482 m | 1.680 mrad |
+| 均值 | 238 | **0.2695 m** | 0.4175 m | **0.9713 m** | 2.0306 m | **0.0423 / 0.1949 m** | **0.2624 m** | **1.695 mrad** |
+
+无 >1 s LIO 间隔、无 xy > 0.5 m 段；PCD 点数 126,054/120,022/146,622，z bands 79/79/81。
+横向/RPE 好，绝对 z 漂移 0.97 m（max 2.03 m）仍在；3 条是重叠走廊段，不是独立场景。
+**非 formal、非导航/通行结论**。完整命令见
+`note/进度/v8/M5/26-11-03/evidence/R1126/command.txt` 与
+[R1126](../note/进度/v8/M5/26-11-03/R1126.md)。
 
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 

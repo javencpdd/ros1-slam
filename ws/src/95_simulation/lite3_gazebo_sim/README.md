@@ -64,7 +64,7 @@ scoped 读数，不是 formal/物理成功率。
 **当前多层 world**：已有受控两层 `demo_two_floor.world`（12×8 m 底层、1.6 m 上层、
 10×0.16 m 楼梯、墙/家具特征），用于演示线 v1 的纯 SLAM survey；它**不是 rich 公开
 多层建筑**，也没有 support_map/app 导航链。AWS Hospital 已做导入探针（R1124）：单层 182 模型、
-两层 361、三层 540 可在 Gazebo 11 加载；R1125 已在其单层 world 跑大厅 8 m 小环 3 次 scoped，
+两层 361、三层 540 可在 Gazebo 11 加载；R1125 大厅小环 + R1126 安全走廊 3 seeds 已跑单层 scoped，
 两层/三层未跑；未接专用 launch/support_map。另有 4 个顶层世界
 （m1/m1_v2/NIST 原始/NIST 缩放）＋9 个单层 stairstudy 场景＋2 个 NIST 导入件；NIST 的 6 层
 是楼梯支撑面，不是多层楼板；
@@ -75,15 +75,19 @@ scoped 读数，不是 formal/物理成功率。
 「仿真与界面 → 09 演示线」。v0 已跑通 `m1_world_v2` + faster-lio vs GT：20 s / 0.25 m/s，
 translated xy mean **9.5 mm**、max **22.7 mm**，rigid yaw mean **5.3 mrad**；单次 scoped，
 只测 SLAM，不跑导航/运动学。证据 `note/进度/v8/M5/26-11-03/evidence/R1122/`；AWS Hospital
-先做导入探针（R1124），R1125 已跑单层大厅小环 scoped；两层/三层未跑，rich 多层仍不是正式
-demo 世界。v1 受控两层
+先做导入探针（R1124），R1125 已跑大厅小环 scoped；R1126 实时 LiDAR 发现该环 min clearance
+0.168 m（不合格），改跑 y=-8 安全走廊。两层/三层未跑，rich 多层仍不是正式 demo 世界。v1 受控两层
 `demo_two_floor.world` + `demo_slam_survey.py`：35 s GT teleport survey，
 恒定 yaw 版 translated xy mean **248.7 mm**、rigid yaw **2.4 mrad**；首轮 yaw 突变版
 translated 409.9 mm／rigid yaw 2.97 rad 作为负例；LIO PCD 已留证。v2 AWS Hospital 单层大厅
 （R1125）：8 m 小环、0.2 m/s、40 s GT teleport，3 次重复；translated xy mean
 **0.355/0.451/0.460 m**、max **0.756/0.979/0.826 m**，z mean ~**0.138 m**，rigid yaw mean
-~**10.1 mrad**；静止对照 **0.057 m**。仍只测 SLAM，无 `/cmd_vel`、无导航/运动学、非 formal。
-只验证 SLAM 时不需要 support_map/app/step 语义；地图/楼梯语义缺口只影响 03 导航全链。
+~**10.1 mrad**；静止对照 **0.057 m**。v2b 安全走廊（R1126）：实时 LiDAR 先筛路径，R1125
+大厅小环 min 0.168 m（9/41<0.35）不合格；改走 y=-8 走廊 3 条 8 m 段（safe A/B/C，min 0.52 m）；
+translated xy mean **0.2695 m**、max **0.4175 m**，RPE trans **0.0423 m**、yaw **1.16 mrad**，
+z mean **0.9713 m**、max 2.03 m；0 个 >1 s 间隔/xy>0.5 m 段。仍只测 SLAM，无 `/cmd_vel`、
+无导航/运动学、非 formal。只验证 SLAM 时不需要 support_map/app/step 语义；
+地图/楼梯语义缺口只影响 03 导航全链。
 
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。

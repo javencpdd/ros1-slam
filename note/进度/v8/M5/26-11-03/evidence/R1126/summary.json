@@ -1,0 +1,266 @@
+{
+ "scope": "demo_hospital_safe_corridor_scoped",
+ "scene": "aws_hospital_probe/worlds/hospital.world",
+ "paths": [
+  "ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_a.json",
+  "ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_b.json",
+  "ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_c.json"
+ ],
+ "path_note": "three overlapping 8 m corridor segments at y=-8; 0.2 m/s; 40 s; GT teleport",
+ "runs": [
+  {
+   "seed": "a",
+   "path": "ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_a.json",
+   "pairs": 79,
+   "gt_samples": 454,
+   "lio_samples": 79,
+   "translated_xy_mean_m": 0.2671220961512443,
+   "translated_xy_max_m": 0.4052695608832576,
+   "translated_z_mean_m": 0.9385488884421257,
+   "translated_z_max_m": 1.988364430523014,
+   "rigid_yaw_mean_rad": 0.0011244015016232964,
+   "rigid_yaw_max_rad": 0.004361532268322601,
+   "rpe_translation_mean_m": 0.03979857796687485,
+   "rpe_translation_max_m": 0.17150185199037885,
+   "rpe_z_mean_m": 0.2587147321957663,
+   "rpe_z_max_m": 0.32561999398555797,
+   "rpe_yaw_mean_rad": 0.0017057492616017796,
+   "rpe_yaw_max_rad": 0.00555831318017057,
+   "tracking_gaps_over_1s": 0,
+   "tracking_max_gap_s": 0.21708946999999057,
+   "tracking_xy_over_threshold_samples": 0,
+   "tracking_xy_over_threshold_segments": 0
+  },
+  {
+   "seed": "b",
+   "path": "ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_b.json",
+   "pairs": 71,
+   "gt_samples": 436,
+   "lio_samples": 71,
+   "translated_xy_mean_m": 0.2789715139056911,
+   "translated_xy_max_m": 0.4174542151029986,
+   "translated_z_mean_m": 1.0055220965070775,
+   "translated_z_max_m": 2.030608272848769,
+   "rigid_yaw_mean_rad": 0.001243745649342308,
+   "rigid_yaw_max_rad": 0.0035247735060291675,
+   "rpe_translation_mean_m": 0.049693376187222936,
+   "rpe_translation_max_m": 0.1948979094472429,
+   "rpe_z_mean_m": 0.2803873226656814,
+   "rpe_z_max_m": 0.3502559709781615,
+   "rpe_yaw_mean_rad": 0.00169865903451878,
+   "rpe_yaw_max_rad": 0.006072533760112916,
+   "tracking_gaps_over_1s": 0,
+   "tracking_max_gap_s": 0.23359694699999523,
+   "tracking_xy_over_threshold_samples": 0,
+   "tracking_xy_over_threshold_segments": 0
+  },
+  {
+   "seed": "c",
+   "path": "ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_c.json",
+   "pairs": 88,
+   "gt_samples": 475,
+   "lio_samples": 88,
+   "translated_xy_mean_m": 0.2625223243966144,
+   "translated_xy_max_m": 0.3942967077905284,
+   "translated_z_mean_m": 0.9698553456701539,
+   "translated_z_max_m": 2.020882114833554,
+   "rigid_yaw_mean_rad": 0.001104132460518538,
+   "rigid_yaw_max_rad": 0.0030677946524798262,
+   "rpe_translation_mean_m": 0.03744559037278351,
+   "rpe_translation_max_m": 0.16957412781612904,
+   "rpe_z_mean_m": 0.24824729121503464,
+   "rpe_z_max_m": 0.28851484302366726,
+   "rpe_yaw_mean_rad": 0.0016798915853623788,
+   "rpe_yaw_max_rad": 0.0058912780719604825,
+   "tracking_gaps_over_1s": 0,
+   "tracking_max_gap_s": 0.11260996999999406,
+   "tracking_xy_over_threshold_samples": 0,
+   "tracking_xy_over_threshold_segments": 0
+  }
+ ],
+ "aggregate": {
+  "runs": 3,
+  "pairs_total": 238,
+  "translated_xy_mean_of_means_m": 0.26953864481784995,
+  "translated_xy_min_of_means_m": 0.2625223243966144,
+  "translated_xy_max_of_means_m": 0.2789715139056911,
+  "translated_xy_max_m": 0.4174542151029986,
+  "translated_z_mean_of_means_m": 0.971308776873119,
+  "translated_z_max_m": 2.030608272848769,
+  "rigid_yaw_mean_of_means_rad": 0.001157426537161381,
+  "rigid_yaw_max_rad": 0.004361532268322601,
+  "rpe_translation_mean_of_means_m": 0.042312514842293765,
+  "rpe_translation_max_m": 0.1948979094472429,
+  "rpe_z_mean_of_means_m": 0.2624497820254941,
+  "rpe_z_max_m": 0.3502559709781615,
+  "rpe_yaw_mean_of_means_rad": 0.0016947666271609795,
+  "rpe_yaw_max_rad": 0.006072533760112916,
+  "tracking_gaps_over_1s_total": 0,
+  "tracking_xy_over_threshold_samples_total": 0
+ },
+ "clearance": {
+  "lobby_loop": {
+   "samples": 41,
+   "scanned": 41,
+   "radius_m": 0.35,
+   "min_clearance_m": 0.16787233161713355,
+   "p05_clearance_m": 0.1797963096214272,
+   "below_radius_samples": 9,
+   "ok": false,
+   "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path.json"
+  },
+  "safe_a": {
+   "samples": 41,
+   "scanned": 41,
+   "radius_m": 0.3,
+   "min_clearance_m": 0.5257670520375844,
+   "p05_clearance_m": 0.5532128933528916,
+   "below_radius_samples": 0,
+   "ok": true,
+   "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_a.json"
+  },
+  "safe_b": {
+   "samples": 41,
+   "scanned": 41,
+   "radius_m": 0.3,
+   "min_clearance_m": 0.5206016714733593,
+   "p05_clearance_m": 0.5528893242780375,
+   "below_radius_samples": 0,
+   "ok": true,
+   "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_b.json"
+  },
+  "safe_c": {
+   "samples": 41,
+   "scanned": 41,
+   "radius_m": 0.3,
+   "min_clearance_m": 0.5213407566614345,
+   "p05_clearance_m": 0.5520310734630057,
+   "below_radius_samples": 0,
+   "ok": true,
+   "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_hospital_path_safe_c.json"
+  },
+  "screen_x_m8": {
+   "samples": 25,
+   "scanned": 25,
+   "radius_m": 0.35,
+   "min_clearance_m": 0.3378212555856037,
+   "p05_clearance_m": 0.47969087723781256,
+   "below_radius_samples": 1,
+   "ok": false,
+   "path": "/tmp/cand_x_m8.json"
+  },
+  "screen_x_m6": {
+   "samples": 25,
+   "scanned": 25,
+   "radius_m": 0.35,
+   "min_clearance_m": 0.13047934131539282,
+   "p05_clearance_m": 0.1326669319841763,
+   "below_radius_samples": 16,
+   "ok": false,
+   "path": "/tmp/cand_x_m6.json"
+  },
+  "screen_x_m10": {
+   "samples": 25,
+   "scanned": 25,
+   "radius_m": 0.35,
+   "min_clearance_m": 0.13476961249086022,
+   "p05_clearance_m": 0.1359124340680136,
+   "below_radius_samples": 17,
+   "ok": false,
+   "path": "/tmp/cand_x_m10.json"
+  },
+  "screen_y_n12_n6": {
+   "samples": 13,
+   "scanned": 13,
+   "radius_m": 0.35,
+   "min_clearance_m": 0.09763464661042902,
+   "p05_clearance_m": 0.0991829306849456,
+   "below_radius_samples": 8,
+   "ok": false,
+   "path": "/tmp/cand_y_n12_n6.json"
+  },
+  "screen_loop_m8": {
+   "samples": 17,
+   "scanned": 17,
+   "radius_m": 0.35,
+   "min_clearance_m": 0.08003672768807063,
+   "p05_clearance_m": 0.08006230736969534,
+   "below_radius_samples": 7,
+   "ok": false,
+   "path": "/tmp/cand_loop_m8.json"
+  },
+  "screen_loop_m10": {
+   "samples": 17,
+   "scanned": 17,
+   "radius_m": 0.35,
+   "min_clearance_m": 0.08002675005762591,
+   "p05_clearance_m": 0.12335351558711219,
+   "below_radius_samples": 7,
+   "ok": false,
+   "path": "/tmp/cand_loop_m10.json"
+  }
+ },
+ "pcd_stats": {
+  "a": {
+   "points": 126054,
+   "bbox_min": [
+    -8.860657691955566,
+    -26.959232330322266,
+    -1.129938006401062
+   ],
+   "bbox_max": [
+    16.024822235107422,
+    28.934167861938477,
+    6.749910831451416
+   ],
+   "xy_bbox_area_m2": 1390.9340885398033,
+   "z_min": -1.129938006401062,
+   "z_max": 6.749910831451416,
+   "z_bands_0_1m": 79,
+   "xy_cells_0_5m": 1898,
+   "xy_cell_coverage_fraction": 0.3411376598715242,
+   "point_density_per_m2": 90.62543008945231
+  },
+  "b": {
+   "points": 120022,
+   "bbox_min": [
+    -9.864774703979492,
+    -23.96609878540039,
+    -1.3228471279144287
+   ],
+   "bbox_max": [
+    15.080989837646484,
+    28.947235107421875,
+    6.4999470710754395
+   ],
+   "xy_bbox_area_m2": 1319.9635684027817,
+   "z_min": -1.3228471279144287,
+   "z_max": 6.4999470710754395,
+   "z_bands_0_1m": 79,
+   "xy_cells_0_5m": 1508,
+   "xy_cell_coverage_fraction": 0.28561394346374863,
+   "point_density_per_m2": 90.92826716818578
+  },
+  "c": {
+   "points": 146622,
+   "bbox_min": [
+    -7.905197620391846,
+    -26.957355499267578,
+    -1.0252633094787598
+   ],
+   "bbox_max": [
+    16.985172271728516,
+    28.940601348876953,
+    6.9807939529418945
+   ],
+   "xy_bbox_area_m2": 1391.3208221640998,
+   "z_min": -1.0252633094787598,
+   "z_max": 6.9807939529418945,
+   "z_bands_0_1m": 81,
+   "xy_cells_0_5m": 1637,
+   "xy_cell_coverage_fraction": 0.2941449545500519,
+   "point_density_per_m2": 105.38331466350083
+  }
+ },
+ "boundary": "demo/SLAM scoped only; GT teleport; no /cmd_vel/navigation/gait/support_map; not formal; 3 overlapping corridor segments, not 3 independent scenes; absolute z drift present; path clearance is live LiDAR visibility, not physics collision proof"
+}
