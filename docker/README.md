@@ -287,6 +287,29 @@ ss -ltnp | grep -E ':11313\b|:11345\b'
 `liblite3_planar_drive.so` / `liblivox_laser_simulation.so` 是否存在、端口是否干净。
 **任何一个 NOT OK 先修它，别直接跑 smoke。**
 
+#### 4.4.2 Gazebo 11 EOL 口径
+
+启动 `gzserver` 时可能看到：
+
+```text
+This version of Gazebo reaches end-of-life in January 2025.
+Consider migrating to the new Gazebo
+```
+
+这是 Gazebo 11 **classic** 的上游 EOL 提示，不是启动失败，也不影响 `probe` / `smoke` 读数。
+
+本项目当前明确冻结在 **ROS1 Noetic + Gazebo 11.15.1 classic**：
+
+- 新 Gazebo（`gz-sim`）与 ROS1 Noetic 不是 drop-in 替换；需要 ROS2 + `ros_gz`。
+- 现有 `liblite3_planar_drive.so`、Livox 激光插件、world/launch、消息与判据都按 classic 写；
+  迁移需要重写插件、转换世界/launch，并重跑历史证据，不能与现有 A1—A7 读数混比。
+- 现有对策：镜像/依赖版本冻结，仿真只在本机隔离网络内跑；EOL banner 保留，不隐藏。
+- **迁移新 Gazebo 属于独立的 ROS2/架构决策（L2），不在当前 ROS1 线内顺手改。**
+- 新的物理实验继续走已接好的 MuJoCo V8-X1 线；MuJoCo 不替代 Gazebo 正式判据。
+
+EOL 的实际风险是上游不再修安全/兼容问题；对本仓离线仿真而言，冻结镜像 + 固定依赖可接受。
+如果将来要换 Gazebo，应按新项目立项：ROS2 迁移、插件重写、世界/地图同源、判据重定标，一次做全。
+
 ### 4.6 可视化：跑测试的时候怎么看过程
 
 **能看，三条路按场景选。** 项目里现成的可视化配置就有不少
