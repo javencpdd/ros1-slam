@@ -581,8 +581,9 @@ docker compose exec sim-viz bash -lc '
   `E_PLAN_NOT_READY`，发目标后应出现 path points。
 - 这是独立 3D 栈：master **11537**、Gazebo **11538**，不要和 2D 的 11313/11345 链混用。
 - **这张卡只做 3D 导航**：固定 `nist_sensor_3d.yaml`（预生成 `nist_sensor@2` 图、
-  `localization.source=carrier`、默认 NIST 台阶世界）。它**不建图、不跑 faster-lio、
-  不能选数据集/世界**；`app_runner` 也没有 `--world` 参数。
+  `localization.source=carrier`、默认 NIST 台阶世界）。它**自己不建图、不启动 faster-lio、
+  没有数据集/世界选择菜单**；`app_runner` 也没有 `--world` 参数。**这不等于仓库不能做**：
+  导入数据集/换世界、建图、LIO 定位、导航分别走下面的独立入口。
   - 选世界/数据集：用 §4.7/§4.8 的 `m2_gazebo.launch world:=... model_path:=...`，
     或在 app YAML 的 `carrier.world_launch/world/model_path` 指定（R1121 的
     `nist_stairs_120_nav_v1_app.yaml` 就是这种写法）。
