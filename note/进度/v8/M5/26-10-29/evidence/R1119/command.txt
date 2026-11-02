@@ -1,0 +1,46 @@
+R1119 命令（2026-11-02 13:50—14:12 CST，qoder；容器 ros1-slam-sim-viz）
+# 代码 974e5997（键盘建图 → PCD → support_map → 3D 交互导航）
+
+# ---- 终端 1：Gazebo + Lite3 ----
+source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash
+export ROS_MASTER_URI=http://127.0.0.1:11313
+export GAZEBO_MASTER_URI=http://127.0.0.1:11345
+roslaunch lite3_gazebo_sim m2_gazebo.launch
+
+# ---- 终端 2：GT 位姿建图记录器（输出独立 PCD，不覆盖 lite3.pcd）----
+rosrun lite3_gazebo_sim mapping_recorder.py \
+  --out /home/ros1-slam/data/maps/mapped_m1.pcd --voxel 0.03
+
+# ---- 终端 3：RViz 建图视图（Fixed Frame=odom）----
+rviz -d /opt/ros1-slam/docker/rviz_mapping3d.rviz
+
+# ---- 终端 4：键盘遥控（前台终端）----
+rosrun lite3_gazebo_sim keyboard_teleop.py
+# w/s 前后、a/d 转向、q/e 横移、空格停；本批用 /cmd_vel 程序化模拟同一输入
+# 走完在终端 2 Ctrl+C → 写 mapped_m1.pcd + mapped_m1.json
+
+# ---- PCD → support_map + app/task/registry ----
+cd /home/jack/ysc-code/ros1-slam
+cp data/maps/mapped_m1.pcd data/maps/mapped_m1_gt1.pcd
+python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+  --pcd data/maps/mapped_m1_gt1.pcd --map-id mapped_m1 --version 1 \
+  --x-min -5 --x-max 8 --y-min -5 --y-max 5 \
+  --write-app --register
+# 读数：1 surface m0 z=-1e-6，footprint x[-0.5,8.0] y[-4.5,4.8]；
+# 68025 点 / 34305 水平点；app/task 写到 data/maps/generated/
+
+# ---- 自建图 3D 交互导航 ----
+python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+  --app data/maps/generated/mapped_m1_v1_app.yaml \
+  --execute --interactive --rviz --out /tmp/mapped_nav3.json
+# RViz Publish Point (3,1) → 全局 31 点；载体 (3.05,1.05,-1e-6)；
+# local reason=arrived；checks 全 true；markers=7。
+
+# ---- 测试 ----
+cd ws/src/90_platform/v8_platform/framework && python3 -B -m unittest test_navigation_app  # 17/17
+cd /home/jack/ysc-code/ros1-slam && python3 -B -m unittest discover \
+  -s ws/src/90_platform/v8_platform/representation -p 'test_*.py'                            # 74/74
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/test_sim_pose.py                    # 4/4
+
+# 端口：建图 11313/11345；3D app 11537/11538；不要和 smoke stageA 同跑。
+# 首次尝试 m2_mapping.launch（真机 outdoor C16 配置）点云散到 ±40m，改用 GT 位姿记录器。

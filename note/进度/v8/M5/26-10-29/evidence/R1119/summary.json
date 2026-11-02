@@ -1,0 +1,64 @@
+{
+ "record": "R1119",
+ "date": "2026-11-02",
+ "container": "ros1-slam-sim-viz",
+ "code": "974e5997",
+ "change": "keyboard mapping (GT pose) -> PCD -> support_map -> interactive 3D nav",
+ "mapping": {
+  "pose_source": "/sim/odom_gt",
+  "scan_topic": "/rslidar_points",
+  "lidar_z_m": 0.34,
+  "pitch_deg": 15.0,
+  "voxel_m": 0.03,
+  "scans": 130,
+  "points": 72762,
+  "pcd": "mapped_m1_gt1.pcd",
+  "pcd_sha256": "b9bad7cde5e0108cf4ca6ca9f7416eb81f8c66b7b2c05a1495a45b04c19ed1ca",
+  "bounds_min": [-1.9997832775115967, -8.301384925842285, -4.7983612603275105e-06],
+  "bounds_max": [14.78772258758545, 8.501090049743652, 0.9999974966049194],
+  "note": "GT-odometry mapping, not LIO/SLAM; first m2_mapping (outdoor C16) attempt diverged to +/-40 m"
+ },
+ "support_map": {
+  "map_id": "mapped_m1",
+  "version": 1,
+  "surfaces": 1,
+  "surface": {"id": "m0", "z_reference": -1e-06,
+              "footprint": {"min_x": -0.5, "min_y": -4.5, "max_x": 8.0, "max_y": 4.8}},
+  "filtered_points": 68025,
+  "horizontal_points": 34305,
+  "map_sha256": "23cdc070a7beb2960e7cfab27940c534bfd712dc8202ab223cacba703fb2110c",
+  "app": "data/maps/generated/mapped_m1_v1_app.yaml",
+  "task": "data/maps/generated/mapped_m1_v1_task.json"
+ },
+ "navigation": {
+  "app": "data/maps/generated/mapped_m1_v1_app.yaml",
+  "goal": [3.0, 1.0, -1e-06],
+  "global_points": 31,
+  "carrier_final": [3.0500009990479944, 1.0500005994293482, -1e-06],
+  "local_reason": "arrived",
+  "markers": 7,
+  "json_checks": {
+   "assembly_ready": true,
+   "markers_published": true,
+   "map_configured": true,
+   "global_path": true,
+   "local_arrived": true,
+   "carrier_at_local_goal": true
+  },
+  "screenshot": "nav3d.png"
+ },
+ "tuning": {
+  "graph": "graph_3d_gazebo_app_mapped.yaml",
+  "local_config": "local_native_app_mapped.yaml",
+  "wall_watchdog_s": 30.0,
+  "validity_s": 20.0,
+  "tick_s": 0.6,
+  "reason": "sim RTF makes wall time outrun sim validity; the default 7.5 s watchdog latched E_LOCAL_WALL_EXPIRED at x=0.7"
+ },
+ "tests": {
+  "test_navigation_app": "17/17",
+  "representation": "74/74",
+  "test_sim_pose": "4/4"
+ },
+ "boundary": "Simulation GT-pose mapping only; 3D point cloud plus one support surface; app_carrier is kinematic; not LIO/SLAM, not quadruped physics, not A1-A7 formal, not real robot."
+}
