@@ -249,23 +249,40 @@ docker compose exec sim bash /opt/ros1-slam/docker/build.sh --slim
 > 3. `cd` 统一用绝对路径；已经在该目录时重复执行也无害。
 > 4. 先 `probe`，看到端口/模型/插件全 OK 再跑 `smoke`；不要跳过自检。
 
-#### 4.4.0 无头跑（推荐用于判据）
+#### 4.4.0 先选路径（二选一，不是串行）
 
-**① 首次构建并启动 `sim`**
+| 目标 | 启动的容器 | 后续 |
+|---|---|---|
+| 只跑 `probe` / `smoke`，不需要 GUI | `sim` | 按 **4.4.1 路径 A** |
+| 要边跑边看 Gazebo / RViz | `sim-viz` | 按 **4.4.2 路径 B** |
+
+镜像只需构建一次（这一步不启动容器）：
 
 ```bash
 cd /home/jack/ysc-code/ros1-slam/docker
+docker compose --profile sim build sim
+```
 
+> **不要**先跑完 `sim` 的 smoke 再起 `sim-viz`：两者共用 11313/11345，同时起会报端口冲突。
+> 要从一条路径切到另一条，先停当前容器（见 4.4.3），再按目标路径启动。
+
+#### 4.4.1 路径 A：无头 `sim`（推荐用于判据）
+
+**① 启动 `sim`**
+
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
 # sim 与 sim-viz 共用 11313/11345：先停 viz
 docker compose --profile viz stop sim-viz 2>/dev/null || true
 
-# 必须显式写服务名 sim；首次用 --build，之后改成 --no-build
-docker compose --profile sim up -d --build sim
+# 镜像已在 4.4.0 构建；首次没构建过就把 --no-build 换成 --build
+docker compose --profile sim up -d --no-build sim
 ```
 
 **② 自检 `probe`**（单次执行，几秒）
 
 ```bash
+cd /home/jack/ysc-code/ros1-slam/docker
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh probe
 ```
 
@@ -281,6 +298,7 @@ docker compose exec sim bash /opt/ros1-slam/docker/sim.sh probe
 **③ Stage A 冒烟**（前台阻塞约 2 分钟，是本块最后一条命令）
 
 ```bash
+cd /home/jack/ysc-code/ros1-slam/docker
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh smoke stageA
 ```
 
@@ -299,14 +317,31 @@ docker compose exec sim bash /opt/ros1-slam/docker/sim.sh gazebo
 
 > 不要把 ③ 和 ④ 连续放在同一个终端里：两者都会启动/占用 Gazebo；要换场景先 Ctrl+C 停掉当前进程。
 
-镜像已经构建过时，把 ① 的 `--build` 改成 `--no-build` 跳过重建。若容器显示 `Up` 但 `docker port ros1-slam-sim`
-为空（上一次端口冲突留下的半成品网络），重建一次即可：
+若容器显示 `Up` 但 `docker port ros1-slam-sim` 为空（上一次端口冲突留下的半成品网络），
+重建一次即可：
 
 ```bash
 docker compose --profile sim up -d --no-build --force-recreate sim
 ```
 
-#### 4.4.1 `sim` ↔ `sim-viz` 切换
+#### 4.4.2 路径 B：GUI `sim-viz`
+
+**① 启动 `sim-viz`**（镜像已在 4.4.0 构建）
+
+```bash
+cd /home/jack/ysc-code/ros1-slam/docker
+# ★ 先停 sim：sim 与 sim-viz 共用 11313/11345，不能同时起
+docker compose --profile sim stop sim 2>/dev/null || true
+docker compose --profile viz up -d --no-build sim-viz
+docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh check
+```
+
+**② 跑链并看画面**：转到 **4.6 路线 A 的终端 A/B/C**。
+Stage A 用 `rviz-raw` / `rviz-map`；`rviz-nav` 只在导航栈运行时用。
+
+**③ 不要另起 `sim`**：`sim-viz` 已经占着同一组端口；再起 `sim` 会冲突。
+
+#### 4.4.3 `sim` ↔ `sim-viz` 切换
 
 两者共用 11313/11345，**不能同时起**；切换时先停一个再起另一个：
 
@@ -331,7 +366,7 @@ ss -ltnp | grep -E ':11313\b|:11345\b'
 `liblite3_planar_drive.so` / `liblivox_laser_simulation.so` 是否存在、端口是否干净。
 **任何一个 NOT OK 先修它，别直接跑 smoke。**
 
-#### 4.4.2 Gazebo 11 EOL 口径
+#### 4.4.4 Gazebo 11 EOL 口径
 
 启动 `gzserver` 时可能看到：
 
@@ -373,7 +408,7 @@ EOL 的实际风险是上游不再修安全/兼容问题；对本仓离线仿真
 cd /home/jack/ysc-code/ros1-slam/docker
 # ★ 先停 sim：sim 与 sim-viz 共用 11313/11345，不能同时起
 docker compose --profile sim stop sim 2>/dev/null || true
-docker compose --profile viz up -d sim-viz
+docker compose --profile viz up -d --no-build sim-viz
 docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh check      # 先自检
 ```
 
@@ -384,12 +419,15 @@ gzclient/rviz 是否就位、当前话题。**renderer 那行拿不到值就先�
 都是**前台阻塞**进程，下面三块请**分别打开 shell**执行，不要整块复制成一条命令：
 
 ```bash
+cd /home/jack/ysc-code/ros1-slam/docker
 # 终端 A：先跑链（会启动 Gazebo，约 2 分钟；看到 SMOKE start 再开 GUI）
 docker compose exec sim-viz bash /opt/ros1-slam/docker/sim.sh smoke stageA
 ```
 
 ```bash
-# 终端 B：另开一个 shell，旁观 Gazebo（前台窗口，关窗即退出）
+cd /home/jack/ysc-code/ros1-slam/docker
+# 终端 B/C：另开 shell；下面命令都是前台窗口，一个终端跑一个
+# 终端 B：旁观 Gazebo
 docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient
 
 # 终端 C：另开一个 shell 看 rviz
