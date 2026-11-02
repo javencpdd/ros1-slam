@@ -1,0 +1,33 @@
+R1116 命令（2026-11-02 12:20—12:45 CST，qoder；容器 ros1-slam-sim-viz）
+# 代码 626f21d6（2D/3D 交互入口）＋ 9dddb042（sim_pose MBF 目标）
+
+# ---- 2D ----
+# interactive_2d.launch = mode_sim_teb（Gazebo m1 + MBF）+ mbf_goal_bridge
+cd /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim
+roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=false
+# 另开终端，向 /move_base_simple/goal 发目标；桥转 MBF action
+python3 -B scripts/sim_pose.py --goal 3.0 0.0 --yaw 0
+# 读数：action status 3、text "Action \"move_base\" succeeded!"；
+# final model x=2.822, y=-0.0002, z=0.11, yaw=0.11；
+# odom x=2.822, y=-0.0002, yaw=0.11。
+
+# ---- 3D ----
+# app runner 自己起 master 11537 / Gazebo 11538 / graph / viz / RViz / picker
+python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/app_runner.py \
+  --app /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
+  --execute --interactive --rviz --out /tmp/nav3d_interactive2.json
+# RViz 用 Publish Point 点 support surface；也可用命令行模拟点击
+rostopic pub -1 /clicked_point geometry_msgs/PointStamped \
+  "{header: {frame_id: map}, point: {x: 0.0, y: 1.34, z: 0.89}}"
+# 读数：path 末 (0.15,1.35,0.888142)，carrier (0.0934,1.2934,0.888142)，
+# markers=14，assembly_ready=true；Ctrl+C 后写 nav3d_interactive.json。
+
+# ---- 测试 ----
+python3 -B ws/src/95_simulation/lite3_gazebo_sim/scripts/test_sim_pose.py          # 4/4
+cd ws/src/90_platform/v8_platform/framework
+python3 -B -m unittest test_navigation_app                                        # 17/17
+
+# 收尾：sim-viz 内清理
+bash /opt/ros1-slam/docker/sim.sh clean
+
+# 注：2D 用 11313/11345；3D 用 11537/11538；两个栈不要和 smoke stageA 同时跑。
