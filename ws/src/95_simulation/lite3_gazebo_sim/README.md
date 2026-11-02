@@ -46,6 +46,10 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 不是独立栈。2D MBF（`interactive_2d.launch`）是另一套平面栈；3D 建图是产图环节；
 四足物理/真机爬楼是另一执行面。下面 R1119 平层与 R1121 楼梯是同一 3D 栈的两个场景。
 
+**world vs scene**：`m1_gazebo`／`m2_gazebo` 的参数是完整 `world:=...`（`worlds/*.world`），没有 `scene` 参数；
+`stairstudy` 场景库用 `stairstudy.launch world_file:=stair_lab_*.world`；`sim_scene.py --scene` 是运行中
+spawn/delete 模型，不换 world，也不更新静态导航图。
+
 - **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
 - **3D 交互（预生成图）**：`app_runner.py --app .../nist_sensor_3d.yaml --execute --interactive --rviz`；
