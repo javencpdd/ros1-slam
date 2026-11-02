@@ -28,6 +28,8 @@
 **入口文件**：`scripts/env.sh`（环境入口）、`scripts/mapping/m_start.sh`（采图三窗一键起）、
 `ws/src/70_bringup/lite3_bringup/launch/mode_*.launch`（TOP 编排入口）、
 `ws/src/95_simulation/lite3_gazebo_sim/launch/m*_gazebo.launch`（仿真入口）。
+**R1119 键盘建图→自建 3D 地图→交互导航**见 §4.7，入口为
+`mapping_recorder.py`／`keyboard_teleop.py`／`framework/map_from_pcd.py`／`framework/app_runner.py`。
 
 ---
 
@@ -46,6 +48,7 @@
 | `docker/rviz_sim_raw.rviz` | rviz 视图·雷达原始点云（Fixed Frame=`rslidar`，订 `/rslidar_points`） |
 | `docker/rviz_sim_map.rviz` | rviz 视图·建图过程（Fixed Frame=`camera_init`，订 `/cloud_registered`） |
 | `docker/rviz_sim_nav.rviz` | rviz 视图·导航（Fixed Frame=`map`，订 costmap／stvl 体素／`/planning/bspline`／目标） |
+| `docker/rviz_mapping3d.rviz` | rviz 视图·键盘建图（Fixed Frame=`odom`，订 `/mapping/cloud`／`/sim/odom_gt`／Lite3 模型） |
 | `docker/foxglove/` | Foxglove 布局件与连接口径（路线 B，见该目录 `README.md`） |
 | `docker/lint.sh` | 构建前静态自检（Dockerfile RUN 引号配平 + `bash -n` + compose 解析） |
 | `docker/catkin_build.sh` | 镜像构建期的工作区编译（三步：configure → 预生成消息头 → 正式编译） |
@@ -393,7 +396,7 @@ EOL 的实际风险是上游不再修安全/兼容问题；对本仓离线仿真
 
 **能看，三条路按场景选。** 项目里现成的可视化配置就有不少
 （`faster_lio/rviz_cfg/loam_livox.rviz` 看建图、`plan_manage/launch/default.rviz` 看导航），
-不用自己配。
+不用自己配。**R1119 的键盘建图 → 自建 3D 地图 → 交互导航是另一条四终端链，见 4.7。**
 
 > ★ 项目纪律：`m2_smoke.sh` 是**判据载体**，改它要换代际、五连重算。
 > 所以可视化**不要**去改它 —— 另起一个 GUI 进程旁观同一套话题就行
@@ -563,6 +566,7 @@ docker compose exec sim-viz bash -lc '
   载体位姿 +0.18 m；`rostopic echo /v8/3d/global/status` 在未发目标时应只有
   `E_PLAN_NOT_READY`，发目标后应出现 path points。
 - 这是独立 3D 栈：master **11537**、Gazebo **11538**，不要和 2D 的 11313/11345 链混用。
+- 用自己建的图走同一 3D 入口：见 §4.7（键盘建图 → PCD → support_map → app_runner）。
 - 退出在 app runner 终端按 Ctrl+C；会停 graph/Gazebo/RViz 并写
   `/tmp/nav3d_interactive.json`。这是操作员测试，不是 A1—A7 formal 或真机。
 
@@ -578,7 +582,7 @@ docker compose exec sim-viz bash -lc '
   source /opt/ros1-slam/ws/devel/setup.bash
   export ROS_MASTER_URI=http://127.0.0.1:11313
   export GAZEBO_MASTER_URI=http://127.0.0.1:11345
-  roslaunch lite3_gazebo_sim m2_gazebo.launch'
+  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true'
 ```
 
 2. **建图记录器**（终端 2；输出 PCD 与 summary）
@@ -629,6 +633,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
 
 6. **用自建图做 3D 交互导航**
 ```bash
+# 先停掉终端 1—4 的建图 Gazebo/RViz/记录器；3D app 会用自己的 11537/11538
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash

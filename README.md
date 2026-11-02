@@ -37,13 +37,15 @@ R1064 同 lab 挂起已抓栈根因并修复（R1113）。
 
 | 状态 | 内容 |
 | --- | --- |
-| **已实现（机制/假进程/回环/运行面）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapStore 多 map_id、边界 S1—S4、语义地图/障碍联动、plugin/nodelet 托管、2D v2 真实栈四格、3D Assembly 12/12×2、传感器图 6/6、同 XY 选面、A—E 应用层（app/task/map registry、surface resolver、nav3d Marker/RViz、Gazebo carrier、GT/LIO 对比）、全局→MuJoCo 四足 2/2、A6 NDT 静态 `~relocalize`/`~initialpose`/lease 门、R1064 挂起根因修复、2D/3D 交互式导航入口（MBF + RViz 2D Nav Goal；3D Publish Point 选面） |
+| **已实现（机制/假进程/回环/运行面）** | graph YAML、manifest v2、端口/边/DAG/命令唯一、实例 `config` 预检、2D/3D Path 与地图维度检查、Assembly/ProcessRunner、MapService/MapDelta + ROS provider、MapStore 多 map_id、边界 S1—S4、语义地图/障碍联动、plugin/nodelet 托管、2D v2 真实栈四格、3D Assembly 12/12×2、传感器图 6/6、同 XY 选面、A—E 应用层（app/task/map registry、surface resolver、nav3d Marker/RViz、Gazebo carrier、GT/LIO 对比）、全局→MuJoCo 四足 2/2、A6 NDT 静态 `~relocalize`/`~initialpose`/lease 门、R1064 挂起根因修复、2D/3D 交互式导航入口（MBF + RViz 2D Nav Goal；3D Publish Point 选面）、键盘建图→自建 3D 地图→交互导航（R1119，GT 位姿） |
 | **未实现/未接** | 真叠层 mezzanine 场景与重传感器建图、A1/A4/A5 formal 签署、A6 任意 kidnapping/运动认证/真机、#151 formal 两键、`mode_navigation` 与 `ros2qnx` 真机运动通路、V8-X2 真机、Gazebo 四足步态（现为动态平面方盒；物理四足仅在 MuJoCo） |
 | **开发中/边界** | 真叠层场景（新场景决定）、A1/A4/A5 formal 矩阵（L2）、#151 真机/稳定速度/同批负控（L2）、A6 长时失联/候选质量、V8-X1 0.6 m 阶沿鲁棒性；2D 四格 4/4、3D 12/12×2、MuJoCo 全局→四足 2/2 均仍非 formal/真机 |
 
 框架机制说明见 [framework/README.md](ws/src/90_platform/v8_platform/framework/README.md)、
 [架构导读](docs/architecture/framework-v0.md) 和 [图形化选配页示例](docs/architecture/framework-selector.html)。
 **边界（2026-11-02，R1115）**：A1—A7 仍是 A2＝PASS*（窄域），A1/A3/A4/A5/A6/A7＝PARTIAL。R1112 的全局→MuJoCo 是单策略/声明图/预计算全局，不是 Gazebo 感知或真机；R1113 是测试台生命周期修复；R1114 的 A6 覆盖 0.3 m 局部失锁（候选仍 prior）；R1115 在带 BBS 绝对源共识门的活体链上闭合 0.6 m fail-open（不一致即 FAILED、lease 1），但 BBS 不是真实第二传感器、生产图需显式接入门；#151 formal 两键仍 pending，V8-X2 真机未开工。
+
+**边界（2026-11-02，R1119）**：R1116—R1118 补齐 2D/3D 交互入口与 RViz 显示；R1119 打通键盘建图→自建 3D 地图→交互导航（GT 位姿 72,762 点、1 面支撑图、31 点路径到达）。建图是**仿真 GT 位姿 + LiDAR**，不是 LIO/SLAM；载体是运动学 `app_carrier`，不是四足物理步态/真机/formal；A1—A7 状态不变。
 
 ---
 
@@ -67,7 +69,7 @@ R1064 同 lab 挂起已抓栈根因并修复（R1113）。
 | `ws/` | catkin 工作区＝**源码面**（`build/` `devel/` 是编译产物、不入库） | `ws/README.md` |
 | `note/` | **台账志文面**＝进度真身／坑台账／判据表／历代计划书 | `note/00_README.md`＝硬规则与现行规划指针 |
 | `note/tools/` | 工具教程面（跨 Agent 协作黑板教程在此） | `note/tools/跨Agent协作黑板-使用教程.md` |
-| `scripts/` | 门禁件 `scripts/verify/`（★十一件★）＋采图脚本族 `scripts/mapping/` | `scripts/mapping/README.md` |
+| `scripts/` | 门禁件 `scripts/verify/`（★十一件★）＋采图脚本族 `scripts/mapping/`（真机；仿真键盘建图见 `lite3_gazebo_sim`） | `scripts/mapping/README.md` |
 | `docker/` | 容器开发环境（复刻 Jetson aarch64 的 Noetic 隔离沙箱）＋ `foxglove/` 布局件 | `docker/README.md` |
 | `web/` | 项目官网（静态单页）：框架目标、架构、里程碑、判据现状、仿真入口 | `web/README.md` |
 | `tooling/` | 项目自持清单（含 skill 逐字镜像＋ `*_sha256_manifest.txt` 见证清单） | `tooling/README.md` |
@@ -419,3 +421,4 @@ bash scripts/verify/run_gate_chain.sh
 - ★R1113（2026-11-02）★＝**R1064 根因：reap 关闭被 reader 锁住的 stdout**：SIGUSR1 栈定位 `stop_owned→reap→proc.stdout.close()`；修复后同 lab 5/5、20/20 case VALID；加唯一 local 名/独立 Gazebo master/faulthandler（代码 `396709ce`＋`8ab300bc`，全文＝[R1113](note/进度/v8/M5/26-10-29/R1113.md)）。
 - ★R1114（2026-11-02）★＝**A6 lease 晚订阅竞态＋0.3 m 局部劫持**：首次 gate 侧 `last_lease=0` 而 A6 `lease=1`，冒烟在 gate lease 1 超时；`/lease` 改 latched 后静态 **.048655 / .044988 m**、0.3 m 两跑 **.043754 / .060690 m**，候选仍停在 prior **.242—.250 m**（靠 NDT 恢复后跟踪回正），空扫描 FAILED、lease 2→2。仍是短时局部失锁，非任意 kidnapping/全图重定位、无四足/真机（代码 `5f028d86`，全文＝[R1114](note/进度/v8/M5/26-10-29/R1114.md)）。
 - ★R1115（2026-11-02）★＝**BBS 绝对源共识门闭合 A6 0.6 m fail-open**：新增 `consensus_policy/gate`，NDT 候选与 3 分辨率 BBS 共识在 0.5 m 内才放行并输出 BBS 位姿；A6 可要求 `source=bbs_consensus` 且 `agreement<=0.5`。活体 m1：静态 **.057751 m**（共识 [1.5,0]）、0.3 m **.053147 m**（共识 [1.9,0]）；0.6 m 共识 [2.2,0] 与 NDT 候选差 **.647609** → A6 **FAILED**、lease 保持 1、无 reset。BBS 非真实第二传感器、0.6 m 不恢复；生产图需显式接入门；A6 仍 PARTIAL、无四足/真机（代码 `26eeb88d`，全文＝[R1115](note/进度/v8/M5/26-10-29/R1115.md)）。
+- ★R1116—R1119（2026-11-02）★＝**交互与建图链**：R1116 2D/3D 交互入口；R1117 补 `world→map` 静态 TF 修 3D RViz 空白；R1118 修 `Marker Topic` 并补支撑面/Lite3 模型（2D 开 `/map`）；R1119 键盘建图（GT 位姿）→ PCD 72,762 点 → 单面 support_map → `app_runner` 交互导航，点击 `(3,1)` 得 31 点路径、载体 `(3.05,1.05)`、local arrived。仿真 GT 建图/运动学载体，不是 LIO/SLAM/真机/formal（代码 `974e5997`＋`6a4f2ece`＋`94e59972`＋`626f21d6`，全文＝[R1119](note/进度/v8/M5/26-10-29/R1119.md)）。

@@ -72,3 +72,13 @@ bash /home/ros1-slam/scripts/mapping/m_viz.sh
 - **起点**：先起 `ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose_bridge.py`，再发 `geometry_msgs/PoseStamped` → `/sim/set_start`（或 `PoseWithCovarianceStamped` → `/initialpose`）；状态回 `/sim/set_start/status`。桥只接受 frame 为空/`map`/`odom`。
 - **场景热切换**：`sim_scene.py --scene stairs_easy` / `--scene wall_h045` / `--clear`；只换场景模型，不重启世界。静态地图不随动，正式导航需重启对应世界。
 - 实测读数见 `note/进度/v8/M5/26-10-29/R858.md`。
+
+## ★追加（2026-11-02，R1119）：仿真键盘建图看什么
+
+- 新链 `lite3_gazebo_sim/scripts/mapping_recorder.py` 发 `/mapping/cloud`（frame `odom`，
+  1 Hz 累积点云）和 `/mapping/status`；RViz 配置为 `docker/rviz_mapping3d.rviz`。
+- Foxglove 3D 面板可订 `/mapping/cloud`、`/sim/odom_gt`、`/tf`，固定参考系选 `odom`；
+  机器人模型来自 `robot_description`（`Lite3.urdf` / `Lite3_prim.urdf`）。
+- 这与 `mapping_viz.launch` 的 `/map_snapshot`（`camera_init`、30 s latched）是两条链，
+  不要混用；R1119 是**仿真 GT 位姿**建图，不是 LIO/SLAM。
+- 四终端命令见 `docker/README.md` §4.7；自建图导航仍用 `framework/app_runner.py`。

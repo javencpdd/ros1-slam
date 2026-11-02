@@ -6,7 +6,7 @@
 
 > 蓝本与硬规则的正文不在本文档里，只给指针：隔离与真机安全三条硬规则＝[`../note/00_README.md`](../note/00_README.md)；
 > 现行施工规划指针＝[`../note/00_README.md`](../note/00_README.md)，本次落册见 [v8 计划入口](../note/计划书v8/README.md)；什么改动被许可过＝[`../note/04_配置改动diff.md`](../note/04_配置改动diff.md)。
-> **v8 平台层已落册**：`90_platform/v8_platform`（契约/图/装配/规划/表征/框架 app/回归）与 `90_platform/v8_ndt_odom`（NDT monitor + 短时失锁 relocalize）。当前状态见 [README 根文件](../README.md) 与 [`note/进度/00_总览.md`](../note/进度/00_总览.md)；截至 R1114，2D 四格、3D 12/12×2、传感器图 6/6、全局→MuJoCo 四足 2/2；A1/A3/A4/A5/A6/A7 仍 PARTIAL。
+> **v8 平台层已落册**：`90_platform/v8_platform`（契约/图/装配/规划/表征/框架 app/回归）与 `90_platform/v8_ndt_odom`（NDT monitor + 短时失锁 relocalize）。当前状态见 [README 根文件](../README.md) 与 [`note/进度/00_总览.md`](../note/进度/00_总览.md)；截至 R1119，2D 四格、3D 12/12×2、传感器图 6/6、全局→MuJoCo 四足 2/2、键盘建图→自建 3D 地图→交互导航 1 条（GT 位姿）；A1/A3/A4/A5/A6/A7 仍 PARTIAL。
 
 ## 一、模块层与归属（一层一件事）
 
@@ -15,7 +15,7 @@
 | 层 | 自研壳（`lite3_*`） | 第三方副本 | 定位要点 |
 |---|---|---|---|
 | `00_drivers` | `lite3_drivers`（`launch/01_sensors.launch` 真机、`launch/95_sim.launch` 仿真、`scripts/sim_adapter.py`） | `livox_ros_driver2`、`lslidar_driver` 与 `lslidar_msgs`、`message_transformer` | **`message_transformer/src/ros2qnx.cpp` 只许在真机 mode 出现**（规则一：stub/采图/回放里出现即事故）；`qnx2ros.cpp` 是 IMU 桥 |
-| `10_slam` | `lite3_slam` | `faster_lio`（**唯一被许可的第三方源码改动**：存盘路径隔离改写）、`pcd2grid` | 采图链：驱动 → `/rslidar_points` → faster_lio（`run_mapping_online`，lidar_type=4） |
+| `10_slam` | `lite3_slam` | `faster_lio`（**唯一被许可的第三方源码改动**：存盘路径隔离改写）、`pcd2grid` | 采图链：驱动 → `/rslidar_points` → faster_lio（`run_mapping_online`）；仿真用 `10_slam_mapping_sim.launch`（`faster_lio_sim.yaml`），**不要**直接用 `m2_mapping.launch` 的真机 outdoor 配置 |
 | `20_localization` | `lite3_localization` | `hdl_localization`、`hdl_global_localization`、`fast_gicp`、`ndt_omp` | 重定位与全局配准的候选件都在这里，装配选择见 `70_bringup` |
 | `30_3rd` | —（无壳） | SCAN 上游五包：`plan_env`、`plan_manage`、`bspline_opt`、`path_searching`、`traj_utils` | **按基线不改**；需要改行为时在 `40_navigation/lite3_scan` 壳包里自持（批2 已定口径） |
 | `30_perception` | `lite3_perception` | `deeprobotics_local_height_map`（带 `CATKIN_IGNORE`）、`libraries/{kindr,kindr_ros}` | 厂商高程图包是**闭源**（63 文件、0 代码件），其 `slope_threshold` 量纲不可核 ⇒ 见补丁 X5 |
@@ -32,6 +32,7 @@
 | 想做的事 | 直接去这里 |
 |---|---|
 | 起仿真 / 换世界件 | `95_simulation/lite3_gazebo_sim/launch/{m1_gazebo,m2_gazebo}.launch`；`00_drivers/lite3_drivers/launch/95_sim.launch`（world 已 arg 化） |
+| 仿真键盘建图 / 自建图 3D 导航 | `95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py`（`/sim/odom_gt`+`/rslidar_points` GT 位姿）＋`keyboard_teleop.py`＋`docker/rviz_mapping3d.rviz`；转换 `90_platform/v8_platform/framework/map_from_pcd.py`；完整命令见 `docker/README.md` §4.7 |
 | 看/改世界（**红线，勿改**） | `95_simulation/lite3_gazebo_sim/worlds/m1_world.world`（各跑批对它取 `world_before.sha`／`world_after.sha`） |
 | 机体模型 | `95_simulation/lite3_description/urdf/Lite3.urdf`（12 个 revolute，**无腿控制器**）；仿真实际用的是 `95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro`（刚体盒子＋雷达插件参数在 :85–96，传感器安装高在 :55（`origin xyz="0 0 0.38"`）） |
 | 仿真驱动／打戳／插件源码 | `95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp` |

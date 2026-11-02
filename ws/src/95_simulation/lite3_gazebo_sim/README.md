@@ -16,8 +16,10 @@
 | 要做 | 位置 |
 |---|---|
 | 起世界 | `launch/m1_gazebo.launch`、`m2_gazebo.launch`（世界件本体 `worlds/m1_world.world`＝**红线件**，各跑取 `world_before.sha`／`world_after.sha`） |
-| 仿真传感/建图/规划 | `launch/m1_mapping.launch`、`m2_mapping.launch`、`m2_hdl.launch`、`m2_teb.launch` |
+| 仿真传感/建图/规划 | `launch/m1_mapping.launch`、`m2_mapping.launch`（两者加载**真机 outdoor** `faster_lio_outdoor.yaml`，仿真请改用 `lite3_slam/launch/10_slam_mapping_sim.launch` 的 `faster_lio_sim.yaml`）、`m2_hdl.launch`、`m2_teb.launch` |
 | 交互式 2D 导航 | `launch/interactive_2d.launch`（MBF + `mbf_goal_bridge.py`；RViz 2D Nav Goal 直接驱动 MBF） |
+| 交互式 3D / 自建图导航 | `framework/app_runner.py --execute --interactive --rviz` + `framework/fixtures/rviz/nav3d.rviz`；自建图入口见 `map_from_pcd.py` 生成物 |
+| 键盘建图（仿真 GT 位姿） | `scripts/mapping_recorder.py` + `scripts/keyboard_teleop.py`；RViz 用 `docker/rviz_mapping3d.rviz` |
 | 机体描述（仿真实际用的） | `urdf/lite3_planar.urdf.xacro`——刚体盒子（只有 fixed 关节）＋雷达插件参数在 :85–96、传感器安装高在 :55（`origin xyz="0 0 0.38"`） |
 | 推进插件源码 | `src/lite3_planar_drive.cpp`（dynamic 分支 `SetLinearVel`/`SetAngularVel` 保留接触；kinematic 回退 `SetWorldPose`；打戳统一 SimTime 的坑25 根除改点在此） |
 | **判据载体** | `verify/m2_smoke.sh` ＋ `verify/m2_exitclean_lib.sh` ⇒ **改这两个＝代际加行**（现值见 `note/07_判据载体代际对照表.md`） |
@@ -35,3 +37,18 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 ## 说明
 
 本 README 是新建件（文档批次）：包内此前无 README，内容以上表为准；进度与证据不在本目录，见 `note/进度/`。
+
+## 交互式与自建图入口（R1116—R1119）
+
+- **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
+  `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
+- **3D 交互（预生成图）**：`app_runner.py --app .../nist_sensor_3d.yaml --execute --interactive --rviz`；
+  RViz 显示 support surface、Lite3 和路径，Publish Point 选面。
+- **键盘建图 → 自建图 3D 导航（R1119）**：
+  `m2_gazebo.launch gui:=true` + `mapping_recorder.py` + `rviz_mapping3d.rviz` +
+  `keyboard_teleop.py`（四个独立进程）；记录器用 `/rslidar_points` + `/sim/odom_gt`
+  写 PCD，再由 `v8_platform/framework/map_from_pcd.py` 生成 support_map/app/task，
+  最后 `app_runner.py` 用自建图起 3D 交互导航。完整命令见 `docker/README.md` §4.7。
+- 端口：2D/建图 11313/11345；3D app 11537/11538；`sim` 与 `sim-viz` 一次只起一个。
+- 边界：R1119 是**仿真 GT 位姿建图**，不是 LIO/SLAM；自建图目前是一层平地支撑面，
+  导航载体是 `app_carrier` 运动学箱体，不是四足物理步态/真机。

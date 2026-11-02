@@ -10,9 +10,14 @@
 | 要做 | 位置 |
 |---|---|
 | 真机采图 | `launch/10_slam_mapping.launch` |
-| 仿真建图 | `launch/10_slam_mapping_sim.launch`（已设 `use_sim_time=true`；R1104 移动 GT/LIO 基线 rigid .0095/.0158 m） |
-| LIO 参数 | `config/faster_lio_outdoor.yaml` |
+| 仿真建图 | `launch/10_slam_mapping_sim.launch`（`faster_lio_sim.yaml`，已设 `use_sim_time=true`；R1104 移动 GT/LIO 基线 rigid .0095/.0158 m） |
+| 仿真 GT 建图（R1119） | 不走本包 LIO：`95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py`（`/sim/odom_gt`+`/rslidar_points`）；PCD→support_map 用 `v8_platform/framework/map_from_pcd.py` |
+| LIO 参数 | `config/faster_lio_outdoor.yaml`（真机）；`../../95_simulation/config/faster_lio_sim.yaml`（仿真） |
 | 存盘产物 | `data/maps/`（**`data/maps/lite3.pcd` 是样张红线件**，各跑前后取 sha） |
+
+**仿真配置警告（R1119）**：`lite3_gazebo_sim/launch/m2_mapping.launch` 加载的是
+`faster_lio_outdoor.yaml`（C16 分支不消费逐点时间），仿真 `/rslidar_points` 是 Velodyne 布局，
+直接跑会把点云散到 ±40 m；仿真请用 `10_slam_mapping_sim.launch`，或按 R1119 用 GT 位姿建图。
 
 **红线/契约**：**唯一被许可的第三方源码改动**＝`faster_lio` 存盘路径的隔离改写，登记在 `note/04_配置改动diff.md` 并受 ISO 项[8] 长期监控；除此之外该包一字不改。
 

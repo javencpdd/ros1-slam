@@ -92,3 +92,17 @@ FILE=lite3_ceshi1006 DECIMATE=5 bash m_view.sh    # 指定文件 + 抽点密度
 - **盘面口径（现跑 `ls`）**＝本目录 17 枚脚本件 ＋ 本 README ＝ **18 枚**；
   上方「脚本清单」表数据行 **11 行**，与盘面**一致**。
 - 同步时刻＝2026-10-21 03:32 CST（整串从 `date` 取，不心算）。
+
+## ★追加（2026-11-02，R1119）：仿真建图不走本目录★
+
+本目录的 `m_*.sh` / `m_stop.sh` 是**真机 11312 采图链**（Livox 驱动 + faster_lio + 真机停机落盘），
+不要把它直接套到 Gazebo 仿真：
+
+- 仿真键盘建图：`ws/src/95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py`
+  （`/rslidar_points` + `/sim/odom_gt`，GT 位姿，输出 `data/maps/mapped_*.pcd`）
+  ＋ `keyboard_teleop.py`；RViz 用 `docker/rviz_mapping3d.rviz`。
+- 仿真 PCD→support_map：`ws/src/90_platform/v8_platform/framework/map_from_pcd.py`
+  （生成 app/task 并登记 registry）。
+- 自建图交互导航：`app_runner.py --app data/maps/generated/<id>_v1_app.yaml --execute --interactive --rviz`。
+- 完整四终端命令与端口见 `docker/README.md` §4.7；该链是**仿真 GT 位姿**，不是 LIO/SLAM。
+- 真机采图仍以本 README 上方五步流程与 `m_stop.sh` 落盘顺序为准，两套不要混用。
