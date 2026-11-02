@@ -71,7 +71,7 @@ def main(argv=None):
         bounds=((nums[0], nums[1]), (nums[2], nums[3])))
     status = rospy.Publisher(prefix + '/status', String, queue_size=20)
     allowed = rospy.Publisher(prefix + '/command_allowed', Bool, queue_size=20)
-    lease_pub = rospy.Publisher(prefix + '/lease', UInt64, queue_size=20)
+    lease_pub = rospy.Publisher(prefix + '/lease', UInt64, queue_size=20, latch=True)
     backend = rospy.Publisher(prefix + '/backend', String, queue_size=20)
     last_lease = [None]
 
