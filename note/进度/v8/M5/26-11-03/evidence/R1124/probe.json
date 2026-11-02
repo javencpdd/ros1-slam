@@ -1,0 +1,235 @@
+{
+  "batch": "R1124",
+  "date": "2026-11-03",
+  "nature": "external rich-world import probe; no ws code change",
+  "source": {
+    "repo": "https://github.com/aws-robotics/aws-robomaker-hospital-world.git",
+    "branch": "ros1",
+    "commit": "39969a9d250135835cf13b480865647d1a87b6f4",
+    "license": "Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved. (permissive MIT-like text)",
+    "license_sha256": "ddf9b5d9dd2fded18653e0ca4c5934008d4faea1161d754493b54a23c25eac14",
+    "readme_gazebo": "7.14.0+ | 9.16.0+",
+    "readme_note": "python3/python3-pip required; no robot workspace; setup.sh downloads Fuel models"
+  },
+  "assets": {
+    "probe_dir": "data/imports/aws_hospital_probe",
+    "committed": false,
+    "clone_size_du": "143M",
+    "working_tree_bytes": 140143908,
+    "local_model_dirs": 37,
+    "fuel_model_dirs": 43,
+    "fuel_zip_bytes_total": 48885215,
+    "fuel_extracted_files": 519,
+    "fuel_extracted_size_du": "56M",
+    "unique_model_refs_in_worlds": 71,
+    "missing_model_refs": [],
+    "setup_sh_model_names": 43,
+    "readme_note_model_count": "README text says 42; setup.sh lists 43 -m entries"
+  },
+  "worlds": [
+    {
+      "file": "worlds/hospital.world",
+      "sha256": "70830baa0c3e6fd61fcf80e4c42c063553562aba931a725f9aea2591058e1a7b",
+      "top_level_model_blocks": 181,
+      "runtime_models_incl_ground_plane": 182,
+      "floor_z_offsets": [
+        0.0
+      ],
+      "load_ready_s": 17.623899436,
+      "rtf_samples": 1.0,
+      "rss_kb": 640440,
+      "plugins_in_world": 0,
+      "elevator_instances": 6,
+      "ramp_instances": 1
+    },
+    {
+      "file": "worlds/hospital_two_floors.world",
+      "sha256": "51623b457200d9eb4753a151952385d399641a2fdb077cd2f7424b67f2bb95bb",
+      "top_level_model_blocks": 360,
+      "runtime_models_incl_ground_plane": 361,
+      "floor_z_offsets": [
+        0.0,
+        3.0
+      ],
+      "load_ready_s": 30.073390826,
+      "rtf_samples": 0.99,
+      "rss_kb": 1028004,
+      "plugins_in_world": 0,
+      "elevator_instances": 10,
+      "ramp_instances": 2
+    },
+    {
+      "file": "worlds/hospital_three_floors.world",
+      "sha256": "5377adf54e4c6ea34549baa740d45161209e2107f2410bcb03b78d0e5fe01182",
+      "top_level_model_blocks": 539,
+      "runtime_models_incl_ground_plane": 540,
+      "floor_z_offsets": [
+        0.0,
+        3.0,
+        6.0
+      ],
+      "load_ready_s": 41.578943771,
+      "rtf_samples": 1.0,
+      "rss_kb": 1416416,
+      "plugins_in_world": 0,
+      "elevator_instances": 14,
+      "ramp_instances": 3
+    }
+  ],
+  "stairs": {
+    "separate_model": false,
+    "embedded_in": "aws_robomaker_hospital_floor_01_walls (visual and collision meshes)",
+    "visual_geometry": "ID52, material aws_robomaker_hospital_floor_01_stairs",
+    "collision_geometry": "ID12, 252 vertices",
+    "dae_unit": "centimeter",
+    "dae_up_axis": "Y_UP",
+    "bbox_cm": {
+      "x": [
+        1705.83,
+        2094.26
+      ],
+      "y": [
+        -299.973,
+        300.0
+      ],
+      "z": [
+        -1244.25,
+        1244.18
+      ]
+    },
+    "bbox_m": {
+      "x": [
+        17.0583,
+        20.9426
+      ],
+      "y": [
+        -2.99973,
+        3.0
+      ],
+      "z": [
+        -12.4425,
+        12.4418
+      ]
+    },
+    "step_rise_m": 0.2,
+    "levels_across_pm3m": 30,
+    "flights": 2,
+    "lower_flight": {
+      "y_m": [
+        -3.0,
+        0.0
+      ],
+      "x_m": [
+        17.0583,
+        18.9418
+      ],
+      "z_m": [
+        -10.0,
+        10.0
+      ],
+      "width_m": 1.8835,
+      "run_m": 20.0
+    },
+    "upper_flight": {
+      "y_m": [
+        0.0,
+        3.0
+      ],
+      "x_m": [
+        19.0583,
+        20.9426
+      ],
+      "z_m": [
+        -6.26,
+        6.26
+      ],
+      "width_m": 1.8843,
+      "run_m": 12.52
+    },
+    "landing_at_y0": {
+      "x_m": [
+        17.0583,
+        20.9426
+      ],
+      "z_m": [
+        -6.26,
+        6.26
+      ],
+      "width_m": 3.8843
+    },
+    "static": true,
+    "joints": 0,
+    "plugins": 0,
+    "actuation_needed": false,
+    "note": "30 x 0.20 m levels across the 6 m stair volume (15 per 3 m flight); low-poly long-tread stair; static collision."
+  },
+  "elevator": {
+    "models": [
+      "aws_robomaker_hospital_elevator_01_car",
+      "aws_robomaker_hospital_elevator_01_door",
+      "aws_robomaker_hospital_elevator_01_portal"
+    ],
+    "static_flag": 1,
+    "links": 1,
+    "joints": 0,
+    "plugins": 0,
+    "functional": false,
+    "note": "static decorative car/door/portal at each floor; cannot be called, moved, or opened; a functional lift would need a plugin and door joints."
+  },
+  "ramp": {
+    "model": "aws_robomaker_hospital_ramp_01",
+    "static_flag": 1,
+    "dae_unit": "centimeter",
+    "rise_m": 0.176,
+    "length_m": 2.454,
+    "width_m": 2.43,
+    "placed_z_m": [
+      0.0,
+      3.0,
+      6.0
+    ],
+    "note": "threshold/curb ramp near the elevator; not a 3 m floor connector."
+  },
+  "layout": {
+    "floor_story_height_m": 3.0,
+    "floor_model_blocks_per_story": 120,
+    "multi_floor_method": "duplicate floor 1 (floor/walls/ceiling/furniture/stairs) at z=3.0 and z=6.0",
+    "upper_floor_cutout_check": {
+      "method": "10 cm point-in-polygon sample of floor_01_floor collision mesh",
+      "upper_flight_footprint_coverage": 0.36,
+      "lower_flight_footprint_coverage": 0.948,
+      "interpretation": "floor collision mesh is not solid over the upper-flight footprint, consistent with a stairwell opening; exact mesh shape not reconstructed"
+    }
+  },
+  "runtime_scope": {
+    "headless": true,
+    "robot": false,
+    "sensors": false,
+    "navigation": false,
+    "gui": false,
+    "container": "ros1-slam-sim-viz",
+    "ros_master": "http://127.0.0.1:11413",
+    "gazebo_master": "http://127.0.0.1:11455",
+    "gazebo": "11.15.1",
+    "nist_11313_11345_touched": false
+  },
+  "warnings": {
+    "missing_models": [],
+    "nonfatal": [
+      "SDF version attribute warnings",
+      "Collada material warnings",
+      "OBJ d/Tr material warning",
+      "gazebo_ros_api_plugin rendering-disable warning"
+    ],
+    "errors_that_matter": []
+  },
+  "verdict": {
+    "downloadable": true,
+    "loads_in_gazebo11": true,
+    "stairs_static_no_actuation": true,
+    "elevator_functional": false,
+    "multi_floor_stair_traversal_tested": false,
+    "drop_in_for_formal": false,
+    "recommended_use": "rich single-floor SLAM candidate (heavy assets) or stair scoped test after adding robot/sensors/map and validating stairwell alignment; not a functional-elevator multi-floor world"
+  }
+}

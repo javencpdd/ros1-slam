@@ -1,0 +1,39 @@
+AWS Hospital stair geometry (source inspection)
+
+model:      aws_robomaker_hospital_floor_01_walls
+visual:     meshes/aws_robomaker_hospital_floor_01_walls_visual.dae
+            geometry ID52, material aws_robomaker_hospital_floor_01_stairs
+collision:  meshes/aws_robomaker_hospital_floor_01_walls_collision.dae
+            geometry ID12, 252 vertices
+DAE unit:   centimeter
+DAE up:     Y_UP (vertical = local Y)
+
+collision bbox (cm): x 1705.83 .. 2094.26
+                     y -299.973 .. 300.000
+                     z -1244.25 .. 1244.18
+converted (m):       x 17.0583 .. 20.9426   (3.884 m)
+                     y -2.99973 .. 3.00000 (6.000 m vertical)
+                     z -12.4425 .. 12.4418 (24.884 m)
+
+levels:     30 intervals at 20 cm (15 per 3 m flight)
+rise:       0.20 m per step level
+flights:    2 (lower and upper), with a landing at y=0
+lower:      y -3.00 .. 0.00; x 17.0583 .. 18.9418 (1.884 m wide); z -10.00 .. 10.00 (20.0 m run)
+upper:      y  0.00 .. 3.00; x 19.0583 .. 20.9426 (1.884 m wide); z -6.26 .. 6.26 (12.52 m run)
+landing:    y=0; x 17.0583 .. 20.9426; z -6.26 .. 6.26
+static:     yes (collision mesh in a static walls model)
+joints:     0
+plugins:    0
+actuation:  not needed; the stairs are static collision geometry
+
+Floor cutout check (aws_robomaker_hospital_floor_01_floor collision mesh):
+  method: 10 cm point-in-polygon sampling of the floor polygons
+  upper-flight footprint coverage: 0.360 (64% not covered)
+  lower-flight footprint coverage: 0.948
+  interpretation: the floor is not solid over the upper-flight footprint, consistent
+  with a stairwell opening; exact opening mesh not reconstructed. This is geometry
+  inspection only, not a robot traversal test.
+
+Scope note: the single-floor world has no upper floor at z=3; the two/three-floor
+worlds duplicate the floor (including this stair) at z=3/6. The probe did not run a
+robot or a support-map planner up the stair.

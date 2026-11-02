@@ -1,0 +1,33 @@
+AWS RoboMaker Hospital World - probe source record
+
+upstream:   https://github.com/aws-robotics/aws-robomaker-hospital-world.git
+branch:     ros1
+commit:     39969a9d250135835cf13b480865647d1a87b6f4
+default branch note: the default branch only carries an archived README; the
+                     actual worlds/models are on the ros1 branch.
+
+license:    Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+            Permissive MIT-like text (copy, modify, merge, publish, distribute,
+            sublicense, sell; "AS IS", no warranty).
+LICENSE sha256: ddf9b5d9dd2fded18653e0ca4c5934008d4faea1161d754493b54a23c25eac14
+
+README:
+  - Supported Gazebo: 7.14.0+ | 9.16.0+
+  - python3 / python3-pip required
+  - no robot workspace; simulation workspace only
+  - setup.sh installs requirements and downloads Fuel models
+  - world list: hospital.world, hospital_two_floors.world, hospital_three_floors.world
+
+setup.sh:
+  - lists 43 -m model names (README prose says 42; the setup list is authoritative
+    for the actual download command)
+  - downloads from https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models
+
+world sha256:
+  70830baa0c3e6fd61fcf80e4c42c063553562aba931a725f9aea2591058e1a7b  hospital.world
+  51623b457200d9eb4753a151952385d399641a2fdb077cd2f7424b67f2bb95bb  hospital_two_floors.world
+  5377adf54e4c6ea34549baa740d45161209e2107f2410bcb03b78d0e5fe01182  hospital_three_floors.world
+
+runtime note: tested with Gazebo 11.15.1 in ros1-slam-sim-viz, although the README
+advertises 7.14+/9.16+. No missing-model errors; only non-fatal material/parser
+warnings and the gazebo_ros_api_plugin rendering-disable warning.

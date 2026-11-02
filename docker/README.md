@@ -813,6 +813,56 @@ rigid yaw mean **2.4 mrad**、rigid z mean 17.8 mm。首轮带 180° yaw 突变�
 translated 409.9 mm、rigid yaw 2.97 rad，保留为负例。LIO PCD 已另存；
 原 `data/maps/lite3.pcd` 已恢复。**只测 SLAM，不做导航/运动学；不是 formal。**
 
+#### 4.11 AWS Hospital 导入探针（R1124，未接入）
+
+`aws-robotics/aws-robomaker-hospital-world` 的 `ros1` 分支（commit `39969a9d`，许可为
+Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是探针，未接入 `ws/` 或 launch**。
+
+| world | 运行时模型 | 加载到 service 就绪 | 空载 RTF | RSS |
+|---|---:|---:|---:|---:|
+| `hospital.world` | 182 | 17.62 s | 1.00 | 640 MB |
+| `hospital_two_floors.world` | 361 | 30.07 s | 0.99 | 1.03 GB |
+| `hospital_three_floors.world` | 540 | 41.58 s | 1.00 | 1.42 GB |
+
+结论（必须按目标拆）：
+- **楼梯不需要驱动**：楼梯嵌在 `aws_robomaker_hospital_floor_01_walls` 的碰撞网格里，
+  0.20 m 级高、±3 m 共 30 级（两个 3 m 行程各 15 级），静态、无 joint/plugin。
+  单层 world 有 3 m 天花板，楼梯测试请用 `hospital_two_floors.world`。
+- **电梯不能直接用**：car/door/portal 三件都是 `static=1`、1 link、0 joint、0 plugin；
+  不能呼梯/开门/升降。要功能电梯需另加 lift 插件和门关节。
+- **两层/三层是复制层**：把 floor 1 的 floor/walls/ceiling/家具/楼梯整块复制到 z=3/6；
+  上层楼板在楼梯上行段足迹处有开口（源几何检查），但本次**没有跑机器人上楼梯**，
+  不能据此签“多层通行”。
+- 坡道 `ramp_01` 只有约 0.176 m rise，是电梯口门槛坡道，不是 3 m 楼层连接器。
+- 本机 `/usr/bin/python3` 没有 `pip`/`docopt`，官方 `setup.sh` 的 pip 行未端到端跑通；
+  本次按同一 43 模型清单直接走 Fuel API，43/43 成功。资产留在
+  `data/imports/aws_hospital_probe/`（未入库）。
+
+```bash
+# 源（默认分支只有归档 README）
+git clone -b ros1 https://github.com/aws-robotics/aws-robomaker-hospital-world.git \
+  /home/jack/ysc-code/ros1-slam/data/imports/aws_hospital_probe
+cd /home/jack/ysc-code/ros1-slam/data/imports/aws_hospital_probe
+./setup.sh   # 需 python3-pip + requests/lxml/docopt；本机缺 pip，改用等价 Fuel 直下
+
+# 加载（独立 master；不要占用 11313/11345 的 NIST 仿真）
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11455
+  export GAZEBO_MODEL_PATH=/opt/ros1-slam/data/imports/aws_hospital_probe/models:/opt/ros1-slam/data/imports/aws_hospital_probe/fuel_models:/usr/share/gazebo-11/models
+  export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:/opt/ros1-slam/data/imports/aws_hospital_probe
+  exec gzserver /opt/ros1-slam/data/imports/aws_hospital_probe/worlds/hospital_two_floors.world \
+    -s libgazebo_ros_api_plugin.so --verbose'
+
+# 读数；停进程用精确 PID，不要宽泛 pkill -f
+rosservice call /gazebo/get_world_properties
+gz stats -d 3
+```
+
+完整读数、楼梯碰撞 bbox、Fuel manifest 与命令见
+`note/进度/v8/M5/26-11-03/evidence/R1124/`。
+
 #### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
 
 项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的

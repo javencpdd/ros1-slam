@@ -1,0 +1,54 @@
+R1124 AWS Hospital probe - commands actually used
+
+# 0) Source checkout (on-disk probe only; not committed)
+#    Default branch is an archived README; the ros1 branch has the worlds/models.
+cd /home/jack/ysc-code/ros1-slam/data/imports
+git clone -b ros1 https://github.com/aws-robotics/aws-robomaker-hospital-world.git aws_hospital_probe
+cd aws_hospital_probe
+git rev-parse HEAD   # 39969a9d250135835cf13b480865647d1a87b6f4
+
+# 1) Fuel models
+#    Official path (README): ./setup.sh
+#    It runs: python3 -m pip install -r requirements.txt
+#             python3 fuel_utility.py download -m ... 43 models ... -d fuel_models
+#    This host's /usr/bin/python3 has no pip/docopt, so setup.sh could not run end-to-end.
+#    Equivalent direct Fuel API download was used for the exact setup.sh model list:
+#    43/43 models, 48,885,215 zip bytes, 519 extracted files, 56 MB on disk.
+#    Missing model refs after extraction: none (71 unique model:// refs resolved).
+
+# 2) Load in Gazebo 11.15.1 (headless, isolated master; did not touch 11313/11345)
+docker exec -d ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11455
+  export GAZEBO_MODEL_PATH=/opt/ros1-slam/data/imports/aws_hospital_probe/models:/opt/ros1-slam/data/imports/aws_hospital_probe/fuel_models:/usr/share/gazebo-11/models
+  export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:/opt/ros1-slam/data/imports/aws_hospital_probe
+  export GAZEBO_PLUGIN_PATH=/opt/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib
+  exec gzserver /opt/ros1-slam/data/imports/aws_hospital_probe/worlds/hospital_two_floors.world \
+    -s libgazebo_ros_api_plugin.so --verbose \
+    > /opt/ros1-slam/data/imports/aws_hospital_probe/load_two_floors.log 2>&1'
+# The same command was run for hospital.world and hospital_three_floors.world.
+# A separate isolated roscore was started on 11413 for the ROS API plugin:
+#   roscore -p 11413
+
+# 3) Runtime readings
+docker exec ros1-slam-sim-viz bash -lc '
+  source /opt/ros/noetic/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11413
+  rosservice call /gazebo/get_world_properties    # model_names count
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11455
+  gz stats -d 3'                                  # Factor/SimTime/RealTime
+
+# 4) Stop by exact PID (do not use a broad pkill -f pattern: it can match the
+#    docker exec shell itself and kill the calling command)
+docker exec ros1-slam-sim-viz bash -lc '
+  p1=$(pgrep -f "^gzserver .*hospital_two_floors" | head -1); [ -n "$p1" ] && kill -TERM "$p1"
+  p2=$(pgrep -f "^/usr/bin/python3 /opt/ros/noetic/bin/roscore -p 11413" | head -1); [ -n "$p2" ] && kill -TERM "$p2"'
+
+# 5) Evidence collection (read-only source checks)
+grep -c '<plugin' worlds/*.world                    # 0/0/0
+grep -H '<static>' models/aws_robomaker_hospital_elevator_01_*/model.sdf
+grep -c '<joint' models/aws_robomaker_hospital_elevator_01_*/model.sdf  # 0/0/0
+# stair geometry: collision DAE geometry ID12, visual DAE geometry ID52 with the
+# aws_robomaker_hospital_floor_01_stairs material; parsed with Python ElementTree
+# (bbox/levels in stair_geometry.txt).
