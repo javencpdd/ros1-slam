@@ -66,22 +66,27 @@ def _terminate(proc, group=False):
 
 
 def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
-            interactive=False, rviz=False):
+            interactive=False, rviz=False, real=False):
     resolved = app_config.load_app(app_path)
     task = resolved['task_resolved']
     app = resolved['app']
     start = tuple(float(v) for v in task['start']['xyz'])
     goal = tuple(float(v) for v in task['goal']['xyz'])
-    os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % port,
-                      ROS_IP='127.0.0.1', ROS_HOSTNAME='127.0.0.1',
-                      ROS_HOME='/tmp/r1103_ros', ROS_LOG_DIR='/tmp/r1103_logs',
-                      GAZEBO_MASTER_URI='http://127.0.0.1:%d' % (port + 1),
-                      PYTHONDONTWRITEBYTECODE='1')
-    Path('/tmp/r1103_ros').mkdir(exist_ok=True)
-    Path('/tmp/r1103_logs').mkdir(exist_ok=True)
-    master = subprocess.Popen(['roscore', '-p', str(port)], start_new_session=True,
-                              stdout=open('/tmp/r1103_master.log', 'ab'),
-                              stderr=subprocess.STDOUT, env=dict(os.environ))
+    master = None
+    if real:
+        # 真机窗口：沿用现场已在位的 master 与传感器；不得另起 roscore。
+        os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
+    else:
+        os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % port,
+                          ROS_IP='127.0.0.1', ROS_HOSTNAME='127.0.0.1',
+                          ROS_HOME='/tmp/r1103_ros', ROS_LOG_DIR='/tmp/r1103_logs',
+                          GAZEBO_MASTER_URI='http://127.0.0.1:%d' % (port + 1),
+                          PYTHONDONTWRITEBYTECODE='1')
+        Path('/tmp/r1103_ros').mkdir(exist_ok=True)
+        Path('/tmp/r1103_logs').mkdir(exist_ok=True)
+        master = subprocess.Popen(['roscore', '-p', str(port)], start_new_session=True,
+                                  stdout=open('/tmp/r1103_master.log', 'ab'),
+                                  stderr=subprocess.STDOUT, env=dict(os.environ))
     gazebo = None
     viz = None
     picker = None
@@ -271,16 +276,18 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                   flush=True)
             try:
                 while not rospy.is_shutdown() and not stop_requested['value']:
-                    obstacle_pub.publish(String(data='[]'))
-                    hold_pub.publish(Bool(data=False))
+                    if not real:
+                        obstacle_pub.publish(String(data='[]'))
+                        hold_pub.publish(Bool(data=False))
                     time.sleep(.2)
             except KeyboardInterrupt:
                 result['interrupted'] = True
             if stop_requested['value']:
                 result['interrupted'] = True
         while not interactive and time.monotonic() < deadline and not rospy.is_shutdown():
-            obstacle_pub.publish(String(data='[]'))
-            hold_pub.publish(Bool(data=False))
+            if not real:
+                obstacle_pub.publish(String(data='[]'))
+                hold_pub.publish(Bool(data=False))
             trajectory = state['trajectory']
             pose = state['pose']
             path_now = state['path']
@@ -382,6 +389,9 @@ def main():
     parser.add_argument('--gui', action='store_true')
     parser.add_argument('--port', type=int, default=11537)
     parser.add_argument('--timeout-s', type=float, default=90.)
+    parser.add_argument('--real', action='store_true',
+                        help='use the on-robot ROS master and live sensors; '
+                             'no roscore, no gazebo, no harness obstacle/hold publishers')
     parser.add_argument('--interactive', action='store_true',
                         help='keep the 3D stack alive; RViz Publish Point selects goals')
     parser.add_argument('--rviz', action='store_true',
@@ -396,7 +406,7 @@ def main():
         return 0
     return execute(args.app, args.out, args.port, not args.no_gazebo, args.gui,
                    args.timeout_s, interactive=args.interactive or args.rviz,
-                   rviz=args.rviz)
+                   rviz=args.rviz, real=args.real)
 
 
 if __name__ == '__main__':
