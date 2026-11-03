@@ -1,0 +1,61 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.gait_guard",
+ "version": "0.1.0",
+ "roles": [
+  "middleware"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "framework/stair_gait_guard_node.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "map",
+    "type": "std_msgs/String",
+    "topic": "/v8_support_map",
+    "schema": "support_map/v1"
+   },
+   {
+    "name": "path",
+    "type": "nav_msgs/Path",
+    "topic": "/v8/3d/global/path"
+   },
+   {
+    "name": "pose",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/local/pose"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "gait",
+    "type": "std_msgs/String",
+    "topic": "/v8/chassis/gait"
+   },
+   {
+    "name": "status",
+    "type": "std_msgs/String",
+    "topic": "/v8/gait_guard/status"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

@@ -1,0 +1,16 @@
+schema: navigation_app/v1
+name: lite3_real_3d
+graph: ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3.yaml
+map_registry: data/maps/real_lite3_20261103/registry.json
+map: {id: lite3_real, version: 2}
+task: data/maps/real_lite3_20261103/lite3_real_v2_task.json
+localization: {source: carrier}
+carrier:
+  backend: lite3
+  pose_source: tf
+  map_frame: map
+  base_frame: base_link
+  rate_hz: 20.0
+  stale_s: 0.5
+visualization: {markers: false, rviz: false}
+global: {budget: 20000, min_clearance_m: 0.4}

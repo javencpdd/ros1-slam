@@ -5,12 +5,13 @@ from pathlib import Path
 import yaml
 
 import map_registry
+import paths
 import surface_resolver
 
-ROOT = Path(__file__).resolve().parents[5]
+ROOT = paths.repo_root(__file__)
 APP_SCHEMA = 'navigation_app/v1'
 LOCALIZATION_SOURCES = ('carrier', 'sim_gt', 'faster_lio', 'ndt')
-CARRIER_BACKENDS = ('gazebo', 'kinematic')
+CARRIER_BACKENDS = ('gazebo', 'kinematic', 'lite3')
 
 
 class AppError(Exception):

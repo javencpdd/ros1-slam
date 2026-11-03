@@ -1,0 +1,21 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.dynamic_obstacles",
+ "version": "0.1.0",
+ "roles": ["sensor_source"],
+ "dimensions": 3,
+ "capability": {"kinematics": "not_applicable", "cancellation": "none", "supports_dynamic_obstacles": true},
+ "ownership": {"tf_edges": [], "command_topics": [], "namespace": "/", "stop": "process_group_signal"},
+ "launch": {"kind": "node", "package": "v8_platform", "type": "framework/dynamic_obstacles_node.py"},
+ "ports": {
+  "inputs": [
+   {"name": "cloud", "type": "sensor_msgs/PointCloud2", "topic": "/cloud_registered"},
+   {"name": "pose", "type": "geometry_msgs/PoseStamped", "topic": "/v8/local/pose"}
+  ],
+  "outputs": [
+   {"name": "obstacles", "type": "std_msgs/String", "topic": "/v8/local/obstacles"},
+   {"name": "status", "type": "std_msgs/String", "topic": "/v8/3d/perception/status"}
+  ]
+ },
+ "evidence": {"level": "declared", "reports": []}
+}

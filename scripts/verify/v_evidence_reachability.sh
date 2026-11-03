@@ -28,7 +28,7 @@ set -u
 #   在异机（本仓／容器：该路径是符号链接视图或根本不存在）必 rc=9 ⇒ 串内 VAR 恒红，与件本身对不对无关。
 #   修法与 VCC（v_citation_check.sh:36 的 VCC_ROOT）、账构（v_ledger_batch_consistency.sh:38 的 VLB_ROOT）同款：
 #   ★只补覆写口、缺省值一字不改、rc 语义与普查面一字不改★。
-ROOT="${VAR_ROOT:-/home/ros1-slam}"
+ROOT="${VAR_ROOT:-${ROS1_SLAM_ROOT:-/home/ros1-slam}}"
 cd "$ROOT" || { echo "[前置缺失] 仓根不可达：$ROOT（可用 VAR_ROOT=仓根 覆写）"; echo "VAR VERDICT rc=9"; exit 9; }
 command -v getfacl >/dev/null 2>&1 || { echo "[前置缺失] getfacl 不可用 ⇒ 无法判 effective"; echo "VAR VERDICT rc=9"; exit 9; }
 SELF=$(readlink -f "$0")

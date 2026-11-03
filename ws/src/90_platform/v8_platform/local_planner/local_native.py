@@ -43,6 +43,7 @@ class Config:
     goal_tolerance_m: float = 0.08
     max_expansions: int = 20000
     command_latency_bound_s: float = 0.01
+    support_tol_m: float = 1e-6
 
     def validate(self):
         for name, value in asdict(self).items():
@@ -283,11 +284,14 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     if isinstance(now, bool) or not isinstance(now, (int, float)) or not math.isfinite(now):
         raise LocalError('E_LOCAL_INPUT', 'now must be finite numeric')
     try:
-        contract.validate('map', map_value)
+        contract.validate('map', map_value, allow_obstacles=True)
         max_step, max_slope = _profile_limits(robot_profile, config)
     except (contract.ContractError, enforcement.EnforcementError) as error:
         raise LocalError(getattr(error, 'code', 'E_LOCAL_MAP'), str(error))
-    moving = _obstacles(obstacles)
+    if not isinstance(obstacles, (list, tuple)):
+        raise LocalError('E_LOCAL_INPUT', 'obstacles must be a list of box predictions')
+    static_boxes = list(map_value.get('obstacles') or [])
+    moving = _obstacles(static_boxes + list(obstacles))
     surfaces = {s['surface_id']: s for s in map_value['surfaces']
                 if s['traversability'] == 'supported'}
     required_ceiling = max(config.height_m, config.clearance_m)
@@ -318,16 +322,17 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
         padding = config.radius_m + config.clearance_m
         steppable = (_steppable_surfaces(surfaces, current_sid, max_step, max_slope, config.radius_m)
                      if current_sid is not None else set())
-        return not any(not (s['surface_id'] == current_sid and abs(point[2] - s['z_reference']) <= SUPPORT_TOL_S)
+        tol = config.support_tol_m
+        return not any(not (s['surface_id'] == current_sid and abs(point[2] - s['z_reference']) <= tol)
                        and not (s['surface_id'] in steppable and _near_boundary(s, point, padding))
                        and inside(s, point, margin=-padding)
-                       and point[2] + SUPPORT_TOL_S < s['z_reference']
+                       and point[2] + tol < s['z_reference']
                        and s['z_reference'] - s.get('thickness_m', 0.) - point[2] < required_ceiling
                        for s in map_value['surfaces'])
 
     def resolve(point, label):
         choices = [s for s in surfaces.values() if inside(s, point, margin=config.radius_m)
-                   and abs(point[2] - s['z_reference']) <= SUPPORT_TOL_S]
+                   and abs(point[2] - s['z_reference']) <= config.support_tol_m]
         if len(choices) != 1:
             raise LocalError('E_LOCAL_SUPPORT', label + ' requires exactly one matching z support')
         if not safe_ceiling(point, choices[0]['surface_id']):
@@ -514,10 +519,11 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     points.append((*points[-1][:3], points[-1][3] + hold_s))
     layers = [state[0][0] for state in chain] + [chain[-1][0][0]]
     try:
-        verdict = checker.check(map_value, points, z_tol=SUPPORT_TOL_S, min_clearance=required_ceiling,
+        verdict = checker.check(map_value, points, z_tol=config.support_tol_m, min_clearance=required_ceiling,
                                 max_step=config.max_speed_mps * config.tick_s + 1e-9,
                                 time_budget=config.horizon_s, expected_map_version=map_value['map_version'],
-                                max_step_height=config.max_step_m)
+                                max_step_height=config.max_step_m,
+                                robot_radius=config.radius_m, robot_height=config.height_m)
     except checker.CheckerError as error:
         raise LocalError('E_LOCAL_CHECKER', str(error))
     if not verdict['ok']:

@@ -8,7 +8,7 @@
 set -u
 # ★R574（批226）＝仓根补可覆写口：原第 9 行写死 ROOT=/home/ros1-slam，异机必在第 16 行 `cd "$ROOT" || exit 5`
 #   当场 rc=5（串内 GTC 恒红）。修法与 VCC／账构同款：只补覆写口、缺省值与 rc 语义一字不改。
-ROOT="${GTC_ROOT:-/home/ros1-slam}"
+ROOT="${GTC_ROOT:-${ROS1_SLAM_ROOT:-/home/ros1-slam}}"
 SELF=$(readlink -f "$0")   # --negctl 要用本体递归跑三次（临时表副本作被试）
 SM=ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
 LIB=ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh

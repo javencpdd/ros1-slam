@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 # -*- coding: utf-8 -*-
 # safe_cmd_vel_mux.py —— M6 安全 mux（v4 C8 终稿；v3 基线四设计 + v4 N5/N6 增补）
 #
@@ -15,12 +16,20 @@ import threading
 import rospy
 import yaml
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Float32
+from velocity_limit import clamp
 from std_msgs.msg import Bool
 
 
 class SafeCmdVelMux(object):
     def __init__(self):
-        with open(rospy.get_param('~mux_config')) as f:
+        config_path = rospy.get_param('~mux_config')
+        if not os.path.isabs(config_path):
+            # Relative paths resolve against this package, so the same launch works
+            # in the x86 container (/opt/ros1-slam) and on the Jetson (/home/ros1-slam).
+            import rospkg
+            config_path = os.path.join(rospkg.RosPack().get_path('lite3_safety'), config_path)
+        with open(config_path) as f:
             cfg = yaml.safe_load(f)
         out_topic = cfg['output_topic']              # /cmd_vel（唯一写者 = 本节点）
         self.rate_hz = float(cfg['output_rate_hz'])  # 恒 20 Hz
@@ -29,6 +38,20 @@ class SafeCmdVelMux(object):
         self.hold = False
         self.current = 'INIT'
         # 源表按优先级排序（1 = 最高）；订阅全部源话题（批1/J3 起七源），超时淘汰在 _tick 内判定
+        # Outer speed bound. The chassis monitor also limits velocity; this is the
+        # last software stage before /cmd_vel, so it enforces the same cap.
+        self.max_linear = cfg.get('max_linear_mps')
+        self.max_angular = cfg.get('max_angular_rps')
+        # 动态限速（前方超声保底）：有话题时取 min(静态上限, 动态 cap)；
+        # cap 过期且 speed_cap_required=true 时退到 blind_cap。
+        self.cap_topic = cfg.get('speed_cap_topic')
+        self.cap_timeout = float(cfg.get('speed_cap_timeout_s', 0.5))
+        self.cap_required = bool(cfg.get('speed_cap_required', False))
+        self.blind_cap = cfg.get('blind_cap_mps', 0.1)
+        self.cap_value = None
+        self.cap_stamp = None
+        if self.cap_topic:
+            rospy.Subscriber(self.cap_topic, Float32, self._cap_cb, queue_size=1)
         self.sources = sorted(cfg['sources'], key=lambda s: s['priority'])
         for s in self.sources:
             s['msg'] = None
@@ -63,6 +86,38 @@ class SafeCmdVelMux(object):
         z.angular.x = z.angular.y = z.angular.z = 0.0
         return z
 
+    def _cap_cb(self, msg):
+        self.cap_value = float(msg.data)
+        self.cap_stamp = rospy.Time.now()
+
+    def _effective_linear(self):
+        limit = self.max_linear
+        if self.cap_topic:
+            now = rospy.Time.now()
+            fresh = (self.cap_stamp is not None
+                     and (now - self.cap_stamp) <= rospy.Duration(self.cap_timeout))
+            if fresh:
+                cap = self.cap_value
+            elif self.cap_required:
+                cap = self.blind_cap
+            else:
+                cap = None
+            if cap is not None:
+                limit = cap if limit is None else min(limit, cap)
+        return limit
+
+    def _limited(self, msg):
+        limit = self._effective_linear()
+        if limit is None and self.max_angular is None:
+            return msg
+        values = clamp(msg.linear.x, msg.linear.y, msg.linear.z,
+                       msg.angular.x, msg.angular.y, msg.angular.z,
+                       limit, self.max_angular)
+        out = Twist()
+        out.linear.x, out.linear.y, out.linear.z = values[0], values[1], values[2]
+        out.angular.x, out.angular.y, out.angular.z = values[3], values[4], values[5]
+        return out
+
     def _tick(self, _event):
         with self.lock:
             now = rospy.Time.now()
@@ -79,7 +134,7 @@ class SafeCmdVelMux(object):
             if self.hold:                                # C8①：hold 期无视各源直接零速
                 out, cur = self._zero_twist(), 'HOLD'
             elif chosen is not None:
-                out, cur = chosen['msg'], chosen['name']
+                out, cur = self._limited(chosen['msg']), chosen['name']
             else:                                        # C8：无源发零速（/cmd_vel 恒有输出，底盘超时不断）
                 out, cur = self._zero_twist(), 'NONE'
             if cur != self.current:

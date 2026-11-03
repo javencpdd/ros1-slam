@@ -1,0 +1,132 @@
+schema: pipeline_graph/v1
+name: nav3d_lite3_real
+instances:
+  - id: map
+    component: v8.fw.map_file
+    namespace: /v8/3d/map
+    params:
+      map_topic: /v8_support_map
+      status_topic: /v8_map_status
+  - id: global
+    component: v8.fw.global3d_topic
+    namespace: /v8/3d/global
+    params:
+      frame: map
+      budget: 20000
+      min_clearance_m: 0.4
+      robot_radius_m: 0.35
+      robot_height_m: 0.436
+      map_topic: /v8_support_map
+      start_topic: /v8/3d/global/start
+      goal_topic: /v8/3d/global/goal
+      path_topic: /v8/3d/global/path
+      status_topic: /v8/3d/global/status
+  - id: path_goal
+    component: v8.fw.path_goal3d
+    namespace: /v8/3d/path_goal
+    params:
+      path_topic: /v8/3d/global/path
+      goal_topic: /v8/local/goal
+      status_topic: /v8/3d/path_goal/status
+  - id: local
+    component: v8.fw.local_native_raw
+    namespace: /v8/3d/local
+    config: local_native.yaml
+    params:
+      map_topic: /v8_support_map
+      command_topic: /v8/local/cmd_vel_3d
+      twist_topic: /cmd_vel_raw
+      trajectory_topic: /v8/local/trajectory
+  - id: ultrasonic_guard
+    component: v8.fw.ultrasonic_guard
+    namespace: /v8/3d/ultrasonic
+    params:
+      enable: true
+      us_topic: /us_publisher/ultrasound
+      front_index: 0
+      rate_hz: 10.0
+      stale_s: 0.5
+      cap_distance_m: 0.8
+      clear_distance_m: 1.2
+      stop_distance_m: 0.3
+      stop_speed_mps: 0.0
+      cap_speed_mps: 0.1
+      clear_speed_mps: 0.5
+      fail_cap: true
+      cap_topic: /v8/safety/speed_cap
+  - id: mux
+    component: v8.fw.safety_mux_lite3
+    namespace: /lite3/safety
+    params:
+      mux_config: config/cmd_vel_mux.yaml
+  - id: perception
+    component: v8.fw.dynamic_obstacles
+    namespace: /v8/3d/perception
+    params:
+      enable: true
+      cloud_topic: /cloud_registered
+      map_frame: map
+      rate_hz: 10.0
+      roi_forward_m: 6.0
+      roi_lateral_m: 3.0
+      min_height_m: 0.15
+      max_height_m: 1.6
+      voxel_m: 0.10
+      min_points: 8
+      max_objects: 32
+      self_radius_m: 0.45
+      max_speed_mps: 1.5
+      gate_m: 0.8
+      ttl_s: 1.0
+      blind_timeout_s: 2.0
+      obstacle_topic: /v8/local/obstacles
+  - id: gait_guard
+    component: v8.fw.gait_guard
+    namespace: /v8/3d/gait_guard
+    params:
+      enable: true
+      lookahead_m: 1.5
+      enter_m: 1.0
+      exit_m: 1.5
+      min_step_m: 0.05
+      max_step_m: 0.15
+      flat_gait: flat_mid
+      step_gait: high_step
+      map_topic: /v8_support_map
+      path_topic: /v8/3d/global/path
+      pose_topic: /v8/local/pose
+      gait_topic: /v8/chassis/gait
+  - id: carrier
+    component: v8.fw.carrier_lite3
+    namespace: /v8/3d/carrier
+    params:
+      pose_source: tf
+      map_frame: map
+      base_frame: base_link
+      pose_topic: /v8/local/pose
+      localization_topic: /v8/local/localization_ok
+      status_topic: /v8/3d/carrier/status
+      rate_hz: 20.0
+      stale_s: 0.5
+edges:
+  - {from: map.map, to: global.map}
+  - {from: map.map, to: local.map}
+  - {from: global.path, to: path_goal.path}
+  - {from: path_goal.goal, to: local.goal}
+  - {from: carrier.pose, to: local.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: carrier.localization, to: local.localization, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: perception.obstacles, to: local.obstacles}
+  - {from: carrier.pose, to: perception.pose}
+  - {from: map.map, to: gait_guard.map}
+  - {from: global.path, to: gait_guard.path}
+  - {from: carrier.pose, to: gait_guard.pose}
+  - {from: local.cmd_twist, to: mux.cmd}
+  - {from: ultrasonic_guard.cap, to: mux.cap}
+external:
+  - {to: ultrasonic_guard.us, type: std_msgs/Float64MultiArray, source: bridge}
+  - {to: perception.cloud, type: sensor_msgs/PointCloud2, source: lidar}
+  - {to: global.start, type: geometry_msgs/PoseStamped, source: localization}
+  - {to: global.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: mux.hold, type: std_msgs/Bool, source: supervisor}

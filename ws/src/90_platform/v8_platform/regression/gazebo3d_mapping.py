@@ -260,14 +260,27 @@ def build_map_from_points(points, resolution=0.05, map_id='nist_sensor',
                           map_version=1, source=None, obstacles=None,
                           z_tol=0.05, min_cells=1, z_merge=0.05,
                           xy_gap=0.10, max_z_step=0.25, min_side=0.15,
-                          min_area=0.10):
+                          min_area=0.10, surface_z_min=-0.06, surface_z_max=1.05,
+                          obstacle_min_z=None):
     points = np.asarray(points, dtype=float).reshape(-1, 3)
     result = elevation.mapping_pipeline(points, resolution, z_tol=z_tol,
                                         min_cells=min_cells, advisory_gap=xy_gap,
                                         advisory_step=max_z_step)
     merged = consolidate_surfaces(result['surfaces'], z_merge=z_merge, xy_gap=xy_gap)
     supported, rejected = classify_surfaces(merged, resolution, min_side=min_side,
-                                            min_area=min_area)
+                                            min_area=min_area,
+                                            z_min=surface_z_min, z_max=surface_z_max)
+    obstacles = list(obstacles or [])
+    if obstacle_min_z is not None:
+        for item in rejected:
+            if item['z_reference'] < obstacle_min_z:
+                continue
+            footprint = item['footprint']
+            obstacles.append({
+                'obstacle_id': 'o%d' % len(obstacles),
+                'min': [footprint['min_x'], footprint['min_y'], float(surface_z_min)],
+                'max': [footprint['max_x'], footprint['max_y'],
+                        float(item['z_reference']) + 0.05]})
     if not supported:
         raise rep.RepresentationError('E_REP_NO_SURFACES', 'all extracted surfaces rejected')
     edges, edge_rejected = promote_edges(supported, max_xy_gap=xy_gap,
@@ -286,7 +299,7 @@ def build_map_from_points(points, resolution=0.05, map_id='nist_sensor',
     payload_source = dict(source or {})
     payload_source.setdefault('uri', 'gazebo://lite3_planar/rslidar_points+sim_odom_gt')
     value = rep.build_support_map(map_id, resolution, origin, keep, edges, payload_source,
-                                  map_version=map_version, obstacles=obstacles)
+                                  map_version=map_version, obstacles=obstacles or None)
     info = {
         'points': int(len(points)),
         'columns': len(result['columns']),
@@ -298,6 +311,7 @@ def build_map_from_points(points, resolution=0.05, map_id='nist_sensor',
         'disconnected_surfaces': dropped,
         'promoted_edges': edges,
         'rejected_edges': edge_rejected,
+        'obstacles': len(obstacles),
         'map_version': map_version,
         'levels': sorted({surface['z_reference'] for surface in keep}),
     }

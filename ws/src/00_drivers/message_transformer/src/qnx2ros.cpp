@@ -4,6 +4,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <nav_msgs/Odometry.h>
 #include <netinet/in.h>
 #include <ros/duration.h>
@@ -53,6 +54,9 @@ public:
     imu_pub_200_ = nh.advertise<sensor_msgs::Imu>("/imu/data", 1);    
     handle_pub_ = nh.advertise<geometry_msgs::Twist>("/handle_state", 1);
     ultrasound_pub_ = nh.advertise<std_msgs::Float64>("/us_publisher/ultrasound_distance", 1);
+    // 双值面：index 0 = 前，1 = 后（monitor models.py UltrasoundData.forward/backward）。
+    // 旧话题保留不动（它发的是 index 1 = 后），新话题给前方保底用。
+    ultrasound_all_pub_ = nh.advertise<std_msgs::Float64MultiArray>("/us_publisher/ultrasound", 1);
   }
 
   ~QNX2ROS(){
@@ -142,6 +146,11 @@ public:
       std_msgs::Float64 ultrasound_distance;
       ultrasound_distance.data = robot_state->ultrasound[1];
       ultrasound_pub_.publish(ultrasound_distance);
+
+      std_msgs::Float64MultiArray ultrasound_all;
+      ultrasound_all.data.push_back(robot_state->ultrasound[0]);
+      ultrasound_all.data.push_back(robot_state->ultrasound[1]);
+      ultrasound_all_pub_.publish(ultrasound_all);
       
       geometry_msgs::TransformStamped leg_odom_trans;       
       leg_odom_trans.header.stamp = ros::Time::now();
@@ -251,6 +260,7 @@ private:
   ros::Publisher imu_pub_200_;
   ros::Publisher handle_pub_;
   ros::Publisher ultrasound_pub_;
+  ros::Publisher ultrasound_all_pub_;
   tf::TransformBroadcaster odom_broadcaster_;
 };
 

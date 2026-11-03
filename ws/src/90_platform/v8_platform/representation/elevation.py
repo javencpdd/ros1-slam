@@ -59,27 +59,42 @@ def _connected_cells(cells):
     return components
 
 
-def extract_surfaces(columns, resolution, z_tol=0.05, min_cells=4):
+def extract_surfaces(columns, resolution, z_tol=0.05, min_cells=4, z_band=None):
     """分层→同层连通聚类→支撑面（足迹＝格并集外接框）；小簇拒绝并如实报数。
+
+    z_band: cells are grouped into one layer when their z means differ by no more
+    than this. Defaults to z_tol. Exact equality only works on synthetic clouds;
+    real lidar z noise makes every cell mean unique and fragments the floor.
 
     返回 (surfaces, dropped)：surfaces 元素含 surface_id/z_reference/footprint/data_uri
     （适配 build_support_map 输入形）；dropped＝被拒小簇 [(z, 格数), ...]。
     """
-    bands = defaultdict(list)  # z 层值 -> [(cell), ...]
-    for cell, layers in columns.items():
-        for z_mean, _count in layers:
-            bands[z_mean].append(cell)
+    if z_band is None:
+        z_band = z_tol
+    items = [(z_mean, cell) for cell, layers in columns.items() for z_mean, _ in layers]
+    items.sort(key=lambda item: item[0])
+    bands = []
+    index = 0
+    while index < len(items):
+        seed = items[index][0]
+        end = index
+        while end < len(items) and items[end][0] - seed <= z_band:
+            end += 1
+        bands.append(items[index:end])
+        index = end
     surfaces, dropped = [], []
-    for z_mean in sorted(bands):
-        for component in _connected_cells(bands[z_mean]):
+    for band in bands:
+        z_ref = round(sum(z for z, _ in band) / len(band), 6)
+        component_cells = [cell for _, cell in band]
+        for component in _connected_cells(component_cells):
             if len(component) < min_cells:
-                dropped.append((z_mean, len(component)))
+                dropped.append((z_ref, len(component)))
                 continue
             xs = [c[0] for c in component]
             ys = [c[1] for c in component]
             surfaces.append({
                 'surface_id': 's%d' % len(surfaces),
-                'z_reference': round(z_mean, 6),
+                'z_reference': z_ref,
                 'footprint': {'min_x': min(xs) * resolution,
                               'min_y': min(ys) * resolution,
                               'max_x': (max(xs) + 1) * resolution,

@@ -5,6 +5,7 @@ SET(CMAKE_CXX_FLAGS "-std=c++14 -g -O3 ${CMAKE_CXX_FLAGS}")
 set(CMAKE_BUILD_TYPE Release)
 ## Find catkin macros and libraries
 
+find_package(Threads REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -65,6 +66,7 @@ add_dependencies(ros2qnx
 )
 target_link_libraries(ros2qnx
   ${catkin_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
 )
 
 add_executable(nx2app

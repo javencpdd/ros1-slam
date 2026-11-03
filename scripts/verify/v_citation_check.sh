@@ -33,7 +33,7 @@
 #   退出码：0 无 RED 无 AMBER｜5 有 AMBER（口径松）｜6 有 RED（引文硬错）｜9 前置缺失或自标定不过（★R407 起新增一条 9 的触发＝根不是仓身：note/ 或 ws/ 缺失或是符号链接、或 os.walk 可见文件数 < 阈值 ⇒ ★当场拒跑、★不产出任何 RED/AMBER/OK 读数；缘由见 note/02 坑66 追加例第二条与 05 追加四十一 补例＝缺省根在异机是符号链接视图、而 os.walk 默认不跟随链接 ⇒ 面近乎空 ⇒ 引用解析失败被降级成 AMBER、RED 被抹成 0）
 # 性质：零 ROS 节点、零链窗、零写盘（临时件在 /tmp，跑完即删）、无 sudo。
 set -u
-ROOT="${VCC_ROOT:-/home/ros1-slam}"
+ROOT="${VCC_ROOT:-${ROS1_SLAM_ROOT:-/home/ros1-slam}}"
 cd "$ROOT" || { echo "前置缺失：仓根 $ROOT 不在位"; echo "VCC VERDICT rc=9"; exit 9; }
 # 件版本留名（Z4 四元组之一）：内嵌 python 里 __file__＝<stdin> 拿不到自身 ⇒ 在 shell 层算完再传进去
 export VCC_SELF_SHA="$(sha256sum "$0" 2>/dev/null | cut -c1-12)"

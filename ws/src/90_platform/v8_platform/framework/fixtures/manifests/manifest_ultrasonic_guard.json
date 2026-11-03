@@ -1,0 +1,20 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.ultrasonic_guard",
+ "version": "0.1.0",
+ "roles": ["sensor_source"],
+ "dimensions": 3,
+ "capability": {"kinematics": "not_applicable", "cancellation": "none", "supports_dynamic_obstacles": false},
+ "ownership": {"tf_edges": [], "command_topics": [], "namespace": "/", "stop": "process_group_signal"},
+ "launch": {"kind": "node", "package": "v8_platform", "type": "framework/ultrasonic_guard_node.py"},
+ "ports": {
+  "inputs": [
+   {"name": "us", "type": "std_msgs/Float64MultiArray", "topic": "/us_publisher/ultrasound", "required": false}
+  ],
+  "outputs": [
+   {"name": "cap", "type": "std_msgs/Float32", "topic": "/v8/safety/speed_cap"},
+   {"name": "status", "type": "std_msgs/String", "topic": "/v8/safety/ultrasonic_status"}
+  ]
+ },
+ "evidence": {"level": "declared", "reports": []}
+}

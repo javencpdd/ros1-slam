@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
+ROOT="${ROS1_SLAM_ROOT:-/home/ros1-slam}"
 # premap_check.sh — 采图（mapping）开工前环境体检
-# 用法: sudo bash /home/ros1-slam/scripts/verify/premap_check.sh [雷达IP]
+# 用法: sudo bash $ROOT/scripts/verify/premap_check.sh [雷达IP]
 # 退出码: 0=全绿可开工  1=阻塞项(必须处置)  2=仅警告(可开工但注意)
 # 依据: v4 P0.5 双查(扩充正则) + 坑5(UDP端口占用) + 坑7(interval语义) + 2026-10-05 案例(foxy侧livox驱动抢端口)
 set -u
@@ -38,7 +39,7 @@ echo "[6] 雷达可达性"
 if ping -c1 -W1 "$LIDAR_IP" >/dev/null 2>&1; then ok "$LIDAR_IP reachable"; else bad "$LIDAR_IP 不可达（查雷达供电/网线）"; fi
 
 echo "[7] 磁盘余量 ≥15G"
-A=$(df -BG /home/ros1-slam | awk 'NR==2{gsub("G","",$4); print $4}')
+A=$(df -BG $ROOT | awk 'NR==2{gsub("G","",$4); print $4}')
 if [ "${A:-0}" -ge 15 ]; then ok "可用 ${A}G"; else bad "仅剩 ${A}G（19 号反判据④）"; fi
 
 echo "[8] 内存可用 ≥2G（interval=-1 全程累积预估 ~0.5–1G）"
@@ -46,15 +47,15 @@ M=$(free -m | awk 'NR==2{print $7}')
 if [ "${M:-0}" -ge 2000 ]; then ok "可用 ${M}MB"; else warn "仅 ${M}MB——走位控制在 15 分钟内，防内存压力"; fi
 
 echo "[9] 编译产物与 launch 在位"
-if [ -f /home/ros1-slam/ws/devel/setup.bash ] && [ -f /home/ros1-slam/ws/src/00_drivers/lite3_drivers/launch/01_sensors.launch ] && [ -f /home/ros1-slam/ws/src/10_slam/lite3_slam/launch/10_slam_mapping.launch ]; then ok "devel + 两 launch 在位"; else bad "devel 或 launch 缺失（先完成 P5 / 检查文件）"; fi
+if [ -f $ROOT/ws/devel/setup.bash ] && [ -f $ROOT/ws/src/00_drivers/lite3_drivers/launch/01_sensors.launch ] && [ -f $ROOT/ws/src/10_slam/lite3_slam/launch/10_slam_mapping.launch ]; then ok "devel + 两 launch 在位"; else bad "devel 或 launch 缺失（先完成 P5 / 检查文件）"; fi
 
 echo "[10] 采图参数核验（faster_lio_outdoor.yaml）"
-Y=/home/ros1-slam/ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml
+Y=$ROOT/ws/src/10_slam/lite3_slam/config/faster_lio_outdoor.yaml
 if grep -q "interval: -1" "$Y" && grep -q "imu_topic: /livox/imu" "$Y"; then ok "interval=-1（全量落盘，停序须等日志打完）/ imu=/livox/imu"; else bad "关键参数与预期不符（interval 必须 -1、imu_topic 必须 /livox/imu）——勿凭记忆改回，走 04 台账"; fi
 if grep -q "filter_size_surf: 0.3" "$Y"; then ok "filter_size_surf 0.3（CPU 安全档）"; else warn "filter_size_surf 非 0.3（0.15 实测 load11 超载）"; fi
 
 echo "[11] 历史底图归档份数（防覆盖丢失）"
-N=$(ls /home/ros1-slam/note/进度/P3b/证据/ 2>/dev/null | grep -c "底图v1\|首采样张")
+N=$(ls $ROOT/note/进度/P3b/证据/ 2>/dev/null | grep -c "底图v1\|首采样张")
 if [ "$N" -ge 2 ]; then ok "已归档 $N 份，本次覆盖无忧"; else warn "归档仅 $N 份（<2），覆盖 data/maps 前先备份到证据目录"; fi
 
 echo

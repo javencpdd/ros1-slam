@@ -1,0 +1,37 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.carrier_lite3",
+ "version": "0.1.0",
+ "roles": ["middleware"],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "quadruped_kinematic",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "v8_platform",
+  "type": "framework/lite3_carrier_node.py"
+ },
+ "ports": {
+  "inputs": [
+   {"name": "pose_in", "type": "nav_msgs/Odometry", "topic": "/odom", "required": false}
+  ],
+  "outputs": [
+   {"name": "pose", "type": "geometry_msgs/PoseStamped", "topic": "/v8/local/pose"},
+   {"name": "localization", "type": "std_msgs/Bool", "topic": "/v8/local/localization_ok"},
+   {"name": "status", "type": "std_msgs/String", "topic": "/v8/3d/carrier/status"}
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}

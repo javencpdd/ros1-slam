@@ -174,7 +174,7 @@ class PlannerWorker:
 
 def main():
     import rospy
-    from geometry_msgs.msg import PoseStamped, TwistStamped
+    from geometry_msgs.msg import PoseStamped, Twist, TwistStamped
     from std_msgs.msg import Bool, String
 
     rospy.init_node('v8_native_local_planner')
@@ -214,6 +214,11 @@ def main():
     plan_wake = threading.Event()
     command_pub = rospy.Publisher(rospy.get_param('~command_topic', '/v8/local/cmd_vel_3d'),
                                   TwistStamped, queue_size=1)
+    # Optional plain-Twist mirror for the real-robot safety mux, whose sources are
+    # geometry_msgs/Twist. Empty (default) keeps the sim behaviour unchanged.
+    twist_topic = rospy.get_param('~twist_topic', '')
+    twist_pub = (rospy.Publisher(twist_topic, Twist, queue_size=1)
+                 if twist_topic else None)
     path_pub = rospy.Publisher(rospy.get_param('~trajectory_topic', '/v8/local/trajectory'),
                                String, queue_size=1, latch=True)
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/v8/local/status'),
@@ -337,6 +342,10 @@ def main():
             command_seq += 1
             message.twist.linear.x, message.twist.linear.y, message.twist.linear.z = out['velocity']
             command_pub.publish(message)
+            if twist_pub is not None:
+                flat = Twist()
+                flat.linear.x, flat.linear.y, flat.linear.z = out['velocity']
+                twist_pub.publish(flat)
             command_history.append((stamp.to_sec(), tuple(out['velocity'])))
             command_history[:] = command_history[-200:]
             previous_control_stamp = stamp.to_sec()
@@ -452,6 +461,8 @@ def main():
             pace(.02 if pending else max(.01, .2 - (time.monotonic() - started)))
     finally:
         command_pub.publish(TwistStamped())
+        if twist_pub is not None:
+            twist_pub.publish(Twist())
         thread.join(timeout=1.)
         worker.close()
 

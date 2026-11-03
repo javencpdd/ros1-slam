@@ -15,7 +15,7 @@
 #   rc：0 零命中（可以放心改）｜5 有行号引用（须逐条看，改完同批修引用形状或开移交单）｜9 前置缺失或自标定不过
 # 性质：只读。零写盘（临时件在 /tmp，跑完即删）、零节点、无 sudo。是否入门禁串＝归 A15／#54／#16 那一族，不自落。
 set -u
-ROOT="${RS_ROOT:-/home/ros1-slam}"
+ROOT="${RS_ROOT:-${ROS1_SLAM_ROOT:-/home/ros1-slam}}"
 cd "$ROOT" || { echo "前置缺失：仓根不在位"; exit 9; }
 [ -d note ] || { echo "前置缺失：note/ 不在位"; exit 9; }
 MODE="scan"

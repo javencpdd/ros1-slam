@@ -3,6 +3,16 @@
 # 红线（§2.6 硬规则 a）：/cmd_vel 唯一写者 = 本节点；hold 是控制输入不是速度源（登记口径：批1/J3 起为七源）
 output_topic: /cmd_vel
 output_rate_hz: 20.0            # 恒 20 Hz（Lite3 底盘 250 ms 超时不能断，v3 C8；50 ms 周期必须守恒）
+# 软件侧最后一道速度上限（与底盘 monitor 同值的兜底）：线性 0.5 m/s、角速度 1.0 rad/s。
+# 本机既有 2D 规划上限 max_vel_x=0.4，故对 2D 无行为变化；3D 侧原先 0.6 会被收到 0.5。
+max_linear_mps: 0.5
+max_angular_rps: 1.0
+# 动态限速（前方超声保底）：cap 话题由 ultrasonic_guard 节点发布（Float32, m/s）。
+# 真机上把 speed_cap_required 置 true ⇒ 超声数据过期时收到 blind_cap_mps，而不是全速。
+speed_cap_topic: /v8/safety/speed_cap
+speed_cap_timeout_s: 0.5
+speed_cap_required: true
+blind_cap_mps: 0.1
 hold_topic: /lite3/supervisor/hold   # std_msgs/Bool；true 时无视各源直接输出零速直到 false（v4 C8②，唯一发布者 = SUP）
 # 源优先级表（v3 C8 原为「六源优先级」，1 = 最高；批1 行 H/J3 加 scan_planner 后为七源）。
 #   J3 口径：新增的是多一条**订阅**，发布仍只有 safe_cmd_vel_mux.py:39 一处 ⇒ 唯一写者由构造不变；

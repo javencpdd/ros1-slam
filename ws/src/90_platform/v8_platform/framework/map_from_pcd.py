@@ -17,8 +17,10 @@ from pathlib import Path
 
 import numpy as np
 
+import paths
+
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[4]
+ROOT = paths.repo_root(__file__)
 PLATFORM = ROOT / 'ws/src/90_platform/v8_platform'
 sys.path.insert(0, str(PLATFORM / 'representation'))
 sys.path.insert(0, str(PLATFORM / 'regression'))
@@ -100,7 +102,16 @@ def prepare(points, voxel, drop_self, z_min, z_max, x_min, x_max, y_min, y_max,
     return g3d.voxel_downsample(points, voxel)
 
 
-def choose_start_goal(surface, start_xy=None):
+def _blocked(point, obstacles, margin):
+    for obstacle in obstacles or []:
+        lo, hi = obstacle['min'], obstacle['max']
+        if (lo[0] - margin <= point[0] <= hi[0] + margin
+                and lo[1] - margin <= point[1] <= hi[1] + margin):
+            return True
+    return False
+
+
+def choose_start_goal(surface, start_xy=None, obstacles=None, margin=0.55):
     box = surface['footprint']
     z = surface['z_reference']
     if start_xy is not None:
@@ -124,6 +135,15 @@ def choose_start_goal(surface, start_xy=None):
         scale = 4.0 / distance
         goal = (start[0] + (goal[0] - start[0]) * scale,
                 start[1] + (goal[1] - start[1]) * scale, z)
+    if obstacles and _blocked(goal, obstacles, margin):
+        steps = 40
+        for index in range(steps + 1):
+            ratio = 1.0 - index / float(steps)
+            candidate = (start[0] + (goal[0] - start[0]) * ratio,
+                         start[1] + (goal[1] - start[1]) * ratio, z)
+            if not _blocked(candidate, obstacles, margin):
+                goal = candidate
+                break
     return start, goal
 
 
@@ -183,6 +203,20 @@ def main():
     parser.add_argument('--min-area', type=float, default=0.30)
     parser.add_argument('--xy-gap', type=float, default=0.10)
     parser.add_argument('--max-z-step', type=float, default=0.25)
+    parser.add_argument('--z-quantize', type=float, default=0.0,
+                        help='quantize z to this step before surface extraction; '
+                             'real lidar z noise needs it, synthetic clouds do not')
+    parser.add_argument('--surface-z-min', type=float, default=-0.06,
+                        help='support band lower bound (default tuned for synthetic scenes)')
+    parser.add_argument('--surface-z-max', type=float, default=1.05,
+                        help='support band upper bound (default tuned for synthetic scenes)')
+    parser.add_argument('--min-cells', type=int, default=4,
+                        help='minimum connected cells per surface (coarse cells need fewer)')
+    parser.add_argument('--goal-margin', type=float, default=0.55,
+                        help='clearance from obstacle boxes when picking start/goal')
+    parser.add_argument('--obstacle-min-z', type=float, default=None,
+                        help='turn rejected surfaces at or above this z into obstacle boxes '
+                             '(real scenes: furniture tops must not become ceilings)')
     parser.add_argument('--out', default='')
     parser.add_argument('--register', action='store_true')
     parser.add_argument('--write-app', action='store_true')
@@ -204,14 +238,22 @@ def main():
     horizontal, info = g3d.filter_horizontal(points, threshold=args.min_horizontal)
     if not len(horizontal):
         raise SystemExit('no horizontal points after normal filter')
+    if args.z_quantize > 0:
+        # elevation.extract_surfaces groups cells by exact z_mean equality; real lidar
+        # z noise makes every cell unique, so quantize after the normal filter.
+        horizontal = horizontal.copy()
+        horizontal[:, 2] = np.round(horizontal[:, 2] / args.z_quantize) * args.z_quantize
+        info['z_quantize'] = args.z_quantize
     source = {'uri': 'pcd://%s?points=%d&voxel=%.3f&horizontal=%.2f'
                      % (pcd_path.name, len(points), args.voxel, args.min_horizontal),
               'sha256': hashlib.sha256(pcd_path.read_bytes()).hexdigest()}
     value, build = g3d.build_map_from_points(
         horizontal, resolution=args.resolution, map_id=args.map_id,
         map_version=args.version, source=source, min_side=args.min_side,
-        min_area=args.min_area, min_cells=4,
-        xy_gap=args.xy_gap, max_z_step=args.max_z_step)
+        min_area=args.min_area, min_cells=args.min_cells,
+        xy_gap=args.xy_gap, max_z_step=args.max_z_step,
+        surface_z_min=args.surface_z_min, surface_z_max=args.surface_z_max,
+        obstacle_min_z=args.obstacle_min_z)
     out = Path(args.out) if args.out else (
         ROOT / 'data/maps/generated' / ('%s_v%d.json' % (args.map_id, args.version)))
     out = out.resolve()
@@ -222,7 +264,8 @@ def main():
                   key=lambda surface: (surface['footprint']['max_x'] - surface['footprint']['min_x'])
                   * (surface['footprint']['max_y'] - surface['footprint']['min_y']))
     start_xy = (args.start_x, args.start_y) if args.start_x is not None and args.start_y is not None else None
-    start, goal = choose_start_goal(largest, start_xy)
+    start, goal = choose_start_goal(largest, start_xy, obstacles=value.get('obstacles'),
+                                     margin=args.goal_margin)
     task_path = out.with_name('%s_v%d_task.json' % (args.map_id, args.version))
     task = {
         'schema_version': 1, 'task_id': '%s_v%d' % (args.map_id, args.version),

@@ -33,7 +33,7 @@ class CheckerError(Exception):
 
 def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
           time_budget=None, resolution=None, expected_map_version=None,
-          max_step_height=0.2):
+          max_step_height=0.2, robot_radius=None, robot_height=None):
     """trajectory＝[(x, y, z[, t]), ...]；返回 {'ok', 'violations', 'checked_points'}。
 
     ok=False 时 violations 逐条 (code, index, detail)——被拒轨迹不算规划成功（A5 面），
@@ -42,7 +42,7 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
     profile 接线，归次切片。
     """
     try:
-        contract.validate('map', map_value)
+        contract.validate('map', map_value, allow_obstacles=True)
     except contract.ContractError as error:
         raise CheckerError('E_TRAJ_MAP_INVALID', '%s: %s' % (error.code, error.detail))
     if expected_map_version is not None and map_value['map_version'] != expected_map_version:
@@ -98,9 +98,22 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
     violations = []
     prev = None
     prev_surface = None
+    static_obstacles = map_value.get('obstacles') or []
     for index, point in enumerate(trajectory):
         x, y, z = point[0], point[1], point[2]
         t = point[3] if len(point) > 3 else None
+        if robot_radius is not None and static_obstacles:
+            body_lo = z - z_tol
+            body_hi = z + (robot_height or 0.0)
+            for obstacle in static_obstacles:
+                lo, hi = obstacle['min'], obstacle['max']
+                if (lo[0] - robot_radius <= x <= hi[0] + robot_radius
+                        and lo[1] - robot_radius <= y <= hi[1] + robot_radius
+                        and body_hi >= lo[2] and body_lo <= hi[2]):
+                    violations.append(('E_TRAJ_OBSTACLE', index,
+                                       '(%.2f,%.2f,%.2f) 撞静态障碍 %s'
+                                       % (x, y, z, obstacle['obstacle_id'])))
+                    break
         surface = surface_at(x, y, z)
         if surface is None:
             violations.append(('E_TRAJ_UNSUPPORTED', index,

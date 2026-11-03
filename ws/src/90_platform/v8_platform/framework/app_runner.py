@@ -154,6 +154,14 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                         model_name=app['carrier'].get('model_name', 'app_carrier'),
                         center_z=app['carrier'].get('center_z', .1),
                         snap_m=app['carrier'].get('snap_m', .03), spawn=True)
+                if app['carrier'].get('backend') == 'lite3':
+                    instance['params'].update(
+                        pose_source=app['carrier'].get('pose_source', 'tf'),
+                        map_frame=app['carrier'].get('map_frame', 'map'),
+                        base_frame=app['carrier'].get('base_frame', 'base_link'),
+                        input_pose_topic=app['carrier'].get('input_pose_topic', '/odom'),
+                        rate_hz=app['carrier'].get('rate_hz', 20.0),
+                        stale_s=app['carrier'].get('stale_s', 0.5))
             if instance['id'] == 'loc':
                 instance['params']['source'] = app['localization']['source']
         assembly = runtime.Assembly(plan, catalog, ready_timeout=45.,

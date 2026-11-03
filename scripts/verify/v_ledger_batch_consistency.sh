@@ -35,7 +35,7 @@
 #   退出码：0 数据齐（**只表示报得出数，不代表账实相符**）｜9 前置缺失或自标定不过
 # 性质：零 ROS 节点、零链窗、零写盘、无 sudo、只读。
 set -u
-ROOT="${VLB_ROOT:-/home/ros1-slam}"
+ROOT="${VLB_ROOT:-${ROS1_SLAM_ROOT:-/home/ros1-slam}}"
 cd "$ROOT" || { echo "前置缺失：仓根 $ROOT 不在位"; echo "BATCHCHECK rc=9"; exit 9; }
 MODE="report"
 case "${1:-}" in

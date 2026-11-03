@@ -1,0 +1,60 @@
+{
+ "schema_version": 2,
+ "id": "v8.fw.safety_mux_lite3",
+ "version": "0.1.0",
+ "roles": [
+  "safety_arbiter"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [
+   "/cmd_vel"
+  ],
+  "namespace": "/",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "lite3_safety",
+  "type": "safe_cmd_vel_mux.py"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/Twist",
+    "topic": "/cmd_vel_raw"
+   },
+   {
+    "name": "hold",
+    "type": "std_msgs/Bool",
+    "topic": "/lite3/supervisor/hold",
+    "required": false
+   },
+   {
+    "name": "cap",
+    "type": "std_msgs/Float32",
+    "topic": "/v8/safety/speed_cap",
+    "required": false
+   }
+  ],
+  "outputs": [
+   {
+    "name": "cmd",
+    "type": "geometry_msgs/Twist",
+    "topic": "/cmd_vel",
+    "command_topic": "/cmd_vel"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ }
+}
