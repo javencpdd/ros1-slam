@@ -17,7 +17,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str(HERE.parent / 'representation'))
 import validate as contract  # noqa: E402
+import support_map as rep  # noqa: E402
 
 
 class PlannerError(Exception):
@@ -27,7 +29,14 @@ class PlannerError(Exception):
         self.detail = detail
 
 
-def _cells(footprint, resolution):
+def _cells(surface, resolution, map_resolution=None):
+    """Real RLE cells when the map carries them at this resolution, else the box."""
+    payload = surface.get('cells') if isinstance(surface, dict) else None
+    if payload and map_resolution is not None and abs(resolution - map_resolution) < 1e-12:
+        decoded = rep.decode_cells(payload)
+        if decoded:
+            return decoded
+    footprint = surface['footprint'] if isinstance(surface, dict) else surface
     x0 = int(math.ceil(footprint['min_x'] / resolution - .5))
     x1 = int(math.ceil(footprint['max_x'] / resolution - .5)) - 1
     y0 = int(math.ceil(footprint['min_y'] / resolution - .5))
@@ -179,8 +188,8 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
         px, py, pz = point
         candidates = [(abs(s['z_reference'] - pz), s) for s in value['surfaces']
                       if s['traversability'] == 'supported'
-                      and s['footprint']['min_x'] <= px <= s['footprint']['max_x']
-                      and s['footprint']['min_y'] <= py <= s['footprint']['max_y']]
+                      and rep.contains_xy(s, value['resolution'], px, py,
+                                          cells=rep.surface_cells(s))]
         if not candidates:
             raise PlannerError('E_PLAN_GOAL_INVALID', '%s 不在任何支撑面足迹内' % label)
         if surface_id is not None:
@@ -189,7 +198,7 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
                 raise PlannerError('E_PLAN_GOAL_INVALID',
                                    '%s surface_hint %s 不在足迹内' % (label, surface_id))
             return matches[0][1]
-        return min(candidates, key=lambda c: c[0])[1]
+        return rep.select_support([item[1] for item in candidates], pz, tolerance=0.10)
 
     start_surface = resolve(start, 'start', start_surface_id)
     goal_surface = resolve(goal, 'goal', goal_surface_id)
@@ -211,7 +220,7 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
     cells = {}
     for sid, surface in surfaces.items():
         if surface['traversability'] == 'supported':
-            cells[sid] = _cells(surface['footprint'], resolution)
+            cells[sid] = _cells(surface, resolution, value['resolution'])
     # Keep geometry before masking: occupancy never invents a longer portal.
     geometry_cells = cells
     if min_clearance_m is not None:

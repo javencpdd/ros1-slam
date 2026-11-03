@@ -31,6 +31,9 @@ def inflate_map(value, map_id, version, margin):
         box['min_y'] -= margin
         box['max_x'] += margin
         box['max_y'] += margin
+        # Cell sets do not grow with the box; drop them so consumers fall back
+        # to the inflated footprint instead of the un-inflated real cells.
+        surface.pop('cells', None)
     # support_map.source has a closed schema; keep it unchanged and record the
     # inflation in the registry label / evidence, not inside the map payload.
     contract.validate('map', inflated,

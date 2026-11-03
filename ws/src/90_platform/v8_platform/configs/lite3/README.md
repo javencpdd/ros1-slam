@@ -48,6 +48,40 @@
 
 现读：386,549 点 → 177,008（voxel .03）→ 41,210（水平面）→ **8 面（地面 m0 110.9 m²）＋350 障碍盒**。
 
+### 1.1 ★ v4 追加（2026-11-03 真机静态窗后，旧 v2 文字不回改）★
+
+v2 的三个实测问题：①障碍是整簇 AABB 且 z 从 -0.2 起，按半径 0.35 膨胀后占 76.4% 地图，机器人停机位被判碰撞；
+②hdl 位姿 z=0.0 与地面 -0.045、低面 +0.035 之间只余 4.8 mm 到 `support_tol` 上限；
+③面足迹只有 bbox，空角也冒充接触面。v4 的修法：
+
+| 改动 | 实现 |
+|---|---|
+| 地面对齐（a） | `--z-align`：最低支撑面归零（本图 +0.04518），面/障碍同步平移；任务 z 随之为 0 |
+| 近地碎片并入（d） | `--absorb-near-floor 0.08`：地面以上 ≤8 cm 的碎片并入地面（本图 m2/m11），≥8 cm 仍为台阶面 |
+| 真实格集（c） | 面携带 `cells`（RLE，绝对格号＝floor(x/res)）→ map **schema v3**；`resolve`/`safe_ceiling`/轨迹检查器按格集判归属，空角不再命中；无格集的旧图回退 bbox |
+| 支撑取下方（b） | 叠面时取机身下方最高的面（`select_support`），不再「恰好一个」拒绝 |
+| 障碍细化（B） | `--obstacle-mode surfaces` 时被拒面按实格拆矩形（本图 350→2004 盒） |
+| 全点云障碍层（D） | `--obstacle-mode full`：墙＋家具，0.20 m 格、0.4 m z 层、稀疏 z 桶剔除；带真实 z 区间（墙 0.1–2.3 m，桌面只占自己那层）。本图 **461 盒**；机器人高度处的占用从 76.4% 降到 69.3% |
+| 起终点（a/c） | `choose_start_goal` 改为在实格上做 BFS，选有障碍余量、连通、≤`--goal-max` 的点 |
+| 局部余量（E） | `local_native.yaml` `clearance_m 0.2 → 0.10`（0.35 外接圆＋10 cm 安全环；0.2 等于要求 1.1 m 宽通道） |
+
+v4 复跑式：
+
+    python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+      --pcd data/maps/real_lite3_20261103/lite3.pcd --map-id lite3_real --version 4 \
+      --resolution 0.15 --voxel 0.03 --z-min -0.30 --z-max 2.50 \
+      --surface-z-min -0.20 --surface-z-max 0.15 --obstacle-min-z 0.15 \
+      --min-cells 4 --min-side 0.25 --min-area 0.50 --xy-gap 0.20 \
+      --obstacle-mode full --obstacle-cell 0.20 --obstacle-min-points 5 \
+      --obstacle-band "0.02,2.50" --z-align --absorb-near-floor 0.08 --goal-max 1.5 \
+      --out data/maps/real_lite3_20261103/lite3_real_v4.json
+
+现读：**6 面**（m2/m11 已并入地面；地面 z=0.0）＋ **461 障碍盒**；v4 任务 start (-0.075,-0.375,0)、
+goal (-1.575,-0.375,0)（1.5 m，BFS 选点）。真机换停机位后只生成任务、不重建地图：
+
+    python3 -B .../map_from_pcd.py --task-only --map data/maps/real_lite3_20261103/lite3_real_v4.json \
+      --map-id lite3_real --version 4 --start-x <实测x> --start-y <实测y> --goal-max 1.5 --out <task.json>
+
 ## 2. 真机数据的规划读数（纯 Python）
 
     GLOBAL: ok  length 1.09 m  waypoints 9   （v1 无障碍时 5.93 m/36 点）
@@ -130,13 +164,11 @@ front 0.2 m → cap 0.0 → /cmd_vel 0.0
 
     app_runner --app configs/lite3/lite3_real_3d.app.yaml --execute --no-gazebo --port 11551
 
-    静态 TF map→base_link (z=-0.045) 代替 hdl
+    静态 TF map→base_link 在任务起点（v4 时 = (-0.075, -0.375, 0)）代替 hdl
     checks = {assembly_ready: True, map_configured: True, global_path: True,
               local_arrived: True, carrier_at_local_goal: False}
-    path = 9 poses；local_trajectory.reason = arrived
-    /v8/local/status  velocity = [0.1455, 0.5821, -0.0005]
-    /cmd_vel_raw      linear  = [0.1455, 0.5821]
-    /cmd_vel          linear  = [0.1455, 0.5821]   ← 经生产 mux，同值
+    v4 现读：path = 11 poses / 1.50 m；local_trajectory.reason = arrived（-1.575,-0.375,0）
+    （v2 旧读 9 poses；两者都因静态 TF 不动而 carrier_at_local_goal=False）
 
 `carrier_at_local_goal=False` 是预期的：冒烟用静态 TF，底盘不会动。整图 7 件全部起齐：
 `carrier / map / perception / global / path_goal / local / mux`。
@@ -156,13 +188,22 @@ front 0.2 m → cap 0.0 → /cmd_vel 0.0
 | `local_planner/local_native.py` | 支持 map v2（合并地图障碍）；`support_tol_m`（缺省 1e-6，真机 0.05） |
 | `validator/trajectory_checker.py` | 支持 v2 与障碍碰撞检查（`E_TRAJ_OBSTACLE`） |
 | `configs/lite3/` | 生产 app、组合图、局部配置、本 README |
+| `contracts/schema/map.v3.json` | 面可带 `cells`（RLE）；v1/v2 旧图仍走各自 schema |
+| `representation/support_map.py` | `encode_cells/decode_cells/surface_cells/contains_xy/select_support`；有格集时归属判格，无则回退 bbox |
+| `representation/elevation.py` | 提取面时保留真实格集（绝对格号＝floor(x/res)） |
+| `regression/gazebo3d_mapping.py` | 合并时并格集；`z_align`/`absorb_near_floor_m`/`refined_surface_obstacles`/`full_cloud_obstacles`（含稀疏 z 桶剔除） |
+| `local_planner/local_native.py` | 支撑取下方（b）、格集归属（c）、顶棚/机体扫掠按格集（c）、静态障碍栅格索引 |
+| `validator/trajectory_checker.py` | 支撑/净空按格集判归属 |
+| `planner/support_planner.py` | 起终点与支撑格按真实格集 |
+| `framework/map_from_pcd.py` | v4 CLI（z-align/absorb/obstacle-mode/obstacle-band/goal-max）＋`--task-only` 现场生成任务 |
 
 ## 6. 尚未完成（真机回来前做不了或属 L2）
 
 1. **机器人包络**：已按手册 §1.4 填入（半径 0.35 / 高 0.436 / 台阶 0.15 / 坡 40°），
    仍建议在真机上用实测复核一次（手册值 vs 实际装载）。
 2. **动态障碍**：心跳目前发空表；真实感知（人或物）未接线。
-3. **`mode_navigation` 仍不存在**；ros2qnx 只能在该 mode 内启用（V1/R13 红线，L2）。
+3. **`mode_navigation` 已建**（2026-11-03 `df39f4d1`，`enable_motion` 缺省 false）；ros2qnx 只在
+   `enable_motion:=true` 时起，运动仍属 L2。
 4. **A3/A4/A5 仍 PARTIAL**：本批只证真机数据能跑通规划链，不改变签署状态。
 
 ## 7. 真机回来后的执行序（须 L2 批作业窗）

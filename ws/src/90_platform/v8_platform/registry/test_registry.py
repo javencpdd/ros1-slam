@@ -162,12 +162,12 @@ class RegistryTests(unittest.TestCase):
         """核心格 13 份真实 manifest 全部过契约校验，provenance 全量挂载零缺口。"""
         r = reg.Registry().load_dir(HERE / 'data' / 'manifests')
         r.load_provenance(HERE / 'data' / 'provenance_core.json')
-        self.assertEqual(len(r.entries), 13)
-        self.assertEqual(len(r.provenance), 13)
+        self.assertEqual(len(r.entries), 14)
+        self.assertEqual(len(r.provenance), 14)
         self.assertEqual(r.unprovenanced(), [])
         sep = r.evidence_separation()
         self.assertEqual(sep['tested'], ['v8.local_planner.scan_planner', 'v8.representation.costmap_layers'])
-        self.assertEqual(len(sep['declared']), 11)
+        self.assertEqual(len(sep['declared']), 12)
         self.assertEqual(sorted(e['id'] for e in r.by_role('controller')),
                          ['v8.controller.dwa_adapter', 'v8.controller.teb_adapter'])
         scan = r.get('v8.local_planner.scan_planner')

@@ -100,6 +100,101 @@ def suggest_edges(surfaces, max_xy_gap, max_z_step):
     return candidates
 
 
+def encode_cells(cells):
+    """Occupied (i, j) cells -> row-major run-length runs [[j, i0, count], ...].
+
+    Indices are absolute grid indices: cell (i, j) spans
+    [i*resolution, (i+1)*resolution) in map coordinates.
+    """
+    rows = {}
+    for i, j in cells:
+        rows.setdefault(int(j), []).append(int(i))
+    runs = []
+    for j in sorted(rows):
+        xs = sorted(set(rows[j]))
+        start = previous = xs[0]
+        for x in xs[1:]:
+            if x == previous + 1:
+                previous = x
+                continue
+            runs.append([j, start, previous - start + 1])
+            start = previous = x
+        runs.append([j, start, previous - start + 1])
+    return runs
+
+
+def decode_cells(payload):
+    """Runs payload -> set of (i, j). Empty/None -> None (bbox fallback)."""
+    if not payload or not payload.get('runs'):
+        return None
+    cells = set()
+    for j, start, count in payload['runs']:
+        for i in range(start, start + count):
+            cells.add((int(i), int(j)))
+    return cells
+
+
+def surface_cells(surface):
+    """Decoded cell set attached to a surface, or None when it carries none."""
+    return decode_cells(surface.get('cells'))
+
+
+def contains_xy(surface, resolution, x, y, margin=0.0, cells=None):
+    """Is (x, y) inside the surface, shrunk by ``margin`` metres?
+
+    With a real cell set (map v3) the answer is the pose's own cell: the set
+    already excludes floor that was never observed (under furniture), so the
+    body-radius margin is not applied again -- collision margins belong to the
+    obstacle layer, not to support membership.
+    Negative margins (expanded footprints) and cell-less maps fall back to the
+    box: conservative for ceilings, identical to the legacy behaviour.
+    """
+    box = surface['footprint']
+    if cells is None:
+        return (box['min_x'] + margin - 1e-9 <= x <= box['max_x'] - margin + 1e-9
+                and box['min_y'] + margin - 1e-9 <= y <= box['max_y'] - margin + 1e-9)
+    if margin >= 0:
+        return (math.floor(x / resolution + 1e-9),
+                math.floor(y / resolution + 1e-9)) in cells
+    padding = -margin
+    i0 = math.floor((x - padding) / resolution + 1e-9)
+    i1 = math.floor((x + padding) / resolution + 1e-9)
+    j0 = math.floor((y - padding) / resolution + 1e-9)
+    j1 = math.floor((y + padding) / resolution + 1e-9)
+    for i in range(i0, i1 + 1):
+        for j in range(j0, j1 + 1):
+            if (i, j) not in cells:
+                continue
+            dx = max(i * resolution - x, 0.0, x - (i + 1) * resolution)
+            dy = max(j * resolution - y, 0.0, y - (j + 1) * resolution)
+            if math.hypot(dx, dy) <= padding:
+                return True
+    return False
+
+
+def select_support(choices, point_z, tolerance=None):
+    """Pick the support of a point from several z candidates.
+
+    Support is at or below the body: among candidates near the point, the
+    highest surface not above ``point_z`` wins (a low mat under the feet beats
+    a table top 4 cm higher). ``tolerance`` restricts "near" to that z window
+    (default: every candidate); when nothing is below, the nearest wins, which
+    keeps step-up goals and slightly perturbed maps working.
+    """
+    if not choices:
+        return None
+    if tolerance is None:
+        pool = list(choices)
+    else:
+        near = [surface for surface in choices
+                if abs(point_z - surface['z_reference']) <= tolerance + 1e-9]
+        pool = near or list(choices)
+    below = [surface for surface in pool if surface['z_reference'] <= point_z + 1e-6]
+    if below:
+        return max(below, key=lambda surface: surface['z_reference'])
+    return min(pool, key=lambda surface: abs(point_z - surface['z_reference']))
+
+
 def _footprint_gap(fa, fb):
     """两足迹的最小 XY 间距（相交＝0）。"""
     dx = max(fa['min_x'] - fb['max_x'], fb['min_x'] - fa['max_x'], 0.0)
@@ -137,18 +232,23 @@ def build_support_map(map_id, resolution, origin, surfaces, edges, source,
         'multiple_surfaces_per_xy': len(surfaces) > 1,
         'source': source,
         'surfaces': [
-            {'surface_id': s['surface_id'], 'z_reference': s['z_reference'],
-             'thickness_m': s.get('thickness_m', 0.05),
-             'representation': s.get('representation', 'elevation_grid'),
-             'data_uri': s['data_uri'],
-             'traversability': s.get('traversability', 'supported'),
-             'clearance_min_m': s.get('clearance_min_m', 0.4),
-             'footprint': dict(s['footprint']),
-             'edges': list(s.get('edges', []))}
+            dict({'surface_id': s['surface_id'], 'z_reference': s['z_reference'],
+                  'thickness_m': s.get('thickness_m', 0.05),
+                  'representation': s.get('representation', 'elevation_grid'),
+                  'data_uri': s['data_uri'],
+                  'traversability': s.get('traversability', 'supported'),
+                  'clearance_min_m': s.get('clearance_min_m', 0.4),
+                  'footprint': dict(s['footprint']),
+                  'edges': list(s.get('edges', []))},
+                 **({'cells': {'encoding': 'rle',
+                               'runs': encode_cells(s['cells'])}}
+                    if s.get('cells') else {}))
             for s in surfaces],
     }
+    if any(s.get('cells') for s in surfaces):
+        value['schema_version'] = 3
     if obstacles is not None:
-        value['schema_version'] = 2
+        value['schema_version'] = max(value['schema_version'], 2)
         value['multiple_surfaces_per_xy'] = len(surfaces) > 1
         value['obstacles'] = copy.deepcopy(obstacles)
     try:

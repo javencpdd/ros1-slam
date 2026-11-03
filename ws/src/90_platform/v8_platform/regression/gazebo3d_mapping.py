@@ -146,6 +146,7 @@ def consolidate_surfaces(surfaces, z_merge=0.05, xy_gap=0.12):
         area = max(1e-9, (fp['max_x'] - fp['min_x']) * (fp['max_y'] - fp['min_y']))
         clusters.append({'z_reference': surface['z_reference'],
                          'footprint': dict(fp), 'weight': area,
+                         'cells': [list(cell) for cell in surface.get('cells', [])],
                          'sources': [surface['surface_id']]})
     changed = True
     while changed:
@@ -166,6 +167,7 @@ def consolidate_surfaces(surfaces, z_merge=0.05, xy_gap=0.12):
                 for key in ('max_x', 'max_y'):
                     a['footprint'][key] = max(a['footprint'][key], b['footprint'][key])
                 a['weight'] = weight
+                a['cells'].extend(b['cells'])
                 a['sources'].extend(b['sources'])
                 clusters.pop(right)
                 changed = True
@@ -175,6 +177,7 @@ def consolidate_surfaces(surfaces, z_merge=0.05, xy_gap=0.12):
         cluster['surface_id'] = 'm%d' % index
         cluster['z_reference'] = round(cluster['z_reference'], 6)
         cluster['data_uri'] = 'elevation://%s' % cluster['surface_id']
+        cluster['cells'] = sorted({tuple(cell) for cell in cluster['cells']})
     return clusters
 
 
@@ -196,7 +199,9 @@ def classify_surfaces(surfaces, resolution, min_side=0.15, min_area=0.10,
         if reason:
             rejected.append({'surface_id': surface['surface_id'],
                              'z_reference': surface['z_reference'],
-                             'footprint': surface['footprint'], 'reason': reason})
+                             'footprint': surface['footprint'],
+                             'cells': [list(cell) for cell in surface.get('cells', [])],
+                             'reason': reason})
             continue
         item = dict(surface)
         item['traversability'] = 'supported'
@@ -256,12 +261,145 @@ def connected_component(surfaces, start_id=None):
     return seen
 
 
+def _rectangles(cells):
+    """Row runs merged vertically into maximal rectangles (i0, i1, j0, j1)."""
+    rows = {}
+    for i, j in cells:
+        rows.setdefault(int(j), []).append(int(i))
+    runs = []
+    for j, xs in rows.items():
+        xs = sorted(set(xs))
+        start = previous = xs[0]
+        for x in xs[1:]:
+            if x == previous + 1:
+                previous = x
+                continue
+            runs.append((start, previous, j))
+            start = previous = x
+        runs.append((start, previous, j))
+    runs.sort(key=lambda run: (run[0], run[1], run[2]))
+    used = [False] * len(runs)
+    rectangles = []
+    for index, run in enumerate(runs):
+        if used[index]:
+            continue
+        i0, i1, j0 = run
+        j_hi = j0
+        used[index] = True
+        changed = True
+        while changed:
+            changed = False
+            for other, candidate in enumerate(runs):
+                if (used[other] or candidate[0] != i0 or candidate[1] != i1
+                        or candidate[2] != j_hi + 1):
+                    continue
+                used[other] = True
+                j_hi = candidate[2]
+                changed = True
+                break
+        rectangles.append((i0, i1, j0, j_hi))
+    return rectangles
+
+
+def refined_surface_obstacles(rejected, resolution, z_floor, obstacle_min_z):
+    """Split rejected surfaces at their real cells instead of one cluster AABB.
+
+    Full-height columns are kept on purpose: the horizontal-only cloud does not
+    see table legs, so letting the body pass under a tabletop would be unsound.
+    """
+    out = []
+    for item in rejected:
+        if item['z_reference'] < obstacle_min_z:
+            continue
+        cells = {tuple(cell) for cell in item.get('cells') or []}
+        if cells:
+            for i0, i1, j0, j1 in _rectangles(cells):
+                out.append({'obstacle_id': 'o%d' % len(out),
+                            'min': [i0 * resolution, j0 * resolution, float(z_floor)],
+                            'max': [(i1 + 1) * resolution, (j1 + 1) * resolution,
+                                    float(item['z_reference']) + 0.05]})
+        else:
+            footprint = item['footprint']
+            out.append({'obstacle_id': 'o%d' % len(out),
+                        'min': [footprint['min_x'], footprint['min_y'], float(z_floor)],
+                        'max': [footprint['max_x'], footprint['max_y'],
+                                float(item['z_reference']) + 0.05]})
+    return out
+
+
+def full_cloud_obstacles(points, z_band, cell_m=0.20, min_points=5, band_m=0.40,
+                         min_voxel_points=3, exclude=None, exclude_resolution=None,
+                         exclude_tol=0.10):
+    """Walls and furniture from the full cloud, with their real vertical extent.
+
+    Per-cell (x, y) vertical ranges are grouped into ``band_m`` layers and
+    merged into rectangles; each box keeps the actual z span of its cells, so
+    the local planner can tell a wall (floor to ceiling) from a tabletop.
+    """
+    points = np.asarray(points, dtype=float).reshape(-1, 3)
+    points = points[(points[:, 2] >= z_band[0]) & (points[:, 2] <= z_band[1])]
+    if not len(points):
+        return []
+    excluded = {}
+    for surface in exclude or []:
+        for i, j in surface.get('cells') or []:
+            excluded.setdefault((int(i), int(j)), []).append(surface['z_reference'])
+    profiles = {}
+    for x, y, z in points:
+        if excluded and exclude_resolution:
+            key0 = (int(math.floor(x / exclude_resolution)),
+                    int(math.floor(y / exclude_resolution)))
+            levels = excluded.get(key0)
+            if levels and any(abs(z - level) <= exclude_tol for level in levels):
+                continue
+        key = (int(math.floor(x / cell_m)), int(math.floor(y / cell_m)))
+        # Sparse returns scattered up a wall must not extrude a box down to the
+        # floor: keep only 0.2 m z bins with at least min_voxel_points hits.
+        bins = profiles.get(key)
+        if bins is None:
+            profiles[key] = {int(math.floor(z / 0.20)): [z, z, 1]}
+            continue
+        bucket = bins.get(int(math.floor(z / 0.20)))
+        if bucket is None:
+            bins[int(math.floor(z / 0.20))] = [z, z, 1]
+        else:
+            bucket[0] = min(bucket[0], z)
+            bucket[1] = max(bucket[1], z)
+            bucket[2] += 1
+    layers = {}
+    for (i, j), bins in profiles.items():
+        dense = [value for value in bins.values() if value[2] >= min_voxel_points]
+        if not dense or sum(value[2] for value in dense) < min_points:
+            continue
+        z0 = min(value[0] for value in dense)
+        z1 = max(value[1] for value in dense)
+        band = int(math.floor(((z0 + z1) / 2.0) / band_m))
+        layers.setdefault(band, {})[(i, j)] = (z0, z1)
+    out = []
+    for band in sorted(layers):
+        layer = layers[band]
+        for i0, i1, j0, j1 in _rectangles(layer.keys()):
+            z0 = min(layer[(i, j)][0] for i in range(i0, i1 + 1) for j in range(j0, j1 + 1)
+                     if (i, j) in layer)
+            z1 = max(layer[(i, j)][1] for i in range(i0, i1 + 1) for j in range(j0, j1 + 1)
+                     if (i, j) in layer)
+            out.append({'obstacle_id': 'o%d' % len(out),
+                        'min': [i0 * cell_m, j0 * cell_m, float(z0)],
+                        'max': [(i1 + 1) * cell_m, (j1 + 1) * cell_m,
+                                float(max(z1, z0 + 0.02))]})
+    return out
+
+
 def build_map_from_points(points, resolution=0.05, map_id='nist_sensor',
                           map_version=1, source=None, obstacles=None,
                           z_tol=0.05, min_cells=1, z_merge=0.05,
                           xy_gap=0.10, max_z_step=0.25, min_side=0.15,
                           min_area=0.10, surface_z_min=-0.06, surface_z_max=1.05,
-                          obstacle_min_z=None):
+                          obstacle_min_z=None, z_align=False,
+                          absorb_near_floor_m=0.0, obstacle_mode='surfaces',
+                          full_points=None, obstacle_cell=0.20,
+                          obstacle_min_points=5, obstacle_band=None,
+                          obstacle_band_m=0.40):
     points = np.asarray(points, dtype=float).reshape(-1, 3)
     result = elevation.mapping_pipeline(points, resolution, z_tol=z_tol,
                                         min_cells=min_cells, advisory_gap=xy_gap,
@@ -270,17 +408,25 @@ def build_map_from_points(points, resolution=0.05, map_id='nist_sensor',
     supported, rejected = classify_surfaces(merged, resolution, min_side=min_side,
                                             min_area=min_area,
                                             z_min=surface_z_min, z_max=surface_z_max)
-    obstacles = list(obstacles or [])
-    if obstacle_min_z is not None:
-        for item in rejected:
-            if item['z_reference'] < obstacle_min_z:
+    absorbed = []
+    if absorb_near_floor_m > 0 and len(supported) > 1:
+        floor = min(supported, key=lambda item: item['z_reference'])
+        for surface in list(supported):
+            if surface is floor:
                 continue
-            footprint = item['footprint']
-            obstacles.append({
-                'obstacle_id': 'o%d' % len(obstacles),
-                'min': [footprint['min_x'], footprint['min_y'], float(surface_z_min)],
-                'max': [footprint['max_x'], footprint['max_y'],
-                        float(item['z_reference']) + 0.05]})
+            if surface['z_reference'] - floor['z_reference'] > absorb_near_floor_m + 1e-9:
+                continue
+            floor['cells'] = sorted({tuple(cell) for cell in floor.get('cells', [])}
+                                    | {tuple(cell) for cell in surface.get('cells', [])})
+            for key in ('min_x', 'min_y'):
+                floor['footprint'][key] = min(floor['footprint'][key],
+                                              surface['footprint'][key])
+            for key in ('max_x', 'max_y'):
+                floor['footprint'][key] = max(floor['footprint'][key],
+                                              surface['footprint'][key])
+            absorbed.append(surface['surface_id'])
+        supported = [surface for surface in supported
+                     if surface['surface_id'] not in absorbed]
     if not supported:
         raise rep.RepresentationError('E_REP_NO_SURFACES', 'all extracted surfaces rejected')
     edges, edge_rejected = promote_edges(supported, max_xy_gap=xy_gap,
@@ -293,25 +439,51 @@ def build_map_from_points(points, resolution=0.05, map_id='nist_sensor',
         surface['edges'] = [edge for edge in surface['edges'] if edge['to'] in component]
     if not keep:
         raise rep.RepresentationError('E_REP_NO_SURFACES', 'no connected support component')
+    obstacle_boxes = list(obstacles or [])
+    if obstacle_mode in ('surfaces', 'both') and obstacle_min_z is not None:
+        obstacle_boxes.extend(refined_surface_obstacles(
+            rejected, resolution, surface_z_min, obstacle_min_z))
+    if obstacle_mode in ('full', 'both'):
+        if full_points is None:
+            raise rep.RepresentationError('E_REP_OBSTACLES',
+                                          'obstacle_mode %s needs full_points' % obstacle_mode)
+        band = obstacle_band or (float(surface_z_min) + 0.10, float(surface_z_max) + 1.45)
+        obstacle_boxes.extend(full_cloud_obstacles(
+            full_points, band, cell_m=obstacle_cell, min_points=obstacle_min_points,
+            band_m=obstacle_band_m, exclude=keep,
+            exclude_resolution=resolution))
+    for index, box in enumerate(obstacle_boxes):
+        box['obstacle_id'] = 'o%d' % index
+    z_shift = 0.0
+    if z_align:
+        z_shift = -min(surface['z_reference'] for surface in keep)
+        for surface in keep:
+            surface['z_reference'] = round(surface['z_reference'] + z_shift, 6)
+        for box in obstacle_boxes:
+            box['min'][2] = float(box['min'][2]) + z_shift
+            box['max'][2] = float(box['max'][2]) + z_shift
     min_x = min(surface['footprint']['min_x'] for surface in keep)
     min_y = min(surface['footprint']['min_y'] for surface in keep)
     origin = [min_x, min_y, 0.0]
     payload_source = dict(source or {})
     payload_source.setdefault('uri', 'gazebo://lite3_planar/rslidar_points+sim_odom_gt')
     value = rep.build_support_map(map_id, resolution, origin, keep, edges, payload_source,
-                                  map_version=map_version, obstacles=obstacles or None)
+                                  map_version=map_version, obstacles=obstacle_boxes or None)
     info = {
         'points': int(len(points)),
         'columns': len(result['columns']),
         'raw_surfaces': len(result['surfaces']),
         'consolidated_surfaces': len(merged),
         'supported_surfaces': len(keep),
+        'absorbed_surfaces': absorbed,
+        'z_shift': round(z_shift, 6),
         'dropped_clusters': result['dropped_clusters'],
         'rejected_surfaces': rejected,
         'disconnected_surfaces': dropped,
         'promoted_edges': edges,
         'rejected_edges': edge_rejected,
-        'obstacles': len(obstacles),
+        'obstacle_mode': obstacle_mode,
+        'obstacles': len(obstacle_boxes),
         'map_version': map_version,
         'levels': sorted({surface['z_reference'] for surface in keep}),
     }

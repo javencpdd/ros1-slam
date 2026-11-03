@@ -249,3 +249,60 @@ class NativeTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+
+
+class StackedSupportTests(unittest.TestCase):
+    """阻塞二 b/c：支撑取机身下方；格集让 bbox 空角不再冒充接触面。"""
+
+    def stacked(self, with_cells=True):
+        resolution = 0.2
+        ground_cells = [[i, j] for i in range(-5, 10) for j in range(-5, 5)]
+        mat_cells = [[i, j] for i in range(5, 10) for j in range(0, 5)]
+        surfaces = [
+            {'surface_id': 'ground', 'z_reference': 0.0, 'data_uri': 'fixture://ground',
+             'footprint': {'min_x': -1., 'max_x': 2., 'min_y': -1., 'max_y': 1.},
+             'edges': [{'to': 'mat', 'kind': 'step', 'max_step_height_m': 0.12,
+                        'bidirectional': True}]},
+            {'surface_id': 'mat', 'z_reference': 0.10, 'data_uri': 'fixture://mat',
+             'footprint': {'min_x': -1., 'max_x': 2., 'min_y': -1., 'max_y': 1.},
+             'edges': []},
+        ]
+        if with_cells:
+            surfaces[0]['cells'] = ground_cells
+            surfaces[1]['cells'] = mat_cells
+        return support_map.build_support_map('stacked', resolution, [-1., -1., 0.],
+                                             surfaces, None,
+                                             {'uri': 'fixture://stacked', 'sha256': 'b' * 64})
+
+    def test_support_prefers_at_or_below(self):
+        choices = [{'surface_id': 'ground', 'z_reference': 0.0},
+                   {'surface_id': 'mat', 'z_reference': 0.10}]
+        self.assertEqual(support_map.select_support(choices, 0.05)['surface_id'], 'ground')
+        self.assertEqual(support_map.select_support(choices, 0.10)['surface_id'], 'mat')
+        self.assertEqual(support_map.select_support(choices, -0.20)['surface_id'], 'ground')
+
+    def test_cell_set_ignores_empty_part_of_mat_box(self):
+        cfg = native.Config(support_tol_m=0.05)
+        # 位姿在 y=-0.5，落在 mat 的 bbox 内但不在实格上 ⇒ 不算低顶棚
+        result = native.plan(self.stacked(True), (0.5, -0.5, 0.0), (1.5, -0.5, 0.0),
+                             now=0., config=cfg)
+        self.assertEqual(result['reason'], 'arrived')
+        # 同几何但只有 bbox（v1/v2 地图）：低顶棚覆盖整块 ⇒ 仍按老语义拒绝
+        with self.assertRaises(native.LocalError) as caught:
+            native.plan(self.stacked(False), (0.5, -0.5, 0.0), (1.5, -0.5, 0.0),
+                        now=0., config=cfg)
+        self.assertIn(caught.exception.code, ('E_LOCAL_CLEARANCE', 'E_LOCAL_CHECKER'))
+
+
+class ObstacleIndexTests(unittest.TestCase):
+    def test_query_returns_only_near_boxes(self):
+        boxes = []
+        for i in range(20):
+            boxes.append({'min': [i * 2.0, 0., 0.], 'max': [i * 2.0 + 0.5, 0.5, 1.]})
+        obstacles = native._obstacles(boxes)
+        index = native._ObstacleIndex(obstacles, cell_m=1.0)
+        a, b = (0., 0.2, 0.5, 0.), (1.0, 0.2, 0.5, 1.0)
+        found = index.query(a, b, margin=0.4)
+        xs = sorted(round(item[0][0], 2) for item in found)
+        self.assertEqual(xs, [0.0])   # 只有覆盖段包围盒的盒子进候选
+        self.assertEqual(index.query((-5., -5., 0.5, 0.), (-4., -4., 0.5, 1.)), [])

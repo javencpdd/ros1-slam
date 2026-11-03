@@ -86,11 +86,11 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
         return min(abs(x - box['min_x']), abs(x - box['max_x']),
                    abs(y - box['min_y']), abs(y - box['max_y']))
 
+    cell_sets = {s['surface_id']: rep.surface_cells(s) for s in surfaces}
+
     def surface_at(x, y, z):
         for s in surfaces:
-            fp = s['footprint']
-            if (fp['min_x'] - 1e-9 <= x <= fp['max_x'] + 1e-9
-                    and fp['min_y'] - 1e-9 <= y <= fp['max_y'] + 1e-9
+            if (rep.contains_xy(s, resolution, x, y, cells=cell_sets[s['surface_id']])
                     and abs(z - s['z_reference']) <= z_tol):
                 return s
         return None
@@ -120,18 +120,28 @@ def check(map_value, trajectory, z_tol=0.1, min_clearance=0.2, max_step=None,
                                '(%.2f,%.2f,%.2f) 无支撑（悬空或面外）' % (x, y, z)))
         else:
             # 净空：该 XY 列上方向最近面距离
-            # 世界坐标精确查询：整数列会把小屋顶的边缘外扩到整米，误拒合法绕行。
-            column = rep.column_at(map_value, x, y)
+            # 世界坐标精确查询：整数列会把小屋顶的边缘外扩到整米，误拒合法绕行；
+            # 有真实格集时只在格集覆盖处才算顶棚（bbox 空角不再误拒）。
             # A point already resolved to this support may be a sub-micrometre
             # below its reference. That same support is not a ceiling. Keep
             # every OTHER layer, except the next tread of an explicitly
             # declared step/slope edge: a stair tread is traversable, not a
             # low ceiling. Unconnected low roofs are still rejected.
             step_targets = steppable(surface['surface_id'])
-            above = [h for h in column.heights() if h > z + 1e-9 and not (
-                column.surface_at(h) == surface['surface_id'] and abs(h - z) <= min(z_tol, 1e-6))
-                and not (column.surface_at(h) in step_targets
-                         and boundary_distance(surface_by_id[column.surface_at(h)], x, y) <= 0.30 + 1e-9)]
+            above = []
+            for other in surfaces:
+                h = other['z_reference']
+                if h <= z + 1e-9:
+                    continue
+                if other['surface_id'] == surface['surface_id'] and abs(h - z) <= min(z_tol, 1e-6):
+                    continue
+                if not rep.contains_xy(other, resolution, x, y,
+                                       cells=cell_sets[other['surface_id']]):
+                    continue
+                if (other['surface_id'] in step_targets
+                        and boundary_distance(other, x, y) <= 0.30 + 1e-9):
+                    continue
+                above.append(h)
             clearance = min(above) - z if above else None
             if clearance is not None and clearance < min_clearance:
                 violations.append(('E_TRAJ_CLEARANCE', index,

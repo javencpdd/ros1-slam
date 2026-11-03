@@ -25,6 +25,7 @@ PLATFORM = ROOT / 'ws/src/90_platform/v8_platform'
 sys.path.insert(0, str(PLATFORM / 'representation'))
 sys.path.insert(0, str(PLATFORM / 'regression'))
 import gazebo3d_mapping as g3d  # noqa: E402
+import support_map as rep  # noqa: E402
 
 
 def read_pcd(path):
@@ -111,9 +112,46 @@ def _blocked(point, obstacles, margin):
     return False
 
 
-def choose_start_goal(surface, start_xy=None, obstacles=None, margin=0.55):
+def choose_start_goal(surface, start_xy=None, obstacles=None, margin=0.55,
+                      resolution=None, max_goal_m=4.0):
     box = surface['footprint']
     z = surface['z_reference']
+    start = None
+    cells = rep.surface_cells(surface) or set()
+    if cells and resolution:
+        from collections import deque
+        free = {}
+        for i, j in cells:
+            x, y = (i + 0.5) * resolution, (j + 0.5) * resolution
+            if not _blocked((x, y, z), obstacles or [], margin):
+                free[(i, j)] = (x, y)
+        target = start_xy
+        if target is None:
+            target = ((0.0, 0.0)
+                      if box['min_x'] <= 0.0 <= box['max_x']
+                      and box['min_y'] <= 0.0 <= box['max_y']
+                      else ((box['min_x'] + box['max_x']) / 2.0,
+                            (box['min_y'] + box['max_y']) / 2.0))
+        if free:
+            start_cell = min(free, key=lambda cell: (free[cell][0] - target[0]) ** 2
+                             + (free[cell][1] - target[1]) ** 2)
+            seen = {start_cell}
+            queue = deque([start_cell])
+            while queue:
+                i, j = queue.popleft()
+                for step in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nxt = (i + step[0], j + step[1])
+                    if nxt in free and nxt not in seen:
+                        seen.add(nxt)
+                        queue.append(nxt)
+            sx, sy = free[start_cell]
+            candidates = [cell for cell in seen
+                          if math.hypot(free[cell][0] - sx, free[cell][1] - sy) <= max_goal_m]
+            goal_cell = max(candidates, key=lambda cell: math.hypot(
+                free[cell][0] - sx, free[cell][1] - sy))
+            start = (sx, sy, z)
+            goal = (free[goal_cell][0], free[goal_cell][1], z)
+            return start, goal
     if start_xy is not None:
         start = (float(start_xy[0]), float(start_xy[1]), z)
     elif box['min_x'] <= 0.0 <= box['max_x'] and box['min_y'] <= 0.0 <= box['max_y']:
@@ -184,7 +222,7 @@ def update_registry(map_id, version, map_path, sha, surfaces, label):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--pcd', required=True)
+    parser.add_argument('--pcd', default='')
     parser.add_argument('--map-id', default='mapped_m1')
     parser.add_argument('--version', type=int, default=1)
     parser.add_argument('--resolution', type=float, default=0.10)
@@ -214,9 +252,29 @@ def main():
                         help='minimum connected cells per surface (coarse cells need fewer)')
     parser.add_argument('--goal-margin', type=float, default=0.55,
                         help='clearance from obstacle boxes when picking start/goal')
+    parser.add_argument('--goal-max', type=float, default=4.0,
+                        help='maximum straight-line start->goal distance for the generated task')
     parser.add_argument('--obstacle-min-z', type=float, default=None,
                         help='turn rejected surfaces at or above this z into obstacle boxes '
                              '(real scenes: furniture tops must not become ceilings)')
+    parser.add_argument('--obstacle-mode', choices=('none', 'surfaces', 'full', 'both'),
+                        default='surfaces',
+                        help='surfaces=refined rejected surfaces; full=full-cloud layer '
+                             '(walls included); both=union')
+    parser.add_argument('--obstacle-cell', type=float, default=0.20,
+                        help='full-cloud obstacle XY cell size')
+    parser.add_argument('--obstacle-min-points', type=int, default=5)
+    parser.add_argument('--obstacle-band', default='',
+                        help='full-cloud obstacle z band lo,hi (default: surface_z_min+0.10, surface_z_max+1.45)')
+    parser.add_argument('--obstacle-band-m', type=float, default=0.40,
+                        help='full-cloud vertical layer thickness')
+    parser.add_argument('--z-align', action='store_true',
+                        help='shift every surface/obstacle so the lowest support is z=0')
+    parser.add_argument('--absorb-near-floor', type=float, default=0.0,
+                        help='merge supports this close above the floor into the floor surface')
+    parser.add_argument('--map', default='', help='existing map JSON for --task-only')
+    parser.add_argument('--task-only', action='store_true',
+                        help='write a task for an existing map (start from --start-x/--start-y)')
     parser.add_argument('--out', default='')
     parser.add_argument('--register', action='store_true')
     parser.add_argument('--write-app', action='store_true')
@@ -228,6 +286,40 @@ def main():
     args = parser.parse_args()
     if not re.fullmatch(r'[a-z0-9_]+', args.map_id):
         raise SystemExit('map_id must be [a-z0-9_]+')
+    if args.task_only:
+        if not args.map:
+            raise SystemExit('--task-only needs --map')
+        map_path = Path(args.map).resolve()
+        value = json.loads(map_path.read_text(encoding='utf-8'))
+        largest = max(value['surfaces'],
+                      key=lambda surface: (surface['footprint']['max_x'] - surface['footprint']['min_x'])
+                      * (surface['footprint']['max_y'] - surface['footprint']['min_y']))
+        start_xy = ((args.start_x, args.start_y)
+                    if args.start_x is not None and args.start_y is not None else None)
+        start, goal = choose_start_goal(largest, start_xy, obstacles=value.get('obstacles'),
+                                        margin=args.goal_margin,
+                                        resolution=value['resolution'],
+                                        max_goal_m=args.goal_max)
+        out = Path(args.out or (map_path.with_name(
+            '%s_v%d_live_task.json' % (args.map_id, args.version))))
+        task = {
+            'schema_version': 1, 'task_id': '%s_v%d_live' % (args.map_id, args.version),
+            'map': {'map_id': args.map_id, 'map_version': args.version}, 'frame': 'map',
+            'goal_reference': 'support_surface',
+            'start': {'xyz': list(start), 'yaw': 0},
+            'goal': {'xyz': list(goal), 'yaw': 0,
+                     'tolerance': {'position_m': 0.15, 'yaw_rad': 0.1, 'source': 'operator'},
+                     'surface_hint': largest['surface_id'],
+                     'surface_disambiguation': 'explicit_hint'},
+            'timeout': {'budget_s': 120, 'harness_deadline_s': 180, 'source': 'operator'},
+        }
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(task, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+        print(json.dumps({'ok': True, 'task': str(out), 'start': start, 'goal': goal},
+                         ensure_ascii=False, indent=1))
+        return
+    if not args.pcd:
+        raise SystemExit('--pcd is required unless --task-only')
     pcd_path = Path(args.pcd).resolve()
     points = read_pcd(pcd_path)
     points = prepare(points, args.voxel, args.drop_self, args.z_min, args.z_max,
@@ -244,8 +336,15 @@ def main():
         horizontal = horizontal.copy()
         horizontal[:, 2] = np.round(horizontal[:, 2] / args.z_quantize) * args.z_quantize
         info['z_quantize'] = args.z_quantize
-    source = {'uri': 'pcd://%s?points=%d&voxel=%.3f&horizontal=%.2f'
-                     % (pcd_path.name, len(points), args.voxel, args.min_horizontal),
+    band = None
+    if args.obstacle_band:
+        parts = [float(item) for item in args.obstacle_band.split(',')]
+        if len(parts) != 2 or parts[0] >= parts[1]:
+            raise SystemExit('--obstacle-band must be "lo,hi" with lo < hi')
+        band = (parts[0], parts[1])
+    source = {'uri': ('pcd://%s?points=%d&voxel=%.3f&horizontal=%.2f&obstacles=%s&z_align=%d'
+                      % (pcd_path.name, len(points), args.voxel, args.min_horizontal,
+                         args.obstacle_mode, int(args.z_align))),
               'sha256': hashlib.sha256(pcd_path.read_bytes()).hexdigest()}
     value, build = g3d.build_map_from_points(
         horizontal, resolution=args.resolution, map_id=args.map_id,
@@ -253,7 +352,11 @@ def main():
         min_area=args.min_area, min_cells=args.min_cells,
         xy_gap=args.xy_gap, max_z_step=args.max_z_step,
         surface_z_min=args.surface_z_min, surface_z_max=args.surface_z_max,
-        obstacle_min_z=args.obstacle_min_z)
+        obstacle_min_z=args.obstacle_min_z,
+        obstacle_mode=args.obstacle_mode, full_points=points,
+        obstacle_cell=args.obstacle_cell, obstacle_min_points=args.obstacle_min_points,
+        obstacle_band=band, obstacle_band_m=args.obstacle_band_m,
+        z_align=args.z_align, absorb_near_floor_m=args.absorb_near_floor)
     out = Path(args.out) if args.out else (
         ROOT / 'data/maps/generated' / ('%s_v%d.json' % (args.map_id, args.version)))
     out = out.resolve()
@@ -265,7 +368,8 @@ def main():
                   * (surface['footprint']['max_y'] - surface['footprint']['min_y']))
     start_xy = (args.start_x, args.start_y) if args.start_x is not None and args.start_y is not None else None
     start, goal = choose_start_goal(largest, start_xy, obstacles=value.get('obstacles'),
-                                     margin=args.goal_margin)
+                                     margin=args.goal_margin, resolution=args.resolution,
+                                     max_goal_m=args.goal_max)
     task_path = out.with_name('%s_v%d_task.json' % (args.map_id, args.version))
     task = {
         'schema_version': 1, 'task_id': '%s_v%d' % (args.map_id, args.version),

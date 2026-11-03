@@ -390,7 +390,12 @@ def validate(kind, value, *, allow_obstacles=False):
     """Obstacle-aware consumers explicitly opt into map/v2; v1 consumers fail closed."""
     if kind == 'map' and isinstance(value, dict):
         _pre_map(value)
-    if kind == 'map' and isinstance(value, dict) and value.get('schema_version') == 2:
+    if kind == 'map' and isinstance(value, dict) and value.get('schema_version') == 3:
+        if value.get('obstacles') is not None and not allow_obstacles:
+            raise ContractError('E_VERSION',
+                                'map/v3 with obstacles requires an obstacle-aware consumer')
+        root = json.loads((HERE / 'schema/map.v3.json').read_text())
+    elif kind == 'map' and isinstance(value, dict) and value.get('schema_version') == 2:
         if not allow_obstacles:
             raise ContractError('E_VERSION', 'map/v2 requires an obstacle-aware consumer')
         root = json.loads((HERE / 'schema/map.v2.json').read_text())

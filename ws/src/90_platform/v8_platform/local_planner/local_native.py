@@ -13,11 +13,12 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-for _directory in ('contracts', 'validator'):
+for _directory in ('contracts', 'validator', 'representation'):
     sys.path.insert(0, str(ROOT / _directory))
 import validate as contract
 import trajectory_checker as checker
 import enforcement
+import support_map as rep
 
 SUPPORT_TOL_S = 1e-6
 
@@ -88,6 +89,45 @@ def _obstacles(values):
             raise LocalError('E_LOCAL_INPUT', 'invalid obstacle bounds/time window')
         out.append((lo, hi, velocity, epoch, start, end))
     return out
+
+
+class _ObstacleIndex:
+    """Uniform XY bucket index for static map boxes.
+
+    Static boxes are the thousands-of-boxes case (refined real map); dynamic
+    predictions stay in a short list and are always tested. Only boxes that can
+    reach the query segment's inflated XY envelope are returned.
+    """
+
+    def __init__(self, obstacles, cell_m=1.0):
+        self.boxes = list(obstacles)
+        self.cell = float(cell_m)
+        self.buckets = {}
+        for index, (lo, hi, _velocity, _epoch, _start, _end) in enumerate(self.boxes):
+            i0 = int(math.floor(lo[0] / self.cell))
+            i1 = int(math.floor(hi[0] / self.cell))
+            j0 = int(math.floor(lo[1] / self.cell))
+            j1 = int(math.floor(hi[1] / self.cell))
+            for i in range(i0, i1 + 1):
+                for j in range(j0, j1 + 1):
+                    self.buckets.setdefault((i, j), []).append(index)
+
+    def query(self, a, b, margin=0.0):
+        pad = margin + 1e-9
+        x0 = int(math.floor((min(a[0], b[0]) - pad) / self.cell))
+        x1 = int(math.floor((max(a[0], b[0]) + pad) / self.cell))
+        y0 = int(math.floor((min(a[1], b[1]) - pad) / self.cell))
+        y1 = int(math.floor((max(a[1], b[1]) + pad) / self.cell))
+        seen = set()
+        found = []
+        for i in range(x0, x1 + 1):
+            for j in range(y0, y1 + 1):
+                for index in self.buckets.get((i, j), ()):
+                    if index in seen:
+                        continue
+                    seen.add(index)
+                    found.append(self.boxes[index])
+        return found
 
 
 def _near_boundary(surface, point, band):
@@ -169,6 +209,37 @@ def _profile_limits(robot_profile, config):
             enforcement._usable(robot_profile['capability']['max_slope_deg'], 'max_slope_deg'))
 
 
+def _surface_blocks(map_value, surface, a, b, config, height_m, cells=None):
+    """Does the swept body [z, z+height] hit this surface slab?
+
+    Real cell sets replace the enclosing box; the XY line is sampled at half a
+    map cell so a thin tread cannot slip between two samples.
+    """
+    top = surface['z_reference']
+    thickness = surface.get('thickness_m', 0.)
+    if cells is None:
+        cells = rep.surface_cells(surface)
+    if cells is None:
+        fp = surface['footprint']
+        volume = ((fp['min_x'], fp['min_y'], top - thickness),
+                  (fp['max_x'], fp['max_y'], top), (0., 0., 0.), 0., -1e100, 1e100)
+        return _swept_hit(a, b, volume, replace(config, height_m=height_m))
+    if max(a[2], b[2]) + height_m <= top - thickness + 1e-9:
+        return False
+    if min(a[2], b[2]) > top - 1e-9:
+        return False
+    resolution = map_value['resolution']
+    length = math.hypot(b[0] - a[0], b[1] - a[1])
+    steps = max(1, int(math.ceil(length / (resolution * 0.5))))
+    padding = config.radius_m + config.clearance_m
+    for k in range(steps + 1):
+        x = a[0] + (b[0] - a[0]) * k / steps
+        y = a[1] + (b[1] - a[1]) * k / steps
+        if rep.contains_xy(surface, resolution, x, y, margin=-padding, cells=cells):
+            return True
+    return False
+
+
 def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
     """Recheck a whole executed segment at its actual activation timestamps."""
     source, target = contacts
@@ -182,6 +253,8 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
     by_id = {surface['surface_id']: surface for surface in map_value['surfaces']}
     steppable = _steppable_surfaces(by_id, source, config.max_step_m,
                                     config.max_slope_deg, config.radius_m)
+    cell_sets = {surface['surface_id']: rep.surface_cells(surface)
+                 for surface in map_value['surfaces']}
     for surface in map_value['surfaces']:
         if transfer and surface['surface_id'] in (source, target):
             continue
@@ -194,10 +267,9 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
         top = surface['z_reference']
         if top <= min(a[2], b[2]) + SUPPORT_TOL_S:
             continue
-        fp = surface['footprint']
-        volume = ((fp['min_x'], fp['min_y'], top - surface.get('thickness_m', 0.)),
-                  (fp['max_x'], fp['max_y'], top), (0., 0., 0.), 0., -1e100, 1e100)
-        if _swept_hit(a, b, volume, replace(config, height_m=max(config.height_m, config.clearance_m))):
+        if _surface_blocks(map_value, surface, a, b, config,
+                           max(config.height_m, config.clearance_m),
+                           cells=cell_sets.get(surface['surface_id'])):
             return 'static:' + surface['surface_id']
     for index, obstacle in enumerate(_obstacles(obstacles)):
         if _swept_hit(a, b, obstacle, config):
@@ -291,7 +363,18 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     if not isinstance(obstacles, (list, tuple)):
         raise LocalError('E_LOCAL_INPUT', 'obstacles must be a list of box predictions')
     static_boxes = list(map_value.get('obstacles') or [])
-    moving = _obstacles(static_boxes + list(obstacles))
+    static_moving = _obstacles(static_boxes)
+    dynamic_moving = _obstacles(list(obstacles))
+    moving = static_moving + dynamic_moving
+    static_index = _ObstacleIndex(static_moving) if static_moving else None
+
+    def hit(a, b):
+        if static_index is not None and any(
+                _swept_hit(a, b, obstacle, config)
+                for obstacle in static_index.query(
+                    a, b, config.radius_m + config.clearance_m)):
+            return True
+        return any(_swept_hit(a, b, obstacle, config) for obstacle in dynamic_moving)
     surfaces = {s['surface_id']: s for s in map_value['surfaces']
                 if s['traversability'] == 'supported'}
     required_ceiling = max(config.height_m, config.clearance_m)
@@ -313,10 +396,12 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
         if all(lower[i] - 1e-9 <= goal[i] <= upper[i] + 1e-9 for i in range(3)):
             raise LocalError('E_LOCAL_NO_ROUTE', 'goal lies inside an inflated obstacle volume')
 
+    map_resolution = map_value['resolution']
+    cell_sets = {sid: rep.surface_cells(surface) for sid, surface in surfaces.items()}
+
     def inside(surface, point, margin=0.0):
-        box = surface['footprint']
-        return (box['min_x'] + margin - 1e-9 <= point[0] <= box['max_x'] - margin + 1e-9
-                and box['min_y'] + margin - 1e-9 <= point[1] <= box['max_y'] - margin + 1e-9)
+        return rep.contains_xy(surface, map_resolution, point[0], point[1],
+                               margin, cells=cell_sets.get(surface['surface_id']))
 
     def safe_ceiling(point, current_sid=None):
         padding = config.radius_m + config.clearance_m
@@ -333,11 +418,14 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     def resolve(point, label):
         choices = [s for s in surfaces.values() if inside(s, point, margin=config.radius_m)
                    and abs(point[2] - s['z_reference']) <= config.support_tol_m]
-        if len(choices) != 1:
-            raise LocalError('E_LOCAL_SUPPORT', label + ' requires exactly one matching z support')
-        if not safe_ceiling(point, choices[0]['surface_id']):
+        if not choices:
+            raise LocalError('E_LOCAL_SUPPORT', label + ' requires a matching z support')
+        # Support must be at or below the body; two stacked surfaces used to be
+        # an unconditional refusal, which made a 4 cm z bias flip the decision.
+        chosen = rep.select_support(choices, point[2])
+        if not safe_ceiling(point, chosen['surface_id']):
             raise LocalError('E_LOCAL_CLEARANCE', label + ' is below a low ceiling')
-        return choices[0]['surface_id']
+        return chosen['surface_id']
 
     first_sid, goal_sid = resolve(start, 'start'), resolve(goal, 'goal')
     allowed = {}
@@ -386,10 +474,8 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
             top = surface['z_reference']
             if top <= min(a[2], b[2]) + SUPPORT_TOL_S:
                 continue
-            fp = surface['footprint']
-            volume = ((fp['min_x'], fp['min_y'], top - surface.get('thickness_m', .0)),
-                      (fp['max_x'], fp['max_y'], top), (0., 0., 0.), 0., -1e100, 1e100)
-            if _swept_hit(a, b, volume, replace(config, height_m=required_ceiling)):
+            if _surface_blocks(map_value, surface, a, b, config, required_ceiling,
+                               cells=cell_sets.get(surface['surface_id'])):
                 return True
         return False
 
@@ -449,7 +535,7 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
             raise LocalError('E_LOCAL_BUDGET', 'space-time expansion budget exhausted')
         point, stamp = xyz(node), now + tick * config.tick_s
         hold = (*point, stamp + config.tick_s)
-        can_hold = not any(_swept_hit((*point, stamp), hold, o, config) for o in moving)
+        can_hold = not hit((*point, stamp), hold)
         remaining = _distance(point, goal)
         if can_hold and remaining <= config.goal_tolerance_m:
             terminal = state
@@ -464,7 +550,7 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
             nxt = (other, tick + 1)
             dest = xyz(other)
             a, b = (*point, stamp), (*dest, stamp + config.tick_s)
-            if static_collision(a, b, node[0], other[0]) or any(_swept_hit(a, b, o, config) for o in moving):
+            if static_collision(a, b, node[0], other[0]) or hit(a, b):
                 continue
             ng = costs[state] + config.tick_s + 0.05 * _distance(point, dest)
             if ng >= costs.get(nxt, float('inf')) - 1e-12:

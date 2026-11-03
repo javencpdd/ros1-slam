@@ -39,6 +39,11 @@ python3 -B calibration/test_calibration.py   # 冻结判据
 python3 -B calibration/flat2d/test_flat2d.py # 夹具几何/中继
 ```
 
+## 未接入（清单口径）
+
+- `apt` 后端与 SCAN 运行面**未接入**实际运行：只在配置/设计面出现，不参与 A1—A8 计数，
+  规模与复现清单见 `delivery/`。
+
 ## 当前运行面（截至 R1119）
 
 - **2D**：`v8.nav2d.*` 真实栈由 v2 graph+Assembly 启动，SC09 四格 4/4（R981）。

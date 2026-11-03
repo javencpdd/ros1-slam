@@ -8,7 +8,10 @@ experimental_config:
   max_slope_deg: 40.0
   radius_m: 0.35
   height_m: 0.436
-  clearance_m: 0.2
+  # 0.35 is the circumscribed radius of 610x370 mm; +0.10 keeps a 10 cm safety
+  # ring. The previous 0.20 asked for 1.1 m wide corridors and refused the
+  # 0.61 m robot in the lab. Raise it for high-speed or low-confidence runs.
+  clearance_m: 0.10
   support_tol_m: 0.05
   goal_tolerance_m: 0.08
 input_max_age_s: 1.0

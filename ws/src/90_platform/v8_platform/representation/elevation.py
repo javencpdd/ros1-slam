@@ -99,6 +99,10 @@ def extract_surfaces(columns, resolution, z_tol=0.05, min_cells=4, z_band=None):
                               'min_y': min(ys) * resolution,
                               'max_x': (max(xs) + 1) * resolution,
                               'max_y': (max(ys) + 1) * resolution},
+                # Real occupied cells (absolute index = floor(x/res)).
+                # footprint above stays as the enclosing box; consumers that
+                # understand cells must prefer them over the box.
+                'cells': [list(cell) for cell in component],
                 'data_uri': 'elevation://s%d' % len(surfaces),
             })
     return surfaces, dropped

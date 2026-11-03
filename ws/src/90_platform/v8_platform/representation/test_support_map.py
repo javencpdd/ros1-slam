@@ -104,5 +104,50 @@ class BuilderTests(unittest.TestCase):
         self.assertEqual(value['extent'], {'width': 7, 'height': 2})  # ceil(3.05/0.5)=7
 
 
+class CellSetTests(unittest.TestCase):
+    """map/v3：真实格集替代 bbox 假覆盖（阻塞二 c）。"""
+
+    def test_rle_roundtrip(self):
+        cells = {(0, 0), (1, 0), (2, 0), (4, 0), (-2, 3)}
+        runs = rep.encode_cells(cells)
+        self.assertEqual(runs, [[0, 0, 3], [0, 4, 1], [3, -2, 1]])
+        self.assertEqual(rep.decode_cells({'encoding': 'rle', 'runs': runs}), cells)
+
+    def test_contains_uses_cells_not_box(self):
+        """L 形面：bbox 空角不再算命中，但 bbox 回退仍算。"""
+        cells = {(0, 0), (1, 0), (2, 0), (0, 1), (0, 2)}
+        shape = {'surface_id': 'l', 'z_reference': 0.0,
+                 'footprint': {'min_x': 0., 'min_y': 0., 'max_x': 3., 'max_y': 3.},
+                 'cells': {'encoding': 'rle', 'runs': rep.encode_cells(cells)},
+                 'data_uri': 'elevation://l', 'edges': []}
+        decoded = rep.surface_cells(shape)
+        self.assertTrue(rep.contains_xy(shape, 1.0, 1.0, 0.5, cells=decoded))    # 实格
+        self.assertFalse(rep.contains_xy(shape, 1.0, 2.5, 2.5, cells=decoded))   # bbox 空角
+        self.assertTrue(rep.contains_xy(shape, 1.0, 2.5, 2.5))                    # 无格集回退 bbox
+        # 负 margin（顶棚外扩）保持 bbox 语义
+        self.assertTrue(rep.contains_xy(shape, 1.0, -0.2, 1.5, margin=-0.5,
+                                        cells=decoded))
+
+    def test_cell_map_validates_as_v3_and_legacy_v2_still_ok(self):
+        cells = [[0, 0], [1, 0]]
+        shaped = [surface('ground', 0.0,
+                          {'min_x': 0, 'min_y': 0, 'max_x': 2, 'max_y': 1})]
+        shaped[0]['cells'] = cells
+        value = rep.build_support_map('cells', 1.0, [0, 0, 0], shaped, None, SOURCE)
+        self.assertEqual(value['schema_version'], 3)
+        self.assertEqual(value['surfaces'][0]['cells']['runs'], [[0, 0, 2]])
+        contract.validate('map', value)  # 无障碍的 v3 不需要 obstacle-aware 消费方
+        value['obstacles'] = []
+        with self.assertRaises(contract.ContractError) as caught:
+            contract.validate('map', value)
+        self.assertEqual(caught.exception.code, 'E_VERSION')
+        contract.validate('map', value, allow_obstacles=True)
+        legacy = rep.build_support_map('legacy', 1.0, [0, 0, 0],
+                                       [surface('g', 0.0, {'min_x': 0, 'min_y': 0,
+                                                           'max_x': 2, 'max_y': 1})],
+                                       None, SOURCE)
+        self.assertEqual(legacy['schema_version'], 1)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
