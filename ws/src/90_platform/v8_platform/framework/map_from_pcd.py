@@ -103,9 +103,16 @@ def prepare(points, voxel, drop_self, z_min, z_max, x_min, x_max, y_min, y_max,
     return g3d.voxel_downsample(points, voxel)
 
 
-def _blocked(point, obstacles, margin):
+def _blocked(point, obstacles, margin, body_height=0.44):
+    """XY margin test against boxes that overlap the body, not the whole box list.
+
+    High tabletops/shelves and ceiling fixtures must not veto a floor cell; only
+    boxes whose z span crosses [floor, floor + body_height] do.
+    """
     for obstacle in obstacles or []:
         lo, hi = obstacle['min'], obstacle['max']
+        if hi[2] <= point[2] + 0.02 or lo[2] >= point[2] + body_height:
+            continue
         if (lo[0] - margin <= point[0] <= hi[0] + margin
                 and lo[1] - margin <= point[1] <= hi[1] + margin):
             return True
@@ -113,7 +120,7 @@ def _blocked(point, obstacles, margin):
 
 
 def choose_start_goal(surface, start_xy=None, obstacles=None, margin=0.55,
-                      resolution=None, max_goal_m=4.0):
+                      resolution=None, max_goal_m=4.0, goal_xy=None):
     box = surface['footprint']
     z = surface['z_reference']
     start = None
@@ -133,24 +140,54 @@ def choose_start_goal(surface, start_xy=None, obstacles=None, margin=0.55,
                       else ((box['min_x'] + box['max_x']) / 2.0,
                             (box['min_y'] + box['max_y']) / 2.0))
         if free:
-            start_cell = min(free, key=lambda cell: (free[cell][0] - target[0]) ** 2
-                             + (free[cell][1] - target[1]) ** 2)
+            # Operator-given start: snap to the nearest real floor cell (no
+            # obstacle margin) so the task start matches the live pose; the
+            # margin only steers the goal choice.
+            if start_xy is not None:
+                start_cell = min(cells, key=lambda cell: (
+                    (cell[0] + 0.5) * resolution - target[0]) ** 2
+                    + ((cell[1] + 0.5) * resolution - target[1]) ** 2)
+                if goal_xy is not None:
+                    goal_cell = min(free or cells, key=lambda cell: (
+                        (cell[0] + 0.5) * resolution - goal_xy[0]) ** 2
+                        + ((cell[1] + 0.5) * resolution - goal_xy[1]) ** 2)
+                    sx, sy = (start_cell[0] + 0.5) * resolution, (start_cell[1] + 0.5) * resolution
+                    return (sx, sy, z), ((goal_cell[0] + 0.5) * resolution,
+                                         (goal_cell[1] + 0.5) * resolution, z)
+                sx0, sy0 = (start_cell[0] + 0.5) * resolution, (start_cell[1] + 0.5) * resolution
+                # Live pose: pick the farthest margin-free floor cell the
+                # operator can sanity-check. The planner still validates it;
+                # connectivity BFS over sparse real cells fragments too easily.
+                options = [(math.hypot(x - sx0, y - sy0), cell)
+                           for cell, (x, y) in free.items()
+                           if math.hypot(x - sx0, y - sy0) <= max_goal_m]
+                if options:
+                    _, goal_cell = max(options)
+                    start = (sx0, sy0, z)
+                    return start, ((goal_cell[0] + 0.5) * resolution,
+                                   (goal_cell[1] + 0.5) * resolution, z)
+            else:
+                start_cell = min(free, key=lambda cell: (free[cell][0] - target[0]) ** 2
+                                 + (free[cell][1] - target[1]) ** 2)
+            reachable = set(free) | {start_cell}
             seen = {start_cell}
             queue = deque([start_cell])
             while queue:
                 i, j = queue.popleft()
-                for step in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                for step in ((1, 0), (-1, 0), (0, 1), (0, -1),
+                             (1, 1), (1, -1), (-1, 1), (-1, -1)):
                     nxt = (i + step[0], j + step[1])
-                    if nxt in free and nxt not in seen:
+                    if nxt in reachable and nxt not in seen:
                         seen.add(nxt)
                         queue.append(nxt)
-            sx, sy = free[start_cell]
-            candidates = [cell for cell in seen
-                          if math.hypot(free[cell][0] - sx, free[cell][1] - sy) <= max_goal_m]
-            goal_cell = max(candidates, key=lambda cell: math.hypot(
-                free[cell][0] - sx, free[cell][1] - sy))
+            sx, sy = (start_cell[0] + 0.5) * resolution, (start_cell[1] + 0.5) * resolution
+            candidates = [cell for cell in seen if cell in free
+                          and math.hypot(free[cell][0] - sx, free[cell][1] - sy) <= max_goal_m]
+            goal_cell = (max(candidates, key=lambda cell: math.hypot(
+                free[cell][0] - sx, free[cell][1] - sy)) if candidates else start_cell)
             start = (sx, sy, z)
-            goal = (free[goal_cell][0], free[goal_cell][1], z)
+            goal = ((goal_cell[0] + 0.5) * resolution,
+                    (goal_cell[1] + 0.5) * resolution, z)
             return start, goal
     if start_xy is not None:
         start = (float(start_xy[0]), float(start_xy[1]), z)
@@ -283,6 +320,8 @@ def main():
     parser.add_argument('--model-path', default='data/maps/worlds')
     parser.add_argument('--start-x', type=float, default=None)
     parser.add_argument('--start-y', type=float, default=None)
+    parser.add_argument('--goal-x', type=float, default=None)
+    parser.add_argument('--goal-y', type=float, default=None)
     args = parser.parse_args()
     if not re.fullmatch(r'[a-z0-9_]+', args.map_id):
         raise SystemExit('map_id must be [a-z0-9_]+')
@@ -296,10 +335,12 @@ def main():
                       * (surface['footprint']['max_y'] - surface['footprint']['min_y']))
         start_xy = ((args.start_x, args.start_y)
                     if args.start_x is not None and args.start_y is not None else None)
+        goal_xy = ((args.goal_x, args.goal_y)
+                   if args.goal_x is not None and args.goal_y is not None else None)
         start, goal = choose_start_goal(largest, start_xy, obstacles=value.get('obstacles'),
                                         margin=args.goal_margin,
                                         resolution=value['resolution'],
-                                        max_goal_m=args.goal_max)
+                                        max_goal_m=args.goal_max, goal_xy=goal_xy)
         out = Path(args.out or (map_path.with_name(
             '%s_v%d_live_task.json' % (args.map_id, args.version))))
         task = {
