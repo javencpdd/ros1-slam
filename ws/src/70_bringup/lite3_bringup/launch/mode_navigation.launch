@@ -1,0 +1,74 @@
+<launch>
+  <!-- ═════════════════════════════════════════════
+       mode_navigation —— 真机闭环 3D / 2D 导航（二期）
+       组合 = SUP 最先起 + M0(驱动+qnx2ros) + M2(hdl 定位) + M4(mbf) + M6(安全 mux)
+              ＋ 前方超声保底（cap 进 mux）
+              ＋ ros2qnx（★只有在 enable_motion:=true 时才起，底盘运动桥）
+
+       ★ 开工前置（缺一不发车，runbook §0/§4）★
+       1. 真人批准的作业窗与单项作业单（V8-X2 未开工时不得默认沿用仿真结论）；
+       2. scripts/preflight_navigation.sh 返回 rc=0：
+          foxy 侧 transfer_ros2 已停（43897 空闲）、无残留 ros2qnx、master 在位；
+       3. 姿态：机器人已站立；急停可达；现场有人看护；
+       4. Q8 确认：操作人显式传 enable_motion:=true，缺省 false（只起感知与定位，
+          底盘运动桥不起，机器人不会动）。
+
+       ★ 安全链 ★
+       · /cmd_vel 唯一写者 = safe_cmd_vel_mux（60_safety.launch）；
+       · 前方超声 ≤0.3 m → cap 0；≤0.8 m → 0.1；数据过期 fail_cap → 0.1；
+       · mux speed_cap_required: true（cap 过期退 blind_cap 0.1）；
+       · 感知断流 2 s → 障碍心跳停发 → 本地规划器 fail-closed 停车；
+       · ros2qnx 自带底盘守护（心跳 2 Hz、退出 AI、移动模式），默认开。
+
+       ★ 起法 ★
+       roscore -p 11312
+       roslaunch lite3_bringup mode_navigation.launch                 # 只感知+定位
+       roslaunch lite3_bringup mode_navigation.launch enable_motion:=true   # 闭环（L2）
+       ═══════════════════════════════════════════════ -->
+  <arg name="rviz" default="false"/>
+  <arg name="enable_motion" default="false"/>
+  <arg name="chassis_guard" default="true"/>
+  <arg name="heartbeat_hz" default="2.0"/>
+
+  <!-- SUP 最先起（v4 §12 铁律/N5；mode 名与 health_watch.yaml#modes 键名逐字一致） -->
+  <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
+    <arg name="mode" value="mode_navigation"/>
+  </include>
+
+  <!-- M0：Livox Mid-360 驱动 + qnx2ros（liveness_m0 心跳在其内） -->
+  <include file="$(find lite3_drivers)/launch/01_sensors.launch"/>
+
+  <!-- M2：hdl_localization 自研承载（提供 map→base_link；base_link→rslidar 由驱动提供） -->
+  <include file="$(find lite3_localization)/launch/hdl_localization.launch"/>
+
+  <!-- M6：安全 mux（/cmd_vel 唯一写者；liveness_m6 心跳在其内） -->
+  <include file="$(find lite3_safety)/launch/60_safety.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+  </include>
+
+  <!-- M4：mbf 联邦式服务器（liveness_m4 心跳在其内） -->
+  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+  </include>
+
+  <!-- 前方超声保底：发布 /v8/safety/speed_cap，由 mux 取 min(静态上限, cap) -->
+  <node pkg="v8_platform" type="framework/ultrasonic_guard_node.py"
+        name="v8_ultrasonic_guard" output="screen">
+    <param name="fail_cap" value="true"/>
+    <param name="cap_distance_m" value="0.8"/>
+    <param name="clear_distance_m" value="1.2"/>
+    <param name="stop_distance_m" value="0.3"/>
+    <param name="cap_speed_mps" value="0.1"/>
+    <param name="clear_speed_mps" value="0.5"/>
+  </node>
+
+  <!-- ★ 底盘运动桥：只有 enable_motion:=true 才起（缺省只感知+定位，机器人不动）★ -->
+  <node if="$(arg enable_motion)" pkg="message_transformer" type="ros2qnx"
+        name="ros2qnx" output="screen">
+    <param name="chassis_guard_enable" value="$(arg chassis_guard)"/>
+    <param name="guard_heartbeat_hz" value="$(arg heartbeat_hz)"/>
+    <param name="guard_auto_exit_ai" value="true"/>
+    <param name="guard_auto_move_mode" value="true"/>
+    <param name="guard_gait_min_speed" value="0.10"/>
+  </node>
+</launch>
