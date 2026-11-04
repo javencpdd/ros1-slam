@@ -426,3 +426,10 @@ bash scripts/verify/run_gate_chain.sh
 - ★R1121（2026-11-02）★＝**打通导入 NIST 楼梯的 3D 导航**：局部规划器把声明 step/slope 的下一踏面当可跨越边界（仅靠边、机器人尺寸可容纳；真低顶仍拒绝），检查器同步；`inflate_support_map --margin .20` 生成 `nist_stairs_120_nav@1`，消除台阶交叠死带；app 局部配置 tick 1.2 s、max_step .30 m、watchdog 90 s。交互点 step5 后全局 **39 点**、载体 `(0.075,1.275,0.890358)`、局部 `arrived`、六项 checks 全 true、到局部目标 **1.26e-6 m**。仍是 Gazebo 运动学箱体 + 声明图外扩，不是四足物理/真机/formal；R1120 的键盘建图边界不回改（代码 `c37a59a1`，全文＝[R1121](note/进度/v8/M5/26-10-29/R1121.md)）。
 - ★R1122（2026-11-03）★＝**演示线 v0：纯 SLAM 流程打通**：独立 11413/11445 端口，`m1_world_v2` + faster-lio vs GT，20 s / 0.25 m/s；pairs 10，translated xy mean **9.504 mm**、max 22.660 mm，rigid yaw mean 5.278 mrad；只测 SLAM/定位，不跑导航/运动学；单次 scoped、非 formal，rich 多层 world 未导入；faster-lio PCD 已备份/恢复（代码 `8aba8dbc`，全文＝[R1122](note/进度/v8/M5/26-11-03/R1122.md)）。
 - ★R1123（2026-11-03）★＝**演示线 v1：受控两层 Gazebo SLAM survey**：新增 `demo_two_floor.world`（12×8 m 底层、1.6 m 上层、10×0.16 m 楼梯、墙体/家具）与 `demo_slam_survey.py`；`set_model_state` GT survey 35 s，不跑导航/运动学。恒定 yaw 版 translated xy mean **248.7 mm**、rigid yaw **2.4 mrad**；首轮 yaw 突变版 409.9 mm／2.97 rad 为负例；LIO PCD 留证，原 `lite3.pcd` 已恢复；仅 SLAM scoped、非 formal，rich 公开多层 world 未导入（代码 `48fbf5d7`，全文＝[R1123](note/进度/v8/M5/26-11-03/R1123.md)）。
+
+## 七、数据与校验口径（2026-11-04）
+
+- **sha256 只给数据面/交付面**：pcd、地图、实验结果、交付包、跨机拷贝需要 `sha256`（git 管不到、传输可能截断）；**入 git 的源码/文档以 git 内容寻址为准，不单列 sha**。
+- **地图各机独立**：`data/maps/*` 不入库；仓内只留 `data/maps/registry.template.json`；真机用 `configs/lite3/lite3_real_3d.local.app.yaml`（`*.local.app.yaml` 已忽略）；共享仅走 `data/maps/shared/`（`*.pcd`／`*.tar.gz`／`*.bag` 永不入）。
+- **历史件变更（另起句）**：`install.sh` 与仓根 `.bashrc` 于 2026-11-04 **移出仓库**（原件与 sha 留底 `/home/ysc/deleted_20261104/`）。⇒ R579「`install.sh` 保留作历史入口、未删未改」那句**自此作历史读**（原句不回改）。
+- **R862/R863 大结果**：`results-initial.json`、`results-rerun6.json.gz` 及三枚 `*.sha256` 改为**本机数据面**（不入 git；盘上保留）。
