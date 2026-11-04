@@ -1,5 +1,7 @@
 # Foxglove 观察（viz.sh 路线 B）——布局件与连接口径
 
+> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+
 > 对应 `docker/viz.sh` 头部注释里的**路线 B**：不需要 X / GPU，任意机器的浏览器打开
 > <https://foxglove.dev> 连 `rosbridge`（默认 9090）即可旁观仿真。
 > 适合没有桌面、或不想折腾 X 认证（`viz.sh check` 里 `OpenGL renderer` 取不到值时）。

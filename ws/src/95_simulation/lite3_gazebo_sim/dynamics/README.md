@@ -1,5 +1,7 @@
 # Lite3 MuJoCo dynamics probes
 
+> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+
 These self-authored runners consume external Lite3 MJCF/mesh and ONNX policy
 assets by path. They never overwrite those assets. The environment must already
 provide MuJoCo, NumPy, and ONNX Runtime. Results describe simulation only.
