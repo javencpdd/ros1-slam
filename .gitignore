@@ -65,3 +65,24 @@ docker/*.bak-*
 
 # 每主机本地覆盖（不入库）
 scripts/ros1_slam.local.env
+
+# ---- 2026-11-04 真人口径：多主机协同与数据面（四条落地）----
+# ① 本机备份/编辑器不入库（另一会话的 build/devel 备份曾达 ~800MB）
+ws/build.bak-*/
+ws/devel.bak-*/
+.vscode/
+# ② 地图各机独立；仅 shared/ 允许显式共享；pcd/打包件永不入
+!data/maps/shared/
+!data/maps/shared/**
+data/maps/shared/**/*.pcd
+data/maps/shared/**/*.tar
+data/maps/shared/**/*.tar.gz
+data/maps/shared/**/*.bag
+# ③ 地图登记各机本地；仓内只留模板（各机 cp registry.template.json registry.json）
+!data/maps/registry.template.json
+# ④ 本机 app 覆盖（真机地图版本/任务各机不同）
+*.local.app.yaml
+# ⑤ 大件证据/预编译包移出跟踪面（保留在盘、不入库）
+note/进度/v8/M5/26-10-29/evidence/R862/results-initial.json
+note/进度/v8/M5/26-10-29/evidence/R863/results-rerun6.json.gz
+ws/src/10_slam/faster_lio/thirdparty/tbb2018_20170726oss_lin.tgz
