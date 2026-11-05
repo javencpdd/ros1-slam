@@ -1,9 +1,10 @@
 # =============================================================================
 # ros1-slam 隔离部署沙箱 —— Docker 开发环境
-# （不写 # syntax= 指令：那会触发 BuildKit 联网拉 frontend，离线/Jetson 内网会卡住）
+# （不写 # syntax= 指令：那会触发 BuildKit 联网拉 frontend，离线开发环境会卡住）
 # -----------------------------------------------------------------------------
 # 技术栈：ROS1 Noetic (Ubuntu 20.04 focal) + catkin_make + C++17 + Python3
-# 目标机：Jetson tegra194 / aarch64（JetPack 5.x = Ubuntu 20.04）与 x86_64 开发机
+# 用途：x86 仿真开发；不是 Lite3/M20 原生真机依赖闭包构建器。
+# 工程标准真源：note/架构/工程标准.md；PROFILE=core/SLIM 不构成真机隔离。
 #
 # 关键约定（不要改，改了编译/运行都会崩）：
 #   1. 工作区绝对路径固定为 /opt/ros1-slam/ws

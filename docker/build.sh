@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 容器内重新编译 catkin 工作区（改完 ws/src 后跑这个）
+# x86 仿真开发容器内重新编译 catkin 工作区；非 Lite3/M20 真机构建器。
+# 工程标准真源：note/架构/工程标准.md；core/SLIM 不能证明仿真依赖已隔离。
 #
 #   bash /opt/ros1-slam/docker/build.sh            # 增量编译（全量范围）
 #   bash /opt/ros1-slam/docker/build.sh --clean    # 删 build/devel 后全量重编
-#   JOBS=2 bash /opt/ros1-slam/docker/build.sh     # Jetson 内存紧张时降并发
+#   JOBS=2 bash /opt/ros1-slam/docker/build.sh     # x86 仿真开发机降并发
 #
 # ★ 为什么没有 --slim：
 #   瘦身只在镜像构建时做（Dockerfile 的 SLIM=1，靠 CATKIN_IGNORE 实现，
