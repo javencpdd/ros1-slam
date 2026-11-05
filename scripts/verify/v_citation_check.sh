@@ -28,7 +28,8 @@
 #       bash scripts/verify/v_citation_check.sh --census [<文档 ...>]  逐条打印每个「目标:行」被归到哪档，
 #         并汇总「同一目标多处引用是否被归成不同档」（请求单 A25 的成本数；**只读、只数，不改任何判定**）。
 #         census 与 scan/selftest 共用同一个 judge()，不另写第二套正则——否则普查结论与门禁读数会各说各话（坑42）。
-#       bash scripts/verify/v_citation_check.sh <文档 ...>      缺省＝note/04 note/02 note/进度/00_总览.md 与 SCAN集成/设计/*.md
+#       bash scripts/verify/v_citation_check.sh <文档 ...>      缺省＝note/04 note/02 note/进度/01_批次.md 与 SCAN集成/设计/*.md
+# 2026-11-05：旧总览原字节作为01_批次保留；只迁移被检源，不删旧引用/FAIL、不改分类规则。
 #   环境变量：VCC_MAX（明细最多列几条，缺省 20）｜VCC_ROOT（仓根，缺省 /home/ros1-slam）｜VCC_MIN_CENSUS（★R407 根自检阈值，缺省 1000 个可见文件）
 #   退出码：0 无 RED 无 AMBER｜5 有 AMBER（口径松）｜6 有 RED（引文硬错）｜9 前置缺失或自标定不过（★R407 起新增一条 9 的触发＝根不是仓身：note/ 或 ws/ 缺失或是符号链接、或 os.walk 可见文件数 < 阈值 ⇒ ★当场拒跑、★不产出任何 RED/AMBER/OK 读数；缘由见 note/02 坑66 追加例第二条与 05 追加四十一 补例＝缺省根在异机是符号链接视图、而 os.walk 默认不跟随链接 ⇒ 面近乎空 ⇒ 引用解析失败被降级成 AMBER、RED 被抹成 0）
 # 性质：零 ROS 节点、零链窗、零写盘（临时件在 /tmp，跑完即删）、无 sudo。
@@ -47,7 +48,7 @@ python3 - "$MODE" "$ROOT" "${VCC_MAX:-20}" "$@" <<'PYEOF'
 import glob, os, re, shutil, subprocess, sys, tempfile
 
 MODE, ROOT, MAXD = sys.argv[1], sys.argv[2], int(sys.argv[3])
-docs = sys.argv[4:] or (['note/04_配置改动diff.md', 'note/02_问题与坑.md', 'note/进度/00_总览.md']
+docs = sys.argv[4:] or (['note/04_配置改动diff.md', 'note/02_问题与坑.md', 'note/进度/01_批次.md']
                         + sorted(glob.glob('note/进度/v7/S1/SCAN集成/设计/*.md')))  # 批244／R592＝真人明令甲：glob 随批208 搬迁失效，本机恒命中 0 枚＝一面失明 35 批
 CITE = re.compile(r'([A-Za-z0-9_\-./\u4e00-\u9fff]+\.(?:sh|py|md|ya?ml|launch|world|pcd|csv|txt|xacro|json|cpp|cc|hpp|h|c|xml|bak|log))[:：](\d+)')
 # 键名的两种在册写法都要认（自测 C3 首版就是因为只认第一种而漏判）：

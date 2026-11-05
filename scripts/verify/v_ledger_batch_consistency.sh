@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # v_ledger_batch_consistency.sh —— 台账「批号账实一致性」核验件（**R233 已裁入门、门禁串七→八**；小明 2026-10-11 原型，2026-10-13 R234 施工）
 #
+# 2026-11-05：00_总览改为版本成果页；逐批账构输入迁至note/进度/01_批次.md。
+# 本次仅迁移输入及档头来源定位，C2/C4/C5、域和阈值保持；未来新R仍对实时Git历史核对。
+#
 # ★成闸三参数＝主理人 2026-10-12 裁「0-b 照推荐」（v4.7 稿 Z3）：判定域下限 **R140**／FAIL 集＝**C2+C4**／滞后阈值 **2 批**；
 #   **C1 与 C3 只报不判**（C1 提交前必差一批属结构性现象；C3 缺号靠人补条目、机器不代判）。
 # ★「新增才拦、存量逐条带出处」＝照第七件 PARITY 的语义（Z3 原文要求）；存量表缺 ⇒ **rc=9 不判**（缺表不判绿，同第七件）。
@@ -46,7 +49,10 @@ python3 - "$MODE" "$ROOT" <<'PYEOF'
 import os, re, subprocess, sys
 
 MODE, ROOT = sys.argv[1], sys.argv[2]
-OVERVIEW = os.environ.get('VLB_OVERVIEW') or os.path.join(ROOT, 'note/进度/00_总览.md')
+AUDIT_REL = 'note/进度/01_批次.md'
+LEGACY_REL = 'note/进度/00_总览.md'
+MIGRATION_COMMIT = '690aff84e0e02b4af60f8fd45f98d5617be930c4'
+OVERVIEW = os.environ.get('VLB_OVERVIEW') or os.path.join(ROOT, AUDIT_REL)
 ENTRY = re.compile(r'^- \d{4}-\d{2}-\d{2}')
 SELF = re.compile(r'^- \d{4}-\d{2}-\d{2}：\*\*R(\d{2,4})')
 # git 标题：只认**行首那个括号段**，但段内可以有多个号或带后缀（实测在册形状有 `docs(R153)`、
@@ -78,19 +84,55 @@ def git_subjects():
         return None
 
 
-def hdr_commit_subject():
-    """最后一次改动「档头那一行」的提交标题——按行定位，不靠人记（坑60：行号是版本限定的）。"""
-    if os.environ.get('VLB_HDR_SUBJECT'):
-        return os.environ['VLB_HDR_SUBJECT']
+def header_subject_from(path, revision=None):
+    """Read the real line-2 history, optionally at a fixed migration revision."""
     try:
-        out = subprocess.run(['git', 'log', '-L', '2,2:note/进度/00_总览.md', '--format=%s', '-n', '1'],
-                             capture_output=True, text=True, cwd=ROOT)
-        for line in out.stdout.splitlines():
-            if git_rs(line):
-                return line
-        return None
+        command = ['git', 'log', '-L', '2,2:' + path, '--format=%s', '-n', '1']
+        if revision is not None:
+            command.append(revision)
+        out = subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
+        if out.returncode == 0:
+            for line in out.stdout.splitlines():
+                if git_rs(line):
+                    return line
     except Exception:
+        pass
+    return None
+
+
+def hdr_commit_subject():
+    """Use the audit file's history; preserve only a byte-matching initial header."""
+    if os.environ.get('VLB_HDR_SUBJECT'):
+        print('[档头来源] 显式 VLB_HDR_SUBJECT 桩')
+        return os.environ['VLB_HDR_SUBJECT']
+    if os.environ.get('VLB_OVERVIEW'):
+        # Existing override fixtures kept their original independent header source.
+        print('[档头来源] VLB_OVERVIEW 显式桩，沿用旧独立 Git 来源查询')
+        return header_subject_from(LEGACY_REL)
+    subject = header_subject_from(AUDIT_REL)
+    if subject is not None:
+        print('[档头来源] 实时 Git 行历史：' + AUDIT_REL)
+        return subject
+    baseline = subprocess.run(['git', 'show', MIGRATION_COMMIT + ':' + LEGACY_REL],
+                              capture_output=True, cwd=ROOT)
+    if baseline.returncode != 0:
+        raise RuntimeError('迁移基准 Git 原件不可读，不能证明初始档头来源')
+    before = baseline.stdout.splitlines(keepends=True)
+    try:
+        with open(OVERVIEW, 'rb') as stream:
+            current = stream.read().splitlines(keepends=True)
+    except OSError as exc:
+        raise RuntimeError('审计索引原始字节不可读，不能证明初始档头来源') from exc
+    if len(before) < 2 or len(current) < 2:
+        raise RuntimeError('迁移基准或审计索引缺少第2行档头')
+    if current[1] != before[1]:
+        print('[档头来源] 新索引尚无 R 号提交来源，档头已变化，未使用迁移回退')
         return None
+    subject = header_subject_from(LEGACY_REL, MIGRATION_COMMIT)
+    if subject is None:
+        raise RuntimeError('迁移基准档头的 Git 来源不可取，不能按同值冒充已核')
+    print('[档头来源] 初始档头逐字等于迁移基准（原始字节含行尾）；来源=' + MIGRATION_COMMIT + ':' + LEGACY_REL)
+    return subject
 
 
 def self_r(line):
@@ -287,12 +329,19 @@ if not os.path.isfile(OVERVIEW):
     print('前置缺失：总览不在位 %s' % OVERVIEW)
     print('BATCHCHECK rc=9')
     sys.exit(9)
+print('[数据源] 审计索引=' + OVERVIEW + '；00_总览为版本成果页，不作批次账构输入')
 subs = git_subjects()
 if subs is None:
     print('前置缺失：git log 读不到（本件不做"读不到就当过"的事）')
     print('BATCHCHECK rc=9')
     sys.exit(9)
-res = check(read(OVERVIEW), subs, hdr_commit_subject())
+try:
+    header_subject = hdr_commit_subject()
+except RuntimeError as exc:
+    print('前置缺失：%s' % exc)
+    print('BATCHCHECK rc=9')
+    sys.exit(9)
+res = check(read(OVERVIEW), subs, header_subject)
 if res['C1']['declared'] is None and res['C4']['lag'] is None:
     print('前置缺失：档头与条目区都抽不到批号 ⇒ 形状变了，普查结果不采信（坑42：锚不唯一／已漂）')
     print('BATCHCHECK rc=9')

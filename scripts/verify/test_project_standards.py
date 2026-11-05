@@ -74,8 +74,100 @@ class ProjectStandardsTests(unittest.TestCase):
         self.assertIn('不能用“状态不等于已验收”', (self.root / QUEUE).read_text())
         result = self.scan()
         self.assertEqual(0, result['rc'], result)
-        self.assertEqual(24, sum(result['coverage'].values()))
+        self.assertEqual(25, sum(result['coverage'].values()))
         self.assertEqual(12, result['coverage']['skill'])
+
+    def write_release_notes(self, headings):
+        text = '# 版本成果总览\n\n> 最新更新时间：2026-11-05 12:00:00 CST\n'
+        text += '工程标准真源：`%s`。\n\n' % checker.STANDARD
+        for heading in headings:
+            text += '## %s\n\n- 累计成果与适用范围。\n\n' % heading
+        (self.root / checker.OVERVIEW).write_text(text)
+
+    def test_release_numeric_order_accepts_future_major_versions(self):
+        self.write_release_notes(['v10 · 当前', 'v9 · 上一版', 'v8', 'v7', 'v3—v6 · 早期'])
+        result = self.scan()
+        self.assertEqual(0, result['rc'], result)
+        self.assertEqual(1, result['coverage']['release_notes'])
+
+    def test_release_lexicographic_order_is_not_numeric_order(self):
+        self.write_release_notes(['v9', 'v10'])
+        result = self.scan()
+        self.assertEqual(5, result['rc'], result)
+        self.assertIn('release_order', [x['rule'] for x in result['issues']])
+
+    def test_release_oldest_first_is_rejected(self):
+        self.write_release_notes(['v7', 'v8'])
+        self.assertEqual(5, self.scan()['rc'])
+
+    def test_release_duplicate_and_overlapping_versions_are_rejected(self):
+        for headings in (['v8', 'v8'], ['v8', 'v6—v8'], ['v8', 'v3—v7', 'v5']):
+            with self.subTest(headings=headings):
+                self.write_release_notes(headings)
+                result = self.scan()
+                self.assertEqual(5, result['rc'], result)
+                self.assertIn('release_order', [x['rule'] for x in result['issues']])
+
+    def test_release_requires_two_version_sections(self):
+        for headings in ([], ['v8'], ['v3—v6']):
+            with self.subTest(headings=headings):
+                self.write_release_notes(headings)
+                self.assertEqual(5, self.scan()['rc'])
+
+    def test_release_rejects_r_batch_action_lines(self):
+        self.write_release_notes(['v8', 'v7'])
+        self.append(checker.OVERVIEW, '- 2026-11-05：**R1127** 执行一轮命令并登记。')
+        result = self.scan()
+        self.assertEqual(5, result['rc'], result)
+        self.assertIn('release_batch_action', [x['rule'] for x in result['issues']])
+
+    def test_release_rejects_all_commonmark_r_action_markers(self):
+        for marker in ('-', '*', '+', '1.', '2)', '123456789.'):
+            with self.subTest(marker=marker):
+                self.write_release_notes(['v8', 'v7'])
+                self.append(checker.OVERVIEW, marker + ' 2026-11-05：**R1127** 执行一轮命令并登记。')
+                result = self.scan()
+                self.assertEqual(5, result['rc'], result)
+                self.assertIn('release_batch_action', [x['rule'] for x in result['issues']])
+
+    def test_release_rejects_indented_r_batch_list_actions(self):
+        for prefix in ('   - ', '  * ', '    + ', '\t1. ', '    2) ', ' \t42.\t'):
+            with self.subTest(prefix=repr(prefix)):
+                self.write_release_notes(['v8', 'v7'])
+                self.append(checker.OVERVIEW, prefix + '2026-11-05: R1127 增加逐批执行动作。')
+                self.assertEqual(5, self.scan()['rc'])
+
+    def test_release_keeps_plain_dated_notes_and_feature_lists_valid(self):
+        self.write_release_notes(['v8', 'v7'])
+        for prefix in ('- ', '* ', '+ ', '1. ', '2) ', '    12) ', '\t+ '):
+            self.append(checker.OVERVIEW, prefix + '2026-11-05：合并本版地图能力说明。')
+            self.append(checker.OVERVIEW, prefix + '新增地图与组件功能。')
+        self.assertEqual(0, self.scan()['rc'])
+
+    def test_release_accepts_merged_version_results_without_action_ledger(self):
+        self.write_release_notes(['v8 · 当前', 'v7 · 上一版'])
+        self.append(checker.OVERVIEW, '### 补充成果\n\n- 地图与接口成果合并到本版说明。\n- 2026-11-05：补充本版能力边界。')
+        self.assertEqual(0, self.scan()['rc'])
+
+    def test_release_cannot_be_dropped_or_renamed_from_coverage(self):
+        original = copy.deepcopy(self.config)
+        self.config['entries'] = [x for x in self.config['entries'] if x['path'] != checker.OVERVIEW]
+        self.write_config()
+        self.assertEqual(9, self.scan()['rc'])
+        self.config = original
+        self.write_config()
+        p = self.root / checker.OVERVIEW
+        p.rename(p.with_name('renamed-overview.md'))
+        self.assertEqual(9, self.scan()['rc'])
+
+    def test_release_keeps_common_pointer_and_timestamp_requirements(self):
+        self.write_release_notes(['v8', 'v7'])
+        p = self.root / checker.OVERVIEW
+        p.write_text(p.read_text().replace(checker.STANDARD, 'retired/' + checker.STANDARD))
+        self.assertEqual(5, self.scan()['rc'])
+        self.write_release_notes(['v8', 'v7'])
+        p.write_text(p.read_text().replace('最新更新时间', '旧时点'))
+        self.assertEqual(5, self.scan()['rc'])
 
     def test_adjacent_denials_and_unsubmitted_stage_rule_are_valid(self):
         self.append(SKILL, '不挂后台看守；不使用 FORCE；不得自动恢复取消的任务；禁止自动 push。未提交的阶段不算收口。')

@@ -20,6 +20,7 @@ from urllib.parse import unquote
 
 STANDARD = 'note/架构/工程标准.md'
 CATALOG = 'tooling/standards/rules.json'
+OVERVIEW = 'note/进度/00_总览.md'
 SKILL_ROOT = 'tooling/skill'
 SKILLS = {
     'tooling/skill/software-company/SKILL.md',
@@ -41,6 +42,7 @@ ENTRIES.update({p: ('scoped_rules', 'markers') for p in (
     'note/计划书v8/23_v8任务队列.md', 'note/计划书v8/25_v8自动调度作业单.md')})
 ENTRIES['note/00_README.md'] = ('pointer_index', 'current_pointer')
 ENTRIES[STANDARD] = ('standard', 'full')
+ENTRIES[OVERVIEW] = ('release_notes', 'full')
 BEGIN = '<!-- standards-scope:start -->'
 END = '<!-- standards-scope:end -->'
 LINK = re.compile(r'\[[^\]\n]+\]\(([^)\n]+)\)')
@@ -239,6 +241,37 @@ def check_policy_source(text, issues):
                 issue(issues, 'policy_anchor', STANDARD, 0, '%s 缺政策锚: %s' % (key, word))
 
 
+def check_release_notes(name, text, issues):
+    """Check the declared release layout, not the truth of capability claims."""
+    heading = re.compile(
+        r'^##[ \t]+v(\d+)(?:[ \t]*[—–~至-][ \t]*v?(\d+))?'
+        r'(?=$|[ \t·:：.（(])')
+    candidate = re.compile(r'^##[ \t]+v(?=\d)')
+    # CommonMark unordered and ordered markers, including nested indentation.
+    # Retain the existing no-space hyphen shape as a legacy rejection too.
+    batch_action = re.compile(
+        r'^[ \t]*(?:-[ \t]*|[*+][ \t]+|[0-9]{1,9}[.)][ \t]+)'
+        r'\d{4}-\d{2}-\d{2}[^\n]*R\d+')
+    versions = []
+    for number, line in enumerate(text.splitlines(), 1):
+        match = heading.search(line)
+        if match:
+            first = int(match.group(1))
+            last = int(match.group(2)) if match.group(2) is not None else first
+            versions.append((min(first, last), max(first, last), number))
+        elif candidate.search(line):
+            issue(issues, 'release_heading', name, number, '版本标题形状无效')
+        if batch_action.search(line):
+            issue(issues, 'release_batch_action', name, number, '版本报告不得追加R批日期动作行')
+    if len(versions) < 2:
+        issue(issues, 'release_versions', name, 0, '版本报告至少包含两个不同版本段')
+    for previous, current in zip(versions, versions[1:]):
+        # The newest number of the older section must be below the whole
+        # previous interval, so duplicate or overlapping ranges are visible.
+        if current[1] >= previous[0]:
+            issue(issues, 'release_order', name, current[2], '版本段必须按数值由新到旧且不重复/重叠')
+
+
 def check_pointer_index(root, name, text, issues):
     for label in ('现行中心计划书指针', '当前执行队列指针', '现行调度作业单指针'):
         lines = [line for line in text.splitlines() if '**' + label in line]
@@ -289,6 +322,8 @@ def inspect(root, rules_path=None):
                 issue(result['issues'], 'standard_pointer', name, 0, '当前范围缺工程标准真源路径/有效链接')
             if profile == 'pointer_index':
                 check_pointer_index(root, name, scoped, result['issues'])
+            if profile == 'release_notes':
+                check_release_notes(name, scoped, result['issues'])
             if profile not in ('skill', 'scoped_rules'):
                 continue
             plain = scoped.replace('`', '').replace('*', '')
