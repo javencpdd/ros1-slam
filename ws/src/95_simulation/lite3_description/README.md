@@ -1,21 +1,17 @@
-# lite3_description（DESC 机体描述 URDF/mesh）
+# lite3_description · Lite3 几何描述
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
-**统一索引头**（本头由文档批次生成并登记于 `note/04_配置改动diff.md`；下方正文为历史内容，未改写）
-层 `95_simulation` ｜ 角色 `DESC 机体描述（URDF/mesh）` ｜ 厂商机体几何描述的沙箱副本：URDF＋STL，供 xacro 引用，不含控制器。
-**全局索引**：`ws/README.md`（工作区定位图·红线速记·调用姿势）｜ `note/进度/00_总览.md`（进度唯一真身）｜ `note/04_配置改动diff.md`（哪些改动被许可）｜ `note/07_判据载体代际对照表.md`（判据载体代际现值）｜ `note/05_复验作业单.md`（验收纪律 A–F 段）
-**路径读法**：本表一律以 `ws/src/` 为根（如 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`）；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
+本包保存 Lite3 的 URDF 和四种 STL 网格，供机器人模型展示与描述引用。
 
-本包速查：
+| 文件 | 内容 |
+| --- | --- |
+| `urdf/Lite3.urdf` | 躯干和四足模型，12 个 revolute 关节 |
+| `meshes/{torso,hip,thigh,shank}.STL` | 四类原始网格 |
 
-| 要做 | 位置 |
-|---|---|
-| 带腿描述 | `urdf/Lite3.urdf`（12 个 revolute 关节） |
-| mesh | `meshes/{torso,thigh,shank,hip}.STL`（共 4 件） |
+描述件本身没有步态控制器或接触状态估计。Gazebo M1/M2 的实际载体是
+`lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro`；它与本包带腿视觉模型不是同一个执行对象。
+MuJoCo 接触物理 runner 使用独立外部 MJCF/mesh 资产，见
+[`dynamics`](../lite3_gazebo_sim/dynamics/README.md)，也不能靠 URDF 关节数认定爬阶能力。
 
-**红线/契约**：**注意**：仿真闭环当前**不**用它驱动——真用的是 `95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro`（刚体）。带腿＝越障位置⑤的前提，缺控制器与接触标定（补丁 X7）。
-
-## 说明
-
-本 README 是新建件（文档批次）：包内此前无 README，内容以上表为准；进度与证据不在本目录，见 `note/进度/`。
+URDF/网格按其来源规则保持原件。运行和验收结论见进度证据，不在本目录重复积累。

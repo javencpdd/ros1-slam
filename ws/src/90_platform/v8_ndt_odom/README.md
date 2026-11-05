@@ -1,6 +1,6 @@
-# NDT 定位监测器
+# v8_ndt_odom · NDT 定位监测与局部重定位
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。
 
 本包将散落在临时工作区的自研 NDT 包迁入源码面，默认且仅允许
 `output_role=monitor`，不承担连续定位输出。R787 的 LIO 单后端冻结范围与
@@ -39,6 +39,7 @@
 独立的两帧变换、拒绝帧不更新、新旧时戳与 reset 测试不依赖 ROS 或 NDT：
 
 ```bash
+cd ws/src/90_platform/v8_ndt_odom
 g++ -std=c++14 -I/usr/include/eigen3 -Iinclude test/history_test.cpp -o /tmp/ndt_history_test
 /tmp/ndt_history_test
 ```
@@ -49,7 +50,7 @@ ROS 构建使用私有 catkin 工作区并消费已安装的 Noetic/ndt_omp 导�
 
 ## A6 重定位接口（R1106／R1114／R1115）
 
-新增三个接口，仍只允许 `output_role=monitor`：
+除 reset 外提供以下重定位接口，仍只允许 `output_role=monitor`：
 
 - `~relocalize`（`std_srvs/Trigger`）：请求一次**有界**短时失锁重定位。服务只负责
   置位，不阻塞等待搜索完成；成功后 `~relocalized=true`，失败/预算耗尽保持 false。
@@ -74,13 +75,11 @@ ROS 构建使用私有 catkin 工作区并消费已安装的 Noetic/ndt_omp 导�
    `relocalize`/`initialpose`。
 
 边界：该接口只覆盖**短时失锁、先验附近的静态重定位**；不做 kidnapped/长时失联的
-全图重定位，也不把本监控器提升为连续导航后端。R1106 的 Gazebo 活体只在静态位姿
-验证了“失锁→有界搜索→A6 候选→`~initialpose`→新 lease→租约门恢复”（最终 XY
-`.052642 m`、候选 `.057400 m`；失锁期 gate `.1→0`；空扫描 FAILED、lease 2→2）。
-R1114 复跑静态 **.048655 / .044988 m**，0.3 m 传送后两跑终态 **.043754 / .060690 m**
-（候选仍停在 prior `.242—.250 m`，靠恢复后跟踪回正）；**0.6 m 传送超出 0.4 m
-搜索半径时候选/终态偏 `.5421/.5225 m`，A6 仍恢复 lease、gate 报 HEALTHY——这是
-NDT-only 链的系统级 fail-open**。R1115 在活体链上加 BBS 三分辨率绝对源共识门：
-静态 `.057751 m`、0.3 m `.053147 m` 通过；0.6 m 共识 `[2.2,0]` 与 NDT 候选差
-`.647609 m`，门拒绝 → A6 FAILED、lease 1。该门需生产图显式接入；NDT 自身仍是
-monitor-only，运动连续跟踪、任意 kidnapping 与真机未通过。
+全图重定位，也不把本监控器提升为连续导航后端。历史静态/局部失锁与空扫描负控见[运行证据入口](../../../../note/进度/v8/README.md)（R1106、R1114、R1115）。
+NDT-only 链曾在超出局部范围的探针中错误恢复租约；A6 共识门用于拒绝与 BBS 绝对源不一致的候选，
+生产图必须显式接入，不能把该门当成本节点内置行为。参见[A6 适配](../v8_platform/adapters/README.md)。
+
+预算在网格候选之间检查；单次 NDT align 调用不会被该预算抢占，因此不能把 relocalize_budget_s
+解释为每次服务调用的硬返回时限。global_search 是另一条未加硬时限的初始化路径。
+
+本次只对照源码与测试核对说明，未执行 ROS、点云精度或真机实验。

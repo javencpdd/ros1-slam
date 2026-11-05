@@ -1,279 +1,88 @@
-# framework · YAML 驱动的 ROS1 组件图（v0.1）
+# framework · YAML 组件图与导航应用
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
-> 2026-10-31 起。做**配置、装配计划与运行装配**：组件目录、实例、命名端口、显式连线、
-> 启动依赖、命令唯一写者、地图 schema 兼容、锁摘要、ROS1 launch 骨架、运行器接线、
-> MapDelta 事务、机器人 profile、独立验证配置、安全接线与启动开销基准。
-> **编排层不实现具体算法，但 Assembly 会真实启动算法进程；不改现有判据/运行链。**
-> 数据面仍走 ROS 话题，Python 编排环只在启动/停止。
+framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
 
-## 0. 应用层 A—E（R1103—R1104；当前入口）
+## 输入与阅读顺序
 
-| 件 | 作用 |
+| 输入/实现 | 当前职责 |
 | --- | --- |
-| `app_config.py` / `app_runner.py` | 读 `navigation_app/v1` YAML＋地图 registry＋task；dry-run 或真实起 roscore/Gazebo/Assembly/viz，检查 `assembly_ready`/`map_configured`/`global_path`/`local_arrived`/`carrier_at_local_goal`/`markers_published` |
-| `map_registry.py` | `data/maps/registry.json` 的 map_id/version→path/sha 解析；防止 ID/版本/哈希漂移 |
-| `map_from_pcd.py` | 离线把 faster_lio/记录器 PCD 转 support_map；生成 app/task 并登记 registry（R1119） |
-| `inflate_support_map.py` | 把声明支撑面轮廓 XY 外扩指定 margin 并登记导航变体，消除台阶交叠死带（R1121） |
-| `surface_resolver.py` | x/y-only 任务自动补 start/goal z；`surface_hint` 优先、z 最近面、歧义显式 `E_SURFACE_AMBIGUOUS`；点选 `pick_goal` |
-| `operator_surface_picker.py` | RViz `/clicked_point` → 选面 → goal/status；歧义返回候选 |
-| `support_map_viz.py` / `nav3d_viz_node.py` / `fixtures/rviz/nav3d.rviz` | support_map MarkerArray、全局/局部 Path、起终点/位姿 Marker |
-| `gazebo_carrier3d_node.py` | graph 兼容的 Gazebo 3D 载体（static box/SetModelState），带支撑 z 钳制与 pose/localization 回授 |
-| `localization_node.py` / `localization_compare.py` | sim_gt/faster_lio/ndt 源；NDT `navigation_allowed=false`；GT-LIO 的 raw/translated/rigid 误差与 receipt/stamp 对齐 |
+| [fixtures/manifests](fixtures/manifests) | manifest v2 组件定义：命名 ports、dimensions、launch；同时包含真实节点、include 与明确的测试替身 |
+| [fixtures/graphs](fixtures/graphs) / [config.py](config.py) / [graph.py](graph.py) | pipeline_graph/v1：实例、namespace、参数/config、显式端口连线、外部输入、反馈策略；生成启动 DAG 和 digest |
+| [render.py](render.py) / [runtime.py](runtime.py) | assembly plan、launch 骨架、默认运行命令与 Assembly；消费现有 ProcessRunner/Orchestrator |
+| [app_config.py](app_config.py) / [app_runner.py](app_runner.py) | navigation_app/v1：graph、地图 registry、任务、定位/载体与可视化；dry-run/execute |
+| [map_registry.py](map_registry.py) / [surface_resolver.py](surface_resolver.py) | map_id/version/path/sha 绑定，起终点 z 与 surface_hint 消歧 |
+| [map_from_pcd.py](map_from_pcd.py) / [inflate_support_map.py](inflate_support_map.py) | PCD→支撑图/任务/app/本机登记；声明足迹外扩生成单独变体 |
+| [safety.py](safety.py) / [hotswap.py](hotswap.py) | 安全接线、否决停止、受限实例替换 |
+| [robot.py](robot.py) / [verification.py](verification.py) | robot profile 能力检查；与算法图分开的验证后端/真值通道 |
 
-- 一键 app：`fixtures/apps/nist_sensor_3d.yaml`（carrier）与 `..._lio.yaml`；任务 `fixtures/tasks/nist_sensor_top.json`。
-- 交互式 3D：`app_runner.py ... --execute --interactive --rviz`；RViz Publish Point 点 support surface，`operator_surface_picker` 解析面并发 goal；Ctrl+C 收尾。2D 交互入口见 `lite3_gazebo_sim/launch/interactive_2d.launch`。
-- 自建图（R1119）：`map_from_pcd.py --pcd <mapped.pcd> --map-id <id> --version 1 --write-app --register` 生成 support_map/app/task；生成的 app 用 `graph_3d_gazebo_app_mapped.yaml` + `app_world.launch`（仿真 wall watchdog 90 s / validity 20 s），`app_runner.py --execute --interactive --rviz` 直接消费。完整建图命令见 `docker/README.md` §4.7。
-- 声明楼梯图（R1121）：`inflate_support_map.py --margin .20` 生成导航变体；局部规划器把声明 step/slope 的下一踏面当可跨越边界（仅靠边、机器人尺寸可容纳；真低顶仍拒绝），app 实际到达 step5。
-- R1103：6/6 checks、25 全局点、17 Marker，载体到本地目标 `.138 m`；R1104：移动 GT/LIO rigid `.0095/.0158 m`；R1112：全局路径→MuJoCo 四足 2/2；R1119：GT 位姿建图 72,762 点→单面支撑图→3D 路径 31 点到达；R1121：NIST 楼梯全局 39 点→step5、局部 arrived、六项 checks 全 true。
-- 测试：`test_navigation_app` 18/18、`test_localization_compare` 2/2；边界：kinematic/Gazebo 夹具，不是真机。
+组件只有 manifest 一份定义，不另维护 components.yaml。v2 的兼容 io 由 ports 加载期派生；v1 manifest 仍供旧 registry/composer 使用，但不能进入命名端口图（`E_CFG_MANIFEST_V1`）。同组件可创建多个实例，实例 ID 与 ROS 节点名不能冲突。
 
-## 1. 组件清单 + 图 YAML
+## 最小使用
 
-- **组件源＝registry manifest v2**（`manifest.v2.json`）：只有 `ports`（命名输入输出、
-  消息类型、schema、topic、command_topic）、`dimensions` 与 `launch`（package/type）；
-  `io` 不再落盘，由 registry/composer 加载时从 ports 派生（v1 清单继续带 io 且合法）。
-  v1 无命名端口，不能进入图（`E_CFG_MANIFEST_V1`）。
-- `graph.yaml`：选择实例、参数、namespace、显式 `from: instance.port` → `to: instance.port`、
-  外部输入，以及反馈边与策略。
-
-`launch` 支持 `kind: node`（package/type/param_files/remap）、`kind: include`
-（package/launch_file/args）、`kind: plugin`（nodelet standalone）与
-`kind: nodelet_group`（外部 manager + 多插件）；`--package-index` 用包索引校验
-package/launch file/executable/param file/插件包/插件类，不启动 ROS。
-
-`runtime.py` 把 assembly plan 转成 `ComponentSpec` 并交给现有 `ProcessRunner/Orchestrator`；
-默认命令为 `rosrun`/`roslaunch`，测试注入假命令。include 的 manifest/graph 参数以
-`key:=value` 传给 `roslaunch`，node 的 graph `params` 以 `_key:=value` 私有参数传给 `rosrun`；
-嵌套路径 launch 先用 `rospack find` 解析为绝对路径（`roslaunch pkg nested/file.launch` 只认
-basename）。plugin 以 `rosrun nodelet nodelet standalone pkg/Class` 启动，实例 id 作为
-`__name`，graph namespace 作为 `__ns`，params 仍是 `_key:=value`；宿主固定为 `nodelet`。
-manifest 的 `launch.remap` 对 node/plugin 都以 `from:=to` 追加到运行命令；实测本环境
-`nodelet standalone` 不消费这些 remap（topic 仍随节点名），插件端口需用命名空间或
-manifest 端口 topic 与真实名一致。
-启动、READY 就绪、停止序（mux 最后）、失败清理与健康检测均有测试。
-
-真实 2D 栈已接入：`v8.nav2d.dwa_stack`/`v8.nav2d.teb_stack` 是 include 组件，
-`v8.nav2d.mux` 拉起真实 `60_safety.launch`，四张 `graph_2d_stack_*.yaml` 只改
-`global_planner`/`local_planner` 参数。R981 在 Gazebo m1/SC09/seed0 上由 Assembly
-启动 nav+mux，四格（GlobalPlanner/Navfn × DWA/TEB）全 PASS；`ProcessRunner` 在停止前
-快照 roslaunch 后代并对其独立会话发信号，否则只杀 roslaunch 会遗留各节点。
-
-`v8.fw.semantic_provider` 把 R1004 的语义节点纳入 v2：node launch 直跑
-`representation/semantic_map_node.py`，只读、无命令/TF；`graph_semantic.yaml` 经
-check/plan/Assembly 启停，`command_owner=null`（R1008）。
-
-`map_cache.py` 是 MapDelta 的缓存/合并核心（R1012）：`MapCache` 按 `surface_id`
-聚合 upsert/remove，`make_delta` 产出合法 `map_delta/v1`（source sha 为 ops 摘要），
-`ack(version)` 推进 base；`merge_deltas` 要求同 map_id/base，后者按 surface 覆盖前者。
-R1014 增加 `v8_msgs`（`MapDelta/MapOp/SupportSurface/SurfaceEdge`）与真实
-`map_cache_node`（JSON ops → typed delta，flush/ack）和 `map_merge_node`（两路合并）；
-R1016 增 `SupportMap` 消息与 `v8.fw.map_cache_ros`/`v8.fw.map_merge_ros`：
-`graph_map_cache_ros.yaml` 的两 cache + merge 经 Assembly 真实启动，base_map 输入
-整图 upsert 后 flush/merge。旧的 `graph_3d_cache.yaml` 仍是测试替身。
-
-`robot.py` 读取 robot.v1 profile：declared/prohibited 值不得驱动规划（`E_ROBOT_UNVERIFIED`），
-仅 tested/allowed 值可用；robot_adapter 必须提供 `cmd`（TwistStamped）与 `odom`/`imu` 遥测端口。
-`v8.fw.robot_lite3` 与 `v8.fw.robot_test_b` 同端口，仅改图 YAML 的实例组件即可切换。
-
-`verification.py` 选择独立验证后端（模拟器组件）与场景，**不进入算法图**；真值通道不得与算法话题
-重叠（`E_VERIFY_TRUTH_LEAK`）；后端通过注入 runner 运行，失败只记 status=error，不改算法 digest。
-两个假后端验证切换；R1006 增加真实 Gazebo 后端 `v8.verify.gazebo_truth`：headless
-empty world + `/gazebo/model_states` → `/v8/verify/truth`；R1010 增加真实 MuJoCo
-后端 `v8.verify.mujoco_truth`：仓库内置落体 MJCF，`mujoco_truth.py` 推进物理并发
-`/v8/verify/truth_mj`。两者都由 `verification.run` 注入 runner 启动并等待 truth；
-算法图不含后端，truth 话题也不在算法端口集合中。
-
-`map_service.propose_delta` 接收 `map_delta/v1`：delta_id 幂等重放、旧 base/同 id 异内容/无变化
-拒绝；结果先过 map 契约再原子升版并通知监听者，失败不改变当前版本。
-`snapshot/save/load` 持久化当前地图、证据层、history 与 applied_deltas：临时文件+fsync+
-原子替换，恢复时重算 digest 并核对 history 末行，坏文件/异 map_id/回退 fail-closed。
-`delta_map_node` 的 `~state_path` 在每次成功 delta 后落盘，ROS 重启恢复版本与幂等表（R983）。
-`MapStore(root)` 以 map_id 为文件名键管理多图快照：显式 `load/ids/load_all`，路径穿越与
-坏文件 fail-closed（R989）；ROS provider 仍单 map_id。
-
-`v8.boundary.adapter` 把 mux 的 `/cmd_vel` 接到边界 UDP：`ros_bridge.py` 支持
-`command_type=twist|twist_stamped`，`snapshot` 图 `graph_boundary_mux.yaml` 用真实
-`v8.nav2d.mux` + 边界节点；R984 已用 Gazebo 运动学端点跑通 mux→UDP→端点→遥测回链；R988 把遥测发布移出命令环，
-200 Hz 请求达 202.8 Hz、500 Hz 请求达 485.8 Hz（6 s 窗）；R991 500 Hz 60 s 窗达 500.4 Hz，零丢帧。
-
-`safety.py` 是接线门：`/cmd_vel` 必须恰好一个写者且角色为 `safety_arbiter`；其他
-`command_topic` 输出必须显式连到该写者，否则 `E_SAFETY_ADVICE`；`trajectory_validator`
-最多一个，且必须同时有 path 入/出边。`Assembly.start` 启动前强制此检查
-（`E_SAFETY_ARBITER`/`E_SAFETY_ADVICE`/`E_SAFETY_VALIDATOR`）；validator 否决经
-`safety.enforce(assembly, verdict)` 直接走停止链（mux 最后），不是只记日志。
-
-`perf.py` 只测**启动前** check+plan 的开销（p50/p95/max，`startup_only=True`）。50 Hz 规划/控制
-走 ROS 话题，500 Hz 命令发送在边界适配器专用进程（33B UDP），都不经过 Python 编排环；
-本基准不冒充控制周期时延。
-
-不再维护独立的 `components.yaml`：组件定义只有 manifest 一份；v2 的 io 是**加载期派生视图**，不落盘。
-
-对应关系：**组件类型可复用，实例 ID 唯一；同名组件可起多个实例；连线必须显式到端口。**
-
-## 2. 命令
+以下从仓根执行，check/plan 不启动 ROS：
 
 ```bash
-cd ws/src/90_platform/v8_platform
-python3 -B framework/cli.py check framework/fixtures/manifests \
-  framework/fixtures/graphs/graph_3d_cache.yaml \
-  --package-index framework/fixtures/package_index.json
-# 每实例配置文件：graph 的 config: 指向 YAML/JSON；运行前解析并计入 digest
-python3 -B framework/cli.py check framework/fixtures/manifests \
-  framework/fixtures/graphs/graph_2d_config.yaml
-python3 -B framework/cli.py plan framework/fixtures/manifests \
-  framework/fixtures/graphs/graph_3d_cache.yaml \
+python3 -B ws/src/90_platform/v8_platform/framework/cli.py check \
+  ws/src/90_platform/v8_platform/framework/fixtures/manifests \
+  ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_cache.yaml \
+  --package-index ws/src/90_platform/v8_platform/framework/fixtures/package_index.json
+python3 -B ws/src/90_platform/v8_platform/framework/cli.py plan \
+  ws/src/90_platform/v8_platform/framework/fixtures/manifests \
+  ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_cache.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B framework/test_framework.py      # 29 项
-python3 -B framework/test_runtime.py        # 12 项（F3 假命令/include/plugin/remap/语义/group/cache）
-python3 -B framework/test_robot.py          # 4 项（F5 profile/端口）
-python3 -B framework/test_verification.py   # 7 项（F6 独立验证配置）
-python3 -B framework/test_preflight.py   # 12 项（config/维度/规划器/语义/pose_mux/双源 mux/全局 topic/3D 链）
-python3 -B framework/test_safety.py      # 8 项（F7 接线/否决即停/启动基准）
-python3 -B contracts/test_manifest_v2.py    # 6 项（v2 ports→io）
-python3 -B registry/test_v2_manifest.py     # 4 项（registry/composer v2 兼容）
-python3 -B framework/plugin_smoke.py        # 真实 ROS：nodelet plugin 装配/参数/IO/停止
-python3 -B framework/nodelet_group_smoke.py # 真实 ROS：外部 manager + 插件装载/参数/停止
-python3 -B framework/gazebo_verification_smoke.py  # 真实 Gazebo 验证后端/truth/清理
-python3 -B framework/mujoco_verification_smoke.py  # 真实 MuJoCo 落体后端/truth/清理
-python3 -B framework/semantic_graph_smoke.py       # 语义 provider 经 graph/Assembly 启停
-python3 -B framework/overlap_swap_smoke.py         # 只读 provider 重叠替换 v1→v2
-# v8_msgs 先编译：mkdir -p /tmp/v8_msgs_ws/src && ln -s <repo>/ws/src/90_platform/v8_msgs \
-#   /tmp/v8_msgs_ws/src/v8_msgs && (cd /tmp/v8_msgs_ws && catkin_make) && source devel/setup.bash
-python3 -B representation/map_cache_smoke.py       # 真实 ROS：cache flush/ack + merge
-python3 -B framework/map_cache_graph_smoke.py      # 真实 Assembly：两 cache + merge
-python3 -B representation/map_cache_delta_smoke.py # typed delta → relay → 版本地图
-python3 -B local_planner/map_update_smoke.py       # 规划器消费 /v8_support_map 版本
-python3 -B framework/local_native_graph_smoke.py   # 真实规划器入 v2 图 + 实例 YAML 下发
-python3 -B representation/semantic_planning_smoke.py  # 语义→支撑图→规划器全链
-python3 -B representation/semantic_obstacle_planning_smoke.py  # 语义障碍→绕行/移除重规划
-python3 -B framework/faster_lio_smoke.py          # 真实 faster_lio 里程计/配准点云
-python3 -B local_planner/pose_mux_smoke.py        # 定位位姿交接：一致切源/跳变拒绝
-python3 -B framework/command_overlap_smoke.py     # 命令源重叠交接：切换/回落无零速
-python3 -B planner/global3d_topic_smoke.py        # 真实 3D 全局规划器 topic 图
-python3 -B framework/graph_3d_real_smoke.py       # 真实 3D 链：cache/merge/relay/规划器
-python3 -B framework/hdl_group_smoke.py            # 真实 hdl manager + 两 nodelet
-python3 -B framework/hdl_sensor_smoke.py           # hdl 喂 Gazebo 点云/IMU 探针
-python3 -B framework/command_hold_smoke.py         # 真实 mux hold 下换命令源
+python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+  --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml
 ```
 
-node/plugin 带 `config` 或 `param_files` 时，运行面由 `param_exec.py` 预载 YAML 私有参数后再 exec `rosrun`（roslaunch 不解析嵌套节点路径）。
-`check` 输出 digest、启动序、反馈边、命令话题写者与安全接线报告（唯一写者/建议边/validator）；
-`plan` 额外写 assembly plan 与 launch 骨架。错误 rc=5（带理由码），用法错误 rc=9。
+最后一条缺省 dry-run；地图文件与 registry 必须在本机。`--execute` 会真实起进程；缺省另起隔离 roscore，可通过 `--port` 指定端口，Gazebo master 使用其下一端口。`--no-gazebo` 只跳过 Gazebo，仍会另起 roscore；`--real` 才沿用现场 master/传感器，不能把两者混淆。`--interactive --rviz` 启用选点和显示，Ctrl+C 收尾。运行前按[作业单](../../../../../note/计划书v8/25_v8自动调度作业单.md)准备环境，真实机器人连接与运动须已有对应授权。
 
-## 3. 已覆盖的检查
+## graph 检查与实际启动
 
-| 检查 | 理由码 |
-| --- | --- |
-| 未知组件 / 未知端口 / 端口方向 | `E_GRAPH_COMPONENT` / `E_GRAPH_PORT` |
-| 消息类型、地图 schema 不一致 | `E_GRAPH_TYPE` / `E_GRAPH_SCHEMA` |
-| 必需输入未接、同一输入重复接 | `E_GRAPH_INPUT` / `E_GRAPH_INPUT_DUP` |
-| 非反馈边形成启动环 | `E_GRAPH_STARTUP_CYCLE` |
-| 反馈边缺策略 | `E_GRAPH_FEEDBACK_POLICY` |
-| 同一命令话题多个写者 | `E_GRAPH_COMMAND` |
-| 实例 ID/ROS 节点名冲突 | `E_CFG_INSTANCE_ID` / `E_GRAPH_NAME_COLLISION` |
-| YAML 重复键、缺字段、类型错 | `E_CFG_DUP_KEY` / `E_CFG_FIELD` / `E_CFG_TYPE` |
-| v1 清单缺命名端口 | `E_CFG_MANIFEST_V1` |
-| launch 未知包/文件/可执行/参数文件 | `E_LAUNCH_PACKAGE` / `E_LAUNCH_FILE` / `E_LAUNCH_TYPE` |
-| launch 规格非法（node/include/plugin/路径） | `E_CFG_LAUNCH` / `E_CFG_LAUNCH_KIND` / `E_CFG_LAUNCH_PATH` |
-| plugin 宿主非 `nodelet`、type 非 `pkg/Class`、带 launch_file/param_files/args | `E_CFG_LAUNCH` |
-| plugin 插件包不在包索引 | `E_LAUNCH_PACKAGE` |
-| plugin 类不在索引 `plugin_classes`（索引给出该字段时） | `E_LAUNCH_TYPE` |
-| nodelet_group 非 nodelet 宿主、manager/插件名非法、插件 type 非 `pkg/Class` | `E_CFG_LAUNCH` |
-| nodelet_group 插件包/类不在索引 | `E_LAUNCH_PACKAGE` / `E_LAUNCH_TYPE` |
-| 实例 config 缺失/非法 YAML/重复键/非映射 | `E_CFG_MISSING` / `E_CFG_YAML` / `E_CFG_DUP_KEY` / `E_CFG_TYPE` |
-| config 用在 include 组件 | `E_CFG_CONFIG_KIND` |
-| Path 跨 2D/3D 组件直连 | `E_GRAPH_DIMENSION` |
-| 组件 dimensions 与其地图 schema 不一致 | `E_GRAPH_MAP_DIMENSION` |
-| `/cmd_vel` 写者不唯一或非 `safety_arbiter` | `E_SAFETY_ARBITER`（`Assembly.start` 同拒） |
-| 命令建议未接到仲裁器 | `E_SAFETY_ADVICE` |
-| validator 多于一个或不在 path 上 | `E_SAFETY_VALIDATOR` |
-| validator 否决缺少 `approved` 字段 | `E_SAFETY_VERDICT` |
+检查命名端口、方向、消息类型/schema、必需输入与重复接线、非反馈边环、命令双写者、Path 两端维度、配置缺失/重复键/类型与 launch 规格。反馈边必须标 `feedback` 和策略，不参加启动 DAG。`--package-index` 是静态声明快照，不能证明真实包可执行或插件实现可用。
 
-反馈边不参与启动 DAG：`merge.delta → map.delta` 可带 `policy.period_s`，启动不会互等。
+launch 支持：
 
-## 4. 示例（3D 双缓存）
+- node：rosrun package/type，实例参数作为私有参数。
+- include：roslaunch package/launch_file，实例参数合并为 launch args；不接受 namespace 或实例 config。
+- plugin：nodelet standalone；实例名/namespace/参数传给宿主。
+- nodelet_group：外部 manager 与多个 nodelet，由临时 launch 装载。
 
-`fixtures/graphs/graph_3d_cache.yaml` 起了**两个同类型 `map_cache` 实例**，各自观察同一
-点云/里程计，delta 经 `map_merge` 回到 `map3d.delta`（反馈边，5 s 策略）。这验证了：
+实例 `config` 相对 graph 文件解析，须为 YAML/JSON 映射，内容哈希进入 digest。node/plugin 的 config/param_files 已通过 [param_exec.py](param_exec.py) 预载 ROS 私有参数后 exec rosrun，graph params 最后覆盖；旧“只渲染、实际不加载”的限制已不适用。实例 config 替代 manifest param_files；param_schema 目前只登记，未做字段级 schema 校验。
 
-- 同组件多实例可配置；
-- 命名端口不会因消息类型相同而混淆；
-- 局部缓存 → 增量合并 → 全局地图的连线可被静态校验；
-- 启动序只依赖非反馈边，缓存更新环不会阻塞启动。
+manifest 的 node/plugin remap 会追加到命令；图边 remap 仍不能视为通用运行期自动改线。include 无通用 remap；nodelet 在既有探针中未按传入 remap 改题名，端口 topic/namespace 必须与真实发布订阅一致。临时 launch/参数规格文件不会由当前 default_command 自动回收。
 
-## 5. 边界（如实）
+Assembly 真正启动进程，条件就绪/失败清理/运行健康/停止链由 [orchestrator](../orchestrator/README.md) 承担；调用方须驱动健康检查。mux 最后停不替代消息级实时看门狗。
 
-- 真实入口：包索引已对上 20 个 v2 组件（11 个真实 + 9 个 `*_test_double`）；R981 的真实 2D
-  nav+mux 已由 Assembly 在 Gazebo 启动。R982 增加 `v8.fw.hdl_localization` 与两张定位图，
-  但 hdl 真实 launch 未执行（stock nodelet 需 `/leg_odom2`；M2-R2C 终止仿真域；GT 辅助 probe
-  不计独立定位）；faster_lio 仍为 include，3D/其他算法仍未 v2 化。
-- 实例 `config` 在 plan/launch 渲染层生效，但真实 `rosrun` 命令不加载 node 的
-  `rosparam` 文件；当前真实接入用 include 组件（参数走 launch args）。
-- `plugin` 是 `nodelet standalone` 单进程宿主；`nodelet_group` 支持外部 manager +
-  每个插件一条 `nodelet load ... --no-bond`，参数按插件节点名下发给 hosted nodelet。
-  R1017 用 `v8.fw.hdl_nodelet_group` 真实装载 `hdl_localization` 的
-  `GlobalmapServerNodelet` + `HdlLocalizationNodelet`（lite3.pcd），manager list 可核；
-  未喂点云/IMU，故不声明 `/odom` 精度；R1018 喂入 Gazebo m1 点云/IMU 后
-  45 s 内无 `/odom`（场景与地图不一致），探针保留待场景化地图复跑。
-  实测两者都忽略 remap 参数（topic 仍随节点名），端口 topic 需与真实名一致；
-  pluginlib 类只按包索引 `plugin_classes` 静态校验，不解析 XML/不验证类实现。
-  `nodelet_group` 运行期生成临时 launch（`/tmp/v8_nodelet_group_*.launch`），不回收。
-- include 组件没有通用 `remap` 入口：图中连入 include 的边必须让端口 topic 与上游一致，
-  否则真实启动不会改线；node/plugin 的 manifest remap 已进运行命令，图边 remap 仍只在
-  渲染骨架里。
-- 包索引是声明快照，不是 rospack 活体扫描；验证已接真实 Gazebo empty-world（R1006）
-  与 MuJoCo 落体（R1010）后端，未接场景化真值与算法轨迹评价；`gazebo_truth.py` 以
-  ground_plane 静态位姿、`mujoco_truth.py` 以自由落体探针证明通道，
-  不冒充算法评价；
-  热插拔/状态迁移已有 v0.3 与只读实例 overlap（R1009）；运行期改线与命令/TF 链
-  零中断未实现。
-- validator 否决走的是**编排层停止链**，不是 msg 级实时看门狗；50/500 Hz 的承载路径未做实测对比，
-  只记录启动 check+plan 的 p95。
-- 不改 `contracts/registry/composer/orchestrator` 既有语义；A1—A7 状态不变。
+## 当前运行接线
 
-## 6. 实例配置文件与预检
+- 2D：`v8.nav2d.*` include 启动实际导航栈与生产 mux；GlobalPlanner/Navfn、DWA/TEB 选择由图参数表达。
+- 3D：map provider→全局 topic planner→path_goal→local_native→三维 mux/载体。`path_goal_node.py` 仅把全局 Path 末点转为局部目标；原生局部规划不逐点消费整条全局路线。
+- `gazebo_carrier3d_node.py` 是 static box/SetModelState 的运动学载体，含支撑高度钳制；Gazebo 动态方盒和 MuJoCo 四足接触实验为不同执行链，不能互代。Lite3 carrier 只提供 TF/odom 位姿与健康，见[现场配置](../configs/lite3/README.md)。
+- localization_node 支持 sim_gt/faster_lio/ndt 来源；NDT `navigation_allowed=false`。GT-LIO raw/translated/rigid 比较在 localization_compare，不把事后对齐当独立精度认证。
+- `map_cache_node`/`map_merge_node` 和 typed v8_msgs 已有真实图入口；旧 graph_3d_cache 使用测试替身。MapDelta/持久化/语义桥细节见[representation](../representation/README.md)。
+- PCD 建图可生成 app/task 并登记本机地图；`--register` 修改本机 registry。地图和 `*.local.app.yaml` 不作为跨机固定资产。完整建图/可视化步骤见[Docker 指南](../../../../../docker/README.md)。
 
-- graph 的实例可加 `config: path/to/params.yaml`（相对 graph 文件或绝对路径）；该文件顶层必须是映射，
-  重复键、语法错误、缺失文件均在启动前拒绝，内容 sha256 进入 assembly digest 与 plan。
-- `config` 取代该实例 manifest 的 `launch.param_files`；graph 的 `params` 仍在其后覆盖。
-  `include` 组件不接受实例 `config`，用 `args`/`params`。
-- 预检同时检查：`nav_msgs/Path` 边两端组件 `dimensions` 必须一致（`E_GRAPH_DIMENSION`）；
-  组件自身的 `dimensions` 必须与 `occupancy_grid/v1`/`support_map/v1|v2` 输入输出匹配
-  （`E_GRAPH_MAP_DIMENSION`）。这能提前拦住“2D 局部接 3D 全局/地图”的直连。
-- 参数 schema（manifest 的 `param_schema`）目前只登记、未做字段级校验；字段级 schema 校验是后续切片。
+## 安全、独立验证与替换
 
-## 7. 收口状态
+`safety.check_plan` 允许只读图没有 `/cmd_vel` 写者；若有则最多一个且必须为 safety_arbiter。其他带 command_topic 的输出必须连到该仲裁器，否则拒绝。trajectory_validator 最多一个，须有 path 输入/输出并在图上；`enforce(assembly, verdict)` 仅显式 approved=true 放行，其余否决走装配停止链。
 
-F0—F8 已完成：证据索引、未接入项与回滚说明见
-[27 号补丁 §11/§12](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)；
-每批读数在 `note/进度/v8/M5/26-10-29/evidence/R955—R965`。
-不再新增并行组件模型；v1 manifest 与既有运行链语义不变。
+`verification.py` 将模拟器/真值后端放在算法图之外，拒绝真值话题与算法端口重叠。Gazebo 静态物体与 MuJoCo 落体后端证明验证通道可运行，不等于已完成场景化算法轨迹评价。`perf.py` 只测启动前 check+plan 开销，不测控制周期。
 
-## 8. V8-X3 v0.1 图形化选配与热替换
+`selector.py ... --out-html /tmp/selector.html` 生成候选下拉与预计算拒绝报告；导出的组合仍须 cli check。示例见[framework-selector.html](../../../../../docs/architecture/framework-selector.html)。
+
+`hotswap.prepare` 核同角色/端口与命令所有权；apply 停整图，apply_instance 先停目标再启替换，失败回滚；状态经 V8_HOT_SWAP_* 临时文件/环境传递，组件须自己读取。apply_overlap 仅允许无命令、无 TF 的只读 provider，先确认新实例就绪再停旧实例。命令/位姿源另有专用 mux 交接探针，不能据此称任意命令/TF 链热换已实现零中断。
+
+## 定向检查与证据
 
 ```bash
-cd ws/src/90_platform/v8_platform
-python3 -B framework/selector.py framework/fixtures/manifests \
-  framework/fixtures/graphs/graph_2d.yaml --out-html /tmp/selector.html
+python3 -B ws/src/90_platform/v8_platform/framework/test_framework.py
+python3 -B ws/src/90_platform/v8_platform/framework/test_runtime.py
+python3 -B ws/src/90_platform/v8_platform/framework/test_preflight.py
+python3 -B ws/src/90_platform/v8_platform/framework/test_safety.py
+python3 -B ws/src/90_platform/v8_platform/framework/test_navigation_app.py
+python3 -B ws/src/90_platform/v8_platform/framework/test_hotswap.py
 ```
 
-页面把每个实例的同角色候选组件列成下拉框；单实例替换的 `graph.check`/`safety.check_plan`
-结果（含拒绝码）预生成在页面里，组合结果导出为 JSON（YAML 兼容）后仍由 `cli.py check` 复核。
-仓库内示例：[framework-selector.html](../../../../../docs/architecture/framework-selector.html)。
-它不新增第二套组件模型，也不在浏览器里复制校验器。
-
-热替换 `hotswap.py` 使用 `hot_swap/v1` 合同：`prepare` 要求新旧组件角色与命名端口签名一致、
-`/cmd_vel` 所有权不变，输出带 epoch 与不透明 `state` 的记录。`apply` 停整装配后换组合；
-`apply_instance` 只停目标实例，核验旧进程退净后启动替换，其他实例 PID 与任务 `RUNNING`
-保持不变，新实例启动失败则重启旧组件并记 `rolled_back`。记录中的 `state` 写成临时 JSON，
-经 `V8_HOT_SWAP_STATE`/`V8_HOT_SWAP_INSTANCE`/`V8_HOT_SWAP_EPOCH` 交给新进程；组件须显式
-读取。仍是**先停后启**，不是零中断；运行期 TF 实际探测未做。
-
-`apply_overlap`（R1009）只用于**无命令、无 TF** 的实例（只读/遥测 provider）：先启动
-替换进程，`ready_check()` 通过后再停旧进程；失败则保留旧进程并记 `rolled_back`。
-替换实例用 `runtime_name` 得到独立 ROS 节点名，避免与旧节点同名互踢；`prepare` 支持
-`params` 覆盖，状态仍经 `V8_HOT_SWAP_*` 交给新进程。真实语义 provider 冒烟 v1→v2、
-查询零失败、`/sem_swap1` 接管。命令链/定位链因存在双写与 TF 所有权，不走 overlap。R1020 给 `apply_instance`
-增加 pre_stop/post_start 回调，用 mux hold 做安全交接（换源窗口零速，非零中断）。
+真实运行 smoke 如 plugin/nodelet_group、map_cache_graph、graph_3d_real、Gazebo/MuJoCo verification 会启动外部进程，按作业窗执行；typed 地图 smoke 须先构建 [v8_msgs](../../v8_msgs)。设计与收口记录见[27 号框架补丁](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)、[v8 进度](../../../../../note/进度/v8/README.md)。本文不复用旧固定测试条数，也不新增 formal/真机结论。

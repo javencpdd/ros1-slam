@@ -1,34 +1,36 @@
-# v8 组合求解（V8-05，R644—R645：结构检测＋兼容比对＋锁文件）
+# composer · 结构兼容检查与确定性锁
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
-> 2026-10-25 起。领域层组合求解器首切片：**角色依赖图与结构冲突检测**（22 号 §组合流程 步骤2＋步骤5 检测面）。
-> 消费 [注册表](../registry/)（12 份核心格真实 manifest）与契约层（经注册表透传）；不 import ROS。
-> 结构检测（R644）、兼容比对与确定性锁文件（R645）已交；消息级语义匹配与适配器选择归 V8-06/07。
+[composer.py](composer.py) 消费[注册表](../registry/README.md)，提供 `compose(store, ids)`、`compatibility(store, entries)` 与 `lock(store, ids)`。它检查声明之间能否组合，不启动 ROS，也不凭组合通过证明运行能力。
 
-## 1. 交付内容
+## 检查范围
 
-| 件 | 作用 | 边界 |
-| --- | --- | --- |
-| [composer.py](composer.py) | `load`（manifest 目录→注册表）＋`compose(registry, ids)`：角色重复／缺失角色（任一满足集）／角色环（防御）／TF child 双 parent／TF 环／命令话题双写者——全部 fail-closed；结果携带 declared_only/tested 证据分档与命令/TF 所有权表；CLI `composer.py DIR --select ids [--provenance P]` rc 0/5/9 | 结构层检测；语义兼容归流程3 |
-| compatibility() | 流程3：地图供需（生产者角色自述产出、需求方须有同类生产者，E_COMP_MAP_SUPPLY）＋运动学配对（运动链角色禁 not_applicable、规划器×控制器允许配对表，E_COMP_KINEMATICS）；报告条目随结果返回 | 消息级语义匹配归 V8-06/07，报告留 adapters 槽 |
-| lock() | 流程6：确定性锁文件——compose+compat 全过后生成，digest＝规范序列化 sha256（对选择序与重复选择不变），逐组件带 version/evidence/declared_only/sha256；CLI `--lock OUT` | 拒绝报告＝CLI rc5 JSON |
-| [test_composer.py](test_composer.py) | 17 项：结构检测十项（真实六件套正例、真实重复角色 dwa+teb、空选择、TF/命令注入负例）＋兼容三项（供需错配、not_applicable 运动角色、holonomic×differential 错配）＋锁三项（确定性/摘要重算/重复选择不变、CLI 锁与拒绝不留件） | 正例全部取自真实 manifest |
+- 选中 id 必须存在，重复选择去重；同一职责不能被重复分配。
+- 角色依赖按 `ROLE_DEPS` 的“任一满足”集合检查：global_localization/mapping/representation 需 odometry；global_planner 需 map_server/representation/mapping 任一；controller 和 trajectory_validator 需 local_planner；safety_arbiter 需 controller。
+- TF child 不能双 parent，TF 和角色依赖不能成环；每个 command_topic 只能有一个写者。
+- 地图消费者须找到同类型地图生产者；运动角色 controller/local_planner 不得使用 not_applicable，规划器与控制器运动学按允许配对表检查。global_planner 产路径，可声明不适用运动学。
+- 报告保留 declared_only/tested 分档、角色、命令所有权、TF child 与兼容条目。tested 的精确证据仍须回读 manifest。
 
-## 2. 语义要点
+`lock()` 在组合通过后生成规范序列化 sha256 摘要和逐组件 version/evidence/declared_only/sha256。选择顺序与重复选择不改变锁身份。它锁定输入声明，不是启动后的实际配置快照或许可结论。
 
-- **角色依赖图**（`ROLE_DEPS`，22 号 §1 职责表派生，「任一满足」集）：localization/mapping/representation→odometry；global_planner→{map_server, representation, mapping} 任一；controller→local_planner；trajectory_validator→local_planner；safety_arbiter→controller。local_planner 的地图依赖由 manifest 的 io 声明表达，归兼容比对切片（流程3），本层不预设。
-- **建议/仲裁分层**（22 号差异表「多节点直发最终 cmd_vel」行的组合层落点）：组件声明**建议话题**（如 `/cmd_vel_advice/dwa`），`/cmd_vel` 唯一写者＝safety_arbiter——dwa/teb manifest 的 command_topics 已按此修正（R644，依据＝22 号差异表原文）。
-- **证据分档随行**：结果携带 declared_only/tested 清单，供锁文件层（流程6）标注「未验证组件不得宣称支持」（22 号铁则的登记面）。
-- 理由码：`E_COMP_UNKNOWN_ID`／`E_COMP_DUP_ROLE`／`E_COMP_MISSING_ROLE`／`E_COMP_TF_CYCLE`／`E_COMP_TF_DUP`／`E_COMP_CMD_DUP`。
+## 与其他层的关系
 
-## 3. 未覆盖（移交后续件）
+消息级输入生产者匹配已在 [adapters/io_match.py](../adapters/io_match.py) 实现；信息损失声明在 [adapters](../adapters/README.md)。composer 返回的 `adapters` 槽仍是空列表，不能据此声称自动选择或执行了适配器。
 
-适配器选择与信息损失声明（流程4，V8-06/07）；资源预算与停止链运行时校验（流程5 运行面，V8-06）；消息级 io.inputs/outputs 逐对匹配（V8-07 适配器契约）；锁内含 provenance 快照（观察项，V8-06 编排可加）。
+运行预算、条件就绪、健康和停止链由 [orchestrator](../orchestrator/README.md) 实现。v2 实例/命名端口、显式连线和 Assembly 由 [framework](../framework/README.md) 管理；本组合器的角色唯一约束不替代 framework 的多实例图规则。
 
-## 4. 运行方式
+常见拒绝码：`E_COMP_EMPTY/UNKNOWN_ID/DUP_ROLE/MISSING_ROLE/TF_CYCLE/TF_DUP/CMD_DUP/MAP_SUPPLY/KINEMATICS`。
+
+## CLI 与测试
+
+从仓根执行；下面故意缺依赖角色，应返回 rc 5 和拒绝报告：
 
 ```bash
-python3 -B composer.py ../registry/data/manifests --select v8.odometry.faster_lio,v8.controller.dwa_adapter  # rc5 缺角色
-python3 -B test_composer.py   # 17 项
+python3 -B ws/src/90_platform/v8_platform/composer/composer.py \
+  ws/src/90_platform/v8_platform/registry/data/manifests \
+  --select v8.odometry.faster_lio,v8.controller.dwa_adapter
+python3 -B ws/src/90_platform/v8_platform/composer/test_composer.py
 ```
+
+CLI 可加 `--provenance FILE` 和 `--lock OUT`；锁只在通过后写出。rc 0 通过、rc 5 组合拒绝、rc 9 用法/前置错误。定向测试覆盖真实登记组合、冲突负例、兼容与锁稳定性，当前数量以测试输出为准。

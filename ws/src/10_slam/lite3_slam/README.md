@@ -1,25 +1,23 @@
-# lite3_slam（模块 M1）
+# lite3_slam · faster-lio 装配
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
-**统一索引头**（本头由文档批次生成并登记于 `note/04_配置改动diff.md`；下方正文为历史内容，未改写）
-层 `10_slam` ｜ 角色 `M1 建图（LIO）` ｜ 组织 faster-lio 的采图与存盘落点；faster_lio 本体是第三方副本。
-**全局索引**：`ws/README.md`（工作区定位图·红线速记·调用姿势）｜ `note/进度/00_总览.md`（进度唯一真身）｜ `note/04_配置改动diff.md`（哪些改动被许可）｜ `note/07_判据载体代际对照表.md`（判据载体代际现值）｜ `note/05_复验作业单.md`（验收纪律 A–F 段）
-**路径读法**：本表一律以 `ws/src/` 为根（如 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`）；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
+本包提供 faster-lio 启动与参数装配；算法本体在第三方包 `faster_lio`。
 
-本包速查：
+| 入口 | 实际配置 |
+| --- | --- |
+| `launch/10_slam_mapping.launch` | 加载 `config/faster_lio_outdoor.yaml`，启动 `faster_lio/run_mapping_online` 与 M1 心跳 |
+| `launch/10_slam_mapping_sim.launch` | 加载 `../../95_simulation/config/faster_lio_sim.yaml`，显式设置 `use_sim_time=true`，不带 M1 心跳 |
 
-| 要做 | 位置 |
-|---|---|
-| 真机采图 | `launch/10_slam_mapping.launch` |
-| 仿真建图 | `launch/10_slam_mapping_sim.launch`（`faster_lio_sim.yaml`，已设 `use_sim_time=true`；R1104 移动 GT/LIO 基线 rigid .0095/.0158 m） |
-| 仿真 GT 建图（R1119） | 不走本包 LIO：`95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py`（`/sim/odom_gt`+`/rslidar_points`）；PCD→support_map 用 `v8_platform/framework/map_from_pcd.py` |
-| LIO 参数 | `config/faster_lio_outdoor.yaml`（真机）；`../../95_simulation/config/faster_lio_sim.yaml`（仿真） |
-| 存盘产物 | `data/maps/`（**`data/maps/lite3.pcd` 是样张红线件**，各跑前后取 sha） |
+两套配置都读取 `/rslidar_points` 与 `/livox/imu`，但点格式不同：outdoor 为
+`lidar_type=4`，仿真为 `lidar_type=2`、`time_scale=1e3`。不能把配置名或话题相同当作布局相同。
+`lite3_gazebo_sim/launch/m1_mapping.launch`、`m2_mapping.launch` 仍加载 outdoor 配置，
+仿真 LIO 应选本包的 sim 入口并核对实际点布局、时钟与 TF。
 
-**仿真配置警告（R1119）**：`lite3_gazebo_sim/launch/m2_mapping.launch` 加载的是
-`faster_lio_outdoor.yaml`（C16 分支不消费逐点时间），仿真 `/rslidar_points` 是 Velodyne 布局，
-直接跑会把点云散到 ±40 m；仿真请用 `10_slam_mapping_sim.launch`，或按 R1119 用 GT 位姿建图。
+faster-lio 存盘落点为 `data/maps/lite3.pcd`，实验前后按现行证据规则备份和恢复，
+不要覆盖既有样张。第三方源码只允许已登记的存盘路径隔离改写。
 
-**红线/契约**：**唯一被许可的第三方源码改动**＝`faster_lio` 存盘路径的隔离改写，登记在 `note/04_配置改动diff.md` 并受 ISO 项[8] 长期监控；除此之外该包一字不改。
+GT 位姿建图另走 `lite3_gazebo_sim/scripts/mapping_recorder.py` 与
+`v8_platform/framework/map_from_pcd.py`；它不等于本包的 LIO/SLAM 验证。
 
+PCD转二维栅格使用[pcd2grid.launch](../pcd2grid/launch/pcd2grid.launch)。上游README中的build_octomap.launch、map.launch与config.yaml不在当前副本中；上游原文保留，不据旧示例判断本仓入口。

@@ -1,6 +1,6 @@
 # lite3_costmap_layers —— B 线自研代价层插件包
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库 `note/计划书v8/`；本文件描述当前源码和配置，不替代运行验收。
 
 > 批220／R566 新建（裁11＋裁12，真人 2026-10-22 六裁）。本包承载 B 线高程合并代价层的**源码**；
 > `lite3_navigation` 是壳包（ISO 项[9] 红线禁 `.cpp/.cc/.h`，`v3_isolation.sh` 可执行校验），
@@ -32,9 +32,11 @@
 | 文件 | 作用 |
 | --- | --- |
 | `include/lite3_costmap_layers/elevation_merged_layer.h` | 类声明（接口＋参数＋边界注释） |
-| `src/elevation_merged_layer.cpp` | 实现（`PLUGINLIB_EXPORT_CLASS` 在文件尾注册） |
+| `src/elevation_merged_layer.cpp` | 实现（`PLUGINLIB_EXPORT_CLASS` 在文件开头注册） |
 | `plugins.xml` | pluginlib 描述件（源码空间放包根、安装空间装进 share） |
 | `config/elevation_merged_layer.yaml` | ★示例★参数块（**未挂进任何在册配置**） |
+| `scripts/elevation_gridmap_publisher.py` | 独立逐帧点云→2.5D GridMap 生产者；默认订阅 `/rslidar_points` 与 `/sim/odom_gt`，输出本插件默认输入话题；不是 `w3_elevation_node.py` 的 OccupancyGrid 转接器 |
+| `scripts/elevation_probe.sh` | 生产/合并层实验辅助入口 |
 | `CMakeLists.txt` / `package.xml` | 构建与依赖声明（C++14；依赖 costmap_2d／pluginlib／grid_map_*） |
 
 ## 怎么验它真的在链路上
@@ -55,3 +57,7 @@
 - 坐标系：与 costmap 全局帧不同时用 `tf_` 做**平面**变换（只取 yaw＋平移；roll/pitch 不在 2D 代价语义内）。
 - `height_threshold: 0.15` 等判据值★是我方自定值、无在册实测锚★（与 X5「step>0.15m 出自我方 spike3d 设计稿」同族），
   上线前须按实验窗定档，不得当作已验门值引用。
+
+## 表征边界
+
+`ElevationMergedLayer` 是二维代价图消费层，独立生产者每帧只保留每个 XY 格的高程归约，默认消费仿真 GT 位姿。它不是 v8 多层支撑地图，也不能作为真机感知/定位验收。

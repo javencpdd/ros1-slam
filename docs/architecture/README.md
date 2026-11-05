@@ -1,36 +1,28 @@
-# 架构文档（当前态）
+# 架构附录与图源
 
-- 建模日期：2026-10-30（只读核对；未运行新批次）
-- 方法：system-modeler（当前态）＋ Graphviz；证据逐条见文末“证据与未知”
-- 范围：仓库内可执行代码与配置；不含真机现场状态
-- **不改变任何验收状态**：截至 R1113（2026-11-02）A2=`PASS*`，A1/A3/A4/A5/A6/A7=`PARTIAL`；V8-X2 真机属 L2
+> 最新更新时间：2026-11-05 11:49:54 CST。下列建模材料始于 2026-10-30；本轮只核对用途和文件在位，未重跑其中实验或重绘图像。
 
-## 阅读顺序
+**先读当前架构**：[项目架构与目录](../../note/架构/项目架构与目录.md)。它集中说明传统 launch 与 v8 app/graph 两条装配链、真实源码入口、两种 mux 和工作机边界。当前排程及能力状态见[执行队列](../../note/计划书v8/23_v8任务队列.md)与[进度入口](../../note/进度/README.md)。
 
-| 文档 | 回答的问题 |
+本目录是补充资料，保留独有的设计分析、HTML 视图和图源。其旧批次读数、模块枚数、未接入判断及路线建议只适用于原建模时点，不能覆盖现行源码或恢复已取消任务。
+
+| 补充材料 | 用途 |
 | --- | --- |
-| [current-system.md](current-system.md) | 系统由哪些部分组成、什么真的接通、边界在哪 |
-| [algorithm-swap.md](algorithm-swap.md) | 建图/定位/全局/局部/中间件今天分别怎么换 |
-| [target-framework.md](target-framework.md) | 目标框架（多地图/多机器人/任意中间件/仿真通行性）与当前差距、改造路线 |
-| [framework-v0.md](framework-v0.md) | 统一 YAML 组件图 v0.1：实例/命名端口/显式连线/锁、运行装配、MapDelta、机器人/验证配置、安全接线（F0—F8） |
-| [framework-selector.html](framework-selector.html) | 图形化选配页示例：候选组件、拒绝码与导出 |
-| [architecture-ros1-slam.html](architecture-ros1-slam.html) | 一页版：三张图＋状态卡（可直接浏览器打开） |
+| [current-system.md](current-system.md) | 早期当前态系统建模与命令链分析 |
+| [algorithm-swap.md](algorithm-swap.md) | 建图、定位、全局、局部和中间件替换机制分析 |
+| [target-framework.md](target-framework.md) | 目标框架与差距分析 |
+| [framework-v0.md](framework-v0.md) | YAML 组件图、运行装配和 MapDelta 的设计说明 |
+| [framework-selector.html](framework-selector.html) | 图形化选配示例；不据此证明现场组件可运行 |
+| [architecture-ros1-slam.html](architecture-ros1-slam.html) | 早期建模结果的单页展示 |
+| [evidence.md](evidence.md) | 建模时使用的 sourceRefs、置信度与未知项 |
 
-## 三张图
-
-| 视图 | 源文件 | 渲染 |
+| 图 | 源文件 | 派生图 |
 | --- | --- | --- |
-| L1 系统上下文 | [diagrams/system-context.dot](diagrams/system-context.dot) | [SVG](diagrams/system-context.svg) · [PNG](diagrams/system-context.png) |
-| L2/L3 运行/模块分层 | [diagrams/system-runtime.dot](diagrams/system-runtime.dot) | [SVG](diagrams/system-runtime.svg) · [PNG](diagrams/system-runtime.png) |
-| 四条命令/反馈链 | [diagrams/command-path.dot](diagrams/command-path.dot) | [SVG](diagrams/command-path.svg) · [PNG](diagrams/command-path.png) |
+| 系统上下文 | [system-context.dot](diagrams/system-context.dot) | [SVG](diagrams/system-context.svg)、[PNG](diagrams/system-context.png) |
+| 运行与模块分层 | [system-runtime.dot](diagrams/system-runtime.dot) | [SVG](diagrams/system-runtime.svg)、[PNG](diagrams/system-runtime.png) |
+| 命令与反馈链 | [command-path.dot](diagrams/command-path.dot) | [SVG](diagrams/command-path.svg)、[PNG](diagrams/command-path.png) |
 
-![系统上下文](diagrams/system-context.svg)
-
-![运行/模块分层](diagrams/system-runtime.svg)
-
-![命令链与反馈链](diagrams/command-path.svg)
-
-## 再生成
+在仓库根执行以下命令可重绘；需 Graphviz 与可用的中文字体（原图使用 `Noto Sans CJK SC`）：
 
 ```bash
 cd docs/architecture/diagrams
@@ -40,21 +32,4 @@ for f in system-context system-runtime command-path; do
 done
 ```
 
-依赖：Graphviz 2.4x；中文字体 `Noto Sans CJK SC`。
-
-## 状态图例
-
-| 颜色/线型 | 含义 |
-| --- | --- |
-| 绿实线 | 已接通运行（配置直证；部分为历史跑批，见证据） |
-| 橙实线 | 仿真实验，已有读数 |
-| 蓝虚线 | 设计层/仅单测，未接运行链 |
-| 灰点线 | 待接（S2/S3 等） |
-| 红虚线 | L2 未授权（真机链路） |
-
-## 证据与未知（摘要）
-
-- **高置信**：mux 七源/0.5 s/hold；MBF 的 GlobalPlanner+TEB/DWA；bringup 同时包含 mbf 与 safety；boundary 未被任何运行件引用；V8 全树 54 套件 0 失败（R965）。
-- **中置信**：ROS 2D 导航与 Gazebo 平面驱动按配置与历史跑批归入“已接通”，本次未活体复跑。
-- **未知**：`ros2qnx` 完整帧语义与 QNX 看门狗；真机 `/cmd_vel` 是否确为 mux 唯一写者。
-- 逐条 sourceRefs 与置信度见 [evidence.md](evidence.md)；仓库内正式登记以 `note/进度/00_总览.md` 与相关 R 记录为准。
+图的绿色/橙色/蓝色/灰色/红色及实虚线表示原材料中的运行、实验、设计、待接与 L2 边界；它们不是本轮重新验收的结果。正式时间线仍由[总览](../../note/进度/00_总览.md)索引。

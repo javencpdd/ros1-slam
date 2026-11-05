@@ -1,50 +1,55 @@
-# v8 适配器契约面 + A6 恢复（V8-07 首切片 R647；A6 R1071—R1106）
+# adapters · 接线、损失声明与定位恢复
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
-> 2026-10-26 起。M2 首件首切片：**消息级 io 匹配**（V8-05 流程3 留白闭合）＋外部输入白名单＋
-> 接线报告（composer 结果 adapters 槽位的前置）＋后端交换证据（A6 面设计层）。
-> 消费注册表与组合层；不 import ROS。仿真运行面按 25 号窗纪律另批。
+本目录兼有不依赖 ROS 的契约/状态机与 ROS 包装，不再整体标为“不 import ROS”。声明级接线和运行恢复是两种证据范围。
 
-## 1. 交付内容
+## 消息匹配与信息损失
 
-| 件 | 作用 | 边界 |
-| --- | --- | --- |
-| [io_match.py](io_match.py) | `msg_type`（『类型（注释）』解析）、`is_external`（传感器 sensor_msgs/*、任务级 /initial_path 等、平台心跳 liveness/health、静态地图文件——显式枚举不静默吞缺口）、`wiring(store, ids)`（每个非外部输入找到生产者，缺源＝E_ADAPTER_NO_SOURCE fail-closed；报告含 providers/external）；CLI `io_match.py wiring DIR --select=ids` rc 0/5/9 | 接线＝可行接线报告（谁可供谁），具体订阅关系归运行装配 |
-| [test_io_match.py](test_io_match.py) | 6 项：解析、八件套真实组合全闭合（dwa 全局路径←GlobalPlanner、scan 参考路径←GlobalPlanner、scan 点云←faster_lio 配准云、body_pose←faster_lio）、缺全局规划器负例（nav_msgs/Path 无源）、**hdl⇄lite3 换后端接线同形＋锁面可区分**、CLI 三态 | — |
+[io_match.py](io_match.py) 的 `wiring(store, ids)` 将每个非外部输入与选中组件输出按消息类型匹配；传感器、任务输入和心跳等外部类型须在白名单中。缺生产者报 `E_ADAPTER_NO_SOURCE`。报告列出可能 providers/external，不会修改真实 ROS 订阅。
 
-## 2. 伴随修正（消费暴露的三处不精，均有据）
+[declarations.py](declarations.py) 的 `losses` 给每个适配器列 kind/description/domain/evidence，未登记拒绝；空列表表示显式声明无损。组合样例会执行 compose+wiring+lock。hdl/lite3、DWA/TEB 的声明级接线同形不证明运行精度或运动能力等价。SCAN 抽稀、搜索平面与 2D 控制器的高度损失见[接缝探针](../probe_mode3/README.md)。
 
-1. **新入册 v8.global_planner.apt**（第 13 份 manifest＋provenance 第 13 条）：apt GlobalPlanner（NavFn 纯 2D、实栈 /planners=[GlobalPlanner] 历史证据）——六件套缺全局路径生产者由消息级匹配暴露，入册后闭合。
-2. **io 词汇修正**（3 份 manifest）：costmap 层输出改 `costmap_2d/Costmap（层插件…聚合进 costmap 服务）`、dwa/teb 局部代价图输入同型——原字符串非消息型，匹配层无法消费。
-3. **composer 运动链语义修正**：MOTION_ROLES 收窄为 {controller, local_planner}——global_planner 产出地图级路径不执行运动，kinematics=not_applicable 合法（apt 全局规划器入册暴露）。17 项测试复跑无回退。
-4. **teb kinematics 定案边界**（R642 挂账处置）：宿主 ws 无 teb/dwa 配置件（R616 十六件引用在容器面），differential 声明的佐证＝历史证据「TEB 2D 刚体假设」与实栈无横向速度迹象；**定案须容器面读配置，留运行批**（manifest 注记已更新）。
-
-## 3. 后端交换证据（A6 面「同任务接口换后端」设计层）
-
-- 定位面 hdl⇄lite3、控制器面 dwa⇄teb：**接线结构同形**（组件名归一后一致）＋**锁摘要可区分**——同任务接口换后端在组合层成立；运行面等价性归仿真（V8-13）。
-
-## 4. A6 恢复与 NDT 重定位（R1071—R1115）
-
-| 件 | 作用 |
-| --- | --- |
-| `localization_state.py` | 时效/跳变/稳定样本/lease generation 门；失效或 relocalize 撤销当前租约；旧轨迹不复活；CLI 可做 `cmd_vel` 拒绝门 |
-| `recovery_supervisor.py` | TRACKING→RELOCALIZING→候选→RECOVERING→新 lease→TRACKING；启动 bootstrap 只在 see observation 且有 lease 后收候选；deadline FAILED |
-| `a6_recovery_node.py` | ROS 包装：relocalize 服务、candidate JSON、backend/lease/status/command_allowed；支持 Empty/Trigger 服务与 backend 名 |
-| `ndt_recovery_bridge.py` | NDT `~relocalized` 事件→candidate；`score=1/(1+fitness/fitness_max)`；事件后 freshness 重试，不丢已认证位姿 |
-| `a6_native_recovery_live_smoke.py` / `a6_ndt_recovery_live_smoke.py` | Gazebo BBS/NDT 活体恢复；GT 只做后验门；空扫描 fail-closed 负控 |
-| `candidate_consensus.py`、`tracking_monitor.py`、`declarations.py`、`io_match.py` | 候选/跟踪/损失声明/消息级接线 |
-| `consensus_policy.py` / `consensus_gate.py` | NDT 候选与 BBS 绝对源共识在 0.5 m 内才放行并输出共识位姿；无/过期/不一致 fail-closed |
-
-- R1106 静态失锁最终 XY **.052642 m**、候选 **.057400 m**，lease 1→2；失锁期 gate `.1→0`；空扫描 FAILED、lease 2→2。运动候选停在 prior `.247788 m`，不作认证。
-- R1114：`/lease` 改为 latched，修掉 gate 晚订阅错过初始 lease 的启动竞态；静态复跑 **.048655 / .044988 m**，0.3 m 局部劫持两跑终态 **.043754 / .060690 m**，候选仍停在 prior（**.242—.250 m**），空扫描负控 FAILED、lease 2→2。0.6 m 探针（超出 0.4 m 搜索半径）候选/终态偏 **.5421/.5225 m**，A6 仍 `TRACKING`、gate 报 `HEALTHY`——系统级 fail-open 已登记，未修。
-- R1115：加 BBS 三分辨率绝对源共识门，NDT 候选与共识差 >0.5 m 即拒绝；A6 可要求 `source=bbs_consensus`、`agreement<=0.5`。活体：静态 **.057751 m**（共识 [1.5,0]）、0.3 m **.053147 m**（共识 [1.9,0]）；0.6 m 共识 [2.2,0] 与 NDT 候选差 **.647609** → A6 FAILED、lease 1、无 reset。堵的是 R1114 的 fail-open；BBS 非真实第二传感器，生产图需显式接入。
-- 测试：A6/共识定向 **30/30**；`test_localization_state` 6、`test_recovery_supervisor` 9、`test_ndt_recovery_bridge` 3、`test_consensus_gate` 4。
-- 边界：NDT 仍 monitor-only；四足/真机/长时 kidnapped 未认证；A6 仍 PARTIAL。
-
-## 5. 运行方式
+从仓根运行一个完整登记组合的接线检查：
 
 ```bash
-python3 -B io_match.py wiring ../registry/data/manifests --select=v8.controller.dwa_adapter,...  # rc0 报告
-python3 -B test_io_match.py   # 6 项
+python3 -B ws/src/90_platform/v8_platform/adapters/io_match.py wiring \
+  ws/src/90_platform/v8_platform/registry/data/manifests \
+  --select=v8.odometry.faster_lio,v8.global_localization.lite3,v8.map_server.apt,v8.representation.costmap_layers,v8.local_planner.scan_planner,v8.global_planner.apt,v8.controller.dwa_adapter,v8.safety_arbiter.lite3
 ```
+
+CLI rc 0 为报告、rc 5 为拒绝、rc 9 为用法错误。
+
+## 跟踪与租约
+
+| 入口 | 作用 |
+| --- | --- |
+| [localization_state.py](localization_state.py) | 时间新鲜度、跳变、稳定样本与递增 lease generation；失效/relocalize 撤销租约，旧轨迹不能复活；CLI 可作为命令拒绝门 |
+| [recovery_supervisor.py](recovery_supervisor.py) | TRACKING→RELOCALIZING→RECOVERING→新租约；候选、时限与失败状态机；bootstrap 仍需观测与租约 |
+| [a6_recovery_node.py](a6_recovery_node.py) | ROS odom/health/candidate/lease 接口、重定位服务调用及 backend/status/command_allowed 输出；lease 发布为 latched |
+| [tracking_monitor.py](tracking_monitor.py) | 参考对实际三向偏差、连续拒绝锁存 hold；实际停车仍需接安全链 |
+| [follower_node.py](follower_node.py) | 轨迹执行的 ROS 实验适配，须受定位/租约与安全仲裁约束 |
+
+## NDT 候选与绝对源共识
+
+[ndt_recovery_bridge.py](ndt_recovery_bridge.py) 把 NDT `~relocalized` 事件、健康/新鲜 odom 和 fitness 转成 candidate；分数为 `1/(1+fitness/fitness_max)`，不是经定标的定位概率。
+
+[consensus_gate.py](consensus_gate.py) 将原始候选与绝对定位候选比较，距离在 `--radius` 内且两者不过期才转发；转发使用共识源位姿。缺源、过期或不一致不放行。A6 wrapper 可用 `--require-candidate-source bbs_consensus --max-agreement-m 0.5` 要求来源与一致性字段；该实验数值不能擅自当作新冻结门值。
+
+默认接线为 `/a6/recovery/candidate_raw` + `/a6/consensus/candidate` → `/a6/recovery/candidate`，生产 graph 必须显式接入。BBS 共识不是第二个真实传感器。
+
+R1114 记录了超出局部搜索范围仍恢复租约的 NDT-only fail-open；R1115 共识门在该探针中拒绝候选。短时局部失锁结果与限制见[进度](../../../../../note/进度/v8/README.md)及 [NDT 说明](../../v8_ndt_odom/README.md)。NDT 仍 monitor-only，任意 kidnapping、连续导航后端切换和真机没有由本目录获得认证。
+
+## 测试入口
+
+```bash
+python3 -B ws/src/90_platform/v8_platform/adapters/test_io_match.py
+python3 -B ws/src/90_platform/v8_platform/adapters/test_declarations.py
+python3 -B ws/src/90_platform/v8_platform/adapters/test_localization_state.py
+python3 -B ws/src/90_platform/v8_platform/adapters/test_recovery_supervisor.py
+python3 -B ws/src/90_platform/v8_platform/adapters/test_ndt_recovery_bridge.py
+python3 -B ws/src/90_platform/v8_platform/adapters/test_consensus_gate.py
+python3 -B ws/src/90_platform/v8_platform/adapters/test_tracking_monitor.py
+```
+
+`a6_native_recovery_live_smoke.py` / `a6_ndt_recovery_live_smoke.py` 会操作 Gazebo/ROS 活体，需使用隔离作业窗。此 README 未重新运行这些实验。

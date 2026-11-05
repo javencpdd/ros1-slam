@@ -1,1210 +1,304 @@
-# ros1-slam · Docker 开发环境
+# ros1-slam · Docker 开发与仿真
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
 
-在容器里复刻 `lite3`（Jetson tegra194 / aarch64）上的 ROS1 Noetic 隔离部署沙箱，
-用于**开发、仿真验证与门禁跑批**，不替代真机部署。
+x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 ROS1，地图和现场配置各机独立。当前旧算法、地图准备和真机排程仍按[执行队列](../note/计划书v8/23_v8任务队列.md)保持取消；本文不授权启动硬件。架构与能力边界见[项目架构](../note/架构/项目架构与目录.md)和[进度](../note/进度/README.md)。
 
----
-
-## 一、项目关键结论（为什么镜像这么写）
-
-| 项 | 结论 | 对 Docker 的影响 |
-|---|---|---|
-| 技术栈 | ROS1 **Noetic** / Ubuntu 20.04 focal，catkin_make，C++14/17，Python3 | 基础镜像 `ros:noetic-ros-base-focal` |
-| 架构 | 目标机 tegra194 **aarch64**（JetPack 5 = Ubuntu 20.04），开发机常见 amd64 | 同一 tag 两种架构都有；**Jetson 上必须本地构建，不能拿 amd64 镜像** |
-| 构建系统 | `catkin_make`（不是 catkin_tools / colcon） | `ws/src` 缺顶层 `CMakeLists.txt`，需 `catkin_init_workspace` |
-| 关键编译开关 | `livox_ros_driver2` 用 `if(ROS_EDITION STREQUAL "ROS1")` 分流 | **必须传 `-DROS_EDITION=ROS1`**，否则走 ROS2 分支必挂 |
-| 第三方原生依赖 | Livox-SDK2 → `/usr/local/lib/liblivox_lidar_sdk_static.a` | 必须在编译 ws 之前单独编译安装 |
-| 硬编码路径 | `scripts/env.sh`、`.bashrc`、`scripts/mapping/m_*.sh` 里写死 `/home/ros1-slam/...` | 镜像内建同名用户 + 家目录**软链接**接住 |
-| 硬编码网络 | `ROS_MASTER_URI=http://192.168.1.103:11312`、`ROS_IP=192.168.1.103` | 全部改成环境变量注入，容器内默认 `127.0.0.1:11311` |
-| 数据库 / 缓存 / MQ | **没有**。本项目是机器人算法栈，状态只存在于 ROS 话题、TF、`data/maps/*.pcd`、日志文件 | 不需要 mysql/redis/kafka；compose 里的 `redis` 只是可选模板（`--profile extras`） |
-| 真正的"外部依赖" | ROS Master（11312）、Gazebo master（11345）、Livox Mid-360（192.168.1.201，UDP 56301/56401） | 端口映射 + 真机时 `network_mode: host` |
-| 排除项 | `30_perception/deeprobotics_local_height_map` 带 `CATKIN_IGNORE`（闭源、0 代码件） | catkin 自动跳过，无需处理 |
-
-**模块层**（`ws/src/`）：`00_drivers`（Livox/lslidar/qnx 桥）→ `10_slam`（faster_lio 建图）→
-`20_localization`（hdl/ndt/fast_gicp）→ `30_3rd`（SCAN 规划器五包）+ `30_perception` →
-`40_navigation`（mbf 联邦式 + lite3_scan 壳）→ `50_task`（SMACH）→ `60_safety`（`/cmd_vel` 唯一写者）→
-`70_bringup`（TOP 编排）→ `90_supervisor` → `95_simulation`（Gazebo）。
-
-**入口文件**：`scripts/env.sh`（环境入口）、`scripts/mapping/m_start.sh`（采图三窗一键起）、
-`ws/src/70_bringup/lite3_bringup/launch/mode_*.launch`（TOP 编排入口）、
-`ws/src/95_simulation/lite3_gazebo_sim/launch/m*_gazebo.launch`（仿真入口）。
-**R1119 键盘建图→自建 3D 地图→交互导航**见 §4.7，入口为
-`mapping_recorder.py`／`keyboard_teleop.py`／`framework/map_from_pcd.py`／`framework/app_runner.py`。
-
----
-
-## 二、产出文件
+## 一、文件与运行形态
 
 | 文件 | 作用 |
-|---|---|
-| `../.dockerignore` | 构建上下文忽略表（放仓库根，构建上下文就是仓库根） |
-| `Dockerfile` | 四阶段：deps → livox-sdk → builder → runtime |
-| `docker-compose.yml` | `roscore` + `slam`（bridge）+ `slam-host`（host 网络）+ 可选 `redis` |
-| `entrypoint.sh` | 装 ROS 环境、兜底 catkin 初始化、注入网络口径 |
-| `env.sh` | 容器内完整环境入口（先吃项目原 `env.sh`，再覆写网络口径） |
-| `build.sh` | 容器内增量/全量编译脚本 |
-| `docker/sim.sh` | 仿真统一入口：`probe` / `gazebo` / `smoke [stage]` 三模式 |
-| `docker/viz.sh` | 可视化入口：`check` / `gzclient` / `rviz-raw` / `rviz-map` / `rviz-nav` |
-| `docker/rviz_sim_raw.rviz` | rviz 视图·雷达原始点云（Fixed Frame=`rslidar`，订 `/rslidar_points`） |
-| `docker/rviz_sim_map.rviz` | rviz 视图·建图过程（Fixed Frame=`camera_init`，订 `/cloud_registered`） |
-| `docker/rviz_sim_nav.rviz` | rviz 视图·导航（Fixed Frame=`map`，订 costmap／stvl 体素／`/planning/bspline`／目标） |
-| `docker/rviz_mapping3d.rviz` | rviz 视图·键盘建图（Fixed Frame=`odom`，订 `/mapping/cloud`／`/sim/odom_gt`／Lite3 模型） |
-| `docker/foxglove/` | Foxglove 布局件与连接口径（路线 B，见该目录 `README.md`） |
-| `docker/lint.sh` | 构建前静态自检（Dockerfile RUN 引号配平 + `bash -n` + compose 解析） |
-| `docker/catkin_build.sh` | 镜像构建期的工作区编译（三步：configure → 预生成消息头 → 正式编译） |
-| `.env.example` | compose 变量模板 |
+| --- | --- |
+| [Dockerfile](Dockerfile) | `deps → livox-sdk → builder → runtime`；Noetic、catkin，仿真用 `PROFILE=sim` |
+| [docker-compose.yml](docker-compose.yml) | 开发、无头/桌面仿真、现场模板和 extras |
+| [.env.example](.env.example) | Compose 变量模板，`.env` 属本机配置 |
+| [entrypoint.sh](entrypoint.sh)、[env.sh](env.sh) | ROS、工作区、网络和可选 Xvfb 环境 |
+| [catkin_build.sh](catkin_build.sh) | configure → 预生成消息头 → 正式编译 |
+| [build.sh](build.sh) | 容器内增量构建，仅接受可选 `--clean`，**没有 `--slim`** |
+| [sim.sh](sim.sh) | `probe`、`gazebo`、`smoke [stageA/stageB/stageC/all]`、`clean` |
+| [viz.sh](viz.sh) | `check`、`gzclient`、`rviz-raw`、`rviz-map`、`rviz-nav` |
+| [foxglove/](foxglove/README.md) | rosbridge 协议、话题和手写布局 |
+| [lint.sh](lint.sh) | Dockerfile RUN、Shell 语法与 Compose 静态检查 |
 
----
+| 服务 | 用途与配置 |
+| --- | --- |
+| `roscore` + `slam` | bridge 开发域，master 缺省 `http://roscore:11312`；容器名 `ros1-slam-roscore`、`ros1-slam-dev` |
+| `sim` | CPU 无头仿真、Mesa/Xvfb；11313/11345；不请求 NVIDIA GPU |
+| `sim-viz` | 宿主 X 桌面仿真；同样发布11313/11345，当前 Compose 显式请求 NVIDIA GPU |
+| `slam-host` | host 网络现场模板，须核本机 master/IP 和单项许可 |
+| `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图 |
 
-## 三、命令速查
+ROS 服务共用 `ws/build`、`ws/devel` 等命名卷，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`。`sim` 与 `sim-viz` 还共用宿主端口，一次只选一套，不得并行重编同一份卷。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
 
-### 0 · 前置
+## 二、构建
+
+宿主机以本机仓库为例，异机替换仓根，不复制本机地图或 `.env`：
 
 ```bash
 cd /home/jack/ysc-code/ros1-slam
+# 首次配置才复制；已有 docker/.env 时先核对，勿直接覆盖
 cp docker/.env.example docker/.env
-# 让容器写出的文件归属你自己，而不是 root
-sed -i "s/^HOST_UID=.*/HOST_UID=$(id -u)/;s/^HOST_GID=.*/HOST_GID=$(id -g)/" docker/.env
+bash docker/lint.sh
 ```
 
-### 1 · 构建镜像（构建上下文必须是仓库根）
+模板当前选 `fishros2/ros:noetic-desktop-full`；Dockerfile 未传参时选 `ros:noetic-ros-base-focal`。两者不是同一构建输入。基础镜像、架构和代理须显式选择；旧机参数不证明当前机器已具备镜像或 GPU。
 
-```bash
-# 运行栈（默认）
-docker build -f docker/Dockerfile -t ros1-slam:noetic .
-
-# 含 Gazebo 的仿真栈
-docker build -f docker/Dockerfile -t ros1-slam:noetic-sim --build-arg PROFILE=sim .
-
-# Jetson 上内存吃紧时降并发
-docker build -f docker/Dockerfile -t ros1-slam:noetic --build-arg JOBS=2 .
-```
-
-> 首次全量编译较慢：x86 约 10–20 分钟，Jetson Xavier NX 约 40–90 分钟。
-> `deps` 层被缓存后，改代码重编只重跑 builder 层。
-
-### 2 · 启动 / 停止
+完整仿真和 RViz 镜像：
 
 ```bash
 cd /home/jack/ysc-code/ros1-slam/docker
-
-docker compose up -d --build        # 构建并后台启动（roscore + slam）
-docker compose ps                   # 看状态
-docker compose down                 # 停止并移除容器（数据卷保留）
-docker compose down -v              # 连数据卷一起删（下次要重编）
-
-# 真机形态：host 网络，直连 LiDAR
-docker compose --profile hostnet up -d slam-host
-
-# 可选外部件
-docker compose --profile extras up -d
+WITH_RVIZ=1 SLIM=0 docker compose --profile sim build sim
 ```
 
-单容器直跑（不用 compose）：
+基础仿真可用 `WITH_RVIZ=1 SLIM=1 docker compose --profile sim build sim`。`SLIM` 仅由 builder 给 **COPY 副本**施加 `CATKIN_IGNORE`，跳过列表以 Dockerfile 的 `SLIM_SKIP` 为准，包括部分定位、SCAN 等；它不是 `catkin_make --pkg` 白名单。需要被跳过的后端须完整构建，不在绑定的第三方源码中手工打忽略标记。
+
+手工构建从仓库根提供上下文，`.env` 不会自动转成 build args：
 
 ```bash
-docker run -d --name ros1-slam-dev \
-  --network host \
-  --shm-size=2g \
-  -e ROS1_MASTER_URI=http://192.168.1.103:11312 \
-  -e ROS1_IP=192.168.1.103 \
-  -v "$PWD/ws/src:/opt/ros1-slam/ws/src" \
-  -v "$PWD/scripts:/opt/ros1-slam/scripts" \
-  -v "$PWD/docker:/opt/ros1-slam/docker" \
-  -v "$PWD/data:/opt/ros1-slam/data" \
-  -v ros1_ws_build:/opt/ros1-slam/ws/build \
-  -v ros1_ws_devel:/opt/ros1-slam/ws/devel \
-  ros1-slam:noetic
-```
-
-### 3 · 进入容器 / 调试
-
-```bash
-docker compose exec slam bash                 # 进入（已装好 ROS + devel 环境）
-docker exec -it ros1-slam-dev bash            # 直跑方式
-
-# 容器内：装完整环境
-source /opt/ros1-slam/docker/env.sh
-
-# 容器内：改完 ws/src 后增量重编
-bash /opt/ros1-slam/docker/build.sh
-bash /opt/ros1-slam/docker/build.sh --clean   # 全量重编
-
-# 容器内：看包定位 / 话题
-rospack find faster_lio
-rostopic list && rostopic hz /Odometry
-rosnode list
-```
-
-### 4 · 看日志
-
-```bash
-docker compose logs -f slam                   # 容器 stdout
-docker compose logs -f --tail=200 roscore
-docker exec slam bash -lc 'ls -lt /opt/ros1-slam/logs | head'   # ROS_LOG_DIR
-docker exec slam bash -lc 'tail -f /opt/ros1-slam/logs/latest/*.log'
-```
-
-### 5 · 跑测试 / 门禁
-
-```bash
-docker compose exec slam bash -lc '
-  source /opt/ros1-slam/docker/env.sh
-  cd /opt/ros1-slam
-  bash scripts/verify/v_sh_py_syntax.sh <被检件清单>; echo "rc=$?"
-  bash scripts/verify/v_harness_generation_table.sh --check
-  bash scripts/verify/v3_isolation.sh; echo "rc=$?"          # 期望 0
-  bash scripts/verify/v_deferred_clause_scan.sh              # rc=1 只是提示
-'
-```
-
-> 门禁件依赖 `rospack find` / `catkin_make`，**必须先 source 环境**，
-> 否则会把"跑不动"误判成"隔离违规"（项目 README 里点名的在册教训）。
-
-### 6 · 起仿真 / 起编排（容器里）
-
-```bash
-source /opt/ros1-slam/docker/env.sh
-roslaunch lite3_gazebo_sim m2_gazebo.launch          # 仿真场地
-roslaunch lite3_bringup mode_sim_teb.launch goal_x:=3.0 goal_y:=0.0
-```
-
----
-
-## 四、仿真（Gazebo）能不能在 Docker 里跑？
-
-**结论：能，已验证跑通。** 2026-10-17 在本机（Docker 29.9.1 / x86_64）实机验证：
-镜像构建成功 → 容器起 Gazebo → 全部关键话题上线 → 三项判据指标达标。
-详见本节末「6.8 实机验证记录」。
-
-### 4.0 先算账：跑仿真到底要不要全量编译？
-
-**要编译，但"全量"只做一次，而且可以瘦身。**
-
-| 场景 | 要不要编 | 说明 |
-|---|---|---|
-| 首次构建镜像 | **要，且这是唯一一次重活** | 仿真的核心是 C++ 插件：`liblite3_planar_drive.so`、`liblivox_laser_simulation.so`、`faster_lio`。<br>而且 `lite3_gazebo_sim/CMakeLists.txt` 里 `find_package(gazebo REQUIRED)` ⇒ **必须用 `PROFILE=sim` 的镜像编，`core` 镜像根本编不出这些包** |
-| 之后每次跑仿真 | **不用** | 编译产物在命名卷 `ros1_ws_devel` 里，容器停了、重建了都不丢 |
-| 改了 `ws/src` 之后 | 增量即可 | `bash /opt/ros1-slam/docker/build.sh`（改 C++ 才需要；改 Python/yaml 直接生效） |
-
-**瘦身首编（推荐，省一半以上时间）**
-
-```bash
+cd /home/jack/ysc-code/ros1-slam
 docker build -f docker/Dockerfile -t ros1-slam:noetic-sim \
-  --build-arg PROFILE=sim --build-arg SLIM=1 .
-
-# 或者进容器后再编：
-docker compose exec sim bash /opt/ros1-slam/docker/build.sh --slim
+  --build-arg PROFILE=sim --build-arg WITH_RVIZ=1 .
 ```
 
-`SLIM=1` 只编白名单包（依赖由 catkin 自动带上），省掉的是三坨：
+`PROFILE=core` 不主动安装 Gazebo，而仓内仿真包需要它；能否全树编译取决于基础镜像与排除面，不能承诺官方 core 镜像直接编译整仓。`-DROS_EDITION=ROS1`、先编译 Livox-SDK2 及消息头预生成顺序由构建件处理。
 
-- `20_localization/fast_gicp` —— 自带 nvbio / Sophus / Eigen 三套 thirdparty，**源码量最大**
-- `30_3rd/*` —— SCAN 规划器五包（要 nlopt）
-- 真机侧 `lslidar_*` / `message_transformer`(ros2qnx) / `pcd2grid` / `kindr` 等
+## 三、启动、环境和日志
 
-白名单：`livox_laser_simulation lite3_gazebo_sim faster_lio lite3_slam lite3_drivers lite3_bringup lite3_navigation lite3_localization`
-
-**省不掉的**：`livox_laser_simulation/package.xml` 里写了 `<build_depend>livox_ros_driver2</build_depend>`
-⇒ **仿真仍然要编 Livox 驱动 + Livox-SDK2**（Dockerfile 的 stage 2 别删）。
-
-**一个 catkin 已知坑**：`--pkg` 白名单会写进 `CMakeCache.txt`。
-`build.sh` 的非 slim 分支已显式传 `-DCATKIN_WHITELIST_PACKAGES=` 清掉；如果你手工跑过
-`catkin_make --pkg`，下次务必先清，否则之后每次都只编那几个包。
-
-### 4.1 先看清仿真到底要什么（从源码查出来的，不是猜的）
-
-| 查证点 | 证据 | 含义 |
-|---|---|---|
-| 雷达传感器类型 | `urdf/lite3_planar.urdf.xacro:71` —— `<sensor type="ray">` | **CPU 光线投射，不是 `gpu_ray`** ⇒ **不需要 NVIDIA GPU，不用 `--gpus`** |
-| Gazebo GUI | `m1/m2_gazebo.launch` —— `gui:=false` | 只起 `gzserver`，不起 `gzclient` ⇒ 不需要把宿主机 X 接进来 |
-| 渲染开关 | `m1/m2_gazebo.launch` —— `headless="false"` | **不传 gzserver 的 `-r`** ⇒ gzserver 仍会初始化 Ogre 渲染引擎 ⇒ **容器内必须有 GL 上下文**：Mesa 软件渲染 + Xvfb（这是最容易踩的空） |
-| 世界模型 | `worlds/m1_world.world` —— `model://sun`、`model://ground_plane` | 必须有**本地模型库**（`gazebo11-common`），否则 Gazebo 联网拉 model database，离线必挂 |
-| ROS/Gazebo 域 | `verify/m2_smoke.sh:29` —— `ROS_MASTER_URI=127.0.0.1:11313`、`GAZEBO_MASTER_URI=127.0.0.1:11345` | **仿真自成一域**：`roslaunch` 在本容器内自起 master(11313)，**不需要外部 roscore 服务** |
-| 退净判据 | `m2_smoke.sh:58` —— `PORTS="11311 11312 11313 11345"` | 跑完 11311/11312 必须零监听；仿真容器天然满足（独立网络命名空间） |
-| 判据日志 | `m2_smoke.sh:16` —— `PAYLOAD=/tmp/m2_payload` | 容器内 `/tmp`，正常；**跑完要自己归档**，容器一删就没了 |
-| 样张 PCD | `m2_smoke.sh:18` —— `/home/ros1-slam/data/maps/lite3.pcd` | 仓库里 `data/maps/*` 被 gitignore，**这份样张大概率不在**；Stage C 会受影响，Stage A/B 不受（有 `-f` 保护） |
-
-### 4.2 三个必须条件（已补进配置）
-
-1. **软件 OpenGL**：`libgl1-mesa-glx libgl1-mesa-dri libglu1-mesa libosmesa6` + `LIBGL_ALWAYS_SOFTWARE=1`
-2. **虚拟屏**：`xvfb`，`USE_XVFB=1` 时 entrypoint 起 `Xvfb :99` 并设 `DISPLAY=:99`
-3. **本地模型库**：`gazebo11-common`（提供 `/usr/share/gazebo-11/models/{sun,ground_plane}`）
-   —— 这三条已写进 `Dockerfile` 的 `PROFILE=sim` 分支。
-
-### 4.3 一条性能红线（最可能让你"跑起来但判不了"的地方）
-
-`m1_world.world` 设 `max_step_size=0.001`、`real_time_update_rate=500` ⇒ **RTF 上限 0.5**。
-而 `m2_smoke.sh:33` 的 A0 前置判据是 **RTF < 0.25 判 INVALID（本轮作废重跑，不计 FAIL）**。
-
-> 也就是说：软件渲染 + 容器里跑，RTF 可能掉到 0.25 以下 —— 结果不是"仿真失败"，
-> 而是"这一轮判据作废"。如果读到 INVALID，先做这两件事再判被测件：
-> ① `real_time_update_rate` 从 500 调回 1000（世界件注释里写的官方口径）；
-> ② 给容器更多 CPU（`--cpus`），别让 make/gzserver 抢核。
-> 这是**判据载体口径问题**，不是代码 bug —— 别急着改 `m2_smoke.sh`（它是判据载体，改了要换代际）。
-
-### 4.4 跑起来
-
-> **命令读法（先看，能避免大半误会）**
-> 1. **每个代码块只做一件事**；标了 `终端 A/B/C` 的必须**另开 shell**，不要合并粘贴。
-> 2. `docker compose exec ... sim.sh smoke`、`sim.sh gazebo`、`gzclient`、`rviz-*` 都是**前台阻塞**：
->    跑起来会占住当前终端；关窗或 Ctrl+C 才返回，后面的命令不会自动执行。
-> 3. `cd` 统一用绝对路径；已经在该目录时重复执行也无害。
-> 4. 先 `probe`，看到端口/模型/插件全 OK 再跑 `smoke`；不要跳过自检。
-
-#### 4.4.0 先选路径（二选一，不是串行）
-
-| 目标 | 启动的容器 | 后续 |
-|---|---|---|
-| 只跑 `probe` / `smoke`，不需要 GUI | `sim` | 按 **4.4.1 路径 A** |
-| 要边跑边看 Gazebo / RViz | `sim-viz` | 按 **4.4.2 路径 B** |
-
-镜像只需构建一次（这一步不启动容器）：
+Compose 操作均在仓库 `docker/`。显式写服务名，避免 profile 启动同时拉起默认开发服务：
 
 ```bash
-cd /home/jack/ysc-code/ros1-slam/docker
-docker compose --profile sim build sim
-```
-
-> **不要**先跑完 `sim` 的 smoke 再起 `sim-viz`：两者共用 11313/11345，同时起会报端口冲突。
-> 要从一条路径切到另一条，先停当前容器（见 4.4.3），再按目标路径启动。
-
-#### 4.4.1 路径 A：无头 `sim`（推荐用于判据）
-
-**① 启动 `sim`**
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
-# sim 与 sim-viz 共用 11313/11345：先停 viz
-docker compose --profile viz stop sim-viz 2>/dev/null || true
-
-# 镜像已在 4.4.0 构建；首次没构建过就把 --no-build 换成 --build
 docker compose --profile sim up -d --no-build sim
-```
-
-**② 自检 `probe`**（单次执行，几秒）
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh probe
+docker compose ps
+docker compose logs --tail=200 sim
 ```
 
-成功时应看到 `=== 仿真环境自检 ===`，最后一行是：
+开发域另行选择 `docker compose up -d roscore slam`。`slam` 与 `sim-viz` 当前都含 NVIDIA device reservation，缺相应驱动/容器工具链时可能起不来；无 GPU 无头运行使用 `sim`。
 
-```text
-11311/11312/11313/11345 均无监听 ✔
-```
-
-并且模型、`liblite3_planar_drive.so`、`liblivox_laser_simulation.so` 都在。
-**任何一项 NOT OK 或缺失，先修它，不要继续跑 smoke。**
-
-**③ Stage A 冒烟**（前台阻塞约 2 分钟，是本块最后一条命令）
+`docker exec/compose exec` 不重新经过 entrypoint，新 shell 显式加载环境：
 
 ```bash
-cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim bash -lc '
+  source /opt/ros1-slam/docker/env.sh
+  rospack find faster_lio
+  ls -lt /opt/ros1-slam/logs'
+```
+
+开发日志用 `docker compose exec slam ...` 或真实容器名 `ros1-slam-dev`，不能用 `docker exec slam ...`。`HOST_UID/HOST_GID` 用于构建用户；当前 Compose 的 `user:` 被注释，仅改 `.env` 不会让运行进程自动成为非 root。
+
+改 C++ 后的增量构建：
+
+```bash
+docker compose exec sim bash -lc '
+  export CPATH=/opt/ros/noetic/include
+  bash /opt/ros1-slam/docker/build.sh'
+```
+
+`CPATH` 只在 builder 定义，runtime 不继承。`build.sh` 直接调用 catkin_make，不能替代干净构建的消息头预生成；需干净重建时优先重建镜像，按本机卷维护流程处理缓存。手工调用 `catkin_build.sh` 前还须确认顶层 `CMakeLists.txt` 和 Livox ROS1 `package.xml` 已按 Dockerfile 相同步骤生成。
+
+静态检查和正式门禁分别按 [lint](lint.sh) 与[门禁清单](../scripts/verify/gate_chain.txt)。环境、面清单、历史基线或授权范围缺失不等于算法通过/失败，本轮未复跑门禁。
+
+## 四、仿真操作
+
+### 4.4 无头 smoke 与场地
+
+`probe` 展示 GL、模型、插件和端口，**没有完整 fail-closed 判断**；必须检查缺失项，不能只看退出码。起跑前端口应干净，已运行后有监听并非新的失败。
+
+```bash
+# 前台阻塞，运行当前判据载体
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh smoke stageA
 ```
 
-成功时应看到：
-
-```text
-SUMMARY marks pass=11 fail=0
-M2 SMOKE: PASS
-```
-
-**④ 只看场地（可选，单独执行；它会保持 Gazebo 运行）**
+或只起场地：
 
 ```bash
 docker compose exec sim bash /opt/ros1-slam/docker/sim.sh gazebo
 ```
 
-> 不要把 ③ 和 ④ 连续放在同一个终端里：两者都会启动/占用 Gazebo；要换场景先 Ctrl+C 停掉当前进程。
+两者都会启动 Gazebo，只选一条。smoke 有效性、RTF 与 PASS/FAIL/INVALID 按原载体及当前授权判断；不为显示或提速改冻结判据、世界物理参数。本轮没有新 smoke 结果。
 
-若容器显示 `Up` 但 `docker port ros1-slam-sim` 为空（上一次端口冲突留下的半成品网络），
-重建一次即可：
+`sim.sh clean` 按名字匹配 gzserver、rosmaster、rviz、mapping 等进程，**不只清11313域**。仅在确认整个容器相关进程均归本次窗口时使用；实验共存时按本次 PID/启动句柄停止。
 
-```bash
-docker compose --profile sim up -d --no-build --force-recreate sim
-```
+### 4.6 桌面观察
 
-#### 4.4.2 路径 B：GUI `sim-viz`
+`sim-viz` 挂载 `/tmp/.X11-unix`。2026-10-29 起已停用 Xauthority cookie 绑定，以免容器在登录前建目录占住 GDM cookie 路径；不要恢复旧 `/run/user/1000/gdm/Xauthority` 挂载。
 
-**① 启动 `sim-viz`**（镜像已在 4.4.0 构建）
+主机须具备可用宿主 X 和当前 Compose 所需 NVIDIA 环境：
 
 ```bash
+# 宿主图形会话；DISPLAY以实际会话为准
+xhost +si:localuser:root
 cd /home/jack/ysc-code/ros1-slam/docker
-# ★ 先停 sim：sim 与 sim-viz 共用 11313/11345，不能同时起
-docker compose --profile sim stop sim 2>/dev/null || true
-docker compose --profile viz up -d --no-build sim-viz
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh check
-```
-
-**② 跑链并看画面**：转到 **4.6 路线 A 的终端 A/B/C**。
-Stage A 用 `rviz-raw` / `rviz-map`；`rviz-nav` 只在导航栈运行时用。
-
-**③ 不要另起 `sim`**：`sim-viz` 已经占着同一组端口；再起 `sim` 会冲突。
-
-#### 4.4.3 `sim` ↔ `sim-viz` 切换
-
-两者共用 11313/11345，**不能同时起**；切换时先停一个再起另一个：
-
-```bash
-# 无头 sim → GUI sim-viz
+# 确认 sim 的本次进程收尾后，再切换容器
 docker compose --profile sim stop sim
-docker compose --profile viz up -d sim-viz
-
-# GUI sim-viz → 无头 sim（镜像已构建，不重建）
-docker compose --profile viz stop sim-viz
-docker compose --profile sim up -d --no-build sim
+X_DISPLAY="$DISPLAY" docker compose --profile viz up -d --no-build sim-viz
+docker compose exec -e VIZ_HOST_X=1 -e X_DISPLAY="$DISPLAY" sim-viz \
+  bash /opt/ros1-slam/docker/viz.sh check
 ```
 
-判断谁占着端口：
+在同一个 `sim-viz` 内另开终端运行场地/smoke，以及 `viz.sh gzclient` 或 `viz.sh rviz-raw`。`viz.sh` 宿主 X 模式缺省软件渲染；是否硬件加速看实际 renderer，不因选择了 `sim-viz` 就称“真 GPU”。撤销本次 X 放行用 `xhost -si:localuser:root`。
+
+`rviz-raw` 固定 `rslidar`、看 `/rslidar_points`。`rviz-map` 缺 `/cloud_registered` 时会**自动启动 `m2_mapping.launch`**，不是无副作用旁观器，还会触及 faster-lio 默认 PCD 输出。`rviz-nav` 使用旧 `x2_g6` 命名空间，未必适合 MBF 或3D graph。
+
+浏览器观察见 [Foxglove](foxglove/README.md)。当前 Compose 未发布 VNC 5900；`sim` 的 entrypoint 已可能起 Xvfb :99，不能照旧段再起同号并宣称宿主5900可连。远程 GUI 需另行提供端口、认证和生命周期方案，本文不假定 VNC 已可用。
+
+### 4.6.1 交互式2D导航（MBF）
+
+先退出同域旧场地/smoke：
 
 ```bash
-docker ps --format '{{.Names}}\t{{.Status}}\t{{.Ports}}' | grep -E 'ros1-slam-sim|11313'
-ss -ltnp | grep -E ':11313\b|:11345\b'
-```
-
-`probe` 会打印：DISPLAY、`glxinfo` 软渲染器、gzserver 版本、sun/ground_plane 模型、
-`liblite3_planar_drive.so` / `liblivox_laser_simulation.so` 是否存在、端口是否干净。
-**任何一个 NOT OK 先修它，别直接跑 smoke。**
-
-#### 4.4.4 Gazebo 11 EOL 口径
-
-启动 `gzserver` 时可能看到：
-
-```text
-This version of Gazebo reaches end-of-life in January 2025.
-Consider migrating to the new Gazebo
-```
-
-这是 Gazebo 11 **classic** 的上游 EOL 提示，不是启动失败，也不影响 `probe` / `smoke` 读数。
-
-本项目当前明确冻结在 **ROS1 Noetic + Gazebo 11.15.1 classic**：
-
-- 新 Gazebo（`gz-sim`）与 ROS1 Noetic 不是 drop-in 替换；需要 ROS2 + `ros_gz`。
-- 现有 `liblite3_planar_drive.so`、Livox 激光插件、world/launch、消息与判据都按 classic 写；
-  迁移需要重写插件、转换世界/launch，并重跑历史证据，不能与现有 A1—A7 读数混比。
-- 现有对策：镜像/依赖版本冻结，仿真只在本机隔离网络内跑；EOL banner 保留，不隐藏。
-- **迁移新 Gazebo 属于独立的 ROS2/架构决策（L2），不在当前 ROS1 线内顺手改。**
-- 新的物理实验继续走已接好的 MuJoCo V8-X1 线；MuJoCo 不替代 Gazebo 正式判据。
-
-EOL 的实际风险是上游不再修安全/兼容问题；对本仓离线仿真而言，冻结镜像 + 固定依赖可接受。
-如果将来要换 Gazebo，应按新项目立项：ROS2 迁移、插件重写、世界/地图同源、判据重定标，一次做全。
-
-### 4.6 可视化：跑测试的时候怎么看过程
-
-**能看，三条路按场景选。** 项目里现成的可视化配置就有不少
-（`faster_lio/rviz_cfg/loam_livox.rviz` 看建图、`plan_manage/launch/default.rviz` 看导航），
-不用自己配。**R1119 的键盘建图 → 自建 3D 地图 → 交互导航是另一条四终端链，见 4.7。**
-
-**先分清技术面（R1121 后）**：
-
-| 技术面 | 入口/件 | 关系 |
-|---|---|---|
-| 2D 导航 | `interactive_2d.launch` + `mode_sim_teb`/MBF，RViz 2D Nav Goal | **另一套栈**：平面 `/map`、代价地图、MBF；不走 support_map |
-| 3D 导航 | `app_runner.py` + support_map + `support_planner` + `local_native` + `cmd3d_mux` + `gazebo_carrier3d` | 多层支撑面、带 z 的全局/局部规划；master 11537 / Gazebo 11538 |
-| 楼梯导航 | **同 3D 导航栈**；地图里出现 `step/slope` 边，局部启用踏面边界语义，必要时 `inflate_support_map` | **不是独立栈**，是 3D 导航在楼梯场景下的特化（R1121） |
-| 3D 建图 | `mapping_recorder.py` + `map_from_pcd.py` | 产 support_map/app/task，不执行导航 |
-| 四足物理爬楼 | V8-X1/MuJoCo 或真机 | 另一执行/动力学技术面，R1121 未覆盖；真机仍 L2 |
-
-**结论**：R1119 的平层 3D 导航与 R1121 的楼梯导航是**同一个 3D 技术面的两个场景**；
-§4.6.1 的 2D MBF 才是另一条技术面。楼梯只是把 3D 图上的 `step/slope` 边和踏面执行语义用起来，
-没有另起一套 app、规划器或载体。
-
-> ★ 项目纪律：`m2_smoke.sh` 是**判据载体**，改它要换代际、五连重算。
-> 所以可视化**不要**去改它 —— 另起一个 GUI 进程旁观同一套话题就行
-> （`viz.sh` 就是干这个的，判据域 11313/11345 不变）。
-
-#### 路线 A · 宿主机 X 直通（推荐）
-
-实测这台机器：X 服务器在 `:1`（`X.Org Foundation` 11.0），套接字 `/tmp/.X11-unix/X1`。
-把 X 套接字和**认证 cookie** 一起挂进容器即可，**不需要重建镜像**：
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
-# ★ 先停 sim：sim 与 sim-viz 共用 11313/11345，不能同时起
-docker compose --profile sim stop sim 2>/dev/null || true
-docker compose --profile viz up -d --no-build sim-viz
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh check      # 先自检
-```
-
-`viz.sh check` 会打印：`DISPLAY`、X 套接字是否存在、`OpenGL renderer`、
-gzclient/rviz 是否就位、当前话题。**renderer 那行拿不到值就先修 X，别急着起 GUI。**
-
-仿真就在 `sim-viz` 里起，**不要另起 `sim`**（否则端口冲突）。`sim.sh smoke` 与 `gzclient` / `rviz-*`
-都是**前台阻塞**进程，下面三块请**分别打开 shell**执行，不要整块复制成一条命令：
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
-# 终端 A：先跑链（会启动 Gazebo，约 2 分钟；看到 SMOKE start 再开 GUI）
-docker compose exec sim-viz bash /opt/ros1-slam/docker/sim.sh smoke stageA
-```
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
-# 终端 B/C：另开 shell；下面命令都是前台窗口，一个终端跑一个
-# 终端 B：旁观 Gazebo
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient
-
-# 终端 C：另开一个 shell 看 rviz
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-raw    # Stage A 推荐：雷达原始点云
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-map    # 建图视图（需 faster_lio）
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh rviz-nav    # 导航栈在跑时才用
-```
-
-如果只想持续看场地、不跑 Stage A，用 `sim.sh gazebo` 代替终端 A（它起 Gazebo 后保持运行），
-再按终端 B/C 开 GUI。**不要**把 `smoke stageA` 和 `sim.sh gazebo` 同时跑，两者会抢同一个 Gazebo master。
-
-> **排障先起 `rviz-raw`**：它只订 `/rslidar_points`、Fixed Frame=`rslidar`，不依赖 faster_lio／SCAN，
-> 场地起着就有画面。若它也是一片黑，问题在 X / GL（见上表），不在算法链。
->
-> **导航视图的口径**：`rviz_sim_nav.rviz` 的 Fixed Frame=`map`、订 `/x2_g6/costmap/costmap`
-> 与 `/x2_g6/costmap/stvl_obstacle_layer/voxel_grid`——`x2_g6` 是**在册探针段名**，
-> 实跑导航时若换了命名空间，改这两行话题即可（规律＝`<ns>/costmap/<插件名>/voxel_grid`）。
-
-`gzclient` 也可以直接并进仿真启动：`roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true`
-（该 launch 的 `gui` 参数默认 `false`，显式打开即可）。
-
-**踩过的坑（都已写进 compose）**：
-
-| 现象 | 原因 | 处置 |
-|---|---|---|
-| `Authorization required, but no authorization protocol specified` | 只挂了 X 套接字，没给认证 cookie | compose 已挂 `X_AUTH_FILE`（默认 `/run/user/1000/gdm/Xauthority`） |
-| 挂了 cookie 还是报同样的错 | **cookie 文件拿错了**。本机 `/home/jack/.Xauthority` 里只有 `unix:10`/`unix:11` 的 cookie，而桌面 X 是 `:1`，它的 cookie 在 `/run/user/1000/gdm/Xauthority` | 用 `X_AUTH_FILE` 指到对的文件；或直接 `xhost +local:root` 绕过（宿主机执行，可逆） |
-| `XAUTHORITY` 被设成容器里不存在的路径 | compose 里写了 `${XAUTHORITY:-...}`，把调用方 shell 的值继承进来了 | 已改为写死 `/tmp/.Xauthority`（与 `HTTP_PROXY` 那次同型的坑） |
-| renderer 一直是 `llvmpipe` | 镜像里全局 `LIBGL_ALWAYS_SOFTWARE=1` | `sim-viz` 已覆盖为 `0` |
-
-> 实测本机宿主机 X 给出的就是 `llvmpipe`（`Accelerated: no`）——这是**宿主机 X 会话自身的状态**，
-> 容器改不了。GL 上下文可用，gzclient/rviz 能正常开窗，只是帧率有限。
-> 想更快只能治宿主机 X（让它加载 NVIDIA GLX）。
-
-#### 4.6.1 交互式导航：自己设目标（MBF）
-
-Stage A 是**固定脚本测试**，跑完会杀掉 Gazebo，不能设任意目标。要交互式导航，最简用 2D 专用 launch：
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
   export GAZEBO_MASTER_URI=http://127.0.0.1:11345
   roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true'
 ```
 
-RViz 里用 **2D Nav Goal** 点目标即可；`mbf_goal_bridge` 会把 `/move_base_simple/goal`
-转成 `/move_base_flex/move_base` action。
-
-如果不在 launch 里带 RViz，也可以分终端手动起 `mode_sim_teb`：
-
-**终端 A · 起 MBF 导航栈**（前台阻塞）
+RViz **2D Nav Goal** 经 `mbf_goal_bridge` 转成 `/move_base_flex/move_base` action。脚本客户端另开终端：
 
 ```bash
-cd /home/jack/ysc-code/ros1-slam/docker
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
-  export GAZEBO_MASTER_URI=http://127.0.0.1:11345
-  roslaunch lite3_bringup mode_sim_teb.launch'
-```
-
-**终端 B · Gazebo 窗口**（另开 shell）
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
-docker compose exec sim-viz bash /opt/ros1-slam/docker/viz.sh gzclient
-```
-
-**终端 C · 发目标**（另开 shell；x/y 换成你要测的位置）
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker
-docker compose exec sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
   python3 -B /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose.py \
     --goal 3.0 0.0 --goal-backend mbf --wait-result-s 60'
 ```
 
-成功结果类似：
+默认 `sim_pose.py --goal` 面向另一 `move_base` 入口，MBF 必须显式选 `mbf`。本链使用平面地图/costmap，不走 support_map；操作演示不等于正式 A1—A7。
 
-```json
-{"goal":{"backend":"mbf","action":"/move_base_flex/move_base","sent":true,"state":3,"done":true}}
-```
-
-说明：
-
-- RViz 默认显示 `/map` 底图、MID360 点云和 Lite3 模型（`robot_state_publisher` 已在
-  `m1_gazebo.launch` 启动）；若 `costmap`/`Lite3` 显示项未勾选，在 Displays 面板勾上。
-- **默认 `sim_pose.py --goal`** 发 `/move_base_simple/goal`，只适用于 flat2d `move_base`；
-  MBF 栈必须加 `--goal-backend mbf`，否则目标没有消费者。
-- 重复设目标就重复终端 C 的命令，改 x/y/yaw。
-- 这是 `mode_sim_teb` 的 m2 free-map + 雷达障碍链；不是 Stage A，也不是正式 A1—A7 判据。
-- 收尾用 `docker compose exec sim-viz bash /opt/ros1-slam/docker/sim.sh clean`；
-  不要和 `smoke stageA` / `sim.sh gazebo` 同时跑，它们会抢同一个 Gazebo master。
-- `rviz_sim_nav.rviz` 订的是 `x2_g6` 命名空间，MBF 栈下需手动改 MBF 话题；
-  最简单先用 `gzclient` + `sim_pose.py` 看机体是否移动。
-
-#### 4.6.2 交互式 3D：RViz Publish Point 选面
-
-3D 用 app runner 的 `--interactive`：起 NIST 台阶世界、3D graph、support-map Marker、
-RViz 和 `operator_surface_picker`；**不预设 task goal**，等你在 RViz 里点面。
+### 4.6.2 交互式3D导航与选面
 
 ```bash
-cd /home/jack/ysc-code/ros1-slam/docker
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11537
-  export ROS_IP=127.0.0.1
+  export ROS_MASTER_URI=http://127.0.0.1:11537 ROS_IP=127.0.0.1
   export GAZEBO_MASTER_URI=http://127.0.0.1:11538
-  python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/app_runner.py \
-    --app /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
-    --execute --interactive --rviz \
-    --out /tmp/nav3d_interactive.json'
+  cd /opt/ros1-slam
+  python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+    --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
+    --execute --interactive --rviz --out /tmp/nav3d_interactive.json'
 ```
 
-- RViz 打开 `framework/fixtures/rviz/nav3d.rviz`；`app_runner --rviz` 会先发一个
-  `world→map` 静态 TF（graph 本身没有 TF 边），否则 Fixed Frame=`map` 会让 Marker/Grid 全空。
-  同时起 `robot_state_publisher` + `joint_state_publisher`，并用 `/v8/local/pose` 广播
-  `map→TORSO`，所以 RViz 里能看到 Lite3 模型跟随载体；模型是**显示件**，不参与规划。
-- support 面的 MarkerArray 显示项必须用 `Marker Topic: /v8/3d/viz/markers`
-  （Noetic 不认 `Topic:` 这个键，写错会静默订阅 `/visualization_marker_array`，
-  表现为 Grid/Path 有、支撑面全空）。
-- RViz 空白排查：`rosrun tf tf_echo world map` 应为单位变换；
-  `rosnode info /rviz_...` 的 Subscriptions 应含 `/v8/3d/viz/markers`；
-  `rostopic hz /v8/3d/viz/markers` 应约 50 Hz；`rosrun tf tf_echo map TORSO` 应输出
-  载体位姿 +0.18 m；`rostopic echo /v8/3d/global/status` 在未发目标时应只有
-  `E_PLAN_NOT_READY`，发目标后应出现 path points。
-- 这是独立 3D 栈：master **11537**、Gazebo **11538**，不要和 2D 的 11313/11345 链混用。
-- **这张卡只做 3D 导航**：固定 `nist_sensor_3d.yaml`（预生成 `nist_sensor@2` 图、
-  `localization.source=carrier`、默认 NIST 台阶世界）。它**自己不建图、不启动 faster-lio、
-  没有数据集/世界选择菜单**；`app_runner` 也没有 `--world` 参数。**这不等于仓库不能做**：
-  导入数据集/换世界、建图、LIO 定位、导航分别走下面的独立入口。
-  - 选世界/数据集：用 §4.7/§4.8 的 `m2_gazebo.launch world:=... model_path:=...`，
-    或在 app YAML 的 `carrier.world_launch/world/model_path` 指定（R1121 的
-    `nist_stairs_120_nav_v1_app.yaml` 就是这种写法）。
-  - 建图：§4.7/§4.8 的记录器 + `map_from_pcd.py` 链（GT 位姿建图，不是 LIO/SLAM）。
-  - LIO 定位：`nist_sensor_3d_lio.yaml` + `graph_3d_gazebo_loc.yaml`，并**另起
-    faster-lio 源**（`/Odometry`）；本卡不会替你启动 LIO。
-- 用自己建的图走同一 3D 入口：见 §4.7（键盘建图 → PCD → support_map → app_runner）。
-- 退出在 app runner 终端按 Ctrl+C；会停 graph/Gazebo/RViz 并写
-  `/tmp/nav3d_interactive.json`。这是操作员测试，不是 A1—A7 formal 或真机。
+前置：本机 registry 有 app 所需的 `nist_sensor@2`，图/任务/世界与地图匹配。`--interactive` 等待 RViz **Publish Point** 选面；`--rviz` 带 TF、markers 和显示模型。app 无 `--world` 参数，世界在 carrier YAML 选择。
 
-#### 4.7 键盘建图 → 自建 3D 地图 → 交互导航
+3D与楼梯使用同一 `support_map → support_planner → local_native → cmd3d_mux → gazebo_carrier3d` 技术面。`app_carrier` 是运动学载体，不能证明四足接触或真机爬楼。LIO定位变体还须独立 `/Odometry` 源，app 不替你完成 SLAM。
 
-这条链把「Gazebo 建图」和「RViz 交互导航」分成独立进程，键盘在单独终端控制：
+### 4.7 键盘采集 → 自建支撑图 → 导航
 
-1. **Gazebo + Lite3**（终端 1）
+这是仿真 LiDAR + **GT位姿**采集，不使用真机 `scripts/mapping/m_*.sh`。前四步各用一个终端，在 `docker/` 操作。
+
+**终端1：场地**
+
 ```bash
-cd /home/jack/ysc-code/ros1-slam/docker
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
   export GAZEBO_MASTER_URI=http://127.0.0.1:11345
   roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true'
 ```
 
-2. **建图记录器**（终端 2；输出 PCD 与 summary）
+**终端2：记录器**
+
 ```bash
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
   rosrun lite3_gazebo_sim mapping_recorder.py \
     --out /home/ros1-slam/data/maps/mapped_m1.pcd --voxel 0.03'
 ```
-记录器用 `/rslidar_points` + `/sim/odom_gt` + URDF 雷达安装角，把点云累积到 `odom` 系；
-这是**仿真 GT 位姿建图**，不是 LIO/SLAM。`m2_mapping.launch` 用真机 outdoor 配置，
-不要直接拿来跑仿真。
 
-3. **RViz 建图视图**（终端 3）
+**终端3：显示**
+
 ```bash
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
   rviz -d /opt/ros1-slam/docker/rviz_mapping3d.rviz'
 ```
-显示 `Mapping cloud`（`/mapping/cloud`）、Lite3 模型和 GT odometry。
 
-4. **键盘遥控**（终端 4；必须在前台终端，不要放进 roslaunch）
+**终端4：键盘（前台交互）**
+
 ```bash
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
+  export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
   rosrun lite3_gazebo_sim keyboard_teleop.py'
 ```
-`w/s` 前后、`a/d` 转向、`q/e` 横移、空格停、`Ctrl+C` 退出。走完一段后
-在终端 2 按 `Ctrl+C`，记录器写 `mapped_m1.pcd` 和 `mapped_m1.json`。
 
-5. **PCD → support_map + app/task/registry**（一次性离线）
+`w/s` 前后、`a/d` 转向、`q/e` 横移、空格停。记录器终端 Ctrl+C 落 PCD 和同名 JSON；显示看 `/mapping/cloud`，固定帧 `odom`。输出名是例子，勿覆盖已有本机图。
+
+**离线转换**：在具备工具依赖的环境，从仓库根执行：
+
 ```bash
-cd /home/jack/ysc-code/ros1-slam
-cp data/maps/mapped_m1.pcd data/maps/mapped_m1_gt1.pcd
 python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
-  --pcd data/maps/mapped_m1_gt1.pcd --map-id mapped_m1 --version 1 \
-  --x-min -5 --x-max 8 --y-min -5 --y-max 5 \
-  --write-app --register
+  --pcd data/maps/mapped_m1.pcd --map-id mapped_m1 --version 1 \
+  --x-min -5 --x-max 8 --y-min -5 --y-max 5 --write-app --register
 ```
-生成 `data/maps/generated/mapped_m1_v1.json`、`_app.yaml`、`_task.json`，并登记 registry。
-需要时可加 `--z-min/--z-max`、`--min-area` 等过滤参数。
 
-6. **用自建图做 3D 交互导航**
+生成本机 `data/maps/generated/mapped_m1_v1.json`、`_task.json`、`_app.yaml`，登记 registry。过滤、世界和出生点参数按采集实际选择，例子不作为现场参数。
+
+收尾前四终端的本次进程后，在 `docker/` 运行：
+
 ```bash
-# 先停掉终端 1—4 的建图 Gazebo/RViz/记录器；3D app 会用自己的 11537/11538
 docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11537 ROS_IP=127.0.0.1
+  export GAZEBO_MASTER_URI=http://127.0.0.1:11538
   cd /opt/ros1-slam
   python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
     --app data/maps/generated/mapped_m1_v1_app.yaml \
-    --execute --interactive --rviz \
-    --out /tmp/mapped_nav.json'
-```
-RViz 里 **Publish Point** 点自建支撑面，3D 全局/局部路径由 `/v8/3d/...` 发布；
-自建图使用 `graph_3d_gazebo_app_mapped.yaml`（仿真 wall watchdog 放宽到 90 s，
-避免慢 RTF 下局部规划先于仿真有效期超时）。
-
-边界：建图是 Gazebo GT 位姿 + 仿真 LiDAR，不是 LIO/SLAM、不是物理四足、不是真机；
-自建图仍走 `app_carrier` 运动学载体，导航结论不能当 A1—A7 formal。
-
-#### 4.8 导入开放数据集世界（NIST）：建图可，楼梯导航已打通
-
-现有导入件 `open_data_import.py` 已把 NIST 世界落到 `data/imports/venue_nist_dataset/`；
-本仓还有缩放版世界 `ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world`
-与模型库 `data/maps/worlds`。
-
-1. **带 Lite3 启动导入世界**（终端 1；`model_path` 必须包含 `nist_stairs_120_s020x170` 模型）
-```bash
-docker compose exec sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11313
-  export GAZEBO_MASTER_URI=http://127.0.0.1:11345
-  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
-    world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
-    model_path:=/opt/ros1-slam/data/maps/worlds \
-    spawn_x:=0 spawn_y:=-2.6 spawn_z:=0.15 spawn_yaw:=1.5708'
-```
-2. 记录器/RViz/键盘终端同 §4.7 的 2—4 步；把 `--out` 换成 `mapped_nist.pcd`。
-3. **PCD → support_map**（NIST 轮廓只保地面前缘与踏步）
-```bash
-python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
-  --pcd data/maps/mapped_nist_gt1.pcd --map-id mapped_nist --version 1 \
-  --out data/maps/generated/mapped_nist_v1.json --write-app --register \
-  --nist-profile --xy-gap 0.30 --start-x 0 --start-y -2.6 \
-  --world ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
-  --model-path data/maps/worlds
+    --execute --interactive --rviz --out /tmp/mapped_nav.json'
 ```
 
-4. **跑声明 NIST 楼梯导航（R1121；不需要先建图）**
-```bash
-# 宿主机：把声明支撑面轮廓 XY 各外扩 .20 m，消除台阶交叠死带并登记 registry
-cd /home/jack/ysc-code/ros1-slam
-python3 -B ws/src/90_platform/v8_platform/framework/inflate_support_map.py \
-  --map data/maps/nist_stairs_120_s020x170_support.json \
-  --out data/maps/generated/nist_stairs_120_nav_v1.json \
-  --map-id nist_stairs_120_nav --version 1 --margin .20 --register
+### 4.8 NIST数据世界与声明楼梯图
 
-# 容器：app_runner 自起 master 11537 / Gazebo 11538 / RViz
-docker compose exec sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  source /opt/ros1-slam/ws/devel/setup.bash
-  cd /opt/ros1-slam
-  python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
-    --app data/maps/generated/nist_stairs_120_nav_v1_app.yaml \
-    --execute --interactive --rviz \
-    --out /tmp/nist_stair_nav.json'
-```
-RViz 里 **Publish Point** 点 step5 顶面（`0, 1.34, 0.890358`）。R1121 读数：
-全局 **39 点**、载体 `(0.075,1.275,0.890358)`、局部 `reason=arrived`、
-app 六项 checks 全 true、到局部目标 **1.26e-6 m**。局部规划 `plan_ms` 到达时
-4.1 ms、最大 907 ms。**这不是第三套栈**：仍是 §4.6.2 的 `app_runner` + 3D graph +
-`local_native` 栈，只换成带 `step/slope` 边的图和对应局部配置。
+本机导入资产位于 `data/imports/venue_nist_dataset/`、`data/maps/worlds/`，不保证每台 clone 都有。先核世界/模型/registry，缺资产按来源包恢复，不自动重建现场地图。
 
-**边界（必须直说）**：
-- 执行载体是 **Gazebo ODE 运动学箱体 `app_carrier`**，不是四足物理步态/真机，不是 A1—A7 formal。
-- 楼梯图是**声明支撑面 + 外扩**，不是本次地面键盘建图直接产出的完整楼梯图；R1120 的
-  “地面键盘只看到下三层（z 0—0.525）、自建图 7 个碎面”仍是建图采集侧的边界。
-- 平层 m1 的 §4.7 链不受影响；导入世界 + 键盘建图 + RViz 3D 点云仍按 R1120 的步骤使用。
-
-#### 4.9 演示线 v0：纯 SLAM（m1_world_v2 + faster-lio vs GT）
-
-这条线**只测 SLAM/定位算法**：不跑导航、不跑 `app_carrier`/运动学，也不签 formal。
-只验证 SLAM 时不需要 support_map/app/task/step 语义——这些是 §4.7/§4.8 导航链的输入。
-用独立端口 11413/11445，不碰正在跑的 11313/11345 仿真。
+在已加载环境的容器内启动参数示例：
 
 ```bash
-# 1) 备份 faster-lio 硬编码输出，避免覆盖 data/maps/lite3.pcd
-docker exec ros1-slam-sim-viz bash -lc '
-  cp -a /opt/ros1-slam/data/maps/lite3.pcd /tmp/lite3.pcd.demo_bak'
-
-# 2) 独立 master 11413
-docker exec -d ros1-slam-sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11413
-  roscore -p 11413 >/tmp/demo_slam_master.log 2>&1'
-sleep 3
-
-# 3) 带定位特征的 m1_world_v2（headless；IMU/雷达由 Gazebo 插件给）
-docker exec -d ros1-slam-sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11413
-  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
-  roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false \
-    world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world_v2.world \
-    >/tmp/demo_slam_gazebo.log 2>&1'
-sleep 8
-
-# 4) faster-lio + 0.25 m/s 直行 20 s；GT 对 /Odometry
-docker exec ros1-slam-sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  source /opt/ros1-slam/ws/devel/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11413
-  export GAZEBO_MASTER_URI=http://127.0.0.1:11445
-  cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
-  python3 -B localization_compare.py \
-    --launch --duration-s 20 --speed .25 \
-    --out /tmp/demo_slam_compare.json'
-
-# 5) 收口：停独立 master/Gazebo 后恢复 lite3.pcd
-docker exec ros1-slam-sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11413
-  timeout 8 rosnode kill -a || true'
-# 若 gzserver/roslaunch 未退：用 ps -eo pid,args | grep m1_world_v2 取精确 PID 后 kill -TERM，
-# 不要用宽泛 pkill -f，避免误伤 11313 上正在跑的 NIST。
-docker exec ros1-slam-sim-viz bash -lc '
-  cp -a /tmp/lite3.pcd.demo_bak /opt/ros1-slam/data/maps/lite3.pcd'
+export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
+export GAZEBO_MASTER_URI=http://127.0.0.1:11345
+roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
+  world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
+  model_path:=/opt/ros1-slam/data/maps/worlds \
+  spawn_x:=0 spawn_y:=-2.6 spawn_z:=0.15 spawn_yaw:=1.5708
 ```
 
-R1122 读数：`/sim/odom_gt` 50 Hz、`/livox/imu` 200 Hz、`/rslidar_points` ≈9.4 Hz；
-pairs 10、gt 60、lio 54；**translated xy mean 9.5 mm / max 22.7 mm**，
-rigid yaw mean 5.3 mrad / max 9.1 mrad，rigid z mean 25.6 mm / max 54.5 mm。
-单次 scoped，只作 demo/算法效果；证据 `note/进度/v8/M5/26-11-03/evidence/R1122/`。
+采集同§4.7；输出名要贯穿采集/转换，不能直接引用未生成的 `mapped_nist_gt1.pcd`。
 
-#### 4.10 演示线 v1：受控两层 SLAM survey
+[map_from_pcd.py](../ws/src/90_platform/v8_platform/framework/map_from_pcd.py) 支持 `--nist-profile/--world/--model-path`。[inflate_support_map.py](../ws/src/90_platform/v8_platform/framework/inflate_support_map.py) 只写外扩地图并可登记 registry，**不生成 `_app.yaml/_task.json`**。历史声明楼梯 app 需连同本机数据包恢复，核地图ID/版本/世界；不能只跑 inflate 就调用假定存在的 app。
 
-`demo_two_floor.world` 是受控两层夹具（12×8 m 底层、1.6 m 上层、10×0.16 m 楼梯、
-墙体/家具特征）。`demo_slam_survey.py` 用 `/gazebo/set_model_state` 沿 GT 路径移动传感器，
-**不发布 `/cmd_vel`、不跑导航/运动学**；faster-lio 用 `/sim/odom_gt` 对拍。
+[R1120](../note/进度/v8/M5/26-10-29/R1120.md)地面采集没有完整覆盖楼梯；[R1121](../note/进度/v8/M5/26-10-29/R1121.md)是声明支撑面外扩后的运动学导航。两者地图来源不同，均非物理四足/formal结论。
 
-```bash
-# 独立 master/Gazebo 同 §4.9；世界与出生点
-roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false \
-  world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/demo_two_floor.world \
-  spawn_x:=4.5 spawn_y:=-2.0 spawn_z:=0.15 spawn_yaw:=0.0
+### 4.9—4.13 SLAM演示与AWS Hospital探针
 
-# 35 s GT survey；恒定 yaw 路径；脚本内部启动 faster-lio
-cd /opt/ros1-slam/ws/src/90_platform/v8_platform/framework
-python3 -B demo_slam_survey.py \
-  --path /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/config/demo_two_floor_path.json \
-  --launch --duration-s 35 --rate-hz 20 --out /tmp/demo_two_floor.json
-```
+| 记录 | 内容及复现入口 |
+| --- | --- |
+| [R1122](../note/进度/v8/M5/26-11-03/R1122.md) | m1_world_v2 + faster-lio对GT；[原命令](../note/进度/v8/M5/26-11-03/evidence/R1122/command.txt) |
+| [R1123](../note/进度/v8/M5/26-11-03/R1123.md) | 受控两层survey，含yaw跳变负例；[原命令](../note/进度/v8/M5/26-11-03/evidence/R1123/command.txt) |
+| [R1124](../note/进度/v8/M5/26-11-03/R1124.md) | AWS ros1世界和Fuel导入探针；[证据](../note/进度/v8/M5/26-11-03/evidence/R1124/) |
+| [R1125](../note/进度/v8/M5/26-11-03/R1125.md) | 大厅GT teleport小环，后发现贴物；[原命令](../note/进度/v8/M5/26-11-03/evidence/R1125/command.txt) |
+| [R1126](../note/进度/v8/M5/26-11-03/R1126.md) | 筛选走廊三种子，绝对z漂移仍在；[原命令](../note/进度/v8/M5/26-11-03/evidence/R1126/command.txt) |
 
-R1123 读数：恒定 yaw 版 pairs 21，translated xy mean **248.7 mm**、max 390.5 mm；
-rigid yaw mean **2.4 mrad**、rigid z mean 17.8 mm。首轮带 180° yaw 突变版
-translated 409.9 mm、rigid yaw 2.97 rad，保留为负例。LIO PCD 已另存；
-原 `data/maps/lite3.pcd` 已恢复。**只测 SLAM，不做导航/运动学；不是 formal。**
+原命令的容器/端口/输出只对应当批窗口，复现前核本机资源和许可。faster-lio 仍写默认 `data/maps/lite3.pcd`，先保护已有本机图，确认本次落盘与退净后再恢复，不在两个SLAM实验间共享这个输出。AWS资产留在本机忽略目录；电梯为静态模型，楼梯/多层几何不代表机器人通行。以上均为探针或scoped SLAM，非formal/真机结论。
 
-#### 4.11 AWS Hospital 导入探针（R1124，未接入）
+## 五、排障与数据保护
 
-`aws-robotics/aws-robomaker-hospital-world` 的 `ros1` 分支（commit `39969a9d`，许可为
-Amazon 2019 permissive）可下载并在 Gazebo 11.15.1 加载；**只是导入探针，未接入 `ws/` 或 launch；R1125 已在其单层 world 跑大厅小环 scoped，两层/三层未跑**。
+- 拉取失败先区分镜像元数据、daemon拉取和构建apt下载，不沿用旧机网络读数。Compose构建代理是 `BUILD_HTTP_PROXY/BUILD_HTTPS_PROXY/BUILD_NO_PROXY`，不是原指南的 `HTTP_PROXY` 三项。
+- 构建容器的 `127.0.0.1` 指自身；Dockerfile对loopback代理有拒绝检查，使用构建环境可达地址。daemon代理属系统配置，重启Docker会影响在用服务，不作为日常构建步骤。
+- `.env`只用于Compose，直接 `docker build` 要显式传 `ROS_BASE_IMAGE/ROS_BASE_TAG`。更换基础镜像后核架构/Noetic/Gazebo与依赖，旧缓存不等于干净重建证据。
+- 缺消息头按 `catkin_build.sh` 三步处理，不改第三方CMake或在源码打忽略标记隐藏失败。
+- 无头用Mesa/Xvfb，桌面看实际renderer；不恢复已停用cookie挂载。
+- ROS节点地址和动态端口须互访，只发布master不等于跨容器/跨机可用。独立rosbridge不能读取sim的loopback图。
+- 容器真实路径 `/opt/ros1-slam/ws`、兼容软链 `/home/ros1-slam` 会影响隔离检查读数；不得由本文私改判据或预设“期望0”。
+- 停止优先Ctrl+C/本次句柄；停本次容器用 `docker compose stop <服务名>`。`down`影响同项目其他服务，`down -v`还删除共享构建/日志等卷，不是日常清场命令。
 
-| world | 运行时模型 | 加载到 service 就绪 | 空载 RTF | RSS |
-|---|---:|---:|---:|---:|
-| `hospital.world` | 182 | 17.62 s | 1.00 | 640 MB |
-| `hospital_two_floors.world` | 361 | 30.07 s | 0.99 | 1.03 GB |
-| `hospital_three_floors.world` | 540 | 41.58 s | 1.00 | 1.42 GB |
-
-结论（必须按目标拆）：
-- **楼梯不需要驱动**：楼梯嵌在 `aws_robomaker_hospital_floor_01_walls` 的碰撞网格里，
-  0.20 m 级高、±3 m 共 30 级（两个 3 m 行程各 15 级），静态、无 joint/plugin。
-  单层 world 有 3 m 天花板，楼梯测试请用 `hospital_two_floors.world`。
-- **电梯不能直接用**：car/door/portal 三件都是 `static=1`、1 link、0 joint、0 plugin；
-  不能呼梯/开门/升降。要功能电梯需另加 lift 插件和门关节。
-- **两层/三层是复制层**：把 floor 1 的 floor/walls/ceiling/家具/楼梯整块复制到 z=3/6；
-  上层楼板在楼梯上行段足迹处有开口（源几何检查），但本次**没有跑机器人上楼梯**，
-  不能据此签“多层通行”。
-- 坡道 `ramp_01` 只有约 0.176 m rise，是电梯口门槛坡道，不是 3 m 楼层连接器。
-- 本机 `/usr/bin/python3` 没有 `pip`/`docopt`，官方 `setup.sh` 的 pip 行未端到端跑通；
-  本次按同一 43 模型清单直接走 Fuel API，43/43 成功。资产留在
-  `data/imports/aws_hospital_probe/`（未入库）。
-- **探针本身不是 SLAM 结果**：本次只加载世界并读数；R1125 已在单层 world 补大厅小环
-  scoped（0.422 m mean），两层/三层/楼梯仍未跑。
-
-```bash
-# 源（默认分支只有归档 README）
-git clone -b ros1 https://github.com/aws-robotics/aws-robomaker-hospital-world.git \
-  /home/jack/ysc-code/ros1-slam/data/imports/aws_hospital_probe
-cd /home/jack/ysc-code/ros1-slam/data/imports/aws_hospital_probe
-./setup.sh   # 需 python3-pip + requests/lxml/docopt；本机缺 pip，改用等价 Fuel 直下
-
-# 加载（独立 master；不要占用 11313/11345 的 NIST 仿真）
-docker exec -d ros1-slam-sim-viz bash -lc '
-  source /opt/ros/noetic/setup.bash
-  export ROS_MASTER_URI=http://127.0.0.1:11413
-  export GAZEBO_MASTER_URI=http://127.0.0.1:11455
-  export GAZEBO_MODEL_PATH=/opt/ros1-slam/data/imports/aws_hospital_probe/models:/opt/ros1-slam/data/imports/aws_hospital_probe/fuel_models:/usr/share/gazebo-11/models
-  export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:/opt/ros1-slam/data/imports/aws_hospital_probe
-  exec gzserver /opt/ros1-slam/data/imports/aws_hospital_probe/worlds/hospital_two_floors.world \
-    -s libgazebo_ros_api_plugin.so --verbose'
-
-# 读数；停进程用精确 PID，不要宽泛 pkill -f
-rosservice call /gazebo/get_world_properties
-gz stats -d 3
-```
-
-完整读数、楼梯碰撞 bbox、Fuel manifest 与命令见
-`note/进度/v8/M5/26-11-03/evidence/R1124/`。
-
-#### 4.12 演示线 v2：AWS Hospital 大厅小环 SLAM survey（R1125）
-
-在 R1124 的 `hospital.world`（182 模型）上带 Lite3，用 GT teleport 沿 **8 m 大厅小环**
-（`config/demo_hospital_path.json`，0.2 m/s、40 s、20 Hz）跑 faster-lio vs `/sim/odom_gt`；
-独立 master 11413 / Gazebo 11445，不跑导航/步态、不发 `/cmd_vel`、不接 support_map。
-
-| 运行 | pairs | translated xy mean | translated xy max | translated z mean | rigid yaw mean |
-|---|---:|---:|---:|---:|---:|
-| r1 | 67 | 0.4513 m | 0.9785 m | 0.1292 m | 9.02 mrad |
-| r2 | 68 | 0.3551 m | 0.7557 m | 0.1354 m | 8.12 mrad |
-| r3 | 62 | 0.4597 m | 0.8258 m | 0.1498 m | 13.05 mrad |
-| 三次均值 | 197 | **0.4220 m** | 0.9785 m | **0.1381 m** | **10.06 mrad** |
-
-静止对照 36 pairs：translated xy mean **0.0573 m**、z 0.0329 m、rigid yaw 1.69 mrad。
-说明医院 rich 场景比 two_floor 难（248.7 mm→422 mm），静止稳定、运动中漂移；
-**不是 formal，也不是导航/通行结论**。路径可能穿过静态几何（teleport 不做碰撞确认）。
-完整命令与边界见 `note/进度/v8/M5/26-11-03/evidence/R1125/command.txt` 与
-[R1125](../note/进度/v8/M5/26-11-03/R1125.md)。R1126 的实时 LiDAR 检查发现该大厅小环
-min clearance 0.168 m（9/41 < 0.35），所以 §4.12 的 xy 漂移含路径贴物因素；干净读数见 §4.13。
-
-#### 4.13 演示线 v2b：AWS Hospital 安全走廊 3 seeds（R1126）
-
-先做实时 LiDAR 路径空隙筛选：大厅小环 min 0.168 m（9/41 < 0.35）不合格；改走 y=-8 走廊
-三条 8 m 段（safe A/B/C，min 0.52 m、0 个 < 0.30）。每段 0.2 m/s、40 s、GT teleport；
-独立 11413/11445，不跑导航/步态、不发 `/cmd_vel`、不接 support_map。
-
-| seed | pairs | translated xy mean | translated xy max | translated z mean | translated z max | RPE trans mean/max | RPE z mean | RPE yaw mean |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| A | 79 | 0.2671 m | 0.4053 m | 0.9385 m | 1.9884 m | 0.0398 / 0.1715 m | 0.2587 m | 1.706 mrad |
-| B | 71 | 0.2790 m | 0.4175 m | 1.0055 m | 2.0306 m | 0.0497 / 0.1949 m | 0.2804 m | 1.699 mrad |
-| C | 88 | 0.2625 m | 0.3943 m | 0.9699 m | 2.0209 m | 0.0374 / 0.1696 m | 0.2482 m | 1.680 mrad |
-| 均值 | 238 | **0.2695 m** | 0.4175 m | **0.9713 m** | 2.0306 m | **0.0423 / 0.1949 m** | **0.2624 m** | **1.695 mrad** |
-
-无 >1 s LIO 间隔、无 xy > 0.5 m 段；PCD 点数 126,054/120,022/146,622，z bands 79/79/81。
-横向/RPE 好，绝对 z 漂移 0.97 m（max 2.03 m）仍在；3 条是重叠走廊段，不是独立场景。
-**非 formal、非导航/通行结论**。完整命令见
-`note/进度/v8/M5/26-11-03/evidence/R1126/command.txt` 与
-[R1126](../note/进度/v8/M5/26-11-03/R1126.md)。
-
-#### 路线 B · Foxglove 网页端（不需要 X，任意机器浏览器）
-
-项目自带的 `lite3_bringup/mapping_viz.launch` 就是为它设计的
-（`/map_snapshot` 30s 一条全图 + URDF 模型自动跟随 `/Odometry`）。
-**布局件与连接口径见 `docker/foxglove/README.md`**（含手工摆面板的兜底步骤）。
-
-```bash
-docker compose --profile extras up -d rosbridge      # 起 rosbridge(9090)，需 PROFILE=sim 镜像
-docker compose exec sim bash -lc '
-  source /opt/ros1-slam/docker/env.sh
-  export ROS_MASTER_URI=http://127.0.0.1:11313
-  roslaunch lite3_bringup mapping_viz.launch'
-```
-
-然后浏览器开 https://foxglove.dev → 新建布局 → `Foxglove WebSocket` 连
-`ws://<宿主机IP>:9090`，固定参考系 `camera_init`，加 3D 面板订阅 `/map_snapshot`。
-
-#### 路线 C · 容器内 VNC（无 X 的远程机器）
-
-镜像已装 `x11vnc`；容器里起一块虚拟屏再开 VNC：
-
-```bash
-docker compose exec sim bash -lc '
-  export DISPLAY=:99 LIBGL_ALWAYS_SOFTWARE=1
-  Xvfb :99 -screen 0 1280x1024x24 & sleep 2
-  x11vnc -display :99 -forever -shared -rfbport 5900 &'
-```
-
-宿主机（或任意能连到 5900 的机器）用 VNC 客户端连 `<宿主机IP>:5900`。
-软渲染下帧率有限，适合"看个大概"，细看请用路线 A。
-
-#### 三条路怎么选
-
-| 场景 | 路线 |
-|---|---|
-| 就坐在这台机器前，有桌面 | **A**（真 GPU，最流畅） |
-| 远程 SSH、想用浏览器看 | **B**（零 X 依赖，还能分享布局） |
-| 远程 SSH、只有 VNC 客户端 | **C**（软渲染，凑合） |
-
-#### 跑批时的建议搭配
-
-`m2_smoke.sh` 本身**不需要 GUI**，两种跑法二选一：
-
-- **无头**：用 `sim`，`docker compose exec sim ... sim.sh smoke stageA`；跑完按退净判据确认 11311/11312 零监听。
-- **要同时看画面**：用 `sim-viz` 跑整条链（`docker compose exec sim-viz ... sim.sh smoke stageA`），
-  再在**同一个 `sim-viz` 容器**里 `viz.sh gzclient / rviz-map` 旁观。
-
-不要 `sim` 和 `sim-viz` 同时起：两者共用 11313/11345，第二个会直接报
-`Bind for 0.0.0.0:11313 failed: port is already allocated`。
-
-
-### 4.5 没跑通的兜底判断顺序
-
-`/clock` 出不来 → gzserver 没起来 → 看 `probe` 的 GL/模型两行（99% 是这俩）
-→ `/rslidar_points` 出不来 → `liblivox_laser_simulation.so` 没加载，看 `GAZEBO_PLUGIN_PATH`
-→ `/livox/imu` 出不来 → IMU 插件 `update_rate=200` 在软渲染下喂不饱，属 RTF 问题
-→ 全出但判 INVALID → RTF<0.25，按 4.3 处理
-→ GUI 起不来 / 花屏 → 看 `viz.sh check` 的 `OpenGL renderer` 那行，按 4.6 选路线
-
----
-
-## 五、注意事项（坑位清单）
-
-1. **架构必须一致**：aarch64 机器上必须用 aarch64 镜像。跨架构跑要么起不来，
-   要么 qemu 慢到不可用。核对：`docker image inspect ros1-slam:noetic --format '{{.Architecture}}'`。
-2. **catkin devel 空间烧死绝对路径**：`ws` 在容器里的路径固定为 `/opt/ros1-slam/ws`。
-   换了路径就要全量重编，别挪。
-3. **`-DROS_EDITION=ROS1` 不能漏**：漏了 `livox_ros_driver2` 走 ROS2 分支，
-   报 `find_library liblivox_lidar_sdk_shared.so REQUIRED` 找不到。
-4. **文件权限**：容器默认以 root 跑，写进 `ws/src` 的文件在宿主机上是 root 属主。
-   把 `.env` 里的 `HOST_UID/HOST_GID` 设成 `id -u`/`id -g`，并在 compose 里放开 `user:` 那行。
-   （Dockerfile 里变量名必须叫 `HOST_UID` —— bash 把 `UID` 当只读内置变量会覆盖掉传入值。）
-5. **依赖缓存**：`deps` 层放在最前面就是为了命中缓存。改 `Dockerfile` 时尽量只动后面几层；
-   真正要清缓存：`docker build --no-cache` 或 `docker builder prune`。
-6. **端口冲突**：`11311/11312/11313/11345/56301/56401` 是项目在册端口。
-   宿主机上若已有 ROS1 或 foxy 栈在跑，会 `bind` 失败。
-   排查：`ss -lntup | grep -E '1131[123]|11345'` 与 `ss -lnup | grep 56[34]01`。
-   真机形态建议直接 `network_mode: host`，让容器和宿主机共用一套端口。
-7. **`network_mode: host` 时 `ports:` 会被忽略**，别指望映射生效。
-8. **源码热更新的边界**：`ws/src` 是挂载的，改 Python 节点（rospy）通常直接生效；
-   改 C++ / 新增包 / 改 `package.xml` 必须进容器跑 `build.sh` 重编。
-   `ws/build` 与 `ws/devel` 用命名卷持久化，容器重建不丢；换镜像后要 `--clean` 重编。
-9. **`ws/src/CMakeLists.txt` 仓库里没入库**：镜像构建时会生成，
-   但用 `-v` 挂宿主机 `ws/src` 后会被覆盖掉 —— entrypoint 与 build.sh 都有幂等兜底重建
-   （会在宿主机 `ws/src/` 下生成一个符号链接，属预期，可加进 `.gitignore`）。
-10. **Gazebo 需要 `/dev/shm`**：compose 已给 `shm_size: 2gb`；`docker run` 记得加 `--shm-size=2g`，
-    否则 gzserver 会莫名崩。
-11. **GUI（rviz / gzclient）**：需 `WITH_RVIZ=1` 构建 + 挂 `DISPLAY` 与 `/tmp/.X11-unix`，
-    宿主机先 `xhost +local:root`。SSH 无 X 的环境别开 `rviz:=true`
-    （项目里 `required=true` 会拖死 launch —— 已在 `mbf_navigation.launch` 里默认 `rviz:=false`）。
-12. **镜像体积**：core 约 4–6 GB，sim（含 Gazebo）约 7–9 GB。`.dockerignore` 已挡掉
-    `.git`、证据日志、`ws/build`、`ws/devel`、`data/maps`，别轻易放宽。
-13. **`fast_gicp` 的 thirdparty 子模块**（Sophus/nvbio/Eigen/pybind11）若编译报错，
-    多半是子模块没同步；本项目是"原样复制"的副本，一般不触发。真出问题可临时
-    `touch ws/src/20_localization/fast_gicp/CATKIN_IGNORE` 跳过该包。
-14. **真机红线不变**：容器化不改变项目三条硬规则 —— `ros2qnx` 仅真机 mode；
-    采图全程不发 `/cmd_vel`；隔离目录内禁出现开发侧家目录路径字符串。
-    门禁 `v3_isolation.sh` 在容器里同样要跑绿。
-
----
-
-## 六、排错：`DeadlineExceeded` 拉不到基础镜像 / `apt-get` 失败
-
-### 6.1 先说实测结论（2026-10-17 在这台机器上量到的）
-
-| 探测 | 命令 | 结果 | 含义 |
-|---|---|---|---|
-| 宿主机直连 Docker Hub | `curl https://registry-1.docker.io/v2/` | **000（10s 超时）** | 直连被墙 |
-| 宿主机走代理 | `curl -x http://127.0.0.1:7897 https://registry-1.docker.io/v2/` | **401** | 代理通（401 是 `/v2/` 未带 token 的正常响应） |
-| Docker daemon 代理 | `docker info \| grep -i proxy` | **已配 `http://127.0.0.1:7897`** | daemon 侧没问题 |
-| 实际拉取 | `timeout 90 docker pull ros:noetic-ros-base-focal` | 层在下载，90s 没拉完 | **通，但极慢** |
-
-⇒ **根因不是"没配代理"，而是基础镜像体积大 + 代理链路慢，超过构建期限。**
-报错里的 `load metadata` 是 BuildKit 的期限提示，不是"镜像不存在"——
-tag 不存在时报的会是 `manifest unknown`。
-
-**这台机器上最快的解法：用本地已有镜像，一次都不拉。**
-
-```bash
-docker images | grep -i ros      # 本机已有：fishros2/ros:noetic-desktop-full  4.77GB
-```
-
-`.env` 已默认指向它（`ROS_BASE_IMAGE=fishros2/ros` / `ROS_BASE_TAG=noetic-desktop-full`）。
-实测这个镜像里**已经有**：`/opt/ros/noetic`、Gazebo **11.10.2**（`gazebo11`+`gazebo11-common`+`gazebo11-dev`）、
-**234 个 `ros-noetic-*` 包**、`libpcl-dev`、`libeigen3-dev`、`libtbb-dev`、`libyaml-cpp-dev`、
-`libapr1-dev`、`libboost-all-dev`、`libgl1-mesa-dri`、`python3-numpy/yaml`、`rosdep`。
-
-它**缺**的（本 Dockerfile 都已补装，别删）：
-
-| 缺什么 | 谁要 |
-|---|---|
-| `libgoogle-glog-dev` | `faster_lio/cmake/packages.cmake` 的 `find_package(Glog REQUIRED)` —— **不装直接编不过** |
-| `xvfb` | gzserver 无头渲染要虚拟屏 |
-| `mesa-utils`（`glxinfo`）、`libgl1-mesa-glx`、`libosmesa6` | GL 上下文 / 软件渲染 |
-| `libnlopt-dev`、`libnlopt-cxx-dev` | `30_3rd` SCAN 五包（`SLIM=1` 时用不到） |
-| `libomp-dev` | OpenMP（`ndt_omp` 等） |
-
-> ⚠️ **`fishros2/ros:*` 的 `ENTRYPOINT` 是 `["/bin/bash"]`**。直接
-> `docker run fishros2/ros:noetic-desktop-full bash -lc '...'` 会被前置成 `bash bash -lc`
-> 而报 `cannot execute binary file`，要加 `--entrypoint bash`。
-> （本项目自己的 Dockerfile 会重设 ENTRYPOINT，不受影响。）
-
-### 6.2 给 Docker daemon 配代理（治本，推荐）
-
-```bash
-sudo mkdir -p /etc/systemd/system/docker.service.d
-printf '%s\n' '[Service]' 'Environment="HTTP_PROXY=http://127.0.0.1:7897"' 'Environment="HTTPS_PROXY=http://127.0.0.1:7897"' 'Environment="NO_PROXY=localhost,127.0.0.1,::1"' | sudo tee /etc/systemd/system/docker.service.d/http-proxy.conf
-sudo systemctl daemon-reload && sudo systemctl restart docker
-```
-
-> **粘贴前先自查文件有没有被粘坏**（聊天里复制多行常丢换行）：
-> `cat /etc/systemd/system/docker.service.d/http-proxy.conf` 必须是 4 行；
-> 静态校验：`systemd-analyze verify /etc/systemd/system/docker.service.d/http-proxy.conf`
-
-确认生效（这才是可信的确认，别信"命令跑完了"）：
-
-```bash
-systemctl show docker --property=Environment | tr ' ' '\n' | grep -i proxy
-docker info | grep -i proxy
-```
-
-### 6.3 换镜像源（不想动 daemon 代理时）
-
-`.env` 里改一行即可，Dockerfile 已支持：
-
-```bash
-ROS_BASE_IMAGE=docker.mirrors.ustc.edu.cn/library/ros
-```
-
-再拉一次验证：`docker pull docker.mirrors.ustc.edu.cn/library/ros:noetic-ros-base-focal`
-
-### 6.4 如果宿主机已经有别的基础镜像
-
-`docker images` 里若已有 `ubuntu:20.04` 或某个 `ros:*`，可把 `ROS_BASE_IMAGE` 指过去复用。
-注意：**换成非 ros 官方镜像时，`/opt/ros/noetic` 与 `rosdep` 都不存在**，编译会挂在
-`source /opt/ros/noetic/setup.bash` —— 那种情况请回到 6.2/6.3 把官方镜像拉下来。
-
-### 6.5 镜像拉到了，但 `apt-get update` 卡住
-
-同样是代理问题，但作用在**构建期**。用 `.env` 里的三项（已由 compose 透传）：
-
-```bash
-HTTP_PROXY=http://127.0.0.1:7897
-HTTPS_PROXY=http://127.0.0.1:7897
-NO_PROXY=localhost,127.0.0.1,::1
-```
-
-`HTTP_PROXY` 等是 BuildKit 预置 ARG，只影响构建过程，**不会烧进镜像层**
-（可用 `docker history ros1-slam:noetic | grep -i proxy` 自查，应该查不到）。
-
-### 6.6 一次到位的构建命令（上面都配好后）
-
-```bash
-cd /home/jack/ysc-code/ros1-slam/docker && SLIM=1 docker compose --profile sim build sim
-# 或者完全手工：
-docker build -f docker/Dockerfile -t ros1-slam:noetic-sim \
-  --build-arg PROFILE=sim --build-arg SLIM=1 \
-  --build-arg HTTP_PROXY=http://127.0.0.1:7897 \
-  --build-arg HTTPS_PROXY=http://127.0.0.1:7897 .
-```
-
-### 6.7 顺手修掉的两个编排问题（本轮已改）
-
-- **`--profile sim` 会把 `slam` 也拉起来**：不带 `profiles` 的服务在 `--profile` 下依然启用，
-  而 `slam` 与 `sim` 共用命名卷 `ros1_ws_devel`，两份容器写同一份 devel 会互相覆盖。
-  ⇒ 现在统一要求写服务名：`docker compose --profile sim up -d sim`。
-- **`slam` 原来占了 11313/11345**：那是仿真域端口（`m2_smoke.sh:29` 写死），
-  两个服务同时起会 `port is already allocated`。已从 `slam` 的 `ports` 里摘掉。
-
-### 6.8 实机验证记录（2026-10-17，Docker 29.9.1 / x86_64 / 31GB）
-
-**镜像构建**：`SLIM=1 PROFILE=sim` + 本地 `fishros2/ros:noetic-desktop-full` 基础镜像
-⇒ `ros1-slam:noetic-sim`（7.53 GB）构建成功，8 个关键包 `rospack find` 全 OK，
-`liblite3_planar_drive.so` / `liblivox_laser_simulation.so` / `livox_ros_driver2_node` 均在位。
-
-**容器内 `sim.sh probe`**：
-
-| 检查项 | 结果 |
-|---|---|
-| 软渲染 | `OpenGL renderer string: llvmpipe (LLVM 12.0.0, 256 bits)` |
-| gzserver | `/usr/bin/gzserver`，Gazebo **11.15.1** |
-| 模型库 | `sun` / `ground_plane` 均在 `/usr/share/gazebo-11/models/` |
-| 端口 | 11311/11312/11313/11345 起跑前均无监听 |
-
-**起 `m2_gazebo.launch` 后的话题**：`/clock`、`/livox/imu`、`/livox/lidar`、
-`/rslidar_points`、`/sim/odom_gt`、`/tf`、`/tf_static`、`/joint_states`、`/gazebo/*`、`/cmd_vel`。
-
-**三项判据指标**：
-
-| 指标 | 判据门槛 | 实测 | 结论 |
-|---|---|---|---|
-| `/rslidar_points` | ≥ 5 Hz | **10.003 Hz** | 达标 |
-| `/livox/imu` | ≥ 100 Hz | **200.000 Hz** | 达标 |
-| RTF（`/gazebo/performance_metrics`） | ≥ 0.25（低于则判 INVALID） | **0.396** | 达标，不会作废 |
-
-**收尾**：容器已 `down` 移除，宿主机 11311/11312/11313/11345 均无监听，
-无残留容器。镜像保留（7.53 GB），重启秒起。
-
-**未跑**：`m2_smoke.sh` 全量三阶段（Stage A/B/C）没跑——那需要跑完驱动相位与退净判据，
-属验收批跑，请在容器里按 4.4 的命令自行执行。
-
----
-
-## 七、异机侧（x86）手工跑法与三处必补前置
-
-> 本节只写**跑法**，不写数值。所有基线数值一律当批现跑，出证位置见 `note/02_问题与坑.md` 坑65／坑66
-> 与当批「x86 导入完成」证据包路径。
-
-### 7.1 在容器里手工跑 `catkin_build.sh` ≠ 在镜像构建期跑
-
-镜像构建期由 builder 阶段提供两处前置，**runtime 阶段都不继承**，容器内手工全量重编前必须自己补：
-
-```bash
-docker exec ros1-slam-sim bash -lc '
-  # 前置①  ROS 总包含目录（lite3_gazebo_sim/CMakeLists.txt 未把 tf 声明成 catkin 组件）
-  export CPATH=/opt/ros/noetic/include
-  # 前置②  livox_ros_driver2 的 package.xml（上游只发 package_ROS1/ROS2.xml）
-  #         宿主机侧做一次即可，该文件被该包自身 .gitignore:3 挡住，不入 git
-  # cp ws/src/00_drivers/livox_ros_driver2/package_ROS1.xml ws/src/00_drivers/livox_ros_driver2/package.xml
-  JOBS=8 WS_DIR=/opt/ros1-slam/ws bash /opt/ros1-slam/docker/catkin_build.sh'
-```
-
-少前置① ⇒ 挂在 `lite3_planar_drive.cpp:14 fatal error: tf/transform_broadcaster.h`；
-少前置② ⇒ `livox_ros_driver2` 整个包对 catkin 不可见，`livox_laser_simulation` 因 `build_depend` 它而连带的消息头链一起断。
-**两处在镜像里都有备案**（`Dockerfile` 的 `ENV CPATH` 与修复步①），所以镜像构建能过、容器内直跑不能过——
-这是"构建期与运行期环境不等价"，不是项目源码问题。
-
-### 7.2 三枚 costmap/controller 插件依赖：缺了不是"少一层"，是整条导航链起不来
-
-`40_navigation/lite3_navigation/config/{global,local}_costmap_params.yaml` 点名
-`spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer` 与 `sob_layer::SobLayer`，
-`mbf_navigation.yaml` 的 controllers 注册表点名 `DWAPlannerROS`。
-**这三枚在任何 `package.xml` 里都没声明** ⇒ rosdep / catkin / 本 Dockerfile 的反推清单都抓不到它们。
-缺装时 `mbf_costmap_nav` 抛 `pluginlib::LibraryLoadException` 后 `exit -6`，
-合成动作 `/move_base_flex/move_base` 的 `goal` 面根本不会 advertise ⇒
-异机侧照 Lite3 在册式子写的 goal 客户端只会 `wait_for_server` 超时，**看着像"异机接口差"，实为缺包**。
-已写进 Dockerfile §1.2 的 ROS 依赖列表；★修法只许补装依赖，★不许去动那两份 costmap 配置（红线件）。
-
-### 7.3 门禁件在异机的两种读数（以 ISO 为例，★只报不判）
-
-| 跑法 | 环境 | 结果形状 |
-|---|---|---|
-| 甲式（直跑） | 只 source `/opt/ros/noetic` + `ws/devel` | `rc=1`；具体项＝`[4]` 数枚 `BAD` ＋ `[10]` 四变量各 1 越界 ＋ `rospack list` 数十条在白名单外。根因＝镜像把 ws 固定在 `/opt/ros1-slam/ws`，`/home/ros1-slam/ws` 只是符号链，而 catkin `devel/setup.sh` 取目录用 `pwd -P`（解析符号链）⇒ 交出来的全是 `/opt` 形 |
-| 乙式（换形跑） | `ROS_PACKAGE_PATH` 前置 `/home/ros1-slam/ws/src` ＋ `ISO_ALLOW` 含两个前缀 | `rc=0`；自证行 `ws_src_files` 与在册同值。★只用件自带旋钮、★零文件改动 |
-
-★哪一式算异机在册口径＝归主理人／小美裁定，本 README 不自裁。坑66 有条目。
-
-### 7.4 冒烟链的容器选择
-
-`sim`（容器内 Xvfb，无 GUI）与 `sim-viz`（直通宿主机 X，可开 rviz/gzclient）**共用同一批命名卷**，
-同时起会抢宿主机 11313/11345 的端口映射 ⇒ **一次只用一个**。要在 rviz 里出截图，就用 `sim-viz` 跑整条链
-（viz.sh 早就写明"旁观 smoke 务必在同一个容器里"）。宿主机 X 的 cookie 实测在
-`/run/user/1000/gdm/Xauthority`（不是 `~/.Xauthority`），compose 已按 `X_AUTH_FILE` 挂进来。
-
----
-
-## ★同步戳（追加节·docker；上方旧文一字未回改）★
-
-- **对齐到**＝进度真身末号 **R518** ／ 本 boot **批174**（零窗·派单批）。
-- 本目录＝容器开发环境，用于**开发／仿真验证／门禁跑批**，**不替代真机部署**。
-- 同步时刻＝2026-10-21 03:32 CST。
+历史数值与验证输出保留在note原件，本指南只维护当前命令和边界。本机磁盘、端口、镜像、地图文件和运行能力均须实际执行时现查。

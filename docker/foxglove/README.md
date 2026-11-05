@@ -1,86 +1,52 @@
-# Foxglove 观察（viz.sh 路线 B）——布局件与连接口径
+# Foxglove与ROS1观察连接
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本轮核对rosbridge配置、话题生产者与布局JSON，未启动服务或验证客户端导入。
 
-> 对应 `docker/viz.sh` 头部注释里的**路线 B**：不需要 X / GPU，任意机器的浏览器打开
-> <https://foxglove.dev> 连 `rosbridge`（默认 9090）即可旁观仿真。
-> 适合没有桌面、或不想折腾 X 认证（`viz.sh check` 里 `OpenGL renderer` 取不到值时）。
+本目录的 [ros1_slam_sim_layout.json](ros1_slam_sim_layout.json) 是手写布局模板。浏览器客户端需要兼容 **ROS1 rosbridge WebSocket**；`ws://<可达地址>:9090` 是桥的端点，ROS master的11312/11313不是浏览器端口。不要把该桥选成使用另一协议的“Foxglove WebSocket”连接。
 
-## 1. 连接参数（据在册件现读，不凭记忆）
+## 连接域先对齐
 
-| 项 | 值 | 出处 |
-|---|---|---|
-| rosbridge 端口 | `9090` | `docker/viz.sh` 头部注释路线 B |
-| 建图侧 ROS_MASTER_URI | `http://127.0.0.1:11312` | `scripts/mapping/m_viz.sh` 头注释「Foxglove 连 11312」 |
-| 仿真/判据侧 ROS_MASTER_URI | `http://127.0.0.1:11313` | `docker/viz.sh` 第 36 行 `OBSERVE_URI` 缺省值 |
-| 固定参考系 | `camera_init` | `lite3_bringup/launch/mapping_viz.launch` 头注释 |
-| 全图快照话题 | `/map_snapshot`（30 s 一条、latched） | 同上 + `scripts/map_snapshot_pub.py` 第 23 行 `frame_id = "camera_init"` |
-| 机器人模型 | `robot_description` ← `lite3_bringup/urdf/Lite3_prim.urdf` | `mapping_viz.launch` 第 5 行 |
-| 位姿跟随 | `/Odometry` | `mapping_viz.launch` 头注释 |
-| 里程计 frame | `camera_init`（快照）／`map`→`base_link`（`sim_pose_tf.py`） | `map_snapshot_pub.py:23`、`sim_pose_tf.py:61` |
+| 运行图 | ROS master | 桥的要求 |
+| --- | --- | --- |
+| Compose开发域 | 默认 `http://roscore:11312` | extras的独立rosbridge默认面向这一域，节点地址和动态端口须能互访 |
+| `sim` / `sim-viz` | `http://127.0.0.1:11313` | 节点通告loopback，应把桥运行在同一个容器/网络命名空间 |
+| v8 3D app | 默认独立11537，按app实际配置 | 桥需连接该app运行的ROS图，不能沿用另一个11313域 |
+| 真机采图 | 本机现场11312配置，IP现查 | 真机运行另有许可，不能照抄旧机IP或仿真loopback配置 |
 
-启动伴侣（采图三窗之外的第 4 窗）：
+当前 `docker-compose.yml` 中独立的 `rosbridge` 缺省连开发 `roscore`。仅把它的 `ROS1_MASTER_URI` 设成 `127.0.0.1:11313`，会指到**桥容器自身**；即便改成sim容器IP，其他节点通告的loopback也仍不可达。按当前[执行队列](../../note/计划书v8/23_v8任务队列.md)，rosbridge基线修复已延后，本文不宣称跨容器观察已经修复。
+
+已明确选择单容器仿真观察时，可在同一个sim容器内另开终端运行桥（以下示例只针对本次独占的sim域）：
 
 ```bash
-bash /home/ros1-slam/scripts/mapping/m_viz.sh
-# 等价于 roslaunch lite3_bringup mapping_viz.launch
+cd /home/jack/ysc-code/ros1-slam/docker
+docker compose exec sim bash -lc '
+  source /opt/ros/noetic/setup.bash
+  source /opt/ros1-slam/ws/devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
+  roslaunch rosbridge_server rosbridge_websocket.launch'
 ```
 
-## 2. 导入布局件
+`sim` 的Compose端口表没有发布9090，宿主LAN地址的9090不会因此自动可用。Linux宿主可查询容器的实际bridge地址，并在可达时连接其9090；远程客户端需要显式隧道或经核准的端口配置。不要另起独立桥抢宿主9090后误认为接到了同一个图。
 
-`ros1_slam_sim_layout.json` 是**手写**的（不是 Foxglove Studio 导出的），按 Studio 的
-`version: 1` 布局 schema 组织，只含一个 3D 面板（`/map_snapshot` 点云 ＋ URDF ＋ TF ＋ `/Odometry`），
-相机 `distance=12 / target=[2.5,0,0] / phi=45°`——与 `docker/rviz_sim_map.rviz` 同一套取景
-（依据：`m1_world.world` 的 perimeter 是 9 m 边界盒，场地约 9 m × 9 m）。
+```bash
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ros1-slam-sim
+```
 
-导入：`Foxglove Studio → Layouts → Import layout` 选本文件。
+该例的端到端网络和客户端兼容性本轮未实测。桌面观察的可用入口见 [Docker指南](../README.md)。
 
-> **★若导入失败（schema 版本漂移是常态，尤其 Studio 大版本升级后）★** → 走第 3 节手工步骤，
-> 效果等价；并把 Studio 里摆好的布局 `Export layout` 覆盖写回本文件，让仓内这份回到"官方导出"形态。
+## 固定帧与话题
 
-## 3. 手工步骤（兜底，永远可用）
+| 数据链 | 固定帧 | 主要话题/模型来源 |
+| --- | --- | --- |
+| LIO采图快照 | `camera_init` | `mapping_viz.launch` 启动包内 `map_snapshot_pub.py`，累积 `/cloud_registered` 并发布latched `/map_snapshot`；`robot_description`来自`Lite3_prim.urdf`，模型经TF随LIO位姿 |
+| 仿真GT采集 | `odom` | `mapping_recorder.py` 发布 `/mapping/cloud`、`/mapping/status`，位姿源 `/sim/odom_gt`；不能当成LIO地图 |
+| 2D导航 | `map` | `/map`、实际MBF costmap话题和TF；旧 `x2_g6` 探针命名空间不能套用所有栈 |
+| v8 3D导航 | `map` | 当前graph的 `/v8/3d/...` markers/path等，先确认桥连接的是11537域 |
 
-1. 打开 <https://foxglove.dev> → `Open connection` → `Rosbridge (ROS 1)` → `ws://<主机 IP>:9090`。
-2. `Add panel` → **3D**：
-   - 右上角 `Settings` → `Frame` → `Follow` 取消，固定参考系选 `camera_init`；
-   - `Topics` 里打开 `/map_snapshot`（`Color by = z`）、`/tf`、`/Odometry`；
-   - 相机：Distance `12`、Target `[2.5, 0, 0]`、Phi `45°`。
-3. `Add panel` → **URDF  viewer** 或直接在 3D 面板里勾 `Robot model`（读 `/robot_description`）。
-4. （可选）`Add panel` → **Publish**：填 `geometry_msgs/PoseStamped` → 话题 `/move_base_simple/goal`
-   （据 `lite3_scan/launch/70_scan.launch` 第 51 行）即可从网页端点目标点。
-5. （可选）导航态另开一个 3D 面板，固定参考系改 `map`（据 M3 窗参数回读 `global_frame=map`），
-   订 `/x2_g6/costmap/costmap` 与 `/x2_g6/costmap/stvl_obstacle_layer/voxel_grid`。
+LIO快照生产者真身是 [lite3_bringup/scripts/map_snapshot_pub.py](../../ws/src/70_bringup/lite3_bringup/scripts/map_snapshot_pub.py)，不是已不存在的 `scripts/map_snapshot_pub.py`；伴侣launch见 [mapping_viz.launch](../../ws/src/70_bringup/lite3_bringup/launch/mapping_viz.launch)。真机包装脚本 `m_viz.sh` 不应直接套到Gazebo GT记录器链。
 
-## 4. 与 rviz 路线的分工
+## 布局
 
-| 场景 | 选谁 |
-|---|---|
-| 本机有桌面 / 已挂 DISPLAY，要最高帧率 | 路线 A，`viz.sh rviz-raw` / `rviz-map` / `rviz-nav` |
-| 远程机、无 X、或 X 认证折腾不通 | **路线 B（本目录）** |
-| 无 X 又必须跑 GUI（gzclient/rviz） | 路线 C，`viz.sh` 容器内 Xvfb + VNC |
+布局JSON声明 `version: 1`，以3D面板显示 `/map_snapshot`、TF、里程计与模型；它不是客户端正式导出的兼容性证明。客户端版本可能改变导入格式和菜单，导入失败时按相同固定帧/话题手工配置，并把经过实际导出验证的新布局另行维护；本次不覆盖原JSON。
 
----
-
-## ★同步戳（追加节·docker/foxglove；上方旧文一字未回改）★
-
-- **对齐到**＝进度真身末号 **R518** ／ 本 boot **批174**（零窗·派单批）。
-- 本目录＝`viz.sh` **路线 B** 的布局件与连接口径；**红线＝只订阅不发布**。
-- 同步时刻＝2026-10-21 03:32 CST。
-
-## ★追加（2026-10-29，R858）：起终点控制与场景热切换
-
-- 连接：`Rosbridge (ROS 1)` → `ws://<主机>:9090`。本镜像已装 `rosbridge_server`；无 `foxglove_bridge`（后者是 ROS2）。
-- **终点**：Publish 面板发 `geometry_msgs/PoseStamped` → `/move_base_simple/goal`（需 `flat2d_stack` 的 move_base）。
-- **起点**：先起 `ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose_bridge.py`，再发 `geometry_msgs/PoseStamped` → `/sim/set_start`（或 `PoseWithCovarianceStamped` → `/initialpose`）；状态回 `/sim/set_start/status`。桥只接受 frame 为空/`map`/`odom`。
-- **场景热切换**：`sim_scene.py --scene stairs_easy` / `--scene wall_h045` / `--clear`；只换场景模型，不重启世界。静态地图不随动，正式导航需重启对应世界。
-- 实测读数见 `note/进度/v8/M5/26-10-29/R858.md`。
-
-## ★追加（2026-11-02，R1119）：仿真键盘建图看什么
-
-- 新链 `lite3_gazebo_sim/scripts/mapping_recorder.py` 发 `/mapping/cloud`（frame `odom`，
-  1 Hz 累积点云）和 `/mapping/status`；RViz 配置为 `docker/rviz_mapping3d.rviz`。
-- Foxglove 3D 面板可订 `/mapping/cloud`、`/sim/odom_gt`、`/tf`，固定参考系选 `odom`；
-  机器人模型来自 `robot_description`（`Lite3.urdf` / `Lite3_prim.urdf`）。
-- 这与 `mapping_viz.launch` 的 `/map_snapshot`（`camera_init`、30 s latched）是两条链，
-  不要混用；R1119 是**仿真 GT 位姿**建图，不是 LIO/SLAM。
-- 四终端命令见 `docker/README.md` §4.7；自建图导航仍用 `framework/app_runner.py`。
+观察时只订阅。网页发目标、改起点或热切场景会改变仿真状态，属于独立操作，不列入只读观察步骤。2D/3D交互操作及地图前置见 [Docker指南§4.6.1—4.8](../README.md)，真机不由此取得运动授权。

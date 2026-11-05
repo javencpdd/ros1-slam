@@ -1,8 +1,8 @@
 # lite3_gazebo_sim（SIM 仿真域·测试台本体）
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库 `note/计划书v8/`；本次核对源码入口与载体配置，历史指标仍只适用于各原记录。
 
-**统一索引头**（本头由文档批次生成并登记于 `note/04_配置改动diff.md`；下方正文为历史内容，未改写）
+**统一索引头**（模块导航；职责以本轮源码核对与原运行范围为准）
 层 `95_simulation` ｜ 角色 `SIM 仿真域（测试台本体）` ｜ Gazebo 世界、机体仿真描述、推进插件、M2 判据载体与全部仿真侧验收件都在这里；另含楼梯可行性离线预检旁路。
 **全局索引**：`ws/README.md`（工作区定位图·红线速记·调用姿势）｜ `note/进度/00_总览.md`（进度唯一真身）｜ `note/04_配置改动diff.md`（哪些改动被许可）｜ `note/07_判据载体代际对照表.md`（判据载体代际现值）｜ `note/05_复验作业单.md`（验收纪律 A–F 段）
 **路径读法**：本表一律以 `ws/src/` 为根（如 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`）；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
@@ -11,7 +11,7 @@
 
 > **容器口径**：`sim`（headless，容器内 Xvfb）与 `sim-viz`（宿主 X/GUI）共用 11313/11345，
 > **一次只起一个**；首次 `--build`、之后 `--no-build`，启动/自检/排障见
-> [`docker/README.md`](../../../../docker/README.md) §4.4。端口被占时先
+> [`docker/README.md`](../../../../docker/README.md)。端口被占时先
 > `docker compose --profile viz stop sim-viz`；容器 Up 但无端口则
 > `docker compose --profile sim up -d --no-build --force-recreate sim`。
 
@@ -22,14 +22,14 @@
 | 交互式 2D 导航 | `launch/interactive_2d.launch`（MBF + `mbf_goal_bridge.py`；RViz 2D Nav Goal 直接驱动 MBF） |
 | 交互式 3D / 自建图导航 | `framework/app_runner.py --execute --interactive --rviz` + `framework/fixtures/rviz/nav3d.rviz`；自建图入口见 `map_from_pcd.py` 生成物 |
 | 键盘建图（仿真 GT 位姿） | `scripts/mapping_recorder.py` + `scripts/keyboard_teleop.py`；RViz 用 `docker/rviz_mapping3d.rviz` |
-| 机体描述（仿真实际用的） | `urdf/lite3_planar.urdf.xacro`——刚体盒子（只有 fixed 关节）＋雷达插件参数在 :85–96、传感器安装高在 :55（`origin xyz="0 0 0.38"`） |
+| 机体描述（仿真实际用的） | `urdf/lite3_planar.urdf.xacro`——刚体盒子（只有 fixed 关节）＋雷达位置由 `lidar_z=0.34`、`lidar_pitch_deg=15` 与 `base_to_rslidar` 的 xacro 展开共同确定；参数不是旧固定 `0.38` |
 | 推进插件源码 | `src/lite3_planar_drive.cpp`（dynamic 分支 `SetLinearVel`/`SetAngularVel` 保留接触；kinematic 回退 `SetWorldPose`；打戳统一 SimTime 的坑25 根除改点在此） |
 | **判据载体** | `verify/m2_smoke.sh` ＋ `verify/m2_exitclean_lib.sh` ⇒ **改这两个＝代际加行**（现值见 `note/07_判据载体代际对照表.md`） |
 | 批跑与自测件 | `verify/m2_batch_runner.sh`、`retake_driver.sh`、`v_m2_exitclean_selftest.sh`、`v_g35_branch_calibration.sh`、`v_b3_timebase_contract.sh`、`v_pose_source.sh`、`v_br_expect_negative_selftest.sh`、`v_rd_archive_selftest.sh`、`v_w3_terrain_design_contract.sh` |
 | 离线预检旁路（不被 launch 引用） | `stairstudy/{fixtures,precheck,sweep,bandstudy}.py` ＋ `stairstudy/worlds/stair_lab_*.world`（九件 Gazebo 候选场景，含 blank 对照） |
 | 探针小件 | `scripts/m2_tf_fresh.py`、`m2_free_map.py`、`m2_cmd_relay.py`、`m2_pose_source_audit.py`、`wait_sim_clock.sh` |
 
-**红线/契约**：载体能力边界（补丁 X7 物证）：刚体盒子**能验 ①–④（表征/判据/代价/规划），不能验 ⑤（踏步/落脚/摩擦）**；带腿描述在 `95_simulation/lite3_description/urdf/Lite3.urdf`（12 revolute）但无腿控制器。保真度缺口 O-10（仿真竖向 50 线摊 ±90° ⇒ 楼梯立面带内仅 8 条线）待裁＝B6。
+**载体边界**：当前 M1/M2 xacro 默认 `driveMode=dynamic`，使用 `SetLinearVel`/`SetAngularVel` 的动态平面方盒；不是四足步态。v8 `gazebo_carrier3d` 是另一种运动学载体，MuJoCo 接触执行见 [dynamics](dynamics/README.md)。三者的执行和验收证据不能互代。传感器外参/扫描覆盖应取实际装配，不沿用早期 gen0 数字代表现态。
 
 **当前驱动口径（R1109/R1113）**：URDF 实际 `driveMode=dynamic`；插件 beat 实测
 cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态平面方盒＋Gazebo 接触**，

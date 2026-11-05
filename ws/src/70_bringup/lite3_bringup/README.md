@@ -1,27 +1,23 @@
-# lite3_bringup（模块 TOP）
+# lite3_bringup · 传统 ROS 顶层编排
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
-**统一索引头**（本头由文档批次生成并登记于 `note/04_配置改动diff.md`；下方正文为历史内容，未改写）
-层 `70_bringup` ｜ 角色 `TOP 顶层编排` ｜ 按 mode 组合各平级模块的顶层 launch 层——`<include>` 平级模块是 TOP 的职责，不属 K3 违例。
-**全局索引**：`ws/README.md`（工作区定位图·红线速记·调用姿势）｜ `note/进度/00_总览.md`（进度唯一真身）｜ `note/04_配置改动diff.md`（哪些改动被许可）｜ `note/07_判据载体代际对照表.md`（判据载体代际现值）｜ `note/05_复验作业单.md`（验收纪律 A–F 段）
-**路径读法**：本表一律以 `ws/src/` 为根（如 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`）；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
+本包按 mode include 驱动、建图/定位、MBF、M6 和 SUP，提供传统 ROS 顶层装配。
 
-本包速查：
+| 入口 | 组合/职责 |
+| --- | --- |
+| `launch/mode_mapping.launch` | SUP + 传感器 + faster-lio |
+| `launch/mode_localize.launch` | SUP + 传感器 + HDL + M6 |
+| `launch/mode_nav_stub.launch` | SUP + 传感器 + M6 + MBF + stub TF；不是真实定位验收 |
+| `launch/mode_nav_sim.launch` | mockamap 仿真链 + 地图/位姿桥 + M6 + MBF |
+| `launch/mode_sim_hdl.launch`、`mode_sim_teb.launch` | 引入 Gazebo M2 定位/导航测试台 |
+| `launch/mode_navigation.launch` | 真机 SUP/传感器/HDL/M6/MBF 与超声限速；`enable_motion` 默认 false，只有显式启用才起 `ros2qnx` |
+| `launch/mapping_viz.launch` | LIO 快照和机体可视化伴侣，不是 GT 点云记录器 |
 
-| 要做 | 位置 |
-|---|---|
-| mode 入口 | `launch/mode_mapping.launch`、`mode_localize.launch`、`mode_nav_sim.launch`、`mode_nav_stub.launch`、`mapping_viz.launch` 等 |
-| 仿真桥与桩 | `scripts/sim_map_bridge.py`、`sim_pose_tf.py`、`stub_tf_broadcaster.py`、`map_snapshot_pub.py` |
-| 简化机体描述 | `urdf/Lite3_prim.urdf` |
-| 冒烟 | `verify/sim_nav_smoke.sh` |
+仿真地图/位姿桥在 `scripts/`，简化模型在 `urdf/Lite3_prim.urdf`；
+`config/elevation_costmap.yaml` 是 M3 自研高程节点的私有 `~elevation/...` 参数规范位。
+TOP 可以下行组合各模块，其他平级壳包的互 include 仍受隔离规则约束。
 
-**红线/契约**：K3 语义＝**平级 `lite3_*` 禁互 include**，TOP 下行不豁免；include 级 remap 的可见性由 ISO 项[5] 监控（曾有两条真 include 待返工）。
-
-- **R348 README 同步（追加句）**＝本包 `config/` 目录此前未登记，现跑其内**一枚**在册件＝`config/elevation_costmap.yaml`＝**31 行／2293 字节／sha 前 8=`aad5adac`／模 664**／mtime 2026-10-14 04:48:55（＝R280 的 S2 规范位；★其 z 窗现读 `z_min=-2.0／z_max=2.0`，与 v6 §B.1.1 丙档设计值不同一事见 `note/计划书v6/23_v6任务队列.md` 的 `B-1` 行与请求单 `R 补八十二`，★不在本 README 判定）。
-
-- ★R1119（2026-11-02）★：仿真「键盘建图 → 自建 3D 地图 → 交互导航」不在本包；
-  用 `95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py`（GT 位姿）＋
-  `keyboard_teleop.py`，PCD 转图用 `90_platform/v8_platform/framework/map_from_pcd.py`，
-  导航用 `app_runner.py`。`mapping_viz.launch` 仍只是 Foxglove 的 LIO 快照伴侣，
-  不是这条 GT 建图链。完整命令见 `docker/README.md` §4.7。
+仿真 GT 键盘建图及 v8 app 导航入口在 `lite3_gazebo_sim` 与 `v8_platform`，不在本包。
+真机导航仍须单项窗口、现场条件与 `scripts/preflight_navigation.sh` 前置；
+默认关闭运动桥和静态配置存在均不能作为真机验收结论。

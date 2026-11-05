@@ -1,10 +1,11 @@
 # Lite3 MuJoCo dynamics probes
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库 `note/计划书v8/`；本目录只提供声明范围内的仿真 runner。
 
 These self-authored runners consume external Lite3 MJCF/mesh and ONNX policy
-assets by path. They never overwrite those assets. The environment must already
-provide MuJoCo, NumPy, and ONNX Runtime. Results describe simulation only.
+assets by path. They never overwrite those assets. Physics runners require MuJoCo and NumPy; ONNX policy runners also require
+ONNX Runtime. Pure negative controls do not establish target-engine execution.
+Results describe simulation only.
 
 ## Obstacles on a step face
 
@@ -101,3 +102,16 @@ Seeded initial perturbations (`--seed N --perturb`) sample reproducible
 `dx ±0.05 m`, `dy ±0.10 m`, `dyaw ±5°`, `dz ±0.005 m`; they change only the
 initial base pose, not the policy. R885 used seeds 0-4 on flat walk and 3×6/10/15 cm
 stairs with heading hold.
+
+## Other current source entry points
+
+| Source | Scope |
+| --- | --- |
+| `crawl_gait.py`, `support_shift.py`, `force_crawl.py` | Geometric crawl/support-shift and experimental force control; completeness/support/fall checks do not certify general stair locomotion |
+| `a5_v8x1_bridge.py` | A5 ROS local planner to a 270-input policy in MuJoCo; a scoped pilot, separate from the Gazebo carrier |
+| `a5_v8x1_stop_bridge45.py`, `a5_kinematic_stop_bridge.py` | Separate 45-input policy / kinematic stopping bridges with different execution assumptions |
+| `mj_navigation_stop.py`, `test_mj_braking.py` | Navigation stopping runner and braking negative controls; inspect each runner’s declared execution domain |
+
+The old R855 ascent baseline above remains a historical negative for that exact
+runner. Later bridge/policy experiments have their own evidence and conditions;
+neither supersedes it automatically or signs formal #151 / real hardware.

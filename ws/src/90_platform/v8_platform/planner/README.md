@@ -1,89 +1,51 @@
-# v8 支撑图全局规划（V8-09，R652：有界 A* 设计层）
+# planner · 支撑图全局规划与 ROS 接口
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
-> 2026-10-26 起。M3 次件：有界 A* 支撑图全局规划设计层——面内通行＋**只走显式边转层**
-> ＋预算/取消/路径诊断（分段＝V8-03「切单调段」主路线的规划层供给）。消费 map.v1
-> （representation 生产者构造）；不 import ROS。运行面与 A4 正式判据归仿真矩阵。
+[support_planner.py](support_planner.py) 在“支撑面 × XY 栅格”上做有界 A*；面内走八邻域，跨面只走显式 edges，遵守单向性。它生成路线与分段/转层/展开数/长度诊断，不输出底盘命令。
 
-## 1. 交付内容
-
-| 件 | 作用 | A4 落点 |
-| --- | --- | --- |
-| [support_planner.py](support_planner.py) | `plan(map, start, goal, budget, cancel)`：图模型＝(surface, 格) 节点、面内 8 邻（supported 面）、**跨面只走显式 edges**（bidirectional=false 单向、桥＝足迹最近格对）；预算＝最大展开数（超限 E_PLAN_BUDGET_EXCEEDED，拒绝≠无路）；取消谓词（E_PLAN_CANCELLED）；地图先过契约（E_PLAN_MAP_INVALID）；目标消歧＝同 XY 多层取最近 z（无面＝E_PLAN_GOAL_INVALID）；诊断＝路径/分段/转层/展开数/长度 | 正例有支撑且连续安全（逐点落面断言）；负例各有理由码 |
-| [test_support_planner.py](test_support_planner.py) | 8 项：正例（地面→坡→夹层，分段与转层、逐点落面）、同面短径、目标无面、**单向边无路**（map 合法但 mezz 回不去）、预算耗尽、取消、非法图拒、**语义发现断言** | — |
-
-## 2. 语义发现（R652 登记）
-
-**map.v1 结构性容不下 unsupported 面**：单连通（全部面从首面可达）＋「不可通行面不得持边」（E_MAP_EDGE_TRAVERSABILITY 双向禁）⇒ unsupported 面在任何合法 support_map 中不可达 ⇒ 不可能成图——`traversability` 枚举的 `unsupported` 值在 map 层为**死值**（测试以断言锁定）。候选处置（后续裁定）：map.v1 语义修订草案或把 unsupported 语义移到证据层/规划层——本批只登记不改已签契约。
-
-## 3. 对抗面（代行复验）
-
-z 消歧取最近面、同输入确定性（逐字段一致）、夹层内直达不转层、充足预算不误拒、**1600 节点大图可解**（exp=250 有界）——全 PASS；两次实现缺陷留痕（_result 长度计算误用 surface_id 当格坐标、断连通用例又踩双向边陷阱）。
-
-## 4. 运行方式
-
-```bash
-python3 -B test_support_planner.py   # 8 项
-```
-
-## 5. 显式净空策略与运行负例
-
-`plan(..., min_clearance_m=...)` 会在展开前筛掉净空不足的格，并检查面内连接线段，
-避免细低顶落在格中心之间时被跨过。起点或目标净空不足返回 `E_PLAN_CLEARANCE`；
-安全图上无路仍返回 `E_PLAN_NO_ROUTE`。未提供策略时保留原有调用语义。
-ROS 节点通过私有参数 `~min_clearance_m` 接收该值，状态的 `policy` 字段回显。
-
-`regression/a4_runtime.py clearance` 从冻结定标读取净空值，不改场景定义：
-官方 SC09 低顶有限且存在安全绕路，应产出检查器可接受的路径；派生请求只把目标
-放到同一地图的低顶下，应由规划器直接拒绝。两者分别记录，不把评价器拒绝计为
-规划器拒绝，也不把派生请求称为官方 SC09 无路。
-
-```bash
-PYTHONPATH=../regression:$PYTHONPATH python3 -B -m a4_runtime clearance --out /tmp/a4-clearance.json
-```
-
-命令需要已经启动的 ROS master。所得证据覆盖规划服务接口，未包含底盘执行。
-
-## 6. 障碍体积输入
-
-全局规划器同时接收 `map/v1` 与显式声明 `obstacles` 的 `map/v2`。
-`build_support_map(..., obstacles=[...])` 生产 v2；不传该参数时保留 v1。
-输入形状与消费者版本边界见 [契约说明](../contracts/README.md#9-显式障碍体积mapv2)。
+## Python API
 
 ```python
-route = plan(mapping, start, goal, robot_radius_m=0.5, robot_height_m=0.5)
+route = plan(mapping, start_xyz, goal_xyz, budget=20000, cancel=None,
+             min_clearance_m=None, robot_radius_m=0.35, robot_height_m=0.436,
+             goal_surface_id=None, start_surface_id=None)
 ```
 
-非空障碍要求显式给出有限的水平半径和正高度，否则返回 `E_PLAN_INPUT`。
-这里的数字只是调用示例，须由调用方按实际几何给出，不是 Lite3 能力定标。
-参考点为支撑高度；检查支撑 z 到 z+height 的竖直包络，XY 使用包住圆足迹的
-保守正方形。侧面相切判碰撞，站在实体顶面时仅接触顶面不算穿入。
+数值仅展示调用形状，机器人包络须由调用方给依据。budget 是最大展开数，不是秒数；耗尽报 `E_PLAN_BUDGET_EXCEEDED`，不能记为几何无路。cancel 为轮询谓词，触发报 `E_PLAN_CANCELLED`。输入先过[地图契约](../contracts/README.md)，坏图报 `E_PLAN_MAP_INVALID`。
 
-起终点包络碰撞返回 `E_PLAN_OBSTACLE`；无安全栅格连接或全部路线被挡返回
-`E_PLAN_NO_ROUTE`。格中心、连续面内边、对角边、显式转层边、实际起终点到格中心
-的连接均核验。转层保留原支撑几何的所有等距最近门户；障碍不能把门户挪到更远处
-制造新桥。v2 返回精确起终点连接并保留浮点精度，避免输出舍入后穿箱。
-搜索仍是离散有界图，不承诺连续空间全局完备或四足跨阶能力。
+起终点必须是有限 xyz，z 为支撑高度。可用 surface_id 指定支撑面；未指定时在包含 XY 的面中按 z 消歧。上层交互遇到同 XY 多面可由[选面器](../framework/surface_resolver.py)显式拒绝歧义，不能据底层最近 z 策略代替用户选面。
 
-ROS 的初始发布、GetPlan 与 GetPath 共用 `~robot_radius_m`、`~robot_height_m`；
-拒绝时路径为空，状态回显障碍版本、数量和包络参数。
+min_clearance_m 可筛除低顶格和面内连接段；起终点低顶报 `E_PLAN_CLEARANCE`，无安全连接报 `E_PLAN_NO_ROUTE`。未知不能当自由，地图合法性/连通性与规划可达性分别判断。
+
+## 障碍与真实格集
+
+规划器显式启用障碍校验，接受 map v1/v2/v3；v3 的 cells 用于支撑格集。非空 obstacles 要求显式、有限的水平半径和正高度，否则 `E_PLAN_INPUT`。参考点为支撑面，包络由支撑 z 向上挤出；XY 使用包住圆的保守正方形。侧面相切判碰撞，从上方接触实体顶面不算穿入。
+
+起终点包络碰撞报 `E_PLAN_OBSTACLE`，全部连接被挡报 `E_PLAN_NO_ROUTE`。v2 路线对实际起终点到格中心连接、面内线段和显式转层门户逐段核验，并保留精确端点；其精确连接/多门户分支目前限定 schema_version=2，v3 升级不能自动继承该分支的保证。
+
+支撑图的面内高度仍为常数，slope/step 边表达离散转层关系，不是连续坡面或四足接触模型。搜索是离散且有界的，不承诺连续空间全局完备。
+
+## ROS 运行接口
+
+- [ros_node.py](ros_node.py)：参数式地图/start/goal，提供 GetPlan/GetPath 包装及状态；路径与拒绝共用同一核心 planner。
+- [topic_node.py](topic_node.py)：JSON String 地图、PoseStamped 起点/目标；Path 输出和 JSON 状态。新输入触发 generation 与取消，旧线程结果不得覆盖新请求；Trigger 可请求取消。
+- topic_node 缺省地图 `/v8_support_map`、起终点 `/v8/global/start` 与 `/v8/global/goal`、输出 `/global_path`；实际 [app graph](../framework/fixtures/graphs) 覆盖为 `/v8/3d/global/*`。pose frame 须与 `~frame` 一致。
+- robot_radius_m/robot_height_m/min_clearance_m/surface_hint 从私有参数进入核心策略。Path 消息本身不携完整 surface_id/map_version，详细身份仍要看状态/原始路线。
+
+[mesh_support.py](mesh_support.py) 从声明网格提取支撑面，[scene_map.py](scene_map.py) 处理声明场景输入；它们不等于真实雷达建图。传感 PCD 管线见[framework](../framework/README.md)。
+
+## 定向测试与回归
+
+从仓根执行：
 
 ```bash
-python3 -B test_obstacles.py
-python3 -B ../regression/global_obstacles.py --out /tmp/global-obstacles.json
+python3 -B ws/src/90_platform/v8_platform/planner/test_support_planner.py
+python3 -B ws/src/90_platform/v8_platform/planner/test_obstacles.py
+python3 -B ws/src/90_platform/v8_platform/planner/test_ros_node.py
+python3 -B ws/src/90_platform/v8_platform/planner/test_topic_node.py
+python3 -B ws/src/90_platform/v8_platform/regression/global_obstacles.py \
+  --out /tmp/global-obstacles.json
 ```
 
-回归为 SC02／SC05／SC06 的派生请求，各含无遮挡、箱体改线、封路三例。
-SC02／SC06 的封路体贯穿地面与夹层，因只放阶面小箱可从下层绕到箱后；
-SC06 改线可合法使用 `ground→mezz→ground`。原场景真值与冻结判据不改。
-独立评价器采用六面相交检查，旧无障碍路线须在新箱体场景下被判碰撞，防止假改线。
-
-
-## 6. 当前运行面（R1101/R1102/R1112）
-
-- Gazebo 3D 全局+局部：NIST 支撑图 34 点、末 `(0.075,1.275,.890358)`，两次 2/2（R1101）；
-- 传感器生成图 `nist_sensor@2` 全局 25 点、局部 9 次到顶（R1102）；
-- R1112 把同一 34 点全局路径交给 local→MuJoCo V8-X1 接触执行，2/2 checks 全真、
-  final map `(0.075,1.275,.8904)`、body z `1.0998/1.1010`；全局路径预计算一次，不是在线重规划。
-- 边界：A4 仍 PARTIAL，formal 未签署；声明 support map/单策略，不是 Gazebo 感知/真机。
+global_obstacles 使用 SC02/SC05/SC06 的无遮挡/改线/封路派生请求，原场景真值和冻结判据不改。`regression/a4_runtime.py clearance` 需要已有隔离 ROS master；SC09 有安全绕路与“目标在低顶下”的派生请求须分别报数。全局路径→局部→MuJoCo 的历史结果属于声明图/单策略实验，且部分路径只预计算一次，不能称在线全局重规划或真机验收。当前状态统一查[进度](../../../../../note/进度/v8/README.md)。

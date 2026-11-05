@@ -1,20 +1,16 @@
-# lite3_task（模块 M5）
+# lite3_task · SMACH 任务编排
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
-**统一索引头**（本头由文档批次生成并登记于 `note/04_配置改动diff.md`；下方正文为历史内容，未改写）
-层 `50_task` ｜ 角色 `M5 任务编排` ｜ 契约先行的 FSM 层：原语注册表＋SMACH 简版；语义只消费上游事件，不替上游造失败。
-**全局索引**：`ws/README.md`（工作区定位图·红线速记·调用姿势）｜ `note/进度/00_总览.md`（进度唯一真身）｜ `note/04_配置改动diff.md`（哪些改动被许可）｜ `note/07_判据载体代际对照表.md`（判据载体代际现值）｜ `note/05_复验作业单.md`（验收纪律 A–F 段）
-**路径读法**：本表一律以 `ws/src/` 为根（如 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`）；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
+本包以 `config/task_primitives.yaml` 注册原语，由 `scripts/task_smach_min.py` 装配 SMACH 状态机。
+启动入口为 `launch/50_task_smach_min.launch`，支持 `chain`、`navigate`、`scan` 模式。
 
-本包速查：
+- `chain`：GET_PATH → EXE_PATH，消费 MBF action 的结果；可按恢复策略重试、重规划或清代价图。
+- `navigate`：使用 MBF MoveBase action，outcome 经 `lite3_navigation/config/recovery_policy.yaml` 查表并检查预算。
+- `scan`：发布 SCAN 目标，消费 `/lite3/scan/arrived` 与 `/lite3/scan/arrival_dist`；到达成功或等待超时返回。
 
-| 要做 | 位置 |
-|---|---|
-| 起编排 | `launch/50_task_smach_min.launch` |
-| 原语与 goal 契约 | `config/task_primitives.yaml`（`target=local:scan_goal` 这类前缀空间在此定） |
-| 编排主件 | `scripts/task_smach_min.py` |
-| 验收件 | `verify/v_task_smach.sh`、`v_task_scan_primitive.sh`、`v_scan_task_live.sh` |
+SCAN 分支没有上游失败事件，不替其制造失败/恢复语义；“失败只有超时”仅指这条分支。
+MBF 分支还会对 action server 缺席、空路径、返回的失败 outcome、恢复预算耗尽等返回 `aborted`。
 
-**红线/契约**：到达判据用 J1 观测件而非 FSM 内部态；任务层失败侧只有超时档（FSM 无失败事件）。
-
+验证入口为 `verify/v_task_smach.sh`、`v_task_scan_primitive.sh` 与 `v_scan_task_live.sh`。
+任务状态机不代替独立到达评价器，也不直接绕过 M6 发布 `/cmd_vel`。

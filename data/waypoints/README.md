@@ -1,31 +1,17 @@
-# data/waypoints/ —— 航点目录（C6，19 号 W7）
+# 航点数据目录
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本次按实际读写代码核对，未录制航点、未启动任务。
 
-本目录存放任务航点 JSON，由 M5 任务层（TaskTransfer.py，C5 改写版）消费。
+本目录目前只有本 README，没有航点 JSON。它是预留的数据目录，**当前 `pipeline_tracking` 不会自动从这里读写**。
 
-## 录航点工具（v4 C6 修正口径）
-- 工具路径：`ws/src/50_task/pipeline_tracking/tools/location_record.py`（注意在 **tools/** 子目录，非 scripts/）
-- 依赖 PyQt5 图形环境：需 `ssh -X` 或现场 HDMI（Q5 开）
-- 退化方案：手写 JSON（键位与既有航点文件一致即可），落在本目录
+| 入口 | 实际路径与行为 |
+| --- | --- |
+| [录制工具](../../ws/src/50_task/pipeline_tracking/tools/location_record.py) | PyQt5 界面读取 `map → base_link` TF，把 `<order>.json` 写入包内 `pipeline_tracking/data/` |
+| [任务加载器](../../ws/src/50_task/pipeline_tracking/scripts/Task.py) | `LoadTaskpoints()` 遍历同一个包内 `data/`，按 `order` 排序；没有可用文件时抛异常 |
+| [任务转移器](../../ws/src/50_task/pipeline_tracking/scripts/TaskTransfer.py) | 消费已解析的任务点，向 MBF action 发送目标；不负责发现本目录 |
 
-## 约定
-- P3a 仅落目录占位（本 README）；航点 JSON 在 P3b/P6 现场录制后生成
-- 与同级 `data/maps/`（建图三件套 .pcd/.yaml/.pgm，Gate G3）无耦合依赖
+旧 README 所述“录制后落在本目录并由 TaskTransfer 直接消费”与源码不符。本次只更正文档，不改第三方任务包的数据路径。
 
----
+录制 JSON 的主要字段为 `order`、`robot_pose`（`pos_x/pos_y/pos_z`、`ori_x/ori_y/ori_z/ori_w`）及 `option`（三类步态布尔值）；准确格式以录制工具和 [TaskPoint](../../ws/src/50_task/pipeline_tracking/scripts/TaskPoint.py) 为准。包内加载器不会按扩展名筛选文件，说明文件不应混入它的 `data/`。
 
-## ★同步戳（追加节·data/waypoints；上方旧文一字未回改）★
-
-- **本目录当前状态（现跑 `ls -A`）**＝**仍只有 `README.md` 一枚**，
-  目录内**无任何航点 JSON** ⇒ 上方「P3a 仅落目录占位；
-  航点 JSON 在 P3b／P6 现场录制后生成」那句**仍然成立、未过期**。
-- **录制工具在位（现跑 `test -f`）**＝
-  `ws/src/50_task/pipeline_tracking/tools/location_record.py` ✔
-  （★注意＝在 `tools/` 子目录，不是 `scripts/`★）。
-- **消费方在位**＝`ws/src/50_task/pipeline_tracking/scripts/TaskTransfer.py` ✔。
-- **与同级 `data/maps/` 的关系**＝**无耦合依赖**
-  （`maps/` 现跑 6 枚＝`lite3_1007.pcd`／`lite3_1007_polished.pcd`／`lite3.pcd`／
-  `lite3.pgm`／`lite3.yaml`／`sim_venue.pcd`＝Gate G3 建图三件套）。
-- 对齐到＝进度真身末号 **R518** ／ 本 boot **批174**；同步时刻＝2026-10-21 03:32 CST。
-- ★上方正文一字未回改★。
+v8 应用使用另一套 task 契约与 map registry，入口见 [v8 平台](../../ws/src/90_platform/v8_platform/README.md)。本目录是否有 JSON 不表示地图、定位或真机任务已验收；当前地图准备和真机排程以[执行队列](../../note/计划书v8/23_v8任务队列.md)为准。

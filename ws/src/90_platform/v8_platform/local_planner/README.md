@@ -1,108 +1,58 @@
-# R655 原生三维局部规划备选
+# local_planner · 原生三维局部规划与命令适配
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
-`local_native.plan(map, start_xyz, goal_xyz, obstacles, now, config)` 从当前支撑位置
-在「支撑面 × XY 栅格 × 未来时刻」空间搜索新的有限时域运动，含等待、面内移动、
-按显式有向边转层。障碍是带速度/时间窗的三维盒；整段相对运动 slab 相交核验机器人
-包络与净空，不靠端点避障。输出带绝对时间、支撑面 ID、地图 ID/版本、有效期和末端
-保持段；终检调用独立 `trajectory_checker`。它不消费全局点列后补时间戳。
+[local_native.py](local_native.py) 在“支撑面 × XY 栅格 × 未来时刻”上搜索有限时域运动，含等待、面内移动和显式有向转层。它从当前状态到局部目标重新规划，不消费全局点列后补时间戳。[path_goal_node.py](path_goal_node.py) 当前只将全局 Path 末点转成局部目标，不能描述为逐点跟踪完整全局路线。
 
-支持图坐标 z 表示足底/支撑高度，绝非 `base_link` 高度。缺省 Config 明确是实验运动学
-载体约束，不能作为 Lite3 已测能力。传入 robot profile 时，`declared + prohibited`
-能力立即拒绝，并执行独立运动学核验；原有真机与第三方边界不变。
+## 核心接口与有效域
 
-`evaluate.py` 不导入局部规划器，以独立密采样、真值障碍和现有检查器评价输出；
-不会改写或修复轨迹。该密采样评价有显式最大空间/时间间距，不冒充连续碰撞证明。
+`plan(map_value, start, goal, obstacles=(), now=0.0, config=None, robot_profile=None)` 输出带绝对时间、支撑面、地图 ID/版本、有效期与末端保持段的结果。`command` 拒过期/旧地图/定位失效的结果，`track_segment` 按当前时间与实际位置核剩余已验段。
 
-```bash
-python3 -B ws/src/90_platform/v8_platform/local_planner/test_local_native.py
-python3 -B ws/src/90_platform/v8_platform/local_planner/test_execution.py
-python3 -B ws/src/90_platform/v8_platform/local_planner/demo.py --out /tmp/a5-local.json
-```
+输入接受 map v1/v2/v3；静态地图 obstacles 与运行输入的带速度/时间窗三维盒一起参与包络碰撞检查，cells 用于真实支撑归属。支撑 z 表示足底/接触高度，不能直接当 base_link 高度。平面常高的面与显式 step/slope 边表达离散接触状态，跨层连续过程不制造新支撑面。
 
-示例逐段执行速度到下一个已支撑状态、再从该状态重规划，覆盖新障碍绕行、带速度的
-三维障碍、短转层三维到达、无路停车及旧轨迹拒绝。
-这是 Python 运行证据，尚未因此取得 Gazebo 或接触动力学证据。滚动局部搜索可能在
-需先远离目标的凹形障碍前停住，调用方应提供全局段的局部目标；本件不声称全局完备。
+默认 Config 是实验运动学约束，不是 Lite3 定标。robot profile 中 declared+prohibited 的能力不能驱动可执行判断；场景/机器人几何须由调用方明确给出。滚动搜索在凹形或需先远离目标的障碍前可能停住，不保证全局完备。`command_latency_bound_s` 是实验通信建模界，不替代实测通信/停车认证。
 
-## ROS1 接线
+[evaluate.py](evaluate.py) 不导入局部规划器，以真值障碍、密采样和现有独立检查器评价输出，不修复轨迹；有限采样间距不等于连续碰撞证明。
+
+## ROS 输入输出
+
+从仓根、已加载工作区环境且专用 master 就绪时运行：
 
 ```bash
 python3 -B ws/src/90_platform/v8_platform/local_planner/ros_node.py \
   _map_json:=/absolute/support-map.json
 ```
 
-输入：`/v8/local/pose`、`/v8/local/goal` 为 `geometry_msgs/PoseStamped`，
-`header.frame_id=map`，z 必须是支撑高度；`/v8/local/obstacles` 为 `std_msgs/String`，
-JSON 如 `{"obstacles":[{"min":[0.6,-0.2,0],"max":[1,0.2,0.8],"velocity":[0,0,0],"stamp":0}]}`；
-`/v8/local/localization_ok` 为 `std_msgs/Bool`。
-pose、obstacles、localization 都需持续心跳，缺失/过期立即输出零速。
+也可用 `~map_topic` 消费版本化 JSON 地图；两者至少提供一个。缺省接口：
 
-输出：`/v8/local/cmd_vel_3d` 为 `geometry_msgs/TwistStamped`（map 系 linear.xyz），
-`/v8/local/trajectory`、`/v8/local/status` 为 JSON String。
-输出仍须通过载体适配与安全仲裁，不能把 3D 命令接入只消费 XY/yaw 的底盘后宣称跨层。
-跨层显式边表达离散接触状态转移；现行 map.v1 没有面内连续坡面。控制器在执行已验
-局部段时持续接收实际 xyz，不从中途未落面的位姿重新搜索；实到该段目标后再规划。
-不能把跨层过程中的连续高度假装成新支撑面。每次发令都按当前时间和实际位置重新
-核验整个剩余段，延迟指令不能继承旧预测时刻的避障结论。跨层全链仍需载体运行取证。
-节点有独立墙钟控制循环，规划阻塞、ROS 仿真钟停转时也会执行零速看门狗；输入世界
-变更会撤销旧输出，规划结果的 generation 复核防止并发更新后接受旧障碍预测。
-`~experimental_config` 接受 Config 字段；`~robot_profile_json` 可启用已验证能力限制。
-本节点未替代真机控制器，启动本节点不构成真机运行授权。
+| 方向 | 话题 | 契约 |
+| --- | --- | --- |
+| 输入 | `/v8/local/pose`、`/v8/local/goal` | PoseStamped，frame=map，z 为支撑高度 |
+| 输入 | `/v8/local/obstacles` | String JSON，例 `{"obstacles":[]}`；可含 min/max/velocity/stamp |
+| 输入 | `/v8/local/localization_ok` | Bool |
+| 输出 | `/v8/local/cmd_vel_3d` | TwistStamped，map 系 linear.xyz |
+| 输出 | `/v8/local/trajectory`、`/v8/local/status` | String JSON，含结果/状态/地图身份 |
+| 可选输出 | `~twist_topic` | 缺省关闭；plain Twist 镜像，供指定实验/安全链使用 |
 
-## 待目标环境执行的最小观测
+pose/obstacles/localization 需持续心跳，缺失/过期输出零速。输入世界变更撤销旧 generation；独立 fork worker 执行规划，控制/ROS 回调不等待长搜索。计划有效期按仿真时刻判，墙钟 `~wall_watchdog_s` 处理 /clock 停转；终端停车锁存与可重规划瞬态零速分别处理。`~pause_planning` 仅用于故障注入。
 
-在专用 roscore 已就绪且完成开窗预检后，用契约夹具
-`contracts/fixtures/map_single_floor.json` 作为 `_map_json` 起节点；保持三个独立心跳：
-PoseStamped `map/(0,0,0)`、Bool `true`、String `{"obstacles":[]}`，各 10 Hz；
-向 goal 发一次 `map/(1,0,0)`。观测 cmd_vel_3d 的 `linear.x` 为非零，
-随后停掉 obstacles 心跳，期望状态 `E_LOCAL_OBSTACLES_STALE` 且三向速度全零。
-恢复心跳后加入障碍 `min=[0.6,-0.2,0], max=[1,0.2,0.8]`，应观测到新轨迹绕行；
-把障碍改成封路盒并将 pose 放至 `(-0.4,0,0)`，期望 `E_LOCAL_NO_ROUTE` 和零速。
-命令输出必须以独立订阅采样取数，不能仅以状态自报判过。以上是待执行说明，
-尚无本片 ROS/Gazebo 运行结果；完整示例与 watchdog 的 Python 对抗证据见 demo/test。
+## 两种命令链
 
-`runtime_probe.py --out /tmp/a5-ros.json` 可在已有专用 master 上执行这些实际消息探针；
-它自行启动/退净节点，含移动盒闭环、短台阶接触状态闭环、封路、定位失效、暂停规划
-后有效期归零五例。`--case dynamic` 可只复跑动态反例，结果会标 `complete_suite=false`。
-载体按每条实收三维指令的接收时刻做零阶保持积分，连续反馈实际 xyz；不吸附回面。
-`execution_trace` 保留全部等待与命令变化，`trace` 记录实际接触事件。独立评价器用前者
-核静态/动态碰撞、后者核地图支撑，逐个校验未落面的执行点是否确在已声明跨层边的
-实际接触事件之间及其几何线上；缺失/不一致均判失败，不能靠丢采样洗绿。
-节点继承 probe 的进程组，lab 超时清组不会遗留独立 session；正常退出只终止/回收
-自身 child PID。输出明确带 `gazebo=false/dynamics=false`。
-终端控制按反馈时戳和已发命令估计当前位置，扣除在途旧命令可能走过的距离，保持
-实际接触状态而非吸附到参考面。`command_latency_bound_s=0.01` 是此实验载体的通信
-建模界，不能替代真实部署认证或冻结停车预算；probe 逐条记录实收指令时延，实际
-超界必须停止本次验证并记 FAIL，不得继续引用该界声称保证落面或运行安全。
-`~pause_planning` 仅为仿真故障注入：暂停规划刷新但保留独立控制看门狗，用来量取
-有效期过后实收三向零速。该参数不赋予任何真实硬件连接许可。
+[cmd3d_mux_node.py](cmd3d_mux_node.py) 为实验三维 carrier 保留 map 系 xyz，检查 frame/时效/hold 后写唯一 `/cmd_vel`；它不是 Lite3 平面 mux 的同义替代。[pose_mux.py](pose_mux.py) 提供定位源交接门，相关 smoke 验证一致切换与跳变拒绝。
 
-## 正式状态（R881 收口）
+Lite3 app 采用 plain Twist→`/cmd_vel_raw`→生产 safe_cmd_vel_mux→`/cmd_vel`。目前 ros_node 的 plain Twist 直接镜像 map 系速度，没有独立按机器人 yaw 旋转到机体系；接入平面底盘前须核清坐标语义，不能凭静态/轴对齐冒烟声称任意朝向真机导航完成。完整配置与限速/感知边界见[Lite3 配置](../configs/lite3/README.md)。
 
-自 R881 起，本件收为 A5 的算法/申报域正式路线：只对声明支撑图 `map.v1`（平坦/离散转层）
-负责，输出必须经载体适配与安全仲裁；不接真机、不声称四足接触或跨层物理、不声称全局完备。
-当前 `ros_node.py` 只是实验接线，不随本路线收为生产/导航节点；`command_latency_bound_s=0.01`
-仅为实验载体通信建模界，本批未实测，不替代部署认证或冻结停车预算。第三方 3D 路线未做
-同基准对照，不声称优于第三方。R881 实测出的运行时缺陷必须先修：`validity_s` 的仿真/墙钟
-时基未统一（RTF<1 时墙钟看门狗会先于计划的 `valid_until` 撤销输出）、零速不锁存
-（出现零→非零→零）、`reason=ok` 也发零速、零后复动；修好并复测前，不得用本节点测全链
-停车预算。R881 修后四例回归只有 `arrival`/`localization` 为 VALID；`sensed_no_route` 与
-`sensor_freshness` 均被墙钟到期抢先（后者 `input_max_age_s=1.0` > `validity_s=0.9`），
-故 R841 的 4/4 不再作为当前运行面声明。R882 起规划改在独立 fork worker 中执行（父进程只提交/
-轮询，不让规划长循环占用 ROS 回调与 50 ms 控制循环），计划有效期按自带的仿真 `valid_until`
-判，墙钟 `~wall_watchdog_s`（默认 max(5, 4×validity_s)）只作 /clock 停转兜底；零速锁存只在
-已有计划后生效，启动期 stale 不锁存；重规划间隙的 `E_LOCAL_NO_TRAJECTORY`/`E_LOCAL_EXPIRED`
-等瞬态零速不记为终端停车。修后四例 4/4 VALID（新口径），仍是 kinematic、无制动、
-单速度/单起点，不改变 #151 两键 pending 与 A5 三维到达/跨层未验收。
+## 测试和运行探针
 
+```bash
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_local_native.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_execution.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_ros_node_policy.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_planner_worker.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_cmd3d_arbiter.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/demo.py --out /tmp/a5-local.json
+```
 
-## 当前运行面（R1105/R1112）
+`runtime_probe.py --out /tmp/a5-ros.json` 在已有专用 master 上创建/退净节点，含移动盒、短转层、封路、定位失效、规划刷新暂停探针；`--case dynamic` 仅跑子集并标 complete_suite=false。它用实收命令零阶保持积分和完整 execution_trace 评价，明确 gazebo=false/dynamics=false，不能当接触动力学证据。
 
-- Gazebo 真实激光 0.2 m/s 停车：tick 1.0 s、validity 2.0 s 后 A/B/C **3/3 VALID**，
-  最坏“感知→停” wall **.136617 s**、sim **.051 s**、path **.006965 m**、GT 净空 **.891107 m**（R1105）；
-- R1112：全局 34 点路径交给本节点→MuJoCo V8-X1 270 策略，两次 checks 全真、
-  final map `(0.075,1.275,.8904)`、plans 8/7；接触闭合 Z，本节点仍只出 3D 命令；
-- 载体（R1109）实际 `driveMode=dynamic`，是动态平面方盒＋Gazebo 接触，不是 kinematic pose sink；
-  仍无四足步态/真机，A5 仍 PARTIAL。
+Gazebo 动态方盒、真实激光停车和 MuJoCo 单策略接触执行已有各自历史运行记录，见[进度](../../../../../note/进度/v8/README.md)；不能继续使用早期“尚无任何 ROS/Gazebo 结果”的说法，也不能由局部实验扩大为生产、任意四足步态或真机验收。本文未复跑这些实验。

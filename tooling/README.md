@@ -1,54 +1,48 @@
-# tooling｜项目自持清单（闭环资产与外部依赖）
+# 工具资产、技能镜像与恢复
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新更新时间：2026-11-05 11:49:54 CST。本轮核对仓内脚本和清单覆盖；未恢复技能、未改系统服务。
 
-> 来历＝主理人 2026-10-12 明文「**尽量所有所需的文件，例如 skill、mcp 工具等等，都保存放在 ros1-slam 的文件目录下，让 ros1-slam 的项目整体闭环，这一点加入计划书中**」。条款正文已入 **v5.3 §0.13**；本件是**清单与恢复法**（照抄即用）。
-> 时刻只认 `date`：本清单实测于 2026-10-12 23:3x（R230 批）。数字为现跑，非估算。
+本目录保存项目维护的工具资产。运行环境、源码和真实地图各有自己的交付方式，不能用2026年10月旧机的容量/包数快照描述当前主机。
 
-## 1. 已在仓内的（自持，搬迁时一起走）
+| 入口 | 作用与限制 |
+| --- | --- |
+| `skill/software-company/` | 多角色协作工作流与角色定义 |
+| [skill/senior-developer/SKILL.md](skill/senior-developer/SKILL.md) | 单阶段施工工作流及通用开发子技能 |
+| `skill/note/` | 技能使用说明 |
+| `skill/window-scheduler/` | 历史窗口调度技能；当前调度不运行后台 watch |
+| [skill/RESTORE.sh](skill/RESTORE.sh) | 将四个技能目录复制到**执行账户**的 `$HOME/.zcode/skill`，为 `$HOME/.qoder/skills` 建链接 |
+| `systemd/` | 已登记的生产服务单元镜像；用于核对来源，不自动安装/启停 |
+| [_forbid_str_exempt.tsv](_forbid_str_exempt.tsv) | `tooling/` 的显式字符串豁免登记，不能扩展到其他目录 |
+| [_build_tooling_manifests.sh](_build_tooling_manifests.sh) | `skill` 子清单及 `top` 顶层清单的校验与整体重建 |
 
-| 件 | 体积（现跑 `du -sh`） | 说明 |
-|---|---|---|
-| `ws/` | **1.2G** | 源码面；**`grep -rl /home/ysc ws/src`（launch／yaml／py）计数＝0** ⇒ 被测件面不指向生产路径 |
-| `opt/` | **1.3G** | 第三方与原件区（`opt/ref/` 保原样存来源，属在册豁免面） |
-| `note/` | **71M** | 台账志文面（含证据目录 `note/进度/SCAN集成/证据/log/raw/`） |
-| `scripts/` | **332K** | 门禁件与工具（`scripts/verify/` 在册 15 件＋面清单） |
-| `data/` `logs/` `docs/` | 122M／11M／8.5M | 底图与输出面 |
-| `.git/` | 252M | 版本面（**永不复制 build／devel／.git 到别处**的旧红线只约束"往 ws 里塞"，搬迁整仓时 `.git` 随仓走） |
-| **`tooling/skill/`** | **6.4M／133 件** | **本批新增**：技能包逐字镜像＋`_sha256_manifest.txt`（133 件全 OK）＋`RESTORE.sh` |
+现行项目规则先读[跨工具协作契约](../note/09_跨工具协作契约.md)，路线与排程见[计划入口](../note/计划书v8/README.md)及[执行队列](../note/计划书v8/23_v8任务队列.md)。技能中历史阶段、固定主机路径和旧待办不覆盖现行指针。
 
-## 2. 不在仓内、且**搬不进来**的（外部依赖，只能登记＋给恢复法）
+## 校验与恢复
 
-| 依赖 | 真实位置（现跑） | 能否搬进 `ros1-slam` | 恢复办法 |
-|---|---|---|---|
-| **技能包真身** | `/home/ysc/.zcode/skill/{software-company,senior-developer,note}`；另有 `/home/ysc/.qoder/skills/*` **是指向它的符号链接**（`ls -ld` 实证） | **工具读取路径固定 ⇒ 真身不能搬**；本批以**镜像＋恢复脚本**闭环 | `bash /home/ros1-slam/tooling/skill/RESTORE.sh`（校验→备份→恢复→目录 775／文件 664→重建符号链接） |
-| **MCP 配置** | 本机**不存在**可搬的文件：`find / -maxdepth 4 -name 'mcp*.json'` 零命中；`/home/ysc/.qoder/` 下只有 `remote/protocol-v1` 与 `skills/`（符号链接） | **不能**——MCP servers（`browser-use`／`builtin`）由**会话宿主的 app runtime** 提供，配置不落在这台施工机上；`/home/jack/.qoder` 在本机不存在 | 只能按 §0.13 的"依赖声明"方式登记：server 名＋用途＋由谁提供；换环境时在主理人侧重建 |
-| **系统 ROS** | `/opt/ros/noetic`（`ls /opt`＝containerd／nvidia／ota_package／**ros**／sublime_text；志文里 `/opt/ros` 出现 9164 次） | **不能**（apt 安装面、需 root） | 在册三步环境：`source /opt/ros/noetic/setup.bash` ＋ `source ws/devel/setup.bash`（`set +u` 子 shell） |
-| **systemd 单元** | `/etc/systemd/system/{lite3-monitor,lite3-ros-bridge,transfer_ros2}.service` 等（root 属主） | **不能**（写 `/etc` 需 sudo，施工侧无 sudo） | v5.3 §0.12.1 已把每个 unit 的**功能／影响／恢复命令**逐件写死；单元文件正文可由主理人导出后入 `tooling/` |
-| **生产侧** | `/home/ysc/lite_cog/`、`/home/ysc/lite_cog_ros2/`（志文里 `/home/ysc` 出现 3898 次，**绝大多数是来源记录**） | **禁止搬、禁止改、禁止删**（在册红线：永不删除 `/home/ysc/lite_cog/`；`/home/ros1-slam` 内禁 `/home/ysc` 字符串，**note 来源记录与 `opt/ref` 除外**） | 不恢复——它不属本项目资产 |
-| **会话宿主家目录** | 本 agent 的 session 文件在 `/home/jack/.qoder/...`（另一台机） | **不能** | 换机时按 §0.13 的"搬迁影响清单"另出一批 |
+在仓库根只读核对：
 
-## 3. 规矩（本清单生效期间）
+```bash
+bash tooling/_build_tooling_manifests.sh --target skill --check
+bash tooling/_build_tooling_manifests.sh --target top --check
+```
 
-1. **新工具件默认落仓内**：`tooling/<名>/`，并同批出 `_sha256_manifest.txt`；需要工具从固定路径读取的，**仓内放镜像＋仓外放符号链接**，链接由 `RESTORE.sh` 负责重建。
-2. **权限照 §0.12 事故后的规矩**：目录 **775**、文件 **664**（脚本 755）；`chmod` **一律绝对路径＋`find -exec`，禁止在旧 cwd 上用通配**。
-3. **不可搬项**每条都要有"恢复办法"一栏，**没有恢复办法的项＝登记为阻塞项上报**，不得留空当已完成。
-4. **技能包若改动**：改前备份**带子目录或改名**（不得同名平铺 `cp`），改后**同批刷新 `tooling/skill/` 镜像与清单**——镜像与真身不一致＝本条第 4 项违规。
+两份清单覆盖不同：`skill/_sha256_manifest.txt` 覆盖技能文件；顶层 `_sha256_manifest.txt` 覆盖本 README、恢复脚本、豁免表、窗口技能和已登记的 systemd 单元。修改被覆盖文件后，旧 digest 不再表示当前内容；清单的重新生成须遵循生成件既有生命周期，记录旧新摘要和校验结果；不能手改摘要掩盖差异，也不能仅凭旧同步戳称“全过”。本轮保留原清单，README 已有的摘要差异照实列入核对记录，不冒充一次完整恢复校验。
 
-## 4. R245 新增：systemd 生产单元**只登不抄**（正文含在册禁字符串，仓内不给副本）
+需要恢复到本账户工具路径时，先确认前述校验和目标账户，再执行：
 
-- 六份单元（monitor／ros-bridge／transfer_ros2／whoopsie／apport-autoreport.path／apport-forward.socket）的**来历表**落在 `note/03_外部文件来源清单.md`（该面是红线唯一豁免列之一）；每行给 绝对路径／属主与模／字节数／mtime／**内容 sha256**／正文是否含禁串。
-- **为什么不抄进 `tooling/`**＝其中三份生产 unit 的正文含本仓在册禁字符串（红线只豁免 note 来源记录与 `opt/ref`，`tooling/` 不在列）⇒ 逐字入仓即违规。同一性由 sha 可验：`sha256sum /etc/systemd/system/<unit>` 对表即可（other 位可读，`-rw-r--r-- root root`，**不需要 sudo**）。
-- **代价写死**：仓内无正文 ⇒ 单目录重建时**无法离线复原这些 unit**；要入册正文须主理人对 **A36** 择案（三选：只维持 sha 登记／给 `tooling/` 开豁免面并配"未命中即报"闸／脱敏副本＋还原说明）。
-- **顺带实测到的服务面依赖（2026-10-13 03:0x，非推断）**：`transfer_ros2.service` 的 ExecStart 直指生产账户树内的 `…/lite_cog_ros2/system/scripts/transfer/start_transfer.sh`；monitor 与 bridge 两份设 `Environment=HOME=` 指向该账户、`WorkingDirectory` 与 `ExecStart` 指向 `/home/test/monitor`（**34M、ysc 属主**，内含 backend/frontend/.venv，`/home/test/monitor/README.md` 首行＝"# Lite3 Robot Monitor"）。⇒ 这一层比 R240 报的 numpy 执行面**更硬**，已作为 A36 进请求单。
+```bash
+bash tooling/skill/RESTORE.sh
+```
 
-- **R348 README 同步（追加句）**＝本目录在册面多一枚此前未登记＝`_forbid_str_exempt.tsv`（**R331 建**，来源＝真人 2026-10-15 勾 **A36＝乙**）＝`tooling/` 的**禁字符串显式豁免面**：现跑**总 26 行／数据行 16**（式＝`wc -l`＋`grep -cvE '^ *(#|$)'`，时刻 2026-10-17 03:0x，单位＝行），列序＝`仓内相对路径<TAB>命中处数<TAB>档位<TAB>出处（锚文本，不给裸行号）`；门用面写死三条＝①扫描范围只有 `tooling/` 全树（含 `skill/` 镜像与 `systemd/`）②表内不含被禁字面（两段拼接）③未命中即报（防条目静默失效）。★它与本 README 上一段"整仓搬迁时 `.git` 随仓走"的关系＝`note/进度/SCAN集成/设计/au_x86仿真迁出交接任务单_设计稿.md` §4.2 第 2 条写明**迁出子集包不属该条对象**（不拷 `.git`），两处文字并存、★本句只做指向、★不判谁过期。
+脚本先打印校验 OK 数，然后备份已有技能根并复制文件、设置权限、为尚不存在的 Qoder 路径建链接。**它不是 fail-closed 恢复器**：脚本只启用 `set -u`，清单有坏项并不保证阻止后续复制；已有链接或目录也不会自动纠正。应先独立校验，恢复后人工核对路径与链接。它不配置 Codex/WorkBuddy 技能、不安装 MCP、不恢复 ROS，也不恢复 `/etc/systemd/system/`。
 
----
+## 外部依赖
 
-## ★同步戳（追加节·tooling；上方旧文一字未回改）★
+| 依赖 | 本仓能提供什么 | 目标环境仍须具备什么 |
+| --- | --- | --- |
+| ROS1 Noetic 与系统库 | [Docker 环境](../docker/README.md)、工作区源码与依赖说明 | x86 Docker 或目标机原生 ROS、可用编译工具链 |
+| MCP、插件与会话工具 | 必要的项目说明和协作契约 | 会话宿主提供的连接与权限；不能从旧机“不存在配置文件”推断新机同样如此 |
+| 系统服务 | `systemd/` 镜像和来源登记 | 管理员根据实际主机逐项核对；本文不授权安装或启停生产服务 |
+| 模型、地图、bag 与外部仿真资产 | registry 模板、路径约定、证据索引 | 各机真实文件、来源、许可与数据校验；不从其他主机默认名直接覆盖 |
 
-- **对齐到**＝进度真身末号 **R518** ／ 本 boot **批174**（零窗·派单批）。
-- 本目录＝**项目自持清单**（闭环资产 vs 外部依赖的分界），
-  含 skill 逐字镜像 ＋ `*_sha256_manifest.txt` 见证清单。
-- 同步时刻＝2026-10-21 03:32 CST。
+来源与变更以 `note/` 登记为准。生产侧目录、第三方原件、冻结清单和历史证据遵守各自边界；恢复工具资产不等于授权反向同步或真机运行。

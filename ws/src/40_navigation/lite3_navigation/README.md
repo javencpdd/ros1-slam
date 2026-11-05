@@ -1,21 +1,20 @@
-# lite3_navigation（模块 M4）
+# lite3_navigation · MBF 平面导航装配
 
-> 更新时间：2026-11-04（v8 现行口径校对）｜ 权威口径：计划书 v8（note/计划书v8/）；本文件如与 v8 冲突，以 v8 为准
+> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
-**统一索引头**（本头由文档批次生成并登记于 `note/04_配置改动diff.md`；下方正文为历史内容，未改写）
-层 `40_navigation` ｜ 角色 `M4 导航联邦（mbf）` ｜ MBF 参数与插件装配层：代价图、全局/局部规划器、恢复行为都在这层点单。
-**全局索引**：`ws/README.md`（工作区定位图·红线速记·调用姿势）｜ `note/进度/00_总览.md`（进度唯一真身）｜ `note/04_配置改动diff.md`（哪些改动被许可）｜ `note/07_判据载体代际对照表.md`（判据载体代际现值）｜ `note/05_复验作业单.md`（验收纪律 A–F 段）
-**路径读法**：本表一律以 `ws/src/` 为根（如 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`）；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
+本包装配 MBF 的规划器、控制器、代价图与恢复参数，不承载算法 C++ 源码。
 
-本包速查：
+| 入口 | 实际职责 |
+| --- | --- |
+| `launch/mbf_navigation.launch` | 启动 `mbf_costmap_nav`，装入 MBF/TEB/全局规划/代价图基础配置，发布 M4 心跳；控制器 `cmd_vel` remap 为 `cmd_vel_raw` |
+| `config/mbf_navigation.yaml`、`planner_teb.yaml` | 规划器/控制器选择与 TEB 参数 |
+| `config/costmap_common.yaml`、`global_costmap_params.yaml`、`local_costmap_params.yaml` | 当前代价图基础配置 |
+| `config/recovery_policy.yaml` | MBF outcome、处置与恢复预算；供任务层读取 |
+| `verify/dwa_recheck.py`、`v_dwa_recheck.sh`、`v_dwr_exitclean_selftest.sh` | DWA 复核入口 |
 
-| 要做 | 位置 |
-|---|---|
-| 导航主入口 | `launch/mbf_navigation.launch`（加载**底文件**，注意不加载 variants） |
-| 裸话题中继 | `launch/cmd_vel_raw_relay.launch` |
-| 代价图/规划器参数 | `config/costmap_common.yaml`（`resolution: 0.1`）、`global_costmap_params.yaml`、`local_costmap_params.yaml`、`global_planner_params.yaml`、`mbf_navigation*.yaml`、`planner_teb.yaml` |
-| 三档覆盖文件 | `config/variants/{night,outdoor_open,crowd}.yaml`——**自记前置已结案但至今无人加载**＝待裁 B5（坑44 实例） |
-| DWA 复核算件 | `verify/dwa_recheck.py`、`v_dwa_recheck.sh`、`v_dwr_exitclean_selftest.sh` |
+`config/variants/{night,outdoor_open,crowd}.yaml` 在本包主 launch 中没有加载行，不能因文件存在
+声称对应运行配置已生效。`launch/cmd_vel_raw_relay.launch` 的 relay 节点仍整体注释，
+是待配置占位；当前主链直接使用 `mbf_navigation.launch` 的 remap，不依赖它转发。
 
-**红线/契约**：**壳包禁算法源码**（`.cpp/.cc/.h` 零命中，ISO 项[9]）；`/cmd_vel` 只能来自 M6 mux，绕过即 ISO 项[6] 红。双 StaticLayer「可叠加」前提已被 R59 预检推翻（补丁 X2）⇒ 可通行层要走**我方层直接产出合并代价**，不要再塞第二个 layer。
-
+速度必须经 M6 mux 输出 `/cmd_vel`；本包输出是 `/cmd_vel_raw`。
+二维代价图中的高程障碍标记不等于三维全局/局部规划，v8 3D 栈另见 v8_platform。
