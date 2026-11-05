@@ -1,8 +1,8 @@
 # ws/ · 源码与配置入口
 
-> 最新更新时间：2026-11-05 13:22:18 CST。现行路线：[计划书 v8](../note/计划书v8/README.md)；实际架构：[项目架构与目录](../note/架构/项目架构与目录.md)；进度与能力边界：[进度入口](../note/进度/README.md)。
+> 最新更新时间：2026-11-05 23:55:56 CST。现行路线：[计划书 v8](../note/计划书v8/README.md)；实际架构：[项目架构与目录](../note/架构/项目架构与目录.md)；进度与能力边界：[进度入口](../note/进度/README.md)。
 
-本目录是 catkin 工作区。`src/` 放源码、配置与源码测试；`build/`、`devel/` 是忽略的编译产物。地图和运行输出在仓根 `data/maps/`、`logs/`；进度、验收和证据在 `note/`。
+本目录是 catkin 工作区。`src/` 放源码、配置与源码测试；`build/`、`devel/`、`install/` 与 `.profiles/` 是忽略的编译产物。地图和运行输出在仓根 `data/maps/`、`logs/`；进度、验收和证据在 `note/`。
 
 ## 源码分层
 
@@ -25,6 +25,7 @@
 
 | 要做什么 | 入口 |
 | --- | --- |
+| 显式目标构建/只读依赖计划 | [构建说明](../tooling/build/README.md)；`lite3` 与 `x86_sim` 分开输出，`m20` 明确拒绝 |
 | 传统建图/定位/导航组合 | [`lite3_bringup/launch/`](src/70_bringup/lite3_bringup/launch/)中的 `mode_mapping` / `mode_localize` / `mode_navigation` |
 | v8 app、task、地图与 graph 绑定 | [`v8_platform/framework/app_runner.py`](src/90_platform/v8_platform/framework/app_runner.py)与[framework 说明](src/90_platform/v8_platform/framework/README.md) |
 | Lite3 本机 graph/应用模板 | [`v8_platform/configs/lite3/`](src/90_platform/v8_platform/configs/lite3/)；各机覆盖使用 `*.local.app.yaml` |
@@ -52,6 +53,7 @@
 | `lite3_bringup` | [README](src/70_bringup/lite3_bringup/README.md) |
 | `lite3_supervisor` | [README](src/90_supervisor/lite3_supervisor/README.md) |
 | `lite3_gazebo_sim` | [README](src/95_simulation/lite3_gazebo_sim/README.md) |
+| `v8_simulation` | [仿真薄入口与依赖](src/95_simulation/v8_simulation/README.md) |
 | `lite3_description` | [README](src/95_simulation/lite3_description/README.md) |
 | `v8_platform` | [README](src/90_platform/v8_platform/README.md) |
 | `v8_ndt_odom` | [README](src/90_platform/v8_ndt_odom/README.md) |
@@ -68,4 +70,4 @@
 
 ## 统一工程约束
 
-工程标准真源：`note/架构/工程标准.md`。[工程标准](../note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。构建闭包、模式守卫、真实接线/TF/热替换等尚有实现缺口；M20真实适配和可复现训练器也尚未提供，详见[审查记录](../note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。
+工程标准真源：`note/架构/工程标准.md`。[工程标准](../note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。新增显式目标构建器与清单闭包检查，目标环境编译尚未验证；Docker旧入口、模式守卫、真实接线/TF/热替换仍待接续；M20真实适配和可复现训练器也尚未提供，详见[审查记录](../note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。

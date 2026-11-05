@@ -50,16 +50,13 @@
   "v8_platform": {
    "launches": [
     "calibration/flat2d/flat2d_stack_sc09_f64nli25.launch",
-    "calibration/flat2d/flat2d_stack_sc09_f64nli25_teb.launch",
-    "launch/verification_gazebo.launch",
-    "launch/verification_mujoco.launch"
+    "calibration/flat2d/flat2d_stack_sc09_f64nli25_teb.launch"
    ],
    "files": [],
    "executables": [
     "boundary/ros_bridge.py",
     "framework/app_runner.py",
     "framework/dynamic_obstacles_node.py",
-    "framework/gazebo_carrier3d_node.py",
     "framework/lite3_carrier_node.py",
     "framework/localization_compare.py",
     "framework/localization_node.py",
@@ -83,7 +80,6 @@
     "map3d_v2_test_double",
     "map_cache_test_double",
     "map_merge_test_double",
-    "mujoco_truth.py",
     "planner/topic_node.py",
     "representation/delta_map_node.py",
     "representation/map_cache_node.py",
@@ -131,6 +127,18 @@
    "plugin_classes": [
     "hdl_localization/GlobalmapServerNodelet",
     "hdl_localization/HdlLocalizationNodelet"
+   ]
+  },
+  "v8_simulation": {
+   "launches": [
+    "launch/verification_gazebo.launch",
+    "launch/verification_mujoco.launch"
+   ],
+   "files": [],
+   "executables": [
+    "gazebo_carrier3d_node.py",
+    "gazebo_truth.py",
+    "mujoco_truth.py"
    ]
   }
  }

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "manifest_overrides": {
+    "00_drivers/livox_ros_driver2": "package_ROS1.xml"
+  },
+  "local_packages": [
+    "bspline_opt", "deeprobotics_local_height_map", "fast_gicp", "faster_lio",
+    "hdl_global_localization", "hdl_localization", "kindr", "kindr_msgs",
+    "kindr_ros", "kindr_rviz_plugins", "lite3_bringup", "lite3_costmap_layers",
+    "lite3_description", "lite3_drivers", "lite3_gazebo_sim", "lite3_localization",
+    "lite3_navigation", "lite3_perception", "lite3_safety", "lite3_scan",
+    "lite3_slam", "lite3_supervisor", "lite3_task", "livox_laser_simulation",
+    "livox_ros_driver2", "local_sensing_node", "lslidar_driver", "lslidar_msgs",
+    "map_generator", "message_transformer", "mockamap",
+    "multi_dof_joint_trajectory_rviz_plugins", "ndt_omp", "path_searching",
+    "pcd2grid", "pipeline", "plan_env", "scan_planner", "traj_utils",
+    "v8_msgs", "v8_ndt_odom", "v8_platform", "v8_simulation"
+  ],
+  "targets": {
+    "lite3": {
+      "supported": true,
+      "roots": [
+        "v8_platform", "v8_ndt_odom", "lite3_bringup", "lite3_drivers",
+        "livox_ros_driver2", "message_transformer", "lite3_slam", "faster_lio",
+        "lite3_localization", "hdl_localization", "hdl_global_localization",
+        "lite3_navigation", "lite3_costmap_layers", "lite3_scan", "lite3_safety",
+        "lite3_supervisor", "lite3_task", "pipeline"
+      ]
+    },
+    "m20": {
+      "supported": false,
+      "reason": "M20 hardware/protocol/ROS adapter is not implemented; Lite3 configuration is not an M20 adapter",
+      "roots": []
+    },
+    "x86_sim": {
+      "supported": true,
+      "roots": [
+        "v8_platform", "v8_ndt_odom", "lite3_bringup", "lite3_drivers",
+        "livox_ros_driver2", "message_transformer", "lite3_slam", "faster_lio",
+        "lite3_localization", "hdl_localization", "hdl_global_localization",
+        "lite3_navigation", "lite3_costmap_layers", "lite3_scan", "lite3_safety",
+        "lite3_supervisor", "lite3_task", "pipeline", "lite3_gazebo_sim",
+        "livox_laser_simulation", "lite3_description", "map_generator", "mockamap",
+        "local_sensing_node", "v8_simulation"
+      ]
+    }
+  }
+}

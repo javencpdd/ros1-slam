@@ -388,6 +388,21 @@ class FrameworkTests(unittest.TestCase):
                 config._launch_spec(raw, 'probe')
             self.assertEqual(caught.exception.code, code, raw)
 
+    def test_gazebo_runtime_is_owned_by_simulation_package(self):
+        catalog, value = load_pair(HERE / 'fixtures/graphs/graph_3d_gazebo_app.yaml')
+        packages = launch_mod.load_index(INDEX)
+        launch_mod.check_components(catalog, packages)
+        checked = graph_mod.check(value, catalog)
+        root = ET.fromstring(render.render_launch(value, catalog, checked))
+        carrier = next(node for node in root.findall('node')
+                       if node.get('name') == 'carrier')
+        self.assertEqual((carrier.get('pkg'), carrier.get('type')),
+                         ('v8_simulation', 'gazebo_carrier3d_node.py'))
+        del packages['v8_simulation']
+        with self.assertRaises(config.FrameworkError) as caught:
+            launch_mod.check_components(catalog, packages)
+        self.assertEqual(caught.exception.code, 'E_LAUNCH_PACKAGE')
+
     def test_package_index_rejects_unknowns(self):
         catalog, _ = load_pair(G3D)
         index = launch_mod.load_index(INDEX)

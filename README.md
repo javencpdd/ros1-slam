@@ -1,6 +1,6 @@
 # ros1-slam · 四足机器人 SLAM 与导航
 
-> 最新更新时间：2026-11-05 17:57:12 CST。现行路线为[计划书 v8](note/计划书v8/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
+> 最新更新时间：2026-11-05 23:55:56 CST。现行路线为[计划书 v8](note/计划书v8/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
 
 本项目面向 Lite3 四足机器人，组合激光建图、定位、地图、全局规划、局部执行与安全仲裁，使用 ROS1/Noetic。x86 承担 Docker、Gazebo、MuJoCo 开发与回归；Lite3 主机采用原生 ROS1，地图与现场配置各机独立。
 
@@ -34,10 +34,11 @@ flowchart LR
 | 内容 | 入口 |
 | --- | --- |
 | 架构、装配链、模块依赖 | [项目架构与目录](note/架构/项目架构与目录.md) |
-| 源码分层、16个自研包与接口入口 | [ws/README.md](ws/README.md) |
+| 源码分层、自研包与接口入口 | [ws/README.md](ws/README.md) |
 | v8 app / graph / 模块代码 | [v8_platform](ws/src/90_platform/v8_platform/README.md)、[framework](ws/src/90_platform/v8_platform/framework/README.md) |
 | 规划、组件契约与执行队列 | [计划书 v8](note/计划书v8/README.md) |
 | 版本成果、当前进度与证据 | [进度入口](note/进度/README.md)、[版本成果总览](note/进度/00_总览.md) |
+| 目标构建与依赖闭包 | [lite3 / x86_sim 构建说明](tooling/build/README.md)；M20 尚未接入 |
 | Docker、仿真、RViz 与建图命令 | [docker/README.md](docker/README.md) |
 | MuJoCo 接触执行与阶面障碍 | [dynamics/README.md](ws/src/95_simulation/lite3_gazebo_sim/dynamics/README.md) |
 | 正式门禁及复验方法 | [成员清单](scripts/verify/gate_chain.txt)、[复验作业单](note/05_复验作业单.md) |
@@ -60,4 +61,4 @@ flowchart LR
 
 ## 统一工程约束
 
-工程标准真源：`note/架构/工程标准.md`。[工程标准](note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。构建闭包、模式守卫、真实接线/TF/热替换等尚有实现缺口；M20真实适配和可复现训练器也尚未提供，详见[审查记录](note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。
+工程标准真源：`note/架构/工程标准.md`。[工程标准](note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。新增显式目标构建器与清单闭包检查，目标环境编译尚未验证；Docker旧入口、模式守卫、真实接线/TF/热替换仍待接续；M20真实适配和可复现训练器也尚未提供，详见[审查记录](note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。

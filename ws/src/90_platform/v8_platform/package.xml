@@ -2,7 +2,7 @@
 <package format="2">
   <name>v8_platform</name>
   <version>0.1.0</version>
-  <description>v8 平台层：契约/注册/组合/编排/表征/规划/检查器/场景/定标，含 ROS 包装与 Gazebo 2D 定标夹具。</description>
+  <description>v8 公共平台与 ROS 包装；仿真运行入口由 v8_simulation 提供，仓内定标/回归夹具仅供测试。</description>
   <maintainer email="dev@example.com">ros1-slam</maintainer>
   <license>Proprietary</license>
 
@@ -11,7 +11,19 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>gazebo_msgs</exec_depend>
-  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>rosgraph_msgs</exec_depend>
+  <exec_depend>actionlib</exec_depend>
+  <exec_depend>mbf_msgs</exec_depend>
+  <exec_depend>roslaunch</exec_depend>
+  <exec_depend>rosbash</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
   <exec_depend>v8_msgs</exec_depend>
+  <test_depend>gazebo_msgs</test_depend>
+  <test_depend>gazebo_ros</test_depend>
+  <test_depend>lite3_gazebo_sim</test_depend>
 </package>

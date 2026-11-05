@@ -72,6 +72,8 @@ class VerificationTests(unittest.TestCase):
         checked = verification.check(verification.load_config(VERIFY_G), plan,
                                      catalog, backends, packages)
         self.assertEqual(checked['backend'], 'v8.verify.gazebo_truth')
+        self.assertEqual(backends['components'][checked['backend']]['launch']['package'],
+                         'v8_simulation')
         self.assertEqual(checked['truth_channel'], '/v8/verify/truth')
         self.assertEqual(checked['algorithm_digest'], plan['digest'])
         self.assertNotIn(checked['backend'],
@@ -82,8 +84,20 @@ class VerificationTests(unittest.TestCase):
         checked = verification.check(verification.load_config(VERIFY_M), plan,
                                      catalog, backends, packages)
         self.assertEqual(checked['backend'], 'v8.verify.mujoco_truth')
+        self.assertEqual(backends['components'][checked['backend']]['launch']['package'],
+                         'v8_simulation')
         self.assertEqual(checked['truth_channel'], '/v8/verify/truth_mj')
         self.assertEqual(checked['algorithm_digest'], plan['digest'])
+
+    def test_simulation_verification_requires_companion_package(self):
+        catalog, plan, backends, packages = setup()
+        del packages['v8_simulation']
+        for config_path in (VERIFY_G, VERIFY_M):
+            with self.subTest(config=config_path.name):
+                with self.assertRaises(config.FrameworkError) as caught:
+                    verification.check(verification.load_config(config_path), plan,
+                                       catalog, backends, packages)
+                self.assertEqual(caught.exception.code, 'E_LAUNCH_PACKAGE')
 
     def test_runner_success_and_failure_keep_algorithm_digest(self):
         catalog, plan, backends, packages = setup()

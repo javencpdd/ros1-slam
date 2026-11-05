@@ -1,8 +1,10 @@
 # framework · YAML 组件图与导航应用
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 00:05:57 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
+
+活动 Gazebo carrier 与 Gazebo/MuJoCo verification manifest 从 [v8_simulation](../../../95_simulation/v8_simulation/README.md) 启动，仿真依赖由 companion 声明；核心源码仍在本包供薄入口调用。原同名测试路径保留，source/devel 之外的 install-only 用法尚未验证。
 
 ## 输入与阅读顺序
 
