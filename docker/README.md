@@ -1,6 +1,6 @@
 # ros1-slam · Docker 开发与仿真
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
+> 最新更新时间：2026-11-05 12:00:38 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
 
 x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 ROS1，地图和现场配置各机独立。当前旧算法、地图准备和真机排程仍按[执行队列](../note/计划书v8/23_v8任务队列.md)保持取消；本文不授权启动硬件。架构与能力边界见[项目架构](../note/架构/项目架构与目录.md)和[进度](../note/进度/README.md)。
 
@@ -292,8 +292,8 @@ roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
 
 ## 五、排障与数据保护
 
-- 拉取失败先区分镜像元数据、daemon拉取和构建apt下载，不沿用旧机网络读数。Compose构建代理是 `BUILD_HTTP_PROXY/BUILD_HTTPS_PROXY/BUILD_NO_PROXY`，不是原指南的 `HTTP_PROXY` 三项。
-- 构建容器的 `127.0.0.1` 指自身；Dockerfile对loopback代理有拒绝检查，使用构建环境可达地址。daemon代理属系统配置，重启Docker会影响在用服务，不作为日常构建步骤。
+- 拉取失败先区分镜像元数据、daemon拉取和构建apt下载，不沿用旧机网络读数。Compose 传入 `BUILD_HTTP_PROXY/BUILD_HTTPS_PROXY/BUILD_NO_PROXY`，但当前 Dockerfile 未声明或消费这些自定义构建参数，也未将其映射为标准代理变量；仅在 `.env` 设置它们不能证明构建代理已生效。
+- 构建容器的 `127.0.0.1` 指自身；Dockerfile 的 loopback 拒绝检查只读取标准 `HTTP_PROXY/HTTPS_PROXY/http_proxy/https_proxy`，不覆盖上述 `BUILD_*` 参数。其 `case` 只匹配裸值 `127.0.0.1:*` / `localhost:*`，不匹配 `http://127.0.0.1:7897` 这类带协议的 URL，不能视为完整代理校验。实际代理须在构建环境可达。daemon 代理属系统配置，重启 Docker 会影响在用服务，不作为日常构建步骤。
 - `.env`只用于Compose，直接 `docker build` 要显式传 `ROS_BASE_IMAGE/ROS_BASE_TAG`。更换基础镜像后核架构/Noetic/Gazebo与依赖，旧缓存不等于干净重建证据。
 - 缺消息头按 `catkin_build.sh` 三步处理，不改第三方CMake或在源码打忽略标记隐藏失败。
 - 无头用Mesa/Xvfb，桌面看实际renderer；不恢复已停用cookie挂载。
