@@ -1,6 +1,6 @@
 # ros1-slam · Docker 开发与仿真
 
-> 最新更新时间：2026-11-05 13:22:18 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
+> 最新更新时间：2026-11-06 04:07:49 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
 
 x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 ROS1，地图和现场配置各机独立。当前旧算法、地图准备和真机排程仍按[执行队列](../note/计划书v8/23_v8任务队列.md)保持取消；本文不授权启动硬件。架构与能力边界见[项目架构](../note/架构/项目架构与目录.md)和[进度](../note/进度/README.md)。
 
@@ -8,12 +8,12 @@ x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 
 
 | 文件 | 作用 |
 | --- | --- |
-| [Dockerfile](Dockerfile) | `deps → livox-sdk → builder → runtime`；Noetic、catkin，仿真用 `PROFILE=sim` |
-| [docker-compose.yml](docker-compose.yml) | 开发、无头/桌面仿真、现场模板和 extras |
+| [Dockerfile](Dockerfile) | `deps → livox-sdk → builder → runtime`；固定 `x86_sim`，默认 `PROFILE=sim` |
+| [docker-compose.yml](docker-compose.yml) | 开发、无头/桌面仿真、x86 host 网络联调和 extras |
 | [.env.example](.env.example) | Compose 变量模板，`.env` 属本机配置 |
 | [entrypoint.sh](entrypoint.sh)、[env.sh](env.sh) | ROS、工作区、网络和可选 Xvfb 环境 |
-| [catkin_build.sh](catkin_build.sh) | configure → 预生成消息头 → 正式编译 |
-| [build.sh](build.sh) | 容器内增量构建，仅接受可选 `--clean`，**没有 `--slim`** |
+| [catkin_build.sh](catkin_build.sh) | builder/纯镜像兼容入口，委托同一 x86_sim wrapper |
+| [build.sh](build.sh) | 固定 x86_sim；`--plan` 只读，`--clean` 只清已归属产物 |
 | [sim.sh](sim.sh) | `probe`、`gazebo`、`smoke [stageA/stageB/stageC/all]`、`clean` |
 | [viz.sh](viz.sh) | `check`、`gzclient`、`rviz-raw`、`rviz-map`、`rviz-nav` |
 | [foxglove/](foxglove/README.md) | rosbridge 协议、话题和手写布局 |
@@ -24,10 +24,10 @@ x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 
 | `roscore` + `slam` | bridge 开发域，master 缺省 `http://roscore:11312`；容器名 `ros1-slam-roscore`、`ros1-slam-dev` |
 | `sim` | CPU 无头仿真、Mesa/Xvfb；11313/11345；不请求 NVIDIA GPU |
 | `sim-viz` | 宿主 X 桌面仿真；同样发布11313/11345，当前 Compose 显式请求 NVIDIA GPU |
-| `slam-host` | host 网络现场模板，须核本机 master/IP 和单项许可 |
+| `slam-host` | x86 host 网络联调模板，须核本机 master/IP；非 Lite3/M20 部署入口 |
 | `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图 |
 
-ROS 服务共用 `ws/build`、`ws/devel` 等命名卷，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`。`sim` 与 `sim-viz` 还共用宿主端口，一次只选一套，不得并行重编同一份卷。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
+ROS 服务共用新的 x86 目标卷 `ros1_x86_sim_build/devel/install/profiles`，分别挂载 `ws/build`、`ws/devel`、`ws/install`、`ws/.profiles/x86_sim`，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`。`sim` 与 `sim-viz` 还共用宿主端口，一次只选一套，不得并行重编同一份卷。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
 
 ## 二、构建
 
@@ -49,7 +49,7 @@ cd /home/jack/ysc-code/ros1-slam/docker
 WITH_RVIZ=1 SLIM=0 docker compose --profile sim build sim
 ```
 
-基础仿真可用 `WITH_RVIZ=1 SLIM=1 docker compose --profile sim build sim`。`SLIM` 仅由 builder 给 **COPY 副本**施加 `CATKIN_IGNORE`，跳过列表以 Dockerfile 的 `SLIM_SKIP` 为准，包括部分定位、SCAN 等；它不是 `catkin_make --pkg` 白名单。需要被跳过的后端须完整构建，不在绑定的第三方源码中手工打忽略标记。
+`SLIM=1` 及其他非零值在首次依赖安装前明确拒绝；`SLIM=0` 仅保留变量兼容，不再隐藏源码包。构建范围由 [目标 profiles](../tooling/build/profiles.json) 的显式根包与 XML 声明依赖闭包确定。Dockerfile 和两个 wrapper 均不向原 `ws/src` 写 `CATKIN_IGNORE`、顶层 CMake 或 Livox `package.xml`；Livox ROS1 选择和消息头预生成由 [统一构建器](../tooling/build/README.md) 在生成视图中处理。
 
 手工构建从仓库根提供上下文，`.env` 不会自动转成 build args：
 
@@ -59,7 +59,7 @@ docker build -f docker/Dockerfile -t ros1-slam:noetic-sim \
   --build-arg PROFILE=sim --build-arg WITH_RVIZ=1 .
 ```
 
-`PROFILE=core` 不主动安装 Gazebo，而仓内仿真包需要它；能否全树编译取决于基础镜像与排除面，不能承诺官方 core 镜像直接编译整仓。`-DROS_EDITION=ROS1`、先编译 Livox-SDK2 及消息头预生成顺序由构建件处理。
+`PROFILE` 默认 `sim`，`dev` 与它使用同一仿真依赖。`core` 或未知值在首次 apt/SDK 工作前拒绝，不能用不含 Gazebo 的镜像去构建 x86 仿真目标。Lite3 真机使用原生 Noetic 与 `target_workspace.py --target lite3`，M20 尚未实现真实适配；本 Docker 入口不承担机器人部署或训练器能力验收。
 
 ## 三、启动、环境和日志
 
@@ -85,15 +85,32 @@ docker compose exec sim bash -lc '
 
 开发日志用 `docker compose exec slam ...` 或真实容器名 `ros1-slam-dev`，不能用 `docker exec slam ...`。`HOST_UID/HOST_GID` 用于构建用户；当前 Compose 的 `user:` 被注释，仅改 `.env` 不会让运行进程自动成为非 root。
 
-改 C++ 后的增量构建：
+先在宿主做只读范围审计，无需 ROS 或 Docker daemon：
 
 ```bash
-docker compose exec sim bash -lc '
-  export CPATH=/opt/ros/noetic/include
-  bash /opt/ros1-slam/docker/build.sh'
+cd /home/jack/ysc-code/ros1-slam
+bash docker/build.sh --plan
+# builder 兼容入口使用同一计划器
+bash docker/catkin_build.sh --plan
+python3 -B docker/test_build_entrypoints.py
 ```
 
-`CPATH` 只在 builder 定义，runtime 不继承。`build.sh` 直接调用 catkin_make，不能替代干净构建的消息头预生成；需干净重建时优先重建镜像，按本机卷维护流程处理缓存。手工调用 `catkin_build.sh` 前还须确认顶层 `CMakeLists.txt` 和 Livox ROS1 `package.xml` 已按 Dockerfile 相同步骤生成。
+计划返回选中包、外部依赖 `NOT_CHECKED` 及 `cache_conflicts`；不创建视图、删除缓存或启动编译。外部依赖安装不由 wrapper 自动执行，不能把全树 rosdep 安装当作机器人隔离。
+
+在已准备好的仿真容器内，增量构建与受控重建分别执行：
+
+```bash
+docker compose exec sim bash /opt/ros1-slam/docker/build.sh
+docker compose exec sim bash /opt/ros1-slam/docker/build.sh --clean
+```
+
+两个入口都固定 `--target x86_sim`。wrapper 校验参数后使用 `env -i`：仅保留当前 `HOME`、系统 `PATH`、UTF-8 locale，固定 `CPATH=/opt/ros/noetic/include`，再由不加载启动文件的 Bash 只 source `/opt/ros/noetic/setup.bash`。旧工作区 PATH、头文件/库搜索路径、编译器选项、Python 环境、BASH_ENV 等不进入构建；系统 SDK 通过默认 include/lib 与 ldconfig 查找。工作区、并发与 clean 标志按参数传递，不拼接 shell 命令。缺 Noetic 时明确失败且不生成目标输出；`--plan --clean` 与未知参数也拒绝。
+
+纯镜像不挂 Compose 源码目录时，镜像已复制 helper、profiles、生成视图和两个包装器。在该容器内可用 `bash /usr/local/bin/catkin_build.sh --plan`，需要编译时去掉 `--plan`。`WS_ROOT` 默认 `/opt/ros1-slam`，`WS_DIR` 默认其 `ws/`，`JOBS` 默认 4；自定义值仍须匹配 cache 的目标与绝对路径。runtime 常驻环境不继承 CPATH，重编译子 shell 会明确设置 Noetic include。
+
+四类目标空间与 `identity.json` 必须配套持久化。Compose 使用**四个新卷名**，不会自动接入或删除历史 `ros1_ws_build` / `ros1_ws_devel` 卷；实际 Docker 名称还带 Compose 项目前缀。升级应先构建本阶段镜像，再让四个新卷从同一镜像初始化，不能将旧 build/devel 单独接到新 profiles 身份上。保存旧卷的 inspect 信息、原镜像/源版本与必要备份后，另行评审迁移；不要只复制 identity 或把旧输出混进新卷。
+
+`--clean` 必须有本 helper 的正确目标、工作区和空间身份，只删除固定的生成视图、build/devel/install；可用于声明或 profile 更新后的重建。无归属旧缓存、软链输出、跨目标身份或未知 profile 文件均拒绝，不自动接管旧卷。不要使用 `docker volume prune` 或 `down -v` 来迁移缓存，也不要同时重编共用这些卷的多个服务。`.dockerignore` 对 `scripts/build`、`tooling/build` 明确放行，随后仍排除二进制/Python 缓存和宿主 `ws/.profiles`；视图只由 builder 生成。
 
 静态检查和正式门禁分别按 [lint](lint.sh) 与[门禁清单](../scripts/verify/gate_chain.txt)。环境、面清单、历史基线或授权范围缺失不等于算法通过/失败，本轮未复跑门禁。
 
@@ -305,4 +322,4 @@ roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
 
 ## 统一工程约束
 
-工程标准真源：`note/架构/工程标准.md`。[工程标准](../note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。构建闭包、模式守卫、真实接线/TF/热替换等尚有实现缺口；M20真实适配和可复现训练器也尚未提供，详见[审查记录](../note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。
+工程标准真源：`note/架构/工程标准.md`。[工程标准](../note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。声明闭包、目标视图与 Docker 入口已接通并经离线控制验证；真实镜像编译、目标环境、模式守卫及真实接线/TF/热替换仍待验证或实现；M20真实适配和可复现训练器也尚未提供，详见[审查记录](../note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。

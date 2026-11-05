@@ -7,7 +7,7 @@
 # 四种形态（按用途选，别同时起）：
 #   1) 默认：roscore + slam 走 bridge 网络，master 在 roscore 容器里 —— 日常开发/编译
 #   2) --profile sim     ：sim 容器跑 Gazebo 仿真（自带 master 11313，自成一域）
-#   3) --profile hostnet ：slam-host 用 host 网络，直接吃真机 LiDAR（192.168.1.201）
+#   3) --profile hostnet ：x86 host 网络联调模板；不作为机器人部署入口
 #   4) --profile extras  ：额外起 redis(6379)（项目本体不需要，仅作外部件模板）
 # =============================================================================
 
@@ -17,9 +17,10 @@ x-build: &build
   args:
     ROS_BASE_IMAGE: ${ROS_BASE_IMAGE:-ros}   # 拉不到 Docker Hub 时改成镜像源，见 .env.example
     ROS_BASE_TAG: ${ROS_BASE_TAG:-noetic-ros-base-focal}
-    PROFILE: ${PROFILE:-core}       # core | sim（sim 额外装 Gazebo11）
+    PROFILE: ${PROFILE:-sim}        # x86_sim requires Gazebo; core is rejected
     WITH_RVIZ: ${WITH_RVIZ:-0}      # 1 = 额外装 rviz/rqt
-    JOBS: ${JOBS:-4}                # 编译并发；Jetson 内存紧张时降到 2
+    JOBS: ${JOBS:-4}                # x86 构建并发；不用于 Jetson 真机部署
+    SLIM: ${SLIM:-0}               # compatibility only; nonzero is rejected
     HOST_UID: ${HOST_UID:-1000}     # 名字别用 UID —— bash 内置变量会覆盖它
     HOST_GID: ${HOST_GID:-1000}
     # ---- 构建期代理（默认留空：国内源直连更快）----
@@ -40,7 +41,7 @@ x-build-sim: &build-sim          # 与 x-build 同构，只把 PROFILE 钉成 si
     PROFILE: sim
     WITH_RVIZ: ${WITH_RVIZ:-0}
     JOBS: ${JOBS:-4}
-    SLIM: ${SLIM:-0}               # 1 = 只编仿真需要的包，首编省一半以上时间
+    SLIM: ${SLIM:-0}               # compatibility only; nonzero is rejected
     HOST_UID: ${HOST_UID:-1000}
     HOST_GID: ${HOST_GID:-1000}
     BUILD_HTTP_PROXY: ${BUILD_HTTP_PROXY:-}
@@ -86,8 +87,10 @@ x-ros-base: &ros-base
     - ../tooling:/opt/ros1-slam/tooling
     - ../tooling:/home/ros1-slam/tooling
     # ---- 编译产物：用命名卷持久化，容器重建不丢（首次会从镜像层复制一份）----
-    - ros1_ws_build:/opt/ros1-slam/ws/build
-    - ros1_ws_devel:/opt/ros1-slam/ws/devel
+    - ros1_x86_sim_build:/opt/ros1-slam/ws/build
+    - ros1_x86_sim_devel:/opt/ros1-slam/ws/devel
+    - ros1_x86_sim_install:/opt/ros1-slam/ws/install
+    - ros1_x86_sim_profiles:/opt/ros1-slam/ws/.profiles/x86_sim
     - ros1_logs:/opt/ros1-slam/logs
     - ros1_ros_home:/opt/ros1-slam/.ros
     # ---- 宿主机 X 服务器（可视化用；无头跑 smoke 时挂着也不影响）----
@@ -169,7 +172,7 @@ services:
     # user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
 
   # ---------------------------------------------------------------------------
-  # 3) 真机形态：host 网络（直接收 LiDAR UDP、IP 就是宿主机 IP）
+  # 3) x86 host 网络联调模板（非 Lite3/M20 原生部署，不授权硬件动作）
   #    启动： docker compose --profile hostnet up -d slam-host
   # ---------------------------------------------------------------------------
   slam-host:
@@ -195,7 +198,7 @@ services:
   #      跑冒烟： docker compose exec sim bash /opt/ros1-slam/docker/sim.sh smoke stageA
   #
   #      为什么必须写服务名 sim：不带 profiles 的服务（roscore/slam）在 --profile 下依然会被拉起，
-  #      而 slam 与 sim 共用命名卷 ros1_ws_devel（一份 devel 两处写会互相覆盖），
+  #      而 slam 与 sim 共用命名卷 ros1_x86_sim_devel（一份 devel 两处写会互相覆盖），
   #      端口也会撞。显式写 sim 就只起它一个。
   #
   #      为什么单独一个服务、且 depends_on 里没有 roscore：
@@ -309,8 +312,10 @@ services:
       - ../note:/opt/ros1-slam/note
       - ../tooling:/opt/ros1-slam/tooling
       - ../tooling:/home/ros1-slam/tooling
-      - ros1_ws_build:/opt/ros1-slam/ws/build
-      - ros1_ws_devel:/opt/ros1-slam/ws/devel
+      - ros1_x86_sim_build:/opt/ros1-slam/ws/build
+      - ros1_x86_sim_devel:/opt/ros1-slam/ws/devel
+      - ros1_x86_sim_install:/opt/ros1-slam/ws/install
+      - ros1_x86_sim_profiles:/opt/ros1-slam/ws/.profiles/x86_sim
       - ros1_logs:/opt/ros1-slam/logs
       - ros1_ros_home:/opt/ros1-slam/.ros
       # ---- 宿主机 X 服务器（可视化用：gzclient / rviz 直通宿主机 GPU）----
@@ -359,8 +364,11 @@ services:
     restart: unless-stopped
 
 volumes:
-  ros1_ws_build:
-  ros1_ws_devel:
+  # New target-specific volumes; legacy ros1_ws_build/devel volumes are not mounted or deleted.
+  ros1_x86_sim_build:
+  ros1_x86_sim_devel:
+  ros1_x86_sim_install:
+  ros1_x86_sim_profiles:
   ros1_logs:
   ros1_ros_home:
   ros1_redis:

@@ -1,6 +1,6 @@
 # 目标构建计划与隔离空间
 
-> 最新更新时间：2026-11-05 23:59:38 CST。工程标准真源：[工程标准](../../note/架构/工程标准.md)。本入口仅证明声明依赖的选择与构建隔离；未经设备验证不能称为真机部署验收。
+> 最新更新时间：2026-11-06 04:06:11 CST。工程标准真源：[工程标准](../../note/架构/工程标准.md)。本入口仅证明声明依赖的选择与构建隔离；未经设备验证不能称为真机部署验收。
 
 从仓库根执行：
 
@@ -41,4 +41,8 @@ python3 -B scripts/build/target_workspace.py build --target lite3 --jobs 1 --cle
 
 仿真选择 `livox_laser_simulation` 时，在同一隔离视图内先 configure，枚举并串行构建消息生成目标，再调用 catkin_make；任一步失败即停止。不靠修改上游 CMake 掩盖消息依赖问题。命令使用 [Noetic catkin_make 官方支持的接口](https://raw.githubusercontent.com/ros/catkin/noetic-devel/bin/catkin_make)：`-C`、`--source`、`--build`、`CATKIN_DEVEL_PREFIX` 和 `CMAKE_INSTALL_PREFIX`；rosdep 参数依据[官方实现](https://raw.githubusercontent.com/ros-infrastructure/rosdep/master/src/rosdep2/main.py)。
 
-本阶段未执行真实编译、ROS、Docker 或硬件验证。现有 Docker 入口尚待接入此 helper；旧 core/sim/SLIM 入口不作为机器人隔离证明。容器集成时必须同时复制 helper、配置和生成视图，保持视图相对链接的 `WS/src` 落点，并处理 `.dockerignore` 中通用 `**/build/` 对工具目录的排除。
+Docker 镜像构建与容器内重编通过 [build.sh](../../docker/build.sh) / [catkin_build.sh](../../docker/catkin_build.sh) 共用本 helper，固定显式 `x86_sim`；`--plan` 无 ROS 只读，`--clean` 仍只允许清理身份正确的本目标空间。构建子 shell 使用最小环境、固定系统 PATH 与 Noetic include，然后只 source Noetic；不继承旧 overlay 或编译器参数。依赖 SDK 使用系统默认路径与 ldconfig，未提供隐式自定义环境透传。
+
+镜像 builder/runtime 都包含工具、配置和同路径源码视图；`.dockerignore` 保留两个工具目录、排除 WS 生成物。Compose 使用新的 x86 专属 build/devel/install/profile 卷，旧全量卷保留但不自动挂接，避免新身份文件误认旧产物。`PROFILE=core`、旧 `SLIM=1` 明确拒绝；使用方式和缓存边界见 [Docker 说明](../../docker/README.md)。
+
+本次只验证离线解析、命令/环境传递、拒绝路径和静态配置；未执行真实编译、镜像构建、ROS/仿真或硬件验证。Lite3 原生目标及 SDK/系统依赖仍需单独验证，不能把上述 Docker 配置视为机器人部署证据。

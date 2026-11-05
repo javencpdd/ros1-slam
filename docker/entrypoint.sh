@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # ros1-slam 容器入口
-# 职责：装 ROS 环境 → 装 devel → 兜底 catkin 初始化 → 落网络口径 → exec "$@"
+# 职责：装 ROS 环境 → 装 devel → 落网络口径 → exec "$@"；不写源码空间。
 # 网络口径由环境变量决定，不写死 IP（原 scripts/env.sh 硬编码 192.168.1.103）
 # =============================================================================
 # ★ 不要用 set -u：ROS 的 setup.bash / catkin devel setup.bash 里有未定义变量引用，
@@ -16,17 +16,7 @@ WS_DIR="${WS_DIR:-${WS_ROOT}/ws}"
 # shellcheck disable=SC1091
 source "/opt/ros/${ROS_DISTRO}/setup.bash"
 
-# ---- 2. catkin 顶层 CMakeLists 兜底 ----
-# 用 -v ./ws/src 挂宿主机源码时，镜像里那份 src/CMakeLists.txt 会被覆盖掉，
-# 这里在容器启动时补建（幂等，已存在则跳过；会写进宿主机 ws/src，属预期）
-if [ ! -f "${WS_DIR}/src/CMakeLists.txt" ] && [ -d "${WS_DIR}/src" ]; then
-    echo "[entrypoint] ws/src/CMakeLists.txt 缺失 → catkin_init_workspace"
-    # 失败不能让容器起不来（比如 src 被只读挂载），只提示
-    ( cd "${WS_DIR}/src" && catkin_init_workspace ) \
-        || echo "[entrypoint] 警告：catkin_init_workspace 失败，请检查 ws/src 挂载是否可写"
-fi
-
-# ---- 3. devel space ----
+# ---- 2. devel space（构建视图与顶层 CMake 只由 target helper 维护）----
 # 未编译时不要静默失败：明确提示先编（原 scripts/env.sh 的 devel 守卫精神）
 if [ -f "${WS_DIR}/devel/setup.bash" ]; then
     # shellcheck disable=SC1091
@@ -36,7 +26,7 @@ else
     echo "[entrypoint]       进入容器后执行：bash /opt/ros1-slam/docker/build.sh"
 fi
 
-# ---- 4. 目录与运行时环境变量 ----
+# ---- 3. 目录与运行时环境变量 ----
 mkdir -p "${ROS_HOME:-${WS_ROOT}/.ros}" \
          "${ROS_LOG_DIR:-${WS_ROOT}/logs}" \
          "${WS_ROOT}/data/maps" \
@@ -58,7 +48,7 @@ if [ "${USE_XVFB:-0}" = "1" ] && command -v Xvfb >/dev/null 2>&1; then
 fi
 
 # ---- 5. ROS 网络口径 ----
-# 容器内默认自闭环（127.0.0.1/11311）；真机/多容器时用 ROS1_MASTER_URI / ROS1_IP 覆盖
+# 容器内默认自闭环（127.0.0.1/11311）；开发多容器网络通过变量覆盖。
 export ROS_MASTER_URI="${ROS1_MASTER_URI:-http://127.0.0.1:11311}"
 if [ -n "${ROS1_IP:-}" ]; then
     export ROS_IP="${ROS1_IP}"

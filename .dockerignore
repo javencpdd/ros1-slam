@@ -17,6 +17,11 @@ ws/install/
 ws/.catkin_*
 ws/src/CMakeLists.txt
 **/build/
+# Source tools, not generated build directories. Later artifact rules still apply.
+!scripts/build/
+!scripts/build/**
+!tooling/build/
+!tooling/build/**
 **/devel/
 **/CMakeCache.txt
 **/CMakeFiles/
@@ -27,6 +32,8 @@ ws/src/CMakeLists.txt
 **/*.a
 **/*.pyc
 **/__pycache__/
+
+ws/.profiles/
 
 # ---- 运行产物（跑起来再挂卷，不进镜像）----
 logs/

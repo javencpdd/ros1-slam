@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 # 技术栈：ROS1 Noetic (Ubuntu 20.04 focal) + catkin_make + C++17 + Python3
 # 用途：x86 仿真开发；不是 Lite3/M20 原生真机依赖闭包构建器。
-# 工程标准真源：note/架构/工程标准.md；PROFILE=core/SLIM 不构成真机隔离。
+# 工程标准真源：note/架构/工程标准.md；只接 x86_sim，拒绝 core/SLIM=1。
 #
 # 关键约定（不要改，改了编译/运行都会崩）：
 #   1. 工作区绝对路径固定为 /opt/ros1-slam/ws
@@ -45,6 +45,19 @@ ARG ROS_BASE_TAG=noetic-ros-base-focal
 # Stage 1 · deps —— 系统依赖 + ROS 依赖（这一层最重，命中缓存最快）
 # =============================================================================
 FROM ${ROS_BASE_IMAGE}:${ROS_BASE_TAG} AS deps
+
+# Fail before apt/SDK/build work: every supported image includes simulation dependencies.
+ARG PROFILE=sim
+ARG SLIM=0
+RUN set -eu; \
+    case "${PROFILE}" in \
+        sim|dev) ;; \
+        core) echo "[build] PROFILE=core is retired; Lite3 uses the native target helper, not this x86_sim image" >&2; exit 2 ;; \
+        *) echo "[build] unknown PROFILE: ${PROFILE}; use sim (dev is an alias)" >&2; exit 2 ;; \
+    esac; \
+    if [ "${SLIM}" != "0" ]; then \
+        echo "[build] SLIM is retired; only SLIM=0 is accepted; package selection comes from profiles.json" >&2; exit 2; \
+    fi
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -179,7 +192,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #     异机侧照 Lite3 在册式子写的 goal 客户端会 `wait_for_server` 超时——**看起来像"异机接口差"，
 #     实际是缺包**。★修法是补装依赖，不是去改那两份 costmap 配置（costmap_common.yaml 属红线件）。
 
-# ---- 1.3 可选：仿真域（Gazebo 11）—— PROFILE=sim 时安装 ----
+# ---- 1.3 x86_sim 必需：仿真域（Gazebo 11）；sim/dev 均安装 ----
 # ★ 仿真能不能跑，关键就在这一层。三个不能省的点：
 #   ① m1/m2_gazebo.launch 里 headless="false"（不传 gzserver -r）⇒ gzserver 会初始化
 #      Ogre 渲染引擎，容器内无 X、无 GPU 时必须靠 Mesa 软件渲染 + Xvfb，否则直接
@@ -189,8 +202,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #      拉 model database，离线环境必挂。
 #   ③ 本项目的雷达是 <sensor type="ray">（CPU 光线投射），不是 gpu_ray
 #      ⇒ 仿真本身不需要 NVIDIA GPU / --gpus，纯 CPU + 软件渲染即可。
-ARG PROFILE=core
-RUN if [ "${PROFILE}" = "sim" ] || [ "${PROFILE}" = "dev" ]; then \
+RUN set -e; \
         apt-get update && apt-get install -y --no-install-recommends \
             gazebo11 libgazebo11-dev gazebo11-common \
             ros-${ROS_DISTRO}-gazebo-ros-pkgs ros-${ROS_DISTRO}-gazebo-ros-control \
@@ -199,8 +211,7 @@ RUN if [ "${PROFILE}" = "sim" ] || [ "${PROFILE}" = "dev" ]; then \
             libgl1-mesa-glx libgl1-mesa-dri libglu1-mesa libosmesa6 mesa-utils \
             xvfb xauth x11vnc \
             ros-${ROS_DISTRO}-rosbridge-suite \
-        && rm -rf /var/lib/apt/lists/* ; \
-    fi
+        && rm -rf /var/lib/apt/lists/*
 
 # Gazebo 资源/模型/插件搜索路径（离线跑仿真的前提：模型只能从本地来）
 ENV GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:/opt/ros1-slam/ws/src/95_simulation:/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds \
@@ -268,38 +279,11 @@ RUN test -f /usr/local/lib/liblivox_lidar_sdk_static.a \
 # Stage 3 · builder —— 编译 catkin 工作区
 # =============================================================================
 FROM livox-sdk AS builder
-# JOBS 只管 catkin_build.sh 的 ③ 正式编译，默认 4。
-# ★ 早先以为"并行会竞态、必须 -j1"是**误判**：真正原因是
-#   livox_laser_simulation（第三方副本，按项目红线"一字不改"）的 CMakeLists.txt 缺
-#   add_dependencies(livox_laser_simulation ${${PROJECT_NAME}_EXPORTED_TARGETS})，
-#   库目标与自己的 *_generate_messages_cpp 目标之间没有依赖关系 ⇒ make 先编 .cpp
-#   后生成消息头，必报 fatal error: livox_laser_simulation/CustomMsg.h。
-#   这与 -j 无关（-j1 一样挂）。catkin_build.sh 用"先预生成所有消息头、再正式编译"
-#   解决了它，所以 ③ 可以安全并行。（-j1 也能过，但 builder 阶段要多花约 380 秒。）
+# The shared target helper owns closure, the source view and all cache identity.
 ARG JOBS=4
-# ---- 瘦身编译开关 ----
-# SLIM=1：只编"跑仿真"真正需要的包。实现方式是在 builder 阶段给非仿真包打 CATKIN_IGNORE。
-#   ★ 为什么不用 catkin_make --pkg：实测（2026-10-17）--pkg 传下去
-#     CATKIN_WHITELIST_PACKAGES 变成空串，36 个包照样全编，白名单完全无效。
-#   ★ 为什么不会污染项目源码：builder 阶段的 ws/src 是 COPY 进来的副本，
-#     不是 compose 里 bind-mount 的那份；打标记只发生在镜像层内。
-#   ★ 跳过的是这些（省掉最重的几坨）：
-#     · fast_gicp —— thirdparty 里带 nvbio / Sophus / Eigen / pybind11，20_localization 一层 3085 个文件基本都是它
-#     · hdl_localization / hdl_global_localization / ndt_omp —— 定位候选件，Stage C 才用
-#     · 30_3rd/* —— SCAN 规划器五包（要 nlopt）
-#     · 30_perception/libraries、deeprobotics_local_height_map —— 高程图方向（本已搁置，且上游闭源缺源码）
-#     · mockamap / map_generator / local_sensing / pcd2grid —— 仿真周边与离线工具
-#   注意：livox_laser_simulation 的 package.xml 里 build_depend 了 livox_ros_driver2，
-#         所以仿真**仍然要编 Livox 驱动 + Livox-SDK2**，这一块省不掉（stage 2 保留）。
-ARG SLIM=0
-ARG SLIM_SKIP="20_localization/fast_gicp 20_localization/hdl_localization 20_localization/hdl_global_localization 20_localization/ndt_omp 30_3rd 30_perception/libraries 30_perception/deeprobotics_local_height_map 95_simulation/mockamap 95_simulation/map_generator 95_simulation/local_sensing 10_slam/pcd2grid"
-
-# ARGs 转成 ENV，后面 RUN 里用 bash -lc 单引号包裹时也能正常展开
 ENV WS_ROOT=/opt/ros1-slam \
     WS_DIR=/opt/ros1-slam/ws \
     JOBS=${JOBS} \
-    SLIM=${SLIM} \
-    SLIM_SKIP=${SLIM_SKIP} \
     CPATH=/opt/ros/noetic/include
 
 # ★ 为什么加 CPATH（2026-10-17 实测，别删）：
@@ -311,7 +295,8 @@ ENV WS_ROOT=/opt/ros1-slam \
 #   这里用 CPATH 补上 ROS 总包含目录，**不改项目源码**：
 #     · 项目有隔离纪律与门禁（第三方包"一字不改"、判据载体不可擅动），
 #       动 CMakeLists 属于改被测件，可能触发代际/验收问题；
-#     · CPATH 只作用于 builder 阶段，runtime 阶段不继承，运行期零影响。
+#     · 编译子 shell 固定 CPATH 为 Noetic include；runtime 常驻环境不继承，
+#       runtime 重编译仍经同一 wrapper 显式设置。
 #   "正规"修法（需要你权衡后再动）：
 #     lite3_gazebo_sim/CMakeLists.txt 里把 find_package(catkin REQUIRED COMPONENTS tf ...)
 #     补上，并把 tf 加进 package.xml 的 build_depend。
@@ -319,46 +304,10 @@ ENV WS_ROOT=/opt/ros1-slam \
 # 只拷源码空间：build/ devel/ 由本阶段生成
 COPY ws/src ${WS_DIR}/src
 
-# ---- 源码补齐（两个上游/仓库的既有约定，镜像内完成，不改项目源码）----
-# ① livox_ros_driver2 上游只提供 package_ROS1.xml / package_ROS2.xml，没有 package.xml
-#    ⇒ catkin/rospack 根本看不见这个包（实测 rospack find 报 not found），
-#      而 livox_laser_simulation 的 package.xml 里 build_depend 了它。
-#      这是 livox_ros_driver2 README 里写明的构建前置步骤，这里在镜像内补上。
-# ② SLIM=1 时给非仿真包打 CATKIN_IGNORE（只作用于本阶段 COPY 进来的副本）
-RUN set -eu; \
-    if [ ! -f "${WS_DIR}/src/00_drivers/livox_ros_driver2/package.xml" ] \
-       && [ -f "${WS_DIR}/src/00_drivers/livox_ros_driver2/package_ROS1.xml" ]; then \
-        cp "${WS_DIR}/src/00_drivers/livox_ros_driver2/package_ROS1.xml" \
-           "${WS_DIR}/src/00_drivers/livox_ros_driver2/package.xml"; \
-        echo "[fix] livox_ros_driver2: package_ROS1.xml -> package.xml（上游构建前置步骤）"; \
-    fi; \
-    if [ "${SLIM}" = "1" ]; then \
-        n=0; for d in ${SLIM_SKIP}; do \
-            if [ -d "${WS_DIR}/src/${d}" ] && [ ! -f "${WS_DIR}/src/${d}/CATKIN_IGNORE" ]; then \
-                touch "${WS_DIR}/src/${d}/CATKIN_IGNORE"; n=$((n+1)); \
-            fi; \
-        done; \
-        echo "[build] SLIM=1 —— 已跳过 ${n} 个非仿真包"; \
-    fi
-
-# catkin 顶层 CMakeLists.txt（仓库里没入库，这里生成；宿主机挂 src 时由 entrypoint 兜底重建）
-RUN bash -lc 'source /opt/ros/${ROS_DISTRO}/setup.bash \
-    && cd ${WS_DIR}/src \
-    && if [ ! -f CMakeLists.txt ]; then catkin_init_workspace; fi'
-
-# 编译（逻辑在 docker/catkin_build.sh，抽成文件是为了能被 bash -n 静态校验）
-# 为什么是三步、顺序不能换：
-#   livox_laser_simulation 是第三方副本，按项目红线"一字不改"，而它的 CMakeLists.txt 缺
-#   add_dependencies(livox_laser_simulation ${${PROJECT_NAME}_EXPORTED_TARGETS})，
-#   库目标与自己的 *_generate_messages_cpp 目标之间没有依赖关系 ⇒ make 会先编 .cpp
-#   后生成消息头，必报：
-#     livox_points_plugin.cpp:18: fatal error: livox_laser_simulation/CustomMsg.h
-#   ★ 这与 -j 无关（-j1 同样挂），是目标排序问题，不是并行竞态。
-#   解法：① configure → ② 预生成所有消息头 → ③ 正式编译。
-#   -DROS_EDITION=ROS1         : livox_ros_driver2 的 ROS1/ROS2 分支开关（必传！）
-#   -DPYTHON_EXECUTABLE        : noetic 用 python3
-#   -DCATKIN_WHITELIST_PACKAGES= : 显式清空白名单（catkin_make --pkg 会写进 CMakeCache，
-#                                 不清之后每次都只编那几个包 —— catkin 已知坑）
+# Keep source immutable. The helper selects ROS1 metadata inside its generated view.
+COPY scripts/build ${WS_ROOT}/scripts/build
+COPY tooling/build ${WS_ROOT}/tooling/build
+COPY docker/build.sh docker/catkin_build.sh ${WS_ROOT}/docker/
 COPY docker/catkin_build.sh /usr/local/bin/catkin_build.sh
 RUN chmod 0755 /usr/local/bin/catkin_build.sh \
     && /usr/local/bin/catkin_build.sh
@@ -367,7 +316,7 @@ RUN chmod 0755 /usr/local/bin/catkin_build.sh \
 RUN bash -lc 'source /opt/ros/${ROS_DISTRO}/setup.bash \
     && source ${WS_DIR}/devel/setup.bash \
     && for p in livox_ros_driver2 livox_laser_simulation lite3_gazebo_sim faster_lio lite3_slam lite3_drivers lite3_bringup lite3_navigation; do \
-         rospack find "$p" >/dev/null 2>&1 && echo "[OK]   $p" || echo "[MISS] $p（仿真关键件，必须修）"; \
+         rospack find "$p" >/dev/null 2>&1 && echo "[OK]   $p" || { echo "[MISS] $p（仿真关键件，必须修）" >&2; exit 1; }; \
        done \
     && ls -1 ${WS_DIR}/devel/lib/liblite3_planar_drive.so \
     && ls -1 ${WS_DIR}/devel/lib/liblivox_laser_simulation.so \
@@ -396,6 +345,12 @@ ENV WS_ROOT=/opt/ros1-slam \
 
 # ---- 4.1 接住编译产物（Livox SDK 已在 /usr/local，随 livox-sdk 层继承）----
 COPY --from=builder ${WS_DIR} ${WS_DIR}
+# Preserve the same helper/configuration in a pure image, without Compose bind mounts.
+COPY scripts/build ${WS_ROOT}/scripts/build
+COPY tooling/build ${WS_ROOT}/tooling/build
+COPY docker/build.sh docker/catkin_build.sh ${WS_ROOT}/docker/
+COPY docker/catkin_build.sh /usr/local/bin/catkin_build.sh
+RUN chmod 0755 /usr/local/bin/catkin_build.sh
 RUN ldconfig
 
 # ---- 4.2 建用户 + 家目录软链接（接住项目里的 /home/ros1-slam/... 硬编码）----
