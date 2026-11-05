@@ -1,6 +1,6 @@
 # 工具资产、技能镜像与恢复
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本轮核对仓内脚本和清单覆盖；未恢复技能、未改系统服务。
+> 最新更新时间：2026-11-05 16:47:13 CST。本轮核对仓内脚本和清单覆盖；未恢复技能、未改系统服务。
 
 本目录保存项目维护的工具资产。运行环境、源码和真实地图各有自己的交付方式，不能用2026年10月旧机的容量/包数快照描述当前主机。
 
@@ -9,7 +9,7 @@
 | `skill/software-company/` | 多角色协作工作流与角色定义 |
 | [skill/senior-developer/SKILL.md](skill/senior-developer/SKILL.md) | 单阶段施工工作流及通用开发子技能 |
 | `skill/note/` | 技能使用说明 |
-| `skill/window-scheduler/` | 历史窗口调度技能；当前调度不运行后台 watch |
+| `skill/window-scheduler/` | 现行队列/实验窗调度；单次预检，不运行后台 watch |
 | [skill/RESTORE.sh](skill/RESTORE.sh) | 将四个技能目录复制到**执行账户**的 `$HOME/.zcode/skill`，为 `$HOME/.qoder/skills` 建链接 |
 | `systemd/` | 已登记的生产服务单元镜像；用于核对来源，不自动安装/启停 |
 | [_forbid_str_exempt.tsv](_forbid_str_exempt.tsv) | `tooling/` 的显式字符串豁免登记，不能扩展到其他目录 |
@@ -26,7 +26,7 @@ bash tooling/_build_tooling_manifests.sh --target skill --check
 bash tooling/_build_tooling_manifests.sh --target top --check
 ```
 
-两份清单覆盖不同：`skill/_sha256_manifest.txt` 覆盖技能文件；顶层 `_sha256_manifest.txt` 覆盖本 README、恢复脚本、豁免表、窗口技能和已登记的 systemd 单元。修改被覆盖文件后，旧 digest 不再表示当前内容；清单的重新生成须遵循生成件既有生命周期，记录旧新摘要和校验结果；不能手改摘要掩盖差异，也不能仅凭旧同步戳称“全过”。本轮保留原清单，README 已有的摘要差异照实列入核对记录，不冒充一次完整恢复校验。
+两份清单覆盖不同：`skill/_sha256_manifest.txt` 覆盖技能文件；顶层 `_sha256_manifest.txt` 覆盖本 README、恢复脚本、豁免表、窗口技能和已登记的 systemd 单元。修改被覆盖文件后，旧 digest 不再表示当前内容；清单的重新生成须遵循生成件既有生命周期，记录旧新摘要和校验结果；不能手改摘要掩盖差异，也不能仅凭旧同步戳称“全过”。本轮在活技能与文档写完后，按唯一生成器 `--build --by-order` 整体同步这两份当前派生清单；旧字节由 Git 与仓外改前快照保留，名册、顺序锚及旧新 SHA 记入[审查记录](../note/进度/00_架构与工程标准审查_2026-11-05.md)。历史证据清单不重生成，清单通过也不代表已经执行恢复。
 
 需要恢复到本账户工具路径时，先确认前述校验和目标账户，再执行：
 
@@ -46,3 +46,7 @@ bash tooling/skill/RESTORE.sh
 | 模型、地图、bag 与外部仿真资产 | registry 模板、路径约定、证据索引 | 各机真实文件、来源、许可与数据校验；不从其他主机默认名直接覆盖 |
 
 来源与变更以 `note/` 登记为准。生产侧目录、第三方原件、冻结清单和历史证据遵守各自边界；恢复工具资产不等于授权反向同步或真机运行。
+
+## 工程规则一致性
+
+工程标准真源：`note/架构/工程标准.md`，见[工程标准](../note/架构/工程标准.md)。现行规则的覆盖范围、检查边界与命令见[standards/](standards/README.md)；它检查文案/指针/结构，不证明机器人构建隔离、算法运行或阶段已经提交。`standards/` 与 `scripts/verify/` 的新检查随Git管理，不属于上述固定技能恢复清单，不扩张原清单名册。
