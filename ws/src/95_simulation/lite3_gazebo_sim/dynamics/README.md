@@ -1,6 +1,6 @@
 # Lite3 MuJoCo dynamics probes
 
-> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库 `note/计划书v8/`；本目录只提供声明范围内的仿真 runner。
+> 最新更新时间：2026-11-06 15:17:09 CST。现行规划见仓库 `note/计划书v8.1/`；本目录只提供声明范围内的仿真 runner。
 
 These self-authored runners consume external Lite3 MJCF/mesh and ONNX policy
 assets by path. They never overwrite those assets. Physics runners require MuJoCo and NumPy; ONNX policy runners also require

@@ -21,8 +21,8 @@ import v_project_standards as checker
 ROOT = Path(__file__).resolve().parents[2]
 SKILL = 'tooling/skill/window-scheduler/SKILL.md'
 QUEUE = 'tooling/skill/window-scheduler/references/queue-format.md'
-SCHEDULE = 'note/计划书v8/25_v8自动调度作业单.md'
-CURRENT_QUEUE = 'note/计划书v8/23_v8任务队列.md'
+SCHEDULE = 'note/计划书v8.1/25_v8.1执行与迁移规则.md'
+CURRENT_QUEUE = 'note/计划书v8.1/23_v8.1任务队列.md'
 
 
 def copy_fixture(source_root, fixture_root):
@@ -33,7 +33,7 @@ def copy_fixture(source_root, fixture_root):
                 any(part.is_symlink() for part in (base, *base.parents))):
             raise checker.InvalidInput('夹具源/目标必须是普通目录，路径不含软链')
     catalog = checker.load_catalog(source_root)
-    names = list(catalog) + ['note/计划书v8/21_ros1-slam中心计划书-v8.md', checker.CATALOG]
+    names = list(catalog) + ['note/计划书v8.1/21_ros1-slam中心计划书-v8.1.md', checker.CATALOG]
     # No unvalidated JSON entry is ever joined to a writable destination.
     # Read and validate every source first, so a bad late source writes nothing.
     contents = {name: checker.safe_path(source_root, name).read_bytes() for name in names}
@@ -70,7 +70,7 @@ class ProjectStandardsTests(unittest.TestCase):
         self.assertIn(rule, [row['rule'] for row in result['issues']], result)
 
     def test_real_documents_and_historical_contrast_are_valid(self):
-        self.assertIn('原分散/冲突口径', (self.root / 'note/计划书v8/28_工程标准统一补丁.md').read_text())
+        self.assertIn('原分散/冲突口径', (self.root / 'note/计划书v8.1/21_ros1-slam中心计划书-v8.1.md').read_text())
         self.assertIn('不能用“状态不等于已验收”', (self.root / QUEUE).read_text())
         result = self.scan()
         self.assertEqual(0, result['rc'], result)
@@ -345,11 +345,11 @@ class ProjectStandardsTests(unittest.TestCase):
         self.assertEqual(9, self.scan()['rc'])
 
     def test_actual_pointer_target_must_exist(self):
-        (self.root / 'note/计划书v8/21_ros1-slam中心计划书-v8.md').unlink()
+        (self.root / 'note/计划书v8.1/21_ros1-slam中心计划书-v8.1.md').unlink()
         self.assertEqual(9, self.scan()['rc'])
 
     def test_current_pointer_target_symlink_is_invalid_even_inside_root(self):
-        p = self.root / 'note/计划书v8/21_ros1-slam中心计划书-v8.md'
+        p = self.root / 'note/计划书v8.1/21_ros1-slam中心计划书-v8.1.md'
         data = p.read_bytes()
         p.unlink()
         other = p.with_name('other.md')

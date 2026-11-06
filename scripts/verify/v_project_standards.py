@@ -35,11 +35,11 @@ SKILLS = {
 ENTRIES = {p: ('skill', 'full') for p in SKILLS}
 ENTRIES.update({p: ('entry', 'full') for p in (
     'README.md', 'ws/README.md', 'docker/README.md', 'tooling/README.md',
-    'note/架构/项目架构与目录.md', 'note/计划书v8/README.md')})
+    'note/架构/项目架构与目录.md', 'note/计划书v8.1/README.md')})
 ENTRIES.update({p: ('reference', 'full') for p in (
-    'note/09_跨工具协作契约.md', 'note/计划书v8/28_工程标准统一补丁.md')})
+    'note/09_跨工具协作契约.md', 'note/计划书v8.1/21_ros1-slam中心计划书-v8.1.md')})
 ENTRIES.update({p: ('scoped_rules', 'markers') for p in (
-    'note/计划书v8/23_v8任务队列.md', 'note/计划书v8/25_v8自动调度作业单.md')})
+    'note/计划书v8.1/23_v8.1任务队列.md', 'note/计划书v8.1/25_v8.1执行与迁移规则.md')})
 ENTRIES['note/00_README.md'] = ('pointer_index', 'current_pointer')
 ENTRIES[STANDARD] = ('standard', 'full')
 ENTRIES[OVERVIEW] = ('release_notes', 'full')
@@ -284,9 +284,9 @@ def check_pointer_index(root, name, text, issues):
             safe_path(root, name_target)
         except (OSError, ValueError) as exc:
             raise InvalidInput('现行入口悬空/越界: %s' % label) from exc
-        expected = {'现行中心计划书指针': 'note/计划书v8/21_ros1-slam中心计划书-v8.md',
-                    '当前执行队列指针': 'note/计划书v8/23_v8任务队列.md',
-                    '现行调度作业单指针': 'note/计划书v8/25_v8自动调度作业单.md'}[label]
+        expected = {'现行中心计划书指针': 'note/计划书v8.1/21_ros1-slam中心计划书-v8.1.md',
+                    '当前执行队列指针': 'note/计划书v8.1/23_v8.1任务队列.md',
+                    '现行调度作业单指针': 'note/计划书v8.1/25_v8.1执行与迁移规则.md'}[label]
         if name_target != expected:
             issue(issues, 'current_pointer', name, 0, '%s 与覆盖目录不一致' % label)
 

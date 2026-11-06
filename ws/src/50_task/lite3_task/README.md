@@ -1,6 +1,6 @@
 # lite3_task · SMACH 任务编排
 
-> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
+> 最新更新时间：2026-11-06 15:17:09 CST。现行规划见仓库[计划书 v8.1](../../../../note/计划书v8.1/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
 本包以 `config/task_primitives.yaml` 注册原语，由 `scripts/task_smach_min.py` 装配 SMACH 状态机。
 启动入口为 `launch/50_task_smach_min.launch`，支持 `chain`、`navigate`、`scan` 模式。

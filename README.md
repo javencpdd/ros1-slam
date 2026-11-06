@@ -1,6 +1,6 @@
 # ros1-slam · 四足机器人 SLAM 与导航
 
-> 最新更新时间：2026-11-06 14:35:19 CST。现行路线为[计划书 v8](note/计划书v8/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
+> 最新更新时间：2026-11-06 15:17:09 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
 
 本项目面向 Lite3 四足机器人，组合激光建图、定位、地图、全局规划、局部执行与安全仲裁，使用 ROS1/Noetic。x86 承担 Docker、Gazebo、MuJoCo 开发与回归；Lite3 主机采用原生 ROS1，地图与现场配置各机独立。
 
@@ -38,7 +38,7 @@ flowchart LR
 | 架构、装配链、模块依赖 | [项目架构与目录](note/架构/项目架构与目录.md) |
 | 源码分层、自研包与接口入口 | [ws/README.md](ws/README.md) |
 | v8 app / graph / 模块代码 | [v8_platform](ws/src/90_platform/v8_platform/README.md)、[framework](ws/src/90_platform/v8_platform/framework/README.md) |
-| 规划、组件契约与执行队列 | [计划书 v8](note/计划书v8/README.md) |
+| 规划、组件契约与执行队列 | [计划书 v8.1](note/计划书v8.1/README.md) |
 | 版本成果、当前进度与证据 | [进度入口](note/进度/README.md)、[版本成果总览](note/进度/00_总览.md) |
 | 目标构建与依赖闭包 | [lite3 / x86_sim 构建说明](tooling/build/README.md)；M20 尚未接入 |
 | Docker、仿真、RViz 与建图命令 | [docker/README.md](docker/README.md) |

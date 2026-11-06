@@ -1,8 +1,8 @@
 # v8_platform · 配置装配、规划与运行适配
 
-> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 15:17:09 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。
 
-本包保存 v8 平台自研代码：组件契约、注册与组合、进程编排、地图表征、全局/局部规划、ROS 适配和回归工具。计划与设计文档在[计划书 v8](../../../../note/计划书v8/README.md)，历史运行证据在[进度入口](../../../../note/进度/v8/README.md)。
+本包保存 v8 平台自研代码：组件契约、注册与组合、进程编排、地图表征、全局/局部规划、ROS 适配和回归工具。计划与设计文档在[计划书 v8.1](../../../../note/计划书v8.1/README.md)，历史运行证据在[进度入口](../../../../note/进度/v8/README.md)。
 
 普通运行依赖不含 Gazebo；活动 carrier/独立评价仿真入口由 [v8_simulation](../../95_simulation/v8_simulation/README.md) 声明并提供。原源码/launch 继续作为仿真测试兼容路径，仅支持 source/devel，尚未完成 install-only 拆包；[目标构建](../../../../tooling/build/README.md) 分离 Lite3 与 x86 清单闭包，目标环境编译仍未验证。
 
@@ -39,7 +39,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
 
 组件运行域由 manifest/v3 的 `execution.modes/robot_id` 显式声明；graph/app 传递 `execution_mode/robot_id`，plan 使用 `assembly_plan/v2`。旧 v2 清单和未声明旧图继续用于离线分析，不能据静态兼容启动硬件。运行守卫详见 [framework](framework/README.md)。
 
-第二条缺省为 dry-run。`--execute` 会启动实际 ROS/仿真进程，运行前按[作业单](../../../../note/计划书v8/25_v8自动调度作业单.md)准备隔离环境。完整 app、建图与交互用法见 [framework](framework/README.md)、[Docker 运行指南](../../../../docker/README.md)。本机地图与 `*.local.app.yaml` 各机独立。
+第二条缺省为 dry-run。`--execute` 会启动实际 ROS/仿真进程，运行前按[作业单](../../../../note/计划书v8.1/25_v8.1执行与迁移规则.md)准备隔离环境。完整 app、建图与交互用法见 [framework](framework/README.md)、[Docker 运行指南](../../../../docker/README.md)。本机地图与 `*.local.app.yaml` 各机独立。
 
 离线测试按模块运行，例如：
 

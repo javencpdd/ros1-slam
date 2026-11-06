@@ -1,6 +1,6 @@
 # lite3_safety · 传统 Twist 仲裁
 
-> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
+> 最新更新时间：2026-11-06 15:17:09 CST。现行规划见仓库[计划书 v8.1](../../../../note/计划书v8.1/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
 本包的 `safe_cmd_vel_mux.py` 是传统 ROS 链的 `/cmd_vel` 仲裁输出。
 启动入口为 `launch/60_safety.launch`，全部源表与限速规则在 `config/cmd_vel_mux.yaml`。

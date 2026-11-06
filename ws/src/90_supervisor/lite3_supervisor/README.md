@@ -1,6 +1,6 @@
 # lite3_supervisor · 心跳监管与 hold
 
-> 最新核对时间：2026-11-05 11:49:54 CST。现行规划见仓库[计划书 v8](../../../../note/计划书v8/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
+> 最新更新时间：2026-11-06 15:17:09 CST。现行规划见仓库[计划书 v8.1](../../../../note/计划书v8.1/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
 `launch/90_supervisor.launch` 启动 `scripts/health_monitor.py`，按
 `config/health_watch.yaml` 的 mode/watch 表订阅模块 `std_msgs/Empty` 心跳。

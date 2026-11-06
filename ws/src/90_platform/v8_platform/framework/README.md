@@ -1,6 +1,6 @@
 # framework · YAML 组件图与导航应用
 
-> 最新更新时间：2026-11-06 14:30:30 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 15:21:18 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
 
@@ -38,7 +38,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
   --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml
 ```
 
-最后一条缺省 dry-run；地图文件与 registry 必须在本机。`--execute` 会真实起进程；缺省另起隔离 roscore，可通过 `--port` 指定端口，Gazebo master 使用其下一端口。`--no-gazebo` 只跳过 Gazebo，仍会另起 roscore；`--real` 才沿用现场 master/传感器，不能把两者混淆。`--interactive --rviz` 启用选点和显示，Ctrl+C 收尾。运行前按[作业单](../../../../../note/计划书v8/25_v8自动调度作业单.md)准备环境，真实机器人连接与运动须已有对应授权。
+最后一条缺省 dry-run；地图文件与 registry 必须在本机。`--execute` 会真实起进程；缺省另起隔离 roscore，可通过 `--port` 指定端口，Gazebo master 使用其下一端口。`--no-gazebo` 只跳过 Gazebo，仍会另起 roscore；`--real` 才沿用现场 master/传感器，不能把两者混淆。`--interactive --rviz` 启用选点和显示，Ctrl+C 收尾。运行前按[作业单](../../../../../note/计划书v8.1/25_v8.1执行与迁移规则.md)准备环境，真实机器人连接与运动须已有对应授权。
 
 ## graph 检查与实际启动
 
@@ -100,4 +100,4 @@ python3 -B ws/src/90_platform/v8_platform/framework/test_navigation_app.py
 python3 -B ws/src/90_platform/v8_platform/framework/test_hotswap.py
 ```
 
-真实运行 smoke 如 plugin/nodelet_group、map_cache_graph、graph_3d_real、Gazebo/MuJoCo verification 会启动外部进程，按作业窗执行；typed 地图 smoke 须先构建 [v8_msgs](../../v8_msgs)。设计与收口记录见[27 号框架补丁](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)、[v8 进度](../../../../../note/进度/v8/README.md)。本文不复用旧固定测试条数，也不新增 formal/真机结论。
+真实运行 smoke 如 plugin/nodelet_group、map_cache_graph、graph_3d_real、Gazebo/MuJoCo verification 会启动外部进程，按作业窗执行；typed 地图 smoke 须先构建 [v8_msgs](../../v8_msgs)。当前设计见[v8.1架构与接口](../../../../../note/计划书v8.1/22_架构与接口契约.md)，历史收口记录见[27 号框架补丁](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)、[v8 进度](../../../../../note/进度/v8/README.md)。本文不复用旧固定测试条数，也不新增 formal/真机结论。

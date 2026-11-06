@@ -1,6 +1,6 @@
 # representation · 支撑图、证据、版本与增量
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 15:17:09 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 本目录提供支撑图数据结构和建图后处理，以及地图服务、ROS 适配和语义桥。核心算法与 ROS 节点已分文件实现，不能把整个目录仍描述为“运行时尚未接入”。
 
@@ -50,4 +50,4 @@ python3 -B ws/src/90_platform/v8_platform/representation/test_map_cache.py
 python3 -B ws/src/90_platform/v8_platform/representation/test_semantic_map.py
 ```
 
-真实 ROS smoke 脚本会创建节点，按[作业单](../../../../../note/计划书v8/25_v8自动调度作业单.md)执行。本文没有重跑历史 survey，不新增 A3 或真机验收结论。
+真实 ROS smoke 脚本会创建节点，按[作业单](../../../../../note/计划书v8.1/25_v8.1执行与迁移规则.md)执行。本文没有重跑历史 survey，不新增 A3 或真机验收结论。
