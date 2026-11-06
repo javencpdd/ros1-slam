@@ -1,6 +1,6 @@
 # Foxglove与ROS1观察连接
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本轮核对rosbridge配置、话题生产者与布局JSON，未启动服务或验证客户端导入。
+> 最新更新时间：2026-11-06 15:33:00 CST。本轮核对rosbridge配置、话题生产者与布局JSON，未启动服务或验证客户端导入。
 
 本目录的 [ros1_slam_sim_layout.json](ros1_slam_sim_layout.json) 是手写布局模板。浏览器客户端需要兼容 **ROS1 rosbridge WebSocket**；`ws://<可达地址>:9090` 是桥的端点，ROS master的11312/11313不是浏览器端口。不要把该桥选成使用另一协议的“Foxglove WebSocket”连接。
 
@@ -13,7 +13,7 @@
 | v8 3D app | 默认独立11537，按app实际配置 | 桥需连接该app运行的ROS图，不能沿用另一个11313域 |
 | 真机采图 | 本机现场11312配置，IP现查 | 真机运行另有许可，不能照抄旧机IP或仿真loopback配置 |
 
-当前 `docker-compose.yml` 中独立的 `rosbridge` 缺省连开发 `roscore`。仅把它的 `ROS1_MASTER_URI` 设成 `127.0.0.1:11313`，会指到**桥容器自身**；即便改成sim容器IP，其他节点通告的loopback也仍不可达。按当前[执行队列](../../note/计划书v8/23_v8任务队列.md)，rosbridge基线修复已延后，本文不宣称跨容器观察已经修复。
+当前 `docker-compose.yml` 中独立的 `rosbridge` 缺省连开发 `roscore`。仅把它的 `ROS1_MASTER_URI` 设成 `127.0.0.1:11313`，会指到**桥容器自身**；即便改成sim容器IP，其他节点通告的loopback也仍不可达。按当前[执行队列](../../note/计划书v8.1/23_v8.1任务队列.md)，rosbridge基线修复已延后，本文不宣称跨容器观察已经修复。
 
 已明确选择单容器仿真观察时，可在同一个sim容器内另开终端运行桥（以下示例只针对本次独占的sim域）：
 
