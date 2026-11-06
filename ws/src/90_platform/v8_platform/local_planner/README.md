@@ -1,6 +1,6 @@
 # local_planner · 原生三维局部规划与命令适配
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 14:30:30 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 [local_native.py](local_native.py) 在“支撑面 × XY 栅格 × 未来时刻”上搜索有限时域运动，含等待、面内移动和显式有向转层。它从当前状态到局部目标重新规划，不消费全局点列后补时间戳。[path_goal_node.py](path_goal_node.py) 当前只将全局 Path 末点转成局部目标，不能描述为逐点跟踪完整全局路线。
 
@@ -32,15 +32,17 @@ python3 -B ws/src/90_platform/v8_platform/local_planner/ros_node.py \
 | 输入 | `/v8/local/localization_ok` | Bool |
 | 输出 | `/v8/local/cmd_vel_3d` | TwistStamped，map 系 linear.xyz |
 | 输出 | `/v8/local/trajectory`、`/v8/local/status` | String JSON，含结果/状态/地图身份 |
-| 可选输出 | `~twist_topic` | 缺省关闭；plain Twist 镜像，供指定实验/安全链使用 |
+| 可选输出 | `~twist_topic` | 缺省关闭；同一 base_link 原点的 yaw 平面 XY，map→body 显式旋转，拒非零竖直请求 |
 
-pose/obstacles/localization 需持续心跳，缺失/过期输出零速。输入世界变更撤销旧 generation；独立 fork worker 执行规划，控制/ROS 回调不等待长搜索。计划有效期按仿真时刻判，墙钟 `~wall_watchdog_s` 处理 /clock 停转；终端停车锁存与可重规划瞬态零速分别处理。`~pause_planning` 仅用于故障注入。
+pose/obstacles/localization 需持续心跳，缺失/过期输出零速。PoseStamped保留非零源时间戳，旧/未来/倒退戳及重复源戳停止推进时均失效；源年龄与单调墙钟进展年龄任一达到既有 input_max_age_s 即拒绝。重复回调不续租。输入世界变更撤销旧 generation；独立 fork worker 执行规划，控制/ROS 回调不等待长搜索。计划有效期按ROS测量时钟判，单调墙钟 `~wall_watchdog_s` 提供独立租约；终端停车锁存与可重规划瞬态零速分别处理。`~pause_planning` 仅用于故障注入。
 
 ## 两种命令链
 
 [cmd3d_mux_node.py](cmd3d_mux_node.py) 为实验三维 carrier 保留 map 系 xyz，检查 frame/时效/hold 后写唯一 `/cmd_vel`；它不是 Lite3 平面 mux 的同义替代。[pose_mux.py](pose_mux.py) 提供定位源交接门，相关 smoke 验证一致切换与跳变拒绝。
 
-Lite3 app 采用 plain Twist→`/cmd_vel_raw`→生产 safe_cmd_vel_mux→`/cmd_vel`。目前 ros_node 的 plain Twist 直接镜像 map 系速度，没有独立按机器人 yaw 旋转到机体系；接入平面底盘前须核清坐标语义，不能凭静态/轴对齐冒烟声称任意朝向真机导航完成。完整配置与限速/感知边界见[Lite3 配置](../configs/lite3/README.md)。
+Lite3 app 采用 plain Twist→`/cmd_vel_raw`→生产 safe_cmd_vel_mux→`/cmd_vel`。启用plain输出时验证有限非零四元数并规范化，按 Rz(yaw) 的逆旋转 map XY 到同一base原点的机体航向平面：yaw=π/2时 map(1,0)→body(0,-1)。非零vz请求（绝对值>1e-6，仅数值零容差）、非法姿态/速度（含数值转换溢出）或源时间均在两条命令发布之前决定归零，plain六轴零；关闭plain时保留map三维运动。此适配不含完整6D参考点平移、roll/pitch动态控制或支撑高度补偿，目标机/爬阶能力尚未验证。完整配置与限速/感知边界见[Lite3 配置](../configs/lite3/README.md)。
+
+轨迹计算后，在与输入回调共用的锁内重新核generation、最新位姿/姿态、所有心跳及原有ROS/墙钟租约，再双发布和记录最终命令。header与反馈积分history记录实际发布时刻，锁步tick只选择计算时刻；/clock事件等待超时仍发零速。位姿撤销及时间epoch改变均清旧history/轨迹，即使失效后在两次控制tick之间恢复也不能复用旧反馈预测；worker结果的最终接受/轨迹发布同样与回调撤销互斥，旧generation不能恢复旧结果。被拒样本不续租，同一未来样本不得仅靠ROS追平恢复；新epoch经新的有效源推进恢复后不永久封禁旧stamp数值。新鲜源推进后可对现有goal重新规划。已经锁存的终端停止继续保持，只有新的map frame goal被接受才解除；这不宣称已完成goal全部几何校验。公共纯策略见[pose_safety.py](../common/pose_safety.py)。
 
 ## 测试和运行探针
 
@@ -48,6 +50,8 @@ Lite3 app 采用 plain Twist→`/cmd_vel_raw`→生产 safe_cmd_vel_mux→`/cmd_
 python3 -B ws/src/90_platform/v8_platform/local_planner/test_local_native.py
 python3 -B ws/src/90_platform/v8_platform/local_planner/test_execution.py
 python3 -B ws/src/90_platform/v8_platform/local_planner/test_ros_node_policy.py
+python3 -B ws/src/90_platform/v8_platform/local_planner/test_pose_command_adapter.py
+python3 -B -m unittest discover -s ws/src/90_platform/v8_platform/common
 python3 -B ws/src/90_platform/v8_platform/local_planner/test_planner_worker.py
 python3 -B ws/src/90_platform/v8_platform/local_planner/test_cmd3d_arbiter.py
 python3 -B ws/src/90_platform/v8_platform/local_planner/demo.py --out /tmp/a5-local.json

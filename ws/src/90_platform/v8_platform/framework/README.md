@@ -1,6 +1,6 @@
 # framework · YAML 组件图与导航应用
 
-> 最新更新时间：2026-11-06 04:45:41 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 14:30:30 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
 
@@ -67,13 +67,13 @@ Assembly（含自定义命令工厂）、独立 default_command、三条 hotswap
 
 旧 v2 manifest 和未分类图可做 check/plan 离线分析（CLI plan 仅给 --out-plan；请求 --out-launch 会额外验证可执行域）；执行要求 v3 的显式域，旧 assembly_plan/v1 不直接启动。旧合法仿真仅在所有选中组件明确支持 simulation 且不绑定机器人时窄兼容为 generic_sim。`graph_2d*` 的五个旧混合模板含 ros2qnx，保留离线分析并拒绝启动/可执行 XML；运行测试改用 `_sim` 副本。`graph_3d_real*` 中 real 指 ROS 实现，其载体仍为运动学仿真。
 
-统一守卫也前置于可传图的 graph_3d_assembly_smoke、runtime_lab 与 boundary_chain_runtime；实际 smoke 不属于离线测试。外部 bringup/任意手工 rosrun 不受 Python 装配守卫统管，现场已有运动桥仍须按现场授权处理。本轮没有启动 ROS、仿真或硬件，也未解决速度坐标、TF 时效与所有图边自动接线。
+统一守卫也前置于可传图的 graph_3d_assembly_smoke、runtime_lab 与 boundary_chain_runtime；实际 smoke 不属于离线测试。外部 bringup/任意手工 rosrun 不受 Python 装配守卫统管，现场已有运动桥仍须按现场授权处理。本轮没有启动 ROS、仿真或硬件。速度坐标/位姿源时间已有下述代码与离线正反控；图边自动接线等其他缺口继续保留，目标环境能力不由静态检查晋级。
 
 ## 当前运行接线
 
 - 2D：`v8.nav2d.*` include 启动实际导航栈与生产 mux；GlobalPlanner/Navfn、DWA/TEB 选择由图参数表达。
 - 3D：map provider→全局 topic planner→path_goal→local_native→三维 mux/载体。`path_goal_node.py` 仅把全局 Path 末点转为局部目标；原生局部规划不逐点消费整条全局路线。
-- `gazebo_carrier3d_node.py` 是 static box/SetModelState 的运动学载体，含支撑高度钳制；Gazebo 动态方盒和 MuJoCo 四足接触实验为不同执行链，不能互代。Lite3 carrier 只提供 TF/odom 位姿与健康，见[现场配置](../configs/lite3/README.md)。
+- `gazebo_carrier3d_node.py` 是 static box/SetModelState 的运动学载体，含支撑高度钳制；Gazebo 动态方盒和 MuJoCo 四足接触实验为不同执行链，不能互代。Lite3 carrier 只提供 TF/odom 位姿与健康：原非零源stamp、精确parent/child、有限几何必须有效；重复查询不续租，ROS源年龄和monotonic源推进年龄共同判失效。错误odom坐标直接拒绝，不改名为map；非阻塞TF查询和墙钟节拍保证停钟时仍能发布健康false，无效时不重播旧pose。最终check/pose/health/status与回调撤销共用锁；拒绝样本的stamp也被观察，同一个未来样本不能靠ROS追平恢复；ROS回退后先隔离旧缓存，只有新的有效源推进才解除隔离，正常新epoch可连续跨过旧stamp数值。数值与现场参数未改。纯策略见[公共helper](../common/pose_safety.py)，测试见[test_lite3_carrier.py](test_lite3_carrier.py)，目标TF/支撑参考点仍见[现场配置](../configs/lite3/README.md)。
 - localization_node 支持 sim_gt/faster_lio/ndt 来源；NDT `navigation_allowed=false`。GT-LIO raw/translated/rigid 比较在 localization_compare，不把事后对齐当独立精度认证。
 - `map_cache_node`/`map_merge_node` 和 typed v8_msgs 已有真实图入口；旧 graph_3d_cache 使用测试替身。MapDelta/持久化/语义桥细节见[representation](../representation/README.md)。
 - PCD 建图可生成 app/task 并登记本机地图；`--register` 修改本机 registry。地图和 `*.local.app.yaml` 不作为跨机固定资产。完整建图/可视化步骤见[Docker 指南](../../../../../docker/README.md)。

@@ -2,17 +2,23 @@
 """ROS1 adapter for the native space-time planner; explicit map-frame 3D IO.
 
 Separate wall-clock controller and planning loops ensure a slow/failed planner
-cannot keep an old nonzero command alive. This does not connect to real hardware
-or silently convert a 3D velocity into the existing planar cmd_vel interface.
+cannot keep an old nonzero command alive. The optional plain-Twist output is a
+validated yaw-plane body adapter; the stamped 3D stream remains in map coordinates.
 """
 import json
 import math
 import multiprocessing as mp
 import queue
+from pathlib import Path
+import sys
 import threading
 import time
 
 import local_native as native
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common.pose_safety import (PoseError, PoseFreshness, finite_number, finite_vector,
+                                map_to_body_planar, normalized_quaternion)
 
 
 def freshness(now, pose_received, obstacles_received, localization_received,
@@ -80,6 +86,8 @@ def stop_reason(fresh, latched, latched_reason, result, result_at, wall_now,
         return last_error if last_error and last_error != 'ok' else 'E_LOCAL_NO_TRAJECTORY'
     if generation != result_generation:
         return 'E_LOCAL_WORLD_UPDATED'
+    if not isinstance(result, dict) or not finite_number(result.get('valid_until')):
+        return 'E_LOCAL_INPUT'
     valid_until = result.get('valid_until')
     if sim_now and sim_now > 0 and valid_until is not None and sim_now >= valid_until:
         return 'E_LOCAL_EXPIRED'
@@ -172,6 +180,268 @@ class PlannerWorker:
             self.process.terminate()
 
 
+def _local_pose_reason(reason):
+    if reason.startswith('E_LOCAL_'):
+        return reason
+    if reason in ('E_POSE_STALE', 'E_POSE_NO_PROGRESS'):
+        return 'E_LOCAL_POSE_STALE'
+    if reason == 'E_POSE_ORIENTATION':
+        return 'E_LOCAL_ORIENTATION'
+    if reason == 'E_POSE_FRAME':
+        return 'E_LOCAL_FRAME'
+    if reason == 'E_POSE_POSITION':
+        return 'E_LOCAL_POSE_INVALID'
+    if reason == 'E_POSE_MISSING':
+        return 'E_LOCAL_NOT_READY'
+    return 'E_LOCAL_CLOCK'
+
+
+class LocalPoseInput:
+    """Pose contract over the node's shared state; callers hold its one lock."""
+    def __init__(self, shared, max_age_s, require_orientation=False):
+        self.shared = shared
+        self.guard = PoseFreshness(max_age_s)
+        self.require_orientation = require_orientation
+        self.revocation = 0
+        shared.update(pose_orientation=None, pose_error='E_LOCAL_NOT_READY',
+                      pose_detail='E_POSE_MISSING')
+
+    def invalidate(self, reason, detail=None):
+        reason = _local_pose_reason(reason)
+        value = self.shared
+        if value.get('pose_error') != reason or value.get('pose') is not None or value.get('result') is not None:
+            value['generation'] += 1
+            self.revocation += 1
+        self.guard.invalidate(detail or reason)
+        value.update(pose=None, pose_orientation=None, pose_at=-1e100,
+                     result=None, result_at=-1e100, result_generation=-1,
+                     pose_error=reason, pose_detail=detail or reason,
+                     last_error=reason)
+        return reason
+
+    def accept(self, message, ros_now, wall_now):
+        try:
+            source_stamp = message.header.stamp.to_sec()
+            if message.header.frame_id != 'map':
+                raise PoseError('E_POSE_FRAME')
+            p = message.pose.position
+            position = finite_vector((p.x, p.y, p.z), 3)
+            orientation = None
+            if self.require_orientation:
+                q = message.pose.orientation
+                orientation = normalized_quaternion((q.x, q.y, q.z, q.w))
+            status, advanced = self.guard.observe(source_stamp, ros_now, wall_now)
+            if not status['ok']:
+                return self.invalidate(status['reason'], status['reason'])
+            if advanced:
+                self.shared.update(pose=position, pose_orientation=orientation,
+                                   pose_at=wall_now, pose_ros_stamp=message.header.stamp.to_sec(),
+                                   pose_error=None, pose_detail=None)
+            return None
+        except (PoseError, AttributeError, TypeError, ValueError) as error:
+            reason = getattr(error, 'code', 'E_LOCAL_POSE_INVALID')
+            # Account for rejected samples without granting them a new lease.
+            try:
+                self.guard.observe(message.header.stamp.to_sec(), ros_now, wall_now,
+                                   rejection=reason)
+            except (AttributeError, TypeError, ValueError):
+                pass
+            return self.invalidate(reason, reason)
+
+    def check(self, ros_now, wall_now):
+        status = self.guard.check(ros_now, wall_now)
+        if not status['ok']:
+            self.invalidate(status['reason'], status['reason'])
+        return status
+
+
+def finalize_output(out, orientation, body_enabled):
+    """Decide both command streams before either is published."""
+    try:
+        if not isinstance(out, dict) or not isinstance(out.get('reason'), str):
+            raise PoseError('E_LOCAL_OUTPUT')
+        velocity = finite_vector(out['velocity'], 3, 'E_LOCAL_VELOCITY')
+        if out.get('stop'):
+            return dict(out, velocity=[0., 0., 0.]), (0., 0., 0.) if body_enabled else None
+        body = map_to_body_planar(velocity, orientation) if body_enabled else None
+        if body_enabled:
+            velocity = (velocity[0], velocity[1], 0.)
+        return dict(out, velocity=list(velocity)), body
+    except (PoseError, ArithmeticError, KeyError, TypeError, ValueError) as error:
+        reason = _local_pose_reason(getattr(error, 'code', 'E_LOCAL_VELOCITY'))
+        return dict(velocity=[0., 0., 0.], stop=True, complete=False, reason=reason), (0., 0., 0.)
+
+
+def publish_output(out, orientation, stamp, sequence, command_pub, twist_pub, messages):
+    """Publish the same final decision; caller holds the callback/state lock."""
+    stamped_type, twist_type, _ = messages
+    out, body = finalize_output(out, orientation, twist_pub is not None)
+    message = stamped_type()
+    message.header.frame_id, message.header.stamp, message.header.seq = 'map', stamp, sequence
+    message.twist.linear.x, message.twist.linear.y, message.twist.linear.z = out['velocity']
+    command_pub.publish(message)
+    if twist_pub is not None:
+        flat = twist_type()
+        flat.linear.x, flat.linear.y, flat.linear.z = body
+        twist_pub.publish(flat)
+    return out
+
+
+def accept_goal(shared, message):
+    """Only an actual new goal clears an already latched terminal stop."""
+    if message.header.frame_id != 'map':
+        shared.update(goal=None, last_error='E_LOCAL_FRAME')
+        return False
+    p = message.pose.position
+    shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
+                  stop_latched=False, stop_reason=None, last_error='ok')
+    return True
+
+
+def accept_worker_result(shared, payload, wall_now):
+    """Old in-flight results cannot resurrect an invalidated pose/clock epoch."""
+    if (payload['generation'] != shared['generation'] or shared.get('pose_error')
+            or shared['stop_latched']):
+        return False
+    if payload['ok']:
+        result = payload.get('result')
+        if not isinstance(result, dict) or not finite_number(result.get('valid_until')):
+            shared.update(result=None, last_error='E_LOCAL_INPUT')
+            return False
+        plan_ms = payload.get('plan_ms')
+        shared.update(result=payload['result'], result_at=wall_now,
+                      result_generation=payload['generation'], last_error='ok',
+                      plan_ms=plan_ms,
+                      plan_ms_max=max(shared.get('plan_ms_max', 0.), plan_ms or 0.))
+        return True
+    shared.update(result=None, last_error=payload['error'], last_error_detail=payload.get('message'))
+    return False
+
+
+def publish_worker_result(shared, payload, pose_input, lock, ros_clock, wall_clock,
+                          path_pub, string_type):
+    """Serialize outside the lock, then accept/publish atomically with revocation."""
+    encoded = None
+    try:
+        if payload['ok']:
+            encoded = json.dumps(payload['result'], allow_nan=False)
+    except (KeyError, TypeError, ValueError, OverflowError):
+        payload = dict(payload, ok=False, error='E_LOCAL_INPUT', message='invalid planner serialization')
+    with lock:
+        pose_input.check(ros_clock(), wall_clock())
+        if accept_worker_result(shared, payload, wall_clock()):
+            path_pub.publish(string_type(data=encoded))
+            return True
+    return False
+
+
+class LocalControl:
+    """One control cycle, with a final atomic recheck against pose callbacks."""
+    def __init__(self, shared, pose_input, lock, config, max_age, wall_watchdog_s,
+                 command_pub, twist_pub, status_pub, messages, profile=None):
+        self.shared, self.pose_input, self.lock = shared, pose_input, lock
+        self.config, self.max_age, self.wall_watchdog_s = config, max_age, wall_watchdog_s
+        self.command_pub, self.twist_pub, self.status_pub = command_pub, twist_pub, status_pub
+        self.messages, self.profile = messages, profile
+        self.history, self.previous_stamp, self.previous_command = [], None, (0., 0., 0.)
+        self.epoch, self.sequence = pose_input.guard.epoch, 0
+        self.revocation = pose_input.revocation
+
+    def _reset_history(self):
+        self.history.clear()
+        self.previous_stamp, self.previous_command = None, (0., 0., 0.)
+        self.epoch = self.pose_input.guard.epoch
+        self.revocation = self.pose_input.revocation
+
+    def tick(self, ros_clock, wall_clock, stamp_factory, clock_ready=True, clock_stamp=None):
+        with self.lock:
+            ros_now, wall_now = ros_clock(), wall_clock()
+            self.pose_input.check(ros_now, wall_now)
+            stamp_sec = ros_now if clock_stamp is None else clock_stamp
+            if (not clock_ready or not finite_number(stamp_sec) or stamp_sec <= 0.
+                    or stamp_sec > ros_now
+                    or (self.shared.get('pose') is not None and stamp_sec < self.shared['pose_ros_stamp'])
+                    or (self.previous_stamp is not None and stamp_sec < self.previous_stamp)):
+                self.pose_input.invalidate('E_LOCAL_CLOCK')
+                self._reset_history()
+                stamp_sec = ros_now if finite_number(ros_now) and ros_now > 0. else 0.
+            if (self.epoch != self.pose_input.guard.epoch
+                    or self.revocation != self.pose_input.revocation):
+                self._reset_history()
+            snapshot = dict(self.shared)
+        fresh = snapshot.get('pose_error') or freshness(
+            wall_now, snapshot['pose_at'], snapshot['obstacles_at'],
+            snapshot['localization_at'], snapshot['localization_ok'], self.max_age)
+        reason = stop_reason(fresh, snapshot['stop_latched'], snapshot['stop_reason'],
+                             snapshot['result'], snapshot['result_at'], wall_now,
+                             self.wall_watchdog_s, stamp_sec, snapshot['generation'],
+                             snapshot['result_generation'], snapshot['last_error'])
+        if not reason and snapshot['map'] is not None:
+            try:
+                estimated = feedback_at(snapshot['pose'], snapshot['pose_ros_stamp'], stamp_sec, self.history)
+                period = (.05 if self.previous_stamp is None else max(.05, min(.1, stamp_sec - self.previous_stamp)))
+                uncertainty = feedback_uncertainty(snapshot['pose_ros_stamp'], stamp_sec, self.history,
+                                                   self.config.command_latency_bound_s)
+                out = native.track_segment(snapshot['map'], snapshot['result'], estimated, stamp_sec,
+                                           snapshot['obstacles'], config=self.config, control_period_s=period,
+                                           feedback_pose=snapshot['pose'], uncertainty_m=uncertainty,
+                                           previous_velocity=self.previous_command)
+            except (ValueError, TypeError, KeyError, OverflowError) as error:
+                out = dict(velocity=[0., 0., 0.], stop=True, reason='E_LOCAL_INPUT', input_error=str(error))
+        else:
+            out = dict(velocity=[0., 0., 0.], stop=True, reason=reason or snapshot['last_error'])
+        # A pose/clock callback may invalidate the snapshot while tracking runs.
+        # Recheck and publish under the SAME lock used by all those callbacks.
+        with self.lock:
+            latest_ros, latest_wall = ros_clock(), wall_clock()
+            latest_status = self.pose_input.check(latest_ros, latest_wall)
+            latest_fresh = self.shared.get('pose_error') or freshness(
+                latest_wall, self.shared['pose_at'], self.shared['obstacles_at'],
+                self.shared['localization_at'], self.shared['localization_ok'], self.max_age)
+            if (self.epoch != self.pose_input.guard.epoch
+                    or self.revocation != self.pose_input.revocation):
+                self._reset_history()
+                stamp_sec = latest_ros
+            final_reason = stop_reason(
+                latest_fresh, self.shared['stop_latched'], self.shared['stop_reason'],
+                self.shared['result'], self.shared['result_at'], latest_wall,
+                self.wall_watchdog_s, latest_ros, self.shared['generation'],
+                self.shared['result_generation'], self.shared['last_error'])
+            if (self.shared['generation'] != snapshot['generation']
+                    or self.shared['result'] is not snapshot['result']):
+                final_reason = latest_fresh or 'E_LOCAL_WORLD_UPDATED'
+            if final_reason:
+                out = dict(velocity=[0., 0., 0.], stop=True, reason=final_reason)
+            # Header/history describe publication time, not the older tracking
+            # sample. Lockstep's input tick only selects the calculation above.
+            stamp_sec = latest_ros if finite_number(latest_ros) and latest_ros > 0. else 0.
+            out = publish_output(out, self.shared.get('pose_orientation'), stamp_factory(stamp_sec),
+                                 self.sequence, self.command_pub, self.twist_pub, self.messages)
+            self.sequence += 1
+            self.history.append((stamp_sec, tuple(out['velocity'])))
+            self.history[:] = self.history[-200:]
+            self.previous_stamp, self.previous_command = stamp_sec, tuple(out['velocity'])
+            latched = (self.shared['stop_latched'] or (out['reason'].startswith('E_LOCAL_')
+                       and out['reason'] not in NON_LATCHING and snapshot['result_at'] > 0))
+            status = dict(out, clock='ros_source+monotonic_progress', pose_clock=latest_status,
+                          wall_watchdog_s=self.wall_watchdog_s,
+                          plan_ms=snapshot.get('plan_ms'), detail=snapshot.get('last_error_detail'),
+                          map_version=snapshot.get('map_version'), plan_ms_max=snapshot.get('plan_ms_max'),
+                          latched=bool(latched), plain_twist_frame='base_link_yaw_plane' if self.twist_pub else None,
+                          capability_domain='experimental_kinematic_carrier' if self.profile is None else 'validated_robot_profile')
+            if isinstance(snapshot['result'], dict) and finite_number(snapshot['result'].get('valid_until')):
+                status['plan_valid_until'] = snapshot['result']['valid_until']
+            self.status_pub.publish(self.messages[2](data=json.dumps(status)))
+            if out.get('complete') or out['reason'].startswith('E_LOCAL_'):
+                if self.shared['result'] is snapshot['result']:
+                    terminal = self.shared['stop_latched'] or (latched and snapshot['result_at'] > 0)
+                    terminal_reason = (self.shared['stop_reason'] if self.shared['stop_latched']
+                                       else out['reason'])
+                    self.shared.update(result=None, last_error=out['reason'], stop_latched=terminal,
+                                       stop_reason=terminal_reason if terminal else None)
+        return out
+
+
 def main():
     import rospy
     from geometry_msgs.msg import PoseStamped, Twist, TwistStamped
@@ -188,10 +458,10 @@ def main():
     config = native.Config(**rospy.get_param('~experimental_config', {}))
     config.validate()
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
-    if max_age <= 0:
+    if not math.isfinite(max_age) or max_age <= 0:
         raise ValueError('input_max_age_s must be positive')
     wall_watchdog_s = float(rospy.get_param('~wall_watchdog_s', max(5., 4. * config.validity_s)))
-    if wall_watchdog_s <= 0:
+    if not math.isfinite(wall_watchdog_s) or wall_watchdog_s <= 0:
         raise ValueError('wall_watchdog_s must be positive')
     map_path = rospy.get_param('~map_json', '')
     map_topic = rospy.get_param('~map_topic', '')
@@ -219,6 +489,7 @@ def main():
     twist_topic = rospy.get_param('~twist_topic', '')
     twist_pub = (rospy.Publisher(twist_topic, Twist, queue_size=1)
                  if twist_topic else None)
+    pose_input = LocalPoseInput(shared, max_age, require_orientation=twist_pub is not None)
     path_pub = rospy.Publisher(rospy.get_param('~trajectory_topic', '/v8/local/trajectory'),
                                String, queue_size=1, latch=True)
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/v8/local/status'),
@@ -235,23 +506,14 @@ def main():
 
     def on_pose(msg):
         with lock:
-            if msg.header.frame_id != 'map':
-                shared['last_error'] = 'E_LOCAL_FRAME'
-                shared['pose_at'] = -1e100
-                return
-            p = msg.pose.position
-            shared.update(pose=(p.x, p.y, p.z), pose_at=time.monotonic(),
-                          pose_ros_stamp=msg.header.stamp.to_sec())
+            error = pose_input.accept(msg, rospy.Time.now().to_sec(), time.monotonic())
+            if error:
+                plan_wake.set()
 
     def on_goal(msg):
         with lock:
-            if msg.header.frame_id != 'map':
-                shared.update(goal=None, last_error='E_LOCAL_FRAME')
-                return
-            p = msg.pose.position
-            shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
-                          stop_latched=False, stop_reason=None, last_error='ok')
-            plan_wake.set()
+            if accept_goal(shared, msg):
+                plan_wake.set()
 
     def on_obstacles(msg):
         try:
@@ -298,87 +560,23 @@ def main():
     rospy.Subscriber(rospy.get_param('~localization_topic', '/v8/local/localization_ok'),
                      Bool, on_localization, queue_size=1)
 
+    controller = LocalControl(shared, pose_input, lock, config, max_age, wall_watchdog_s,
+                              command_pub, twist_pub, status_pub, (TwistStamped, Twist, String), profile)
+
     def control_loop():
-        command_history = []
-        previous_control_stamp = None
-        previous_command = (0., 0., 0.)
-        command_seq = 0
         while not rospy.is_shutdown():
+            clock_ready = not lockstep_command or clock_event.wait(1.0)
             if lockstep_command:
-                if not clock_event.wait(1.0):
-                    continue
                 clock_event.clear()
-            wall_now = time.monotonic()
-            with lock:
-                snapshot = dict(shared)
-            fresh = freshness(wall_now, snapshot['pose_at'], snapshot['obstacles_at'],
-                              snapshot['localization_at'], snapshot['localization_ok'], max_age)
-            stamp = (rospy.Time.from_sec(clock_sec[0])
-                     if lockstep_command and clock_sec[0] is not None else rospy.Time.now())
-            reason = stop_reason(fresh, snapshot['stop_latched'], snapshot['stop_reason'],
-                                 snapshot['result'], snapshot['result_at'], wall_now,
-                                 wall_watchdog_s, stamp.to_sec(), snapshot['generation'],
-                                 snapshot['result_generation'], snapshot['last_error'])
-            if not reason and snapshot['map'] is not None:
-                try:
-                    estimated = feedback_at(snapshot['pose'], snapshot['pose_ros_stamp'], stamp.to_sec(), command_history)
-                    base_period = (.05 if previous_control_stamp is None else
-                                   max(.05, min(.1, stamp.to_sec() - previous_control_stamp)))
-                    uncertainty = feedback_uncertainty(snapshot['pose_ros_stamp'], stamp.to_sec(),
-                                                       command_history, config.command_latency_bound_s)
-                    out = native.track_segment(snapshot['map'], snapshot['result'], estimated,
-                                               stamp.to_sec(), snapshot['obstacles'], config=config,
-                                               control_period_s=base_period,
-                                               feedback_pose=snapshot['pose'], uncertainty_m=uncertainty,
-                                               previous_velocity=previous_command)
-                except ValueError as error:
-                    out = {'velocity': [0., 0., 0.], 'stop': True, 'reason': 'E_LOCAL_CLOCK',
-                           'clock_error': str(error)}
-            else:
-                out = {'velocity': [0., 0., 0.], 'stop': True, 'reason': reason or snapshot['last_error']}
-            message = TwistStamped()
-            message.header.frame_id, message.header.stamp = 'map', stamp
-            message.header.seq = command_seq
-            command_seq += 1
-            message.twist.linear.x, message.twist.linear.y, message.twist.linear.z = out['velocity']
-            command_pub.publish(message)
-            if twist_pub is not None:
-                flat = Twist()
-                flat.linear.x, flat.linear.y, flat.linear.z = out['velocity']
-                twist_pub.publish(flat)
-            command_history.append((stamp.to_sec(), tuple(out['velocity'])))
-            command_history[:] = command_history[-200:]
-            previous_control_stamp = stamp.to_sec()
-            previous_command = tuple(out['velocity'])
-            latched = (out['reason'].startswith('E_LOCAL_')
-                       and out['reason'] not in NON_LATCHING
-                       and snapshot['result_at'] > 0)
-            status = dict(out, clock='ros_plan+wall_watchdog', wall_watchdog_s=wall_watchdog_s,
-                          plan_ms=snapshot.get('plan_ms'),
-                          detail=snapshot.get('last_error_detail'),
-                          map_version=snapshot.get('map_version'),
-                          plan_ms_max=snapshot.get('plan_ms_max'),
-                          latched=bool(latched),
-                          capability_domain='experimental_kinematic_carrier'
-                          if profile is None else 'validated_robot_profile')
-            if snapshot['result'] is not None:
-                status['plan_valid_until'] = snapshot['result'].get('valid_until')
-            status_pub.publish(String(data=json.dumps(status)))
-            if out.get('complete') or out['reason'].startswith('E_LOCAL_'):
-                with lock:
-                    if shared['result'] is snapshot['result']:
-                        terminal = latched and snapshot['result_at'] > 0
-                        shared.update(result=None, last_error=out['reason'],
-                                      stop_latched=terminal,
-                                      stop_reason=out['reason'] if terminal else None)
-                        plan_wake.set()
-            # Wall pacing in both modes: under the bridge-owned sim clock, a
-            # clock-paced loop would deadlock when the bridge freezes during
-            # planning -- the node could never publish the replan that resumes it.
+            controller.tick(lambda: rospy.Time.now().to_sec(), time.monotonic, rospy.Time.from_sec,
+                            clock_ready=clock_ready,
+                            clock_stamp=clock_sec[0] if lockstep_command else None)
+            # A missing /clock still reaches the zero-speed publish above.
             time.sleep(.02 if sim_clock else .05)
 
     worker = PlannerWorker(config, profile)
     last_plan_tick = -1
+    last_plan_epoch = pose_input.guard.epoch
 
     def pace(timeout):
         plan_wake.wait(timeout)
@@ -394,29 +592,21 @@ def main():
                 pace(.05)
                 continue
             with lock:
-                if shared['stop_latched']:
-                    pace(.05)
-                    continue
+                stop_latched = shared['stop_latched']
+            if stop_latched:
+                pace(.05)
+                continue
             payload = worker.poll()
-            publish = False
             if payload is not None:
-                with lock:
-                    if payload['generation'] == shared['generation']:
-                        if payload['ok']:
-                            plan_ms = payload.get('plan_ms')
-                            shared.update(result=payload['result'], result_at=time.monotonic(),
-                                          result_generation=payload['generation'], last_error='ok',
-                                          plan_ms=plan_ms,
-                                          plan_ms_max=max(shared.get('plan_ms_max', 0.),
-                                                          plan_ms or 0.))
-                            publish = True
-                        else:
-                            shared.update(result=None, last_error=payload['error'],
-                                          last_error_detail=payload.get('message'))
-                if publish:
-                    path_pub.publish(String(data=json.dumps(payload['result'])))
+                publish_worker_result(shared, payload, pose_input, lock,
+                                      lambda: rospy.Time.now().to_sec(), time.monotonic,
+                                      path_pub, String)
             with lock:
+                pose_input.check(rospy.Time.now().to_sec(), time.monotonic())
                 snapshot = dict(shared)
+                if pose_input.guard.epoch != last_plan_epoch:
+                    last_plan_tick = -1
+                    last_plan_epoch = pose_input.guard.epoch
             try:
                 if map_topic:
                     with lock:
@@ -435,7 +625,7 @@ def main():
                 if snapshot['result'] is not None:
                     pace(max(.01, .2 - (time.monotonic() - started)))
                     continue
-                reason = freshness(started, snapshot['pose_at'], snapshot['obstacles_at'],
+                reason = snapshot.get('pose_error') or freshness(started, snapshot['pose_at'], snapshot['obstacles_at'],
                                    snapshot['localization_at'], snapshot['localization_ok'], max_age)
                 stamp = rospy.Time.now().to_sec()
                 if reason is None and snapshot['pose'] is not None and snapshot['goal'] is not None and stamp > 0:

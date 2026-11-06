@@ -1,6 +1,6 @@
 # ws/ · 源码与配置入口
 
-> 最新更新时间：2026-11-06 04:30:20 CST。现行路线：[计划书 v8](../note/计划书v8/README.md)；实际架构：[项目架构与目录](../note/架构/项目架构与目录.md)；进度与能力边界：[进度入口](../note/进度/README.md)。
+> 最新更新时间：2026-11-06 14:35:19 CST。现行路线：[计划书 v8](../note/计划书v8/README.md)；实际架构：[项目架构与目录](../note/架构/项目架构与目录.md)；进度与能力边界：[进度入口](../note/进度/README.md)。
 
 本目录是 catkin 工作区。`src/` 放源码、配置与源码测试；`build/`、`devel/`、`install/` 与 `.profiles/` 是忽略的编译产物。地图和运行输出在仓根 `data/maps/`、`logs/`；进度、验收和证据在 `note/`。
 
@@ -30,6 +30,7 @@
 | v8 app、task、地图与 graph 绑定 | [`v8_platform/framework/app_runner.py`](src/90_platform/v8_platform/framework/app_runner.py)与[framework 说明](src/90_platform/v8_platform/framework/README.md) |
 | v3执行域、机器人身份与运行前拒绝 | [`execution.py`](src/90_platform/v8_platform/framework/execution.py)和[框架说明](src/90_platform/v8_platform/framework/README.md)；声明/静态检查不作硬件许可 |
 | Lite3 本机 graph/应用模板 | [`v8_platform/configs/lite3/`](src/90_platform/v8_platform/configs/lite3/)；各机覆盖使用 `*.local.app.yaml` |
+| 位姿新鲜度与map→机体航向平面 | [`pose_safety.py`](src/90_platform/v8_platform/common/pose_safety.py)、[`local ros_node.py`](src/90_platform/v8_platform/local_planner/ros_node.py)、[`Lite3 carrier`](src/90_platform/v8_platform/framework/lite3_carrier_node.py)；物理停止链另验 |
 | v8 装配/算法/协议阅读地图 | [项目架构与目录](../note/架构/项目架构与目录.md) |
 | 仿真键盘建图和可视化命令 | [Docker 说明](../docker/README.md)；记录器 [`mapping_recorder.py`](src/95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py)与转换器 [`map_from_pcd.py`](src/90_platform/v8_platform/framework/map_from_pcd.py) |
 | Gazebo world/launch | [`lite3_gazebo_sim/`](src/95_simulation/lite3_gazebo_sim/) |
@@ -71,4 +72,4 @@
 
 ## 统一工程约束
 
-工程标准真源：`note/架构/工程标准.md`。[工程标准](../note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。原生与Docker入口共用显式目标构建器和清单闭包检查，目标环境编译/运行尚未验证；受支持框架已增加执行域/机器人身份校验；速度/TF、真实接线与完整热替换仍待闭合；M20真实适配和可复现训练器也尚未提供，详见[审查记录](../note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。
+工程标准真源：`note/架构/工程标准.md`。[工程标准](../note/架构/工程标准.md)统一阶段验证落账后本地commit、用户决定push、Lite3/M20真机不构建仿真、x86仿真与训练开发，以及算法标准接口。原生与Docker入口共用显式目标构建器和清单闭包检查，目标环境编译/运行尚未验证；受支持框架已增加执行域/机器人身份校验；已增加速度坐标与源时间/单调时钟守卫，真实目标环境、接线与完整热替换仍待闭合；M20真实适配和可复现训练器也尚未提供，详见[审查记录](../note/进度/00_架构与工程标准审查_2026-11-05.md)。规范统一不等于这些能力已实现。

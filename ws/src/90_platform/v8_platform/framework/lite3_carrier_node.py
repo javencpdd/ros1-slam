@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Lite3 pose carrier: map->base_link (TF) or an odometry topic -> the 3D app pose contract.
-
-This node never publishes a command topic. On the Lite3 the only /cmd_vel writer is
-safe_cmd_vel_mux and the chassis bridge is ros2qnx, which is allowed only inside the
-real-robot navigation mode. The carrier therefore supplies pose + localization health
-and nothing else.
-"""
+"""Validated map/base pose and localization health; never a command publisher."""
+import copy
 import json
 import math
+from pathlib import Path
+import sys
+import threading
+import time
 
 import rospy
 import tf2_ros
@@ -15,92 +14,137 @@ from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, String
 
-
-def _yaw(orientation):
-    q = orientation
-    return math.atan2(2.0 * (q.w * q.z + q.x * q.y),
-                      1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common.pose_safety import PoseError, PoseFreshness, finite_vector, normalized_quaternion
 
 
-def _pose_from_odom(message, frame):
+def _validate_pose(pose):
+    p, q = pose.position, pose.orientation
+    finite_vector((p.x, p.y, p.z), 3)
+    q.x, q.y, q.z, q.w = normalized_quaternion((q.x, q.y, q.z, q.w))
+
+
+def _pose_from_odom(message, frame, base='base_link'):
+    if message.header.frame_id != frame or message.child_frame_id != base:
+        raise PoseError('E_POSE_FRAME')
     pose = PoseStamped()
-    pose.header.frame_id = frame
-    pose.header.stamp = message.header.stamp if not message.header.stamp.is_zero() else rospy.Time.now()
-    pose.pose = message.pose.pose
+    pose.header = copy.deepcopy(message.header)
+    pose.pose = copy.deepcopy(message.pose.pose)
+    _validate_pose(pose.pose)
     return pose
 
 
-def _pose_from_transform(transform, frame):
+def _pose_from_transform(transform, frame, base='base_link'):
+    if transform.header.frame_id != frame or transform.child_frame_id != base:
+        raise PoseError('E_POSE_FRAME')
     pose = PoseStamped()
-    pose.header.frame_id = frame
-    pose.header.stamp = transform.header.stamp if not transform.header.stamp.is_zero() else rospy.Time.now()
+    pose.header = copy.deepcopy(transform.header)
     pose.pose.position.x = transform.transform.translation.x
     pose.pose.position.y = transform.transform.translation.y
     pose.pose.position.z = transform.transform.translation.z
-    pose.pose.orientation = transform.transform.rotation
+    pose.pose.orientation = copy.deepcopy(transform.transform.rotation)
+    _validate_pose(pose.pose)
     return pose
 
 
-class Lite3Carrier(object):
+class Lite3Carrier:
     def __init__(self):
         self.pose_source = rospy.get_param('~pose_source', 'tf')
         self.map_frame = rospy.get_param('~map_frame', 'map')
         self.base_frame = rospy.get_param('~base_frame', 'base_link')
         self.pose_topic = rospy.get_param('~pose_topic', '/v8/local/pose')
-        self.localization_topic = rospy.get_param('~localization_topic',
-                                                  '/v8/local/localization_ok')
+        self.localization_topic = rospy.get_param('~localization_topic', '/v8/local/localization_ok')
         self.status_topic = rospy.get_param('~status_topic', '/v8/3d/carrier/status')
         self.input_pose_topic = rospy.get_param('~input_pose_topic', '/odom')
         self.rate_hz = float(rospy.get_param('~rate_hz', 20.0))
         self.stale_s = float(rospy.get_param('~stale_s', 0.5))
-
+        if not math.isfinite(self.rate_hz) or self.rate_hz <= 0.:
+            raise ValueError('rate_hz must be positive and finite')
+        if self.pose_source not in ('tf', 'topic'):
+            raise ValueError('unknown ~pose_source: %s' % self.pose_source)
+        if not self.map_frame or not self.base_frame or self.map_frame == self.base_frame:
+            raise ValueError('distinct map_frame/base_frame required')
+        self.guard = PoseFreshness(self.stale_s)
+        self.lock = threading.Lock()
+        self.latest = None
         self.pose_pub = rospy.Publisher(self.pose_topic, PoseStamped, queue_size=20)
         self.loc_pub = rospy.Publisher(self.localization_topic, Bool, queue_size=1)
         self.status_pub = rospy.Publisher(self.status_topic, String, queue_size=5)
-
-        self.latest = None
-        self.latest_wall = None
         if self.pose_source == 'tf':
             self.buffer = tf2_ros.Buffer()
             self.listener = tf2_ros.TransformListener(self.buffer)
-        elif self.pose_source == 'topic':
-            rospy.Subscriber(self.input_pose_topic, Odometry, self.on_odom, queue_size=20)
         else:
-            raise SystemExit('unknown ~pose_source: %s' % self.pose_source)
+            rospy.Subscriber(self.input_pose_topic, Odometry, self.on_odom, queue_size=20)
+
+    def _invalidate(self, reason):
+        self.guard.invalidate(reason)
+        self.latest = None
+
+    def _accept(self, message, converter):
+        source_stamp = message.header.stamp.to_sec()
+        try:
+            pose = converter(message, self.map_frame, self.base_frame)
+        except (PoseError, AttributeError, TypeError, ValueError) as error:
+            # Rejected geometry still records the observed stamp, but cannot
+            # renew source progress or release the previous-epoch quarantine.
+            self.guard.observe(source_stamp, rospy.Time.now().to_sec(), time.monotonic(),
+                               rejection=getattr(error, 'code', 'E_POSE_INPUT'))
+            self.latest = None
+            return
+        status, advanced = self.guard.observe(
+            source_stamp, rospy.Time.now().to_sec(), time.monotonic())
+        if not status['ok']:
+            self.latest = None
+            return
+        if advanced:
+            self.latest = pose
 
     def on_odom(self, message):
-        self.latest = _pose_from_odom(message, self.map_frame)
-        self.latest_wall = rospy.get_time()
+        with self.lock:
+            try:
+                self._accept(message, _pose_from_odom)
+            except (PoseError, AttributeError, TypeError, ValueError) as error:
+                self._invalidate(getattr(error, 'code', 'E_POSE_INPUT'))
 
     def step(self):
         if self.pose_source == 'tf':
             try:
                 transform = self.buffer.lookup_transform(
-                    self.map_frame, self.base_frame, rospy.Time(0), rospy.Duration(0.05))
+                    self.map_frame, self.base_frame, rospy.Time(0), rospy.Duration(0.))
+                with self.lock:
+                    try:
+                        self._accept(transform, _pose_from_transform)
+                    except (PoseError, AttributeError, TypeError, ValueError) as error:
+                        self._invalidate(getattr(error, 'code', 'E_POSE_INPUT'))
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
                     tf2_ros.ExtrapolationException):
-                transform = None
-            if transform is not None:
-                self.latest = _pose_from_transform(transform, self.map_frame)
-                self.latest_wall = rospy.get_time()
-        if self.latest is None:
-            self.loc_pub.publish(Bool(data=False))
-            self.status_pub.publish(String(data=json.dumps({
-                'source': self.pose_source, 'ok': False, 'reason': 'no_pose_yet'})))
-            return
-        age = rospy.get_time() - self.latest_wall
-        healthy = age <= self.stale_s
-        self.pose_pub.publish(self.latest)
-        self.loc_pub.publish(Bool(data=healthy))
-        self.status_pub.publish(String(data=json.dumps({
-            'source': self.pose_source, 'ok': healthy, 'age_s': round(age, 3),
-            'frame': self.map_frame, 'base_frame': self.base_frame})))
+                with self.lock:
+                    self._invalidate('E_POSE_TF')
+        with self.lock:
+            status = self.guard.check(rospy.Time.now().to_sec(), time.monotonic())
+            if not status['ok']:
+                self.latest = None
+            pose = copy.deepcopy(self.latest)
+            healthy = status['ok'] and pose is not None
+            # The final check and queued publishes share the callback lock:
+            # an invalidation cannot complete before an old healthy publish.
+            if healthy:
+                self.pose_pub.publish(pose)
+            self.loc_pub.publish(Bool(data=healthy))
+            self.status_pub.publish(String(data=json.dumps(dict(
+                status, source=self.pose_source, ok=healthy,
+                frame=self.map_frame, base_frame=self.base_frame))))
+            return healthy
 
     def spin(self):
-        rate = rospy.Rate(self.rate_hz)
-        while not rospy.is_shutdown():
-            self.step()
-            rate.sleep()
+        period = 1. / self.rate_hz
+        try:
+            while not rospy.is_shutdown():
+                started = time.monotonic()
+                self.step()
+                time.sleep(max(0., period - (time.monotonic() - started)))
+        finally:
+            self.loc_pub.publish(Bool(data=False))
 
 
 if __name__ == '__main__':

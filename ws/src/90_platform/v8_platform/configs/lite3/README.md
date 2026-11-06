@@ -1,6 +1,6 @@
 # Lite3 3D app · 配置模板与现场边界
 
-> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 14:30:30 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
 
 本目录保存 Lite3 现场装配模板。它说明当前仓内配置，不表示机器人此刻开/关机，也不新增真机运动许可或验收。既有静态/容器冒烟和现场记录见[进度入口](../../../../../../note/进度/v8/README.md)。
 
@@ -29,7 +29,9 @@ map + global Path + carrier pose → gait_guard → /v8/chassis/gait
 
 perception 已使用 dynamic_obstacles，订阅 `/rslidar_points`，结合位姿/TF做 ROI、分箱与跟踪；不是旧的固定空障碍心跳。`blind_timeout_s=2.0` 时无新点云停止障碍心跳，随后局部输入时效门归零；空表/成功订阅也不能证明所有障碍已被看见。
 
-生产 mux 是唯一 `/cmd_vel` 写者；local 的 `cmd_vel_3d` 仍为诊断/三维接口，plain Twist 进入 navigation 源 `/cmd_vel_raw`。当前 plain Twist 直接镜像 map 系速度，未按 yaw 转为机体系；carrier 只转发 TF/odom 位姿且未补支撑高度偏移。任意朝向速度与 base_link/支撑高度语义仍须现场独立核对，不能称为已完整真机适配。
+生产 mux 是唯一 `/cmd_vel` 写者；local 的 `cmd_vel_3d` 仍为map三维接口，plain Twist 进入 navigation 源 `/cmd_vel_raw`，按有效位姿yaw把 map XY 显式转到同一base_link原点的航向平面。非法姿态/源时间/速度或非零竖直请求使本周期两路归零；yaw=π/2时 map(1,0)→body(0,-1)已有离线适配器正反控。航向平面不是完整6D底盘控制；carrier仍未补支撑高度偏移，base_link/支撑高度与现场运动语义尚须独立核实，不能称为已完整真机适配。
+
+carrier保留TF/odom的原非零源stamp；frame/child必须匹配配置map/base_link，topic输入若是odom坐标直接拒绝，不改标签冒充变换。零/旧/未来/倒退源戳及停钟时缺少新源推进均使健康false，不重播无效旧pose。TF查询不等待ROS时间超时，20Hz节拍按单调墙钟；源年龄和墙钟进展年龄任一达到既有stale_s=0.5即失效。local再独立核源时间与既有input_max_age_s=1.0；阶段仅做代码/离线验证，不表示现场TF链或停止距离已验。
 
 ## 配置值与来源边界
 
@@ -70,4 +72,4 @@ python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
   --app ws/src/90_platform/v8_platform/configs/lite3/lite3_real_3d.local.app.yaml
 ```
 
-第二条是 dry-run，要求本机 app/地图齐备。Lite3 模板不允许用 `--execute --no-gazebo` 当作仿真图；容器仿真须选择显式 simulation app/载体。已授权现场使用 `--execute --real` 沿用现场 master，Gazebo/GT/错误机器人与未知后端会在任何进程前拒绝。启动前必须核唯一写者、hold、位姿时效、障碍/超声心跳与运动桥边界，实际运行按[作业单](../../../../../../note/计划书v8/25_v8自动调度作业单.md)。本次仅完成代码/离线守卫验证，未连接机器人，速度坐标与 TF 时效缺口仍按前文保留。
+第二条是 dry-run，要求本机 app/地图齐备。Lite3 模板不允许用 `--execute --no-gazebo` 当作仿真图；容器仿真须选择显式 simulation app/载体。已授权现场使用 `--execute --real` 沿用现场 master，Gazebo/GT/错误机器人与未知后端会在任何进程前拒绝。启动前必须核唯一写者、hold、位姿时效、障碍/超声心跳与运动桥边界，实际运行按[作业单](../../../../../../note/计划书v8/25_v8自动调度作业单.md)。本次完成速度坐标与TF源时效的代码/离线守卫验证，未连接机器人；现场TF、支撑参考点、设备协议与停止时距继续待目标环境验证。
