@@ -1,6 +1,6 @@
 # ros1-slam · 四足机器人 SLAM 与导航
 
-> 最新更新时间：2026-11-06 15:17:09 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
+> 最新更新时间：2026-11-06 22:42:50 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
 
 本项目面向 Lite3 四足机器人，组合激光建图、定位、地图、全局规划、局部执行与安全仲裁，使用 ROS1/Noetic。x86 承担 Docker、Gazebo、MuJoCo 开发与回归；Lite3 主机采用原生 ROS1，地图与现场配置各机独立。
 
@@ -46,13 +46,14 @@ flowchart LR
 | 正式门禁及复验方法 | [成员清单](scripts/verify/gate_chain.txt)、[复验作业单](note/05_复验作业单.md) |
 | 隔离、安全、来源与变更台账 | [note 入口](note/00_README.md) |
 | 问题与环境坑 | [问题台账](note/02_问题与坑.md) |
+| 跨主机任务包与本机协作入口安装 | [scripts/agent](scripts/agent/README.md)：canonical bridge、bootstrap、导出/导入与校验 |
 | 跨工具任务交接 | [协作契约](note/09_跨工具协作契约.md)、[黑板教程](note/tools/跨Agent协作黑板-使用教程.md) |
 | 本机项目介绍网页 | `web/` 为 Git 忽略的本地目录；源码在位时见其 `README.md`，不是干净签出的必备资产 |
 | 历史清理与恢复 | [11月4日清理](note/进度/00_清理核对_Codex_2026-11-04.md)、[本轮梳理](note/进度/00_架构梳理与瘦身_2026-11-05.md) |
 
 ## 开发与数据约定
 
-- 修改前阅读[协作契约](note/09_跨工具协作契约.md)并执行 `python3 .ai/bridge.py resume --as codex`，以任务卡作用域为准。
+- 新机先按[协作工具](scripts/agent/README.md)从canonical入口bootstrap；修改前阅读[协作契约](note/09_跨工具协作契约.md)并执行 `python3 .ai/bridge.py resume --as codex`，以任务卡作用域为准。
 - 第三方副本、冻结判据和仍被检查器读取的基线按各自规则保留；`framework/fixtures/` 含实际运行输入。
 - ROS 检查使用当前机器的 Noetic 与已构建工作区环境；前置缺失记为环境问题，不能据此判断算法通过或失败。
 - 地图、实验输出、`ws/build/`、`ws/devel/` 与日志各机独立；仓内保留[map registry 模板](data/maps/registry.template.json)，本机 app 使用被忽略的 `*.local.app.yaml`。
