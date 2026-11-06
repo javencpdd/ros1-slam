@@ -173,8 +173,8 @@ def _reachable(surfaces):
 
 
 def _manifest_v2(value):
-    """Named-port invariants; v1 manifests are untouched."""
-    if value.get('schema_version') != 2:
+    """Named-port invariants shared by v2/v3; v1 manifests are untouched."""
+    if value.get('schema_version') not in (2, 3):
         return
     seen = set()
     for direction in ('inputs', 'outputs'):
@@ -198,13 +198,13 @@ def _manifest_v2(value):
 
 
 def normalize_manifest(value):
-    """v2 -> v1-compatible view: derive io from ports + dimensions.
+    """v2/v3 -> v1-compatible view: derive io from ports + dimensions.
 
     v1 manifests are returned unchanged. The derived map_schema only uses the
     frozen v1 enum (support_map/* collapses to support_map/v1); exact port
     schema keeps the version for graph checks.
     """
-    if not isinstance(value, dict) or value.get('schema_version') != 2:
+    if not isinstance(value, dict) or value.get('schema_version') not in (2, 3):
         return value
     ports = value['ports']
     schemas = [port.get('schema', '') for port in ports['inputs'] + ports['outputs']]
@@ -228,6 +228,20 @@ def normalize_manifest(value):
 def semantic(kind, value):
     if kind == 'manifest':
         _manifest_v2(value)
+        if value.get('schema_version') == 3:
+            execution = value['execution']
+            robot = execution['robot_id']
+            if robot == '*' or (isinstance(robot, str) and robot != robot.strip()):
+                raise ContractError('E_MANIFEST_EXECUTION', 'explicit robot binding required')
+            if 'real_robot' in execution['modes']:
+                if value.get('launch', {}).get('test_double'):
+                    raise ContractError('E_MANIFEST_EXECUTION', 'test double cannot declare hardware')
+                if 'robot_adapter' in value['roles'] and robot is None:
+                    raise ContractError('E_MANIFEST_EXECUTION', 'hardware adapter needs robot binding')
+            selectors = execution.get('selectors', [])
+            names = [item['name'] for item in selectors]
+            if len(names) != len(set(names)) or any(s['default'] not in s['values'] for s in selectors):
+                raise ContractError('E_MANIFEST_EXECUTION', 'invalid backend selector defaults/names')
         value = normalize_manifest(value)
         if value['evidence']['level'] != 'declared' and not value['evidence']['reports']:
             raise ContractError('E_MANIFEST_EVIDENCE', 'evidence above declared requires reports')
@@ -399,6 +413,8 @@ def validate(kind, value, *, allow_obstacles=False):
         if not allow_obstacles:
             raise ContractError('E_VERSION', 'map/v2 requires an obstacle-aware consumer')
         root = json.loads((HERE / 'schema/map.v2.json').read_text())
+    elif kind == 'manifest' and isinstance(value, dict) and value.get('schema_version') == 3:
+        root = json.loads((HERE / 'schema/manifest.v3.json').read_text())
     elif kind == 'manifest' and isinstance(value, dict) and value.get('schema_version') == 2:
         root = json.loads((HERE / 'schema/manifest.v2.json').read_text())
     else:

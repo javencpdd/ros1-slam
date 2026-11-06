@@ -1,6 +1,6 @@
 # contracts · 组件、地图、机器人与任务契约
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 本目录提供 JSON schema、标准库校验器和正反例。校验通过表示输入满足契约，不表示后端已运行或硬件能力已验证。设计依据见[组件契约与组合架构](../../../../../note/计划书v8/22_组件契约与组合架构.md)。
 
@@ -10,6 +10,7 @@
 | --- | --- |
 | [manifest.v1.json](schema/manifest.v1.json) | 单组件身份、角色、I/O、能力、所有权、证据；兼容可选 source/adapter_entry/param_schema 与 not_applicable 运动学 |
 | [manifest.v2.json](schema/manifest.v2.json) | 命名 ports、dimensions 与 launch；`normalize_manifest` 为旧注册表/组合器派生 io；[framework](../framework/README.md) 消费命名端口 |
+| [manifest.v3.json](schema/manifest.v3.json) | 保留命名端口并必需 execution.modes/robot_id；null 显式表示机器人无关，selectors 声明受控后端枚举；运行入口消费 |
 | [robot.v1.json](schema/robot.v1.json) | 参考点、包络、运动学、能力、制动；数值来源与证据级别 |
 | [map.v1.json](schema/map.v1.json) | 单层 occupancy_grid 或单/多层 support_map |
 | [map.v2.json](schema/map.v2.json) | support_map 与显式 `obstacles` 三维盒 |
@@ -41,6 +42,8 @@
 
 Python `validate('map', value)` 缺省拒绝 v2；v3 若携带 obstacles 也须显式 `allow_obstacles=True`，v3 无 obstacles 可走缺省入口。CLI map 校验会显式开启该能力。当前全局规划器、原生局部规划器与轨迹检查器均显式开启障碍校验；MapService 等其他消费者须逐入口核对，不能沿用“旧局部与监督器一律拒 v2”的旧结论。
 
+v1/v2 的 strict schema 和原否定输入保持原语义；旧 v2 不接受 execution 新字段。v3 仍执行原有 ports/维度/控制停止/证据检查，向旧注册表派生兼容 io。运行域声明与 evidence 分开，不自动升级能力等级；完整 frame/unit/time 契约不在此次端口 schema 迁移中硬塞。
+
 ## 能力与所有权
 
 robot 能力/制动值为 declared 时必须 `composition_use=prohibited`；tested 值须带报告。manifest 证据高于 declared 时 reports 不得为空。控制器必须声明停止方法和命令话题；跨组件 TF、命令冲突由 [composer](../composer/README.md) 与 [framework](../framework/README.md) 检查。
@@ -56,6 +59,7 @@ python3 -B ws/src/90_platform/v8_platform/contracts/validate.py map \
   ws/src/90_platform/v8_platform/contracts/fixtures/map_ml_two_surfaces.json
 python3 -B ws/src/90_platform/v8_platform/contracts/test_contracts.py
 python3 -B ws/src/90_platform/v8_platform/contracts/test_manifest_v2.py
+python3 -B ws/src/90_platform/v8_platform/contracts/test_manifest_v3.py
 ```
 
 CLI：rc 0 合规、rc 5 拒绝并给理由码、rc 9 用法或前置错误。样例与单测只验证表达和拒绝语义，运行与正式验收另查[进度](../../../../../note/进度/v8/README.md)。

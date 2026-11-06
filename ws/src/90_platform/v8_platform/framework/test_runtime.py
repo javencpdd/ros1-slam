@@ -14,7 +14,7 @@ import runtime  # noqa: E402
 import orchestrator as orch  # noqa: E402
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
-G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
+G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d_sim.yaml'
 G2D_STACK = HERE / 'fixtures' / 'graphs' / 'graph_2d_stack_gp_teb.yaml'
 BOUNDARY = HERE / 'fixtures' / 'graphs' / 'graph_boundary_mux.yaml'
 GPLUGIN = HERE / 'fixtures' / 'graphs' / 'graph_plugin_nodelet.yaml'
@@ -165,12 +165,14 @@ class RuntimeTests(unittest.TestCase):
         self.assertTrue(all(r.is_stopped() for r in assembly.runners.values()))
 
     def test_launch_remap_is_applied_to_node_and_plugin_commands(self):
-        node = {'launch': {'kind': 'node', 'package': 'p', 'type': 't',
+        node = {'id': 'test.node', 'execution': {'modes': ['simulation'], 'robot_id': None},
+                'launch': {'kind': 'node', 'package': 'p', 'type': 't',
                            'remap': [{'from': 'in', 'to': '/abs/in'}]}}
         command, _ = runtime.default_command(
             {'id': 'n', 'params': {'k': 1}, 'namespace': None}, node)
         self.assertEqual(command, ['rosrun', 'p', 't', '_k:=1', 'in:=/abs/in'])
-        plugin = {'launch': {'kind': 'plugin', 'package': 'nodelet',
+        plugin = {'id': 'test.plugin', 'execution': {'modes': ['simulation'], 'robot_id': None},
+                  'launch': {'kind': 'plugin', 'package': 'nodelet',
                              'plugin': 'pkg/Class',
                              'remap': [{'from': 'out', 'to': '/abs/out'}]}}
         command, _ = runtime.default_command(

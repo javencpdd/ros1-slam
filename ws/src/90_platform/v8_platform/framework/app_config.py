@@ -7,8 +7,9 @@ import yaml
 import map_registry
 import paths
 import surface_resolver
+import execution
 
-ROOT = paths.repo_root(__file__)
+ROOT = paths.repo_root(__file__, allow_git=False)
 APP_SCHEMA = 'navigation_app/v1'
 LOCALIZATION_SOURCES = ('carrier', 'sim_gt', 'faster_lio', 'ndt')
 CARRIER_BACKENDS = ('gazebo', 'kinematic', 'lite3')
@@ -31,9 +32,11 @@ def load_app(path, root=None):
     path = Path(path)
     if not path.is_file():
         raise AppError('E_APP_MISSING', str(path))
-    app = yaml.safe_load(path.read_text(encoding='utf-8'))
+    from config import load_yaml
+    app, _ = load_yaml(path)
     if not isinstance(app, dict) or app.get('schema') != APP_SCHEMA:
         raise AppError('E_APP_SCHEMA', str(path))
+    execution.context(app)
     for key in ('name', 'graph', 'map', 'task', 'localization', 'carrier'):
         if key not in app:
             raise AppError('E_APP_FIELD', 'missing ' + key)

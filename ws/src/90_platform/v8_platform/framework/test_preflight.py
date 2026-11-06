@@ -16,7 +16,7 @@ import render  # noqa: E402
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
 G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
-G2D_CONFIG = HERE / 'fixtures' / 'graphs' / 'graph_2d_config.yaml'
+G2D_CONFIG = HERE / 'fixtures' / 'graphs' / 'graph_2d_config_sim.yaml'
 G_LOCAL_NATIVE = HERE / 'fixtures' / 'graphs' / 'graph_local_native.yaml'
 G_SEMANTIC_PLAN = HERE / 'fixtures' / 'graphs' / 'graph_semantic_planning.yaml'
 G_SEMANTIC_OBSTACLE = HERE / 'fixtures' / 'graphs' / 'graph_semantic_obstacle_planning.yaml'

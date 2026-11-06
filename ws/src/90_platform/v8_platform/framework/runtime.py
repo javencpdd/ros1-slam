@@ -19,7 +19,8 @@ from process_runner import ProcessRunner  # noqa: E402
 
 import safety
 import render
-from config import FrameworkError  # noqa: E402
+import execution
+from config import FrameworkError, load_yaml  # noqa: E402
 
 
 def _resolve_launch(package, launch_file):
@@ -42,8 +43,10 @@ def _resolve_launch(package, launch_file):
     return str(candidate) if candidate.is_file() else None
 
 
-def default_command(instance, component):
+def default_command(instance, component, execution_context=None):
     """Return (argv, ready_marker) for a plan instance."""
+    instance = dict(instance)
+    instance['params'] = execution.check_component(instance, component, execution_context, load_yaml)
     spec = component['launch']
     namespace = instance.get('namespace')
     if spec['kind'] == 'nodelet_group':
@@ -151,12 +154,13 @@ class Assembly:
     def start(self):
         if self.started:
             raise FrameworkError('E_RUNTIME_STARTED', self.plan['name'])
+        execution.check_plan(self.plan, self.catalog, load_yaml)
         safety.check_plan(self.plan, self.catalog)
         specs = build_specs(self.plan, self.catalog)
         runners = {}
         for instance in self.plan['instances']:
             component = self.catalog['components'][instance['component']]
-            command, marker = self.command_factory(instance, component)
+            command, marker = self.command_for(instance, component)
             runners[instance['id']] = ProcessRunner(
                 next(spec for spec in specs if spec.id == instance['id']),
                 command, ready_marker=marker)
@@ -171,6 +175,12 @@ class Assembly:
             raise
         self.started = True
         return task
+
+    def command_for(self, instance, component, plan=None):
+        checked = execution.check_plan(self.plan if plan is None else plan, self.catalog, load_yaml)
+        if self.command_factory is default_command:
+            return default_command(instance, component, checked)
+        return self.command_factory(instance, component)
 
     def ready(self):
         return bool(self.runners) and all(r.ready() for r in self.runners.values())

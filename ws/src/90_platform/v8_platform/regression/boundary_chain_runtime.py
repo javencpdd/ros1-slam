@@ -68,6 +68,11 @@ def main():
     parser.add_argument('--seconds', type=float, default=4.0)
     parser.add_argument('--rate-hz', type=float, default=200.)
     args = parser.parse_args()
+    catalog = fw_config.load_components(MANIFESTS)
+    preflight_graph = fw_config.load_graph(GRAPH)
+    preflight_graph['instances']['boundary']['params']['rate_hz'] = args.rate_hz
+    preflight_plan = fw_render.render_plan(preflight_graph, catalog, fw_graph.check(preflight_graph, catalog))
+    fw_runtime.execution.check_plan(preflight_plan, catalog, fw_config.load_yaml)
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=True)
     os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % args.port,

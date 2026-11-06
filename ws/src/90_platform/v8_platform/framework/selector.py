@@ -17,7 +17,8 @@ sys.path.insert(0, str(HERE.parent / 'contracts'))
 import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
 import render  # noqa: E402
-import safety  # noqa: E402
+import safety
+import execution  # noqa: E402
 
 
 def _signature(component):
@@ -55,12 +56,12 @@ def variant_matrix(graph, catalog):
                           'params': item.get('params', {}),
                           'variants': variants})
     report = graph_mod.check(graph, catalog)
-    return {'schema': 'selector/v1', 'graph': graph['name'], 'digest': report['digest'],
+    return dict({'schema': 'selector/v1', 'graph': graph['name'], 'digest': report['digest'],
             'catalog': catalog['path'], 'instances': instances,
             'edges': [{'from': e['from'], 'to': e['to'], 'feedback': e['feedback'],
                        'policy': e['policy']} for e in report['edges']],
             'external': [{'to': e['to'], 'type': e['type'], 'source': e['source']}
-                         for e in report['external']]}
+                         for e in report['external']]}, **(execution.context(graph) or {}))
 
 
 def selected_graph(graph, choices):
@@ -165,6 +166,7 @@ document.getElementById('export').onclick = () => {
   const out = {schema: 'pipeline_graph/v1', name: DATA.graph,
     instances: DATA.instances.map(i => ({id: i.id, component: choices[i.id]})),
     edges: DATA.edges, external: DATA.external};
+  if (DATA.execution_mode) { out.execution_mode = DATA.execution_mode; out.robot_id = DATA.robot_id; }
   const text = JSON.stringify(out, null, 2);
   document.getElementById('out').value = text;
   const blob = new Blob([text], {type: 'application/json'});

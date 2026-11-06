@@ -79,12 +79,14 @@ class FrameworkTests(unittest.TestCase):
             self.assertEqual(report['command_writers'],
                              {'/cmd_vel': 'mux', '/cmd_vel_advice/local': 'local'})
             if filename.endswith('_hdl.yaml'):
-                root = ET.fromstring(render.render_launch(graph, catalog, report))
-                global_node = next(node for node in root.findall('node')
-                                   if node.get('name') == 'global')
-                self.assertIn(('/Odometry', '/hdl_odom'),
-                              [(item.get('from'), item.get('to'))
-                               for item in global_node.findall('remap')])
+                # The historic graph mixes simulation and a hardware adapter.
+                # Its port/remap resolution remains inspectable, but it cannot emit a runnable launch.
+                edge = next(e for e in report['edges'] if e['to'] == 'global.odom')
+                self.assertEqual(edge['from_port']['topic'], '/hdl_odom')
+                self.assertEqual(edge['to_port']['topic'], '/Odometry')
+                with self.assertRaises(config.FrameworkError) as caught:
+                    render.render_launch(graph, catalog, report)
+                self.assertEqual(caught.exception.code, 'E_EXEC_MISSING')
         self.assertNotEqual(digests[0], digests[1])
         self.assertEqual(reports['graph_2d_loc_hdl.yaml']['instances']['loc']['component'],
                          'v8.fw.hdl_localization')
@@ -248,7 +250,8 @@ class FrameworkTests(unittest.TestCase):
         self.assertEqual(plan['feedback'][0]['policy']['period_s'], 5.0)
         self.assertEqual(plan['command_writers'],
                          {'/cmd_vel': 'mux', '/cmd_vel_advice/3d': 'local'})
-        launch = render.render_launch(value, catalog, report)
+        runnable = config.load_graph(HERE / 'fixtures/graphs/graph_3d_cache_sim.yaml')
+        launch = render.render_launch(runnable, catalog, graph_mod.check(runnable, catalog))
         root = ET.fromstring(launch)
         names = [node.get('name') for node in root.findall('node')]
         self.assertIn('cache_a', names)
@@ -429,7 +432,7 @@ class FrameworkTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'E_LAUNCH_FILE')
 
     def test_render_include_and_param_files(self):
-        catalog, value = load_pair(G3D)
+        catalog, value = load_pair(HERE / 'fixtures/graphs/graph_3d_cache_sim.yaml')
         report = graph_mod.check(value, catalog)
         root = ET.fromstring(render.render_launch(value, catalog, report))
         includes = [item.get('file') for item in root.findall('include')]
@@ -452,7 +455,7 @@ class FrameworkTests(unittest.TestCase):
             plan_path = Path(directory) / 'plan.json'
             launch_path = Path(directory) / 'graph.launch'
             with redirect_stdout(io.StringIO()):
-                rc = cli.main(['plan', str(MANIFESTS), str(G3D),
+                rc = cli.main(['plan', str(MANIFESTS), str(HERE / 'fixtures/graphs/graph_3d_cache_sim.yaml'),
                                '--package-index', str(INDEX),
                                '--out-plan', str(plan_path),
                                '--out-launch', str(launch_path)])

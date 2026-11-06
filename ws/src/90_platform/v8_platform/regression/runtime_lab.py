@@ -203,6 +203,19 @@ def main():
     parser.add_argument('--a5-resolution', type=float, default=.1)
     parser.add_argument('--a5-status-watchdog-s', type=float, default=20.)
     args = parser.parse_args()
+    if args.graph:
+        # Validate the selected graph before creating the simulation environment.
+        sys.path.insert(0, str(BASE / 'framework'))
+        import config as fw_config
+        import graph as fw_graph
+        import render as fw_render
+        import runtime as fw_runtime
+        catalog = fw_config.load_components(BASE / 'framework/fixtures/manifests')
+        source_graph = fw_config.load_graph(args.graph)
+        source_plan = fw_render.render_plan(source_graph, catalog, fw_graph.check(source_graph, catalog))
+        fw_runtime.execution.check_plan(source_plan, catalog, fw_config.load_yaml)
+        if source_plan.get('execution_mode') == 'real_robot':
+            raise fw_config.FrameworkError('E_EXEC_MODE', 'runtime_lab is simulation only')
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=True)
     os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % args.port,

@@ -38,10 +38,13 @@ def _run(args):
             summary['launch'] = launch_summary
         print(json.dumps(summary, ensure_ascii=False, indent=1))
         return 0
+    # Planning without a launch is an offline analysis operation. Validate a
+    # requested executable artifact before writing either output.
+    launch = render.render_launch(graph, catalog, report) if args.out_launch else None
     Path(args.out_plan).write_text(json.dumps(plan, ensure_ascii=False, indent=1) + '\n',
                                    encoding='utf-8')
-    launch = render.render_launch(graph, catalog, report)
-    Path(args.out_launch).write_text(launch, encoding='utf-8')
+    if launch is not None:
+        Path(args.out_launch).write_text(launch, encoding='utf-8')
     result = {'ok': True, 'digest': report['digest'],
               'plan': args.out_plan, 'launch': args.out_launch,
               'safety': safety_report}
@@ -63,7 +66,7 @@ def main(argv=None):
     plan.add_argument('graph')
     plan.add_argument('--package-index')
     plan.add_argument('--out-plan', required=True)
-    plan.add_argument('--out-launch', required=True)
+    plan.add_argument('--out-launch', help='emit an executable launch after execution-domain validation')
     try:
         args = parser.parse_args(argv)
     except SystemExit:

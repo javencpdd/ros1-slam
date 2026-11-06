@@ -1,6 +1,6 @@
 # framework · YAML 组件图与导航应用
 
-> 最新更新时间：2026-11-06 00:05:57 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 04:45:41 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
 
@@ -10,16 +10,16 @@ framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配�
 
 | 输入/实现 | 当前职责 |
 | --- | --- |
-| [fixtures/manifests](fixtures/manifests) | manifest v2 组件定义：命名 ports、dimensions、launch；同时包含真实节点、include 与明确的测试替身 |
+| [fixtures/manifests](fixtures/manifests) | manifest v3 运行组件：显式 execution.modes/robot_id、命名 ports、dimensions、launch；同时包含真实节点、include 与明确的测试替身 |
 | [fixtures/graphs](fixtures/graphs) / [config.py](config.py) / [graph.py](graph.py) | pipeline_graph/v1：实例、namespace、参数/config、显式端口连线、外部输入、反馈策略；生成启动 DAG 和 digest |
-| [render.py](render.py) / [runtime.py](runtime.py) | assembly plan、launch 骨架、默认运行命令与 Assembly；消费现有 ProcessRunner/Orchestrator |
+| [render.py](render.py) / [runtime.py](runtime.py) | assembly_plan/v2、受域校验的 launch、默认运行命令与 Assembly；消费现有 ProcessRunner/Orchestrator |
 | [app_config.py](app_config.py) / [app_runner.py](app_runner.py) | navigation_app/v1：graph、地图 registry、任务、定位/载体与可视化；dry-run/execute |
 | [map_registry.py](map_registry.py) / [surface_resolver.py](surface_resolver.py) | map_id/version/path/sha 绑定，起终点 z 与 surface_hint 消歧 |
 | [map_from_pcd.py](map_from_pcd.py) / [inflate_support_map.py](inflate_support_map.py) | PCD→支撑图/任务/app/本机登记；声明足迹外扩生成单独变体 |
 | [safety.py](safety.py) / [hotswap.py](hotswap.py) | 安全接线、否决停止、受限实例替换 |
 | [robot.py](robot.py) / [verification.py](verification.py) | robot profile 能力检查；与算法图分开的验证后端/真值通道 |
 
-组件只有 manifest 一份定义，不另维护 components.yaml。v2 的兼容 io 由 ports 加载期派生；v1 manifest 仍供旧 registry/composer 使用，但不能进入命名端口图（`E_CFG_MANIFEST_V1`）。同组件可创建多个实例，实例 ID 与 ROS 节点名不能冲突。
+组件只有 manifest 一份定义，不另维护 components.yaml。v2/v3 的兼容 io 由 ports 加载期派生；v1 manifest 仍供旧 registry/composer 使用，但不能进入命名端口图（`E_CFG_MANIFEST_V1`）。同组件可创建多个实例，实例 ID 与 ROS 节点名不能冲突。
 
 ## 最小使用
 
@@ -32,7 +32,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/cli.py check \
   --package-index ws/src/90_platform/v8_platform/framework/fixtures/package_index.json
 python3 -B ws/src/90_platform/v8_platform/framework/cli.py plan \
   ws/src/90_platform/v8_platform/framework/fixtures/manifests \
-  ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_cache.yaml \
+  ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_cache_sim.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
 python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
   --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml
@@ -51,11 +51,23 @@ launch 支持：
 - plugin：nodelet standalone；实例名/namespace/参数传给宿主。
 - nodelet_group：外部 manager 与多个 nodelet，由临时 launch 装载。
 
-实例 `config` 相对 graph 文件解析，须为 YAML/JSON 映射，内容哈希进入 digest。node/plugin 的 config/param_files 已通过 [param_exec.py](param_exec.py) 预载 ROS 私有参数后 exec rosrun，graph params 最后覆盖；旧“只渲染、实际不加载”的限制已不适用。实例 config 替代 manifest param_files；param_schema 目前只登记，未做字段级 schema 校验。
+实例 `config` 相对 graph 文件解析，须为 YAML/JSON 映射，内容哈希进入 digest。node/plugin 的 config/param_files 已通过 [param_exec.py](param_exec.py) 预载 ROS 私有参数后 exec rosrun，graph params 最后覆盖；旧“只渲染、实际不加载”的限制已不适用。实际参数优先级为 config → manifest param_files → 实例 params。后端 selector 会检查有效值并将默认值写入最终参数；selector 与无法离线解析的 param_files 组合会拒绝，param_schema 的其他字段仍只登记。
 
 manifest 的 node/plugin remap 会追加到命令；图边 remap 仍不能视为通用运行期自动改线。include 无通用 remap；nodelet 在既有探针中未按传入 remap 改题名，端口 topic/namespace 必须与真实发布订阅一致。临时 launch/参数规格文件不会由当前 default_command 自动回收。
 
 Assembly 真正启动进程，条件就绪/失败清理/运行健康/停止链由 [orchestrator](../orchestrator/README.md) 承担；调用方须驱动健康检查。mux 最后停不替代消息级实时看门狗。
+
+## 运行模式与机器人身份
+
+app/graph 成对声明 `execution_mode: simulation|real_robot` 与 `robot_id`；真实模板固定 `real_robot/lite3`，M20 尚无运行后端。组件 v3 的 `execution.robot_id: null` 显式表示不绑定机器人；缺声明代表未知，不能推导硬件支持。evidence、tags、CPU 架构与执行许可均不替代模式声明。
+
+`prepare_execution()` 在环境修改、mkdir、日志文件、包发现、ROS 导入或 Popen 前完成选图、载体映射、参数填充、图/安全/域检查。`--real` 必须与显式 real_robot/lite3 app 一致，复用现场 master；Gazebo/GT/未知后端、错误机器人或仿真组件会拒绝。CLI 的 `--real` 不请求 Gazebo；`--no-gazebo` 只用于 simulation，不能让 Lite3 模板伪装成容器仿真。
+
+Assembly（含自定义命令工厂）、独立 default_command、三条 hotswap apply 和可执行 render_launch 均复核同一守卫。graph.check 的独立快照保存原始图输入、所选组件摘要与报告摘要，组件摘要进入 graph digest；render_plan/launch 必须复核该原始绑定，旧无绑定报告须重新 check，不能用变化后的 catalog 为旧报告重新盖章。计划保存独立组件摘要及 `execution_sha256`，绑定上下文、catalog 和选中组件身份；检查后修改 catalog/模式/机器人会拒绝。该摘要用于兼容一致性，不是操作许可或完整计划认证。热替换不能改变部署身份，记录与新旧实例不符时在停旧进程/回调/工厂之前拒绝。
+
+旧 v2 manifest 和未分类图可做 check/plan 离线分析（CLI plan 仅给 --out-plan；请求 --out-launch 会额外验证可执行域）；执行要求 v3 的显式域，旧 assembly_plan/v1 不直接启动。旧合法仿真仅在所有选中组件明确支持 simulation 且不绑定机器人时窄兼容为 generic_sim。`graph_2d*` 的五个旧混合模板含 ros2qnx，保留离线分析并拒绝启动/可执行 XML；运行测试改用 `_sim` 副本。`graph_3d_real*` 中 real 指 ROS 实现，其载体仍为运动学仿真。
+
+统一守卫也前置于可传图的 graph_3d_assembly_smoke、runtime_lab 与 boundary_chain_runtime；实际 smoke 不属于离线测试。外部 bringup/任意手工 rosrun 不受 Python 装配守卫统管，现场已有运动桥仍须按现场授权处理。本轮没有启动 ROS、仿真或硬件，也未解决速度坐标、TF 时效与所有图边自动接线。
 
 ## 当前运行接线
 
@@ -70,7 +82,7 @@ Assembly 真正启动进程，条件就绪/失败清理/运行健康/停止链�
 
 `safety.check_plan` 允许只读图没有 `/cmd_vel` 写者；若有则最多一个且必须为 safety_arbiter。其他带 command_topic 的输出必须连到该仲裁器，否则拒绝。trajectory_validator 最多一个，须有 path 输入/输出并在图上；`enforce(assembly, verdict)` 仅显式 approved=true 放行，其余否决走装配停止链。
 
-`verification.py` 将模拟器/真值后端放在算法图之外，拒绝真值话题与算法端口重叠。Gazebo 静态物体与 MuJoCo 落体后端证明验证通道可运行，不等于已完成场景化算法轨迹评价。`perf.py` 只测启动前 check+plan 开销，不测控制周期。
+`verification.py` 将模拟器/真值后端放在算法图之外，拒绝真值话题与算法端口重叠及 real_robot 计划配仿真 backend。Gazebo 静态物体与 MuJoCo 落体后端证明验证通道可运行，不等于已完成场景化算法轨迹评价。`perf.py` 只测启动前 check+plan 开销，不测控制周期。
 
 `selector.py ... --out-html /tmp/selector.html` 生成候选下拉与预计算拒绝报告；导出的组合仍须 cli check。示例见[framework-selector.html](../../../../../docs/architecture/framework-selector.html)。
 
@@ -79,6 +91,7 @@ Assembly 真正启动进程，条件就绪/失败清理/运行健康/停止链�
 ## 定向检查与证据
 
 ```bash
+python3 -B ws/src/90_platform/v8_platform/framework/test_execution.py
 python3 -B ws/src/90_platform/v8_platform/framework/test_framework.py
 python3 -B ws/src/90_platform/v8_platform/framework/test_runtime.py
 python3 -B ws/src/90_platform/v8_platform/framework/test_preflight.py

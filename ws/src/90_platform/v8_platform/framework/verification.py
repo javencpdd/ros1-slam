@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import config  # noqa: E402
 import launch as launch_mod  # noqa: E402
+import execution  # noqa: E402
 
 SCHEMA = 'verification/v1'
 
@@ -43,6 +44,8 @@ def check(spec, plan, catalog, backends, packages):
         raise config.FrameworkError('E_VERIFY_BACKEND', spec['backend'])
     if 'simulator' not in backend['roles']:
         raise config.FrameworkError('E_VERIFY_ROLE', spec['backend'])
+    if execution.context(plan) is not None:
+        execution.check_component({'params': {}}, backend, execution.context(plan))
     algorithm_components = {instance['component'] for instance in plan['instances']}
     if spec['backend'] in algorithm_components:
         raise config.FrameworkError('E_VERIFY_BACKEND_IN_PLAN', spec['backend'])

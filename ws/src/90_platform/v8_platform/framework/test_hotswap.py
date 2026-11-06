@@ -1,4 +1,5 @@
 """V8-X3 hot swap: compatibility gate and stop-before-start apply."""
+import copy
 import json
 import sys
 import tempfile
@@ -14,7 +15,7 @@ import render  # noqa: E402
 import runtime  # noqa: E402
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
-G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
+G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d_sim.yaml'
 GSEMANTIC = HERE / 'fixtures' / 'graphs' / 'graph_semantic.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
@@ -23,6 +24,13 @@ SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 def plan_for(path=G2D):
     catalog = config.load_components(MANIFESTS)
     graph = config.load_graph(path)
+    if 'robot' in graph['instances']:
+        # Two explicitly simulated adapters for the same test robot family.
+        adapter = copy.deepcopy(catalog['components']['v8.fw.robot_test_b'])
+        adapter['id'] = 'v8.test.robot_a'
+        adapter['launch']['type'] = 'robot_test_a'
+        catalog['components'][adapter['id']] = adapter
+        graph['instances']['robot']['component'] = adapter['id']
     report = graph_mod.check(graph, catalog)
     return render.render_plan(graph, catalog, report), catalog
 
@@ -36,7 +44,7 @@ class HotSwapTests(unittest.TestCase):
         plan, catalog = plan_for()
         record, new_plan = hotswap.prepare(plan, catalog, 'robot', 'v8.fw.robot_test_b',
                                            {'task': 'nav', 'progress': 3}, epoch=2)
-        self.assertEqual(record['old_component'], 'v8.fw.robot_lite3')
+        self.assertEqual(record['old_component'], 'v8.test.robot_a')
         self.assertEqual(record['new_component'], 'v8.fw.robot_test_b')
         self.assertEqual(record['state'], {'task': 'nav', 'progress': 3})
         self.assertTrue(record['preconditions']['no_command_overlap'])

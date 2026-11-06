@@ -1,6 +1,6 @@
 # v8_platform · 配置装配、规划与运行适配
 
-> 最新更新时间：2026-11-06 00:05:57 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。
 
 本包保存 v8 平台自研代码：组件契约、注册与组合、进程编排、地图表征、全局/局部规划、ROS 适配和回归工具。计划与设计文档在[计划书 v8](../../../../note/计划书v8/README.md)，历史运行证据在[进度入口](../../../../note/进度/v8/README.md)。
 
@@ -10,7 +10,7 @@
 
 | 目录 | 当前职责 |
 | --- | --- |
-| [framework](framework/README.md) | app/task/map registry、v2 manifest 与 graph、Assembly 运行、选面/可视化、安全接线与热替换 |
+| [framework](framework/README.md) | app/task/map registry、v3 执行域 manifest 与 graph、Assembly 运行、选面/可视化、安全接线与热替换 |
 | [contracts](contracts/README.md) | manifest/robot/map/task/map_delta 契约与语义校验；map v1/v2/v3 |
 | [registry](registry/README.md) / [composer](composer/README.md) | 注册、证据与溯源分离、角色/地图/运动学兼容和确定性锁 |
 | [orchestrator](orchestrator/README.md) | 任务生命周期、条件就绪、进程回收、停止链和预算 |
@@ -37,6 +37,8 @@ python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
   --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml
 ```
 
+组件运行域由 manifest/v3 的 `execution.modes/robot_id` 显式声明；graph/app 传递 `execution_mode/robot_id`，plan 使用 `assembly_plan/v2`。旧 v2 清单和未声明旧图继续用于离线分析，不能据静态兼容启动硬件。运行守卫详见 [framework](framework/README.md)。
+
 第二条缺省为 dry-run。`--execute` 会启动实际 ROS/仿真进程，运行前按[作业单](../../../../note/计划书v8/25_v8自动调度作业单.md)准备隔离环境。完整 app、建图与交互用法见 [framework](framework/README.md)、[Docker 运行指南](../../../../docker/README.md)。本机地图与 `*.local.app.yaml` 各机独立。
 
 离线测试按模块运行，例如：
@@ -52,7 +54,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/test_preflight.py
 
 ## 已接入与未接入的范围
 
-v2 graph/Assembly 已有真实 2D 导航栈、三维全局/局部规划、地图增量和仿真载体入口。Gazebo 运动学 carrier、Gazebo 动态方盒和 MuJoCo 四足接触实验各有独立范围，见[架构说明](../../../../note/架构/项目架构与目录.md)。
+命名端口 graph/Assembly 已有真实 2D 导航栈、三维全局/局部规划、地图增量和仿真载体入口。Gazebo 运动学 carrier、Gazebo 动态方盒和 MuJoCo 四足接触实验各有独立范围，见[架构说明](../../../../note/架构/项目架构与目录.md)。
 
 旧注册表 `registry/data/manifests/` 中的 apt 与 SCAN 条目主要用于声明、组合与接线检查：这些 v1 条目**未接入** v2 命名端口图的实际启动，不能凭登记即计为运行支持。framework 中另有已接入的 `v8.nav2d.*` include 组件，不能由旧条目的限制推断整个 apt 导航栈未运行。
 

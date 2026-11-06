@@ -1,6 +1,6 @@
 # boundary · UDP 命令与遥测适配
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 本目录将 ROS 速度意图变成固定频率 UDP 命令，遥测回传 ROS。它订阅 mux 输出，不发布 `/cmd_vel`，不连接厂商 QNX 实机链；以下端点仅用于本机回环/仿真。
 
@@ -11,6 +11,8 @@
 - [protocol.py](protocol.py) 编解码并拒坏帧；[udp_link.py](udp_link.py) 处理收发与序号统计。
 - [rate_bridge.py](rate_bridge.py) 锁存最近规划命令，限幅、限斜率并在超时归零。规划周期和发送周期分别控制。
 - [ros_bridge.py](ros_bridge.py) 支持 Twist/TwistStamped 输入，发布 `/boundary/odom`、`imu`、`joint_states` 与 `status`；无遥测、遥测过期或 fault 时只发 HOLD 零速。
+
+框架的 simulation 域仅允许严格解析的 IPv4 回环 target/bind；localhost 规范为 127.0.0.1，拒绝远端地址、URL、缺 target、非法端口和当前 AF_INET 后端不支持的 IPv6。直接 ROS 桥也在创建 UDP socket 前复核现场私参；它需要先读取 ROS 参数，不能据此宣称任意入口都在 ROS 导入前完成检查。
 
 ROS 桥 `~rate_hz` 缺省 500，可设 50—500。遥测发布与命令环分离。该频率是配置和运行机制，实际吞吐须看对应记录。
 

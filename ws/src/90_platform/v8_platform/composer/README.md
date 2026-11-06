@@ -1,6 +1,6 @@
 # composer · 结构兼容检查与确定性锁
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 [composer.py](composer.py) 消费[注册表](../registry/README.md)，提供 `compose(store, ids)`、`compatibility(store, entries)` 与 `lock(store, ids)`。它检查声明之间能否组合，不启动 ROS，也不凭组合通过证明运行能力。
 
@@ -18,7 +18,9 @@
 
 消息级输入生产者匹配已在 [adapters/io_match.py](../adapters/io_match.py) 实现；信息损失声明在 [adapters](../adapters/README.md)。composer 返回的 `adapters` 槽仍是空列表，不能据此声称自动选择或执行了适配器。
 
-运行预算、条件就绪、健康和停止链由 [orchestrator](../orchestrator/README.md) 实现。v2 实例/命名端口、显式连线和 Assembly 由 [framework](../framework/README.md) 管理；本组合器的角色唯一约束不替代 framework 的多实例图规则。
+运行预算、条件就绪、健康和停止链由 [orchestrator](../orchestrator/README.md) 实现。v2/v3 manifest 的实例/命名端口、显式连线和 Assembly 由 [framework](../framework/README.md) 管理；本组合器的角色唯一约束不替代 framework 的多实例图规则。
+
+运行的 execution_mode/robot_id 与组件域统一由 framework/execution.py 复核，本组合器的静态兼容不替代该检查或现场许可。
 
 常见拒绝码：`E_COMP_EMPTY/UNKNOWN_ID/DUP_ROLE/MISSING_ROLE/TF_CYCLE/TF_DUP/CMD_DUP/MAP_SUPPLY/KINEMATICS`。
 

@@ -1,8 +1,10 @@
 {
- "schema_version": 2,
+ "schema_version": 3,
  "id": "v8.fw.carrier_lite3",
  "version": "0.1.0",
- "roles": ["middleware"],
+ "roles": [
+  "middleware"
+ ],
  "dimensions": 3,
  "capability": {
   "kinematics": "quadruped_kinematic",
@@ -22,16 +24,39 @@
  },
  "ports": {
   "inputs": [
-   {"name": "pose_in", "type": "nav_msgs/Odometry", "topic": "/odom", "required": false}
+   {
+    "name": "pose_in",
+    "type": "nav_msgs/Odometry",
+    "topic": "/odom",
+    "required": false
+   }
   ],
   "outputs": [
-   {"name": "pose", "type": "geometry_msgs/PoseStamped", "topic": "/v8/local/pose"},
-   {"name": "localization", "type": "std_msgs/Bool", "topic": "/v8/local/localization_ok"},
-   {"name": "status", "type": "std_msgs/String", "topic": "/v8/3d/carrier/status"}
+   {
+    "name": "pose",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/local/pose"
+   },
+   {
+    "name": "localization",
+    "type": "std_msgs/Bool",
+    "topic": "/v8/local/localization_ok"
+   },
+   {
+    "name": "status",
+    "type": "std_msgs/String",
+    "topic": "/v8/3d/carrier/status"
+   }
   ]
  },
  "evidence": {
   "level": "declared",
   "reports": []
+ },
+ "execution": {
+  "modes": [
+   "real_robot"
+  ],
+  "robot_id": "lite3"
  }
 }

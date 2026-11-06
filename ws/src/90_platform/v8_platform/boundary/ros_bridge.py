@@ -9,6 +9,8 @@ import json
 import math
 import threading
 import time
+import sys
+from pathlib import Path
 
 try:
     from .protocol import (FAULT_NONFINITE, FAULT_POLICY, MODE_ACTIVE, MODE_HOLD,
@@ -100,6 +102,8 @@ def telemetry_status(frame):
 
 
 def main():
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'framework'))
+    import execution
     import rospy
     from geometry_msgs.msg import Twist, TwistStamped
     from nav_msgs.msg import Odometry
@@ -112,9 +116,9 @@ def main():
         from udp_link import CommandSender, TelemetryReceiver
 
     rospy.init_node('v8_boundary_adapter')
-    target = rospy.get_param('~target')
+    target = execution.loopback_endpoint(rospy.get_param('~target'))
     host, port = target.rsplit(':', 1)
-    bind = rospy.get_param('~bind', '127.0.0.1:0')
+    bind = execution.loopback_endpoint(rospy.get_param('~bind', '127.0.0.1:0'), allow_zero=True)
     bind_host, bind_port = bind.rsplit(':', 1)
     rate_hz = float(rospy.get_param('~rate_hz', 500.))
     if not (50. <= rate_hz <= 500.):

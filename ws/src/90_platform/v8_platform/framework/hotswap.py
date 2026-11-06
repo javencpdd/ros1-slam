@@ -11,7 +11,8 @@ import time
 from pathlib import Path
 
 import safety
-from config import FrameworkError
+import execution
+from config import FrameworkError, load_yaml
 
 
 def _digest(plan):
@@ -67,11 +68,14 @@ def prepare(plan, catalog, instance_id, new_component_id, state=None,
     for item in new_plan['instances']:
         if item['id'] == instance_id:
             item['component'] = new_component_id
-            item['launch'] = new['launch']
+            item['launch'] = copy.deepcopy(new['launch'])
+            item['component_sha256'] = execution.component_digest(new)
             if params is not None:
                 item['params'] = dict(params)
             break
+    new_plan['execution_sha256'] = execution.plan_binding(new_plan)
     new_plan['digest'] = _digest(new_plan)
+    execution.check_transition(plan, new_plan, catalog, load_yaml)
     checked = safety.check_plan(new_plan, catalog)
     record = validate_record({
         'schema_version': 1,
@@ -88,11 +92,22 @@ def prepare(plan, catalog, instance_id, new_component_id, state=None,
     return record, new_plan
 
 
+def _check_apply(assembly, catalog, record, new_plan):
+    validate_record(record)
+    execution.check_transition(assembly.plan, new_plan, catalog, load_yaml)
+    iid = record['instance_id']
+    old = next((i for i in assembly.plan['instances'] if i['id'] == iid), None)
+    new = next((i for i in new_plan['instances'] if i['id'] == iid), None)
+    if (old is None or new is None or old['component'] != record['old_component']
+            or new['component'] != record['new_component']):
+        raise FrameworkError('E_SWAP_RECORD', 'record/plan component mismatch')
+
+
 def apply(assembly, catalog, record, new_plan, ready_timeout=10.0):
     """Stop the old assembly, then start the new plan; no dual writers by order."""
     from runtime import Assembly
 
-    validate_record(record)
+    _check_apply(assembly, catalog, record, new_plan)
     old_runners = list(assembly.runners.values())
     assembly.stop()
     if any(runner.is_alive() for runner in old_runners):
@@ -129,7 +144,7 @@ def apply_overlap(assembly, catalog, record, new_plan, ready_timeout=10.0,
     import orchestrator as orch
     from process_runner import ProcessRunner
 
-    validate_record(record)
+    _check_apply(assembly, catalog, record, new_plan)
     instance_id = record['instance_id']
     old_runner = assembly.runners.get(instance_id)
     old_spec = next((spec for spec in assembly.task.specs if spec.id == instance_id), None)
@@ -145,7 +160,7 @@ def apply_overlap(assembly, catalog, record, new_plan, ready_timeout=10.0,
     new_spec = orch.ComponentSpec(instance_id, new_component['roles'],
                                   stop_method=new_component['stop'],
                                   resources=new_component.get('resources', []))
-    new_argv, new_marker = assembly.command_factory(new_instance, new_component)
+    new_argv, new_marker = assembly.command_for(new_instance, new_component, plan=new_plan)
     state_file = None
     env = None
     if record['state']:
@@ -217,7 +232,7 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0,
     import orchestrator as orch
     from process_runner import ProcessRunner
 
-    validate_record(record)
+    _check_apply(assembly, catalog, record, new_plan)
     instance_id = record['instance_id']
     old_runner = assembly.runners.get(instance_id)
     if old_runner is None:
@@ -228,7 +243,7 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0,
     old_instance = next(item for item in assembly.plan['instances']
                         if item['id'] == instance_id)
     old_component = catalog['components'][record['old_component']]
-    old_argv, old_marker = assembly.command_factory(old_instance, old_component)
+    old_argv, old_marker = assembly.command_for(old_instance, old_component)
     if pre_stop is not None:
         pre_stop()
     old_runner.stop(old_spec.stop_method)
@@ -243,7 +258,7 @@ def apply_instance(assembly, catalog, record, new_plan, ready_timeout=10.0,
     new_spec = orch.ComponentSpec(instance_id, new_component['roles'],
                                   stop_method=new_component['stop'],
                                   resources=new_component.get('resources', []))
-    new_argv, new_marker = assembly.command_factory(new_instance, new_component)
+    new_argv, new_marker = assembly.command_for(new_instance, new_component, plan=new_plan)
     state_file = None
     env = None
     if record['state']:

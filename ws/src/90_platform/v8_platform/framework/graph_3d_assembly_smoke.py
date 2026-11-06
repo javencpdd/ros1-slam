@@ -47,13 +47,6 @@ def main():
     goal = tuple(float(v) for v in args.goal.split(','))
     output = Path(args.out).resolve()
     state_path = Path(args.state).resolve()
-    if state_path.exists():
-        state_path.unlink()
-    os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % args.port,
-                      ROS_IP='127.0.0.1', ROS_HOME='/tmp/r1097_ros',
-                      ROS_LOG_DIR='/tmp/r1097_logs', PYTHONDONTWRITEBYTECODE='1')
-    Path('/tmp/r1097_ros').mkdir(exist_ok=True)
-    Path('/tmp/r1097_logs').mkdir(exist_ok=True)
     catalog = config.load_components(HERE / 'fixtures' / 'manifests')
     graph = config.load_graph(Path(args.graph).resolve())
     report = graph_mod.check(graph, catalog)
@@ -63,6 +56,14 @@ def main():
     provider['params']['state_path'] = str(state_path)
     carrier = next(item for item in plan['instances'] if item['id'] == 'carrier')
     carrier['params'].update(start_x=start[0], start_y=start[1], start_z=start[2])
+    runtime.execution.check_plan(plan, catalog, config.load_yaml)
+    if state_path.exists():
+        state_path.unlink()
+    os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % args.port,
+                      ROS_IP='127.0.0.1', ROS_HOME='/tmp/r1097_ros',
+                      ROS_LOG_DIR='/tmp/r1097_logs', PYTHONDONTWRITEBYTECODE='1')
+    Path('/tmp/r1097_ros').mkdir(exist_ok=True)
+    Path('/tmp/r1097_logs').mkdir(exist_ok=True)
     result = {'scope': 'assembly_3d_global_local_kinematic_closed_loop',
               'map': str(map_path), 'start': list(start), 'goal': list(goal),
               'safety_gate': None, 'command_writers': report['command_writers'],

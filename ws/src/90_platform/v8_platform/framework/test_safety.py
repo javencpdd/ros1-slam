@@ -12,9 +12,10 @@ import perf  # noqa: E402
 import render  # noqa: E402
 import runtime  # noqa: E402
 import safety  # noqa: E402
+import execution
 
 MANIFESTS = HERE / 'fixtures' / 'manifests'
-G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d.yaml'
+G2D = HERE / 'fixtures' / 'graphs' / 'graph_2d_sim.yaml'
 PY = sys.executable
 SLEEPER = "import time; print('READY', flush=True); time.sleep(3600)"
 
@@ -113,7 +114,10 @@ class SafetyTests(unittest.TestCase):
     def test_assembly_refuses_second_cmd_vel_writer(self):
         _, catalog, plan = setup()
         plan = copy.deepcopy(plan)
-        plan['instances'].append({'id': 'mux2', 'component': 'v8.fw.mux'})
+        second = copy.deepcopy(next(i for i in plan['instances'] if i['id'] == 'mux'))
+        second['id'] = 'mux2'
+        plan['instances'].append(second)
+        plan['execution_sha256'] = execution.plan_binding(plan)
         assembly = runtime.Assembly(plan, catalog, command_factory=fake)
         with self.assertRaises(config.FrameworkError) as caught:
             assembly.start()

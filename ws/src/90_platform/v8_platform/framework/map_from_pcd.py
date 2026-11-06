@@ -225,6 +225,7 @@ def choose_start_goal(surface, start_xy=None, obstacles=None, margin=0.55,
 def write_app(map_id, version, map_path, task_path, app_path, world, model_path):
     app = {
         'schema': 'navigation_app/v1',
+        'execution_mode': 'simulation', 'robot_id': 'generic_sim',
         'name': '%s_3d' % map_id,
         'graph': 'ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_gazebo_app_mapped.yaml',
         'map': {'id': map_id, 'version': version},

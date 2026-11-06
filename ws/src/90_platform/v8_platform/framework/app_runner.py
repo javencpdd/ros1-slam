@@ -7,6 +7,7 @@ task start/goal, monitors the global path/local trajectory/carrier and writes a
 JSON record. The support-map marker node is started when app.visualization.markers.
 """
 import argparse
+import copy
 import json
 import os
 import signal
@@ -23,25 +24,106 @@ import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
 import render  # noqa: E402
 import runtime  # noqa: E402
+import execution  # noqa: E402
+import safety  # noqa: E402
+
+
+def _prepare_app(app_path, real=False, with_gazebo=False, root=None, executable=True):
+    """Read/resolve/check only. No environment, directory, process or ROS effects."""
+    raw, _ = config.load_yaml(app_path)
+    if executable:
+        execution.validate_app_request(raw, execution.context(raw), real, with_gazebo)
+    root = Path(root or app_config.ROOT)
+    source = raw.get('localization', {}).get('source')
+    selected_path = raw.get('localization', {}).get('graph') if source != 'carrier' else None
+    selected_path = app_config._path(selected_path or raw.get('graph', ''), root)
+    graph = config.load_graph(selected_path)
+    if executable:
+        resolved_context = execution.merge_context(raw, graph, real)
+        execution.validate_app_request(raw, resolved_context, real, with_gazebo)
+    else:
+        app_context, graph_context = execution.context(raw), execution.context(graph)
+        if app_context and graph_context and app_context != graph_context:
+            raise config.FrameworkError('E_EXEC_CONTEXT', 'app and graph disagree')
+        resolved_context = app_context or graph_context
+    catalog = config.load_components(HERE / 'fixtures' / 'manifests')
+    origin = 'declared' if resolved_context else 'unclassified'
+    if executable and resolved_context is None:
+        # The narrow legacy fallback is simulation only, and only positively
+        # classified, robot-independent components may enter it.
+        for instance in graph['instances'].values():
+            component = catalog['components'].get(instance['component'])
+            if component is None:
+                raise config.FrameworkError('E_EXEC_COMPONENT', instance['component'])
+            checked_instance = dict(instance)
+            if checked_instance.get('config'):
+                checked_instance['config'] = str(app_config._path(checked_instance['config'], selected_path.parent))
+            execution.check_component(checked_instance, component, load_yaml=config.load_yaml)
+        resolved_context = {'execution_mode': 'simulation', 'robot_id': 'generic_sim'}
+        origin = 'legacy_sim'
+    if resolved_context:
+        graph.update(resolved_context)
+    carrier_id = {'gazebo': 'v8.fw.gazebo_carrier3d',
+                  'kinematic': 'v8.fw.carrier3d', 'lite3': 'v8.fw.carrier_lite3'}.get(
+                      raw.get('carrier', {}).get('backend'))
+    carrier = graph['instances'].get('carrier')
+    if carrier_id is None or carrier is None or carrier['component'] != carrier_id:
+        raise config.FrameworkError('E_EXEC_BACKEND', 'app backend and actual graph carrier disagree')
+    if raw['carrier'].get('backend') == 'lite3' and raw['carrier'].get('pose_source', 'tf') not in ('tf', 'topic'):
+        raise config.FrameworkError('E_EXEC_BACKEND', 'unknown Lite3 pose source')
+    world_launch = raw['carrier'].get('world_launch')
+    if world_launch:
+        candidate = app_config._path(world_launch, root).resolve()
+        allowed = root / 'ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch'
+        if candidate != allowed.resolve():
+            raise config.FrameworkError('E_EXEC_BACKEND', 'unknown simulation world launch')
+    resolved = app_config.load_app(app_path, root=root)
+    task = resolved['task_resolved']
+    start = tuple(float(v) for v in task['start']['xyz'])
+    # Fill the graph BEFORE check/hash, including selector overrides.
+    for instance in graph['instances'].values():
+        instance['params'] = copy.deepcopy(instance['params'])
+        if instance['id'] == 'map':
+            instance['params'].update(map_json=str(resolved['map_path']), map_topic='/v8_support_map')
+        if instance['id'] == 'carrier':
+            instance['params'].update(start_x=start[0], start_y=start[1], start_z=start[2])
+            if raw['carrier']['backend'] == 'gazebo':
+                instance['params'].update(model_name=raw['carrier'].get('model_name', 'app_carrier'),
+                                         center_z=raw['carrier'].get('center_z', .1),
+                                         snap_m=raw['carrier'].get('snap_m', .03), spawn=True)
+            if raw['carrier']['backend'] == 'lite3':
+                for key, default in (('pose_source', 'tf'), ('map_frame', 'map'),
+                                     ('base_frame', 'base_link'), ('input_pose_topic', '/odom'),
+                                     ('rate_hz', 20.0), ('stale_s', .5)):
+                    instance['params'][key] = raw['carrier'].get(key, default)
+        if instance['id'] == 'loc':
+            instance['params']['source'] = raw['localization']['source']
+    report = graph_mod.check(graph, catalog)
+    plan = render.render_plan(graph, catalog, report)
+    plan['execution_origin'] = origin if origin != 'unclassified' else report['execution_origin']
+    if executable:
+        execution.check_plan(plan, catalog, config.load_yaml)
+    safety.check_plan(plan, catalog)
+    return {'resolved': resolved, 'catalog': catalog, 'graph': graph, 'report': report, 'plan': plan}
+
+
+def prepare_execution(app_path, real=False, with_gazebo=False, root=None):
+    return _prepare_app(app_path, real, with_gazebo, root, executable=True)
 
 
 def dry_run(app_path):
-    resolved = app_config.load_app(app_path)
-    catalog = config.load_components(HERE / 'fixtures' / 'manifests')
-    graph = config.load_graph(resolved['graph_path'])
-    report = graph_mod.check(graph, catalog)
-    plan = render.render_plan(graph, catalog, report)
+    prepared = _prepare_app(app_path, executable=False)
+    resolved, report, plan = (prepared[key] for key in ('resolved', 'report', 'plan'))
     return {
-        'scope': 'navigation_app_resolution',
-        'ok': True,
-        'app': str(resolved['app_path']),
-        'app_name': resolved['app']['name'],
+        'scope': 'navigation_app_resolution', 'ok': True,
+        'app': str(resolved['app_path']), 'app_name': resolved['app']['name'],
         'map': {'entry': resolved['map_entry'], 'path': str(resolved['map_path']),
                 'sha256': resolved['map_sha256']},
         'task_resolved': resolved['task_resolved'],
         'graph': {'path': str(resolved['graph_path']), 'digest': report['digest'],
                   'startup_order': report['startup_order'],
                   'command_writers': report['command_writers']},
+        'execution': execution.context(plan), 'execution_origin': plan['execution_origin'],
         'plan': plan,
     }
 
@@ -67,7 +149,9 @@ def _terminate(proc, group=False):
 
 def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
             interactive=False, rviz=False, real=False):
-    resolved = app_config.load_app(app_path)
+    prepared = prepare_execution(app_path, real=real, with_gazebo=with_gazebo)
+    resolved, catalog, report, plan = (prepared[key] for key in ('resolved', 'catalog', 'report', 'plan'))
+    graph_path = resolved['graph_path']
     task = resolved['task_resolved']
     app = resolved['app']
     start = tuple(float(v) for v in task['start']['xyz'])
@@ -116,7 +200,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         from std_msgs.msg import Bool, String
         from visualization_msgs.msg import MarkerArray
         rospy.init_node('navigation_app_runner', anonymous=True, disable_signals=True)
-        if with_gazebo and app['carrier']['backend'] == 'gazebo':
+        if not real and with_gazebo and app['carrier']['backend'] == 'gazebo':
             world_launch = app['carrier'].get('world_launch')
             if world_launch:
                 launch_path = Path(world_launch)
@@ -143,32 +227,6 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 start_new_session=True, stdout=open('/tmp/r1103_gazebo.log', 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
             rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=30.)
-        catalog = config.load_components(HERE / 'fixtures' / 'manifests')
-        graph_path = resolved['graph_path']
-        graph = config.load_graph(graph_path)
-        report = graph_mod.check(graph, catalog)
-        plan = render.render_plan(graph, catalog, report)
-        for instance in plan['instances']:
-            if instance['id'] == 'map':
-                instance['params']['map_json'] = str(resolved['map_path'])
-                instance['params']['map_topic'] = '/v8_support_map'
-            if instance['id'] == 'carrier':
-                instance['params'].update(start_x=start[0], start_y=start[1], start_z=start[2])
-                if app['carrier'].get('backend') == 'gazebo':
-                    instance['params'].update(
-                        model_name=app['carrier'].get('model_name', 'app_carrier'),
-                        center_z=app['carrier'].get('center_z', .1),
-                        snap_m=app['carrier'].get('snap_m', .03), spawn=True)
-                if app['carrier'].get('backend') == 'lite3':
-                    instance['params'].update(
-                        pose_source=app['carrier'].get('pose_source', 'tf'),
-                        map_frame=app['carrier'].get('map_frame', 'map'),
-                        base_frame=app['carrier'].get('base_frame', 'base_link'),
-                        input_pose_topic=app['carrier'].get('input_pose_topic', '/odom'),
-                        rate_hz=app['carrier'].get('rate_hz', 20.0),
-                        stale_s=app['carrier'].get('stale_s', 0.5))
-            if instance['id'] == 'loc':
-                instance['params']['source'] = app['localization']['source']
         assembly = runtime.Assembly(plan, catalog, ready_timeout=45.,
                                     run_timeout=timeout_s + 40.)
         assembly.start()
@@ -404,7 +462,7 @@ def main():
                           'graph': result['graph'], 'map': result['map']},
                          ensure_ascii=False))
         return 0
-    return execute(args.app, args.out, args.port, not args.no_gazebo, args.gui,
+    return execute(args.app, args.out, args.port, not args.real and not args.no_gazebo, args.gui,
                    args.timeout_s, interactive=args.interactive or args.rviz,
                    rviz=args.rviz, real=args.real)
 

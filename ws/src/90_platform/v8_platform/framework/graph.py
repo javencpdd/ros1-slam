@@ -4,6 +4,7 @@ The data graph may contain feedback edges only when explicitly marked; the
 startup DAG is built from non-feedback edges so a cache/map update loop does
 not deadlock process startup.
 """
+import copy
 import hashlib
 import json
 import re
@@ -113,6 +114,8 @@ def _topological(instances, edges):
 
 
 def check(graph, catalog):
+    import execution
+    execution_context = execution.context(graph)
     instances, edges, external = resolve(graph, catalog)
     bindings = {iid: {} for iid in instances}
     for edge in edges:
@@ -150,6 +153,28 @@ def check(graph, catalog):
             configs[iid] = {'path': str(path.resolve()), 'sha256': sha,
                             'keys': sorted(value)}
 
+    # A legacy graph may acquire a simulation context only from explicit,
+    # robot-independent positive declarations, never from its name or CPU.
+    execution_origin = 'declared' if execution_context else 'unclassified'
+    if execution_context is None and all(
+            isinstance(catalog['components'][rec['component']].get('execution'), dict)
+            and catalog['components'][rec['component']]['execution'].get('robot_id', 'unknown') is None
+            and 'simulation' in catalog['components'][rec['component']]['execution'].get('modes', [])
+            for rec in instances.values()):
+        execution_context = {'execution_mode': 'simulation', 'robot_id': 'generic_sim'}
+        execution_origin = 'legacy_sim'
+
+    # Resolve backend defaults/config before hashing or emitting any runnable artifact.
+    for iid, rec in instances.items():
+        comp = catalog['components'][rec['component']]
+        checked_instance = dict(rec)
+        if iid in configs:
+            checked_instance.update(config=configs[iid]['path'], config_sha256=configs[iid]['sha256'])
+        if execution_context is not None:
+            rec['params'] = execution.check_component(checked_instance, comp, execution_context, load_yaml)
+        elif comp.get('execution') is not None:
+            rec['params'] = execution.effective_params(checked_instance, comp, load_yaml)
+
     writers = {}
     for iid, rec in instances.items():
         comp = catalog['components'][rec['component']]
@@ -165,8 +190,13 @@ def check(graph, catalog):
     order = _topological(instances, edges)
     feedback = [{'from': e['from'], 'to': e['to'], 'policy': e['policy']}
                 for e in edges if e['feedback']]
+    checked_components = {iid: {'component': rec['component'],
+                                'sha256': execution.component_digest(catalog['components'][rec['component']])}
+                          for iid, rec in instances.items()}
     normalized = {
+        'components': checked_components,
         'catalog': catalog['sha256'],
+        'execution': execution_context,
         'graph': {
             'name': graph['name'],
             'instances': [{'id': iid, 'component': rec['component'],
@@ -181,8 +211,17 @@ def check(graph, catalog):
     }
     digest = hashlib.sha256(json.dumps(normalized, sort_keys=True, ensure_ascii=False,
                                        separators=(',', ':')).encode()).hexdigest()
-    return {'ok': True, 'name': graph['name'], 'digest': digest,
+    report = dict({'ok': True, 'name': graph['name'], 'digest': digest,
+            'checked_components': checked_components,
+            'source_graph_sha256': execution.graph_input_digest(graph),
+            'catalog_sha256': catalog['sha256'],
+            'execution_origin': execution_origin,
             'instances': instances, 'edges': edges, 'external': external,
             'bindings': bindings, 'startup_order': order,
             'feedback': feedback, 'command_writers': dict(sorted(writers.items())),
-            'configs': configs}
+            'configs': configs}, **(execution_context or {}))
+    # Ports/policies/params formerly aliased mutable graph/catalog objects.
+    # Preserve the exact checked snapshot before sealing its report envelope.
+    report = copy.deepcopy(report)
+    report['report_sha256'] = execution.report_digest(report)
+    return report

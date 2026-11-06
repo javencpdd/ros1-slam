@@ -1,6 +1,6 @@
 # Lite3 3D app · 配置模板与现场边界
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
 
 本目录保存 Lite3 现场装配模板。它说明当前仓内配置，不表示机器人此刻开/关机，也不新增真机运动许可或验收。既有静态/容器冒烟和现场记录见[进度入口](../../../../../../note/进度/v8/README.md)。
 
@@ -12,9 +12,9 @@
 | [graph_3d_lite3.yaml](graph_3d_lite3.yaml) | map、global、path_goal、local、ultrasonic_guard、mux、perception、gait_guard、carrier 共9实例 |
 | [local_native.yaml](local_native.yaml) | 局部搜索、包络/能力、心跳、话题与墙钟兜底参数 |
 
-模板要求每机使用被忽略的 `lite3_real_3d.local.app.yaml`；地图/registry/task 在 `data/maps/real_lite3_20261103/`，不入 Git，各主机可能不同。复制 app 后按本机资产改 map_id/version/路径，不能照旧指标推断文件现状。统一 registry 模板见[registry.template.json](../../../../../../data/maps/registry.template.json)。
+模板要求每机使用被忽略的 `lite3_real_3d.local.app.yaml`；地图/registry/task 在 `data/maps/real_lite3_20261103/`，不入 Git，各主机可能不同。app 与 graph 显式声明 `execution_mode: real_robot`、`robot_id: lite3`；旧本机覆盖若缺这两字段，真实入口会拒绝，不会从 backend 或 --real 推断。复制 app 后按本机资产改 map_id/version/路径，不能照旧指标推断文件现状。统一 registry 模板见[registry.template.json](../../../../../../data/maps/registry.template.json)。
 
-shell 环境由 `scripts/env.sh` 导出 ROS1_SLAM_ROOT，可读本机 local.env；Python [paths.py](../../framework/paths.py) 优先用已导出的环境变量，再从 git/目录推导仓根，不直接加载 shell env 文件。仓库位置不能硬编码为某台机器路径。
+shell 环境由 `scripts/env.sh` 导出 ROS1_SLAM_ROOT，可读本机 local.env；Python [paths.py](../../framework/paths.py) 优先用已导出的环境变量，再从仓目录标识/git 回退推导仓根，不直接加载 shell env 文件。仓库位置不能硬编码为某台机器路径。
 
 ## 当前数据与命令接线
 
@@ -70,4 +70,4 @@ python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
   --app ws/src/90_platform/v8_platform/configs/lite3/lite3_real_3d.local.app.yaml
 ```
 
-第二条是 dry-run，要求本机 app/地图齐备。容器执行用 `--execute --no-gazebo --port PORT` 会另起 master；已授权现场使用 `--execute --real` 才沿用现场 master。启动前必须核唯一写者、hold、位姿时效、障碍/超声心跳与运动桥边界，实际运行按[作业单](../../../../../../note/计划书v8/25_v8自动调度作业单.md)。本次仅文档核对，未连接机器人。
+第二条是 dry-run，要求本机 app/地图齐备。Lite3 模板不允许用 `--execute --no-gazebo` 当作仿真图；容器仿真须选择显式 simulation app/载体。已授权现场使用 `--execute --real` 沿用现场 master，Gazebo/GT/错误机器人与未知后端会在任何进程前拒绝。启动前必须核唯一写者、hold、位姿时效、障碍/超声心跳与运动桥边界，实际运行按[作业单](../../../../../../note/计划书v8/25_v8自动调度作业单.md)。本次仅完成代码/离线守卫验证，未连接机器人，速度坐标与 TF 时效缺口仍按前文保留。

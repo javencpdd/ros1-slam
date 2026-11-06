@@ -1,6 +1,6 @@
 # registry · 组件注册、检索与溯源
 
-> 最新更新时间：2026-11-05 11:49:54 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-06 04:34:56 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 本目录消费[契约层](../contracts/README.md)，加载组件 manifest、分离声明与实测证据，并挂载溯源边车。它提供注册和检索；跨组件冲突由 [composer](../composer/README.md) 检查，实际进程由 [framework](../framework/README.md) 装配。
 
@@ -14,7 +14,7 @@
 | [fixtures](fixtures) | 设计样例与坏输入；与 data 中登记分开 |
 | [runtime.py](runtime.py) | HTTP 只读查询和组合检查服务，不启动算法进程 |
 
-v1 manifest 自带 io；v2 manifest 由契约层从命名 ports 派生兼容 io。只有 v2 命名端口清单可进入 framework 图。注册层没有新增第二套组件定义。
+v1 manifest 自带 io；v2/v3 manifest 由契约层从命名 ports 派生兼容 io。两版均可进入 framework 离线图；实际运行需要 v3 显式执行域。注册/compose 不授予硬件运行资格。注册层没有新增第二套组件定义。
 
 ## 加载与证据语义
 

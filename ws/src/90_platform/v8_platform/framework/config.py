@@ -222,7 +222,7 @@ def _launch_spec(raw, cid):
 
 
 def load_components(path):
-    """Load v2 manifests (named ports + launch) as the single component source.
+    """Load v2/v3 named-port manifests; v2 has no executable-domain grant.
 
     v1 manifests remain valid for the legacy registry/composer; they cannot enter
     a graph because they have no named ports.
@@ -245,9 +245,9 @@ def load_components(path):
         except contract.ContractError as error:
             raise FrameworkError('E_CFG_MANIFEST', '%s: %s: %s'
                                  % (file.name, error.code, error.detail))
-        if value.get('schema_version') != 2 or 'ports' not in value:
+        if value.get('schema_version') not in (2, 3) or 'ports' not in value:
             raise FrameworkError('E_CFG_MANIFEST_V1',
-                                 '%s has no named ports; use manifest v2' % file.name)
+                                 '%s has no named ports; use manifest v2/v3' % file.name)
         cid = value['id']
         if cid in components:
             raise FrameworkError('E_CFG_DUP_COMPONENT', cid)
@@ -262,6 +262,8 @@ def load_components(path):
                            'stop': value['ownership']['stop'],
                            'tf_edges': list(value['ownership'].get('tf_edges', [])),
                            'resources': list(value.get('requires', {}).get('resources', []))}
+        if value.get('schema_version') == 3:
+            components[cid]['execution'] = value['execution']
         digest.update(file.name.encode() + b'\0' + raw_bytes)
     return {'components': components, 'sha256': digest.hexdigest(), 'path': str(path)}
 
@@ -270,6 +272,8 @@ def load_graph(path):
     value, sha = load_yaml(path)
     if value.get('schema') != GRAPH_SCHEMA:
         raise FrameworkError('E_CFG_SCHEMA', 'graph schema must be %s' % GRAPH_SCHEMA)
+    import execution
+    execution_context = execution.context(value)
     name = _require(value, 'name', str, 'graph')
     if not name:
         raise FrameworkError('E_CFG_FIELD', 'graph.name must be non-empty')
@@ -326,5 +330,5 @@ def load_graph(path):
         if not isinstance(source, str) or not source:
             raise FrameworkError('E_CFG_TYPE', '%s.source must be non-empty string' % where)
         external.append({'to': target, 'type': msg_type, 'source': source, 'index': index})
-    return {'name': name, 'instances': instances, 'edges': edges, 'external': external,
-            'sha256': sha, 'path': str(path), 'raw': value}
+    return dict({'name': name, 'instances': instances, 'edges': edges, 'external': external,
+                 'sha256': sha, 'path': str(path), 'raw': value}, **(execution_context or {}))
