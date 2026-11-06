@@ -1,6 +1,6 @@
 # lite3_gazebo_sim（SIM 仿真域·测试台本体）
 
-> 最新更新时间：2026-11-06 15:17:09 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，历史指标仍只适用于各原记录。
+> 最新更新时间：2026-11-07 03:29:09 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，历史指标仍只适用于各原记录。
 
 **统一索引头**（模块导航；职责以本轮源码核对与原运行范围为准）
 层 `95_simulation` ｜ 角色 `SIM 仿真域（测试台本体）` ｜ Gazebo 世界、机体仿真描述、推进插件、M2 判据载体与全部仿真侧验收件都在这里；另含楼梯可行性离线预检旁路。
@@ -19,7 +19,7 @@
 |---|---|
 | 起世界 | `launch/m1_gazebo.launch`、`m2_gazebo.launch`（世界件本体 `worlds/m1_world.world`＝**红线件**，各跑取 `world_before.sha`／`world_after.sha`） |
 | 仿真传感/建图/规划 | `launch/m1_mapping.launch`、`m2_mapping.launch`（两者加载**真机 outdoor** `faster_lio_outdoor.yaml`，仿真请改用 `lite3_slam/launch/10_slam_mapping_sim.launch` 的 `faster_lio_sim.yaml`）、`m2_hdl.launch`、`m2_teb.launch` |
-| 交互式 2D 导航 | `launch/interactive_2d.launch`（MBF + `mbf_goal_bridge.py`；RViz 2D Nav Goal 直接驱动 MBF） |
+| 交互式 2D 导航 | `lite3_bringup/launch/interactive_2d.launch`（MBF + `mbf_goal_bridge.py`；RViz 2D Nav Goal 直接驱动 MBF） |
 | 交互式 3D / 自建图导航 | `framework/app_runner.py --execute --interactive --rviz` + `framework/fixtures/rviz/nav3d.rviz`；自建图入口见 `map_from_pcd.py` 生成物 |
 | 键盘建图（仿真 GT 位姿） | `scripts/mapping_recorder.py` + `scripts/keyboard_teleop.py`；RViz 用 `docker/rviz_mapping3d.rviz` |
 | 机体描述（仿真实际用的） | `urdf/lite3_planar.urdf.xacro`——刚体盒子（只有 fixed 关节）＋雷达位置由 `lidar_z=0.34`、`lidar_pitch_deg=15` 与 `base_to_rslidar` 的 xacro 展开共同确定；参数不是旧固定 `0.38` |
@@ -45,7 +45,7 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 **技术面归属（先读）**：楼梯导航与 3D 导航是**同一技术面**，共用
 `app_runner` + support_map + `support_planner` + `local_native` + `cmd3d_mux` +
 `gazebo_carrier3d`，只是楼梯场景使用图上的 `step/slope` 边和踏面边界语义；
-不是独立栈。2D MBF（`interactive_2d.launch`）是另一套平面栈；3D 建图是产图环节；
+不是独立栈。2D MBF（TOP `lite3_bringup/interactive_2d.launch`）是另一套平面栈；3D 建图是产图环节；
 四足物理/真机爬楼是另一执行面。下面 R1119 平层与 R1121 楼梯是同一 3D 栈的两个场景。
 
 **world vs scene**：`m1_gazebo`／`m2_gazebo` 的参数是完整 `world:=...`（`worlds/*.world`），没有 `scene` 参数；
@@ -91,7 +91,7 @@ z mean **0.9713 m**、max 2.03 m；0 个 >1 s 间隔/xy>0.5 m 段。仍只测 SL
 无导航/运动学、非 formal。只验证 SLAM 时不需要 support_map/app/step 语义；
 地图/楼梯语义缺口只影响 03 导航全链。
 
-- **2D 交互**：`roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
+- **2D 交互**：`roslaunch lite3_bringup interactive_2d.launch rviz:=true`（Gazebo m1 + MBF +
   `mbf_goal_bridge`）；RViz 显示 `/map`、MID360 点云和 Lite3 模型，2D Nav Goal 走 MBF。
 - **3D 交互（预生成图）**：`app_runner.py --app .../nist_sensor_3d.yaml --execute --interactive --rviz`；
   RViz 显示 support surface、Lite3 和路径，Publish Point 选面。
@@ -117,3 +117,5 @@ z mean **0.9713 m**、max 2.03 m；0 个 >1 s 间隔/xy>0.5 m 段。仍只测 SL
   max_step .30 m、wall watchdog 90 s。详见 `docker/README.md` §4.8。
 - 边界：R1121 仍是 `app_carrier` 运动学箱体 + 声明支撑面外扩，不是键盘建图直接产出的
   完整楼梯图、不是四足物理步态/真机；平层 m1 的 §4.7 链不受影响。
+
+当前2D交互编排入口已移至TOP包lite3_bringup，命令见上文；旧95_simulation入口由Git历史追溯，不保留反向include代理。

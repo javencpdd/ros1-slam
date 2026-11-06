@@ -14,7 +14,7 @@
           底盘运动桥不起，机器人不会动）。
 
        ★ 安全链 ★
-       · /cmd_vel 唯一写者 = safe_cmd_vel_mux（60_safety.launch）；
+       · 最终速度通道唯一写者 = 60_safety.launch 中的安全仲裁器；
        · 前方超声 ≤0.3 m → cap 0；≤0.8 m → 0.1；数据过期 fail_cap → 0.1；
        · mux speed_cap_required: true（cap 过期退 blind_cap 0.1）；
        · 感知断流 2 s → 障碍心跳停发 → 本地规划器 fail-closed 停车；
@@ -41,7 +41,7 @@
   <!-- M2：hdl_localization 自研承载（提供 map→base_link；base_link→rslidar 由驱动提供） -->
   <include file="$(find lite3_localization)/launch/hdl_localization.launch"/>
 
-  <!-- M6：安全 mux（/cmd_vel 唯一写者；liveness_m6 心跳在其内） -->
+  <!-- M6：安全仲裁（最终速度通道唯一写者；liveness_m6 心跳在其内） -->
   <include file="$(find lite3_safety)/launch/60_safety.launch">
     <arg name="rviz" value="$(arg rviz)"/>
   </include>

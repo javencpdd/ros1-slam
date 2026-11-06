@@ -1,6 +1,6 @@
 # ros1-slam · Docker 开发与仿真
 
-> 最新更新时间：2026-11-06 15:17:09 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
+> 最新更新时间：2026-11-07 03:29:09 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
 
 x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 ROS1，地图和现场配置各机独立。当前旧算法、地图准备和真机排程仍按[执行队列](../note/计划书v8.1/23_v8.1任务队列.md)保持取消；本文不授权启动硬件。架构与能力边界见[项目架构](../note/架构/项目架构与目录.md)和[进度](../note/进度/README.md)。
 
@@ -168,7 +168,7 @@ docker compose exec sim-viz bash -lc '
   source /opt/ros1-slam/ws/devel/setup.bash
   export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
   export GAZEBO_MASTER_URI=http://127.0.0.1:11345
-  roslaunch lite3_gazebo_sim interactive_2d.launch rviz:=true'
+  roslaunch lite3_bringup interactive_2d.launch rviz:=true'
 ```
 
 RViz **2D Nav Goal** 经 `mbf_goal_bridge` 转成 `/move_base_flex/move_base` action。脚本客户端另开终端：
