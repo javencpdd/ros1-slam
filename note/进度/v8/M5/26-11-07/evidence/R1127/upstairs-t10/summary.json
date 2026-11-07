@@ -1,0 +1,51 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T23:59:25.638556+08:00",
+  "window_id": "R1127-upstairs-t10",
+  "case": "upstairs",
+  "source_commit": "8482d9f9c914286d82573c6e3ec7df7f10f63b84",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -2.612080697994305,
+    1.2000000000000002,
+    1.3648324158959277
+  ],
+  "goal_distance_m": 3.2894396690776406,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_OBSTACLES_STALE": 42,
+    "E_LOCAL_NOT_READY": 56,
+    "E_LOCAL_NO_TRAJECTORY": 99,
+    "track": 497,
+    "E_LOCAL_WORLD_UPDATED": 1,
+    "E_LOCAL_CLOCK": 287,
+    "segment_complete": 726,
+    "hold": 86,
+    "E_LOCAL_SUPPORT": 6363
+  },
+  "max_sample_gap_s": {
+    "pose": 0.19696115198894404,
+    "command": 0.19666240198421292,
+    "gazebo_model": 0.20372462502564304
+  },
+  "clock_ordering": {
+    "initial_ros": 176.728,
+    "source_stamp": 176.729,
+    "received_wall": 202127.069887838,
+    "waited_wall_s": 0.0005519310070667416,
+    "outcome": "accepted",
+    "wait_count": 305,
+    "accepted_count": 301,
+    "timeout_count": 4
+  },
+  "validation_error": "unexpected app subprocess return code: 6",
+  "reason": "First-connection TCP_NODELAY reduced pose-clock waits to four timeouts, but one 14 ms scheduler overrun still revoked an upper-floor trajectory under the unchanged 10 ms deadline. Transport configuration alone does not provide a hard-real-time guarantee.",
+  "trace_sha256": "069d8fe9745b895b7654f032bba11ba3ecd89ae253e3683003547c723cf20885",
+  "app_sha256": "aef098aa95ef1a9fabff02bb3e75a63b1d843317560329bee8c2dc7ece548354",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-t10",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}
