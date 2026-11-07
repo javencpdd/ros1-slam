@@ -273,8 +273,25 @@ def simulation_pose_clock_wait(value, config, sim_clock, profile=None,
     return float(value)
 
 
-def event_sleep(event, seconds):
-    event.wait(seconds)
+class ClockWaiter:
+    def __init__(self):
+        self.condition = threading.Condition()
+        self.generation = 0
+        self.armed_generation = 0
+
+    def arm(self):
+        with self.condition:
+            self.armed_generation = self.generation
+
+    def publish(self):
+        with self.condition:
+            self.generation += 1
+            self.condition.notify_all()
+
+    def __call__(self, seconds):
+        with self.condition:
+            if self.generation == self.armed_generation:
+                self.condition.wait(seconds)
 
 
 def accept_pose_with_clock_wait(pose_input, message, ros_clock, wall_clock, wait_s=0.,
@@ -331,7 +348,10 @@ def accept_pose_with_clock_wait(pose_input, message, ros_clock, wall_clock, wait
     cached_ros = pose_input.guard.last_ros
     if cached_ros is not None and ros_now < cached_ros:
         return rollback(cached_ros, ros_now, received_wall)
+    arm = getattr(sleep, 'arm', None)
     while True:
+        if arm is not None:
+            arm()
         latest_ros, latest_wall = ros_clock(), wall_clock()
         if finite_number(latest_ros) and latest_ros > 0. and latest_ros < previous_ros:
             return rollback(previous_ros, latest_ros, latest_wall)
@@ -614,13 +634,10 @@ def main():
         from rosgraph_msgs.msg import Clock
         rospy.Subscriber('/clock', Clock, on_clock, queue_size=1)
 
-    pose_clock_event = threading.Event()
+    pose_clock_waiter = ClockWaiter()
 
     def on_pose_clock(msg):
-        pose_clock_event.set()
-
-    def pose_clock_sleep(seconds):
-        event_sleep(pose_clock_event, seconds)
+        pose_clock_waiter.publish()
 
     if pose_clock_wait_s > 0.:
         from rosgraph_msgs.msg import Clock
@@ -631,7 +648,7 @@ def main():
             error = accept_pose_with_clock_wait(
                 pose_input, msg, lambda: rospy.Time.now().to_sec(), time.monotonic,
                 wait_s=pose_clock_wait_s,
-                sleep=pose_clock_sleep if pose_clock_wait_s > 0. else time.sleep,
+                sleep=pose_clock_waiter if pose_clock_wait_s > 0. else time.sleep,
                 is_shutdown=rospy.is_shutdown)
             if error:
                 plan_wake.set()

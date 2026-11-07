@@ -472,19 +472,19 @@ class SimulationClockOrderingTests(unittest.TestCase):
 
     def test_clock_event_wakes_wait_without_state_lock(self):
         self.fixture(body=False)
-        event = threading.Event()
+        waiter = node.ClockWaiter()
         ros = {'value': 100.}
         def publish_clock():
             node.time.sleep(.002)
             ros['value'] = 100.001
-            event.set()
+            waiter.publish()
         worker = threading.Thread(target=publish_clock)
         worker.start()
         try:
             with self.lock:
                 error = node.accept_pose_with_clock_wait(
                     self.input, pose(stamp=100.001), lambda: ros['value'], node.time.monotonic,
-                    wait_s=.01, sleep=lambda seconds: node.event_sleep(event, seconds))
+                    wait_s=.01, sleep=waiter)
         finally:
             worker.join(1.)
         self.assertIsNone(error)
@@ -493,12 +493,12 @@ class SimulationClockOrderingTests(unittest.TestCase):
 
     def test_clock_event_wait_keeps_original_deadline(self):
         self.fixture(body=False)
-        event = threading.Event()
+        waiter = node.ClockWaiter()
         started = node.time.monotonic()
         with self.lock:
             error = node.accept_pose_with_clock_wait(
                 self.input, pose(stamp=100.001), lambda: 100., node.time.monotonic,
-                wait_s=.005, sleep=lambda seconds: node.event_sleep(event, seconds))
+                wait_s=.005, sleep=waiter)
         self.assertEqual(error, 'E_LOCAL_CLOCK')
         self.assertEqual(self.input.guard.reason, 'E_POSE_CLOCK_WAIT_TIMEOUT')
         self.assertGreaterEqual(node.time.monotonic() - started, .004)
@@ -507,16 +507,17 @@ class SimulationClockOrderingTests(unittest.TestCase):
     def test_clock_event_arrival_at_sleep_entry_is_not_cleared(self):
         for _ in range(5):
             self.fixture(body=False)
-            event = threading.Event()
             ros = {'value': 100.}
-            def arrived_before_wait(seconds):
-                ros['value'] = 100.001
-                event.set()
-                node.event_sleep(event, seconds)
+            class ArrivingWaiter(node.ClockWaiter):
+                def __call__(self, seconds):
+                    ros['value'] = 100.001
+                    self.publish()
+                    super().__call__(seconds)
+            waiter = ArrivingWaiter()
             with self.lock:
                 error = node.accept_pose_with_clock_wait(
                     self.input, pose(stamp=100.001), lambda: ros['value'], node.time.monotonic,
-                    wait_s=.001, sleep=arrived_before_wait)
+                    wait_s=.001, sleep=waiter)
             self.assertIsNone(error)
             self.assertEqual(self.shared['pose_clock_ordering']['outcome'], 'accepted')
 
