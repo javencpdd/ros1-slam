@@ -1,6 +1,6 @@
 # local_planner · 原生三维局部规划与命令适配
 
-> 最新更新时间：2026-11-07 23:40:38 CST。本次补仿真旧接触的有证明退出；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-08 01:13:35 CST。本次补已启用仿真等待的解释器调度隔离；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 [local_native.py](local_native.py) 在“支撑面 × XY 栅格 × 未来时刻”上搜索有限时域运动，含等待、面内移动和显式有向转层。它从当前状态到局部目标重新规划，不消费全局点列后补时间戳。[path_goal_node.py](path_goal_node.py) 当前只将全局 Path 末点转成局部目标，不能描述为逐点跟踪完整全局路线。
 
@@ -55,6 +55,8 @@ pose/obstacles/localization 需持续心跳，缺失/过期输出零速。PoseSt
 当全局 `/use_sim_time` 为真布尔 true 时，独立节点在 `init_node` 前先建立 `/clock` 的 `tcp_nodelay=True` 订阅并保留句柄至退出。Noetic同话题共享订阅实现，后续内置时钟/等待订阅的默认False不清除已启用的标志，首连接和重连均请求低延迟传输；初始化前后解析的话题必须相同。已初始化的模拟节点不能据事后设置声称修复首连接，因此明确拒绝。wall-time默认路径不增加该订阅。此设置减少小消息传输延迟，不提供硬实时调度保证；原10 ms截止、迟到拒绝与停钟停车规则保持。
 
 `~sim_pose_clock_wait_s` 默认0，保持原有严格未来戳拒绝。仅实验仿真可以显式启用：`/use_sim_time` 必须是真布尔 true，无 robot profile、无 plain-Twist mirror、非 lockstep；等待必须为有限非负数，不超过既有 `experimental_config.command_latency_bound_s`，且严格小于 `input_max_age_s`。非法组合在初始化时拒绝。两层场景选择0.01 s，不据此提高或替代任何既有时钟/支撑/碰撞门值。
+
+只有上述校验通过且等待大于0时，节点在启动规划worker和控制线程之前，将本Python解释器的线程切换目标设为原值与1 ms中的较小值；原值已更短时不调高。该设置影响本解释器所有线程，fork创建的worker继承该值但有独立解释器；外层context的finally在正常退出、异常或清理失败时恢复原值。默认等待0不读取或设置该调度值，真机及其他非法组合仍在此前拒绝。启动日志记录实际切换目标。此优化减少GIL竞争的机会，不保证OS及时调度；原10 ms实际截止、晚到拒绝、原receipt/租约与时间回拨守卫均保持。
 
 该适配只解决不同连接上位姿可能早于本进程内置 `/clock` 到达的顺序问题。回调先持已有共享锁、保留原接收 monotonic，再最多按声明预算作 wall sleep/yield，让独立的 rospy 时钟回调追上原始 source stamp；只有预算内真实追上才进入原 guard，stamp 不改写，pose_at/progress_at 不延后。等待消耗仍计入原租约。控制线程发布前的最新位姿、generation、ROS和墙钟租约复核保持。
 

@@ -9,6 +9,7 @@ import json
 import math
 import multiprocessing as mp
 import queue
+from contextlib import contextmanager
 from pathlib import Path
 import sys
 import threading
@@ -293,6 +294,31 @@ class ClockWaiter:
         with self.condition:
             if self.generation == self.armed_generation:
                 self.condition.wait(seconds)
+
+
+@contextmanager
+def simulation_thread_switch(wait_s):
+    """Reduce interpreter contention only for the validated simulation wait.
+
+    This is a process-local scheduling target, not a deadline guarantee. Keep
+    an already shorter interval and restore the original even on cleanup errors.
+    The default path does not inspect or change interpreter scheduling.
+    """
+    if not finite_number(wait_s) or wait_s < 0.:
+        raise ValueError('invalid pose clock wait')
+    if wait_s == 0.:
+        yield
+        return
+    original = sys.getswitchinterval()
+    target = min(original, .001)
+    changed = target < original
+    try:
+        if changed:
+            sys.setswitchinterval(target)
+        yield
+    finally:
+        if changed:
+            sys.setswitchinterval(original)
 
 
 def accept_pose_with_clock_wait(pose_input, message, ros_clock, wall_clock, wait_s=0.,
@@ -854,89 +880,92 @@ def main():
             # A missing /clock still reaches the zero-speed publish above.
             time.sleep(.02 if sim_clock else .05)
 
-    worker = PlannerWorker(config, profile)
-    last_plan_tick = -1
-    last_plan_epoch = pose_input.guard.epoch
+    with simulation_thread_switch(pose_clock_wait_s):
+        if pose_clock_wait_s > 0.:
+            rospy.loginfo('simulation callback thread switch target: %.6f s', sys.getswitchinterval())
+        worker = PlannerWorker(config, profile)
+        last_plan_tick = -1
+        last_plan_epoch = pose_input.guard.epoch
 
-    def pace(timeout):
-        plan_wake.wait(timeout)
-        plan_wake.clear()
-    thread = threading.Thread(target=control_loop, daemon=True)
-    thread.start()
-    try:
-        while not rospy.is_shutdown():
-            started = time.monotonic()
-            # Simulation fault injection: the independent control/watchdog loop
-            # keeps running while planner refresh is deliberately suspended.
-            if rospy.get_param('~pause_planning', False):
-                pace(.05)
-                continue
-            with lock:
-                stop_latched = shared['stop_latched']
-            if stop_latched:
-                pace(.05)
-                continue
-            payload = worker.poll()
-            if payload is not None:
-                publish_worker_result(shared, payload, pose_input, lock,
-                                      lambda: rospy.Time.now().to_sec(), time.monotonic,
-                                      path_pub, String)
-            with lock:
-                pose_input.check(rospy.Time.now().to_sec(), time.monotonic())
-                snapshot = dict(shared)
-                if pose_input.guard.epoch != last_plan_epoch:
-                    last_plan_tick = -1
-                    last_plan_epoch = pose_input.guard.epoch
-            try:
-                if map_topic:
-                    with lock:
-                        value = shared['map']
-                    if value is None:
-                        pace(max(.01, .2 - (time.monotonic() - started)))
-                        continue
-                else:
-                    with open(map_path, encoding='utf-8') as stream:
-                        value = json.load(stream)
-                    with lock:
-                        shared['map'] = value
-                # Replanning from a held contact pose while its command is
-                # still being executed changes direction mid-phase and loses
-                # the state/time relation used by collision prediction.
-                if snapshot['result'] is not None:
-                    pace(max(.01, .2 - (time.monotonic() - started)))
+        def pace(timeout):
+            plan_wake.wait(timeout)
+            plan_wake.clear()
+        thread = threading.Thread(target=control_loop, daemon=True)
+        thread.start()
+        try:
+            while not rospy.is_shutdown():
+                started = time.monotonic()
+                # Simulation fault injection: the independent control/watchdog loop
+                # keeps running while planner refresh is deliberately suspended.
+                if rospy.get_param('~pause_planning', False):
+                    pace(.05)
                     continue
-                reason = snapshot.get('pose_error') or freshness(started, snapshot['pose_at'], snapshot['obstacles_at'],
-                                   snapshot['localization_at'], snapshot['localization_ok'], max_age)
-                stamp = rospy.Time.now().to_sec()
-                if reason is None and snapshot['pose'] is not None and snapshot['goal'] is not None and stamp > 0:
-                    if sim_clock and plan_sim_tick_s > 0:
-                        tick = int(math.floor(stamp / plan_sim_tick_s + 1e-9))
-                        if tick == last_plan_tick:
+                with lock:
+                    stop_latched = shared['stop_latched']
+                if stop_latched:
+                    pace(.05)
+                    continue
+                payload = worker.poll()
+                if payload is not None:
+                    publish_worker_result(shared, payload, pose_input, lock,
+                                          lambda: rospy.Time.now().to_sec(), time.monotonic,
+                                          path_pub, String)
+                with lock:
+                    pose_input.check(rospy.Time.now().to_sec(), time.monotonic())
+                    snapshot = dict(shared)
+                    if pose_input.guard.epoch != last_plan_epoch:
+                        last_plan_tick = -1
+                        last_plan_epoch = pose_input.guard.epoch
+                try:
+                    if map_topic:
+                        with lock:
+                            value = shared['map']
+                        if value is None:
                             pace(max(.01, .2 - (time.monotonic() - started)))
                             continue
-                        last_plan_tick = tick
-                    if not worker.submit(value, snapshot['pose'], snapshot['goal'],
-                                         snapshot['obstacles'], stamp, snapshot['generation']):
-                        if not worker.process.is_alive():
-                            with lock:
-                                shared.update(result=None, last_error='E_LOCAL_PLANNER_DEAD')
-                else:
+                    else:
+                        with open(map_path, encoding='utf-8') as stream:
+                            value = json.load(stream)
+                        with lock:
+                            shared['map'] = value
+                    # Replanning from a held contact pose while its command is
+                    # still being executed changes direction mid-phase and loses
+                    # the state/time relation used by collision prediction.
+                    if snapshot['result'] is not None:
+                        pace(max(.01, .2 - (time.monotonic() - started)))
+                        continue
+                    reason = snapshot.get('pose_error') or freshness(started, snapshot['pose_at'], snapshot['obstacles_at'],
+                                       snapshot['localization_at'], snapshot['localization_ok'], max_age)
+                    stamp = rospy.Time.now().to_sec()
+                    if reason is None and snapshot['pose'] is not None and snapshot['goal'] is not None and stamp > 0:
+                        if sim_clock and plan_sim_tick_s > 0:
+                            tick = int(math.floor(stamp / plan_sim_tick_s + 1e-9))
+                            if tick == last_plan_tick:
+                                pace(max(.01, .2 - (time.monotonic() - started)))
+                                continue
+                            last_plan_tick = tick
+                        if not worker.submit(value, snapshot['pose'], snapshot['goal'],
+                                             snapshot['obstacles'], stamp, snapshot['generation']):
+                            if not worker.process.is_alive():
+                                with lock:
+                                    shared.update(result=None, last_error='E_LOCAL_PLANNER_DEAD')
+                    else:
+                        with lock:
+                            shared.update(result=None, last_error=reason or 'E_LOCAL_NOT_READY')
+                except (OSError, ValueError, KeyError) as error:
                     with lock:
-                        shared.update(result=None, last_error=reason or 'E_LOCAL_NOT_READY')
-            except (OSError, ValueError, KeyError) as error:
-                with lock:
-                    shared.update(result=None, last_error=getattr(error, 'code', 'E_LOCAL_INPUT'))
-                rospy.logwarn_throttle(2., 'local planner input error: %s', error)
-            pending = worker.pending is not None
-            pace(.02 if pending else max(.01, .2 - (time.monotonic() - started)))
-    finally:
-        command_pub.publish(TwistStamped())
-        if twist_pub is not None:
-            twist_pub.publish(Twist())
-        thread.join(timeout=1.)
-        worker.close()
-        if clock_transport is not None:
-            clock_transport.unregister()
+                        shared.update(result=None, last_error=getattr(error, 'code', 'E_LOCAL_INPUT'))
+                    rospy.logwarn_throttle(2., 'local planner input error: %s', error)
+                pending = worker.pending is not None
+                pace(.02 if pending else max(.01, .2 - (time.monotonic() - started)))
+        finally:
+            command_pub.publish(TwistStamped())
+            if twist_pub is not None:
+                twist_pub.publish(Twist())
+            thread.join(timeout=1.)
+            worker.close()
+            if clock_transport is not None:
+                clock_transport.unregister()
 
 
 if __name__ == '__main__':

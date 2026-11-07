@@ -611,6 +611,101 @@ class ClockTransportTests(unittest.TestCase):
                 handle.unregister.assert_called_once_with()
 
 
+class SimulationThreadSwitchTests(unittest.TestCase):
+    def test_default_does_not_read_or_change_interpreter_scheduling(self):
+        with mock.patch.object(node.sys, 'getswitchinterval') as read, \
+                mock.patch.object(node.sys, 'setswitchinterval') as write:
+            with node.simulation_thread_switch(0.):
+                pass
+            read.assert_not_called()
+            write.assert_not_called()
+
+    def test_invalid_wait_never_changes_interpreter_scheduling(self):
+        for value in (True, False, -.001, math.nan, math.inf, '0.01'):
+            with self.subTest(value=value), mock.patch.object(node.sys, 'getswitchinterval') as read, \
+                    mock.patch.object(node.sys, 'setswitchinterval') as write:
+                with self.assertRaises(ValueError), node.simulation_thread_switch(value):
+                    pass
+                read.assert_not_called()
+                write.assert_not_called()
+
+    def test_positive_wait_reduces_then_restores_original_interval(self):
+        with mock.patch.object(node.sys, 'getswitchinterval', return_value=.005), \
+                mock.patch.object(node.sys, 'setswitchinterval') as write:
+            with node.simulation_thread_switch(.01):
+                write.assert_called_once_with(.001)
+            self.assertEqual(write.call_args_list, [mock.call(.001), mock.call(.005)])
+
+    def test_already_shorter_or_equal_interval_is_never_increased(self):
+        for original in (.0005, .001):
+            with self.subTest(original=original), \
+                    mock.patch.object(node.sys, 'getswitchinterval', return_value=original), \
+                    mock.patch.object(node.sys, 'setswitchinterval') as write:
+                with node.simulation_thread_switch(.01):
+                    pass
+                write.assert_not_called()
+
+    def test_base_exception_and_entry_failure_restore_original_interval(self):
+        class Interrupted(BaseException):
+            pass
+        with mock.patch.object(node.sys, 'getswitchinterval', return_value=.005), \
+                mock.patch.object(node.sys, 'setswitchinterval') as write:
+            with self.assertRaises(Interrupted), node.simulation_thread_switch(.01):
+                raise Interrupted()
+            self.assertEqual(write.call_args_list, [mock.call(.001), mock.call(.005)])
+        with mock.patch.object(node.sys, 'getswitchinterval', return_value=.005), \
+                mock.patch.object(node.sys, 'setswitchinterval', side_effect=[RuntimeError('set'), None]) as write:
+            with self.assertRaisesRegex(RuntimeError, 'set'), node.simulation_thread_switch(.01):
+                self.fail('failed setup entered the body')
+            self.assertEqual(write.call_args_list, [mock.call(.001), mock.call(.005)])
+
+    def test_main_encloses_worker_thread_and_cleanup_even_when_cleanup_raises(self):
+        original = sys.getswitchinterval()
+        for broken_cleanup in (False, True):
+            events = []
+            class Worker:
+                def __init__(self, *args):
+                    events.append(('worker', sys.getswitchinterval()))
+                def close(self):
+                    events.append(('close', sys.getswitchinterval()))
+                    if broken_cleanup:
+                        raise RuntimeError('cleanup')
+            class Thread:
+                def __init__(self, **kwargs):
+                    pass
+                def start(self):
+                    events.append(('thread', sys.getswitchinterval()))
+                def join(self, **kwargs):
+                    events.append(('join', sys.getswitchinterval()))
+            rospy = types.ModuleType('rospy')
+            params = {'/use_sim_time': True, '~map_topic': '/map', '~sim_pose_clock_wait_s': .01}
+            rospy.get_param = lambda name, default=None: params.get(name, default)
+            rospy.Publisher = Publisher
+            rospy.Subscriber = lambda *args, **kwargs: None
+            rospy.is_shutdown = lambda: True
+            rospy.loginfo = mock.Mock()
+            geometry = types.ModuleType('geometry_msgs.msg')
+            geometry.PoseStamped, geometry.Twist, geometry.TwistStamped = object, Twist, Stamped
+            std = types.ModuleType('std_msgs.msg')
+            std.Bool, std.String = Data, Data
+            clock = types.ModuleType('rosgraph_msgs.msg')
+            clock.Clock = object
+            modules = {'rospy': rospy, 'geometry_msgs.msg': geometry,
+                       'std_msgs.msg': std, 'rosgraph_msgs.msg': clock}
+            with self.subTest(broken_cleanup=broken_cleanup), mock.patch.dict(sys.modules, modules), \
+                    mock.patch.object(node, 'initialize_local_node', return_value=None), \
+                    mock.patch.object(node, 'PlannerWorker', Worker), \
+                    mock.patch.object(node.threading, 'Thread', Thread):
+                if broken_cleanup:
+                    with self.assertRaisesRegex(RuntimeError, 'cleanup'):
+                        node.main()
+                else:
+                    node.main()
+            self.assertEqual([name for name, value in events], ['worker', 'thread', 'join', 'close'])
+            self.assertTrue(all(value == min(original, .001) for name, value in events))
+            self.assertEqual(sys.getswitchinterval(), original)
+
+
 class MainLoopTests(unittest.TestCase):
     def test_real_main_event_timeout_reaches_a_well_formed_zero_publish(self):
         done={'value':False};pubs={};waits=[]
