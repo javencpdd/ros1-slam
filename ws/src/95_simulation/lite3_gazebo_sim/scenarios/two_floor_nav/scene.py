@@ -180,6 +180,7 @@ def artifact_bytes():
              'radius_m': RADIUS, 'height_m': HEIGHT, 'clearance_m': CLEARANCE,
              'goal_tolerance_m': .20, 'max_expansions': 20000},
            'input_max_age_s': 1., 'wall_watchdog_s': 90., 'sim_pose_clock_wait_s': .01,
+           'sim_contact_egress': True,
            'map_topic': '/v8_support_map', 'pose_topic': '/v8/local/pose',
            'goal_topic': '/v8/local/goal', 'obstacles_topic': '/v8/local/obstacles',
            'localization_topic': '/v8/local/localization_ok', 'command_topic': '/v8/local/cmd_vel_3d',

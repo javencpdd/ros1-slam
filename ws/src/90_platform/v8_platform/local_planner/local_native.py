@@ -19,6 +19,7 @@ import validate as contract
 import trajectory_checker as checker
 import enforcement
 import support_map as rep
+import contact_egress as contact_geometry
 
 SUPPORT_TOL_S = 1e-6
 
@@ -295,7 +296,7 @@ def _surface_blocks(map_value, surface, a, b, config, height_m, cells=None):
     return False
 
 
-def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
+def body_collision(map_value, a, b, obstacles, config, contacts=(None, None), contact_egress=None):
     """Recheck a whole executed segment at its actual activation timestamps."""
     source, target = contacts
     allowed = set()
@@ -311,6 +312,9 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
     cell_sets = {surface['surface_id']: rep.surface_cells(surface)
                  for surface in map_value['surfaces']}
     for surface in map_value['surfaces']:
+        if (type(contact_egress) is contact_geometry.ContactWindow
+                and contact_egress.permits(map_value, surface, a, b, config)):
+            continue
         if transfer and surface['surface_id'] in (source, target):
             continue
         if (surface['surface_id'] in steppable and surface['surface_id'] != source
@@ -333,7 +337,7 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None)):
 
 
 def track_segment(map_value, result, pose, now, obstacles, config=None, control_period_s=.05,
-                  feedback_pose=None, uncertainty_m=0., previous_velocity=None):
+                  feedback_pose=None, uncertainty_m=0., previous_velocity=None, contact_egress=None):
     """Execute one accepted local segment using actual position feedback.
 
     The node must finish/reject this segment before searching from a new pose.
@@ -350,11 +354,17 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     if not math.isfinite(now) or now < result['created_at'] or now >= result['valid_until']:
         return dict(zero, reason='E_LOCAL_EXPIRED')
     points = result['trajectory']
-    a, target = points[0], points[1]
+    index = 0
+    if contact_egress is not None:
+        if (type(contact_egress) is not contact_geometry.ContactEgress
+                or not contact_egress.valid_for(map_value, result, config)):
+            return dict(zero, reason='E_LOCAL_INPUT')
+        index = contact_egress.index
+    a, target = points[index], points[index + 1]
     duration = target[3] - a[3]
     distance = _distance(pose, target)
     planned_distance = _distance(a, target)
-    contacts = tuple(result['surfaces'][:2])
+    contacts = tuple(result['surfaces'][index:index + 2])
     observed = pose if feedback_pose is None else _xyz(feedback_pose, 'actual feedback pose')
     previous = _xyz(previous_velocity, 'previous velocity') if previous_velocity is not None else (0., 0., 0.)
     tail = config.command_latency_bound_s * math.sqrt(sum(v * v for v in previous))
@@ -370,6 +380,12 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     motion_bound = travel_bound + config.radius_m + config.height_m + config.clearance_m
     if not math.isfinite(travel_bound) or uncertainty_m > motion_bound:
         return dict(zero, reason='hold')
+    contact_window = None
+    if contact_egress is not None:
+        contact_window = contact_egress.window(observed, pose, previous, uncertainty_m,
+                                               _support_contains_segment)
+        if contact_window is None:
+            return dict(zero, reason='hold')
     support = _support_at(map_value, observed, config)
     target_supported = support is not None and support['surface_id'] == contacts[1]
     predicted_support = _support_at(map_value, pose, config)
@@ -387,7 +403,7 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
                 return dict(zero, reason='E_LOCAL_SUPPORT')
             return dict(zero, reason='segment_complete' if tail_supported else 'hold',
                         complete=bool(tail_supported))
-        collision = body_collision(map_value, (*pose, now), (*pose, target[3]), obstacles, config, contacts)
+        collision = body_collision(map_value, (*pose, now), (*pose, target[3]), obstacles, config, contacts, contact_window)
         return dict(zero, reason='E_LOCAL_COLLISION' if collision else 'hold')
     # A low-speed legged carrier can overshoot a short committed step.  Chasing
     # that fixed waypoint backwards causes forward/backward oscillation; once
@@ -413,7 +429,7 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     remaining_time = max(control_period_s, distance / speed)
     collision_config = replace(config, radius_m=config.radius_m + uncertainty_m)
     collision = body_collision(map_value, (*pose, now), (*target[:3], now + remaining_time),
-                               obstacles, collision_config, contacts)
+                               obstacles, collision_config, contacts, contact_window)
     if collision:
         return dict(zero, reason='E_LOCAL_COLLISION', collision=collision)
     # Prediction can already be across a cell boundary while raw feedback is
@@ -422,7 +438,7 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     # collision check above and also check the actual correction sweep.
     if not target_supported and observed_distance <= 5e-6 and distance <= 5e-6:
         collision = body_collision(map_value, (*observed, now), (*target[:3], now + remaining_time),
-                                   obstacles, collision_config, contacts)
+                                   obstacles, collision_config, contacts, contact_window)
         if collision:
             return dict(zero, reason='E_LOCAL_COLLISION', collision=collision)
         pose, distance = observed, observed_distance
@@ -457,7 +473,13 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
         if not _support_contains_segment(support, map_value['resolution'], pose, uncertain_end,
                                          config, cells=target_cells):
             return dict(zero, reason='hold')
-    return {'velocity': [(target[i] - pose[i]) * scale for i in range(3)],
+    velocity = [(target[i] - pose[i]) * scale for i in range(3)]
+    if contact_window is not None and contact_window.allow_old:
+        end = tuple(pose[i] + velocity[i] * (control_period_s + config.command_latency_bound_s)
+                    for i in range(3))
+        if not contact_egress.outward(pose, end, uncertainty_m):
+            return dict(zero, reason='hold')
+    return {'velocity': velocity,
             'stop': False, 'complete': False, 'reason': 'track',
             'segment_target': list(target[:3]), 'execution_checked_at': now}
 
