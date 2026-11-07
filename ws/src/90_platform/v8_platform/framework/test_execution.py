@@ -99,6 +99,26 @@ class AppFixture:
 
 
 class ExecutionTests(unittest.TestCase):
+    def test_path_summary_allows_missing_or_empty_global_path(self):
+        self.assertIsNone(app_runner.path_summary(None))
+        path = Mock(poses=[])
+        self.assertIsNone(app_runner.path_summary(path))
+        point = Mock()
+        point.pose.position.x, point.pose.position.y, point.pose.position.z = 1., 2., 3.
+        path = Mock(poses=[point])
+        self.assertEqual(app_runner.path_summary(path), {'poses': 1, 'last': [1., 2., 3.]})
+
+    def test_exit_hold_uses_existing_gate_before_assembly_stop(self):
+        hold = Mock()
+        sleep = Mock()
+        app_runner.quiesce_before_stop(hold, Mock, False, sleep=sleep)
+        self.assertEqual(hold.publish.call_args.args[0].data, True)
+        sleep.assert_called_once_with(.15)
+        app_runner.quiesce_before_stop(hold, Mock, True, sleep=sleep)
+        self.assertEqual(hold.publish.call_count, 1)
+        app_runner.quiesce_before_stop(None, Mock, False, sleep=sleep)
+        self.assertEqual(sleep.call_count, 1)
+
     def test_owned_gazebo_clock_is_selected_before_node_initialization(self):
         ros = Mock()
         app_runner.initialize_ros_node(ros, gazebo_clock=True)

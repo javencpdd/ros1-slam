@@ -154,6 +154,20 @@ def initialize_ros_node(rospy, gazebo_clock=False):
     rospy.init_node('navigation_app_runner', anonymous=True, disable_signals=True)
 
 
+def path_summary(path):
+    if path is None or not path.poses:
+        return None
+    return {'poses': len(path.poses),
+            'last': [path.poses[-1].pose.position.x, path.poses[-1].pose.position.y,
+                     path.poses[-1].pose.position.z]}
+
+
+def quiesce_before_stop(hold_pub, bool_type, real, sleep=time.sleep):
+    if not real and hold_pub is not None:
+        hold_pub.publish(bool_type(data=True))
+        sleep(.15)
+
+
 def trace_observer(trace, kind, convert, ros_clock, wall_clock=time.monotonic, period_s=0.):
     """Observe current messages at a bounded rate, without queuing old samples."""
     last_at = [-1e100]
@@ -217,6 +231,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
     joint_state = None
     pose_tf = None
     assembly = None
+    hold_pub = None
     old_handlers = {}
     stop_requested = {'value': False}
     result = {'scope': 'navigation_app_execute', 'app': str(resolved['app_path']),
@@ -446,10 +461,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 break
             time.sleep(.1)
         path = state['path']
-        result['path'] = None if path is None else {
-            'poses': len(path.poses),
-            'last': [path.poses[-1].pose.position.x, path.poses[-1].pose.position.y,
-                     path.poses[-1].pose.position.z]}
+        result['path'] = path_summary(path)
         result['local_trajectory'] = None if state['trajectory'] is None else {
             'map_version': state['trajectory'].get('map_version'),
             'reason': state['trajectory'].get('reason'),
@@ -490,6 +502,10 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         result['error'] = repr(error)
         result['traceback'] = traceback.format_exc()
     finally:
+        try:
+            quiesce_before_stop(hold_pub, Bool, real)
+        except Exception as error:
+            result['stop_error'] = repr(error)
         if assembly is not None:
             try:
                 assembly.stop()

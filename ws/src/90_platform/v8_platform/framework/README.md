@@ -1,6 +1,6 @@
 # framework · YAML 组件图与导航应用
 
-> 最新更新时间：2026-11-06 15:21:18 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-07 17:18:56 CST。本次补应用空路径摘要与退出零速 hold；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
 
@@ -55,7 +55,7 @@ launch 支持：
 
 manifest 的 node/plugin remap 会追加到命令；图边 remap 仍不能视为通用运行期自动改线。include 无通用 remap；nodelet 在既有探针中未按传入 remap 改题名，端口 topic/namespace 必须与真实发布订阅一致。临时 launch/参数规格文件不会由当前 default_command 自动回收。
 
-Assembly 真正启动进程，条件就绪/失败清理/运行健康/停止链由 [orchestrator](../orchestrator/README.md) 承担；调用方须驱动健康检查。mux 最后停不替代消息级实时看门狗。
+Assembly 真正启动进程，条件就绪/失败清理/运行健康/停止链由 [orchestrator](../orchestrator/README.md) 承担；调用方须驱动健康检查。mux 最后停不替代消息级实时看门狗。`app_runner` 对缺失或空全局路径生成空摘要，不取末点；仿真退出先通过既有 hold 通道请求 mux 零速并留出观测时间，再停止 Assembly，不新增 `/cmd_vel` 旁路。
 
 ## 运行模式与机器人身份
 
