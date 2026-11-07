@@ -1,0 +1,62 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T15:46:53+08:00",
+  "window_id": "R1127-upstairs-r5",
+  "case": "upstairs",
+  "source_commit": "fa8180e489dfc84bb24d22ea763e6ef75268f6f2",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -0.9786818921762215,
+    1.2000000000000002,
+    1.0314728420758659
+  ],
+  "goal_distance_m": 4.92233399094314,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 43,
+    "E_LOCAL_OBSTACLES_STALE": 51,
+    "E_LOCAL_NO_TRAJECTORY": 103,
+    "E_LOCAL_CLOCK": 460,
+    "track": 487,
+    "hold": 17,
+    "segment_complete": 457,
+    "E_LOCAL_SUPPORT": 6827
+  },
+  "max_sample_gap_s": {
+    "pose": 0.1798915209947154,
+    "command": 0.18151109901373275,
+    "model": 0.19943491800222546
+  },
+  "clock_ordering": {
+    "wait_count": 294,
+    "accepted_count": 287,
+    "timeout_count": 7,
+    "fatal_wait": {
+      "initial_ros": 41.06,
+      "source_stamp": 41.068,
+      "waited_wall_s": 0.012794467998901382,
+      "budget_s": 0.01,
+      "outcome": "E_POSE_CLOCK_WAIT_TIMEOUT"
+    }
+  },
+  "active_segment_at_fatal_wait": {
+    "source_surface": "step06",
+    "target_surface": "step07",
+    "target": [
+      -1.1999999999999997,
+      1.2000000000000002,
+      1.12,
+      41.429
+    ]
+  },
+  "reason": "A pose clock wait resumed after the original 10ms deadline and correctly revoked the active trajectory. The subsequent planning source was between discrete step supports, producing E_LOCAL_SUPPORT. No source, threshold, or historical result was changed.",
+  "trace_sha256": "d5e1f2ec6a33b0f9800e1d809c92a7143a4c5caa16224afcd6bd52b9e8dd084d",
+  "app_sha256": "12503b7f9fe2ae69116a248cb7545f7a2e4affb96fc2af351e980ff962d54945",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r5",
+  "capture_scope": "Trace capture, finite values, source clocks, sample coverage, Gazebo pairing and command integration passed through validation.py's arrival check; motion/arrival remains FAIL.",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

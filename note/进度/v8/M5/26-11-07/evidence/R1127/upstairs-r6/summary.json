@@ -1,0 +1,64 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T15:51:43+08:00",
+  "window_id": "R1127-upstairs-r6",
+  "case": "upstairs",
+  "source_commit": "fa8180e489dfc84bb24d22ea763e6ef75268f6f2",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    2.7988403923878162,
+    1.2000000000000004,
+    0.32
+  ],
+  "goal_distance_m": 8.69941516265535,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 52,
+    "E_LOCAL_OBSTACLES_STALE": 50,
+    "E_LOCAL_NO_TRAJECTORY": 112,
+    "E_LOCAL_CLOCK": 587,
+    "track": 163,
+    "hold": 3,
+    "segment_complete": 194,
+    "E_LOCAL_SUPPORT": 7499
+  },
+  "max_sample_gap_s": {
+    "pose": 0.19366904100752436,
+    "command": 0.2088394329766743,
+    "model": 0.20158531598281115
+  },
+  "clock_ordering": {
+    "wait_count": 104,
+    "accepted_count": 97,
+    "timeout_count": 7,
+    "note": "All seven waits occurred before the final accepted-source segment; the terminal refusal was not a new clock timeout."
+  },
+  "terminal_transition": {
+    "source_surface": "step01",
+    "target_surface": "step02",
+    "target": [
+      2.800000000000001,
+      1.2000000000000002,
+      0.32,
+      27.531
+    ],
+    "source_stamp": 28.253,
+    "actual_pose": [
+      2.798944544270814,
+      1.2000000000000004,
+      0.3213405496344323
+    ],
+    "horizontal_overshoot_m": 0.001055456457528,
+    "target_z_error_m": 0.0013405496344323,
+    "reason": "The same-surface unsupported-overshoot refusal also fired during a declared 3D step transfer. It must not certify completion or reject solely for this intermediate transfer state; tracking must continue until actual target support and the original completion predicates hold."
+  },
+  "trace_sha256": "79a46a2ad9cbcfd6d2b64cf4663a18b7b1f7879b03346e54913a440e05abb208",
+  "app_sha256": "911f04a0e1329fa5fc56cf02b71ead7cd6f95e1fcfb4e154cd400644ede39bf6",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r6",
+  "capture_scope": "Trace capture, finite values, source clocks, sample coverage, Gazebo pairing and command integration passed through validation.py's arrival check; motion/arrival remains FAIL.",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

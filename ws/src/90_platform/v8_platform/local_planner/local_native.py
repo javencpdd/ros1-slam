@@ -391,12 +391,13 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
         return dict(zero, reason='E_LOCAL_COLLISION' if collision else 'hold')
     # A low-speed legged carrier can overshoot a short committed step.  Chasing
     # that fixed waypoint backwards causes forward/backward oscillation; once
-    # the observed pose is past the waypoint along the segment, advance.
+    # the observed pose is past the waypoint along the segment, advance. A
+    # declared transfer instead keeps tracking until its target support holds.
     dx, dy = target[0] - a[0], target[1] - a[1]
     horizontal = math.hypot(dx, dy)
     overshot = (horizontal > 1e-9 and
                 (observed[0] - target[0]) * dx + (observed[1] - target[1]) * dy > 1e-3 * horizontal)
-    if overshot and not target_supported:
+    if overshot and not target_supported and contacts[0] == contacts[1]:
         return dict(zero, reason='E_LOCAL_SUPPORT')
     # A zero command still has the previous command's transport tail. Keep the
     # committed segment until that entire tail stays on its target support.

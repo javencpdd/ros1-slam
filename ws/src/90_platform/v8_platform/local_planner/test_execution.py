@@ -217,6 +217,24 @@ class ExecutionTests(unittest.TestCase):
             surface, value['resolution'], estimate, uncertain_end, cfg,
             cells=native.rep.surface_cells(surface)), out)
 
+    def test_r6_transfer_overshoot_continues_without_certifying_completion(self):
+        value, _, cfg = two_floor_boundary()
+        points = [(3.200000581520538, 1.2000000000000004, .16, 26.331),
+                  (2.800000000000001, 1.2000000000000002, .32, 27.531),
+                  (2.4000000000000012, 1.2000000000000002, .32, 28.730999999999998)]
+        result = dict(ok=True, reason='horizon', trajectory=points,
+                      surfaces=['step01', 'step02', 'step02'],
+                      map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=26.331, valid_until=34.730999)
+        raw = (2.798944544270814, 1.2000000000000004, .3213405496344323)
+        out = native.track_segment(value, result, raw, 28.253, [], cfg,
+                                   feedback_pose=raw,
+                                   previous_velocity=(-.005203299868033577, 0., .06632328429074345))
+        self.assertEqual(out['reason'], 'track', out)
+        self.assertFalse(out['complete'])
+        self.assertGreater(out['velocity'][0], 0., out)
+        self.assertLess(out['velocity'][2], 0., out)
+
     def test_extreme_uncertainty_fails_closed_before_collision_expansion(self):
         value, result, cfg = self.r4_step07_boundary()
         raw = (-1.5941907245137572, 1.2000000000000002, 1.12)
