@@ -70,6 +70,61 @@ def _distance(a, b):
     return math.sqrt(sum((x - y) ** 2 for x, y in zip(a[:3], b[:3])))
 
 
+def _support_at(map_value, point, config, surfaces=None, cell_sets=None):
+    """Resolve a contact with the same cells, radius and z rule as planning."""
+    if surfaces is None:
+        surfaces = {s['surface_id']: s for s in map_value['surfaces']
+                    if s['traversability'] == 'supported'}
+    if cell_sets is None:
+        cell_sets = {sid: rep.surface_cells(s) for sid, s in surfaces.items()}
+    choices = [s for sid, s in surfaces.items()
+               if rep.contains_xy(s, map_value['resolution'], point[0], point[1],
+                                  config.radius_m, cells=cell_sets[sid])
+               and abs(point[2] - s['z_reference']) <= config.support_tol_m]
+    return rep.select_support(choices, point[2])
+
+
+def _support_contains_segment(surface, resolution, a, b, config, cells=None):
+    """Check the complete stop tail against its declared target support.
+
+    Cell maps may have holes even when both endpoints are supported. Split at
+    every exact cell boundary (including contains_xy's existing offset), then
+    check each boundary and open interval. Cell-less shrunk boxes are convex.
+    """
+    if (not math.isfinite(resolution) or resolution <= 0.
+            or any(not math.isfinite(v) for p in (a, b) for v in p[:3])
+            or any(abs(p[2] - surface['z_reference']) > config.support_tol_m for p in (a, b))):
+        return False
+    times = {0., 1.}
+    if cells is not None:
+        normalized = [tuple(p[axis] / resolution + 1e-9 for axis in (0, 1)) for p in (a, b)]
+        if any(not math.isfinite(v) for p in normalized for v in p):
+            return False
+        indices = [tuple(math.floor(v) for v in p) for p in normalized]
+        if any(index not in cells for index in indices):
+            return False
+        # Every crossed column/row needs at least one support cell. This
+        # necessary coverage bound also caps enumeration by the actual map,
+        # even for finite but enormous velocities or sparse distant endpoints.
+        if any(abs(indices[1][axis] - indices[0][axis]) + 1 > len(cells) for axis in (0, 1)):
+            return False
+        for axis in (0, 1):
+            start, end = normalized[0][axis], normalized[1][axis]
+            if start == end:
+                continue
+            for boundary in range(min(indices[0][axis], indices[1][axis]) + 1,
+                                  max(indices[0][axis], indices[1][axis]) + 1):
+                fraction = (boundary - start) / (end - start)
+                if 0. < fraction < 1.:
+                    times.add(fraction)
+    ordered = sorted(times)
+    probes = ordered + [(lo + hi) / 2 for lo, hi in zip(ordered, ordered[1:])]
+    return all(rep.contains_xy(surface, resolution,
+                               a[0] * (1. - t) + b[0] * t,
+                               a[1] * (1. - t) + b[1] * t,
+                               config.radius_m, cells=cells) for t in probes)
+
+
 def _obstacles(values):
     if not isinstance(values, (list, tuple)):
         raise LocalError('E_LOCAL_INPUT', 'obstacles must be a list of box predictions')
@@ -300,40 +355,84 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     distance = _distance(pose, target)
     planned_distance = _distance(a, target)
     contacts = tuple(result['surfaces'][:2])
+    observed = pose if feedback_pose is None else _xyz(feedback_pose, 'actual feedback pose')
+    previous = _xyz(previous_velocity, 'previous velocity') if previous_velocity is not None else (0., 0., 0.)
+    tail = config.command_latency_bound_s * math.sqrt(sum(v * v for v in previous))
+    support = _support_at(map_value, observed, config)
+    target_supported = support is not None and support['surface_id'] == contacts[1]
+    predicted_support = _support_at(map_value, pose, config)
+    predicted_target_supported = predicted_support is not None and predicted_support['surface_id'] == contacts[1]
+    tail_end = tuple(pose[i] + previous[i] * config.command_latency_bound_s for i in range(3))
+    target_cells = rep.surface_cells(support) if target_supported else None
+    tail_supported = (target_supported and predicted_target_supported
+                      and _support_contains_segment(support, map_value['resolution'], observed, pose,
+                                                    config, cells=target_cells)
+                      and _support_contains_segment(support, map_value['resolution'], pose, tail_end,
+                                                    config, cells=target_cells))
     if planned_distance <= 1e-12:
         if now >= target[3]:
-            return dict(zero, reason='segment_complete', complete=True)
+            if not target_supported:
+                return dict(zero, reason='E_LOCAL_SUPPORT')
+            return dict(zero, reason='segment_complete' if tail_supported else 'hold',
+                        complete=bool(tail_supported))
         collision = body_collision(map_value, (*pose, now), (*pose, target[3]), obstacles, config, contacts)
         return dict(zero, reason='E_LOCAL_COLLISION' if collision else 'hold')
-    observed = pose if feedback_pose is None else tuple(feedback_pose)
     # A low-speed legged carrier can overshoot a short committed step.  Chasing
     # that fixed waypoint backwards causes forward/backward oscillation; once
     # the observed pose is past the waypoint along the segment, advance.
     dx, dy = target[0] - a[0], target[1] - a[1]
     horizontal = math.hypot(dx, dy)
-    if (planned_distance > 1e-12 and horizontal > 1e-9 and
-            (observed[0] - target[0]) * dx + (observed[1] - target[1]) * dy > 1e-3 * horizontal):
-        return dict(zero, reason='segment_complete', complete=True)
-    previous_speed = math.sqrt(sum(v * v for v in previous_velocity)) if previous_velocity else 0.
-    tail = config.command_latency_bound_s * previous_speed
-    if _distance(observed, target) + tail <= 1e-6:
+    overshot = (horizontal > 1e-9 and
+                (observed[0] - target[0]) * dx + (observed[1] - target[1]) * dy > 1e-3 * horizontal)
+    if overshot and not target_supported:
+        return dict(zero, reason='E_LOCAL_SUPPORT')
+    # A zero command still has the previous command's transport tail. Keep the
+    # committed segment until that entire tail stays on its target support.
+    if target_supported and not tail_supported:
+        return dict(zero, reason='hold')
+    observed_distance = _distance(observed, target)
+    if target_supported and (overshot or observed_distance + tail <= 1e-6):
         return dict(zero, reason='segment_complete', complete=True)
     # The geometric segment is committed; its actual-time collision check below
     # permits feedback tracking up to the existing experimental speed cap. This
     # leaves terminal settling time inside the original trajectory validity.
     speed = config.max_speed_mps
     remaining_time = max(control_period_s, distance / speed)
+    collision_config = replace(config, radius_m=config.radius_m + uncertainty_m)
     collision = body_collision(map_value, (*pose, now), (*target[:3], now + remaining_time),
-                               obstacles, replace(config, radius_m=config.radius_m + uncertainty_m), contacts)
+                               obstacles, collision_config, contacts)
     if collision:
         return dict(zero, reason='E_LOCAL_COLLISION', collision=collision)
+    # Prediction can already be across a cell boundary while raw feedback is
+    # still outside the target support. Only inside the EXISTING creep band,
+    # use raw feedback for the correction direction; retain the prediction's
+    # collision check above and also check the actual correction sweep.
+    if not target_supported and observed_distance <= 5e-6 and distance <= 5e-6:
+        collision = body_collision(map_value, (*observed, now), (*target[:3], now + remaining_time),
+                                   obstacles, collision_config, contacts)
+        if collision:
+            return dict(zero, reason='E_LOCAL_COLLISION', collision=collision)
+        pose, distance = observed, observed_distance
     # Reserve the old command's in-flight tail and this command's own travel
     # over one control period plus the transport bound. The final creep band
     # caps the terminal speed so the tail itself stays inside the 1e-6 band.
     if distance <= 1e-15:
-        return dict(zero, reason='hold')
+        return dict(zero, reason='hold' if target_supported else 'E_LOCAL_SUPPORT')
     if distance <= 5e-6:
         scale = min(speed / distance, 5e-5 / distance)
+        if tail_supported:
+            horizon = control_period_s + config.command_latency_bound_s
+            end = tuple(pose[i] + (target[i] - pose[i]) * scale * horizon for i in range(3))
+            if not _support_contains_segment(support, map_value['resolution'], pose, end,
+                                             config, cells=target_cells):
+                # Reuse the existing travel/tail reserve only when the normal
+                # creep would leave an already acquired support. Applying it
+                # outside that support would strand correction short of a cell.
+                scale = min(scale, max(0., distance - tail - 5e-8) / (horizon * distance))
+                end = tuple(pose[i] + (target[i] - pose[i]) * scale * horizon for i in range(3))
+                if not _support_contains_segment(support, map_value['resolution'], pose, end,
+                                                 config, cells=target_cells):
+                    return dict(zero, reason='hold')
     else:
         horizon = control_period_s + config.command_latency_bound_s
         scale = min(speed / distance, max(0., distance - tail - 5e-8) / (horizon * distance))
@@ -416,13 +515,9 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
                        for s in map_value['surfaces'])
 
     def resolve(point, label):
-        choices = [s for s in surfaces.values() if inside(s, point, margin=config.radius_m)
-                   and abs(point[2] - s['z_reference']) <= config.support_tol_m]
-        if not choices:
+        chosen = _support_at(map_value, point, config, surfaces, cell_sets)
+        if chosen is None:
             raise LocalError('E_LOCAL_SUPPORT', label + ' requires a matching z support')
-        # Support must be at or below the body; two stacked surfaces used to be
-        # an unconditional refusal, which made a 4 cm z bias flip the decision.
-        chosen = rep.select_support(choices, point[2])
         if not safe_ceiling(point, chosen['surface_id']):
             raise LocalError('E_LOCAL_CLEARANCE', label + ' is below a low ceiling')
         return chosen['surface_id']

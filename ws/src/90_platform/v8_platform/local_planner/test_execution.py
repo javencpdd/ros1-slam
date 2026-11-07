@@ -27,7 +27,163 @@ def record(value, points, config=None, execution=None):
     return result
 
 
+def two_floor_boundary():
+    """Committed segment and raw samples preserved from R1127 upstairs-r3.
+
+    The source map stays the real scene artifact; this fixture needs no ROS or
+    external archive. Use a clock within the original segment lease so expiry
+    cannot conceal its completion/support disagreement.
+    """
+    scene = HERE.parents[2] / '95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav'
+    value = json.loads((scene / 'maps/open.json').read_text())
+    cfg = replace(native.Config(), resolution=.4, tick_s=1.2, horizon_s=8.4,
+                  validity_s=20., radius_m=.3, height_m=.5, clearance_m=.05,
+                  goal_tolerance_m=.2)
+    points = [(4.399998579381297, 1.2000004735395717, 0., 7.233),
+              (4., 1.2000000000000002, 0., 8.433),
+              (3.6000000000000005, 1.2000000000000002, .16, 9.633)]
+    result = dict(ok=True, reason='horizon', trajectory=points,
+                  surfaces=['ground_floor', 'ground_floor', 'step01'],
+                  map_id=value['map_id'], map_version=value['map_version'],
+                  created_at=7.233, valid_until=15.632999000000002)
+    return value, result, cfg
+
+
 class ExecutionTests(unittest.TestCase):
+    def test_r3_actual_feedback_cannot_complete_in_removed_ground_cell(self):
+        value, result, cfg = two_floor_boundary()
+        raw = (3.9999990071222777, 1.1999999999988245, 0.)
+        self.assertLess(native._distance(raw, result['trajectory'][1]), 1e-6)
+        with self.assertRaises(native.LocalError) as caught:
+            native.plan(value, raw, (-5.9, 1.1, 1.6), now=8., config=cfg)
+        self.assertEqual(caught.exception.code, 'E_LOCAL_SUPPORT')
+        for estimate in (raw, result['trajectory'][1][:3], (4. + 1e-6, raw[1], 0.)):
+            out = native.track_segment(value, result, estimate, 8., [], cfg,
+                                       feedback_pose=raw, previous_velocity=(0., 0., 0.))
+            self.assertFalse(out['complete'], out)
+            self.assertGreater(out['velocity'][0], 0., out)
+            self.assertAlmostEqual(native._distance(out['velocity'], (0., 0., 0.)), 5e-5, places=15)
+
+    def test_r3_supported_raw_waits_for_outgoing_command_tail(self):
+        value, result, cfg = two_floor_boundary()
+        for gap in (1.0054127e-8, .4e-6):
+            raw = (4. + gap, 1.2, 0.)
+            out = native.track_segment(value, result, raw, 8., [], cfg,
+                                       feedback_pose=raw, previous_velocity=(-5e-5, 0., 0.))
+            self.assertFalse(out['complete'], out)
+            self.assertEqual(out['reason'], 'hold')
+            self.assertEqual(out['velocity'], [0., 0., 0.])
+        # The same tail directed into ground is not a blanket refusal.
+        raw = (4. + .4e-6, 1.2, 0.)
+        inward = native.track_segment(value, result, raw, 8., [], cfg,
+                                      feedback_pose=raw, previous_velocity=(5e-5, 0., 0.))
+        self.assertTrue(inward['complete'], inward)
+        stopped = native.track_segment(value, result, raw, 8., [], cfg,
+                                       feedback_pose=raw, previous_velocity=(0., 0., 0.))
+        self.assertTrue(stopped['complete'], stopped)
+
+    def test_source_age_prediction_cannot_hide_an_already_crossed_boundary(self):
+        value, result, cfg = two_floor_boundary()
+        raw = (4. + .4e-6, 1.2, 0.)
+        velocity = (-2e-5, 0., 0.)
+        predicted = ros_node.feedback_at(raw, 8., 8.03, [(8., velocity)])
+        self.assertLess(predicted[0], 4.)
+        out = native.track_segment(value, result, predicted, 8.03, [], cfg,
+                                   feedback_pose=raw, previous_velocity=velocity)
+        self.assertFalse(out['complete'], out)
+        self.assertEqual(out['velocity'], [0., 0., 0.])
+
+    def test_r3_far_overshoot_and_wrong_layer_hold_are_safe_refusals(self):
+        value, result, cfg = two_floor_boundary()
+        outside = (3.998, 1.2, 0.)
+        out = native.track_segment(value, result, outside, 8., [], cfg, feedback_pose=outside)
+        self.assertFalse(out['complete'])
+        self.assertEqual(out['reason'], 'E_LOCAL_SUPPORT')
+        hold = dict(result, trajectory=[result['trajectory'][1], (4., 1.2, 0., 9.633)],
+                    surfaces=['ground_floor', 'ground_floor'])
+        wrong_layer = (4., 1.2, .16)
+        out = native.track_segment(value, hold, wrong_layer, 10., [], cfg,
+                                   feedback_pose=wrong_layer)
+        self.assertFalse(out['complete'])
+        self.assertEqual(out['reason'], 'E_LOCAL_SUPPORT')
+        micro_outside = (3.9999990071222777, 1.1999999999988245, 0.)
+        early = native.track_segment(value, hold, hold['trajectory'][0][:3], 8.5, [], cfg,
+                                     feedback_pose=micro_outside)
+        self.assertFalse(early['complete'])
+        self.assertEqual(early['reason'], 'hold')
+        due = native.track_segment(value, hold, hold['trajectory'][0][:3], 10., [], cfg,
+                                   feedback_pose=micro_outside)
+        self.assertFalse(due['complete'])
+        self.assertEqual(due['velocity'], [0., 0., 0.])
+        self.assertEqual(due['reason'], 'E_LOCAL_SUPPORT')
+
+    def test_r3_micro_correction_keeps_original_collision_and_lease_guards(self):
+        value, result, cfg = two_floor_boundary()
+        raw = (3.9999990071222777, 1.1999999999988245, 0.)
+        estimate = result['trajectory'][1][:3]
+        box = {'min': [3.9, 1.1, -.1], 'max': [4.1, 1.3, .5]}
+        blocked = native.track_segment(value, result, estimate, 8., [box], cfg,
+                                       feedback_pose=raw)
+        self.assertEqual(blocked['reason'], 'E_LOCAL_COLLISION')
+        expired = native.track_segment(value, result, estimate, result['valid_until'], [], cfg,
+                                       feedback_pose=raw)
+        self.assertEqual(expired['reason'], 'E_LOCAL_EXPIRED')
+        stale = native.track_segment(dict(value, map_version=value['map_version'] + 1),
+                                     result, estimate, 8., [], cfg, feedback_pose=raw)
+        self.assertEqual(stale['reason'], 'E_LOCAL_MAP_STALE')
+        # Raw feedback is not a new recovery authority beyond the old 5e-6 band.
+        far_raw = (4. - 6e-6, 1.2, 0.)
+        refused = native.track_segment(value, result, estimate, 8., [], cfg, feedback_pose=far_raw)
+        self.assertEqual(refused['velocity'], [0., 0., 0.])
+        self.assertFalse(refused['complete'])
+
+    def test_r3_late_stop_and_delayed_feedback_settle_before_next_plan(self):
+        value, result, cfg = two_floor_boundary()
+        for initial_gap in (1.0054127e-8, .4e-6, 1.5e-6):
+            actual = (4. + initial_gap, 1.2, 0.)
+            feedback, feedback_stamp = actual, 8.
+            velocity = previous = (-5e-5, 0., 0.)
+            history = [(7.9, velocity)]
+            pending, samples = [], []
+            next_control, next_sample = 8., 8.02
+            done = False
+            for tick in range(1501):
+                now = 8. + tick * .001
+                if tick:
+                    actual = tuple(actual[i] + velocity[i] * .001 for i in range(3))
+                while pending and pending[0][0] <= now + 1e-10:
+                    _, velocity = pending.pop(0)
+                if now + 1e-10 >= next_sample:
+                    # Preserve source stamp: 20ms sampling, 12ms delivery age.
+                    samples.append((now + .012, actual, now))
+                    next_sample += .02
+                while samples and samples[0][0] <= now + 1e-10:
+                    _, feedback, feedback_stamp = samples.pop(0)
+                if not done and now + 1e-10 >= next_control:
+                    estimated = ros_node.feedback_at(feedback, feedback_stamp, now, history)
+                    uncertainty = ros_node.feedback_uncertainty(
+                        feedback_stamp, now, history, cfg.command_latency_bound_s)
+                    out = native.track_segment(value, result, estimated, now, [], cfg,
+                                               control_period_s=.05, feedback_pose=feedback,
+                                               uncertainty_m=uncertainty, previous_velocity=previous)
+                    self.assertFalse(out['reason'].startswith('E_LOCAL_'), (initial_gap, actual, out))
+                    history.append((now, tuple(out['velocity'])))
+                    pending.append((now + cfg.command_latency_bound_s, tuple(out['velocity'])))
+                    previous = tuple(out['velocity'])
+                    next_control += .05
+                    done = bool(out.get('complete'))
+                if done and not pending and velocity == (0., 0., 0.):
+                    break
+            self.assertTrue(done, (initial_gap, actual, now))
+            support = native._support_at(value, actual, cfg)
+            self.assertIsNotNone(support, (initial_gap, actual))
+            self.assertEqual(support['surface_id'], 'ground_floor')
+            self.assertLessEqual(native._distance(actual, result['trajectory'][1]), 1e-6)
+            next_plan = native.plan(value, actual, (-5.9, 1.1, 1.6), now=now, config=cfg)
+            self.assertTrue(next_plan['ok'], next_plan)
+            self.assertEqual(next_plan['surfaces'][0], 'ground_floor')
+            self.assertIn('step01', next_plan['surfaces'])
+
     def test_timestamped_feedback_predicts_all_issued_command_changes(self):
         predicted = ros_node.feedback_at((.1, 0., .025), 1., 1.1,
                                         [(.9, (.5, 0., .125)), (1.05, (0., 0., 0.))])

@@ -3,6 +3,7 @@ import copy
 import json
 import sys
 import unittest
+from unittest import mock
 from dataclasses import replace
 from pathlib import Path
 
@@ -68,6 +69,107 @@ class NativeTests(unittest.TestCase):
         moving = dict(thin, min=[-.05, -.05, -.05], max=[.05, .05, .5], velocity=[2., 0., 0.])
         box = native._obstacles([moving])[0]
         self.assertTrue(native._swept_hit((1., 0., 0., 0.), (1., 0., 0., 1.), box, cfg))
+
+    def test_stop_tail_checks_intervening_cell_hole_even_with_valid_endpoints(self):
+        value = support_map.build_support_map(
+            'tiny_tail', .001, [0., 0., 0.],
+            [{'surface_id': 'tiny', 'z_reference': 0., 'data_uri': 'fixture://tiny',
+              'footprint': {'min_x': 0., 'max_x': .002, 'min_y': 0., 'max_y': .002},
+              'cells': {(0, 0), (1, 1)}, 'edges': []}], None,
+            {'uri': 'fixture://tiny', 'sha256': 'a' * 64})
+        raw, end = (.001 - .1e-6, .001 - .2e-6, 0.), (.001 + .3e-6, .001 + .2e-6, 0.)
+        cfg = native.Config()
+        surface = value['surfaces'][0]
+        for p in (raw, end):
+            self.assertTrue(support_map.contains_xy(surface, value['resolution'], *p[:2],
+                                                    cfg.radius_m, support_map.surface_cells(surface)))
+        result = dict(ok=True, map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=0., valid_until=2., surfaces=['tiny', 'tiny'],
+                      trajectory=[(raw[0] - .2e-6, raw[1], 0., 0.), (*raw, 1.)])
+        out = native.track_segment(value, result, raw, .1, [], cfg,
+                                   feedback_pose=raw, previous_velocity=(4e-5, 4e-5, 0.))
+        self.assertFalse(out['complete'], out)
+        self.assertEqual(out['velocity'], [0., 0., 0.])
+
+    def test_tail_along_valid_grid_boundary_is_not_supercover_rejected(self):
+        value = support_map.build_support_map(
+            'tiny_boundary', .001, [0., 0., 0.],
+            [{'surface_id': 'tiny', 'z_reference': 0., 'data_uri': 'fixture://tiny',
+              'footprint': {'min_x': 0., 'max_x': .002, 'min_y': 0., 'max_y': .002},
+              'cells': {(1, 0), (1, 1)}, 'edges': []}], None,
+            {'uri': 'fixture://tiny', 'sha256': 'a' * 64})
+        raw = (.001, .001 - .4e-6, 0.)
+        result = dict(ok=True, map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=0., valid_until=2., surfaces=['tiny', 'tiny'],
+                      trajectory=[(raw[0], raw[1] - .05e-6, 0., 0.), (*raw, 1.)])
+        out = native.track_segment(value, result, raw, .1, [], feedback_pose=raw,
+                                   previous_velocity=(0., 8e-5, 0.))
+        self.assertTrue(out['complete'], out)
+
+    def test_overshoot_wrong_height_does_not_certify_target_support(self):
+        value = flat()
+        result = native.plan(value, (0., 0., 0.), (1., 0., 0.))
+        target = result['trajectory'][1]
+        raw = (target[0] + .2, target[1], 2e-6)
+        out = native.track_segment(value, result, raw, .01, [], feedback_pose=raw)
+        self.assertFalse(out['complete'], out)
+        self.assertEqual(out['reason'], 'E_LOCAL_SUPPORT')
+
+    def test_cellless_completion_uses_existing_radius_and_vertical_tail(self):
+        value = flat()
+        cfg = native.Config()
+        result = dict(ok=True, map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=0., valid_until=2., surfaces=['ground', 'ground'],
+                      trajectory=[(2.8, 0., 0., 0.), (2.85, 0., 0., 1.)])
+        sid = value['surfaces'][0]['surface_id']
+        result['surfaces'] = [sid, sid]
+        raw = (2.85 + .5e-6, 0., 0.)
+        out = native.track_segment(value, result, raw, .1, [], cfg, feedback_pose=raw)
+        self.assertFalse(out['complete'], out)
+        # A timed hold may finish only after its vertical stop tail is supported.
+        result['trajectory'] = [(0., 0., 0., 0.), (0., 0., 0., 1.)]
+        out = native.track_segment(value, result, (0., 0., 0.), 1.1, [], cfg,
+                                   previous_velocity=(0., 0., 2e-4))
+        self.assertFalse(out['complete'], out)
+        self.assertEqual(out['reason'], 'hold')
+        settled = native.track_segment(value, result, (0., 0., 0.), 1.1, [], cfg)
+        self.assertTrue(settled['complete'], settled)
+        early = native.track_segment(value, result, (0., 0., 0.), .9, [], cfg)
+        self.assertFalse(early['complete'], early)
+        self.assertEqual(early['reason'], 'hold')
+
+    def test_tail_coverage_rejects_huge_values_without_unbounded_enumeration(self):
+        surface = {'surface_id': 'tiny', 'z_reference': 0.,
+                   'footprint': {'min_x': 0., 'max_x': 1e11, 'min_y': 0., 'max_y': .001}}
+        cfg = native.Config()
+        raw, far = (.0005, .0005, 0.), (1e10 + .0005, .0005, 0.)
+        far_cell = (int(far[0] / .001 + 1e-9), 0)
+        self.assertTrue(support_map.contains_xy(surface, .001, *far[:2], cfg.radius_m,
+                                                cells={(0, 0), far_cell}))
+        # Neither an unsupported huge endpoint nor a sparse supported far end
+        # may start a coordinate-sized loop. The bound comes from cell count.
+        with mock.patch.object(native, 'range', side_effect=AssertionError('unbounded enumeration'), create=True):
+            self.assertFalse(native._support_contains_segment(surface, .001, raw, far, cfg,
+                                                              cells={(0, 0)}))
+            self.assertFalse(native._support_contains_segment(surface, .001, raw, far, cfg,
+                                                              cells={(0, 0), far_cell}))
+            self.assertFalse(native._support_contains_segment(surface, 1e-308, raw, (1e308, 0., 0.), cfg,
+                                                              cells={(0, 0)}))
+            self.assertFalse(native._support_contains_segment(surface, .001, raw, (float('inf'), 0., 0.), cfg,
+                                                              cells={(0, 0)}))
+        value = support_map.build_support_map(
+            'huge_tail', .001, [0., 0., 0.],
+            [{'surface_id': 'tiny', 'z_reference': 0., 'data_uri': 'fixture://tiny',
+              'footprint': {'min_x': 0., 'max_x': .001, 'min_y': 0., 'max_y': .001},
+              'cells': {(0, 0)}, 'edges': []}], None,
+            {'uri': 'fixture://tiny', 'sha256': 'a' * 64})
+        result = dict(ok=True, map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=0., valid_until=2., surfaces=['tiny', 'tiny'],
+                      trajectory=[(.0004, .0005, 0., 0.), (*raw, 1.)])
+        out = native.track_segment(value, result, raw, .1, [], cfg,
+                                   previous_velocity=(1e12, 0., 0.))
+        self.assertFalse(out['complete'], out)
+        self.assertEqual(out['velocity'], [0., 0., 0.])
 
     def test_track_advances_when_pose_is_past_the_committed_waypoint(self):
         value = flat()
