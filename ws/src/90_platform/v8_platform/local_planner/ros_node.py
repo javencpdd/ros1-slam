@@ -567,12 +567,38 @@ class LocalControl:
         return out
 
 
+def initialize_local_node(rospy):
+    """Request low-latency simulated time before its first TCPROS connection.
+
+    rospy shares one subscriber implementation per resolved topic. Its later
+    default-False subscribers do not clear an already enabled TCP_NODELAY.
+    Keep the returned handle alive until the node stops, including reconnects.
+    """
+    clock_transport = None
+    if rospy.get_param('/use_sim_time', False) is True:
+        if rospy.core.is_initialized():
+            raise ValueError('simulation clock transport requires a fresh node process')
+        from rosgraph_msgs.msg import Clock
+        clock_transport = rospy.Subscriber('/clock', Clock, None,
+                                           queue_size=1, tcp_nodelay=True)
+    try:
+        rospy.init_node('v8_native_local_planner')
+        if (clock_transport is not None and
+                clock_transport.resolved_name != rospy.resolve_name('/clock')):
+            raise ValueError('clock remapping changed during node initialization')
+    except BaseException:
+        if clock_transport is not None:
+            clock_transport.unregister()
+        raise
+    return clock_transport
+
+
 def main():
     import rospy
     from geometry_msgs.msg import PoseStamped, Twist, TwistStamped
     from std_msgs.msg import Bool, String
 
-    rospy.init_node('v8_native_local_planner')
+    clock_transport = initialize_local_node(rospy)
     sim_clock_value = rospy.get_param('/use_sim_time', False)
     sim_clock = bool(sim_clock_value)
     lockstep_command = bool(rospy.get_param('~lockstep_command', False))
@@ -798,6 +824,8 @@ def main():
             twist_pub.publish(Twist())
         thread.join(timeout=1.)
         worker.close()
+        if clock_transport is not None:
+            clock_transport.unregister()
 
 
 if __name__ == '__main__':

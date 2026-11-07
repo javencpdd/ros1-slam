@@ -563,6 +563,54 @@ class SimulationClockOrderingTests(unittest.TestCase):
 
 
 
+class ClockTransportTests(unittest.TestCase):
+    def fixture(self, use_sim_time=True):
+        ros = mock.Mock()
+        ros.get_param.return_value = use_sim_time
+        ros.core.is_initialized.return_value = False
+        ros.resolve_name.return_value = '/clock'
+        handle = ros.Subscriber.return_value
+        handle.resolved_name = '/clock'
+        messages = types.ModuleType('rosgraph_msgs.msg'); messages.Clock = object
+        return ros, handle, {'rosgraph_msgs': types.ModuleType('rosgraph_msgs'),
+                             'rosgraph_msgs.msg': messages}
+
+    def test_transport_is_configured_before_initialization_and_handle_is_retained(self):
+        ros, handle, modules = self.fixture()
+        with mock.patch.dict(sys.modules, modules):
+            self.assertIs(node.initialize_local_node(ros), handle)
+        calls = [call for call in ros.method_calls
+                 if call[0] in ('get_param', 'Subscriber', 'init_node')]
+        self.assertEqual(calls, [
+            mock.call.get_param('/use_sim_time', False),
+            mock.call.Subscriber('/clock', object, None, queue_size=1, tcp_nodelay=True),
+            mock.call.init_node('v8_native_local_planner')])
+        handle.unregister.assert_not_called()
+
+    def test_wall_clock_and_non_boolean_flags_keep_original_initialization(self):
+        for value in (False, None, 0, 1, 'true'):
+            with self.subTest(value=value):
+                ros, _, _ = self.fixture(value)
+                self.assertIsNone(node.initialize_local_node(ros))
+                ros.Subscriber.assert_not_called()
+                ros.init_node.assert_called_once_with('v8_native_local_planner')
+
+    def test_initialized_simulation_cannot_claim_to_fix_its_first_connection(self):
+        ros, _, _ = self.fixture(); ros.core.is_initialized.return_value = True
+        with self.assertRaises(ValueError): node.initialize_local_node(ros)
+        ros.Subscriber.assert_not_called(); ros.init_node.assert_not_called()
+
+    def test_startup_failure_and_changed_clock_remap_release_only_owned_handle(self):
+        for changed in (False, True):
+            with self.subTest(changed=changed):
+                ros, handle, modules = self.fixture()
+                if changed: ros.resolve_name.return_value = '/other_clock'
+                else: ros.init_node.side_effect = RuntimeError('startup failed')
+                with mock.patch.dict(sys.modules, modules), self.assertRaises((RuntimeError, ValueError)):
+                    node.initialize_local_node(ros)
+                handle.unregister.assert_called_once_with()
+
+
 class MainLoopTests(unittest.TestCase):
     def test_real_main_event_timeout_reaches_a_well_formed_zero_publish(self):
         done={'value':False};pubs={};waits=[]
