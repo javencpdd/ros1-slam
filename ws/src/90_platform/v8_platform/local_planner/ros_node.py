@@ -219,7 +219,7 @@ class LocalPoseInput:
                      last_error=reason)
         return reason
 
-    def accept(self, message, ros_now, wall_now):
+    def accept(self, message, ros_now, wall_now, rejection=None):
         try:
             source_stamp = message.header.stamp.to_sec()
             if message.header.frame_id != 'map':
@@ -230,7 +230,7 @@ class LocalPoseInput:
             if self.require_orientation:
                 q = message.pose.orientation
                 orientation = normalized_quaternion((q.x, q.y, q.z, q.w))
-            status, advanced = self.guard.observe(source_stamp, ros_now, wall_now)
+            status, advanced = self.guard.observe(source_stamp, ros_now, wall_now, rejection=rejection)
             if not status['ok']:
                 return self.invalidate(status['reason'], status['reason'])
             if advanced:
@@ -253,6 +253,105 @@ class LocalPoseInput:
         if not status['ok']:
             self.invalidate(status['reason'], status['reason'])
         return status
+
+
+
+
+def simulation_pose_clock_wait(value, config, sim_clock, profile=None,
+                               body_enabled=False, lockstep_command=False, max_age_s=1.):
+    """Opt-in experiment only; do not extend timing or source freshness bounds."""
+    if not finite_number(value) or value < 0.:
+        raise ValueError('sim_pose_clock_wait_s must be finite and non-negative')
+    if value == 0.:
+        return 0.
+    if sim_clock is not True or profile is not None or body_enabled or lockstep_command:
+        raise ValueError('pose clock wait requires unprofiled simulation without body mirror or lockstep')
+    if value > config.command_latency_bound_s:
+        raise ValueError('pose clock wait exceeds command_latency_bound_s')
+    if not finite_number(max_age_s) or value >= max_age_s:
+        raise ValueError('pose clock wait must be strictly less than input_max_age_s')
+    return float(value)
+
+
+def accept_pose_with_clock_wait(pose_input, message, ros_clock, wall_clock, wait_s=0.,
+                                sleep=time.sleep, is_shutdown=lambda: False):
+    """Caller holds the existing state lock; rospy's clock updates independently.
+
+    Hold the raw source stamp and first receipt monotonic time. Only a real
+    in-budget clock catch-up may enter the unchanged accept guard; late wake,
+    shutdown and rollback explicitly reject without granting a new lease.
+    """
+    if not finite_number(wait_s) or wait_s < 0.:
+        raise ValueError('invalid pose clock wait')
+    received_wall, ros_now = wall_clock(), ros_clock()
+    if wait_s == 0. or not finite_number(received_wall):
+        return pose_input.accept(message, ros_now, received_wall)
+    try:
+        source_stamp = message.header.stamp.to_sec()
+        if message.header.frame_id != 'map':
+            return pose_input.accept(message, ros_now, received_wall)
+        p = message.pose.position
+        finite_vector((p.x, p.y, p.z), 3)
+        if pose_input.require_orientation:
+            q = message.pose.orientation
+            normalized_quaternion((q.x, q.y, q.z, q.w))
+    except (PoseError, AttributeError, TypeError, ValueError):
+        return pose_input.accept(message, ros_now, received_wall)
+    if (not finite_number(source_stamp) or source_stamp <= 0. or
+            not finite_number(ros_now) or ros_now <= 0. or source_stamp <= ros_now):
+        return pose_input.accept(message, ros_now, received_wall)
+    initial_ros, deadline = ros_now, received_wall + wait_s
+    if not finite_number(deadline):
+        return pose_input.accept(message, ros_now, received_wall, rejection='E_POSE_CLOCK')
+    previous_ros, previous_wall = ros_now, received_wall
+
+    def finish(error, latest_wall, outcome):
+        old = pose_input.shared.get('pose_clock_ordering') or {}
+        pose_input.shared['pose_clock_ordering'] = {
+            'initial_ros': initial_ros, 'source_stamp': source_stamp,
+            'received_wall': received_wall,
+            'waited_wall_s': max(0., latest_wall - received_wall) if finite_number(latest_wall) else None,
+            'outcome': outcome, 'wait_count': old.get('wait_count', 0) + 1,
+            'accepted_count': old.get('accepted_count', 0) + int(error is None),
+            'timeout_count': old.get('timeout_count', 0) + int(outcome == 'E_POSE_CLOCK_WAIT_TIMEOUT')}
+        return error
+
+    def rollback(before_ros, after_ros, at_wall):
+        # Both values are actual observations. Explicitly reject the pending
+        # old-epoch sample BEFORE feeding the real decrease to the old guard.
+        # Its existing epoch mechanism then quarantines this pending stamp too.
+        pose_input.accept(message, before_ros, received_wall, rejection='E_POSE_CLOCK_WAIT_ABORT')
+        status = pose_input.check(after_ros, received_wall)
+        return finish(pose_input.shared.get('pose_error'), at_wall, status['reason'])
+
+    cached_ros = pose_input.guard.last_ros
+    if cached_ros is not None and ros_now < cached_ros:
+        return rollback(cached_ros, ros_now, received_wall)
+    while True:
+        latest_ros, latest_wall = ros_clock(), wall_clock()
+        if finite_number(latest_ros) and latest_ros > 0. and latest_ros < previous_ros:
+            return rollback(previous_ros, latest_ros, latest_wall)
+        if not finite_number(latest_wall) or latest_wall < previous_wall:
+            # Preserve the observed wall decrease as well, without retiming the
+            # source or accepting a sample from a broken monotonic sequence.
+            pose_input.check(previous_ros, previous_wall)
+            error = pose_input.accept(message, latest_ros, latest_wall, rejection='E_POSE_WALL_BACKWARD')
+            return finish(error, latest_wall, 'E_POSE_WALL_BACKWARD')
+        if not finite_number(latest_ros) or latest_ros <= 0.:
+            error = pose_input.accept(message, latest_ros, received_wall)
+            return finish(error, latest_wall, 'E_POSE_CLOCK')
+        # Check deadline before eligibility: scheduler oversleep is a rejection,
+        # even when the clock has caught up by the time this callback resumes.
+        rejection = ('E_POSE_CLOCK_WAIT_TIMEOUT' if latest_wall >= deadline else
+                     'E_POSE_CLOCK_WAIT_SHUTDOWN' if is_shutdown() else None)
+        if rejection:
+            error = pose_input.accept(message, latest_ros, received_wall, rejection=rejection)
+            return finish(error, latest_wall, rejection)
+        if latest_ros >= source_stamp:
+            error = pose_input.accept(message, latest_ros, received_wall)
+            return finish(error, latest_wall, 'accepted' if error is None else pose_input.shared.get('pose_detail'))
+        previous_ros, previous_wall = latest_ros, latest_wall
+        sleep(min(.001, deadline - latest_wall))
 
 
 def finalize_output(out, orientation, body_enabled):
@@ -431,6 +530,8 @@ class LocalControl:
                           capability_domain='experimental_kinematic_carrier' if self.profile is None else 'validated_robot_profile')
             if isinstance(snapshot['result'], dict) and finite_number(snapshot['result'].get('valid_until')):
                 status['plan_valid_until'] = snapshot['result']['valid_until']
+            if self.shared.get('pose_clock_ordering') is not None:
+                status['pose_clock_ordering'] = dict(self.shared['pose_clock_ordering'])
             self.status_pub.publish(self.messages[2](data=json.dumps(status)))
             if out.get('complete') or out['reason'].startswith('E_LOCAL_'):
                 if self.shared['result'] is snapshot['result']:
@@ -448,7 +549,8 @@ def main():
     from std_msgs.msg import Bool, String
 
     rospy.init_node('v8_native_local_planner')
-    sim_clock = bool(rospy.get_param('/use_sim_time', False))
+    sim_clock_value = rospy.get_param('/use_sim_time', False)
+    sim_clock = bool(sim_clock_value)
     lockstep_command = bool(rospy.get_param('~lockstep_command', False))
     clock_event = threading.Event()
     clock_sec = [None]
@@ -489,6 +591,10 @@ def main():
     twist_topic = rospy.get_param('~twist_topic', '')
     twist_pub = (rospy.Publisher(twist_topic, Twist, queue_size=1)
                  if twist_topic else None)
+    pose_clock_wait_s = simulation_pose_clock_wait(
+        rospy.get_param('~sim_pose_clock_wait_s', 0.), config, sim_clock_value,
+        profile=profile, body_enabled=twist_pub is not None, lockstep_command=lockstep_command,
+        max_age_s=max_age)
     pose_input = LocalPoseInput(shared, max_age, require_orientation=twist_pub is not None)
     path_pub = rospy.Publisher(rospy.get_param('~trajectory_topic', '/v8/local/trajectory'),
                                String, queue_size=1, latch=True)
@@ -506,7 +612,9 @@ def main():
 
     def on_pose(msg):
         with lock:
-            error = pose_input.accept(msg, rospy.Time.now().to_sec(), time.monotonic())
+            error = accept_pose_with_clock_wait(
+                pose_input, msg, lambda: rospy.Time.now().to_sec(), time.monotonic,
+                wait_s=pose_clock_wait_s, is_shutdown=rospy.is_shutdown)
             if error:
                 plan_wake.set()
 

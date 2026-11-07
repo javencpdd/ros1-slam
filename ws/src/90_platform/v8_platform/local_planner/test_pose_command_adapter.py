@@ -329,6 +329,189 @@ class LocalAdapterTests(unittest.TestCase):
         self.command.hook=None;self.tick();self.assert_zero()
 
 
+class SimulationClockOrderingTests(unittest.TestCase):
+    fixture = LocalAdapterTests.fixture
+    tick = LocalAdapterTests.tick
+    assert_zero = LocalAdapterTests.assert_zero
+
+    def receive(self, message, sleep=None, shutdown=lambda: False, wait=.01):
+        with self.lock:
+            return node.accept_pose_with_clock_wait(self.input, message,
+                lambda: self.clock['ros'], lambda: self.clock['wall'], wait_s=wait,
+                sleep=sleep or self.advance_wall, is_shutdown=shutdown)
+
+    def advance_wall(self, seconds):
+        self.clock['wall'] += seconds
+
+    def test_default_zero_wait_preserves_strict_future_rejection(self):
+        self.fixture(body=False)
+        sleeper = mock.Mock(side_effect=AssertionError('must not sleep'))
+        error = self.receive(pose(stamp=100.001), wait=0., sleep=sleeper)
+        sleeper.assert_not_called()
+        self.assertEqual(error, 'E_LOCAL_CLOCK')
+        self.assertEqual(self.input.guard.observed_stamp, 100.001)
+        self.assertIsNone(self.shared['result'])
+
+    def test_parameter_is_opt_in_simulation_only_and_within_existing_bounds(self):
+        c = node.native.Config()
+        for value in (True, float('nan'), float('inf'), -.001, c.command_latency_bound_s + 1e-6):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                node.simulation_pose_clock_wait(value, c, True)
+        for flags in ({'sim_clock': False}, {'sim_clock': 'true'}, {'sim_clock': 1},
+                      {'profile': {}}, {'body_enabled': True}, {'lockstep_command': True}):
+            kwargs = dict(sim_clock=True); kwargs.update(flags)
+            with self.subTest(flags=flags), self.assertRaises(ValueError):
+                node.simulation_pose_clock_wait(.001, c, **kwargs)
+        self.assertEqual(node.simulation_pose_clock_wait(0., c, False, profile={}, body_enabled=True), 0.)
+        self.assertEqual(node.simulation_pose_clock_wait(.01, c, True), .01)
+        with self.assertRaises(ValueError): node.simulation_pose_clock_wait(.01, c, True, max_age_s=.01)
+
+    def test_invalid_initial_receipt_cannot_create_an_unbounded_wait(self):
+        for initial in (float('nan'), float('inf'), -float('inf')):
+            self.fixture(body=False)
+            readings = iter((initial, 10., 10.001))
+            sleeper = mock.Mock(side_effect=AssertionError('must not sleep'))
+            with self.lock:
+                error = node.accept_pose_with_clock_wait(self.input, pose(stamp=100.001),
+                    lambda: 100., lambda: next(readings), wait_s=.01, sleep=sleeper)
+            self.assertEqual(error, 'E_LOCAL_CLOCK'); sleeper.assert_not_called()
+            self.assertIsNone(self.shared['result'])
+
+    def test_clock_catchup_preserves_raw_stamp_receipt_and_active_segment(self):
+        self.fixture(body=False); result = self.shared['result']; generation = self.shared['generation']
+        original_observe = self.input.guard.observe
+        def catch_up(seconds):
+            self.advance_wall(seconds); self.clock['ros'] = 100.001
+        with mock.patch.object(self.input.guard, 'observe', wraps=original_observe) as observe:
+            self.assertIsNone(self.receive(pose(stamp=100.001), sleep=catch_up))
+        self.assertEqual(observe.call_count, 1)
+        self.assertEqual(observe.call_args.args, (100.001, 100.001, 10.))
+        self.assertEqual(self.shared['pose_at'], 10.)
+        self.assertEqual(self.input.guard.progress_at, 10.)
+        self.assertEqual(self.shared['pose_ros_stamp'], 100.001)
+        self.assertIs(self.shared['result'], result); self.assertEqual(self.shared['generation'], generation)
+        self.assertGreater(self.shared['pose_clock_ordering']['waited_wall_s'], 0.)
+        self.assertEqual(self.shared['pose_clock_ordering']['outcome'], 'accepted')
+
+    def test_wait_does_not_renew_receipt_lease_and_duplicates_do_not_advance(self):
+        self.fixture(body=False)
+        def catch_up(seconds): self.advance_wall(seconds); self.clock['ros'] = 100.001
+        self.assertIsNone(self.receive(pose(stamp=100.001), sleep=catch_up))
+        self.clock.update(ros=100.002, wall=10.9)
+        self.assertIsNone(self.receive(pose(stamp=100.001)))
+        self.assertEqual(self.shared['pose_at'], 10.)
+        self.assertEqual(self.input.guard.progress_at, 10.)
+        self.clock.update(ros=100.003, wall=11.)
+        status = self.input.check(self.clock['ros'], self.clock['wall'])
+        self.assertFalse(status['ok']); self.assertEqual(status['reason'], 'E_POSE_NO_PROGRESS')
+
+    def test_frozen_clock_timeout_is_rejected_and_old_worker_cannot_restore(self):
+        self.fixture(body=False); generation = self.shared['generation']
+        self.assertEqual(self.receive(pose(stamp=100.02)), 'E_LOCAL_CLOCK')
+        self.assertEqual(self.input.guard.observed_stamp, 100.02)
+        self.assertEqual(self.input.guard.reason, 'E_POSE_CLOCK_WAIT_TIMEOUT')
+        self.assertIsNone(self.shared['result'])
+        self.assertFalse(node.accept_worker_result(self.shared, {'ok': True, 'generation': generation,
+                         'result': {'valid_until': 101.}}, self.clock['wall']))
+        with mock.patch.object(node.native, 'track_segment') as track: self.tick()
+        track.assert_not_called(); self.assert_zero()
+
+    def test_late_clock_catchup_and_equal_deadline_cannot_accept(self):
+        for elapsed in (.01, .02):
+            with self.subTest(elapsed=elapsed):
+                self.fixture(body=False)
+                def late(_seconds): self.clock.update(ros=100.001, wall=10. + elapsed)
+                self.assertEqual(self.receive(pose(stamp=100.001), sleep=late), 'E_LOCAL_CLOCK')
+                self.assertEqual(self.input.guard.reason, 'E_POSE_CLOCK_WAIT_TIMEOUT')
+                self.assertEqual(self.input.guard.observed_stamp, 100.001)
+                self.clock.update(ros=100.002, wall=10.03)
+                self.assertEqual(self.receive(pose(stamp=100.001)), 'E_LOCAL_CLOCK')
+                self.assertIsNone(self.shared['pose'])
+
+    def test_shutdown_aborts_wait_even_if_clock_caught_up(self):
+        self.fixture(body=False)
+        self.assertEqual(self.receive(pose(stamp=100.001), shutdown=lambda: True), 'E_LOCAL_CLOCK')
+        self.assertEqual(self.input.guard.reason, 'E_POSE_CLOCK_WAIT_SHUTDOWN')
+        self.assertIsNone(self.shared['result'])
+
+    def test_clock_forward_jump_still_applies_original_source_age(self):
+        self.fixture(body=False)
+        def jump(seconds): self.advance_wall(seconds); self.clock['ros'] = 102.
+        self.assertEqual(self.receive(pose(stamp=100.001), sleep=jump), 'E_LOCAL_POSE_STALE')
+        self.assertEqual(self.input.guard.reason, 'E_POSE_STALE')
+        self.assertIsNone(self.shared['result'])
+
+    def test_small_in_wait_rollback_changes_epoch_and_quarantines_pending(self):
+        self.fixture(body=False)
+        readings = iter((100., 100.2, 100.1))
+        with self.lock:
+            error = node.accept_pose_with_clock_wait(self.input, pose(stamp=100.5),
+                lambda: next(readings), lambda: self.clock['wall'], wait_s=.01, sleep=self.advance_wall)
+        self.assertEqual(error, 'E_LOCAL_CLOCK'); self.assertEqual(self.input.guard.epoch, 1)
+        self.assertIn(100.5, self.input.guard.epoch_cached_stamps)
+        self.assertIn(100., self.input.guard.epoch_cached_stamps)
+        self.assertIsNotNone(self.input.accept(pose(stamp=100.5), 100.6, 10.002))
+        self.assertEqual(self.input.guard.reason, 'E_POSE_EPOCH_REPLAY')
+        self.assertIsNone(self.input.accept(pose(stamp=100.15), 100.61, 10.003))
+        self.assertIsNone(self.shared['result'])
+
+    def test_in_wait_wall_rollback_is_not_hidden(self):
+        self.fixture(body=False)
+        def back(_seconds): self.clock['wall'] = 9.99
+        self.assertEqual(self.receive(pose(stamp=100.001), sleep=back), 'E_LOCAL_CLOCK')
+        self.assertEqual(self.input.guard.reason, 'E_POSE_WALL_BACKWARD')
+        self.assertIsNone(self.shared['result'])
+
+    def test_invalid_input_keeps_original_priority_and_never_waits(self):
+        for message in (pose(stamp=100.001, frame='odom'), pose(stamp=0.), pose(stamp=float('nan'))):
+            self.fixture(body=False)
+            sleeper = mock.Mock(side_effect=AssertionError('must not sleep'))
+            self.assertIsNotNone(self.receive(message, sleep=sleeper))
+            sleeper.assert_not_called()
+            self.assertIsNone(self.shared['result'])
+
+    def test_wait_holds_state_lock_but_independent_clock_can_advance(self):
+        self.fixture(body=False); started = threading.Event(); done = threading.Event()
+        def writer():
+            started.set()
+            with self.lock: done.set()
+        worker = threading.Thread(target=writer)
+        def clock_only(seconds):
+            worker.start(); self.assertTrue(started.wait(1.)); self.assertFalse(done.is_set())
+            self.advance_wall(seconds); self.clock['ros'] = 100.001
+        try:
+            self.assertIsNone(self.receive(pose(stamp=100.001), sleep=clock_only))
+        finally:
+            worker.join(1.)
+        self.assertTrue(done.is_set()); self.assertFalse(worker.is_alive())
+
+    def test_mid_step_catchup_keeps_real_segment_trackable_without_support_snap(self):
+        self.fixture(body=False)
+        surfaces = [
+            {'surface_id': 'ground', 'z_reference': 0., 'data_uri': 'fixture://ground',
+             'footprint': dict(min_x=-1., min_y=-1., max_x=.6, max_y=1.),
+             'edges': [{'to': 'step', 'kind': 'step', 'max_step_height_m': .16, 'bidirectional': True}]},
+            {'surface_id': 'step', 'z_reference': .16, 'data_uri': 'fixture://step',
+             'footprint': dict(min_x=.4, min_y=-1., max_x=1.6, max_y=1.), 'edges': []}]
+        value = node.native.rep.build_support_map('ordering_step', .1, [-1., -1., 0.], surfaces, [],
+                  {'uri': 'fixture://ordering', 'sha256': '0' * 64})
+        self.control.config = node.native.Config(tick_s=1.2, horizon_s=6., validity_s=20.)
+        result = node.native.plan(value, (.3, 0., 0.), (.9, 0., .16), now=100., config=self.control.config)
+        self.assertNotEqual(result['surfaces'][0], result['surfaces'][1])
+        self.shared.update(map=value, map_version=1, result=result, result_generation=self.shared['generation'])
+        message = pose(stamp=100.001)
+        message.pose.position.x, message.pose.position.z = .5, .05
+        def catch_up(seconds): self.advance_wall(seconds); self.clock['ros'] = 100.001
+        self.assertIsNone(self.receive(message, sleep=catch_up))
+        self.clock.update(ros=100.002, wall=10.002)
+        output = self.tick()
+        self.assertEqual(output['reason'], 'track'); self.assertFalse(output['stop'])
+        self.assertGreater(output['velocity'][2], 0.)
+        self.assertIs(self.shared['result'], result)
+        self.assertEqual(self.shared['pose'][2], .05)
+
+
+
 class MainLoopTests(unittest.TestCase):
     def test_real_main_event_timeout_reaches_a_well_formed_zero_publish(self):
         done={'value':False};pubs={};waits=[]

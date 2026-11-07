@@ -147,6 +147,28 @@ def _terminate(proc, group=False):
             pass
 
 
+def initialize_ros_node(rospy, gazebo_clock=False):
+    """Select the owned Gazebo master's clock before rospy subscribes to time."""
+    if gazebo_clock:
+        rospy.set_param('/use_sim_time', True)
+    rospy.init_node('navigation_app_runner', anonymous=True, disable_signals=True)
+
+
+def trace_observer(trace, kind, convert, ros_clock, wall_clock=time.monotonic, period_s=0.):
+    """Observe current messages at a bounded rate, without queuing old samples."""
+    last_at = [-1e100]
+    def callback(message):
+        try:
+            at = wall_clock()
+            if at - last_at[0] < period_s:
+                return
+            last_at[0] = at
+            trace.record(kind, convert(message), ros_clock(), at)
+        except Exception as error:
+            trace.error(kind, error)
+    return callback
+
+
 def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
             interactive=False, rviz=False, real=False, trace_path=None):
     prepared = prepare_execution(app_path, real=real, with_gazebo=with_gazebo)
@@ -164,7 +186,8 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                        'backend': resolved['app']['carrier']['backend'],
                        'model_name': resolved['app']['carrier'].get('model_name', 'app_carrier'),
                        'carrier_center_z': resolved['app']['carrier'].get('center_z', .1),
-                       'execution_mode': plan.get('execution_mode'), 'port': port})
+                       'execution_mode': plan.get('execution_mode'), 'port': port,
+                       'gazebo_model_min_period_s': .02})
     graph_path = resolved['graph_path']
     task = resolved['task_resolved']
     app = resolved['app']
@@ -213,7 +236,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         from nav_msgs.msg import Path as RosPath
         from std_msgs.msg import Bool, String
         from visualization_msgs.msg import MarkerArray
-        rospy.init_node('navigation_app_runner', anonymous=True, disable_signals=True)
+        initialize_ros_node(rospy, not real and with_gazebo and app['carrier']['backend'] == 'gazebo')
         if not real and with_gazebo and app['carrier']['backend'] == 'gazebo':
             world_launch = app['carrier'].get('world_launch')
             if world_launch:
@@ -321,13 +344,9 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         rospy.Subscriber('/v8/3d/viz/markers', MarkerArray,
                          lambda m: state.update(markers=len(m.markers)), queue_size=2)
         if trace is not None:
-            def observe(kind, convert):
-                def callback(message):
-                    try:
-                        trace.record(kind, convert(message), rospy.Time.now().to_sec())
-                    except Exception as error:
-                        trace.error(kind, error)
-                return callback
+            def observe(kind, convert, period_s=0.):
+                return trace_observer(trace, kind, convert, lambda: rospy.Time.now().to_sec(),
+                                      period_s=period_s)
             def pose_value(message):
                 return {'xyz': [message.pose.position.x, message.pose.position.y, message.pose.position.z],
                         'frame': message.header.frame_id, 'stamp': message.header.stamp.to_sec()}
@@ -368,7 +387,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                             'linear': [message.twist[i].linear.x, message.twist[i].linear.y,
                                        message.twist[i].linear.z]}
                 rospy.Subscriber('/gazebo/model_states', ModelStates,
-                                 observe('gazebo_model', model_value), queue_size=200)
+                                 observe('gazebo_model', model_value, period_s=.02), queue_size=1)
         start_pub = rospy.Publisher('/v8/3d/global/start', PoseStamped, queue_size=1, latch=True)
         goal_pub = rospy.Publisher('/v8/3d/global/goal', PoseStamped, queue_size=1, latch=True)
         obstacle_pub = rospy.Publisher('/v8/local/obstacles', String, queue_size=2)

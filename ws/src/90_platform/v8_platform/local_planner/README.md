@@ -1,6 +1,6 @@
 # local_planner · 原生三维局部规划与命令适配
 
-> 最新更新时间：2026-11-06 14:30:30 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-07 09:08:44 CST。本次补仿真时钟交付顺序适配；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 [local_native.py](local_native.py) 在“支撑面 × XY 栅格 × 未来时刻”上搜索有限时域运动，含等待、面内移动和显式有向转层。它从当前状态到局部目标重新规划，不消费全局点列后补时间戳。[path_goal_node.py](path_goal_node.py) 当前只将全局 Path 末点转成局部目标，不能描述为逐点跟踪完整全局路线。
 
@@ -35,6 +35,16 @@ python3 -B ws/src/90_platform/v8_platform/local_planner/ros_node.py \
 | 可选输出 | `~twist_topic` | 缺省关闭；同一 base_link 原点的 yaw 平面 XY，map→body 显式旋转，拒非零竖直请求 |
 
 pose/obstacles/localization 需持续心跳，缺失/过期输出零速。PoseStamped保留非零源时间戳，旧/未来/倒退戳及重复源戳停止推进时均失效；源年龄与单调墙钟进展年龄任一达到既有 input_max_age_s 即拒绝。重复回调不续租。输入世界变更撤销旧 generation；独立 fork worker 执行规划，控制/ROS 回调不等待长搜索。计划有效期按ROS测量时钟判，单调墙钟 `~wall_watchdog_s` 提供独立租约；终端停车锁存与可重规划瞬态零速分别处理。`~pause_planning` 仅用于故障注入。
+
+## 仿真位姿与时钟的交付顺序
+
+`~sim_pose_clock_wait_s` 默认0，保持原有严格未来戳拒绝。仅实验仿真可以显式启用：`/use_sim_time` 必须是真布尔 true，无 robot profile、无 plain-Twist mirror、非 lockstep；等待必须为有限非负数，不超过既有 `experimental_config.command_latency_bound_s`，且严格小于 `input_max_age_s`。非法组合在初始化时拒绝。两层场景选择0.01 s，不据此提高或替代任何既有时钟/支撑/碰撞门值。
+
+该适配只解决不同连接上位姿可能早于本进程内置 `/clock` 到达的顺序问题。回调先持已有共享锁、保留原接收 monotonic，再最多按声明预算作 wall sleep/yield，让独立的 rospy 时钟回调追上原始 source stamp；只有预算内真实追上才进入原 guard，stamp 不改写，pose_at/progress_at 不延后。等待消耗仍计入原租约。控制线程发布前的最新位姿、generation、ROS和墙钟租约复核保持。
+
+停钟、超时、晚醒、shutdown 和非法时钟均拒绝；到期后即使时钟已追上也不能接受。被拒 stamp 仍登记 observed_stamp，重复发送不能解冻。等待中真实回拨会通过原 guard 的 epoch 机制隔离已接受和待收旧 stamp，不直接改 common 内部状态，也不把 now 改成 source。实际时钟故障撤销的轨迹不自动复活；若停在两踏面之间，仍须明确恢复/重新初始化，不能放宽支撑高度或强行 snap 使测试通过。
+
+显式启用时，local status 附 `pose_clock_ordering`，记录最近一次超前交付的 source/initial_ros、原接收墙钟、等待耗时、结果和累计等待/接受/超时数。它只作诊断，不授额外运动许可，也不把有限 Python 等待当作硬实时保证。默认0不增加该诊断或执行等待。该适配的目标运行结论见对应场景证据；本段不签真机或四足接触。
 
 ## 两种命令链
 

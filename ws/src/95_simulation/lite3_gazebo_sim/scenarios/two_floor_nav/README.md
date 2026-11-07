@@ -1,6 +1,6 @@
 # 两层室内 Gazebo 规划测试世界
 
-> 最新更新时间：2026-11-07 03:46:14 CST。工程标准真源：[工程标准](../../../../../../note/架构/工程标准.md)。本场景使用 x86/ROS1/Noetic/Gazebo Classic 11；不安装到真机、不调用真实运动驱动。
+> 最新更新时间：2026-11-07 08:58:56 CST。工程标准真源：[工程标准](../../../../../../note/架构/工程标准.md)。本场景使用 x86/ROS1/Noetic/Gazebo Classic 11；不安装到真机、不调用真实运动驱动。
 
 一套自持的两层室内世界，包含楼板、楼梯、家具、可绕障碍及楼梯完全阻断反例。world、地图、任务和启动配置均随 Git 分发，不需要下载外部模型，也不依赖本机 `data/maps/registry.json`。入口是 [two_floor_nav.py](../../../../../../scripts/sim/two_floor_nav.py)。
 
@@ -15,6 +15,8 @@
 载体复用现有 `gazebo_carrier3d`：按速度积分后用 SetModelState 更新一个 visual-only 方盒。世界有碰撞几何，载体没有接触物理/足端，因此本测试验证已知地图中的规划、命令和运动学执行；台阶接触转移仍是运动学近似，不证明四足防坠、步态或真实上楼能力。定位输入为载体真值，不是 SLAM/LIO。RViz 中可显示 Lite3 模型，Gazebo 中的执行载体仍是该方盒。
 
 现有 `path_goal` 适配器只把完整全局路径的末点交给局部规划器。该场景分别检查全局和局部跨层/避障，并保存完整全局路径；不据两者都到达宣称局部遵守完整全局走廊。
+
+场景显式设置 `sim_pose_clock_wait_s=0.01`：位姿消息先于本节点 `/clock` 到达时，在既有命令延迟包络内等待时钟追上，再按原源时间戳和原接收墙钟检查；超时、停钟或回拨仍拒绝。默认适配器关闭该等待，真机、plain Twist、机器人 profile 和锁步模式禁止启用。app_runner 在自有 Gazebo master 上先选择模拟时间，再初始化 ROS 节点。
 
 ## 默认离线检查
 
@@ -59,7 +61,7 @@ python3 -B scripts/sim/two_floor_nav.py --execute --case upstairs \
 
 `--out run.json` 对应 `run.app.json`、`run.trace.json`、`run.preflight.log` 和新的 `run.trace.json.runtime/`。runtime 内独立保存 ROS_HOME、ROS 日志和进程日志，不追加旧 `/tmp/r1103_*`。总报告区分原 app 结论与场景过程验收；blocked 的 app rc6 只在精确拒绝和零运动等检查均通过后才成为场景正控。
 
-显式 trace 记录完整全局 Path、global/status、局部轨迹/状态、最终六轴 cmd、ROS pose、Gazebo model_states 以及限频 `/clock`。源 pose stamp 与回调接收 monotonic 分别保留，不能把 ros_time、模拟时间和墙钟混算。新增场景检查包括：
+显式 trace 记录完整全局 Path、global/status、局部轨迹/状态、最终六轴 cmd、ROS pose、Gazebo model_states 以及限频 `/clock`。model_states 按接收墙钟最多 50 Hz 采样当前消息，队列为 1，不积压旧观测；采样周期记入 metadata。源 pose stamp 与回调接收 monotonic 分别保留，不能把 ros_time、模拟时间和墙钟混算。新增场景检查包括：
 
 - 观测首尾覆盖、每路最大间隙 0.25 s、Gazebo/ROS 全程至少 95% 配对及身份/坐标/源时间合法；缺样、NaN、回调异常或有界缓存溢出均失败。
 - 按载体原有 latest-command/0.5 s 失效语义在接收 monotonic 时间积分；累计 XY 差不超过 0.15 m，Z 允许原有十次每次最多 0.03 m 的 snap 加 0.05 m 观测余量。此近似明确限定运动学接触转移，不当成四足物理精度。

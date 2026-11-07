@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from contextlib import contextmanager, ExitStack, redirect_stdout
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import yaml
 
@@ -99,6 +99,35 @@ class AppFixture:
 
 
 class ExecutionTests(unittest.TestCase):
+    def test_owned_gazebo_clock_is_selected_before_node_initialization(self):
+        ros = Mock()
+        app_runner.initialize_ros_node(ros, gazebo_clock=True)
+        self.assertEqual(ros.method_calls[0], call.set_param('/use_sim_time', True))
+        self.assertEqual(ros.method_calls[1][0], 'init_node')
+        ros.reset_mock()
+        app_runner.initialize_ros_node(ros)
+        ros.set_param.assert_not_called()
+        ros.init_node.assert_called_once_with('navigation_app_runner', anonymous=True, disable_signals=True)
+
+    def test_model_trace_sampling_keeps_current_sample_time_and_reports_errors(self):
+        from app_trace import Trace
+        clocks = {'wall': 1., 'ros': 20.}
+        trace = Trace({})
+        convert = Mock(side_effect=lambda value: {'sample': value})
+        observe = app_runner.trace_observer(trace, 'gazebo_model', convert,
+                    lambda: clocks['ros'], lambda: clocks['wall'], period_s=.02)
+        observe('first')
+        clocks.update(wall=1.01, ros=21.); observe('skipped')
+        clocks.update(wall=1.03, ros=22.); observe('current')
+        events = trace.snapshot()['events']
+        self.assertEqual([e['payload']['sample'] for e in events], ['first', 'current'])
+        self.assertEqual([e['wall_monotonic'] for e in events], [1., 1.03])
+        self.assertEqual([e['ros_time'] for e in events], [20., 22.])
+        self.assertEqual(convert.call_count, 2)
+        clocks['wall'] = 1.06; convert.side_effect = ValueError('bad observation')
+        observe('broken')
+        self.assertFalse(trace.snapshot()['capture_ok'])
+
     def rejected(self, code, callback):
         with no_execution_effects():
             with self.assertRaises(config.FrameworkError) as caught:

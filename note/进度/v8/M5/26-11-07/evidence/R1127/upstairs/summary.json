@@ -1,0 +1,48 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T09:05:44.168868+08:00",
+  "window_id": "R1127-upstairs",
+  "case": "upstairs",
+  "source_commit": "5a4fb14f86f29e0d8356990c69d9f90441c6373e",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "goal": [
+    -5.9,
+    1.1,
+    1.6
+  ],
+  "final_pose": [
+    4.143619457306143,
+    1.1690908859153086,
+    0.030604706950623766
+  ],
+  "goal_distance_m": 10.165730024919048,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 42,
+    "E_LOCAL_OBSTACLES_STALE": 49,
+    "E_LOCAL_NO_TRAJECTORY": 87,
+    "track": 61,
+    "E_LOCAL_CLOCK": 1466,
+    "E_LOCAL_SUPPORT": 7078
+  },
+  "max_sample_gap_s": {
+    "pose": 0.31419999300851487,
+    "command": 0.329233808995923,
+    "model": 0.3127409550070297
+  },
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs",
+  "independent_index": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/l1-stage-b/upstairs-first-index.json",
+  "reason": "CLOCK revocation during stair segment followed by E_LOCAL_SUPPORT; model/pose/cmd sampling gap exceeds unchanged 0.25s criterion. Preserve both arrival FAIL and capture INVALID.",
+  "sha256": {
+    "runtime/upstairs/captured/result.json": "3660e7ba65fc7e3919bc747f8b7a36006e36b1d5fd271b92b91e2123ae738e29",
+    "runtime/upstairs/captured/result.trace.json": "bf2765fc8f1bf8887f81099d7e27bb085195eaa34206d91ea9f648d1522d0cbb",
+    "runtime/upstairs/captured/result.app.json": "298c7f4a7b6623146c66cb371a167d971bfe615b2dcfa3484db6da900ef88760",
+    "l1-stage-b/upstairs-first-index.json": "847611273bcd845702cd78b066f9d8f700fc3a21e141970af19f748bf18e2d41",
+    "l1-stage-b/upstairs-first-hashes.sha256": "4b932aefaf989467b8d90cd56eb14ce0f4119476f6300402393a14f9ecc0949f"
+  },
+  "scope": "known-map planning; kinematic visual box; no physical gait or full-global-corridor-following claim"
+}
