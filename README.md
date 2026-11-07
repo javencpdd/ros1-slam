@@ -1,6 +1,6 @@
 # ros1-slam · 四足机器人 SLAM 与导航
 
-> 最新更新时间：2026-11-06 22:42:50 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
+> 最新更新时间：2026-11-07 03:38:56 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
 
 本项目面向 Lite3 四足机器人，组合激光建图、定位、地图、全局规划、局部执行与安全仲裁，使用 ROS1/Noetic。x86 承担 Docker、Gazebo、MuJoCo 开发与回归；Lite3 主机采用原生 ROS1，地图与现场配置各机独立。
 
@@ -42,6 +42,7 @@ flowchart LR
 | 版本成果、当前进度与证据 | [进度入口](note/进度/README.md)、[版本成果总览](note/进度/00_总览.md) |
 | 目标构建与依赖闭包 | [lite3 / x86_sim 构建说明](tooling/build/README.md)；M20 尚未接入 |
 | Docker、仿真、RViz 与建图命令 | [docker/README.md](docker/README.md) |
+| 完整两层Gazebo规划测试世界 | [two_floor_nav](ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/README.md)：世界、同源地图、四个用例与统一入口 |
 | MuJoCo 接触执行与阶面障碍 | [dynamics/README.md](ws/src/95_simulation/lite3_gazebo_sim/dynamics/README.md) |
 | 正式门禁及复验方法 | [成员清单](scripts/verify/gate_chain.txt)、[复验作业单](note/05_复验作业单.md) |
 | 隔离、安全、来源与变更台账 | [note 入口](note/00_README.md) |

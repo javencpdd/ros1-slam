@@ -1,6 +1,6 @@
 # ros1-slam · Docker 开发与仿真
 
-> 最新更新时间：2026-11-07 03:29:09 CST。本轮按 Dockerfile、Compose、脚本和 launch 静态核对；未构建镜像、未启动容器或复跑算法验收。
+> 最新更新时间：2026-11-07 03:38:56 CST。本文维护Docker构建/运行入口；新两层场景的实现、限定验证与环境边界见[场景记录](../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。
 
 x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 ROS1，地图和现场配置各机独立。当前旧算法、地图准备和真机排程仍按[执行队列](../note/计划书v8.1/23_v8.1任务队列.md)保持取消；本文不授权启动硬件。架构与能力边界见[项目架构](../note/架构/项目架构与目录.md)和[进度](../note/进度/README.md)。
 
@@ -115,6 +115,12 @@ docker compose exec sim bash /opt/ros1-slam/docker/build.sh --clean
 静态检查和正式门禁分别按 [lint](lint.sh) 与[门禁清单](../scripts/verify/gate_chain.txt)。环境、面清单、历史基线或授权范围缺失不等于算法通过/失败，本轮未复跑门禁。
 
 ## 四、仿真操作
+
+### 完整两层世界与3D规划测试
+
+新场景入口为[完整说明](../ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/README.md)与[scripts/sim/two_floor_nav.py](../scripts/sim/two_floor_nav.py)，复用现有全局/局部/仲裁和Gazebo运动学载体；上楼、下楼、楼上绕障、楼梯阻断共用同源世界与地图。默认只读plan无需Docker或ROS；执行须准备x86 Noetic/Gazebo环境、登记专用sim窗口并通过原v8预检，GUI/交互与无头使用同一配置。
+
+本入口不自动docker up/拉镜像/覆盖registry，不全局kill或复用旧结果文件。每个case保存独立过程证据；窗口回执和具体命令按场景README，不能把单纯world加载或末点arrived当作完整过程通过。现有Docker构建隔离/旧卷迁移的边界保持，不因运行Python场景就签收镜像重建或install-only。
 
 ### 4.4 无头 smoke 与场地
 

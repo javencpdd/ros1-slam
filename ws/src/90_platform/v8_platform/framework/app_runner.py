@@ -148,9 +148,23 @@ def _terminate(proc, group=False):
 
 
 def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
-            interactive=False, rviz=False, real=False):
+            interactive=False, rviz=False, real=False, trace_path=None):
     prepared = prepare_execution(app_path, real=real, with_gazebo=with_gazebo)
     resolved, catalog, report, plan = (prepared[key] for key in ('resolved', 'catalog', 'report', 'plan'))
+    log_paths = {name: '/tmp/r1103_' + name + '.log' for name in
+                 ('master', 'gazebo', 'viz', 'picker', 'rviz', 'tf_static', 'robot_state', 'joint_state', 'pose_tf')}
+    ros_home, ros_logs = '/tmp/r1103_ros', '/tmp/r1103_logs'
+    trace = None
+    if trace_path is not None:
+        from app_trace import Trace, prepare_logs
+        log_paths, ros_home, ros_logs = prepare_logs(trace_path)
+        trace = Trace({'app': str(resolved['app_path']),
+                       'map_id': resolved['map_entry']['map_id'],
+                       'map_sha256': resolved['map_sha256'],
+                       'backend': resolved['app']['carrier']['backend'],
+                       'model_name': resolved['app']['carrier'].get('model_name', 'app_carrier'),
+                       'carrier_center_z': resolved['app']['carrier'].get('center_z', .1),
+                       'execution_mode': plan.get('execution_mode'), 'port': port})
     graph_path = resolved['graph_path']
     task = resolved['task_resolved']
     app = resolved['app']
@@ -163,13 +177,13 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
     else:
         os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % port,
                           ROS_IP='127.0.0.1', ROS_HOSTNAME='127.0.0.1',
-                          ROS_HOME='/tmp/r1103_ros', ROS_LOG_DIR='/tmp/r1103_logs',
+                          ROS_HOME=ros_home, ROS_LOG_DIR=ros_logs,
                           GAZEBO_MASTER_URI='http://127.0.0.1:%d' % (port + 1),
                           PYTHONDONTWRITEBYTECODE='1')
-        Path('/tmp/r1103_ros').mkdir(exist_ok=True)
-        Path('/tmp/r1103_logs').mkdir(exist_ok=True)
+        Path(ros_home).mkdir(exist_ok=True)
+        Path(ros_logs).mkdir(exist_ok=True)
         master = subprocess.Popen(['roscore', '-p', str(port)], start_new_session=True,
-                                  stdout=open('/tmp/r1103_master.log', 'ab'),
+                                  stdout=open(log_paths['master'], 'ab'),
                                   stderr=subprocess.STDOUT, env=dict(os.environ))
     gazebo = None
     viz = None
@@ -195,7 +209,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
     try:
         time.sleep(3.0)
         import rospy
-        from geometry_msgs.msg import PoseStamped
+        from geometry_msgs.msg import PoseStamped, Twist
         from nav_msgs.msg import Path as RosPath
         from std_msgs.msg import Bool, String
         from visualization_msgs.msg import MarkerArray
@@ -224,7 +238,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 launch_args.append('model_path:=%s' % model_dir)
             gazebo = subprocess.Popen(
                 ['roslaunch'] + launch_args,
-                start_new_session=True, stdout=open('/tmp/r1103_gazebo.log', 'ab'),
+                start_new_session=True, stdout=open(log_paths['gazebo'], 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
             rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=30.)
         assembly = runtime.Assembly(plan, catalog, ready_timeout=45.,
@@ -239,12 +253,12 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         if app.get('visualization', {}).get('markers', True):
             viz = subprocess.Popen(
                 ['rosrun', 'v8_platform', 'framework/nav3d_viz_node.py'],
-                start_new_session=True, stdout=open('/tmp/r1103_viz.log', 'ab'),
+                start_new_session=True, stdout=open(log_paths['viz'], 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
         if interactive:
             picker = subprocess.Popen(
                 ['rosrun', 'v8_platform', 'framework/operator_surface_picker.py'],
-                start_new_session=True, stdout=open('/tmp/r1103_picker.log', 'ab'),
+                start_new_session=True, stdout=open(log_paths['picker'], 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
         if rviz:
             # 3D app markers/paths use frame_id=map, but the graph has no TF edge.
@@ -253,7 +267,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
             tf_static = subprocess.Popen(
                 ['rosrun', 'tf2_ros', 'static_transform_publisher',
                  '0', '0', '0', '0', '0', '0', 'world', 'map'],
-                start_new_session=True, stdout=open('/tmp/r1103_tf_static.log', 'ab'),
+                start_new_session=True, stdout=open(log_paths['tf_static'], 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
             urdf = None
             for package_name, relative in (
@@ -274,22 +288,22 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 robot_state = subprocess.Popen(
                     ['rosrun', 'robot_state_publisher', 'robot_state_publisher'],
                     start_new_session=True,
-                    stdout=open('/tmp/r1103_robot_state.log', 'ab'),
+                    stdout=open(log_paths['robot_state'], 'ab'),
                     stderr=subprocess.STDOUT, env=dict(os.environ))
                 joint_state = subprocess.Popen(
                     ['rosrun', 'joint_state_publisher', 'joint_state_publisher'],
                     start_new_session=True,
-                    stdout=open('/tmp/r1103_joint_state.log', 'ab'),
+                    stdout=open(log_paths['joint_state'], 'ab'),
                     stderr=subprocess.STDOUT, env=dict(os.environ))
                 pose_tf = subprocess.Popen(
                     ['rosrun', 'v8_platform', 'framework/pose_tf_broadcaster.py',
                      '_z_offset:=0.18'],
                     start_new_session=True,
-                    stdout=open('/tmp/r1103_pose_tf.log', 'ab'),
+                    stdout=open(log_paths['pose_tf'], 'ab'),
                     stderr=subprocess.STDOUT, env=dict(os.environ))
             rviz_proc = subprocess.Popen(
                 ['rviz', '-d', str(HERE / 'fixtures' / 'rviz' / 'nav3d.rviz')],
-                start_new_session=True, stdout=open('/tmp/r1103_rviz.log', 'ab'),
+                start_new_session=True, stdout=open(log_paths['rviz'], 'ab'),
                 stderr=subprocess.STDOUT, env=dict(os.environ))
         state = {'path': None, 'trajectory': None, 'pose': None, 'markers': 0,
                  'statuses': [], 'carrier_status': None}
@@ -306,6 +320,55 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                          lambda m: state.update(carrier_status=json.loads(m.data)), queue_size=20)
         rospy.Subscriber('/v8/3d/viz/markers', MarkerArray,
                          lambda m: state.update(markers=len(m.markers)), queue_size=2)
+        if trace is not None:
+            def observe(kind, convert):
+                def callback(message):
+                    try:
+                        trace.record(kind, convert(message), rospy.Time.now().to_sec())
+                    except Exception as error:
+                        trace.error(kind, error)
+                return callback
+            def pose_value(message):
+                return {'xyz': [message.pose.position.x, message.pose.position.y, message.pose.position.z],
+                        'frame': message.header.frame_id, 'stamp': message.header.stamp.to_sec()}
+            def path_value(message):
+                return {'points': [[p.pose.position.x, p.pose.position.y, p.pose.position.z]
+                                   for p in message.poses],
+                        'frame': message.header.frame_id, 'stamp': message.header.stamp.to_sec()}
+            def twist_value(message):
+                return {'linear': [message.linear.x, message.linear.y, message.linear.z],
+                        'angular': [message.angular.x, message.angular.y, message.angular.z]}
+            rospy.Subscriber('/v8/3d/global/path', RosPath, observe('global_path', path_value), queue_size=5)
+            rospy.Subscriber('/v8/3d/global/status', String,
+                             observe('global_status', lambda m: json.loads(m.data)), queue_size=50)
+            rospy.Subscriber('/v8/local/trajectory', String,
+                             observe('local_trajectory', lambda m: json.loads(m.data)), queue_size=100)
+            rospy.Subscriber('/v8/local/status', String,
+                             observe('local_status', lambda m: json.loads(m.data)), queue_size=100)
+            rospy.Subscriber('/v8/local/pose', PoseStamped, observe('pose', pose_value), queue_size=200)
+            rospy.Subscriber('/cmd_vel', Twist, observe('command', twist_value), queue_size=200)
+            if with_gazebo and app['carrier']['backend'] == 'gazebo':
+                from gazebo_msgs.msg import ModelStates
+                from rosgraph_msgs.msg import Clock
+                clock_last = {'at': -1e9}
+                def on_clock(message):
+                    at = time.monotonic()
+                    if at - clock_last['at'] >= .05:
+                        trace.record('clock', {'stamp': message.clock.to_sec()}, rospy.Time.now().to_sec(), at)
+                        clock_last['at'] = at
+                rospy.Subscriber('/clock', Clock, on_clock, queue_size=100)
+                def model_value(message):
+                    name = app['carrier'].get('model_name', 'app_carrier')
+                    if name not in message.name:
+                        return {'present': False, 'model': name}
+                    i = message.name.index(name)
+                    pose = message.pose[i]
+                    return {'present': True, 'model': name,
+                            'xyz': [pose.position.x, pose.position.y, pose.position.z],
+                            'linear': [message.twist[i].linear.x, message.twist[i].linear.y,
+                                       message.twist[i].linear.z]}
+                rospy.Subscriber('/gazebo/model_states', ModelStates,
+                                 observe('gazebo_model', model_value), queue_size=200)
         start_pub = rospy.Publisher('/v8/3d/global/start', PoseStamped, queue_size=1, latch=True)
         goal_pub = rospy.Publisher('/v8/3d/global/goal', PoseStamped, queue_size=1, latch=True)
         obstacle_pub = rospy.Publisher('/v8/local/obstacles', String, queue_size=2)
@@ -424,13 +487,18 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         _terminate(viz, group=True)
         _terminate(gazebo, group=True)
         _terminate(master, group=True)
-        result['logs'] = {
-            'master': '/tmp/r1103_master.log', 'gazebo': '/tmp/r1103_gazebo.log',
-            'viz': '/tmp/r1103_viz.log', 'picker': '/tmp/r1103_picker.log',
-            'rviz': '/tmp/r1103_rviz.log', 'tf_static': '/tmp/r1103_tf_static.log',
-            'robot_state': '/tmp/r1103_robot_state.log',
-            'joint_state': '/tmp/r1103_joint_state.log',
-            'pose_tf': '/tmp/r1103_pose_tf.log'}
+        result['logs'] = dict(log_paths)
+    if trace is not None:
+        try:
+            trace_value = trace.write(trace_path)
+            result['trace'] = {'path': str(trace_path), 'events': len(trace_value['events']),
+                               'capture_ok': trace_value['capture_ok']}
+            if not trace_value['capture_ok']:
+                result['ok'] = False
+                result['trace_error'] = 'observation overflow or callback error'
+        except Exception as error:
+            result['ok'] = False
+            result['trace_error'] = repr(error)
     Path(out_path).write_text(json.dumps(result, ensure_ascii=False, indent=1) + '\n')
     print(json.dumps({k: result[k] for k in ('ok', 'checks', 'path', 'local_trajectory',
                                              'carrier_final', 'markers', 'error')},
@@ -447,6 +515,7 @@ def main():
     parser.add_argument('--gui', action='store_true')
     parser.add_argument('--port', type=int, default=11537)
     parser.add_argument('--timeout-s', type=float, default=90.)
+    parser.add_argument('--trace-out', default=None, help='opt-in full observation JSON; capture failure fails this run')
     parser.add_argument('--real', action='store_true',
                         help='use the on-robot ROS master and live sensors; '
                              'no roscore, no gazebo, no harness obstacle/hold publishers')
@@ -464,7 +533,7 @@ def main():
         return 0
     return execute(args.app, args.out, args.port, not args.real and not args.no_gazebo, args.gui,
                    args.timeout_s, interactive=args.interactive or args.rviz,
-                   rviz=args.rviz, real=args.real)
+                   rviz=args.rviz, real=args.real, trace_path=args.trace_out)
 
 
 if __name__ == '__main__':
