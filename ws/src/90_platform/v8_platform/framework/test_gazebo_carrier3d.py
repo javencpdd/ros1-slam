@@ -102,5 +102,39 @@ class CarrierKinematicsTests(unittest.TestCase):
         self.assertAlmostEqual(out[0], 1.3, places=12)
 
 
+class CarrierNodeSourceTests(unittest.TestCase):
+    """静态守卫：节点内被引用的名字必须可解析（无需 ROS 运行主循环）。
+
+    回归：真实 upstairs-r14 窗口因循环内残留旧变量名，首个 tick 的
+    status 发布即 NameError，节点进程 0.7 s 内 atexit 退出。
+    """
+
+    def test_node_has_no_unbound_referenced_names(self):
+        import builtins
+        import symtable
+        source = (HERE / 'gazebo_carrier3d_node.py').read_text()
+        root = symtable.symtable(source, 'gazebo_carrier3d_node.py', 'exec')
+        module_names = {symbol.get_name() for symbol in root.get_symbols()}
+        errors = []
+
+        def check(scope):
+            for symbol in scope.get_symbols():
+                if not symbol.is_referenced():
+                    continue
+                if (symbol.is_assigned() or symbol.is_parameter()
+                        or symbol.is_free() or symbol.is_declared_global()):
+                    continue
+                name = symbol.get_name()
+                if (name in module_names or name in dir(builtins)
+                        or name.startswith('__')):
+                    continue
+                errors.append('%s: %s' % (scope.get_name(), name))
+            for child in scope.get_children():
+                check(child)
+
+        check(root)
+        self.assertEqual(errors, [])
+
+
 if __name__ == '__main__':
     unittest.main()

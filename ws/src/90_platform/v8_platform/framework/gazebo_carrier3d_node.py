@@ -112,7 +112,8 @@ def main():
             if tick % 10 == 0:
                 status_pub.publish(String(data=json.dumps({
                     'ok': True, 'position': list(position), 'velocity': list(velocity),
-                    'surfaces': len(surfaces), 'model': model}, ensure_ascii=False)))
+                    'surfaces': len(map_value['surfaces']), 'model': model},
+                    ensure_ascii=False)))
             tick += 1
             rate.sleep()
     finally:
