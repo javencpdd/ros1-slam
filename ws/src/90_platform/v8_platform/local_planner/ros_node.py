@@ -273,6 +273,10 @@ def simulation_pose_clock_wait(value, config, sim_clock, profile=None,
     return float(value)
 
 
+def event_sleep(event, seconds):
+    event.wait(seconds)
+
+
 def accept_pose_with_clock_wait(pose_input, message, ros_clock, wall_clock, wait_s=0.,
                                 sleep=time.sleep, is_shutdown=lambda: False):
     """Caller holds the existing state lock; rospy's clock updates independently.
@@ -610,11 +614,25 @@ def main():
         from rosgraph_msgs.msg import Clock
         rospy.Subscriber('/clock', Clock, on_clock, queue_size=1)
 
+    pose_clock_event = threading.Event()
+
+    def on_pose_clock(msg):
+        pose_clock_event.set()
+
+    def pose_clock_sleep(seconds):
+        event_sleep(pose_clock_event, seconds)
+
+    if pose_clock_wait_s > 0.:
+        from rosgraph_msgs.msg import Clock
+        rospy.Subscriber('/clock', Clock, on_pose_clock, queue_size=1)
+
     def on_pose(msg):
         with lock:
             error = accept_pose_with_clock_wait(
                 pose_input, msg, lambda: rospy.Time.now().to_sec(), time.monotonic,
-                wait_s=pose_clock_wait_s, is_shutdown=rospy.is_shutdown)
+                wait_s=pose_clock_wait_s,
+                sleep=pose_clock_sleep if pose_clock_wait_s > 0. else time.sleep,
+                is_shutdown=rospy.is_shutdown)
             if error:
                 plan_wake.set()
 

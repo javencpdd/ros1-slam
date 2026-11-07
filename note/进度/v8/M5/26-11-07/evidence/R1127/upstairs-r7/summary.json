@@ -1,0 +1,51 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T16:07:19+08:00",
+  "window_id": "R1127-upstairs-r7",
+  "case": "upstairs",
+  "source_commit": "d42aef71da7b0bce7efc2bc80268721d8b309659",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    3.888466902423305,
+    1.199999971583257,
+    0.04461333123509085
+  ],
+  "goal_distance_m": 9.788977694026745,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 42,
+    "E_LOCAL_OBSTACLES_STALE": 51,
+    "E_LOCAL_NO_TRAJECTORY": 110,
+    "E_LOCAL_CLOCK": 375,
+    "E_LOCAL_WORLD_UPDATED": 1,
+    "track": 69,
+    "segment_complete": 74,
+    "E_LOCAL_SUPPORT": 7922
+  },
+  "max_sample_gap_s": {
+    "pose": 0.23545658701914363,
+    "command": 0.2544927090057172,
+    "model": 0.2379689560038969
+  },
+  "clock_ordering": {
+    "wait_count": 76,
+    "accepted_count": 71,
+    "timeout_count": 5,
+    "fatal_wait": {
+      "initial_ros": 17.521,
+      "source_stamp": 17.524,
+      "waited_wall_s": 0.011238898005103692,
+      "budget_s": 0.01,
+      "outcome": "E_POSE_CLOCK_WAIT_TIMEOUT"
+    }
+  },
+  "reason": "Repeated same-source run hit another scheduler-deadline timeout during a step transfer. The original late-wake rejection remains correct; no threshold or source was changed. Command capture also exceeds the original 0.25s coverage gate and is separately INVALID.",
+  "trace_sha256": "ccf242375b5189b94796bf2a599c190aa5e45110044d432d678c7ce7df0e6d6a",
+  "app_sha256": "9efd0c6cc28b97424edcdfe157c7b910c45c5ea6b646373ec6b921bb39df4fe0",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r7",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

@@ -470,6 +470,56 @@ class SimulationClockOrderingTests(unittest.TestCase):
             sleeper.assert_not_called()
             self.assertIsNone(self.shared['result'])
 
+    def test_clock_event_wakes_wait_without_state_lock(self):
+        self.fixture(body=False)
+        event = threading.Event()
+        ros = {'value': 100.}
+        def publish_clock():
+            node.time.sleep(.002)
+            ros['value'] = 100.001
+            event.set()
+        worker = threading.Thread(target=publish_clock)
+        worker.start()
+        try:
+            with self.lock:
+                error = node.accept_pose_with_clock_wait(
+                    self.input, pose(stamp=100.001), lambda: ros['value'], node.time.monotonic,
+                    wait_s=.01, sleep=lambda seconds: node.event_sleep(event, seconds))
+        finally:
+            worker.join(1.)
+        self.assertIsNone(error)
+        self.assertFalse(worker.is_alive())
+        self.assertIsNotNone(self.shared['result'])
+
+    def test_clock_event_wait_keeps_original_deadline(self):
+        self.fixture(body=False)
+        event = threading.Event()
+        started = node.time.monotonic()
+        with self.lock:
+            error = node.accept_pose_with_clock_wait(
+                self.input, pose(stamp=100.001), lambda: 100., node.time.monotonic,
+                wait_s=.005, sleep=lambda seconds: node.event_sleep(event, seconds))
+        self.assertEqual(error, 'E_LOCAL_CLOCK')
+        self.assertEqual(self.input.guard.reason, 'E_POSE_CLOCK_WAIT_TIMEOUT')
+        self.assertGreaterEqual(node.time.monotonic() - started, .004)
+        self.assertLess(node.time.monotonic() - started, .5)
+
+    def test_clock_event_arrival_at_sleep_entry_is_not_cleared(self):
+        for _ in range(5):
+            self.fixture(body=False)
+            event = threading.Event()
+            ros = {'value': 100.}
+            def arrived_before_wait(seconds):
+                ros['value'] = 100.001
+                event.set()
+                node.event_sleep(event, seconds)
+            with self.lock:
+                error = node.accept_pose_with_clock_wait(
+                    self.input, pose(stamp=100.001), lambda: ros['value'], node.time.monotonic,
+                    wait_s=.001, sleep=arrived_before_wait)
+            self.assertIsNone(error)
+            self.assertEqual(self.shared['pose_clock_ordering']['outcome'], 'accepted')
+
     def test_wait_holds_state_lock_but_independent_clock_can_advance(self):
         self.fixture(body=False); started = threading.Event(); done = threading.Event()
         def writer():
