@@ -15,25 +15,7 @@ from gazebo_msgs.srv import DeleteModel, SetModelState, SpawnModel
 from geometry_msgs.msg import Pose, PoseStamped, Twist
 from std_msgs.msg import Bool, String
 
-
-def advance(position, velocity, dt):
-    return tuple(position[i] + velocity[i] * dt for i in range(3))
-
-
-def snap_position(position, velocity, surfaces, snap_m):
-    candidates = [(abs(position[2] - surface['z_reference']), surface['z_reference'])
-                  for surface in surfaces
-                  if (surface.get('traversability') == 'supported'
-                      and surface['footprint']['min_x'] <= position[0] <= surface['footprint']['max_x']
-                      and surface['footprint']['min_y'] <= position[1] <= surface['footprint']['max_y']
-                      and abs(position[2] - surface['z_reference']) <= snap_m)]
-    if velocity[2] > 1e-9:
-        candidates = [item for item in candidates if item[1] >= position[2] - 1e-9]
-    elif velocity[2] < -1e-9:
-        candidates = [item for item in candidates if item[1] <= position[2] + 1e-9]
-    if not candidates:
-        return position
-    return (position[0], position[1], min(candidates)[1])
+import carrier_kinematics
 
 
 def main():
@@ -68,7 +50,7 @@ def main():
         if not result.success:
             raise SystemExit('spawn failed: ' + result.status_message)
 
-    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'surfaces': []}
+    shared = {'velocity': (0., 0., 0.), 'at': -1e9, 'map': {'surfaces': []}}
     lock = __import__('threading').Lock()
 
     def on_cmd(message):
@@ -81,8 +63,10 @@ def main():
             value = json.loads(message.data)
         except ValueError:
             return
+        if isinstance(value, dict) and isinstance(value.get('map'), dict):
+            value = value['map']
         with lock:
-            shared['surfaces'] = value.get('surfaces', [])
+            shared['map'] = value
 
     rospy.Subscriber(cmd_topic, Twist, on_cmd, queue_size=50)
     rospy.Subscriber(map_topic, String, on_map, queue_size=1)
@@ -101,9 +85,13 @@ def main():
             with lock:
                 velocity = (shared['velocity'] if now - shared['at'] <= .5
                             else (0., 0., 0.))
-                surfaces = list(shared['surfaces'])
-            position = advance(position, velocity, max(0., now - last))
-            position = snap_position(position, velocity, surfaces, snap_m)
+                map_value = dict(shared['map'])
+                map_value['surfaces'] = list(map_value.get('surfaces', []))
+            position = carrier_kinematics.piecewise_advance(
+                position, velocity, max(0., now - last), map_value['surfaces'],
+                resolution=map_value.get('resolution'), snap_m=snap_m)
+            position = carrier_kinematics.snap_position(position, velocity,
+                                                        map_value['surfaces'], snap_m)
             last = now
             stamp = rospy.Time.now()
             pose = PoseStamped()

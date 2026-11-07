@@ -1,0 +1,60 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-08T01:48:57.727499+08:00",
+  "window_id": "R1127-upstairs-r13",
+  "case": "upstairs",
+  "source_commit": "fa4d3b2b7af6ca26a28f23003e0e80a66c652c2a",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -0.8083089069889821,
+    1.2000000000000002,
+    0.96
+  ],
+  "goal_distance_m": 5.09267299035072,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_OBSTACLES_STALE": 51,
+    "E_LOCAL_NOT_READY": 53,
+    "E_LOCAL_NO_TRAJECTORY": 105,
+    "track": 274,
+    "segment_complete": 592,
+    "hold": 38,
+    "E_LOCAL_SUPPORT": 7158
+  },
+  "max_sample_gap_s": {
+    "pose": 0.1530919590150006,
+    "command": 0.16716918000020087,
+    "gazebo_model": 0.15925918699940667
+  },
+  "clock_ordering": {
+    "initial_ros": 167.696,
+    "source_stamp": 167.697,
+    "received_wall": 207762.022766717,
+    "waited_wall_s": 0.0004833999846596271,
+    "outcome": "accepted",
+    "wait_count": 105,
+    "accepted_count": 105,
+    "timeout_count": 0
+  },
+  "terminal_frame": {
+    "command_issue": "33.261 local issued -0.4132246 m/s after a hold",
+    "carrier_application": "command visible from 33.276 until zero at 33.337",
+    "boundary": "step06 x=-0.8 at z=0.96",
+    "crossed_pose": [
+      -0.8083089069889821,
+      1.2000000000000002,
+      0.96
+    ],
+    "overshoot_m": 0.0083089069889821
+  },
+  "validation_error": "unexpected app subprocess return code: 6",
+  "reason": "Clock ordering is fully healthy (105/105 waits accepted, zero E_LOCAL_CLOCK), but the kinematic carrier integrated a nonzero same-height command across the declared step06 cell edge before the next zero command arrived.",
+  "trace_sha256": "baab783f9f5975e0011231d65c774eff430bec886b426793979cdfb93d4abca6",
+  "app_sha256": "eb91c4531a8edd0555e9257fbf932b0f0dd54493c6eaeddca84462095ba11627",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r13",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

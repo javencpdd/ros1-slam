@@ -1,6 +1,6 @@
 # 两层室内 Gazebo 规划测试世界
 
-> 最新更新时间：2026-11-07 19:38:40 CST。工程标准真源：[工程标准](../../../../../../note/架构/工程标准.md)。本场景使用 x86/ROS1/Noetic/Gazebo Classic 11；不安装到真机、不调用真实运动驱动。
+> 最新更新时间：2026-11-08 03:05:24 CST。工程标准真源：[工程标准](../../../../../../note/架构/工程标准.md)。本场景使用 x86/ROS1/Noetic/Gazebo Classic 11；不安装到真机、不调用真实运动驱动。
 
 一套自持的两层室内世界，包含楼板、楼梯、家具、可绕障碍及楼梯完全阻断反例。world、地图、任务和启动配置均随 Git 分发，不需要下载外部模型，也不依赖本机 `data/maps/registry.json`。入口是 [two_floor_nav.py](../../../../../../scripts/sim/two_floor_nav.py)。
 
@@ -12,7 +12,7 @@
 - [scene.py](scene.py) 是同源生成器。[geometry](geometry/open.json)、[world](worlds/open.world)、[map](maps/open.json) 和场景私有 [registry](registry.json) 由相同几何产生。地图使用 v3 精确 cells，地面移除被楼梯覆盖的投影；踏面不外扩。
 - 规划实验包络 radius=0.30 m、height=0.50 m、clearance=0.05 m；全局显式 radius=0.35 m（含余量）。这是 `generic_sim` 声明包络，包住当前载体 visual，不能当成经过测量或验证的真实 Lite3 包络。
 
-载体复用现有 `gazebo_carrier3d`：按速度积分后用 SetModelState 更新一个 visual-only 方盒。世界有碰撞几何，载体没有接触物理/足端，因此本测试验证已知地图中的规划、命令和运动学执行；台阶接触转移仍是运动学近似，不证明四足防坠、步态或真实上楼能力。定位输入为载体真值，不是 SLAM/LIO。RViz 中可显示 Lite3 模型，Gazebo 中的执行载体仍是该方盒。
+载体复用现有 `gazebo_carrier3d`：按速度积分并用 SetModelState 更新一个 visual-only 方盒。同高度积分使用 map v3 cells/footprint 分段，连续 cells 可跨内部格线，当前支撑边界处截断，避免命令传输间隙把载体积分出踏面；带 z 速度的显式转层不受该 XY 截断。世界有碰撞几何，载体没有接触物理/足端，因此本测试验证已知地图中的规划、命令和运动学执行；台阶接触转移仍是运动学近似，不证明四足防坠、步态或真实上楼能力。定位输入为载体真值，不是 SLAM/LIO。RViz 中可显示 Lite3 模型，Gazebo 中的执行载体仍是该方盒。
 
 现有 `path_goal` 适配器只把完整全局路径的末点交给局部规划器。该场景分别检查全局和局部跨层/避障，并保存完整全局路径；不据两者都到达宣称局部遵守完整全局走廊。
 
