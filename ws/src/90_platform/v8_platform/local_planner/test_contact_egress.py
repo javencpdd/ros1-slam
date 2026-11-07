@@ -88,6 +88,10 @@ class ContactEgressGeometryTests(unittest.TestCase):
         old = next(s for s in self.value['surfaces'] if s['surface_id'] == 'step10')
         collision_config = native.replace(self.config, radius_m=self.config.radius_m + .005)
         self.assertTrue(window.permits(self.value, old, raw, predicted, collision_config))
+        boundary_window = geometry.window((-3.199999, 1.2, 1.44), (-3.19, 1.2, 1.44),
+                                          previous, .005, native._support_contains_segment)
+        self.assertIsNotNone(boundary_window)
+        self.assertTrue(boundary_window.allow_old)
 
         clear_raw = (-2.7, 1.2, 1.44)
         clear_predicted = (-2.69, 1.2, 1.44)

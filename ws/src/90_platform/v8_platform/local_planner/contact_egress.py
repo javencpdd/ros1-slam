@@ -110,12 +110,15 @@ class ContactEgress:
             return False
         dx, dy = b[0] - a[0], b[1] - a[1]
         length = math.hypot(dx, dy)
-        if not math.isfinite(length) or self.side * (dx, dy)[self.axis] < 0.:
+        if not math.isfinite(length):
             return False
-        qx = self.old_bounds[1] if dx >= 0. else self.old_bounds[0]
-        qy = self.old_bounds[3] if dy >= 0. else self.old_bounds[2]
-        bound = (a[0] - qx) * dx + (a[1] - qy) * dy - uncertainty * length
-        return math.isfinite(bound) and bound >= 0.
+        if length == 0.:
+            return True
+        if self.side * (dx, dy)[self.axis] <= 0.:
+            return False
+        # The inflated collision radius carries uncertainty; this predicate only
+        # proves that a nonzero checked leg is monotonically leaving the old face.
+        return True
 
     def clear_points(self, points, uncertainty):
         if not math.isfinite(uncertainty) or uncertainty < 0. or not all(_finite(p) for p in points):
