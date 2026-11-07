@@ -456,14 +456,7 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
                               direction[i] * uncertainty_m for i in range(3))
         if not _support_contains_segment(support, map_value['resolution'], pose, uncertain_end,
                                          config, cells=target_cells):
-            scale = min(scale, max(0., distance - tail - uncertainty_m - 5e-8) /
-                        (horizon * distance))
-            uncertain_end = tuple(pose[i] + previous[i] * config.command_latency_bound_s +
-                                  (target[i] - pose[i]) * scale * horizon +
-                                  direction[i] * uncertainty_m for i in range(3))
-            if not _support_contains_segment(support, map_value['resolution'], pose, uncertain_end,
-                                             config, cells=target_cells):
-                return dict(zero, reason='hold')
+            return dict(zero, reason='hold')
     return {'velocity': [(target[i] - pose[i]) * scale for i in range(3)],
             'stop': False, 'complete': False, 'reason': 'track',
             'segment_target': list(target[:3]), 'execution_checked_at': now}

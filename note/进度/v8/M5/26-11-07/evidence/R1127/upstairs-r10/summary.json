@@ -1,0 +1,51 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T16:52:41+08:00",
+  "window_id": "R1127-upstairs-r10",
+  "case": "upstairs",
+  "source_commit": "eb3103656f052e558372df1f6f4f29c63b1ef66b",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -3.203239881966604,
+    1.2000000000000002,
+    1.44
+  ],
+  "goal_distance_m": 2.698613557776566,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 70,
+    "E_LOCAL_OBSTACLES_STALE": 50,
+    "E_LOCAL_NO_TRAJECTORY": 124,
+    "E_LOCAL_CLOCK": 276,
+    "track": 648,
+    "hold": 20,
+    "segment_complete": 858,
+    "E_LOCAL_SUPPORT": 6206
+  },
+  "max_sample_gap_s": {
+    "pose": 0.36791668098885566,
+    "command": 0.3776716580032371,
+    "model": 0.3739472999877762
+  },
+  "clock_ordering": {
+    "wait_count": 416,
+    "accepted_count": 410,
+    "timeout_count": 6
+  },
+  "terminal_transition": {
+    "source_surface": "step09",
+    "target_surface": "step09",
+    "target_x": -3.1999999999999997,
+    "last_hold_raw_x": -3.1971110233585036,
+    "terminal_raw_x": -3.203239881966604,
+    "reason": "A nonzero command issued with feedback uncertainty still left a transport tail capable of crossing the same-surface target boundary. Use zero-speed settling for this uncertain boundary case, then resume the original reserve from stable feedback; do not relax completion."
+  },
+  "trace_sha256": "0d32b92484bbf6907e55aa90b4aeac78365ee0ae1339b0569b40fe2fb6ef9b86",
+  "app_sha256": "967470586b9d917e4df39387ac47d8baf9fb05240e7484eb0616daca404b2bb1",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r10",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

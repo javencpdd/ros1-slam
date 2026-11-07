@@ -1,0 +1,55 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T16:47:26+08:00",
+  "window_id": "R1127-upstairs-r9",
+  "case": "upstairs",
+  "source_commit": "eb3103656f052e558372df1f6f4f29c63b1ef66b",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    4.066207945639341,
+    1.2003828709610802,
+    0.05366956564547289
+  ],
+  "goal_distance_m": 9.966713477195336,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 53,
+    "E_LOCAL_OBSTACLES_STALE": 49,
+    "E_LOCAL_NO_TRAJECTORY": 107,
+    "E_LOCAL_CLOCK": 92,
+    "track": 47,
+    "segment_complete": 73,
+    "E_LOCAL_SUPPORT": 8303
+  },
+  "max_sample_gap_s": {
+    "pose": 0.19964451401028782,
+    "command": 0.21103444800246507,
+    "model": 0.19891800798359327
+  },
+  "clock_ordering": {
+    "wait_count": 76,
+    "accepted_count": 74,
+    "timeout_count": 2,
+    "fatal_waits": [
+      {
+        "initial_ros": 9.079,
+        "source_stamp": 9.084,
+        "waited_wall_s": 0.011840182007290423
+      },
+      {
+        "initial_ros": 11.139,
+        "source_stamp": 11.144,
+        "waited_wall_s": 0.014019507012562826
+      }
+    ]
+  },
+  "reason": "ClockWaiter removed the R8 busy-loop failure, but two real scheduler overruns still revoked active transfer trajectories under the unchanged 10ms deadline. Capture and cleanup pass; arrival fails. Preserve this run before any same-source retry.",
+  "trace_sha256": "495b079c690fccf41fe8ad51ec4d964f3a048de4593c66ddc1ab4b0c80071084",
+  "app_sha256": "c7e0117deadbf4721798076616cbbad0a76a7ada41eb937001d8ec59d9560a02",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r9",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

@@ -195,7 +195,7 @@ class ExecutionTests(unittest.TestCase):
                       created_at=35.95, valid_until=44.349999000000004)
         return value, result, cfg
 
-    def test_r4_uncertainty_reserve_keeps_directed_command_on_target_cell(self):
+    def test_r4_uncertain_boundary_command_waits_for_transport_to_settle(self):
         value, result, cfg = self.r4_step07_boundary()
         raw = (-1.5941907245137572, 1.2000000000000002, 1.12)
         estimate = (-1.5961842589083763, 1.2000000000000002, 1.12)
@@ -204,14 +204,13 @@ class ExecutionTests(unittest.TestCase):
         out = native.track_segment(value, result, estimate, 37.187, [], cfg,
                                    feedback_pose=raw, uncertainty_m=uncertainty,
                                    previous_velocity=previous)
-        self.assertEqual(out['reason'], 'track')
-        self.assertLess(abs(out['velocity'][0]), .0359068738240038)
+        self.assertEqual(out['reason'], 'hold')
+        self.assertEqual(out['velocity'], [0., 0., 0.])
         horizon = .05 + cfg.command_latency_bound_s
         direction = tuple((result['trajectory'][1][i] - estimate[i]) /
                           native._distance(estimate, result['trajectory'][1]) for i in range(3))
         uncertain_end = tuple(estimate[i] + previous[i] * cfg.command_latency_bound_s +
-                              out['velocity'][i] * horizon + direction[i] * uncertainty
-                              for i in range(3))
+                              direction[i] * uncertainty for i in range(3))
         surface = next(s for s in value['surfaces'] if s['surface_id'] == 'step07')
         self.assertTrue(native._support_contains_segment(
             surface, value['resolution'], estimate, uncertain_end, cfg,
