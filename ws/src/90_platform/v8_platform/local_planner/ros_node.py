@@ -61,7 +61,7 @@ def feedback_uncertainty(observed_at, now, commands, latency_bound_s):
     for stamp, issued in commands:
         if stamp > now:
             break
-        if stamp > observed_at:
+        if stamp >= observed_at:
             variation += math.sqrt(sum((issued[i] - velocity[i]) ** 2 for i in range(3)))
         velocity = tuple(issued)
     return latency_bound_s * (variation + math.sqrt(sum(v * v for v in velocity)))

@@ -358,6 +358,18 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     observed = pose if feedback_pose is None else _xyz(feedback_pose, 'actual feedback pose')
     previous = _xyz(previous_velocity, 'previous velocity') if previous_velocity is not None else (0., 0., 0.)
     tail = config.command_latency_bound_s * math.sqrt(sum(v * v for v in previous))
+    if isinstance(uncertainty_m, bool) or not isinstance(uncertainty_m, (int, float)):
+        return dict(zero, reason='E_LOCAL_INPUT')
+    try:
+        uncertainty_m = float(uncertainty_m)
+    except OverflowError:
+        return dict(zero, reason='hold')
+    if not math.isfinite(uncertainty_m) or uncertainty_m < 0.:
+        return dict(zero, reason='E_LOCAL_INPUT')
+    travel_bound = distance + tail
+    motion_bound = travel_bound + config.radius_m + config.height_m + config.clearance_m
+    if not math.isfinite(travel_bound) or uncertainty_m > motion_bound:
+        return dict(zero, reason='hold')
     support = _support_at(map_value, observed, config)
     target_supported = support is not None and support['surface_id'] == contacts[1]
     predicted_support = _support_at(map_value, pose, config)
@@ -436,6 +448,21 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
     else:
         horizon = control_period_s + config.command_latency_bound_s
         scale = min(speed / distance, max(0., distance - tail - 5e-8) / (horizon * distance))
+    if target_supported and uncertainty_m > 0.:
+        direction = tuple((target[i] - pose[i]) / distance for i in range(3))
+        uncertain_end = tuple(pose[i] + previous[i] * config.command_latency_bound_s +
+                              (target[i] - pose[i]) * scale * horizon +
+                              direction[i] * uncertainty_m for i in range(3))
+        if not _support_contains_segment(support, map_value['resolution'], pose, uncertain_end,
+                                         config, cells=target_cells):
+            scale = min(scale, max(0., distance - tail - uncertainty_m - 5e-8) /
+                        (horizon * distance))
+            uncertain_end = tuple(pose[i] + previous[i] * config.command_latency_bound_s +
+                                  (target[i] - pose[i]) * scale * horizon +
+                                  direction[i] * uncertainty_m for i in range(3))
+            if not _support_contains_segment(support, map_value['resolution'], pose, uncertain_end,
+                                             config, cells=target_cells):
+                return dict(zero, reason='hold')
     return {'velocity': [(target[i] - pose[i]) * scale for i in range(3)],
             'stop': False, 'complete': False, 'reason': 'track',
             'segment_target': list(target[:3]), 'execution_checked_at': now}

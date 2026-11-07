@@ -184,6 +184,114 @@ class ExecutionTests(unittest.TestCase):
             self.assertEqual(next_plan['surfaces'][0], 'ground_floor')
             self.assertIn('step01', next_plan['surfaces'])
 
+    def r4_step07_boundary(self):
+        value, _, cfg = two_floor_boundary()
+        points = [(-1.1999993871081196, 1.2000000000000002, 1.12, 35.95),
+                  (-1.5999999999999992, 1.2000000000000002, 1.12, 37.150000000000006),
+                  (-1.9999999999999993, 1.2000000000000002, 1.28, 38.35)]
+        result = dict(ok=True, reason='horizon', trajectory=points,
+                      surfaces=['step07', 'step07', 'step08'],
+                      map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=35.95, valid_until=44.349999000000004)
+        return value, result, cfg
+
+    def test_r4_uncertainty_reserve_keeps_directed_command_on_target_cell(self):
+        value, result, cfg = self.r4_step07_boundary()
+        raw = (-1.5941907245137572, 1.2000000000000002, 1.12)
+        estimate = (-1.5961842589083763, 1.2000000000000002, 1.12)
+        previous = (-.16612786621826311, 0., 0.)
+        uncertainty = .0016612786621826312
+        out = native.track_segment(value, result, estimate, 37.187, [], cfg,
+                                   feedback_pose=raw, uncertainty_m=uncertainty,
+                                   previous_velocity=previous)
+        self.assertEqual(out['reason'], 'track')
+        self.assertLess(abs(out['velocity'][0]), .0359068738240038)
+        horizon = .05 + cfg.command_latency_bound_s
+        direction = tuple((result['trajectory'][1][i] - estimate[i]) /
+                          native._distance(estimate, result['trajectory'][1]) for i in range(3))
+        uncertain_end = tuple(estimate[i] + previous[i] * cfg.command_latency_bound_s +
+                              out['velocity'][i] * horizon + direction[i] * uncertainty
+                              for i in range(3))
+        surface = next(s for s in value['surfaces'] if s['surface_id'] == 'step07')
+        self.assertTrue(native._support_contains_segment(
+            surface, value['resolution'], estimate, uncertain_end, cfg,
+            cells=native.rep.surface_cells(surface)), out)
+
+    def test_extreme_uncertainty_fails_closed_before_collision_expansion(self):
+        value, result, cfg = self.r4_step07_boundary()
+        raw = (-1.5941907245137572, 1.2000000000000002, 1.12)
+        estimate = (-1.5961842589083763, 1.2000000000000002, 1.12)
+        previous = (-.16612786621826311, 0., 0.)
+        for uncertainty in (float('nan'), float('inf'), -float('inf'), -.1):
+            out = native.track_segment(value, result, estimate, 37.187, [], cfg,
+                                       feedback_pose=raw, uncertainty_m=uncertainty,
+                                       previous_velocity=previous)
+            self.assertEqual(out['reason'], 'E_LOCAL_INPUT', out)
+            self.assertEqual(out['velocity'], [0., 0., 0.])
+        for uncertainty in (1e6, 1e12, 1e308, sys.float_info.max, 10**1000):
+            out = native.track_segment(value, result, estimate, 37.187, [], cfg,
+                                       feedback_pose=raw, uncertainty_m=uncertainty,
+                                       previous_velocity=previous)
+            self.assertEqual(out['reason'], 'hold', out)
+            self.assertEqual(out['velocity'], [0., 0., 0.])
+        raw = (-1.6002, 1.2000000000000002, 1.12)
+        estimate = (-1.60015, 1.2000000000000002, 1.12)
+        baseline = native.track_segment(value, result, estimate, 37.187, [], cfg,
+                                        feedback_pose=raw, uncertainty_m=0.)
+        corrected = native.track_segment(value, result, estimate, 37.187, [], cfg,
+                                         feedback_pose=raw, uncertainty_m=.005)
+        self.assertEqual(corrected, baseline)
+
+    def test_r4_delayed_boundary_approach_settles_without_leaving_step07(self):
+        value, result, cfg = self.r4_step07_boundary()
+        actual = (-1.5607932351004374, 1.2000000000000002, 1.12)
+        feedback, feedback_stamp = actual, 37.
+        velocity = previous = (-.6, 0., 0.)
+        history = [(36.9, velocity)]
+        pending, samples = [], []
+        next_control, next_sample = 37., 37.02
+        done = False
+        for tick in range(7001):
+            now = 37. + tick * .001
+            if tick:
+                actual = tuple(actual[i] + velocity[i] * .001 for i in range(3))
+            support = native._support_at(value, actual, cfg)
+            self.assertIsNotNone(support, (now, actual))
+            self.assertEqual(support['surface_id'], 'step07', (now, actual))
+            while pending and pending[0][0] <= now + 1e-10:
+                _, velocity = pending.pop(0)
+            if now + 1e-10 >= next_sample:
+                samples.append((now + .012, actual, now))
+                next_sample += .02
+            while samples and samples[0][0] <= now + 1e-10:
+                _, feedback, feedback_stamp = samples.pop(0)
+            if not done and now + 1e-10 >= next_control:
+                estimated = ros_node.feedback_at(feedback, feedback_stamp, now, history)
+                uncertainty = ros_node.feedback_uncertainty(
+                    feedback_stamp, now, history, cfg.command_latency_bound_s)
+                out = native.track_segment(value, result, estimated, now, [], cfg,
+                                           control_period_s=.05, feedback_pose=feedback,
+                                           uncertainty_m=uncertainty, previous_velocity=previous)
+                self.assertFalse(out['reason'].startswith('E_LOCAL_'), (now, actual, out))
+                history.append((now, tuple(out['velocity'])))
+                pending.append((now + cfg.command_latency_bound_s, tuple(out['velocity'])))
+                previous = tuple(out['velocity'])
+                next_control += .03
+                done = bool(out.get('complete'))
+            if done and not pending and velocity == (0., 0., 0.):
+                break
+        self.assertTrue(done, (actual, now))
+        self.assertLessEqual(native._distance(actual, result['trajectory'][1]), 1e-6)
+        next_plan = native.plan(value, actual, (-5.9, 1.1, 1.6), now=now, config=cfg)
+        self.assertTrue(next_plan['ok'], next_plan)
+        self.assertIn('step08', next_plan['surfaces'])
+
+    def test_feedback_uncertainty_includes_same_stamp_pending_zero(self):
+        history = [(1., (.5, 0., 0.)), (1.1, (0., 0., 0.))]
+        self.assertEqual(ros_node.feedback_uncertainty(1.1, 1.12, history, .01), .005)
+        self.assertEqual(ros_node.feedback_uncertainty(1.1, 1.1, history, .01), .005)
+        self.assertEqual(ros_node.feedback_uncertainty(1.099, 1.1, history, .01), .005)
+
     def test_timestamped_feedback_predicts_all_issued_command_changes(self):
         predicted = ros_node.feedback_at((.1, 0., .025), 1., 1.1,
                                         [(.9, (.5, 0., .125)), (1.05, (0., 0., 0.))])

@@ -1,0 +1,73 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T15:00:00+08:00",
+  "window_id": "R1127-upstairs-r4",
+  "case": "upstairs",
+  "source_commit": "ea98b80b0e2ad6b493bc263f9c0b50093d635b60",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "goal": [
+    -5.9,
+    1.1,
+    1.6
+  ],
+  "final_pose": [
+    -1.6013813995119208,
+    1.2000000000000002,
+    1.12
+  ],
+  "goal_distance_m": 4.299781607531027,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 44,
+    "E_LOCAL_OBSTACLES_STALE": 51,
+    "E_LOCAL_NO_TRAJECTORY": 93,
+    "E_LOCAL_CLOCK": 92,
+    "track": 563,
+    "hold": 15,
+    "segment_complete": 594,
+    "E_LOCAL_SUPPORT": 7038
+  },
+  "max_sample_gap_s": {
+    "pose": 0.18841766600962728,
+    "command": 0.18465183698572218,
+    "model": 0.17726945999311283
+  },
+  "clock_ordering": {
+    "unique_waits": 244,
+    "accepted": 243,
+    "timeouts": 1
+  },
+  "terminal_transition": {
+    "trajectory_created_at": 35.95,
+    "source_surface": "step07",
+    "target_surface": "step07",
+    "target": [
+      -1.5999999999999992,
+      1.2000000000000002,
+      1.12,
+      37.150000000000006
+    ],
+    "last_track_source_stamp": 37.215,
+    "last_track_pose": [
+      -1.6008446698554764,
+      1.2000000000000002,
+      1.12
+    ],
+    "first_terminal_support_refusal_stamp": 37.235,
+    "first_terminal_support_refusal_pose": [
+      -1.601566567499614,
+      1.2000000000000002,
+      1.12
+    ],
+    "reason": "The committed same-step target lies on a half-open cell boundary. Feedback delay and in-flight commands carried the actual pose beyond x=-1.6 at z=1.12; that point is not on step07, so the new completion guard correctly refused to certify completion. Approach/in-flight travel needs a separate narrow fix; do not relax support completion."
+  },
+  "trace_sha256": "b6df677accc96cec364dd1c7a503dd5aa7c0ddc57567de10187a50fba35a47b2",
+  "app_sha256": "cc08df4b628bd3698f3938458b67d231e81a65e917e5456c15851941e130b9d9",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r4",
+  "capture_scope": "Trace structure, finite values, source clocks, complete sample coverage, Gazebo pairing and command integration passed through validation.py's arrival check; motion/arrival remains FAIL.",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}
