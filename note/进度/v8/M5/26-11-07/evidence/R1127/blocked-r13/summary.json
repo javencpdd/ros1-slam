@@ -1,0 +1,63 @@
+{
+  "schema": "two_floor_evidence_summary/v2",
+  "updated_at": "2026-11-08T14:51:18.217654+08:00",
+  "window_id": "R1127-blocked-r13",
+  "case": "blocked",
+  "source_commit": "5d5a936ddd80ae06f98f7998dcd2d26dc839f533",
+  "source_binding_verdict": "PASS",
+  "source_file_count": 958,
+  "contact_egress_sha256": "308e1c2d9396f2a3b4382b328d55987f5b31c38c5fa9cfad1e4cf0f2c01954dd",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "driver_rc": 0,
+  "scenario_ok": true,
+  "motion_verdict": "PASS",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    5.0,
+    1.0,
+    0.0
+  ],
+  "goal_distance_m": 10.900458705944443,
+  "global_path_points": null,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 977,
+    "E_LOCAL_OBSTACLES_STALE": 48
+  },
+  "max_sample_gap_s": {
+    "pose": 0.0488926229882054,
+    "command": 0.06366043799789622,
+    "gazebo_model": 0.0630655069835484
+  },
+  "validation": {
+    "ok": true,
+    "scope": "known-map kinematic refusal",
+    "reason": "E_PLAN_NO_ROUTE",
+    "pose_samples": 1075,
+    "command_samples": 1060,
+    "paired": 1075
+  },
+  "validation_error": null,
+  "capture_validation": {
+    "ok": true,
+    "scope": "interactive capture integrity only; no task arrival acceptance",
+    "pose_samples": 1075,
+    "gazebo_samples": 1089,
+    "paired": 1075,
+    "command_integral_max_xy_error_m": 0.0,
+    "command_integral_max_z_error_m": 0.0
+  },
+  "capture_validation_error": null,
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/blocked-r13",
+  "raw_sha256": {
+    "invocation.json": "ea702e16ba9e0d4165c02cfa77258a06a8ec3da525f36240f6dd47b2f711aeae",
+    "driver-result.json": "bfa152b56af0bbd9cd70555a8ee71c874255fd886fe9ec5588b8d5897a50ca6d",
+    "container-inputs-before.json": "7ba453cf1b07afebf0f579c7723fc038959ac0e77423bb0bb9af40bee78e6560",
+    "container-inputs-after.json": "7ba453cf1b07afebf0f579c7723fc038959ac0e77423bb0bb9af40bee78e6560",
+    "captured/result.json": "a6f9370683f539e691b4f8045ed62b11d19468aa002b313141286fe7d4776d53",
+    "captured/result.app.json": "afd633a0ab0474ccf628f5a425f14736a29e1e0e444918749e8127855c9d49c6",
+    "captured/result.trace.json": "d79a64777a2529459c1731afda68cb2fcd6890d2ca1eda26f252992705058620"
+  },
+  "scope": "known-map Gazebo kinematic visual-box planning; no physical gait or full corridor claim"
+}
