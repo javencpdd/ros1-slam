@@ -8,6 +8,18 @@
   python3 sim_scene.py --clear                  # 删除本工具放过场的全部模型
   python3 sim_scene.py --status                 # 世界模型名 + 本工具记账
 
+用途 / 何时该换：
+- 9 个场景是 stairstudy 离线预检的受控自变量（见 stairstudy/fixtures.py）：
+  stairs_easy/mid/steep 扫踏步深与级高；wall_h045/h080 是等高无踏步的负样本；
+  ramp_envelope/sidewall_envelope 隔离竖直段与 y 向厚度；blank 是空控；
+  stairs_blocked_mid 是第 5 级临时障碍。
+- 换场景＝在同一世界、同一机器人位姿/传感器/光照/静态地图下只变一个几何变量，
+  用于感知/点云可行性预检、扫可判距离窗、可视化演示、临时障碍；秒级、不重启。
+- 判据一旦依赖静态地图/support_map/代价图（正式导航跑批、goal 选面、可达性），
+  必须 roslaunch ... stairstudy.launch world_file:=... 重启对应世界，不能沿用热插拔后的世界。
+- 采证中途不要换场景，否则同一批数据混入两种几何、读数作废；开跑前先定死布景。
+- blank 是故意摆的空景做对照；--clear 才是撤掉本工具放过的全部模型回到基线。
+
 边界：
 - 只动世界件里的 <model>，不动 ground_plane/sun、不动机器人、不重启 gzserver。
 - 导航静态地图不会随场景更新；切换后直接跑正式导航判据＝无效。需要正式导航时重启对应世界。

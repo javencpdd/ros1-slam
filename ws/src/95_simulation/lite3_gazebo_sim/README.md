@@ -1,6 +1,6 @@
 # lite3_gazebo_sim（SIM 仿真域·测试台本体）
 
-> 最新更新时间：2026-11-07 03:38:56 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，历史指标仍只适用于各原记录。
+> 最新更新时间：2026-11-09 02:24:16 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，并补写场景热插拔的用途与时机（world vs scene 段后，同步 scripts/sim_scene.py 头注释）；历史指标仍只适用于各原记录。
 
 **统一索引头**（模块导航；职责以本轮源码核对与原运行范围为准）
 层 `95_simulation` ｜ 角色 `SIM 仿真域（测试台本体）` ｜ Gazebo 世界、机体仿真描述、推进插件、M2 判据载体与全部仿真侧验收件都在这里；另含楼梯可行性离线预检旁路。
@@ -60,6 +60,12 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 `stairstudy` 场景库用 `stairstudy.launch world_file:=stair_lab_*.world`；`sim_scene.py --scene` 是运行中
 spawn/delete 模型，不换 world，也不更新静态导航图。`stair_lab_*.world` 是 **Gazebo SDF 场景库**，
 不是 MuJoCo 地图，也不是导航 support_map；MuJoCo 走 MJCF/`make_stairs_xml` 生成链，不加载这些 world。
+
+**换 scene 为什么存在**：9 个 `stair_lab_*.world` 场景是 `stairstudy` 离线预检的受控自变量（`fixtures.py` 头：验证「坡度与台阶高分不开『可上楼梯 vs 矮墙』，能分的是踏步深度＋周期性」）。`stairs_easy/mid/steep` 扫踏步深与级高，`wall_h045/h080` 是等高、无踏步的负样本，`ramp_envelope/sidewall_envelope` 分别去掉竖直段／只改 y 向厚度，`blank` 是空控（区分「世界件没加载，静默退化成纯地面」与「加载了但几何不对」，两者点云读数极像），`stairs_blocked_mid` 是第 5 级临时障碍。换场景＝在同一世界、同一机器人位姿／传感器／光照／静态地图下只变一个几何变量，前后读数才能归因到布景。
+
+**什么时候换（热插拔）**：感知／点云可行性预检、扫可判距离窗（`sweep.py` 的 8 个距离）、比较传感型号、Foxglove／gzclient 演示与截图、临时加撤障碍看局部反应。这些只看得见的模型，秒级切换、不重启 gzserver，适合扫 9 场景 × 多距离 × 多传感的组合。
+
+**什么时候必须重启世界**：正式导航跑批、goal 选面、TF／可达性／代价图等判据依赖静态地图的场合。静态地图／support_map／代价图在启动世界时加载，不随 `--scene` 更新（R858:11、42）⇒ 用 `roslaunch lite3_gazebo_sim stairstudy.launch world_file:=...` 重启对应世界再判分。采证中途不要换场景，否则同一批数据混入两种几何、读数作废；开跑前先定死布景。`blank` 是故意摆的空景做对照，`--clear` 才是撤掉本工具放过的全部模型回到基线。
 
 **NIST 链定位**：`nist_stairs_120_s020x170.world` + `nist_stairs_120_nav@1` + `app_runner` 是
 **formal 前的受控回归/集成夹具**，用于验证局部台阶语义、地图死带、goal 选面、TF 和 3D 栈集成；
