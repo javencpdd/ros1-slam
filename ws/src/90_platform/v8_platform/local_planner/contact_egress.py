@@ -7,6 +7,11 @@ It is not an isolation boundary against arbitrary Python code in this process.
 import math
 import support_map as rep
 
+# Cell edges are produced as index*resolution; an exact lattice pose can sit
+# 1e-16 behind the computed plane. This only absorbs that representation gap;
+# clear_points keeps its strict, epsilon-free clearance comparison.
+BOUNDARY_EPS_M = 1e-9
+
 
 def simulation_contact_egress(value, sim_clock, profile=None, body_enabled=False):
     if type(value) is not bool:
@@ -70,10 +75,18 @@ class ContactEgress:
                 candidates.append((axis, 1., hi))
             if thi <= lo:
                 candidates.append((axis, -1., lo))
+        if not candidates:
+            # A lower support can enclose the higher tread (ground under a
+            # step). Its face is still one of the old tread's own boundaries;
+            # the landed leg selects the one the robot is leaving.
+            for axis in (0, 1):
+                lo, hi = self.old_bounds[2 * axis:2 * axis + 2]
+                candidates.extend(((axis, 1., hi), (axis, -1., lo)))
         self.axis, self.side, self.plane = next(
             p for p in candidates
             if p[1] * b[p[0]] > p[1] * p[2] + config.radius_m + config.clearance_m)
-        if not self.outward(a, b, 0.) or not all(self.on_target(p) for p in (a, b)):
+        if (not self.outward(a, b, 0.) or not all(self.on_target(p) for p in (a, b))
+                or not all(self.outside_old(p) for p in (a, b))):
             raise ValueError('next leg has no proved outward exit')
 
     @staticmethod
@@ -101,18 +114,52 @@ class ContactEgress:
                 and rep.contains_xy(self.target, self.resolution, point[0], point[1],
                                     self.config.radius_m, cells=self.target_cells))
 
+    def outside_old(self, point):
+        return (self.on_target(point)
+                and not rep.contains_xy(self.old, self.resolution, point[0], point[1],
+                                        cells=self.old_cells))
+
+    def at_or_beyond(self, point):
+        return _finite(point) and self.side * (point[self.axis] - self.plane) >= -BOUNDARY_EPS_M
+
+    def outside_segment(self, a, b):
+        """No sampled pose of the swept leg enters the old tread's own cells."""
+        if not _finite(a) or not _finite(b):
+            return False
+        times = {0., 1.}
+        normalized = [tuple(p[axis] / self.resolution + 1e-9 for axis in (0, 1))
+                      for p in (a, b)]
+        indices = [tuple(math.floor(v) for v in p) for p in normalized]
+        for axis in (0, 1):
+            start, end = normalized[0][axis], normalized[1][axis]
+            if start == end:
+                continue
+            for boundary in range(min(indices[0][axis], indices[1][axis]) + 1,
+                                  max(indices[0][axis], indices[1][axis]) + 1):
+                fraction = (boundary - start) / (end - start)
+                if 0. < fraction < 1.:
+                    times.add(fraction)
+        ordered = sorted(times)
+        samples = ordered + [(x + y) / 2 for x, y in zip(ordered, ordered[1:])]
+        for fraction in samples:
+            x = a[0] + (b[0] - a[0]) * fraction
+            y = a[1] + (b[1] - a[1]) * fraction
+            if rep.contains_xy(self.old, self.resolution, x, y, cells=self.old_cells):
+                return False
+        return True
+
     def outward(self, a, b, uncertainty):
         if not _finite(a) or not _finite(b) or not math.isfinite(uncertainty) or uncertainty < 0.:
             return False
         if not self.on_target(a) or not self.on_target(b):
             return False
-        if any(self.side * p[self.axis] < self.side * self.plane for p in (a, b)):
+        if any(self.side * (p[self.axis] - self.plane) < -BOUNDARY_EPS_M for p in (a, b)):
             return False
         dx, dy = b[0] - a[0], b[1] - a[1]
         length = math.hypot(dx, dy)
         if not math.isfinite(length):
             return False
-        if length == 0.:
+        if length <= BOUNDARY_EPS_M:
             return True
         if self.side * (dx, dy)[self.axis] <= 0.:
             return False
@@ -138,12 +185,18 @@ class ContactEgress:
         if not all(supported_segment(self.target, self.resolution, a, b, self.config,
                                      cells=self.target_cells) for a, b in segments):
             return None
+        if not all(self.at_or_beyond(p) for p in (raw, predicted, tail, target)):
+            return None
+        if not all(self.outside_segment(a, b) for a, b in segments):
+            return None
         clear = self.full_clear(raw, predicted, previous, uncertainty)
         if self.permission_closed or clear:
             if not clear or not self.clear_points((predicted, target), uncertainty):
                 return None
             return ContactWindow(self, uncertainty, False)
-        if not all(self.outward(a, b, uncertainty) for a, b in segments):
+        # Only the committed leg must leave the face monotonically; raw/pred/tail
+        # are terminal corrections that stay outside the old cells and face.
+        if not self.outward(predicted, target, uncertainty):
             return None
         return ContactWindow(self, uncertainty, True)
 

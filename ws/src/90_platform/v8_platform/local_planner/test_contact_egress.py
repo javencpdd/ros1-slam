@@ -107,6 +107,109 @@ class ContactEgressGeometryTests(unittest.TestCase):
         self.assertIsNotNone(geometry.window(clear_raw, clear_predicted, (.01, 0., 0.), .005,
                                              native._support_contains_segment))
 
+    def test_exact_cell_boundary_pose_still_builds_descending_egress(self):
+        # R1127-downstairs-r13: 12*0.2 renders the shared face as
+        # 2.4000000000000004 while the landed trajectory point is 2.4.
+        value, cfg = self.value, self.config
+        result = dict(ok=True, reason='horizon',
+                      trajectory=[(2.000001328833513, 1.2, .48, 31.82),
+                                  (2.4, 1.2, .32, 33.02),
+                                  (2.8, 1.2, .32, 34.22),
+                                  (3.2, 1.2, .16, 35.42)],
+                      surfaces=['step03', 'step02', 'step02', 'step01'],
+                      map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=31.82, valid_until=40.22)
+        geometry = contact_egress.ContactEgress.create(value, result, cfg)
+        self.assertIsNotNone(geometry)
+        self.assertEqual((geometry.source, geometry.landed, geometry.index),
+                         ('step03', 'step02', 1))
+        self.assertAlmostEqual(geometry.plane, 2.4, places=12)
+        raw = (2.4000000000000004, 1.2, .32)
+        predicted = (2.4, 1.2, .32)
+        window = geometry.window(raw, predicted, (.6, 0., 0.), .005,
+                                 native._support_contains_segment)
+        self.assertIsNotNone(window)
+        self.assertTrue(window.allow_old)
+        old = next(s for s in value['surfaces'] if s['surface_id'] == 'step03')
+        collision_config = native.replace(cfg, radius_m=cfg.radius_m + .005)
+        self.assertTrue(window.permits(value, old, raw, (2.8, 1.2, .32), collision_config))
+        tracked = native.track_segment(value, result, raw, 33.9, [], cfg,
+                                       feedback_pose=predicted, uncertainty_m=.005,
+                                       previous_velocity=(.6, 0., 0.), contact_egress=geometry)
+        self.assertEqual(tracked['reason'], 'track', tracked)
+        self.assertGreater(tracked['velocity'][0], 0.)
+
+        inward = geometry.window(raw, (2.3995, 1.2, .32), (.6, 0., 0.), .005,
+                                 native._support_contains_segment)
+        self.assertIsNone(inward)
+        self.assertFalse(window.permits(value, old, (2.399, 1.2, .32),
+                                        (2.8, 1.2, .32), collision_config))
+
+    def test_enclosing_lower_support_uses_old_tread_face(self):
+        # Ground encloses the step01 block; the landed leg still proves the face.
+        value, cfg = self.value, self.config
+        result = dict(ok=True, reason='horizon',
+                      trajectory=[(3.6, 1.2, .16, 50.),
+                                  (4.0, 1.2, 0., 51.2),
+                                  (4.4, 1.2, 0., 52.4),
+                                  (4.8, 1.2, 0., 53.6)],
+                      surfaces=['step01', 'ground_floor', 'ground_floor', 'ground_floor'],
+                      map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=50., valid_until=58.)
+        geometry = contact_egress.ContactEgress.create(value, result, cfg)
+        self.assertIsNotNone(geometry)
+        self.assertEqual((geometry.source, geometry.landed, geometry.index),
+                         ('step01', 'ground_floor', 1))
+        self.assertEqual((geometry.axis, geometry.side), (0, 1.))
+        self.assertAlmostEqual(geometry.plane, 4.0, places=12)
+        raw = (4.00000005, 1.2, 0.)
+        predicted = (4.0, 1.2, 0.)
+        window = geometry.window(raw, predicted, (.6, 0., 0.), .005,
+                                 native._support_contains_segment)
+        self.assertIsNotNone(window)
+        self.assertTrue(window.allow_old)
+        old = next(s for s in value['surfaces'] if s['surface_id'] == 'step01')
+        collision_config = native.replace(cfg, radius_m=cfg.radius_m + .005)
+        self.assertTrue(window.permits(value, old, raw, (4.4, 1.2, 0.), collision_config))
+        tracked = native.track_segment(value, result, raw, 51.5, [], cfg,
+                                       feedback_pose=predicted, uncertainty_m=.005,
+                                       previous_velocity=(.6, 0., 0.), contact_egress=geometry)
+        self.assertEqual(tracked['reason'], 'track', tracked)
+        self.assertGreater(tracked['velocity'][0], 0.)
+        self.assertIsNone(geometry.window(raw, (3.9995, 1.2, 0.), (.6, 0., 0.), .005,
+                                          native._support_contains_segment))
+        self.assertFalse(window.permits(value, old, (3.999, 1.2, 0.), (4.4, 1.2, 0.),
+                                        collision_config))
+
+    def test_terminal_creep_back_keeps_the_landing_window(self):
+        # R1127 diagnostic: the carrier overshot 1.6, backed up, then completed.
+        value, cfg = self.value, self.config
+        result = dict(ok=True, reason='horizon',
+                      trajectory=[(1.203099014802093, 1.2, .64, 27.36),
+                                  (1.6, 1.2, .48, 28.56),
+                                  (2.0, 1.2, .48, 29.76),
+                                  (2.4, 1.2, .32, 30.96)],
+                      surfaces=['step04', 'step03', 'step03', 'step02'],
+                      map_id=value['map_id'], map_version=value['map_version'],
+                      created_at=27.36, valid_until=35.)
+        geometry = contact_egress.ContactEgress.create(value, result, cfg)
+        self.assertIsNotNone(geometry)
+        raw = (1.600001078, 1.2, .48)
+        predicted = (1.60000005, 1.2, .48)
+        window = geometry.window(raw, predicted, (0., 0., 0.), .005,
+                                 native._support_contains_segment)
+        self.assertIsNotNone(window)
+        self.assertTrue(window.allow_old)
+        # The same sub-micrometre tail would cross the shared cell for one tick;
+        # the controller holds that tick instead of completing at the face.
+        self.assertIsNone(geometry.window(raw, predicted, (-2.57e-5, 0., 0.), .005,
+                                          native._support_contains_segment))
+        tracked = native.track_segment(value, result, raw, 28.8, [], cfg,
+                                       feedback_pose=predicted, uncertainty_m=.005,
+                                       previous_velocity=(0., 0., 0.), contact_egress=geometry)
+        self.assertEqual(tracked['reason'], 'track', tracked)
+        self.assertGreater(tracked['velocity'][0], 0.)
+
     def test_tracking_uses_one_checked_window_and_never_reuses_retired_context(self):
         value, result, cfg = self.value, self.result, self.config
         raw = predicted = (-3.19, 1.2, 1.44)

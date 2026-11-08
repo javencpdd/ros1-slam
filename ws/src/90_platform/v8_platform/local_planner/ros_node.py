@@ -540,9 +540,15 @@ class LocalControl:
                 # only its already accepted immediate next leg can follow.
                 raw_support = native._support_at(self.shared['map'], raw, self.config)
                 if (raw_support is not None and raw_support['surface_id'] == geometry.landed
-                        and geometry.window(raw, predicted, self.previous_command, uncertainty,
-                                            native._support_contains_segment) is not None):
-                    return dict(out, complete=False, reason='hold'), ('activate', geometry)
+                        and geometry.at_or_beyond(raw) and geometry.outside_old(raw)):
+                    if (geometry.window(raw, predicted, self.previous_command, uncertainty,
+                                        native._support_contains_segment) is not None):
+                        return dict(out, complete=False, reason='hold'), ('activate', geometry)
+                    # A terminal correction can leave the previous command's
+                    # sub-micrometre transport tail behind the shared face for
+                    # one tick. Keep the result and publish zero so the next
+                    # window is evaluated without that tail.
+                    return dict(out, complete=False, reason='hold'), (None, None)
         return out, (None, None)
 
     def _contact_published(self, out, action, predicted):
