@@ -1,0 +1,100 @@
+{
+  "schema": "two_floor_evidence_summary/v2",
+  "updated_at": "2026-11-08T16:37:06.207973+08:00",
+  "window_id": "R1127-downstairs-r14",
+  "case": "downstairs",
+  "source_commit": "473ab79eac931cce1f8eccf509b21ee0738f0e2f",
+  "source_binding_verdict": "PASS",
+  "source_file_count": 958,
+  "contact_egress_sha256": "e4d7bd8f021ac581d499c51cfc6f06d183b6dd848bd69216e4d84b24ebebde87",
+  "preflight_rc": 0,
+  "app_rc": 0,
+  "driver_rc": 0,
+  "scenario_ok": true,
+  "motion_verdict": "PASS",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    4.93975224219062,
+    1.1230157631083184,
+    0.0
+  ],
+  "goal_distance_m": 0.1618921530970289,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_OBSTACLES_STALE": 51,
+    "E_LOCAL_NOT_READY": 22,
+    "E_LOCAL_NO_TRAJECTORY": 22,
+    "track": 617,
+    "segment_complete": 391,
+    "hold": 43,
+    "E_LOCAL_CLOCK": 1
+  },
+  "max_sample_gap_s": {
+    "pose": 0.038385118008591235,
+    "command": 0.039437299012206495,
+    "gazebo_model": 0.041627137979958206
+  },
+  "clock_ordering": {
+    "initial_ros": 40.464,
+    "source_stamp": 40.467,
+    "received_wall": 262046.073321296,
+    "waited_wall_s": 0.010103524022269994,
+    "outcome": "E_POSE_CLOCK_WAIT_TIMEOUT",
+    "wait_count": 115,
+    "accepted_count": 114,
+    "timeout_count": 1
+  },
+  "validation": {
+    "ok": true,
+    "scope": "declared-map Gazebo kinematic planning; no physical gait",
+    "pose_samples": 1967,
+    "gazebo_samples": 1956,
+    "command_samples": 1943,
+    "paired": 1967,
+    "global_paths": 1,
+    "local_plans": 17,
+    "command_integral_max_xy_error_m": 0.02714743396186303,
+    "command_integral_max_z_error_m": 0.03345606240009053,
+    "max_pose_gap_s": 0.038385118008591235,
+    "max_command_gap_s": 0.039437299012206495,
+    "max_model_gap_s": 0.041627137979958206,
+    "visited_height_levels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "four_foot_physics": "NOT_TESTED",
+    "global_corridor_following": "NOT_ESTABLISHED: current adapter forwards final goal only"
+  },
+  "validation_error": null,
+  "capture_validation": {
+    "ok": true,
+    "scope": "interactive capture integrity only; no task arrival acceptance",
+    "pose_samples": 1967,
+    "gazebo_samples": 1956,
+    "paired": 1967,
+    "command_integral_max_xy_error_m": 0.02714743396186303,
+    "command_integral_max_z_error_m": 0.03345606240009053
+  },
+  "capture_validation_error": null,
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/downstairs-r14",
+  "raw_sha256": {
+    "invocation.json": "12c3ca8841f105a6fd17b7d421dd4436c1ab49b3b60400f92917f3517ca2e1a2",
+    "driver-result.json": "49d289fc1385bb6a03379c1ebf83379fd156aca981b866524459baa7fd46aa16",
+    "container-inputs-before.json": "0fdeece6d43ece563aa2d85dadf4b1b46f4233c3054914c9d29fbf6a2de4eeef",
+    "container-inputs-after.json": "0fdeece6d43ece563aa2d85dadf4b1b46f4233c3054914c9d29fbf6a2de4eeef",
+    "captured/result.json": "c603dc2a3c8bc8855e664bf19e4562060d483b2ab5ac3576ad32b4bd3a21a4ac",
+    "captured/result.app.json": "6ccf470a0fce8cf0707d516ffe8e2ddab7127a3928ecc1d92be97ea40e479a2b",
+    "captured/result.trace.json": "5de42bf0129702ffd6f87a5816efa7f1292461077eec675e66c71d556aef2610"
+  },
+  "scope": "known-map Gazebo kinematic visual-box planning; no physical gait or full corridor claim"
+}
