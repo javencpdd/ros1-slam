@@ -111,6 +111,26 @@ class CarrierKinematicsTests(unittest.TestCase):
                     (x, 1.2, 1.6), (0.6, 0., 0.), value['surfaces'], snap_m=.03)
                 self.assertAlmostEqual(out[2], 1.6, places=12)
 
+    def test_same_height_cross_surface_walk_continues_onto_top_tread(self):
+        value = scene_map()
+        # 下楼入口：upper_floor(-4.0 边缘) 与 step10 同高 1.6 且 cells 连续，
+        # 零 z 速度直行应走上踏面而不是被钉在 -4.0（真实探针窗死锁根因）。
+        out = carrier_kinematics.piecewise_advance(
+            (-4.0, 1.2, 1.6), (0.6, 0., 0.), 0.5, value['surfaces'],
+            resolution=value['resolution'], snap_m=.03)
+        self.assertGreater(out[0], -3.9)
+        self.assertAlmostEqual(out[2], 1.6, places=12)
+
+    def test_true_edge_without_same_height_successor_still_pins(self):
+        value = scene_map()
+        # step10 前缘 x=-3.2 之外是同高度真空区（step09 仅 1.44），
+        # 无同高后继 cell，仍须在边界截断。
+        out = carrier_kinematics.piecewise_advance(
+            (-3.21, 1.2, 1.6), (0.6, 0., 0.), 0.5, value['surfaces'],
+            resolution=value['resolution'], snap_m=.03)
+        self.assertAlmostEqual(out[0], -3.2, places=12)
+        self.assertAlmostEqual(out[2], 1.6, places=12)
+
 
 class CarrierNodeSourceTests(unittest.TestCase):
     """静态守卫：节点内被引用的名字必须可解析（无需 ROS 运行主循环）。

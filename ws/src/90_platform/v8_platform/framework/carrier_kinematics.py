@@ -57,38 +57,45 @@ def snap_position(position, velocity, surfaces, snap_m):
             min(choices, key=lambda item: (item[0], item[1]))[1])
 
 
-def _movement_limit(position, velocity, surface, resolution):
-    """Return (limit_dt, edge_clamped_position) for this support, or None."""
-    use_cells = resolution is not None and math.isfinite(resolution) and resolution > 0.
-    cells = rep.surface_cells(surface) if use_cells else None
+def _cell_run_limit(position, velocity, cells, resolution):
+    """Movement limit walking contiguous runs inside one combined cell set.
+
+    Returns (limit_dt, edge_clamped_position), or None when no axis moves or
+    no candidate cell is inside the set.
+    """
+    indices = [index for index in _candidate_indices(position, resolution)
+               if index in cells]
     clamped = list(position)
-    if cells is not None:
-        indices = [index for index in _candidate_indices(position, resolution)
-                   if index in cells]
-        limits = []
-        for index in indices:
-            bounds = []
-            for axis in (0, 1):
-                speed = velocity[axis]
-                if abs(speed) <= 1e-15:
-                    continue
-                step = 1 if speed > 0. else -1
-                edge_index = index[axis]
-                while True:
-                    probe = list(index)
-                    probe[axis] = edge_index + step
-                    if (probe[0], probe[1]) not in cells:
-                        break
-                    edge_index = probe[axis]
-                boundary = ((edge_index + 1) if step > 0 else edge_index) * resolution
-                travel = (boundary - position[axis]) / speed
-                if travel >= -1e-9:
-                    bounds.append(max(0., travel))
-                    if travel < 0.:
-                        clamped[axis] = boundary
-            if bounds:
-                limits.append(min(bounds))
-        return (min(limits), tuple(clamped)) if limits else None
+    if not indices:
+        return None
+    limits = []
+    for index in indices:
+        bounds = []
+        for axis in (0, 1):
+            speed = velocity[axis]
+            if abs(speed) <= 1e-15:
+                continue
+            step = 1 if speed > 0. else -1
+            edge_index = index[axis]
+            while True:
+                probe = list(index)
+                probe[axis] = edge_index + step
+                if (probe[0], probe[1]) not in cells:
+                    break
+                edge_index = probe[axis]
+            boundary = ((edge_index + 1) if step > 0 else edge_index) * resolution
+            travel = (boundary - position[axis]) / speed
+            if travel >= -1e-9:
+                bounds.append(max(0., travel))
+                if travel < 0.:
+                    clamped[axis] = boundary
+        if bounds:
+            limits.append(min(bounds))
+    return (min(limits), tuple(clamped)) if limits else None
+
+
+def _footprint_run_limit(position, velocity, surface):
+    clamped = list(position)
     footprint = surface['footprint']
     bounds = []
     for axis, (lo, hi) in enumerate(((footprint['min_x'], footprint['max_x']),
@@ -103,6 +110,45 @@ def _movement_limit(position, velocity, surface, resolution):
             if travel < 0.:
                 clamped[axis] = boundary
     return (min(bounds), tuple(clamped)) if bounds else None
+
+
+def _movement_limit(position, velocity, surface, resolution):
+    """Return (limit_dt, edge_clamped_position) for this support, or None."""
+    use_cells = resolution is not None and math.isfinite(resolution) and resolution > 0.
+    cells = rep.surface_cells(surface) if use_cells else None
+    if cells is not None:
+        return _cell_run_limit(position, velocity, cells, resolution)
+    return _footprint_run_limit(position, velocity, surface)
+
+
+def _support_union_limit(position, velocity, supports, resolution):
+    """Limit against the union of same-height eligible supports.
+
+    Contiguous cells of any eligible (same-height, supported) surface form one
+    traversable run: the carrier may walk across same-height surface seams
+    (e.g. upper floor onto the top stair tread), while a true edge — no
+    same-height cell from any support — still pins the carrier at the boundary.
+    """
+    use_cells = resolution is not None and math.isfinite(resolution) and resolution > 0.
+    combined = set()
+    has_cells = False
+    for surface in supports:
+        cells = rep.surface_cells(surface) if use_cells else None
+        if cells is not None:
+            combined |= cells
+            has_cells = True
+    limits = []
+    if has_cells:
+        limit = _cell_run_limit(position, velocity, combined, resolution)
+        if limit is not None:
+            limits.append(limit)
+    for surface in supports:
+        cells = rep.surface_cells(surface) if use_cells else None
+        if cells is None:
+            limit = _footprint_run_limit(position, velocity, surface)
+            if limit is not None:
+                limits.append(limit)
+    return max(limits, key=lambda item: item[0]) if limits else None
 
 
 def piecewise_advance(position, velocity, dt, surfaces, resolution=None, snap_m=.03,
@@ -123,12 +169,12 @@ def piecewise_advance(position, velocity, dt, surfaces, resolution=None, snap_m=
     if abs(velocity[2]) > z_transfer_speed:
         return advance(position, velocity, dt)
     supports = _eligible_supports(position, surfaces, snap_m, resolution)
-    limits = [_movement_limit(position, velocity, surface, resolution)
-              for _, _, surface in supports]
-    limits = [limit for limit in limits if limit is not None]
-    if not limits:
+    union = _support_union_limit(position, velocity,
+                                 [surface for _, _, surface in supports],
+                                 resolution)
+    if union is None:
         return advance(position, velocity, dt)
-    limit, clamped = min(limits, key=lambda item: item[0])
+    limit, clamped = union
     if limit <= 0.:
         return clamped
     return advance(position, velocity, min(dt, limit))
