@@ -68,7 +68,7 @@ TEMPLATE   = os.path.join(TASKS_DIR, "_template.md")
 
 CST = timezone(timedelta(hours=8))
 
-VALID_AGENTS  = ("zcode", "qoder", "workbuddy", "codex", "human", "unknown")
+VALID_AGENTS  = ("zcode", "qoder", "workbuddy", "codex", "kimi", "human", "unknown")
 VALID_STATUS  = ("todo", "in_progress", "blocked", "review", "done", "abandoned", "transferred")
 OPEN_STATUS   = ("todo", "in_progress", "blocked", "review")
 
@@ -445,7 +445,7 @@ def write_template(st):
 ## 元信息
 
 - ID：`T-YYYYMMDD-NN`
-- 负责人：`<zcode|qoder|workbuddy|codex|human>`
+- 负责人：`<zcode|qoder|workbuddy|codex|kimi|human>`
 - 状态：`todo`
 - 创建：
 - 作用域（本次只允许改动的文件/目录）：

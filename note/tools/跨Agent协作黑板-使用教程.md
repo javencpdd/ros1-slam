@@ -24,6 +24,11 @@ python3 .ai/bridge.py resume --as codex
 python3 .ai/bridge.py check
 ```
 
+Kimi Code 首次进场（2026-11-07）：`kimi import-sessions`（CLI ≥ 2.4.0，要求真 TTY）可把近 15/30 天
+Codex 会话**单向**导入 `~/.kimi-code/sessions/`，本地转换、不改 `~/.codex` 原件；导入件只在
+**对应工作区**的 `/sessions` 里可见。它只用于「第一次进场看历史」，之后一律按
+`python3 .ai/bridge.py resume --as kimi` 读同一块 `.ai/` 黑板，不靠会话记忆接力。
+
 原工具记录已完成/未完成、代码提交、证据、已试失败方案及禁止改动范围，再handoff给接收工具。示例中的任务ID应换成当前实际任务：
 
 ```bash

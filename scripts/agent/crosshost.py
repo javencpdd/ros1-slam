@@ -16,13 +16,13 @@ from datetime import datetime, timedelta, timezone
 
 PROJECT = 'ros1-slam'
 PLATFORMS = ('x86_sim', 'lite3', 'm20')
-AGENTS = ('zcode', 'qoder', 'workbuddy', 'codex', 'human')
+AGENTS = ('zcode', 'qoder', 'workbuddy', 'codex', 'kimi', 'human')
 MAX_PACKAGE = 1024 * 1024
 MAX_LOCAL = 32 * 1024 * 1024
 TASK_ID = re.compile(r'T-\d{8}-\d{2,6}\Z')
 SHA = re.compile(r'[0-9a-f]{64}\Z')
 COMMIT = re.compile(r'[0-9a-f]{40}\Z')
-POINTER = '# AGENTS.md · ros1-slam 沙箱 · 指针\n\n唯一公共面＝`note/09_跨工具协作契约.md`（四家工具进场必读：zcode／qoder／WorkBuddy／Codex）；本文件不入仓、只是指针，正文一律以该件为准。\n'
+POINTER = '# AGENTS.md · ros1-slam 沙箱 · 指针\n\n唯一公共面＝`note/09_跨工具协作契约.md`（五家工具进场必读：zcode／qoder／WorkBuddy／Codex／Kimi Code）；本文件不入仓、只是指针，正文一律以该件为准。\n'
 SHIM = '''#!/usr/bin/env python3
 """Generated ros1-slam bridge shim; canonical code is tracked in scripts/agent."""
 import runpy
