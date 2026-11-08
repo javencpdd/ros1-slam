@@ -183,6 +183,14 @@ def trace_observer(trace, kind, convert, ros_clock, wall_clock=time.monotonic, p
     return callback
 
 
+def assembly_failed(assembly, result):
+    """Retain the first health result; polling can transition the task state."""
+    dead = assembly.health()
+    if dead:
+        result.update(assembly_health=dead, error='assembly component failure: %s' % dead)
+    return bool(dead)
+
+
 def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
             interactive=False, rviz=False, real=False, trace_path=None):
     prepared = prepare_execution(app_path, real=real, with_gazebo=with_gazebo)
@@ -456,8 +464,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 if distance <= .20 and abs(pose[2] - local_goal_now[2]) <= .02:
                     arrived = True
                     break
-            if assembly.health():
-                result['assembly_health'] = assembly.health()
+            if assembly_failed(assembly, result):
                 break
             time.sleep(.1)
         path = state['path']
@@ -496,7 +503,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         if interactive:
             result['ok'] = bool(assembly.ready() and state['markers'] > 0)
         else:
-            result['ok'] = all(result['checks'].values())
+            result['ok'] = not result['error'] and all(result['checks'].values())
     except Exception as error:
         import traceback
         result['error'] = repr(error)

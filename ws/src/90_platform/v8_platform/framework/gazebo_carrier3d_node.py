@@ -8,6 +8,7 @@ as the pure-ROS carrier. This is a kinematic pose sink: no contact dynamics.
 import json
 import math
 import time
+import traceback
 
 import rospy
 from gazebo_msgs.msg import ModelState
@@ -116,6 +117,11 @@ def main():
                     ensure_ascii=False)))
             tick += 1
             rate.sleep()
+    except Exception:
+        # ProcessRunner discards stderr; retain the original loop traceback in
+        # the already captured ROS log before normal owned-model cleanup.
+        rospy.logerr('kinematic carrier loop failed:\n%s', traceback.format_exc())
+        raise
     finally:
         if spawn:
             try:
