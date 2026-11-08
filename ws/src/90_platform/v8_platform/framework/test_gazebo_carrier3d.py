@@ -101,6 +101,16 @@ class CarrierKinematicsTests(unittest.TestCase):
             (0.3, 0.2, 1.), (1., 0., 0.), 1., [plain], resolution=None, snap_m=.03)
         self.assertAlmostEqual(out[0], 1.3, places=12)
 
+    def test_tied_candidates_on_shared_boundary_height_snap_without_dict_compare(self):
+        value = scene_map()
+        # 楼梯口 step10/upper_floor 同高 1.6；x=-4.0 是两者 cell 线，±1e-9 邻域
+        # 使两个面同时入选、(dz, z_reference) 完全并列。真实探针窗在此 TypeError。
+        for x in (-4.0, -4.0 + 5e-10, -4.0 - 5e-10):
+            with self.subTest(x=x):
+                out = carrier_kinematics.snap_position(
+                    (x, 1.2, 1.6), (0.6, 0., 0.), value['surfaces'], snap_m=.03)
+                self.assertAlmostEqual(out[2], 1.6, places=12)
+
 
 class CarrierNodeSourceTests(unittest.TestCase):
     """静态守卫：节点内被引用的名字必须可解析（无需 ROS 运行主循环）。

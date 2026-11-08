@@ -53,7 +53,8 @@ def snap_position(position, velocity, surfaces, snap_m):
         choices = [item for item in choices if item[1] <= position[2] + 1e-9]
     if not choices:
         return position
-    return (position[0], position[1], min(choices)[1])
+    return (position[0], position[1],
+            min(choices, key=lambda item: (item[0], item[1]))[1])
 
 
 def _movement_limit(position, velocity, surface, resolution):
