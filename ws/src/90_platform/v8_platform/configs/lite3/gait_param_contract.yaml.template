@@ -1,0 +1,170 @@
+# 步态名 → 参数表 · 空白契约模板
+#
+# ★本件不生效★：后缀 .template，不被任何 launch / graph / 节点引用，也不被 *.yaml 通配扫到。
+# ★所有数值字段必须为 null★：填值即视为「真机参数回填」，属 L2 授权面，须先取得授权。
+# 字段字典 / 填数规程 / 验收口径 / 自检式见同目录 GAIT_PARAM_CONTRACT.md。
+# 本件是工程模板草案，不构成在册进度登记，不产生任何 PASS 或 FAIL 结论。
+
+schema: gait_param_contract/v1
+status: TEMPLATE_ONLY
+effective: false
+generated: 2026-11-09
+
+boundary:
+  purpose: '把真机各步态的外部表现数值化，作为仿真运动学载体的扰动输入'
+  not_purpose:
+    - '不模拟接触动力学、支撑相、落脚可行性或关节力矩'
+    - '不证明真机运控可用，不替代真机验收'
+    - '不新增真机运动许可，不接线、不填值'
+  authority: '填值与接线须 L2 授权；契约 §9.3 把「真机及其参数」列为停手四类'
+  dual_track: '仿真侧只报感知-规划指标，真机侧只报运控指标，两表不得互相顶替'
+
+# 步态名全集＝仓内现读常量，不是待填数值。
+# 来源：ws/src/00_drivers/message_transformer/src/ros2qnx.cpp:40-46 与 :206-212
+# in_scope 依据：configs/lite3/graph_3d_lite3.yaml:95-96 当前只配 flat_mid 与 high_step。
+gait_registry:
+  flat_low:   {code: '0x21010300', in_scope: false}
+  flat_mid:   {code: '0x21010307', in_scope: true}
+  flat_high:  {code: '0x21010303', in_scope: false}
+  crawl:      {code: '0x21010406', in_scope: false}
+  grip:       {code: '0x21010402', in_scope: false}
+  general:    {code: '0x21010401', in_scope: false}
+  high_step:  {code: '0x21010407', in_scope: true}
+
+# 工况五元组：每条测量记录必须带齐，缺任一维的数值禁止入表。
+condition_axes:
+  required: [surface, slope_deg, speed_band, payload_kg, surface_state]
+  definitions:
+    surface: '地面材质：flat / stair / ramp 等，按现场枚举'
+    slope_deg: '坡度（度）；阶面工况改记 step_m'
+    speed_band: '速度档，与 envelope 的速度分段对应'
+    payload_kg: '负载（kg）'
+    surface_state: '干湿 / 磨损等，影响摩擦'
+  note: '不写工况的数值不得当全域常数使用；平地数据不得用于判楼梯'
+
+# 测量元信息：全部待填，用于追溯每个数值的来源与置信区间。
+measurement_provenance:
+  date: null
+  robot_id: null
+  firmware: null
+  sensor_suite: null
+  truth_source: null
+  truth_accuracy: null
+  sample_rate_hz: null
+  run_count: null
+  confidence_level: null
+  statistic_policy: null
+  operator: null
+  raw_data_ref: null
+
+# 留出集：按 run 整体划分，禁止按帧随机切分。
+split:
+  rule: '按 run 整体划分；同一 run 的帧高度相关，按帧切会泄漏'
+  calibration_runs: []
+  holdout_runs: []
+  disjoint_assertion: 'calibration_runs 与 holdout_runs 交集必须为空'
+  holdout_min_runs: 3
+
+# ── 参数表 ────────────────────────────────────────────────────────────────
+# 只展开当前在册在用的两个步态。其余 5 个纳入回填时，复制 flat_mid 的四组字段块，
+# 并同步把 gait_registry 里对应的 in_scope 改为 true。
+# 每组字段的单位与统计口径见行内注释；完整字典见 GAIT_PARAM_CONTRACT.md。
+
+gaits:
+  flat_mid:
+    applicable_conditions: []
+    envelope:
+      v_max_mps: null                # m/s，稳态可达最大值；取多次 run 的下分位保守值
+      v_reverse_max_mps: null        # m/s，后退速度上限
+      a_max_mps2: null               # m/s²，加速段线性拟合
+      omega_max_radps: null          # rad/s，稳态原地转向角速度上限
+      step_max_m: null               # m，可跨越最大阶高；成功判据须在作业单另定义
+      slope_max_deg: null            # °，可持续爬升坡度
+      turn_radius_min_m: null        # m，稳态最小转弯半径
+      duty_max_s: null               # s，连续运行不降额时长
+      width_clearance_min_m: null    # m，最小通过净宽
+    tracking:
+      v_bias_mps: null               # m/s，指令速度 − 真值速度，均值
+      v_std_mps: null                # m/s，同上，标准差
+      omega_bias_radps: null         # rad/s，航向角速度偏置均值
+      omega_std_radps: null          # rad/s，航向角速度误差标准差
+      slip_ratio: null               # 无量纲，1 − 真值位移/里程计位移
+      odom_scale: null               # 无量纲，里程计尺度因子
+      lateral_drift_m_per_m: null    # m/m，每米前进的横向漂移
+      yaw_drift_rad_per_m: null      # rad/m，每米前进的航向漂移
+    latency_jitter:
+      cmd_lag_mean_s: null           # s，指令发出 → 机体起效，均值
+      cmd_lag_p95_s: null            # s，同上 P95
+      switch_settle_s: null          # s，步态切换请求 → 新步态稳态
+      gait_freq_hz: null             # Hz，步频，即机体周期性振动基频
+      body_heave_amp_m: null         # m，垂向周期振动幅值
+      body_pitch_amp_rad: null       # rad，俯仰周期振动幅值
+      body_roll_amp_rad: null        # rad，横滚周期振动幅值
+      imu_noise_scale: null          # 无量纲，相对静置的 IMU 噪声倍率
+    failure:
+      switch_window_v_limit_mps: null  # m/s，切换窗口允许的速度上限
+      stop_distance_m: null            # m，急停指令 → 完全静止的位移
+      degrade_target_gait: null        # 步态名，失效时退回的目标
+      refusal_codes: null              # map，拒绝码 → 语义映射
+      unusable_conditions: null        # list，该步态不可用的工况组合
+
+  high_step:
+    applicable_conditions: []
+    envelope:
+      v_max_mps: null
+      v_reverse_max_mps: null
+      a_max_mps2: null
+      omega_max_radps: null
+      step_max_m: null
+      slope_max_deg: null
+      turn_radius_min_m: null
+      duty_max_s: null
+      width_clearance_min_m: null
+    tracking:
+      v_bias_mps: null
+      v_std_mps: null
+      omega_bias_radps: null
+      omega_std_radps: null
+      slip_ratio: null
+      odom_scale: null
+      lateral_drift_m_per_m: null
+      yaw_drift_rad_per_m: null
+    latency_jitter:
+      cmd_lag_mean_s: null
+      cmd_lag_p95_s: null
+      switch_settle_s: null
+      gait_freq_hz: null
+      body_heave_amp_m: null
+      body_pitch_amp_rad: null
+      body_roll_amp_rad: null
+      imu_noise_scale: null
+    failure:
+      switch_window_v_limit_mps: null
+      stop_distance_m: null
+      degrade_target_gait: null
+      refusal_codes: null
+      unusable_conditions: null
+
+# 字段组 → 仓内注入点（现读事实，不是待填数值）。
+injection_map:
+  envelope:
+    - 'local_planner/cmd3d_mux_node.py:2-6，唯一 /cmd_vel 写者，按步态名动态限速'
+    - 'configs/lite3/graph_3d_lite3.yaml:85-100，gait_guard 门限'
+  tracking:
+    - 'local_planner/kinematic3d_node.py:15-19，integrate 误差注入'
+    - 'boundary/gazebo_endpoint.py:24-30，平面运动学积分'
+  latency_jitter:
+    - 'local_planner/kinematic3d_node.py:89-90，stale 超时'
+    - 'boundary/gazebo_endpoint.py:108-115，SetModelState 抖动注入'
+  failure:
+    - 'framework/stair_gait_guard_node.py:38-39，步态名与降级'
+
+acceptance:
+  no_self_evidence: '回填值只作扰动输入；判据不得复用同一批 run 或同一组参数'
+  simulation_metrics: [地图一致性与畸变, 定位漂移与退化检出, 导航限速与前视余量]
+  real_robot_metrics: [步态切换稳定性, 支撑相完整性, 落脚可行性, 关节力矩与能耗]
+  forbidden_inference:
+    - '不得由 SLAM 读数推出导航或四足物理能力'
+    - '不得把仿真步态 PASS 当真机可用性证据（Runbook §8）'
+    - '不得把仿真带域定标值当实机精度证书（Runbook:231）'
+  formal_note: '本件不产生任何 PASS / FAIL 结论；formal 与真机仍未签署'
