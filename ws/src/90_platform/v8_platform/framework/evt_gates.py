@@ -47,9 +47,11 @@ GATES = (
             "param_sheet_signed",
         ),
         "note": (
-            "The blank sheet may be produced offline; any real_value filled in "
-            "is a real-robot backfill and needs L2 + a single work order "
-            "(Runbook:230)."
+            "note/11 (sim-to-real migration rules draft, 2026-10-28) already "
+            "exists; this machine-auditable sign-off skeleton complements it. "
+            "Runbook:230 means no EFFECTIVE sheet with measured real values. "
+            "Any real_value filled in is a real-robot backfill and needs L2 + "
+            "a single work order; the gap is still open."
         ),
     },
     {
@@ -196,8 +198,11 @@ def stage_status(evidence, authorization=None):
 
 # ---------------------------------------------------------------------------
 # Blank simulation-to-real parameter comparison sheet auditor.
-# Runbook:230 says this sheet does not exist.  Producing the BLANK sheet is
-# offline work; filling any real_value is an L2 real-robot backfill.
+# note/11 already holds the human-readable migration rules draft (real values
+# all "to be measured").  Runbook:230 means no EFFECTIVE sheet with measured
+# real values -- this machine-auditable skeleton complements it, it does not
+# invent the concept or close the gap.  Filling any real_value is an L2
+# real-robot backfill.
 # ---------------------------------------------------------------------------
 
 SHEET_CATEGORIES = ("extrinsics_tf", "speed_limits", "criteria_gates", "map_version")

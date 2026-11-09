@@ -25,9 +25,11 @@
 G4「真机执行」、G5「判据面签字」各自仍是在册硬约束下的逐项放行点；中标 L2 四类中的
 「真机及其参数」「红线（真机／旧判据门值／历史证据）」「官方表述笔权」。
 
-⇒ 本批是**授权面内的最大推进**：把不需要真机输入的 G0、G1 全部做完（含此前缺口
-`Runbook:230` 的对照件空白模板），并把 G2—G5 各自的证据要求机器可读化
-（`framework/evt_gates.py`），真人只需按门给值／勾放行即可继续。
+⇒ 本批是**授权面内的最大推进**：把不需要真机输入的 G0、G1 全部做完（含
+`SIM_TO_REAL_PARAM_SHEET.yaml.template` 这一**机器可审计的签值骨架**，与既有的
+`note/11_仿真到实机参数迁移表.md` 人类可读迁移规则草案互补；口径见第七节补记），
+并把 G2—G5 各自的证据要求机器可读化（`framework/evt_gates.py`），
+真人只需按门给值／勾放行即可继续。
 若真人认为「允许进入」应解释为同时放行 G2—G5，一句话即可纠正，本模型可撤销、不留既成事实。
 
 ### EVT 门控表（机器可读版＝`evt_gates.py` 的 `GATES`）
@@ -41,9 +43,12 @@ G4「真机执行」、G5「判据面签字」各自仍是在册硬约束下的�
 | G4 | 真机执行 | L2 | 作业窗／作业单／预检／enable_motion 放行 | 默认关 |
 | G5 | 判据面签字与正式验收 | L2 | 判据签字／正式验收措辞 | 未签 |
 
-★`Runbook:230` 原写「外参／TF／速度上限／地图版本无仿真→真机对照件」——
-本批 `SIM_TO_REAL_PARAM_SHEET.yaml.template` 补的是**空白骨架**，不是填值件；
-填任何 `real_value` 即真机回填，须 L2＋单项作业单，`audit_param_sheet()` 会当场报红。★
+★`Runbook:230` 原写「外参／TF／速度上限／地图版本无仿真→真机对照件」，应读作
+「无**已填真机值、经现场复核的生效**对照件」：`note/11_仿真到实机参数迁移表.md`
+（v0.1 草案，2026-10-28，182 行）早已给出逐项迁移规则，只是真机值全标「待实测」。
+本批 `SIM_TO_REAL_PARAM_SHEET.yaml.template` 补的是**机器可审计的签值骨架**，
+不是填值件、也不宣称首创；填任何 `real_value` 即真机回填，须 L2＋单项作业单，
+`audit_param_sheet()` 会当场报红。两份件都仍是草案/空白态，缺口**未闭合**。★
 
 ### 现场段尚缺的前置（逐条可核）
 
@@ -51,7 +56,7 @@ G4「真机执行」、G5「判据面签字」各自仍是在册硬约束下的�
 |---|---|---|---|
 | 1 | 真人批准的作业窗与单项作业单 | `Runbook:4`；`mode_navigation.launch` 头注「开工前置 1」 | 未给（G2） |
 | 2 | 外参实测（`base_link→rslidar`） | `hdl_localization.launch:31—35` 仍为 0 占位；G8-2 判据「恒等阵＝不通过」 | 未量（G3） |
-| 3 | 仿真→真机参数迁移对照件 | `Runbook:230` 明示「无对照件」 | 空白模板已补，待签值（G1） |
+| 3 | 仿真→真机参数迁移对照件 | `Runbook:230`「无对照件」＝无已填真机值的生效件；`note/11` 已有规则草案 | 签值骨架已补（与 note/11 互补），**待签值**（G1） |
 | 4 | formal 与真机签署 | `note/进度/00_总览.md:36,40` | 未签（G5） |
 | 5 | 急停可达、看护在场、机器人站立 | `mode_navigation.launch` 头注「开工前置 3」 | 现场条件（G2） |
 | 6 | `enable_motion` 与 `ros2qnx` 真机链路 | `mode_navigation.launch:29` 默认 false；`boundary/protocol.py:3-4` | 默认关（G4） |
@@ -191,7 +196,8 @@ mbf_costmap_nav + safe_cmd_vel_mux**。两者不是同一框架，**接口名可
 | `framework/vendor_nav_chain.py` | 官方三段链只读契约、17 项接口对照、12 键禁回填判据、fail-closed 初位姿就绪门；`--report` / `--json` / `--selftest` | 纯函数，不启节点 |
 | `framework/nav_init_readiness_node.py` | 影子就绪门 ROS 桥；只订 4 个输入、只发 1 个诊断话题 `/v8/nav/init_readiness` | `readiness_mode=off` |
 | `framework/evt_gates.py` | EVT G0—G5 门控模型、空白参数对照件审计器、三连自测 | 只读，`entry_is_not_gate_release=true` |
-| `configs/lite3/SIM_TO_REAL_PARAM_SHEET.yaml.template` | `Runbook:230` 所缺对照件的空白骨架（4 类／20 个 `real_value: null`） | `TEMPLATE_ONLY` / `effective: false` |
+| `configs/lite3/SIM_TO_REAL_PARAM_SHEET.yaml.template` | **机器可审计的签值骨架**（4 类／20 个 `real_value: null`），与既有 `note/11` 迁移规则草案互补，不宣称补齐缺口 | `TEMPLATE_ONLY` / `effective: false` |
+| `configs/lite3/SENSOR_ODOMETRY_INVENTORY.md` | 传感器与里程计现状盘点：唯一 LIO、VIO 零实现、四类易混淆实现、口径纠偏（2026-11-09 补） | 只读事实，不决策 |
 | `configs/lite3/VENDOR_NAV_EVT_READINESS.md` | 本件：官方只读勘察、对照表、门控、待勾项 | 文档 |
 | `framework/test_vendor_nav_chain.py` | 16 个定向单测 | — |
 | `framework/test_nav_init_readiness.py` | 12 个定向单测（ROS stub，无需 roscore） | — |
@@ -265,3 +271,47 @@ mbf_costmap_nav + safe_cmd_vel_mux**。两者不是同一框架，**接口名可
 - 未连真机、未起节点、未写任何话题、未改门值、未填真机数值、未产生 PASS/FAIL。
 - 本件与 `GAIT_PARAM_CONTRACT.md`／`GAIT_RUNTIME_WIRING.md` 同属「机制先落、数值待勾」线，
   互不引用对方数值，也不互相顶替判据。
+
+---
+
+## 八、2026-11-09 补记：口径纠偏与传感器拓扑
+
+### 8.1 参数迁移对照件的口径纠偏
+
+本批第 1、2、4 节原把 G1 写成「补齐 `Runbook:230` 所缺对照件」，措辞不准，已就地更正：
+`note/11_仿真到实机参数迁移表.md`（v0.1 草案，2026-10-28，182 行）**早已存在**，
+逐项给出仿真值／真机值／迁移规则／复核命令／✅⚠❌ 标记，只是真机值全部标
+「待实测（作业单）」。`Runbook:230` 的「无对照件」应读作
+「**无已填真机值、经现场复核的生效对照件**」，两者不矛盾。
+
+| | `note/11_…迁移表.md` | `SIM_TO_REAL_PARAM_SHEET.yaml.template` |
+| --- | --- | --- |
+| 形态 | 人类可读规则表 | 机器可审计签值骨架 |
+| 回答 | 这个值能不能搬、怎么复核 | 谁在哪个作业单下填、填了要被判红 |
+| 真机值 | 逐项「待实测」 | 20 个 `real_value: null` |
+| 作用 | 迁移决策依据 | G1 门控的证据容器 |
+
+⇒ 本批补的是**互补件**，不宣称首创、不宣称缺口已闭合；G1 仍为「待签值」。
+
+### 8.2 传感器与里程计拓扑（直接影响真机适配）
+
+**仓内唯一的传感器-惯性里程计是 `faster_lio`（紧耦合 LiDAR-Inertial，IESKF＋iVox）；
+没有任何 VIO，也没有第二种传感器-惯性里程计。** 其余带「里程计／定位」字样的实现
+分属 NDT 定位、腿式里程转发、纯运动学积分、仿真真值直给四类，均非同类算法。
+
+- 视觉/VIO：**无源码、无驱动、无图像话题生产者**。`ws/src/00_drivers/` 5 个包全是
+  雷达＋IMU／本体遥测桥；`70_scan.launch:58` 明写「Lite3 无深度相机，depth 分支不消费」；
+  `note/计划书v5/21_…v5.md:327` 把 `realsense2_camera` 明确排到二期。
+- 在册选型记录中**既没有「决定不引入 VIO」也没有「预留 VIO」的明文**，
+  应按「未规划、未评估、未实现」读，不能读成「评估后否掉了 VIO」。
+- 官方 Lite3 有广角相机与「视觉跟随」功能（`note/03_外部文件来源清单.md:72`），
+  但那是跟随/停障功能，不是视觉里程计；官方定位链同样是
+  `/leg_odom2` ＋ `/rslidar_points` ＋ hdl_localization NDT。
+
+完整盘点、逐条路径行号、易混淆四类实现、以及「若引入 VIO 的接入点与红线」
+见同目录 `SENSOR_ODOMETRY_INVENTORY.md`。
+
+★引入新传感器/新估计器属**授权面外的新决策族（L2）**，本节只登记现状，
+不提议、不决策、不改任何配置。真人若要评估 VIO，需另勾作业面并解决
+`/Odometry` 单写者归属、相机外参标定、图像时间戳与 `camera_info` 基线
+（仓内目前一项都没有）。★
