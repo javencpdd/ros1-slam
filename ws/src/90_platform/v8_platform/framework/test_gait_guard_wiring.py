@@ -10,10 +10,12 @@ assist 否决误切、contract 门值反算真的进 GaitDecision、模板态拒
 import importlib.util
 import json
 import sys
+import time
 import types
 import unittest
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -197,6 +199,36 @@ class GaitGuardWiringTests(unittest.TestCase):
         self.assertEqual(node.lookahead_m, 1.5)
         self.assertEqual(node.max_step_m, 0.15)
         self.assertEqual(gait_sequence(node), BASELINE_SEQ)
+
+    def test_gait_change_republishes_inside_window_only(self):
+        node = load_node('wiring_republish', {'~republish_hz': 2.0,
+                                              '~republish_window_s': 5.0})
+        node.map_value = SUPPORT_MAP
+        node.pose = (1.0, 2.0, 0.0)
+        node.path = [(1.0, 2.0, 0.0), (3.0, 2.0, 0.15)]
+        with mock.patch.object(time, 'monotonic',
+                               side_effect=[100.0, 100.1, 100.6, 106.0]):
+            node.step()   # change: publish, window closes at 105.0
+            node.step()   # 100.1: interval not reached
+            node.step()   # 100.6: republish
+            node.step()   # 106.0: window closed
+        self.assertEqual(node.gait_pub.sent, ['high_step', 'high_step'])
+        self.assertEqual(json.loads(node.status_pub.sent[-1])['republished'],
+                         False)
+
+    def test_moving_pose_blocks_republish(self):
+        node = load_node('wiring_republish_moving', {'~republish_hz': 2.0,
+                                                     '~republish_window_s': 5.0})
+        node.map_value = SUPPORT_MAP
+        node.path = [(1.0, 2.0, 0.0), (3.0, 2.0, 0.15)]
+        node.pose = (1.0, 2.0, 0.0)
+        with mock.patch.object(time, 'monotonic',
+                               side_effect=[100.0, 100.1, 100.6, 101.1]):
+            node.step()                              # change: publish
+            node.pose = (1.1, 2.0, 0.0); node.step()  # still moving
+            node.pose = (1.2, 2.0, 0.0); node.step()
+            node.pose = (1.3, 2.0, 0.0); node.step()
+        self.assertEqual(node.gait_pub.sent, ['high_step'])
 
     def test_status_reports_source_and_mode(self):
         node = load_node('wiring_status')

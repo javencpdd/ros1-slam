@@ -16,6 +16,7 @@ import threading
 import time
 
 import local_native as native
+import gait_switch
 from contact_egress import ContactEgress, simulation_contact_egress
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -488,11 +489,13 @@ def publish_worker_result(shared, payload, pose_input, lock, ros_clock, wall_clo
 class LocalControl:
     """One control cycle, with a final atomic recheck against pose callbacks."""
     def __init__(self, shared, pose_input, lock, config, max_age, wall_watchdog_s,
-                 command_pub, twist_pub, status_pub, messages, profile=None, sim_contact_egress=False):
+                 command_pub, twist_pub, status_pub, messages, profile=None, sim_contact_egress=False,
+                 gait_hold=None):
         self.shared, self.pose_input, self.lock = shared, pose_input, lock
         self.config, self.max_age, self.wall_watchdog_s = config, max_age, wall_watchdog_s
         self.command_pub, self.twist_pub, self.status_pub = command_pub, twist_pub, status_pub
         self.messages, self.profile = messages, profile
+        self.gait_hold = gait_hold
         self.history, self.previous_stamp, self.previous_command = [], None, (0., 0., 0.)
         self.epoch, self.sequence = pose_input.guard.epoch, 0
         self.revocation = pose_input.revocation
@@ -667,6 +670,19 @@ class LocalControl:
                     contact_action = ('clear', None)
             if final_reason:
                 out = dict(velocity=[0., 0., 0.], stop=True, reason=final_reason)
+            # Gait changes happen only while stopped: hold zero from the desired
+            # change until the chassis reports the new gait active and settled.
+            # Timeout/stale keep the hold; a fail-closed reason above still wins.
+            gait_state = None
+            if self.gait_hold is not None:
+                gait_state = self.gait_hold.update(
+                    self.shared.get('gait_desired'),
+                    self.shared.get('chassis_gait'),
+                    self.shared.get('chassis_status_at'),
+                    latest_wall)
+                if gait_state['hold'] and not final_reason:
+                    out = dict(velocity=[0., 0., 0.], stop=True, complete=False,
+                               reason=gait_state['reason'], gait_hold=gait_state)
             # Header/history describe publication time, not the older tracking
             # sample. Lockstep's input tick only selects the calculation above.
             stamp_sec = latest_ros if finite_number(latest_ros) and latest_ros > 0. else 0.
@@ -686,6 +702,15 @@ class LocalControl:
                           map_version=snapshot.get('map_version'), plan_ms_max=snapshot.get('plan_ms_max'),
                           latched=bool(latched), plain_twist_frame='base_link_yaw_plane' if self.twist_pub else None,
                           capability_domain='experimental_kinematic_carrier' if self.profile is None else 'validated_robot_profile')
+            if gait_state is not None:
+                observed_at = self.shared.get('chassis_status_at')
+                status['gait_hold'] = gait_state
+                status['gait_observed'] = dict(
+                    desired=self.shared.get('gait_desired'),
+                    active=self.shared.get('chassis_gait'),
+                    speed=self.shared.get('chassis_speed'),
+                    status_age_s=(max(0., latest_wall - observed_at)
+                                  if finite_number(observed_at) and observed_at > 0. else None))
             if self.sim_contact_egress and self._egress is not None:
                 status['contact_egress'] = dict(source=self._egress.source, landed=self._egress.landed,
                                                 segment_index=self._egress.index,
@@ -754,6 +779,17 @@ def main():
     wall_watchdog_s = float(rospy.get_param('~wall_watchdog_s', max(5., 4. * config.validity_s)))
     if not math.isfinite(wall_watchdog_s) or wall_watchdog_s <= 0:
         raise ValueError('wall_watchdog_s must be positive')
+    gait_hold = None
+    gait_desired_topic = chassis_status_topic = None
+    if bool(rospy.get_param('~gait_hold_enable', False)):
+        # Stop-before-switch: the planner owns velocity, the chassis bridge owns
+        # the gait. Hold zero until the bridge reports the requested gait active.
+        gait_hold = gait_switch.GaitSwitchHold(
+            settle_s=rospy.get_param('~gait_hold_settle_s', 0.5),
+            timeout_s=rospy.get_param('~gait_hold_timeout_s', 5.0),
+            status_stale_s=rospy.get_param('~chassis_status_stale_s', 1.5))
+        gait_desired_topic = rospy.get_param('~gait_desired_topic', '/v8/chassis/gait')
+        chassis_status_topic = rospy.get_param('~chassis_status_topic', '/v8/chassis/status')
     map_path = rospy.get_param('~map_json', '')
     map_topic = rospy.get_param('~map_topic', '')
     if not map_path and not map_topic:
@@ -770,7 +806,9 @@ def main():
               'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'last_error_detail': None,
               'obstacle_key': None,
               'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None,
-              'plan_ms': None, 'plan_ms_max': 0., 'map_version': None}
+              'plan_ms': None, 'plan_ms_max': 0., 'map_version': None,
+              'gait_desired': None, 'chassis_gait': None, 'chassis_status_at': -1e100,
+              'chassis_speed': None, 'chassis_refusal': None}
     lock = threading.Lock()
     plan_wake = threading.Event()
     command_pub = rospy.Publisher(rospy.get_param('~command_topic', '/v8/local/cmd_vel_3d'),
@@ -871,9 +909,38 @@ def main():
     rospy.Subscriber(rospy.get_param('~localization_topic', '/v8/local/localization_ok'),
                      Bool, on_localization, queue_size=1)
 
+    if gait_hold is not None:
+        def on_gait_desired(msg):
+            if isinstance(msg.data, str) and msg.data:
+                with lock:
+                    shared.update(gait_desired=msg.data)
+
+        def on_chassis_status(msg):
+            try:
+                payload = json.loads(msg.data)
+                gait = payload.get('gait')
+                speed = payload.get('speed')
+                if not isinstance(gait, str) or not gait:
+                    raise ValueError('gait missing')
+                if speed is not None and not finite_number(speed):
+                    raise ValueError('speed invalid')
+            except (ValueError, TypeError, AttributeError):
+                with lock:
+                    shared.update(chassis_status_at=-1e100, chassis_gait=None,
+                                  chassis_speed=None, chassis_refusal=None)
+                return
+            refusal = payload.get('refusal')
+            with lock:
+                shared.update(chassis_gait=gait, chassis_speed=speed,
+                              chassis_refusal=refusal if isinstance(refusal, str) else None,
+                              chassis_status_at=time.monotonic())
+
+        rospy.Subscriber(gait_desired_topic, String, on_gait_desired, queue_size=1)
+        rospy.Subscriber(chassis_status_topic, String, on_chassis_status, queue_size=1)
+
     controller = LocalControl(shared, pose_input, lock, config, max_age, wall_watchdog_s,
                               command_pub, twist_pub, status_pub, (TwistStamped, Twist, String), profile,
-                              sim_contact_egress=contact_egress_enabled)
+                              sim_contact_egress=contact_egress_enabled, gait_hold=gait_hold)
 
     def control_loop():
         while not rospy.is_shutdown():

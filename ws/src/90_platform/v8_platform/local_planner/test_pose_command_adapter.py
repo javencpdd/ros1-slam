@@ -74,6 +74,29 @@ class LocalAdapterTests(unittest.TestCase):
                               message.angular.x,message.angular.y,message.angular.z),(0.,)*6)
         self.assertEqual(self.control.history[-1][1],(0.,0.,0.))
 
+    def test_gait_switch_holds_zero_until_chassis_confirms_and_settles(self):
+        self.fixture()
+        self.control.gait_hold=node.gait_switch.GaitSwitchHold(
+            settle_s=0.5,timeout_s=5.0,status_stale_s=1.5)
+        self.shared.update(gait_desired='flat_mid',chassis_gait='flat_mid',
+                           chassis_status_at=10.,chassis_speed=0.)
+        with mock.patch.object(node.native,'track_segment',return_value=moving()):out=self.tick()
+        self.assertEqual(out['velocity'],[1.,0.,0.])
+        self.shared['gait_desired']='high_step'
+        with mock.patch.object(node.native,'track_segment',return_value=moving()):out=self.tick()
+        self.assertEqual(out['velocity'],[0.,0.,0.])
+        self.assertEqual(out['reason'],'gait_switch_waiting')
+        self.shared.update(chassis_gait='high_step',chassis_status_at=10.)
+        with mock.patch.object(node.native,'track_segment',return_value=moving()):out=self.tick()
+        self.assertTrue(out['gait_hold']['hold'])
+        self.clock['wall']=10.5;self.shared['chassis_status_at']=10.5
+        with mock.patch.object(node.native,'track_segment',return_value=moving()):out=self.tick()
+        self.assertEqual(out['velocity'],[1.,0.,0.])
+        self.assertEqual(out['reason'],'track')
+        status=json.loads(self.status.messages[-1].data)
+        self.assertEqual(status['gait_hold']['reason'],'gait_switch_done')
+        self.assertEqual(status['gait_observed']['active'],'high_step')
+
     def test_real_publish_rotates_body_and_keeps_stamped_map(self):
         self.fixture(yaw=math.pi/2.)
         with mock.patch.object(node.native,'track_segment',return_value=moving()):out=self.tick()

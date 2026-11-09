@@ -6,6 +6,8 @@ ROS messages. It never publishes a velocity: the chassis bridge is the only
 consumer of the gait topic and the safety mux stays the only /cmd_vel writer.
 """
 import json
+import math
+import time
 
 import rospy
 from geometry_msgs.msg import PoseStamped
@@ -27,6 +29,18 @@ class GaitGuardNode(object):
         self.max_step_m = float(rospy.get_param('~max_step_m', 0.15))
         self.lookahead_m = float(rospy.get_param('~lookahead_m', 1.5))
         self.rate_hz = float(rospy.get_param('~rate_hz', 5.0))
+        self.republish_hz = float(rospy.get_param('~republish_hz', 2.0))
+        self.republish_window_s = float(rospy.get_param('~republish_window_s', 5.0))
+        if not math.isfinite(self.republish_hz) or self.republish_hz < 0.:
+            raise ValueError('republish_hz must be a non-negative finite number')
+        if not math.isfinite(self.republish_window_s) or self.republish_window_s < 0.:
+            raise ValueError('republish_window_s must be a non-negative finite number')
+        self.stationary_s = float(rospy.get_param('~stationary_s', 0.5))
+        self.stationary_eps_m = float(rospy.get_param('~stationary_eps_m', 0.03))
+        if not math.isfinite(self.stationary_s) or self.stationary_s < 0.:
+            raise ValueError('stationary_s must be a non-negative finite number')
+        if not math.isfinite(self.stationary_eps_m) or self.stationary_eps_m <= 0.:
+            raise ValueError('stationary_eps_m must be a positive finite number')
         self.map_topic = rospy.get_param('~map_topic', '/v8_support_map')
         self.path_topic = rospy.get_param('~path_topic', '/v8/3d/global/path')
         self.pose_topic = rospy.get_param('~pose_topic', '/v8/local/pose')
@@ -41,6 +55,10 @@ class GaitGuardNode(object):
         self.path = None
         self.pose = None
         self.published = None
+        self._republish_until = float('-inf')
+        self._last_republish = float('-inf')
+        self._stable_pose = None
+        self._stable_since = None
 
         self.gait_pub = rospy.Publisher(self.gait_topic, String, queue_size=1, latch=True)
         self.status_pub = rospy.Publisher(self.status_topic, String, queue_size=1, latch=True)
@@ -183,9 +201,28 @@ class GaitGuardNode(object):
                 decision_result = dict(result)
                 decision_result['ahead'] = False
         gait = self.decision.update(decision_result)
+        now = time.monotonic()
+        pose = self.pose
+        if self._stable_pose is None:
+            self._stable_pose, self._stable_since = pose, now
+        elif max(abs(pose[i] - self._stable_pose[i]) for i in range(3)) > self.stationary_eps_m:
+            self._stable_pose, self._stable_since = pose, now
+        stationary = (self._stable_since is not None
+                      and now - self._stable_since >= self.stationary_s)
+        republished = False
         if gait != self.published:
             self.published = gait
             self.gait_pub.publish(String(data=gait))
+            self._republish_until = now + self.republish_window_s
+            self._last_republish = now
+        elif (self.republish_hz > 0. and stationary and now < self._republish_until
+              and now - self._last_republish >= 1.0 / self.republish_hz):
+            # The chassis bridge refuses a switch above its speed gate and does
+            # not retry; repeats after the pose has stopped let it accept only
+            # once the robot is actually stationary, not merely commanded zero.
+            self.gait_pub.publish(String(data=gait))
+            self._last_republish = now
+            republished = True
         status = {
             'gait': gait,
             'climbing': self.decision.climbing,
@@ -196,6 +233,8 @@ class GaitGuardNode(object):
             'gate_source': self.gate_resolution['source'],
             'contract_refusals': self.gate_resolution['refusals'],
             'perception_mode': self.perception_mode,
+            'republished': republished,
+            'stationary': stationary,
         }
         if compare is not None:
             status['terrain_type'] = compare['terrain_type']

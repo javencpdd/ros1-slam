@@ -1,6 +1,6 @@
 # Lite3 3D app · 配置模板与现场边界
 
-> 最新更新时间：2026-11-06 15:17:09 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-09 23:30 CST。本次补「接近台阶先停车、确认步态切换后再走」的停车握手与底盘状态接线；文档与源码核对，验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
 
 本目录保存 Lite3 现场装配模板。它说明当前仓内配置，不表示机器人此刻开/关机，也不新增真机运动许可或验收。既有静态/容器冒烟和现场记录见[进度入口](../../../../../../note/进度/v8/README.md)。
 
@@ -24,7 +24,8 @@ TF/odom → carrier pose/localization ────→ local
 点云 → perception obstacles ──────────→ local
 local plain Twist → /cmd_vel_raw → safe_cmd_vel_mux → /cmd_vel
 前超声 → speed_cap ───────────────────→ mux
-map + global Path + carrier pose → gait_guard → /v8/chassis/gait
+map + global Path + carrier pose → gait_guard → /v8/chassis/gait → local（先停车）
+local 保持零速至 ros2qnx /v8/chassis/status 报 gait 匹配 → 恢复跟踪
 ```
 
 perception 已使用 dynamic_obstacles，订阅 `/rslidar_points`，结合位姿/TF做 ROI、分箱与跟踪；不是旧的固定空障碍心跳。`blind_timeout_s=2.0` 时无新点云停止障碍心跳，随后局部输入时效门归零；空表/成功订阅也不能证明所有障碍已被看见。
@@ -41,7 +42,11 @@ local_native.yaml 当前速度上限0.5 m/s、半径0.35 m、高0.436 m、台阶
 
 图中超声前方 index=0：≤0.3 m cap0，≤0.8 m cap0.1，≥1.2 m恢复0.5（迟滞），过期按 fail_cap 限到0.1。gait_guard 前视1.5 m、进入1.0 m/退出1.5 m，超出声明台阶上限拒绝；它产生步态请求，不证明底盘已执行。
 
+换步态改为「先停稳再切」：gait_guard 在期望步态变化时立即发布；之后在 5 s 窗口内、且载体位姿连续 0.5 s 稳定在 3 cm 以内时，按 2 Hz 重发（底盘桥只在 ≤0.10 m/s 时接受，且不会自己重试）；真机 graph 的 local 打开 gait_hold_enable，收到变化即输出零速，直到 `/v8/chassis/status` 的 gait 与期望一致并持续 0.5 s 才恢复跟踪。状态超过 1.5 s 不新鲜或保持超过 5 s 都继续零速并在 `/v8/local/status` 报 gait_switch_status_stale／gait_switch_timeout，不会自动放行。停车由 enter_m 1.0 m 触发，实际停点取决于检测延迟与底盘减速度，均未实测。
+
 [mode_navigation.launch](../../../../70_bringup/lite3_bringup/launch/mode_navigation.launch) 的 enable_motion 缺省false；只在显式打开时启动 ros2qnx。ros2qnx 节点自身 guard 缺省关闭，而该 launch 的 chassis_guard 缺省true并传入节点，两者不可混为“所有入口默认开/关”。现场服务和厂商链行为须以目标机原件与授权窗为准。
+
+3D app 的 `/cmd_vel` 唯一写者是图内 mux，不能与 `mode_navigation.launch` 同时起（它的 M6 是第二个写者）。底盘桥 `ros2qnx` 需在同一 master 单起并显式开 `chassis_guard_enable`；当前仓内还没有把 SUP＋sensors＋hdl＋3D app＋桥合成一条的 launch，现场组装顺序与作业单仍待定。桥不在或 guard 关闭时，遇到台阶 local 会停车并保持零速（fail-closed），不会带着平地步态继续。
 
 ## 离线建图与任务生成
 
