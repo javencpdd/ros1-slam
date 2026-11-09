@@ -110,6 +110,40 @@ class EvtGateTests(unittest.TestCase):
             self.assertIn(g["authority"], ("self", "L2"))
             self.assertTrue(g["requires"])
 
+    # -- physical presence vs spawned sub-agents (note/09:221) -------------
+
+    def test_spawned_agent_role_is_not_physical_presence(self):
+        base = {"work_window": True, "single_work_order": True,
+                "estop_reachable": True, "release:G2": True}
+        blocked = e.evaluate_gate("G2", dict(base, watch_present="小王"),
+                                  role_names={"小王", "小美"})
+        self.assertEqual(blocked["state"], "blocked")
+        self.assertIn("watch_present", blocked["missing"])
+        # Injection effectiveness: a human on-site record passes the same gate.
+        passed = e.evaluate_gate("G2", dict(base, watch_present="现场看护甲"),
+                                 role_names={"小王", "小美"})
+        self.assertEqual(passed["state"], "open")
+
+    def test_presence_guard_applies_to_estop_too(self):
+        base = {"work_window": True, "single_work_order": True,
+                "watch_present": True, "release:G2": True}
+        r = e.evaluate_gate("G2", dict(base, estop_reachable="小明"),
+                            role_names={"小明"})
+        self.assertEqual(r["state"], "blocked")
+        self.assertIn("estop_reachable", r["missing"])
+
+    @unittest.skipUnless(os.path.isdir(e.ROLE_DIR),
+                         "role directory not present in this checkout")
+    def test_role_table_reads_the_real_role_directory(self):
+        names = e.agent_role_names()
+        self.assertIn("小王", names)
+        self.assertIn("小美", names)
+        for n in names:
+            self.assertTrue(n, "no empty role name")
+
+    def test_missing_role_directory_does_not_raise(self):
+        self.assertEqual(e.agent_role_names("/nonexistent/role/dir"), set())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,9 @@
 # 状态：TEMPLATE_ONLY / effective:false ／后缀 .yaml.template 不被 *.yaml 通配扫到。
 # 规矩：任何 real_value 填值＝真机回填，须 L2 ＋单项作业单给值（Runbook:4/:230），
 #       并在 measured_by / measured_at / work_order / signed_by 四栏齐备后才可生效。
+#       该四栏只能由真人或物理在场的作业人员填写。子智能体
+#       （tooling/skill/software-company/agents/ 下的佳文／小王／小张／小明／小美，
+#       note/09:221）没有身体、没有手，不作测量人也不作签字人。
 # 校验：framework/evt_gates.py 的 audit_param_sheet()，以及 test_evt_gates.py。
 # 本件不产生 PASS/FAIL，不代替正式验收措辞，不授权任何现场动作。
 

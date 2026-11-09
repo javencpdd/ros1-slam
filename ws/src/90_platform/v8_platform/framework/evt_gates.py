@@ -23,6 +23,49 @@ import re
 AUTHORIZED_AT = "2026-11-09 16:17"
 ENTRY_TOKEN = "evt_entry"
 
+# Keys that mean "a person is physically at the robot".  The role instances
+# under tooling/skill/software-company/agents/ are sub-agents spawned by the
+# driving tool, not people with hands near the emergency stop (note/09:221).
+# Naming one of them must never count as presence.
+PHYSICAL_PRESENCE_KEYS = ("estop_reachable", "watch_present")
+
+# Resolved from this file: framework -> v8_platform -> 90_platform -> src
+# -> ws -> repo root.
+ROLE_DIR = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..", "..", "..", "..", "..",
+    "tooling", "skill", "software-company", "agents"))
+
+
+def agent_role_names(role_dir=None):
+    """Names of the spawned sub-agent roles, read from the role directory.
+
+    Files are named like "计划与风险管家-小王.md", so both the full stem and
+    the trailing name are collected.  A missing directory yields an empty set
+    instead of raising: a checkout without tooling/ must not become a false red.
+    """
+    where = ROLE_DIR if role_dir is None else role_dir
+    try:
+        entries = os.listdir(where)
+    except OSError:
+        return set()
+    names = set()
+    for entry in entries:
+        if not entry.endswith(".md"):
+            continue
+        stem = entry[:-3]
+        names.add(stem)
+        if "-" in stem:
+            names.add(stem.rsplit("-", 1)[-1])
+    return names
+
+
+def _is_agent_role(value, role_names):
+    """True when the evidence value is literally one of the sub-agent roles."""
+    if not isinstance(value, str):
+        return False
+    return value.strip() in role_names and value.strip() != ""
+
 # Each gate lists the evidence keys required to open it and who may open it.
 # authority="self"  -> non-L2, may be advanced by the driving tool (§9.211).
 # authority="L2"    -> needs the real person's explicit per-item release.
@@ -64,7 +107,12 @@ GATES = (
             "estop_reachable",
             "watch_present",
         ),
-        "note": "Runbook:4; mode_navigation.launch header prerequisite 1 and 3.",
+        "note": (
+            "Runbook:4; mode_navigation.launch header prerequisite 1 and 3. "
+            "watch_present/estop_reachable mean a person physically at the "
+            "robot; a spawned sub-agent role name (note/09:221) is refused, "
+            "never counted as on-site."
+        ),
     },
     {
         "id": "G3",
@@ -113,11 +161,16 @@ def entry_authorized(authorization):
     return ENTRY_TOKEN in set(authorization)
 
 
-def evaluate_gate(gate_id, evidence, authorization=None):
-    """Return the state of one gate.  Empty evidence is refused, never green."""
+def evaluate_gate(gate_id, evidence, authorization=None, role_names=None):
+    """Return the state of one gate.  Empty evidence is refused, never green.
+
+    role_names defaults to the real role directory; pass a set to override it,
+    which is how the self-test injects a known role table without touching disk.
+    """
     if gate_id not in GATE_BY_ID:
         raise ValueError("unknown gate id")
     gate = GATE_BY_ID[gate_id]
+    roles = agent_role_names() if role_names is None else set(role_names)
     if not evidence:
         return {
             "gate": gate_id,
@@ -128,10 +181,16 @@ def evaluate_gate(gate_id, evidence, authorization=None):
             "reasons": ["no evidence supplied; refusing to judge"],
         }
 
-    present, unknown, false_items = [], [], []
+    present, unknown, false_items, notes = [], [], [], []
     for key in gate["requires"]:
         value = evidence.get(key, None)
-        if value is None:
+        if key in PHYSICAL_PRESENCE_KEYS and _is_agent_role(value, roles):
+            false_items.append(key)
+            notes.append(
+                "%s names a spawned sub-agent (%s); a sub-agent is not a person "
+                "at the robot" % (key, value.strip())
+            )
+        elif value is None:
             unknown.append(key)
         elif bool(value) is False:
             false_items.append(key)
@@ -152,7 +211,7 @@ def evaluate_gate(gate_id, evidence, authorization=None):
             "open": False,
             "authority": gate["authority"],
             "missing": list(unknown) + list(false_items),
-            "reasons": ["no usable evidence; refusing to judge"],
+            "reasons": notes + ["no usable evidence; refusing to judge"],
         }
 
     missing = list(unknown) + list(false_items)
@@ -165,21 +224,22 @@ def evaluate_gate(gate_id, evidence, authorization=None):
         "open": open_,
         "authority": gate["authority"],
         "missing": missing,
-        "reasons": (
+        "reasons": notes + (
             ["L2 per-gate release absent: " + release_key] if not released else []
         ),
         "entry_authorized": entry_authorized(authorization),
     }
 
 
-def stage_status(evidence, authorization=None):
+def stage_status(evidence, authorization=None, role_names=None):
     """Highest reachable gate plus the full per-gate table.
 
     Only self-authority gates can ever be reported open without an explicit
     release token.  stage_entered is independent of gate states: it records
     the real person's authorization, not an execution permission.
     """
-    rows = [evaluate_gate(g["id"], evidence, authorization) for g in GATES]
+    rows = [evaluate_gate(g["id"], evidence, authorization, role_names)
+            for g in GATES]
     reachable = []
     for row in rows:
         if not row["open"]:
@@ -287,6 +347,23 @@ def _selftest():
     no_entry = stage_status(injected, None)
     ok &= no_entry["stage_entered"] is False
     ok &= no_entry["reached"] == s2["reached"]
+
+    # 4. physical presence: a spawned sub-agent role is not a person on site.
+    g2 = {"work_window": True, "single_work_order": True,
+          "estop_reachable": True, "watch_present": "小王",
+          "release:G2": True}
+    r4 = evaluate_gate("G2", g2, role_names={"小王"})
+    ok &= r4["state"] == "blocked"
+    ok &= "watch_present" in r4["missing"]
+    ok &= any("sub-agent" in s for s in r4["reasons"])
+
+    # 4b. injection effectiveness: real human wording passes the same check,
+    # so the guard is not just failing everything.
+    ok &= evaluate_gate("G2", dict(g2, watch_present="现场看护甲（物理在场）"),
+                        role_names={"小王"})["state"] == "open"
+
+    # 4c. reverse control: with the role table emptied the name is not screened.
+    ok &= evaluate_gate("G2", g2, role_names=set())["state"] == "open"
 
     # 3c. invalid gate id refused.
     try:
