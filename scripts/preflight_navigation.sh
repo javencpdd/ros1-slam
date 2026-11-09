@@ -51,5 +51,18 @@ for f in "$ROOT/ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py" \
   [ -f "$f" ] && say PASS "件在位 $(basename "$f")" || { say FAIL "缺件 $f"; rc=9; }
 done
 
+# 7) 官方 8.2.1 三段链对照（提示性、默认关闭、不参与 rc）
+#    显式 VENDOR_NAV_REPORT=1 才打印；不读写任何话题、不启任何节点、不改 rc。
+#    依据与待勾项见 ws/src/90_platform/v8_platform/configs/lite3/VENDOR_NAV_EVT_READINESS.md
+if [ "${VENDOR_NAV_REPORT:-0}" = "1" ]; then
+  VENDOR_CHAIN_PY="$ROOT/ws/src/90_platform/v8_platform/framework/vendor_nav_chain.py"
+  if [ -f "$VENDOR_CHAIN_PY" ]; then
+    python3 -B "$VENDOR_CHAIN_PY" --report 2>/dev/null || \
+      say NOTE "官方链对照件未跑起来（提示性，不影响 rc）"
+  else
+    say NOTE "官方链对照件不在位（提示性，不影响 rc）"
+  fi
+fi
+
 echo "== 结论：rc=$rc（0=可起；9=阻塞）=="
 exit "$rc"

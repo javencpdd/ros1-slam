@@ -1,0 +1,127 @@
+# 仿真→真机参数迁移对照件（空白模板）
+# 依据：note/10_真机上机Runbook.md:230 明示「外参／TF／速度上限／地图版本无仿真→真机对照件」。
+# 状态：TEMPLATE_ONLY / effective:false ／后缀 .yaml.template 不被 *.yaml 通配扫到。
+# 规矩：任何 real_value 填值＝真机回填，须 L2 ＋单项作业单给值（Runbook:4/:230），
+#       并在 measured_by / measured_at / work_order / signed_by 四栏齐备后才可生效。
+# 校验：framework/evt_gates.py 的 audit_param_sheet()，以及 test_evt_gates.py。
+# 本件不产生 PASS/FAIL，不代替正式验收措辞，不授权任何现场动作。
+
+status: TEMPLATE_ONLY
+effective: false
+authorized_stage: EVT
+entry_authorized_at: null          # 真人授权「进入 EVT 段」的时点，由权利方填写
+work_order: null
+measured_by: null
+measured_at: null
+signed_by: null
+
+# 仿真侧现值的来源指针一律写成「路径:行号」，不在此复制官方数值，也不回填。
+# sim_value_source 只是查找线索；sim_value 由现场作业单对照确认后填，仍属 L2。
+
+extrinsics_tf:
+  base_link_to_rslidar_x:
+    sim_value: null
+    sim_value_source: ws/src/20_localization/lite3_localization/launch/hdl_localization.launch:31
+    real_value: null
+    unit: m
+  base_link_to_rslidar_y:
+    sim_value: null
+    sim_value_source: ws/src/20_localization/lite3_localization/launch/hdl_localization.launch:32
+    real_value: null
+    unit: m
+  base_link_to_rslidar_z:
+    sim_value: null
+    sim_value_source: ws/src/20_localization/lite3_localization/launch/hdl_localization.launch:33
+    real_value: null
+    unit: m
+  base_link_to_rslidar_pitch:
+    sim_value: null
+    sim_value_source: ws/src/20_localization/lite3_localization/launch/hdl_localization.launch:34
+    real_value: null
+    unit: rad
+  map_to_odom_frame:
+    sim_value: null
+    sim_value_source: ws/src/70_bringup/lite3_bringup/scripts/sim_pose_tf.py
+    real_value: null
+    unit: frame
+
+speed_limits:
+  max_linear_mps:
+    sim_value: null
+    sim_value_source: ws/src/60_safety/lite3_safety/config/cmd_vel_mux.yaml
+    real_value: null
+    unit: m/s
+  max_angular_rps:
+    sim_value: null
+    sim_value_source: ws/src/60_safety/lite3_safety/config/cmd_vel_mux.yaml
+    real_value: null
+    unit: rad/s
+  blind_cap_mps:
+    sim_value: null
+    sim_value_source: ws/src/60_safety/lite3_safety/config/cmd_vel_mux.yaml
+    real_value: null
+    unit: m/s
+  gait_min_speed:
+    sim_value: null
+    sim_value_source: ws/src/70_bringup/lite3_bringup/launch/mode_navigation.launch
+    real_value: null
+    unit: m/s
+
+criteria_gates:
+  lookahead_m:
+    sim_value: null
+    sim_value_source: ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3.yaml
+    real_value: null
+    unit: m
+  enter_m:
+    sim_value: null
+    sim_value_source: ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3.yaml
+    real_value: null
+    unit: m
+  exit_m:
+    sim_value: null
+    sim_value_source: ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3.yaml
+    real_value: null
+    unit: m
+  min_step_m:
+    sim_value: null
+    sim_value_source: ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3.yaml
+    real_value: null
+    unit: m
+  max_step_m:
+    sim_value: null
+    sim_value_source: ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3.yaml
+    real_value: null
+    unit: m
+  ndt_resolution:
+    sim_value: null
+    sim_value_source: ws/src/20_localization/lite3_localization/launch/hdl_localization.launch
+    real_value: null
+    unit: m
+  downsample_resolution:
+    sim_value: null
+    sim_value_source: ws/src/20_localization/lite3_localization/launch/hdl_localization.launch
+    real_value: null
+    unit: m
+  inflation_radius:
+    sim_value: null
+    sim_value_source: ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml
+    real_value: null
+    unit: m
+
+map_version:
+  globalmap_pcd:
+    sim_value: null
+    sim_value_source: ws/src/20_localization/lite3_localization/launch/hdl_localization.launch
+    real_value: null
+    unit: path
+  map_yaml_origin:
+    sim_value: null
+    sim_value_source: ws/src/70_bringup/lite3_bringup/launch/mode_localize.launch
+    real_value: null
+    unit: m
+  map_yaml_resolution:
+    sim_value: null
+    sim_value_source: ws/src/40_navigation/lite3_navigation/config/costmap_common.yaml
+    real_value: null
+    unit: m
