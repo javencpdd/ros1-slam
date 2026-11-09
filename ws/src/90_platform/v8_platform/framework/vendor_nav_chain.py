@@ -6,6 +6,12 @@ inspection layer for the ROS1 side of this repository.
 
 It is deliberately NOT a runtime driver:
 
+* <VENDOR_STACK> is an abstract placeholder for the vendor host's production
+  stack root.  The literal absolute path is a READ-ONLY observation and lives
+  in ~/.cache/vendor-nav-evt-20261109/official_readonly_snapshot.txt; it is
+  deliberately not written under ws/src (v5.3 isolation rule: ws/src must not
+  contain the vendor production-home path literal; only note/ source records
+  and opt/ref may do so).
 * Pure stdlib, no ROS import, no topic writes, no process starts.
 * Default mode is ``off``. ``shadow`` only reports; ``assist`` is the only
   mode that may veto, and it is never the default.
@@ -60,11 +66,11 @@ VENDOR_CHAIN = (
     {
         "step": 2,
         "name": "localization_and_nav2",
-        "manual": "cd /home/ysc/lite_cog_ros2/system/scripts/nav; ./start_nav.sh",
+        "manual": "cd <VENDOR_STACK>/system/scripts/nav; ./start_nav.sh",
         "script": "start_nav.sh",
         "script_lines": (
-            "source /home/ysc/lite_cog_ros2/navigation2-foxy/install/setup.bash",
-            "source /home/ysc/lite_cog_ros2/nav/install/setup.bash",
+            "source <VENDOR_STACK>/navigation2-foxy/install/setup.bash",
+            "source <VENDOR_STACK>/nav/install/setup.bash",
             "ros2 launch hdl_localization lite_localization.launch.py",
         ),
         "launch": "nav/src/hdl_localization/launch/lite_localization.launch.py",
@@ -210,7 +216,7 @@ VENDOR_INTERFACES = {
         ),
     },
     "globalmap_pcd": {
-        "value": "/home/ysc/lite_cog_ros2/system/map/lite3.pcd",
+        "value": "<VENDOR_STACK>/system/map/lite3.pcd",
         "source": "lite_localization.launch.py globalmap_pcd",
         "do_not_copy": True,
         "project": "/home/ros1-slam/data/maps/$(arg map_name).pcd",

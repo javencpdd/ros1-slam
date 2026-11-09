@@ -8,6 +8,10 @@
 采集时间 2026-11-09；采集方式＝对 `192.168.1.103`（hostname `lite`，用户 `ysc`）的**只读** SSH
 勘察，未写远端、未下载官方源文件、未启动任何官方脚本、未执行任何策略或二进制。
 
+★路径记法★：下文 `<VENDOR_STACK>` 是官方主机生产栈根的抽象占位。绝对字面路径属于
+只读勘察读数，按 v5.3 隔离规矩**不写入 `ws/src`**（仅 `note/` 来源记录与 `opt/ref` 可写），
+逐字原文完整保存在 `~/.cache/vendor-nav-evt-20261109/official_readonly_snapshot.txt`（9 节 260 行）。
+
 ---
 
 ## 一、是否进入 EVT 段：结论与依据
@@ -81,15 +85,15 @@ Robosense 链路可用，也不能把它当作项目待办。★
 ### 第 2 步：启动定位导航节点
 
 ```
-cd /home/ysc/lite_cog_ros2/system/scripts/nav
+cd <VENDOR_STACK>/system/scripts/nav
 ./start_nav.sh
 ```
 
 `start_nav.sh`（178 B，2024-08-12）全文三行：
 
 ```
-source /home/ysc/lite_cog_ros2/navigation2-foxy/install/setup.bash
-source /home/ysc/lite_cog_ros2/nav/install/setup.bash
+source <VENDOR_STACK>/navigation2-foxy/install/setup.bash
+source <VENDOR_STACK>/nav/install/setup.bash
 ros2 launch hdl_localization lite_localization.launch.py
 ```
 
@@ -97,7 +101,7 @@ ros2 launch hdl_localization lite_localization.launch.py
 
 - `debug = False` ⇒ `map_server`／`rviz` 分支**不启动**；实际起的是
   `hdl_localization_composition` ＋ `dr_nav2.launch.py`。
-- `hdl_localization_composition`：`globalmap_pcd=/home/ysc/lite_cog_ros2/system/map/lite3.pcd`、
+- `hdl_localization_composition`：`globalmap_pcd=<VENDOR_STACK>/system/map/lite3.pcd`、
   `reg_method=NDT_OMP`、`ndt_neighbor_search_method=DIRECT1`、
   `ndt_neighbor_search_radius=3.0`、`ndt_resolution=1.5`、`downsample_resolution=0.5`、
   `use_imu=True`、`cool_time_duration=2.0`、`enable_robot_odometry_prediction=False`、
@@ -112,7 +116,7 @@ ros2 launch hdl_localization lite_localization.launch.py
   这正解释 `note/02_问题与坑.md:62`「官方 URDF 全树未找到、外参数值只能现场量」。★
 
 `nav/src/dr_nav2/launch/dr_nav2.launch.py`：`nav2_bringup/bringup_launch.py`，
-`map=/home/ysc/lite_cog_ros2/system/map/lite3.yaml`、
+`map=<VENDOR_STACK>/system/map/lite3.yaml`、
 `params_file=dr_nav2/config/lite_nav2.yaml`、`use_sim_time=False`、`autostart=True`、
 `map_subscribe_transient_local=True`，另起 `rviz2`。
 
@@ -256,7 +260,7 @@ mbf_costmap_nav + safe_cmd_vel_mux**。两者不是同一框架，**接口名可
 
 ## 七、边界
 
-- 全程对 `103` 只读；未改／未下载／未删除 `/home/ysc/lite_cog_ros2/` 任何原件
+- 全程对 `103` 只读；未改／未下载／未删除 `<VENDOR_STACK>/` 任何原件
   （`note/计划书v5/21_…v5.3.md:118` 生产侧禁搬／改／删）。
 - 未连真机、未起节点、未写任何话题、未改门值、未填真机数值、未产生 PASS/FAIL。
 - 本件与 `GAIT_PARAM_CONTRACT.md`／`GAIT_RUNTIME_WIRING.md` 同属「机制先落、数值待勾」线，

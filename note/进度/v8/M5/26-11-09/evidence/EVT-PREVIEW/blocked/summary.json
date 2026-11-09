@@ -1,0 +1,84 @@
+{
+  "app_rc": 6,
+  "case": "blocked",
+  "files": {
+    "app": "/home/ros1-slam/note/进度/v8/M5/26-11-09/evidence/EVT-PREVIEW/blocked/summary.app.json",
+    "preflight": "/home/ros1-slam/note/进度/v8/M5/26-11-09/evidence/EVT-PREVIEW/blocked/summary.preflight.log",
+    "summary": "/home/ros1-slam/note/进度/v8/M5/26-11-09/evidence/EVT-PREVIEW/blocked/summary.json",
+    "trace": "/home/ros1-slam/note/进度/v8/M5/26-11-09/evidence/EVT-PREVIEW/blocked/summary.trace.json"
+  },
+  "offline_plan": {
+    "map_sha256": "794c3053cf4e784d9a41209bf6c83d8eedbc60683132e78247229b62a5a6e721",
+    "task": {
+      "frame": "map",
+      "goal": {
+        "surface_disambiguation": "explicit_hint",
+        "surface_hint": "upper_floor",
+        "tolerance": {
+          "position_m": 0.2,
+          "source": "operator",
+          "yaw_rad": 0.2
+        },
+        "xyz": [
+          -5.9,
+          1.1,
+          1.6
+        ],
+        "yaw": 0
+      },
+      "goal_reference": "support_surface",
+      "map": {
+        "map_id": "two_floor_blocked",
+        "map_version": 1
+      },
+      "resolved": {
+        "goal_candidates": [
+          {
+            "surface_id": "ground_floor",
+            "z_reference": 0
+          },
+          {
+            "surface_id": "upper_floor",
+            "z_reference": 1.6
+          }
+        ],
+        "goal_surface": "upper_floor",
+        "goal_surface_z": 1.6,
+        "start_surface": "ground_floor",
+        "start_surface_z": 0
+      },
+      "schema_version": 1,
+      "start": {
+        "xyz": [
+          5.0,
+          1.0,
+          0
+        ],
+        "yaw": 0
+      },
+      "task_id": "two_floor_blocked",
+      "timeout": {
+        "budget_s": 180,
+        "harness_deadline_s": 240,
+        "source": "operator"
+      }
+    }
+  },
+  "ok": true,
+  "preflight_rc": 0,
+  "schema": "two_floor_run/v1",
+  "validation": {
+    "command_samples": 1063,
+    "ok": true,
+    "paired": 1073,
+    "pose_samples": 1073,
+    "reason": "E_PLAN_NO_ROUTE",
+    "scope": "known-map kinematic refusal"
+  },
+  "window": {
+    "content": "two_floor_nav case=blocked task=EVT-preview source=8979b7570b93870fd258410c5253d0daaac58c78 preflight=original_v8_required result=summary.json scope=kinematic_planning_only evt_preview=true no_lio=true",
+    "directory": "note/进度/v8/M5/26-11-09/evidence/EVT-PREVIEW/blocked",
+    "id": "EVT-PREVIEW-blocked-r1",
+    "kind": "sim"
+  }
+}
