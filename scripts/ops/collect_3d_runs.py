@@ -376,6 +376,26 @@ def mbf_runs():
     return runs
 
 
+def aggregate(rows):
+    keys = ('goal_distance_m', 'path_length_m', 'duration_s', 'command_xy_error_m',
+            'command_z_error_m', 'max_gap_s', 'clearance_m', 'visited_levels',
+            'ate_xy_mean_m', 'ate_xy_max_m', 'yaw_mean_rad')
+    metric_rows = [row for row in rows if '预期拒路' not in str(row.get('result'))]
+    out = {'runs': len(rows), 'passed': sum(1 for row in rows if row.get('success')),
+           'metric_runs': len(metric_rows)}
+    for key in keys:
+        vals = [row.get('metrics', {}).get(key) for row in metric_rows]
+        vals = [float(value) for value in vals if isinstance(value, (int, float))]
+        if not vals:
+            continue
+        mean = sum(vals) / len(vals)
+        var = sum((value - mean) ** 2 for value in vals) / len(vals)
+        out[key] = {'n': len(vals), 'mean': round(mean, 4),
+                    'std': round(var ** 0.5, 4),
+                    'min': round(min(vals), 4), 'max': round(max(vals), 4)}
+    return out
+
+
 def git_head():
     try:
         return subprocess.check_output(
@@ -418,6 +438,12 @@ def main():
             'expected_refusal': sum(1 for r in rows if '预期拒路' in r['result']),
         }
     current = [r for r in runs if r.get('current')]
+    by_type = {}
+    for kind in TYPE_LABELS:
+        by_type[kind] = aggregate([r for r in runs if r['type'] == kind])
+    by_batch = {}
+    for batch in sorted({r['batch'] for r in runs}):
+        by_batch[batch] = aggregate([r for r in runs if r['batch'] == batch])
     payload = {
         'schema': 'v8_3d_runs/v1',
         'generated_at': dt.datetime.now().astimezone().isoformat(timespec='seconds'),
@@ -428,6 +454,7 @@ def main():
             'total': len(CURRENT_3D),
         },
         'counts': counts,
+        'aggregates': {'by_type': by_type, 'by_batch': by_batch},
         'runs': runs,
     }
     out = Path(args.out)

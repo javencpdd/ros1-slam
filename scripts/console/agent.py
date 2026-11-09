@@ -19,7 +19,9 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shlex
+import shutil
 import subprocess
 import threading
 import time
@@ -85,6 +87,13 @@ def start_stack(stack):
         rstate, _rpid, rerr = stack_state(other)
         if rerr or rstate != 'running':
             return False, '先启动 %s（requires %s）' % (other.get('label', required), required)
+    save_rel = stack.get('save_map')
+    if save_rel:
+        sample = ROOT / save_rel
+        backup = Path('/tmp/v8-console') / (name + '.sample.pcd')
+        if sample.exists():
+            backup.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(sample, backup)
     pidfile, logfile = stack_paths(name)
     master = stack.get('master') or 'http://roscore:11312'
     setup = (
@@ -114,6 +123,29 @@ def start_stack(stack):
     return True, 'started (pid %s)' % pid
 
 
+def finalize_saved_map(stack):
+    """Move the faster-lio output to imported/ and restore the GAP-5 sample."""
+    save_rel = stack.get('save_map')
+    if not save_rel:
+        return None
+    sample = ROOT / save_rel
+    imported = ROOT / 'data/maps/imported'
+    imported.mkdir(parents=True, exist_ok=True)
+    message = None
+    if sample.exists() and sample.stat().st_size > 0:
+        name = 'map_' + time.strftime('%Y%m%d_%H%M%S') + '.pcd'
+        shutil.move(str(sample), str(imported / name))
+        message = 'saved data/maps/imported/' + name
+    backup = Path('/tmp/v8-console') / (stack['name'] + '.sample.pcd')
+    if backup.exists():
+        shutil.copy2(backup, sample)
+    try:
+        run_script(['python3', 'scripts/ops/build_maps_index.py'], 120)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return message
+
+
 def stop_stack(stack):
     name = stack['name']
     container = stack['container']
@@ -127,7 +159,8 @@ def stop_stack(stack):
                    timeout=5)
         except (OSError, subprocess.SubprocessError):
             pass
-        return True, 'not running'
+        saved = finalize_saved_map(stack)
+        return True, 'not running' + ('；' + saved if saved else '')
     timeout = float(stack.get('stop_timeout', 10))
     stages = [('INT', timeout), ('TERM', 5), ('KILL', 2)]
     for sig, wait in stages:
@@ -152,7 +185,8 @@ def stop_stack(stack):
     state, _pid, _error = stack_state(stack)
     if state == 'running':
         return False, '仍在运行；请用作业单手工清场'
-    return True, 'stopped'
+    saved = finalize_saved_map(stack)
+    return True, 'stopped' + ('；' + saved if saved else '')
 
 
 def stack_log(stack, tail=80):
@@ -175,12 +209,18 @@ def public_stack(stack):
         'category': stack.get('category', 'demo'),
         'container': stack.get('container'),
         'master': stack.get('master'),
+        'world': stack.get('world'),
         'requires': stack.get('requires') or [],
         'notes': stack.get('notes', ''),
         'state': state if not error else 'error',
         'pid': pid,
         'error': error,
     }
+
+
+def run_script(args, timeout=120):
+    return subprocess.run(args, cwd=str(ROOT), capture_output=True, text=True,
+                          timeout=timeout)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -225,6 +265,120 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         parts = [p for p in parsed.path.split('/') if p]
+        if parts == ['api', 'maps', 'refresh']:
+            try:
+                result = run_script(['python3', 'scripts/ops/build_maps_index.py'], 120)
+            except (OSError, subprocess.SubprocessError) as error:
+                self._json(500, {'ok': False, 'error': str(error)})
+                return
+            self._json(200 if result.returncode == 0 else 500, {
+                'ok': result.returncode == 0,
+                'output': (result.stdout or '')[-2000:] + (result.stderr or '')[-2000:],
+            })
+            return
+        if parts == ['api', 'maps', 'edit']:
+            length = int(self.headers.get('Content-Length') or 0)
+            try:
+                body = json.loads(self.rfile.read(length).decode('utf-8') or '{}')
+            except ValueError:
+                self._json(400, {'ok': False, 'error': 'bad json'})
+                return
+            map_id = str(body.get('id') or '')
+            if not map_id.startswith('console_'):
+                self._json(400, {'ok': False, 'error': 'only console_ maps are editable'})
+                return
+            name = map_id[len('console_'):]
+            if not re.fullmatch(r'[A-Za-z0-9_.-]{1,64}', name):
+                self._json(400, {'ok': False, 'error': 'bad map id'})
+                return
+            folder = ROOT / 'data/maps/console' / name
+            pgm_path = folder / 'map.pgm'
+            if not pgm_path.exists():
+                self._json(404, {'ok': False, 'error': 'map.pgm not found'})
+                return
+            raw = pgm_path.read_bytes()
+            # P5 header: magic, "width height", maxval, then binary data
+            lines = []
+            index = 0
+            for _ in range(3):
+                end = raw.index(b'\n', index)
+                lines.append(raw[index:end].strip())
+                index = end + 1
+            if lines[0] != b'P5':
+                self._json(400, {'ok': False, 'error': 'not a P5 pgm'})
+                return
+            width, height = [int(v) for v in lines[1].split()]
+            data = bytearray(raw[index:])
+            changes = body.get('changes') or []
+            if len(changes) > 20000:
+                self._json(400, {'ok': False, 'error': 'too many changes'})
+                return
+            applied = 0
+            for change in changes:
+                try:
+                    col, row, value = int(change[0]), int(change[1]), int(change[2])
+                except (TypeError, ValueError, IndexError):
+                    continue
+                if value not in (0, 254):
+                    continue
+                if 0 <= col < width and 0 <= row < height:
+                    data[(height - 1 - row) * width + col] = value
+                    applied += 1
+            pgm_path.write_bytes(b'P5\n%d %d\n255\n' % (width, height) + bytes(data))
+            try:
+                refresh = run_script(['python3', 'scripts/ops/build_maps_index.py'], 120)
+            except (OSError, subprocess.SubprocessError) as error:
+                self._json(500, {'ok': False, 'error': str(error)})
+                return
+            self._json(200, {'ok': refresh.returncode == 0, 'applied': applied,
+                             'output': (refresh.stdout or '')[-1000:]})
+            return
+        if parts == ['api', 'maps', 'regrid']:
+            length = int(self.headers.get('Content-Length') or 0)
+            try:
+                body = json.loads(self.rfile.read(length).decode('utf-8') or '{}')
+            except ValueError:
+                self._json(400, {'ok': False, 'error': 'bad json'})
+                return
+            source = str(body.get('source') or '')
+            name = str(body.get('name') or '')
+            if not source.startswith('data/maps/') or '..' in source:
+                self._json(400, {'ok': False, 'error': 'source must be under data/maps'})
+                return
+            if not re.fullmatch(r'[A-Za-z0-9_.-]{1,64}', name):
+                self._json(400, {'ok': False, 'error': 'bad name'})
+                return
+            source_path = (ROOT / source).resolve()
+            if not str(source_path).startswith(str((ROOT / 'data/maps').resolve())) or not source_path.exists():
+                self._json(400, {'ok': False, 'error': 'source not found'})
+                return
+            try:
+                resolution = float(body.get('resolution') or 0.05)
+                min_z = float(body.get('min_z', -1.0))
+                max_z = float(body.get('max_z', 2.0))
+            except (TypeError, ValueError):
+                self._json(400, {'ok': False, 'error': 'bad numeric params'})
+                return
+            try:
+                result = run_script(['python3', 'scripts/ops/regrid_map.py',
+                                     '--pcd', str(source_path), '--name', name,
+                                     '--resolution', str(resolution),
+                                     '--min-z', str(min_z), '--max-z', str(max_z)], 180)
+            except (OSError, subprocess.SubprocessError) as error:
+                self._json(500, {'ok': False, 'error': str(error)})
+                return
+            if result.returncode != 0:
+                self._json(500, {'ok': False, 'error': (result.stdout + result.stderr)[-2000:]})
+                return
+            try:
+                refresh = run_script(['python3', 'scripts/ops/build_maps_index.py'], 120)
+            except (OSError, subprocess.SubprocessError) as error:
+                self._json(500, {'ok': False, 'error': str(error)})
+                return
+            self._json(200, {'ok': refresh.returncode == 0, 'map_id': 'console_' + name,
+                             'output': (result.stdout + result.stderr)[-2000:] +
+                                       (refresh.stdout or '')[-1000:]})
+            return
         if len(parts) != 4 or parts[:2] != ['api', 'stacks'] or parts[3] not in ('start', 'stop'):
             self._json(404, {'ok': False, 'error': 'not found'})
             return

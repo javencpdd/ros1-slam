@@ -287,7 +287,8 @@ def maps():
         info = grid_preview(lite3_yaml, 'lite3', lite3_pgm)
         if info:
             found.append({'id': 'lite3', 'label': 'Lite3 2D 栅格（真机 SLAM 图）',
-                          'frame': 'map', 'notes': 'map_server PGM + YAML；2D MBF 可用',
+                          'frame': 'map', 'world': '真机/仿真 2D 栅格',
+                          'notes': 'map_server PGM + YAML；2D MBF 可用',
                           **info})
     for name, label, notes in (
         ('mapped_m1', 'm1 建图 PCD（SLAM）', 'faster-lio / GT 位姿投影点云；只读预览'),
@@ -299,8 +300,11 @@ def maps():
             continue
         info = cloud_preview(pcd, name)
         if info:
-            found.append({'id': name, 'label': label, 'frame': 'map', 'notes': notes,
-                          'files': [str(pcd.relative_to(REPO))], **info})
+            world = {'mapped_m1': 'm1_world（Gazebo）',
+                 'm1_world_synth_v1': 'm1_world（合成）',
+                 'mapped_nist': 'NIST 楼梯（Gazebo）'}.get(name, '—')
+        found.append({'id': name, 'label': label, 'frame': 'map', 'world': world,
+                          'notes': notes, 'files': [str(pcd.relative_to(REPO))], **info})
     support_paths = [
         (REPO / 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json',
          'two_floor_nav', 'two_floor_nav 支撑图（3D）',
@@ -314,7 +318,43 @@ def maps():
             continue
         info = support_preview(path, map_id)
         if info:
-            found.append({'id': map_id, 'label': label, 'frame': 'map', 'notes': notes, **info})
+            world = ('two_floor_nav（demo_two_floor）' if map_id == 'two_floor_nav'
+                     else 'nist_stairs_120_s020x170' if map_id == 'nist_stairs' else '—')
+            found.append({'id': map_id, 'label': label, 'frame': 'map', 'world': world,
+                          'notes': notes, **info})
+    console_dir = REPO / 'data/maps/console'
+    for yaml_path in sorted(console_dir.glob('*/map.yaml')):
+        map_id = 'console_' + yaml_path.parent.name
+        image_path = yaml_path.parent / 'map.pgm'
+        if not image_path.exists():
+            continue
+        info = grid_preview(yaml_path, map_id, image_path)
+        if not info:
+            continue
+        meta_path = yaml_path.parent / 'meta.json'
+        meta = {}
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text(encoding='utf-8'))
+            except ValueError:
+                meta = {}
+        info['files'] = [str(yaml_path.relative_to(REPO)), str(image_path.relative_to(REPO))]
+        found.append({'id': map_id, 'label': '重栅格化 / ' + yaml_path.parent.name,
+                      'frame': 'map', 'world': meta.get('source_pcd', '—'),
+                      'notes': '由控制台重栅格化；源 ' + meta.get('source_pcd', '—'),
+                      'source_pcd': meta.get('source_pcd'),
+                      'regrid': True, **info})
+    imported_dir = REPO / 'data/maps/imported'
+    for pcd in sorted(imported_dir.glob('*.pcd')):
+        if pcd.stat().st_size > 20 * 1024 * 1024:
+            continue
+        map_id = 'imported_' + pcd.stem
+        info = cloud_preview(pcd, map_id)
+        if info:
+            found.append({'id': map_id, 'label': '导入 / ' + pcd.stem,
+                          'frame': 'map', 'world': '—',
+                          'notes': '从 data/maps/imported/ 导入的点云',
+                          'files': [str(pcd.relative_to(REPO))], **info})
     return found
 
 
