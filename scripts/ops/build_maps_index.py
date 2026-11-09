@@ -125,9 +125,17 @@ def cloud_preview(path: Path, map_id: str):
     OUT.mkdir(parents=True, exist_ok=True)
     preview = OUT / (map_id + '.png')
     image.save(preview, optimize=True)
+    stride = max(1, len(xyz) // 6000)
+    sample = xyz[::stride]
+    points_path = OUT / (map_id + '.points.json')
+    points_path.write_text(json.dumps({
+        'z_range': [round(zmin, 3), round(zmax, 3)],
+        'points': [[round(float(v), 3) for v in row] for row in sample],
+    }, separators=(',', ':')) + '\n', encoding='utf-8')
     return {
         'kind': 'pointcloud',
         'preview': 'assets/maps/' + preview.name,
+        'points3d': 'assets/maps/' + points_path.name,
         'width': width,
         'height': height,
         'resolution': round(res, 6),
@@ -207,6 +215,19 @@ def support_preview(path: Path, map_id: str):
                 a, b = max(0, col), min(width, col + length)
                 if b > a:
                     rgb[px, a:b] = colour_z
+        fp = surface.get('footprint')
+        if not runs and isinstance(fp, dict):
+            # NIST-style support maps carry only footprint bounds; paint the
+            # supported rectangle at its z_reference.
+            c0 = int(round((float(fp['min_x']) - float(origin[0])) / res))
+            c1 = int(round((float(fp['max_x']) - float(origin[0])) / res))
+            r0 = int(round((float(fp['min_y']) - float(origin[1])) / res))
+            r1 = int(round((float(fp['max_y']) - float(origin[1])) / res))
+            for row in range(max(0, r0), min(height, r1)):
+                px = height - 1 - row
+                a, b = max(0, c0), min(width, c1)
+                if b > a:
+                    rgb[px, a:b] = colour_z
         surfaces.append({
             'id': surface.get('surface_id'),
             'z': round(z, 4),
@@ -217,8 +238,36 @@ def support_preview(path: Path, map_id: str):
     OUT.mkdir(parents=True, exist_ok=True)
     preview = OUT / (map_id + '.png')
     image.save(preview, optimize=True)
+    pts = []
+    for surface in data.get('surfaces', []):
+        z = float(surface.get('z_reference', 0) or 0)
+        runs = ((surface.get('cells') or {}).get('runs') or [])
+        for run in runs:
+            if not (isinstance(run, list) and len(run) >= 3):
+                continue
+            row0, col0, length = int(run[0]) + height // 2, int(run[1]) + width // 2, int(run[2])
+            for col in range(col0, col0 + length):
+                pts.append([round(float(origin[0]) + (col + 0.5) * res, 3),
+                            round(float(origin[1]) + (row0 + 0.5) * res, 3), round(z, 3)])
+        fp = surface.get('footprint')
+        if not runs and isinstance(fp, dict):
+            c0 = int(round((float(fp['min_x']) - float(origin[0])) / res))
+            c1 = int(round((float(fp['max_x']) - float(origin[0])) / res))
+            r0 = int(round((float(fp['min_y']) - float(origin[1])) / res))
+            r1 = int(round((float(fp['max_y']) - float(origin[1])) / res))
+            for row in range(max(0, r0), min(height, r1)):
+                for col in range(max(0, c0), min(width, c1)):
+                    pts.append([round(float(origin[0]) + (col + 0.5) * res, 3),
+                                round(float(origin[1]) + (row + 0.5) * res, 3), round(z, 3)])
+    stride = max(1, len(pts) // 8000)
+    sample = pts[::stride]
+    points_path = OUT / (map_id + '.points.json')
+    points_path.write_text(json.dumps({
+        'z_range': [round(zmin, 3), round(zmax, 3)], 'points': sample,
+    }, separators=(',', ':')) + '\n', encoding='utf-8')
     return {
         'kind': 'support_map',
+        'points3d': 'assets/maps/' + points_path.name,
         'preview': 'assets/maps/' + preview.name,
         'width': width,
         'height': height,
