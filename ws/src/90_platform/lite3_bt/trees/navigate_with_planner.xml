@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!-- Nav2-style orchestration for the host-only demo plane.
+     The tree owns WHEN to request a path, dispatch a goal, dwell and recover.
+     Global path computation stays in planner/topic_node.py; local trajectory
+     and velocity stay downstream.  This tree never replaces either. -->
+<root main_tree_to_execute="NavigateWithPlanner">
+  <BehaviorTree ID="NavigateWithPlanner">
+    <Fallback name="mission_or_recovery">
+      <Sequence name="mission">
+        <WaitForGoal name="wait_goal"/>
+        <RequestPath name="request_path"/>
+        <WaitForPath name="wait_path" timeout="30"/>
+        <FollowPath name="follow_path"/>
+        <WaitArrival name="wait_arrival" distance="0.25" timeout="60"/>
+        <Dwell name="dwell_at_goal" seconds="1.0"/>
+        <Stop name="stop_after_success"/>
+      </Sequence>
+      <RecoveryStop name="recovery_on_failure"/>
+    </Fallback>
+  </BehaviorTree>
+</root>

@@ -47,22 +47,26 @@ catkin_make --pkg lite3_bt -DCMAKE_BUILD_TYPE=Release \
 
 ## Run
 
-The console stack starts both the BT and the ROS-level goal gate:
+The default tree is `trees/navigate_with_planner.xml` (Nav2-style orchestration);
+the legacy single-goal tree can be selected with `tree_file:=...`:
 
 ```bash
-roslaunch lite3_bt bt_console.launch \
-  tree_file:=/opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml
+roslaunch lite3_bt bt_console.launch
+# legacy: roslaunch lite3_bt bt_console.launch \
+#   tree_file:=/opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml
 ```
 
 Topics:
 
-- input goal: `/v8/bt/goal` (`geometry_msgs/PoseStamped`)
-- BT request: `/v8/bt/goal_request` (BT is the owner)
-- lease heartbeat: `/v8/bt/lease` (`std_msgs/Bool`, 2 Hz while BT is alive)
+- input goal: `/v8/bt/goal` (`geometry_msgs/PoseStamped`, FIFO queue)
+- planner input: `/v8/global/goal` (BT `RequestPath` publishes; `planner/topic_node.py` subscribes)
+- planner status: `/global_path/status` (`std_msgs/String`, JSON `ok`/`points`/`reason`)
+- BT request: `/v8/bt/goal_request` (BT `FollowPath` publishes, via the goal gate)
 - final goal: `/v8/3d/global/goal` (only `goal_gate` writes it; stale/missing lease drops requests)
-- arrival feedback: `/v8/local/pose` (distance threshold from the tree)
+- lease heartbeat: `/v8/bt/lease` (`std_msgs/Bool`, 2 Hz while BT is alive)
+- arrival feedback: `/v8/local/pose` (pose mode) or an optional executor ack
 - stop: zero Twist on `/lite3/teleop/app_cmd_vel` (through the safety mux)
-- status: `/v8/bt/status` (JSON string, includes root/node status and last event)
+- status: `/v8/bt/status` (JSON: nodes, event, queue_depth, current_seq, path_state)
 
 ## Goal publisher allow-list (demo only)
 
@@ -89,16 +93,82 @@ BOUNDARY — read before treating this as security:
 - The lease topic `/v8/bt/lease` is NOT publisher-checked in this slice.
 - Formal / EVT / real-robot paths are unchanged; they stay on the work order.
 
+## Nav2-style orchestration
+
+The tree decides WHEN to request a global path, WHEN to dispatch a goal to the
+downstream executor, WHEN to dwell and WHEN to recover.  It never computes a
+path and never writes a command velocity other than the zero stop.  This is the
+BT's orchestration role, not a replacement for MBF / the V8 3D planner.
+
+| tree node | Nav2 analogue | what it actually does here |
+|---|---|---|
+| `WaitForGoal` | goal intake | dequeues the next FIFO goal |
+| `RequestPath` | `ComputePathToPose` | publishes the goal on `/v8/global/goal`, invalidates the previous path status |
+| `WaitForPath` | path result | waits on `/global_path/status`; transient reasons are not failures, terminal refusal / timeout fails the goal |
+| `FollowPath` | `FollowPath` | dispatches the goal through the goal gate; local trajectory and velocity stay downstream |
+| `WaitArrival` | goal feedback | pose mode, or an optional executor ack |
+| `Dwell` | `Wait` | deliberate pause between goals (default 1 s) |
+| `RecoveryStop` | recovery branch | zero command, invalidate the stale path, advance to the next goal |
+
+Goals arriving on `/v8/bt/goal` are queued FIFO instead of overwriting a single
+slot: a fast multi-goal submission used to collapse into the last goal only.
+`~queue_max` defaults to 16; a full queue **refuses** the new goal and drops
+nothing.  After a Sequence completes, the next tick returns to `WaitForGoal`.
+The status JSON reports `queue_depth`, `goal_seq`, `current_seq`, `path_state`,
+`path_points` and `planner_mode`.
+
+Path status protocol: `planner/topic_node.py` publishes JSON built with
+`json.dumps`, e.g. `{"ok": true, "points": 12}` or
+`{"ok": false, "reason": "E_PLAN_RUNNING"}`.  Only `ok=true` with `points>0`
+releases `FollowPath`.  `E_PLAN_RUNNING` / `E_PLAN_NOT_READY` /
+`E_PLAN_CANCELLED_REQUESTED` are transient; other failures end the goal.
+Malformed status is ignored rather than guessed.
+
+There are two arrival modes:
+
+| mode | when | who decides the goal is done |
+|---|---|---|
+| `pose` (default) | `~planner_result_topic` empty | BT compares `/v8/local/pose` with the goal (0.25 m, 60 s timeout) |
+| `ack` | `~planner_result_topic` set | downstream executor publishes the result |
+
+Ack wire format is `std_msgs/String` with `<goal_seq>:ok` or `<goal_seq>:fail`.
+Only an `ok` ack matching `current_seq` advances the queue; a `fail` ack ends
+that goal immediately, and stale / future / malformed acks are ignored.  The
+timeout still applies so a silent executor cannot hang the tree forever.
+
+To hand arrival ownership to an executor:
+
+```bash
+roslaunch lite3_bt bt_console.launch \
+  planner_result_topic:=/v8/planner/goal_result
+```
+
+BOUNDARY — integration of the **hand-off contract**, not of the planner:
+
+- Global path computation stays in `planner/topic_node.py`; local trajectory,
+  velocity and replanning cadence stay downstream.  The BT only sequences the
+  calls.  Formal / EVT / real-robot paths are unchanged and stay on the work order.
+- No downstream executor in this repo publishes the ack topic yet.  With the
+  parameter empty (default) pose-based arrival keeps the demo from deadlocking.
+- The pure queue / ack / path-status helpers live in
+  `include/lite3_bt/goal_queue.hpp` and are compiled and exercised by
+  `test/test_goal_queue.cpp` on a plain host.
+- `navigate_single_goal.xml` still loads: `SendGoal` is registered as an alias
+  of `FollowPath`.  It skips the path-request / dwell / recovery stages.
+
 Tree:
 
 ```
-Fallback
-  Sequence
+Fallback mission_or_recovery
+  Sequence mission
     WaitForGoal
-    SendGoal
-    WaitArrival
+    RequestPath
+    WaitForPath       timeout=30
+    FollowPath
+    WaitArrival       distance=0.25 timeout=60
+    Dwell             seconds=1.0
     Stop
-  Stop
+  RecoveryStop
 ```
 
 ## Groot2

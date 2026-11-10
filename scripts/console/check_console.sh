@@ -52,6 +52,18 @@ python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/vo
 python3 -B -m unittest discover -s "$ROOT/ws/src/90_platform/lite3_bt/scripts" \
   -p 'test_goal_gate_policy.py' >/dev/null 2>&1 \
   && ok 'goal gate ACL policy + wiring' || bad 'goal gate ACL policy + wiring'
+BT_TEST_BIN="${HOME}/.cache/lite3_bt_goal_queue_test"
+mkdir -p "${HOME}/.cache" 2>/dev/null || true
+g++ -std=c++11 -Wall -Wextra -I"$ROOT/ws/src/90_platform/lite3_bt/include" \
+  "$ROOT/ws/src/90_platform/lite3_bt/test/test_goal_queue.cpp" -o "$BT_TEST_BIN" \
+  >/dev/null 2>&1 && "$BT_TEST_BIN" >/dev/null 2>&1 \
+  && ok 'goal queue C++ tests' || bad 'goal queue C++ tests'
+if docker ps --format '{{.Names}}' | grep -qx ros1-slam-sim-viz; then
+  docker exec ros1-slam-sim-viz bash -c 'source /opt/ros/noetic/setup.bash && B=/opt/ros1-slam && g++ -std=c++14 -I$B/opt/btcpp_v3/include $B/ws/src/90_platform/lite3_bt/test/test_tree_load.cpp -L$B/opt/btcpp_v3/lib -lbehaviortree_cpp_v3 -Wl,-rpath,$B/opt/btcpp_v3/lib -pthread -o /tmp/lite3_bt_tree_load && /tmp/lite3_bt_tree_load $B/ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml && /tmp/lite3_bt_tree_load $B/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml' \
+    >/dev/null 2>&1 && ok 'BT XML tree load (BT.CPP)' || bad 'BT XML tree load (BT.CPP)'
+else
+  printf 'SKIP  BT XML tree load (sim-viz 未运行；未验不等于通过)\n'
+fi
 python3 "$ROOT/scripts/ops/world_registry.py" --check >/dev/null 2>&1 \
   && ok 'world registry' || bad 'world registry'
 if [[ -f "$ROOT/opt/btcpp_v3/lib/libbehaviortree_cpp_v3.so" ]]; then

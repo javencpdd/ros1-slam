@@ -171,7 +171,7 @@
       "goal_authority": "3d",
       "cmd": "roslaunch lite3_bt bt_console.launch",
       "stop_timeout": 10,
-      "description": "3D goal 写入权所有者：BehaviorTree.CPP 单目标树等待 /v8/bt/goal → 发 /v8/bt/goal_request；同栈 goal gate 持 lease 后写 /v8/3d/global/goal；ZMQ 5555/5556 供 Groot2。",
+      "description": "3D goal 写入权所有者：Nav2 式编排 BT（WaitForGoal→RequestPath→WaitForPath→FollowPath→WaitArrival→Dwell，失败进 RecoveryStop），多目标 FIFO 队列上限 16 满则拒绝不覆盖；先向 /v8/global/goal 请路径、按 /global_path/status 判就绪，再发 /v8/bt/goal_request 经 goal gate 写 /v8/3d/global/goal；BT 不算路径、不发速度；ZMQ 5555/5556 供 Groot2。",
       "notes": "BT 是 3D goal 的 console 唯一写入者；未运行时控制台禁止 3D 发送。BT 不替代 MBF/3D 规划器；Groot2 仅本机 GUI；正式/真机不启用。",
       "pid_match": "bt_console.launch",
       "requires_world": true

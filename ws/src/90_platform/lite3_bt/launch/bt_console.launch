@@ -2,13 +2,25 @@
   <!-- One console stack: BT goal owner + ROS-level goal gate.
        BT publishes /v8/bt/goal_request and /v8/bt/lease; the gate is the only
        intended writer of /v8/3d/global/goal. Demo only. -->
-  <arg name="tree_file" default="$(find lite3_bt)/trees/navigate_single_goal.xml"/>
+  <!-- Nav2-style orchestration tree (default).  The legacy single-goal tree
+       can still be passed via tree_file:=...navigate_single_goal.xml. -->
+  <arg name="tree_file" default="$(find lite3_bt)/trees/navigate_with_planner.xml"/>
   <arg name="request_topic" default="/v8/bt/goal_request"/>
+  <arg name="planner_goal_topic" default="/v8/global/goal"/>
+  <arg name="path_status_topic" default="/global_path/status"/>
+  <arg name="queue_max" default="16"/>
+  <!-- Empty = pose-based arrival (demo default).  Set to a planner result
+       topic to let the downstream planner report goal outcomes. -->
+  <arg name="planner_result_topic" default=""/>
 
   <node pkg="lite3_bt" type="bt_console" name="bt_console" output="screen">
     <param name="tree_file" value="$(arg tree_file)"/>
     <param name="out_goal_topic" value="$(arg request_topic)"/>
+    <param name="planner_goal_topic" value="$(arg planner_goal_topic)"/>
+    <param name="path_status_topic" value="$(arg path_status_topic)"/>
     <param name="lease_topic" value="/v8/bt/lease"/>
+    <param name="queue_max" value="$(arg queue_max)"/>
+    <param name="planner_result_topic" value="$(arg planner_result_topic)"/>
   </node>
 
   <node pkg="lite3_bt" type="goal_gate.py" name="v8_goal_gate" output="screen">

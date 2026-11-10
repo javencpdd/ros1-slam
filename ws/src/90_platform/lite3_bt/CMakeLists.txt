@@ -10,6 +10,7 @@ find_package(Threads REQUIRED)
 catkin_package(CATKIN_DEPENDS roscpp geometry_msgs std_msgs)
 
 include_directories(${catkin_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/include
   /opt/ros/noetic/include
   /opt/ros1-slam/ws/devel/include
   /opt/ros1-slam/opt/btcpp_v3/include)
@@ -25,5 +26,7 @@ set_target_properties(bt_console PROPERTIES
   BUILD_RPATH "/opt/ros1-slam/opt/btcpp_v3/lib"
   INSTALL_RPATH "/opt/ros1-slam/opt/btcpp_v3/lib")
 
-catkin_install_python(PROGRAMS scripts/goal_gate.py
+# goal_gate.py imports goal_gate_policy.py from its own directory; both must
+# land in the same devel/install lib dir or the ROS node fails at import time.
+catkin_install_python(PROGRAMS scripts/goal_gate.py scripts/goal_gate_policy.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
