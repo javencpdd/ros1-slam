@@ -1,0 +1,26 @@
+# cmd_vel_mux_demo.yaml —— console demo-only mux (NOT formal / NOT real robot)
+#
+# Same source order and output contract as cmd_vel_mux.yaml, but the demo has
+# no ultrasonic speed-cap producer, so speed_cap_required is false and the
+# software linear cap is raised to 1.0 m/s for interactive console teleop.
+# Formal / real-robot launches keep 60_safety.launch + cmd_vel_mux.yaml (0.5 m/s,
+# blind cap 0.1 m/s). Do not use this file outside the console demo.
+
+output_topic: /cmd_vel
+output_rate_hz: 20.0
+max_linear_mps: 1.0
+max_angular_rps: 1.0
+speed_cap_topic: /v8/safety/speed_cap
+speed_cap_timeout_s: 0.5
+speed_cap_required: false
+blind_cap_mps: 1.0
+hold_topic: /lite3/supervisor/hold
+
+sources:
+  - {name: estop,        topic: /lite3/safety/estop_cmd_vel, priority: 1, timeout_s: 0.5}
+  - {name: teleop_joy,   topic: /lite3/teleop/joy_cmd_vel,   priority: 2, timeout_s: 0.5}
+  - {name: teleop_app,   topic: /lite3/teleop/app_cmd_vel,   priority: 3, timeout_s: 0.5}
+  - {name: task,         topic: /lite3/task/task_cmd_vel,    priority: 4, timeout_s: 0.5}
+  - {name: navigation,   topic: /cmd_vel_raw,                priority: 5, timeout_s: 0.5}
+  - {name: demo,         topic: /lite3/demo/demo_cmd_vel,    priority: 6, timeout_s: 0.5}
+  - {name: scan_planner, topic: /scan_planner/cmd_vel,       priority: 7, timeout_s: 0.5}

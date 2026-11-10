@@ -93,11 +93,11 @@
       "container": "ros1-slam-sim-viz",
       "master": "http://roscore:11312",
       "world": "—",
-      "cmd": "roslaunch lite3_safety 60_safety.launch",
+      "cmd": "roslaunch lite3_safety console_demo_mux.launch",
       "requires": ["sim_m1"],
       "stop_timeout": 10,
-      "description": "启动 safe_cmd_vel_mux（/cmd_vel 唯一写者），把 teleop_app/estop 等源仲裁到 /cmd_vel；供 demo 遥控闭环。",
-      "notes": "只用于 demo；正式/真机仍走作业单。官方配置 speed_cap_required=true，无超声时线性上限 blind_cap=0.1 m/s。"
+      "description": "demo 安全 mux：safe_cmd_vel_mux 把 teleop_app/estop 等源仲裁到 /cmd_vel；demo 配置线性上限 1.0 m/s。",
+      "notes": "仅 demo；正式/真机仍用 60_safety.launch + cmd_vel_mux.yaml（0.5 m/s、无超声 blind 0.1 m/s）。"
     },
     {
       "name": "voxel_stream",
