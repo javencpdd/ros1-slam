@@ -140,7 +140,7 @@
       <div class="notice"><b>边界</b>：任务台只向现有规划器发目标/起点、只向安全 mux 的
         <code>/lite3/teleop/app_cmd_vel</code> 发遥控、向 <code>/lite3/safety/estop_cmd_vel</code> 发急停；
         <b>不直接写 /cmd_vel</b>。Gazebo/导航/ROS 启停仍走作业单 CLI，网页不代批 L2。
-        3D 目标默认发 <code>/v8/3d/global/goal</code>，起点发 <code>/v8/3d/global/start</code>；2D 目标发
+        3D 目标发 <code>/v8/bt/goal</code>，由 BT/goal_gate 落到 <code>/v8/3d/global/goal</code>；起点发 <code>/v8/3d/global/start</code>；2D 目标发
         <code>/move_base_simple/goal</code>，初位姿发 <code>/initialpose</code>。</div>
     </section>
   </div>
