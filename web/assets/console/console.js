@@ -95,7 +95,9 @@
   let edit = { active: false, changes: new Map() };
   let mission = { active: false, queue: [], index: -1, goal: null, sentAt: 0, sentSecs: 0,
                   pathM: 0, lastPose: null, arrivalSince: 0, error: null, mode: null,
-                  timeoutS: 60, continueOnFail: false };
+                  timeoutS: 60, continueOnFail: false,
+                  btSentSeq: 0, btHandledSeq: null };
+  let btStatus = { text: '', parsed: null };
 
   // ---------------------------------------------------------------- utilities
   function log(message, cls) {
@@ -1395,6 +1397,9 @@
     log('任务开始：' + goals.length + ' 目标 ｜ 模式 ' + mission.mode +
         ' ｜ 逐目标超时 ' + mission.timeoutS + ' s ｜ 失败' +
         (mission.continueOnFail ? '继续' : '停止'));
+    if (mission.mode === '3d') {
+      log('3D 到点判据＝BT /v8/bt/status 回执（可视化载体位姿只用于统计，不再判到点）');
+    }
     sendMissionGoal();
   }
   function sendMissionGoal() {
@@ -1404,6 +1409,8 @@
     mission.goal = goal;
     mission.sentAt = performance.now();
     mission.sentSecs = Date.now() / 1000;
+    mission.btSentSeq = btStatus.parsed ? btStatus.parsed.current_seq : 0;
+    mission.btHandledSeq = null;
     mission.pathM = 0;
     mission.lastPose = null;
     mission.arrivalSince = 0;
@@ -1425,18 +1432,23 @@
       missionGoalDone(false, '超时'); return;
     }
     const robot = overlay.robot;
-    if (!robot) return;
-    if (mission.lastPose) {
-      mission.pathM += Math.hypot(robot.x - mission.lastPose.x, robot.y - mission.lastPose.y);
-    }
-    mission.lastPose = { x: robot.x, y: robot.y };
-    const goal = mission.goal;
-    mission.error = Math.hypot(goal.x - robot.x, goal.y - robot.y);
-    if (mission.error <= 0.25) {
-      if (!mission.arrivalSince) mission.arrivalSince = now;
-      else if (now - mission.arrivalSince >= 500) missionGoalDone(true, '到点');
-    } else {
-      mission.arrivalSince = 0;
+    if (robot) {
+      if (mission.lastPose) {
+        mission.pathM += Math.hypot(robot.x - mission.lastPose.x, robot.y - mission.lastPose.y);
+      }
+      mission.lastPose = { x: robot.x, y: robot.y };
+      const goal = mission.goal;
+      mission.error = Math.hypot(goal.x - robot.x, goal.y - robot.y);
+      // 3D mode: arrival is owned by the BT /v8/bt/status events.  The
+      // visualised carrier pose is used for metrics only, never as a verdict.
+      if (mission.mode !== '3d') {
+        if (mission.error <= 0.25) {
+          if (!mission.arrivalSince) mission.arrivalSince = now;
+          else if (now - mission.arrivalSince >= 500) missionGoalDone(true, '到点');
+        } else {
+          mission.arrivalSince = 0;
+        }
+      }
     }
     updateMissionState();
   }
@@ -1471,6 +1483,8 @@
     mission.goal = null;
     mission.index = -1;
     mission.lastPose = null;
+    mission.btSentSeq = 0;
+    mission.btHandledSeq = null;
     renderGoals();
     updateMissionState();
     if (wasActive) log('任务结束：' + reason);
@@ -1489,6 +1503,8 @@
     mission.index = -1;
     mission.queue = [];
     mission.lastPose = null;
+    mission.btSentSeq = 0;
+    mission.btHandledSeq = null;
     renderGoals();
     updateMissionState();
     log('任务停止：' + reason, 'err');
@@ -1734,6 +1750,24 @@
       draw();
     } else if (topic === '/move_base/status') {
       updateMbf(msg);
+    } else if (topic === '/v8/bt/status') {
+      onBtStatus(msg);
+    }
+  }
+  function onBtStatus(msg) {
+    const text = msg && typeof msg.data === 'string' ? msg.data : '';
+    btStatus.text = text;
+    const parsed = window.MissionEvents.parseStatus(text);
+    if (!parsed) return;
+    btStatus.parsed = parsed;
+    if (!mission.active || !mission.goal || mission.mode !== '3d') return;
+    const verdict = window.MissionEvents.classify(parsed, mission.btSentSeq,
+                                                  mission.btHandledSeq);
+    if (verdict.terminal) {
+      mission.btHandledSeq = verdict.seq;
+      log('BT 编排回执 seq=' + verdict.seq + '：' + verdict.reason,
+          verdict.ok ? 'ok' : 'err');
+      missionGoalDone(verdict.ok, verdict.reason);
     }
   }
   function updatePathState() {

@@ -4,6 +4,8 @@
 
 > 2026-11-10：页面/console 源码与静态展示图入库；`assets/data/`、`assets/maps/` 是生成物，仍由生成器产出并忽略。`web/` 不进入 `lite3`/M20 镜像。
 
+> 2026-11-10 23:40：控制台 3D 多目标 mission 的到点判据改为消费 `/v8/bt/status` 的 BT 编排回执（`event`／`current_seq`，按序号边沿去重），可视化载体位姿只用于路径与误差统计；2D 模式仍用原位姿判到达。判定逻辑落在 `assets/console/mission_events.js`（纯函数、无 DOM），`scripts/console/test_mission_events.js` 覆盖主测／注入有效性／反控／重复边沿／接线断言，并挂进 `scripts/console/check_console.sh`。
+
 [`index.html`](index.html) 是无构建步骤的静态项目介绍页，使用本目录 `assets/` 的图片/GIF/SVG。顶部导航以 hash 切换 `main .page`，可直接分享 `/web/#status`、`/web/#nav3d` 等地址。页面只展示资料，不连接 ROS 或控制机器人。
 
 多层 Gazebo 交互式 3D 导航测试流程位于 `index.html` 的 `#two-floor-interactive`（从 `#sim` 的交互导航标签进入）。内容覆盖离线自检、唯一窗口登记、原预检、RViz Publish Point、停止退净、结果判读及当前 4/4 自动用例边界；命令真源仍以仓内场景 README 为准。

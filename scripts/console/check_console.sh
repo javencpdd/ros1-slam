@@ -40,6 +40,10 @@ done
 if command -v node >/dev/null; then
   node -e "new Function(require('fs').readFileSync('$ROOT/web/assets/console/console.js','utf8'))" \
     && ok 'console.js syntax' || bad 'console.js syntax'
+  node -e "new Function(require('fs').readFileSync('$ROOT/web/assets/console/mission_events.js','utf8'))" \
+    && ok 'mission_events.js syntax' || bad 'mission_events.js syntax'
+  node "$ROOT/scripts/console/test_mission_events.js" >/dev/null 2>&1 \
+    && ok 'mission events tests' || bad 'mission events tests'
 fi
 python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/voxel_stream.py" \
   "$ROOT/scripts/ops/collect_3d_runs.py" "$ROOT/scripts/ops/build_maps_index.py" \
