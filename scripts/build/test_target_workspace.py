@@ -114,6 +114,37 @@ class TargetWorkspaceTests(unittest.TestCase):
                 tw.main(arguments)
             self.assertEqual(exc.exception.code, 2)
 
+    def test_host_only_image_context_is_rejected(self):
+        context = self.root / "robot-image-context"
+        context.mkdir()
+        for relative in ("web", "scripts/console", "data/console"):
+            target = context / relative
+            target.mkdir(parents=True, exist_ok=True)
+            with self.subTest(relative=relative), self.assertRaisesRegex(tw.PlanError, "host-only"):
+                tw.check_host_only_context(context)
+            if target.is_dir() and not any(target.iterdir()):
+                target.rmdir()
+                parent = target.parent
+                while parent != context and not any(parent.iterdir()):
+                    parent.rmdir()
+                    parent = parent.parent
+        self.assertEqual(tw.check_host_only_context(context),
+                         ["web", "scripts/console", "data/console"])
+
+    def test_robot_build_rejects_host_only_source_view(self):
+        self.config["targets"]["lite3"]["roots"] = ["web"]
+        self.pkg("web")
+        result = self.plan()
+        with self.assertRaisesRegex(tw.PlanError, "host-only"):
+            self.build(result)
+
+    def test_robot_plan_declares_host_only_policy(self):
+        result = self.plan()
+        self.assertTrue(result["host_only"]["robot_forbidden"])
+        self.assertEqual(result["host_only"]["paths"],
+                         ["web", "scripts/console", "data/console"])
+        self.assertFalse(self.plan("x86_sim")["host_only"]["robot_forbidden"])
+
     def test_known_ros_version_conditions_only(self):
         self.pkg("core", '<buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>'
                  '<buildtool_depend condition="$ROS_VERSION == 2">ament_cmake_auto</buildtool_depend>')

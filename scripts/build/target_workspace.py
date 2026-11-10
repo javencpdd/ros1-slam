@@ -15,6 +15,7 @@ TARGETS = ("lite3", "m20", "x86_sim")
 DEPEND_TAGS = {"depend", "build_depend", "build_export_depend", "buildtool_depend",
                "buildtool_export_depend", "exec_depend", "run_depend"}
 NOETIC = Path("/opt/ros/noetic")
+HOST_ONLY_PATHS = ('web', 'scripts/console', 'data/console')
 ROBOT_FORBIDDEN = re.compile(
     r"(?:^|[-_])(?:lib)?(?:gazebo|mujoco)\d*(?:[-_]|$)"
     r"|(?:^|[-_])(?:torch|torchvision|torchaudio|pytorch|tensorflow|tensorboard|gym|gymnasium|rllib|ray|training)(?:[-_]|$)"
@@ -59,6 +60,16 @@ def within(path, boundary):
         return True
     except ValueError:
         return False
+
+
+def check_host_only_context(context):
+    """Reject a robot image/source context containing host-only demo trees."""
+    context = Path(context)
+    found = [rel for rel in HOST_ONLY_PATHS
+             if (context / rel).exists() or (context / rel).is_symlink()]
+    if found:
+        raise PlanError("robot image context contains host-only paths: %s" % ", ".join(found))
+    return list(HOST_ONLY_PATHS)
 
 
 def discover(source, overrides):
@@ -200,6 +211,25 @@ def plan(workspace, target, profiles_path):
         *[arg for kind in ("build", "buildtool", "build_export", "buildtool_export", "exec")
           for arg in ("--dependency-types", kind)]]
     result["rosdep_check_note"] = "Advisory only; requires the generated source view. No check or installation was performed."
+    host_only_status = "not-applicable"
+    if target != "x86_sim":
+        root = workspace.parent
+        for package in result["packages"]:
+            package_path = Path(package["path"]).resolve()
+            for relative in HOST_ONLY_PATHS:
+                boundary = (root / relative).resolve()
+                if within(package_path, boundary):
+                    raise PlanError("robot target selected host-only package: %s" % package_path)
+        if paths["source_view"].exists():
+            check_host_only_context(paths["source_view"])
+            host_only_status = "checked"
+        else:
+            host_only_status = "pending-source-view"
+    result["host_only"] = {
+        "paths": list(HOST_ONLY_PATHS),
+        "robot_forbidden": target != "x86_sim",
+        "status": host_only_status,
+    }
     return result
 
 
@@ -329,6 +359,8 @@ def prepare_view(result, paths):
                 if child.name != "package.xml":
                     (destination / child.name).symlink_to(os.path.relpath(child, destination), target_is_directory=child.is_dir())
             (destination / "package.xml").write_bytes(xml_path.read_bytes())
+    if result["target"] != "x86_sim":
+        check_host_only_context(paths["source_view"])
     (paths["profile"] / "identity.json").write_text(json.dumps(identity(result), indent=2) + "\n")
 
 

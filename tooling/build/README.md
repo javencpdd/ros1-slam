@@ -22,7 +22,7 @@ python3 -B scripts/build/test_target_workspace.py
 
 解析遵循 catkin 包边界：遇 `CATKIN_IGNORE` 排除整棵子树，发现包后停止向包内第三方目录递归；重复包名、所需本地包缺失或被忽略都会拒绝。闭包包含 build/build_export/buildtool/buildtool_export/exec/run/depend；test/doc 不参与，构建固定 `CATKIN_ENABLE_TESTING=OFF`。format 3 仅求值明确的 `$ROS_VERSION == 1/2`、`!=` 条件，固定 ROS1；其他条件和 group 依赖保守拒绝。不会用任意 `eval` 或宿主变量猜测。
 
-Lite3/M20 路径拒绝 `95_simulation/`、`training/`，并拒绝 Gazebo、MuJoCo 和已登记的训练依赖名称；传递依赖同样检查。外部 ROS/系统依赖单列为 `NOT_CHECKED`，本工具不解析 apt 的完整传递关系，也不检查驱动 SDK、设备 ABI 或执行安装。输出的 `rosdep_check_command` 是建议命令，只指向选中的生成视图路径，显式重复 `--dependency-types` 以排除 test/doc；运行它需要视图已生成。不得改成对全量 `WS/src` 的默认 rosdep 安装，再把仿真测试依赖带回机器人。
+Lite3/M20 路径拒绝 `95_simulation/`、`training/`，并拒绝 Gazebo、MuJoCo 和已登记的训练依赖名称；传递依赖同样检查。另有一条 host-only 边界：`web/`、`scripts/console/`、`data/console/` 不得进入机器人 source view 或镜像上下文。`plan` 输出 `host_only` 策略，`prepare_view`/`build` 在生成视图落盘前做机器检查，`.dockerignore` 对 Docker 上下文同步排除；测试覆盖三项路径和 `lite3`/`x86_sim` 的策略差异。外部 ROS/系统依赖单列为 `NOT_CHECKED`，本工具不解析 apt 的完整传递关系，也不检查驱动 SDK、设备 ABI 或执行安装。输出的 `rosdep_check_command` 是建议命令，只指向选中的生成视图路径，显式重复 `--dependency-types` 以排除 test/doc；运行它需要视图已生成。不得改成对全量 `WS/src` 的默认 rosdep 安装，再把仿真测试依赖带回机器人。
 
 实际构建必须在目标机器或相应构建环境显式触发：
 
