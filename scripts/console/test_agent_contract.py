@@ -95,6 +95,23 @@ class ClientIdentityTest(unittest.TestCase):
         self.assertFalse(local)
         self.assertEqual(reason, 'lan')
 
+    def test_pid_match_declared(self):
+        for stack in self.stacks.values():
+            self.assertTrue(stack.get('pid_match'), stack['name'])
+
+    def test_dependent_stop_order(self):
+        order = AGENT.dependent_order('sim_m1')
+        self.assertEqual(order[-1], 'sim_m1')
+        self.assertEqual(set(order[:-1]),
+                         {'mapping_m1', 'mapping_save', 'safety_mux',
+                          'bt_console', 'voxel_stream'})
+
+    def test_dependency_cycle_rejected(self):
+        stacks = {'a': {'name': 'a', 'requires': ['b']},
+                  'b': {'name': 'b', 'requires': ['a']}}
+        with self.assertRaisesRegex(ValueError, 'dependency cycle'):
+            AGENT.dependent_order('a', stacks)
+
     def test_local_only_stack_flag_default_false(self):
         for stack in self.stacks.values():
             self.assertFalse(stack.get('local_only'), stack['name'])

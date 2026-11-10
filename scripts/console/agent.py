@@ -113,15 +113,40 @@ def stack_paths(name):
     return '%s/%s.pid' % (DIR, name), '%s/%s.log' % (DIR, name)
 
 
+def dependent_order(name, stacks=None):
+    """Return stop order: dependents first, target last. Raises on a cycle."""
+    stacks = stacks or STACKS
+    order, visiting, visited = [], set(), set()
+
+    def visit(current):
+        if current in visiting:
+            raise ValueError('dependency cycle at %s' % current)
+        if current in visited:
+            return
+        visiting.add(current)
+        for other in stacks.values():
+            if current in (other.get('requires') or []):
+                visit(other['name'])
+        visiting.remove(current)
+        visited.add(current)
+        order.append(current)
+
+    visit(name)
+    return order
+
+
 def stack_state(stack):
     name = stack['name']
     container = stack['container']
     pidfile, _log = stack_paths(name)
+    marker = stack.get('pid_match') or stack['cmd'].split()[0]
     script = (
         'if [ -f %s ]; then pid=$(cat %s); '
-        'if kill -0 -- -$pid 2>/dev/null; then echo "running $pid"; '
+        'if kill -0 -- -$pid 2>/dev/null; then '
+        'if [ -r /proc/$pid/cmdline ] && tr "\\0" " " < /proc/$pid/cmdline | grep -Fq -- %s; '
+        'then echo "running $pid"; else echo "stale $pid"; fi; '
         'else echo "stale $pid"; fi; else echo stopped; fi'
-        % (shlex.quote(pidfile), shlex.quote(pidfile)))
+        % (shlex.quote(pidfile), shlex.quote(pidfile), shlex.quote(marker)))
     try:
         result = docker(['exec', container, 'bash', '-lc', script], timeout=8)
     except (OSError, subprocess.SubprocessError) as error:
@@ -239,9 +264,31 @@ def finalize_saved_map(stack):
     return message
 
 
-def stop_stack(stack):
+def stop_stack(stack, cascade=True):
     name = stack['name']
     container = stack['container']
+    stopped_dependents = []
+    errors = []
+    if cascade:
+        try:
+            order = dependent_order(name)
+        except ValueError as error:
+            return False, str(error)
+        for other_name in order[:-1]:
+            other = STACKS.get(other_name)
+            if not other:
+                continue
+            other_state, _other_pid, other_error = stack_state(other)
+            if other_error:
+                errors.append('%s: %s' % (other_name, other_error))
+                continue
+            if other_state != 'running':
+                continue
+            ok, message = stop_stack(other, cascade=False)
+            if ok:
+                stopped_dependents.append(other_name)
+            else:
+                errors.append('%s: %s' % (other_name, message))
     pidfile, _log = stack_paths(name)
     state, pid, error = stack_state(stack)
     if error:
@@ -253,7 +300,12 @@ def stop_stack(stack):
         except (OSError, subprocess.SubprocessError):
             pass
         saved = finalize_saved_map(stack)
-        return True, 'not running' + ('；' + saved if saved else '')
+        suffix = ''
+        if stopped_dependents:
+            suffix += '；级联停止 ' + ', '.join(stopped_dependents)
+        if errors:
+            suffix += '；依赖错误 ' + '; '.join(errors)
+        return not errors, 'not running' + suffix + ('；' + saved if saved else '')
     timeout = float(stack.get('stop_timeout', 10))
     stages = [('INT', timeout), ('TERM', 5), ('KILL', 2)]
     for sig, wait in stages:
@@ -276,11 +328,15 @@ def stop_stack(stack):
     except (OSError, subprocess.SubprocessError):
         pass
     state, _pid, _error = stack_state(stack)
+    suffix = ''
+    if stopped_dependents:
+        suffix += '；级联停止 ' + ', '.join(stopped_dependents)
+    if errors:
+        suffix += '；依赖错误 ' + '; '.join(errors)
     if state == 'running':
-        return False, '仍在运行；请用作业单手工清场'
+        return False, '仍在运行' + suffix + '；请用作业单手工清场'
     saved = finalize_saved_map(stack)
-    return True, 'stopped' + ('；' + saved if saved else '')
-
+    return not errors, 'stopped' + suffix + ('；' + saved if saved else '')
 
 def stack_log(stack, tail=80):
     _pidfile, logfile = stack_paths(stack['name'])
