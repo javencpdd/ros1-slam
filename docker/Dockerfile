@@ -276,9 +276,33 @@ RUN test -f /usr/local/lib/liblivox_lidar_sdk_static.a \
     || { echo "[FAIL] Livox-SDK2 静态库缺失，检查 opt/3rdparty/Livox_SDK2 是否完整"; exit 1; }
 
 # =============================================================================
+# Stage 2b · BT.CPP 3.8.8 —— Nav2 式编排层的运行时依赖
+#   在镜像内编译，真机不再依赖宿主挂载的 /opt/ros1-slam/opt/btcpp_v3。
+#   SHA256 与 scripts/ops/bootstrap_bt_demo.sh 同一枚 pin；构建需要网络。
+# =============================================================================
+FROM livox-sdk AS btcpp
+ARG BTCPP_TAG=3.8.8
+ARG BTCPP_SHA=7b87e4819f0c482639c30fa6a6f06ab4c83c10e3362032cfc3beff4d827205af
+ARG JOBS=4
+RUN set -eux; \
+    cd /tmp; \
+    curl -L --fail --retry 3 -o btcpp.tar.gz \
+      "https://gh-proxy.com/https://github.com/BehaviorTree/BehaviorTree.CPP/archive/refs/tags/${BTCPP_TAG}.tar.gz"; \
+    echo "${BTCPP_SHA}  btcpp.tar.gz" | sha256sum -c -; \
+    tar xzf btcpp.tar.gz; \
+    cd "BehaviorTree.CPP-${BTCPP_TAG}"; \
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/opt/btcpp_v3 \
+      -DBUILD_EXAMPLES=OFF -DBUILD_UNIT_TESTS=OFF -DBUILD_TOOLS=OFF \
+      -DBUILD_MANUAL_SELECTOR=OFF; \
+    cmake --build build -j"${JOBS}"; \
+    cmake --install build; \
+    rm -rf /tmp/btcpp.tar.gz "/tmp/BehaviorTree.CPP-${BTCPP_TAG}"
+
+# =============================================================================
 # Stage 3 · builder —— 编译 catkin 工作区
 # =============================================================================
-FROM livox-sdk AS builder
+FROM btcpp AS builder
 # The shared target helper owns closure, the source view and all cache identity.
 ARG JOBS=4
 ENV WS_ROOT=/opt/ros1-slam \
@@ -327,7 +351,7 @@ RUN bash -lc 'source /opt/ros/${ROS_DISTRO}/setup.bash \
 # 注意：这里 FROM livox-sdk 而不是 FROM deps —— 否则 --build-arg PROFILE=sim
 #       装的 gazebo 包与 WITH_RVIZ=1 装的 rviz 只存在于 deps 层，runtime 层会丢。
 # =============================================================================
-FROM livox-sdk AS runtime
+FROM btcpp AS runtime
 
 # ★ 变量名必须避开 UID/GID —— bash 启动时会把 UID/EUID 强制写成只读内置变量，
 #   传 ARG UID=1000 在 RUN 里 ${UID} 恒等于 0，chown 会全部落到 root 上。

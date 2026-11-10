@@ -29,6 +29,12 @@
   <arg name="enable_motion" default="false"/>
   <arg name="chassis_guard" default="true"/>
   <arg name="heartbeat_hz" default="2.0"/>
+  <!-- ★ 编排层（Nav2 式 BT）：缺省不起。★
+       enable_bt:=true 时默认要 real profile；real profile 未复制时
+       bt_console.launch 会 fail-closed，不会静默回落到 demo 话题。
+       桌面验证可显式传 bt_profile:=demo。 -->
+  <arg name="enable_bt" default="false"/>
+  <arg name="bt_profile" default="real"/>
 
   <!-- SUP 最先起（v4 §12 铁律/N5；mode 名与 health_watch.yaml#modes 键名逐字一致） -->
   <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
@@ -50,6 +56,15 @@
   <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
     <arg name="rviz" value="$(arg rviz)"/>
   </include>
+
+  <!-- ★ 编排层（Nav2 式 BT）：只在 enable_bt:=true 时起。★
+       BT 是目标所有者：请求路径、等到点、停顿、恢复；不算路径、不写速度。
+       真机规划器与 BT 的正式接线另批（见 note/架构/编排层真机化方案.md）。 -->
+  <group if="$(arg enable_bt)">
+    <include file="$(find lite3_bt)/launch/bt_console.launch">
+      <arg name="profile" value="$(arg bt_profile)"/>
+    </include>
+  </group>
 
   <!-- 前方超声保底：发布 /v8/safety/speed_cap，由 mux 取 min(静态上限, cap) -->
   <node pkg="v8_platform" type="framework/ultrasonic_guard_node.py"

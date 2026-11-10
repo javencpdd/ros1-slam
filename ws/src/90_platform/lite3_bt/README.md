@@ -7,8 +7,10 @@ real-robot path.
 ## Dependency
 
 BehaviorTree.CPP 3.8.8 is built for GCC 9 (BT.CPP 4.x needs a newer libstdc++
-for floating-point `from_chars`). The library is installed outside the system
-prefix, in the mounted path `/opt/ros1-slam/opt/btcpp_v3`.
+for floating-point `from_chars`). The build looks for `/opt/btcpp_v3` first (the
+in-image prefix installed by the `btcpp` stage in `docker/Dockerfile`), and falls
+back to the host-mounted `/opt/ros1-slam/opt/btcpp_v3` used by the sim-viz
+container.  The robot image therefore no longer depends on a host mount.
 
 Use the reproducible bootstrap (host, needs the sim-viz container running):
 
