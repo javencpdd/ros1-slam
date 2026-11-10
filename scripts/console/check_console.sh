@@ -11,18 +11,27 @@ for name in ros1-slam-roscore ros1-slam-rosbridge; do
   if docker ps --format '{{.Names}}' | grep -qx "$name"; then ok "container $name"; else bad "container $name"; fi
 done
 for path in web/console.html web/assets/console/console.js web/assets/console/rosbridge.js \
-            web/assets/data/maps.json web/assets/data/3d_runs.json; do
+            web/assets/data/maps.json web/assets/data/3d_runs.json \
+            web/assets/data/worlds/worlds.json; do
   [[ -f "$ROOT/$path" ]] && ok "$path" || bad "$path"
 done
 if curl -fsS --max-time 2 http://127.0.0.1:8780/api/health >/dev/null 2>&1; then
   ok 'agent /api/health'
   curl -fsS --max-time 3 http://127.0.0.1:8780/api/stacks >/dev/null 2>&1 \
     && ok 'agent /api/stacks' || bad 'agent /api/stacks'
+  if curl -fsS --max-time 2 http://127.0.0.1:8780/api/voxels/meta >/dev/null 2>&1; then
+    ok 'agent /api/voxels/meta'
+    curl -fsS --max-time 2 http://127.0.0.1:8780/api/voxels/latest >/dev/null 2>&1 \
+      && ok 'agent /api/voxels/latest' || bad 'agent /api/voxels/latest'
+  else
+    echo 'SKIP  agent /api/voxels（voxel_stream 未运行或无快照）'
+  fi
 else
   bad 'agent /api/health（bash scripts/console/start_agent.sh --start）'
 fi
 for url in http://127.0.0.1/web/console.html http://127.0.0.1/web/assets/data/maps.json \
-           http://127.0.0.1/web/assets/data/3d_runs.json; do
+           http://127.0.0.1/web/assets/data/3d_runs.json \
+           http://127.0.0.1/web/assets/data/worlds/worlds.json; do
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$url" || true)
   [[ "$code" == 200 ]] && ok "$url" || bad "$url -> $code"
 done
@@ -30,13 +39,15 @@ if command -v node >/dev/null; then
   node -e "new Function(require('fs').readFileSync('$ROOT/web/assets/console/console.js','utf8'))" \
     && ok 'console.js syntax' || bad 'console.js syntax'
 fi
-python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/ops/collect_3d_runs.py" \
-  "$ROOT/scripts/ops/build_maps_index.py" "$ROOT/scripts/ops/regrid_map.py" \
+python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/voxel_stream.py" \
+  "$ROOT/scripts/ops/collect_3d_runs.py" "$ROOT/scripts/ops/build_maps_index.py" \
+  "$ROOT/scripts/ops/build_world_scenes.py" "$ROOT/scripts/ops/regrid_map.py" \
   && ok 'python syntax' || bad 'python syntax'
 python3 - "$ROOT" <<'PY'
 import json, os, sys
 root = sys.argv[1]
-for path in ('web/assets/data/maps.json', 'web/assets/data/3d_runs.json'):
+for path in ('web/assets/data/maps.json', 'web/assets/data/3d_runs.json',
+             'web/assets/data/worlds/worlds.json'):
     data = json.load(open(os.path.join(root, path), encoding='utf-8'))
     assert data.get('schema'), path
 print('PASS  json schema')

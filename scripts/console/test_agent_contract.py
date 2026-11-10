@@ -17,6 +17,7 @@ class StackWhitelistTest(unittest.TestCase):
         self.assertIn('sim_m1', self.stacks)
         self.assertIn('mapping_m1', self.stacks)
         self.assertIn('stairstudy', self.stacks)
+        self.assertIn('voxel_stream', self.stacks)
         for stack in self.stacks.values():
             self.assertEqual(stack.get('category'), 'demo')
             self.assertTrue(stack.get('cmd'))
@@ -26,6 +27,7 @@ class StackWhitelistTest(unittest.TestCase):
 
     def test_dependency_and_master(self):
         self.assertEqual(self.stacks['mapping_m1'].get('requires'), ['sim_m1'])
+        self.assertEqual(self.stacks['voxel_stream'].get('requires'), ['sim_m1'])
         for stack in self.stacks.values():
             self.assertTrue(str(stack.get('master', '')).startswith('http://'))
 

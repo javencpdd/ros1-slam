@@ -30,6 +30,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = Path(__file__).resolve().parents[2]
 STACKS_FILE = Path(__file__).resolve().parent / 'stacks.json'
+VOXEL_DIR = ROOT / 'data/console/voxels'
 DIR = '/tmp/v8-console'
 LOCK = threading.Lock()
 
@@ -237,6 +238,17 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _binary(self, code, body):
+        self.send_response(code)
+        self.send_header('Content-Type', 'application/octet-stream')
+        self.send_header('Content-Length', str(len(body)))
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_OPTIONS(self):
         self._json(200, {'ok': True})
 
@@ -259,6 +271,32 @@ class Handler(BaseHTTPRequestHandler):
             query = urllib.parse.parse_qs(parsed.query)
             tail = query.get('tail', ['80'])[0]
             self._json(200, {'ok': True, 'log': stack_log(stack, tail)})
+            return
+        if parts == ['api', 'voxels', 'meta']:
+            path = VOXEL_DIR / 'meta.json'
+            if not path.exists():
+                self._json(404, {'ok': False,
+                                 'error': 'no voxel snapshot; start the voxel_stream stack'})
+                return
+            try:
+                payload = json.loads(path.read_text(encoding='utf-8'))
+            except (OSError, ValueError) as error:
+                self._json(500, {'ok': False, 'error': str(error)})
+                return
+            self._json(200, payload)
+            return
+        if parts == ['api', 'voxels', 'latest']:
+            path = VOXEL_DIR / 'latest.bin'
+            if not path.exists():
+                self._json(404, {'ok': False,
+                                 'error': 'no voxel snapshot; start the voxel_stream stack'})
+                return
+            try:
+                body = path.read_bytes()
+            except OSError as error:
+                self._json(500, {'ok': False, 'error': str(error)})
+                return
+            self._binary(200, body)
             return
         self._json(404, {'ok': False, 'error': 'not found'})
 
