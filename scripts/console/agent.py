@@ -139,12 +139,13 @@ def build_stack_command(stack, selected_world=None):
     if selected_world:
         if selected_world not in choices:
             return None, None, 'world 不在白名单：%s' % selected_world
-        if not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}', selected_world):
-            return None, None, 'world 文件名不合法'
+        value = choices[selected_world].get('path') or selected_world
+        if not re.fullmatch(r'[A-Za-z0-9_./-]{1,256}', value) or '..' in value:
+            return None, None, 'world 路径不合法'
         template = stack.get('cmd_template')
         if not template or '{world}' not in template:
             return None, None, '该栈没有 world 模板'
-        return template.replace('{world}', selected_world), selected_world, None
+        return template.replace('{world}', value), selected_world, None
     return stack['cmd'], stack.get('world'), None
 
 

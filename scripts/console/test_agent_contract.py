@@ -32,25 +32,29 @@ class StackWhitelistTest(unittest.TestCase):
             self.assertNotIn('&&', stack['cmd'])
 
     def test_world_choices_exist(self):
-        worlds = ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/worlds'
-        stairs = ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/stairstudy/worlds'
+        package = ROOT / 'ws/src/95_simulation/lite3_gazebo_sim'
         sim = self.stacks['sim_m1']
-        self.assertEqual(len(sim['world_choices']), 3)
+        self.assertEqual(len(sim['world_choices']), 4)
         self.assertIn('{world}', sim['cmd_template'])
         for choice in sim['world_choices']:
-            self.assertTrue((worlds / choice['file']).exists(), choice['file'])
+            path = package / (choice.get('path') or choice['file'])
+            self.assertTrue(path.exists(), choice['file'])
         study = self.stacks['stairstudy']
         self.assertEqual(len(study['world_choices']), 9)
         self.assertIn('{world}', study['cmd_template'])
         for choice in study['world_choices']:
-            self.assertTrue((stairs / choice['file']).exists(), choice['file'])
+            self.assertTrue((package / 'stairstudy/worlds' / choice['file']).exists(), choice['file'])
 
     def test_build_stack_command_whitelist(self):
         stack = self.stacks['sim_m1']
         cmd, world, error = AGENT.build_stack_command(stack, 'demo_two_floor.world')
         self.assertIsNone(error)
         self.assertEqual(world, 'demo_two_floor.world')
-        self.assertIn('demo_two_floor.world', cmd)
+        self.assertIn('worlds/demo_two_floor.world', cmd)
+        cmd, world, error = AGENT.build_stack_command(stack, 'open.world')
+        self.assertIsNone(error)
+        self.assertEqual(world, 'open.world')
+        self.assertIn('scenarios/two_floor_nav/worlds/open.world', cmd)
         cmd, world, error = AGENT.build_stack_command(stack, 'not_listed.world')
         self.assertIsNotNone(error)
         self.assertIsNone(cmd)

@@ -9,11 +9,12 @@
       "master": "http://roscore:11312",
       "world": "m1_world.world",
       "cmd": "roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false",
-      "cmd_template": "roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/{world}",
+      "cmd_template": "roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/{world}",
       "world_choices": [
-        {"file": "m1_world.world", "label": "m1 世界（稀障平地）"},
-        {"file": "m1_world_v2.world", "label": "m1_world_v2"},
-        {"file": "demo_two_floor.world", "label": "两层 demo（demo_two_floor）"}
+        {"file": "m1_world.world", "path": "worlds/m1_world.world", "label": "m1 世界（稀障平地）"},
+        {"file": "m1_world_v2.world", "path": "worlds/m1_world_v2.world", "label": "m1_world_v2"},
+        {"file": "demo_two_floor.world", "path": "worlds/demo_two_floor.world", "label": "两层 demo（demo_two_floor，SLAM）"},
+        {"file": "open.world", "path": "scenarios/two_floor_nav/worlds/open.world", "label": "two_floor_nav open（几何，非 app）"}
       ],
       "world_stack": true,
       "description": "m1 Gazebo + lite3_planar + sim_adapter；world 可选，headless，给建图/监控页提供话题。",
