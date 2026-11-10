@@ -1,0 +1,9 @@
+# Demo profile for the console BT (host-only stack).  Values are exactly the
+# previous hard-coded launch defaults, so switching to this file changes nothing.
+# Keys here must stay a subset of what bt_console.cpp reads via pnh.param();
+# test_bt_config.py enforces yaml_keys + launch param keys == code keys.
+goal_topic: /v8/bt/goal
+pose_topic: /v8/local/pose
+stop_topic: /lite3/teleop/app_cmd_vel
+queue_max: 16
+planner_result_topic: ""

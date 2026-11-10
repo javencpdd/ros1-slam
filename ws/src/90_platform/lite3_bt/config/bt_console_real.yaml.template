@@ -1,0 +1,15 @@
+# Real-robot profile skeleton for the console BT.
+#
+# STATUS: TEMPLATE_ONLY.  Nothing here is a measured real-robot value, and this
+# file is not loaded by default (`.yaml.template` is not matched by *.yaml
+# tooling).  Copy it to bt_console_real.yaml only after a signed work order.
+#
+# What is safe to confirm on site: topic names (they are wiring, not physics).
+# What is NOT here on purpose: arrival distance, arrival/path timeouts and dwell
+# are tree XML ports, and every physical criterion needs a signed work order
+# (note/10_真机上机Runbook.md:4, note/11 migration rules).  Do not add numbers.
+goal_topic: /v8/bt/goal
+pose_topic: /v8/local/pose
+stop_topic: /lite3/teleop/app_cmd_vel
+queue_max: 16
+planner_result_topic: ""

@@ -68,6 +68,20 @@ Topics:
 - stop: zero Twist on `/lite3/teleop/app_cmd_vel` (through the safety mux)
 - status: `/v8/bt/status` (JSON: nodes, event, queue_depth, current_seq, path_state)
 
+## Configuration profiles
+
+`launch/bt_console.launch` takes `profile:=demo` (default) and loads
+`config/bt_console_<profile>.yaml`.  A profile carries **wiring only** (topics,
+queue size, optional executor ack topic).  Tree ports — arrival distance,
+arrival/path timeout, dwell — stay in the XML, and every physical value needs a
+signed work order (`note/10:4`, `note/11`).
+
+`config/bt_console_real.yaml.template` is a skeleton and is **not** loadable:
+`profile:=real` fails closed unless you copy it to `bt_console_real.yaml` after
+confirming the wiring.  `scripts/console/test_bt_config.py` enforces that
+profile keys + launch `<param>` names cover exactly the keys the node reads, and
+that the real profile contains no numeric physical value.
+
 ## Goal publisher allow-list (demo only)
 
 `goal_gate.py` forwards a `/v8/bt/goal_request` only when BOTH hold:

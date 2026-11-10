@@ -1,31 +1,34 @@
 <launch>
-  <!-- One console stack: BT goal owner + ROS-level goal gate.
+  <!-- Console BT stack: Nav2-style orchestration tree + ROS-level goal gate.
        BT publishes /v8/bt/goal_request and /v8/bt/lease; the gate is the only
-       intended writer of /v8/3d/global/goal. Demo only. -->
-  <!-- Nav2-style orchestration tree (default).  The legacy single-goal tree
-       can still be passed via tree_file:=...navigate_single_goal.xml. -->
+       intended writer of /v8/3d/global/goal.
+
+       Profiles: `profile:=demo` loads config/bt_console_demo.yaml (the previous
+       hard-coded defaults, unchanged).  `profile:=real` requires
+       config/bt_console_real.yaml to exist; only the .yaml.template is shipped,
+       so a real run without a copied+confirmed profile fails closed instead of
+       silently using demo topics. -->
   <arg name="tree_file" default="$(find lite3_bt)/trees/navigate_with_planner.xml"/>
+  <arg name="profile" default="demo"/>
   <arg name="request_topic" default="/v8/bt/goal_request"/>
   <arg name="planner_goal_topic" default="/v8/global/goal"/>
   <arg name="path_status_topic" default="/global_path/status"/>
-  <arg name="queue_max" default="16"/>
-  <!-- Empty = pose-based arrival (demo default).  Set to a planner result
-       topic to let the downstream planner report goal outcomes. -->
-  <arg name="planner_result_topic" default=""/>
+  <arg name="lease_topic" default="/v8/bt/lease"/>
 
   <node pkg="lite3_bt" type="bt_console" name="bt_console" output="screen">
+    <!-- Inside <node>, rosparam's default namespace is the node's private one
+         (/bt_console); adding ns= would nest it again. -->
+    <rosparam command="load" file="$(find lite3_bt)/config/bt_console_$(arg profile).yaml"/>
     <param name="tree_file" value="$(arg tree_file)"/>
     <param name="out_goal_topic" value="$(arg request_topic)"/>
     <param name="planner_goal_topic" value="$(arg planner_goal_topic)"/>
     <param name="path_status_topic" value="$(arg path_status_topic)"/>
-    <param name="lease_topic" value="/v8/bt/lease"/>
-    <param name="queue_max" value="$(arg queue_max)"/>
-    <param name="planner_result_topic" value="$(arg planner_result_topic)"/>
+    <param name="lease_topic" value="$(arg lease_topic)"/>
   </node>
 
   <node pkg="lite3_bt" type="goal_gate.py" name="v8_goal_gate" output="screen">
     <param name="request_topic" value="$(arg request_topic)"/>
-    <param name="lease_topic" value="/v8/bt/lease"/>
+    <param name="lease_topic" value="$(arg lease_topic)"/>
     <param name="output_topic" value="/v8/3d/global/goal"/>
     <param name="lease_timeout" value="1.0"/>
     <param name="require_lease" value="true"/>

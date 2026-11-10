@@ -45,6 +45,8 @@ if command -v node >/dev/null; then
   node "$ROOT/scripts/console/test_mission_events.js" >/dev/null 2>&1 \
     && ok 'mission events tests' || bad 'mission events tests'
 fi
+python3 "$ROOT/scripts/console/test_bt_config.py" >/dev/null 2>&1 \
+  && ok 'BT config profile keys' || bad 'BT config profile keys'
 python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/voxel_stream.py" \
   "$ROOT/scripts/ops/collect_3d_runs.py" "$ROOT/scripts/ops/build_maps_index.py" \
   "$ROOT/scripts/ops/build_world_scenes.py" "$ROOT/scripts/ops/regrid_map.py" \
