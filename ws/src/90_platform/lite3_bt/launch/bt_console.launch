@@ -17,5 +17,9 @@
     <param name="output_topic" value="/v8/3d/global/goal"/>
     <param name="lease_timeout" value="1.0"/>
     <param name="require_lease" value="true"/>
+    <!-- Demo-plane writer ownership: only bt_console may publish a goal
+         request.  ROS1 callerid is spoofable, so this is NOT authentication. -->
+    <param name="allowed_callers" value="/bt_console"/>
+    <param name="require_acl" value="true"/>
   </node>
 </launch>

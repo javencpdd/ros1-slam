@@ -46,7 +46,12 @@ python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/vo
   "$ROOT/scripts/ops/build_world_scenes.py" "$ROOT/scripts/ops/regrid_map.py" \
   "$ROOT/scripts/ops/world_registry.py" \
   "$ROOT/ws/src/90_platform/lite3_bt/scripts/goal_gate.py" \
+  "$ROOT/ws/src/90_platform/lite3_bt/scripts/goal_gate_policy.py" \
+  "$ROOT/ws/src/90_platform/lite3_bt/scripts/test_goal_gate_policy.py" \
   && ok 'python syntax' || bad 'python syntax'
+python3 -B -m unittest discover -s "$ROOT/ws/src/90_platform/lite3_bt/scripts" \
+  -p 'test_goal_gate_policy.py' >/dev/null 2>&1 \
+  && ok 'goal gate ACL policy + wiring' || bad 'goal gate ACL policy + wiring'
 python3 "$ROOT/scripts/ops/world_registry.py" --check >/dev/null 2>&1 \
   && ok 'world registry' || bad 'world registry'
 if [[ -f "$ROOT/opt/btcpp_v3/lib/libbehaviortree_cpp_v3.so" ]]; then

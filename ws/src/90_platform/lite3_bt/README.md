@@ -64,6 +64,31 @@ Topics:
 - stop: zero Twist on `/lite3/teleop/app_cmd_vel` (through the safety mux)
 - status: `/v8/bt/status` (JSON string, includes root/node status and last event)
 
+## Goal publisher allow-list (demo only)
+
+`goal_gate.py` forwards a `/v8/bt/goal_request` only when BOTH hold:
+
+1. the publisher's ROS1 `callerid` is in `~allowed_callers` (default
+   `/bt_console`, declared in `bt_console.launch`), and
+2. the BT lease is fresh (`~require_lease`, 1 s timeout).
+
+`~require_acl` defaults to true.  A missing/empty callerid is refused, and an
+explicitly empty `~allowed_callers` refuses everything: it is fail closed,
+not a wildcard.  The decision lives in `goal_gate_policy.py` (pure stdlib, no
+ROS import) so it can be tested on a host without a sourced environment;
+`test_goal_gate_policy.py` also asserts the wiring, i.e. that `on_request`
+calls the policy before publishing.  `scripts/console/check_console.sh` runs
+those tests as a standing check.
+
+BOUNDARY — read before treating this as security:
+
+- ROS1 `callerid` comes from the connection header and is trivially spoofable.
+  This is demo-plane writer ownership (which node may ask for a goal), NOT
+  authentication.  It does not contradict the decision that the console agent
+  keeps trusting the LAN: that is the network side, this is the ROS topic side.
+- The lease topic `/v8/bt/lease` is NOT publisher-checked in this slice.
+- Formal / EVT / real-robot paths are unchanged; they stay on the work order.
+
 Tree:
 
 ```
