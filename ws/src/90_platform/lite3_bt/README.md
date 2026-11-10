@@ -8,13 +8,18 @@ real-robot path.
 
 BehaviorTree.CPP 3.8.8 is built for GCC 9 (BT.CPP 4.x needs a newer libstdc++
 for floating-point `from_chars`). The library is installed outside the system
-prefix, in the mounted path:
+prefix, in the mounted path `/opt/ros1-slam/opt/btcpp_v3`.
 
-```
-/opt/ros1-slam/opt/btcpp_v3
+Use the reproducible bootstrap (host, needs the sim-viz container running):
+
+```bash
+bash scripts/ops/bootstrap_bt_demo.sh --check
+bash scripts/ops/bootstrap_bt_demo.sh --build   # BT.CPP + lite3_bt
+bash scripts/ops/bootstrap_bt_demo.sh --groot2  # optional host Groot2 AppImage
 ```
 
-Build (inside `ros1-slam-sim-viz`):
+The script pins the BT.CPP source SHA256 and Groot2 1.9.0 AppImage SHA256 and
+fails closed on a mismatch. Manual build (inside `ros1-slam-sim-viz`):
 
 ```bash
 cd /tmp

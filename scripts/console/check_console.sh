@@ -48,6 +48,12 @@ python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/vo
   && ok 'python syntax' || bad 'python syntax'
 python3 "$ROOT/scripts/ops/world_registry.py" --check >/dev/null 2>&1 \
   && ok 'world registry' || bad 'world registry'
+if [[ -f "$ROOT/opt/btcpp_v3/lib/libbehaviortree_cpp_v3.so" ]]; then
+  bash "$ROOT/scripts/ops/bootstrap_bt_demo.sh" --check >/dev/null 2>&1 \
+    && ok 'BT demo bootstrap' || bad 'BT demo bootstrap（bash scripts/ops/bootstrap_bt_demo.sh --build）'
+else
+  echo 'SKIP  BT demo bootstrap（未构建；scripts/ops/bootstrap_bt_demo.sh --build）'
+fi
 python3 - "$ROOT" <<'PY'
 import json, os, sys
 root = sys.argv[1]
