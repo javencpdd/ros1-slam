@@ -368,6 +368,7 @@ def public_stack(stack):
         'container': stack.get('container'),
         'master': stack.get('master'),
         'world': stack.get('world'),
+        'goal_authority': stack.get('goal_authority'),
         'selected_world': selected_world,
         'world_choices': stack.get('world_choices') or [],
         'world_stack': bool(stack.get('world_stack')),

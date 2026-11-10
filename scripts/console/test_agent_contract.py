@@ -106,6 +106,12 @@ class ClientIdentityTest(unittest.TestCase):
                          {'mapping_m1', 'mapping_save', 'safety_mux',
                           'bt_console', 'voxel_stream'})
 
+    def test_bt_console_owns_3d_goal_authority(self):
+        self.assertEqual(self.stacks['bt_console'].get('goal_authority'), '3d')
+        owners = [stack for stack in self.stacks.values()
+                  if stack.get('goal_authority') == '3d']
+        self.assertEqual([stack['name'] for stack in owners], ['bt_console'])
+
     def test_dependency_cycle_rejected(self):
         stacks = {'a': {'name': 'a', 'requires': ['b']},
                   'b': {'name': 'b', 'requires': ['a']}}
