@@ -19,6 +19,8 @@ if curl -fsS --max-time 2 http://127.0.0.1:8780/api/health >/dev/null 2>&1; then
   ok 'agent /api/health'
   curl -fsS --max-time 3 http://127.0.0.1:8780/api/stacks >/dev/null 2>&1 \
     && ok 'agent /api/stacks' || bad 'agent /api/stacks'
+  curl -fsS --max-time 2 http://127.0.0.1:8780/api/whoami >/dev/null 2>&1 \
+    && ok 'agent /api/whoami' || bad 'agent /api/whoami'
   if curl -fsS --max-time 2 http://127.0.0.1:8780/api/voxels/meta >/dev/null 2>&1; then
     ok 'agent /api/voxels/meta'
     curl -fsS --max-time 2 http://127.0.0.1:8780/api/voxels/latest >/dev/null 2>&1 \

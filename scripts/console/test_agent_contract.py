@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Whitelist contract for the console agent; no Docker or ROS required."""
+import importlib.util
+import ipaddress
 import json
 from pathlib import Path
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 STACKS = ROOT / 'scripts/console/stacks.json'
+SPEC = importlib.util.spec_from_file_location('console_agent', ROOT / 'scripts/console/agent.py')
+AGENT = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(AGENT)
 
 
 class StackWhitelistTest(unittest.TestCase):
@@ -35,6 +40,30 @@ class StackWhitelistTest(unittest.TestCase):
         joined = ' '.join(item['cmd'] for item in self.stacks.values()).lower()
         for word in ('real:=true', 'enable_motion:=true', 'evt', 'formal', '192.168.1.120'):
             self.assertNotIn(word, joined)
+
+
+class ClientIdentityTest(unittest.TestCase):
+    def setUp(self):
+        data = json.loads(STACKS.read_text(encoding='utf-8'))
+        self.stacks = {item['name']: item for item in data['stacks']}
+
+    def test_local_sources(self):
+        networks = [ipaddress.ip_network('172.16.0.0/12')]
+        self.assertTrue(AGENT.classify_client('127.0.0.1', {'10.63.23.135'}, networks)[0])
+        self.assertTrue(AGENT.classify_client('::1', {'10.63.23.135'}, networks)[0])
+        self.assertTrue(AGENT.classify_client('::ffff:127.0.0.1', {'10.63.23.135'}, networks)[0])
+        self.assertTrue(AGENT.classify_client('10.63.23.135', {'10.63.23.135'}, networks)[0])
+        self.assertTrue(AGENT.classify_client('172.18.0.2', {'10.63.23.135'}, networks)[0])
+
+    def test_lan_is_remote(self):
+        networks = [ipaddress.ip_network('172.16.0.0/12')]
+        local, reason = AGENT.classify_client('10.63.23.50', {'10.63.23.135'}, networks)
+        self.assertFalse(local)
+        self.assertEqual(reason, 'lan')
+
+    def test_local_only_stack_flag_default_false(self):
+        for stack in self.stacks.values():
+            self.assertFalse(stack.get('local_only'), stack['name'])
 
 
 if __name__ == '__main__':

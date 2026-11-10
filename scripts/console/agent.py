@@ -16,12 +16,14 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
 from pathlib import Path
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import threading
 import time
@@ -33,6 +35,65 @@ STACKS_FILE = Path(__file__).resolve().parent / 'stacks.json'
 VOXEL_DIR = ROOT / 'data/console/voxels'
 DIR = '/tmp/v8-console'
 LOCK = threading.Lock()
+
+DEFAULT_LOCAL_CIDRS = '127.0.0.0/8,::1/128'
+
+
+def normalize_ip(value):
+    raw = (value or '').split('%')[0]
+    try:
+        address = ipaddress.ip_address(raw)
+    except ValueError:
+        return raw
+    if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped:
+        address = address.ipv4_mapped
+    return str(address)
+
+
+def host_ips():
+    found = {'127.0.0.1', '::1'}
+    try:
+        result = subprocess.run(['hostname', '-I'], capture_output=True, text=True, timeout=2)
+        found.update(result.stdout.split())
+    except (OSError, subprocess.SubprocessError):
+        pass
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            found.add(info[4][0])
+    except OSError:
+        pass
+    return {normalize_ip(value) for value in found if value}
+
+
+def local_cidrs():
+    raw = os.environ.get('LITE3_LOCAL_CIDRS', DEFAULT_LOCAL_CIDRS)
+    networks = []
+    for part in raw.split(','):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            networks.append(ipaddress.ip_network(part, strict=False))
+        except ValueError:
+            continue
+    return networks
+
+
+def classify_client(client_ip, known_host_ips=None, cidrs=None):
+    address_text = normalize_ip(client_ip)
+    try:
+        address = ipaddress.ip_address(address_text)
+    except ValueError:
+        return False, 'invalid'
+    if address.is_loopback:
+        return True, 'loopback'
+    known = known_host_ips if known_host_ips is not None else host_ips()
+    if address_text in known:
+        return True, 'host-ip'
+    for network in (cidrs if cidrs is not None else local_cidrs()):
+        if address.version == network.version and address in network:
+            return True, 'local-cidr'
+    return False, 'lan'
 
 
 def load_stacks():
@@ -212,6 +273,7 @@ def public_stack(stack):
         'master': stack.get('master'),
         'world': stack.get('world'),
         'requires': stack.get('requires') or [],
+        'local_only': bool(stack.get('local_only')),
         'notes': stack.get('notes', ''),
         'state': state if not error else 'error',
         'pid': pid,
@@ -257,6 +319,17 @@ class Handler(BaseHTTPRequestHandler):
         parts = [p for p in parsed.path.split('/') if p]
         if parsed.path == '/api/health':
             self._json(200, {'ok': True, 'stacks': len(STACKS)})
+            return
+        if parts == ['api', 'whoami']:
+            client = self.client_address[0]
+            local, reason = classify_client(client)
+            self._json(200, {
+                'ok': True,
+                'local': local,
+                'reason': reason,
+                'client': normalize_ip(client),
+                'host': socket.gethostname(),
+            })
             return
         if parts[:2] == ['api', 'stacks'] and len(parts) == 2:
             with LOCK:
@@ -424,6 +497,12 @@ class Handler(BaseHTTPRequestHandler):
         if not stack:
             self._json(404, {'ok': False, 'error': 'unknown stack'})
             return
+        if stack.get('local_only'):
+            local, reason = classify_client(self.client_address[0])
+            if not local:
+                self._json(403, {'ok': False,
+                                 'error': 'local-only stack; local client required (%s)' % reason})
+                return
         with LOCK:
             if parts[3] == 'start':
                 ok, message = start_stack(stack)
