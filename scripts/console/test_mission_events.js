@@ -62,6 +62,26 @@ check(M.classify(null, 0, null).reason === 'no_status',
 check(M.classify(M.parseStatus(status('reached', 1)), 0, null).terminal === true,
       'first goal (seq 0 -> 1) advances');
 
+// Live-caught defect: BT overwrites event with dwell/stop inside one tick, so
+// a 2 Hz status subscriber never sees "reached".  Persistent outcome must
+// still drive the mission, while event-only status stays supported.
+function outcomeStatus(outcome, value, event) {
+  return JSON.stringify({ event: event || 'stop', current_seq: value,
+                          goal_seq: value, outcome: outcome, outcome_seq: value });
+}
+const persisted = M.parseStatus(outcomeStatus('reached', 3));
+check(persisted && persisted.outcome === 'reached' && persisted.outcome_seq === 3,
+      'persistent outcome parses');
+check(M.classify(persisted, 2, null).terminal === true &&
+      M.classify(persisted, 2, null).ok === true,
+      'outcome reached advances even when event is stop');
+check(M.classify(M.parseStatus(outcomeStatus('failed', 4)), 3, null).ok === false,
+      'outcome failed ends goal');
+check(M.classify(persisted, 2, 3).reason === 'already_handled',
+      'persistent outcome handled once');
+check(M.classify(M.parseStatus(outcomeStatus('reached', 2)), 2, null).reason === 'stale_seq',
+      'stale outcome does not advance');
+
 // Wiring assertions: a green pure-function test is worthless if the browser
 // never loads the module or onTopic never dispatches the status message.
 const html = fs.readFileSync(path.join(ROOT, 'web/console.html'), 'utf8');

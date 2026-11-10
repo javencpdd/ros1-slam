@@ -48,12 +48,25 @@ struct SharedState
   std::uint64_t planner_ack_seq = 0;
 
   std::string last_event = "idle";
+  // Persistent outcome of the current goal.  last_event is overwritten by
+  // dwell/stop within a single tick, so a 2 Hz status subscriber can never
+  // observe "reached".  This survives until WaitForGoal dequeues a new goal.
+  std::string goal_outcome;
+  std::uint64_t outcome_seq = 0;
   ros::Publisher goal_pub;
   ros::Publisher planner_goal_pub;
   ros::Publisher stop_pub;
 };
 
 SharedState g_state;
+
+// Caller must hold g_state.mutex.  Records the terminal result once so the
+// status publisher can report it on every subsequent 0.5 s tick.
+void recordOutcomeLocked(bool ok)
+{
+  g_state.goal_outcome = ok ? "reached" : "failed";
+  g_state.outcome_seq = g_state.current_seq;
+}
 
 bool transient_plan_reason(const std::string& reason)
 {
@@ -96,6 +109,8 @@ private:
     g_state.planner_ack_seen = false;
     g_state.planner_ack_ok = false;
     g_state.planner_ack_seq = 0;
+    g_state.goal_outcome.clear();
+    g_state.outcome_seq = 0;
     g_state.last_event = "goal";
     ROS_INFO("[bt] goal %lu dequeued (%zu waiting)",
              static_cast<unsigned long>(g_state.current_seq), g_state.pending.depth());
@@ -185,6 +200,7 @@ private:
       {
         std::lock_guard<std::mutex> lock(g_state.mutex);
         g_state.last_event = "path_failed";
+        recordOutcomeLocked(false);
       }
       return BT::NodeStatus::FAILURE;
     }
@@ -196,6 +212,7 @@ private:
       {
         std::lock_guard<std::mutex> lock(g_state.mutex);
         g_state.last_event = "path_timeout";
+        recordOutcomeLocked(false);
       }
       return BT::NodeStatus::FAILURE;
     }
@@ -291,6 +308,7 @@ private:
         {
           std::lock_guard<std::mutex> lock(g_state.mutex);
           g_state.last_event = "planner_fail";
+          recordOutcomeLocked(false);
         }
         return BT::NodeStatus::FAILURE;
       }
@@ -299,6 +317,7 @@ private:
         {
           std::lock_guard<std::mutex> lock(g_state.mutex);
           g_state.last_event = "reached";
+          recordOutcomeLocked(true);
         }
         return BT::NodeStatus::SUCCESS;
       }
@@ -312,6 +331,7 @@ private:
         {
           std::lock_guard<std::mutex> lock(g_state.mutex);
           g_state.last_event = "reached";
+          recordOutcomeLocked(true);
         }
         return BT::NodeStatus::SUCCESS;
       }
@@ -323,6 +343,7 @@ private:
       {
         std::lock_guard<std::mutex> lock(g_state.mutex);
         g_state.last_event = "timeout";
+        recordOutcomeLocked(false);
       }
       return BT::NodeStatus::FAILURE;
     }
@@ -412,6 +433,7 @@ public:
       g_state.path_ok = false;
       g_state.path_points = 0;
       g_state.path_reason.clear();
+      if (g_state.goal_outcome.empty()) recordOutcomeLocked(false);
       g_state.last_event = "recovered";
     }
     ROS_WARN("[bt] recovery: stop and invalidate path");
@@ -598,14 +620,16 @@ int main(int argc, char** argv)
     if ((ros::Time::now() - last_status).toSec() >= 0.5)
     {
       std_msgs::String status;
-      std::string event, path_state;
+      std::string event, path_state, outcome;
       std::size_t depth = 0;
       int path_points = 0;
-      std::uint64_t goal_seq = 0, current_seq = 0;
+      std::uint64_t goal_seq = 0, current_seq = 0, outcome_seq = 0;
       const char* planner_mode = "pose";
       {
         std::lock_guard<std::mutex> lock(g_state.mutex);
         event = g_state.last_event;
+        outcome = g_state.goal_outcome;
+        outcome_seq = g_state.outcome_seq;
         path_state = pathState();
         path_points = g_state.path_points;
         depth = g_state.pending.depth();
@@ -626,6 +650,8 @@ int main(int argc, char** argv)
                     "\",\"queue_depth\":" + std::to_string(depth) +
                     ",\"goal_seq\":" + std::to_string(goal_seq) +
                     ",\"current_seq\":" + std::to_string(current_seq) +
+                    ",\"outcome\":\"" + outcome + "\"" +
+                    ",\"outcome_seq\":" + std::to_string(outcome_seq) +
                     ",\"path_state\":\"" + path_state + "\"" +
                     ",\"path_points\":" + std::to_string(path_points) +
                     ",\"planner_mode\":\"" + planner_mode + "\"" +

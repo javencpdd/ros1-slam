@@ -114,8 +114,16 @@ Goals arriving on `/v8/bt/goal` are queued FIFO instead of overwriting a single
 slot: a fast multi-goal submission used to collapse into the last goal only.
 `~queue_max` defaults to 16; a full queue **refuses** the new goal and drops
 nothing.  After a Sequence completes, the next tick returns to `WaitForGoal`.
-The status JSON reports `queue_depth`, `goal_seq`, `current_seq`, `path_state`,
-`path_points` and `planner_mode`.
+The status JSON reports `queue_depth`, `goal_seq`, `current_seq`, `outcome`,
+`outcome_seq`, `path_state`, `path_points` and `planner_mode`.
+
+`outcome` is the **persisted** terminal result of the current goal
+(`reached` / `failed` / empty), cleared only when the next goal is dequeued;
+`outcome_seq` is its `current_seq`.  It exists because `event` is overwritten
+by `dwell` / `stop` inside a single tick, so a 2 Hz subscriber never observed
+`reached` and the console mission never advanced.  This was caught by a live
+browser + rosbridge + BT run (see `note/进度/v8/M5/26-11-10/BT回执活体实测.md`).
+The console prefers `outcome` and falls back to `event` for older builds.
 
 Path status protocol: `planner/topic_node.py` publishes JSON built with
 `json.dumps`, e.g. `{"ok": true, "points": 12}` or

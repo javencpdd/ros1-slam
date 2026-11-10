@@ -6,6 +6,8 @@
 
 > 2026-11-10 23:40：控制台 3D 多目标 mission 的到点判据改为消费 `/v8/bt/status` 的 BT 编排回执（`event`／`current_seq`，按序号边沿去重），可视化载体位姿只用于路径与误差统计；2D 模式仍用原位姿判到达。判定逻辑落在 `assets/console/mission_events.js`（纯函数、无 DOM），`scripts/console/test_mission_events.js` 覆盖主测／注入有效性／反控／重复边沿／接线断言，并挂进 `scripts/console/check_console.sh`。
 
+> 2026-11-10 23:50：浏览器活体实测（Chrome CDP ＋ rosbridge ＋ 重启后的 Nav2 式 BT 栈，发两个目标）发现 `event` 会被 `dwell`／`stop` 覆盖，2 Hz 订阅永远采不到 `reached`；BT 侧新增持久 `outcome`／`outcome_seq`，控制台 `mission_events.js` 优先读持久结果、`event` 作兼容回退。阶段 A 只注入位姿不推进、阶段 B 注入路径回执后 `任务目标 2/2 发送`。完整读数见 `note/进度/v8/M5/26-11-10/BT回执活体实测.md`。
+
 [`index.html`](index.html) 是无构建步骤的静态项目介绍页，使用本目录 `assets/` 的图片/GIF/SVG。顶部导航以 hash 切换 `main .page`，可直接分享 `/web/#status`、`/web/#nav3d` 等地址。页面只展示资料，不连接 ROS 或控制机器人。
 
 多层 Gazebo 交互式 3D 导航测试流程位于 `index.html` 的 `#two-floor-interactive`（从 `#sim` 的交互导航标签进入）。内容覆盖离线自检、唯一窗口登记、原预检、RViz Publish Point、停止退净、结果判读及当前 4/4 自动用例边界；命令真源仍以仓内场景 README 为准。

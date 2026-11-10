@@ -25,7 +25,9 @@
       current_seq: seq,
       goal_seq: Number(value.goal_seq) || 0,
       queue_depth: Number(value.queue_depth) || 0,
-      path_state: typeof value.path_state === 'string' ? value.path_state : ''
+      path_state: typeof value.path_state === 'string' ? value.path_state : '',
+      outcome: typeof value.outcome === 'string' ? value.outcome : '',
+      outcome_seq: Number(value.outcome_seq) || 0
     };
   }
 
@@ -37,6 +39,20 @@
      guards are needed to avoid a stale success or a double advance. */
   function classify(status, sentSeq, handledSeq) {
     if (!status) return { terminal: false, reason: 'no_status' };
+
+    // Preferred path: the BT records a persistent outcome per goal.  A plain
+    // `event` is overwritten by dwell/stop within one tick, so a 0.5 s status
+    // subscriber would otherwise never observe "reached".  Verified live.
+    if (status.outcome === 'reached' || status.outcome === 'failed') {
+      var seq = status.outcome_seq > 0 ? status.outcome_seq : status.current_seq;
+      if (!(seq > sentSeq)) return { terminal: false, reason: 'stale_seq' };
+      if (seq === handledSeq) return { terminal: false, reason: 'already_handled' };
+      return { terminal: true, ok: status.outcome === 'reached',
+               reason: status.outcome === 'reached' ? 'BT 判定到点' : 'BT 目标失败',
+               seq: seq };
+    }
+
+    // Legacy fallback for a BT build that only publishes `event`.
     if (!(status.current_seq > sentSeq)) return { terminal: false, reason: 'stale_seq' };
     if (status.current_seq === handledSeq) return { terminal: false, reason: 'already_handled' };
     if (SUCCESS_EVENTS.indexOf(status.event) >= 0) {
