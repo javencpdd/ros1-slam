@@ -44,7 +44,10 @@ fi
 python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/voxel_stream.py" \
   "$ROOT/scripts/ops/collect_3d_runs.py" "$ROOT/scripts/ops/build_maps_index.py" \
   "$ROOT/scripts/ops/build_world_scenes.py" "$ROOT/scripts/ops/regrid_map.py" \
+  "$ROOT/scripts/ops/world_registry.py" \
   && ok 'python syntax' || bad 'python syntax'
+python3 "$ROOT/scripts/ops/world_registry.py" --check >/dev/null 2>&1 \
+  && ok 'world registry' || bad 'world registry'
 python3 - "$ROOT" <<'PY'
 import json, os, sys
 root = sys.argv[1]

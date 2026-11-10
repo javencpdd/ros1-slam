@@ -66,6 +66,7 @@
 - 第三方副本保持原件；配置与接缝优先改自研包装。历史许可例外和隔离规则见 [硬规则](../note/00_README.md)。
 - 真机运动桥 `ros2qnx` 仅属于获授权的真机模式；`mode_navigation.launch` 的 `enable_motion` 默认 false。文档导航不构成现场运行授权。
 - 传统/真机 M6 mux 与 v8 仿真 `cmd3d_mux_node.py` 是不同适配器，同一运行图不得争写 `/cmd_vel`。SUP 只给 hold。
+- 控制台 `web/`、`scripts/console`、`data/console` 是 host-only 测试面，不进入 `lite3`/M20 target 或机器人镜像；源码/生成物边界见[项目架构 §7](../note/架构/项目架构与目录.md)。
 - 仿真 Gazebo carrier、动态平面方盒和 MuJoCo 四足实验各有范围；运行结果不能跨载体、地图或策略移用。
 - `framework/fixtures/` 包含 app 实际读取的 manifest/graph；不按名称把它当临时目录删除。旧证据、冻结判据及当前检查输入按引用与实际消费者核对后清理。
 - ROS 检查须使用当前机器的 Noetic 与已构建工作区环境；宿主缺环境时使用适用容器，不能把前置缺失当算法结论。

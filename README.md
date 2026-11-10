@@ -59,6 +59,7 @@ flowchart LR
 - ROS 检查使用当前机器的 Noetic 与已构建工作区环境；前置缺失记为环境问题，不能据此判断算法通过或失败。
 - 地图、实验输出、`ws/build/`、`ws/devel/` 与日志各机独立；仓内保留[map registry 模板](data/maps/registry.template.json)，本机 app 使用被忽略的 `*.local.app.yaml`。
 - 入 Git 的源码/文档用 Git 追溯；地图、bag、结果和跨机交付包使用数据校验。旧文档与重复副本移出工作树时保留恢复途径并修复导航。
+- 控制台 `web/`、`scripts/console`、`data/console` 是 **host-only 测试面**，不进入 `lite3`/M20 target 或机器人镜像；Git 版本控制与真机部署边界正交，详见[项目架构 §7](note/架构/项目架构与目录.md)。
 - 真机运动、现场服务和参数仍有单项授权边界；本文不授权启动硬件。
 
 本轮所有README的核对范围、处理与恢复见[全仓README核对](note/进度/00_全仓文档核对_2026-11-05.md)。

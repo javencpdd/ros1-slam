@@ -15,7 +15,9 @@ Outputs:
 
 The mission page uses origin/resolution/width/height to turn a canvas click
 into map coordinates. Point clouds are rendered top-down with a height colour;
-support maps are painted surface by surface (higher z on top).
+support maps are painted surface by surface (higher z on top).  The canonical
+world/map binding comes from scripts/console/world_registry.json; maps.json
+carries both the display label and world_id.
 """
 from __future__ import annotations
 
@@ -30,6 +32,8 @@ import subprocess
 
 import numpy as np
 from PIL import Image
+
+from world_registry import load_registry, map_bindings
 
 REPO = Path(__file__).resolve().parents[2]
 WEB = REPO / 'web'
@@ -280,6 +284,8 @@ def support_preview(path: Path, map_id: str):
 
 
 def maps():
+    registry = load_registry()
+    bindings = map_bindings(registry)
     found = []
     lite3_yaml = REPO / 'data/maps/lite3.yaml'
     lite3_pgm = REPO / 'data/maps/lite3.pgm'
@@ -300,10 +306,7 @@ def maps():
             continue
         info = cloud_preview(pcd, name)
         if info:
-            world = {'mapped_m1': 'm1_world（Gazebo）',
-                 'm1_world_synth_v1': 'm1_world（合成）',
-                 'mapped_nist': 'NIST 楼梯（Gazebo）'}.get(name, '—')
-        found.append({'id': name, 'label': label, 'frame': 'map', 'world': world,
+            found.append({'id': name, 'label': label, 'frame': 'map',
                           'notes': notes, 'files': [str(pcd.relative_to(REPO))], **info})
     support_paths = [
         (REPO / 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json',
@@ -318,9 +321,7 @@ def maps():
             continue
         info = support_preview(path, map_id)
         if info:
-            world = ('two_floor_nav（open.world）' if map_id == 'two_floor_nav'
-                     else 'nist_stairs_120_s020x170' if map_id == 'nist_stairs' else '—')
-            found.append({'id': map_id, 'label': label, 'frame': 'map', 'world': world,
+            found.append({'id': map_id, 'label': label, 'frame': 'map',
                           'notes': notes, **info})
     console_dir = REPO / 'data/maps/console'
     for yaml_path in sorted(console_dir.glob('*/map.yaml')):
@@ -355,6 +356,14 @@ def maps():
                           'frame': 'map', 'world': '—',
                           'notes': '从 data/maps/imported/ 导入的点云',
                           'files': [str(pcd.relative_to(REPO))], **info})
+    for item in found:
+        binding = bindings.get(item['id'])
+        if binding:
+            item['world_id'] = binding['world_id']
+            item['world'] = binding['label']
+        else:
+            item.setdefault('world', '—')
+            item['world_id'] = None
     return found
 
 

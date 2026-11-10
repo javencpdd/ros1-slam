@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Build console world scenes from Gazebo SDF worlds.
 
-Read-only over ws/src and data/maps/worlds.  Writes web/assets/data/worlds/.
-Box visuals are emitted as posed boxes; DAE meshes are expanded to triangles in
-world coordinates.  Other geometry and unresolved includes are reported in the
-scene stats instead of being guessed.
+Reads the canonical world registry (scripts/console/world_registry.json),
+then reads those world files without touching ROS.  Writes
+web/assets/data/worlds/.  Box visuals are emitted as posed boxes; DAE meshes are
+expanded to triangles in world coordinates.  Other geometry and unresolved
+includes are reported in the scene stats instead of being guessed.
 
 Usage:
   python3 scripts/ops/build_world_scenes.py [--only m1_world] [--out DIR]
@@ -17,6 +18,8 @@ import json
 import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
+
+from world_registry import load_registry
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / 'web/assets/data/worlds'
@@ -354,28 +357,14 @@ def build_scene(path):
 
 
 def world_files(only=None):
-    found = {}
-    for directory in WORLD_DIRS:
-        if not directory.is_dir():
+    selected = []
+    for entry in load_registry().get('worlds', []):
+        if only and entry['id'] not in only:
             continue
-        for path in sorted(directory.glob('*.world')):
-            if only and path.stem not in only:
-                continue
-            found.setdefault(path.stem, []).append(path)
-    return found
-
-
-def label_for(stem):
-    labels = {
-        'm1_world': 'm1 世界（稀障平地）',
-        'stair_lab_stairs_easy': '楼梯 easy（13 级 6 cm）',
-        'demo_two_floor': '两层 demo',
-        'open': 'two_floor open',
-        'blocked': 'two_floor blocked',
-        'nist_stairs_120': 'NIST 楼梯 120',
-        'nist_stairs_120_s020x170': 'NIST 楼梯 120（0.20×0.17）',
-    }
-    return labels.get(stem, stem)
+        path = ROOT / entry['path']
+        if path.exists():
+            selected.append((entry, path))
+    return selected
 
 
 def main():
@@ -387,21 +376,25 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     files = world_files(set(args.only) if args.only else None)
     index = []
-    for stem, paths in sorted(files.items()):
-        path = paths[0]
+    for entry, path in sorted(files, key=lambda item: item[0]['id']):
+        stem = entry['id']
         try:
             scene = build_scene(path)
         except (ET.ParseError, OSError, ValueError) as error:
             print('SKIP %-28s %s' % (stem, error))
             continue
+        scene['world_id'] = stem
+        scene['label'] = entry['label']
+        scene['sha256'] = entry['sha256']
         target = out / (stem + '.json')
         target.write_text(json.dumps(scene, ensure_ascii=False, separators=(',', ':')),
                           encoding='utf-8')
         index.append({
             'id': stem,
-            'label': label_for(stem),
+            'label': entry['label'],
             'file': 'assets/data/worlds/%s.json' % stem,
             'source': scene['source'],
+            'sha256': entry['sha256'],
             'bounds': scene['bounds'],
             'boxes': scene['stats']['boxes'],
             'meshes': scene['stats']['meshes'],
