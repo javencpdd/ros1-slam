@@ -169,11 +169,11 @@
       "master": "http://roscore:11312",
       "world": "—",
       "goal_authority": "3d",
-      "cmd": "rosrun lite3_bt bt_console _tree_file:=/opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml",
+      "cmd": "roslaunch lite3_bt bt_console.launch",
       "stop_timeout": 10,
-      "description": "3D goal 写入权所有者：BehaviorTree.CPP 单目标树等待 /v8/bt/goal → 发 /v8/3d/global/goal → 等到点/超时 → 停车；ZMQ 5555/5556 供 Groot2。",
+      "description": "3D goal 写入权所有者：BehaviorTree.CPP 单目标树等待 /v8/bt/goal → 发 /v8/bt/goal_request；同栈 goal gate 持 lease 后写 /v8/3d/global/goal；ZMQ 5555/5556 供 Groot2。",
       "notes": "BT 是 3D goal 的 console 唯一写入者；未运行时控制台禁止 3D 发送。BT 不替代 MBF/3D 规划器；Groot2 仅本机 GUI；正式/真机不启用。",
-      "pid_match": "bt_console",
+      "pid_match": "bt_console.launch",
       "requires_world": true
     },
     {

@@ -56,8 +56,22 @@ export/
 .qoder/
 /AGENTS.md
 
-# ---- web 站点：主理人 2026-10-29 定「不需要同步到远程仓库」⇒ 文件留盘、停止跟踪 ----
-web/
+# ---- web 站点：源码入库，生成数据/地图预览不进库（2026-11-10 真人授权；host-only target 仍排除）----
+web/*
+!web/README.md
+!web/index.html
+!web/console.html
+!web/serve.py
+!web/publish.sh
+!web/assets/
+web/assets/*
+!web/assets/console/
+!web/assets/console/*
+!web/assets/demo/
+!web/assets/demo/*
+!web/assets/*.png
+!web/assets/*.gif
+!web/assets/*.svg
 
 # ---- 本地环境配置：模板入仓（.env.example）、实值各机本地 ----
 docker/.env

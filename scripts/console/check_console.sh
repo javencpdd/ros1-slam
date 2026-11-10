@@ -45,6 +45,7 @@ python3 -m py_compile "$ROOT/scripts/console/agent.py" "$ROOT/scripts/console/vo
   "$ROOT/scripts/ops/collect_3d_runs.py" "$ROOT/scripts/ops/build_maps_index.py" \
   "$ROOT/scripts/ops/build_world_scenes.py" "$ROOT/scripts/ops/regrid_map.py" \
   "$ROOT/scripts/ops/world_registry.py" \
+  "$ROOT/ws/src/90_platform/lite3_bt/scripts/goal_gate.py" \
   && ok 'python syntax' || bad 'python syntax'
 python3 "$ROOT/scripts/ops/world_registry.py" --check >/dev/null 2>&1 \
   && ok 'world registry' || bad 'world registry'

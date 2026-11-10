@@ -47,15 +47,19 @@ catkin_make --pkg lite3_bt -DCMAKE_BUILD_TYPE=Release \
 
 ## Run
 
+The console stack starts both the BT and the ROS-level goal gate:
+
 ```bash
-rosrun lite3_bt bt_console \
-  _tree_file:=/opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml
+roslaunch lite3_bt bt_console.launch \
+  tree_file:=/opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml
 ```
 
 Topics:
 
 - input goal: `/v8/bt/goal` (`geometry_msgs/PoseStamped`)
-- output goal: `/v8/3d/global/goal`
+- BT request: `/v8/bt/goal_request` (BT is the owner)
+- lease heartbeat: `/v8/bt/lease` (`std_msgs/Bool`, 2 Hz while BT is alive)
+- final goal: `/v8/3d/global/goal` (only `goal_gate` writes it; stale/missing lease drops requests)
 - arrival feedback: `/v8/local/pose` (distance threshold from the tree)
 - stop: zero Twist on `/lite3/teleop/app_cmd_vel` (through the safety mux)
 - status: `/v8/bt/status` (JSON string, includes root/node status and last event)

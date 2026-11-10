@@ -4,6 +4,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 
 #include <chrono>
@@ -237,6 +238,9 @@ int main(int argc, char** argv)
   g_state.goal_pub = nh.advertise<geometry_msgs::PoseStamped>(out_goal_topic, 1);
   g_state.stop_pub = nh.advertise<geometry_msgs::Twist>(stop_topic, 1);
   ros::Publisher status_pub = nh.advertise<std_msgs::String>("/v8/bt/status", 1);
+  std::string lease_topic = "/v8/bt/lease";
+  pnh.param<std::string>("lease_topic", lease_topic, lease_topic);
+  ros::Publisher lease_pub = nh.advertise<std_msgs::Bool>(lease_topic, 1);
 
   ros::Subscriber goal_sub = nh.subscribe<geometry_msgs::PoseStamped>(
       goal_topic, 1, goalCallback);
@@ -272,6 +276,12 @@ int main(int argc, char** argv)
     tree.tickRoot();
     ros::spinOnce();
 
+    if ((ros::Time::now() - last_status).toSec() >= 0.5)
+    {
+      std_msgs::Bool lease;
+      lease.data = true;
+      lease_pub.publish(lease);
+    }
     if ((ros::Time::now() - last_status).toSec() >= 0.5)
     {
       std_msgs::String status;

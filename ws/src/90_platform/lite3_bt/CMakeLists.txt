@@ -24,3 +24,6 @@ target_link_libraries(bt_console ${catkin_LIBRARIES} BT::behaviortree_cpp_v3 Thr
 set_target_properties(bt_console PROPERTIES
   BUILD_RPATH "/opt/ros1-slam/opt/btcpp_v3/lib"
   INSTALL_RPATH "/opt/ros1-slam/opt/btcpp_v3/lib")
+
+catkin_install_python(PROGRAMS scripts/goal_gate.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
