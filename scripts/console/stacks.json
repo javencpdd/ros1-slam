@@ -9,9 +9,16 @@
       "master": "http://roscore:11312",
       "world": "m1_world.world",
       "cmd": "roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false",
-      "description": "m1_world + lite3_planar + sim_adapter；headless Gazebo，给建图/监控页提供话题。",
+      "cmd_template": "roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/{world}",
+      "world_choices": [
+        {"file": "m1_world.world", "label": "m1 世界（稀障平地）"},
+        {"file": "m1_world_v2.world", "label": "m1_world_v2"},
+        {"file": "demo_two_floor.world", "label": "两层 demo（demo_two_floor）"}
+      ],
+      "world_stack": true,
+      "description": "m1 Gazebo + lite3_planar + sim_adapter；world 可选，headless，给建图/监控页提供话题。",
       "stop_timeout": 15,
-      "notes": "demo 栈；不启真机、不写正式判据。启动后 /clock、/rslidar_points、/livox/imu 应出现。"
+      "notes": "demo 栈；不启真机、不写正式判据。同一时间只起一个 Gazebo world；换 world 先停当前栈。启动后 /clock、/rslidar_points、/livox/imu 应出现。"
     },
     {
       "name": "mapping_m1",
@@ -48,9 +55,35 @@
       "master": "http://roscore:11312",
       "world": "stair_lab_stairs_easy.world",
       "cmd": "roslaunch lite3_gazebo_sim stairstudy.launch world_file:=stair_lab_stairs_easy.world",
-      "description": "楼梯世界与白盒载体；只做感知/可视化，不判爬楼。",
+      "cmd_template": "roslaunch lite3_gazebo_sim stairstudy.launch world_file:={world}",
+      "world_choices": [
+        {"file": "stair_lab_stairs_easy.world", "label": "stairs_easy（13 级 6 cm）"},
+        {"file": "stair_lab_stairs_mid.world", "label": "stairs_mid"},
+        {"file": "stair_lab_stairs_steep.world", "label": "stairs_steep"},
+        {"file": "stair_lab_stairs_blocked_mid.world", "label": "stairs_blocked_mid"},
+        {"file": "stair_lab_wall_h045.world", "label": "wall_h045"},
+        {"file": "stair_lab_wall_h080.world", "label": "wall_h080"},
+        {"file": "stair_lab_ramp_envelope.world", "label": "ramp_envelope"},
+        {"file": "stair_lab_sidewall_envelope.world", "label": "sidewall_envelope"},
+        {"file": "stair_lab_blank.world", "label": "blank（仅地面/太阳）"}
+      ],
+      "world_stack": true,
+      "description": "stair_lab 世界可选 + 白盒载体；只做感知/可视化，不判爬楼。",
       "stop_timeout": 20,
-      "notes": "demo 可视化；正式导航判据仍用 runtime_lab/作业单。"
+      "notes": "demo 可视化；正式导航判据仍用 runtime_lab/作业单。同一时间只起一个 Gazebo world；换 world 先停当前栈。"
+    },
+    {
+      "name": "sim_nist",
+      "label": "NIST 楼梯 120（仅世界）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "nist_stairs_120.world",
+      "cmd": "roslaunch lite3_gazebo_sim nist_stairs_120.launch gui:=false",
+      "world_stack": true,
+      "description": "只起 NIST 楼梯世界 + 模型库；不含机器人、点云或导航。",
+      "stop_timeout": 15,
+      "notes": "world-only；看画面需本机 gzclient 或控制台实体世界（nist_stairs_120）。同一时间只起一个 Gazebo world。"
     },
     {
       "name": "voxel_stream",

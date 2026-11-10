@@ -134,7 +134,21 @@ def stack_state(stack):
     return 'stopped', None, None
 
 
-def start_stack(stack):
+def build_stack_command(stack, selected_world=None):
+    choices = {item['file']: item for item in (stack.get('world_choices') or [])}
+    if selected_world:
+        if selected_world not in choices:
+            return None, None, 'world 不在白名单：%s' % selected_world
+        if not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}', selected_world):
+            return None, None, 'world 文件名不合法'
+        template = stack.get('cmd_template')
+        if not template or '{world}' not in template:
+            return None, None, '该栈没有 world 模板'
+        return template.replace('{world}', selected_world), selected_world, None
+    return stack['cmd'], stack.get('world'), None
+
+
+def start_stack(stack, selected_world=None):
     name = stack['name']
     state, pid, error = stack_state(stack)
     if error:
@@ -149,6 +163,16 @@ def start_stack(stack):
         rstate, _rpid, rerr = stack_state(other)
         if rerr or rstate != 'running':
             return False, '先启动 %s（requires %s）' % (other.get('label', required), required)
+    if stack.get('world_stack'):
+        for other in STACKS.values():
+            if other['name'] == name or not other.get('world_stack'):
+                continue
+            rstate, _rpid, rerr = stack_state(other)
+            if not rerr and rstate == 'running':
+                return False, '先停止 %s（同一时间只起一个 Gazebo world）' % other.get('label', other['name'])
+    cmd, effective_world, error = build_stack_command(stack, selected_world)
+    if error:
+        return False, error
     save_rel = stack.get('save_map')
     if save_rel:
         sample = ROOT / save_rel
@@ -163,7 +187,7 @@ def start_stack(stack):
         'source /opt/ros1-slam/ws/devel/setup.bash; '
         'export ROS_MASTER_URI=%s; export ROS_HOSTNAME=$(hostname); '
         'cd /opt/ros1-slam; exec %s'
-        % (shlex.quote(master), stack['cmd']))
+        % (shlex.quote(master), cmd))
     outer = (
         'mkdir -p %s; setsid nohup bash -lc %s > %s 2>&1 < /dev/null & '
         'echo $! > %s'
@@ -182,6 +206,12 @@ def start_stack(stack):
         return False, error
     if state != 'running':
         return False, '启动后未保持运行；看日志：%s' % logfile
+    if stack.get('world_choices') and effective_world:
+        try:
+            Path(DIR).mkdir(parents=True, exist_ok=True)
+            (Path(DIR) / (name + '.world')).write_text(effective_world, encoding='utf-8')
+        except OSError:
+            pass
     return True, 'started (pid %s)' % pid
 
 
@@ -264,6 +294,15 @@ def stack_log(stack, tail=80):
 
 def public_stack(stack):
     state, pid, error = stack_state(stack)
+    selected_world = stack.get('world')
+    world_file = Path(DIR) / (stack['name'] + '.world')
+    if world_file.exists():
+        try:
+            saved = world_file.read_text(encoding='utf-8').strip()
+            if saved:
+                selected_world = saved
+        except OSError:
+            pass
     return {
         'name': stack['name'],
         'label': stack.get('label', stack['name']),
@@ -272,6 +311,9 @@ def public_stack(stack):
         'container': stack.get('container'),
         'master': stack.get('master'),
         'world': stack.get('world'),
+        'selected_world': selected_world,
+        'world_choices': stack.get('world_choices') or [],
+        'world_stack': bool(stack.get('world_stack')),
         'requires': stack.get('requires') or [],
         'local_only': bool(stack.get('local_only')),
         'notes': stack.get('notes', ''),
@@ -503,9 +545,19 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(403, {'ok': False,
                                  'error': 'local-only stack; local client required (%s)' % reason})
                 return
+        selected_world = None
+        if parts[3] == 'start':
+            length = int(self.headers.get('Content-Length') or 0)
+            if length:
+                try:
+                    body = json.loads(self.rfile.read(length).decode('utf-8') or '{}')
+                except ValueError:
+                    self._json(400, {'ok': False, 'error': 'bad json'})
+                    return
+                selected_world = str(body.get('world') or '').strip() or None
         with LOCK:
             if parts[3] == 'start':
-                ok, message = start_stack(stack)
+                ok, message = start_stack(stack, selected_world)
             else:
                 ok, message = stop_stack(stack)
         self._json(200 if ok else 500, {
