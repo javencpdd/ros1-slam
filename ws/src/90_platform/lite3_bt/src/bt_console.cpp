@@ -261,9 +261,9 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  BT::PublisherZMQ groot_publisher(tree, 25, 1666, 1667);
+  BT::PublisherZMQ groot_publisher(tree, 25, 5555, 5556);
   ROS_INFO("[bt] tree loaded: %s", tree_file.c_str());
-  ROS_INFO("[bt] Groot2 ZMQ publisher ports 1666/1667");
+  ROS_INFO("[bt] Groot2 ZMQ publisher ports 5555/5556");
 
   ros::Rate loop_rate(20.0);
   ros::Time last_status(0.0);

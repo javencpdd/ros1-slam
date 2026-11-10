@@ -69,7 +69,7 @@ Fallback
 
 ## Groot2
 
-The node starts the BehaviorTree.CPP ZMQ publisher on ports **1666/1667**.
+The node starts the BehaviorTree.CPP ZMQ publisher on ports **5555/5556**.
 Groot2 1.9.0 runs on the host X display and connects to the monitor port; it is
 a local-only GUI. The console `本机桌面` card has the launch command and locks
 it for remote clients.
