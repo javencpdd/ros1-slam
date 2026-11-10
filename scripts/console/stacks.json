@@ -36,7 +36,11 @@
       "description": "m1 Gazebo + lite3_planar + sim_adapter；world 可选，headless，给建图/监控页提供话题。",
       "stop_timeout": 15,
       "notes": "demo 栈；不启真机、不写正式判据。同一时间只起一个 Gazebo world；换 world 先停当前栈。启动后 /clock、/rslidar_points、/livox/imu 应出现。",
-      "pid_match": "m1_gazebo.launch"
+      "pid_match": "m1_gazebo.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
     },
     {
       "name": "mapping_m1",
@@ -47,12 +51,12 @@
       "world": "m1_world.world",
       "cmd": "roslaunch lite3_gazebo_sim m1_mapping.launch",
       "description": "在 m1 Gazebo 上跑 faster_lio；m1_mapping.launch 已关 pcd_save（GAP-5 红线）。",
-      "requires": [
-        "sim_m1"
-      ],
       "stop_timeout": 20,
-      "notes": "先起 sim_m1；这是 demo 建图，不代替 formal/LIO 验收。",
-      "pid_match": "m1_mapping.launch"
+      "notes": "先起提供 lidar 的 world 栈（sim_m1/stairstudy）；这是 demo 建图，不代替 formal/LIO 验收。",
+      "pid_match": "m1_mapping.launch",
+      "requires_world": [
+        "lidar"
+      ]
     },
     {
       "name": "mapping_save",
@@ -62,14 +66,14 @@
       "master": "http://roscore:11312",
       "world": "m1_world.world",
       "cmd": "roslaunch lite3_gazebo_sim m2_mapping.launch pcd_save:=true",
-      "requires": [
-        "sim_m1"
-      ],
       "stop_timeout": 30,
       "save_map": "data/maps/lite3.pcd",
       "description": "在 m1 Gazebo 上跑 faster_lio，停止时把 PCD 保存到 data/maps/imported/ 并刷新地图库。",
-      "notes": "GAP-5：agent 起前备份样张、停后恢复并转存；只允许 demo 使用。",
-      "pid_match": "m2_mapping.launch"
+      "notes": "先起提供 lidar 的 world 栈（sim_m1/stairstudy）。GAP-5：agent 起前备份样张、停后恢复并转存；只允许 demo 使用。",
+      "pid_match": "m2_mapping.launch",
+      "requires_world": [
+        "lidar"
+      ]
     },
     {
       "name": "stairstudy",
@@ -122,7 +126,11 @@
       "description": "stair_lab 世界可选 + 白盒载体；只做感知/可视化，不判爬楼。",
       "stop_timeout": 20,
       "notes": "demo 可视化；正式导航判据仍用 runtime_lab/作业单。同一时间只起一个 Gazebo world；换 world 先停当前栈。",
-      "pid_match": "stairstudy.launch"
+      "pid_match": "stairstudy.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
     },
     {
       "name": "sim_nist",
@@ -136,7 +144,8 @@
       "description": "只起 NIST 楼梯世界 + 模型库；不含机器人、点云或导航。",
       "stop_timeout": 15,
       "notes": "world-only；看画面需本机 gzclient 或控制台实体世界（nist_stairs_120）。同一时间只起一个 Gazebo world。",
-      "pid_match": "nist_stairs_120.launch"
+      "pid_match": "nist_stairs_120.launch",
+      "world_capabilities": []
     },
     {
       "name": "safety_mux",
@@ -146,13 +155,11 @@
       "master": "http://roscore:11312",
       "world": "—",
       "cmd": "roslaunch lite3_safety console_demo_mux.launch",
-      "requires": [
-        "sim_m1"
-      ],
       "stop_timeout": 10,
       "description": "demo 安全 mux：safe_cmd_vel_mux 把 teleop_app/estop 等源仲裁到 /cmd_vel；demo 配置线性上限 1.0 m/s。",
       "notes": "仅 demo；正式/真机仍用 60_safety.launch + cmd_vel_mux.yaml（0.5 m/s、无超声 blind 0.1 m/s）。",
-      "pid_match": "console_demo_mux.launch"
+      "pid_match": "console_demo_mux.launch",
+      "requires_world": true
     },
     {
       "name": "bt_console",
@@ -163,13 +170,11 @@
       "world": "—",
       "goal_authority": "3d",
       "cmd": "rosrun lite3_bt bt_console _tree_file:=/opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml",
-      "requires": [
-        "sim_m1"
-      ],
       "stop_timeout": 10,
       "description": "3D goal 写入权所有者：BehaviorTree.CPP 单目标树等待 /v8/bt/goal → 发 /v8/3d/global/goal → 等到点/超时 → 停车；ZMQ 5555/5556 供 Groot2。",
       "notes": "BT 是 3D goal 的 console 唯一写入者；未运行时控制台禁止 3D 发送。BT 不替代 MBF/3D 规划器；Groot2 仅本机 GUI；正式/真机不启用。",
-      "pid_match": "bt_console"
+      "pid_match": "bt_console",
+      "requires_world": true
     },
     {
       "name": "voxel_stream",
@@ -180,12 +185,12 @@
       "world": "—",
       "cmd": "python3 /opt/ros1-slam/scripts/console/voxel_stream.py --leaf 0.10 --rate 2 --out /opt/ros1-slam/data/console/voxels",
       "description": "订阅 /cloud_registered 与 /rslidar_points，体素下采样后写 data/console/voxels/latest.bin + meta.json；控制台按二进制拉取。",
-      "requires": [
-        "sim_m1"
-      ],
       "stop_timeout": 10,
-      "notes": "服务端体素；/cloud_registered 优先，1.5 s 无消息回退 /rslidar_points（传感器系）。不写正式判据。",
-      "pid_match": "voxel_stream.py"
+      "notes": "服务端体素；需提供 lidar 的 world 栈（sim_m1/stairstudy）；/cloud_registered 优先，1.5 s 无消息回退 /rslidar_points（传感器系）。不写正式判据。",
+      "pid_match": "voxel_stream.py",
+      "requires_world": [
+        "lidar"
+      ]
     }
   ]
 }

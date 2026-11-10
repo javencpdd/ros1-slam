@@ -124,8 +124,11 @@ def dependent_order(name, stacks=None):
         if current in visited:
             return
         visiting.add(current)
+        current_stack = stacks.get(current) or {}
         for other in stacks.values():
             if current in (other.get('requires') or []):
+                visit(other['name'])
+            elif other.get('requires_world') and current_stack.get('world_stack'):
                 visit(other['name'])
         visiting.remove(current)
         visited.add(current)
@@ -181,6 +184,22 @@ def start_stack(stack, selected_world=None):
         return False, error
     if state == 'running':
         return True, 'already running (pid %s)' % pid
+    required_world = stack.get('requires_world')
+    if required_world:
+        caps = required_world if isinstance(required_world, list) else []
+        candidates = []
+        for other in STACKS.values():
+            if not other.get('world_stack'):
+                continue
+            other_state, _other_pid, other_error = stack_state(other)
+            if other_error or other_state != 'running':
+                continue
+            have = other.get('world_capabilities') or []
+            if all(capability in have for capability in caps):
+                candidates.append(other)
+        if not candidates:
+            need = ' + '.join(caps) if caps else '一个 Gazebo world'
+            return False, '先启动提供 %s 的 world 栈' % need
     requires = stack.get('requires') or []
     for required in requires:
         other = STACKS.get(required)

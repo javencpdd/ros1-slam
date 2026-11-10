@@ -65,8 +65,14 @@ class StackWhitelistTest(unittest.TestCase):
         self.assertEqual(cmd, stack['cmd'])
 
     def test_dependency_and_master(self):
-        self.assertEqual(self.stacks['mapping_m1'].get('requires'), ['sim_m1'])
-        self.assertEqual(self.stacks['voxel_stream'].get('requires'), ['sim_m1'])
+        self.assertEqual(self.stacks['mapping_m1'].get('requires_world'), ['lidar'])
+        self.assertEqual(self.stacks['mapping_save'].get('requires_world'), ['lidar'])
+        self.assertEqual(self.stacks['voxel_stream'].get('requires_world'), ['lidar'])
+        self.assertTrue(self.stacks['safety_mux'].get('requires_world'))
+        self.assertTrue(self.stacks['bt_console'].get('requires_world'))
+        for name in ('sim_m1', 'stairstudy'):
+            self.assertIn('lidar', self.stacks[name].get('world_capabilities', []))
+        self.assertNotIn('lidar', self.stacks['sim_nist'].get('world_capabilities', []))
         for stack in self.stacks.values():
             self.assertTrue(str(stack.get('master', '')).startswith('http://'))
 
