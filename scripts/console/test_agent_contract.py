@@ -24,6 +24,7 @@ class StackWhitelistTest(unittest.TestCase):
         self.assertIn('stairstudy', self.stacks)
         self.assertIn('sim_nist', self.stacks)
         self.assertIn('safety_mux', self.stacks)
+        self.assertIn('bt_console', self.stacks)
         self.assertIn('voxel_stream', self.stacks)
         for stack in self.stacks.values():
             self.assertEqual(stack.get('category'), 'demo')

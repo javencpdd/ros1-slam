@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="NavigateSingleGoal">
+  <BehaviorTree ID="NavigateSingleGoal">
+    <Fallback name="navigate_or_stop">
+      <Sequence name="navigate">
+        <WaitForGoal name="wait_goal"/>
+        <SendGoal name="send_goal"/>
+        <WaitArrival name="wait_arrival" distance="0.25" timeout="60"/>
+        <Stop name="stop_after_success"/>
+      </Sequence>
+      <Stop name="stop_on_failure"/>
+    </Fallback>
+  </BehaviorTree>
+</root>

@@ -100,6 +100,19 @@
       "notes": "仅 demo；正式/真机仍用 60_safety.launch + cmd_vel_mux.yaml（0.5 m/s、无超声 blind 0.1 m/s）。"
     },
     {
+      "name": "bt_console",
+      "label": "行为树控制台（BT.CPP）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "—",
+      "cmd": "rosrun lite3_bt bt_console _tree_file:=/opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml",
+      "requires": ["sim_m1"],
+      "stop_timeout": 10,
+      "description": "BehaviorTree.CPP 3.8 单目标导航树：等待 /v8/bt/goal → 发 /v8/3d/global/goal → 等到点/超时 → 停车；ZMQ 1666/1667 供 Groot2。",
+      "notes": "BT 是新增编排层，不替代 MBF/3D 规划器；Groot2 仅本机 GUI；正式/真机不启用。"
+    },
+    {
       "name": "voxel_stream",
       "label": "服务端体素流（console）",
       "category": "demo",
