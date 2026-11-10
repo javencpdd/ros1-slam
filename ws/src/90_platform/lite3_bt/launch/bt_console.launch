@@ -14,6 +14,10 @@
   <arg name="planner_goal_topic" default="/v8/global/goal"/>
   <arg name="path_status_topic" default="/global_path/status"/>
   <arg name="lease_topic" default="/v8/bt/lease"/>
+  <!-- Groot2 ZMQ ports.  Override when a second instance runs on the same
+       host (previous hard-coded 5555/5556 made it die on bind). -->
+  <arg name="zmq_pub_port" default="5555"/>
+  <arg name="zmq_sub_port" default="5556"/>
 
   <node pkg="lite3_bt" type="bt_console" name="bt_console" output="screen">
     <!-- Inside <node>, rosparam's default namespace is the node's private one
@@ -24,6 +28,8 @@
     <param name="planner_goal_topic" value="$(arg planner_goal_topic)"/>
     <param name="path_status_topic" value="$(arg path_status_topic)"/>
     <param name="lease_topic" value="$(arg lease_topic)"/>
+    <param name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
+    <param name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
   </node>
 
   <node pkg="lite3_bt" type="goal_gate.py" name="v8_goal_gate" output="screen">

@@ -599,10 +599,20 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  BT::PublisherZMQ groot_publisher(tree, 25, 5555, 5556);
+  // ZMQ ports were hard-coded, so a second instance on the same host (another
+  // master, a parallel test run, or sim + robot on one box) died in
+  // PublisherZMQ on bind.  Defaults keep the previous behaviour.
+  int zmq_pub_port = 5555;
+  int zmq_sub_port = 5556;
+  pnh.param<int>("zmq_pub_port", zmq_pub_port, 5555);
+  pnh.param<int>("zmq_sub_port", zmq_sub_port, 5556);
+  BT::PublisherZMQ groot_publisher(tree, 25,
+                                   static_cast<unsigned>(zmq_pub_port),
+                                   static_cast<unsigned>(zmq_sub_port));
   ROS_INFO("[bt] tree loaded: %s", tree_file.c_str());
   ROS_INFO("[bt] planner input %s, status %s", planner_goal_topic.c_str(),
            path_status_topic.c_str());
+  ROS_INFO("[bt] Groot2 ZMQ publisher ports %d/%d", zmq_pub_port, zmq_sub_port);
 
   ros::Rate loop_rate(20.0);
   ros::Time last_status(0.0);
