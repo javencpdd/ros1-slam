@@ -308,7 +308,7 @@ def maps():
     support_paths = [
         (REPO / 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json',
          'two_floor_nav', 'two_floor_nav 支撑图（3D）',
-         '声明几何支撑图；3D 全链目标/起点可选用'),
+         '声明几何支撑图（open.world；不是 demo_two_floor）；3D 全链目标/起点可选用'),
         (REPO / 'data/maps/nist_stairs_120_s020x170_support.json',
          'nist_stairs', 'NIST 楼梯支撑图（3D）',
          'NIST 楼梯支撑图；只读预览'),
@@ -318,7 +318,7 @@ def maps():
             continue
         info = support_preview(path, map_id)
         if info:
-            world = ('two_floor_nav（demo_two_floor）' if map_id == 'two_floor_nav'
+            world = ('two_floor_nav（open.world）' if map_id == 'two_floor_nav'
                      else 'nist_stairs_120_s020x170' if map_id == 'nist_stairs' else '—')
             found.append({'id': map_id, 'label': label, 'frame': 'map', 'world': world,
                           'notes': notes, **info})
