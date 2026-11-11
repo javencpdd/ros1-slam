@@ -50,6 +50,10 @@
     <param name="goal_topic" value="/v8/local/goal"/>
     <param name="map_topic" value="/v8_support_map"/>
     <param name="twist_topic" value="$(arg local_twist_topic)"/>
+    <!-- support_tol_m 默认 1e-6（微米级）：要求位姿 z 精确等于地图 z_reference。
+         仿真载体是方盒、位姿取模型中心 z≈0.11，而支撑面 z_reference=0，差 0.11 m
+         就被判 E_LOCAL_SUPPORT 而拒发速度。这里按"脚底接触高度带"的本意放宽到 0.25。 -->
+    <rosparam param="experimental_config">{support_tol_m: 0.25}</rosparam>
   </node>
 
   <!-- 6) 编排层：Nav2 式 BT + goal gate -->

@@ -876,7 +876,13 @@ def main():
                     shared.update(generation=shared['generation'] + 1, result=None)
                     plan_wake.set()
                 shared.update(obstacles=values, obstacles_at=time.monotonic(), obstacle_key=key)
-        except (ValueError, TypeError, KeyError, native.LocalError):
+            rospy.loginfo_throttle(5.0, '[local] obstacles ok: %d',
+                                   len(values) if isinstance(values, (list, tuple)) else -1)
+        except (ValueError, TypeError, KeyError, native.LocalError) as error:
+            # 诊断：区分「回调没进」与「进了但解析失败」——两者都表现为
+            # E_LOCAL_OBSTACLES_STALE，只靠 status 分不出来。
+            rospy.logwarn_throttle(5.0, '[local] obstacles rejected: %s: %s',
+                                   type(error).__name__, error)
             with lock:
                 shared.update(obstacles_at=-1e100, result=None, last_error='E_LOCAL_OBSTACLES_INVALID')
 
