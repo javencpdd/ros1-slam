@@ -37,6 +37,9 @@ from p4_replan import (AVOID_DIST, DEV_MAX, DT_MAX, INJECT_MODEL, INJECT_Z,
 SEE_RADIUS = 0.55
 SEE_MIN_PTS = 20
 INJECT_FRAC = float(os.environ.get("P4_INJECT_FRAC", "0.60"))
+# 侧向偏移：箱仍压住路径（其边距路径中心 < 机器人宽），但给局部绕行留出
+# 可行空间；斜坡窄走廊上 0 偏移时箱体的膨胀包络会占满路径。
+INJECT_OFFSET = float(os.environ.get("P4_INJECT_OFFSET", "0"))
 # 斜坡注入时箱心要抬到坡面之上；平地保持 0.40。调用方按坡面高度覆盖。
 INJECT_Z = float(os.environ.get("P4_INJECT_Z", str(INJECT_Z)))
 
@@ -210,8 +213,16 @@ def main():
         print(json.dumps({"verdict": "INVALID", "reason": "first curve not evaluable",
                           "detail": out, "steps": out["steps"]}, ensure_ascii=False))
         return 9
-    ip = c0[int(len(c0) * INJECT_FRAC)]
+    j = int(len(c0) * INJECT_FRAC)
+    ip = c0[j]
     ix, iy = float(ip[0]), float(ip[1])
+    if INJECT_OFFSET:
+        a = c0[max(0, j - 2)]
+        b = c0[min(len(c0) - 1, j + 2)]
+        tx, ty = float(b[0] - a[0]), float(b[1] - a[1])
+        norm = math.hypot(tx, ty) or 1.0
+        ix += -ty / norm * INJECT_OFFSET
+        iy += tx / norm * INJECT_OFFSET
     ms = ModelState()
     ms.model_name = INJECT_MODEL
     ms.reference_frame = "world"
