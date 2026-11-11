@@ -32,7 +32,13 @@ set_target_properties(bt_console PROPERTIES
   BUILD_RPATH "/opt/btcpp_v3/lib:/opt/ros1-slam/opt/btcpp_v3/lib"
   INSTALL_RPATH "/opt/btcpp_v3/lib:/opt/ros1-slam/opt/btcpp_v3/lib")
 
-# goal_gate.py imports goal_gate_policy.py from its own directory; both must
-# land in the same devel/install lib dir or the ROS node fails at import time.
-catkin_install_python(PROGRAMS scripts/goal_gate.py scripts/goal_gate_policy.py
+# goal_gate.py is an entry point -> catkin_install_python generates a relay
+# wrapper (executes the source, fine for a script).
+# goal_gate_policy.py is IMPORTED by it, so it must land as a real module file:
+# a relay wrapper exports nothing (the source runs inside a private context
+# dict), which made `import goal_gate_policy` yield an empty module and the
+# node die with AttributeError: no attribute 'parse_allowed'.
+catkin_install_python(PROGRAMS scripts/goal_gate.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(FILES scripts/goal_gate_policy.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -1,0 +1,52 @@
+<launch>
+  <!-- 平地/斜坡仿真导航栈（正式链路，不依赖临时测试脚本）
+
+       数据流：
+         /sim/odom_gt  =>[sim_pose_source]=>  /v8/local/pose
+         /v8/bt/goal   =>[bt_console]=>  /v8/global/goal  =>[v8_global_planner]=>  /global_path
+         /global_path  =>[v8_path_goal]=>  /v8/local/goal
+         /v8/local/pose + /v8/local/goal  =>[v8_local_planner]=>  /cmd_vel  =>  Gazebo 载体
+
+       前置：sim_m1 栈已在跑（Gazebo + 载体 + /sim/odom_gt）。
+       ★本栈只用于平地/斜坡；不做上下楼（四例见 note/进度/v8 的 R1127 口径）。★
+       载体 mu1/mu2=0.1 属判据受控条件，本栈不修改。 -->
+  <arg name="enable_bt" default="true"/>
+  <arg name="bt_profile" default="demo"/>
+  <arg name="zmq_pub_port" default="5555"/>
+  <arg name="zmq_sub_port" default="5556"/>
+  <arg name="local_twist_topic" default="/cmd_vel"/>
+
+  <!-- 1) 真值位姿 -> 契约话题。占位桥：真定位接入时应停用本节点。 -->
+  <node pkg="lite3_gazebo_sim" type="sim_pose_source.py" name="sim_pose_source" output="screen">
+    <param name="src_topic" value="/sim/odom_gt"/>
+    <param name="dst_topic" value="/v8/local/pose"/>
+    <param name="frame_id" value="map"/>
+    <param name="rate" value="50.0"/>
+  </node>
+
+  <!-- 2) 全局规划器：/v8/global/goal + /v8_support_map -> /global_path -->
+  <node pkg="v8_platform" type="run_global_planner.py" name="v8_global_planner" output="screen"/>
+
+  <!-- 3) 全局路径 -> 局部目标（取路径上的跟踪点，不给速度） -->
+  <node pkg="v8_platform" type="run_path_goal.py" name="v8_path_goal" output="screen">
+    <param name="path_topic" value="/global_path"/>
+    <param name="goal_topic" value="/v8/local/goal"/>
+  </node>
+
+  <!-- 4) 局部规划器：位姿 + 局部目标 -> Twist（正式执行链，替代测试脚本的比例控制） -->
+  <node pkg="v8_platform" type="run_local_planner.py" name="v8_local_planner" output="screen">
+    <param name="pose_topic" value="/v8/local/pose"/>
+    <param name="goal_topic" value="/v8/local/goal"/>
+    <param name="map_topic" value="/v8_support_map"/>
+    <param name="twist_topic" value="$(arg local_twist_topic)"/>
+  </node>
+
+  <!-- 5) 编排层：Nav2 式 BT + goal gate -->
+  <group if="$(arg enable_bt)">
+    <include file="$(find lite3_bt)/launch/bt_console.launch">
+      <arg name="profile" value="$(arg bt_profile)"/>
+      <arg name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
+      <arg name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
+    </include>
+  </group>
+</launch>
