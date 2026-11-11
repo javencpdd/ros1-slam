@@ -92,6 +92,13 @@
          ramp 上的点错解析成列表靠前的 ground（假 E_TRAJ_TRANSITION 锁死在
          z=0.18）。µm 贯穿由载体 snap 吸附（snap_m 0.05）兜底，不靠 tol。 -->
     <rosparam param="experimental_config">{support_tol_m: 0.02, horizon_s: 2.0, validity_s: 3.0}</rosparam>
+    <!-- 仿真时钟-位姿顺序竞态：50 Hz 位姿偶尔带“未来戳”（/clock 与 /pose 跨话题
+         到达顺序），守卫判 E_POSE_FUTURE 就丢弃轨迹并重规划；实测 452 次事件
+         ≈141 s 行程的 87%。放行 0.01 s 的时钟追赶（代码守卫只允许未配 profile
+         的仿真，真机 profile 会被 simulation_pose_clock_wait 拒）。
+         A/B：arrival_start→reached 141.2 s→44.7 s，E_LOCAL_CLOCK 6170→0、
+         track 11.7%→56%；上限=command_latency_bound_s(0.01)。 -->
+    <param name="sim_pose_clock_wait_s" value="0.01"/>
   </node>
 
   <!-- 9) 编排层：Nav2 式 BT + goal gate。 -->
