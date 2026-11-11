@@ -25,6 +25,8 @@
   <arg name="max_acc" default="0.5"/>
   <arg name="planning_horizon" default="3.5"/>
   <arg name="need_extrinsic" default="false"/>
+  <arg name="ctrl_max_vx" default="0.30"/>
+  <arg name="ctrl_max_vy" default="0.20"/>
   <arg name="advanced_param" default="$(find scan_planner)/launch/advanced_param.xml"/>  <!-- faster_lio 给机体系位姿+机体系点云，叠外参是错的（manifest 锚点） -->
 
   <!-- FSM 与 closed_loop_controller 消费全局 /body_pose_topic（源码 ros::param 读取，run.launch 同款注入） -->
@@ -93,8 +95,8 @@
        再复验。这些是仿真跟踪参数，不改 SCAN 规划判据，也不改真机 profile。 -->
   <param name="/closed_loop_controller/time_forward" value="0.4" type="double"/>
   <param name="/closed_loop_controller/kp_pos" value="1.2" type="double"/>
-  <param name="/closed_loop_controller/max_vx" value="0.30" type="double"/>
-  <param name="/closed_loop_controller/max_vy" value="0.20" type="double"/>
+  <param name="/closed_loop_controller/max_vx" value="$(arg ctrl_max_vx)" type="double"/>
+  <param name="/closed_loop_controller/max_vy" value="$(arg ctrl_max_vy)" type="double"/>
 
   <node pkg="scan_planner" name="closed_loop_controller" type="closed_loop_controller" output="screen">
     <remap from="cmd_vel" to="/scan_planner/cmd_vel"/> <!-- run.launch 原文；仿真执行经 cmd_vel_raw 中继同款 -->

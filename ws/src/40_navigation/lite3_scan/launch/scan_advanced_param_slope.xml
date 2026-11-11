@@ -101,12 +101,12 @@
     <param name="optimization/lambda_smooth" value="1.0" type="double"/>
     <!-- 斜坡变体：坡面上参考路径模式的局部优化回避让不足（2026-11-12 实测
          avoid 0.372 < 0.40），把碰撞罚项抬高到 10；只影响本壳侧斜坡变体。 -->
-    <param name="optimization/lambda_collision" value="50.0" type="double"/>
+    <param name="optimization/lambda_collision" value="100.0" type="double"/>
     <param name="optimization/lambda_feasibility" value="0.1" type="double"/>
     <param name="optimization/lambda_fitness" value="1.0" type="double"/>
     <!-- 斜坡变体：箱体在坡面上仍需更大避让裕度（2026-11-12 实测
          lambda=10 时 avoid 仅 0.399），碰撞影响距离提到 0.4。 -->
-    <param name="optimization/dist0" value="0.4" type="double"/>
+    <param name="optimization/dist0" value="0.6" type="double"/>
     <param name="optimization/max_vel" value="$(arg max_vel)" type="double"/>
     <param name="optimization/vel_tolerance" value="1.0" type="double"/>
     <param name="optimization/max_acc" value="$(arg max_acc)" type="double"/>

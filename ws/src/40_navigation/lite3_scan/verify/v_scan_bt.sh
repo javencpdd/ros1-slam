@@ -113,6 +113,9 @@ PIDS+=($!)
 
 say "== [5] 70_scan =="
 SCAN_ARGS=("navi_mode:=${SCAN_NAVI_MODE:-1}")
+[ -n "${SCAN_MAX_VEL:-}" ] && SCAN_ARGS+=("max_vel:=$SCAN_MAX_VEL")
+[ -n "${SCAN_CTRL_VX:-}" ] && SCAN_ARGS+=("ctrl_max_vx:=$SCAN_CTRL_VX")
+[ -n "${SCAN_CTRL_VY:-}" ] && SCAN_ARGS+=("ctrl_max_vy:=$SCAN_CTRL_VY")
 [ -n "${SCAN_ADV_PARAM:-}" ] && SCAN_ARGS+=("advanced_param:=$SCAN_ADV_PARAM")
 [ "${SCAN_GROUND_FILTER:-false}" = "true" ] && SCAN_ARGS+=("ground_filter:=true" "cloud_topic:=/LIO/clouds_lidar_ground_filtered")
 roslaunch lite3_scan 70_scan.launch "${SCAN_ARGS[@]}" > "$RUN/scan.log" 2>&1 &
