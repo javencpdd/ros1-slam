@@ -22,18 +22,29 @@
     <param name="dst_topic" value="/v8/local/pose"/>
     <param name="frame_id" value="map"/>
     <param name="rate" value="50.0"/>
+    <!-- 局部规划器按 input_max_age_s(默认 1.0 s) 判定位是否新鲜，必须远快于它，
+         否则会在边界上反复判 stale(E_LOCAL_LOCALIZATION) 而拒发速度。 -->
+    <param name="localization_ok_period_s" value="0.2"/>
   </node>
 
-  <!-- 2) 全局规划器：/v8/global/goal + /v8_support_map -> /global_path -->
+  <!-- 2) 障碍物心跳。局部规划器在 obstacles stale 时拒发速度；本栈没有感知
+       生产者，故由仿真侧按契约发"无障碍"预测（可用 payload 注入真实盒）。 -->
+  <node pkg="lite3_gazebo_sim" type="sim_empty_obstacles.py" name="sim_empty_obstacles"
+        output="screen">
+    <param name="topic" value="/v8/local/obstacles"/>
+    <param name="rate" value="2.0"/>
+  </node>
+
+  <!-- 3) 全局规划器：/v8/global/goal + /v8_support_map -> /global_path -->
   <node pkg="v8_platform" type="run_global_planner.py" name="v8_global_planner" output="screen"/>
 
-  <!-- 3) 全局路径 -> 局部目标（取路径上的跟踪点，不给速度） -->
+  <!-- 4) 全局路径 -> 局部目标（取路径上的跟踪点，不给速度） -->
   <node pkg="v8_platform" type="run_path_goal.py" name="v8_path_goal" output="screen">
     <param name="path_topic" value="/global_path"/>
     <param name="goal_topic" value="/v8/local/goal"/>
   </node>
 
-  <!-- 4) 局部规划器：位姿 + 局部目标 -> Twist（正式执行链，替代测试脚本的比例控制） -->
+  <!-- 5) 局部规划器：位姿 + 局部目标 -> Twist（正式执行链，替代测试脚本的比例控制） -->
   <node pkg="v8_platform" type="run_local_planner.py" name="v8_local_planner" output="screen">
     <param name="pose_topic" value="/v8/local/pose"/>
     <param name="goal_topic" value="/v8/local/goal"/>
@@ -41,7 +52,7 @@
     <param name="twist_topic" value="$(arg local_twist_topic)"/>
   </node>
 
-  <!-- 5) 编排层：Nav2 式 BT + goal gate -->
+  <!-- 6) 编排层：Nav2 式 BT + goal gate -->
   <group if="$(arg enable_bt)">
     <include file="$(find lite3_bt)/launch/bt_console.launch">
       <arg name="profile" value="$(arg bt_profile)"/>
