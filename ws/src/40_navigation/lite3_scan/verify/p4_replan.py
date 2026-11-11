@@ -38,7 +38,7 @@ from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SetModelState, GetModelState
 
 INJECT_MODEL = os.environ.get("P4_MODEL", "obs_5")       # 世界里现成的 0.8³ 箱（runtime 搬动，不改世界件）
-INJECT_Z = 0.40
+INJECT_Z = float(os.environ.get("P4_INJECT_Z", "0.40"))
 # 注入点沿首规曲线的比例：2026-11-12 起默认 0.60。v7 原口径是 0.40，但本环境
 #   0.40 下箱体距起点仅 ~1.3m，绕障后机器人多次在箱边/膨胀区打转（5 轮仅 1 轮
 #   到达）；0.60 把扰动放到 ~1.9m 处，配合壳侧跟踪参数可稳定复现「看见→重规划→

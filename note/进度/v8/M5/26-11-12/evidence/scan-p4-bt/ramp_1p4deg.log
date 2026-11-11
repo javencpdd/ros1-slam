@@ -1,0 +1,19 @@
+[20:57:13] == [0] 环境预检 ==
+起前 11313 监听=0（须 0，否则先停旧栈）
+[20:57:13] == [1] roscore 11313 ==
+[20:57:16] == [2] m2_gazebo ==
+world = /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/ramp_scan.world  spawn = spawn_x:=-1.0 spawn_z:=0.24 spawn_yaw:=3.14159
+[20:57:37] == [3] m2_mapping（faster_lio）==
+[20:57:43] == [4] 60_safety（mux）==
+[20:57:46] == [5] 70_scan ==
+[20:57:57] == [6] scan_bt_nav（BT + 契约桥）==
+节点: 7/7
+[20:58:07] == [7] BT 发目标并判到达 ==
+probe = /opt/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_bt_probe.py
+[INFO] [1794430689.459754, 17.102000]: [p4-bt] bt_goal_sent=2.50,0.00
+[INFO] [1794430734.957570, 37.104000]: [p4-bt] path_status={"ok": false, "reason": "E_PLAN_RUNNING"}
+{"verdict": "INVALID", "reason": "no BT path-ready / first bspline", "detail": {"steps": ["bt_goal_sent=2.50,0.00", "path_status={\"ok\": false, \"reason\": \"E_PLAN_RUNNING\"}"], "goal": [2.5, 0.0, 2.482, null], "traj_before": null, "restore": {"ok": true, "delta_m": 0.0, "qdelta": 0.0, "tol_m": 0.02, "qtol": 0.001, "why": ""}}, "steps": ["bt_goal_sent=2.50,0.00", "path_status={\"ok\": false, \"reason\": \"E_PLAN_RUNNING\"}"]}
+SCAN-BT 结论 = INVALID|前置不成立（见 probe.json）
+[20:58:55] -- teardown --
+残留进程: (空=净)
+11313 监听: 0

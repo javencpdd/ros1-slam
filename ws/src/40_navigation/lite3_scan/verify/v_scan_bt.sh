@@ -79,7 +79,19 @@ ROSCORE_PID=$!
 for _ in $(seq 1 30); do rostopic list >/dev/null 2>&1 && break; sleep 1; done
 
 say "== [2] m2_gazebo =="
-roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false > "$RUN/gazebo.log" 2>&1 &
+# SCAN_BT_WORLD：默认 m1_world（平地）；斜坡用 worlds/ramp_scan.world（平滑 10°）。
+WORLD=${SCAN_BT_WORLD:-}
+SPAWN_ARGS=()
+[ -n "${SCAN_BT_SPAWN_X:-}" ] && SPAWN_ARGS+=("spawn_x:=$SCAN_BT_SPAWN_X")
+[ -n "${SCAN_BT_SPAWN_Y:-}" ] && SPAWN_ARGS+=("spawn_y:=$SCAN_BT_SPAWN_Y")
+[ -n "${SCAN_BT_SPAWN_Z:-}" ] && SPAWN_ARGS+=("spawn_z:=$SCAN_BT_SPAWN_Z")
+[ -n "${SCAN_BT_SPAWN_YAW:-}" ] && SPAWN_ARGS+=("spawn_yaw:=$SCAN_BT_SPAWN_YAW")
+if [ -n "$WORLD" ]; then
+  note "world = $WORLD  spawn = ${SPAWN_ARGS[*]:-default}"
+  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false "${SPAWN_ARGS[@]}" world:="$WORLD" > "$RUN/gazebo.log" 2>&1 &
+else
+  roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=false "${SPAWN_ARGS[@]}" > "$RUN/gazebo.log" 2>&1 &
+fi
 PIDS+=($!)
 wait_topic /clock 300 || { echo "SCAN-BT 结论 = INVALID|/clock 未就绪"; exit 9; }
 wait_topic /rslidar_points 480 || { echo "SCAN-BT 结论 = INVALID|/rslidar_points 未就绪"; exit 9; }
@@ -94,6 +106,10 @@ say "== [4] 60_safety（mux）=="
 roslaunch lite3_safety 60_safety.launch > "$RUN/mux.log" 2>&1 &
 PIDS+=($!)
 wait_topic /cmd_vel 240 || { echo "SCAN-BT 结论 = INVALID|/cmd_vel 未就绪"; exit 9; }
+# mux 的 speed_cap_required=true，无 /v8/safety/speed_cap 时按 blind 0.1m/s 限速；
+# 仿真链没有超声/限速源，显式发 0.5（mux max_linear 也是 0.5）解除盲限速。
+rostopic pub -r 2 /v8/safety/speed_cap std_msgs/Float32 "data: 0.5" > "$RUN/speed_cap.log" 2>&1 &
+PIDS+=($!)
 
 say "== [5] 70_scan =="
 roslaunch lite3_scan 70_scan.launch navi_mode:=1 > "$RUN/scan.log" 2>&1 &
@@ -103,14 +119,18 @@ wait_topic /grid_map/occupancy 240 || { echo "SCAN-BT 结论 = INVALID|/grid_map
 wait_topic /lite3/scan/arrived 180 || { echo "SCAN-BT 结论 = INVALID|到达实体话题未就绪"; exit 9; }
 
 say "== [6] scan_bt_nav（BT + 契约桥）=="
-roslaunch lite3_scan scan_bt_nav.launch > "$RUN/bt.log" 2>&1 &
+BT_ARGS=()
+[ -n "${SCAN_BT_ARRIVAL_FLOOR:-}" ] && BT_ARGS+=("arrival_speed_floor_mps:=$SCAN_BT_ARRIVAL_FLOOR")
+roslaunch lite3_scan scan_bt_nav.launch "${BT_ARGS[@]}" > "$RUN/bt.log" 2>&1 &
 PIDS+=($!)
 wait_topic /v8/bt/status 120 || { echo "SCAN-BT 结论 = INVALID|/v8/bt/status 未就绪"; exit 9; }
 wait_topic /global_path/status 60 || { echo "SCAN-BT 结论 = INVALID|/global_path/status 未就绪"; exit 9; }
 note "节点: $(rosnode list 2>/dev/null | grep -cE 'bt_console|scan_bt_bridge|goal_gate|scan_planner_node|closed_loop_controller|scan_arrival_monitor|safe_cmd_vel_mux')/7"
 
 say "== [7] BT 发目标并判到达 =="
-python3 "$(dirname "$0")/bt_scan_probe.py" > "$RUN/probe.json" 2>"$RUN/probe.err"
+PROBE=${SCAN_BT_PROBE:-$(dirname "$0")/bt_scan_probe.py}
+note "probe = $PROBE"
+python3 "$PROBE" > "$RUN/probe.json" 2>"$RUN/probe.err"
 RC=$?
 cat "$RUN/probe.json" | tee -a "$LOG"
 [ -s "$RUN/probe.err" ] && tail -5 "$RUN/probe.err" | tee -a "$LOG"
