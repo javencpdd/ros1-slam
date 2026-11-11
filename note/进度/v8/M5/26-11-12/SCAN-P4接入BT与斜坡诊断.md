@@ -94,3 +94,23 @@ B 样条，`scan.log` 里 **`a star error` 11410 条**（`evidence/scan-p4-bt/ra
 
 累计负结果（同一判据下）：10°/3.5°/1.4° 坡、平台/坡上出生、ground_height=-0.5、
 地面/自车点过滤——六种组合均无首条 B 样条或卡在坡沿。SCAN 斜坡属能力缺口已可判定。
+
+## 7. REFERENCE_PATH 模式（navi_mode=3）实验（2026-11-12）
+
+为绕开坡上失效的 A*，用 SCAN 自带的 `navi_mode=3`（REFERENCE_PATH）：FSM 订阅
+`/initial_path`，由桥把 BT 的 goal 变成一条直线参考路径；SCAN 的局部优化/重规划
+仍在。壳侧新增桥的 `publish_reference_path` 口（默认关），`v_scan_bt.sh` 增
+`SCAN_NAVI_MODE`/`SCAN_REFERENCE_PATH`。
+
+读数（1.4° 坡上出生、goal LIO +2.5、注入 60%、z=0.5、地面过滤开）：
+
+- **首条 B 样条 0.25 s 内出现**（A* 确实被绕开；此前六种组合都无轨迹）。
+- 机器人从 x=0 走到约 1.5 m（BT 在 227 s 墙钟时转 recovery，距目标 0.998 m）。
+- P4 面：看见 204 点、replanned=True；但新轨迹离箱心 **0.372 m**（门 0.40）、
+  A23 3D **0.026 m**（门 0.10，轨迹穿过箱体），物理最近 0.635 m（未撞）。
+  ⇒ 局部优化在坡面+箱体上仍没避让成功。
+- 证据：`evidence/scan-p4-bt/ramp_reference_mode.json`。
+
+结论：REFERENCE_PATH 只解决了「全局 A* 起点」这一层；坡面上的 **局部优化避障**
+与 **低速跟踪**（227 s 墙钟只走 1.5 m）仍是 SCAN 算法/参数面的事，壳侧编排
+（BT/桥/模式）已不是瓶颈。斜坡仍按 §4 的 L2 选项处理。

@@ -27,6 +27,9 @@
        0.02 m/s（RTF≈0.45＋低速跟踪），默认下限 0.02 会把 2.45m 路径的预算压到
        122s、实测 124s 到达 ⇒ 超时。斜坡/低速场景可显式给更低下限。 -->
   <arg name="arrival_speed_floor_mps" default="0.02"/>
+  <!-- REFERENCE_PATH（navi_mode=3）：桥把 BT 的 goal 变成 /initial_path 直线参考路径，
+       绕开 A*；SCAN 的局部优化/重规划仍在。斜坡用 true，平地保持 false。 -->
+  <arg name="publish_reference_path" default="false"/>
 
   <!-- 1) 契约桥：SCAN 话题 ↔ v8/BT 话题，只翻译不规划。 -->
   <node pkg="lite3_scan" type="scan_bt_bridge.py" name="scan_bt_bridge" output="screen">
@@ -41,6 +44,7 @@
     <!-- SCAN 的世界系（faster_lio camera_init）；BT 只用折线长度与点数，不改坐标系。 -->
     <param name="frame" value="camera_init"/>
     <param name="samples" value="120"/>
+    <param name="publish_reference_path" value="$(arg publish_reference_path)"/>
   </node>
 
   <!-- 2) BT：RequestPath 直发 SCAN goal；到达权交给 /v8/bt/arrived。 -->

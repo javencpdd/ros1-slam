@@ -112,7 +112,7 @@ rostopic pub -r 2 /v8/safety/speed_cap std_msgs/Float32 "data: 0.5" > "$RUN/spee
 PIDS+=($!)
 
 say "== [5] 70_scan =="
-SCAN_ARGS=("navi_mode:=1")
+SCAN_ARGS=("navi_mode:=${SCAN_NAVI_MODE:-1}")
 [ -n "${SCAN_ADV_PARAM:-}" ] && SCAN_ARGS+=("advanced_param:=$SCAN_ADV_PARAM")
 [ "${SCAN_GROUND_FILTER:-false}" = "true" ] && SCAN_ARGS+=("ground_filter:=true" "cloud_topic:=/LIO/clouds_lidar_ground_filtered")
 roslaunch lite3_scan 70_scan.launch "${SCAN_ARGS[@]}" > "$RUN/scan.log" 2>&1 &
@@ -124,6 +124,7 @@ wait_topic /lite3/scan/arrived 180 || { echo "SCAN-BT 结论 = INVALID|到达实
 say "== [6] scan_bt_nav（BT + 契约桥）=="
 BT_ARGS=()
 [ -n "${SCAN_BT_ARRIVAL_FLOOR:-}" ] && BT_ARGS+=("arrival_speed_floor_mps:=$SCAN_BT_ARRIVAL_FLOOR")
+[ "${SCAN_REFERENCE_PATH:-false}" = "true" ] && BT_ARGS+=("publish_reference_path:=true")
 roslaunch lite3_scan scan_bt_nav.launch "${BT_ARGS[@]}" > "$RUN/bt.log" 2>&1 &
 PIDS+=($!)
 wait_topic /v8/bt/status 120 || { echo "SCAN-BT 结论 = INVALID|/v8/bt/status 未就绪"; exit 9; }

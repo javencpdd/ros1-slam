@@ -106,6 +106,12 @@ def main():
     arrived_topic = rospy.get_param('~arrived_topic', '/lite3/scan/arrived')
     bt_arrived_topic = rospy.get_param('~bt_arrived_topic', '/v8/bt/arrived')
     path_topic = rospy.get_param('~path_topic', '/global_path')
+    # REFERENCE_PATH 模式（navi_mode=3）：FSM 订阅 /initial_path、不走 A*。
+    # 斜坡上 A* 的起点格不可用（2026-11-12 实测），参考路径模式仍走 SCAN 的
+    # 局部优化/重规划；由本桥按 BT 的 goal 生成一条直线参考路径。
+    reference_path_topic = rospy.get_param('~reference_path_topic', '/initial_path')
+    publish_reference = bool(rospy.get_param('~publish_reference_path', False))
+    reference_step = float(rospy.get_param('~reference_step', 0.25))
     status_topic = rospy.get_param('~path_status_topic', '/global_path/status')
     pose_in_topic = rospy.get_param('~pose_in_topic', '/LIO/odom_vehicle')
     pose_out_topic = rospy.get_param('~pose_out_topic', '/v8/local/pose')
@@ -113,14 +119,39 @@ def main():
     samples = int(rospy.get_param('~samples', 120))
 
     path_pub = rospy.Publisher(path_topic, Path, queue_size=1, latch=True)
+    ref_pub = rospy.Publisher(reference_path_topic, Path, queue_size=1, latch=True) if publish_reference else None
     status_pub = rospy.Publisher(status_topic, String, queue_size=1, latch=True)
     arrived_pub = rospy.Publisher(bt_arrived_topic, Bool, queue_size=1, latch=True)
 
-    def on_goal(_message):
+    def publish_reference(message):
+        if ref_pub is None or state.get('odom') is None:
+            return
+        gx, gy = message.pose.position.x, message.pose.position.y
+        ox, oy = state['odom']
+        dx, dy = gx - ox, gy - oy
+        dist = (dx * dx + dy * dy) ** 0.5
+        count = max(2, int(dist / max(0.05, reference_step)) + 1)
+        path = Path()
+        path.header.frame_id = message.header.frame_id or 'camera_init'
+        path.header.stamp = rospy.Time.now()
+        for k in range(count):
+            frac = float(k) / (count - 1)
+            pose = PoseStamped()
+            pose.header = path.header
+            pose.pose.position.x = ox + dx * frac
+            pose.pose.position.y = oy + dy * frac
+            pose.pose.orientation.w = 1.0
+            path.poses.append(pose)
+        ref_pub.publish(path)
+        rospy.loginfo('reference path -> %s: %d pts, %.2fm', reference_path_topic, count, dist)
+
+    def on_goal(message):
         # A new request resets plan readiness and the previous arrival latch.
         status_pub.publish(status_message(False))
         arrived_pub.publish(Bool(data=False))
         rospy.loginfo('SCAN goal observed: path status reset to E_PLAN_RUNNING')
+        if publish_reference:
+            publish_reference(message)
 
     def on_bspline(message):
         points = sample_bspline(message, samples)
@@ -136,6 +167,8 @@ def main():
         rospy.loginfo('SCAN arrival=%s', message.data)
 
     def on_pose(message):
+        p = message.pose.pose.position
+        state['odom'] = (p.x, p.y)
         if not pose_out_topic:
             return
         pose = PoseStamped()
@@ -150,6 +183,7 @@ def main():
     if pose_pub is not None:
         rospy.Subscriber(pose_in_topic, Odometry, on_pose, queue_size=5)
 
+    state = {'odom': None}
     status_pub.publish(status_message(False))
     rospy.loginfo('scan_bt_bridge up: bspline=%s path=%s status=%s arrived=%s->%s pose=%s->%s',
                   bspline_topic, path_topic, status_topic, arrived_topic,
