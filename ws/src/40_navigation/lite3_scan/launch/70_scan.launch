@@ -17,7 +17,11 @@
        隔离红线：本 launch 由调用方设 ROS_MASTER_URI；速度输出仅以 scan_planner 私有安全网
           名出现（仿真域经 cmd_vel_raw 中继同款模式承接，写者唯一）。 -->
   <arg name="navi_mode" default="1"/>
-  <arg name="max_vel" default="0.40"/>          <!-- advanced_param.xml 基线值逐字（.bak-maxvel075 调参史收敛） -->
+  <arg name="max_vel" default="0.40"/>
+  <!-- 斜坡/地面过滤：默认关闭（平地基线不动）；斜坡链由 harness 传 true，并
+       cloud_topic 指到过滤后话题。filter 只滤机体系 z<min_z 与机体圆柱内点。 -->
+  <arg name="ground_filter" default="false"/>
+  <arg name="cloud_topic" default="/LIO/clouds_lidar"/>          <!-- advanced_param.xml 基线值逐字（.bak-maxvel075 调参史收敛） -->
   <arg name="max_acc" default="0.5"/>
   <arg name="planning_horizon" default="3.5"/>
   <arg name="need_extrinsic" default="false"/>
@@ -43,6 +47,15 @@
     <arg name="odom_in" value="/Odometry"/>
   </include>
 
+  <!-- 地面/自车过滤中继（可选）：上游 SCAN 的栅格在坡面会把地面点当占据。 -->
+  <node if="$(arg ground_filter)" pkg="lite3_scan" type="scan_cloud_ground_filter.py"
+        name="scan_cloud_ground_filter" output="screen">
+    <param name="src_topic" value="/LIO/clouds_lidar"/>
+    <param name="dst_topic" value="/LIO/clouds_lidar_ground_filtered"/>
+    <param name="min_z" value="-0.12"/>
+    <param name="self_radius" value="0.35"/>
+  </node>
+
   <!-- main algorithm params（advanced_param.xml 原样 include，仅 arg 注入；goal remap 见下方 group） -->
   <group>
     <!-- goal remap 必须挂 <group> 而非 <include>：roslaunch 的 <include> 不支持 remap，
@@ -54,7 +67,7 @@
     <arg name="sensor_type" value="lidar"/>
     <arg name="body_pose_topic" value="/LIO/odom_vehicle"/>
     <arg name="sensor_pose_topic" value="/LIO/odom_imu"/>
-    <arg name="cloud_topic" value="/LIO/clouds_lidar"/>
+    <arg name="cloud_topic" value="$(arg cloud_topic)"/>
     <arg name="cloud_is_world" value="false"/>
     <!-- depth 分支不消费（Lite3 无深度相机，A6 不适用行）；arg 必填故给真机占位值 -->
     <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw"/>

@@ -80,3 +80,17 @@ SCAN 线没有这套。
 B 样条，`scan.log` 里 **`a star error` 11410 条**（`evidence/scan-p4-bt/ramp_ground_height_no_path.json`）。
 ⇒ 排除「地图 z 下界」假设；A* 的起点/终点仍在坡面/自车的通胀格内（或未知区），需要
 改 SCAN 的格语义本身，不是调一个壳侧参数能解。L2 选项不变（见 §4）。
+
+## 6. 追加实验：壳侧地面/自车点云过滤（2026-11-12）
+
+再做一层壳侧预处理：`scan_cloud_ground_filter.py` 把机体系 `z<-0.12` 的地面点与
+`r<0.35` 的机体点滤掉，发 `/LIO/clouds_lidar_ground_filtered`；`70_scan.launch`
+增 `ground_filter`/`cloud_topic` arg（默认关，斜坡 harness 开）。
+
+读数：过滤节点确已运行（scan.log `ground filter up: /LIO/clouds_lidar -> ...`），
+但 1.4° 坡上出生时仍 45 s 无首条 B 样条，`a star error` **9224 条**。
+⇒ 排除「点云里地面/自车点」这一层；A* 的失败在围栏/未知区/起点格语义本身，
+不是壳侧能滤掉的。斜坡必须改 SCAN 的 2.5D 格/地面语义（或走 §4 的混合路线）。
+
+累计负结果（同一判据下）：10°/3.5°/1.4° 坡、平台/坡上出生、ground_height=-0.5、
+地面/自车点过滤——六种组合均无首条 B 样条或卡在坡沿。SCAN 斜坡属能力缺口已可判定。
