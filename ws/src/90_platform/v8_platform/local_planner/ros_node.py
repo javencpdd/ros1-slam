@@ -124,9 +124,13 @@ def _planner_worker(requests, responses):
                            'ok': True, 'result': result,
                            'plan_ms': round((time.perf_counter() - started) * 1e3, 3)})
         except native.LocalError as error:
+            # 诊断：失败输入快照随 detail 透出（status.last_error_detail），
+            # 用于事后复现「仿真里一次瞬时失败锁死整个执行段」的具体输入。
             responses.put({'seq': item['seq'], 'generation': item['generation'],
                            'ok': False, 'error': getattr(error, 'code', 'E_LOCAL_INPUT'),
-                           'message': str(error),
+                           'message': '%s | start=%s goal=%s now=%.3f obs=%d' % (
+                               str(error), tuple(item['pose']), tuple(item['goal']),
+                               item['now'], len(item['obstacles'])),
                            'plan_ms': round((time.perf_counter() - started) * 1e3, 3)})
         except Exception as error:
             responses.put({'seq': item['seq'], 'generation': item['generation'],
@@ -702,6 +706,15 @@ class LocalControl:
                           map_version=snapshot.get('map_version'), plan_ms_max=snapshot.get('plan_ms_max'),
                           latched=bool(latched), plain_twist_frame='base_link_yaw_plane' if self.twist_pub else None,
                           capability_domain='experimental_kinematic_carrier' if self.profile is None else 'validated_robot_profile')
+            # 诊断：三路输入的实时年龄（与 freshness 同一判据面），只在 freshness
+            # 拒发时暴露哪个输入陈旧、陈旧多少。纯浮点运算，不引入新异常路径。
+            if final_reason or reason:
+                status['input_ages'] = {
+                    'pose': round(latest_wall - self.shared['pose_at'], 3),
+                    'obstacles': round(latest_wall - self.shared['obstacles_at'], 3),
+                    'localization': round(latest_wall - self.shared['localization_at'], 3),
+                    'obstacles_cb': self.shared.get('obstacles_cb', 0),
+                    'max_age': self.max_age}
             if gait_state is not None:
                 observed_at = self.shared.get('chassis_status_at')
                 status['gait_hold'] = gait_state
@@ -875,6 +888,7 @@ def main():
                 if key != shared['obstacle_key']:
                     shared.update(generation=shared['generation'] + 1, result=None)
                     plan_wake.set()
+                shared['obstacles_cb'] = shared.get('obstacles_cb', 0) + 1
                 shared.update(obstacles=values, obstacles_at=time.monotonic(), obstacle_key=key)
             rospy.loginfo_throttle(5.0, '[local] obstacles ok: %d',
                                    len(values) if isinstance(values, (list, tuple)) else -1)
