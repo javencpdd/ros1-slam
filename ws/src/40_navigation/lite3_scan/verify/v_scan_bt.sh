@@ -112,7 +112,9 @@ rostopic pub -r 2 /v8/safety/speed_cap std_msgs/Float32 "data: 0.5" > "$RUN/spee
 PIDS+=($!)
 
 say "== [5] 70_scan =="
-roslaunch lite3_scan 70_scan.launch navi_mode:=1 > "$RUN/scan.log" 2>&1 &
+SCAN_ARGS=("navi_mode:=1")
+[ -n "${SCAN_ADV_PARAM:-}" ] && SCAN_ARGS+=("advanced_param:=$SCAN_ADV_PARAM")
+roslaunch lite3_scan 70_scan.launch "${SCAN_ARGS[@]}" > "$RUN/scan.log" 2>&1 &
 PIDS+=($!)
 wait_topic /LIO/odom_vehicle 240 || { echo "SCAN-BT 结论 = INVALID|/LIO/odom_vehicle 未就绪"; exit 9; }
 wait_topic /grid_map/occupancy 240 || { echo "SCAN-BT 结论 = INVALID|/grid_map/occupancy 未就绪"; exit 9; }

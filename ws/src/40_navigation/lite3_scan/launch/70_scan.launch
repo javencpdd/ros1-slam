@@ -20,7 +20,8 @@
   <arg name="max_vel" default="0.40"/>          <!-- advanced_param.xml 基线值逐字（.bak-maxvel075 调参史收敛） -->
   <arg name="max_acc" default="0.5"/>
   <arg name="planning_horizon" default="3.5"/>
-  <arg name="need_extrinsic" default="false"/>  <!-- faster_lio 给机体系位姿+机体系点云，叠外参是错的（manifest 锚点） -->
+  <arg name="need_extrinsic" default="false"/>
+  <arg name="advanced_param" default="$(find scan_planner)/launch/advanced_param.xml"/>  <!-- faster_lio 给机体系位姿+机体系点云，叠外参是错的（manifest 锚点） -->
 
   <!-- FSM 与 closed_loop_controller 消费全局 /body_pose_topic（源码 ros::param 读取，run.launch 同款注入） -->
   <param name="body_pose_topic" value="/LIO/odom_vehicle" type="str"/>
@@ -49,7 +50,7 @@
          「防与 mbf 双消费」防护会失效（FSM 订阅绝对名 /move_base_simple/goal，见 scan_replan_fsm.cpp:104）。
          group 的 remap 向下传导给组内所有节点。 -->
     <remap from="/move_base_simple/goal" to="/scan_planner/goal"/>
-  <include file="$(find scan_planner)/launch/advanced_param.xml">
+  <include file="$(arg advanced_param)">
     <arg name="sensor_type" value="lidar"/>
     <arg name="body_pose_topic" value="/LIO/odom_vehicle"/>
     <arg name="sensor_pose_topic" value="/LIO/odom_imu"/>

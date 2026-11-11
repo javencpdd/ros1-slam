@@ -68,3 +68,15 @@ SCAN 线没有这套。
 
 在真人选定前，本卡**不声称**「SCAN P4 平地和斜坡都通过」；平地部分已完成并留证，
 斜坡部分按上面 1—3 呈报。
+
+## 5. 追加实验：地图 z 原点下移（2026-11-12）
+
+怀疑 A* 失败是 `grid_map/ground_height=0` 把机器人下方的坡面点压到地图 z 下界外。做法＝
+壳侧复制 `advanced_param.xml` 为 `scan_advanced_param_slope.xml`（唯一差异＝
+`grid_map/ground_height=-0.5`，上游件未改），`70_scan.launch` 增 `advanced_param` arg，
+`v_scan_bt.sh` 增 `SCAN_ADV_PARAM` 口；1.4° 坡上出生复跑。
+
+读数：参数确已生效（`/scan_planner_node/grid_map/ground_height: -0.5`），但 45 s 内仍无首条
+B 样条，`scan.log` 里 **`a star error` 11410 条**（`evidence/scan-p4-bt/ramp_ground_height_no_path.json`）。
+⇒ 排除「地图 z 下界」假设；A* 的起点/终点仍在坡面/自车的通胀格内（或未知区），需要
+改 SCAN 的格语义本身，不是调一个壳侧参数能解。L2 选项不变（见 §4）。
