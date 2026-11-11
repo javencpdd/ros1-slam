@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(lite3_bt)
 
-find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs std_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs std_msgs)
 # Prefer the in-image prefix (docker/Dockerfile "btcpp" stage).  The mounted
 # /opt/ros1-slam/opt/btcpp_v3 path stays as the host/dev fallback, so the same
 # source builds both on a laptop with the sim-viz mount and on the robot image.
@@ -11,7 +11,7 @@ find_package(behaviortree_cpp_v3 REQUIRED
   NO_DEFAULT_PATH)
 find_package(Threads REQUIRED)
 
-catkin_package(CATKIN_DEPENDS roscpp geometry_msgs std_msgs)
+catkin_package(CATKIN_DEPENDS roscpp geometry_msgs nav_msgs std_msgs)
 
 include_directories(${catkin_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/include
@@ -42,3 +42,16 @@ catkin_install_python(PROGRAMS scripts/goal_gate.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(FILES scripts/goal_gate_policy.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+# The devel space executes the relay wrapper from devel/lib/lite3_bt and puts
+# that directory on sys.path, but plain install(FILES) only lands at
+# `make install` -- so a fresh catkin_make left the wrapper without its module
+# and goal_gate died with ModuleNotFoundError (hit on 2026-11-11 and again on
+# 2026-11-12).  Keep the devel copy in sync on every build.
+add_custom_target(lite3_bt_devel_policy ALL
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+          ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${CMAKE_CURRENT_SOURCE_DIR}/scripts/goal_gate_policy.py
+          ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/goal_gate_policy.py
+  COMMENT "Syncing goal_gate_policy.py into the devel space")

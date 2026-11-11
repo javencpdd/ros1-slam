@@ -63,6 +63,8 @@ Topics:
 - input goal: `/v8/bt/goal` (`geometry_msgs/PoseStamped`, FIFO queue)
 - planner input: `/v8/global/goal` (BT `RequestPath` publishes; `planner/topic_node.py` subscribes)
 - planner status: `/global_path/status` (`std_msgs/String`, JSON `ok`/`points`/`reason`)
+- planner geometry: `/global_path` (`nav_msgs/Path`, latched; the polyline
+  length sizes the arrival budget — see below)
 - BT request: `/v8/bt/goal_request` (BT `FollowPath` publishes, via the goal gate)
 - final goal: `/v8/3d/global/goal` (only `goal_gate` writes it; stale/missing lease drops requests)
 - lease heartbeat: `/v8/bt/lease` (`std_msgs/Bool`, 2 Hz while BT is alive)
@@ -152,8 +154,20 @@ There are two arrival modes:
 
 | mode | when | who decides the goal is done |
 |---|---|---|
-| `pose` (default) | `~planner_result_topic` empty | BT compares `/v8/local/pose` with the goal (0.25 m, 60 s timeout) |
+| `pose` (default) | `~planner_result_topic` empty | BT compares `/v8/local/pose` with the goal (0.25 m, budget from path length, floor 60 s) |
 | `ack` | `~planner_result_topic` set | downstream executor publishes the result |
+
+The pose-mode budget is `max(tree timeout, path_length / ~arrival_speed_floor_mps)`,
+frozen at `WaitArrival::onStart` from the latest `/global_path` polyline.  The
+tree value stays the floor, so short goals behave exactly as before; the ramp
+(10.0 m polyline incl. step verticals, 141 s wall at RTF 0.45 on 2026-11-12)
+gets ~502 s at the default floor 0.02 m/s instead of failing at 60 s while
+0.157 m from the goal.  The budget is frozen per arrival on purpose: the
+planner replans from the moving start, so a per-tick recompute would shrink
+the budget below the elapsed time mid-leg.  An empty `Path`
+(`planner/topic_node.py` refusal/cancel marker) does not lend its length to
+the next arrival.  Set `~arrival_speed_floor_mps:=0` to disable scaling and
+keep the pure tree timeout.
 
 Ack wire format is `std_msgs/String` with `<goal_seq>:ok` or `<goal_seq>:fail`.
 Only an `ok` ack matching `current_seq` advances the queue; a `fail` ack ends

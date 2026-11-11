@@ -3,10 +3,12 @@
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 
+#include <lite3_bt/arrival_budget.hpp>
 #include <lite3_bt/goal_queue.hpp>
 
 #include <chrono>
@@ -40,6 +42,14 @@ struct SharedState
   bool path_ok = false;
   int path_points = 0;
   std::string path_reason;
+
+  // Latest /global_path geometry.  Point count cannot tell a 0.5 m goal from a
+  // 7.5 m ramp; the polyline length is what sizes the arrival budget.
+  bool path_length_seen = false;
+  double path_length = 0.0;
+
+  // Wall-clock progress floor for arrival budget scaling (pnh param).
+  double arrival_speed_floor = 0.02;
 
   // Optional downstream executor result ("<seq>:ok" / "<seq>:fail").
   bool planner_ack_enabled = false;
@@ -258,7 +268,8 @@ class WaitArrival : public BT::StatefulActionNode
 {
 public:
   WaitArrival(const std::string& name, const BT::NodeConfiguration& config)
-    : BT::StatefulActionNode(name, config), distance_(0.25), timeout_(60.0) {}
+    : BT::StatefulActionNode(name, config), distance_(0.25), timeout_(60.0),
+      budget_(60.0) {}
 
   static BT::PortsList providedPorts()
   {
@@ -270,11 +281,25 @@ public:
   {
     getInput("distance", distance_);
     getInput("timeout", timeout_);
-    start_ = std::chrono::steady_clock::now();
+    double length = 0.0;
+    bool seen = false;
     {
       std::lock_guard<std::mutex> lock(g_state.mutex);
+      length = g_state.path_length;
+      seen = g_state.path_length_seen;
       g_state.last_event = "arrival_start";
     }
+    // Freeze the budget once per arrival: the planner replans from the moving
+    // start, so the remaining path shrinks while we drive and a per-tick
+    // recompute would shrink the budget below the elapsed time mid-leg.
+    budget_ = lite3_bt::arrival_budget_s(timeout_, seen ? length : 0.0,
+                                         g_state.arrival_speed_floor);
+    if (budget_ > timeout_)
+    {
+      ROS_INFO("[bt] arrival budget %.1f s (path %.2f m, floor %.3f m/s, tree %.1f s)",
+               budget_, length, g_state.arrival_speed_floor, timeout_);
+    }
+    start_ = std::chrono::steady_clock::now();
     return check();
   }
 
@@ -338,8 +363,9 @@ private:
     }
     const auto elapsed = std::chrono::duration<double>(
         std::chrono::steady_clock::now() - start_).count();
-    if (elapsed > timeout_)
+    if (elapsed > budget_)
     {
+      ROS_WARN("[bt] arrival timeout after %.1f s (budget %.1f s)", elapsed, budget_);
       {
         std::lock_guard<std::mutex> lock(g_state.mutex);
         g_state.last_event = "timeout";
@@ -352,6 +378,7 @@ private:
 
   double distance_;
   double timeout_;
+  double budget_;
   std::chrono::steady_clock::time_point start_;
 };
 
@@ -490,6 +517,23 @@ void pathStatusCallback(const std_msgs::String::ConstPtr& msg)
                        : "path_running";
 }
 
+void pathCallback(const nav_msgs::Path::ConstPtr& msg)
+{
+  double length = 0.0;
+  for (std::size_t i = 1; i < msg->poses.size(); ++i)
+  {
+    const auto& a = msg->poses[i - 1].pose.position;
+    const auto& b = msg->poses[i].pose.position;
+    length += std::sqrt(std::pow(b.x - a.x, 2.0) + std::pow(b.y - a.y, 2.0) +
+                        std::pow(b.z - a.z, 2.0));
+  }
+  std::lock_guard<std::mutex> lock(g_state.mutex);
+  // An empty Path is the planner's refusal/cancel marker; it must not lend its
+  // length to the next arrival.
+  g_state.path_length_seen = msg->poses.size() >= 2;
+  g_state.path_length = g_state.path_length_seen ? length : 0.0;
+}
+
 void plannerAckCallback(const std_msgs::String::ConstPtr& msg)
 {
   std::uint64_t seq = 0;
@@ -534,12 +578,16 @@ int main(int argc, char** argv)
   std::string stop_topic = "/lite3/teleop/app_cmd_vel";
   std::string planner_goal_topic = "/v8/global/goal";
   std::string path_status_topic = "/global_path/status";
+  std::string path_topic = "/global_path";
   pnh.param<std::string>("goal_topic", goal_topic, goal_topic);
   pnh.param<std::string>("pose_topic", pose_topic, pose_topic);
   pnh.param<std::string>("out_goal_topic", out_goal_topic, out_goal_topic);
   pnh.param<std::string>("stop_topic", stop_topic, stop_topic);
   pnh.param<std::string>("planner_goal_topic", planner_goal_topic, planner_goal_topic);
   pnh.param<std::string>("path_status_topic", path_status_topic, path_status_topic);
+  pnh.param<std::string>("path_topic", path_topic, path_topic);
+  pnh.param<double>("arrival_speed_floor_mps", g_state.arrival_speed_floor,
+                    g_state.arrival_speed_floor);
 
   int queue_max = 16;
   pnh.param<int>("queue_max", queue_max, 16);
@@ -564,6 +612,8 @@ int main(int argc, char** argv)
       pose_topic, 1, poseCallback);
   ros::Subscriber path_status_sub = nh.subscribe<std_msgs::String>(
       path_status_topic, 10, pathStatusCallback);
+  ros::Subscriber path_sub = nh.subscribe<nav_msgs::Path>(
+      path_topic, 1, pathCallback);
   ros::Subscriber planner_ack_sub;
   if (g_state.planner_ack_enabled)
   {

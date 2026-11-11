@@ -13,6 +13,14 @@
   <arg name="request_topic" default="/v8/bt/goal_request"/>
   <arg name="planner_goal_topic" default="/v8/global/goal"/>
   <arg name="path_status_topic" default="/global_path/status"/>
+  <arg name="path_topic" default="/global_path"/>
+  <!-- Arrival budget scaling: WaitArrival keeps its tree timeout as the floor
+       and extends it to path_length / speed_floor.  0.02 m/s is a stalled-run
+       floor, not a target speed: the ramp polyline (10.0 m incl. step
+       verticals) took 141 s wall on 2026-11-12 at RTF~0.45 (0.071 m/s), so
+       0.02 gives ~502 s there while 2 m flat goals stay near the 60 s tree
+       value.  Set 0 to disable scaling. -->
+  <arg name="arrival_speed_floor_mps" default="0.02"/>
   <arg name="lease_topic" default="/v8/bt/lease"/>
   <!-- Groot2 ZMQ ports.  Override when a second instance runs on the same
        host (previous hard-coded 5555/5556 made it die on bind). -->
@@ -27,6 +35,8 @@
     <param name="out_goal_topic" value="$(arg request_topic)"/>
     <param name="planner_goal_topic" value="$(arg planner_goal_topic)"/>
     <param name="path_status_topic" value="$(arg path_status_topic)"/>
+    <param name="path_topic" value="$(arg path_topic)"/>
+    <param name="arrival_speed_floor_mps" value="$(arg arrival_speed_floor_mps)"/>
     <param name="lease_topic" value="$(arg lease_topic)"/>
     <param name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
     <param name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
