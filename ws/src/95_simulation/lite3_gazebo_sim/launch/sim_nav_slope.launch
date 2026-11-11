@@ -1,0 +1,105 @@
+<launch>
+  <!-- 斜坡场景仿真导航栈（正式链路；与 sim_nav_stack.launch 平行的坡面版）
+
+       场景＝scenarios/ramp_nav（同源生成器 scene.py）：地面＋10 级坡面切片
+       （每片 0.4 m、顶面抬 0.06 m、平均坡度 8.5°）＋坡顶平台，world 与支撑图
+       出自同一 geometry()，逐盒对齐（切片 z 差须大于契约 EDGE_TOL=0.05）。
+
+       载体＝gazebo_3d_carrier（kinematic 位姿沉，SetWorldPose 直推）：
+       平面物理载体在坡上过不了局部规划器的垂直分量门槛（map_to_body_planar
+       对 vz>1e-6 拒发），kinematic 载体按构造绕开，位姿 z 由支撑面吸附。
+       它直发 /v8/local/pose（z=支撑点，契约语义），订 /v8/local/cmd。
+
+       数据流：
+         ramp_nav/maps/ramp.json  =>[v8_map_file]=>  /v8_support_map（latch）
+         /v8/local/pose  =>[sim_pose_source(pose 模式)]=>  localization_ok + /v8/global/start
+         /v8/bt/goal  =>[bt_console]=>  /v8/global/goal(直发)  =>[v8_global_planner]=>  /global_path
+         /global_path  =>[v8_path_goal]=>  /v8/local/goal
+         /v8/local/pose + /v8/local/goal  =>[v8_local_planner]=>  /v8/local/cmd  =>[gazebo_3d_carrier]=>  Gazebo 模型
+
+       ★前置：本栈自起 gzserver（headless），与 m1 栈的 gzserver 共用一个
+       roscore 会抢 /gazebo 服务名——启动前必须先停 m1 栈★。 -->
+  <arg name="enable_bt" default="true"/>
+  <arg name="bt_profile" default="demo"/>
+  <arg name="zmq_pub_port" default="5555"/>
+  <arg name="zmq_sub_port" default="5556"/>
+  <arg name="scene_dir" default="$(find lite3_gazebo_sim)/scenarios/ramp_nav"/>
+  <arg name="carrier_start" default="-2.0,1.0,0.0"/>
+
+  <!-- 1) Gazebo：坡面世界（含仅视觉载体模型 ramp_carrier）。 -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg scene_dir)/worlds/ramp.world"/>
+    <arg name="gui" value="false"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="headless" value="false"/>
+  </include>
+
+  <!-- 2) kinematic 3D 载体：订 /v8/local/cmd（TwistStamped，map 帧 3D 速度），
+       直发 /v8/local/pose（z=支撑点，按 ramp.json 支撑面吸附 snap 0.05）。 -->
+  <node pkg="lite3_gazebo_sim" type="gazebo_3d_carrier.py" name="gazebo_3d_carrier"
+        output="screen"         args="--prefix /v8/local --model ramp_carrier
+        --start=$(arg carrier_start) --center-z 0.10
+        --snap-map $(arg scene_dir)/maps/ramp.json --snap-m 0.07"/>
+
+  <!-- 3) 定位占位桥（pose 模式）：源直发契约话题，本节点只补心跳与 start。 -->
+  <node pkg="lite3_gazebo_sim" type="sim_pose_source.py" name="sim_pose_source" output="screen">
+    <param name="src_type" value="pose"/>
+    <param name="src_topic" value="/v8/local/pose"/>
+    <param name="dst_topic" value=""/>
+    <param name="localization_ok_period_s" value="0.2"/>
+    <param name="start_topic" value="/v8/global/start"/>
+    <param name="start_rate" value="0.5"/>
+  </node>
+
+  <!-- 4) 障碍物心跳（同平地栈：RTF 余量按 sim 10 Hz）。 -->
+  <node pkg="lite3_gazebo_sim" type="sim_empty_obstacles.py" name="sim_empty_obstacles"
+        output="screen">
+    <param name="topic" value="/v8/local/obstacles"/>
+    <param name="rate" value="10.0"/>
+  </node>
+
+  <!-- 5) 支撑图发布：ramp_nav 同源地图。 -->
+  <node pkg="v8_platform" type="run_map_file.py" name="v8_map_file" output="screen">
+    <param name="map_json" value="$(arg scene_dir)/maps/ramp.json"/>
+    <param name="map_topic" value="/v8_support_map"/>
+  </node>
+
+  <!-- 6) 全局规划器：默认订阅 /v8/global/goal（demo 链 BT 直发口）＋ start ＋ map。 -->
+  <node pkg="v8_platform" type="run_global_planner.py" name="v8_global_planner" output="screen"/>
+
+  <!-- 7) 全局路径 -> 局部目标。 -->
+  <node pkg="v8_platform" type="run_path_goal.py" name="v8_path_goal" output="screen">
+    <param name="path_topic" value="/global_path"/>
+    <param name="goal_topic" value="/v8/local/goal"/>
+  </node>
+
+  <!-- 8) 局部规划器：无 twist 镜像（平面镜像的 vz 门槛不适用于坡面爬升），
+       命令走 /v8/local/cmd（TwistStamped，3D）直驱 kinematic 载体。 -->
+  <node pkg="v8_platform" type="run_local_planner.py" name="v8_local_planner" output="screen">
+    <param name="pose_topic" value="/v8/local/pose"/>
+    <param name="goal_topic" value="/v8/local/goal"/>
+    <param name="map_topic" value="/v8_support_map"/>
+    <param name="command_topic" value="/v8/local/cmd"/>
+    <!-- 显式置空：不写这行时会吃到平地栈残留在 param 服务器里的
+         twist_topic=/cmd_vel（roslaunch 只增不删），twist 镜像被启用后
+         坡面爬升的 vz 分量必触发 E_LOCAL_VERTICAL_UNSUPPORTED 并锁死。 -->
+    <param name="twist_topic" value=""/>
+    <!-- 滚动短视界：horizon 2s（搜索深度 4 步、单次 plan ~150ms；默认 6s 时
+         单次 ~5s 远超 validity 0.75s sim 时钟，算完即过期＝E_LOCAL_EXPIRED 循环、
+         载体永远不动）。validity 3s 覆盖 RTF~0.45 + worker 计算延迟。
+         support_tol 收紧到 0.02：坡面切片层差 0.06，0.25 会让 surface_at 把
+         ramp 上的点错解析成列表靠前的 ground（假 E_TRAJ_TRANSITION 锁死在
+         z=0.18）。µm 贯穿由载体 snap 吸附（snap_m 0.05）兜底，不靠 tol。 -->
+    <rosparam param="experimental_config">{support_tol_m: 0.02, horizon_s: 2.0, validity_s: 3.0}</rosparam>
+  </node>
+
+  <!-- 9) 编排层：Nav2 式 BT + goal gate。 -->
+  <group if="$(arg enable_bt)">
+    <include file="$(find lite3_bt)/launch/bt_console.launch">
+      <arg name="profile" value="$(arg bt_profile)"/>
+      <arg name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
+      <arg name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
+    </include>
+  </group>
+</launch>

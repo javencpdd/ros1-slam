@@ -71,7 +71,11 @@ def feedback_uncertainty(observed_at, now, commands, latency_bound_s):
 
 
 NON_LATCHING = {'E_LOCAL_WORLD_UPDATED', 'E_LOCAL_EXPIRED', 'E_LOCAL_NO_TRAJECTORY',
-                'E_LOCAL_NOT_READY', 'E_LOCAL_INPUT'}
+                'E_LOCAL_NOT_READY', 'E_LOCAL_INPUT', 'E_LOCAL_CLOCK'}
+# E_LOCAL_CLOCK 不锁死：sim 时钟与 pose stamp 的顺序竞态（/clock 步进慢于
+# 载体 pose 的 sim stamp）是良性瞬态——fail-closed 输出照发，时钟追上后
+# 新的 pose 样本即自愈。锁死反而拒收一切后续 worker 成功响应（坡面栈
+# 八次起栈实证：一次竞态即全链停摆，需重发 goal 才能解锁）。
 
 
 def stop_reason(fresh, latched, latched_reason, result, result_at, wall_now,

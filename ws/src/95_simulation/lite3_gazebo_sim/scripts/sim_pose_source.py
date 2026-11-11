@@ -10,6 +10,10 @@ bridged it inside a throw-away test script.  This node is the formal bridge:
         -> /v8/local/localization_ok (std_msgs/Bool, True while poses are fresh)
         -> /v8/global/start          (PoseStamped, 低频，可关，喂全局规划器)
 
+src_type=pose（坡面链）：源是 map 帧 PoseStamped 的直接生产者（如
+gazebo_3d_carrier），本节点只补 localization_ok 心跳与 start，dst_topic 置空
+关闭转发，位姿由源直发契约话题。
+
 The second output matters: `local_planner/ros_node.py` refuses to command motion
 with `reason=E_LOCAL_LOCALIZATION` until it hears that flag, so a pose source
 that stays silent leaves the carrier standing still even with a valid path.
@@ -40,6 +44,13 @@ class SimPoseSource(object):
         self.publish_ok = bool(rospy.get_param('~publish_localization_ok', True))
         self.ok_period = float(rospy.get_param('~localization_ok_period_s', 1.0))
         self.frame_id = rospy.get_param('~frame_id', 'map')
+        # src_type=pose：源已是 map 帧的 PoseStamped（如 gazebo_3d_carrier 直发
+        # 契约话题），本节点只当「定位占位桥」——发 localization_ok 心跳与 start，
+        # 不再转发位姿本身（dst_topic 置空即关转发，避免与源发布者抢话题）。
+        # src_type=odometry（默认）：走 /sim/odom_gt 桥的老行为。
+        self.src_type = rospy.get_param('~src_type', 'odometry')
+        if self.src_type not in ('odometry', 'pose'):
+            raise ValueError('src_type must be odometry or pose')
         # map 坐标系的 z 语义是「支撑点高度」（与支撑图 z_reference 同基准）。
         # Gazebo 位姿取模型中心（方盒半高 0.11），不改算会出现两处假故障：
         # ①支撑判定 |z-0|=0.11 超 support_tol（此前靠 tol 0.25 压住）；
@@ -57,15 +68,34 @@ class SimPoseSource(object):
         self.latest = None
         self._last_ok = 0.0
         self._last_start = 0.0
-        self.pub = rospy.Publisher(self.dst_topic, PoseStamped, queue_size=2)
+        if self.src_type == 'pose' and not self.dst_topic:
+            self.pub = None
+        else:
+            self.pub = rospy.Publisher(self.dst_topic, PoseStamped, queue_size=2)
         self.ok_pub = rospy.Publisher(self.loc_topic, Bool, queue_size=1, latch=True)
         self.start_pub = (rospy.Publisher(self.start_topic, PoseStamped, queue_size=1, latch=True)
                           if self.start_topic else None)
-        rospy.Subscriber(self.src_topic, Odometry, self.on_odom, queue_size=5)
+        if self.src_type == 'pose':
+            rospy.Subscriber(self.src_topic, PoseStamped, self.on_pose_src, queue_size=5)
+        else:
+            rospy.Subscriber(self.src_topic, Odometry, self.on_odom, queue_size=5)
         rospy.Timer(rospy.Duration(1.0 / rate), self.tick)
-        rospy.loginfo('[sim_pose_source] %s -> %s @ %.0f Hz; localization_ok -> %s; start -> %s',
-                      self.src_topic, self.dst_topic, rate, self.loc_topic,
-                      self.start_topic or '(off)')
+        rospy.loginfo('[sim_pose_source] %s(%s) -> %s @ %.0f Hz; localization_ok -> %s; start -> %s',
+                      self.src_topic, self.src_type, self.dst_topic or '(source direct)',
+                      rate, self.loc_topic, self.start_topic or '(off)')
+
+    def on_pose_src(self, msg):
+        # 源已是契约帧位姿（含正确的支撑点 z 语义）；z 换算交给源侧，
+        # 此处原样缓存（z_offset/z_snap 仍可作通用兜底，默认关）。
+        pose = PoseStamped()
+        pose.header = msg.header
+        pose.pose = msg.pose
+        if self.z_offset or self.z_snap_band:
+            z = pose.pose.position.z + self.z_offset
+            if -self.z_snap_band <= z < 0.:
+                z = 0.
+            pose.pose.position.z = z
+        self.latest = pose
 
     def on_odom(self, msg):
         pose = PoseStamped()
@@ -81,7 +111,8 @@ class SimPoseSource(object):
     def tick(self, _event):
         if self.latest is None:
             return
-        self.pub.publish(self.latest)
+        if self.pub is not None:
+            self.pub.publish(self.latest)
         if self.start_pub is not None:
             now = time.time()
             if now - self._last_start >= 1.0 / self.start_rate:
