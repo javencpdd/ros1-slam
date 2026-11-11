@@ -310,7 +310,7 @@ def main():
 
     # 6) watch the BT outcome and the physical distance to the injected box
     robot_min = 99.0
-    deadline = time.time() + 300.0
+    deadline = time.time() + float(os.environ.get("P4_BT_TIMEOUT", "300"))
     while time.time() < deadline:
         if st.odom is not None:
             robot_min = min(robot_min, float(np.linalg.norm(np.array(st.odom) - np.array([ix, iy]))))
