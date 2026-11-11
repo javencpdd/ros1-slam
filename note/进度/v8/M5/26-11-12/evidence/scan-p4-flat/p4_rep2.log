@@ -1,0 +1,35 @@
+[20:01:04] == [0] 红线预检：并发／样张／世界件本体 ==
+foxy 见证基准（A1 乙＝本 boot 现取）:
+  现取命中 0 行 ⇒ /tmp/scan_p4_run/foxy_start.txt
+  六 unit 见证快照起前 = 12 行 ⇒ /tmp/scan_p4_run/wit_start.txt（名单数应为 6；名单＝§0.12.3 在册六件）
+  [INVALID] 覆盖面快照行数≠6 ⇒ 本窗不得写零触碰、不得引用为红线达成
+在册端口起前监听：11313=0 11312=0（均须 0）
+d3deb80e9ccf69ae556eeef9491eb6efb5f828526109295d2925c8cba70a958c  /home/ros1-slam/data/maps/lite3.pcd
+fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+[20:01:05] == [1] roscore 11313 ==
+[20:01:07] == [2] m2_gazebo ==
+[20:01:29] == [3] m2_mapping（faster_lio 位姿源）==
+[20:01:34] == [4] 60_safety（mux 上链）==
+C-1 面：/cmd_vel Publishers＝ * /safe_cmd_vel_mux 
+[20:01:38] == [5] 70_scan.launch（含 J1 到达观测件）==
+F9 互斥: move_base/teb 节点数=0 须=0；链上四件=4/4
+扰动前模型位姿自证：
+[20:01:50] == [6] P4 取证（投障碍→看见→重规划→仍到达）==
+p4 python rc=0
+P4 重规划结论 = PASS|障碍被看见(129 点)⇒扰动后轨迹离箱心最近 0.75m≥0.40m（避让在位）⇒未撞（物理最近 0.75m）⇒到达偏差 0.130m≤0.35m｜两列并报 avoid@0.40=0.75／breach@0.10=0.01｜还原=restored(True)｜delta_m=0.0／tol_m=0.02／qdelta=0.0／why=无
+{"steps": ["pose_before=[5.8, -1.0, 0.4, 0.0, 0.0, -0.2955, 0.9553]", "goal_delivered=True", "traj_pts=120", "injected=obs_5→(-1.72,1.03)", "disturbance_seen=129", "replanned=True", "restore_delta_m=0.0"], "fail": false, "invalid": false, "goal": [-2.771, 1.55], "goal_r": 3.175, "goal_clear": 2.971, "pose_before": [5.8, -1.0, 0.4, 0.0, 0.0, -0.2955, 0.9553], "traj_before": {"start_time": 14.815, "n_ctrl": 24, "first": [0.014, 0.027], "last": [-2.765, 1.546]}, "inject": {"model": "obs_5", "at": [-1.721, 1.027], "z": 0.4, "pts_before": 3935, "occ_pts_near": 129}, "traj_after": {"start_time": 15.766, "n_ctrl": 24, "first": [-0.013, 0.006], "last": [-2.766, 1.547]}, "traj_before_control_min_dist": 0.015, "new_traj": {"n_pts": 120, "min_dist_to_any_occ_2d": 0.012, "min_dist_to_any_occ_3d": 0.239, "min_dist_to_injected": 0.649, "nearest_traj_pt": [-1.376, 0.137], "nearest_occ_pt": [-1.375, 0.125], "nearest_occ_from_start_m": 1.369, "min_dist_excl_start_0p5m": 0.012, "nearest_occ_z": -0.825, "odom_z": -0.052}, "clearance": {"min_dist_to_any_occ": 0.012, "min_dist_to_injected": 0.649, "gate_occ": 0.1}, "physical": {"robot_min_to_injected": 0.748, "box_half_width": 0.4, "traj_min_to_injected_final": 0.75}, "arrive": {"arrived": true, "dist_end": 0.126, "dt_sim_since_replan": 39.25, "cmd_count": 4359, "displacement": 0.126}, "pose_after": [5.8, -1.0, 0.4, 0.0, 0.0, -0.2955, 0.9553], "restored": true, "restore": {"ok": true, "delta_m": 0.0, "qdelta": 0.0, "tol_m": 0.02, "qtol": 0.001, "why": ""}, "a23": {"min_dist_to_any_occ_2d": 0.012, "min_dist_to_any_occ_3d": 0.239, "breach_gate": 0.1, "breach": false, "avoid_gate": 0.4, "avoid": true}, "verdict": "P4 重规划结论 = PASS|障碍被看见(129 点)⇒扰动后轨迹离箱心最近 0.75m≥0.40m（避让在位）⇒未撞（物理最近 0.75m）⇒到达偏差 0.130m≤0.35m｜两列并报 avoid@0.40=0.75／breach@0.10=0.01｜还原=restored(True)｜delta_m=0.0／tol_m=0.02／qdelta=0.0／why=无", "grade": "PASS", "pass": true}
+结论行：P4 重规划结论 = PASS|障碍被看见(129 点)⇒扰动后轨迹离箱心最近 0.75m≥0.40m（避让在位）⇒未撞（物理最近 0.75m）⇒到达偏差 0.130m≤0.35m｜两列并报 avoid@0.40=0.75／breach@0.10=0.01｜还原=restored(True)｜delta_m=0.0／tol_m=0.02／qdelta=0.0／why=无", "grade": "PASS", "pass": true}
+[20:03:27] == [7] 还原与红线 ==
+扰动后模型位姿自证：
+世界件本体 sha 起前＝退后：是
+样张 sha 起前＝退后：是
+foxy 见证终检（与起前现取基准整行比对）:
+  红线见证（六 unit 态，§0.12.3 乙′）= INVALID-覆盖面快照不符(12 行)（foxy 残留为辅助项：foxy 残留进程（辅助，非判据）=1）
+  ⇒ 本窗不作零触碰声称、不作达成声称
+分档自证：VS 首段=PASS ⇒ RC4=0（判据行与末判必须同向）
+P4 结论 = PASS｜WITNESS=INVALID-覆盖面快照不符(12 行)｜判据行=P4 重规划结论 = PASS|障碍被看见(129 点)⇒扰动后轨迹离箱心最近 0.75m≥0.40m（避让在位）⇒未撞（物理最近 0.75m）⇒到达偏差 0.130m≤0.35m｜两列并报 avoid@0.40=0.75／breach@0.10=0.01｜还原=restored(True)｜delta_m=0.0／tol_m=0.02／qdelta=0.0／why=无", "grade": "PASS", "pass": true}｜世界件未变=是
+[20:03:28] -- teardown --
+残留进程: (空=净)
+11313 监听: 0  11312 监听: 0
+fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35  /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+d3deb80e9ccf69ae556eeef9491eb6efb5f828526109295d2925c8cba70a958c  /home/ros1-slam/data/maps/lite3.pcd

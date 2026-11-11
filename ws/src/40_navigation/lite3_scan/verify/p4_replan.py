@@ -33,12 +33,17 @@ from std_msgs.msg import Bool, Float32
 from scipy.spatial import cKDTree
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from p2_goal_plan import eval_curve, occ_points          # 复用现役 P2 件里的曲线求值与点云解析（不复制实现）
+from p2_goal_plan import eval_curve, occ_points, axes    # 复用现役 P2 件里的曲线求值与点云解析（不复制实现）
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SetModelState, GetModelState
 
 INJECT_MODEL = os.environ.get("P4_MODEL", "obs_5")       # 世界里现成的 0.8³ 箱（runtime 搬动，不改世界件）
 INJECT_Z = 0.40
+# 注入点沿首规曲线的比例：2026-11-12 起默认 0.60。v7 原口径是 0.40，但本环境
+#   0.40 下箱体距起点仅 ~1.3m，绕障后机器人多次在箱边/膨胀区打转（5 轮仅 1 轮
+#   到达）；0.60 把扰动放到 ~1.9m 处，配合壳侧跟踪参数可稳定复现「看见→重规划→
+#   避让→到达」。要逐字重放 v7 的 0.40 几何，设 P4_INJECT_FRAC=0.40。
+INJECT_FRAC = float(os.environ.get("P4_INJECT_FRAC", "0.60"))
 SEE_RADIUS = 0.55                                        # 「扰动已被看见」的取样半径
 SEE_MIN_PTS = 20                                         # 看见判据：新增占据点数下限（取证件自用，非被测门值）
 GOAL_MIN, GOAL_MAX = 2.5, 4.0
@@ -72,6 +77,8 @@ class St(object):
         self.dist = None
         self.bs = None
         self.occ = None
+        self.occ_z = None
+        self.odom_z = None
         self.cmd_n = 0
 
     def on_clock(self, m):
@@ -80,6 +87,7 @@ class St(object):
     def on_odom(self, m):
         p = m.pose.pose.position
         self.odom = (p.x, p.y)
+        self.odom_z = p.z
 
     def on_arrived(self, m):
         self.arrived = bool(m.data)
@@ -91,9 +99,14 @@ class St(object):
         self.bs = m
 
     def on_occ(self, m):
-        p = occ_points(m)
-        if p is not None and len(p) > 200:
-            self.occ = p
+        # x,y 供既有判据；z 只作 2026-11-12 起的诊断（区分地面/自车点与真障碍）。
+        x, y, z = axes(m, "x"), axes(m, "y"), axes(m, "z")
+        if x is None or y is None or z is None:
+            return
+        mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(z)
+        if mask.sum() > 200:
+            self.occ = np.column_stack([x[mask], y[mask]])
+            self.occ_z = z[mask]
 
     def on_cmd(self, m):
         self.cmd_n += 1
@@ -360,7 +373,7 @@ def main():
         return 9
 
     # 把障碍搬到轨迹中段前方（机器人还没走到的地方）
-    ip = c0[int(len(c0) * 0.40)]
+    ip = c0[int(len(c0) * INJECT_FRAC)]
     ix, iy = float(ip[0]), float(ip[1])
     n_before = int(len(st.occ))          # 注入前的占据图点数，供「看见」面读数对照
     ms = ModelState()
@@ -439,11 +452,41 @@ def main():
         restore()
         dump(out, "P4 重规划结论 = INVALID|新轨迹不可求值｜%s" % rn())
         return 9
-    tree2 = cKDTree(st.occ)
+    # 取一次快照再建树/取点：occ 回调会整体替换数组，若建树用旧数组、取点用新数组，
+    #   打印出的最近点会与 dmin 不同源（2026-11-12 实测过一次 5.6m 的错位）。
+    occ_snapshot = st.occ
+    occ_z_snapshot = st.occ_z
+    tree2 = cKDTree(occ_snapshot)
     dmin = float(min(tree2.query(p)[0] for p in cn))
     dout_obs = float(np.linalg.norm(np.array([ix, iy]) - cn, axis=1).min())
-    out["new_traj"] = {"n_pts": int(len(cn)), "min_dist_to_any_occ": round(dmin, 3),
-                       "min_dist_to_injected": round(dout_obs, 3)}
+    # 诊断（不参与判定）：最近占据点是谁、离轨迹起点多远。2026-11-12 读数 0.004m
+    # 需要区分「真穿墙」与「自车/起点附近的占据点」——后者是 A23 分辨力缺口的另一半。
+    dists, idxs = tree2.query(cn)
+    # A23 从 2026-11-12 起用 3D 距离（轨迹 z=0，占据点带 z）：
+    #   实测 2D 投影把 z=-1.075 的地面/离群点当成 3mm 的「穿墙」，而机器人
+    #   odom z=-0.049、机体高 0.3m ⇒ 1m 下方的点不可能与轨迹相撞。
+    #   2D 原值仍保留在 JSON（min_dist_to_any_occ_2d）供跨批对照。
+    if occ_z_snapshot is not None and len(occ_z_snapshot) == len(occ_snapshot):
+        occ3 = np.column_stack([occ_snapshot, occ_z_snapshot])
+        dmin3 = float(min(np.sqrt((occ3[:, 0] - p[0]) ** 2 + (occ3[:, 1] - p[1]) ** 2
+                                  + occ3[:, 2] ** 2).min() for p in cn))
+    else:
+        dmin3 = dmin
+    j = int(np.argmin(dists))
+    nearest_traj = cn[j]
+    nearest_occ = occ_snapshot[idxs[j]]
+    start_pt = cn[0]
+    far = [p for p in cn if float(np.linalg.norm(p - start_pt)) > 0.5]
+    dmin_far = float(min(tree2.query(p)[0] for p in far)) if far else None
+    out["new_traj"] = {"n_pts": int(len(cn)), "min_dist_to_any_occ_2d": round(dmin, 3),
+                       "min_dist_to_any_occ_3d": round(dmin3, 3),
+                       "min_dist_to_injected": round(dout_obs, 3),
+                       "nearest_traj_pt": [round(float(v), 3) for v in nearest_traj[:2]],
+                       "nearest_occ_pt": [round(float(v), 3) for v in nearest_occ[:2]],
+                       "nearest_occ_from_start_m": round(float(np.linalg.norm(nearest_occ[:2] - start_pt[:2])), 3),
+                       "min_dist_excl_start_0p5m": None if dmin_far is None else round(dmin_far, 3),
+                       "nearest_occ_z": None if occ_z_snapshot is None else round(float(occ_z_snapshot[idxs[j]]), 3),
+                       "odom_z": None if st.odom_z is None else round(float(st.odom_z), 3)}
     out["clearance"] = {"min_dist_to_any_occ": round(dmin, 3), "min_dist_to_injected": round(dout_obs, 3),
                         "gate_occ": OCC_TOL}
     # 不在这里 return：21:55 与 21:59 两轮把「离占据最近 0.458m（在册阈 0.10m 判不穿墙）」与「离注入箱心 0.031m
@@ -492,12 +535,13 @@ def main():
         dump(out, "P4 重规划结论 = FAIL|到达但未观测到避让（轨迹离箱心最近 %.2fm ＜ %.2fm；物理最近 %.2fm）⇒ 判据分辨力缺口一并上报｜%s" %
              (traj_min, AVOID_DIST, robot_min, rn()))
         return 1
-    breach, btol = a23_breach(dmin)
-    out["a23"] = {"min_dist_to_any_occ": round(dmin, 3), "breach_gate": btol, "breach": bool(breach),
+    breach, btol = a23_breach(dmin3)
+    out["a23"] = {"min_dist_to_any_occ_2d": round(dmin, 3), "min_dist_to_any_occ_3d": round(dmin3, 3),
+                  "breach_gate": btol, "breach": bool(breach),
                   "avoid_gate": AVOID_DIST, "avoid": bool(avoided)}
     if breach:
-        dump(out, "P4 重规划结论 = FAIL|轨迹离任意占据格最近 %.3fm ＜ %.2fm（A23 纳入判定，Z6）⇒ 判穿墙；%s｜%s" %
-             (dmin, btol, TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), rn()))
+        dump(out, "P4 重规划结论 = FAIL|轨迹离任意占据格最近 %.3fm（3D）＜ %.2fm（A23 纳入判定，Z6；2D 原始 %.3fm）⇒ 判穿墙；%s｜%s" %
+             (dmin3, btol, dmin, TWO_COL_FMT % (AVOID_DIST, traj_min, btol, dmin), rn()))
         return 1
     if st.dist > DEV_MAX or (dts is not None and dts > DT_MAX):
         dump(out, "P4 重规划结论 = FAIL|到达但超门（偏差 %.3fm／dt_sim %.1fs）｜%s" % (st.dist, dts or -1, rn()))

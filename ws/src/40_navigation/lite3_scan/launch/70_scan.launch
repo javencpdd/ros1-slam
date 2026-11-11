@@ -72,6 +72,16 @@
 
   <!-- 轨迹跟踪：closed_loop（run.launch 默认档）；安全网 remap 为 run.launch is_real_world 分支原文：
        绝不直发速度指令，一律改发 /scan_planner/cmd_vel（仿真域 cmd_vel_raw 中继同款模式出，写者唯一） -->
+
+  <!-- P4 绕障跟踪（2026-11-12，壳侧覆盖，不改上游件）：上游默认 max_vy=0.05 把横向
+       纠偏卡死、time_forward=0.8 让控制器切内角；p4 实测同一扰动几何 2/5 轮在箱边
+       追不上轨迹（物理离箱心 0.361m ≤ 0.40m 判撞）。降速+缩前视+提横移/位置增益后
+       再复验。这些是仿真跟踪参数，不改 SCAN 规划判据，也不改真机 profile。 -->
+  <param name="/closed_loop_controller/time_forward" value="0.4" type="double"/>
+  <param name="/closed_loop_controller/kp_pos" value="1.2" type="double"/>
+  <param name="/closed_loop_controller/max_vx" value="0.30" type="double"/>
+  <param name="/closed_loop_controller/max_vy" value="0.20" type="double"/>
+
   <node pkg="scan_planner" name="closed_loop_controller" type="closed_loop_controller" output="screen">
     <remap from="cmd_vel" to="/scan_planner/cmd_vel"/> <!-- run.launch 原文；仿真执行经 cmd_vel_raw 中继同款 -->
   </node>
