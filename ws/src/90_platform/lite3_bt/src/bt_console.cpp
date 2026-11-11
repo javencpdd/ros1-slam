@@ -57,6 +57,12 @@ struct SharedState
   bool planner_ack_ok = false;
   std::uint64_t planner_ack_seq = 0;
 
+  // Optional external arrival signal (std_msgs/Bool), e.g. SCAN's
+  // /lite3/scan/arrived.  Reset when a new goal is dequeued so a stale true
+  // cannot short-circuit the next leg.
+  bool arrival_signal_enabled = false;
+  bool arrival_signal = false;
+
   std::string last_event = "idle";
   // Persistent outcome of the current goal.  last_event is overwritten by
   // dwell/stop within a single tick, so a 2 Hz status subscriber can never
@@ -119,6 +125,7 @@ private:
     g_state.planner_ack_seen = false;
     g_state.planner_ack_ok = false;
     g_state.planner_ack_seq = 0;
+    g_state.arrival_signal = false;
     g_state.goal_outcome.clear();
     g_state.outcome_seq = 0;
     g_state.last_event = "goal";
@@ -311,6 +318,7 @@ private:
   {
     geometry_msgs::PoseStamped goal, pose;
     bool has_pose = false, ack_enabled = false, ack_seen = false, ack_ok = false;
+    bool signal_enabled = false, signal_arrived = false;
     std::uint64_t ack_seq = 0, current_seq = 0;
     {
       std::lock_guard<std::mutex> lock(g_state.mutex);
@@ -321,6 +329,8 @@ private:
       ack_seen = g_state.planner_ack_seen;
       ack_ok = g_state.planner_ack_ok;
       ack_seq = g_state.planner_ack_seq;
+      signal_enabled = g_state.arrival_signal_enabled;
+      signal_arrived = g_state.arrival_signal;
       current_seq = g_state.current_seq;
     }
 
@@ -338,6 +348,21 @@ private:
         return BT::NodeStatus::FAILURE;
       }
       if (lite3_bt::ack_advances(ack_seq, ack_ok, current_seq))
+      {
+        {
+          std::lock_guard<std::mutex> lock(g_state.mutex);
+          g_state.last_event = "reached";
+          recordOutcomeLocked(true);
+        }
+        return BT::NodeStatus::SUCCESS;
+      }
+    }
+    else if (signal_enabled)
+    {
+      // External arrival owner (e.g. SCAN's /lite3/scan/arrived).  The signal
+      // only asserts true, so it can never fail the goal on its own; the
+      // budget below stays the silent-executor guard.
+      if (signal_arrived)
       {
         {
           std::lock_guard<std::mutex> lock(g_state.mutex);
@@ -556,6 +581,13 @@ void poseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
   g_state.pose = *msg;
   g_state.has_pose = true;
 }
+
+void arrivalCallback(const std_msgs::Bool::ConstPtr& msg)
+{
+  std::lock_guard<std::mutex> lock(g_state.mutex);
+  g_state.arrival_signal = msg->data;
+  g_state.last_event = msg->data ? "arrived_signal" : "arrival_reset";
+}
 }  // namespace
 
 int main(int argc, char** argv)
@@ -597,6 +629,14 @@ int main(int argc, char** argv)
   std::string planner_result_topic;
   pnh.param<std::string>("planner_result_topic", planner_result_topic, std::string());
   g_state.planner_ack_enabled = !planner_result_topic.empty();
+  std::string arrival_topic;
+  pnh.param<std::string>("arrival_topic", arrival_topic, std::string());
+  g_state.arrival_signal_enabled = !arrival_topic.empty();
+  if (g_state.planner_ack_enabled && g_state.arrival_signal_enabled)
+  {
+    ROS_ERROR("~planner_result_topic and ~arrival_topic are mutually exclusive");
+    return 1;
+  }
 
   g_state.goal_pub = nh.advertise<geometry_msgs::PoseStamped>(out_goal_topic, 1);
   g_state.planner_goal_pub = nh.advertise<geometry_msgs::PoseStamped>(planner_goal_topic, 1);
@@ -624,6 +664,12 @@ int main(int argc, char** argv)
   else
   {
     ROS_INFO("[bt] pose-based arrival mode (no planner_result_topic)");
+  }
+  ros::Subscriber arrival_sub;
+  if (g_state.arrival_signal_enabled)
+  {
+    arrival_sub = nh.subscribe<std_msgs::Bool>(arrival_topic, 1, arrivalCallback);
+    ROS_INFO("[bt] external arrival signal mode: %s", arrival_topic.c_str());
   }
 
   BT::BehaviorTreeFactory factory;
@@ -684,6 +730,7 @@ int main(int argc, char** argv)
       std::size_t depth = 0;
       int path_points = 0;
       std::uint64_t goal_seq = 0, current_seq = 0, outcome_seq = 0;
+      bool arrival_signal = false;
       const char* planner_mode = "pose";
       {
         std::lock_guard<std::mutex> lock(g_state.mutex);
@@ -695,7 +742,9 @@ int main(int argc, char** argv)
         depth = g_state.pending.depth();
         goal_seq = g_state.goal_seq;
         current_seq = g_state.current_seq;
-        planner_mode = g_state.planner_ack_enabled ? "ack" : "pose";
+        arrival_signal = g_state.arrival_signal;
+        planner_mode = g_state.planner_ack_enabled ? "ack"
+                       : g_state.arrival_signal_enabled ? "signal" : "pose";
       }
       std::string nodes = "[";
       for (size_t i = 0; i < tree.nodes.size(); ++i)
@@ -715,6 +764,7 @@ int main(int argc, char** argv)
                     ",\"path_state\":\"" + path_state + "\"" +
                     ",\"path_points\":" + std::to_string(path_points) +
                     ",\"planner_mode\":\"" + planner_mode + "\"" +
+                    ",\"arrival_signal\":" + std::string(arrival_signal ? "true" : "false") +
                     ",\"nodes\":" + nodes + "}";
       status_pub.publish(status);
       last_status = ros::Time::now();

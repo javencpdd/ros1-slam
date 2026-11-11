@@ -1,0 +1,51 @@
+<launch>
+  <!-- scan_bt_nav.launch —— SCAN 规划/跟踪接进 v8 BT 编排（2026-11-12）
+
+       数据流（BT 是唯一目标序列所有者；SCAN 负责规划与跟踪，不接管编排）：
+         /v8/bt/goal → [bt_console WaitForGoal/RequestPath] → /scan_planner/goal
+         /scan_planner/goal → [scan_planner_node FSM] → /planning/bspline
+         /planning/bspline → [scan_bt_bridge] → /global_path + /global_path/status
+         /global_path/status → [bt_console WaitForPath] → FollowPath
+         /lite3/scan/arrived → [scan_bt_bridge] → /v8/bt/arrived → [WaitArrival]
+         /v8/bt/arrived 之后 Dwell → Stop（Stop 的零速话题仍走 bt_console 的 stop_topic）
+
+       本 launch 只装配 SCAN + 桥 + BT；Gazebo／faster_lio／mux 由调用方按
+       v7 SCAN 链的同一顺序先起（m2_gazebo → m2_mapping → 60_safety → 70_scan）。
+       ★与 70_scan.launch 同起时不要重复起 scan_arrival_monitor：
+         70_scan.launch 已含 J1 观测件；本 launch 只消费 /lite3/scan/arrived。★ -->
+  <arg name="scan_goal_topic" default="/scan_planner/goal"/>
+  <arg name="bt_goal_topic" default="/v8/bt/goal"/>
+  <arg name="arrival_topic" default="/v8/bt/arrived"/>
+  <arg name="scan_arrived_topic" default="/lite3/scan/arrived"/>
+  <arg name="path_topic" default="/global_path"/>
+  <arg name="path_status_topic" default="/global_path/status"/>
+  <arg name="pose_in_topic" default="/LIO/odom_vehicle"/>
+  <arg name="pose_out_topic" default="/v8/local/pose"/>
+  <arg name="zmq_pub_port" default="5555"/>
+  <arg name="zmq_sub_port" default="5556"/>
+
+  <!-- 1) 契约桥：SCAN 话题 ↔ v8/BT 话题，只翻译不规划。 -->
+  <node pkg="lite3_scan" type="scan_bt_bridge.py" name="scan_bt_bridge" output="screen">
+    <param name="bspline_topic" value="/planning/bspline"/>
+    <param name="goal_topic" value="$(arg scan_goal_topic)"/>
+    <param name="arrived_topic" value="$(arg scan_arrived_topic)"/>
+    <param name="bt_arrived_topic" value="$(arg arrival_topic)"/>
+    <param name="path_topic" value="$(arg path_topic)"/>
+    <param name="path_status_topic" value="$(arg path_status_topic)"/>
+    <param name="pose_in_topic" value="$(arg pose_in_topic)"/>
+    <param name="pose_out_topic" value="$(arg pose_out_topic)"/>
+    <!-- SCAN 的世界系（faster_lio camera_init）；BT 只用折线长度与点数，不改坐标系。 -->
+    <param name="frame" value="camera_init"/>
+    <param name="samples" value="120"/>
+  </node>
+
+  <!-- 2) BT：RequestPath 直发 SCAN goal；到达权交给 /v8/bt/arrived。 -->
+  <include file="$(find lite3_bt)/launch/bt_console.launch">
+    <arg name="planner_goal_topic" value="$(arg scan_goal_topic)"/>
+    <arg name="path_status_topic" value="$(arg path_status_topic)"/>
+    <arg name="path_topic" value="$(arg path_topic)"/>
+    <arg name="arrival_topic" value="$(arg arrival_topic)"/>
+    <arg name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
+    <arg name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
+  </include>
+</launch>

@@ -150,12 +150,17 @@ releases `FollowPath`.  `E_PLAN_RUNNING` / `E_PLAN_NOT_READY` /
 `E_PLAN_CANCELLED_REQUESTED` are transient; other failures end the goal.
 Malformed status is ignored rather than guessed.
 
-There are two arrival modes:
+There are three arrival modes:
 
 | mode | when | who decides the goal is done |
 |---|---|---|
-| `pose` (default) | `~planner_result_topic` empty | BT compares `/v8/local/pose` with the goal (0.25 m, budget from path length, floor 60 s) |
+| `pose` (default) | `~planner_result_topic` and `~arrival_topic` empty | BT compares `/v8/local/pose` with the goal (0.25 m, budget from path length, floor 60 s) |
+| `signal` | `~arrival_topic` set | an external owner publishes `std_msgs/Bool` (SCAN: `/lite3/scan/arrived`); reset when a new goal is dequeued |
 | `ack` | `~planner_result_topic` set | downstream executor publishes the result |
+
+`~arrival_topic` and `~planner_result_topic` are mutually exclusive (the node
+refuses to start with both).  In signal mode the goal can only be completed by
+a true signal or the budget timeout; the signal itself never fails a goal.
 
 The pose-mode budget is `max(tree timeout, path_length / ~arrival_speed_floor_mps)`,
 frozen at `WaitArrival::onStart` from the latest `/global_path` polyline.  The

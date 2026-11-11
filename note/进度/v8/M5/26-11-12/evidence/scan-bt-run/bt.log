@@ -1,0 +1,94 @@
+[33m[ WARN] [1794423416.237944059, 55.407000000]: Shutdown request received.[0m
+[33m[ WARN] [1794423416.238461840, 55.407000000]: Reason given for shutdown: [user request][0m
+[0m[ INFO] [1794423318.994430220]: [bt] pose-based arrival mode (no planner_result_topic)[0m
+[0m[ INFO] [1794423318.998015890]: [bt] external arrival signal mode: /v8/bt/arrived[0m
+[0m[ INFO] [1794423319.010586482]: [bt] tree loaded: /opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml[0m
+[0m[ INFO] [1794423319.010636388]: [bt] planner input /scan_planner/goal, status /global_path/status[0m
+[0m[ INFO] [1794423319.010647574]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[0m[ INFO] [1794423328.509591322, 16.820000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1794423328.637333911, 16.870000000]: [bt] goal 1 dequeued (0 waiting)[0m
+[0m[ INFO] [1794423328.637761583, 16.870000000]: [bt] global path requested for goal 1[0m
+[0m[ INFO] [1794423328.871048890, 16.970000000]: [bt] global path ready (120 points)[0m
+[0m[ INFO] [1794423328.871534196, 16.970000000]: [bt] follow path -> dispatch goal -0.474, 3.598, 0[0m
+[0m[ INFO] [1794423328.871663563, 16.970000000]: [bt] arrival budget 175.5 s (path 3.51 m, floor 0.020 m/s, tree 60.0 s)[0m
+[INFO] [1794423319.626738, 12.905000]: [goal-gate] /v8/bt/goal_request -> /v8/3d/global/goal (lease=/v8/bt/lease, timeout=1.0s, acl=True, allowed=/bt_console)
+[INFO] [1794423328.872379, 16.970000]: [goal-gate] forwarded 3D goal (-0.47, 3.60, 0.00)
+shutdown request: user request
+[INFO] [1794423319.644572, 12.914000]: scan_bt_bridge up: bspline=/planning/bspline path=/global_path status=/global_path/status arrived=/lite3/scan/arrived->/v8/bt/arrived pose=/LIO/odom_vehicle->/v8/local/pose
+[INFO] [1794423319.665069, 12.925000]: SCAN arrival=False
+[INFO] [1794423328.639247, 16.870000]: SCAN goal observed: path status reset to E_PLAN_RUNNING
+[INFO] [1794423328.646083, 16.874000]: SCAN arrival=False
+[INFO] [1794423328.687532, 16.893000]: bspline -> /global_path: 120 points
+[INFO] [1794423343.337599, 23.403000]: bspline -> /global_path: 120 points
+[INFO] [1794423360.158135, 30.461000]: bspline -> /global_path: 120 points
+[INFO] [1794423376.170608, 37.544000]: bspline -> /global_path: 120 points
+[INFO] [1794423390.746622, 43.995000]: bspline -> /global_path: 120 points
+[INFO] [1794423413.769812, 54.322000]: SCAN arrival=True
+shutdown request: user request
+... logging to /opt/ros1-slam/logs/53cd70a0-de01-11f1-8f8c-7907a1a8bdff/roslaunch-745c41e3a38c-162763.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/src/40_navigation/lite3_scan/launch/scan_bt_nav.launch
+[1mstarted roslaunch server http://127.0.0.1:37915/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /bt_console/arrival_speed_floor_mps: 0.02
+ * /bt_console/arrival_topic: /v8/bt/arrived
+ * /bt_console/goal_topic: /v8/bt/goal
+ * /bt_console/lease_topic: /v8/bt/lease
+ * /bt_console/out_goal_topic: /v8/bt/goal_request
+ * /bt_console/path_status_topic: /global_path/status
+ * /bt_console/path_topic: /global_path
+ * /bt_console/planner_goal_topic: /scan_planner/goal
+ * /bt_console/planner_result_topic: 
+ * /bt_console/pose_topic: /v8/local/pose
+ * /bt_console/queue_max: 16
+ * /bt_console/stop_topic: /lite3/teleop/app...
+ * /bt_console/tree_file: /opt/ros1-slam/ws...
+ * /bt_console/zmq_pub_port: 5555
+ * /bt_console/zmq_sub_port: 5556
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /scan_bt_bridge/arrived_topic: /lite3/scan/arrived
+ * /scan_bt_bridge/bspline_topic: /planning/bspline
+ * /scan_bt_bridge/bt_arrived_topic: /v8/bt/arrived
+ * /scan_bt_bridge/frame: camera_init
+ * /scan_bt_bridge/goal_topic: /scan_planner/goal
+ * /scan_bt_bridge/path_status_topic: /global_path/status
+ * /scan_bt_bridge/path_topic: /global_path
+ * /scan_bt_bridge/pose_in_topic: /LIO/odom_vehicle
+ * /scan_bt_bridge/pose_out_topic: /v8/local/pose
+ * /scan_bt_bridge/samples: 120
+ * /v8_goal_gate/allowed_callers: /bt_console
+ * /v8_goal_gate/lease_timeout: 1.0
+ * /v8_goal_gate/lease_topic: /v8/bt/lease
+ * /v8_goal_gate/output_topic: /v8/3d/global/goal
+ * /v8_goal_gate/request_topic: /v8/bt/goal_request
+ * /v8_goal_gate/require_acl: True
+ * /v8_goal_gate/require_lease: True
+
+NODES
+  /
+    bt_console (lite3_bt/bt_console)
+    scan_bt_bridge (lite3_scan/scan_bt_bridge.py)
+    v8_goal_gate (lite3_bt/goal_gate.py)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/src/40_navigation/lite3_scan/launch/scan_bt_nav.launch http://127.0.0.1:11313
+[1mprocess[scan_bt_bridge-1]: started with pid [162925][0m
+[1mprocess[bt_console-2]: started with pid [162926][0m
+[1mprocess[v8_goal_gate-3]: started with pid [162927][0m
+[1m[bt_console-2] process has finished cleanly
+log file: /opt/ros1-slam/logs/53cd70a0-de01-11f1-8f8c-7907a1a8bdff/bt_console-2*.log[0m
+[1m[scan_bt_bridge-1] process has finished cleanly
+log file: /opt/ros1-slam/logs/53cd70a0-de01-11f1-8f8c-7907a1a8bdff/scan_bt_bridge-1*.log[0m
+[1m[v8_goal_gate-3] process has finished cleanly
+log file: /opt/ros1-slam/logs/53cd70a0-de01-11f1-8f8c-7907a1a8bdff/v8_goal_gate-3*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

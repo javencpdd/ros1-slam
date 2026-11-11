@@ -1,0 +1,15 @@
+[18:54:30] == [0] 环境预检 ==
+起前 11313 监听=0（须 0，否则先停旧栈）
+[18:54:30] == [1] roscore 11313 ==
+[18:54:33] == [2] m2_gazebo ==
+[18:54:56] == [3] m2_mapping（faster_lio）==
+[18:55:01] == [4] 60_safety（mux）==
+[18:55:05] == [5] 70_scan ==
+[18:55:17] == [6] scan_bt_nav（BT + 契约桥）==
+节点: 7/7
+[18:55:27] == [7] BT 发目标并判到达 ==
+{"verdict": "PASS", "reason": "outcome=reached", "goal": [-0.474, 3.598], "path_points": 120, "ready_s": 0.23, "reached_s": 86.33, "dist_end_m": 0.141, "arrived": true, "outcome": "reached", "outcome_seq": 1, "planner_mode": "signal", "events": [["arrival_reset", "", 0], ["arrival_start", "", 120], ["path_ready", "", 120], ["dwell", "reached", 120]]}
+SCAN-BT 结论 = PASS|BT 编排经 SCAN 规划/跟踪完成到达
+[18:56:55] -- teardown --
+残留进程: (空=净)
+11313 监听: 0
