@@ -1,10 +1,7 @@
 """Pure support-aware kinematics for the Gazebo pose-sink carrier."""
 import math
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'representation'))
-import support_map as rep
+import support_cells as rep
 
 
 def _finite_vector(point):

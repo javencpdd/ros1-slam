@@ -91,6 +91,15 @@ class AppFixture:
                       'map': {'id': entry['map_id'], 'version': entry['version']},
                       'task': str(task_path), 'localization': {'source': 'carrier'},
                       'carrier': {'backend': 'lite3' if hardware else 'gazebo'}}
+        if not hardware:
+            declaration = self.root / 'sim_backends.yaml'
+            declaration.write_text(yaml.safe_dump({
+                'schema': 'v8_simulation_backends/v1',
+                'backends': {'gazebo': {
+                    'world_launch_allowlist': [],
+                    'legacy_default': {'package': 'lite3_gazebo_sim',
+                                       'launch': 'nist_stairs_120_s020x170.launch'}}}}))
+            self.value['carrier']['simulation_declaration'] = str(declaration)
         self.path = self.root / 'app.yaml'
 
     def save(self):

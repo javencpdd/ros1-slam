@@ -8,6 +8,6 @@ task: ws/src/90_platform/v8_platform/framework/fixtures/tasks/nist_sensor_top.js
 localization:
   source: faster_lio
   graph: ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_gazebo_loc.yaml
-carrier: {backend: gazebo, model_name: app_carrier, center_z: 0.1, snap_m: 0.03, spawn: true}
+carrier: {backend: gazebo, model_name: app_carrier, center_z: 0.1, snap_m: 0.03, spawn: true, simulation_declaration: ws/src/95_simulation/v8_simulation/config/sim_backends.yaml}
 visualization: {markers: true, rviz: false}
 global: {budget: 20000, min_clearance_m: 0.4}

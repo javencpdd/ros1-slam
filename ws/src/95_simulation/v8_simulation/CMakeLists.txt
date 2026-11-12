@@ -9,7 +9,7 @@ catkin_install_python(PROGRAMS
   scripts/gazebo_truth.py
   scripts/mujoco_truth.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(FILES scripts/_source_entry.py
+install(FILES scripts/carrier_kinematics.py scripts/support_cells.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

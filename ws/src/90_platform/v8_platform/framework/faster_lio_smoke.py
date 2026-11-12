@@ -55,9 +55,10 @@ def main():
     assembly = None
     try:
         time.sleep(3)
-        gazebo = start(['roslaunch',
-                        '/repo/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch',
-                        'gui:=false'], '/tmp/r1028_gazebo.log')
+        sim_launch = os.environ.get('V8_SIM_LAUNCH')
+        if not sim_launch:
+            raise SystemExit('V8_SIM_LAUNCH is required (simulation launch path)')
+        gazebo = start(['roslaunch', sim_launch, 'gui:=false'], '/tmp/r1028_gazebo.log')
         import rospy
         from nav_msgs.msg import Odometry
         from sensor_msgs.msg import PointCloud2

@@ -59,8 +59,11 @@ def main():
     assembly = runtime.Assembly(plan, catalog, ready_timeout=30)
     try:
         time.sleep(3)
+        sim_launch = os.environ.get('V8_SIM_LAUNCH')
+        if not sim_launch:
+            raise SystemExit('V8_SIM_LAUNCH is required (simulation launch path)')
         gazebo = subprocess.Popen(['roslaunch',
-                                   '/repo/ws/src/95_simulation/lite3_gazebo_sim/launch/m1_gazebo.launch',
+                                   sim_launch,
                                    'gui:=false'], stdout=open('/tmp/r1038_gazebo.log', 'ab'),
                                   stderr=subprocess.STDOUT, start_new_session=True,
                                   env=dict(os.environ))

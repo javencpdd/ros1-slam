@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Simulation carrier decoupling: the platform asks v8_simulation, not a path.
+"""Simulation carrier decoupling: the app declares the sim backend.
 
-The navigation platform must not hard-code a simulator package or world.  These
-checks pin the declaration boundary and the legacy default it preserves.
+The navigation platform must not know the simulation package or its paths.
+These checks pin the app-declared contract and the legacy default it preserves.
 """
 import sys
 import unittest
@@ -16,12 +16,15 @@ import app_runner  # noqa: E402
 import config  # noqa: E402
 
 ROOT = app_config.ROOT
+DECLARATION = 'ws/src/95_simulation/v8_simulation/config/sim_backends.yaml'
 
 
-def app(world_launch=None, backend='gazebo'):
+def app(world_launch=None, backend='gazebo', declaration=DECLARATION):
     carrier = {'backend': backend}
     if world_launch is not None:
         carrier['world_launch'] = world_launch
+    if declaration is not None:
+        carrier['simulation_declaration'] = declaration
     return {'carrier': carrier}
 
 
@@ -45,8 +48,7 @@ class SimBackendTests(unittest.TestCase):
 
     def test_missing_declaration_fails_closed(self):
         with self.assertRaises(config.FrameworkError) as caught:
-            app_runner.resolve_sim_launch(app(), root=ROOT,
-                                          platform_root=HERE / 'fixtures' / 'no_such_root')
+            app_runner.resolve_sim_launch(app(declaration=None), root=ROOT)
         self.assertEqual(caught.exception.code, 'E_EXEC_BACKEND')
 
     def test_undeclared_backend_rejected(self):

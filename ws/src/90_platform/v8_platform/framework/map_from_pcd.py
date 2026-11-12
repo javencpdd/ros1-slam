@@ -222,7 +222,8 @@ def choose_start_goal(surface, start_xy=None, obstacles=None, margin=0.55,
     return start, goal
 
 
-def write_app(map_id, version, map_path, task_path, app_path, world, model_path):
+def write_app(map_id, version, map_path, task_path, app_path, world, model_path,
+              world_launch='', simulation_declaration=''):
     app = {
         'schema': 'navigation_app/v1',
         'execution_mode': 'simulation', 'robot_id': 'generic_sim',
@@ -234,12 +235,15 @@ def write_app(map_id, version, map_path, task_path, app_path, world, model_path)
         'carrier': {
             'backend': 'gazebo', 'model_name': 'app_carrier', 'center_z': 0.1,
             'snap_m': 0.03, 'spawn': True,
-            'world_launch': 'ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch',
             'world': world, 'model_path': model_path,
         },
         'visualization': {'markers': True, 'rviz': False},
         'global': {'budget': 20000, 'min_clearance_m': 0.4},
     }
+    if world_launch:
+        app['carrier']['world_launch'] = world_launch
+    if simulation_declaration:
+        app['carrier']['simulation_declaration'] = simulation_declaration
     app_path.write_text(json.dumps(app, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
 
 
@@ -316,8 +320,11 @@ def main():
     parser.add_argument('--out', default='')
     parser.add_argument('--register', action='store_true')
     parser.add_argument('--write-app', action='store_true')
-    parser.add_argument('--world',
-                        default='ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world')
+    parser.add_argument('--world', default='')
+    parser.add_argument('--world-launch', default='',
+                        help='simulation world launch path (provided by the simulation project)')
+    parser.add_argument('--simulation-declaration', default='',
+                        help='simulation backend declaration path (provided by the simulation project)')
     parser.add_argument('--model-path', default='data/maps/worlds')
     parser.add_argument('--start-x', type=float, default=None)
     parser.add_argument('--start-y', type=float, default=None)
@@ -426,7 +433,8 @@ def main():
     }
     task_path.write_text(json.dumps(task, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     app_path = out.with_name('%s_v%d_app.yaml' % (args.map_id, args.version))
-    write_app(args.map_id, args.version, out, task_path, app_path, args.world, args.model_path)
+    write_app(args.map_id, args.version, out, task_path, app_path, args.world, args.model_path,
+              args.world_launch, args.simulation_declaration)
     if args.register:
         update_registry(args.map_id, args.version, out, sha, len(value['surfaces']),
                         'mapped from %s' % pcd_path.name)

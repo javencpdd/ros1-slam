@@ -28,20 +28,18 @@ import execution  # noqa: E402
 import safety  # noqa: E402
 
 
-SIM_BACKENDS = 'ws/src/95_simulation/v8_simulation/config/sim_backends.yaml'
+def resolve_sim_launch(app, root=None):
+    """Launch argv for a simulation carrier, declared by the app.
 
-
-def resolve_sim_launch(app, root=None, platform_root=None):
-    """Launch argv for a simulation carrier, declared by v8_simulation.
-
-    The navigation platform never hard-codes a simulator package.  An app may
-    name a world_launch from the declaration's allowlist; without one the
-    declaration's legacy_default keeps older apps working.  The declaration is
-    a platform resource, so it is read from platform_root, not the app root.
+    The navigation platform never hard-codes a simulator package or path.  The
+    app (owned by the simulation/scenario project) names its declaration; the
+    platform only validates the world launch against that declaration.
     """
-    platform_root = Path(platform_root or app_config.ROOT)
-    root = Path(root or platform_root)
-    path = platform_root / SIM_BACKENDS
+    root = Path(root or app_config.ROOT)
+    declared = app.get('carrier', {}).get('simulation_declaration')
+    if not declared:
+        raise config.FrameworkError('E_EXEC_BACKEND', 'carrier.simulation_declaration is required')
+    path = app_config._path(declared, root)
     if not path.is_file():
         raise config.FrameworkError('E_EXEC_BACKEND', 'simulation backend declaration missing: %s' % path)
     declaration, _ = config.load_yaml(path)
@@ -108,7 +106,7 @@ def _prepare_app(app_path, real=False, with_gazebo=False, root=None, executable=
         raise config.FrameworkError('E_EXEC_BACKEND', 'app backend and actual graph carrier disagree')
     if raw['carrier'].get('backend') == 'lite3' and raw['carrier'].get('pose_source', 'tf') not in ('tf', 'topic'):
         raise config.FrameworkError('E_EXEC_BACKEND', 'unknown Lite3 pose source')
-    sim_launch = (resolve_sim_launch(raw, root, platform_root=app_config.ROOT)
+    sim_launch = (resolve_sim_launch(raw, root)
                   if raw.get('carrier', {}).get('backend') == 'gazebo' else None)
     resolved = app_config.load_app(app_path, root=root)
     task = resolved['task_resolved']

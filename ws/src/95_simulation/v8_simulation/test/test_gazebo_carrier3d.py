@@ -7,7 +7,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PLATFORM = HERE.parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(PLATFORM / 'representation'))
+sys.path.insert(0, str(PLATFORM / 'scripts'))
 import carrier_kinematics
 
 
@@ -142,7 +142,7 @@ class CarrierNodeSourceTests(unittest.TestCase):
     def test_node_has_no_unbound_referenced_names(self):
         import builtins
         import symtable
-        source = (HERE / 'gazebo_carrier3d_node.py').read_text()
+        source = (PLATFORM / 'scripts' / 'gazebo_carrier3d_node.py').read_text()
         root = symtable.symtable(source, 'gazebo_carrier3d_node.py', 'exec')
         module_names = {symbol.get_name() for symbol in root.get_symbols()}
         errors = []
