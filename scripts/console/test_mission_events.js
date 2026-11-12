@@ -22,6 +22,16 @@ function status(event, seq) {
 const parsed = M.parseStatus(status('reached', 3));
 check(parsed && parsed.event === 'reached' && parsed.current_seq === 3,
       'valid status parses');
+const withNodes = M.parseStatus(JSON.stringify({
+  event: 'arrival_start', current_seq: 1, goal_seq: 1,
+  planner_mode: 'signal', arrival_signal: true,
+  nodes: [{ name: 'follow_path', status: 'RUNNING' }, { name: 7 }, null],
+}));
+check(withNodes && withNodes.nodes.length === 1 &&
+      withNodes.nodes[0].name === 'follow_path' &&
+      withNodes.nodes[0].status === 'RUNNING', 'bt nodes parsed and malformed dropped');
+check(withNodes && withNodes.planner_mode === 'signal' &&
+      withNodes.arrival_signal === true, 'planner mode and arrival flag parsed');
 check(M.parseStatus('') === null, 'empty status refused');
 check(M.parseStatus('{oops') === null, 'malformed JSON refused');
 check(M.parseStatus('null') === null, 'JSON null refused');

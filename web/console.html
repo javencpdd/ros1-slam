@@ -169,12 +169,12 @@
       </div>
       <div id="stack-list" class="stack-list"><div class="stack-empty">agent 未连接；先运行 <code>bash scripts/console/start_agent.sh</code></div></div>
       <pre class="tree" id="stack-log">选择栈查看日志</pre>
-      <div class="notice">只启停 <code>scripts/console/stacks.json</code> 白名单（sim_m1 / mapping_m1 / mapping_save / stairstudy / sim_nist / safety_mux / bt_console / voxel_stream），
+      <div class="notice">只启停 <code>scripts/console/stacks.json</code> 白名单（sim_m1 / mapping_m1 / mapping_save / stairstudy / sim_nist / safety_mux / bt_console / voxel_stream / scan_flat / scan_ramp / scan_real / bag_record），
         每栈独立进程组、SIGINT→TERM→KILL；formal/EVT/真机仍走作业单。
         带 world 下拉的栈可在启动前选 world；同一时间只起一个 Gazebo world，换 world 先停当前栈。
         <code>mapping_m1 / mapping_save / voxel_stream</code> 需要提供 lidar 的 world（sim_m1 或 stairstudy）；world-only 的 sim_nist 不提供，不能接建图/体素。
         停止 <code>sim_m1</code> 会自动按依赖逆序级联停止 <code>mapping_m1 / mapping_save / safety_mux / bt_console / voxel_stream</code>；
-        停止后页面最多 4 s 刷新，仍显示运行可点“刷新”。
+        停止后页面最多 4 s 刷新，仍显示运行可点“刷新”。<code>bag_record</code> 录到 <code>data/bags/</code>（lz4、512 MB 分卷×8），停止时收尾写索引。
         agent 默认监听 <code>0.0.0.0:8780</code>（仅可信局域网；本机限定用
         <code>LITE3_AGENT_BIND=127.0.0.1</code>）。</div>
     </section>
@@ -219,6 +219,8 @@
       <div class="kv"><span>MBF 状态</span><b id="m-mbf">—</b></div>
       <div class="kv"><span>路径点</span><b id="m-path">—</b></div>
       <div class="kv"><span>任务</span><b id="m-goal">空闲</b></div>
+      <div class="kv"><span>BT 阶段</span><b id="m-bt-stage">—</b></div>
+      <div class="bt-stage" id="bt-stage"></div>
       <table class="rates" id="rates"><thead><tr><th>话题</th><th>实测</th><th>期望</th></tr></thead><tbody></tbody></table>
       <div class="kv" style="margin-top:8px"><span>TF 帧</span><b id="m-tf">—</b></div>
       <pre class="tree" id="tf-tree">（订阅 /tf 后显示）</pre>

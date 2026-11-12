@@ -416,3 +416,28 @@ A23 3D 0.331 / 物理 0.769 / 到达 0.015 → PASS。
 证据：`evidence/scan-p4-bt/ramp_bt_p4_goal1p5_offset0_fail.{json,harness.log}`、
 `ramp_bt_p4_goal2p67_fail.{json,harness.log}`；对照件
 `ramp10_bt_p4_pass.json`。
+
+## 21. 控制台可视化与取证三件（2026-11-12）
+
+**BT 阶段面板（web 新增）**：页面监控卡加「BT 阶段」——从 `/v8/bt/status`
+的 `nodes` 渲染 8 枚阶段 chip（等目标→请求路径→等路径→跟随路径→等到点→
+到点停留→停止，另列失败恢复），RUNNING 高亮、SUCCESS 绿、FAILURE 红；
+右侧显示 `seq 当前/总 ｜ planner_mode ｜ arrived ｜ event`。浏览器实测：
+导航中「等到点」高亮 + `seq 2/2 ｜ signal ｜ path_ready`，到点后
+`seq 1/1 ｜ signal ｜ arrived ｜ stop`。`mission_events.parseStatus` 补
+`nodes/planner_mode/arrival_signal` 字段，node 单测 ALL PASS。
+
+**bag 录制栈（新增 `bag_record`）**：录 `/rslidar_points /livox/imu /tf
+/tf_static /Odometry /LIO/odom_vehicle /planning/bspline /global_path
+/scan_planner/{goal,cmd_vel} /cmd_vel /v8/bt/status`，`--lz4 --split
+--size=512 --max-splits=8`，写 `data/bags/`（已 gitignore，仓库只留
+`.gitkeep` 保目录）。实测 20 s 墙钟 → 13.9 MB 袋（12.1 s sim、5225 条、
+lz4 17.48%）；停止走 SIGINT，索引完整。`/cloud_registered` 派生且大，默认不录。
+
+**web 实时建图（既有链路复核）**：`voxel_stream` 订阅 `/cloud_registered`，
+leaf 0.1 m，原子写 `data/console/voxels/{latest.bin,meta.json}`，agent
+`/api/voxels/*` 供页面；3D 场景切「服务端体素」显示 407 点、0.4 s 刷新，
+与 m1 实体世界叠加。边界：这是抽稀快照（≤60k 点、leaf 0.1），不是原始点云；
+完整树形结构仍看 Groot2（本机 ZMQ 5555）。
+
+证据：`evidence/scan-console/bt_panel_bag_voxels.md`。

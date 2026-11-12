@@ -15,6 +15,7 @@
     view3dJump: $('view-3d-jump'),
     overlayToggle: $('overlay-toggle'), mMbf: $('m-mbf'),
     mPath: $('m-path'), mGoal: $('m-goal'),
+    mBtStage: $('m-bt-stage'), btStage: $('bt-stage'),
     mapGuard: $('map-guard'), mapGuardState: $('map-guard-state'),
     goalTimeout: $('goal-timeout'), missionContinue: $('mission-continue'),
     missionExportJson: $('mission-export-json'), missionExportCsv: $('mission-export-csv'),
@@ -35,6 +36,12 @@
     agentUrl: $('agent-url'), agentRefresh: $('agent-refresh'), agentState: $('agent-state'),
     stackList: $('stack-list'), stackLog: $('stack-log'),
   };
+
+  const BT_STAGES = [
+    ['wait_goal', '等目标'], ['request_path', '请求路径'], ['wait_path', '等路径'],
+    ['follow_path', '跟随路径'], ['wait_arrival', '等到点'], ['dwell_at_goal', '到点停留'],
+    ['stop_after_success', '停止'], ['recovery_on_failure', '失败恢复'],
+  ];
 
   const TOPIC_SPECS = [
     { topic: '/cmd_vel', type: 'geometry_msgs/Twist', label: '/cmd_vel', expect: 20 },
@@ -1760,6 +1767,7 @@
     const parsed = window.MissionEvents.parseStatus(text);
     if (!parsed) return;
     btStatus.parsed = parsed;
+    renderBtStage(parsed);
     if (!mission.active || !mission.goal || mission.mode !== '3d') return;
     const verdict = window.MissionEvents.classify(parsed, mission.btSentSeq,
                                                   mission.btHandledSeq);
@@ -1770,6 +1778,36 @@
       missionGoalDone(verdict.ok, verdict.reason);
     }
   }
+  function renderBtStage(status) {
+    if (!el.btStage) return;
+    const nodes = status && Array.isArray(status.nodes) ? status.nodes : [];
+    if (!nodes.length) {
+      el.btStage.innerHTML = '';
+      el.mBtStage.textContent = '—';
+      return;
+    }
+    const byName = {};
+    nodes.forEach((node) => { if (node && node.name) byName[node.name] = node.status; });
+    let running = '';
+    el.btStage.innerHTML = '';
+    BT_STAGES.forEach(([name, label]) => {
+      const state = byName[name] || 'IDLE';
+      if (state === 'RUNNING' && !running) running = label;
+      const chip = document.createElement('span');
+      chip.className = 'bt-node bt-' + String(state).toLowerCase();
+      chip.textContent = label;
+      chip.title = name + ' · ' + state;
+      el.btStage.appendChild(chip);
+    });
+    const parts = [running || '空闲',
+                   'seq ' + (status.current_seq || 0) + '/' + (status.goal_seq || 0)];
+    if (status.queue_depth) parts.push('队列 ' + status.queue_depth);
+    if (status.planner_mode) parts.push(status.planner_mode);
+    if (status.arrival_signal) parts.push('arrived');
+    if (status.event) parts.push(status.event);
+    el.mBtStage.textContent = parts.join(' ｜ ');
+  }
+
   function updatePathState() {
     const count = (message) => message && message.poses ? message.poses.length : 0;
     el.mPath.textContent = 'global ' + count(overlay.global) + ' ｜ local ' + count(overlay.local);

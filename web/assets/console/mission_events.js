@@ -20,6 +20,12 @@
     if (!value || typeof value !== 'object') return null;
     var seq = Number(value.current_seq);
     if (!isFinite(seq) || seq < 0) return null;
+    var nodes = Array.isArray(value.nodes) ? value.nodes.filter(function (node) {
+      return node && typeof node.name === 'string';
+    }).map(function (node) {
+      return { name: node.name,
+               status: typeof node.status === 'string' ? node.status : 'IDLE' };
+    }) : [];
     return {
       event: typeof value.event === 'string' ? value.event : '',
       current_seq: seq,
@@ -27,7 +33,10 @@
       queue_depth: Number(value.queue_depth) || 0,
       path_state: typeof value.path_state === 'string' ? value.path_state : '',
       outcome: typeof value.outcome === 'string' ? value.outcome : '',
-      outcome_seq: Number(value.outcome_seq) || 0
+      outcome_seq: Number(value.outcome_seq) || 0,
+      planner_mode: typeof value.planner_mode === 'string' ? value.planner_mode : '',
+      arrival_signal: value.arrival_signal === true,
+      nodes: nodes
     };
   }
 

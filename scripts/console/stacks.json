@@ -243,6 +243,19 @@
       "stop_timeout": 30,
       "notes": "★真机物理运行 L2★：103 只读、不向 120/43893 发帧；解锁/发目标/急停需真人在场并按 note/10 与 SCAN真机接入清单.md 签核；real 需先复制 bt_console_real.yaml，否则 fail-closed。",
       "pid_match": "scan_nav_real.launch"
+    },
+    {
+      "name": "bag_record",
+      "label": "导航/建图 bag 录制",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "—",
+      "cmd": "rosbag record -o /opt/ros1-slam/data/bags/nav --lz4 --split --size=512 --max-splits=8 /rslidar_points /livox/imu /tf /tf_static /Odometry /LIO/odom_vehicle /planning/bspline /global_path /scan_planner/goal /scan_planner/cmd_vel /cmd_vel /v8/bt/status",
+      "description": "录制建图/导航原始数据：雷达点云、IMU、TF、LIO 里程计、SCAN bspline/目标/速度、/cmd_vel、BT 状态。--lz4 压缩、512 MB 分卷、最多 8 卷（≈4 GB），写 data/bags/（不入库）。",
+      "stop_timeout": 30,
+      "notes": "master 固定控制台域 11312：只录同域话题；别的域（如真机 11311）要另配。停止时 agent 发 SIGINT 让 rosbag 收尾写索引；文件属主 root（容器写盘）。/cloud_registered 是派生量且体积大，默认不录；回放建图用 rosbag play --clock + m2_mapping。",
+      "pid_match": "rosbag record"
     }
   ]
 }
