@@ -28,6 +28,43 @@ import execution  # noqa: E402
 import safety  # noqa: E402
 
 
+SIM_BACKENDS = 'ws/src/95_simulation/v8_simulation/config/sim_backends.yaml'
+
+
+def resolve_sim_launch(app, root=None, platform_root=None):
+    """Launch argv for a simulation carrier, declared by v8_simulation.
+
+    The navigation platform never hard-codes a simulator package.  An app may
+    name a world_launch from the declaration's allowlist; without one the
+    declaration's legacy_default keeps older apps working.  The declaration is
+    a platform resource, so it is read from platform_root, not the app root.
+    """
+    platform_root = Path(platform_root or app_config.ROOT)
+    root = Path(root or platform_root)
+    path = platform_root / SIM_BACKENDS
+    if not path.is_file():
+        raise config.FrameworkError('E_EXEC_BACKEND', 'simulation backend declaration missing: %s' % path)
+    declaration, _ = config.load_yaml(path)
+    if declaration.get('schema') != 'v8_simulation_backends/v1':
+        raise config.FrameworkError('E_EXEC_BACKEND', 'unknown simulation backend schema')
+    backend = app.get('carrier', {}).get('backend')
+    entry = declaration.get('backends', {}).get(backend)
+    if not isinstance(entry, dict):
+        raise config.FrameworkError('E_EXEC_BACKEND', 'undeclared simulation backend ' + repr(backend))
+    world_launch = app['carrier'].get('world_launch')
+    if world_launch:
+        candidate = app_config._path(world_launch, root).resolve()
+        allowed = [app_config._path(item, root).resolve()
+                   for item in entry.get('world_launch_allowlist', [])]
+        if candidate not in allowed:
+            raise config.FrameworkError('E_EXEC_BACKEND', 'unknown simulation world launch')
+        return {'argv': [str(candidate)], 'declared': True}
+    default = entry.get('legacy_default')
+    if not isinstance(default, dict) or not default.get('package') or not default.get('launch'):
+        raise config.FrameworkError('E_EXEC_BACKEND', 'no declared world launch and no legacy default')
+    return {'argv': [default['package'], default['launch']], 'declared': False}
+
+
 def _prepare_app(app_path, real=False, with_gazebo=False, root=None, executable=True):
     """Read/resolve/check only. No environment, directory, process or ROS effects."""
     raw, _ = config.load_yaml(app_path)
@@ -71,12 +108,8 @@ def _prepare_app(app_path, real=False, with_gazebo=False, root=None, executable=
         raise config.FrameworkError('E_EXEC_BACKEND', 'app backend and actual graph carrier disagree')
     if raw['carrier'].get('backend') == 'lite3' and raw['carrier'].get('pose_source', 'tf') not in ('tf', 'topic'):
         raise config.FrameworkError('E_EXEC_BACKEND', 'unknown Lite3 pose source')
-    world_launch = raw['carrier'].get('world_launch')
-    if world_launch:
-        candidate = app_config._path(world_launch, root).resolve()
-        allowed = root / 'ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch'
-        if candidate != allowed.resolve():
-            raise config.FrameworkError('E_EXEC_BACKEND', 'unknown simulation world launch')
+    sim_launch = (resolve_sim_launch(raw, root, platform_root=app_config.ROOT)
+                  if raw.get('carrier', {}).get('backend') == 'gazebo' else None)
     resolved = app_config.load_app(app_path, root=root)
     task = resolved['task_resolved']
     start = tuple(float(v) for v in task['start']['xyz'])
@@ -106,7 +139,8 @@ def _prepare_app(app_path, real=False, with_gazebo=False, root=None, executable=
     if executable:
         execution.check_plan(plan, catalog, config.load_yaml)
     safety.check_plan(plan, catalog)
-    return {'resolved': resolved, 'catalog': catalog, 'graph': graph, 'report': report, 'plan': plan}
+    return {'resolved': resolved, 'catalog': catalog, 'graph': graph, 'report': report,
+            'plan': plan, 'sim_launch': sim_launch}
 
 
 def prepare_execution(app_path, real=False, with_gazebo=False, root=None):
@@ -197,6 +231,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
             interactive=False, rviz=False, real=False, trace_path=None):
     prepared = prepare_execution(app_path, real=real, with_gazebo=with_gazebo)
     resolved, catalog, report, plan = (prepared[key] for key in ('resolved', 'catalog', 'report', 'plan'))
+    sim_launch = prepared.get('sim_launch')
     log_paths = {name: '/tmp/r1103_' + name + '.log' for name in
                  ('master', 'gazebo', 'viz', 'picker', 'rviz', 'tf_static', 'robot_state', 'joint_state', 'pose_tf')}
     ros_home, ros_logs = '/tmp/r1103_ros', '/tmp/r1103_logs'
@@ -263,14 +298,9 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         from visualization_msgs.msg import MarkerArray
         initialize_ros_node(rospy, not real and with_gazebo and app['carrier']['backend'] == 'gazebo')
         if not real and with_gazebo and app['carrier']['backend'] == 'gazebo':
-            world_launch = app['carrier'].get('world_launch')
-            if world_launch:
-                launch_path = Path(world_launch)
-                if not launch_path.is_absolute():
-                    launch_path = resolved['root'] / launch_path
-                launch_args = [str(launch_path)]
-            else:
-                launch_args = ['lite3_gazebo_sim', 'nist_stairs_120_s020x170.launch']
+            if sim_launch is None:
+                raise config.FrameworkError('E_EXEC_BACKEND', 'gazebo carrier without a simulation launch')
+            launch_args = list(sim_launch['argv'])
             launch_args.append('gui:=%s' % ('true' if gui else 'false'))
             world = app['carrier'].get('world')
             if world:
@@ -279,7 +309,7 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                     world_path = resolved['root'] / world_path
                 launch_args.append('world:=%s' % world_path)
             model_path = app['carrier'].get('model_path')
-            if model_path and world_launch:
+            if model_path and app['carrier'].get('world_launch'):
                 model_dir = Path(model_path)
                 if not model_dir.is_absolute():
                     model_dir = resolved['root'] / model_dir

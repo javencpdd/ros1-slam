@@ -1,0 +1,11 @@
+schema: v8_simulation_backends/v1
+# Simulation carrier backends the navigation platform may launch.  The
+# navigation platform must not hard-code a world or a package; it asks this
+# declaration which launches are allowed and what the legacy default is.
+backends:
+  gazebo:
+    world_launch_allowlist:
+      - ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch
+    legacy_default:
+      package: lite3_gazebo_sim
+      launch: nist_stairs_120_s020x170.launch
