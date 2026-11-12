@@ -124,6 +124,15 @@ def bs_ident(bs):
             "last": [round(pts[-1][0], 3), round(pts[-1][1], 3)] if len(pts) else None}
 
 
+def bs_degenerate(ident):
+    """零长度轨迹（首末控制点重合）标记。急停轨迹也会换身份，不标记会把
+    replanned=True 误读成避让重规（2026-11-12 斜坡 A* 窗实测：新身份=急停时刻）。
+    只作诊断、不参与判定。"""
+    if not ident or not ident.get("first") or not ident.get("last"):
+        return False
+    return ident["first"] == ident["last"]
+
+
 def los_free(tree, a, b, step=0.5, clearance=FREE_CLEAR):
     a = np.asarray(a, float)
     b = np.asarray(b, float)
@@ -445,6 +454,7 @@ def main():
 
     bsN, new_id = stable_bs()
     out["traj_after"] = new_id
+    out["traj_after_degenerate"] = bs_degenerate(new_id)
     cn = eval_curve(bsN)
     b0 = eval_curve(bs0)
     if b0 is not None and st.occ is not None:

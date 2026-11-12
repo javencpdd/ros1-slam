@@ -32,7 +32,7 @@ from scan_planner.msg import Bspline
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from p2_goal_plan import axes, eval_curve, occ_points
 from p4_replan import (AVOID_DIST, DEV_MAX, DT_MAX, INJECT_MODEL, INJECT_Z,
-                       a23_breach, bs_ident, pick_goal, restore_verdict)
+                       a23_breach, bs_degenerate, bs_ident, pick_goal, restore_verdict)
 from fsm_log import attach_fsm
 
 SEE_RADIUS = 0.55
@@ -292,6 +292,7 @@ def main():
 
     new_id = stable()
     out["traj_after"] = new_id
+    out["traj_after_degenerate"] = bs_degenerate(new_id)
     replanned = bool(new_id and first and new_id["start_time"] != first["start_time"])
     step("replanned", replanned)
     if not replanned:
