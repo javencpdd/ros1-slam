@@ -6,7 +6,7 @@
          map_single_floor.json  =>[v8_map_file]=>  /v8_support_map（latch）
          /v8/bt/goal  =>[bt_console]=>  /v8/global/goal(直发)  =>[v8_global_planner]=>  /global_path
          /global_path  =>[v8_path_goal]=>  /v8/local/goal
-         /v8/local/pose + /v8/local/goal  =>[v8_local_planner]=>  /cmd_vel  =>  Gazebo 载体
+         /v8/local/pose + /v8/local/goal  =>[v8_local_planner]=>  (cmd 话题)  =>  Gazebo 载体
 
        前置：sim_m1 栈已在跑（Gazebo + 载体 + /sim/odom_gt）。
        ★本栈只用于平地/斜坡；不做上下楼（四例见 note/进度/v8 的 R1127 口径）。★

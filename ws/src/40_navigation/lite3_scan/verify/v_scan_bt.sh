@@ -81,7 +81,7 @@ for _ in $(seq 1 30); do rostopic list >/dev/null 2>&1 && break; sleep 1; done
 
 if [ -n "${SCAN_BT_PROFILE:-}" ]; then
   say "== [2] scan_nav_sim（profile=$SCAN_BT_PROFILE，单入口全链）=="
-  roslaunch lite3_scan scan_nav_sim.launch profile:="$SCAN_BT_PROFILE" > "$RUN/stack.log" 2>&1 &
+  roslaunch lite3_bringup scan_nav_sim.launch profile:="$SCAN_BT_PROFILE" > "$RUN/stack.log" 2>&1 &
   PIDS+=($!)
   wait_topic /clock 300 || { echo "SCAN-BT 结论 = INVALID|/clock 未就绪"; exit 9; }
   wait_topic /rslidar_points 480 || { echo "SCAN-BT 结论 = INVALID|/rslidar_points 未就绪"; exit 9; }
@@ -142,7 +142,7 @@ say "== [6] scan_bt_nav（BT + 契约桥）=="
 BT_ARGS=()
 [ -n "${SCAN_BT_ARRIVAL_FLOOR:-}" ] && BT_ARGS+=("arrival_speed_floor_mps:=$SCAN_BT_ARRIVAL_FLOOR")
 [ "${SCAN_REFERENCE_PATH:-false}" = "true" ] && BT_ARGS+=("publish_reference_path:=true")
-roslaunch lite3_scan scan_bt_nav.launch "${BT_ARGS[@]}" > "$RUN/bt.log" 2>&1 &
+roslaunch lite3_bringup scan_bt_nav.launch "${BT_ARGS[@]}" > "$RUN/bt.log" 2>&1 &
 PIDS+=($!)
 wait_topic /v8/bt/status 120 || { echo "SCAN-BT 结论 = INVALID|/v8/bt/status 未就绪"; exit 9; }
 wait_topic /global_path/status 60 || { echo "SCAN-BT 结论 = INVALID|/global_path/status 未就绪"; exit 9; }

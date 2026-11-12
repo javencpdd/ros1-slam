@@ -82,7 +82,7 @@
     <param name="map_topic" value="/v8_support_map"/>
     <param name="command_topic" value="/v8/local/cmd"/>
     <!-- 显式置空：不写这行时会吃到平地栈残留在 param 服务器里的
-         twist_topic=/cmd_vel（roslaunch 只增不删），twist 镜像被启用后
+         twist_topic=(cmd 话题)（roslaunch 只增不删），twist 镜像被启用后
          坡面爬升的 vz 分量必触发 E_LOCAL_VERTICAL_UNSUPPORTED 并锁死。 -->
     <param name="twist_topic" value=""/>
     <!-- 滚动短视界：horizon 2s（搜索深度 4 步、单次 plan ~150ms；默认 6s 时

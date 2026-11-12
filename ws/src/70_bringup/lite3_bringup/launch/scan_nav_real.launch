@@ -9,7 +9,7 @@
        前置（缺一即停）：
          1) 机器人已 bringup：/LIO/odom_vehicle、/LIO/clouds_lidar、/LIO/odom_imu 在线，
             map→odom→body 的 TF 正常；LIO 估计为唯一前馈源；
-         2) 安全层 60_safety（mux，scan_planner 源 priority 7）在位；/cmd_vel 唯一写者
+         2) 安全层 60_safety（mux，scan_planner 源 priority 7）在位；(cmd 话题) 唯一写者
             是 mux；机械急停/遥控可随时接管；
          3) 真机 BT profile：按 config/bt_console_real.yaml.template 复制为
             bt_console_real.yaml，逐项确认话题后使用；缺文件时 bt_console fail-closed；
@@ -18,7 +18,7 @@
        数据流与仿真链一致：/v8/bt/goal → BT RequestPath → /scan_planner/goal →
        /planning/bspline → 桥 → /global_path + status → BT WaitForPath/FollowPath；
        /lite3/scan/arrived → 桥 → /v8/bt/arrived → BT WaitArrival → Dwell → Stop
-       （Stop 零速发 /lite3/teleop/app_cmd_vel，经 mux）。
+       （Stop 零速发 teleop 话题，经 mux）。
 
        profile 建议：平坦室内 navi_mode=1（A*）；长坡/连续坡度 navi_mode=3（参考路径，
        A* 坡上起点问题见 note/进度/v8/M5/26-11-12 §5—§13）。地面分割默认开；坡面可
@@ -53,7 +53,7 @@
     <arg name="ctrl_max_vy" value="$(arg ctrl_vy)"/>
   </include>
 
-  <include file="$(find lite3_scan)/launch/scan_bt_nav.launch">
+  <include file="$(find lite3_bringup)/launch/scan_bt_nav.launch">
     <arg name="bt_profile" value="$(arg bt_profile)"/>
     <arg name="publish_reference_path" value="$(arg publish_reference_path)"/>
     <arg name="arrival_speed_floor_mps" value="$(arg arrival_floor)"/>

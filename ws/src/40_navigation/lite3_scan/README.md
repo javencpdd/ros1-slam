@@ -8,9 +8,9 @@
 | 入口 | 实际职责 |
 | --- | --- |
 | `launch/70_scan.launch` | include 上游 `plan_manage/launch/advanced_param.xml` 并装配自有参数/到达观测 |
-| `launch/scan_bt_nav.launch` | SCAN 接进 v8 BT：BT 的 RequestPath 直发 `/scan_planner/goal`，桥把 `/planning/bspline` 回填 `/global_path`，到达走 `/lite3/scan/arrived` |
-| `launch/scan_nav_sim.launch` | SCAN 导航仿真单入口：`profile:=flat`（m1_world+A*）或 `profile:=ramp`（ramp_scan10+参考路径+地面分割+坡面参数），整链一次起完 |
-| `launch/scan_nav_real.launch` | SCAN 导航真机装配（**真机物理运行 L2**；bringup/LIO/safety 由操作员先起；见 note/进度/v8/M5/26-11-12/SCAN真机接入清单.md） |
+| `lite3_bringup: launch/scan_bt_nav.launch` | SCAN 接进 v8 BT：BT 的 RequestPath 直发 `/scan_planner/goal`，桥把 `/planning/bspline` 回填 `/global_path`，到达走 `/lite3/scan/arrived` |
+| `lite3_bringup: launch/scan_nav_sim.launch` | SCAN 导航仿真单入口：`profile:=flat`（m1_world+A*）或 `profile:=ramp`（ramp_scan10+参考路径+地面分割+坡面参数），整链一次起完 |
+| `lite3_bringup: launch/scan_nav_real.launch` | SCAN 导航真机装配（**真机物理运行 L2**；bringup/LIO/safety 由操作员先起；见 note/进度/v8/M5/26-11-12/SCAN真机接入清单.md） |
 | `launch/lio_relay_sim.launch` | LIO 话题/TF 中继，消费模式由源话题与上层装配决定，不启动 Gazebo |
 | `scripts/scan_arrival_monitor.py` | 我方请求目标的 J1 到达与距离观测，不为上游 FSM 合成失败事件 |
 | `scripts/scan_bt_bridge.py` | SCAN ↔ v8/BT 契约桥（bspline→Path/status、goal 重置、arrival 转发、odom→pose；只翻译不规划） |
