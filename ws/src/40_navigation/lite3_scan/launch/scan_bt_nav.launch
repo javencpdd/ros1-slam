@@ -30,6 +30,9 @@
   <!-- REFERENCE_PATH（navi_mode=3）：桥把 BT 的 goal 变成 /initial_path 直线参考路径，
        绕开 A*；SCAN 的局部优化/重规划仍在。斜坡用 true，平地保持 false。 -->
   <arg name="publish_reference_path" default="false"/>
+  <!-- BT 配置 profile：demo（默认，仿真）/ real（真机，需先按模板复制
+       config/bt_console_real.yaml 并逐项确认话题；否则 bt_console fail-closed）。 -->
+  <arg name="bt_profile" default="demo"/>
 
   <!-- 1) 契约桥：SCAN 话题 ↔ v8/BT 话题，只翻译不规划。 -->
   <node pkg="lite3_scan" type="scan_bt_bridge.py" name="scan_bt_bridge" output="screen">
@@ -49,6 +52,7 @@
 
   <!-- 2) BT：RequestPath 直发 SCAN goal；到达权交给 /v8/bt/arrived。 -->
   <include file="$(find lite3_bt)/launch/bt_console.launch">
+    <arg name="profile" value="$(arg bt_profile)"/>
     <arg name="planner_goal_topic" value="$(arg scan_goal_topic)"/>
     <arg name="path_status_topic" value="$(arg path_status_topic)"/>
     <arg name="path_topic" value="$(arg path_topic)"/>

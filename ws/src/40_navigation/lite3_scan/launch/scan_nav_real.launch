@@ -1,0 +1,61 @@
+<launch>
+  <!-- scan_nav_real.launch —— SCAN 导航真机装配（2026-11-12）
+
+       ★真机物理运行是 L2★：本文件只把「SCAN + BT + 安全层 + 桥」按真机话题装配好；
+       起栈、解锁、发目标、急停由操作员在场执行，并走 note/10 真机流程与真人签核。
+       本文件不包含 Gazebo/LIO/mux 仿真件；机器人 bringup（faster_lio /LIO/*、
+       TF、超声限速）由操作员先起。
+
+       前置（缺一即停）：
+         1) 机器人已 bringup：/LIO/odom_vehicle、/LIO/clouds_lidar、/LIO/odom_imu 在线，
+            map→odom→body 的 TF 正常；LIO 估计为唯一前馈源；
+         2) 安全层 60_safety（mux，scan_planner 源 priority 7）在位；/cmd_vel 唯一写者
+            是 mux；机械急停/遥控可随时接管；
+         3) 真机 BT profile：按 config/bt_console_real.yaml.template 复制为
+            bt_console_real.yaml，逐项确认话题后使用；缺文件时 bt_console fail-closed；
+         4) 运动使能默认关（机器人 mode_navigation / enable_motion 由操作员显式打开）。
+
+       数据流与仿真链一致：/v8/bt/goal → BT RequestPath → /scan_planner/goal →
+       /planning/bspline → 桥 → /global_path + status → BT WaitForPath/FollowPath；
+       /lite3/scan/arrived → 桥 → /v8/bt/arrived → BT WaitArrival → Dwell → Stop
+       （Stop 零速发 /lite3/teleop/app_cmd_vel，经 mux）。
+
+       profile 建议：平坦室内 navi_mode=1（A*）；长坡/连续坡度 navi_mode=3（参考路径，
+       A* 坡上起点问题见 note/进度/v8/M5/26-11-12 §5—§13）。地面分割默认开；坡面可
+       用 ground_filter_node:=scan_cloud_ground_filter.py + ground_min_z:=0.0（§10）。 -->
+  <arg name="bt_profile" default="real"/>
+  <arg name="navi_mode" default="1"/>
+  <arg name="ground_filter" default="true"/>
+  <arg name="ground_filter_node" default="scan_cloud_ground_segment.py"/>
+  <arg name="ground_plane_distance" default="0.08"/>
+  <arg name="ground_min_z" default="0.0"/>
+  <arg name="cloud_topic" default="/LIO/clouds_lidar_ground_filtered"/>
+  <arg name="advanced_param" default="$(find scan_planner)/launch/advanced_param.xml"/>
+  <arg name="max_vel" default="0.40"/>
+  <arg name="ctrl_vx" default="0.30"/>
+  <arg name="ctrl_vy" default="0.20"/>
+  <arg name="arrival_floor" default="0.02"/>
+  <arg name="publish_reference_path" default="false"/>
+  <arg name="start_safety" default="true"/>
+
+  <include file="$(find lite3_safety)/launch/60_safety.launch" if="$(arg start_safety)"/>
+
+  <include file="$(find lite3_scan)/launch/70_scan.launch">
+    <arg name="navi_mode" value="$(arg navi_mode)"/>
+    <arg name="advanced_param" value="$(arg advanced_param)"/>
+    <arg name="ground_filter" value="$(arg ground_filter)"/>
+    <arg name="ground_filter_node" value="$(arg ground_filter_node)"/>
+    <arg name="ground_min_z" value="$(arg ground_min_z)"/>
+    <arg name="ground_plane_distance" value="$(arg ground_plane_distance)"/>
+    <arg name="cloud_topic" value="$(arg cloud_topic)"/>
+    <arg name="max_vel" value="$(arg max_vel)"/>
+    <arg name="ctrl_max_vx" value="$(arg ctrl_vx)"/>
+    <arg name="ctrl_max_vy" value="$(arg ctrl_vy)"/>
+  </include>
+
+  <include file="$(find lite3_scan)/launch/scan_bt_nav.launch">
+    <arg name="bt_profile" value="$(arg bt_profile)"/>
+    <arg name="publish_reference_path" value="$(arg publish_reference_path)"/>
+    <arg name="arrival_speed_floor_mps" value="$(arg arrival_floor)"/>
+  </include>
+</launch>

@@ -1,0 +1,279 @@
+[33m[ WARN] [1794450965.932341840]: [closed_loop_controller] ready.[0m
+hit: 1.7346
+miss: -0.847298
+min log: -1.99243
+max: 3.89182
+thresh log: 1.38629
+[0m[ INFO] [1794450968.915753118, 21.775000000]: [SCANReplanFSM] Set RViz goal height from initial body_pose z: -0.046[0m
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[FSM]: state: INIT
+wait for goal.
+[33m[ WARN] [1794451019.192045021, 44.131000000]: Shutdown request received.[0m
+[33m[ WARN] [1794451019.192131806, 44.131000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1794451019.193124749, 44.132000000]: Shutdown request received.[0m
+[33m[ WARN] [1794451019.193243119, 44.132000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1794451019.198860202, 44.134000000]: Shutdown request received.[0m
+[33m[ WARN] [1794451019.198981844, 44.134000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1794451019.200666584, 44.134000000]: Shutdown request received.[0m
+[33m[ WARN] [1794451019.200791789, 44.134000000]: Reason given for shutdown: [user request][0m
+[33m[ WARN] [1794451019.201557798, 44.134000000]: Shutdown request received.[0m
+[33m[ WARN] [1794451019.201608287, 44.134000000]: Reason given for shutdown: [user request][0m
+[0m[ INFO] [1794450966.176166306, 20.519000000]: advertised as /LIO/clouds_lidar
+[0m
+terminate called after throwing an instance of 'boost::wrapexcept<boost::lock_error>'
+  what():  boost: mutex lock failed in pthread_mutex_lock: Invalid argument
+[0m[ INFO] [1794450966.175337767, 20.519000000]: advertised as /LIO/odom_vehicle
+[0m
+[0m[ INFO] [1794450966.172701118, 20.518000000]: advertised as /LIO/odom_imu
+[0m
+[WARN] [1794450966.640283, 20.737000]: [M6] 活跃源切换: INIT -> scan_planner
+[INFO] [1794450966.542185, 20.687000]: [M6] safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+shutdown request: user request
+[0m[ INFO] [1794450966.032355079]: [bt] pose-based arrival mode (no planner_result_topic)[0m
+[0m[ INFO] [1794450966.037175791]: [bt] external arrival signal mode: /v8/bt/arrived[0m
+[0m[ INFO] [1794450966.042563624]: [bt] tree loaded: /opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml[0m
+[0m[ INFO] [1794450966.042591417]: [bt] planner input /scan_planner/goal, status /global_path/status[0m
+[0m[ INFO] [1794450966.042605289]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[INFO] [1794450966.635932, 20.734000]: SCAN arrival monitor up: pose=/LIO/odom_vehicle goal=/scan_planner/goal tol=0.20 settle=1.0
+shutdown request: user request
+[INFO] [1794450966.681243, 20.757000]: scan_bt_bridge up: bspline=/planning/bspline path=/global_path status=/global_path/status arrived=/lite3/scan/arrived->/v8/bt/arrived pose=/LIO/odom_vehicle->/v8/local/pose
+[INFO] [1794450966.692677, 20.763000]: SCAN arrival=False
+shutdown request: user request
+... logging to /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/roslaunch-745c41e3a38c-401424.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/src/40_navigation/lite3_scan/launch/scan_nav_real.launch
+[1mstarted roslaunch server http://127.0.0.1:42723/[0m
+
+SUMMARY
+========
+
+CLEAR PARAMETERS
+ * /scan_planner_node/
+
+PARAMETERS
+ * /body_pose_topic: /LIO/odom_vehicle
+ * /bt_console/arrival_speed_floor_mps: 0.02
+ * /bt_console/arrival_topic: /v8/bt/arrived
+ * /bt_console/goal_topic: /v8/bt/goal
+ * /bt_console/lease_topic: /v8/bt/lease
+ * /bt_console/out_goal_topic: /v8/bt/goal_request
+ * /bt_console/path_status_topic: /global_path/status
+ * /bt_console/path_topic: /global_path
+ * /bt_console/planner_goal_topic: /scan_planner/goal
+ * /bt_console/planner_result_topic: 
+ * /bt_console/pose_topic: /v8/local/pose
+ * /bt_console/queue_max: 16
+ * /bt_console/stop_topic: /lite3/teleop/app...
+ * /bt_console/tree_file: /opt/ros1-slam/ws...
+ * /bt_console/zmq_pub_port: 5555
+ * /bt_console/zmq_sub_port: 5556
+ * /closed_loop_controller/finish_dist: 0.15
+ * /closed_loop_controller/heading_error_threshold: 0.8
+ * /closed_loop_controller/kp_pos: 1.2
+ * /closed_loop_controller/kp_yaw: 1.5
+ * /closed_loop_controller/max_vx: 0.3
+ * /closed_loop_controller/max_vy: 0.2
+ * /closed_loop_controller/max_vyaw: 1.0
+ * /closed_loop_controller/time_forward: 0.4
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /safe_cmd_vel_mux/mux_config: /opt/ros1-slam/ws...
+ * /scan_arrival_monitor/goal_topic: /scan_planner/goal
+ * /scan_arrival_monitor/pose_topic: /LIO/odom_vehicle
+ * /scan_arrival_monitor/settle_s: 1.0
+ * /scan_arrival_monitor/tol_arrive: 0.2
+ * /scan_bt_bridge/arrived_topic: /lite3/scan/arrived
+ * /scan_bt_bridge/bspline_topic: /planning/bspline
+ * /scan_bt_bridge/bt_arrived_topic: /v8/bt/arrived
+ * /scan_bt_bridge/frame: camera_init
+ * /scan_bt_bridge/goal_topic: /scan_planner/goal
+ * /scan_bt_bridge/path_status_topic: /global_path/status
+ * /scan_bt_bridge/path_topic: /global_path
+ * /scan_bt_bridge/pose_in_topic: /LIO/odom_vehicle
+ * /scan_bt_bridge/pose_out_topic: /v8/local/pose
+ * /scan_bt_bridge/publish_reference_path: False
+ * /scan_bt_bridge/samples: 120
+ * /scan_cloud_ground_filter/distance: 0.08
+ * /scan_cloud_ground_filter/dst_topic: /LIO/clouds_lidar...
+ * /scan_cloud_ground_filter/iterations: 80
+ * /scan_cloud_ground_filter/min_z: 0.0
+ * /scan_cloud_ground_filter/self_radius: 0.35
+ * /scan_cloud_ground_filter/src_topic: /LIO/clouds_lidar
+ * /scan_planner_node/fsm/emergency_time_: 1.0
+ * /scan_planner_node/fsm/fail_safe: True
+ * /scan_planner_node/fsm/is_real_world: True
+ * /scan_planner_node/fsm/max_replan_fail_count: 1000
+ * /scan_planner_node/fsm/navi_mode: 1
+ * /scan_planner_node/fsm/planning_horizon: 3.5
+ * /scan_planner_node/fsm/thresh_no_replan: 0.1
+ * /scan_planner_node/fsm/thresh_replan: 1.0
+ * /scan_planner_node/grid_map/body_height: 0.3
+ * /scan_planner_node/grid_map/cloud_is_world: False
+ * /scan_planner_node/grid_map/cx: 317.19183349609375
+ * /scan_planner_node/grid_map/cy: 256.4806823730469
+ * /scan_planner_node/grid_map/depth_filter_margin: 1
+ * /scan_planner_node/grid_map/depth_filter_maxdist: 3.0
+ * /scan_planner_node/grid_map/depth_filter_mindist: 0.3
+ * /scan_planner_node/grid_map/double_cylinder_offset: 0.12
+ * /scan_planner_node/grid_map/double_cylinder_radius: 0.18
+ * /scan_planner_node/grid_map/fx: 609.5884399414062
+ * /scan_planner_node/grid_map/fy: 609.22021484375
+ * /scan_planner_node/grid_map/k_depth_scaling_factor: 1000.0
+ * /scan_planner_node/grid_map/map_sliding_thresh: 0.2
+ * /scan_planner_node/grid_map/max_ray_length: 5.0
+ * /scan_planner_node/grid_map/need_extrinsic: False
+ * /scan_planner_node/grid_map/obstacles_inflation_z_down: 0.1
+ * /scan_planner_node/grid_map/obstacles_inflation_z_up: 0.1
+ * /scan_planner_node/grid_map/p_hit: 0.85
+ * /scan_planner_node/grid_map/p_max: 0.98
+ * /scan_planner_node/grid_map/p_min: 0.12
+ * /scan_planner_node/grid_map/p_miss: 0.3
+ * /scan_planner_node/grid_map/p_occ: 0.8
+ * /scan_planner_node/grid_map/resolution: 0.05
+ * /scan_planner_node/grid_map/sensor_type: lidar
+ * /scan_planner_node/grid_map/skip_pixel: 2
+ * /scan_planner_node/grid_map/sliding_map_size_x: 10.0
+ * /scan_planner_node/grid_map/sliding_map_size_y: 10.0
+ * /scan_planner_node/grid_map/sliding_map_size_z: 5.0
+ * /scan_planner_node/grid_map/vis_height: 0.3
+ * /scan_planner_node/manager/control_points_distance: 0.2
+ * /scan_planner_node/manager/feasibility_tolerance: 0.5
+ * /scan_planner_node/manager/max_acc: 0.5
+ * /scan_planner_node/manager/max_jerk: 4.0
+ * /scan_planner_node/manager/max_vel: 0.4
+ * /scan_planner_node/manager/planning_horizon: 3.5
+ * /scan_planner_node/optimization/acc_tolerance: 1.0
+ * /scan_planner_node/optimization/dist0: 0.2
+ * /scan_planner_node/optimization/lambda_collision: 1.0
+ * /scan_planner_node/optimization/lambda_feasibility: 0.1
+ * /scan_planner_node/optimization/lambda_fitness: 1.0
+ * /scan_planner_node/optimization/lambda_smooth: 1.0
+ * /scan_planner_node/optimization/max_acc: 0.5
+ * /scan_planner_node/optimization/max_vel: 0.4
+ * /scan_planner_node/optimization/vel_tolerance: 1.0
+ * /v8_goal_gate/allowed_callers: /bt_console
+ * /v8_goal_gate/lease_timeout: 1.0
+ * /v8_goal_gate/lease_topic: /v8/bt/lease
+ * /v8_goal_gate/output_topic: /v8/3d/global/goal
+ * /v8_goal_gate/request_topic: /v8/bt/goal_request
+ * /v8_goal_gate/require_acl: True
+ * /v8_goal_gate/require_lease: True
+
+NODES
+  /
+    bt_console (lite3_bt/bt_console)
+    closed_loop_controller (scan_planner/closed_loop_controller)
+    lio_cloud_relay (topic_tools/relay)
+    lio_odom_imu_relay (topic_tools/relay)
+    lio_odom_vehicle_relay (topic_tools/relay)
+    liveness_m6 (rostopic/rostopic)
+    safe_cmd_vel_mux (lite3_safety/safe_cmd_vel_mux.py)
+    scan_arrival_monitor (lite3_scan/scan_arrival_monitor.py)
+    scan_bt_bridge (lite3_scan/scan_bt_bridge.py)
+    scan_cloud_ground_filter (lite3_scan/scan_cloud_ground_segment.py)
+    scan_planner_node (scan_planner/scan_planner_node)
+    v8_goal_gate (lite3_bt/goal_gate.py)
+    world_to_camera_init (tf2_ros/static_transform_publisher)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/src/40_navigation/lite3_scan/launch/scan_nav_real.launch http://127.0.0.1:11313
+[1mprocess[safe_cmd_vel_mux-1]: started with pid [401545][0m
+[1mprocess[liveness_m6-2]: started with pid [401546][0m
+[1mprocess[lio_odom_vehicle_relay-3]: started with pid [401547][0m
+[1mprocess[lio_odom_imu_relay-4]: started with pid [401548][0m
+[1mprocess[lio_cloud_relay-5]: started with pid [401550][0m
+[1mprocess[world_to_camera_init-6]: started with pid [401555][0m
+[1mprocess[scan_cloud_ground_filter-7]: started with pid [401562][0m
+[1mprocess[scan_planner_node-8]: started with pid [401567][0m
+[1mprocess[closed_loop_controller-9]: started with pid [401573][0m
+[1mprocess[scan_arrival_monitor-10]: started with pid [401574][0m
+[1mprocess[scan_bt_bridge-11]: started with pid [401639][0m
+[1mprocess[bt_console-12]: started with pid [401707][0m
+[1mprocess[v8_goal_gate-13]: started with pid [401708][0m
+[1m[lio_cloud_relay-5] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/lio_cloud_relay-5*.log[0m
+[1m[safe_cmd_vel_mux-1] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/safe_cmd_vel_mux-1*.log[0m
+[1m[lio_odom_vehicle_relay-3] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/lio_odom_vehicle_relay-3*.log[0m
+[1m[lio_odom_imu_relay-4] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/lio_odom_imu_relay-4*.log[0m
+[1m[bt_console-12] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/bt_console-12*.log[0m
+[1m[liveness_m6-2] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/liveness_m6-2*.log[0m
+[33m[ WARN] [1794451019.927222189, 44.134000000]: Shutdown request received.[0m
+[33m[ WARN] [1794451019.927399918, 44.134000000]: Reason given for shutdown: [user request][0m
+des manager
+[33m[ WARN] [1794451020.150477964, 44.134000000]: Shutdown request received.[0m
+[33m[ WARN] [1794451020.150661143, 44.134000000]: Reason given for shutdown: [user request][0m
+[INFO] [1794450966.611168, 20.722000]: ground segment up: /LIO/clouds_lidar -> /LIO/clouds_lidar_ground_filtered (distance=0.08 iterations=80 self_r=0.35)
+[INFO] [1794450966.649295, 20.741000]: ground segment: in=2745 self=0 plane=[-0.2561, 0.0005, 0.9666] inliers=931 kept=2003
+[INFO] [1794450977.800436, 25.835000]: ground segment: in=2717 self=0 plane=[-0.2594, 0.0005, 0.9658] inliers=909 kept=1950
+[INFO] [1794450988.724178, 30.838000]: ground segment: in=2742 self=0 plane=[-0.2386, -0.0288, 0.9707] inliers=980 kept=1975
+[INFO] [1794451000.032323, 35.917000]: ground segment: in=2716 self=0 plane=[-0.2594, 0.0005, 0.9658] inliers=919 kept=1952
+[INFO] [1794451011.765656, 41.015000]: ground segment: in=2711 self=0 plane=[-0.2474, -0.0057, 0.9689] inliers=934 kept=1975
+shutdown request: user request
+[INFO] [1794450966.659353, 20.746000]: [goal-gate] /v8/bt/goal_request -> /v8/3d/global/goal (lease=/v8/bt/lease, timeout=1.0s, acl=True, allowed=/bt_console)
+shutdown request: user request
+[31m[closed_loop_controller-9] process has died [pid 401573, exit code -6, cmd /opt/ros1-slam/ws/devel/lib/scan_planner/closed_loop_controller cmd_vel:=/scan_planner/cmd_vel __name:=closed_loop_controller __log:=/opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/closed_loop_controller-9.log].
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/closed_loop_controller-9*.log[0m
+[1m[scan_arrival_monitor-10] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/scan_arrival_monitor-10*.log[0m
+[1m[scan_bt_bridge-11] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/scan_bt_bridge-11*.log[0m
+[1m[scan_cloud_ground_filter-7] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/scan_cloud_ground_filter-7*.log[0m
+[1m[world_to_camera_init-6] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/world_to_camera_init-6*.log[0m
+[1m[scan_planner_node-8] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/scan_planner_node-8*.log[0m
+[1m[v8_goal_gate-13] process has finished cleanly
+log file: /opt/ros1-slam/logs/aa91b0a0-de41-11f1-9701-4183e44eb2a9/v8_goal_gate-13*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

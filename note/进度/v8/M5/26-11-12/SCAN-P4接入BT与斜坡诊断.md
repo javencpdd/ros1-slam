@@ -251,3 +251,18 @@ harness 增 `SCAN_BT_PROFILE` 单入口模式；`scan_bt_nav` 的 publish_refere
   旧 `min_z=0.0` 过滤下同一箱是 70 点且能重规划（§10）。⇒ 下一步：平面分割对
   “贴地障碍基座”保留策略再修（当前 column 规则在坡面下坡段仍切掉箱底），或用
   组合过滤（平面 + min_z）作为 ramp profile 的 P4 过滤；之后接真机 launch/清单。
+
+## 15. 真机装配与 dry-run（2026-11-12）
+
+新增 `launch/scan_nav_real.launch`：真机话题拓扑（`/LIO/*`）+ `70_scan`（地面分割/
+A* 或参考路径）+ `scan_bt_nav`（bt_profile real/demo）+ `60_safety`；机器人 bringup、
+LIO、motion 使能由操作员先起/显式打开。接入清单见 `SCAN真机接入清单.md`（前提、
+dry-run 判据、首次动 L2、场景参数、已知限制、证据）。`scan_bt_nav` 增 `bt_profile`
+口（demo/real；real 需复制 `bt_console_real.yaml`，否则 fail-closed）。
+
+dry-run（仿真后端 + `bt_profile:=demo`，不动车）：18 节点在位；BT `wait_goal` 空闲、
+outcome 空；`/lite3/scan/arrived=false`；`/cmd_vel` 20 Hz 且线速度全 0；
+Traceback/AttributeError 0。证据 `evidence/scan-real-dry/`。
+
+★真机物理运行仍是 L2★：103 只读、不向 120/43893 发帧；解锁/发目标/急停需真人
+在场并按 note/10 签核。本段不声称真机通过。

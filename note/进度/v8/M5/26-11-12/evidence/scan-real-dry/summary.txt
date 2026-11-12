@@ -1,0 +1,15 @@
+SCAN 真机装配 dry-run（2026-11-12，仿真后端 + scan_nav_real.launch bt_profile:=demo）
+
+节点（18）：bt_console / closed_loop_controller / faster_lio_online / gazebo /
+lio_cloud_relay / lio_odom_imu_relay / lio_odom_vehicle_relay / liveness_m6 /
+robot_state_publisher / rosout / safe_cmd_vel_mux / scan_arrival_monitor /
+scan_bt_bridge / scan_cloud_ground_filter / scan_planner_node / sim_adapter /
+v8_goal_gate / world_to_camera_init
+
+BT：tree RUNNING，event=arrival_reset，queue_depth=0，goal_seq=0，outcome=""，
+    planner_mode=signal，arrival_signal=false，wait_goal=RUNNING（无 goal，空闲）
+/lite3/scan/arrived: false
+/cmd_vel: 20.000 Hz，样本 linear x/y/z = 0/0/0（不动车）
+错误面：Traceback/AttributeError/ModuleNotFound 命中 0
+
+边界：真机物理运行仍 L2；本 dry-run 只证软件装配/话题/零速/空闲，不证真机运动。
