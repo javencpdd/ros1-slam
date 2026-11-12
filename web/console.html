@@ -143,6 +143,24 @@
         3D 目标发 <code>/v8/bt/goal</code>，由 BT/goal_gate 落到 <code>/v8/3d/global/goal</code>；起点发 <code>/v8/3d/global/start</code>；2D 目标发
         <code>/move_base_simple/goal</code>，初位姿发 <code>/initialpose</code>。</div>
     </section>
+
+    <section class="card" id="viz-card">
+      <h2>可视化后端 <span class="hint">网页内建 / Foxglove 二选一</span></h2>
+      <div class="kv"><span>后端</span><span><select id="viz-backend">
+        <option value="web">网页内建（本页 3D / 点云）</option>
+        <option value="foxglove">Foxglove（关本页重载）</option>
+      </select></span></div>
+      <div id="foxglove-guide" hidden>
+        <ol class="fox-steps">
+          <li>保持 rosbridge 在线（Foxglove 走的就是它）：<code id="foxglove-ws">ws://127.0.0.1:9090</code></li>
+          <li>Foxglove 里 <b>Open connection → Rosbridge (ROS 1)</b>（不要选 Foxglove WebSocket），填上面的地址。</li>
+          <li>导入布局模板：<a id="foxglove-layout" href="/docker/foxglove/ros1_slam_sim_layout.json" target="_blank" rel="noopener">ros1_slam_sim_layout.json</a>；SCAN 栈再手动加 <code>/cloud_registered</code>、<code>/global_path</code>、<code>/planning/bspline</code>。</li>
+          <li>切到本模式时网页已停：服务端体素流、实时点云订阅、3D 渲染、<code>/tf</code> 等监视订阅；只留 <code>/v8/bt/status</code> 驱动上方 BT 阶段条。</li>
+          <li>桥连的域要一致：当前 rosbridge 连控制台域 11312；真机换桥的 master（见 <code>docker/foxglove/README.md</code>）。</li>
+        </ol>
+        <div class="notice">点云/3D 交互在 Foxglove 里做；本页继续负责发目标、BT 阶段、作业栈与监控。</div>
+      </div>
+    </section>
   </div>
 
   <div class="col">

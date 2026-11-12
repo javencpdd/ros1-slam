@@ -441,3 +441,21 @@ leaf 0.1 m，原子写 `data/console/voxels/{latest.bin,meta.json}`，agent
 完整树形结构仍看 Groot2（本机 ZMQ 5555）。
 
 证据：`evidence/scan-console/bt_panel_bag_voxels.md`。
+
+## 22. 网页 Foxglove 双模（2026-11-12）
+
+控制台页新增「可视化后端」：`网页内建`（默认）/ `Foxglove（关本页重载）`。
+切 Foxglove 时页面：停 `voxel_stream`（agent API，实测 running→stopped）、停
+浏览器点云/3D 与服务端体素轮询、退订重载监视话题（`/tf` 等，只留
+`/v8/bt/status` 驱动 BT 阶段条），并显示连接指引（`ws://<host>:9090`、
+Foxglove 选 **Rosbridge (ROS 1)**、布局模板链接）。切回则恢复 3D 与订阅。
+
+实测：切后 guide 可见/3D 隐藏/日志一行，刷新后模式与布局保持且 `/tf` 无实测
+（重载订阅被跳过）、BT 阶段条仍更新；切回恢复。node 单测 ALL PASS（新增两条
+wiring 断言）。
+
+**关键边界**：rosbridge 不能关（Foxglove 走它；本镜像无 `foxglove_bridge`）；
+桥要连目标 ROS 图（当前 11312，真机换 master）；布局模板需手动补 SCAN 话题
+（`/cloud_registered`、`/global_path`、`/planning/bspline`）。证据
+`evidence/scan-console/foxglove_mode.md`，说明同步写进
+`docker/foxglove/README.md`。

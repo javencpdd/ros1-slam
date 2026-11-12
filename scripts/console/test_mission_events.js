@@ -106,6 +106,14 @@ check(js.indexOf("topic === '/v8/bt/status'") >= 0 &&
 check(js.indexOf('window.MissionEvents.classify') >= 0 &&
       js.indexOf('mission.btSentSeq') >= 0,
       'mission uses the shared decision module');
+check(html.indexOf('id="viz-backend"') >= 0 &&
+      html.indexOf('id="foxglove-guide"') >= 0 &&
+      html.indexOf('ros1_slam_sim_layout.json') >= 0,
+      'console.html has viz backend switch and Foxglove guide');
+check(js.indexOf('applyVizMode') >= 0 &&
+      js.indexOf('/api/stacks/voxel_stream/stop') >= 0 &&
+      js.indexOf("VIZ_HEAVY_TOPICS") >= 0,
+      'console.js stops web-side load when Foxglove mode is chosen');
 check(js.indexOf("mission.mode !== '3d'") >= 0,
       'pose-based arrival stays limited to 2D mode');
 

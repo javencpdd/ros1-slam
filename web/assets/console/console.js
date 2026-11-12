@@ -35,6 +35,8 @@
     deadman: $('deadman'), estop: $('estop'), unlock: $('unlock'), estopState: $('estop-state'),
     agentUrl: $('agent-url'), agentRefresh: $('agent-refresh'), agentState: $('agent-state'),
     stackList: $('stack-list'), stackLog: $('stack-log'),
+    vizBackend: $('viz-backend'), foxgloveGuide: $('foxglove-guide'),
+    foxgloveWs: $('foxglove-ws'),
   };
 
   const BT_STAGES = [
@@ -1056,6 +1058,7 @@
     el.cloudTopic.addEventListener('change', () => {
       if (live.enabled) { stopLiveCloud(false); startLiveCloud(); }
     });
+    el.vizBackend.addEventListener('change', () => applyVizMode(el.vizBackend.value, true));
   }
   function setLiveState(text, cls) {
     el.cloudLiveState.textContent = text;
@@ -1703,9 +1706,44 @@
     refreshStacks();
   }
 
-  // ---------------------------------------------------------------- monitor
+  // ---------------------------------------------------------------- viz backend
+  // 网页内建 / Foxglove 二选一。Foxglove 模式停网页侧重载，只留 /v8/bt/status。
+  const VIZ_HEAVY_TOPICS = TOPIC_SPECS.map((spec) => spec.topic)
+    .filter((topic) => topic !== '/v8/bt/status');
+  let vizMode = 'web';
+
+  function applyVizMode(mode, userAction) {
+    vizMode = mode === 'foxglove' ? 'foxglove' : 'web';
+    try { localStorage.setItem('lite3-viz-mode', vizMode); } catch (e) {}
+    const fox = vizMode === 'foxglove';
+    el.vizBackend.value = vizMode;
+    if (el.cloudWrap) el.cloudWrap.hidden = fox;
+    el.foxgloveGuide.hidden = !fox;
+    const url = (el.bridgeUrl.value ||
+                 ('ws://' + (location.hostname || '127.0.0.1') + ':9090')).trim();
+    el.foxgloveWs.textContent = url;
+    if (!userAction) return;
+    if (fox) {
+      if (serverVox.enabled) stopServerVoxels();
+      if (live.enabled) stopLiveCloud(false);
+      if (bridge && online) {
+        VIZ_HEAVY_TOPICS.forEach((topic) => {
+          try { bridge.unsubscribe(topic); } catch (e) {}
+        });
+      }
+      fetch(agentBase() + '/api/stacks/voxel_stream/stop', { method: 'POST' })
+        .catch(() => {});
+      log('已切到 Foxglove：停服务端体素流/实时点云/3D 与重载订阅（保留 /v8/bt/status）；'
+          + 'rosbridge 保持给 Foxglove 用', 'ok');
+    } else {
+      if (bridge && online) setupSubscriptions();
+      log('已切回网页内建可视化；体素流如需请到作业栈重启 voxel_stream', 'ok');
+    }
+  }
+
   function setupSubscriptions() {
     TOPIC_SPECS.forEach((spec) => {
+      if (vizMode === 'foxglove' && VIZ_HEAVY_TOPICS.indexOf(spec.topic) >= 0) return;
       rates[spec.topic] = { count: 0, last: 0, window: performance.now() };
       try {
         bridge.subscribe(spec.topic, spec.type, (msg) => onTopic(spec.topic, msg));
@@ -2140,6 +2178,7 @@
       const config = await response.json();
       if (config.rosbridge) el.bridgeUrl.value = config.rosbridge;
       if (config.agent) el.agentUrl.value = config.agent;
+      applyVizMode(vizMode, false);
       if (config.expected_rates) {
         TOPIC_SPECS.forEach((spec) => {
           if (config.expected_rates[spec.topic] != null) {
@@ -2152,6 +2191,7 @@
   }
 
   bind();
+  applyVizMode(localStorage.getItem('lite3-viz-mode') || 'web', false);
   renderRates();
   renderGoals();
   updateMissionState();

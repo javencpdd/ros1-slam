@@ -4,6 +4,16 @@
 
 本目录的 [ros1_slam_sim_layout.json](ros1_slam_sim_layout.json) 是手写布局模板。浏览器客户端需要兼容 **ROS1 rosbridge WebSocket**；`ws://<可达地址>:9090` 是桥的端点，ROS master的11312/11313不是浏览器端口。不要把该桥选成使用另一协议的“Foxglove WebSocket”连接。
 
+## 网页端 Foxglove 模式（2026-11-12）
+
+控制台页（`web/console.html`）的「可视化后端」可切到 `Foxglove（关本页重载）`：
+切换时页面会停服务端体素流（agent `/api/stacks/voxel_stream/stop`）、停浏览器
+实时点云/3D 渲染与重载监视订阅（`/tf` 等，只留 `/v8/bt/status`），并显示连接
+指引（ws 地址 + 本目录布局模板链接）。**rosbridge 必须保持运行**——Foxglove 经
+它连接（选 Rosbridge (ROS 1)，不是 Foxglove WebSocket；本镜像未装
+`foxglove_bridge`）。实测读数见
+`note/进度/v8/M5/26-11-12/evidence/scan-console/foxglove_mode.md`。
+
 ## 连接域先对齐
 
 | 运行图 | ROS master | 桥的要求 |
