@@ -13,3 +13,17 @@ BT：tree RUNNING，event=arrival_reset，queue_depth=0，goal_seq=0，outcome="
 错误面：Traceback/AttributeError/ModuleNotFound 命中 0
 
 边界：真机物理运行仍 L2；本 dry-run 只证软件装配/话题/零速/空闲，不证真机运动。
+
+## run2（2026-11-12 04:10—04:11，新预检脚本实跑）
+
+- 后端起法：m2_gazebo（18 s）→ m2_mapping（10 s）→ scan_nav_real bt_profile:=demo
+- 预检（run2/preflight.log）：6/6 PASS —— nodes / planner_mode=signal /
+  bt_idle / arrived=False / cmd_vel_zero 20.0 Hz peak=0.0000 / path_status_topic
+- 节点 18 个（另 rosapi、rosbridge_websocket 为基础设施；1 个陈旧 /rostopic_* 注册，非 launch 节点）
+- BT（run2/bt_status.txt）：tree RUNNING、event=idle、goal_seq=0、current_seq=0、
+  outcome=""、path_state=idle、planner_mode=signal、arrival_signal=false、wait_goal RUNNING
+- Traceback/AttributeError/ModuleNotFound 0（run2/real_launch.log）
+- 注：节点名 scan_cloud_ground_filter 为 70_scan 的固定 node name，脚本由
+  ground_filter_node 选择（本链为 scan_cloud_ground_segment.py）
+- 坑（本次踩到）：同一 master 上遗留的旧栈会占 Gazebo 模型名与 ZMQ 5555/5556，
+  导致新 bt_console 退出、spawn 失败；起 dry-run 前先确认容器内无 roslaunch/gzserver 残留
