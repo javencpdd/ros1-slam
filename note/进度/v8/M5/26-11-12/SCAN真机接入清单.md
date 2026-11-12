@@ -26,6 +26,8 @@
 # 机器人 bringup 已起；本 launch 只装 SCAN+BT+安全层
 roslaunch lite3_scan scan_nav_real.launch bt_profile:=demo   # 先用 demo 确认接线
 # 若已复制并确认真机 yaml：bt_profile:=real
+# 只读预检（节点在位/planner_mode=signal/arrived=false//cmd_vel 全零）：
+python3 ws/src/40_navigation/lite3_scan/verify/real_preflight.py --window 4
 ```
 
 通过判据（全部只读）：

@@ -352,3 +352,41 @@ pid 不存在），无附带损伤，但这是危险动作，记此为准。
 边界：控制台 SCAN 栈仍是 demo；真机物理运行仍 L2（`scan_real` 的
 `bt_console_real.yaml` 由操作员提供、fail-closed；真机容器需按本段同法重建
 `lite3_bt`）。
+
+## 19. 平地地面分割默认化与两目标 FIFO（2026-11-12）
+
+**问题（平地旧默认不过滤）**：控制台连发两目标，第二个目标 (1.0,-1.5) 落在
+**已观测区域**，SCAN 的栅格把地面当占据，终点被连续截短 6 次
+（1.00,-1.50→0.78,-1.20→-0.02,-0.83→0.11,-0.96→0.28,-1.43→0.40,-1.49→
+0.41,-1.55），机器人停在 (0.37,-1.51)，BT 按原目标等到 176 s budget 超时。
+即控制台「点已观测区域」会必然踩到该行为。
+
+**修复**：`scan_nav_sim.launch` 两 profile 统一
+`ground_filter=true`、`cloud_topic=/LIO/clouds_lidar_ground_filtered`；
+平地用平面分割节点（`scan_cloud_ground_segment.py`，列保留策略），
+斜坡仍用 `min_z=0.0` 节点（§10）。真机装配 `scan_nav_real.launch` 早已是
+同款默认，二者一致。
+
+**读数**：
+- 单目标复验：(-1.5,2.0) 与 (1.0,-1.5) 均 reached，停点误差 ≤0.03 m，
+  `[global target]` 截断告警 **0** 条（修前 6 条）。
+- 两目标 FIFO 连发（间隔 2 s）：`goal_seq=2 current_seq=2 outcome_seq=2
+  outcome=reached`，终点 (1.013,-1.527)，截断 0；BT 队列/dequeue 正常。
+- 平地 P4 门禁（新默认）PASS：goal (-2.754,1.547)、dist_end 0.07 m、
+  dt_sim 16.97 s、注入净距 0.492 m（≥0.40）、3D 净距 0.304 m（≥0.10）、
+  实车净距 0.876 m、restore ok、replanned=True。
+- 斜坡 P4 探针本轮取到不同自由目标 (2.668,-1.172)+贴路线注入：FAIL
+  （规划曲线净距 0.226 m、dist_end 1.687 m、dt_sim 139.88 s）；斜坡参数本轮
+  未变，原通过目标 (1.5,0) 新 launch 复验仍 PASS（wall ~12 s）。**斜坡门禁按
+  目标成立**，斜向目标 + 贴路线注入仍不过，沿 §10 scoped 口径，不扩大结论。
+
+**真机准备**：新增只读预检 `verify/real_preflight.py`（节点在位 /
+`planner_mode=signal` / `arrived=false` / `/cmd_vel` ≥10 Hz 且全零 /
+`/global_path/status`），纯解析单测 4/4 PASS；真机清单 §2 增「先重建
+lite3_bt」与 `planner_mode=signal` 判据。
+
+证据：`evidence/scan-flat-filter/filter_and_fifo.md`、
+`evidence/scan-p4-bt/flat_bt_p4_groundfilter.{json,harness.log}`、
+`evidence/scan-p4-bt/ramp_bt_p4_goal2p67_fail.{json,harness.log}`。
+
+边界：仿真仍是 m2 平面载体；真机 L2 未动。

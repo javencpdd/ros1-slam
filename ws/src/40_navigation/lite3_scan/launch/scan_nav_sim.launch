@@ -24,15 +24,17 @@
   <arg name="spawn_z" default="$(eval 0.15 if profile == 'flat' else 0.88)"/>
   <arg name="spawn_yaw" default="$(eval 0.0 if profile == 'flat' else 3.14159)"/>
   <arg name="navi_mode" default="$(eval 1 if profile == 'flat' else 3)"/>
-  <arg name="ground_filter" default="$(eval 'false' if profile == 'flat' else 'true')"/>
+  <!-- 2026-11-12 起两 profile 都走壳侧地面过滤：平地不过滤时，已被观测区域的
+       地面点会进栅格 z 膨胀带，目标终点被判占据并逐步截短（控制台点图必现）。 -->
+  <arg name="ground_filter" default="true"/>
   <arg name="publish_reference_path" default="$(eval 'false' if profile == 'flat' else 'true')"/>
-  <arg name="cloud_topic" default="$(eval flat_cloud if profile == 'flat' else filtered_cloud)"/>
+  <arg name="cloud_topic" default="$(arg filtered_cloud)"/>
   <arg name="advanced_param" default="$(eval flat_adv if profile == 'flat' else slope_adv)"/>
   <!-- 坡面平面距离收紧：0.08 会把贴地箱体下半当平面内点；0.04 保留更多
-       障碍基座，FSM 安全检查才看得到箱体。平地不需要（无过滤）。 -->
+       障碍基座，FSM 安全检查才看得到箱体。平地无坡，0.08 可用。 -->
   <arg name="ground_plane_distance" default="$(eval 0.08 if profile == 'flat' else 0.04)"/>
   <!-- ramp profile 的 P4 用固定 min_z=0.0（保留贴地箱体点，§10 已验）；
-       flat 不过滤。平面分割件留作 A*/通用场景与后续真机。 -->
+       flat 用平面分割（列保留策略保住贴地箱体，§12/§13）。 -->
   <arg name="ground_filter_node" default="$(eval 'scan_cloud_ground_segment.py' if profile == 'flat' else 'scan_cloud_ground_filter.py')"/>
   <arg name="ground_min_z" default="0.0"/>
   <arg name="arrival_floor" default="$(eval 0.02 if profile == 'flat' else 0.006)"/>
