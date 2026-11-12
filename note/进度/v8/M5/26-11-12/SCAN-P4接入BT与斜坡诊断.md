@@ -390,3 +390,29 @@ lite3_bt」与 `planner_mode=signal` 判据。
 `evidence/scan-p4-bt/ramp_bt_p4_goal2p67_fail.{json,harness.log}`。
 
 边界：仿真仍是 m2 平面载体；真机 L2 未动。
+
+## 20. 斜坡 P4 的注入几何敏感性（2026-11-12）
+
+§10 的斜坡 PASS 记录（`ramp10_bt_p4_pass.json`）条件：goal (1.5,0)、注入
+`frac=0.5`、LIO 侧偏 ≈0.26 m、箱体近旁点云 **77** 点；读数 avoid 0.640 /
+A23 3D 0.331 / 物理 0.769 / 到达 0.015 → PASS。
+
+本轮补测两个对照（同 launch、同参考路径、同 min_z=0.0 过滤）：
+
+1. 固定 goal(1.5,0) + `P4_INJECT_FRAC=0.6`（默认侧偏）：箱体近旁点云仅
+   **20** 点；规划净距 0.053 m（<0.40）、物理 0.357 m（<箱半宽 0.40）、
+   到达 0.12 m → **FAIL：避让不成立**。同一目标在 frac=0.5 时 PASS，差异在
+   注入点是否被坡上雷达充分观测（20 vs 77 点）——不是本次过滤改动引入。
+2. 探针自由目标 (2.668,-1.172) + frac 0.6：avoid 0.226、到达 1.687 m、
+   dt_sim 139.88 s → FAIL（同类）。
+3. 另有一次 `P4_INJECT_OFFSET=0.25` 复跑 **INVALID**（探针就绪超时，栈在
+   sim 63 s 被 teardown，属环境抖动，不计入判据）。
+
+结论：斜坡 P4 的成立条件与 §10 一致且**对注入几何敏感**——
+「navi_mode=3 参考路径 + 壳侧 min_z=0.0 过滤 + 注入点位于坡上可充分观测处
+（frac 0.5、侧偏 ~0.25 m）」；贴路线且点云稀疏的注入当前避让不过，仍是
+已知限制。是否接受该口径请真人按 §10 复核；不扩大结论、不放宽门值。
+
+证据：`evidence/scan-p4-bt/ramp_bt_p4_goal1p5_offset0_fail.{json,harness.log}`、
+`ramp_bt_p4_goal2p67_fail.{json,harness.log}`；对照件
+`ramp10_bt_p4_pass.json`。
