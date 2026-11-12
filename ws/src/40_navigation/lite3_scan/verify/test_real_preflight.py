@@ -30,5 +30,17 @@ class ParseStatusTest(unittest.TestCase):
         self.assertIsNone(MOD.parse_bt_status(''))
 
 
+class CollectTest(unittest.TestCase):
+    def test_collect_nodes_and_topics(self):
+        states = (
+            [['/v8/bt/status', ['/bt_console']], ['/cmd_vel', ['/safe_cmd_vel_mux']]],
+            [['/v8/bt/goal', ['/bt_console']]],
+            [['/v8/bt/status', ['/bt_console']]],
+        )
+        nodes, topics = MOD.collect(states)
+        self.assertEqual(nodes, {'/bt_console', '/safe_cmd_vel_mux'})
+        self.assertEqual(topics, {'/v8/bt/status', '/cmd_vel', '/v8/bt/goal'})
+
+
 if __name__ == '__main__':
     unittest.main()

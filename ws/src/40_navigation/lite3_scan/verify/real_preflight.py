@@ -12,6 +12,7 @@
 """
 import argparse
 import json
+import os
 import sys
 
 REQUIRED_NODES = (
@@ -33,6 +34,16 @@ def parse_bt_status(text):
     return data if isinstance(data, dict) else None
 
 
+def collect(states):
+    """rosgraph getSystemState() -> (nodes, topics) as sets."""
+    nodes, topics = set(), set()
+    for group in states:
+        for name, members in group:
+            topics.add(name)
+            nodes.update(members)
+    return nodes, topics
+
+
 def main():
     import rospy
     import rosgraph
@@ -43,8 +54,19 @@ def main():
     parser.add_argument('--window', type=float, default=4.0, help='采样窗秒数')
     args = parser.parse_args()
 
-    rospy.init_node('scan_real_preflight', anonymous=True)
     master = rosgraph.Master('/scan_real_preflight')
+    try:
+        master.getPid()
+    except Exception as exc:
+        # rospy.init_node 在 master 不可达时会重试 ~60 s，先快探活再初始化。
+        print('INVALID ROS master 不可达（%s）: %s' % (rosgraph.get_master_uri(), exc))
+        return 9
+    try:
+        rospy.init_node('scan_real_preflight', anonymous=True)
+    except rospy.exceptions.ROSException as exc:
+        print('INVALID 无法初始化 ROS 节点（master 不可达或 /clock 缺失）: %s' % exc)
+        sys.stdout.flush()
+        os._exit(9)  # rospy 初始化失败后仍有内部线程，正常 return 会挂住
     checks = []
 
     def record(name, ok, detail):
@@ -52,7 +74,7 @@ def main():
         print('%s %-28s %s' % ('PASS' if ok else 'FAIL', name, detail))
 
     states = master.getSystemState()
-    nodes = set(states[0]) | set(states[1]) | set(states[2])
+    nodes, topics = collect(states)
     missing = [n for n in REQUIRED_NODES if '/' + n not in nodes]
     record('nodes', not missing, 'missing=' + (','.join(missing) or '-'))
 
@@ -94,7 +116,6 @@ def main():
         record('cmd_vel_zero', rate >= 10 and peak < 1e-3,
                '%.1f Hz peak=%.4f n=%d' % (rate, peak, len(speeds)))
 
-    topics = set(states[1])
     record('path_status_topic', '/global_path/status' in topics, 'present' if '/global_path/status' in topics else 'missing')
 
     failed = [name for name, ok, _ in checks if not ok]

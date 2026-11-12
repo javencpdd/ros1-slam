@@ -69,3 +69,16 @@ B 在已观测区域，SCAN 反复截短终点：
 `verify/test_real_preflight.py` 纯解析单测 4/4 PASS。用法：
 
     python3 ws/src/40_navigation/lite3_scan/verify/real_preflight.py --window 4
+
+## 预检脚本实跑（目标环境证据）
+
+- 正控（控制台域 11312，scan_flat 运行中）：
+
+      PASS nodes / planner_mode=signal / bt_idle / arrived=False /
+      PASS cmd_vel_zero 20.0 Hz peak=0.0000 n=80 / PASS path_status_topic
+      PREFLIGHT PASS (6/6)  rc=0
+
+- 负控（11313 无 master）：`INVALID ROS master 不可达（http://127.0.0.1:11313）:
+  [Errno 111] Connection refused`，rc=9，0 s 返回（先 `rosgraph.Master.getPid()`
+  探活，避开 rospy 在 master 不可达时 ~65 s 的重试）。
+- 日志：`preflight_pass.log` / `preflight_invalid.log`；单测 5/5 PASS。
