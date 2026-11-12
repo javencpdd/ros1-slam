@@ -30,10 +30,15 @@ roslaunch lite3_scan scan_nav_real.launch bt_profile:=demo   # 先用 demo 确�
 
 通过判据（全部只读）：
 
+0. **先重建 bt_console**（真机容器自己的 devel 卷）：`catkin_make --pkg lite3_bt`；
+   `strings .../bt_console | grep -E "external arrival signal|arrival_speed_floor_mps"`
+   各 1 处；否则 `/v8/bt/status` 报 `planner_mode=pose`，arrival signal 永不触发
+   （2026-11-12 sim-viz 实测坑，见 SCAN-P4接入BT与斜坡诊断 §17/§18）。
 1. 节点在位：`scan_planner_node`、`closed_loop_controller`、`scan_arrival_monitor`、
    `scan_bt_bridge`、`bt_console`、`v8_goal_gate`、`safe_cmd_vel_mux` 均 RUNNING；
 2. 话题：`/planning/bspline`（无目标时可为空）、`/global_path/status`、
-   `/lite3/scan/arrived`（false）、`/v8/bt/status`（`wait_goal` RUNNING、outcome 空）；
+   `/lite3/scan/arrived`（false）、`/v8/bt/status`（`wait_goal` RUNNING、outcome 空、
+   `planner_mode=signal`）；
 3. 速度：`/cmd_vel` 平均速率 20 Hz 且线速度 **0**；无 `/scan_planner/cmd_vel` 非零输出；
 4. 无 `E_LOCAL_*` 锁存（`latched=false`）；BT 无 goal、无 timeout/recovery；
 5. 日志无 Traceback/AttributeError；`rosnode list` 无重复/孤儿。

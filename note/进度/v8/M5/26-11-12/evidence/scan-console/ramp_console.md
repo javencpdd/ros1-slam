@@ -43,3 +43,18 @@ bspline 上坡跟踪 → `/lite3/scan/arrived=True` → BT `arrival_signal=true`
 - 无 P4 动态注入（控制台跑是 demo 编排验证；P4 门禁读数见 `scan-p4-bt/`）。
 - bt_console 的 stdout 在 roslaunch 下块缓冲，进程存活时 `[bt]` 行不进
   `/tmp/v8-console/scan_ramp.log`；本次判据用 `/v8/bt/status` topic 与轮询读数。
+
+## 跑 2：控制台域 11312 复跑（03:19—03:21，最终口径）
+
+- 启动：`POST /api/stacks/scan_ramp/start` → pid 711881；`rosnode list` = 21 节点
+- `/v8/bt/status` 初始 `"event":"arrival_reset"`、`"planner_mode":"signal"`
+- goal (1.5,0)（frame `map`）后轮询（wall 6 s 步长）：
+
+      t=6s  event=arrival_start outcome=""       arrived=False x=1.195 y= 0.002
+      t=12s event=stop          outcome=reached  arrived=True  x=1.511 y=-0.026
+      t=24s event=stop          outcome=reached  arrived=True  x=1.529 y=-0.002
+      t=48s event=stop          outcome=reached  arrived=True  x=1.542 y=-0.005
+
+- 停栈后容器内 gzserver/bt_console/scan_* 进程计数 0，11312 域回到
+  `/rosapi /rosbridge_websocket /rosout`。
+

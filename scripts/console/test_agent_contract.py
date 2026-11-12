@@ -112,11 +112,30 @@ class ClientIdentityTest(unittest.TestCase):
                          {'mapping_m1', 'mapping_save', 'safety_mux',
                           'bt_console', 'voxel_stream'})
 
-    def test_bt_console_owns_3d_goal_authority(self):
+    def test_3d_goal_authority_owners(self):
+        # 自带 bt_console 的栈都可持有 3D 写入权；同时只允许一个在跑（agent 守卫）。
         self.assertEqual(self.stacks['bt_console'].get('goal_authority'), '3d')
-        owners = [stack for stack in self.stacks.values()
-                  if stack.get('goal_authority') == '3d']
-        self.assertEqual([stack['name'] for stack in owners], ['bt_console'])
+        owners = sorted(stack['name'] for stack in self.stacks.values()
+                        if stack.get('goal_authority') == '3d')
+        self.assertEqual(owners, ['bt_console', 'scan_flat', 'scan_ramp', 'scan_real'])
+
+    def test_scan_stacks_on_console_master(self):
+        # 网页 rosbridge 默认 9090→roscore:11312；SCAN 栈必须同域才可见/可发目标。
+        for name in ('scan_flat', 'scan_ramp'):
+            self.assertEqual(self.stacks[name]['master'], 'http://roscore:11312')
+
+    def test_single_3d_goal_authority_guard(self):
+        flat = self.stacks['scan_flat']
+        running = {'bt_console': ('running', 1, None)}
+        other = AGENT.goal_authority_conflict(
+            flat, lambda stack: running.get(stack['name'], ('stopped', None, None)))
+        self.assertEqual(other['name'], 'bt_console')
+        other = AGENT.goal_authority_conflict(
+            flat, lambda stack: ('stopped', None, None))
+        self.assertIsNone(other)
+        other = AGENT.goal_authority_conflict(
+            self.stacks['sim_m1'], lambda stack: ('running', 1, None))
+        self.assertIsNone(other)
 
     def test_dependency_cycle_rejected(self):
         stacks = {'a': {'name': 'a', 'requires': ['b']},

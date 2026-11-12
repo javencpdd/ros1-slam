@@ -316,3 +316,39 @@ collision-free point [1.32, 0.01, -0.29]`：SCAN 按内部栅格把目标截到 
 或停栈后再读 roslaunch 日志。
 
 边界不变：控制台栈是 demo（无 P4 注入）；真机物理运行仍 L2。
+
+## 18. SCAN 栈并入控制台域与 3D 写入权守卫（2026-11-12）
+
+§16/§17 的 `master=127.0.0.1:11313` 只是容器内直连口径；网页控制台的
+rosbridge（9090）挂在共享控制台域 `roscore:11312`，两域互不可见。本段把
+`scan_flat`/`scan_ramp` 的 master 改为 `http://roscore:11312`，并给
+`scan_flat`/`scan_ramp`/`scan_real` 标 `goal_authority: "3d"`（三栈都自带
+bt_console，本就是 3D 目标写入者；`scan_real` 指真机主机自己的域）。
+
+**agent 守卫**：新增 `goal_authority_conflict()`，启动 `goal_authority=3d` 的
+栈时若已有另一个 3d 栈在跑则拒绝。实测 scan_flat 运行中启动 bt_console →
+`False 先停止 SCAN 导航（平地 m1，A*）（同一时间只允许一个 3D goal 写入权）`。
+`test_agent_contract.py` 14/14 PASS（新增 `test_3d_goal_authority_owners`、
+`test_scan_stacks_on_console_master`、`test_single_3d_goal_authority_guard`）。
+
+**遗留污染清场**：11312 域上还跑着早前 v8 坡线遗留
+`roslaunch lite3_gazebo_sim sim_nav_slope.launch`（carrier/planner 六进程），
+`/v8/local/pose` 出现双发布者（`/gazebo_3d_carrier` 恒值 5.46,1.07 与
+`/scan_bt_bridge` 交织），会把控制台读数搅成假到达。已在 sim-viz **容器内**
+`kill -INT` 停掉；清场后 11312 只剩 `/rosapi /rosbridge_websocket /rosout`。
+
+**复跑（控制台域，最终口径）**：
+- flat：pid 707353，20 节点，单 `/v8/local/pose` 发布者；goal (−2.75,1.55) →
+  pose 0.15→−2.75，`arrived=True`、`outcome=reached`（wall ~24 s）。
+- ramp：pid 711881，21 节点；goal (1.5,0) → `reached`+`stop`（wall ~12 s）。
+- rosbridge 容器（9090，master 11312）可见 `/v8/bt/*`、`/v8/local/pose`、
+  `/scan_planner/*` 并读到 `outcome=reached` ⇒ 网页端话题面通。
+- 停栈后容器内 gzserver/bt_console/scan_* 进程计数 0。
+
+**坑（新）**：容器内进程的 pid 与宿主 pid 是两套命名空间；`kill <pid>` 必须
+`docker exec <容器> kill ...`。本轮到宿主 pid 的两次 kill 均 no-op（该宿主
+pid 不存在），无附带损伤，但这是危险动作，记此为准。
+
+边界：控制台 SCAN 栈仍是 demo；真机物理运行仍 L2（`scan_real` 的
+`bt_console_real.yaml` 由操作员提供、fail-closed；真机容器需按本段同法重建
+`lite3_bt`）。

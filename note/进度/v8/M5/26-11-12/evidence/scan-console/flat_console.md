@@ -70,3 +70,28 @@ y=1.5511 处读数）。C++ 节点随 launch 存活，栈 stop 时一并清场�
 
 `/LIO/odom_vehicle` 与规划器 `/Odometry` 是不同话题；控制台到达权用前者
 （`scan_arrival_monitor`），SCAN 跟踪用后者，二者在本次跑内一致收敛。
+
+## 跑 3：控制台域 11312 复跑（03:16—03:18，最终口径）
+
+11313 域的读数只作过渡记录；**最终接线改为控制台域** `http://roscore:11312`
+（网页 rosbridge 9090 就挂在这个域），见本节读数。
+
+- 启动：`POST /api/stacks/scan_flat/start` → pid 707353；`rosnode list` = 20 节点
+- `/v8/local/pose` 只有 `/scan_bt_bridge` 一个发布者（03:12 首跑时该话题还有
+  遗留 v8 坡栈的 `/gazebo_3d_carrier` 发布者，已清场，见 §18）
+- `/v8/bt/status` 初始 `"event":"arrival_reset"`、`"planner_mode":"signal"`
+- goal (-2.75,1.55)（frame `map`）后轮询（wall 6 s 步长）：
+
+      t=6s   event=arrival_start outcome=""       arrived=False x= 0.146 y=-0.029
+      t=12s  event=path_ready    outcome=""       arrived=False x=-0.981 y= 0.610
+      t=18s  event=path_ready    outcome=""       arrived=False x=-2.165 y= 1.294
+      t=24s  event=path_ready    outcome=reached  arrived=True  x=-2.629 y= 1.497
+      t=36s  event=path_ready    outcome=reached  arrived=True  x=-2.751 y= 1.554
+      t=54s  event=path_ready    outcome=reached  arrived=True  x=-2.754 y= 1.540
+
+- rosbridge 容器（`ros1-slam-rosbridge`，9090，master 11312）可见
+  `/v8/bt/{status,goal,arrived,goal_request,lease}`、`/v8/local/pose`、
+  `/scan_planner/*`，同一时刻读到 `outcome=reached` ⇒ 网页端话题面已通。
+- 互斥验证：scan_flat 运行中 `POST /api/stacks/bt_console/start` →
+  `False 先停止 SCAN 导航（平地 m1，A*）（同一时间只允许一个 3D goal 写入权）`。
+

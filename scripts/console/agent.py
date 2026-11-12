@@ -177,6 +177,20 @@ def build_stack_command(stack, selected_world=None):
     return stack['cmd'], stack.get('world'), None
 
 
+def goal_authority_conflict(stack, state_of=None):
+    """Return another running stack that already owns 3D goal authority."""
+    if stack.get('goal_authority') != '3d':
+        return None
+    read_state = state_of or stack_state
+    for other in STACKS.values():
+        if other['name'] == stack['name'] or other.get('goal_authority') != '3d':
+            continue
+        rstate, _rpid, rerr = read_state(other)
+        if not rerr and rstate == 'running':
+            return other
+    return None
+
+
 def start_stack(stack, selected_world=None):
     name = stack['name']
     state, pid, error = stack_state(stack)
@@ -215,6 +229,9 @@ def start_stack(stack, selected_world=None):
             rstate, _rpid, rerr = stack_state(other)
             if not rerr and rstate == 'running':
                 return False, '先停止 %s（同一时间只起一个 Gazebo world）' % other.get('label', other['name'])
+    conflict = goal_authority_conflict(stack)
+    if conflict:
+        return False, '先停止 %s（同一时间只允许一个 3D goal 写入权）' % conflict.get('label', conflict['name'])
     cmd, effective_world, error = build_stack_command(stack, selected_world)
     if error:
         return False, error
