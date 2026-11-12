@@ -1,0 +1,22 @@
+[02:15:56] == [0] 环境预检 ==
+起前 11313 监听=0（须 0，否则先停旧栈）
+[02:15:56] == [1] roscore 11313 ==
+[02:15:59] == [2] m2_gazebo ==
+world = /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/ramp_scan10.world  spawn = spawn_x:=0.0 spawn_z:=0.88 spawn_yaw:=3.14159
+[02:16:20] == [3] m2_mapping（faster_lio）==
+[02:16:26] == [4] 60_safety（mux）==
+[02:16:28] == [5] 70_scan ==
+[02:16:39] == [6] scan_bt_nav（BT + 契约桥）==
+节点: 7/7
+[02:16:50] == [7] BT 发目标并判到达 ==
+probe = /opt/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_bt_probe.py
+[INFO] [1794449811.807070, 17.189000]: [p4-bt] bt_goal_sent=1.50,0.00
+[INFO] [1794449812.434950, 17.440000]: [p4-bt] path_status={"ok": true, "points": 120}
+[INFO] [1794449812.476074, 17.461000]: [p4-bt] injected=0.73,0.26
+[INFO] [1794449813.884985, 18.063000]: [p4-bt] disturbance_seen=44
+[INFO] [1794449817.367001, 19.566000]: [p4-bt] replanned=False
+{"verdict": "FAIL", "reason": "no new trajectory identity after injection", "detail": {"steps": ["bt_goal_sent=1.50,0.00", "path_status={\"ok\": true, \"points\": 120}", "injected=0.73,0.26", "disturbance_seen=44", "replanned=False"], "goal": [1.5, 0.0, 1.488, null], "traj_before": {"start_time": 17.355, "n_ctrl": 16, "first": [0.014, 0.024], "last": [1.484, 0.0]}, "inject": {"model": "obs_5", "lio_at": [0.731, 0.263], "world_at": [-0.717, -0.243], "frac": 0.5, "occ_pts_near": 44}, "traj_after": {"start_time": 17.355, "n_ctrl": 16, "first": [0.014, 0.024], "last": [1.484, 0.0]}, "restore": {"ok": true, "delta_m": 0.0, "qdelta": 0.0, "tol_m": 0.02, "qtol": 0.001, "why": ""}}, "steps": ["bt_goal_sent=1.50,0.00", "path_status={\"ok\": true, \"points\": 120}", "injected=0.73,0.26", "disturbance_seen=44", "replanned=False"]}
+SCAN-BT 结论 = FAIL|BT/SCAN 集成未达成（见 probe.json）
+[02:16:58] -- teardown --
+残留进程: (空=净)
+11313 监听: 0

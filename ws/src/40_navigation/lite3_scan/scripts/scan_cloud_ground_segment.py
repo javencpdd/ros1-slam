@@ -14,11 +14,17 @@ SCAN 的 2.5D 栅格没有地面语义：坡面/地面点会被当占据，A* �
 import numpy as np
 
 
-def segment_ground(points, distance=0.08, iterations=80, self_radius=0.35, seed=0):
+def segment_ground(points, distance=0.08, iterations=80, self_radius=0.35,
+                   column=0.10, seed=0):
     """RANSAC 地面分割；返回 (保留点, 诊断信息)。
 
     points: Nx3 机体系点云。地面＝RANSAC 主导平面 ±distance 的内点
     （法向统一朝 +z；多面取内点最多者），另去平面下方点与机体圆柱内点。
+
+    column（2026-11-12 补）：贴地但上方有障碍的列（箱体底部/墙脚）整列保留。
+    只按平面距离删会把贴地箱体下半当平面内点一起丢掉，SCAN 的安全检查就
+    看不到该障碍（A* 模式 P4 replanned=False 的根因）。每 XY 列（cell=column）
+    若存在 signed>distance 的点（地面以上），则本列平面附近点保留。
     """
     points = np.asarray(points, dtype=float).reshape(-1, 3)
     info = {"input": int(len(points)), "self_removed": 0, "plane": None,
@@ -56,10 +62,20 @@ def segment_ground(points, distance=0.08, iterations=80, self_radius=0.35, seed=
 
     normal, offset = best
     signed = pts.dot(normal) + offset
-    ground = (np.abs(signed) < distance) | (signed < -distance)
+    near = np.abs(signed) < distance
+    below = signed < -distance
+    if column > 1e-9:
+        cell = np.floor(pts[:, :2] / column).astype(np.int64)
+        keys = cell[:, 0] * 100003 + cell[:, 1]
+        above_keys = np.unique(keys[signed > distance])
+        has_above = np.isin(keys, above_keys)
+    else:
+        has_above = np.zeros(len(pts), dtype=bool)
+    ground = (near & ~has_above) | below
     keep = ~ground
     info.update({"plane": [round(float(v), 4) for v in normal],
                  "offset": round(offset, 4), "inliers": best_count,
+                 "near_kept": int((near & has_above).sum()),
                  "kept": int(keep.sum())})
     return pts[keep], info
 

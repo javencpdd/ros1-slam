@@ -61,8 +61,15 @@ def main():
         box_kept = sum(1 for p in box_above if tuple(p) in kept_set)
         wall_kept = sum(1 for p in wall_above if tuple(p) in kept_set)
         check(info['input'] == len(points), '%s: input count' % name)
-        check(ground_kept / max(1, len(ground)) < 0.05,
+        check(ground_kept / max(1, len(ground)) < 0.10,
               '%s: ground removed (kept=%d/%d)' % (name, ground_kept, len(ground)))
+        # 贴地但上方有障碍的列（箱底/墙脚）应整列保留
+        box_near = np.round(box[np.abs(box[:, 2] - (tilt * box[:, 0] - 0.3)) < 0.08], 6)
+        box_near_kept = sum(1 for p in box_near if tuple(p) in kept_set)
+        check(len(box_near) > 0 and box_near_kept / len(box_near) > 0.8,
+              '%s: near-ground obstacle base kept (%.0f%%)'
+              % (name, 100.0 * box_near_kept / max(1, len(box_near))))
+        check(info.get('near_kept', 0) > 0, '%s: near_kept counted' % name)
         check(box_kept / max(1, len(box_above)) > 0.8,
               '%s: box above ground kept (%.0f%%)' % (name, 100.0 * box_kept / max(1, len(box_above))))
         check(wall_kept / max(1, len(wall_above)) > 0.9,

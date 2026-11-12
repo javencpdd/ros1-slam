@@ -221,3 +221,17 @@ SCAN 的已知限制，本方案以参考路径模式绕开，不声称 A* 已�
   非平面内点”的障碍簇（按连通/半径判别），或对箱体下部单独保留。
 
 证据：`evidence/scan-p4-bt/ramp10_astar_plane.json`／`.log`。
+
+## 13. 分割保留贴地障碍基座后的 A* P4 复验（2026-11-12）
+
+`segment_ground` 增 `column=0.10`：每 XY 列若有地面以上点（箱体/墙），该列平面附近
+点整列保留。单测 22/22（贴地箱底 100% 保留、地面保留 4% 仅在障碍足迹）。
+
+A* 模式（10° 坡、地面分割开）复跑：首规 120 点、`a star error` 0；箱看见 44 点；
+但 **`replanned=False`** 仍成立。定位到 A* 模式的重规划走
+`planFromCurrentTraj()` 的非参考分支（`planGlobalTraj`＋`adjustGlobalTargetIfOccupied`＋
+`callReboundReplan`），该分支在坡面+箱体上不产生新样条；参考路径分支
+（navi_mode=3，§10）同一箱体可重规划并 PASS。
+⇒ 结论：A* 模式可规划坡上首规，但坡上 P4 重规划要走参考路径分支；场景 profile
+按「平地用 A*、坡面用参考路径」配置（见下一片）。
+证据：`evidence/scan-p4-bt/ramp10_astar_plane_obstaclebase.json`／`.log`。
