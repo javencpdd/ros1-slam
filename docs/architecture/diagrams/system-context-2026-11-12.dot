@@ -1,0 +1,67 @@
+// ros1-slam 系统上下文（2026-11-12 现状，只读建模）
+// 生成：system-modeler + graphviz；证据见 ../current-2026-11-12.evidence.md
+// 重绘：dot -Tsvg system-context-2026-11-12.dot -o system-context-2026-11-12.svg
+// 颜色：绿=已接通运行 蓝=操作者/外部工具 橙=部分/实验 红=L2/未接 灰=数据/边界
+digraph system_context_2026_11_12 {
+  rankdir=TB;
+  fontname="Noto Sans CJK SC";
+  fontsize=14;
+  labelloc=t;
+  label="ros1-slam 系统上下文 · 2026-11-12 · x86 开发/测试面（host-only），真机物理运行 L2 未启用";
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", fontsize=11];
+  edge [fontname="Noto Sans CJK SC", fontsize=9];
+
+  // ---- 操作者与外部工具 ----
+  op       [label="操作者\nLAN 浏览器", shape=ellipse, fillcolor="#e8f0fe"];
+  foxglove [label="Foxglove 桌面\nRosbridge(ROS1) ws://host:9090", shape=ellipse, fillcolor="#e8f0fe"];
+  groot    [label="Groot2 1.9\n仅本机 GUI", shape=ellipse, fillcolor="#e8f0fe"];
+  realop   [label="真机操作员（L2）\nnote/10 签核＋真人在场", shape=ellipse, fillcolor="#fce8e6"];
+
+  subgraph cluster_x86 {
+    label="x86 宿主 · host-only 测试面（web/scripts/console/data/console 不进机器人镜像）";
+    style="rounded"; color="#9aa0a6"; fontsize=12;
+
+    web   [label="web 容器 ros1-slam-web\nserve.py :80（教程站＋任务台）", fillcolor="#e6f4ea"];
+    agent [label="console agent（宿主进程）\n:8780 · stacks.json 白名单 12 栈\nwhoami 本机/远程 · local_only 拒绝", fillcolor="#e6f4ea"];
+    data  [label="data/\nmaps 地图库 · bags 录制 · console/voxels\n（生成物不入库）", shape=cylinder, fillcolor="#f1f3f4"];
+
+    subgraph cluster_ros {
+      label="Docker ROS1 Noetic 容器（ros1-slam-net）";
+      style="rounded"; color="#9aa0a6"; fontsize=11;
+      roscore   [label="roscore 容器\nmaster :11312（控制台域）", fillcolor="#e6f4ea"];
+      simviz    [label="sim-viz 容器\nGazebo＋faster-lio＋SCAN＋BT＋voxel\n本地 11313/11345 · ZMQ 5555/5556 绑本机\nGPU 直通宿主 X", fillcolor="#e6f4ea"];
+      sim       [label="sim 容器（headless 门禁域）\n独立 11313/11345 · 软渲染\n不接控制台域", fillcolor="#fef7e0"];
+      dev       [label="dev 编译容器\n11311 映射 · Livox UDP 56301/56401", fillcolor="#e6f4ea"];
+      rosbridge [label="rosbridge 容器\n:9090 → master 11312", fillcolor="#e6f4ea"];
+    }
+  }
+
+  subgraph cluster_robot {
+    label="Lite3 真机 · L2 边界（当前未启用物理运行）";
+    style="rounded"; color="#d93025"; fontsize=12;
+    host103 [label="103 计算板\nROS1 原生 · bringup/LIO :11311\nscan_real 装配入口（local_only）", fillcolor="#fce8e6"];
+    qnx120  [label="120 运动控制 QNX\nUDP 43893 下行 / 43897 上行\nTVMPC 三挡步态", fillcolor="#fce8e6"];
+    monitor [label="厂商 monitor :8000（103）\n控制默认禁用 · 与 ros2qnx 单写者互斥", fillcolor="#f1f3f4"];
+  }
+
+  // ---- 已接通 ----
+  op -> web        [label="console.html / index.html"];
+  op -> agent      [label="HTTP /api 栈启停·日志·体素"];
+  web -> rosbridge [label="ws 9090 订阅/发布"];
+  foxglove -> rosbridge [label="点云/TF/BT 状态/标记"];
+  groot -> simviz  [label="ZMQ 5555/5556（仅本机）"];
+  agent -> simviz  [label="docker exec roslaunch（白名单）"];
+  agent -> web     [label="地图库刷新/编辑 API", style=dotted];
+  rosbridge -> roscore [label="master 11312"];
+  simviz -> roscore    [label="控制台栈接 11312"];
+  dev -> roscore       [label="开发/编译"];
+  simviz -> data       [label="PCD/bag/体素写盘"];
+  web -> data          [label="地图/账本生成数据读", style=dotted];
+
+  // ---- L2 / 未接（虚线红） ----
+  agent -> host103 [label="scan_real 栈（local_only，L2）", style=dashed, color="#d93025"];
+  realop -> host103 [label="bringup/解锁/急停", style=dashed, color="#d93025"];
+  host103 -> qnx120 [label="ros2qnx UDP\nenable_motion 默认 false\nSCAN 链未接入", style=dashed, color="#d93025"];
+  qnx120 -> host103 [label="qnx2ros 遥测 43897", style=dashed, color="#9aa0a6"];
+  monitor -> qnx120 [label="控制禁用中", style=dashed, color="#9aa0a6"];
+}

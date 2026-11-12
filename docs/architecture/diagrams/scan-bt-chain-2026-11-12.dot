@@ -1,0 +1,76 @@
+// SCAN＋BT 编排链（2026-11-12 现状）：scan_flat / scan_ramp 控制台栈数据流
+// 生成：system-modeler + graphviz；证据见 ../current-2026-11-12.evidence.md
+// 重绘：dot -Tsvg scan-bt-chain-2026-11-12.dot -o scan-bt-chain-2026-11-12.svg
+// 绿=已运行验证 橙=可选/条件件 红虚线=真机段未接（L2）
+digraph scan_bt_chain_2026_11_12 {
+  rankdir=TB;
+  fontname="Noto Sans CJK SC";
+  fontsize=14;
+  labelloc=t;
+  label="SCAN＋BT 全链（sim-viz 容器 · 控制台域 11312）· 平地 A* / 坡面参考路径 · 2026-11-12";
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", fontsize=10];
+  edge [fontname="Noto Sans CJK SC", fontsize=9];
+
+  webui [label="web 任务台\n3D 点图选目标", fillcolor="#e8f0fe"];
+  fox   [label="Foxglove / RViz\n（只读观察）", fillcolor="#e8f0fe"];
+  groot [label="Groot2（本机）", fillcolor="#e8f0fe"];
+
+  subgraph cluster_stack {
+    label="scan_flat / scan_ramp 栈（scan_nav_sim.launch 一次起完）";
+    style="rounded"; color="#9aa0a6"; fontsize=11;
+
+    gazebo [label="Gazebo m2_gazebo\nMid360 插件＋平面载体", fillcolor="#e6f4ea"];
+    lio    [label="faster-lio（m2_mapping）\n/LIO/* 估计前馈", fillcolor="#e6f4ea"];
+    relay  [label="lio_relay_sim\n话题转发＋恒等 TF", fillcolor="#e6f4ea"];
+    gfilter [label="壳侧地面过滤（默认开）\n平地=平面分割 segment\n坡面=min_z filter", fillcolor="#fef7e0"];
+    scan   [label="SCAN plan_manage FSM\n＋closed_loop_controller\n（30_3rd 上游零改动）\nnavi_mode 1=A* / 3=参考路径", fillcolor="#e6f4ea"];
+    bridge [label="scan_bt_bridge\n契约桥：只翻译不规划", fillcolor="#e6f4ea"];
+    arrival [label="scan_arrival_monitor\nO-1 到达信号（只读）", fillcolor="#e6f4ea"];
+    bt     [label="bt_console（BT.CPP 3.8.8）\nWaitGoal→RequestPath→WaitPath\n→FollowPath→WaitArrival(signal)\n→Dwell→Stop ｜ RecoveryStop\nFIFO 16 · 预算按路径长", fillcolor="#e6f4ea"];
+    gate   [label="goal_gate\nlease＋callerid 白名单\n/v8/3d/global/goal 唯一写者", fillcolor="#e6f4ea"];
+    mux    [label="safe_cmd_vel_mux（60_safety）\n七源仲裁 · 0.5s 超时 · hold", fillcolor="#e6f4ea"];
+    cap    [label="sim_speed_cap 0.5 m/s", fillcolor="#fef7e0"];
+    marker [label="bt_stage_marker\n3D 阶段文本标记", fillcolor="#e6f4ea"];
+    voxel  [label="voxel_stream\n0.10m · 2Hz", fillcolor="#fef7e0"];
+    bag    [label="bag_record（可选栈）\n12 话题 · lz4 · 512MB×8", fillcolor="#fef7e0"];
+  }
+
+  real [label="真机段 scan_nav_real（L2）\n同拓扑：bringup/LIO/mux 操作员先起\n/cmd_vel → ros2qnx → 120:43893 未接", fillcolor="#fce8e6"];
+
+  // 感知→定位→规划
+  gazebo -> lio    [label="/rslidar_points /livox/imu"];
+  lio -> relay     [label="/Odometry"];
+  relay -> scan    [label="/LIO/odom_vehicle /LIO/odom_imu"];
+  lio -> gfilter   [label="/LIO/clouds_lidar"];
+  gfilter -> scan  [label="/LIO/clouds_lidar_ground_filtered"];
+
+  // 编排闭环
+  webui -> bt      [label="/v8/bt/goal（经 rosbridge 9090）"];
+  bt -> scan       [label="RequestPath → /scan_planner/goal"];
+  scan -> bridge   [label="/planning/bspline"];
+  bridge -> bt     [label="/global_path ＋ /global_path/status"];
+  bt -> gate       [label="FollowPath → /v8/bt/goal_request＋lease"];
+  gate -> gate     [label="→ /v8/3d/global/goal（v8 3D 通道）", style=dotted];
+  scan -> mux      [label="/scan_planner/cmd_vel"];
+  cap -> mux       [label="/v8/safety/speed_cap"];
+  mux -> gazebo    [label="/cmd_vel → 平面驱动"];
+
+  // 到达与状态回传
+  arrival -> bridge [label="/lite3/scan/arrived"];
+  bridge -> bt      [label="/v8/bt/arrived（signal 模式）"];
+  bt -> webui       [label="/v8/bt/status（阶段面板）"];
+  bt -> marker      [label="/v8/bt/status"];
+  marker -> fox     [label="/v8/bt/stage_markers"];
+  bt -> groot       [label="ZMQ 5555/5556 全树"];
+
+  // 观察与录制
+  lio -> voxel      [label="/cloud_registered"];
+  gazebo -> voxel   [label="/rslidar_points（1.5s 回退）", style=dotted];
+  voxel -> webui    [label="latest.bin 二进制拉取"];
+  scan -> bag       [label="bspline/goal/cmd_vel", style=dotted];
+  bt -> bag         [label="/v8/bt/status", style=dotted];
+  mux -> bag        [label="/cmd_vel", style=dotted];
+
+  // 真机段（未接）
+  mux -> real       [label="/cmd_vel（真机需 enable_motion＋签核）", style=dashed, color="#d93025"];
+}
