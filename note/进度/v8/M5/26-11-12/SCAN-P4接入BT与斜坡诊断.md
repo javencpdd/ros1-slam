@@ -459,3 +459,25 @@ wiring 断言）。
 （`/cloud_registered`、`/global_path`、`/planning/bspline`）。证据
 `evidence/scan-console/foxglove_mode.md`，说明同步写进
 `docker/foxglove/README.md`。
+
+## 23. Foxglove 接仿真：建图 + 编排阶段（2026-11-12）
+
+Foxglove 经 rosbridge（`ws://<host>:9090`，当前 11312 域）即可看仿真建图：
+3D 面板加 `/cloud_registered`（或 `/rslidar_points`）+ TF + `/Odometry`。
+编排树状态分两层给：
+- 3D 里看当前阶段：新增只读节点 `bt_stage_marker.py`（`lite3_bt/scripts`，
+  挂在 `scan_bt_nav.launch`，真机 SCAN 装配同样有），把
+  `/v8/bt/status` 的 RUNNING 叶节点 + seq/event 以 TEXT_VIEW_FACING 标记
+  发到 `/v8/bt/stage_markers`，跟随机器人上方。
+- 原始状态/审计：同一布局右栏 Raw Messages 看 `/v8/bt/status`。
+- 完整树结构（Fallback/Sequence 分支）：仍用 Groot2（ZMQ 5555）。
+
+实测（scan_flat，goal (-1.5,2.0)）：`WAIT_GOAL`（idle）→ `WAIT_ARRIVAL`
+（path_ready）→ `DWELL_AT_GOAL`（reached）→ `WAIT_GOAL`（收口）；
+单测 `test_bt_stage_marker.py` 5/5 PASS。新布局
+`docker/foxglove/ros1_slam_scan_layout.json`（3D + BT Raw）；
+网页 Foxglove 指引同步加了该布局入口。证据
+`evidence/scan-console/foxglove_mode.md`。
+
+边界：标记是 ASCII 阶段名（RViz/Foxglove 字体兼容），中文阶段条仍在网页；
+标记只读，不发目标/速度。

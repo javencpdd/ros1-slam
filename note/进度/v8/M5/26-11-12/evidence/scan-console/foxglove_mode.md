@@ -39,3 +39,22 @@
 - 布局模板是手写件（`/map_snapshot` + TF + `/Odometry`）；SCAN 栈需手动加
   `/cloud_registered`、`/global_path`、`/planning/bspline`。
 - 本页在 Foxglove 模式下仍负责：发目标、BT 阶段、作业栈、监控、遥控/急停。
+
+## 编排阶段 3D 标记 + SCAN 布局（2026-11-12 补）
+
+- 新增 `lite3_bt/scripts/bt_stage_marker.py`（只读）：订阅 `/v8/bt/status` +
+  `/v8/local/pose`，发布 `/v8/bt/stage_markers`（MarkerArray，TEXT_VIEW_FACING，
+  1.5 s lifetime，跟随机器人上方 1.6/1.18 m）。挂在 `scan_bt_nav.launch`。
+- 实测（scan_flat，goal (-1.5,2.0)，逐 4 s 采样两条文本）：
+
+      idle:  "WAIT_GOAL"      ｜ "seq 0/0 running arrival_reset"
+      nav:   "WAIT_ARRIVAL"   ｜ "seq 1/1 ready path_ready"
+      到点:  "DWELL_AT_GOAL"  ｜ "seq 1/1 ready reached"
+      收口:  "WAIT_GOAL"      ｜ "seq 1/1 ready reached"
+
+- 新布局 `docker/foxglove/ros1_slam_scan_layout.json`：3D 面板含
+  `/cloud_registered`、`/global_path`、`/v8/bt/stage_markers`、`/tf`、
+  `/Odometry`；右栏 Raw Messages 看 `/v8/bt/status`。
+- 单测 `lite3_bt/test/test_bt_stage_marker.py` 5/5 PASS。
+- 边界：Foxglove 里树的分支结构仍不可见（Raw Messages 是 JSON）；
+  完整树形图用 Groot2（ZMQ 5555）。

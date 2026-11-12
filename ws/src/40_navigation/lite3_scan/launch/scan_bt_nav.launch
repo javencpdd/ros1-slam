@@ -61,4 +61,12 @@
     <arg name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
     <arg name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
   </include>
+
+  <!-- 3) 编排阶段 3D 文本标记（Foxglove/RViz 只读）：/v8/bt/stage_markers。 -->
+  <node pkg="lite3_bt" type="bt_stage_marker.py" name="bt_stage_marker" output="screen">
+    <param name="status_topic" value="/v8/bt/status"/>
+    <param name="pose_topic" value="$(arg pose_out_topic)"/>
+    <param name="marker_topic" value="/v8/bt/stage_markers"/>
+    <param name="height" value="1.6"/>
+  </node>
 </launch>

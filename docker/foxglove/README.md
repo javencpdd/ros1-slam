@@ -14,6 +14,13 @@
 `foxglove_bridge`）。实测读数见
 `note/进度/v8/M5/26-11-12/evidence/scan-console/foxglove_mode.md`。
 
+**SCAN 布局**：[ros1_slam_scan_layout.json](ros1_slam_scan_layout.json) 面向
+SCAN 栈：3D 面板含 `/cloud_registered`（建图点云）、`/global_path`、
+`/v8/bt/stage_markers`（编排阶段 3D 文本标记）、TF、`/Odometry`；右栏
+Raw Messages 看 `/v8/bt/status`。阶段标记由 `scan_bt_nav` 里的
+`bt_stage_marker.py` 发布（只读，跟随机器人位姿显示当前阶段与 seq/event）。
+完整树结构仍用 Groot2（ZMQ 5555）。
+
 ## 连接域先对齐
 
 | 运行图 | ROS master | 桥的要求 |

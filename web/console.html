@@ -154,7 +154,7 @@
         <ol class="fox-steps">
           <li>保持 rosbridge 在线（Foxglove 走的就是它）：<code id="foxglove-ws">ws://127.0.0.1:9090</code></li>
           <li>Foxglove 里 <b>Open connection → Rosbridge (ROS 1)</b>（不要选 Foxglove WebSocket），填上面的地址。</li>
-          <li>导入布局模板：<a id="foxglove-layout" href="/docker/foxglove/ros1_slam_sim_layout.json" target="_blank" rel="noopener">ros1_slam_sim_layout.json</a>；SCAN 栈再手动加 <code>/cloud_registered</code>、<code>/global_path</code>、<code>/planning/bspline</code>。</li>
+          <li>导入布局模板：<a id="foxglove-layout" href="/docker/foxglove/ros1_slam_sim_layout.json" target="_blank" rel="noopener">ros1_slam_sim_layout.json</a>（建图快照）/ <a href="/docker/foxglove/ros1_slam_scan_layout.json" target="_blank" rel="noopener">ros1_slam_scan_layout.json</a>（SCAN：<code>/cloud_registered</code>＋阶段标记＋路径＋BT Raw）。</li>
           <li>切到本模式时网页已停：服务端体素流、实时点云订阅、3D 渲染、<code>/tf</code> 等监视订阅；只留 <code>/v8/bt/status</code> 驱动上方 BT 阶段条。</li>
           <li>桥连的域要一致：当前 rosbridge 连控制台域 11312；真机换桥的 master（见 <code>docker/foxglove/README.md</code>）。</li>
         </ol>

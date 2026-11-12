@@ -1,0 +1,62 @@
+{
+  "id": "ros1-slam-scan",
+  "name": "ros1-slam SCAN（建图 + 编排阶段）",
+  "version": 1,
+  "data": {
+    "configById": {
+      "3D!scan": {
+        "id": "3D!scan",
+        "title": "3D · 建图/导航",
+        "config": {
+          "cameraState": {
+            "distance": 10,
+            "fovy": 0.7853981852531433,
+            "near": 0.1,
+            "far": 5000,
+            "perspective": true,
+            "phi": 0.7853981852531433,
+            "target": [0, 0, 0],
+            "targetOffset": [0, 0, 0],
+            "thetaOffset": 0
+          },
+          "followMode": "follow-none",
+          "scene": {
+            "enableStats": false,
+            "grid": { "color": "#248eff", "divisions": 10, "size": 40 },
+            "labelScaleFactor": 1
+          },
+          "topics": {
+            "/cloud_registered": {
+              "visible": true,
+              "colorBy": "z",
+              "pointShape": "circle",
+              "pointSize": 0.04,
+              "decayTime": 0
+            },
+            "/rslidar_points": { "visible": false },
+            "/global_path": { "visible": true },
+            "/planning/bspline": { "visible": false },
+            "/v8/bt/stage_markers": { "visible": true },
+            "/tf": { "visible": true, "axisScale": 1 },
+            "/Odometry": { "visible": true }
+          },
+          "transforms": {}
+        }
+      },
+      "RawMessages!bt": {
+        "id": "RawMessages!bt",
+        "title": "BT 状态",
+        "config": { "topicName": "/v8/bt/status" }
+      }
+    },
+    "globalVariables": {},
+    "layout": "{\"direction\":\"row\",\"first\":\"3D!scan\",\"second\":\"RawMessages!bt\",\"splitPercentage\":70}",
+    "playbackConfig": {
+      "speed": 1,
+      "messageOrder": "receiveTime",
+      "timeDisplayMethod": "ROS",
+      "autoSeekOnDataValidation": false
+    },
+    "savedProps": {}
+  }
+}
