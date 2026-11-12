@@ -266,3 +266,19 @@ Traceback/AttributeError 0。证据 `evidence/scan-real-dry/`。
 
 ★真机物理运行仍是 L2★：103 只读、不向 120/43893 发帧；解锁/发目标/急停需真人
 在场并按 note/10 签核。本段不声称真机通过。
+
+## 16. 控制台场景接线（2026-11-12）
+
+`scripts/console/stacks.json` 增 3 栈：`scan_flat`（m1_world + A*）、`scan_ramp`
+（ramp_scan10 + 参考路径 + 坡面参数）、`scan_real`（真机装配，`local_only=true`，L2）；
+master 分别指 sim-viz 的 11313 与本机 11311（真机）。`world_registry.json` 增
+`ramp_scan10`（17 worlds/5 maps/15 stack bindings，`world_registry.py --check` PASS）。
+`test_agent_contract.py` 的 local_only 断言改为「仅 scan_real 为真」——12/12 PASS。
+
+实跑：agent 重启后 `/api/stacks` 列出 11 栈，`POST /api/stacks/scan_flat/start`
+成功（pid 674576），sim-viz 上 18 节点在位（scan_planner_node/closed_loop_controller/
+scan_arrival_monitor/scan_bt_bridge/bt_console/v8_goal_gate/safe_cmd_vel_mux + m2 链）。
+本机复核 `/v8/bt/status` 的 echo 未取到读数（同一 master 上节点在位；下轮从栈内直接验
+goal→arrival）。真机 `scan_real` 的 `local_only` 由控制台服务端拒绝远程启停。
+
+边界：控制台栈是 demo；真机物理运行仍 L2；SCAN 的坡上 A*/P4 已知限制见 §11—§13。

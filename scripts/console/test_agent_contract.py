@@ -125,8 +125,10 @@ class ClientIdentityTest(unittest.TestCase):
             AGENT.dependent_order('a', stacks)
 
     def test_local_only_stack_flag_default_false(self):
+        # 默认假；真机栈（scan_real）必须本机锁定（远程 403），显式允许。
         for stack in self.stacks.values():
-            self.assertFalse(stack.get('local_only'), stack['name'])
+            expected = stack['name'] == 'scan_real'
+            self.assertEqual(bool(stack.get('local_only')), expected, stack['name'])
 
 
 if __name__ == '__main__':

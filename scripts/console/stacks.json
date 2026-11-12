@@ -191,6 +191,55 @@
       "requires_world": [
         "lidar"
       ]
+    },
+    {
+      "name": "scan_flat",
+      "label": "SCAN 导航（平地 m1，A*）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://127.0.0.1:11313",
+      "world": "m1_world.world",
+      "cmd": "roslaunch lite3_scan scan_nav_sim.launch profile:=flat",
+      "world_stack": true,
+      "description": "SCAN+桥+BT 全链平地 profile：m2_gazebo/m2_mapping/60_safety/sim_speed_cap/70_scan/scan_bt_nav 一次起完；目标 /v8/bt/goal，到达经 /lite3/scan/arrived。",
+      "stop_timeout": 25,
+      "notes": "与 sim_m1 同为 Gazebo world 栈，同一时间只起一个；换栈先停当前。控制台 3D goal 走 /v8/bt/goal。SCAN 线是 demo，不代替 formal/真机。",
+      "pid_match": "scan_nav_sim.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
+    },
+    {
+      "name": "scan_ramp",
+      "label": "SCAN 导航（10° 平滑坡，参考路径）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://127.0.0.1:11313",
+      "world": "ramp_scan10.world",
+      "cmd": "roslaunch lite3_scan scan_nav_sim.launch profile:=ramp",
+      "world_stack": true,
+      "description": "SCAN+桥+BT 全链坡面 profile：ramp_scan10（10° 平滑坡，与 v8 8.53° 同量级），navi_mode=3 参考路径+壳侧地面过滤+坡面控制/优化器参数；目标 /v8/bt/goal。",
+      "stop_timeout": 25,
+      "notes": "坡上 A* 起点格问题见 note/进度/v8/M5/26-11-12 §5—§13；坡上 P4 用参考路径+min_z 过滤（§10）。与 sim_m1 同为 Gazebo world 栈，同一时间只起一个。",
+      "pid_match": "scan_nav_sim.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
+    },
+    {
+      "name": "scan_real",
+      "label": "SCAN 导航（真机装配，L2）",
+      "category": "demo",
+      "container": "ros1-slam-ros1",
+      "master": "http://localhost:11311",
+      "cmd": "roslaunch lite3_scan scan_nav_real.launch bt_profile:=real",
+      "local_only": true,
+      "description": "真机装配：/LIO 拓扑 + 70_scan + scan_bt_nav + 60_safety；机器人 bringup/LIO/motion 使能由操作员先起。",
+      "stop_timeout": 30,
+      "notes": "★真机物理运行 L2★：103 只读、不向 120/43893 发帧；解锁/发目标/急停需真人在场并按 note/10 与 SCAN真机接入清单.md 签核；real 需先复制 bt_console_real.yaml，否则 fail-closed。",
+      "pid_match": "scan_nav_real.launch"
     }
   ]
 }
