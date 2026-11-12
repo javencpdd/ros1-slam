@@ -20,7 +20,7 @@ import scene
 import validation
 
 
-def validate_window(root, window_id, case):
+def validate_window(root, window_id, case, orchestrator='direct'):
     """Check the original receipt, never create or modify a registration."""
     if not window_id:
         raise ValueError('--execute requires a registered --window-id')
@@ -46,6 +46,8 @@ def validate_window(root, window_id, case):
         raise ValueError('registered window directory does not exist')
     if not re.search(r'\btwo_floor_nav\b', row[3]) or not re.search(r'\bcase=' + re.escape(case) + r'(?:\s|$)', row[3]):
         raise ValueError('window receipt must name two_floor_nav and the selected case')
+    if orchestrator == 'bt' and not re.search(r'\borchestrator=bt\b', row[3]):
+        raise ValueError('window receipt must name orchestrator=bt')
     return {'id': window_id, 'directory': str(declared), 'kind': row[2], 'content': row[3]}
 
 
@@ -59,14 +61,19 @@ def ports_idle(port):
                 raise ValueError('requested port already has a listener: ' + str(selected))
 
 
-def plan_case(case):
+def app_path_for(case, orchestrator):
+    suffix = '_bt' if orchestrator == 'bt' else ''
+    return SCENE / 'apps' / (case + suffix + '.yaml')
+
+
+def plan_case(case, orchestrator='direct'):
     different = scene.check_artifacts()
     if different:
         raise ValueError('scene artifacts differ from source: ' + ', '.join(different))
     sys.path.insert(0, str(scene.PLATFORM / 'framework'))
     import app_runner
     import support_planner
-    app_path = SCENE / 'apps' / (case + '.yaml')
+    app_path = app_path_for(case, orchestrator)
     prepared = app_runner.prepare_execution(app_path, with_gazebo=True)
     task = prepared['resolved']['task_resolved']
     map_value = prepared['resolved']['map_value']
@@ -90,10 +97,10 @@ def plan_case(case):
 
 
 def execute_case(case, output, port=11657, timeout_s=None, gui=False, interactive=False,
-                 rviz=False, window_id=None):
+                 rviz=False, window_id=None, orchestrator='direct'):
     # All fail-closed checks precede process creation; plan is allowed anywhere.
-    plan = plan_case(case)
-    receipt = validate_window(ROOT, window_id, case)
+    plan = plan_case(case, orchestrator)
+    receipt = validate_window(ROOT, window_id, case, orchestrator)
     ports_idle(port)
     output = Path(output).absolute()
     if not output.parent.is_dir():
@@ -117,7 +124,7 @@ def execute_case(case, output, port=11657, timeout_s=None, gui=False, interactiv
     # Recheck after the preflight to reject a new competing listener.
     ports_idle(port)
     command = [sys.executable, str(scene.PLATFORM / 'framework/app_runner.py'),
-               '--app', str(SCENE / 'apps' / (case + '.yaml')), '--execute',
+               '--app', str(app_path_for(case, orchestrator)), '--execute',
                '--out', str(paths['app']), '--trace-out', str(paths['trace']),
                '--port', str(port), '--timeout-s', str(timeout_s)]
     if gui: command.append('--gui')
@@ -157,6 +164,7 @@ def main():
     parser.add_argument('--port', type=int, default=11657)
     parser.add_argument('--timeout-s', type=float)
     parser.add_argument('--window-id')
+    parser.add_argument('--orchestrator', choices=('direct', 'bt'), default='direct')
     parser.add_argument('--gui', action='store_true')
     parser.add_argument('--interactive', action='store_true')
     parser.add_argument('--rviz', action='store_true', help='implies interactive')
@@ -166,11 +174,11 @@ def main():
             if args.out is None:
                 raise ValueError('--execute requires a new --out path')
             result = execute_case(args.case, args.out, args.port, args.timeout_s, args.gui,
-                                  args.interactive, args.rviz, args.window_id)
+                                  args.interactive, args.rviz, args.window_id, args.orchestrator)
         else:
             if args.gui or args.interactive or args.rviz or args.window_id or args.timeout_s is not None:
                 raise ValueError('runtime options require --execute')
-            result = plan_case(args.case)
+            result = plan_case(args.case, args.orchestrator)
             if args.out:
                 if args.out.exists() or args.out.is_symlink(): raise ValueError('output already exists')
                 args.out.write_bytes(scene.json_bytes(result)); scene.acl(args.out)
