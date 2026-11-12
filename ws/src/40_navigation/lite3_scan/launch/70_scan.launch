@@ -23,6 +23,10 @@
        主导平面（地面/坡面），去掉平面内点、平面下方点与机体圆柱内点；
        障碍上半与墙保留。比固定 min_z 阈值通用（不依赖坡度/俯仰）。 -->
   <arg name="ground_filter" default="false"/>
+  <!-- 过滤件可选：scan_cloud_ground_segment.py（平面分割，A*/通用）或
+       scan_cloud_ground_filter.py（固定 min_z，坡面 P4 需要它保留贴地箱体点）。 -->
+  <arg name="ground_filter_node" default="scan_cloud_ground_segment.py"/>
+  <arg name="ground_min_z" default="0.0"/>
   <arg name="ground_plane_distance" default="0.08"/>
   <arg name="cloud_topic" default="/LIO/clouds_lidar"/>          <!-- advanced_param.xml 基线值逐字（.bak-maxvel075 调参史收敛） -->
   <arg name="max_acc" default="0.5"/>
@@ -53,10 +57,11 @@
   </include>
 
   <!-- 地面/自车过滤中继（可选）：上游 SCAN 的栅格在坡面会把地面点当占据。 -->
-  <node if="$(arg ground_filter)" pkg="lite3_scan" type="scan_cloud_ground_segment.py"
-        name="scan_cloud_ground_segment" output="screen">
+  <node if="$(arg ground_filter)" pkg="lite3_scan" type="$(arg ground_filter_node)"
+        name="scan_cloud_ground_filter" output="screen">
     <param name="src_topic" value="/LIO/clouds_lidar"/>
     <param name="dst_topic" value="/LIO/clouds_lidar_ground_filtered"/>
+    <param name="min_z" value="$(arg ground_min_z)"/>
     <param name="distance" value="$(arg ground_plane_distance)"/>
     <param name="iterations" value="80"/>
     <param name="self_radius" value="0.35"/>

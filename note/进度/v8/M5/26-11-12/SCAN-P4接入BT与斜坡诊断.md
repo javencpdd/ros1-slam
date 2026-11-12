@@ -282,3 +282,37 @@ scan_arrival_monitor/scan_bt_bridge/bt_console/v8_goal_gate/safe_cmd_vel_mux + m
 goal→arrival）。真机 `scan_real` 的 `local_only` 由控制台服务端拒绝远程启停。
 
 边界：控制台栈是 demo；真机物理运行仍 L2；SCAN 的坡上 A*/P4 已知限制见 §11—§13。
+
+## 17. 控制台栈 goal→arrival 端到端（2026-11-12）
+
+补完 §16 留的「栈内直接验 goal→arrival」。两栈均从控制台 agent 起停，BT 用
+arrival signal 模式（`/v8/bt/arrived`），判据取 `/v8/bt/status` 与位姿轮询，
+证据 `evidence/scan-console/{flat_console.md,ramp_console.md}`。
+
+**平地 `scan_flat`（pid 684849）**：goal (−2.75,1.55) →
+`global path ready (120 points)` → `follow path` → `arrival budget 177.2 s
+(path 3.54 m, floor 0.020 m/s, tree 60.0 s)` → SCAN `arrival=True`（sim t=188.6）
+→ `outcome=reached`，停点 (−2.754,1.551)。同栈先试 goal (2,0) 时 SCAN 报
+`[global target] Target [2.00, 0.00, -0.17] is occupied; use backward
+collision-free point [1.32, 0.01, -0.29]`：SCAN 按内部栅格把目标截到 1.32 m 并
+完成，BT 按原目标判 arrival（0.70 m 差）→ 60 s budget 到期 `failed`。
+**失败是诚实的**（不会误报到达）；该点被判占据的成因（FSM 冻结首帧 odom z
+−0.166 与后续 z 不一致 / 自车或地面膨胀带）未定性，先记为已知项。
+
+**斜坡 `scan_ramp`（pid 696075，profile:=ramp，navi_mode=3）**：goal (1.5,0) →
+`arrival_start` → SCAN 两条 bspline 上坡（sim 14.4/16.6 s）→ `arrival_signal=true`
+→ `outcome=reached`、`event=stop`，停点 (1.51,−0.005)，wall 16 s。栈内参数
+`arrival_floor=0.006`、`max_vel=0.6`、`publish_reference_path=true`。
+
+**坑（新，已收口）**：sim-viz 用独立 devel 卷 `docker_ros1_x86_sim_devel`。
+旧的 `bt_console` 二进制（11-10 构建）没有 arrival signal 分支，参数
+`/bt_console/arrival_topic` 明明已指向 `/v8/bt/arrived`，但节点报
+`planner_mode=pose`，WaitArrival 等 pose 不到 → 60 s 超时。凡改 `lite3_bt`
+必须**在 ros1-slam-sim-viz 内** `catkin_make --pkg lite3_bt` 重建；重建后
+`strings` 应含 `external arrival signal` 与 `arrival_speed_floor_mps`。
+
+**坑（新，记录）**：bt_console 的 stdout 在 roslaunch 下块缓冲，进程存活时
+`/tmp/v8-console/<stack>.log` 看不到 `[bt]` 行；判据用 `/v8/bt/status` topic，
+或停栈后再读 roslaunch 日志。
+
+边界不变：控制台栈是 demo（无 P4 注入）；真机物理运行仍 L2。

@@ -31,6 +31,10 @@
   <!-- 坡面平面距离收紧：0.08 会把贴地箱体下半当平面内点；0.04 保留更多
        障碍基座，FSM 安全检查才看得到箱体。平地不需要（无过滤）。 -->
   <arg name="ground_plane_distance" default="$(eval 0.08 if profile == 'flat' else 0.04)"/>
+  <!-- ramp profile 的 P4 用固定 min_z=0.0（保留贴地箱体点，§10 已验）；
+       flat 不过滤。平面分割件留作 A*/通用场景与后续真机。 -->
+  <arg name="ground_filter_node" default="$(eval 'scan_cloud_ground_segment.py' if profile == 'flat' else 'scan_cloud_ground_filter.py')"/>
+  <arg name="ground_min_z" default="0.0"/>
   <arg name="arrival_floor" default="$(eval 0.02 if profile == 'flat' else 0.006)"/>
   <arg name="max_vel" default="$(eval 0.40 if profile == 'flat' else 0.60)"/>
   <arg name="ctrl_vx" default="$(eval 0.30 if profile == 'flat' else 0.50)"/>
@@ -60,6 +64,8 @@
     <arg name="ctrl_max_vx" value="$(arg ctrl_vx)"/>
     <arg name="ctrl_max_vy" value="$(arg ctrl_vy)"/>
     <arg name="ground_plane_distance" value="$(arg ground_plane_distance)"/>
+    <arg name="ground_filter_node" value="$(arg ground_filter_node)"/>
+    <arg name="ground_min_z" value="$(arg ground_min_z)"/>
   </include>
   <include file="$(find lite3_scan)/launch/scan_bt_nav.launch">
     <arg name="publish_reference_path" value="$(arg publish_reference_path)"/>
