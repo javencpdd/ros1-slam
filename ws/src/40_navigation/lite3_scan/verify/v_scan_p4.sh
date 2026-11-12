@@ -121,11 +121,16 @@ say "== [6] P4 取证（投障碍→看见→重规划→仍到达）=="
 # R220（主理人 2026-10-12 裁"15 号两者都撤"）：撤销 R135 的分件形状——判据行与 JSON 同走 stdout，
 #   整份收进 p4.json ⇒ 首行是中文结论句、**整份不是合法 JSON**（这是裁定的已知代价，不是本 harness 的缺陷）。
 #   取证件内部仍保单一真值（机读字段由判据行反推），故 R124／R125 那种"字段与判据行反向"不会回来。
-python3 /home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_replan.py > "$RUN/p4.json" 2>"$RUN/p4.err"
+SCAN_FSM_LOG="$RUN/scan.log" python3 /home/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_replan.py > "$RUN/p4.json" 2>"$RUN/p4.err"
 RC=$?
 note "p4 python rc=$RC"
 cat "$RUN/p4.json" | tee -a "$LOG"
 [ -s "$RUN/p4.err" ] && { note "stderr 尾:"; tail -8 "$RUN/p4.err" | tee -a "$LOG"; }
+# 审计缺口 c（2026-11-12）：FSM 迁移行本就在 scan.log（changeFSMExecState 的 cout），
+#   抽出同批封存 ⇒ 触发源（周期 FSM／安全 SAFETY／目标 TRIG）可直接指认，不必靠轨迹身份反推。
+#   只作诊断、不参与判定（判定单一真值仍在判据行）。
+grep -aE '\[(FSM|SAFETY|TRIG)\]: (from [A-Z_]+ to [A-Z_]+|state: [A-Z_]+)' "$RUN/scan.log" > "$RUN/fsm_transitions.log" 2>/dev/null
+note "FSM 迁移行=$(wc -l < "$RUN/fsm_transitions.log") ⇒ $RUN/fsm_transitions.log（诊断，不入判定）"
 V=$(grep -oE 'P4 重规划结论 = [A-Z]+\|.*' "$RUN/p4.json" | tail -1)
 VS=${V#*= }
 [ -z "$V" ] && { echo "P4 重规划结论 = INVALID|结论行不可指认（rc=$RC 但无结论行 ⇒ 不采信）"; exit 9; }

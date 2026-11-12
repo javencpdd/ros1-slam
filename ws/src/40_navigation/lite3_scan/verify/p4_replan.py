@@ -34,6 +34,7 @@ from scipy.spatial import cKDTree
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from p2_goal_plan import eval_curve, occ_points, axes    # 复用现役 P2 件里的曲线求值与点云解析（不复制实现）
+from fsm_log import attach_fsm    # FSM 迁移诊断（审计缺口 c；只附 JSON，不参与判定）
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SetModelState, GetModelState
 
@@ -237,6 +238,7 @@ def dump(out, verdict):
     out["invalid"] = (grade == "INVALID")
     out["pass"] = (grade == "PASS")
     out["fail"] = (grade == "FAIL")
+    attach_fsm(out)    # env SCAN_FSM_LOG 指向 scan.log 时附触发源摘要；未设不附（缺省≠零）
     print(verdict, flush=True)
     print(json.dumps(out, ensure_ascii=False), flush=True)
     return grade

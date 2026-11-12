@@ -122,3 +122,20 @@ e. **早退 dump 的 null 字段**：p4_bt_probe.py 部分早退轮次 JSON 里 
    是「未走到该判据」不是「判据放行」；跨批引用读数须先看 verdict 行档位。
 f. **真机 P4 仍 L2**：scan_nav_real 装配与 dry-run 已过（见 SCAN真机接入清单.md），
    物理未跑；本审计全部读数仅仿真。
+
+### 5.5 缺口 c 已闭（2026-11-12 续片，只追加）
+
+修法＝不新增采集、把**已有**的 FSM cout 收进证据包：70_scan 的 roslaunch stdout
+（harness 本就收在 `$RUN/scan.log`）里含 `changeFSMExecState` 的迁移行
+（`[调用源]: from X to Y`，上游 L539）。新增 `verify/fsm_log.py`（纯标准库解析＋
+触发源计数，**只诊断不入判定**）与 `test_fsm_log.py`（离线 11/11，含三反向例）；
+`v_scan_p4.sh`/`v_scan_bt.sh` 收尾抽 `fsm_transitions.log` 同批封存；两探针经
+`SCAN_FSM_LOG` 在 JSON 附 `fsm` 摘要（env 未设不附＝缺省≠零；缺文件报 error）。
+判据链一字未动。
+
+活体验证一窗（平地，sim-viz，证据 `evidence/scan-p4-fsm/`）：P4 PASS（看见 85／
+avoid 0.68／物理 0.66／到达 0.143／restored=True／世界件 sha 不变）。FSM 摘要：
+555 迁移，replan 触发源 **FSM（周期）=290／TRIG=2／SAFETY=0**，EMERGENCY_STOP=8
+**全 SAFETY 触发**且每次经 GEN_NEW_TRAJ 恢复。⇒ 本窗注入箱的避让由周期重规完成；
+安全检查以急停—恢复形式介入过 8 次（成因未定论：FSM cout 无时间戳，只能排序不能
+对时，留作后续观察项）。WITNESS=INVALID（容器无 systemd）⇒ 不作零触碰声称，同 §4。

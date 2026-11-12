@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from p2_goal_plan import axes, eval_curve, occ_points
 from p4_replan import (AVOID_DIST, DEV_MAX, DT_MAX, INJECT_MODEL, INJECT_Z,
                        a23_breach, bs_ident, pick_goal, restore_verdict)
+from fsm_log import attach_fsm
 
 SEE_RADIUS = 0.55
 SEE_MIN_PTS = 20
@@ -365,6 +366,7 @@ def main():
     out["pass"] = verdict == "PASS"
     out["fail"] = verdict == "FAIL"
     out["invalid"] = verdict == "INVALID"
+    attach_fsm(out)    # FSM 迁移诊断（审计缺口 c；env SCAN_FSM_LOG，不参与判定）
     print(json.dumps(out, ensure_ascii=False))
     return 0 if verdict == "PASS" else (9 if verdict == "INVALID" else 1)
 

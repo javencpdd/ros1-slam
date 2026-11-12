@@ -153,10 +153,14 @@ fi
 say "== [7] BT 发目标并判到达 =="
 PROBE=${SCAN_BT_PROBE:-$(dirname "$0")/bt_scan_probe.py}
 note "probe = $PROBE"
-python3 "$PROBE" > "$RUN/probe.json" 2>"$RUN/probe.err"
+FSM_LOG_FILE="$RUN/scan.log"; [ -n "${SCAN_BT_PROFILE:-}" ] && FSM_LOG_FILE="$RUN/stack.log"
+SCAN_FSM_LOG="$FSM_LOG_FILE" python3 "$PROBE" > "$RUN/probe.json" 2>"$RUN/probe.err"
 RC=$?
 cat "$RUN/probe.json" | tee -a "$LOG"
 [ -s "$RUN/probe.err" ] && tail -5 "$RUN/probe.err" | tee -a "$LOG"
+# 审计缺口 c（2026-11-12）：FSM 迁移行抽出同批封存（诊断，不入判定），见 v_scan_p4.sh 同段注。
+grep -aE '\[(FSM|SAFETY|TRIG)\]: (from [A-Z_]+ to [A-Z_]+|state: [A-Z_]+)' "$FSM_LOG_FILE" > "$RUN/fsm_transitions.log" 2>/dev/null
+note "FSM 迁移行=$(wc -l < "$RUN/fsm_transitions.log") ⇒ $RUN/fsm_transitions.log（诊断，不入判定）"
 
 case "$RC" in
   0) echo "SCAN-BT 结论 = PASS|BT 编排经 SCAN 规划/跟踪完成到达" | tee -a "$LOG";;
