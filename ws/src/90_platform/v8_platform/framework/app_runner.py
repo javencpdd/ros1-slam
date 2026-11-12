@@ -98,6 +98,8 @@ def _prepare_app(app_path, real=False, with_gazebo=False, root=None, executable=
                     instance['params'][key] = raw['carrier'].get(key, default)
         if instance['id'] == 'loc':
             instance['params']['source'] = raw['localization']['source']
+        if instance['component'] == 'v8.fw.bt_console' and instance['params'].get('tree_file'):
+            instance['params']['tree_file'] = str(app_config._path(instance['params']['tree_file'], root))
     report = graph_mod.check(graph, catalog)
     plan = render.render_plan(graph, catalog, report)
     plan['execution_origin'] = origin if origin != 'unclassified' else report['execution_origin']
@@ -412,7 +414,8 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                 rospy.Subscriber('/gazebo/model_states', ModelStates,
                                  observe('gazebo_model', model_value, period_s=.02), queue_size=1)
         start_pub = rospy.Publisher('/v8/3d/global/start', PoseStamped, queue_size=1, latch=True)
-        goal_pub = rospy.Publisher('/v8/3d/global/goal', PoseStamped, queue_size=1, latch=True)
+        goal_topic = app.get('goal_topic', '/v8/3d/global/goal')
+        goal_pub = rospy.Publisher(goal_topic, PoseStamped, queue_size=1, latch=True)
         obstacle_pub = rospy.Publisher('/v8/local/obstacles', String, queue_size=2)
         hold_pub = rospy.Publisher('/lite3/supervisor/hold', Bool, queue_size=2, latch=True)
 

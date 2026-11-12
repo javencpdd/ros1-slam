@@ -1,0 +1,93 @@
+{
+ "schema_version": 3,
+ "id": "v8.fw.bt_console",
+ "version": "0.1.0",
+ "roles": [
+  "middleware"
+ ],
+ "tags": [
+  "multilevel",
+  "simulation",
+  "real_robot",
+  "cpu"
+ ],
+ "dimensions": 3,
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "cooperative",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/v8/bt",
+  "stop": "process_group_signal"
+ },
+ "launch": {
+  "kind": "node",
+  "package": "lite3_bt",
+  "type": "bt_console"
+ },
+ "ports": {
+  "inputs": [
+   {
+    "name": "goal",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/bt/goal"
+   },
+   {
+    "name": "pose",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/local/pose"
+   },
+   {
+    "name": "path",
+    "type": "nav_msgs/Path",
+    "topic": "/global_path"
+   },
+   {
+    "name": "path_status",
+    "type": "std_msgs/String",
+    "topic": "/global_path/status"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "planner_goal",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/global/goal"
+   },
+   {
+    "name": "out_goal",
+    "type": "geometry_msgs/PoseStamped",
+    "topic": "/v8/bt/goal_request"
+   },
+   {
+    "name": "status",
+    "type": "std_msgs/String",
+    "topic": "/v8/bt/status"
+   },
+   {
+    "name": "lease",
+    "type": "std_msgs/Bool",
+    "topic": "/v8/bt/lease"
+   },
+   {
+    "name": "stop",
+    "type": "geometry_msgs/Twist",
+    "topic": "/lite3/teleop/app_cmd_vel"
+   }
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ },
+ "execution": {
+  "modes": [
+   "simulation",
+   "real_robot"
+  ],
+  "robot_id": null
+ }
+}
