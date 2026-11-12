@@ -1,0 +1,100 @@
+{
+ "scope": "navigation_app_execute",
+ "app": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/apps/upstairs_bt.yaml",
+ "ok": false,
+ "map": {
+  "id": "two_floor_nav",
+  "version": 1,
+  "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json",
+  "sha256": "d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717"
+ },
+ "task_resolved": {
+  "frame": "map",
+  "goal": {
+   "surface_disambiguation": "explicit_hint",
+   "surface_hint": "upper_floor",
+   "tolerance": {
+    "position_m": 0.2,
+    "source": "operator",
+    "yaw_rad": 0.2
+   },
+   "xyz": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "yaw": 0
+  },
+  "goal_reference": "support_surface",
+  "map": {
+   "map_id": "two_floor_nav",
+   "map_version": 1
+  },
+  "schema_version": 1,
+  "start": {
+   "xyz": [
+    5.0,
+    1.0,
+    0
+   ],
+   "yaw": 0
+  },
+  "task_id": "two_floor_upstairs",
+  "timeout": {
+   "budget_s": 180,
+   "harness_deadline_s": 240,
+   "source": "operator"
+  },
+  "resolved": {
+   "start_surface": "ground_floor",
+   "start_surface_z": 0,
+   "goal_surface": "upper_floor",
+   "goal_surface_z": 1.6,
+   "goal_candidates": [
+    {
+     "surface_id": "ground_floor",
+     "z_reference": 0
+    },
+    {
+     "surface_id": "upper_floor",
+     "z_reference": 1.6
+    }
+   ]
+  }
+ },
+ "start": [
+  5.0,
+  1.0,
+  0.0
+ ],
+ "goal": [
+  -5.9,
+  1.1,
+  1.6
+ ],
+ "interactive": false,
+ "rviz": false,
+ "checks": {},
+ "path": null,
+ "local_trajectory": null,
+ "carrier_final": null,
+ "markers": 0,
+ "error": "OrchestratorError('E_ORCH_READY_TIMEOUT: 未就绪: carrier')",
+ "logs": {
+  "master": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/master.log",
+  "gazebo": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/gazebo.log",
+  "viz": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/viz.log",
+  "picker": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/picker.log",
+  "rviz": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/rviz.log",
+  "tf_static": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/tf_static.log",
+  "robot_state": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/robot_state.log",
+  "joint_state": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/joint_state.log",
+  "pose_tf": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/pose_tf.log"
+ },
+ "traceback": "Traceback (most recent call last):\n  File \"/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/app_runner.py\", line 324, in execute\n    assembly.start()\n  File \"/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/runtime.py\", line 171, in start\n    engine.start(task, runners, ready_timeout=self.ready_timeout,\n  File \"/opt/ros1-slam/ws/src/90_platform/v8_platform/orchestrator/orchestrator.py\", line 256, in start\n    wait_ready(list(runners.values()), timeout=ready_timeout)\n  File \"/opt/ros1-slam/ws/src/90_platform/v8_platform/orchestrator/orchestrator.py\", line 122, in wait_ready\n    raise OrchestratorError('E_ORCH_READY_TIMEOUT', '未就绪: %s' % ','.join(sorted(pending)))\norchestrator.OrchestratorError: E_ORCH_READY_TIMEOUT: 未就绪: carrier\n",
+ "trace": {
+  "path": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json",
+  "events": 0,
+  "capture_ok": true
+ }
+}

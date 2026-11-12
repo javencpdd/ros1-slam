@@ -1,0 +1,106 @@
+{
+  "app_rc": 0,
+  "case": "upstairs",
+  "files": {
+    "app": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.app.json",
+    "preflight": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.preflight.log",
+    "summary": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.json",
+    "trace": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json"
+  },
+  "offline_plan": {
+    "map_sha256": "d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717",
+    "task": {
+      "frame": "map",
+      "goal": {
+        "surface_disambiguation": "explicit_hint",
+        "surface_hint": "upper_floor",
+        "tolerance": {
+          "position_m": 0.2,
+          "source": "operator",
+          "yaw_rad": 0.2
+        },
+        "xyz": [
+          -5.9,
+          1.1,
+          1.6
+        ],
+        "yaw": 0
+      },
+      "goal_reference": "support_surface",
+      "map": {
+        "map_id": "two_floor_nav",
+        "map_version": 1
+      },
+      "resolved": {
+        "goal_candidates": [
+          {
+            "surface_id": "ground_floor",
+            "z_reference": 0
+          },
+          {
+            "surface_id": "upper_floor",
+            "z_reference": 1.6
+          }
+        ],
+        "goal_surface": "upper_floor",
+        "goal_surface_z": 1.6,
+        "start_surface": "ground_floor",
+        "start_surface_z": 0
+      },
+      "schema_version": 1,
+      "start": {
+        "xyz": [
+          5.0,
+          1.0,
+          0
+        ],
+        "yaw": 0
+      },
+      "task_id": "two_floor_upstairs",
+      "timeout": {
+        "budget_s": 180,
+        "harness_deadline_s": 240,
+        "source": "operator"
+      }
+    }
+  },
+  "ok": true,
+  "preflight_rc": 0,
+  "schema": "two_floor_run/v1",
+  "validation": {
+    "command_integral_max_xy_error_m": 0.03342196089555651,
+    "command_integral_max_z_error_m": 0.2049890236680203,
+    "command_samples": 2505,
+    "four_foot_physics": "NOT_TESTED",
+    "gazebo_samples": 2513,
+    "global_corridor_following": "NOT_ESTABLISHED: current adapter forwards final goal only",
+    "global_paths": 1,
+    "local_plans": 26,
+    "max_command_gap_s": 0.04182773999991696,
+    "max_model_gap_s": 0.052073841000037646,
+    "max_pose_gap_s": 0.042362709999906656,
+    "ok": true,
+    "paired": 2535,
+    "pose_samples": 2535,
+    "scope": "declared-map Gazebo kinematic planning; no physical gait",
+    "visited_height_levels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "window": {
+    "content": "two_floor_nav case=upstairs orchestrator=bt task=T-20261112-06 source=21c0a302 preflight=original_v8_required result=summary.json scope=kinematic_planning_only",
+    "directory": "note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal",
+    "id": "BT-ORCH-upstairs-r2",
+    "kind": "sim"
+  }
+}

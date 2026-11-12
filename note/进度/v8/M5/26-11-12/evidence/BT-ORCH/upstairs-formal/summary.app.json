@@ -1,0 +1,393 @@
+{
+ "scope": "navigation_app_execute",
+ "app": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/apps/upstairs_bt.yaml",
+ "ok": true,
+ "map": {
+  "id": "two_floor_nav",
+  "version": 1,
+  "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json",
+  "sha256": "d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717"
+ },
+ "task_resolved": {
+  "frame": "map",
+  "goal": {
+   "surface_disambiguation": "explicit_hint",
+   "surface_hint": "upper_floor",
+   "tolerance": {
+    "position_m": 0.2,
+    "source": "operator",
+    "yaw_rad": 0.2
+   },
+   "xyz": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "yaw": 0
+  },
+  "goal_reference": "support_surface",
+  "map": {
+   "map_id": "two_floor_nav",
+   "map_version": 1
+  },
+  "schema_version": 1,
+  "start": {
+   "xyz": [
+    5.0,
+    1.0,
+    0
+   ],
+   "yaw": 0
+  },
+  "task_id": "two_floor_upstairs",
+  "timeout": {
+   "budget_s": 180,
+   "harness_deadline_s": 240,
+   "source": "operator"
+  },
+  "resolved": {
+   "start_surface": "ground_floor",
+   "start_surface_z": 0,
+   "goal_surface": "upper_floor",
+   "goal_surface_z": 1.6,
+   "goal_candidates": [
+    {
+     "surface_id": "ground_floor",
+     "z_reference": 0
+    },
+    {
+     "surface_id": "upper_floor",
+     "z_reference": 1.6
+    }
+   ]
+  }
+ },
+ "start": [
+  5.0,
+  1.0,
+  0.0
+ ],
+ "goal": [
+  -5.9,
+  1.1,
+  1.6
+ ],
+ "interactive": false,
+ "rviz": false,
+ "checks": {
+  "assembly_ready": true,
+  "map_configured": true,
+  "global_path": true,
+  "local_arrived": true,
+  "carrier_at_local_goal": true,
+  "markers_published": true
+ },
+ "path": {
+  "poses": 57,
+  "last": [
+   -5.9,
+   1.1,
+   1.6
+  ]
+ },
+ "local_trajectory": {
+  "map_version": 1,
+  "reason": "arrived",
+  "last": [
+   -5.9,
+   1.1,
+   1.6,
+   53.408999
+  ]
+ },
+ "carrier_final": [
+  -5.75970953488319,
+  1.12004144196273,
+  1.6
+ ],
+ "markers": 40,
+ "error": null,
+ "logs": {
+  "master": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/master.log",
+  "gazebo": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/gazebo.log",
+  "viz": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/viz.log",
+  "picker": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/picker.log",
+  "rviz": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/rviz.log",
+  "tf_static": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/tf_static.log",
+  "robot_state": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/robot_state.log",
+  "joint_state": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/joint_state.log",
+  "pose_tf": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json.runtime/pose_tf.log"
+ },
+ "graph": {
+  "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/graphs/navigation_bt.yaml",
+  "digest": "0e97320fcac7682af0e2bf9fd608528482c574dcd07b990196bc58290bf75888",
+  "startup_order": [
+   "map",
+   "global",
+   "bt",
+   "local",
+   "mux3d",
+   "carrier"
+  ],
+  "command_writers": {
+   "/cmd_vel": "mux3d",
+   "/v8/local/cmd_vel_3d": "local"
+  }
+ },
+ "carrier_status": {
+  "ok": true,
+  "position": [
+   -5.700426959500201,
+   1.1285103588841336,
+   1.6
+  ],
+  "velocity": [
+   -0.5939697276438585,
+   -0.08485259361198438,
+   0.0
+  ],
+  "surfaces": 12,
+  "model": "app_carrier"
+ },
+ "start_status": null,
+ "local_goal": [
+  -5.9,
+  1.1,
+  1.6
+ ],
+ "carrier_distance_to_local_goal_m": 0.14171476281120612,
+ "carrier_distance_to_task_goal_m": 0.14171476281120612,
+ "carrier_z_error_m": 0.0,
+ "local_status_tail": [
+  {
+   "velocity": [
+    -0.5939697276438585,
+    -0.08485259361198434,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 51.801,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 51.785,
+    "observed_source_stamp": 51.785,
+    "source_age_s": 0.016000000000005343,
+    "progress_age_s": 0.01588603799973498,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 22.58,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1871.409,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 53.408999,
+   "pose_clock_ordering": {
+    "initial_ros": 48.584,
+    "source_stamp": 48.585,
+    "received_wall": 2994.271496775,
+    "waited_wall_s": 0.0016020960001696949,
+    "outcome": "accepted",
+    "wait_count": 115,
+    "accepted_count": 115,
+    "timeout_count": 0
+   }
+  },
+  {
+   "velocity": [
+    -0.5939697276438585,
+    -0.08485259361198459,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 51.848,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 51.845,
+    "observed_source_stamp": 51.845,
+    "source_age_s": 0.0030000000000001137,
+    "progress_age_s": 0.0027956799999628856,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 22.58,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1871.409,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 53.408999,
+   "pose_clock_ordering": {
+    "initial_ros": 48.584,
+    "source_stamp": 48.585,
+    "received_wall": 2994.271496775,
+    "waited_wall_s": 0.0016020960001696949,
+    "outcome": "accepted",
+    "wait_count": 115,
+    "accepted_count": 115,
+    "timeout_count": 0
+   }
+  },
+  {
+   "velocity": [
+    -0.5939697276438585,
+    -0.08485259361198438,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 51.894,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 51.885,
+    "observed_source_stamp": 51.885,
+    "source_age_s": 0.009000000000000341,
+    "progress_age_s": 0.006109847999596241,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 22.58,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1871.409,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 53.408999,
+   "pose_clock_ordering": {
+    "initial_ros": 48.584,
+    "source_stamp": 48.585,
+    "received_wall": 2994.271496775,
+    "waited_wall_s": 0.0016020960001696949,
+    "outcome": "accepted",
+    "wait_count": 115,
+    "accepted_count": 115,
+    "timeout_count": 0
+   }
+  },
+  {
+   "velocity": [
+    -0.5939697276438586,
+    -0.08485259361198372,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 51.94,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 51.925,
+    "observed_source_stamp": 51.925,
+    "source_age_s": 0.015000000000000568,
+    "progress_age_s": 0.012465381000311027,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 22.58,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1871.409,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 53.408999,
+   "pose_clock_ordering": {
+    "initial_ros": 48.584,
+    "source_stamp": 48.585,
+    "received_wall": 2994.271496775,
+    "waited_wall_s": 0.0016020960001696949,
+    "outcome": "accepted",
+    "wait_count": 115,
+    "accepted_count": 115,
+    "timeout_count": 0
+   }
+  },
+  {
+   "velocity": [
+    -0.5939697276438585,
+    -0.08485259361198445,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 51.984,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 51.965,
+    "observed_source_stamp": 51.965,
+    "source_age_s": 0.01899999999999835,
+    "progress_age_s": 0.017954157999611198,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 22.58,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1871.409,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 53.408999,
+   "pose_clock_ordering": {
+    "initial_ros": 48.584,
+    "source_stamp": 48.585,
+    "received_wall": 2994.271496775,
+    "waited_wall_s": 0.0016020960001696949,
+    "outcome": "accepted",
+    "wait_count": 115,
+    "accepted_count": 115,
+    "timeout_count": 0
+   }
+  }
+ ],
+ "trace": {
+  "path": "/home/ros1-slam/note/进度/v8/M5/26-11-12/evidence/BT-ORCH/upstairs-formal/summary.trace.json",
+  "events": 10292,
+  "capture_ok": true
+ }
+}

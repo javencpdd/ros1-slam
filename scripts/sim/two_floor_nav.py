@@ -96,6 +96,21 @@ def plan_case(case, orchestrator='direct'):
     return result
 
 
+def _preflight_env():
+    """Alias root for the preflight only; the run keeps the canonical workspace.
+
+    rospack must see /home/ros1-slam for item [4], but rosrun finds duplicate
+    executables when both repo aliases sit in ROS_PACKAGE_PATH.  Keep the alias
+    override local to the preflight subprocess.
+    """
+    env = dict(os.environ)
+    alias = os.environ.get('V8_FORMAL_ALIAS_ROOT')
+    if alias:
+        env['ROS_PACKAGE_PATH'] = alias + '/ws/src:/opt/ros/noetic/share'
+        env['ISO_ALLOW'] = alias + ':/opt/ros1-slam:/opt/ros/noetic:/usr:/opt/3rdparty:/etc'
+    return env
+
+
 def execute_case(case, output, port=11657, timeout_s=None, gui=False, interactive=False,
                  rviz=False, window_id=None, orchestrator='direct'):
     # All fail-closed checks precede process creation; plan is allowed anywhere.
@@ -116,7 +131,7 @@ def execute_case(case, output, port=11657, timeout_s=None, gui=False, interactiv
     if isinstance(timeout_s, bool) or not math.isfinite(timeout_s) or timeout_s <= 0:
         raise ValueError('timeout must be positive finite seconds')
     preflight = ROOT / 'scripts/verify/v8_window_preflight.sh'
-    checked = subprocess.run(['bash', str(preflight)], cwd=ROOT, text=True,
+    checked = subprocess.run(['bash', str(preflight)], cwd=ROOT, text=True, env=_preflight_env(),
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
     paths['preflight'].write_text(checked.stdout, encoding='utf-8'); scene.acl(paths['preflight'])
     if checked.returncode:
