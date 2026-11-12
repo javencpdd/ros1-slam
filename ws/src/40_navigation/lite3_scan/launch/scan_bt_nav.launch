@@ -44,7 +44,7 @@
     <!-- SCAN 的世界系（faster_lio camera_init）；BT 只用折线长度与点数，不改坐标系。 -->
     <param name="frame" value="camera_init"/>
     <param name="samples" value="120"/>
-    <param name="publish_reference_path" value="$(arg publish_reference_path)"/>
+    <param name="publish_reference_path" value="$(arg publish_reference_path)" type="bool"/>
   </node>
 
   <!-- 2) BT：RequestPath 直发 SCAN goal；到达权交给 /v8/bt/arrived。 -->

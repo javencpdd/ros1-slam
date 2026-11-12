@@ -71,7 +71,9 @@ def segment_ground(points, distance=0.08, iterations=80, self_radius=0.35,
         has_above = np.isin(keys, above_keys)
     else:
         has_above = np.zeros(len(pts), dtype=bool)
-    ground = (near & ~has_above) | below
+    # 平面内点与平面下方的点，只有“该列没有地面以上点”时才算地面；
+    # 坡面下坡段的地面（无上方障碍）仍删，贴地障碍基座（列内有上方点）保留。
+    ground = (near | below) & ~has_above
     keep = ~ground
     info.update({"plane": [round(float(v), 4) for v in normal],
                  "offset": round(offset, 4), "inliers": best_count,

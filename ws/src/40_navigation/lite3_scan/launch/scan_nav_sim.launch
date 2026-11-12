@@ -1,0 +1,68 @@
+<launch>
+  <!-- scan_nav_sim.launch —— SCAN 导航仿真全链单一入口（2026-11-12）
+
+       profile:=flat  ：m1_world，navi_mode=1（A*），无地面过滤，平地参数
+       profile:=ramp  ：ramp_scan10.world（10° 平滑坡），navi_mode=3（参考路径），
+                        壳侧地面平面分割，坡面控制/优化器/BT 到达预算
+
+       链：m2_gazebo（含载体/雷达）→ m2_mapping（faster_lio）→ 60_safety（mux）
+           → sim_speed_cap（0.5，解 mux 盲限速）→ 70_scan → scan_bt_nav（BT+桥）
+       目标入口 /v8/bt/goal；到达 /lite3/scan/arrived → /v8/bt/arrived。
+       真机链见 scan_nav_real.launch（另件；不启 Gazebo/LIO/mux 仿真件）。 -->
+  <arg name="profile" default="flat"/>
+  <arg name="gui" default="false"/>
+  <arg name="flat_world" default="$(find lite3_gazebo_sim)/worlds/m1_world.world"/>
+  <arg name="ramp_world" default="$(find lite3_gazebo_sim)/worlds/ramp_scan10.world"/>
+  <arg name="flat_adv" default="$(find scan_planner)/launch/advanced_param.xml"/>
+  <arg name="slope_adv" default="$(find lite3_scan)/launch/scan_advanced_param_slope.xml"/>
+  <arg name="flat_cloud" default="/LIO/clouds_lidar"/>
+  <arg name="filtered_cloud" default="/LIO/clouds_lidar_ground_filtered"/>
+
+  <arg name="world" default="$(eval flat_world if profile == 'flat' else ramp_world)"/>
+  <arg name="spawn_x" default="0.0"/>
+  <arg name="spawn_y" default="0.0"/>
+  <arg name="spawn_z" default="$(eval 0.15 if profile == 'flat' else 0.88)"/>
+  <arg name="spawn_yaw" default="$(eval 0.0 if profile == 'flat' else 3.14159)"/>
+  <arg name="navi_mode" default="$(eval 1 if profile == 'flat' else 3)"/>
+  <arg name="ground_filter" default="$(eval 'false' if profile == 'flat' else 'true')"/>
+  <arg name="publish_reference_path" default="$(eval 'false' if profile == 'flat' else 'true')"/>
+  <arg name="cloud_topic" default="$(eval flat_cloud if profile == 'flat' else filtered_cloud)"/>
+  <arg name="advanced_param" default="$(eval flat_adv if profile == 'flat' else slope_adv)"/>
+  <!-- 坡面平面距离收紧：0.08 会把贴地箱体下半当平面内点；0.04 保留更多
+       障碍基座，FSM 安全检查才看得到箱体。平地不需要（无过滤）。 -->
+  <arg name="ground_plane_distance" default="$(eval 0.08 if profile == 'flat' else 0.04)"/>
+  <arg name="arrival_floor" default="$(eval 0.02 if profile == 'flat' else 0.006)"/>
+  <arg name="max_vel" default="$(eval 0.40 if profile == 'flat' else 0.60)"/>
+  <arg name="ctrl_vx" default="$(eval 0.30 if profile == 'flat' else 0.50)"/>
+  <arg name="ctrl_vy" default="$(eval 0.20 if profile == 'flat' else 0.30)"/>
+
+  <include file="$(find lite3_gazebo_sim)/launch/m2_gazebo.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="world" value="$(arg world)"/>
+    <arg name="spawn_x" value="$(arg spawn_x)"/>
+    <arg name="spawn_y" value="$(arg spawn_y)"/>
+    <arg name="spawn_z" value="$(arg spawn_z)"/>
+    <arg name="spawn_yaw" value="$(arg spawn_yaw)"/>
+  </include>
+  <include file="$(find lite3_gazebo_sim)/launch/m2_mapping.launch"/>
+  <include file="$(find lite3_safety)/launch/60_safety.launch"/>
+  <node pkg="lite3_gazebo_sim" type="sim_speed_cap.py" name="sim_speed_cap" output="screen">
+    <param name="topic" value="/v8/safety/speed_cap"/>
+    <param name="value" value="0.5"/>
+    <param name="rate" value="2.0"/>
+  </node>
+  <include file="$(find lite3_scan)/launch/70_scan.launch">
+    <arg name="navi_mode" value="$(arg navi_mode)"/>
+    <arg name="advanced_param" value="$(arg advanced_param)"/>
+    <arg name="ground_filter" value="$(arg ground_filter)"/>
+    <arg name="cloud_topic" value="$(arg cloud_topic)"/>
+    <arg name="max_vel" value="$(arg max_vel)"/>
+    <arg name="ctrl_max_vx" value="$(arg ctrl_vx)"/>
+    <arg name="ctrl_max_vy" value="$(arg ctrl_vy)"/>
+    <arg name="ground_plane_distance" value="$(arg ground_plane_distance)"/>
+  </include>
+  <include file="$(find lite3_scan)/launch/scan_bt_nav.launch">
+    <arg name="publish_reference_path" value="$(arg publish_reference_path)"/>
+    <arg name="arrival_speed_floor_mps" value="$(arg arrival_floor)"/>
+  </include>
+</launch>

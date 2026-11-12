@@ -58,6 +58,7 @@ cleanup() {
   pkill -f 'roslaunch.*m2_gazebo' 2>/dev/null; pkill -f 'roslaunch.*m2_mapping' 2>/dev/null
   pkill -f 'roslaunch.*70_scan' 2>/dev/null; pkill -f 'roslaunch.*60_safety' 2>/dev/null
   pkill -f 'roslaunch.*scan_bt_nav' 2>/dev/null; pkill -f 'roslaunch.*bt_console' 2>/dev/null
+  pkill -f 'roslaunch.*scan_nav_sim' 2>/dev/null; pkill -f sim_speed_cap 2>/dev/null
   pkill -f gzserver 2>/dev/null; pkill -f safe_cmd_vel_mux 2>/dev/null
   pkill -f scan_planner_node 2>/dev/null; pkill -f closed_loop_controller 2>/dev/null
   pkill -f scan_arrival_monitor 2>/dev/null; pkill -f scan_bt_bridge 2>/dev/null
@@ -78,6 +79,19 @@ roscore -p 11313 > "$RUN/roscore.log" 2>&1 &
 ROSCORE_PID=$!
 for _ in $(seq 1 30); do rostopic list >/dev/null 2>&1 && break; sleep 1; done
 
+if [ -n "${SCAN_BT_PROFILE:-}" ]; then
+  say "== [2] scan_nav_sim（profile=$SCAN_BT_PROFILE，单入口全链）=="
+  roslaunch lite3_scan scan_nav_sim.launch profile:="$SCAN_BT_PROFILE" > "$RUN/stack.log" 2>&1 &
+  PIDS+=($!)
+  wait_topic /clock 300 || { echo "SCAN-BT 结论 = INVALID|/clock 未就绪"; exit 9; }
+  wait_topic /rslidar_points 480 || { echo "SCAN-BT 结论 = INVALID|/rslidar_points 未就绪"; exit 9; }
+  wait_topic /livox/imu 300 || { echo "SCAN-BT 结论 = INVALID|/livox/imu 未就绪"; exit 9; }
+  wait_topic /LIO/odom_vehicle 360 || { echo "SCAN-BT 结论 = INVALID|/LIO/odom_vehicle 未就绪"; exit 9; }
+  wait_topic /grid_map/occupancy 360 || { echo "SCAN-BT 结论 = INVALID|/grid_map/occupancy 未就绪"; exit 9; }
+  wait_topic /lite3/scan/arrived 240 || { echo "SCAN-BT 结论 = INVALID|到达实体话题未就绪"; exit 9; }
+  wait_topic /v8/bt/status 120 || { echo "SCAN-BT 结论 = INVALID|/v8/bt/status 未就绪"; exit 9; }
+  wait_topic /global_path/status 60 || { echo "SCAN-BT 结论 = INVALID|/global_path/status 未就绪"; exit 9; }
+else
 say "== [2] m2_gazebo =="
 # SCAN_BT_WORLD：默认 m1_world（平地）；斜坡用 worlds/ramp_scan.world（平滑 10°）。
 WORLD=${SCAN_BT_WORLD:-}
@@ -133,6 +147,8 @@ PIDS+=($!)
 wait_topic /v8/bt/status 120 || { echo "SCAN-BT 结论 = INVALID|/v8/bt/status 未就绪"; exit 9; }
 wait_topic /global_path/status 60 || { echo "SCAN-BT 结论 = INVALID|/global_path/status 未就绪"; exit 9; }
 note "节点: $(rosnode list 2>/dev/null | grep -cE 'bt_console|scan_bt_bridge|goal_gate|scan_planner_node|closed_loop_controller|scan_arrival_monitor|safe_cmd_vel_mux')/7"
+
+fi
 
 say "== [7] BT 发目标并判到达 =="
 PROBE=${SCAN_BT_PROBE:-$(dirname "$0")/bt_scan_probe.py}

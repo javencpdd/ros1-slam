@@ -235,3 +235,19 @@ A* 模式（10° 坡、地面分割开）复跑：首规 120 点、`a star error
 ⇒ 结论：A* 模式可规划坡上首规，但坡上 P4 重规划要走参考路径分支；场景 profile
 按「平地用 A*、坡面用参考路径」配置（见下一片）。
 证据：`evidence/scan-p4-bt/ramp10_astar_plane_obstaclebase.json`／`.log`。
+
+## 14. 单入口场景 profile（scan_nav_sim.launch）与平地验证（2026-11-12）
+
+新增 `launch/scan_nav_sim.launch`：`profile:=flat` 走 m1_world + A*（无过滤），
+`profile:=ramp` 走 ramp_scan10 + 参考路径 + 地面平面分割 + 坡面参数；整链
+（m2_gazebo/m2_mapping/60_safety/sim_speed_cap/70_scan/scan_bt_nav）一个 launch 起完。
+harness 增 `SCAN_BT_PROFILE` 单入口模式；`scan_bt_nav` 的 publish_reference_path
+改为 bool 参数；`p4_bt_probe` 的 occupancy 阈值 200→20（平面分割后坡面图更稀疏）。
+
+- 平地 profile：**PASS**（avoid 0.825、A23 3D 0.375、物理 0.894、到达 0.017m、
+  dt_sim 19.38s、BT reached、scan_arrived）。证据 `evidence/scan-p4-bt/profile_flat_pass.*`。
+- 斜坡 profile：首规 120 点正常；注入箱后 `replanned=False`/箱点不足——平面分割
+  （distance 0.08/0.04）把贴地箱体下半/底部过度去除（42→0 点），FSM 安全检查不触发；
+  旧 `min_z=0.0` 过滤下同一箱是 70 点且能重规划（§10）。⇒ 下一步：平面分割对
+  “贴地障碍基座”保留策略再修（当前 column 规则在坡面下坡段仍切掉箱底），或用
+  组合过滤（平面 + min_z）作为 ramp profile 的 P4 过滤；之后接真机 launch/清单。

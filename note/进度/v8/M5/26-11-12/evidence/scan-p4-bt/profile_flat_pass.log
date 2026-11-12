@@ -1,0 +1,16 @@
+[02:18:51] == [0] 环境预检 ==
+起前 11313 监听=0（须 0，否则先停旧栈）
+[02:18:52] == [1] roscore 11313 ==
+[02:18:54] == [2] scan_nav_sim（profile=flat，单入口全链）==
+[02:19:28] == [7] BT 发目标并判到达 ==
+probe = /opt/ros1-slam/ws/src/40_navigation/lite3_scan/verify/p4_bt_probe.py
+[INFO] [1794449970.403847, 9.783000]: [p4-bt] bt_goal_sent=-2.75,1.55
+[INFO] [1794449970.942903, 10.034000]: [p4-bt] path_status={"ok": true, "points": 120}
+[INFO] [1794449970.962716, 10.044000]: [p4-bt] injected=-1.65,1.01
+[INFO] [1794449972.276104, 10.645000]: [p4-bt] disturbance_seen=58
+[INFO] [1794449975.559624, 12.146000]: [p4-bt] replanned=True
+{"steps": ["bt_goal_sent=-2.75,1.55", "path_status={\"ok\": true, \"points\": 120}", "injected=-1.65,1.01", "disturbance_seen=58", "replanned=True"], "goal": [-2.754, 1.547, 3.175, 2.947], "traj_before": {"start_time": 9.9, "n_ctrl": 24, "first": [0.034, 0.021], "last": [-2.746, 1.543]}, "inject": {"model": "obs_5", "lio_at": [-1.652, 1.011], "world_at": [-1.73, 0.914], "frac": 0.6, "occ_pts_near": 58}, "traj_after": {"start_time": 11.589, "n_ctrl": 24, "first": [0.006, 0.011], "last": [-2.748, 1.543]}, "clearance": {"min_dist_to_any_occ_2d": 0.188, "min_dist_to_any_occ_3d": 0.375, "min_dist_to_injected": 0.825, "avoid_gate": 0.4, "occ_gate": 0.1}, "bt": {"outcome": "reached", "outcome_seq": 1, "event": "dwell", "path_points": 120, "planner_mode": "signal"}, "arrive": {"dist_end": 0.017, "dt_sim": 19.38, "dt_wall": 42.36, "cmd_count": 1998}, "physical": {"robot_min_to_injected": 0.894, "box_half_width": 0.4}, "restore": {"ok": true, "delta_m": 0.0, "qdelta": 0.0, "tol_m": 0.02, "qtol": 0.001, "why": ""}, "scan_arrived": true, "verdict": "PASS", "reason": "BT outcome=reached after dynamic replan", "pass": true, "fail": false, "invalid": false}
+SCAN-BT 结论 = PASS|BT 编排经 SCAN 规划/跟踪完成到达
+[02:20:13] -- teardown --
+残留进程: (空=净)
+11313 监听: 0

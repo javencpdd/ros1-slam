@@ -80,7 +80,7 @@ class State(object):
         if x is None or y is None or z is None:
             return
         mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(z)
-        if mask.sum() > 200:
+        if mask.sum() > 20:
             self.occ = np.column_stack([x[mask], y[mask]])
             self.occ_z = z[mask]
 
