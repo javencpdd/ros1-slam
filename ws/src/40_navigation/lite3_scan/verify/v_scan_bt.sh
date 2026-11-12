@@ -118,7 +118,6 @@ SCAN_ARGS=("navi_mode:=${SCAN_NAVI_MODE:-1}")
 [ -n "${SCAN_CTRL_VY:-}" ] && SCAN_ARGS+=("ctrl_max_vy:=$SCAN_CTRL_VY")
 [ -n "${SCAN_ADV_PARAM:-}" ] && SCAN_ARGS+=("advanced_param:=$SCAN_ADV_PARAM")
 [ "${SCAN_GROUND_FILTER:-false}" = "true" ] && SCAN_ARGS+=("ground_filter:=true" "cloud_topic:=/LIO/clouds_lidar_ground_filtered")
-[ -n "${SCAN_GROUND_MIN_Z:-}" ] && SCAN_ARGS+=("ground_min_z:=$SCAN_GROUND_MIN_Z")
 roslaunch lite3_scan 70_scan.launch "${SCAN_ARGS[@]}" > "$RUN/scan.log" 2>&1 &
 PIDS+=($!)
 wait_topic /LIO/odom_vehicle 240 || { echo "SCAN-BT 结论 = INVALID|/LIO/odom_vehicle 未就绪"; exit 9; }

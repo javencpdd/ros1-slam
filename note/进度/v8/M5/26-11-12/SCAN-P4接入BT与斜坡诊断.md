@@ -202,3 +202,22 @@ SCAN 的已知限制，本方案以参考路径模式绕开，不声称 A* 已�
 ⇒ A\* 的算法本身在坡上可用；失效是**输入地图缺地面语义**。参考路径模式是
   找到地面过滤前的绕行方案；有 `min_z=0.0` 后正常 A\* 也能出路径。
 证据：`evidence/scan-p4-bt/ramp10_astar_groundfilter.json`／`.log`。
+
+## 12. 壳侧地面平面分割（2026-11-12，SCAN 线完善第一步）
+
+新增 `scripts/scan_cloud_ground_segment.py`：机体系点云 RANSAC 拟合主导平面（地面/坡面），
+去掉平面内点、平面下方点与机体圆柱内点；单测 `verify/test_scan_cloud_ground_segment.py`
+18/18（11.3° 斜面/平地/箱/墙/自车/空云/过少点）。`70_scan.launch` 的 `ground_filter`
+改指本节点（`ground_plane_distance` 0.08、iterations 80、self_r 0.35）；旧 min_z 中继退役。
+
+读数（10° 坡、**正常 A\* 模式**、地面分割开）：
+- 分割日志：`ground segment: in=3481 self=0 plane=[0.043,0.017,0.999] inliers=1323 kept=1919`；
+  行进中 `in=4782 self=2372 plane=[-0.075,-0.029,0.997] inliers=1169 kept=765`。
+- **A\* 首规成功**：`/global_path/status={"ok":true,"points":120}`（17.8s），`a star error` **0 条**
+  ⇒ §11 的“地面点落进膨胀带”根因被平面分割确实解除。
+- ★新问题★：A\* 模式下 P4 注入箱后 `replanned=False`（新轨迹身份未出现）；箱只留下上半
+  30 点（平面分割把贴地的下半/底部一起去掉），FSM 的安全检查没触发重规划。参考路径模式下
+  同一箱（min_z=0.0 过滤时 70 点）能重规划并 PASS（§10）。⇒ 下一步：分割时保留“贴地但
+  非平面内点”的障碍簇（按连通/半径判别），或对箱体下部单独保留。
+
+证据：`evidence/scan-p4-bt/ramp10_astar_plane.json`／`.log`。
