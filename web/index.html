@@ -377,7 +377,6 @@
       <a href="#milestones">里程碑</a>
       <a href="#status">现状</a>
       <a href="#sim">仿真与界面</a>
-      <a href="console.html">任务台</a>
       <a href="#nav3d">3D 导航</a>
       <a href="#extend">接入算法</a>
       <a href="#docs">文档</a>
@@ -1519,8 +1518,7 @@ roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false
 
       <p class="sec-desc">把 R1127 四窗、EVT 预演、SLAM 演示线和 2D MBF 基线归到一张运行账本：类型／批次／场景／结果／关键指标／证据链接。数据由 <span class="mono">scripts/ops/collect_3d_runs.py</span> 从证据 JSON 只读生成，缺项显示“—”。<b>当前 4/4 只指 two_floor_nav 四窗</b>；历史窗口含失败，SLAM 与 2D MBF 分行列出，不并入 3D 导航口径。下方另有按类型汇总（mean±std，排除预期拒路）与运行/汇总 CSV 导出。</p>
 
-      <p style="margin:8px 0 12px"><a href="console.html" style="color:var(--accent);font-weight:600">打开 3D 任务台（地图／任务／监控／遥控／作业栈／实体世界／服务端体素）→</a>
-        <span style="color:var(--muted);font-size:12.5px">　需要 rosbridge（默认 <code>ws://&lt;host&gt;:9090</code>）；demo 栈走白名单 agent，formal/EVT/真机仍走作业单 CLI。</span></p>
+      <p style="margin:8px 0 12px;color:var(--muted);font-size:12.5px">3D 任务台已拆为独立的本机服务（<span class="mono">scripts/console</span>，agent <code>:8780</code>）；官网只做文档介绍，可视化/仿真按 docker 与客户端分层。</p>
 
       <div class="runs-summary" id="runs-summary"><span class="runs-chip">账本加载中…</span></div>
       <div class="runs-filters">

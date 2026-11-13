@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""静态站点服务器：根目录＝仓库根，文本响应补 charset=utf-8。
+"""静态站点服务器：根目录＝仓库根，仅放行文档面。
 
 直接 `python3 -m http.server` 也能起，但 Markdown 会被当 Latin-1 显示成乱码；
-本脚本只做两件事：把根指到仓库根、给文本类型补 charset。
+本脚本做三件事：根指到仓库根、文本补 charset、只允许文档面路径（web/、note/、
+docker/、README.md，以及 ws/src 下的 README.md）。代码、数据、工具目录一律 404。
+
+任务台不在本服务：console UI 由 scripts/console/agent.py 在 :8780 独立提供。
 
 用法（仓库根目录）：
     python3 web/serve.py            # http://127.0.0.1:8000/web/
@@ -13,9 +16,22 @@ import functools
 import http.server
 import pathlib
 import socketserver
+import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TEXT_SUFFIX = {'.md', '.txt', '.html', '.css', '.js', '.json', '.yaml', '.yml', '.xml', '.pgm', '.log'}
+ALLOW_PREFIXES = ('web/', 'note/', 'docker/')
+ALLOW_FILES = ('README.md',)
+
+
+def allowed(path):
+    """Docs-only surface: web/, note/, docker/, README.md, ws/src/**/*.md."""
+    rel = urllib.parse.unquote(path.split('?')[0]).lstrip('/')
+    if rel in ALLOW_FILES:
+        return True
+    if rel.startswith('ws/src/') and rel.endswith('.md'):
+        return True
+    return any(rel.startswith(prefix) for prefix in ALLOW_PREFIXES)
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -37,20 +53,27 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Cache-Control', 'no-cache')
         super().end_headers()
 
-    def do_GET(self):
-        # 服务根是仓库根；访问 / 直接进站点，省得记 /web/ 路径。
+    def _redirect_root(self):
         if self.path in ('', '/', '/index.html'):
             self.send_response(302)
             self.send_header('Location', '/web/')
             self.end_headers()
+            return True
+        return False
+
+    def do_GET(self):
+        if self._redirect_root():
+            return
+        if not allowed(self.path):
+            self.send_error(404)
             return
         super().do_GET()
 
     def do_HEAD(self):
-        if self.path in ('', '/', '/index.html'):
-            self.send_response(302)
-            self.send_header('Location', '/web/')
-            self.end_headers()
+        if self._redirect_root():
+            return
+        if not allowed(self.path):
+            self.send_error(404)
             return
         super().do_HEAD()
 
@@ -61,13 +84,13 @@ class Server(socketserver.ThreadingTCPServer):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='ros1-slam 静态站点服务器')
+    parser = argparse.ArgumentParser(description='ros1-slam 静态站点服务器（文档面）')
     parser.add_argument('--port', type=int, default=8000)
     parser.add_argument('--bind', default='127.0.0.1')
     args = parser.parse_args()
     handler = functools.partial(Handler, directory=str(ROOT))
     with Server((args.bind, args.port), handler) as httpd:
-        print('serving %s' % ROOT)
+        print('serving %s (docs-only surface)' % ROOT)
         print('open    http://%s:%d/web/' % (args.bind, args.port))
         print('docs    http://%s:%d/note/进度/00_总览.md' % (args.bind, args.port))
         try:

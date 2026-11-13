@@ -10,9 +10,9 @@ command -v docker >/dev/null && ok 'docker' || bad 'docker'
 for name in ros1-slam-roscore ros1-slam-rosbridge; do
   if docker ps --format '{{.Names}}' | grep -qx "$name"; then ok "container $name"; else bad "container $name"; fi
 done
-for path in web/console.html web/assets/console/console.js web/assets/console/rosbridge.js \
-            web/assets/data/maps.json web/assets/data/3d_runs.json \
-            web/assets/data/worlds/worlds.json; do
+for path in scripts/console/ui/console.html scripts/console/ui/assets/console/console.js scripts/console/ui/assets/console/rosbridge.js \
+            scripts/console/ui/assets/data/maps.json web/assets/data/3d_runs.json \
+            scripts/console/ui/assets/data/worlds/worlds.json; do
   [[ -f "$ROOT/$path" ]] && ok "$path" || bad "$path"
 done
 if curl -fsS --max-time 2 http://127.0.0.1:8780/api/health >/dev/null 2>&1; then
@@ -31,16 +31,18 @@ if curl -fsS --max-time 2 http://127.0.0.1:8780/api/health >/dev/null 2>&1; then
 else
   bad 'agent /api/health（bash scripts/console/start_agent.sh --start）'
 fi
-for url in http://127.0.0.1/web/console.html http://127.0.0.1/web/assets/data/maps.json \
+for url in http://127.0.0.1:8780/console.html http://127.0.0.1:8780/assets/data/maps.json \
            http://127.0.0.1/web/assets/data/3d_runs.json \
-           http://127.0.0.1/web/assets/data/worlds/worlds.json; do
+           http://127.0.0.1:8780/assets/data/worlds/worlds.json; do
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$url" || true)
   [[ "$code" == 200 ]] && ok "$url" || bad "$url -> $code"
 done
+code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1/web/console.html || true)
+[[ "$code" == 404 ]] && ok 'docs site has no console' || bad "docs console -> $code"
 if command -v node >/dev/null; then
-  node -e "new Function(require('fs').readFileSync('$ROOT/web/assets/console/console.js','utf8'))" \
+  node -e "new Function(require('fs').readFileSync('$ROOT/scripts/console/ui/assets/console/console.js','utf8'))" \
     && ok 'console.js syntax' || bad 'console.js syntax'
-  node -e "new Function(require('fs').readFileSync('$ROOT/web/assets/console/mission_events.js','utf8'))" \
+  node -e "new Function(require('fs').readFileSync('$ROOT/scripts/console/ui/assets/console/mission_events.js','utf8'))" \
     && ok 'mission_events.js syntax' || bad 'mission_events.js syntax'
   node "$ROOT/scripts/console/test_mission_events.js" >/dev/null 2>&1 \
     && ok 'mission events tests' || bad 'mission events tests'
@@ -86,8 +88,8 @@ fi
 python3 - "$ROOT" <<'PY'
 import json, os, sys
 root = sys.argv[1]
-for path in ('web/assets/data/maps.json', 'web/assets/data/3d_runs.json',
-             'web/assets/data/worlds/worlds.json'):
+for path in ('scripts/console/ui/assets/data/maps.json', 'web/assets/data/3d_runs.json',
+             'scripts/console/ui/assets/data/worlds/worlds.json'):
     data = json.load(open(os.path.join(root, path), encoding='utf-8'))
     assert data.get('schema'), path
 print('PASS  json schema')

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# 把 /web 发布到宿主端口（默认 80），容器内跑 web/serve.py。
+# 把官网文档面发布到宿主端口（默认 80），容器内跑 web/serve.py。
+# serve.py 只放行文档面（web/、note/、docker/、README.md、ws/src/**/README.md）；
+# 任务台不在本服务：console UI 由 scripts/console/agent.py 在 :8780 独立提供。
 # 用法：bash web/publish.sh [端口]     例：bash web/publish.sh 8080
 set -euo pipefail
 

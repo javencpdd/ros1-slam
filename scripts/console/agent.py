@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""Host-side whitelist agent for the Lite3 console (P3 stack lifecycle).
+"""Host-side whitelist agent for the Lite3 console (P3 stack lifecycle + UI).
 
 The web page can only name a stack listed in stacks.json; it can never pass a
 command line. Each stack runs in the ros1-slam-sim-viz container in its own
 session/process group, with a per-stack log and PID file under /tmp/v8-console.
 Stop sends SIGINT -> SIGTERM -> SIGKILL to the whole group.
+
+The agent also serves the console UI (scripts/console/ui) and the Foxglove
+layouts (docker/foxglove) on the same port, so the docs site no longer bundles
+the task console. validate_stacks() fails closed if stacks.json names an
+unexpected container or introduces shell metacharacters; start/stop append a
+client/stack/result line to /tmp/v8-console/audit.log.
 
 This is a demo/visualization whitelist. Formal/EVT runs, real-robot launch and
 work-order windows stay in the CLI; the agent does not accept arbitrary
@@ -35,6 +41,13 @@ STACKS_FILE = Path(__file__).resolve().parent / 'stacks.json'
 VOXEL_DIR = ROOT / 'data/console/voxels'
 DIR = '/tmp/v8-console'
 LOCK = threading.Lock()
+UI_DIR = Path(__file__).resolve().parent / 'ui'
+FOXGLOVE_DIR = ROOT / 'docker/foxglove'
+ALLOWED_CONTAINERS = {'ros1-slam-sim-viz', 'ros1-slam-ros1'}
+SHELL_META = set(';`$|><&(){}')
+MIME = {'.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
+        '.js': 'application/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
+        '.svg': 'image/svg+xml', '.png': 'image/png', '.gif': 'image/gif'}
 
 DEFAULT_LOCAL_CIDRS = '127.0.0.0/8,::1/128'
 
@@ -102,6 +115,32 @@ def load_stacks():
 
 
 STACKS = load_stacks()
+
+
+def validate_stacks(stacks=None):
+    """Fail closed when stacks.json leaves the whitelist or grows shell syntax."""
+    for name, stack in (stacks or STACKS).items():
+        container = stack.get('container')
+        if container not in ALLOWED_CONTAINERS:
+            raise ValueError('stack %s: container %r is not allowed' % (name, container))
+        cmd = stack.get('cmd') or ''
+        bad = sorted(set(cmd) & SHELL_META)
+        if bad:
+            raise ValueError('stack %s: cmd contains shell metacharacters %r' % (name, bad))
+    return True
+
+
+def audit(client, action, stack, ok, message):
+    try:
+        Path(DIR).mkdir(parents=True, exist_ok=True)
+        line = '%s\t%s\t%s\t%s\t%s\t%s\n' % (
+            time.strftime('%Y-%m-%dT%H:%M:%S'), normalize_ip(client), action, stack,
+            'ok' if ok else 'fail', (message or '').replace('\n', ' ')[:300])
+        with LOCK:
+            with open(Path(DIR) / 'audit.log', 'a', encoding='utf-8') as handle:
+                handle.write(line)
+    except OSError:
+        pass
 
 
 def docker(args, timeout=20):
@@ -447,12 +486,40 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _static(self, base, rel):
+        base = Path(base).resolve()
+        path = (base / rel).resolve()
+        try:
+            path.relative_to(base)
+        except ValueError:
+            return False
+        if not path.is_file():
+            return False
+        data = path.read_bytes()
+        self.send_response(200)
+        self.send_header('Content-Type', MIME.get(path.suffix.lower(), 'application/octet-stream'))
+        self.send_header('Content-Length', str(len(data)))
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        self.wfile.write(data)
+        return True
+
     def do_OPTIONS(self):
         self._json(200, {'ok': True})
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         parts = [p for p in parsed.path.split('/') if p]
+        if parsed.path in ('', '/', '/console.html'):
+            if self._static(UI_DIR, 'console.html'):
+                return
+        if parts[:1] == ['assets'] and len(parts) >= 2:
+            if self._static(UI_DIR / 'assets', '/'.join(parts[1:])):
+                return
+        if parts[:2] == ['docker', 'foxglove'] and len(parts) >= 3:
+            if self._static(FOXGLOVE_DIR, '/'.join(parts[2:])):
+                return
         if parsed.path == '/api/health':
             self._json(200, {'ok': True, 'stacks': len(STACKS)})
             return
@@ -654,6 +721,7 @@ class Handler(BaseHTTPRequestHandler):
                 ok, message = start_stack(stack, selected_world)
             else:
                 ok, message = stop_stack(stack)
+        audit(self.client_address[0], parts[3], stack['name'], ok, message)
         self._json(200 if ok else 500, {
             'ok': ok, 'message': message, 'stack': public_stack(stack),
         })
@@ -667,6 +735,12 @@ def main():
     parser.add_argument('--bind', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8780)
     args = parser.parse_args()
+    try:
+        validate_stacks()
+    except ValueError as error:
+        print('拒绝启动：%s' % error, flush=True)
+        raise SystemExit(2)
+    Path(DIR).mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer((args.bind, args.port), Handler)
     print('Lite3 console agent on http://%s:%d ｜ stacks=%d' % (
         args.bind, args.port, len(STACKS)), flush=True)

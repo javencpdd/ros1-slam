@@ -60,18 +60,20 @@ export/
 web/*
 !web/README.md
 !web/index.html
-!web/console.html
 !web/serve.py
 !web/publish.sh
 !web/assets/
 web/assets/*
-!web/assets/console/
-!web/assets/console/*
 !web/assets/demo/
 !web/assets/demo/*
 !web/assets/*.png
 !web/assets/*.gif
 !web/assets/*.svg
+
+# ---- console UI（自官网拆出）：源码入库，生成的地图/世界数据不进库 ----
+scripts/console/ui/assets/data/maps.json
+scripts/console/ui/assets/data/worlds/
+scripts/console/ui/assets/maps/
 
 # ---- 本地环境配置：模板入仓（.env.example）、实值各机本地 ----
 docker/.env

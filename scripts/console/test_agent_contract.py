@@ -150,5 +150,19 @@ class ClientIdentityTest(unittest.TestCase):
             self.assertEqual(bool(stack.get('local_only')), expected, stack['name'])
 
 
+class AgentStackValidationTest(unittest.TestCase):
+    def test_current_stacks_pass_whitelist(self):
+        self.assertTrue(AGENT.validate_stacks())
+
+    def test_unexpected_container_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'container'):
+            AGENT.validate_stacks({'x': {'container': 'evil', 'cmd': 'roslaunch a b'}})
+
+    def test_shell_metacharacters_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'metacharacters'):
+            AGENT.validate_stacks({'x': {'container': 'ros1-slam-sim-viz',
+                                         'cmd': 'roslaunch a b; rm -rf /'}})
+
+
 if __name__ == '__main__':
     unittest.main()
