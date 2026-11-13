@@ -2,8 +2,8 @@
 """静态站点服务器：根目录＝仓库根，仅放行文档面。
 
 直接 `python3 -m http.server` 也能起，但 Markdown 会被当 Latin-1 显示成乱码；
-本脚本做三件事：根指到仓库根、文本补 charset、只允许文档面路径（web/、note/、
-docker/、README.md，以及 ws/src 下的 README.md）。代码、数据、工具目录一律 404。
+本脚本做三件事：根指到仓库根、文本补 charset、只允许文档面路径（web/、docker/、
+README.md，以及 ws/src 下的 README.md）。note/、代码、数据、工具目录一律 404。
 
 任务台不在本服务：console UI 由 scripts/console/agent.py 在 :8780 独立提供。
 
@@ -20,7 +20,7 @@ import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TEXT_SUFFIX = {'.md', '.txt', '.html', '.css', '.js', '.json', '.yaml', '.yml', '.xml', '.pgm', '.log'}
-ALLOW_PREFIXES = ('web/', 'note/', 'docker/')
+ALLOW_PREFIXES = ('web/', 'docker/')
 ALLOW_FILES = ('README.md',)
 
 

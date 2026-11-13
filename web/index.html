@@ -892,7 +892,7 @@ docker compose exec sim-viz bash -lc '
           <span class="badge pend">交互链待独立实跑验收</span>
         </div>
 
-        <div class="notice info reveal" style="margin-top:0"><b>先看边界</b>：自动非交互用例 <b>4/4 真实 PASS</b>（upstairs-r17、downstairs-r14、upper_detour-r14、blocked-r14）；交互模式只签会话就绪与记录完整性，不因页面能打开或载体能移动就签到达。完整场景说明见 <a href="../ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/README.md">two_floor_nav README</a>，当前结果见 <a href="../note/进度/00_完整Gazebo规划场景_2026-11-06.md">运行记录</a>。</div>
+        <div class="notice info reveal" style="margin-top:0"><b>先看边界</b>：自动非交互用例 <b>4/4 真实 PASS</b>（upstairs-r17、downstairs-r14、upper_detour-r14、blocked-r14）；交互模式只签会话就绪与记录完整性，不因页面能打开或载体能移动就签到达。完整场景说明见 <a href="../ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/README.md">two_floor_nav README</a>，当前结果见 运行记录。</div>
 
         <div class="subhead"><span class="idx">A</span><h3>离线自检：先核地图与规划，不启动 ROS/Gazebo</h3><span class="badge info">更新：2026-11-07</span><span class="rule"></span></div>
         <p class="sec-desc">在宿主仓根执行。默认检查覆盖四个 case、生成物一致性、私有 registry 和全局规划；blocked 应得到精确 <span class="mono">E_PLAN_NO_ROUTE</span>。</p>
@@ -1197,26 +1197,26 @@ docker compose exec sim-viz bash -lc '
           <p><b>v0 已跑通（2026-11-03）</b>：本地 <span class="mono">m1_world_v2</span> + faster-lio vs GT，
           20 s / 0.25 m/s 直行；translated <b>xy mean 9.5 mm、max 22.7 mm</b>，rigid yaw mean 5.3 mrad；
           单次 scoped 运行，只测 SLAM/定位，不跑导航/运动学。复现命令与 JSON 见
-          <a href="../note/进度/v8/M5/26-11-03/evidence/R1122/command.txt">R1122 evidence</a>。
+          R1122 evidence。
           <b>AWS Hospital 已完成导入探针（R1124）</b>：楼梯是静态 0.20 m 级高碰撞网格、无需驱动；电梯静态无插件；两层/三层是复制层。R1125 已跑单层大厅 8 m 小环 3 次，见下。</p>
           <p><b>v1 受控两层（2026-11-03）</b>：<span class="mono">demo_two_floor</span> +
           <span class="mono">demo_slam_survey</span>，35 s GT teleport survey；恒定 yaw 版
           translated <b>xy mean 248.7 mm</b>、rigid yaw <b>2.4 mrad</b>；首轮 yaw 突变版 409.9 mm／2.97 rad
           保留为负例。已保存 LIO PCD；仍非 formal，且<b>不做导航/运动学</b>。证据
-          <a href="../note/进度/v8/M5/26-11-03/evidence/R1123/command.txt">R1123 evidence</a>。</p>
+          R1123 evidence。</p>
           <p><b>v2 AWS Hospital 单层大厅（2026-11-03，R1125）</b>：<span class="mono">hospital.world</span>
           8 m 小环、0.2 m/s、40 s GT teleport，3 次重复；translated xy mean
           <b>0.355/0.451/0.460 m</b>、max 0.756/0.979/0.826 m，z mean ~<b>0.138 m</b>，
           rigid yaw ~<b>10.1 mrad</b>；静止对照 0.057 m。仍只测 SLAM，不接 support_map/导航，
           非 formal；路径可能穿静态几何。证据
-          <a href="../note/进度/v8/M5/26-11-03/evidence/R1125/command.txt">R1125 evidence</a>。</p>
+          R1125 evidence。</p>
           <p><b>v2b 安全走廊（2026-11-03，R1126）</b>：实时 LiDAR 路径空隙筛出 R1125 大厅小环
           min 0.168 m（9/41 &lt;0.35），其漂移含路径贴物因素；改走 y=-8 走廊三条 8 m 段
           （safe A/B/C，min clearance 0.52 m，0 个 &lt;0.30）。3 seeds：translated xy mean
           <b>0.2695 m</b>、max 0.4175 m，RPE trans mean <b>0.0423 m</b>、yaw <b>1.16 mrad</b>，
           0 个 &gt;1 s 间隔、0 个 xy&gt;0.5 m 段；但 z mean <b>0.9713 m</b>、max 2.03 m
           （RPE z 0.262 m）。横向好、竖向漂移仍在。证据
-          <a href="../note/进度/v8/M5/26-11-03/evidence/R1126/command.txt">R1126 evidence</a>。</p>
+          R1126 evidence。</p>
           <p><b>SLAM 侧进度</b>：v0/v1 单次；v2 大厅 3 次重复但路径净距不合格；v2b 安全走廊
           3 seeds 已补 RPE/覆盖/丢跟踪（xy mean 0.2695 m、RPE 0.0423 m、z 0.9713 m）。
           仍剩 z 向退化、转弯/闭环、两层楼梯场景；不是 formal，也不代表导航可行。</p>
@@ -1303,7 +1303,7 @@ docker compose exec sim-viz bash -lc '
       <div class="grid g2 code-cards">
         <article class="card reveal" style="grid-column:1/-1">
           <h3>MuJoCo 实时窗口：A5 规划 → 策略整链 <span class="badge info">2026-10-30 · R949</span></h3>
-          <p>在 <span class="mono">sim-viz</span> 宿主 X（<code>:1</code>）上打开 MuJoCo 被动窗口：A5 ROS 本地节点出 3D 支撑轨迹 → 桥转成 270 策略的“前向 + 航向”命令 → 接触爬升。窗口只做演示；判据读数仍用无窗口 run（<a href="../note/进度/v8/M5/26-10-29/R946.md">R946</a> 的种子矩阵 4/5）。</p>
+          <p>在 <span class="mono">sim-viz</span> 宿主 X（<code>:1</code>）上打开 MuJoCo 被动窗口：A5 ROS 本地节点出 3D 支撑轨迹 → 桥转成 270 策略的“前向 + 航向”命令 → 接触爬升。窗口只做演示；判据读数仍用无窗口 run（R946 的种子矩阵 4/5）。</p>
           <pre><code><span class="cmt"># 容器：ros1-slam-sim-viz；宿主 X DISPLAY=:1；运行时外挂 /tmp/mjviz；270 策略在 /tmp/new_policy.onnx</span>
 <span class="cmt"># 前置 1：独立 master（11436；不要与 Gazebo 的 11313／11345 混）</span>
 docker compose exec -d sim-viz bash -lc '\
@@ -1326,7 +1326,7 @@ docker compose exec sim-viz bash -lc '\
     --viewer --viewer-hold-s 60 \
     --out    /tmp/a5_viewer.json'</code><button class="copy">复制</button></pre>
           <div class="tags"><span class="tag">实时窗口</span><span class="tag">演示非验收</span><span class="tag">10 Hz 渲染</span><span class="tag">A5 PARTIAL</span></div>
-          <p class="sec-desc" style="margin-top:10px">参数／指令逐项作用与默认值已精简：完整定义见仓内 <code>ws/src/90_platform/v8_platform/regression/a5_v8x1_runtime.py</code> 的 argparse；复现命令、未写默认与读数见 <a href="../note/进度/v8/M5/26-10-29/R949.md">R949</a> 与 <a href="../note/进度/v8/M5/26-10-29/R946.md">R946</a>。</p>
+          <p class="sec-desc" style="margin-top:10px">参数／指令逐项作用与默认值已精简：完整定义见仓内 <code>ws/src/90_platform/v8_platform/regression/a5_v8x1_runtime.py</code> 的 argparse；复现命令、未写默认与读数见 R949 与 R946。</p>
           <div class="notice" style="margin-top:10px">
             <b>看窗口前先对口径</b>：<code>--map</code> 是网格派生支撑图（顶面 <b>.8904 m</b>）；MuJoCo 夹具按 <b>5×0.1988 均匀台阶</b>搭建（顶面 <b>.994 m</b>），两者顶面差 <b>.104 m</b>。viewer 显示的是 MuJoCo 夹具，A5 的支撑 z 来自支撑图。R949 的 viewer run 爬到顶层／地图终点，末态 z=1.0818，比 <code>top+0.1</code> 低 12 mm，属于演示窗口的渲染开销；不作为验收读数。
           </div>
@@ -1879,26 +1879,26 @@ python3 -B regression/a45_3d_test.py --out /tmp/3d_nav.json --svg /tmp/3d_nav.sv
 
       <div class="docs reveal">
         <a class="doc" href="../README.md"><div><b>项目门面</b><span>仓库结构、导航表、工程约束、当前边界</span></div><em>→</em></a>
-        <a class="doc" href="../note/计划书v8.1/README.md"><div><b>计划书 v8.1 · 现行路线</b><span>21—25 六件：需求、契约、队列、验证、迁移规则</span></div><em>→</em></a>
-        <a class="doc" href="../note/进度/README.md"><div><b>进度入口</b><span>按用途找总览、v8 记录、批次与当前任务</span></div><em>→</em></a>
-        <a class="doc" href="../note/进度/00_总览.md"><div><b>版本成果总览</b><span>v8/v8.1 能力、相较上版改进与剩余边界</span></div><em>→</em></a>
-        <a class="doc" href="../note/进度/00_完整Gazebo规划场景_2026-11-06.md"><div><b>two_floor_nav 当前运行记录</b><span>4/4 自动用例、窗口证据、上下楼均通过</span></div><em>→</em></a>
+        <div class="doc"><div><b>计划书 v8.1 · 现行路线</b><span>21—25 六件：需求、契约、队列、验证、迁移规则</span></div></div>
+        <div class="doc"><div><b>进度入口</b><span>按用途找总览、v8 记录、批次与当前任务</span></div></div>
+        <div class="doc"><div><b>版本成果总览</b><span>v8/v8.1 能力、相较上版改进与剩余边界</span></div></div>
+        <div class="doc"><div><b>two_floor_nav 当前运行记录</b><span>4/4 自动用例、窗口证据、上下楼均通过</span></div></div>
         <a class="doc" href="../ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/README.md"><div><b>two_floor_nav 场景说明</b><span>世界/地图/tasks/apps/执行命令与维护</span></div><em>→</em></a>
         <a class="doc" href="../ws/src/90_platform/v8_platform/README.md"><div><b>v8_platform 入口</b><span>契约、装配、表征、全局/局部规划与运行适配</span></div><em>→</em></a>
         <a class="doc" href="../ws/src/90_platform/v8_platform/framework/README.md"><div><b>framework 装配</b><span>app/graph、执行域、Assembly、安全与运行边界</span></div><em>→</em></a>
         <a class="doc" href="../ws/src/90_platform/v8_platform/local_planner/README.md"><div><b>local_native 局部规划</b><span>支撑完成、边界退净、时钟/不确定度与接口边界</span></div><em>→</em></a>
-        <a class="doc" href="../note/架构/工程标准.md"><div><b>工程标准</b><span>阶段提交、平台分工、接口、调度与验证规则</span></div><em>→</em></a>
+        <div class="doc"><div><b>工程标准</b><span>阶段提交、平台分工、接口、调度与验证规则</span></div></div>
         <a class="doc" href="../tooling/build/README.md"><div><b>目标构建</b><span>lite3/x86_sim 显式目标与依赖闭包；目标环境未验</span></div><em>→</em></a>
-        <a class="doc" href="../note/进度/v8/M5/26-10-29/R1114.md"><div><b>R1114：A6 lease 竞态与局部劫持</b><span>lease 竞态；0.6 m fail-open 由 R1115 闭合</span></div><em>→</em></a>
-        <a class="doc" href="../note/进度/v8/M5/26-10-29/R1115.md"><div><b>R1115：BBS 绝对源共识门</b><span>静态/0.3 m 恢复；0.6 m 不一致即 FAILED、lease 1</span></div><em>→</em></a>
-        <a class="doc" href="../note/计划书v8.1/23_v8.1任务队列.md"><div><b>当前任务队列</b><span>依赖、交付物、验收出口与旧编号映射</span></div><em>→</em></a>
-        <a class="doc" href="../note/计划书v8.1/24_验证与交付方案.md"><div><b>验证与交付</b><span>验证分层、场景、证据、定标与结论边界</span></div><em>→</em></a>
-        <a class="doc" href="../note/计划书v8.1/25_v8.1执行与迁移规则.md"><div><b>执行与迁移规则</b><span>授权选件、阶段提交、记录职责与新旧入口迁移</span></div><em>→</em></a>
+        <div class="doc"><div><b>R1114：A6 lease 竞态与局部劫持</b><span>lease 竞态；0.6 m fail-open 由 R1115 闭合</span></div></div>
+        <div class="doc"><div><b>R1115：BBS 绝对源共识门</b><span>静态/0.3 m 恢复；0.6 m 不一致即 FAILED、lease 1</span></div></div>
+        <div class="doc"><div><b>当前任务队列</b><span>依赖、交付物、验收出口与旧编号映射</span></div></div>
+        <div class="doc"><div><b>验证与交付</b><span>验证分层、场景、证据、定标与结论边界</span></div></div>
+        <div class="doc"><div><b>执行与迁移规则</b><span>授权选件、阶段提交、记录职责与新旧入口迁移</span></div></div>
         <a class="doc" href="../docker/README.md"><div><b>Docker 环境手册</b><span>仿真命令、GUI、Foxglove、排障</span></div><em>→</em></a>
         <a class="doc" href="../docker/foxglove/README.md"><div><b>Foxglove 布局与连接</b><span>rosbridge、固定帧、话题表</span></div><em>→</em></a>
-        <a class="doc" href="../note/10_真机上机Runbook.md"><div><b>Lite3 真机上机 Runbook（草案）</b><span>安装、检查表、三种 mode、停止与回滚、已知缺口</span></div><em>→</em></a>
-        <a class="doc" href="../note/11_仿真到实机参数迁移表.md"><div><b>仿真 → 实机参数迁移表（草案）</b><span>环境、机体、外参、定位、地图、代价图、规划、安全、判据</span></div><em>→</em></a>
-        <a class="doc" href="../note/进度/v8/README.md"><div><b>v8 里程碑记录</b><span>M0—M6 各批次证据</span></div><em>→</em></a>
+        <div class="doc"><div><b>Lite3 真机上机 Runbook（草案）</b><span>安装、检查表、三种 mode、停止与回滚、已知缺口</span></div></div>
+        <div class="doc"><div><b>仿真 → 实机参数迁移表（草案）</b><span>环境、机体、外参、定位、地图、代价图、规划、安全、判据</span></div></div>
+        <div class="doc"><div><b>v8 里程碑记录</b><span>M0—M6 各批次证据</span></div></div>
         <a class="doc" href="../ws/src/40_navigation/lite3_navigation/config/"><div><b>导航参数</b><span>costmap / MBF / 局部规划配置</span></div><em>→</em></a>
       </div>
     </div>
@@ -1913,7 +1913,7 @@ python3 -B regression/a45_3d_test.py --out /tmp/3d_nav.json --svg /tmp/3d_nav.sv
       <br>页面更新：2026-11-10 · 判据快照：2026-11-02（旧 flat2d scope）· 冻结 digest 前缀 <span class="mono">ddc8f9f0…</span> · pending 2
     </div>
     <div>
-      本页为静态介绍，不连接运行中的 ROS。<br>当前路线与结果以 <a href="../note/计划书v8.1/README.md">v8.1</a>、<a href="../note/进度/README.md">进度入口</a> 为准，过期即改。
+      本页为静态介绍，不连接运行中的 ROS。<br>当前路线与结果以 v8.1、进度入口 为准，过期即改。
     </div>
   </div>
 </footer>
