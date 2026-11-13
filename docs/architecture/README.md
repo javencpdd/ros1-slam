@@ -8,8 +8,7 @@
 
 | 补充材料 | 用途 |
 | --- | --- |
-| [current-2026-11-13.md](current-2026-11-13.md) | ★当前★ 三项目（P1 平台/P2 仿真/P3 可视化）边界、11-12 之后更新、本轮复核发现与处置（[证据索引](current-2026-11-13.evidence.md)） |
-| [current-2026-11-12.md](current-2026-11-12.md) | 11-12 时点现状模型＋已实现/未实现功能盘点（[证据索引](current-2026-11-12.evidence.md)）；全量功能盘点仍以本件为准 |
+| [current-2026-11-13.md](current-2026-11-13.md) | ★当前★ 三项目边界、11-12 之后更新、全量源码分层/命令链/功能盘点、复核发现（[证据索引](current-2026-11-13.evidence.md)） |
 | [current-system.md](current-system.md) | 早期当前态系统建模与命令链分析 |
 | [algorithm-swap.md](algorithm-swap.md) | 建图、定位、全局、局部和中间件替换机制分析 |
 | [target-framework.md](target-framework.md) | 目标框架与差距分析 |
@@ -21,8 +20,8 @@
 | 图 | 源文件 | 派生图 |
 | --- | --- | --- |
 | 三项目边界与运行拓扑（11-13） | [three-projects-2026-11-13.dot](diagrams/three-projects-2026-11-13.dot) | [SVG](diagrams/three-projects-2026-11-13.svg)、[PNG](diagrams/three-projects-2026-11-13.png) |
-| 系统上下文（11-12） | [system-context-2026-11-12.dot](diagrams/system-context-2026-11-12.dot) | [SVG](diagrams/system-context-2026-11-12.svg)、[PNG](diagrams/system-context-2026-11-12.png) |
-| SCAN＋BT 链（11-12） | [scan-bt-chain-2026-11-12.dot](diagrams/scan-bt-chain-2026-11-12.dot) | [SVG](diagrams/scan-bt-chain-2026-11-12.svg)、[PNG](diagrams/scan-bt-chain-2026-11-12.png) |
+| 系统上下文（11-12 时点，历史对照） | [system-context-2026-11-12.dot](diagrams/system-context-2026-11-12.dot) | [SVG](diagrams/system-context-2026-11-12.svg)、[PNG](diagrams/system-context-2026-11-12.png) |
+| SCAN＋BT 链（11-12 时点，历史对照） | [scan-bt-chain-2026-11-12.dot](diagrams/scan-bt-chain-2026-11-12.dot) | [SVG](diagrams/scan-bt-chain-2026-11-12.svg)、[PNG](diagrams/scan-bt-chain-2026-11-12.png) |
 | 系统上下文 | [system-context.dot](diagrams/system-context.dot) | [SVG](diagrams/system-context.svg)、[PNG](diagrams/system-context.png) |
 | 运行与模块分层 | [system-runtime.dot](diagrams/system-runtime.dot) | [SVG](diagrams/system-runtime.svg)、[PNG](diagrams/system-runtime.png) |
 | 命令与反馈链 | [command-path.dot](diagrams/command-path.dot) | [SVG](diagrams/command-path.svg)、[PNG](diagrams/command-path.png) |
