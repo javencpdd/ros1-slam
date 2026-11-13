@@ -42,11 +42,30 @@ class DecouplingTests(unittest.TestCase):
                 text = path.read_text(encoding='utf-8')
                 self.assertNotIn('ws/src/95_simulation', text, path)
 
+    def test_platform_runtime_has_no_sim_import(self):
+        for name in RUNTIME_DIRS:
+            directory = P1 / name
+            if not directory.is_dir():
+                continue
+            for path in python_files(directory):
+                text = path.read_text(encoding='utf-8')
+                for token in ('import v8_simulation', 'from v8_simulation'):
+                    self.assertNotIn(token, text, path)
+
     def test_sim_launch_has_no_platform_package_reference(self):
         for path in Path(P2).rglob('*'):
             if path.suffix not in ('.launch', '.xml') or not path.is_file():
                 continue
             self.assertNotIn('$(find v8_platform)', path.read_text(encoding='utf-8'), path)
+
+    def test_console_sources_have_no_platform_or_sim_import(self):
+        for path in Path(CONSOLE).rglob('*.py'):
+            if '__pycache__' in path.parts:
+                continue
+            text = path.read_text(encoding='utf-8')
+            for token in ('import v8_platform', 'from v8_platform',
+                          'import v8_simulation', 'from v8_simulation'):
+                self.assertNotIn(token, text, '%s: %s' % (path, token))
 
     def test_console_agent_is_read_only(self):
         for path in Path(CONSOLE).rglob('*.py'):
