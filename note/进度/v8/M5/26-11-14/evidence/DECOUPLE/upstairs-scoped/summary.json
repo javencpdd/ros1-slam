@@ -1,0 +1,106 @@
+{
+  "app_rc": 0,
+  "case": "upstairs",
+  "files": {
+    "app": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.app.json",
+    "preflight": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.preflight.log",
+    "summary": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.json",
+    "trace": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json"
+  },
+  "offline_plan": {
+    "map_sha256": "d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717",
+    "task": {
+      "frame": "map",
+      "goal": {
+        "surface_disambiguation": "explicit_hint",
+        "surface_hint": "upper_floor",
+        "tolerance": {
+          "position_m": 0.2,
+          "source": "operator",
+          "yaw_rad": 0.2
+        },
+        "xyz": [
+          -5.9,
+          1.1,
+          1.6
+        ],
+        "yaw": 0
+      },
+      "goal_reference": "support_surface",
+      "map": {
+        "map_id": "two_floor_nav",
+        "map_version": 1
+      },
+      "resolved": {
+        "goal_candidates": [
+          {
+            "surface_id": "ground_floor",
+            "z_reference": 0
+          },
+          {
+            "surface_id": "upper_floor",
+            "z_reference": 1.6
+          }
+        ],
+        "goal_surface": "upper_floor",
+        "goal_surface_z": 1.6,
+        "start_surface": "ground_floor",
+        "start_surface_z": 0
+      },
+      "schema_version": 1,
+      "start": {
+        "xyz": [
+          5.0,
+          1.0,
+          0
+        ],
+        "yaw": 0
+      },
+      "task_id": "two_floor_upstairs",
+      "timeout": {
+        "budget_s": 180,
+        "harness_deadline_s": 240,
+        "source": "operator"
+      }
+    }
+  },
+  "ok": true,
+  "preflight_rc": 0,
+  "schema": "two_floor_run/v1",
+  "validation": {
+    "command_integral_max_xy_error_m": 0.02923090367153392,
+    "command_integral_max_z_error_m": 0.21399371001302292,
+    "command_samples": 2623,
+    "four_foot_physics": "NOT_TESTED",
+    "gazebo_samples": 2630,
+    "global_corridor_following": "NOT_ESTABLISHED: current adapter forwards final goal only",
+    "global_paths": 1,
+    "local_plans": 26,
+    "max_command_gap_s": 0.057981973004643805,
+    "max_model_gap_s": 0.06459048500983045,
+    "max_pose_gap_s": 0.0507768700044835,
+    "ok": true,
+    "paired": 2653,
+    "pose_samples": 2653,
+    "scope": "declared-map Gazebo kinematic planning; no physical gait",
+    "visited_height_levels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "window": {
+    "content": "two_floor_nav case=upstairs orchestrator=bt task=GOAL-decouple source=529e65b4 preflight=original_v8_required result=summary.json scope=kinematic_planning_only decoupled=true",
+    "directory": "note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped",
+    "id": "DECOUPLE-upstairs-r1",
+    "kind": "sim"
+  }
+}

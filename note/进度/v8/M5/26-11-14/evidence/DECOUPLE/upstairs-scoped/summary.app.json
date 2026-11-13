@@ -1,0 +1,393 @@
+{
+ "scope": "navigation_app_execute",
+ "app": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/apps/upstairs_bt.yaml",
+ "ok": true,
+ "map": {
+  "id": "two_floor_nav",
+  "version": 1,
+  "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json",
+  "sha256": "d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717"
+ },
+ "task_resolved": {
+  "frame": "map",
+  "goal": {
+   "surface_disambiguation": "explicit_hint",
+   "surface_hint": "upper_floor",
+   "tolerance": {
+    "position_m": 0.2,
+    "source": "operator",
+    "yaw_rad": 0.2
+   },
+   "xyz": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "yaw": 0
+  },
+  "goal_reference": "support_surface",
+  "map": {
+   "map_id": "two_floor_nav",
+   "map_version": 1
+  },
+  "schema_version": 1,
+  "start": {
+   "xyz": [
+    5.0,
+    1.0,
+    0
+   ],
+   "yaw": 0
+  },
+  "task_id": "two_floor_upstairs",
+  "timeout": {
+   "budget_s": 180,
+   "harness_deadline_s": 240,
+   "source": "operator"
+  },
+  "resolved": {
+   "start_surface": "ground_floor",
+   "start_surface_z": 0,
+   "goal_surface": "upper_floor",
+   "goal_surface_z": 1.6,
+   "goal_candidates": [
+    {
+     "surface_id": "ground_floor",
+     "z_reference": 0
+    },
+    {
+     "surface_id": "upper_floor",
+     "z_reference": 1.6
+    }
+   ]
+  }
+ },
+ "start": [
+  5.0,
+  1.0,
+  0.0
+ ],
+ "goal": [
+  -5.9,
+  1.1,
+  1.6
+ ],
+ "interactive": false,
+ "rviz": false,
+ "checks": {
+  "assembly_ready": true,
+  "map_configured": true,
+  "global_path": true,
+  "local_arrived": true,
+  "carrier_at_local_goal": true,
+  "markers_published": true
+ },
+ "path": {
+  "poses": 57,
+  "last": [
+   -5.9,
+   1.1,
+   1.6
+  ]
+ },
+ "local_trajectory": {
+  "map_version": 1,
+  "reason": "arrived",
+  "last": [
+   -5.9,
+   1.1,
+   1.6,
+   56.179999
+  ]
+ },
+ "carrier_final": [
+  -5.748855020600541,
+  1.1215922143075296,
+  1.6
+ ],
+ "markers": 40,
+ "error": null,
+ "logs": {
+  "master": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/master.log",
+  "gazebo": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/gazebo.log",
+  "viz": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/viz.log",
+  "picker": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/picker.log",
+  "rviz": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/rviz.log",
+  "tf_static": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/tf_static.log",
+  "robot_state": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/robot_state.log",
+  "joint_state": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/joint_state.log",
+  "pose_tf": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json.runtime/pose_tf.log"
+ },
+ "graph": {
+  "path": "/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/graphs/navigation_bt.yaml",
+  "digest": "951cb755d8cf53d3ba2b02e460b534c6485f9ff53562a064bc139946e4a7b466",
+  "startup_order": [
+   "map",
+   "global",
+   "bt",
+   "local",
+   "mux3d",
+   "carrier"
+  ],
+  "command_writers": {
+   "/cmd_vel": "mux3d",
+   "/v8/local/cmd_vel_3d": "local"
+  }
+ },
+ "carrier_status": {
+  "ok": true,
+  "position": [
+   -5.713128570266399,
+   1.1266960105111954,
+   1.6
+  ],
+  "velocity": [
+   -0.5939696552675006,
+   -0.08485310024628687,
+   0.0
+  ],
+  "surfaces": 12,
+  "model": "app_carrier"
+ },
+ "start_status": null,
+ "local_goal": [
+  -5.9,
+  1.1,
+  1.6
+ ],
+ "carrier_distance_to_local_goal_m": 0.1526794960574778,
+ "carrier_distance_to_task_goal_m": 0.1526794960574778,
+ "carrier_z_error_m": 0.0,
+ "local_status_tail": [
+  {
+   "velocity": [
+    -0.5939696552675007,
+    -0.08485310024628694,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 54.568,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 54.555,
+    "observed_source_stamp": 54.555,
+    "source_age_s": 0.012999999999998124,
+    "progress_age_s": 0.0074438000010559335,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 23.284,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1874.537,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 56.179999,
+   "pose_clock_ordering": {
+    "initial_ros": 53.914,
+    "source_stamp": 53.915,
+    "received_wall": 114080.865467641,
+    "waited_wall_s": 0.0015069640066940337,
+    "outcome": "accepted",
+    "wait_count": 133,
+    "accepted_count": 132,
+    "timeout_count": 1
+   }
+  },
+  {
+   "velocity": [
+    -0.5939696552675007,
+    -0.0848531002462871,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 54.617,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 54.615,
+    "observed_source_stamp": 54.615,
+    "source_age_s": 0.001999999999995339,
+    "progress_age_s": 0.0019372079987078905,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 23.284,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1874.537,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 56.179999,
+   "pose_clock_ordering": {
+    "initial_ros": 53.914,
+    "source_stamp": 53.915,
+    "received_wall": 114080.865467641,
+    "waited_wall_s": 0.0015069640066940337,
+    "outcome": "accepted",
+    "wait_count": 133,
+    "accepted_count": 132,
+    "timeout_count": 1
+   }
+  },
+  {
+   "velocity": [
+    -0.5939696552675006,
+    -0.08485310024628687,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 54.66,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 54.655,
+    "observed_source_stamp": 54.655,
+    "source_age_s": 0.0049999999999954525,
+    "progress_age_s": 0.0037433179968502373,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 23.284,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1874.537,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 56.179999,
+   "pose_clock_ordering": {
+    "initial_ros": 53.914,
+    "source_stamp": 53.915,
+    "received_wall": 114080.865467641,
+    "waited_wall_s": 0.0015069640066940337,
+    "outcome": "accepted",
+    "wait_count": 133,
+    "accepted_count": 132,
+    "timeout_count": 1
+   }
+  },
+  {
+   "velocity": [
+    -0.5939696552675007,
+    -0.084853100246287,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 54.702,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 54.695,
+    "observed_source_stamp": 54.695,
+    "source_age_s": 0.006999999999997897,
+    "progress_age_s": 0.005280398007016629,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 23.284,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1874.537,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 56.179999,
+   "pose_clock_ordering": {
+    "initial_ros": 54.693,
+    "source_stamp": 54.695,
+    "received_wall": 114081.639827261,
+    "waited_wall_s": 0.0035444590030238032,
+    "outcome": "accepted",
+    "wait_count": 134,
+    "accepted_count": 133,
+    "timeout_count": 1
+   }
+  },
+  {
+   "velocity": [
+    -0.5939696552675007,
+    -0.08485310024628678,
+    0.0
+   ],
+   "stop": false,
+   "complete": false,
+   "reason": "track",
+   "segment_target": [
+    -5.9,
+    1.1,
+    1.6
+   ],
+   "execution_checked_at": 54.744,
+   "clock": "ros_source+monotonic_progress",
+   "pose_clock": {
+    "ok": true,
+    "reason": "ok",
+    "source_stamp": 54.735,
+    "observed_source_stamp": 54.735,
+    "source_age_s": 0.009000000000000341,
+    "progress_age_s": 0.00735079898731783,
+    "epoch": 0
+   },
+   "wall_watchdog_s": 90.0,
+   "plan_ms": 23.284,
+   "detail": null,
+   "map_version": 1,
+   "plan_ms_max": 1874.537,
+   "latched": false,
+   "plain_twist_frame": null,
+   "capability_domain": "experimental_kinematic_carrier",
+   "plan_valid_until": 56.179999,
+   "pose_clock_ordering": {
+    "initial_ros": 54.693,
+    "source_stamp": 54.695,
+    "received_wall": 114081.639827261,
+    "waited_wall_s": 0.0035444590030238032,
+    "outcome": "accepted",
+    "wait_count": 134,
+    "accepted_count": 133,
+    "timeout_count": 1
+   }
+  }
+ ],
+ "trace": {
+  "path": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/DECOUPLE/upstairs-scoped/summary.trace.json",
+  "events": 10764,
+  "capture_ok": true
+ }
+}
