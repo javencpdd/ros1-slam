@@ -1,6 +1,6 @@
 # Lite3 3D app · 配置模板与现场边界
 
-> 最新更新时间：2026-11-09 23:30 CST。本次补「接近台阶先停车、确认步态切换后再走」的停车握手与底盘状态接线；文档与源码核对，验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-13 22:45:17 CST。本次补「接近台阶先停车、确认步态切换后再走」的停车握手与底盘状态接线；文档与源码核对，验收状态以[项目进度](../../../../../../note/进度/README.md)为准。
 
 本目录保存 Lite3 现场装配模板。它说明当前仓内配置，不表示机器人此刻开/关机，也不新增真机运动许可或验收。既有静态/容器冒烟和现场记录见[进度入口](../../../../../../note/进度/v8/README.md)。
 
@@ -50,12 +50,12 @@ local_native.yaml 当前速度上限0.5 m/s、半径0.35 m、高0.436 m、台阶
 
 ## 离线建图与任务生成
 
-PCD→support_map 的工具真身为[map_from_pcd.py](../../framework/map_from_pcd.py)。v3 的 cells 保留实际格集，避免 bbox 空角冒充接触；障碍层可选 surfaces/full/both，z-align 与近地面吸收会改变地图内容，必须生成新版本并更新 registry/task。
+PCD→support_map 的工具真身为[map_from_pcd.py](../../framework/tools/map_from_pcd.py)。v3 的 cells 保留实际格集，避免 bbox 空角冒充接触；障碍层可选 surfaces/full/both，z-align 与近地面吸收会改变地图内容，必须生成新版本并更新 registry/task。
 
 下面是仓根的本机示例，输出写到 /tmp，不回写现有地图：
 
 ```bash
-python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+python3 -B ws/src/90_platform/v8_platform/framework/tools/map_from_pcd.py \
   --pcd data/maps/real_lite3_20261103/lite3.pcd --map-id lite3_real --version 4 \
   --resolution 0.15 --voxel 0.03 --z-min -0.30 --z-max 2.50 \
   --surface-z-min -0.20 --surface-z-max 0.15 --obstacle-min-z 0.15 \
@@ -73,7 +73,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
 python3 -B ws/src/90_platform/v8_platform/framework/cli.py check \
   ws/src/90_platform/v8_platform/framework/fixtures/manifests \
   ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3.yaml
-python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
   --app ws/src/90_platform/v8_platform/configs/lite3/lite3_real_3d.local.app.yaml
 ```
 

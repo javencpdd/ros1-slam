@@ -2,7 +2,7 @@
 
 > 状态：**TEMPLATE_ONLY / effective: false**。配套机器可读骨架为同目录 `gait_param_contract.yaml.template`。
 > 本件是工程模板草案，不构成在册进度登记，不产生任何 PASS / FAIL 结论，也不新增真机运动许可。
-> 最新更新时间：2026-11-09。
+> 最新更新时间：2026-11-13 22:45:17 CST。
 
 ## 1. 这份模板解决什么
 
@@ -167,7 +167,7 @@ python3 -B ws/src/90_platform/v8_platform/configs/lite3/check_gait_contract_temp
 | 事实 | 位置 |
 | --- | --- |
 | 步态名与指令码全集 | `ws/src/00_drivers/message_transformer/src/ros2qnx.cpp:40-46, 206-212` |
-| 当前在用的两个步态名 | `configs/lite3/graph_3d_lite3.yaml:95-96`、`framework/stair_gait_guard_node.py:38-39` |
+| 当前在用的两个步态名 | `configs/lite3/graph_3d_lite3.yaml:95-96`、`framework/nodes/stair_gait_guard_node.py:38-39` |
 | 运动学载体积分器 | `local_planner/kinematic3d_node.py:15-19, 22-35, 89-90` |
 | Gazebo 位姿注入 | `boundary/gazebo_endpoint.py:24-30, 108-115` |
 | 唯一 `/cmd_vel` 写者 | `local_planner/cmd3d_mux_node.py:2-6` |

@@ -1,10 +1,21 @@
 # framework · YAML 组件图与导航应用
 
-> 最新更新时间：2026-11-08 13:05:00 CST。本次修 carrier snap 并列候选 min 字典比较 TypeError（楼梯口同高两面交界）；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-13 22:45:17 CST。本次把单层入口/冒烟/测试拆入 `nodes/`、`tools/`、`smokes/`、`tests/`，公共模块仍在根；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
 
-活动 Gazebo carrier 与 Gazebo/MuJoCo verification manifest 从 [v8_simulation](../../../95_simulation/v8_simulation/README.md) 启动，仿真依赖由 companion 声明；核心源码仍在本包供薄入口调用。原同名测试路径保留，source/devel 之外的 install-only 用法尚未验证。
+活动 Gazebo carrier 与 Gazebo/MuJoCo verification manifest 从 [v8_simulation](../../../95_simulation/v8_simulation/README.md) 启动，仿真实现与资产由 companion 自持；本包只保留装配期入口引用。
+
+## 目录
+
+| 路径 | 内容 |
+| --- | --- |
+| 根目录 | 公共模块：`config`/`graph`/`execution`/`runtime`/`launch`、`app_config`、`safety`、`verification` 等，被入口与测试共同导入 |
+| [nodes/](nodes) | ROS/进程入口：`app_runner.py`、`*_node.py`、`operator_surface_picker.py`、`pose_tf_broadcaster.py`；manifest 的 `launch.type` 指向这里 |
+| [tools/](tools) | 离线工具：`map_from_pcd.py`、`inflate_support_map.py` |
+| [smokes/](smokes) | 真实进程 smoke（plugin/nodelet、map cache、graph_3d、Gazebo/MuJoCo verification、demo survey） |
+| [tests/](tests) | 离线单测；运行 `python3 -m unittest discover -s ws/src/90_platform/v8_platform/framework/tests` |
+| [fixtures/](fixtures) / [launch/](launch) | manifest/graph/app/索引夹具与 RViz launch |
 
 ## 输入与阅读顺序
 
@@ -13,9 +24,9 @@ framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配�
 | [fixtures/manifests](fixtures/manifests) | manifest v3 运行组件：显式 execution.modes/robot_id、命名 ports、dimensions、launch；同时包含真实节点、include 与明确的测试替身 |
 | [fixtures/graphs](fixtures/graphs) / [config.py](config.py) / [graph.py](graph.py) | pipeline_graph/v1：实例、namespace、参数/config、显式端口连线、外部输入、反馈策略；生成启动 DAG 和 digest |
 | [render.py](render.py) / [runtime.py](runtime.py) | assembly_plan/v2、受域校验的 launch、默认运行命令与 Assembly；消费现有 ProcessRunner/Orchestrator |
-| [app_config.py](app_config.py) / [app_runner.py](app_runner.py) | navigation_app/v1：graph、地图 registry、任务、定位/载体与可视化；dry-run/execute |
+| [app_config.py](app_config.py) / [nodes/app_runner.py](nodes/app_runner.py) | navigation_app/v1：graph、地图 registry、任务、定位/载体与可视化；dry-run/execute |
 | [map_registry.py](map_registry.py) / [surface_resolver.py](surface_resolver.py) | map_id/version/path/sha 绑定，起终点 z 与 surface_hint 消歧 |
-| [map_from_pcd.py](map_from_pcd.py) / [inflate_support_map.py](inflate_support_map.py) | PCD→支撑图/任务/app/本机登记；声明足迹外扩生成单独变体 |
+| [tools/map_from_pcd.py](tools/map_from_pcd.py) / [tools/inflate_support_map.py](tools/inflate_support_map.py) | PCD→支撑图/任务/app/本机登记；声明足迹外扩生成单独变体 |
 | [safety.py](safety.py) / [hotswap.py](hotswap.py) | 安全接线、否决停止、受限实例替换 |
 | [robot.py](robot.py) / [verification.py](verification.py) | robot profile 能力检查；与算法图分开的验证后端/真值通道 |
 
@@ -34,7 +45,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/cli.py plan \
   ws/src/90_platform/v8_platform/framework/fixtures/manifests \
   ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_cache_sim.yaml \
   --out-plan /tmp/plan.json --out-launch /tmp/graph.launch
-python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
   --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml
 ```
 
@@ -73,7 +84,7 @@ Assembly（含自定义命令工厂）、独立 default_command、三条 hotswap
 
 - 2D：`v8.nav2d.*` include 启动实际导航栈与生产 mux；GlobalPlanner/Navfn、DWA/TEB 选择由图参数表达。
 - 3D：map provider→全局 topic planner→path_goal→local_native→三维 mux/载体。`path_goal_node.py` 仅把全局 Path 末点转为局部目标；原生局部规划不逐点消费整条全局路线。
-- `gazebo_carrier3d_node.py` 是 static box/SetModelState 的运动学载体，含支撑高度钳制和同高度支撑边界分段积分；零 z 速度命令不会积分出同高支撑并集边界（跨同高面缝可走、真空边缘截断、显式 z 转层不受限）。状态发布取当帧 map 面数；snap 的并列候选按 (dz, z_reference) 键比较；循环内引用经 symtable 静态守卫（真实 r14 窗口回归测试）。Gazebo 动态方盒和 MuJoCo 四足接触实验为不同执行链，不能互代。Lite3 carrier 只提供 TF/odom 位姿与健康：原非零源stamp、精确parent/child、有限几何必须有效；重复查询不续租，ROS源年龄和monotonic源推进年龄共同判失效。错误odom坐标直接拒绝，不改名为map；非阻塞TF查询和墙钟节拍保证停钟时仍能发布健康false，无效时不重播旧pose。最终check/pose/health/status与回调撤销共用锁；拒绝样本的stamp也被观察，同一个未来样本不能靠ROS追平恢复；ROS回退后先隔离旧缓存，只有新的有效源推进才解除隔离，正常新epoch可连续跨过旧stamp数值。数值与现场参数未改。纯策略见[公共helper](../common/pose_safety.py)，测试见[test_lite3_carrier.py](test_lite3_carrier.py)，目标TF/支撑参考点仍见[现场配置](../configs/lite3/README.md)。
+- `gazebo_carrier3d_node.py` 是 static box/SetModelState 的运动学载体，含支撑高度钳制和同高度支撑边界分段积分；零 z 速度命令不会积分出同高支撑并集边界（跨同高面缝可走、真空边缘截断、显式 z 转层不受限）。状态发布取当帧 map 面数；snap 的并列候选按 (dz, z_reference) 键比较；循环内引用经 symtable 静态守卫（真实 r14 窗口回归测试）。Gazebo 动态方盒和 MuJoCo 四足接触实验为不同执行链，不能互代。Lite3 carrier 只提供 TF/odom 位姿与健康：原非零源stamp、精确parent/child、有限几何必须有效；重复查询不续租，ROS源年龄和monotonic源推进年龄共同判失效。错误odom坐标直接拒绝，不改名为map；非阻塞TF查询和墙钟节拍保证停钟时仍能发布健康false，无效时不重播旧pose。最终check/pose/health/status与回调撤销共用锁；拒绝样本的stamp也被观察，同一个未来样本不能靠ROS追平恢复；ROS回退后先隔离旧缓存，只有新的有效源推进才解除隔离，正常新epoch可连续跨过旧stamp数值。数值与现场参数未改。纯策略见[公共helper](../common/pose_safety.py)，测试见[tests/test_lite3_carrier.py](tests/test_lite3_carrier.py)，目标TF/支撑参考点仍见[现场配置](../configs/lite3/README.md)。
 - localization_node 支持 sim_gt/faster_lio/ndt 来源；NDT `navigation_allowed=false`。GT-LIO raw/translated/rigid 比较在 localization_compare，不把事后对齐当独立精度认证。
 - `map_cache_node`/`map_merge_node` 和 typed v8_msgs 已有真实图入口；旧 graph_3d_cache 使用测试替身。MapDelta/持久化/语义桥细节见[representation](../representation/README.md)。
 - PCD 建图可生成 app/task 并登记本机地图；`--register` 修改本机 registry。地图和 `*.local.app.yaml` 不作为跨机固定资产。完整建图/可视化步骤见[Docker 指南](../../../../../docker/README.md)。
@@ -91,13 +102,13 @@ Assembly（含自定义命令工厂）、独立 default_command、三条 hotswap
 ## 定向检查与证据
 
 ```bash
-python3 -B ws/src/90_platform/v8_platform/framework/test_execution.py
-python3 -B ws/src/90_platform/v8_platform/framework/test_framework.py
-python3 -B ws/src/90_platform/v8_platform/framework/test_runtime.py
-python3 -B ws/src/90_platform/v8_platform/framework/test_preflight.py
-python3 -B ws/src/90_platform/v8_platform/framework/test_safety.py
-python3 -B ws/src/90_platform/v8_platform/framework/test_navigation_app.py
-python3 -B ws/src/90_platform/v8_platform/framework/test_hotswap.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_execution.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_framework.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_runtime.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_preflight.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_safety.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_navigation_app.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_hotswap.py
 ```
 
-真实运行 smoke 如 plugin/nodelet_group、map_cache_graph、graph_3d_real、Gazebo/MuJoCo verification 会启动外部进程，按作业窗执行；typed 地图 smoke 须先构建 [v8_msgs](../../v8_msgs)。当前设计见[v8.1架构与接口](../../../../../note/计划书v8.1/22_架构与接口契约.md)，历史收口记录见[27 号框架补丁](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)、[v8 进度](../../../../../note/进度/v8/README.md)。本文不复用旧固定测试条数，也不新增 formal/真机结论。
+真实运行 smoke（`smokes/` 下的 plugin/nodelet_group、map_cache_graph、graph_3d_real、Gazebo/MuJoCo verification）会启动外部进程，按作业窗执行；typed 地图 smoke 须先构建 [v8_msgs](../../v8_msgs)。当前设计见[v8.1架构与接口](../../../../../note/计划书v8.1/22_架构与接口契约.md)，历史收口记录见[27 号框架补丁](../../../../../note/计划书v8/27_框架改造补丁-v0.1.md)、[v8 进度](../../../../../note/进度/v8/README.md)。本文不复用旧固定测试条数，也不新增 formal/真机结论。

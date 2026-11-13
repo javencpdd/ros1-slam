@@ -1,6 +1,6 @@
 # lite3_slam · faster-lio 装配
 
-> 最新更新时间：2026-11-06 15:17:09 CST。现行规划见仓库[计划书 v8.1](../../../../note/计划书v8.1/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
+> 最新更新时间：2026-11-13 22:45:17 CST。现行规划见仓库[计划书 v8.1](../../../../note/计划书v8.1/README.md)，能力状态见[进度入口](../../../../note/进度/README.md)。
 
 本包提供 faster-lio 启动与参数装配；算法本体在第三方包 `faster_lio`。
 
@@ -18,6 +18,6 @@ faster-lio 存盘落点为 `data/maps/lite3.pcd`，实验前后按现行证据�
 不要覆盖既有样张。第三方源码只允许已登记的存盘路径隔离改写。
 
 GT 位姿建图另走 `lite3_gazebo_sim/scripts/mapping_recorder.py` 与
-`v8_platform/framework/map_from_pcd.py`；它不等于本包的 LIO/SLAM 验证。
+`v8_platform/framework/tools/map_from_pcd.py`；它不等于本包的 LIO/SLAM 验证。
 
 PCD转二维栅格使用[pcd2grid.launch](../pcd2grid/launch/pcd2grid.launch)。上游README中的build_octomap.launch、map.launch与config.yaml不在当前副本中；上游原文保留，不据旧示例判断本仓入口。

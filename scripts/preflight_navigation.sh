@@ -47,7 +47,7 @@ fi
 
 # 6) 安全件在位（提示性）
 for f in "$ROOT/ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py" \
-         "$ROOT/ws/src/90_platform/v8_platform/framework/ultrasonic_guard_node.py"; do
+         "$ROOT/ws/src/90_platform/v8_platform/framework/nodes/ultrasonic_guard_node.py"; do
   [ -f "$f" ] && say PASS "件在位 $(basename "$f")" || { say FAIL "缺件 $f"; rc=9; }
 done
 

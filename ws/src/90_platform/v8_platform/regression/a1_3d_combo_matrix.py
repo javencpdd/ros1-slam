@@ -15,7 +15,7 @@ import time
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-SMOKE = HERE.parent / 'framework' / 'graph_3d_assembly_smoke.py'
+SMOKE = HERE.parent / 'framework' / 'smokes' / 'graph_3d_assembly_smoke.py'
 FLAT = str(ROOT / 'contracts' / 'fixtures' / 'map_ml_two_surfaces.json')
 NIST = '/opt/ros1-slam/data/maps/nist_stairs_120_s020x170_support.json'
 

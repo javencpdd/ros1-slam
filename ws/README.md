@@ -27,12 +27,12 @@
 | --- | --- |
 | 显式目标构建/只读依赖计划 | [构建说明](../tooling/build/README.md)；`lite3` 与 `x86_sim` 分开输出，`m20` 明确拒绝 |
 | 传统建图/定位/导航组合 | [`lite3_bringup/launch/`](src/70_bringup/lite3_bringup/launch/)中的 `mode_mapping` / `mode_localize` / `mode_navigation` |
-| v8 app、task、地图与 graph 绑定 | [`v8_platform/framework/app_runner.py`](src/90_platform/v8_platform/framework/app_runner.py)与[framework 说明](src/90_platform/v8_platform/framework/README.md) |
+| v8 app、task、地图与 graph 绑定 | [`v8_platform/framework/nodes/app_runner.py`](src/90_platform/v8_platform/framework/nodes/app_runner.py)与[framework 说明](src/90_platform/v8_platform/framework/README.md) |
 | v3执行域、机器人身份与运行前拒绝 | [`execution.py`](src/90_platform/v8_platform/framework/execution.py)和[框架说明](src/90_platform/v8_platform/framework/README.md)；声明/静态检查不作硬件许可 |
 | Lite3 本机 graph/应用模板 | [`v8_platform/configs/lite3/`](src/90_platform/v8_platform/configs/lite3/)；各机覆盖使用 `*.local.app.yaml` |
-| 位姿新鲜度与map→机体航向平面 | [`pose_safety.py`](src/90_platform/v8_platform/common/pose_safety.py)、[`local ros_node.py`](src/90_platform/v8_platform/local_planner/ros_node.py)、[`Lite3 carrier`](src/90_platform/v8_platform/framework/lite3_carrier_node.py)；物理停止链另验 |
+| 位姿新鲜度与map→机体航向平面 | [`pose_safety.py`](src/90_platform/v8_platform/common/pose_safety.py)、[`local ros_node.py`](src/90_platform/v8_platform/local_planner/ros_node.py)、[`Lite3 carrier`](src/90_platform/v8_platform/framework/nodes/lite3_carrier_node.py)；物理停止链另验 |
 | v8 装配/算法/协议阅读地图 | [项目架构与目录](../note/架构/项目架构与目录.md) |
-| 仿真键盘建图和可视化命令 | [Docker 说明](../docker/README.md)；记录器 [`mapping_recorder.py`](src/95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py)与转换器 [`map_from_pcd.py`](src/90_platform/v8_platform/framework/map_from_pcd.py) |
+| 仿真键盘建图和可视化命令 | [Docker 说明](../docker/README.md)；记录器 [`mapping_recorder.py`](src/95_simulation/lite3_gazebo_sim/scripts/mapping_recorder.py)与转换器 [`map_from_pcd.py`](src/90_platform/v8_platform/framework/tools/map_from_pcd.py) |
 | Gazebo world/launch | [`lite3_gazebo_sim/`](src/95_simulation/lite3_gazebo_sim/) |
 | MuJoCo 力矩/接触与阶面障碍 | [`dynamics/README.md`](src/95_simulation/lite3_gazebo_sim/dynamics/README.md) |
 | 安全源表与最后速度仲裁 | [`cmd_vel_mux.yaml`](src/60_safety/lite3_safety/config/cmd_vel_mux.yaml)、[`safe_cmd_vel_mux.py`](src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py) |

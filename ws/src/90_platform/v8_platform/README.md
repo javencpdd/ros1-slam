@@ -1,6 +1,6 @@
 # v8_platform · 配置装配、规划与运行适配
 
-> 最新更新时间：2026-11-06 15:17:09 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-13 22:45:17 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。
 
 本包保存 v8 平台自研代码：组件契约、注册与组合、进程编排、地图表征、全局/局部规划、ROS 适配和回归工具。计划与设计文档在[计划书 v8.1](../../../../note/计划书v8.1/README.md)，历史运行证据在[进度入口](../../../../note/进度/v8/README.md)。
 
@@ -33,7 +33,7 @@
 python3 -B ws/src/90_platform/v8_platform/framework/cli.py check \
   ws/src/90_platform/v8_platform/framework/fixtures/manifests \
   ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_cache.yaml
-python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
   --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml
 ```
 
@@ -47,7 +47,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
 python3 -B ws/src/90_platform/v8_platform/contracts/test_contracts.py
 python3 -B ws/src/90_platform/v8_platform/planner/test_support_planner.py
 python3 -B ws/src/90_platform/v8_platform/local_planner/test_local_native.py
-python3 -B ws/src/90_platform/v8_platform/framework/test_preflight.py
+python3 -B ws/src/90_platform/v8_platform/framework/tests/test_preflight.py
 ```
 
 测试数量随源码变化；本文不把旧批次数或文档更新时间作为新的运行结果。

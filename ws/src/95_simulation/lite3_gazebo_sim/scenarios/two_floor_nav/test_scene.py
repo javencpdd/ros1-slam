@@ -171,7 +171,7 @@ class SceneTests(unittest.TestCase):
             validation.validate_trace(bad, 'upstairs', self.good_result)
 
     def test_preflight_refusal_never_calls_engine(self):
-        import app_runner
+        from nodes import app_runner
         with tempfile.TemporaryDirectory(prefix='two-floor-refusal-owned-') as t:
             output = Path(t) / 'result.json'
             with mock.patch.object(cli, 'plan_case', return_value={}), \

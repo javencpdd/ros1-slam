@@ -67,7 +67,7 @@
   </group>
 
   <!-- 前方超声保底：发布 /v8/safety/speed_cap，由 mux 取 min(静态上限, cap) -->
-  <node pkg="v8_platform" type="framework/ultrasonic_guard_node.py"
+  <node pkg="v8_platform" type="framework/nodes/ultrasonic_guard_node.py"
         name="v8_ultrasonic_guard" output="screen">
     <param name="fail_cap" value="true"/>
     <param name="cap_distance_m" value="0.8"/>

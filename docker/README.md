@@ -1,6 +1,6 @@
 # ros1-slam · Docker 开发与仿真
 
-> 最新更新时间：2026-11-07 03:38:56 CST。本文维护Docker构建/运行入口；新两层场景的实现、限定验证与环境边界见[场景记录](../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。
+> 最新更新时间：2026-11-13 22:45:17 CST。本文维护Docker构建/运行入口；新两层场景的实现、限定验证与环境边界见[场景记录](../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。
 
 x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 ROS1，地图和现场配置各机独立。当前旧算法、地图准备和真机排程仍按[执行队列](../note/计划书v8.1/23_v8.1任务队列.md)保持取消；本文不授权启动硬件。架构与能力边界见[项目架构](../note/架构/项目架构与目录.md)和[进度](../note/进度/README.md)。
 
@@ -199,7 +199,7 @@ docker compose exec sim-viz bash -lc '
   export ROS_MASTER_URI=http://127.0.0.1:11537 ROS_IP=127.0.0.1
   export GAZEBO_MASTER_URI=http://127.0.0.1:11538
   cd /opt/ros1-slam
-  python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+  python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
     --app ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
     --execute --interactive --rviz --out /tmp/nav3d_interactive.json'
 ```
@@ -259,7 +259,7 @@ docker compose exec sim-viz bash -lc '
 **离线转换**：在具备工具依赖的环境，从仓库根执行：
 
 ```bash
-python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+python3 -B ws/src/90_platform/v8_platform/framework/tools/map_from_pcd.py \
   --pcd data/maps/mapped_m1.pcd --map-id mapped_m1 --version 1 \
   --x-min -5 --x-max 8 --y-min -5 --y-max 5 --write-app --register
 ```
@@ -275,7 +275,7 @@ docker compose exec sim-viz bash -lc '
   export ROS_MASTER_URI=http://127.0.0.1:11537 ROS_IP=127.0.0.1
   export GAZEBO_MASTER_URI=http://127.0.0.1:11538
   cd /opt/ros1-slam
-  python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+  python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
     --app data/maps/generated/mapped_m1_v1_app.yaml \
     --execute --interactive --rviz --out /tmp/mapped_nav.json'
 ```
@@ -297,7 +297,7 @@ roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
 
 采集同§4.7；输出名要贯穿采集/转换，不能直接引用未生成的 `mapped_nist_gt1.pcd`。
 
-[map_from_pcd.py](../ws/src/90_platform/v8_platform/framework/map_from_pcd.py) 支持 `--nist-profile/--world/--model-path`。[inflate_support_map.py](../ws/src/90_platform/v8_platform/framework/inflate_support_map.py) 只写外扩地图并可登记 registry，**不生成 `_app.yaml/_task.json`**。历史声明楼梯 app 需连同本机数据包恢复，核地图ID/版本/世界；不能只跑 inflate 就调用假定存在的 app。
+[map_from_pcd.py](../ws/src/90_platform/v8_platform/framework/tools/map_from_pcd.py) 支持 `--nist-profile/--world/--model-path`。[inflate_support_map.py](../ws/src/90_platform/v8_platform/framework/tools/inflate_support_map.py) 只写外扩地图并可登记 registry，**不生成 `_app.yaml/_task.json`**。历史声明楼梯 app 需连同本机数据包恢复，核地图ID/版本/世界；不能只跑 inflate 就调用假定存在的 app。
 
 [R1120](../note/进度/v8/M5/26-10-29/R1120.md)地面采集没有完整覆盖楼梯；[R1121](../note/进度/v8/M5/26-10-29/R1121.md)是声明支撑面外扩后的运动学导航。两者地图来源不同，均非物理四足/formal结论。
 

@@ -1,6 +1,6 @@
 # lite3_gazebo_sim（SIM 仿真域·测试台本体）
 
-> 最新更新时间：2026-11-09 02:24:16 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，并补写场景热插拔的用途与时机（world vs scene 段后，同步 scripts/sim_scene.py 头注释）；历史指标仍只适用于各原记录。
+> 最新更新时间：2026-11-13 22:45:17 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，并补写场景热插拔的用途与时机（world vs scene 段后，同步 scripts/sim_scene.py 头注释）；历史指标仍只适用于各原记录。
 
 **统一索引头**（模块导航；职责以本轮源码核对与原运行范围为准）
 层 `95_simulation` ｜ 角色 `SIM 仿真域（测试台本体）` ｜ Gazebo 世界、机体仿真描述、推进插件、M2 判据载体与全部仿真侧验收件都在这里；另含楼梯可行性离线预检旁路。
@@ -20,7 +20,7 @@
 | 起世界 | `launch/m1_gazebo.launch`、`m2_gazebo.launch`（世界件本体 `worlds/m1_world.world`＝**红线件**，各跑取 `world_before.sha`／`world_after.sha`） |
 | 仿真传感/建图/规划 | `launch/m1_mapping.launch`、`m2_mapping.launch`（两者加载**真机 outdoor** `faster_lio_outdoor.yaml`，仿真请改用 `lite3_slam/launch/10_slam_mapping_sim.launch` 的 `faster_lio_sim.yaml`）、`m2_hdl.launch`、`m2_teb.launch` |
 | 交互式 2D 导航 | `lite3_bringup/launch/interactive_2d.launch`（MBF + `mbf_goal_bridge.py`；RViz 2D Nav Goal 直接驱动 MBF） |
-| 交互式 3D / 自建图导航 | `framework/app_runner.py --execute --interactive --rviz` + `framework/fixtures/rviz/nav3d.rviz`；自建图入口见 `map_from_pcd.py` 生成物 |
+| 交互式 3D / 自建图导航 | `framework/nodes/app_runner.py --execute --interactive --rviz` + `framework/fixtures/rviz/nav3d.rviz`；自建图入口见 `map_from_pcd.py` 生成物 |
 | 键盘建图（仿真 GT 位姿） | `scripts/mapping_recorder.py` + `scripts/keyboard_teleop.py`；RViz 用 `docker/rviz_mapping3d.rviz` |
 | 机体描述（仿真实际用的） | `urdf/lite3_planar.urdf.xacro`——刚体盒子（只有 fixed 关节）＋雷达位置由 `lidar_z=0.34`、`lidar_pitch_deg=15` 与 `base_to_rslidar` 的 xacro 展开共同确定；参数不是旧固定 `0.38` |
 | 推进插件源码 | `src/lite3_planar_drive.cpp`（dynamic 分支 `SetLinearVel`/`SetAngularVel` 保留接触；kinematic 回退 `SetWorldPose`；打戳统一 SimTime 的坑25 根除改点在此） |
@@ -116,7 +116,7 @@ z mean **0.9713 m**、max 2.03 m；0 个 >1 s 间隔/xy>0.5 m 段。仍只测 SL
 - **键盘建图 → 自建图 3D 导航（R1119）**：
   `m2_gazebo.launch gui:=true` + `mapping_recorder.py` + `rviz_mapping3d.rviz` +
   `keyboard_teleop.py`（四个独立进程）；记录器用 `/rslidar_points` + `/sim/odom_gt`
-  写 PCD，再由 `v8_platform/framework/map_from_pcd.py` 生成 support_map/app/task，
+  写 PCD，再由 `v8_platform/framework/tools/map_from_pcd.py` 生成 support_map/app/task，
   最后 `app_runner.py` 用自建图起 3D 交互导航。完整命令见 `docker/README.md` §4.7。
 - 端口：2D/建图 11313/11345；3D app 11537/11538；`sim` 与 `sim-viz` 一次只起一个。
 - 边界：R1119 是**仿真 GT 位姿建图**，不是 LIO/SLAM；自建图目前是一层平地支撑面，

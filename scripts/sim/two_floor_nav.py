@@ -71,7 +71,7 @@ def plan_case(case, orchestrator='direct'):
     if different:
         raise ValueError('scene artifacts differ from source: ' + ', '.join(different))
     sys.path.insert(0, str(scene.PLATFORM / 'framework'))
-    import app_runner
+    from nodes import app_runner
     import support_planner
     app_path = app_path_for(case, orchestrator)
     prepared = app_runner.prepare_execution(app_path, with_gazebo=True)
@@ -138,7 +138,7 @@ def execute_case(case, output, port=11657, timeout_s=None, gui=False, interactiv
         raise ValueError('original v8 preflight refused: rc=%d; see %s' % (checked.returncode, paths['preflight']))
     # Recheck after the preflight to reject a new competing listener.
     ports_idle(port)
-    command = [sys.executable, str(scene.PLATFORM / 'framework/app_runner.py'),
+    command = [sys.executable, str(scene.PLATFORM / 'framework/nodes/app_runner.py'),
                '--app', str(app_path_for(case, orchestrator)), '--execute',
                '--out', str(paths['app']), '--trace-out', str(paths['trace']),
                '--port', str(port), '--timeout-s', str(timeout_s)]

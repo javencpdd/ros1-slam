@@ -1,12 +1,14 @@
 # gait_guard 感知接线与门值机制 · 运行说明
 
+> 最新更新时间：2026-11-13 22:45:17 CST。本次仅同步 framework 入口迁移引用，原授权与能力边界保持。
+
 本件记录 2026-11-09 落到运行代码的两项改造，供运维按参数开档。**不是验收结论，不产生 PASS/FAIL，不签真机可用性。**
 
 ## 一、改了什么
 
 | 项 | 落在哪 | 默认 |
 |---|---|---|
-| ②感知接线 | `framework/stair_gait_guard_node.py` 新增订阅 `/elevation_mapping/elevation_map`（`grid_map_msgs/GridMap`）→ `framework/terrain_observer.py` 产出地形特征 → 发到 `/v8/gait_guard/terrain` | `perception_mode: shadow`（只报不拦） |
+| ②感知接线 | `framework/nodes/stair_gait_guard_node.py` 新增订阅 `/elevation_mapping/elevation_map`（`grid_map_msgs/GridMap`）→ `framework/terrain_observer.py` 产出地形特征 → 发到 `/v8/gait_guard/terrain` | `perception_mode: shadow`（只报不拦） |
 | ③门值机制 | `framework/gait_gates.py` 把 5 个门值从写死常数改成「声明基线＋实测契约反算」双源解析，节点按解析结果重建 `GaitDecision` | `gate_source: declared`（在册基线逐字不变） |
 
 **③改的是门值的产生机制，不是门值数值本身。** 在册 6 值（`lookahead 1.5 / enter 1.0 / exit 1.5 / min_step 0.05 / max_step 0.15`）默认一个没动。理由：`GAIT_PARAM_CONTRACT.md` §5 的反算式依赖 `cmd_lag_p95_s`、`switch_settle_s`、`stop_distance_m` 等真机实测字段，而空白契约模板里这些字段**全为 null**。真机回填之前，任何把 1.5 改成某个具体数字的动作都没有依据，且命中 Runbook §8 与契约 §9.3 的「旧判据门值／真机及其参数」停手面。机制落地后，回填完成即可由反算式改写生效门值，不需要再改代码。

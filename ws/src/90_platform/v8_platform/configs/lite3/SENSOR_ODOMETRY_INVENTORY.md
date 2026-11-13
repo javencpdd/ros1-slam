@@ -36,7 +36,7 @@ lidar↔IMU 几何，须重估外参。
 | --- | --- | --- |
 | **NDT 点云定位** | `20_localization/hdl_localization/apps/hdl_localization_nodelet.cpp:88-95`（NDT_OMP）、`:68` 发 `/odom`→remap `/hdl_odom`；内建 UKF `include/kkl/alg/unscented_kalman_filter.hpp:16-21`；`hdl_global_localization` 全局重定位；`v8_ndt_odom/src/ndt_odom_node.cpp:42`「only monitor role is authorized; continuous backend is not enabled」 | 输出是 **map 系全局定位**（`README.md:48-49`「Estimated sensor pose in the map frame」），不是里程计递推；UKF 只是定位滤波 |
 | **腿式里程转发** | `00_drivers/message_transformer/src/qnx2ros.cpp:50-54,123-129` 发 `/leg_odom`、`/leg_odom2`、`/imu/data` | 从 QNX `robot_state` 直接填消息，**无滤波无估计**；hdl 只取 `twist`（`hdl_localization_nodelet.cpp:460`），`enable_robot_odometry_prediction=false` |
-| **纯运动学积分** | `v8_platform/local_planner/kinematic3d_node.py:15-19` `x+vx*dt`；`framework/gazebo_carrier3d_node.py:2-6` Gazebo SetModelState | 测试载体，自述「No physics/contact」「kinematic pose sink」，不消费传感器 |
+| **纯运动学积分** | `v8_platform/local_planner/kinematic3d_node.py:15-19` `x+vx*dt`；`v8_simulation/scripts/gazebo_carrier3d_node.py:2-6` Gazebo SetModelState | 测试载体，自述「No physics/contact」「kinematic pose sink」，不消费传感器 |
 | **仿真真值直给** | `95_simulation/.../src/lite3_planar_drive.cpp:120` 取 `WorldPose()` 发 `/sim/odom_gt`；`70_bringup/.../sim_pose_tf.py:10-11` 发 `/Odometry` 真值；`gazebo_truth.py:4-6`「verification-side oracle, not part of any algorithm graph」；`mapping_recorder.py:6`「This is not LIO/SLAM」 | 评测用的 oracle / GT 建图参考，不是估计器 |
 
 另有 `10_slam/pcd2grid`（PCD→2D 栅格）与 `ndt_omp`／`fast_gicp`（配准库），是地图/配准工具，

@@ -157,7 +157,7 @@ injection_map:
     - 'local_planner/kinematic3d_node.py:89-90，stale 超时'
     - 'boundary/gazebo_endpoint.py:108-115，SetModelState 抖动注入'
   failure:
-    - 'framework/stair_gait_guard_node.py:38-39，步态名与降级'
+    - 'framework/nodes/stair_gait_guard_node.py:53-55，步态名与降级'
 
 acceptance:
   no_self_evidence: '回填值只作扰动输入；判据不得复用同一批 run 或同一组参数'

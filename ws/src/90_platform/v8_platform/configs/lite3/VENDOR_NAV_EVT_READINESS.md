@@ -1,5 +1,7 @@
 # 官方 8.2.1 导航启动链 → 本项目真机适配（EVT 前置准备）
 
+> 最新更新时间：2026-11-13 22:45:17 CST。本次仅同步 framework 入口迁移引用，原授权与能力边界保持。
+
 状态：**真人已于 2026-11-09 16:17 授权「允许进入 EVT 段」**；本批据此把阶段标记推进到 EVT，
 并完成 G0／G1 的离线开工件。入场是阶段放行，**不等于 G2 及以后各门自动放行**
 （`Runbook:4` 仍要求作业窗＋单项作业单）。本件不构成单项作业许可，不代替权利方签字，
@@ -194,14 +196,14 @@ mbf_costmap_nav + safe_cmd_vel_mux**。两者不是同一框架，**接口名可
 | 件 | 作用 | 默认 |
 |---|---|---|
 | `framework/vendor_nav_chain.py` | 官方三段链只读契约、17 项接口对照、12 键禁回填判据、fail-closed 初位姿就绪门；`--report` / `--json` / `--selftest` | 纯函数，不启节点 |
-| `framework/nav_init_readiness_node.py` | 影子就绪门 ROS 桥；只订 4 个输入、只发 1 个诊断话题 `/v8/nav/init_readiness` | `readiness_mode=off` |
+| `framework/nodes/nav_init_readiness_node.py` | 影子就绪门 ROS 桥；只订 4 个输入、只发 1 个诊断话题 `/v8/nav/init_readiness` | `readiness_mode=off` |
 | `framework/evt_gates.py` | EVT G0—G5 门控模型、空白参数对照件审计器、三连自测 | 只读，`entry_is_not_gate_release=true` |
 | `configs/lite3/SIM_TO_REAL_PARAM_SHEET.yaml.template` | **机器可审计的签值骨架**（4 类／20 个 `real_value: null`），与既有 `note/11` 迁移规则草案互补，不宣称补齐缺口 | `TEMPLATE_ONLY` / `effective: false` |
 | `configs/lite3/SENSOR_ODOMETRY_INVENTORY.md` | 传感器与里程计现状盘点：唯一 LIO、VIO 零实现、四类易混淆实现、口径纠偏（2026-11-09 补） | 只读事实，不决策 |
 | `configs/lite3/VENDOR_NAV_EVT_READINESS.md` | 本件：官方只读勘察、对照表、门控、待勾项 | 文档 |
-| `framework/test_vendor_nav_chain.py` | 16 个定向单测 | — |
-| `framework/test_nav_init_readiness.py` | 12 个定向单测（ROS stub，无需 roscore） | — |
-| `framework/test_evt_gates.py` | 13 个定向单测（入场不放门、空白模板审计） | — |
+| `framework/tests/test_vendor_nav_chain.py` | 16 个定向单测 | — |
+| `framework/tests/test_nav_init_readiness.py` | 12 个定向单测（ROS stub，无需 roscore） | — |
+| `framework/tests/test_evt_gates.py` | 13 个定向单测（入场不放门、空白模板审计） | — |
 | `scripts/preflight_navigation.sh` 追加第 7 项 | 显式 `VENDOR_NAV_REPORT=1` 才打印官方链对照 | 默认关闭，**不参与 rc** |
 
 就绪门三档：`off`（完全惰性，`start()` 在需要 ROS 之前就返回）｜`shadow`（只报不拦）｜

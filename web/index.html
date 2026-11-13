@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- 最新更新时间：2026-11-13 22:45:17 CST；本次同步 framework 目录迁移的命令路径。 -->
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -874,7 +875,7 @@ docker compose exec sim-viz bash -lc '
   export ROS_MASTER_URI=http://127.0.0.1:11537
   export ROS_IP=127.0.0.1
   export GAZEBO_MASTER_URI=http://127.0.0.1:11538
-  python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/app_runner.py \
+  python3 -B /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
     --app /opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/apps/nist_sensor_3d.yaml \
     --execute --interactive --rviz \
     --out /tmp/nav3d_interactive.json'</code><button class="copy">复制</button></pre>
@@ -1129,7 +1130,7 @@ docker compose exec sim-viz bash -lc '
 
 <span class="cmt"># T5 停 T2 后：PCD → support_map + app/task/registry（宿主机）</span>
 <span class="kw">cd</span> /home/jack/ysc-code/ros1-slam
-python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
+python3 -B ws/src/90_platform/v8_platform/framework/tools/map_from_pcd.py \
   --pcd data/maps/mapped_nist.pcd --map-id mapped_nist --version 1 \
   --write-app --register --nist-profile --xy-gap 0.30 --start-x 0 --start-y -2.6 \
   --world ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
@@ -1161,7 +1162,7 @@ python3 -B ws/src/90_platform/v8_platform/framework/map_from_pcd.py \
           不是第三套栈。楼梯最小步骤：先外扩声明图，再起同一个 3D app。</p>
           <pre><code><span class="cmt"># 1) 声明 NIST 支撑面外扩 .20 m，消除台阶交叠死带（宿主机）</span>
 <span class="kw">cd</span> /home/jack/ysc-code/ros1-slam
-python3 -B ws/src/90_platform/v8_platform/framework/inflate_support_map.py \
+python3 -B ws/src/90_platform/v8_platform/framework/tools/inflate_support_map.py \
   --map data/maps/nist_stairs_120_s020x170_support.json \
   --out data/maps/generated/nist_stairs_120_nav_v1.json \
   --map-id nist_stairs_120_nav --version 1 --margin .20 --register
@@ -1171,7 +1172,7 @@ docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
   cd /opt/ros1-slam
-  python3 -B ws/src/90_platform/v8_platform/framework/app_runner.py \
+  python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
     --app data/maps/generated/nist_stairs_120_nav_v1_app.yaml \
     --execute --interactive --rviz \
     --out /tmp/nist_stair_nav.json'</code><button class="copy">复制</button></pre>
@@ -1872,33 +1873,20 @@ python3 -B regression/a45_3d_test.py --out /tmp/3d_nav.json --svg /tmp/3d_nav.sv
         <div>
           <div class="sec-kicker">Documents</div>
           <h2>文档索引</h2>
-          <p class="sec-desc">页面里的链接指向仓库内原始文档。请从仓库根目录起 HTTP 服务，否则 <span class="mono">../note/</span> 不可达。当前 v8.1 与历史 v8 入口并存；旧计划不自动恢复为当前任务。</p>
-          <div class="tags" style="margin-top:12px"><span class="badge info">本板块更新：2026-11-07</span></div>
+          <p class="sec-desc">页面里的链接指向仓库内原始文档。本站只提供文档白名单（<span class="mono">web/</span>、<span class="mono">docker/</span>、<span class="mono">tooling/</span>、根 README、<span class="mono">ws/src</span> 下的 README）；<span class="mono">note/</span> 与任务台不在本站。当前 v8.1 与历史 v8 入口并存；旧计划不自动恢复为当前任务。</p>
+          <div class="tags" style="margin-top:12px"><span class="badge info">本板块更新：2026-11-13</span></div>
         </div>
       </div>
 
       <div class="docs reveal">
         <a class="doc" href="../README.md"><div><b>项目门面</b><span>仓库结构、导航表、工程约束、当前边界</span></div><em>→</em></a>
-        <div class="doc"><div><b>计划书 v8.1 · 现行路线</b><span>21—25 六件：需求、契约、队列、验证、迁移规则</span></div></div>
-        <div class="doc"><div><b>进度入口</b><span>按用途找总览、v8 记录、批次与当前任务</span></div></div>
-        <div class="doc"><div><b>版本成果总览</b><span>v8/v8.1 能力、相较上版改进与剩余边界</span></div></div>
-        <div class="doc"><div><b>two_floor_nav 当前运行记录</b><span>4/4 自动用例、窗口证据、上下楼均通过</span></div></div>
         <a class="doc" href="../ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/README.md"><div><b>two_floor_nav 场景说明</b><span>世界/地图/tasks/apps/执行命令与维护</span></div><em>→</em></a>
         <a class="doc" href="../ws/src/90_platform/v8_platform/README.md"><div><b>v8_platform 入口</b><span>契约、装配、表征、全局/局部规划与运行适配</span></div><em>→</em></a>
         <a class="doc" href="../ws/src/90_platform/v8_platform/framework/README.md"><div><b>framework 装配</b><span>app/graph、执行域、Assembly、安全与运行边界</span></div><em>→</em></a>
         <a class="doc" href="../ws/src/90_platform/v8_platform/local_planner/README.md"><div><b>local_native 局部规划</b><span>支撑完成、边界退净、时钟/不确定度与接口边界</span></div><em>→</em></a>
-        <div class="doc"><div><b>工程标准</b><span>阶段提交、平台分工、接口、调度与验证规则</span></div></div>
         <a class="doc" href="../tooling/build/README.md"><div><b>目标构建</b><span>lite3/x86_sim 显式目标与依赖闭包；目标环境未验</span></div><em>→</em></a>
-        <div class="doc"><div><b>R1114：A6 lease 竞态与局部劫持</b><span>lease 竞态；0.6 m fail-open 由 R1115 闭合</span></div></div>
-        <div class="doc"><div><b>R1115：BBS 绝对源共识门</b><span>静态/0.3 m 恢复；0.6 m 不一致即 FAILED、lease 1</span></div></div>
-        <div class="doc"><div><b>当前任务队列</b><span>依赖、交付物、验收出口与旧编号映射</span></div></div>
-        <div class="doc"><div><b>验证与交付</b><span>验证分层、场景、证据、定标与结论边界</span></div></div>
-        <div class="doc"><div><b>执行与迁移规则</b><span>授权选件、阶段提交、记录职责与新旧入口迁移</span></div></div>
         <a class="doc" href="../docker/README.md"><div><b>Docker 环境手册</b><span>仿真命令、GUI、Foxglove、排障</span></div><em>→</em></a>
         <a class="doc" href="../docker/foxglove/README.md"><div><b>Foxglove 布局与连接</b><span>rosbridge、固定帧、话题表</span></div><em>→</em></a>
-        <div class="doc"><div><b>Lite3 真机上机 Runbook（草案）</b><span>安装、检查表、三种 mode、停止与回滚、已知缺口</span></div></div>
-        <div class="doc"><div><b>仿真 → 实机参数迁移表（草案）</b><span>环境、机体、外参、定位、地图、代价图、规划、安全、判据</span></div></div>
-        <div class="doc"><div><b>v8 里程碑记录</b><span>M0—M6 各批次证据</span></div></div>
         <a class="doc" href="../ws/src/40_navigation/lite3_navigation/config/"><div><b>导航参数</b><span>costmap / MBF / 局部规划配置</span></div><em>→</em></a>
       </div>
     </div>

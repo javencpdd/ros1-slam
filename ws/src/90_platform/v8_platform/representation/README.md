@@ -1,6 +1,6 @@
 # representation · 支撑图、证据、版本与增量
 
-> 最新更新时间：2026-11-06 15:17:09 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
+> 最新更新时间：2026-11-13 22:45:17 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../../note/进度/README.md)为准。
 
 本目录提供支撑图数据结构和建图后处理，以及地图服务、ROS 适配和语义桥。核心算法与 ROS 节点已分文件实现，不能把整个目录仍描述为“运行时尚未接入”。
 
@@ -37,7 +37,7 @@ MapService 以内容 digest、map_id/version 防止回退和无变化升版；pr
 
 ## 建图与定向测试
 
-PCD 入口是[map_from_pcd.py](../framework/map_from_pcd.py)，更完整用法见[framework](../framework/README.md)和[Lite3 配置](../configs/lite3/README.md)。Gazebo 传感 survey 使用 `regression/gazebo3d_mapping.py`；使用 GT 位姿完成配准的地图不能称为独立定位建图证明。
+PCD 入口是[map_from_pcd.py](../framework/tools/map_from_pcd.py)，更完整用法见[framework](../framework/README.md)和[Lite3 配置](../configs/lite3/README.md)。Gazebo 传感 survey 使用 `regression/gazebo3d_mapping.py`；使用 GT 位姿完成配准的地图不能称为独立定位建图证明。
 
 从仓根执行：
 
