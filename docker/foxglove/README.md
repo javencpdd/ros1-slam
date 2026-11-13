@@ -6,7 +6,7 @@
 
 ## 网页端 Foxglove 模式（2026-11-12）
 
-控制台页（`web/console.html`）的「可视化后端」可切到 `Foxglove（关本页重载）`：
+控制台页（`scripts/console/ui/console.html`，agent `:8780/console.html`）的「可视化后端」可切到 `Foxglove（关本页重载）`：
 切换时页面会停服务端体素流（agent `/api/stacks/voxel_stream/stop`）、停浏览器
 实时点云/3D 渲染与重载监视订阅（`/tf` 等，只留 `/v8/bt/status`），并显示连接
 指引（ws 地址 + 本目录布局模板链接）。**rosbridge 必须保持运行**——Foxglove 经

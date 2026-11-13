@@ -3,9 +3,9 @@
 
 Reads the canonical world registry (scripts/console/world_registry.json),
 then reads those world files without touching ROS.  Writes
-web/assets/data/worlds/.  Box visuals are emitted as posed boxes; DAE meshes are
-expanded to triangles in world coordinates.  Other geometry and unresolved
-includes are reported in the scene stats instead of being guessed.
+scripts/console/ui/assets/data/worlds/.  Box visuals are emitted as posed boxes;
+DAE meshes are expanded to triangles in world coordinates.  Other geometry and
+unresolved includes are reported in the scene stats instead of being guessed.
 
 Usage:
   python3 scripts/ops/build_world_scenes.py [--only m1_world] [--out DIR]
@@ -22,7 +22,7 @@ import xml.etree.ElementTree as ET
 from world_registry import load_registry
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_OUT = ROOT / 'web/assets/data/worlds'
+DEFAULT_OUT = ROOT / 'scripts/console/ui/assets/data/worlds'
 WORLD_DIRS = [
     ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/worlds',
     ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/stairstudy/worlds',

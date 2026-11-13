@@ -11,11 +11,15 @@ SPEC = importlib.util.spec_from_file_location(
 REG = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(REG)
 
-WORLDS_JSON = REPO / 'web/assets/data/worlds/worlds.json'
-MAPS_JSON = REPO / 'web/assets/data/maps.json'
+WORLDS_JSON = REPO / 'scripts/console/ui/assets/data/worlds/worlds.json'
+MAPS_JSON = REPO / 'scripts/console/ui/assets/data/maps.json'
 STACKS_JSON = REPO / 'scripts/console/stacks.json'
 
+GENERATED = WORLDS_JSON.is_file() and MAPS_JSON.is_file()
+SKIP = 'generated console data missing; run scripts/ops/build_world_scenes.py and build_maps_index.py'
 
+
+@unittest.skipUnless(GENERATED, SKIP)
 class WorldRegistryTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -30,7 +34,7 @@ class WorldRegistryTest(unittest.TestCase):
 
     def test_registry_self_check(self):
         self.assertEqual(REG.check_registry(self.registry), [])
-        self.assertEqual(len(self.worlds), 16)
+        self.assertEqual(len(self.worlds), 17)
         self.assertEqual(REG.map_bindings(self.registry)['two_floor_nav']['world_id'], 'open')
 
     def test_world_index_matches_registry(self):
@@ -40,7 +44,7 @@ class WorldRegistryTest(unittest.TestCase):
             self.assertEqual(index['source'], entry['path'])
             self.assertEqual(index['sha256'], entry['sha256'])
             self.assertEqual(index['label'], entry['label'])
-            scene = json.loads((REPO / 'web' / index['file']).read_text(encoding='utf-8'))
+            scene = json.loads((REPO / 'scripts/console/ui' / index['file']).read_text(encoding='utf-8'))
             self.assertEqual(scene['world_id'], wid)
             self.assertEqual(scene['sha256'], entry['sha256'])
 

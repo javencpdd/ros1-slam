@@ -13,3 +13,5 @@ install(FILES scripts/carrier_kinematics.py scripts/support_cells.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY fixtures
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

@@ -9,9 +9,9 @@ Sources (all on disk; no ROS):
   data/maps/*support.json                  v8 support maps (RLE surfaces)
   ws/src/.../two_floor_nav/maps/open.json  two_floor support map
 
-Outputs:
-  web/assets/data/maps.json
-  web/assets/maps/<id>.png
+Outputs (served by the console agent, not the docs site):
+  scripts/console/ui/assets/data/maps.json
+  scripts/console/ui/assets/maps/<id>.png
 
 The mission page uses origin/resolution/width/height to turn a canvas click
 into map coordinates. Point clouds are rendered top-down with a height colour;
@@ -36,8 +36,8 @@ from PIL import Image
 from world_registry import load_registry, map_bindings
 
 REPO = Path(__file__).resolve().parents[2]
-WEB = REPO / 'web'
-OUT = WEB / 'assets/maps'
+UI = REPO / 'scripts/console/ui'
+OUT = UI / 'assets/maps'
 BASE = (7, 12, 18)
 
 
@@ -378,7 +378,7 @@ def git_head():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--out', default=str(WEB / 'assets/data/maps.json'))
+    parser.add_argument('--out', default=str(UI / 'assets/data/maps.json'))
     args = parser.parse_args()
     items = maps()
     payload = {

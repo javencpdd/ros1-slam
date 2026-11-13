@@ -1,0 +1,70 @@
+// ros1-slam 三项目边界与运行拓扑（2026-11-13，只读建模）
+// 生成：system-modeler + graphviz；证据见 ../current-2026-11-13.evidence.md
+// 重绘：dot -Tsvg three-projects-2026-11-13.dot -o three-projects-2026-11-13.svg
+// 颜色：绿=已接通运行 蓝=操作者/外部工具 橙=部分/实验 红=L2/未接 灰=数据/边界
+digraph three_projects_2026_11_13 {
+  rankdir=LR;
+  fontname="Noto Sans CJK SC";
+  fontsize=14;
+  labelloc=t;
+  label="ros1-slam 三项目边界 · 2026-11-13 · 仿真面（host-only），真机物理运行 L2 未启用";
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", fontsize=11];
+  edge [fontname="Noto Sans CJK SC", fontsize=9];
+
+  // ---- 操作者 ----
+  op [label="操作者\nLAN 浏览器", shape=ellipse, fillcolor="#e8f0fe"];
+
+  subgraph cluster_p1 {
+    label="P1 组件化导航平台 · v8_platform（不依赖仿真源码）";
+    style="rounded"; color="#1a73e8"; fontsize=12;
+    contracts [label="contracts / registry / composer\nmanifest v3 · graph YAML", fillcolor="#e6f4ea"];
+    framework [label="framework 装配层\napp_runner · graph · launch · execution", fillcolor="#e6f4ea"];
+    btasm     [label="BT 一等组件 v8.fw.bt_console\nRequestPath / FollowPath / WaitArrival", fillcolor="#e6f4ea"];
+    verify    [label="verify/port_conformance\n外部真源 port_truth.json", fillcolor="#e6f4ea"];
+    realgraph [label="configs/lite3/graph_3d_lite3_bt.yaml\n离线 check ok · digest c3ad3d01…", fillcolor="#fef7e0"];
+  }
+
+  subgraph cluster_p2 {
+    label="P2 仿真能力 · v8_simulation + lite3_gazebo_sim（自持）";
+    style="rounded"; color="#f29900"; fontsize=12;
+    simdecl [label="config/sim_backends.yaml\nGazebo 后端白名单", fillcolor="#e6f4ea"];
+    carrier [label="gazebo_carrier3d_node\n+ carrier_kinematics（运动学）", fillcolor="#e6f4ea"];
+    truth   [label="gazebo_truth / mujoco_truth\n独立真值通道", fillcolor="#e6f4ea"];
+    worlds  [label="17 世界 + two_floor_nav 场景\n（declared 几何）", shape=cylinder, fillcolor="#f1f3f4"];
+  }
+
+  subgraph cluster_p3 {
+    label="P3 建图/导航可视化 · scripts/console（host-only 只读）";
+    style="rounded"; color="#34a853"; fontsize=12;
+    agent [label="agent.py :8780\n白名单 12 栈 · validate_stacks · audit · whoami", fillcolor="#e6f4ea"];
+    ui    [label="ui/console.html + assets\n地图库 / 任务 / 监控 / 遥控", fillcolor="#e6f4ea"];
+    web   [label="web/ 官网 :80\n纯文档白名单（无 ROS）", fillcolor="#e6f4ea"];
+  }
+
+  subgraph cluster_ros {
+    label="运行域（Docker ROS1 Noetic）";
+    style="rounded"; color="#9aa0a6"; fontsize=11;
+    roscore [label="roscore :11312\n控制台域 master", fillcolor="#e6f4ea"];
+    simviz  [label="sim-viz :11313/11345\nGazebo + BT + 体素", fillcolor="#e6f4ea"];
+    bridge  [label="rosbridge :9090", fillcolor="#e6f4ea"];
+    mux     [label="safety_mux\n唯一 /cmd_vel 写者", fillcolor="#e6f4ea"];
+  }
+
+  l2 [label="Lite3 103/120 · M20\n真机物理 L2（未启用）", fillcolor="#fce8e6"];
+
+  framework -> simdecl  [label="app 声明后端"];
+  framework -> carrier  [label="组件 launch（装配期，不复制实现）"];
+  carrier   -> framework [label="pose / status 回传"];
+  btasm     -> framework [label="path / follow 契约"];
+  realgraph -> btasm     [label="real_robot 图（未上机）"];
+  verify    -> framework [label="声明 vs 实测对表"];
+
+  op    -> ui     [label="HTTP :8780"];
+  ui    -> agent  [label="API"];
+  agent -> simviz [label="docker exec 白名单栈"];
+  agent -> roscore;
+  ui    -> bridge [label="只读订阅 /v8/bt/status 等"];
+  bridge -> roscore;
+  web   -> agent  [label="文档页跳转（不同服务）", style=dashed];
+  mux   -> l2     [label="L2 边界", color="#d93025", style=dashed];
+}

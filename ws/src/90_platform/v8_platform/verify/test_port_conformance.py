@@ -12,6 +12,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PLATFORM = HERE.parent
+sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PLATFORM / 'framework'))
 sys.path.insert(0, str(PLATFORM / 'contracts'))
 import config  # noqa: E402

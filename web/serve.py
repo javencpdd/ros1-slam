@@ -3,7 +3,7 @@
 
 直接 `python3 -m http.server` 也能起，但 Markdown 会被当 Latin-1 显示成乱码；
 本脚本做三件事：根指到仓库根、文本补 charset、只允许文档面路径（web/、docker/、
-README.md，以及 ws/src 下的 README.md）。note/、代码、数据、工具目录一律 404。
+tooling/、README.md，以及 ws/src 下的 README.md）。note/、代码、数据、任务台一律 404。
 
 任务台不在本服务：console UI 由 scripts/console/agent.py 在 :8780 独立提供。
 
@@ -20,12 +20,12 @@ import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TEXT_SUFFIX = {'.md', '.txt', '.html', '.css', '.js', '.json', '.yaml', '.yml', '.xml', '.pgm', '.log'}
-ALLOW_PREFIXES = ('web/', 'docker/')
+ALLOW_PREFIXES = ('web/', 'docker/', 'tooling/')
 ALLOW_FILES = ('README.md',)
 
 
 def allowed(path):
-    """Docs-only surface: web/, note/, docker/, README.md, ws/src/**/*.md."""
+    """Docs-only surface: web/, docker/, tooling/, README.md, ws/src/**/*.md."""
     rel = urllib.parse.unquote(path.split('?')[0]).lstrip('/')
     if rel in ALLOW_FILES:
         return True
@@ -92,7 +92,6 @@ def main():
     with Server((args.bind, args.port), handler) as httpd:
         print('serving %s (docs-only surface)' % ROOT)
         print('open    http://%s:%d/web/' % (args.bind, args.port))
-        print('docs    http://%s:%d/note/进度/00_总览.md' % (args.bind, args.port))
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
