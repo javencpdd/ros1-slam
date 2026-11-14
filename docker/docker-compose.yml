@@ -121,6 +121,7 @@ services:
                                    # 容器默认 PID1=sleep infinity 不收割，被 kill 的子进程会变 <defunct>，
                                    # 直接让 m2_smoke.sh 的「退净/进程面」判据判死。
     <<: *ros-base
+    image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     container_name: ros1-slam-roscore
     command: ["bash", "-lc", "roscore -p ${ROS_PORT:-11312}"]
     ports:
@@ -363,6 +364,25 @@ services:
     ports:
       - "9090:9090"
     restart: unless-stopped
+
+  web:
+    # 纯文档面：只挂仓库根到 /srv，白名单由 web/serve.py 控制；不连 ROS。
+    image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
+    container_name: ros1-slam-web
+    entrypoint: ["python3"]
+    command: ["-u", "/srv/web/serve.py", "--port", "8000", "--bind", "0.0.0.0"]
+    working_dir: /opt/ros1-slam
+    ports:
+      - "${WEB_PORT:-80}:8000"
+    volumes:
+      - ..:/srv:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/web/', timeout=2)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   redis:
     image: redis:7-alpine

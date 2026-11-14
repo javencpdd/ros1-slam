@@ -25,6 +25,7 @@ x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 
 | `sim` | CPU 无头仿真、Mesa/Xvfb；11313/11345；不请求 NVIDIA GPU |
 | `sim-viz` | 宿主 X 桌面仿真；同样发布11313/11345，当前 Compose 显式请求 NVIDIA GPU |
 | `slam-host` | x86 host 网络联调模板，须核本机 master/IP；非 Lite3/M20 部署入口 |
+| `web` | 纯文档站；仓库根只读挂到 `/srv`，`web/serve.py` 白名单，宿主 `:80` → 容器 `:8000`；不连 ROS |
 | `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图 |
 
 ROS 服务共用新的 x86 目标卷 `ros1_x86_sim_build/devel/install/profiles`，分别挂载 `ws/build`、`ws/devel`、`ws/install`、`ws/.profiles/x86_sim`，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`；2026-11-14 起 P2 子项目（subprojects/simulation）挂到 `/opt/ros1-slam/sim_ws`（工作区）与 `/opt/ros1-slam/sim_repo`（仓根只读）。 2026-11-15 起 P3 控制台源码 `subprojects/console/console` 只读挂到 `/opt/ros1-slam/scripts/console`，兼容 `voxel_stream` 等作业栈的旧命令路径。2026-11-14 起 `11313/11345` 只由 `sim-viz` 发布；`sim` 为 headless 门禁（`docker exec` 用容器内 master），不再抢宿主端口。两者共用 devel 卷，一次只编一套，运行可并存。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
@@ -72,7 +73,7 @@ docker compose ps
 docker compose logs --tail=200 sim
 ```
 
-开发域另行选择 `docker compose up -d roscore slam`。`slam` 与 `sim-viz` 当前都含 NVIDIA device reservation，缺相应驱动/容器工具链时可能起不来；无 GPU 无头运行使用 `sim`。
+开发域另行选择 `docker compose up -d roscore slam web`。`slam` 与 `sim-viz` 当前都含 NVIDIA device reservation，缺相应驱动/容器工具链时可能起不来；无 GPU 无头运行使用 `sim`。
 
 `docker exec/compose exec` 不重新经过 entrypoint，新 shell 显式加载环境：
 
