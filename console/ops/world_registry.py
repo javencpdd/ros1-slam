@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (ROOT.parent / 'ros1-slam-simulation')).resolve()
-REGISTRY = Path(__file__).resolve().parent.parent / 'console/world_registry.json'
+REGISTRY = Path(__file__).resolve().parents[2] / 'console/world_registry.json'
 
 
 def load_registry(path=None):
