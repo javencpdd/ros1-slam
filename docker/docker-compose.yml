@@ -74,6 +74,8 @@ x-ros-base: &ros-base
     # ---- 源码热更新：改宿主机文件，容器里立刻可见 ----
     - ../ws/src:/opt/ros1-slam/ws/src
     - ../scripts:/opt/ros1-slam/scripts
+    # P3 控制台源码（voxel_stream 等作业栈）兼容旧 /opt/ros1-slam/scripts/console 路径
+    - ../subprojects/console/console:/opt/ros1-slam/scripts/console:ro
     - ../docker:/opt/ros1-slam/docker
     - ../data:/opt/ros1-slam/data
     - ../opt:/opt/ros1-slam/opt
@@ -308,6 +310,8 @@ services:
     volumes:
       - ../ws/src:/opt/ros1-slam/ws/src
       - ../scripts:/opt/ros1-slam/scripts
+      # P3 控制台源码（voxel_stream 等作业栈）兼容旧 /opt/ros1-slam/scripts/console 路径
+      - ../subprojects/console/console:/opt/ros1-slam/scripts/console:ro
       - ../docker:/opt/ros1-slam/docker
       - ../data:/opt/ros1-slam/data
       - ../opt:/opt/ros1-slam/opt
