@@ -1,0 +1,389 @@
+{
+ "schema": "v8_maps/v1",
+ "generated_at": "2026-11-13T18:16:04+08:00",
+ "git_head": "2e3e00e4",
+ "maps": [
+  {
+   "id": "lite3",
+   "label": "Lite3 2D 栅格（真机 SLAM 图）",
+   "frame": "map",
+   "world": "真机/仿真 2D 栅格",
+   "notes": "map_server PGM + YAML；2D MBF 可用",
+   "kind": "2d_grid",
+   "preview": "assets/maps/lite3.png",
+   "width": 299,
+   "height": 290,
+   "resolution": 0.05,
+   "origin": [
+    -8.8,
+    -4.35,
+    0.0
+   ],
+   "files": [
+    "data/maps/lite3.yaml",
+    "data/maps/lite3.pgm"
+   ],
+   "world_id": null
+  },
+  {
+   "id": "mapped_m1",
+   "label": "m1 建图 PCD（SLAM）",
+   "frame": "map",
+   "notes": "faster-lio / GT 位姿投影点云；只读预览",
+   "files": [
+    "data/maps/mapped_m1.pcd"
+   ],
+   "kind": "pointcloud",
+   "preview": "assets/maps/mapped_m1.png",
+   "points3d": "assets/maps/mapped_m1.points.json",
+   "width": 900,
+   "height": 901,
+   "resolution": 0.018669,
+   "origin": [
+    -1.9998,
+    -8.3014
+   ],
+   "bbox": [
+    [
+     -2.0,
+     -8.301,
+     -0.0
+    ],
+    [
+     14.788,
+     8.501,
+     1.0
+    ]
+   ],
+   "points": 72762,
+   "z_range": [
+    -0.0,
+    0.951
+   ],
+   "world_id": "m1_world",
+   "world": "m1_world（Gazebo）"
+  },
+  {
+   "id": "m1_world_synth_v1",
+   "label": "m1 合成世界点云",
+   "frame": "map",
+   "notes": "m1 世界点云；只读预览",
+   "files": [
+    "data/maps/m1_world_synth_v1.pcd"
+   ],
+   "kind": "pointcloud",
+   "preview": "assets/maps/m1_world_synth_v1.png",
+   "points3d": "assets/maps/m1_world_synth_v1.points.json",
+   "width": 900,
+   "height": 881,
+   "resolution": 0.01,
+   "origin": [
+    -2.0,
+    -4.4
+   ],
+   "bbox": [
+    [
+     -2.0,
+     -4.4,
+     0.0
+    ],
+    [
+     7.0,
+     4.4,
+     1.0
+    ]
+   ],
+   "points": 16382,
+   "z_range": [
+    0.0,
+    0.97
+   ],
+   "world_id": "m1_world",
+   "world": "m1_world（合成）"
+  },
+  {
+   "id": "mapped_nist",
+   "label": "NIST 建图 PCD",
+   "frame": "map",
+   "notes": "NIST 楼梯场景点云；只读预览",
+   "files": [
+    "data/maps/mapped_nist.pcd"
+   ],
+   "kind": "pointcloud",
+   "preview": "assets/maps/mapped_nist.png",
+   "points3d": "assets/maps/mapped_nist.points.json",
+   "width": 900,
+   "height": 774,
+   "resolution": 0.033129,
+   "origin": [
+    -12.6855,
+    -15.4308
+   ],
+   "bbox": [
+    [
+     -12.685,
+     -15.431,
+     -0.0
+    ],
+    [
+     17.13,
+     10.184,
+     0.525
+    ]
+   ],
+   "points": 324493,
+   "z_range": [
+    -0.0,
+    0.321
+   ],
+   "world_id": "nist_stairs_120",
+   "world": "NIST 楼梯（Gazebo）"
+  },
+  {
+   "id": "two_floor_nav",
+   "label": "two_floor_nav 支撑图（3D）",
+   "frame": "map",
+   "notes": "声明几何支撑图（open.world；不是 demo_two_floor）；3D 全链目标/起点可选用",
+   "kind": "support_map",
+   "points3d": "assets/maps/two_floor_nav.points.json",
+   "preview": "assets/maps/two_floor_nav.png",
+   "width": 80,
+   "height": 60,
+   "resolution": 0.2,
+   "origin": [
+    -8.0,
+    -6.0,
+    0.0
+   ],
+   "surfaces": [
+    {
+     "id": "ground_floor",
+     "z": 0.0,
+     "footprint": {
+      "max_x": 8,
+      "max_y": 6,
+      "min_x": -8,
+      "min_y": -6
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step01",
+     "z": 0.16,
+     "footprint": {
+      "max_x": 4.0,
+      "max_y": 2,
+      "min_x": 3.2,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step02",
+     "z": 0.32,
+     "footprint": {
+      "max_x": 3.2,
+      "max_y": 2,
+      "min_x": 2.4,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step03",
+     "z": 0.48,
+     "footprint": {
+      "max_x": 2.4,
+      "max_y": 2,
+      "min_x": 1.6,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step04",
+     "z": 0.64,
+     "footprint": {
+      "max_x": 1.6,
+      "max_y": 2,
+      "min_x": 0.8,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step05",
+     "z": 0.8,
+     "footprint": {
+      "max_x": 0.8,
+      "max_y": 2,
+      "min_x": 0.0,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step06",
+     "z": 0.96,
+     "footprint": {
+      "max_x": 0.0,
+      "max_y": 2,
+      "min_x": -0.8,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step07",
+     "z": 1.12,
+     "footprint": {
+      "max_x": -0.8,
+      "max_y": 2,
+      "min_x": -1.6,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step08",
+     "z": 1.28,
+     "footprint": {
+      "max_x": -1.6,
+      "max_y": 2,
+      "min_x": -2.4,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step09",
+     "z": 1.44,
+     "footprint": {
+      "max_x": -2.4,
+      "max_y": 2,
+      "min_x": -3.2,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step10",
+     "z": 1.6,
+     "footprint": {
+      "max_x": -3.2,
+      "max_y": 2,
+      "min_x": -4.0,
+      "min_y": 0
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "upper_floor",
+     "z": 1.6,
+     "footprint": {
+      "max_x": -4,
+      "max_y": 6,
+      "min_x": -8,
+      "min_y": -6
+     },
+     "traversability": "supported"
+    }
+   ],
+   "files": [
+    "ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json"
+   ],
+   "world_id": "open",
+   "world": "two_floor_nav（open.world）"
+  },
+  {
+   "id": "nist_stairs",
+   "label": "NIST 楼梯支撑图（3D）",
+   "frame": "map",
+   "notes": "NIST 楼梯支撑图；只读预览",
+   "kind": "support_map",
+   "points3d": "assets/maps/nist_stairs.points.json",
+   "preview": "assets/maps/nist_stairs.png",
+   "width": 37,
+   "height": 30,
+   "resolution": 0.15,
+   "origin": [
+    -2.7,
+    -2.7,
+    0.0
+   ],
+   "surfaces": [
+    {
+     "id": "ground",
+     "z": 0.0,
+     "footprint": {
+      "min_x": -2.7,
+      "min_y": -2.7,
+      "max_x": 2.7,
+      "max_y": -1.65
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step1",
+     "z": 0.1988,
+     "footprint": {
+      "min_x": -1.7,
+      "min_y": -1.7,
+      "max_x": 1.7,
+      "max_y": -0.97966104
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step2",
+     "z": 0.3717,
+     "footprint": {
+      "min_x": -1.7,
+      "min_y": -1.03008423,
+      "max_x": 1.7,
+      "max_y": -0.30974527
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step3",
+     "z": 0.5446,
+     "footprint": {
+      "min_x": -1.7,
+      "min_y": -0.36016897,
+      "max_x": 1.7,
+      "max_y": 0.36016982
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step4",
+     "z": 0.7175,
+     "footprint": {
+      "min_x": -1.7,
+      "min_y": 0.30974595,
+      "max_x": 1.7,
+      "max_y": 1.03008542
+     },
+     "traversability": "supported"
+    },
+    {
+     "id": "step5",
+     "z": 0.8904,
+     "footprint": {
+      "min_x": -1.7,
+      "min_y": 0.9796613799999999,
+      "max_x": 1.7,
+      "max_y": 1.7
+     },
+     "traversability": "supported"
+    }
+   ],
+   "files": [
+    "data/maps/nist_stairs_120_s020x170_support.json"
+   ],
+   "world_id": "nist_stairs_120_s020x170",
+   "world": "nist_stairs_120_s020x170"
+  }
+ ]
+}
