@@ -18,7 +18,7 @@ def git(*args):
 def main():
     artifact = Path(sys.argv[1]).resolve()
     root = Path(__file__).resolve().parents[1]
-    packages = sorted(p.parent.name for p in (root / 'ws' / 'src').glob('*/package.xml'))
+    packages = sorted(p.parent.name for p in (root / 'ws' / 'src').rglob('package.xml'))
     manifest = {
         'artifact': artifact.name,
         'sha256': hashlib.sha256(artifact.read_bytes()).hexdigest(),
