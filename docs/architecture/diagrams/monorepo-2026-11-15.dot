@@ -44,7 +44,7 @@ digraph monorepo_2026_11_15 {
 
   // ---------------- P3 可视化子项目 ----------------
   subgraph cluster_p3 {
-    label="P3 可视化子项目 subprojects/console · host-only · 只读";
+    label="P3 可视化子项目 subprojects/console · host-only · 操作面";
     style="rounded"; color="#34a853"; fontsize=12;
 
     agent  [label="console/agent.py :8780\n12 栈白名单 · validate_stacks\naudit · whoami（本机/远程）", fillcolor="#e6f4ea"];
@@ -61,14 +61,14 @@ digraph monorepo_2026_11_15 {
 
     roscore [label="roscore :11312\n控制台域 master", fillcolor="#e6f4ea"];
     simviz  [label="sim-viz 容器\n:11313 / :11345\nGazebo + BT + 体素", fillcolor="#e6f4ea"];
-    bridge  [label="rosbridge :9090\nws 只读入口", fillcolor="#e6f4ea"];
+    bridge  [label="rosbridge :9090\nws 数据面（订阅/发布）", fillcolor="#e6f4ea"];
     mux     [label="cmd3d_mux / safety_mux\nhold + timeout 0.4 s\n/cmd_vel 单一写入", fillcolor="#e6f4ea"];
   }
 
   // ---------------- 关系 ----------------
   op      -> ui       [label="HTTP :8780"];
   ui      -> agent    [label="API"];
-  op      -> bridge   [label="只读订阅 /v8/bt/status 等", style=dashed];
+  ui      -> bridge   [label="订阅 + 有限控制发布", style=dashed];
   agent   -> simviz   [label="docker exec 启停白名单栈"];
   agent   -> roscore  [label="域内执行"];
   agent   -> wreg     [label="读世界/栈注册表", style=dashed];
