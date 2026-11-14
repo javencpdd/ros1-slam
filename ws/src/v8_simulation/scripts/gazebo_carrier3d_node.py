@@ -7,8 +7,15 @@ as the pure-ROS carrier. This is a kinematic pose sink: no contact dynamics.
 """
 import json
 import math
+import os
+import sys
 import time
 import traceback
+
+# catkin_install_python relays run with sys.path[0] = devel/lib/<pkg>, not the
+# source scripts dir; make the sibling modules (carrier_kinematics/support_cells)
+# importable in both source and relayed execution.
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
 import rospy
 from gazebo_msgs.msg import ModelState
