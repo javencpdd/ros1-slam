@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="stair_lab">
+    <!-- stair_lab_blank —— 空白对照景（R563／批219 新建；真人 2026-10-22 裁2「空白对照景不算触-B1 闸」）
+
+         为什么需要它：八枚 stair_lab_world 里的"楼梯看不见"有两种成因，二者的点云读数长得极像——
+           ① 世界件没加载（W2／ax §11.1：相对路径、模型库路径缺失 ⇒ 静默退化成纯地面）
+           ② 世界件加载了、楼梯也在位，但几何/位姿不对（真·设计问题）
+         只有一份"本来就该是纯地面"的对照件，才能把 ① 和 ② 分开：
+           空白景读数＝基线（纯地面点云统计）；stair 景读数 − 基线 ≠ 0 才算"楼梯真的被看见"。
+
+         内容：与八枚 stair_lab 件同一 SDF 外壳（同一 world name＝stair_lab，同一 ground_plane/sun 两枚 include），
+              只是**不含任何 <model>**。⇒ 它是"加载链路正常、但场景本该为空"的最干净基线。
+
+         边界：本件不参与任何判据、不改 precheck.py、不含门值；它只是对照件。
+               与 worlds/m1_world.world（红线件、world_before/after.sha 取指纹）**无关，勿混用**。 -->
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+
+  </world>
+</sdf>

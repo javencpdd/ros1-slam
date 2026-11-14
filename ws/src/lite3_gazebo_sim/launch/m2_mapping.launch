@@ -1,0 +1,12 @@
+<launch>
+  <!-- m2_mapping.launch —— faster_lio sim 变体（小张 payload，2026-10-06）：m1_mapping.launch 同构 + pcd_save 开关。
+       契约零改动：C16 yaml 原值装载（lid_topic/imu_topic/lidar_type 不触碰）；运行期覆盖 use_sim_time=true。
+       pcd_save:=true 仅 M2-3 建图阶段使用（D-04 红线：跑判据一律 false；起前备份/退后核 sha256 由 m2_smoke 兜底）。
+       优雅停机（SIGINT）后 faster_lio 落盘 data/maps/lite3.pcd，m2_smoke 负责转存 sim_venue.pcd 并恢复样张。 -->
+  <arg name="pcd_save" default="false"/>
+  <rosparam command="load" file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
+  <param name="use_sim_time" value="true"/>
+  <param name="pcd_save/pcd_save_en" value="$(arg pcd_save)"/>
+
+  <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
+</launch>

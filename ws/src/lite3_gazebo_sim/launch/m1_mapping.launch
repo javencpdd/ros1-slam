@@ -1,0 +1,16 @@
+<launch>
+  <!-- m1_mapping.launch —— 10_slam_mapping 的 sim 变体（小张 payload，2026-10-05）
+       C16 契约零改动：lid_topic=/rslidar_points、imu_topic=/livox/imu、lidar_type=4 全部沿用
+       faster_lio_outdoor.yaml 原值（v3 C1 逐字，不许修正）。
+       仅运行期覆盖 2 键（yaml 文件不动，避免改 C1 底稿），登记 04 台账 D-04：
+         ① use_sim_time=true —— yaml 落盘值 false（生产），Gazebo 仿真必须 true，否则 faster_lio 墙钟
+            与点云 sim 戳错域（G8 fix⑥ 同源教训）；
+         ② pcd_save/pcd_save_en=false —— GAP-5 红线：防 sim 跑批覆盖样张 data/maps/lite3.pcd；
+            10_slam_mapping.launch 同款起前备份/退后核 sha256 由 m1_smoke.sh 兜底双保险。
+       生产 liveness 心跳（/lite3/liveness/m1_slam）在 sim 台不发：supervisor 不在 M1 闭环内，少一个假信号源。 -->
+  <rosparam command="load" file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
+  <param name="use_sim_time" value="true"/>
+  <param name="pcd_save/pcd_save_en" value="false"/>
+
+  <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
+</launch>
