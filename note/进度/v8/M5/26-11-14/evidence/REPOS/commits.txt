@@ -1,0 +1,16 @@
+P1 ros1-slam
+9db9eea5 refactor(p1): 仿真/可视化物理拆仓，P1 只保留平台与集成
+45e7db50 docs+build: 三仓物理拆分落档，x86_sim 并入同级 P2 源根
+29eb3693 fix(p1): 仿真 launch 经 lite3_gazebo_sim 包定位 faster_lio_sim.yaml
+
+P2 ros1-slam-simulation
+91ecec5 import: 从 ros1-slam@2d0c32a5 拆出仿真能力
+622e55f fix: 场景 app/后端声明改用 sim_ws 前缀，独立仓内路径自洽
+99d482c fix: 补齐 P2 install 规则，发布物含世界/场景/launch
+1314742 refactor: faster_lio_sim.yaml 收入 lite3_gazebo_sim 包内
+
+P3 ros1-slam-console
+ef6915f import: 从 ros1-slam@2d0c32a5 拆出建图/导航可视化
+7acd197 fix: 控制台改为独立仓根解析（V8_REPO_ROOT/V8_SIM_ROOT）
+4830d37 fix: world_registry 在独立仓内按 console/ops 层级解析 registry 路径
+52ac475 feat: 补世界注册表/场景生成器与契约测试
