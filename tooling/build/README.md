@@ -10,19 +10,21 @@ python3 -B scripts/build/target_workspace.py plan --target x86_sim
 python3 -B scripts/build/test_target_workspace.py
 ```
 
+2026-11-14 物理分仓后，`x86_sim` 默认把同级 `ros1-slam-simulation/ws/src` 并入 source view；可用 `--extra-source DIR`（可重复）显式指定。机器人目标不并入。
+
 `plan` 只读，宿主无需 ROS、catkin_pkg 或 PyYAML。目标与动作必须显式填写；不从 CPU、主机名或已 source 的环境猜目标。输出 JSON 包括根包、完整声明依赖闭包、manifest SHA256、隔离空间、未核验的外部依赖、忽略包和缓存冲突。闭包或路径错误返回 2；已有旧缓存只记入 `cache_conflicts`，不妨碍只读审计，也不创建、修补或清理空间。
 
 | 目标 | 根包范围与状态 | 源码视图 | build / devel / install |
 | --- | --- | --- | --- |
 | `lite3` | 显式选择驱动、建图、定位、导航、SCAN、安全、任务与 v8 壳包；只取真机依赖 | `WS/.profiles/lite3/src` | `WS/.profiles/lite3/` 下分别存放 |
 | `m20` | 未实现硬件协议及 ROS 适配，计划和构建均拒绝；修改 profile 的 supported 字段也不能启用 | 不生成 | 不生成 |
-| `x86_sim` | 公共算法与仿真、v8_simulation companion | `WS/.profiles/x86_sim/src` | 保留 `WS/build`、`WS/devel`、`WS/install`，兼容现有仿真运行路径 |
+| `x86_sim` | 公共算法 + 同级 P2 仿真仓（默认 `../ros1-slam-simulation/ws/src`，`--extra-source` 可覆盖） | `WS/.profiles/x86_sim/src` | 保留 `WS/build`、`WS/devel`、`WS/install`，兼容现有仿真运行路径 |
 
 `WS` 默认是本仓 `ws/`，可用 `--workspace` 指定含真实 `src/` 的工作区。`--profiles` 用于明确指定配置文件，默认 [profiles.json](profiles.json)。新增本地包或更换根包时同步维护配置名册；根包来自包内 `<name>`，不是目录名（例如 `pipeline_tracking` 的包名是 `pipeline`）。当前根表覆盖上述功能范围；旧 launch 的未声明运行依赖仍须逐项审查，不能由闭包计划反推全部部署依赖已经完整。
 
 解析遵循 catkin 包边界：遇 `CATKIN_IGNORE` 排除整棵子树，发现包后停止向包内第三方目录递归；重复包名、所需本地包缺失或被忽略都会拒绝。闭包包含 build/build_export/buildtool/buildtool_export/exec/run/depend；test/doc 不参与，构建固定 `CATKIN_ENABLE_TESTING=OFF`。format 3 仅求值明确的 `$ROS_VERSION == 1/2`、`!=` 条件，固定 ROS1；其他条件和 group 依赖保守拒绝。不会用任意 `eval` 或宿主变量猜测。
 
-Lite3/M20 路径拒绝 `95_simulation/`、`training/`，并拒绝 Gazebo、MuJoCo 和已登记的训练依赖名称；传递依赖同样检查。另有一条 host-only 边界：`web/`、`scripts/console/`、`data/console/` 不得进入机器人 source view 或镜像上下文。`plan` 输出 `host_only` 策略，`prepare_view`/`build` 在生成视图落盘前做机器检查，`.dockerignore` 对 Docker 上下文同步排除；测试覆盖三项路径和 `lite3`/`x86_sim` 的策略差异。外部 ROS/系统依赖单列为 `NOT_CHECKED`，本工具不解析 apt 的完整传递关系，也不检查驱动 SDK、设备 ABI 或执行安装。输出的 `rosdep_check_command` 是建议命令，只指向选中的生成视图路径，显式重复 `--dependency-types` 以排除 test/doc；运行它需要视图已生成。不得改成对全量 `WS/src` 的默认 rosdep 安装，再把仿真测试依赖带回机器人。
+Lite3/M20 路径拒绝仿真包（按包名/依赖判定，不再依赖 `95_simulation/` 目录前缀）、`training/`，并拒绝 Gazebo、MuJoCo 和已登记的训练依赖名称；传递依赖同样检查。另有一条 host-only 边界：`web/`、`scripts/console/`、`data/console/` 不得进入机器人 source view 或镜像上下文。`plan` 输出 `host_only` 策略，`prepare_view`/`build` 在生成视图落盘前做机器检查，`.dockerignore` 对 Docker 上下文同步排除；测试覆盖三项路径和 `lite3`/`x86_sim` 的策略差异。外部 ROS/系统依赖单列为 `NOT_CHECKED`，本工具不解析 apt 的完整传递关系，也不检查驱动 SDK、设备 ABI 或执行安装。输出的 `rosdep_check_command` 是建议命令，只指向选中的生成视图路径，显式重复 `--dependency-types` 以排除 test/doc；运行它需要视图已生成。不得改成对全量 `WS/src` 的默认 rosdep 安装，再把仿真测试依赖带回机器人。
 
 实际构建必须在目标机器或相应构建环境显式触发：
 

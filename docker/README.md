@@ -27,7 +27,7 @@ x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 
 | `slam-host` | x86 host 网络联调模板，须核本机 master/IP；非 Lite3/M20 部署入口 |
 | `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图 |
 
-ROS 服务共用新的 x86 目标卷 `ros1_x86_sim_build/devel/install/profiles`，分别挂载 `ws/build`、`ws/devel`、`ws/install`、`ws/.profiles/x86_sim`，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`。`sim` 与 `sim-viz` 还共用宿主端口，一次只选一套，不得并行重编同一份卷。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
+ROS 服务共用新的 x86 目标卷 `ros1_x86_sim_build/devel/install/profiles`，分别挂载 `ws/build`、`ws/devel`、`ws/install`、`ws/.profiles/x86_sim`，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`；2026-11-14 起 P2 独立仓挂到 `/opt/ros1-slam/sim_ws`（工作区）与 `/opt/ros1-slam/sim_repo`（仓根只读）。`sim` 与 `sim-viz` 还共用宿主端口，一次只选一套，不得并行重编同一份卷。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
 
 ## 二、构建
 
@@ -118,7 +118,7 @@ docker compose exec sim bash /opt/ros1-slam/docker/build.sh --clean
 
 ### 完整两层世界与3D规划测试
 
-新场景入口为[完整说明](../ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/README.md)与[scripts/sim/two_floor_nav.py](../scripts/sim/two_floor_nav.py)，复用现有全局/局部/仲裁和Gazebo运动学载体；上楼、下楼、楼上绕障、楼梯阻断共用同源世界与地图。默认只读plan无需Docker或ROS；执行须准备x86 Noetic/Gazebo环境、登记专用sim窗口并通过原v8预检，GUI/交互与无头使用同一配置。
+新场景入口为[完整说明](../../ros1-slam-simulation/ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/README.md)与[scripts/sim/two_floor_nav.py](../scripts/sim/two_floor_nav.py)，复用现有全局/局部/仲裁和Gazebo运动学载体；上楼、下楼、楼上绕障、楼梯阻断共用同源世界与地图。默认只读plan无需Docker或ROS；执行须准备x86 Noetic/Gazebo环境、登记专用sim窗口并通过原v8预检，GUI/交互与无头使用同一配置。
 
 本入口不自动docker up/拉镜像/覆盖registry，不全局kill或复用旧结果文件。每个case保存独立过程证据；窗口回执和具体命令按场景README，不能把单纯world加载或末点arrived当作完整过程通过。现有Docker构建隔离/旧卷迁移的边界保持，不因运行Python场景就签收镜像重建或install-only。
 
@@ -184,7 +184,7 @@ docker compose exec sim-viz bash -lc '
   source /opt/ros/noetic/setup.bash
   source /opt/ros1-slam/ws/devel/setup.bash
   export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
-  python3 -B /opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/sim_pose.py \
+  python3 -B /opt/ros1-slam/sim_ws/src/lite3_gazebo_sim/scripts/sim_pose.py \
     --goal 3.0 0.0 --goal-backend mbf --wait-result-s 60'
 ```
 
@@ -290,7 +290,7 @@ docker compose exec sim-viz bash -lc '
 export ROS_MASTER_URI=http://127.0.0.1:11313 ROS_IP=127.0.0.1
 export GAZEBO_MASTER_URI=http://127.0.0.1:11345
 roslaunch lite3_gazebo_sim m2_gazebo.launch gui:=true \
-  world:=/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
+  world:=/opt/ros1-slam/sim_ws/src/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world \
   model_path:=/opt/ros1-slam/data/maps/worlds \
   spawn_x:=0 spawn_y:=-2.6 spawn_z:=0.15 spawn_yaw:=1.5708
 ```

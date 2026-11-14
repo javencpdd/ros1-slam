@@ -140,7 +140,7 @@ def check_outputs(paths, workspace):
             raise PlanError(f"output is not a directory: {path}")
 
 
-def plan(workspace, target, profiles_path):
+def plan(workspace, target, profiles_path, extra_sources=()):
     if target not in TARGETS:
         raise PlanError(f"unknown target: {target}")
     workspace = Path(os.path.abspath(workspace))
@@ -162,6 +162,16 @@ def plan(workspace, target, profiles_path):
     if not isinstance(roots, list) or not roots or not all(isinstance(n, str) for n in roots):
         raise PlanError(f"target {target} requires explicit nonempty package roots")
     packages, ignored = discover(source, config.get("manifest_overrides", {}))
+    for extra in extra_sources:
+        extra = Path(os.path.abspath(extra))
+        if not extra.is_dir():
+            raise PlanError(f"extra source is not a directory: {extra}")
+        extra_packages, extra_ignored = discover(extra, {})
+        for name, package in extra_packages.items():
+            if name in packages:
+                raise PlanError(f"duplicate package {name}: {packages[name]['path']}, {package['path']}")
+            packages[name] = package
+        ignored |= extra_ignored
     known_local = set(config.get("local_packages", [])) | set(roots) | ignored
     selected, external = {}, set()
 
@@ -174,7 +184,10 @@ def plan(workspace, target, profiles_path):
             external.add(name)
             return
         package = packages[name]
-        relative = package["path"].relative_to(source).as_posix()
+        try:
+            relative = package["path"].relative_to(source).as_posix()
+        except ValueError:
+            relative = package["path"].as_posix()
         if target != "x86_sim" and any(part in {"95_simulation", "training"} for part in relative.split("/")):
             raise PlanError(f"robot target forbids simulation/training package: {' -> '.join(chain + [name])} ({relative})")
         if name in selected:
@@ -201,6 +214,7 @@ def plan(workspace, target, profiles_path):
     paths = output_paths(workspace, target)
     check_outputs(paths, workspace)
     result = {"schema_version": 1, "target": target, "ros_distro": "noetic", "ros_version": 1,
+              "extra_sources": [str(Path(item).resolve()) for item in extra_sources],
               "workspace": str(workspace), "roots": roots, "packages": sorted(selected.values(), key=lambda p: p["name"]),
               "external_dependencies": sorted(external), "external_dependency_status": "NOT_CHECKED",
               "ignored_packages": sorted(ignored), "paths": {k: str(v) for k, v in paths.items()},
@@ -235,7 +249,7 @@ def plan(workspace, target, profiles_path):
 
 def identity(result):
     return {key: result[key] for key in ("schema_version", "target", "ros_distro", "ros_version",
-            "workspace", "roots", "packages", "paths", "profiles_sha256", "tests_enabled")}
+            "workspace", "extra_sources", "roots", "packages", "paths", "profiles_sha256", "tests_enabled")}
 
 
 def check_cache(result):
@@ -403,13 +417,20 @@ def main(argv=None):
     parser.add_argument("--profiles", type=Path, default=repo / "tooling/build/profiles.json")
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--clean", action="store_true", help="build only: clean fixed outputs owned by this target")
+    parser.add_argument("--extra-source", action="append", default=[],
+                        help="additional package roots merged into the target view (repeatable)")
     args = parser.parse_args(argv)
     try:
         if args.jobs < 1:
             raise PlanError("jobs must be positive")
         if args.clean and args.action != "build":
             raise PlanError("--clean is only valid with the explicit build action")
-        result = plan(args.workspace, args.target, args.profiles)
+        extra = list(args.extra_source)
+        if args.target == "x86_sim" and not extra:
+            default_extra = repo.parent / "ros1-slam-simulation" / "ws" / "src"
+            if default_extra.is_dir():
+                extra.append(str(default_extra))
+        result = plan(args.workspace, args.target, args.profiles, extra)
         if args.action == "build":
             build(result, args.jobs, clean=args.clean)
         else:
