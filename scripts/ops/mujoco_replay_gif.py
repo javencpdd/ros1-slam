@@ -49,7 +49,7 @@ def main():
     if not rows:
         raise SystemExit('empty trace')
 
-    dynamics = Path(__file__).resolve().parents[2] / 'ws/src/95_simulation/lite3_gazebo_sim/dynamics'
+    dynamics = Path(os.environ.get('V8_SIM_ROOT') or (Path(__file__).resolve().parents[2].parent / 'ros1-slam-simulation')) / 'ws/src/lite3_gazebo_sim/dynamics'
     sys.path.insert(0, str(dynamics))
     import mj_dreamwaq_walk as walk
 

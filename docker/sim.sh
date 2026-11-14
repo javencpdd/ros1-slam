@@ -16,7 +16,7 @@
 set -eo pipefail
 
 WS=/opt/ros1-slam
-SIM_PKG=$WS/ws/src/95_simulation/lite3_gazebo_sim
+SIM_PKG=$WS/sim_ws/src/lite3_gazebo_sim
 MODE="${1:-smoke}"
 STAGE="${2:-}"
 
@@ -25,10 +25,11 @@ STAGE="${2:-}"
 source /opt/ros/noetic/setup.bash
 # shellcheck disable=SC1091
 [ -f "$WS/ws/devel/setup.bash" ] && source "$WS/ws/devel/setup.bash"
+[ -f "$WS/sim_ws/devel/setup.bash" ] && source "$WS/sim_ws/devel/setup.bash"
 
 export GAZEBO_PLUGIN_PATH=$WS/ws/devel/lib:/opt/ros/noetic/lib
-export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:$WS/ws/src/95_simulation:$SIM_PKG/worlds
-export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:$WS/ws/src/95_simulation
+export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:$WS/sim_ws/src:$SIM_PKG/worlds
+export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:$WS/sim_ws/src
 export LIBGL_ALWAYS_SOFTWARE=1
 
 # Xvfb 兜底：entrypoint 没起（USE_XVFB=0 直跑时）就在这里起

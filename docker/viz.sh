@@ -28,10 +28,11 @@ MODE="${1:-check}"
 source /opt/ros/noetic/setup.bash
 # shellcheck disable=SC1091
 [ -f "$WS/ws/devel/setup.bash" ] && source "$WS/ws/devel/setup.bash"
+[ -f "$WS/sim_ws/devel/setup.bash" ] && source "$WS/sim_ws/devel/setup.bash"
 
 export GAZEBO_PLUGIN_PATH=$WS/ws/devel/lib:/opt/ros/noetic/lib
-export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:$WS/ws/src/95_simulation:$WS/ws/src/95_simulation/lite3_gazebo_sim/worlds
-export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:$WS/ws/src/95_simulation
+export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:$WS/sim_ws/src:$WS/sim_ws/src/lite3_gazebo_sim/worlds
+export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:$WS/sim_ws/src
 # 仿真域口径与 m2_smoke.sh 保持一致
 export ROS_MASTER_URI="${OBSERVE_URI:-${ROS_MASTER_URI:-http://127.0.0.1:11313}}"
 export GAZEBO_MASTER_URI="${OBSERVE_GAZEBO_URI:-${GAZEBO_MASTER_URI:-http://127.0.0.1:11345}}"

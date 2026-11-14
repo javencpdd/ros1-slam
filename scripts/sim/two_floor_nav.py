@@ -14,7 +14,10 @@ import sys
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
-SCENE = ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav'
+SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (ROOT / 'sim_ws'))
+SCENE = (SIM_ROOT / 'ws/src/lite3_gazebo_sim/scenarios/two_floor_nav'
+         if os.environ.get('V8_SIM_ROOT')
+         else SIM_ROOT / 'src/lite3_gazebo_sim/scenarios/two_floor_nav')
 sys.path.insert(0, str(SCENE))
 import scene
 import validation

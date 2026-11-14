@@ -1,6 +1,7 @@
 """Read-only map registry: map_id/version -> support_map JSON path."""
 import hashlib
 import json
+import os
 from pathlib import Path
 
 
@@ -45,7 +46,13 @@ def resolve_entry(registry, map_id, version=None):
 
 def load_map(entry, root=None):
     root = Path(root or ROOT)
-    path = (root / entry['path']).resolve()
+    path = Path(entry['path'])
+    sim_root = os.environ.get('V8_SIM_ROOT')
+    if sim_root and path.parts[:1] == ('sim_ws',):
+        path = Path(sim_root) / 'ws' / Path(*path.parts[1:])
+    else:
+        path = root / path
+    path = path.resolve()
     if not path.is_file():
         raise RegistryError('E_MAP_FILE', str(path))
     value = json.loads(path.read_text(encoding='utf-8'))

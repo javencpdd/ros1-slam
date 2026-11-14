@@ -14,7 +14,7 @@
 #   bash scripts/ops/passability_pre_acl.sh --verify     # 复验：默认 ACL 到位 ＋ 双向写测试
 set -u
 ROOT=/home/ros1-slam
-DIRS=("$ROOT/ws/src/95_simulation/config/passability" "$ROOT/note/进度/仿真测试台")
+DIRS=("${V8_SIM_ROOT:-$ROOT/sim_repo}/config/passability" "$ROOT/note/进度/仿真测试台")
 # 目录必须给 rwx、文件只给 rw-：**目录少了 x 就是"能列名字但不能进入/stat"**，
 #   而 setfacl 会按新条目重算 mask ⇒ 只写 rw- 的递归工单在 mode 700 的子目录上等于没落
 #   （2026-10-10 主理人实跑 --apply 后 note/进度/仿真测试台/{设计稿,证据} 仍 Permission denied，即此因）。

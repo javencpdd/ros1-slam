@@ -1,5 +1,6 @@
 """Navigation app config: graph + registry map + navigation_task + algorithm configs."""
 import json
+import os
 from pathlib import Path
 
 import yaml
@@ -24,7 +25,12 @@ class AppError(Exception):
 
 def _path(value, root):
     path = Path(value)
-    return path if path.is_absolute() else (root / path)
+    if path.is_absolute():
+        return path
+    sim_root = os.environ.get('V8_SIM_ROOT')
+    if sim_root and path.parts[:1] == ('sim_ws',):
+        return Path(sim_root) / 'ws' / Path(*path.parts[1:])
+    return root / path
 
 
 def load_app(path, root=None):
