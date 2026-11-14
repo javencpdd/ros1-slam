@@ -186,9 +186,9 @@
         <button id="agent-refresh">刷新</button>
         <span class="pill" id="agent-state">未连接</span>
       </div>
-      <div id="stack-list" class="stack-list"><div class="stack-empty">agent 未连接；先运行 <code>bash scripts/console/start_agent.sh</code></div></div>
+      <div id="stack-list" class="stack-list"><div class="stack-empty">agent 未连接；先运行 <code>bash console/start_agent.sh</code></div></div>
       <pre class="tree" id="stack-log">选择栈查看日志</pre>
-      <div class="notice">只启停 <code>scripts/console/stacks.json</code> 白名单（sim_m1 / mapping_m1 / mapping_save / stairstudy / sim_nist / safety_mux / bt_console / voxel_stream / scan_flat / scan_ramp / scan_real / bag_record），
+      <div class="notice">只启停 <code>console/stacks.json</code> 白名单（sim_m1 / mapping_m1 / mapping_save / stairstudy / sim_nist / safety_mux / bt_console / voxel_stream / scan_flat / scan_ramp / scan_real / bag_record），
         每栈独立进程组、SIGINT→TERM→KILL；formal/EVT/真机仍走作业单。
         带 world 下拉的栈可在启动前选 world；同一时间只起一个 Gazebo world，换 world 先停当前栈。
         <code>mapping_m1 / mapping_save / voxel_stream</code> 需要提供 lidar 的 world（sim_m1 或 stairstudy）；world-only 的 sim_nist 不提供，不能接建图/体素。

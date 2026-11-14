@@ -9,6 +9,7 @@
 | --- | --- | --- |
 | `ABC-upstairs-r1` | 失败（保留） | `E_ORCH_READY_TIMEOUT: 未就绪: carrier`；根因：`catkin_install_python` relay 的 `sys.path[0]=devel/lib/v8_simulation`，`import carrier_kinematics` 在 `rospy.init_node` 前失败；修复 `d394bd1` |
 | `ABC-upstairs-r2` | **ok=true** | 六项 checks 全 true；57 poses，末点 `(-5.9,1.1,1.6)`；`local reason=arrived`；`carrier_final=(-5.736089848500734,1.1234157188905518,1.6)`；markers 40；preflight rc=0 |
+| `ABC-upstairs-r3` | **ok=true** | 2026-11-14 第二切片（subprojects 合并后）复跑：六项 checks 全 true；57 poses，末点 `(-5.9,1.1,1.6)`；`carrier_final=(-5.747618277068962,1.121768894023993,1.6)`；markers 40 |
 
 命令（`ros1-slam-sim-viz`，`/opt/ros1-slam`）：
 
@@ -22,6 +23,8 @@ python3 -B scripts/sim/two_floor_nav.py --case upstairs --execute --orchestrator
   --out note/进度/v8/M5/26-11-14/evidence/BT-ABC/upstairs-r2/summary.json \
   --port 11659 --timeout-s 120
 ```
+
+`ABC-upstairs-r3` 用同一命令，`--window-id ABC-upstairs-r3 --port 11661`（`subprojects` 合并后）。
 
 ## 2. A 组读数
 

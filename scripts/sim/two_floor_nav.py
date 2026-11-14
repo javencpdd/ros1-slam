@@ -14,10 +14,15 @@ import sys
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
-SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (ROOT / 'sim_ws'))
-SCENE = (SIM_ROOT / 'ws/src/lite3_gazebo_sim/scenarios/two_floor_nav'
-         if os.environ.get('V8_SIM_ROOT')
-         else SIM_ROOT / 'src/lite3_gazebo_sim/scenarios/two_floor_nav')
+if os.environ.get('V8_SIM_ROOT'):
+    SIM_ROOT = Path(os.environ['V8_SIM_ROOT'])
+    SCENE = SIM_ROOT / 'ws/src/lite3_gazebo_sim/scenarios/two_floor_nav'
+elif (ROOT / 'sim_ws').is_dir():          # in-container mount
+    SIM_ROOT = ROOT / 'sim_ws'
+    SCENE = SIM_ROOT / 'src/lite3_gazebo_sim/scenarios/two_floor_nav'
+else:                                     # host checkout under the platform repo
+    SIM_ROOT = ROOT / 'subprojects' / 'simulation'
+    SCENE = SIM_ROOT / 'ws/src/lite3_gazebo_sim/scenarios/two_floor_nav'
 sys.path.insert(0, str(SCENE))
 import scene
 import validation

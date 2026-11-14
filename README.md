@@ -1,6 +1,6 @@
 # ros1-slam · 四足机器人 SLAM 与导航
 
-> 最新更新时间：2026-11-07 03:38:56 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
+> 最新更新时间：2026-11-14 19:00:00 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
 
 本项目面向 Lite3 四足机器人，组合激光建图、定位、地图、全局规划、局部执行与安全仲裁，使用 ROS1/Noetic。x86 承担 Docker、Gazebo、MuJoCo 开发与回归；Lite3 主机采用原生 ROS1，地图与现场配置各机独立。
 
@@ -42,8 +42,8 @@ flowchart LR
 | 版本成果、当前进度与证据 | [进度入口](note/进度/README.md)、[版本成果总览](note/进度/00_总览.md) |
 | 目标构建与依赖闭包 | [lite3 / x86_sim 构建说明](tooling/build/README.md)；M20 尚未接入 |
 | Docker、仿真、RViz 与建图命令 | [docker/README.md](docker/README.md) |
-| 完整两层Gazebo规划测试世界 | [two_floor_nav](../../ros1-slam-simulation/ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/README.md)：世界、同源地图、四个用例与统一入口 |
-| MuJoCo 接触执行与阶面障碍 | [dynamics/README.md](../ros1-slam-simulation/ws/src/lite3_gazebo_sim/dynamics/README.md) |
+| 完整两层Gazebo规划测试世界 | [two_floor_nav](subprojects/simulation/ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/README.md)：世界、同源地图、四个用例与统一入口 |
+| MuJoCo 接触执行与阶面障碍 | [dynamics/README.md](subprojects/simulation/ws/src/lite3_gazebo_sim/dynamics/README.md) |
 | 正式门禁及复验方法 | [成员清单](scripts/verify/gate_chain.txt)、[复验作业单](note/05_复验作业单.md) |
 | 隔离、安全、来源与变更台账 | [note 入口](note/00_README.md) |
 | 问题与环境坑 | [问题台账](note/02_问题与坑.md) |
@@ -59,7 +59,7 @@ flowchart LR
 - ROS 检查使用当前机器的 Noetic 与已构建工作区环境；前置缺失记为环境问题，不能据此判断算法通过或失败。
 - 地图、实验输出、`ws/build/`、`ws/devel/` 与日志各机独立；仓内保留[map registry 模板](data/maps/registry.template.json)，本机 app 使用被忽略的 `*.local.app.yaml`。
 - 入 Git 的源码/文档用 Git 追溯；地图、bag、结果和跨机交付包使用数据校验。旧文档与重复副本移出工作树时保留恢复途径并修复导航。
-- 控制台已迁至独立仓 [ros1-slam-console](../ros1-slam-console/README.md)（页面在 `console/ui`）；`data/console` 是 **host-only 测试面**，不进入 `lite3`/M20 target 或机器人镜像；`web/` 官网只提供文档面。Git 版本控制与真机部署边界正交，详见[项目架构 §7](note/架构/项目架构与目录.md)。
+- 控制台在 [subprojects/console](subprojects/console/README.md)（页面在 `console/ui`）；`data/console` 是 **host-only 测试面**，不进入 `lite3`/M20 target 或机器人镜像；`web/` 官网只提供文档面。Git 版本控制与真机部署边界正交，详见[项目架构 §7](note/架构/项目架构与目录.md)。
 - 真机运动、现场服务和参数仍有单项授权边界；本文不授权启动硬件。
 
 本轮所有README的核对范围、处理与恢复见[全仓README核对](note/进度/00_全仓文档核对_2026-11-05.md)。

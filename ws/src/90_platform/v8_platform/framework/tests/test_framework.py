@@ -295,7 +295,7 @@ class FrameworkTests(unittest.TestCase):
         self.assertIn('faster_lio_sim.yaml', sim)
         self.assertNotIn('faster_lio_outdoor.yaml', sim)
         self.assertNotIn('/home/ros1-slam', sim)
-        sim_root = Path(os.environ.get('V8_SIM_ROOT') or (FRAMEWORK.parents[5] / 'ros1-slam-simulation'))
+        sim_root = Path(os.environ.get('V8_SIM_ROOT') or (FRAMEWORK.parents[4] / 'subprojects' / 'simulation'))
         self.assertTrue((sim_root / 'ws/src/lite3_gazebo_sim/config/faster_lio_sim.yaml').is_file())
         for name in ('graph_2d.yaml', 'graph_3d_cache.yaml', 'graph_2d_loc_faster_lio.yaml',
                      'graph_faster_lio.yaml', 'graph_localization_compare.yaml',

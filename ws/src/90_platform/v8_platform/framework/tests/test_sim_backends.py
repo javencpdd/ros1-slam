@@ -24,7 +24,7 @@ import app_runner  # noqa: E402
 import config  # noqa: E402
 
 ROOT = app_config.ROOT
-SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (ROOT.parent / 'ros1-slam-simulation'))
+SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (ROOT / 'subprojects' / 'simulation'))
 os.environ.setdefault('V8_SIM_ROOT', str(SIM_ROOT))
 DECLARATION = 'sim_ws/src/v8_simulation/config/sim_backends.yaml'
 

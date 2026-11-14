@@ -31,7 +31,7 @@ def main():
     parser.add_argument('--width', type=int, default=640)
     parser.add_argument('--height', type=int, default=480)
     args = parser.parse_args()
-    dynamics = Path(os.environ.get('V8_SIM_ROOT') or (Path(__file__).resolve().parents[2].parent / 'ros1-slam-simulation')) / 'ws/src/lite3_gazebo_sim/dynamics'
+    dynamics = Path(os.environ.get('V8_SIM_ROOT') or (Path(__file__).resolve().parents[2] / 'subprojects' / 'simulation')) / 'ws/src/lite3_gazebo_sim/dynamics'
     import sys
     sys.path.insert(0, str(dynamics))
     import mj_dreamwaq_walk as walk

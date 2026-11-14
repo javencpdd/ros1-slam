@@ -1,6 +1,6 @@
 # ros1-slam-simulation · P2 仿真能力子项目
 
-> 独立仓（2026-11-14 自 [ros1-slam](https://local/ros1-slam) `2d0c32a5` 的 `ws/src/95_simulation/` 拆出）。
+> 2026-11-14 由同级仓 `d394bd1` 以 `git subtree` 并入 [ros1-slam](https://local/ros1-slam) 主仓的 `subprojects/simulation/`（历史保留）；独立 `ws/` 与发布物保留。
 > 自持运动学载体/真值/支撑格与 17 个 Gazebo 世界；**不持有**平台装配、BT、任务台。
 
 ## 布局
@@ -43,5 +43,5 @@ make release    # install + dist/ros1-slam-simulation-<version>.tar.gz + manifes
 
 ## 来源
 
-- 源仓 `ros1-slam` HEAD `2d0c32a5`，路径 `ws/src/95_simulation/`。
-- 历史保留在源仓；本仓为新历史，首提交记录来源。
+- 2026-11-14 由同级仓 `d394bd1` 以 `git subtree` 并入主仓；更早来源 `ros1-slam@2d0c32a5` 的 `ws/src/95_simulation/`。
+- 历史随 subtree 进入主仓；主仓 `origin` 是唯一远端。

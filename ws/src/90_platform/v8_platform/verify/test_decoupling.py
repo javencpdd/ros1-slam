@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Three-project boundary guards after the physical repo split.
 
-P1 navigation platform, P2 simulation, P3 mapping/navigation visualization.
-Each lives in its own repository and catkin/host workspace; these checks fail
-on couplings that would silently reappear. Roots resolve from V8_SIM_ROOT and
-V8_CONSOLE_ROOT, defaulting to the sibling repositories.
+P1 navigation platform plus P2 simulation and P3 mapping/navigation
+visualization under subprojects/. Each keeps its own workspace and release; the
+platform repo is the single remote. Roots resolve from V8_SIM_ROOT and
+V8_CONSOLE_ROOT, defaulting to subprojects/simulation and subprojects/console.
 """
 import os
 import unittest
@@ -13,8 +13,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[4]
 P1 = REPO / 'ws/src/90_platform/v8_platform'
-SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (REPO.parent / 'ros1-slam-simulation'))
-CONSOLE_ROOT = Path(os.environ.get('V8_CONSOLE_ROOT') or (REPO.parent / 'ros1-slam-console'))
+SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (REPO / 'subprojects' / 'simulation'))
+CONSOLE_ROOT = Path(os.environ.get('V8_CONSOLE_ROOT') or (REPO / 'subprojects' / 'console'))
 P2 = SIM_ROOT / 'ws/src/v8_simulation'
 CONSOLE = CONSOLE_ROOT / 'console'
 RUNTIME_DIRS = ('framework', 'registry', 'composer', 'contracts', 'orchestrator',
@@ -34,11 +34,13 @@ def python_files(root):
 
 
 class DecouplingTests(unittest.TestCase):
-    def test_projects_are_physically_separate(self):
+    def test_projects_live_under_subprojects(self):
         self.assertFalse((REPO / 'ws/src/95_simulation').exists(),
-                         'P2 must live in its own repository, not P1')
+                         'P2 must live under subprojects/, not ws/src/95_simulation')
         self.assertFalse((REPO / 'scripts/console').exists(),
-                         'P3 must live in its own repository, not P1')
+                         'P3 must live under subprojects/, not scripts/console')
+        self.assertTrue((REPO / 'subprojects' / 'simulation').is_dir(), 'P2 subproject')
+        self.assertTrue((REPO / 'subprojects' / 'console').is_dir(), 'P3 subproject')
         self.assertTrue((P2 / 'package.xml').is_file(), P2)
         self.assertTrue((CONSOLE / 'agent.py').is_file(), CONSOLE)
 
@@ -67,7 +69,7 @@ class DecouplingTests(unittest.TestCase):
                 continue
             for path in python_files(directory):
                 text = path.read_text(encoding='utf-8')
-                for token in ('ws/src/95_simulation', 'ros1-slam-simulation'):
+                for token in ('ws/src/95_simulation', 'ros1-slam-simulation', 'subprojects/simulation'):
                     self.assertNotIn(token, text, path)
 
     def test_platform_runtime_has_no_sim_import(self):

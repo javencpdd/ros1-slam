@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 _P2_ROOT = HERE.parents[5]
-_P1_ROOT = Path(os.environ.get('V8_REPO_ROOT') or (_P2_ROOT.parent / 'ros1-slam'))
+_P1_ROOT = Path(os.environ.get('V8_REPO_ROOT') or (_P2_ROOT.parent))
 if os.environ.get('V8_REPO_ROOT') is None and Path('/opt/ros1-slam/ws/src/90_platform/v8_platform').is_dir():
     _P1_ROOT = Path('/opt/ros1-slam')
 ROOT = _P1_ROOT

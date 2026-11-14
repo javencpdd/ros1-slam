@@ -15,7 +15,7 @@ TARGETS = ("lite3", "m20", "x86_sim")
 DEPEND_TAGS = {"depend", "build_depend", "build_export_depend", "buildtool_depend",
                "buildtool_export_depend", "exec_depend", "run_depend"}
 NOETIC = Path("/opt/ros/noetic")
-HOST_ONLY_PATHS = ('web', 'scripts/console', 'data/console')
+HOST_ONLY_PATHS = ('web', 'subprojects/console', 'data/console')
 ROBOT_FORBIDDEN = re.compile(
     r"(?:^|[-_])(?:lib)?(?:gazebo|mujoco)\d*(?:[-_]|$)"
     r"|(?:^|[-_])(?:torch|torchvision|torchaudio|pytorch|tensorflow|tensorboard|gym|gymnasium|rllib|ray|training)(?:[-_]|$)"
@@ -427,7 +427,7 @@ def main(argv=None):
             raise PlanError("--clean is only valid with the explicit build action")
         extra = list(args.extra_source)
         if args.target == "x86_sim" and not extra:
-            default_extra = repo.parent / "ros1-slam-simulation" / "ws" / "src"
+            default_extra = repo / "subprojects" / "simulation" / "ws" / "src"
             if default_extra.is_dir():
                 extra.append(str(default_extra))
         result = plan(args.workspace, args.target, args.profiles, extra)

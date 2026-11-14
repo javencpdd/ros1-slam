@@ -38,8 +38,8 @@ from world_registry import load_registry, map_bindings
 
 CONSOLE = Path(__file__).resolve().parents[1]
 _P3 = CONSOLE.parent
-REPO = Path(os.environ.get('V8_REPO_ROOT') or (_P3.parent / 'ros1-slam')).resolve()
-SIM = Path(os.environ.get('V8_SIM_ROOT') or (_P3.parent / 'ros1-slam-simulation')).resolve()
+REPO = Path(os.environ.get('V8_REPO_ROOT') or (_P3.parents[1])).resolve()
+SIM = Path(os.environ.get('V8_SIM_ROOT') or (_P3.parent / 'simulation')).resolve()
 UI = CONSOLE / 'ui'
 
 

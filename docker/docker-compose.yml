@@ -78,8 +78,8 @@ x-ros-base: &ros-base
     - ../data:/opt/ros1-slam/data
     - ../opt:/opt/ros1-slam/opt
     # ---- P2 独立仿真仓（2026-11-14 物理分仓）：独立 catkin 工作区 ----
-    - ../../ros1-slam-simulation/ws:/opt/ros1-slam/sim_ws
-    - ../../ros1-slam-simulation:/opt/ros1-slam/sim_repo:ro
+    - ../subprojects/simulation/ws:/opt/ros1-slam/sim_ws
+    - ../subprojects/simulation:/opt/ros1-slam/sim_repo:ro
     # ---- 门禁面：四张面清单里有 40+ 条目指向 note/ 与 tooling/ ----
     # ★ 不挂这两处时，异机跑门禁串会得到 SYN/PYST rc=123「文件不存在」＋
     #   VAR/PARITY/账构/VCC/规矩⑨ rc=9「前置缺失」——那是**面不可见**（按三态口径应判
@@ -311,8 +311,8 @@ services:
       - ../docker:/opt/ros1-slam/docker
       - ../data:/opt/ros1-slam/data
       - ../opt:/opt/ros1-slam/opt
-      - ../../ros1-slam-simulation/ws:/opt/ros1-slam/sim_ws
-      - ../../ros1-slam-simulation:/opt/ros1-slam/sim_repo:ro
+      - ../subprojects/simulation/ws:/opt/ros1-slam/sim_ws
+      - ../subprojects/simulation:/opt/ros1-slam/sim_repo:ro
       # ---- 门禁面（同 &ros-volumes 里那段注释）----
       - ../note:/opt/ros1-slam/note
       - ../tooling:/opt/ros1-slam/tooling

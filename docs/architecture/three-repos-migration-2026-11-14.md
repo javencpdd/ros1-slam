@@ -1,5 +1,7 @@
 # 三仓物理拆分迁移设计（2026-11-14）
 
+> **2026-11-14 第二切片**：为单一远端同步，三仓最终落为主仓 `subprojects/simulation` 与 `subprojects/console`；P2/P3 历史用 `git subtree` 保留。本件保留原同级仓设计，拓扑以 [current-2026-11-14.md](current-2026-11-14.md) §7 为准。
+
 > 目标（真人 2026-11-14 指令）：仿真 / 可视化成为**独立子项目**——物理分仓、各自独立 catkin 工作区、独立发布物。P1 组件化导航平台仍为主仓与集成/账本层。
 > 现状依据：[current-2026-11-13.md](current-2026-11-13.md)；解耦守卫 `ws/src/90_platform/v8_platform/verify/test_decoupling.py`；耦合面实测 119 文件引用 `95_simulation`。
 > **历史策略**：两个新仓采用**新历史 + 来源提交说明**（首提交记录来源仓/路径/HEAD），P1 历史与 `note/` 的 code_ref 链**不改写、不丢失**。不做 subtree/filter-repo 重写。

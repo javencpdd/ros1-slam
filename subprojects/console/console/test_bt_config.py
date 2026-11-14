@@ -20,7 +20,7 @@ import re
 import sys
 
 ROOT = os.environ.get('V8_REPO_ROOT') or os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', 'ros1-slam'))
+    os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 PKG = os.path.join(ROOT, 'ws/src/90_platform/lite3_bt')
 CPP = os.path.join(PKG, 'src/bt_console.cpp')
 LAUNCH = os.path.join(PKG, 'launch/bt_console.launch')

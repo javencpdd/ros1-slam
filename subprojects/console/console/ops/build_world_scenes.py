@@ -25,8 +25,8 @@ from world_registry import load_registry
 CONSOLE = Path(__file__).resolve().parents[1]
 ROOT = CONSOLE.parent
 _PARENT = ROOT.parent
-REPO = Path(os.environ.get('V8_REPO_ROOT') or (_PARENT / 'ros1-slam')).resolve()
-SIM = Path(os.environ.get('V8_SIM_ROOT') or (_PARENT / 'ros1-slam-simulation')).resolve()
+REPO = Path(os.environ.get('V8_REPO_ROOT') or (_PARENT.parent)).resolve()
+SIM = Path(os.environ.get('V8_SIM_ROOT') or (_PARENT / 'simulation')).resolve()
 DEFAULT_OUT = CONSOLE / 'ui/assets/data/worlds'
 WORLD_DIRS = [
     SIM / 'ws/src/lite3_gazebo_sim/worlds',

@@ -1,6 +1,6 @@
 # 目标构建计划与隔离空间
 
-> 最新更新时间：2026-11-06 04:06:11 CST。工程标准真源：[工程标准](../../note/架构/工程标准.md)。本入口仅证明声明依赖的选择与构建隔离；未经设备验证不能称为真机部署验收。
+> 最新更新时间：2026-11-14 19:00:00 CST。工程标准真源：[工程标准](../../note/架构/工程标准.md)。本入口仅证明声明依赖的选择与构建隔离；未经设备验证不能称为真机部署验收。
 
 从仓库根执行：
 
@@ -10,7 +10,7 @@ python3 -B scripts/build/target_workspace.py plan --target x86_sim
 python3 -B scripts/build/test_target_workspace.py
 ```
 
-2026-11-14 物理分仓后，`x86_sim` 默认把同级 `ros1-slam-simulation/ws/src` 并入 source view；可用 `--extra-source DIR`（可重复）显式指定。机器人目标不并入。
+2026-11-14 物理分仓后，`x86_sim` 默认把主仓 `subprojects/simulation/ws/src` 并入 source view；可用 `--extra-source DIR`（可重复）显式指定。机器人目标不并入。
 
 `plan` 只读，宿主无需 ROS、catkin_pkg 或 PyYAML。目标与动作必须显式填写；不从 CPU、主机名或已 source 的环境猜目标。输出 JSON 包括根包、完整声明依赖闭包、manifest SHA256、隔离空间、未核验的外部依赖、忽略包和缓存冲突。闭包或路径错误返回 2；已有旧缓存只记入 `cache_conflicts`，不妨碍只读审计，也不创建、修补或清理空间。
 
@@ -18,7 +18,7 @@ python3 -B scripts/build/test_target_workspace.py
 | --- | --- | --- | --- |
 | `lite3` | 显式选择驱动、建图、定位、导航、SCAN、安全、任务与 v8 壳包；只取真机依赖 | `WS/.profiles/lite3/src` | `WS/.profiles/lite3/` 下分别存放 |
 | `m20` | 未实现硬件协议及 ROS 适配，计划和构建均拒绝；修改 profile 的 supported 字段也不能启用 | 不生成 | 不生成 |
-| `x86_sim` | 公共算法 + 同级 P2 仿真仓（默认 `../ros1-slam-simulation/ws/src`，`--extra-source` 可覆盖） | `WS/.profiles/x86_sim/src` | 保留 `WS/build`、`WS/devel`、`WS/install`，兼容现有仿真运行路径 |
+| `x86_sim` | 公共算法 + 同级 P2 仿真仓（默认 `subprojects/simulation/ws/src`，`--extra-source` 可覆盖） | `WS/.profiles/x86_sim/src` | 保留 `WS/build`、`WS/devel`、`WS/install`，兼容现有仿真运行路径 |
 
 `WS` 默认是本仓 `ws/`，可用 `--workspace` 指定含真实 `src/` 的工作区。`--profiles` 用于明确指定配置文件，默认 [profiles.json](profiles.json)。新增本地包或更换根包时同步维护配置名册；根包来自包内 `<name>`，不是目录名（例如 `pipeline_tracking` 的包名是 `pipeline`）。当前根表覆盖上述功能范围；旧 launch 的未声明运行依赖仍须逐项审查，不能由闭包计划反推全部部署依赖已经完整。
 

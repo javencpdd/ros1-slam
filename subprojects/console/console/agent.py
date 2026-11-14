@@ -6,7 +6,7 @@ command line. Each stack runs in the ros1-slam-sim-viz container in its own
 session/process group, with a per-stack log and PID file under /tmp/v8-console.
 Stop sends SIGINT -> SIGTERM -> SIGKILL to the whole group.
 
-The agent also serves the console UI (scripts/console/ui) and the Foxglove
+The agent also serves the console UI (console/ui) and the Foxglove
 layouts (docker/foxglove) on the same port, so the docs site no longer bundles
 the task console. validate_stacks() fails closed if stacks.json names an
 unexpected container or introduces shell metacharacters; start/stop append a
@@ -17,7 +17,7 @@ work-order windows stay in the CLI; the agent does not accept arbitrary
 commands and binds 127.0.0.1 by default.
 
 Usage:
-  python3 scripts/console/agent.py [--bind 127.0.0.1] [--port 8780]
+  python3 console/agent.py [--bind 127.0.0.1] [--port 8780]
 """
 from __future__ import annotations
 

@@ -214,8 +214,8 @@ RUN set -e; \
         && rm -rf /var/lib/apt/lists/*
 
 # Gazebo 资源/模型/插件搜索路径（离线跑仿真的前提：模型只能从本地来）
-ENV GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:/opt/ros1-slam/ws/src/95_simulation:/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds \
-    GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:/opt/ros1-slam/ws/src/95_simulation \
+ENV GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:/opt/ros1-slam/sim_ws/src:/opt/ros1-slam/sim_ws/src/lite3_gazebo_sim/worlds \
+    GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:/opt/ros1-slam/sim_ws/src \
     GAZEBO_PLUGIN_PATH=/opt/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib \
     LIBGL_ALWAYS_SOFTWARE=1 \
     USE_XVFB=0

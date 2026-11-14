@@ -20,7 +20,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (ROOT.parent / 'ros1-slam-simulation')).resolve()
+SIM_ROOT = Path(os.environ.get('V8_SIM_ROOT') or (ROOT.parent / 'simulation')).resolve()
 REGISTRY = Path(__file__).resolve().parents[2] / 'console/world_registry.json'
 
 

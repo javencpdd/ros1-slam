@@ -2,13 +2,13 @@
 # Host agent for the Lite3 console stack lifecycle (P3).
 # Default bind is 0.0.0.0 so a console opened via a LAN address can reach the
 # demo whitelist.  For local-only use:
-#   LITE3_AGENT_BIND=127.0.0.1 bash scripts/console/start_agent.sh --start
+#   LITE3_AGENT_BIND=127.0.0.1 bash console/start_agent.sh --start
 # The agent only exposes the stacks listed in stacks.json; keep it on a trusted
 # LAN and never expose it to the public network.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export V8_REPO_ROOT="${V8_REPO_ROOT:-$(cd "$ROOT/../.." && pwd)/ros1-slam}"
-export V8_SIM_ROOT="${V8_SIM_ROOT:-$(cd "$ROOT/../.." && pwd)/ros1-slam-simulation}"
+export V8_REPO_ROOT="${V8_REPO_ROOT:-$(cd "$ROOT/../../.." && pwd)}"
+export V8_SIM_ROOT="${V8_SIM_ROOT:-$(cd "$ROOT/../.." && pwd)/simulation}"
 PIDFILE=/tmp/v8-console-agent.pid
 LOG=/tmp/v8-console-agent.log
 PORT="${LITE3_AGENT_PORT:-8780}"

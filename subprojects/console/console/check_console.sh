@@ -3,8 +3,8 @@
 # P1/P2 integration checks run only when the sibling repos are present.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # P3 repo root
-REPO_ROOT="${V8_REPO_ROOT:-$ROOT/../ros1-slam}"
-SIM_ROOT="${V8_SIM_ROOT:-$ROOT/../ros1-slam-simulation}"
+REPO_ROOT="${V8_REPO_ROOT:-$ROOT/../..}"
+SIM_ROOT="${V8_SIM_ROOT:-$ROOT/../simulation}"
 export V8_REPO_ROOT="$REPO_ROOT" V8_SIM_ROOT="$SIM_ROOT"
 FAIL=0
 ok() { printf 'PASS  %s\n' "$1"; }

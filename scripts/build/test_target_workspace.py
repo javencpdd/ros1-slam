@@ -117,7 +117,7 @@ class TargetWorkspaceTests(unittest.TestCase):
     def test_host_only_image_context_is_rejected(self):
         context = self.root / "robot-image-context"
         context.mkdir()
-        for relative in ("web", "scripts/console", "data/console"):
+        for relative in ("web", "subprojects/console", "data/console"):
             target = context / relative
             target.mkdir(parents=True, exist_ok=True)
             with self.subTest(relative=relative), self.assertRaisesRegex(tw.PlanError, "host-only"):
@@ -129,7 +129,7 @@ class TargetWorkspaceTests(unittest.TestCase):
                     parent.rmdir()
                     parent = parent.parent
         self.assertEqual(tw.check_host_only_context(context),
-                         ["web", "scripts/console", "data/console"])
+                         ["web", "subprojects/console", "data/console"])
 
     def test_robot_build_rejects_host_only_source_view(self):
         self.config["targets"]["lite3"]["roots"] = ["web"]
@@ -142,7 +142,7 @@ class TargetWorkspaceTests(unittest.TestCase):
         result = self.plan()
         self.assertTrue(result["host_only"]["robot_forbidden"])
         self.assertEqual(result["host_only"]["paths"],
-                         ["web", "scripts/console", "data/console"])
+                         ["web", "subprojects/console", "data/console"])
         self.assertFalse(self.plan("x86_sim")["host_only"]["robot_forbidden"])
 
     def test_known_ros_version_conditions_only(self):
