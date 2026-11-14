@@ -51,7 +51,7 @@ bash scripts/console/start_agent.sh --start
   `leaf=0.10 m` 下采样，原子写 `data/console/voxels/latest.bin` + `meta.json`；浏览器按二进制
   拉取（16 B/点，含 RGBA）。
 - **可视化双模**：页面可切“服务端体素/本页 Foxglove 指引”；Foxglove 经 rosbridge `:9090`
-  连接（Rosbridge ROS1，不是 Foxglove WebSocket），布局模板见 [`docker/foxglove/`](../../docker/foxglove/)。
+  连接（Rosbridge ROS1，不是 Foxglove WebSocket），布局模板见 [`docker/foxglove/`](../../../docker/foxglove/)。
 - **地图生命周期**：刷新/重栅格化/隐藏/恢复/编辑栅格；`mapping_save` 停止时保存 PCD 到
   `data/maps/imported/`（agent 起前备份、停后恢复样张，GAP-5）。
 - **Gazebo world 选择**：`sim_m1` 可选 `m1_world`/`m1_world_v2`/`demo_two_floor`/`open`；

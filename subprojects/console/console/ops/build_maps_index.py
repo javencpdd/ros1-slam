@@ -28,7 +28,6 @@ import math
 from pathlib import Path
 import re
 import os
-import struct
 import subprocess
 
 import numpy as np

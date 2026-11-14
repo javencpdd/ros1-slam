@@ -11,7 +11,7 @@
 
 > **容器口径**：`sim`（headless，容器内 Xvfb）与 `sim-viz`（宿主 X/GUI）共用 11313/11345，
 > **一次只起一个**；首次 `--build`、之后 `--no-build`，启动/自检/排障见
-> [`docker/README.md`](../../../../docker/README.md)。端口被占时先
+> [`docker/README.md`](../../../../../docker/README.md)。端口被占时先
 > `docker compose --profile viz stop sim-viz`；容器 Up 但无端口则
 > `docker compose --profile sim up -d --no-build --force-recreate sim`。
 
@@ -44,7 +44,7 @@ cmd `.2→v_phy .199`、cmd `.5→w_phy .481`，z 稳定 `.11`。它是**动态�
 
 新增 [two_floor_nav](scenarios/two_floor_nav/README.md)：16×12 m室内、1.6 m上层平台、10级楼梯（级高0.16 m、踏深0.8 m、宽2 m）、护栏与家具障碍。world、精确支撑格、体积障碍、私有registry、四个task/app从同一几何定义生成，不依赖本机data/maps/registry.json，不下载额外模型。
 
-默认命令只做离线配置/全局规划检查：`python3 -B scripts/sim/two_floor_nav.py --case upstairs`（从仓根执行）。实际运行使用同一入口的显式执行选项，按[场景说明](scenarios/two_floor_nav/README.md)登记窗口并通过原v8预检；上楼、下楼、楼上绕障和楼梯阻断均需过程trace验证。交付/运行证据见[场景记录](../../../../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。
+默认命令只做离线配置/全局规划检查：`python3 -B scripts/sim/two_floor_nav.py --case upstairs`（从仓根执行）。实际运行使用同一入口的显式执行选项，按[场景说明](scenarios/two_floor_nav/README.md)登记窗口并通过原v8预检；上楼、下楼、楼上绕障和楼梯阻断均需过程trace验证。交付/运行证据见[场景记录](../../../../../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。
 
 这是已知几何地图与仿真真值定位的规划集成场景；载体为现有运动学可视箱体。世界有静态碰撞几何，载体不提供四足接触物理；不据此声称SLAM、完整全局走廊跟随、真实Lite3包络或四足步态通过。以下原NIST/demo/Hospital记录按各自历史范围解释。
 

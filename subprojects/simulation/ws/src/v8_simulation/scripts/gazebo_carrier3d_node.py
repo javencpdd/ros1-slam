@@ -6,7 +6,6 @@ and applies it with SetModelState. Publishes the same pose/localization contract
 as the pure-ROS carrier. This is a kinematic pose sink: no contact dynamics.
 """
 import json
-import math
 import os
 import sys
 import time
