@@ -1,464 +1,482 @@
 {
-  "title": "component_manifest/v3",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "id",
-    "version",
-    "roles",
-    "dimensions",
-    "capability",
-    "ownership",
-    "evidence",
-    "ports",
-    "execution"
-  ],
-  "properties": {
-    "schema_version": {
-      "const": 3
-    },
-    "id": {
-      "type": "string",
-      "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$"
-    },
-    "version": {
-      "type": "string",
-      "minLength": 1
-    },
-    "roles": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "enum": [
-          "odometry",
-          "global_localization",
-          "mapping",
-          "map_server",
-          "representation",
-          "global_planner",
-          "local_planner",
-          "controller",
-          "trajectory_validator",
-          "safety_arbiter",
-          "simulator",
-          "evaluator",
-          "sensor_source",
-          "map_cache",
-          "map_merge",
-          "robot_adapter",
-          "middleware"
-        ]
-      }
-    },
-    "tags": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "enum": [
-          "indoor",
-          "outdoor",
-          "flat",
-          "ramp",
-          "stairs_geometry",
-          "multilevel",
-          "underpass",
-          "dynamic_obstacles",
-          "ground",
-          "quadruped",
-          "differential",
-          "holonomic",
-          "planar",
-          "single_height",
-          "multisurface",
-          "voxel",
-          "mesh",
-          "cpu",
-          "gpu_optional",
-          "gpu_required",
-          "offline",
-          "simulation",
-          "real_robot"
-        ]
-      }
-    },
-    "capability": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "kinematics",
-        "cancellation",
-        "supports_dynamic_obstacles"
-      ],
-      "properties": {
-        "kinematics": {
-          "enum": [
-            "differential",
-            "holonomic",
-            "quadruped_kinematic",
-            "not_applicable"
-          ]
-        },
-        "cancellation": {
-          "enum": [
-            "cooperative",
-            "cooperative_with_process_watchdog",
-            "none"
-          ]
-        },
-        "supports_dynamic_obstacles": {
-          "type": "boolean"
-        }
-      }
-    },
-    "source": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "uri",
-        "license"
-      ],
-      "properties": {
-        "uri": {
-          "type": "string",
-          "minLength": 1
-        },
-        "license": {
-          "type": "string",
-          "minLength": 1
-        },
-        "commit": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
-    },
-    "adapter_entry": {
-      "type": "string",
-      "minLength": 1
-    },
-    "param_schema": {
-      "type": "string",
-      "minLength": 1
-    },
-    "ownership": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "tf_edges",
-        "command_topics",
-        "namespace",
-        "stop"
-      ],
-      "properties": {
-        "tf_edges": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "parent",
-              "child"
-            ],
-            "properties": {
-              "parent": {
-                "type": "string",
-                "minLength": 1
-              },
-              "child": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        "command_topics": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "namespace": {
-          "type": "string",
-          "pattern": "^(/|(/[a-z0-9_]+)+)$"
-        },
-        "stop": {
-          "enum": [
-            "service_stop",
-            "process_group_signal",
-            "none"
-          ]
-        }
-      }
-    },
-    "requires": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "sensors": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "resources": {
-          "type": "array",
-          "items": {
-            "enum": [
-              "cpu",
-              "gpu_optional",
-              "gpu_required"
-            ]
-          }
-        }
-      }
-    },
-    "evidence": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "level",
-        "reports"
-      ],
-      "properties": {
-        "level": {
-          "enum": [
-            "declared",
-            "contract_tested",
-            "simulation_verified",
-            "robot_verified"
-          ]
-        },
-        "reports": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      }
-    },
-    "launch": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "package"
-      ],
-      "properties": {
-        "kind": {
-          "enum": [
-            "node",
-            "include",
-            "plugin",
-            "nodelet_group"
-          ]
-        },
-        "package": {
-          "type": "string",
-          "minLength": 1
-        },
-        "type": {
-          "type": "string",
-          "minLength": 1
-        },
-        "launch_file": {
-          "type": "string",
-          "minLength": 1
-        },
-        "param_files": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "args": {
-          "type": "object"
-        },
-        "remap": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "from",
-              "to"
-            ],
-            "properties": {
-              "from": {
-                "type": "string",
-                "minLength": 1
-              },
-              "to": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        "test_double": {
-          "type": "boolean"
-        },
-        "ready_marker": {
-          "type": "string",
-          "minLength": 1
-        },
-        "manager": {
-          "type": "string",
-          "minLength": 1
-        },
-        "plugins": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "type"
-            ],
-            "properties": {
-              "type": {
-                "type": "string",
-                "minLength": 1
-              },
-              "name": {
-                "type": "string",
-                "minLength": 1
-              },
-              "params": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      }
-    },
-    "ports": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "inputs",
-        "outputs"
-      ],
-      "properties": {
-        "inputs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/port"
-          }
-        },
-        "outputs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/port"
-          }
-        }
-      }
-    },
-    "dimensions": {
-      "enum": [
-        2,
-        3
-      ]
-    },
-    "execution": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "modes",
-        "robot_id"
-      ],
-      "properties": {
-        "modes": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "enum": [
-              "simulation",
-              "real_robot"
-            ]
-          }
-        },
-        "robot_id": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "minLength": 1
-        },
-        "selectors": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "name",
-              "default",
-              "values"
-            ],
-            "properties": {
-              "name": {
-                "type": "string",
-                "minLength": 1
-              },
-              "default": {
-                "type": "string",
-                "minLength": 1
-              },
-              "values": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+ "title": "component_manifest/v3",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "schema_version",
+  "id",
+  "version",
+  "roles",
+  "dimensions",
+  "capability",
+  "ownership",
+  "evidence",
+  "ports",
+  "execution"
+ ],
+ "properties": {
+  "schema_version": {
+   "const": 3
   },
-  "description": "v3: explicit execution domains and robot binding; v1/v2 remain valid offline.",
-  "definitions": {
-    "port": {
+  "id": {
+   "type": "string",
+   "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$"
+  },
+  "version": {
+   "type": "string",
+   "minLength": 1
+  },
+  "roles": {
+   "type": "array",
+   "minItems": 1,
+   "uniqueItems": true,
+   "items": {
+    "enum": [
+     "odometry",
+     "global_localization",
+     "mapping",
+     "map_server",
+     "representation",
+     "global_planner",
+     "local_planner",
+     "controller",
+     "trajectory_validator",
+     "safety_arbiter",
+     "simulator",
+     "evaluator",
+     "sensor_source",
+     "map_cache",
+     "map_merge",
+     "robot_adapter",
+     "middleware"
+    ]
+   }
+  },
+  "tags": {
+   "type": "array",
+   "uniqueItems": true,
+   "items": {
+    "enum": [
+     "indoor",
+     "outdoor",
+     "flat",
+     "ramp",
+     "stairs_geometry",
+     "multilevel",
+     "underpass",
+     "dynamic_obstacles",
+     "ground",
+     "quadruped",
+     "differential",
+     "holonomic",
+     "planar",
+     "single_height",
+     "multisurface",
+     "voxel",
+     "mesh",
+     "cpu",
+     "gpu_optional",
+     "gpu_required",
+     "offline",
+     "simulation",
+     "real_robot"
+    ]
+   }
+  },
+  "capability": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "kinematics",
+    "cancellation",
+    "supports_dynamic_obstacles"
+   ],
+   "properties": {
+    "kinematics": {
+     "enum": [
+      "differential",
+      "holonomic",
+      "quadruped_kinematic",
+      "not_applicable"
+     ]
+    },
+    "cancellation": {
+     "enum": [
+      "cooperative",
+      "cooperative_with_process_watchdog",
+      "none"
+     ]
+    },
+    "supports_dynamic_obstacles": {
+     "type": "boolean"
+    },
+    "feedback_modes": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "pose",
+       "ack",
+       "signal"
+      ]
+     },
+     "minItems": 1,
+     "maxItems": 3,
+     "uniqueItems": true
+    },
+    "timeout_s": {
+     "type": "number",
+     "minimum": 1e-06,
+     "maximum": 1000000
+    }
+   }
+  },
+  "source": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "uri",
+    "license"
+   ],
+   "properties": {
+    "uri": {
+     "type": "string",
+     "minLength": 1
+    },
+    "license": {
+     "type": "string",
+     "minLength": 1
+    },
+    "commit": {
+     "type": "string",
+     "minLength": 1
+    }
+   }
+  },
+  "adapter_entry": {
+   "type": "string",
+   "minLength": 1
+  },
+  "param_schema": {
+   "type": "string",
+   "minLength": 1
+  },
+  "ownership": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "tf_edges",
+    "command_topics",
+    "namespace",
+    "stop"
+   ],
+   "properties": {
+    "tf_edges": {
+     "type": "array",
+     "items": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "name",
-        "type"
+       "parent",
+       "child"
       ],
       "properties": {
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[a-z0-9_]+$"
-        },
-        "type": {
-          "type": "string",
-          "minLength": 1
-        },
-        "schema": {
-          "type": "string",
-          "minLength": 1
-        },
-        "topic": {
-          "type": "string",
-          "minLength": 1
-        },
-        "command_topic": {
-          "type": "string",
-          "minLength": 1
-        },
-        "required": {
-          "type": "boolean"
-        }
+       "parent": {
+        "type": "string",
+        "minLength": 1
+       },
+       "child": {
+        "type": "string",
+        "minLength": 1
+       }
       }
+     }
+    },
+    "command_topics": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "minLength": 1
+     }
+    },
+    "namespace": {
+     "type": "string",
+     "pattern": "^(/|(/[a-z0-9_]+)+)$"
+    },
+    "stop": {
+     "enum": [
+      "service_stop",
+      "process_group_signal",
+      "none"
+     ]
     }
+   }
+  },
+  "requires": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "sensors": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "minLength": 1
+     }
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "cpu",
+       "gpu_optional",
+       "gpu_required"
+      ]
+     }
+    }
+   }
+  },
+  "evidence": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "level",
+    "reports"
+   ],
+   "properties": {
+    "level": {
+     "enum": [
+      "declared",
+      "contract_tested",
+      "simulation_verified",
+      "robot_verified"
+     ]
+    },
+    "reports": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "minLength": 1
+     }
+    }
+   }
+  },
+  "launch": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "package"
+   ],
+   "properties": {
+    "kind": {
+     "enum": [
+      "node",
+      "include",
+      "plugin",
+      "nodelet_group"
+     ]
+    },
+    "package": {
+     "type": "string",
+     "minLength": 1
+    },
+    "type": {
+     "type": "string",
+     "minLength": 1
+    },
+    "launch_file": {
+     "type": "string",
+     "minLength": 1
+    },
+    "param_files": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "minLength": 1
+     }
+    },
+    "args": {
+     "type": "object"
+    },
+    "remap": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "from",
+       "to"
+      ],
+      "properties": {
+       "from": {
+        "type": "string",
+        "minLength": 1
+       },
+       "to": {
+        "type": "string",
+        "minLength": 1
+       }
+      }
+     }
+    },
+    "test_double": {
+     "type": "boolean"
+    },
+    "ready_marker": {
+     "type": "string",
+     "minLength": 1
+    },
+    "manager": {
+     "type": "string",
+     "minLength": 1
+    },
+    "plugins": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "type"
+      ],
+      "properties": {
+       "type": {
+        "type": "string",
+        "minLength": 1
+       },
+       "name": {
+        "type": "string",
+        "minLength": 1
+       },
+       "params": {
+        "type": "object"
+       }
+      }
+     }
+    }
+   }
+  },
+  "ports": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "inputs",
+    "outputs"
+   ],
+   "properties": {
+    "inputs": {
+     "type": "array",
+     "items": {
+      "$ref": "#/definitions/port"
+     }
+    },
+    "outputs": {
+     "type": "array",
+     "items": {
+      "$ref": "#/definitions/port"
+     }
+    }
+   }
+  },
+  "dimensions": {
+   "enum": [
+    2,
+    3
+   ]
+  },
+  "execution": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "modes",
+    "robot_id"
+   ],
+   "properties": {
+    "modes": {
+     "type": "array",
+     "minItems": 1,
+     "uniqueItems": true,
+     "items": {
+      "enum": [
+       "simulation",
+       "real_robot"
+      ]
+     }
+    },
+    "robot_id": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "minLength": 1
+    },
+    "selectors": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "name",
+       "default",
+       "values"
+      ],
+      "properties": {
+       "name": {
+        "type": "string",
+        "minLength": 1
+       },
+       "default": {
+        "type": "string",
+        "minLength": 1
+       },
+       "values": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+         "type": "string",
+         "minLength": 1
+        }
+       }
+      }
+     }
+    }
+   }
   }
+ },
+ "description": "v3: explicit execution domains and robot binding; v1/v2 remain valid offline.",
+ "definitions": {
+  "port": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "name",
+    "type"
+   ],
+   "properties": {
+    "name": {
+     "type": "string",
+     "minLength": 1,
+     "pattern": "^[a-z0-9_]+$"
+    },
+    "type": {
+     "type": "string",
+     "minLength": 1
+    },
+    "schema": {
+     "type": "string",
+     "minLength": 1
+    },
+    "topic": {
+     "type": "string",
+     "minLength": 1
+    },
+    "command_topic": {
+     "type": "string",
+     "minLength": 1
+    },
+    "required": {
+     "type": "boolean"
+    }
+   }
+  }
+ }
 }

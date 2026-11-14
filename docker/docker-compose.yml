@@ -241,9 +241,9 @@ services:
     volumes: *ros-volumes
     working_dir: /opt/ros1-slam
     shm_size: "2gb"                 # gzserver + 点云传输
-    ports:
-      - "11313:11313"               # 仿真域 ROS master
-      - "11345:11345"               # Gazebo master
+    # 11313/11345 归 sim-viz（控制台/可视化入口）。sim 是 headless 门禁，经
+    # docker exec 使用容器内 master，不再发布宿主端口，避免与 sim-viz 互斥。
+    # 两者共用 devel 卷：一次只编一套，运行可并存。
     tty: true
     stdin_open: true
     restart: unless-stopped

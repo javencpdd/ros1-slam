@@ -9,7 +9,7 @@
  "dimensions": 3,
  "capability": {
   "kinematics": "quadruped_kinematic",
-  "cancellation": "none",
+  "cancellation": "cooperative",
   "supports_dynamic_obstacles": true
  },
  "ownership": {
@@ -65,6 +65,12 @@
     "type": "std_msgs/String",
     "topic": "/v8/chassis/status",
     "required": false
+   },
+   {
+    "name": "cancel",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/cancel",
+    "required": false
    }
   ],
   "outputs": [
@@ -88,6 +94,11 @@
     "type": "geometry_msgs/Twist",
     "topic": "/cmd_vel_raw",
     "command_topic": "/cmd_vel_raw"
+   },
+   {
+    "name": "cancel_ack",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/cancel_ack"
    }
   ]
  },

@@ -40,6 +40,16 @@ instances:
       path_status_topic: /v8/3d/global/status
       out_goal_topic: /v8/local/goal
       stop_topic: /lite3/teleop/app_cmd_vel
+      cancel_input_topic: /v8/bt/cancel
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+      policy_topic: /v8/bt/goal_policy
+      mission_topic: /v8/bt/goal_mission
+      localization_topic: /v8/local/localization_ok
+      cancel_ack_timeout: 2.0
+      recovery_mode: skip
+      retry_max: 1
+      retry_delay_s: 0.0
   - id: local
     component: v8.fw.local_native_raw
     namespace: /v8/3d/local
@@ -48,6 +58,8 @@ instances:
       map_topic: /v8_support_map
       command_topic: /v8/local/cmd_vel_3d
       twist_topic: /cmd_vel_raw
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
       # Stop-before-switch: hold zero from the desired gait change until the
       # chassis bridge reports the new gait active.
       gait_hold_enable: true
@@ -153,6 +165,11 @@ edges:
   - {from: gait_guard.gait, to: local.gait_desired}
   - {from: local.cmd_twist, to: mux.cmd}
   - {from: ultrasonic_guard.cap, to: mux.cap}
+  - {from: bt.cancel_cmd, to: local.cancel}
+  - {from: local.cancel_ack, to: bt.cancel_ack, feedback: true,
+     policy: {period_s: 0.0, max_age_s: 1.0}}
+  - {from: carrier.localization, to: bt.localization_ok, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
 external:
   - {to: ultrasonic_guard.us, type: std_msgs/Float64MultiArray, source: bridge}
   - {to: perception.cloud, type: sensor_msgs/PointCloud2, source: lidar}
@@ -160,3 +177,6 @@ external:
   - {to: bt.goal, type: geometry_msgs/PoseStamped, source: operator}
   - {to: local.chassis_status, type: std_msgs/String, source: chassis}
   - {to: mux.hold, type: std_msgs/Bool, source: supervisor}
+  - {to: bt.cancel, type: std_msgs/String, source: operator}
+  - {to: bt.goal_policy, type: std_msgs/String, source: operator}
+  - {to: bt.mission_goal, type: std_msgs/String, source: operator}

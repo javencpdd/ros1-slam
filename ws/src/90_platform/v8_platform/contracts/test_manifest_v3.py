@@ -77,12 +77,43 @@ class ManifestV3Tests(unittest.TestCase):
     def test_all_runtime_manifests_declare_their_domains_without_evidence_upgrade(self):
         paths = list((HERE.parent / 'framework/fixtures/manifests').glob('manifest_*.json'))
         paths += list((HERE.parent / 'framework/fixtures/verification_manifests').glob('manifest_*.json'))
-        self.assertEqual(len(paths), 52)
+        self.assertEqual(len(paths), 53)
         for path in paths:
             with self.subTest(file=path.name):
                 value = json.loads(path.read_text())
                 self.assertEqual(value['schema_version'], 3)
                 self.assertTrue(validate.validate('manifest', value))
+
+    def test_capability_feedback_modes_and_timeout_are_validated(self):
+        value = v3()
+        value['capability']['feedback_modes'] = ['pose', 'ack']
+        value['capability']['timeout_s'] = 5.0
+        validate.validate('manifest', value)
+
+        value = v3()
+        value['capability']['feedback_modes'] = ['pose', 'pose']
+        with self.assertRaises(validate.ContractError):
+            validate.validate('manifest', value)
+        value = v3()
+        value['capability']['feedback_modes'] = ['unknown']
+        with self.assertRaises(validate.ContractError):
+            validate.validate('manifest', value)
+        value = v3()
+        value['capability']['timeout_s'] = 0
+        with self.assertRaises(validate.ContractError):
+            validate.validate('manifest', value)
+        value = v3()
+        value['capability']['cancellation'] = 'sometimes'
+        with self.assertRaises(validate.ContractError):
+            validate.validate('manifest', value)
+
+    def test_shipped_bt_and_local_declare_cooperative_cancel(self):
+        root = Path(__file__).resolve().parents[1] / 'framework' / 'fixtures' / 'manifests'
+        for name in ('manifest_bt_console.json', 'manifest_local_native.json',
+                     'manifest_local_native_raw.json'):
+            value = json.loads((root / name).read_text(encoding='utf-8'))
+            validate.validate('manifest', value)
+            self.assertEqual(value['capability']['cancellation'], 'cooperative', name)
 
 
 if __name__ == '__main__':

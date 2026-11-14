@@ -9,7 +9,7 @@
  "dimensions": 3,
  "capability": {
   "kinematics": "quadruped_kinematic",
-  "cancellation": "none",
+  "cancellation": "cooperative",
   "supports_dynamic_obstacles": true
  },
  "ownership": {
@@ -52,6 +52,12 @@
     "name": "localization",
     "type": "std_msgs/Bool",
     "topic": "/v8/local/localization_ok"
+   },
+   {
+    "name": "cancel",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/cancel",
+    "required": false
    }
   ],
   "outputs": [
@@ -70,6 +76,11 @@
     "name": "status",
     "type": "std_msgs/String",
     "topic": "/v8/local/status"
+   },
+   {
+    "name": "cancel_ack",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/cancel_ack"
    }
   ]
  },

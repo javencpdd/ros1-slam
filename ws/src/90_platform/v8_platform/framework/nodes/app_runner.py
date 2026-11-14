@@ -26,6 +26,7 @@ import graph as graph_mod  # noqa: E402
 import render  # noqa: E402
 import runtime  # noqa: E402
 import execution  # noqa: E402
+import mission  # noqa: E402
 import safety  # noqa: E402
 
 
@@ -249,8 +250,9 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
     graph_path = resolved['graph_path']
     task = resolved['task_resolved']
     app = resolved['app']
+    mission_goals = mission.goals(task)
     start = tuple(float(v) for v in task['start']['xyz'])
-    goal = tuple(float(v) for v in task['goal']['xyz'])
+    goal = tuple(float(v) for v in mission_goals[0]['xyz'])
     master = None
     if real:
         # 真机窗口：沿用现场已在位的 master 与传感器；不得另起 roscore。
@@ -284,6 +286,8 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
                                    'path': str(resolved['map_path']),
                                    'sha256': resolved['map_sha256']},
               'task_resolved': task, 'start': list(start), 'goal': list(goal),
+              'goals': [list(float(v) for v in item['xyz']) for item in mission_goals],
+              'mission': len(mission_goals) > 1,
               'interactive': bool(interactive), 'rviz': bool(rviz),
               'checks': {}, 'path': None, 'local_trajectory': None,
               'carrier_final': None, 'markers': 0, 'error': None,
@@ -445,6 +449,8 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         start_pub = rospy.Publisher('/v8/3d/global/start', PoseStamped, queue_size=1, latch=True)
         goal_topic = app.get('goal_topic', '/v8/3d/global/goal')
         goal_pub = rospy.Publisher(goal_topic, PoseStamped, queue_size=1, latch=True)
+        mission_topic = app.get('mission_topic', '/v8/bt/goal_mission')
+        mission_pub = rospy.Publisher(mission_topic, String, queue_size=16, latch=True)
         obstacle_pub = rospy.Publisher('/v8/local/obstacles', String, queue_size=2)
         hold_pub = rospy.Publisher('/lite3/supervisor/hold', Bool, queue_size=2, latch=True)
 
@@ -457,7 +463,13 @@ def execute(app_path, out_path, port, with_gazebo, gui, timeout_s,
         time.sleep(1.0)
         start_pub.publish(signed(start))
         if not interactive:
-            goal_pub.publish(signed(goal))
+            if len(mission_goals) > 1:
+                for index, item in enumerate(mission_goals, 1):
+                    mission_pub.publish(String(data=mission.goal_wire(
+                        item, index, len(mission_goals))))
+                    time.sleep(0.05)
+            else:
+                goal_pub.publish(signed(goal))
         deadline = time.monotonic() + timeout_s
         arrived = False
         if interactive:

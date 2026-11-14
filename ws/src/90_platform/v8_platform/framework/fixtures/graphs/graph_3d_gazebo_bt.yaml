@@ -36,10 +36,23 @@ instances:
       path_status_topic: /v8/3d/global/status
       out_goal_topic: /v8/local/goal
       stop_topic: /lite3/teleop/app_cmd_vel
+      cancel_input_topic: /v8/bt/cancel
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+      policy_topic: /v8/bt/goal_policy
+      mission_topic: /v8/bt/goal_mission
+      localization_topic: /v8/local/localization_ok
+      cancel_ack_timeout: 2.0
+      recovery_mode: skip
+      retry_max: 1
+      retry_delay_s: 0.0
   - id: local
     component: v8.fw.local_native
     namespace: /v8/3d/local
     config: ../configs/local_native_app_mapped.yaml
+    params:
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
   - id: mux3d
     component: v8.fw.cmd3d_mux
     namespace: /v8/3d/mux
@@ -86,8 +99,16 @@ edges:
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: local.cmd, to: mux3d.cmd}
   - {from: mux3d.cmd, to: carrier.cmd}
+  - {from: bt.cancel_cmd, to: local.cancel}
+  - {from: local.cancel_ack, to: bt.cancel_ack, feedback: true,
+     policy: {period_s: 0.0, max_age_s: 1.0}}
+  - {from: carrier.localization, to: bt.localization_ok, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
 external:
   - {to: global.start, type: geometry_msgs/PoseStamped, source: operator}
   - {to: bt.goal, type: geometry_msgs/PoseStamped, source: operator}
   - {to: local.obstacles, type: std_msgs/String, source: perception}
   - {to: mux3d.hold, type: std_msgs/Bool, source: supervisor}
+  - {to: bt.cancel, type: std_msgs/String, source: operator}
+  - {to: bt.goal_policy, type: std_msgs/String, source: operator}
+  - {to: bt.mission_goal, type: std_msgs/String, source: operator}

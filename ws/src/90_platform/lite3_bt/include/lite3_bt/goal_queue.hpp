@@ -45,6 +45,15 @@ public:
     return true;
   }
 
+  // Retry/replan puts the failed goal back at the head so the next
+  // WaitForGoal tick reuses it instead of losing it behind newer goals.
+  bool push_front(const T& item)
+  {
+    if (items_.size() >= max_size_) return false;
+    items_.push_front(item);
+    return true;
+  }
+
   void clear() { items_.clear(); }
 
 private:

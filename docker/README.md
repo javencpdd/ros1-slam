@@ -27,7 +27,7 @@ x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 
 | `slam-host` | x86 host 网络联调模板，须核本机 master/IP；非 Lite3/M20 部署入口 |
 | `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图 |
 
-ROS 服务共用新的 x86 目标卷 `ros1_x86_sim_build/devel/install/profiles`，分别挂载 `ws/build`、`ws/devel`、`ws/install`、`ws/.profiles/x86_sim`，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`；2026-11-14 起 P2 独立仓挂到 `/opt/ros1-slam/sim_ws`（工作区）与 `/opt/ros1-slam/sim_repo`（仓根只读）。`sim` 与 `sim-viz` 还共用宿主端口，一次只选一套，不得并行重编同一份卷。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
+ROS 服务共用新的 x86 目标卷 `ros1_x86_sim_build/devel/install/profiles`，分别挂载 `ws/build`、`ws/devel`、`ws/install`、`ws/.profiles/x86_sim`，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`；2026-11-14 起 P2 独立仓挂到 `/opt/ros1-slam/sim_ws`（工作区）与 `/opt/ros1-slam/sim_repo`（仓根只读）。2026-11-14 起 `11313/11345` 只由 `sim-viz` 发布；`sim` 为 headless 门禁（`docker exec` 用容器内 master），不再抢宿主端口。两者共用 devel 卷，一次只编一套，运行可并存。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
 
 ## 二、构建
 

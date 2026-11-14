@@ -15,7 +15,12 @@
  "capability": {
   "kinematics": "not_applicable",
   "cancellation": "cooperative",
-  "supports_dynamic_obstacles": false
+  "supports_dynamic_obstacles": false,
+  "feedback_modes": [
+   "pose",
+   "ack",
+   "signal"
+  ]
  },
  "ownership": {
   "tf_edges": [],
@@ -49,6 +54,31 @@
     "name": "path_status",
     "type": "std_msgs/String",
     "topic": "/global_path/status"
+   },
+   {
+    "name": "goal_policy",
+    "type": "std_msgs/String",
+    "topic": "/v8/bt/goal_policy"
+   },
+   {
+    "name": "cancel",
+    "type": "std_msgs/String",
+    "topic": "/v8/bt/cancel"
+   },
+   {
+    "name": "cancel_ack",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/cancel_ack"
+   },
+   {
+    "name": "localization_ok",
+    "type": "std_msgs/Bool",
+    "topic": "/v8/local/localization_ok"
+   },
+   {
+    "name": "mission_goal",
+    "type": "std_msgs/String",
+    "topic": "/v8/bt/goal_mission"
    }
   ],
   "outputs": [
@@ -76,6 +106,11 @@
     "name": "stop",
     "type": "geometry_msgs/Twist",
     "topic": "/lite3/teleop/app_cmd_vel"
+   },
+   {
+    "name": "cancel_cmd",
+    "type": "std_msgs/String",
+    "topic": "/v8/local/cancel"
    }
   ]
  },

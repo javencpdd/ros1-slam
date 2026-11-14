@@ -1,0 +1,77 @@
+{
+  "app_rc": 6,
+  "case": "upstairs",
+  "files": {
+    "app": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/BT-ABC/upstairs-r1/summary.app.json",
+    "preflight": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/BT-ABC/upstairs-r1/summary.preflight.log",
+    "summary": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/BT-ABC/upstairs-r1/summary.json",
+    "trace": "/opt/ros1-slam/note/进度/v8/M5/26-11-14/evidence/BT-ABC/upstairs-r1/summary.trace.json"
+  },
+  "offline_plan": {
+    "map_sha256": "d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717",
+    "task": {
+      "frame": "map",
+      "goal": {
+        "surface_disambiguation": "explicit_hint",
+        "surface_hint": "upper_floor",
+        "tolerance": {
+          "position_m": 0.2,
+          "source": "operator",
+          "yaw_rad": 0.2
+        },
+        "xyz": [
+          -5.9,
+          1.1,
+          1.6
+        ],
+        "yaw": 0
+      },
+      "goal_reference": "support_surface",
+      "map": {
+        "map_id": "two_floor_nav",
+        "map_version": 1
+      },
+      "resolved": {
+        "goal_candidates": [
+          {
+            "surface_id": "ground_floor",
+            "z_reference": 0
+          },
+          {
+            "surface_id": "upper_floor",
+            "z_reference": 1.6
+          }
+        ],
+        "goal_surface": "upper_floor",
+        "goal_surface_z": 1.6,
+        "start_surface": "ground_floor",
+        "start_surface_z": 0
+      },
+      "schema_version": 1,
+      "start": {
+        "xyz": [
+          5.0,
+          1.0,
+          0
+        ],
+        "yaw": 0
+      },
+      "task_id": "two_floor_upstairs",
+      "timeout": {
+        "budget_s": 180,
+        "harness_deadline_s": 240,
+        "source": "operator"
+      }
+    }
+  },
+  "ok": false,
+  "preflight_rc": 0,
+  "schema": "two_floor_run/v1",
+  "validation_error": "unexpected app subprocess return code: 6",
+  "window": {
+    "content": "two_floor_nav case=upstairs orchestrator=bt task=GOAL-abc source=HEAD preflight=original_v8_required result=summary.json scope=kinematic_planning_only",
+    "directory": "note/进度/v8/M5/26-11-14/evidence/BT-ABC/upstairs-r1",
+    "id": "ABC-upstairs-r1",
+    "kind": "sim"
+  }
+}

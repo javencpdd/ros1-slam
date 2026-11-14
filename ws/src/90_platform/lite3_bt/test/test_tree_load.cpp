@@ -30,7 +30,8 @@ int main(int argc, char** argv)
   BT::BehaviorTreeFactory factory;
   const char* names[] = {"WaitForGoal", "RequestPath", "WaitForPath",
                          "FollowPath", "SendGoal", "WaitArrival",
-                         "Dwell", "Stop", "RecoveryStop"};
+                         "Dwell", "Stop", "Recovery", "CancelStop",
+                         "IsCancelled", "IsNotCancelled", "CheckLocalization"};
   for (const char* name : names) factory.registerNodeType<DummyAction>(name);
   try
   {

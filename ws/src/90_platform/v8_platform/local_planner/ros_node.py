@@ -16,6 +16,7 @@ import threading
 import time
 
 import local_native as native
+import cancel_policy
 import gait_switch
 from contact_egress import ContactEgress, simulation_contact_egress
 
@@ -453,7 +454,8 @@ def accept_goal(shared, message):
         return False
     p = message.pose.position
     shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
-                  stop_latched=False, stop_reason=None, last_error='ok')
+                  stop_latched=False, stop_reason=None, last_error='ok',
+                  cancel_requested=False, cancel_seq=0, cancel_reason=None)
     return True
 
 
@@ -710,6 +712,9 @@ class LocalControl:
                           map_version=snapshot.get('map_version'), plan_ms_max=snapshot.get('plan_ms_max'),
                           latched=bool(latched), plain_twist_frame='base_link_yaw_plane' if self.twist_pub else None,
                           capability_domain='experimental_kinematic_carrier' if self.profile is None else 'validated_robot_profile')
+            status['cancel'] = {'requested': bool(snapshot.get('cancel_requested')),
+                                'seq': snapshot.get('cancel_seq'),
+                                'reason': snapshot.get('cancel_reason')}
             # 诊断：三路输入的实时年龄（与 freshness 同一判据面），只在 freshness
             # 拒发时暴露哪个输入陈旧、陈旧多少。纯浮点运算，不引入新异常路径。
             if final_reason or reason:
@@ -796,6 +801,8 @@ def main():
     wall_watchdog_s = float(rospy.get_param('~wall_watchdog_s', max(5., 4. * config.validity_s)))
     if not math.isfinite(wall_watchdog_s) or wall_watchdog_s <= 0:
         raise ValueError('wall_watchdog_s must be positive')
+    cancel_topic = rospy.get_param('~cancel_topic', '/v8/local/cancel')
+    cancel_ack_topic = rospy.get_param('~cancel_ack_topic', '/v8/local/cancel_ack')
     gait_hold = None
     gait_desired_topic = chassis_status_topic = None
     if bool(rospy.get_param('~gait_hold_enable', False)):
@@ -822,6 +829,7 @@ def main():
               'result': None, 'result_at': -1e100, 'map': None, 'generation': 0,
               'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'last_error_detail': None,
               'obstacle_key': None,
+              'cancel_requested': False, 'cancel_seq': 0, 'cancel_reason': None,
               'pose_ros_stamp': 0., 'stop_latched': False, 'stop_reason': None,
               'plan_ms': None, 'plan_ms_max': 0., 'map_version': None,
               'gait_desired': None, 'chassis_gait': None, 'chassis_status_at': -1e100,
@@ -847,6 +855,7 @@ def main():
                                String, queue_size=1, latch=True)
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/v8/local/status'),
                                  String, queue_size=1, latch=True)
+    cancel_ack_pub = rospy.Publisher(cancel_ack_topic, String, queue_size=1)
 
     def on_clock(msg):
         with lock:
@@ -911,6 +920,21 @@ def main():
                 shared.update(result=None, generation=shared['generation'] + 1)
                 plan_wake.set()
 
+    def on_cancel(msg):
+        parsed = cancel_policy.parse_cancel(msg.data)
+        if parsed is None:
+            rospy.logwarn_throttle(5.0, '[local] malformed cancel ignored: %s', msg.data[:80])
+            return
+        seq, scope, reason = parsed
+        with lock:
+            shared.update(cancel_requested=True, cancel_seq=seq, cancel_reason=reason,
+                          goal=None, result=None,
+                          generation=shared['generation'] + 1,
+                          stop_latched=True, stop_reason='E_LOCAL_CANCELLED')
+            plan_wake.set()
+        cancel_ack_pub.publish(String(data=cancel_policy.ack_text(seq, 'cancelled')))
+        rospy.logwarn('[local] cancel accepted seq=%d scope=%s', seq, scope)
+
     def on_map(msg):
         try:
             value = map_from_message(msg.data)
@@ -932,6 +956,7 @@ def main():
     rospy.Subscriber(rospy.get_param('~obstacles_topic', '/v8/local/obstacles'), String, on_obstacles, queue_size=1)
     rospy.Subscriber(rospy.get_param('~localization_topic', '/v8/local/localization_ok'),
                      Bool, on_localization, queue_size=1)
+    rospy.Subscriber(cancel_topic, String, on_cancel, queue_size=1)
 
     if gait_hold is not None:
         def on_gait_desired(msg):

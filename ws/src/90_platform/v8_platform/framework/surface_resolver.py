@@ -63,40 +63,72 @@ def resolve_surface(map_value, x, y, z=None, hint=None):
     return surface, surface['z_reference']
 
 
-def resolve_task(task, map_value):
-    """Fill task start/goal z and surface hints; return (resolved_task, meta).
-
-    The input task may carry null z for start/goal. The output is a copy with
-    numeric z values and an added `resolved` metadata object. The original task
-    contract's strict 3D goal requirement is applied by the caller after this
-    convenience step.
-    """
-    resolved = copy.deepcopy(task)
-    start = resolved['start']['xyz']
-    sx, sy, sz = start
-    start_surface, start_z = resolve_surface(map_value, float(sx), float(sy),
-                                            None if sz is None else float(sz))
-    resolved['start']['xyz'] = [float(sx), float(sy), start_z]
-    goal = resolved['goal']
+def _resolve_goal(goal, map_value):
     gx, gy, gz = goal['xyz']
     hint = goal.get('surface_hint')
     mode = goal.get('surface_disambiguation', 'not_applicable')
     if mode == 'explicit_hint' and not hint:
         raise SurfaceResolutionError('E_TASK_SURFACE_AMBIGUOUS',
                                      'explicit_hint requires surface_hint')
-    goal_surface, goal_z = resolve_surface(
+    surface, goal_z = resolve_surface(
         map_value, float(gx), float(gy), None if gz is None else float(gz), hint)
-    resolved['goal']['xyz'] = [float(gx), float(gy), goal_z]
-    meta = {
-        'start_surface': start_surface['surface_id'],
-        'start_surface_z': start_z,
-        'goal_surface': goal_surface['surface_id'],
-        'goal_surface_z': goal_z,
-        'goal_candidates': _candidate_view(candidates_at(map_value, float(gx), float(gy))),
-    }
+    return [float(gx), float(gy), goal_z], surface, goal_z
+
+
+def resolve_task(task, map_value):
+    """Fill start/goal(s) z and surface hints; return (resolved_task, meta).
+
+    A task may carry one `goal` or an ordered `goals` list (inspection).  For a
+    multi-goal task, `goal` is set to the first leg for legacy consumers while
+    `goals` keeps the full order.  The strict 3D goal requirement is applied by
+    the caller after this convenience step.
+    """
+    resolved = copy.deepcopy(task)
+    goals_raw = task.get('goals')
+    if goals_raw is None and 'goal' not in task:
+        raise SurfaceResolutionError('E_TASK_GOAL', 'task needs goal or goals')
+    if goals_raw is not None:
+        if not isinstance(goals_raw, list) or not goals_raw:
+            raise SurfaceResolutionError('E_TASK_GOALS', 'goals must be a non-empty list')
+        if 'goal' in task and task['goal'] != goals_raw[0]:
+            raise SurfaceResolutionError('E_TASK_GOALS', 'goal and goals[0] disagree')
+    start = resolved['start']['xyz']
+    sx, sy, sz = start
+    start_surface, start_z = resolve_surface(map_value, float(sx), float(sy),
+                                            None if sz is None else float(sz))
+    resolved['start']['xyz'] = [float(sx), float(sy), start_z]
+    meta = {'start_surface': start_surface['surface_id'], 'start_surface_z': start_z}
+    if goals_raw is None:
+        goal_xyz, goal_surface, goal_z = _resolve_goal(resolved['goal'], map_value)
+        resolved['goal']['xyz'] = goal_xyz
+        meta.update({
+            'goal_surface': goal_surface['surface_id'],
+            'goal_surface_z': goal_z,
+            'goal_candidates': _candidate_view(candidates_at(map_value, goal_xyz[0], goal_xyz[1])),
+        })
+    else:
+        resolved_goals, goal_meta = [], []
+        for index, item in enumerate(resolved['goals']):
+            goal_xyz, goal_surface, goal_z = _resolve_goal(item, map_value)
+            resolved_item = copy.deepcopy(item)
+            resolved_item['xyz'] = goal_xyz
+            resolved_goals.append(resolved_item)
+            goal_meta.append({
+                'index': index + 1,
+                'surface': goal_surface['surface_id'],
+                'surface_z': goal_z,
+                'candidates': _candidate_view(candidates_at(map_value, goal_xyz[0], goal_xyz[1])),
+            })
+        resolved['goals'] = resolved_goals
+        resolved['goal'] = copy.deepcopy(resolved_goals[0])
+        meta.update({
+            'goal_surface': goal_meta[0]['surface'],
+            'goal_surface_z': goal_meta[0]['surface_z'],
+            'goal_candidates': goal_meta[0]['candidates'],
+            'goals': goal_meta,
+        })
     resolved['resolved'] = meta
     return resolved, meta
-
 
 def pick_goal(map_value, point, hint=None):
     """Operator click -> (x,y,z,surface) or an explicit ambiguity error."""
