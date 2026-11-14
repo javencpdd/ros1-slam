@@ -12,7 +12,7 @@ import carrier_kinematics
 
 
 def scene_map():
-    path = PLATFORM.parents[1] / '95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json'
+    path = PLATFORM.parent / 'lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json'
     return json.loads(path.read_text())
 
 

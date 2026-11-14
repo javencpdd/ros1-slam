@@ -4,6 +4,7 @@ import argparse
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -11,13 +12,17 @@ import xml.etree.ElementTree as ET
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[5]
-PLATFORM = ROOT / 'ws/src/90_platform/v8_platform'
+_P2_ROOT = HERE.parents[5]
+_P1_ROOT = Path(os.environ.get('V8_REPO_ROOT') or (_P2_ROOT.parent / 'ros1-slam'))
+if os.environ.get('V8_REPO_ROOT') is None and Path('/opt/ros1-slam/ws/src/90_platform/v8_platform').is_dir():
+    _P1_ROOT = Path('/opt/ros1-slam')
+ROOT = _P1_ROOT
+PLATFORM = Path(os.environ.get('V8_PLATFORM_ROOT') or (ROOT / 'ws/src/90_platform/v8_platform'))
 for folder in ('representation', 'planner', 'local_planner', 'contracts', 'framework'):
     sys.path.insert(0, str(PLATFORM / folder))
 import support_map
 
-RELATIVE = 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav'
+RELATIVE = os.environ.get('V8_SIM_RELATIVE', 'sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav')
 RESOLUTION = .2
 RADIUS = .30
 HEIGHT = .50

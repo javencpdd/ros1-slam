@@ -1,5 +1,6 @@
 """Parity guard: the sim's frozen support-cell copy matches the platform contract."""
 import importlib.util
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -8,7 +9,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'scripts'))
 import support_cells  # noqa: E402
 
-PLATFORM = HERE.parents[2] / '90_platform' / 'v8_platform' / 'representation'
+ROOT = Path(os.environ.get('V8_REPO_ROOT') or (HERE.parents[3].parent / 'ros1-slam')).resolve()
+PLATFORM = ROOT / 'ws' / 'src' / '90_platform' / 'v8_platform' / 'representation'
 
 
 def platform_support_map():
