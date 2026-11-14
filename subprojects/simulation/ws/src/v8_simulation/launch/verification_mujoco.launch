@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="v8_simulation" type="mujoco_truth.py" name="v8_mujoco_truth" output="screen">
+    <param name="xml" value="$(find v8_simulation)/fixtures/drop_world.xml"/>
+    <param name="truth_topic" value="/v8/verify/truth_mj"/>
+    <param name="rate_hz" value="10.0"/>
+    <param name="model_name" value="probe"/>
+  </node>
+</launch>

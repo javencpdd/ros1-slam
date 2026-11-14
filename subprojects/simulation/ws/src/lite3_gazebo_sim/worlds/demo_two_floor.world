@@ -1,0 +1,165 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="demo_two_floor">
+    <!-- Demo line v1 controlled two-floor sensor/SLAM world.
+         Not a navigation map; not formal. The robot is moved by GT survey/teleport,
+         so this world tests SLAM only, not gait/contact/kinematics. -->
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+    <model name="demo_two_floor_geometry">
+      <static>true</static>
+    <link name="wall_n">
+      <pose>0.0000 4.1000 1.4000 0 0 0</pose>
+      <collision name="wall_n_col"><geometry><box><size>12.4000 0.2000 2.8000</size></box></geometry></collision>
+      <visual name="wall_n_vis"><geometry><box><size>12.4000 0.2000 2.8000</size></box></geometry><material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.55 0.58 0.62 1</diffuse></material></visual>
+    </link>
+    <link name="wall_s">
+      <pose>0.0000 -4.1000 1.4000 0 0 0</pose>
+      <collision name="wall_s_col"><geometry><box><size>12.4000 0.2000 2.8000</size></box></geometry></collision>
+      <visual name="wall_s_vis"><geometry><box><size>12.4000 0.2000 2.8000</size></box></geometry><material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.55 0.58 0.62 1</diffuse></material></visual>
+    </link>
+    <link name="wall_e">
+      <pose>6.1000 0.0000 1.4000 0 0 0</pose>
+      <collision name="wall_e_col"><geometry><box><size>0.2000 8.4000 2.8000</size></box></geometry></collision>
+      <visual name="wall_e_vis"><geometry><box><size>0.2000 8.4000 2.8000</size></box></geometry><material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.55 0.58 0.62 1</diffuse></material></visual>
+    </link>
+    <link name="wall_w">
+      <pose>-6.1000 0.0000 1.4000 0 0 0</pose>
+      <collision name="wall_w_col"><geometry><box><size>0.2000 8.4000 2.8000</size></box></geometry></collision>
+      <visual name="wall_w_vis"><geometry><box><size>0.2000 8.4000 2.8000</size></box></geometry><material><ambient>0.55 0.58 0.62 1</ambient><diffuse>0.55 0.58 0.62 1</diffuse></material></visual>
+    </link>
+    <link name="mezz">
+      <pose>-3.0000 0.0000 1.5000 0 0 0</pose>
+      <collision name="mezz_col"><geometry><box><size>6.0000 8.0000 0.2000</size></box></geometry></collision>
+      <visual name="mezz_vis"><geometry><box><size>6.0000 8.0000 0.2000</size></box></geometry><material><ambient>0.45 0.50 0.55 1</ambient><diffuse>0.45 0.50 0.55 1</diffuse></material></visual>
+    </link>
+    <link name="step1">
+      <pose>2.8500 0.6000 0.0800 0 0 0</pose>
+      <collision name="step1_col"><geometry><box><size>0.3000 1.2000 0.1600</size></box></geometry></collision>
+      <visual name="step1_vis"><geometry><box><size>0.3000 1.2000 0.1600</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step2">
+      <pose>2.5500 0.6000 0.1600 0 0 0</pose>
+      <collision name="step2_col"><geometry><box><size>0.3000 1.2000 0.3200</size></box></geometry></collision>
+      <visual name="step2_vis"><geometry><box><size>0.3000 1.2000 0.3200</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step3">
+      <pose>2.2500 0.6000 0.2400 0 0 0</pose>
+      <collision name="step3_col"><geometry><box><size>0.3000 1.2000 0.4800</size></box></geometry></collision>
+      <visual name="step3_vis"><geometry><box><size>0.3000 1.2000 0.4800</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step4">
+      <pose>1.9500 0.6000 0.3200 0 0 0</pose>
+      <collision name="step4_col"><geometry><box><size>0.3000 1.2000 0.6400</size></box></geometry></collision>
+      <visual name="step4_vis"><geometry><box><size>0.3000 1.2000 0.6400</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step5">
+      <pose>1.6500 0.6000 0.4000 0 0 0</pose>
+      <collision name="step5_col"><geometry><box><size>0.3000 1.2000 0.8000</size></box></geometry></collision>
+      <visual name="step5_vis"><geometry><box><size>0.3000 1.2000 0.8000</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step6">
+      <pose>1.3500 0.6000 0.4800 0 0 0</pose>
+      <collision name="step6_col"><geometry><box><size>0.3000 1.2000 0.9600</size></box></geometry></collision>
+      <visual name="step6_vis"><geometry><box><size>0.3000 1.2000 0.9600</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step7">
+      <pose>1.0500 0.6000 0.5600 0 0 0</pose>
+      <collision name="step7_col"><geometry><box><size>0.3000 1.2000 1.1200</size></box></geometry></collision>
+      <visual name="step7_vis"><geometry><box><size>0.3000 1.2000 1.1200</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step8">
+      <pose>0.7500 0.6000 0.6400 0 0 0</pose>
+      <collision name="step8_col"><geometry><box><size>0.3000 1.2000 1.2800</size></box></geometry></collision>
+      <visual name="step8_vis"><geometry><box><size>0.3000 1.2000 1.2800</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step9">
+      <pose>0.4500 0.6000 0.7200 0 0 0</pose>
+      <collision name="step9_col"><geometry><box><size>0.3000 1.2000 1.4400</size></box></geometry></collision>
+      <visual name="step9_vis"><geometry><box><size>0.3000 1.2000 1.4400</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="step10">
+      <pose>0.1500 0.6000 0.8000 0 0 0</pose>
+      <collision name="step10_col"><geometry><box><size>0.3000 1.2000 1.6000</size></box></geometry></collision>
+      <visual name="step10_vis"><geometry><box><size>0.3000 1.2000 1.6000</size></box></geometry><material><ambient>0.62 0.45 0.25 1</ambient><diffuse>0.62 0.45 0.25 1</diffuse></material></visual>
+    </link>
+    <link name="rail_n">
+      <pose>1.5000 1.2500 1.0000 0 0 0</pose>
+      <collision name="rail_n_col"><geometry><box><size>3.0000 0.1000 2.0000</size></box></geometry></collision>
+      <visual name="rail_n_vis"><geometry><box><size>3.0000 0.1000 2.0000</size></box></geometry><material><ambient>0.25 0.27 0.30 1</ambient><diffuse>0.25 0.27 0.30 1</diffuse></material></visual>
+    </link>
+    <link name="rail_s">
+      <pose>1.5000 -0.0500 1.0000 0 0 0</pose>
+      <collision name="rail_s_col"><geometry><box><size>3.0000 0.1000 2.0000</size></box></geometry></collision>
+      <visual name="rail_s_vis"><geometry><box><size>3.0000 0.1000 2.0000</size></box></geometry><material><ambient>0.25 0.27 0.30 1</ambient><diffuse>0.25 0.27 0.30 1</diffuse></material></visual>
+    </link>
+    <link name="up_rail_n">
+      <pose>0.0000 2.6000 2.1000 0 0 0</pose>
+      <collision name="up_rail_n_col"><geometry><box><size>0.1000 2.8000 1.0000</size></box></geometry></collision>
+      <visual name="up_rail_n_vis"><geometry><box><size>0.1000 2.8000 1.0000</size></box></geometry><material><ambient>0.25 0.27 0.30 1</ambient><diffuse>0.25 0.27 0.30 1</diffuse></material></visual>
+    </link>
+    <link name="up_rail_s">
+      <pose>0.0000 -2.6000 2.1000 0 0 0</pose>
+      <collision name="up_rail_s_col"><geometry><box><size>0.1000 2.8000 1.0000</size></box></geometry></collision>
+      <visual name="up_rail_s_vis"><geometry><box><size>0.1000 2.8000 1.0000</size></box></geometry><material><ambient>0.25 0.27 0.30 1</ambient><diffuse>0.25 0.27 0.30 1</diffuse></material></visual>
+    </link>
+    <link name="gf_table1">
+      <pose>3.8000 -2.8000 0.5000 0 0 0</pose>
+      <collision name="gf_table1_col"><geometry><box><size>1.2000 0.7000 1.0000</size></box></geometry></collision>
+      <visual name="gf_table1_vis"><geometry><box><size>1.2000 0.7000 1.0000</size></box></geometry><material><ambient>0.20 0.45 0.55 1</ambient><diffuse>0.20 0.45 0.55 1</diffuse></material></visual>
+    </link>
+    <link name="gf_table2">
+      <pose>5.0000 2.6000 0.5000 0 0 0</pose>
+      <collision name="gf_table2_col"><geometry><box><size>1.0000 0.8000 1.0000</size></box></geometry></collision>
+      <visual name="gf_table2_vis"><geometry><box><size>1.0000 0.8000 1.0000</size></box></geometry><material><ambient>0.55 0.25 0.20 1</ambient><diffuse>0.55 0.25 0.20 1</diffuse></material></visual>
+    </link>
+    <link name="gf_cab1">
+      <pose>1.0000 -3.2000 0.7000 0 0 0</pose>
+      <collision name="gf_cab1_col"><geometry><box><size>0.8000 0.8000 1.4000</size></box></geometry></collision>
+      <visual name="gf_cab1_vis"><geometry><box><size>0.8000 0.8000 1.4000</size></box></geometry><material><ambient>0.30 0.55 0.30 1</ambient><diffuse>0.30 0.55 0.30 1</diffuse></material></visual>
+    </link>
+    <link name="gf_cab2">
+      <pose>-4.8000 2.7000 0.7000 0 0 0</pose>
+      <collision name="gf_cab2_col"><geometry><box><size>0.7000 0.9000 1.4000</size></box></geometry></collision>
+      <visual name="gf_cab2_vis"><geometry><box><size>0.7000 0.9000 1.4000</size></box></geometry><material><ambient>0.50 0.40 0.60 1</ambient><diffuse>0.50 0.40 0.60 1</diffuse></material></visual>
+    </link>
+    <link name="gf_col1">
+      <pose>5.6000 -3.6000 1.4000 0 0 0</pose>
+      <collision name="gf_col1_col"><geometry><box><size>0.3000 0.3000 2.8000</size></box></geometry></collision>
+      <visual name="gf_col1_vis"><geometry><box><size>0.3000 0.3000 2.8000</size></box></geometry><material><ambient>0.65 0.65 0.70 1</ambient><diffuse>0.65 0.65 0.70 1</diffuse></material></visual>
+    </link>
+    <link name="gf_col2">
+      <pose>5.6000 3.6000 1.4000 0 0 0</pose>
+      <collision name="gf_col2_col"><geometry><box><size>0.3000 0.3000 2.8000</size></box></geometry></collision>
+      <visual name="gf_col2_vis"><geometry><box><size>0.3000 0.3000 2.8000</size></box></geometry><material><ambient>0.65 0.65 0.70 1</ambient><diffuse>0.65 0.65 0.70 1</diffuse></material></visual>
+    </link>
+    <link name="uf_table1">
+      <pose>-1.2000 -2.6000 2.0000 0 0 0</pose>
+      <collision name="uf_table1_col"><geometry><box><size>1.2000 0.7000 0.8000</size></box></geometry></collision>
+      <visual name="uf_table1_vis"><geometry><box><size>1.2000 0.7000 0.8000</size></box></geometry><material><ambient>0.65 0.55 0.20 1</ambient><diffuse>0.65 0.55 0.20 1</diffuse></material></visual>
+    </link>
+    <link name="uf_cab1">
+      <pose>-3.2000 2.8000 2.1000 0 0 0</pose>
+      <collision name="uf_cab1_col"><geometry><box><size>0.8000 0.8000 1.0000</size></box></geometry></collision>
+      <visual name="uf_cab1_vis"><geometry><box><size>0.8000 0.8000 1.0000</size></box></geometry><material><ambient>0.35 0.55 0.65 1</ambient><diffuse>0.35 0.55 0.65 1</diffuse></material></visual>
+    </link>
+    <link name="uf_cab2">
+      <pose>-5.0000 -2.8000 2.1000 0 0 0</pose>
+      <collision name="uf_cab2_col"><geometry><box><size>0.8000 0.8000 1.0000</size></box></geometry></collision>
+      <visual name="uf_cab2_vis"><geometry><box><size>0.8000 0.8000 1.0000</size></box></geometry><material><ambient>0.55 0.35 0.45 1</ambient><diffuse>0.55 0.35 0.45 1</diffuse></material></visual>
+    </link>
+    <link name="uf_col1">
+      <pose>-5.6000 0.2000 2.4000 0 0 0</pose>
+      <collision name="uf_col1_col"><geometry><box><size>0.3000 0.3000 1.6000</size></box></geometry></collision>
+      <visual name="uf_col1_vis"><geometry><box><size>0.3000 0.3000 1.6000</size></box></geometry><material><ambient>0.65 0.65 0.70 1</ambient><diffuse>0.65 0.65 0.70 1</diffuse></material></visual>
+    </link>
+    <link name="uf_col2">
+      <pose>-1.0000 3.4000 2.4000 0 0 0</pose>
+      <collision name="uf_col2_col"><geometry><box><size>0.3000 0.3000 1.6000</size></box></geometry></collision>
+      <visual name="uf_col2_vis"><geometry><box><size>0.3000 0.3000 1.6000</size></box></geometry><material><ambient>0.65 0.65 0.70 1</ambient><diffuse>0.65 0.65 0.70 1</diffuse></material></visual>
+    </link>
+    </model>
+    <physics type="ode"><max_step_size>0.001</max_step_size><real_time_update_rate>1000</real_time_update_rate></physics>
+    <scene><ambient>0.5 0.5 0.5 1</ambient><background>0.7 0.7 0.7 1</background><shadows>1</shadows></scene>
+  </world>
+</sdf>
