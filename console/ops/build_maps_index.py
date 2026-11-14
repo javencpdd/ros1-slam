@@ -41,6 +41,16 @@ _P3 = CONSOLE.parent
 REPO = Path(os.environ.get('V8_REPO_ROOT') or (_P3.parent / 'ros1-slam')).resolve()
 SIM = Path(os.environ.get('V8_SIM_ROOT') or (_P3.parent / 'ros1-slam-simulation')).resolve()
 UI = CONSOLE / 'ui'
+
+
+def rel(path):
+    path = Path(path)
+    for base in (REPO, SIM, CONSOLE):
+        try:
+            return str(path.relative_to(base))
+        except ValueError:
+            pass
+    return str(path)
 OUT = UI / 'assets/maps'
 BASE = (7, 12, 18)
 
@@ -192,7 +202,7 @@ def grid_preview(yaml_path: Path, map_id: str, image_path: Path):
         'height': height,
         'resolution': res,
         'origin': [round(origin[0], 4), round(origin[1], 4), round(origin[2], 4)],
-        'files': [str(yaml_path.relative_to(REPO)), str(image_path.relative_to(REPO))],
+        'files': [rel(yaml_path), rel(image_path)],
     }
 
 
@@ -283,7 +293,7 @@ def support_preview(path: Path, map_id: str):
         'origin': [round(float(origin[0]), 4), round(float(origin[1]), 4), round(float(origin[2]), 4)],
         'surfaces': surfaces,
         'frame': data.get('frame'),
-        'files': [str(path.relative_to(REPO))],
+        'files': [rel(path)],
     }
 
 
@@ -311,7 +321,7 @@ def maps():
         info = cloud_preview(pcd, name)
         if info:
             found.append({'id': name, 'label': label, 'frame': 'map',
-                          'notes': notes, 'files': [str(pcd.relative_to(REPO))], **info})
+                          'notes': notes, 'files': [rel(pcd)], **info})
     support_paths = [
         (SIM / 'ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json',
          'two_floor_nav', 'two_floor_nav 支撑图（3D）',
@@ -343,7 +353,7 @@ def maps():
                 meta = json.loads(meta_path.read_text(encoding='utf-8'))
             except ValueError:
                 meta = {}
-        info['files'] = [str(yaml_path.relative_to(REPO)), str(image_path.relative_to(REPO))]
+        info['files'] = [rel(yaml_path), rel(image_path)]
         found.append({'id': map_id, 'label': '重栅格化 / ' + yaml_path.parent.name,
                       'frame': 'map', 'world': meta.get('source_pcd', '—'),
                       'notes': '由控制台重栅格化；源 ' + meta.get('source_pcd', '—'),
@@ -359,7 +369,7 @@ def maps():
             found.append({'id': map_id, 'label': '导入 / ' + pcd.stem,
                           'frame': 'map', 'world': '—',
                           'notes': '从 data/maps/imported/ 导入的点云',
-                          'files': [str(pcd.relative_to(REPO))], **info})
+                          'files': [rel(pcd)], **info})
     for item in found:
         binding = bindings.get(item['id'])
         if binding:

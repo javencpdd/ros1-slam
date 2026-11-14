@@ -11,6 +11,8 @@ test:
 	$(PYTHON) -B $(CONSOLE)/test_agent_contract.py
 	$(PYTHON) -B $(CONSOLE)/test_bt_config.py
 	node $(CONSOLE)/test_mission_events.js
+	$(PYTHON) -B $(CONSOLE)/ops/test_world_registry.py
+	$(PYTHON) -B $(CONSOLE)/ops/test_world_scenes.py
 
 release:
 	mkdir -p $(ROOT)/dist

@@ -345,7 +345,8 @@ def build_scene(path):
     return {
         'schema': 'v8-world-scene/v1',
         'world': world.get('name') or path.stem,
-        'source': str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path),
+        'source': (str(path.relative_to(SIM)) if path.is_relative_to(SIM)
+                   else str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)),
         'generated': datetime.datetime.now().astimezone().isoformat(timespec='seconds'),
         'bounds': bounds,
         'ground': {'z': 0.0},
