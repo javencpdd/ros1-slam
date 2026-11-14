@@ -29,7 +29,7 @@ REAL = os.path.join(PKG, 'config/bt_console_real.yaml.template')
 
 KEY_RE = re.compile(r'pnh\.param<[^>]+>\("([A-Za-z0-9_]+)"')
 FLAT_RE = re.compile(r'^([A-Za-z0-9_]+):\s*(.*)$')
-STRUCTURAL = {'queue_max'}
+STRUCTURAL = {'queue_max', 'cancel_ack_timeout', 'retry_max', 'retry_delay_s'}
 
 failures = []
 

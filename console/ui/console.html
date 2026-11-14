@@ -84,7 +84,7 @@
         </div>
         <div class="notice">急停持续向 <code>/lite3/safety/estop_cmd_vel</code> 发零速并取消 2D 目标；
           解除前遥控锁定。页面隐藏/断开时停发 app 源，mux 按 0.5 s 超时回落。
-          3D 任务没有独立 cancel 服务，取消走急停/作业单。</div>
+          3D 任务取消发 <code>/v8/bt/cancel</code>（String，seq:all:原因），BT 下发执行端 cancel 并等 ack；急停仍独立停车。</div>
       </div>
       <details class="cloud" id="cloud-wrap">
         <summary id="cloud-summary">3D 场景（3D 全链可视化 / 点云 / 实体世界；拖拽旋转 / 滚轮缩放）</summary>
@@ -117,6 +117,7 @@
         <button id="send" class="primary">发送选中</button>
         <button id="send-all">按顺序发送全部</button>
         <button id="bt-send">交给行为树</button>
+        <button id="bt-cancel" class="danger">取消 3D 任务</button>
         <button id="cancel">取消（2D）</button>
         <button id="clear">清空</button>
         <button id="overlay-toggle" class="on">覆盖层：路径/位姿</button>
@@ -237,6 +238,7 @@
       <div class="kv"><span>MBF 状态</span><b id="m-mbf">—</b></div>
       <div class="kv"><span>路径点</span><b id="m-path">—</b></div>
       <div class="kv"><span>任务</span><b id="m-goal">空闲</b></div>
+          <div class="kv"><span>BT 任务</span><b id="m-bt-mission">—</b></div>
       <div class="kv"><span>BT 阶段</span><b id="m-bt-stage">—</b></div>
       <div class="bt-stage" id="bt-stage"></div>
       <table class="rates" id="rates"><thead><tr><th>话题</th><th>实测</th><th>期望</th></tr></thead><tbody></tbody></table>

@@ -15,7 +15,7 @@
     view3dJump: $('view-3d-jump'),
     overlayToggle: $('overlay-toggle'), mMbf: $('m-mbf'),
     mPath: $('m-path'), mGoal: $('m-goal'),
-    mBtStage: $('m-bt-stage'), btStage: $('bt-stage'),
+    mBtStage: $('m-bt-stage'), mBtMission: $('m-bt-mission'), btStage: $('bt-stage'),
     mapGuard: $('map-guard'), mapGuardState: $('map-guard-state'),
     goalTimeout: $('goal-timeout'), missionContinue: $('mission-continue'),
     missionExportJson: $('mission-export-json'), missionExportCsv: $('mission-export-csv'),
@@ -25,7 +25,8 @@
     editValue: $('edit-value'), editState: $('edit-state'),
     goalYaw: $('goal-yaw'), canvas: $('map-canvas'), mapMeta: $('map-meta'),
     modeGoal: $('mode-goal'), modeStart: $('mode-start'), send: $('send'),
-    sendAll: $('send-all'), btSend: $('bt-send'), cancel: $('cancel'), clear: $('clear'),
+    sendAll: $('send-all'), btSend: $('bt-send'), btCancel: $('bt-cancel'),
+    cancel: $('cancel'), clear: $('clear'),
     goals: $('goals').querySelector('tbody'), log: $('log'),
     rates: $('rates').querySelector('tbody'), mBridge: $('m-bridge'), mMission: $('m-mission'),
     mMaster: $('m-master'), mTf: $('m-tf'), tfTree: $('tf-tree'),
@@ -63,6 +64,8 @@
     ['/initialpose', 'geometry_msgs/PoseWithCovarianceStamped'],
     ['/v8/3d/global/start', 'geometry_msgs/PoseStamped'],
     ['/v8/bt/goal', 'geometry_msgs/PoseStamped'],
+    ['/v8/bt/cancel', 'std_msgs/String'],
+    ['/v8/bt/goal_mission', 'std_msgs/String'],
     ['/lite3/teleop/app_cmd_vel', 'geometry_msgs/Twist'],
     ['/lite3/safety/estop_cmd_vel', 'geometry_msgs/Twist'],
   ];
@@ -1844,6 +1847,17 @@
     if (status.arrival_signal) parts.push('arrived');
     if (status.event) parts.push(status.event);
     el.mBtStage.textContent = parts.join(' ｜ ');
+    const missionParts = [];
+    if (status.goal_index || status.goals_total)
+      missionParts.push('目标 ' + (status.goal_index || 0) + '/' + (status.goals_total || 0));
+    if (status.attempts) missionParts.push('尝试 ' + status.attempts);
+    if (status.recovery_mode) missionParts.push('恢复 ' + status.recovery_mode);
+    if (status.cancel_requested) missionParts.push('取消中');
+    if (status.cancel_ack) missionParts.push('取消回执 ' + status.cancel_ack);
+    if (status.localization_check)
+      missionParts.push('定位 ' + (status.localization_ok ? 'OK' : '丢失'));
+    if (el.mBtMission)
+      el.mBtMission.textContent = missionParts.length ? missionParts.join(' ｜ ') : '—';
   }
 
   function updatePathState() {
@@ -2109,6 +2123,12 @@
       if (publishGoal(goal)) {
         renderGoals();
         log('已交给行为树（等待到点/超时）', 'ok');
+      }
+    });
+    if (el.btCancel) el.btCancel.addEventListener('click', () => {
+      const seq = Math.floor(Date.now() / 1000);
+      if (pub('/v8/bt/cancel', 'std_msgs/String', { data: seq + ':all:ui' })) {
+        log('已发 BT 取消（seq ' + seq + '），等待执行端 ack', 'ok');
       }
     });
     el.cancel.addEventListener('click', () => {

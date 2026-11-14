@@ -36,6 +36,14 @@
       outcome_seq: Number(value.outcome_seq) || 0,
       planner_mode: typeof value.planner_mode === 'string' ? value.planner_mode : '',
       arrival_signal: value.arrival_signal === true,
+      cancel_requested: value.cancel_requested === true,
+      cancel_ack: typeof value.cancel_ack === 'string' ? value.cancel_ack : '',
+      attempts: Number(value.attempts) || 0,
+      recovery_mode: typeof value.recovery_mode === 'string' ? value.recovery_mode : '',
+      goal_index: Number(value.goal_index) || 0,
+      goals_total: Number(value.goals_total) || 0,
+      localization_ok: value.localization_ok !== false,
+      localization_check: value.localization_check === true,
       nodes: nodes
     };
   }
@@ -48,6 +56,15 @@
      guards are needed to avoid a stale success or a double advance. */
   function classify(status, sentSeq, handledSeq) {
     if (!status) return { terminal: false, reason: 'no_status' };
+
+    if (status.outcome === 'cancelled' || status.outcome === 'cancel_unacked' ||
+        status.outcome === 'cancel_ack_fail') {
+      var cancelSeq = status.outcome_seq > 0 ? status.outcome_seq : status.current_seq;
+      if (!(cancelSeq > sentSeq)) return { terminal: false, reason: 'stale_seq' };
+      if (cancelSeq === handledSeq) return { terminal: false, reason: 'already_handled' };
+      return { terminal: true, ok: false,
+               reason: 'BT 已取消（' + status.outcome + '）', seq: cancelSeq };
+    }
 
     // Preferred path: the BT records a persistent outcome per goal.  A plain
     // `event` is overwritten by dwell/stop within one tick, so a 0.5 s status

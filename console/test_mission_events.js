@@ -32,6 +32,24 @@ check(withNodes && withNodes.nodes.length === 1 &&
       withNodes.nodes[0].status === 'RUNNING', 'bt nodes parsed and malformed dropped');
 check(withNodes && withNodes.planner_mode === 'signal' &&
       withNodes.arrival_signal === true, 'planner mode and arrival flag parsed');
+const cancelStatus = M.parseStatus(JSON.stringify({
+  event: 'cancelled', current_seq: 4, goal_seq: 4, outcome: 'cancelled',
+  outcome_seq: 4, cancel_requested: false, cancel_ack: 'cancelled',
+  attempts: 1, recovery_mode: 'retry', goal_index: 2, goals_total: 3,
+  localization_ok: false, localization_check: true,
+}));
+check(cancelStatus && cancelStatus.outcome === 'cancelled' &&
+      cancelStatus.cancel_ack === 'cancelled' && cancelStatus.attempts === 1 &&
+      cancelStatus.goal_index === 2 && cancelStatus.goals_total === 3 &&
+      cancelStatus.localization_ok === false &&
+      cancelStatus.localization_check === true, 'cancel/mission fields parsed');
+const cancelVerdict = M.classify(cancelStatus, 3, null);
+check(cancelVerdict.terminal === true && cancelVerdict.ok === false &&
+      cancelVerdict.seq === 4, 'fresh cancelled terminal-failure');
+check(M.classify(cancelStatus, 4, null).reason === 'stale_seq',
+      'cancel with unchanged seq is stale');
+check(M.classify(cancelStatus, 3, 4).reason === 'already_handled',
+      'cancel outcome handled once');
 check(M.parseStatus('') === null, 'empty status refused');
 check(M.parseStatus('{oops') === null, 'malformed JSON refused');
 check(M.parseStatus('null') === null, 'JSON null refused');
