@@ -1,6 +1,6 @@
 # 架构附录与图源
 
-> 最新更新时间：2026-11-13 CST。下列建模材料始于 2026-10-30；10-30/11-06 批次只核对用途和文件在位，未重跑其中实验或重绘图像。2026-11-13 新增三项目边界视图，2026-11-12 保留 SCAN＋BT 控制台全链时点视图。旧批次件不回改，只标时点。
+> 最新更新时间：2026-11-15 CST。下列建模材料始于 2026-10-30；10-30/11-06 批次只核对用途和文件在位，未重跑其中实验或重绘图像。2026-11-15 新增主仓+subprojects 与 BT 编排视图；2026-11-13/11-14 件保留时点，不回改。
 
 **先读当前架构**：[项目架构与目录](../../note/架构/项目架构与目录.md)。它集中说明传统 launch 与 v8 app/graph 两条装配链、真实源码入口、两种 mux 和工作机边界。当前排程及能力状态见[执行队列](../../note/计划书v8.1/23_v8.1任务队列.md)与[进度入口](../../note/进度/README.md)。
 
@@ -8,7 +8,9 @@
 
 | 补充材料 | 用途 |
 | --- | --- |
-| [current-2026-11-13.md](current-2026-11-13.md) | ★当前★ 三项目边界、11-12 之后更新、全量源码分层/命令链/功能盘点、复核发现（[证据索引](current-2026-11-13.evidence.md)） |
+| [current-2026-11-15.md](current-2026-11-15.md) | ★当前★ 单一主仓+subprojects、BT 取消/恢复/多目标、标准接口、门禁现状与设计评价（[证据索引](current-2026-11-15.evidence.md)） |
+| [current-2026-11-14.md](current-2026-11-14.md) | 11-14 三仓物理拆分与 BT A/B/C 切片时点 |
+| [current-2026-11-13.md](current-2026-11-13.md) | 11-13 三项目边界、全量源码分层/命令链/功能盘点（[证据索引](current-2026-11-13.evidence.md)） |
 | [current-system.md](current-system.md) | 早期当前态系统建模与命令链分析 |
 | [algorithm-swap.md](algorithm-swap.md) | 建图、定位、全局、局部和中间件替换机制分析 |
 | [target-framework.md](target-framework.md) | 目标框架与差距分析 |
@@ -19,7 +21,9 @@
 
 | 图 | 源文件 | 派生图 |
 | --- | --- | --- |
-| 三项目边界与运行拓扑（11-13） | [three-projects-2026-11-13.dot](diagrams/three-projects-2026-11-13.dot) | [SVG](diagrams/three-projects-2026-11-13.svg)、[PNG](diagrams/three-projects-2026-11-13.png) |
+| 单一主仓+subprojects 与运行拓扑（11-15） | [monorepo-2026-11-15.dot](diagrams/monorepo-2026-11-15.dot) | [SVG](diagrams/monorepo-2026-11-15.svg)、[PNG](diagrams/monorepo-2026-11-15.png) |
+| BT 编排/取消/恢复/多目标（11-15） | [bt-orchestration-2026-11-15.dot](diagrams/bt-orchestration-2026-11-15.dot) | [SVG](diagrams/bt-orchestration-2026-11-15.svg)、[PNG](diagrams/bt-orchestration-2026-11-15.png) |
+| 三项目边界与运行拓扑（11-14 复核时点） | [three-projects-2026-11-13.dot](diagrams/three-projects-2026-11-13.dot) | [SVG](diagrams/three-projects-2026-11-13.svg)、[PNG](diagrams/three-projects-2026-11-13.png) |
 | 系统上下文（11-12 时点，历史对照） | [system-context-2026-11-12.dot](diagrams/system-context-2026-11-12.dot) | [SVG](diagrams/system-context-2026-11-12.svg)、[PNG](diagrams/system-context-2026-11-12.png) |
 | SCAN＋BT 链（11-12 时点，历史对照） | [scan-bt-chain-2026-11-12.dot](diagrams/scan-bt-chain-2026-11-12.dot) | [SVG](diagrams/scan-bt-chain-2026-11-12.svg)、[PNG](diagrams/scan-bt-chain-2026-11-12.png) |
 | 系统上下文 | [system-context.dot](diagrams/system-context.dot) | [SVG](diagrams/system-context.svg)、[PNG](diagrams/system-context.png) |
@@ -30,7 +34,7 @@
 
 ```bash
 cd docs/architecture/diagrams
-for f in system-context system-runtime command-path system-context-2026-11-12 scan-bt-chain-2026-11-12 three-projects-2026-11-13; do
+for f in system-context system-runtime command-path system-context-2026-11-12 scan-bt-chain-2026-11-12 three-projects-2026-11-13 monorepo-2026-11-15 bt-orchestration-2026-11-15; do
   dot -Tsvg "$f.dot" -o "$f.svg"
   dot -Tpng -Gdpi=110 "$f.dot" -o "$f.png"
 done

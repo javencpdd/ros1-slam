@@ -1,0 +1,97 @@
+// ros1-slam BT 编排 / 取消 / 恢复 / 多目标（2026-11-15 当前态）
+// 生成：system-modeler + graphviz；证据见 ../current-2026-11-15.evidence.md
+// 重绘：dot -Tsvg bt-orchestration-2026-11-15.dot -o bt-orchestration-2026-11-15.svg
+// 颜色：绿=已实现并有仿真读数 蓝=操作者 橙=限定/实验 灰=契约/状态
+digraph bt_orchestration_2026_11_15 {
+  rankdir=TB;
+  fontname="Noto Sans CJK SC";
+  fontsize=14;
+  labelloc=t;
+  label="BT 编排闭环 · 树决定 WHEN · 取消/恢复/多目标（仿真已验证；真机 L2）";
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", fontsize=11];
+  edge [fontname="Noto Sans CJK SC", fontsize=9];
+
+  // ---------------- 输入 ----------------
+  subgraph cluster_input {
+    label="任务输入（operator / console）";
+    style="rounded"; color="#1a73e8"; fontsize=11;
+    op      [label="操作者 / P3 任务台", shape=ellipse, fillcolor="#e8f0fe"];
+    goal    [label="/v8/bt/goal\n单目标", fillcolor="#e8f0fe"];
+    mission [label="/v8/bt/goal_mission\n多目标 wire", fillcolor="#e8f0fe"];
+    policy  [label="/v8/bt/goal_policy\ndwell/arrival/path/retry/index", fillcolor="#e8f0fe"];
+    cancel  [label="/v8/bt/cancel\n<seq>:<scope>:<reason>", fillcolor="#e8f0fe"];
+  }
+
+  // ---------------- BT 树 ----------------
+  subgraph cluster_tree {
+    label="lite3_bt · BT.CPP 树（navigate_with_planner.xml）";
+    style="rounded"; color="#34a853"; fontsize=11;
+
+    fallback [label="Fallback\nmission | cancel | recovery", shape=diamond, fillcolor="#e6f4ea"];
+    waitgoal [label="WaitForGoal", fillcolor="#e6f4ea"];
+    loc      [label="CheckLocalization\n/v8/local/localization_ok", fillcolor="#e6f4ea"];
+    req      [label="RequestPath\n→ /v8/3d/global/goal", fillcolor="#e6f4ea"];
+    waitpath [label="WaitForPath\npath timeout", fillcolor="#e6f4ea"];
+    follow   [label="FollowPath\n→ /v8/local/goal", fillcolor="#e6f4ea"];
+    arrival  [label="WaitArrival\npose/ack/signal", fillcolor="#e6f4ea"];
+    dwell    [label="Dwell", fillcolor="#e6f4ea"];
+    stop     [label="Stop\n零速 + 终态", fillcolor="#e6f4ea"];
+
+    iscancel [label="IsCancelled", shape=diamond, fillcolor="#e6f4ea"];
+    cancelstop [label="CancelStop\n→ /v8/local/cancel\n等 cancel_ack", fillcolor="#e6f4ea"];
+    recovery [label="Recovery\nskip / retry / replan / abort\nretry/replan 入队首", fillcolor="#fef7e0"];
+    q        [label="GoalQueue FIFO\npush_front（重试）", shape=cylinder, fillcolor="#f1f3f4"];
+  }
+
+  // ---------------- 下游执行 ----------------
+  subgraph cluster_exec {
+    label="下游组件（P1 装配，P2 仿真载体）";
+    style="rounded"; color="#9aa0a6"; fontsize=11;
+    global [label="global planner\n/v8/3d/global/*", fillcolor="#e6f4ea"];
+    local  [label="local_planner\n/v8/local/* · cancel ack", fillcolor="#e6f4ea"];
+    mux    [label="cmd3d_mux / safety_mux\n/cmd_vel 单一写入", fillcolor="#e6f4ea"];
+    carrier [label="carrier / chassis\n运动学载体（仿真）", fillcolor="#e6f4ea"];
+    status [label="/v8/bt/status\noutcome · attempts · goals · cancel_ack", shape=note, fillcolor="#f1f3f4"];
+  }
+
+  // ---------------- 契约 ----------------
+  subgraph cluster_contract {
+    label="标准接口（manifest v3 + graph）";
+    style="rounded"; color="#f29900"; fontsize=11;
+    cap [label="capability\nkinematics · cancellation\nfeedback_modes · timeout_s", fillcolor="#fef7e0"];
+    ports [label="命名端口 + 方向 + schema\n反馈边 policy", fillcolor="#fef7e0"];
+    truth [label="port_truth 38 话题\n声明 vs 实测", fillcolor="#fef7e0"];
+  }
+
+  // ---------------- 关系 ----------------
+  op -> goal;
+  op -> mission;
+  op -> policy;
+  op -> cancel;
+  goal -> waitgoal;
+  mission -> q;
+  policy -> q;
+  q -> waitgoal [label="FIFO"];
+  fallback -> waitgoal [label="mission 分支"];
+  fallback -> iscancel [label="cancel 分支"];
+  fallback -> recovery [label="失败分支"];
+  waitgoal -> loc -> req -> waitpath -> follow -> arrival -> dwell -> stop;
+  stop -> status;
+  iscancel -> cancelstop [label="已取消"];
+  cancel -> iscancel;
+  cancelstop -> local [label="cancel 命令"];
+  local -> cancelstop [label="cancel_ack", style=dashed];
+  waitpath -> recovery [label="timeout", style=dashed];
+  arrival -> recovery [label="timeout", style=dashed];
+  loc -> recovery [label="localization false", style=dashed];
+  recovery -> status [label="retry_exhausted / recovered_skip"];
+  req -> global;
+  global -> waitpath [label="path + status", style=dashed];
+  follow -> local;
+  local -> mux;
+  mux -> carrier;
+  carrier -> arrival [label="pose / signal", style=dashed];
+  cap -> ports [style=dashed];
+  ports -> truth [label="对表", style=dashed];
+  status -> op [label="可观测", style=dashed];
+}

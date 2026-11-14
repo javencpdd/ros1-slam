@@ -1,0 +1,98 @@
+// ros1-slam 单一主仓 + 三个子项目边界与运行拓扑（2026-11-15 当前态）
+// 生成：system-modeler + graphviz；证据见 ../current-2026-11-15.evidence.md
+// 重绘：dot -Tsvg monorepo-2026-11-15.dot -o monorepo-2026-11-15.svg
+// 颜色：绿=仿真已验证/运行 蓝=操作者/外部工具 橙=部分或实验 红=L2/未授权 灰=发布物/数据
+digraph monorepo_2026_11_15 {
+  rankdir=TB;
+  fontname="Noto Sans CJK SC";
+  fontsize=14;
+  labelloc=t;
+  label="ros1-slam 当前态 · 单一主仓 + subprojects · 2026-11-15（真机物理运行仍为 L2）";
+  node [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", fontsize=11];
+  edge [fontname="Noto Sans CJK SC", fontsize=9];
+
+  // ---------------- 操作者与外部 ----------------
+  op   [label="操作者\nLAN 浏览器 / 终端", shape=ellipse, fillcolor="#e8f0fe"];
+  l2   [label="Lite3 103/120 · M20\n真机物理运行 L2（未启用）", fillcolor="#fce8e6"];
+  web  [label="web/ 官网 :80\n纯文档白名单（无 ROS）", fillcolor="#e8f0fe"];
+
+  // ---------------- P1 平台 ----------------
+  subgraph cluster_p1 {
+    label="P1 平台仓 ros1-slam/ · ws（catkin）· 装配 + 执行 + 集成 + 账本";
+    style="rounded"; color="#1a73e8"; fontsize=12;
+
+    contracts [label="contracts / registry / composer\nmanifest v3 · pipeline_graph/v1\n49 manifest（40 真件）", fillcolor="#e6f4ea"];
+    framework [label="framework 装配层\napp_runner · graph · launch · execution\nnodes/tools/smokes/tests", fillcolor="#e6f4ea"];
+    bt        [label="lite3_bt · BT.CPP 一等组件\n树决定 WHEN\ncancel / recovery / mission", fillcolor="#e6f4ea"];
+    local     [label="local_planner\nlocal_native / local_native_raw\n3D 时空规划 + cancel ack", fillcolor="#e6f4ea"];
+    adapters  [label="adapters / planner / representation\nSLAM · 定位 · 全局规划 · 障碍", fillcolor="#e6f4ea"];
+    safety    [label="60_safety · 90_supervisor\ncmd3d_mux + safety_mux\n唯一 /cmd_vel 写者", fillcolor="#e6f4ea"];
+    verify    [label="verify\nport_truth 38 话题\ngraph/端口/解耦门禁", fillcolor="#e6f4ea"];
+    graphreal [label="configs/lite3/graph_3d_lite3_bt.yaml\n9 实例 · 真机图离线 check\n未上机", fillcolor="#fef7e0"];
+  }
+
+  // ---------------- P2 仿真子项目 ----------------
+  subgraph cluster_p2 {
+    label="P2 仿真子项目 subprojects/simulation · 独立 ws/ + 发布物";
+    style="rounded"; color="#f29900"; fontsize=12;
+
+    p2pkgs  [label="ws/src · 7 包\nv8_simulation · lite3_gazebo_sim\nlite3_description · local_sensing · map_generator\nmockamap · livox/Mid360 插件", fillcolor="#e6f4ea"];
+    carrier [label="v8_simulation\ncarrier_kinematics + truth + support_cells\nsim_backends.yaml", fillcolor="#e6f4ea"];
+    worlds  [label="lite3_gazebo_sim\n17 Gazebo 世界 + two_floor_nav 场景\ndeclared 几何", shape=cylinder, fillcolor="#f1f3f4"];
+    p2rel   [label="发布物 0.1.0\n2,414,199 B · head d394bd1\nsha256 4fe3e74e…", shape=note, fillcolor="#f1f3f4"];
+  }
+
+  // ---------------- P3 可视化子项目 ----------------
+  subgraph cluster_p3 {
+    label="P3 可视化子项目 subprojects/console · host-only · 只读";
+    style="rounded"; color="#34a853"; fontsize=12;
+
+    agent  [label="console/agent.py :8780\n12 栈白名单 · validate_stacks\naudit · whoami（本机/远程）", fillcolor="#e6f4ea"];
+    ui     [label="console/ui\n地图库 / 任务 / 监控 / 遥控\nBT 阶段条", fillcolor="#e6f4ea"];
+    voxel  [label="voxel_stream.py\n/cloud_registered → data/console/voxels", fillcolor="#e6f4ea"];
+    wreg   [label="world_registry.json\n17 世界 · stacks.json 12 栈", shape=cylinder, fillcolor="#f1f3f4"];
+    p3rel  [label="发布物 0.1.0\n540,343 B · head c1848e3\nsha256 3a6e138e…", shape=note, fillcolor="#f1f3f4"];
+  }
+
+  // ---------------- 运行域 ----------------
+  subgraph cluster_runtime {
+    label="运行域 · Docker ROS1 Noetic（本机）";
+    style="rounded"; color="#9aa0a6"; fontsize=11;
+
+    roscore [label="roscore :11312\n控制台域 master", fillcolor="#e6f4ea"];
+    simviz  [label="sim-viz 容器\n:11313 / :11345\nGazebo + BT + 体素", fillcolor="#e6f4ea"];
+    bridge  [label="rosbridge :9090\nws 只读入口", fillcolor="#e6f4ea"];
+    mux     [label="cmd3d_mux / safety_mux\nhold + timeout 0.4 s\n/cmd_vel 单一写入", fillcolor="#e6f4ea"];
+  }
+
+  // ---------------- 关系 ----------------
+  op      -> ui       [label="HTTP :8780"];
+  ui      -> agent    [label="API"];
+  op      -> bridge   [label="只读订阅 /v8/bt/status 等", style=dashed];
+  agent   -> simviz   [label="docker exec 启停白名单栈"];
+  agent   -> roscore  [label="域内执行"];
+  agent   -> wreg     [label="读世界/栈注册表", style=dashed];
+  agent   -> voxel    [label="体素作业"];
+  bridge  -> roscore  [label="连接 master"];
+  web     -> agent    [label="文档页跳转（不同服务）", style=dashed];
+
+  framework -> carrier [label="装配期：app 声明后端 / 组件 launch"];
+  framework -> p2pkgs  [label="simulation_declaration", style=dashed];
+  carrier   -> framework [label="pose / status / truth 回传", style=dashed];
+  worlds    -> simviz  [label="world/launch"];
+  p2pkgs   -> p2rel   [label="独立 catkin install", style=dashed];
+
+  contracts -> framework [label="manifest + graph 校验"];
+  framework -> bt        [label="启动树"];
+  bt        -> adapters  [label="planner_goal / path 契约"];
+  bt        -> local     [label="out_goal / cancel"];
+  adapters  -> local     [label="path / obstacles", style=dashed];
+  local     -> mux       [label="cmd_vel_3d / cmd_vel_raw"];
+  safety    -> mux       [label="cap / hold"];
+  mux       -> carrier   [label="/cmd_vel → 仿真载体"];
+  local     -> bt        [label="cancel_ack / status", style=dashed];
+  carrier   -> bt        [label="pose / localization_ok", style=dashed];
+  verify    -> contracts [label="声明 vs 实测对表", style=dashed];
+  graphreal -> bt        [label="real_robot 图（离线）", style=dashed];
+  mux       -> l2        [label="L2 边界", color="#d93025", style=dashed];
+}
