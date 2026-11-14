@@ -7,7 +7,7 @@
 | 入口 | 实际配置 |
 | --- | --- |
 | `launch/10_slam_mapping.launch` | 加载 `config/faster_lio_outdoor.yaml`，启动 `faster_lio/run_mapping_online` 与 M1 心跳 |
-| `launch/10_slam_mapping_sim.launch` | 加载 `../../95_simulation/config/faster_lio_sim.yaml`，显式设置 `use_sim_time=true`，不带 M1 心跳 |
+| `launch/10_slam_mapping_sim.launch` | 加载 `$(find lite3_gazebo_sim)/config/faster_lio_sim.yaml`，显式设置 `use_sim_time=true`，不带 M1 心跳 |
 
 两套配置都读取 `/rslidar_points` 与 `/livox/imu`，但点格式不同：outdoor 为
 `lidar_type=4`，仿真为 `lidar_type=2`、`time_scale=1e3`。不能把配置名或话题相同当作布局相同。

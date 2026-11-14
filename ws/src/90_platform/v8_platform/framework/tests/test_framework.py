@@ -1,4 +1,5 @@
 """Framework v0 tests: YAML graph, multi-instance ports, startup/feedback, render."""
+import os
 import sys as _sys
 from pathlib import Path as _Path
 
@@ -294,7 +295,8 @@ class FrameworkTests(unittest.TestCase):
         self.assertIn('faster_lio_sim.yaml', sim)
         self.assertNotIn('faster_lio_outdoor.yaml', sim)
         self.assertNotIn('/home/ros1-slam', sim)
-        self.assertTrue((root / '95_simulation/config/faster_lio_sim.yaml').is_file())
+        sim_root = Path(os.environ.get('V8_SIM_ROOT') or (FRAMEWORK.parents[5] / 'ros1-slam-simulation'))
+        self.assertTrue((sim_root / 'ws/src/lite3_gazebo_sim/config/faster_lio_sim.yaml').is_file())
         for name in ('graph_2d.yaml', 'graph_3d_cache.yaml', 'graph_2d_loc_faster_lio.yaml',
                      'graph_faster_lio.yaml', 'graph_localization_compare.yaml',
                      'graph_2d_config.yaml'):

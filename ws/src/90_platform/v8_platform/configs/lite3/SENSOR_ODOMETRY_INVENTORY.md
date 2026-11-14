@@ -26,7 +26,7 @@ NDT 点云定位、腿式里程转发、纯运动学积分、仿真真值直给�
 
 IMU 源（Q12 分支）：真机 `lite3_slam/config/faster_lio_outdoor.yaml:3-6` 用 Mid-360 内置
 `/livox/imu`（实测 199.9 Hz），因 UDP 43897 被 `jetson2motion` 占用而弃用 `qnx2ros`
-的 `/imu/data`；仿真 `95_simulation/config/faster_lio_sim.yaml:12` 由 `sim_adapter` 合成同话题。
+的 `/imu/data`；仿真 `lite3_gazebo_sim/config/faster_lio_sim.yaml:12` 由 `sim_adapter` 合成同话题。
 `note/11_仿真到实机参数迁移表.md:48` 定性：**话题名同源、数据源不同**，换源即改
 lidar↔IMU 几何，须重估外参。
 
