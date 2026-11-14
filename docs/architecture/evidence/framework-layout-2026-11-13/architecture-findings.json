@@ -1,0 +1,129 @@
+{
+  "updated_at": "2026-11-13T22:43:48.559669+08:00",
+  "head": "107cfbd39fac86ded82fc2611c42844e685a3be3",
+  "role": "independent read-only architecture review",
+  "source_modified": false,
+  "runtime_started": false,
+  "findings_at_first_observation": [
+    {
+      "id": "LAYOUT-01",
+      "severity": "blocking",
+      "path": "scripts/sim/two_floor_nav.py",
+      "line": 73,
+      "problem": "plan_case adds framework root only then imports moved app_runner",
+      "fix": "add framework/nodes before import or import nodes.app_runner"
+    },
+    {
+      "id": "LAYOUT-02",
+      "severity": "blocking",
+      "path": "ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/test_scene.py",
+      "line": 20,
+      "problem": "standalone scene bootstrap lacks nodes; direct import app_runner at line174 fails",
+      "fix": "add framework/nodes to test bootstrap"
+    },
+    {
+      "id": "LAYOUT-03",
+      "severity": "blocking",
+      "path": "ws/src/90_platform/v8_platform/scripts/run_map_file.py",
+      "line": 13,
+      "problem": "active sim_nav_slope.launch shim searches map_file_node in old framework root",
+      "fix": "rospkg path/framework/nodes; update docstring"
+    },
+    {
+      "id": "LAYOUT-04",
+      "severity": "blocking",
+      "path": "ws/src/90_platform/v8_platform/regression/a1_3d_combo_matrix.py",
+      "line": 18,
+      "problem": "SMOKE Path join targets missing framework/graph_3d_assembly_smoke.py",
+      "fix": "insert smokes path segment"
+    },
+    {
+      "id": "LAYOUT-05",
+      "severity": "documentation",
+      "path": "web/index.html",
+      "lines": [
+        877,
+        1132,
+        1164,
+        1174
+      ],
+      "problem": "four runnable examples use old app_runner/map_from_pcd/inflate_support_map paths",
+      "fix": "nodes/app_runner.py; tools/map_from_pcd.py; tools/inflate_support_map.py"
+    }
+  ],
+  "verification": {
+    "moved_python38_ast_files": 62,
+    "standalone_scene": {
+      "command": "python3 -B ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/test_scene.py",
+      "tests": 15,
+      "errors": 4,
+      "migration_errors": 3,
+      "environment_errors": 1,
+      "environment_reason": "socket EPERM in busy-port test",
+      "duration_s": 25.985
+    }
+  },
+  "limitations": [
+    "No ROS/Gazebo runtime",
+    "Framework CMake install omission preexists relocation",
+    "Broad test bootstrap can mask isolated CLI import defects",
+    "Parent may fix concurrently; recheck current state before final verdict"
+  ],
+  "acl": "setfacl u:ros1-slam:rwx failed EINVAL; uid_map only1000->0 maps one uid, uid998 unavailable; no privileged workaround",
+  "additional_checks": {
+    "framework_node_manifests": [
+      {
+        "id": "v8.fw.gait_guard",
+        "path": "framework/nodes/stair_gait_guard_node.py",
+        "exists": true,
+        "executable": true
+      },
+      {
+        "id": "v8.fw.map_file",
+        "path": "framework/nodes/map_file_node.py",
+        "exists": true,
+        "executable": true
+      },
+      {
+        "id": "v8.fw.ultrasonic_guard",
+        "path": "framework/nodes/ultrasonic_guard_node.py",
+        "exists": true,
+        "executable": true
+      },
+      {
+        "id": "v8.fw.dynamic_obstacles",
+        "path": "framework/nodes/dynamic_obstacles_node.py",
+        "exists": true,
+        "executable": true
+      },
+      {
+        "id": "v8.fw.obstacle_heartbeat",
+        "path": "framework/nodes/obstacle_heartbeat_node.py",
+        "exists": true,
+        "executable": true
+      },
+      {
+        "id": "v8.fw.carrier_lite3",
+        "path": "framework/nodes/lite3_carrier_node.py",
+        "exists": true,
+        "executable": true
+      },
+      {
+        "id": "v8.fw.localization_source",
+        "path": "framework/nodes/localization_node.py",
+        "exists": true,
+        "executable": true
+      }
+    ],
+    "package_index_framework_missing": [],
+    "relocated_app_dry_run": {
+      "command": "python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py --app ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/apps/upstairs_bt.yaml",
+      "rc": 0,
+      "ok": true,
+      "runtime_started": false
+    },
+    "root_subdir_module_collisions": [
+      "__init__ only"
+    ]
+  }
+}

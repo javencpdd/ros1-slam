@@ -1,0 +1,53 @@
+{
+  "updated_at": "2026-11-13T22:46:53.148851+08:00",
+  "role": "independent L1",
+  "verdict": "PASS_LAYOUT_IMPORT_OFFLINE_ONLY",
+  "scope": "framework nodes/tools/smokes/tests relocation, CLI dry-run, import bootstrap and declared local source paths",
+  "counts": {
+    "clean_cli": 6,
+    "fresh_node_imports": 12,
+    "real_v8_platform_node_paths_modes": 23,
+    "explicit_test_doubles_excluded": 9,
+    "python38_grammar": 66,
+    "readme_broken_links": 0,
+    "shim_import": 1,
+    "matrix_path_and_mocked_generated_message_help": 2
+  },
+  "readme_update_headers": {
+    "ws/src/90_platform/v8_platform/framework/README.md": "> 最新更新时间：2026-11-13 22:45:17 CST。本次把单层入口/冒烟/测试拆入 `nodes/`、`tools/`、`smokes/`、`tests/`，公共模块仍在根；验收状态以[项目进度](../../../../../note/进度/README.md)为准。",
+    "ws/src/90_platform/v8_platform/README.md": "> 最新更新时间：2026-11-13 22:45:17 CST。本次为文档与源码核对；验收状态以[项目进度](../../../../note/进度/README.md)为准。",
+    "ws/src/95_simulation/lite3_gazebo_sim/README.md": "> 最新更新时间：2026-11-13 22:45:17 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，并补写场景热插拔的用途与时机（world vs scene 段后，同步 scripts/sim_scene.py 头注释）；历史指标仍只适用于各原记录。",
+    "docker/README.md": "> 最新更新时间：2026-11-13 22:45:17 CST。本文维护Docker构建/运行入口；新两层场景的实现、限定验证与环境边界见[场景记录](../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。"
+  },
+  "initial_probe_results_preserved": {
+    "matrix_executable_bit_assertion": "Probe was stricter than actual sys.executable caller; corrected check is file existence, not a production defect",
+    "smoke_help_v8_msgs": "Host lacks generated ROS messages; pure --help passed after inert v8_msgs placeholder only",
+    "named_acl": "ros1-slam=998 unavailable in single UID mapping, setfacl invalid argument; no production writes"
+  },
+  "limitations": [
+    "No Docker/ROS/Gazebo or physical robot started",
+    "Host interpreter 3.10 only; 3.8 AST is syntax compatibility, not target execution",
+    "ROS placeholders prove self-bootstrap imports only, not middleware behavior",
+    "Root reports full framework suite separately; not rerun or claimed as independent full suite",
+    "Source snapshot taken after checks in a changing workspace, root must compare accepted paths before closing",
+    "README timestamps must reflect final updated docs; initial three stale headers reported to root",
+    "Git commit not performed; .git read-only in active sandbox"
+  ],
+  "production_files_modified": [],
+  "state_or_git_modified": false,
+  "source_snapshot_current_differences": [],
+  "readme_timestamps_final": "Four selected current README headers independently read back as 2026-11-13 after root corrections",
+  "root_reported_full_suite": {
+    "status": "Root report only; not independently rerun",
+    "framework": {
+      "total": 296,
+      "passed": 286,
+      "skipped": 10
+    },
+    "scene": {
+      "passed": 14,
+      "failed_environment_socket_EPERM": 1
+    },
+    "Noetic_Docker_runtime": "NOT_RUN"
+  }
+}

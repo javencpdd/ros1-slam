@@ -1,0 +1,29 @@
+{
+  "updated_at": "2026-11-13T22:45:57.374869+08:00",
+  "scope": "Path requires existence because actual caller invokes sys.executable; generated v8_msgs placeholder only for argparse help; no ROS runtime",
+  "prior": "shim-matrix-results.json preserves overly strict executable-bit probe and missing host v8_msgs result",
+  "results": [
+    {
+      "name": "matrix_SMOKE_path",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-c",
+        "import runpy,json;from pathlib import Path;n=runpy.run_path('/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/regression/a1_3d_combo_matrix.py',run_name='__l1_import__');p=Path(n['SMOKE']);assert p.is_file();print(json.dumps({'ok':True,'SMOKE':str(p),'caller_uses_python':True,'executable_bit_not_required':True}))"
+      ],
+      "rc": 0,
+      "output": "{\"ok\": true, \"SMOKE\": \"/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/smokes/graph_3d_assembly_smoke.py\", \"caller_uses_python\": true, \"executable_bit_not_required\": true}\n"
+    },
+    {
+      "name": "matrix_help",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/framework-layout-l1-20261113/smoke_help_probe.py",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/smokes/graph_3d_assembly_smoke.py"
+      ],
+      "rc": 0,
+      "output": "usage: graph_3d_assembly_smoke.py [-h] [--out OUT] [--port PORT]\n                                  [--state STATE] [--map MAP] [--graph GRAPH]\n                                  [--start START] [--goal GOAL]\n                                  [--timeout-s TIMEOUT_S]\n\nAssembly closed loop: 3D global path -> path goal -> local -> 3D mux ->\ncarrier. This is a deterministic kinematic 3D closed loop, not Gazebo physics\nor a robot. The map/odom inputs are the same declared fixtures used by R1040;\nthe new part is that Assembly starts the whole graph with a real 3D command\narbiter.\n\noptions:\n  -h, --help            show this help message and exit\n  --out OUT\n  --port PORT\n  --state STATE\n  --map MAP\n  --graph GRAPH\n  --start START\n  --goal GOAL\n  --timeout-s TIMEOUT_S\n"
+    }
+  ]
+}

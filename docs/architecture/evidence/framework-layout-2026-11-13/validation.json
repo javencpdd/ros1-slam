@@ -1,0 +1,217 @@
+{
+  "schema": "framework_layout_validation/v1",
+  "updated_at": "2026-11-13T22:51:32.301557+08:00",
+  "baseline_commit": "6656f64dd937cf0d812c0626093b447bff6ff447",
+  "task": "T-20261113-03",
+  "implementation": "existing staged framework relocation plus repaired standalone imports, launcher shim, regression smoke and website references",
+  "host_python": "Python 3.10.12",
+  "framework_tests": {
+    "run": 296,
+    "passed": 286,
+    "skipped": 10,
+    "rc": 0
+  },
+  "scene_tests": {
+    "run": 15,
+    "passed": 14,
+    "errors": 1,
+    "rc": 1,
+    "environment_error": "PermissionError EPERM creating socket in test_busy_port_rejected; original failure retained"
+  },
+  "project_standards": {
+    "rc": 0,
+    "coverage": 25
+  },
+  "three_project_decoupling": {
+    "tests": 4,
+    "rc": 0
+  },
+  "independent_verdict": "PASS_SOURCE_LAYOUT_OFFLINE_ENTRY_ONLY",
+  "target_Noetic_Docker_ROS_Gazebo": "NOT_RUN",
+  "git_commit": "SOURCE_MIGRATION_COMMITTED_EXTERNALLY at 0a98e2cb; supplemental evidence/docs not committed by this sandbox. Local git add failed rc128.",
+  "named_acl": "NOT_APPLIED; uid998 is not mapped in current namespace; original ACLs not stripped",
+  "excluded_existing_artifacts": "Historical EVT/BT raw runtime evidence and local_planner/.coverage not deleted or staged",
+  "files": [
+    {
+      "path": "framework-tests.log",
+      "sha256": "ec840a53d83e9d5cb9a0090a7a645435040ad1c5143f458f02944f8d66d17fdd",
+      "original": "/tmp/ros1-framework-resume-20261113.log"
+    },
+    {
+      "path": "scene-tests.log",
+      "sha256": "50570437d98d4db85a98521bec86a7c54076d109e22fe44037f4cb8d1b420c30",
+      "original": "/tmp/ros1-scene-resume-20261113.log"
+    },
+    {
+      "path": "acl-environment.json",
+      "sha256": "8416256e4da6d6f58cac2d1985b0b99cfd0180bae499dbe38bb8f574f36d3084",
+      "original": "/tmp/framework-layout-acl-results-20261113.json"
+    },
+    {
+      "path": "git-stage.json",
+      "sha256": "79a2fc98a013faa08b93fb30a5f03b1a6f36cea4c23877b68190b43f2cc438d9",
+      "original": "/tmp/framework-layout-git-stage-20261113.json"
+    },
+    {
+      "path": "architecture-findings.json",
+      "sha256": "088e240811e138ff7b143f8a17b4065bbe5b9cd073377fb2c79afec98c546efd",
+      "original": "/tmp/framework-layout-review-20261113/findings.json"
+    },
+    {
+      "path": "l1-verdict.md",
+      "sha256": "831b0a96fdc28a25bd68ba18c21f8092067bec4a9c632bb21d5661afa6876d6d",
+      "original": "/tmp/framework-layout-l1-20261113/verdict.md"
+    },
+    {
+      "path": "l1-observations.json",
+      "sha256": "0b0d61625f96072a7bbe6785aa21a98ce96b45ba9e20ccc1854f2710068bcdae",
+      "original": "/tmp/framework-layout-l1-20261113/observations.json"
+    },
+    {
+      "path": "l1-scope-repro.md",
+      "sha256": "cc70561de6003be11a1e3510c75ed5c1e6da235ccde545861d83187ff286a146",
+      "original": "/tmp/framework-layout-l1-20261113/scope-repro.md"
+    },
+    {
+      "path": "l1-hashes.sha256",
+      "sha256": "9d34404184af24f04c3798b08f10e5515b71ec22a3ca7483adc8ba9dd5969774",
+      "original": "/tmp/framework-layout-l1-20261113/hashes.sha256"
+    },
+    {
+      "path": "l1-cli-results.json",
+      "sha256": "c137aa8314bf44a778ee495d6fb38eb7c6af56009ae48702e2cd66f97f9eee79",
+      "original": "/tmp/framework-layout-l1-20261113/cli-results.json"
+    },
+    {
+      "path": "l1-imports-results.json",
+      "sha256": "a925d67b7acbcb2341042c3e9960651ea761641c8e8d9ea4e0fd57a75d2d0ff5",
+      "original": "/tmp/framework-layout-l1-20261113/imports-results.json"
+    },
+    {
+      "path": "l1-path-mode-links.json",
+      "sha256": "2be9629ed3ebed7a827429e94636b54a14b18dbf4474aca2e567925b850febf2",
+      "original": "/tmp/framework-layout-l1-20261113/path-mode-links.json"
+    },
+    {
+      "path": "l1-shim-matrix-results-corrected.json",
+      "sha256": "ae332fba6f1848c56f3ae8edca5eb25be55495364af1fd0b8952923ee2b0517c",
+      "original": "/tmp/framework-layout-l1-20261113/shim-matrix-results-corrected.json"
+    },
+    {
+      "path": "l1-reviewed-source-sha256.json",
+      "sha256": "545cfa833c64df1c4b4be81810aab0b16e93b3ab35ac3d5c5ef4e2eeee613de9",
+      "original": "/tmp/framework-layout-l1-20261113/reviewed-source-sha256.json"
+    },
+    {
+      "path": "registry-tests.log",
+      "sha256": "5543099e9ddce34f93d63dc03d165d9f1d73eeb70495e955a273c847b516d95f",
+      "original": "/tmp/framework-layout-registry-20261113.log"
+    }
+  ],
+  "acl_copy_attempts": [
+    {
+      "path": "docs/architecture/evidence",
+      "default": false,
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence",
+      "default": true,
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13",
+      "default": false,
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13",
+      "default": true,
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/framework-tests.log",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/framework-tests.log: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/scene-tests.log",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/scene-tests.log: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/acl-environment.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/acl-environment.json: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/git-stage.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/git-stage.json: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/architecture-findings.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/architecture-findings.json: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-verdict.md",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-verdict.md: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-observations.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-observations.json: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-scope-repro.md",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-scope-repro.md: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-hashes.sha256",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-hashes.sha256: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-cli-results.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-cli-results.json: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-imports-results.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-imports-results.json: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-path-mode-links.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-path-mode-links.json: 无效的参数"
+    },
+    {
+      "path": "docs/architecture/evidence/framework-layout-2026-11-13/l1-shim-matrix-results-corrected.json",
+      "rc": 1,
+      "stderr": "setfacl: /home/jack/ysc-code/ros1-slam/docs/architecture/evidence/framework-layout-2026-11-13/l1-shim-matrix-results-corrected.json: 无效的参数"
+    }
+  ],
+  "resume_baseline_commit": "107cfbd3",
+  "observed_current_head": "6656f64dd937cf0d812c0626093b447bff6ff447",
+  "source_migration_commit": "0a98e2cb292040c44a2b9d91af5d784c8997632e",
+  "parallel_commit_note": "Qoder committed the same migration and repaired entry references during this audit; this session did not repeat the migration or create that commit.",
+  "reviewed_source_current_differences": [],
+  "registry_tests": {
+    "run": 19,
+    "rc": 0
+  },
+  "launch_xml_parse": {
+    "ok": true
+  },
+  "preflight_shell_syntax": {
+    "ok": true
+  }
+}

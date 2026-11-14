@@ -1,0 +1,90 @@
+{
+  "updated_at": "2026-11-13T22:40:13.647753+08:00",
+  "head": "107cfbd39fac86ded82fc2611c42844e685a3be3",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "acl": "ros1-slam named ACL failed invalid argument in single-UID sandbox; no production writes",
+  "results": [
+    {
+      "name": "app_help",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner.py",
+        "--help"
+      ],
+      "cwd": "/tmp/framework-layout-l1-20261113",
+      "rc": 0,
+      "log": "/tmp/framework-layout-l1-20261113/app_help.log",
+      "output_tail": " resolves app/map/task/graph and\nprints the filled 3D task. Execute starts roscore + Gazebo (optional),\nlaunches the graph Assembly, publishes the task start/goal, monitors the\nglobal path/local trajectory/carrier and writes a JSON record. The support-map\nmarker node is started when app.visualization.markers.\n\noptions:\n  -h, --help            show this help message and exit\n  --app APP\n  --out OUT\n  --execute\n  --no-gazebo\n  --gui\n  --port PORT\n  --timeout-s TIMEOUT_S\n  --trace-out TRACE_OUT\n                        opt-in full observation JSON; capture failure fails\n                        this run\n  --real                use the on-robot ROS master and live sensors; no\n                        roscore, no gazebo, no harness obstacle/hold\n                        publishers\n  --interactive         keep the 3D stack alive; RViz Publish Point selects\n                        goals\n  --rviz                start RViz with fixtures/rviz/nav3d.rviz (implies\n                        interactive)\n"
+    },
+    {
+      "name": "pcd_help",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/tools/map_from_pcd.py",
+        "--help"
+      ],
+      "cwd": "/tmp/framework-layout-l1-20261113",
+      "rc": 0,
+      "log": "/tmp/framework-layout-l1-20261113/pcd_help.log",
+      "output_tail": "\n  --obstacle-band-m OBSTACLE_BAND_M\n                        full-cloud vertical layer thickness\n  --z-align             shift every surface/obstacle so the lowest support is\n                        z=0\n  --absorb-near-floor ABSORB_NEAR_FLOOR\n                        merge supports this close above the floor into the\n                        floor surface\n  --map MAP             existing map JSON for --task-only\n  --task-only           write a task for an existing map (start from\n                        --start-x/--start-y)\n  --out OUT\n  --register\n  --write-app\n  --world WORLD\n  --world-launch WORLD_LAUNCH\n                        simulation world launch path (provided by the\n                        simulation project)\n  --simulation-declaration SIMULATION_DECLARATION\n                        simulation backend declaration path (provided by the\n                        simulation project)\n  --model-path MODEL_PATH\n  --start-x START_X\n  --start-y START_Y\n  --goal-x GOAL_X\n  --goal-y GOAL_Y\n"
+    },
+    {
+      "name": "inflate_help",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/tools/inflate_support_map.py",
+        "--help"
+      ],
+      "cwd": "/tmp/framework-layout-l1-20261113",
+      "rc": 0,
+      "log": "/tmp/framework-layout-l1-20261113/inflate_help.log",
+      "output_tail": "usage: inflate_support_map.py [-h] --map MAP --out OUT --map-id MAP_ID\n                              [--version VERSION] [--margin MARGIN]\n                              [--register]\n\nInflate support_map footprints by a fixed XY margin for stair execution. The\nlocal planner keeps the body center inside a surface shrunk by its radius;\nadjacent stair treads with only a few centimetres of overlap therefore leave a\ndead band. This tool produces a navigation variant with footprints widened by\nthe requested margin. It is a map preprocessing step, not a new map claim.\n\noptions:\n  -h, --help         show this help message and exit\n  --map MAP\n  --out OUT\n  --map-id MAP_ID\n  --version VERSION\n  --margin MARGIN\n  --register\n"
+    },
+    {
+      "name": "app_dry",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner.py",
+        "--app",
+        "/home/jack/ysc-code/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/apps/upstairs_bt.yaml"
+      ],
+      "cwd": "/tmp/framework-layout-l1-20261113",
+      "rc": 0,
+      "log": "/tmp/framework-layout-l1-20261113/app_dry.log",
+      "output_tail": "rface_z\": 1.6, \"goal_candidates\": [{\"surface_id\": \"ground_floor\", \"z_reference\": 0}, {\"surface_id\": \"upper_floor\", \"z_reference\": 1.6}]}}, \"graph\": {\"path\": \"/home/jack/ysc-code/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/graphs/navigation_bt.yaml\", \"digest\": \"fcd6a345872e8f52e0415c624b4aeb969d0c5f7923ad194de89db4d956bfd72a\", \"startup_order\": [\"map\", \"global\", \"bt\", \"local\", \"mux3d\", \"carrier\"], \"command_writers\": {\"/cmd_vel\": \"mux3d\", \"/v8/local/cmd_vel_3d\": \"local\"}}, \"map\": {\"entry\": {\"frame\": \"map\", \"label\": \"declared exact scene geometry\", \"map_id\": \"two_floor_nav\", \"path\": \"ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json\", \"sha256\": \"d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717\", \"surfaces\": 12, \"version\": 1}, \"path\": \"/home/jack/ysc-code/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json\", \"sha256\": \"d55bb73ca6611a72173a10d47929b6550de9361ead15a7f6fdbea7fbfd4a8717\"}}\n"
+    },
+    {
+      "name": "graph_check",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/cli.py",
+        "check",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/manifests",
+        "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_gazebo_bt.yaml"
+      ],
+      "cwd": "/tmp/framework-layout-l1-20261113",
+      "rc": 0,
+      "log": "/tmp/framework-layout-l1-20261113/graph_check.log",
+      "output_tail": " \"carrier.pose\",\n   \"to\": \"bt.pose\",\n   \"policy\": {\n    \"period_s\": 0.05,\n    \"max_age_s\": 1.0\n   }\n  },\n  {\n   \"from\": \"bt.planner_goal\",\n   \"to\": \"global.goal\",\n   \"policy\": {\n    \"period_s\": 0.1,\n    \"max_age_s\": 2.0\n   }\n  },\n  {\n   \"from\": \"carrier.pose\",\n   \"to\": \"local.pose\",\n   \"policy\": {\n    \"period_s\": 0.05,\n    \"max_age_s\": 1.0\n   }\n  },\n  {\n   \"from\": \"carrier.localization\",\n   \"to\": \"local.localization\",\n   \"policy\": {\n    \"period_s\": 0.05,\n    \"max_age_s\": 1.0\n   }\n  }\n ],\n \"command_writers\": {\n  \"/cmd_vel\": \"mux3d\",\n  \"/v8/local/cmd_vel_3d\": \"local\"\n },\n \"safety\": {\n  \"ok\": true,\n  \"command_owner\": \"mux3d\",\n  \"advice\": [\n   {\n    \"endpoint\": \"local.cmd\",\n    \"topic\": \"/v8/local/cmd_vel_3d\"\n   }\n  ],\n  \"validator\": \"absent\"\n },\n \"configs\": {\n  \"local\": {\n   \"path\": \"/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/configs/local_native_app_mapped.yaml\",\n   \"sha256\": \"bd5946268cbc85e91dce87f7d5ad8663392cf9d5b8ccb772555252f039b41c15\"\n  }\n }\n}\n"
+    },
+    {
+      "name": "blocked_default",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/jack/ysc-code/ros1-slam/scripts/sim/two_floor_nav.py",
+        "--case",
+        "blocked"
+      ],
+      "cwd": "/tmp/framework-layout-l1-20261113",
+      "rc": 0,
+      "log": "/tmp/framework-layout-l1-20261113/blocked_default.log",
+      "output_tail": "{\"ok\": true, \"case\": \"blocked\", \"scope\": \"offline configuration/global planning only; no ROS or Gazebo started\", \"expected_refusal\": \"E_PLAN_NO_ROUTE\", \"validation_error\": null, \"output\": null}\n"
+    }
+  ]
+}

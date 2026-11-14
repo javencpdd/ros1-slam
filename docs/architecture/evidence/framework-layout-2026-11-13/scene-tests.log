@@ -1,0 +1,30 @@
+test_busy_port_rejected (__main__.SceneTests) ... ERROR
+test_capture_overflow_invalid_clock_and_fresh_log_allocation (__main__.SceneTests) ... ok
+test_committed_artifacts_and_private_registry (__main__.SceneTests) ... ok
+test_complete_segment_collision_catches_safe_endpoints (__main__.SceneTests) ... ok
+test_default_cli_does_not_start_runtime_or_write_files (__main__.SceneTests) ... ok
+test_gazebo_whole_run_coverage_and_numeric_source_clock (__main__.SceneTests) ... ok
+test_global_same_xy_different_floors_uses_every_step (__main__.SceneTests) ... ok
+test_local_replanning_up_down_and_around_box (__main__.SceneTests) ... ok
+test_missing_samples_final_pose_only_nan_and_wrong_goal_rejected (__main__.SceneTests) ... ok
+test_output_geometry_matches_xml_collision_and_visual (__main__.SceneTests) ... ok
+test_preflight_refusal_never_calls_engine (__main__.SceneTests) ... ok
+test_receipt_exact_identity_case_kind_and_paths (__main__.SceneTests) ... ok
+test_support_cells_are_real_tops_and_exclude_covered_ground (__main__.SceneTests) ... ok
+test_trace_positive_controls_are_only_synthetic (__main__.SceneTests) ... ok
+test_wrong_six_axis_command_and_dense_wrong_direction_are_rejected (__main__.SceneTests) ... ok
+
+======================================================================
+ERROR: test_busy_port_rejected (__main__.SceneTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jack/ysc-code/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/test_scene.py", line 192, in test_busy_port_rejected
+    with socket.socket() as listener:
+  File "/usr/lib/python3.10/socket.py", line 232, in __init__
+    _socket.socket.__init__(self, family, type, proto, fileno)
+PermissionError: [Errno 1] Operation not permitted
+
+----------------------------------------------------------------------
+Ran 15 tests in 31.022s
+
+FAILED (errors=1)
