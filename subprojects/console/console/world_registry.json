@@ -1,0 +1,262 @@
+{
+  "schema": "v8-world-registry/v1",
+  "updated": "2026-11-10",
+  "worlds": [
+    {
+      "id": "m1_world",
+      "label": "m1 世界（稀障平地）",
+      "path": "ws/src/lite3_gazebo_sim/worlds/m1_world.world",
+      "scene": "m1_world",
+      "sha256": "fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35",
+      "maps": [
+        {
+          "id": "mapped_m1",
+          "label": "m1_world（Gazebo）"
+        },
+        {
+          "id": "m1_world_synth_v1",
+          "label": "m1_world（合成）"
+        }
+      ],
+      "stacks": [
+        {
+          "stack": "sim_m1",
+          "file": "m1_world.world"
+        },
+        {
+          "stack": "scan_flat",
+          "file": "m1_world.world"
+        }
+      ]
+    },
+    {
+      "id": "m1_world_v2",
+      "label": "m1_world_v2",
+      "path": "ws/src/lite3_gazebo_sim/worlds/m1_world_v2.world",
+      "scene": "m1_world_v2",
+      "sha256": "57c3aa28bf64a081c8ef14295e6bb72cdcac7c5fde96f375ad026d5449dde567",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "sim_m1",
+          "file": "m1_world_v2.world"
+        }
+      ]
+    },
+    {
+      "id": "demo_two_floor",
+      "label": "两层 demo（demo_two_floor，SLAM）",
+      "path": "ws/src/lite3_gazebo_sim/worlds/demo_two_floor.world",
+      "scene": "demo_two_floor",
+      "sha256": "22a82b126de65f6d606fc20c67b18db9a1fb8e7d1c27e7bc798c16f8147f9568",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "sim_m1",
+          "file": "demo_two_floor.world"
+        }
+      ]
+    },
+    {
+      "id": "open",
+      "label": "two_floor_nav open（几何，非 app）",
+      "path": "ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/worlds/open.world",
+      "scene": "open",
+      "sha256": "3a38a50dff4020e0ebf33e303c43469ad5e0f681f922176c6c43546025ae8ea1",
+      "maps": [
+        {
+          "id": "two_floor_nav",
+          "label": "two_floor_nav（open.world）"
+        }
+      ],
+      "stacks": [
+        {
+          "stack": "sim_m1",
+          "file": "open.world"
+        }
+      ]
+    },
+    {
+      "id": "blocked",
+      "label": "two_floor blocked",
+      "path": "ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/worlds/blocked.world",
+      "scene": "blocked",
+      "sha256": "93a17b96612da94c86ddce54d757d03e103874148f73ca0b55194dca97197d16",
+      "maps": [],
+      "stacks": []
+    },
+    {
+      "id": "nist_stairs_120",
+      "label": "NIST 楼梯 120",
+      "path": "ws/src/lite3_gazebo_sim/worlds/nist_stairs_120.world",
+      "scene": "nist_stairs_120",
+      "sha256": "90951c173aac418c797c79512380096690819b5f297e1a6cd7b90b4015d3b885",
+      "maps": [
+        {
+          "id": "mapped_nist",
+          "label": "NIST 楼梯（Gazebo）"
+        }
+      ],
+      "stacks": [
+        {
+          "stack": "sim_nist",
+          "file": "nist_stairs_120.world"
+        }
+      ]
+    },
+    {
+      "id": "nist_stairs_120_s020x170",
+      "label": "NIST 楼梯 120（0.20×0.17）",
+      "path": "ws/src/lite3_gazebo_sim/worlds/nist_stairs_120_s020x170.world",
+      "scene": "nist_stairs_120_s020x170",
+      "sha256": "80ed81fb2d18a21b2ed5d0779f822dbc128785eecbbc2c08a292dfda4094054a",
+      "maps": [
+        {
+          "id": "nist_stairs",
+          "label": "nist_stairs_120_s020x170"
+        }
+      ],
+      "stacks": []
+    },
+    {
+      "id": "stair_lab_stairs_easy",
+      "label": "stairs_easy（13 级 6 cm）",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_stairs_easy.world",
+      "scene": "stair_lab_stairs_easy",
+      "sha256": "b6e415a3a33468ca244f79b00bd98730404f360aa566bd410e62e29e433e3470",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_stairs_easy.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_stairs_mid",
+      "label": "stairs_mid",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_stairs_mid.world",
+      "scene": "stair_lab_stairs_mid",
+      "sha256": "9bbdd1f3809a5132d041874aa18e18ec1f4c28e374a7ec7d427922206d483210",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_stairs_mid.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_stairs_steep",
+      "label": "stairs_steep",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_stairs_steep.world",
+      "scene": "stair_lab_stairs_steep",
+      "sha256": "5e8949dca012cbce11aeeb8944b592d93158512eba2b604755581e630e0132be",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_stairs_steep.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_stairs_blocked_mid",
+      "label": "stairs_blocked_mid",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_stairs_blocked_mid.world",
+      "scene": "stair_lab_stairs_blocked_mid",
+      "sha256": "e769a9ae333b1be99692d2a196b8a215bbd9b536cb128a3142a96fb4b20801e6",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_stairs_blocked_mid.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_wall_h045",
+      "label": "wall_h045",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_wall_h045.world",
+      "scene": "stair_lab_wall_h045",
+      "sha256": "09ad712f8fafcb5795086f2316037dc8352b730150abb962246a3d020c36547e",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_wall_h045.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_wall_h080",
+      "label": "wall_h080",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_wall_h080.world",
+      "scene": "stair_lab_wall_h080",
+      "sha256": "ecf23fd0a5a37af1f8e591ce505f2ed6e0c8195fa95fe3287d1b97e5340e00e6",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_wall_h080.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_ramp_envelope",
+      "label": "ramp_envelope",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_ramp_envelope.world",
+      "scene": "stair_lab_ramp_envelope",
+      "sha256": "425bf2d13fd8c23ea643b651ce0f041774717fd19f97f144299826b9701c91e9",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_ramp_envelope.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_sidewall_envelope",
+      "label": "sidewall_envelope",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_sidewall_envelope.world",
+      "scene": "stair_lab_sidewall_envelope",
+      "sha256": "424423c6d84a709e10ca28ad2cb264eabda1496acc5b40cd36dfd5a4503caa46",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_sidewall_envelope.world"
+        }
+      ]
+    },
+    {
+      "id": "stair_lab_blank",
+      "label": "blank（仅地面/太阳）",
+      "path": "ws/src/lite3_gazebo_sim/stairstudy/worlds/stair_lab_blank.world",
+      "scene": "stair_lab_blank",
+      "sha256": "fc306c0204e27551bbf94159ecfb336b2a63717d1e116c4263e58574f5a8b66d",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "stairstudy",
+          "file": "stair_lab_blank.world"
+        }
+      ]
+    },
+    {
+      "id": "ramp_scan10",
+      "label": "SCAN 10° 平滑坡（ramp_scan10）",
+      "path": "ws/src/lite3_gazebo_sim/worlds/ramp_scan10.world",
+      "scene": "ramp_scan10",
+      "sha256": "a9855d8cfdfffb81c295842c00862847f83f38b4da94f68a29156c250b51c9e2",
+      "maps": [],
+      "stacks": [
+        {
+          "stack": "scan_ramp",
+          "file": "ramp_scan10.world"
+        }
+      ]
+    }
+  ]
+}
