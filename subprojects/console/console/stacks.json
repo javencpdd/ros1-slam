@@ -1,0 +1,261 @@
+{
+  "comment": "网页任务台可启停的白名单。网页只能按 name 调这里列出的命令，不能传命令行。可选 local_only=true 的栈只允许本机 agent 启停（远程返回 403）。",
+  "stacks": [
+    {
+      "name": "sim_m1",
+      "label": "m1 Gazebo（仿真台）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "m1_world.world",
+      "cmd": "roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false",
+      "cmd_template": "roslaunch lite3_gazebo_sim m1_gazebo.launch gui:=false world:=/opt/ros1-slam/sim_ws/src/lite3_gazebo_sim/{world}",
+      "world_choices": [
+        {
+          "file": "m1_world.world",
+          "path": "worlds/m1_world.world",
+          "label": "m1 世界（稀障平地）"
+        },
+        {
+          "file": "m1_world_v2.world",
+          "path": "worlds/m1_world_v2.world",
+          "label": "m1_world_v2"
+        },
+        {
+          "file": "demo_two_floor.world",
+          "path": "worlds/demo_two_floor.world",
+          "label": "两层 demo（demo_two_floor，SLAM）"
+        },
+        {
+          "file": "open.world",
+          "path": "scenarios/two_floor_nav/worlds/open.world",
+          "label": "two_floor_nav open（几何，非 app）"
+        }
+      ],
+      "world_stack": true,
+      "description": "m1 Gazebo + lite3_planar + sim_adapter；world 可选，headless，给建图/监控页提供话题。",
+      "stop_timeout": 15,
+      "notes": "demo 栈；不启真机、不写正式判据。同一时间只起一个 Gazebo world；换 world 先停当前栈。启动后 /clock、/rslidar_points、/livox/imu 应出现。",
+      "pid_match": "m1_gazebo.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
+    },
+    {
+      "name": "mapping_m1",
+      "label": "m1 建图（faster-lio）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "m1_world.world",
+      "cmd": "roslaunch lite3_gazebo_sim m1_mapping.launch",
+      "description": "在 m1 Gazebo 上跑 faster_lio；m1_mapping.launch 已关 pcd_save（GAP-5 红线）。",
+      "stop_timeout": 20,
+      "notes": "先起提供 lidar 的 world 栈（sim_m1/stairstudy）；这是 demo 建图，不代替 formal/LIO 验收。",
+      "pid_match": "m1_mapping.launch",
+      "requires_world": [
+        "lidar"
+      ]
+    },
+    {
+      "name": "mapping_save",
+      "label": "m1 建图并保存（faster-lio）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "m1_world.world",
+      "cmd": "roslaunch lite3_gazebo_sim m2_mapping.launch pcd_save:=true",
+      "stop_timeout": 30,
+      "save_map": "data/maps/lite3.pcd",
+      "description": "在 m1 Gazebo 上跑 faster_lio，停止时把 PCD 保存到 data/maps/imported/ 并刷新地图库。",
+      "notes": "先起提供 lidar 的 world 栈（sim_m1/stairstudy）。GAP-5：agent 起前备份样张、停后恢复并转存；只允许 demo 使用。",
+      "pid_match": "m2_mapping.launch",
+      "requires_world": [
+        "lidar"
+      ]
+    },
+    {
+      "name": "stairstudy",
+      "label": "stairstudy 场景（可视化）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "stair_lab_stairs_easy.world",
+      "cmd": "roslaunch lite3_gazebo_sim stairstudy.launch world_file:=stair_lab_stairs_easy.world",
+      "cmd_template": "roslaunch lite3_gazebo_sim stairstudy.launch world_file:={world}",
+      "world_choices": [
+        {
+          "file": "stair_lab_stairs_easy.world",
+          "label": "stairs_easy（13 级 6 cm）"
+        },
+        {
+          "file": "stair_lab_stairs_mid.world",
+          "label": "stairs_mid"
+        },
+        {
+          "file": "stair_lab_stairs_steep.world",
+          "label": "stairs_steep"
+        },
+        {
+          "file": "stair_lab_stairs_blocked_mid.world",
+          "label": "stairs_blocked_mid"
+        },
+        {
+          "file": "stair_lab_wall_h045.world",
+          "label": "wall_h045"
+        },
+        {
+          "file": "stair_lab_wall_h080.world",
+          "label": "wall_h080"
+        },
+        {
+          "file": "stair_lab_ramp_envelope.world",
+          "label": "ramp_envelope"
+        },
+        {
+          "file": "stair_lab_sidewall_envelope.world",
+          "label": "sidewall_envelope"
+        },
+        {
+          "file": "stair_lab_blank.world",
+          "label": "blank（仅地面/太阳）"
+        }
+      ],
+      "world_stack": true,
+      "description": "stair_lab 世界可选 + 白盒载体；只做感知/可视化，不判爬楼。",
+      "stop_timeout": 20,
+      "notes": "demo 可视化；正式导航判据仍用 runtime_lab/作业单。同一时间只起一个 Gazebo world；换 world 先停当前栈。",
+      "pid_match": "stairstudy.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
+    },
+    {
+      "name": "sim_nist",
+      "label": "NIST 楼梯 120（仅世界）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "nist_stairs_120.world",
+      "cmd": "roslaunch lite3_gazebo_sim nist_stairs_120.launch gui:=false",
+      "world_stack": true,
+      "description": "只起 NIST 楼梯世界 + 模型库；不含机器人、点云或导航。",
+      "stop_timeout": 15,
+      "notes": "world-only；看画面需本机 gzclient 或控制台实体世界（nist_stairs_120）。同一时间只起一个 Gazebo world。",
+      "pid_match": "nist_stairs_120.launch",
+      "world_capabilities": []
+    },
+    {
+      "name": "safety_mux",
+      "label": "安全 mux（遥控闭环）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "—",
+      "cmd": "roslaunch lite3_safety console_demo_mux.launch",
+      "stop_timeout": 10,
+      "description": "demo 安全 mux：safe_cmd_vel_mux 把 teleop_app/estop 等源仲裁到 /cmd_vel；demo 配置线性上限 1.0 m/s。",
+      "notes": "仅 demo；正式/真机仍用 60_safety.launch + cmd_vel_mux.yaml（0.5 m/s、无超声 blind 0.1 m/s）。",
+      "pid_match": "console_demo_mux.launch",
+      "requires_world": true
+    },
+    {
+      "name": "bt_console",
+      "label": "行为树控制台（BT.CPP）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "—",
+      "goal_authority": "3d",
+      "cmd": "roslaunch lite3_bt bt_console.launch",
+      "stop_timeout": 10,
+      "description": "3D goal 写入权所有者：Nav2 式编排 BT（WaitForGoal→RequestPath→WaitForPath→FollowPath→WaitArrival→Dwell，失败进 RecoveryStop），多目标 FIFO 队列上限 16 满则拒绝不覆盖；先向 /v8/global/goal 请路径、按 /global_path/status 判就绪，再发 /v8/bt/goal_request 经 goal gate 写 /v8/3d/global/goal；BT 不算路径、不发速度；ZMQ 5555/5556 供 Groot2。",
+      "notes": "BT 是 3D goal 的 console 唯一写入者；未运行时控制台禁止 3D 发送。BT 不替代 MBF/3D 规划器；Groot2 仅本机 GUI；正式/真机不启用。",
+      "pid_match": "bt_console.launch",
+      "requires_world": true
+    },
+    {
+      "name": "voxel_stream",
+      "label": "服务端体素流（console）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "—",
+      "cmd": "python3 /opt/ros1-slam/scripts/console/voxel_stream.py --leaf 0.10 --rate 2 --out /opt/ros1-slam/data/console/voxels",
+      "description": "订阅 /cloud_registered 与 /rslidar_points，体素下采样后写 data/console/voxels/latest.bin + meta.json；控制台按二进制拉取。",
+      "stop_timeout": 10,
+      "notes": "服务端体素；需提供 lidar 的 world 栈（sim_m1/stairstudy）；/cloud_registered 优先，1.5 s 无消息回退 /rslidar_points（传感器系）。不写正式判据。",
+      "pid_match": "voxel_stream.py",
+      "requires_world": [
+        "lidar"
+      ]
+    },
+    {
+      "name": "scan_flat",
+      "label": "SCAN 导航（平地 m1，A*）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "m1_world.world",
+      "cmd": "roslaunch lite3_bringup scan_nav_sim.launch profile:=flat",
+      "world_stack": true,
+      "goal_authority": "3d",
+      "description": "SCAN+桥+BT 全链平地 profile：m2_gazebo/m2_mapping/60_safety/sim_speed_cap/70_scan/scan_bt_nav 一次起完；目标 /v8/bt/goal，到达经 /lite3/scan/arrived。",
+      "stop_timeout": 25,
+      "notes": "与 sim_m1 同为 Gazebo world 栈，同一时间只起一个；换栈先停当前。本栈自带 bt_console，是 3D goal 写入权所有者（网页经 rosbridge 9090→11312 发 /v8/bt/goal）；与 bt_console 栈互斥，agent 强制同一时间只有一个 3D 写入权。SCAN 线是 demo，不代替 formal/真机。",
+      "pid_match": "scan_nav_sim.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
+    },
+    {
+      "name": "scan_ramp",
+      "label": "SCAN 导航（10° 平滑坡，参考路径）",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "ramp_scan10.world",
+      "cmd": "roslaunch lite3_bringup scan_nav_sim.launch profile:=ramp",
+      "world_stack": true,
+      "goal_authority": "3d",
+      "description": "SCAN+桥+BT 全链坡面 profile：ramp_scan10（10° 平滑坡，与 v8 8.53° 同量级），navi_mode=3 参考路径+壳侧地面过滤+坡面控制/优化器参数；目标 /v8/bt/goal。",
+      "stop_timeout": 25,
+      "notes": "坡上 A* 起点格问题见 note/进度/v8/M5/26-11-12 §5—§13；坡上 P4 用参考路径+min_z 过滤（§10）。与 sim_m1 同为 Gazebo world 栈，同一时间只起一个。本栈自带 bt_console（3D 写入权，网页经 rosbridge 9090→11312）；与 bt_console 栈互斥。",
+      "pid_match": "scan_nav_sim.launch",
+      "world_capabilities": [
+        "lidar",
+        "carrier"
+      ]
+    },
+    {
+      "name": "scan_real",
+      "label": "SCAN 导航（真机装配，L2）",
+      "category": "demo",
+      "container": "ros1-slam-ros1",
+      "master": "http://localhost:11311",
+      "cmd": "roslaunch lite3_bringup scan_nav_real.launch bt_profile:=real",
+      "local_only": true,
+      "goal_authority": "3d",
+      "description": "真机装配：/LIO 拓扑 + 70_scan + scan_bt_nav + 60_safety；机器人 bringup/LIO/motion 使能由操作员先起。",
+      "stop_timeout": 30,
+      "notes": "★真机物理运行 L2★：103 只读、不向 120/43893 发帧；解锁/发目标/急停需真人在场并按 note/10 与 SCAN真机接入清单.md 签核；real 需先复制 bt_console_real.yaml，否则 fail-closed。",
+      "pid_match": "scan_nav_real.launch"
+    },
+    {
+      "name": "bag_record",
+      "label": "导航/建图 bag 录制",
+      "category": "demo",
+      "container": "ros1-slam-sim-viz",
+      "master": "http://roscore:11312",
+      "world": "—",
+      "cmd": "rosbag record -o /opt/ros1-slam/data/bags/nav --lz4 --split --size=512 --max-splits=8 /rslidar_points /livox/imu /tf /tf_static /Odometry /LIO/odom_vehicle /planning/bspline /global_path /scan_planner/goal /scan_planner/cmd_vel /cmd_vel /v8/bt/status",
+      "description": "录制建图/导航原始数据：雷达点云、IMU、TF、LIO 里程计、SCAN bspline/目标/速度、/cmd_vel、BT 状态。--lz4 压缩、512 MB 分卷、最多 8 卷（≈4 GB），写 data/bags/（不入库）。",
+      "stop_timeout": 30,
+      "notes": "master 固定控制台域 11312：只录同域话题；别的域（如真机 11311）要另配。停止时 agent 发 SIGINT 让 rosbag 收尾写索引；文件属主 root（容器写盘）。/cloud_registered 是派生量且体积大，默认不录；回放建图用 rosbag play --clock + m2_mapping。",
+      "pid_match": "rosbag record"
+    }
+  ]
+}

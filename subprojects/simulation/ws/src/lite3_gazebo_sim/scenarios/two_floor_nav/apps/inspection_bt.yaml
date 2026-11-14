@@ -1,0 +1,26 @@
+{
+  "schema": "navigation_app/v1",
+  "execution_mode": "simulation",
+  "robot_id": "generic_sim",
+  "name": "two_floor_inspection_bt",
+  "graph": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/graphs/navigation_bt.yaml",
+  "map_registry": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/registry.json",
+  "map": {"id": "two_floor_nav", "version": 1},
+  "task": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/tasks/inspection.json",
+  "localization": {"source": "carrier"},
+  "carrier": {
+    "backend": "gazebo",
+    "center_z": 0.3,
+    "model_name": "app_carrier",
+    "model_path": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav",
+    "snap_m": 0.03,
+    "spawn": true,
+    "simulation_declaration": "sim_ws/src/v8_simulation/config/sim_backends.yaml",
+    "world": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/worlds/open.world",
+    "world_launch": "sim_ws/src/lite3_gazebo_sim/launch/app_world.launch"
+  },
+  "visualization": {"markers": true, "rviz": false},
+  "global": {"budget": 50000, "min_clearance_m": 0.55},
+  "goal_topic": "/v8/bt/goal",
+  "mission_topic": "/v8/bt/goal_mission"
+}

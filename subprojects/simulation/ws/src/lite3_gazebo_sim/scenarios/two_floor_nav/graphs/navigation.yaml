@@ -1,0 +1,152 @@
+{
+  "edges": [
+    {
+      "from": "map.map",
+      "to": "global.map"
+    },
+    {
+      "from": "map.map",
+      "to": "local.map"
+    },
+    {
+      "from": "map.map",
+      "to": "carrier.map"
+    },
+    {
+      "from": "global.path",
+      "to": "path_goal.path"
+    },
+    {
+      "from": "path_goal.goal",
+      "to": "local.goal"
+    },
+    {
+      "feedback": true,
+      "from": "carrier.pose",
+      "policy": {
+        "max_age_s": 1.0,
+        "period_s": 0.05
+      },
+      "to": "local.pose"
+    },
+    {
+      "feedback": true,
+      "from": "carrier.localization",
+      "policy": {
+        "max_age_s": 1.0,
+        "period_s": 0.05
+      },
+      "to": "local.localization"
+    },
+    {
+      "from": "local.cmd",
+      "to": "mux3d.cmd"
+    },
+    {
+      "from": "mux3d.cmd",
+      "to": "carrier.cmd"
+    }
+  ],
+  "execution_mode": "simulation",
+  "external": [
+    {
+      "source": "operator",
+      "to": "global.start",
+      "type": "geometry_msgs/PoseStamped"
+    },
+    {
+      "source": "operator",
+      "to": "global.goal",
+      "type": "geometry_msgs/PoseStamped"
+    },
+    {
+      "source": "perception",
+      "to": "local.obstacles",
+      "type": "std_msgs/String"
+    },
+    {
+      "source": "supervisor",
+      "to": "mux3d.hold",
+      "type": "std_msgs/Bool"
+    }
+  ],
+  "instances": [
+    {
+      "component": "v8.fw.map_file",
+      "id": "map",
+      "namespace": "/v8/3d/map",
+      "params": {
+        "map_json": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json",
+        "map_topic": "/v8_support_map",
+        "status_topic": "/v8_map_status"
+      }
+    },
+    {
+      "component": "v8.fw.global3d_topic",
+      "id": "global",
+      "namespace": "/v8/3d/global",
+      "params": {
+        "budget": 50000,
+        "goal_topic": "/v8/3d/global/goal",
+        "map_topic": "/v8_support_map",
+        "min_clearance_m": 0.55,
+        "path_topic": "/v8/3d/global/path",
+        "robot_height_m": 0.5,
+        "robot_radius_m": 0.35,
+        "start_topic": "/v8/3d/global/start",
+        "status_topic": "/v8/3d/global/status"
+      }
+    },
+    {
+      "component": "v8.fw.path_goal3d",
+      "id": "path_goal",
+      "namespace": "/v8/3d/path_goal",
+      "params": {
+        "goal_topic": "/v8/local/goal",
+        "path_topic": "/v8/3d/global/path",
+        "status_topic": "/v8/3d/path_goal/status"
+      }
+    },
+    {
+      "component": "v8.fw.local_native",
+      "config": "../configs/local.yaml",
+      "id": "local",
+      "namespace": "/v8/3d/local"
+    },
+    {
+      "component": "v8.fw.cmd3d_mux",
+      "id": "mux3d",
+      "namespace": "/v8/3d/mux",
+      "params": {
+        "cmd_topic": "/v8/local/cmd_vel_3d",
+        "hold_topic": "/lite3/supervisor/hold",
+        "output_topic": "/cmd_vel",
+        "status_topic": "/v8/3d/mux/status",
+        "timeout_s": 0.4
+      }
+    },
+    {
+      "component": "v8.fw.gazebo_carrier3d",
+      "id": "carrier",
+      "namespace": "/v8/3d/carrier",
+      "params": {
+        "center_z": 0.3,
+        "cmd_topic": "/cmd_vel",
+        "localization_topic": "/v8/local/localization_ok",
+        "map_topic": "/v8_support_map",
+        "model_name": "app_carrier",
+        "pose_topic": "/v8/local/pose",
+        "rate_hz": 50.0,
+        "snap_m": 0.03,
+        "spawn": true,
+        "start_x": 5.0,
+        "start_y": 1.0,
+        "start_z": 0.0,
+        "status_topic": "/v8/3d/carrier/status"
+      }
+    }
+  ],
+  "name": "two_floor_nav",
+  "robot_id": "generic_sim",
+  "schema": "pipeline_graph/v1"
+}

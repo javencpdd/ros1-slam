@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "two_floor_inspection",
+  "map": {"map_id": "two_floor_nav", "map_version": 1},
+  "start": {"xyz": [5, 1, 0], "yaw": 0},
+  "goals": [
+    {"xyz": [-5.9, 1.1, null], "yaw": 0, "surface_hint": "upper_floor",
+     "surface_disambiguation": "explicit_hint", "dwell_s": 1.0,
+     "arrival_timeout_s": 90, "retry_max": 1, "label": "upper_landing"},
+    {"xyz": [-6.0, 4.0, null], "yaw": 1.57, "surface_hint": "upper_floor",
+     "surface_disambiguation": "explicit_hint", "dwell_s": 2.0,
+     "arrival_timeout_s": 90, "retry_max": 1, "label": "upper_north"},
+    {"xyz": [-5.0, -3.0, null], "yaw": 3.14, "surface_hint": "upper_floor",
+     "surface_disambiguation": "explicit_hint", "dwell_s": 1.0,
+     "arrival_timeout_s": 90, "retry_max": 1, "label": "upper_south"}
+  ],
+  "goal_reference": "support_surface",
+  "timeout": {"budget_s": 360, "harness_deadline_s": 480, "source": "operator"}
+}

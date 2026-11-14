@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lite3 · 3D 任务台（P2/P3）</title>
+<link rel="stylesheet" href="assets/console/console.css">
+</head>
+<body class="unknown">
+<header class="top">
+  <div class="brand"><span class="dot"></span>Lite3 · 3D 任务台
+    <small>P2 地图/任务 · P3 监控/遥控</small></div>
+  <div class="bridge">
+    <input id="bridge-url" placeholder="ws://127.0.0.1:9090" spellcheck="false">
+    <button id="connect" class="primary">连接</button>
+    <span id="bridge-status" class="pill">未连接</span>
+    <span id="client-role" class="pill">客户端判定中…</span>
+    <a href="./">返回介绍页</a>
+    <a href="./#sim">09 测试盘面</a>
+  </div>
+</header>
+
+<main>
+  <div class="col">
+    <section class="card">
+      <h2>地图与任务 <span class="hint">点击 2D 地图加目标；3D 全链只改发布接口</span></h2>
+      <div class="toolbar">
+        <label>地图 <select id="map-select"></select></label>
+        <label>后端
+          <select id="mode">
+            <option value="3d">3D 全链（目标接口）</option>
+            <option value="2d">2D MBF（/move_base_simple/goal）</option>
+          </select>
+        </label>
+        <label>目标层 <select id="surface"></select></label>
+        <label>z <input id="goal-z" type="number" step="0.01" value="0.00"></label>
+        <label>yaw° <input id="goal-yaw" type="number" step="1" value="0"></label>
+      </div>
+      <div class="notice"><b>视图说明</b>：主图始终是所选地图的 2D 预览，用来点选目标；“3D 全链”只把目标发布到
+        <code>/v8/3d/global/goal</code>，不会把主图变成 3D。点云/实体世界在
+        <button id="view-3d-jump" class="linkbtn">打开 3D 场景</button>。<br>
+        <b>执行边界</b>：本页只发布目标；<b>3D goal 写入权归 bt_console</b>（控制台统一走 <code>/v8/bt/goal</code>），BT 未运行时 3D 发送被拒绝；白名单栈不含 V8 3D 规划器/known-map app。要真正执行 3D 全链，用 CLI
+        <code>scripts/sim/two_floor_nav.py --execute ...</code>。</div>
+      <div class="toolbar">
+        <label>重栅格 m/px <input id="regrid-res" type="number" min="0.01" max="0.5" step="0.01" value="0.05" style="width:70px"></label>
+        <button id="map-refresh">刷新地图库</button>
+        <button id="map-regrid">重栅格化</button>
+        <button id="map-hide">隐藏本图</button>
+        <button id="map-restore">恢复隐藏</button>
+        <label>画笔 <select id="edit-value"><option value="0">障碍</option><option value="254">自由</option></select></label>
+        <button id="map-edit">编辑栅格</button>
+        <button id="map-edit-save">保存栅格</button>
+        <button id="map-edit-clear">清空编辑</button>
+        <span class="pill" id="map-ops-state">—</span>
+        <span class="pill" id="edit-state">未编辑</span>
+      </div>
+      <div class="map-wrap"><canvas id="map-canvas" width="760" height="540"></canvas></div>
+      <div class="map-meta" id="map-meta">地图加载中…</div>
+      <div class="teleop-inline" id="teleop-panel">
+        <h3>遥控 <span class="hint">deadman 0.5 s · 只走安全 mux 的 app 源</span></h3>
+        <div class="teleop-grid">
+          <div>
+            <div class="speeds">
+              <label>v <b id="v-val">0.30</b> m/s</label>
+              <input id="v-max" type="range" min="0.05" max="1.00" step="0.05" value="0.30">
+              <span></span>
+              <label>ω <b id="w-val">0.40</b> rad/s</label>
+              <input id="w-max" type="range" min="0.10" max="0.60" step="0.05" value="0.40">
+              <span></span>
+            </div>
+            <div class="kv"><span>deadman</span><b id="deadman">空闲</b></div>
+            <div class="kv"><span>键盘</span><b>W/S 或 ↑/↓ 前后 · A/D 或 ←/→ 转向 · 空格停</b></div>
+          </div>
+          <div class="pad">
+            <span></span><button data-v="1" data-w="0">前</button><span></span>
+            <button data-v="0" data-w="1">左转</button><button class="stop" data-v="0" data-w="0">停</button><button data-v="0" data-w="-1">右转</button>
+            <span></span><button data-v="-1" data-w="0">后</button><span></span>
+          </div>
+        </div>
+        <div class="estop-row">
+          <button id="estop" class="danger">急停 / 取消任务</button>
+          <button id="unlock" disabled>解除急停</button>
+          <span class="pill" id="estop-state">未急停</span>
+        </div>
+        <div class="notice">急停持续向 <code>/lite3/safety/estop_cmd_vel</code> 发零速并取消 2D 目标；
+          解除前遥控锁定。页面隐藏/断开时停发 app 源，mux 按 0.5 s 超时回落。
+          3D 任务取消发 <code>/v8/bt/cancel</code>（String，seq:all:原因），BT 下发执行端 cancel 并等 ack；急停仍独立停车。</div>
+      </div>
+      <details class="cloud" id="cloud-wrap">
+        <summary id="cloud-summary">3D 场景（3D 全链可视化 / 点云 / 实体世界；拖拽旋转 / 滚轮缩放）</summary>
+        <div class="cloud-toolbar">
+          <label>世界 <select id="world-scene"><option value="">不加载实体</option></select></label>
+          <label>图层 <select id="cloud-layer">
+            <option value="both">点云 + 实体</option>
+            <option value="solid">仅实体</option>
+            <option value="cloud">仅点云</option>
+          </select></label>
+          <label>数据源 <select id="cloud-source">
+            <option value="browser">浏览器抽稀（≤8000 点）</option>
+            <option value="server">服务端体素（leaf 0.10 m）</option>
+          </select></label>
+          <select id="cloud-topic">
+            <option value="/cloud_registered">/cloud_registered（faster-lio）</option>
+            <option value="/rslidar_points">/rslidar_points（原始）</option>
+          </select>
+          <button id="cloud-live">订阅实时点云</button>
+          <button id="cloud-reset">重置视角</button>
+          <span class="pill" id="cloud-live-state">离线</span>
+          <span class="mono" id="cloud-live-rate"></span>
+        </div>
+        <canvas id="cloud-canvas" width="760" height="420"></canvas>
+        <p class="cloud-hint" id="cloud-hint">实体取自 Gazebo SDF 的 box/DAE 几何；点云可来自地图样本、rosbridge 实时流或服务端体素快照。机器人按 Gazebo 方盒载体绘制（0.42×0.31×0.22，无腿）；狗模型只在 MuJoCo/真机。任务仍用上方栅格图。</p>
+      </details>
+      <div class="buttons">
+        <button id="mode-goal" class="on">加目标</button>
+        <button id="mode-start">设起点</button>
+        <button id="send" class="primary">发送选中</button>
+        <button id="send-all">按顺序发送全部</button>
+        <button id="bt-send">交给行为树</button>
+        <button id="bt-cancel" class="danger">取消 3D 任务</button>
+        <button id="cancel">取消（2D）</button>
+        <button id="clear">清空</button>
+        <button id="overlay-toggle" class="on">覆盖层：路径/位姿</button>
+      </div>
+      <div class="toolbar" style="margin-top:-2px">
+        <label><input type="checkbox" id="map-guard"> 地图与运行 world 一致</label>
+        <label>逐目标超时 s <input id="goal-timeout" type="number" min="10" max="600" step="5" value="60" style="width:70px"></label>
+        <label><input type="checkbox" id="mission-continue"> 失败后继续</label>
+        <button id="mission-export-json">导出任务 JSON</button>
+        <button id="mission-export-csv">导出任务 CSV</button>
+        <span class="pill" id="map-guard-state">未校验</span>
+      </div>
+      <div class="table-wrap">
+        <table id="goals">
+          <thead><tr><th>#</th><th>类型</th><th>x</th><th>y</th><th>z</th><th>yaw°</th><th>状态</th><th>耗时</th><th>路径</th><th>终点误差</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="log" id="log" aria-live="polite"></div>
+      <div class="notice"><b>地图库</b>：导入点云放到 <code>data/maps/imported/</code> 后点“刷新地图库”；“重栅格化”从点云生成 2D 栅格（源文件不改）；“隐藏”只影响控制台列表，不删源文件。</div>
+      <div class="notice"><b>边界</b>：任务台只向现有规划器发目标/起点、只向安全 mux 的
+        <code>/lite3/teleop/app_cmd_vel</code> 发遥控、向 <code>/lite3/safety/estop_cmd_vel</code> 发急停；
+        <b>不直接写 /cmd_vel</b>。Gazebo/导航/ROS 启停仍走作业单 CLI，网页不代批 L2。
+        3D 目标发 <code>/v8/bt/goal</code>，由 BT/goal_gate 落到 <code>/v8/3d/global/goal</code>；起点发 <code>/v8/3d/global/start</code>；2D 目标发
+        <code>/move_base_simple/goal</code>，初位姿发 <code>/initialpose</code>。</div>
+    </section>
+
+    <section class="card" id="viz-card">
+      <h2>可视化后端 <span class="hint">网页内建 / Foxglove 二选一</span></h2>
+      <div class="kv"><span>后端</span><span><select id="viz-backend">
+        <option value="web">网页内建（本页 3D / 点云）</option>
+        <option value="foxglove">Foxglove（关本页重载）</option>
+      </select></span></div>
+      <div id="foxglove-guide" hidden>
+        <ol class="fox-steps">
+          <li>保持 rosbridge 在线（Foxglove 走的就是它）：<code id="foxglove-ws">ws://127.0.0.1:9090</code></li>
+          <li>Foxglove 里 <b>Open connection → Rosbridge (ROS 1)</b>（不要选 Foxglove WebSocket），填上面的地址。</li>
+          <li>导入布局模板：<a id="foxglove-layout" href="/docker/foxglove/ros1_slam_sim_layout.json" target="_blank" rel="noopener">ros1_slam_sim_layout.json</a>（建图快照）/ <a href="/docker/foxglove/ros1_slam_scan_layout.json" target="_blank" rel="noopener">ros1_slam_scan_layout.json</a>（SCAN：<code>/cloud_registered</code>＋阶段标记＋路径＋BT Raw）。</li>
+          <li>切到本模式时网页已停：服务端体素流、实时点云订阅、3D 渲染、<code>/tf</code> 等监视订阅；只留 <code>/v8/bt/status</code> 驱动上方 BT 阶段条。</li>
+          <li>桥连的域要一致：当前 rosbridge 连控制台域 11312；真机换桥的 master（见 <code>docker/foxglove/README.md</code>）。</li>
+        </ol>
+        <div class="notice">点云/3D 交互在 Foxglove 里做；本页继续负责发目标、BT 阶段、作业栈与监控。</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col">
+    <details class="card guide-card" open>
+      <summary>远程使用指南（先看这里）</summary>
+      <ol>
+        <li><b>确认连接</b>：顶栏 rosbridge 显示“已连接”，作业栈 agent 显示“在线”。</li>
+        <li><b>起仿真/建图</b>：在“作业栈”启动 <code>sim_m1</code>；需要实时点云再启 <code>mapping_m1</code>，需要遥控再启 <code>safety_mux</code>，需要服务端体素再启 <code>voxel_stream</code>；<b>3D 目标必须先启 <code>bt_console</code></b>。</li>
+        <li><b>选图/发目标</b>：主图是 2D 预览，先勾“地图与运行 world 一致”，再在地图上点目标，最后“发送选中”或“按顺序发送全部”。<b>3D 目标写入权归 <code>bt_console</code></b>，控制台统一发 <code>/v8/bt/goal</code>；BT 未运行时 3D 发送会被拒绝。2D MBF 仍直发 <code>/move_base_simple/goal</code>。执行器/known-map app 走 CLI。</li>
+        <li><b>看 3D</b>：点地图卡里的“打开 3D 场景”，选实体世界和图层；实时点云在 3D 场景内订阅或切“服务端体素”。</li>
+        <li><b>行为树</b>：作业栈启 <code>bt_console</code>；Groot2 本机连接 ZMQ 5555；地图卡“交给行为树”把选中目标发到 <code>/v8/bt/goal</code>。</li>
+        <li><b>监控/遥控</b>：遥控在地图卡下方，和 2D/3D 画面同一列；右栏看话题频率、TF、MBF 状态。遥控只走安全 mux，急停随时可用。</li>
+        <li><b>本机专用</b>：Gazebo/RViz/MuJoCo、world/SDF/PCD 上传、宿主 shell 在远程灰化锁定，需在宿主桌面执行。</li>
+      </ol>
+      <p class="sec-desc"><b>3D 全链不是 3D 视图</b>：它只改变目标发布接口；2D 主图用于点选，3D 实体/点云在下方“3D 场景”。</p>
+    </details>
+
+    <section class="card">
+      <h2>作业栈 <span class="hint">stacks.json 白名单 · demo</span></h2>
+      <div class="toolbar">
+        <label>agent <input id="agent-url" spellcheck="false" style="width:220px"></label>
+        <button id="agent-refresh">刷新</button>
+        <span class="pill" id="agent-state">未连接</span>
+      </div>
+      <div id="stack-list" class="stack-list"><div class="stack-empty">agent 未连接；先运行 <code>bash scripts/console/start_agent.sh</code></div></div>
+      <pre class="tree" id="stack-log">选择栈查看日志</pre>
+      <div class="notice">只启停 <code>scripts/console/stacks.json</code> 白名单（sim_m1 / mapping_m1 / mapping_save / stairstudy / sim_nist / safety_mux / bt_console / voxel_stream / scan_flat / scan_ramp / scan_real / bag_record），
+        每栈独立进程组、SIGINT→TERM→KILL；formal/EVT/真机仍走作业单。
+        带 world 下拉的栈可在启动前选 world；同一时间只起一个 Gazebo world，换 world 先停当前栈。
+        <code>mapping_m1 / mapping_save / voxel_stream</code> 需要提供 lidar 的 world（sim_m1 或 stairstudy）；world-only 的 sim_nist 不提供，不能接建图/体素。
+        停止 <code>sim_m1</code> 会自动按依赖逆序级联停止 <code>mapping_m1 / mapping_save / safety_mux / bt_console / voxel_stream</code>；
+        停止后页面最多 4 s 刷新，仍显示运行可点“刷新”。<code>bag_record</code> 录到 <code>data/bags/</code>（lz4、512 MB 分卷×8），停止时收尾写索引。
+        agent 默认监听 <code>0.0.0.0:8780</code>（仅可信局域网；本机限定用
+        <code>LITE3_AGENT_BIND=127.0.0.1</code>）。</div>
+    </section>
+
+    <section class="card" id="local-card">
+      <h2>本机桌面 <span class="hint" id="local-role-hint">判定中…</span></h2>
+      <p class="sec-desc">以下功能依赖宿主 X（<code>DISPLAY=:1</code>）或宿主文件系统，不是网络服务；远程客户端只读锁定。</p>
+      <div class="local-list">
+        <div class="local-item" data-local-only>
+          <div><b>Gazebo 原生画面</b><span class="lock">仅本机</span></div>
+          <code>docker exec ros1-slam-sim-viz bash -lc 'source /opt/ros/noetic/setup.bash; export ROS_MASTER_URI=http://roscore:11312; export DISPLAY=:1; gzclient'</code>
+        </div>
+        <div class="local-item" data-local-only>
+          <div><b>RViz</b><span class="lock">仅本机</span></div>
+          <code>docker exec ros1-slam-sim-viz bash -lc 'bash /opt/ros1-slam/docker/viz.sh rviz-map'</code>
+        </div>
+        <div class="local-item" data-local-only>
+          <div><b>MuJoCo AI 演示</b><span class="lock">仅本机</span></div>
+          <code>bash web/assets/demo/start_lite3_mujoco_demo.sh</code>
+        </div>
+        <div class="local-item" data-local-only>
+          <div><b>Groot2（BT 可视化）</b><span class="lock">仅本机</span></div>
+          <code>DISPLAY=:1 ~/.cache/groot2/squashfs-root/AppRun --nosplash</code>
+        </div>
+        <div class="local-item" data-local-only>
+          <div><b>自定义 world / SDF / PCD</b><span class="lock">仅本机</span></div>
+          <code>cp &lt;file&gt; data/maps/imported/  # 再点“刷新地图库”</code>
+        </div>
+        <div class="local-item" data-local-only>
+          <div><b>宿主 shell / Docker / 构建 / 取证</b><span class="lock">仅本机</span></div>
+          <code>cd /home/jack/ysc-code/ros1-slam  # 仅通过本地终端或 SSH</code>
+        </div>
+      </div>
+      <div class="notice" id="local-note">远程可用：地图/任务/监控/遥控/白名单栈/点云/体素；本机专用：原生 GUI、宿主 shell、文件上传。</div>
+    </section>
+
+    <section class="card">
+      <h2>监控 <span class="hint">rosbridge 在线状态 / 关键话题 / TF / 节点</span></h2>
+      <div class="kv"><span>rosbridge</span><b id="m-bridge">未连接</b></div>
+      <div class="kv"><span>地图 / 任务</span><b id="m-mission">—</b></div>
+      <div class="kv"><span>ROS master</span><b id="m-master">—</b></div>
+      <div class="kv"><span>MBF 状态</span><b id="m-mbf">—</b></div>
+      <div class="kv"><span>路径点</span><b id="m-path">—</b></div>
+      <div class="kv"><span>任务</span><b id="m-goal">空闲</b></div>
+          <div class="kv"><span>BT 任务</span><b id="m-bt-mission">—</b></div>
+      <div class="kv"><span>BT 阶段</span><b id="m-bt-stage">—</b></div>
+      <div class="bt-stage" id="bt-stage"></div>
+      <table class="rates" id="rates"><thead><tr><th>话题</th><th>实测</th><th>期望</th></tr></thead><tbody></tbody></table>
+      <div class="kv" style="margin-top:8px"><span>TF 帧</span><b id="m-tf">—</b></div>
+      <pre class="tree" id="tf-tree">（订阅 /tf 后显示）</pre>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button id="refresh-ros">刷新节点/话题</button>
+        <span class="pill" id="rosapi-state">rosapi —</span>
+      </div>
+      <pre class="tree" id="ros-nodes">（rosapi 节点列表）</pre>
+      <pre class="tree" id="ros-topics">（rosapi 话题列表）</pre>
+      <div class="notice">这里只监测；进程/launch 的启停仍由 <code>docker/</code> 作业单和
+        <code>runtime_lab.py</code> 负责，避免网页绕过作业窗。</div>
+    </section>
+  </div>
+</main>
+
+<footer>只读地图来自 <code>scripts/ops/build_maps_index.py</code>；账本来自
+  <code>scripts/ops/collect_3d_runs.py</code>。任务台是 P2/P3 的交互层，不替代 Gazebo formal 判据或真机。</footer>
+
+<script src="assets/console/rosbridge.js"></script>
+<script src="assets/console/mission_events.js"></script>
+<script src="assets/console/console.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lite3_gazebo_sim</name>
+  <version>0.1.0</version>
+  <description>M1 Gazebo 物理仿真最小闭环自研壳包：headless 仿真台（planar 伪狗+fratopa Mid360）+ faster_lio sim 变体 + 冒烟判据（自研件；fratopa 插件原样复制于 ../Mid360_simulation_plugin/livox_laser_simulation，零改动）</description>
+  <maintainer email="ros1-slam@lite3.local">ysc</maintainer>
+  <license>Proprietary</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>lite3_drivers</exec_depend>
+  <exec_depend>livox_laser_simulation</exec_depend>
+  <exec_depend>faster_lio</exec_depend>
+  <exec_depend>lite3_slam</exec_depend>
+  <!-- ★R563／批219 补声明（裁1 落地）★：scripts/world_load_assert.py 逐行 import rospy 与
+       gazebo_msgs.srv.GetWorldProperties ⇒ 二者是**代码级真依赖**，此前 package.xml 未声明。
+       这正是 STVL／sob_layer 那类坑的正形：镜像里装着、package.xml 不声明 ⇒ 换机/重建镜像时
+       依赖静默消失、只在运行期炸。新节点上线即同步声明，不留给下一个人去猜。 -->
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>gazebo_msgs</exec_depend>
+  <!-- ★R572／批224 补声明★：scripts/tf_frame_assert.py import tf2_ros 与 tf2_msgs.msg.TFMessage；
+       两个 launch 也新增 pkg="tf2_ros" 的 static_transform_publisher 节点。
+       同 R563 口径：新节点上线即同步声明，不留给下一个人去猜。 -->
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_msgs</exec_depend>
+</package>

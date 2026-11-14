@@ -1,0 +1,35 @@
+{
+  "carrier": {
+    "backend": "gazebo",
+    "center_z": 0.3,
+    "model_name": "app_carrier",
+    "model_path": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav",
+    "simulation_declaration": "sim_ws/src/v8_simulation/config/sim_backends.yaml",
+    "snap_m": 0.03,
+    "spawn": true,
+    "world": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/worlds/blocked.world",
+    "world_launch": "ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch"
+  },
+  "execution_mode": "simulation",
+  "global": {
+    "budget": 50000,
+    "min_clearance_m": 0.55
+  },
+  "graph": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/graphs/navigation.yaml",
+  "localization": {
+    "source": "carrier"
+  },
+  "map": {
+    "id": "two_floor_blocked",
+    "version": 1
+  },
+  "map_registry": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/registry.json",
+  "name": "two_floor_blocked",
+  "robot_id": "generic_sim",
+  "schema": "navigation_app/v1",
+  "task": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/tasks/blocked.json",
+  "visualization": {
+    "markers": true,
+    "rviz": false
+  }
+}

@@ -1,0 +1,128 @@
+// lite3_planar_drive.cpp —— M2-1 修法 B：planar 伪狗驱动替身插件（小张，2026-10-06）
+// 隔离合规：新源码入自研壳 lite3_gazebo_sim/src/（双目录制：系统包 libgazebo_ros_planar_move.so 零改动，
+// xacro 切 filename 即切换，可随时回退——manifest §回退）。
+// 修复点（对照 noetic gazebo_ros_planar_move 头文件成员 x_/y_/rot_ 开环积分语义 + M1 实证）：
+//   ① /Odometry 位姿与 odom→base_link TF 一律取 model->WorldPose()【闭环】，废除 cmd 积分开环 yaw；
+//   ② 线速度按模型实际朝向 RotateVector 变换（体速度语义，修 M1 "back 段仍 +x 穿墙"）；
+//   ③ drive_mode 双模式：dynamic（SetLinearVel/SetAngularVel，保留物理碰撞）/
+//      kinematic（SetWorldPose 运动学直推，免疫接触求解器——探针 P1 判 H2 时用）；
+//   ④ cmd_vel 超时零速（本版 planar_move 无 commandTimeout 键，此处补齐，M1 manifest F.1）。
+// SDF 键：commandTopic/odometryTopic/odometryFrame/robotBaseFrame/driveMode(dynamic|kinematic)/cmdTimeout/odometryRate
+#include <gazebo/common/common.hh>
+#include <gazebo/physics/physics.hh>
+#include <ignition/math/Pose3.hh>
+#include <tf/transform_broadcaster.h>
+#include <geometry_msgs/Twist.h>
+#include <nav_msgs/Odometry.h>
+#include <ros/ros.h>
+#include <ros/callback_queue.h>  // D-M2-P9：CallbackQueue 完整类型
+#include <boost/thread.hpp>
+
+namespace gazebo {
+class Lite3PlanarDrive : public ModelPlugin {
+ public:
+  void Load(physics::ModelPtr parent, sdf::ElementPtr sdf) override {
+    parent_ = parent;
+    ns_ = sdf->Get<std::string>("robotNamespace", "/").first;
+    cmd_topic_ = sdf->Get<std::string>("commandTopic", "cmd_vel").first;
+    odom_topic_ = sdf->Get<std::string>("odometryTopic", "odom").first;
+    odom_frame_ = sdf->Get<std::string>("odometryFrame", "odom").first;
+    base_frame_ = sdf->Get<std::string>("robotBaseFrame", "base_link").first;
+    drive_mode_ = sdf->Get<std::string>("driveMode", "dynamic").first;
+    cmd_timeout_ = sdf->Get<double>("cmdTimeout", 0.5).first;
+    odom_rate_ = sdf->Get<double>("odometryRate", 50.0).first;
+
+    rosnode_ = boost::make_shared<ros::NodeHandle>(ns_);
+    odom_pub_ = rosnode_->advertise<nav_msgs::Odometry>(odom_topic_, 10);
+    ros::SubscribeOptions so =
+        ros::SubscribeOptions::create<geometry_msgs::Twist>(cmd_topic_, 5,
+            boost::bind(&Lite3PlanarDrive::OnCmd, this, _1), ros::VoidPtr(), &queue_);
+    vel_sub_ = rosnode_->subscribe(so);
+    queue_thread_ = boost::thread(boost::bind(&Lite3PlanarDrive::QueueThread, this));
+    tf_broadcaster_ = boost::make_shared<tf::TransformBroadcaster>();
+    last_cmd_time_ = ros::Time(0);
+    last_odom_time_ = parent->GetWorld()->SimTime();
+    update_conn_ = event::Events::ConnectWorldUpdateBegin(
+        boost::bind(&Lite3PlanarDrive::OnUpdate, this, _1));
+    ROS_INFO("[lite3_planar_drive] loaded: mode=%s cmd=%s odom=%s base=%s",
+             drive_mode_.c_str(), cmd_topic_.c_str(), odom_topic_.c_str(), base_frame_.c_str());
+  }
+
+ private:
+  void OnCmd(const geometry_msgs::Twist::ConstPtr& msg) {
+    boost::mutex::scoped_lock l(lock_);
+    cmd_ = *msg; last_cmd_time_ = ros::Time::now();
+  }
+  void QueueThread() {
+    while (rosnode_->ok()) { queue_.callAvailable(ros::WallDuration(0.01)); }
+  }
+
+  void OnUpdate(const common::UpdateInfo&) {  // D-M2-P9：Gazebo11 无 common::TimeInfo
+    const common::Time now = parent_->GetWorld()->SimTime();
+    const double dt = (now - last_update_).Double();
+    last_update_ = now;
+    if (dt <= 0.0) return;
+
+    double vx, vy, wz;
+    { boost::mutex::scoped_lock l(lock_);
+      const bool stale = !last_cmd_time_.isZero() &&
+                         (ros::Time::now() - last_cmd_time_).toSec() > cmd_timeout_;
+      if (stale) { cmd_ = geometry_msgs::Twist(); last_cmd_time_ = ros::Time::now(); }
+      vx = cmd_.linear.x; vy = cmd_.linear.y; wz = cmd_.angular.z; }
+
+    const ignition::math::Pose3d pose = parent_->WorldPose();
+    if (drive_mode_ == "kinematic") {
+      // 运动学直推：体速度 → 世界位移 + 偏航积分，SetWorldPose 落位（免疫接触求解器）
+      const double cy = cos(pose.Rot().Yaw()), sy = sin(pose.Rot().Yaw());
+      const double nx = pose.Pos().X() + (cy * vx - sy * vy) * dt;
+      const double ny = pose.Pos().Y() + (sy * vx + cy * vy) * dt;
+      const double nyaw = pose.Rot().Yaw() + wz * dt;
+      ignition::math::Pose3d np(nx, ny, pose.Pos().Z(), 0, 0, nyaw);
+      parent_->SetWorldPose(np, true);
+    } else {
+      // dynamic：体速度按模型朝向变换到世界系（修 M1 错位核心），角速度取世界 z
+      parent_->SetLinearVel(pose.Rot().RotateVector(ignition::math::Vector3d(vx, vy, 0)));
+      parent_->SetAngularVel(ignition::math::Vector3d(0, 0, wz));
+    }
+
+    // 闭环里程计：一律 WorldPose（修复点①）
+    const double period = 1.0 / odom_rate_;
+    if ((now - last_odom_time_).Double() < period) return;
+    const double step = (now - last_odom_time_).Double();
+    last_odom_time_ = now;
+    const ignition::math::Pose3d p = parent_->WorldPose();
+    nav_msgs::Odometry o;
+    o.header.stamp = ros::Time::now();
+    o.header.frame_id = odom_frame_;
+    o.child_frame_id = base_frame_;
+    o.pose.pose.position.x = p.Pos().X();
+    o.pose.pose.position.y = p.Pos().Y();
+    o.pose.pose.position.z = p.Pos().Z();
+    o.pose.pose.orientation.x = p.Rot().X();
+    o.pose.pose.orientation.y = p.Rot().Y();
+    o.pose.pose.orientation.z = p.Rot().Z();
+    o.pose.pose.orientation.w = p.Rot().W();
+    o.twist.twist.linear.x = vx; o.twist.twist.linear.y = vy; o.twist.twist.angular.z = wz;
+    for (int i = 0; i < 6; ++i) o.pose.covariance[i * 7] = 0.01;  // 对角占位
+    odom_pub_.publish(o);
+    tf::Transform tf;
+    tf.setOrigin(tf::Vector3(p.Pos().X(), p.Pos().Y(), p.Pos().Z()));
+    tf.setRotation(tf::Quaternion(p.Rot().X(), p.Rot().Y(), p.Rot().Z(), p.Rot().W()));
+    tf_broadcaster_->sendTransform(tf::StampedTransform(tf, ros::Time::now(),
+                                                        odom_frame_, base_frame_));
+  }
+
+  physics::ModelPtr parent_;
+  event::ConnectionPtr update_conn_;
+  boost::shared_ptr<ros::NodeHandle> rosnode_;
+  ros::Publisher odom_pub_; ros::Subscriber vel_sub_;
+  ros::CallbackQueue queue_; boost::thread queue_thread_;
+  boost::shared_ptr<tf::TransformBroadcaster> tf_broadcaster_;
+  boost::mutex lock_;
+  geometry_msgs::Twist cmd_; ros::Time last_cmd_time_;
+  std::string ns_, cmd_topic_, odom_topic_, odom_frame_, base_frame_, drive_mode_;
+  double cmd_timeout_ = 0.5, odom_rate_ = 50.0;
+  common::Time last_update_, last_odom_time_;
+};
+GZ_REGISTER_MODEL_PLUGIN(Lite3PlanarDrive)
+}  // namespace gazebo
