@@ -21,6 +21,7 @@ import argparse
 import json
 import math
 import os
+import os
 from pathlib import Path
 import struct
 import sys
@@ -240,7 +241,7 @@ def main():
     parser.add_argument('--leaf', type=float, default=0.10)
     parser.add_argument('--rate', type=float, default=2.0)
     parser.add_argument('--max-points', type=int, default=60000)
-    parser.add_argument('--out', default='/opt/ros1-slam/data/console/voxels')
+    parser.add_argument('--out', default=os.environ.get('V8_CONSOLE_DATA', '/opt/ros1-slam/data/console') + '/voxels')
     parser.add_argument('--topics', nargs='*',
                         default=['/cloud_registered', '/rslidar_points'])
     args = parser.parse_args()

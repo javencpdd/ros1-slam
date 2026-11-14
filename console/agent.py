@@ -36,13 +36,15 @@ import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-ROOT = Path(__file__).resolve().parents[2]
+import paths
+
+ROOT = paths.REPO_ROOT
 STACKS_FILE = Path(__file__).resolve().parent / 'stacks.json'
-VOXEL_DIR = ROOT / 'data/console/voxels'
-DIR = '/tmp/v8-console'
+VOXEL_DIR = paths.DATA_DIR / 'voxels'
+DIR = str(paths.RUN_DIR)
 LOCK = threading.Lock()
 UI_DIR = Path(__file__).resolve().parent / 'ui'
-FOXGLOVE_DIR = ROOT / 'docker/foxglove'
+FOXGLOVE_DIR = paths.FOXGLOVE_DIR
 ALLOWED_CONTAINERS = {'ros1-slam-sim-viz', 'ros1-slam-ros1'}
 SHELL_META = set(';`$|><&(){}')
 MIME = {'.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -285,10 +287,12 @@ def start_stack(stack, selected_world=None):
     master = stack.get('master') or 'http://roscore:11312'
     setup = (
         'source /opt/ros/noetic/setup.bash; '
-        'source /opt/ros1-slam/ws/devel/setup.bash; '
+        'source %s/ws/devel/setup.bash; '
+        '[ -f %s/sim_ws/devel/setup.bash ] && source %s/sim_ws/devel/setup.bash; '
         'export ROS_MASTER_URI=%s; export ROS_HOSTNAME=$(hostname); '
-        'cd /opt/ros1-slam; exec %s'
-        % (shlex.quote(master), cmd))
+        'cd %s; exec %s'
+        % (paths.CONTAINER_ROOT, paths.CONTAINER_ROOT, paths.CONTAINER_ROOT,
+           shlex.quote(master), paths.CONTAINER_ROOT, cmd))
     outer = (
         'mkdir -p %s; setsid nohup bash -lc %s > %s 2>&1 < /dev/null & '
         'echo $! > %s'

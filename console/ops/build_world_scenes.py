@@ -16,21 +16,26 @@ import argparse
 import datetime
 import json
 import math
+import os
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
 from world_registry import load_registry
 
-ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_OUT = ROOT / 'scripts/console/ui/assets/data/worlds'
+CONSOLE = Path(__file__).resolve().parents[1]
+ROOT = CONSOLE.parent
+_PARENT = ROOT.parent
+REPO = Path(os.environ.get('V8_REPO_ROOT') or (_PARENT / 'ros1-slam')).resolve()
+SIM = Path(os.environ.get('V8_SIM_ROOT') or (_PARENT / 'ros1-slam-simulation')).resolve()
+DEFAULT_OUT = CONSOLE / 'ui/assets/data/worlds'
 WORLD_DIRS = [
-    ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/worlds',
-    ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/stairstudy/worlds',
-    ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/worlds',
+    SIM / 'ws/src/lite3_gazebo_sim/worlds',
+    SIM / 'ws/src/lite3_gazebo_sim/stairstudy/worlds',
+    SIM / 'ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/worlds',
 ]
 MODEL_ROOTS = [
-    ROOT / 'data/maps/worlds',
-    ROOT / 'ws/src/95_simulation/lite3_gazebo_sim/models',
+    REPO / 'data/maps/worlds',
+    SIM / 'ws/src/lite3_gazebo_sim/models',
     Path('/usr/share/gazebo-11/models'),
     Path('/usr/share/gazebo/models'),
 ]
@@ -361,7 +366,7 @@ def world_files(only=None):
     for entry in load_registry().get('worlds', []):
         if only and entry['id'] not in only:
             continue
-        path = ROOT / entry['path']
+        path = SIM / entry['path']
         if path.exists():
             selected.append((entry, path))
     return selected

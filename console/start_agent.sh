@@ -6,7 +6,9 @@
 # The agent only exposes the stacks listed in stacks.json; keep it on a trusted
 # LAN and never expose it to the public network.
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export V8_REPO_ROOT="${V8_REPO_ROOT:-$(cd "$ROOT/../.." && pwd)/ros1-slam}"
+export V8_SIM_ROOT="${V8_SIM_ROOT:-$(cd "$ROOT/../.." && pwd)/ros1-slam-simulation}"
 PIDFILE=/tmp/v8-console-agent.pid
 LOG=/tmp/v8-console-agent.log
 PORT="${LITE3_AGENT_PORT:-8780}"
@@ -23,7 +25,7 @@ case "$ACTION" in
   --start|"")
     command -v docker >/dev/null || { echo 'docker 不可用'; exit 1; }
     if running; then echo "agent 已在运行 PID $(cat "$PIDFILE")"; exit 0; fi
-    setsid nohup python3 "$ROOT/scripts/console/agent.py" --bind "$BIND" --port "$PORT" \
+    setsid nohup python3 "$ROOT/agent.py" --bind "$BIND" --port "$PORT" \
       > "$LOG" 2>&1 < /dev/null &
     echo $! > "$PIDFILE"
     sleep 1

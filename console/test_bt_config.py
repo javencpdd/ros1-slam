@@ -19,7 +19,8 @@ import os
 import re
 import sys
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+ROOT = os.environ.get('V8_REPO_ROOT') or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'ros1-slam'))
 PKG = os.path.join(ROOT, 'ws/src/90_platform/lite3_bt')
 CPP = os.path.join(PKG, 'src/bt_console.cpp')
 LAUNCH = os.path.join(PKG, 'launch/bt_console.launch')
@@ -68,6 +69,9 @@ def launch_keys(text):
 
 
 def main():
+    if not os.path.isdir(PKG):
+        print('SKIP  P1 lite3_bt not found at %s' % PKG)
+        return 0
     code = set(KEY_RE.findall(read(CPP)))
     demo_keys, demo_values = flat_keys(read(DEMO))
     real_keys, real_values = flat_keys(read(REAL))

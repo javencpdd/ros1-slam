@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const M = require('./ui/assets/console/mission_events.js');
 
-const ROOT = path.join(__dirname, '../..');
+const ROOT = path.join(__dirname, '..');
 
 let failures = 0;
 function check(cond, what) {
@@ -94,8 +94,8 @@ check(M.classify(M.parseStatus(outcomeStatus('reached', 2)), 2, null).reason ===
 
 // Wiring assertions: a green pure-function test is worthless if the browser
 // never loads the module or onTopic never dispatches the status message.
-const html = fs.readFileSync(path.join(ROOT, 'scripts/console/ui/console.html'), 'utf8');
-const js = fs.readFileSync(path.join(ROOT, 'scripts/console/ui/assets/console/console.js'), 'utf8');
+const html = fs.readFileSync(path.join(ROOT, 'console/ui/console.html'), 'utf8');
+const js = fs.readFileSync(path.join(ROOT, 'console/ui/assets/console/console.js'), 'utf8');
 const iModule = html.indexOf('assets/console/mission_events.js');
 const iMain = html.indexOf('assets/console/console.js');
 check(iModule >= 0 && iMain >= 0 && iModule < iMain,

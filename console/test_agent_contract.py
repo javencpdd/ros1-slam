@@ -6,9 +6,14 @@ import json
 from pathlib import Path
 import unittest
 
-ROOT = Path(__file__).resolve().parents[2]
-STACKS = ROOT / 'scripts/console/stacks.json'
-SPEC = importlib.util.spec_from_file_location('console_agent', ROOT / 'scripts/console/agent.py')
+import sys
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from paths import SIM_ROOT  # noqa: E402
+
+STACKS = HERE / 'stacks.json'
+SPEC = importlib.util.spec_from_file_location('console_agent', HERE / 'agent.py')
 AGENT = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(AGENT)
 
@@ -34,7 +39,7 @@ class StackWhitelistTest(unittest.TestCase):
             self.assertNotIn('&&', stack['cmd'])
 
     def test_world_choices_exist(self):
-        package = ROOT / 'ws/src/95_simulation/lite3_gazebo_sim'
+        package = SIM_ROOT / 'ws/src/lite3_gazebo_sim'
         sim = self.stacks['sim_m1']
         self.assertEqual(len(sim['world_choices']), 4)
         self.assertIn('{world}', sim['cmd_template'])

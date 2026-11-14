@@ -27,6 +27,7 @@ import json
 import math
 from pathlib import Path
 import re
+import os
 import struct
 import subprocess
 
@@ -35,8 +36,11 @@ from PIL import Image
 
 from world_registry import load_registry, map_bindings
 
-REPO = Path(__file__).resolve().parents[2]
-UI = REPO / 'scripts/console/ui'
+CONSOLE = Path(__file__).resolve().parents[1]
+_P3 = CONSOLE.parent
+REPO = Path(os.environ.get('V8_REPO_ROOT') or (_P3.parent / 'ros1-slam')).resolve()
+SIM = Path(os.environ.get('V8_SIM_ROOT') or (_P3.parent / 'ros1-slam-simulation')).resolve()
+UI = CONSOLE / 'ui'
 OUT = UI / 'assets/maps'
 BASE = (7, 12, 18)
 
@@ -309,7 +313,7 @@ def maps():
             found.append({'id': name, 'label': label, 'frame': 'map',
                           'notes': notes, 'files': [str(pcd.relative_to(REPO))], **info})
     support_paths = [
-        (REPO / 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json',
+        (SIM / 'ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json',
          'two_floor_nav', 'two_floor_nav 支撑图（3D）',
          '声明几何支撑图（open.world；不是 demo_two_floor）；3D 全链目标/起点可选用'),
         (REPO / 'data/maps/nist_stairs_120_s020x170_support.json',

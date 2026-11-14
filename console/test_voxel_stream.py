@@ -10,8 +10,8 @@ from types import SimpleNamespace
 
 import numpy as np
 
-REPO = Path(__file__).resolve().parents[2]
-SCRIPT = REPO / 'scripts/console/voxel_stream.py'
+HERE = Path(__file__).resolve().parent
+SCRIPT = HERE / 'voxel_stream.py'
 SPEC = importlib.util.spec_from_file_location('voxel_stream', SCRIPT)
 VOXEL = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(VOXEL)
