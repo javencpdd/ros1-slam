@@ -5,9 +5,14 @@
   "name": "two_floor_upstairs_bt",
   "graph": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/graphs/navigation_bt.yaml",
   "map_registry": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/registry.json",
-  "map": {"id": "two_floor_nav", "version": 1},
+  "map": {
+    "id": "two_floor_nav",
+    "version": 1
+  },
   "task": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/tasks/upstairs.json",
-  "localization": {"source": "carrier"},
+  "localization": {
+    "source": "carrier"
+  },
   "carrier": {
     "backend": "gazebo",
     "center_z": 0.3,
@@ -19,7 +24,14 @@
     "world": "sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/worlds/open.world",
     "world_launch": "sim_ws/src/lite3_gazebo_sim/launch/app_world.launch"
   },
-  "visualization": {"markers": true, "rviz": false},
-  "global": {"budget": 50000, "min_clearance_m": 0.55},
-  "goal_topic": "/v8/bt/goal"
+  "visualization": {
+    "markers": true,
+    "rviz": false
+  },
+  "global": {
+    "budget": 50000,
+    "min_clearance_m": 0.55
+  },
+  "goal_topic": "/v8/bt/goal",
+  "mission_topic": "/v8/bt/goal_mission"
 }

@@ -202,7 +202,7 @@ def artifact_bytes():
               'world_launch': 'ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch',
               'world': RELATIVE + '/worlds/' + ('blocked' if case == 'blocked' else 'open') + '.world',
               'model_path': RELATIVE,
-              'simulation_declaration': 'ws/src/95_simulation/v8_simulation/config/sim_backends.yaml'},
+              'simulation_declaration': 'sim_ws/src/v8_simulation/config/sim_backends.yaml'},
            'visualization': {'markers': True, 'rviz': False},
            'global': {'budget': 50000, 'min_clearance_m': HEIGHT + CLEARANCE}}
         artifacts['apps/' + case + '.yaml'] = json_bytes(app)

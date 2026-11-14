@@ -15,6 +15,7 @@ build:
 
 test:
 	python3 -B -m unittest discover -s $(WS)/src/v8_simulation/test -p 'test_*.py' -v
+	python3 -B -m unittest discover -s $(WS)/src/lite3_gazebo_sim/test -p 'test_*.py' -v
 
 install:
 	$(ROS_SETUP) && cd $(WS) && catkin_make install -DCMAKE_BUILD_TYPE=Release -j$(JOBS)
