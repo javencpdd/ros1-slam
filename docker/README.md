@@ -1,6 +1,6 @@
 # ros1-slam · Docker 开发与仿真
 
-> 最新更新时间：2026-11-14 19:00:00 CST。本文维护Docker构建/运行入口；新两层场景的实现、限定验证与环境边界见[场景记录](../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。
+> 最新更新时间：2026-11-16 00:40:00 CST。本文维护Docker构建/运行入口；本轮改动＝宿主端口绑定收口（web/rosbridge 只绑环回）与镜像默认 tag 对齐，未改 Dockerfile、未提升镜像内构建期口径。新两层场景的实现、限定验证与环境边界见[场景记录](../note/进度/00_完整Gazebo规划场景_2026-11-06.md)。
 
 x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 ROS1，地图和现场配置各机独立。当前旧算法、地图准备和真机排程仍按[执行队列](../note/计划书v8.1/23_v8.1任务队列.md)保持取消；本文不授权启动硬件。架构与能力边界见[项目架构](../note/架构/项目架构与目录.md)和[进度](../note/进度/README.md)。
 
@@ -25,8 +25,10 @@ x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 
 | `sim` | CPU 无头仿真、Mesa/Xvfb；11313/11345；不请求 NVIDIA GPU |
 | `sim-viz` | 宿主 X 桌面仿真；同样发布11313/11345，当前 Compose 显式请求 NVIDIA GPU |
 | `slam-host` | x86 host 网络联调模板，须核本机 master/IP；非 Lite3/M20 部署入口 |
-| `web` | 纯文档站；仓库根只读挂到 `/srv`，`web/serve.py` 白名单，宿主 `:80` → 容器 `:8000`；不连 ROS |
-| `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图 |
+| `web` | 纯文档站；仓库根只读挂到 `/srv`，`web/serve.py` 白名单，宿主 `127.0.0.1:80` → 容器 `:8000`；不连 ROS |
+| `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图；宿主侧只绑 `127.0.0.1:9090` |
+
+**宿主端口绑定（2026-11-16 起）**：`web`（文档站）与 `rosbridge`（可下发的 ROS 桥）默认只绑 `127.0.0.1`，不再对整个局域网敞开；要按 IP 给外部工具或手机端看，改 `docker/.env` 里的 `WEB_BIND` / `ROSBRIDGE_BIND` 为宿主机网卡 IP，不要写回 `0.0.0.0`。`roscore`（11312）与 `sim-viz`（11313/11345）仍绑 `0.0.0.0` —— 它们本来就是给别的机器连 master / Gazebo 用的，维持原状。
 
 ROS 服务共用新的 x86 目标卷 `ros1_x86_sim_build/devel/install/profiles`，分别挂载 `ws/build`、`ws/devel`、`ws/install`、`ws/.profiles/x86_sim`，绑定挂载 `ws/src/scripts/docker/data/opt/note/tooling`；2026-11-14 起 P2 子项目（subprojects/simulation）挂到 `/opt/ros1-slam/sim_ws`（工作区）与 `/opt/ros1-slam/sim_repo`（仓根只读）。 2026-11-15 起 P3 控制台源码 `subprojects/console/console` 只读挂到 `/opt/ros1-slam/scripts/console`，兼容 `voxel_stream` 等作业栈的旧命令路径。2026-11-14 起 `11313/11345` 只由 `sim-viz` 发布；`sim` 为 headless 门禁（`docker exec` 用容器内 master），不再抢宿主端口。两者共用 devel 卷，一次只编一套，运行可并存。`.dockerignore` 排除宿主构建物和本机地图，镜像不包含现场数据。
 

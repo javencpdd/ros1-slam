@@ -127,6 +127,37 @@ class BuildEntrypointTests(unittest.TestCase):
             self.assertTrue(expected.items() <= volumes.items(), name)
             self.assertTrue({"ros1_ws_build", "ros1_ws_devel"}.isdisjoint(volumes), name)
 
+    def test_compose_rosbridge_passes_master_uri_at_runtime(self):
+        """回归：rosbridge 的 master URI 必须由容器运行期展开，不能是 compose 构建期替换。
+
+        缺陷原样（2026-11-16 发现）：`command: bash -lc "... export ROS_MASTER_URI=${ROS1_MASTER_URI:-...}"`
+        里的 ${...} 由 compose 在**宿主侧**替换，而宿主的 ROS1_MASTER_URI 通常为空 ⇒
+        容器内 ROS_MASTER_URI 空 ⇒ 回落 127.0.0.1:11311 ⇒ 桥进程照起、日志照印
+        "server started"，实际连不上 master。判据只能落在展开后的 argv 与环境上。
+        """
+        if shutil.which("docker") is None:
+            self.skipTest("Compose CLI unavailable")
+        result = subprocess.run(["docker", "compose", "--env-file", str(ROOT / "docker/.env.example"),
+            "-f", str(ROOT / "docker/docker-compose.yml"), "--profile", "extras", "config", "--format", "json"],
+            env={**os.environ, "PROFILE": "sim", "SLIM": "0", "ROS1_MASTER_URI": ""},
+            capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        bridge = json.loads(result.stdout)["services"]["rosbridge"]
+        command = " ".join(bridge["command"])
+        # 展开后必须还留着 bash 变量引用（$$ 逃逸成 $），而不是被替换成空串。
+        self.assertIn("$${ROS1_MASTER_URI}", command.replace("$", "$$").replace("$$$$", "$$"), command)
+        self.assertIn("ROS_MASTER_URI=", command)
+        # 两个名字都要落进容器 env，因为 setup.bash 只认 ROS_MASTER_URI。
+        self.assertEqual(bridge["environment"]["ROS_MASTER_URI"], "http://roscore:11312")
+        self.assertEqual(bridge["environment"]["ROS1_MASTER_URI"], "http://roscore:11312")
+        # 只绑宿主环回：桥是可下发的控制面，不该对整个局域网敞开。
+        ports = bridge["ports"]
+        self.assertEqual(len(ports), 1)
+        self.assertEqual(ports[0]["host_ip"], "127.0.0.1")
+        self.assertEqual(str(ports[0]["published"]), "9090")
+        # 健康检查必须能证明「连上了 master」，不能只看进程在。
+        self.assertIn("rosnode list", " ".join(bridge["healthcheck"]["test"]))
+
     def test_python_source_has_valid_ast(self):
         for path in [ROOT / "docker/test_build_entrypoints.py", *sorted((ROOT / "scripts/build").glob("*.py"))]:
             ast.parse(path.read_text(), filename=str(path))
