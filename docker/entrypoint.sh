@@ -26,6 +26,18 @@ else
     echo "[entrypoint]       进入容器后执行：bash /opt/ros1-slam/docker/build.sh"
 fi
 
+# ---- 2.5 清掉分仓前的旧仿真插件（2026-11-16）----
+# 11-14 物理分仓把仿真源码从 ws/src 搬到 sim_ws/src，但 ws/devel/lib 里留着 11-02 编的
+# liblivox_laser_simulation.so。它与 sim_ws 那份符号集完全相同、源码同一份，**唯一差别是
+# 编译期烧进 .so 的 __FILE__ 路径**：旧件指向 ws/src/95_simulation（已不存在）⇒ 插件
+# Load() 读 CSV 失败就 return，话题照 advertise 但一条数据不发（静默降级，查起来最费时）。
+# 路径优先级已在 sim.sh/viz.sh/Dockerfile 改成 sim_ws 优先；这里再做一次「点名删旧件」，
+# 让两件事互为兜底。只删这一枚具名文件，不动 devel 卷里其它产物。
+_LEGACY_PLUGIN="${WS_DIR}/devel/lib/liblivox_laser_simulation.so"
+if [ -f "${_LEGACY_PLUGIN}" ] && [ -f "${WS_ROOT}/sim_ws/devel/lib/liblivox_laser_simulation.so" ]; then
+    rm -f "${_LEGACY_PLUGIN}" && echo "[entrypoint] 已清掉分仓前旧插件 ${_LEGACY_PLUGIN}（sim_ws 版本在位，不受影响）"
+fi
+
 # ---- 3. 目录与运行时环境变量 ----
 mkdir -p "${ROS_HOME:-${WS_ROOT}/.ros}" \
          "${ROS_LOG_DIR:-${WS_ROOT}/logs}" \

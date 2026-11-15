@@ -56,6 +56,24 @@ x-ros-base: &ros-base
   #   故名实相符。要回到旧口径＝在 .env 里显式写 IMAGE=ros1-slam:noetic。
   image: ${IMAGE:-ros1-slam:noetic-sim}
   build: *build
+  # ---- 2026-11-16 加固四项（原配置全缺，7 个服务一个不落）----
+  # ① 日志轮转：原 json-file 无上限，实测日志卷已 4212 个文件/221MB 且只增不减。
+  logging: &ros-logging
+    driver: json-file
+    options:
+      max-size: "${LOG_MAX_SIZE:-10m}"
+      max-file: "${LOG_MAX_FILE:-3}"
+  # ② 禁提权：容器内进程不能靠 setuid 二进制涨权限。
+  security_opt: &ros-security
+    - no-new-privileges:true
+  # ③ 内存上限：原全无限制，单个容器吃满宿主内存时只能等 OOM killer 随机挑。
+  #    sim/sim-viz 跑 Gazebo 需要更多，见各自服务里的覆盖值。
+  mem_limit: "${MEM_LIMIT_CORE:-1g}"
+  # ④ core dump 落盘：历史上有 154 枚 core 共 104.3GB 堆在 ros_home 卷里。
+  #    ulimit 设 0 ⇒ 容器内进程崩溃不再写 core（本机现测容器 ulimit -c 已是 0，
+  #    这里显式钉住，换机器也不会退化成 unlimited）。
+  ulimits:
+    core: 0
   environment: &ros-env
     # ★ 网络口径全部走变量，不在镜像里写死 IP
     ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://roscore:11312}
@@ -226,6 +244,12 @@ services:
     image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     build: *build-sim
     command: ["bash", "-lc", "sleep infinity"]
+    # ★ 2026-11-16：本服务自写 environment（不能用 <<: *ros-base，YAML 合并是整体覆盖），
+    #   所以加固三项只能逐项引用 anchor。
+    logging: *ros-logging
+    security_opt: *ros-security
+    ulimits:
+      core: 0
     environment:
       USE_XVFB: "1"                 # entrypoint 据此起 Xvfb :99（gzserver 需要 GL 上下文）
       LIBGL_ALWAYS_SOFTWARE: "1"    # 强制 Mesa 软渲染，不要去找 NVIDIA
@@ -249,6 +273,10 @@ services:
     volumes: *ros-volumes
     working_dir: /opt/ros1-slam
     shm_size: "2gb"                 # gzserver + 点云传输
+    # ★ 2026-11-16：Gazebo 是本栈唯一的重量级进程，覆盖 anchor 的 1g 默认值。
+    #   6g 是「够用且能及早暴露内存泄漏」的值，不是压测上限；真跑大地图/稠密点云
+    #   若撞到 OOM，先看 docker stats 再调，别直接设回不限。
+    mem_limit: "${MEM_LIMIT_SIM:-6g}"
     # 11313/11345 归 sim-viz（控制台/可视化入口）。sim 是 headless 门禁，经
     # docker exec 使用容器内 master，不再发布宿主端口，避免与 sim-viz 互斥。
     # 两者共用 devel 卷：一次只编一套，运行可并存。
@@ -277,6 +305,11 @@ services:
     image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     build: *build-sim
     command: ["bash", "-lc", "sleep infinity"]
+    # ★ 2026-11-16：同 sim，逐项引用 anchor（本服务自写 environment 与 volumes）。
+    logging: *ros-logging
+    security_opt: *ros-security
+    ulimits:
+      core: 0
     environment:
       USE_XVFB: "0"                 # 用宿主机 X，不起容器内虚拟屏
       LIBGL_ALWAYS_SOFTWARE: "0"    # ★ 覆盖镜像里的全局 1：直通宿主机 X 时要用真 GPU，
@@ -342,6 +375,8 @@ services:
       # - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
     working_dir: /opt/ros1-slam
     shm_size: "2gb"
+    # ★ 2026-11-16：sim-viz 跑 gzclient/rviz（走宿主 GPU），内存需求与 sim 同量级。
+    mem_limit: "${MEM_LIMIT_VIZ:-6g}"
     ports:
       - "11313:11313"
       - "11345:11345"
@@ -363,6 +398,12 @@ services:
     image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     container_name: ros1-slam-rosbridge
     profiles: ["extras"]
+    # ★ 2026-11-16：逐项引用 anchor 的加固三项（本服务不继承 ros-base）。
+    logging: *ros-logging
+    security_opt: *ros-security
+    ulimits:
+      core: 0
+    mem_limit: "${MEM_LIMIT_BRIDGE:-512m}"
     # ★ 2026-11-16 修：原来写成 `bash -lc "... export ROS_MASTER_URI=${ROS1_MASTER_URI:-...}"`，
     #   这在 compose 里是**构建期的变量替换**（替换的是宿主环境的 ROS1_MASTER_URI，
     #   而 docker/.env 里那个值只写进容器 env 的 ROS1_MASTER_URI、没写进 ROS_MASTER_URI）
@@ -397,6 +438,12 @@ services:
     image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     container_name: ros1-slam-web
     entrypoint: ["python3"]
+    # ★ 2026-11-16：纯静态文档服务，加固三项同 anchor；512m 对它绰绰有余。
+    logging: *ros-logging
+    security_opt: *ros-security
+    ulimits:
+      core: 0
+    mem_limit: "${MEM_LIMIT_WEB:-512m}"
     # ★ 2026-11-16：--bind 原写 0.0.0.0，与端口串里的「宿主环回」口径自相矛盾
     #   （容器是独立网络命名空间，里面只听 0.0.0.0 才能被端口映射接住，所以这里
     #   保持 0.0.0.0 不变、只把端口绑到 127.0.0.1 —— 收口在宿主这一侧做，改的是
@@ -420,6 +467,13 @@ services:
     container_name: ros1-slam-redis
     profiles: ["extras"]
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    # ★ 2026-11-16：redis 是外部件模板（项目本体不依赖），但配置面与其它六个保持一套。
+    #   mem_limit 给 768m：redis 自己 maxmemory 是 256mb，留 RDB/AOF 重写与内存碎片余量。
+    logging: *ros-logging
+    security_opt: *ros-security
+    ulimits:
+      core: 0
+    mem_limit: "${MEM_LIMIT_REDIS:-768m}"
     ports:
       - "6379:6379"
     volumes:

@@ -214,9 +214,14 @@ RUN set -e; \
         && rm -rf /var/lib/apt/lists/*
 
 # Gazebo 资源/模型/插件搜索路径（离线跑仿真的前提：模型只能从本地来）
+# ★ 2026-11-16 修：GAZEBO_PLUGIN_PATH 原为 ws/devel/lib 优先。11-14 物理分仓后 sim 插件
+#   编在 sim_ws/devel/lib，而 ws/devel/lib 里残留 11-02 的旧 liblivox_laser_simulation.so；
+#   两份符号集相同、源码同一份，差别只在编译期烧进 .so 的 __FILE__ ⇒ 旧件的 CSV 路径
+#   （ws/src/95_simulation）分仓后已不存在 ⇒ 插件读 CSV 失败即 return，/livox/lidar 静默零数据。
+#   （compose 的 sim/sim-viz 不吃镜像 ENV，走 sim.sh/viz.sh 同名变量；三处必须一致。）
 ENV GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:/opt/ros1-slam/sim_ws/src:/opt/ros1-slam/sim_ws/src/lite3_gazebo_sim/worlds \
     GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:/opt/ros1-slam/sim_ws/src \
-    GAZEBO_PLUGIN_PATH=/opt/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib \
+    GAZEBO_PLUGIN_PATH=/opt/ros1-slam/sim_ws/devel/lib:/opt/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib \
     LIBGL_ALWAYS_SOFTWARE=1 \
     USE_XVFB=0
 

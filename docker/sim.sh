@@ -27,7 +27,14 @@ source /opt/ros/noetic/setup.bash
 [ -f "$WS/ws/devel/setup.bash" ] && source "$WS/ws/devel/setup.bash"
 [ -f "$WS/sim_ws/devel/setup.bash" ] && source "$WS/sim_ws/devel/setup.bash"
 
-export GAZEBO_PLUGIN_PATH=$WS/ws/devel/lib:/opt/ros/noetic/lib
+# ★ 2026-11-16 修（顺序有讲究，别把 ws 放回第一位）：
+#   11-14 物理分仓后，sim 的插件编在 sim_ws/devel/lib，而 ws/devel/lib 里还留着一份
+#   11-02 的旧产物 liblivox_laser_simulation.so。两者符号集完全相同、源码同一份，
+#   **唯一差别是编译期烧进 .so 的 __FILE__ 路径**：旧件指向 ws/src/95_simulation（分仓后
+#   已不存在）⇒ 插件 Load() 里读 CSV 失败后直接 return，话题照 advertise 但零数据。
+#   实测＝旧件优先时 /livox/lidar 无消息，sim_ws 优先时 10.05Hz。
+#   ⇒ sim_ws 必须排在前面，否则 m1 系列世界的仿真雷达是空转的。
+export GAZEBO_PLUGIN_PATH=$WS/sim_ws/devel/lib:$WS/ws/devel/lib:/opt/ros/noetic/lib
 export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:$WS/sim_ws/src:$SIM_PKG/worlds
 export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:$WS/sim_ws/src
 export LIBGL_ALWAYS_SOFTWARE=1

@@ -158,6 +158,63 @@ class BuildEntrypointTests(unittest.TestCase):
         # 健康检查必须能证明「连上了 master」，不能只看进程在。
         self.assertIn("rosnode list", " ".join(bridge["healthcheck"]["test"]))
 
+    def test_compose_hardening_applies_to_every_service(self):
+        """回归：日志轮转 / no-new-privileges / core=0 必须落到**每一个**服务上。
+
+        缺陷原样（2026-11-16）：这几项原先一个都没有。加防护时最典型的翻车方式是
+        「只加在 anchor 上」—— sim/sim-viz/rosbridge/web/redis 都没写 <<: *ros-base
+        （它们自写 environment，YAML 合并是整体覆盖不是深合并），anchor 根本传不进去。
+        实测第一次加完只有 roscore/slam 吃到，其余五个全空。判据必须逐服务查。
+        """
+        if shutil.which("docker") is None:
+            self.skipTest("Compose CLI unavailable")
+        result = subprocess.run(["docker", "compose", "--env-file", str(ROOT / "docker/.env.example"),
+            "-f", str(ROOT / "docker/docker-compose.yml"), "--profile", "*", "config", "--format", "json"],
+            env={**os.environ, "PROFILE": "sim", "SLIM": "0"}, capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        services = json.loads(result.stdout)["services"]
+        self.assertGreaterEqual(len(services), 7, sorted(services))
+        for name, service in sorted(services.items()):
+            with self.subTest(service=name):
+                # ① 日志轮转
+                options = service.get("logging", {}).get("options", {})
+                self.assertEqual(options.get("max-size"), "10m", name)
+                self.assertEqual(str(options.get("max-file")), "3", name)
+                # ② 禁提权
+                self.assertIn("no-new-privileges:true", service.get("security_opt", []), name)
+                # ③ core 不落盘（历史上 154 枚 core 堆了 104.3GB）
+                self.assertIn("core", service.get("ulimits", {}), name)
+                # ④ 内存上限（值可不同，但不能缺席）
+                self.assertTrue(service.get("mem_limit"), name)
+
+    def test_gazebo_plugin_path_prefers_split_sim_workspace(self):
+        """回归：GAZEBO_PLUGIN_PATH 必须让 sim_ws 排在 ws 前面。
+
+        缺陷原样（2026-11-16）：11-14 物理分仓后，ws/devel/lib 里留着 11-02 编的
+        liblivox_laser_simulation.so。两份 .so 符号集完全相同、源码同一份，**唯一差别是
+        编译期烧进 .so 的 __FILE__**：旧件指向 ws/src/95_simulation（分仓后已不存在）
+        ⇒ 插件 Load() 读 CSV 失败就 return，/livox/lidar 照 advertise 但零数据。
+        实测＝旧件优先 no new messages，sim_ws 优先 10.05Hz。
+        三处必须一致：Dockerfile ENV、sim.sh、viz.sh。
+        """
+        delimiter = ":" if os.name != "nt" else ";"
+        for path in (ROOT / "docker/Dockerfile", ROOT / "docker/sim.sh", ROOT / "docker/viz.sh"):
+            with self.subTest(file=path.name):
+                text = path.read_text()
+                self.assertIn("GAZEBO_PLUGIN_PATH", text, path.name)
+                # 取出 GAZEBO_PLUGIN_PATH 所在行，抽出其中的目录序列
+                line = next(l for l in text.splitlines() if "GAZEBO_PLUGIN_PATH" in l and "=" in l
+                            and not l.lstrip().startswith("#"))
+                entries = [e.strip() for e in line.split("=", 1)[1].split(delimiter)]
+                # ★ 注意：不能用 endswith("ws/devel/lib") 选 ws —— 'sim_ws/devel/lib' 也满足，
+                #   两者会命中同一个下标（本用例第一版就栽在这里，报 0 not less than 0）。
+                sim_idx = next((i for i, e in enumerate(entries) if "sim_ws/devel/lib" in e), None)
+                ws_idx = next((i for i, e in enumerate(entries)
+                               if "sim_ws/devel/lib" not in e and "ws/devel/lib" in e), None)
+                self.assertIsNotNone(sim_idx, f"{path.name}: 缺 sim_ws/devel/lib ⇒ {entries}")
+                self.assertIsNotNone(ws_idx, f"{path.name}: 缺 ws/devel/lib ⇒ {entries}")
+                self.assertLess(sim_idx, ws_idx, f"{path.name}: ws 排在了 sim_ws 前面 ⇒ {entries}")
+
     def test_python_source_has_valid_ast(self):
         for path in [ROOT / "docker/test_build_entrypoints.py", *sorted((ROOT / "scripts/build").glob("*.py"))]:
             ast.parse(path.read_text(), filename=str(path))

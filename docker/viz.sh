@@ -30,7 +30,9 @@ source /opt/ros/noetic/setup.bash
 [ -f "$WS/ws/devel/setup.bash" ] && source "$WS/ws/devel/setup.bash"
 [ -f "$WS/sim_ws/devel/setup.bash" ] && source "$WS/sim_ws/devel/setup.bash"
 
-export GAZEBO_PLUGIN_PATH=$WS/ws/devel/lib:/opt/ros/noetic/lib
+# ★ 2026-11-16 修：同 sim.sh 同一枚缺陷（旧 .so 里烧死的 __FILE__ 路径导致 CSV 读不到、
+#   雷达静默零数据）。sim_ws 的插件必须排在 ws 前面。见 sim.sh 处那段长注释。
+export GAZEBO_PLUGIN_PATH=$WS/sim_ws/devel/lib:$WS/ws/devel/lib:/opt/ros/noetic/lib
 export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:$WS/sim_ws/src:$WS/sim_ws/src/lite3_gazebo_sim/worlds
 export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:$WS/sim_ws/src
 # 仿真域口径与 m2_smoke.sh 保持一致
