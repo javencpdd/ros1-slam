@@ -8,7 +8,9 @@ import sys
 import time
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+# 2026-11-18（M7）：测试已移入 tests/ 子目录，HERE 指回包目录以保持
+# 原有全部派生表达式（str(HERE)/HERE.parent/HERE/"x.py"）语义不变。
+HERE = Path(__file__).resolve().parent.parent
 OUT = Path('/tmp/r1022_smoke.json')
 STATE = Path('/tmp/r1022_state.json')
 PORT = 11501

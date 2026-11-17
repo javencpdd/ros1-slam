@@ -5,7 +5,9 @@ import sys
 import unittest
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+# 2026-11-18（M7）：测试已移入 tests/ 子目录，HERE 指回包目录以保持
+# 原有全部派生表达式（str(HERE)/HERE.parent/HERE/"x.py"）语义不变。
+HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / 'contracts'))
 import semantic_support_bridge as bridge  # noqa: E402
