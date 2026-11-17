@@ -18,8 +18,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'contracts'))
 sys.path.insert(0, str(HERE.parent / 'representation'))
+sys.path.insert(0, str(HERE.parents[1] / 'v8_grid'))
 import validate as contract  # noqa: E402
 import support_map as rep  # noqa: E402
+from v8_grid import indexing as _grid  # noqa: E402
 
 
 class PlannerError(Exception):
@@ -37,10 +39,11 @@ def _cells(surface, resolution, map_resolution=None):
         if decoded:
             return decoded
     footprint = surface['footprint'] if isinstance(surface, dict) else surface
-    x0 = int(math.ceil(footprint['min_x'] / resolution - .5))
-    x1 = int(math.ceil(footprint['max_x'] / resolution - .5)) - 1
-    y0 = int(math.ceil(footprint['min_y'] / resolution - .5))
-    y1 = int(math.ceil(footprint['max_y'] / resolution - .5)) - 1
+    # 2026-11-18（M4）：cell_center 口径（ceil(v/res - .5) 半格中心），逐字等价。
+    x0 = _grid.cell_center(footprint['min_x'], resolution)
+    x1 = _grid.cell_center(footprint['max_x'], resolution) - 1
+    y0 = _grid.cell_center(footprint['min_y'], resolution)
+    y1 = _grid.cell_center(footprint['max_y'], resolution) - 1
     return {(ix, iy) for ix in range(x0, x1 + 1) for iy in range(y0, y1 + 1)}
 
 
@@ -263,13 +266,15 @@ def plan(value, start, goal, budget=20000, cancel=None, resolution=None,
                 raise PlannerError('E_PLAN_NO_ROUTE', 'no safe grid connector for endpoint')
             ix, iy = min(candidates, key=lambda cell: (math.dist(support_point, xyz(sid, cell)), cell))
             return sid, ix, iy
-        ix = int(math.floor(point[0] / resolution))
-        iy = int(math.floor(point[1] / resolution))
+        # 2026-11-18（M4）：cell_floor 口径（绝对索引、无 epsilon），逐字等价。
+        ix = _grid.cell_floor(point[0], resolution)
+        iy = _grid.cell_floor(point[1], resolution)
         if (ix, iy) not in cells[surface['surface_id']]:
-            ix = min(max(ix, int(math.ceil(surface['footprint']['min_x'] / resolution))),
-                     int(math.ceil(surface['footprint']['max_x'] / resolution)) - 1)
-            iy = min(max(iy, int(math.ceil(surface['footprint']['min_y'] / resolution))),
-                     int(math.ceil(surface['footprint']['max_y'] / resolution)) - 1)
+            # 2026-11-18（M4）：cell_clamp_edge 口径（ceil 收边），逐字等价。
+            ix = min(max(ix, _grid.cell_clamp_edge(surface['footprint']['min_x'], resolution)),
+                     _grid.cell_clamp_edge(surface['footprint']['max_x'], resolution) - 1)
+            iy = min(max(iy, _grid.cell_clamp_edge(surface['footprint']['min_y'], resolution)),
+                     _grid.cell_clamp_edge(surface['footprint']['max_y'], resolution) - 1)
         if (ix, iy) not in cells[surface['surface_id']]:
             raise PlannerError('E_PLAN_CLEARANCE', 'endpoint cell has insufficient clearance')
         return (surface['surface_id'], ix, iy)
