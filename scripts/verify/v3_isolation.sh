@@ -74,6 +74,12 @@ fi
 FAIL=0
 TMP=$(mktemp)
 say() { echo "$1"; }
+# ★2026-11-18：ISO_ROOT 提前定义。它原本只在第 [10] 项里出现，
+#   而第 [4] 项拿 rospack 的返回值去 grep 硬编码的 /home/ros1-slam ——
+#   容器内那是符号链接视图（ws -> /opt/ros1-slam/ws），rospack 返回的是
+#   真实路径 /opt/ros1-slam/...，于是同一目录因两种写法被判 BAD（假红）。
+ISO_ROOT="${ISO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
 say "[1] ROS_PACKAGE_PATH 中是否含 /home/ysc"
 echo "$ROS_PACKAGE_PATH" | tr ':' '\n' | grep -q "/home/ysc" && { echo "  违规"; FAIL=1; }
 say "[2] 自研壳中是否含 /home/ysc"
@@ -82,7 +88,11 @@ say "[3] .bashrc 是否 source 了其他 devel"
 grep -qn "lite_cog\|/home/ysc" /home/ros1-slam/.bashrc 2>/dev/null && { echo "  违规"; FAIL=1; }
 say "[4] rospack 解析路径是否都在 /home/ros1-slam（teb 例外：系统包）"
 for p in faster_lio hdl_localization lite3_bringup lite3_safety; do
-  rospack find "$p" 2>/dev/null | grep -q "/home/ros1-slam" || { echo "  BAD: $p"; FAIL=1; }
+  found=$(rospack find "$p" 2>/dev/null)
+  case "$found" in
+    /home/ros1-slam/*|"$ISO_ROOT"/*) : ;;                       # 符号链接视图 或 真实根
+    *) echo "  BAD: $p -> ${found:-<未解析>}"; FAIL=1 ;;
+  esac
 done
 say "[5] ★ 平级模块间是否互相 include launch（20 号 K3）—— P7 修订（主理人裁决，04 台账）：豁免 lite3_bringup（TOP 编排层 = include 合法主体，mode 级组合 launch include 各平级模块属 TOP 职责）；K3 语义 = 平级 lite3_* 模块禁互 include（TOP 下行不豁免）—— v3 修复子 shell 丢 FAIL bug 口径不变 —— SCAN 精度修订（主理人裁决 2026-10-08，04 台账，留底 raw/v3_isolation.sh.before_scanC5.bak）：旧实现 grep -o 'find lite3_*' 会把「rosparam file=\$(find lite3_X)/config/... 加载他包配置」也计为命中，与本段标题及 K3 语义（禁互 include **launch**）不符，实测致 m1_mapping/m2_mapping 两条纯 config 加载假阳性；新实现只匹配 <include file=\"\$(find lite3_X)\" 形态，真 include 命中数不变、反向探针必抓（见 04 登记）。已知局限：跨行书写的 <include\\n file=...> 不在扫描面内（沙箱现存 launch 均单行写法）"
 : > "$TMP"
