@@ -226,5 +226,37 @@ class RegistryTests(unittest.TestCase):
                     f'{name} 已在 registry/fixtures 与 contracts/fixtures 之间漂移')
 
 
+    def test_cross_catalog_only_shares_carrier_and_versions_agree(self):
+        """registry/data 与 framework/fixtures 是两套命名空间不同的组件清单。
+
+        registry 侧（v8.* 领域组件，14 件）是 registry 服务与 CLI 的默认目录
+        （runtime.py 的 --directory 默认值即此处），同时被 registry 层测试当夹具用；
+        framework 侧（v8.fw.* 装配单元，49 件）是 app_runner 等运行路径读的真源。
+        两者不是重复，是不同消费方，所以不能靠改名合并。
+
+        2026-11-17 现读 id 交集只有 v8.fw.carrier_lite3 一件——它是唯一的跨界组件，
+        也正是此前漂移的那件（registry 侧曾为 schema_version 2、framework 侧为 3）。
+        本断言锁两件事：①交集不得自行扩大（新增跨界件必须显式确认并同步版本）；
+        ②交集内同一 id 的 schema_version 必须两侧相同。
+        """
+        def catalog(directory):
+            out = {}
+            for path in sorted(directory.glob('*.json')):
+                raw = json.loads(path.read_text(encoding='utf-8'))
+                out[raw['id']] = raw.get('schema_version')
+            return out
+
+        rside = catalog(HERE / 'data' / 'manifests')
+        fside = catalog(HERE.parent / 'framework' / 'fixtures' / 'manifests')
+        shared = set(rside) & set(fside)
+        self.assertEqual(shared, {'v8.fw.carrier_lite3'},
+                         f'跨界组件清单变化，需同步两侧版本：{sorted(shared)}')
+        for ident in sorted(shared):
+            self.assertEqual(
+                rside[ident], fside[ident],
+                f'{ident} 两侧 schema_version 不一致：'
+                f'registry={rside[ident]} framework={fside[ident]}')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
