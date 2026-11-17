@@ -105,7 +105,7 @@ def run_bridge(bridge, args, prefix, trace_out, replay_trace, port):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bridge', default='/repo/ws/src/95_simulation/lite3_gazebo_sim/dynamics/a5_v8x1_bridge.py')
+    parser.add_argument('--bridge', default='/repo/subprojects/simulation/ws/src/lite3_gazebo_sim/dynamics/a5_v8x1_bridge.py')
     parser.add_argument('--map', default='/repo/data/maps/nist_stairs_120_s020x170_support.json')
     parser.add_argument('--xml', default='/tmp/mjcf/Lite3.xml')
     parser.add_argument('--policy', default='/tmp/new_policy.onnx')

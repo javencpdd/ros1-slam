@@ -16,7 +16,7 @@ from test_pose_command_adapter import Data, Publisher, Stamp, Stamped, Twist, po
 
 
 def scene_map():
-    path = PLATFORM.parents[1] / '95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json'
+    path = PLATFORM.parents[3] / 'subprojects/simulation/ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/maps/open.json'
     return json.loads(path.read_text())
 
 

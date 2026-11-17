@@ -23,7 +23,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 LOCAL = HERE.parent / 'local_planner'
-DYNAMICS = HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'dynamics'
+DYNAMICS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'dynamics'
 sys.path.insert(0, str(DYNAMICS))
 sys.path.insert(0, str(HERE.parent / 'planner'))
 sys.path.insert(0, str(HERE.parent / 'local_planner'))

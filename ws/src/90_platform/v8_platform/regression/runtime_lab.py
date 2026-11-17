@@ -23,7 +23,7 @@ import yaml
 
 BASE = Path(__file__).resolve().parents[1]
 REPO = BASE.parents[3]
-SIM = REPO / 'ws/src/95_simulation/lite3_gazebo_sim'
+SIM = REPO / 'subprojects/simulation/ws/src/lite3_gazebo_sim'
 FLAT = BASE / 'calibration/flat2d'
 sys.path.insert(0, str(FLAT))
 from geometry import box_dist

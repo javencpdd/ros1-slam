@@ -29,7 +29,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from candidate_consensus import CandidateConsensus  # noqa: E402
 
-SIM = Path('/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim')
+SIM = Path(__file__).resolve().parents[5] / 'subprojects/simulation/ws/src/lite3_gazebo_sim'
 PCD = '/opt/ros1-slam/data/maps/m1_world_synth_v1.pcd'
 BBS_RESOLUTIONS = ((0.5, 'res05'), (0.2, 'res02'), (0.1, 'res01'))
 PORT, GAZEBO_PORT = 11950, 11951

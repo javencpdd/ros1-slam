@@ -16,7 +16,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'adapters'))
 from candidate_consensus import CandidateConsensus  # noqa: E402
 
-SIM = Path('/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim')
+SIM = Path(__file__).resolve().parents[5] / 'subprojects/simulation/ws/src/lite3_gazebo_sim'
 PORT, GAZEBO_PORT = 11630, 11631
 os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
                   GAZEBO_MASTER_URI='http://127.0.0.1:%d' % GAZEBO_PORT,

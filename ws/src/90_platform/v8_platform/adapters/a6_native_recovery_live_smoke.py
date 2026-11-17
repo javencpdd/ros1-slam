@@ -33,7 +33,7 @@ sys.path.insert(0, str(HERE.parent / 'regression'))
 from candidate_consensus import CandidateConsensus  # noqa: E402
 from hdl_global_consensus_smoke import RESOLUTIONS, read_pcd  # noqa: E402
 
-SIM = Path('/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim')
+SIM = Path(__file__).resolve().parents[5] / 'subprojects/simulation/ws/src/lite3_gazebo_sim'
 TRACK_LAUNCH = Path('/opt/ros1-slam/ws/src/20_localization/lite3_localization/launch/hdl_m1_tracking_smoke.launch')
 PCD = '/opt/ros1-slam/data/maps/m1_world_synth_v1.pcd'
 PORT, GAZEBO_PORT = 11670, 11671

@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'dynamics'))
+sys.path.insert(0, str(HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'dynamics'))
 import a5_v8x1_bridge as bridge
 
 

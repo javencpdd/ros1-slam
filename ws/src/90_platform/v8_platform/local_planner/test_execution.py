@@ -34,7 +34,7 @@ def two_floor_boundary():
     external archive. Use a clock within the original segment lease so expiry
     cannot conceal its completion/support disagreement.
     """
-    scene = HERE.parents[2] / '95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav'
+    scene = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim/scenarios/two_floor_nav'
     value = json.loads((scene / 'maps/open.json').read_text())
     cfg = replace(native.Config(), resolution=.4, tick_s=1.2, horizon_s=8.4,
                   validity_s=20., radius_m=.3, height_m=.5, clearance_m=.05,

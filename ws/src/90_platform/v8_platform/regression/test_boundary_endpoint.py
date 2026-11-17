@@ -5,7 +5,12 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DYNAMICS = HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'dynamics'
+DYNAMICS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'dynamics'
+# ★ 2026-11-18：dynamics 目录里 boundary_endpoint.py 自身要 `import boundary.protocol`，
+#   而 boundary 包在本平台仓（v8_platform/boundary/）而不是仿真仓里 ⇒ 两个根都要在 path 上。
+#   分仓前 95_simulation 与 v8_platform 同处 ws/src 下，靠 cwd 侥幸能 import；
+#   分仓后 DYNAMICS 指向新位置，若不补 PLATFORM 则报 ModuleNotFoundError: boundary。
+sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(DYNAMICS))
 import boundary_endpoint as endpoint  # noqa: E402
 import boundary.gazebo_endpoint as gazebo  # noqa: E402

@@ -22,7 +22,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 LOCAL = HERE.parent / 'local_planner'
-SCRIPTS = HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'scripts'
+SCRIPTS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'scripts'
 EXPERIMENTAL = {'tick_s': 1.2, 'horizon_s': 6.0, 'validity_s': 6.0}
 MAP_TOPIC = '/v8/sensor_map'
 

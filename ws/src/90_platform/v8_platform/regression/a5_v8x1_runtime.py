@@ -22,7 +22,7 @@ sys.path.insert(0, str(HERE.parent / 'planner'))
 sys.path.insert(0, str(HERE.parent / 'contracts'))
 import support_planner  # noqa: E402
 LOCAL = HERE.parent / 'local_planner'
-DYNAMICS = HERE.parents[2] / '95_simulation' / 'lite3_gazebo_sim' / 'dynamics'
+DYNAMICS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'dynamics'
 sys.path.insert(0, str(DYNAMICS))
 import mj_dreamwaq_walk as walk  # noqa: E402
 

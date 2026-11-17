@@ -30,7 +30,7 @@ from process_runner import ProcessRunner  # noqa: E402
 
 GRAPH = BASE / 'framework/fixtures/graphs/graph_boundary_mux.yaml'
 MANIFESTS = BASE / 'framework/fixtures/manifests'
-SIM = BASE.parents[1] / '95_simulation/lite3_gazebo_sim'
+SIM = BASE.parents[3] / 'subprojects/simulation/ws/src/lite3_gazebo_sim'
 
 
 def wait_for(predicate, seconds, label):

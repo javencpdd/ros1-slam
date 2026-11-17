@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-SIM = Path('/opt/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim')
+SIM = Path(__file__).resolve().parents[5] / 'subprojects/simulation/ws/src/lite3_gazebo_sim'
 LAUNCH = Path('/opt/ros1-slam/ws/src/20_localization/lite3_localization/launch/hdl_m1_global_smoke.launch')
 PORT, GAZEBO_PORT = 11650, 11651
 os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
