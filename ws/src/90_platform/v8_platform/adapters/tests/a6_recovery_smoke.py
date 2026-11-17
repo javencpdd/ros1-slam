@@ -8,7 +8,8 @@ import sys
 import time
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+# 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
+HERE = Path(__file__).resolve().parent.parent
 PORT = 11590
 os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT, ROS_IP='127.0.0.1',
                   ROS_HOME='/tmp/a6_recovery_ros', ROS_LOG_DIR='/tmp/a6_recovery_logs',

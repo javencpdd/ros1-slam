@@ -25,7 +25,8 @@ import numpy as np
 import rospy
 import yaml
 
-HERE = Path(__file__).resolve().parent
+# 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
+HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 from candidate_consensus import CandidateConsensus  # noqa: E402
 

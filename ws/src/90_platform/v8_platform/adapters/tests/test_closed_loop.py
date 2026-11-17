@@ -3,7 +3,7 @@
 不是 Gazebo 仿真，只证明控制律在闭环里能收敛、能按序过点、取消即零速。
 """
 import math, os, sys, unittest
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import follower
 
 DT = 0.1
