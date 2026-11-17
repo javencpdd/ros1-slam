@@ -115,7 +115,10 @@ x-ros-base: &ros-base
     #   test_faster_lio_sim_and_real_configs_do_not_cross_load 在容器内恒红。
     #   实测：设 V8_SIM_ROOT=/opt/ros1-slam/sim_repo 即绿，证明是挂载面缺失而非代码缺陷。
     #   别名挂载保留（脚本与 launch 大量引用 sim_ws/sim_repo），本行只补“原路径也可见”。
-    - ../subprojects:/opt/ros1-slam/subprojects:ro
+    #   ★ 不能加 :ro ★：PYST 门禁用 py_compile 在源件旁写 __pycache__，只读会报
+    #   Errno 30（实测 8 件 m2_*/stairstudy 全红，xargs 再把它转成 rc=123）。
+    #   __pycache__ 已在 .gitignore:15，写进来不会污染仓库。
+    - ../subprojects:/opt/ros1-slam/subprojects
     # ---- 门禁面：四张面清单里有 40+ 条目指向 note/ 与 tooling/ ----
     # ★ 不挂这两处时，异机跑门禁串会得到 SYN/PYST rc=123「文件不存在」＋
     #   VAR/PARITY/账构/VCC/规矩⑨ rc=9「前置缺失」——那是**面不可见**（按三态口径应判
@@ -368,7 +371,7 @@ services:
       - ../subprojects/simulation/ws:/opt/ros1-slam/sim_ws
       - ../subprojects/simulation:/opt/ros1-slam/sim_repo:ro
       # 同 &ros-volumes 里那条：subprojects/ 整层可见（framework/tests 默认根按原路径取）
-      - ../subprojects:/opt/ros1-slam/subprojects:ro
+      - ../subprojects:/opt/ros1-slam/subprojects
       # ---- 门禁面（同 &ros-volumes 里那段注释）----
       - ../note:/opt/ros1-slam/note
       - ../tooling:/opt/ros1-slam/tooling
