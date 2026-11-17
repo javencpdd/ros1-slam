@@ -26,11 +26,11 @@ x86 的 ROS1/Noetic、Gazebo classic 与回归开发环境。Lite3 采用原生 
 | `sim-viz` | 宿主 X 桌面仿真；同样发布11313/11345，当前 Compose 显式请求 NVIDIA GPU |
 | `slam-host` | x86 host 网络联调模板，须核本机 master/IP；非 Lite3/M20 部署入口 |
 | `web` | 纯文档站；仓库根只读挂到 `/srv`，`web/serve.py` 白名单，宿主 `127.0.0.1:80` → 容器 `:8000`；不连 ROS |
-| `rosbridge`、`redis` | extras；Redis 非算法依赖。独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图；宿主侧只绑 `127.0.0.1:9090` |
+| `rosbridge` | extras；独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图；宿主侧只绑 `127.0.0.1:9090` |独立 rosbridge 缺省连接开发 `roscore`，不能直接读取 sim 的 loopback ROS 图；宿主侧只绑 `127.0.0.1:9090` |
 
 **宿主端口绑定（2026-11-16 起）**：`web`（文档站）与 `rosbridge`（可下发的 ROS 桥）默认只绑 `127.0.0.1`，不再对整个局域网敞开；要按 IP 给外部工具或手机端看，改 `docker/.env` 里的 `WEB_BIND` / `ROSBRIDGE_BIND` 为宿主机网卡 IP，不要写回 `0.0.0.0`。`roscore`（11312）与 `sim-viz`（11313/11345）仍绑 `0.0.0.0` —— 它们本来就是给别的机器连 master / Gazebo 用的，维持原状。
 
-**运行时加固（2026-11-16 起，七个服务一个不落）**：日志走 `json-file` 轮转（`LOG_MAX_SIZE=10m` × `LOG_MAX_FILE=3`，单服务上限 30MB）；`security_opt: no-new-privileges:true`；`ulimits.core=0`（历史上有 154 枚 core dump 共 104.3GB 堆在 `ros1_ros_home` 卷里）；`mem_limit` 逐服务配置（sim/sim-viz 6g、roscore/slam 1g、redis 768m、rosbridge/web 512m），撞上限即被 OOM killer 终止而不是拖垮宿主。**注意**：`sim`/`sim-viz`/`rosbridge`/`web`/`redis` 自写 `environment`/`volumes`，不能用 `<<: *ros-base`（YAML 合并键是整体覆盖不是深合并），加固项是逐项引用 `*ros-logging` / `*ros-security` 的——新增服务时别只想着挂 anchor。
+**运行时加固（2026-11-16 起，七个服务一个不落）**：日志走 `json-file` 轮转（`LOG_MAX_SIZE=10m` × `LOG_MAX_FILE=3`，单服务上限 30MB）；`security_opt: no-new-privileges:true`；`ulimits.core=0`（历史上有 154 枚 core dump 共 104.3GB 堆在 `ros1_ros_home` 卷里）；`mem_limit` 逐服务配置（sim/sim-viz 6g、roscore/slam 1g、rosbridge/web 512m），撞上限即被 OOM killer 终止而不是拖垮宿主。**注意**：`sim`/`sim-viz`/`rosbridge`/`web` 自写 `environment`/`volumes`，不能用 `<<: *ros-base`（YAML 合并键是整体覆盖不是深合并），加固项是逐项引用 `*ros-logging` / `*ros-security` 的——新增服务时别只想着挂 anchor。
 
 **仿真插件路径（2026-11-16 修）**：`GAZEBO_PLUGIN_PATH` 必须是 `sim_ws/devel/lib` 在前、`ws/devel/lib` 在后（`Dockerfile` ENV、`sim.sh`、`viz.sh` 三处一致）。原因是 11-14 物理分仓后 `ws/devel/lib` 里残留 11-02 编的 `liblivox_laser_simulation.so`：两份 `.so` 符号集完全相同、源码同一份，**唯一差别是编译期烧进 `.so` 的 `__FILE__` 路径**（旧件指向已不存在的 `ws/src/95_simulation`），插件 `Load()` 读 CSV 失败就 `return` ⇒ 话题照 advertise 但零数据。实测旧件优先 `/livox/lidar` 无消息、`sim_ws` 优先 9.8~10.05Hz。旧件已删（备份在 `~/.cache/legacy-liblivox_laser_simulation.so`，sha256 `8828670c…`），`entrypoint.sh` 另有一段幂等兜底。**判活体别看 `rostopic list`，要看 `rostopic hz`。**
 

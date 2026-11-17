@@ -8,7 +8,10 @@
 #   1) 默认：roscore + slam 走 bridge 网络，master 在 roscore 容器里 —— 日常开发/编译
 #   2) --profile sim     ：sim 容器跑 Gazebo 仿真（自带 master 11313，自成一域）
 #   3) --profile hostnet ：x86 host 网络联调模板；不作为机器人部署入口
-#   4) --profile extras  ：额外起 redis(6379)（项目本体不需要，仅作外部件模板）
+#   4) --profile extras  ：额外起 rosbridge(9090)（Foxglove/网页端数据面）
+# ★ 2026-11-18：redis 服务已删。它是外部件模板，项目本体从无消费者，也从未起过容器
+#   （现读 docker ps -a 与 docker volume ls 均无 ros1-slam-redis / ros1_redis）。
+#   真要外部 KV，按需另起，不留在本编排里占位。
 # =============================================================================
 
 x-build: &build
@@ -105,6 +108,14 @@ x-ros-base: &ros-base
     # ---- P2 独立仿真仓（2026-11-14 物理分仓）：独立 catkin 工作区 ----
     - ../subprojects/simulation/ws:/opt/ros1-slam/sim_ws
     - ../subprojects/simulation:/opt/ros1-slam/sim_repo:ro
+    # ★ 2026-11-18 补：subprojects/ 整层也要可见。
+    #   framework/tests/test_framework.py 的默认根取
+    #   `FRAMEWORK.parents[4] / 'subprojects' / 'simulation'`（即 /opt/ros1-slam/subprojects/
+    #   simulation），而上面两条只把它挂成 sim_ws / sim_repo 两个别名 ⇒ 该路径不存在，
+    #   test_faster_lio_sim_and_real_configs_do_not_cross_load 在容器内恒红。
+    #   实测：设 V8_SIM_ROOT=/opt/ros1-slam/sim_repo 即绿，证明是挂载面缺失而非代码缺陷。
+    #   别名挂载保留（脚本与 launch 大量引用 sim_ws/sim_repo），本行只补“原路径也可见”。
+    - ../subprojects:/opt/ros1-slam/subprojects:ro
     # ---- 门禁面：四张面清单里有 40+ 条目指向 note/ 与 tooling/ ----
     # ★ 不挂这两处时，异机跑门禁串会得到 SYN/PYST rc=123「文件不存在」＋
     #   VAR/PARITY/账构/VCC/规矩⑨ rc=9「前置缺失」——那是**面不可见**（按三态口径应判
@@ -356,6 +367,8 @@ services:
       - ../opt:/opt/ros1-slam/opt
       - ../subprojects/simulation/ws:/opt/ros1-slam/sim_ws
       - ../subprojects/simulation:/opt/ros1-slam/sim_repo:ro
+      # 同 &ros-volumes 里那条：subprojects/ 整层可见（framework/tests 默认根按原路径取）
+      - ../subprojects:/opt/ros1-slam/subprojects:ro
       # ---- 门禁面（同 &ros-volumes 里那段注释）----
       - ../note:/opt/ros1-slam/note
       - ../tooling:/opt/ros1-slam/tooling
@@ -462,24 +475,6 @@ services:
       retries: 3
       start_period: 5s
 
-  redis:
-    image: redis:7-alpine
-    container_name: ros1-slam-redis
-    profiles: ["extras"]
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
-    # ★ 2026-11-16：redis 是外部件模板（项目本体不依赖），但配置面与其它六个保持一套。
-    #   mem_limit 给 768m：redis 自己 maxmemory 是 256mb，留 RDB/AOF 重写与内存碎片余量。
-    logging: *ros-logging
-    security_opt: *ros-security
-    ulimits:
-      core: 0
-    mem_limit: "${MEM_LIMIT_REDIS:-768m}"
-    ports:
-      - "6379:6379"
-    volumes:
-      - ros1_redis:/data
-    restart: unless-stopped
-
 volumes:
   # New target-specific volumes; legacy ros1_ws_build/devel volumes are not mounted or deleted.
   ros1_x86_sim_build:
@@ -488,7 +483,6 @@ volumes:
   ros1_x86_sim_profiles:
   ros1_logs:
   ros1_ros_home:
-  ros1_redis:
 
 networks:
   default:

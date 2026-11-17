@@ -162,9 +162,10 @@ class BuildEntrypointTests(unittest.TestCase):
         """回归：日志轮转 / no-new-privileges / core=0 必须落到**每一个**服务上。
 
         缺陷原样（2026-11-16）：这几项原先一个都没有。加防护时最典型的翻车方式是
-        「只加在 anchor 上」—— sim/sim-viz/rosbridge/web/redis 都没写 <<: *ros-base
+        「只加在 anchor 上」—— sim/sim-viz/rosbridge/web 都没写 <<: *ros-base
         （它们自写 environment，YAML 合并是整体覆盖不是深合并），anchor 根本传不进去。
         实测第一次加完只有 roscore/slam 吃到，其余五个全空。判据必须逐服务查。
+        （redis 服务于 2026-11-18 删除：外部件模板，本体无消费者且从未起过容器。）
         """
         if shutil.which("docker") is None:
             self.skipTest("Compose CLI unavailable")
