@@ -3,6 +3,7 @@
 负例不只看「被拒」，还要求理由码一致；加载顺序确定性（按文件名字典序）也被锁定，
 组合层不得静默跳件。
 """
+import hashlib
 import json
 import shutil
 import subprocess
@@ -201,6 +202,28 @@ class RegistryTests(unittest.TestCase):
 
         rc, _ = run()
         self.assertEqual(rc, 9)
+
+    def test_twin_fixtures_match_contracts_source(self):
+        """三件正例夹具在 registry/fixtures 与 contracts/fixtures 各存一份。
+
+        两处服务于不同层的测试：本目录是 registry 层的工作目录（load_dir 断言恰好
+        3 个 id，invalid/ 负例也在其下），contracts/fixtures 是契约校验的样本集
+        （另有 50+ 个 neg_* 负例，不能与它合并成同一个 load_dir 目标）。因此物理
+        上只能各存一份，但内容必须逐字节一致——否则改一边忘另一边，两份各自测试
+        都绿，而"同一组件两份声明"已经分裂。
+        本断言把隐性重复变成显式约束：任一边单独改动即红。
+        2026-11-17 实测：三对 md5 曾完全相同，说明当前是纯副本。
+        """
+        other = HERE.parent / 'contracts' / 'fixtures'
+        for name in ('manifest_controller_2d.json',
+                     'manifest_map_server_2d.json',
+                     'manifest_support_planner.json'):
+            with self.subTest(name=name):
+                mine = hashlib.sha256((FIX / name).read_bytes()).hexdigest()
+                theirs = hashlib.sha256((other / name).read_bytes()).hexdigest()
+                self.assertEqual(
+                    mine, theirs,
+                    f'{name} 已在 registry/fixtures 与 contracts/fixtures 之间漂移')
 
 
 if __name__ == '__main__':

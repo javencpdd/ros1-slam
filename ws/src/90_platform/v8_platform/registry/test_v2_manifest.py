@@ -19,7 +19,10 @@ CHAIN = ['v8.fw.sensors', 'v8.fw.faster_lio', 'v8.fw.map2d', 'v8.fw.global2d',
 class V2ManifestTests(unittest.TestCase):
     def test_registry_derives_io_from_ports(self):
         store = reg.Registry().load_dir(V2)
-        self.assertEqual(len(store.entries), 48)
+        # 2026-11-17 修：此处原断言 48。8135a370（11-12「BT 作为图内一等组件」）
+        # 往该目录新增了 manifest_bt_console.json，当时未同步本断言，此后本用例
+        # 一直红着（49 != 48）。现读该目录 49 件、id 无重复、全部加载成功。
+        self.assertEqual(len(store.entries), 49)
         self.assertEqual(store.get('v8.fw.map2d')['io']['map_schema'], 'occupancy_grid/v1')
         self.assertEqual(store.get('v8.fw.map2d')['io']['dimensions'], 2)
         self.assertEqual(store.get('v8.fw.map3d')['io']['map_schema'], 'support_map/v1')
