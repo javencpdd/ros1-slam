@@ -25,6 +25,11 @@
   <exec_depend>grid_map_ros</exec_depend>
   <exec_depend>grid_map_msgs</exec_depend>
   <exec_depend>grid_map_core</exec_depend>
+  <!-- 2026-11-18（M5）：脚本 elevation_gridmap_publisher.py 的实依赖，两件都是补登——
+       numpy 早就 import 了但一直没声明；v8_grid 是本批新引入的格索引实现（
+       40_navigation → 90_platform 的新依赖方向，运行时必需，缺则节点拒跑不静默降级）。 -->
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>v8_grid</exec_depend>
 
   <!-- costmap_2d::Layer 插件导出（pluginlib 约定，与在册 sob_layer／STVL 同形：
        <costmap_2d plugin="${prefix}/plugins.xml"/>，rospack plugins（attrib=plugin、参数 costmap_2d）

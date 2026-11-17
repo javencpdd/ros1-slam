@@ -47,8 +47,39 @@ import argparse
 import array
 import math
 import sys
+from pathlib import Path
 
 import numpy as np
+
+# ── 格索引统一（2026-11-18，计划 M5）────────────────────────────────────────────
+# 本节点原先自己写 `np.floor((xs - x0) / resolution)`，是 v8_grid 七个口径里
+# 「窗口原点对齐 + 向量化」那一支。改调 v8_grid 后，全仓栅格化只有一份实现。
+#
+# 路径推导：本文件在 ws/src/40_navigation/lite3_costmap_layers/scripts/ 下，
+# resolve() 后 parents[3] = ws/src（实测：parents[2] 会落在 40_navigation，是错的）；
+# 包根 = ws/src/90_platform/v8_grid（含内层 v8_grid/ 包目录的那一层，不是 90_platform，
+# 否则 `import v8_grid` 会去找 ws/src/v8_grid 而 ModuleNotFoundError）。
+# 这是 40_navigation → 90_platform 的**新依赖方向**，已在 lite3_costmap_layers/
+# package.xml 里以 <exec_depend>v8_grid</exec_depend> 显式声明。
+_GRID = None
+
+
+def _grid():
+    global _GRID
+    if _GRID is not None:
+        return _GRID
+    try:                                   # ① devel 环境已把 v8_grid 放进搜索路径
+        from v8_grid import indexing as _indexing
+    except ImportError:                    # ② 源码树 rosrun：按相对位置定位
+        root = Path(__file__).resolve().parents[3] / '90_platform' / 'v8_grid'
+        if not (root / 'v8_grid' / '__init__.py').is_file():
+            raise RuntimeError(
+                'v8_grid 不可达：既不在 sys.path，也不在 %s（本节点依赖它做格索引，'
+                '缺失即拒跑，不静默退回自写表达式）' % root)
+        sys.path.insert(0, str(root))
+        from v8_grid import indexing as _indexing
+    _GRID = _indexing
+    return _GRID
 
 # ★grid_map_ros 没有 Python 绑定（本镜像实核：import grid_map_ros → ModuleNotFoundError），
 #   所以 MultiArray 的存储序与维度标签只能按 C++ 侧 header 逐字照抄：
@@ -138,8 +169,10 @@ def rasterize_elevation(points_map, center_xy, size_x, size_y, resolution,
     ys = points_map[:, 1]
     zs = points_map[:, 2]
 
-    jj = np.floor((xs - x0) / resolution).astype(np.int64)
-    ii = np.floor((ys - y0) / resolution).astype(np.int64)
+    # 2026-11-18（M5）：cells_floor_origin 口径，与原 `np.floor((xs - x0)/res)` 逐字等价
+    # （x0 已在上面对齐到 resolution 整数倍，对齐动作留在这里，属窗口几何不属落格）。
+    jj = _grid().cells_floor_origin(xs, x0, resolution).astype(np.int64)
+    ii = _grid().cells_floor_origin(ys, y0, resolution).astype(np.int64)
     inside = (jj >= 0) & (jj < n_cols) & (ii >= 0) & (ii < n_rows)
     if not np.any(inside):
         return grid, np.zeros((n_rows, n_cols), dtype=bool)
