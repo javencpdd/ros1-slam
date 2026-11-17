@@ -16,7 +16,11 @@
 # 边界：**只读普查**——本件不 chmod／不 setfacl 任何仓内件（改权限属施工动作，由人做并同批复查 effective）。
 #   也不进 v3_isolation.sh：新判据入共同门禁属判据面变更，依 05 A3 须验收先落笔；入不入归 A15/#54/A16 并案。
 # 用法：bash scripts/verify/v_evidence_reachability.sh [根 ...]（缺省三根＝note ws/src scripts）
-#   环境变量：VAR_USERS="ros1-slam ysc"（要保证的协作账号）｜VAR_EVD（证据目录 glob，缺省 note/进度/*/证据/log/raw/*/）
+#   环境变量：VAR_USERS="ros1-slam ysc"（要保证的协作账号）｜VAR_EVD（证据目录 glob，
+#     缺省 note/进度/*/*/*/evidence/*/）。
+#   ★2026-11-18 改缺省值★：原缺省 note/进度/*/证据/log/raw/*/ 是分仓前的旧目录结构，
+#     现读命中 0 条 ⇒ 本件长期以 rc=9「证据目录匹配为空」空转、从未真正判定过。
+#     现结构是 note/进度/<线>/<阶段>/<日期>/evidence/<批号>/，新 glob 命中 393 条。
 #             VAR_ROOT（仓根，缺省 /home/ros1-slam；★R574 补，异机须覆写）
 #             VAR_MAX（明细最多列几件，缺省 25）｜VAR_SECRETS（保密件 glob，空格分隔；缺省见代码）
 #   保密面（P4）是**反向断言**：列在 VAR_SECRETS 里的件**必须** other 位不给读——本件绝不建议也不改动它们放开，
@@ -154,7 +158,7 @@ unset ROS_DISTRO ROS_VERSION ROS_PYTHON_VERSION
 #     变成 ascii，本件所有中文 print 将直接 UnicodeEncodeError ⇒ 故只在 python 侧给 subprocess 单独传 env。
 export VAR_SUB_LC="${VAR_SUB_LC:-C}"
 set -u
-python3 - "${VAR_USERS:-ros1-slam ysc}" "${VAR_EVD:-note/进度/*/证据/log/raw/*/}" "${VAR_MAX:-25}" "${1:-}" "${2:-}" "${3:-}" <<'PYEOF'
+python3 - "${VAR_USERS:-ros1-slam ysc}" "${VAR_EVD:-note/进度/*/*/*/evidence/*/}" "${VAR_MAX:-25}" "${1:-}" "${2:-}" "${3:-}" <<'PYEOF'
 # -*- coding: utf-8 -*-
 import fnmatch, glob, os, pwd, re, grp, subprocess, sys, tempfile
 
@@ -274,9 +278,21 @@ def is_secret(path):
 
 
 secret_hits = []
-files, skipped_pyc = [], 0
+files, skipped_pyc, skipped_runtime = [], 0, 0
 for r in roots:
     for dirpath, dirnames, filenames in os.walk(r):
+        # 2026-11-18：剪掉 *.runtime/ 目录。它们是跑 smoke/regression 时生成的临时 HOME
+        # （ros_home/rospack_cache_*、ros_logs/latest 等），属运行时残留不是证据本体：
+        # rospack_cache 权限 600、logs/latest 是断链，都会把 P2 染红而与被试权限无关。
+        # ★ 只剪不隐藏 ★：剪掉的文件数计入 skipped_runtime 并在判定行里点名。
+        keep = []
+        for _d in dirnames:
+            if _d.endswith('.runtime'):
+                for _dp, _dn, _fns in os.walk(os.path.join(dirpath, _d)):
+                    skipped_runtime += len(_fns)
+            else:
+                keep.append(_d)
+        dirnames[:] = keep
         if '__pycache__' in dirpath:
             continue
         for fn in filenames:
@@ -301,8 +317,9 @@ for p in files:
             unreadable.setdefault(p, []).append('%s(计算异常:%s)' % (who, type(e).__name__))
 items = sorted(unreadable.items())
 mark(not items,
-     'P2 普查面：roots=%s 内 %d 件对协作账号 %s 全部可读（排除 %d 件 __pycache__/*.pyc＝可再生构建产物）'
-     % (','.join(roots), len(files), '/'.join(USERS), skipped_pyc),
+     'P2 普查面：roots=%s 内 %d 件对协作账号 %s 全部可读'
+     '（排除 %d 件 __pycache__/*.pyc＝可再生产物、%d 件 *.runtime/＝运行时残留）'
+     % (','.join(roots), len(files), '/'.join(USERS), skipped_pyc, skipped_runtime),
      ('违规 %d 件：%s' % (len(items), '; '.join('%s[%s]' % (k, ','.join(v)) for k, v in items[:MAXD]))) if items else '零违规')
 
 # ---------- P3 可验面 ----------

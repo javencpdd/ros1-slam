@@ -50,7 +50,12 @@ run_one() { # 代号 件路径 rc语义
     #   此前的处置是"登记为未归因项"，R574 查实＝根没传进去，不是件本身的缺陷。
     #   ★只传根，不改成员、不改任何件的 rc 语义、不改各件缺省值★。
     GTC)   ( cd "$ROOT" && GTC_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
-    VAR)   ( cd "$ROOT" && VAR_ROOT="$ROOT" bash "$path" $(grep -vE '^ *(#|$)' scripts/verify/claim_face.txt) ) > "$out" 2>&1 ;;
+    # ★2026-11-18 改（真人授「按你的建议进行，彻底清除旧帐」）★＝原先这里既给 VAR_ROOT
+    #   又喂 71 个位置参数（claim_face.txt 的面清单），而件把 $1 当根目录覆盖 ⇒ 两者冲突，
+    #   件长期以 rc=9「证据目录匹配为空」空转。本分支撤掉位置参数，改喂 VAR_USERS；
+    #   VAR_EVD 用件内新缺省（note/进度/*/*/*/evidence/*/，命中 393 条）。
+    #   ★注意：本支只改调用式、不改件任何判据语义（P1/P2/P3/P4 判据逐条未动）。★
+    VAR)   ( cd "$ROOT" && VAR_ROOT="$ROOT" VAR_USERS="ros1-slam ysc" bash "$path" ) > "$out" 2>&1 ;;
     DC)    ( cd "$ROOT" && DC_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
     账构)  ( cd "$ROOT" && VLB_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
     规矩⑨) ( cd "$ROOT" && python3 "$path" ) > "$out" 2>&1 ;;
@@ -65,7 +70,7 @@ run_one() { # 代号 件路径 rc语义
 echo "== 门禁串逐件（$(date '+%F %H:%M')，身份 $(whoami)）｜成员名单＝$CHAIN（$(face_count "$CHAIN") 行）=="
 echo "   面：syn_face=$(face_count "$ROOT/scripts/verify/syn_face.txt") pyst_face=$(face_count "$ROOT/scripts/verify/pyst_face.txt") parity_face=$(face_count "$ROOT/scripts/verify/parity_face.txt") claim_face=$(face_count "$ROOT/scripts/verify/claim_face.txt")"
 echo "   窗数回执＝$(face_count "$ROOT/scripts/verify/_window_receipt.tsv") 行（A27 口径）"
-echo "   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／VAR／账构：直接 bash 件｜R326 起两件＝VCC：bash 件＋显式喂 claim_face.txt（门用面写死，件内缺省面只有 42 件）＋VCC_ROOT＝仓根（R400 甲，★不设则件内缺省 /home/ros1-slam 在异机是符号链接视图、而件的 os.walk 不跟随链接 ⇒ 面近乎空、把 RED 抹成 0；★R407 起该情形由件的根自检当场 rc=9 拒跑）｜规矩⑨：python3 件（件内缺省面＝claim_face.txt）"
+echo "   调用式（R278 佳文丙）＝ISO：noetic→ws/devel＋PYTHONNOUSERSITE=1（与 env.sh／v_window_preflight 同姿势）｜SYN／PYST／PARITY：同双 source＋各自面清单｜GTC／DC／账构：直接 bash 件；VAR 自 2026-11-18 起＝VAR_ROOT＋VAR_USERS（撤位置参数）｜R326 起两件＝VCC：bash 件＋显式喂 claim_face.txt（门用面写死，件内缺省面只有 42 件）＋VCC_ROOT＝仓根（R400 甲，★不设则件内缺省 /home/ros1-slam 在异机是符号链接视图、而件的 os.walk 不跟随链接 ⇒ 面近乎空、把 RED 抹成 0；★R407 起该情形由件的根自检当场 rc=9 拒跑）｜规矩⑨：python3 件（件内缺省面＝claim_face.txt）"
 while IFS=$'\t' read -r n tag path sem; do
   case "$n" in ''|'#'*) continue ;; esac
   if [ -n "${GATE_ONLY:-}" ] && ! printf '%s' ",$GATE_ONLY," | grep -q ",$tag,"; then continue; fi
