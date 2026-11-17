@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SCHEMAS = {'manifest': 'manifest.v1.json', 'robot': 'robot.v1.json',
+SCHEMAS = {'manifest': 'manifest.v3.json', 'robot': 'robot.v1.json',
            'map': 'map.v1.json', 'map_delta': 'map_delta.v1.json',
            'task': 'task.v1.json'}
 KNOWN = {'title', 'description', 'type', 'required', 'properties', 'additionalProperties', 'enum', 'const',
@@ -419,14 +419,18 @@ def validate(kind, value, *, allow_obstacles=False):
         if not allow_obstacles:
             raise ContractError('E_VERSION', 'map/v2 requires an obstacle-aware consumer')
         root = json.loads((HERE / 'schema/map.v2.json').read_text())
-    elif kind == 'manifest' and isinstance(value, dict) and value.get('schema_version') == 3:
+    elif kind == 'manifest':
+        # 2026-11-18 统一：manifest 只剩 v3。v1/v2 均已退役，schema 只保留 v3 一份。
+        # 顺序有讲究：先判「是不是对象」再判版本。反过来的话，一个 JSON 数组会报
+        # E_VERSION（got None），把「类型不对」误读成「版本不对」。
+        if not isinstance(value, dict):
+            raise ContractError('E_SCHEMA_TYPE', 'manifest must be a JSON object')
+        version = value.get('schema_version')
+        if version != 3:
+            raise ContractError(
+                'E_VERSION',
+                'manifest must be schema_version 3; v1/v2 are retired (got %r)' % (version,))
         root = json.loads((HERE / 'schema/manifest.v3.json').read_text())
-    elif kind == 'manifest' and isinstance(value, dict) and value.get('schema_version') == 2:
-        # 2026-11-17 裁剪：manifest v2 已退役（真人裁定永不再回）。
-        # 此处不留兼容分支、也读不到 schema/manifest.v2.json（已删）；
-        # 显式拒并给可归因理由码，避免掉进下面的 else 分支报成
-        # E_SCHEMA_UNKNOWN_FIELD（那会把"版本已退役"误读成"字段写错"）。
-        raise ContractError('E_VERSION', 'manifest v2 is retired; use schema_version 3')
     else:
         root = load(kind)
     _walk(root, value, root, '')

@@ -136,11 +136,16 @@ class ComposerTests(unittest.TestCase):
         self.assertEqual(result['adapters'], [])
 
     def test_map_supply_negative(self):
-        """occupancy×support 供需错配：scan 改要 support_map/v1（dims 3）后无生产者。"""
+        """occupancy×support 供需错配：scan 改要 support_map/v1（dims 3）后无生产者。
+
+        2026-11-18：manifest 统一到 v3 后没有 `io` 字段（v1 的自带 io 已废），
+        v3 的 io 是从 ports 派生的 ⇒ 要改「它要什么地图」必须改端口的 schema，
+        再把 dimensions 调到 3（support_map 要求三维）。
+        """
         def mutate(d):
             if d['id'] == 'v8.local_planner.scan_planner':
-                d['io']['map_schema'] = 'support_map/v1'
-                d['io']['dimensions'] = 3
+                d['dimensions'] = 3
+                d['ports']['inputs'][0]['schema'] = 'support_map/v1'
         code, detail = reason(self._mutated(mutate), STACK)
         self.assertEqual(code, 'E_COMP_MAP_SUPPLY')
         self.assertIn('support_map/v1', detail)

@@ -1,48 +1,60 @@
 {
-  "schema_version": 1,
-  "id": "v8.map_server.occupancy",
-  "version": "0.1.0-design",
-  "roles": [
-    "map_server"
+ "id": "v8.map_server.occupancy",
+ "version": "0.1.0-design",
+ "roles": [
+  "map_server"
+ ],
+ "tags": [
+  "indoor",
+  "flat",
+  "planar",
+  "cpu"
+ ],
+ "capability": {
+  "kinematics": "differential",
+  "cancellation": "cooperative",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/v8_map",
+  "stop": "service_stop"
+ },
+ "requires": {
+  "sensors": [],
+  "resources": [
+   "cpu"
+  ]
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ },
+ "source": {
+  "uri": "ws/src/x"
+ },
+ "schema_version": 3,
+ "dimensions": 2,
+ "ports": {
+  "inputs": [
+   {
+    "name": "occupancy_grid",
+    "type": "occupancy_grid/v1",
+    "schema": "occupancy_grid/v1"
+   }
   ],
-  "tags": [
-    "indoor",
-    "flat",
-    "planar",
-    "cpu"
+  "outputs": [
+   {
+    "name": "map_query",
+    "type": "map_query/v1"
+   }
+  ]
+ },
+ "execution": {
+  "modes": [
+   "simulation"
   ],
-  "io": {
-    "map_schema": "occupancy_grid/v1",
-    "dimensions": 2,
-    "inputs": [
-      "occupancy_grid/v1"
-    ],
-    "outputs": [
-      "map_query/v1"
-    ]
-  },
-  "capability": {
-    "kinematics": "differential",
-    "cancellation": "cooperative",
-    "supports_dynamic_obstacles": false
-  },
-  "ownership": {
-    "tf_edges": [],
-    "command_topics": [],
-    "namespace": "/v8_map",
-    "stop": "service_stop"
-  },
-  "requires": {
-    "sensors": [],
-    "resources": [
-      "cpu"
-    ]
-  },
-  "evidence": {
-    "level": "declared",
-    "reports": []
-  },
-  "source": {
-    "uri": "ws/src/x"
-  }
+  "robot_id": null
+ }
 }

@@ -8,7 +8,6 @@
 
 | 文件 | 内容与消费者边界 |
 | --- | --- |
-| [manifest.v1.json](schema/manifest.v1.json) | 单组件身份、角色、I/O、能力、所有权、证据；兼容可选 source/adapter_entry/param_schema 与 not_applicable 运动学 |
 | [manifest.v3.json](schema/manifest.v3.json) | 保留命名端口并必需 execution.modes/robot_id；null 显式表示机器人无关，selectors 声明受控后端枚举；运行入口消费 |
 | [robot.v1.json](schema/robot.v1.json) | 参考点、包络、运动学、能力、制动；数值来源与证据级别 |
 | [map.v1.json](schema/map.v1.json) | 单层 occupancy_grid 或单/多层 support_map |
@@ -41,7 +40,7 @@
 
 Python `validate('map', value)` 缺省拒绝 v2；v3 若携带 obstacles 也须显式 `allow_obstacles=True`，v3 无 obstacles 可走缺省入口。CLI map 校验会显式开启该能力。当前全局规划器、原生局部规划器与轨迹检查器均显式开启障碍校验；MapService 等其他消费者须逐入口核对，不能沿用“旧局部与监督器一律拒 v2”的旧结论。
 
-v1/v2 的 strict schema 和原否定输入保持原语义；旧 v2 不接受 execution 新字段。v3 仍执行原有 ports/维度/控制停止/证据检查，向旧注册表派生兼容 io。运行域声明与 evidence 分开，不自动升级能力等级；完整 frame/unit/time 契约不在此次端口 schema 迁移中硬塞。
+manifest 只剩 v3 一份 schema（v1/v2 均已退役，非 v3 输入一律 `E_VERSION`）。v3 仍执行原有 ports/维度/控制停止/证据检查，向旧注册表派生兼容 io。运行域声明与 evidence 分开，不自动升级能力等级；完整 frame/unit/time 契约不在此次端口 schema 迁移中硬塞。
 
 ## 能力与所有权
 

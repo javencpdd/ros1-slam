@@ -1,45 +1,57 @@
 {
-  "schema_version": 1,
-  "id": "v8.map_server.apt",
-  "version": "apt",
-  "roles": [
-    "map_server"
+ "id": "v8.map_server.apt",
+ "version": "apt",
+ "roles": [
+  "map_server"
+ ],
+ "tags": [
+  "indoor",
+  "flat",
+  "planar",
+  "cpu"
+ ],
+ "capability": {
+  "kinematics": "not_applicable",
+  "cancellation": "none",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/",
+  "stop": "none"
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ },
+ "source": {
+  "uri": "apt ros-noetic-map-server（R616 G6：不在仓内）",
+  "license": "宿主不可证",
+  "commit": "宿主不可证"
+ },
+ "adapter_entry": "ROS 标准 map_server",
+ "schema_version": 3,
+ "dimensions": 2,
+ "ports": {
+  "inputs": [
+   {
+    "name": "map_file",
+    "type": "静态地图文件"
+   }
   ],
-  "tags": [
-    "indoor",
-    "flat",
-    "planar",
-    "cpu"
+  "outputs": [
+   {
+    "name": "occupancy_grid",
+    "type": "nav_msgs/OccupancyGrid",
+    "schema": "occupancy_grid/v1"
+   }
+  ]
+ },
+ "execution": {
+  "modes": [
+   "simulation"
   ],
-  "io": {
-    "map_schema": "occupancy_grid/v1",
-    "dimensions": 2,
-    "inputs": [
-      "静态地图文件（pgm/yaml）"
-    ],
-    "outputs": [
-      "nav_msgs/OccupancyGrid（/map）"
-    ]
-  },
-  "capability": {
-    "kinematics": "not_applicable",
-    "cancellation": "none",
-    "supports_dynamic_obstacles": false
-  },
-  "ownership": {
-    "tf_edges": [],
-    "command_topics": [],
-    "namespace": "/",
-    "stop": "none"
-  },
-  "evidence": {
-    "level": "declared",
-    "reports": []
-  },
-  "source": {
-    "uri": "apt ros-noetic-map-server（R616 G6：不在仓内）",
-    "license": "宿主不可证",
-    "commit": "宿主不可证"
-  },
-  "adapter_entry": "ROS 标准 map_server"
+  "robot_id": null
+ }
 }

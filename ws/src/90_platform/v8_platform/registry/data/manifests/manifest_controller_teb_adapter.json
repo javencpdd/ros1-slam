@@ -1,47 +1,62 @@
 {
-  "schema_version": 1,
-  "id": "v8.controller.teb_adapter",
-  "version": "apt:148",
-  "roles": [
-    "controller"
+ "id": "v8.controller.teb_adapter",
+ "version": "apt:148",
+ "roles": [
+  "controller"
+ ],
+ "tags": [
+  "indoor",
+  "flat",
+  "cpu"
+ ],
+ "capability": {
+  "kinematics": "holonomic",
+  "cancellation": "cooperative",
+  "supports_dynamic_obstacles": true
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [
+   "/cmd_vel_advice/teb（建议输出，经 safe_cmd_vel_mux 仲裁；/cmd_vel 唯一写者＝safety_arbiter，22 号差异表）"
   ],
-  "tags": [
-    "indoor",
-    "flat",
-    "cpu"
+  "namespace": "/move_base",
+  "stop": "process_group_signal"
+ },
+ "evidence": {
+  "level": "declared",
+  "reports": []
+ },
+ "source": {
+  "uri": "apt ros-noetic-teb-local-planner（Dockerfile:148）",
+  "license": "宿主不可证（apt 侧）",
+  "commit": "宿主不可证"
+ },
+ "adapter_entry": "move_base/mbf 控制器适配（teb_local_planner）；kinematics＝holonomic 定案（R660 容器读实证：lite3_navigation/config/planner_teb.yaml:38 max_vel_y=0.1 横向速度显式非零；Lite3 官方 SDK vy±0.5 支持横移）——R642 的 differential 声明系宿主无配置可读时的不足佐证，本批更正",
+ "schema_version": 3,
+ "dimensions": 2,
+ "ports": {
+  "inputs": [
+   {
+    "name": "path",
+    "type": "nav_msgs/Path"
+   },
+   {
+    "name": "costmap",
+    "type": "costmap_2d/Costmap",
+    "schema": "occupancy_grid/v1"
+   }
   ],
-  "io": {
-    "map_schema": "occupancy_grid/v1",
-    "dimensions": 2,
-    "inputs": [
-      "nav_msgs/Path（全局路径）",
-      "costmap_2d/Costmap（局部代价图）"
-    ],
-    "outputs": [
-      "geometry_msgs/Twist（经 safe_cmd_vel_mux 仲裁）"
-    ]
-  },
-  "capability": {
-    "kinematics": "holonomic",
-    "cancellation": "cooperative",
-    "supports_dynamic_obstacles": true
-  },
-  "ownership": {
-    "tf_edges": [],
-    "command_topics": [
-      "/cmd_vel_advice/teb（建议输出，经 safe_cmd_vel_mux 仲裁；/cmd_vel 唯一写者＝safety_arbiter，22 号差异表）"
-    ],
-    "namespace": "/move_base",
-    "stop": "process_group_signal"
-  },
-  "evidence": {
-    "level": "declared",
-    "reports": []
-  },
-  "source": {
-    "uri": "apt ros-noetic-teb-local-planner（Dockerfile:148）",
-    "license": "宿主不可证（apt 侧）",
-    "commit": "宿主不可证"
-  },
-  "adapter_entry": "move_base/mbf 控制器适配（teb_local_planner）；kinematics＝holonomic 定案（R660 容器读实证：lite3_navigation/config/planner_teb.yaml:38 max_vel_y=0.1 横向速度显式非零；Lite3 官方 SDK vy±0.5 支持横移）——R642 的 differential 声明系宿主无配置可读时的不足佐证，本批更正"
+  "outputs": [
+   {
+    "name": "twist",
+    "type": "geometry_msgs/Twist"
+   }
+  ]
+ },
+ "execution": {
+  "modes": [
+   "simulation"
+  ],
+  "robot_id": null
+ }
 }

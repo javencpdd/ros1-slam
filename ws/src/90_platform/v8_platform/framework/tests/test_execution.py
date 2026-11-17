@@ -305,7 +305,7 @@ class ExecutionTests(unittest.TestCase):
                 with self.assertRaises(config.FrameworkError) as caught:
                     config.load_components(root)
         self.assertIn('E_VERSION', str(caught.exception))
-        self.assertIn('manifest v2 is retired', str(caught.exception))
+        self.assertIn('v1/v2 are retired', str(caught.exception))
 
     def test_cli_offline_plan_is_available_but_runnable_mixed_output_is_refused(self):
         import cli

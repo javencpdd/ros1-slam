@@ -238,10 +238,10 @@ class FrameworkTests(unittest.TestCase):
             graph_mod.check(value, catalog)
         self.assertEqual(caught.exception.code, 'E_GRAPH_TYPE')
 
-    def test_v1_manifest_rejected_for_graph(self):
-        with self.assertRaises(config.FrameworkError) as caught:
-            config.load_components(V1_MANIFESTS)
-        self.assertEqual(caught.exception.code, 'E_CFG_MANIFEST_V1')
+    # 2026-11-18：原 test_v1_manifest_rejected_for_graph 已删。它断言
+    # registry/data/manifests 目录（当时全 v1）被 config 拒成 E_CFG_MANIFEST_V1；
+    # manifest 统一到 v3 后该目录全是 v3，语义消失，且 config 里对应的
+    # E_CFG_MANIFEST_V1 分支在 validate 之后已不可达（成为死代码，同批清理）。
 
     def test_duplicate_yaml_key_rejected(self):
         with self.assertRaises(config.FrameworkError) as caught:

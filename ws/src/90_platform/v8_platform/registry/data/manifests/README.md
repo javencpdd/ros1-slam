@@ -5,7 +5,7 @@
 
 ## 这个目录是什么
 
-14 件 `v8.*` 领域组件的 manifest（v1 主干），同时服务三个用途：
+14 件 `v8.*` 领域组件的 manifest（**2026-11-18 起统一为 v3**），同时服务三个用途：
 
 1. **registry 服务/CLI 的默认目录**——`registry/runtime.py` 的 `--directory` 默认值即此处；
 2. **registry 层测试的夹具**——`test_registry.py` 的 `load_dir`、`test_manifest_versions.py` 的

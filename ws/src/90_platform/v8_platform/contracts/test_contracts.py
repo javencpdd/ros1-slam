@@ -65,7 +65,11 @@ class ContractTests(unittest.TestCase):
                     self.assertEqual(reason(case['kind'], repaired), 'OK',
                                      'repair did not clear ' + case['reason'])
         self.assertEqual(len(seen), len(EXPECT))
-        self.assertEqual((len(EXPECT), len([c for c in EXPECT if c['ok']])), (62, 10))
+        # 2026-11-18：62 -> 61。移除 neg_manifest_v11_map_none.json——它测的是
+        # v1 `io.map_schema` 的枚举约束（值为 "none" 时 E_SCHEMA_ENUM）。manifest 统一到
+        # v3 后该字段不复存在，v3 的 port.schema 是自由字符串（只要求 minLength 1），
+        # 无处表达这一缺陷 ⇒ 负例随 v1 一并退役，正例数（10）不变。
+        self.assertEqual((len(EXPECT), len([c for c in EXPECT if c['ok']])), (61, 10))
 
     def test_two_kinds_expressible(self):
         flat = load('map_2d_flat.json')

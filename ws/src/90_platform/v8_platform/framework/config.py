@@ -245,9 +245,13 @@ def load_components(path):
         except contract.ContractError as error:
             raise FrameworkError('E_CFG_MANIFEST', '%s: %s: %s'
                                  % (file.name, error.code, error.detail))
-        if value.get('schema_version') not in (2, 3) or 'ports' not in value:
-            raise FrameworkError('E_CFG_MANIFEST_V1',
-                                 '%s has no named ports; use manifest v2/v3' % file.name)
+        # 2026-11-18：原先这里还有一段
+        #   `if value.get('schema_version') not in (2, 3) or 'ports' not in value: E_CFG_MANIFEST_V1`
+        # manifest 统一到 v3 后它成了死代码：validate 在上一行就按 v3 schema 校验，
+        # 缺 ports 会先报 E_SCHEMA_REQUIRED、v1/v2 会先报 E_VERSION，两路都到不了这里。
+        # 保留一个显式断言防止将来 validate 顺序调整后静默放行。
+        assert value.get('schema_version') == 3 and 'ports' in value, (
+            'validate 抛过后仍无 v3 端口：校验顺序被改动，需复查 v1/v2 退役逻辑')
         cid = value['id']
         if cid in components:
             raise FrameworkError('E_CFG_DUP_COMPONENT', cid)

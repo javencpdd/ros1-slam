@@ -1,46 +1,61 @@
 {
-  "schema_version": 1,
-  "id": "v8.support_graph.astar",
-  "version": "0.1.0-design",
-  "roles": [
-    "global_planner"
+ "id": "v8.support_graph.astar",
+ "version": "0.1.0-design",
+ "roles": [
+  "global_planner"
+ ],
+ "tags": [
+  "ground",
+  "multilevel",
+  "mesh",
+  "cpu"
+ ],
+ "capability": {
+  "kinematics": "quadruped_kinematic",
+  "cancellation": "cooperative_with_process_watchdog",
+  "supports_dynamic_obstacles": false
+ },
+ "ownership": {
+  "tf_edges": [],
+  "command_topics": [],
+  "namespace": "/v8_plan",
+  "stop": "process_group_signal"
+ },
+ "requires": {
+  "sensors": [],
+  "resources": [
+   "cpu"
+  ]
+ },
+ "evidence": {
+  "level": "contract_tested",
+  "reports": []
+ },
+ "schema_version": 3,
+ "dimensions": 3,
+ "ports": {
+  "inputs": [
+   {
+    "name": "support_map",
+    "type": "support_map/v1",
+    "schema": "support_map/v1"
+   },
+   {
+    "name": "ground_goal",
+    "type": "ground_goal/v1"
+   }
   ],
-  "tags": [
-    "ground",
-    "multilevel",
-    "mesh",
-    "cpu"
+  "outputs": [
+   {
+    "name": "support_route",
+    "type": "support_route/v1"
+   }
+  ]
+ },
+ "execution": {
+  "modes": [
+   "simulation"
   ],
-  "io": {
-    "map_schema": "support_map/v1",
-    "dimensions": 3,
-    "inputs": [
-      "support_map/v1",
-      "ground_goal/v1"
-    ],
-    "outputs": [
-      "support_route/v1"
-    ]
-  },
-  "capability": {
-    "kinematics": "quadruped_kinematic",
-    "cancellation": "cooperative_with_process_watchdog",
-    "supports_dynamic_obstacles": false
-  },
-  "ownership": {
-    "tf_edges": [],
-    "command_topics": [],
-    "namespace": "/v8_plan",
-    "stop": "process_group_signal"
-  },
-  "requires": {
-    "sensors": [],
-    "resources": [
-      "cpu"
-    ]
-  },
-  "evidence": {
-    "level": "contract_tested",
-    "reports": []
-  }
+  "robot_id": null
+ }
 }
