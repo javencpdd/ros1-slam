@@ -22,7 +22,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str(HERE.parents[1] / 'v8_grid'))
 import validate as contract  # noqa: E402  契约层
+from v8_grid import indexing as _grid  # noqa: E402
 
 
 class RepresentationError(Exception):
@@ -154,13 +156,15 @@ def contains_xy(surface, resolution, x, y, margin=0.0, cells=None):
         return (box['min_x'] + margin - 1e-9 <= x <= box['max_x'] - margin + 1e-9
                 and box['min_y'] + margin - 1e-9 <= y <= box['max_y'] - margin + 1e-9)
     if margin >= 0:
-        return (math.floor(x / resolution + 1e-9),
-                math.floor(y / resolution + 1e-9)) in cells
+        # 2026-11-18（M3）：cell_snap 口径（商 +1e-9 再 floor），ε 逐字来自本处历史实现；
+        # 调用面横跨 planner/validator/local_planner 三子系统，行为必须零变化。
+        return (_grid.cell_snap(x, resolution),
+                _grid.cell_snap(y, resolution)) in cells
     padding = -margin
-    i0 = math.floor((x - padding) / resolution + 1e-9)
-    i1 = math.floor((x + padding) / resolution + 1e-9)
-    j0 = math.floor((y - padding) / resolution + 1e-9)
-    j1 = math.floor((y + padding) / resolution + 1e-9)
+    i0 = _grid.cell_snap(x - padding, resolution)
+    i1 = _grid.cell_snap(x + padding, resolution)
+    j0 = _grid.cell_snap(y - padding, resolution)
+    j1 = _grid.cell_snap(y + padding, resolution)
     for i in range(i0, i1 + 1):
         for j in range(j0, j1 + 1):
             if (i, j) not in cells:

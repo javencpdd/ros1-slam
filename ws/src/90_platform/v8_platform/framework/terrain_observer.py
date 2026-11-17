@@ -21,6 +21,12 @@
   - 本模块只产出特征，不写 /v8/chassis/gait，不证明底盘已执行。
 """
 import math
+import sys
+from pathlib import Path
+
+# 2026-11-18（M3）：格索引改由 v8_grid 提供（口径 E＝image_axis）。
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'v8_grid'))
+from v8_grid import indexing as _grid  # noqa: E402
 
 DISCONTINUITY_TYPES = ('none', 'vertical_step', 'continuous_slope',
                        'blocked', 'insufficient_data')
@@ -45,8 +51,12 @@ def world_to_cell(x, y, center_x, center_y, n_rows, n_cols, resolution):
 
     x 随 col 增大，y 随 row 增大而减小（图像行序）。
     """
-    col = int(math.floor((x - center_x) / resolution + n_cols / 2.0))
-    row = int(math.floor((center_y - y) / resolution + n_rows / 2.0))
+    col = _grid.image_axis(x, center_x, resolution, n_cols / 2.0)
+    # ★行序翻转不交给 v8_grid★：GridMap 图像行序（y 随 row 增大而减小），原式是
+    #   floor((center_y - y)/res + n_rows/2)。这里把它写成「量取 center_y - y 沿
+    #   原点轴映射」，image_axis 保持纯单轴语义。改写成 image_axis(y, center_y, ...)
+    #   会静默丢掉这个负号——terrain_observer 与 publisher 的 GridMap 对齐就反了。
+    row = _grid.image_axis(center_y - y, 0.0, resolution, n_rows / 2.0)
     if 0 <= row < n_rows and 0 <= col < n_cols:
         return (row, col)
     return None
