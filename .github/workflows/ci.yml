@@ -1,0 +1,87 @@
+name: ci
+
+# 只跑「不依赖 ROS / 不依赖容器」的那部分。理由：
+#   build / gate 全串 / smoke 都要求 ROS Noetic + Gazebo + compose 运行域，
+#   GitHub 托管 runner 上没有，硬接只会得到环境性红。
+#   需要运行域的门禁仍由本地 `python3 scripts/dev/dev.py gate` 承担。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  static-and-unit:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 装最小依赖
+        run: python -m pip install --upgrade pip pyyaml
+
+      # 静态面：这两个件本身不 import ROS，只做 bash -n / ast / py_compile。
+      # ★ 必须喂面清单 ★ 不喂时 v_py_static.sh 会「空集不得判绿」返回非零，
+      # 看起来像检查失败、实际是调用姿势不对。
+      - name: 静态检查 SYN（bash + python 语法）
+        run: |
+          bash scripts/verify/v_sh_py_syntax.sh \
+            $(grep -vE '^ *(#|$)' scripts/verify/syn_face.txt)
+
+      - name: 静态检查 PYST（py_compile）
+        run: |
+          bash scripts/verify/v_py_static.sh \
+            $(grep -vE '^ *(#|$)' scripts/verify/pyst_face.txt)
+
+      # 纯 Python 单测：这些包只依赖标准库 + pyyaml，不 import rospy。
+      # 逐个目录跑（sys.path 依赖 cwd，不能用 python -m unittest 从仓根裸调）。
+      - name: 契约层单测
+        run: |
+          cd ws/src/90_platform/v8_platform/contracts
+          python -m unittest discover -p 'test_*.py'
+
+      - name: 注册表层单测
+        run: |
+          cd ws/src/90_platform/v8_platform/registry
+          python -m unittest discover -p 'test_*.py'
+
+      - name: 组合层单测
+        run: |
+          cd ws/src/90_platform/v8_platform/composer
+          python -m unittest discover -p 'test_*.py'
+
+      - name: 适配层单测
+        run: |
+          cd ws/src/90_platform/v8_platform/adapters
+          python -m unittest discover -p 'test_*.py'
+
+      - name: 编排层单测
+        run: |
+          cd ws/src/90_platform/v8_platform/orchestrator
+          python -m unittest discover -p 'test_*.py'
+
+      - name: 解耦守卫
+        run: |
+          cd ws/src/90_platform/v8_platform/verify
+          python -m unittest test_decoupling
+
+      - name: 入口脚本自检
+        run: python3 scripts/dev/dev.py status
+
+  # 镜像与编排的静态回归：不需要起容器，只查配置文件与测试用例。
+  docker-config:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: compose 语法
+        run: |
+          docker compose -f docker/docker-compose.yml \
+            --env-file docker/.env.example \
+            --profile '*' config -q
+
+      - name: Dockerfile 与编排回归
+        run: python3 docker/test_build_entrypoints.py
