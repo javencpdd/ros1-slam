@@ -40,6 +40,8 @@ def spawn_box(name, size, pose_xy_yaw):
         rospy.wait_for_service('/gazebo/delete_model', timeout=5.0)
         rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)(name)
     except Exception:
+    # 宽泛静默（2026-11-18 标注）：此处吞掉任何异常且不留痕。
+    # 排查「静默失败」时优先看这一行——日志缺失往往从这里开始。
         pass
     spawn = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
     pose = Pose()

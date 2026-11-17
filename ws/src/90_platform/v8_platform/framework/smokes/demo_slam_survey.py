@@ -64,6 +64,8 @@ def _terminate(proc):
         try:
             os.killpg(proc.pid, signal.SIGKILL)
         except Exception:
+        # 宽泛静默（2026-11-18 标注）：此处吞掉任何异常且不留痕。
+        # 排查「静默失败」时优先看这一行——日志缺失往往从这里开始。
             pass
 
 
@@ -135,6 +137,8 @@ def main():
             try:
                 set_state(state)
             except Exception:
+            # 宽泛静默（2026-11-18 标注）：此处吞掉任何异常且不留痕。
+            # 排查「静默失败」时优先看这一行——日志缺失往往从这里开始。
                 pass
             time.sleep(1. / args.rate_hz)
     finally:

@@ -257,6 +257,8 @@ def main():
             os.killpg(master.pid, 15)
             master.wait(timeout=10)
         except Exception:
+        # 宽泛静默（2026-11-18 标注）：此处吞掉任何异常且不留痕。
+        # 排查「静默失败」时优先看这一行——日志缺失往往从这里开始。
             pass
 
 

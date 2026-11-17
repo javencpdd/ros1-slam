@@ -93,6 +93,8 @@ def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_a
     try:
         rospy.delete_param('/' + name + '/support_route_status')
     except Exception:
+    # 宽泛静默（2026-11-18 标注）：此处吞掉任何异常且不留痕。
+    # 排查「静默失败」时优先看这一行——日志缺失往往从这里开始。
         pass
     proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     try:
@@ -298,6 +300,8 @@ def _call_versions(name, scenario_id):
     try:
         rospy.delete_param('/' + name + '/support_route_status')
     except Exception:
+    # 宽泛静默（2026-11-18 标注）：此处吞掉任何异常且不留痕。
+    # 排查「静默失败」时优先看这一行——日志缺失往往从这里开始。
         pass
     proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     observed = []
