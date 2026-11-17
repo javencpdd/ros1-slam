@@ -8,7 +8,7 @@
 14 件 `v8.*` 领域组件的 manifest（v1 主干），同时服务三个用途：
 
 1. **registry 服务/CLI 的默认目录**——`registry/runtime.py` 的 `--directory` 默认值即此处；
-2. **registry 层测试的夹具**——`test_registry.py` 的 `load_dir`、`test_v2_manifest.py` 的
+2. **registry 层测试的夹具**——`test_registry.py` 的 `load_dir`、`test_manifest_versions.py` 的
    `V1`、`test_orchestrator.py`、`adapters/test_*.py`、`composer/test_composer.py`；
 3. **regression 的组件来源**——`regression/regression.py` 的 `MDIR`。
 

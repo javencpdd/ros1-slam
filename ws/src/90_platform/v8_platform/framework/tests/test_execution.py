@@ -286,21 +286,26 @@ class ExecutionTests(unittest.TestCase):
         plan['robot_id'] = 'm20'
         self.rejected('E_EXEC_ROBOT', lambda: runtime.Assembly(plan, catalog).start())
 
-    def test_v2_manifest_loads_and_analyzes_offline_without_execution_grant(self):
+    def test_retired_v2_manifest_is_refused_at_load(self):
+        """manifest v2 已于 2026-11-17 按真人裁定退役，加载层必须显式拒绝。
+
+        原用例 test_v2_manifest_loads_and_analyzes_offline_without_execution_grant
+        断言「v2 可离线分析但不授予执行」。v2 退役后该语义不再存在（既不能加载，
+        也就谈不上分析），改为证明拒绝发生在**加载层**、且理由码可归因：
+        必须给 E_VERSION + "manifest v2 is retired"，而不是掉进 v1 schema 报成
+        E_SCHEMA_UNKNOWN_FIELD（那会把「版本已退役」误读成「字段写错」）。
+        """
         value = json.loads((MANIFESTS / 'manifest_map_file.json').read_text())
-        value['schema_version'] = 2; value.pop('execution')
+        value['schema_version'] = 2
+        value.pop('execution')
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / 'manifest_old.json').write_text(json.dumps(value))
-            graph_path = root / 'graph.yaml'
-            graph_path.write_text(yaml.safe_dump({'schema': 'pipeline_graph/v1', 'name': 'old',
-                'instances': [{'id': 'map', 'component': value['id']}]}))
             with no_execution_effects():
-                catalog = config.load_components(root)
-                graph = config.load_graph(graph_path)
-                plan = render.render_plan(graph, catalog, graph_mod.check(graph, catalog))
-            self.assertNotIn('execution_mode', plan)
-            self.rejected('E_EXEC_MISSING', lambda: runtime.Assembly(plan, catalog).start())
+                with self.assertRaises(config.FrameworkError) as caught:
+                    config.load_components(root)
+        self.assertIn('E_VERSION', str(caught.exception))
+        self.assertIn('manifest v2 is retired', str(caught.exception))
 
     def test_cli_offline_plan_is_available_but_runnable_mixed_output_is_refused(self):
         import cli

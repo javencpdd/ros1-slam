@@ -34,7 +34,7 @@
 
 ## 改这里的注意事项
 
-- 新增 manifest 会使件数变化：`registry/test_v2_manifest.py` 断言件数、
+- 新增 manifest 会使件数变化：`registry/test_manifest_versions.py` 断言件数、
   `contracts/test_manifest_v3.py` 全量扫描、`verify/test_port_conformance.py` 读同目录，
   加文件后要一起复跑（2026-11-17 就修过一次"加了 `manifest_bt_console.json` 但断言还写 48"
   的存量红）。

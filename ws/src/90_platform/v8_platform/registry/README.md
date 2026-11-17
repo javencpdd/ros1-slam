@@ -14,7 +14,7 @@
 | [fixtures](fixtures) | 设计样例与坏输入；与 data 中登记分开 |
 | [runtime.py](runtime.py) | HTTP 只读查询和组合检查服务，不启动算法进程 |
 
-v1 manifest 自带 io；v2/v3 manifest 由契约层从命名 ports 派生兼容 io。两版均可进入 framework 离线图；实际运行需要 v3 显式执行域。注册/compose 不授予硬件运行资格。注册层没有新增第二套组件定义。
+v1 manifest 自带 io；v3 manifest 由契约层从命名 ports 派生兼容 io。两版均可进入 framework 离线图；实际运行需要 v3 显式执行域。注册/compose 不授予硬件运行资格。注册层没有新增第二套组件定义。manifest v2 已于 2026-11-17 按真人裁定退役（schema 与校验分支已删，提交时给 `E_VERSION`）。
 
 ## 加载与证据语义
 
@@ -43,7 +43,7 @@ CLI 支持 `--tag`、`--role`、`--id`、`--provenance`。HTTP 缺省监听 127.
 
 ```bash
 python3 -B ws/src/90_platform/v8_platform/registry/test_registry.py
-python3 -B ws/src/90_platform/v8_platform/registry/test_v2_manifest.py
+python3 -B ws/src/90_platform/v8_platform/registry/test_manifest_versions.py
 python3 -B ws/src/90_platform/v8_platform/registry/test_runtime.py
 ```
 

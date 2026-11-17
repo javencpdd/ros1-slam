@@ -172,9 +172,13 @@ def _reachable(surfaces):
     return seen
 
 
-def _manifest_v2(value):
-    """Named-port invariants shared by v2/v3; v1 manifests are untouched."""
-    if value.get('schema_version') not in (2, 3):
+def _manifest_named_ports(value):
+    """Named-port invariants for v3 manifests; v1 manifests are untouched.
+
+    2026-11-17：本函数原名 `_manifest_v2`，因同名端口约束由 v2/v3 共用而得名。
+    v2 格式已按真人裁定裁剪（manifest v2 永不回头），现只剩 v3 走这里。
+    """
+    if value.get('schema_version') != 3:
         return
     seen = set()
     for direction in ('inputs', 'outputs'):
@@ -198,13 +202,15 @@ def _manifest_v2(value):
 
 
 def normalize_manifest(value):
-    """v2/v3 -> v1-compatible view: derive io from ports + dimensions.
+    """v3 -> v1-compatible view: derive io from ports + dimensions.
 
     v1 manifests are returned unchanged. The derived map_schema only uses the
     frozen v1 enum (support_map/* collapses to support_map/v1); exact port
     schema keeps the version for graph checks.
+
+    2026-11-17：原条件为 `not in (2, 3)`，v2 裁剪后只认 v3。
     """
-    if not isinstance(value, dict) or value.get('schema_version') not in (2, 3):
+    if not isinstance(value, dict) or value.get('schema_version') != 3:
         return value
     ports = value['ports']
     schemas = [port.get('schema', '') for port in ports['inputs'] + ports['outputs']]
@@ -227,7 +233,7 @@ def normalize_manifest(value):
 
 def semantic(kind, value):
     if kind == 'manifest':
-        _manifest_v2(value)
+        _manifest_named_ports(value)
         if value.get('schema_version') == 3:
             execution = value['execution']
             robot = execution['robot_id']
@@ -416,7 +422,11 @@ def validate(kind, value, *, allow_obstacles=False):
     elif kind == 'manifest' and isinstance(value, dict) and value.get('schema_version') == 3:
         root = json.loads((HERE / 'schema/manifest.v3.json').read_text())
     elif kind == 'manifest' and isinstance(value, dict) and value.get('schema_version') == 2:
-        root = json.loads((HERE / 'schema/manifest.v2.json').read_text())
+        # 2026-11-17 裁剪：manifest v2 已退役（真人裁定永不再回）。
+        # 此处不留兼容分支、也读不到 schema/manifest.v2.json（已删）；
+        # 显式拒并给可归因理由码，避免掉进下面的 else 分支报成
+        # E_SCHEMA_UNKNOWN_FIELD（那会把"版本已退役"误读成"字段写错"）。
+        raise ContractError('E_VERSION', 'manifest v2 is retired; use schema_version 3')
     else:
         root = load(kind)
     _walk(root, value, root, '')

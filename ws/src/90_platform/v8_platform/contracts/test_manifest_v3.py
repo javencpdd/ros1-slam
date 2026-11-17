@@ -1,4 +1,4 @@
-"""Explicit execution declarations without changing the frozen v1/v2 contracts."""
+"""Explicit execution declarations without changing the frozen v1 contract."""
 import copy
 import json
 import sys
@@ -8,11 +8,31 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import validate
-from test_manifest_v2 import v2
+
+
+def ports_manifest():
+    """命名端口清单底稿：只用于派生 v3 样本，本身不对应任何合法版本。
+
+    2026-11-17：本函数原在 test_manifest_v2.py 里叫 `v2()`（带 schema_version=2）。
+    manifest v2 按真人裁定退役后，那份文件已删，底稿内联到这里且不再自称某个版本，
+    由 v3() 补上 schema_version=3。
+    """
+    return {
+        'id': 'test.comp', 'version': '0.0.0',
+        'roles': ['map_server'], 'dimensions': 2,
+        'capability': {'kinematics': 'not_applicable', 'cancellation': 'none',
+                       'supports_dynamic_obstacles': False},
+        'ownership': {'tf_edges': [], 'command_topics': [], 'namespace': '/', 'stop': 'none'},
+        'launch': {'package': 'map_server', 'type': 'map_server'},
+        'ports': {'inputs': [],
+                  'outputs': [{'name': 'map', 'type': 'nav_msgs/OccupancyGrid',
+                               'schema': 'occupancy_grid/v1'}]},
+        'evidence': {'level': 'declared', 'reports': []},
+    }
 
 
 def v3():
-    value = v2()
+    value = ports_manifest()
     value.update(schema_version=3, execution={'modes': ['simulation'], 'robot_id': None})
     return value
 
@@ -23,13 +43,22 @@ class ManifestV3Tests(unittest.TestCase):
             validate.validate('manifest', value)
         self.assertEqual(caught.exception.code, code)
 
-    def test_v3_is_normalized_without_changing_named_port_or_v2_input(self):
+    def test_v3_is_normalized_without_changing_named_port_entry(self):
         value = v3()
         self.assertTrue(validate.validate('manifest', value))
         self.assertEqual(validate.normalize_manifest(value)['io']['map_schema'], 'occupancy_grid/v1')
         self.assertNotIn('io', value)
-        old = v2(); old['execution'] = value['execution']
-        self.rejected(old, 'E_SCHEMA_UNKNOWN_FIELD')
+
+    def test_retired_v2_is_rejected_with_explicit_reason(self):
+        """v2 已退役：必须显式 E_VERSION，不能掉进 v1 schema 报成"未知字段"。
+
+        2026-11-17 裁剪前的旧断言是 `v2()+execution` ⇒ E_SCHEMA_UNKNOWN_FIELD
+        （即"v2 不认 execution"）。v2 整体退役后这条语义已不存在，改为证明裁剪
+        生效：任何 schema_version=2 的 manifest 都被 validate 拦下并给出可归因理由。
+        """
+        old = ports_manifest()
+        old.update(schema_version=2, execution={'modes': ['simulation'], 'robot_id': None})
+        self.rejected(old, 'E_VERSION')
 
     def test_v3_requires_strict_explicit_execution_and_binding(self):
         for field in ('execution',):

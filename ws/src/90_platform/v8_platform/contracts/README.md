@@ -9,7 +9,6 @@
 | 文件 | 内容与消费者边界 |
 | --- | --- |
 | [manifest.v1.json](schema/manifest.v1.json) | 单组件身份、角色、I/O、能力、所有权、证据；兼容可选 source/adapter_entry/param_schema 与 not_applicable 运动学 |
-| [manifest.v2.json](schema/manifest.v2.json) | 命名 ports、dimensions 与 launch；`normalize_manifest` 为旧注册表/组合器派生 io；[framework](../framework/README.md) 消费命名端口 |
 | [manifest.v3.json](schema/manifest.v3.json) | 保留命名端口并必需 execution.modes/robot_id；null 显式表示机器人无关，selectors 声明受控后端枚举；运行入口消费 |
 | [robot.v1.json](schema/robot.v1.json) | 参考点、包络、运动学、能力、制动；数值来源与证据级别 |
 | [map.v1.json](schema/map.v1.json) | 单层 occupancy_grid 或单/多层 support_map |
@@ -58,7 +57,6 @@ robot 能力/制动值为 declared 时必须 `composition_use=prohibited`；test
 python3 -B ws/src/90_platform/v8_platform/contracts/validate.py map \
   ws/src/90_platform/v8_platform/contracts/fixtures/map_ml_two_surfaces.json
 python3 -B ws/src/90_platform/v8_platform/contracts/test_contracts.py
-python3 -B ws/src/90_platform/v8_platform/contracts/test_manifest_v2.py
 python3 -B ws/src/90_platform/v8_platform/contracts/test_manifest_v3.py
 ```
 
