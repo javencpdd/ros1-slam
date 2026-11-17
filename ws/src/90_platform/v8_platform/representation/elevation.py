@@ -40,7 +40,15 @@ def extract_columns(points, resolution, z_tol=0.05):
     """点云→XY 格桶→z 聚类分层。同格多簇**全保留**（A3-1 数据级保证）。"""
     cells = defaultdict(list)
     for x, y, z in points:
-        cells[(_grid.cell_floor(x, resolution), _grid.cell_floor(y, resolution))].append(z)
+        # 2026-11-18（M6 Phase B）：由 cell_floor 改 cell_snap，与 support_map 对齐。
+        # 依据：实证统计——两种口径在均匀随机点上分歧 0.0000%，但在**按格对齐生成的坐标**
+        # （k*res 形式：地图像素中心、静态障碍角点、人工构造格点）上分歧 47.9%，
+        # 且 res=0.25（二进制可精确表示）时分歧为 0 ⇒ 根源是 res 不可精确表示，
+        # 不是逻辑错。elevation 建列与 support_map 判"点是否在支撑面内"是同一批数据的两端，
+        # 口径不一致会让边界点归属差一格、支撑面边缘漏判。
+        # ★这是 Phase B 的唯一改动★：只统一这一对，其余站点（support_planner /
+        # open_data_import / publisher）各自服务不同数据源，不在本次裁决范围内。
+        cells[(_grid.cell_snap(x, resolution), _grid.cell_snap(y, resolution))].append(z)
     return {cell: _cluster_z(sorted(zs), z_tol) for cell, zs in cells.items()}
 
 

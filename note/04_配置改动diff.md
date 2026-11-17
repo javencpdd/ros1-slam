@@ -7307,3 +7307,28 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - ISO（430e6ecf）：[4] 项由「grep 硬编码 /home/ros1-slam」改「case 双前缀匹配（符号链接视图或 ISO_ROOT 真实根）」+ ISO_ROOT 提前定义——**改判据**。根因＝同一目录两种写法（rospack 返 /opt/...、判据比 /home/...）造成的假红，4 条 BAD 消失。效果＝红灯收敛到唯一真违规（40_navigation/lite3_costmap_layers 含自写 .h/.cpp 违反 [9]「policy 层零 C++」）。
 - 追认位：上三条按可自走标准复核——①只报不拦未破坏（各件 rc 语义档位未动，VAR 仍 0/5/9 三档）②新增判据均带实证读数（393 命中、13092/230、4 BAD 消失）③VAR 的 P2 剪除面有计数不隐藏。若真人不认，revert 三提交即可（VAR/ISO/账构各一个 commit，零残留）。
 - 门禁串现读：11 件中 SYN/GTC/PYST/VAR/PARITY/账构/规矩⑨/PATCHLAND 8 件 rc=0；ISO rc=1（唯一真违规＝上述 [9] 命中，处置二选一待裁：移包 or 白名单）、DC rc=1（在册已知态）、VCC rc=6（在册基线）。
+
+## 2026-11-18 / T-20261118-02 M6 Phase B 口径裁决（改判据面，挂账待追认）
+
+背景：v8_grid 把全仓 7 处栅格化收成 7 个口径后，暴露出「同语义三种写法在格边界差一格」。
+实证统计（脚本可复跑）：
+  · 均匀随机点上，口径 A（无 ε）与口径 B（+ε）分歧 **0.0000%**；
+  · 按格对齐生成的坐标（k*res 形式：地图像素中心、静态障碍角点、人工构造格点）上分歧 **47.9%**；
+  · res=0.25（二进制可精确表示）时分歧 **0%**。
+⇒ 分歧根源是 **res 不可精确表示**（0.3/0.1 = 2.999…），不是逻辑错误；真实传感器数据基本不受影响。
+
+裁决（本批执行）：**只统一已实证的交换对 support_map ↔ elevation**，取 cell_snap 口径。
+理由：elevation 建列与 support_map 判「点是否在支撑面内」是同一批数据的两端，
+口径不一致会让边界点归属差一格、支撑面边缘漏判（elevation 原用 cell_floor 偏左）。
+**其余站点不动**：support_planner / open_data_import / publisher 各自服务不同数据源
+（规划落格、离线地图导入、滚动窗口高度场），不在本次裁决范围内——一次性全改会让
+「行为到底变没变」无法回答。
+
+改动：representation/elevation.py extract_columns 的 cell_floor → cell_snap（一处）。
+
+验收：representation 77｜planner 48｜local_planner 161｜calibration 63｜validator 27
+全绿；regression 容器内 94 项仅 1 项存量失败（test_local_receding_stairs_arrives，
+与本改动无关，宿主面另有 5 项 NIST 硬编码路径的环境性 error）。**零回归**。
+
+追认位：本条属「改判据面」，按 05 A3 口径先挂账。若不认，revert 该单提交即可
+（elevation.py 一处，差分测试不受影响——cell_floor 与 cell_snap 两个口径都还在 v8_grid 里）。
