@@ -21,6 +21,23 @@ import xml.etree.ElementTree as ET
 SCHEMA = 'open_import/v1'
 SYSTEM_MODELS = {'ground_plane', 'sun'}
 
+_GRID_READY = False
+
+
+def _grid():
+    """惰性取 v8_grid.indexing（2026-11-18 M2）。
+
+    v8_grid 顶部 import numpy，而本模块刻意让 numpy 只在真正用到的函数内导入
+    （缺 numpy 时仍可 import 本模块做别的事）——所以这里也走函数内取用，
+    用 _GRID_READY 防 sys.path 重复插入。
+    """
+    global _GRID_READY
+    if not _GRID_READY:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'v8_grid'))
+        _GRID_READY = True
+    from v8_grid import indexing
+    return indexing
+
 
 class ImportError_(Exception):
     def __init__(self, code, detail):
@@ -99,8 +116,10 @@ def write_map(points, dest, resolution, z_min, z_max):
     if width * height > 20_000_000:
         raise ImportError_('E_IMPORT_MAP', 'occupancy grid too large')
     image = bytearray([205]) * (width * height)  # unknown
-    ix = np.floor((band[:, 0] - min_x) / resolution).astype(int)
-    iy = np.floor((band[:, 1] - min_y) / resolution).astype(int)
+    # 2026-11-18（M2）：改用 v8_grid 的 cells_floor_min（min 对齐口径，与原
+    # `np.floor((band[:, k] - min_k) / resolution)` 逐字等价，差分 oracle 锁死）。
+    ix = _grid().cells_floor_min(band[:, 0], min_x, resolution).astype(int)
+    iy = _grid().cells_floor_min(band[:, 1], min_y, resolution).astype(int)
     occupied = np.zeros((height, width), dtype=bool)
     occupied[iy, ix] = True
     for row in range(height):

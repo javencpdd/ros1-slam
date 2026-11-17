@@ -14,7 +14,12 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+# 2026-11-18（M2）：格索引改由 v8_grid 提供——全仓七个栅格化口径的唯一实现。
+# 这里用 cell_floor 口径（绝对索引、无 epsilon），与原 `int(x // resolution)` 逐字等价；
+# 等价性由 v8_grid/tests/test_differential.py 的 oracle 差分锁死，不是靠"看起来一样"。
+sys.path.insert(0, str(HERE.parents[1] / 'v8_grid'))
 import support_map as rep  # noqa: E402
+from v8_grid import indexing as _grid  # noqa: E402
 
 
 def _cluster_z(sorted_zs, tol):
@@ -35,7 +40,7 @@ def extract_columns(points, resolution, z_tol=0.05):
     """点云→XY 格桶→z 聚类分层。同格多簇**全保留**（A3-1 数据级保证）。"""
     cells = defaultdict(list)
     for x, y, z in points:
-        cells[(int(x // resolution), int(y // resolution))].append(z)
+        cells[(_grid.cell_floor(x, resolution), _grid.cell_floor(y, resolution))].append(z)
     return {cell: _cluster_z(sorted(zs), z_tol) for cell, zs in cells.items()}
 
 
