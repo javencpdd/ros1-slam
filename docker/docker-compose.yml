@@ -126,6 +126,10 @@ x-ros-base: &ros-base
     #   镜像运行期已把 /home/ros1-slam/{ws,scripts,docker,data,note,opt} 做成软链，
     #   唯独没有 tooling ⇒ 下面对 tooling 多补一处直连绑定。
     - ../note:/opt/ros1-slam/note
+    # 2026-11-18：账构门禁要读 git log（v_ledger_batch_consistency.sh
+    #   靠 git 史比对批次收录），容器里没有 .git 时它按前置缺失 rc=9 拒判。
+    #   只读挂载即可——git log/rev-list 都是纯读；配合 GIT_OPTIONAL_LOCKS=0 防写 index。
+    - ../.git:/opt/ros1-slam/.git:ro
     - ../tooling:/opt/ros1-slam/tooling
     - ../tooling:/home/ros1-slam/tooling
     # ---- 编译产物：用命名卷持久化，容器重建不丢（首次会从镜像层复制一份）----
@@ -374,6 +378,8 @@ services:
       - ../subprojects:/opt/ros1-slam/subprojects
       # ---- 门禁面（同 &ros-volumes 里那段注释）----
       - ../note:/opt/ros1-slam/note
+      # 同上：账构门禁要 git log
+      - ../.git:/opt/ros1-slam/.git:ro
       - ../tooling:/opt/ros1-slam/tooling
       - ../tooling:/home/ros1-slam/tooling
       - ros1_x86_sim_build:/opt/ros1-slam/ws/build

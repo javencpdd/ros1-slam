@@ -73,10 +73,19 @@ def exec_in(service: str, argv: list[str]) -> int:
 
 
 def with_env(inner: str) -> str:
-    """容器内的统一起手式：双 source + PYTHONNOUSERSITE（与 09 契约 §5 同姿势）。"""
+    """容器内的统一起手式：双 source + PYTHONNOUSERSITE + git 信任根。
+
+    git 那句是账构门禁必需的：.git 以只读方式挂进容器，属主是宿主用户而进程是 root，
+    git 会以「dubious ownership」拒绝读史 ⇒ 件按前置缺失 rc=9 拒判。
+    ★ 不能用 GIT_CONFIG_COUNT/KEY/VALUE 那套 ★ 容器里 git 是 2.25.1，该机制要 2.35+，
+    实测设了也照样报 dubious ownership；只能用 `git config --global --add safe.directory`。
+    写在容器内 /root/.gitconfig，容器重建即丢——每次进容器补一遍，比改镜像轻。
+    """
     return (f'source {ROS_SETUP} && '
             f'[ -f {DEVEL_SETUP} ] && source {DEVEL_SETUP} || true; '
-            f'export PYTHONNOUSERSITE=1; {inner}')
+            f'export PYTHONNOUSERSITE=1 GIT_OPTIONAL_LOCKS=0; '
+            f'git config --global --add safe.directory {CONT_DIR} 2>/dev/null || true; '
+            f'{inner}')
 
 
 # --------------------------------------------------------------------------- 子命令
