@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>v8_grid</name>
+  <version>0.1.0</version>
+  <description>World-coordinate to grid-cell indexing primitives. The single
+    authoritative implementation of the rounding conventions frozen from the
+    seven historical call sites (2026-11-18, plan M1). Python modules live in
+    the source tree and are imported via sys.path (repo convention); this
+    package exists so the dependency direction is enforced by the build
+    system (target_workspace.py fail-fasts on missing v8_* depends).</description>
+  <maintainer email="ros1-slam@lite3.local">ros1-slam</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>python3-numpy</exec_depend>
+
+  <!-- ★只依赖标准库与 catkin★ 不依赖任何 v8_* 包、不 import ROS、不读写运行目录。
+       一旦它开始依赖别的 v8 包，它就不再是地基而是又一个业务包。 -->
+</package>
