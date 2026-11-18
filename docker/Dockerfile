@@ -144,6 +144,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #   （Lite3 侧本来就有 acl——JetPack 桌面基线带的；本机基座 fishros2/ros 没带。）
 
 # ---- 1.2 ROS Noetic 依赖（按 ws/src 各包 package.xml 反推）----
+# ★2026-11-18：本段加了 teleop-twist-keyboard（键盘遥控）。原先容器里没有，
+#   交互调试只能靠 rostopic pub 手发速度；加上后可直接 rosrun 该包。
+#   ★注意：不要在下面的续行里写 # 注释——shell 会把它当行内注释，
+#   把该行之后的参数一并吞掉（包就静默装不上）。★
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-catkin \
         ros-${ROS_DISTRO}-roscpp ros-${ROS_DISTRO}-rospy ros-${ROS_DISTRO}-rostest \
@@ -156,6 +160,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-rosbag ros-${ROS_DISTRO}-roslaunch \
         ros-${ROS_DISTRO}-robot-state-publisher ros-${ROS_DISTRO}-joint-state-publisher \
         ros-${ROS_DISTRO}-xacro \
+        ros-${ROS_DISTRO}-teleop-twist-keyboard \
         ros-${ROS_DISTRO}-costmap-2d ros-${ROS_DISTRO}-nav-core \
         ros-${ROS_DISTRO}-global-planner ros-${ROS_DISTRO}-base-local-planner \
         ros-${ROS_DISTRO}-move-base ros-${ROS_DISTRO}-move-base-flex \
@@ -332,6 +337,14 @@ ENV WS_ROOT=/opt/ros1-slam \
 
 # 只拷源码空间：build/ devel/ 由本阶段生成
 COPY ws/src ${WS_DIR}/src
+
+# ★2026-11-18：仿真侧源码也要进镜像★
+#   target_workspace.py:430 把 subprojects/simulation/ws/src 作为**默认额外源**
+#   （x86_sim 的 roots 里有 lite3_gazebo_sim，而它的源码在分仓后的 sim_ws）。
+#   宿主机上有这个目录所以构建通；镜像里原先没 COPY ⇒ 报
+#   `target root missing/ignored: lite3_gazebo_sim`、builder 阶段 exit 2。
+#   ★这个失败长期被镜像层缓存掩盖：只有改到 apt 层、迫使后续层重跑时才暴露。★
+COPY subprojects/simulation/ws/src ${WS_ROOT}/subprojects/simulation/ws/src
 
 # Keep source immutable. The helper selects ROS1 metadata inside its generated view.
 COPY scripts/build ${WS_ROOT}/scripts/build
