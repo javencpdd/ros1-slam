@@ -33,19 +33,30 @@ Path('/tmp/r1008_logs').mkdir(exist_ok=True)
 
 
 def start(argv, log):
+    # ★2026-11-18：stream 原先没人 close —— 每 start 一次泄漏一个文件句柄。
+    # 长跑/反复 start-stop 会一直涨（本项目 ulimit -n 1024，gz 类进程已用百余个）。
+    # 挂到 Popen 对象上，由 stop() 统一关闭；进程对象生命周期与句柄一致。
     stream = open(log, 'ab')
-    return subprocess.Popen(argv, stdout=stream, stderr=subprocess.STDOUT,
+    proc = subprocess.Popen(argv, stdout=stream, stderr=subprocess.STDOUT,
                             start_new_session=True, env=dict(os.environ))
+    proc._log_stream = stream
+    return proc
 
 
 def stop(process):
-    if process.poll() is None:
-        os.killpg(process.pid, signal.SIGTERM)
-        try:
-            process.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
-            process.wait(timeout=5)
+    try:
+        if process.poll() is None:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=5)
+    finally:
+        # 关闭 start() 里打开的日志流；即便 kill 路径抛异常也要关
+        stream = getattr(process, '_log_stream', None)
+        if stream is not None and not stream.closed:
+            stream.close()
 
 
 def main():
