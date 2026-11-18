@@ -47,7 +47,8 @@ use_host_x() {
     export DISPLAY="${X_DISPLAY:-:1}"
     # ★ 2026-10-29 停用：/tmp/.Xauthority 的 bind 挂载已从 compose 移除
     #   （登录循环断根，见 docker-compose.yml 里那条注释）。认证改由宿主机放行：
-    #   宿主机执行 xhost +si:localuser:root（容器内进程以 uid 0 连 X，SO_PEERCRED 认到的就是 root）。
+    #   宿主机执行 xhost +si:localuser:$USER（2026-11-18 起容器内进程以 HOST_UID 运行，
+#   SO_PEERCRED 认到的是该 uid 对应的宿主用户，不再是 root）。
     # export XAUTHORITY=/tmp/.Xauthority
     # ★ 默认强制软件渲染（LIBGL_ALWAYS_SOFTWARE=1）：
     #   实测这台机器宿主机 X 自己就是 llvmpipe（glxinfo: Accelerated: no），
@@ -61,7 +62,9 @@ use_host_x() {
         echo "[viz] 警告：/tmp/.X11-unix/X${DISPLAY#:} 不存在 —— 宿主机 X 没挂进来？"
     fi
     # 2026-10-29：cookie 挂载已移除，不再检查 /tmp/.Xauthority，改为提示前置动作。
-    echo "[viz] 提示：本模式不再挂 X cookie；宿主机须先执行：xhost +si:localuser:root"
+    echo "[viz] 提示：本模式不再挂 X cookie；宿主机须先执行：xhost +si:localuser:$USER"
+    echo "[viz]       （容器内进程 uid=$(id -u)，须与宿主被放行的用户一致；"
+    echo "[viz]        若 UI 不出且无报错，九成是这里没放行对）"
 }
 [ "${VIZ_HOST_X:-0}" = "1" ] && use_host_x
 
@@ -81,8 +84,8 @@ check() {
             echo "OpenGL renderer       = 取不到 —— 真实错误："
             timeout 15 glxinfo -B 2>&1 | head -2 | sed 's/^/                         /'
             echo "                         ⇒ 九成是 X 认证。2026-10-29 起不再挂 cookie："
-            echo "                           先在宿主机执行 xhost +si:localuser:root 再重试"
-            echo "                           （容器内进程以 uid 0 连 X，所以放行的是 root）"
+            echo "                           先在宿主机执行 xhost +si:localuser:$USER 再重试"
+            echo "                           （容器内进程 uid=$(id -u)，放行对象须与之一致）"
         fi
     else
         echo "OpenGL renderer       = 无 glxinfo（镜像未装 mesa-utils）"

@@ -35,7 +35,10 @@ fi
 # 让两件事互为兜底。只删这一枚具名文件，不动 devel 卷里其它产物。
 _LEGACY_PLUGIN="${WS_DIR}/devel/lib/liblivox_laser_simulation.so"
 if [ -f "${_LEGACY_PLUGIN}" ] && [ -f "${WS_ROOT}/sim_ws/devel/lib/liblivox_laser_simulation.so" ]; then
-    rm -f "${_LEGACY_PLUGIN}" && echo "[entrypoint] 已清掉分仓前旧插件 ${_LEGACY_PLUGIN}（sim_ws 版本在位，不受影响）"
+    # 2026-11-18（M10）：加 || true。容器可能以非 root（HOST_UID）运行，若该产物
+    # 属主是 root（历史构建留下的），rm 会失败；set -e 下会把整个 entrypoint 打断，
+    # 表现成"容器起来就退出"。删不掉只说明它是旧的 root 产物，不该阻断启动。
+    rm -f "${_LEGACY_PLUGIN}" 2>/dev/null && echo "[entrypoint] 已清掉分仓前旧插件 ${_LEGACY_PLUGIN}（sim_ws 版本在位，不受影响）" || true
 fi
 
 # ---- 3. 目录与运行时环境变量 ----

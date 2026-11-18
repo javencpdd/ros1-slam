@@ -93,7 +93,7 @@ x-ros-base: &ros-base
     #   ros-volumes 里那条 ${X_AUTH_FILE...} 挂载配套。该挂载的源路径只在图形会话建立
     #   之后才存在 ⇒ 容器若先于登录启动，docker 会对不存在的 bind 源自动 mkdir -p，
     #   生成 root:root 的空目录占住 GDM 写 cookie 的位置 ⇒ 登录闪回登录页。
-    #   挂载已注释 ⇒ 这里一并停用；可视化改走宿主机 xhost +si:localuser:root，
+    #   挂载已注释 ⇒ 这里一并停用；可视化改走宿主机 xhost +si:localuser:$USER（2026-11-18 起容器非 root），
     #   只经 /tmp/.X11-unix 直连，容器内不再需要任何 XAUTHORITY 文件。
     # XAUTHORITY: /tmp/.Xauthority
   volumes: &ros-volumes
@@ -145,7 +145,7 @@ x-ros-base: &ros-base
     #   只在图形会话建立之后才存在；容器先于登录启动时，docker 对不存在的 bind 源会
     #   自动 mkdir -p，生成 root:root 的空目录占住 GDM 写 cookie 的位置 ⇒ gdm-x-session
     #   拿不到有效 -auth ⇒ DISPLAY 为空 ⇒ 登录闪回。认证改走宿主机
-    #   xhost +si:localuser:root（容器内进程以 uid 0 连 X，SO_PEERCRED 认到的就是 root）。
+    #   xhost +si:localuser:$USER（容器内进程以 HOST_UID 运行，SO_PEERCRED 认到的即该 uid）。
     # - ${X_AUTH_FILE:-/run/user/1000/gdm/Xauthority}:/tmp/.Xauthority:ro
   working_dir: /opt/ros1-slam
   tty: true
@@ -323,6 +323,14 @@ services:
     image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     build: *build-sim
     command: ["bash", "-lc", "sleep infinity"]
+    # ★2026-11-18（M10，真人「现在切 + 现场看 GUI」）★：本服务切非 root 运行。
+    #   HOST_UID/HOST_GID 来自 .env（现 1000:1000），与镜像内 ros1-slam 用户一致；
+    #   卷 build/devel/install/data/logs 已 chown 到该 uid，bind mount 的宿主侧
+    #   （ws/src 等）宿主属主本就是 1000 ⇒ 读写不受影响。
+    #   ★切之前必须确认宿主机执行过 xhost +si:localuser:<宿主用户名>★：容器内进程
+    #   uid 从 0 变 1000，X 的 SO_PEERCRED 认到的身份随之改变，放行对象也得换。
+    #   未改 xhost 的表现是「GUI 静默不出来、无报错」——所以这条不能漏。
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     # ★ 2026-11-16：同 sim，逐项引用 anchor（本服务自写 environment 与 volumes）。
     logging: *ros-logging
     security_opt: *ros-security
