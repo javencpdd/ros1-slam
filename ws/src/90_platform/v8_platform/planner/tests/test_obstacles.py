@@ -7,7 +7,8 @@ import sys
 import tempfile
 import unittest
 
-HERE = Path(__file__).resolve().parent
+# 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
+HERE = Path(__file__).resolve().parent.parent
 for folder in (HERE, HERE.parent / 'contracts', HERE.parent / 'representation',
                HERE.parent / 'regression'):
     sys.path.insert(0, str(folder))
