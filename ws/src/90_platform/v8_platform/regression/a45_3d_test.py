@@ -26,7 +26,7 @@ import scenarios as scn  # noqa: E402
 import support_planner as pln  # noqa: E402
 import local_native as native  # noqa: E402
 import evaluate as local_eval  # noqa: E402
-from test_local_native import layers as step_fixture  # noqa: E402
+from fixtures import layers as step_fixture  # noqa: E402  2026-11-18（M7）：改取中性夹具模块
 
 SCENARIOS = ('SC02', 'SC05', 'SC06')
 GOAL_TOL = 0.08

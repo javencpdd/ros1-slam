@@ -19,7 +19,8 @@ from pathlib import Path
 
 import evaluate
 import local_native as native
-from test_local_native import BOX, flat, layers
+# 2026-11-18（M7）：夹具改从 fixtures 取——实现文件不该依赖 test_*.py（架构倒置）。
+from fixtures import BOX, flat, layers
 
 
 def integrate_received(position, stamp, velocity, events, until):

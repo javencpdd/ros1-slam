@@ -7,7 +7,8 @@ from pathlib import Path
 
 import evaluate
 import local_native as native
-from test_local_native import BOX, flat, layers
+# 2026-11-18（M7）：同上，夹具来自 fixtures 而非测试文件。
+from fixtures import BOX, flat, layers
 
 
 def run():

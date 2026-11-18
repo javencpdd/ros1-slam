@@ -9,7 +9,8 @@ import threading
 import time
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+# 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
+HERE = Path(__file__).resolve().parent.parent
 FRAMEWORK = HERE.parent / 'framework'
 OUT = Path('/tmp/r1033_smoke.json')
 PORT = 11519

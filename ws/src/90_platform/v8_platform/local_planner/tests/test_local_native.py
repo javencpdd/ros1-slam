@@ -7,7 +7,8 @@ from unittest import mock
 from dataclasses import replace
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+# 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
+HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / 'representation'))
 import support_map
@@ -19,24 +20,11 @@ ros_node = importlib.util.module_from_spec(_ros_spec)
 _ros_spec.loader.exec_module(ros_node)
 
 
-def flat(ymin=-2.0, ymax=2.0):
-    value = json.loads((HERE.parent / 'contracts/fixtures/map_single_floor.json').read_text())
-    value['surfaces'][0]['footprint'].update(min_x=-2.0, max_x=3.0, min_y=ymin, max_y=ymax)
-    return value
-
-
-def layers():
-    return support_map.build_support_map(
-        'local_layers', .2, [-2., -2., 0.],
-        [{'surface_id': 'ground', 'z_reference': 0.0, 'data_uri': 'fixture://ground',
-          'footprint': {'min_x': -2., 'max_x': 0.2, 'min_y': -1., 'max_y': 1.},
-          'edges': [{'to': 'deck', 'kind': 'step', 'max_step_height_m': .2, 'bidirectional': True}]},
-         {'surface_id': 'deck', 'z_reference': .15, 'data_uri': 'fixture://deck',
-          'footprint': {'min_x': 0., 'max_x': 3., 'min_y': -1., 'max_y': 1.}, 'edges': []}],
-        None, {'uri': 'fixture://local_layers', 'sha256': 'a' * 64})
-
-
-BOX = {'id': 'box', 'min': [.6, -.2, -.05], 'max': [1.0, .2, .8]}
+# 2026-11-18（M7）：夹具已移到 fixtures.py 并在此 re-export。
+# 原因＝这三个夹具被实现文件（runtime_probe.py / demo.py）与跨包（regression/
+# a45_3d_test.py）引用，留在测试文件里会造成「实现依赖测试」的架构倒置。
+# 本文件仍保留同名导出，既有测试的 `from test_local_native import flat` 不受影响。
+from fixtures import BOX, flat, layers  # noqa: E402,F401
 
 
 class NativeTests(unittest.TestCase):
