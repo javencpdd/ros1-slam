@@ -77,6 +77,9 @@ x-ros-base: &ros-base
   #    这里显式钉住，换机器也不会退化成 unlimited）。
   ulimits:
     core: 0
+    nofile:
+      soft: 4096
+      hard: 8192
   environment: &ros-env
     # ★ 网络口径全部走变量，不在镜像里写死 IP
     ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://roscore:11312}
@@ -272,6 +275,9 @@ services:
     security_opt: *ros-security
     ulimits:
       core: 0
+      nofile:
+        soft: 4096
+        hard: 8192
     environment:
       USE_XVFB: "1"                 # entrypoint 据此起 Xvfb :99（gzserver 需要 GL 上下文）
       LIBGL_ALWAYS_SOFTWARE: "1"    # 强制 Mesa 软渲染，不要去找 NVIDIA
@@ -340,6 +346,9 @@ services:
     security_opt: *ros-security
     ulimits:
       core: 0
+      nofile:
+        soft: 4096
+        hard: 8192
     environment:
       USE_XVFB: "0"                 # 用宿主机 X，不起容器内虚拟屏
       LIBGL_ALWAYS_SOFTWARE: "0"    # ★ 覆盖镜像里的全局 1：直通宿主机 X 时要用真 GPU，
@@ -437,6 +446,9 @@ services:
     security_opt: *ros-security
     ulimits:
       core: 0
+      nofile:
+        soft: 4096
+        hard: 8192
     mem_limit: "${MEM_LIMIT_BRIDGE:-512m}"
     # ★ 2026-11-16 修：原来写成 `bash -lc "... export ROS_MASTER_URI=${ROS1_MASTER_URI:-...}"`，
     #   这在 compose 里是**构建期的变量替换**（替换的是宿主环境的 ROS1_MASTER_URI，
@@ -482,6 +494,9 @@ services:
     security_opt: *ros-security
     ulimits:
       core: 0
+      nofile:
+        soft: 4096
+        hard: 8192
     mem_limit: "${MEM_LIMIT_WEB:-512m}"
     # ★ 2026-11-16：--bind 原写 0.0.0.0，与端口串里的「宿主环回」口径自相矛盾
     #   （容器是独立网络命名空间，里面只听 0.0.0.0 才能被端口映射接住，所以这里
