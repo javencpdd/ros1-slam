@@ -165,6 +165,7 @@ services:
     image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     container_name: ros1-slam-roscore
     command: ["bash", "-lc", "roscore -p ${ROS_PORT:-11312}"]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     ports:
       - "${ROS_PORT:-11312}:${ROS_PORT:-11312}"
     volumes: []                     # master 不需要源码
@@ -189,6 +190,7 @@ services:
       roscore:
         condition: service_healthy
     command: ["bash", "-lc", "sleep infinity"]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     ports:
       # 11312 归 roscore 服务独占，这里不要再映射，否则 "port is already allocated"
       # 11313/11345 属于仿真域（m2_smoke.sh 写死），归 sim 服务，这里也不占
@@ -237,6 +239,7 @@ services:
       ROS_LOG_DIR: /opt/ros1-slam/logs
       PYTHONNOUSERSITE: "1"
     command: ["bash", "-lc", "sleep infinity"]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     ipc: host                        # host 网络下直接用宿主机 /dev/shm（shm_size 不生效）
 
   # ---------------------------------------------------------------------------
@@ -262,6 +265,7 @@ services:
     image: ${SIM_IMAGE:-ros1-slam:noetic-sim}
     build: *build-sim
     command: ["bash", "-lc", "sleep infinity"]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     # ★ 2026-11-16：本服务自写 environment（不能用 <<: *ros-base，YAML 合并是整体覆盖），
     #   所以加固三项只能逐项引用 anchor。
     logging: *ros-logging
@@ -443,6 +447,7 @@ services:
     #   正形＝命令里**不展开**变量（单引号 + 双 $$ 让 compose 透传、bash 执行期再展开），
     #   并把两个名字都落成容器 env。
     command: ["bash", "-lc", "source /opt/ros/noetic/setup.bash && export ROS_MASTER_URI=\"$${ROS1_MASTER_URI}\" && exec roslaunch rosbridge_server rosbridge_websocket.launch"]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     environment:
       ROS1_MASTER_URI: ${ROS1_MASTER_URI:-http://roscore:11312}
       ROS_MASTER_URI: ${ROS1_MASTER_URI:-http://roscore:11312}
@@ -483,6 +488,7 @@ services:
     #   保持 0.0.0.0 不变、只把端口绑到 127.0.0.1 —— 收口在宿主这一侧做，改的是
     #   下面 ports 那一行，不是这里）。
     command: ["-u", "/srv/web/serve.py", "--port", "8000", "--bind", "0.0.0.0"]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     # 2026-11-18：只进 frontend。它是纯静态文档服务，不需要解析 roscore；
     # 放进 ROS 域等于给浏览器那侧多一条可达路径。
     networks:
