@@ -20,23 +20,8 @@ Path('/tmp/hdl_global_ros').mkdir(exist_ok=True)
 Path('/tmp/hdl_global_logs').mkdir(exist_ok=True)
 
 
-def read_pcd(path):
-    with open(path, 'rb') as stream:
-        header = []
-        while True:
-            line = stream.readline()
-            if not line:
-                raise ValueError('PCD header incomplete')
-            header.append(line)
-            if line.startswith(b'DATA'):
-                break
-        fields = [line.split()[1:] for line in header if line.startswith(b'FIELDS')][0]
-        sizes = [int(x) for x in [line.split() for line in header
-                                  if line.startswith(b'SIZE')][0][1:]]
-        n = int([line.split()[1] for line in header if line.startswith(b'POINTS')][0])
-        data = stream.read()
-    dtype = np.dtype([(fields[i].decode(), 'f%d' % sizes[i]) for i in range(len(fields))])
-    return np.frombuffer(data, dtype=dtype, count=n)
+# 2026-11-18：read_pcd 已抽到 pcd_util（三处逐字相同，已 diff 核实）
+from pcd_util import read_pcd  # noqa: E402
 
 
 def main():
