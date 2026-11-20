@@ -1,0 +1,50 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Grid
+      Name: Grid
+      Enabled: true
+      Reference Frame: <Fixed Frame>
+      Plane Cell Count: 40
+      Cell Size: 1
+      Color: 100; 100; 100
+    - Class: rviz/PointCloud2
+      Name: CloudRegistered
+      Enabled: true
+      Topic: /cloud_registered
+      Queue Size: 5
+      Style: Flat Squares
+      Size (m): 0.05
+      Decay Time: 120
+      Color Transformer: AxisColor
+      Axis: Z
+    - Class: rviz/RobotModel
+      Name: Robot
+      Enabled: true
+      Robot Description: robot_description
+    - Class: rviz/Axes
+      Name: RobotFrame
+      Enabled: true
+      Length: 1.5
+      Radius: 0.12
+      Reference Frame: base_link
+  Enabled: true
+  Global Options:
+    Fixed Frame: map
+    Frame Rate: 30
+    Background Color: 48; 48; 48
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 6
+      Focal Point: {X: 0, Y: 0, Z: 0}
+      Pitch: 0.55
+      Yaw: 0.8
+      Name: Current View
