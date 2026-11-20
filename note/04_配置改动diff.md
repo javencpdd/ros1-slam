@@ -7332,3 +7332,21 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 
 追认位：本条属「改判据面」，按 05 A3 口径先挂账。若不认，revert 该单提交即可
 （elevation.py 一处，差分测试不受影响——cell_floor 与 cell_snap 两个口径都还在 v8_grid 里）。
+
+## 2026-11-21 / T-20261118-02 编排层裁决：取消 MBF，全走 BT+自研（真人拍板）与本批落地
+
+- **决策（L2，真人当场拍板）**：2026-11-21 选择「取消 MBF，全走 BT+自研」，同日补充
+  「只是尽量不自研，可以把 MBF 中对自己有用的部分学习过来加入架构设计」。此前 P0-1/2
+  （「取消 MBF」与「不用自研」冲突、三套编排并存）由此结案。设计档＝
+  `note/架构/MBF吸收与导航链重构.md`（含 MBF 八项机制的吸收判定表与迁移图谱）。
+- **本批落地（S2）**：新增 `ws/src/70_bringup/lite3_bringup/launch/mode_sim_bt.launch`——
+  平地 BT+v8 自研链，K2 单写者链＝local_native twist 镜像 → `/cmd_vel_raw` →
+  `m2_cmd_relay` → `/cmd_vel`（21c0a302 退役旧平地栈的直写问题由此闭合）。
+- **实跑读数（2026-11-21，容器 x86_sim，ROS 11313/Gazebo 11345）**：goal＝起点+3m；
+  BT `outcome=reached`；过 0.35m 阈用 sim 13.1s／墙钟 26.2s；终位 (3.050, 0.050)
+  ＝栅格吸附后的路径终点，距请求目标 0.071m；局部 `reason=hold`；15 节点全起。
+- **本批未做（按设计分片，不是缺口）**：真机 `mode_navigation` 换链（S5，真机 L2）；
+  `m2_smoke` Stage B 迁移（S3，判据面变更需按 07 代际纪律换代）；MBF 件退役标注（S5）。
+  MBF 的 launch/config 与 `lite3_costmap_layers` 代码保留，作 revert 路径。
+- **追认位**：架构方向由真人当场拍板；若改判，删除 `mode_sim_bt.launch` 即回退
+  （现无其他件依赖它；旧 MBF 链逐字未动）。
