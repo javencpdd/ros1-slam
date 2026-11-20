@@ -18,6 +18,8 @@ public:
   {
     return {BT::InputPort<double>("distance", 0.25, "arrival radius"),
             BT::InputPort<double>("timeout", 30.0, "timeout"),
+            BT::InputPort<double>("progress_timeout", 0.0, "stall patience"),
+            BT::InputPort<double>("progress_epsilon", 0.05, "progress step"),
             BT::InputPort<double>("seconds", 1.0, "dwell")};
   }
 

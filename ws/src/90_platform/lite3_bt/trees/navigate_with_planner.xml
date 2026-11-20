@@ -13,7 +13,12 @@
         <RequestPath name="request_path"/>
         <WaitForPath name="wait_path" timeout="30"/>
         <FollowPath name="follow_path"/>
-        <WaitArrival name="wait_arrival" distance="0.25" timeout="60"/>
+        <!-- progress_timeout is the MBF-controller "patience" analogue: fail
+             the leg when the remaining distance stops improving.  0 = off
+             (same behavior as before this port existed); enabling it on the
+             real robot is a physical criterion and needs a signed work order. -->
+        <WaitArrival name="wait_arrival" distance="0.25" timeout="60"
+                     progress_timeout="0" progress_epsilon="0.05"/>
         <Dwell name="dwell_at_goal" seconds="1.0"/>
         <Stop name="stop_after_success"/>
       </Sequence>

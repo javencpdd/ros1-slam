@@ -10,6 +10,7 @@
 #include <std_msgs/String.h>
 
 #include <lite3_bt/arrival_budget.hpp>
+#include <lite3_bt/arrival_progress.hpp>
 #include <lite3_bt/goal_queue.hpp>
 #include <lite3_bt/bt_policy.hpp>
 
@@ -356,18 +357,28 @@ class WaitArrival : public BT::StatefulActionNode
 public:
   WaitArrival(const std::string& name, const BT::NodeConfiguration& config)
     : BT::StatefulActionNode(name, config), distance_(0.25), timeout_(60.0),
-      budget_(60.0) {}
+      budget_(60.0), progress_timeout_(0.0), progress_epsilon_(0.05) {}
 
   static BT::PortsList providedPorts()
   {
     return {BT::InputPort<double>("distance", 0.25, "arrival radius (m)"),
-            BT::InputPort<double>("timeout", 60.0, "timeout (s)")};
+            BT::InputPort<double>("timeout", 60.0, "timeout (s)"),
+            // MBF controller "patience" analogue: fail the leg when the
+            // remaining distance stops improving.  0 keeps the old behavior.
+            BT::InputPort<double>("progress_timeout", 0.0, "stall patience (s; 0=off)"),
+            BT::InputPort<double>("progress_epsilon", 0.05, "progress step (m)")};
   }
 
   BT::NodeStatus onStart() override
   {
     getInput("distance", distance_);
     getInput("timeout", timeout_);
+    getInput("progress_timeout", progress_timeout_);
+    getInput("progress_epsilon", progress_epsilon_);
+    progress_.patience_s = progress_timeout_;
+    progress_.epsilon_m = progress_epsilon_;
+    progress_.reset(std::chrono::duration<double>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
     {
       std::lock_guard<std::mutex> lock(g_state.mutex);
       if (g_state.current_policy.arrival_timeout_s > 0.0)
@@ -469,7 +480,8 @@ private:
     {
       const double dx = pose.pose.position.x - goal.pose.position.x;
       const double dy = pose.pose.position.y - goal.pose.position.y;
-      if (std::hypot(dx, dy) <= distance_)
+      const double remaining = std::hypot(dx, dy);
+      if (remaining <= distance_)
       {
         {
           std::lock_guard<std::mutex> lock(g_state.mutex);
@@ -477,6 +489,22 @@ private:
           recordOutcomeLocked(true);
         }
         return BT::NodeStatus::SUCCESS;
+      }
+      // Pose mode only: ack/signal modes delegate arrival to another owner and
+      // keep the budget guard below.  Patience 0 (tree default) keeps the old
+      // behavior byte-for-byte.
+      const double now_s = std::chrono::duration<double>(
+          std::chrono::steady_clock::now().time_since_epoch()).count();
+      if (progress_.stalled(remaining, now_s))
+      {
+        ROS_WARN("[bt] arrival stalled: remaining %.2f m, no progress for >%.1f s",
+                 remaining, progress_timeout_);
+        {
+          std::lock_guard<std::mutex> lock(g_state.mutex);
+          g_state.last_event = "arrival_stalled";
+          recordOutcomeLocked(false);
+        }
+        return BT::NodeStatus::FAILURE;
       }
     }
     const auto elapsed = std::chrono::duration<double>(
@@ -497,6 +525,9 @@ private:
   double distance_;
   double timeout_;
   double budget_;
+  double progress_timeout_;
+  double progress_epsilon_;
+  lite3_bt::ProgressTracker progress_;
   std::chrono::steady_clock::time_point start_;
 };
 

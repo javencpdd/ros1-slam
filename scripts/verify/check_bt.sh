@@ -6,7 +6,7 @@ PKG="$ROOT/ws/src/90_platform/lite3_bt"
 CXX="${CXX:-g++}"
 TMP="${TMPDIR:-/tmp}/v8_bt_tests"
 mkdir -p "$TMP"
-for name in test_goal_queue test_arrival_budget test_bt_policy; do
+for name in test_goal_queue test_arrival_budget test_bt_policy test_arrival_progress; do
   "$CXX" -std=c++11 -Wall -Wextra -I"$PKG/include" "$PKG/test/$name.cpp" -o "$TMP/$name"
   "$TMP/$name"
 done

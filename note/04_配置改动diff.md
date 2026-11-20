@@ -7382,3 +7382,25 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   H1—H14 逐行现算保持全等（改后 --check 逐行无 FAIL，仅剩缺行）。
 - 追认位：Stage B 判据主体未动，就绪门主题更换属判据面变更，按 05 A3 挂账。若不认：revert
   本提交即回退旧 Stage B（`mode_sim_bt.launch` 与 MBF 件均保留，旧链可原样再跑）。
+
+## 2026-11-21 / T-20261118-02 S4 吸收第一件：WaitArrival 进度耐心（MBF PAT_EXCEEDED 同义）＋构建器缓存解析修复
+
+- **吸收件（设计表第 4 项）**：`WaitArrival` 新增 `progress_timeout`/`progress_epsilon` 端口
+  （树里显式 0＝关）。语义：剩余距离每 `patience_s` 内至少改善 `epsilon_m`，否则该腿判
+  `arrival_stalled` → FAILURE → Recovery。纯逻辑在 `include/lite3_bt/arrival_progress.hpp`
+  （ROS-free，host 可测）。仅 pose 模式生效；ack/signal 模式仍由下游 owner 与预算守卫兜底。
+  ★默认 0＝行为逐字不变★；真机启用属物理判据，须签作业单。
+- **单测**：`test/test_arrival_progress.cpp` 11 项（含 sub-epsilon 不重置、patience 0/负值关闭）；
+  `check_bt.sh` 已纳入。另 `test_tree_load.cpp` 的 dummy 端口清单补新端口（否则树加载报未知端口）。
+  读数：host 四件 ALL PASS；两棵树 TREE OK（15/12 节点）。
+- **正常回归**：重建 lite3_bt 后 Stage B 复跑 9/0 PASS（dt 11.59、dev 0.200、outcome=reached）
+  ⇒ 默认关时零行为变化。
+- **停滞负控**：临时树 `progress_timeout=3`，goal+3m 开出 0.5m 后杀 `/v8_local_planner` 并向
+  `/cmd_vel_raw` 发零 → BT 日志 `arrival stalled: remaining 2.39 m, no progress for >3.0 s`、
+  status `outcome=failed`（余距 2.39m 排除到点失败）⇒ 端口有分辨力。
+- **构建器修复（同批实证的坑）**：`target_workspace.py` 的 CMakeCache 解析正则允许跨行，
+  真实 cache 的空行＋`//注释` 被吞进键名（实测 528 个空行），`check_cache` 恒报
+  `CMake cache mismatch`；改为键/值字符类排除换行，并补回归用例（28 tests OK）。
+  另：手工 `catkin_make` 会在 `devel/.catkin` 追加第二源空间并使 `_setup_util` 生成带换行的
+  `ROS_PACKAGE_PATH`（rospack 失明）——正形是走 `docker/build.sh`；体积修复已就位（单源空间、无尾换行）。
+- 追认位：S4 属新增能力且默认关闭，不改变任何在册判据；若不需要，revert 该提交即回到无此端口状态。
