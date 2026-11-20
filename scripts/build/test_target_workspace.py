@@ -194,6 +194,28 @@ class TargetWorkspaceTests(unittest.TestCase):
         with self.assertRaisesRegex(tw.PlanError, "identity mismatch"):
             tw.check_cache(self.plan())
 
+    def test_cmake_cache_with_blank_and_comment_lines_parses(self):
+        result = self.plan()
+        self.build(result)
+        paths = {key: Path(value) for key, value in result["paths"].items()}
+        cache = paths["build"] / "CMakeCache.txt"
+        cache.write_text(
+            "\n"
+            "//path to the source directory\n"
+            "CMAKE_HOME_DIRECTORY:INTERNAL=%s\n"
+            "\n"
+            "//catkin devel space\n"
+            "CATKIN_DEVEL_PREFIX:PATH=%s\n"
+            "\n"
+            "//install space\n"
+            "CMAKE_INSTALL_PREFIX:PATH=%s\n"
+            "\n"
+            "//whitelist\n"
+            "CATKIN_WHITELIST_PACKAGES:STRING=%s\n"
+            % (paths["source_view"], paths["devel"], paths["install"],
+               ";".join(p["name"] for p in result["packages"])))
+        tw.check_cache(result)  # must not raise: comments/blank lines are normal
+
     def test_foreign_cmake_cache_and_unowned_output_rejected(self):
         result = self.plan()
         self.build(result)

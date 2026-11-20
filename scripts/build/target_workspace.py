@@ -271,7 +271,11 @@ def check_cache(result):
     if cache.is_symlink():
         raise PlanError("symlink CMakeCache.txt forbidden")
     if cache.exists():
-        values = dict(re.findall(r"^([^#/:][^:=]*):[^=]*=(.*)$", cache.read_text(), re.M))
+        # Do not let the key span lines: real caches interleave blank lines and
+        # "//comment" blocks before entries, and a newline-wide class swallowed
+        # the comment into the key ("\\n//catkin devel space\\nCATKIN_DEVEL_PREFIX")
+        # making every such key look missing.  Hit live on 2026-11-21.
+        values = dict(re.findall(r"^([^#/:\n][^:=\n]*):[^=\n]*=(.*)$", cache.read_text(), re.M))
         expected = {"CMAKE_HOME_DIRECTORY": str(paths["source_view"]),
                     "CATKIN_DEVEL_PREFIX": str(paths["devel"]), "CMAKE_INSTALL_PREFIX": str(paths["install"]),
                     "CATKIN_WHITELIST_PACKAGES": ";".join(p["name"] for p in result["packages"])}
