@@ -10,7 +10,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 HERE = Path(__file__).resolve().parent
-LEGACY_SHA = '8e2c2c023a3f04d80f053a76a9865adc59dcb84caadcb1142b242720d371d117'
+LEGACY_SHA = '6b39e0d8a5819963ccf2238fb2170d349abadaf2a2a9c8b45a4cc102b70c4dde'
 CMAKE_SHA = '64a1cd98637364e4690d5b6f3eb20c7e328b29711cb55782a0aa2dcfbb8c698c'
 PACKAGES = {'lite3_navigation', 'lite3_scan', 'lite3_costmap_layers'}
 SOURCES = {'lite3_costmap_layers/src/elevation_merged_layer.cpp',

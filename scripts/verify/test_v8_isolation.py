@@ -112,10 +112,25 @@ class IsolationTests(unittest.TestCase):
         self.nav.symlink_to(dest, target_is_directory=True)
         self.reject()
 
+    def test_legacy_approved_snapshot(self):
+        raw = (iso.HERE / 'v3_isolation.sh').read_bytes()
+        approved = '6b39e0d8a5819963ccf2238fb2170d349abadaf2a2a9c8b45a4cc102b70c4dde'
+        self.assertEqual(iso.LEGACY_SHA, approved)
+        self.assertEqual(iso.sha(raw), approved)
+        self.assertIn('say "[9] v8 shell/source/plugin boundary"', iso.derive_legacy(raw))
+
     def test_legacy_mutation_rejected(self):
         raw = (iso.HERE / 'v3_isolation.sh').read_bytes()
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, 'legacy ISO hash mismatch; refusing a different base'):
             iso.derive_legacy(raw + b'\n')
+
+    def test_full_main_refuses_mutated_base(self):
+        from unittest.mock import patch
+        raw = (iso.HERE / 'v3_isolation.sh').read_bytes()
+        with patch.object(Path, 'read_bytes', return_value=raw + b'\n'), \
+                patch.object(iso.subprocess, 'run') as execute:
+            self.assertEqual(iso.main([]), 1)
+            execute.assert_not_called()
 
     def test_only_section_nine_changes(self):
         raw = (iso.HERE / 'v3_isolation.sh').read_bytes()
@@ -123,6 +138,41 @@ class IsolationTests(unittest.TestCase):
         new = iso.derive_legacy(raw)
         self.assertEqual(old[:old.index('say "[9] ')], new[:new.index('say "[9] ')])
         self.assertEqual(old[old.index('say "[10] '):], new[new.index('say "[10] '):])
+
+    def rospack_fixture(self, found):
+        # Run the unchanged [4] section so rejection cannot be supplied by [10].
+        derived = iso.derive_legacy((iso.HERE / 'v3_isolation.sh').read_bytes())
+        section = derived[derived.index('say "[4] '):derived.index('say "[5] ')]
+        script = ('FAIL=0\nsay() { printf "%s\\n" "$1"; }\n'
+                  + 'rospack() { printf "%s\\n" "$ISO_TEST_ROSPACK_PATH"; }\n'
+                  + section + '\nexit "$FAIL"\n')
+        return subprocess.run(['bash', '-c', script],
+                              env=dict(os.environ, ISO_ROOT='/opt/ros1-slam',
+                                       ISO_TEST_ROSPACK_PATH=found),
+                              capture_output=True, text=True, timeout=10)
+
+    def test_rospack_descendant_roots_accepted(self):
+        for root in ('/home/ros1-slam', '/opt/ros1-slam'):
+            with self.subTest(root=root):
+                result = self.rospack_fixture(root + '/ws/src/30_3rd/faster-lio')
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertNotIn('BAD:', result.stdout)
+
+    def test_rospack_exterior_prefix_rejected(self):
+        for root in ('/home/ros1-slam', '/opt/ros1-slam'):
+            for found in (root + '-outside/ws/src/faster_lio',
+                          '/outside' + root + '/ws/src/faster_lio'):
+                with self.subTest(found=found):
+                    result = self.rospack_fixture(found)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn('BAD: faster_lio -> ' + found, result.stdout)
+
+    def test_rospack_bare_roots_rejected(self):
+        for root in ('/home/ros1-slam', '/opt/ros1-slam'):
+            with self.subTest(root=root):
+                result = self.rospack_fixture(root)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn('BAD: faster_lio -> ' + root, result.stdout)
 
     def full_fixture(self, extra_env=None, wrong_alias=False):
         home = self.root / 'home'
@@ -134,8 +184,9 @@ class IsolationTests(unittest.TestCase):
         bindir = self.root / 'bin'
         bindir.mkdir(exist_ok=True)
         rospack = bindir / 'rospack'
-        rospack.write_text('#!/bin/bash\nif [ "$1" = list ]; then printf "pkg %s\\n" "' + str(home)
-                           + '"; else printf "%s\\n" "' + str(home) + '"; fi\n')
+        package = home / 'ws/src/40_navigation/lite3_navigation'
+        rospack.write_text('#!/bin/bash\nif [ "$1" = list ]; then printf "lite3_navigation %s\\n" "' + str(package)
+                           + '"; else printf "%s\\n" "' + str(package) + '"; fi\n')
         rospack.chmod(0o700)
         df = bindir / 'df'
         df.write_text('#!/bin/bash\nprintf "Filesystem 1G-blocks Used Available Use%% Mounted\\nfixture 100G 1G 99G 1%% /\\n"\n')
