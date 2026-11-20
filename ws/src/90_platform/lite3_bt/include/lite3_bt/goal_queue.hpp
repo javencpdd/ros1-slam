@@ -80,6 +80,24 @@ inline bool parse_planner_ack(const std::string& text, std::uint64_t* seq, bool*
   return true;
 }
 
+inline bool parse_execution_ack(const std::string& text, std::uint64_t* seq,
+                                bool* ok, std::string* reason)
+{
+  if (reason == 0) return false;
+  const auto first = text.find(':');
+  const auto second = first == std::string::npos ? first : text.find(':', first + 1);
+  const auto result = text.substr(0, second);
+  if (!parse_planner_ack(result, seq, ok)) return false;
+  reason->clear();
+  if (*ok) return second == std::string::npos;
+  if (second == std::string::npos) return false;
+  *reason = text.substr(second + 1);
+  if (reason->empty() || reason->size() > 80) return false;
+  for (char c : *reason)
+    if ((c < 'a' || c > 'z') && c != '_') return false;
+  return true;
+}
+
 // Only an OK ack for the CURRENT goal advances the queue.  A stale ack from a
 // previous goal, or a FAIL ack, never advances it.
 inline bool ack_advances(std::uint64_t ack_seq, bool ack_ok, std::uint64_t current_seq)

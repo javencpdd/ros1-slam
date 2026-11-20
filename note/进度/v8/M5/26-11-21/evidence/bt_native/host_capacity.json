@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "loadavg": {
+    "load1": 5.33,
+    "load5": 7.1,
+    "load15": 8.52,
+    "source": "/proc/loadavg",
+    "scope": "host-wide",
+    "counts_uninterruptible": true
+  },
+  "relative_load": {
+    "per_host_cpu": 0.074,
+    "per_affinity_cpu_diagnostic_only": 0.074,
+    "per_quota_core": null,
+    "per_quota_core_reason": "loadavg 是宿主全局量；cgroup 配额只约束本进程，不能直接作分母"
+  },
+  "warnings": [],
+  "non_claims": [
+    "loadavg 不是 CPU 使用率（含不可中断睡眠任务）",
+    "单次读数不证明单核余量、内存/IO 健康或实时性"
+  ],
+  "schema": "capacity-aware-load-scope/1",
+  "timestamp_utc": "2026-11-20T19:16:32+00:00",
+  "cpu": {
+    "host_count": 72,
+    "affinity_count": 72,
+    "affinity_list": "0-71",
+    "cgroup_v2": {
+      "limits": [
+        {
+          "max": "max",
+          "period_us": 100000,
+          "quota_cores": null,
+          "path": "/sys/fs/cgroup/user.slice/cpu.max"
+        }
+      ],
+      "effective_quota_cores": null
+    },
+    "cgroup_v1": null,
+    "effective_quota_cores": null,
+    "effective_quota_source": null,
+    "cpuset": {
+      "path": "/sys/fs/cgroup/user.slice/cpuset.cpus.effective",
+      "list": "0-71",
+      "count": 72
+    },
+    "container_hint": false
+  }
+}

@@ -38,7 +38,7 @@ set_target_properties(bt_console PROPERTIES
 # a relay wrapper exports nothing (the source runs inside a private context
 # dict), which made `import goal_gate_policy` yield an empty module and the
 # node die with AttributeError: no attribute 'parse_allowed'.
-catkin_install_python(PROGRAMS scripts/goal_gate.py scripts/bt_stage_marker.py
+catkin_install_python(PROGRAMS scripts/goal_gate.py scripts/bt_stage_marker.py scripts/navigation_executor.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(FILES scripts/goal_gate_policy.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -55,3 +55,6 @@ add_custom_target(lite3_bt_devel_policy ALL
           ${CMAKE_CURRENT_SOURCE_DIR}/scripts/goal_gate_policy.py
           ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/goal_gate_policy.py
   COMMENT "Syncing goal_gate_policy.py into the devel space")
+
+install(TARGETS bt_console RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(DIRECTORY launch config trees DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

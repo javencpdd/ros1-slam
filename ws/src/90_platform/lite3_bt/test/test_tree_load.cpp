@@ -33,7 +33,7 @@ int main(int argc, char** argv)
   const char* names[] = {"WaitForGoal", "RequestPath", "WaitForPath",
                          "FollowPath", "SendGoal", "WaitArrival",
                          "Dwell", "Stop", "Recovery", "CancelStop",
-                         "IsCancelled", "IsNotCancelled", "CheckLocalization"};
+                         "IsCancelled", "IsNotCancelled", "CheckLocalization", "StopExecutor"};
   for (const char* name : names) factory.registerNodeType<DummyAction>(name);
   try
   {

@@ -111,8 +111,8 @@
     <arg name="rviz" value="$(arg rviz)"/>
   </include>
 
-  <!-- M4：mbf 联邦式服务器（C7 remap 在其节点内；liveness_m4 心跳在其内） -->
-  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
+  <include file="$(find lite3_navigation)/launch/navigation_executor.launch">
     <arg name="rviz" value="$(arg rviz)"/>
   </include>
+  <include file="$(find lite3_bt)/launch/bt_navigation.launch"/>
 </launch>

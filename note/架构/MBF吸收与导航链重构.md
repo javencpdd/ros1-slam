@@ -1,5 +1,7 @@
 # MBF 吸收与导航链重构设计（取消 MBF，BT 统一编排）
 
+> 最新更新时间：2026-11-21 CST。当前执行口径见第 8 节；前七节保留为本日早先方案，不作为继续自研算法、退役 costmap 或修改真机默认开关的授权。
+
 > 决策：真人 2026-11-21 拍板「**取消 MBF，全走 BT+自研**」；同日补充「只是尽量不自研，
 > 可以学习其他成熟的方案——可以把 MBF 中对自己有用的部分学习过来加入我们的架构设计」。
 > 本件是设计档，不是许可件；真机上机仍按 `note/10_真机上机Runbook.md` 与 `note/09` §9 的 L2 口径。
@@ -107,3 +109,65 @@ FollowPath／WaitArrival／Dwell／Stop、取消分支、Recovery（`skip|retry|
 - 物理平面载体＋local_native：twist 镜像与单写者已定（`/cmd_vel_raw`）；平地 vz≈0，
   垂直分量拒发不触发（坡面才有此约束）。
 - 真机 topic 面（LIO/位姿来源/障碍源）需 real profile 逐项给值，属 L2。
+
+## 8. 2026-11-21 续令：复用成熟算法，替换的是编排封装
+
+用户要求继续完成 BT 替换 MBF 封装，并尽量复用、移植成熟开源算法。当前选择为：
+
+```text
+任务 / RViz goal → BT 队列 → NavigateWithAction
+                           ├→ 显式 seq 请求 → action 适配器 → move_base
+                           │                                  ├→ GlobalPlanner
+                           │                                  ├→ TEB
+                           │                                  └→ 原 costmap 分层
+                           └← 对应 seq 的 result / 终止确认 ←───┘
+候选速度 → action/lease/时效门 → cmd_vel_raw → 原安全 mux → 底盘
+失败 → 先取消并确认终止 → 有限次数 retry/replan 或 abort
+```
+
+- **没有新写规划算法**：复用 Noetic `move_base 1.17.3`、`global_planner`、`TEB 0.9.1`；原高程、STVL、SOB 插件及参数保留。`move_base` 保留单目标内部规划/控制状态机，禁用内置恢复，任务排序与恢复归 BT。它不提供 MBF 的独立 GetPath/ExePath/Recovery 三套 action，旧 SMACH/MBF 客户端不被冒充为已迁移客户端。
+- **不是把所有 MBF 二进制卸掉**：TEB 的发行包仍依赖 MBF 接口包；退出主链的是 `mbf_costmap_nav` 服务器。MBF 历史 launch/证据及直接调用旧 action 的验证脚本保留为历史/对照，不作为新入口。
+- **上轮设计更正**：costmap 并不只能由 MBF 消费；`move_base` 可加载原 `nav_core` 规划器与 costmap 插件，因此第 2 节“取消 costmap”和第 4 节高程层退役不再执行。MBF 本身提供 map-independent/simple/mesh 分层，不能宣称成熟方案都只能单一平面；mesh_navigation 是曲面导航候选，不等价于已完成多楼层移植。
+- **进度判据更正**：MBF 的 `PAT_EXCEEDED` 关注有效控制输出的等待时间；现有欧氏剩余距离改善检测并不同义，绕行可能暂时远离目标。它保持默认关闭，不能借 MBF 名义自动启用。新 action 树以执行器结果为准，不用位置距离替代成功结果。
+- **执行生命周期**：应用序号在 JSON 字段中传递，不借用会被 ROS 发布器覆写的 `Header.seq`；迟到结果不推进新目标。取消未确认时持续零速并阻断队列，不能继续执行下一目标。租约失效、后端 LOST、取消超时锁定适配器，需人工处理/重启后再接续。
+- **恢复范围**：复用现有重试预算/退避，按后端失败原因选 retry/replan/abort；未实现无碰撞证明的原地旋转或后退恢复，不默认对四足输出这类动作。详细 MBF 结果码不从 move_base 的粗粒度结果臆造。
+- **真机边界**：只替换入口装配，`enable_motion=false`、`enable_bt=false`、缺 real profile 拒跑以及原数值保持；不在真实机器人上启动/发包/验收。平面后端拒绝非零 z 目标，不投影吞掉三维任务；原 SCAN/支撑图链继续作为独立后端，不能以平面通过签署楼梯/真机。
+- **上一轮证据局限**：旧 mode_sim_bt 用无仲裁 relay，BT 零速出口不在执行链；旧 Stage B 的 lease 判断和终态断言不足，9/0 不能证明完整取消/停止安全。此次另以真实 action 和 safety mux 做限定回归，不回改旧证据、不放宽旧门值。
+
+## 9. 开源算法候选矩阵与 BT 内替换（2026-11-21 续令）
+
+用户要求建图/定位/导航算法优先使用或借鉴成熟开源方案，多候选在 BT 编排下可替换对跑。
+当前实现只换**算法插件**，不换安全层：所有候选输出仍经 action/lease 守卫 → `/cmd_vel_raw`
+→ safety mux；候选不得绕过取消确认、终止确认或真机默认开关。
+
+| 层 | 当前主用 | 可替换候选（镜像已装） | 候选（需联网安装，未落地） | 入口 |
+|---|---|---|---|---|
+| 局部规划 | TEB 0.9.1 | **DWA 1.17.3**、Trajectory Rollout（base_local_planner 1.17.3） | mpc_local_planner、eband_local_planner | `mode_sim_teb.launch local_planner:=teb|dwa|trajectory` |
+| 全局规划 | GlobalPlanner 1.17.3 | **NavfnROS 1.17.3** | SBPL lattice | `global_planner:=global_planner|navfn` |
+| 高程 | 本地高程生产者 + ElevationMergedLayer（本次补有效性状态） | STVL（障碍层，已装，非高程） | **ANYbotics elevation_mapping（ROS1 Noetic 分支，开源）**、elevation_mapping_cupy（ROS2，不适用 ROS1） | `mode_sim_teb.launch`（当前 native；候选接线待装包） |
+| 建图 | faster_lio（开源，本仓隔离改写存盘路径） | SCAN/lite3_scan（已装） | LIO-SAM、DLIO | 各自 launch/app |
+| 定位 | hdl_localization（已装） | NDT（已装，监控级） | AMCL（未装） | 各自 launch/app |
+| 3D/坡面 | v8 支撑图链（自研必要项） | —（现成方案均假设单一平面） | mesh_navigation（曲面候选，非多楼层等价物） | `sim_nav_slope.launch` |
+
+- 已装候选的替换是**配置级**（plugin 类型 + 对应参数文件），不新增自研算法；
+  DWA/Trajectory 参数中的机器人限速/加速度/到点容差沿用 TEB 在册值，未新增物理门值。
+- 未装候选（elevation_mapping、mpc、eband、amcl）需要联网 apt/source 安装与镜像重建；
+  镜像重建前只在矩阵登记，不在运行链声称可用。ANYbotics elevation_mapping 输出
+  `grid_map_msgs/GridMap`（层名 `elevation`）与本仓 `ElevationMergedLayer` 消费契约同形，
+  接线主要是生产者替换与时效/坐标系配置。
+- BT 侧不区分算法来源：每种候选都必须通过同一 `NavigateWithAction` 成功/取消/复用/租约
+  失效用例；对跑读数按窗口登记：
+  `r3` TEB+GlobalPlanner 到点 0.155 m／`r4` DWA+GlobalPlanner 0.189 m／
+  `r5` Trajectory+Navfn 0.190 m，三轮取消、复用、三维拒绝、租约失效与退净全过；
+  失败过程 `r1`（测试断言误判 move_base 内部发布口）、`r2`（高程 current_ 缺陷）原样保留。
+- 建图/定位候选不并入本次 BT action 替换：它们属于上游估计链，切换走各自 launch/app，
+  但同样不得让真值冒充估计定位（工程标准 STD-03）。
+
+### 官方来源
+
+- [MBF 0.4.0 分层](https://github.com/naturerobots/move_base_flex/blob/0.4.0/README.md)
+- [move_base 1.17.3 配置](https://github.com/ros-planning/navigation/blob/1.17.3/move_base/cfg/MoveBase.cfg)
+- [move_base 单目标执行源码](https://github.com/ros-planning/navigation/blob/1.17.3/move_base/src/move_base.cpp)
+- [TEB 0.9.1 nav_core 插件导出](https://github.com/rst-tu-dortmund/teb_local_planner/blob/0.9.1/teb_local_planner_plugin.xml)
+- [MBF 控制输出 patience](https://github.com/naturerobots/move_base_flex/blob/0.4.0/mbf_abstract_nav/src/abstract_controller_execution.cpp)
+- [mesh_navigation Noetic 候选](https://github.com/naturerobots/mesh_navigation/blob/noetic/README.md)

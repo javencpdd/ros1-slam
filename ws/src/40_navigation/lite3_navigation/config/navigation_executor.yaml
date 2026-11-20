@@ -1,0 +1,13 @@
+# ROS1 move_base 1.17.3 execution backend; BT owns orchestration and recovery.
+# Planner plugin selection is a launch argument (see navigation_executor.launch);
+# the numerical configuration stays in the per-plugin files.
+recovery_behavior_enabled: false
+
+# Numerical values preserved from mbf_navigation.yaml; only the retry key changes.
+max_planning_retries: -1  # MBF: planner_max_retries
+planner_frequency: 0.0
+controller_frequency: 10.0
+planner_patience: 3.0
+controller_patience: 3.0
+oscillation_timeout: 0.0
+oscillation_distance: 0.1

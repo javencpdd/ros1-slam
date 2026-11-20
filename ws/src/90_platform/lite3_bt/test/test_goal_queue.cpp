@@ -64,6 +64,19 @@ int main()
   check(!lite3_bt::ack_advances(4, true, 3), "future ack does not advance");
   check(!lite3_bt::ack_advances(3, false, 3), "fail ack does not advance");
 
+  std::string execution_reason;
+  check(lite3_bt::parse_execution_ack("5:fail:backend_terminal", &seq, &ok, &execution_reason)
+        && seq == 5 && !ok && execution_reason == "backend_terminal",
+        "failure and reason are one correlated result");
+  check(!lite3_bt::parse_execution_ack("5:fail", &seq, &ok, &execution_reason),
+        "native failure without its reason refused");
+  check(lite3_bt::parse_execution_ack("6:ok", &seq, &ok, &execution_reason) && ok && seq == 6,
+        "native successful result parses");
+  check(!lite3_bt::parse_execution_ack("6:ok:backend_terminal", &seq, &ok, &execution_reason),
+        "successful result cannot carry a failure reason");
+  check(!lite3_bt::parse_execution_ack("5:fail:bad:reason", &seq, &ok, &execution_reason),
+        "malformed native reason refused");
+
   bool st_ok = false;
   int st_points = -1;
   std::string st_reason;

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 #include <grid_map_ros/GridMapRosConverter.hpp>
 #include <pluginlib/class_list_macros.hpp>
@@ -11,6 +12,35 @@ PLUGINLIB_EXPORT_CLASS(lite3_costmap_layers::ElevationMergedLayer, costmap_2d::L
 
 namespace lite3_costmap_layers
 {
+namespace
+{
+bool validMessageGeometry(const grid_map_msgs::GridMap& msg)
+{
+  const auto& info = msg.info;
+  if (!std::isfinite(info.resolution) || info.resolution <= 0.0 ||
+      !std::isfinite(info.length_x) || info.length_x <= 0.0 ||
+      !std::isfinite(info.length_y) || info.length_y <= 0.0 ||
+      !std::isfinite(info.pose.position.x) || !std::isfinite(info.pose.position.y))
+    return false;
+
+  // 转换器会直接分配矩阵并读取缓冲，不能等转换后再验证形状。
+  const double rows = std::round(info.length_x / info.resolution);
+  const double cols = std::round(info.length_y / info.resolution);
+  if (!std::isfinite(rows) || !std::isfinite(cols) || rows <= 0.0 || cols <= 0.0 ||
+      rows * cols > std::numeric_limits<int>::max() || msg.layers.size() != msg.data.size() ||
+      msg.outer_start_index >= rows || msg.inner_start_index >= cols)
+    return false;
+
+  for (const auto& data : msg.data)
+  {
+    const auto& dims = data.layout.dim;
+    if (dims.size() != 2 || dims[0].size != cols || dims[1].size != rows ||
+        data.layout.data_offset != 0 || data.data.size() != static_cast<size_t>(rows * cols))
+      return false;
+  }
+  return true;
+}
+}  // namespace
 
 void ElevationMergedLayer::onInitialize()
 {
@@ -42,9 +72,13 @@ void ElevationMergedLayer::onInitialize()
 
   pnh.param("input_topic", input_topic_, std::string("/elevation_mapping/elevation_map"));
   pnh.param("layer_name", layer_name_, std::string("elevation"));
-  // ★R572（批224）：本层自有启用开关，缺省 true★。
-  // 不再复用基类 enabled_（它构造即 false、且 costmap_2d 不读 enabled 参数，见头文件长注释）。
   pnh.param("enabled", enabled_param_, true);
+  enabled_ = enabled_param_;
+  pnh.param("input_timeout_s", input_timeout_s_, 0.0);
+  if (!std::isfinite(input_timeout_s_) || input_timeout_s_ <= 0.0)
+  {
+    ROS_ERROR("[%s] input_timeout_s 必须显式配置为有限正数；本层保持 noncurrent", name_.c_str());
+  }
   pnh.param("height_threshold", height_threshold_, 0.15);
   pnh.param("ground_z", ground_z_, 0.0);
   int cost = static_cast<int>(costmap_2d::LETHAL_OBSTACLE);
@@ -64,8 +98,7 @@ void ElevationMergedLayer::onInitialize()
     ROS_WARN("[%s] 在位但 layered_costmap_ 为空（不读全局帧）", name_.c_str());
   }
 
-  marked_xy_.clear();
-  has_data_ = false;
+  reset();
 
   if (enabled_param_)
   {
@@ -80,14 +113,6 @@ void ElevationMergedLayer::onInitialize()
     ROS_ERROR("[%s] ★enabled=false ⇒ 未建立订阅★（本层将永远不写代价，且不会有任何 Received 行）",
               name_.c_str());
   }
-
-  // ★R572 第二枚静默失效的修法（比订阅门更隐蔽，且是本批真正卡住代价的那一道）★
-  // 订阅建立了、GridMap 也在收（两侧 74/74 对称），代价却一格没写 —— 因为
-  // LayeredCostmap::updateMap() @0x4b9c0 是 `cmpb $0x0,0x11(%rdi); je 跳过` 逐层筛的，
-  // 而 Layer::Layer() 把 enabled_（0x11）置 0 之后，Layer::initialize() 全文都不写它
-  // ⇒ 任何不自带启用的层都被框架静默排除出更新回路，updateBounds/updateCosts 一次不进。
-  // 必须在 onInitialize 末尾显式置 true，否则上面建立的订阅只是「收得到、用不上」。
-  enabled_ = true;
 }
 
 void ElevationMergedLayer::activate()
@@ -104,23 +129,58 @@ void ElevationMergedLayer::activate()
 void ElevationMergedLayer::deactivate()
 {
   sub_.shutdown();
+  reset();
 }
 
 void ElevationMergedLayer::gridMapCallback(const grid_map_msgs::GridMap::ConstPtr& msg)
 {
   std::lock_guard<std::mutex> lock(data_mutex_);
+  const auto reject = [this](const char* reason) {
+    has_data_ = false;
+    ROS_ERROR_THROTTLE(1.0, "[%s] GridMap 输入无效：%s", name_.c_str(), reason);
+  };
+  grid_map::GridMap candidate;
   try
   {
-    grid_map::GridMapRosConverter::fromMessage(*msg, map_);
+    if (!inputIsFresh(msg->info.header.stamp) || msg->info.header.frame_id.empty())
+    {
+      reject("缺少有效 TTL、帧或采集时间戳，或输入已过期/来自未来");
+      return;
+    }
+    if (!validMessageGeometry(*msg))
+    {
+      reject("几何或层缓冲尺寸无效");
+      return;
+    }
+    if (!grid_map::GridMapRosConverter::fromMessage(*msg, candidate))
+    {
+      reject("转换器返回 false");
+      return;
+    }
+    const auto size = candidate.getSize();
+    if (size(0) <= 0 || size(1) <= 0 || !std::isfinite(candidate.getResolution()) ||
+        candidate.getResolution() <= 0.0 || !std::isfinite(candidate.getLength()(0)) ||
+        !std::isfinite(candidate.getLength()(1)) || candidate.getLength()(0) <= 0.0 ||
+        candidate.getLength()(1) <= 0.0 || !candidate.exists(layer_name_))
+    {
+      reject("缺少所需层或转换后几何无效");
+      return;
+    }
+    const grid_map::Matrix& data = candidate[layer_name_];
+    if (data.rows() != size(0) || data.cols() != size(1) ||
+        !std::any_of(data.data(), data.data() + data.size(), [](float h) { return std::isfinite(h); }))
+    {
+      reject("所需层尺寸无效或没有有限观测");
+      return;
+    }
+    // 重发不续期，乱序帧不能复活已失效的旧输入。
+    if (msg->info.header.stamp <= last_map_stamp_)
+      return;
+    map_ = std::move(candidate);
   }
   catch (const std::exception& e)
   {
-    ROS_ERROR_THROTTLE(1.0, "[%s] GridMap 转换失败：%s", name_.c_str(), e.what());
-    return;
-  }
-  if (!map_.exists(layer_name_))
-  {
-    ROS_ERROR_THROTTLE(1.0, "[%s] 收到的 GridMap 里没有层 %s（现有层见 info 日志）", name_.c_str(), layer_name_.c_str());
+    reject(e.what());
     return;
   }
   last_map_stamp_ = msg->info.header.stamp;
@@ -140,33 +200,43 @@ void ElevationMergedLayer::gridMapCallback(const grid_map_msgs::GridMap::ConstPt
 void ElevationMergedLayer::updateBounds(double /*robot_x*/, double /*robot_y*/, double /*robot_yaw*/,
                                         double* min_x, double* min_y, double* max_x, double* max_y)
 {
-  if (!enabled_param_ || !has_data_)
-  {
-    marked_xy_.clear();
-    return;
-  }
-
   grid_map::GridMap map;
+  ros::Time stamp;
   {
     std::lock_guard<std::mutex> lock(data_mutex_);
-    map = map_;  // GridMap 拷贝（Buffer 是 Eigen 矩阵，深拷贝）
+    current_ = false;
+    marked_xy_.clear();
+    if (!enabled_param_ || refuse_write_ || !has_data_ || !inputIsFresh(last_map_stamp_))
+      return;
+    map = map_;
+    stamp = last_map_stamp_;
   }
 
-  if (!map.exists(layer_name_))
-  {
-    marked_xy_.clear();
+  if (!map.exists(layer_name_) || map.getFrameId().empty())
     return;
-  }
 
   const std::string global_frame = (layered_costmap_ != nullptr) ? layered_costmap_->getGlobalFrameID() : "";
-  if (!global_frame.empty() && map.getFrameId() != global_frame && !frame_warned_)
+  if (global_frame.empty())
+    return;
+  const bool needs_transform = map.getFrameId() != global_frame;
+  double yaw = 0.0, tx = 0.0, ty = 0.0;
+  if (needs_transform)
   {
-    frame_warned_ = true;
-    ROS_WARN("[%s] GridMap 帧 %s 与全局帧 %s 不同 ⇒ 本层按 tf_ 做平面变换（只用 yaw＋平移）", name_.c_str(),
-             map.getFrameId().c_str(), global_frame.c_str());
+    if (!frame_warned_)
+    {
+      frame_warned_ = true;
+      ROS_WARN("[%s] GridMap 帧 %s 与全局帧 %s 不同 ⇒ 本层按 tf_ 做平面变换（只用 yaw＋平移）", name_.c_str(),
+               map.getFrameId().c_str(), global_frame.c_str());
+    }
+    // 平地无障碍也必须具备可用变换；一窗只用同一个 TF 快照。
+    if (!lookupPlanarTransform(map.getFrameId(), yaw, tx, ty))
+      return;
   }
+  const double cy = std::cos(yaw);
+  const double sy = std::sin(yaw);
 
-  marked_xy_.clear();
+  std::vector<double> marked_xy;
+  bool has_observation = false;
   const grid_map::Matrix& data = map[layer_name_];
   for (grid_map::GridMapIterator it(map); !it.isPastEnd(); ++it)
   {
@@ -176,40 +246,48 @@ void ElevationMergedLayer::updateBounds(double /*robot_x*/, double /*robot_y*/, 
     {
       continue;
     }
+    has_observation = true;
     if (static_cast<double>(h) <= ground_z_ + height_threshold_)
     {
       continue;
     }
     grid_map::Position position;
     if (!map.getPosition(index, position))
-    {
-      continue;
-    }
+      return;
     double wx = position.x();
     double wy = position.y();
-    if (!global_frame.empty() && map.getFrameId() != global_frame)
+    if (needs_transform)
     {
-      if (!transformToGlobal(map.getFrameId(), wx, wy))
-      {
-        continue;
-      }
+      const double nx = cy * wx - sy * wy + tx;
+      const double ny = sy * wx + cy * wy + ty;
+      wx = nx;
+      wy = ny;
     }
-    if (wx < *min_x)
-      *min_x = wx;
-    if (wx > *max_x)
-      *max_x = wx;
-    if (wy < *min_y)
-      *min_y = wy;
-    if (wy > *max_y)
-      *max_y = wy;
-    marked_xy_.push_back(wx);
-    marked_xy_.push_back(wy);
+    if (!std::isfinite(wx) || !std::isfinite(wy))
+      return;
+    marked_xy.push_back(wx);
+    marked_xy.push_back(wy);
   }
+
+  std::lock_guard<std::mutex> lock(data_mutex_);
+  // 回调或 reset 可能已淘汰本窗快照，处理耗时也不能续期。
+  if (!has_observation || !has_data_ || last_map_stamp_ != stamp || !inputIsFresh(stamp))
+    return;
+  marked_xy_.swap(marked_xy);
+  for (size_t k = 0; k + 1 < marked_xy_.size(); k += 2)
+  {
+    *min_x = std::min(*min_x, marked_xy_[k]);
+    *max_x = std::max(*max_x, marked_xy_[k]);
+    *min_y = std::min(*min_y, marked_xy_[k + 1]);
+    *max_y = std::max(*max_y, marked_xy_[k + 1]);
+  }
+  current_ = true;
 }
 
 void ElevationMergedLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i,
                                        int max_j)
 {
+  std::lock_guard<std::mutex> lock(data_mutex_);
   if (!enabled_param_ || refuse_write_)
   {
     // ★R572 负向控制带出来的真缺陷（本批第三枚）★
@@ -227,6 +305,12 @@ void ElevationMergedLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int m
                   refuse_log_count_);
       }
     }
+    return;
+  }
+  if (!current_ || !has_data_ || !inputIsFresh(last_map_stamp_))
+  {
+    current_ = false;
+    marked_xy_.clear();
     return;
   }
   if (marked_xy_.size() < 2)
@@ -272,13 +356,28 @@ void ElevationMergedLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int m
 
 void ElevationMergedLayer::reset()
 {
+  std::lock_guard<std::mutex> lock(data_mutex_);
   marked_xy_.clear();
+  map_ = grid_map::GridMap();
+  last_map_stamp_ = ros::Time();
   has_data_ = false;
+  current_ = false;
 }
 
-bool ElevationMergedLayer::transformToGlobal(const std::string& source_frame, double& x, double& y)
+bool ElevationMergedLayer::inputIsFresh(const ros::Time& stamp) const
 {
-  if (tf_ == nullptr)
+  if (!std::isfinite(input_timeout_s_) || input_timeout_s_ <= 0.0 || stamp.isZero())
+    return false;
+  const ros::Time now = ros::Time::now();
+  if (now < stamp)
+    return false;
+  const double age = static_cast<double>(now.toNSec() - stamp.toNSec()) / 1e9;
+  return age <= input_timeout_s_;
+}
+
+bool ElevationMergedLayer::lookupPlanarTransform(const std::string& source_frame, double& yaw, double& tx, double& ty)
+{
+  if (tf_ == nullptr || layered_costmap_ == nullptr)
   {
     return false;
   }
@@ -293,19 +392,27 @@ bool ElevationMergedLayer::transformToGlobal(const std::string& source_frame, do
                       layered_costmap_->getGlobalFrameID().c_str(), ex.what());
     return false;
   }
-  const geometry_msgs::Quaternion& q = tf.transform.rotation;
+  geometry_msgs::Quaternion q = tf.transform.rotation;
+  const auto& translation = tf.transform.translation;
+  const double norm = std::hypot(std::hypot(q.x, q.y), std::hypot(q.z, q.w));
+  if (!std::isfinite(translation.x) || !std::isfinite(translation.y) || !std::isfinite(translation.z) ||
+      !std::isfinite(q.x) || !std::isfinite(q.y) || !std::isfinite(q.z) || !std::isfinite(q.w) ||
+      !std::isfinite(norm) || norm <= 0.0)
+  {
+    ROS_WARN_THROTTLE(1.0, "[%s] TF 平移或四元数无效", name_.c_str());
+    return false;
+  }
+  // 归一化而非引入部署相关的姿态门槛。
+  q.x /= norm;
+  q.y /= norm;
+  q.z /= norm;
+  q.w /= norm;
   const double siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
   const double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-  const double yaw = std::atan2(siny_cosp, cosy_cosp);
-  const double cy = std::cos(yaw);
-  const double sy = std::sin(yaw);
-  const double tx = tf.transform.translation.x;
-  const double ty = tf.transform.translation.y;
-  const double nx = cy * x - sy * y + tx;
-  const double ny = sy * x + cy * y + ty;
-  x = nx;
-  y = ny;
-  return true;
+  yaw = std::atan2(siny_cosp, cosy_cosp);
+  tx = translation.x;
+  ty = translation.y;
+  return std::isfinite(yaw);
 }
 
 }  // namespace lite3_costmap_layers

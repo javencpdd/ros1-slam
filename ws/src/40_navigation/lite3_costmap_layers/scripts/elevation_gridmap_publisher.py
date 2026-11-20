@@ -369,25 +369,30 @@ class ElevationGridMapPublisher(object):
         ], dtype=np.float64)
         return pts.astype(np.float64).dot(R.T) + np.array([tx, ty, tz]), "tf:" + self.grid_frame
 
-    def _robot_xy(self):
-        if self.latest_odom is None:
-            return None
-        p = self.latest_odom.pose.pose.position
-        return (p.x, p.y)
-
     # ---- 主循环 ----
     def _tick(self, _evt):
         rospy = self._rospy
-        if self.latest_cloud is None:
-            rospy.logwarn_throttle(5.0, "[elevation_gridmap_publisher] 还没收到点云（%s）", self.point_topic)
+        cloud, odom = self.latest_cloud, self.latest_odom
+        if cloud is None or odom is None:
+            rospy.logwarn_throttle(5.0, "[elevation_gridmap_publisher] 等待点云与里程计")
             return
         now = rospy.Time.now()
-        age = (now - self.latest_cloud.header.stamp).to_sec()
-        if self.stale_timeout > 0 and age > self.stale_timeout:
-            rospy.logwarn_throttle(5.0, "[elevation_gridmap_publisher] 点云已 stale %.2fs ⇒ 本拍不发", age)
+        if not math.isfinite(self.stale_timeout) or self.stale_timeout <= 0:
             return
-
-        pts = self._cloud_to_numpy(self.latest_cloud)
+        ages = [(now - value.header.stamp).to_sec() for value in (cloud, odom)]
+        if any(value.header.stamp.is_zero() for value in (cloud, odom)) or any(
+                not 0 <= age <= self.stale_timeout for age in ages):
+            rospy.logwarn_throttle(5.0, "[elevation_gridmap_publisher] 输入时效无效：%s", ages)
+            return
+        p = odom.pose.pose.position
+        if not all(math.isfinite(value) for value in (p.x, p.y, p.z)):
+            return
+        center_points, _ = self._to_map(np.array([[p.x, p.y, p.z]]),
+                                        odom.header.frame_id.lstrip('/'), odom.header.stamp)
+        if center_points is None:
+            return
+        center = tuple(center_points[0, :2])
+        pts = self._cloud_to_numpy(cloud)
         if pts is None or len(pts) < self.min_points:
             self.n_invalid += 1
             rospy.logwarn_throttle(5.0, "[elevation_gridmap_publisher] 点数不足（%s < %d）⇒ INVALID，不发",
@@ -405,8 +410,8 @@ class ElevationGridMapPublisher(object):
                 len(pts), self.min_points, n_raw, n_dropped)
             return
 
-        cloud_frame = self.latest_cloud.header.frame_id.lstrip("/")
-        pts_map, how = self._to_map(pts, cloud_frame, self.latest_cloud.header.stamp)
+        cloud_frame = cloud.header.frame_id.lstrip("/")
+        pts_map, how = self._to_map(pts, cloud_frame, cloud.header.stamp)
         if pts_map is None:
             self.n_invalid += 1
             # R572：不再有候选序，失败即「台上缺 map 帧」——多半是没起恒等桥，日志里直说。
@@ -425,16 +430,12 @@ class ElevationGridMapPublisher(object):
                                    n_ground)
             return
 
-        center = self._robot_xy()
-        if center is None:
-            center = (float(np.median(pts_map[:, 0])), float(np.median(pts_map[:, 1])))
-            rospy.logwarn_throttle(5.0, "[elevation_gridmap_publisher] 未收到里程计（%s）⇒ 窗口中心暂按点云中位",
-                                   self.odom_topic)
-
         grid, _valid = rasterize_elevation(pts_map, center, self.size_x, self.size_y, self.resolution,
                                            ground_z, self.height_clip)
-
-        msg = self._build_message(grid, center, self.latest_cloud.header.stamp)
+        if not np.isfinite(grid).any():
+            self.n_invalid += 1
+            return
+        msg = self._build_message(grid, center, cloud.header.stamp)
         self.pub.publish(msg)
         self.n_frames_in += 1
         self.n_frames_out += 1

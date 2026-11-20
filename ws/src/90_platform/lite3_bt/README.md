@@ -1,8 +1,41 @@
-# lite3_bt · BehaviorTree.CPP console demo
+# lite3_bt · ROS1 behavior-tree orchestration
 
-ROS1 Noetic C++ behavior-tree layer for the console demo. It is an orchestration
-layer; it does not replace the MBF or V8 3D planner, and it is not a formal or
-real-robot path.
+Updated 2026-11-21. BT owns mission order, cancellation and bounded recovery.
+`bt_navigation.launch` replaces the MBF server path with a guarded ROS1
+`move_base` action backend using the existing GlobalPlanner, TEB and costmap
+plugins. No planning algorithm is reimplemented. The existing topic-based V8/SCAN
+trees remain separate backends; planar integration does not certify 3D or hardware.
+
+## Native navigation execution
+
+Use the TOP-level `lite3_bringup/mode_sim_teb.launch` in an approved isolated
+simulation window; it includes the backend, BT adapter and safety mux. RViz's
+`interactive_2d.launch` sends goals into BT, not directly into the backend.
+The real navigation entry retains disabled motion/BT defaults and the required
+real profile; do not launch it on hardware without its work order.
+
+- Input remains `/v8/bt/goal` or `/v8/bt/goal_mission`; results are scoped by BT sequence.
+- The internal JSON goal has `seq, session, frame, x, y, z, qx, qy, qz, qw`.
+  Numbers may be decimal strings; ROS `Header.seq` is not an application ID.
+- Internal JSON cancel has `seq, goal_seq, session, scope, reason`; `seq` is the
+  cancellation request ID. Empty reason is valid. Cancel fences a delayed goal.
+- Result wire: `<goal_seq>:ok` or `<goal_seq>:fail:<reason>`. Failure and reason
+  travel atomically; a late diagnostic cannot change the recovery decision.
+- `StopExecutor` confirms downstream termination before dwell or recovery.
+  Missing/failed acknowledgment blocks further goals, rather than claiming success.
+- Candidate velocity passes the action/lease/wall-age gate before the existing
+  safety mux. Lease loss, LOST, cancellation timeout or changed BT session latch
+  the adapter. Restart the complete backend/BT/adapter launch together; no component
+  is independently respawned. Caller IDs are ownership checks, not authentication.
+- Backend automatic recovery is disabled. BT applies bounded retry/replan/abort;
+  no blind spin/back-up is enabled. TEB's MBF interface-package dependency remains,
+  but `mbf_costmap_nav` is not a running server in this path.
+
+`check_bt.sh` runs protocol and wiring tests. `test_bt_navigation_runtime.py`
+verifies the real action/result/cancel/mux chain under a registered simulation
+window; static tests alone are not execution evidence.
+
+The following topic-tree notes describe the separate `bt_console.launch` path.
 
 ## Dependency
 
@@ -41,10 +74,8 @@ cmake --install build
 Build this package:
 
 ```bash
-source /opt/ros/noetic/setup.bash
-cd /opt/ros1-slam/ws
-catkin_make --pkg lite3_bt -DCMAKE_BUILD_TYPE=Release \
-  -Dbehaviortree_cpp_v3_DIR=/opt/ros1-slam/opt/btcpp_v3/lib/cmake/behaviortree_cpp_v3
+# Inside the simulation container: preserve the target-owned source view/cache.
+JOBS=8 bash /opt/ros1-slam/docker/build.sh
 ```
 
 ## Run

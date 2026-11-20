@@ -27,6 +27,7 @@ int main()
   assert(cancel_ack_advances(7, "cancelled", 7));
   assert(!cancel_ack_advances(6, "cancelled", 7));
   assert(!cancel_ack_advances(7, "unacked", 7));
+  assert(!cancel_ack_advances(7, "ack_fail", 7));
 
   GoalPolicy policy;
   assert(parse_goal_policy(

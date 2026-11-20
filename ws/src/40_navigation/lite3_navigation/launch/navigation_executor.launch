@@ -1,0 +1,42 @@
+<launch>
+  <arg name="rviz" default="false"/>
+  <!-- Mature open-source planner candidates, swappable from the BT entry. -->
+  <arg name="local_planner" default="teb"/>
+  <arg name="global_planner" default="global_planner"/>
+
+  <node pkg="move_base" type="move_base" name="navigation_executor" output="screen" required="true">
+    <remap from="cmd_vel" to="/v8/navigation/cmd_vel_raw_candidate"/>
+    <remap from="move_base" to="/navigation_executor/move_base"/>
+    <remap from="move_base_simple/goal" to="~disabled_simple_goal"/>
+
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"
+           if="$(eval arg('local_planner') == 'teb')"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"
+           if="$(eval arg('local_planner') == 'dwa')"/>
+    <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"
+           if="$(eval arg('local_planner') == 'trajectory')"/>
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"
+           if="$(eval arg('global_planner') == 'global_planner')"/>
+    <param name="base_global_planner" value="navfn/NavfnROS"
+           if="$(eval arg('global_planner') == 'navfn')"/>
+
+    <rosparam command="load" file="$(find lite3_navigation)/config/navigation_executor.yaml"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/planner_teb.yaml"
+              if="$(eval arg('local_planner') == 'teb')"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/planner_dwa.yaml"
+              if="$(eval arg('local_planner') == 'dwa')"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/planner_base_local.yaml"
+              if="$(eval arg('local_planner') == 'trajectory')"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/global_planner_params.yaml"
+              if="$(eval arg('global_planner') == 'global_planner')"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/planner_navfn.yaml"
+              if="$(eval arg('global_planner') == 'navfn')"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="global_costmap"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/global_costmap_params.yaml" ns="global_costmap"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/costmap_common.yaml"        ns="local_costmap"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/local_costmap_params.yaml"  ns="local_costmap"/>
+  </node>
+
+  <node pkg="rostopic" type="rostopic" name="liveness_m4" args="pub -r 1 /lite3/liveness/m4_navigation std_msgs/Empty"/>
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz_nav"/>
+</launch>

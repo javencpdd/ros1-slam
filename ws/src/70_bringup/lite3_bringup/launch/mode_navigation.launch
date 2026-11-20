@@ -1,7 +1,7 @@
 <launch>
   <!-- ═════════════════════════════════════════════
        mode_navigation —— 真机闭环 3D / 2D 导航（二期）
-       组合 = SUP 最先起 + M0(驱动+qnx2ros) + M2(hdl 定位) + M4(mbf) + M6(安全 mux)
+       组合 = SUP 最先起 + M0(驱动+qnx2ros) + M2(hdl 定位) + M4(move_base 执行后端) + M6(安全 mux)
               ＋ 前方超声保底（cap 进 mux）
               ＋ ros2qnx（★只有在 enable_motion:=true 时才起，底盘运动桥）
 
@@ -52,16 +52,16 @@
     <arg name="rviz" value="$(arg rviz)"/>
   </include>
 
-  <!-- M4：mbf 联邦式服务器（liveness_m4 心跳在其内） -->
-  <include file="$(find lite3_navigation)/launch/mbf_navigation.launch">
+  <!-- The executor retains the existing planner and costmap configurations. -->
+  <include file="$(find lite3_navigation)/launch/navigation_executor.launch">
     <arg name="rviz" value="$(arg rviz)"/>
   </include>
 
   <!-- ★ 编排层（Nav2 式 BT）：只在 enable_bt:=true 时起。★
        BT 是目标所有者：请求路径、等到点、停顿、恢复；不算路径、不写速度。
-       真机规划器与 BT 的正式接线另批（见 note/架构/编排层真机化方案.md）。 -->
+       action 接线由 bt_navigation 承载；真实物理运行仍按作业单单独授权。 -->
   <group if="$(arg enable_bt)">
-    <include file="$(find lite3_bt)/launch/bt_console.launch">
+    <include file="$(find lite3_bt)/launch/bt_navigation.launch">
       <arg name="profile" value="$(arg bt_profile)"/>
     </include>
   </group>

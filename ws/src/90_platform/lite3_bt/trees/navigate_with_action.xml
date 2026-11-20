@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="NavigateWithAction">
+  <BehaviorTree ID="NavigateWithAction">
+    <Fallback name="mission_or_cancel_or_recovery">
+      <Sequence name="mission">
+        <IsNotCancelled name="not_cancelled"/>
+        <WaitForGoal name="wait_goal"/>
+        <CheckLocalization name="check_localization"/>
+        <FollowPath name="dispatch_navigation"/>
+        <WaitArrival name="wait_result" distance="0.25" timeout="60"/>
+        <StopExecutor name="confirm_terminal"/>
+        <Dwell name="dwell_at_goal" seconds="1.0"/>
+        <Stop name="stop_after_success"/>
+      </Sequence>
+      <Sequence name="cancel">
+        <IsCancelled name="cancelled"/>
+        <CancelStop name="cancel_current"/>
+      </Sequence>
+      <Sequence name="recover_after_termination">
+        <StopExecutor name="terminate_before_recovery"/>
+        <Recovery name="recovery_on_failure"/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+</root>

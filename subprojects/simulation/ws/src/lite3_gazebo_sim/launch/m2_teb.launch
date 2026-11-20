@@ -33,7 +33,8 @@
   </group>
 
   <node pkg="lite3_gazebo_sim" type="m2_free_map.py" name="m2_free_map"/>
-  <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="m2_cmd_relay"
+  <arg name="cmd_relay" default="true"/>
+  <node if="$(arg cmd_relay)" pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="m2_cmd_relay"
         args="/cmd_vel_raw /cmd_vel Twist"/>
 
   <!-- mbf 导航栈的 include 已上收至 TOP 编排层：lite3_bringup/launch/mode_sim_teb.launch

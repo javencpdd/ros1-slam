@@ -14,10 +14,14 @@
 #include <lite3_bt/goal_queue.hpp>
 #include <lite3_bt/bt_policy.hpp>
 
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <sstream>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <mutex>
+#include <map>
 #include <string>
 
 // Nav2-style orchestration tree for the host-only demo plane.
@@ -51,6 +55,10 @@ struct SharedState
   int goal_index = 0;
   int goals_total = 0;
   bool retry_queued = false;
+  bool execution_blocked = false;
+  bool execution_fault = false;
+  std::string execution_session;
+  std::map<std::uint64_t, std::string> cancel_results;
 
   // Operator cancel: latched until a new goal or CancelStop completion.
   bool cancel_requested = false;
@@ -104,6 +112,9 @@ struct SharedState
   // observe "reached".  This survives until WaitForGoal dequeues a new goal.
   std::string goal_outcome;
   std::uint64_t outcome_seq = 0;
+  std::string failure_reason;
+  std::map<std::string, std::string> recovery_rules;
+  ros::Publisher execution_request_pub;
   ros::Publisher goal_pub;
   ros::Publisher planner_goal_pub;
   ros::Publisher cancel_pub;
@@ -124,6 +135,27 @@ void recordCancelOutcomeLocked(const std::string& outcome)
 {
   g_state.goal_outcome = outcome;
   g_state.outcome_seq = g_state.current_seq;
+}
+
+std_msgs::String cancelRequest(std::uint64_t seq, const std::string& scope,
+                               const std::string& reason)
+{
+  std_msgs::String message;
+  if (g_state.execution_request_pub)
+  {
+    boost::property_tree::ptree request;
+    request.put("seq", seq);
+    request.put("goal_seq", g_state.current_seq);
+    request.put("session", g_state.execution_session);
+    request.put("scope", scope);
+    request.put("reason", reason);
+    std::ostringstream stream;
+    boost::property_tree::write_json(stream, request, false);
+    message.data = stream.str();
+  }
+  else
+    message.data = std::to_string(seq) + ":" + scope + ":" + reason;
+  return message;
 }
 
 bool transient_plan_reason(const std::string& reason)
@@ -160,6 +192,7 @@ private:
       g_state.last_event = "cancel_requested";
       return BT::NodeStatus::FAILURE;
     }
+    if (g_state.execution_blocked) return BT::NodeStatus::RUNNING;
     GoalItem next;
     if (!g_state.pending.pop(next)) return BT::NodeStatus::RUNNING;
     g_state.current_goal = next.goal;
@@ -185,6 +218,7 @@ private:
     g_state.planner_ack_seq = 0;
     g_state.arrival_signal = false;
     g_state.goal_outcome.clear();
+    g_state.failure_reason.clear();
     g_state.outcome_seq = 0;
     g_state.last_event = "goal";
     ROS_INFO("[bt] goal %lu dequeued (%zu waiting)",
@@ -340,7 +374,35 @@ public:
       goal = g_state.current_goal;
     }
     goal.header.stamp = ros::Time::now();
-    g_state.goal_pub.publish(goal);
+    if (g_state.execution_request_pub)
+    {
+      if (g_state.execution_request_pub.getNumSubscribers() == 0)
+      {
+        std::lock_guard<std::mutex> lock(g_state.mutex);
+        g_state.failure_reason = "backend_unavailable";
+        recordOutcomeLocked(false);
+        return BT::NodeStatus::FAILURE;
+      }
+      // ROS publishers own Header.seq; the action identity needs its own wire field.
+      boost::property_tree::ptree request;
+      request.put("seq", g_state.current_seq);
+      request.put("session", g_state.execution_session);
+      request.put("frame", goal.header.frame_id);
+      request.put("x", goal.pose.position.x);
+      request.put("y", goal.pose.position.y);
+      request.put("z", goal.pose.position.z);
+      request.put("qx", goal.pose.orientation.x);
+      request.put("qy", goal.pose.orientation.y);
+      request.put("qz", goal.pose.orientation.z);
+      request.put("qw", goal.pose.orientation.w);
+      std::ostringstream wire;
+      boost::property_tree::write_json(wire, request, false);
+      std_msgs::String message;
+      message.data = wire.str();
+      g_state.execution_request_pub.publish(message);
+    }
+    else
+      g_state.goal_pub.publish(goal);
     {
       std::lock_guard<std::mutex> lock(g_state.mutex);
       g_state.last_event = "follow_path";
@@ -627,9 +689,7 @@ public:
       g_state.last_event = "cancelling";
       if (scope == "all") g_state.pending.clear();
     }
-    std_msgs::String command;
-    command.data = std::to_string(seq) + ":" + scope + ":" + reason;
-    g_state.cancel_pub.publish(command);
+    g_state.cancel_pub.publish(cancelRequest(seq, scope, reason));
     geometry_msgs::Twist zero;
     g_state.stop_pub.publish(zero);
     start_ = std::chrono::steady_clock::now();
@@ -646,16 +706,27 @@ private:
     std::string outcome;
     {
       std::lock_guard<std::mutex> lock(g_state.mutex);
-      if (g_state.cancel_ack_seen && g_state.cancel_ack_seq == seq)
-        outcome = g_state.cancel_ack_outcome;
+      const auto found = g_state.cancel_results.find(seq);
+      if (found != g_state.cancel_results.end())
+        outcome = found->second;
       else if (std::chrono::duration<double>(
                    std::chrono::steady_clock::now() - start_).count()
                > g_state.cancel_ack_timeout)
         outcome = "unacked";
     }
+    g_state.stop_pub.publish(geometry_msgs::Twist());
     if (outcome.empty()) return BT::NodeStatus::RUNNING;
+    if (outcome != "cancelled")
     {
       std::lock_guard<std::mutex> lock(g_state.mutex);
+      g_state.execution_blocked = true;
+      g_state.last_event = outcome == "ack_fail" ? "cancel_ack_fail" : "cancel_unacked";
+      recordCancelOutcomeLocked(g_state.last_event);
+      return BT::NodeStatus::RUNNING;
+    }
+    {
+      std::lock_guard<std::mutex> lock(g_state.mutex);
+      g_state.execution_blocked = g_state.execution_fault;
       g_state.cancel_requested = false;
       g_state.cancel_ack_seen = false;
       g_state.last_event = outcome == "cancelled" ? "cancelled"
@@ -664,6 +735,57 @@ private:
       recordCancelOutcomeLocked(outcome == "cancelled" ? "cancelled" : g_state.last_event);
     }
     return outcome == "cancelled" ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+  }
+
+  std::uint64_t seq_ = 0;
+  std::chrono::steady_clock::time_point start_;
+};
+
+class StopExecutor : public BT::StatefulActionNode
+{
+public:
+  StopExecutor(const std::string& name, const BT::NodeConfiguration& config)
+    : BT::StatefulActionNode(name, config) {}
+
+  static BT::PortsList providedPorts() { return {}; }
+
+  BT::NodeStatus onStart() override
+  {
+    {
+      std::lock_guard<std::mutex> lock(g_state.mutex);
+      seq_ = ++g_state.cancel_seq;
+      g_state.cancel_ack_seen = false;
+      g_state.cancel_ack_outcome.clear();
+      g_state.last_event = "stopping_executor";
+    }
+    g_state.cancel_pub.publish(cancelRequest(seq_, "current", "bt_terminal"));
+    start_ = std::chrono::steady_clock::now();
+    return check();
+  }
+
+  BT::NodeStatus onRunning() override { return check(); }
+  void onHalted() override { g_state.stop_pub.publish(geometry_msgs::Twist()); }
+
+private:
+  BT::NodeStatus check()
+  {
+    g_state.stop_pub.publish(geometry_msgs::Twist());
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    const auto found = g_state.cancel_results.find(seq_);
+    if (found != g_state.cancel_results.end() && found->second == "cancelled")
+    {
+      g_state.execution_blocked = g_state.execution_fault;
+      return BT::NodeStatus::SUCCESS;
+    }
+    const auto elapsed = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - start_).count();
+    if (elapsed > g_state.cancel_ack_timeout)
+    {
+      g_state.execution_blocked = true;
+      g_state.last_event = "executor_stop_unconfirmed";
+      recordOutcomeLocked(false);
+    }
+    return BT::NodeStatus::RUNNING;
   }
 
   std::uint64_t seq_ = 0;
@@ -730,8 +852,13 @@ public:
       if (!g_state.has_current) return BT::NodeStatus::SUCCESS;
       const int budget = g_state.current_policy.retry_max >= 0
           ? g_state.current_policy.retry_max : g_state.retry_max;
-      decision_ = lite3_bt::decide_recovery(g_state.recovery_mode, g_state.attempts,
-                                            budget, "skip");
+      std::string mode = g_state.recovery_mode;
+      if (!g_state.recovery_rules.empty())
+      {
+        const auto rule = g_state.recovery_rules.find(g_state.failure_reason);
+        mode = rule == g_state.recovery_rules.end() ? "abort" : rule->second;
+      }
+      decision_ = lite3_bt::decide_recovery(mode, g_state.attempts, budget, "abort");
       goal_ = g_state.current_goal;
       policy_ = g_state.current_policy;
       delay_ = g_state.retry_delay;
@@ -756,6 +883,8 @@ public:
 private:
   BT::NodeStatus applyLocked()
   {
+    if (g_state.cancel_requested) return BT::NodeStatus::FAILURE;
+    if (g_state.execution_blocked) return BT::NodeStatus::RUNNING;
     if (decision_.action == lite3_bt::RecoveryAction::RETRY)
     {
       GoalItem item;
@@ -822,7 +951,6 @@ void goalCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
   std::lock_guard<std::mutex> lock(g_state.mutex);
   item.policy = g_state.next_policy;
   g_state.next_policy = lite3_bt::GoalPolicy();
-  g_state.cancel_requested = false;
   if (!g_state.pending.push(item))
   {
     g_state.last_event = "queue_full";
@@ -876,16 +1004,45 @@ void plannerAckCallback(const std_msgs::String::ConstPtr& msg)
 {
   std::uint64_t seq = 0;
   bool ok = false;
-  if (!lite3_bt::parse_planner_ack(msg->data, &seq, &ok))
+  std::string reason;
+  const bool valid = g_state.execution_request_pub
+      ? lite3_bt::parse_execution_ack(msg->data, &seq, &ok, &reason)
+      : lite3_bt::parse_planner_ack(msg->data, &seq, &ok);
+  if (!valid)
   {
     ROS_WARN("[bt] malformed planner ack ignored: %s", msg->data.c_str());
     return;
   }
   std::lock_guard<std::mutex> lock(g_state.mutex);
+  if (!g_state.has_current || seq != g_state.current_seq) return;
   g_state.planner_ack_seq = seq;
   g_state.planner_ack_ok = ok;
   g_state.planner_ack_seen = true;
+  if (!ok && g_state.execution_request_pub) g_state.failure_reason = reason;
   g_state.last_event = ok ? "planner_ok" : "planner_fail";
+}
+
+void executionStatusCallback(const std_msgs::String::ConstPtr& msg)
+{
+  try
+  {
+    boost::property_tree::ptree status;
+    std::istringstream stream(msg->data);
+    boost::property_tree::read_json(stream, status);
+    const auto seq = status.get<std::uint64_t>("seq");
+    const auto state = status.get<std::string>("state");
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    if (seq != g_state.current_seq) return;
+    if (state == "latched")
+    {
+      g_state.execution_blocked = true;
+      g_state.execution_fault = true;
+    }
+  }
+  catch (const boost::property_tree::ptree_error& error)
+  {
+    ROS_WARN("[bt] malformed execution status: %s", error.what());
+  }
 }
 
 void poseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
@@ -921,7 +1078,6 @@ void missionCallback(const std_msgs::String::ConstPtr& msg)
   item.goal.pose.orientation.w = std::cos(yaw / 2.0);
   item.policy = policy;
   std::lock_guard<std::mutex> lock(g_state.mutex);
-  g_state.cancel_requested = false;
   if (!g_state.pending.push(item))
   {
     g_state.last_event = "queue_full";
@@ -958,7 +1114,7 @@ void cancelCallback(const std_msgs::String::ConstPtr& msg)
   }
   std::lock_guard<std::mutex> lock(g_state.mutex);
   g_state.cancel_requested = true;
-  g_state.cancel_seq = seq;
+  g_state.cancel_seq = std::max(g_state.cancel_seq + 1, seq);
   g_state.cancel_scope = scope;
   g_state.cancel_reason = reason;
   g_state.cancel_ack_seen = false;
@@ -983,6 +1139,9 @@ void cancelAckCallback(const std_msgs::String::ConstPtr& msg)
   g_state.cancel_ack_seq = seq;
   g_state.cancel_ack_outcome = outcome;
   g_state.cancel_ack_ok = outcome == "cancelled";
+  g_state.cancel_results[seq] = outcome;
+  while (g_state.cancel_results.size() > 128)
+    g_state.cancel_results.erase(g_state.cancel_results.begin());
 }
 
 void localizationCallback(const std_msgs::Bool::ConstPtr& msg)
@@ -998,6 +1157,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "bt_console");
   ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
+  g_state.execution_session = std::to_string(ros::WallTime::now().toNSec());
 
   std::string tree_file;
   pnh.param<std::string>("tree_file", tree_file, "");
@@ -1063,6 +1223,26 @@ int main(int argc, char** argv)
     ROS_ERROR("~planner_result_topic and ~arrival_topic are mutually exclusive");
     return 1;
   }
+
+  std::string execution_request_topic, execution_status_topic;
+  pnh.param<std::string>("execution_request_topic", execution_request_topic, "");
+  pnh.param<std::string>("execution_status_topic", execution_status_topic, "");
+  pnh.getParam("recovery_rules", g_state.recovery_rules);
+  for (const auto& rule : g_state.recovery_rules)
+  {
+    if (rule.second != "retry" && rule.second != "replan" &&
+        rule.second != "skip" && rule.second != "abort")
+    {
+      ROS_ERROR("[bt] invalid recovery disposition: %s", rule.second.c_str());
+      return 1;
+    }
+  }
+  if (!execution_request_topic.empty())
+    g_state.execution_request_pub = nh.advertise<std_msgs::String>(execution_request_topic, 1);
+  ros::Subscriber execution_status_sub;
+  if (!execution_status_topic.empty())
+    execution_status_sub = nh.subscribe<std_msgs::String>(
+        execution_status_topic, 10, executionStatusCallback);
 
   g_state.goal_pub = nh.advertise<geometry_msgs::PoseStamped>(out_goal_topic, 1);
   g_state.planner_goal_pub = nh.advertise<geometry_msgs::PoseStamped>(planner_goal_topic, 1);
@@ -1130,6 +1310,7 @@ int main(int argc, char** argv)
   factory.registerNodeType<Stop>("Stop");
   factory.registerNodeType<Recovery>("Recovery");
   factory.registerNodeType<CancelStop>("CancelStop");
+  factory.registerNodeType<StopExecutor>("StopExecutor");
   factory.registerNodeType<IsCancelled>("IsCancelled");
   factory.registerNodeType<IsNotCancelled>("IsNotCancelled");
   factory.registerNodeType<CheckLocalization>("CheckLocalization");
@@ -1160,20 +1341,20 @@ int main(int argc, char** argv)
            path_status_topic.c_str());
   ROS_INFO("[bt] Groot2 ZMQ publisher ports %d/%d", zmq_pub_port, zmq_sub_port);
 
-  ros::Rate loop_rate(20.0);
-  ros::Time last_status(0.0);
+  ros::WallRate loop_rate(20.0);
+  auto last_status = std::chrono::steady_clock::time_point();
   while (ros::ok())
   {
     tree.tickRoot();
     ros::spinOnce();
 
-    if ((ros::Time::now() - last_status).toSec() >= 0.5)
+    if (std::chrono::duration<double>(std::chrono::steady_clock::now() - last_status).count() >= 0.5)
     {
       std_msgs::Bool lease;
       lease.data = true;
       lease_pub.publish(lease);
     }
-    if ((ros::Time::now() - last_status).toSec() >= 0.5)
+    if (std::chrono::duration<double>(std::chrono::steady_clock::now() - last_status).count() >= 0.5)
     {
       std_msgs::String status;
       std::string event, path_state, outcome;
@@ -1217,7 +1398,9 @@ int main(int argc, char** argv)
                  "\",\"status\":\"" + statusName(tree.nodes[i]->status()) + "\"}";
       }
       nodes += "]";
-      status.data = std::string("{\"tree\":\"NavigateWithPlanner\",\"root\":\"") +
+      status.data = std::string("{\"tree\":\"") +
+                    (g_state.execution_request_pub ? "NavigateWithAction" : "NavigateWithPlanner") +
+                    "\",\"root\":\"" +
                     statusName(tree.rootNode()->status()) + "\",\"event\":\"" + event +
                     "\",\"queue_depth\":" + std::to_string(depth) +
                     ",\"goal_seq\":" + std::to_string(goal_seq) +
@@ -1239,9 +1422,14 @@ int main(int argc, char** argv)
                     ",\"arrival_signal\":" + std::string(arrival_signal ? "true" : "false") +
                     ",\"nodes\":" + nodes + "}";
       status_pub.publish(status);
-      last_status = ros::Time::now();
+      last_status = std::chrono::steady_clock::now();
     }
     loop_rate.sleep();
   }
+  tree.haltTree();
+  std_msgs::Bool lease;
+  lease.data = false;
+  lease_pub.publish(lease);
+  g_state.stop_pub.publish(geometry_msgs::Twist());
   return 0;
 }

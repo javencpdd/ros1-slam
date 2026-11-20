@@ -1,0 +1,72 @@
+PASS  empty queue refuses pop
+PASS  two goals accepted
+PASS  third goal refused at capacity
+PASS  capacity overflow does not grow queue
+PASS  first out is first in
+PASS  second out is second in
+PASS  queue empty after drain
+PASS  queue reusable after draining
+PASS  clear empties the queue
+PASS  set_max applies
+PASS  max_size=1 refuses the extra goal
+PASS  zero max is clamped, not an unbounded queue
+PASS  ack 3:ok parses
+PASS  ack 12:fail parses
+PASS  empty ack refused
+PASS  missing colon refused
+PASS  missing seq refused
+PASS  non-numeric seq refused
+PASS  unknown outcome refused
+PASS  empty outcome refused
+PASS  null seq pointer refused
+PASS  null ok pointer refused
+PASS  matching ok advances
+PASS  stale ack does not advance
+PASS  future ack does not advance
+PASS  fail ack does not advance
+PASS  failure and reason are one correlated result
+PASS  native failure without its reason refused
+PASS  native successful result parses
+PASS  successful result cannot carry a failure reason
+PASS  malformed native reason refused
+PASS  path status ok with 12 points parses
+PASS  path status busy reason parses
+PASS  status without ok refused
+PASS  status with unknown ok value refused
+PASS  successful status without a point count refused
+PASS  null ok pointer refused
+ALL PASS (0 failures)
+PASS  no path keeps the tree timeout
+PASS  short path keeps the tree timeout
+PASS  ramp path scales to length/floor
+PASS  zero floor disables scaling
+PASS  negative floor disables scaling
+PASS  negative length keeps the tree timeout
+PASS  NaN length keeps the tree timeout
+PASS  scaling is independent of the base
+BT POLICY OK
+PASS  first sample arms the tracker
+PASS  improvement keeps it running
+PASS  flat distance past patience stalls
+PASS  >= epsilon improvement resets the clock
+PASS  stall restarts after the reset
+PASS  sub-epsilon improvement does not reset (still stalled)
+PASS  sub-epsilon improvement still stalls
+PASS  reset re-arms with the new sample
+PASS  reset keeps honesty (stall after patience)
+PASS  patience 0 disables the check
+PASS  patience 0 never stalls
+PASS  negative patience disables the check
+TREE OK /opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml (15 nodes)
+TREE OK /opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_single_goal.xml (12 nodes)
+TREE OK /opt/ros1-slam/ws/src/90_platform/lite3_bt/trees/navigate_with_action.xml (16 nodes)
+.......................................................................
+----------------------------------------------------------------------
+Ran 71 tests in 0.182s
+
+OK
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.004s
+
+OK

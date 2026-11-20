@@ -1,0 +1,24 @@
+<launch>
+  <arg name="goal_topic" default="/v8/bt/goal"/>
+  <arg name="profile" default="demo"/>
+  <arg name="zmq_pub_port" default="5555"/>
+  <arg name="zmq_sub_port" default="5556"/>
+  <node pkg="lite3_bt" type="bt_console" name="bt_console" output="screen" required="true">
+    <rosparam command="load" file="$(find lite3_bt)/config/bt_console_$(arg profile).yaml"/>
+    <param name="tree_file" value="$(find lite3_bt)/trees/navigate_with_action.xml"/>
+    <param name="goal_topic" value="$(arg goal_topic)"/>
+    <param name="execution_request_topic" value="/v8/navigation/goal"/>
+    <param name="execution_status_topic" value="/v8/navigation/status"/>
+    <param name="planner_result_topic" value="/v8/navigation/result"/>
+    <param name="cancel_topic" value="/v8/navigation/cancel"/>
+    <param name="cancel_ack_topic" value="/v8/navigation/cancel_ack"/>
+    <param name="localization_topic" value=""/>
+    <param name="arrival_speed_floor_mps" value="0.0"/>
+    <param name="recovery_mode" value="abort"/>
+    <param name="retry_delay_s" value="1.0"/>
+    <rosparam param="recovery_rules">{backend_unavailable: retry, backend_terminal: replan, invalid_pose: abort, invalid_goal: abort, backend_lost: abort, backend_disconnected: abort, lease_lost: abort, restart_required: abort, cancel_timeout: abort}</rosparam>
+    <param name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
+    <param name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
+  </node>
+  <node pkg="lite3_bt" type="navigation_executor.py" name="bt_navigation_executor" output="screen" required="true"/>
+</launch>

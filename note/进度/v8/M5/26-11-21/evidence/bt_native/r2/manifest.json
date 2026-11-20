@@ -1,0 +1,43 @@
+{
+  "run_class": "scoped_integration",
+  "task": "T-20261118-02",
+  "window": "BT-NATIVE-20261121-r2",
+  "platform": "x86_sim",
+  "scene": "m1_world.world",
+  "orchestrator": "NavigateWithAction",
+  "backend": "ROS1 move_base 1.17.3 + GlobalPlanner + TEB 0.9.1",
+  "launch": "lite3_bringup/mode_sim_teb.launch",
+  "driver": "scripts/verify/test_bt_navigation_runtime.py",
+  "ros_master_port": 11313,
+  "gazebo_master_port": 11345,
+  "repetitions": 1,
+  "cases": [
+    "scoped_success",
+    "reasonless_and_repeated_cancel",
+    "reuse_after_confirmed_cancel",
+    "reject_3d_goal",
+    "pause_bt_lease_loss"
+  ],
+  "criteria": {
+    "matching_action_result_and_bt_seq": true,
+    "explicit_reached_for_success": true,
+    "success_distance_m_max": 0.35,
+    "cancel_terminal_ack_before_resume": true,
+    "cancel_no_motion_observation_wall_s": 3,
+    "only_mux_writes_cmd_vel": true,
+    "invalid_goal_has_no_motion": true,
+    "bt_lease_loss_stops_without_bt_tick": true,
+    "bt_resume_does_not_resume_cancelled_motion": true,
+    "no_mbf_server_or_custom_local_planner": true,
+    "runtime_no_python_exception": true,
+    "ports_free_after_shutdown": true
+  },
+  "claim_boundary": "planar Gazebo integration only; not formal navigation acceptance or physical robot certification",
+  "source_fingerprints": {
+    "scripts/verify/test_bt_navigation_runtime.py": "febf6ca3f0134af6bb0848db060cfb4770cdc872c719a9577ab746b423d4f54a",
+    "scripts/verify/run_bt_navigation_window.sh": "56377c23ba242725b84e12190e18be653e4d917981431dfd89bb95c21a325bf4",
+    "ws/src/90_platform/lite3_bt/src/bt_console.cpp": "5813d45eae92d41d6b0dc7cd9933ea55cad97cb84cd3f70d88b7968b5f549c71",
+    "ws/src/90_platform/lite3_bt/scripts/navigation_executor.py": "fe87c86966c17eb8a2661d3ebeb1d3f7122d411b7f366ba7377eff4eb3768cd3",
+    "ws/src/90_platform/lite3_bt/trees/navigate_with_action.xml": "a0c3328500a6cd25deecaef53301cd9e4d31b50086702901ab56d2831fb90b72"
+  }
+}

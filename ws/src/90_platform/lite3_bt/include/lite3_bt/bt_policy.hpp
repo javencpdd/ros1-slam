@@ -104,7 +104,7 @@ inline bool parse_cancel_ack(const std::string& text, std::uint64_t* seq, std::s
 inline bool cancel_ack_advances(std::uint64_t ack_seq, const std::string& outcome,
                                 std::uint64_t current_seq)
 {
-  return ack_seq == current_seq && outcome != "unacked";
+  return ack_seq == current_seq && outcome == "cancelled";
 }
 
 // "key=value;key=value"; unknown keys are refused so a typo cannot be silent.

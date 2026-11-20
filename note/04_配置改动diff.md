@@ -7403,4 +7403,47 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `CMake cache mismatch`；改为键/值字符类排除换行，并补回归用例（28 tests OK）。
   另：手工 `catkin_make` 会在 `devel/.catkin` 追加第二源空间并使 `_setup_util` 生成带换行的
   `ROS_PACKAGE_PATH`（rospack 失明）——正形是走 `docker/build.sh`；体积修复已就位（单源空间、无尾换行）。
-- 追认位：S4 属新增能力且默认关闭，不改变任何在册判据；若不需要，revert 该提交即回到无此端口状态。
+- 追认位：S4 属新增能力且默认关闭，不改变在册判据；若不需要，revert 该提交即回到无此端口状态。
+
+## 2026-11-21 / T-20261118-02 样张退役（真人裁决）：lite3.pcd 不再作为基线
+
+- 真人原话：「不用管推送，之前的 pcd 文件可以不要了，需要的时候再重新扫描建图就可以。」
+- 处置：①「sim 跑批不得覆盖 data/maps/lite3.pcd」红线**解除**；②GAP-5「跑前=跑后」降为单次
+  跑的洁癖自检，不作跨批基线；③Stage C 的建图/转存/恢复流程可简化为按需重建（恢复逻辑无害可留）；
+  ④04 内 c034c906（10-06 版）与现读 d3deb80e（11-03 版）的 sha 登记差异不再是缺口。
+- 本批不改 smoke/Stage C 代码；后续批按此口径处理。
+
+## 2026-11-21 / T-20261118-02 BT 替换 MBF 封装（move_base 后端）＋高程当前态修复＋开源算法多候选
+
+- **架构修订**：按用户续令「BT 替换 MBF 封装、尽量用成熟开源算法」，运行时主链由 `mbf_costmap_nav`
+  改为 **BT `NavigateWithAction` → action 适配器 → ROS1 `move_base 1.17.3`**，复用原
+  GlobalPlanner/TEB/高程/STVL/SOB costmap；后端自动恢复关闭，任务与恢复归 BT。旧
+  「全部自研、退役 costmap」建议作废（设计第 8 节）。TEB 的 MBF 接口包依赖保留，不谎称已零 MBF 依赖。
+- **动作生命周期（补独立复核 P1）**：显式 JSON 目标 `seq/session`（不借 ROS `Header.seq`）；
+  取消带 `seq/goal_seq/session/scope/reason`（空原因合法、目标高水位围栏、重复取消按请求号回执）；
+  失败原因与结果原子同发（`<seq>:fail:<reason>`）；终止确认（`StopExecutor`）先于 dwell/恢复；
+  租约失效/LOST/取消超时/会话变更锁定适配器，`required=true` 整组重启；候选速度经 action/时效门
+  才进 `/cmd_vel_raw` → safety mux。回调竞态与会话隔离有 71 项宿主反控。
+- **高程链当前态修复（L1）**：`ElevationMergedLayer` 原先只置 `enabled_=true`、从不置 `current_`
+  ⇒ move_base 恒报 “Sensor data is out of date”，机器人拒动（r2 实测：candidate/raw/cmd 全 0）。
+  修复：显式有限正 `input_timeout_s`（缺省 0＝保持 noncurrent 并报错，不静默降级）；临时图校验
+  （转换结果/几何/层/有限观测/帧/时间戳）、乱序与同戳不续期、每周期复验时效、TF 失败不置 current、
+  平面有效即 current；生产者同帧快照点云/里程计、里程计缺失或过期不发布、全 NaN 不发布。
+  仿真入口显式 `input_timeout_s=1.0`（与生产者既有 `stale_timeout=1.0` 同值）；真机未配置即拒动。
+- **开源算法多候选（BT 内可替换）**：`navigation_executor.launch` 增 `local_planner:=teb|dwa|trajectory`、
+  `global_planner:=global_planner|navfn`；已装候选 TEB/DWA/Trajectory、GlobalPlanner/Navfn 全部装配通过。
+  未装候选（ANYbotics elevation_mapping、mpc_local_planner、eband、amcl）只入矩阵，需联网安装+镜像重建，
+  不声称可用。矩阵见设计第 9 节。
+- **实跑读数（隔离仿真 11313/11345，判据：成功/取消/复用/三维目标拒绝/暂停BT租约失效/退净）**：
+  r1 FAIL＝测试误判 move_base 内部 action-goal 发布口（官方源码核实后修正断言，无运动）；
+  r2 FAIL＝高程 `current_` 缺陷导致代价图恒过期、BT 超时取消（保留为缺陷证据）；
+  **r3 PASS（TEB+GlobalPlanner）**：到点 0.155 m、复用 0.148 m、取消确认、租约失效独立停车、7 段静止窗、端口释放；
+  **r4 PASS（DWA+GlobalPlanner）**：到点 0.189 m、复用 0.191 m、其余同判据；
+  **r5 PASS（Trajectory+Navfn）**：到点 0.190 m、复用 0.196 m、其余同判据。
+  ⇒ 已装五候选（TEB／DWA／Trajectory × GlobalPlanner／Navfn）均在同一 BT 判据下实跑通过；
+  读数文件按轮存 `note/进度/v8/M5/26-11-21/evidence/bt_native/r{2..5}/`（大 JSON 已 gzip）。
+- **隔离检查版本锁**：用户批准把 ISO 基线精确同步到已登记 `430e6ecf` 的 `6b39e0d8…`；
+  只改精确期望值并修复测试夹具的裸根路径，门项/白名单/CMake 哈希/阈值/rc 不变，32 项反控通过，
+  完整预检 rc=0。
+- 追认位：算法替换与高程 TTL 属能力面变更，按 05 A3 挂账；真机默认开关（`enable_motion=false`、
+  `enable_bt=false`、real profile 缺省拒跑）与所有物理门值未改。若不认，revert 本批提交即回旧 MBF 入口。
