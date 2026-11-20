@@ -10,14 +10,26 @@ set -u
 #   当场 rc=5（串内 GTC 恒红）。修法与 VCC／账构同款：只补覆写口、缺省值与 rc 语义一字不改。
 ROOT="${GTC_ROOT:-${ROS1_SLAM_ROOT:-/home/ros1-slam}}"
 SELF=$(readlink -f "$0")   # --negctl 要用本体递归跑三次（临时表副本作被试）
-SM=ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
-LIB=ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
-XAC=ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
-PLG=ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp
+# 2026-11-21：仿真包物理拆仓（9db9eea5／a74d9b2d）后载体件两套布局并存。
+#   逐行按「该 commit 时点存在的路径」解析（新布局优先），穷尽计数取两套路径并集——
+#   否则重构前的 H1—H14 行全部现算为空、表与仓脱钩被误判成漂移。
+SM=subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m2_smoke.sh
+SM_OLD=ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+LIB=subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+LIB_OLD=ws/src/95_simulation/lite3_gazebo_sim/verify/m2_exitclean_lib.sh
+XAC=subprojects/simulation/ws/src/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+XAC_OLD=ws/src/95_simulation/lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro
+PLG=subprojects/simulation/ws/src/lite3_gazebo_sim/src/lite3_planar_drive.cpp
+PLG_OLD=ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp
 DOC=${GTC_DOC:-$ROOT/note/07_判据载体代际对照表.md}   # 只有 --negctl 的自证会覆写它（缺省恒为在册表）
 cd "$ROOT" || exit 5
 
 sha_of() { git show "$1:$2" 2>/dev/null | sha256sum | cut -c1-12; }
+path_at() {  # $1=commit $2=新布局 $3=旧布局 → 该 commit 下存在的路径（新优先）；都无则回新路径（现算为空即 FAIL 可指认）
+  if git cat-file -e "$1:$2" 2>/dev/null; then printf '%s' "$2"
+  elif git cat-file -e "$1:$3" 2>/dev/null; then printf '%s' "$3"
+  else printf '%s' "$2"; fi
+}
 
 if [ "${1:-}" = "--negctl" ]; then
   # 05 C4a：新加的核对面必须**真的红一次**且可复跑。做法＝拿在册表的临时副本各改一位（不改原表、不写回），
@@ -73,22 +85,24 @@ if [ "${1:-}" = "--check" ]; then
     [ -z "$c" ] && continue
     case "$s" in *[0-9a-f]*) ;; *) continue ;; esac
     n=$((n+1))
-    now=$(sha_of "$c" "$SM")
+    now=$(sha_of "$c" "$(path_at "$c" "$SM" "$SM_OLD")")
     if [ "$now" != "$s" ]; then echo "[FAIL] $c 档内 SM=$s 现算=$now"; bad=$((bad+1)); fi
     # R47：LIB 列同核（S07 自己要求双 sha，却只验一件＝名实不符）
-    if git cat-file -e "$c:$LIB" 2>/dev/null; then
-      nlib=$(sha_of "$c" "$LIB")
+    lbp=$(path_at "$c" "$LIB" "$LIB_OLD")
+    if git cat-file -e "$c:$lbp" 2>/dev/null; then
+      nlib=$(sha_of "$c" "$lbp")
       [ "$nlib" = "$lb" ] || { echo "[FAIL] $c 档内 LIB=$lb 现算=$nlib"; bad=$((bad+1)); }
     else
       case "$lb" in 无*) : ;; *) echo "[FAIL] $c 该代无库件，档内 LIB 列应为「无…」实为 $lb"; bad=$((bad+1));; esac
     fi
     # R55：XAC／PLG 两列同核（这条是批3 的前置作业——批3 改的正是 PLG 源码；表印 7 列却只验 2 列＝又一名实不符）
-    for pair in "XAC:$XAC:$xa" "PLG:$PLG:$pl"; do
-      nm=${pair%%:*}; rest=${pair#*:}; path=${rest%%:*}; want=${rest#*:}
-      case "$want" in 无*) if git cat-file -e "$c:$path" 2>/dev/null; then echo "[FAIL] $c 档内 $nm 列为「无」但 git 里有该件"; bad=$((bad+1)); fi; continue;; esac
+    for pair in "XAC:$XAC:$XAC_OLD:$xa" "PLG:$PLG:$PLG_OLD:$pl"; do
+      nm=${pair%%:*}; rest=${pair#*:}; path=${rest%%:*}; rest2=${rest#*:}; oldp=${rest2%%:*}; want=${rest2#*:}
+      pp=$(path_at "$c" "$path" "$oldp")
+      case "$want" in 无*) if git cat-file -e "$c:$pp" 2>/dev/null; then echo "[FAIL] $c 档内 $nm 列为「无」但 git 里有该件"; bad=$((bad+1)); fi; continue;; esac
       case "$want" in *[0-9a-f]*) ;; *) echo "[FAIL] $c 档内 $nm 列不是 sha 前缀（值=「$want」）⇒ 列形制变过，先更件再更表"; bad=$((bad+1)); continue;; esac
-      if git cat-file -e "$c:$path" 2>/dev/null; then
-        got=$(git show "$c:$path" 2>/dev/null | sha256sum | cut -c1-8)
+      if git cat-file -e "$c:$pp" 2>/dev/null; then
+        got=$(git show "$c:$pp" 2>/dev/null | sha256sum | cut -c1-8)
         [ "$got" = "$want" ] || { echo "[FAIL] $c 档内 $nm=$want 现算=$got"; bad=$((bad+1)); }
       else
         echo "[FAIL] $c 该代无 $path（$nm 列在册值 $want）⇒ 表里有 git 里没的件"; bad=$((bad+1))
@@ -119,8 +133,8 @@ if [ "${1:-}" = "--check" ]; then
   # 防重与穷尽（本轮实测教训：我把表体重复插入成 27 行，逐行核对却仍 PASS——
   #   因为每一行单独都与 git 相符，重复与漏行都不在「逐行」的判据面内。现补两断言：）
   _rows=$(grep -cE '^\| H[0-9]+ \|' "$DOC")
-  _uniq=$(grep -oE '^\| H[0-9]+ ' "$DOC" | sort -u | wc -l)
-  _gt=$(git log --format=%h -- "$SM" "$LIB" | wc -l)
+  _uniq=$(grep -oE '^\| H[0-9]+ ' "$DOC" | wc -l)
+  _gt=$(git log --format=%h -- "$SM" "$SM_OLD" "$LIB" "$LIB_OLD" | wc -l)
   [ "$_rows" = "$_uniq" ] || { echo "[FAIL] 表体有重复行：在册 $_rows 行、唯一 H# $_uniq 个"; bad=$((bad+1)); }
   [ "$_uniq" = "$_gt" ] || { echo "[FAIL] 表体不穷尽：唯一 H# $_uniq 个 ≠ git 载体提交数 $_gt"; bad=$((bad+1)); }
   echo "  分母面：在册行=$n 唯一H#=$_uniq git载体提交数=$_gt（重复与漏行同判红）"
@@ -132,11 +146,12 @@ fi
 
 i=0
 printf '| # | commit | SM sha12 | 行数 | 库件 | XAC | PLG |\n|---|---|---|---|---|---|---|\n'
-for c in $(git log --format=%h -- "$SM" "$LIB" | tac); do   # R47：轴＝SM 与 LIB 的并集（判据搬库后单看 SM 会漏代）
+for c in $(git log --format=%h -- "$SM" "$SM_OLD" "$LIB" "$LIB_OLD" | tac); do   # R47：轴＝SM 与 LIB 并集（再并入旧布局，重构前后全史不丢代）
   i=$((i+1))
-  if git cat-file -e "$c:$LIB" 2>/dev/null; then lib="$(sha_of "$c" "$LIB")"; else lib="无（判据在 SM 内）"; fi
-  lines=$(git show "$c:$SM" | wc -l)
-  printf '| H%d | %s | %s | %s | %s | %s | %s |\n' "$i" "$c" "$(sha_of "$c" "$SM")" "$lines" \
-         "$lib" "$(sha_of "$c" "$XAC" | cut -c1-8)" "$(sha_of "$c" "$PLG" | cut -c1-8)"
+  sp=$(path_at "$c" "$SM" "$SM_OLD"); lbp=$(path_at "$c" "$LIB" "$LIB_OLD")
+  if git cat-file -e "$c:$lbp" 2>/dev/null; then lib="$(sha_of "$c" "$lbp")"; else lib="无（判据在 SM 内）"; fi
+  lines=$(git show "$c:$sp" | wc -l)
+  printf '| H%d | %s | %s | %s | %s | %s | %s |\n' "$i" "$c" "$(sha_of "$c" "$sp")" "$lines" \
+         "$lib" "$(sha_of "$c" "$(path_at "$c" "$XAC" "$XAC_OLD")" | cut -c1-8)" "$(sha_of "$c" "$(path_at "$c" "$PLG" "$PLG_OLD")" | cut -c1-8)"
 done
 echo "== 共 $i 版载体 =="

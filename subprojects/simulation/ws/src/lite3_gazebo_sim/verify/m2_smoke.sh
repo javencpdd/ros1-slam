@@ -2,11 +2,11 @@
 # m2_smoke.sh —— M2 无人值守冒烟（小张，2026-10-06；m1_smoke.sh 同构扩展）
 # Stage A（M2-1/M2-4）：闭环回归四判据 —— IMU 姿态反馈转向 + odom 位置反馈回程；drift ≤0.5m、turn/back 双 done、
 #                       /rslidar_points ≥5Hz、/livox/imu ≥100Hz、飞点 <1%
-# Stage B（M2-2）     ：teb 物理闭环 —— goal=(start+3m,0)，sim 时 ≤120s 到达偏差 ≤0.35m（gt 参考）
+# Stage B（M2-2）     ：物理闭环（2026-11-21 迁至 BT+v8 链）—— goal=(start+3m,0)，sim 时 ≤120s 到达偏差 ≤0.35m（gt 参考）
 # Stage C（M2-3）     ：hdl 重定位 —— 建图存 sim_venue.pcd（样张备份/恢复 sha256 红线）→ /initialpose 注入
 #                       → ≤10s 收敛 ≤0.3m/10°，30s 观察窗无 >0.5m 单步跳变
 # 隔离域：ROS master 11313 + GAZEBO_MASTER_URI=11345（本会话 P10 仲裁值，见 L21 实际 export）；生产 11312 全程零监听；foxy 栈零接触。
-# 用法：bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh [stageA|stageB|stageC|all]（缺省 all）
+# 用法：bash /opt/ros1-slam/sim_ws/src/lite3_gazebo_sim/verify/m2_smoke.sh [stageA|stageB|stageC|all]（缺省 all；或 docker/sim.sh smoke）
 #   批次驱动用同目录 m2_batch_runner.sh；整批复取用同目录 retake_driver.sh（现役入口全在包内）。/tmp/m2_payload 侧
 #   副本已就地改名 .STALE_do_not_run_20261008，旧用法行指的是停用路径（她 #14／R26 四；上一轮我漏落，根因见 02 坑31）。
 #   LOGDIR 落址口径（R34）：LOGDIR 仍在 /tmp（$PAYLOAD/logs-时间戳），**跑完即归档属驱动件的责任**——retake_driver.sh
@@ -14,7 +14,9 @@
 #   否则证据随 /tmp 一清或机器一重启即永久不可回溯（O-4 三次同型＋ 10-08 那次硬重启实测丢过一整段 SCAN 证据）。
 set -u
 PAYLOAD=/tmp/m2_payload
-SIM_PKG=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim
+# 2026-11-21：仿真包物理拆仓后旧绝对路径 /home/ros1-slam/ws/src/95_simulation 悬空（跑不了而非没跑）；
+# 改为按脚本自身位置自推导包根，布局再变不断链（容器内解析到 /opt/ros1-slam/sim_ws/src/lite3_gazebo_sim）。
+SIM_PKG="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAP=/home/ros1-slam/data/maps/lite3.pcd
 VENUE=/home/ros1-slam/data/maps/sim_venue.pcd
 STAGE=${1:-all}
@@ -27,7 +29,8 @@ echo "[m2] HARNESS sha256=$(sha256sum "${BASH_SOURCE[0]}" | awk '{print $1}') pa
 source /opt/ros/noetic/setup.bash
 [ -f /home/ros1-slam/ws/devel/setup.bash ] && source /home/ros1-slam/ws/devel/setup.bash
 export ROS_MASTER_URI=http://127.0.0.1:11313 GAZEBO_MASTER_URI=http://127.0.0.1:11345
-export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:/home/ros1-slam/ws/devel/lib
+# 2026-11-21：拆仓后 livox 插件在 sim_ws/devel/lib（与 docker/sim.sh 同序：sim_ws → 主 ws → gazebo_ros）
+export GAZEBO_PLUGIN_PATH=/opt/ros1-slam/sim_ws/devel/lib:/home/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib
 
 PASS=1
 INVALID=0  # A0 前置：运动窗 RTF<0.25（M2R2 主理人裁决 0.3→0.25：D-01 后 200Hz IMU 正确配置合理 RTF 平台 0.288，门意抓塌缩非惩罚正确配置）→ 本轮作废重跑，不计 FAIL
@@ -190,37 +193,56 @@ PYEOF
   fi
 }
 
-# ============ Stage B：teb 物理闭环（M2-2） ============
+# ============ Stage B：物理闭环（M2-2；2026-11-21 迁至 BT+v8 自研链） ============
 stage_b() {
+  # ★2026-11-21 迁移★ 真人拍板「取消 MBF，全走 BT+自研」（设计＝note/架构/MBF吸收与导航链重构.md）：
+  #   执行链 MBF+TEB → BT+v8（mode_sim_bt.launch）。判据主体逐字不变：
+  #     · goal＝起点+3 m；≤120 s（sim 时钟）到达；到达偏差 ≤0.35 m（dev_odom 口径，dev_gt 陪印）
+  #     · goal 后 pose 类错误＝0（G6'：主题由 TEB 日志换为 v8 的 E_LOCAL_POSE_*/E_LOCAL_LOCALIZATION）
+  #   就绪门从 MBF 面（costmap/TF 时基）换为 v8 输入面（support_map/BT lease/pose/obstacles/localization）；
+  #   costmap 数据门随 MBF 退场；G5c1（odom→base_link 双父结构哨兵）与 E3 探针不变。
+  #   判据面变更按 05 A3 挂 04 台账待追认；07 代际表升 H15；revert 本提交即回退旧 Stage B。
   SEG=B   # R26 三：本段退净按段各检一次
-  # [M2R3] TF_SOURCE 环境变量为阴性对照口子：置 static 可回退旧静态件，
-  #   用于证明新门控 G5/G5b 确有分辨力（该跑必须 G5 FAIL）；缺省空=用 launch 内 fresh 缺省。
-  roslaunch lite3_bringup mode_sim_teb.launch ${TF_SOURCE:+tf_source:=$TF_SOURCE} > "$LOGDIR/tebB.log" 2>&1 &
+  # [M2R3] TF_SOURCE 环境变量为阴性对照口子：置 static 可回退旧静态件；
+  #   缺省空＝用 launch 内 fresh 缺省（mode_sim_bt 透传 m2_teb 的 tf_source）。
+  roslaunch lite3_bringup mode_sim_bt.launch ${TF_SOURCE:+tf_source:=$TF_SOURCE} > "$LOGDIR/btB.log" 2>&1 &
   wait_topic /clock 300 || { echo "FAIL B: /clock 未出"; return 1; }
   wait_topic /rslidar_points 480 || { echo "FAIL B: /rslidar_points 未出"; return 1; }
   timeout 60 rostopic echo -n 1 /cmd_vel >/dev/null 2>&1 || true
-  # 等 mbf move_base action server（60s）；goal=(start+3,0)
-  # M2-R2：goal 前加就绪门控（b858a86 FAIL：teb_state=4 ABORTED @dt=0，"Can not get robot pose" 启动窗竞态）
+  # 就绪门 → /v8/bt/goal（goal＝起点+3m）→ 等 BT outcome 或 120 s sim 预算
   python3 - <<'PYEOF' > "$LOGDIR/stageB.txt" 2>&1
-import math, time, rospy, actionlib
+import math, time, json, rospy
+from std_msgs.msg import Bool, String
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseStamped
 from gazebo_msgs.msg import ModelStates
-from nav_msgs.msg import Odometry, OccupancyGrid
-from mbf_msgs.msg import MoveBaseAction, MoveBaseGoal   # mbf 原生 action（G8sim get_path 同族）
 import tf as tf_py
 rospy.init_node('m2_stage_b')
-S=dict(gt=None,odom=None)
+S=dict(gt=None,odom=None,pose=None,obs_at=None,loc=None,bts=None,goal_sent=False,poseerr=0)
 rospy.Subscriber('/gazebo/model_states', ModelStates, lambda m:[S.update(gt=(p.position.x,p.position.y))
     for p,n in zip(m.pose,m.name) if n=='lite3_planar'] and None, queue_size=1)
-rospy.Subscriber('/sim/odom_gt', Odometry, lambda m:S.update(odom=m), queue_size=2)  # 批1/F-D 改名配套
+rospy.Subscriber('/sim/odom_gt', Odometry, lambda m:S.update(odom=m), queue_size=2)  # 批1/F-D：/Odometry 归 faster_lio
+rospy.Subscriber('/v8/local/pose', PoseStamped, lambda m:S.update(pose=m), queue_size=1)
+rospy.Subscriber('/v8/local/obstacles', String,
+                 lambda m:S.update(obs_at=rospy.get_rostime().to_sec()), queue_size=1)
+rospy.Subscriber('/v8/local/localization_ok', Bool, lambda m:S.update(loc=m.data), queue_size=1)
+def on_bts(m):
+    try: S.update(bts=json.loads(m.data))
+    except Exception: pass
+rospy.Subscriber('/v8/bt/status', String, on_bts, queue_size=1)
+POSE_ERR={'E_LOCAL_POSE_STALE','E_LOCAL_POSE_INVALID','E_LOCAL_LOCALIZATION'}
+def on_ls(m):
+    try: r=(json.loads(m.data) or {}).get('reason') or ''
+    except Exception: return
+    if S['goal_sent'] and r in POSE_ERR: S['poseerr']+=1
+rospy.Subscriber('/v8/local/status', String, on_ls, queue_size=5)
+
 w0=time.time()
 while (S['gt'] is None or S['odom'] is None) and time.time()-w0<60: time.sleep(0.1)
 sx,sy=S['gt'][0],S['gt'][1]; gx,gy=sx+3.0,sy
 print('SMOKE start=(%.3f,%.3f) goal=(%.3f,%.3f)'%(sx,sy,gx,gy))
-cli=actionlib.SimpleActionClient('/move_base_flex/move_base', MoveBaseAction)
-if not cli.wait_for_server(rospy.Duration(60)): print('SMOKE mbf_server=ABSENT'); raise SystemExit(1)
-# —— M2-R2 门控（G1–G4，总预算 120s；任一未过 = FAIL 环境不进闭环，不计入 teb 判据）——
-# 注：sim_nav_smoke 的 occupied>0（v>=90）判据在本域不适用——m2_free_map 发布全 FREE 底图
-#     （m2_free_map.py L24 恒 [0]，无 v>=90 格），故 G1/G3/G4 为「有数据」门控，不查占据数。
+# —— 就绪门（G1'—G4'，总预算 120s；任一未过＝FAIL 环境不进闭环，不计入到达判据）——
+#   与旧版（M2-R2 G1—G4 / M2R3 G5 系）同一语义：goal 前环境就绪＋输入新鲜；主题换为 v8 链输入面。
 GATE_BUDGET = 120.0
 gate_t0 = time.time()
 tf_ = tf_py.TransformListener()
@@ -233,48 +255,30 @@ def gate_wait(name, fn):
         except Exception: pass
         time.sleep(0.3)
     print('SMOKE gate_%s=FAIL t=%.1fs' % (name, time.time()-gate_t0)); return False
-ok_map = gate_wait('map_data',      lambda: rospy.wait_for_message('/map', OccupancyGrid, timeout=2.0).info.width > 0)
-ok_tf  = gate_wait('tf_robot',      lambda: tf_.canTransform('map', 'base_link', rospy.Time(0)))   # 竞态根因直查
-# —— [M2R3 2026-10-08 小张 §0/§1] 新鲜度门 G5 / G5b / G5c ——
-# 旧 G1–G4 是「可达性门」：map→odom 若挂 /tf_static，静态条目语义为「对所有时刻恒真」，
-# canTransform(Time(0)) 永远返回 True ⇒ 结构上不具备新鲜度分辨力（不是门太松，是维度缺失）。
-# G5  = map→base_link 连续 3 次采样 Δ_age ≤ 1.0s(sim)
-# G5b = 在取龄内否决「零戳」与「/map 首帧戳」两种形态（后者与零戳同量级同后果但可绕纯零戳断言）
-# G5c = odom→base_link 与 map→odom 分段各取龄，用于断链定位（静态段单独判）
-MAP_FIRST = [None]
-def _mapcb(m):
-    if MAP_FIRST[0] is None:
-        MAP_FIRST[0] = m.header.stamp
-rospy.Subscriber('/map', OccupancyGrid, _mapcb, queue_size=1)
-
-# 取龄必须走 tf2 Buffer：老 tf.TransformListener 既无 lookup_transform（蛇形名是 tf2 的），
-# 其 lookupTransform 也只收三参且返回裸 [x,y,z]/[x,y,z,w] 列表、不含 header.stamp，无从取时间戳。
-# tf2 Buffer.lookup_transform 返回带 header.stamp 的 TransformStamped，且与 mbf 保鲜校验同构。
-import tf2_ros
-buf2 = tf2_ros.Buffer()
-tf2_listener = tf2_ros.TransformListener(buf2)
-
-def _age_of(a, b):
-    st = buf2.lookup_transform(a, b, rospy.Time(0), rospy.Duration(2.0))
-    s = st.header.stamp
-    if s == rospy.Time(0):
-        return None, 'G5b_hit=zero_stamp'
-    if MAP_FIRST[0] is not None and abs((s - MAP_FIRST[0]).to_sec()) < 1e-6:
-        return None, 'G5b_hit=first_map_stamp'
-    return (rospy.get_rostime() - s).to_sec(), None
-
-def g5_sample(a, b, need=3, gap=0.2, lim=1.0):
-    ds = []
+def support_map_ok():
+    d = json.loads(rospy.wait_for_message('/v8_support_map', String, timeout=2.0).data)
+    return bool(d.get('surfaces'))
+ok_smap = gate_wait('support_map', support_map_ok)
+ok_bt   = gate_wait('bt_lease', lambda: rospy.wait_for_message('/v8/bt/lease', Bool, timeout=2.0).data is not None)
+ok_loc  = gate_wait('loc_ok',    lambda: S['loc'] is True)
+ok_tf   = gate_wait('tf_robot',  lambda: tf_.canTransform('map', 'base_link', rospy.Time(0)))
+# —— 输入新鲜度门（G5'/G5c2'，取代旧 TF 时基门）：pose 50 Hz / obstacles 10 Hz 各连续 3 次 ≤1.0 s ——
+def fresh_pose(need=3, gap=0.2, lim=1.0):
+    ds=[]
     for _ in range(need):
-        d, why = _age_of(a, b)
-        if why:
-            return False, why
-        if d > lim:
-            return False, 'age=%.3f>%.1f' % (d, lim)
-        ds.append('%.3f' % d)
-        time.sleep(gap)
-    return True, 'ages=[' + ','.join(ds) + ']'
-
+        if S['pose'] is None: raise RuntimeError('no_pose')
+        d=(rospy.get_rostime()-S['pose'].header.stamp).to_sec()
+        if d>lim: return False,'age=%.3f>%.1f'%(d,lim)
+        ds.append('%.3f'%d); time.sleep(gap)
+    return True,'ages=['+','.join(ds)+']'
+def fresh_obs(need=3, gap=0.2, lim=1.0):
+    ds=[]
+    for _ in range(need):
+        if S['obs_at'] is None: raise RuntimeError('no_obs')
+        d=rospy.get_rostime().to_sec()-S['obs_at']
+        if d>lim: return False,'age=%.3f>%.1f'%(d,lim)
+        ds.append('%.3f'%d); time.sleep(gap)
+    return True,'ages=['+','.join(ds)+']'
 DET = {}
 def gate_wait_d(name, fn):
     w = time.time()
@@ -283,28 +287,32 @@ def gate_wait_d(name, fn):
             ok, det = fn()
             DET[name] = det
             if ok:
-                print('SMOKE gate_%s=PASS t=%.1fs %s' % (name, time.time() - gate_t0, det))
-                return True
+                print('SMOKE gate_%s=PASS t=%.1fs %s' % (name, time.time() - gate_t0, det)); return True
         except Exception as e:
             import traceback as _tb
-            DET[name] = 'exc=%s: %s | %s' % (type(e).__name__, e,
-                                             _tb.format_exc().strip().splitlines()[-2:-1])
+            DET[name] = 'exc=%s: %s | %s' % (type(e).__name__, e, _tb.format_exc().strip().splitlines()[-2:-1])
         time.sleep(0.3)
-    print('SMOKE gate_%s=FAIL t=%.1fs %s' % (name, time.time() - gate_t0, DET.get(name, '?')))
-    return False
-def costmap_up(topic):
-    try: return rospy.wait_for_message(topic, OccupancyGrid, timeout=2.0).info.width > 0
-    except Exception: return False
-ok_gcm = gate_wait('gcostmap_data', lambda: costmap_up('/move_base_flex/global_costmap/costmap'))
-ok_lcm = gate_wait('lcostmap_data', lambda: costmap_up('/move_base_flex/local_costmap/costmap'))
-# —— [M2R4 起，M2R5 按小美 R16 改口径] G5 取龄定点延时口子（加压档）——
-#   **作废口径注记**：M2R3 时代的「取龄推到 sim 时钟 ≥21.5s」已由小美 M2R4 复核自记作废——21.491s
-#   是那次 C9 跑恰好到的 sim 读数、不是机制阈值；机制阈值是下方 g5_sample 的 lim=1.0s 门与消费端
-#   mbf 的 3s tolerance。现行加压口径 = 取龄点 sim ≥60s（覆盖量）**或** 同跑两取龄点 sim 差 ≥40s。
-#   用法：G5_DELAY_SIM=62 bash m2_smoke.sh stageB ；缺省 0 = 不延时，行为与 M2R3 逐字一致（零回归）。
-#   达标与否**进 gate 字典参与 all()**（键 press_late_G5，R16：不许只打印不判定）。
-#   注：延时消耗的墙钟从 gate_t0 扣回——门控 120s 预算语义 = 环境就绪耗时上限，不含人为注入的观测延时，
-#       否则 G5/G5c2 会因预算被吃掉而假 FAIL。
+    print('SMOKE gate_%s=FAIL t=%.1fs %s' % (name, time.time() - gate_t0, DET.get(name, '?'))); return False
+ok_pose = gate_wait_d('pose_fresh_G5', fresh_pose)
+ok_obs  = gate_wait_d('obs_fresh_G5c2', fresh_obs)
+# 取龄必须走 tf2 Buffer（G5c1 结构哨兵沿用；老 tf.TransformListener 无 lookup_transform）
+import tf2_ros
+buf2 = tf2_ros.Buffer()
+tf2_listener = tf2_ros.TransformListener(buf2)
+def _age_of(a, b):
+    st = buf2.lookup_transform(a, b, rospy.Time(0), rospy.Duration(2.0))
+    s = st.header.stamp
+    if s == rospy.Time(0): return None, 'G5b_hit=zero_stamp'
+    return (rospy.get_rostime() - s).to_sec(), None
+def g5_sample(a, b, need=3, gap=0.2, lim=1.0):
+    ds = []
+    for _ in range(need):
+        d, why = _age_of(a, b)
+        if why: return False, why
+        if d > lim: return False, 'age=%.3f>%.1f' % (d, lim)
+        ds.append('%.3f' % d); time.sleep(gap)
+    return True, 'ages=[' + ','.join(ds) + ']'
+# —— 加压档（G5_DELAY_SIM）：同跑「取龄点2」，口径＝观测延时不计入门控预算（gate_t0 加回）。——
 import os
 G5_DELAY_SIM = float(os.environ.get('G5_DELAY_SIM', '0') or 0)
 def sim_wait_until(sec, budget=300.0):
@@ -313,14 +321,9 @@ def sim_wait_until(sec, budget=300.0):
         if rospy.get_rostime().to_sec() >= sec: return True
         time.sleep(0.5)
     return False
-ok_g5   = gate_wait_d('tf_fresh',        lambda: g5_sample('map', 'base_link'))
-ok_g5c2 = gate_wait_d('tf_fresh_mapodom', lambda: g5_sample('map', 'odom'))
+ok_g5b = True; ok_g5c2b = True; ok_press = True  # 未开档时三项恒真
 sim_after_p1 = rospy.get_rostime().to_sec()
 print('SMOKE SIMNOW point=age_sample_1 sim_now=%.2fs gate_t=%.1fs' % (sim_after_p1, time.time()-gate_t0))
-ok_g5b = True; ok_g5c2b = True; ok_press = True  # 未开档时三项恒真 ⇒ 与 M2R3 行为逐字等价
-# [M2R5/R3] 加压档 = 同跑「取龄点2」：延时到 sim 过线后再取一次龄，两点 sim 差即小美新口径的可打印量。
-#   记账方向为**加回** gate_t0（原 -= 反了：t 与预算皆按 现在减 gate_t0 计，减 t0 反使 t 变大，
-#   延时被计两次——fresh4 t=1.4 → fresh5 t=7.4、差 6.0 = 2×wall_spent 实证）。raw/adjusted 两个 t 都打。
 if G5_DELAY_SIM > 0:
     _raw_t = time.time() - gate_t0
     _w = time.time()
@@ -329,32 +332,23 @@ if G5_DELAY_SIM > 0:
     gate_t0 += _spent
     print('SMOKE G5_DELAY_SIM target=%.1fs reached=%s sim_now=%.2fs wall_spent=%.1fs t_raw=%.1fs t_adj=%.1fs'
           % (G5_DELAY_SIM, _r, rospy.get_rostime().to_sec(), _spent, _raw_t, time.time() - gate_t0))
-    ok_g5b   = gate_wait_d('tf_fresh_late',            lambda: g5_sample('map', 'base_link'))
-    ok_g5c2b = gate_wait_d('tf_fresh_mapodom_late',    lambda: g5_sample('map', 'odom'))
+    ok_g5b   = gate_wait_d('pose_fresh_late_G5', fresh_pose)
+    ok_g5c2b = gate_wait_d('obs_fresh_late_G5c2', fresh_obs)
     _sim2 = rospy.get_rostime().to_sec()
     _span = _sim2 - sim_after_p1
     print('SMOKE SIMNOW point=age_sample_2 sim_now=%.2fs gate_t=%.1fs sim_span_vs_point1=%.2fs'
           % (_sim2, time.time()-gate_t0, _span))
-    # R20：在用口径 = OR（M2R4 L377 原意，小美 M2R6 作废她 R16 的 AND 式表述）；
-    #   但 sim2>=60 一支必须同过辅门 span>=35，否则「环境慢起使 sim2 自然过 60」会算假达标（#12(a)）。
     _b_abs = (_sim2 >= 60.0 and _span >= 35.0)
     _b_span = (_span >= 40.0)
     ok_press = bool(_r) and (_b_abs or _b_span)
     print('SMOKE gate_press_late=%s branch=%s (reached=%s sim2=%.2f span=%.2f 判据=(sim2>=60 且 span>=35) 或 span>=40)'
           % ('PASS' if ok_press else 'FAIL',
              ('unreached' if not _r else ('abs+span' if _b_abs else ('span' if _b_span else 'NONE'))), _r, _sim2, _span))
-# G5c1 **自 M2R5 起为阻断 gate 项**：小美 M2R4 复核节判 L307 前置③成立（base_link 双父未修正而
-#   G5c1 7/7 全命中）⇒ 本档 M2R3 的「降级追认」作废，按 L307 原文回补进 gate 字典。
-#   调用形态与阈值一律未放宽：仍单次 g5_sample('odom','base_link')，need=3 / lim=1.0 / 零戳与首帧戳否决照旧。
+# G5c1（odom→base_link）自 M2R5 起为阻断门，本版原样保留：链无关的 xacro 结构哨兵
 _c1ok, _c1det = g5_sample('odom', 'base_link')
 ok_g5c1 = _c1ok
 print('SMOKE gate_G5c1(odom->base_link)=%s %s' % ('PASS' if ok_g5c1 else 'FAIL', _c1det))
-# —— [M2R4] E3：门控时刻对原始 /tf + /tf_static 直读一次（小美指定「一步定阴阳，最省」）——
-#   M2R4 首发已定阴阳：原始 /tf 上 odom→base_link 戳是新鲜的（发布侧无罪），病灶在图结构——
-#   xacro 的 fixed 关节 torso_to_base 使 base_link 同时有静态父 TORSO 与动态父 odom（双父）。
-#   M2R5/U1 反挂该关节后，本探针转任**回归哨兵**：期望签名 = base_link_parents 恰为 ['odom'] 单元素，
-#   且 static 行集里不出现任何 ->base_link 的边（应只见 base_link->TORSO 与 base_link->rslidar）。
-#   本探针仍只打印、不进 gate 字典（非阻断）；结构面判定归验收。
+# —— [M2R4] E3：门控时刻对原始 /tf + /tf_static 直读一次（只打印、不进 gate 字典）——
 from tf2_msgs.msg import TFMessage
 def e3_raw_tf(win=2.0):
     seen = []
@@ -377,7 +371,7 @@ def e3_raw_tf(win=2.0):
         print('SMOKE E3 tf %s->%s hits=%d last_stamp=%.3f age=%.3f%s'
               % (f, c, n, s.to_sec(), (now - s).to_sec(), ' [ZERO]' if s == rospy.Time(0) else ''))
     print('SMOKE E3 base_link_parents=%s transforms_total=%d'
-          % (sorted(par.get("base_link", [])), len(seen)))
+          % (sorted(par.get('base_link', [])), len(seen)))
     try:
         st = rospy.wait_for_message('/tf_static', TFMessage, timeout=3.0)
         for tr in st.transforms:
@@ -386,44 +380,53 @@ def e3_raw_tf(win=2.0):
     except Exception as e:
         print('SMOKE E3 static=ERR %s' % type(e).__name__)
 e3_raw_tf()
-gate = dict(map_data=ok_map, tf_robot=ok_tf, gcostmap_data=ok_gcm, lcostmap_data=ok_lcm,
-            tf_fresh_G5=ok_g5, tf_fresh_mapodom_G5c2=ok_g5c2, tf_fresh_G5c1=ok_g5c1,
-            tf_fresh_late_G5=ok_g5b, tf_fresh_mapodom_late_G5c2=ok_g5c2b, press_late_G5=ok_press)
+gate = dict(support_map=ok_smap, bt_lease=ok_bt, loc_ok=ok_loc, tf_robot=ok_tf,
+            pose_fresh_G5=ok_pose, obs_fresh_G5c2=ok_obs, tf_fresh_G5c1=ok_g5c1,
+            pose_fresh_late_G5=ok_g5b, obs_fresh_late_G5c2=ok_g5c2b, press_late_G5=ok_press)
 if not all(gate.values()):
     print('SMOKE gate=FAIL t=%.1fs %s' % (time.time()-gate_t0, gate)); raise SystemExit(2)
 print('SMOKE gate=PASS t=%.1fs' % (time.time()-gate_t0))
-g=MoveBaseGoal(); g.target_pose.header.frame_id='map'
-g.target_pose.header.stamp=rospy.Time.now()
-g.target_pose.pose.position.x=gx; g.target_pose.pose.position.y=gy
-g.target_pose.pose.orientation.w=1.0
-t0=rospy.get_rostime(); cli.send_goal(g)
+g=PoseStamped(); g.header.frame_id='map'; g.header.stamp=rospy.Time.now()
+g.pose.position.x=gx; g.pose.position.y=gy; g.pose.orientation.w=1.0
+pub=rospy.Publisher('/v8/bt/goal', PoseStamped, queue_size=5)
+time.sleep(0.5)
+t0=rospy.get_rostime(); t0w=time.time(); S['goal_sent']=True; pub.publish(g)
 print('SMOKE SIMNOW point=goal_send sim_now=%.2fs' % t0.to_sec())
-ok=cli.wait_for_result(rospy.Duration(120))
+outcome=''
+while not rospy.is_shutdown():
+    b=S['bts']
+    if b and b.get('outcome'):
+        outcome=str(b['outcome']); break
+    if rospy.get_rostime().to_sec()-t0.to_sec() > 120.0: break
+    if time.time()-t0w > 200.0: break   # 墙钟兜底：sim 停钟时不悬挂
+    time.sleep(0.2)
 dt=(rospy.get_rostime()-t0).to_sec()
 print('SMOKE SIMNOW point=goal_done sim_now=%.2fs dt=%.2f' % (rospy.get_rostime().to_sec(), dt))
 m=S['odom']; d=math.hypot(m.pose.pose.position.x-gx, m.pose.pose.position.y-gy)
 gd=math.hypot(S['gt'][0]-gx, S['gt'][1]-gy)
-print('SMOKE teb_state=%s dt=%.1fs dev_odom=%.3f dev_gt=%.3f'%(cli.get_state(), dt, d, gd))
+print('SMOKE bt_outcome=%s dt=%.1fs dev_odom=%.3f dev_gt=%.3f pose_class_errors=%d'
+      % (outcome or 'NONE', dt, d, gd, S['poseerr']))
 PYEOF
   cat "$LOGDIR/stageB.txt"
-  grep -q "SMOKE gate=FAIL" "$LOGDIR/stageB.txt" && {
-    # R20 四：判定行按键分类。press_late_G5 属**观测口径未达标**、G5/G5b/G5c1 属**TF 新鲜度回归**，
-    #   都不得再混打成「环境未就绪」（那是 map/costmap 类的本义），否则 FAIL 语义被抹成一类。
+  if grep -q "SMOKE gate=FAIL" "$LOGDIR/stageB.txt"; then
+    # R20 四：判定行按键分类。加压档属观测口径未达标、新鲜度/结构属回归，不得混打成「环境未就绪」。
     _k=$(grep -oE "'[a-zA-Z_0-9]+': False" "$LOGDIR/stageB.txt" | tr -d "':" | sed 's/^ *//' | paste -sd, -)
     case "$_k" in
-      *press_late_G5*) mark 0 "B: 门控未过（键=$_k ⇒ 加压档观测口径未达标，非环境故障、非 TF 回归）";;
-      *tf_fresh*|*G5c1*) mark 0 "B: 门控未过（键=$_k ⇒ 全局系 TF 时基新鲜度回归）";;
-      *)                 mark 0 "B: 门控未过（键=${_k:-未打印} ⇒ 环境未就绪，FAIL 环境）";;
+      *press_late_G5*) mark 0 "B: 门控未过（键=$_k ⇒ 加压档观测口径未达标，非环境故障、非输入新鲜度回归）";;
+      *fresh*|*G5c1*)  mark 0 "B: 门控未过（键=$_k ⇒ v8 输入新鲜度/结构回归）";;
+      *)               mark 0 "B: 门控未过（键=${_k:-未打印} ⇒ 环境未就绪，FAIL 环境）";;
     esac
-    return 1; }
+    return 1
+  fi
   grep -q "SMOKE gate=PASS" "$LOGDIR/stageB.txt" && mark 1 "B: 门控通过（≤120s，goal 前就绪）" || mark 0 "B: 门控结果缺失"
-  # [M2R3 2026-10-08 小张 §3] G6：goal 之后 pose 类 ERROR 命中数必须为 0
-  #   G5 系前置新鲜度门、G6 系后置哨兵——两者双保险，防「门控时刻新鲜、执行中途断流」漏检。
-  #   注：grep -c 计数为 0 时既输出 0 又退出码 1，故**不可**接 `|| echo 0`（会拼成 "0\n0" 两行，
-  #       使算术比较判假、把 0 命中误标 FAIL）——首版即踩此坑，已改为单值归一取数。
-  G6=$(grep -acE "Can not get the robot pose|Could not get the current robot pose|Most recent robot pose is" "$LOGDIR/tebB.log" 2>/dev/null | head -1)
-  G6=${G6:-0}
-  [ "$G6" -eq 0 ] 2>/dev/null && mark 1 "B/G6: goal 后 pose 类 ERROR=0" || mark 0 "B/G6: pose 类 ERROR=${G6} 命中（TF 时基新鲜度回归）"
+  # G6'（原 [M2R3] G6 的 v8 等价）：goal 之后 pose 类 ERROR 命中数必须为 0。
+  #   双面：status 采样（pose_class_errors，goal_sent 后才计数）＋ btB.log 文本哨兵。
+  #   grep -c 计数为 0 时退出码 1，故照旧用单值归一取数（坑：不可接 || echo 0）。
+  G6S=$(grep -o "pose_class_errors=[0-9]*" "$LOGDIR/stageB.txt" | head -1 | cut -d= -f2); G6S=${G6S:-0}
+  G6L=$(grep -acE "E_LOCAL_POSE_STALE|E_LOCAL_POSE_INVALID|E_LOCAL_LOCALIZATION" "$LOGDIR/btB.log" 2>/dev/null | head -1); G6L=${G6L:-0}
+  [ "$G6S" -eq 0 ] 2>/dev/null && [ "$G6L" -eq 0 ] 2>/dev/null \
+    && mark 1 "B/G6: goal 后 pose 类错误=0（status 0／日志 0）" \
+    || mark 0 "B/G6: pose 类错误 status=${G6S} 日志=${G6L} 命中（v8 输入新鲜度回归）"
   get() { grep -o "$1=[-0-9.e]*" "$LOGDIR/stageB.txt" | head -1 | cut -d= -f2; }
   D=$(get dev_odom); T=$(get dt)
   awk -v a="$D" 'BEGIN{exit !(a<=0.35)}' && mark 1 "B: 到达偏差 $D ≤0.35m" || mark 0 "B: 到达偏差 $D >0.35m"
@@ -578,11 +581,14 @@ PYEOF
   true
 }
 
+# 2026-11-21：段内提前中止（环境未就绪的 return 1）此前不落 mark ⇒ 顶层仍打印 PASS（假绿）。
+#   补：段返回非零且本段无其他失败 mark 时补一条 mark 0，使 SUMMARY/verdict 与段结果一致。
+abort_mark() { local seg=$1 rc=$2; [ "$rc" = 0 ] && return 0; [ "$NFMARK" -gt 0 ] && return 0; mark 0 "$seg: 段提前中止（环境未就绪，见上方 FAIL 行）"; }
 case "$STAGE" in
-  stageA) stage_a ;;
-  stageB) stage_b ;;
-  stageC) stage_c ;;
-  all) stage_a; cleanup; sleep 3; stage_b; cleanup; sleep 3; stage_c ;;
+  stageA) stage_a; abort_mark A $? ;;
+  stageB) stage_b; abort_mark B $? ;;
+  stageC) stage_c; abort_mark C $? ;;
+  all) stage_a; abort_mark A $?; cleanup; sleep 3; stage_b; abort_mark B $?; cleanup; sleep 3; stage_c; abort_mark C $? ;;
   *) echo "用法: $0 [stageA|stageB|stageC|all]"; exit 2 ;;
 esac
 

@@ -7350,3 +7350,35 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   MBF 的 launch/config 与 `lite3_costmap_layers` 代码保留，作 revert 路径。
 - **追认位**：架构方向由真人当场拍板；若改判，删除 `mode_sim_bt.launch` 即回退
   （现无其他件依赖它；旧 MBF 链逐字未动）。
+
+## 2026-11-21 / T-20261118-02 m2_smoke Stage B 迁至 BT+v8 链（判据面变更，挂账待追认）与拆仓悬空修复
+
+- 背景：取消 MBF 决策后，唯一在册判据路径 `m2_smoke.sh` 仍判 MBF+TEB。本批把 Stage B 执行链
+  迁到 BT+v8（`mode_sim_bt.launch`），**判据主体零改动**：goal＝起点+3 m、≤120 s sim、偏差
+  ≤0.35 m（dev_odom 口径，dev_gt 陪印）。
+- 就绪门换主题：MBF 面（/map、双 costmap、TF 新鲜度 G5/G5c2）→ v8 输入面（`/v8_support_map`、
+  `/v8/bt/lease`、`/v8/local/pose` 与 obstacles 新鲜度各 3×≤1.0 s、`localization_ok`）；
+  G5c1（odom→base_link 双父结构哨兵）与 E3 探针原样保留。G6 换 v8 等价：goal 后 pose 类错误＝0
+  （status 采样＋btB.log 文本哨兵双面）。
+- ★拆仓悬空（本批根因）★：仿真包物理拆仓后 ① `m2_smoke.sh` 的 SIM_PKG 仍写
+  `/home/ros1-slam/ws/src/95_simulation`（已不存在）⇒ 判据载体自举失败（这是「smoke 至今未跑」
+  的真实原因，不是没跑）；② `m2_gazebo.launch` 的 GAZEBO_PLUGIN_PATH 漏 `sim_ws/devel/lib`
+  ⇒ livox 插件 `liblivox_laser_simulation.so` 加载不到 ⇒ `/rslidar_points` 永不发布（首跑实证）。
+  修法：SIM_PKG 按脚本位置自推；插件路三路并置（sim_ws→主 ws→gazebo_ros，与 docker/sim.sh 同序）。
+- 另修一处假绿：段内环境未就绪的提前 `return 1` 不落 mark ⇒ 顶层仍打印 `M2 SMOKE: PASS`
+  （首跑实证：`FAIL B: /rslidar_points 未出` + `SUMMARY pass=5 fail=0` + `M2 SMOKE: PASS`）。
+  补 `abort_mark`：段返回非零且本段无失败 mark 时补一条 mark 0。
+- 实跑读数（2026-11-21，容器 x86_sim，ROS 11313/Gazebo 11345）：
+  **Stage B（迁移后）**：门控 support_map／bt_lease／loc_ok／tf_robot／pose_fresh[0.025,0.033,0.038]／
+  obs_fresh[0.065,0.055,0.047]／G5c1[0.000,0.012,0.004] 全 PASS；goal send sim 3.99 → done 16.07，
+  dt 12.08 s；BT `outcome=reached`；dev_odom＝dev_gt＝0.203；`pose_class_errors=0`；SUMMARY 9/0；
+  样张 sha 未变；退净三面 PASS。
+  **阴性对照**：同栈 `enable_bt:=false` ⇒ `/v8_support_map` 在、`/v8/bt/lease` 缺（5 s 超时）
+  ⇒ bt_lease 门可红（新增门有分辨力）。
+  **Stage A（回归）**：11/11 PASS，点云 10.0 Hz（修好前为缺）、IMU 200 Hz、drift 0.492、
+  飞点 0.0001、RTF 0.457。
+- 判据载体代际：07 表升 H15（`9db9eea5` 拆仓删件）／H16（`a74d9b2d` 子树合入）／H17（本提交）；
+  GTC 校验器改双布局解析（逐行按 commit 时点取存在路径，穷尽计数取两布局并集），
+  H1—H14 逐行现算保持全等（改后 --check 逐行无 FAIL，仅剩缺行）。
+- 追认位：Stage B 判据主体未动，就绪门主题更换属判据面变更，按 05 A3 挂账。若不认：revert
+  本提交即回退旧 Stage B（`mode_sim_bt.launch` 与 MBF 件均保留，旧链可原样再跑）。
