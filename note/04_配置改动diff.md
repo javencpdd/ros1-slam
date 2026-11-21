@@ -7567,3 +7567,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - r28（TEB min_obstacle_dist 0.05，仿真 A/B）：仍在 1.3761 m 不可行，且 TEB 警告足迹
   内切半径 0.2+0.05 < costmap 含 padding 的 0.3 ⇒ 非最小间距单一判据；已还原。
 - 三跑均未改判据/在册值；TEB 不可行根因继续定位（下一步查 costmap_converter 聚簇几何）。
+- r29（TEB costmap_converter_plugin 置空，仿真 A/B）：仍在 1.3944 m 不可行 ⇒ 非聚簇凸包；
+  已还原。
+- r30（TEB enable_homotopy_class_planning=false）：仍在 1.3549 m 不可行 ⇒ 非 homotopy 多类；
+  已还原。
+- r31（静态 make_plan）：3 m 全局路径为直线 y=0（61 点），排除全局路径拐弯。
+- r32（运行中抓 GT/TF/局部图中心）：GT=1.205 时 TF=1.228、局部图中心≈1.20，**无 0.6 m 位姿
+  滞后**；1.36 m 中止与足迹内格无关的结论保持。TEB 不可行的内部判据仍未定位，暂停该线
+  （连续 4 组否定 A/B），转 P1 拆层；后续诊断需 TEB 内部读数。
