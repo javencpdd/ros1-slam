@@ -7,7 +7,7 @@ from pathlib import Path
 
 # 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
 HERE = Path(__file__).resolve().parent.parent
-PLATFORM = HERE.parent
+PLATFORM = HERE.parents[2] / '90_platform/v8_platform'
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 import contact_egress

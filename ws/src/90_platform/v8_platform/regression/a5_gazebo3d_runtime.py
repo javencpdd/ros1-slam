@@ -19,7 +19,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-LOCAL = HERE.parent / 'local_planner'
+LOCAL = (Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/local_planner')
 SCRIPTS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'scripts'
 EXPERIMENTAL = {'tick_s': 1.2, 'horizon_s': 6.0, 'validity_s': 6.0, 'clearance_m': .1}
 

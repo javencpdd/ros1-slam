@@ -14,7 +14,7 @@ HERE = Path(__file__).resolve().parent.parent
 
 
 def flat():
-    value = json.loads((HERE.parent / 'contracts/fixtures/map_single_floor.json').read_text())
+    value = json.loads((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts/fixtures/map_single_floor.json').read_text())
     value['surfaces'][0]['footprint'].update(min_x=-2.0, max_x=3.0, min_y=-2.0, max_y=2.0)
     return value
 

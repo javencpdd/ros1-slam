@@ -5,7 +5,7 @@ import sys
 
 import rospkg
 
-sys.path.insert(0, os.path.join(rospkg.RosPack().get_path('v8_platform'), 'local_planner'))
+sys.path.insert(0, os.path.join(rospkg.RosPack().get_path('v8_algorithm'), 'local_planner'))
 
 import ros_node as local_planner_node  # noqa: E402
 

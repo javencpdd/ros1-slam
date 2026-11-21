@@ -12,6 +12,7 @@ from pathlib import Path
 _sys_root = Path(__file__).resolve().parents[1]
 if str(_sys_root) not in sys.path:
     sys.path.insert(0, str(_sys_root))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '90_platform/v8_platform'))
 from common.pose_safety import finite_number  # noqa: E402
 
 

@@ -253,7 +253,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'E_LOCAL_CANCELLED')
 
     def test_prohibited_robot_profile_is_not_promoted(self):
-        profile = json.loads((HERE.parent / 'contracts/fixtures/robot_lite3_design.json').read_text())
+        profile = json.loads((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts/fixtures/robot_lite3_design.json').read_text())
         with self.assertRaises(native.LocalError) as caught:
             native.plan(flat(), (0., 0., 0.), (1., 0., 0.), robot_profile=profile)
         self.assertEqual(caught.exception.code, 'E_TRAJ_CAPABILITY_UNVERIFIED')

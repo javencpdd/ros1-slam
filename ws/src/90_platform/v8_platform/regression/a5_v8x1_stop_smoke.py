@@ -22,11 +22,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-LOCAL = HERE.parent / 'local_planner'
+LOCAL = (Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/local_planner')
 DYNAMICS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'dynamics'
 sys.path.insert(0, str(DYNAMICS))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')))
-sys.path.insert(0, str(HERE.parent / 'local_planner'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/local_planner')))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 import support_planner  # noqa: E402
 
@@ -276,7 +276,7 @@ def main():
         node = start(node_argv, node_log.open('ab'), cwd=str(LOCAL),
                      env=dict(os.environ, PYTHONPATH=str(DYNAMICS) + ':' +
                               str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')) + ':' +
-                              str(HERE.parent / 'local_planner') + ':' +
+                              str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/local_planner')) + ':' +
                               str(HERE.parent / 'contracts') + ':' +
                               os.environ.get('PYTHONPATH', '')))
         bridge = start(bridge_argv, bridge_log.open('ab'), cwd=str(DYNAMICS))

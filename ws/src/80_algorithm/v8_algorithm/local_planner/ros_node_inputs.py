@@ -16,7 +16,7 @@ from pathlib import Path
 import local_native as native
 from ros_node_signals import _local_pose_reason
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '90_platform/v8_platform'))
 from common.pose_safety import (PoseError, PoseFreshness, finite_number,
                                 finite_vector, normalized_quaternion)
 

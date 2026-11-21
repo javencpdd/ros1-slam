@@ -131,7 +131,7 @@ class PreflightTests(unittest.TestCase):
         root = ET.fromstring(render.render_launch(graph, catalog, report))
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type'), node.get('name')),
-                         ('v8_platform', 'local_planner/ros_node.py', 'local'))
+                         ('v8_algorithm', 'local_planner/ros_node.py', 'local'))
         loads = [item.get('file') for item in node.findall('rosparam')]
         self.assertTrue(any(item.endswith('configs/local_native.yaml') for item in loads))
         self.assertEqual(report['bindings']['local']['map']['schema'], 'support_map/v1')
@@ -170,7 +170,7 @@ class PreflightTests(unittest.TestCase):
         root = ET.fromstring(render.render_launch(graph, catalog, report))
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type')),
-                         ('v8_platform', 'local_planner/pose_mux_node.py'))
+                         ('v8_algorithm', 'local_planner/pose_mux_node.py'))
 
     def test_command_overlap_graph_keeps_single_arbiter(self):
         catalog = config.load_components(MANIFESTS)
@@ -192,7 +192,7 @@ class PreflightTests(unittest.TestCase):
         root = ET.fromstring(render.render_launch(graph, catalog, report))
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type')),
-                         ('v8_platform', 'planner/topic_node.py'))
+                         ('v8_algorithm', 'planner/topic_node.py'))
 
     def test_real_3d_chain_wires_cache_merge_and_planners(self):
         catalog = config.load_components(MANIFESTS)

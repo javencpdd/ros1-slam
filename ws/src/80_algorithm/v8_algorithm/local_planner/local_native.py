@@ -14,8 +14,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 for _directory in ('contracts', 'validator'):
-    sys.path.insert(0, str(ROOT / _directory))
-sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/representation'))
+    sys.path.insert(0, str(ROOT.parent.parent / '90_platform/v8_platform' / _directory))
+sys.path.insert(0, str(ROOT / 'representation'))
 import validate as contract
 import trajectory_checker as checker
 import enforcement

@@ -25,7 +25,7 @@ import support_map  # noqa: E402  夹具里造双层支撑面要用它的构造�
 
 def flat(ymin=-2.0, ymax=2.0):
     """单层平面场景：把 contract 夹具的 footprint 改成指定 y 范围。"""
-    value = json.loads((HERE.parent / 'contracts/fixtures/map_single_floor.json').read_text())
+    value = json.loads((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform' / 'contracts/fixtures/map_single_floor.json').read_text())
     value['surfaces'][0]['footprint'].update(min_x=-2.0, max_x=3.0, min_y=ymin, max_y=ymax)
     return value
 

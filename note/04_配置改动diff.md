@@ -7602,3 +7602,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 全量构建：`/tmp/ws_b1` 独立空间首建在 fast_gicp/livox_laser_simulation 处两次 `cc1plus`
   被 OOM kill（JOBS=4/2），非新包编译错误；构建闭包已含 v8_algorithm。待 JOBS=1 或内存窗口
   重跑收口。
+
+## 2026-11-21 / T-20261118-02 B3：local_planner 迁入 v8_algorithm
+
+- `local_planner/` 整目录 git mv；修包内 `ros_node*` 的 common 平台根、evaluate 的 validator
+  锚、test_local_native_tolerance/ map_update/ contact_egress 等相对路径、contracts/fixtures
+  字符串；平台侧 regression 循环与 `LOCAL`/PYTHONPATH、scripts 的 get_path、manifest 包名、
+  package_index executables、delivery/verify/framework 期望包名同批更新。
+- 验收：local_planner 161、planner 48、validator 27、scenarios 7、calibration 63、delivery 5、
+  framework 30/13/12/18、regression test_a4 10/test_regression 9/test_a5_cross 4/
+  test_a5_v8x1_stop 4 全 OK。全量构建仍受宿主 OOM 限制，待 JOBS=1/内存窗口。

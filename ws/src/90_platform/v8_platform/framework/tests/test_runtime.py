@@ -129,7 +129,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(payload['config_path'], local['config'])
         self.assertEqual((payload['name'], payload['namespace']), ('local', None))
         self.assertEqual(payload['argv'][:3],
-                         ['rosrun', 'v8_platform', 'local_planner/ros_node.py'])
+                         ['rosrun', 'v8_algorithm', 'local_planner/ros_node.py'])
         self.assertIn('__name:=local', payload['argv'])
         Path(command[2]).unlink()
         plugin_plan, plugin_catalog = plan_for(GPLUGIN)

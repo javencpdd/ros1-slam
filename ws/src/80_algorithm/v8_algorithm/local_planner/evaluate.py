@@ -9,7 +9,7 @@ import math
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'validator'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '90_platform/v8_platform/validator'))
 import trajectory_checker
 
 

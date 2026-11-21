@@ -17,7 +17,7 @@ from contact_egress import ContactEgress, simulation_contact_egress
 from ros_node_signals import (NON_LATCHING, feedback_at, feedback_uncertainty,
                               freshness, _local_pose_reason, stop_reason)
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '90_platform/v8_platform'))
 from common.pose_safety import (PoseError, PoseFreshness, finite_number, finite_vector,
                                 map_to_body_planar, normalized_quaternion)
 
