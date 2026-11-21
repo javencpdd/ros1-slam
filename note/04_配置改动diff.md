@@ -7684,3 +7684,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - r41：DWA + ANYbotics elevation_mapping + 近距过滤 1 m 窗口 **PASS**（`BT_NATIVE_RUNTIME_RC=0`，
   verdict PASS；golden 目标 1 m；lease/取消/无效目标用例全过）。候选仍为 opt-in，默认 native。
 - 自测：`pointcloud_range_filter.py --selftest` OK；高程/过滤启动参数与 54 帧 GridMap 在 launch.log。
+
+## 2026-11-21 / T-20261118-02 最终 Stage A
+
+- 最终 devel 上 `m2_smoke stageA` **PASS 11/0**：out/turn/back 全 done、漂移 0.482≤0.5 m、
+  点云 9.8≥5 Hz、IMU 200.0≥100 Hz、飞点 0.0001<1%、RTF 0.433≥0.25、样张 sha 未变、
+  退净四口零新增。日志 `evidence/bt_native/final_accept/smokeA/`。
+- Stage A+B 均绿；Stage C（hdl 重定位）未在本轮跑（样张 pcd 已按真人指示退役，属定位面）。
