@@ -7751,3 +7751,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `cell_snap`（M6 提交 182bf9ab，2026-11-18，只统一 support_map↔elevation 一对），support_map
   contains_xy 亦 cell_snap ⇒ 现状即所选口径，**无需改动**。
 - 复验：test_elevation 12/12、test_support_map 12/12 OK。05 挂账为既有 M6 记录。
+
+## 2026-11-21 / T-20261118-02 P1-4 高程链单点依赖闭环（无代码变更）
+
+- 实测当前架构非 costmap 消费者已存在：`manifest_gait_guard.json` 装配
+  `framework/nodes/stair_gait_guard_node.py`，订阅 `/elevation_mapping/elevation_map`
+  （GridMap）→ TerrainObserver 影子通道（对 costmap 插件之外的第二消费者）。
+- 验收：`test_gait_guard_wiring` 10/10、`test_terrain_observer` 9/9 OK；“只被 costmap 插件消费”
+  的勘察结论已过时。P1 四项（90_platform/v8_grid/lite3_task/高程单点）全部闭环。
