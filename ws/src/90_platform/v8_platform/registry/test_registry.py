@@ -160,14 +160,19 @@ class RegistryTests(unittest.TestCase):
         self.assertEqual(out['reason'], 'E_PROV_UNKNOWN_ID')  # 核心 manifest 未落地前 fail-closed
 
     def test_core_manifests_with_provenance(self):
-        """核心格 13 份真实 manifest 全部过契约校验，provenance 全量挂载零缺口。"""
+        """核心格 13 份真实 manifest 全部过契约校验，provenance 全量挂载零缺口。
+
+        2026-11-22：`v8.representation.costmap_layers` 随 lite3_costmap_layers 整包退役
+        （移入 archive/2026-11-22_lite3_costmap_layers，真人裁定甲2）⇒ 清单与来源表同步删，
+        总数 14→13、tested 2→1；declared 仍是 12（被删的那份原属 tested，不在 declared 里）。
+        """
         r = reg.Registry().load_dir(HERE / 'data' / 'manifests')
         r.load_provenance(HERE / 'data' / 'provenance_core.json')
-        self.assertEqual(len(r.entries), 14)
-        self.assertEqual(len(r.provenance), 14)
+        self.assertEqual(len(r.entries), 13)
+        self.assertEqual(len(r.provenance), 13)
         self.assertEqual(r.unprovenanced(), [])
         sep = r.evidence_separation()
-        self.assertEqual(sep['tested'], ['v8.local_planner.scan_planner', 'v8.representation.costmap_layers'])
+        self.assertEqual(sep['tested'], ['v8.local_planner.scan_planner'])
         self.assertEqual(len(sep['declared']), 12)
         self.assertEqual(sorted(e['id'] for e in r.by_role('controller')),
                          ['v8.controller.dwa_adapter', 'v8.controller.teb_adapter'])

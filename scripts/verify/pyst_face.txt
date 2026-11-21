@@ -45,7 +45,8 @@ ws/src/40_navigation/lite3_scan/verify/p4_layer_probe.py
 ws/src/40_navigation/lite3_scan/verify/p4_prepost_probe.py
 ws/src/40_navigation/lite3_scan/verify/p4_replan.py
 ws/src/40_navigation/lite3_scan/verify/p4_selfmask_probe.py
-ws/src/50_task/lite3_task/scripts/task_smach_min.py
+# 2026-11-22 清理失效条目：`lite3_task/scripts/task_smach_min.py` 随 lite3_task 归档，本面未同步
+#   清理 ⇒ PYST 报「文件不存在」而红。已剔除，面条目 61→60。
 ws/src/60_safety/lite3_safety/scripts/safe_cmd_vel_mux.py
 ws/src/70_bringup/lite3_bringup/scripts/map_snapshot_pub.py
 ws/src/70_bringup/lite3_bringup/scripts/sim_map_bridge.py
@@ -76,8 +77,20 @@ note/进度/v7/S1/SCAN集成/设计/scripts/t3_decidable_input_offline.py
 # ★R488 刷新（批128 归档件补入面清单，**追溯补齐、非新增件**；发现于 04 R484/批134、落地于本批 R488）：新增 `note/进度/v7/S1/SCAN集成/设计/scripts/reformat00_字符不丢证伪_留档.py` ⇒ 清单数 59→**60**＝派生式现拼数 60（两次同数＝验收式过；反向差集为空 ⇒ 无失效条目；正向差集仅此一条）。★该件是 R478（批128）按「已被证伪的件：原样保 sha、结论另起、不得修好再归档」归档进去的留档件，当时只落了档、**没刷本面清单** ⇒ 造成 59↔60 差 1、三批未登记（见 04 R484）。★实测（本批复跑、单件）它过 PYST 干净＝`py_compile` OK、`pyflakes` 未定义名 0、`PY STATIC OK（被检件数=1）` rc=0；★它是"已被证伪的件"，进面只为让它受静态检查，**不因此获得任何正确性背书**★。★R 号注记★＝本记录初稿误标 R485（该号已被批135 C1 锚修复占用），提交前现查 04 已用号段改回 R488——★面文件刷新记录里的 R 号必须先查再用、不得占用已用号★（05 追加七十四）。
 note/进度/v7/S1/SCAN集成/设计/scripts/derive_stvl_mark.py
 # ★R571 刷新（批223：真人 2026-10-22 裁「优化零＝勾丙」落地件＝高程 2.5D 网格最小生产者）：新增 `ws/src/40_navigation/lite3_costmap_layers/scripts/elevation_gridmap_publisher.py` ⇒ 清单数 60→**61**＝派生式现拼数 61（两次同数＝验收式过；反向差集为空 ⇒ 无失效条目；正向差集仅此一条）。★该件是**生产面**件（不是留档件），落在批220 新立的 lite3_costmap_layers 包（非壳包、可放源码）；PYST 单件实测干净＝`py_compile` OK、`pyflakes` 未定义名 0、`PY STATIC OK（被检件数=1）` rc=0。★同批新增的 `elevation_probe.sh` 是 .sh（由 SYN 面按 git 索引派生，不在本清单）。
-# 2026-11-21 移层：本件随 lite3_costmap_layers 移入 30_perception（ISO [9] 结构修复，真人勾选⑥）；
-# 上面 R571 段原文不回改，以本两行为现读路径。
-ws/src/30_perception/lite3_costmap_layers/scripts/elevation_gridmap_publisher.py
+# 2026-11-21 移层：本件随 lite3_costmap_layers 移入 30_perception（ISO [9] 结构修复，真人勾选⑥）；上面 R571 段原文不回改。
+# 2026-11-22 退役：B 链取消，该包整包移入 archive/2026-11-22_lite3_costmap_layers（真人裁定甲2），
+#   本面按派生式（find ws/src …）同步剔除该行 ⇒ 清单数 62→61。archive/ 不参与 catkin 构建，故归档副本不再受 PYST；
+#   ★剔除不等于它曾经通过，只表示它已不在检查面上★。
 # ★R572 刷新（批224：真机面 tf 帧源唯一性断言件落盘＝「配置面已、运行面未生效」取证过程中新立）：新增 `ws/src/95_simulation/lite3_gazebo_sim/scripts/tf_frame_assert.py` ⇒ 清单数 61→**62**＝派生式现拼数 62（两次同数＝验收式过；反向差集为空 ⇒ 无失效条目；正向差集仅此一条）。★该件是**生产面**件，与同批 `world_load_assert.py`（R565）同目录、同形态（读 `/tf` 与 `/tf_static`，对 `child_frame_id == protected_child` 收集父帧集合，`len>1` ⇒ rc=1）⇒ 落入本清单正因它是**闸门件**、闸门自身必须受静态检查。PYST 单件实测干净＝`py_compile` OK、`pyflakes` 未定义名 0、`PY STATIC OK（被检件数=1）` rc=0。★同批新增的 `.r572_*.sh` 是容器内临时诊断件（落 `/opt/ros1-slam/`、不入仓、不在本清单、不入 SYN 面）。
 subprojects/simulation/ws/src/lite3_gazebo_sim/scripts/tf_frame_assert.py
+# 2026-11-22 补面（T-20261122-01）：本轮改动的 4 件此前不在任何门禁面内 ⇒ 补入本面，条目数 60→**64**。
+#   四条同一理由＝「本轮改动件必须受检」。其中 `v8_isolation.py` 是 ISO 闸门件本身，本面 R572 段在册原则
+#   明写「闸门自身必须受静态检查」⇒ 闸门件不在面内属客观缺口，不是取舍。
+#   ★不做派生式全量对齐★：派生式现拼 96 件，与本面正向差集 47 条（多为历史未入面件＋ M0 归档快照
+#   `note/进度/v8/M0/26-10-25/packages_R625/source-snapshot/…`，快照副本不入面）。本面是**写死门用面**，
+#   只修客观缺口、不做推断性对齐。反向核对＝写死面另有 11 条 `subprojects/…` 不在派生式内，属有意扩展（文件均在位）。
+#   四条单件实测均干净：`py_compile` OK、`pyflakes` 未定义名 0、`PY STATIC OK（被检件数=4）` rc=0。
+scripts/agent/bridge.py
+scripts/agent/test_bridge_gates.py
+scripts/verify/test_v8_isolation.py
+scripts/verify/v8_isolation.py

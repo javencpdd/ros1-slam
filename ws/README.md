@@ -51,8 +51,8 @@
 | `lite3_perception` | [README](src/30_perception/lite3_perception/README.md) |
 | `lite3_navigation` | [README](src/40_navigation/lite3_navigation/README.md) |
 | `lite3_scan` | [README](src/40_navigation/lite3_scan/README.md) |
-| `lite3_costmap_layers` | [README](src/40_navigation/lite3_costmap_layers/README.md) |
-| `lite3_task` | [README](src/50_task/lite3_task/README.md) |
+| ~~`lite3_costmap_layers`~~ | 2026-11-22 退役（B 链取消）→ [archive](../archive/2026-11-22_lite3_costmap_layers/) |
+| ~~`lite3_task`~~ | 2026-11-21 归档 → [archive](../archive/lite3_task/) |
 | `lite3_safety` | [README](src/60_safety/lite3_safety/README.md) |
 | `lite3_bringup` | [README](src/70_bringup/lite3_bringup/README.md) |
 | `lite3_supervisor` | [README](src/90_supervisor/lite3_supervisor/README.md) |

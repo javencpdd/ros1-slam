@@ -12,7 +12,8 @@
   <exec_depend>teb_local_planner</exec_depend>
   <exec_depend>costmap_2d</exec_depend>
   <exec_depend>costmap_converter</exec_depend>
-  <exec_depend>lite3_costmap_layers</exec_depend>
+  <!-- 2026-11-22 退役：lite3_costmap_layers 整包移入 archive/（B 链取消，真人裁定甲2）。
+       它的地形判据在 A 链由 local_native 的 map_topic=/v8_support_map 承担。 -->
   <!-- Legacy SUP heartbeat and optional visualization. -->
   <exec_depend>rostopic</exec_depend>
   <exec_depend>std_msgs</exec_depend>

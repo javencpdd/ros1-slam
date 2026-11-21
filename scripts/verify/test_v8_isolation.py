@@ -17,9 +17,8 @@ class IsolationTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.nav = self.root / 'ws/src/40_navigation'
         shutil.copytree(iso.HERE.parent.parent / 'ws/src/40_navigation', self.nav)
-        self.plugin = self.root / 'ws/src/30_perception/lite3_costmap_layers'
-        shutil.copytree(iso.HERE.parent.parent / 'ws/src/30_perception/lite3_costmap_layers',
-                        self.plugin)
+        self.plugin = self.root / iso.PLUGIN_ARCHIVE_REL
+        shutil.copytree(iso.HERE.parent.parent / iso.PLUGIN_ARCHIVE_REL, self.plugin)
 
     def check(self):
         iso.check_navigation(self.root)
@@ -30,6 +29,27 @@ class IsolationTests(unittest.TestCase):
 
     def test_current_snapshot(self):
         self.check()
+
+    # ---- 2026-11-22 甲2：插件包位置四态（在位／归档／双份／全缺）
+    def test_plugin_live_placement_accepted(self):
+        live = self.root / iso.PLUGIN_LIVE_REL
+        shutil.copytree(self.plugin, live)
+        shutil.rmtree(self.plugin)
+        self.check()
+
+    def test_plugin_duplicate_placement_rejected(self):
+        shutil.copytree(self.plugin, self.root / iso.PLUGIN_LIVE_REL)
+        self.reject()
+
+    def test_plugin_absent_everywhere_rejected(self):
+        shutil.rmtree(self.plugin)
+        self.reject()
+
+    def test_plugin_archived_content_still_pinned(self):
+        # 归档分支必须校验内容，不能只要目录在就算过。
+        p = self.plugin / 'plugins.xml'
+        p.write_text(p.read_text().replace('ElevationMergedLayer', 'OtherLayer'))
+        self.reject()
 
     def test_shell_injection_and_recovery(self):
         p = self.nav / 'lite3_navigation/injected.cpp'

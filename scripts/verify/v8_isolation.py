@@ -18,6 +18,58 @@ PACKAGES = {'lite3_navigation', 'lite3_scan'}
 SOURCES = set()
 SUFFIXES = {'.c', '.cc', '.cpp', '.cxx', '.c++', '.CPP', '.h', '.hh', '.hpp', '.hxx', '.C', '.H'}
 
+# 2026-11-22（真人裁定「甲2 双分支」）：costmap 插件包退役，整包移入 archive/。
+# 判据不是删掉，而是**两头都看着**：
+#   ① 在 ws/src 里 ⇒ 照旧校验内容（防止有人悄悄放回来一份改过的）
+#   ② 只在 archive 里 ⇒ 校验归档副本完整（防止「移了个空壳」或归档后被改）
+#   ③ 两头都有 ⇒ 直接拒（静默双份：一处改了另一处不知道，比缺还难查）
+#   ④ 两头都没有 ⇒ 直接拒
+PLUGIN_NAME = 'lite3_costmap_layers'
+PLUGIN_LIVE_REL = 'ws/src/30_perception/lite3_costmap_layers'
+PLUGIN_ARCHIVE_REL = 'archive/2026-11-22_lite3_costmap_layers'
+
+
+def check_plugin_contents(plugin):
+    """校验一份插件包目录的契约（在位与归档两条分支共用同一套断言）。"""
+    # CMake is executable: pin the inspected declaration instead of accepting a regex match in dead code.
+    if sha((plugin / 'CMakeLists.txt').read_bytes()) != CMAKE_SHA:
+        raise ValueError('plugin CMake declaration differs from inspected snapshot')
+    package = ET.parse(plugin / 'package.xml').getroot()
+    if package.tag != 'package' or package.findtext('name') != PLUGIN_NAME:
+        raise ValueError('plugin package identity mismatch')
+    exports = package.findall('export')
+    if (len(exports) != 1 or len(exports[0]) != 1 or exports[0][0].tag != 'costmap_2d'
+            or exports[0][0].attrib != {'plugin': '${prefix}/plugins.xml'}):
+        raise ValueError('plugin export mismatch')
+    library = ET.parse(plugin / 'plugins.xml').getroot()
+    if (library.tag != 'library' or library.attrib != {'path': 'lib/liblite3_costmap_layers'}
+            or len(library) != 1 or library[0].tag != 'class'
+            or library[0].attrib != {'type': 'lite3_costmap_layers::ElevationMergedLayer',
+                                     'base_class_type': 'costmap_2d::Layer'}
+            or any(child.tag != 'description' for child in library[0])):
+        raise ValueError('plugin class or library mismatch')
+
+
+def check_plugin_placement(root):
+    """插件包的位置与内容必须落在四种状态之一；返回一条给人看的状态说明。"""
+    live = root / PLUGIN_LIVE_REL
+    archived = root / PLUGIN_ARCHIVE_REL
+    live_here = os.path.lexists(str(live))
+    archived_here = os.path.lexists(str(archived))
+    if live_here and archived_here:
+        raise ValueError('plugin present both in ws/src and archive; refusing a silent duplicate')
+    if live_here:
+        if not live.is_dir() or live.is_symlink():
+            raise ValueError('moved costmap plugin package is not a plain directory')
+        check_plugin_contents(live)
+        return 'moved to 30_perception'
+    if archived_here:
+        if not archived.is_dir() or archived.is_symlink():
+            raise ValueError('archived costmap plugin package is not a plain directory')
+        check_plugin_contents(archived)
+        return 'retired to archive/2026-11-22_lite3_costmap_layers'
+    raise ValueError('moved costmap plugin package missing from both ws/src and archive')
+
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
@@ -51,27 +103,8 @@ def check_navigation(root):
         raise ValueError('package set mismatch: ' + repr(sorted(found_packages)))
     if found_sources != SOURCES:
         raise ValueError('source set mismatch: ' + repr(sorted(found_sources)))
-    plugin = root / 'ws/src/30_perception/lite3_costmap_layers'
-    if not plugin.is_dir() or plugin.is_symlink():
-        raise ValueError('moved costmap plugin package missing')
-    # CMake is executable: pin the inspected declaration instead of accepting a regex match in dead code.
-    if sha((plugin / 'CMakeLists.txt').read_bytes()) != CMAKE_SHA:
-        raise ValueError('plugin CMake declaration differs from inspected snapshot')
-    package = ET.parse(plugin / 'package.xml').getroot()
-    if package.tag != 'package' or package.findtext('name') != plugin.name:
-        raise ValueError('plugin package identity mismatch')
-    exports = package.findall('export')
-    if (len(exports) != 1 or len(exports[0]) != 1 or exports[0][0].tag != 'costmap_2d'
-            or exports[0][0].attrib != {'plugin': '${prefix}/plugins.xml'}):
-        raise ValueError('plugin export mismatch')
-    library = ET.parse(plugin / 'plugins.xml').getroot()
-    if (library.tag != 'library' or library.attrib != {'path': 'lib/liblite3_costmap_layers'}
-            or len(library) != 1 or library[0].tag != 'class'
-            or library[0].attrib != {'type': 'lite3_costmap_layers::ElevationMergedLayer',
-                                     'base_class_type': 'costmap_2d::Layer'}
-            or any(child.tag != 'description' for child in library[0])):
-        raise ValueError('plugin class or library mismatch')
-    print('[9-v8] approved packages=2 sources=0; plugin moved to 30_perception', flush=True)
+    plugin_state = check_plugin_placement(root)
+    print('[9-v8] approved packages=2 sources=0; plugin ' + plugin_state, flush=True)
 
 
 def derive_legacy(raw):

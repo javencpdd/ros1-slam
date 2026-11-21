@@ -58,7 +58,8 @@ class ManifestVersionTests(unittest.TestCase):
 
     def test_v1_registry_still_loads(self):
         store = reg.Registry().load_dir(V1)
-        self.assertEqual(len(store.entries), 14)
+        # 2026-11-22：costmap_layers 清单随包退役删除 ⇒ 14→13。
+        self.assertEqual(len(store.entries), 13)
         entry = store.get('v8.controller.dwa_adapter')
         self.assertIn('io', entry)
         self.assertEqual(entry['io']['map_schema'], 'occupancy_grid/v1')

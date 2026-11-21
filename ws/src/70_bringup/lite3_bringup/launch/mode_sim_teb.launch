@@ -18,28 +18,10 @@
     <param name="value" value="0.5"/>
     <param name="rate" value="2.0"/>
   </node>
-  <arg name="elevation_source" default="native"/>
-  <group if="$(eval arg('elevation_source') == 'native')">
-    <node pkg="lite3_costmap_layers" type="elevation_gridmap_publisher.py" name="elevation_gridmap_publisher" output="screen">
-      <param name="stale_timeout" value="1.0"/>
-    </node>
-  </group>
-  <group if="$(eval arg('elevation_source') == 'elevation_mapping')">
-    <node pkg="lite3_costmap_layers" type="pointcloud_range_filter.py" name="pointcloud_range_filter" output="screen">
-      <param name="input_topic" value="/rslidar_points"/>
-      <param name="output_topic" value="/rslidar_points_filtered"/>
-      <param name="min_range" value="0.5"/>
-      <param name="max_range" value="0.0"/>
-    </node>
-    <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="screen">
-      <rosparam command="load" file="$(find lite3_costmap_layers)/config/elevation_mapping_sim.yaml"/>
-      <param name="input_sources/rslidar/topic" value="/rslidar_points_filtered"/>
-    </node>
-  </group>
-  <!-- Sensor TTL is explicit and simulation-only; production must configure its own budget. -->
-  <arg name="elevation_ttl_s" default="1.0"/>
-  <param name="/navigation_executor/global_costmap/elevation_merged_layer/input_timeout_s" value="$(arg elevation_ttl_s)"/>
-  <param name="/navigation_executor/local_costmap/elevation_merged_layer/input_timeout_s" value="$(arg elevation_ttl_s)"/>
+  <!-- 2026-11-22 退役：高程源两条分支（native 假源／真源+滤波）都依赖 lite3_costmap_layers，
+       该包已整包移入 archive/2026-11-22_lite3_costmap_layers（B 链取消，真人裁定甲2）。
+       本 launch 属 B 链，地形层随包一并退役；A 链地形判据走 local_native 的
+       map_topic=/v8_support_map。恢复办法见 archive/README.md。 -->
   <!-- BT budget/diagnostics need a pose even though move_base plans from TF. -->
   <node pkg="lite3_gazebo_sim" type="sim_pose_source.py" name="sim_pose_source" output="screen">
     <param name="src_topic" value="/sim/odom_gt"/>

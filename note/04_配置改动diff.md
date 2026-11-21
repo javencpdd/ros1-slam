@@ -7789,3 +7789,47 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   假红比闸门闭眼更坏，人会学会无视它。
 - 自测 `scripts/agent/test_bridge_gates.py`（新建）：35 条断言／5 组。两次注入
   （摘 `claim` 闸、摘 `done` 双闸）各令对应用例转红，证明判据确有牙；未注入时 35 条全绿。
+
+## 2026-11-22 / T-20261122-01 lite3_costmap_layers 整包退役（B 链取消）
+
+- 旧值：`ws/src/30_perception/lite3_costmap_layers/` 在位，承载 B 链（高程层合并）的
+  `ElevationMergedLayer` 插件与高程生产者。新值：整包 `git mv` 入
+  `archive/2026-11-22_lite3_costmap_layers/`（11 个文件，git 记作 R）。理由＝B 链取消，
+  A 链（SCAN 按调用方给的 z 做地形语义）成为唯一地形路线（真人 2026-11-22 裁定）。
+- 同步 9 处，缺一处就是「包已不在、引用还在」：`tooling/build/profiles.json` 三处移除；
+  `lite3_navigation/config/costmap_common.yaml` 删 `elevation_merged_layer` 参数块（留 7 行注记）；
+  `global_costmap_params.yaml`／`local_costmap_params.yaml` 删插件类声明；`package.xml` 删
+  `<exec_depend>`；`mode_sim_teb.launch` 删 `elevation_source` 两分支与 `elevation_ttl_s` 两处
+  param；注册表删清单文件并从 `provenance_core.json` 摘除（14→13 条）；两件写死条数的测试对齐
+  （`test_registry` 14→13、`tested` 2→1；`declared` 仍 12——被删那份原属 `tested` 而非
+  `declared`，中途按 11 改过、实测后改回 12）。
+- 判据反转为四态双向（真人裁甲2）：`v8_isolation.py` 原是单分支「插件必须在位」，退役后该判据
+  会恒红 ⇒ 改为在位验内容／只在归档验归档副本／两头都有即报错／两头都没有即报错。此举改 rc 语义，
+  按在册规矩须先裁，已获甲2 授权。
+- 验收：隔离件 36 例 OK、注册表三件 29 例 OK、导航契约 6 例 OK；`v8_isolation.py --navigation <仓根>`
+  rc=0，自报 `approved packages=2 sources=0; plugin retired to archive/2026-11-22_lite3_costmap_layers`。
+  ★记一笔用法坑★：`--navigation` 必须带根参数，只给 `--navigation` 会落进 usage 分支并 rc=0
+  ——那是一条假绿，读数不可引用。
+- ★数据新鲜度缺口（本批只登记、不修代码）★：高程生产者随包带走后，`/elevation_mapping/elevation_map`
+  的第二消费者（`stair_gait_guard_node`）在无替代生产者的场景下会停在上一次读数。缺口已写入
+  `archive/README.md` 的退役条目，并在 `note/12` 的高程条下新立一条（同处删去该件对
+  `ElevationMergedLayer` 的旧引用——清单还指着已退役的层，本身就是一处退役不同步）。
+
+## 2026-11-22 / T-20261122-01 归档遗留的面清单与文档同步（无代码变更）
+
+- `syn_face.txt` 94→91：剔除 `lite3_task/verify/` 下 `v_scan_task_live.sh`、
+  `v_task_scan_primitive.sh`、`v_task_smach.sh` 三条。`lite3_task` 于 2026-11-21 归档
+  （`archive/lite3_task/`），本面未同步清理，致 SYN 长期报「不存在」而红。同日 `pyst_face.txt`
+  剔除 `lite3_task/scripts/task_smach_min.py`，61→60。两条红都是存量、非本轮引入。
+- `pyst_face.txt` 60→64：补入本轮改动的四件（`scripts/agent/bridge.py`、
+  `scripts/agent/test_bridge_gates.py`、`scripts/verify/v8_isolation.py`、
+  `scripts/verify/test_v8_isolation.py`）。此前面内零条 `scripts/agent` 条目，改了 120 行却
+  一次 pyflakes 没跑过；其中 `v8_isolation.py` 是 ISO 闸门件本身，本面 R572 段在册原则明写
+  「闸门自身必须受静态检查」，故属客观缺口而非取舍。
+- ★不做派生式全量对齐★：派生式现拼 96 件、与写死面正向差集 47 条（多为历史未入面件与 M0 归档
+  快照）。面是写死门用面，只修客观缺口；理由、差集数与反向核对一并写进面文件注记，便于下一位复算。
+- `ws/README.md` 修断链：`lite3_task` 行原指向 `src/50_task/lite3_task/README.md`（2026-11-21
+  归档后该路径已不存在），改为与 `lite3_costmap_layers` 同款的退役行，指向 `archive/lite3_task/`。
+- 两面现状为零失效条目；本机按 xargs 姿势复跑 SYN rc=0（91 件）、PYST rc=0（64 件）。
+  ★本机 ISO rc=1 不作出证★：`v3_isolation.sh` 硬编码 `/home/ros1-slam`，本机无该路径且无 ROS，
+  自证尾行 `ws_src_files=0`，等于测了空目录。ISO 与 DC 的定性仍须机器侧看到具体行。
