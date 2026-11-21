@@ -7508,3 +7508,18 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   移包后主链回归 `r12` PASS（TEB×native，成功/取消/复用/三维拒绝/租约失效/退净，距离读数同 r3 量级）；
   `r11` 为更新校验器前被预检拒窗的记录（保留）。
 - **VAR 探针**：修复夹具后 `VAR VERDICT: PASS=9 FAIL=0`、rc=0（394 个证据目录、违规 0）。
+
+## 2026-11-21 / T-20261118-02 Stage B 迁移新链的尝试（未通过，判据载体未替换）
+
+- 尝试：把 m2_smoke Stage B 从 v8 topic 链切到 BT+move_base+TEB（开源 TEB）链，
+  门控改为 /navigation_executor 双 costmap + 高程地图 + BT lease + 原 TF 新鲜度；判据主体
+  （goal=起点+3m、≤120s、≤0.35m、gt 参考、G6 pose 类错误=0）未改。实现脚本仅在临时副本
+  （~/…/qoder_m2_smoke_bt_action_attempt.sh，未入仓），运行读数存
+  `note/进度/v8/M5/26-11-21/evidence/bt_native/stageB_bt_action_attempt.txt`。
+- 结果：门控 PASS、G6=0、用时 7.5s，但 TEB 在约 1.6 m 处连续 `trajectory is not feasible`、
+  move_base 中止，BT outcome=failed，到达偏差 1.624 m ⇒ 不通过。
+  对照：同一 action 链 1 m 目标（r3—r5）与 3 m 目标的旧 topic 链（在册 Stage B）均通过，
+  故差异在「TEB + 3 m 路径 + 高程层标记」组合，不在门控或 BT 生命周期。
+- 处置：**回退本次 smoke 改写**（`git checkout -- m2_smoke.sh`），在册判据载体继续跑已通过的
+  v8 topic 链（复跑 9/0、0.209 m、12.3s、G6=0）。新链的运行时验证保留在 r3—r5/r12 驱动。
+  该迁移未完成，后续需单独调 TEB/高程标记（不得为过检关闭安全层或改门值）。
