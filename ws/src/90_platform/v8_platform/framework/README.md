@@ -4,7 +4,7 @@
 
 framework 用 manifest、graph 和 app 配置装配 ROS1 进程。它负责配置检查、启动/健康/停止与应用入口；算法数据走 ROS 话题，规划控制与边界发送不经过 Python 编排循环。装配成功不等于算法或机器人能力通过验收。
 
-活动 Gazebo carrier 与 Gazebo/MuJoCo verification manifest 从 [v8_simulation](../../../95_simulation/v8_simulation/README.md) 启动，仿真实现与资产由 companion 自持；本包只保留装配期入口引用。
+活动 Gazebo carrier 与 Gazebo/MuJoCo verification manifest 从 [v8_simulation](../../../../../subprojects/simulation/ws/src/v8_simulation/README.md) 启动，仿真实现与资产由 companion 自持；本包只保留装配期入口引用。
 
 ## 目录
 

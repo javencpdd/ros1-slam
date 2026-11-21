@@ -1,7 +1,7 @@
 # 项目介绍网页（纯文档面）
 
 > 2026-11-13 拆分：官网只留文档与静态展示；3D 任务台迁至 `scripts/console/ui/`，由宿主
-> agent 在 `:8780` 独立提供（见 [`scripts/console/README.md`](../scripts/console/README.md)）。
+> agent 在 `:8780` 独立提供（见 [`scripts/console/README.md`](../subprojects/console/console/README.md)）。
 > 静态服务改为文档白名单：`web/`、`docker/`、`tooling/`、根 `README.md`、`ws/src/**/*.md`；
 > `note/`、源码、任务台数据一律 404。页面内指向 `../note/` 的深链已删。
 >
@@ -33,7 +33,7 @@ python3 scripts/ops/collect_3d_runs.py
 ## 3D 任务台（已迁出）
 
 任务台页面与静态资源在 `scripts/console/ui/`，由宿主 agent 在 `:8780` 提供；启动、栈白名单、
-远程锁定、地图/世界数据生成与验证命令见 [`scripts/console/README.md`](../scripts/console/README.md)。
+远程锁定、地图/世界数据生成与验证命令见 [`scripts/console/README.md`](../subprojects/console/console/README.md)。
 本服务不提供任务台，`/web/console.html` 返回 404。
 
 ## 本机浏览
@@ -70,7 +70,7 @@ docker stop ros1-slam-web
 docker rm ros1-slam-web
 ```
 
-站点由 `ros1-slam-web` 容器只读挂仓提供（宿主 80 → 容器 8000），页面改动刷新即生效。`web/` 是 Git 跟踪的文档面（生成物 `assets/data/` 忽略）；任务台不在本服务，见 [`scripts/console/README.md`](../scripts/console/README.md)。
+站点由 `ros1-slam-web` 容器只读挂仓提供（宿主 80 → 容器 8000），页面改动刷新即生效。`web/` 是 Git 跟踪的文档面（生成物 `assets/data/` 忽略）；任务台不在本服务，见 [`scripts/console/README.md`](../subprojects/console/console/README.md)。
 
 ## 维护
 

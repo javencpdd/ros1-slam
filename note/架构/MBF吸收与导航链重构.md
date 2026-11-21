@@ -39,7 +39,9 @@ FollowPath／WaitArrival／Dwell／Stop、取消分支、Recovery（`skip|retry|
 - v8 链与 SCAN 链都已是 BT 原生，**取消 MBF 不缺编排器，缺的是入口迁移**（真机/平地仿真/smoke）
   与**判据面迁移**（`m2_smoke.sh` Stage B 的 MBF action 与 costmap 就绪门）。
 - 高程链：`support_map` 直接服务 v8 规划器（不经 costmap）；`lite3_costmap_layers` 的
-  `ElevationMergedLayer`（costmap_2d 插件）随 MBF 退出生效面，代码保留（删除另议）。
+  `ElevationMergedLayer`（costmap_2d 插件）随 MBF 退出生效面。
+  ★2026-11-22 更新：B 链取消，该包已整包归档至 `archive/2026-11-22_lite3_costmap_layers/`
+  （真人裁定甲2）。原文「代码保留（删除另议）」的表述作废。★
 
 ## 2. MBF 机制清单 → 吸收判定
 
@@ -82,7 +84,7 @@ FollowPath／WaitArrival／Dwell／Stop、取消分支、Recovery（`skip|retry|
 |---|---|---|
 | `70_bringup/.../mode_navigation.launch` | 撤 MBF include；接通 BT+规划器链（真机 topic 按 real profile）；BT 默认 true、`enable_motion` 仍默认 false | S5 |
 | `lite3_navigation/launch/mbf_navigation.launch` ＋ MBF/TEB/costmap 配置 | 标记 deprecated（保留文件与 revert 路径，不再被 include） | S5 |
-| `lite3_costmap_layers` | 随 MBF 退出生效面；代码保留 | S5 |
+| `lite3_costmap_layers` | 随 MBF 退出生效面；**2026-11-22 已整包归档**（原「代码保留」表述作废） | S5 已执行 |
 | `mode_nav_sim.launch` / `mode_sim_teb.launch` | 新增平地 BT 链 `mode_sim_bt.launch`；旧 MBF 壳标注 deprecated | S2 |
 | `verify/m2_smoke.sh` Stage B | 判据不动（≤120 s、≤0.35 m、gt 参考）；执行链 MBF→v8 BT，就绪门换 v8 输入门 | S3（判据面挂账） |
 | `lite3_task` / `TaskTransfer` | 保持冻结/legacy | — |

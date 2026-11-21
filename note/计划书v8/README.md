@@ -36,8 +36,8 @@ v8 在 ROS1/Noetic 基础上，以组件契约、app/graph 配置和运行装配
 | [registry](../../ws/src/90_platform/v8_platform/registry/README.md)、[composer](../../ws/src/90_platform/v8_platform/composer/README.md) | 组件注册、组合兼容与确定性锁 |
 | [orchestrator](../../ws/src/90_platform/v8_platform/orchestrator/README.md) | 任务状态机、就绪和停止链 |
 | [adapters](../../ws/src/90_platform/v8_platform/adapters/README.md)、[boundary](../../ws/src/90_platform/v8_platform/boundary/README.md) | 接口适配与机器人协议边界 |
-| [representation](../../ws/src/90_platform/v8_platform/representation/README.md)、[planner](../../ws/src/90_platform/v8_platform/planner/README.md) | 多层支撑图、地图服务与全局规划 |
-| [local_planner](../../ws/src/90_platform/v8_platform/local_planner/README.md)、[validator](../../ws/src/90_platform/v8_platform/validator/README.md) | 局部规划、轨迹/运动学检查与失效处置 |
+| [representation](../../ws/src/80_algorithm/v8_algorithm/representation/README.md)、[planner](../../ws/src/80_algorithm/v8_algorithm/planner/README.md) | 多层支撑图、地图服务与全局规划 |
+| [local_planner](../../ws/src/80_algorithm/v8_algorithm/local_planner/README.md)、[validator](../../ws/src/90_platform/v8_platform/validator/README.md) | 局部规划、轨迹/运动学检查与失效处置 |
 | [framework](../../ws/src/90_platform/v8_platform/framework/README.md) | manifest、graph、app 装配和 ROS 运行入口 |
 | [scenarios](../../ws/src/90_platform/v8_platform/scenarios/README.md)、`calibration/`、`regression/`、`delivery/` | 场景、校准/冻结、回归与复现 |
 | [probe_mode3](../../ws/src/90_platform/v8_platform/probe_mode3/README.md) | SCAN mode3 的离线数学探针与边界 |

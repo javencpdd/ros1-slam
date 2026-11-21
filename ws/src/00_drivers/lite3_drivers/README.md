@@ -12,7 +12,7 @@
 | `config/traj_maze.yaml` | `95_sim.launch` 的默认轨迹输入 |
 
 `95_sim.launch` 是 mockamap 渲染链，没有 `world` 参数。Gazebo SDF 世界入口在
-[`lite3_gazebo_sim`](../../95_simulation/lite3_gazebo_sim/README.md)，两者不能混用。
+[`lite3_gazebo_sim`](../../../../subprojects/simulation/ws/src/lite3_gazebo_sim/README.md)，两者不能混用。
 
 真机驱动会接硬件与遥测 UDP，需按现场作业窗口使用。`ros2qnx` 是反向运动桥，
 本包传感器入口不启动它；禁止在 stub、mapping、replay 等非真机运动模式起反向通道。

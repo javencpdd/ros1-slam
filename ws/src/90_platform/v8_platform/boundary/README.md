@@ -42,7 +42,7 @@ PYTHONPATH=ws/src/90_platform/v8_platform python3 -B -m boundary.gazebo_endpoint
   --telemetry-target 127.0.0.1:5025 --seconds 5
 ```
 
-Gazebo 端点使用 SetModelState 运动学位姿汇，不证明接触/步态。MuJoCo 端点是策略探测载体，默认速度上限 0.25 m/s；其接口运行不能替代 V8-X1 或真机验收。更多接触执行说明见[dynamics](../../../95_simulation/lite3_gazebo_sim/dynamics/README.md)。
+Gazebo 端点使用 SetModelState 运动学位姿汇，不证明接触/步态。MuJoCo 端点是策略探测载体，默认速度上限 0.25 m/s；其接口运行不能替代 V8-X1 或真机验收。更多接触执行说明见[dynamics](../../../../../subprojects/simulation/ws/src/lite3_gazebo_sim/dynamics/README.md)。
 
 ## 记录、汇总与回放
 

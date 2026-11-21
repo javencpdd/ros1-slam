@@ -32,7 +32,7 @@
 | v8 app、task、地图与 graph 绑定 | [`v8_platform/framework/nodes/app_runner.py`](src/90_platform/v8_platform/framework/nodes/app_runner.py)与[framework 说明](src/90_platform/v8_platform/framework/README.md) |
 | v3执行域、机器人身份与运行前拒绝 | [`execution.py`](src/90_platform/v8_platform/framework/execution.py)和[框架说明](src/90_platform/v8_platform/framework/README.md)；声明/静态检查不作硬件许可 |
 | Lite3 本机 graph/应用模板 | [`v8_platform/configs/lite3/`](src/90_platform/v8_platform/configs/lite3/)；各机覆盖使用 `*.local.app.yaml` |
-| 位姿新鲜度与map→机体航向平面 | [`pose_safety.py`](src/90_platform/v8_platform/common/pose_safety.py)、[`local ros_node.py`](src/90_platform/v8_platform/local_planner/ros_node.py)、[`Lite3 carrier`](src/90_platform/v8_platform/framework/nodes/lite3_carrier_node.py)；物理停止链另验 |
+| 位姿新鲜度与map→机体航向平面 | [`pose_safety.py`](src/90_platform/v8_platform/common/pose_safety.py)、[`local ros_node.py`](src/80_algorithm/v8_algorithm/local_planner/ros_node.py)、[`Lite3 carrier`](src/90_platform/v8_platform/framework/nodes/lite3_carrier_node.py)；物理停止链另验 |
 | v8 装配/算法/协议阅读地图 | [项目架构与目录](../note/架构/项目架构与目录.md) |
 | 仿真键盘建图和可视化命令 | [Docker 说明](../docker/README.md)；记录器 [`mapping_recorder.py`](../subprojects/simulation/ws/src/lite3_gazebo_sim/scripts/mapping_recorder.py)与转换器 [`map_from_pcd.py`](src/90_platform/v8_platform/framework/tools/map_from_pcd.py) |
 | Gazebo world/launch | [`lite3_gazebo_sim/`](../subprojects/simulation/ws/src/lite3_gazebo_sim/) |

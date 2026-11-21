@@ -4,7 +4,7 @@
 
 本包保存 v8 平台自研代码：组件契约、注册与组合、进程编排、地图表征、全局/局部规划、ROS 适配和回归工具。计划与设计文档在[计划书 v8.1](../../../../note/计划书v8.1/README.md)，历史运行证据在[进度入口](../../../../note/进度/v8/README.md)。
 
-普通运行依赖不含 Gazebo；活动 carrier/独立评价仿真入口由 [v8_simulation](../../95_simulation/v8_simulation/README.md) 声明并提供。原源码/launch 继续作为仿真测试兼容路径，仅支持 source/devel，尚未完成 install-only 拆包；[目标构建](../../../../tooling/build/README.md) 分离 Lite3 与 x86 清单闭包，目标环境编译仍未验证。
+普通运行依赖不含 Gazebo；活动 carrier/独立评价仿真入口由 [v8_simulation](../../../../subprojects/simulation/ws/src/v8_simulation/README.md) 声明并提供。原源码/launch 继续作为仿真测试兼容路径，仅支持 source/devel，尚未完成 install-only 拆包；[目标构建](../../../../tooling/build/README.md) 分离 Lite3 与 x86 清单闭包，目标环境编译仍未验证。
 
 ## 从哪里开始
 
