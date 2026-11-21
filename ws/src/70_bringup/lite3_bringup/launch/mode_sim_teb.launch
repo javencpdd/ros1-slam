@@ -25,8 +25,15 @@
     </node>
   </group>
   <group if="$(eval arg('elevation_source') == 'elevation_mapping')">
+    <node pkg="lite3_costmap_layers" type="pointcloud_range_filter.py" name="pointcloud_range_filter" output="screen">
+      <param name="input_topic" value="/rslidar_points"/>
+      <param name="output_topic" value="/rslidar_points_filtered"/>
+      <param name="min_range" value="0.5"/>
+      <param name="max_range" value="0.0"/>
+    </node>
     <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="screen">
       <rosparam command="load" file="$(find lite3_costmap_layers)/config/elevation_mapping_sim.yaml"/>
+      <param name="input_sources/rslidar/topic" value="/rslidar_points_filtered"/>
     </node>
   </group>
   <!-- Sensor TTL is explicit and simulation-only; production must configure its own budget. -->

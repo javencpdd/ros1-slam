@@ -7674,3 +7674,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   **BUILD_RC=0**；whitelist 含 v8_algorithm/v8_grid、不含 lite3_task。
 - 最终 devel 上 `m2_smoke stageB` **PASS 9/0**：bt_outcome=reached dt=11.6s、dev_gt=0.201m、
   pose 类错误 0、样张 sha 未变、退净四口零新增。证据见 `evidence/bt_native/final_accept/`。
+
+## 2026-11-21 / T-20261118-02 高程候选近距过滤后复跑
+
+- 新增 `lite3_costmap_layers/scripts/pointcloud_range_filter.py`：按雷达系距离剔除 <0.5 m 回波，
+  保留原字段/帧/时间戳；仅挂在 `elevation_source:=elevation_mapping` 组，native 路径不变。
+- `elevation_mapping_sim.yaml` 的输入由 launch 覆写为 `/rslidar_points_filtered`；TEB 按真人指示
+  暂存，本次用开源 DWA 跑 1 m action 链。
+- r41：DWA + ANYbotics elevation_mapping + 近距过滤 1 m 窗口 **PASS**（`BT_NATIVE_RUNTIME_RC=0`，
+  verdict PASS；golden 目标 1 m；lease/取消/无效目标用例全过）。候选仍为 opt-in，默认 native。
+- 自测：`pointcloud_range_filter.py --selftest` OK；高程/过滤启动参数与 54 帧 GridMap 在 launch.log。
