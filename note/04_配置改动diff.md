@@ -7697,3 +7697,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `m2_smoke stageC` FAIL：`/rslidar_points 未出`（mapping stack 未在等待窗内出点云），段中止；
   样张 sha 未变、退净零新增。同一最终 devel 的 Stage A 点云 9.8 Hz、Stage B PASS ⇒ 非导航链回归；
   Stage C（hdl 重定位）环境/启动时序问题，另案。证据 `final_accept/smokeC/`。
+
+## 2026-11-21 / T-20261118-02 Stage C 时钟门修复
+
+- `mode_sim_hdl.launch` 的 `clock_gate_cmd` 由拆仓前 `/home/ros1-slam/ws/src/95_simulation/
+  lite3_gazebo_sim/scripts/wait_sim_clock.sh` 改为 `$(find lite3_gazebo_sim)/scripts/wait_sim_clock.sh`；
+  修复 RLException（No such file）。
+- 复跑 Stage C：已进入门控；`gate_mapload=False`、`hdl_odom=False`、`tf_robot=0` ⇒ hdl 定位图/
+  TF 未就绪（独立定位栈，非导航链 A/B；A/B 仍绿）。证据 `final_accept/smokeC2/`。

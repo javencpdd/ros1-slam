@@ -1,0 +1,5 @@
+m2_smoke Stage C after clock-gate fix (2026-11-21 11:12–11:14):
+- fixed: mode_sim_hdl.launch clock_gate_cmd old 95_simulation path -> $(find lite3_gazebo_sim)/scripts/wait_sim_clock.sh
+- now reaches gate: gate_mapload=False t=60s; gateC=FAIL t=120s {'globalmap': False, 'hdl_odom': False, 'tf_robot': 0}
+- sample sha unchanged, exitclean four ports zero new.
+Conclusion: clock-gate dangling path closed; remaining failure is hdl localization graph/globalmap readiness (separate localization stack; not the nav chain A/B, which pass).
