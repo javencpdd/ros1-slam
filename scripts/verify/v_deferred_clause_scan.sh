@@ -127,9 +127,20 @@ if mode == '--selftest':
     print("=== 缓做条款巡检·自测（扫描面 %d 件，台账结案行 %d 行，A 类 %d 条／B 类 %d 条）===" % (len(files), len(led), len(a), len(b)))
     if len(files) == 0 or (len(a) + len(b)) == 0:
         print("[FAIL] 扫描面或命中为空 ⇒ 不可信，不判绿（坑29）"); fails += 1
-    # T1 阳性对照一：variants 头注那条必须进 A 类（前置 Q11，结案凭据在 M5 §1 与 04:35）
+    # T1 阳性对照一（2026-11-22 改形）：原写法要求 variants 那条注记必须进 A 类。真人 2026-11-22
+    #   确认 Q11 结案、授权回收后，该注记已合法改写，原断言的前提消失 ⇒ 自测会恒红（假红比闸门
+    #   闭眼更坏，人会学会无视它）。故改为「回收状态守卫」：文件仍在位、且不再进 A 类、且注记里
+    #   留着回收凭据（结案字样）。★判「能判 A 类」的能力由 T2 的合成夹具保证，不靠真实仓数据。★
+    #   反控：注记若被写回「Q11 … 固化后再落」旧形 ⇒ 不含结案字样且会重新进 A 类 ⇒ 本项必红。
+    varfile = os.path.join(scan_root, 'ws/src/40_navigation/lite3_navigation/config/variants/outdoor_open.yaml')
     hit1 = [x for x in a if 'config/variants/' in x[0]]
-    print(("[PASS]" if hit1 else "[FAIL]") + " T1a variants「Q11 ns 固化后再落加载行」被判 A 类未回收（A 类命中 %d 条）" % len(hit1)); fails += (0 if hit1 else 1)
+    var_here = os.path.isfile(varfile)
+    var_txt = open(varfile, encoding='utf-8', errors='ignore').read() if var_here else ''
+    var_rec = ('结案' in var_txt)
+    var_ok = (var_here and not hit1 and var_rec)
+    print(("[PASS]" if var_ok else "[FAIL]") +
+          " T1a variants 那条暂缓注记必须已回收且不回弹（文件在位=%s、A 类命中 %d 条、含回收凭据=%s）"
+          % (var_here, len(hit1), var_rec)); fails += (0 if var_ok else 1)
     # T1 阳性对照二：mbf_navigation 那条前置是自然语言 ⇒ 必须至少被列进 B 类（保证不被静默漏掉）
     hit2 = [x for x in b if 'mbf_navigation.yaml' in x[0]]
     print(("[PASS]" if hit2 else "[FAIL]") + " T1b mbf_navigation「…后回填固化」进 B 类待人工判（B 类命中 %d 条）" % len(hit2)); fails += (0 if hit2 else 1)
