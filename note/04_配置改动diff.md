@@ -7691,3 +7691,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   点云 9.8≥5 Hz、IMU 200.0≥100 Hz、飞点 0.0001<1%、RTF 0.433≥0.25、样张 sha 未变、
   退净四口零新增。日志 `evidence/bt_native/final_accept/smokeA/`。
 - Stage A+B 均绿；Stage C（hdl 重定位）未在本轮跑（样张 pcd 已按真人指示退役，属定位面）。
+
+## 2026-11-21 / T-20261118-02 Stage C
+
+- `m2_smoke stageC` FAIL：`/rslidar_points 未出`（mapping stack 未在等待窗内出点云），段中止；
+  样张 sha 未变、退净零新增。同一最终 devel 的 Stage A 点云 9.8 Hz、Stage B PASS ⇒ 非导航链回归；
+  Stage C（hdl 重定位）环境/启动时序问题，另案。证据 `final_accept/smokeC/`。

@@ -1,0 +1,163 @@
+[33m[ WARN] [1795258976.055935745]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[31mRLException: Roslaunch got a 'No such file or directory' error while attempting to run:
+
+/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/scripts/wait_sim_clock.sh /opt/ros/noetic/lib/nodelet/nodelet manager __name:=velodyne_nodelet_manager __log:=/opt/ros1-slam/logs/a632c142-e59a-11f1-bbce-62696700331c/velodyne_nodelet_manager-7.log
+
+Please make sure that all the executables in this command exist and have
+executable permission. This is often caused by a bad launch-prefix.[0m
+[31mThe traceback for the exception was written to the log file[0m
+... logging to /opt/ros1-slam/logs/a632c142-e59a-11f1-bbce-62696700331c/roslaunch-8686474ea1d2-77966.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_hdl.launch
+[1mstarted roslaunch server http://8686474ea1d2:43083/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /globalmap_server_nodelet/convert_utm_to_local: True
+ * /globalmap_server_nodelet/downsample_resolution: 0.1
+ * /globalmap_server_nodelet/globalmap_pcd: /home/ros1-slam/d...
+ * /hdl_localization_nodelet/cool_time_duration: 2.0
+ * /hdl_localization_nodelet/downsample_resolution: 1.0
+ * /hdl_localization_nodelet/enable_robot_odometry_prediction: False
+ * /hdl_localization_nodelet/imu_timeout_ms: 9999
+ * /hdl_localization_nodelet/init_ori_w: 1.0
+ * /hdl_localization_nodelet/init_ori_x: 0.0
+ * /hdl_localization_nodelet/init_ori_y: 0.0
+ * /hdl_localization_nodelet/init_ori_z: 0.0
+ * /hdl_localization_nodelet/init_pos_x: 0.0
+ * /hdl_localization_nodelet/init_pos_y: 0.0
+ * /hdl_localization_nodelet/init_pos_z: 0.0
+ * /hdl_localization_nodelet/invert_acc: False
+ * /hdl_localization_nodelet/invert_gyro: False
+ * /hdl_localization_nodelet/lidar_timeout_ms: 9999
+ * /hdl_localization_nodelet/ndt_neighbor_search_method: DIRECT1
+ * /hdl_localization_nodelet/ndt_neighbor_search_radius: 3.0
+ * /hdl_localization_nodelet/ndt_resolution: 2.0
+ * /hdl_localization_nodelet/odom_child_frame_id: base_link
+ * /hdl_localization_nodelet/reg_method: NDT_OMP
+ * /hdl_localization_nodelet/robot_odom_frame_id: odom
+ * /hdl_localization_nodelet/specify_init_pose: True
+ * /hdl_localization_nodelet/use_global_localization: False
+ * /hdl_localization_nodelet/use_imu: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /use_sim_time: True
+
+NODES
+  /
+    base_link_to_rslidar (tf2_ros/static_transform_publisher)
+    gazebo (gazebo_ros/gzserver)
+    globalmap_server_nodelet (nodelet/nodelet)
+    hdl_localization_nodelet (nodelet/nodelet)
+    imu_relay (lite3_gazebo_sim/m2_cmd_relay.py)
+    liveness_m2 (rostopic/rostopic)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+    velodyne_nodelet_manager (nodelet/nodelet)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_hdl.launch http://127.0.0.1:11313
+[1mprocess[gazebo-1]: started with pid [78193][0m
+[1mprocess[robot_state_publisher-2]: started with pid [78196][0m
+[1mprocess[spawn_lite3_planar-3]: started with pid [78199][0m
+[1mprocess[sim_adapter-4]: started with pid [78200][0m
+[1mprocess[imu_relay-5]: started with pid [78205][0m
+[1mprocess[base_link_to_rslidar-6]: started with pid [78208][0m
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/m2_cmd_relay.py", line 8, in <module>
+    import sys, rospy
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/__init__.py", line 47, in <module>
+    from std_msgs.msg import Header
+  File "/opt/ros/noetic/lib/python3/dist-packages/std_msgs/msg/__init__.py", line 1, in <module>
+    from ._Bool import *
+  File "/opt/ros/noetic/lib/python3/dist-packages/std_msgs/msg/_Bool.py", line 6, in <module>
+    import genpy
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/__init__.py", line 34, in <module>
+    from . message import Message, SerializationError, DeserializationError, MessageException, struct_I
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/message.py", line 64, in <module>
+    import numpy as np
+  File "/usr/local/lib/python3.8/dist-packages/numpy/__init__.py", line 124, in <module>
+    from numpy.__config__ import show as show_config
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 657, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 562, in module_from_spec
+  File "<frozen importlib._bootstrap>", line 541, in _init_module_attrs
+  File "<frozen importlib._bootstrap>", line 382, in cached
+  File "<frozen importlib._bootstrap_external>", line 485, in _get_cached
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_drivers/scripts/sim_adapter.py", line 26, in <module>
+    import numpy as np
+  File "/usr/local/lib/python3.8/dist-packages/numpy/__init__.py", line 140, in <module>
+    from . import core
+  File "/usr/local/lib/python3.8/dist-packages/numpy/core/__init__.py", line 76, in <module>
+    from . import defchararray as char
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 939, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1038, in get_data
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "<frozen importlib._bootstrap>", line 166, in _get_module_lock
+KeyError: 'numpy.core._type_aliases'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/gazebo_ros/spawn_model", line 20, in <module>
+    import rospy
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/__init__.py", line 47, in <module>
+    from std_msgs.msg import Header
+  File "/opt/ros/noetic/lib/python3/dist-packages/std_msgs/msg/__init__.py", line 1, in <module>
+    from ._Bool import *
+  File "/opt/ros/noetic/lib/python3/dist-packages/std_msgs/msg/_Bool.py", line 6, in <module>
+    import genpy
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/__init__.py", line 34, in <module>
+    from . message import Message, SerializationError, DeserializationError, MessageException, struct_I
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/message.py", line 64, in <module>
+    import numpy as np
+  File "/usr/local/lib/python3.8/dist-packages/numpy/__init__.py", line 140, in <module>
+    from . import core
+  File "/usr/local/lib/python3.8/dist-packages/numpy/core/__init__.py", line 70, in <module>
+    from . import numerictypes as nt
+  File "/usr/local/lib/python3.8/dist-packages/numpy/core/numerictypes.py", line 107, in <module>
+    from ._type_aliases import (
+  File "<frozen importlib._bootstrap>", line 988, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 148, in __enter__
+  File "<frozen importlib._bootstrap>", line 166, in _get_module_lock
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/opt/ros/noetic/bin/catkin_find", line 57, in <module>
+    main()
+  File "/opt/ros/noetic/bin/catkin_find", line 42, in main
+    results = find_in_workspaces(args.install_folders, args.project, args.path, first_matching_workspace_only=args.without_underlays, first_match_only=args.first_only, considered_paths=checked)
+  File "/opt/ros/noetic/lib/python3/dist-packages/catkin/find_in_workspaces.py", line 149, in find_in_workspaces
+    source_path_to_packages[source_path] = find_packages(source_path)
+  File "/usr/lib/python3/dist-packages/catkin_pkg/packages.py", line 92, in find_packages
+    packages = find_packages_allowing_duplicates(basepath, exclude_paths=exclude_paths,
+  File "/usr/lib/python3/dist-packages/catkin_pkg/packages.py", line 155, in find_packages_allowing_duplicates
+    parsed_package = parse_package_string(
+  File "/usr/lib/python3/dist-packages/catkin_pkg/package.py", line 730, in parse_package_string
+    errors += _check_known_attributes(root, ['format'])
+  File "/usr/lib/python3/dist-packages/catkin_pkg/package.py", line 589, in _check_known_attributes
+    attrs = map(str, node.attributes.keys())
+  File "/usr/lib/python3.8/xml/dom/minidom.py", line 879, in _get_attributes
+    return NamedNodeMap(self._attrs, self._attrsNS, self)
+KeyboardInterrupt
+[velodyne_nodelet_manager-7] killing on exit
+[base_link_to_rslidar-6] killing on exit
+[imu_relay-5] killing on exit
+[sim_adapter-4] killing on exit
+[spawn_lite3_planar-3] killing on exit
+[robot_state_publisher-2] killing on exit
+[gazebo-1] killing on exit

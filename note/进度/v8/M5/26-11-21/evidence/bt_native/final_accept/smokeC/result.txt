@@ -1,0 +1,5 @@
+m2_smoke Stage C on the final devel (2026-11-21 10:59–11:04):
+FAIL C: /rslidar_points 未出 — 环境未就绪（mapping stack 未在等待窗内出点云），
+段提前中止；样张 lite3.pcd sha 未变、退净四口零新增。
+对照：同一最终 devel 的 Stage A PASS，点云 9.8 Hz；Stage B PASS。
+结论：不是导航链回归；Stage C 属 hdl 重定位/定位面，环境/启动时序问题，另案。
