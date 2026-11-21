@@ -7667,3 +7667,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `m2_smoke.sh stageB`（BT+v8 topic 链）在拆层/归档/迁移后的 devel 上 PASS：
   bt_outcome=reached dt=12.3s dev_gt=0.202m（≤0.35），pose 类错误 0，样张 sha 未变，
   marks 9/0，退净四口零新增。日志见 `evidence/bt_native/m2_smoke_stageB_after_split/`。
+
+## 2026-11-21 / T-20261118-02 最终验收
+
+- 最终结构（四算法目录 + v8_grid 新家 + lite3_task 归档）在 sim(6 GiB) JOBS=1 干净全量构建
+  **BUILD_RC=0**；whitelist 含 v8_algorithm/v8_grid、不含 lite3_task。
+- 最终 devel 上 `m2_smoke stageB` **PASS 9/0**：bt_outcome=reached dt=11.6s、dev_gt=0.201m、
+  pose 类错误 0、样张 sha 未变、退净四口零新增。证据见 `evidence/bt_native/final_accept/`。
