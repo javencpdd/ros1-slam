@@ -12,9 +12,9 @@ route = plan(mapping, start_xyz, goal_xyz, budget=20000, cancel=None,
              goal_surface_id=None, start_surface_id=None)
 ```
 
-数值仅展示调用形状，机器人包络须由调用方给依据。budget 是最大展开数，不是秒数；耗尽报 `E_PLAN_BUDGET_EXCEEDED`，不能记为几何无路。cancel 为轮询谓词，触发报 `E_PLAN_CANCELLED`。输入先过[地图契约](../contracts/README.md)，坏图报 `E_PLAN_MAP_INVALID`。
+数值仅展示调用形状，机器人包络须由调用方给依据。budget 是最大展开数，不是秒数；耗尽报 `E_PLAN_BUDGET_EXCEEDED`，不能记为几何无路。cancel 为轮询谓词，触发报 `E_PLAN_CANCELLED`。输入先过[地图契约](../../../90_platform/v8_platform/contracts/README.md)，坏图报 `E_PLAN_MAP_INVALID`。
 
-起终点必须是有限 xyz，z 为支撑高度。可用 surface_id 指定支撑面；未指定时在包含 XY 的面中按 z 消歧。上层交互遇到同 XY 多面可由[选面器](../framework/surface_resolver.py)显式拒绝歧义，不能据底层最近 z 策略代替用户选面。
+起终点必须是有限 xyz，z 为支撑高度。可用 surface_id 指定支撑面；未指定时在包含 XY 的面中按 z 消歧。上层交互遇到同 XY 多面可由[选面器](../../../90_platform/v8_platform/framework/surface_resolver.py)显式拒绝歧义，不能据底层最近 z 策略代替用户选面。
 
 min_clearance_m 可筛除低顶格和面内连接段；起终点低顶报 `E_PLAN_CLEARANCE`，无安全连接报 `E_PLAN_NO_ROUTE`。未知不能当自由，地图合法性/连通性与规划可达性分别判断。
 
@@ -30,10 +30,10 @@ min_clearance_m 可筛除低顶格和面内连接段；起终点低顶报 `E_PLA
 
 - [ros_node.py](ros_node.py)：参数式地图/start/goal，提供 GetPlan/GetPath 包装及状态；路径与拒绝共用同一核心 planner。
 - [topic_node.py](topic_node.py)：JSON String 地图、PoseStamped 起点/目标；Path 输出和 JSON 状态。新输入触发 generation 与取消，旧线程结果不得覆盖新请求；Trigger 可请求取消。
-- topic_node 缺省地图 `/v8_support_map`、起终点 `/v8/global/start` 与 `/v8/global/goal`、输出 `/global_path`；实际 [app graph](../framework/fixtures/graphs) 覆盖为 `/v8/3d/global/*`。pose frame 须与 `~frame` 一致。
+- topic_node 缺省地图 `/v8_support_map`、起终点 `/v8/global/start` 与 `/v8/global/goal`、输出 `/global_path`；实际 [app graph](../../../90_platform/v8_platform/framework/fixtures/graphs) 覆盖为 `/v8/3d/global/*`。pose frame 须与 `~frame` 一致。
 - robot_radius_m/robot_height_m/min_clearance_m/surface_hint 从私有参数进入核心策略。Path 消息本身不携完整 surface_id/map_version，详细身份仍要看状态/原始路线。
 
-[mesh_support.py](mesh_support.py) 从声明网格提取支撑面，[scene_map.py](scene_map.py) 处理声明场景输入；它们不等于真实雷达建图。传感 PCD 管线见[framework](../framework/README.md)。
+[mesh_support.py](mesh_support.py) 从声明网格提取支撑面，[scene_map.py](scene_map.py) 处理声明场景输入；它们不等于真实雷达建图。传感 PCD 管线见[framework](../../../90_platform/v8_platform/framework/README.md)。
 
 ## 定向测试与回归
 

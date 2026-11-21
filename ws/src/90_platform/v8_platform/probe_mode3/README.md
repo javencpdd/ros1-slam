@@ -35,7 +35,7 @@
 
 R633—R635 的独立 SCAN 运行探针还记录：修复搜索池有限；A* 失败可被后续优化器回退掩盖；单调段正控能出径。原读数与限定条件在[进度入口](../../../../../note/进度/v8/README.md)查 M0/26-10-25 对应批次，本文不把离线数学复跑当作重新完成运行验收。
 
-当时提出的“支撑图切单调段再交 mode3”是历史适配候选。当前已有[支撑图全局规划](../planner/README.md)和[原生三维局部规划](../local_planner/README.md)，不能继续把后者写成尚待实现的备选。SCAN 适配损失仍在[declarations.py](../adapters/declarations.py)登记；轨迹须经[独立检查器](../validator/README.md)，被检链自报成功不能代替检查。
+当时提出的“支撑图切单调段再交 mode3”是历史适配候选。当前已有[支撑图全局规划](../../../80_algorithm/v8_algorithm/planner/README.md)和[原生三维局部规划](../../../80_algorithm/v8_algorithm/local_planner/README.md)，不能继续把后者写成尚待实现的备选。SCAN 适配损失仍在[declarations.py](../adapters/declarations.py)登记；轨迹须经[独立检查器](../validator/README.md)，被检链自报成功不能代替检查。
 
 从仓根运行离线断言：
 

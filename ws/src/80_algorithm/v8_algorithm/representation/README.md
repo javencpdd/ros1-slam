@@ -18,13 +18,13 @@
 
 支撑面表示可接触几何；free 必须来自正向观测，缺证为 unknown。开顶净空查询可为 None，不能冒充测得无穷净空。相邻面不会仅因距离近自动连边，必须显式确认 edges。
 
-地图 extent 是支撑足迹并集外包框换算的格数。契约要求从首面能到达全部面；不连通可通行域按分量拆为不同 map_id。多面不能压成“最高点”，同 XY 消歧由[选面器](../framework/surface_resolver.py)处理。
+地图 extent 是支撑足迹并集外包框换算的格数。契约要求从首面能到达全部面；不连通可通行域按分量拆为不同 map_id。多面不能压成“最高点”，同 XY 消歧由[选面器](../../../90_platform/v8_platform/framework/surface_resolver.py)处理。
 
 ## v1/v2/v3 与服务边界
 
 `build_support_map` 未带 cells/obstacles 时生成 v1；显式 obstacles 生成 v2；面带 cells 时生成 v3。cells 用绝对格号的 RLE 编码，`contains_xy` 有 cells 时按真实格集判断，无 cells 才回退 bbox；`select_support` 在容差内取当前位置下方最高支撑。
 
-障碍版地图需要消费端显式启用 `allow_obstacles=True`，见[契约](../contracts/README.md)。全局/原生局部规划和轨迹检查器已启用；MapService 的 `_validate` 仍走缺省入口，不能据生成器支持 v2/v3 推断该服务也接收带障碍图。不同 ROS 地图节点的协议范围须分别核对。
+障碍版地图需要消费端显式启用 `allow_obstacles=True`，见[契约](../../../90_platform/v8_platform/contracts/README.md)。全局/原生局部规划和轨迹检查器已启用；MapService 的 `_validate` 仍走缺省入口，不能据生成器支持 v2/v3 推断该服务也接收带障碍图。不同 ROS 地图节点的协议范围须分别核对。
 
 MapService 以内容 digest、map_id/version 防止回退和无变化升版；propose_delta 按 delta_id 幂等，旧 base、同 id 异内容或非法结果拒绝，成功后原子升版并通知监听者。快照保存地图、证据、history 与 applied_deltas，临时文件/fsync/原子替换；恢复核对内容身份。MapStore 支持显式 acquire/release，文件锁是调用方生命周期责任。
 
@@ -33,11 +33,11 @@ MapService 以内容 digest、map_id/version 防止回退和无变化升版；pr
 - [map_node.py](map_node.py)：Trigger 查询；参数 `~map_json`、可选 `~evidence_json`、`~query_points`。每次重新读取并返回 map_id/version/digest 与各点全部层、支撑、净空和观测状态。evidence 格式为 `[{"xyz":[0.25,0.25,0],"state":"free"}]`，未列点为 unknown。
 - [delta_map_node.py](delta_map_node.py)：订阅 JSON `map_delta/v1`，发布版本化 `/v8_support_map`、`/v8_map_status`，`~query` 返回快照；`~state_path` 用于重启恢复。
 - [map_cache_node.py](map_cache_node.py)、[map_merge_node.py](map_merge_node.py) 与 [map_delta_relay.py](map_delta_relay.py)：typed v8_msgs 的 cache/merge/relay。需先构建 v8_msgs，不能把旧 graph_3d_cache 测试替身当成真实 typed 服务。
-- multi_map、semantic_map、semantic_support_bridge、semantic_obstacle_bridge 节点提供相应适配，组件清单和连线见 [framework](../framework/README.md)。
+- multi_map、semantic_map、semantic_support_bridge、semantic_obstacle_bridge 节点提供相应适配，组件清单和连线见 [framework](../../../90_platform/v8_platform/framework/README.md)。
 
 ## 建图与定向测试
 
-PCD 入口是[map_from_pcd.py](../framework/tools/map_from_pcd.py)，更完整用法见[framework](../framework/README.md)和[Lite3 配置](../configs/lite3/README.md)。Gazebo 传感 survey 使用 `regression/gazebo3d_mapping.py`；使用 GT 位姿完成配准的地图不能称为独立定位建图证明。
+PCD 入口是[map_from_pcd.py](../../../90_platform/v8_platform/framework/tools/map_from_pcd.py)，更完整用法见[framework](../../../90_platform/v8_platform/framework/README.md)和[Lite3 配置](../../../90_platform/v8_platform/configs/lite3/README.md)。Gazebo 传感 survey 使用 `regression/gazebo3d_mapping.py`；使用 GT 位姿完成配准的地图不能称为独立定位建图证明。
 
 从仓根执行：
 
