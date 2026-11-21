@@ -6,7 +6,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 sys.path.insert(0, str(HERE.parent / 'planner'))
 import scenarios as scn  # noqa: E402
 import support_planner as pln  # noqa: E402

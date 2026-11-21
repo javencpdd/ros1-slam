@@ -18,7 +18,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 FRAMEWORK = HERE.parent
 sys.path.insert(0, str(FRAMEWORK))
-sys.path.insert(0, str(FRAMEWORK.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
 import app_config  # noqa: E402
 import app_runner  # noqa: E402
 import config  # noqa: E402

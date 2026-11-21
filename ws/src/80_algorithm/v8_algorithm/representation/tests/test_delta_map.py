@@ -9,7 +9,7 @@ from pathlib import Path
 # 原有全部派生表达式（str(HERE)/HERE.parent/HERE/"x.py"）语义不变。
 HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
 import delta_map_node as node  # noqa: E402
 import test_map_delta as td  # noqa: E402
 import test_map_service as tm  # noqa: E402

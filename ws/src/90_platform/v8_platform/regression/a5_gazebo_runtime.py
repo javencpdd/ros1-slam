@@ -23,7 +23,7 @@ import time
 
 BASE = Path(__file__).resolve().parents[1]
 SCRIPT = Path(__file__).resolve()
-sys.path.insert(0, str(BASE / 'orchestrator'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/orchestrator').resolve()))
 import orchestrator as orch
 
 

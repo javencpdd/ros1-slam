@@ -178,7 +178,7 @@ class LifecycleTests(unittest.TestCase):
 
     def test_lock_integration(self):
         """composer 锁文件 → 组件规格 → 编排全流程（消费流程6 产物）。"""
-        sys.path.insert(0, str(HERE.parent / 'composer'))
+        sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/composer').resolve()))
         import composer as comp
         store = comp.load(HERE.parent / 'registry' / 'data' / 'manifests')
         ids = ['v8.odometry.faster_lio', 'v8.global_localization.lite3',

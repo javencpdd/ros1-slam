@@ -11,8 +11,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-for folder in ('contracts', 'scenarios', 'validator', 'representation'):
+for folder in ('contracts', 'scenarios', 'validator'):
     sys.path.insert(0, str(ROOT / folder))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/representation'))
 import validate as contract
 import trajectory_checker as checker
 

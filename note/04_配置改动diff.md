@@ -7575,3 +7575,17 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - r32（运行中抓 GT/TF/局部图中心）：GT=1.205 时 TF=1.228、局部图中心≈1.20，**无 0.6 m 位姿
   滞后**；1.36 m 中止与足迹内格无关的结论保持。TEB 不可行的内部判据仍未定位，暂停该线
   （连续 4 组否定 A/B），转 P1 拆层；后续诊断需 TEB 内部读数。
+
+## 2026-11-21 / T-20261118-02 B1：representation 迁入 80_algorithm/v8_algorithm
+
+- 新建 catkin 包 `ws/src/80_algorithm/v8_algorithm`（package.xml/CMakeLists，无编译目标），
+  `tooling/build/profiles.json` 的 local_packages 与 lite3/x86_sim roots 加入 `v8_algorithm`。
+- `representation/` 整目录 git mv；同批改：sys.path（125 行）、`v8_grid` 相对路径、内部
+  `HERE.parent/'contracts'`、平台侧 regression/local_planner/planner/scenarios/validator/
+  framework 路径、8 份 manifest 的 `launch.package=v8_algorithm`、package_index 的 executables
+  归属、delivery 模块清单、framework runtime 期望包名。
+- 验收：representation 13 个测试文件全 OK；delivery 5/5、framework 30/13/12/18、validator 27、
+  scenarios 7、planner 48、local_planner 161、regression test_a4 10/test_regression 9 全 OK。
+  已知非本批：`verify/test_decoupling` 的 scripts/console 断言在宿主恒失败（根属主空目录）、
+  `test_a3d_algorithm_matrix` 依赖容器内 `/opt/ros1-slam` 数据（宿主无此路径）。
+- `docker/build.sh --plan` 闭包已含 v8_algorithm（ws/.profiles/x86_sim/src/v8_algorithm）。

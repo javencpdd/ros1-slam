@@ -9,7 +9,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent.parent
 PLATFORM = HERE.parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(PLATFORM / 'representation'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 import contact_egress
 import local_native as native
 import ros_node as node

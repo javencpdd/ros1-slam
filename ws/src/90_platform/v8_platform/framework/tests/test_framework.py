@@ -352,7 +352,7 @@ class FrameworkTests(unittest.TestCase):
         root = ET.fromstring(render.render_launch(value, catalog, report))
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type')),
-                         ('v8_platform', 'representation/semantic_map_node.py'))
+                         ('v8_algorithm', 'representation/semantic_map_node.py'))
 
     def test_plugin_launch_spec_and_render(self):
         catalog, value = load_pair(GPLUGIN)

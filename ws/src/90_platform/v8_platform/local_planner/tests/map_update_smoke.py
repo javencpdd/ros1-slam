@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REP = ROOT / 'representation'
+REP = ROOT.parent.parent / '80_algorithm/v8_algorithm/representation'
 OUT = Path('/tmp/r1024_smoke.json')
 STATE = Path('/tmp/r1024_state.json')
 PORT = 11503

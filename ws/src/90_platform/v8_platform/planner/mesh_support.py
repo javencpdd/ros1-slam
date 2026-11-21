@@ -13,8 +13,8 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / 'representation'))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 import support_map as representation  # noqa: E402
 
 NS = '{http://www.collada.org/2005/11/COLLADASchema}'

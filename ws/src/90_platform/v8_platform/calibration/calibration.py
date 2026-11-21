@@ -17,7 +17,7 @@ from calibration_data import (  # noqa: F401
     SAMPLING_MIN_REPETITIONS, SUCCESS_RATE_SCOPE, DIGEST)
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / 'scenarios'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/scenarios').resolve()))
 import scenarios as scn  # noqa: E402
 
 # 冻结值来源＝各批次已定判据（引用在 evidence 字段）

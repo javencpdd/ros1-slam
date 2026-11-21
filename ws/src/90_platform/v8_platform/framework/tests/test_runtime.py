@@ -192,7 +192,7 @@ class RuntimeTests(unittest.TestCase):
         sem = plan['instances'][0]
         command, marker = runtime.default_command(
             sem, catalog['components'][sem['component']])
-        self.assertEqual(command, ['rosrun', 'v8_platform',
+        self.assertEqual(command, ['rosrun', 'v8_algorithm',
                                    'representation/semantic_map_node.py',
                                    '_keep_alive_s:=30',
                                    '_semantic_files:=framework/fixtures/maps/sem_a.json'])
@@ -222,7 +222,7 @@ class RuntimeTests(unittest.TestCase):
         cache = next(item for item in plan['instances'] if item['id'] == 'cache_a')
         command, _ = runtime.default_command(
             cache, catalog['components'][cache['component']])
-        self.assertEqual(command[:3], ['rosrun', 'v8_platform',
+        self.assertEqual(command[:3], ['rosrun', 'v8_algorithm',
                                        'representation/map_cache_node.py'])
         self.assertIn('__ns:=/v8/cache_a', command)
         self.assertIn('_base_map_topic:=/v8/cache_a/base_map', command)

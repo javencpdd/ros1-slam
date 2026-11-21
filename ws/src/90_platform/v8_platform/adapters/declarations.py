@@ -11,8 +11,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / 'composer'))
-sys.path.insert(0, str(HERE.parent / 'registry'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/composer').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/registry').resolve()))
 import composer as comp  # noqa: E402
 import io_match  # noqa: E402
 

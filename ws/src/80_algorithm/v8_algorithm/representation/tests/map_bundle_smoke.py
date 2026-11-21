@@ -18,7 +18,7 @@ from pathlib import Path
 # 2026-11-18（M7）：测试已移入 tests/ 子目录，HERE 指回包目录以保持
 # 原有全部派生表达式（str(HERE)/HERE.parent/HERE/"x.py"）语义不变。
 HERE = Path(__file__).resolve().parent.parent
-FIXTURE = HERE.parent / 'contracts' / 'fixtures' / 'map_ml_two_surfaces.json'
+FIXTURE = Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts' / 'fixtures' / 'map_ml_two_surfaces.json'
 OUT = Path('/tmp/r1031_smoke.json')
 ROOT = Path('/tmp/r1031')
 PORT = 11517
@@ -28,7 +28,7 @@ os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
 Path('/tmp/r1031_ros').mkdir(exist_ok=True)
 Path('/tmp/r1031_logs').mkdir(exist_ok=True)
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
 import map_bundle  # noqa: E402
 
 

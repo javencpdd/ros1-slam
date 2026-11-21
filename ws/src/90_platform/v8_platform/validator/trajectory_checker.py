@@ -18,8 +18,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / 'contracts'))
-sys.path.insert(0, str(HERE.parent / 'representation'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 import support_map as rep  # noqa: E402
 import validate as contract  # noqa: E402
 

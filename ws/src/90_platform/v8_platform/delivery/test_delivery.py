@@ -29,7 +29,7 @@ class DeliveryTests(unittest.TestCase):
         entries = dl.manifest()
         modules = {p.split('/')[0] for p in entries}
         for required in ('contracts', 'registry', 'composer', 'orchestrator', 'adapters',
-                         'representation', 'planner', 'validator', 'scenarios',
+                         'planner', 'validator', 'scenarios',
                          'calibration', 'regression'):
             self.assertIn(required, modules, required)
         # 复现性自证：再生成逐字节一致

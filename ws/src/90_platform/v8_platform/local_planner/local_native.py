@@ -13,8 +13,9 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-for _directory in ('contracts', 'validator', 'representation'):
+for _directory in ('contracts', 'validator'):
     sys.path.insert(0, str(ROOT / _directory))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/representation'))
 import validate as contract
 import trajectory_checker as checker
 import enforcement

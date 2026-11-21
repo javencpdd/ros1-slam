@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'representation'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '80_algorithm/v8_algorithm/representation'))
 import local_native
 from test_local_native import layers
 

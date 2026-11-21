@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / 'representation'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 import support_map  # noqa: E402  夹具里造双层支撑面要用它的构造器
 
 

@@ -7,7 +7,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / 'planner'))
 sys.path.insert(0, str(HERE.parent / 'local_planner'))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 import a5_v8x1_stop_smoke as smoke  # noqa: E402
 
 

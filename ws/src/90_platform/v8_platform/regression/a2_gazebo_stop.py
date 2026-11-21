@@ -18,7 +18,7 @@ import threading
 import time
 
 BASE = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(BASE / 'orchestrator'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/orchestrator').resolve()))
 import orchestrator as orch  # noqa: E402
 from process_runner import ProcessRunner  # noqa: E402
 from a5_gazebo_runtime import sensed_box  # noqa: E402

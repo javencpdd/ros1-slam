@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / 'composer'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/composer').resolve()))
 import registry
 import composer
 

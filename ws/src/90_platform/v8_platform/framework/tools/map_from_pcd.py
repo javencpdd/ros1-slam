@@ -26,7 +26,7 @@ HERE = Path(__file__).resolve().parent
 FRAMEWORK = HERE.parent
 ROOT = paths.repo_root(__file__)
 PLATFORM = ROOT / 'ws/src/90_platform/v8_platform'
-sys.path.insert(0, str(PLATFORM / 'representation'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 sys.path.insert(0, str(PLATFORM / 'regression'))
 import gazebo3d_mapping as g3d  # noqa: E402
 import support_map as rep  # noqa: E402

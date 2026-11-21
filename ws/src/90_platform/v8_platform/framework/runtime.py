@@ -13,7 +13,7 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / 'orchestrator'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/orchestrator').resolve()))
 import orchestrator as orch  # noqa: E402
 from process_runner import ProcessRunner  # noqa: E402
 

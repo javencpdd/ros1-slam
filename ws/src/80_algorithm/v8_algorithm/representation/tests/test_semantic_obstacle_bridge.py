@@ -11,7 +11,7 @@ HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 import semantic_obstacle_bridge as bridge  # noqa: E402
 
-FIXTURE = HERE.parent / 'framework' / 'fixtures' / 'maps' / 'sem_obstacle.json'
+FIXTURE = Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/framework' / 'fixtures' / 'maps' / 'sem_obstacle.json'
 
 
 def fixture():

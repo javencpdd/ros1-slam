@@ -13,8 +13,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PLATFORM = HERE.parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(PLATFORM / 'framework'))
-sys.path.insert(0, str(PLATFORM / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/framework').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 import config  # noqa: E402
 import graph  # noqa: E402
 import port_conformance  # noqa: E402

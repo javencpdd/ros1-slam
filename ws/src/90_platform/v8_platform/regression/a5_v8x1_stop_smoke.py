@@ -27,7 +27,7 @@ DYNAMICS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 
 sys.path.insert(0, str(DYNAMICS))
 sys.path.insert(0, str(HERE.parent / 'planner'))
 sys.path.insert(0, str(HERE.parent / 'local_planner'))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 import support_planner  # noqa: E402
 
 PORT = 11533

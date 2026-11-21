@@ -27,8 +27,8 @@ os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
 Path('/tmp/r1040_ros').mkdir(exist_ok=True)
 Path('/tmp/r1040_logs').mkdir(exist_ok=True)
 sys.path.insert(0, str(FRAMEWORK))
-sys.path.insert(0, str(FRAMEWORK.parent / 'contracts'))
-sys.path.insert(0, str(FRAMEWORK.parent / 'representation'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
 import render  # noqa: E402

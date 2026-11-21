@@ -27,7 +27,7 @@ SIM = REPO / 'subprojects/simulation/ws/src/lite3_gazebo_sim'
 FLAT = BASE / 'calibration/flat2d'
 sys.path.insert(0, str(FLAT))
 from geometry import box_dist
-sys.path.insert(0, str(BASE / 'orchestrator'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/orchestrator').resolve()))
 from process_runner import process_group_members
 
 
@@ -207,7 +207,7 @@ def main():
     args = parser.parse_args()
     if args.graph:
         # Validate the selected graph before creating the simulation environment.
-        sys.path.insert(0, str(BASE / 'framework'))
+        sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/framework').resolve()))
         import config as fw_config
         import graph as fw_graph
         import render as fw_render
@@ -272,7 +272,7 @@ def main():
                 backend, global_backend = args.backend, args.global_backend
                 make_map(output)
                 if args.graph:
-                    sys.path.insert(0, str(BASE / 'framework'))
+                    sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/framework').resolve()))
                     import config as fw_config
                     import graph as fw_graph
                     import launch as fw_launch

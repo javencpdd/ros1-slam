@@ -11,7 +11,7 @@ from pathlib import Path
 # 原有全部派生表达式（str(HERE)/HERE.parent/HERE/"x.py"）语义不变。
 HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
 import map_router  # noqa: E402
 import map_service as svc  # noqa: E402
 import test_map_delta as td  # noqa: E402
@@ -19,7 +19,7 @@ import test_map_service as tm  # noqa: E402
 
 # 2026-11-18（M7）：改用 HERE 表达（HERE 已指 representation 目录，HERE.parent = v8_platform），
 # 避免再写一条不跟 HERE 同步的内联 __file__ 层级。
-FLAT = HERE.parent / 'contracts/fixtures/map_2d_flat.json'
+FLAT = Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts/fixtures/map_2d_flat.json'
 
 
 def map_value(map_id):

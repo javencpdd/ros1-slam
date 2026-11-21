@@ -18,8 +18,8 @@ import yaml
 
 HERE = Path(__file__).resolve().parent
 BASE = HERE.parent
-sys.path.insert(0, str(BASE / 'framework'))
-sys.path.insert(0, str(BASE / 'orchestrator'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/framework').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/orchestrator').resolve()))
 
 import config as fw_config  # noqa: E402
 import graph as fw_graph  # noqa: E402

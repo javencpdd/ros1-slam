@@ -14,8 +14,9 @@ import tempfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-for sub in ('representation', 'planner'):
+for sub in ('planner',):
     sys.path.insert(0, str(ROOT / sub))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/representation'))
 import support_map as rep
 import a4_runtime as a4
 
@@ -46,7 +47,7 @@ def call_snapshots(first, second, evidence1, evidence2, queries):
         map_path.write_text(json.dumps(first))
         evidence_path.write_text(json.dumps(evidence1))
         name = 'a3_map_query'
-        command = [sys.executable, str(ROOT / 'representation' / 'map_node.py'),
+        command = [sys.executable, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/representation' / 'map_node.py'),
                    '__name:=' + name, '_map_json:=' + str(map_path),
                    '_evidence_json:=' + str(evidence_path), '_keep_alive_s:=60']
         # stderr to file avoids PIPE backpressure while retaining startup failure details.

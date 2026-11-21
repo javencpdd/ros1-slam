@@ -22,8 +22,8 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-sys.path.insert(0, str(ROOT / 'representation'))
-sys.path.insert(0, str(ROOT / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 import elevation  # noqa: E402
 import support_map as rep  # noqa: E402
 

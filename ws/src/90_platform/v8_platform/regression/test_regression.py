@@ -6,7 +6,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / 'scenarios'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/scenarios').resolve()))
 sys.path.insert(0, str(HERE.parent / 'calibration'))
 import calibration as cal  # noqa: E402
 import regression as reg  # noqa: E402

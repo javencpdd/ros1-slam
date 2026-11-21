@@ -14,8 +14,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / 'contracts'))
-sys.path.insert(0, str(HERE.parent / 'representation'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 sys.path.insert(0, str(HERE.parent / 'planner'))
 import support_map as rep  # noqa: E402
 import support_planner as pln  # noqa: E402
@@ -23,7 +23,7 @@ import support_planner as pln  # noqa: E402
 RES = 0.5
 SOURCE = {'uri': 'design://scale', 'sha256': '7' * 64}
 DELIVERY_DIRS = ('contracts', 'probe_mode3', 'registry', 'composer', 'orchestrator',
-                 'adapters', 'representation', 'planner', 'validator', 'scenarios',
+                 'adapters', 'planner', 'validator', 'scenarios',
                  'calibration', 'regression', 'delivery')
 
 

@@ -33,7 +33,7 @@ def _grid():
     """
     global _GRID_READY
     if not _GRID_READY:
-        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'v8_grid'))
+        sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '90_platform/v8_grid'))
         _GRID_READY = True
     from v8_grid import indexing
     return indexing

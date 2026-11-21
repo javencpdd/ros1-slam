@@ -20,7 +20,7 @@ os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,
 Path('/tmp/r1035_ros').mkdir(exist_ok=True)
 Path('/tmp/r1035_logs').mkdir(exist_ok=True)
 sys.path.insert(0, str(FRAMEWORK))
-sys.path.insert(0, str(HERE.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
 import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
 import render  # noqa: E402

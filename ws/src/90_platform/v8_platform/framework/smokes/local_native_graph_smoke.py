@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent
 FRAMEWORK = HERE.parent
 ROOT = FRAMEWORK.parents[3]
 sys.path.insert(0, str(FRAMEWORK))
-sys.path.insert(0, str(FRAMEWORK.parent / 'contracts'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
 import config  # noqa: E402
 import graph as graph_mod  # noqa: E402
 import render  # noqa: E402
@@ -98,7 +98,7 @@ def main():
         from std_msgs.msg import Bool, String
         rospy.init_node('r1025_smoke', anonymous=True, disable_signals=True)
         delta_node = start([sys.executable, '-B',
-                            str(FRAMEWORK.parent / 'representation' / 'delta_map_node.py'),
+                            str(FRAMEWORK.parents[2] / '80_algorithm/v8_algorithm/representation' / 'delta_map_node.py'),
                             '_map_json:=' + str(FRAMEWORK.parent / 'contracts' / 'fixtures'
                                                 / 'map_ml_two_surfaces.json'),
                             '_state_path:=' + str(STATE),

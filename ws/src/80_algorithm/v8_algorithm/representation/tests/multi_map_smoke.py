@@ -12,7 +12,7 @@ from pathlib import Path
 # 2026-11-18（M7）：测试已移入 tests/ 子目录，HERE 指回包目录以保持
 # 原有全部派生表达式（str(HERE)/HERE.parent/HERE/"x.py"）语义不变。
 HERE = Path(__file__).resolve().parent.parent
-FIXTURE = HERE.parent / 'contracts/fixtures/map_ml_two_surfaces.json'
+FIXTURE = Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts/fixtures/map_ml_two_surfaces.json'
 NODE = HERE / 'multi_map_node.py'
 OUT = Path('/tmp/r998_smoke.json')
 STATE = Path('/tmp/r998_state')
@@ -80,7 +80,7 @@ def main():
         value = copy.deepcopy(base)
         value['map_id'] = map_id
         path.write_text(json.dumps(value))
-    flat = json.loads((HERE.parent / 'contracts/fixtures/map_2d_flat.json').read_text())
+    flat = json.loads((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts/fixtures/map_2d_flat.json').read_text())
     flat['map_id'] = 'map_c'
     flat['layers'][0]['data_uri'] = str(PGM_C)
     MAP_C.write_text(json.dumps(flat))

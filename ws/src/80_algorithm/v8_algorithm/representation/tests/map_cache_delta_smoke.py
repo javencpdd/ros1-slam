@@ -41,7 +41,7 @@ def main():
     import rospy
     from std_msgs.msg import String
     from std_srvs.srv import Trigger
-    fixture = json.loads((HERE.parent / 'contracts' / 'fixtures'
+    fixture = json.loads((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts' / 'fixtures'
                           / 'map_ml_two_surfaces.json').read_text())
     mezz = next(item for item in fixture['surfaces'] if item['surface_id'] == 'mezz')
     mezz['z_reference'] = 0.8
@@ -54,7 +54,7 @@ def main():
         time.sleep(3)
         rospy.init_node('r1022_smoke', anonymous=True, disable_signals=True)
         delta_node = start([sys.executable, '-B', str(HERE / 'delta_map_node.py'),
-                            '_map_json:=' + str(HERE.parent / 'contracts' / 'fixtures'
+                            '_map_json:=' + str(Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts' / 'fixtures'
                                                 / 'map_ml_two_surfaces.json'),
                             '_state_path:=' + str(STATE),
                             '_delta_topic:=/map_delta',
