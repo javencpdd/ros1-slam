@@ -1,6 +1,6 @@
 """Frozen support-cell contract used by the simulation carrier.
 
-Canonical implementation: v8_platform/representation/support_map.py.  The
+Canonical implementation: 80_algorithm/v8_algorithm/representation/support_map.py.  The
 simulation package must run without the navigation platform's source, so this
 file keeps the three pure helpers the carrier needs.  test_support_cells.py
 compares both implementations and fails on drift; change both together.
