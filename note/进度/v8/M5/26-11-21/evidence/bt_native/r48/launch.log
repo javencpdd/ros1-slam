@@ -1,0 +1,1305 @@
+... logging to /opt/ros1-slam/logs/c36774f6-e5ae-11f1-8099-62696700331c/roslaunch-8686474ea1d2-99455.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_teb.launch
+[1mstarted roslaunch server http://8686474ea1d2:37385/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /bt_console/arrival_speed_floor_mps: 0.0
+ * /bt_console/cancel_ack_timeout: 2.0
+ * /bt_console/cancel_ack_topic: /v8/navigation/ca...
+ * /bt_console/cancel_input_topic: /v8/bt/cancel
+ * /bt_console/cancel_topic: /v8/navigation/ca...
+ * /bt_console/execution_request_topic: /v8/navigation/goal
+ * /bt_console/execution_status_topic: /v8/navigation/st...
+ * /bt_console/goal_topic: /v8/bt/goal
+ * /bt_console/localization_topic: 
+ * /bt_console/mission_topic: /v8/bt/goal_mission
+ * /bt_console/planner_result_topic: /v8/navigation/re...
+ * /bt_console/policy_topic: /v8/bt/goal_policy
+ * /bt_console/pose_topic: /v8/local/pose
+ * /bt_console/queue_max: 16
+ * /bt_console/recovery_mode: abort
+ * /bt_console/recovery_rules/backend_disconnected: abort
+ * /bt_console/recovery_rules/backend_lost: abort
+ * /bt_console/recovery_rules/backend_terminal: replan
+ * /bt_console/recovery_rules/backend_unavailable: retry
+ * /bt_console/recovery_rules/cancel_timeout: abort
+ * /bt_console/recovery_rules/invalid_goal: abort
+ * /bt_console/recovery_rules/invalid_pose: abort
+ * /bt_console/recovery_rules/lease_lost: abort
+ * /bt_console/recovery_rules/restart_required: abort
+ * /bt_console/retry_delay_s: 1.0
+ * /bt_console/retry_max: 1
+ * /bt_console/stop_topic: /lite3/teleop/app...
+ * /bt_console/tree_file: /opt/ros1-slam/ws...
+ * /bt_console/zmq_pub_port: 5555
+ * /bt_console/zmq_sub_port: 5556
+ * /elevation_gridmap_publisher/stale_timeout: 1.0
+ * /gazebo/enable_ros_network: True
+ * /m2_tf_fresh/child_frame: odom
+ * /m2_tf_fresh/parent_frame: map
+ * /m2_tf_fresh/rate_hz: 10.0
+ * /navigation_executor/GlobalPlanner/allow_unknown: False
+ * /navigation_executor/GlobalPlanner/cost_factor: 3
+ * /navigation_executor/GlobalPlanner/default_tolerance: 0.0
+ * /navigation_executor/GlobalPlanner/lethal_cost: 253
+ * /navigation_executor/GlobalPlanner/neutral_cost: 50
+ * /navigation_executor/GlobalPlanner/old_navfn_behavior: False
+ * /navigation_executor/GlobalPlanner/orientation_mode: 1
+ * /navigation_executor/GlobalPlanner/orientation_window_size: 1
+ * /navigation_executor/GlobalPlanner/outline_map: False
+ * /navigation_executor/GlobalPlanner/planner_window_x: 0.0
+ * /navigation_executor/GlobalPlanner/planner_window_y: 0.0
+ * /navigation_executor/GlobalPlanner/publish_potential: False
+ * /navigation_executor/GlobalPlanner/publish_scale: 100
+ * /navigation_executor/GlobalPlanner/use_dijkstra: True
+ * /navigation_executor/GlobalPlanner/use_grid_path: False
+ * /navigation_executor/GlobalPlanner/use_quadratic: False
+ * /navigation_executor/TebLocalPlannerROS/acc_lim_theta: 1.0
+ * /navigation_executor/TebLocalPlannerROS/acc_lim_x: 1.0
+ * /navigation_executor/TebLocalPlannerROS/acc_lim_y: 0.1
+ * /navigation_executor/TebLocalPlannerROS/allow_init_with_backwards_motion: False
+ * /navigation_executor/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /navigation_executor/TebLocalPlannerROS/complete_global_plan: False
+ * /navigation_executor/TebLocalPlannerROS/control_look_ahead_poses: 1
+ * /navigation_executor/TebLocalPlannerROS/controller_frequency: 10
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_distance: 0.3
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_pts: 30
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_min_pts: 3
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/convex_hull_min_pt_separation: 0.1
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter_plugin: costmap_converter...
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter_spin_thread: True
+ * /navigation_executor/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 2.0
+ * /navigation_executor/TebLocalPlannerROS/divergence_detection: False
+ * /navigation_executor/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /navigation_executor/TebLocalPlannerROS/dt_ref: 0.4
+ * /navigation_executor/TebLocalPlannerROS/dynamic_obstacle_inflation_dist: 0.6
+ * /navigation_executor/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /navigation_executor/TebLocalPlannerROS/exact_arc_length: False
+ * /navigation_executor/TebLocalPlannerROS/feasibility_check_lookahead_distance: 3
+ * /navigation_executor/TebLocalPlannerROS/feasibility_check_no_poses: 30
+ * /navigation_executor/TebLocalPlannerROS/footprint_model/type: polygon
+ * /navigation_executor/TebLocalPlannerROS/footprint_model/vertices: [[-0.3, -0.2], [-...
+ * /navigation_executor/TebLocalPlannerROS/force_reinit_new_goal_angular: 0.78
+ * /navigation_executor/TebLocalPlannerROS/force_reinit_new_goal_dist: 1.0
+ * /navigation_executor/TebLocalPlannerROS/free_goal_vel: False
+ * /navigation_executor/TebLocalPlannerROS/global_plan_overwrite_orientation: False
+ * /navigation_executor/TebLocalPlannerROS/global_plan_prune_distance: 0.5
+ * /navigation_executor/TebLocalPlannerROS/global_plan_viapoint_sep: 0.3
+ * /navigation_executor/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /navigation_executor/TebLocalPlannerROS/include_dynamic_obstacles: True
+ * /navigation_executor/TebLocalPlannerROS/inflation_dist: 0.45
+ * /navigation_executor/TebLocalPlannerROS/is_footprint_dynamic: False
+ * /navigation_executor/TebLocalPlannerROS/legacy_obstacle_association: False
+ * /navigation_executor/TebLocalPlannerROS/map_frame: /map
+ * /navigation_executor/TebLocalPlannerROS/max_global_plan_lookahead_dist: 5.0
+ * /navigation_executor/TebLocalPlannerROS/max_samples: 100
+ * /navigation_executor/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /navigation_executor/TebLocalPlannerROS/max_vel_trans: 1.0
+ * /navigation_executor/TebLocalPlannerROS/max_vel_x: 0.4
+ * /navigation_executor/TebLocalPlannerROS/max_vel_x_backwards: 0.2
+ * /navigation_executor/TebLocalPlannerROS/max_vel_y: 0.1
+ * /navigation_executor/TebLocalPlannerROS/min_obstacle_dist: 0.05
+ * /navigation_executor/TebLocalPlannerROS/min_resolution_collision_check_angular: 3.1415926
+ * /navigation_executor/TebLocalPlannerROS/min_samples: 3
+ * /navigation_executor/TebLocalPlannerROS/min_turning_radius: 0.0
+ * /navigation_executor/TebLocalPlannerROS/obstacle_association_cutoff_factor: 10
+ * /navigation_executor/TebLocalPlannerROS/obstacle_association_force_inclusion_factor: 3
+ * /navigation_executor/TebLocalPlannerROS/obstacle_poses_affected: 10
+ * /navigation_executor/TebLocalPlannerROS/obstacle_proximity_lower_bound: 0.2
+ * /navigation_executor/TebLocalPlannerROS/obstacle_proximity_ratio_max_vel: 0.7
+ * /navigation_executor/TebLocalPlannerROS/obstacle_proximity_upper_bound: 0.6
+ * /navigation_executor/TebLocalPlannerROS/odom_topic: leg_odom
+ * /navigation_executor/TebLocalPlannerROS/optimization_activate: True
+ * /navigation_executor/TebLocalPlannerROS/oscillation_recovery: False
+ * /navigation_executor/TebLocalPlannerROS/penalty_epsilon: 0.15
+ * /navigation_executor/TebLocalPlannerROS/planning_horizon: 4.0
+ * /navigation_executor/TebLocalPlannerROS/prevent_look_ahead_poses_near_goal: 0
+ * /navigation_executor/TebLocalPlannerROS/publish_feedback: False
+ * /navigation_executor/TebLocalPlannerROS/shrink_horizon_backup: False
+ * /navigation_executor/TebLocalPlannerROS/teb_autosize: True
+ * /navigation_executor/TebLocalPlannerROS/theta_stopped_vel: 0.05
+ * /navigation_executor/TebLocalPlannerROS/trans_stopped_vel: 0.05
+ * /navigation_executor/TebLocalPlannerROS/transform_tolerance: 0.3
+ * /navigation_executor/TebLocalPlannerROS/use_proportional_saturation: True
+ * /navigation_executor/TebLocalPlannerROS/via_points_ordered: True
+ * /navigation_executor/TebLocalPlannerROS/weight_kinematics_forward_drive: 50
+ * /navigation_executor/TebLocalPlannerROS/weight_kinematics_nh: 10
+ * /navigation_executor/TebLocalPlannerROS/weight_kinematics_turning_radius: 0
+ * /navigation_executor/TebLocalPlannerROS/weight_linear_angular: 3
+ * /navigation_executor/TebLocalPlannerROS/weight_linear_angular_times: 1
+ * /navigation_executor/TebLocalPlannerROS/weight_optimaltime: 1
+ * /navigation_executor/TebLocalPlannerROS/weight_prefer_rotdir: 0
+ * /navigation_executor/TebLocalPlannerROS/weight_shortest_path: 9
+ * /navigation_executor/TebLocalPlannerROS/weight_viapoint: 1
+ * /navigation_executor/TebLocalPlannerROS/wheelbase: 0.0
+ * /navigation_executor/TebLocalPlannerROS/xy_goal_tolerance: 0.2
+ * /navigation_executor/TebLocalPlannerROS/yaw_goal_tolerance: 0.2
+ * /navigation_executor/base_global_planner: global_planner/Gl...
+ * /navigation_executor/base_local_planner: teb_local_planner...
+ * /navigation_executor/controller_frequency: 10.0
+ * /navigation_executor/controller_patience: 3.0
+ * /navigation_executor/global_costmap/always_send_full_costmap: False
+ * /navigation_executor/global_costmap/elevation_merged_layer/enabled: True
+ * /navigation_executor/global_costmap/elevation_merged_layer/global_frame: map
+ * /navigation_executor/global_costmap/elevation_merged_layer/ground_z: 0.0
+ * /navigation_executor/global_costmap/elevation_merged_layer/height: 4.0
+ * /navigation_executor/global_costmap/elevation_merged_layer/height_threshold: 0.15
+ * /navigation_executor/global_costmap/elevation_merged_layer/input_timeout_s: 1.0
+ * /navigation_executor/global_costmap/elevation_merged_layer/input_topic: /elevation_mappin...
+ * /navigation_executor/global_costmap/elevation_merged_layer/layer_name: elevation
+ * /navigation_executor/global_costmap/elevation_merged_layer/lethal_threshold: 100
+ * /navigation_executor/global_costmap/elevation_merged_layer/obstacle_cost: 254
+ * /navigation_executor/global_costmap/elevation_merged_layer/resolution: 0.1
+ * /navigation_executor/global_costmap/elevation_merged_layer/robot_radius: 0.35
+ * /navigation_executor/global_costmap/elevation_merged_layer/trinary_costmap: True
+ * /navigation_executor/global_costmap/elevation_merged_layer/use_maximum: True
+ * /navigation_executor/global_costmap/elevation_merged_layer/width: 4.0
+ * /navigation_executor/global_costmap/footprint: [[-0.3, -0.2], [-...
+ * /navigation_executor/global_costmap/footprint_padding: 0.1
+ * /navigation_executor/global_costmap/global_frame: map
+ * /navigation_executor/global_costmap/height: 100
+ * /navigation_executor/global_costmap/origin_x: 0
+ * /navigation_executor/global_costmap/origin_y: 0
+ * /navigation_executor/global_costmap/plugins: [{'name': 'static...
+ * /navigation_executor/global_costmap/publish_frequency: 5
+ * /navigation_executor/global_costmap/resolution: 0.1
+ * /navigation_executor/global_costmap/robot_base_frame: base_link
+ * /navigation_executor/global_costmap/rolling_window: True
+ * /navigation_executor/global_costmap/sob_layer/cost_scaling_factor: 10
+ * /navigation_executor/global_costmap/sob_layer/enabled: True
+ * /navigation_executor/global_costmap/sob_layer/inflate_unknown: False
+ * /navigation_executor/global_costmap/sob_layer/inflation_radius: 0.2
+ * /navigation_executor/global_costmap/sob_layer/inscribed_radius: 0.15
+ * /navigation_executor/global_costmap/static_layer/first_map_only: True
+ * /navigation_executor/global_costmap/static_layer/lethal_cost_threshold: 100
+ * /navigation_executor/global_costmap/static_layer/map_topic: map
+ * /navigation_executor/global_costmap/static_layer/subscribe_to_updates: False
+ * /navigation_executor/global_costmap/static_layer/track_unknown_space: False
+ * /navigation_executor/global_costmap/static_layer/trinary_costmap: True
+ * /navigation_executor/global_costmap/static_layer/unknown_cost_value: -1
+ * /navigation_executor/global_costmap/static_layer/use_maximum: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/combination_method: 1
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/decay_model: 0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/enabled: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /navigation_executor/global_costmap/track_unknown_space: False
+ * /navigation_executor/global_costmap/transform_tolerance: 1.0
+ * /navigation_executor/global_costmap/update_frequency: 10
+ * /navigation_executor/global_costmap/width: 100
+ * /navigation_executor/local_costmap/always_send_full_costmap: False
+ * /navigation_executor/local_costmap/elevation_merged_layer/enabled: True
+ * /navigation_executor/local_costmap/elevation_merged_layer/global_frame: map
+ * /navigation_executor/local_costmap/elevation_merged_layer/ground_z: 0.0
+ * /navigation_executor/local_costmap/elevation_merged_layer/height: 4.0
+ * /navigation_executor/local_costmap/elevation_merged_layer/height_threshold: 0.15
+ * /navigation_executor/local_costmap/elevation_merged_layer/input_timeout_s: 1.0
+ * /navigation_executor/local_costmap/elevation_merged_layer/input_topic: /elevation_mappin...
+ * /navigation_executor/local_costmap/elevation_merged_layer/layer_name: elevation
+ * /navigation_executor/local_costmap/elevation_merged_layer/lethal_threshold: 100
+ * /navigation_executor/local_costmap/elevation_merged_layer/obstacle_cost: 254
+ * /navigation_executor/local_costmap/elevation_merged_layer/resolution: 0.1
+ * /navigation_executor/local_costmap/elevation_merged_layer/robot_radius: 0.35
+ * /navigation_executor/local_costmap/elevation_merged_layer/trinary_costmap: True
+ * /navigation_executor/local_costmap/elevation_merged_layer/use_maximum: True
+ * /navigation_executor/local_costmap/elevation_merged_layer/width: 4.0
+ * /navigation_executor/local_costmap/footprint: [[-0.3, -0.2], [-...
+ * /navigation_executor/local_costmap/footprint_padding: 0.0
+ * /navigation_executor/local_costmap/global_frame: map
+ * /navigation_executor/local_costmap/height: 10
+ * /navigation_executor/local_costmap/origin_x: 0
+ * /navigation_executor/local_costmap/origin_y: 0
+ * /navigation_executor/local_costmap/plugins: [{'name': 'stvl_o...
+ * /navigation_executor/local_costmap/publish_frequency: 5
+ * /navigation_executor/local_costmap/resolution: 0.1
+ * /navigation_executor/local_costmap/robot_base_frame: base_link
+ * /navigation_executor/local_costmap/rolling_window: True
+ * /navigation_executor/local_costmap/sob_layer/cost_scaling_factor: 10
+ * /navigation_executor/local_costmap/sob_layer/enabled: True
+ * /navigation_executor/local_costmap/sob_layer/inflate_unknown: False
+ * /navigation_executor/local_costmap/sob_layer/inflation_radius: 0.2
+ * /navigation_executor/local_costmap/sob_layer/inscribed_radius: 0.15
+ * /navigation_executor/local_costmap/static_layer/first_map_only: True
+ * /navigation_executor/local_costmap/static_layer/lethal_cost_threshold: 100
+ * /navigation_executor/local_costmap/static_layer/map_topic: map
+ * /navigation_executor/local_costmap/static_layer/subscribe_to_updates: False
+ * /navigation_executor/local_costmap/static_layer/track_unknown_space: False
+ * /navigation_executor/local_costmap/static_layer/trinary_costmap: True
+ * /navigation_executor/local_costmap/static_layer/unknown_cost_value: -1
+ * /navigation_executor/local_costmap/static_layer/use_maximum: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/combination_method: 1
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/decay_model: 0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/enabled: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /navigation_executor/local_costmap/track_unknown_space: False
+ * /navigation_executor/local_costmap/transform_tolerance: 1.0
+ * /navigation_executor/local_costmap/update_frequency: 10
+ * /navigation_executor/local_costmap/width: 10
+ * /navigation_executor/max_planning_retries: -1
+ * /navigation_executor/oscillation_distance: 0.1
+ * /navigation_executor/oscillation_timeout: 0.0
+ * /navigation_executor/planner_frequency: 0.0
+ * /navigation_executor/planner_patience: 3.0
+ * /navigation_executor/recovery_behavior_enabled: False
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /safe_cmd_vel_mux/mux_config: /opt/ros1-slam/ws...
+ * /sim_pose_source/dst_topic: /v8/local/pose
+ * /sim_pose_source/frame_id: map
+ * /sim_pose_source/localization_ok_period_s: 0.2
+ * /sim_pose_source/rate: 50.0
+ * /sim_pose_source/src_topic: /sim/odom_gt
+ * /sim_pose_source/start_rate: 0.5
+ * /sim_pose_source/start_topic: 
+ * /sim_pose_source/z_offset: -0.11
+ * /sim_speed_cap/rate: 2.0
+ * /sim_speed_cap/topic: /v8/safety/speed_cap
+ * /sim_speed_cap/value: 0.5
+ * /use_sim_time: True
+
+NODES
+  /
+    bt_console (lite3_bt/bt_console)
+    bt_navigation_executor (lite3_bt/navigation_executor.py)
+    elevation_gridmap_publisher (lite3_costmap_layers/elevation_gridmap_publisher.py)
+    gazebo (gazebo_ros/gzserver)
+    liveness_m4 (rostopic/rostopic)
+    liveness_m6 (rostopic/rostopic)
+    m2_free_map (lite3_gazebo_sim/m2_free_map.py)
+    m2_tf_fresh (lite3_gazebo_sim/m2_tf_fresh.py)
+    navigation_executor (move_base/move_base)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    safe_cmd_vel_mux (lite3_safety/safe_cmd_vel_mux.py)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    sim_pose_source (lite3_gazebo_sim/sim_pose_source.py)
+    sim_speed_cap (lite3_gazebo_sim/sim_speed_cap.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+[33m[ WARN] [1795267420.816367263]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+INFO: cannot create a symlink to latest log directory: [Errno 2] No such file or directory: '/opt/ros1-slam/logs/latest'
+[0m[ INFO] [1795267422.198022987]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1795267422.201217661]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1795267422.622311284]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1795267422.709145063, 0.026000000]: Physics dynamic reconfigure ready.[0m
+[0m[ INFO] [1795267423.212554757, 0.052000000]: load csv file name:/opt/ros1-slam/sim_ws/src/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+[0m[ INFO] [1795267433.076344334, 0.116000000]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1795267433.097473959, 0.127000000]: Requesting the map...[0m
+[0m[ INFO] [1795267433.324238778, 0.229000000]: Resizing static layer to 200 X 200 at 0.100000 m/pix[0m
+[0m[ INFO] [1795267433.325027576, 0.229000000]: Shutting down the map subscriber. first_map_only flag is on[0m
+[0m[ INFO] [1795267433.545390254, 0.329000000]: Received a 200 X 200 map at 0.100000 m/pix[0m
+[0m[ INFO] [1795267433.555650721, 0.334000000]: global_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1795267433.710361351, 0.403000000]: global_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1795267433.710448594, 0.403000000]: global_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1795267433.737399282, 0.416000000]: global_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1795267433.740097954, 0.418000000]: global_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1795267433.761400323, 0.428000000]: Voxel filter activated.[0m
+[0m[ INFO] [1795267433.794446255, 0.445000000]: global_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1795267433.794527801, 0.445000000]: global_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1795267433.796945195, 0.446000000]: [sob_layer] initializing...[0m
+[0m[ INFO] [1795267433.796999678, 0.446000000]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1795267433.808516032, 0.452000000]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1795267433.812001875, 0.453000000]: [sob_layer] initialized[0m
+[0m[ INFO] [1795267433.812087365, 0.453000000]: global_costmap: Using plugin "elevation_merged_layer"[0m
+[0m[ INFO] [1795267433.983417183, 0.530000000]: [global_costmap/elevation_merged_layer] ?????????input=/elevation_mapping/elevation_map layer=elevation global_frame=map use_maximum=1(explicit=1 refuse_write=0) height_threshold=0.150 ground_z=0.000 obstacle_cost=254[0m
+[0m[ INFO] [1795267433.989907208, 0.533000000]: [global_costmap/elevation_merged_layer] ??????????????????topic=/elevation_mapping/elevation_map????????????=/elevation_mapping/elevation_map???enabled_param=1[0m
+[0m[ INFO] [1795267434.030678021, 0.554000000]: [sob_layer] resized to 1000000[0m
+[0m[ INFO] [1795267434.033804758, 0.555000000]: [sob_layer] reinflating[0m
+[0m[ INFO] [1795267434.034602873, 0.556000000]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1795267434.071769520, 0.569000000]: local_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1795267434.072005737, 0.569000000]: local_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1795267434.072049477, 0.569000000]: local_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1795267434.080075985, 0.570000000]: local_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1795267434.081157177, 0.571000000]: local_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1795267434.099934757, 0.580000000]: Voxel filter activated.[0m
+[0m[ INFO] [1795267434.124301304, 0.592000000]: local_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1795267434.124339057, 0.592000000]: local_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1795267434.124570848, 0.592000000]: [sob_layer] initializing...[0m
+[0m[ INFO] [1795267434.124609897, 0.592000000]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1795267434.133134436, 0.597000000]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1795267434.135801715, 0.598000000]: [sob_layer] initialized[0m
+[0m[ INFO] [1795267434.135837699, 0.598000000]: local_costmap: Using plugin "elevation_merged_layer"[0m
+[0m[ INFO] [1795267434.143413047, 0.602000000]: [local_costmap/elevation_merged_layer] ?????????input=/elevation_mapping/elevation_map layer=elevation global_frame=map use_maximum=1(explicit=1 refuse_write=0) height_threshold=0.150 ground_z=0.000 obstacle_cost=254[0m
+[0m[ INFO] [1795267434.145930005, 0.603000000]: [local_costmap/elevation_merged_layer] ??????????????????topic=/elevation_mapping/elevation_map????????????=/elevation_mapping/elevation_map???enabled_param=1[0m
+[0m[ INFO] [1795267434.170641387, 0.615000000]: [sob_layer] resized to 10000[0m
+[0m[ INFO] [1795267434.171280706, 0.616000000]: [sob_layer] reinflating[0m
+[0m[ INFO] [1795267434.171597956, 0.616000000]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1795267434.193029250, 0.627000000]: Created local_planner teb_local_planner/TebLocalPlannerROS[0m
+[0m[ INFO] [1795267434.251317609, 0.656000000]: Footprint model 'polygon' loaded for trajectory optimization.[0m
+[0m[ INFO] [1795267434.252051491, 0.656000000]: Parallel planning in distinctive topologies disabled.[0m
+[0m[ INFO] [1795267434.340806820, 0.692000000]: Costmap conversion plugin costmap_converter::CostmapToPolygonsDBSMCCH loaded.[0m
+[0m[ INFO] [1795267434.611628447, 0.819000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1795267434.619007393, 0.823000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1795267434.679120912, 0.853000000]: [global_costmap/elevation_merged_layer] Received a grid map #1???40x40???frame=map???stamp=0.569???[0m
+[0m[ INFO] [1795267434.679195172, 0.853000000]: [local_costmap/elevation_merged_layer] Received a grid map #1???40x40???frame=map???stamp=0.569???[0m
+[0m[ INFO] [1795267434.686873874, 0.857000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 1 ??? / 46 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267434.803670290, 0.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #2???40x40???frame=map???stamp=0.670???[0m
+[0m[ INFO] [1795267434.803805301, 0.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #2???40x40???frame=map???stamp=0.670???[0m
+[0m[ INFO] [1795267434.830564294, 0.918000000]: [local_costmap/elevation_merged_layer] ???????????? 47 ???????????? 1 ??? / 47 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267434.907058189, 0.956000000]: [global_costmap/elevation_merged_layer] ???????????? 47 ???????????? 2 ??? / 93 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.021692179, 1.004000000]: [global_costmap/elevation_merged_layer] Received a grid map #3???40x40???frame=map???stamp=0.768???[0m
+[0m[ INFO] [1795267435.021842651, 1.004000000]: [local_costmap/elevation_merged_layer] Received a grid map #3???40x40???frame=map???stamp=0.768???[0m
+[0m[ INFO] [1795267435.052152875, 1.019000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 2 ??? / 93 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.127545803, 1.057000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 3 ??? / 139 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.241634518, 1.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #4???40x40???frame=map???stamp=0.872???[0m
+[0m[ INFO] [1795267435.241782850, 1.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #4???40x40???frame=map???stamp=0.872???[0m
+[0m[ INFO] [1795267435.267154811, 1.118000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 3 ??? / 139 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.344035800, 1.156000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 4 ??? / 185 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.459760436, 1.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #5???40x40???frame=map???stamp=0.969???[0m
+[0m[ INFO] [1795267435.459939043, 1.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #5???40x40???frame=map???stamp=0.969???[0m
+[0m[ INFO] [1795267435.487857162, 1.219000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 4 ??? / 184 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.574557520, 1.260000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 5 ??? / 230 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.691885828, 1.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #6???40x40???frame=map???stamp=1.071???[0m
+[0m[ INFO] [1795267435.692088147, 1.306000000]: [local_costmap/elevation_merged_layer] Received a grid map #6???40x40???frame=map???stamp=1.071???[0m
+[0m[ INFO] [1795267435.716936463, 1.318000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 5 ??? / 230 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.794062181, 1.357000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 6 ??? / 276 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267435.908888967, 1.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #7???40x40???frame=map???stamp=1.174???[0m
+[0m[ INFO] [1795267435.909057661, 1.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #7???40x40???frame=map???stamp=1.174???[0m
+[0m[ INFO] [1795267435.933656008, 1.418000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 6 ??? / 275 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.010753574, 1.456000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 7 ??? / 321 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.123804865, 1.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #8???40x40???frame=map???stamp=1.277???[0m
+[0m[ INFO] [1795267436.123899227, 1.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #8???40x40???frame=map???stamp=1.277???[0m
+[0m[ INFO] [1795267436.149151967, 1.518000000]: [local_costmap/elevation_merged_layer] ???????????? 47 ???????????? 7 ??? / 322 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.225377287, 1.556000000]: [global_costmap/elevation_merged_layer] ???????????? 47 ???????????? 8 ??? / 368 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.338434401, 1.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #9???40x40???frame=map???stamp=1.368???[0m
+[0m[ INFO] [1795267436.338713276, 1.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #9???40x40???frame=map???stamp=1.368???[0m
+[0m[ INFO] [1795267436.364278660, 1.618000000]: [local_costmap/elevation_merged_layer] ???????????? 44 ???????????? 8 ??? / 366 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.441799551, 1.657000000]: [global_costmap/elevation_merged_layer] ???????????? 44 ???????????? 9 ??? / 412 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.566324671, 1.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #10???40x40???frame=map???stamp=1.466???[0m
+[0m[ INFO] [1795267436.566568457, 1.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #10???40x40???frame=map???stamp=1.466???[0m
+[0m[ INFO] [1795267436.592311185, 1.718000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 9 ??? / 412 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.669699174, 1.757000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 10 ??? / 458 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.803229588, 1.813000000]: [global_costmap/elevation_merged_layer] Received a grid map #11???40x40???frame=map???stamp=1.567???[0m
+[0m[ INFO] [1795267436.803580683, 1.813000000]: [local_costmap/elevation_merged_layer] Received a grid map #11???40x40???frame=map???stamp=1.567???[0m
+[0m[ INFO] [1795267436.813925268, 1.818000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 10 ??? / 458 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267436.891059323, 1.857000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 11 ??? / 504 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.007379334, 1.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #12???40x40???frame=map???stamp=1.692???[0m
+[0m[ INFO] [1795267437.007587263, 1.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #12???40x40???frame=map???stamp=1.692???[0m
+[0m[ INFO] [1795267437.031894607, 1.917000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 11 ??? / 503 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.110088079, 1.956000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 12 ??? / 549 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.225004589, 2.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #13???40x40???frame=map???stamp=1.776???[0m
+[0m[ INFO] [1795267437.225083734, 2.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #13???40x40???frame=map???stamp=1.776???[0m
+[0m[ INFO] [1795267437.251204019, 2.017000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 12 ??? / 549 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.328576580, 2.056000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 13 ??? / 595 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.443308818, 2.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #14???40x40???frame=map???stamp=1.884???[0m
+[0m[ INFO] [1795267437.443513705, 2.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #14???40x40???frame=map???stamp=1.884???[0m
+[0m[ INFO] [1795267437.469141531, 2.118000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 13 ??? / 594 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.547047622, 2.157000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 14 ??? / 640 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.661450498, 2.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #15???40x40???frame=map???stamp=1.967???[0m
+[0m[ INFO] [1795267437.661595255, 2.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #15???40x40???frame=map???stamp=1.967???[0m
+[0m[ INFO] [1795267437.686354883, 2.217000000]: [local_costmap/elevation_merged_layer] ???????????? 47 ???????????? 14 ??? / 641 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.764255574, 2.256000000]: [global_costmap/elevation_merged_layer] ???????????? 47 ???????????? 15 ??? / 687 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.878616312, 2.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #16???40x40???frame=map???stamp=2.068???[0m
+[0m[ INFO] [1795267437.878723467, 2.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #16???40x40???frame=map???stamp=2.068???[0m
+[0m[ INFO] [1795267437.904515106, 2.318000000]: [local_costmap/elevation_merged_layer] ???????????? 47 ???????????? 15 ??? / 688 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267437.982286330, 2.357000000]: [global_costmap/elevation_merged_layer] ???????????? 47 ???????????? 16 ??? / 734 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.094602806, 2.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #17???40x40???frame=map???stamp=2.167???[0m
+[0m[ INFO] [1795267438.094731059, 2.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #17???40x40???frame=map???stamp=2.167???[0m
+[0m[ INFO] [1795267438.120361124, 2.418000000]: [local_costmap/elevation_merged_layer] ???????????? 50 ???????????? 16 ??? / 738 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.198213829, 2.456000000]: [global_costmap/elevation_merged_layer] ???????????? 50 ???????????? 17 ??? / 784 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.315503319, 2.506000000]: [global_costmap/elevation_merged_layer] Received a grid map #18???40x40???frame=map???stamp=2.267???[0m
+[0m[ INFO] [1795267438.315706045, 2.506000000]: [local_costmap/elevation_merged_layer] Received a grid map #18???40x40???frame=map???stamp=2.267???[0m
+[0m[ INFO] [1795267438.339827387, 2.518000000]: [local_costmap/elevation_merged_layer] ???????????? 48 ???????????? 17 ??? / 786 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.416375733, 2.556000000]: [global_costmap/elevation_merged_layer] ???????????? 48 ???????????? 18 ??? / 832 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.530060339, 2.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #19???40x40???frame=map???stamp=2.367???[0m
+[0m[ INFO] [1795267438.530163734, 2.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #19???40x40???frame=map???stamp=2.367???[0m
+[0m[ INFO] [1795267438.556248297, 2.618000000]: [local_costmap/elevation_merged_layer] ???????????? 49 ???????????? 18 ??? / 835 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.634795712, 2.657000000]: [global_costmap/elevation_merged_layer] ???????????? 49 ???????????? 19 ??? / 881 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.748488024, 2.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #20???40x40???frame=map???stamp=2.469???[0m
+[0m[ INFO] [1795267438.748672126, 2.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #20???40x40???frame=map???stamp=2.469???[0m
+[0m[ INFO] [1795267438.774613194, 2.718000000]: [local_costmap/elevation_merged_layer] ???????????? 50 ???????????? 19 ??? / 885 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.850875608, 2.756000000]: [global_costmap/elevation_merged_layer] ???????????? 50 ???????????? 20 ??? / 931 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267438.965579982, 2.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #21???40x40???frame=map???stamp=2.569???[0m
+[0m[ INFO] [1795267438.965721440, 2.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #21???40x40???frame=map???stamp=2.569???[0m
+[0m[ INFO] [1795267438.991691298, 2.818000000]: [local_costmap/elevation_merged_layer] ???????????? 51 ???????????? 20 ??? / 936 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.069548812, 2.857000000]: [global_costmap/elevation_merged_layer] ???????????? 51 ???????????? 21 ??? / 982 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.180366091, 2.904000000]: [global_costmap/elevation_merged_layer] Received a grid map #22???40x40???frame=map???stamp=2.673???[0m
+[0m[ INFO] [1795267439.180533254, 2.904000000]: [local_costmap/elevation_merged_layer] Received a grid map #22???40x40???frame=map???stamp=2.673???[0m
+[0m[ INFO] [1795267439.207214552, 2.918000000]: [local_costmap/elevation_merged_layer] ???????????? 51 ???????????? 21 ??? / 987 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.284636064, 2.956000000]: [global_costmap/elevation_merged_layer] ???????????? 51 ???????????? 22 ??? / 1033 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.398809617, 3.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #23???40x40???frame=map???stamp=2.768???[0m
+[0m[ INFO] [1795267439.398922312, 3.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #23???40x40???frame=map???stamp=2.768???[0m
+[0m[ INFO] [1795267439.423569762, 3.018000000]: [local_costmap/elevation_merged_layer] ???????????? 50 ???????????? 22 ??? / 1037 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.500291964, 3.056000000]: [global_costmap/elevation_merged_layer] ???????????? 50 ???????????? 23 ??? / 1083 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.617647111, 3.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #24???40x40???frame=map???stamp=2.867???[0m
+[0m[ INFO] [1795267439.617794689, 3.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #24???40x40???frame=map???stamp=2.867???[0m
+[0m[ INFO] [1795267439.643279156, 3.117000000]: [local_costmap/elevation_merged_layer] ???????????? 51 ???????????? 23 ??? / 1088 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.721282086, 3.156000000]: [global_costmap/elevation_merged_layer] ???????????? 51 ???????????? 24 ??? / 1134 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.833631409, 3.204000000]: [global_costmap/elevation_merged_layer] Received a grid map #25???40x40???frame=map???stamp=2.969???[0m
+[0m[ INFO] [1795267439.833763770, 3.204000000]: [local_costmap/elevation_merged_layer] Received a grid map #25???40x40???frame=map???stamp=2.969???[0m
+[0m[ INFO] [1795267439.860258825, 3.218000000]: [local_costmap/elevation_merged_layer] ???????????? 54 ???????????? 24 ??? / 1142 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267439.937287664, 3.256000000]: [global_costmap/elevation_merged_layer] ???????????? 54 ???????????? 25 ??? / 1188 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.051447951, 3.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #26???40x40???frame=map???stamp=3.067???[0m
+[0m[ INFO] [1795267440.051588814, 3.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #26???40x40???frame=map???stamp=3.067???[0m
+[0m[ INFO] [1795267440.077199576, 3.318000000]: [local_costmap/elevation_merged_layer] ???????????? 54 ???????????? 25 ??? / 1196 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.153735838, 3.356000000]: [global_costmap/elevation_merged_layer] ???????????? 54 ???????????? 26 ??? / 1242 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.268403485, 3.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #27???40x40???frame=map???stamp=3.173???[0m
+[0m[ INFO] [1795267440.268528085, 3.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #27???40x40???frame=map???stamp=3.173???[0m
+[0m[ INFO] [1795267440.295234741, 3.418000000]: [local_costmap/elevation_merged_layer] ???????????? 54 ???????????? 26 ??? / 1250 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.372024554, 3.456000000]: [global_costmap/elevation_merged_layer] ???????????? 54 ???????????? 27 ??? / 1296 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.488244900, 3.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #28???40x40???frame=map???stamp=3.270???[0m
+[0m[ INFO] [1795267440.488327535, 3.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #28???40x40???frame=map???stamp=3.270???[0m
+[0m[ INFO] [1795267440.513420285, 3.518000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 27 ??? / 1308 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.590953288, 3.557000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 28 ??? / 1354 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.703125128, 3.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #29???40x40???frame=map???stamp=3.368???[0m
+[0m[ INFO] [1795267440.703211272, 3.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #29???40x40???frame=map???stamp=3.368???[0m
+[0m[ INFO] [1795267440.729970944, 3.618000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 28 ??? / 1366 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.807805987, 3.657000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 29 ??? / 1412 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267440.920554409, 3.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #30???40x40???frame=map???stamp=3.472???[0m
+[0m[ INFO] [1795267440.920618429, 3.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #30???40x40???frame=map???stamp=3.472???[0m
+[0m[ INFO] [1795267440.945647872, 3.718000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 29 ??? / 1423 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.023510140, 3.756000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 30 ??? / 1469 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.139187335, 3.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #31???40x40???frame=map???stamp=3.567???[0m
+[0m[ INFO] [1795267441.139271238, 3.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #31???40x40???frame=map???stamp=3.567???[0m
+[0m[ INFO] [1795267441.163981871, 3.818000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 30 ??? / 1484 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.241468842, 3.856000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 31 ??? / 1530 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.357467891, 3.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #32???40x40???frame=map???stamp=3.675???[0m
+[0m[ INFO] [1795267441.357562306, 3.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #32???40x40???frame=map???stamp=3.675???[0m
+[0m[ INFO] [1795267441.382646410, 3.917000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 31 ??? / 1544 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.461035909, 3.956000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 32 ??? / 1590 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.575715505, 4.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #33???40x40???frame=map???stamp=3.770???[0m
+[0m[ INFO] [1795267441.575796926, 4.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #33???40x40???frame=map???stamp=3.770???[0m
+[0m[ INFO] [1795267441.602576367, 4.018000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 32 ??? / 1601 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.679939463, 4.056000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 33 ??? / 1647 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.795483185, 4.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #34???40x40???frame=map???stamp=3.871???[0m
+[0m[ INFO] [1795267441.795667808, 4.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #34???40x40???frame=map???stamp=3.871???[0m
+[0m[ INFO] [1795267441.821669408, 4.118000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 33 ??? / 1660 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267441.898896592, 4.156000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 34 ??? / 1706 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.013829872, 4.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #35???40x40???frame=map???stamp=3.970???[0m
+[0m[ INFO] [1795267442.014001306, 4.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #35???40x40???frame=map???stamp=3.970???[0m
+[0m[ INFO] [1795267442.040019337, 4.218000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 34 ??? / 1718 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.116373359, 4.256000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 35 ??? / 1764 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.236184414, 4.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #36???40x40???frame=map???stamp=4.072???[0m
+[0m[ INFO] [1795267442.236348330, 4.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #36???40x40???frame=map???stamp=4.072???[0m
+[0m[ INFO] [1795267442.262929932, 4.318000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 35 ??? / 1777 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.340666130, 4.357000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 36 ??? / 1823 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.455639635, 4.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #37???40x40???frame=map???stamp=4.168???[0m
+[0m[ INFO] [1795267442.455748693, 4.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #37???40x40???frame=map???stamp=4.168???[0m
+[0m[ INFO] [1795267442.481409824, 4.418000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 36 ??? / 1836 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.558155156, 4.456000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 37 ??? / 1882 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.676003728, 4.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #38???40x40???frame=map???stamp=4.272???[0m
+[0m[ INFO] [1795267442.676131217, 4.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #38???40x40???frame=map???stamp=4.272???[0m
+[0m[ INFO] [1795267442.701251928, 4.517000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 37 ??? / 1895 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.779428106, 4.557000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 38 ??? / 1941 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267442.899652399, 4.606000000]: [global_costmap/elevation_merged_layer] Received a grid map #39???40x40???frame=map???stamp=4.370???[0m
+[0m[ INFO] [1795267442.899833014, 4.606000000]: [local_costmap/elevation_merged_layer] Received a grid map #39???40x40???frame=map???stamp=4.370???[0m
+[0m[ INFO] [1795267442.922888554, 4.617000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 38 ??? / 1954 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.000392649, 4.656000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 39 ??? / 2000 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.118662329, 4.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #40???40x40???frame=map???stamp=4.469???[0m
+[0m[ INFO] [1795267443.118740750, 4.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #40???40x40???frame=map???stamp=4.469???[0m
+[0m[ INFO] [1795267443.143604559, 4.717000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 39 ??? / 2014 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.222585398, 4.757000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 40 ??? / 2060 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.339912420, 4.804000000]: [global_costmap/elevation_merged_layer] Received a grid map #41???40x40???frame=map???stamp=4.576???[0m
+[0m[ INFO] [1795267443.340021240, 4.804000000]: [local_costmap/elevation_merged_layer] Received a grid map #41???40x40???frame=map???stamp=4.576???[0m
+[0m[ INFO] [1795267443.367851082, 4.818000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 40 ??? / 2075 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.445204677, 4.856000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 41 ??? / 2121 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.564334738, 4.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #42???40x40???frame=map???stamp=4.671???[0m
+[0m[ INFO] [1795267443.564428176, 4.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #42???40x40???frame=map???stamp=4.671???[0m
+[0m[ INFO] [1795267443.591262913, 4.918000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 41 ??? / 2135 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.668718746, 4.957000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 42 ??? / 2181 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.781749643, 5.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #43???40x40???frame=map???stamp=4.771???[0m
+[0m[ INFO] [1795267443.781860603, 5.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #43???40x40???frame=map???stamp=4.771???[0m
+[0m[ INFO] [1795267443.808348940, 5.018000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 42 ??? / 2197 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.887169106, 5.057000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 43 ??? / 2243 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267443.985514408, 5.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #44???40x40???frame=map???stamp=4.870???[0m
+[0m[ INFO] [1795267443.985625079, 5.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #44???40x40???frame=map???stamp=4.870???[0m
+[0m[ INFO] [1795267444.037436053, 5.118000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 43 ??? / 2258 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.115285922, 5.157000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 44 ??? / 2304 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.248146971, 5.208000000]: [global_costmap/elevation_merged_layer] Received a grid map #45???40x40???frame=map???stamp=4.971???[0m
+[0m[ INFO] [1795267444.248269268, 5.208000000]: [local_costmap/elevation_merged_layer] Received a grid map #45???40x40???frame=map???stamp=4.971???[0m
+[0m[ INFO] [1795267444.268221842, 5.218000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 44 ??? / 2320 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.344273809, 5.256000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 45 ??? / 2366 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.470039474, 5.306000000]: [global_costmap/elevation_merged_layer] Received a grid map #46???40x40???frame=map???stamp=5.105???[0m
+[0m[ INFO] [1795267444.470136310, 5.306000000]: [local_costmap/elevation_merged_layer] Received a grid map #46???40x40???frame=map???stamp=5.105???[0m
+[0m[ INFO] [1795267444.493702702, 5.318000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 45 ??? / 2382 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.571923230, 5.357000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 46 ??? / 2428 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.696291384, 5.406000000]: [global_costmap/elevation_merged_layer] Received a grid map #47???40x40???frame=map???stamp=5.198???[0m
+[0m[ INFO] [1795267444.696380357, 5.406000000]: [local_costmap/elevation_merged_layer] Received a grid map #47???40x40???frame=map???stamp=5.198???[0m
+[0m[ INFO] [1795267444.720595654, 5.418000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 46 ??? / 2444 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.797966733, 5.457000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 47 ??? / 2490 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267444.934409557, 5.507000000]: [global_costmap/elevation_merged_layer] Received a grid map #48???40x40???frame=map???stamp=5.296???[0m
+[0m[ INFO] [1795267444.934608381, 5.507000000]: [local_costmap/elevation_merged_layer] Received a grid map #48???40x40???frame=map???stamp=5.296???[0m
+[0m[ INFO] [1795267444.956030260, 5.518000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 47 ??? / 2505 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.033268147, 5.557000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 48 ??? / 2551 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.135222335, 5.606000000]: [global_costmap/elevation_merged_layer] Received a grid map #49???40x40???frame=map???stamp=5.395???[0m
+[0m[ INFO] [1795267445.135319702, 5.606000000]: [local_costmap/elevation_merged_layer] Received a grid map #49???40x40???frame=map???stamp=5.395???[0m
+[0m[ INFO] [1795267445.192280616, 5.619000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 48 ??? / 2567 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.268298126, 5.657000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 49 ??? / 2613 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.381245404, 5.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #50???40x40???frame=map???stamp=5.500???[0m
+[0m[31m[ERROR] [1795267446.061204887, 5.995000000]: TEBDBG infeasible i=12 pose=(2.860,0.032,-0.147) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267446.061492292, 5.995000000]: TEBDBG context kind=1 bad=(2.860,0.032,-0.147) robot=(1.417,0.001) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267446.061565320, 5.995000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267446.061602741, 5.995000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267446.061664902, 5.995000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267446.061683885, 5.995000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267446.061713451, 5.995000000]: TEBDBG bad_cell=(64,49) cost=0[0m
+[31m[ERROR] [1795267446.061737583, 5.995000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267446.061758673, 5.995000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.061790243, 5.995000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=254[0m
+[31m[ERROR] [1795267446.061809313, 5.995000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.061826981, 5.995000000]: TEBDBG cell=(63,45) world=(2.75,-0.35) cost=254[0m
+[31m[ERROR] [1795267446.061871561, 5.995000000]: TEBDBG cell=(66,45) world=(3.05,-0.35) cost=254[0m
+[31m[ERROR] [1795267446.061890213, 5.995000000]: TEBDBG cell=(67,45) world=(3.15,-0.35) cost=254[0m
+[31m[ERROR] [1795267446.061919602, 5.995000000]: TEBDBG cell=(69,45) world=(3.35,-0.35) cost=254[0m
+[31m[ERROR] [1795267446.061946686, 5.995000000]: TEBDBG cell=(63,46) world=(2.75,-0.25) cost=254[0m
+[31m[ERROR] [1795267446.062004778, 5.995000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267446.062046172, 5.995000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[31m[ERROR] [1795267446.062074049, 5.995000000]: TEBDBG cell=(66,46) world=(3.05,-0.25) cost=254[0m
+[33m[ WARN] [1795267446.062135086, 5.995000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267446.294119217, 6.096000000]: TEBDBG infeasible i=8 pose=(2.817,0.039,-0.152) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267446.294394903, 6.096000000]: TEBDBG context kind=1 bad=(2.817,0.039,-0.152) robot=(1.451,0.001) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267446.294502755, 6.096000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267446.294573975, 6.096000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267446.294619942, 6.096000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267446.294687374, 6.096000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267446.294747612, 6.096000000]: TEBDBG bad_cell=(64,49) cost=0[0m
+[31m[ERROR] [1795267446.294811005, 6.096000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267446.294870938, 6.096000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.294917192, 6.096000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=254[0m
+[31m[ERROR] [1795267446.294973317, 6.096000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.295050199, 6.096000000]: TEBDBG cell=(63,45) world=(2.75,-0.35) cost=254[0m
+[31m[ERROR] [1795267446.295107852, 6.096000000]: TEBDBG cell=(63,46) world=(2.75,-0.25) cost=254[0m
+[31m[ERROR] [1795267446.295159847, 6.096000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[33m[ WARN] [1795267446.295209721, 6.096000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267446.528038318, 6.194000000]: TEBDBG infeasible i=9 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267446.528193239, 6.195000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267446.528231511, 6.195000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267446.528260591, 6.195000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267446.528296390, 6.195000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267446.528329559, 6.195000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267446.528388303, 6.195000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267446.528452789, 6.195000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267446.528544586, 6.195000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.528575087, 6.195000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.528605051, 6.195000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267446.528646290, 6.195000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267446.528679686, 6.195000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267446.528697012, 6.195000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267446.528725717, 6.195000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267446.755382103, 6.292000000]: TEBDBG infeasible i=10 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267446.755549213, 6.292000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267446.755582658, 6.292000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267446.755611433, 6.292000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267446.755630626, 6.292000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267446.755657638, 6.292000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267446.755678801, 6.292000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267446.755697633, 6.292000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267446.755734714, 6.292000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.755753303, 6.292000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267446.755771284, 6.292000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267446.755805932, 6.292000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267446.755830412, 6.292000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267446.755848022, 6.292000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267446.755876797, 6.292000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[ INFO] [1795267445.381346636, 5.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #50???40x40???frame=map???stamp=5.500???[0m
+[0m[ INFO] [1795267445.435314468, 5.718000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 49 ??? / 2628 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.511470462, 5.756000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 50 ??? / 2674 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.613310169, 5.806000000]: [global_costmap/elevation_merged_layer] Received a grid map #51???40x40???frame=map???stamp=5.606???[0m
+[0m[ INFO] [1795267445.613502176, 5.806000000]: [local_costmap/elevation_merged_layer] Received a grid map #51???40x40???frame=map???stamp=5.606???[0m
+[0m[ INFO] [1795267445.668358054, 5.818000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 50 ??? / 2690 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.745181238, 5.857000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 51 ??? / 2736 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.883839573, 5.906000000]: [global_costmap/elevation_merged_layer] Received a grid map #52???40x40???frame=map???stamp=5.705???[0m
+[0m[ INFO] [1795267445.883900283, 5.906000000]: [local_costmap/elevation_merged_layer] Received a grid map #52???40x40???frame=map???stamp=5.705???[0m
+[0m[ INFO] [1795267445.906268111, 5.917000000]: [local_costmap/elevation_merged_layer] ???????????? 63 ???????????? 51 ??? / 2753 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267445.984999820, 5.957000000]: [global_costmap/elevation_merged_layer] ???????????? 63 ???????????? 52 ??? / 2799 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.112116198, 6.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #53???40x40???frame=map???stamp=5.806???[0m
+[0m[ INFO] [1795267446.112240312, 6.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #53???40x40???frame=map???stamp=5.806???[0m
+[0m[ INFO] [1795267446.137205483, 6.018000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 52 ??? / 2811 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.214626466, 6.056000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 53 ??? / 2857 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.345669353, 6.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #54???40x40???frame=map???stamp=5.897???[0m
+[0m[ INFO] [1795267446.345751323, 6.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #54???40x40???frame=map???stamp=5.897???[0m
+[0m[ INFO] [1795267446.370238021, 6.118000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 53 ??? / 2868 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.475046541, 6.167000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 54 ??? / 2914 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.551306465, 6.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #55???40x40???frame=map???stamp=6.000???[0m
+[0m[ INFO] [1795267446.551395454, 6.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #55???40x40???frame=map???stamp=6.000???[0m
+[0m[ INFO] [1795267446.601968525, 6.218000000]: [local_costmap/elevation_merged_layer] ???????????? 56 ???????????? 54 ??? / 2924 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.680500657, 6.257000000]: [global_costmap/elevation_merged_layer] ???????????? 56 ???????????? 55 ??? / 2970 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.821604416, 6.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #56???40x40???frame=map???stamp=6.096???[0m
+[0m[ INFO] [1795267446.821733913, 6.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #56???40x40???frame=map???stamp=6.096???[0m
+[0m[ INFO] [1795267446.846249502, 6.318000000]: [local_cos[31m[ERROR] [1795267447.023764577, 6.395000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267447.023845758, 6.395000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267447.023875457, 6.395000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267447.023902180, 6.395000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267447.023925729, 6.395000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267447.023944196, 6.395000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267447.023969399, 6.395000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267447.023999571, 6.395000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267447.024027788, 6.395000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.024046534, 6.395000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.024072373, 6.395000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267447.024103786, 6.395000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267447.024122175, 6.395000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267447.024150124, 6.395000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267447.024180126, 6.395000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267447.222849736, 6.494000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267447.222980941, 6.495000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267447.223055460, 6.495000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267447.223075606, 6.495000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267447.223118829, 6.495000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267447.223171003, 6.495000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267447.223210156, 6.495000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267447.223250085, 6.495000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267447.223272462, 6.495000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.223288721, 6.495000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.223307667, 6.495000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267447.223339170, 6.495000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267447.223357625, 6.495000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267447.223372842, 6.495000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267447.223403396, 6.495000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267447.456098969, 6.593000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267447.456187936, 6.593000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267447.456210729, 6.593000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267447.456229290, 6.593000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267447.456246940, 6.593000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267447.456273099, 6.593000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267447.456300008, 6.593000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267447.456328762, 6.593000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267447.456355407, 6.593000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.456382320, 6.593000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.456413374, 6.593000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267447.456432256, 6.593000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267447.456480171, 6.593000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267447.456513102, 6.593000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267447.456542318, 6.593000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267447.687848106, 6.695000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267447.687994910, 6.695000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267447.688045389, 6.695000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267447.688068300, 6.695000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267447.688094356, 6.695000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267447.688133074, 6.695000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267447.688157930, 6.695000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267447.688199165, 6.695000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267447.688238750, 6.695000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.688274343, 6.695000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.688298015, 6.695000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267447.688386078, 6.695000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267447.688422867, 6.695000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267447.688448758, 6.695000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267447.688496534, 6.695000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267447.967880530, 6.795000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267447.968023739, 6.795000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267447.968047800, 6.795000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267447.968077255, 6.795000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267447.968103929, 6.795000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267447.968133684, 6.795000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267447.968157990, 6.795000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267447.968175476, 6.795000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267447.968205106, 6.795000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.968265632, 6.795000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267447.968327322, 6.795000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267447.968374216, 6.795000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267447.968435683, 6.795000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267447.968523871, 6.795000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267447.968590874, 6.795000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267448.202478328, 6.893000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267448.202635062, 6.893000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267448.202696586, 6.893000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267448.202749702, 6.893000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267448.202783110, 6.893000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267448.202810954, 6.893000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267448.202841366, 6.893000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267448.202863940, 6.893000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267448.202886464, 6.893000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.202922472, 6.893000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.202943340, 6.893000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267448.202978958, 6.893000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267448.202997569, 6.893000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267448.203021011, 6.893000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267448.203054052, 6.893000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+tmap/elevation_merged_layer] ???????????? 58 ???????????? 55 ??? / 2982 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267446.922886815, 6.356000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 56 ??? / 3028 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.043540238, 6.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #57???40x40???frame=map???stamp=6.205???[0m
+[0m[ INFO] [1795267447.043614315, 6.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #57???40x40???frame=map???stamp=6.205???[0m
+[0m[ INFO] [1795267447.069140526, 6.418000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 56 ??? / 3039 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.146721870, 6.456000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 57 ??? / 3085 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.275945333, 6.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #58???40x40???frame=map???stamp=6.292???[0m
+[0m[ INFO] [1795267447.276078180, 6.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #58???40x40???frame=map???stamp=6.292???[0m
+[0m[ INFO] [1795267447.302699413, 6.518000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 57 ??? / 3097 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.378566138, 6.556000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 58 ??? / 3143 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.506898435, 6.604000000]: [global_costmap/elevation_merged_layer] Received a grid map #59???40x40???frame=map???stamp=6.387???[0m
+[0m[ INFO] [1795267447.507010943, 6.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #59???40x40???frame=map???stamp=6.387???[0m
+[0m[ INFO] [1795267447.533595466, 6.618000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 58 ??? / 3155 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.609914678, 6.656000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 59 ??? / 3201 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.709529034, 6.706000000]: [global_costmap/elevation_merged_layer] Received a grid map #60???40x40???frame=map???stamp=6.495???[0m
+[0m[ INFO] [1795267447.709613850, 6.706000000]: [local_costmap/elevation_merged_layer] Received a grid map #60???40x40???frame=map???stamp=6.495???[0m
+[0m[ INFO] [1795267447.813520713, 6.718000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 59 ??? / 3213 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267447.891889552, 6.757000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 60 ??? / 3259 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.020091291, 6.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #61???40x40???frame=map???stamp=6.593???[0m
+[0m[ INFO] [1795267448.020181064, 6.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #61???40x40???frame=map???stamp=6.593???[0m
+[0m[ INFO] [1795267448.044262934, 6.817000000]: [local_costmap/elevation_merged_layer] ???????????? 56 ???????????? 60 ??? / 3269 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.123430580, 6.857000000]: [global_costmap/elevation_merged_layer] ???????????? 56 ???????????? 61 ??? / 3315 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.256152241, 6.906000000]: [global_costmap/elevation_merged_layer] Received a grid map #62???40x40???frame=map???stamp=6.706???[0m
+[0m[ INFO] [1795267448.256256895, 6.906000000]: [local_costmap/elevation_merged_layer] Received a grid map #62???40x40???frame=map???stamp=6.706???[0m
+[0m[ INFO] [1795267448.284090889, 6.920000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 61 ??? / 3326 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.357788030, 6.956000000]: [global_costmap/elevation_merged_layer] ????????[31m[ERROR] [1795267448.435305800, 6.995000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267448.435486408, 6.995000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267448.435526102, 6.995000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267448.435592508, 6.995000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267448.435627793, 6.995000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267448.435655449, 6.995000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267448.435679531, 6.995000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267448.435698485, 6.995000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267448.435726108, 6.995000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.435751668, 6.995000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.435778468, 6.995000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267448.435802293, 6.995000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267448.435834021, 6.995000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267448.435862811, 6.995000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267448.435885658, 6.995000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267448.677657226, 7.094000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267448.677804610, 7.094000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267448.677861170, 7.095000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267448.677886549, 7.095000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267448.677916050, 7.095000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267448.677944461, 7.095000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267448.677960758, 7.095000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267448.677986758, 7.095000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267448.678015533, 7.095000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.678035174, 7.095000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.678062694, 7.095000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267448.678079010, 7.095000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267448.678094852, 7.095000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267448.678121023, 7.095000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267448.678170529, 7.095000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267448.930217852, 7.194000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267448.930311408, 7.194000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267448.930335439, 7.194000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267448.930353834, 7.194000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267448.930371628, 7.194000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267448.930401031, 7.194000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267448.930419855, 7.194000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267448.930449544, 7.194000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267448.930495027, 7.194000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.930519788, 7.194000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267448.930543425, 7.194000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267448.930560460, 7.194000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267448.930593638, 7.194000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267448.930630493, 7.194000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267448.930673705, 7.194000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267449.172518108, 7.295000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267449.172606999, 7.295000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267449.172639070, 7.295000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267449.172672355, 7.295000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267449.172698111, 7.295000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267449.172716866, 7.295000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267449.172742399, 7.295000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267449.172775134, 7.295000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267449.172800824, 7.295000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.172823255, 7.295000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.172851655, 7.295000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267449.172874932, 7.295000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267449.172901118, 7.295000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267449.172918981, 7.295000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267449.172951947, 7.295000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267449.393738377, 7.395000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267449.393904875, 7.395000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267449.393959602, 7.395000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267449.394022818, 7.395000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267449.394041177, 7.395000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267449.394067086, 7.395000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267449.394085262, 7.395000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267449.394125224, 7.396000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267449.394145446, 7.396000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.394202726, 7.396000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.394249372, 7.396000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267449.394300425, 7.396000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267449.394337861, 7.396000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267449.394378852, 7.396000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267449.394409884, 7.396000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267449.612861292, 7.495000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267449.612973890, 7.495000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267449.612999916, 7.495000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267449.613018806, 7.495000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267449.613037153, 7.495000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267449.613075029, 7.495000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267449.613093692, 7.495000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267449.613117157, 7.495000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267449.613154887, 7.495000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.613174398, 7.495000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.613205136, 7.495000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267449.613233210, 7.495000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267449.613261844, 7.495000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267449.613292073, 7.495000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267449.613328649, 7.495000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267449.828750562, 7.595000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267449.828838693, 7.595000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267449.828870123, 7.595000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267449.828904870, 7.595000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267449.828934093, 7.595000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267449.828951694, 7.595000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267449.828980021, 7.595000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267449.829007412, 7.595000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267449.829043816, 7.595000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.829068479, 7.595000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267449.829093025, 7.595000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267449.829119614, 7.595000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267449.829145940, 7.595000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267449.829170793, 7.595000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267449.829199639, 7.595000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+???? 57 ???????????? 62 ??? / 3372 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.497562111, 7.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #63???40x40???frame=map???stamp=6.800???[0m
+[0m[ INFO] [1795267448.497694688, 7.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #63???40x40???frame=map???stamp=6.800???[0m
+[0m[ INFO] [1795267448.524012517, 7.018000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 62 ??? / 3384 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.602275751, 7.057000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 63 ??? / 3430 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.700703736, 7.106000000]: [global_costmap/elevation_merged_layer] Received a grid map #64???40x40???frame=map???stamp=6.893???[0m
+[0m[ INFO] [1795267448.700865630, 7.106000000]: [local_costmap/elevation_merged_layer] Received a grid map #64???40x40???frame=map???stamp=6.893???[0m
+[0m[ INFO] [1795267448.778737206, 7.118000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 63 ??? / 3442 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.855276493, 7.157000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 64 ??? / 3488 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267448.976795102, 7.206000000]: [global_costmap/elevation_merged_layer] Received a grid map #65???40x40???frame=map???stamp=7.000???[0m
+[0m[ INFO] [1795267448.976902638, 7.206000000]: [local_costmap/elevation_merged_layer] Received a grid map #65???40x40???frame=map???stamp=7.000???[0m
+[0m[ INFO] [1795267449.001223932, 7.218000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 64 ??? / 3500 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.078210274, 7.257000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 65 ??? / 3546 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.193438423, 7.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #66???40x40???frame=map???stamp=7.109???[0m
+[0m[ INFO] [1795267449.193529044, 7.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #66???40x40???frame=map???stamp=7.109???[0m
+[0m[ INFO] [1795267449.224332979, 7.319000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 65 ??? / 3558 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.298007576, 7.357000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 66 ??? / 3604 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.412266875, 7.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #67???40x40???frame=map???stamp=7.194???[0m
+[0m[ INFO] [1795267449.412369073, 7.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #67???40x40???frame=map???stamp=7.194???[0m
+[0m[ INFO] [1795267449.439448589, 7.418000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 66 ??? / 3616 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.514704416, 7.456000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 67 ??? / 3662 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.632761211, 7.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #68???40x40???frame=map???stamp=7.269???[0m
+[0m[ INFO] [1795267449.632890195, 7.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #68???40x40???frame=map???stamp=7.269???[0m
+[0m[ INFO] [1795267449.659386146, 7.518000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 67 ??? / 3673 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.735785980, 7.556000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 68 ??? / 3719 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.847680523, 7.604000000]: [global_costmap/elevation_merged_layer] Received a grid map #69???40x40???frame=map??[31m[ERROR] [1795267450.048050792, 7.696000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267450.048151122, 7.696000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267450.048174008, 7.696000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267450.048192754, 7.696000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267450.048215965, 7.696000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267450.048241923, 7.696000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267450.048259711, 7.696000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267450.048284933, 7.696000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267450.048309979, 7.696000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.048328457, 7.696000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.048356448, 7.696000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267450.048381703, 7.696000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267450.048409010, 7.696000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267450.048430324, 7.696000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267450.048483530, 7.696000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267450.264120597, 7.795000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267450.264219988, 7.795000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267450.264255940, 7.795000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267450.264291989, 7.795000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267450.264323371, 7.795000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267450.264340719, 7.795000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267450.264366919, 7.795000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267450.264393832, 7.795000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267450.264416994, 7.795000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.264447549, 7.795000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.264491887, 7.795000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267450.264521961, 7.795000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267450.264549482, 7.795000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267450.264570113, 7.795000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267450.264614676, 7.795000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267450.485561444, 7.895000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267450.485661877, 7.895000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267450.485696649, 7.895000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267450.485726700, 7.895000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267450.485752159, 7.895000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267450.485776564, 7.895000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267450.485814482, 7.895000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267450.485841303, 7.895000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267450.485864152, 7.895000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.485895955, 7.895000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.485916586, 7.895000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267450.485949672, 7.895000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267450.485967536, 7.895000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267450.485996208, 7.895000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267450.486030542, 7.895000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267450.703974933, 7.994000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267450.704078322, 7.994000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267450.704105113, 7.994000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267450.704123929, 7.994000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267450.704142230, 7.994000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267450.704159177, 7.994000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267450.704179905, 7.994000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267450.704208469, 7.994000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267450.704251594, 7.994000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.704270970, 7.994000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.704294908, 7.994000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267450.704313938, 7.994000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267450.704342138, 7.994000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267450.704369624, 7.994000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267450.704403303, 7.994000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267450.922522468, 8.095000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267450.922618559, 8.095000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267450.922656989, 8.095000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267450.922677493, 8.095000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267450.922711898, 8.095000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267450.922730413, 8.095000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267450.922754190, 8.095000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267450.922780918, 8.095000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267450.922811419, 8.095000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.922842729, 8.095000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267450.922869872, 8.095000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267450.922899259, 8.095000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267450.922941052, 8.095000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267450.922970010, 8.095000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267450.922999423, 8.095000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267451.140403910, 8.195000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267451.140580658, 8.195000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267451.140609791, 8.195000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267451.140638494, 8.195000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267451.140676067, 8.195000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267451.140703855, 8.195000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267451.140722916, 8.195000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267451.140740717, 8.195000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267451.140760759, 8.195000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.140785352, 8.195000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.140821499, 8.195000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267451.140856903, 8.195000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267451.140893236, 8.195000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267451.140919961, 8.195000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267451.140950534, 8.195000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+?stamp=7.377???[0m
+[0m[ INFO] [1795267449.847823179, 7.604000000]: [local_costmap/elevation_merged_layer] Received a grid map #69???40x40???frame=map???stamp=7.377???[0m
+[0m[ INFO] [1795267449.874965697, 7.618000000]: [local_costmap/elevation_merged_layer] ???????????? 56 ???????????? 68 ??? / 3729 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267449.951906080, 7.656000000]: [global_costmap/elevation_merged_layer] ???????????? 56 ???????????? 69 ??? / 3775 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.066280708, 7.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #70???40x40???frame=map???stamp=7.472???[0m
+[0m[ INFO] [1795267450.066357428, 7.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #70???40x40???frame=map???stamp=7.472???[0m
+[0m[ INFO] [1795267450.092371424, 7.718000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 69 ??? / 3786 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.168951794, 7.756000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 70 ??? / 3832 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.283314633, 7.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #71???40x40???frame=map???stamp=7.568???[0m
+[0m[ INFO] [1795267450.283399952, 7.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #71???40x40???frame=map???stamp=7.568???[0m
+[0m[ INFO] [1795267450.309047979, 7.817000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 70 ??? / 3844 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.387258639, 7.856000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 71 ??? / 3890 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.505644667, 7.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #72???40x40???frame=map???stamp=7.667???[0m
+[0m[ INFO] [1795267450.505747840, 7.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #72???40x40???frame=map???stamp=7.667???[0m
+[0m[ INFO] [1795267450.531329932, 7.918000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 71 ??? / 3901 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.610286884, 7.957000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 72 ??? / 3947 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.724989830, 8.004000000]: [global_costmap/elevation_merged_layer] Received a grid map #73???40x40???frame=map???stamp=7.769???[0m
+[0m[ INFO] [1795267450.725131428, 8.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #73???40x40???frame=map???stamp=7.769???[0m
+[0m[ INFO] [1795267450.752391619, 8.018000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 72 ??? / 3958 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.828309083, 8.056000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 73 ??? / 4004 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267450.941616456, 8.104000000]: [global_costmap/elevation_merged_layer] Received a grid map #74???40x40???frame=map???stamp=7.867???[0m
+[0m[ INFO] [1795267450.941726863, 8.104000000]: [local_costmap/elevation_merged_layer] Received a grid map #74???40x40???frame=map???stamp=7.867???[0m
+[0m[ INFO] [1795267450.968991680, 8.118000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 73 ??? / 4015 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.046240318, 8.157000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 74 ??? / 4061 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.160194957, 8.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #75???40x40???frame=map???stamp=7.969???[0m
+[0m[ INFO] [1795267451.160311478, 8.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #75???40x40???frame=map???stamp=7.969???[0m
+[0m[ INFO] [1795267451.185987873, [31m[ERROR] [1795267451.358899431, 8.295000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267451.359002029, 8.295000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267451.359037062, 8.295000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267451.359055751, 8.295000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267451.359073617, 8.295000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267451.359113633, 8.295000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267451.359134975, 8.295000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267451.359166527, 8.295000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267451.359187707, 8.295000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.359219758, 8.295000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.359244378, 8.295000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267451.359270145, 8.295000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267451.359288467, 8.295000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267451.359317887, 8.295000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267451.359346145, 8.295000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267451.575358344, 8.394000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267451.575474271, 8.394000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267451.575516986, 8.394000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267451.575561202, 8.394000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267451.575582300, 8.394000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267451.575600237, 8.394000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267451.575632903, 8.394000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267451.575655417, 8.394000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267451.575675133, 8.394000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.575722128, 8.394000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.575751536, 8.394000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267451.575772830, 8.394000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267451.575804086, 8.394000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267451.575823293, 8.394000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267451.575855774, 8.394000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267451.794524309, 8.495000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267451.794614849, 8.495000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267451.794638947, 8.495000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267451.794676611, 8.495000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267451.794699389, 8.495000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267451.794717891, 8.495000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267451.794744960, 8.495000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267451.794771172, 8.495000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267451.794795844, 8.495000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.794829207, 8.495000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267451.794878537, 8.495000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267451.794907856, 8.495000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267451.794927239, 8.495000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267451.794958388, 8.495000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267451.794988244, 8.495000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267452.012542538, 8.595000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267452.012630533, 8.595000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267452.012658653, 8.595000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267452.012688897, 8.595000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267452.012715940, 8.595000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267452.012742745, 8.595000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267452.012772313, 8.595000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267452.012791662, 8.595000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267452.012815569, 8.595000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.012839940, 8.595000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.012866268, 8.595000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267452.012886560, 8.595000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267452.012917800, 8.595000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267452.012947511, 8.595000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267452.012985947, 8.595000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267452.231741344, 8.694000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267452.231990114, 8.695000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267452.232039379, 8.695000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267452.232085007, 8.695000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267452.232132783, 8.695000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267452.232176762, 8.695000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267452.232220331, 8.695000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267452.232261816, 8.695000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267452.232307847, 8.695000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.232354305, 8.695000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.232398406, 8.695000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267452.232448734, 8.695000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267452.232514362, 8.695000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267452.232561703, 8.695000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267452.232616346, 8.695000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267452.449666516, 8.795000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267452.449751205, 8.795000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267452.449802996, 8.795000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267452.449828363, 8.795000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267452.449857274, 8.795000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267452.449886957, 8.795000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267452.449906261, 8.795000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267452.449933291, 8.795000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267452.449962521, 8.795000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.449993001, 8.795000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.450019440, 8.795000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267452.450038467, 8.795000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267452.450061167, 8.795000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267452.450090716, 8.795000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267452.450123368, 8.795000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+8.217000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 74 ??? / 4072 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.263393076, 8.256000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 75 ??? / 4118 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.378841598, 8.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #76???40x40???frame=map???stamp=8.069???[0m
+[0m[ INFO] [1795267451.378921304, 8.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #76???40x40???frame=map???stamp=8.069???[0m
+[0m[ INFO] [1795267451.403855561, 8.317000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 75 ??? / 4130 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.480980321, 8.356000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 76 ??? / 4176 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.595211460, 8.404000000]: [global_costmap/elevation_merged_layer] Received a grid map #77???40x40???frame=map???stamp=8.167???[0m
+[0m[ INFO] [1795267451.595283744, 8.404000000]: [local_costmap/elevation_merged_layer] Received a grid map #77???40x40???frame=map???stamp=8.167???[0m
+[0m[ INFO] [1795267451.621877645, 8.417000000]: [local_costmap/elevation_merged_layer] ???????????? 55 ???????????? 76 ??? / 4185 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.700481424, 8.457000000]: [global_costmap/elevation_merged_layer] ???????????? 55 ???????????? 77 ??? / 4231 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.814865563, 8.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #78???40x40???frame=map???stamp=8.268???[0m
+[0m[ INFO] [1795267451.814955186, 8.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #78???40x40???frame=map???stamp=8.268???[0m
+[0m[ INFO] [1795267451.839812530, 8.517000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 77 ??? / 4243 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267451.917911410, 8.556000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 78 ??? / 4289 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.032724947, 8.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #79???40x40???frame=map???stamp=8.367???[0m
+[0m[ INFO] [1795267452.032785837, 8.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #79???40x40???frame=map???stamp=8.367???[0m
+[0m[ INFO] [1795267452.058036503, 8.617000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 78 ??? / 4301 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.136679502, 8.656000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 79 ??? / 4347 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.252544220, 8.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #80???40x40???frame=map???stamp=8.468???[0m
+[0m[ INFO] [1795267452.252621928, 8.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #80???40x40???frame=map???stamp=8.468???[0m
+[0m[ INFO] [1795267452.278131718, 8.718000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 79 ??? / 4359 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.355480793, 8.756000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 80 ??? / 4405 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.468980342, 8.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #81???40x40???frame=map???stamp=8.567???[0m
+[0m[ INFO] [1795267452.469056934, 8.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #81???40x40???frame=map???stamp=8.567???[0m
+[0m[ INFO] [1795267452.494090100, 8.817000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 80 ??? / 4417 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.572083440, 8.856000000]: [global_costmap/elevatio[31m[ERROR] [1795267452.669037242, 8.895000000]: TEBDBG infeasible i=12 pose=(3.000,0.000,0.000) footprint_n=4 inscribed=0.200 circum=0.361[0m
+[31m[ERROR] [1795267452.669155475, 8.895000000]: TEBDBG context kind=1 bad=(3.000,0.000,0.000) robot=(1.468,0.002) map=100x100 res=0.100 origin=(-3.60,-4.90) dynamic=0 min_obst=0.050[0m
+[31m[ERROR] [1795267452.669185376, 8.895000000]: TEBDBG footprint[0]=(-0.300,-0.200)[0m
+[31m[ERROR] [1795267452.669229388, 8.895000000]: TEBDBG footprint[1]=(-0.300,0.200)[0m
+[31m[ERROR] [1795267452.669254628, 8.895000000]: TEBDBG footprint[2]=(0.300,0.200)[0m
+[31m[ERROR] [1795267452.669280211, 8.896000000]: TEBDBG footprint[3]=(0.300,-0.200)[0m
+[31m[ERROR] [1795267452.669298231, 8.896000000]: TEBDBG bad_cell=(66,49) cost=0[0m
+[31m[ERROR] [1795267452.669325086, 8.896000000]: TEBDBG robot_cell=(50,49) cost=0[0m
+[31m[ERROR] [1795267452.669347755, 8.896000000]: TEBDBG cell=(62,44) world=(2.65,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.669376085, 8.896000000]: TEBDBG cell=(63,44) world=(2.75,-0.45) cost=253[0m
+[31m[ERROR] [1795267452.669400663, 8.896000000]: TEBDBG cell=(64,44) world=(2.85,-0.45) cost=254[0m
+[31m[ERROR] [1795267452.669424658, 8.896000000]: TEBDBG cell=(64,45) world=(2.85,-0.35) cost=254[0m
+[31m[ERROR] [1795267452.669446875, 8.896000000]: TEBDBG cell=(64,46) world=(2.85,-0.25) cost=254[0m
+[31m[ERROR] [1795267452.669500802, 8.896000000]: TEBDBG cell=(65,46) world=(2.95,-0.25) cost=254[0m
+[33m[ WARN] [1795267452.669536693, 8.896000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795267452.881088881, 8.992000000]: Aborting because a valid control could not be found. Even after executing all recovery behaviors[0m
+[33m[ WARN] [1795267452.930992732, 9.016000000]: [bt] cancel requested seq=1000000 scope=all[0m
+[0m[ INFO] [1795267421.146950645]: [bt] executor ack mode: /v8/navigation/result[0m
+[0m[ INFO] [1795267421.171525196]: [bt] cancel in /v8/bt/cancel, out /v8/navigation/cancel, ack in /v8/navigation/cancel_ack, policy in /v8/bt/goal_policy, mission in /v8/bt/goal_mission[0m
+[0m[ INFO] [1795267421.180172335]: [bt] tree loaded: /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/trees/navigate_with_action.xml[0m
+[0m[ INFO] [1795267421.180249024]: [bt] planner input /v8/global/goal, status /global_path/status[0m
+[0m[ INFO] [1795267421.180276568]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[0m[ INFO] [1795267436.430733431, 1.651000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795267436.480653716, 1.676000000]: [bt] goal 1 dequeued (0 waiting)[0m
+[0m[ INFO] [1795267436.481486642, 1.677000000]: [bt] follow path -> dispatch goal 3, 2.37824e-12, 0[0m
+n_merged_layer] ???????????? 58 ???????????? 81 ??? / 4463 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.688576986, 8.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #82???40x40???frame=map???stamp=8.667???[0m
+[0m[ INFO] [1795267452.688700865, 8.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #82???40x40???frame=map???stamp=8.667???[0m
+[0m[ INFO] [1795267452.712385337, 8.917000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 81 ??? / 4474 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.791245988, 8.956000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 82 ??? / 4520 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267452.907930815, 9.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #83???40x40???frame=map???stamp=8.768???[0m
+[0m[ INFO] [1795267452.908105530, 9.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #83???40x40???frame=map???stamp=8.768???[0m
+[0m[ INFO] [1795267452.933167355, 9.018000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 82 ??? / 4532 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267453.010685122, 9.056000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 83 ??? / 4578 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267453.130592517, 9.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #84???40x40???frame=map???stamp=8.867???[0m
+[0m[ INFO] [1795267453.130675801, 9.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #84???40x40???frame=map???stamp=8.867???[0m
+[0m[ INFO] [1795267453.156059888, 9.118000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 83 ??? / 4590 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267453.233914515, 9.156000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 84 ??? / 4636 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267453.349019511, 9.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #85???40x40???frame=map???stamp=8.970???[0m
+[0m[ INFO] [1795267453.349106140, 9.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #85???40x40???frame=map???stamp=8.970???[0m
+[0m[ INFO] [1795267453.375771442, 9.218000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 84 ??? / 4647 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267453.452006806, 9.256000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 85 ??? / 4693 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267453.568511963, 9.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #86???40x40???frame=map???stamp=9.071???[0m
+[0m[ INFO] [1795267453.568615943, 9.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #86???40x40???frame=map???stamp=9.071???[0m
+[0m[ INFO] [1795267453.594283607, 9.318000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 85 ??? / 4704 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795267453.671075953, 9.356000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 86 ??? / 4750 ??????use_maximum=1???res=0.100???[0m
+[WARN] [1795267433.085324, 0.121000]: [elevation_gridmap_publisher] 等待点云与里程计
+[INFO] [1795267421.790591, 0.000000]: [elevation_gridmap_publisher] 在位：in=/rslidar_points odom=/sim/odom_gt out=/elevation_mapping/elevation_map layer=elevation frame=map res=0.100 size=4.0x4.0 ground_pct=20.0  ★h＝相对局部地面的离地高[m]，地面 h≡0★
+[INFO] [1795267433.723099, 0.409000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 254、h_max=0.998、点数 5472）
+[INFO] [1795267438.315802, 2.506000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 250、h_max=1.000、点数 5567）
+[INFO] [1795267442.899900, 4.606000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 250、h_max=1.000、点数 6166）
+[INFO] [1795267447.709982, 6.706000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 271、h_max=0.999、点数 6584）
+[INFO] [1795267452.469225, 8.804000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 244、h_max=0.999、点数 6527）
+[INFO] [1795267421.776611, 0.000000]: [sim_pose_source] /sim/odom_gt(odometry) -> /v8/local/pose @ 50 Hz; localization_ok -> /v8/local/localization_ok; start -> (off)
+[WARN] [1795267432.969294, 0.063000]: [M6] 活跃源切换: INIT -> navigation
+[WARN] [1795267452.997733, 9.050000]: [M6] 活跃源切换: navigation -> teleop_app
+[INFO] [1795267421.682945, 0.000000]: [M6] safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/sim_speed_cap.py", line 18, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/m2_free_map.py", line 26, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[0m[ INFO] [1795267424.405207741, 0.052000000]: ros topic name:/livox/lidar[0m
+[0m[ INFO] [1795267424.405259389, 0.052000000]: ros frame id: rslidar[0m
+[0m[ INFO] [1795267424.444102416, 0.052000000]: scan info size:800000[0m
+[0m[ INFO] [1795267424.445234726, 0.052000000]: sample:20000[0m
+[0m[ INFO] [1795267424.445261835, 0.052000000]: downsample:1[0m
+[0m[ INFO] [1795267424.445274217, 0.052000000]: publish_pointcloud_type: 3[0m
+[0m[ INFO] [1795267432.815787084, 0.052000000]: <initialOrientationAsReference> is unset, using default value of false to comply with REP 145 (world as orientation reference)[0m
+[0m[ INFO] [1795267432.815879913, 0.052000000]: <robotNamespace> set to: //[0m
+[0m[ INFO] [1795267432.815895278, 0.052000000]: <topicName> set to: /livox/imu[0m
+[0m[ INFO] [1795267432.815916739, 0.052000000]: <frameName> set to: rslidar[0m
+[0m[ INFO] [1795267432.815953514, 0.052000000]: <updateRateHZ> set to: 200[0m
+[0m[ INFO] [1795267432.815973657, 0.052000000]: <gaussianNoise> set to: 0.01[0m
+[0m[ INFO] [1795267432.816005826, 0.052000000]: <xyzOffset> set to: 0 0 0[0m
+[0m[ INFO] [1795267432.816053868, 0.052000000]: <rpyOffset> set to: 0 -0 0[0m
+[0m[ INFO] [1795267432.944242200, 0.052000000]: [lite3_planar_drive] loaded: mode=dynamic cmd=cmd_vel odom=/sim/odom_gt base=base_link[0m
+[0m[ INFO] [1795267435.013660292, 1.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,0.000,0.000) w_phy=(-0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795267437.216378691, 2.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.39,-0.00,0.00) v_phy=(0.389,-0.000,0.000) w_phy=(0.000,0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1795267439.388636128, 3.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.36,-0.00,0.00) v_phy=(0.360,0.000,0.000) w_phy=(-0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795267441.566825007, 4.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.35,-0.00,0.01) v_phy=(0.346,-0.000,0.000) w_phy=(-0.000,0.000,0.001) mode=dynamic[0m
+[0m[ INFO] [1795267443.773164843, 5.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.33,-0.00,0.01) v_phy=(0.332,-0.000,0.000) w_phy=(-0.000,0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1795267446.102489672, 6.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.34,0.00,0.07) v_phy=(0.336,0.007,0.000) w_phy=(0.000,0.000,0.058) mode=dynamic[0m
+[0m[ INFO] [1795267448.488241607, 7.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795267450.716786791, 8.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795267452.898363671, 9.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[INFO] [1795267443.554400, 4.900000]: [m2_tf_fresh] map->odom @10.0Hz stamp=4900000000
+[INFO] [1795267421.650755, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+
+auto-starting new master
+[1mprocess[master]: started with pid [99592][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_teb.launch http://127.0.0.1:11313
+[1msetting /run_id to c36774f6-e5ae-11f1-8099-62696700331c[0m
+[1mprocess[rosout-1]: started with pid [99666][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [99674][0m
+[1mprocess[robot_state_publisher-3]: started with pid [99676][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [99680][0m
+[1mprocess[sim_adapter-5]: started with pid [99681][0m
+[1mprocess[m2_tf_fresh-6]: started with pid [99687][0m
+[1mprocess[m2_free_map-7]: started with pid [99689][0m
+[1mprocess[safe_cmd_vel_mux-8]: started with pid [99691][0m
+[1mprocess[liveness_m6-9]: started with pid [99692][0m
+[1mprocess[sim_speed_cap-10]: started with pid [99756][0m
+[1mprocess[elevation_gridmap_publisher-11]: started with pid [99757][0m
+[1mprocess[sim_pose_source-12]: started with pid [99821][0m
+[1mprocess[navigation_executor-13]: started with pid [99948][0m
+[1mprocess[liveness_m4-14]: started with pid [100012][0m
+[1mprocess[bt_console-15]: started with pid [100013][0m
+[1mprocess[bt_navigation_executor-16]: started with pid [100025][0m
+[1m[spawn_lite3_planar-4] process has finished cleanly
+log file: /opt/ros1-slam/logs/c36774f6-e5ae-11f1-8099-62696700331c/spawn_lite3_planar-4*.log[0m
+[bt_navigation_executor-16] killing on exit
+[bt_console-15] killing on exit
+[liveness_m4-14] killing on exit
+[navigation_executor-13] killing on exit
+[sim_pose_source-12] killing on exit
+[elevation_gridmap_publisher-11] killing on exit
+[sim_speed_cap-10] killing on exit
+[liveness_m6-9] killing on exit
+[safe_cmd_vel_mux-8] killing on exit
+[m2_free_map-7] killing on exit
+[m2_tf_fresh-6] killing on exit
+[sim_adapter-5] killing on exit
+[gazebo-2] killing on exit
+[robot_state_publisher-3] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

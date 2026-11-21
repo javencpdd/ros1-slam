@@ -1,0 +1,11 @@
+3m TEB 根因（2026-11-21，临时 TEB 0.9.1 诊断构建，源码在 /tmp 不入仓）
+- TEB `footprint_spec_ = costmap_ros_->getRobotFootprint()`。基线 local costmap `footprint_padding=0.1`
+  ⇒ TEB 判据足迹 0.8×0.6（inscribed 0.30/circum 0.50），而 TEB 参数/marker 足迹 0.6×0.4（0.20/0.361）——
+  两者不一致（r46 TEBDBG）。
+- r47/48 将局部 padding=0：TEB 判据足迹回 0.6×0.4，但仍不可行。r47 目标 (3,0) 处 TEB 报不可行；
+  costmap 在 (2.75,-0.25) 有 LETHAL 254，目标到该格仅 0.25 m。
+- r48（min_obstacle 0.05）首个不可行位姿 (2.860,0.032,yaw=-0.147)：0.6 m 车身末段转向，后角 y≈-0.21
+  扫入 (2.75,-0.25) 的 LETHAL 格 ⇒ 几何不可行。
+- 对照：r19（局部高程层关）3 m TEB PASS 0.153 m；v8 判据链 Stage B 3 m PASS dev_gt 0.201 m。
+- 结论：3 m 目标贴近箱体语义/高程缓冲，TEB 的 0.6×0.4 实际足迹无法在不改目标/缓冲/足迹模型的前提下通过；
+  不是数值 bug。TEB action 链保持 1 m scoped；v8 判据链 3 m 绿。后续处置属目标/安全/足迹面的选择。

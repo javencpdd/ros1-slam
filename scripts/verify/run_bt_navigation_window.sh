@@ -24,6 +24,7 @@ PY
 set +u
 source /opt/ros/noetic/setup.bash
 source "$ROOT/ws/devel/setup.bash"
+[ -n "${TEB_OVERLAY:-}" ] && source "$TEB_OVERLAY/devel/setup.bash"
 set -u
 export ROS_MASTER_URI=http://127.0.0.1:11313
 export GAZEBO_MASTER_URI=http://127.0.0.1:11345

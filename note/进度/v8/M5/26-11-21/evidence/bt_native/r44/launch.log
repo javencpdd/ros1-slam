@@ -1,0 +1,880 @@
+... logging to /opt/ros1-slam/logs/a896ea28-e5ac-11f1-9535-62696700331c/roslaunch-8686474ea1d2-89851.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_teb.launch
+[1mstarted roslaunch server http://8686474ea1d2:36559/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /bt_console/arrival_speed_floor_mps: 0.0
+ * /bt_console/cancel_ack_timeout: 2.0
+ * /bt_console/cancel_ack_topic: /v8/navigation/ca...
+ * /bt_console/cancel_input_topic: /v8/bt/cancel
+ * /bt_console/cancel_topic: /v8/navigation/ca...
+ * /bt_console/execution_request_topic: /v8/navigation/goal
+ * /bt_console/execution_status_topic: /v8/navigation/st...
+ * /bt_console/goal_topic: /v8/bt/goal
+ * /bt_console/localization_topic: 
+ * /bt_console/mission_topic: /v8/bt/goal_mission
+ * /bt_console/planner_result_topic: /v8/navigation/re...
+ * /bt_console/policy_topic: /v8/bt/goal_policy
+ * /bt_console/pose_topic: /v8/local/pose
+ * /bt_console/queue_max: 16
+ * /bt_console/recovery_mode: abort
+ * /bt_console/recovery_rules/backend_disconnected: abort
+ * /bt_console/recovery_rules/backend_lost: abort
+ * /bt_console/recovery_rules/backend_terminal: replan
+ * /bt_console/recovery_rules/backend_unavailable: retry
+ * /bt_console/recovery_rules/cancel_timeout: abort
+ * /bt_console/recovery_rules/invalid_goal: abort
+ * /bt_console/recovery_rules/invalid_pose: abort
+ * /bt_console/recovery_rules/lease_lost: abort
+ * /bt_console/recovery_rules/restart_required: abort
+ * /bt_console/retry_delay_s: 1.0
+ * /bt_console/retry_max: 1
+ * /bt_console/stop_topic: /lite3/teleop/app...
+ * /bt_console/tree_file: /opt/ros1-slam/ws...
+ * /bt_console/zmq_pub_port: 5555
+ * /bt_console/zmq_sub_port: 5556
+ * /elevation_gridmap_publisher/stale_timeout: 1.0
+ * /gazebo/enable_ros_network: True
+ * /m2_tf_fresh/child_frame: odom
+ * /m2_tf_fresh/parent_frame: map
+ * /m2_tf_fresh/rate_hz: 10.0
+ * /navigation_executor/GlobalPlanner/allow_unknown: False
+ * /navigation_executor/GlobalPlanner/cost_factor: 3
+ * /navigation_executor/GlobalPlanner/default_tolerance: 0.0
+ * /navigation_executor/GlobalPlanner/lethal_cost: 253
+ * /navigation_executor/GlobalPlanner/neutral_cost: 50
+ * /navigation_executor/GlobalPlanner/old_navfn_behavior: False
+ * /navigation_executor/GlobalPlanner/orientation_mode: 1
+ * /navigation_executor/GlobalPlanner/orientation_window_size: 1
+ * /navigation_executor/GlobalPlanner/outline_map: False
+ * /navigation_executor/GlobalPlanner/planner_window_x: 0.0
+ * /navigation_executor/GlobalPlanner/planner_window_y: 0.0
+ * /navigation_executor/GlobalPlanner/publish_potential: False
+ * /navigation_executor/GlobalPlanner/publish_scale: 100
+ * /navigation_executor/GlobalPlanner/use_dijkstra: True
+ * /navigation_executor/GlobalPlanner/use_grid_path: False
+ * /navigation_executor/GlobalPlanner/use_quadratic: False
+ * /navigation_executor/TebLocalPlannerROS/acc_lim_theta: 1.0
+ * /navigation_executor/TebLocalPlannerROS/acc_lim_x: 1.0
+ * /navigation_executor/TebLocalPlannerROS/acc_lim_y: 0.1
+ * /navigation_executor/TebLocalPlannerROS/allow_init_with_backwards_motion: False
+ * /navigation_executor/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /navigation_executor/TebLocalPlannerROS/complete_global_plan: False
+ * /navigation_executor/TebLocalPlannerROS/control_look_ahead_poses: 1
+ * /navigation_executor/TebLocalPlannerROS/controller_frequency: 10
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_distance: 0.3
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_max_pts: 30
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/cluster_min_pts: 3
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter/CostmapToPolygonsDBSMCCH/convex_hull_min_pt_separation: 0.1
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter_plugin: costmap_converter...
+ * /navigation_executor/TebLocalPlannerROS/costmap_converter_spin_thread: True
+ * /navigation_executor/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 2.0
+ * /navigation_executor/TebLocalPlannerROS/divergence_detection: False
+ * /navigation_executor/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /navigation_executor/TebLocalPlannerROS/dt_ref: 0.4
+ * /navigation_executor/TebLocalPlannerROS/dynamic_obstacle_inflation_dist: 0.6
+ * /navigation_executor/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /navigation_executor/TebLocalPlannerROS/exact_arc_length: False
+ * /navigation_executor/TebLocalPlannerROS/feasibility_check_lookahead_distance: 3
+ * /navigation_executor/TebLocalPlannerROS/feasibility_check_no_poses: 30
+ * /navigation_executor/TebLocalPlannerROS/footprint_model/type: polygon
+ * /navigation_executor/TebLocalPlannerROS/footprint_model/vertices: [[-0.3, -0.2], [-...
+ * /navigation_executor/TebLocalPlannerROS/force_reinit_new_goal_angular: 0.78
+ * /navigation_executor/TebLocalPlannerROS/force_reinit_new_goal_dist: 1.0
+ * /navigation_executor/TebLocalPlannerROS/free_goal_vel: False
+ * /navigation_executor/TebLocalPlannerROS/global_plan_overwrite_orientation: False
+ * /navigation_executor/TebLocalPlannerROS/global_plan_prune_distance: 0.5
+ * /navigation_executor/TebLocalPlannerROS/global_plan_viapoint_sep: 0.3
+ * /navigation_executor/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /navigation_executor/TebLocalPlannerROS/include_dynamic_obstacles: True
+ * /navigation_executor/TebLocalPlannerROS/inflation_dist: 0.45
+ * /navigation_executor/TebLocalPlannerROS/is_footprint_dynamic: False
+ * /navigation_executor/TebLocalPlannerROS/legacy_obstacle_association: False
+ * /navigation_executor/TebLocalPlannerROS/map_frame: /map
+ * /navigation_executor/TebLocalPlannerROS/max_global_plan_lookahead_dist: 5.0
+ * /navigation_executor/TebLocalPlannerROS/max_samples: 100
+ * /navigation_executor/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /navigation_executor/TebLocalPlannerROS/max_vel_trans: 1.0
+ * /navigation_executor/TebLocalPlannerROS/max_vel_x: 0.4
+ * /navigation_executor/TebLocalPlannerROS/max_vel_x_backwards: 0.2
+ * /navigation_executor/TebLocalPlannerROS/max_vel_y: 0.1
+ * /navigation_executor/TebLocalPlannerROS/min_obstacle_dist: 0.15
+ * /navigation_executor/TebLocalPlannerROS/min_resolution_collision_check_angular: 3.1415926
+ * /navigation_executor/TebLocalPlannerROS/min_samples: 3
+ * /navigation_executor/TebLocalPlannerROS/min_turning_radius: 0.0
+ * /navigation_executor/TebLocalPlannerROS/obstacle_association_cutoff_factor: 10
+ * /navigation_executor/TebLocalPlannerROS/obstacle_association_force_inclusion_factor: 3
+ * /navigation_executor/TebLocalPlannerROS/obstacle_poses_affected: 10
+ * /navigation_executor/TebLocalPlannerROS/obstacle_proximity_lower_bound: 0.2
+ * /navigation_executor/TebLocalPlannerROS/obstacle_proximity_ratio_max_vel: 0.7
+ * /navigation_executor/TebLocalPlannerROS/obstacle_proximity_upper_bound: 0.6
+ * /navigation_executor/TebLocalPlannerROS/odom_topic: leg_odom
+ * /navigation_executor/TebLocalPlannerROS/optimization_activate: True
+ * /navigation_executor/TebLocalPlannerROS/oscillation_recovery: False
+ * /navigation_executor/TebLocalPlannerROS/penalty_epsilon: 0.15
+ * /navigation_executor/TebLocalPlannerROS/planning_horizon: 4.0
+ * /navigation_executor/TebLocalPlannerROS/prevent_look_ahead_poses_near_goal: 0
+ * /navigation_executor/TebLocalPlannerROS/publish_feedback: False
+ * /navigation_executor/TebLocalPlannerROS/shrink_horizon_backup: False
+ * /navigation_executor/TebLocalPlannerROS/teb_autosize: True
+ * /navigation_executor/TebLocalPlannerROS/theta_stopped_vel: 0.05
+ * /navigation_executor/TebLocalPlannerROS/trans_stopped_vel: 0.05
+ * /navigation_executor/TebLocalPlannerROS/transform_tolerance: 0.3
+ * /navigation_executor/TebLocalPlannerROS/use_proportional_saturation: True
+ * /navigation_executor/TebLocalPlannerROS/via_points_ordered: True
+ * /navigation_executor/TebLocalPlannerROS/weight_kinematics_forward_drive: 50
+ * /navigation_executor/TebLocalPlannerROS/weight_kinematics_nh: 10
+ * /navigation_executor/TebLocalPlannerROS/weight_kinematics_turning_radius: 0
+ * /navigation_executor/TebLocalPlannerROS/weight_linear_angular: 3
+ * /navigation_executor/TebLocalPlannerROS/weight_linear_angular_times: 1
+ * /navigation_executor/TebLocalPlannerROS/weight_optimaltime: 1
+ * /navigation_executor/TebLocalPlannerROS/weight_prefer_rotdir: 0
+ * /navigation_executor/TebLocalPlannerROS/weight_shortest_path: 9
+ * /navigation_executor/TebLocalPlannerROS/weight_viapoint: 1
+ * /navigation_executor/TebLocalPlannerROS/wheelbase: 0.0
+ * /navigation_executor/TebLocalPlannerROS/xy_goal_tolerance: 0.2
+ * /navigation_executor/TebLocalPlannerROS/yaw_goal_tolerance: 0.2
+ * /navigation_executor/base_global_planner: global_planner/Gl...
+ * /navigation_executor/base_local_planner: teb_local_planner...
+ * /navigation_executor/controller_frequency: 10.0
+ * /navigation_executor/controller_patience: 3.0
+ * /navigation_executor/global_costmap/always_send_full_costmap: False
+ * /navigation_executor/global_costmap/elevation_merged_layer/enabled: True
+ * /navigation_executor/global_costmap/elevation_merged_layer/global_frame: map
+ * /navigation_executor/global_costmap/elevation_merged_layer/ground_z: 0.0
+ * /navigation_executor/global_costmap/elevation_merged_layer/height: 4.0
+ * /navigation_executor/global_costmap/elevation_merged_layer/height_threshold: 0.15
+ * /navigation_executor/global_costmap/elevation_merged_layer/input_timeout_s: 1.0
+ * /navigation_executor/global_costmap/elevation_merged_layer/input_topic: /elevation_mappin...
+ * /navigation_executor/global_costmap/elevation_merged_layer/layer_name: elevation
+ * /navigation_executor/global_costmap/elevation_merged_layer/lethal_threshold: 100
+ * /navigation_executor/global_costmap/elevation_merged_layer/obstacle_cost: 254
+ * /navigation_executor/global_costmap/elevation_merged_layer/resolution: 0.1
+ * /navigation_executor/global_costmap/elevation_merged_layer/robot_radius: 0.35
+ * /navigation_executor/global_costmap/elevation_merged_layer/trinary_costmap: True
+ * /navigation_executor/global_costmap/elevation_merged_layer/use_maximum: True
+ * /navigation_executor/global_costmap/elevation_merged_layer/width: 4.0
+ * /navigation_executor/global_costmap/footprint: [[-0.3, -0.2], [-...
+ * /navigation_executor/global_costmap/footprint_padding: 0.1
+ * /navigation_executor/global_costmap/global_frame: map
+ * /navigation_executor/global_costmap/height: 100
+ * /navigation_executor/global_costmap/origin_x: 0
+ * /navigation_executor/global_costmap/origin_y: 0
+ * /navigation_executor/global_costmap/plugins: [{'name': 'static...
+ * /navigation_executor/global_costmap/publish_frequency: 5
+ * /navigation_executor/global_costmap/resolution: 0.1
+ * /navigation_executor/global_costmap/robot_base_frame: base_link
+ * /navigation_executor/global_costmap/rolling_window: True
+ * /navigation_executor/global_costmap/sob_layer/cost_scaling_factor: 10
+ * /navigation_executor/global_costmap/sob_layer/enabled: True
+ * /navigation_executor/global_costmap/sob_layer/inflate_unknown: False
+ * /navigation_executor/global_costmap/sob_layer/inflation_radius: 0.2
+ * /navigation_executor/global_costmap/sob_layer/inscribed_radius: 0.15
+ * /navigation_executor/global_costmap/static_layer/first_map_only: True
+ * /navigation_executor/global_costmap/static_layer/lethal_cost_threshold: 100
+ * /navigation_executor/global_costmap/static_layer/map_topic: map
+ * /navigation_executor/global_costmap/static_layer/subscribe_to_updates: False
+ * /navigation_executor/global_costmap/static_layer/track_unknown_space: False
+ * /navigation_executor/global_costmap/static_layer/trinary_costmap: True
+ * /navigation_executor/global_costmap/static_layer/unknown_cost_value: -1
+ * /navigation_executor/global_costmap/static_layer/use_maximum: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/combination_method: 1
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/decay_model: 0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/enabled: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /navigation_executor/global_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /navigation_executor/global_costmap/track_unknown_space: False
+ * /navigation_executor/global_costmap/transform_tolerance: 1.0
+ * /navigation_executor/global_costmap/update_frequency: 10
+ * /navigation_executor/global_costmap/width: 100
+ * /navigation_executor/local_costmap/always_send_full_costmap: False
+ * /navigation_executor/local_costmap/elevation_merged_layer/enabled: True
+ * /navigation_executor/local_costmap/elevation_merged_layer/global_frame: map
+ * /navigation_executor/local_costmap/elevation_merged_layer/ground_z: 0.0
+ * /navigation_executor/local_costmap/elevation_merged_layer/height: 4.0
+ * /navigation_executor/local_costmap/elevation_merged_layer/height_threshold: 0.15
+ * /navigation_executor/local_costmap/elevation_merged_layer/input_timeout_s: 1.0
+ * /navigation_executor/local_costmap/elevation_merged_layer/input_topic: /elevation_mappin...
+ * /navigation_executor/local_costmap/elevation_merged_layer/layer_name: elevation
+ * /navigation_executor/local_costmap/elevation_merged_layer/lethal_threshold: 100
+ * /navigation_executor/local_costmap/elevation_merged_layer/obstacle_cost: 254
+ * /navigation_executor/local_costmap/elevation_merged_layer/resolution: 0.1
+ * /navigation_executor/local_costmap/elevation_merged_layer/robot_radius: 0.35
+ * /navigation_executor/local_costmap/elevation_merged_layer/trinary_costmap: True
+ * /navigation_executor/local_costmap/elevation_merged_layer/use_maximum: True
+ * /navigation_executor/local_costmap/elevation_merged_layer/width: 4.0
+ * /navigation_executor/local_costmap/footprint: [[-0.3, -0.2], [-...
+ * /navigation_executor/local_costmap/footprint_padding: 0.0
+ * /navigation_executor/local_costmap/global_frame: map
+ * /navigation_executor/local_costmap/height: 10
+ * /navigation_executor/local_costmap/origin_x: 0
+ * /navigation_executor/local_costmap/origin_y: 0
+ * /navigation_executor/local_costmap/plugins: [{'name': 'stvl_o...
+ * /navigation_executor/local_costmap/publish_frequency: 5
+ * /navigation_executor/local_costmap/resolution: 0.1
+ * /navigation_executor/local_costmap/robot_base_frame: base_link
+ * /navigation_executor/local_costmap/rolling_window: True
+ * /navigation_executor/local_costmap/sob_layer/cost_scaling_factor: 10
+ * /navigation_executor/local_costmap/sob_layer/enabled: True
+ * /navigation_executor/local_costmap/sob_layer/inflate_unknown: False
+ * /navigation_executor/local_costmap/sob_layer/inflation_radius: 0.2
+ * /navigation_executor/local_costmap/sob_layer/inscribed_radius: 0.15
+ * /navigation_executor/local_costmap/static_layer/first_map_only: True
+ * /navigation_executor/local_costmap/static_layer/lethal_cost_threshold: 100
+ * /navigation_executor/local_costmap/static_layer/map_topic: map
+ * /navigation_executor/local_costmap/static_layer/subscribe_to_updates: False
+ * /navigation_executor/local_costmap/static_layer/track_unknown_space: False
+ * /navigation_executor/local_costmap/static_layer/trinary_costmap: True
+ * /navigation_executor/local_costmap/static_layer/unknown_cost_value: -1
+ * /navigation_executor/local_costmap/static_layer/use_maximum: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/combination_method: 1
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/decay_model: 0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/enabled: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/map_save_duration: 60
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/mapping_mode: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/mark_threshold: 0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/observation_sources: rslidar_points
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/publish_voxel_map: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/clear_after_reading: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/clearing: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/data_type: PointCloud2
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/decay_acceleration: 5
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/enabled: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/expected_update_rate: 10.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/filter: voxel
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/horizontal_fov_angle: 6.29
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/inf_is_valid: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/marking: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/max_obstacle_height: 1.5
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/max_z: 3.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/min_obstacle_height: 0.15
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/min_z: -0.3
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/model_type: 1
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/observation_persistence: 0.5
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/obstacle_range: 8.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/sensor_frame: rslidar
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/topic: /rslidar_points
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_angle: 0.56
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/vertical_fov_padding: 0.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/rslidar_points/voxel_min_points: 3
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/track_unknown_space: False
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/transform_tolerance: 1.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/update_footprint_enabled: True
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/voxel_decay: 10.0
+ * /navigation_executor/local_costmap/stvl_obstacle_layer/voxel_size: 0.1
+ * /navigation_executor/local_costmap/track_unknown_space: False
+ * /navigation_executor/local_costmap/transform_tolerance: 1.0
+ * /navigation_executor/local_costmap/update_frequency: 10
+ * /navigation_executor/local_costmap/width: 10
+ * /navigation_executor/max_planning_retries: -1
+ * /navigation_executor/oscillation_distance: 0.1
+ * /navigation_executor/oscillation_timeout: 0.0
+ * /navigation_executor/planner_frequency: 0.0
+ * /navigation_executor/planner_patience: 3.0
+ * /navigation_executor/recovery_behavior_enabled: False
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /safe_cmd_vel_mux/mux_config: /opt/ros1-slam/ws...
+ * /sim_pose_source/dst_topic: /v8/local/pose
+ * /sim_pose_source/frame_id: map
+ * /sim_pose_source/localization_ok_period_s: 0.2
+ * /sim_pose_source/rate: 50.0
+ * /sim_pose_source/src_topic: /sim/odom_gt
+ * /sim_pose_source/start_rate: 0.5
+ * /sim_pose_source/start_topic: 
+ * /sim_pose_source/z_offset: -0.11
+ * /sim_speed_cap/rate: 2.0
+ * /sim_speed_cap/topic: /v8/safety/speed_cap
+ * /sim_speed_cap/value: 0.5
+ * /use_sim_time: True
+
+NODES
+  /
+    bt_console (lite3_bt/bt_console)
+    bt_navigation_executor (lite3_bt/navigation_executor.py)
+    elevation_gridmap_publisher (lite3_costmap_layers/elevation_gridmap_publisher.py)
+    gazebo (gazebo_ros/gzserver)
+    liveness_m4 (rostopic/rostopic)
+    liveness_m6 (rostopic/rostopic)
+    m2_free_map (lite3_gazebo_sim/m2_free_map.py)
+    m2_tf_fresh (lite3_gazebo_sim/m2_tf_fresh.py)
+    navigation_executor (move_base/move_base)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    safe_cmd_vel_mux (lite3_safety/safe_cmd_vel_mux.py)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    sim_pose_source (lite3_gazebo_sim/sim_pose_source.py)
+    sim_speed_cap (lite3_gazebo_sim/sim_speed_cap.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+[33m[ WARN] [1795266516.831447225]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[0m[ INFO] [1795266517.943537315]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1795266517.945489860]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1795266518.300959486]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1795266518.332737297, 0.009000000]: Physics dynamic reconfigure ready.[0m
+[0m[ INFO] [1795266519.083412255, 0.165000000]: load csv file name:/opt/ros1-slam/sim_ws/src/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+[0m[ INFO] [1795266528.899127570, 0.204000000]: global_costmap: Using plugin "static_layer"[0m
+[0m[ INFO] [1795266528.916328600, 0.212000000]: Requesting the map...[0m
+[0m[ INFO] [1795266529.155740902, 0.314000000]: Resizing static layer to 200 X 200 at 0.100000 m/pix[0m
+[0m[ INFO] [1795266529.156396504, 0.314000000]: Shutting down the map subscriber. first_map_only flag is on[0m
+[0m[ INFO] [1795266529.380424432, 0.414000000]: Received a 200 X 200 map at 0.100000 m/pix[0m
+[0m[ INFO] [1795266529.391549468, 0.420000000]: global_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1795266529.562764540, 0.505000000]: global_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1795266529.562909773, 0.505000000]: global_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1795266529.586354737, 0.513000000]: global_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1795266529.588501048, 0.513000000]: global_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1795266529.610799068, 0.517000000]: Voxel filter activated.[0m
+[0m[ INFO] [1795266529.642044539, 0.533000000]: global_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1795266529.642149577, 0.533000000]: global_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1795266529.644399461, 0.535000000]: [sob_layer] initializing...[0m
+[0m[ INFO] [1795266529.644468444, 0.535000000]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1795266529.652433362, 0.539000000]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1795266529.654807830, 0.540000000]: [sob_layer] initialized[0m
+[0m[ INFO] [1795266529.654843236, 0.540000000]: global_costmap: Using plugin "elevation_merged_layer"[0m
+[0m[ INFO] [1795266529.864116658, 0.630000000]: [global_costmap/elevation_merged_layer] ?????????input=/elevation_mapping/elevation_map layer=elevation global_frame=map use_maximum=1(explicit=1 refuse_write=0) height_threshold=0.150 ground_z=0.000 obstacle_cost=254[0m
+[0m[ INFO] [1795266529.870562442, 0.633000000]: [global_costmap/elevation_merged_layer] ??????????????????topic=/elevation_mapping/elevation_map????????????=/elevation_mapping/elevation_map???enabled_param=1[0m
+[0m[ INFO] [1795266529.908237997, 0.652000000]: [sob_layer] resized to 1000000[0m
+[0m[ INFO] [1795266529.910698239, 0.653000000]: [sob_layer] reinflating[0m
+[0m[ INFO] [1795266529.910962674, 0.653000000]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1795266530.026744227, 0.711000000]: local_costmap: Using plugin "stvl_obstacle_layer"[0m
+[0m[ INFO] [1795266530.027340638, 0.711000000]: local_costmap/stvl_obstacle_layer being initialized as SpatioTemporalVoxelLayer![0m
+[0m[ INFO] [1795266530.027399300, 0.711000000]: local_costmap/stvl_obstacle_layer's global frame is map.[0m
+[0m[ INFO] [1795266530.052574647, 0.720000000]: local_costmap/stvl_obstacle_layer loaded parameters from parameter server.[0m
+[0m[ INFO] [1795266530.054598921, 0.720000000]: local_costmap/stvl_obstacle_layer created underlying voxel grid.[0m
+[0m[ INFO] [1795266530.085177083, 0.725000000]: Voxel filter activated.[0m
+[0m[ INFO] [1795266530.121632612, 0.743000000]: local_costmap/stvl_obstacle_layer initialization complete![0m
+[0m[ INFO] [1795266530.121749859, 0.743000000]: local_costmap: Using plugin "sob_layer"[0m
+[0m[ INFO] [1795266530.122191714, 0.744000000]: [sob_layer] initializing...[0m
+[0m[ INFO] [1795266530.122263306, 0.744000000]: [sob_layer] resized to 0[0m
+[0m[ INFO] [1795266530.136979178, 0.751000000]: [sob_layer] enabled: true[0m
+[0m[ INFO] [1795266530.144876465, 0.755000000]: [sob_layer] initialized[0m
+[0m[ INFO] [1795266530.144990402, 0.755000000]: local_costmap: Using plugin "elevation_merged_layer"[0m
+[0m[ INFO] [1795266530.157692209, 0.761000000]: [local_costmap/elevation_merged_layer] ?????????input=/elevation_mapping/elevation_map layer=elevation global_frame=map use_maximum=1(explicit=1 refuse_write=0) height_threshold=0.150 ground_z=0.000 obstacle_cost=254[0m
+[0m[ INFO] [1795266530.160230046, 0.763000000]: [local_costmap/elevation_merged_layer] ??????????????????topic=/elevation_mapping/elevation_map????????????=/elevation_mapping/elevation_map???enabled_param=1[0m
+[0m[ INFO] [1795266530.212055604, 0.788000000]: [sob_layer] resized to 10000[0m
+[0m[ INFO] [1795266530.212909703, 0.789000000]: [sob_layer] reinflating[0m
+[0m[ INFO] [1795266530.223649182, 0.794000000]: [sob_layer] updating the cache[0m
+[0m[ INFO] [1795266530.267932905, 0.813000000]: Created local_planner teb_local_planner/TebLocalPlannerROS[0m
+[0m[ INFO] [1795266530.395606078, 0.865000000]: Footprint model 'polygon' loaded for trajectory optimization.[0m
+[0m[ INFO] [1795266530.397268572, 0.866000000]: Parallel planning in distinctive topologies disabled.[0m
+[0m[ INFO] [1795266530.580833702, 0.938000000]: Costmap conversion plugin costmap_converter::CostmapToPolygonsDBSMCCH loaded.[0m
+[0m[ INFO] [1795266530.836366955, 1.055000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1795266530.843028427, 1.058000000]: Recovery behavior will clear layer 'obstacles'[0m
+[0m[ INFO] [1795266530.917594782, 1.095000000]: [global_costmap/elevation_merged_layer] Received a grid map #1???40x40???frame=map???stamp=0.813???[0m
+[0m[ INFO] [1795266530.917724500, 1.095000000]: [local_costmap/elevation_merged_layer] Received a grid map #1???40x40???frame=map???stamp=0.813???[0m
+[0m[ INFO] [1795266530.979855680, 1.102000000]: [global_costmap/elevation_merged_layer] Received a grid map #2???40x40???frame=map???stamp=1.016???[0m
+[0m[ INFO] [1795266530.980033430, 1.102000000]: [local_costmap/elevation_merged_layer] Received a grid map #2???40x40???frame=map???stamp=1.016???[0m
+[0m[ INFO] [1795266531.071574186, 1.156000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 1 ??? / 45 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.143371828, 1.191000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 1 ??? / 45 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.295592519, 1.254000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 2 ??? / 90 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.367524357, 1.290000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 2 ??? / 90 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.423783309, 1.307000000]: [global_costmap/elevation_merged_layer] Received a grid map #3???40x40???frame=map???stamp=1.097???[0m
+[0m[ INFO] [1795266531.423846647, 1.307000000]: [local_costmap/elevation_merged_layer] Received a grid map #3???40x40???frame=map???stamp=1.097???[0m
+[0m[ INFO] [1795266531.519018377, 1.354000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 3 ??? / 136 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.592544245, 1.391000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 3 ??? / 136 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.626371306, 1.406000000]: [global_costmap/elevation_merged_layer] Received a grid map #4???40x40???frame=map???stamp=1.204???[0m
+[0m[ INFO] [1795266531.626540746, 1.406000000]: [local_costmap/elevation_merged_layer] Received a grid map #4???40x40???frame=map???stamp=1.204???[0m
+[0m[ INFO] [1795266531.747163111, 1.454000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 4 ??? / 181 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.820111169, 1.491000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 4 ??? / 181 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266531.855278518, 1.506000000]: [global_costmap/elevation_merged_layer] Received a grid map #5???40x40???frame=map???stamp=1.298???[0m
+[0m[ INFO] [1795266531.855415527, 1.506000000]: [local_costmap/elevation_merged_layer] Received a grid map #5???40x40???frame=map???stamp=1.298???[0m
+[0m[ INFO] [1795266531.972094208, 1.555000000]: [global_costmap/elevation_merged_layer] ???????????? 47 ???????????? 5 ??? / 228 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.045140479, 1.591000000]: [local_costmap/elevation_merged_layer] ???????????? 47 ???????????? 5 ??? / 228 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.092216100, 1.606000000]: [global_costmap/elevation_merged_layer] Received a grid map #6???40x40???frame=map???stamp=1.406???[0m
+[0m[ INFO] [1795266532.092325478, 1.606000000]: [local_costmap/elevation_merged_layer] Received a grid map #6???40x40???frame=map???stamp=1.406???[0m
+[0m[ INFO] [1795266532.187384300, 1.654000000]: [global_costmap/elevation_merged_layer] ???????????? 44 ???????????? 6 ??? / 272 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.260316701, 1.691000000]: [local_costmap/elevation_merged_layer] ???????????? 44 ???????????? 6 ??? / 272 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.293963160, 1.706000000]: [global_costmap/elevation_merged_layer] Received a grid map #7???40x40???frame=map???stamp=1.506???[0m
+[0m[ INFO] [1795266532.294131566, 1.706000000]: [local_costmap/elevation_merged_layer] Received a grid map #7???40x40???frame=map???stamp=1.506???[0m
+[0m[ INFO] [1795266532.420780489, 1.755000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 7 ??? / 318 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.493320071, 1.791000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 7 ??? / 318 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.529055558, 1.809000000]: [global_costmap/elevation_merged_layer] Received a grid map #8???40x40???frame=map???stamp=1.598???[0m
+[0m[ INFO] [1795266532.529269533, 1.809000000]: [local_costmap/elevation_merged_layer] Received a grid map #8???40x40???frame=map???stamp=1.598???[0m
+[0m[ INFO] [1795266532.649006962, 1.854000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 8 ??? / 364 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.720693891, 1.890000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 8 ??? / 364 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.765646358, 1.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #9???40x40???frame=map???stamp=1.706???[0m
+[0m[ INFO] [1795266532.765743813, 1.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #9???40x40???frame=map???stamp=1.706???[0m
+[0m[ INFO] [1795266532.864978999, 1.954000000]: [global_costmap/elevation_merged_layer] ???????????? 46 ???????????? 9 ??? / 410 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.938215259, 1.991000000]: [local_costmap/elevation_merged_layer] ???????????? 46 ???????????? 9 ??? / 410 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266532.969839122, 2.006000000]: [global_costmap/elevation_merged_layer] Received a grid map #10???40x40???frame=map???stamp=1.814???[0m
+[0m[ INFO] [1795266532.969968661, 2.006000000]: [local_costmap/elevation_merged_layer] Received a grid map #10???40x40???frame=map???stamp=1.814???[0m
+[0m[ INFO] [1795266533.088177324, 2.055000000]: [global_costmap/elevation_merged_layer] ???????????? 47 ???????????? 10 ??? / 457 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.176594475, 2.091000000]: [local_costmap/elevation_merged_layer] ???????????? 47 ???????????? 10 ??? / 457 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.203297670, 2.104000000]: [global_costmap/elevation_merged_layer] Received a grid map #11???40x40???frame=map???stamp=1.893???[0m
+[0m[ INFO] [1795266533.203396009, 2.104000000]: [local_costmap/elevation_merged_layer] Received a grid map #11???40x40???frame=map???stamp=1.893???[0m
+[0m[ INFO] [1795266533.303238227, 2.154000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 11 ??? / 502 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.376610858, 2.191000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 11 ??? / 502 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.408685295, 2.206000000]: [global_costmap/elevation_merged_layer] Received a grid map #12???40x40???frame=map???stamp=2.008???[0m
+[0m[ INFO] [1795266533.408936950, 2.206000000]: [local_costmap/elevation_merged_layer] Received a grid map #12???40x40???frame=map???stamp=2.008???[0m
+[0m[ INFO] [1795266533.552954878, 2.255000000]: [global_costmap/elevation_merged_layer] ???????????? 44 ???????????? 12 ??? / 546 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.624913841, 2.291000000]: [local_costmap/elevation_merged_layer] ???????????? 44 ???????????? 12 ??? / 546 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.657733312, 2.307000000]: [global_costmap/elevation_merged_layer] Received a grid map #13???40x40???frame=map???stamp=2.087???[0m
+[0m[ INFO] [1795266533.657900926, 2.307000000]: [local_costmap/elevation_merged_layer] Received a grid map #13???40x40???frame=map???stamp=2.087???[0m
+[0m[ INFO] [1795266533.774532896, 2.354000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 13 ??? / 591 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.847522362, 2.390000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 13 ??? / 591 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266533.903393596, 2.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #14???40x40???frame=map???stamp=2.206???[0m
+[0m[ INFO] [1795266533.903621949, 2.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #14???40x40???frame=map???stamp=2.206???[0m
+[0m[ INFO] [1795266534.001960223, 2.454000000]: [global_costmap/elevation_merged_layer] ???????????? 47 ???????????? 14 ??? / 638 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.075127828, 2.490000000]: [local_costmap/elevation_merged_layer] ???????????? 47 ???????????? 14 ??? / 638 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.125555122, 2.506000000]: [global_costmap/elevation_merged_layer] Received a grid map #15???40x40???frame=map???stamp=2.311???[0m
+[0m[ INFO] [1795266534.125641413, 2.506000000]: [local_costmap/elevation_merged_layer] Received a grid map #15???40x40???frame=map???stamp=2.311???[0m
+[0m[ INFO] [1795266534.222597076, 2.555000000]: [global_costmap/elevation_merged_layer] ???????????? 45 ???????????? 15 ??? / 683 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.294356878, 2.590000000]: [local_costmap/elevation_merged_layer] ???????????? 45 ???????????? 15 ??? / 683 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.341284287, 2.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #16???40x40???frame=map???stamp=2.400???[0m
+[0m[ INFO] [1795266534.341399585, 2.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #16???40x40???frame=map???stamp=2.400???[0m
+[0m[ INFO] [1795266534.442400646, 2.655000000]: [global_costmap/elevation_merged_layer] ???????????? 50 ???????????? 16 ??? / 733 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.514227035, 2.691000000]: [local_costmap/elevation_merged_layer] ???????????? 50 ???????????? 16 ??? / 733 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.547978730, 2.708000000]: [global_costmap/elevation_merged_layer] Received a grid map #17???40x40???frame=map???stamp=2.498???[0m
+[0m[ INFO] [1795266534.548099111, 2.708000000]: [local_costmap/elevation_merged_layer] Received a grid map #17???40x40???frame=map???stamp=2.498???[0m
+[0m[ INFO] [1795266534.673188981, 2.754000000]: [global_costmap/elevation_merged_layer] ???????????? 49 ???????????? 17 ??? / 782 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.745969481, 2.790000000]: [local_costmap/elevation_merged_layer] ???????????? 49 ???????????? 17 ??? / 782 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.795499007, 2.806000000]: [global_costmap/elevation_merged_layer] Received a grid map #18???40x40???frame=map???stamp=2.590???[0m
+[0m[ INFO] [1795266534.795610844, 2.806000000]: [local_costmap/elevation_merged_layer] Received a grid map #18???40x40???frame=map???stamp=2.590???[0m
+[0m[ INFO] [1795266534.893344247, 2.855000000]: [global_costmap/elevation_merged_layer] ???????????? 49 ???????????? 18 ??? / 831 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.964646683, 2.890000000]: [local_costmap/elevation_merged_layer] ???????????? 49 ???????????? 18 ??? / 831 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266534.998268279, 2.906000000]: [global_costmap/elevation_merged_layer] Received a grid map #19???40x40???frame=map???stamp=2.714???[0m
+[0m[ INFO] [1795266534.998375551, 2.906000000]: [local_costmap/elevation_merged_layer] Received a grid map #19???40x40???frame=map???stamp=2.714???[0m
+[0m[ INFO] [1795266535.115340067, 2.954000000]: [global_costmap/elevation_merged_layer] ???????????? 51 ???????????? 19 ??? / 882 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.188482815, 2.991000000]: [local_costmap/elevation_merged_layer] ???????????? 51 ???????????? 19 ??? / 882 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.221172926, 3.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #20???40x40???frame=map???stamp=2.794???[0m
+[0m[ INFO] [1795266535.221348816, 3.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #20???40x40???frame=map???stamp=2.794???[0m
+[0m[ INFO] [1795266535.345131135, 3.054000000]: [global_costmap/elevation_merged_layer] ???????????? 49 ???????????? 20 ??? / 931 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.418485126, 3.091000000]: [local_costmap/elevation_merged_layer] ???????????? 49 ???????????? 20 ??? / 931 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.450163722, 3.106000000]: [global_costmap/elevation_merged_layer] Received a grid map #21???40x40???frame=map???stamp=2.906???[0m
+[0m[ INFO] [1795266535.450312352, 3.106000000]: [local_costmap/elevation_merged_layer] Received a grid map #21???40x40???frame=map???stamp=2.906???[0m
+[0m[ INFO] [1795266535.576210316, 3.154000000]: [global_costmap/elevation_merged_layer] ???????????? 50 ???????????? 21 ??? / 981 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.659320979, 3.194000000]: [local_costmap/elevation_merged_layer] ???????????? 50 ???????????? 21 ??? / 981 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.687726081, 3.209000000]: [global_costmap/elevation_merged_layer] Received a grid map #22???40x40???frame=map???stamp=3.005???[0m
+[0m[ INFO] [1795266535.687903196, 3.209000000]: [local_costmap/elevation_merged_layer] Received a grid map #22???40x40???frame=map???stamp=3.005???[0m
+[0m[ INFO] [1795266535.814450505, 3.254000000]: [global_costmap/elevation_merged_layer] ???????????? 51 ???????????? 22 ??? / 1032 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.889197657, 3.291000000]: [local_costmap/elevation_merged_layer] ???????????? 51 ???????????? 22 ??? / 1032 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266535.926681045, 3.309000000]: [global_costmap/elevation_merged_layer] Received a grid map #23???40x40???frame=map???stamp=3.111???[0m
+[0m[ INFO] [1795266535.926903662, 3.309000000]: [local_costmap/elevation_merged_layer] Received a grid map #23???40x40???frame=map???stamp=3.111???[0m
+[0m[ INFO] [1795266536.052920534, 3.354000000]: [global_costmap/elevation_merged_layer] ???????????? 52 ???????????? 23 ??? / 1084 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.126008135, 3.391000000]: [local_costmap/elevation_merged_layer] ???????????? 52 ???????????? 23 ??? / 1084 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.157852954, 3.407000000]: [global_costmap/elevation_merged_layer] Received a grid map #24???40x40???frame=map???stamp=3.227???[0m
+[0m[ INFO] [1795266536.158021056, 3.407000000]: [local_costmap/elevation_merged_layer] Received a grid map #24???40x40???frame=map???stamp=3.227???[0m
+[0m[ INFO] [1795266536.279847778, 3.455000000]: [global_costmap/elevation_merged_layer] ???????????? 52 ???????????? 24 ??? / 1136 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.352399140, 3.491000000]: [local_costmap/elevation_merged_layer] ???????????? 52 ???????????? 24 ??? / 1136 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.385151659, 3.507000000]: [global_costmap/elevation_merged_layer] Received a grid map #25???40x40???frame=map???stamp=3.313???[0m
+[0m[ INFO] [1795266536.385435065, 3.507000000]: [local_costmap/elevation_merged_layer] Received a grid map #25???40x40???frame=map???stamp=3.313???[0m
+[0m[ INFO] [1795266536.507764818, 3.555000000]: [global_costmap/elevation_merged_layer] ???????????? 53 ???????????? 25 ??? / 1189 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.580069870, 3.591000000]: [local_costmap/elevation_merged_layer] ???????????? 53 ???????????? 25 ??? / 1189 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.626287085, 3.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #26???40x40???frame=map???stamp=3.407???[0m
+[0m[ INFO] [1795266536.626390446, 3.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #26???40x40???frame=map???stamp=3.407???[0m
+[0m[ INFO] [1795266536.724924098, 3.654000000]: [global_costmap/elevation_merged_layer] ???????????? 52 ???????????? 26 ??? / 1241 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.796684730, 3.690000000]: [local_costmap/elevation_merged_layer] ???????????? 52 ???????????? 26 ??? / 1241 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266536.843321603, 3.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #27???40x40???frame=map???stamp=3.515???[0m
+[0m[ INFO] [1795266536.843507384, 3.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #27???40x40???frame=map???stamp=3.515???[0m
+[0m[ INFO] [1795266536.944105534, 3.755000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 27 ??? / 1298 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.016435550, 3.790000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 27 ??? / 1298 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.052335135, 3.808000000]: [global_costmap/elevation_merged_layer] Received a grid map #28???40x40???frame=map???stamp=3.592???[0m
+[0m[ INFO] [1795266537.052568526, 3.808000000]: [local_costmap/elevation_merged_layer] Received a grid map #28???40x40???frame=map???stamp=3.592???[0m
+[0m[ INFO] [1795266537.172452860, 3.855000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 28 ??? / 1356 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.246196032, 3.891000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 28 ??? / 1356 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.276899287, 3.907000000]: [global_costmap/elevation_merged_layer] Received a grid map #29???40x40???frame=map???stamp=3.690???[0m
+[0m[ INFO] [1795266537.276985866, 3.907000000]: [local_costmap/elevation_merged_layer] Received a grid map #29???40x40???frame=map???stamp=3.690???[0m
+[0m[ INFO] [1795266537.394984240, 3.954000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 29 ??? / 1414 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.470155200, 3.991000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 29 ??? / 1414 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.525151406, 4.006000000]: [global_costmap/elevation_merged_layer] Received a grid map #30???40x40???frame=map???stamp=3.812???[0m
+[0m[ INFO] [1795266537.525246375, 4.006000000]: [local_costmap/elevation_merged_layer] Received a grid map #30???40x40???frame=map???stamp=3.812???[0m
+[0m[ INFO] [1795266537.621200072, 4.054000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 30 ??? / 1474 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.695603557, 4.091000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 30 ??? / 1474 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.740161286, 4.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #31???40x40???frame=map???stamp=3.910???[0m
+[0m[ INFO] [1795266537.740414929, 4.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #31???40x40???frame=map???stamp=3.910???[0m
+[0m[ INFO] [1795266537.838527368, 4.154000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 31 ??? / 1532 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.911597979, 4.191000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 31 ??? / 1532 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266537.960431817, 4.206000000]: [global_costmap/elevation_merged_layer] Received a grid map #32???40x40???frame=map???stamp=3.998???[0m
+[0m[ INFO] [1795266537.960573236, 4.206000000]: [local_costmap/elevation_merged_layer] Received a grid map #32???40x40???frame=map???stamp=3.998???[0m
+[0m[ INFO] [1795266538.056580142, 4.255000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 32 ??? / 1589 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.128313209, 4.291000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 32 ??? / 1589 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.158449458, 4.302000000]: [global_costmap/elevation_merged_layer] Received a grid map #33???40x40???frame=map???stamp=4.096???[0m
+[0m[ INFO] [1795266538.158514275, 4.302000000]: [local_costmap/elevation_merged_layer] Received a grid map #33???40x40???frame=map???stamp=4.096???[0m
+[0m[ INFO] [1795266538.279436047, 4.356000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 33 ??? / 1648 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.350530571, 4.391000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 33 ??? / 1648 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.399836154, 4.407000000]: [global_costmap/elevation_merged_layer] Received a grid map #34???40x40???frame=map???stamp=4.199???[0m
+[0m[ INFO] [1795266538.399943374, 4.407000000]: [local_costmap/elevation_merged_layer] Received a grid map #34???40x40???frame=map???stamp=4.199???[0m
+[0m[ INFO] [1795266538.495070824, 4.454000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 34 ??? / 1706 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.568796531, 4.491000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 34 ??? / 1706 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.601336369, 4.507000000]: [global_costmap/elevation_merged_layer] Received a grid map #35???40x40???frame=map???stamp=4.302???[0m
+[0m[ INFO] [1795266538.601434940, 4.507000000]: [local_costmap/elevation_merged_layer] Received a grid map #35???40x40???frame=map???stamp=4.302???[0m
+[0m[ INFO] [1795266538.735913924, 4.555000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 35 ??? / 1765 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.806662187, 4.590000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 35 ??? / 1765 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266538.862061120, 4.607000000]: [global_costmap/elevation_merged_layer] Received a grid map #36???40x40???frame=map???stamp=4.399???[0m
+[0m[ INFO] [1795266538.862210565, 4.607000000]: [local_costmap/elevation_merged_layer] Received a grid map #36???40x40???frame=map???stamp=4.399???[0m
+[0m[ INFO] [1795266538.958564652, 4.655000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 36 ??? / 1825 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.050293970, 4.690000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 36 ??? / 1825 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.081230508, 4.706000000]: [global_costmap/elevation_merged_layer] Received a grid map #37???40x40???frame=map???stamp=4.514???[0m
+[0m[ INFO] [1795266539.081325879, 4.706000000]: [local_costmap/elevation_merged_layer] Received a grid map #37???40x40???frame=map???stamp=4.514???[0m
+[0m[ INFO] [1795266539.178234337, 4.754000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 37 ??? / 1884 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.268374884, 4.791000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 37 ??? / 1884 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.296472671, 4.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #38???40x40???frame=map???stamp=4.597???[0m
+[0m[ INFO] [1795266539.296569342, 4.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #38???40x40???frame=map???stamp=4.597???[0m
+[0m[ INFO] [1795266539.396605875, 4.855000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 38 ??? / 1944 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.487336546, 4.891000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 38 ??? / 1944 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.516426578, 4.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #39???40x40???frame=map???stamp=4.683???[0m
+[0m[ INFO] [1795266539.516542579, 4.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #39???40x40???frame=map???stamp=4.683???[0m
+[0m[ INFO] [1795266539.614001703, 4.954000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 39 ??? / 2004 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.702491292, 4.990000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 39 ??? / 2004 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.733013841, 5.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #40???40x40???frame=map???stamp=4.782???[0m
+[0m[ INFO] [1795266539.733212518, 5.006000000]: [local_costmap/elevation_merged_layer] Received a grid map #40???40x40???frame=map???stamp=4.782???[0m
+[0m[ INFO] [1795266539.830374969, 5.054000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 40 ??? / 2065 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.921530380, 5.091000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 40 ??? / 2065 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266539.950914337, 5.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #41???40x40???frame=map???stamp=4.882???[0m
+[0m[ INFO] [1795266539.951094380, 5.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #41???40x40???frame=map???stamp=4.882???[0m
+[0m[ INFO] [1795266540.049677766, 5.155000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 41 ??? / 2126 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.140824127, 5.191000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 41 ??? / 2126 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.168127249, 5.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #42???40x40???frame=map???stamp=4.983???[0m
+[0m[ INFO] [1795266540.168274366, 5.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #42???40x40???frame=map???stamp=4.983???[0m
+[0m[ INFO] [1795266540.266907534, 5.254000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 42 ??? / 2188 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.358950624, 5.290000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 42 ??? / 2188 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.388235180, 5.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #43???40x40???frame=map???stamp=5.082???[0m
+[0m[ INFO] [1795266540.388339387, 5.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #43???40x40???frame=map???stamp=5.082???[0m
+[0m[ INFO] [1795266540.489252828, 5.356000000]: [global_costmap/elevation_merged_layer] ???????????? 61 ???????????? 43 ??? / 2249 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.578872237, 5.391000000]: [local_costmap/elevation_merged_layer] ???????????? 61 ???????????? 43 ??? / 2249 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.609406087, 5.406000000]: [global_costmap/elevation_merged_layer] Received a grid map #44???40x40???frame=map???stamp=5.181???[0m
+[0m[ INFO] [1795266540.609738758, 5.406000000]: [local_costmap/elevation_merged_layer] Received a grid map #44???40x40???frame=map???stamp=5.181???[0m
+[0m[ INFO] [1795266540.708320311, 5.456000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 44 ??? / 2311 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.778838735, 5.491000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 44 ??? / 2311 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266540.842569207, 5.511000000]: [global_costmap/elevation_merged_layer] Received a grid map #45???40x40???frame=map???stamp=5.281???[0m
+[0m[ INFO] [1795266540.842758124, 5.512000000]: [local_costmap/elevation_merged_layer] Received a grid map #45???40x40???frame=map???stamp=5.281???[0m
+[0m[ INFO] [1795266540.928045409, 5.554000000]: [global_costmap/elevation_merged_layer] ???????????? 64 ???????????? 45 ??? / 2375 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.001400868, 5.591000000]: [local_costmap/elevation_merged_layer] ???????????? 64 ???????????? 45 ??? / 2375 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.063168470, 5.608000000]: [global_costmap/elevation_merged_layer] Received a grid map #46???40x40???frame=map???stamp=5.386???[0m
+[0m[ INFO] [1795266541.063338361, 5.608000000]: [local_costmap/elevation_merged_layer] Received a grid map #46???40x40???frame=map???stamp=5.386???[0m
+[0m[ INFO] [1795266541.156956793, 5.654000000]: [global_costmap/elevation_merged_layer] ???????????? 63 ???????????? 46 ??? / 2438 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.231032084, 5.691000000]: [local_costmap/elevation_merged_layer] ???????????? 63 ???????????? 46 ??? / 2438 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.262708377, 5.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #47???40x40???frame=map???stamp=5.496???[0m
+[0m[ INFO] [1795266541.262951229, 5.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #47???40x40???frame=map???stamp=5.496???[0m
+[0m[ INFO] [1795266541.428056332, 5.755000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 47 ??? / 2500 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.500090399, 5.791000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 47 ??? / 2500 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.548761822, 5.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #48???40x40???frame=map???stamp=5.596???[0m
+[0m[ INFO] [1795266541.548909137, 5.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #48???40x40???frame=map???stamp=5.596???[0m
+[0m[ INFO] [1795266541.647665060, 5.854000000]: [global_costmap/elevation_merged_layer] ???????????? 63 ???????????? 48 ??? / 2563 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.735402462, 5.891000000]: [local_costmap/elevation_merged_layer] ???????????? 63 ???????????? 48 ??? / 2563 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.763747969, 5.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #49???40x40???frame=map???stamp=5.705???[0m
+[0m[ INFO] [1795266541.763940469, 5.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #49???40x40???frame=map???stamp=5.705???[0m
+[0m[ INFO] [1795266541.863977006, 5.955000000]: [global_costmap/elevation_merged_layer] ???????????? 63 ???????????? 49 ??? / 2626 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266541.952022108, 5.991000000]: [local_costmap/elevation_merged_layer] ???????????? 63 ???????????? 49 ??? / 2626 ??????use_maximum=1???res=0[33m[ WARN] [1795266542.399008111, 6.199000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266542.610104456, 6.297000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266542.827886802, 6.397000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266543.045848875, 6.497000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266543.263769218, 6.597000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+.100???[0m
+[0m[ INFO] [1795266541.979669312, 6.004000000]: [global_costmap/elevation_merged_layer] Received a grid map #50???40x40???frame=map???stamp=5.791???[0m
+[0m[ INFO] [1795266541.979745090, 6.004000000]: [local_costmap/elevation_merged_layer] Received a grid map #50???40x40???frame=map???stamp=5.791???[0m
+[0m[ INFO] [1795266542.078481242, 6.054000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 50 ??? / 2688 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.166806503, 6.091000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 50 ??? / 2688 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.196560966, 6.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #51???40x40???frame=map???stamp=5.885???[0m
+[0m[ INFO] [1795266542.196647962, 6.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #51???40x40???frame=map???stamp=5.885???[0m
+[0m[ INFO] [1795266542.294854998, 6.154000000]: [global_costmap/elevation_merged_layer] ???????????? 62 ???????????? 51 ??? / 2750 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.382614698, 6.190000000]: [local_costmap/elevation_merged_layer] ???????????? 62 ???????????? 51 ??? / 2750 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.412125600, 6.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #52???40x40???frame=map???stamp=5.981???[0m
+[0m[ INFO] [1795266542.412214347, 6.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #52???40x40???frame=map???stamp=5.981???[0m
+[0m[ INFO] [1795266542.510804876, 6.254000000]: [global_costmap/elevation_merged_layer] ???????????? 60 ???????????? 52 ??? / 2810 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.596147497, 6.290000000]: [local_costmap/elevation_merged_layer] ???????????? 60 ???????????? 52 ??? / 2810 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.625391336, 6.304000000]: [global_costmap/elevation_merged_layer] Received a grid map #53???40x40???frame=map???stamp=6.081???[0m
+[0m[ INFO] [1795266542.625496706, 6.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #53???40x40???frame=map???stamp=6.081???[0m
+[0m[ INFO] [1795266542.723881180, 6.354000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 53 ??? / 2867 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.813946068, 6.390000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 53 ??? / 2867 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266542.847814254, 6.407000000]: [global_costmap/elevation_merged_layer] Received a grid map #54???40x40???frame=map???stamp=6.180???[0m
+[0m[ INFO] [1795266542.847924136, 6.407000000]: [local_costmap/elevation_merged_layer] Received a grid map #54???40x40???frame=map???stamp=6.180???[0m
+[0m[ INFO] [1795266542.942234900, 6.454000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 54 ??? / 2926 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.033497227, 6.491000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 54 ??? / 2926 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.065006338, 6.506000000]: [global_costmap/elevation_merged_layer] Received a grid map #55???40x40???frame=map???stamp=6.282???[0m
+[0m[ INFO] [1795266543.065078215, 6.506000000]: [local_costmap/elevation_merged_layer] Received a grid map #55???40x40???frame=map???stamp=6.282???[0m
+[0m[ INFO] [1795266543.161861844, 6.554000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 55 ??? / 2984 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.250584061, 6.591000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 55 ??? / 2984 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.280298387, 6.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #56???40x40???frame=map???stamp=6.380???[0m
+[0m[ INFO] [1795266543.280391219, 6.60500[33m[ WARN] [1795266543.482954395, 6.698000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266543.700414702, 6.797000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266543.924263918, 6.899000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266544.140177443, 6.998000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266544.356612895, 7.097000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266544.575929218, 7.197000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+0000]: [local_costmap/elevation_merged_layer] Received a grid map #56???40x40???frame=map???stamp=6.380???[0m
+[0m[ INFO] [1795266543.378043320, 6.654000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 56 ??? / 3042 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.467743339, 6.690000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 56 ??? / 3042 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.497915001, 6.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #57???40x40???frame=map???stamp=6.480???[0m
+[0m[ INFO] [1795266543.498050363, 6.706000000]: [local_costmap/elevation_merged_layer] Received a grid map #57???40x40???frame=map???stamp=6.480???[0m
+[0m[ INFO] [1795266543.595315435, 6.754000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 57 ??? / 3099 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.687531283, 6.791000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 57 ??? / 3099 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.715143230, 6.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #58???40x40???frame=map???stamp=6.580???[0m
+[0m[ INFO] [1795266543.715237446, 6.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #58???40x40???frame=map???stamp=6.580???[0m
+[0m[ INFO] [1795266543.815259117, 6.854000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 58 ??? / 3156 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.906773357, 6.890000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 58 ??? / 3156 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266543.937733549, 6.906000000]: [global_costmap/elevation_merged_layer] Received a grid map #59???40x40???frame=map???stamp=6.680???[0m
+[0m[ INFO] [1795266543.937832975, 6.906000000]: [local_costmap/elevation_merged_layer] Received a grid map #59???40x40???frame=map???stamp=6.680???[0m
+[0m[ INFO] [1795266544.033972097, 6.954000000]: [global_costmap/elevation_merged_layer] ???????????? 55 ???????????? 59 ??? / 3211 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.125561397, 6.991000000]: [local_costmap/elevation_merged_layer] ???????????? 55 ???????????? 59 ??? / 3211 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.153526966, 7.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #60???40x40???frame=map???stamp=6.781???[0m
+[0m[ INFO] [1795266544.153606444, 7.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #60???40x40???frame=map???stamp=6.781???[0m
+[0m[ INFO] [1795266544.254228342, 7.055000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 60 ??? / 3269 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.342851147, 7.090000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 60 ??? / 3269 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.371927571, 7.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #61???40x40???frame=map???stamp=6.887???[0m
+[0m[ INFO] [1795266544.372009728, 7.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #61???40x40???frame=map???stamp=6.887???[0m
+[0m[ INFO] [1795266544.471442914, 7.155000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 61 ??? / 3326 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.561541505, 7.190000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 61 ??? / 3326 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.590839268, 7.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #62???40x40???frame=map???stamp=6.986???[0m
+[0m[ INFO] [1795266544.590935248, 7.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #62???40x40???frame=map???stamp=6.986???[0m
+[0m[ INFO] [1795266544.690259780, 7.254000000]: [global_costmap/elevation_merged_layer] ????????[33m[ WARN] [1795266544.795287265, 7.297000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266545.018595688, 7.397000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266545.241170984, 7.497000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266545.457890614, 7.596000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266545.660553234, 7.694000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266545.909581894, 7.797000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+???? 57 ???????????? 62 ??? / 3383 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.784212281, 7.291000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 62 ??? / 3383 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266544.811100076, 7.304000000]: [global_costmap/elevation_merged_layer] Received a grid map #63???40x40???frame=map???stamp=7.080???[0m
+[0m[ INFO] [1795266544.811191060, 7.304000000]: [local_costmap/elevation_merged_layer] Received a grid map #63???40x40???frame=map???stamp=7.080???[0m
+[0m[ INFO] [1795266544.912325823, 7.355000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 63 ??? / 3442 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.006250480, 7.391000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 63 ??? / 3442 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.034130461, 7.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #64???40x40???frame=map???stamp=7.181???[0m
+[0m[ INFO] [1795266545.034282442, 7.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #64???40x40???frame=map???stamp=7.181???[0m
+[0m[ INFO] [1795266545.132245044, 7.454000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 64 ??? / 3499 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.206145809, 7.490000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 64 ??? / 3499 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.257380030, 7.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #65???40x40???frame=map???stamp=7.283???[0m
+[0m[ INFO] [1795266545.257496167, 7.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #65???40x40???frame=map???stamp=7.283???[0m
+[0m[ INFO] [1795266545.356336316, 7.555000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 65 ??? / 3557 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.447648754, 7.591000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 65 ??? / 3557 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.475522353, 7.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #66???40x40???frame=map???stamp=7.388???[0m
+[0m[ INFO] [1795266545.475596490, 7.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #66???40x40???frame=map???stamp=7.388???[0m
+[0m[ INFO] [1795266545.575069645, 7.654000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 66 ??? / 3614 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.648202377, 7.691000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 66 ??? / 3614 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.708165571, 7.705000000]: [global_costmap/elevation_merged_layer] Received a grid map #67???40x40???frame=map???stamp=7.490???[0m
+[0m[ INFO] [1795266545.708297398, 7.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #67???40x40???frame=map???stamp=7.490???[0m
+[0m[ INFO] [1795266545.806933934, 7.755000000]: [global_costmap/elevation_merged_layer] ???????????? 56 ???????????? 67 ??? / 3670 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.897452436, 7.791000000]: [local_costmap/elevation_merged_layer] ???????????? 56 ???????????? 67 ??? / 3670 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266545.925932725, 7.805000000]: [global_costmap/elevation_merged_layer] Received a grid map #68???40x40???frame=map???stamp=7.585???[0m
+[0m[ INFO] [1795266545.926014677, 7.805000000]: [local_costmap/elevation_merged_layer] Received a grid map #68???40x40???frame=map???stamp=7.585???[0m
+[0m[ INFO] [1795266546.025190518, 7.855000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 68 ??? / 3729 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.114167483, 7.890000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 68 ??? / 3729 ???[33m[ WARN] [1795266546.127491532, 7.897000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266546.349955588, 7.997000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266546.565779465, 8.094000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266546.825520719, 8.197000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266547.042332177, 8.297000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266547.258649311, 8.397000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266547.475886128, 8.497000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+???use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.143623352, 7.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #69???40x40???frame=map???stamp=7.694???[0m
+[0m[ INFO] [1795266546.143721370, 7.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #69???40x40???frame=map???stamp=7.694???[0m
+[0m[ INFO] [1795266546.243616566, 7.955000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 69 ??? / 3788 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.337500845, 7.991000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 69 ??? / 3788 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.365036897, 8.004000000]: [global_costmap/elevation_merged_layer] Received a grid map #70???40x40???frame=map???stamp=7.781???[0m
+[0m[ INFO] [1795266546.365098894, 8.004000000]: [local_costmap/elevation_merged_layer] Received a grid map #70???40x40???frame=map???stamp=7.781???[0m
+[0m[ INFO] [1795266546.464289409, 8.054000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 70 ??? / 3845 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.547886430, 8.093000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 70 ??? / 3845 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.622691859, 8.107000000]: [global_costmap/elevation_merged_layer] Received a grid map #71???40x40???frame=map???stamp=7.882???[0m
+[0m[ INFO] [1795266546.622754338, 8.107000000]: [local_costmap/elevation_merged_layer] Received a grid map #71???40x40???frame=map???stamp=7.882???[0m
+[0m[ INFO] [1795266546.717035612, 8.155000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 71 ??? / 3904 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.813935189, 8.191000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 71 ??? / 3904 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266546.843850738, 8.206000000]: [global_costmap/elevation_merged_layer] Received a grid map #72???40x40???frame=map???stamp=7.987???[0m
+[0m[ INFO] [1795266546.843908901, 8.206000000]: [local_costmap/elevation_merged_layer] Received a grid map #72???40x40???frame=map???stamp=7.987???[0m
+[0m[ INFO] [1795266546.940619297, 8.254000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 72 ??? / 3962 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.029582716, 8.291000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 72 ??? / 3962 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.057952426, 8.305000000]: [global_costmap/elevation_merged_layer] Received a grid map #73???40x40???frame=map???stamp=8.094???[0m
+[0m[ INFO] [1795266547.058081529, 8.305000000]: [local_costmap/elevation_merged_layer] Received a grid map #73???40x40???frame=map???stamp=8.094???[0m
+[0m[ INFO] [1795266547.155989647, 8.354000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 73 ??? / 4019 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.245408270, 8.390000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 73 ??? / 4019 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.273636995, 8.404000000]: [global_costmap/elevation_merged_layer] Received a grid map #74???40x40???frame=map???stamp=8.187???[0m
+[0m[ INFO] [1795266547.273719947, 8.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #74???40x40???frame=map???stamp=8.187???[0m
+[0m[ INFO] [1795266547.374012607, 8.454000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 74 ??? / 4077 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.462813880, 8.490000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 74 ??? / 4077 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.491367779, 8.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #75???40x40???frame=map???stamp=8.283???[0m
+[0m[ INFO] [17952[33m[ WARN] [1795266547.694945185, 8.598000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266547.909312243, 8.697000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266548.123958720, 8.796000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266548.340831678, 8.897000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266548.558975884, 8.997000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[33m[ WARN] [1795266548.777232840, 9.097000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+66547.491436700, 8.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #75???40x40???frame=map???stamp=8.283???[0m
+[0m[ INFO] [1795266547.591671305, 8.555000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 75 ??? / 4134 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.680889913, 8.591000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 75 ??? / 4134 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.709212316, 8.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #76???40x40???frame=map???stamp=8.380???[0m
+[0m[ INFO] [1795266547.709314283, 8.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #76???40x40???frame=map???stamp=8.380???[0m
+[0m[ INFO] [1795266547.807924329, 8.654000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 76 ??? / 4192 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.896470479, 8.691000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 76 ??? / 4192 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266547.924033404, 8.704000000]: [global_costmap/elevation_merged_layer] Received a grid map #77???40x40???frame=map???stamp=8.482???[0m
+[0m[ INFO] [1795266547.924121622, 8.705000000]: [local_costmap/elevation_merged_layer] Received a grid map #77???40x40???frame=map???stamp=8.482???[0m
+[0m[ INFO] [1795266548.023226036, 8.754000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 77 ??? / 4250 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.112105266, 8.791000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 77 ??? / 4250 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.139984555, 8.804000000]: [global_costmap/elevation_merged_layer] Received a grid map #78???40x40???frame=map???stamp=8.584???[0m
+[0m[ INFO] [1795266548.140069299, 8.804000000]: [local_costmap/elevation_merged_layer] Received a grid map #78???40x40???frame=map???stamp=8.584???[0m
+[0m[ INFO] [1795266548.239970028, 8.854000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 78 ??? / 4309 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.328024232, 8.891000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 78 ??? / 4309 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.357107082, 8.905000000]: [global_costmap/elevation_merged_layer] Received a grid map #79???40x40???frame=map???stamp=8.685???[0m
+[0m[ INFO] [1795266548.357170440, 8.905000000]: [local_costmap/elevation_merged_layer] Received a grid map #79???40x40???frame=map???stamp=8.685???[0m
+[0m[ INFO] [1795266548.455143271, 8.954000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 79 ??? / 4367 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.545024721, 8.990000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 79 ??? / 4367 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.573701217, 9.005000000]: [global_costmap/elevation_merged_layer] Received a grid map #80???40x40???frame=map???stamp=8.780???[0m
+[0m[ INFO] [1795266548.573763105, 9.005000000]: [local_costmap/elevation_merged_layer] Received a grid map #80???40x40???frame=map???stamp=8.780???[0m
+[0m[ INFO] [1795266548.673786014, 9.054000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 80 ??? / 4426 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.764921130, 9.090000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 80 ??? / 4426 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.793330335, 9.105000000]: [global_costmap/elevation_merged_layer] Received a grid map #81???40x40???frame=map???stamp=8.880???[0m
+[0m[ INFO] [1795266548.793388959, 9.105000000]: [local_costmap/elevation_merged_layer] Received a grid map #81???40x40???frame=map???stamp=8.880???[0m
+[0m[ INFO] [1795266548.891234526, 9.154000000]: [global_costmap/elevatio[33m[ WARN] [1795266548.996186235, 9.197000000]: TebLocalPlannerROS: trajectory is not feasible. Resetting planner...[0m
+[31m[ERROR] [1795266549.206026805, 9.293000000]: Aborting because a valid control could not be found. Even after executing all recovery behaviors[0m
+[33m[ WARN] [1795266549.224273871, 9.302000000]: [bt] cancel requested seq=1000000 scope=all[0m
+n_merged_layer] ???????????? 56 ???????????? 81 ??? / 4482 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266548.982257132, 9.190000000]: [local_costmap/elevation_merged_layer] ???????????? 56 ???????????? 81 ??? / 4482 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.011045126, 9.205000000]: [global_costmap/elevation_merged_layer] Received a grid map #82???40x40???frame=map???stamp=8.982???[0m
+[0m[ INFO] [1795266549.011119056, 9.205000000]: [local_costmap/elevation_merged_layer] Received a grid map #82???40x40???frame=map???stamp=8.982???[0m
+[0m[ INFO] [1795266549.110874961, 9.254000000]: [global_costmap/elevation_merged_layer] ???????????? 59 ???????????? 82 ??? / 4541 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.200985878, 9.290000000]: [local_costmap/elevation_merged_layer] ???????????? 59 ???????????? 82 ??? / 4541 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.228823778, 9.304000000]: [global_costmap/elevation_merged_layer] Received a grid map #83???40x40???frame=map???stamp=9.080???[0m
+[0m[ INFO] [1795266549.228899114, 9.304000000]: [local_costmap/elevation_merged_layer] Received a grid map #83???40x40???frame=map???stamp=9.080???[0m
+[0m[ INFO] [1795266549.327986981, 9.354000000]: [global_costmap/elevation_merged_layer] ???????????? 58 ???????????? 83 ??? / 4599 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.417974817, 9.390000000]: [local_costmap/elevation_merged_layer] ???????????? 58 ???????????? 83 ??? / 4599 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.448090399, 9.405000000]: [global_costmap/elevation_merged_layer] Received a grid map #84???40x40???frame=map???stamp=9.180???[0m
+[0m[ INFO] [1795266549.448165270, 9.405000000]: [local_costmap/elevation_merged_layer] Received a grid map #84???40x40???frame=map???stamp=9.180???[0m
+[0m[ INFO] [1795266549.545192673, 9.454000000]: [global_costmap/elevation_merged_layer] ???????????? 57 ???????????? 84 ??? / 4656 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.635594567, 9.490000000]: [local_costmap/elevation_merged_layer] ???????????? 57 ???????????? 84 ??? / 4656 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.664915375, 9.505000000]: [global_costmap/elevation_merged_layer] Received a grid map #85???40x40???frame=map???stamp=9.280???[0m
+[0m[ INFO] [1795266549.665004351, 9.505000000]: [local_costmap/elevation_merged_layer] Received a grid map #85???40x40???frame=map???stamp=9.280???[0m
+[0m[ INFO] [1795266549.762127777, 9.554000000]: [global_costmap/elevation_merged_layer] ???????????? 56 ???????????? 85 ??? / 4712 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.856762112, 9.591000000]: [local_costmap/elevation_merged_layer] ???????????? 56 ???????????? 85 ??? / 4712 ??????use_maximum=1???res=0.100???[0m
+[0m[ INFO] [1795266549.886099468, 9.605000000]: [global_costmap/elevation_merged_layer] Received a grid map #86???40x40???frame=map???stamp=9.382???[0m
+[0m[ INFO] [1795266549.886324114, 9.605000000]: [local_costmap/elevation_merged_layer] Received a grid map #86???40x40???frame=map???stamp=9.382???[0m
+[0m[ INFO] [1795266517.183566631]: [bt] executor ack mode: /v8/navigation/result[0m
+[0m[ INFO] [1795266517.215447560]: [bt] cancel in /v8/bt/cancel, out /v8/navigation/cancel, ack in /v8/navigation/cancel_ack, policy in /v8/bt/goal_policy, mission in /v8/bt/goal_mission[0m
+[0m[ INFO] [1795266517.223937612]: [bt] tree loaded: /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/trees/navigate_with_action.xml[0m
+[0m[ INFO] [1795266517.224002683]: [bt] planner input /v8/global/goal, status /global_path/status[0m
+[0m[ INFO] [1795266517.224021634]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[0m[ INFO] [1795266532.674262361, 1.867000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795266532.724258303, 1.892000000]: [bt] goal 1 dequeued (0 waiting)[0m
+[0m[ INFO] [1795266532.724810549, 1.892000000]: [bt] follow path -> dispatch goal 3, 2.37783e-12, 0[0m
+[WARN] [1795266518.605925, 0.142000]: [elevation_gridmap_publisher] 等待点云与里程计
+[WARN] [1795266529.787778, 0.606000]: [elevation_gridmap_publisher] 点云变到 map 失败（tf-fail:rslidar->map(ExtrapolationException)）⇒ INVALID，不发；请确认测试台已起 map→odom 恒等桥（stairstudy／m1_gazebo 自带）
+[INFO] [1795266517.814809, 0.000000]: [elevation_gridmap_publisher] 在位：in=/rslidar_points odom=/sim/odom_gt out=/elevation_mapping/elevation_map layer=elevation frame=map res=0.100 size=4.0x4.0 ground_pct=20.0  ★h＝相对局部地面的离地高[m]，地面 h≡0★
+[INFO] [1795266530.029229, 0.712000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 252、h_max=0.998、点数 5425）
+[INFO] [1795266534.795494, 2.806000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 264、h_max=0.998、点数 5611）
+[INFO] [1795266539.516353, 4.905000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 231、h_max=0.999、点数 6119）
+[INFO] [1795266543.938538, 6.906000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 230、h_max=0.998、点数 6515）
+[INFO] [1795266548.574240, 9.005000]: [elevation_gridmap_publisher] 发出 GridMap（40x40、res=0.100、frame=map、ground_z=-0.000、有效格 271、h_max=1.000、点数 6573）
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/sim_speed_cap.py", line 18, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[INFO] [1795266517.770158, 0.000000]: [sim_pose_source] /sim/odom_gt(odometry) -> /v8/local/pose @ 50 Hz; localization_ok -> /v8/local/localization_ok; start -> (off)
+[WARN] [1795266518.498272, 0.089000]: [M6] 活跃源切换: INIT -> navigation
+[WARN] [1795266549.319950, 9.350000]: [M6] 活跃源切换: navigation -> teleop_app
+[INFO] [1795266517.743423, 0.000000]: [M6] safe_cmd_vel_mux up: 7 sources, out=/cmd_vel @20 Hz, hold_in=/lite3/supervisor/hold
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/m2_free_map.py", line 26, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[0m[ INFO] [1795266520.332725341, 0.165000000]: ros topic name:/livox/lidar[0m
+[0m[ INFO] [1795266520.332776457, 0.165000000]: ros frame id: rslidar[0m
+[0m[ INFO] [1795266520.357877446, 0.165000000]: scan info size:800000[0m
+[0m[ INFO] [1795266520.358887708, 0.165000000]: sample:20000[0m
+[0m[ INFO] [1795266520.358907705, 0.165000000]: downsample:1[0m
+[0m[ INFO] [1795266520.358920421, 0.165000000]: publish_pointcloud_type: 3[0m
+[0m[ INFO] [1795266528.704576910, 0.165000000]: <initialOrientationAsReference> is unset, using default value of false to comply with REP 145 (world as orientation reference)[0m
+[0m[ INFO] [1795266528.704656263, 0.165000000]: <robotNamespace> set to: //[0m
+[0m[ INFO] [1795266528.704671852, 0.165000000]: <topicName> set to: /livox/imu[0m
+[0m[ INFO] [1795266528.704682429, 0.165000000]: <frameName> set to: rslidar[0m
+[0m[ INFO] [1795266528.704757643, 0.165000000]: <updateRateHZ> set to: 200[0m
+[0m[ INFO] [1795266528.704774184, 0.165000000]: <gaussianNoise> set to: 0.01[0m
+[0m[ INFO] [1795266528.704810474, 0.165000000]: <xyzOffset> set to: 0 0 0[0m
+[0m[ INFO] [1795266528.704860329, 0.165000000]: <rpyOffset> set to: 0 -0 0[0m
+[0m[ INFO] [1795266528.819959972, 0.165000000]: [lite3_planar_drive] loaded: mode=dynamic cmd=cmd_vel odom=/sim/odom_gt base=base_link[0m
+[0m[ INFO] [1795266530.708170607, 1.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795266532.957805004, 2.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795266535.207588196, 3.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.38,-0.00,0.00) v_phy=(0.374,0.000,0.000) w_phy=(-0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795266537.513808514, 4.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.34,-0.00,0.01) v_phy=(0.339,-0.000,0.000) w_phy=(-0.000,0.000,0.001) mode=dynamic[0m
+[0m[ INFO] [1795266539.722800836, 5.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.34,-0.00,0.00) v_phy=(0.342,0.000,0.000) w_phy=(-0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795266541.971274794, 6.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.33,0.00,0.08) v_phy=(0.328,0.006,0.000) w_phy=(-0.000,0.000,0.069) mode=dynamic[0m
+[0m[ INFO] [1795266544.144687773, 7.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,0.000,0.000) w_phy=(-0.000,0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1795266546.356803278, 8.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,0.000,0.000) w_phy=(-0.000,0.000,0.000) mode=dynamic[0m
+[0m[ INFO] [1795266548.565045911, 9.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(0.000,0.000,0.000) w_phy=(-0.000,0.000,0.000) mode=dynamic[0m
+[INFO] [1795266539.506978, 4.900000]: [m2_tf_fresh] map->odom @10.0Hz stamp=4900000000
+[INFO] [1795266517.610340, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+
+auto-starting new master
+[1mprocess[master]: started with pid [89988][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_teb.launch http://127.0.0.1:11313
+[1msetting /run_id to a896ea28-e5ac-11f1-9535-62696700331c[0m
+[1mprocess[rosout-1]: started with pid [90062][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [90070][0m
+[1mprocess[robot_state_publisher-3]: started with pid [90073][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [90076][0m
+[1mprocess[sim_adapter-5]: started with pid [90078][0m
+[1mprocess[m2_tf_fresh-6]: started with pid [90080][0m
+[1mprocess[m2_free_map-7]: started with pid [90084][0m
+[1mprocess[safe_cmd_vel_mux-8]: started with pid [90089][0m
+[1mprocess[liveness_m6-9]: started with pid [90151][0m
+[1mprocess[sim_speed_cap-10]: started with pid [90152][0m
+[1mprocess[elevation_gridmap_publisher-11]: started with pid [90153][0m
+[1mprocess[sim_pose_source-12]: started with pid [90217][0m
+[1mprocess[navigation_executor-13]: started with pid [90281][0m
+[1mprocess[liveness_m4-14]: started with pid [90282][0m
+[1mprocess[bt_console-15]: started with pid [90283][0m
+[1mprocess[bt_navigation_executor-16]: started with pid [90351][0m
+[1m[spawn_lite3_planar-4] process has finished cleanly
+log file: /opt/ros1-slam/logs/a896ea28-e5ac-11f1-9535-62696700331c/spawn_lite3_planar-4*.log[0m
+[bt_navigation_executor-16] killing on exit
+[bt_console-15] killing on exit
+[liveness_m4-14] killing on exit
+[navigation_executor-13] killing on exit
+[sim_pose_source-12] killing on exit
+[elevation_gridmap_publisher-11] killing on exit
+[sim_speed_cap-10] killing on exit
+[liveness_m6-9] killing on exit
+[safe_cmd_vel_mux-8] killing on exit
+[m2_free_map-7] killing on exit
+[m2_tf_fresh-6] killing on exit
+[sim_adapter-5] killing on exit
+[robot_state_publisher-3] killing on exit
+[gazebo-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

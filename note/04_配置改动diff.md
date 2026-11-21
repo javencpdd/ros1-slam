@@ -7759,3 +7759,12 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   （GridMap）→ TerrainObserver 影子通道（对 costmap 插件之外的第二消费者）。
 - 验收：`test_gait_guard_wiring` 10/10、`test_terrain_observer` 9/9 OK；“只被 costmap 插件消费”
   的勘察结论已过时。P1 四项（90_platform/v8_grid/lite3_task/高程单点）全部闭环。
+
+## 2026-11-21 / T-20261118-02 3 m TEB 根因诊断（临时 overlay，源码不入仓）
+
+- 临时构建 TEB 0.9.1 诊断版（/tmp，未入仓），打印不可行位姿/实际 footprint_spec/costmap 命中格；
+  发现 TEB `footprint_spec_` 来自 costmap（含 footprint_padding 时 0.8×0.6），与参数 marker 0.6×0.4 不一致。
+- 局部 padding=0 与 min_obstacle 0.05 的 A/B（r47/r48）仍不可行：目标 3 m 距 (2.75,-0.25) 的 LETHAL
+  仅 0.25 m，0.6 m 车身末段转向后角扫入缓冲格；r19（局部高程层关）与 v8 判据链 3 m 均 PASS。
+- 结论：3 m TEB 是“目标贴近语义/高程缓冲 + 实际足迹”的几何限制，不是数值 bug；TEB action 链保持 1 m，
+  v8 判据链 3 m 绿。证据 `evidence/bt_native/teb_root/`、r43—r48。launch A/B 已还原。
