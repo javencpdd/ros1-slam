@@ -1,0 +1,10 @@
+TEB 3m native elevation, live probe at GT x=1.3598 (the abort pose)
+- GridMap: frame=map center=(1.36,0.0); high cells (h>0.15) within 1.2 m: 18, all at box obs_1 top
+  (nearest (1.31,0.65,h=0.79)); no high cell within the robot footprint.
+- Local costmap (OccupancyGrid 0..100 scale; 100=LETHAL, 99=INSCRIBED):
+  nearest >=99 cells: (1.35,0.45,99,d=0.45), (1.25,0.45,99,d=0.46), (1.35,0.55,99,d=0.55);
+  a separate trail behind the robot at (0.75,-0.05,100,d=0.61) and (0.75,0.05,100,d=0.61).
+  No cell >=99 inside the footprint box |dx|<=0.35, |dy|<=0.25.
+- Interpretation: box top is marked correctly (h~0.8); nearest obstacle is 0.45 m lateral.
+  The 0.61 m-behind lethal trail is not inside the footprint; source not elevation GridMap.
+- The same r25 window aborted at x=1.3598 in 8.8 s (1:fail:backend_terminal, 31 infeasible logs).
