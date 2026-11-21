@@ -32,9 +32,11 @@ def twist_values(twist):
 
 
 class Driver:
-    def __init__(self, evidence, local_planner="teb", global_planner="global_planner"):
+    def __init__(self, evidence, local_planner="teb", global_planner="global_planner",
+                 goal_distance=1.0):
         self.local_planner = local_planner
         self.global_planner = global_planner
+        self.goal_distance = goal_distance
         evidence.update(local_planner=local_planner, global_planner=global_planner)
         import rosgraph
         import rospy
@@ -288,8 +290,8 @@ class Driver:
     def run(self, lease_loss=False):
         self.ready()
         start = self.last("gt")
-        self.success(self.send("golden", start["x"] + 1, start["y"]))
-        case = self.send("cancel_active", start["x"] + 1.5, start["y"])
+        self.success(self.send("golden", start["x"] + self.goal_distance, start["y"]))
+        case = self.send("cancel_active", start["x"] + self.goal_distance + 0.5, start["y"])
         def active():
             states = [v for _, v in self.rows("adapter", case["sent"]) if v["seq"] == case["seq"]]
             ids = [i for i, s in self.last("backend").items() if s == 1 and i not in case["previous_backend_ids"]]
@@ -311,7 +313,7 @@ class Driver:
             (dict(at=t, statuses=v) for t, v in self.rows("backend", case["cancel_at"])
              if not any(s in LIVE for s in v.values())), None))
         self.quiet("cancel no resumption", 3)
-        self.success(self.send("post_cancel_reuse", start["x"] + 1.5, start["y"]))
+        self.success(self.send("post_cancel_reuse", start["x"] + self.goal_distance + 0.5, start["y"]))
         gt = self.last("gt")
         case = self.send("invalid_nonzero_z", gt["x"] + 1, gt["y"], 0.5)
         self.complete(case, "failed", "rejected", "invalid_pose")
@@ -338,6 +340,7 @@ def main():
     parser.add_argument("--lease-loss", action="store_true")
     parser.add_argument("--local-planner", default="teb", choices=("teb", "dwa", "trajectory", "mpc"))
     parser.add_argument("--global-planner", default="global_planner", choices=("global_planner", "navfn"))
+    parser.add_argument("--goal-distance", type=float, default=1.0)
     parser.add_argument("--timeout", type=float, default=300, help="overall wall seconds, at most 600")
     args = parser.parse_args()
     started, driver, rc = time.monotonic(), None, 1
@@ -355,7 +358,9 @@ def main():
             signal.signal(sig, interrupt)
         signal.setitimer(signal.ITIMER_REAL, args.timeout)
         socket.setdefaulttimeout(2.0)
-        driver = Driver(evidence, args.local_planner, args.global_planner)
+        require(math.isfinite(args.goal_distance) and 0.5 <= args.goal_distance <= 5.0,
+                "invalid goal distance")
+        driver = Driver(evidence, args.local_planner, args.global_planner, args.goal_distance)
         evidence["verdict"] = "FAIL"
         driver.run(lease_loss=args.lease_loss)
         evidence.update(verdict="PASS", runtime_verified=True)

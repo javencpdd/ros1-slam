@@ -452,6 +452,16 @@ public:
       std::lock_guard<std::mutex> lock(g_state.mutex);
       length = g_state.path_length;
       seen = g_state.path_length_seen;
+      // Action backends (move_base) publish no /global_path; size the frozen
+      // budget from the start-goal distance instead of collapsing to the tree
+      // timeout.  The same speed floor still bounds the result.
+      if (!seen && g_state.has_pose && g_state.has_current)
+      {
+        const double dx = g_state.current_goal.pose.position.x - g_state.pose.pose.position.x;
+        const double dy = g_state.current_goal.pose.position.y - g_state.pose.pose.position.y;
+        length = std::hypot(dx, dy);
+        seen = length > 0.0;
+      }
       g_state.last_event = "arrival_start";
     }
     // Freeze the budget once per arrival: the planner replans from the moving

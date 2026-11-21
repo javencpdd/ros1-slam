@@ -33,6 +33,17 @@
   <arg name="elevation_ttl_s" default="1.0"/>
   <param name="/navigation_executor/global_costmap/elevation_merged_layer/input_timeout_s" value="$(arg elevation_ttl_s)"/>
   <param name="/navigation_executor/local_costmap/elevation_merged_layer/input_timeout_s" value="$(arg elevation_ttl_s)"/>
+  <!-- BT budget/diagnostics need a pose even though move_base plans from TF. -->
+  <node pkg="lite3_gazebo_sim" type="sim_pose_source.py" name="sim_pose_source" output="screen">
+    <param name="src_topic" value="/sim/odom_gt"/>
+    <param name="dst_topic" value="/v8/local/pose"/>
+    <param name="frame_id" value="map"/>
+    <param name="z_offset" value="-0.11"/>
+    <param name="rate" value="50.0"/>
+    <param name="start_topic" value=""/>
+    <param name="start_rate" value="0.5"/>
+    <param name="localization_ok_period_s" value="0.2"/>
+  </node>
   <include file="$(find lite3_navigation)/launch/navigation_executor.launch">
     <arg name="local_planner" value="$(arg local_planner)"/>
     <arg name="global_planner" value="$(arg global_planner)"/>

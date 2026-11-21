@@ -9,8 +9,9 @@ LOCAL_PLANNER="${2:-teb}"
 GLOBAL_PLANNER="${3:-global_planner}"
 ELEVATION_SOURCE="${4:-native}"
 ELEVATION_TTL="${5:-1.0}"
+GOAL_DISTANCE="${6:-1.0}"
 LAUNCH_ARGS="local_planner:=$LOCAL_PLANNER global_planner:=$GLOBAL_PLANNER elevation_source:=$ELEVATION_SOURCE elevation_ttl_s:=$ELEVATION_TTL"
-DRIVER_ARGS="--local-planner $LOCAL_PLANNER --global-planner $GLOBAL_PLANNER"
+DRIVER_ARGS="--local-planner $LOCAL_PLANNER --global-planner $GLOBAL_PLANNER --goal-distance $GOAL_DISTANCE"
 [ -d "$OUT" ] || exit 9
 [ ! -e "$OUT/runtime.json" ] || exit 9
 bash "$ROOT/scripts/verify/v8_window_preflight.sh" > "$OUT/preflight.log" 2>&1 || exit 5

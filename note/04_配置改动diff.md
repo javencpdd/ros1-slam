@@ -7523,3 +7523,18 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 处置：**回退本次 smoke 改写**（`git checkout -- m2_smoke.sh`），在册判据载体继续跑已通过的
   v8 topic 链（复跑 9/0、0.209 m、12.3s、G6=0）。新链的运行时验证保留在 r3—r5/r12 驱动。
   该迁移未完成，后续需单独调 TEB/高程标记（不得为过检关闭安全层或改门值）。
+
+## 2026-11-21 / T-20261118-02 3 m 目标隔离实验与 BT 预算修复（action 链）
+
+- **BT WaitArrival 预算修复**：action 后端无 `/global_path` ⇒ 预算退化为树 60 s 墙钟；改为无路径长时
+  按起点-目标欧氏距离 × 既有 0.02 m/s 地板折算（`bt_console.cpp`），同一冻结预算语义不变。
+- **仿真位姿接线**：`mode_sim_teb` 增既有 `sim_pose_source`（/sim/odom_gt → /v8/local/pose），
+  使 BT 的预算/诊断有位姿；move_base 仍按 TF 规划。
+- **3 m 目标隔离读数（native 高程，TTL 1.0）**：
+  r13/r15（DWA）：机器人仅 ~0.1 m/s（候选 max_vx=0.1，DWA 插件自身行为），BT 60 s 墙钟预算先到期后取消；
+  预算修复后 r17：持续前进到 ~2.07 m，测试窗口先到（无中止/无过期）；
+  r16/r18（TEB）：候选 max_vx≈0.39 正常，但 1.36—1.6 m 处连续 `trajectory is not feasible`、
+  move_base abort（backend_terminal），伴随高程层在窗口内写 57—61 格。
+  ⇒ 3 m 目标下 TEB 与「高程标记 + 现场箱体几何」组合仍需单独调 TEB/标记面；DWA 的 0.1 m/s
+  源自插件限速配置，待查其参数装载。
+- 判据载体仍为已通过的 topic 链 Stage B；本轮不替换。证据 r13—r18 与 build_bt_budget.log 入库。
