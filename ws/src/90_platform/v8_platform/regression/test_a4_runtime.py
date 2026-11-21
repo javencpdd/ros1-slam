@@ -7,7 +7,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/scenarios').resolve()))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')))
-sys.path.insert(0, str(HERE.parent / 'calibration'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/calibration')))
 import a4_runtime as a4  # noqa: E402
 import scenarios as scn  # noqa: E402
 import support_planner as pln  # noqa: E402

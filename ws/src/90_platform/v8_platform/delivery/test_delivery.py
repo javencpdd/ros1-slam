@@ -30,12 +30,11 @@ class DeliveryTests(unittest.TestCase):
         modules = {p.split('/')[0] for p in entries}
         for required in ('contracts', 'registry', 'composer', 'orchestrator', 'adapters',
                          'validator', 'scenarios',
-                         'calibration', 'regression'):
+                         'regression'):
             self.assertIn(required, modules, required)
         # 复现性自证：再生成逐字节一致
         self.assertEqual(entries, dl.manifest())
         # 关键件在清单
-        self.assertIn('calibration/calibration.py', entries)
 
     def test_unplugged_statement_on_file(self):
         """未接入说明在用户指南在册（apt 后端/SCAN 运行面未实装）。"""

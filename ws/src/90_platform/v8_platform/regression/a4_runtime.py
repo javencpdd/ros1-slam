@@ -22,8 +22,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-for sub in ('scenarios', 'calibration', 'contracts'):
+for sub in ('scenarios', 'contracts'):
     sys.path.insert(0, str(ROOT / sub))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/calibration'))
 sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/planner'))
 
 import calibration as cal  # noqa: E402

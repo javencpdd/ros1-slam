@@ -7612,3 +7612,14 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 验收：local_planner 161、planner 48、validator 27、scenarios 7、calibration 63、delivery 5、
   framework 30/13/12/18、regression test_a4 10/test_regression 9/test_a5_cross 4/
   test_a5_v8x1_stop 4 全 OK。全量构建仍受宿主 OOM 限制，待 JOBS=1/内存窗口。
+
+## 2026-11-21 / T-20261118-02 B4：calibration 迁入 v8_algorithm
+
+- `calibration/`（含 flat2d launch/场景）整目录 git mv；regression 的 calibration 路径与
+  a4/a3d/a45 循环、manifest 的 `launch.package`（2 份 nav2d include）、package_index 的
+  launches、delivery 模块清单同批更新；calibration 内 scenarios/contracts 平台锚与 planner
+  兄弟锚保持。
+- 验收：calibration 63、delivery 5、framework 30/13/12、regression test_a4 10/test_regression 9/
+  test_a5_cross 4/test_a5_v8x1_stop 4 全 OK。
+- 至此四算法目录（representation/planner/local_planner/calibration）全部离开 90_platform，
+  `v8_platform` 只剩框架/编排/注册/契约/组合/校验/回归/交付/适配/边界/脚本。

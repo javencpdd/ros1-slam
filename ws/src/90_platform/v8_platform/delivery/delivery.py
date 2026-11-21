@@ -24,7 +24,7 @@ RES = 0.5
 SOURCE = {'uri': 'design://scale', 'sha256': '7' * 64}
 DELIVERY_DIRS = ('contracts', 'probe_mode3', 'registry', 'composer', 'orchestrator',
                  'adapters', 'validator', 'scenarios',
-                 'calibration', 'regression', 'delivery')
+                 'regression', 'delivery')
 
 
 def scale_map(n_cells):
