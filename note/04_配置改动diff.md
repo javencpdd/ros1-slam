@@ -7642,3 +7642,7 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 3 m TEB 仍 FAIL；TEB `~teb_markers` 探针见 `evidence/bt_native/3m_diag/teb_markers.txt`：
   首个不可行足迹 (2.639,0.036,yaw -0.099) 区域内无 >=50 代价格，最近致命格 (2.55,-0.55)；
   另报目标 (3,0) 足迹不可行而目标附近同样无致命格。判据/安全层未改。
+- r40（local costmap 发布临时提到 10 Hz + always_send_full_costmap，仿真 A/B）：GT 1.350 时
+  不可行足迹区域 (x 2.30—2.98, y -0.25—0.28) 仍无 >=50 代价格，最近致命格 (2.55,-0.55)。
+  ⇒ 否证“局部图发布滞后”假设；launch 已还原。TEB 判据与代价图内容的不一致需 TEB 内部读数
+  （临时诊断补丁/构建）才能继续，属第三方诊断授权面。
