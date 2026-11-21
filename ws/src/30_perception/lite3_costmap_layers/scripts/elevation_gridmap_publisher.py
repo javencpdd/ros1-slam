@@ -57,7 +57,7 @@ import numpy as np
 #
 # 路径推导：本文件在 ws/src/30_perception/lite3_costmap_layers/scripts/ 下（2026-11-21 移层），
 # resolve() 后 parents[3] = ws/src（实测：parents[2] 会落在 40_navigation，是错的）；
-# 包根 = ws/src/90_platform/v8_grid（含内层 v8_grid/ 包目录的那一层，不是 90_platform，
+# 包根 = ws/src/80_algorithm/v8_grid（含内层 v8_grid/ 包目录的那一层，不是 90_platform，
 # 否则 `import v8_grid` 会去找 ws/src/v8_grid 而 ModuleNotFoundError）。
 # 这是 40_navigation → 90_platform 的**新依赖方向**，已在 lite3_costmap_layers/
 # package.xml 里以 <exec_depend>v8_grid</exec_depend> 显式声明。
@@ -71,7 +71,7 @@ def _grid():
     try:                                   # ① devel 环境已把 v8_grid 放进搜索路径
         from v8_grid import indexing as _indexing
     except ImportError:                    # ② 源码树 rosrun：按相对位置定位
-        root = Path(__file__).resolve().parents[3] / '90_platform' / 'v8_grid'
+        root = Path(__file__).resolve().parents[3] / '80_algorithm' / 'v8_grid'
         if not (root / 'v8_grid' / '__init__.py').is_file():
             raise RuntimeError(
                 'v8_grid 不可达：既不在 sys.path，也不在 %s（本节点依赖它做格索引，'

@@ -7646,3 +7646,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   不可行足迹区域 (x 2.30—2.98, y -0.25—0.28) 仍无 >=50 代价格，最近致命格 (2.55,-0.55)。
   ⇒ 否证“局部图发布滞后”假设；launch 已还原。TEB 判据与代价图内容的不一致需 TEB 内部读数
   （临时诊断补丁/构建）才能继续，属第三方诊断授权面。
+
+## 2026-11-21 / T-20261118-02 P1-2：v8_grid 靠家
+
+- `ws/src/90_platform/v8_grid` → `ws/src/80_algorithm/v8_grid`（包名不变）；同步
+  v8_platform/framework/terrain_observer、v8_algorithm 的 planner/representation 四处
+  sys.path、lite3_costmap_layers 生产者 fallback（parents[3]/80_algorithm/v8_grid）。
+- 验收：v8_grid 差分 11、representation 套件、planner grid 6、local_planner 161 全 OK；
+  `docker/build.sh --plan` 的 v8_grid 路径已为 80_algorithm。

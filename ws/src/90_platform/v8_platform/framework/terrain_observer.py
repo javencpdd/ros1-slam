@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 # 2026-11-18（M3）：格索引改由 v8_grid 提供（口径 E＝image_axis）。
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'v8_grid'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '80_algorithm/v8_grid'))
 from v8_grid import indexing as _grid  # noqa: E402
 
 DISCONTINUITY_TYPES = ('none', 'vertical_step', 'continuous_slope',

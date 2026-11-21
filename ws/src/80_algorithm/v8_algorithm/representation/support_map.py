@@ -22,7 +22,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
-sys.path.insert(0, str(HERE.parents[2] / '90_platform/v8_grid'))
+sys.path.insert(0, str(HERE.parents[2] / '80_algorithm/v8_grid'))
 import validate as contract  # noqa: E402  契约层
 from v8_grid import indexing as _grid  # noqa: E402
 

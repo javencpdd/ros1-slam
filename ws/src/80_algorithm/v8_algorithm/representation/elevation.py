@@ -17,7 +17,7 @@ sys.path.insert(0, str(HERE))
 # 2026-11-18（M2）：格索引改由 v8_grid 提供——全仓七个栅格化口径的唯一实现。
 # 这里用 cell_floor 口径（绝对索引、无 epsilon），与原 `int(x // resolution)` 逐字等价；
 # 等价性由 v8_grid/tests/test_differential.py 的 oracle 差分锁死，不是靠"看起来一样"。
-sys.path.insert(0, str(HERE.parents[2] / '90_platform/v8_grid'))
+sys.path.insert(0, str(HERE.parents[2] / '80_algorithm/v8_grid'))
 import support_map as rep  # noqa: E402
 from v8_grid import indexing as _grid  # noqa: E402
 
