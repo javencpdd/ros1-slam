@@ -1,0 +1,17 @@
+..F...
+======================================================================
+FAIL: test_backend_preserves_costmap_files (__main__.NavigationContractTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/lite3_bt/test/test_navigation_contract.py", line 29, in test_backend_preserves_costmap_files
+    self.assertEqual(shared(old), shared(new))
+AssertionError: Items in the second set but not the first:
+('$(find lite3_navigation)/config/planner_mpc.yaml', '')
+('$(find lite3_navigation)/config/planner_navfn.yaml', '')
+('$(find lite3_navigation)/config/planner_base_local.yaml', '')
+('$(find lite3_navigation)/config/planner_dwa.yaml', '')
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.005s
+
+FAILED (failures=1)

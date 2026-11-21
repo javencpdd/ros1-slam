@@ -1,0 +1,70 @@
+# MPC local planner candidate (rst-tu-dortmund/mpc_local_planner 0.0.3, noetic-devel example).
+# Robot velocity/acceleration limits follow the existing TEB configuration; the unicycle
+# model is the stock example (this planner has no lateral-velocity model).
+MpcLocalPlannerROS:
+  odom_topic: odom
+  robot:
+    type: "unicycle"
+    unicycle:
+      max_vel_x: 0.4
+      max_vel_x_backwards: 0.2
+      max_vel_theta: 1.0
+      acc_lim_x: 1.0
+      dec_lim_x: 1.0
+      acc_lim_theta: 1.0
+  footprint_model:
+    type: "point"
+    is_footprint_dynamic: false
+  collision_avoidance:
+    min_obstacle_dist: 0.2
+    enable_dynamic_obstacles: false
+    force_inclusion_dist: 0.5
+    cutoff_dist: 2.5
+    include_costmap_obstacles: true
+    costmap_obstacles_behind_robot_dist: 1.5
+  grid:
+    type: "fd_grid"
+    grid_size_ref: 20
+    dt_ref: 0.3
+    xf_fixed: [true, true, true]
+    warm_start: true
+    collocation_method: "forward_differences"
+    cost_integration_method: "left_sum"
+    variable_grid:
+      enable: false
+      min_dt: 0.0
+      max_dt: 10.0
+      grid_adaptation:
+        enable: false
+        dt_hyst_ratio: 0.1
+        min_grid_size: 2
+        max_grid_size: 50
+  planning:
+    objective:
+      type: "quadratic_form"
+      quadratic_form:
+        state_weights: [2.0, 2.0, 2.0]
+        control_weights: [1.0, 1.0]
+        integral_form: false
+      minimum_time_via_points:
+        position_weight: 10.5
+        orientation_weight: 0.0
+        via_points_ordered: false
+    terminal_cost:
+      type: "none"
+      quadratic:
+        final_state_weights: [2.0, 2.0, 2.0]
+    terminal_constraint:
+      type: "none"
+      l2_ball:
+        weight_matrix: [1.0, 1.0, 1.0]
+        radius: 5
+  controller:
+    outer_ocp_iterations: 5
+    xy_goal_tolerance: 0.2
+    yaw_goal_tolerance: 0.2
+    global_plan_overwrite_orientation: true
+    global_plan_prune_distance: 1.0
+    allow_init_with_backward_motion: true
+    max_global_plan_lookahead_dist: 1.5
+    global_plan_viapoint_sep: 5.5

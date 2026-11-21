@@ -142,11 +142,11 @@ FollowPath／WaitArrival／Dwell／Stop、取消分支、Recovery（`skip|retry|
 
 | 层 | 当前主用 | 可替换候选（镜像已装） | 候选（需联网安装，未落地） | 入口 |
 |---|---|---|---|---|
-| 局部规划 | TEB 0.9.1 | **DWA 1.17.3**、Trajectory Rollout（base_local_planner 1.17.3） | mpc_local_planner、eband_local_planner | `mode_sim_teb.launch local_planner:=teb|dwa|trajectory` |
+| 局部规划 | TEB 0.9.1 | **DWA 1.17.3**、Trajectory Rollout（base_local_planner 1.17.3）；MPC 0.0.3 已装但两套参数均致 move_base SIGSEGV（r6/r7 留证，不推荐） | eband_local_planner（无可安装索引） | `mode_sim_teb.launch local_planner:=teb|dwa|trajectory|mpc` |
 | 全局规划 | GlobalPlanner 1.17.3 | **NavfnROS 1.17.3** | SBPL lattice | `global_planner:=global_planner|navfn` |
-| 高程 | 本地高程生产者 + ElevationMergedLayer（本次补有效性状态） | STVL（障碍层，已装，非高程） | **ANYbotics elevation_mapping（ROS1 Noetic 分支，开源）**、elevation_mapping_cupy（ROS2，不适用 ROS1） | `mode_sim_teb.launch`（当前 native；候选接线待装包） |
+| 高程 | 本地高程生产者 + ElevationMergedLayer（本次补有效性状态） | STVL（障碍层，已装，非高程） | **ANYbotics elevation_mapping（源码构建可行性已验：固定旧提交 + CMake3.16 rc=0，输出层 `elevation` 与消费层同形；接入待下一片）**、elevation_mapping_cupy（ROS2，不适用） | `mode_sim_teb.launch`（当前 native） |
 | 建图 | faster_lio（开源，本仓隔离改写存盘路径） | SCAN/lite3_scan（已装） | LIO-SAM、DLIO | 各自 launch/app |
-| 定位 | hdl_localization（已装） | NDT（已装，监控级） | AMCL（未装） | 各自 launch/app |
+| 定位 | hdl_localization（已装） | NDT（已装，监控级） | AMCL（apt 可得 `ros-noetic-amcl`，未装未接线） | 各自 launch/app |
 | 3D/坡面 | v8 支撑图链（自研必要项） | —（现成方案均假设单一平面） | mesh_navigation（曲面候选，非多楼层等价物） | `sim_nav_slope.launch` |
 
 - 已装候选的替换是**配置级**（plugin 类型 + 对应参数文件），不新增自研算法；

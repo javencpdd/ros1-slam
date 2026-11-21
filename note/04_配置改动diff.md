@@ -7447,3 +7447,22 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   完整预检 rc=0。
 - 追认位：算法替换与高程 TTL 属能力面变更，按 05 A3 挂账；真机默认开关（`enable_motion=false`、
   `enable_bt=false`、real profile 缺省拒跑）与所有物理门值未改。若不认，revert 本批提交即回旧 MBF 入口。
+
+## 2026-11-21 / T-20261118-02 勾选登记与开源候选补充（续）
+
+- 真人勾选（仅勾选，未执行）：⑥ ISO [9] 处置＝**移包**（`lite3_costmap_layers` 结构修复）；
+  ⑦ VAR＝**修探针**：先修 fixture/测试账号，`readable()` 生产判读逻辑不动，修后重跑按真实权限判。
+  两条挂待办，不因连续推进自动视为已做。
+- **MPC 局部规划候选**：apt `ros-noetic-mpc-local-planner 0.0.3` 已装并登记 Dockerfile；
+  接线（`local_planner:=mpc`）后两套参数（minimum_time 可变网格 / quadratic_form 固定网格）
+  均致 move_base **SIGSEGV exit -11**，r6/r7 证据保留 ⇒ **不纳入可用候选**，不作为推荐入口；
+  镜像重建待做（当前仅运行容器内安装）。
+- **ANYbotics elevation_mapping 可行性（仅 scratch 构建，未接入）**：无 Noetic 二进制；
+  固定提交（elevation_mapping f4b082c6、kindr 32800890、kindr_ros 8d60e3f8、
+  message_logger 1ea41e48）在 stock CMake 3.16.3 下 `catkin_make` rc=0；master 新提交需
+  CMake≥3.28（上游 2026-11 重构）。输出 `/elevation_mapping/elevation_map`、
+  GridMap 层 `elevation`，与本仓消费层缺省同形；demo 地图 2.5×2.5 m 需放大。
+  下一片：四包入 `30_3rd` + profiles 闭包 + Dockerfile + `elevation_source` 切换 + 同判据对跑。
+  证据：`note/进度/v8/M5/26-11-21/evidence/bt_native/elevation_mapping_feasibility.md`。
+- AMCL：apt 可得 `ros-noetic-amcl 1.17.3`，未装未接线，仅候选登记。
+- 追认位：以上为候选增补与勾选登记；可用集仍为 TEB/DWA/Trajectory × GlobalPlanner/Navfn。

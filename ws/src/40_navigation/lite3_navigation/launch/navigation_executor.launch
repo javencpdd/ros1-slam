@@ -15,6 +15,8 @@
            if="$(eval arg('local_planner') == 'dwa')"/>
     <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"
            if="$(eval arg('local_planner') == 'trajectory')"/>
+    <param name="base_local_planner" value="mpc_local_planner/MpcLocalPlannerROS"
+           if="$(eval arg('local_planner') == 'mpc')"/>
     <param name="base_global_planner" value="global_planner/GlobalPlanner"
            if="$(eval arg('global_planner') == 'global_planner')"/>
     <param name="base_global_planner" value="navfn/NavfnROS"
@@ -27,6 +29,8 @@
               if="$(eval arg('local_planner') == 'dwa')"/>
     <rosparam command="load" file="$(find lite3_navigation)/config/planner_base_local.yaml"
               if="$(eval arg('local_planner') == 'trajectory')"/>
+    <rosparam command="load" file="$(find lite3_navigation)/config/planner_mpc.yaml"
+              if="$(eval arg('local_planner') == 'mpc')"/>
     <rosparam command="load" file="$(find lite3_navigation)/config/global_planner_params.yaml"
               if="$(eval arg('global_planner') == 'global_planner')"/>
     <rosparam command="load" file="$(find lite3_navigation)/config/planner_navfn.yaml"

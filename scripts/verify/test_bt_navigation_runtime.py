@@ -161,6 +161,7 @@ class Driver:
             "teb": "teb_local_planner/TebLocalPlannerROS",
             "dwa": "dwa_local_planner/DWAPlannerROS",
             "trajectory": "base_local_planner/TrajectoryPlannerROS",
+            "mpc": "mpc_local_planner/MpcLocalPlannerROS",
         }
         require(self.local_planner in local and self.global_planner in planners,
                 "unknown planner candidate")
@@ -335,7 +336,7 @@ def main():
     parser.add_argument("--output", required=True, help="JSON evidence path; parent directory must exist")
     parser.add_argument("--approved-test-port", type=int, default=11313)
     parser.add_argument("--lease-loss", action="store_true")
-    parser.add_argument("--local-planner", default="teb", choices=("teb", "dwa", "trajectory"))
+    parser.add_argument("--local-planner", default="teb", choices=("teb", "dwa", "trajectory", "mpc"))
     parser.add_argument("--global-planner", default="global_planner", choices=("global_planner", "navfn"))
     parser.add_argument("--timeout", type=float, default=300, help="overall wall seconds, at most 600")
     args = parser.parse_args()

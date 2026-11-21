@@ -166,6 +166,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-move-base ros-${ROS_DISTRO}-move-base-flex \
         ros-${ROS_DISTRO}-teb-local-planner \
         ros-${ROS_DISTRO}-dwa-local-planner \
+        ros-${ROS_DISTRO}-mpc-local-planner \
         ros-${ROS_DISTRO}-spatio-temporal-voxel-layer \
         ros-${ROS_DISTRO}-sob-layer \
         ros-${ROS_DISTRO}-smach ros-${ROS_DISTRO}-smach-ros \

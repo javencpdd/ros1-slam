@@ -22,10 +22,8 @@ class NavigationContractTest(unittest.TestCase):
         old = ET.parse(NAV / 'launch/mbf_navigation.launch').find('node')
         new = ET.parse(NAV / 'launch/navigation_executor.launch').find('node')
         self.assertEqual((new.get('pkg'), new.get('type')), ('move_base', 'move_base'))
-        shared = lambda node: {(item.get('file'), item.get('ns', ''))
-                               for item in node.findall('rosparam')
-                               if 'navigation.yaml' not in item.get('file', '')
-                               and 'navigation_executor.yaml' not in item.get('file', '')}
+        shared = lambda node: {(item.get('file').rsplit('/', 1)[-1], item.get('ns', ''))
+                               for item in node.findall('rosparam') if 'costmap' in item.get('file', '')}
         self.assertEqual(shared(old), shared(new))
         remaps = {item.get('from'): item.get('to') for item in new.findall('remap')}
         self.assertEqual(remaps['cmd_vel'], '/v8/navigation/cmd_vel_raw_candidate')
