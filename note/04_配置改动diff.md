@@ -7736,3 +7736,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   原文件 re-export 全部既有名字，外部导入零改动；execute 对 prepare 的依赖显式导入，无循环。
 - 验收：`test_execution` 34/34；framework 全量 discover **302/302 OK（10 skipped）**；
   `app_runner.py --help` 正常。M9（ros_node/calibration/app_runner）三件全完成。
+
+## 2026-11-21 / T-20261118-02 P0-3 核查（只读，无代码变更）
+
+- `30_3rd/plan_manage/launch/pcd2grid_local.launch` 在基线 39ebbd85 存在、fe125737 删除；
+  删除理由见该提交"主理人自纠"：死件（不在 include 链）且命中 /home/ysc//home/test 红线，
+  选择删死件以保 [8] 强度；sha256 9aeebfcf… 留底，拷贝对账 50→49 已登记。
+- 结论：P0-3 为已登记有意例外，不还原；第三方原样口径按 50→49＋sha 留底执行。证据
+  `evidence/p0_3/third_party_pcd2grid.txt`。

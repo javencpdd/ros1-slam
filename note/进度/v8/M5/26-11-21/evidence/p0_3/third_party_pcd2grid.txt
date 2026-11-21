@@ -1,0 +1,11 @@
+P0-3 第三方偏离基线核查（2026-11-21，只读取证）
+- path: ws/src/30_3rd/plan_manage/launch/pcd2grid_local.launch
+- baseline: 39ebbd85（SCAN 五包原样拷入，50 文件逐字节对基线 OK）
+- deleted: fe125737（"SCAN #3·P2+收尾 ... 两处主理人自纠"）
+- deletion rationale (from commit message): 该文件不在任何 include 链上（死件），且 [8] 红线抓到 /home/ysc
+  （第 5 行注释）与 /home/test 参数；主理人自纠选择"删除该死件而非给 [8] 开豁免"，
+  以保持红线对其他文件的强度；/home/test 原件未动；留底 sha256
+  9aeebfcf25d6a9b953a166c7411d5ad05a5e087df8d4d2f9e7c9dcebb9c89c1c；拷贝对账基线 50→49，
+  已在 03 台账与该提交登记。
+- 结论：P0-3 不是未决偏离，而是**已登记的有意例外**；不还原（还原会重新引入红线命中并削弱 [8]）。
+  第三方"原样"口径以"50→49＋sha 留底＋主理人自纠登记"为准。
