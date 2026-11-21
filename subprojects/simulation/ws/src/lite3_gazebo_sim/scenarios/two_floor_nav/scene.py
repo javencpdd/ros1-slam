@@ -202,7 +202,7 @@ def artifact_bytes():
            'task': RELATIVE + '/tasks/' + case + '.json', 'localization': {'source': 'carrier'},
            'carrier': {'backend': 'gazebo', 'model_name': 'app_carrier', 'center_z': .30,
               'snap_m': .03, 'spawn': True,
-              'world_launch': 'ws/src/95_simulation/lite3_gazebo_sim/launch/app_world.launch',
+              'world_launch': 'sim_ws/src/lite3_gazebo_sim/launch/app_world.launch',
               'world': RELATIVE + '/worlds/' + ('blocked' if case == 'blocked' else 'open') + '.world',
               'model_path': RELATIVE,
               'simulation_declaration': 'sim_ws/src/v8_simulation/config/sim_backends.yaml'},

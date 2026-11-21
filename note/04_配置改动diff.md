@@ -7709,3 +7709,12 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   （SIGSEGV）死亡，hdl 定位 nodelet 图未起（`globalmap=False`、`hdl_odom=False`、`tf_robot=0`）。
   这是 hdl 定位栈的 C++ 崩溃（与导航 A/B 无关），日志目录未留 manager 文件，需独立定位窗口
   （gdb/core 或干净重装 hdl）；本轮不将其计入导航判据。
+
+## 2026-11-21 / T-20261118-02 拆仓悬空路径机械清理
+
+- SCAN/P2/定位校验脚本与 v8 文档中的 `ws/src/95_simulation/lite3_gazebo_sim` 批量改为现行
+  `subprojects/simulation/ws/src/lite3_gazebo_sim`（宿主/校验面）。
+- P2 场景运行时 `scenarios/{ramp_nav,two_floor_nav}`、apps YAML、README 的相对路径统一为
+  容器口径 `sim_ws/src/lite3_gazebo_sim`（与既有 two_floor RELATIVE 一致）；脚本 `bash -n`、
+  scene/apps 的 ast/YAML 解析全过。
+- `verify/test_decoupling.py` 中用于断言旧目录不存在的字面量保留。

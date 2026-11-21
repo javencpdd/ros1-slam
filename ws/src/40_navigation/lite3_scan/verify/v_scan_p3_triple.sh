@@ -25,7 +25,7 @@ N_LAUNCH=${P3_TRIPLE_LAUNCHES:-3}
 PRECHECK=${P3_TRIPLE_PRECHECK:-gate}                # gate=环境不过即拒跑（实跑）；read=只读不判（零节点自测）
 PCD=$ROOT/data/maps/lite3.pcd
 PCD_BASE=aaa09362c5f1aef93d2cbbb36f4b71f42ce32a5c98083f6c379c39cb27146f34   # 在册样张基准（04/总览；c034c906 系旧值）
-WORLD=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+WORLD=$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/worlds/m1_world.world
 WORLD_BASE=fb52d5e6ed3eda3014b33c8c4e2ec146417e82fa86ffbbd3c2dc2c1c3776bc35
 LOAD_MAX=${P3_TRIPLE_LOAD_MAX:-4}
 TS=$(date '+%Y%m%d_%H%M%S')

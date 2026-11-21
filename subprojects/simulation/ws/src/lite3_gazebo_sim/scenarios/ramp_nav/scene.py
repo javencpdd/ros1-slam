@@ -32,7 +32,7 @@ for folder in ('contracts', 'framework'):
     sys.path.insert(0, str(PLATFORM / folder))
 import support_map
 
-RELATIVE = 'ws/src/95_simulation/lite3_gazebo_sim/scenarios/ramp_nav'
+RELATIVE = 'sim_ws/src/lite3_gazebo_sim/scenarios/ramp_nav'
 RESOLUTION = .2
 RADIUS = .30
 HEIGHT = .50

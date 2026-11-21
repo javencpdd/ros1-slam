@@ -10,7 +10,7 @@
 set -u
 ROOT=/home/ros1-slam
 PROBE=$ROOT/ws/src/40_navigation/lite3_scan/verify/p4_layer_probe.py
-WORLD=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+WORLD=$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/worlds/m1_world.world
 STAMP=$(date +%Y%m%d_%H%M%S)
 OUT=${LY_EVIDENCE:-$ROOT/note/进度/SCAN集成/证据/log/raw/p4_layer_probe_$STAMP}
 LOG=""; PIDS=(); ROSCORE_PID=""

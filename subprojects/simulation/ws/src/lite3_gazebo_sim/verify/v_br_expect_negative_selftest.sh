@@ -13,7 +13,7 @@
 # 用法：bash v_br_expect_negative_selftest.sh     退出码 0=全过；5=有 FAIL（本件自有 rc 层，不与 BR／SM／RD 各层互认）
 set -u
 ROOT=/home/ros1-slam
-BR=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_batch_runner.sh
+BR=$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m2_batch_runner.sh
 STUB=/tmp/brs_stub_$$.sh
 NP=0; NF=0
 mark(){ if [ "$1" = "0" ]; then NP=$((NP+1)); printf '[PASS] %s\n' "$2"; else NF=$((NF+1)); printf '[FAIL] %s\n' "$2"; fi; }

@@ -17,7 +17,7 @@
 #   0＝时基已统一（批3 施工后可验收）；1＝未统一（现状，本件今日即判此）；9＝锚点缺失或形态与在册不符（不判被试）
 set -u
 ROOT=/home/ros1-slam
-LIVE_SRC=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/src/lite3_planar_drive.cpp
+LIVE_SRC=$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/src/lite3_planar_drive.cpp
 SRC=${B3_SRC:-$LIVE_SRC}
 
 if [ "${1:-}" = "--posctl" ]; then

@@ -10,7 +10,7 @@
 # 用法：bash v_rd_archive_selftest.sh     退出码 0=全过；5=有 FAIL（本件自有 rc 层，不外借）
 set -u
 ROOT=/home/ros1-slam
-RD="$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/retake_driver.sh"
+RD="$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/verify/retake_driver.sh"
 NP=0; NF=0
 mark(){ if [ "$1" = "0" ]; then NP=$((NP+1)); printf '[PASS] %s\n' "$2"; else NF=$((NF+1)); printf '[FAIL] %s\n' "$2"; fi; }
 [ -f "$RD" ] || { echo "[FAIL] 现役 RD 件不在位：$RD"; echo "RAS VERDICT: rc=5"; exit 5; }

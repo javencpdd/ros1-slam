@@ -12,8 +12,8 @@ ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=/home/ros1-slam
 cd "$ROOT" || exit 9
 HDL=ws/src/20_localization/lite3_localization/launch/hdl_localization.launch
 NODE=ws/src/20_localization/hdl_localization/apps/hdl_localization_nodelet.cpp
-MH=ws/src/95_simulation/lite3_gazebo_sim/launch/m2_hdl.launch
-SM=ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+MH=subprojects/simulation/ws/src/lite3_gazebo_sim/launch/m2_hdl.launch
+SM=subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m2_smoke.sh
 BASE=note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256
 NP=0; NF=0; NA=0
 mark(){ if [ "$1" = "0" ]; then NP=$((NP+1)); printf '[PASS] %s\n' "$2"; else NF=$((NF+1)); printf '[FAIL] %s\n' "$2"; fi; }

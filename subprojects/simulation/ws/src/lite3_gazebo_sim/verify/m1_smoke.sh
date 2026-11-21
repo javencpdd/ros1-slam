@@ -5,13 +5,13 @@
 #       → 判据：/Odometry 回原点漂移 ≤0.5m；/rslidar_points ≥5Hz；/livox/imu ≥100Hz；
 #              /cloud_registered |z|>10m 飞点 <1%；（参考）/gazebo/model_states 真值漂移
 #       → 退净（GAP-5：起前备份样张 pcd、退后核 sha256）→ PASS/FAIL 摘要，无人值守
-# 用法：bash /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m1_smoke.sh
+# 用法：bash /home/ros1-slam/subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m1_smoke.sh
 # ★真机安全（2026-10-05 小明落位适配，主理人红线）：本脚本全部 ROS 流程跑在独立 master
 #   ROS_MASTER_URI=http://127.0.0.1:11313（roslaunch 自动拉起）——生产 master 11312 与 foxy 栈
 #   jetson2motion（订阅真 /cmd_vel）零接触；manifest 无隔离方案，按派单红线补此隔离并留证。
 #   落位适配：payload_dir→自研壳包路径、roslaunch 改包名形式、日志落 /tmp/gazebo_m1_payload/logs-*。
 set -u
-PAYLOAD=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim
+PAYLOAD=/home/ros1-slam/subprojects/simulation/ws/src/lite3_gazebo_sim
 LOGDIR="/tmp/gazebo_m1_payload/logs-$(date +%Y%m%d_%H%M%S)"
 MAP=/home/ros1-slam/data/maps/lite3.pcd
 mkdir -p "$LOGDIR"

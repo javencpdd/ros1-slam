@@ -10,7 +10,7 @@
 set -u
 ROOT=/home/ros1-slam
 PROBE=$ROOT/ws/src/40_navigation/lite3_scan/verify/p4_selfmask_probe.py
-WORLD=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+WORLD=$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/worlds/m1_world.world
 STAMP=$(date +%Y%m%d_%H%M%S)
 OUT=${SM_EVIDENCE:-$ROOT/note/进度/SCAN集成/证据/log/raw/r82_selfmask_$STAMP}
 LOG="$OUT/probe_shell.log"; PIDS=(); ROSCORE_PID=""

@@ -6,7 +6,7 @@
 #   用一个数跑序的包装，就能在同一批里放进「设计外应 FAIL」的那一跑，从而拿到非 0 期望位的现场证据。
 # 用法：NEGCTL_CNT=<计数件> NEGCTL_STATIC_RUN=<第几跑走 static> 由外层（BR 的父 shell）导出；本件不自设缺省。
 set -u
-SM=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+SM=/home/ros1-slam/subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m2_smoke.sh
 n=0
 if [ -n "${NEGCTL_CNT:-}" ]; then
   n=$(cat "$NEGCTL_CNT" 2>/dev/null || echo 0); n=$((n+1)); echo "$n" > "$NEGCTL_CNT"

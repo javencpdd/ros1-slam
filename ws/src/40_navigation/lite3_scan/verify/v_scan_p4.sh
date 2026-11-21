@@ -14,7 +14,7 @@ export ROS_MASTER_URI=http://127.0.0.1:11313
 export GAZEBO_MASTER_URI=http://127.0.0.1:11345
 RUN=${P4_RUN:-/tmp/scan_p4_run}
 LOG=$RUN/harness.log
-WORLD=/home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim/worlds/m1_world.world
+WORLD=/home/ros1-slam/subprojects/simulation/ws/src/lite3_gazebo_sim/worlds/m1_world.world
 mkdir -p "$RUN"
 declare -a PIDS=()
 say() { echo "[$(date '+%T')] $*" | tee -a "$LOG"; }

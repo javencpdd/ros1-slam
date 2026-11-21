@@ -173,5 +173,5 @@ python3 -B ws/src/90_platform/v8_platform/configs/lite3/check_gait_contract_temp
 | 唯一 `/cmd_vel` 写者 | `local_planner/cmd3d_mux_node.py:2-6` |
 | 位姿汇不证明接触 / 步态 | `boundary/README.md:45` |
 | 参数迁移表缺口、禁止事项 | `note/10_真机上机Runbook.md:230-236` |
-| MuJoCo 接触动力学链 | `ws/src/95_simulation/lite3_gazebo_sim/dynamics/README.md:47-49` |
+| MuJoCo 接触动力学链 | `subprojects/simulation/ws/src/lite3_gazebo_sim/dynamics/README.md:47-49` |
 | 真机链路 L2 边界 | `boundary/protocol.py:3-4`、`note/09_跨工具协作契约.md §9.3` |

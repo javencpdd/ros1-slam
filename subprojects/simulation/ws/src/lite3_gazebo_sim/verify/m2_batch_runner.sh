@@ -22,7 +22,7 @@ source /opt/ros/noetic/setup.bash
 source /home/ros1-slam/ws/devel/setup.bash
 set -u
 export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:/home/ros1-slam/ws/devel/lib
-cd /home/ros1-slam/ws/src/95_simulation/lite3_gazebo_sim
+cd /home/ros1-slam/subprojects/simulation/ws/src/lite3_gazebo_sim
 B=${BATCH_OUT:-/tmp/m2_batch}
 mkdir -p "$B"
 snap(){ echo "### foxy $1 $(date '+%T')"; ps -o pid,user,lstart,etime,comm --no-headers \

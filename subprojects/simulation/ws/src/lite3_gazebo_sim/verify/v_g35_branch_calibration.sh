@@ -20,9 +20,9 @@ set -u
 ROOT=/home/ros1-slam
 SELF=$(readlink -f "$0")
 
-LIVE_SM=$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh
+LIVE_SM=$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m2_smoke.sh
 # 第二份定义（加压档辅门的纯函数版，为 H15 接线预备）：路径由 shell 传入，python 侧不重复硬编码
-PG=${G35_PGATE:-$ROOT/ws/src/95_simulation/lite3_gazebo_sim/verify/m2_press_gate.py}
+PG=${G35_PGATE:-$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim/verify/m2_press_gate.py}
 # --postwiring：接线（SM 改调 press_gate()）落地后的**收尾断言**——不是"新件通过"，而是"旧那份内联定义从盘上消失"。
 #   今日跑必然判红（SM 里内联式仍在）⇒ 这条红就是它以后真能拦人的凭据（05 C4a 同一口径），也是 02 坑43 的收尾判据。
 if [ "${1:-}" = "--postwiring" ]; then

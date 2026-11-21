@@ -29,7 +29,7 @@ PYTHONPATH=ws/src/90_platform/v8_platform python3 -B -m boundary.ros_bridge \
 MuJoCo 端点需要已准备的 MJCF、策略和 mujoco/onnxruntime：
 
 ```bash
-python3 -B ws/src/95_simulation/lite3_gazebo_sim/dynamics/boundary_endpoint.py \
+python3 -B subprojects/simulation/ws/src/lite3_gazebo_sim/dynamics/boundary_endpoint.py \
   --xml /tmp/mjcf/Lite3.xml --policy /tmp/new_policy.onnx \
   --bind 127.0.0.1:5006 --target 127.0.0.1:5015 --seconds 5
 ```

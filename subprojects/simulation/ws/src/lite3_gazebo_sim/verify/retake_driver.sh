@@ -30,7 +30,7 @@ source "$ROOT/ws/devel/setup.bash"
 set -u
 export GAZEBO_PLUGIN_PATH=/opt/ros/noetic/lib:$ROOT/ws/devel/lib
 export ROS_MASTER_URI=http://127.0.0.1:11313 GAZEBO_MASTER_URI=http://127.0.0.1:11345
-PKG=$ROOT/ws/src/95_simulation/lite3_gazebo_sim
+PKG=$ROOT/subprojects/simulation/ws/src/lite3_gazebo_sim
 PAY=/tmp/m2_payload
 OUT=${OUT:-/tmp/rt_drive}
 EV=${EV:-$ROOT/note/进度/v7/S1/SCAN集成/证据/log/raw}

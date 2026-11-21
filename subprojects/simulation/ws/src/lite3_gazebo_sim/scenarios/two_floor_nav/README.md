@@ -29,7 +29,7 @@ python3 -B scripts/sim/two_floor_nav.py
 python3 -B scripts/sim/two_floor_nav.py --case downstairs
 python3 -B scripts/sim/two_floor_nav.py --case upper_detour
 python3 -B scripts/sim/two_floor_nav.py --case blocked
-python3 -B ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/test_scene.py
+python3 -B sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/test_scene.py
 ```
 
 默认检查生成物未漂移、私有 registry、执行域、graph/plan 与全局规划。blocked 必须得到精确 `E_PLAN_NO_ROUTE`，不能用其他异常替代。离线测试还覆盖上下楼重复局部重规划、同 XY 不同楼层、真实几何/cells 对齐和独立观察负例；合成 trace 正控只验证检查器，不是引擎证据。
@@ -75,8 +75,8 @@ python3 -B scripts/sim/two_floor_nav.py --execute --case upstairs \
 ## 维护
 
 ```bash
-python3 -B ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/scene.py
-python3 -B ws/src/95_simulation/lite3_gazebo_sim/scenarios/two_floor_nav/scene.py --write
+python3 -B sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/scene.py
+python3 -B sim_ws/src/lite3_gazebo_sim/scenarios/two_floor_nav/scene.py --write
 ```
 
 无参数只检查；`--write` 明确重建本场景生成物。改几何需同时重建并重验 map/world/task/registry 及过程负例，不修改旧 demo/NIST/第三方资产。原生 box 世界不代表建筑测绘数据。
