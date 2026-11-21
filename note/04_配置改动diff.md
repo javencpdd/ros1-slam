@@ -7768,3 +7768,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   仅 0.25 m，0.6 m 车身末段转向后角扫入缓冲格；r19（局部高程层关）与 v8 判据链 3 m 均 PASS。
 - 结论：3 m TEB 是“目标贴近语义/高程缓冲 + 实际足迹”的几何限制，不是数值 bug；TEB action 链保持 1 m，
   v8 判据链 3 m 绿。证据 `evidence/bt_native/teb_root/`、r43—r48。launch A/B 已还原。
+
+## 2026-11-21 / T-20261118-02 仿真测试收口（真人裁决）
+
+- 真人 2026-11-21 选：接受 3 m TEB 为候选限制；3 m 判据链用 v8（Stage B 0.201 m PASS）；
+  TEB action 链保持 1 m scoped。TEB 3 m 根因证据 `evidence/bt_native/teb_root/`。
+- 仿真测试面收口：Stage A 11/0、Stage B 9/0、1 m action 三组合、elevation 候选 1 m、
+  TEB 3 m 根因/限制；真机迁移需求见 `note/12`（真人执行迁移）。
