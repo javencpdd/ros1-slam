@@ -7632,3 +7632,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   mj_step_obstacles}.py`、`v8_simulation/test/test_support_cells.py` 改指
   `80_algorithm/v8_algorithm`；ROOT 统一 `V8_REPO_ROOT` 或 `/opt/ros1-slam`（容器口径）。
 - parity 测试（support_cells 与 representation/support_map 对照）OK。
+
+## 2026-11-21 / T-20261118-02 拆层构建与运行面验收
+
+- 共享工作区清空 build/devel/install/.profiles 卷内容后，在 **sim 容器（6 GiB）** 以 JOBS=1
+  首建 `BUILD_RC=0`；dev 容器仅 1 GiB，为 OOM 根因。构建含 `v8_algorithm`，devel 生成
+  `lib/v8_algorithm/{planner,local_planner}` 入口；`rospack find v8_algorithm` 命中。
+- 重建后 1 m action 链回归 r33 **PASS（BT_NATIVE_RUNTIME_RC=0）**。
+- 3 m TEB 仍 FAIL；TEB `~teb_markers` 探针见 `evidence/bt_native/3m_diag/teb_markers.txt`：
+  首个不可行足迹 (2.639,0.036,yaw -0.099) 区域内无 >=50 代价格，最近致命格 (2.55,-0.55)；
+  另报目标 (3,0) 足迹不可行而目标附近同样无致命格。判据/安全层未改。
