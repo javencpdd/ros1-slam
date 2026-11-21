@@ -7623,3 +7623,5 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   test_a5_cross 4/test_a5_v8x1_stop 4 全 OK。
 - 至此四算法目录（representation/planner/local_planner/calibration）全部离开 90_platform，
   `v8_platform` 只剩框架/编排/注册/契约/组合/校验/回归/交付/适配/边界/脚本。
+
+- B5 构建配置：v8_platform/CMakeLists 的 planner/local_planner 节点安装与包根别名移入 v8_algorithm/CMakeLists（同一 devel/lib 入口名；旧路径不再存在）。

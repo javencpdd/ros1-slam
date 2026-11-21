@@ -16,25 +16,3 @@ find_package(catkin REQUIRED)
 # 这类相对依赖照旧指向源码树，不必把模块搬进安装目录。
 # 测试与夹具仍然只按源码路径运行，不安装。
 catkin_package()
-
-catkin_install_python(PROGRAMS
-  planner/topic_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/planner)
-
-# roslaunch only searches <pkg>/scripts for source-tree scripts; entries under
-# sub-directories must be installed (same reason as planner/topic_node.py).
-catkin_install_python(PROGRAMS
-  local_planner/path_goal_node.py
-  local_planner/ros_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/local_planner)
-
-# roslaunch 的 <node type="..."> 只接受**纯文件名**（它按 devel/lib/<pkg>/<type>
-# 或 <pkg>/scripts/<type> 查找），而 rosrun 与 runtime.default_command 用的是
-# 子路径形式。两套调用方式都要能用，所以同一入口额外装一份到包根并重命名，
-# 避免 local_planner/ros_node.py 与 planner/ros_node.py 撞名。
-install(PROGRAMS planner/topic_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} RENAME v8_global_planner.py)
-install(PROGRAMS local_planner/path_goal_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} RENAME v8_path_goal.py)
-install(PROGRAMS local_planner/ros_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} RENAME v8_local_planner.py)
