@@ -7718,3 +7718,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   容器口径 `sim_ws/src/lite3_gazebo_sim`（与既有 two_floor RELATIVE 一致）；脚本 `bash -n`、
   scene/apps 的 ast/YAML 解析全过。
 - `verify/test_decoupling.py` 中用于断言旧目录不存在的字面量保留。
+
+## 2026-11-21 / T-20261118-02 Stage C 定性（已知裁决，不修）
+
+- `ws/src/70_bringup/lite3_bringup/launch/mode_sim_hdl.launch` 头注（M2-R2C，主理人 2026-10-08
+  裁决）明载：**hdl 的仿真验证已终止（manager SIGSEGV），转真机 G8 顺带验证；本文件属低风险
+  纯搬运，不改变结论、也不重启该实验**。
+- 因此 Stage C 的 `velodyne_nodelet_manager exit -11` 是**在册已知的仿真域不可用**（INVALID/
+  不适用），不是本轮拆层/导航链回归；不追修。时钟门悬空路径修复仍有效（已到既有结论点）。
+- 导航判据面以 A/B 为准（均绿）；hdl 重定位归真机 L2。Stage C 日志保留
+  `final_accept/smokeC{,2}/`。
