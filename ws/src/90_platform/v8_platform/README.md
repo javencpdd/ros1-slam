@@ -15,13 +15,13 @@
 | [registry](registry/README.md) / [composer](composer/README.md) | 注册、证据与溯源分离、角色/地图/运动学兼容和确定性锁 |
 | [orchestrator](orchestrator/README.md) | 任务生命周期、条件就绪、进程回收、停止链和预算 |
 | [adapters](adapters/README.md) | 消息匹配、信息损失声明、定位跟踪/租约与 A6 恢复接口 |
-| [representation](representation/README.md) | 多层支撑图、真实格集、版本/增量/持久化、语义地图与 ROS 查询 |
-| [planner](planner/README.md) | 支撑图有界 A*、障碍/净空、ROS 服务和话题接口 |
-| [local_planner](local_planner/README.md) / [validator](validator/README.md) | 原生三维局部规划、三维命令与安全仲裁接口、独立轨迹/跟踪检查 |
+| representation（已迁 `80_algorithm/v8_algorithm`） | 多层支撑图、真实格集、版本/增量/持久化、语义地图与 ROS 查询 |
+| planner（已迁 `80_algorithm/v8_algorithm`） | 支撑图有界 A*、障碍/净空、ROS 服务和话题接口 |
+| local_planner（已迁 `80_algorithm/v8_algorithm`） / [validator](validator/README.md) | 原生三维局部规划、三维命令与安全仲裁接口、独立轨迹/跟踪检查 |
 | [boundary](boundary/README.md) | UDP 命令/遥测适配、仿真端点、记录与回放 |
 | [scenarios](scenarios/README.md) / [probe_mode3](probe_mode3/README.md) | SC01—SC14 定义与独立评价；SCAN 接缝数学探针 |
 | [configs/lite3](configs/lite3/README.md) | Lite3 app/graph/局部配置模板与现场边界 |
-| `calibration/` / `regression/` / `delivery/` | 冻结定标、运行矩阵、规模曲线与复现清单 |
+| calibration（已迁 `80_algorithm/v8_algorithm`） / `regression/` / `delivery/` | 冻结定标、运行矩阵、规模曲线与复现清单 |
 
 `framework/fixtures/manifests/`、`graphs/`、`apps/` 中既有测试替身，也有实际运行装配输入；按 manifest 的 launch 和证据逐件判断，不能把整个 fixtures 当作可删样例。
 
@@ -45,8 +45,8 @@ python3 -B ws/src/90_platform/v8_platform/framework/nodes/app_runner.py \
 
 ```bash
 python3 -B ws/src/90_platform/v8_platform/contracts/test_contracts.py
-python3 -B ws/src/90_platform/v8_platform/planner/test_support_planner.py
-python3 -B ws/src/90_platform/v8_platform/local_planner/test_local_native.py
+python3 -B ws/src/80_algorithm/v8_algorithm/planner/tests/test_support_planner.py
+python3 -B ws/src/80_algorithm/v8_algorithm/local_planner/tests/test_local_native.py
 python3 -B ws/src/90_platform/v8_platform/framework/tests/test_preflight.py
 ```
 
