@@ -7705,3 +7705,7 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   修复 RLException（No such file）。
 - 复跑 Stage C：已进入门控；`gate_mapload=False`、`hdl_odom=False`、`tf_robot=0` ⇒ hdl 定位图/
   TF 未就绪（独立定位栈，非导航链 A/B；A/B 仍绿）。证据 `final_accept/smokeC2/`。
+- Stage C 复跑补充：时钟门修复后已进入图门控，但 `velodyne_nodelet_manager` 以 **exit -11**
+  （SIGSEGV）死亡，hdl 定位 nodelet 图未起（`globalmap=False`、`hdl_odom=False`、`tf_robot=0`）。
+  这是 hdl 定位栈的 C++ 崩溃（与导航 A/B 无关），日志目录未留 manager 文件，需独立定位窗口
+  （gdb/core 或干净重装 hdl）；本轮不将其计入导航判据。
