@@ -72,6 +72,11 @@ VALID_AGENTS  = ("zcode", "qoder", "workbuddy", "codex", "kimi", "human", "unkno
 VALID_STATUS  = ("todo", "in_progress", "blocked", "review", "done", "abandoned", "transferred")
 OPEN_STATUS   = ("todo", "in_progress", "blocked", "review")
 
+# 卡片出生时 `render_task_card` 写进去的占位符。判「目标/验收是否真的填了」只认这两个串，
+# 不去猜语义——历史上 115 张卡里 100 张从生到死都带着它，却一路 claim/handoff/done 走完了。
+PLACEHOLDER_GOAL   = "一句话说清要交付什么"
+PLACEHOLDER_ACCEPT = "- [ ]"
+
 
 # ---------------------------------------------------------------- 基础工具
 
@@ -504,6 +509,8 @@ def cmd_new(args):
         st = load_state()
         tid = next_id(st)
         form_date = now().strftime("%Y-%m-%d")
+        goal = (getattr(args, "goal", "") or "").strip()
+        accept = [x for x in (getattr(args, "accept", None) or []) if str(x).strip()]
         st["tasks"][tid] = {
             "id": tid,
             "title": args.title,
@@ -516,6 +523,8 @@ def cmd_new(args):
             "blocked_by": [],
             "file": "tasks/%s.md" % tid,
             "latest_handoff": "",
+            "goal": goal,
+            "accept": accept,
         }
         # 第一个任务自动成为 current
         if not st.get("current_task"):
@@ -528,6 +537,78 @@ def cmd_new(args):
 
         commit(st, "新建任务 `%s`「%s」 by %s" % (tid, args.title, args.as_agent or "-"))
     print(tid)
+    if not goal or not accept:
+        missing = []
+        if not goal:
+            missing.append("--goal")
+        if not accept:
+            missing.append("--accept")
+        sys.stderr.write(
+            "警告：`%s` 缺少 %s，卡片已留占位符。claim 这张卡会被拒绝，"
+            "补法：python3 .ai/bridge.py goal %s \"<目标>\" --accept \"<验收项>\"\n"
+            % (tid, " ".join(missing), tid))
+
+
+def _goal_block(t):
+    goal = (t.get("goal") or "").strip()
+    if goal:
+        return goal
+    return "<%s —— 请第一时间补上（空目标会让 claim 被拒）>" % PLACEHOLDER_GOAL
+
+
+def _card_body(tid):
+    try:
+        with open(os.path.join(TASKS_DIR, "%s.md" % tid), "r", encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+def _card_section(text, heading):
+    head = heading + "\n"
+    i = text.find(head)
+    if i < 0:
+        return ""
+    start = i + len(head)
+    j = text.find("\n## ", start)
+    return text[start:j if j >= 0 else len(text)].strip()
+
+
+def effective_goal(t):
+    """这条卡到底有没有目标。
+
+    先读 state 字段；没有就回落卡片正文——历史卡的目标只写在正文里，state 里没这个键。
+    只读 state 会把「正文写得很全的老卡」误判成空（假红），比闸门闭眼更坏：
+    人会学会无视这条提示。所以判据必须两面都看。
+    """
+    raw = (t.get("goal") or "").strip()
+    if not raw:
+        raw = _card_section(_card_body(t["id"]), "## 目标")
+    lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+    lines = [ln for ln in lines if PLACEHOLDER_GOAL not in ln]
+    return "\n".join(lines).strip()
+
+
+def effective_accept(t):
+    items = [str(x).strip() for x in (t.get("accept") or []) if str(x).strip()]
+    if items:
+        return items
+    body = _card_section(_card_body(t["id"]), "## 验收标准")
+    out = []
+    for ln in body.splitlines():
+        s = ln.strip()
+        if s.startswith("- [ ]") or s.startswith("- [x]"):
+            v = s[5:].strip()
+            if v:
+                out.append(v)
+    return out
+
+
+def _accept_block(t):
+    items = [str(x).strip() for x in (t.get("accept") or []) if str(x).strip()]
+    if items:
+        return "\n".join("- [ ] %s" % x for x in items)
+    return PLACEHOLDER_ACCEPT
 
 
 def render_task_card(t):
@@ -546,7 +627,7 @@ def render_task_card(t):
 
 ## 目标
 
-<一句话说清要交付什么 —— 请第一时间补上>
+%s
 
 ## 非目标
 
@@ -562,13 +643,14 @@ def render_task_card(t):
 
 ## 验收标准
 
-- [ ]
+%s
 
 ## 工作笔记（按时间追加）
 
 ## 交接记录
 """ % (t["id"], t["title"], t["id"], t.get("owner") or "-", t["status"],
-       t.get("created_at", ""), t.get("updated_at", ""), scoped)
+       t.get("created_at", ""), t.get("updated_at", ""), scoped,
+       _goal_block(t), _accept_block(t))
 
 
 def get_task(st, tid):
@@ -607,10 +689,40 @@ def append_to_card(tid, section_heading, heading, body):
     write_text(tf, content)
 
 
+def set_section(tid, section_heading, body):
+    """把任务卡某个二级小节的内容整体替换成 body（保留 `## 标题` 行本身）。
+
+    与 `append_to_card` 的分工：笔记/交接是「只增不改」，目标/验收是「应当被改」。
+    没有这个函数，`--goal` 就只能写进 state.json，卡片正文永远停在占位符上——
+    而那正是一张卡从生到死没人补目标的根本原因。
+    """
+    tf = os.path.join(TASKS_DIR, "%s.md" % tid)
+    if not os.path.exists(tf):
+        die("任务卡不存在：%s" % tf)
+    with open(tf, "r", encoding="utf-8") as f:
+        content = f.read()
+    head = section_heading + "\n"
+    i = content.find(head)
+    if i < 0:
+        die("任务卡缺少 `%s` 段，无法定位：%s" % (section_heading, tf))
+    start = i + len(head)
+    j = content.find("\n## ", start)
+    if j < 0:
+        die("`%s` 段之后没有下级小节，无法确定替换边界：%s" % (section_heading, tf))
+    write_text(tf, content[:start] + "\n" + body.strip() + "\n" + content[j:])
+
+
 def cmd_claim(args):
     with Lock():
         st = load_state()
         t = get_task(st, args.id)
+        if not effective_goal(t):
+            die("任务 `%s` 没有目标（或仍是占位符），拒绝认领——接一张不知道要交付什么的卡，"
+                "结果只能是各按各的理解做一遍。\n"
+                "  补目标：python3 .ai/bridge.py goal %s \"<一句话说清要交付什么>\" "
+                "--accept \"<可执行的验收项>\" --as %s\n"
+                "  先看卡：%s" % (args.id, args.id, args.as_agent,
+                                  os.path.join(TASKS_DIR, "%s.md" % args.id)))
         other_open = [x["id"] for x in st["tasks"].values()
                       if x["status"] == "in_progress" and x["id"] != args.id]
         if other_open:
@@ -641,6 +753,29 @@ def cmd_note(args):
     print("noted")
 
 
+def cmd_goal(args):
+    """补写/改写「目标」与「验收标准」两段 —— 这是唯一被允许改正文的命令。"""
+    goal = (args.text or "").strip()
+    if not goal or PLACEHOLDER_GOAL in goal:
+        die("目标不能为空，也不能是占位符。")
+    accept = [str(x).strip() for x in (args.accept or []) if str(x).strip()]
+    with Lock():
+        st = load_state()
+        t = get_task(st, args.id)
+        t["goal"] = goal
+        if accept:
+            t["accept"] = accept
+        t["updated_at"] = ts()
+        bump(st)
+        set_section(args.id, "## 目标", goal)
+        if accept:
+            set_section(args.id, "## 验收标准",
+                        "\n".join("- [ ] %s" % a for a in accept))
+        refresh_card_meta(t)
+        commit(st, "`%s` 补目标 by %s" % (args.id, args.as_agent or "unknown"))
+    print("goal set %s (epoch=%d)" % (args.id, load_state()["epoch"]))
+
+
 def cmd_handoff(args):
     with Lock():
         st = load_state()
@@ -662,23 +797,34 @@ def cmd_handoff(args):
 
 
 def cmd_done(args):
+    ev = [str(x).strip() for x in (getattr(args, "evidence", None) or []) if str(x).strip()]
+    if not ev:
+        die("done 必须给出证据（--evidence <路径> [<路径>...]）——否则「做完了」只是自报，"
+            "下一棒没法复核，也没法分辨「真做完」和「以为做完」。\n"
+            "  例：python3 .ai/bridge.py done %s --evidence note/架构/xxx.md "
+            "scripts/verify/out/gate.log" % args.id)
+    missing = [p for p in ev
+               if not os.path.exists(p if os.path.isabs(p) else os.path.join(ROOT, p))]
+    if missing:
+        die("证据路径不存在（相对项目根 %s）：%s" % (ROOT, ", ".join(missing)))
     with Lock():
         st = load_state()
         t = get_task(st, args.id)
         t["status"] = "done"
         t["owner"] = "human"
         t["updated_at"] = ts()
+        t["evidence"] = ev
         t["latest_handoff"] = "已完成。%s" % (args.summary or "")
         bump(st)
         if st.get("current_task") == args.id:
             # 自动顶替一个还没做完的
             rest = sorted([x["id"] for x in st["tasks"].values() if x["status"] in OPEN_STATUS])
             st["current_task"] = rest[0] if rest else None
-        append_to_card(args.id, SECTION_HANDOFF, "%s · 完成" % ts(),
-                       args.summary or "标记完成。")
+        body = (args.summary or "标记完成。") + "\n\n证据：\n" + "\n".join("- `%s`" % p for p in ev)
+        append_to_card(args.id, SECTION_HANDOFF, "%s · 完成" % ts(), body)
         refresh_card_meta(t)
         commit(st, "`%s` 完成" % args.id)
-    print("done %s" % args.id)
+    print("done %s (%d 份证据)" % (args.id, len(ev)))
 
 
 def cmd_status(args):
@@ -711,6 +857,11 @@ def cmd_check(args):
             problems.append("`%s` 的任务卡缺失：%s" % (t["id"], fp))
         if t["status"] in OPEN_STATUS and not t.get("scope"):
             warnings.append("`%s` 没有限定 scope，容易误伤其他模块" % t["id"])
+        if t["status"] in OPEN_STATUS:
+            if not effective_goal(t):
+                warnings.append("`%s` 没有目标（占位符还在）—— claim 会被拒绝" % t["id"])
+            if not effective_accept(t):
+                warnings.append("`%s` 没有验收标准 —— done 时无据可核" % t["id"])
         if t["status"] == "in_progress" and args.stale_days >= 0:
             try:
                 d = datetime.strptime(t["updated_at"], "%Y-%m-%d %H:%M:%S")
@@ -727,6 +878,10 @@ def cmd_check(args):
         print("⚠ 提示：")
         for w in warnings:
             print("   -", w)
+    backlog = [t["id"] for t in st["tasks"].values() if not effective_goal(t)]
+    if backlog:
+        print("ℹ 历史积压：%d 张卡没有目标（多为已 done/abandoned 的老卡，不计入上面的提示，"
+              "只作存量观察）" % len(backlog))
     if not problems and not warnings:
         print("✔ 一致，epoch=%d" % st["epoch"])
     return 1 if problems else 0
@@ -817,7 +972,7 @@ def cmd_mcp(args):
 
 # ---------------------------------------------------------------- CLI
 
-MUTATING = ("init", "new", "claim", "note", "handoff", "done", "knowledge", "mem")
+MUTATING = ("init", "new", "claim", "note", "goal", "handoff", "done", "knowledge", "mem")
 
 
 def main():
@@ -837,6 +992,8 @@ def main():
     sp.add_argument("--as", dest="as_agent", default=os.environ.get("AI_BRIDGE_AGENT", "human"),
                     choices=list(VALID_AGENTS))
     sp.add_argument("--scope", nargs="*", default=[])
+    sp.add_argument("--goal", default="", help="一句话说清要交付什么（缺了 claim 会被拒）")
+    sp.add_argument("--accept", nargs="*", default=[], help="可执行的验收项，逐条一条")
     sp.set_defaults(func=cmd_new)
 
     sp = add("claim")
@@ -862,9 +1019,19 @@ def main():
                     choices=list(VALID_AGENTS))
     sp.set_defaults(func=cmd_handoff)
 
+    sp = add("goal")
+    sp.add_argument("id")
+    sp.add_argument("text", help="目标正文；空或占位符会被拒")
+    sp.add_argument("--accept", nargs="*", default=[], help="不给则保留原有的验收标准")
+    sp.add_argument("--as", dest="as_agent", default=os.environ.get("AI_BRIDGE_AGENT", "unknown"),
+                    choices=list(VALID_AGENTS))
+    sp.set_defaults(func=cmd_goal)
+
     sp = add("done")
     sp.add_argument("id")
     sp.add_argument("--summary", default="")
+    sp.add_argument("--evidence", nargs="*", default=[],
+                    help="完成证据路径（相对项目根或绝对路径），至少一条且必须真实存在")
     sp.set_defaults(func=cmd_done)
 
     sp = add("status", "ls")

@@ -7775,3 +7775,17 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   TEB action 链保持 1 m scoped。TEB 3 m 根因证据 `evidence/bt_native/teb_root/`。
 - 仿真测试面收口：Stage A 11/0、Stage B 9/0、1 m action 三组合、elevation 候选 1 m、
   TEB 3 m 根因/限制；真机迁移需求见 `note/12`（真人执行迁移）。
+
+## 2026-11-22 / T-20261122-01 AI 协作工具补验收闸（任务移交的四个口）
+
+- `scripts/agent/bridge.py`（约 +120 行）：此前 `new` 无目标也能建卡、`check` 不报缺项、
+  `claim` 空目标亦可认领、`done` 无证据即可结单 ⇒ 交接质量全凭自觉，这正是多轮换手后
+  「任务不明确、没有验收标准」的来源。现补四闸：`new` 收 `--goal`／`--accept`（缺省时
+  stderr 告警）；`check` 增「无目标」「无验收标准」两条提示并对历史积压给一行汇总；
+  `claim` 遇空目标直接停并附补救命令；`done` 强制 `--evidence` 且路径须真实存在。
+  另新增 `goal` 子命令与 `set_section()`，作为改写「目标」「验收标准」两段的唯一入口。
+- 判据口径（修假红）：`effective_goal()`／`effective_accept()` 改为「state 优先、
+  卡片正文回落」。此前 `done` 只读 state，把正文写全的老卡误报成「没目标」——
+  假红比闸门闭眼更坏，人会学会无视它。
+- 自测 `scripts/agent/test_bridge_gates.py`（新建）：35 条断言／5 组。两次注入
+  （摘 `claim` 闸、摘 `done` 双闸）各令对应用例转红，证明判据确有牙；未注入时 35 条全绿。
