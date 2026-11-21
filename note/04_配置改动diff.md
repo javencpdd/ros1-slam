@@ -7654,3 +7654,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   sys.path、lite3_costmap_layers 生产者 fallback（parents[3]/80_algorithm/v8_grid）。
 - 验收：v8_grid 差分 11、representation 套件、planner grid 6、local_planner 161 全 OK；
   `docker/build.sh --plan` 的 v8_grid 路径已为 80_algorithm。
+
+## 2026-11-21 / T-20261118-02 P1-3：lite3_task 归档
+
+- `ws/src/50_task/lite3_task` → `archive/lite3_task`（`archive/README.md` 记录冻结/恢复步骤）；
+  `tooling/build/profiles.json` 的 local_packages 与 lite3/x86_sim roots 移除 `lite3_task`。
+- `docker/build.sh --plan` rc=0，闭包无 lite3_task；`50_task/pipeline_tracking` 保持。
+- 构建身份已变，下一次全量重建（干净目标空间）才刷新共享 devel；本裸仓/plan 已一致。
