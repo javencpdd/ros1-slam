@@ -7661,3 +7661,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `tooling/build/profiles.json` 的 local_packages 与 lite3/x86_sim roots 移除 `lite3_task`。
 - `docker/build.sh --plan` rc=0，闭包无 lite3_task；`50_task/pipeline_tracking` 保持。
 - 构建身份已变，下一次全量重建（干净目标空间）才刷新共享 devel；本裸仓/plan 已一致。
+
+## 2026-11-21 / T-20261118-02 拆层后 smoke Stage B
+
+- `m2_smoke.sh stageB`（BT+v8 topic 链）在拆层/归档/迁移后的 devel 上 PASS：
+  bt_outcome=reached dt=12.3s dev_gt=0.202m（≤0.35），pose 类错误 0，样张 sha 未变，
+  marks 9/0，退净四口零新增。日志见 `evidence/bt_native/m2_smoke_stageB_after_split/`。
