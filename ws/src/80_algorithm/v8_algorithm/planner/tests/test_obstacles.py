@@ -9,8 +9,8 @@ import unittest
 
 # 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
 HERE = Path(__file__).resolve().parent.parent
-for folder in (HERE, HERE.parent / 'contracts', HERE.parents[2] / '80_algorithm/v8_algorithm/representation',
-               HERE.parent / 'regression'):
+for folder in (HERE, (Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts'), HERE.parent / 'representation',
+               (Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'regression')):
     sys.path.insert(0, str(folder))
 import validate as contract
 import support_map
@@ -20,7 +20,7 @@ from global_obstacles import box, derived_case, evaluate_route, run
 
 
 def mapping(obstacles=(), resolution=.1, footprint=None):
-    value = json.loads((HERE.parent / 'contracts/fixtures/map_single_floor.json').read_text())
+    value = json.loads((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts/fixtures/map_single_floor.json').read_text())
     value.update(schema_version=2, resolution=resolution, obstacles=copy.deepcopy(list(obstacles)))
     value['surfaces'][0].update(surface_id='ground', z_reference=0,
                               footprint=footprint or {'min_x': -2, 'max_x': 2,

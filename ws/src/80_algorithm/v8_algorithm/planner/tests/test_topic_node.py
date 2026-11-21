@@ -11,7 +11,7 @@ sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_pl
 import topic_node  # noqa: E402
 import support_planner  # noqa: E402
 
-FIXTURE = HERE.parent / 'contracts' / 'fixtures' / 'map_ml_two_surfaces.json'
+FIXTURE = (Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts') / 'fixtures' / 'map_ml_two_surfaces.json'
 
 
 class TopicNodeTests(unittest.TestCase):

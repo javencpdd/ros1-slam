@@ -14,8 +14,7 @@ import tempfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-for sub in ('planner',):
-    sys.path.insert(0, str(ROOT / sub))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/planner'))
 sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/representation'))
 import support_map as rep
 import a4_runtime as a4

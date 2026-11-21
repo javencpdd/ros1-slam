@@ -116,7 +116,7 @@ def derived_case(scenario_id, variant):
 
 
 def run():
-    sys.path.insert(0, str(ROOT / 'planner'))
+    sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')))
     import support_planner
     rows = []
     radius, height = .12, .35  # declared experiment geometry, not Lite3 capability

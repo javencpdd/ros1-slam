@@ -11,8 +11,8 @@ from pathlib import Path
 
 # 2026-11-18（M7）：测试已移入 tests/，HERE 指回包目录以保持派生语义。
 HERE = Path(__file__).resolve().parent.parent
-FRAMEWORK = HERE.parent / 'framework'
-FIXTURE = HERE.parent / 'contracts' / 'fixtures' / 'map_ml_two_surfaces.json'
+FRAMEWORK = (Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'framework')
+FIXTURE = (Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts') / 'fixtures' / 'map_ml_two_surfaces.json'
 OUT = Path('/tmp/r1037_smoke.json')
 PORT = 11523
 os.environ.update(ROS_MASTER_URI='http://127.0.0.1:%d' % PORT,

@@ -11,8 +11,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-for sub in ('scenarios', 'planner', 'local_planner', 'contracts'):
+for sub in ('scenarios', 'local_planner', 'contracts'):
     sys.path.insert(0, str(ROOT / sub))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/planner'))
 sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/representation'))
 import support_map as rep  # noqa: E402
 

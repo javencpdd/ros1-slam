@@ -21,7 +21,7 @@ sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platf
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/validator').resolve()))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/representation').resolve()))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
-sys.path.insert(0, str(HERE.parent / 'planner'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/composer').resolve()))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/registry').resolve()))
 import calibration as cal  # noqa: E402

@@ -14,7 +14,7 @@ import sys
 
 import rospkg
 
-sys.path.insert(0, os.path.join(rospkg.RosPack().get_path('v8_platform'), 'planner'))
+sys.path.insert(0, os.path.join(rospkg.RosPack().get_path('v8_algorithm'), 'planner'))
 
 import topic_node  # noqa: E402
 

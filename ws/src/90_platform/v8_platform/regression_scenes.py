@@ -4,7 +4,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, 'planner'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../..' / '80_algorithm/v8_algorithm/planner').resolve()))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../..' / '90_platform/v8_platform/contracts').resolve()))
 import support_planner  # noqa: E402
 import validate  # noqa: E402

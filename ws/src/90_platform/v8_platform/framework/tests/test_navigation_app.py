@@ -14,7 +14,7 @@ HERE = Path(__file__).resolve().parent
 FRAMEWORK = HERE.parent
 sys.path.insert(0, str(FRAMEWORK))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform/contracts').resolve()))
-sys.path.insert(0, str(FRAMEWORK.parent / 'planner'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../../..' / '80_algorithm/v8_algorithm/planner')))
 import app_config
 import inflate_support_map
 import map_registry

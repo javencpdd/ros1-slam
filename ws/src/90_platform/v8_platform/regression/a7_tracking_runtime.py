@@ -13,8 +13,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-for sub in ('scenarios', 'planner', 'validator'):
+for sub in ('scenarios', 'validator'):
     sys.path.insert(0, str(ROOT / sub))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/planner'))
 import scenarios as scn  # noqa: E402
 import support_planner as pln  # noqa: E402
 

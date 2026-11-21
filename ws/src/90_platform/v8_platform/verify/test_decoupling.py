@@ -18,7 +18,7 @@ CONSOLE_ROOT = Path(os.environ.get('V8_CONSOLE_ROOT') or (REPO / 'subprojects' /
 P2 = SIM_ROOT / 'ws/src/v8_simulation'
 CONSOLE = CONSOLE_ROOT / 'console'
 RUNTIME_DIRS = ('framework', 'registry', 'composer', 'contracts', 'orchestrator',
-                'planner', 'local_planner')
+                'local_planner')
 
 
 def python_files(root):

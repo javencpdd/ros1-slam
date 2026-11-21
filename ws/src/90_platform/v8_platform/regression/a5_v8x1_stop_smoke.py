@@ -25,7 +25,7 @@ HERE = Path(__file__).resolve().parent
 LOCAL = HERE.parent / 'local_planner'
 DYNAMICS = HERE.parents[4] / 'subprojects/simulation/ws/src/lite3_gazebo_sim' / 'dynamics'
 sys.path.insert(0, str(DYNAMICS))
-sys.path.insert(0, str(HERE.parent / 'planner'))
+sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')))
 sys.path.insert(0, str(HERE.parent / 'local_planner'))
 sys.path.insert(0, str((Path(__file__).resolve().parent / '../../..' / '90_platform/v8_platform/contracts').resolve()))
 import support_planner  # noqa: E402
@@ -275,7 +275,7 @@ def main():
                            '--cmd-timeout', '.5', '--seed', str(args.seed)]
         node = start(node_argv, node_log.open('ab'), cwd=str(LOCAL),
                      env=dict(os.environ, PYTHONPATH=str(DYNAMICS) + ':' +
-                              str(HERE.parent / 'planner') + ':' +
+                              str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')) + ':' +
                               str(HERE.parent / 'local_planner') + ':' +
                               str(HERE.parent / 'contracts') + ':' +
                               os.environ.get('PYTHONPATH', '')))

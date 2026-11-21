@@ -29,13 +29,12 @@ class DeliveryTests(unittest.TestCase):
         entries = dl.manifest()
         modules = {p.split('/')[0] for p in entries}
         for required in ('contracts', 'registry', 'composer', 'orchestrator', 'adapters',
-                         'planner', 'validator', 'scenarios',
+                         'validator', 'scenarios',
                          'calibration', 'regression'):
             self.assertIn(required, modules, required)
         # 复现性自证：再生成逐字节一致
         self.assertEqual(entries, dl.manifest())
         # 关键件在清单
-        self.assertIn('planner/support_planner.py', entries)
         self.assertIn('calibration/calibration.py', entries)
 
     def test_unplugged_statement_on_file(self):

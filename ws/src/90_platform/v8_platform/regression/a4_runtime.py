@@ -22,15 +22,16 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-for sub in ('scenarios', 'calibration', 'planner', 'contracts'):
+for sub in ('scenarios', 'calibration', 'contracts'):
     sys.path.insert(0, str(ROOT / sub))
+sys.path.insert(0, str(ROOT.parent.parent / '80_algorithm/v8_algorithm/planner'))
 
 import calibration as cal  # noqa: E402
 import regression as reg  # noqa: E402
 import scenarios as scn  # noqa: E402
 import support_planner as pln  # noqa: E402
 
-NODE_PATH = str(ROOT / 'planner' / 'ros_node.py')
+NODE_PATH = str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner') / 'ros_node.py')
 
 
 def planning_ids():
@@ -89,7 +90,7 @@ def call_node(map_value, start, goal, budget, name, service_timeout=30.0, keep_a
     if min_clearance_m is not None:
         cmd.append('_min_clearance_m:=%g' % min_clearance_m)
     env = dict(os.environ)
-    env['PYTHONPATH'] = str(ROOT / 'planner') + os.pathsep + env.get('PYTHONPATH', '')
+    env['PYTHONPATH'] = str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')) + os.pathsep + env.get('PYTHONPATH', '')
     try:
         rospy.delete_param('/' + name + '/support_route_status')
     except Exception:
@@ -296,7 +297,7 @@ def _call_versions(name, scenario_id):
            '_status_topic:=/' + name + '/support_route_status',
            '_keep_alive_s:=60']
     env = dict(os.environ)
-    env['PYTHONPATH'] = str(ROOT / 'planner') + os.pathsep + env.get('PYTHONPATH', '')
+    env['PYTHONPATH'] = str((Path(__file__).resolve().parent / '../../..' / '80_algorithm/v8_algorithm/planner')) + os.pathsep + env.get('PYTHONPATH', '')
     try:
         rospy.delete_param('/' + name + '/support_route_status')
     except Exception:
