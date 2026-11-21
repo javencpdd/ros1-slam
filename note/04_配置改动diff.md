@@ -7728,3 +7728,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   不适用），不是本轮拆层/导航链回归；不追修。时钟门悬空路径修复仍有效（已到既有结论点）。
 - 导航判据面以 A/B 为准（均绿）；hdl 重定位归真机 L2。Stage C 日志保留
   `final_accept/smokeC{,2}/`。
+
+## 2026-11-21 / T-20261118-02 M9 收口：app_runner 628→17+160+488
+
+- `framework/nodes/app_runner.py` 改为 façade（17 行），实现拆到 `app_runner_prepare.py`
+  （160 行：resolve/prepare/dry_run）与 `app_runner_execute.py`（488 行：helpers/execute/main）；
+  原文件 re-export 全部既有名字，外部导入零改动；execute 对 prepare 的依赖显式导入，无循环。
+- 验收：`test_execution` 34/34；framework 全量 discover **302/302 OK（10 skipped）**；
+  `app_runner.py --help` 正常。M9（ros_node/calibration/app_runner）三件全完成。
