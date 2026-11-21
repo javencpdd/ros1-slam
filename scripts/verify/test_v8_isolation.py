@@ -17,7 +17,9 @@ class IsolationTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.nav = self.root / 'ws/src/40_navigation'
         shutil.copytree(iso.HERE.parent.parent / 'ws/src/40_navigation', self.nav)
-        self.plugin = self.nav / 'lite3_costmap_layers'
+        self.plugin = self.root / 'ws/src/30_perception/lite3_costmap_layers'
+        shutil.copytree(iso.HERE.parent.parent / 'ws/src/30_perception/lite3_costmap_layers',
+                        self.plugin)
 
     def check(self):
         iso.check_navigation(self.root)
@@ -39,7 +41,7 @@ class IsolationTests(unittest.TestCase):
     def test_extra_source_suffixes(self):
         for suffix in sorted(iso.SUFFIXES):
             with self.subTest(suffix=suffix):
-                p = self.plugin / ('extra' + suffix)
+                p = self.nav / ('lite3_navigation/extra' + suffix)
                 p.write_text('int x;')
                 self.reject()
                 p.unlink()
@@ -51,11 +53,15 @@ class IsolationTests(unittest.TestCase):
         self.reject()
 
     def test_missing_source(self):
-        (self.plugin / 'src/elevation_merged_layer.cpp').unlink()
+        # 政策层已零源码：任何源码一律拒；撤除后必须回绿。
+        p = self.nav / 'lite3_scan/injected.cpp'
+        p.write_text('int x;')
         self.reject()
+        p.unlink()
+        self.check()
 
     def test_empty_source(self):
-        (self.plugin / 'src/elevation_merged_layer.cpp').write_text('')
+        (self.nav / 'lite3_scan/empty.cpp').write_text('')
         self.reject()
 
     def test_missing_root(self):
@@ -97,8 +103,7 @@ class IsolationTests(unittest.TestCase):
         self.reject()
 
     def test_source_symlink(self):
-        p = self.plugin / 'src/elevation_merged_layer.cpp'
-        p.unlink()
+        p = self.nav / 'lite3_scan/linked.cpp'
         p.symlink_to(iso.HERE / 'v8_isolation.py')
         self.reject()
 

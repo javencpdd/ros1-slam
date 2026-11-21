@@ -2,13 +2,18 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="${1:?evidence directory required}"
+SENTINEL=0
+finish() { rc=$?; if [ "$SENTINEL" = 0 ]; then printf 'BT_NATIVE_RUNTIME_RC=%s\n' "$rc"; fi; }
+trap finish EXIT
 LOCAL_PLANNER="${2:-teb}"
 GLOBAL_PLANNER="${3:-global_planner}"
-LAUNCH_ARGS="local_planner:=$LOCAL_PLANNER global_planner:=$GLOBAL_PLANNER"
+ELEVATION_SOURCE="${4:-native}"
+ELEVATION_TTL="${5:-1.0}"
+LAUNCH_ARGS="local_planner:=$LOCAL_PLANNER global_planner:=$GLOBAL_PLANNER elevation_source:=$ELEVATION_SOURCE elevation_ttl_s:=$ELEVATION_TTL"
 DRIVER_ARGS="--local-planner $LOCAL_PLANNER --global-planner $GLOBAL_PLANNER"
 [ -d "$OUT" ] || exit 9
 [ ! -e "$OUT/runtime.json" ] || exit 9
-bash "$ROOT/scripts/verify/v8_window_preflight.sh" > "$OUT/preflight.log" 2>&1
+bash "$ROOT/scripts/verify/v8_window_preflight.sh" > "$OUT/preflight.log" 2>&1 || exit 5
 python3 - <<'PY'
 import socket
 for port in (11313, 11345):
@@ -65,4 +70,5 @@ for port in (11313, 11345):
 print('CLEANUP_PORTS_FREE')
 PY
 printf 'BT_NATIVE_RUNTIME_RC=%s\n' "$RC"
+SENTINEL=1
 exit "$RC"

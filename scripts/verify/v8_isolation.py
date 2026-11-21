@@ -12,9 +12,10 @@ import xml.etree.ElementTree as ET
 HERE = Path(__file__).resolve().parent
 LEGACY_SHA = '6b39e0d8a5819963ccf2238fb2170d349abadaf2a2a9c8b45a4cc102b70c4dde'
 CMAKE_SHA = '64a1cd98637364e4690d5b6f3eb20c7e328b29711cb55782a0aa2dcfbb8c698c'
-PACKAGES = {'lite3_navigation', 'lite3_scan', 'lite3_costmap_layers'}
-SOURCES = {'lite3_costmap_layers/src/elevation_merged_layer.cpp',
-           'lite3_costmap_layers/include/lite3_costmap_layers/elevation_merged_layer.h'}
+# 2026-11-21（真人勾选⑥）：costmap 插件包移出 40_navigation、移入 30_perception；
+# 政策层恢复「零源码」，插件契约改在新层校验（包名/导出/CMake 快照不变）。
+PACKAGES = {'lite3_navigation', 'lite3_scan'}
+SOURCES = set()
 SUFFIXES = {'.c', '.cc', '.cpp', '.cxx', '.c++', '.CPP', '.h', '.hh', '.hpp', '.hxx', '.C', '.H'}
 
 
@@ -50,11 +51,15 @@ def check_navigation(root):
         raise ValueError('package set mismatch: ' + repr(sorted(found_packages)))
     if found_sources != SOURCES:
         raise ValueError('source set mismatch: ' + repr(sorted(found_sources)))
-    plugin = nav / 'lite3_costmap_layers'
+    plugin = root / 'ws/src/30_perception/lite3_costmap_layers'
+    if not plugin.is_dir() or plugin.is_symlink():
+        raise ValueError('moved costmap plugin package missing')
     # CMake is executable: pin the inspected declaration instead of accepting a regex match in dead code.
     if sha((plugin / 'CMakeLists.txt').read_bytes()) != CMAKE_SHA:
         raise ValueError('plugin CMake declaration differs from inspected snapshot')
     package = ET.parse(plugin / 'package.xml').getroot()
+    if package.tag != 'package' or package.findtext('name') != plugin.name:
+        raise ValueError('plugin package identity mismatch')
     exports = package.findall('export')
     if (len(exports) != 1 or len(exports[0]) != 1 or exports[0][0].tag != 'costmap_2d'
             or exports[0][0].attrib != {'plugin': '${prefix}/plugins.xml'}):
@@ -66,7 +71,7 @@ def check_navigation(root):
                                      'base_class_type': 'costmap_2d::Layer'}
             or any(child.tag != 'description' for child in library[0])):
         raise ValueError('plugin class or library mismatch')
-    print('[9-v8] approved packages=3 sources=2; shell sources=0', flush=True)
+    print('[9-v8] approved packages=2 sources=0; plugin moved to 30_perception', flush=True)
 
 
 def derive_legacy(raw):

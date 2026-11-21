@@ -1,0 +1,2167 @@
+-- Using CATKIN_DEVEL_PREFIX: /opt/ros1-slam/ws/devel
+-- Using CMAKE_PREFIX_PATH: /opt/ros/noetic
+-- This workspace overlays: /opt/ros/noetic
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Using Debian Python package layout
+-- Using empy: /usr/lib/python3/dist-packages/em.py
+-- Using CATKIN_ENABLE_TESTING: OFF
+-- catkin 0.8.12
+-- BUILD_SHARED_LIBS is on
+-- BUILD_SHARED_LIBS is on
+-- Using CATKIN_WHITELIST_PACKAGES: bspline_opt;elevation_mapping;fast_gicp;faster_lio;hdl_global_localization;hdl_localization;kindr;kindr_ros;lite3_bringup;lite3_bt;lite3_costmap_layers;lite3_description;lite3_drivers;lite3_gazebo_sim;lite3_localization;lite3_navigation;lite3_safety;lite3_scan;lite3_slam;lite3_supervisor;lite3_task;livox_laser_simulation;livox_ros_driver2;local_sensing_node;map_generator;message_logger;message_transformer;mockamap;ndt_omp;path_searching;pipeline;plan_env;scan_planner;traj_utils;v8_grid;v8_msgs;v8_ndt_odom;v8_platform;v8_simulation
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- ~~  traversing 39 packages in topological order:
+-- ~~  - fast_gicp
+-- ~~  - kindr
+-- ~~  - lite3_bringup
+-- ~~  - lite3_drivers
+-- ~~  - lite3_localization
+-- ~~  - lite3_navigation
+-- ~~  - lite3_safety
+-- ~~  - lite3_slam
+-- ~~  - lite3_supervisor
+-- ~~  - lite3_task
+-- ~~  - v8_grid
+-- ~~  - v8_msgs
+-- ~~  - v8_simulation
+-- ~~  - lite3_bt
+-- ~~  - message_logger
+-- ~~  - pipeline
+-- ~~  - map_generator
+-- ~~  - kindr_ros
+-- ~~  - lite3_gazebo_sim
+-- ~~  - message_transformer
+-- ~~  - faster_lio
+-- ~~  - hdl_global_localization
+-- ~~  - livox_ros_driver2
+-- ~~  - livox_laser_simulation
+-- ~~  - local_sensing_node
+-- ~~  - mockamap
+-- ~~  - ndt_omp
+-- ~~  - plan_env
+-- ~~  - path_searching
+-- ~~  - bspline_opt
+-- ~~  - hdl_localization
+-- ~~  - elevation_mapping
+-- ~~  - traj_utils
+-- ~~  - scan_planner
+-- ~~  - lite3_description
+-- ~~  - v8_ndt_odom
+-- ~~  - lite3_costmap_layers
+-- ~~  - lite3_scan
+-- ~~  - v8_platform
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- +++ processing catkin package: 'fast_gicp'
+-- ==> add_subdirectory(fast_gicp)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- pcl version: 1.10.0
+-- pcl lib: /usr/lib/x86_64-linux-gnu
+-- pcl include: /usr/include/pcl-1.10;/usr/include/eigen3;/usr/include;/usr/include/vtk-7.1;/usr/include/freetype2;/usr/include/x86_64-linux-gnu;/usr/include/ni;/usr/include/openni2
+-- +++ processing catkin package: 'kindr'
+-- ==> add_subdirectory(kindr)
+-- Setting pure CMake build to false as not specified.
+-- Building kindr as a catkin package.
+-- Setting build-tests to false as not specified.
+-- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) 
+-- Doxygen not found
+-- +++ processing catkin package: 'lite3_bringup'
+-- ==> add_subdirectory(lite3_bringup)
+-- +++ processing catkin package: 'lite3_drivers'
+-- ==> add_subdirectory(lite3_drivers)
+-- +++ processing catkin package: 'lite3_localization'
+-- ==> add_subdirectory(lite3_localization)
+-- +++ processing catkin package: 'lite3_navigation'
+-- ==> add_subdirectory(lite3_navigation)
+-- +++ processing catkin package: 'lite3_safety'
+-- ==> add_subdirectory(lite3_safety)
+-- +++ processing catkin package: 'lite3_slam'
+-- ==> add_subdirectory(lite3_slam)
+-- +++ processing catkin package: 'lite3_supervisor'
+-- ==> add_subdirectory(lite3_supervisor)
+-- +++ processing catkin package: 'lite3_task'
+-- ==> add_subdirectory(lite3_task)
+-- +++ processing catkin package: 'v8_grid'
+-- ==> add_subdirectory(v8_grid)
+-- +++ processing catkin package: 'v8_msgs'
+-- ==> add_subdirectory(v8_msgs)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- v8_msgs: 5 messages, 0 services
+-- +++ processing catkin package: 'v8_simulation'
+-- ==> add_subdirectory(v8_simulation)
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py to /opt/ros1-slam/ws/devel/lib/v8_simulation
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_truth.py to /opt/ros1-slam/ws/devel/lib/v8_simulation
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/mujoco_truth.py to /opt/ros1-slam/ws/devel/lib/v8_simulation
+-- +++ processing catkin package: 'lite3_bt'
+-- ==> add_subdirectory(lite3_bt)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/scripts/goal_gate.py to /opt/ros1-slam/ws/devel/lib/lite3_bt
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/scripts/bt_stage_marker.py to /opt/ros1-slam/ws/devel/lib/lite3_bt
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/scripts/navigation_executor.py to /opt/ros1-slam/ws/devel/lib/lite3_bt
+-- +++ processing catkin package: 'message_logger'
+-- ==> add_subdirectory(message_logger)
+-- Building message_logger using ros.
+-- Building message_logger without Sentry.
+-- +++ processing catkin package: 'pipeline'
+-- ==> add_subdirectory(pipeline)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Generating .msg files for action pipeline/MoveBase /opt/ros1-slam/ws/.profiles/x86_sim/src/pipeline/action/MoveBase.action
+-- pipeline: 7 messages, 0 services
+-- +++ processing catkin package: 'map_generator'
+-- ==> add_subdirectory(map_generator)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- +++ processing catkin package: 'kindr_ros'
+-- ==> add_subdirectory(kindr_ros)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'lite3_gazebo_sim'
+-- ==> add_subdirectory(lite3_gazebo_sim)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Found DART: /usr/include (Required is at least version "6.6") found components: dart 
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake (found suitable version "1.71.0", minimum required is "1.40.0") found components: thread system filesystem program_options regex iostreams date_time 
+-- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so;-lpthread (found version "3.6.1") 
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Searching for dependencies of ignition-math6
+-- Looking for OGRE...
+-- Found Ogre Ghadamon (1.9.0)
+-- Found OGRE: optimized;/usr/lib/x86_64-linux-gnu/libOgreMain.so;debug;/usr/lib/x86_64-linux-gnu/libOgreMain.so
+-- Looking for OGRE_Paging...
+-- Found OGRE_Paging: optimized;/usr/lib/x86_64-linux-gnu/libOgrePaging.so;debug;/usr/lib/x86_64-linux-gnu/libOgrePaging.so
+-- Looking for OGRE_Terrain...
+-- Found OGRE_Terrain: optimized;/usr/lib/x86_64-linux-gnu/libOgreTerrain.so;debug;/usr/lib/x86_64-linux-gnu/libOgreTerrain.so
+-- Looking for OGRE_Property...
+-- Found OGRE_Property: optimized;/usr/lib/x86_64-linux-gnu/libOgreProperty.so;debug;/usr/lib/x86_64-linux-gnu/libOgreProperty.so
+-- Looking for OGRE_RTShaderSystem...
+-- Found OGRE_RTShaderSystem: optimized;/usr/lib/x86_64-linux-gnu/libOgreRTShaderSystem.so;debug;/usr/lib/x86_64-linux-gnu/libOgreRTShaderSystem.so
+-- Looking for OGRE_Volume...
+-- Found OGRE_Volume: optimized;/usr/lib/x86_64-linux-gnu/libOgreVolume.so;debug;/usr/lib/x86_64-linux-gnu/libOgreVolume.so
+-- Looking for OGRE_Overlay...
+-- Found OGRE_Overlay: optimized;/usr/lib/x86_64-linux-gnu/libOgreOverlay.so;debug;/usr/lib/x86_64-linux-gnu/libOgreOverlay.so
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Looking for ignition-transport8 -- found version 8.5.0
+-- Searching for dependencies of ignition-transport8
+-- Config-file not installed for ZeroMQ -- checking for pkg-config
+-- Checking for module 'libzmq >= 4'
+--   Found libzmq , version 4.3.2
+-- Checking for module 'uuid'
+--   Found uuid, version 2.34.0
+-- Looking for ignition-msgs5 -- found version 5.11.0
+-- Searching for dependencies of ignition-msgs5
+-- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so;-lpthread (found suitable version "3.6.1", minimum required is "3") 
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Checking for module 'tinyxml2'
+--   Found tinyxml2, version 6.2.0
+-- Looking for ignition-msgs5 -- found version 5.11.0
+-- Looking for ignition-common3 -- found version 3.17.0
+-- Searching for dependencies of ignition-common3
+-- Looking for dlfcn.h - found
+-- Looking for libdl - found
+-- Searching for <ignition-common3> component [graphics]
+-- Looking for ignition-common3-graphics -- found version 3.17.0
+-- Searching for dependencies of ignition-common3-graphics
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Looking for ignition-fuel_tools4 -- found version 4.9.1
+-- Searching for dependencies of ignition-fuel_tools4
+-- Checking for module 'jsoncpp'
+--   Found jsoncpp, version 1.7.4
+-- Checking for module 'yaml-0.1'
+--   Found yaml-0.1, version 0.2.2
+-- Checking for module 'libzip'
+--   Found libzip, version 1.5.1
+-- Looking for ignition-common3 -- found version 3.17.0
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Looking for ignition-msgs5 -- found version 5.11.0
+-- +++ processing catkin package: 'message_transformer'
+-- ==> add_subdirectory(message_transformer)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- message_transformer: 2 messages, 0 services
+-- +++ processing catkin package: 'faster_lio'
+-- ==> add_subdirectory(faster_lio)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- livox_ros_driver: 2 messages, 0 services
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- faster_lio: 1 messages, 0 services
+CMake Warning at /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:166 (message):
+  catkin_package() DEPENDS on 'EIGEN3' but neither 'EIGEN3_INCLUDE_DIRS' nor
+  'EIGEN3_LIBRARIES' is defined.
+Call Stack (most recent call first):
+  /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:102 (_catkin_package)
+  faster_lio/cmake/packages.cmake:41 (catkin_package)
+  faster_lio/CMakeLists.txt:17 (include)
+
+
+CMake Warning at /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:166 (message):
+  catkin_package() DEPENDS on 'PCL' but neither 'PCL_INCLUDE_DIRS' nor
+  'PCL_LIBRARIES' is defined.
+Call Stack (most recent call first):
+  /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:102 (_catkin_package)
+  faster_lio/cmake/packages.cmake:41 (catkin_package)
+  faster_lio/CMakeLists.txt:17 (include)
+
+
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- Found Boost: /usr/include (found suitable version "1.71.0", minimum required is "1.55.0") found components: system filesystem date_time iostreams regex 
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Found PCL: pcl_common;pcl_kdtree;pcl_octree;pcl_search;pcl_sample_consensus;pcl_filters;pcl_io;pcl_features;pcl_ml;pcl_segmentation;pcl_visualization;pcl_surface;pcl_registration;pcl_keypoints;pcl_tracking;pcl_recognition;pcl_stereo;pcl_apps;pcl_outofcore;pcl_people;/usr/lib/x86_64-linux-gnu/libboost_system.so;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so;/usr/lib/x86_64-linux-gnu/libboost_regex.so;optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so;/usr/lib/libOpenNI.so;/usr/lib/libOpenNI2.so;vtkChartsCore;vtkCommonColor;vtkCommonCore;vtksys;vtkCommonDataModel;vtkCommonMath;vtkCommonMisc;vtkCommonSystem;vtkCommonTransforms;vtkCommonExecutionModel;vtkFiltersGeneral;vtkCommonComputationalGeometry;vtkFiltersCore;vtkInfovisCore;vtkFiltersExtraction;vtkFiltersStatistics;vtkImagingFourier;vtkImagingCore;vtkalglib;vtkRenderingContext2D;vtkRenderingCore;vtkFiltersGeometry;vtkFiltersSources;vtkRenderingFreeType;/usr/lib/x86_64-linux-gnu/libfreetype.so;/usr/lib/x86_64-linux-gnu/libz.so;vtkFiltersModeling;vtkImagingSources;vtkInteractionStyle;vtkInteractionWidgets;vtkFiltersHybrid;vtkImagingColor;vtkImagingGeneral;vtkImagingHybrid;vtkIOImage;vtkDICOMParser;vtkmetaio;/usr/lib/x86_64-linux-gnu/libjpeg.so;/usr/lib/x86_64-linux-gnu/libpng.so;/usr/lib/x86_64-linux-gnu/libtiff.so;vtkRenderingAnnotation;vtkRenderingVolume;vtkIOXML;vtkIOCore;vtkIOXMLParser;/usr/lib/x86_64-linux-gnu/libexpat.so;vtkIOGeometry;vtkIOLegacy;vtkIOPLY;vtkRenderingLOD;vtkViewsContext2D;vtkViewsCore;vtkRenderingContextOpenGL2;vtkRenderingOpenGL2;FLANN::FLANN (Required is at least version "1.8") 
+USING_IVOX_NODE_TYPE_DEFAULT
+-- +++ processing catkin package: 'hdl_global_localization'
+-- ==> add_subdirectory(hdl_global_localization)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- hdl_global_localization: 0 messages, 3 services
+-- +++ processing catkin package: 'livox_ros_driver2'
+-- ==> add_subdirectory(livox_ros_driver2)
+-- livox_ros_driver2 version: 1.2.5
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake (found suitable version "1.71.0", minimum required is "1.54") found components: system thread chrono 
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- Found Boost: /usr/include (found suitable version "1.71.0", minimum required is "1.55.0") found components: system filesystem date_time iostreams regex 
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Found PCL: pcl_common;pcl_kdtree;pcl_octree;pcl_search;pcl_sample_consensus;pcl_filters;pcl_io;pcl_features;pcl_ml;pcl_segmentation;pcl_visualization;pcl_surface;pcl_registration;pcl_keypoints;pcl_tracking;pcl_recognition;pcl_stereo;pcl_apps;pcl_outofcore;pcl_people;/usr/lib/x86_64-linux-gnu/libboost_system.so;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so;/usr/lib/x86_64-linux-gnu/libboost_regex.so;optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so;/usr/lib/libOpenNI.so;/usr/lib/libOpenNI2.so;vtkChartsCore;vtkCommonColor;vtkCommonCore;vtksys;vtkCommonDataModel;vtkCommonMath;vtkCommonMisc;vtkCommonSystem;vtkCommonTransforms;vtkCommonExecutionModel;vtkFiltersGeneral;vtkCommonComputationalGeometry;vtkFiltersCore;vtkInfovisCore;vtkFiltersExtraction;vtkFiltersStatistics;vtkImagingFourier;vtkImagingCore;vtkalglib;vtkRenderingContext2D;vtkRenderingCore;vtkFiltersGeometry;vtkFiltersSources;vtkRenderingFreeType;/usr/lib/x86_64-linux-gnu/libfreetype.so;/usr/lib/x86_64-linux-gnu/libz.so;vtkFiltersModeling;vtkImagingSources;vtkInteractionStyle;vtkInteractionWidgets;vtkFiltersHybrid;vtkImagingColor;vtkImagingGeneral;vtkImagingHybrid;vtkIOImage;vtkDICOMParser;vtkmetaio;/usr/lib/x86_64-linux-gnu/libjpeg.so;/usr/lib/x86_64-linux-gnu/libpng.so;/usr/lib/x86_64-linux-gnu/libtiff.so;vtkRenderingAnnotation;vtkRenderingVolume;vtkIOXML;vtkIOCore;vtkIOXMLParser;/usr/lib/x86_64-linux-gnu/libexpat.so;vtkIOGeometry;vtkIOLegacy;vtkIOPLY;vtkRenderingLOD;vtkViewsContext2D;vtkViewsCore;vtkRenderingContextOpenGL2;vtkRenderingOpenGL2;FLANN::FLANN  
+-- livox_ros_driver2: 2 messages, 0 services
+/usr/include/apr-1.0
+apr-1
+-- +++ processing catkin package: 'livox_laser_simulation'
+-- ==> add_subdirectory(livox_laser_simulation)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Found DART: /usr/include (Required is at least version "6.6") found components: dart 
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake (found suitable version "1.71.0", minimum required is "1.40.0") found components: thread system filesystem program_options regex iostreams date_time 
+-- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so;-lpthread (found version "3.6.1") 
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Searching for dependencies of ignition-math6
+-- Looking for OGRE...
+-- Found Ogre Ghadamon (1.9.0)
+-- Found OGRE: optimized;/usr/lib/x86_64-linux-gnu/libOgreMain.so;debug;/usr/lib/x86_64-linux-gnu/libOgreMain.so
+-- Looking for OGRE_Paging...
+-- Found OGRE_Paging: optimized;/usr/lib/x86_64-linux-gnu/libOgrePaging.so;debug;/usr/lib/x86_64-linux-gnu/libOgrePaging.so
+-- Looking for OGRE_Terrain...
+-- Found OGRE_Terrain: optimized;/usr/lib/x86_64-linux-gnu/libOgreTerrain.so;debug;/usr/lib/x86_64-linux-gnu/libOgreTerrain.so
+-- Looking for OGRE_Property...
+-- Found OGRE_Property: optimized;/usr/lib/x86_64-linux-gnu/libOgreProperty.so;debug;/usr/lib/x86_64-linux-gnu/libOgreProperty.so
+-- Looking for OGRE_RTShaderSystem...
+-- Found OGRE_RTShaderSystem: optimized;/usr/lib/x86_64-linux-gnu/libOgreRTShaderSystem.so;debug;/usr/lib/x86_64-linux-gnu/libOgreRTShaderSystem.so
+-- Looking for OGRE_Volume...
+-- Found OGRE_Volume: optimized;/usr/lib/x86_64-linux-gnu/libOgreVolume.so;debug;/usr/lib/x86_64-linux-gnu/libOgreVolume.so
+-- Looking for OGRE_Overlay...
+-- Found OGRE_Overlay: optimized;/usr/lib/x86_64-linux-gnu/libOgreOverlay.so;debug;/usr/lib/x86_64-linux-gnu/libOgreOverlay.so
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Looking for ignition-transport8 -- found version 8.5.0
+-- Searching for dependencies of ignition-transport8
+-- Config-file not installed for ZeroMQ -- checking for pkg-config
+-- Checking for module 'libzmq >= 4'
+--   Found libzmq , version 4.3.2
+-- Checking for module 'uuid'
+--   Found uuid, version 2.34.0
+-- Looking for ignition-msgs5 -- found version 5.11.0
+-- Searching for dependencies of ignition-msgs5
+-- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so;-lpthread (found suitable version "3.6.1", minimum required is "3") 
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Checking for module 'tinyxml2'
+--   Found tinyxml2, version 6.2.0
+-- Looking for ignition-msgs5 -- found version 5.11.0
+-- Looking for ignition-common3 -- found version 3.17.0
+-- Searching for dependencies of ignition-common3
+-- Looking for dlfcn.h - found
+-- Looking for libdl - found
+-- Searching for <ignition-common3> component [graphics]
+-- Looking for ignition-common3-graphics -- found version 3.17.0
+-- Searching for dependencies of ignition-common3-graphics
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Looking for ignition-fuel_tools4 -- found version 4.9.1
+-- Searching for dependencies of ignition-fuel_tools4
+-- Checking for module 'jsoncpp'
+--   Found jsoncpp, version 1.7.4
+-- Checking for module 'yaml-0.1'
+--   Found yaml-0.1, version 0.2.2
+-- Checking for module 'libzip'
+--   Found libzip, version 1.5.1
+-- Looking for ignition-common3 -- found version 3.17.0
+-- Looking for ignition-math6 -- found version 6.15.1
+-- Looking for ignition-msgs5 -- found version 5.11.0
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- Found Boost: /usr/include (found suitable version "1.71.0", minimum required is "1.55.0") found components: system filesystem date_time iostreams regex 
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- livox_laser_simulation: 2 messages, 0 services
+-- +++ processing catkin package: 'local_sensing_node'
+-- ==> add_subdirectory(local_sensing_node)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake (found version "1.71.0") found components: filesystem iostreams program_options system serialization 
+-- USE_GPU=OFF: skipping opengl_render_node
+-- +++ processing catkin package: 'mockamap'
+-- ==> add_subdirectory(mockamap)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'ndt_omp'
+-- ==> add_subdirectory(ndt_omp)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- Found Boost: /usr/include (found suitable version "1.71.0", minimum required is "1.55.0") found components: system filesystem date_time iostreams regex 
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Found PCL: pcl_common;pcl_kdtree;pcl_octree;pcl_search;pcl_sample_consensus;pcl_filters;pcl_io;pcl_features;pcl_ml;pcl_segmentation;pcl_visualization;pcl_surface;pcl_registration;pcl_keypoints;pcl_tracking;pcl_recognition;pcl_stereo;pcl_apps;pcl_outofcore;pcl_people;/usr/lib/x86_64-linux-gnu/libboost_system.so;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so;/usr/lib/x86_64-linux-gnu/libboost_regex.so;optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so;/usr/lib/libOpenNI.so;/usr/lib/libOpenNI2.so;vtkChartsCore;vtkCommonColor;vtkCommonCore;vtksys;vtkCommonDataModel;vtkCommonMath;vtkCommonMisc;vtkCommonSystem;vtkCommonTransforms;vtkCommonExecutionModel;vtkFiltersGeneral;vtkCommonComputationalGeometry;vtkFiltersCore;vtkInfovisCore;vtkFiltersExtraction;vtkFiltersStatistics;vtkImagingFourier;vtkImagingCore;vtkalglib;vtkRenderingContext2D;vtkRenderingCore;vtkFiltersGeometry;vtkFiltersSources;vtkRenderingFreeType;/usr/lib/x86_64-linux-gnu/libfreetype.so;/usr/lib/x86_64-linux-gnu/libz.so;vtkFiltersModeling;vtkImagingSources;vtkInteractionStyle;vtkInteractionWidgets;vtkFiltersHybrid;vtkImagingColor;vtkImagingGeneral;vtkImagingHybrid;vtkIOImage;vtkDICOMParser;vtkmetaio;/usr/lib/x86_64-linux-gnu/libjpeg.so;/usr/lib/x86_64-linux-gnu/libpng.so;/usr/lib/x86_64-linux-gnu/libtiff.so;vtkRenderingAnnotation;vtkRenderingVolume;vtkIOXML;vtkIOCore;vtkIOXMLParser;/usr/lib/x86_64-linux-gnu/libexpat.so;vtkIOGeometry;vtkIOLegacy;vtkIOPLY;vtkRenderingLOD;vtkViewsContext2D;vtkViewsCore;vtkRenderingContextOpenGL2;vtkRenderingOpenGL2;FLANN::FLANN (Required is at least version "1.7") 
+-- PCL_INCLUDE_DIRS:/usr/include/pcl-1.10/usr/include/eigen3/usr/include/usr/include/vtk-7.1/usr/include/freetype2/usr/include/x86_64-linux-gnu/usr/include/ni/usr/include/openni2
+-- PCL_LIBRARY_DIRS:/usr/lib/x86_64-linux-gnu
+-- PCL_DEFINITIONS:-DDISABLE_PCAP-DDISABLE_PNG-DDISABLE_LIBUSB_1_0
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'plan_env'
+-- ==> add_subdirectory(plan_env)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- +++ processing catkin package: 'path_searching'
+-- ==> add_subdirectory(path_searching)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'bspline_opt'
+-- ==> add_subdirectory(bspline_opt)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'hdl_localization'
+-- ==> add_subdirectory(hdl_localization)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- PCL_INCLUDE_DIRS:/usr/include/pcl-1.10/usr/include/eigen3/usr/include/usr/include/vtk-7.1/usr/include/freetype2/usr/include/x86_64-linux-gnu/usr/include/ni/usr/include/openni2
+-- PCL_LIBRARY_DIRS:/usr/lib/x86_64-linux-gnu
+-- PCL_DEFINITIONS:-DDISABLE_PCAP-DDISABLE_PNG-DDISABLE_LIBUSB_1_0
+-- hdl_localization: 1 messages, 0 services
+-- +++ processing catkin package: 'elevation_mapping'
+-- ==> add_subdirectory(elevation_mapping)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Building message_logger using ros.
+-- Building message_logger without Sentry.
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.71.0/BoostConfig.cmake (found version "1.71.0") found components: system 
+-- +++ processing catkin package: 'traj_utils'
+-- ==> add_subdirectory(traj_utils)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- Found Boost: /usr/include (found suitable version "1.71.0", minimum required is "1.55.0") found components: system filesystem date_time iostreams regex 
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- +++ processing catkin package: 'scan_planner'
+-- ==> add_subdirectory(scan_planner)
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- scan_planner: 2 messages, 0 services
+-- +++ processing catkin package: 'lite3_description'
+-- ==> add_subdirectory(lite3_description)
+-- +++ processing catkin package: 'v8_ndt_odom'
+-- ==> add_subdirectory(v8_ndt_odom)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Eigen found (include: /usr/include/eigen3, version: 3.3.7)
+-- The imported target "vtkParseOGLExt" references the file
+   "/usr/bin/vtkParseOGLExt-7.1"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtkRenderingPythonTkWidgets" references the file
+   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "vtk" references the file
+   "/usr/bin/vtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- The imported target "pvtk" references the file
+   "/usr/bin/pvtk"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
+but not all the files it references.
+
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- OpenNI2 found (include: /usr/include/openni2, lib: /usr/lib/libOpenNI2.so)
+-- QHULL found (include: /usr/include, lib: optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so)
+-- OpenNI found (include: /usr/include/ni, lib: /usr/lib/libOpenNI.so)
+-- looking for PCL_COMMON
+-- looking for PCL_KDTREE
+-- looking for PCL_OCTREE
+-- looking for PCL_SEARCH
+-- looking for PCL_SAMPLE_CONSENSUS
+-- looking for PCL_FILTERS
+-- looking for PCL_2D
+-- looking for PCL_GEOMETRY
+-- looking for PCL_IO
+-- looking for PCL_FEATURES
+-- looking for PCL_ML
+-- looking for PCL_SEGMENTATION
+-- looking for PCL_VISUALIZATION
+-- looking for PCL_SURFACE
+-- looking for PCL_REGISTRATION
+-- looking for PCL_KEYPOINTS
+-- looking for PCL_TRACKING
+-- looking for PCL_RECOGNITION
+-- looking for PCL_STEREO
+-- looking for PCL_APPS
+-- looking for PCL_IN_HAND_SCANNER
+-- looking for PCL_POINT_CLOUD_EDITOR
+-- looking for PCL_OUTOFCORE
+-- looking for PCL_PEOPLE
+-- Found PCL: pcl_common;pcl_kdtree;pcl_octree;pcl_search;pcl_sample_consensus;pcl_filters;pcl_io;pcl_features;pcl_ml;pcl_segmentation;pcl_visualization;pcl_surface;pcl_registration;pcl_keypoints;pcl_tracking;pcl_recognition;pcl_stereo;pcl_apps;pcl_outofcore;pcl_people;/usr/lib/x86_64-linux-gnu/libboost_system.so;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so;/usr/lib/x86_64-linux-gnu/libboost_regex.so;optimized;/usr/lib/x86_64-linux-gnu/libqhull.so;debug;/usr/lib/x86_64-linux-gnu/libqhull.so;/usr/lib/libOpenNI.so;/usr/lib/libOpenNI2.so;vtkChartsCore;vtkCommonColor;vtkCommonCore;vtksys;vtkCommonDataModel;vtkCommonMath;vtkCommonMisc;vtkCommonSystem;vtkCommonTransforms;vtkCommonExecutionModel;vtkFiltersGeneral;vtkCommonComputationalGeometry;vtkFiltersCore;vtkInfovisCore;vtkFiltersExtraction;vtkFiltersStatistics;vtkImagingFourier;vtkImagingCore;vtkalglib;vtkRenderingContext2D;vtkRenderingCore;vtkFiltersGeometry;vtkFiltersSources;vtkRenderingFreeType;/usr/lib/x86_64-linux-gnu/libfreetype.so;/usr/lib/x86_64-linux-gnu/libz.so;vtkFiltersModeling;vtkImagingSources;vtkInteractionStyle;vtkInteractionWidgets;vtkFiltersHybrid;vtkImagingColor;vtkImagingGeneral;vtkImagingHybrid;vtkIOImage;vtkDICOMParser;vtkmetaio;/usr/lib/x86_64-linux-gnu/libjpeg.so;/usr/lib/x86_64-linux-gnu/libpng.so;/usr/lib/x86_64-linux-gnu/libtiff.so;vtkRenderingAnnotation;vtkRenderingVolume;vtkIOXML;vtkIOCore;vtkIOXMLParser;/usr/lib/x86_64-linux-gnu/libexpat.so;vtkIOGeometry;vtkIOLegacy;vtkIOPLY;vtkRenderingLOD;vtkViewsContext2D;vtkViewsCore;vtkRenderingContextOpenGL2;vtkRenderingOpenGL2;FLANN::FLANN  
+-- +++ processing catkin package: 'lite3_costmap_layers'
+-- ==> add_subdirectory(lite3_costmap_layers)
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- +++ processing catkin package: 'lite3_scan'
+-- ==> add_subdirectory(lite3_scan)
+-- +++ processing catkin package: 'v8_platform'
+-- ==> add_subdirectory(v8_platform)
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/planner/topic_node.py to /opt/ros1-slam/ws/devel/lib/v8_platform/planner
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/local_planner/path_goal_node.py to /opt/ros1-slam/ws/devel/lib/v8_platform/local_planner
+-- Installing devel-space wrapper /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/local_planner/ros_node.py to /opt/ros1-slam/ws/devel/lib/v8_platform/local_planner
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /opt/ros1-slam/ws/build
+Built target actionlib_generate_messages_cpp
+Built target actionlib_msgs_generate_messages_cpp
+Built target bond_generate_messages_cpp
+Built target costmap_2d_generate_messages_cpp
+Built target dynamic_reconfigure_generate_messages_cpp
+[  0%] Built target _faster_lio_generate_messages_check_deps_Pose6D
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[100%] Built target faster_lio_generate_messages_cpp
+Built target geometry_msgs_generate_messages_cpp
+Built target grid_map_msgs_generate_messages_cpp
+[  0%] Built target _hdl_global_localization_generate_messages_check_deps_SetGlobalLocalizationEngine
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target sensor_msgs_generate_messages_cpp
+[  0%] Built target _hdl_global_localization_generate_messages_check_deps_SetGlobalMap
+[  0%] Built target _hdl_global_localization_generate_messages_check_deps_QueryGlobalLocalization
+[100%] Built target hdl_global_localization_generate_messages_cpp
+[  0%] Built target _hdl_localization_generate_messages_check_deps_ScanMatchingStatus
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+[100%] Built target hdl_localization_generate_messages_cpp
+Built target _livox_laser_simulation_generate_messages_check_deps_CustomMsg
+Built target std_msgs_generate_messages_cpp
+Built target _livox_laser_simulation_generate_messages_check_deps_CustomPoint
+Built target livox_laser_simulation_generate_messages_cpp
+Built target _livox_ros_driver2_generate_messages_check_deps_CustomPoint
+Built target std_msgs_generate_messages_cpp
+Built target _livox_ros_driver2_generate_messages_check_deps_CustomMsg
+Built target livox_ros_driver2_generate_messages_cpp
+[  0%] Built target _livox_ros_driver_generate_messages_check_deps_CustomMsg
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target _livox_ros_driver_generate_messages_check_deps_CustomPoint
+[100%] Built target livox_ros_driver_generate_messages_cpp
+Built target map_msgs_generate_messages_cpp
+[  0%] Built target _message_transformer_generate_messages_check_deps_ComplexCMD
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target _message_transformer_generate_messages_check_deps_SimpleCMD
+[100%] Built target message_transformer_generate_messages_cpp
+Built target nav_msgs_generate_messages_cpp
+Built target nodelet_generate_messages_cpp
+Built target pcl_msgs_generate_messages_cpp
+[  0%] Built target _pipeline_generate_messages_check_deps_MoveBaseFeedback
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target actionlib_msgs_generate_messages_cpp
+[  0%] Built target _pipeline_generate_messages_check_deps_MoveBaseAction
+[  0%] Built target _pipeline_generate_messages_check_deps_MoveBaseActionGoal
+[  0%] Built target _pipeline_generate_messages_check_deps_MoveBaseActionResult
+[  0%] Built target _pipeline_generate_messages_check_deps_MoveBaseActionFeedback
+[  0%] Built target _pipeline_generate_messages_check_deps_MoveBaseGoal
+[  0%] Built target _pipeline_generate_messages_check_deps_MoveBaseResult
+[100%] Built target pipeline_generate_messages_cpp
+Built target roscpp_generate_messages_cpp
+Built target rosgraph_msgs_generate_messages_cpp
+[  0%] Built target _scan_planner_generate_messages_check_deps_Bspline
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target _scan_planner_generate_messages_check_deps_DataDisp
+[100%] Built target scan_planner_generate_messages_cpp
+Built target sensor_msgs_generate_messages_cpp
+Built target std_msgs_generate_messages_cpp
+Built target std_srvs_generate_messages_cpp
+Built target tf2_msgs_generate_messages_cpp
+Built target tf_generate_messages_cpp
+Built target topic_tools_generate_messages_cpp
+[  0%] Built target _v8_msgs_generate_messages_check_deps_SupportSurface
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target _v8_msgs_generate_messages_check_deps_SurfaceEdge
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target _v8_msgs_generate_messages_check_deps_SupportMap
+[  0%] Built target _v8_msgs_generate_messages_check_deps_MapOp
+[  0%] Built target _v8_msgs_generate_messages_check_deps_MapDelta
+[100%] Built target v8_msgs_generate_messages_cpp
+Built target visualization_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_eus
+[  0%] Built target geometry_msgs_generate_messages_eus
+[  0%] Built target std_msgs_generate_messages_py
+Running tests
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target geometry_msgs_generate_messages_py
+[  2%] Built target fast_gicp
+Scanning dependencies of target std_msgs_generate_messages_nodejs
+Scanning dependencies of target std_msgs_generate_messages_lisp
+Scanning dependencies of target geometry_msgs_generate_messages_lisp
+[  2%] Built target geometry_msgs_generate_messages_nodejs
+[  2%] Built target std_msgs_generate_messages_cpp
+Scanning dependencies of target lite3_bt_devel_policy
+[  2%] Built target std_msgs_generate_messages_lisp
+[  2%] Built target geometry_msgs_generate_messages_lisp
+[  2%] Built target _v8_msgs_generate_messages_check_deps_SupportMap
+[  2%] Built target std_msgs_generate_messages_nodejs
+[  2%] Syncing goal_gate_policy.py into the devel space
+Scanning dependencies of target roscpp_generate_messages_eus
+Scanning dependencies of target rosgraph_msgs_generate_messages_nodejs
+Working dir: /opt/ros1-slam/ws/build
+Running tests:  []
+Ran the following commands: 
+Scanning dependencies of target bt_console
+[  2%] Built target _v8_msgs_generate_messages_check_deps_SupportSurface
+Scanning dependencies of target roscpp_generate_messages_py
+[  2%] Built target roscpp_generate_messages_cpp
+Scanning dependencies of target roscpp_generate_messages_nodejs
+[  2%] Built target _v8_msgs_generate_messages_check_deps_MapDelta
+[  2%] Built target _v8_msgs_generate_messages_check_deps_SurfaceEdge
+[  2%] Built target _v8_msgs_generate_messages_check_deps_MapOp
+[  2%] Built target roscpp_generate_messages_eus
+[  2%] Built target rosgraph_msgs_generate_messages_nodejs
+[  2%] Built target run_tests
+[  2%] Built target roscpp_generate_messages_py
+[  2%] Built target roscpp_generate_messages_nodejs
+Scanning dependencies of target rosgraph_msgs_generate_messages_eus
+[  2%] Building CXX object lite3_bt/CMakeFiles/bt_console.dir/src/bt_console.cpp.o
+Scanning dependencies of target roscpp_generate_messages_lisp
+Scanning dependencies of target rosgraph_msgs_generate_messages_py
+Scanning dependencies of target rosgraph_msgs_generate_messages_lisp
+Scanning dependencies of target actionlib_msgs_generate_messages_lisp
+[  2%] Built target rosgraph_msgs_generate_messages_cpp
+[  2%] Built target rosgraph_msgs_generate_messages_eus
+[  2%] Built target lite3_bt_devel_policy
+[  2%] Built target rosgraph_msgs_generate_messages_py
+[  2%] Built target rosgraph_msgs_generate_messages_lisp
+[  2%] Built target roscpp_generate_messages_lisp
+[  2%] Built target actionlib_msgs_generate_messages_lisp
+Scanning dependencies of target actionlib_msgs_generate_messages_py
+Scanning dependencies of target actionlib_msgs_generate_messages_nodejs
+Scanning dependencies of target actionlib_msgs_generate_messages_eus
+[  2%] Built target actionlib_msgs_generate_messages_nodejs
+[  2%] Built target actionlib_msgs_generate_messages_cpp
+[  2%] Built target actionlib_msgs_generate_messages_py
+[  2%] Built target actionlib_msgs_generate_messages_eus
+[  2%] Built target _pipeline_generate_messages_check_deps_MoveBaseActionResult
+[  2%] Built target _pipeline_generate_messages_check_deps_MoveBaseAction
+[  2%] Built target _pipeline_generate_messages_check_deps_MoveBaseFeedback
+[  2%] Built target _pipeline_generate_messages_check_deps_MoveBaseGoal
+Scanning dependencies of target nav_msgs_generate_messages_py
+Scanning dependencies of target nav_msgs_generate_messages_eus
+Scanning dependencies of target nav_msgs_generate_messages_nodejs
+[  2%] Built target _pipeline_generate_messages_check_deps_MoveBaseResult
+[  2%] Built target _pipeline_generate_messages_check_deps_MoveBaseActionGoal
+[  2%] Built target nav_msgs_generate_messages_py
+[  2%] Built target _pipeline_generate_messages_check_deps_MoveBaseActionFeedback
+Scanning dependencies of target map_pub
+[  2%] Built target nav_msgs_generate_messages_eus
+Scanning dependencies of target actionlib_generate_messages_eus
+Scanning dependencies of target nav_msgs_generate_messages_lisp
+Scanning dependencies of target actionlib_generate_messages_lisp
+[  2%] Built target nav_msgs_generate_messages_nodejs
+[  2%] Built target _message_transformer_generate_messages_check_deps_ComplexCMD
+[  3%] Building CXX object map_generator/CMakeFiles/map_pub.dir/src/map_publisher.cpp.o
+Scanning dependencies of target actionlib_generate_messages_py
+[  3%] Built target nav_msgs_generate_messages_lisp
+[  3%] Built target actionlib_generate_messages_eus
+[  3%] Built target nav_msgs_generate_messages_cpp
+Scanning dependencies of target actionlib_generate_messages_nodejs
+[  3%] Built target actionlib_generate_messages_lisp
+[  3%] Built target actionlib_generate_messages_cpp
+[  3%] Built target actionlib_generate_messages_py
+Scanning dependencies of target sensor_msgs_generate_messages_eus
+[  3%] Built target actionlib_generate_messages_nodejs
+Scanning dependencies of target sensor_msgs_generate_messages_nodejs
+Scanning dependencies of target sensor_msgs_generate_messages_lisp
+Scanning dependencies of target sensor_msgs_generate_messages_py
+[  3%] Built target _message_transformer_generate_messages_check_deps_SimpleCMD
+[  3%] Built target sensor_msgs_generate_messages_eus
+[  3%] Built target sensor_msgs_generate_messages_lisp
+[  3%] Built target sensor_msgs_generate_messages_nodejs
+Scanning dependencies of target tf_generate_messages_eus
+[  3%] Built target sensor_msgs_generate_messages_cpp
+Scanning dependencies of target tf_generate_messages_nodejs
+[  3%] Built target sensor_msgs_generate_messages_py
+Scanning dependencies of target tf_generate_messages_py
+[  3%] Built target tf_generate_messages_cpp
+[  3%] Built target tf_generate_messages_eus
+Scanning dependencies of target tf2_msgs_generate_messages_eus
+[  3%] Built target tf_generate_messages_nodejs
+Scanning dependencies of target tf2_msgs_generate_messages_py
+Scanning dependencies of target tf2_msgs_generate_messages_lisp
+Scanning dependencies of target tf_generate_messages_lisp
+[  3%] Built target tf_generate_messages_py
+Scanning dependencies of target tf2_msgs_generate_messages_nodejs
+Scanning dependencies of target lite3_planar_drive
+[  3%] Built target tf2_msgs_generate_messages_eus
+[  3%] Built target tf2_msgs_generate_messages_cpp
+Scanning dependencies of target message_transformer_generate_messages_nodejs
+Scanning dependencies of target message_transformer_generate_messages_py
+[  3%] Built target tf2_msgs_generate_messages_py
+[  3%] Built target tf2_msgs_generate_messages_lisp
+[  3%] Built target tf_generate_messages_lisp
+[  3%] Built target tf2_msgs_generate_messages_nodejs
+Scanning dependencies of target message_transformer_generate_messages_lisp
+[  3%] Generating Javascript code from message_transformer/SimpleCMD.msg
+[  3%] Generating Python from MSG message_transformer/SimpleCMD
+[  3%] Building CXX object lite3_gazebo_sim/CMakeFiles/lite3_planar_drive.dir/src/lite3_planar_drive.cpp.o
+[  4%] Built target message_transformer_generate_messages_cpp
+[  5%] Generating Lisp code from message_transformer/SimpleCMD.msg
+[  5%] Generating Lisp code from message_transformer/ComplexCMD.msg
+[  5%] Built target _faster_lio_generate_messages_check_deps_Pose6D
+[  6%] Generating Javascript code from message_transformer/ComplexCMD.msg
+[  6%] Built target _livox_ros_driver_generate_messages_check_deps_CustomMsg
+[  6%] Built target _livox_ros_driver_generate_messages_check_deps_CustomPoint
+[  6%] Built target _hdl_global_localization_generate_messages_check_deps_SetGlobalLocalizationEngine
+[  6%] Built target message_transformer_generate_messages_lisp
+[  6%] Generating Python from MSG message_transformer/ComplexCMD
+Scanning dependencies of target hdl_global_localization
+[  6%] Built target message_transformer_generate_messages_nodejs
+[  6%] Built target _hdl_global_localization_generate_messages_check_deps_SetGlobalMap
+[  6%] Building CXX object hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/bbs/bbs_localization.cpp.o
+[  6%] Built target _livox_ros_driver2_generate_messages_check_deps_CustomMsg
+[  6%] Built target _hdl_global_localization_generate_messages_check_deps_QueryGlobalLocalization
+[  6%] Built target _livox_ros_driver2_generate_messages_check_deps_CustomPoint
+[  6%] Built target _livox_laser_simulation_generate_messages_check_deps_CustomMsg
+Scanning dependencies of target pcl_render_node
+[  6%] Built target _livox_laser_simulation_generate_messages_check_deps_CustomPoint
+Scanning dependencies of target ndt_omp
+[  6%] Built target _hdl_localization_generate_messages_check_deps_ScanMatchingStatus
+Scanning dependencies of target mockamap_node
+[  6%] Building CXX object local_sensing_node/CMakeFiles/pcl_render_node.dir/src/pointcloud_render_node.cpp.o
+Scanning dependencies of target plan_env
+[  6%] Building CXX object ndt_omp/CMakeFiles/ndt_omp.dir/src/pclomp/voxel_grid_covariance_omp.cpp.o
+[  6%] Building CXX object mockamap/CMakeFiles/mockamap_node.dir/src/ces_randommap.cpp.o
+Scanning dependencies of target livox_laser_simulation
+[  7%] Building CXX object plan_env/CMakeFiles/plan_env.dir/src/grid_map.cpp.o
+[  8%] Generating Python msg __init__.py for message_transformer
+[  8%] Building CXX object livox_laser_simulation/CMakeFiles/livox_laser_simulation.dir/src/livox_points_plugin.cpp.o
+[  8%] Built target _scan_planner_generate_messages_check_deps_Bspline
+[  8%] Built target _scan_planner_generate_messages_check_deps_DataDisp
+[  8%] Building CXX object plan_env/CMakeFiles/plan_env.dir/src/raycast.cpp.o
+Scanning dependencies of target lite3_costmap_layers
+[  8%] Building CXX object lite3_costmap_layers/CMakeFiles/lite3_costmap_layers.dir/src/elevation_merged_layer.cpp.o
+[  8%] Built target message_transformer_generate_messages_py
+Scanning dependencies of target gicp_kitti
+[  9%] Building CXX object fast_gicp/CMakeFiles/gicp_kitti.dir/src/kitti.cpp.o
+[  9%] Building CXX object mockamap/CMakeFiles/mockamap_node.dir/src/maps.cpp.o
+[ 10%] Building CXX object hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/ransac/voxelset.cpp.o
+[ 11%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/liblite3_costmap_layers.so
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp: In function ‘void generate_ptclouds_by_pos(Eigen::Vector3d, int, pcl::PointCloud<pcl::PointXYZI>&, std::vector<pcl::PointXYZI>&)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:441:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+  441 |     for (int i = 0; i < obs_cloud.size(); i++)
+      |                     ~~^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:459:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+  459 |   for (int i = 0; i < obs_cloud.size(); i++)
+      |                   ~~^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp: In function ‘void dynobjGenerate(const ros::TimerEvent&)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:542:25: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  542 |       for (int i = 0; i < temp_dynobj_points.size(); i++)
+      |                       ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp: In function ‘void multiOdometryCallback(const OdometryConstPtr&, int)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:755:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  755 |     for (int i = 0; i < uav_extra_model.points.size(); i++)
+      |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp: In function ‘void renderSensedPoints(const ros::TimerEvent&)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1242:12: warning: unused variable ‘scale_x’ [-Wunused-variable]
+ 1242 |     double scale_x = 0.48 * polar_width / 2.0;
+      |            ^~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1243:12: warning: unused variable ‘scale_y’ [-Wunused-variable]
+ 1243 |     double scale_y = 0.43 * polar_height / 2.0;
+      |            ^~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1315:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<BoxPointType>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+ 1315 |     for (int i = 0; i < fov_boxes.size(); i++)
+      |                     ~~^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1426:17: warning: unused variable ‘droneid_temp’ [-Wunused-variable]
+ 1426 |             int droneid_temp = (point_temp_index / (uav_points_num));
+      |                 ^~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1567:68: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+ 1567 |             if ((point_temp_index - droneid_temp * uav_points_num) > (otheruav_points_inrender[droneid_temp].size() - 1))
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1622:15: warning: unused variable ‘theta_index_o’ [-Wunused-variable]
+ 1622 |           int theta_index_o = theta_start;
+      |               ^~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1623:15: warning: unused variable ‘fi_index_o’ [-Wunused-variable]
+ 1623 |           int fi_index_o = fi_start;
+      |               ^~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1689:21: warning: variable ‘t_in5’ set but not used [-Wunused-but-set-variable]
+ 1689 |           ros::Time t_in5 = ros::Time::now();
+      |                     ^~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1543:19: warning: variable ‘t_in1’ set but not used [-Wunused-but-set-variable]
+ 1543 |         ros::Time t_in1 = ros::Time::now();
+      |                   ^~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1598:19: warning: variable ‘t_in2’ set but not used [-Wunused-but-set-variable]
+ 1598 |         ros::Time t_in2 = ros::Time::now();
+      |                   ^~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1526:12: warning: unused variable ‘duration_interline’ [-Wunused-variable]
+ 1526 |     double duration_interline = 0.0;
+      |            ^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1527:12: warning: unused variable ‘duration_direct’ [-Wunused-variable]
+ 1527 |     double duration_direct = 0.0;
+      |            ^~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1083:7: warning: unused variable ‘pointcount’ [-Wunused-variable]
+ 1083 |   int pointcount = 0;
+      |       ^~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1084:7: warning: unused variable ‘changepointcount’ [-Wunused-variable]
+ 1084 |   int changepointcount = 0;
+      |       ^~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1086:16: warning: unused variable ‘tan_ver_’ [-Wunused-variable]
+ 1086 |   const double tan_ver_ = tan(M_PI * (vertical_fov_margined_ / 2.0) / 180.0);
+      |                ^~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1087:16: warning: unused variable ‘yaw_’ [-Wunused-variable]
+ 1087 |   const double yaw_ = (M_PI * (yaw_fov_margined_ / 2.0) / 180.0);
+      |                ^~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/src/pointcloud_render_node.cpp:1088:16: warning: unused variable ‘ver_threshold’ [-Wunused-variable]
+ 1088 |   const double ver_threshold = cos(M_PI * (vertical_fov_margined_ / 2.0) / 180.0);
+      |                ^~~~~~~~~~~~~
+[ 11%] Built target lite3_costmap_layers
+[ 11%] Building CXX object hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/ransac/ransac_pose_estimation.cpp.o
+[ 12%] Building CXX object ndt_omp/CMakeFiles/ndt_omp.dir/src/pclomp/ndt_omp.cpp.o
+[ 12%] Building CXX object ndt_omp/CMakeFiles/ndt_omp.dir/src/pclomp/gicp_omp.cpp.o
+[ 12%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/lite3_bt/bt_console
+[ 12%] Built target bt_console
+[ 13%] Building CXX object local_sensing_node/CMakeFiles/pcl_render_node.dir/include/ikd-Tree/ikd_Tree.cpp.o
+In file included from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:22:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/include/livox_laser_simulation/livox_point_xyzrtl.h:25:11: warning: ‘using uint8_t = uint8_t’ is deprecated: use std::uint8_t instead of pcl::uint8_t [-Wdeprecated-declarations]
+   25 |   uint8_t tag;        /**< Livox point tag   */
+      |           ^~~
+In file included from /usr/include/pcl-1.10/pcl/PCLPointField.h:10,
+                 from /usr/include/pcl-1.10/pcl/conversions.h:46,
+                 from /opt/ros/noetic/include/pcl_conversions/pcl_conversions.h:44,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:6:
+/usr/include/pcl-1.10/pcl/pcl_macros.h:92:9: note: declared here
+   92 |   using uint8_t [[deprecated("use std::uint8_t instead of pcl::uint8_t")]] = std::uint8_t;
+      |         ^~~~~~~
+In file included from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:22:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/include/livox_laser_simulation/livox_point_xyzrtl.h:26:11: warning: ‘using uint8_t = uint8_t’ is deprecated: use std::uint8_t instead of pcl::uint8_t [-Wdeprecated-declarations]
+   26 |   uint8_t line;       /**< Laser line id     */
+      |           ^~~~
+In file included from /usr/include/pcl-1.10/pcl/PCLPointField.h:10,
+                 from /usr/include/pcl-1.10/pcl/conversions.h:46,
+                 from /opt/ros/noetic/include/pcl_conversions/pcl_conversions.h:44,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:6:
+/usr/include/pcl-1.10/pcl/pcl_macros.h:92:9: note: declared here
+   92 |   using uint8_t [[deprecated("use std::uint8_t instead of pcl::uint8_t")]] = std::uint8_t;
+      |         ^~~~~~~
+In file included from /usr/include/boost/preprocessor/tuple/elem.hpp:23,
+                 from /usr/include/boost/preprocessor/array/data.hpp:16,
+                 from /usr/include/boost/preprocessor/array/elem.hpp:15,
+                 from /usr/include/boost/preprocessor/iteration/iterate.hpp:17,
+                 from /usr/include/boost/preprocessor/iterate.hpp:15,
+                 from /usr/include/boost/function.hpp:25,
+                 from /opt/ros/noetic/include/ros/forwards.h:40,
+                 from /opt/ros/noetic/include/ros/node_handle.h:31,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/include/livox_laser_simulation/livox_points_plugin.h:7,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:5:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/include/livox_laser_simulation/livox_point_xyzrtl.h:39:37: warning: ‘using uint8_t = uint8_t’ is deprecated: use std::uint8_t instead of pcl::uint8_t [-Wdeprecated-declarations]
+   39 |                                    (uint8_t, tag, tag)
+      |                                     ^~~~~~~
+In file included from /usr/include/pcl-1.10/pcl/PCLPointField.h:10,
+                 from /usr/include/pcl-1.10/pcl/conversions.h:46,
+                 from /opt/ros/noetic/include/pcl_conversions/pcl_conversions.h:44,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:6:
+/usr/include/pcl-1.10/pcl/pcl_macros.h:92:9: note: declared here
+   92 |   using uint8_t [[deprecated("use std::uint8_t instead of pcl::uint8_t")]] = std::uint8_t;
+      |         ^~~~~~~
+In file included from /usr/include/boost/preprocessor/tuple/elem.hpp:23,
+                 from /usr/include/boost/preprocessor/array/data.hpp:16,
+                 from /usr/include/boost/preprocessor/array/elem.hpp:15,
+                 from /usr/include/boost/preprocessor/iteration/iterate.hpp:17,
+                 from /usr/include/boost/preprocessor/iterate.hpp:15,
+                 from /usr/include/boost/function.hpp:25,
+                 from /opt/ros/noetic/include/ros/forwards.h:40,
+                 from /opt/ros/noetic/include/ros/node_handle.h:31,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/include/livox_laser_simulation/livox_points_plugin.h:7,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:5:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/include/livox_laser_simulation/livox_point_xyzrtl.h:40:37: warning: ‘using uint8_t = uint8_t’ is deprecated: use std::uint8_t instead of pcl::uint8_t [-Wdeprecated-declarations]
+   40 |                                    (uint8_t, line, line)
+      |                                     ^~~~~~~
+In file included from /usr/include/pcl-1.10/pcl/PCLPointField.h:10,
+                 from /usr/include/pcl-1.10/pcl/conversions.h:46,
+                 from /opt/ros/noetic/include/pcl_conversions/pcl_conversions.h:44,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation/src/livox_points_plugin.cpp:6:
+/usr/include/pcl-1.10/pcl/pcl_macros.h:92:9: note: declared here
+   92 |   using uint8_t [[deprecated("use std::uint8_t instead of pcl::uint8_t")]] = std::uint8_t;
+      |         ^~~~~~~
+Scanning dependencies of target gicp_align
+[ 13%] Building CXX object fast_gicp/CMakeFiles/gicp_align.dir/src/align.cpp.o
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In static member function ‘static void* KD_TREE::multi_thread_ptr(void*)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:185:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  185 | }
+      | ^
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::multi_thread_rebuild()’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:272:17: warning: unused variable ‘valid_old’ [-Wunused-variable]
+  272 |             int valid_old = old_root_node->TreeSize-old_root_node->invalid_point_num;
+      |                 ^~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:273:17: warning: unused variable ‘valid_new’ [-Wunused-variable]
+  273 |             int valid_new = new_root_node->TreeSize-new_root_node->invalid_point_num;
+      |                 ^~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:189:35: warning: unused variable ‘new_node_ptr’ [-Wunused-variable]
+  189 |     KD_TREE_NODE * father_ptr, ** new_node_ptr;
+      |                                   ^~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘int KD_TREE::Add_Points(PointVector&, bool)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:390:20: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  390 |     for (int i=0; i<PointToAdd.size();i++){
+      |                   ~^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:405:39: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  405 |             for (int index = 0; index < Downsample_Storage.size(); index++){
+      |                                 ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:383:9: warning: unused variable ‘NewPointSize’ [-Wunused-variable]
+  383 |     int NewPointSize = PointToAdd.size();
+      |         ^~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:384:9: warning: unused variable ‘tree_size’ [-Wunused-variable]
+  384 |     int tree_size = size();
+      |         ^~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::Add_Point_Boxes(std::vector<BoxPointType>&)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:460:20: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<BoxPointType>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  460 |     for (int i=0;i < BoxPoints.size();i++){
+      |                  ~~^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::Delete_Points(PointVector&)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:481:19: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  481 |     for (int i=0;i<PointToDel.size();i++){
+      |                  ~^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘int KD_TREE::Delete_Point_Boxes(std::vector<BoxPointType>&)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:503:20: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<BoxPointType>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  503 |     for (int i=0;i < BoxPoints.size();i++){
+      |                  ~~^~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::acquire_removed_points(PointVector&)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:525:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  525 |     for (int i = 0; i < Points_deleted.size();i++){
+      |                     ~~^~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:528:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<pcl::PointXYZI, Eigen::aligned_allocator<pcl::PointXYZI> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  528 |     for (int i = 0; i < Multithread_Points_deleted.size();i++){
+      |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::Rebuild(KD_TREE_NODE**)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:615:13: warning: unused variable ‘size_rec’ [-Wunused-variable]
+  615 |         int size_rec = (*root)->TreeSize;
+      |             ^~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘int KD_TREE::Delete_by_range(KD_TREE_NODE**, BoxPointType, bool, bool)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:654:21: warning: unused variable ‘Timeout’ [-Wunused-variable]
+  654 |     struct timespec Timeout;
+      |                     ^~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::Delete_by_point(KD_TREE_NODE**, PointType, bool)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:701:21: warning: unused variable ‘Timeout’ [-Wunused-variable]
+  701 |     struct timespec Timeout;
+      |                     ^~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::Add_by_range(KD_TREE_NODE**, BoxPointType, bool)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:758:21: warning: unused variable ‘Timeout’ [-Wunused-variable]
+  758 |     struct timespec Timeout;
+      |                     ^~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::Add_by_point(KD_TREE_NODE**, PointType, bool, int)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:804:21: warning: unused variable ‘Timeout’ [-Wunused-variable]
+  804 |     struct timespec Timeout;
+      |                     ^~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp: In member function ‘void KD_TREE::Search(KD_TREE_NODE*, int, PointType, MANUAL_HEAP&, double)’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:869:62: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+  869 |     if (q.size()< k_nearest || dist_left_node < q.top().dist && dist_right_node < q.top().dist){
+      |                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node/include/ikd-Tree/ikd_Tree.cpp:866:9: warning: unused variable ‘cur_search_counter’ [-Wunused-variable]
+  866 |     int cur_search_counter;
+      |         ^~~~~~~~~~~~~~~~~~
+[ 13%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/map_generator/map_pub
+[ 13%] Building CXX object local_sensing_node/CMakeFiles/pcl_render_node.dir/include/FOV_Checker/FOV_Checker.cpp.o
+[ 13%] Built target map_pub
+[ 13%] Building CXX object livox_laser_simulation/CMakeFiles/livox_laser_simulation.dir/src/livox_ode_multiray_shape.cpp.o
+[ 13%] Building CXX object hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/engines/global_localization_bbs.cpp.o
+[ 14%] Building CXX object mockamap/CMakeFiles/mockamap_node.dir/src/mockamap.cpp.o
+[ 14%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/fast_gicp/gicp_kitti
+[ 15%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/local_sensing_node/pcl_render_node
+[ 16%] Building CXX object hdl_global_localization/CMakeFiles/hdl_global_localization.dir/src/hdl_global_localization/engines/global_localization_fpfh_ransac.cpp.o
+[ 17%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/liblite3_planar_drive.so
+[ 17%] Built target lite3_planar_drive
+Scanning dependencies of target v8_msgs_generate_messages_py
+[ 18%] Generating Python from MSG v8_msgs/SurfaceEdge
+[ 18%] Generating Python from MSG v8_msgs/SupportSurface
+[ 18%] Built target gicp_kitti
+Scanning dependencies of target v8_msgs_generate_messages_eus
+[ 18%] Generating EusLisp code from v8_msgs/SurfaceEdge.msg
+[ 18%] Generating Python from MSG v8_msgs/SupportMap
+[ 19%] Generating EusLisp code from v8_msgs/SupportSurface.msg
+[ 19%] Generating EusLisp code from v8_msgs/SupportMap.msg
+[ 20%] Generating Python from MSG v8_msgs/MapOp
+[ 20%] Generating EusLisp code from v8_msgs/MapOp.msg
+[ 21%] Generating EusLisp code from v8_msgs/MapDelta.msg
+[ 21%] Generating Python from MSG v8_msgs/MapDelta
+[ 21%] Generating EusLisp manifest code for v8_msgs
+[ 22%] Generating Python msg __init__.py for v8_msgs
+[ 22%] Building CXX object mockamap/CMakeFiles/mockamap_node.dir/src/perlinnoise.cpp.o
+[ 22%] Built target v8_msgs_generate_messages_py
+[ 24%] Built target v8_msgs_generate_messages_cpp
+Scanning dependencies of target v8_msgs_generate_messages_nodejs
+[ 24%] Generating Javascript code from v8_msgs/SurfaceEdge.msg
+[ 24%] Generating Javascript code from v8_msgs/SupportSurface.msg
+[ 25%] Generating Javascript code from v8_msgs/SupportMap.msg
+[ 25%] Generating Javascript code from v8_msgs/MapOp.msg
+[ 25%] Generating Javascript code from v8_msgs/MapDelta.msg
+Scanning dependencies of target v8_msgs_generate_messages_lisp
+[ 25%] Generating Lisp code from v8_msgs/SurfaceEdge.msg
+[ 25%] Built target v8_msgs_generate_messages_nodejs
+[ 25%] Built target v8_msgs_generate_messages_eus
+[ 26%] Generating Lisp code from v8_msgs/SupportSurface.msg
+Scanning dependencies of target message_logger
+[ 26%] Building CXX object message_logger/CMakeFiles/message_logger.dir/src/log/log_sentry.cpp.o
+[ 26%] Generating Lisp code from v8_msgs/SupportMap.msg
+[ 26%] Generating Lisp code from v8_msgs/MapOp.msg
+[ 27%] Building CXX object message_logger/CMakeFiles/message_logger.dir/src/time/Time.cpp.o
+[ 28%] Generating Lisp code from v8_msgs/MapDelta.msg
+[ 28%] Built target v8_msgs_generate_messages_lisp
+Scanning dependencies of target pipeline_generate_messages_lisp
+[ 28%] Generating Lisp code from pipeline/MoveBaseAction.msg
+[ 28%] Generating Lisp code from pipeline/MoveBaseActionGoal.msg
+[ 28%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/mockamap/mockamap_node
+[ 29%] Generating Lisp code from pipeline/MoveBaseActionResult.msg
+[ 29%] Building CXX object message_logger/CMakeFiles/message_logger.dir/src/time/TimeStd.cpp.o
+[ 29%] Generating Lisp code from pipeline/MoveBaseActionFeedback.msg
+[ 29%] Generating Lisp code from pipeline/MoveBaseGoal.msg
+[ 30%] Generating Lisp code from pipeline/MoveBaseResult.msg
+[ 30%] Generating Lisp code from pipeline/MoveBaseFeedback.msg
+Scanning dependencies of target pipeline_generate_messages_py
+[ 31%] Generating Python from MSG pipeline/MoveBaseAction
+[ 31%] Built target pipeline_generate_messages_lisp
+Scanning dependencies of target pipeline_generate_messages_nodejs
+[ 31%] Generating Javascript code from pipeline/MoveBaseAction.msg
+[ 31%] Generating Python from MSG pipeline/MoveBaseActionGoal
+[ 32%] Generating Javascript code from pipeline/MoveBaseActionGoal.msg
+[ 33%] Generating Python from MSG pipeline/MoveBaseActionResult
+[ 33%] Generating Javascript code from pipeline/MoveBaseActionResult.msg
+[ 33%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libmessage_logger.so
+[ 33%] Generating Javascript code from pipeline/MoveBaseActionFeedback.msg
+[ 35%] Built target pipeline_generate_messages_cpp
+Scanning dependencies of target pipeline_generate_messages_eus
+[ 35%] Generating EusLisp code from pipeline/MoveBaseAction.msg
+[ 36%] Generating Javascript code from pipeline/MoveBaseGoal.msg
+[ 36%] Generating Python from MSG pipeline/MoveBaseActionFeedback
+[ 37%] Generating Javascript code from pipeline/MoveBaseResult.msg
+[ 37%] Generating EusLisp code from pipeline/MoveBaseActionGoal.msg
+[ 37%] Built target message_logger
+[ 37%] Generating EusLisp code from pipeline/MoveBaseActionResult.msg
+[ 37%] Generating Javascript code from pipeline/MoveBaseFeedback.msg
+Scanning dependencies of target message_transformer_generate_messages_eus
+[ 38%] Generating EusLisp code from message_transformer/SimpleCMD.msg
+Scanning dependencies of target faster_lio_generate_messages_lisp
+[ 39%] Generating Lisp code from faster_lio/Pose6D.msg
+[ 39%] Built target pipeline_generate_messages_nodejs
+[ 39%] Generating EusLisp code from pipeline/MoveBaseActionFeedback.msg
+Scanning dependencies of target faster_lio_generate_messages_py
+[ 39%] Generating Python from MSG faster_lio/Pose6D
+[ 39%] Built target faster_lio_generate_messages_lisp
+[ 39%] Generating Python from MSG pipeline/MoveBaseGoal
+[ 39%] Generating EusLisp code from message_transformer/ComplexCMD.msg
+Scanning dependencies of target faster_lio_generate_messages_nodejs
+[ 40%] Generating EusLisp code from pipeline/MoveBaseGoal.msg
+[ 40%] Generating Javascript code from faster_lio/Pose6D.msg
+[ 41%] Generating Python msg __init__.py for faster_lio
+[ 41%] Built target faster_lio_generate_messages_nodejs
+[ 41%] Generating EusLisp code from pipeline/MoveBaseResult.msg
+Scanning dependencies of target faster_lio_generate_messages_eus
+[ 41%] Generating EusLisp manifest code for message_transformer
+[ 41%] Generating EusLisp code from faster_lio/Pose6D.msg
+[ 41%] Generating EusLisp code from pipeline/MoveBaseFeedback.msg
+[ 41%] Generating EusLisp manifest code for faster_lio
+[ 42%] Generating Python from MSG pipeline/MoveBaseResult
+[ 43%] Generating EusLisp manifest code for pipeline
+[ 43%] Built target faster_lio_generate_messages_py
+[ 44%] Built target faster_lio_generate_messages_cpp
+Scanning dependencies of target livox_ros_driver_generate_messages_py
+[ 45%] Generating Python from MSG livox_ros_driver/CustomPoint
+[ 45%] Built target mockamap_node
+[ 45%] Generating Python from MSG pipeline/MoveBaseFeedback
+[ 45%] Generating Python from MSG livox_ros_driver/CustomMsg
+[ 45%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libndt_omp.so
+Scanning dependencies of target livox_ros_driver_generate_messages_nodejs
+[ 45%] Generating Javascript code from livox_ros_driver/CustomPoint.msg
+[ 45%] Generating Python msg __init__.py for livox_ros_driver
+[ 45%] Generating Python msg __init__.py for pipeline
+[ 45%] Generating Javascript code from livox_ros_driver/CustomMsg.msg
+[ 45%] Built target ndt_omp
+[ 46%] Built target livox_ros_driver_generate_messages_cpp
+[ 46%] Built target livox_ros_driver_generate_messages_nodejs
+Scanning dependencies of target livox_ros_driver_generate_messages_eus
+[ 46%] Generating EusLisp code from livox_ros_driver/CustomPoint.msg
+Scanning dependencies of target livox_ros_driver_generate_messages_lisp
+[ 46%] Built target livox_ros_driver_generate_messages_py
+[ 46%] Generating Lisp code from livox_ros_driver/CustomPoint.msg
+Scanning dependencies of target livox_ros_driver_gencpp
+[ 46%] Built target pipeline_generate_messages_py
+[ 46%] Built target livox_ros_driver_gencpp
+Scanning dependencies of target faster_lio_gencpp
+[ 46%] Built target faster_lio_gencpp
+[ 47%] Built target message_transformer_generate_messages_eus
+[ 47%] Built target hdl_global_localization_generate_messages_cpp
+[ 48%] Generating Lisp code from livox_ros_driver/CustomMsg.msg
+Scanning dependencies of target hdl_global_localization_generate_messages_nodejs
+[ 49%] Generating EusLisp code from livox_ros_driver/CustomMsg.msg
+Scanning dependencies of target hdl_global_localization_generate_messages_eus
+Scanning dependencies of target hdl_global_localization_generate_messages_py
+[ 49%] Generating Javascript code from hdl_global_localization/SetGlobalLocalizationEngine.srv
+[ 50%] Generating EusLisp code from hdl_global_localization/SetGlobalLocalizationEngine.srv
+[ 50%] Generating Python code from SRV hdl_global_localization/SetGlobalLocalizationEngine
+[ 50%] Built target livox_ros_driver_generate_messages_lisp
+[ 50%] Generating Javascript code from hdl_global_localization/SetGlobalMap.srv
+Scanning dependencies of target hdl_global_localization_generate_messages_lisp
+[ 50%] Generating Lisp code from hdl_global_localization/SetGlobalLocalizationEngine.srv
+[ 50%] Generating EusLisp manifest code for livox_ros_driver
+[ 50%] Generating EusLisp code from hdl_global_localization/SetGlobalMap.srv
+[ 51%] Generating Javascript code from hdl_global_localization/QueryGlobalLocalization.srv
+[ 51%] Generating Lisp code from hdl_global_localization/SetGlobalMap.srv
+[ 52%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/liblivox_laser_simulation.so
+[ 52%] Built target hdl_global_localization_generate_messages_nodejs
+[ 53%] Generating Lisp code from hdl_global_localization/QueryGlobalLocalization.srv
+Scanning dependencies of target livox_ros_driver2_generate_messages_py
+[ 53%] Generating Python from MSG livox_ros_driver2/CustomPoint
+[ 53%] Generating Python code from SRV hdl_global_localization/SetGlobalMap
+[ 53%] Generating EusLisp code from hdl_global_localization/QueryGlobalLocalization.srv
+[ 53%] Built target faster_lio_generate_messages_eus
+Scanning dependencies of target livox_ros_driver2_generate_messages_eus
+[ 54%] Generating EusLisp code from livox_ros_driver2/CustomPoint.msg
+[ 54%] Built target hdl_global_localization_generate_messages_lisp
+[ 55%] Generating Python code from SRV hdl_global_localization/QueryGlobalLocalization
+[ 55%] Built target pipeline_generate_messages_eus
+[ 55%] Generating EusLisp code from livox_ros_driver2/CustomMsg.msg
+[ 56%] Generating EusLisp manifest code for hdl_global_localization
+[ 56%] Generating EusLisp manifest code for livox_ros_driver2
+[ 56%] Generating Python from MSG livox_ros_driver2/CustomMsg
+[ 56%] Generating Python srv __init__.py for hdl_global_localization
+Scanning dependencies of target livox_ros_driver2_generate_messages_nodejs
+[ 56%] Generating Javascript code from livox_ros_driver2/CustomPoint.msg
+Scanning dependencies of target livox_ros_driver2_generate_messages_lisp
+[ 56%] Built target livox_laser_simulation
+[ 57%] Generating Lisp code from livox_ros_driver2/CustomPoint.msg
+[ 57%] Generating Lisp code from livox_ros_driver2/CustomMsg.msg
+[ 58%] Generating Javascript code from livox_ros_driver2/CustomMsg.msg
+[ 59%] Generating Python msg __init__.py for livox_ros_driver2
+[ 59%] Built target livox_ros_driver2_generate_messages_lisp
+[ 59%] Built target livox_ros_driver2_generate_messages_cpp
+Scanning dependencies of target livox_laser_simulation_generate_messages_nodejs
+Scanning dependencies of target livox_laser_simulation_generate_messages_py
+[ 59%] Generating Javascript code from livox_laser_simulation/CustomPoint.msg
+[ 59%] Generating Python from MSG livox_laser_simulation/CustomPoint
+[ 59%] Built target livox_ros_driver2_generate_messages_nodejs
+Scanning dependencies of target livox_laser_simulation_generate_messages_eus
+[ 60%] Generating EusLisp code from livox_laser_simulation/CustomPoint.msg
+[33m[WARNING] livox_ros_driver is not found in workspace[0m
+[ 61%] Generating Javascript code from livox_laser_simulation/CustomMsg.msg
+[ 61%] Built target hdl_global_localization_generate_messages_py
+Scanning dependencies of target livox_laser_simulation_generate_messages_lisp
+[ 61%] Built target livox_ros_driver_generate_messages_eus
+[ 62%] Generating Lisp code from livox_laser_simulation/CustomPoint.msg
+[ 62%] Built target livox_laser_simulation_generate_messages_cpp
+[ 62%] Generating EusLisp code from livox_laser_simulation/CustomMsg.msg
+[ 62%] Built target livox_laser_simulation_generate_messages_nodejs
+[ 62%] Built target livox_ros_driver2_generate_messages_py
+[ 62%] Generating EusLisp manifest code for livox_laser_simulation
+Scanning dependencies of target hdl_localization_generate_messages_py
+[ 62%] Generating Python from MSG hdl_localization/ScanMatchingStatus
+[ 62%] Generating Lisp code from livox_laser_simulation/CustomMsg.msg
+Scanning dependencies of target align
+Scanning dependencies of target hdl_localization_generate_messages_nodejs
+[ 62%] Generating Python from MSG livox_laser_simulation/CustomMsg
+[ 62%] Generating Javascript code from hdl_localization/ScanMatchingStatus.msg
+[ 62%] Built target livox_laser_simulation_generate_messages_lisp
+[ 62%] Building CXX object ndt_omp/CMakeFiles/align.dir/apps/align.cpp.o
+[ 63%] Built target hdl_localization_generate_messages_cpp
+Scanning dependencies of target hdl_localization_generate_messages_eus
+[ 64%] Generating Python msg __init__.py for hdl_localization
+[ 64%] Built target hdl_localization_generate_messages_nodejs
+[ 64%] Generating EusLisp code from hdl_localization/ScanMatchingStatus.msg
+Scanning dependencies of target hdl_localization_generate_messages_lisp
+[ 65%] Generating Lisp code from hdl_localization/ScanMatchingStatus.msg
+[ 65%] Generating EusLisp manifest code for hdl_localization
+[ 66%] Generating Python msg __init__.py for livox_laser_simulation
+[ 66%] Built target hdl_localization_generate_messages_lisp
+Scanning dependencies of target hdl_localization_gencpp
+[ 66%] Built target hdl_localization_gencpp
+Scanning dependencies of target globalmap_server_nodelet
+[ 66%] Built target hdl_localization_generate_messages_py
+[ 66%] Building CXX object hdl_localization/CMakeFiles/globalmap_server_nodelet.dir/apps/globalmap_server_nodelet.cpp.o
+Scanning dependencies of target elevation_mapping_pcl_types
+[ 66%] Built target livox_laser_simulation_generate_messages_py
+[ 66%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_pcl_types.dir/src/PointXYZRGBConfidenceRatio.cpp.o
+[ 66%] Built target livox_ros_driver2_generate_messages_eus
+Scanning dependencies of target scan_planner_generate_messages_py
+Scanning dependencies of target scan_planner_generate_messages_nodejs
+[ 66%] Generating Python from MSG scan_planner/Bspline
+[ 67%] Generating Javascript code from scan_planner/Bspline.msg
+[ 67%] Built target hdl_global_localization_generate_messages_eus
+[ 68%] Built target scan_planner_generate_messages_cpp
+[ 68%] Generating Javascript code from scan_planner/DataDisp.msg
+[ 69%] Generating Python from MSG scan_planner/DataDisp
+[ 69%] Built target scan_planner_generate_messages_nodejs
+Scanning dependencies of target scan_planner_generate_messages_eus
+[ 69%] Generating EusLisp code from scan_planner/Bspline.msg
+Scanning dependencies of target scan_planner_generate_messages_lisp
+[ 69%] Generating Lisp code from scan_planner/Bspline.msg
+[ 69%] Generating Python msg __init__.py for scan_planner
+[ 69%] Built target livox_laser_simulation_generate_messages_eus
+[ 69%] Generating Lisp code from scan_planner/DataDisp.msg
+[ 69%] Generating EusLisp code from scan_planner/DataDisp.msg
+Scanning dependencies of target ndt_score_probe
+[ 70%] Building CXX object v8_ndt_odom/CMakeFiles/ndt_score_probe.dir/src/ndt_score_probe.cpp.o
+[ 70%] Built target scan_planner_generate_messages_lisp
+[ 70%] Built target scan_planner_generate_messages_py
+[ 71%] Generating EusLisp manifest code for scan_planner
+Scanning dependencies of target ndt_odom_node
+Scanning dependencies of target v8_msgs_generate_messages
+[ 72%] Built target v8_msgs_generate_messages
+[ 72%] Building CXX object v8_ndt_odom/CMakeFiles/ndt_odom_node.dir/src/ndt_odom_node.cpp.o
+Scanning dependencies of target demo
+[ 72%] Building CXX object message_logger/CMakeFiles/demo.dir/src/demo.cpp.o
+[ 72%] Built target hdl_localization_generate_messages_eus
+Scanning dependencies of target pipeline_generate_messages
+[ 72%] Built target pipeline_generate_messages
+Scanning dependencies of target sensor_checker
+[ 72%] Building CXX object message_transformer/CMakeFiles/sensor_checker.dir/src/sensor_checker.cpp.o
+[ 72%] Built target scan_planner_generate_messages_eus
+Scanning dependencies of target nx2app
+[ 72%] Building CXX object message_transformer/CMakeFiles/nx2app.dir/src/nx2app.cpp.o
+[ 72%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libhdl_global_localization.so
+[ 72%] Built target hdl_global_localization
+Scanning dependencies of target ros2qnx
+[ 72%] Building CXX object message_transformer/CMakeFiles/ros2qnx.dir/src/ros2qnx.cpp.o
+[ 72%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libplan_env.so
+[ 72%] Built target pcl_render_node
+Scanning dependencies of target message_transformer_generate_messages
+[ 72%] Built target message_transformer_generate_messages
+Scanning dependencies of target qnx2ros
+[ 73%] Building CXX object message_transformer/CMakeFiles/qnx2ros.dir/src/qnx2ros.cpp.o
+[ 74%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/message_logger/demo
+[ 74%] Built target demo
+Scanning dependencies of target faster_lio_generate_messages
+[ 74%] Built target faster_lio_generate_messages
+Scanning dependencies of target livox_ros_driver_generate_messages
+[ 74%] Built target plan_env
+[ 74%] Built target livox_ros_driver_generate_messages
+Scanning dependencies of target hdl_global_localization_gencpp
+[ 74%] Built target hdl_global_localization_gencpp
+Scanning dependencies of target hdl_global_localization_generate_messages
+[ 74%] Built target hdl_global_localization_generate_messages
+Scanning dependencies of target faster_lio
+[ 74%] Building CXX object faster_lio/src/CMakeFiles/faster_lio.dir/laser_mapping.cc.o
+Scanning dependencies of target hdl_global_localization_test
+[ 74%] Building CXX object hdl_global_localization/CMakeFiles/hdl_global_localization_test.dir/src/hdl_global_localization_test.cpp.o
+In file included from /opt/ros/noetic/include/ros/ros.h:40,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/message_transformer/src/qnx2ros.cpp:11:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/message_transformer/src/qnx2ros.cpp: In member function ‘void QNX2ROS::ParseFrame()’:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/message_transformer/src/qnx2ros.cpp:102:16: warning: format ‘%d’ expects argument of type ‘int’, but argument 9 has type ‘long unsigned int’ [-Wformat=]
+  102 |       ROS_WARN("udp pack length not fit into any, %d %d", recv_num_, sizeof(QNX2ROSProtocol::RobotStateReceived));
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                                                      |
+      |                                                                      long unsigned int
+/opt/ros/noetic/include/ros/console.h:351:165: note: in definition of macro ‘ROSCONSOLE_PRINT_AT_LOCATION_WITH_FILTER’
+  351 |     ::ros::console::print(filter, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, __FILE__, __LINE__, __ROSCONSOLE_FUNCTION__, __VA_ARGS__)
+      |                                                                                                                                                                     ^~~~~~~~~~~
+/opt/ros/noetic/include/ros/console.h:390:7: note: in expansion of macro ‘ROSCONSOLE_PRINT_AT_LOCATION’
+  390 |       ROSCONSOLE_PRINT_AT_LOCATION(__VA_ARGS__); \
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros/noetic/include/ros/console.h:575:35: note: in expansion of macro ‘ROS_LOG_COND’
+  575 | #define ROS_LOG(level, name, ...) ROS_LOG_COND(true, level, name, __VA_ARGS__)
+      |                                   ^~~~~~~~~~~~
+/opt/ros/noetic/include/rosconsole/macros_generated.h:162:23: note: in expansion of macro ‘ROS_LOG’
+  162 | #define ROS_WARN(...) ROS_LOG(::ros::console::levels::Warn, ROSCONSOLE_DEFAULT_NAME, __VA_ARGS__)
+      |                       ^~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/message_transformer/src/qnx2ros.cpp:102:7: note: in expansion of macro ‘ROS_WARN’
+  102 |       ROS_WARN("udp pack length not fit into any, %d %d", recv_num_, sizeof(QNX2ROSProtocol::RobotStateReceived));
+      |       ^~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/message_transformer/src/qnx2ros.cpp:102:55: note: format string is defined here
+  102 |       ROS_WARN("udp pack length not fit into any, %d %d", recv_num_, sizeof(QNX2ROSProtocol::RobotStateReceived));
+      |                                                      ~^
+      |                                                       |
+      |                                                       int
+      |                                                      %ld
+[ 75%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libelevation_mapping_pcl_types.so
+[ 76%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/message_transformer/nx2app
+[ 76%] Built target nx2app
+Scanning dependencies of target livox_ros_driver2_generate_messages
+[ 76%] Built target livox_ros_driver2_generate_messages
+Scanning dependencies of target livox_ros_driver2_node
+[ 76%] Built target elevation_mapping_pcl_types
+[ 76%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/driver_node.cpp.o
+Scanning dependencies of target livox_laser_simulation_generate_messages
+[ 76%] Built target livox_laser_simulation_generate_messages
+Scanning dependencies of target path_searching
+[ 77%] Building CXX object path_searching/CMakeFiles/path_searching.dir/src/dyn_a_star.cpp.o
+[ 77%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/message_transformer/sensor_checker
+[ 77%] Built target sensor_checker
+Scanning dependencies of target hdl_localization_generate_messages
+[ 77%] Built target hdl_localization_generate_messages
+[ 78%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libglobalmap_server_nodelet.so
+Scanning dependencies of target hdl_localization_nodelet
+[ 79%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/message_transformer/ros2qnx
+[ 79%] Building CXX object hdl_localization/CMakeFiles/hdl_localization_nodelet.dir/src/hdl_localization/pose_estimator.cpp.o
+[ 79%] Built target ros2qnx
+Scanning dependencies of target elevation_mapping_library
+[ 80%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/ElevationMapping.cpp.o
+[ 80%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/message_transformer/qnx2ros
+[ 80%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/fast_gicp/gicp_align
+[ 80%] Built target qnx2ros
+Scanning dependencies of target scan_planner_generate_messages
+[ 80%] Built target scan_planner_generate_messages
+[ 80%] Building CXX object hdl_localization/CMakeFiles/hdl_localization_nodelet.dir/apps/hdl_localization_nodelet.cpp.o
+[ 80%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/v8_ndt_odom/ndt_score_probe
+[ 80%] Built target gicp_align
+[ 80%] Building CXX object faster_lio/src/CMakeFiles/faster_lio.dir/pointcloud_preprocess.cc.o
+[ 80%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/lds.cpp.o
+[ 80%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/v8_ndt_odom/ndt_odom_node
+[ 80%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/hdl_global_localization/hdl_global_localization_test
+[ 81%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/lds_lidar.cpp.o
+[ 81%] Built target globalmap_server_nodelet
+[ 81%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/lddc.cpp.o
+[ 81%] Built target hdl_global_localization_test
+[ 81%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/ElevationMap.cpp.o
+In file included from /opt/ros/noetic/include/ros/ros.h:40,
+                 from /opt/ros1-slam/ws/.profiles/x86_sim/src/hdl_localization/apps/hdl_localization_nodelet.cpp:5:
+/opt/ros1-slam/ws/.profiles/x86_sim/src/hdl_localization/apps/hdl_localization_nodelet.cpp: In member function ‘void hdl_localization::HdlLocalizationNodelet::points_callback(const PointCloud2ConstPtr&)’:
+/opt/ros/noetic/include/ros/console.h:351:176: warning: format not a string literal and no format arguments [-Wformat-security]
+  351 |     ::ros::console::print(filter, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, __FILE__, __LINE__, __ROSCONSOLE_FUNCTION__, __VA_ARGS__)
+      |                                                                                                                                                                                ^
+/opt/ros/noetic/include/ros/console.h:354:5: note: in expansion of macro ‘ROSCONSOLE_PRINT_AT_LOCATION_WITH_FILTER’
+  354 |     ROSCONSOLE_PRINT_AT_LOCATION_WITH_FILTER(NULL, __VA_ARGS__)
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros/noetic/include/ros/console.h:390:7: note: in expansion of macro ‘ROSCONSOLE_PRINT_AT_LOCATION’
+  390 |       ROSCONSOLE_PRINT_AT_LOCATION(__VA_ARGS__); \
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/ros/noetic/include/ros/console.h:575:35: note: in expansion of macro ‘ROS_LOG_COND’
+  575 | #define ROS_LOG(level, name, ...) ROS_LOG_COND(true, level, name, __VA_ARGS__)
+      |                                   ^~~~~~~~~~~~
+/opt/ros/noetic/include/rosconsole/macros_generated.h:216:36: note: in expansion of macro ‘ROS_LOG’
+  216 | #define ROS_ERROR_NAMED(name, ...) ROS_LOG(::ros::console::levels::Error, std::string(ROSCONSOLE_NAME_PREFIX) + "." + name, __VA_ARGS__)
+      |                                    ^~~~~~~
+/opt/ros/noetic/include/nodelet/nodelet.h:82:28: note: in expansion of macro ‘ROS_ERROR_NAMED’
+   82 | #define NODELET_ERROR(...) ROS_ERROR_NAMED(getName(), __VA_ARGS__)
+      |                            ^~~~~~~~~~~~~~~
+/opt/ros1-slam/ws/.profiles/x86_sim/src/hdl_localization/apps/hdl_localization_nodelet.cpp:226:9: note: in expansion of macro ‘NODELET_ERROR’
+  226 |         NODELET_ERROR(tfError.c_str());
+      |         ^~~~~~~~~~~~~
+[ 82%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/livox_ros_driver2.cpp.o
+[ 82%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libpath_searching.so
+[ 82%] Built target path_searching
+[ 82%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/comm/comm.cpp.o
+[ 82%] Built target ndt_score_probe
+[ 82%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/comm/ldq.cpp.o
+[ 83%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/comm/semaphore.cpp.o
+[ 83%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/comm/lidar_imu_data_queue.cpp.o
+[ 83%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/comm/cache_index.cpp.o
+[ 84%] Building CXX object faster_lio/src/CMakeFiles/faster_lio.dir/options.cc.o
+Scanning dependencies of target hdl_global_localization_node
+[ 84%] Building CXX object hdl_global_localization/CMakeFiles/hdl_global_localization_node.dir/src/hdl_global_localization_node.cpp.o
+[ 84%] Building CXX object faster_lio/src/CMakeFiles/faster_lio.dir/utils.cc.o
+[ 84%] Built target ndt_odom_node
+[ 84%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/input_sources/Input.cpp.o
+Scanning dependencies of target bspline_opt
+[ 85%] Building CXX object bspline_opt/CMakeFiles/bspline_opt.dir/src/uniform_bspline.cpp.o
+[ 86%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/comm/pub_handler.cpp.o
+[ 87%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/input_sources/InputSourceManager.cpp.o
+[ 87%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/parse_cfg_file/parse_cfg_file.cpp.o
+[ 87%] Building CXX object bspline_opt/CMakeFiles/bspline_opt.dir/src/bspline_optimizer.cpp.o
+[ 87%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/parse_cfg_file/parse_livox_lidar_cfg.cpp.o
+[ 87%] Building CXX object bspline_opt/CMakeFiles/bspline_opt.dir/src/gradient_descent_optimizer.cpp.o
+[ 88%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/call_back/lidar_common_callback.cpp.o
+[ 88%] Building CXX object livox_ros_driver2/CMakeFiles/livox_ros_driver2_node.dir/src/call_back/livox_lidar_callback.cpp.o
+[ 89%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libhdl_localization_nodelet.so
+[ 89%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/postprocessing/PostprocessorPool.cpp.o
+[ 89%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/livox_ros_driver2/livox_ros_driver2_node
+[ 90%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/hdl_global_localization/hdl_global_localization_node
+[ 90%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/postprocessing/PostprocessingWorker.cpp.o
+[ 90%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/ndt_omp/align
+[ 91%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/postprocessing/PostprocessingPipelineFunctor.cpp.o
+[ 91%] Built target livox_ros_driver2_node
+[ 91%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/RobotMotionMapUpdater.cpp.o
+[ 91%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/sensor_processors/SensorProcessorBase.cpp.o
+[ 92%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/sensor_processors/StructuredLightSensorProcessor.cpp.o
+[ 92%] Built target hdl_localization_nodelet
+[ 92%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/sensor_processors/StereoSensorProcessor.cpp.o
+[ 92%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/sensor_processors/LaserSensorProcessor.cpp.o
+[ 93%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping_library.dir/src/sensor_processors/PerfectSensorProcessor.cpp.o
+[ 94%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libbspline_opt.so
+[ 94%] Built target align
+[ 94%] Built target bspline_opt
+Scanning dependencies of target traj_utils
+[ 95%] Building CXX object traj_utils/CMakeFiles/traj_utils.dir/src/planning_visualization.cpp.o
+[ 95%] Building CXX object traj_utils/CMakeFiles/traj_utils.dir/src/polynomial_traj.cpp.o
+[ 95%] Built target hdl_global_localization_node
+[ 95%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libelevation_mapping_library.so
+[ 95%] Built target elevation_mapping_library
+Scanning dependencies of target elevation_mapping
+[ 95%] Building CXX object elevation_mapping/CMakeFiles/elevation_mapping.dir/src/elevation_mapping_node.cpp.o
+[ 95%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/elevation_mapping/elevation_mapping
+[ 95%] Built target elevation_mapping
+[ 95%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libtraj_utils.so
+[ 95%] Built target traj_utils
+Scanning dependencies of target go2_gait_publisher
+Scanning dependencies of target go2_kinematic_sim
+[ 95%] Building CXX object scan_planner/CMakeFiles/go2_gait_publisher.dir/src/go2_gait_publisher.cpp.o
+Scanning dependencies of target closed_loop_controller
+[ 96%] Building CXX object scan_planner/CMakeFiles/go2_kinematic_sim.dir/src/go2_kinematic_sim.cpp.o
+Scanning dependencies of target open_loop_controller
+[ 97%] Building CXX object scan_planner/CMakeFiles/closed_loop_controller.dir/src/closed_loop_controller.cpp.o
+[ 97%] Building CXX object scan_planner/CMakeFiles/open_loop_controller.dir/src/open_loop_controller.cpp.o
+Scanning dependencies of target scan_planner_node
+[ 98%] Building CXX object scan_planner/CMakeFiles/scan_planner_node.dir/src/scan_planner_node.cpp.o
+[ 98%] Building CXX object scan_planner/CMakeFiles/scan_planner_node.dir/src/scan_replan_fsm.cpp.o
+[ 98%] Building CXX object scan_planner/CMakeFiles/scan_planner_node.dir/src/planner_manager.cpp.o
+[ 98%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/scan_planner/go2_gait_publisher
+[ 98%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/scan_planner/go2_kinematic_sim
+[ 98%] Built target go2_gait_publisher
+[ 98%] Built target go2_kinematic_sim
+[ 98%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/scan_planner/open_loop_controller
+[ 98%] Built target open_loop_controller
+[ 98%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/scan_planner/closed_loop_controller
+[ 98%] Built target closed_loop_controller
+[ 99%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/scan_planner/scan_planner_node
+[ 99%] Built target scan_planner_node
+[ 99%] Linking CXX shared library /opt/ros1-slam/ws/devel/lib/libfaster_lio.so
+[ 99%] Built target faster_lio
+Scanning dependencies of target run_mapping_online
+Scanning dependencies of target run_mapping_offline
+[100%] Building CXX object faster_lio/app/CMakeFiles/run_mapping_online.dir/run_mapping_online.cc.o
+[100%] Building CXX object faster_lio/app/CMakeFiles/run_mapping_offline.dir/run_mapping_offline.cc.o
+[100%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/faster_lio/run_mapping_online
+[100%] Built target run_mapping_online
+[100%] Linking CXX executable /opt/ros1-slam/ws/devel/lib/faster_lio/run_mapping_offline
+[100%] Built target run_mapping_offline
+Base path: /opt/ros1-slam/ws
+Source space: /opt/ros1-slam/ws/.profiles/x86_sim/src
+Build space: /opt/ros1-slam/ws/build
+Devel space: /opt/ros1-slam/ws/devel
+Install space: /opt/ros1-slam/ws/install
+####
+#### Running command: "make cmake_check_build_system" in "/opt/ros1-slam/ws/build"
+####
+####
+#### Running command: "make -j12" in "/opt/ros1-slam/ws/build"
+####
+RC=0

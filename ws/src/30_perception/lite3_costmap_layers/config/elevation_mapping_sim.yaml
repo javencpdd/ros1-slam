@@ -1,0 +1,46 @@
+# ANYbotics elevation_mapping (pinned source build) for the m1 Gazebo stage.
+# Output contract matches ElevationMergedLayer defaults:
+#   /elevation_mapping/elevation_map, grid_map_msgs/GridMap, fused layer "elevation".
+# Sensor processor "perfect" is simulation-only; real deployment needs a calibrated
+# processor and its own signed parameters.
+input_sources:
+  rslidar:
+    type: pointcloud
+    topic: /rslidar_points
+    queue_size: 1
+    publish_on_update: true
+    sensor_processor:
+      type: perfect
+sensor_processor:
+  type: perfect
+map_frame_id: "map"
+robot_base_frame_id: "base_link"
+robot_pose_with_covariance_topic: ""
+robot_pose_cache_size: 200
+track_point_frame_id: "base_link"
+track_point_x: 0.0
+track_point_y: 0.0
+track_point_z: 0.0
+length_in_x: 10.0
+length_in_y: 10.0
+position_x: 0.0
+position_y: 0.0
+resolution: 0.1
+min_variance: 0.000009
+max_variance: 0.01
+mahalanobis_distance_threshold: 2.5
+multi_height_noise: 0.0000009
+postprocessor_pipeline:
+  - name: inpaint
+    type: gridMapCv/InpaintFilter
+    params:
+      input_layer: elevation
+      output_layer: elevation_inpainted
+      radius: 0.05
+  - name: surface_normals
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      output_layers_prefix: normal_vectors_
+      radius: 0.1
+      normal_vector_positive_axis: z

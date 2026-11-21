@@ -18,12 +18,21 @@
     <param name="value" value="0.5"/>
     <param name="rate" value="2.0"/>
   </node>
-  <node pkg="lite3_costmap_layers" type="elevation_gridmap_publisher.py" name="elevation_gridmap_publisher" output="screen">
-    <param name="stale_timeout" value="1.0"/>
-  </node>
+  <arg name="elevation_source" default="native"/>
+  <group if="$(eval arg('elevation_source') == 'native')">
+    <node pkg="lite3_costmap_layers" type="elevation_gridmap_publisher.py" name="elevation_gridmap_publisher" output="screen">
+      <param name="stale_timeout" value="1.0"/>
+    </node>
+  </group>
+  <group if="$(eval arg('elevation_source') == 'elevation_mapping')">
+    <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="screen">
+      <rosparam command="load" file="$(find lite3_costmap_layers)/config/elevation_mapping_sim.yaml"/>
+    </node>
+  </group>
   <!-- Sensor TTL is explicit and simulation-only; production must configure its own budget. -->
-  <param name="/navigation_executor/global_costmap/elevation_merged_layer/input_timeout_s" value="1.0"/>
-  <param name="/navigation_executor/local_costmap/elevation_merged_layer/input_timeout_s" value="1.0"/>
+  <arg name="elevation_ttl_s" default="1.0"/>
+  <param name="/navigation_executor/global_costmap/elevation_merged_layer/input_timeout_s" value="$(arg elevation_ttl_s)"/>
+  <param name="/navigation_executor/local_costmap/elevation_merged_layer/input_timeout_s" value="$(arg elevation_ttl_s)"/>
   <include file="$(find lite3_navigation)/launch/navigation_executor.launch">
     <arg name="local_planner" value="$(arg local_planner)"/>
     <arg name="global_planner" value="$(arg global_planner)"/>

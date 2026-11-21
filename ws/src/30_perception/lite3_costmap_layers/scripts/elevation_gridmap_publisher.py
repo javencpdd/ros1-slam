@@ -55,7 +55,7 @@ import numpy as np
 # 本节点原先自己写 `np.floor((xs - x0) / resolution)`，是 v8_grid 七个口径里
 # 「窗口原点对齐 + 向量化」那一支。改调 v8_grid 后，全仓栅格化只有一份实现。
 #
-# 路径推导：本文件在 ws/src/40_navigation/lite3_costmap_layers/scripts/ 下，
+# 路径推导：本文件在 ws/src/30_perception/lite3_costmap_layers/scripts/ 下（2026-11-21 移层），
 # resolve() 后 parents[3] = ws/src（实测：parents[2] 会落在 40_navigation，是错的）；
 # 包根 = ws/src/90_platform/v8_grid（含内层 v8_grid/ 包目录的那一层，不是 90_platform，
 # 否则 `import v8_grid` 会去找 ws/src/v8_grid 而 ModuleNotFoundError）。

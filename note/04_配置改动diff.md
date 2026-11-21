@@ -7466,3 +7466,45 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   证据：`note/进度/v8/M5/26-11-21/evidence/bt_native/elevation_mapping_feasibility.md`。
 - AMCL：apt 可得 `ros-noetic-amcl 1.17.3`，未装未接线，仅候选登记。
 - 追认位：以上为候选增补与勾选登记；可用集仍为 TEB/DWA/Trajectory × GlobalPlanner/Navfn。
+
+## 2026-11-21 / T-20261118-02 高程开源节点接入（ANYbotics elevation_mapping）与 VAR 探针修复
+
+- **高程开源替代接入**：`ws/src/30_3rd` 新增 `elevation_mapping`（f4b082c6）与 `message_logger`
+  （1ea41e48）；`kindr`/`kindr_ros`/`kindr_msgs` 复用仓内既有副本（30_perception/libraries），
+  不重复引入。`tooling/build/profiles.json` 的 `local_packages` 与 `x86_sim` roots 增
+  `elevation_mapping`（依赖闭包自动带 message_logger/kindr/kindr_ros）。仿真入口
+  `mode_sim_teb.launch` 增 `elevation_source:=native|elevation_mapping`，开源节点配置
+  `lite3_costmap_layers/config/elevation_mapping_sim.yaml`（输入 /rslidar_points、
+  map/base_link、10×10 m@0.1、perfect 处理器仅仿真；输出 `/elevation_mapping/elevation_map`
+  层 `elevation`，与消费层缺省同形）。
+- **构建阻塞与处置**：仓内旧 `kindr` 的 `test/run_tests.py` 缺可执行位（纯 CMake 目标不受
+  `CATKIN_ENABLE_TESTING=OFF` 约束）⇒ 构建 Error 127。只补该文件权限位、内容一字未改；
+  该文件在 30_perception（本卡 scope 外）属依赖构建必需的最小例外，登记于此。
+- **VAR 探针修复（真人勾选⑦，只改夹具不动生产判读）**：P1 原以 `USERS[0]` 作被读方且它
+  恰是文件属主 ⇒ `readable()` 按 owner 位定案、mask::--- 测不出分辨力。夹具改为：
+  `660` 正例 + `600` 负例、选非属主账号（nobody/daemon/www-data）设具名 ACL 并以该账号
+  被读；无可选账号判 rc=9。`readable()`、门项、阈值、rc 语义一字未改。重跑：
+  `VAR VERDICT: PASS=9 FAIL=0`、rc=0（证据目录 394、违规 0）。
+- **高程对跑轮 r8 预登记**：TEB+GlobalPlanner × elevation_source=elevation_mapping，
+  同成功/取消/复用/三维拒绝/租约失效/退净判据；读数与 r3—r5（native）对照后登记。
+- 追认位：新增第三方与 scope 外权限位属依赖接入变更；真机 elevation TTL/处理器参数仍未配置
+  （真机未接线，L2）。
+- **开源高程运行时结论（r8—r10，保留失败证据）**：elevation_mapping 能编译、能持续发图
+  （运动中实测 ~1 Hz、收到龄 ~0.2 s；首帧 100×100 地图有限格 1727、包围盒 x[-4.5,4.4]
+  y[-5,1.9]），但 move_base 在机器人行进约 0.6 m 后判“无有效控制”并中止：
+  TEB 反复 `trajectory is not feasible`（r9）、DWA 同样中止（r10），说明不是单一局部规划器问题；
+  怀疑开源节点未滤自车/近距回波，运动中在机体附近写入致命格（本地产者原有 0.2 m 剔除，
+  开源 perfect 处理器无此滤）。⇒ **elevation_mapping 暂列“已接入但运行时未通过”的可选候选**，
+  默认仍为 native 生产者；后续需加近距回波过滤或改用 laser 处理器后再验收。
+- **ISO [9] 移包（真人勾选⑥落地）**：`lite3_costmap_layers` 由 `ws/src/40_navigation` 移至
+  `ws/src/30_perception`（架构文档该层职责＝自研感知/高程生产者）。包名与内容不变；
+  `pyst_face.txt` 现读路径更新并留移层注记（R571 旧文不回改）；registry 两处 uri/source 同步；
+  移层后需一次干净重建与复验（构建记录 `evidence/bt_native/build_move.log`）。
+- **构建依赖最小例外**：仓内旧 `kindr` 的 `test/run_tests.py` 补可执行位（内容一字未改）；
+  该文件在 30_perception，属新闭包构建必需，已登记。
+- **移包验收读数**：`v3_isolation.sh` 正式调用式（source noetic+devel）`=== ISOLATION OK ===`、rc=0，
+  长期在册的 [9] 红项关闭；`v8_window_preflight.sh` rc=0（ISO_RC=0）。
+  v8 隔离器同步为「40_navigation 两包零源码、插件契约在 30_perception 校验」，32 项反控通过。
+  移包后主链回归 `r12` PASS（TEB×native，成功/取消/复用/三维拒绝/租约失效/退净，距离读数同 r3 量级）；
+  `r11` 为更新校验器前被预检拒窗的记录（保留）。
+- **VAR 探针**：修复夹具后 `VAR VERDICT: PASS=9 FAIL=0`、rc=0（394 个证据目录、违规 0）。

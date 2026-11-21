@@ -253,17 +253,39 @@ tmpd = tempfile.mkdtemp(prefix='var_p1_')
 good = os.path.join(tmpd, 'should_be_reachable')
 bad = os.path.join(tmpd, 'should_be_unreachable')
 res = []
+
+# 夹具账号：探针文件由当前用户创建，若直接以 USERS[0] 当被读方且它正是属主，
+# readable() 会按 owner 位当场定案（POSIX：owner 不受 mask 限制），mask::--- 永远测不出分辨力。
+# 只改夹具——选一个非属主测试账号来读；readable() 生产判读逻辑一字不动。
+def probe_subject(owner_uid):
+    for name in ('nobody', 'daemon', 'www-data'):
+        try:
+            if pwd.getpwnam(name).pw_uid != owner_uid:
+                return name
+        except KeyError:
+            continue
+    return None
+
+subject = None
 try:
-    for f, mode in ((good, 0o664), (bad, 0o600)):
+    for f, mode in ((good, 0o660), (bad, 0o600)):
         open(f, 'w').write('x\n')
         os.chmod(f, mode)
-        subprocess.call(['setfacl', '-m', 'u:%s:rw-' % USERS[0], f], env=SUB_ENV)
+        if subject is None:
+            subject = probe_subject(os.stat(f).st_uid)
+            if subject is None:
+                print('[前置缺失] 无可用非属主测试账号（nobody/daemon/www-data）⇒ 探针不判绿')
+                subprocess.call(['rm', '-rf', tmpd])
+                sys.exit(9)
+        subprocess.call(['setfacl', '-m', 'u:%s:rw-' % subject, f], env=SUB_ENV)
         if f is bad:
             # 把 mask 掐空＝条目存在但 effective 为空
             subprocess.call(['setfacl', '-m', 'm::---', f], env=SUB_ENV)
-    r_good, r_bad = readable(good, USERS[0]), readable(bad, USERS[0])
-    mark(r_good is True, 'P1a 阳性对照·可达侧：664＋具名条目 ⇒ 算法须判可读', '实得=%s' % r_good)
-    mark(r_bad is False, 'P1b 阳性对照·不可达侧：600＋同条目但 mask::--- ⇒ 算法须判不可读', '实得=%s' % r_bad)
+    r_good, r_bad = readable(good, subject), readable(bad, subject)
+    mark(r_good is True, 'P1a 阳性对照·可达侧：660＋非属主具名条目 ⇒ 算法须判可读（%s）' % subject,
+         '实得=%s' % r_good)
+    mark(r_bad is False, 'P1b 阳性对照·不可达侧：600＋同条目但 mask::--- ⇒ 算法须判不可读（%s）' % subject,
+         '实得=%s' % r_bad)
 finally:
     subprocess.call(['rm', '-rf', tmpd])
 if nfail > 0:
