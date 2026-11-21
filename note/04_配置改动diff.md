@@ -7744,3 +7744,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   选择删死件以保 [8] 强度；sha256 9aeebfcf… 留底，拷贝对账 50→49 已登记。
 - 结论：P0-3 为已登记有意例外，不还原；第三方原样口径按 50→49＋sha 留底执行。证据
   `evidence/p0_3/third_party_pcd2grid.txt`。
+
+## 2026-11-21 / T-20261118-02 M6 Phase B 复核（无代码变更）
+
+- 真人 2026-11-21 勾选「统一到 cell_snap」；核查当前代码：`representation/elevation.py:51` 已为
+  `cell_snap`（M6 提交 182bf9ab，2026-11-18，只统一 support_map↔elevation 一对），support_map
+  contains_xy 亦 cell_snap ⇒ 现状即所选口径，**无需改动**。
+- 复验：test_elevation 12/12、test_support_map 12/12 OK。05 挂账为既有 M6 记录。
