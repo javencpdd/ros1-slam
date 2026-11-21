@@ -299,8 +299,36 @@ def require_noetic(env=None):
             raise PlanError("foreign ROS_PACKAGE_PATH overlay; use a clean Noetic shell")
 
 
-def clean_owned(result):
-    """Delete only fixed outputs whose target/workspace ownership is established."""
+def is_mount_point(path):
+    return os.path.ismount(str(path))
+
+
+def clear_owned_output(path, mount_check=is_mount_point):
+    """Delete one fixed output tree, keeping the directory itself when it is a mountpoint.
+
+    The x86 simulation layout mounts build/devel/install as container volumes, so the
+    directory node cannot be removed (rmdir on a mountpoint fails with EBUSY).  Their
+    contents are still this target's own output, so empty them and leave the mountpoint
+    in place rather than aborting the whole clean half-way through the list.
+    """
+    if not path.exists():
+        return "absent"
+    if mount_check(path):
+        for child in sorted(path.iterdir()):
+            if child.is_dir() and not child.is_symlink():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
+        return "emptied"
+    shutil.rmtree(path)
+    return "removed"
+
+
+def clean_owned(result, mount_check=is_mount_point):
+    """Delete only fixed outputs whose target/workspace ownership is established.
+
+    Mounted outputs are emptied instead of removed; see clear_owned_output().
+    """
     paths = {key: Path(value) for key, value in result["paths"].items()}
     check_outputs(paths, Path(result["workspace"]))
     marker = paths["profile"] / "identity.json"
@@ -318,10 +346,11 @@ def clean_owned(result):
         allowed |= {"build", "devel", "install"}
     if {p.name for p in paths["profile"].iterdir()} - allowed:
         raise PlanError("--clean refuses unexpected files in the profile directory")
-    for key in ("source_view", "build", "devel", "install"):
-        if paths[key].exists():
-            shutil.rmtree(paths[key])
+    # Every check above runs before the first mutation; a refusal leaves all outputs intact.
+    cleared = {key: clear_owned_output(paths[key], mount_check)
+               for key in ("source_view", "build", "devel", "install")}
     marker.unlink()
+    return cleared
 
 
 def prepare_view(result, paths):

@@ -39,7 +39,7 @@ python3 -B scripts/build/target_workspace.py build --target lite3 --jobs 1 --cle
 
 生成视图中只为选中包创建指向 `WS/src` 内的相对链接。Livox 上游以 `package_ROS1.xml` / `package_ROS2.xml` 区分版本；配置显式选择 ROS1 manifest。当前工作区已有 `package.xml`，须与 ROS1 件字节一致，否则拒绝，避免掩盖错误选择。上游缺 `package.xml` 时仅在生成视图创建目录壳：其他内容相对链接回原包，ROS1 XML 复制为壳内 `package.xml`；不改第三方原件。
 
-每个 profile 有 `identity.json`，绑定目标、工作区、输出空间、根表、配置与 manifest 哈希。构建还检查 CMakeCache 的源码视图、devel/install 前缀及非空显式 whitelist，拒绝跨目标、旧全量缓存、软链输出或越界源码。配置或 manifest 变化需显式 `--clean`；它先核目标、工作区、路径和 ROS 身份，只清理本目标固定视图与三类产物，不删除原始源码。无归属旧目录、身份错误或 profile 中有未知文件时拒绝自动清理，须先保留证据并单独迁移。
+每个 profile 有 `identity.json`，绑定目标、工作区、输出空间、根表、配置与 manifest 哈希。构建还检查 CMakeCache 的源码视图、devel/install 前缀及非空显式 whitelist，拒绝跨目标、旧全量缓存、软链输出或越界源码。配置或 manifest 变化需显式 `--clean`；它先核目标、工作区、路径和 ROS 身份，只清理本目标固定视图与三类产物，不删除原始源码。当 `BUILD`/`devel`/`install` 被挂成容器卷（即目录本身是挂载点）时，该目录节点无法被删除（`rmdir` 返回 `EBUSY`），`--clean` 只清空其内容并保留挂载点目录，不会清理到一半中断；判断顺序仍是先核身份再做第一次改动。无归属旧目录、身份错误或 profile 中有未知文件时拒绝自动清理，须先保留证据并单独迁移。
 
 仿真选择 `livox_laser_simulation` 时，在同一隔离视图内先 configure，枚举并串行构建消息生成目标，再调用 catkin_make；任一步失败即停止。不靠修改上游 CMake 掩盖消息依赖问题。命令使用 [Noetic catkin_make 官方支持的接口](https://raw.githubusercontent.com/ros/catkin/noetic-devel/bin/catkin_make)：`-C`、`--source`、`--build`、`CATKIN_DEVEL_PREFIX` 和 `CMAKE_INSTALL_PREFIX`；rosdep 参数依据[官方实现](https://raw.githubusercontent.com/ros-infrastructure/rosdep/master/src/rosdep2/main.py)。
 

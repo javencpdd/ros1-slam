@@ -94,3 +94,9 @@ scripts/agent/bridge.py
 scripts/agent/test_bridge_gates.py
 scripts/verify/test_v8_isolation.py
 scripts/verify/v8_isolation.py
+# 2026-11-22 补面（T-20261122-01 同批续）：`scripts/build/target_workspace.py` 与配套自测**此前不在任何门禁面内**，
+#   而本批正改了它的 `--clean` 语义（挂载点只清内容）⇒ 按同一理由「本轮改动件必须受检」补入，条目数 64→**66**。
+#   该件自带 30 条离线自测（含挂载点场景＋注入反控＋普通目录反控），满足加成员判定口的「自带自测＋反控」；
+#   本面只增不减、不改既有 rc 语义 ⇒ 属可自走。★纯 `.py` 只入 PYST、不入 SYN★（先例＝上批四条 `.py` 同样只入本面）。
+scripts/build/target_workspace.py
+scripts/build/test_target_workspace.py

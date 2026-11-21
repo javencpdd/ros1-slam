@@ -318,6 +318,42 @@ class TargetWorkspaceTests(unittest.TestCase):
             tw.clean_owned(result)
         self.assertTrue((self.ws / "src/core/package.xml").exists())
 
+    def test_clean_empties_mounted_outputs_without_aborting_half_way(self):
+        # x86_sim keeps build/devel/install directly under ws/, which is how the
+        # simulation compose file mounts them as volumes.
+        result = self.plan("x86_sim")
+        self.build(result)
+        mounted = ("build", "devel", "install")
+        for key in mounted:
+            path = Path(result["paths"][key])
+            (path / f"{key}-artifact").write_text("x")
+            (path / ".hidden").write_text("x")
+            (path / "nested").mkdir()
+            (path / "nested/deep").write_text("x")
+        cleared = tw.clean_owned(result, mount_check=lambda path: Path(path).name in set(mounted))
+        for key in mounted:
+            self.assertEqual(cleared[key], "emptied", key)
+            path = Path(result["paths"][key])
+            self.assertTrue(path.is_dir(), key)
+            self.assertEqual(list(path.iterdir()), [], key)
+        self.assertEqual(cleared["source_view"], "removed")
+        self.assertFalse(Path(result["paths"]["source_view"]).exists())
+        self.assertFalse((Path(result["paths"]["profile"]) / "identity.json").exists())
+        # A half-cleaned space would leave a non-empty unowned output and refuse here.
+        tw.check_cache(result)
+        self.build(self.plan("x86_sim"))
+        self.assertTrue((Path(result["paths"]["source_view"]) / "app/package.xml").exists())
+
+    def test_clean_still_removes_plain_outputs(self):
+        result = self.plan()
+        self.build(result)
+        cleared = tw.clean_owned(result)
+        self.assertEqual(set(cleared.values()), {"removed"})
+        for key in ("source_view", "build", "devel", "install"):
+            self.assertFalse(Path(result["paths"][key]).exists(), key)
+        with self.assertRaisesRegex(tw.PlanError, "--clean requires an owned"):
+            tw.clean_owned(result)
+
     def test_foreign_top_level_cmake_is_rejected_before_commands(self):
         result = self.plan()
         self.build(result)

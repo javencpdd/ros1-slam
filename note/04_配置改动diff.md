@@ -7851,3 +7851,51 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 读数据：DC 由 A 类 1／B 类 16／rc=1 → **A 类 0／B 类 16／rc=0**；`--selftest` 由 rc=5 → **rc=0**。
 - 待办（真待办，非缓做）：三档 variants 的 rosparam 加载行需接进 P7 mode 顶层 launch。
   接线后 TEB 行为参数才真生效，属改运行语义 ⇒ 施工前须裁。
+
+## 2026-11-22 / T-20261122-01 环境重建，并修掉 --clean 在容器卷布局下的半清中止
+
+- 真人 2026-11-22 指令：先把环境整好再继续双后端改造，避免 gap 累积。本轮不含运行时语义改动。
+- 清理三项：①profile 视图里的 lite3_costmap_layers 已是指向归档包的死软链，删后视图 40 → 39 项
+  （闭包 38 加顶层 CMakeLists）；②59 个 __pycache__ 与 .pytest_cache（8.5MB）全部清掉，其中 7 个属主
+  是 root、权限 755，jack 写不进 ⇒ py_compile 报 Errno 13，正是坑84 的成因；③仓库根 .Trash-0（1.2MB，
+  早前容器内 safe-delete 残留）移到 ~/.cache/trash_20261122_repo/，未删除。
+- ★identity 失效是本次退役的必然结果★：逐字段对表只有三处不同——roots 少 lite3_costmap_layers、
+  packages 少它、profiles_sha256 变；其余 9 个字段相同。后果是 build --target x86_sim 直接拒绝
+  （profile/cache identity mismatch）。而 lite3_bt 有 src/bt_console.cpp，双端改造要编译 ⇒ 必须先除。
+- ★--clean 在本仓的卷布局下必崩，且崩在删除中途★：ws/build、ws/devel、ws/install 是三个 docker 卷，
+  即挂载点，shutil.rmtree 删到挂载点自身抛 EBUSY；而 docker/README.md 第 111 行推荐的正是
+  「docker compose exec sim bash docker/build.sh --clean」。中止点落在清理循环里 ⇒ source_view 已删、
+  build 内容已清空、devel 与 identity.json 未动＝半清态（build 500M → 0）。
+- 处置：备份 ~/.cache/ws_backup_20261122.tar.gz（168M，gzip -t 通过，含 CMakeCache、devel/.catkin、
+  devel/setup.bash、identity.json），手工补完等价清理（清空 devel 与 install 的内容、删 identity.json），
+  再在不带 --clean 的情况下重建。
+- ★dev 容器内存只有 1 GiB ⇒ 在里面编译必 OOM★：症状「c++: fatal error: Killed signal terminated
+  program cc1plus」，fast_gicp 与 hdl_global_localization 两个 PCL/VTK 重包先死。改用临时容器
+  （--volumes-from ros1-slam-dev，uid 固定 1000，JOBS=8）满内存重建：rc=0、255 个 Built target、
+  日志零 error、耗时 6 分钟。uid 必须钉 1000，否则会在卷里落 root 属主文件，等于再造一个坑84。
+- 本轮代码修复（脚本面）：新增 clear_owned_output(path, mount_check)，挂载点只清内容、保留目录节点；
+  clean_owned 改为对四项逐一调用并按项返回结果，身份校验仍全部落在第一次改动之前。
+  tooling/build/README.md 补一句说明该行为。新增 2 条自测：挂载点场景（含点文件与嵌套目录、
+  清完 check_cache 必须放行、之后能重新 plan 加 build）与普通目录仍整体删除的反控，30 条全过。
+- 自测三连：主测通过；注入反控把 clear_owned_output 换回旧实现 ⇒ 复现 EBUSY、新测试翻红
+  （INJECTION_DETECTED=True）；恢复后全绿。
+- ★实跑验收（判据落在实际生效那一层）★：先在真环境确认挂载点判定——ws/build、ws/devel、ws/install 三项
+  os.path.ismount 均为 True，profile 视图为 False；再把当初崩掉的那条命令原样跑一遍
+  （临时容器内 bash docker/build.sh --clean）⇒ rc=0、255 个 Built target、日志里 error 与 EBUSY 计数 0、
+  产物 devel/share 42 与 build 49、identity.json 重新写出、视图 39 项、退役包残留 0。修复前同一命令是
+  半清中止。
+- 补面：scripts/build/target_workspace.py 与配套自测此前不在任何门禁面内，而本批正好改它 ⇒ 依
+  「本轮改动件必须受检」补入 pyst_face（条目 64 → 66）；纯 .py 只入 PYST、不入 SYN，先例同上批四条。
+- 读数据（重建后加补面后，容器内）：SYN rc=0(91)｜PYST rc=0(66)｜ISO rc=0｜DC rc=0｜账构 rc=0；
+  devel/share 43 → 42（少的正是退役包）、costmap_layers 残留 0、identity 11 个字段全部 SAME、
+  check_cache 与 prepare_view 均放行（视图 39 项）。
+- ★ISO 的 ws_src_files 把 .pyc 也算进去★：重建后首跑 4786，册上写 5491，差 705。核实式＝
+  find ws/src -type f 为 4809、其中 .pyc 23（ISO 之后 PYST 才生成）⇒ ISO 那一刻是 0 个 pyc。
+  结论：5491 是含缓存的虚数、4786 是真值，跨批比对前先确认 pyc 数。
+- 环境清理读数：docker builder prune 回收 18.93GB（Build Cache 30.76GB → 11.84GB，可回收 43.11MB）；
+  悬空镜像 0 个，未做 image prune -a。★docker 根目录在 /var/lib/docker（挂在 /data 分区），不在 /，
+  所以根分区可用空间不变（197G），不要据此以为没删成功。★
+- 待办（真待办）：①若将来把 build/devel/install 也挂成卷的 lite3 布局（三者位于 profile 之内），
+  清完后 profile 非空会让 check_cache 判「unowned existing target output」，本轮未处理该组合；
+  ②镜像侧 2.21GB 可回收，但需删未被容器引用的 tag 镜像（含旧版 ros1-slam），属可回滚资产，须先裁；
+  ③三档 variants 加载行接线仍待办（见上一段）。
