@@ -12,6 +12,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import os
 import sys
 import tempfile
 import time
@@ -19,9 +20,11 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 
-PLATFORM = Path(__file__).resolve().parents[3] / '90_platform' / 'v8_platform'
+ROOT = Path(os.environ.get('V8_REPO_ROOT') or '/opt/ros1-slam')
+PLATFORM = ROOT / 'ws/src/90_platform/v8_platform'
+ALGO = Path(os.environ.get('V8_ALGORITHM_ROOT') or (ROOT / 'ws/src/80_algorithm/v8_algorithm'))
 for directory in ('planner', 'representation', 'local_planner'):
-    sys.path.insert(0, str(PLATFORM / directory))
+    sys.path.insert(0, str(ALGO / directory))
 import support_planner
 import local_native as local
 from mj_step_baseline import analyze_braking, rollout

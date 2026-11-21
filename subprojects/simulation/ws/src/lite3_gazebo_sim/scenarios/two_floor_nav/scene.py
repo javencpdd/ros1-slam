@@ -18,7 +18,10 @@ if os.environ.get('V8_REPO_ROOT') is None and Path('/opt/ros1-slam/ws/src/90_pla
     _P1_ROOT = Path('/opt/ros1-slam')
 ROOT = _P1_ROOT
 PLATFORM = Path(os.environ.get('V8_PLATFORM_ROOT') or (ROOT / 'ws/src/90_platform/v8_platform'))
-for folder in ('representation', 'planner', 'local_planner', 'contracts', 'framework'):
+ALGO = ROOT / 'ws/src/80_algorithm/v8_algorithm'
+for folder in ('representation', 'planner', 'local_planner'):
+    sys.path.insert(0, str(ALGO / folder))
+for folder in ('contracts', 'framework'):
     sys.path.insert(0, str(PLATFORM / folder))
 import support_map
 

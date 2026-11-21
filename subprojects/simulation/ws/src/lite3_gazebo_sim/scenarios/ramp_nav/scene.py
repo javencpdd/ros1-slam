@@ -17,14 +17,18 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import os
 import sys
 import xml.etree.ElementTree as ET
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[5]
+ROOT = Path(os.environ.get('V8_REPO_ROOT') or '/opt/ros1-slam')
 PLATFORM = ROOT / 'ws/src/90_platform/v8_platform'
-for folder in ('representation', 'planner', 'local_planner', 'contracts', 'framework'):
+ALGO = ROOT / 'ws/src/80_algorithm/v8_algorithm'
+for folder in ('representation', 'planner', 'local_planner'):
+    sys.path.insert(0, str(ALGO / folder))
+for folder in ('contracts', 'framework'):
     sys.path.insert(0, str(PLATFORM / folder))
 import support_map
 

@@ -7625,3 +7625,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `v8_platform` 只剩框架/编排/注册/契约/组合/校验/回归/交付/适配/边界/脚本。
 
 - B5 构建配置：v8_platform/CMakeLists 的 planner/local_planner 节点安装与包根别名移入 v8_algorithm/CMakeLists（同一 devel/lib 入口名；旧路径不再存在）。
+
+## 2026-11-21 / T-20261118-02 B5：P2 仿真侧旧路径同步
+
+- `lite3_gazebo_sim/scenarios/{ramp_nav,two_floor_nav}/scene.py`、`dynamics/{mj_navigation_stop,
+  mj_step_obstacles}.py`、`v8_simulation/test/test_support_cells.py` 改指
+  `80_algorithm/v8_algorithm`；ROOT 统一 `V8_REPO_ROOT` 或 `/opt/ros1-slam`（容器口径）。
+- parity 测试（support_cells 与 representation/support_map 对照）OK。

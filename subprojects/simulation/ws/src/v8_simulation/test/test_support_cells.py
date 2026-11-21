@@ -10,7 +10,7 @@ sys.path.insert(0, str(HERE.parent / 'scripts'))
 import support_cells  # noqa: E402
 
 ROOT = Path(os.environ.get('V8_REPO_ROOT') or HERE.parents[5]).resolve()
-PLATFORM = ROOT / 'ws' / 'src' / '90_platform' / 'v8_platform' / 'representation'
+PLATFORM = ROOT / 'ws' / 'src' / '80_algorithm' / 'v8_algorithm' / 'representation'
 
 
 def platform_support_map():

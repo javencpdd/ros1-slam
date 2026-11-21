@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import os
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -19,8 +20,9 @@ import numpy as np
 
 from mj_step_baseline import DEFAULT_POSE, rollout
 
-PLATFORM = Path(__file__).resolve().parents[3] / '90_platform' / 'v8_platform'
-sys.path.insert(0, str(PLATFORM / 'planner'))
+ROOT = Path(os.environ.get('V8_REPO_ROOT') or '/opt/ros1-slam')
+PLATFORM = ROOT / 'ws/src/90_platform/v8_platform'
+sys.path.insert(0, str(Path(os.environ.get('V8_ALGORITHM_ROOT') or (ROOT / 'ws/src/80_algorithm/v8_algorithm')) / 'planner'))
 import support_planner  # noqa: E402
 
 DECK = 'step_obstacles_deck'
