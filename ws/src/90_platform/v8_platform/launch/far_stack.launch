@@ -20,6 +20,12 @@
   <arg name="goal_topic" default="/v8/global/goal"/>
   <arg name="path_topic" default="/global_path"/>
   <arg name="status_topic" default="/global_path/status"/>
+  <!-- ★ 步态路径是 manifest 端口表之外的一条线 ★
+       /global_path 只放两点（末点＝FAR 航点本身），步态规划器要的前视延长点单独走这条。
+       两条路径不能合并：path_goal_node 取 poses[-1] 当局部目标，延长点混进去就把目标推到航点之外。
+       framework 的端口模型里没有它，check 不会替我们守这条线，改话题必须与 graph 侧的
+       gait_guard.params.path_topic 同改（graph_3d_lite3_far.yaml）。 -->
+  <arg name="gait_path_topic" default="/v8/gait_guard/path"/>
 
   <!-- 2) 规划参数（这些名字同时是 graph 侧 global.params 的键：
           include 会把实例 params 当 <arg> 传进来，键名对不上就直接报 unused arg） -->
@@ -68,6 +74,7 @@
     <param name="start_topic" value="$(arg start_topic)"/>
     <param name="goal_topic" value="$(arg goal_topic)"/>
     <param name="path_topic" value="$(arg path_topic)"/>
+    <param name="gait_path_topic" value="$(arg gait_path_topic)"/>
     <param name="status_topic" value="$(arg status_topic)"/>
     <param name="lookahead_m" value="$(arg lookahead_m)"/>
     <param name="arrival_topic" value="$(arg arrival_topic)"/>

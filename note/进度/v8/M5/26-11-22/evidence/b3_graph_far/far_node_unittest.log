@@ -1,0 +1,22 @@
+test_08_cancel_frame_parsed_by_local_policy (test_far_node.ContractTests) ... ok
+test_09_ack_frame_roundtrip (test_far_node.ContractTests) ... ok
+test_01_two_point_path_is_exactly_two_frames (test_far_node.PathShapeTests) ... ok
+test_02_pose_stamped_z_is_not_flattened (test_far_node.PathShapeTests)
+z 被压平不是美观问题：局部规划器会拿到差几米的落点，多层场景直接撞层间平台。 ... ok
+test_03_height_classification_uses_strict_less_than (test_far_node.PathShapeTests) ... ok
+test_04_missing_input_publishes_status_only (test_far_node.StateTests) ... ok
+test_05_cancel_keeps_halted_until_new_goal (test_far_node.StateTests) ... ok
+test_06_near_waypoint_extends_to_lookahead (test_far_node.StateTests) ... ok
+test_07_far_waypoint_stays_two_points (test_far_node.StateTests) ... ok
+test_13_main_path_never_carries_lookahead_point (test_far_node.StateTests)
+`/global_path` 的末点必须就是航点本身；延长点只能走 `/v8/gait_guard/path`。 ... ok
+test_10_transform_rotates_then_translates (test_far_node.TransformAndFaultTests)
+转帧自己算（镜像里没有 tf2_sensor_msgs）。纯平移近似在 1 m 外就 >0.2 m 误差。 ... ok
+test_11_fault_cancel_tracks_ack_and_times_out (test_far_node.TransformAndFaultTests) ... ok
+test_12_new_goal_clears_pending_cancel (test_far_node.TransformAndFaultTests)
+新 goal ＝ 操作员重新下达任务，上一轮的 ack 欠账不该在正常行驶里冒出来。 ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.002s
+
+OK

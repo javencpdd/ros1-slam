@@ -1,0 +1,231 @@
+schema: pipeline_graph/v1
+execution_mode: real_robot
+robot_id: lite3
+name: nav3d_lite3_real_far
+# FAR 全局后端的 Real-robot graph。与 graph_3d_lite3_bt.yaml 是**同一棵 BT、同一个 bt_console
+# 节点、同一套 BT 参数**，只有连线不同——「同一棵 BT」的准确含义在这里，不要读成同一套行为契约。
+#
+# 与 support 版的七处差异（逐条都能在下面找到）：
+#   1. global.component 换成 v8.fw.global_far（kind: include，起 far_planner ＋ 适配器两进程）
+#   2. 删掉 map.map 到 global.map 的边：FAR 不吃 support_map JSON，改吃带 intensity 的语义地形云；
+#      map 实例保留，local 与 gait_guard 还要它
+#   3. global.params 整块换成 FAR 的参数，旧自研规划器的体素预算与离障下限两个键一个不留
+#   4. 加回 path_goal 实例：FAR 的航点必须经 Path 才能进运动回路
+#   5. 摘掉 bt.out_goal 到 local.goal 的边（局部目标单写者改为 path_goal），
+#      并把 bt.out_goal_topic 退回默认哑话题，否则 BT 仍在直写 /v8/local/goal
+#   6. bt.params 补 arrival_topic，BT 才认适配器转发的到达信号
+#   7. gait_guard.params.path_topic 改指 /v8/gait_guard/path（三点路径，含前视延长点）
+#
+# Offline-checkable only.  A physical run still needs note/10 sign-off, the
+# original preflight rc0 and a human present (L2).
+instances:
+  - id: map
+    component: v8.fw.map_file
+    namespace: /v8/3d/map
+    params:
+      map_topic: /v8_support_map
+      status_topic: /v8_map_status
+  - id: global
+    component: v8.fw.global_far
+    namespace: /v8/3d/global
+    # ★ params 不受 param_schema 校验 ★（schema 只在 config.py 装载，graph.py/execution.py
+    # 没有使用点）⇒ 这些键写错了 check 照样 rc=0，只能靠人工对表：
+    # 键名必须是 far_stack.launch 里声明的 arg 名，值必须是该 arg 的合法取值。
+    params:
+      world_frame: map
+      # FAR 的上游默认是单层，多层必须显式打开（与 manifest 的 args 同值，这里显式写一份便于对表）
+      is_multi_layer: true
+      # 这个参数是「odom 原点离地高」，不是雷达安装高。本栈位姿 z 与地面同高 ⇒ 必须 0.0，
+      # 填 0.436 时上游地形连通搜索的自检越过 height_voxel_dim(0.3)，地形图不初始化，
+      # 可见障碍被全滤掉、航点恒 0（B2 定因，见 note/架构/双后端可替换_验证记录_2026-11-22.md）
+      vehicle_height: 0.0
+      terrain_free_Z: 0.2
+      # 与 gait_guard 的 lookahead_m 必须取同一个值：一个决定补多远的延长点，
+      # 另一个决定向前看多远才判台阶，两者不一致时步态判据会踩空
+      lookahead_m: 1.5
+      cloud_topic: /rslidar_points
+      start_topic: /v8/local/pose
+      goal_topic: /v8/global/goal
+      path_topic: /global_path
+      gait_path_topic: /v8/gait_guard/path
+      status_topic: /global_path/status
+      arrival_topic: /v8/bt/arrived
+      waypoint_timeout_s: 10.0
+      terrain_range_m: 15.0
+      terrain_rate_hz: 2.5
+      terrain_flatten: true
+      debug_output: false
+  - id: path_goal
+    component: v8.fw.path_goal3d
+    namespace: /v8/3d/path_goal
+    # support 版没有这个实例：BT 的 FollowPath 自己发 /v8/local/goal。
+    # FAR 版把局部目标的所有权交给它——每条 /global_path 取 poses[-1] 发一次 PoseStamped，
+    # 这正是 /global_path 只能放两点、不许带前视延长点的原因。
+  - id: bt
+    component: v8.fw.bt_console
+    namespace: /v8/bt
+    params:
+      tree_file: ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml
+      goal_topic: /v8/bt/goal
+      pose_topic: /v8/local/pose
+      planner_goal_topic: /v8/3d/global/goal
+      path_topic: /v8/3d/global/path
+      path_status_topic: /v8/3d/global/status
+      # 哑话题：本图没有 bt.out_goal 边，必须退回 bt_console 自己的缺省值，
+      # 否则 BT 仍然每拍直写 /v8/local/goal，与 path_goal 抢同一个话题（双写者）
+      out_goal_topic: /v8/bt/goal_request
+      stop_topic: /lite3/teleop/app_cmd_vel
+      cancel_input_topic: /v8/bt/cancel
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+      policy_topic: /v8/bt/goal_policy
+      mission_topic: /v8/bt/goal_mission
+      localization_topic: /v8/local/localization_ok
+      # 到达信号改由适配器转发（FAR 自报 /far_reach_goal_status）。manifest 的 inputs 没有
+      # arrived 位，所以走实例 params；没有任何门禁能证明它生效，验收只看 bt_console 启动日志的
+      # external arrival signal mode 一行
+      arrival_topic: /v8/bt/arrived
+      cancel_ack_timeout: 2.0
+      recovery_mode: skip
+      retry_max: 1
+      retry_delay_s: 0.0
+  - id: local
+    component: v8.fw.local_native_raw
+    namespace: /v8/3d/local
+    config: local_native.yaml
+    params:
+      map_topic: /v8_support_map
+      command_topic: /v8/local/cmd_vel_3d
+      twist_topic: /cmd_vel_raw
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+      # Stop-before-switch: hold zero from the desired gait change until the
+      # chassis bridge reports the new gait active.
+      gait_hold_enable: true
+      gait_desired_topic: /v8/chassis/gait
+      chassis_status_topic: /v8/chassis/status
+      gait_hold_settle_s: 0.5
+      gait_hold_timeout_s: 5.0
+      chassis_status_stale_s: 1.5
+  - id: ultrasonic_guard
+    component: v8.fw.ultrasonic_guard
+    namespace: /v8/3d/ultrasonic
+    params:
+      enable: true
+      us_topic: /us_publisher/ultrasound
+      front_index: 0
+      rate_hz: 10.0
+      stale_s: 0.5
+      cap_distance_m: 0.8
+      clear_distance_m: 1.2
+      stop_distance_m: 0.3
+      stop_speed_mps: 0.0
+      cap_speed_mps: 0.1
+      clear_speed_mps: 0.5
+      fail_cap: true
+      cap_topic: /v8/safety/speed_cap
+  - id: mux
+    component: v8.fw.safety_mux_lite3
+    namespace: /lite3/safety
+    params:
+      mux_config: config/cmd_vel_mux.yaml
+  - id: perception
+    component: v8.fw.dynamic_obstacles
+    namespace: /v8/3d/perception
+    params:
+      enable: true
+      cloud_topic: /rslidar_points
+      map_frame: map
+      rate_hz: 10.0
+      roi_forward_m: 6.0
+      roi_lateral_m: 3.0
+      min_height_m: 0.15
+      max_height_m: 1.6
+      voxel_m: 0.10
+      min_points: 8
+      max_objects: 32
+      self_radius_m: 0.45
+      max_speed_mps: 1.5
+      gate_m: 0.8
+      ttl_s: 1.0
+      blind_timeout_s: 2.0
+      obstacle_topic: /v8/local/obstacles
+  - id: gait_guard
+    component: v8.fw.gait_guard
+    namespace: /v8/3d/gait_guard
+    params:
+      enable: true
+      lookahead_m: 1.5
+      enter_m: 1.0
+      exit_m: 1.5
+      min_step_m: 0.05
+      max_step_m: 0.15
+      flat_gait: flat_mid
+      step_gait: high_step
+      republish_hz: 2.0
+      republish_window_s: 5.0
+      stationary_s: 0.5
+      stationary_eps_m: 0.03
+      map_topic: /v8_support_map
+      # 三点路径：含适配器补的前视延长点。改这条必须与 far_stack.launch 的
+      # gait_path_topic 同改，否则 gait_guard 订阅的是一条没人发的空话题（静默失效，check 不管）
+      path_topic: /v8/gait_guard/path
+      pose_topic: /v8/local/pose
+      gait_topic: /v8/chassis/gait
+  - id: carrier
+    component: v8.fw.carrier_lite3
+    namespace: /v8/3d/carrier
+    params:
+      pose_source: tf
+      map_frame: map
+      base_frame: base_link
+      pose_topic: /v8/local/pose
+      localization_topic: /v8/local/localization_ok
+      status_topic: /v8/3d/carrier/status
+      rate_hz: 20.0
+      stale_s: 0.5
+edges:
+  - {from: map.map, to: local.map}
+  - {from: global.path, to: bt.path}
+  - {from: global.status, to: bt.path_status}
+  - {from: global.path, to: path_goal.path}
+  # 局部目标的唯一写者。与 BT 的 planner_goal 各管一段：BT 说「去哪」，path_goal 说「下一步走哪」。
+  - {from: path_goal.goal, to: local.goal}
+  - {from: carrier.pose, to: bt.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: bt.planner_goal, to: global.goal, feedback: true,
+     policy: {period_s: 0.10, max_age_s: 2.0}}
+  # 位姿进 FAR。★ 标 feedback ★ 位姿是周期流（与本图其余 carrier.pose 边同一口径），
+  # 也避免与 command 链闭成启动环。include 型实例不生成 remap，这条边只把
+  #「carrier.pose 与 global.start 的端口话题都是 /v8/local/pose」记进图里。
+  - {from: carrier.pose, to: global.start, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: carrier.pose, to: local.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: carrier.localization, to: local.localization, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: perception.obstacles, to: local.obstacles}
+  - {from: carrier.pose, to: perception.pose}
+  - {from: map.map, to: gait_guard.map}
+  - {from: global.path, to: gait_guard.path}
+  - {from: carrier.pose, to: gait_guard.pose}
+  - {from: gait_guard.gait, to: local.gait_desired}
+  - {from: local.cmd_twist, to: mux.cmd}
+  - {from: ultrasonic_guard.cap, to: mux.cap}
+  - {from: bt.cancel_cmd, to: local.cancel}
+  - {from: local.cancel_ack, to: bt.cancel_ack, feedback: true,
+     policy: {period_s: 0.0, max_age_s: 1.0}}
+  - {from: carrier.localization, to: bt.localization_ok, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+external:
+  - {to: ultrasonic_guard.us, type: std_msgs/Float64MultiArray, source: bridge}
+  - {to: perception.cloud, type: sensor_msgs/PointCloud2, source: lidar}
+  # FAR 吃的是带 intensity 的语义地形云（intensity 即离地高），不是 support_map JSON；
+  # 与 perception 共用同一路激光
+  - {to: global.cloud, type: sensor_msgs/PointCloud2, source: lidar}
+  - {to: bt.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.chassis_status, type: std_msgs/String, source: chassis}
+  - {to: mux.hold, type: std_msgs/Bool, source: supervisor}
+  - {to: bt.cancel, type: std_msgs/String, source: operator}
+  - {to: bt.goal_policy, type: std_msgs/String, source: operator}
+  - {to: bt.mission_goal, type: std_msgs/String, source: operator}

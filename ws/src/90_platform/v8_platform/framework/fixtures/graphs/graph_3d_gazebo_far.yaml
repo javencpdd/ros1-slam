@@ -1,0 +1,139 @@
+schema: pipeline_graph/v1
+execution_mode: simulation
+robot_id: generic_sim
+name: nav3d_gazebo_far
+# FAR 全局后端的 gazebo fixture 图，与 graph_3d_gazebo_bt.yaml 是同一棵 BT、同一套 BT 参数，
+# 只有连线不同（与 configs/lite3/graph_3d_lite3_far.yaml 的七处差异逐条对应，本图少了 gait_guard
+# 一条：gazebo fixture 里没有 gait_guard 实例，三点路径无人订阅，故不设 gait_path_topic）。
+instances:
+  - id: map
+    component: v8.fw.map_file
+    namespace: /v8/3d/map
+    params:
+      map_json: data/maps/generated/nist_sensor_v2.json
+      map_topic: /v8_support_map
+      status_topic: /v8_map_status
+  - id: global
+    component: v8.fw.global_far
+    namespace: /v8/3d/global
+    # params 不受 param_schema 校验：键名必须是 far_stack.launch 的 arg 名，写错了 check 照样绿
+    params:
+      world_frame: map
+      is_multi_layer: true
+      # odom 原点离地高，不是雷达安装高。本栈位姿 z 与地面同高 ⇒ 0.0
+      vehicle_height: 0.0
+      terrain_free_Z: 0.2
+      lookahead_m: 1.5
+      cloud_topic: /rslidar_points
+      start_topic: /v8/local/pose
+      goal_topic: /v8/global/goal
+      path_topic: /global_path
+      gait_path_topic: /v8/gait_guard/path
+      status_topic: /global_path/status
+      arrival_topic: /v8/bt/arrived
+      waypoint_timeout_s: 10.0
+      terrain_range_m: 15.0
+      terrain_rate_hz: 2.5
+      terrain_flatten: true
+      debug_output: false
+  - id: path_goal
+    component: v8.fw.path_goal3d
+    namespace: /v8/3d/path_goal
+  - id: bt
+    component: v8.fw.bt_console
+    namespace: /v8/bt
+    params:
+      # tree_file is resolved to an absolute path by app_runner before check.
+      tree_file: ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml
+      goal_topic: /v8/bt/goal
+      pose_topic: /v8/local/pose
+      planner_goal_topic: /v8/3d/global/goal
+      path_topic: /v8/3d/global/path
+      path_status_topic: /v8/3d/global/status
+      # 哑话题：本图没有 bt.out_goal 边，必须退回 bt_console 缺省值，否则 BT 仍直写
+      # /v8/local/goal，与 path_goal 成双写者
+      out_goal_topic: /v8/bt/goal_request
+      stop_topic: /lite3/teleop/app_cmd_vel
+      cancel_input_topic: /v8/bt/cancel
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+      policy_topic: /v8/bt/goal_policy
+      mission_topic: /v8/bt/goal_mission
+      localization_topic: /v8/local/localization_ok
+      arrival_topic: /v8/bt/arrived
+      cancel_ack_timeout: 2.0
+      recovery_mode: skip
+      retry_max: 1
+      retry_delay_s: 0.0
+  - id: local
+    component: v8.fw.local_native
+    namespace: /v8/3d/local
+    config: ../configs/local_native_app_mapped.yaml
+    params:
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+  - id: mux3d
+    component: v8.fw.cmd3d_mux
+    namespace: /v8/3d/mux
+    params:
+      cmd_topic: /v8/local/cmd_vel_3d
+      hold_topic: /lite3/supervisor/hold
+      output_topic: /cmd_vel
+      status_topic: /v8/3d/mux/status
+      timeout_s: 0.4
+  - id: carrier
+    component: v8.fw.gazebo_carrier3d
+    namespace: /v8/3d/carrier
+    params:
+      model_name: app_carrier
+      start_x: 0.0
+      start_y: -3.06
+      start_z: 0.0
+      center_z: 0.1
+      snap_m: 0.03
+      rate_hz: 50.0
+      cmd_topic: /cmd_vel
+      map_topic: /v8_support_map
+      pose_topic: /v8/local/pose
+      localization_topic: /v8/local/localization_ok
+      status_topic: /v8/3d/carrier/status
+      spawn: true
+edges:
+  - {from: map.map, to: local.map}
+  - {from: map.map, to: carrier.map}
+  - {from: global.path, to: bt.path}
+  - {from: global.status, to: bt.path_status}
+  - {from: global.path, to: path_goal.path}
+  - {from: path_goal.goal, to: local.goal}
+  - {from: carrier.pose, to: bt.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  # RequestPath asks the global planner for a new path on every goal.  This is
+  # a request/response loop, so it is marked feedback and kept out of the
+  # startup DAG.
+  - {from: bt.planner_goal, to: global.goal, feedback: true,
+     policy: {period_s: 0.10, max_age_s: 2.0}}
+  # 位姿进 FAR。★ 必须标 feedback ★ 位姿是周期流（与本图其余 carrier.pose 边同一口径）；
+  # 一旦当普通边，carrier→global→path_goal→local→mux3d→carrier 就闭成启动环。
+  # include 型实例不生成 remap，这条边只记录「两边端口话题本来就相同」。
+  - {from: carrier.pose, to: global.start, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: carrier.pose, to: local.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: carrier.localization, to: local.localization, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: local.cmd, to: mux3d.cmd}
+  - {from: mux3d.cmd, to: carrier.cmd}
+  - {from: bt.cancel_cmd, to: local.cancel}
+  - {from: local.cancel_ack, to: bt.cancel_ack, feedback: true,
+     policy: {period_s: 0.0, max_age_s: 1.0}}
+  - {from: carrier.localization, to: bt.localization_ok, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+external:
+  # FAR 吃带 intensity 的语义地形云（intensity 即离地高），不吃 support_map JSON
+  - {to: global.cloud, type: sensor_msgs/PointCloud2, source: lidar}
+  - {to: bt.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: local.obstacles, type: std_msgs/String, source: perception}
+  - {to: mux3d.hold, type: std_msgs/Bool, source: supervisor}
+  - {to: bt.cancel, type: std_msgs/String, source: operator}
+  - {to: bt.goal_policy, type: std_msgs/String, source: operator}
+  - {to: bt.mission_goal, type: std_msgs/String, source: operator}

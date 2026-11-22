@@ -1,0 +1,415 @@
+{
+  "schema_version": 1,
+  "target": "x86_sim",
+  "ros_distro": "noetic",
+  "ros_version": 1,
+  "extra_sources": [
+    "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src"
+  ],
+  "workspace": "/home/jack/ysc-code/ros1-slam/ws",
+  "roots": [
+    "v8_algorithm",
+    "v8_platform",
+    "v8_ndt_odom",
+    "lite3_bt",
+    "lite3_bringup",
+    "lite3_drivers",
+    "livox_ros_driver2",
+    "message_transformer",
+    "lite3_slam",
+    "faster_lio",
+    "lite3_localization",
+    "hdl_localization",
+    "hdl_global_localization",
+    "lite3_navigation",
+    "lite3_scan",
+    "lite3_safety",
+    "lite3_supervisor",
+    "pipeline",
+    "lite3_gazebo_sim",
+    "livox_laser_simulation",
+    "lite3_description",
+    "map_generator",
+    "mockamap",
+    "local_sensing_node",
+    "v8_simulation",
+    "elevation_mapping"
+  ],
+  "packages": [
+    {
+      "name": "bspline_opt",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/bspline_opt",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/bspline_opt/package.xml",
+      "manifest_sha256": "d6911c1c0edae4f330bfe1be5c34d56e0f8de95e7d9c4f61af83d9e6163506c2"
+    },
+    {
+      "name": "elevation_mapping",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/elevation_mapping",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/elevation_mapping/package.xml",
+      "manifest_sha256": "54ed3a08181cb0003075270138d1101d2dc80f93c87cd2c77fdb135bbdc3d6df"
+    },
+    {
+      "name": "fast_gicp",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/fast_gicp",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/fast_gicp/package.xml",
+      "manifest_sha256": "f54120d63738ba5d54607861150898cf926599526cfae36acca54de5c0173e70"
+    },
+    {
+      "name": "faster_lio",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/10_slam/faster_lio",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/10_slam/faster_lio/package.xml",
+      "manifest_sha256": "fdd7850a9f53b2781df16d52b82c653ecf051acd8f8cb7b19283ec24d82e341f"
+    },
+    {
+      "name": "hdl_global_localization",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/hdl_global_localization",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/hdl_global_localization/package.xml",
+      "manifest_sha256": "b8acdf4e9ec74a0557a7e5e425fe6d31db03c9fccd7ab31a6b4fbb2cb34945fb"
+    },
+    {
+      "name": "hdl_localization",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/hdl_localization",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/hdl_localization/package.xml",
+      "manifest_sha256": "ea379291e5bb469a93be2675ee3942987a2b5b830c91b9edaa47b0c9476647d0"
+    },
+    {
+      "name": "kindr",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_perception/libraries/kindr",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_perception/libraries/kindr/package.xml",
+      "manifest_sha256": "81cc551dadf86f79a8a90e22110efbdffbf7c5c68073ff2105c2c715feef9d2f"
+    },
+    {
+      "name": "kindr_ros",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_perception/libraries/kindr_ros/kindr_ros",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_perception/libraries/kindr_ros/kindr_ros/package.xml",
+      "manifest_sha256": "39ac24c076504a2a2c39eff6ed5b6fb99616919b4d09bf014592741e4e858241"
+    },
+    {
+      "name": "lite3_bringup",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/70_bringup/lite3_bringup",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/70_bringup/lite3_bringup/package.xml",
+      "manifest_sha256": "4c1578fda89fdbba44444b568dd23d9376c2cffab5313ddfa1e4bdb01da5d5f8"
+    },
+    {
+      "name": "lite3_bt",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/lite3_bt",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/lite3_bt/package.xml",
+      "manifest_sha256": "3e9242c8c3c0d1e249aa2da87cb7c1f430b8b59d73546f9b518f0fd7e7c20f80"
+    },
+    {
+      "name": "lite3_description",
+      "path": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/lite3_description",
+      "manifest": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/lite3_description/package.xml",
+      "manifest_sha256": "cf84c2d6e8f28f041a2e06769298076ba4ad7169c66a632802c777fabfa858ca"
+    },
+    {
+      "name": "lite3_drivers",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/lite3_drivers",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/lite3_drivers/package.xml",
+      "manifest_sha256": "a363ec12494b5a33605cc8dbf31aafc1b9004244869fc18099914582861f94aa"
+    },
+    {
+      "name": "lite3_gazebo_sim",
+      "path": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/lite3_gazebo_sim",
+      "manifest": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/lite3_gazebo_sim/package.xml",
+      "manifest_sha256": "95c99e211b5a0cd1495d0d3c6150f46679a0207c5a7fffb71f2bb0d388580ce6"
+    },
+    {
+      "name": "lite3_localization",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/lite3_localization",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/lite3_localization/package.xml",
+      "manifest_sha256": "d7318762a2a0ad047047e7914fbb000b837e4bc696454b4d9d28e3d5b1dee4e1"
+    },
+    {
+      "name": "lite3_navigation",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/40_navigation/lite3_navigation",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/40_navigation/lite3_navigation/package.xml",
+      "manifest_sha256": "5ce4f6e1d9b68955f8268c32c892d3768aeef63ae660a36116cdf7880b7a99f0"
+    },
+    {
+      "name": "lite3_safety",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/60_safety/lite3_safety",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/60_safety/lite3_safety/package.xml",
+      "manifest_sha256": "b7ed3848d8b72ee215d11da19fed247f0ea9b32cd75a507e8f1e079e5aadfcda"
+    },
+    {
+      "name": "lite3_scan",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/40_navigation/lite3_scan",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/40_navigation/lite3_scan/package.xml",
+      "manifest_sha256": "99682385a135275e3c8d4b12ddc001f4ee2ca3299263b720ffe2826010869216"
+    },
+    {
+      "name": "lite3_slam",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/10_slam/lite3_slam",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/10_slam/lite3_slam/package.xml",
+      "manifest_sha256": "f190d804e3147276f24fc6a93069a2c9f75a5e7ad998ee7dc5176fbcfee13609"
+    },
+    {
+      "name": "lite3_supervisor",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/90_supervisor/lite3_supervisor",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/90_supervisor/lite3_supervisor/package.xml",
+      "manifest_sha256": "e4e1524d2d05aaeabff7c07ea188267e6713e9eb2ab78ac537db99be4b354621"
+    },
+    {
+      "name": "livox_laser_simulation",
+      "path": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/Mid360_simulation_plugin/livox_laser_simulation",
+      "manifest": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/Mid360_simulation_plugin/livox_laser_simulation/package.xml",
+      "manifest_sha256": "bed670b9e142dd563e36c74b56dbe54a850d9798a73894fa45f5689a8beb0064"
+    },
+    {
+      "name": "livox_ros_driver2",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/livox_ros_driver2",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/livox_ros_driver2/package_ROS1.xml",
+      "manifest_sha256": "2e3eb6932e9fe365d31aa69926aa6cae76464f4176008cf33de26f0fbee29c27"
+    },
+    {
+      "name": "local_sensing_node",
+      "path": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/local_sensing",
+      "manifest": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/local_sensing/package.xml",
+      "manifest_sha256": "ea19b9dbbd2a2874de979aa8bd4d4b7774ce030b35f9691a12ba17b3a2f8555f"
+    },
+    {
+      "name": "map_generator",
+      "path": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/map_generator",
+      "manifest": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/map_generator/package.xml",
+      "manifest_sha256": "ccd2bba004eeda0cea001bd4e3606545c1dc2b2d91db6d8df74256d7db3cf710"
+    },
+    {
+      "name": "message_logger",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/message_logger",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/message_logger/package.xml",
+      "manifest_sha256": "b0733314f9caeaeca02319233457f885d502b4ec164fc42b475692edef6b92b1"
+    },
+    {
+      "name": "message_transformer",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/message_transformer",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/00_drivers/message_transformer/package.xml",
+      "manifest_sha256": "e0a5e4d539b83104669d34c7cc84faf68dfafb303bbdb981c375353c29d66d5f"
+    },
+    {
+      "name": "mockamap",
+      "path": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/mockamap",
+      "manifest": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/mockamap/package.xml",
+      "manifest_sha256": "e32fab3f9fd759858860a7d393587cb6028cb8acc307c301eef069f381b2152e"
+    },
+    {
+      "name": "ndt_omp",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/ndt_omp",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/20_localization/ndt_omp/package.xml",
+      "manifest_sha256": "c8e904f83b22ce5c8e77e7c2148d2de81745e9791af5f1b17d08f2c43d5962b6"
+    },
+    {
+      "name": "path_searching",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/path_searching",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/path_searching/package.xml",
+      "manifest_sha256": "df35faff96aad2f9616a8f1b66d46a10804551e60ec8f443d6e437a2d6688496"
+    },
+    {
+      "name": "pipeline",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/50_task/pipeline_tracking",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/50_task/pipeline_tracking/package.xml",
+      "manifest_sha256": "75116d9df26c67facbd031697834df66d9f9996451c074bf38b8d3526d727897"
+    },
+    {
+      "name": "plan_env",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/plan_env",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/plan_env/package.xml",
+      "manifest_sha256": "3aed6d558095b53d23c82941349242e3a6c28b7fba52862389a5257e19ebac97"
+    },
+    {
+      "name": "scan_planner",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/plan_manage",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/plan_manage/package.xml",
+      "manifest_sha256": "903d19f931cfe911d9bf394ee1b733cae81ce0c5ffa395de44f44fe342b82088"
+    },
+    {
+      "name": "traj_utils",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/traj_utils",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/30_3rd/traj_utils/package.xml",
+      "manifest_sha256": "55f45174fca4417b85df21200420f1674af8035b71f508912f27f015741d2fec"
+    },
+    {
+      "name": "v8_algorithm",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/80_algorithm/v8_algorithm",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/80_algorithm/v8_algorithm/package.xml",
+      "manifest_sha256": "6d111e24e8722f11a6b0bc9a4790168b76efea3c826c5fbe5d5c0f422192d8a4"
+    },
+    {
+      "name": "v8_grid",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/80_algorithm/v8_grid",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/80_algorithm/v8_grid/package.xml",
+      "manifest_sha256": "d14055877cce552603860ade9996b8cabc54e1a6f8dfb03ae420ceaeff747d00"
+    },
+    {
+      "name": "v8_msgs",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_msgs",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_msgs/package.xml",
+      "manifest_sha256": "8e93cb2045b3bf9ca993ebeb6e64effd6409cb1961563d80b9b0e0acd5cbfa85"
+    },
+    {
+      "name": "v8_ndt_odom",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_ndt_odom",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_ndt_odom/package.xml",
+      "manifest_sha256": "ffead801509229a728f0d782b8be5885b5fa6ce8f4d5391cc7b729fcc970623a"
+    },
+    {
+      "name": "v8_platform",
+      "path": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform",
+      "manifest": "/home/jack/ysc-code/ros1-slam/ws/src/90_platform/v8_platform/package.xml",
+      "manifest_sha256": "82edef459b50bebdd70578bd485c491dc5a16f81d5238e2519893a48e1473752"
+    },
+    {
+      "name": "v8_simulation",
+      "path": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/v8_simulation",
+      "manifest": "/home/jack/ysc-code/ros1-slam/subprojects/simulation/ws/src/v8_simulation/package.xml",
+      "manifest_sha256": "c809d76c60c390d33c06a8b661b14e52cd432cebc2a43ac1b75cce850117af1e"
+    }
+  ],
+  "external_dependencies": [
+    "actionlib",
+    "actionlib_msgs",
+    "apr",
+    "base_local_planner",
+    "boost",
+    "catkin",
+    "cmake_modules",
+    "costmap_2d",
+    "costmap_converter",
+    "cv_bridge",
+    "dwa_local_planner",
+    "eigen",
+    "eigen_conversions",
+    "gazebo_msgs",
+    "gazebo_plugins",
+    "gazebo_ros",
+    "geometry_msgs",
+    "git",
+    "global_planner",
+    "grid_map_core",
+    "grid_map_filters",
+    "grid_map_msgs",
+    "grid_map_ros",
+    "joint_state_publisher",
+    "libopencv-dev",
+    "mbf_msgs",
+    "message_filters",
+    "message_generation",
+    "message_runtime",
+    "move_base",
+    "move_base_msgs",
+    "mpc_local_planner",
+    "nav_msgs",
+    "navfn",
+    "nodelet",
+    "pcl_conversions",
+    "pcl_ros",
+    "python3-numpy",
+    "python3-yaml",
+    "robot_state_publisher",
+    "rosbag",
+    "rosbash",
+    "roscpp",
+    "rosgraph_msgs",
+    "roslaunch",
+    "roslib",
+    "rospy",
+    "rostopic",
+    "rviz",
+    "sensor_msgs",
+    "sob_layer",
+    "spatio_temporal_voxel_layer",
+    "std_msgs",
+    "std_srvs",
+    "teb_local_planner",
+    "tf",
+    "tf2",
+    "tf2_eigen",
+    "tf2_geometry_msgs",
+    "tf2_msgs",
+    "tf2_ros",
+    "tf_conversions",
+    "topic_tools",
+    "visualization_msgs",
+    "xacro"
+  ],
+  "external_dependency_status": "NOT_CHECKED",
+  "ignored_packages": [
+    "deeprobotics_local_height_map"
+  ],
+  "paths": {
+    "profile": "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim",
+    "source_view": "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src",
+    "build": "/home/jack/ysc-code/ros1-slam/ws/build",
+    "devel": "/home/jack/ysc-code/ros1-slam/ws/devel",
+    "install": "/home/jack/ysc-code/ros1-slam/ws/install"
+  },
+  "profiles_sha256": "79e9f1b8b0768bde7addc6b6c427ce40d082906b3b3a5d8610f0d6651c0205dd",
+  "tests_enabled": false,
+  "rosdep_check_command": [
+    "rosdep",
+    "check",
+    "--from-paths",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/bspline_opt",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/elevation_mapping",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/fast_gicp",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/faster_lio",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/hdl_global_localization",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/hdl_localization",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/kindr",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/kindr_ros",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_description",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_drivers",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_localization",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_navigation",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_safety",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_scan",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_slam",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/lite3_supervisor",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/livox_laser_simulation",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/livox_ros_driver2",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/local_sensing_node",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/map_generator",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/message_logger",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/message_transformer",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/mockamap",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/ndt_omp",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/path_searching",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/pipeline",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/plan_env",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/scan_planner",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/traj_utils",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/v8_grid",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/v8_msgs",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/v8_ndt_odom",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/v8_platform",
+    "/home/jack/ysc-code/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation",
+    "--ignore-src",
+    "--rosdistro",
+    "noetic",
+    "--dependency-types",
+    "build",
+    "--dependency-types",
+    "buildtool",
+    "--dependency-types",
+    "build_export",
+    "--dependency-types",
+    "buildtool_export",
+    "--dependency-types",
+    "exec"
+  ],
+  "rosdep_check_note": "Advisory only; requires the generated source view. No check or installation was performed.",
+  "host_only": {
+    "paths": [
+      "web",
+      "subprojects/console",
+      "data/console"
+    ],
+    "robot_forbidden": false,
+    "status": "not-applicable"
+  },
+  "cache_conflicts": []
+}

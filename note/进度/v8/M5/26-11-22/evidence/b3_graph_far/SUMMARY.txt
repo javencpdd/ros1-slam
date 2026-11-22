@@ -1,0 +1,25 @@
+B3 graph 链接入 · 读数汇总（2026-11-22 现读）
+
+lite3_bt    ok=True digest=8fb5f7cedd9b
+  startup_order = ['carrier', 'map', 'ultrasonic_guard', 'global', 'perception', 'bt', 'gait_guard', 'local', 'mux']
+  launch counts = components 50 / real 41 / test_double 9
+  command_writers = {'/cmd_vel': 'mux', '/cmd_vel_raw': 'local'}
+lite3_far   ok=True digest=595559ebd823
+  startup_order = ['carrier', 'global', 'map', 'ultrasonic_guard', 'bt', 'gait_guard', 'path_goal', 'perception', 'local', 'mux']
+  launch counts = components 50 / real 41 / test_double 9
+  command_writers = {'/cmd_vel': 'mux', '/cmd_vel_raw': 'local'}
+gazebo_bt   ok=True digest=cb97b6765578
+  startup_order = ['map', 'global', 'bt', 'local', 'mux3d', 'carrier']
+  launch counts = components 50 / real 41 / test_double 9
+  command_writers = {'/cmd_vel': 'mux3d', '/v8/local/cmd_vel_3d': 'local'}
+gazebo_far  ok=True digest=c4228d32f667
+  startup_order = ['global', 'map', 'bt', 'path_goal', 'local', 'mux3d', 'carrier']
+  launch counts = components 50 / real 41 / test_double 9
+  command_writers = {'/cmd_vel': 'mux3d', '/v8/local/cmd_vel_3d': 'local'}
+
+x86_sim 闭包：packages=38 roots=26 ignored=['deeprobotics_local_height_map'] cache_conflicts=[]
+profiles_sha256 = 79e9f1b8b0768bde7addc6b6c427ce40d082906b3b3a5d8610f0d6651c0205dd
+FAR 新增包数 = 0（far_planner 走 /home/jack/far_overlay，不进 ws/src 闭包）
+
+反向注入：NEG1 E_GRAPH_INPUT（删 global.cloud 外部输入）／NEG2 E_GRAPH_TYPE（cloud 类型改错），见 neg_injections.log
+T1—T6 读数见 gait_t1_t6.json；两侧单测见 far_node_unittest.log（13 条）与 framework_unittest.log（308 条）

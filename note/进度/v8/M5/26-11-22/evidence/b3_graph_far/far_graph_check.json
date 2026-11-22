@@ -1,0 +1,96 @@
+{
+ "ok": true,
+ "name": "nav3d_lite3_real_far",
+ "digest": "595559ebd82379b56bada5fa180481bbd146b8a3196b4c80766e6374eb8a52c0",
+ "startup_order": [
+  "carrier",
+  "global",
+  "map",
+  "ultrasonic_guard",
+  "bt",
+  "gait_guard",
+  "path_goal",
+  "perception",
+  "local",
+  "mux"
+ ],
+ "feedback": [
+  {
+   "from": "carrier.pose",
+   "to": "bt.pose",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "bt.planner_goal",
+   "to": "global.goal",
+   "policy": {
+    "period_s": 0.1,
+    "max_age_s": 2.0
+   }
+  },
+  {
+   "from": "carrier.pose",
+   "to": "global.start",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "carrier.pose",
+   "to": "local.pose",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "carrier.localization",
+   "to": "local.localization",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "local.cancel_ack",
+   "to": "bt.cancel_ack",
+   "policy": {
+    "period_s": 0.0,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "carrier.localization",
+   "to": "bt.localization_ok",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  }
+ ],
+ "command_writers": {
+  "/cmd_vel": "mux",
+  "/cmd_vel_raw": "local"
+ },
+ "safety": {
+  "ok": true,
+  "command_owner": "mux",
+  "advice": [
+   {
+    "endpoint": "local.cmd_twist",
+    "topic": "/cmd_vel_raw"
+   }
+  ],
+  "validator": "absent"
+ },
+ "configs": {
+  "local": {
+   "path": "/opt/ros1-slam/ws/src/90_platform/v8_platform/configs/lite3/local_native.yaml",
+   "sha256": "466d4b73a8da474d61e3e1b5afdd14398745782baaf0484a713dfefccd72217a"
+  }
+ }
+}

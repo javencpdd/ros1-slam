@@ -61,11 +61,13 @@ class PathShapeTests(unittest.TestCase):
 class StateTests(unittest.TestCase):
     def test_04_missing_input_publishes_status_only(self):
         state = far_node.AdapterState()
-        points, text = state.on_waypoint(None, (1., 0., 0.))
-        self.assertEqual(points, [])
+        path_points, gait_points, text = state.on_waypoint(None, (1., 0., 0.))
+        self.assertEqual(path_points, [])
+        self.assertEqual(gait_points, [])
         self.assertEqual(json.loads(text)['reason'], 'E_FAR_NO_POSE')
-        points, text = state.on_waypoint((0., 0., 0.), None)
-        self.assertEqual(points, [])
+        path_points, gait_points, text = state.on_waypoint((0., 0., 0.), None)
+        self.assertEqual(path_points, [])
+        self.assertEqual(gait_points, [])
         self.assertEqual(json.loads(text)['reason'], 'E_FAR_NO_WAYPOINT')
         self.assertEqual(json.loads(text)['points'], 0)
 
@@ -73,8 +75,9 @@ class StateTests(unittest.TestCase):
         state = far_node.AdapterState()
         seq = state.on_cancel()
         self.assertTrue(state.halted)
-        points, text = state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=1.)
-        self.assertEqual(points, [])
+        path_points, gait_points, text = state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=1.)
+        self.assertEqual(path_points, [])
+        self.assertEqual(gait_points, [])
         self.assertEqual(json.loads(text)['reason'], 'E_FAR_HALTED')
         # ack 到位也不解除——ack 只说明「取消收到了」，不说明「可以继续走」
         self.assertEqual(state.on_ack('%d:cancelled' % seq), (seq, 'cancelled'))
@@ -96,6 +99,34 @@ class StateTests(unittest.TestCase):
     def test_07_far_waypoint_stays_two_points(self):
         points = far_node.gait_path((0., 0., 0.), (2.5, 0., 0.), 1.5)
         self.assertEqual(len(points), 2)
+        # 切换点在 lookahead + margin（1.5 + 0.3 = 1.8），不是 lookahead 本身：
+        # 1.6 m 的航点仍要补，因为扫描到 1.6 m 就断了、看不到 1.5 m 以外
+        self.assertEqual(len(far_node.gait_path((0., 0., 0.), (1.6, 0., 0.), 1.5)), 3)
+        self.assertEqual(len(far_node.gait_path((0., 0., 0.), (1.8, 0., 0.), 1.5)), 2)
+        # 补点的总长固定为 lookahead + margin，与航点远近无关
+        for near in (0.3, 1.6):
+            points = far_node.gait_path((0., 0., 0.), (near, 0., 0.), 1.5)
+            self.assertAlmostEqual(length(points), 1.8, places=9)
+
+    def test_13_main_path_never_carries_lookahead_point(self):
+        """`/global_path` 的末点必须就是航点本身；延长点只能走 `/v8/gait_guard/path`。
+
+        `path_goal_node.py` 取 `poses[-1]` 当局部目标。延长点混进去，局部目标就被推到
+        航点之外——车会越过 FAR 判断为安全的落点继续走。这条守的是「目标语义不被打折」。
+        """
+        state = far_node.AdapterState()
+        # 近航点（0.3 m < 前视 1.5 m）：主路径仍两点，步态路径补第三点
+        path_points, gait_points, text = state.on_waypoint((0., 0., 0.), (0.3, 0., 0.), now=1.)
+        self.assertEqual(len(path_points), 2)
+        self.assertEqual(path_points[-1], (0.3, 0., 0.))
+        self.assertEqual(len(gait_points), 3)
+        self.assertGreater(gait_points[-1][0], 0.3)
+        # 两个数分开报，别混用一个字段
+        payload = json.loads(text)
+        self.assertEqual((payload['points'], payload['gait_points']), (2, 3))
+        # 远航点（2.5 m）：两条话题内容逐字相同
+        path_points, gait_points, _ = state.on_waypoint((0., 0., 0.), (2.5, 0., 0.), now=2.)
+        self.assertEqual(path_points, gait_points)
 
 
 class TransformAndFaultTests(unittest.TestCase):

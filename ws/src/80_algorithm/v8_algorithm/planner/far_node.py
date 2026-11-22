@@ -14,6 +14,12 @@
 | 订 | `/way_point` | `PointStamped` | FAR 的 3D 航点，本模块把它变成 Path |
 | 订 | `/far_reach_goal_status` | `Bool` | FAR 自报到达 |
 | 发 | `/terrain_cloud` | `PointCloud2` | `intensity` ＝ 离地高 h |
+| 发 | `/global_path` | `Path` | **两点** `[当前位姿, 航点]`，给 `path_goal` 与 BT |
+| 发 | `/v8/gait_guard/path` | `Path` | 两点或**三点**（近距补前视点），只给 `gait_guard` |
+
+★ 两条路径话题必须分开 ★ `path_goal_node.py` 取 `poses[-1]` 当局部目标。
+步态用的延长点若混进 `/global_path`，局部目标会被推到航点之外——车会越过 FAR 给的
+安全落点继续走。延长点只属于步态规划器，不属于目标语义。
 
 ★ 不要复用上游 `far_planner.launch`：它连带起 `rviz` 与 `graph_decoder`，两者都不在最小包集里。
 """
@@ -23,6 +29,7 @@ import math
 FREE_Z_M = 0.2          # 与上游 `Util/terrain_free_Z: 0.2` 同值；h < 此值算地面
 GROUND_CELL_M = 0.2     # 地面栅格边长（米）
 LOOKAHEAD_M = 1.5       # 步态路径最小前视距离（米）
+LOOKAHEAD_MARGIN_M = 0.3   # 延长段在 lookahead 之外多留的余量（米）：总长 = lookahead + 此值
 CANCEL_SEQ_BASE = 900000000   # 取消序号起点：避开 BT 的 cancel_seq（从 1 起递增）
 
 ACK_OUTCOMES = ('cancelled', 'ack_fail', 'unacked')
@@ -130,20 +137,30 @@ def two_point_path(pose, waypoint):
     return [_xyz(pose), _xyz(waypoint)]
 
 
-def gait_path(pose, waypoint, lookahead_m=LOOKAHEAD_M):
-    """两点，必要时补第三点，保证步态规划器看得够远。
+def gait_path(pose, waypoint, lookahead_m=LOOKAHEAD_M, margin_m=LOOKAHEAD_MARGIN_M):
+    """两点，必要时补第三点，让步态前瞻扫得到 `lookahead_m` 以外的一小段。
 
-    航点径距 `d >= lookahead_m`：两点就够（FAR 自己已经给了远处的点）。
-    `d < lookahead_m`：沿同方向再补一点到 `pose + unit * (d + lookahead_m)`，
-    折线总长恰为 `d + lookahead_m`。只补一次、不外推递归，
-    补点只在原方向上延长——不改变航向，不引入新的横向偏移。
+    `_xyz(waypoint) - _xyz(pose)` 的水平距 `d >= lookahead_m + margin_m`：两点就够
+    （扫描本来就到不了航点，补了也是浪费）。
+    `d < lookahead_m + margin_m`：沿同方向补一点，使折线总长恰为 `lookahead_m + margin_m`。
+    只补一次、不外推递归；补点只在原方向上延长——不改变航向，不引入横向偏移。
+
+    ★ 为什么总长是固定值而不是 `d + lookahead_m` ★ `stair_ahead` 按
+    `travelled > lookahead_m` 截断扫描，缺的从来不是「航点那 0.3 m」，而是
+    「航点之外还要再走一段才能凑够 lookahead」。总长固定成 `lookahead_m + margin_m`，
+    扫描距离就与航点远近无关；写成 `d + lookahead_m` 会让近航点白补一大截、
+    远航点又白补一截，两头都不省。
+
+    ★ 这个点只许发给步态规划器 ★ 送进 `/global_path` 时 `pos_goal` 取 `poses[-1]`，
+    局部目标会被推到航点之外。
     """
     start, goal = _xyz(pose), _xyz(waypoint)
     dx, dy, dz = goal[0] - start[0], goal[1] - start[1], goal[2] - start[2]
     dist = math.sqrt(dx * dx + dy * dy + dz * dz)
-    if dist <= 1e-9 or dist >= lookahead_m:
+    reach = float(lookahead_m) + float(margin_m)
+    if dist <= 1e-9 or dist >= reach:
         return [start, goal]
-    scale = (dist + lookahead_m) / dist
+    scale = reach / dist
     return [start, goal,
             (start[0] + dx * scale, start[1] + dy * scale, start[2] + dz * scale)]
 
@@ -278,18 +295,30 @@ class AdapterState:
 
     # ---- 航点 ----
     def on_waypoint(self, pose, waypoint, now=None):
-        """返回 `(points, status_text)`。缺输入或处于 halted 时**只出状态、不出路径**。"""
+        """返回 `(path_points, gait_points, status_text)`。
+
+        两条路径**在意料分歧时给出不同点数**，这是本方法返回两个列表的原因：
+
+        * `path_points` —— 恒为 `[位姿, 航点]` 两点，发 `/global_path`。目标语义只认那两个。
+        * `gait_points` —— 航点近于 `lookahead_m` 时多补一个延长点，发 `/v8/gait_guard/path`。
+
+        缺输入或处于 halted 时**只出状态、两条都不出**。
+        """
         if pose is None:
-            return [], status_json(False, 0, 'E_FAR_NO_POSE')
+            return [], [], status_json(False, 0, 'E_FAR_NO_POSE')
         if waypoint is None:
-            return [], status_json(False, 0, 'E_FAR_NO_WAYPOINT')
+            return [], [], status_json(False, 0, 'E_FAR_NO_WAYPOINT')
         if self.halted:
-            return [], status_json(False, 0, 'E_FAR_HALTED', seq=self.cancel_seq)
-        points = gait_path(pose, waypoint, self.lookahead_m)
+            return [], [], status_json(False, 0, 'E_FAR_HALTED', seq=self.cancel_seq)
+        path_points = two_point_path(pose, waypoint)
+        gait_points = gait_path(pose, waypoint, self.lookahead_m)
         self.last_waypoint = _xyz(waypoint)
         self.last_waypoint_at = now
         self.waypoint_count += 1
-        return points, status_json(True, len(points), 'ok')
+        # status 的 `points` 报主路径（`/global_path`）帧数，步态侧单独记一个字段：
+        # 两个数混用一个字段，事后查日志就分不清「谁少了一点」。
+        return path_points, gait_points, status_json(True, len(path_points), 'ok',
+                                                     gait_points=len(gait_points))
 
     def stale(self, now, timeout_s):
         """航点超时。正常返回 None，超时返回 `E_FAR_WAYPOINT_STALE` 状态帧。
@@ -327,6 +356,7 @@ def main():
     waypoint_topic = rospy.get_param('~waypoint_topic', '/way_point')
     reach_topic = rospy.get_param('~reach_topic', '/far_reach_goal_status')
     path_topic = rospy.get_param('~path_topic', '/global_path')
+    gait_path_topic = rospy.get_param('~gait_path_topic', '/v8/gait_guard/path')
     status_topic = rospy.get_param('~status_topic', '/global_path/status')
     cancel_topic = rospy.get_param('~cancel_topic', '/v8/local/cancel')
     ack_topic = rospy.get_param('~cancel_ack_topic', '/v8/local/cancel_ack')
@@ -348,7 +378,10 @@ def main():
     scan_pub = rospy.Publisher(scan_out, PointCloud2, queue_size=1)
     odom_pub = rospy.Publisher(odom_topic, Odometry, queue_size=2)
     far_goal_pub = rospy.Publisher(far_goal_topic, PointStamped, queue_size=1)
-    path_pub = rospy.Publisher(path_topic, Path, queue_size=1, latch=True)
+    # 两条路径话题都**不 latch**：路径是「这一刻的位姿 + 这一刻的航点」，
+    # 一旦 latched，后加入的订阅者会先吃一条过期路径，把车往已经走过的地方带。
+    path_pub = rospy.Publisher(path_topic, Path, queue_size=1, latch=False)
+    gait_path_pub = rospy.Publisher(gait_path_topic, Path, queue_size=1, latch=False)
     status_pub = rospy.Publisher(status_topic, String, queue_size=10, latch=True)
     cancel_pub = rospy.Publisher(cancel_topic, String, queue_size=1)
     arrival_pub = rospy.Publisher(arrival_topic, Bool, queue_size=1) if arrival_topic else None
@@ -360,6 +393,23 @@ def main():
 
     def publish_status(text):
         status_pub.publish(String(data=text))
+
+    def to_path(points, stamp):
+        """把三元组列表封成 `Path`。两条话题共用这个封装，保证同帧、同戳、首点逐字相同。
+
+        首点必须与当前位姿完全一致：`gait_guard` 与 `path_goal` 都拿 `poses[0]` 当起点，
+        起点和位姿差一点，就等于凭空给车加了一个跳变。
+        """
+        path = Path()
+        path.header.frame_id, path.header.stamp = frame, stamp
+        for x, y, z in points:
+            stamped = PoseStamped()
+            stamped.header = path.header
+            stamped.pose.position.x, stamped.pose.position.y = x, y
+            stamped.pose.position.z = z
+            stamped.pose.orientation.w = 1.
+            path.poses.append(stamped)
+        return path
 
     def to_map(points, source_frame, stamp):
         """把点转到 `frame`。只做纯平移近似会在 1 m 外带进 >0.2 m 的 h 误差，必须走真 tf。
@@ -433,21 +483,16 @@ def main():
 
     def on_waypoint(message):
         point = message.point
-        points, text = state.on_waypoint(pose['value'], (point.x, point.y, point.z),
-                                         now=rospy.get_time())
+        path_points, gait_points, text = state.on_waypoint(
+            pose['value'], (point.x, point.y, point.z), now=rospy.get_time())
         publish_status(text)
-        if not points:
+        if not path_points:
             return
-        path = Path()
-        path.header.frame_id, path.header.stamp = frame, rospy.Time.now()
-        for x, y, z in points:
-            stamped = PoseStamped()
-            stamped.header = path.header
-            stamped.pose.position.x, stamped.pose.position.y = x, y
-            stamped.pose.position.z = z
-            stamped.pose.orientation.w = 1.
-            path.poses.append(stamped)
-        path_pub.publish(path)
+        stamp = rospy.Time.now()
+        path_pub.publish(to_path(path_points, stamp))
+        # 步态路径另发一条：`/global_path` 的末点必须就是 FAR 航点本身，
+        # 前视延长点只喂 `gait_guard`。远航点时两者点数相同，近航点时这里多一个点。
+        gait_path_pub.publish(to_path(gait_points, stamp))
 
     def on_reach(message):
         if message.data and state.cancel_seq is not None and state.halted:

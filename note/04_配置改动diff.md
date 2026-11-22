@@ -8017,3 +8017,41 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   waypoint_timeout_s=10 折合墙钟约 23 s，按墙钟 18 s 判超时会误判成门不生效
 - 未采信的假设留档：曾以为地形点被压到地面（terrain_flatten）导致 obs 恒 0，用 flatten=false 对照后
   obs 仍 0，假设被否；开关保留但不是本问题的解
+
+## 2026-11-22 / T-20261122-03 B3 v8 graph 链接入 FAR，两条路径话题分开
+
+- 新文件 framework/fixtures/manifests/manifest_global_far.json：kind 为 include，承载上游 far_planner
+  与适配器两个进程（kind 为 node 的实例一个只能起一个节点）。端口 cloud 声明成 PointCloud2 而不是
+  支撑图 JSON，因为 FAR 吃的是带 intensity 的语义地形云；schema 一律不写，免得与绑它的边对不上
+- 新文件 configs/lite3/graph_3d_lite3_far.yaml 与 framework/fixtures/graphs/graph_3d_gazebo_far.yaml：
+  以各自 bt 版为基准，七处差异＝换 component、删 map 到 global 的边、global.params 整块换、加回
+  path_goal 实例与两条边、摘掉 bt.out_goal 到 local.goal 的边、bt.params 补 arrival_topic、
+  gait_guard.params.path_topic 改指步态话题（gazebo 版没有 gait_guard 实例，故只有六处）
+- 摘掉 out_goal 边必须同时把 bt 的 out_goal_topic 退回缺省哑话题 /v8/bt/goal_request，否则 BT 仍按
+  自己的参数直写 /v8/local/goal，与 path_goal 抢同一个话题，局部目标变成双写者
+- 新文件 configs/lite3/lite3_real_3d_far.app.yaml：只换 graph，去掉自研 global 的体素预算与离障下限
+  两个键（对 FAR 无意义）；地图、任务、定位、载体四块原样保留，因为 FAR 旁边的 local、gait_guard、
+  carrier 还要它们
+- far_node.py 拆两条路径话题：/global_path 只放两点，末点就是 FAR 航点本身，供 path_goal 取末点与
+  BT 的 pathCallback 量长度；/v8/gait_guard/path 放两点或三点，近航点时沿原方向补一个前视延长点。
+  两条都不 latch：路径是这一刻的位姿加这一刻的航点，latch 会把过期路径回灌给后加入的订阅者
+- 延长点总长按计划 §4.3 取固定的 lookahead_m 加 0.3，不随航点远近浮动。理由是 stair_ahead 按
+  travelled 大于 lookahead_m 截断，缺的是航点之外还要再走的一段；B2 里写成的 d 加 lookahead_m
+  会让近航点白补一大截。这条是对 B2 实现的口径修正，读数已更新在验证记录 7.5 节
+- 位置输入 global.start 由 external 改成从 carrier.pose 来的边，并且必须标 feedback：/v8/local/pose
+  是图内 carrier 产的，写成 external 才是错的；不标 feedback 时 gazebo 图上
+  carrier 到 global 到 path_goal 到 local 到 mux3d 到 carrier 会闭成启动环，第一次 check 就红在
+  E_GRAPH_STARTUP_CYCLE
+- 门禁侧：package_index.json 给 v8_platform 补 launch/far_stack.launch（include 型组件要求 launch_file
+  在索引里，缺了报 E_LAUNCH_FILE）；test_framework.py 两处计数 49 与 40 改为 50 与 41；
+  far_stack.launch 增一个 gait_path_topic arg 与一个 param，让这条端口表之外的线只有一个来源
+- 新增 framework/tests/test_stair_ahead.py 的 FarPathTests 六条，把计划 §4.3 的 T1—T6 变成常驻用例。
+  T5 是反控：摘掉第三点后 T1 与 T2 必须翻红，实测 scanned_m 由 1.5 掉到 0.3、ahead 由真变假，
+  所以 T1 与 T2 的绿不是空控。T6 是已知失败模式，只登记不判通过
+- 两条端口模型管不着的线要人工对表：include 型实例不生成 remap，端口话题、launch arg 缺省、graph
+  实例 params 三者必须逐字相同；/v8/gait_guard/path 不在任何 manifest 端口表里，两边写错也只是
+  订阅了一条没人发的话题，check 依旧 rc=0
+- 闭包零变化：x86_sim 仍是 38 包、roots 26、cache_conflicts 为空，far_planner 走仓外 overlay，
+  不进 ws/src 闭包，profiles.json 未改
+- 验收读数（四张图全 rc=0、path_goal 先于 local、两条反向注入 rc=5、T1—T6、两侧单测 13 条与 308 条
+  全过）落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第七节

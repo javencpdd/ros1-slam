@@ -1,0 +1,26 @@
+# FAR 全局后端的真机 app。与 lite3_real_3d.app.yaml 的唯一差别是 graph：
+# 全局后端从自研 global3d_topic 换成 v8.fw.global_far（上游 far_planner ＋ 适配器）。
+# 地图/任务/定位/载体四项完全沿用 support 版——FAR 不读支撑图，但它旁边的 local、
+# gait_guard、carrier 都还要它，所以这些块一个都不能删。
+# 真机请用本机覆盖：lite3_real_3d_far.local.app.yaml（*.local.app.yaml 已忽略）
+# ★ L2：本文件只说明「跑起来该装什么」，不构成任何真机运动授权。真机仍需 note/10 签署、
+#   原预检 rc0、现场有人（与 lite3_real_3d.app.yaml 同一门槛）。
+schema: navigation_app/v1
+execution_mode: real_robot
+robot_id: lite3
+name: lite3_real_3d_far
+graph: ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3_far.yaml
+map_registry: data/maps/real_lite3_20261103/registry.json
+map: {id: lite3_real, version: 4}
+task: data/maps/real_lite3_20261103/lite3_real_v4_task.json
+localization: {source: carrier}
+carrier:
+  backend: lite3
+  pose_source: tf
+  map_frame: map
+  base_frame: base_link
+  rate_hz: 20.0
+  stale_s: 0.5
+visualization: {markers: false, rviz: false}
+# 这里没有 global: {budget, min_clearance_m} 块：那是自研 global3d 的体素预算与离障要求，
+# FAR 按自己的 height_voxel_dim / 地形连通搜索工作，这两个键对它没有任何作用。
