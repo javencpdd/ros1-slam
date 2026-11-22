@@ -9,6 +9,7 @@ BT 到底多久才肯接下一个目标。**
 |---|---|
 | `_regoal_second_writer.py` | 探针本体。`--mode direct`（第二写者，期望 FAIL）／`--mode bt`（反控，必须 PASS） |
 | `_ack_face_probe.py` | 误触发面探针。`--case stray|late|duplicate|idle|wire|noack|idle_wire|race` 八格，判据取 `/v8/bt/status` 的多枚字段 |
+| `_fresh_path_control.py` | ★对照组★ 同两条目标、同样间隔，但**不发取消**，只量「换目标→路径末端落到目标」要多久。用来把「故障恢复慢」与「上游 FAR 换目标的固有慢」分开 |
 | `gap_probe.sh` | 运行器：每轮各起一套独立栈（`mode_sim_bt.launch global_backend:=far arrival_topic:=/v8/bt/arrived`），跑探针，收队内统计 |
 
 用法（在 `ros1-slam-sim` 容器内）：
@@ -19,14 +20,28 @@ bash gap_probe.sh /opt/ros1-slam/note/进度/v8/M5/26-11-22/evidence/bt_cancel_g
 # 只跑某几轮：ROUNDS=direct,direct bash gap_probe.sh <out>
 ```
 
-## 三个判据与窗口
+## 两段判据与窗口（第三版，2026-11-23）
 
-`t0` 发取消、`t0+3.0` 发目标 2、`t0+8.0` 收窗。
-J1 `/v8/global/goal` 出现目标 2；J2 `/global_path` 有新时间戳帧；J3 `/v8/bt/status` 的 `goal_seq` 变大。
-三条全绿才算「接上了」。
+**第一段 · 旧目标不许自己跑**（`t0` 发取消 → `t0+8.0` 收窗）：`SW_OLD_DISPATCHED=False`、
+`SW_OLD_GOAL_SEQ` 不变、`SW_QUEUE_DEPTH_END=0`、`PENDING_DROPPED ≥ 1`。四项全绿才叫「停住了」。
 
-★窗口为什么必须是 8 秒★：到达预算地板是 60 秒（`max(60, L/0.02)`）。旧判据「最终有没有新路径」
+★这一段为什么必须是 8 秒★：到达预算地板是 60 秒（`max(60, L/0.02)`）。旧判据「最终有没有新路径」
 等得够久必然为真 ⇒ 同时容纳「立刻接」与「100 秒后才接」，没有分辨力。8 秒小一个量级。
+
+**第二段 · 新目标必须真的规划出来并交给局部**（发新目标 → 25 秒路径窗，六项）：
+
+| # | 读数 | 含义 |
+|---|---|---|
+| ① | `SW_FRESH_STAMP_SEEN` | BT 把新目标写到 `/v8/global/goal` |
+| ② | `SW_FRESH_GOAL_SEQ` 变大 | BT 取队，队列没卡死 |
+| ③ | `SW_FRESH_CHAIN_GOAL_POINT HIT` | 适配器把新目标转给上游（仅 far 链；support 链 `APPLICABLE=False` 自动跳过） |
+| ④ | `SW_FRESH_PATHS ≥ 1` ＋ `PATH_POINTS ≥ 2` | 后端真出了非空路径 |
+| ⑤ | `SW_FRESH_PATH_REPLANNED` | 末点与发帧前那条差 > 0.3 m ＝换目标重规划，不是旧路径重放 |
+| ⑥ | `SW_FRESH_LOCAL_GOAL` | `/v8/local/goal` 收到的点等于某条新路径末点 |
+
+`SW_FRESH_CONVERGE_S`（末点贴住操作员目标的秒数）**只报不判**：它受上游到达判据与车速支配
+（上游 `ProjectNavWaypoint` 会把近目标的航点外推 5 米，`/way_point` 等于目标只在收敛那一拍）。
+实测带取消 9.6—24.9 秒，不取消的对照组 12.9—18.0 秒，同分布。详见设计件 §8.12。
 
 ## 两个坑（都实测踩过，留档防复发）
 
@@ -82,6 +97,22 @@ J1 `/v8/global/goal` 出现目标 2；J2 `/global_path` 有新时间戳帧；J3 
 | `probe_fix2` | 旧目标没排上队：`/v8/bt/goal` 订阅队列只有 1，三条背靠背发下去只剩一条（实测 `depth=1`）⇒ 前提不成立 |
 | `probe_fix2b` | 判定采样过早：`/v8/bt/status` 只有 2 Hz，派发只要 50 ms ⇒ 把「已接上」读成 False，随后急着重发 |
 | `probe_support` | 就绪门对 support 链恒 `NOT_READY`（`terrain_frames=0 obs=0`），门没过就没跑探针 |
+| `probe_ctl1` | 对照组首版没等位姿就发目标：位姿恒 `(0,0)`、机器人一步没动、上游退回静态环境的前方 5 米虚拟点，两条目标都当没收到 |
+
+## 「新目标必须出路径」这条判据的三次修正（都实测踩过）
+
+1. **只看「派发 + `goal_seq` 增长」**（`probe_v3`）：两件都是 50 ms 级事件，探针在 0.1—0.6 秒就判
+   PASS，那时后端还没出路径（`SW_FRESH_PATHS` 四轮全 0）。只证明 BT 肯接单。
+2. **取「窗内第一帧」判末点**（`probe_path1`）：第一帧末点常是**旧目标**那个航点（新目标写进
+   `/v8/global/goal` 后，上游回调还在排队，上一拍的航点先到）⇒ 把「后端还没轮到」误判成
+   「后端没重新规划」。改一路收到窗末（`probe_path2`／`probe_path3`），并加 `SW_FRESH_CHAIN`
+   逐跳读数（`/goal_point`／`/way_point`／位姿），才看清链上每一跳都通。
+3. **以「末点贴住操作员目标」为必过项**（`probe_v4`／`probe_v5`）：这条判据本身放错了位置——
+   上游 `ProjectNavWaypoint`（`far_planner.cpp:339-378`）在航点距机器 < `local_planner_range`
+   时沿航向把航点**外推 5 米**，`/way_point` 等于目标本身只在 `PlanGlobalPath` 判出收敛那一拍
+   （`graph_planner.cpp:163-178`）。所以「末点＝目标」是**到达事件**（受车速与上游到达判据支配），
+   不是**规划事件**；对照组不取消也要 12.9—18.0 秒才落到目标上。现判据改看重规划里程碑
+   （末点与发帧前那条差 > 0.3 m ＋ 局部目标等于该末点），收敛时长降为读数 `SW_FRESH_CONVERGE_S`。
 
 ## 探针自己的四处缺陷（都实测踩过，写下来防下一棒当产品缺陷）
 
@@ -91,3 +122,10 @@ J1 `/v8/global/goal` 出现目标 2；J2 `/global_path` 有新时间戳帧；J3 
    链路 ⇒ 探针把自己要验证的恢复动作判成了缺陷。现判「注入的那个号没有回执」。
 4. **`race` 曾用 2 Hz 采样深度当「队列里有 ≥2 条」的前提**：`t1.06` 读到深度 1、实际清了 2 条，
    于是把 FAIL 判在前提上。现判「清掉了 ≥2 条」（由清队动作本身产生，不靠采样）。
+5. **链上旁证的下标抓晚了**：`/goal_point` 在派发那一拍就发出，等到「派发窗」结束（0.5—0.6 s）再抓
+   下标正好漏掉它，读到 `GOAL_POINTS=[]`、错判成「适配器没转发新目标」。现把下标抓在 `send_goal` 之前。
+6. **重发逻辑把「派发成功但路径慢」当成「接单失败」**：旧版无条件重发，实测第二轮那条只在队列里
+   排队（`goal queued depth=1` 之后再无 `dequeued`），既修不了路径，还往下一轮塞一条没人执行的目标。
+   现只在「没派发」时重发。
+7. **对照组没等位姿**（`probe_ctl1`）：位姿恒 `(0,0)`、机器人不动，上游退回静态环境虚拟点，读数作废。
+   现先等 `/v8/local/pose` 有值再等 3 秒（与主探针 `GOAL_DELAY_S=3.0` 对齐）。

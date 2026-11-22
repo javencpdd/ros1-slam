@@ -1,0 +1,226 @@
+[33m[ WARN] [1795368937.215567055]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+READY
+[0m[ INFO] [1795368938.848915820]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1795368938.852069112]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1795368939.687839329]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1795368939.776000594, 0.026000000]: Physics dynamic reconfigure ready.[0m
+[0m[ INFO] [1795368940.685011256, 0.157000000]: load csv file name:/opt/ros1-slam/sim_ws/src/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+[33m[ WARN] [1795368956.270150950, 1.819000000]: [bt] dropped 4 queued goal(s) after fault stop[0m
+[33m[ WARN] [1795368956.270326637, 1.819000000]: [bt] cancel this node did not issue (external_wire, seq=900000001, current goal 1): mission cancelled, 4 goal(s) dropped[0m
+[0m[ INFO] [1795368937.534604517]: [bt] pose-based arrival mode (no planner_result_topic)[0m
+[0m[ INFO] [1795368937.540321607]: [bt] external arrival signal mode: /v8/bt/arrived[0m
+[0m[ INFO] [1795368937.565317429]: [bt] localization gate: /v8/local/localization_ok[0m
+[0m[ INFO] [1795368937.565393009]: [bt] cancel in /v8/bt/cancel, out /v8/local/cancel, ack in /v8/local/cancel_ack, policy in /v8/bt/goal_policy, mission in /v8/bt/goal_mission[0m
+[0m[ INFO] [1795368937.569856047]: [bt] tree loaded: /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/trees/navigate_with_planner.xml[0m
+[0m[ INFO] [1795368937.569892273]: [bt] planner input /v8/global/goal, status /global_path/status[0m
+[0m[ INFO] [1795368937.569908133]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[0m[ INFO] [1795368941.220127283, 0.157000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795368941.270097266, 0.157000000]: [bt] goal 1 dequeued (0 waiting)[0m
+[0m[ INFO] [1795368941.270498574, 0.157000000]: [bt] global path requested for goal 1[0m
+[0m[ INFO] [1795368951.220125837, 0.157000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795368952.320159718, 0.214000000]: [bt] global path ready (20 points)[0m
+[0m[ INFO] [1795368952.320649930, 0.214000000]: [bt] follow path -> dispatch goal 2, 0, 0.11[0m
+[0m[ INFO] [1795368952.320735968, 0.214000000]: [bt] arrival budget 95.0 s (path 1.90 m, floor 0.020 m/s, tree 60.0 s)[0m
+[0m[ INFO] [1795368953.870364700, 0.864000000]: [bt] goal queued (depth=2, max=16)[0m
+[0m[ INFO] [1795368954.170132489, 0.996000000]: [bt] goal queued (depth=3, max=16)[0m
+[0m[ INFO] [1795368954.470161099, 1.120000000]: [bt] goal queued (depth=4, max=16)[0m
+[0m[ INFO] [1795368964.270163190, 5.068000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795368964.320192627, 5.091000000]: [bt] goal 2 dequeued (0 waiting)[0m
+[0m[ INFO] [1795368964.320566904, 5.091000000]: [bt] global path requested for goal 2[0m
+[0m[ INFO] [1795368964.420040218, 5.130000000]: [bt] global path ready (10 points)[0m
+[0m[ INFO] [1795368964.420239543, 5.130000000]: [bt] follow path -> dispatch goal 2, 1, 0.11[0m
+[0m[ INFO] [1795368964.420293462, 5.130000000]: [bt] arrival budget 63.6 s (path 1.27 m, floor 0.020 m/s, tree 60.0 s)[0m
+[INFO] [1795368938.515416, 0.000000]: [goal-gate] /v8/bt/goal_request -> /v8/3d/global/goal (lease=/v8/bt/lease, timeout=1.0s, acl=True, allowed=/bt_console)
+[INFO] [1795368952.321754, 0.214000]: [goal-gate] forwarded 3D goal (2.00, 0.00, 0.11)
+[INFO] [1795368964.420888, 5.130000]: [goal-gate] forwarded 3D goal (2.00, 1.00, 0.11)
+[INFO] [1795368938.178602, 0.000000]: [sim_empty_obstacles] /v8/local/obstacles @ 10.0 Hz payload={"obstacles":[]}
+[WARN] [1795368956.234925, 1.801000]: [local] cancel accepted seq=900000001 scope=all
+[WARN] [1795368956.321630, 1.840000]: [local] cancel accepted seq=1 scope=all
+[INFO] [1795368939.967372, 0.118000]: [local] obstacles ok: 0
+[INFO] [1795368964.580530, 5.200000]: [local] obstacles ok: 0
+[INFO] [1795368938.475164, 0.000000]: [sim_pose_source] /sim/odom_gt(odometry) -> /v8/local/pose @ 50 Hz; localization_ok -> /v8/local/localization_ok; start -> /v8/global/start
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py", line 18, in <module>
+    map_file_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/map_file_node.py", line 40, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/m2_cmd_relay.py", line 23, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/m2_free_map.py", line 26, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[INFO] [1795368963.917442, 4.900000]: [m2_tf_fresh] map->odom @10.0Hz stamp=4900000000
+[0m[ INFO] [1795368942.071635792, 0.157000000]: ros topic name:/livox/lidar[0m
+[0m[ INFO] [1795368942.071745528, 0.157000000]: ros frame id: rslidar[0m
+[0m[ INFO] [1795368942.116148749, 0.157000000]: scan info size:800000[0m
+[0m[ INFO] [1795368942.117714619, 0.157000000]: sample:20000[0m
+[0m[ INFO] [1795368942.117740604, 0.157000000]: downsample:1[0m
+[0m[ INFO] [1795368942.117790642, 0.157000000]: publish_pointcloud_type: 3[0m
+[0m[ INFO] [1795368952.084053378, 0.157000000]: <initialOrientationAsReference> is unset, using default value of false to comply with REP 145 (world as orientation reference)[0m
+[0m[ INFO] [1795368952.084274490, 0.157000000]: <robotNamespace> set to: //[0m
+[0m[ INFO] [1795368952.084294614, 0.157000000]: <topicName> set to: /livox/imu[0m
+[0m[ INFO] [1795368952.084306563, 0.157000000]: <frameName> set to: rslidar[0m
+[0m[ INFO] [1795368952.084413038, 0.157000000]: <updateRateHZ> set to: 200[0m
+[0m[ INFO] [1795368952.084449632, 0.157000000]: <gaussianNoise> set to: 0.01[0m
+[0m[ INFO] [1795368952.084539999, 0.157000000]: <xyzOffset> set to: 0 0 0[0m
+[0m[ INFO] [1795368952.084609720, 0.157000000]: <rpyOffset> set to: 0 -0 0[0m
+[0m[ INFO] [1795368952.205899909, 0.157000000]: [lite3_planar_drive] loaded: mode=dynamic cmd=cmd_vel odom=/sim/odom_gt base=base_link[0m
+[0m[ INFO] [1795368954.178202694, 1.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,-0.00,0.00) v_phy=(0.001,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795368956.897481968, 2.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.60,-0.00,0.00) v_phy=(0.599,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795368959.486110027, 3.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.05,-0.00,0.00) v_phy=(0.046,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795368961.918245739, 4.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,-0.00,0.00) v_phy=(0.001,-0.000,0.000) w_phy=(0.000,0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795368964.133988841, 5.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,-0.000) mode=dynamic[0m
+[0m[ INFO] [1795368966.442394757, 6.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.06,0.07,0.00) v_phy=(0.063,0.069,0.000) w_phy=(-0.000,0.000,0.000) mode=dynamic[0m
+[INFO] [1795368938.520248, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+... logging to /opt/ros1-slam/logs/1f8ac0b6-e69b-11f1-9778-1682a6dd2a12/roslaunch-69aa573b8ab8-219124.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_bt.launch
+[1mstarted roslaunch server http://69aa573b8ab8:41959/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /bt_console/arrival_speed_floor_mps: 0.02
+ * /bt_console/arrival_topic: /v8/bt/arrived
+ * /bt_console/cancel_ack_timeout: 2.0
+ * /bt_console/cancel_ack_topic: /v8/local/cancel_ack
+ * /bt_console/cancel_input_topic: /v8/bt/cancel
+ * /bt_console/cancel_topic: /v8/local/cancel
+ * /bt_console/execution_request_topic: 
+ * /bt_console/execution_status_topic: 
+ * /bt_console/goal_topic: /v8/bt/goal
+ * /bt_console/lease_topic: /v8/bt/lease
+ * /bt_console/localization_topic: /v8/local/localiz...
+ * /bt_console/mission_topic: /v8/bt/goal_mission
+ * /bt_console/out_goal_topic: /v8/bt/goal_request
+ * /bt_console/path_status_topic: /global_path/status
+ * /bt_console/path_topic: /global_path
+ * /bt_console/planner_goal_topic: /v8/global/goal
+ * /bt_console/planner_result_topic: 
+ * /bt_console/policy_topic: /v8/bt/goal_policy
+ * /bt_console/pose_topic: /v8/local/pose
+ * /bt_console/queue_max: 16
+ * /bt_console/recovery_mode: skip
+ * /bt_console/retry_delay_s: 0.0
+ * /bt_console/retry_max: 1
+ * /bt_console/stop_topic: /lite3/teleop/app...
+ * /bt_console/tree_file: /opt/ros1-slam/ws...
+ * /bt_console/zmq_pub_port: 5555
+ * /bt_console/zmq_sub_port: 5556
+ * /gazebo/enable_ros_network: True
+ * /m2_tf_fresh/child_frame: odom
+ * /m2_tf_fresh/parent_frame: map
+ * /m2_tf_fresh/rate_hz: 10.0
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /sim_empty_obstacles/rate: 10.0
+ * /sim_empty_obstacles/topic: /v8/local/obstacles
+ * /sim_pose_source/dst_topic: /v8/local/pose
+ * /sim_pose_source/frame_id: map
+ * /sim_pose_source/localization_ok_period_s: 0.2
+ * /sim_pose_source/rate: 50.0
+ * /sim_pose_source/src_topic: /sim/odom_gt
+ * /sim_pose_source/start_rate: 0.5
+ * /sim_pose_source/start_topic: /v8/global/start
+ * /sim_pose_source/z_offset: -0.11
+ * /use_sim_time: True
+ * /v8_goal_gate/allowed_callers: /bt_console
+ * /v8_goal_gate/lease_timeout: 1.0
+ * /v8_goal_gate/lease_topic: /v8/bt/lease
+ * /v8_goal_gate/output_topic: /v8/3d/global/goal
+ * /v8_goal_gate/request_topic: /v8/bt/goal_request
+ * /v8_goal_gate/require_acl: True
+ * /v8_goal_gate/require_lease: True
+ * /v8_local_planner/experimental_config/support_tol_m: 0.25
+ * /v8_local_planner/goal_topic: /v8/local/goal
+ * /v8_local_planner/map_topic: /v8_support_map
+ * /v8_local_planner/pose_topic: /v8/local/pose
+ * /v8_local_planner/twist_topic: /cmd_vel_raw
+ * /v8_map_file/map_json: /opt/ros1-slam/ws...
+ * /v8_map_file/map_topic: /v8_support_map
+ * /v8_path_goal/goal_topic: /v8/local/goal
+ * /v8_path_goal/path_topic: /global_path
+
+NODES
+  /
+    bt_console (lite3_bt/bt_console)
+    gazebo (gazebo_ros/gzserver)
+    m2_cmd_relay (lite3_gazebo_sim/m2_cmd_relay.py)
+    m2_free_map (lite3_gazebo_sim/m2_free_map.py)
+    m2_tf_fresh (lite3_gazebo_sim/m2_tf_fresh.py)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    sim_empty_obstacles (lite3_gazebo_sim/sim_empty_obstacles.py)
+    sim_pose_source (lite3_gazebo_sim/sim_pose_source.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+    v8_global_planner (v8_platform/run_global_planner.py)
+    v8_goal_gate (lite3_bt/goal_gate.py)
+    v8_local_planner (v8_platform/run_local_planner.py)
+    v8_map_file (v8_platform/run_map_file.py)
+    v8_path_goal (v8_platform/run_path_goal.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [219261][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bringup/launch/mode_sim_bt.launch http://127.0.0.1:11313
+[1msetting /run_id to 1f8ac0b6-e69b-11f1-9778-1682a6dd2a12[0m
+[1mprocess[rosout-1]: started with pid [219335][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [219342][0m
+[1mprocess[robot_state_publisher-3]: started with pid [219346][0m
+[1mprocess[spawn_lite3_planar-4]: started with pid [219348][0m
+[1mprocess[sim_adapter-5]: started with pid [219349][0m
+[1mprocess[m2_tf_fresh-6]: started with pid [219355][0m
+[1mprocess[m2_free_map-7]: started with pid [219361][0m
+[1mprocess[m2_cmd_relay-8]: started with pid [219364][0m
+[1mprocess[sim_pose_source-9]: started with pid [219365][0m
+[1mprocess[sim_empty_obstacles-10]: started with pid [219366][0m
+[1mprocess[v8_map_file-11]: started with pid [219488][0m
+[1mprocess[v8_global_planner-12]: started with pid [219494][0m
+[1mprocess[v8_path_goal-13]: started with pid [219495][0m
+[1mprocess[v8_local_planner-14]: started with pid [219498][0m
+[1mprocess[bt_console-15]: started with pid [219499][0m
+[1mprocess[v8_goal_gate-16]: started with pid [219553][0m
+[1m[spawn_lite3_planar-4] process has finished cleanly
+log file: /opt/ros1-slam/logs/1f8ac0b6-e69b-11f1-9778-1682a6dd2a12/spawn_lite3_planar-4*.log[0m
+[v8_goal_gate-16] killing on exit
+[bt_console-15] killing on exit
+[v8_local_planner-14] killing on exit
+[v8_path_goal-13] killing on exit
+[v8_global_planner-12] killing on exit
+[v8_map_file-11] killing on exit
+[sim_empty_obstacles-10] killing on exit
+[sim_pose_source-9] killing on exit
+[m2_cmd_relay-8] killing on exit
+[m2_free_map-7] killing on exit
+[m2_tf_fresh-6] killing on exit
+[sim_adapter-5] killing on exit
+[robot_state_publisher-3] killing on exit
+[gazebo-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

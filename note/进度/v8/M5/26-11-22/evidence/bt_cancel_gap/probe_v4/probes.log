@@ -1,0 +1,206 @@
+=== round_direct1 (mode=direct queue_old=3 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_direct1 READY_GATE=READY_GATE=READY
+ROUND_direct1 PROBE_RC=0 ELAPSED_S=43
+  SW_MODE=direct TAG=direct1 QUEUE_OLD=3 PHASE_ARG=arrival
+  SW_WARM_ATTEMPTS=1
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_QUEUE_DEPTH_BEFORE_CANCEL=3（须 >= 3，否则旧目标没排上，本题无意义）
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=None（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_CANCEL_FORWARDED=True（第二写者自己发的帧，BT 现在能从线上看到它）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_OLD_QUEUE_WINDOW_S=8.0
+  SW_QUEUE_DEPTH_AT_T0=3（取消前队列深度快照，仅作上下文）
+  SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+  SW_OLD_GOAL_SEQ=1->1（须不变）
+  SW_OLD_NEW_PATH_STAMPS=0（旧目标若跑起来这里会 >0）
+  SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=3（须 0 / >= 1）
+  SW_CANCEL_ORIGIN=external_wire EVENT=localization_ok
+  SW_QUEUE_SAFE=True
+  SW_FRESH_WINDOW_S=8.0 WAITED_DISPATCH_S=0.5 WAITED_PATH_S=25.5 ATTEMPT=1
+  SW_FRESH_STAMP_SEEN=True（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）
+  SW_FRESH_GOAL_SEQ=1->2（须变大）
+  SW_FRESH_PATHS=25（这条腿之后后端出的非空路径帧数，须 >= 1）
+  SW_FRESH_PATH_POINTS=2 PATH_TAIL=(5.59, 0.14)（须 >= 2 点，末点须贴着新目标）
+  SW_FRESH_PATH_TAILS=[(5.59, 0.14)]（窗内出现过所有末点的先后序列，截前 8）
+  SW_FRESH_CONVERGE_S=None（首帧末点贴住新目标用了多少秒；None＝窗内没贴上）
+  SW_FRESH_TAIL_TIMELINE=[(1.2, (5.59, 0.14))]（末点换相的相对时刻，看的是上游收敛过程）
+  SW_FRESH_PATH_MATCH=False（须 True：窗内至少一帧末点在 0.5 米内贴住新目标）
+  SW_FRESH_LOCAL_GOAL=False LOCAL_HIT=None LOCAL_LAST=(5.59, 0.14)（须 True：局部规划器输入口收到这条目标）
+  SW_FRESH_PATH_GOAL_STATUS={'ok': True, 'poses': 2, 'goal': [5.585488319396973, 0.1384630799293518, 0.053427714854478836], 'frame': 'map'}
+  SW_FRESH_OK=False（派发 + 取队 + 非空路径 + 路径贴合 + 局部目标 五項全过）
+  SW_FRESH_ATTEMPTS=1（1＝一次就接；>1＝首条没派发、重发才接）
+  SW_FRESH_HISTORY=[(1, True, 1, 2, 25.5, False)]（次数, 派发, seq增, 路径点数, 等路径秒, 局部目标）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)] PATHS_TOTAL=28
+  SW_BT_STATUS_RAW_TAIL="name":"cancel","status":"IDLE"},{"name":"cancelled","status":"IDLE"},{"name":"cancel_current","status":"IDLE"},{"name":"recovery_on_failure","status":"IDLE"}]}
+  SW_VERDICT=FAIL
+  SW_EXPECT=PASS（旧目标停住 + 新目标重新出非空路径并交给局部规划器，两段都要）
+  SW_DISCRIMINATING=False
+GAP_PORTS_FREE
+ROUND_direct1 STATS arrival_timeout=0 goal_queued=5 depth_max=3 dequeued=2 external_cancel=1 drop_events=1 stray_ack=0
+=== round_direct2 (mode=direct queue_old=3 phase=pending backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_direct2 READY_GATE=READY_GATE=READY
+ROUND_direct2 PROBE_RC=0 ELAPSED_S=32
+  SW_MODE=direct TAG=direct2 QUEUE_OLD=3 PHASE_ARG=pending
+  SW_WARM_ATTEMPTS=1
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_QUEUE_DEPTH_BEFORE_CANCEL=3（须 >= 3，否则旧目标没排上，本题无意义）
+  SW_PENDING_DEQUEUED=True（goal_seq 1->2，此刻路径帧数=6）
+  SW_BT_LANDING_NODE=wait_path PHASE=PATH_PENDING（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=0（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_CANCEL_FORWARDED=True（第二写者自己发的帧，BT 现在能从线上看到它）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_OLD_QUEUE_WINDOW_S=8.0
+  SW_QUEUE_DEPTH_AT_T0=2（取消前队列深度快照，仅作上下文）
+  SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+  SW_OLD_GOAL_SEQ=2->2（须不变）
+  SW_OLD_NEW_PATH_STAMPS=0（旧目标若跑起来这里会 >0）
+  SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=2（须 0 / >= 1）
+  SW_CANCEL_ORIGIN=external_wire EVENT=localization_ok
+  SW_QUEUE_SAFE=True
+  SW_FRESH_WINDOW_S=8.0 WAITED_DISPATCH_S=0.1 WAITED_PATH_S=12.5 ATTEMPT=1
+  SW_FRESH_STAMP_SEEN=True（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）
+  SW_FRESH_GOAL_SEQ=2->3（须变大）
+  SW_FRESH_PATHS=12（这条腿之后后端出的非空路径帧数，须 >= 1）
+  SW_FRESH_PATH_POINTS=2 PATH_TAIL=(2.0, 1.0)（须 >= 2 点，末点须贴着新目标）
+  SW_FRESH_PATH_TAILS=[(2.82, 0.8), (3.01, 0.84), (3.21, 0.94), (3.36, 1.09), (3.56, 1.13), (3.74, 1.24), (3.7, 3.17), (3.24, 3.43)]（窗内出现过所有末点的先后序列，截前 8）
+  SW_FRESH_CONVERGE_S=12.4（首帧末点贴住新目标用了多少秒；None＝窗内没贴上）
+  SW_FRESH_TAIL_TIMELINE=[(1.0, (2.82, 0.8)), (1.9, (3.01, 0.84)), (2.9, (3.21, 0.94)), (3.8, (3.36, 1.09)), (4.7, (3.56, 1.13)), (5.6, (3.74, 1.24)), (6.6, (3.7, 3.17)), (7.6, (3.24, 3.43))]（末点换相的相对时刻，看的是上游收敛过程）
+  SW_FRESH_PATH_MATCH=True（须 True：窗内至少一帧末点在 0.5 米内贴住新目标）
+  SW_FRESH_LOCAL_GOAL=True LOCAL_HIT=(2.0, 1.0) LOCAL_LAST=(2.0, 1.0)（须 True：局部规划器输入口收到这条目标）
+  SW_FRESH_PATH_GOAL_STATUS={'ok': True, 'poses': 2, 'goal': [2.0, 1.0, 0.10999999940395355], 'frame': 'map'}
+  SW_FRESH_OK=True（派发 + 取队 + 非空路径 + 路径贴合 + 局部目标 五項全过）
+  SW_FRESH_ATTEMPTS=1（1＝一次就接；>1＝首条没派发、重发才接）
+  SW_FRESH_HISTORY=[(1, True, 1, 2, 12.5, True)]（次数, 派发, seq增, 路径点数, 等路径秒, 局部目标）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)] PATHS_TOTAL=18
+  SW_BT_STATUS_RAW_TAIL="name":"cancel","status":"IDLE"},{"name":"cancelled","status":"IDLE"},{"name":"cancel_current","status":"IDLE"},{"name":"recovery_on_failure","status":"IDLE"}]}
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（旧目标停住 + 新目标重新出非空路径并交给局部规划器，两段都要）
+  SW_DISCRIMINATING=True
+GAP_PORTS_FREE
+ROUND_direct2 STATS arrival_timeout=0 goal_queued=5 depth_max=3 dequeued=3 external_cancel=1 drop_events=1 stray_ack=0
+=== round_marker3 (mode=marker queue_old=3 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_marker3 READY_GATE=READY_GATE=READY
+ROUND_marker3 PROBE_RC=0 ELAPSED_S=42
+  SW_MODE=marker TAG=marker3 QUEUE_OLD=3 PHASE_ARG=arrival
+  SW_WARM_ATTEMPTS=1
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_QUEUE_DEPTH_BEFORE_CANCEL=3（须 >= 3，否则旧目标没排上，本题无意义）
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=None（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_CANCEL_FORWARDED=False（本轮不发取消帧，只看后端回显够不够）
+  SW_CANCEL_ACK_CANCELLED=False
+  SW_OLD_QUEUE_WINDOW_S=8.0
+  SW_QUEUE_DEPTH_AT_T0=3（取消前队列深度快照，仅作上下文）
+  SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+  SW_OLD_GOAL_SEQ=1->1（须不变）
+  SW_OLD_NEW_PATH_STAMPS=0（旧目标若跑起来这里会 >0）
+  SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=3（须 0 / >= 1）
+  SW_CANCEL_ORIGIN=external_backend EVENT=localization_ok
+  SW_QUEUE_SAFE=True
+  SW_FRESH_WINDOW_S=8.0 WAITED_DISPATCH_S=0.4 WAITED_PATH_S=13.2 ATTEMPT=1
+  SW_FRESH_STAMP_SEEN=True（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）
+  SW_FRESH_GOAL_SEQ=1->2（须变大）
+  SW_FRESH_PATHS=15（这条腿之后后端出的非空路径帧数，须 >= 1）
+  SW_FRESH_PATH_POINTS=2 PATH_TAIL=(2.0, 1.0)（须 >= 2 点，末点须贴着新目标）
+  SW_FRESH_PATH_TAILS=[(2.0, 0.0), (5.98, 0.17), (2.82, 0.81), (3.0, 0.85), (3.2, 0.95), (4.39, 1.71), (3.7, 1.43), (4.36, 2.11)]（窗内出现过所有末点的先后序列，截前 8）
+  SW_FRESH_CONVERGE_S=13.1（首帧末点贴住新目标用了多少秒；None＝窗内没贴上）
+  SW_FRESH_TAIL_TIMELINE=[(0.5, (2.0, 0.0)), (1.4, (5.98, 0.17)), (3.2, (2.82, 0.81)), (4.1, (3.0, 0.85)), (4.9, (3.2, 0.95)), (5.8, (4.39, 1.71)), (6.7, (3.7, 1.43)), (7.6, (4.36, 2.11))]（末点换相的相对时刻，看的是上游收敛过程）
+  SW_FRESH_PATH_MATCH=True（须 True：窗内至少一帧末点在 0.5 米内贴住新目标）
+  SW_FRESH_LOCAL_GOAL=True LOCAL_HIT=(2.0, 1.0) LOCAL_LAST=(2.0, 1.0)（须 True：局部规划器输入口收到这条目标）
+  SW_FRESH_PATH_GOAL_STATUS={'ok': True, 'poses': 2, 'goal': [2.0, 1.0, 0.10999999940395355], 'frame': 'map'}
+  SW_FRESH_OK=True（派发 + 取队 + 非空路径 + 路径贴合 + 局部目标 五項全过）
+  SW_FRESH_ATTEMPTS=1（1＝一次就接；>1＝首条没派发、重发才接）
+  SW_FRESH_HISTORY=[(1, True, 1, 2, 13.2, True)]（次数, 派发, seq增, 路径点数, 等路径秒, 局部目标）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)] PATHS_TOTAL=19
+  SW_BT_STATUS_RAW_TAIL="name":"cancel","status":"IDLE"},{"name":"cancelled","status":"IDLE"},{"name":"cancel_current","status":"IDLE"},{"name":"recovery_on_failure","status":"IDLE"}]}
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（旧目标停住 + 新目标重新出非空路径并交给局部规划器，两段都要）
+  SW_DISCRIMINATING=True
+GAP_PORTS_FREE
+ROUND_marker3 STATS arrival_timeout=0 goal_queued=5 depth_max=3 dequeued=2 external_cancel=1 drop_events=1 stray_ack=0
+=== round_marker4 (mode=marker queue_old=3 phase=pending backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_marker4 READY_GATE=READY_GATE=READY
+ROUND_marker4 PROBE_RC=0 ELAPSED_S=40
+  SW_MODE=marker TAG=marker4 QUEUE_OLD=3 PHASE_ARG=pending
+  SW_WARM_ATTEMPTS=1
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_QUEUE_DEPTH_BEFORE_CANCEL=3（须 >= 3，否则旧目标没排上，本题无意义）
+  SW_PENDING_DEQUEUED=True（goal_seq 1->2，此刻路径帧数=5）
+  SW_BT_LANDING_NODE=wait_path PHASE=PATH_PENDING（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=0（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': False, 'points': 0, 'reason': 'E_PLAN_RUNNING'}
+  SW_CANCEL_FORWARDED=False（本轮不发取消帧，只看后端回显够不够）
+  SW_CANCEL_ACK_CANCELLED=False
+  SW_OLD_QUEUE_WINDOW_S=8.0
+  SW_QUEUE_DEPTH_AT_T0=2（取消前队列深度快照，仅作上下文）
+  SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+  SW_OLD_GOAL_SEQ=2->2（须不变）
+  SW_OLD_NEW_PATH_STAMPS=0（旧目标若跑起来这里会 >0）
+  SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=2（须 0 / >= 1）
+  SW_CANCEL_ORIGIN=external_backend EVENT=localization_ok
+  SW_QUEUE_SAFE=True
+  SW_FRESH_WINDOW_S=8.0 WAITED_DISPATCH_S=0.6 WAITED_PATH_S=9.6 ATTEMPT=1
+  SW_FRESH_STAMP_SEEN=True（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）
+  SW_FRESH_GOAL_SEQ=2->3（须变大）
+  SW_FRESH_PATHS=11（这条腿之后后端出的非空路径帧数，须 >= 1）
+  SW_FRESH_PATH_POINTS=2 PATH_TAIL=(2.0, 1.0)（须 >= 2 点，末点须贴着新目标）
+  SW_FRESH_PATH_TAILS=[(0.76, -0.49), (2.6, 0.74), (2.75, 0.8), (2.94, 0.92), (3.07, 1.07), (3.26, 1.15), (3.41, 1.34), (3.77, 1.79)]（窗内出现过所有末点的先后序列，截前 8）
+  SW_FRESH_CONVERGE_S=9.6（首帧末点贴住新目标用了多少秒；None＝窗内没贴上）
+  SW_FRESH_TAIL_TIMELINE=[(0.2, (0.76, -0.49)), (1.2, (2.6, 0.74)), (2.0, (2.75, 0.8)), (2.9, (2.94, 0.92)), (3.8, (3.07, 1.07)), (4.8, (3.26, 1.15)), (5.7, (3.41, 1.34)), (6.6, (3.77, 1.79))]（末点换相的相对时刻，看的是上游收敛过程）
+  SW_FRESH_PATH_MATCH=True（须 True：窗内至少一帧末点在 0.5 米内贴住新目标）
+  SW_FRESH_LOCAL_GOAL=True LOCAL_HIT=(2.0, 1.0) LOCAL_LAST=(2.0, 1.0)（须 True：局部规划器输入口收到这条目标）
+  SW_FRESH_PATH_GOAL_STATUS={'ok': True, 'poses': 2, 'goal': [2.0, 1.0, 0.10999999940395355], 'frame': 'map'}
+  SW_FRESH_OK=True（派发 + 取队 + 非空路径 + 路径贴合 + 局部目标 五項全过）
+  SW_FRESH_ATTEMPTS=1（1＝一次就接；>1＝首条没派发、重发才接）
+  SW_FRESH_HISTORY=[(1, True, 1, 2, 9.6, True)]（次数, 派发, seq增, 路径点数, 等路径秒, 局部目标）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)] PATHS_TOTAL=16
+  SW_BT_STATUS_RAW_TAIL="name":"cancel","status":"IDLE"},{"name":"cancelled","status":"IDLE"},{"name":"cancel_current","status":"IDLE"},{"name":"recovery_on_failure","status":"IDLE"}]}
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（旧目标停住 + 新目标重新出非空路径并交给局部规划器，两段都要）
+  SW_DISCRIMINATING=True
+GAP_PORTS_FREE
+ROUND_marker4 STATS arrival_timeout=0 goal_queued=5 depth_max=3 dequeued=3 external_cancel=1 drop_events=1 stray_ack=0
+=== round_bt5 (mode=bt queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_bt5 READY_GATE=READY_GATE=READY
+ROUND_bt5 PROBE_RC=0 ELAPSED_S=16
+  SW_MODE=bt TAG=bt5 QUEUE_OLD=0 PHASE_ARG=arrival
+  SW_WARM_ATTEMPTS=1
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=None（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_CANCEL_FORWARDED=True（BT 转发）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_WINDOW_S=8.0 ELAPSED_S=8.0
+  SW_J1_GLOBAL_GOAL_SEEN=True（/v8/global/goal 上出现目标 2）
+  SW_J2_NEW_PATH_STAMPS=5（t0 后新时间戳路径帧，须 >= 1）
+  SW_J3_BT_GOAL_SEQ=1->2（须变大）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)]
+  SW_CANCEL_OUT_TAIL=['1:all:control']
+  SW_ACK_IN_TAIL=['1:cancelled']
+  SW_CANCEL_ORIGIN=operator PENDING_DROPPED=0 QUEUE_DEPTH=0 EVENT=localization_ok
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（模式=bt 落点=ARRIVAL 来源=pass）
+  SW_DISCRIMINATING=True（不一致＝本卡的因果假设被否，不许当读数错误糊过去）
+GAP_PORTS_FREE
+ROUND_bt5 STATS arrival_timeout=0 goal_queued=2 depth_max=1 dequeued=2 external_cancel=0 drop_events=0 stray_ack=0
+GAP_PROBES_DONE direct:3:arrival=0 direct:3:pending=0 marker:3:arrival=0 marker:3:pending=0 bt=0

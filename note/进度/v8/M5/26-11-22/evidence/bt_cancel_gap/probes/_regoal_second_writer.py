@@ -42,10 +42,35 @@ run1／run2 各抓到一例，同一模式一轮 FAIL 一轮 PASS 看着像探�
   t0        发取消
   t0+8.0    判「旧目标没被派发、`goal_seq` 没涨、队列被清空、`pending_dropped` ≥ N」
   t0+8.0    再发一条**新**目标（模拟操作员重新明确下发）
-  t0+16.0   判「新目标在窗口内被接」——证明故障停没把 BT 弄成砖，只是不再自动接着跑旧目标
+  t0+33.0   判「新目标被接**且后端重新出非空路径**」——证明故障停没把 BT 弄成砖，也没把规划链路弄死
 
 两段必须分开判：只判「旧目标没跑」的话，一个永久卡死的 BT 也能拿满分（修复前它在 ARRIVAL
 相位正是卡死状态）；所以第二段「新目标必须跑得起来」是把「安全停止」与「死机」区分开的反控。
+
+★第二段判据 2026-11-23 加严★：原来只判「派发 + `goal_seq` 增长」，两件都是 50 ms 级事件，
+探针在 0.1—0.6 秒就判 PASS，此时后端还没出路径（`SW_FRESH_PATHS` 四轮全 0）。那只能证明 BT
+恢复了接单，不能证明 FAR 恢复了导航。现在要求三段全过：
+  ① 派发（`/v8/global/goal` 出现新目标）＋ 取队（`goal_seq` 增长）
+  ② `/global_path` 出一条**新时间戳、点数 ≥ 2** 的路径，且末点贴着新目标（0.5 米内）
+  ③ 这条路径经 `/v8/local/goal` 交到局部规划器（局部目标同样贴着新目标）
+只有 ① 过 ⇒ 判 FAIL 并显式打 `SW_FRESH_PATHS=0`，不许再算恢复导航。
+
+★判据第二轮修正（2026-11-23）★：②的采样点从「窗内第一帧」改成「窗内任一帧」，并加 `SW_FRESH_CHAIN`
+把链上每一跳打出来（`/v8/global/goal` → `/goal_point` → `/way_point` → `/global_path` →
+`/v8/local/goal`）。实测第一帧的末点常常是**旧目标**那个航点（新目标写进后端入口后，上游回调还在
+排队，上一拍的航点先到）——按第一帧判会把「后端还没轮到」误判成「后端没重新规划」，而两者的处置
+完全不同：前者改采样，后者要查后端。
+
+★判据第三轮修正（2026-11-23）★：②不再以「末点贴住操作员目标」为准，改判**重规划里程碑**，
+收敛时长降为读数（`SW_FRESH_CONVERGE_S`）。依据两条实测：
+  · 不取消、直接换目标的对照组 `_fresh_path_control.py` 同样要 12.9／13.4／15.0／18.0 秒
+    （n=4）才让末点落到目标上，且换相序列同样先在图顶点间游走 ⇒ 这段延迟与故障停无关；
+  · 上游 `ProjectNavWaypoint`（`far_planner.cpp:339-378`）在航点距机器小于 `local_planner_range`
+    （5.0 m）时沿航向把航点**外推 5 米**，而 `/way_point` 等于目标本身只在 `PlanGlobalPath`
+    判出收敛那一拍（`graph_planner.cpp:163-178`）⇒「末点＝目标」是到达事件，不是规划事件。
+现判据六项：派发、取队、适配器转发新目标、非空路径 ≥ 2 点、末点与发帧前那条差 > 0.3 m、局部目标
+等于某条新路径的末点。前四项证明链路通，第五项证明是**换目标重规划**而非旧路径重放，第六项证明
+目标真的交到了局部规划器。
 
 `--phase pending` 是给 PATH_PENDING 相位用的：先暖机拿到首帧路径（让适配器收敛、航点流跑起来），
 把旧目标排进队列，然后发一帧外部到达信号 `/v8/bt/arrived=true` 把当前腿收掉——BT 会立刻取走
@@ -63,7 +88,7 @@ import json
 import time
 
 import rospy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PointStamped, PoseStamped
 from nav_msgs.msg import Path
 from std_msgs.msg import Bool, String
 
@@ -79,16 +104,30 @@ GOAL_DELAY_S = 3.0
 WINDOW_S = 8.0
 OLD_QUEUE_SETTLE_S = 1.5         # 旧目标入队后等一会儿，确保它们在取消之前真的排在队列里
 OLD_GOAL_SPACING_S = 0.3         # 两条旧目标之间的间隔：/v8/bt/goal 订阅队列只有 1
-FRESH_WINDOW_S = 8.0             # 故障停之后新目标的观察窗
+FRESH_WINDOW_S = 8.0             # 故障停后「新目标被接（派发 + 取队）」的观察窗
+FRESH_PATH_WINDOW_S = 25.0       # 故障停后「后端真出一条非空路径」的观察窗（规划要几秒，8 秒不够）
 DEQUEUE_WAIT_S = 20.0            # pending 相位：等「取队」出现的最长等待
 
 PATH_STAMPS = set()
+PATH_FRAMES = []         # /global_path 的每一帧：(stamp_ns, 点数, 末点xy, 收到时刻)
+LOCAL_GOALS = []         # /v8/local/goal 的每一次：(x, y, 收到时刻)
+PATH_GOAL_STATUS = {}    # /v8/3d/path_goal/status 最新值（带 poses 与 goal 坐标）
 GLOBAL_GOALS = []        # 取消后 /v8/global/goal 上的点
 BT_STATUS = {'goal_seq': 0, 'queue_depth': 0, 'pending_dropped': 0,
              'cancel_origin': '', 'event': '', 'nodes': {}, 'raw': ''}
 CANCEL_OUT = []          # /v8/local/cancel 上看到的帧（BT 转发的）
 ACK_IN = []              # /v8/local/cancel_ack
 PATH_STATUS = {'ok': False, 'points': 0, 'reason': ''}   # /global_path/status 最新值
+# ---- 链路逐点读数（第二施工段补）：为什么新目标没出路径，必须看链上每一跳 ----
+#   /v8/global/goal  BT 写后端           ← 已有 GLOBAL_GOALS
+#   /goal_point      适配器转发给上游 FAR
+#   /way_point       上游 FAR 回的航点
+#   /global_path     适配器出的两点路径
+#   /v8/local/goal   路径转出来的局部目标
+# 只判头尾会把「上游没接新目标」误读成「探针采样太早」——这两件事的处置完全不同。
+GOAL_POINTS = []         # /goal_point 的每一次：(x, y, 收到时刻)
+WAYPOINTS = []           # /way_point 的每一次：(x, y, 收到时刻)
+POSE = {'xy': None}      # /v8/local/pose 最新位姿
 
 # 取消落在哪个节点是这个缺口最要命的自变量，所以这两个常量只服务于「暖机后落点稳定在 ARRIVAL」。
 SETTLE_AFTER_PATH_S = 1.5
@@ -125,6 +164,8 @@ def main():
                         help='取消要落进哪个相位；pending 需要 queue-old >= 1')
     parser.add_argument('--fresh-window', type=float, default=FRESH_WINDOW_S,
                         help='故障停后新目标的观察窗（冷启动场景要放大）')
+    parser.add_argument('--fresh-path-window', type=float, default=FRESH_PATH_WINDOW_S,
+                        help='故障停后等新路径的观察窗；规划链路本身要几秒，不能和派发窗同量级')
     parser.add_argument('--expect', choices=('auto', 'pass', 'fail'), default='auto',
                         help='auto＝按修复前的因果假设推期望；修复后用 pass 钉住新期望')
     parser.add_argument('--tag', default='run')
@@ -140,7 +181,24 @@ def main():
     def on_path(msg):
         if not msg.poses:
             return
-        PATH_STAMPS.add(msg.header.stamp.to_nsec())
+        stamp = msg.header.stamp.to_nsec()
+        PATH_STAMPS.add(stamp)
+        last = msg.poses[-1].pose.position
+        PATH_FRAMES.append((stamp, len(msg.poses), (round(last.x, 2), round(last.y, 2)),
+                            time.monotonic()))
+
+    def on_local_goal(msg):
+        p = msg.pose.position
+        LOCAL_GOALS.append((round(p.x, 2), round(p.y, 2), time.monotonic()))
+
+    def on_path_goal_status(msg):
+        try:
+            payload = json.loads(msg.data)
+        except ValueError:
+            return
+        if isinstance(payload, dict):
+            PATH_GOAL_STATUS.clear()
+            PATH_GOAL_STATUS.update(payload)
 
     def on_global_goal(msg):
         GLOBAL_GOALS.append((msg.pose.position.x, msg.pose.position.y))
@@ -176,9 +234,28 @@ def main():
             PATH_STATUS['points'] = int(payload.get('points') or 0)
             PATH_STATUS['reason'] = str(payload.get('reason') or '')
 
+    def on_point_goal(msg):
+        p = msg.point
+        GOAL_POINTS.append((round(p.x, 2), round(p.y, 2), time.monotonic()))
+
+    def on_waypoint(msg):
+        p = msg.point
+        WAYPOINTS.append((round(p.x, 2), round(p.y, 2), time.monotonic()))
+
+    def on_pose(msg):
+        p = msg.pose.position
+        POSE['xy'] = (round(p.x, 2), round(p.y, 2))
+
     rospy.Subscriber('/global_path', Path, on_path, queue_size=10)
     rospy.Subscriber('/global_path/status', String, on_path_status, queue_size=50)
+    rospy.Subscriber('/v8/local/goal', PoseStamped, on_local_goal, queue_size=20)
+    rospy.Subscriber('/v8/3d/path_goal/status', String, on_path_goal_status, queue_size=20)
     rospy.Subscriber('/v8/global/goal', PoseStamped, on_global_goal, queue_size=10)
+    # 链上三跳（后端入口之后）：适配器转给上游的目标、上游回的航点、当前位姿。
+    # 这三条不参与判据，只用于把「探针采样太早」与「上游没接新目标」分开。
+    rospy.Subscriber('/goal_point', PointStamped, on_point_goal, queue_size=20)
+    rospy.Subscriber('/way_point', PointStamped, on_waypoint, queue_size=20)
+    rospy.Subscriber('/v8/local/pose', PoseStamped, on_pose, queue_size=5)
     rospy.Subscriber('/v8/bt/status', String, on_status, queue_size=50)
     rospy.Subscriber('/v8/local/cancel', String, lambda m: CANCEL_OUT.append(m.data),
                      queue_size=100)
@@ -398,50 +475,180 @@ def judge_queue_old(args, t0, base_stamps, seq_at_t0, depth_at_t0, send_goal, wa
     print('SW_CANCEL_ORIGIN=%s EVENT=%s' % (origin, event), flush=True)
     print('SW_QUEUE_SAFE=%s' % queue_safe, flush=True)
 
-    # ---- 第二段：操作员重新下发一条新目标，窗口内必须被接（证明不是卡死）
+    # ---- 第二段：操作员重新下发一条新目标，必须「接到并真的规划出来」
     #
-    # ★判据必须「等齐三项再采」，不能「一看到派发就采」★（probe_fix2b 第一版踩过）：
-    # `/v8/bt/status` 只有 2 Hz、路径帧要等后端出第一帧，派发却只要 50 ms，一看到派发就采样
-    # 会把「真接上了」读成 False，于是探针 0.1 秒后就急着重发第二条——那是探针自己造出来的
-    # 假失败（同一次 launch.log 里 `follow path -> dispatch goal 2` 明明已经出现）。
-    #
-    # 三项里 `派发` 与 `goal_seq` 都是逐腿事件，能证明「这一条腿被接」；路径帧只证明
-    # 「后端重新出帧了」，单独用会把下一条腿的帧算到这条头上，所以它只作旁证、并单独报。
+    # ★判据必须「等齐再采」，但「等齐」的内容本批改了★：
+    # 旧版等的是「派发 + goal_seq 增长」，两件都是 50 ms 级的逐腿事件，于是探针在 0.1—0.6 秒
+    # 就断言成功——那时候后端还没出路径，`SW_FRESH_PATHS` 四轮全 0 却仍判 PASS。这只证明
+    # BT 肯接单，不证明 FAR 恢复了导航。
+    # 现版分三段等：
+    #   ① 派发 + 取队（逐腿事件，`--fresh-window`，缺省 8 秒）
+    #   ② 后端真出一条非空路径（`--fresh-path-window`，缺省 25 秒；规划链路是秒级）
+    #   ③ 这条路径经 `/v8/local/goal` 交到局部规划器（局部目标须贴着新目标）
+    # 三段全过才算恢复导航。①单独过只说明队列没卡死，②③才说明规划链路回来了。
     attempts = 0
     fresh_ok = False
     fresh_history = []
     while attempts < 2 and not fresh_ok:
         attempts += 1
-        base2 = set(PATH_STAMPS)
         seq_before_fresh = BT_STATUS['goal_seq']
         GLOBAL_GOALS.clear()
+        frames_before = len(PATH_FRAMES)
+        local_before = len(LOCAL_GOALS)
+        # 链上两条旁证的下标必须在 send_goal **之前**抓：实测 `/goal_point` 在派发那一拍
+        # 就发出去了（适配器 on_goal 是秒内响应），等到「派发窗」结束时再抓下标，正好把
+        # 那一条漏掉——首轮就是这么读到 `GOAL_POINTS=[]`、错判成「适配器没转发新目标」。
+        goal_pt_before = len(GOAL_POINTS)
+        wp_before = len(WAYPOINTS)
+        pose_at_fresh = POSE['xy']
+        # 发帧前最后一条非空路径的末点：判「后端是否真的重规划」要拿它当基准。
+        # 只判「窗内有新帧」不够——后端把旧路径按新时间戳重发一遍也能满足，那不是恢复。
+        pre_frames = [f for f in PATH_FRAMES[:frames_before] if f[1] >= 2]
+        pre_tail = pre_frames[-1][2] if pre_frames else None
+        # `/goal_point` 是 far 适配器专有的中间话题（`far_node.py` 的 `far_goal_topic`），
+        # support 后端整条链没有它。判据③只对 far 链有意义，所以先记「链上有没有这两条话题」：
+        # 暖机腿已经跑过，far 链一定有 `/way_point`；support 链两条都没有。
+        # ★不能把「话题不存在」判成「没转发」★——那是把判据套到了不适用的后端上（实测
+        # `probe_support4/round_direct2` 五项全绿却被第③项拖成 FAIL）。
+        chain_present = (len(WAYPOINTS) > 0) or (len(GOAL_POINTS) > 0)
         send_goal('fresh%d' % attempts, SECOND_GOAL)
         fresh_sent_at = time.monotonic()
+
+        # 第一段：等「派发 + 取队」。这两项是逐腿事件，50 ms 量级就该出现。
         deadline = fresh_sent_at + args.fresh_window
         while time.monotonic() < deadline and not rospy.is_shutdown():
             if (any(near(xy, SECOND_GOAL) for xy in GLOBAL_GOALS)
                     and BT_STATUS['goal_seq'] > seq_before_fresh):
                 break
             time.sleep(0.1)
-        waited = time.monotonic() - fresh_sent_at
+        waited_dispatch = time.monotonic() - fresh_sent_at
         seen = any(near(xy, SECOND_GOAL) for xy in GLOBAL_GOALS)
         seq_after_fresh = BT_STATUS['goal_seq']
-        fresh_paths = sorted(PATH_STAMPS - base2)
-        fresh_ok = seen and seq_after_fresh > seq_before_fresh
-        fresh_history.append((attempts, seen, seq_before_fresh, seq_after_fresh,
-                              len(fresh_paths), round(waited, 1)))
-        print('SW_FRESH_WINDOW_S=%.1f WAITED_S=%.1f ATTEMPT=%d'
-              % (args.fresh_window, waited, attempts), flush=True)
+
+        # 第二段：等「后端真出一条指向新目标的非空路径」。这一段是本批补上的必过项——
+        # 派发只证明 BT 接单，路径才证明 FAR 真的重新规划了。规划链路是秒级，
+        # 所以必须单独给窗口，不能沿用派发那一档（旧版就是在这里读 0 还判 OK）。
+        #
+        # ★不能取「窗内第一帧」★（首轮实测踩到）：新目标写进 `/v8/global/goal` 之后，
+        # 上游 FAR 的回调还在排队，它上一拍吐的旧目标航点仍会先到一帧，于是窗内第一帧的
+        # 末点是**旧目标**（实测 (2.0, 0.0)，新目标是 (2.0, 1.0)）。那一帧既不能当成功，
+        # 也不该当成「没出路径」——所以要一路收到窗口尽头。
+        #
+        # ★★第三轮修正（2026-11-23）：判据从「末点贴住操作员目标」改到「重规划里程碑」★★
+        # 依据是两条实测事实，不是为了让读数变绿：
+        #   ① 不取消、直接换目标的对照组（`_fresh_path_control.py`，n=4）同样要 12.9—18.0 s
+        #      才把末点落到目标上，且末点序列同样先在图顶点间游走 ⇒ 这段延迟与故障停无关；
+        #   ② 上游 `ProjectNavWaypoint`（`far_planner.cpp:339-378`）在航点距机器 <
+        #      `local_planner_range`(5.0 m) 时会**沿航向把航点外推 5 米**；而 `/way_point`
+        #      变成目标本身，只在 `PlanGlobalPath` 判出收敛/到达那一拍（`graph_planner.cpp:163-178`
+        #      `GoalReset` 后 `is_goal_init_=false`）。
+        # 也就是说「末点＝目标」是**到达事件**（受机器人速度与上游到达判据支配），不是**规划事件**。
+        # 拿它当「恢复导航」的判据，等于把判据落在会变的代理量上（与坑 88/89 同族）。
+        # 现判据改看三件确定性事件，收敛时长另立读数如实报：
+        #   ②a 新帧存在且末点**不同于**发帧前的末点（> 0.3 m）＝后端真的重规划了，不是旧路径重放；
+        #   ②b 至少 2 点；
+        #   ③ `/v8/local/goal` 收到的点**等于某条新路径的末点**＝对应目标交到了局部规划器。
+        path_deadline = time.monotonic() + args.fresh_path_window
+        new_frames = []
+        matched = None
+        while time.monotonic() < path_deadline and not rospy.is_shutdown():
+            new_frames = [f for f in PATH_FRAMES[frames_before:]
+                          if f[1] >= 2 and f[3] >= fresh_sent_at]
+            matched = next((f for f in new_frames if near(f[2], SECOND_GOAL, 0.5)), None)
+            if matched is not None:
+                break
+            time.sleep(0.2)
+        waited_path = time.monotonic() - fresh_sent_at
+        path_ok = bool(new_frames)
+        last_frame = matched or (new_frames[-1] if new_frames else (0, 0, None))
+        path_points = last_frame[1]
+        path_tail = last_frame[2]
+        tails = []
+        timeline = []
+        for frame in new_frames:
+            if frame[2] not in tails:
+                tails.append(frame[2])
+                timeline.append((round(frame[3] - fresh_sent_at, 1), frame[2]))
+        # 重规划判据：新帧里至少一条末端与发帧前那条差得开（> 0.3 m）。
+        # 阈值取 0.3：上游在两次规划之间会把航点挪几十分之一米（图顶点重合、位姿微动），
+        # 那是「同一条路径重发」而不是换了目标；实测换目标后的第一次换相都在米级。
+        replanned = [t for t in tails
+                     if pre_tail is None
+                     or abs(t[0] - pre_tail[0]) > 0.3 or abs(t[1] - pre_tail[1]) > 0.3]
+        path_replanned = bool(replanned)
+        # 收敛读数（只报不判）：第一帧末点贴住操作员目标的时刻。
+        converge_s = (round(matched[3] - fresh_sent_at, 1) if matched else None)
+
+        # 第三段：局部规划器的输入口（/global_path 经 v8_path_goal 转出来的
+        # /v8/local/goal）必须真的收到**这条路径的目标**，光有全局路径不算交给局部。
+        pg_ok = bool(PATH_GOAL_STATUS.get('ok')) and int(PATH_GOAL_STATUS.get('poses') or 0) >= 2
+        local_new = [g for g in LOCAL_GOALS[local_before:] if g[2] >= fresh_sent_at]
+        local_matched = None
+        for goal_xy in local_new:
+            hit_tail = next((t for t in tails if near((goal_xy[0], goal_xy[1]), t, 0.3)), None)
+            if hit_tail is not None:
+                local_matched = ((goal_xy[0], goal_xy[1]), hit_tail)
+                break
+        local_hit = next((g for g in local_new if near((g[0], g[1]), SECOND_GOAL, 0.5)), None)
+        local_xy = (local_new[-1][0], local_new[-1][1]) if local_new else None
+        local_ok = local_matched is not None
+        goal_pts = [(g[0], g[1]) for g in GOAL_POINTS[goal_pt_before:] if g[2] >= fresh_sent_at]
+        # 第③项按后端适用：far 链必须看到适配器把新目标转给上游；support 链没有这条话题，跳过。
+        goal_pt_hit = any(near(g, SECOND_GOAL, 0.1) for g in goal_pts)
+        goal_pt_ok = goal_pt_hit if chain_present else True
+        way_pts = [(w[0], w[1]) for w in WAYPOINTS[wp_before:] if w[2] >= fresh_sent_at]
+
+        fresh_ok = bool(seen and seq_after_fresh > seq_before_fresh and goal_pt_ok
+                        and path_ok and path_replanned and path_points >= 2 and local_ok)
+        fresh_history.append((attempts, seen, seq_after_fresh - seq_before_fresh,
+                              path_points, round(waited_path, 1), local_ok))
+        print('SW_FRESH_WINDOW_S=%.1f WAITED_DISPATCH_S=%.1f WAITED_PATH_S=%.1f ATTEMPT=%d'
+              % (args.fresh_window, waited_dispatch, waited_path, attempts), flush=True)
         print('SW_FRESH_STAMP_SEEN=%s（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）'
               % seen, flush=True)
         print('SW_FRESH_GOAL_SEQ=%d->%d（须变大）'
               % (seq_before_fresh, seq_after_fresh), flush=True)
-        print('SW_FRESH_PATHS=%d（旁证：这条腿之后后端出的路径帧数）'
-              % len(fresh_paths), flush=True)
-        print('SW_FRESH_OK=%s（派发 + 取队两项为判据）' % fresh_ok, flush=True)
-    print('SW_FRESH_ATTEMPTS=%d（1＝一次就接；2＝第一条被拒后重发才接，属既有行为）'
+        print('SW_FRESH_PATHS=%d（这条腿之后后端出的非空路径帧数，须 >= 1）'
+              % len(new_frames), flush=True)
+        print('SW_FRESH_PATH_POINTS=%d PATH_TAIL=%s（须 >= 2 点；末点是后端此刻给的目标）'
+              % (path_points, path_tail), flush=True)
+        print('SW_FRESH_PRE_TAIL=%s（发帧前最后一条路径的末点，作重规划基准）'
+              % (pre_tail,), flush=True)
+        print('SW_FRESH_PATH_TAILS=%s（窗内出现过所有末点的先后序列，截前 8）'
+              % (tails[:8],), flush=True)
+        print('SW_FRESH_CONVERGE_S=%s（读数不判：首帧末点贴住操作员目标用了多少秒；'
+              'None＝窗内没贴上，属上游到达判据与车速支配）' % converge_s, flush=True)
+        print('SW_FRESH_TAIL_TIMELINE=%s（末点换相的相对时刻，看的是上游收敛过程）'
+              % (timeline[:8],), flush=True)
+        print('SW_FRESH_PATH_REPLANNED=%s（须 True：窗内末点与发帧前那条差 > 0.3 m'
+              '＝后端真的换目标重规划，不是旧路径重放）' % path_replanned, flush=True)
+        print('SW_FRESH_LOCAL_GOAL=%s LOCAL_MATCH=%s LOCAL_LAST=%s'
+              '（须 True：局部规划器输入口收到的点等于某条新路径的末点）'
+              % (local_ok, local_matched, local_xy), flush=True)
+        print('SW_FRESH_LOCAL_HIT_GOAL=%s（读数不判：局部目标是否已贴住操作员目标）'
+              % (local_hit is not None), flush=True)
+        print('SW_FRESH_PATH_GOAL_STATUS=%s' % (PATH_GOAL_STATUS,), flush=True)
+        wp_hit = any(near(w, SECOND_GOAL, 0.5) for w in way_pts)
+        print('SW_FRESH_CHAIN POSE_AT_SEND=%s POSE_AT_END=%s（位姿：派发那一瞬 / 收工那一瞬）'
+              % (pose_at_fresh, POSE['xy']), flush=True)
+        print('SW_FRESH_CHAIN_GOAL_POINT n=%d APPLICABLE=%s HIT=%s LAST=%s'
+              '（适配器转给上游 FAR 的 /goal_point；support 后端无此话题，该行 APPLICABLE=False）'
+              % (len(goal_pts), chain_present, goal_pt_hit,
+                 goal_pts[-1] if goal_pts else None), flush=True)
+        print('SW_FRESH_CHAIN_WAYPOINT n=%d HIT=%s FIRST=%s'
+              '（上游回的 /way_point，HIT＝窗内出现过贴新目标的航点）'
+              % (len(way_pts), wp_hit, way_pts[0] if way_pts else None), flush=True)
+        print('SW_FRESH_OK=%s（派发 + 取队 + 适配器转发新目标 + 非空重规划路径'
+              ' + 局部目标等于该路径末点 六項全过）'
+              % fresh_ok, flush=True)
+        # ★只在「没派发」时重发★：派发成功但路径没出来，重发的那条只会在队列里排队
+        # （实测第二轮 `goal queued depth=1` 之后再无 `dequeued`），既修不了路径，还往
+        # 下一轮验收里塞一条没人执行的目标。旧版无条件重发，把这种沉积当成了「接单失败」。
+        if fresh_ok or seen:
+            break
+    print('SW_FRESH_ATTEMPTS=%d（1＝一次就接；>1＝首条没派发、重发才接）'
           % attempts, flush=True)
-    print('SW_FRESH_HISTORY=%s（次数, 派发, seq前, seq后, 路径帧, 等待秒）'
+    print('SW_FRESH_HISTORY=%s（次数, 派发, seq增, 路径点数, 等路径秒, 局部目标）'
           % (fresh_history,), flush=True)
     print('SW_GLOBAL_GOALS_SEEN=%s PATHS_TOTAL=%d' % (GLOBAL_GOALS[-4:], len(PATH_STAMPS)),
           flush=True)
@@ -449,7 +656,8 @@ def judge_queue_old(args, t0, base_stamps, seq_at_t0, depth_at_t0, send_goal, wa
 
     ok = queue_safe and fresh_ok
     print('SW_VERDICT=%s' % ('PASS' if ok else 'FAIL'), flush=True)
-    print('SW_EXPECT=PASS（queue-old：旧目标停住 + 新目标可下发，两段都要）', flush=True)
+    print('SW_EXPECT=PASS（旧目标停住 + 新目标重新出非空路径并交给局部规划器，两段都要）',
+          flush=True)
     print('SW_DISCRIMINATING=%s' % (ok,), flush=True)
     return 0
 
