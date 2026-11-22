@@ -8,14 +8,14 @@
 # 让复核的人一眼看出是漂了还是符号改了。
 #
 # 三连（照本仓门禁件的既有姿势）：
-#   主测＝25 枚真锚点逐枚 grep -n 命中；
+#   主测＝35 枚真锚点逐枚 grep -n 命中；
 #   注入有效性＝反控①故意写一个不存在的行号、反控②故意写一个不匹配的正则，两者**必须 MISS**
 #                （都 MISS 才说明本件不是「恒绿空控」）；
 #   反控的意义＝若某天有人把 check 写成恒返回 0，反控两项会先翻红。
 #
 # 用法＝bash _anchor_check.sh            # 跑并打印
 #      bash _anchor_check.sh --log      # 跑并把同一份输出落到同目录 anchors.log
-# 退出码＝0（25 枚全命中且两条反控都 MISS）｜5（有 MISS 或反控失效）｜9（前置缺失）
+# 退出码＝0（35 枚全命中且两条反控都 MISS）｜5（有 MISS 或反控失效）｜9（前置缺失）
 set -u
 LOG=0
 [ "${1:-}" = "--log" ] && LOG=1
@@ -86,6 +86,14 @@ done <<'ANCHORS'
 树 mission 门|ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml|10|IsNotCancelled
 树 cancel 支|ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml|26|IsCancelled
 树 停滞判据关|ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml|21|progress_timeout="0"
+设1 适配器号段起点|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|34|CANCEL_SEQ_BASE = 900000000
+设2 适配器号自增|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|279|def next_cancel_seq
+设3 执行层回 ack 处|ws/src/80_algorithm/v8_algorithm/local_planner/ros_node.py|266|cancelled
+设4 BT 收帧取 max|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1127|std::max
+设5 CancelStop 取现号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|694|cancel_requested
+设6 StopExecutor 自增号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|766|seq_ =
+设7 回执去重表上限|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1154|cancel_results.erase
+设8 现有清队只看 all|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1132|pending.clear
 ANCHORS
 
 echo ""
