@@ -1,6 +1,6 @@
 # ros1-slam · 四足机器人 SLAM 与导航
 
-> 最新更新时间：2026-11-14 19:00:00 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
+> 最新更新时间：2026-11-23 03:10:00 CST。现行路线为[计划书 v8.1](note/计划书v8.1/README.md)；能力与验收状态以[进度入口](note/进度/README.md)和[版本成果总览](note/进度/00_总览.md)为准。
 
 本项目面向 Lite3 四足机器人，组合激光建图、定位、地图、全局规划、局部执行与安全仲裁，使用 ROS1/Noetic。x86 承担 Docker、Gazebo、MuJoCo 开发与回归；Lite3 主机采用原生 ROS1，地图与现场配置各机独立。
 
@@ -10,6 +10,8 @@
 
 - **传统 ROS launch**：`lite3_bringup` 组合驱动、SLAM、定位、导航、M6 安全仲裁与 SUP 监管。
 - **v8 配置装配**：应用 YAML 绑定 task、map registry 和 graph；manifest 描述端口与能力，Assembly 管理进程，运行数据经 ROS 话题传递。
+
+2026-11-21 起算法实现与平台装配分层：算法在 [`ws/src/80_algorithm/`](ws/src/80_algorithm/)（`v8_algorithm` 规划/表示/局部执行/标定，`v8_grid` 栅格化基元），[`v8_platform`](ws/src/90_platform/v8_platform/) 只保留框架、编排、注册、契约、组合、校验、回归与边界。全局后端默认 `support`（支撑图），可选 `far`（语义地形云，依赖仓外 overlay），两者共用同一棵 BT 与同一条安全链，切换在 graph 侧 `global_backend`。
 
 ```mermaid
 flowchart LR
@@ -37,7 +39,10 @@ flowchart LR
 | --- | --- |
 | 架构、装配链、模块依赖 | [项目架构与目录](note/架构/项目架构与目录.md) |
 | 源码分层、自研包与接口入口 | [ws/README.md](ws/README.md) |
-| v8 app / graph / 模块代码 | [v8_platform](ws/src/90_platform/v8_platform/README.md)、[framework](ws/src/90_platform/v8_platform/framework/README.md) |
+| v8 算法实现（规划、表示、局部执行、标定） | [80_algorithm](ws/src/80_algorithm/)、[v8_algorithm](ws/src/80_algorithm/v8_algorithm/) |
+| v8 平台：契约、装配、编排与校验 | [v8_platform](ws/src/90_platform/v8_platform/README.md)、[framework](ws/src/90_platform/v8_platform/framework/README.md) |
+| 全局后端切换（support / far） | [graph_3d_lite3_bt.yaml](ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3_bt.yaml)、[graph_3d_lite3_far.yaml](ws/src/90_platform/v8_platform/configs/lite3/graph_3d_lite3_far.yaml)、[双后端验证记录](note/架构/双后端可替换_验证记录_2026-11-22.md) |
+| BT 编排与取消链 | [lite3_bt](ws/src/90_platform/lite3_bt/README.md)、[FAR 自停设计与验收](note/架构/FAR自停快速恢复_设计与验收_2026-11-22.md) |
 | 规划、组件契约与执行队列 | [计划书 v8.1](note/计划书v8.1/README.md) |
 | 版本成果、当前进度与证据 | [进度入口](note/进度/README.md)、[版本成果总览](note/进度/00_总览.md) |
 | 目标构建与依赖闭包 | [lite3 / x86_sim 构建说明](tooling/build/README.md)；M20 尚未接入 |

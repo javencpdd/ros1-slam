@@ -12,7 +12,7 @@
 #   所以本件**退出码恒 0**；真要拦人，靠的是各件自身的 rc 与在册调用式，不是本件。
 #   ⇒ 本件**不是第九件门禁件**，也不改任何件的 rc 语义；它只是一个跑法。
 #
-# 用法：bash scripts/verify/run_gate_chain.sh          # 跑全部八件
+# 用法：bash scripts/verify/run_gate_chain.sh          # 跑全部成员（成员数现读 gate_chain.txt，不写死件数）
 #       GATE_ONLY=ISO,DC bash scripts/verify/run_gate_chain.sh   # 只跑名单里的某几件（代号逗号分隔）
 # 依赖：gate_chain.txt（成员名单）、syn_face.txt、pyst_face.txt、parity_face.txt（面清单，R272／R273 建）
 set -u

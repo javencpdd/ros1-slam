@@ -1,6 +1,6 @@
 # ws/ · 源码与配置入口
 
-> 最新更新时间：2026-11-14 19:00:00 CST。现行路线：[计划书 v8.1](../note/计划书v8.1/README.md)；实际架构：[项目架构与目录](../note/架构/项目架构与目录.md)；进度与能力边界：[进度入口](../note/进度/README.md)。
+> 最新更新时间：2026-11-23 03:12:00 CST。现行路线：[计划书 v8.1](../note/计划书v8.1/README.md)；实际架构：[项目架构与目录](../note/架构/项目架构与目录.md)；进度与能力边界：[进度入口](../note/进度/README.md)。
 
 本目录是 catkin 工作区。`src/` 放源码、配置与源码测试；`build/`、`devel/`、`install/` 与 `.profiles/` 是忽略的编译产物。地图和运行输出在仓根 `data/maps/`、`logs/`；进度、验收和证据在 `note/`。
 
@@ -17,8 +17,9 @@
 | `src/50_task/` | 传统任务状态机与原语 |
 | `src/60_safety/` | M6 速度仲裁、超时、限速与 hold |
 | `src/70_bringup/` | 传统 mode 顶层 launch |
+| `src/80_algorithm/` | v8 算法实现：`v8_algorithm`（representation／planner／local_planner／calibration）与 `v8_grid`（栅格化几何基元）；2026-11-21 自平台层迁出 |
 | `src/90_supervisor/` | 心跳监管与 hold，不直接输出速度 |
-| `src/90_platform/` | v8 契约/组合/装配/算法适配、NDT monitor、消息接口 |
+| `src/90_platform/` | v8 平台面：contracts／composer／registry／framework／orchestrator／validator／regression／boundary，加 `lite3_bt` 编排与 `v8_msgs`、`v8_ndt_odom` 接口；算法实现不在本层 |
 | `src/95_simulation/` | **2026-11-14 迁入 `subprojects/simulation`**：见 [subprojects/simulation](../subprojects/simulation/README.md)（独立 `ws/` 工作区） |
 
 > 子项目：仿真源码在 `subprojects/simulation/`，控制台在 `subprojects/console/`；主仓 `origin` 一次同步全部，两者保留独立 `ws/` 与发布物。
@@ -60,6 +61,9 @@
 | `v8_simulation` | [仿真薄入口与依赖](../subprojects/simulation/ws/src/v8_simulation/README.md) |
 | `lite3_description` | [README](../subprojects/simulation/ws/src/lite3_description/README.md) |
 | `v8_platform` | [README](src/90_platform/v8_platform/README.md) |
+| `v8_algorithm` | [包目录](src/80_algorithm/v8_algorithm/)（representation／planner／local_planner／calibration，无独立 README；各子目录有 README） |
+| `v8_grid` | [栅格化基元](src/80_algorithm/v8_grid/v8_grid/indexing.py)（包体在 `v8_grid/v8_grid/`，`tests/test_differential.py` 为差异自测） |
+| `lite3_bt` | [README](src/90_platform/lite3_bt/README.md)（BT 编排、三棵树与 goal gate） |
 | `v8_ndt_odom` | [README](src/90_platform/v8_ndt_odom/README.md) |
 | `v8_msgs` | [消息定义与构建入口](src/90_platform/v8_msgs/)（当前没有独立 README） |
 
