@@ -8055,3 +8055,17 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   不进 ws/src 闭包，profiles.json 未改
 - 验收读数（四张图全 rc=0、path_goal 先于 local、两条反向注入 rc=5、T1—T6、两侧单测 13 条与 308 条
   全过）落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第七节
+
+## 2026-11-22 / T-20261122-04 B4 B 链降级标注，零行为
+
+- mode_sim_teb.launch 顶部加一段注释：本文件是 B 链（move_base 加 TEB）的仿真入口，只作候选与
+  回归对照，不是默认入口；默认全局后端是 support，FAR 为可选项；并指向与它同批退役的
+  lite3_costmap_layers 那条文末注释
+- note/架构/项目架构与目录.md 第 4 节表里补一行「全局后端选择」：默认 support 吃支撑图，far 吃
+  带 intensity 的语义地形云且依赖仓外 overlay；两版图共用同一棵 BT、同一套安全链与单写者，
+  只有连线不同；B 链入口是候选与回归对照而非默认
+- 零行为：两处都是注释与文档，没有 arg、没有节点、没有连线的增删，也没有任何 params 变动
+- 验收：mode_navigation.launch 的 enable_motion（第 29 行）与 enable_bt（第 36 行）缺省仍为 false；
+  lite3_bt/test/test_navigation_contract.py 六条全过，其中一条会解析 mode_sim_teb.launch，
+  说明新加的注释没有破坏 XML
+- 落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第八节

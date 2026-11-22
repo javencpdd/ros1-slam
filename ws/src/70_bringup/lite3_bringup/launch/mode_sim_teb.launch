@@ -1,4 +1,8 @@
 <launch>
+  <!-- 候选/回归对照，非默认入口（2026-11-22 标注，零行为改动）。
+       本文件是 B 链（move_base + TEB）的仿真入口，只用于与 A 链做对照回归；
+       默认全局后端是 support（v8.fw.global3d_topic 吃 support_map），FAR 为可选项。
+       与它同批退役的还有 lite3_costmap_layers（见文末注释）。 -->
   <arg name="goal_x" default="3.0"/>
   <arg name="goal_y" default="0.0"/>
   <arg name="tf_source" default="fresh"/>
