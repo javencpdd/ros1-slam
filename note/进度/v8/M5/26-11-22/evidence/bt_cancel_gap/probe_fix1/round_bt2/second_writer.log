@@ -1,0 +1,22 @@
+SW_MODE=bt TAG=bt2 QUEUE_OLD=0 PHASE_ARG=arrival
+SW_GOAL_SENT tag=warm1 xy=(2.00, 0.00)
+SW_WARM_ATTEMPTS=1
+SW_PATHS_BEFORE_CANCEL=1
+SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+SW_CANCEL_SENT topic=/v8/bt/cancel seq=1（反控：走 BT 入口）
+SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点）
+SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+SW_CANCEL_FORWARDED=True（BT 转发）
+SW_CANCEL_ACK_CANCELLED=True
+SW_GOAL_SENT tag=second xy=(2.00, 1.00)
+SW_WINDOW_S=8.0 ELAPSED_S=8.0
+SW_J1_GLOBAL_GOAL_SEEN=True（/v8/global/goal 上出现目标 2）
+SW_J2_NEW_PATH_STAMPS=3（t0 后新时间戳路径帧，须 >= 1）
+SW_J3_BT_GOAL_SEQ=1->2（须变大）
+SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)]
+SW_CANCEL_OUT_TAIL=['1:all:control']
+SW_ACK_IN_TAIL=['1:cancelled']
+SW_CANCEL_ORIGIN=operator PENDING_DROPPED=0 QUEUE_DEPTH=0 EVENT=localization_ok
+SW_VERDICT=PASS
+SW_EXPECT=PASS（模式=bt 落点=ARRIVAL 来源=pass）
+SW_DISCRIMINATING=True（不一致＝本卡的因果假设被否，不许当读数错误糊过去）

@@ -1,0 +1,67 @@
+=== round_stray1 (mode=stray queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_stray1 READY_GATE=READY_GATE=READY
+ROUND_stray1 PROBE_RC=0 ELAPSED_S=9
+  SW_CASE=stray TAG=stray1
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_LIVE_LEG=True（须 True，否则「有活腿」这个前提没成立）
+  SW_STRAY_LATCHED=True（须 True：fail-safe 会把无关回执当真外部停）
+  SW_STRAY_OVER_TRIGGER=True（True＝已知过触发：多停一次腿，要操作员重发）
+  SW_CANCEL_OUT_TAIL=['1:all:external_cancel']（BT 随后应用自己的号重发，不复用外来号）
+  SW_ACK_IN_SEEN=['777777:cancelled', '1:cancelled']
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_stray1 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0
+=== round_late2 (mode=late queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_late2 READY_GATE=READY_GATE=READY
+ROUND_late2 PROBE_RC=0 ELAPSED_S=9
+  SW_CASE=late TAG=late2
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_FIRST_LATCH=True（须 True，否则后面「重复回执不二次升格」没有对照）
+  SW_REPLAY_TIMES=1
+  SW_RELATCH_SEQ_UNCHANGED=True（须 True：已记账的回执不再升格）
+  SW_RELATCH_DROP_UNCHANGED=True（须 True：不再二次清队）
+  SW_REPLAY_ACK_SEEN=['900000001:cancelled']
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_late2 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0
+=== round_duplicate3 (mode=duplicate queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_duplicate3 READY_GATE=READY_GATE=READY
+ROUND_duplicate3 PROBE_RC=0 ELAPSED_S=10
+  SW_CASE=duplicate TAG=duplicate3
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_FIRST_LATCH=True（须 True，否则后面「重复回执不二次升格」没有对照）
+  SW_REPLAY_TIMES=5
+  SW_RELATCH_SEQ_UNCHANGED=True（须 True：已记账的回执不再升格）
+  SW_RELATCH_DROP_UNCHANGED=True（须 True：不再二次清队）
+  SW_REPLAY_ACK_SEEN=['900000001:cancelled', '900000001:cancelled', '900000001:cancelled', '900000001:cancelled', '900000001:cancelled']
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_duplicate3 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0
+=== round_idle4 (mode=idle queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_idle4 READY_GATE=READY_GATE=READY
+ROUND_idle4 PROBE_RC=1 ELAPSED_S=11
+  SW_CASE=idle TAG=idle4
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_BACK_TO_WAIT_GOAL=True（须 True：此刻手里没有活腿）
+  SW_IDLE_ACK_IGNORED=False（须 True：无活腿时只记账不升格）
+  SW_IDLE_ACK_SEEN=['888888:cancelled', '1:cancelled']
+  SW_EXPECT=PASS
+  SW_VERDICT=FAIL
+GAP_PORTS_FREE
+ROUND_idle4 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0
+GAP_PROBES_DONE stray=0 late=0 duplicate=0 idle=0

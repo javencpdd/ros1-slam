@@ -1,0 +1,31 @@
+SW_MODE=direct TAG=direct2 QUEUE_OLD=3 PHASE_ARG=pending
+SW_GOAL_SENT tag=warm1 xy=(2.00, 0.00)
+SW_WARM_ATTEMPTS=1
+SW_PATHS_BEFORE_CANCEL=1
+SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+SW_GOAL_SENT tag=old1 xy=(2.00, -1.00)
+SW_GOAL_SENT tag=old2 xy=(2.00, -1.00)
+SW_GOAL_SENT tag=old3 xy=(2.00, -1.00)
+SW_QUEUE_DEPTH_BEFORE_CANCEL=1（须 >= 3，否则旧目标没排上，本题无意义）
+SW_ARRIVAL_PUSHED seq_before=1（/v8/bt/arrived=true，把当前腿判到达）
+SW_PENDING_DEQUEUED=True（goal_seq 1->2）
+SW_CANCEL_SENT topic=/v8/local/cancel seq=900000001（第二写者）
+SW_BT_LANDING_NODE=wait_path PHASE=PATH_PENDING（发帧前一瞬 BT 的 RUNNING 节点）
+SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+SW_CANCEL_FORWARDED=True（第二写者自己发的帧，BT 不知情）
+SW_CANCEL_ACK_CANCELLED=True
+SW_OLD_QUEUE_WINDOW_S=8.0
+SW_QUEUE_DEPTH_AT_T0=0（取消前队列深度快照，仅作上下文）
+SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+SW_OLD_GOAL_SEQ=2->2（须不变）
+SW_OLD_NEW_PATH_STAMPS=0（旧目标若跑起来这里会 >0）
+SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=0（须 0 / >= 1）
+SW_CANCEL_ORIGIN=external EVENT=localization_ok
+SW_QUEUE_SAFE=True
+SW_GOAL_SENT tag=fresh xy=(2.00, 1.00)
+SW_FRESH_WINDOW_S=8.0
+SW_FRESH_DISPATCHED=False（新目标在窗内被派发）
+SW_FRESH_GOAL_SEQ=2->3 SW_FRESH_PATHS=0
+SW_VERDICT=FAIL
+SW_EXPECT=PASS（queue-old：旧目标停住 + 新目标可下发，两段都要）
+SW_DISCRIMINATING=False

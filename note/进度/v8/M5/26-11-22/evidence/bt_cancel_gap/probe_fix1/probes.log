@@ -1,0 +1,53 @@
+=== round_direct1 (mode=direct queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_direct1 READY_GATE=READY_GATE=READY
+ROUND_direct1 PROBE_RC=0 ELAPSED_S=16
+  SW_MODE=direct TAG=direct1 QUEUE_OLD=0 PHASE_ARG=arrival
+  SW_WARM_ATTEMPTS=1
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_CANCEL_FORWARDED=True（第二写者自己发的帧，BT 不知情）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_WINDOW_S=8.0 ELAPSED_S=8.0
+  SW_J1_GLOBAL_GOAL_SEEN=True（/v8/global/goal 上出现目标 2）
+  SW_J2_NEW_PATH_STAMPS=5（t0 后新时间戳路径帧，须 >= 1）
+  SW_J3_BT_GOAL_SEQ=1->2（须变大）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)]
+  SW_CANCEL_OUT_TAIL=['900000001:all:second_writer', '1:all:external_cancel']
+  SW_ACK_IN_TAIL=['900000001:cancelled', '1:cancelled']
+  SW_CANCEL_ORIGIN=external PENDING_DROPPED=0 QUEUE_DEPTH=0 EVENT=localization_ok
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（模式=direct 落点=ARRIVAL 来源=pass）
+  SW_DISCRIMINATING=True（不一致＝本卡的因果假设被否，不许当读数错误糊过去）
+GAP_PORTS_FREE
+ROUND_direct1 STATS arrival_timeout=0 goal_queued=2 depth_max=1 dequeued=2 external_cancel=1 drop_events=0
+=== round_bt2 (mode=bt queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_bt2 READY_GATE=READY_GATE=READY
+ROUND_bt2 PROBE_RC=0 ELAPSED_S=15
+  SW_MODE=bt TAG=bt2 QUEUE_OLD=0 PHASE_ARG=arrival
+  SW_WARM_ATTEMPTS=1
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 2, 'reason': 'ok'}
+  SW_CANCEL_FORWARDED=True（BT 转发）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_WINDOW_S=8.0 ELAPSED_S=8.0
+  SW_J1_GLOBAL_GOAL_SEEN=True（/v8/global/goal 上出现目标 2）
+  SW_J2_NEW_PATH_STAMPS=3（t0 后新时间戳路径帧，须 >= 1）
+  SW_J3_BT_GOAL_SEQ=1->2（须变大）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)]
+  SW_CANCEL_OUT_TAIL=['1:all:control']
+  SW_ACK_IN_TAIL=['1:cancelled']
+  SW_CANCEL_ORIGIN=operator PENDING_DROPPED=0 QUEUE_DEPTH=0 EVENT=localization_ok
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（模式=bt 落点=ARRIVAL 来源=pass）
+  SW_DISCRIMINATING=True（不一致＝本卡的因果假设被否，不许当读数错误糊过去）
+GAP_PORTS_FREE
+ROUND_bt2 STATS arrival_timeout=0 goal_queued=2 depth_max=1 dequeued=2 external_cancel=0 drop_events=0
+GAP_PROBES_DONE direct=0 bt=0

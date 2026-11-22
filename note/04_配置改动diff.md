@@ -8232,3 +8232,61 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 验证：形检 rc=0（本文件新增行 F1＝0／F2＝0）｜账构 rc＝0｜锚点复核件从 27 枚扩到 35 枚全命中、
   两条反控未退化｜探针三轮 rc=0
 
+## 2026-11-22 / T-20261122-04 丙案落地：回执升格与故障停清队，PATH_PENDING 相位未闭合
+
+- 真人裁（本次指令）：批准丙案进入施工，不必重新立卡。七条授权含——允许对 bt_console.cpp 做必要
+  最小修改（取消来源记账、回执关联、故障停止后队列清理）、--queue-old 必须两相位都测、故障停后
+  不得自动执行旧目标、ARRIVAL 相位 8 秒窗全绿、保持 BT 正常取消反控与 support 后端零回归、不得
+  仅凭 seq 不在自持集合就认定 FAR 故障、仅改 ACK 回调不足时先报证据与最小补充方案。禁令未动：
+  行为树 XML、local_native、安全 mux、到达预算
+- 施工前置：任务卡 scope 原只有 note 与 scripts，先用 bridge 的 Lock 与 load_state 与 bump 与
+  refresh_card_meta 与 commit 把 ws/src/90_platform/lite3_bt 补进作用域（epoch 1513），再用 goal
+  重写目标与九条验收（epoch 1514），然后才动代码
+- 落地四件：新增 include/lite3_bt/cancel_origin.hpp（纯判据 classify_cancel_ack，53 行，无 ROS
+  依赖）、新增 test/test_cancel_origin.cpp（十六格真值表＋四条危险样本＋逐条翻转反控，110 行）、
+  check_bt.sh 单测串加入本件、bt_console.cpp 五处改动合计 +96／−4 行（净增 92）
+- bt_console.cpp 五处：自持已发集合（有界 128，CancelStop 与 StopExecutor 两处 publish 前登记）、
+  清队助手（累加 pending_dropped，空队不计数）、回执回调按四重事实判类且升格时用本节点自己的号
+  重发（不复用外来 seq）、CancelStop 清队条件由 scope 等于 all 扩到 all 或 execution_fault、
+  状态帧新增 cancel_origin 与 external_cancel_seq 与 pending_dropped
+- ARRIVAL 相位转绿（probe_fix1）：第二写者直发一轮落点 wait_arrival，取消来源 external，J1 真、
+  J2 为 5、goal_seq 1 到 2、external_cancel 为 1、arrival_timeout 为 0，PASS；修复前同场景
+  probe_run3 是 J1 假、J2 为 0、goal_seq 1 到 1，判 FAIL
+- 反控（probe_fix1 的 bt2 与 probe_support2 的 bt1）：走 /v8/bt/cancel 的正常取消 J1 真、J2 为 5、
+  goal_seq 1 到 2，且 external_cancel 为 0，说明新判据没有把 BT 自己的取消误判成外部停
+- 故障停清队（probe_fix3 的 direct1，queue_old 为 3，落点 ARRIVAL）：取消前深度 3，故障停日志原文
+  dropped 3 queued goal(s) after fault stop，之后旧目标 0 派发、goal_seq 1 到 1、深度末值 0、
+  pending_dropped 为 3，操作员重发的新目标 0.6 秒被接，PASS
+- ★A/B 反控★（probe_prefix_ab）：把容器里的 bt_console 换成修复前二进制跑同一判据，旧件深度末值
+  为 3、pending_dropped 为 0、重发两次 goal_seq 停在 1 到 1，判 FAIL；换回新件同场景 PASS。
+  旧件红新件绿＝判据有分辨力，不是恒绿空控
+- ★PATH_PENDING 相位未闭合★（probe_fix3 的 direct2，落点 wait_path）：旧目标被自动取走并派发
+  （goal_seq 2 到 3、坐标为 2 与 −1）、pending_dropped 为 0、新目标两次重发皆未成，判 FAIL。
+  机制＝适配器在同一回调里先发 E_FAR_CANCEL_RECEIVED，该 reason 不在 BT 的瞬态白名单里，
+  WaitForPath 当拍失败，Recovery 在同一 tick 清掉 has_current，回执 25 毫秒后才在下一轮
+  spinOnce 被处理，第四重事实已不成立。按第 7 条只报最小补充方案（腿刚死掉的 2 秒窗，6 至 8 行），
+  未实施，等裁
+- 误触发面四格（probe_ackface，新探针 _ack_face_probe.py）：stray（有活腿时注入谁都没发过的
+  777777）会升格并用自己的号 1 重发，PASS 且记为刻意过触发；late（升格后同号再送一次）与
+  duplicate（同号连送 5 次）都只留下 1 条 external_cancel 日志且 external_cancel_seq 不变，PASS；
+  idle（mission 已收尾、RUNNING 节点为 wait_goal 后注入 888888）仍然升格，FAIL
+- ★idle 那格红的根因（本批新发现）★：第四重拿 has_current 代表腿还活着，而它只在 CancelStop 与
+  Recovery 两处置假，mission 成功收尾时不清零（Stop 节点只发零速）⇒ 跑过一条腿之后的所有空闲期
+  这个前提恒真，第四重门形同虚设。代价是一次多余取消、事件记成 path_failed，队列里的目标只推迟
+  一拍不丢，方向仍是 fail-safe。两条修法（Stop 里清位 2 至 3 行；或把判据改成最近事件属于本段）
+  都未实施，等裁
+- support 后端零回归（probe_support2）：GLOBAL_BACKEND=support，bt1 反控 external_cancel 为 0、
+  direct2 第二写者 cancel_origin 为 external 且 external_cancel_seq 命中，取消出帧队列是外来号进、
+  本节点号 1 出，两轮 J1 至 J3 全绿、arrival_timeout 为 0，PASS
+- 锚点件回改（_anchor_check.sh）：本次改动使 35 枚锚点里 23 枚行号漂走（rc=5），逐枚按改后行号
+  回改、两枚语义已变的改名（环5 只记结果不置意图 这句现在不成立，改名环5 回执记账点）、补入丙案
+  新增 16 枚，现读命中 52 枚、MISS 0 枚、反控失效 0 项、rc=0
+- 单测与宿主测试：check_bt.sh rc=0，test_cancel_origin 全 PASS（含十六格里只有一格是外部停）、
+  TREE OK 三处、Ran 71 tests OK、Ran 6 tests OK
+- 剩余风险登记在设计件 8.6 与 8.8 段：R1 后端不回 ack 的路径仍等满预算（不宣称已解决）、
+  R2 PATH_PENDING 相位、R7 空闲期过触发、R8 日志措辞把收到回执说成执行层确认取消（一行可改，
+  但会让运行器的 external_cancel 计数串失效，故本批不改）
+- 作废批次三个都留在目录里并写明原因：probe_fix2（旧目标没排上队，/v8/bt/goal 订阅队列只有 1）、
+  probe_fix2b（判定采样过早）、probe_support（support 链过不了就绪门）
+- 验证：形检 rc=0（新增行 F1 反引号 0、F2 ASCII 双引号 0）｜账构 rc=0｜对 ws 的改动只有 lite3_bt
+  一个包（源码 src、测试 test、头文件 include 三处）

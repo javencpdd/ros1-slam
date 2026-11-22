@@ -1,0 +1,13 @@
+SW_CASE=stray TAG=stray1
+SW_GOAL_SENT tag=warm1 xy=(2.00, 0.00)
+SW_WARM_ATTEMPTS=1
+SW_LANDING_NODE=wait_arrival
+SW_BEFORE EXTERNAL_SEQ=0 ORIGIN= EVENT=path_ready PENDING_DROPPED=0 QUEUE_DEPTH=0 NODE=wait_arrival
+SW_LIVE_LEG=True（须 True，否则「有活腿」这个前提没成立）
+SW_AFTER EXTERNAL_SEQ=777777 ORIGIN=external EVENT=localization_ok PENDING_DROPPED=0 QUEUE_DEPTH=0 NODE=wait_arrival
+SW_STRAY_LATCHED=True（须 True：fail-safe 会把无关回执当真外部停）
+SW_STRAY_OVER_TRIGGER=True（True＝已知过触发：多停一次腿，要操作员重发）
+SW_CANCEL_OUT_TAIL=['1:all:external_cancel']（BT 随后应用自己的号重发，不复用外来号）
+SW_ACK_IN_SEEN=['777777:cancelled', '1:cancelled']
+SW_EXPECT=PASS
+SW_VERDICT=PASS
