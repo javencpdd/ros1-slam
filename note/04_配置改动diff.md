@@ -7940,3 +7940,28 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 遗留：sim-viz 走自己的挂载列表、未补 archive/；该容器只做 rviz 显示、不跑门禁与窗口，将来要在里面
   跑预检须先补挂
 - 读数与证据落册：note/架构/双后端可替换_验证记录_2026-11-22.md，证据在 note/进度/v8/M5/26-11-22/evidence/
+
+## 2026-11-22 / T-20261122-02 FAR overlay 落地（仓外工作区＋容器挂载＋窗口钩子）
+
+- 目的：全局后端 far 的第三方件按 overlay 部署（R4② ②案），不 fork 入仓、不进 catkin 闭包、不受门禁清单管辖
+- 上游：MichaelFYang/far_planner，分支 melodic-noetic，固定 sha 2799b6964c141cacd1c32a14b19bc7abffbe0e52（2025-03-31）；
+  浅克隆后 git rev-parse 核到同一 sha；仓根无 LICENSE 文件，两个 package.xml 均声明 BSD
+- 取用范围：只取 src/far_planner 与 src/visibility_graph_msg，共 42 件；未取 boundary_handler、graph_decoder、
+  goalpoint_rviz_plugin、teleop_rviz_plugin。依据＝far_planner/package.xml 的依赖表只有 roscpp、std_msgs、
+  sensor_msgs、visibility_graph_msg、pcl_ros 五个，其余四个包与规划本身无关
+- 宿主位置：/home/jack/far_overlay 下含 src 与 PROVENANCE.md（来源、复现步骤、加载验证口径）与 src.sha256（42 行）
+- 改面①：docker/docker-compose.yml 的 &ros-volumes 锚点加一行 /home/jack/far_overlay:/opt/ros1-slam/far_overlay，
+  该锚点被 slam、sim、slam-host 三个服务引用；sim-viz 走自己的列表、不需要 far
+- 为什么不加只读：catkin 要往 build/ 与 devel/ 写产物，只读会直接编译失败——与 archive/ 那条必须只读正好相反
+- 改面②：scripts/verify/run_bt_navigation_window.sh 在 TEB_OVERLAY 那行后加同形钩子 FAR_OVERLAY。
+  不设就完全不生效，support 分支的窗口零影响；已按同一条 set -euo pipefail 干跑确认「不设时不退出」
+- 构建：在 sim 容器（6 GiB，dev 容器 1 GiB 会 OOM）内 source noetic 与 ws/devel 后跑
+  catkin_make -j4 --source src，BUILD_RC=0；构建期 CMAKE_PREFIX_PATH 只有 /opt/ros1-slam/ws/devel 与
+  /opt/ros/noetic，没有带进任何外部路径
+- 容器：按 --no-deps --force-recreate 重建 slam 与 sim，命名卷 build／devel／install 保留，容器内 uid 仍 1000
+- 加载硬证据（两条全取到）：容器内 source overlay 后 rospack find far_planner 返回
+  /opt/ros1-slam/far_overlay/src/far_planner，且不 source 时该包 not found（证明是 overlay 提供的，不是主 ws 自带）；
+  临时 master 下起节点后 ps -ef 命中 /opt/ros1-slam/far_overlay/devel/lib/far_planner，
+  节点注册名 /far_planner_node，far_planner/is_multi_layer 回读 true，日志出 STATIC ENV PLANNING
+- 没有复用的：上游 far_planner.launch 一概不用，它连带起 rviz 与 graph_decoder，两者都不在最小包集里；
+  far_stack.launch 将直接起节点并 rosparam load 配置（B2 落地）

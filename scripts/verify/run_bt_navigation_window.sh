@@ -25,6 +25,10 @@ set +u
 source /opt/ros/noetic/setup.bash
 source "$ROOT/ws/devel/setup.bash"
 [ -n "${TEB_OVERLAY:-}" ] && source "$TEB_OVERLAY/devel/setup.bash"
+# FAR 全局后端的 overlay（仓外独立 catkin 工作区，见 docker/docker-compose.yml 同名挂载）。
+# 与 TEB_OVERLAY 同形：不设就完全不生效，support 分支的窗口零影响；
+# 设了才把 far_planner / visibility_graph_msg 加进 ROS_PACKAGE_PATH。
+[ -n "${FAR_OVERLAY:-}" ] && source "$FAR_OVERLAY/devel/setup.bash"
 set -u
 export ROS_MASTER_URI=http://127.0.0.1:11313
 export GAZEBO_MASTER_URI=http://127.0.0.1:11345

@@ -142,6 +142,14 @@ x-ros-base: &ros-base
     - ../.git:/opt/ros1-slam/.git:ro
     - ../tooling:/opt/ros1-slam/tooling
     - ../tooling:/home/ros1-slam/tooling
+    # ---- FAR overlay：仓外独立 catkin 工作区（T-20261122-02 R4②）----
+    #   全局后端 far 的第三方件（far_planner + visibility_graph_msg）按 overlay 部署，
+    #   不 fork 入仓、不进 catkin 闭包、不受门禁清单管辖。源在宿主机 /home/jack/far_overlay，
+    #   上游 MichaelFYang/far_planner @ 2799b696（melodic-noetic），来源与复现见其 PROVENANCE.md。
+    #   ★ 不能加 :ro ★：catkin 要往 build/ devel/ 写产物，只读会直接编译失败。
+    #   容器内加载姿势：source ws/devel → source far_overlay/devel → rospack find far_planner
+    #   须返回 /opt/ros1-slam/far_overlay/src/far_planner（这是 overlay 真被加载的唯一硬证据）。
+    - /home/jack/far_overlay:/opt/ros1-slam/far_overlay
     # ---- 编译产物：用命名卷持久化，容器重建不丢（首次会从镜像层复制一份）----
     - ros1_x86_sim_build:/opt/ros1-slam/ws/build
     - ros1_x86_sim_devel:/opt/ros1-slam/ws/devel
