@@ -7965,3 +7965,24 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   节点注册名 /far_planner_node，far_planner/is_multi_layer 回读 true，日志出 STATIC ENV PLANNING
 - 没有复用的：上游 far_planner.launch 一概不用，它连带起 rviz 与 graph_decoder，两者都不在最小包集里；
   far_stack.launch 将直接起节点并 rosparam load 配置（B2 落地）
+
+## 2026-11-22 / T-20261122-02 B1 FAR 适配骨架与七条离线单测（不接主链）
+
+- 三个新文件：ws/src/80_algorithm/v8_algorithm/planner/far_node.py（适配器内核与 main）、
+  同目录 tests/test_far_node.py（九条离线单测）、ws/src/90_platform/v8_platform/scripts/run_global_far.py（roslaunch 入口 shim）
+- 分层口径：far_node.py 顶层只 import json 与 math，全部 ROS 依赖留在 main() 内 ⇒ 判据能在宿主上离线跑，
+  不必等 roscore 也不必等 overlay 编译过；这一条由「import 后断言 rospy 不在 sys.modules」守住
+- 四个纯函数与一个状态机：terrain_cloud（每 0.2 m 栅格取最小 z 当地面，h 等于 z 减 ground）、
+  two_point_path（两点、z 原样带过）、gait_path（近距补第三点至 lookahead 加航点距）、
+  status_json（ok／points／reason 与 support 版同名）、AdapterState（halted 只被新 goal 解除）
+- 取消写者：cancel_text 组 seq:scope:reason，seq 从 900000000 起避开 BT 的 cancel_seq；
+  parse_ack 只认同 seq 的三种终态。不直接 import local_planner/cancel_policy 是为了保住顶层零跨包依赖，
+  格式一致性改由测试里的互检用例守住（对拍 parse_cancel 与 ack_text）
+- 阈值与上游同值：FREE_Z_M 取 0.2，与 far_planner 的 Util/terrain_free_Z 一致；判据是严格小于，
+  正好 0.2 m 的台阶算障碍
+- 挂进 PYST 面两件（far_node.py 与 run_global_far.py），条数 66→68。只入两件不入三件的理由：
+  test_far_node.py 由 unittest discover 与 dev.py test 覆盖，跑得起来就等于语法过了；
+  而 run_global_far.py 只在 roslaunch 下被解释执行、离线无入口，静态门禁是它唯一兜底
+- 本批不接主链：没有任何 launch、manifest、graph 指向这三个文件，support 分支一行未动
+- 验收读数（九测全过、零 ROS 断言、静态三查 rc=0、三组反控各自翻红后恢复全绿）落册在
+  note/架构/双后端可替换_验证记录_2026-11-22.md 第五节

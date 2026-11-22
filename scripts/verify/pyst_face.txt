@@ -100,3 +100,10 @@ scripts/verify/v8_isolation.py
 #   本面只增不减、不改既有 rc 语义 ⇒ 属可自走。★纯 `.py` 只入 PYST、不入 SYN★（先例＝上批四条 `.py` 同样只入本面）。
 scripts/build/target_workspace.py
 scripts/build/test_target_workspace.py
+# 2026-11-22 补面（T-20261122-02 B1）：FAR 全局后端的两个新 `.py` **此前不在任何门禁面内**，
+#   本批新建它们 ⇒ 按既有理由「本轮改动件必须受检」补入，条目数 66→**68**。
+#   只入两件而不是三件：`test_far_node.py` 由 `unittest discover` 与 `dev.py test` 覆盖（跑得起来就等于语法过了），
+#   而 `run_global_far.py` 只在 roslaunch 下被解释执行、离线无任何入口 ⇒ 静态门禁是它唯一的兜底，必须入面。
+#   本面只增不减、不改既有 rc 语义 ⇒ 属可自走。★纯 `.py` 只入 PYST、不入 SYN★（先例同上）。
+ws/src/80_algorithm/v8_algorithm/planner/far_node.py
+ws/src/90_platform/v8_platform/scripts/run_global_far.py

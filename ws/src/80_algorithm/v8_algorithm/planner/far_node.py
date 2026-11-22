@@ -1,0 +1,388 @@
+#!/usr/bin/env python3
+"""FAR 全局后端适配器：语义地形云、两点/带前视的步态路径、取消写者。
+
+分层理由：本模块**顶层只 import json 与 math**，全部 ROS 依赖留在 `main()` 里。
+这样七条判据（路径帧数、z 不被压平、h 归类、缺输入只出状态、取消后仍 halted、
+前视补点、远航点不补点）能在宿主上离线跑——不需要 roscore，也不需要 overlay 已经编译过。
+
+接口契约（现读上游 `far_planner.cpp:15-30` 与 `config/default.yaml`）：
+
+| 方向 | 话题 | 类型 | 本模块的角色 |
+|---|---|---|---|
+| 订 | `/scan_cloud` | `PointCloud2` | 直通转发（碰撞检查用原始扫描） |
+| 订 | `/goal_point` | `PointStamped` | 由 `/v8/global/goal` 降维产生 |
+| 订 | `/way_point` | `PointStamped` | FAR 的 3D 航点，本模块把它变成 Path |
+| 订 | `/far_reach_goal_status` | `Bool` | FAR 自报到达 |
+| 发 | `/terrain_cloud` | `PointCloud2` | `intensity` ＝ 离地高 h |
+
+★ 不要复用上游 `far_planner.launch`：它连带起 `rviz` 与 `graph_decoder`，两者都不在最小包集里。
+"""
+import json
+import math
+
+FREE_Z_M = 0.2          # 与上游 `Util/terrain_free_Z: 0.2` 同值；h < 此值算地面
+GROUND_CELL_M = 0.2     # 地面栅格边长（米）
+LOOKAHEAD_M = 1.5       # 步态路径最小前视距离（米）
+CANCEL_SEQ_BASE = 900000000   # 取消序号起点：避开 BT 的 cancel_seq（从 1 起递增）
+
+ACK_OUTCOMES = ('cancelled', 'ack_fail', 'unacked')
+
+
+def _xyz(value):
+    """从 PoseStamped 样对象或 `(x, y, z)` 取三元组。
+
+    鸭子类型：只读 `.pose.position` 的 x/y/z，不 import 任何 ROS 消息包，
+    所以离线测试可以喂字段形状相同的替身，生产侧喂真消息也照样成立。
+    """
+    pos = getattr(getattr(value, 'pose', value), 'position', value)
+    if hasattr(pos, 'x'):
+        return float(pos.x), float(pos.y), float(pos.z)
+    seq = tuple(float(v) for v in pos)
+    if len(seq) != 3:
+        raise ValueError('point must have 3 components')
+    return seq
+
+
+def ground_z_by_cell(points, cell_m=GROUND_CELL_M):
+    """每 `cell_m` 栅格取最小 z 当地面，返回 `{(ix, iy): z}`。
+
+    取最小值的理由：同一格里最高的点是障碍物，最低的才是地面。
+    """
+    cells = {}
+    for point in points:
+        x, y, z = _xyz(point)
+        key = (int(math.floor(x / cell_m)), int(math.floor(y / cell_m)))
+        if key not in cells or z < cells[key]:
+            cells[key] = z
+    return cells
+
+
+def terrain_cloud(points, h=None, cell_m=GROUND_CELL_M):
+    """把 `map` 系点做成 FAR 要的语义地形，每点返回 `(x, y, ground_z, height)`。
+
+    `h=None`：按每格最小 z 估地面（真实路径——地面有起伏，逐格抬升）。
+    `h` 给定：地面高度已知（单平面输入，如仿真平地或已平整好的一层），直接减。
+
+    `height` 即上游 `intensity` 字段的语义＝离地高，`classify()` 用它判可通行。
+    """
+    if h is None:
+        items = [_xyz(p) for p in points]
+        cells = ground_z_by_cell(items, cell_m)
+        out = []
+        for x, y, z in items:
+            key = (int(math.floor(x / cell_m)), int(math.floor(y / cell_m)))
+            ground = cells[key]
+            out.append((x, y, ground, z - ground))
+        return out
+    ground = float(h)
+    return [(x, y, ground, z - ground) for x, y, z in (_xyz(p) for p in points)]
+
+
+def classify(height):
+    """离地高归 `free` / `obs`：判据是 `height < FREE_Z_M`（严格小于）。
+
+    与上游对 `terrain_free_Z` 的用法一致——正好 0.2 m 的台阶算障碍，不算地面。
+    """
+    return 'free' if float(height) < FREE_Z_M else 'obs'
+
+
+def two_point_path(pose, waypoint):
+    """两点 Path：首点取当前位姿、末点取 FAR 航点，**z 原样带过，绝不压平**。
+
+    压平 z 的后果不是「不好看」：局部规划器会拿到一个和真实目标差几米的落点，
+    多层场景里直接变成撞楼板或撞层间平台。
+    """
+    return [_xyz(pose), _xyz(waypoint)]
+
+
+def gait_path(pose, waypoint, lookahead_m=LOOKAHEAD_M):
+    """两点，必要时补第三点，保证步态规划器看得够远。
+
+    航点径距 `d >= lookahead_m`：两点就够（FAR 自己已经给了远处的点）。
+    `d < lookahead_m`：沿同方向再补一点到 `pose + unit * (d + lookahead_m)`，
+    折线总长恰为 `d + lookahead_m`。只补一次、不外推递归，
+    补点只在原方向上延长——不改变航向，不引入新的横向偏移。
+    """
+    start, goal = _xyz(pose), _xyz(waypoint)
+    dx, dy, dz = goal[0] - start[0], goal[1] - start[1], goal[2] - start[2]
+    dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+    if dist <= 1e-9 or dist >= lookahead_m:
+        return [start, goal]
+    scale = (dist + lookahead_m) / dist
+    return [start, goal,
+            (start[0] + dx * scale, start[1] + dy * scale, start[2] + dz * scale)]
+
+
+def status_json(ok, points, reason, **extra):
+    """状态帧。字段名与 support 版 `topic_node` 的 status 同名（`ok`/`points`/`reason`），
+    这样 BT 侧与日志侧可以用同一套 grep，不用按后端分支。
+    """
+    value = {'ok': bool(ok), 'points': int(points), 'reason': reason}
+    value.update(extra)
+    return json.dumps(value, ensure_ascii=False)
+
+
+def cancel_text(seq, scope='current', reason='far'):
+    """组取消帧 `<seq>:<scope>:<reason>`。
+
+    与 `local_planner/cancel_policy.parse_cancel` 同一契约（scope ∈ current/all，
+    reason 不得含 `;` 与换行）；不直接 import 它，是为了让本模块顶层保持零 ROS/零跨包依赖。
+    契约一致性由 `test_far_node.py` 的互检用例守住。
+    """
+    if scope not in ('current', 'all'):
+        raise ValueError('scope must be current or all')
+    text = '%d:%s:%s' % (int(seq), scope, reason)
+    if ';' in text or '\n' in text:
+        raise ValueError('reason must not contain ; or newline')
+    return text
+
+
+def parse_ack(text):
+    """解 `<seq>:<outcome>`，返回 `(seq, outcome)` 或 `None`。
+
+    outcome 只认终态三种，其余（含超时前的空帧）一律当「还没 ack」。
+    """
+    if not isinstance(text, str):
+        return None
+    parts = text.strip().split(':', 1)
+    if len(parts) != 2 or not parts[0].isdigit():
+        return None
+    if parts[1] not in ACK_OUTCOMES:
+        return None
+    return int(parts[0]), parts[1]
+
+
+class AdapterState:
+    """适配器的可测内核：谁在写航点、被谁停、停到什么时候解除。
+
+    `halted` **只被新 goal 解除**。取消之后 FAR 内部可能还在吐残留航点（它的图还在收敛），
+    那些航点一律不接纳——否则取消等于没取消，机器人会立刻沿旧航点继续走。
+    """
+
+    def __init__(self, lookahead_m=LOOKAHEAD_M, seq_base=CANCEL_SEQ_BASE):
+        self.halted = False
+        self.lookahead_m = float(lookahead_m)
+        self.seq_base = int(seq_base)
+        self.cancel_seq = None
+        self.last_waypoint = None
+        self.last_waypoint_at = None
+        self.waypoint_count = 0
+
+    # ---- 生命周期 ----
+    def next_cancel_seq(self):
+        """单调递增，起点 `seq_base`。"""
+        self.cancel_seq = self.seq_base if self.cancel_seq is None else self.cancel_seq + 1
+        return self.cancel_seq
+
+    def on_goal(self):
+        """新 goal：解除 halted 并清掉残留航点记录。返回 True 表示这次是从 halted 恢复。"""
+        was_halted = self.halted
+        self.halted = False
+        self.last_waypoint = None
+        self.last_waypoint_at = None
+        return was_halted
+
+    def on_cancel(self, seq=None):
+        """登记取消：置 halted、记住 seq。不传 seq 就自己取下一个。"""
+        seq = self.next_cancel_seq() if seq is None else int(seq)
+        self.cancel_seq = seq
+        self.halted = True
+        self.last_waypoint = None
+        self.last_waypoint_at = None
+        return seq
+
+    def on_ack(self, text):
+        """读 cancel_ack。只认与本次取消同 seq 的终态，其余（含别的 seq）返回 None。"""
+        parsed = parse_ack(text)
+        if parsed is None or self.cancel_seq is None:
+            return None
+        seq, outcome = parsed
+        if seq != self.cancel_seq:
+            return None
+        return seq, outcome
+
+    # ---- 航点 ----
+    def on_waypoint(self, pose, waypoint, now=None):
+        """返回 `(points, status_text)`。缺输入或处于 halted 时**只出状态、不出路径**。"""
+        if pose is None:
+            return [], status_json(False, 0, 'E_FAR_NO_POSE')
+        if waypoint is None:
+            return [], status_json(False, 0, 'E_FAR_NO_WAYPOINT')
+        if self.halted:
+            return [], status_json(False, 0, 'E_FAR_HALTED', seq=self.cancel_seq)
+        points = gait_path(pose, waypoint, self.lookahead_m)
+        self.last_waypoint = _xyz(waypoint)
+        self.last_waypoint_at = now
+        self.waypoint_count += 1
+        return points, status_json(True, len(points), 'ok')
+
+    def stale(self, now, timeout_s):
+        """航点超时。正常返回 None，超时返回 `E_FAR_WAYPOINT_STALE` 状态帧。
+
+        FAR 是事件驱动的：图上没有新事件就不发 `/way_point`，所以这个超时门不能设太紧，
+        阈值取「实测最长间隔的 2 倍」（B2 会记读数）。
+        """
+        if self.last_waypoint_at is None or self.halted:
+            return None
+        if (now - self.last_waypoint_at) < float(timeout_s):
+            return None
+        return status_json(False, 0, 'E_FAR_WAYPOINT_STALE',
+                           since_s=round(float(now - self.last_waypoint_at), 3))
+
+
+def main():
+    import rospy
+    import tf2_ros
+    from geometry_msgs.msg import PointStamped, PoseStamped
+    from nav_msgs.msg import Odometry, Path
+    from sensor_msgs.msg import PointCloud2, PointField
+    from std_msgs.msg import Bool, String
+    import sensor_msgs.point_cloud2 as pc2
+    from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
+
+    rospy.init_node('v8_global_far')
+    frame = rospy.get_param('~world_frame', 'map')
+    cloud_topic = rospy.get_param('~cloud_topic', '/rslidar_points')
+    scan_in = rospy.get_param('~scan_in_topic', '/rslidar_points')
+    scan_out = rospy.get_param('~scan_topic', '/scan_cloud')
+    pose_topic = rospy.get_param('~start_topic', '/v8/local/pose')
+    goal_topic = rospy.get_param('~goal_topic', '/v8/global/goal')
+    terrain_topic = rospy.get_param('~terrain_topic', '/terrain_cloud')
+    odom_topic = rospy.get_param('~odom_topic', '/odom_world')
+    far_goal_topic = rospy.get_param('~far_goal_topic', '/goal_point')
+    waypoint_topic = rospy.get_param('~waypoint_topic', '/way_point')
+    reach_topic = rospy.get_param('~reach_topic', '/far_reach_goal_status')
+    path_topic = rospy.get_param('~path_topic', '/global_path')
+    status_topic = rospy.get_param('~status_topic', '/global_path/status')
+    cancel_topic = rospy.get_param('~cancel_topic', '/v8/local/cancel')
+    ack_topic = rospy.get_param('~cancel_ack_topic', '/v8/local/cancel_ack')
+    timeout_s = float(rospy.get_param('~waypoint_timeout_s', 10.0))
+    lookahead_m = float(rospy.get_param('~lookahead_m', LOOKAHEAD_M))
+
+    state = AdapterState(lookahead_m=lookahead_m)
+    pose = {'value': None}
+
+    terrain_pub = rospy.Publisher(terrain_topic, PointCloud2, queue_size=1)
+    scan_pub = rospy.Publisher(scan_out, PointCloud2, queue_size=1)
+    odom_pub = rospy.Publisher(odom_topic, Odometry, queue_size=2)
+    far_goal_pub = rospy.Publisher(far_goal_topic, PointStamped, queue_size=1)
+    path_pub = rospy.Publisher(path_topic, Path, queue_size=1, latch=True)
+    status_pub = rospy.Publisher(status_topic, String, queue_size=10, latch=True)
+    cancel_pub = rospy.Publisher(cancel_topic, String, queue_size=1)
+
+    tf_buffer = tf2_ros.Buffer()
+    tf2_ros.TransformListener(tf_buffer)
+    fields = [PointField(name=n, offset=i * 4, datatype=PointField.FLOAT32, count=1)
+              for i, n in enumerate(('x', 'y', 'z', 'intensity'))]
+
+    def publish_status(text):
+        status_pub.publish(String(data=text))
+
+    def to_frame(message):
+        """转到 `frame`。只做纯平移近似会在 1 m 外带进 >0.2 m 的 h 误差，必须走真 tf。"""
+        if message.header.frame_id == frame:
+            return message
+        transform = tf_buffer.lookup_transform(frame, message.header.frame_id,
+                                               message.header.stamp, rospy.Duration(0.2))
+        return do_transform_cloud(message, transform)
+
+    def on_cloud(message):
+        try:
+            points = [(p[0], p[1], p[2]) for p in pc2.read_points(
+                message, field_names=('x', 'y', 'z'), skip_nans=True)]
+            levelled = terrain_cloud(points)
+        except Exception as error:                     # tf 未就绪、点云字段缺失都走这里
+            publish_status(status_json(False, 0, 'E_FAR_TERRAIN', detail=str(error)[:120]))
+            return
+        header = message.header
+        header.frame_id = frame
+        terrain_pub.publish(pc2.create_cloud(header, fields, levelled))
+
+    def on_scan(message):
+        scan_pub.publish(to_frame(message))
+
+    def on_pose(message):
+        p = message.pose.position
+        pose['value'] = (p.x, p.y, p.z)
+        odom = Odometry()
+        odom.header = message.header
+        odom.pose.pose = message.pose
+        odom_pub.publish(odom)
+
+    def on_goal(message):
+        """操作员目标：降维成 PointStamped 给 FAR，并解除 halted。
+
+        z 原样带过——上游 `is_multi_layer=true` 时才不会把它压回地面高度。
+        """
+        p = message.pose.position
+        state.on_goal()
+        point = PointStamped()
+        point.header = message.header
+        point.point.x, point.point.y, point.point.z = p.x, p.y, p.z
+        far_goal_pub.publish(point)
+        publish_status(status_json(False, 0, 'E_FAR_WARMUP'))
+
+    def on_waypoint(message):
+        point = message.point
+        points, text = state.on_waypoint(pose['value'], (point.x, point.y, point.z),
+                                         now=rospy.get_time())
+        publish_status(text)
+        if not points:
+            return
+        path = Path()
+        path.header.frame_id, path.header.stamp = frame, rospy.Time.now()
+        for x, y, z in points:
+            stamped = PoseStamped()
+            stamped.header = path.header
+            stamped.pose.position.x, stamped.pose.position.y = x, y
+            stamped.pose.position.z = z
+            stamped.pose.orientation.w = 1.
+            path.poses.append(stamped)
+        path_pub.publish(path)
+
+    def on_reach(message):
+        if message.data and state.cancel_seq is not None and state.halted:
+            return                                    # 取消后的到达自报一律不采信
+        publish_status(status_json(bool(message.data), state.waypoint_count,
+                                   'ok' if message.data else 'E_FAR_NOT_REACHED'))
+
+    def on_cancel(message):
+        parts = message.data.split(':', 2)
+        if len(parts) < 2 or not parts[0].isdigit() or parts[1] not in ('current', 'all'):
+            return
+        seq = state.on_cancel(int(parts[0]))
+        publish_status(status_json(False, 0, 'E_FAR_CANCEL_REQUESTED', seq=seq))
+        cancel_pub.publish(String(data=cancel_text(seq, parts[1],
+                                                   parts[2] if len(parts) > 2 else 'far')))
+
+    def on_ack(message):
+        confirmed = state.on_ack(message.data)
+        if confirmed is None:
+            return
+        seq, outcome = confirmed
+        publish_status(status_json(outcome == 'cancelled', 0,
+                                   'ok' if outcome == 'cancelled' else 'E_FAR_CANCEL_' + outcome.upper(),
+                                   seq=seq))
+
+    rospy.Subscriber(cloud_topic, PointCloud2, on_cloud, queue_size=1)
+    rospy.Subscriber(scan_in, PointCloud2, on_scan, queue_size=1)
+    rospy.Subscriber(pose_topic, PoseStamped, on_pose, queue_size=2)
+    rospy.Subscriber(goal_topic, PoseStamped, on_goal, queue_size=1)
+    rospy.Subscriber(waypoint_topic, PointStamped, on_waypoint, queue_size=1)
+    rospy.Subscriber(reach_topic, Bool, on_reach, queue_size=1)
+    rospy.Subscriber(cancel_topic, String, on_cancel, queue_size=1)
+    rospy.Subscriber(ack_topic, String, on_ack, queue_size=1)
+
+    publish_status(status_json(True, 0, 'ok', waiting=True))
+    rate = rospy.Rate(5.0)
+    while not rospy.is_shutdown():
+        text = state.stale(rospy.get_time(), timeout_s)
+        if text is not None:
+            publish_status(text)
+            state.last_waypoint_at = rospy.get_time()   # 只报一次，不刷屏
+        rate.sleep()
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
