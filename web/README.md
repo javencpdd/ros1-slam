@@ -1,8 +1,8 @@
 # 项目介绍网页（纯文档面）
 
 > 2026-11-13 拆分：官网只留文档与静态展示；3D 任务台迁至 `scripts/console/ui/`，由宿主
-> agent 在 `:8780` 独立提供（见 [`scripts/console/README.md`](../subprojects/console/console/README.md)）。
-> 静态服务改为文档白名单：`web/`、`docker/`、`tooling/`、根 `README.md`、`ws/src/**/*.md`；
+> agent 在 `:8780` 独立提供（见 [`subprojects/console/console/README.md`](../subprojects/console/console/README.md)）。
+> 静态服务改为文档白名单：`web/`、`docker/`、`tooling/`、根 `README.md`、`ws/src/**/*.md`、`subprojects/simulation/ws/src/**/*.md`（2026-11-23 补：仿真 11-14 分仓后其文档面不在 `ws/src` 下）；
 > `note/`、源码、任务台数据一律 404。页面内指向 `../note/` 的深链已删。
 >
 > 2026-11-10：页面源码与静态展示图入库；`assets/data/` 是生成物，仍由生成器产出并忽略。
@@ -20,6 +20,20 @@
 
 全站已于 2026-11-08 同步到 v8.1 现行口径：当前结构见[项目架构](../note/架构/项目架构与目录.md)，验收与版本边界见[进度入口](../note/进度/README.md)，当前授权选件与新旧编号映射见[23号 v8.1 任务队列](../note/计划书v8.1/23_v8.1任务队列.md)，工程规则见[工程标准](../note/架构/工程标准.md)（以上 `../note/` 链接仅供仓内阅读，官网不服务 `note/`）。各主板块和仿真子页均标注更新日期；带“历史”的数字不扩 scope，也不把 R1126、R1127 四窗或 two_floor_nav 演示结果视为 formal、四足物理或真机验收。
 
+## 2026-11-23 治理（官网路径与文档面）
+
+2026-11-14 仿真分仓、2026-11-21 拆算法层之后，本页有 10 处命令与 1 处文档链接仍指向已不存在的 `ws/src/95_simulation` 与 `ws/src/90_platform/v8_platform/local_planner`。本轮修正：
+
+| 项 | 旧 | 新 |
+| --- | --- | --- |
+| 仿真命令与路径（9 处相对 + 1 处绝对） | `ws/src/95_simulation/...` | `subprojects/simulation/ws/src/...`（容器内 `/opt/ros1-slam/subprojects/simulation/ws/src/...`） |
+| 局部规划文档卡 | `ws/src/90_platform/v8_platform/local_planner/README.md` | `ws/src/80_algorithm/v8_algorithm/local_planner/README.md` |
+| 分层卡片 | `... 70 编排 · 90 平台 · 95 仿真` | `... 70 编排 · 80 算法 · 90 平台；仿真在 subprojects/simulation` |
+| 静态服务白名单 | 只放行 `ws/src/**/*.md` | 增放 `subprojects/simulation/ws/src/**/*.md`（仍只放 `.md`，源码与数据仍 404） |
+
+验证：`web/serve.py` 起服务后 `/web/`、两处新文档路径 200，`/note/*` 与 `.cpp` 源码 404。
+页面数字、快照与 digest 未改；本轮只改路径与入口，不重算任何结论。
+
 ## 3D 测试盘面
 
 `index.html` 的 09「3D 仿真测试盘面」读取 [`assets/data/3d_runs.json`](assets/data/3d_runs.json)。该文件由仓库根目录执行以下命令生成（只读证据，不跑 Gazebo）：
@@ -33,7 +47,7 @@ python3 scripts/ops/collect_3d_runs.py
 ## 3D 任务台（已迁出）
 
 任务台页面与静态资源在 `scripts/console/ui/`，由宿主 agent 在 `:8780` 提供；启动、栈白名单、
-远程锁定、地图/世界数据生成与验证命令见 [`scripts/console/README.md`](../subprojects/console/console/README.md)。
+远程锁定、地图/世界数据生成与验证命令见 [`subprojects/console/console/README.md`](../subprojects/console/console/README.md)。
 本服务不提供任务台，`/web/console.html` 返回 404。
 
 ## 本机浏览
@@ -45,7 +59,7 @@ python3 web/serve.py
 # 浏览器：http://127.0.0.1:8000/web/
 ```
 
-[`serve.py`](serve.py) 将服务根设为仓库根，但只放行文档面：`web/`、`docker/`、`tooling/`、根 `README.md`、`ws/src/**/*.md`；其余路径（`note/`、源码、数据、任务台）返回 404。文本响应补 UTF-8 与 `Cache-Control: no-cache`，`/` 和 `/index.html` 跳转到 `/web/`。`--port` 改端口；`--bind` 默认 `127.0.0.1`，需要局域网访问时显式选择：
+[`serve.py`](serve.py) 将服务根设为仓库根，但只放行文档面：`web/`、`docker/`、`tooling/`、根 `README.md`、`ws/src/**/*.md`、`subprojects/simulation/ws/src/**/*.md`；其余路径（`note/`、源码、数据、任务台）返回 404。文本响应补 UTF-8 与 `Cache-Control: no-cache`，`/` 和 `/index.html` 跳转到 `/web/`。`--port` 改端口；`--bind` 默认 `127.0.0.1`，需要局域网访问时显式选择：
 
 ```bash
 python3 web/serve.py --port 8080 --bind 0.0.0.0
@@ -70,8 +84,10 @@ docker stop ros1-slam-web
 docker rm ros1-slam-web
 ```
 
-站点由 `ros1-slam-web` 容器只读挂仓提供（宿主 80 → 容器 8000），页面改动刷新即生效。`web/` 是 Git 跟踪的文档面（生成物 `assets/data/` 忽略）；任务台不在本服务，见 [`scripts/console/README.md`](../subprojects/console/console/README.md)。
+站点由 `ros1-slam-web` 容器只读挂仓提供（宿主 80 → 容器 8000），页面改动刷新即生效。`web/` 是 Git 跟踪的文档面（生成物 `assets/data/` 忽略）；任务台不在本服务，见 [`subprojects/console/console/README.md`](../subprojects/console/console/README.md)。
 
 ## 维护
+
+**改 `serve.py` 必须重启站点**：容器内进程加载的是启动时的代码，bind mount 只让「页面与静态资源」即时生效；白名单/路由类改动要 `bash web/publish.sh <端口>` 重建容器（或 `docker restart ros1-slam-web`）才生效。
 
 状态更新须同时核对 `note/` 原始记录与 `calibration/calibration.py` 输出；只有在具备相应环境并实际复核后，才更新页面数字、快照日期和 digest。说明文档日期更新不代表网页内容已重新校准。操作命令集中维护在 [Docker 指南](../docker/README.md)；新增图片保持本地资源，不引入追踪脚本。

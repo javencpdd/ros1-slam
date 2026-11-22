@@ -21,7 +21,7 @@ Gazebo/ROS 依赖在 `package.xml` 中声明；MuJoCo 入口还需仿真环境�
 离线入口测试：
 
 ```bash
-python3 -B -m unittest discover -s ws/src/95_simulation/v8_simulation/test -p 'test_*.py'
+python3 -B -m unittest discover -s subprojects/simulation/ws/src/v8_simulation/test -p 'test_*.py'
 ```
 
 该测试验证薄入口的模块路径、ROS 参数与退出行为，不启动 ROS/Gazebo/MuJoCo。实际构建和仿真运行仍须在对应 Noetic 环境按作业单验证；本次没有新增运行或真机验收结论。

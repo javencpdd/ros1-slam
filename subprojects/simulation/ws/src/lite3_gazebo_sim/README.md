@@ -3,9 +3,9 @@
 > 最新更新时间：2026-11-13 22:45:17 CST。现行规划见仓库 `note/计划书v8.1/`；本次核对源码入口与载体配置，并补写场景热插拔的用途与时机（world vs scene 段后，同步 scripts/sim_scene.py 头注释）；历史指标仍只适用于各原记录。
 
 **统一索引头**（模块导航；职责以本轮源码核对与原运行范围为准）
-层 `95_simulation` ｜ 角色 `SIM 仿真域（测试台本体）` ｜ Gazebo 世界、机体仿真描述、推进插件、M2 判据载体与全部仿真侧验收件都在这里；另含楼梯可行性离线预检旁路。
+层 `lite3_gazebo_sim`（仿真域，自 2026-11-14 起在 `subprojects/simulation/ws/src/`）｜ 角色 `SIM 仿真域（测试台本体）` ｜ Gazebo 世界、机体仿真描述、推进插件、M2 判据载体与全部仿真侧验收件都在这里；另含楼梯可行性离线预检旁路。
 **全局索引**：`ws/README.md`（工作区定位图·红线速记·调用姿势）｜ `note/进度/00_总览.md`（版本成果与版本差异）｜ `note/进度/01_批次.md`（历史批次审计定位）｜ `.ai`（当前任务与交接）｜ `note/04_配置改动diff.md`（哪些改动被许可）｜ `note/07_判据载体代际对照表.md`（判据载体代际现值）｜ `note/05_复验作业单.md`（验收纪律 A–F 段）
-**路径读法**：本表一律以 `ws/src/` 为根（如 `95_simulation/lite3_gazebo_sim/verify/m2_smoke.sh`）；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
+**路径读法**：本表一律以 `subprojects/simulation/ws/src/` 为根（如 `lite3_gazebo_sim/verify/m2_smoke.sh`）；容器内为 `/opt/ros1-slam/subprojects/simulation/ws/src/`；以 `note/`、`data/`、`scripts/` 开头的以仓库根为起点；`/xxx` 形如 `/cmd_vel` 的是 ROS 话题名不是路径。
 
 本包速查：
 

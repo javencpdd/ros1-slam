@@ -3,7 +3,8 @@
 
 直接 `python3 -m http.server` 也能起，但 Markdown 会被当 Latin-1 显示成乱码；
 本脚本做三件事：根指到仓库根、文本补 charset、只允许文档面路径（web/、docker/、
-tooling/、README.md，以及 ws/src 下的 README.md）。note/、代码、数据、任务台一律 404。
+tooling/、README.md，以及 ws/src 与 subprojects/simulation/ws/src 下的 .md）。
+note/、代码、数据、任务台一律 404。
 
 任务台不在本服务：console UI 由 scripts/console/agent.py 在 :8780 独立提供。
 
@@ -22,14 +23,16 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 TEXT_SUFFIX = {'.md', '.txt', '.html', '.css', '.js', '.json', '.yaml', '.yml', '.xml', '.pgm', '.log'}
 ALLOW_PREFIXES = ('web/', 'docker/', 'tooling/')
 ALLOW_FILES = ('README.md',)
+DOC_ROOTS = ('subprojects/simulation/ws/src/',)
 
 
 def allowed(path):
-    """Docs-only surface: web/, docker/, tooling/, README.md, ws/src/**/*.md."""
+    """Docs-only surface: web/, docker/, tooling/, README.md, ws/src/**/*.md,
+    subprojects/simulation/ws/src/**/*.md（2026-11-14 仿真分仓后的文档面）。"""
     rel = urllib.parse.unquote(path.split('?')[0]).lstrip('/')
     if rel in ALLOW_FILES:
         return True
-    if rel.startswith('ws/src/') and rel.endswith('.md'):
+    if rel.endswith('.md') and (rel.startswith('ws/src/') or rel.startswith(DOC_ROOTS)):
         return True
     return any(rel.startswith(prefix) for prefix in ALLOW_PREFIXES)
 
