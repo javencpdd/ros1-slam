@@ -1,0 +1,38 @@
+== 取消后重发失联 · 行号锚点复核（T-20261122-03）==
+   仓根=/home/jack/ysc-code/ros1-slam
+   被核件＝bt_console.cpp / far_node.py / navigate_with_planner.xml / arrival_budget.hpp
+
+OK   环1 取消入口回调    ws/src/90_platform/lite3_bt/src/bt_console.cpp:1116
+OK   环1 输入话题缺省    ws/src/90_platform/lite3_bt/src/bt_console.cpp:1211
+OK   环1 输入订阅          ws/src/90_platform/lite3_bt/src/bt_console.cpp:1291
+OK   环2 下发话题缺省    ws/src/90_platform/lite3_bt/src/bt_console.cpp:1212
+OK   环2 下发句柄          ws/src/90_platform/lite3_bt/src/bt_console.cpp:1260
+OK   环3 第二写者订阅    ws/src/80_algorithm/v8_algorithm/planner/far_node.py:630
+OK   环3 自诊断取消入口 ws/src/80_algorithm/v8_algorithm/planner/far_node.py:337
+OK   环3 不回声的理由    ws/src/80_algorithm/v8_algorithm/planner/far_node.py:341
+OK   环4 回执话题          ws/src/80_algorithm/v8_algorithm/planner/far_node.py:438
+OK   环5 回执回调          ws/src/90_platform/lite3_bt/src/bt_console.cpp:1138
+OK   环5 只记结果不置意图 ws/src/90_platform/lite3_bt/src/bt_console.cpp:1152
+OK   环6 WaitForGoal 早退    ws/src/90_platform/lite3_bt/src/bt_console.cpp:190
+OK   环6 WaitArrival 早退    ws/src/90_platform/lite3_bt/src/bt_console.cpp:489
+OK   环6 Recovery 早退       ws/src/90_platform/lite3_bt/src/bt_console.cpp:896
+OK   环6 门 IsNotCancelled    ws/src/90_platform/lite3_bt/src/bt_console.cpp:827
+OK   环6 门 IsCancelled       ws/src/90_platform/lite3_bt/src/bt_console.cpp:814
+OK   环7 停车后不出产出 ws/src/80_algorithm/v8_algorithm/planner/far_node.py:387
+OK   环8 预算冻结点       ws/src/90_platform/lite3_bt/src/bt_console.cpp:470
+OK   环8 速度下限缺省    ws/src/90_platform/lite3_bt/src/bt_console.cpp:95
+OK   环8 预算式子          ws/src/90_platform/lite3_bt/include/lite3_bt/arrival_budget.hpp:16
+OK   环9 取队点             ws/src/90_platform/lite3_bt/src/bt_console.cpp:197
+OK   环9 取队后复位意图 ws/src/90_platform/lite3_bt/src/bt_console.cpp:210
+OK   环9 队列上限          ws/src/90_platform/lite3_bt/src/bt_console.cpp:1197
+OK   环9 满队才拒          ws/src/90_platform/lite3_bt/src/bt_console.cpp:967
+OK   树 mission 门            ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml:10
+OK   树 cancel 支             ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml:26
+OK   树 停滞判据关        ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml:21
+
+-- 反控（两条都必须 MISS，否则本件是恒绿空控）--
+反控1 OK：不存在的行号（第 999999 行）确实取不到内容
+反控2 OK：正则在无关行上不误命中
+
+汇总＝命中 27 枚 ‖ MISS 0 枚 ‖ 反控失效 0 项
+ANCHOR VERDICT: rc=0（全部锚点现读命中，反控未退化）

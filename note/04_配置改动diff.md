@@ -8132,3 +8132,36 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   而 stale() 在 halted 时不报，于是 STALE_REPORTED＝False。改为每轮独立栈后同一件转 True。
   run1／run3 两个目录保留作缺陷证据，不删
 - 落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第 6.6 节
+
+## 2026-11-22 / T-20261122-03 取消后重发失联：诊断与最小方案（零改代码）
+
+- 本批只读代码与落文档，一行代码未改：对 ws/src/90_platform/lite3_bt 的 git diff 为空
+- ★先更正两处旧口径★：6.6 末段写的「BT 不响应」实为「目标入队但不被取出」——goalCallback 只做
+  pending 入队（上限 16，满了才拒并打 queue full），取队在 WaitForGoal 的 takeGoal，mission 在跑时
+  该节点根本没被 tick。run1 日志直接证到：入队深度从 1 涨到 15、期间 0 次取队，
+  mission 收尾后 17 次取队连着打（首条是 goal 6 dequeued, 11 waiting）
+- ★第二处更正★：「约 100 秒」不是常数，是 60 与「路径长除以 0.02」取大。实测那行自己写着
+  arrival budget 100.2 s (path 2.00 m, floor 0.020 m/s, tree 60.0 s)，同一份日志另有 98.8／76.2／
+  70.3 三条不同预算；10 米腿会到 500 秒量级。用固定 100 秒描述会把长腿场景低估五倍
+- 附带一条此前没人提过的结论：队列有界（16）。run1 深度已到 15，差一格撞上限，撞上限时是真拒
+  （goal queue full，goal refused）。所以这个缺口不只是慢，持续重发会先把队列填满再把后续目标拒掉
+- 根因定位到一行：cancelAckCallback 收到执行层的 cancelled 回执后只记 cancel_ack_seen 与
+  cancel_results，不置 cancel_requested；而 mission 的六个取消早退点（WaitForGoal／WaitArrival／
+  Recovery 三处判断，加 IsNotCancelled 与 IsCancelled 两道门）全部只读 cancel_requested
+- 这套设计是有意的，不是漏写：far_node 的 request_cancel 注释写明「/v8/local/cancel 已经有 BT 这个
+  写者，回声会造成同一 seq 两次发布，而且会把谁停的这件事搅浑」。取消意图只认 BT 自己发起的 seq
+- 五个修法逐个给改动量、风险、越界判定：甲 运维口径一律改走 /v8/bt/cancel（0 行，但不覆盖 far
+  自诊断取消那条路）；乙 far 侧补发一条 /v8/bt/cancel（约 8 行，属执行层反向写 BT 输入，与
+  BT 是唯一编排者正面冲突）；丙 BT 侧把执行层回执升格为取消意图（约 6 至 10 行，只动一个回调）；
+  丁 把 arrival_speed_floor 从 0.02 抬到 0.15（0 行，但只能把 100 秒压到 60 秒，因为 60 是树的地板）；
+  戊 树侧开 progress_timeout（改树一行，用的是现成的 patience 端口）
+- 推荐顺序：甲立刻可用；戊在仿真侧可先试但改树须裁；丙动 BT 须裁；乙冲突最深不建议；丁仅作对照
+- 判据规格（本卡未实现，属下一张卡）：直发 /v8/local/cancel 后 5 秒重发目标，观察窗固定 8 秒，
+  三条判据是 /v8/global/goal 出现新目标、/global_path 出现更晚时间戳、goal_seq 递增；反控把直发
+  换成 /v8/bt/cancel 必须三条全绿。窗口取 8 秒的理由是旧判据等得够久必然变 True，分不出
+  「接得快」与「等到超时才接」
+- 落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第十一节，五条读数出处给到文件与行号
+- ★在册缺口，须真人裁★：本段与前三段（B3／B4／B5）在 04 里标的是 T-20261122-03 到 05，
+  但 state 里从未建过这三张卡（B3 到 B5 实际都在 T-20261122-02 名下做），而新立的这张卡拿到的
+  正是 T-20261122-03，两处含义相撞。机器闸不查 T 号，故不会变红。两个处置择一：补建 03 到 05
+  三张卡，或把那三段的卡号改回 02 并加一句说明。本批不擅自改旧段
