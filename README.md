@@ -52,6 +52,7 @@ flowchart LR
 | 正式门禁及复验方法 | [成员清单](scripts/verify/gate_chain.txt)、[复验作业单](note/05_复验作业单.md) |
 | 隔离、安全、来源与变更台账 | [note 入口](note/00_README.md) |
 | 问题与环境坑 | [问题台账](note/02_问题与坑.md) |
+| 台账怎么查（配置偏离 / 复验作业单） | [04 索引](note/04_配置改动diff_索引.md)、[05 索引](note/05_复验作业单_索引.md)：按日期找段、按行号跳源件 |
 | 跨主机任务包与本机协作入口安装 | [scripts/agent](scripts/agent/README.md)：canonical bridge、bootstrap、导出/导入与校验 |
 | 跨工具任务交接 | [协作契约](note/09_跨工具协作契约.md)、[黑板教程](note/tools/跨Agent协作黑板-使用教程.md) |
 | 本机项目介绍网页 | `web/` 源码已入库；生成的地图预览/账本数据仍由生成器产出并被忽略，见其 `README.md` |
