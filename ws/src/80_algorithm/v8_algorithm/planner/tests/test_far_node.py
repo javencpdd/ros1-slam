@@ -171,6 +171,125 @@ class TransformAndFaultTests(unittest.TestCase):
         self.assertFalse(state.halted)
 
 
+class ArrivalTests(unittest.TestCase):
+    """到达判据（计划 §4.5 甲案）：适配器自己判，不转发上游 `/far_reach_goal_status`。
+
+    判据面是 `hypot(r_xy, z_tol)`，不是「xy 判一次、z 再判一次」——下面 T15 把这个等价性
+    钉死，免得后人照着两段式再写一个门限出来。
+    """
+
+    def test_T14_radius_is_hypot_of_two_limits(self):
+        self.assertAlmostEqual(far_node.arrival_radius(0.25, 0.30),
+                               math.hypot(0.25, 0.30), places=12)
+        self.assertAlmostEqual(far_node.arrival_radius(), math.hypot(0.25, 0.30), places=12)
+        self.assertLess(far_node.arrival_radius(), 0.5)   # 比上游 converge_dist 更严
+        # 同点：到达
+        self.assertTrue(far_node.is_arrived((1., 2., 0.5), (1., 2., 0.5)))
+        # 跨层同 xy、z 差 3.0：不得到达（主测 1）
+        self.assertFalse(far_node.is_arrived((1., 2., 0.5), (1., 2., 3.5)))
+        # 半径边界：正好等于半径算到达，略超不算
+        r = far_node.arrival_radius(0.25, 0.30)
+        self.assertTrue(far_node.is_arrived((0., 0., 0.), (r, 0., 0.)))
+        self.assertFalse(far_node.is_arrived((0., 0., 0.), (r + 1e-6, 0., 0.)))
+
+    def test_T15_two_clause_form_collapses_to_one_radius(self):
+        """「水平 ≤ r_xy 且 |Δz| ≤ z_tol」蕴含「三点范数 ≤ hypot(r_xy, z_tol)」。
+
+        所以计划里的两段式与单一半径判据**完全等价**：第二段永远不接纳第一段拒绝的点。
+        反例方向也要测：`(0.38, 0, 0)` 过第一段（3D 半径）却被第二段拒绝，
+        说明真正生效的是半径——这正是上游 `converge_dist=0.5` 比本判据松的地方。
+        """
+        r_xy, z_tol = 0.25, 0.30
+        for a in (0.0, 0.1, 0.25):
+            for b in (-0.30, -0.1, 0.0, 0.1, 0.30):
+                self.assertTrue(far_node.is_arrived((0., 0., 0.), (a, 0., b), r_xy, z_tol))
+                self.assertLessEqual(math.hypot(a, b), far_node.arrival_radius(r_xy, z_tol) + 1e-12)
+        # 只过第一段的点：xy 0.38 > r_xy，但 3D 距离 0.38 < 0.3905
+        point = (0.38, 0., 0.)
+        self.assertGreater(math.hypot(point[0], point[1]), r_xy)
+        self.assertTrue(far_node.is_arrived((0., 0., 0.), point, r_xy, z_tol))
+        # 上游只用 converge_dist=0.5：z 差 0.45 m 它会判到达，本判据不判
+        self.assertFalse(far_node.is_arrived((0., 0., 0.), (0., 0., 0.45), r_xy, z_tol))
+
+    def test_T16_new_goal_resets_arrival(self):
+        state = far_node.AdapterState()
+        state.on_goal((0., 0., 0.))
+        self.assertEqual(state.poll_arrival((0., 0., 0.)), (True, True))
+        # 同一个位姿再问一次：不再算「变化」，避免 5 Hz 刷同一帧
+        self.assertEqual(state.poll_arrival((0., 0., 0.)), (True, False))
+        # 新目标把 arrived 归零：旧任务的 true 不许留在 latch 上
+        state.on_goal((5., 0., 0.))
+        self.assertFalse(state.arrived)
+        self.assertEqual(state.poll_arrival((0., 0., 0.)), (False, False))
+        self.assertEqual(state.poll_arrival((5., 0., 0.)), (True, True))
+
+    def test_T17_no_target_no_pose_or_halted_is_silent(self):
+        """没有目标 / 没有位姿 / 已被取消时不许发信号。
+
+        取消后若还按残留位姿发 true，等于取消没取消——BT 的 `arrival_signal` 会把它当成到达。
+        """
+        state = far_node.AdapterState()
+        self.assertEqual(state.poll_arrival((0., 0., 0.)), (None, False))
+        state.on_goal((1., 1., 1.))
+        self.assertEqual(state.poll_arrival(None), (None, False))
+        self.assertEqual(state.poll_arrival((1., 1., 1.)), (True, True))
+        state.on_cancel()
+        self.assertFalse(state.arrived)
+        self.assertEqual(state.poll_arrival((1., 1., 1.)), (None, False))
+        with self.assertRaises(ValueError):
+            far_node.is_arrived(None, (0., 0., 0.))
+
+
+class BtHandshakeTests(unittest.TestCase):
+    """暖机占位帧必须让 BT 继续等，而不是被判拒绝。
+
+    判据在 C++ 侧：`bt_console.cpp:161-165` 的 `transient_plan_reason` 是**硬编码白名单**，
+    不在里面的 reason 会让 `WaitForPath` 直接 FAILURE（`:324-332`，日志
+    `[bt] global path refused: <reason>`），任务当场结束。所以这里两层都钉：
+    自己发的名字在白名单内，且白名单本身没被上游改掉。
+    """
+
+    def test_T18_warmup_reason_is_bt_transient(self):
+        payload = json.loads(far_node.status_json(False, 0, far_node.WARMUP_PLAN_REASON,
+                                                  detail='E_FAR_WARMUP'))
+        self.assertIn(payload['reason'], far_node.BT_TRANSIENT_REASONS)
+        self.assertTrue(payload['reason'])
+        # 适配器自己的诊断名不能丢，否则日志里查不到「为什么在暖机」
+        self.assertEqual(payload['detail'], 'E_FAR_WARMUP')
+
+    def test_T19_transient_list_matches_bt_console(self):
+        source = HERE.parents[4] / 'ws/src/90_platform/lite3_bt/src/bt_console.cpp'
+        if not source.is_file():
+            self.skipTest('bt_console.cpp not found: %s' % source)
+        body = source.read_text(encoding='utf-8')
+        start = body.find('bool transient_plan_reason')
+        self.assertGreaterEqual(start, 0, 'transient_plan_reason not found')
+        chunk = body[start:start + 400]
+        for reason in far_node.BT_TRANSIENT_REASONS:
+            self.assertIn('"%s"' % reason, chunk, '%s 不在 BT 白名单里' % reason)
+
+
+    def test_T20_reach_reads_do_not_write_path_status(self):
+        """上游「还没到」只能当附加字段，不能把路径状态改成失败。
+
+        `/global_path/status` 是 BT `WaitForPath` 的判据：`ok=false` 加不在白名单的
+        reason 会让它当场判路径失败（`bt_console.cpp:324-332`）。而「还没到」是常态，
+        与「这条路能不能用」无关——两件事混在一个字段上，BT 就会在每次上游报未到达时
+        拒一次路径。
+        """
+        state = far_node.AdapterState()
+        _path, _gait, text = state.on_waypoint((0., 0., 0.), (1., 0., 0.))
+        payload = json.loads(text)
+        self.assertIsNone(payload['far_reach'])
+        self.assertEqual(payload['reason'], 'ok')
+        state.far_reach = False
+        _path, _gait, text = state.on_waypoint((0., 0., 0.), (1., 0., 0.))
+        payload = json.loads(text)
+        self.assertIs(payload['far_reach'], False)
+        self.assertEqual(payload['reason'], 'ok')
+        self.assertTrue(payload['ok'])
+
+
 class ContractTests(unittest.TestCase):
     """跨包互检：far_node 自己组字符串（顶层零跨包 import），格式必须与 local_planner 同一契约。"""
 

@@ -1,0 +1,17 @@
+READY pose=0.000 0.000 0.000 terrain_frames=1 obs=1 status={"ok": true, "points": 0, "reason": "ok", "waiting": true}
+GOAL 3.000 0.000 0.000 attempt=1
+TIMEOUT baseline waypoint after 10 s
+GOAL 3.000 0.000 0.000 attempt=2
+BASELINE_WAYPOINT_GOT=True attempts=2 waypoints=1 path_stamps=1
+CUT_BEGIN kill /sim_adapter
+killing /sim_adapter
+killed
+CUT_AT=5.831
+CUT_STALE_STATUS={"ok": false, "points": 0, "reason": "E_FAR_WAYPOINT_STALE", "since_s": 10.084}
+CUT_STALE_AFTER_ROS_S=16.797
+CUT_HALT_AT=22.628 CUT_HALT_AFTER_ROS_S=16.797
+CUT_SELF_CANCEL=[(22.601, '900000000:all:far_waypoint_stale')]
+CUT_ACK=[(22.602, '900000000:cancelled')]
+CUT_STATUS_SEEN=['{"ok": true, "points": 0, "reason": "ok", "waiting": true}', '{"ok": false, "points": 0, "reason": "E_PLAN_RUNNING", "detail": "E_FAR_WARMUP"}', '{"ok": true, "points": 2, "reason": "ok", "gait_points": 2, "far_reach": null}', '{"ok": true, "points": 2, "reason": "ok", "gait_points": 2, "far_reach": false}', '{"ok": true, "points": 2, "reason": "ok", "gait_points": 3, "far_reach": false}', '{"ok": true, "points": 18, "reason": "ok", "arrived": true}', '{"ok": true, "points": 2, "reason": "ok", "gait_points": 3, "far_reach": true}', '{"ok": false, "points": 0, "reason": "E_FAR_WAYPOINT_STALE", "since_s": 10.084}', '{"ok": false, "points": 0, "reason": "E_FAR_CANCEL_RECEIVED", "seq": 900000000}', '{"ok": true, "points": 0, "reason": "ok", "seq": 900000000}']
+CUT_POST_HALT_PATH_STAMPS=0 CUT_POST_HALT_LOCAL_GOAL_STAMPS=0
+CUT_RESULT=PASS

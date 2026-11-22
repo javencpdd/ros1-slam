@@ -48,8 +48,12 @@
   <arg name="config" default="default"/>
   <!-- 诊断开关：上游只在 is_debug_output 为真时才打印图顶点数、拒因等；平时关掉免得刷屏。 -->
   <arg name="debug_output" default="false"/>
-  <!-- 到达信号出口：BT 侧 arrival_topic 指同一个话题。空则不发，BT 退回自己的 xy 判据。 -->
+  <!-- 到达判据出口：BT 侧 arrival_topic 指同一个话题。空则不发，BT 退回自己的 xy 判据。
+       判据由适配器自己算：|pose−goal|_3d ≤ hypot(arrival_r_xy, arrival_z_tol)。
+       r_xy 对齐 BT 树 WaitArrival 的 0.25，z_tol 是竖向容差（验收 3 的偏置标定写回这里）。 -->
   <arg name="arrival_topic" default="/v8/bt/arrived"/>
+  <arg name="arrival_r_xy" default="0.25"/>
+  <arg name="arrival_z_tol" default="0.30"/>
   <arg name="waypoint_timeout_s" default="10.0"/>
   <arg name="terrain_range_m" default="15.0"/>
   <arg name="terrain_rate_hz" default="2.5"/>
@@ -67,7 +71,7 @@
     <param name="is_debug_output" value="$(arg debug_output)"/>
   </node>
 
-  <!-- 5) v8 侧适配器：语义地形、两点/带前视的步态路径、取消写者、到达转发。 -->
+  <!-- 5) v8 侧适配器：语义地形、两点/带前视的步态路径、取消写者、3D 到达判据。 -->
   <node pkg="v8_platform" type="run_global_far.py" name="v8_global_far" output="screen">
     <param name="world_frame" value="$(arg world_frame)"/>
     <param name="cloud_topic" value="$(arg cloud_topic)"/>
@@ -78,6 +82,8 @@
     <param name="status_topic" value="$(arg status_topic)"/>
     <param name="lookahead_m" value="$(arg lookahead_m)"/>
     <param name="arrival_topic" value="$(arg arrival_topic)"/>
+    <param name="arrival_r_xy" value="$(arg arrival_r_xy)"/>
+    <param name="arrival_z_tol" value="$(arg arrival_z_tol)"/>
     <param name="waypoint_timeout_s" value="$(arg waypoint_timeout_s)"/>
     <param name="terrain_range_m" value="$(arg terrain_range_m)"/>
     <param name="terrain_rate_hz" value="$(arg terrain_rate_hz)"/>

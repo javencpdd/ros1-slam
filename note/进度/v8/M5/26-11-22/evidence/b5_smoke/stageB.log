@@ -1,0 +1,70 @@
+[sim] 已补起 Xvfb :99
+[m2] 日志目录: /tmp/m2_payload/logs-20261122_071016
+[m2] HARNESS sha256=fb8f5bf353cabb0683f8d21d738c1f24ce16ff1caccf8417ba3af1f640dab7d3 path=/opt/ros1-slam/sim_ws/src/lite3_gazebo_sim/verify/m2_smoke.sh
+[m2] FP m2_exitclean_lib.sh sha256=b17022766fa415314aa6967c41370e990d74b80b38b75cec520e8bc388dd5353
+[m2] FP lite3_planar.urdf.xacro sha256=b891f51c50fe7d3b6bccfd23d9c92cf6b390cd729f56cf2af513097ae0583acc
+[m2] FP lite3_planar_drive.cpp sha256=5d310f4725b13b2bcf582b4aaac05e2e1d5cc709177bbd0e9bbb851bf0961bb7
+[m2] FP liblite3_planar_drive.so sha256=19211b76269d1ec8ea8dfc8cbfa82b1d389a6c81ee10487f525965c8cdb8acf0
+[PASS] 探针敏感度自检：临时口 39483 读出 TCP=1 UDP=0 身份=TCP/p39483/55750/ros1-slam（R27 三 阳性对照命中，探针对非零态有分辨力）
+[exitbase] # exitbase @2026-11-22 07:10:17 stage=stageB seg=pre
+[exitbase] PIDS 30959
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=0 UDP=0
+[exitbase] PORT 11345 TCP=0 UDP=0
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+SMOKE start=(0.000,0.000) goal=(3.000,0.000)
+SMOKE gate_support_map=PASS t=0.0s
+SMOKE gate_bt_lease=PASS t=0.2s
+SMOKE gate_loc_ok=PASS t=0.2s
+SMOKE gate_tf_robot=PASS t=0.5s
+SMOKE gate_pose_fresh_G5=PASS t=1.1s ages=[0.028,0.031,0.014]
+SMOKE gate_obs_fresh_G5c2=PASS t=1.7s ages=[0.081,0.069,0.053]
+SMOKE SIMNOW point=age_sample_1 sim_now=2.42s gate_t=1.7s
+SMOKE gate_G5c1(odom->base_link)=PASS ages=[0.007,0.011,0.017]
+SMOKE E3 tf odom->base_link hits=37 last_stamp=3.348 age=0.018
+SMOKE E3 base_link_parents=['odom'] transforms_total=44
+SMOKE E3 static base_link->rslidar stamp=0.051
+SMOKE E3 static base_link->TORSO stamp=0.051
+SMOKE gate=PASS t=4.4s
+SMOKE SIMNOW point=goal_send sim_now=3.59s
+SMOKE SIMNOW point=goal_done sim_now=14.24s dt=10.65
+SMOKE bt_outcome=reached dt=10.7s dev_odom=0.202 dev_gt=0.202 pose_class_errors=0
+[PASS] B: 门控通过（≤120s，goal 前就绪）
+[PASS] B/G6: goal 后 pose 类错误=0（status 0／日志 0）
+[PASS] B: 到达偏差 0.202 ≤0.35m
+[PASS] B: 用时 10.65 ≤120s
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /bt_console
+ * /gazebo
+ * /m2_cmd_relay
+ * /m2_free_map
+ * /m2_tf_fresh
+ * /robot_state_publisher
+ * /rosout
+ * /sim_adapter
+ * /sim_empty_obstacles
+ * /sim_pose_source
+ * /v8_global_planner
+ * /v8_goal_gate
+ * /v8_local_planner
+ * /v8_map_file
+ * /v8_path_goal
+killed
+[exitclean] # 退净核验 @2026-11-22 07:11:24  stage=stageB seg=B
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]   30959 ros1-sl+       1 Sun Nov 22 06:20:57 2026 /opt/ros/noetic/lib/rosout/rosout __name:=rosout __log:=/opt/ros1-slam/logs/e0f83b8e-e63c-11f1-8de5-72d47cd0f896/rosout-1.log
+[exitclean] -- 监听端口分查（计数面）--
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+[PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+SUMMARY marks pass=9 fail=0
+==================================================
+M2 SMOKE: PASS
+==================================================

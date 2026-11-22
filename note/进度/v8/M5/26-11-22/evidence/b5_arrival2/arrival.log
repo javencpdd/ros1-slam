@@ -1,0 +1,81 @@
+ARRIVAL_PRECHECK=PORTS_FREE
+ARRIVAL_BOOT=MASTER_READY
+ARRIVAL_RECORDER=READY status=1 pose=1 arrived_conn=1 path_conn=1
+ARRIVAL_DRIVER_RC=6
+DRIVER_READY goal_conn=1 mark_conn=1 pose=0.000 0.000 0.000
+GOAL 1.000 0.000 0.000 stamp=now
+TIMEOUT AB A_driver_stamp_now after 20 s
+AB_A_driver_stamp_now ok=False reach_delta=0 wp_delta=0 goal_point_delta=1 last=(1.0, 0.0, 0.0)
+GOAL 1.000 0.000 0.000 stamp=zero
+TIMEOUT AB C_driver_stamp_zero after 20 s
+AB_C_driver_stamp_zero ok=False reach_delta=0 wp_delta=0 goal_point_delta=1 last=(1.0, 0.0, 0.0)
+TIMEOUT AB B_rostopic_pub after 20 s
+AB_B_rostopic_pub ok=False reach_delta=0 wp_delta=0 goal_point_delta=1 last=(1.0, 0.0, 0.0)
+AB_WINNER=None
+GOAL 3.000 0.000 0.000 stamp=now
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+TIMEOUT C0 accept after 4 s
+C0_ATTEMPTS=38 C0_ACCEPTED=False C0_ELAPSED_S=152.4
+TIMEOUT C0 reach ticks after 15 s
+C0_END reach_false=0 reach_true=0 waypoints=0
+GOAL 0.200 0.000 0.000 stamp=now
+C1_END reach_false=0 reach_true=0 waypoints=0
+GOAL 0.000 0.000 3.000 stamp=now
+C2_END reach_false=0 reach_true=0 waypoints=0
+OFFSET pose_z=0.000 goal_z=0.000 diff=0.000
+GOAL 5.000 0.000 0.000 stamp=now
+killing /sim_pose_source
+killed
+C4_POSE_SHIFTED=True pose_z=3.000
+GOAL 0.000 0.000 0.000 stamp=now
+C4_END reach_false=0 reach_true=0 waypoints=0
+DRIVER_DONE
+C0_ab            arrived_true=0 arrived_false=3 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 poses=26 pose_z_max=0.000 reasons=E_FAR_WARMUP
+C0_liveness      arrived_true=0 arrived_false=38 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 poses=74 pose_z_max=0.000 reasons=E_FAR_WARMUP
+C1_arrival       arrived_true=1 arrived_false=1 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 poses=5 pose_z_max=0.000 reasons=E_FAR_WARMUP,ok
+C2_cross_floor   arrived_true=0 arrived_false=1 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 poses=11 pose_z_max=0.000 reasons=E_FAR_WARMUP
+C3_offset        arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 poses=2 pose_z_max=0.000 reasons=
+C4_pose_shift    arrived_true=0 arrived_false=2 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 poses=13 pose_z_max=3.000 reasons=E_FAR_WARMUP
+
+VERDICT C0_liveness      INCONCLUSIVE [-           ] 上游从未接受目标（无 reach、无航点、无路径）
+VERDICT C1_arrival       PASS         [ADAPTER_ONLY] 正向对照：0.2 m 目标必须出现 arrived_true>=1
+VERDICT C2_cross_floor   PASS         [ADAPTER_ONLY] 整个窗口 arrived 一直 false，且目标与位姿都有当场证据
+VERDICT C4_pose_shift    PASS         [ADAPTER_ONLY] 整个窗口 arrived 一直 false，且目标与位姿都有当场证据
+ARRIVAL_CLEANUP_PORTS_FREE
+ARRIVAL_DONE rc=6

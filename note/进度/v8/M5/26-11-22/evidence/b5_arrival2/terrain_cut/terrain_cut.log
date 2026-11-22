@@ -1,0 +1,10 @@
+CUT_PRECHECK=PORTS_FREE
+CUT_BOOT=MASTER_READY
+CUT_DRIVER_RC=6
+READY pose=0.000 0.000 0.023 status={"ok": true, "points": 0, "reason": "ok", "waiting": true}
+GOAL 3.000 0.000 0.023
+TIMEOUT baseline waypoint after 150 s
+BASELINE_WAYPOINT_GOT=False waypoints=0 path_stamps=0
+CUT_RESULT=INCONCLUSIVE 没有基线航点，断云后的静默分不清是注入造成的
+CUT_CLEANUP_PORTS_FREE
+CUT_DONE rc=6

@@ -1,0 +1,37 @@
+ARRIVAL_PRECHECK=PORTS_FREE
+ARRIVAL_BOOT=MASTER_READY
+ARRIVAL_RECORDER=READY status=1 pose=67 arrived_conn=1 path_conn=1 reach=0 terrain_frames=1 obs=2965
+ARRIVAL_DRIVER_RC=0
+DRIVER_READY goal_conn=1 mark_conn=1 pose=0.000 0.000 0.000
+GOAL 1.000 0.000 0.000 stamp=now
+AB_A_driver_stamp_now ok=True reach_delta=1 wp_delta=1 goal_point_delta=1 last=(1.0, 0.0, 0.0)
+AB_END reach_false=1 reach_true=0 waypoints=1
+AB_WINNER=A_driver_stamp_now
+GOAL 3.000 0.000 0.000 stamp=now
+C0_ATTEMPTS=1 C0_ACCEPTED=True C0_ELAPSED_S=0.0
+C0_END reach_false=5 reach_true=0 waypoints=5
+GOAL 0.200 0.000 0.000 stamp=now
+C1_END reach_false=9 reach_true=1 waypoints=10
+GOAL 0.000 0.000 3.000 stamp=now
+C2_END reach_false=10 reach_true=1 waypoints=11
+OFFSET pose_z=0.000 goal_z=0.000 diff=0.000
+GOAL 5.000 0.000 0.000 stamp=now
+killing /sim_pose_source
+killed
+C4_POSE_SHIFTED=True pose_z=3.000
+GOAL 0.000 0.000 0.000 stamp=now
+C4_END reach_false=20 reach_true=1 waypoints=21
+DRIVER_DONE
+C0_ab            arrived_true=0 arrived_false=1 reach_true=0 reach_false=1 waypoints=1 path_stamps=1 poses=1 pose_z_max=0.000 reasons=E_FAR_NOT_REACHED,E_FAR_WARMUP,ok
+C0_liveness      arrived_true=0 arrived_false=1 reach_true=0 reach_false=4 waypoints=4 path_stamps=4 poses=48 pose_z_max=0.000 reasons=E_FAR_NOT_REACHED,E_FAR_WARMUP,ok
+C1_arrival       arrived_true=1 arrived_false=1 reach_true=1 reach_false=4 waypoints=5 path_stamps=5 poses=83 pose_z_max=0.000 reasons=E_FAR_NOT_REACHED,E_FAR_WARMUP,ok
+C2_cross_floor   arrived_true=0 arrived_false=1 reach_true=0 reach_false=1 waypoints=1 path_stamps=1 poses=11 pose_z_max=0.000 reasons=E_FAR_CANCEL_RECEIVED,E_FAR_NOT_REACHED,E_FAR_WARMUP,E_FAR_WAYPOINT_STALE,ok
+C3_offset        arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 poses=2 pose_z_max=0.000 reasons=
+C4_pose_shift    arrived_true=0 arrived_false=2 reach_true=0 reach_false=10 waypoints=10 path_stamps=10 poses=13 pose_z_max=3.000 reasons=E_FAR_NOT_REACHED,E_FAR_TERRAIN,E_FAR_WARMUP,ok
+
+VERDICT C0_liveness      PASS         [STRONG      ] 目标被上游接受且 3.0 m 远不判到达
+VERDICT C1_arrival       PASS         [STRONG      ] 正向对照：0.2 m 目标必须出现 arrived_true>=1
+VERDICT C2_cross_floor   PASS         [STRONG      ] 整个窗口 arrived 一直 false，且目标与位姿都有当场证据
+VERDICT C4_pose_shift    PASS         [STRONG      ] 整个窗口 arrived 一直 false，且目标与位姿都有当场证据
+ARRIVAL_CLEANUP_PORTS_FREE
+ARRIVAL_DONE rc=0

@@ -1,0 +1,20 @@
+C0_liveness      arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C0_liveness      arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C0_liveness      arrived_true=0 arrived_false=1 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=E_FAR_WARMUP
+C1_arrival       arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C1_arrival       arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C1_arrival       arrived_true=1 arrived_false=1 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=E_FAR_WARMUP,ok
+C2_cross_floor   arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C2_cross_floor   arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C2_cross_floor   arrived_true=0 arrived_false=1 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=E_FAR_WARMUP
+C3_offset        arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C3_offset        arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C3_offset        arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C4_pose_shift    arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C4_pose_shift    arrived_true=0 arrived_false=0 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=nan reasons=
+C4_pose_shift    arrived_true=1 arrived_false=1 reach_true=0 reach_false=0 waypoints=0 path_stamps=0 pose_z_max=3.000 reasons=E_FAR_WARMUP,ok
+
+VERDICT C0_liveness      FAIL         要为 waypoints>=1（链路活着）且 arrived_true==0（3.0 m 远不判到达）
+VERDICT C1_arrival       PASS         正向对照：0.2 m 目标必须出现 arrived_true>=1
+VERDICT C2_cross_floor   INCONCLUSIVE 场景没打到判据（无航点/无路径/到达通道无数据）
+VERDICT C4_pose_shift    FAIL         位姿抬高后仍出现 arrived_true

@@ -31,6 +31,9 @@ instances:
       gait_path_topic: /v8/gait_guard/path
       status_topic: /global_path/status
       arrival_topic: /v8/bt/arrived
+      # 到达判据 |pose−goal|_3d ≤ hypot(arrival_r_xy, arrival_z_tol)，与 lite3 far 图同值
+      arrival_r_xy: 0.25
+      arrival_z_tol: 0.30
       waypoint_timeout_s: 10.0
       terrain_range_m: 15.0
       terrain_rate_hz: 2.5

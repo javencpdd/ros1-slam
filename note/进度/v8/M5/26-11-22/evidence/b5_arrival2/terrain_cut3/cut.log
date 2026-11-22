@@ -1,0 +1,14 @@
+READY pose=0.000 0.000 0.000 terrain_frames=1 obs=1 status={"ok": true, "points": 0, "reason": "ok", "waiting": true}
+GOAL 3.000 0.000 0.000 attempt=1
+TIMEOUT baseline waypoint after 10 s
+GOAL 3.000 0.000 0.000 attempt=2
+BASELINE_WAYPOINT_GOT=True attempts=2 waypoints=1 path_stamps=1
+CUT_BEGIN kill /sim_adapter
+killing /sim_adapter
+killed
+CUT_AT=6.061
+CUT_HALT_AT=23.429 CUT_HALT_AFTER_ROS_S=17.368
+CUT_SELF_CANCEL=[(23.4, '900000000:all:far_waypoint_stale')]
+CUT_ACK=[(23.402, '900000000:cancelled')]
+CUT_POST_HALT_PATH_STAMPS=0 CUT_POST_HALT_LOCAL_GOAL_STAMPS=0
+CUT_RESULT=FAIL

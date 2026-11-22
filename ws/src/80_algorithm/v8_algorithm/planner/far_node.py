@@ -12,10 +12,11 @@
 | 订 | `/scan_cloud` | `PointCloud2` | 直通转发（碰撞检查用原始扫描） |
 | 订 | `/goal_point` | `PointStamped` | 由 `/v8/global/goal` 降维产生 |
 | 订 | `/way_point` | `PointStamped` | FAR 的 3D 航点，本模块把它变成 Path |
-| 订 | `/far_reach_goal_status` | `Bool` | FAR 自报到达 |
+| 订 | `/far_reach_goal_status` | `Bool` | FAR 自报到达（只作旁证读数，不转给 BT） |
 | 发 | `/terrain_cloud` | `PointCloud2` | `intensity` ＝ 离地高 h |
 | 发 | `/global_path` | `Path` | **两点** `[当前位姿, 航点]`，给 `path_goal` 与 BT |
 | 发 | `/v8/gait_guard/path` | `Path` | 两点或**三点**（近距补前视点），只给 `gait_guard` |
+| 发 | `/v8/bt/arrived` | `Bool` | 到达判据（`latched`）：`\|pose−goal\|_3d ≤ hypot(0.25, 0.30)` |
 
 ★ 两条路径话题必须分开 ★ `path_goal_node.py` 取 `poses[-1]` 当局部目标。
 步态用的延长点若混进 `/global_path`，局部目标会被推到航点之外——车会越过 FAR 给的
@@ -31,6 +32,8 @@ GROUND_CELL_M = 0.2     # 地面栅格边长（米）
 LOOKAHEAD_M = 1.5       # 步态路径最小前视距离（米）
 LOOKAHEAD_MARGIN_M = 0.3   # 延长段在 lookahead 之外多留的余量（米）：总长 = lookahead + 此值
 CANCEL_SEQ_BASE = 900000000   # 取消序号起点：避开 BT 的 cancel_seq（从 1 起递增）
+ARRIVAL_R_XY_M = 0.25      # 到达判据的水平半径（米）：与 BT 树 WaitArrival 的 distance 同值
+ARRIVAL_Z_TOL_M = 0.30     # 到达判据的竖向容差（米）：与 support_map 的 z_tol 同量级
 
 ACK_OUTCOMES = ('cancelled', 'ack_fail', 'unacked')
 
@@ -165,6 +168,32 @@ def gait_path(pose, waypoint, lookahead_m=LOOKAHEAD_M, margin_m=LOOKAHEAD_MARGIN
             (start[0] + dx * scale, start[1] + dy * scale, start[2] + dz * scale)]
 
 
+def arrival_radius(r_xy=ARRIVAL_R_XY_M, z_tol=ARRIVAL_Z_TOL_M):
+    """到达判据的半径：`hypot(r_xy, z_tol)`（水平 0.25、竖向 0.30 时约 0.3905 m）。
+
+    ★ 计划 §4.5 把判据写成两段「`|pose-goal|_3d ≤ r3` 或（水平 ≤ r_xy 且 |Δz| ≤ z_tol）」，
+    这两段**判得完全一样**：水平 ≤ r_xy 且 |Δz| ≤ z_tol ⇒ 三点范数 ≤ hypot(r_xy, z_tol) = r3。
+    第二段永远不接纳第一段拒绝的点，写两个门限只会多出一处「两套门限互相矛盾」的机会。
+    所以实现只留**一个半径**；两个参数仍分开配——r_xy 要对齐 BT 树里的 0.25，
+    z_tol 要能单独调（它才是跟楼层语义挂钩的那个）。
+    """
+    return math.hypot(float(r_xy), float(z_tol))
+
+
+def is_arrived(pose, goal, r_xy=ARRIVAL_R_XY_M, z_tol=ARRIVAL_Z_TOL_M):
+    """3D 到达判据：`|pose - goal|_3d ≤ hypot(r_xy, z_tol)`。
+
+    ★ 这是**近似式**，不等于「到对了楼层」★ 两楼层间距若小于 `2 × z_tol` 它分不开。
+    真正稳的判据是「pose 所在支撑面 id ＝ goal 指定面 id」，属押后项 D1；
+    D1 完成前任何交付说明不得写「支持跨楼层到达」。
+    """
+    if pose is None or goal is None:
+        raise ValueError('pose and goal are both required')
+    a, b = _xyz(pose), _xyz(goal)
+    dist = math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
+    return dist <= arrival_radius(r_xy, z_tol)
+
+
 def status_json(ok, points, reason, **extra):
     """状态帧。字段名与 support 版 `topic_node` 的 status 同名（`ok`/`points`/`reason`），
     这样 BT 侧与日志侧可以用同一套 grep，不用按后端分支。
@@ -172,6 +201,19 @@ def status_json(ok, points, reason, **extra):
     value = {'ok': bool(ok), 'points': int(points), 'reason': reason}
     value.update(extra)
     return json.dumps(value, ensure_ascii=False)
+
+
+# ★ 暖机占位帧的 reason 必须落在 BT 的白名单里 ★
+# `bt_console.cpp:161-165` 的 `transient_plan_reason` 是一张**硬编码白名单**：
+# 空串 / `E_PLAN_RUNNING` / `E_PLAN_NOT_READY` / `E_PLAN_CANCELLED_REQUESTED`。
+# 不在这四个里面的 reason，`WaitForPath` 会直接 `return FAILURE`
+# （`bt_console.cpp:324-332`，日志 `[bt] global path refused: <reason>`），任务当场结束、
+# 不会等下一帧。B2 的计划曾假定 `E_FAR_WARMUP` 属于「瞬态那一家」，实测证明不在——
+# 开了 BT 之后每条目标都在暖机帧上被拒（见 `note/进度/v8/M5/26-11-22/evidence/b5_arrival2/budget/launch.log`
+# 的两条 `global path refused: E_FAR_WARMUP`）。所以占位帧对外报 BT 认识的名字，
+# 适配器自己的诊断名放 `detail` 字段带走。
+BT_TRANSIENT_REASONS = ('E_PLAN_RUNNING', 'E_PLAN_NOT_READY', 'E_PLAN_CANCELLED_REQUESTED')
+WARMUP_PLAN_REASON = 'E_PLAN_RUNNING'
 
 
 def cancel_text(seq, scope='current', reason='far'):
@@ -211,7 +253,8 @@ class AdapterState:
     那些航点一律不接纳——否则取消等于没取消，机器人会立刻沿旧航点继续走。
     """
 
-    def __init__(self, lookahead_m=LOOKAHEAD_M, seq_base=CANCEL_SEQ_BASE):
+    def __init__(self, lookahead_m=LOOKAHEAD_M, seq_base=CANCEL_SEQ_BASE,
+                 r_xy=ARRIVAL_R_XY_M, z_tol=ARRIVAL_Z_TOL_M):
         self.halted = False
         self.lookahead_m = float(lookahead_m)
         self.seq_base = int(seq_base)
@@ -220,6 +263,17 @@ class AdapterState:
         self.last_waypoint_at = None
         self.waypoint_count = 0
         self.pending = None          # 自己发起、还没等到 ack 的那一次取消
+        # 到达判据自己算，不转发上游 `/far_reach_goal_status`：上游只比 `converge_dist`
+        # （3D 范数，仓外 config/default.yaml 为 0.5），既没有 `z_tol` 也没有可调的 r_xy，
+        # 验收 3 的「偏置标定写回 z_tol」在那边无处落账。
+        self.r_xy = float(r_xy)
+        self.z_tol = float(z_tol)
+        self.target = None           # 操作员目标（3D 元组），新 goal 才换
+        self.arrived = False         # 上一次的判定结果，用于「只在变化时发」
+        # 上游自报到达的旁证读数。**只作附加字段带走，不参与 ok/reason**：
+        # `/global_path/status` 是 BT `WaitForPath` 的判据（`bt_console.cpp:315-332`），
+        # 拿「还没到」去写 `ok=false`，等于拿到达语义改写路径语义。
+        self.far_reach = None
 
     # ---- 生命周期 ----
     def next_cancel_seq(self):
@@ -227,18 +281,38 @@ class AdapterState:
         self.cancel_seq = self.seq_base if self.cancel_seq is None else self.cancel_seq + 1
         return self.cancel_seq
 
-    def on_goal(self):
+    def on_goal(self, goal=None):
         """新 goal：解除 halted 并清掉残留航点记录。返回 True 表示这次是从 halted 恢复。
 
         同时清掉待确认的取消记录：新 goal 意味着操作员重新下达任务、人已接管，
         此时再报「上一轮取消没被 ack」只会在正常行驶里插一条误导性故障。
+
+        `goal` 给定时记为到达判据的目标并**把 arrived 归零**——上一任务留下的 true
+        若不清，BT 的 `arrival_signal` 会在新任务一开始就成立（`bt_console.cpp:1065-1070`
+        的 `arrivalCallback` 是直接赋值，不是置位），`WaitArrival` 立刻判到达。
         """
         was_halted = self.halted
         self.halted = False
         self.last_waypoint = None
         self.last_waypoint_at = None
         self.pending = None
+        self.target = None if goal is None else _xyz(goal)
+        self.arrived = False
         return was_halted
+
+    def poll_arrival(self, pose):
+        """按当前位姿判到达，返回 `(frame, changed)`。
+
+        `frame` 为 `True`/`False`，`None` 表示「还没目标或没有位姿，这一轮不该发信号」——
+        发 `False` 会把 BT 可能已经收到的 `true` 清掉，没有目标时不该有这种副作用。
+        `changed` 为真才发布：5 Hz 刷同一个值会把 BT 的事件日志淹掉。
+        """
+        if self.target is None or pose is None or self.halted:
+            return None, False
+        arrived = is_arrived(pose, self.target, self.r_xy, self.z_tol)
+        changed = arrived != self.arrived
+        self.arrived = arrived
+        return arrived, changed
 
     def on_cancel(self, seq=None):
         """登记取消：置 halted、记住 seq。不传 seq 就自己取下一个。"""
@@ -247,6 +321,7 @@ class AdapterState:
         self.halted = True
         self.last_waypoint = None
         self.last_waypoint_at = None
+        self.arrived = False
         return seq
 
     def on_ack(self, text):
@@ -318,7 +393,8 @@ class AdapterState:
         # status 的 `points` 报主路径（`/global_path`）帧数，步态侧单独记一个字段：
         # 两个数混用一个字段，事后查日志就分不清「谁少了一点」。
         return path_points, gait_points, status_json(True, len(path_points), 'ok',
-                                                     gait_points=len(gait_points))
+                                                     gait_points=len(gait_points),
+                                                     far_reach=self.far_reach)
 
     def stale(self, now, timeout_s):
         """航点超时。正常返回 None，超时返回 `E_FAR_WAYPOINT_STALE` 状态帧。
@@ -369,8 +445,10 @@ def main():
     tf_timeout_s = float(rospy.get_param('~tf_timeout_s', 1.0))
     # 到达信号：给 BT 的 arrival_topic 用（std_msgs/Bool）。空则不发，BT 保持自己的 xy 判据。
     arrival_topic = rospy.get_param('~arrival_topic', '')
+    arrival_r_xy = float(rospy.get_param('~arrival_r_xy', ARRIVAL_R_XY_M))
+    arrival_z_tol = float(rospy.get_param('~arrival_z_tol', ARRIVAL_Z_TOL_M))
 
-    state = AdapterState(lookahead_m=lookahead_m)
+    state = AdapterState(lookahead_m=lookahead_m, r_xy=arrival_r_xy, z_tol=arrival_z_tol)
     pose = {'value': None}
     gate = {'next_terrain': 0.0}
 
@@ -384,7 +462,10 @@ def main():
     gait_path_pub = rospy.Publisher(gait_path_topic, Path, queue_size=1, latch=False)
     status_pub = rospy.Publisher(status_topic, String, queue_size=10, latch=True)
     cancel_pub = rospy.Publisher(cancel_topic, String, queue_size=1)
-    arrival_pub = rospy.Publisher(arrival_topic, Bool, queue_size=1) if arrival_topic else None
+    # 到达信号**要 latch**：BT 可能比本节点晚启动（`bt_console` 在树加载后才订阅），
+    # 一次性发布不 latch 就等于没发。与 `scan_bt_bridge.py` 的 `/lite3/scan/arrived` 同做法。
+    arrival_pub = (rospy.Publisher(arrival_topic, Bool, queue_size=1, latch=True)
+                   if arrival_topic else None)
 
     tf_buffer = tf2_ros.Buffer()
     tf2_ros.TransformListener(tf_buffer)
@@ -469,17 +550,25 @@ def main():
         odom_pub.publish(odom)
 
     def on_goal(message):
-        """操作员目标：降维成 PointStamped 给 FAR，并解除 halted。
+        """操作员目标：降维成 PointStamped 给 FAR，解除 halted，并重置到达判据。
 
         z 原样带过——上游 `is_multi_layer=true` 时才不会把它压回地面高度。
+
+        新目标当场发一帧 `arrived=false`：上一任务若已判到达，latch 上留着 true，
+        BT 再来一次 `WaitArrival` 会在第一拍就成立。`bt_console.cpp:1065-1070` 的
+        `arrivalCallback` 是直接赋值（`arrival_signal = msg->data`），回 false 是安全的。
         """
         p = message.pose.position
-        state.on_goal()
+        state.on_goal((p.x, p.y, p.z))
+        if arrival_pub is not None:
+            arrival_pub.publish(Bool(data=False))
         point = PointStamped()
         point.header = message.header
         point.point.x, point.point.y, point.point.z = p.x, p.y, p.z
         far_goal_pub.publish(point)
-        publish_status(status_json(False, 0, 'E_FAR_WARMUP'))
+        # 占位帧用 BT 认的瞬态名（见 `BT_TRANSIENT_REASONS` 上方的注释），
+        # 否则 `WaitForPath` 会在暖机这一拍判 FAILURE。
+        publish_status(status_json(False, 0, WARMUP_PLAN_REASON, detail='E_FAR_WARMUP'))
 
     def on_waypoint(message):
         point = message.point
@@ -495,14 +584,22 @@ def main():
         gait_path_pub.publish(to_path(gait_points, stamp))
 
     def on_reach(message):
-        if message.data and state.cancel_seq is not None and state.halted:
-            return                                    # 取消后的到达自报一律不采信
-        publish_status(status_json(bool(message.data), state.waypoint_count,
-                                   'ok' if message.data else 'E_FAR_NOT_REACHED'))
-        if arrival_pub is not None and message.data:
-            # 只转发 true，不转发 false：BT 的 arrivalCallback 是「置位」语义，
-            # 回 false 会被它当成「还没到」而清掉已经置好的位。
-            arrival_pub.publish(Bool(data=True))
+        """上游自报到达：**只记旁证，不写路径状态、不转发到达信号**。
+
+        上游的判据是 `(odom - goal).norm() < converge_dist`（3D 范数，仓外
+        `config/default.yaml` 为 0.5，`matterport.yaml` 为 0.25）。它比本适配器的
+        `hypot(0.25, 0.30)=0.39` 更松，且没有可调的 `z_tol`——两套门限同时接到
+        `/v8/bt/arrived` 上，谁松谁生效，等于没有 z_tol。所以到达由
+        `state.poll_arrival` 一处判定，上游这条只留作旁证读数。
+
+        ★ 也不要把它写到 `/global_path/status` ★ 那条话题是 BT `WaitForPath` 的判据：
+        `ok=false` 配上不在白名单的 reason 会让它当场判失败（`bt_console.cpp:324-332`）。
+        上游「还没到」是常态，与「这条路能不能用」无关。实测 BT 起来 2.56 s 就吃过一条
+        `[bt] global path refused: E_FAR_NOT_REACHED`
+        （`note/进度/v8/M5/26-11-22/evidence/b5_arrival2/budget3/launch.log`）。
+        现在它只进 `far_reach` 字段，随下一帧路径状态带走。
+        """
+        state.far_reach = bool(message.data)
 
     def on_cancel(message):
         """外部取消（BT 是既有写者）：只让自己停，不回声。
@@ -547,6 +644,18 @@ def main():
         unacked = state.ack_timeout(now, cancel_ack_timeout_s)
         if unacked is not None:
             publish_status(unacked)
+        # 到达判定放在本节点：5 Hz 比上游 2.5 Hz 更密，且只在结果翻转时发一帧
+        arrived, changed = state.poll_arrival(pose['value'])
+        if changed and arrived is not None and arrival_pub is not None:
+            arrival_pub.publish(Bool(data=arrived))
+            # ★ `ok` 不能因为「还没到达」变假 ★ `/global_path/status` 是 BT `WaitForPath`
+            #   的判据（`bt_console.cpp:315-332`），status=false 配一个不在白名单的 reason
+            #   会被读成路径失败。「未到达」在行驶中本来就是常态，与路径质量无关；
+            #   到达语义只走 `/v8/bt/arrived`，状态帧里留 `arrived` 作读数。
+            #   还没出过路径时给瞬态名，避免 `ok=true, points=0` 把 BT 拖到 30 s 超时。
+            publish_status(status_json(True, state.waypoint_count,
+                                       'ok' if state.waypoint_count > 0 else WARMUP_PLAN_REASON,
+                                       arrived=arrived))
         rate.sleep()
     return 0
 

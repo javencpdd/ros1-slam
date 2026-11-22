@@ -8069,3 +8069,35 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   lite3_bt/test/test_navigation_contract.py 六条全过，其中一条会解析 mode_sim_teb.launch，
   说明新加的注释没有破坏 XML
 - 落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第八节
+
+## 2026-11-22 / T-20261122-05 B5 到达判据与总验收
+
+- far_node.py 落地计划 §4.5 甲案：适配器自己判 3D 到达，判据是 |pose−goal| 的三维距离
+  不超过 hypot(0.25, 0.30)＝0.3905 米；两段式（xy 门限＋z 门限）与单一半径在这条式子上
+  完全等价，所以只配 arrival_r_xy 与 arrival_z_tol 两个量，不另配 r3，避免两套门限互相矛盾。
+  发布用 latch 加 queue_size 1（与 scan_bt_bridge 同姿势，防 BT 起得晚），新目标当场发一帧
+  false（上一任务留 true 的话，BT 的 WaitArrival 第一拍就成立）。上游 far_reach_goal_status
+  不再转发，只作 far_reach 旁证字段：上游只比 converge_dist（默认 0.5）且没有 z_tol，
+  两套门限同时接上去等于没有 z_tol
+- 两张 far 图与 far_stack.launch 加 arrival_r_xy＝0.25、arrival_z_tol＝0.30 两个参数并透传。
+  分开配的理由是 z 两端不同源：pose.z 来自 sim_pose_source（带 z_offset −0.11）或真机 carrier，
+  goal.z 通常是支撑面标高，直接比三维距离会把「到了但差一个车高」判成没到，所以判据必须留 z_tol，
+  而 z_tol 本身是实测项（实测偏置 0.000，取 0.30 留 0.30 米余量）
+- 顺带修三处同一形态的缺陷，都在适配器侧、零改 BT：暖机占位帧的 reason 由 E_FAR_WARMUP 改为
+  E_PLAN_RUNNING（诊断名放 detail）——BT 的 transient_plan_reason 是硬编码白名单，不在里面的
+  reason 会让 WaitForPath 当场判失败，实测开了 BT 之后每条目标都被拒；上游 reach 不再写进
+  global_path/status（只进 far_reach 字段）；到达翻转不再把 ok 写成 false（到达值放 arrived 字段）。
+  三处都把「到达语义」从「路径状态」里分出来，因为后者是 BT 的判据
+- 单测由 13 条扩到 20 条：新增到达判据四条与 BT 握手三条。其中一条直接读 bt_console.cpp
+  核对瞬态白名单，上游改了白名单这边就红，不必等到仿真里出现 global path refused
+- 验收：§4.5 四场景（C0 存活、C1 正向对照、C2 跨层同 xy、C4 位姿挪层）全部 PASS 且证据档为
+  STRONG；偏置标定 diff＝0.000；support 分支零回归 PASS（arrival_topic 未设、/v8/bt/arrived
+  发布者与订阅者都为 0，两条 B0 基线原样重跑仍 reached／PASS）；到达预算读到
+  「250.0 s（path 5.00 m，floor 0.020，tree 60.0）」，短跳 0.210 米路径则落回树值 60 秒不放大；
+  §4.4 验收 2 只断云 PASS（自报 E_FAR_WAYPOINT_STALE、自取消并拿到 ack、自停后路径与局部目标零新增）
+- 门禁五件：SYN／PYST／ISO／DC／账构 全 rc＝0；ISO 的 ws_src_files 清 pyc 后为 4794＝基线 4786
+  加本线新增 8 件，逐一对上。零改 lite3_bt：该目录 git diff 为空
+- 未做与限制：仿真世界没有 15 米可通行直线，整段行进验证未做，预算一条只以数值口径成立；
+  「到对了楼层」要 support_map 按 (x,y) 取 z（押后项 D1）与真实双层图，此前不得写「3D 导航完成」
+  或「支持跨楼层到达」
+- 落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第九节

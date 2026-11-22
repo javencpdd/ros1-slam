@@ -1,0 +1,47 @@
+[33m[ WARN] [1795336517.193601880]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+READY
+[0m[ INFO] [1795336517.629210504]: [bt] pose-based arrival mode (no planner_result_topic)[0m
+[0m[ INFO] [1795336517.653713625]: [bt] localization gate: /v8/local/localization_ok[0m
+[0m[ INFO] [1795336517.653846140]: [bt] cancel in /v8/bt/cancel, out /v8/local/cancel, ack in /v8/local/cancel_ack, policy in /v8/bt/goal_policy, mission in /v8/bt/goal_mission[0m
+[0m[ INFO] [1795336517.673846896]: [bt] tree loaded: /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/trees/navigate_with_planner.xml[0m
+[0m[ INFO] [1795336517.673987613]: [bt] planner input /v8/global/goal, status /global_path/status[0m
+[0m[ INFO] [1795336517.674034719]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[INFO] [1795336518.521731, 0.000000]: [goal-gate] /v8/bt/goal_request -> /v8/3d/global/goal (lease=/v8/bt/lease, timeout=1.0s, acl=True, allowed=/bt_console)
+[INFO] [1795336518.528727, 0.000000]: [sim_pose_source] /sim/odom_gt(odometry) -> /v8/local/pose @ 50 Hz; localization_ok -> /v8/local/localization_ok; start -> /v8/global/start
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py", line 18, in <module>
+    map_file_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/map_file_node.py", line 40, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[INFO] [1795336518.111928, 0.000000]: [sim_empty_obstacles] /v8/local/obstacles @ 10.0 Hz payload={"obstacles":[]}
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/m2_cmd_relay.py", line 23, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/m2_free_map.py", line 26, in <module>
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[INFO] [1795336519.639836, 0.118000]: [local] obstacles ok: 0
+[0m[ INFO] [1795336518.763386885]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1795336518.765373598]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1795336519.341149178]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+[0m[ INFO] [1795336519.458358621, 0.031000000]: Physics dynamic reconfigure ready.[0m
+[0m[ INFO] [1795336520.218800018, 0.128000000]: load csv file name:/opt/ros1-slam/sim_ws/src/Mid360_simulation_plugin/livox_laser_simulation/src/../scan_mode/mid360-real-centr.csv[0m
+cannot convert str:
+data size:800000
+[INFO] [1795336518.104466, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+[ERROR] [1795336531.968421, 0.128000]: Spawn service failed. Exiting.

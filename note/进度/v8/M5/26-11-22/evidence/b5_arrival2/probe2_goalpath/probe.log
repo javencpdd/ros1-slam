@@ -1,0 +1,21 @@
+== A: 并发监听 /goal_point，然后发 goal ==
+goal 已发，等 8 s
+== B: /goal_point 收到的行数 ==
+4
+%time,field.header.seq,field.header.stamp,field.header.frame_id,field.point.x,field.point.y,field.point.z
+0,1,0,map,1.0,0.0,0.0
+WARNING: no messages received and simulated time is active.
+== C: 适配器状态（latched，能证明它收到过 goal 就该是 E_FAR_WARMUP） ==
+data: "{\"ok\": true, \"points\": 5, \"reason\": \"ok\", \"far_reach\": true}"
+---
+== D: FAR 侧目标痕迹 ==
+339:    Adding Goal to V-Graph Time: 0ms
+346:    Adding Goal to V-Graph Time: 0ms
+353:    Adding Goal to V-Graph Time: 0ms
+360:    Adding Goal to V-Graph Time: 0ms
+367:    Adding Goal to V-Graph Time: 0ms
+374:    Adding Goal to V-Graph Time: 0ms
+== E: /far_reach_goal_status 频率 ==
+no new messages
+no new messages
+PROBE2_DONE

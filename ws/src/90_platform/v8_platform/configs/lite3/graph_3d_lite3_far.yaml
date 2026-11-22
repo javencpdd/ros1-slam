@@ -50,6 +50,11 @@ instances:
       gait_path_topic: /v8/gait_guard/path
       status_topic: /global_path/status
       arrival_topic: /v8/bt/arrived
+      # 到达判据：|pose−goal|_3d ≤ hypot(r_xy, z_tol)。r_xy 对齐 BT 树 WaitArrival 的 0.25，
+      # z_tol 是竖向容差（验收 3 的偏置标定写回这里）。两个参数分开配是因为「竖着差多少
+      # 还算到」才是跟楼层语义挂钩的那个；合成一个半径的等价性见 far_node.is_arrived 的注释。
+      arrival_r_xy: 0.25
+      arrival_z_tol: 0.30
       waypoint_timeout_s: 10.0
       terrain_range_m: 15.0
       terrain_rate_hz: 2.5

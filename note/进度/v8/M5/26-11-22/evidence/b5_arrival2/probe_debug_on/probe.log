@@ -1,0 +1,31 @@
+== 探测 1：/goal_point 订阅面 ==
+Type: geometry_msgs/PointStamped
+
+Publishers: 
+ * /v8_global_far (http://69aa573b8ab8:39441/)
+
+Subscribers: 
+ * /far_planner (http://69aa573b8ab8:39597/)
+
+== 发一条 goal（x=1.0） ==
+publishing and latching message for 3.0 seconds
+== 探测 2：/goal_point 实际有无消息（收到就打印一行） ==
+WARNING: no messages received and simulated time is active.
+Is /clock being published?
+== 探测 3：/far_reach_goal_status 频率（3 s） ==
+no new messages
+no new messages
+no new messages
+== 探测 4：launch.log 里的目标/图痕迹 ==
+1403:    Number of new vertices adding to global V-Graph: 0
+1404:    Total V-Graph Update Time: 15.975ms
+1405:    Global V-Graph Updated. Number of global vertices: 36
+1407:    Adding Goal to V-Graph Time: 0ms
+1409:    Local V-Graph Updated. Number of local vertices: 43
+1410:    Number of new vertices adding to global V-Graph: 0
+1411:    Total V-Graph Update Time: 19.149ms
+1412:    Global V-Graph Updated. Number of global vertices: 36
+== 探测 5：/way_point 有无消息 ==
+WARNING: no messages received and simulated time is active.
+Is /clock being published?
+PROBE_DONE

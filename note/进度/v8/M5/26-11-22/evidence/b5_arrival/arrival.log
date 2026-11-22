@@ -1,0 +1,22 @@
+ARRIVAL_PRECHECK=PORTS_FREE
+ARRIVAL_BOOT=MASTER_READY
+WAYPOINT_SEEN=0
+==== C3 · 验收 3 偏置标定（平地静止，goal z 取地面标高 0.000）====
+POSE 0.000 0.000 0.000
+OFFSET_READING=pose.z 见上一行；goal_z 固定写 0.000，两者之差即 z 偏置
+==== C1 · 验收 2 正常到达（goal 与位姿同点）====
+POSE 0.000 0.000 0.000
+POSE_XY=0.000 0.000
+GOAL_SENT 0.000 0.000 0.000
+ARRIVED_TRUE=0 ARRIVED_FALSE=0 PATH_UNIQ_STAMPS=0
+==== C2 · 验收 1 跨层同 xy（goal 抬 3.0 m，xy 不变）====
+GOAL_SENT 0.000 0.000 3.000
+ARRIVED_TRUE=0 ARRIVED_FALSE=0 PATH_UNIQ_STAMPS=23
+==== C4 · 验收 1a 位姿挪层（goal 回地面标高，位姿 z 抬 3.0 m）====
+killing /sim_pose_source
+killed
+GOAL_SENT 0.000 0.000 0.000
+ARRIVED_TRUE=0 ARRIVED_FALSE=0 PATH_UNIQ_STAMPS=0
+==== 收尾 ====
+ARRIVAL_CLEANUP_PORTS_FREE
+ARRIVAL_DONE
