@@ -11,6 +11,7 @@
 
 #include <lite3_bt/arrival_budget.hpp>
 #include <lite3_bt/arrival_progress.hpp>
+#include <lite3_bt/cancel_origin.hpp>
 #include <lite3_bt/goal_queue.hpp>
 #include <lite3_bt/bt_policy.hpp>
 
@@ -22,6 +23,7 @@
 #include <cstdint>
 #include <mutex>
 #include <map>
+#include <set>
 #include <string>
 
 // Nav2-style orchestration tree for the host-only demo plane.
@@ -70,6 +72,20 @@ struct SharedState
   std::uint64_t cancel_ack_seq = 0;
   std::string cancel_ack_outcome;
   double cancel_ack_timeout = 2.0;
+
+  // Cancel provenance.  `/v8/local/cancel` has two writers (this BT and the
+  // global adapter's own fault stop) and the ack carries no origin, so every
+  // seq this node published is remembered here: an ack for a seq we do not
+  // recognise stopped a leg we did not ask to stop.  Bounded and ordered by
+  // value; the oldest entry falls out first, which only affects far-past seqs.
+  std::set<std::uint64_t> self_issued;
+  // Where the latched cancel came from: operator / terminal / external.
+  std::string cancel_origin;
+  // The foreign seq that stopped the executor, kept for post-mortems.
+  std::uint64_t external_cancel_seq = 0;
+  // Queued goals discarded by a fault stop.  A fault ends the mission; the
+  // goals it still had queued must not start on their own afterwards.
+  std::uint64_t pending_dropped = 0;
 
   // Localization readiness (disabled when the topic is empty).
   bool localization_check = false;
@@ -135,6 +151,32 @@ void recordCancelOutcomeLocked(const std::string& outcome)
 {
   g_state.goal_outcome = outcome;
   g_state.outcome_seq = g_state.current_seq;
+}
+
+// Caller must hold g_state.mutex.  Bound the self-issued memory so a long
+// session cannot grow it without limit; dropping the oldest seq can only turn
+// an ancient ack into a false positive, and an ancient ack means the executor
+// re-sent an outcome for a cancel already resolved minutes ago.
+void rememberSelfIssuedLocked(std::uint64_t seq)
+{
+  g_state.self_issued.insert(seq);
+  while (g_state.self_issued.size() > 128)
+    g_state.self_issued.erase(g_state.self_issued.begin());
+}
+
+// Caller must hold g_state.mutex.  A fault stop ends the whole mission: the
+// goals still queued belong to the mission that just died, so they are dropped
+// instead of being picked up by the next WaitForGoal tick.  Clearing without
+// counting would make "the queue was emptied" indistinguishable from "the queue
+// was always empty" in the status line and in post-run forensics.
+void dropPendingLocked()
+{
+  const std::size_t dropped = g_state.pending.depth();
+  if (dropped == 0) return;
+  g_state.pending.clear();
+  g_state.pending_dropped += dropped;
+  ROS_WARN("[bt] dropped %zu queued goal(s) after fault stop",
+           static_cast<std::size_t>(dropped));
 }
 
 std_msgs::String cancelRequest(std::uint64_t seq, const std::string& scope,
@@ -697,7 +739,12 @@ public:
       reason = g_state.cancel_reason;
       g_state.has_current = false;
       g_state.last_event = "cancelling";
-      if (scope == "all") g_state.pending.clear();
+      // A fault stop drops the queue whatever scope the operator asked for: the
+      // leg is dead, and the goals queued behind it belong to the mission that
+      // just died.  A plain "current" cancel keeps them (multi-goal missions
+      // still expect the rest of the list to run).
+      if (scope == "all" || g_state.execution_fault) dropPendingLocked();
+      rememberSelfIssuedLocked(seq);
     }
     g_state.cancel_pub.publish(cancelRequest(seq, scope, reason));
     geometry_msgs::Twist zero;
@@ -766,7 +813,9 @@ public:
       seq_ = ++g_state.cancel_seq;
       g_state.cancel_ack_seen = false;
       g_state.cancel_ack_outcome.clear();
+      g_state.cancel_origin = "terminal";
       g_state.last_event = "stopping_executor";
+      rememberSelfIssuedLocked(seq_);
     }
     g_state.cancel_pub.publish(cancelRequest(seq_, "current", "bt_terminal"));
     start_ = std::chrono::steady_clock::now();
@@ -1127,9 +1176,12 @@ void cancelCallback(const std_msgs::String::ConstPtr& msg)
   g_state.cancel_seq = std::max(g_state.cancel_seq + 1, seq);
   g_state.cancel_scope = scope;
   g_state.cancel_reason = reason;
+  g_state.cancel_origin = "operator";
   g_state.cancel_ack_seen = false;
   g_state.cancel_ack_outcome.clear();
-  if (scope == "all") g_state.pending.clear();
+  // An explicit "all" already means "drop the queue"; a fault stop also drops
+  // it below, once the executor has confirmed the stop.
+  if (scope == "all") dropPendingLocked();
   g_state.last_event = "cancel_requested";
   ROS_WARN("[bt] cancel requested seq=%lu scope=%s", static_cast<unsigned long>(seq),
            scope.c_str());
@@ -1145,13 +1197,46 @@ void cancelAckCallback(const std_msgs::String::ConstPtr& msg)
     return;
   }
   std::lock_guard<std::mutex> lock(g_state.mutex);
+  lite3_bt::CancelAckFacts facts;
+  facts.seq = seq;
+  facts.confirmed = outcome == "cancelled";
+  facts.self_issued = g_state.self_issued.count(seq) > 0;
+  facts.already_recorded = g_state.cancel_results.count(seq) > 0;
+  facts.has_current = g_state.has_current;
+  const lite3_bt::CancelAckDisposition disposition =
+      lite3_bt::classify_cancel_ack(facts);
+
   g_state.cancel_ack_seen = true;
   g_state.cancel_ack_seq = seq;
   g_state.cancel_ack_outcome = outcome;
-  g_state.cancel_ack_ok = outcome == "cancelled";
+  g_state.cancel_ack_ok = facts.confirmed;
   g_state.cancel_results[seq] = outcome;
   while (g_state.cancel_results.size() > 128)
     g_state.cancel_results.erase(g_state.cancel_results.begin());
+
+  if (disposition != lite3_bt::CancelAckDisposition::EXTERNAL_STOP) return;
+  // Somebody else stopped the executor while this leg was live: the global
+  // adapter's own fault stop, or an operator writing /v8/local/cancel directly.
+  // Until now the BT never learned about it, and WaitArrival kept driving
+  // against a halted backend until the arrival budget expired (60 s floor,
+  // measured 100 s).  Latch the cancel instead so the mission leaves at its
+  // next tick and the cancel branch runs; CancelStop then republishes under the
+  // BT's own seq (reusing the foreign one would put the same seq on the wire
+  // twice and blur who stopped what).
+  const std::size_t dropped = g_state.pending.depth();
+  g_state.cancel_requested = true;
+  g_state.cancel_scope = "all";
+  g_state.cancel_reason = "external_cancel";
+  g_state.cancel_seq += 1;
+  g_state.cancel_origin = "external";
+  g_state.external_cancel_seq = seq;
+  dropPendingLocked();
+  g_state.last_event = "external_cancel";
+  ROS_WARN("[bt] executor confirmed a cancel this node did not issue "
+           "(ack seq=%lu, current goal %lu): mission cancelled, %zu goal(s) dropped",
+           static_cast<unsigned long>(seq),
+           static_cast<unsigned long>(g_state.current_seq),
+           static_cast<std::size_t>(dropped));
 }
 
 void localizationCallback(const std_msgs::Bool::ConstPtr& msg)
@@ -1374,7 +1459,8 @@ int main(int argc, char** argv)
       bool arrival_signal = false;
       const char* planner_mode = "pose";
       bool cancel_requested = false;
-      std::string cancel_scope, cancel_ack, recovery_mode;
+      std::string cancel_scope, cancel_ack, recovery_mode, cancel_origin;
+      std::uint64_t pending_dropped = 0, external_cancel_seq = 0;
       int attempts = 0, goal_index = 0, goals_total = 0;
       bool localization_ok = true, localization_check = false;
       {
@@ -1393,6 +1479,9 @@ int main(int argc, char** argv)
         cancel_requested = g_state.cancel_requested;
         cancel_scope = g_state.cancel_scope;
         cancel_ack = g_state.cancel_ack_outcome;
+        cancel_origin = g_state.cancel_origin;
+        pending_dropped = g_state.pending_dropped;
+        external_cancel_seq = g_state.external_cancel_seq;
         recovery_mode = g_state.recovery_mode;
         attempts = g_state.attempts;
         goal_index = g_state.goal_index;
@@ -1423,6 +1512,9 @@ int main(int argc, char** argv)
                     ",\"cancel_requested\":" + std::string(cancel_requested ? "true" : "false") +
                     ",\"cancel_scope\":\"" + cancel_scope + "\"" +
                     ",\"cancel_ack\":\"" + cancel_ack + "\"" +
+                    ",\"cancel_origin\":\"" + cancel_origin + "\"" +
+                    ",\"external_cancel_seq\":" + std::to_string(external_cancel_seq) +
+                    ",\"pending_dropped\":" + std::to_string(pending_dropped) +
                     ",\"attempts\":" + std::to_string(attempts) +
                     ",\"recovery_mode\":\"" + recovery_mode + "\"" +
                     ",\"goal_index\":" + std::to_string(goal_index) +
