@@ -7922,3 +7922,21 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   仍在位、test_navigation_contract.py 仍校验 mode_sim_teb 与 m2_teb（未改为只验 A 链）。
   与「B 链取消、保留技术备份」不矛盾，故未擅自补归档，只登记为一个待真人一句话定性的点：
   后三项属有意保留还是漏做。
+
+## 2026-11-22 / T-20261122-02 容器补挂 archive/，恢复 B 链窗口预检
+
+- 现象：B 链窗口（run_bt_navigation_window.sh）在容器内跑 4 秒即退，rc=5 是预检拒窗，不是导航失败；
+  预检 ①ISO 段报 rc=1，ISO 件那一行是 moved costmap plugin package missing from both ws/src and archive
+- 根因：b38ec273 把 lite3_costmap_layers 整包 git mv 进仓根 archive/，而 docker-compose 的挂载表只挂
+  ws/src、scripts、note、tooling 等子目录 ⇒ 容器里根本看不到 archive/，四态判据里「只在归档」这一支永远取不到
+- 改面：docker/docker-compose.yml 的 &ros-volumes 锚点补一行 - ../archive:/opt/ros1-slam/archive:ro，
+  该锚点被 slam（容器 ros1-slam-dev）、sim、slam-host 三个服务引用
+- 为什么只读：archive/ 不参与 catkin 构建；pyst_face.txt 的注记明写归档副本不再受 PYST ⇒ 没有门禁会
+  往里写 __pycache__，与 subprojects 那条「必须可写，否则 py_compile 报 Errno 30」是两种情形
+- 生效方式：docker compose up -d --no-deps --force-recreate slam，以及 --profile sim 下同参数重建 sim；
+  命名卷 build／devel／install 保留，两容器内 devel/setup.bash 在位、uid 仍是 1000
+- 验收：重建后容器内 GATE_ONLY=ISO,DC 两件 rc=0（ISO 尾行 ws_src_files=4786，清掉 23 个 pyc 后的真值）；
+  B 链窗口整跑 BT_NATIVE_RUNTIME_RC=0、verdict=PASS、5 用例全过、端口退净
+- 遗留：sim-viz 走自己的挂载列表、未补 archive/；该容器只做 rviz 显示、不跑门禁与窗口，将来要在里面
+  跑预检须先补挂
+- 读数与证据落册：note/架构/双后端可替换_验证记录_2026-11-22.md，证据在 note/进度/v8/M5/26-11-22/evidence/

@@ -102,6 +102,13 @@ x-ros-base: &ros-base
   volumes: &ros-volumes
     # ---- 源码热更新：改宿主机文件，容器里立刻可见 ----
     - ../ws/src:/opt/ros1-slam/ws/src
+    # ★ 2026-11-22 补：归档层必须可见。b38ec273 把 lite3_costmap_layers 整包 git mv 进
+    #   仓根 archive/，而 v8_isolation 的四态判据要在 ws/src 与 archive 之间二选一核对，
+    #   只挂 ws/src 时容器内恒报 moved costmap plugin package missing from both ws/src and archive
+    #   ⇒ v8_window_preflight 的 ①ISO 恒 rc=1、窗口全被拒（实测：加上本行即 rc=0）。
+    #   :ro 安全：archive/ 不参与 catkin 构建，pyst_face.txt 的注记也明写归档副本不再受 PYST，
+    #   没有门禁会往这里写 __pycache__（与 subprojects 那条必须可写的情况不同）。
+    - ../archive:/opt/ros1-slam/archive:ro
     - ../scripts:/opt/ros1-slam/scripts
     # P3 控制台源码（voxel_stream 等作业栈）兼容旧 /opt/ros1-slam/scripts/console 路径
     - ../subprojects/console/console:/opt/ros1-slam/scripts/console:ro
