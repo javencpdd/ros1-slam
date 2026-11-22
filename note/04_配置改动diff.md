@@ -7986,3 +7986,34 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 本批不接主链：没有任何 launch、manifest、graph 指向这三个文件，support 分支一行未动
 - 验收读数（九测全过、零 ROS 断言、静态三查 rc=0、三组反控各自翻红后恢复全绿）落册在
   note/架构/双后端可替换_验证记录_2026-11-22.md 第五节
+
+## 2026-11-22 / T-20261122-02 B2 mode_sim_bt 加全局后端开关，far 分支跑通
+
+- 新文件 ws/src/90_platform/v8_platform/launch/far_stack.launch：起上游 far_planner 与适配器两节点，
+  不复用上游 far_planner.launch（它连带 rviz 与 graph_decoder，两者都不在最小包集里）
+- 端口话题的 arg 默认值与 manifest_global_far.json 的 port topic 逐字相同，理由：v8 framework 对
+  launch.kind=include 的实例不生成 remap（render.py 的 include 分支直接 continue），两侧一旦漂移
+  check 仍然绿而链路其实已经断了
+- far_planner 节点名不能改、不能加 namespace：上游把参数前缀硬编码成 /far_planner/（far_planner.cpp:417
+  的 master_prefix），改名会让它把所有参数读成默认值，而默认值里 is_multi_layer 为 false
+- mode_sim_bt.launch 顶部新增四个 arg：global_backend（support，缺省）、arrival_topic（空）、
+  far_debug（false）、far_terrain_flatten（true）；全局节由一段改成两个 group，按
+  eval arg 判断 support 与 far；BT include 多传一个 arrival_topic
+- 本批最贵的一条：vehicle_height 由 0.436 改为 0.0。这个键的语义是 odom 原点离地高，不是雷达安装高。
+  本栈 /v8/local/pose 的 z 与地面同高，该值必须为 0；填 0.436 时上游 TraversableAnalysis 启动地形
+  连通搜索的自检差恒为 0.436，超过 height_voxel_dim 的 0.3，地形图不初始化，紧接着
+  ObsNeighborCloudWithTerrain 把全部可见障碍格过滤掉，可见图永远不建、航点恒 0。定因读数与复放证据
+  落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第 6.3 节，点云样本留在
+  note/进度/v8/M5/26-11-22/evidence/b2_far_recplay/real_cloud.npz
+- far_node.py 三处补强：apply_transform 自算四元数旋转加平移，替掉未安装的 tf2_sensor_msgs 依赖
+  （镜像里没有 ros-noetic-tf2-sensor-msgs，用它节点直接起不来，且换到自算后可离线测转帧判据）；
+  to_map 先按点云戳查 tf、失败退 rospy.Time(0)，因为点云戳常比 tf 缓存起点早几十毫秒；
+  AdapterState 增 fault cancel 记账与 ack 超时，超时只报 E_FAR_CANCEL_UNACKED，不写任何速度话题
+- test_far_node.py 九条扩到十二条：补 apply_transform 旋转加平移、fault cancel 记账与超时、
+  新 goal 清 pending 三例
+- 面件无新增：far_node.py 与 run_global_far.py 已在 B1 挂进 pyst_face.txt（66→68），本批没有新可执行件
+- 两条现状读数（不是缺陷，但会影响验收脚本写法）：FAR 冷启动约 30 s 才建好可见图，此前 BT 连续收到
+  E_FAR_WARMUP；仿真 /use_sim_time 为 true，实测 24.0 s 墙钟只推进 10.5 s ROS 时间，所以
+  waypoint_timeout_s=10 折合墙钟约 23 s，按墙钟 18 s 判超时会误判成门不生效
+- 未采信的假设留档：曾以为地形点被压到地面（terrain_flatten）导致 obs 恒 0，用 flatten=false 对照后
+  obs 仍 0，假设被否；开关保留但不是本问题的解

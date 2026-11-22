@@ -43,6 +43,38 @@ def _xyz(value):
     return seq
 
 
+def apply_transform(points, translation, rotation):
+    """把点从源 frame 转到目标 frame：先按四元数旋转，再平移。
+
+    `translation` 是 `(tx, ty, tz)`，`rotation` 是 `(qx, qy, qz, qw)`（未归一化也接受）。
+
+    为什么自己算而不用 `tf2_sensor_msgs.do_transform_cloud`：
+    那个包（`ros-noetic-tf2-sensor-msgs`）在本镜像里没装，而它做的也只是这件事。
+    自己算顺带把「转帧」变成可离线测的纯函数——纯平移近似在 1 m 外就会带来 >0.2 m 的
+    h 误差，这条判据值得有测试盯着。
+    """
+    qx, qy, qz, qw = (float(v) for v in rotation)
+    norm = math.sqrt(qx * qx + qy * qy + qz * qz + qw * qw)
+    if norm <= 1e-12:
+        qx = qy = qz = 0.0
+        qw = 1.0
+    else:
+        qx, qy, qz, qw = qx / norm, qy / norm, qz / norm, qw / norm
+    tx, ty, tz = (float(v) for v in translation)
+    # 常用项展开，避免每个点算一次矩阵
+    xx, yy, zz = qx * qx, qy * qy, qz * qz
+    xy, xz, yz = qx * qy, qx * qz, qy * qz
+    wx, wy, wz = qw * qx, qw * qy, qw * qz
+    out = []
+    for x, y, z in points:
+        out.append((
+            (1. - 2. * (yy + zz)) * x + 2. * (xy - wz) * y + 2. * (xz + wy) * z + tx,
+            2. * (xy + wz) * x + (1. - 2. * (xx + zz)) * y + 2. * (yz - wx) * z + ty,
+            2. * (xz - wy) * x + 2. * (yz + wx) * y + (1. - 2. * (xx + yy)) * z + tz,
+        ))
+    return out
+
+
 def ground_z_by_cell(points, cell_m=GROUND_CELL_M):
     """每 `cell_m` 栅格取最小 z 当地面，返回 `{(ix, iy): z}`。
 
@@ -57,25 +89,28 @@ def ground_z_by_cell(points, cell_m=GROUND_CELL_M):
     return cells
 
 
-def terrain_cloud(points, h=None, cell_m=GROUND_CELL_M):
-    """把 `map` 系点做成 FAR 要的语义地形，每点返回 `(x, y, ground_z, height)`。
+def terrain_cloud(points, h=None, cell_m=GROUND_CELL_M, flatten=True):
+    """把 `map` 系点做成 FAR 要的语义地形，每点返回 `(x, y, z_out, height)`。
 
     `h=None`：按每格最小 z 估地面（真实路径——地面有起伏，逐格抬升）。
     `h` 给定：地面高度已知（单平面输入，如仿真平地或已平整好的一层），直接减。
 
-    `height` 即上游 `intensity` 字段的语义＝离地高，`classify()` 用它判可通行。
+    `flatten=True`：`z_out` 取该格地面高度，点被压到地面上（CMU terrain_map 的形态）。
+    `flatten=False`：`z_out` 保留点的真实高度，障碍物保留自身高程。
+
+    两种形态的 `height` 完全相同，差别只在 FAR 的地图栅格把点记在哪个高度层。
     """
+    items = [_xyz(p) for p in points]
     if h is None:
-        items = [_xyz(p) for p in points]
         cells = ground_z_by_cell(items, cell_m)
         out = []
         for x, y, z in items:
             key = (int(math.floor(x / cell_m)), int(math.floor(y / cell_m)))
             ground = cells[key]
-            out.append((x, y, ground, z - ground))
+            out.append((x, y, ground if flatten else z, z - ground))
         return out
     ground = float(h)
-    return [(x, y, ground, z - ground) for x, y, z in (_xyz(p) for p in points)]
+    return [(x, y, ground if flatten else z, z - ground) for x, y, z in items]
 
 
 def classify(height):
@@ -167,6 +202,7 @@ class AdapterState:
         self.last_waypoint = None
         self.last_waypoint_at = None
         self.waypoint_count = 0
+        self.pending = None          # 自己发起、还没等到 ack 的那一次取消
 
     # ---- 生命周期 ----
     def next_cancel_seq(self):
@@ -175,11 +211,16 @@ class AdapterState:
         return self.cancel_seq
 
     def on_goal(self):
-        """新 goal：解除 halted 并清掉残留航点记录。返回 True 表示这次是从 halted 恢复。"""
+        """新 goal：解除 halted 并清掉残留航点记录。返回 True 表示这次是从 halted 恢复。
+
+        同时清掉待确认的取消记录：新 goal 意味着操作员重新下达任务、人已接管，
+        此时再报「上一轮取消没被 ack」只会在正常行驶里插一条误导性故障。
+        """
         was_halted = self.halted
         self.halted = False
         self.last_waypoint = None
         self.last_waypoint_at = None
+        self.pending = None
         return was_halted
 
     def on_cancel(self, seq=None):
@@ -200,6 +241,40 @@ class AdapterState:
         if seq != self.cancel_seq:
             return None
         return seq, outcome
+
+    def request_cancel(self, now=None, reason='far_fault'):
+        """适配器**自己**发起取消（R6② 的故障停止手段）。返回 `(seq, 帧文本)`。
+
+        ★ 只在自身判出故障时用（航点超时），不回声外部取消 ★
+        `/v8/local/cancel` 已经有 BT 这个写者；回声会造成同一 seq 两次发布，
+        而且会把「谁停的」这件事搅浑，事后查日志分不出是 BT 停的还是适配器停的。
+        """
+        seq = self.on_cancel()
+        self.pending = {'seq': seq, 'at': now, 'acked': False, 'reported': False}
+        return seq, cancel_text(seq, 'all', reason)
+
+    def note_ack(self, text):
+        """记 ack：先按本实例的待确认 seq 记账，再走 on_ack 的语义。"""
+        parsed = parse_ack(text)
+        if parsed is not None and self.pending is not None:
+            if parsed[0] == self.pending['seq']:
+                self.pending['acked'] = True
+        return self.on_ack(text)
+
+    def ack_timeout(self, now, timeout_s):
+        """自己发的取消迟迟没有 ack ⇒ 报 `E_FAR_CANCEL_UNACKED`，只报一次。
+
+        ★ 不写任何速度话题 ★ 车能不能停取决于 cancel 有没有被局部规划器接受；
+        适配器若自己往 /cmd_vel_raw 或 /cmd_vel 补零，就越过了安全 mux 的单写者约束。
+        所以 ack 不来时只能高声上报，不能自造运动指令。
+        """
+        pending = self.pending
+        if pending is None or pending['acked'] or pending['reported']:
+            return None
+        if now is None or now - pending['at'] < float(timeout_s):
+            return None
+        pending['reported'] = True
+        return status_json(False, 0, 'E_FAR_CANCEL_UNACKED', seq=pending['seq'])
 
     # ---- 航点 ----
     def on_waypoint(self, pose, waypoint, now=None):
@@ -238,7 +313,6 @@ def main():
     from sensor_msgs.msg import PointCloud2, PointField
     from std_msgs.msg import Bool, String
     import sensor_msgs.point_cloud2 as pc2
-    from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
     rospy.init_node('v8_global_far')
     frame = rospy.get_param('~world_frame', 'map')
@@ -257,10 +331,18 @@ def main():
     cancel_topic = rospy.get_param('~cancel_topic', '/v8/local/cancel')
     ack_topic = rospy.get_param('~cancel_ack_topic', '/v8/local/cancel_ack')
     timeout_s = float(rospy.get_param('~waypoint_timeout_s', 10.0))
+    cancel_ack_timeout_s = float(rospy.get_param('~cancel_ack_timeout', 2.0))
     lookahead_m = float(rospy.get_param('~lookahead_m', LOOKAHEAD_M))
+    terrain_range_m = float(rospy.get_param('~terrain_range_m', 15.0))
+    terrain_rate_hz = float(rospy.get_param('~terrain_rate_hz', 2.5))
+    terrain_flatten = bool(rospy.get_param('~terrain_flatten', True))
+    tf_timeout_s = float(rospy.get_param('~tf_timeout_s', 1.0))
+    # 到达信号：给 BT 的 arrival_topic 用（std_msgs/Bool）。空则不发，BT 保持自己的 xy 判据。
+    arrival_topic = rospy.get_param('~arrival_topic', '')
 
     state = AdapterState(lookahead_m=lookahead_m)
     pose = {'value': None}
+    gate = {'next_terrain': 0.0}
 
     terrain_pub = rospy.Publisher(terrain_topic, PointCloud2, queue_size=1)
     scan_pub = rospy.Publisher(scan_out, PointCloud2, queue_size=1)
@@ -269,6 +351,7 @@ def main():
     path_pub = rospy.Publisher(path_topic, Path, queue_size=1, latch=True)
     status_pub = rospy.Publisher(status_topic, String, queue_size=10, latch=True)
     cancel_pub = rospy.Publisher(cancel_topic, String, queue_size=1)
+    arrival_pub = rospy.Publisher(arrival_topic, Bool, queue_size=1) if arrival_topic else None
 
     tf_buffer = tf2_ros.Buffer()
     tf2_ros.TransformListener(tf_buffer)
@@ -278,19 +361,43 @@ def main():
     def publish_status(text):
         status_pub.publish(String(data=text))
 
-    def to_frame(message):
-        """转到 `frame`。只做纯平移近似会在 1 m 外带进 >0.2 m 的 h 误差，必须走真 tf。"""
-        if message.header.frame_id == frame:
-            return message
-        transform = tf_buffer.lookup_transform(frame, message.header.frame_id,
-                                               message.header.stamp, rospy.Duration(0.2))
-        return do_transform_cloud(message, transform)
+    def to_map(points, source_frame, stamp):
+        """把点转到 `frame`。只做纯平移近似会在 1 m 外带进 >0.2 m 的 h 误差，必须走真 tf。
+
+        先按点云戳查，查不到就退到「最新可用变换」：仿真里点云戳常比 tf 缓存起点早几十毫秒
+        （Lookup would require extrapolation into the past），而 20 Hz 的 tf 与 0.34 m 安装偏移
+        在车体接近静止时用最新变换带来的误差远小于 0.2 m 的 h 判据。
+        """
+        if source_frame == frame:
+            return points
+        try:
+            transform = tf_buffer.lookup_transform(frame, source_frame, stamp,
+                                                   rospy.Duration(tf_timeout_s))
+        except Exception:
+            transform = tf_buffer.lookup_transform(frame, source_frame, rospy.Time(0),
+                                                   rospy.Duration(tf_timeout_s))
+        t, q = transform.transform.translation, transform.transform.rotation
+        return apply_transform(points, (t.x, t.y, t.z), (q.x, q.y, q.z, q.w))
 
     def on_cloud(message):
+        # 节流：FAR 主循环 2.5 Hz，点云 10 Hz。不节流的话 Python 侧转换会把回调堵死，
+        # 表现是 /terrain_cloud 频率掉到 1 Hz 以下、FAR 的图迟迟不收敛。
+        now = rospy.get_time()
+        if now < gate['next_terrain']:
+            return
+        gate['next_terrain'] = now + (1.0 / terrain_rate_hz if terrain_rate_hz > 0 else 0.0)
         try:
             points = [(p[0], p[1], p[2]) for p in pc2.read_points(
                 message, field_names=('x', 'y', 'z'), skip_nans=True)]
-            levelled = terrain_cloud(points)
+            points = to_map(points, message.header.frame_id, message.header.stamp)  # ★ 先转 map 系再算 h ★
+            # 裁剪以车为心，不以地图原点为心：上游 terrain_range 是「看多远」，
+            # 拿地图原点当心会在远离原点时把近处全裁掉，FAR 收到一张空地形。
+            origin = pose['value']
+            if origin is not None and terrain_range_m > 0:
+                ox, oy = origin[0], origin[1]
+                points = [p for p in points
+                          if math.hypot(p[0] - ox, p[1] - oy) <= terrain_range_m]
+            levelled = terrain_cloud(points, flatten=terrain_flatten)
         except Exception as error:                     # tf 未就绪、点云字段缺失都走这里
             publish_status(status_json(False, 0, 'E_FAR_TERRAIN', detail=str(error)[:120]))
             return
@@ -299,7 +406,9 @@ def main():
         terrain_pub.publish(pc2.create_cloud(header, fields, levelled))
 
     def on_scan(message):
-        scan_pub.publish(to_frame(message))
+        # 直通，不转帧：上游 ScanCallBack 在 is_static_env=true 时第一句就 return
+        # （far_planner.cpp:605），这条链路在当前配置下根本不消费 /scan_cloud。
+        scan_pub.publish(message)
 
     def on_pose(message):
         p = message.pose.position
@@ -345,18 +454,24 @@ def main():
             return                                    # 取消后的到达自报一律不采信
         publish_status(status_json(bool(message.data), state.waypoint_count,
                                    'ok' if message.data else 'E_FAR_NOT_REACHED'))
+        if arrival_pub is not None and message.data:
+            # 只转发 true，不转发 false：BT 的 arrivalCallback 是「置位」语义，
+            # 回 false 会被它当成「还没到」而清掉已经置好的位。
+            arrival_pub.publish(Bool(data=True))
 
     def on_cancel(message):
+        """外部取消（BT 是既有写者）：只让自己停，不回声。
+
+        回声会让同一个 seq 出现两次发布，事后查日志分不出「谁停的」。
+        """
         parts = message.data.split(':', 2)
         if len(parts) < 2 or not parts[0].isdigit() or parts[1] not in ('current', 'all'):
             return
         seq = state.on_cancel(int(parts[0]))
-        publish_status(status_json(False, 0, 'E_FAR_CANCEL_REQUESTED', seq=seq))
-        cancel_pub.publish(String(data=cancel_text(seq, parts[1],
-                                                   parts[2] if len(parts) > 2 else 'far')))
+        publish_status(status_json(False, 0, 'E_FAR_CANCEL_RECEIVED', seq=seq))
 
     def on_ack(message):
-        confirmed = state.on_ack(message.data)
+        confirmed = state.note_ack(message.data)
         if confirmed is None:
             return
         seq, outcome = confirmed
@@ -376,10 +491,17 @@ def main():
     publish_status(status_json(True, 0, 'ok', waiting=True))
     rate = rospy.Rate(5.0)
     while not rospy.is_shutdown():
-        text = state.stale(rospy.get_time(), timeout_s)
-        if text is not None:
-            publish_status(text)
-            state.last_waypoint_at = rospy.get_time()   # 只报一次，不刷屏
+        now = rospy.get_time()
+        stale_status = state.stale(now, timeout_s)
+        if stale_status is not None:
+            publish_status(stale_status)
+            # 航点断了就自己发一次取消（故障停止手段），并记住 seq 等 ack
+            _seq, frame = state.request_cancel(now, 'far_waypoint_stale')
+            cancel_pub.publish(String(data=frame))
+            state.last_waypoint_at = now            # 同一轮故障只触发一次
+        unacked = state.ack_timeout(now, cancel_ack_timeout_s)
+        if unacked is not None:
+            publish_status(unacked)
         rate.sleep()
     return 0
 

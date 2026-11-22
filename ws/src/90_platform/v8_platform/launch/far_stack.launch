@@ -1,0 +1,79 @@
+<launch>
+  <!-- FAR 全局后端（第三方 overlay 版，T-20261122-02 R4②）。
+
+       上游 MichaelFYang/far_planner @ melodic-noetic（固定 sha 2799b696），按 overlay 部署在
+       /home/jack/far_overlay，不进本仓 catkin 闭包。本文件是它与 v8 契约之间的唯一接缝：
+       上游只认 /odom_world、/terrain_cloud、/scan_cloud、/goal_point、/way_point、
+       /far_reach_goal_status 六个绝对话题，语义地形与两点路径都由 run_global_far.py 转。
+
+       ★ 端口话题的 arg 默认值必须与 manifest_global_far.json 的 port topic 逐字相同 ★
+       v8 framework 对 launch.kind=include 的实例**不生成 remap**（render.py 的 include 分支
+       直接 continue），所以两侧一旦漂移，check 仍然绿而链路其实已经断了。改话题必须两处同改。
+
+       ★ far_planner 节点名不能改 ★
+       上游把参数前缀硬编码成 /far_planner/（far_planner.cpp:417 的 master_prefix），
+       改名或加 namespace 会让它把所有参数读成默认值，而默认值里 is_multi_layer=false。 -->
+
+  <!-- 1) 端口话题（＝manifest ports，逐字） -->
+  <arg name="cloud_topic" default="/rslidar_points"/>
+  <arg name="start_topic" default="/v8/local/pose"/>
+  <arg name="goal_topic" default="/v8/global/goal"/>
+  <arg name="path_topic" default="/global_path"/>
+  <arg name="status_topic" default="/global_path/status"/>
+
+  <!-- 2) 规划参数（这些名字同时是 graph 侧 global.params 的键：
+          include 会把实例 params 当 <arg> 传进来，键名对不上就直接报 unused arg） -->
+  <arg name="world_frame" default="map"/>
+  <arg name="is_multi_layer" default="true"/>
+  <!-- ★ 这个参数是「odom 原点离地高」，不是「雷达安装高」★ 填错会让整条链静默失效。
+
+       上游在 MapHandler::TraversableAnalysis（map_handler.cpp:459 附近）启动地形连通搜索时，
+       只接受满足 |terrain_h - robot.z + vehicle_height| <= height_voxel_dim（0.3 m）的地形格，
+       而这个格正是机器人脚下那格。本栈 /v8/local/pose 的 z 与地面同高（base_link 落在地面），
+       所以 robot.z - terrain_h 恒为 0，vehicle_height 必须也是 0；填 0.436 时该差恒等于 0.436 > 0.3，
+       地形图永远不初始化，紧接着 UpdateTerrainHeightGrid 末尾的 ObsNeighborCloudWithTerrain
+       会把全部可见障碍格滤掉（surround_obs 归零），可见图永远不建、WAYPOINTS 恒 0。
+       实证：同一帧真实点云、同一位姿，只改此参数 0.436→0.0，surround_obs 0→131、航点 0→49。 -->
+  <arg name="vehicle_height" default="0.0"/>
+  <arg name="terrain_free_Z" default="0.2"/>
+  <arg name="lookahead_m" default="1.5"/>
+
+  <!-- 3) 非端口参数 -->
+  <arg name="config" default="default"/>
+  <!-- 诊断开关：上游只在 is_debug_output 为真时才打印图顶点数、拒因等；平时关掉免得刷屏。 -->
+  <arg name="debug_output" default="false"/>
+  <!-- 到达信号出口：BT 侧 arrival_topic 指同一个话题。空则不发，BT 退回自己的 xy 判据。 -->
+  <arg name="arrival_topic" default="/v8/bt/arrived"/>
+  <arg name="waypoint_timeout_s" default="10.0"/>
+  <arg name="terrain_range_m" default="15.0"/>
+  <arg name="terrain_rate_hz" default="2.5"/>
+  <arg name="terrain_flatten" default="true"/>
+
+  <!-- 4) 上游主节点。不复用上游 far_planner.launch：它连带起 rviz 与 graph_decoder，
+          两者都不在最小包集里。 -->
+  <node pkg="far_planner" type="far_planner" name="far_planner" output="screen">
+    <rosparam command="load" file="$(find far_planner)/config/$(arg config).yaml"/>
+    <!-- 三处必须覆盖上游默认值，写在 load 之后才生效 -->
+    <param name="world_frame" value="$(arg world_frame)"/>
+    <param name="is_multi_layer" value="$(arg is_multi_layer)"/>
+    <param name="vehicle_height" value="$(arg vehicle_height)"/>
+    <param name="Util/terrain_free_Z" value="$(arg terrain_free_Z)"/>
+    <param name="is_debug_output" value="$(arg debug_output)"/>
+  </node>
+
+  <!-- 5) v8 侧适配器：语义地形、两点/带前视的步态路径、取消写者、到达转发。 -->
+  <node pkg="v8_platform" type="run_global_far.py" name="v8_global_far" output="screen">
+    <param name="world_frame" value="$(arg world_frame)"/>
+    <param name="cloud_topic" value="$(arg cloud_topic)"/>
+    <param name="start_topic" value="$(arg start_topic)"/>
+    <param name="goal_topic" value="$(arg goal_topic)"/>
+    <param name="path_topic" value="$(arg path_topic)"/>
+    <param name="status_topic" value="$(arg status_topic)"/>
+    <param name="lookahead_m" value="$(arg lookahead_m)"/>
+    <param name="arrival_topic" value="$(arg arrival_topic)"/>
+    <param name="waypoint_timeout_s" value="$(arg waypoint_timeout_s)"/>
+    <param name="terrain_range_m" value="$(arg terrain_range_m)"/>
+    <param name="terrain_rate_hz" value="$(arg terrain_rate_hz)"/>
+    <param name="terrain_flatten" value="$(arg terrain_flatten)"/>
+  </node>
+</launch>

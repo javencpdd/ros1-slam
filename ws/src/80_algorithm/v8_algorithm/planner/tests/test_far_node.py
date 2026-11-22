@@ -98,6 +98,48 @@ class StateTests(unittest.TestCase):
         self.assertEqual(len(points), 2)
 
 
+class TransformAndFaultTests(unittest.TestCase):
+    def test_10_transform_rotates_then_translates(self):
+        """转帧自己算（镜像里没有 tf2_sensor_msgs）。纯平移近似在 1 m 外就 >0.2 m 误差。"""
+        # 恒等
+        self.assertEqual(far_node.apply_transform([(1., 2., 3.)], (0., 0., 0.),
+                                                  (0., 0., 0., 1.)), [(1., 2., 3.)])
+        # 绕 z 转 90 度再加平移：(1,0,0) -> (0,1,0) -> (5,7,7)
+        out = far_node.apply_transform([(1., 0., 0.)], (5., 6., 7.),
+                                       (0., 0., math.sqrt(0.5), math.sqrt(0.5)))
+        for got, want in zip(out[0], (5., 7., 7.)):
+            self.assertAlmostEqual(got, want, places=9)
+        # 四元数未归一化也要成立
+        self.assertAlmostEqual(far_node.apply_transform([(0., 1., 0.)], (0., 0., 0.),
+                                                        (0., 0., 2., 2.))[0][0], -1., places=9)
+
+    def test_11_fault_cancel_tracks_ack_and_times_out(self):
+        state = far_node.AdapterState()
+        seq, frame = state.request_cancel(now=100., reason='far_waypoint_stale')
+        self.assertTrue(state.halted)
+        self.assertEqual(cancel_policy.parse_cancel(frame)[:2], (seq, 'all'))
+        # 没到超时点：不报
+        self.assertIsNone(state.ack_timeout(101., 2.0))
+        # 超时且无 ack：报一次 cancel_unacked
+        text = state.ack_timeout(103., 2.0)
+        self.assertEqual(json.loads(text)['reason'], 'E_FAR_CANCEL_UNACKED')
+        self.assertIsNone(state.ack_timeout(110., 2.0))      # 只报一次，不刷屏
+        # ack 及时到位则不报
+        state2 = far_node.AdapterState()
+        seq2, _ = state2.request_cancel(now=0.)
+        self.assertEqual(state2.note_ack(cancel_policy.ack_text(seq2, 'cancelled')),
+                         (seq2, 'cancelled'))
+        self.assertIsNone(state2.ack_timeout(99., 2.0))
+
+    def test_12_new_goal_clears_pending_cancel(self):
+        """新 goal ＝ 操作员重新下达任务，上一轮的 ack 欠账不该在正常行驶里冒出来。"""
+        state = far_node.AdapterState()
+        state.request_cancel(now=0.)
+        state.on_goal()
+        self.assertIsNone(state.ack_timeout(999., 0.1))
+        self.assertFalse(state.halted)
+
+
 class ContractTests(unittest.TestCase):
     """跨包互检：far_node 自己组字符串（顶层零跨包 import），格式必须与 local_planner 同一契约。"""
 

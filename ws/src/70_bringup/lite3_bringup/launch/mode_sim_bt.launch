@@ -26,6 +26,16 @@
   <arg name="map_json" default="$(find v8_platform)/contracts/fixtures/map_single_floor.json"/>
   <!-- 透传给 m2_teb 的 TF 阴性对照口子（G5c1/TF 结构门标定用；缺省 fresh）。 -->
   <arg name="tf_source" default="fresh"/>
+  <!-- 全局后端二选一（T-20261122-02 R4）：support 走本仓支撑图规划器（缺省），
+       far 走第三方 FAR overlay。同一棵 BT、同一条安全链、同一个局部规划器，只换全局那一节。 -->
+  <arg name="global_backend" default="support"/>
+  <!-- 外部到达信号（std_msgs/Bool）。空＝BT 用位姿判据；far 后端必须显式给，
+       否则 far 的到达自报发出来也没人听，BT 仍按 xy 距离判，多层场景会提前成功。 -->
+  <arg name="arrival_topic" default=""/>
+  <!-- far 后端的诊断开关（上游 is_debug_output）：平时关，排查图不收敛时打真值输出。 -->
+  <arg name="far_debug" default="false"/>
+  <!-- 地形点是否压到地面（true＝CMU terrain_map 形态）。对照实验用。 -->
+  <arg name="far_terrain_flatten" default="true"/>
 
   <!-- 1) 仿真底座：m2_gazebo（world+载体+传感器）＋新鲜 TF＋free map＋cmd relay。
        m2_teb.launch 自 2026-10-08 [5] 返工后已不含 MBF（MBF include 上收到 TOP 层），
@@ -59,10 +69,28 @@
     <param name="map_topic" value="/v8_support_map"/>
   </node>
 
-  <!-- 5) 全局规划器：订阅 /v8/global/goal（demo 链 BT 直发口）＋ start ＋ map。 -->
-  <node pkg="v8_platform" type="run_global_planner.py" name="v8_global_planner" output="screen"/>
+  <!-- 5) 全局规划节：二选一（default=support，零回归）。
+       support：本仓支撑图规划器，订阅 /v8/global/goal（demo 链 BT 直发口）＋ start ＋ map。
+       far：第三方 FAR overlay，地形与航点由 run_global_far.py 转；参数与话题默认值
+            在 far_stack.launch 里，且必须与 manifest_global_far.json 的 port topic 逐字相同。 -->
+  <group if="$(eval arg('global_backend') == 'support')">
+    <node pkg="v8_platform" type="run_global_planner.py" name="v8_global_planner" output="screen"/>
+  </group>
 
-  <!-- 6) 全局路径 -> 局部目标。 -->
+  <group if="$(eval arg('global_backend') == 'far')">
+    <include file="$(find v8_platform)/launch/far_stack.launch">
+      <arg name="cloud_topic" value="/rslidar_points"/>
+      <arg name="start_topic" value="/v8/local/pose"/>
+      <arg name="goal_topic" value="/v8/global/goal"/>
+      <arg name="path_topic" value="/global_path"/>
+      <arg name="status_topic" value="/global_path/status"/>
+      <arg name="arrival_topic" value="$(arg arrival_topic)"/>
+      <arg name="debug_output" value="$(arg far_debug)"/>
+      <arg name="terrain_flatten" value="$(arg far_terrain_flatten)"/>
+    </include>
+  </group>
+
+  <!-- 6) 全局路径 -> 局部目标。两个后端共用：far 的 /global_path 也走这里。 -->
   <node pkg="v8_platform" type="run_path_goal.py" name="v8_path_goal" output="screen">
     <param name="path_topic" value="/global_path"/>
     <param name="goal_topic" value="/v8/local/goal"/>
@@ -80,12 +108,15 @@
     <rosparam param="experimental_config">{support_tol_m: 0.25}</rosparam>
   </node>
 
-  <!-- 8) 编排层：BT（demo profile 只含接线；物理量在树 XML 端口）。 -->
+  <!-- 8) 编排层：BT（demo profile 只含接线；物理量在树 XML 端口）。
+       arrival_topic 必须在这一层透传：bt_console 的私有参数只能经 bt_console.launch 的 arg 送进去，
+       同级的兄弟 group 里写 param 传不到节点（实读 bt_console.cpp:1228-1230 与启动日志那行判定）。 -->
   <group if="$(arg enable_bt)">
     <include file="$(find lite3_bt)/launch/bt_console.launch">
       <arg name="profile" value="$(arg bt_profile)"/>
       <arg name="zmq_pub_port" value="$(arg zmq_pub_port)"/>
       <arg name="zmq_sub_port" value="$(arg zmq_sub_port)"/>
+      <arg name="arrival_topic" value="$(arg arrival_topic)"/>
     </include>
   </group>
 </launch>
