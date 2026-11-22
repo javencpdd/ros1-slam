@@ -8101,3 +8101,34 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   「到对了楼层」要 support_map 按 (x,y) 取 z（押后项 D1）与真实双层图，此前不得写「3D 导航完成」
   或「支持跨楼层到达」
 - 落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第九节
+
+## 2026-11-22 / T-20261122-02 B2 补证据：探针入仓、原始读数落盘
+
+- 把原先放在 .git 下的 8 个 B2 探针移进 note/进度/v8/M5/26-11-22/evidence/b2_probes/，另加
+  _ready_gate.py（地形障碍格就绪门）、_cancel_drift.py（取消后漂移）、_regoal_via_bt.py（走 BT
+  入口的重发）与 b2_probes.sh（每轮各起一套独立栈），README 写明来源与不可原样复跑的件。
+  起因：B2 当时的探针只 print 不落盘、脚本又丢在 .git（不入库），第 5／6／8／9 条验收的原始
+  stdout 一份不剩，只剩验证记录里的汇总表——按仓库自己的规矩（bridge.py done 不收自报）等于没有证据
+- 独立栈读数：ACCEPT_POSES_UNIQ＝[2]、ACCEPT_LAST_POSE_Z＝0.110（目标 z 逐字，未被压平）、
+  取消三项 SEEN／STOPPED／NO_ECHO 全 True、航点超时 STALE_REPORTED＝True 且自取消
+  seq＝900000000 拿到 cancelled ack（since_s＝10.048）、同轮杀掉 far_planner 成立
+- 第 8 条此前从未被任何探针量过，本轮首次量到：取消后等 4 秒刹停取基准点，再等 8 秒，
+  位移 0.000 米（判据 ≤0.05）；该窗口内新增路径 0 帧、新增 /v8/local/goal 0 帧；
+  同窗口位姿 171 帧（≥5 帧，用来排除「位姿断了导致漂移恒 0」的假绿）。两轮独立读数一致
+- 一条必须记住的接线事实：目标链是 /v8/bt/goal 经 bt_console 的 RequestPath 变成
+  /v8/global/goal 再进全局后端，BT 才是目标所有者。第二写者直接发 /v8/local/cancel 时 BT
+  不知情、树仍在 mission 分支，此时再往 /v8/bt/goal 发目标没人接 ⇒ far_accept 的
+  ACCEPT_REGOAL_NEW_STAMPS 两次独立轮都是 0，B2 当时记的 1 是取消窗口边界上的残留帧
+- 走真实入口 /v8/bt/cancel 后：BT 转发 True、拿到同 seq 的 cancelled ack、适配器 on_goal
+  占位帧 1 帧、随后新时间戳路径 1 条且为 2 点（E_FAR_HALTED → E_FAR_WARMUP → ok）。run3 与
+  run4 两次一致；run3 因判据写成「末点须落在新目标附近」判 FAIL，该判据本身不成立——FAR 发的
+  是自己的航点不是目标点，已撤并换成就绪帧加新路径两点，不是放宽到能过
+- 于是第 9 条的取消后重发门改判：直接发 /v8/bt/goal 的测法不成立，走 /v8/bt/cancel 成立。
+  附带登记一条真实行为缺口：第二写者取消后 BT 仍停在 mission，直到 arrival timeout（实测约
+  100 秒）才进 Recovery，这期间操作员再发目标 BT 不响应。要改属新决策族，按 R4—R7 不动 BT，只登记
+- 门禁串重跑并留档 b2_probes/gate_chain.log：SYN／PYST／ISO／DC／账构 全 rc＝0，
+  ISO 的 ws_src_files＝4794（清 pyc 后，与 B5 同值；不清则 4814，跑探针会新产 20 个 pyc）
+- 第一版运行器把三个探针串在同一套栈上，读数被状态污染：上一轮的 cancelled 把 halted 置真，
+  而 stale() 在 halted 时不报，于是 STALE_REPORTED＝False。改为每轮独立栈后同一件转 True。
+  run1／run3 两个目录保留作缺陷证据，不删
+- 落册在 note/架构/双后端可替换_验证记录_2026-11-22.md 第 6.6 节

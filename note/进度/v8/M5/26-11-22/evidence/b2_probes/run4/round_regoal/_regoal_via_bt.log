@@ -1,0 +1,15 @@
+REGOALBT_GOAL_SENT tag=warm1 xy=(2.00, 0.00)
+REGOALBT_WARM_ATTEMPTS=1
+REGOALBT_PATHS_BEFORE_CANCEL=1
+REGOALBT_CANCEL_FORWARDED=True
+REGOALBT_CANCEL_ACK_CANCELLED=True
+REGOALBT_CANCEL_MSGS=['4345:all:regoal_test']
+REGOALBT_ACK_MSGS=['4345:cancelled']
+REGOALBT_GOAL_SENT tag=regoal1 xy=(2.00, 1.00)
+REGOALBT_ATTEMPTS=1
+REGOALBT_NEW_STAMPS=1
+REGOALBT_NEW_PATH_POINTS=2 (须 >= 2)
+REGOALBT_ON_GOAL_PLACEHOLDER=1 (须 >= 1，该帧只由适配器 on_goal 发)
+REGOALBT_TAIL=(5.012441635131836, 0.11155549436807632, 0.030158329755067825) (旁证：FAR 发的是自己的航点，不是目标点)
+REGOALBT_STATUS_TAIL=['{"ok": false, "points": 0, "reason": "E_FAR_HALTED", "seq": 4345}', '{"ok": false, "points": 0, "reason": "E_PLAN_RUNNING", "detail": "E_FAR_WARMUP"}', '{"ok": true, "points": 2, "reason": "ok", "gait_points": 2, "far_reach": false}']
+REGOALBT_VERDICT=PASS
