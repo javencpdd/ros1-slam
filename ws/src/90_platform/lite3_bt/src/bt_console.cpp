@@ -86,6 +86,21 @@ struct SharedState
   // Queued goals discarded by a fault stop.  A fault ends the mission; the
   // goals it still had queued must not start on their own afterwards.
   std::uint64_t pending_dropped = 0;
+  // Foreign cancel frames seen on the wire (`/v8/local/cancel`), i.e. frames
+  // whose seq this node did not publish.  They are the corroborating evidence
+  // that lets a stranger's ack stop a leg: an ack on its own cannot tell a real
+  // foreign cancel from a stray one.  Bounded like `self_issued`.
+  std::set<std::uint64_t> foreign_seqs;
+  // Counters for the three evidence channels, so a post-mortem can tell which
+  // one actually fired instead of guessing from one log line.
+  std::uint64_t wire_foreign_seen = 0;
+  std::uint64_t backend_cancel_seen = 0;
+  std::uint64_t stray_ack_seen = 0;
+  // Queued goals thrown away because a foreign frame arrived with no live leg.
+  // Separate from `pending_dropped` so a post-mortem can tell "the leg died and
+  // took its queue with it" from "the queue belonged to a mission somebody else
+  // had already killed".
+  std::uint64_t stale_queue_dropped = 0;
 
   // Localization readiness (disabled when the topic is empty).
   bool localization_check = false;
@@ -169,13 +184,68 @@ void rememberSelfIssuedLocked(std::uint64_t seq)
 // instead of being picked up by the next WaitForGoal tick.  Clearing without
 // counting would make "the queue was emptied" indistinguishable from "the queue
 // was always empty" in the status line and in post-run forensics.
-void dropPendingLocked()
+void dropPendingLocked(bool announce = true)
 {
   const std::size_t dropped = g_state.pending.depth();
   if (dropped == 0) return;
   g_state.pending.clear();
   g_state.pending_dropped += dropped;
+  if (!announce) return;  // 调用方自己有一条更准确的话要说
   ROS_WARN("[bt] dropped %zu queued goal(s) after fault stop",
+           static_cast<std::size_t>(dropped));
+}
+
+// Caller must hold g_state.mutex.  Remember that some other writer put this seq
+// on `/v8/local/cancel`.  Memory is bounded for the same reason as
+// `self_issued`: a long session must not grow without limit.
+void noteForeignSeqLocked(std::uint64_t seq)
+{
+  if (g_state.foreign_seqs.insert(seq).second) ++g_state.wire_foreign_seen;
+  while (g_state.foreign_seqs.size() > 128)
+    g_state.foreign_seqs.erase(g_state.foreign_seqs.begin());
+}
+
+// Caller must hold g_state.mutex.  Turn "somebody else cancelled the executor"
+// into this node's own cancel: latch the cancel so the mission leaves at its
+// next tick, drop the goals queued behind the dead leg, and remember which
+// channel supplied the evidence.  Re-publishing under our own seq (rather than
+// reusing the foreign one) keeps "who stopped what" answerable from the log.
+void latchExternalStopLocked(const char* origin, std::uint64_t seq)
+{
+  const std::size_t dropped = g_state.pending.depth();
+  g_state.cancel_requested = true;
+  g_state.cancel_scope = "all";
+  g_state.cancel_reason = "external_cancel";
+  g_state.cancel_seq += 1;
+  g_state.cancel_origin = origin;
+  g_state.external_cancel_seq = seq;
+  g_state.last_event = "external_cancel";
+  dropPendingLocked();
+  ROS_WARN("[bt] cancel this node did not issue (%s, seq=%lu, current goal %lu): "
+           "mission cancelled, %zu goal(s) dropped",
+           origin, static_cast<unsigned long>(seq),
+           static_cast<unsigned long>(g_state.current_seq),
+           static_cast<std::size_t>(dropped));
+}
+
+// Caller must hold g_state.mutex.  A foreign frame with no live leg cannot be
+// turned into a cancel (there is nothing to stop), but the goals still queued
+// belong to a mission an outside writer has just killed.  Leaving them there
+// means the next `takeGoal` re-dispatches them -- motion starting right after
+// a fault stop, which is the one outcome the whole rule exists to prevent.
+// Only a wire frame drops them: an ack with no wire evidence is unrelated
+// traffic and must not touch the queue.
+void dropStaleQueueLocked(const char* origin, std::uint64_t seq)
+{
+  if (g_state.pending.depth() == 0) return;
+  const std::size_t dropped = g_state.pending.depth();
+  g_state.last_event = "external_cancel";
+  g_state.stale_queue_dropped += dropped;
+  // 不借用「after fault stop」那句话：这一刻并没有故障停，是外来取消先到了。
+  dropPendingLocked(false);
+  ROS_WARN("[bt] cancel this node did not issue (%s, seq=%lu, no live leg): "
+           "%zu queued goal(s) dropped, no new motion without an operator goal",
+           origin, static_cast<unsigned long>(seq),
            static_cast<std::size_t>(dropped));
 }
 
@@ -251,6 +321,11 @@ private:
     g_state.retry_queued = false;
     g_state.cancel_requested = false;
     g_state.cancel_ack_seen = false;
+    // Cancel evidence belongs to the leg it killed.  A seq that was accounted
+    // for in an earlier mission must not corroborate an ack during this one --
+    // otherwise a duplicate ack from a past cancel stops a freshly started leg.
+    g_state.external_cancel_seq = 0;
+    g_state.foreign_seqs.clear();
     g_state.path_status_seen = false;
     g_state.path_ok = false;
     g_state.path_points = 0;
@@ -709,6 +784,12 @@ public:
     g_state.stop_pub.publish(zero);
     {
       std::lock_guard<std::mutex> lock(g_state.mutex);
+      // The leg is over: `Stop` is the last node of the mission sequence, so
+      // this is where "a goal is being executed right now" stops being true.
+      // Without this the flag stayed latched after a completed mission, and
+      // every later idle moment looked like a live leg -- which is exactly the
+      // hole the 2026-11-22 probe found on the origin rule's fourth fact.
+      g_state.has_current = false;
       g_state.last_event = "stop";
     }
     return BT::NodeStatus::SUCCESS;
@@ -1040,6 +1121,36 @@ void pathStatusCallback(const std_msgs::String::ConstPtr& msg)
   g_state.last_event = (ok && points > 0) ? "path_ready"
                        : (!ok && !transient_plan_reason(reason)) ? "path_failed"
                        : "path_running";
+
+  // Second evidence channel for a foreign cancel.  The global adapter echoes
+  // every cancel it receives on this topic as `E_FAR_CANCEL_RECEIVED` and puts
+  // the seq it received in the frame (far_node.on_cancel).  That makes it the
+  // only signal available when the executor never acks -- and it arrives before
+  // the tick that refuses the path, so latching here happens while the leg is
+  // still live in every ordering.
+  std::uint64_t cancel_seq = 0;
+  if (!ok && reason == "E_FAR_CANCEL_RECEIVED" &&
+      lite3_bt::parse_status_cancel_seq(msg->data, &cancel_seq))
+  {
+    lite3_bt::OriginFacts facts;
+    facts.self_issued = g_state.self_issued.count(cancel_seq) > 0;
+    facts.leg_live = g_state.has_current;
+    facts.already_accounted = g_state.external_cancel_seq == cancel_seq;
+    // Already in a cancel of our own: a second channel carrying the same event
+    // must not promote again (that produced two "cancel this node did not
+    // issue" lines, and hence two origins, for one foreign stop).
+    facts.already_latched = g_state.cancel_requested;
+    const lite3_bt::OriginSignal verdict = lite3_bt::judge_origin_frame(facts);
+    if (verdict != lite3_bt::OriginSignal::IGNORE)
+    {
+      ++g_state.backend_cancel_seen;
+      noteForeignSeqLocked(cancel_seq);
+      if (verdict == lite3_bt::OriginSignal::STOP_LEG)
+        latchExternalStopLocked("external_backend", cancel_seq);
+      else
+        dropStaleQueueLocked("external_backend", cancel_seq);
+    }
+  }
 }
 
 void pathCallback(const nav_msgs::Path::ConstPtr& msg)
@@ -1197,14 +1308,21 @@ void cancelAckCallback(const std_msgs::String::ConstPtr& msg)
     return;
   }
   std::lock_guard<std::mutex> lock(g_state.mutex);
-  lite3_bt::CancelAckFacts facts;
-  facts.seq = seq;
+  lite3_bt::OriginAckFacts facts;
   facts.confirmed = outcome == "cancelled";
   facts.self_issued = g_state.self_issued.count(seq) > 0;
   facts.already_recorded = g_state.cancel_results.count(seq) > 0;
-  facts.has_current = g_state.has_current;
-  const lite3_bt::CancelAckDisposition disposition =
-      lite3_bt::classify_cancel_ack(facts);
+  // Corroboration: the same seq must have been seen on the wire or echoed by the
+  // adapter.  Without it an ack is just a frame from an unnamed source -- that
+  // is the difference between "somebody stopped the executor" and "a stray ack
+  // arrived", and only the former may stop a live leg.
+  facts.corroborated = g_state.foreign_seqs.count(seq) > 0 ||
+                       g_state.external_cancel_seq == seq;
+  facts.leg_live = g_state.has_current;
+  // Already cancelling for another reason: this ack is confirmation, not a new
+  // stop, and must not overwrite the recorded origin.
+  facts.already_latched = g_state.cancel_requested;
+  const lite3_bt::OriginSignal verdict = lite3_bt::judge_origin_ack(facts);
 
   g_state.cancel_ack_seen = true;
   g_state.cancel_ack_seq = seq;
@@ -1214,29 +1332,46 @@ void cancelAckCallback(const std_msgs::String::ConstPtr& msg)
   while (g_state.cancel_results.size() > 128)
     g_state.cancel_results.erase(g_state.cancel_results.begin());
 
-  if (disposition != lite3_bt::CancelAckDisposition::EXTERNAL_STOP) return;
-  // Somebody else stopped the executor while this leg was live: the global
-  // adapter's own fault stop, or an operator writing /v8/local/cancel directly.
-  // Until now the BT never learned about it, and WaitArrival kept driving
-  // against a halted backend until the arrival budget expired (60 s floor,
-  // measured 100 s).  Latch the cancel instead so the mission leaves at its
-  // next tick and the cancel branch runs; CancelStop then republishes under the
-  // BT's own seq (reusing the foreign one would put the same seq on the wire
-  // twice and blur who stopped what).
-  const std::size_t dropped = g_state.pending.depth();
-  g_state.cancel_requested = true;
-  g_state.cancel_scope = "all";
-  g_state.cancel_reason = "external_cancel";
-  g_state.cancel_seq += 1;
-  g_state.cancel_origin = "external";
-  g_state.external_cancel_seq = seq;
-  dropPendingLocked();
-  g_state.last_event = "external_cancel";
-  ROS_WARN("[bt] executor confirmed a cancel this node did not issue "
-           "(ack seq=%lu, current goal %lu): mission cancelled, %zu goal(s) dropped",
-           static_cast<unsigned long>(seq),
-           static_cast<unsigned long>(g_state.current_seq),
-           static_cast<std::size_t>(dropped));
+  if (verdict == lite3_bt::OriginSignal::REMEMBER && facts.confirmed &&
+      !facts.self_issued && !facts.corroborated)
+  {
+    ++g_state.stray_ack_seen;
+    ROS_WARN("[bt] ack seq=%lu has no matching cancel frame on the wire; "
+             "recorded, not acted on", static_cast<unsigned long>(seq));
+  }
+  if (verdict != lite3_bt::OriginSignal::STOP_LEG) return;
+  latchExternalStopLocked("external_ack", seq);
+}
+
+// Watch the executor's cancel input.  This node is one of its writers, but not
+// the only one (the global adapter's own fault stop and an operator writing the
+// topic directly are the other two).  Seeing a frame whose seq we did not
+// publish is the strongest available evidence that somebody else stopped the
+// executor -- stronger than the ack, because it does not depend on the executor
+// answering at all.
+void wireCancelCallback(const std_msgs::String::ConstPtr& msg)
+{
+  std::uint64_t seq = 0;
+  std::string scope, reason;
+  if (!lite3_bt::parse_cancel(msg->data, &seq, &scope, &reason))
+  {
+    ROS_WARN("[bt] malformed frame on the cancel wire ignored: %s", msg->data.c_str());
+    return;
+  }
+  std::lock_guard<std::mutex> lock(g_state.mutex);
+  lite3_bt::OriginFacts facts;
+  facts.self_issued = g_state.self_issued.count(seq) > 0;
+  facts.leg_live = g_state.has_current;
+  facts.already_accounted = g_state.external_cancel_seq == seq;
+  // Same event, second channel: do not promote twice.
+  facts.already_latched = g_state.cancel_requested;
+  const lite3_bt::OriginSignal verdict = lite3_bt::judge_origin_frame(facts);
+  if (verdict == lite3_bt::OriginSignal::IGNORE) return;
+  noteForeignSeqLocked(seq);
+  if (verdict == lite3_bt::OriginSignal::STOP_LEG)
+    latchExternalStopLocked("external_wire", seq);
+  else
+    dropStaleQueueLocked("external_wire", seq);
 }
 
 void localizationCallback(const std_msgs::Bool::ConstPtr& msg)
@@ -1377,6 +1512,10 @@ int main(int argc, char** argv)
       cancel_input_topic, 1, cancelCallback);
   ros::Subscriber cancel_ack_sub = nh.subscribe<std_msgs::String>(
       cancel_ack_topic, 1, cancelAckCallback);
+  // Same topic this node publishes to: we are watching the wire, not listening
+  // to ourselves (frames we published are filtered by `self_issued`).
+  ros::Subscriber cancel_wire_sub = nh.subscribe<std_msgs::String>(
+      cancel_topic, 10, wireCancelCallback);
   ros::Subscriber policy_sub = nh.subscribe<std_msgs::String>(
       policy_topic, 1, policyCallback);
   ros::Subscriber mission_sub = nh.subscribe<std_msgs::String>(
@@ -1461,6 +1600,9 @@ int main(int argc, char** argv)
       bool cancel_requested = false;
       std::string cancel_scope, cancel_ack, recovery_mode, cancel_origin;
       std::uint64_t pending_dropped = 0, external_cancel_seq = 0;
+      std::uint64_t wire_foreign_seen = 0, backend_cancel_seen = 0, stray_ack_seen = 0;
+      std::uint64_t stale_queue_dropped = 0;
+      bool leg_active = false;
       int attempts = 0, goal_index = 0, goals_total = 0;
       bool localization_ok = true, localization_check = false;
       {
@@ -1482,6 +1624,11 @@ int main(int argc, char** argv)
         cancel_origin = g_state.cancel_origin;
         pending_dropped = g_state.pending_dropped;
         external_cancel_seq = g_state.external_cancel_seq;
+        wire_foreign_seen = g_state.wire_foreign_seen;
+        backend_cancel_seen = g_state.backend_cancel_seen;
+        stray_ack_seen = g_state.stray_ack_seen;
+        stale_queue_dropped = g_state.stale_queue_dropped;
+        leg_active = g_state.has_current;
         recovery_mode = g_state.recovery_mode;
         attempts = g_state.attempts;
         goal_index = g_state.goal_index;
@@ -1514,6 +1661,11 @@ int main(int argc, char** argv)
                     ",\"cancel_ack\":\"" + cancel_ack + "\"" +
                     ",\"cancel_origin\":\"" + cancel_origin + "\"" +
                     ",\"external_cancel_seq\":" + std::to_string(external_cancel_seq) +
+                    ",\"wire_foreign_seen\":" + std::to_string(wire_foreign_seen) +
+                    ",\"backend_cancel_seen\":" + std::to_string(backend_cancel_seen) +
+                    ",\"stray_ack_seen\":" + std::to_string(stray_ack_seen) +
+                    ",\"stale_queue_dropped\":" + std::to_string(stale_queue_dropped) +
+                    ",\"leg_active\":" + std::string(leg_active ? "true" : "false") +
                     ",\"pending_dropped\":" + std::to_string(pending_dropped) +
                     ",\"attempts\":" + std::to_string(attempts) +
                     ",\"recovery_mode\":\"" + recovery_mode + "\"" +
