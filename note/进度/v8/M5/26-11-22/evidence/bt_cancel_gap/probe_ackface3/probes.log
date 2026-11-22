@@ -1,0 +1,18 @@
+=== round_noack1 (mode=noack queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_noack1 READY_GATE=READY_GATE=READY
+ROUND_noack1 PROBE_RC=0 ELAPSED_S=8
+  SW_CASE=noack TAG=noack1
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_LIVE_LEG=True
+  SW_MARKER_ACKS=['1:cancelled']
+  SW_MARKER_LATCHED=True（须 True：没有回执也要停腿）
+  SW_MARKER_ORIGIN=external_backend（须 external_backend 开头）
+  SW_MARKER_NO_ACK=True（须 True：注入的这个号没有任何回执）
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_noack1 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0 stray_ack=0
+GAP_PROBES_DONE noack=0

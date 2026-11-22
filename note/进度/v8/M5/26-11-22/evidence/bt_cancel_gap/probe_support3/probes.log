@@ -1,0 +1,103 @@
+=== round_bt1 (mode=bt queue_old=0 phase=arrival backend=support) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_bt1 READY_GATE=SKIPPED_1
+ROUND_bt1 PROBE_RC=0 ELAPSED_S=28
+  SW_MODE=bt TAG=bt1 QUEUE_OLD=0 PHASE_ARG=arrival
+  SW_WARM_ATTEMPTS=2
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 20, 'reason': ''}
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=None（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 20, 'reason': ''}
+  SW_CANCEL_FORWARDED=True（BT 转发）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_WINDOW_S=8.0 ELAPSED_S=8.0
+  SW_J1_GLOBAL_GOAL_SEEN=True（/v8/global/goal 上出现目标 2）
+  SW_J2_NEW_PATH_STAMPS=5（t0 后新时间戳路径帧，须 >= 1）
+  SW_J3_BT_GOAL_SEQ=1->2（须变大）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)]
+  SW_CANCEL_OUT_TAIL=['1:all:control']
+  SW_ACK_IN_TAIL=['1:cancelled']
+  SW_CANCEL_ORIGIN=operator PENDING_DROPPED=1 QUEUE_DEPTH=0 EVENT=localization_ok
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（模式=bt 落点=ARRIVAL 来源=auto）
+  SW_DISCRIMINATING=True（不一致＝本卡的因果假设被否，不许当读数错误糊过去）
+GAP_PORTS_FREE
+ROUND_bt1 STATS arrival_timeout=0 goal_queued=3 depth_max=1 dequeued=2 external_cancel=0 drop_events=1 stray_ack=0
+=== round_direct2 (mode=direct queue_old=3 phase=arrival backend=support) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_direct2 READY_GATE=SKIPPED_1
+ROUND_direct2 PROBE_RC=0 ELAPSED_S=28
+  SW_MODE=direct TAG=direct2 QUEUE_OLD=3 PHASE_ARG=arrival
+  SW_WARM_ATTEMPTS=2
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 20, 'reason': ''}
+  SW_QUEUE_DEPTH_BEFORE_CANCEL=4（须 >= 3，否则旧目标没排上，本题无意义）
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=None（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 19, 'reason': ''}
+  SW_CANCEL_FORWARDED=True（第二写者自己发的帧，BT 现在能从线上看到它）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_OLD_QUEUE_WINDOW_S=8.0
+  SW_QUEUE_DEPTH_AT_T0=4（取消前队列深度快照，仅作上下文）
+  SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+  SW_OLD_GOAL_SEQ=1->1（须不变）
+  SW_OLD_NEW_PATH_STAMPS=4（旧目标若跑起来这里会 >0）
+  SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=4（须 0 / >= 1）
+  SW_CANCEL_ORIGIN=external_wire EVENT=localization_ok
+  SW_QUEUE_SAFE=True
+  SW_FRESH_WINDOW_S=8.0 WAITED_S=0.2 ATTEMPT=1
+  SW_FRESH_STAMP_SEEN=True（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）
+  SW_FRESH_GOAL_SEQ=1->2（须变大）
+  SW_FRESH_PATHS=2（旁证：这条腿之后后端出的路径帧数）
+  SW_FRESH_OK=True（派发 + 取队两项为判据）
+  SW_FRESH_ATTEMPTS=1（1＝一次就接；2＝第一条被拒后重发才接，属既有行为）
+  SW_FRESH_HISTORY=[(1, True, 1, 2, 2, 0.2)]（次数, 派发, seq前, seq后, 路径帧, 等待秒）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)] PATHS_TOTAL=8
+  SW_BT_STATUS_RAW_TAIL="name":"cancel","status":"IDLE"},{"name":"cancelled","status":"IDLE"},{"name":"cancel_current","status":"IDLE"},{"name":"recovery_on_failure","status":"IDLE"}]}
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（queue-old：旧目标停住 + 新目标可下发，两段都要）
+  SW_DISCRIMINATING=True
+GAP_PORTS_FREE
+ROUND_direct2 STATS arrival_timeout=0 goal_queued=6 depth_max=4 dequeued=2 external_cancel=1 drop_events=1 stray_ack=0
+=== round_direct3 (mode=direct queue_old=3 phase=pending backend=support) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_direct3 READY_GATE=SKIPPED_1
+ROUND_direct3 PROBE_RC=0 ELAPSED_S=31
+  SW_MODE=direct TAG=direct3 QUEUE_OLD=3 PHASE_ARG=pending
+  SW_WARM_ATTEMPTS=2
+  SW_PATHS_BEFORE_CANCEL=1
+  SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 20, 'reason': ''}
+  SW_QUEUE_DEPTH_BEFORE_CANCEL=4（须 >= 3，否则旧目标没排上，本题无意义）
+  SW_PENDING_DEQUEUED=True（goal_seq 1->2，此刻路径帧数=4）
+  SW_BT_LANDING_NODE=wait_arrival PHASE=ARRIVAL（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+  SW_FRAMES_SINCE_DEQUEUE=0（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+  SW_PATH_STATUS_AT_T0={'ok': True, 'points': 17, 'reason': ''}
+  SW_CANCEL_FORWARDED=True（第二写者自己发的帧，BT 现在能从线上看到它）
+  SW_CANCEL_ACK_CANCELLED=True
+  SW_OLD_QUEUE_WINDOW_S=8.0
+  SW_QUEUE_DEPTH_AT_T0=3（取消前队列深度快照，仅作上下文）
+  SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+  SW_OLD_GOAL_SEQ=2->2（须不变）
+  SW_OLD_NEW_PATH_STAMPS=4（旧目标若跑起来这里会 >0）
+  SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=3（须 0 / >= 1）
+  SW_CANCEL_ORIGIN=external_wire EVENT=localization_ok
+  SW_QUEUE_SAFE=True
+  SW_FRESH_WINDOW_S=8.0 WAITED_S=0.6 ATTEMPT=1
+  SW_FRESH_STAMP_SEEN=True（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）
+  SW_FRESH_GOAL_SEQ=2->3（须变大）
+  SW_FRESH_PATHS=1（旁证：这条腿之后后端出的路径帧数）
+  SW_FRESH_OK=True（派发 + 取队两项为判据）
+  SW_FRESH_ATTEMPTS=1（1＝一次就接；2＝第一条被拒后重发才接，属既有行为）
+  SW_FRESH_HISTORY=[(1, True, 2, 3, 1, 0.6)]（次数, 派发, seq前, seq后, 路径帧, 等待秒）
+  SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)] PATHS_TOTAL=9
+  SW_BT_STATUS_RAW_TAIL="name":"cancel","status":"IDLE"},{"name":"cancelled","status":"IDLE"},{"name":"cancel_current","status":"IDLE"},{"name":"recovery_on_failure","status":"IDLE"}]}
+  SW_VERDICT=PASS
+  SW_EXPECT=PASS（queue-old：旧目标停住 + 新目标可下发，两段都要）
+  SW_DISCRIMINATING=True
+GAP_PORTS_FREE
+ROUND_direct3 STATS arrival_timeout=0 goal_queued=6 depth_max=4 dequeued=3 external_cancel=1 drop_events=1 stray_ack=0
+GAP_PROBES_DONE bt=0 direct:3:arrival=0 direct:3:pending=0

@@ -1,0 +1,38 @@
+SW_MODE=marker TAG=marker4 QUEUE_OLD=3 PHASE_ARG=pending
+SW_GOAL_SENT tag=warm1 xy=(2.00, 0.00)
+SW_WARM_ATTEMPTS=1
+SW_PATHS_BEFORE_CANCEL=1
+SW_PATH_STATUS_AFTER_WARM={'ok': True, 'points': 2, 'reason': 'ok'}
+SW_GOAL_SENT tag=old1 xy=(2.00, -1.00)
+SW_GOAL_SENT tag=old2 xy=(2.00, -1.00)
+SW_GOAL_SENT tag=old3 xy=(2.00, -1.00)
+SW_QUEUE_DEPTH_BEFORE_CANCEL=3（须 >= 3，否则旧目标没排上，本题无意义）
+SW_ARRIVAL_PUSHED seq_before=1（/v8/bt/arrived=true，把当前腿判到达）
+SW_PENDING_DEQUEUED=True（goal_seq 1->2，此刻路径帧数=5）
+SW_CANCEL_SENT topic=/global_path/status seq=900000001（后端回显，无 ACK）
+SW_BT_LANDING_NODE=wait_path PHASE=PATH_PENDING（发帧前一瞬 BT 的 RUNNING 节点，最多滞后 0.5 s）
+SW_FRAMES_SINCE_DEQUEUE=0（0＝这条腿还没出过路径 ⇒ 落在 WaitForPath）
+SW_PATH_STATUS_AT_T0={'ok': False, 'points': 0, 'reason': 'E_PLAN_RUNNING'}
+SW_CANCEL_FORWARDED=False（本轮不发取消帧，只看后端回显够不够）
+SW_CANCEL_ACK_CANCELLED=False
+SW_OLD_QUEUE_WINDOW_S=8.0
+SW_QUEUE_DEPTH_AT_T0=2（取消前队列深度快照，仅作上下文）
+SW_OLD_DISPATCHED=False（/v8/global/goal 上出现旧目标坐标，须 False）
+SW_OLD_GOAL_SEQ=2->2（须不变）
+SW_OLD_NEW_PATH_STAMPS=0（旧目标若跑起来这里会 >0）
+SW_QUEUE_DEPTH_END=0 PENDING_DROPPED=2（须 0 / >= 1）
+SW_CANCEL_ORIGIN=external_backend EVENT=localization_ok
+SW_QUEUE_SAFE=True
+SW_GOAL_SENT tag=fresh1 xy=(2.00, 1.00)
+SW_FRESH_WINDOW_S=8.0 WAITED_S=0.6 ATTEMPT=1
+SW_FRESH_STAMP_SEEN=True（/v8/global/goal 上出现新目标坐标＝RequestPath 真跑了）
+SW_FRESH_GOAL_SEQ=2->3（须变大）
+SW_FRESH_PATHS=0（旁证：这条腿之后后端出的路径帧数）
+SW_FRESH_OK=True（派发 + 取队两项为判据）
+SW_FRESH_ATTEMPTS=1（1＝一次就接；2＝第一条被拒后重发才接，属既有行为）
+SW_FRESH_HISTORY=[(1, True, 2, 3, 0, 0.6)]（次数, 派发, seq前, seq后, 路径帧, 等待秒）
+SW_GLOBAL_GOALS_SEEN=[(2.0, 1.0)] PATHS_TOTAL=5
+SW_BT_STATUS_RAW_TAIL="name":"cancel","status":"IDLE"},{"name":"cancelled","status":"IDLE"},{"name":"cancel_current","status":"IDLE"},{"name":"recovery_on_failure","status":"IDLE"}]}
+SW_VERDICT=PASS
+SW_EXPECT=PASS（queue-old：旧目标停住 + 新目标可下发，两段都要）
+SW_DISCRIMINATING=True

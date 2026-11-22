@@ -71,7 +71,8 @@ GOAL_Z = 0.11
 FIRST_GOAL = (2.0, 0.0)
 SECOND_GOAL = (2.0, 1.0)
 OLD_GOAL = (2.0, -1.0)           # 旧目标专用坐标：只出现在「取消前就排队」的目标上
-SECOND_WRITER_SEQ = 900000001     # 与适配器自诊断取消同号段的下一号，模拟「第二写者」
+SECOND_WRITER_SEQ = 900000001
+MARKER_SEQ = 900000001           # marker 模式冒充「后端已经收到这个号的取消」     # 与适配器自诊断取消同号段的下一号，模拟「第二写者」
 BT_ENTRY_SEQ = 1                  # BT 取 max(自身计数+1, 帧里的 seq)，写 1 安全
 
 GOAL_DELAY_S = 3.0
@@ -116,7 +117,8 @@ def phase_of(node):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', choices=('direct', 'bt'), required=True)
+    parser.add_argument('--mode', choices=('direct', 'bt', 'marker'), required=True,
+                        help='marker＝只发后端回显、不发取消帧也不等回执（无 ACK 场景）')
     parser.add_argument('--queue-old', type=int, default=0,
                         help='取消前先塞 N 条旧目标，验证故障停后它们不会自己跑起来')
     parser.add_argument('--phase', choices=('arrival', 'pending'), default='arrival',
@@ -132,6 +134,7 @@ def main():
     goal_pub = rospy.Publisher('/v8/bt/goal', PoseStamped, queue_size=1)
     arrival_pub = rospy.Publisher('/v8/bt/arrived', Bool, queue_size=1)
     second_writer_pub = rospy.Publisher('/v8/local/cancel', String, queue_size=1)
+    path_status_pub = rospy.Publisher('/global_path/status', String, queue_size=1)
     bt_entry_pub = rospy.Publisher('/v8/bt/cancel', String, queue_size=1)
 
     def on_path(msg):
@@ -212,11 +215,24 @@ def main():
         """
         node = landing_node(BT_STATUS['nodes'])
         snapshot = dict(PATH_STATUS)
-        seq = SECOND_WRITER_SEQ if mode == 'direct' else BT_ENTRY_SEQ
+        if mode == 'direct':
+            seq = SECOND_WRITER_SEQ
+        elif mode == 'marker':
+            seq = MARKER_SEQ
+        else:
+            seq = BT_ENTRY_SEQ
         t0 = time.monotonic()
         if mode == 'direct':
             second_writer_pub.publish(String(data='%d:all:second_writer' % seq))
             print('SW_CANCEL_SENT topic=/v8/local/cancel seq=%d（第二写者）' % seq, flush=True)
+        elif mode == 'marker':
+            # ★无 ACK 场景★：只发后端自己的回显帧（E_FAR_CANCEL_RECEIVED 带 seq），
+            # 既不发取消帧、也不会有任何回执。BT 若只认回执，这一轮必红。
+            frame = json.dumps({'ok': False, 'points': 0,
+                                'reason': 'E_FAR_CANCEL_RECEIVED', 'seq': seq})
+            path_status_pub.publish(String(data=frame))
+            print('SW_CANCEL_SENT topic=/global_path/status seq=%d（后端回显，无 ACK）'
+                  % seq, flush=True)
         else:
             bt_entry_pub.publish(String(data='%d:all:control' % seq))
             print('SW_CANCEL_SENT topic=/v8/bt/cancel seq=%d（反控：走 BT 入口）' % seq, flush=True)
@@ -295,9 +311,13 @@ def main():
     acked = wait_for(
         lambda: any(m.split(':')[:2] == [str(seq), 'cancelled'] for m in ACK_IN), 10.0)
     # direct 模式下这条帧来自适配器自己（或操作员直发），bt 模式下才是 BT 转发的
-    print('SW_CANCEL_FORWARDED=%s（%s）'
-          % (forwarded, 'BT 转发' if args.mode == 'bt' else '第二写者自己发的帧，BT 不知情'),
-          flush=True)
+    if args.mode == 'bt':
+        forwarded_note = 'BT 转发'
+    elif args.mode == 'marker':
+        forwarded_note = '本轮不发取消帧，只看后端回显够不够'
+    else:
+        forwarded_note = '第二写者自己发的帧，BT 现在能从线上看到它'
+    print('SW_CANCEL_FORWARDED=%s（%s）' % (forwarded, forwarded_note), flush=True)
     print('SW_CANCEL_ACK_CANCELLED=%s' % acked, flush=True)
 
     if args.queue_old > 0:

@@ -1,0 +1,18 @@
+=== round_race1 (mode=race queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_race1 READY_GATE=READY_GATE=READY
+ROUND_race1 PROBE_RC=0 ELAPSED_S=17
+  SW_CASE=race TAG=race1
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_LIVE_LEG=True（须 True）
+  SW_RACE_DELAY=1.030 BRANCH=latch(有活腿)
+  SW_RACE_GOAL_SEQ=1->1（须不变：不得取走旧目标）
+  SW_RACE_OLD_DISPATCHED=False（须 False：/v8/global/goal 上不得出现旧目标坐标）
+  SW_RACE_QUEUE_DEPTH=0（须 0：旧目标被清掉，不是留着等下一拍）
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_race1 STATS arrival_timeout=0 goal_queued=3 depth_max=2 dequeued=1 external_cancel=1 drop_events=1 stray_ack=0
+GAP_PROBES_DONE race=0

@@ -181,9 +181,12 @@ PY
     queued_n=$(grep -c 'goal queued' "$out/launch.log" 2>/dev/null || true)
     depth_max=$(grep -a -o 'depth=[0-9]*' "$out/launch.log" 2>/dev/null | sed 's/depth=//' | sort -n | tail -1)
     dequeued_n=$(grep -c 'dequeued' "$out/launch.log" 2>/dev/null || true)
-    ext_n=$(grep -c 'executor confirmed a cancel this node did not issue' "$out/launch.log" 2>/dev/null || true)
+    # 日志串在第二施工段改过（原 executor confirmed a cancel this node did not issue →
+    # 现在 cancel this node did not issue）：那一版的读数已落盘并写进设计件，历史批次不回改。
+    ext_n=$(grep -c 'cancel this node did not issue' "$out/launch.log" 2>/dev/null || true)
+    stray_n=$(grep -c 'has no matching cancel frame on the wire' "$out/launch.log" 2>/dev/null || true)
     dropped_n=$(grep -c 'dropped .* queued goal' "$out/launch.log" 2>/dev/null || true)
-    say "ROUND_$name STATS arrival_timeout=$((timeout_n)) goal_queued=$((queued_n)) depth_max=${depth_max:-0} dequeued=$((dequeued_n)) external_cancel=$((ext_n)) drop_events=$((dropped_n))"
+    say "ROUND_$name STATS arrival_timeout=$((timeout_n)) goal_queued=$((queued_n)) depth_max=${depth_max:-0} dequeued=$((dequeued_n)) external_cancel=$((ext_n)) drop_events=$((dropped_n)) stray_ack=$((stray_n))"
     return 0
 }
 

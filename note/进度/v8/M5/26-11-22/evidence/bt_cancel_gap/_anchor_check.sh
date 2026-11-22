@@ -13,14 +13,14 @@
 # 并补入丙案新增的 14 枚（判据头文件、两个锁内助手、四处登记与判类调用、状态帧两字段）。
 #
 # 三连（照本仓门禁件的既有姿势）：
-#   主测＝52 枚真锚点逐枚 sed -n 取行 + grep -E 命中；
+#   主测＝65 枚真锚点逐枚 sed -n 取行 + grep -E 命中；
 #   注入有效性＝反控①故意写一个不存在的行号、反控②故意写一个不匹配的正则，两者**必须 MISS**
 #                （都 MISS 才说明本件不是「恒绿空控」）；
 #   反控的意义＝若某天有人把 check 写成恒返回 0，反控两项会先翻红。
 #
 # 用法＝bash _anchor_check.sh            # 跑并打印
 #      bash _anchor_check.sh --log      # 跑并把同一份输出落到同目录 anchors.log
-# 退出码＝0（52 枚全命中且两条反控都 MISS）｜5（有 MISS 或反控失效）｜9（前置缺失）
+# 退出码＝0（65 枚全命中且两条反控都 MISS）｜5（有 MISS 或反控失效）｜9（前置缺失）
 set -u
 LOG=0
 [ "${1:-}" = "--log" ] && LOG=1
@@ -66,58 +66,73 @@ while IFS='|' read -r label file line pat; do
   case "$label" in ''|'#'*) continue ;; esac
   check "$label" "$file" "$line" "$pat" || true
 done <<'ANCHORS'
-环1 取消入口回调|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1165|void cancelCallback
-环1 输入话题缺省|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1296|cancel_input_topic = "/v8/bt/cancel"
-环1 输入订阅|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1376|cancel_sub = nh.subscribe
-环2 下发话题缺省|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1297|cancel_topic = "/v8/local/cancel"
-环2 下发句柄|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1345|advertise<std_msgs::String>\(cancel_topic
+环1 取消入口回调|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1276|void cancelCallback
+环1 输入话题缺省|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1431|cancel_input_topic = "/v8/bt/cancel"
+环1 输入订阅|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1511|cancel_sub = nh.subscribe
+环2 下发话题缺省|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1432|cancel_topic = "/v8/local/cancel"
+环2 下发句柄|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1480|advertise<std_msgs::String>\(cancel_topic
+环2 线上同题订阅|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1517|cancel_wire_sub = nh.subscribe
 环3 第二写者订阅|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|630|Subscriber\(cancel_topic
 环3 自诊断取消入口|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|337|def request_cancel
 环3 不回声的理由|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|341|已经有 BT 这个
+环3 后端回显带号|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|613|E_FAR_CANCEL_RECEIVED
 环4 回执话题|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|438|cancel_ack_topic
-环5 回执回调|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1190|void cancelAckCallback
-环5 回执记账点|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1213|cancel_results\[seq\] = outcome
-环6 WaitForGoal 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|232|if \(g_state.cancel_requested\)
-环6 WaitArrival 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|531|if \(g_state.cancel_requested\)
-环6 Dwell 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|683|if \(g_state.cancel_requested\)
-环6 Recovery 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|945|if \(g_state.cancel_requested\) return
-环6 门 IsNotCancelled|ws/src/90_platform/lite3_bt/src/bt_console.cpp|876|cancel_requested \? BT::NodeStatus::FAILURE
-环6 门 IsCancelled|ws/src/90_platform/lite3_bt/src/bt_console.cpp|863|cancel_requested \? BT::NodeStatus::SUCCESS
+环5 回执回调|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1301|void cancelAckCallback
+环5 回执记账点|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1331|cancel_results\[seq\] = outcome
+环6 WaitForGoal 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|302|if \(g_state.cancel_requested\)
+环6 WaitArrival 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|606|if \(g_state.cancel_requested\)
+环6 Dwell 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|758|if \(g_state.cancel_requested\)
+环6 Recovery 早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1026|if \(g_state.cancel_requested\) return
+环6 门 IsNotCancelled|ws/src/90_platform/lite3_bt/src/bt_console.cpp|957|cancel_requested \? BT::NodeStatus::FAILURE
+环6 门 IsCancelled|ws/src/90_platform/lite3_bt/src/bt_console.cpp|944|cancel_requested \? BT::NodeStatus::SUCCESS
 环7 停车后不出产出|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|387|E_FAR_HALTED
-环8 预算冻结点|ws/src/90_platform/lite3_bt/src/bt_console.cpp|512|budget_ = lite3_bt::arrival_budget_s
-环8 速度下限缺省|ws/src/90_platform/lite3_bt/src/bt_console.cpp|111|arrival_speed_floor = 0.02
+环8 预算冻结点|ws/src/90_platform/lite3_bt/src/bt_console.cpp|587|budget_ = lite3_bt::arrival_budget_s
+环8 速度下限缺省|ws/src/90_platform/lite3_bt/src/bt_console.cpp|126|arrival_speed_floor = 0.02
 环8 预算式子|ws/src/90_platform/lite3_bt/include/lite3_bt/arrival_budget.hpp|16|inline double arrival_budget_s
-环9 取队点|ws/src/90_platform/lite3_bt/src/bt_console.cpp|239|pending.pop
-环9 取队后复位意图|ws/src/90_platform/lite3_bt/src/bt_console.cpp|252|cancel_requested = false
-环9 队列上限|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1282|queue_max = 16
-环9 满队才拒|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1016|goal queue full
+环9 取队点|ws/src/90_platform/lite3_bt/src/bt_console.cpp|309|pending.pop
+环9 取队后复位意图|ws/src/90_platform/lite3_bt/src/bt_console.cpp|322|cancel_requested = false
+环9 队列上限|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1417|queue_max = 16
+环9 满队才拒|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1097|goal queue full
 树 mission 门|ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml|10|IsNotCancelled
 树 cancel 支|ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml|26|IsCancelled
 树 停滞判据关|ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml|21|progress_timeout="0"
 设1 适配器号段起点|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|34|CANCEL_SEQ_BASE = 900000000
 设2 适配器号自增|ws/src/80_algorithm/v8_algorithm/planner/far_node.py|279|def next_cancel_seq
 设3 执行层回 ack 处|ws/src/80_algorithm/v8_algorithm/local_planner/ros_node.py|266|cancelled
-设4 BT 收帧取 max|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1176|std::max
-设5 CancelStop 取现号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|737|seq = g_state.cancel_seq
-设6 StopExecutor 自增号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|813|seq_ = \+\+g_state.cancel_seq
-设7 回执去重表上限|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1215|cancel_results.erase
-设8 现有清队只看 all|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1184|if \(scope == "all"\) dropPendingLocked
-丙案 判据头文件|ws/src/90_platform/lite3_bt/include/lite3_bt/cancel_origin.hpp|43|inline CancelAckDisposition classify_cancel_ack
-丙案 外部停枚举|ws/src/90_platform/lite3_bt/include/lite3_bt/cancel_origin.hpp|40|EXTERNAL_STOP
-丙案 自持集合字段|ws/src/90_platform/lite3_bt/src/bt_console.cpp|81|std::set<std::uint64_t> self_issued
-丙案 来源字段|ws/src/90_platform/lite3_bt/src/bt_console.cpp|83|std::string cancel_origin
-丙案 自持记账助手|ws/src/90_platform/lite3_bt/src/bt_console.cpp|160|void rememberSelfIssuedLocked
-丙案 清队助手|ws/src/90_platform/lite3_bt/src/bt_console.cpp|172|void dropPendingLocked
-丙案 故障停清队|ws/src/90_platform/lite3_bt/src/bt_console.cpp|746|execution_fault\) dropPendingLocked
-丙案 自持登记 CancelStop|ws/src/90_platform/lite3_bt/src/bt_console.cpp|747|rememberSelfIssuedLocked\(seq\)
-丙案 自持登记 StopExec|ws/src/90_platform/lite3_bt/src/bt_console.cpp|818|rememberSelfIssuedLocked\(seq_\)
-丙案 操作员来源|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1179|cancel_origin = "operator"
-丙案 判类调用|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1207|lite3_bt::classify_cancel_ack\(facts\)
-丙案 非外部即早退|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1217|CancelAckDisposition::EXTERNAL_STOP\) return
-丙案 来源标 external|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1231|cancel_origin = "external"
-丙案 记外部号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1232|external_cancel_seq = seq
-丙案 状态帧外部号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1516|external_cancel_seq
-丙案 状态帧弃队数|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1517|pending_dropped
+设4 BT 收帧取 max|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1287|std::max
+设5 CancelStop 取现号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|818|seq = g_state.cancel_seq
+设6 StopExecutor 自增号|ws/src/90_platform/lite3_bt/src/bt_console.cpp|894|seq_ = \+\+g_state.cancel_seq
+设7 回执去重表上限|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1333|cancel_results.erase
+设8 现有清队只看 all|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1295|if \(scope == "all"\) dropPendingLocked
+二段 帧判据|ws/src/90_platform/lite3_bt/include/lite3_bt/cancel_origin.hpp|51|inline OriginSignal judge_origin_frame
+二段 回执判据|ws/src/90_platform/lite3_bt/include/lite3_bt/cancel_origin.hpp|71|inline OriginSignal judge_origin_ack
+二段 状态号解析|ws/src/90_platform/lite3_bt/include/lite3_bt/cancel_origin.hpp|83|inline bool parse_status_cancel_seq
+二段 自持集合|ws/src/90_platform/lite3_bt/src/bt_console.cpp|81|std::set<std::uint64_t> self_issued
+二段 外来集合|ws/src/90_platform/lite3_bt/src/bt_console.cpp|93|std::set<std::uint64_t> foreign_seqs
+二段 自持记账助手|ws/src/90_platform/lite3_bt/src/bt_console.cpp|175|void rememberSelfIssuedLocked
+二段 清队助手|ws/src/90_platform/lite3_bt/src/bt_console.cpp|187|void dropPendingLocked
+二段 外来号记账|ws/src/90_platform/lite3_bt/src/bt_console.cpp|201|void noteForeignSeqLocked
+二段 升格助手|ws/src/90_platform/lite3_bt/src/bt_console.cpp|213|void latchExternalStopLocked
+二段 线上帧回调|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1352|void wireCancelCallback
+二段 线上帧判类|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1368|judge_origin_frame\(facts\)
+二段 线上帧升格|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1372|external_wire
+二段 后端回显判类|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1143|judge_origin_frame\(facts\)
+二段 后端回显升格|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1149|external_backend
+二段 回执判类|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1325|judge_origin_ack\(facts\)
+二段 回执升格|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1343|external_ack
+二段 Stop 清腿位|ws/src/90_platform/lite3_bt/src/bt_console.cpp|792|g_state.has_current = false
+二段 故障停清队|ws/src/90_platform/lite3_bt/src/bt_console.cpp|827|execution_fault\) dropPendingLocked
+二段 状态帧腿位|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1631|leg_active
+二段 状态帧三计数|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1627|wire_foreign_seen
+二段 帧判据已锁位|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1142|already_latched = g_state\.cancel_requested
+二段 回执已锁位|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1324|already_latched = g_state\.cancel_requested
+二段 线上帧已锁位|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1367|already_latched = g_state\.cancel_requested
+二段 无腿清队助手|ws/src/90_platform/lite3_bt/src/bt_console.cpp|238|void dropStaleQueueLocked
+二段 无腿清队后端|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1151|dropStaleQueueLocked\("external_backend"
+二段 无腿清队线上|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1374|dropStaleQueueLocked\("external_wire"
+二段 逐腿清账|ws/src/90_platform/lite3_bt/src/bt_console.cpp|328|g_state\.foreign_seqs\.clear
+二段 清队可静默|ws/src/90_platform/lite3_bt/src/bt_console.cpp|187|void dropPendingLocked\(bool announce
+二段 陈旧队列计数|ws/src/90_platform/lite3_bt/src/bt_console.cpp|1630|stale_queue_dropped = g_state\.stale_queue_dropped
 ANCHORS
 
 echo ""

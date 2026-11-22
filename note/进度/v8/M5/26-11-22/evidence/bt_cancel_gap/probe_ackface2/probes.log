@@ -1,0 +1,111 @@
+=== round_stray1 (mode=stray queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_stray1 READY_GATE=READY_GATE=READY
+ROUND_stray1 PROBE_RC=0 ELAPSED_S=9
+  SW_CASE=stray TAG=stray1
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_LIVE_LEG=True（须 True，否则「有活腿」这个前提没成立）
+  SW_STRAY_LATCHED=False（须 False：孤证回执不得停腿）
+  SW_STRAY_COUNTED=True（须 True：回执被记账，不是被丢掉）
+  SW_LEG_STILL_ACTIVE=True（须 True：腿没被误停）
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_stray1 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=0 drop_events=0 stray_ack=1
+=== round_late2 (mode=late queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_late2 READY_GATE=READY_GATE=READY
+ROUND_late2 PROBE_RC=0 ELAPSED_S=9
+  SW_CASE=late TAG=late2
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_FIRST_LATCH=True（须 True，否则后面「重复回执不二次升格」没有对照）
+  SW_REPLAY_TIMES=1
+  SW_RELATCH_SEQ_UNCHANGED=True（须 True：已记账的回执不再升格）
+  SW_RELATCH_DROP_UNCHANGED=True（须 True：不再二次清队）
+  SW_REPLAY_ACK_SEEN=['900000001:cancelled']
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_late2 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0 stray_ack=0
+=== round_duplicate3 (mode=duplicate queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_duplicate3 READY_GATE=READY_GATE=READY
+ROUND_duplicate3 PROBE_RC=0 ELAPSED_S=9
+  SW_CASE=duplicate TAG=duplicate3
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_FIRST_LATCH=True（须 True，否则后面「重复回执不二次升格」没有对照）
+  SW_REPLAY_TIMES=5
+  SW_RELATCH_SEQ_UNCHANGED=True（须 True：已记账的回执不再升格）
+  SW_RELATCH_DROP_UNCHANGED=True（须 True：不再二次清队）
+  SW_REPLAY_ACK_SEEN=['900000001:cancelled', '900000001:cancelled', '900000001:cancelled', '900000001:cancelled', '900000001:cancelled']
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_duplicate3 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0 stray_ack=0
+=== round_idle4 (mode=idle queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_idle4 READY_GATE=READY_GATE=READY
+ROUND_idle4 PROBE_RC=0 ELAPSED_S=11
+  SW_CASE=idle TAG=idle4
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_BACK_TO_WAIT_GOAL=True（须 True：此刻没有活腿）
+  SW_IDLE_ACK_LATCHED=False（须 False：无活腿时只记账不升格）
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_idle4 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=0 drop_events=0 stray_ack=1
+=== round_wire5 (mode=wire queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_wire5 READY_GATE=READY_GATE=READY
+ROUND_wire5 PROBE_RC=0 ELAPSED_S=7
+  SW_CASE=wire TAG=wire5
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_LIVE_LEG=True
+  SW_WIRE_LATCHED=True（须 True）
+  SW_WIRE_ORIGIN=external_wire（须 external_wire 开头）
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_wire5 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0 stray_ack=0
+=== round_noack6 (mode=noack queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_noack6 READY_GATE=READY_GATE=READY
+ROUND_noack6 PROBE_RC=1 ELAPSED_S=9
+  SW_CASE=noack TAG=noack6
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_LIVE_LEG=True
+  SW_MARKER_LATCHED=True（须 True：没有回执也要停腿）
+  SW_MARKER_ORIGIN=external_backend（须 external_backend 开头）
+  SW_MARKER_NO_ACK=False（须 True：本轮确实没有任何回执进来）
+  SW_EXPECT=PASS
+  SW_VERDICT=FAIL
+GAP_PORTS_FREE
+ROUND_noack6 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=1 drop_events=0 stray_ack=0
+=== round_idle_wire7 (mode=idle_wire queue_old=0 phase=arrival backend=far) ===
+GAP_PRECHECK=PORTS_FREE
+GAP_BOOT=MASTER_READY
+ROUND_idle_wire7 READY_GATE=READY_GATE=READY
+ROUND_idle_wire7 PROBE_RC=0 ELAPSED_S=10
+  SW_CASE=idle_wire TAG=idle_wire7
+  SW_WARM_ATTEMPTS=1
+  SW_LANDING_NODE=wait_arrival
+  SW_BACK_TO_WAIT_GOAL=True（须 True）
+  SW_IDLE_WIRE_LATCHED=False（须 False：无活腿时外来帧只记账）
+  SW_IDLE_WIRE_REMEMBERED=True（须 True）
+  SW_EXPECT=PASS
+  SW_VERDICT=PASS
+GAP_PORTS_FREE
+ROUND_idle_wire7 STATS arrival_timeout=0 goal_queued=1 depth_max=1 dequeued=1 external_cancel=0 drop_events=0 stray_ack=0
+GAP_PROBES_DONE stray=0 late=0 duplicate=0 idle=0 wire=0 noack=0 idle_wire=0

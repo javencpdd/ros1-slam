@@ -8,7 +8,7 @@ BT 到底多久才肯接下一个目标。**
 | 文件 | 作用 |
 |---|---|
 | `_regoal_second_writer.py` | 探针本体。`--mode direct`（第二写者，期望 FAIL）／`--mode bt`（反控，必须 PASS） |
-| `_ack_face_probe.py` | 误触发面探针（T-20261122-04 施工段补）。`--case stray|late|duplicate|idle` 四格，判据取 `/v8/bt/status` 的 `external_cancel_seq` |
+| `_ack_face_probe.py` | 误触发面探针。`--case stray|late|duplicate|idle|wire|noack|idle_wire|race` 八格，判据取 `/v8/bt/status` 的多枚字段 |
 | `gap_probe.sh` | 运行器：每轮各起一套独立栈（`mode_sim_bt.launch global_backend:=far arrival_topic:=/v8/bt/arrived`），跑探针，收队内统计 |
 
 用法（在 `ros1-slam-sim` 容器内）：
@@ -54,17 +54,26 @@ J1 `/v8/global/goal` 出现目标 2；J2 `/global_path` 有新时间戳帧；J3 
 | `SKIP_READY_GATE=1` | 关掉就绪门。support 链不起 `terrain_frames`／`obs`，门恒判 `NOT_READY`，门读数仍落盘当旁证 |
 | `PROBE_SCRIPT=_ack_face_probe.py` ＋ `PROBE_ARGS=...` | 换用误触发面探针，轮次名第一段直接当 `--case` |
 
-## 误触发面四格（`_ack_face_probe.py`）
+## 误触发面八格（`_ack_face_probe.py`，第二施工段重写）
 
 | `--case` | 喂进去的东西 | 期望 |
 |---|---|---|
-| `stray` | 有活腿时注入一条谁都没发过的 confirmed 回执 | **会停腿**（刻意 fail-safe；代价是已知过触发） |
-| `late` | 真外部停已升格后，同一条回执再送一次 | 不再升格（已记账） |
+| `stray` | 有活腿时注入一条谁都没发过的 confirmed 回执 | **不停腿**，只记账（`stray_ack_seen` 加一） |
+| `late` | 真外部停已升格后，同一条回执再送一次 | 不再升格、不再清队 |
 | `duplicate` | 同一条回执背靠背送 5 次 | 只准升格一次（`external_cancel` 须 =1） |
-| `idle` | mission 已收尾、手里没有 RUNNING 的 mission 节点时注入回执 | 只记账不升格 |
+| `idle` | mission 已收尾（`leg_active` 假）后注入回执 | 只记账不升格 |
+| `wire` | 有活腿，直发一条外来取消帧 | **停腿**，来源 `external_wire` |
+| `noack` | ★无 ACK★ 只发后端回显（`/global_path/status` 带 `seq`） | **停腿**，来源 `external_backend` |
+| `idle_wire` | 空闲期发外来取消帧 | 不停腿，只记账 |
+| `race` | 队列压 2 条旧目标、到达信号与外来帧只差一拍 | 旧目标不得被派发（两分支都合法，见 `--race-delay`） |
 
-判据只用 `external_cancel_seq` 一个字段：升格时写成那条外部号，未升格恒 0。
-`external_cancel` 的日志条数由运行器事后统计，作为独立旁证（不依赖探针自报）。
+判据取 `/v8/bt/status` 的 `external_cancel_seq`／`cancel_origin`／`leg_active`／
+`wire_foreign_seen`／`backend_cancel_seen`／`stray_ack_seen`／`stale_queue_dropped`。
+`cancel this node did not issue` 的条数由运行器事后统计，作独立旁证（不依赖探针自报）。
+
+`--race-delay` 只对 `race` 有效：到达信号之后还有 `Dwell` 1.0 s（`navigate_with_planner.xml:22`），
+所以 0／0.06／0.15 s 都落在「腿还活着 ⇒ 升格」那一支，约 1.06 s 才落进「腿已收、队未空 ⇒ 只清队」
+那一支。**两档结论必须一致**（旧目标不派发、队列清到 0），否则说明某条分支漏了清队。
 
 ## 三个作废批次（留档，别当读数用）
 
@@ -73,3 +82,12 @@ J1 `/v8/global/goal` 出现目标 2；J2 `/global_path` 有新时间戳帧；J3 
 | `probe_fix2` | 旧目标没排上队：`/v8/bt/goal` 订阅队列只有 1，三条背靠背发下去只剩一条（实测 `depth=1`）⇒ 前提不成立 |
 | `probe_fix2b` | 判定采样过早：`/v8/bt/status` 只有 2 Hz，派发只要 50 ms ⇒ 把「已接上」读成 False，随后急着重发 |
 | `probe_support` | 就绪门对 support 链恒 `NOT_READY`（`terrain_frames=0 obs=0`），门没过就没跑探针 |
+
+## 探针自己的四处缺陷（都实测踩过，写下来防下一棒当产品缺陷）
+
+1. **队内统计必须在 `cleanup` 之后采**（见上文「两个坑」）。
+2. **判定采样过早**：2 Hz 状态帧追不上 50 ms 的派发。
+3. **`noack` 曾把「本轮收件箱为空」当判据**：BT 升格后会用自己的号重发取消，执行层对它回执是正常
+   链路 ⇒ 探针把自己要验证的恢复动作判成了缺陷。现判「注入的那个号没有回执」。
+4. **`race` 曾用 2 Hz 采样深度当「队列里有 ≥2 条」的前提**：`t1.06` 读到深度 1、实际清了 2 条，
+   于是把 FAIL 判在前提上。现判「清掉了 ≥2 条」（由清队动作本身产生，不靠采样）。
