@@ -49,7 +49,10 @@ instances:
       planner_goal_topic: /v8/3d/global/goal
       path_topic: /v8/3d/global/path
       path_status_topic: /v8/3d/global/status
-      out_goal_topic: /v8/local/goal
+      # 不再直接写 /v8/local/goal：local_native 是步进式的（一个 goal 走一步 max_step_m），
+      # BT 的 FollowPath 是 SyncActionNode 只发一次，之后进 wait_arrival 就不再发，
+      # 结果车只走 0.30 m 就停。改由 path_goal3d 沿全局路径逐点下发。
+      out_goal_topic: /v8/bt/out_goal
       stop_topic: /lite3/teleop/app_cmd_vel
       cancel_input_topic: /v8/bt/cancel
       cancel_topic: /v8/local/cancel
@@ -80,6 +83,13 @@ instances:
       self_radius_m: 0.45
       max_speed_mps: 1.5
       gate_m: 0.8
+  - id: path_goal
+    component: v8.fw.path_goal3d
+    namespace: /v8/3d/path_goal
+    params:
+      path_topic: /v8/3d/global/path
+      goal_topic: /v8/local/goal
+      status_topic: /v8/3d/path_goal/status
   - id: local
     component: v8.fw.local_native
     namespace: /v8/3d/local
@@ -137,7 +147,8 @@ edges:
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: bt.planner_goal, to: global.goal, feedback: true,
      policy: {period_s: 0.10, max_age_s: 2.0}}
-  - {from: bt.out_goal, to: local.goal}
+  - {from: global.path, to: path_goal.path}
+  - {from: path_goal.goal, to: local.goal}
   - {from: loc.pose, to: perception.pose, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: perception.obstacles, to: local.obstacles}

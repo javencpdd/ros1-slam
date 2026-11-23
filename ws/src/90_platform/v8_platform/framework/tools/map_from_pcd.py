@@ -266,6 +266,42 @@ def update_registry(map_id, version, map_path, sha, surfaces, label):
                              encoding='utf-8')
 
 
+def fill_start_platform(value, x, y, radius, resolution):
+    """在 (x, y) 周围补一块 support 平台，返回新增的格子数。
+
+    为什么必须补：雷达有正下方盲区，建图起点那一片永远没有点云（实测 mapped_m1.pcd 在
+    |x|<=0.35 & |y|<=0.35 内点数为 0），于是 support map 留一个半径约 0.4 m 的洞。
+    机器人从建图起点重启时，局部规划器会因为「start requires a matching z support」
+    直接拒绝规划（E_LOCAL_SUPPORT），这不是参数能调好的 —— 地图必须承认「起点站得住」。
+
+    只补半径内、且落在该面 footprint 里的格子；面之外的区域一概不动。
+    选 z_reference 最低的面（地面），避免把平台挂到桌面或台阶面上。
+    """
+    if not value.get('surfaces'):
+        return None
+    surface = min(value['surfaces'], key=lambda item: item.get('z_reference', 0.0))
+    cells = rep.surface_cells(surface)
+    if cells is None:
+        cells = set()
+    box = surface['footprint']
+    i0 = int(math.floor((x - radius) / resolution))
+    i1 = int(math.floor((x + radius) / resolution))
+    j0 = int(math.floor((y - radius) / resolution))
+    j1 = int(math.floor((y + radius) / resolution))
+    added = 0
+    for i in range(i0, i1 + 1):
+        for j in range(j0, j1 + 1):
+            cx = (i + 0.5) * resolution
+            cy = (j + 0.5) * resolution
+            if not (box['min_x'] <= cx <= box['max_x'] and box['min_y'] <= cy <= box['max_y']):
+                continue
+            if (i, j) not in cells:
+                cells.add((i, j))
+                added += 1
+    surface['cells'] = {'encoding': 'rle', 'runs': rep.encode_cells(cells)}
+    return added
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pcd', default='')
@@ -332,6 +368,10 @@ def main():
     parser.add_argument('--model-path', default='data/maps/worlds')
     parser.add_argument('--start-x', type=float, default=None)
     parser.add_argument('--start-y', type=float, default=None)
+    parser.add_argument('--fill-start', default=None, metavar='X,Y',
+                        help='在该点周围补一块 support 平台（雷达正下方盲区导致起点无点云时用）')
+    parser.add_argument('--fill-radius', type=float, default=0.60,
+                        help='补平台的半径（米），默认 0.60')
     parser.add_argument('--goal-x', type=float, default=None)
     parser.add_argument('--goal-y', type=float, default=None)
     args = parser.parse_args()
@@ -413,6 +453,14 @@ def main():
     out = Path(args.out) if args.out else (
         ROOT / 'data/maps/generated' / ('%s_v%d.json' % (args.map_id, args.version)))
     out = out.resolve()
+    if args.fill_start:
+        try:
+            fill_x, fill_y = [float(v) for v in str(args.fill_start).split(',')]
+        except ValueError:
+            raise SystemExit('--fill-start 需要形如 X,Y 的两个数')
+        filled = fill_start_platform(value, fill_x, fill_y, args.fill_radius, args.resolution)
+        print('[fill-start] (%s, %s) r=%s added_cells=%s'
+              % (fill_x, fill_y, args.fill_radius, filled), file=sys.stderr)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(value, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     sha = hashlib.sha256(out.read_bytes()).hexdigest()

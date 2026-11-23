@@ -204,8 +204,10 @@ rosparam set /hdl/odom_child_frame_id base_link
 rosparam set /hdl/robot_odom_frame_id odom
 rosparam set /hdl/use_imu false
 rosparam set /hdl/specify_init_pose true
-rosparam set /hdl/init_pos_x 0.0
-rosparam set /hdl/init_pos_y 0.0
+# 初始位姿可配：机器人的真实起点未必是建图原点（雷达近距离地面点被过滤后，(0,0) 在地图里
+# 是未观测区，全局规划器到不了任何地方）。这里传的是机器人**实际所在**的位置，不是伪造。
+rosparam set /hdl/init_pos_x ${INIT_X:-0.0}
+rosparam set /hdl/init_pos_y ${INIT_Y:-0.0}
 rosparam set /hdl/init_pos_z 0.0
 rosparam set /hdl/init_ori_w 1.0
 rosparam set /hdl/reg_method NDT_OMP

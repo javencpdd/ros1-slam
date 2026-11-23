@@ -21,12 +21,25 @@ REPO=/opt/ros1-slam
 FW=$WS/src/90_platform/v8_platform/framework
 APP=${APP:-$REPO/data/maps/generated/v8_m1_hdl_v1_app.yaml}
 GRAPH=${GRAPH:-$FW/fixtures/graphs/graph_3d_m1_hdl_bt.yaml}
-START_X=${START_X:-1.15}; START_Y=${START_Y:-0.45}
-GOAL_X=${GOAL_X:-4.65};  GOAL_Y=${GOAL_Y:-0.45}
 DURATION=${DURATION:-45}
-EXPECT_NODES=${EXPECT_NODES:-8}
+EXPECT_NODES=${EXPECT_NODES:-9}
 NOTE=$REPO/note/进度/00_专题/v8_map_loc_2026-11-24
 EV=${EV:-$NOTE/evidence/p4_$(date +%Y%m%d_%H%M%S)}
+
+# ★起点与目标必须从 task 读，不能硬编码★：换地图后 task 的 start/goal 会被重算
+# （改过一次 fill-start 就让它从 (1.15,0.45)->(4.65,0.45) 变成 (0.05,-0.05)->(0.05,3.45)），
+# 硬编码会让 BT 收到一个地图外的目标，报 E_PLAN_NOT_READY 却看不出原因。
+if [ -z "${GOAL_X:-}" ]; then
+  read -r START_X START_Y GOAL_X GOAL_Y <<EOF
+$(python3 -c "
+import json,os,sys
+app=json.load(open('$APP'))
+t=json.load(open(os.path.join('$REPO', app['task'])))
+s=t['start']['xyz']; g=t['goal']['xyz']
+sys.stdout.write('%.4f %.4f %.4f %.4f' % (s[0],s[1],g[0],g[1]))
+")
+EOF
+fi
 
 mkdir -p "$EV"
 exec > >(tee "$EV/run.log") 2>&1
@@ -60,7 +73,9 @@ say "v8_nodes_after_clean=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt
 
 # ---------- 3. 启动装配 ----------
 say "--- [3] 启动装配 ---"
-setsid roslaunch "$LAUNCH" > "$EV/graph.log" 2>&1 < /dev/null &
+# --screen 是必须的：不加的话各节点的 ROS_INFO 只进 rosout，graph.log 是空的，
+# 行为树/规划器为什么失败完全看不到（bb-bt-bt-5-stdout.log 实测 0 行）。
+setsid roslaunch --screen "$LAUNCH" > "$EV/graph.log" 2>&1 < /dev/null &
 for i in $(seq 1 20); do
   sleep 2
   N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)
@@ -82,22 +97,23 @@ say "loc_instance=present"
 
 # ---------- 4. 探针 + 发目标 ----------
 say "--- [4] 起探针并发 start/goal ---"
-setsid python3 "$REPO/scripts/verify/p4_nav_probe.py" \
+python3 "$REPO/scripts/verify/p4_nav_probe.py" \
   --goal-x "$GOAL_X" --goal-y "$GOAL_Y" --duration "$DURATION" --out "$EV/probe.json" \
-  > "$EV/probe_stdout.log" 2>&1 < /dev/null &
+  > "$EV/probe_stdout.log" 2>&1 &
+PROBE_PID=$!
 sleep 5
-rostopic pub -1 /v8/3d/global/start geometry_msgs/PoseStamped \
+timeout 3 rostopic pub -r 5 /v8/3d/global/start geometry_msgs/PoseStamped \
   "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y, z: 0.0}, orientation: {w: 1.0}}}" \
   >/dev/null 2>&1
 sleep 1
-rostopic pub -1 /v8/3d/bt/goal geometry_msgs/PoseStamped \
+timeout 3 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
   "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y, z: 0.0}, orientation: {w: 1.0}}}" \
   >/dev/null 2>&1
 say "goal_sent=$GOAL_X,$GOAL_Y"
 
 # ---------- 5. 等待探针 ----------
 say "--- [5] 采样 ${DURATION}s ---"
-sleep $((DURATION + 8))
+wait $PROBE_PID 2>/dev/null; say "probe_exit=$?"
 say "--- probe.json ---"
 cat "$EV/probe.json" 2>/dev/null || say "(无 probe.json)"
 say "--- probe stderr/stdout 尾 ---"

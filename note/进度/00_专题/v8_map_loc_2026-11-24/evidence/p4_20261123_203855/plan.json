@@ -2,10 +2,10 @@
  "schema": "assembly_plan/v2",
  "execution_origin": "declared",
  "name": "nav3d_m1_hdl_bt",
- "digest": "adfc762b5f039efdf48579c5894da07c111107beecaf2c7e60d2cfbccf9a65d0",
+ "digest": "db1fc7fb643ee08af443acf3b9cfcfe9e2350e1ace8d171357fbce2e52e4432c",
  "catalog": {
   "path": "fixtures/manifests",
-  "sha256": "c16693e130afb1472b0f5fa23e167266d37be07a59fc74caec2848630d05384e"
+  "sha256": "e3e4c876e656b77672c56f3ba8deca97824ca66040dbee05ffa2c6ab2166dacf"
  },
  "instances": [
   {
@@ -168,7 +168,7 @@
     "planner_goal_topic": "/v8/3d/global/goal",
     "path_topic": "/v8/3d/global/path",
     "path_status_topic": "/v8/3d/global/status",
-    "out_goal_topic": "/v8/local/goal",
+    "out_goal_topic": "/v8/bt/out_goal",
     "stop_topic": "/lite3/teleop/app_cmd_vel",
     "cancel_input_topic": "/v8/bt/cancel",
     "cancel_topic": "/v8/local/cancel",
@@ -237,6 +237,35 @@
    }
   },
   {
+   "id": "path_goal",
+   "component": "v8.fw.path_goal3d",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": false,
+    "type": "run_path_goal.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "c4bb673e56462104d61762a463273347ac20ece9eccedbb97a00471e3dd557bf",
+   "namespace": "/v8/3d/path_goal",
+   "params": {
+    "path_topic": "/v8/3d/global/path",
+    "goal_topic": "/v8/local/goal",
+    "status_topic": "/v8/3d/path_goal/status"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "path": {
+     "source": "edge",
+     "from": "global.path",
+     "type": "nav_msgs/Path",
+     "schema": null
+    }
+   }
+  },
+  {
    "id": "local",
    "component": "v8.fw.local_native",
    "launch": {
@@ -264,7 +293,7 @@
     },
     "goal": {
      "source": "edge",
-     "from": "bt.out_goal",
+     "from": "path_goal.goal",
      "type": "geometry_msgs/PoseStamped",
      "schema": null
     },
@@ -427,7 +456,13 @@
    }
   },
   {
-   "from": "bt.out_goal",
+   "from": "global.path",
+   "to": "path_goal.path",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "path_goal.goal",
    "to": "local.goal",
    "feedback": false,
    "policy": {}
@@ -545,6 +580,7 @@
   "perception",
   "global",
   "bt",
+  "path_goal",
   "local",
   "mux3d",
   "carrier"
@@ -613,5 +649,5 @@
  },
  "execution_mode": "simulation",
  "robot_id": "generic_sim",
- "execution_sha256": "88db4f84a563e1d533aa7acec4ab69fa05d07230849af8e9c926cfa4f2af6ae0"
+ "execution_sha256": "1b81319f1ef9e21c7c2b023e944d46c09160e0d883be02cdb9254638806656f1"
 }

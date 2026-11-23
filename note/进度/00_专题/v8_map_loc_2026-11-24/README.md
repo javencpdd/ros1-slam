@@ -779,3 +779,61 @@ BT 的 `request_path` 已 SUCCESS、`path_state=ready`，但 `/v8/local/goal` �
 `lite3_bt/trees/navigate_with_planner.xml` 里 FollowPath 的前置条件与 `out_goal` 的发布路径：
 是 `follow_path` 叶节点没被 tick 到，还是 tick 到了但 `out_goal` 的 latch/频率让它没落到话题上。
 判据不能只看 `root=RUNNING`，要盯 `nodes[]` 里 `follow_path` 那一项的状态。
+
+## 34. P4 第二轮：拿到非零运动，未达成到达（第十三轮）
+
+### 34.1 上一轮判断错了一处
+
+§33 说「卡在 BT → local 的目标下发」。实测 BT 的 `nodes[]` 里
+`wait_path SUCCESS / follow_path SUCCESS / wait_arrival RUNNING` —— **通过 BT 是正常的**，
+它已经走完 follow_path 并进入等到达。真正的断点在下游：local 只走了 0.308 m 就停。
+
+### 34.2 五层根因，逐层剥开
+
+| # | 现象 | 根因 | 修法 |
+| --- | --- | --- | --- |
+| 1 | `/v8/local/localization_ok` 永远没有 | `localization_node.yaw_of` 只认四元数消息，而 `error_between` 传的是 `(qx,qy,qz,qw)` 元组 ⇒ `/sim/odom_gt` 一到就 `AttributeError` 把 loc 打死 | `yaw_of` 兼容属性与元组两种形态 |
+| 2 | 图里 8 个实例只起 7 个，缺 loc，且不报错 | `manifest_localization_source.launch.type` 带 `/`（`framework/nodes/...`），roslaunch 找不到类型，进程根本不启动、连日志都不建 | 加顶层 shim `v8_platform/scripts/run_localization_source.py`，type 改裸名 |
+| 3 | local 拒绝：`E_LOCAL_SUPPORT: start requires a matching z support` | 地图 `z_reference=5.7e-05`（地面点中位 z），hdl 的 `publish_odometry` 强制 `z=0.0`，而 `support_tol_m` 默认 **1e-6** ⇒ 差 57 微米就判定无支撑 | 建图加 `--z-align`，`z_reference` 归 0 |
+| 4 | 同上，但起点处连地面都没有 | 雷达正下方是盲区，`mapped_m1.pcd` 在 `|x|,|y|≤0.35` 内点数为 **0**，地图在起点是个洞 | 建图工具新增 `--fill-start X,Y`（默认关闭），按半径补一块起点平台 |
+| 5 | 车只走 0.30 m 就停，BT 等 139.5 s 后 arrival timeout | `local_native` 是**步进式**：收到一个 goal 走 `max_step_m`（0.30 m）就 `segment_complete`，要等下一个目标；而 `path_goal3d` 的实现只转发 `poses[-1]`（路径终点），等价于发一次就没了 | `path_goal_node.py` 改为按路径顺序逐点下发，当前点到达（`arrive_m`）或超时后推进 |
+
+第 5 条是 P4 的关键：`graph_3d_gazebo_loc.yaml` 里那个 `path_goal` 实例从未真正逐点工作过，
+和 `localization_source` 的 type 问题一样，属于既有实现缺陷。
+
+### 34.3 顺带确认的两件事
+
+- `app_runner` **强制自起 master**（`ROS_MASTER_URI=http://127.0.0.1:11537/`），与外部 roscore 完全隔离，
+  `--no-gazebo` 也不行 ⇒ 外部已跑的 Gazebo+hdl 它看不见。复用现有 master 只能走
+  `cli.py plan --out-launch` 渲染后 `roslaunch`。
+- `local` 的 `E_LOCAL_NO_ROUTE: goal lies inside an inflated obstacle volume` 来自动态障碍的 **AABB**：
+  m1 场景里有一个 `(1.65–4.62, −1.40–3.01)` 的 3×4.4 m 大盒（L 形墙/家具的轴对齐包围盒），
+  加 0.30 m 膨胀后覆盖机器人正前方。**机器人起点距该盒仅 11 cm**，因此任何方向都判碰撞。
+  这不是参数问题，是起点位置与障碍 AABB 的几何死锁。
+
+### 34.4 实测读数（本轮最好的一次）
+
+| 项 | 读数 |
+| --- | --- |
+| 装配实例 | 9/9 全起（含 `path_goal`） |
+| 定位 | `/v8/local/localization_ok: True`；hdl 在 (1.048,−4.236) 对真值 (1.0,−4.245)，差 4.8 cm |
+| 全局路径 | `ok=true, points=16` |
+| 非零运动 | **`max_speed_mps=0.6`，`speed_frames=462`** |
+| 位移一致性 | `est_travel 0.2737 m` vs `gt_travel 0.2735 m`（算法位姿与真值差 0.2 mm） |
+| 到达 | 未达成：`arrive_m` 之外的 waypoint 被动态障碍膨胀覆盖（`E_LOCAL_NO_ROUTE`） |
+| 定位失效回零 / 取消 ACK | 未测（依赖到达先成立） |
+
+### 34.5 P4 结论：**PARTIAL —— 非零运动与位姿一致性达成，到达未达成**
+
+链条上每一环都已单点验证通过（装配 9/9、定位 ok、路径有解、目标逐点下发、速度 0.6 m/s），
+剩下的是**场景几何**：m1 世界里机器人起步位置紧贴一堵 L 形墙的 AABB，膨胀 0.30 m 后没有可行方向。
+
+### 34.6 下一轮
+
+不必再查代码，先把**起点与走廊**选在障碍 AABB 之外（用 AABB 与 support cells 做联合筛选，
+本轮已用 BFS + AABB 采样试过一轮，但障碍是**动态**的，逐点目标仍可能被新出现的盒子覆盖）。
+两条可选路径：
+
+1. 让 `dynamic_obstacles` 只对**影响当前走廊**的盒子做膨胀（现在是对全部盒子求并），
+   但这动了安全判据，需要单独裁决，不在本次授权内；
+2. 换一个更空旷的仿真世界（或把机器人放到远离 L 形墙的位置），先验证「算法位姿驱动到达」这件事本身。
