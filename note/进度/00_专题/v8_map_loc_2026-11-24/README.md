@@ -486,3 +486,58 @@ nodelet 用 `mt_nh`（多线程），`voxelgrid`/`pose_estimator` 都是成员�
 | P2 建图 | **PASS（路线口径）**（279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m） |
 | P3 定位 | **INVALID**（三道补丁后仍崩；无 gdb 无法取栈） |
 | P4 导航 | **NOT RUN** |
+
+---
+
+## 27. ASAN 路线执行：未取到报告，改动已回退（第九轮）
+
+### 27.1 构建（独立目录，不污染 devel）
+
+CMake 配置本身缺 `/opt/ros/noetic/include`，`catkin_make` 直接编不过 ⇒ 改为**手工编译**：
+从 `build/.../CMakeFiles/hdl_localization_nodelet.dir/{flags.make,link.txt}` 提取参数，
+在 `/tmp/asan` 用 `-fsanitize=address -g -O1 -fno-omit-frame-pointer` 重编两个 .o 并链接：
+
+| 产物 | 大小 |
+| --- | --- |
+| `pose_estimator.cpp.o`（ASAN） | 49 MB |
+| `hdl_localization_nodelet.cpp.o`（ASAN） | 48 MB |
+| `libasan_hdl.so`（ASAN，soname 仍为 libhdl_localization_nodelet.so） | **50 MB** |
+
+踩到两个编译坑（已解决）：`ROS_PACKAGE_NAME` 必须传**带引号的字符串宏**（shlex 会吃掉引号）；
+链接清单要从 `link.txt` 里剔除两个 `.o`。
+
+### 27.2 运行：用 ASAN 库 + LD_PRELOAD
+
+`devel/lib/libhdl_localization_nodelet.so` 先备份再替换为 ASAN 版，
+`LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.4`（本机只有 .so.4）启动 manager。
+
+| 观测 | 结果 |
+| --- | --- |
+| 节点 | mgr / gms / hdl 三个都在（未崩） |
+| `/globalmap` | 有（1） |
+| `/hdl_odom` | **仍无消息** |
+| ASAN 报告 | **无**（`ASAN_OPTIONS=log_path=/tmp/v8map/asan` 未产出文件） |
+
+⇒ 在 ASAN 版本下**崩溃没有复现**，同时**也没有定位输出**；两种可能：
+①ASAN 的分配器/时序掩盖了原崩溃；②20 s 窗口太短、或触发条件（连续多帧 + 地图更新并发）未满足。
+
+### 27.3 回退（已做，重要）
+
+- `devel/lib/libhdl_localization_nodelet.so` 曾被我替换为 ASAN 版（50 MB），
+  已删除并 `catkin_make` 重建：现为 **704 KB、`grep -c fsanitize` = 0**，正式二进制未被污染；
+- ASAN 构建产物只在 `/tmp/asan`，源码补丁独立可 `git revert`。
+
+### 27.4 P3 本轮结论：**仍 INVALID**
+
+- 崩溃在**普通构建**下稳定复现（三次）；
+- ASAN 构建下不复现、也未出报告 ⇒ **拿不到根因栈**；
+- 结论：要定位必须 **gdb 附加/分析 core**（容器无 gdb、`ulimit -c=0`），或写更精确的复现脚本（长时间、含地图更新）。
+
+## 28. 四阶段最终（第九轮）
+
+| 阶段 | 结论 | 依据 |
+| --- | --- | --- |
+| P1 传感器 | **PASS** | 点云 11.45 Hz / IMU 200 Hz / TF 断言 |
+| P2 建图 | **PASS（路线口径）** | 279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m |
+| P3 定位 | **INVALID** | 普通构建三次崩；ASAN 不复现且无报告；`/hdl_odom` 无输出 |
+| P4 导航 | **NOT RUN** | 依赖 P3 |
