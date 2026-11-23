@@ -131,7 +131,7 @@ class PreflightTests(unittest.TestCase):
         root = ET.fromstring(render.render_launch(graph, catalog, report))
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type'), node.get('name')),
-                         ('v8_algorithm', 'local_planner/ros_node.py', 'local'))
+                         ('v8_algorithm', 'run_local_ros_node.py', 'local'))
         loads = [item.get('file') for item in node.findall('rosparam')]
         self.assertTrue(any(item.endswith('configs/local_native.yaml') for item in loads))
         self.assertEqual(report['bindings']['local']['map']['schema'], 'support_map/v1')
@@ -146,9 +146,9 @@ class PreflightTests(unittest.TestCase):
         self.assertIn('map_topic', report['configs']['local']['keys'])
         root = ET.fromstring(render.render_launch(graph, catalog, report))
         types = sorted(node.get('type') for node in root.findall('node'))
-        self.assertEqual(types, ['local_planner/ros_node.py',
-                                 'representation/semantic_map_node.py',
-                                 'representation/semantic_support_bridge_node.py'])
+        self.assertEqual(types, ['representation/semantic_map_node.py',
+                                 'representation/semantic_support_bridge_node.py',
+                                 'run_local_ros_node.py'])
 
     def test_semantic_obstacle_graph_binds_both_consumers(self):
         catalog = config.load_components(MANIFESTS)
@@ -192,7 +192,7 @@ class PreflightTests(unittest.TestCase):
         root = ET.fromstring(render.render_launch(graph, catalog, report))
         node = root.find('node')
         self.assertEqual((node.get('pkg'), node.get('type')),
-                         ('v8_algorithm', 'planner/topic_node.py'))
+                         ('v8_algorithm', 'run_topic_node.py'))
 
     def test_real_3d_chain_wires_cache_merge_and_planners(self):
         catalog = config.load_components(MANIFESTS)

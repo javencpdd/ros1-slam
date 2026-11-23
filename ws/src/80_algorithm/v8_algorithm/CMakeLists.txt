@@ -16,6 +16,12 @@ catkin_install_python(PROGRAMS
   local_planner/ros_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/local_planner)
 
+catkin_install_python(PROGRAMS
+  scripts/run_topic_node.py
+  scripts/run_local_ros_node.py
+  scripts/run_cmd3d_mux.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 install(PROGRAMS planner/topic_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} RENAME v8_global_planner.py)
 install(PROGRAMS local_planner/path_goal_node.py

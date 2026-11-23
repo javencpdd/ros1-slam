@@ -116,8 +116,9 @@ class Probe:
             self.ev['errors'].append("目标话题无人订阅：%s" % self.args.goal_topic)
             return self.finish()
 
-        # 1) 喂位姿（模拟定位），再发目标
-        self.publish_pose()
+        # 1) 喂位姿（传统链无载体时用），再发目标；graph 有 carrier 时加 --no-pose
+        if not self.args.no_pose:
+            self.publish_pose()
         g = PoseStamped()
         g.header.stamp = rospy.Time.now()
         g.header.frame_id = 'map'
@@ -182,6 +183,7 @@ def main():
     ap.add_argument('--cancel-seq', type=int, default=1)
     ap.add_argument('--expect-cancel-ack', action='store_true', default=True)
     ap.add_argument('--allow-no-goal-sub', action='store_true')
+    ap.add_argument('--no-pose', action='store_true', help='图内已有载体发布位姿时不要注入')
     a = ap.parse_args()
     rc = Probe(a).run()
     sys.exit(rc)

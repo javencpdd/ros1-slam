@@ -145,3 +145,55 @@ Cannot locate node of type [local_planner/cmd3d_mux_node.py] in package [v8_algo
 本轮在 graph 组合里该话题没有任何订阅者（规划器节点没起来），因此**不能**据此说"目标到达后端"。
 这条更正已在 §2 的说明中生效。
 
+---
+
+## 9. F4 修复与 graph 再跑（方案 1：顶层 shim + manifest type）
+
+### 9.1 四个入口的核查结论
+
+| 组件 | 实现 | 既有等价 shim | 处置 |
+| --- | --- | --- | --- |
+| `v8.fw.map_file`（`framework/nodes/map_file_node.py`） | 存在可执行 | **有**：`v8_platform/scripts/run_map_file.py`（同一 `sys.path` 写法，导入同一实现） | **复用**，manifest `type` → `run_map_file.py` |
+| `v8.fw.global3d_topic`（`planner/topic_node.py`） | 存在可执行 | 无包内等价件（`run_global_planner.py` 在 `v8_platform`，跨包） | **新增** `v8_algorithm/scripts/run_topic_node.py` |
+| `v8.fw.local_native_raw`／`v8.fw.local_native`（`local_planner/ros_node.py`） | 存在可执行 | 无包内等价件 | **新增** `v8_algorithm/scripts/run_local_ros_node.py`（两个 manifest 共用） |
+| `v8.fw.cmd3d_mux`（`local_planner/cmd3d_mux_node.py`） | 存在可执行 | 无 | **新增** `v8_algorithm/scripts/run_cmd3d_mux.py` |
+
+三个新 shim 与既有 `run_*.py` 完全同构：`rospkg` 定位包路径 → `sys.path.insert` → `import <impl>` → `<impl>.main()`，
+**不复制实现、不写死绝对路径**；`CMakeLists.txt` 加了 `catkin_install_python` 声明。
+`package_index.json` 补了三条**裸名**条目（`launch.check_components` 按 `pkg/type` 精确匹配，`scripts/` 前缀会不匹配）。
+
+**未造空节点**：四个实现都真实存在且被 shim 导入；无实现的组件未做任何占位。
+
+### 9.2 可发现性与启动验证
+
+| 检查 | 结果 |
+| --- | --- |
+| `roslib.find_node` 四个 type | 全部命中（`v8_platform/scripts/run_map_file.py`、`v8_algorithm/scripts/run_*.py`） |
+| `roslaunch` 的 `Cannot locate` | **0 条**（此前 4 条） |
+| 实跑节点数 | **5/6**：`global`、`local`、`mux3d`、`bt` 全起（此前仅 2） |
+| 单测 | **361 项 OK（skip 9）**（新增 `tests/test_node_entrypoints.py`） |
+
+### 9.3 仍未 PASS 的两个前置（非 F4）
+
+| # | 阻断 | 证据 |
+| --- | --- | --- |
+| F5 | `map_file_node` 报 `FileNotFoundError: data/maps/generated/nist_sensor_v2.json`（该文件**在仓内存在**），因节点 cwd 是 `.ros` 而路径是**仓库相对**——与 F2 同一类问题，只是发生在节点侧默认值 | `graph_support/live3_tail.log` |
+| Gz | `app_world.launch` 起 gzserver 后**立即退出**（`all processes on machine have died`），导致 `carrier` 无法启动；同一 world 早前曾成功起过一次，属**不稳定** | `graph_support/gz3.log` |
+
+⇒ **graph + support 仍判 INVALID**（前置不成立），但 F4 目标（节点能被找到并启动原有实现）**已达成**。
+
+### 9.4 cmd3d_mux 的真实能力（只按实现验收）
+
+`local_planner/cmd3d_mux_node.py` 的 `arbitrate()`：`hold → 0`、超时 0.4 s → `0 + E_CMD3D_STALE`、`frame != map → 0 + E_CMD3D_FRAME`、
+非法速度 → `0 + E_CMD3D_INVALID`；**单一输入源**，**没有 speed_cap、没有多源优先级**。
+
+本轮实跑观测到两条真实状态：
+- `{"reason": "E_CMD3D_STALE", "velocity": [0,0,0,0]}`（无输入时归零）✅
+- `{"reason": "track", "velocity": [0,0,0,0], "input_frame": "map", "age_s": 0.0029}`（有新鲜输入、但命令本身为零）✅
+
+因此：**mux 的「单写者 / 超时归零 / frame 校验 / hold」可验；speed_cap 与优先级不得记 PASS**（实现里没有）。
+
+### 9.5 非零运动与到达：**未取得证据**
+
+Gazebo 未起来 + 地图未加载 ⇒ 无 carrier 位姿、无 path、`/cmd_vel` 全程为 0。**不能**据此声称作动或到达。
+

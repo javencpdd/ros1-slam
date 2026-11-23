@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py", line 18, in <module>
+    map_file_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/map_file_node.py", line 19, in main
+    with open(map_path, encoding='utf-8') as stream:
+FileNotFoundError: [Errno 2] No such file or directory: 'data/maps/generated/nist_sensor_v2.json'
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 140, in <module>
+    main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 45, in main
+    rospy.wait_for_service('/gazebo/set_model_state', timeout=20.)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/impl/tcpros_service.py", line 148, in wait_for_service
+    raise ROSException("timeout exceeded while waiting for service %s"%resolved_name)
+rospy.exceptions.ROSException: timeout exceeded while waiting for service /gazebo/set_model_state
+[33m[ WARN] [1795428414.810055729]: [bt] global path timeout after 30.0 s[0m
+[33m[ WARN] [1795428439.860146344]: [bt] cancel requested seq=1 scope=all[0m
