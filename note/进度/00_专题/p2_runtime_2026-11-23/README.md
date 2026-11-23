@@ -249,3 +249,56 @@ TDD 覆盖：`test_asset_paths.py` 11 项（仓库相对可解析 / 绝对路径
 
 收尾：`rosnode kill -a` + 按 world 路径杀本次 gzserver ⇒ 剩余节点仅 `/rosout`，gzserver 计数 0，`/cmd_vel` 与 `/cmd_vel_raw` 的发布者均为 0（`final_cleanup3.txt`）。
 
+---
+
+## 11. E_PLAN_NOT_READY 定因与链路打通（第四轮）
+
+### 11.1 真实 ROS 图证据（不是 YAML 推断）
+
+| 项 | 实测 |
+| --- | --- |
+| global 订阅表（`rosnode info`） | `/v8/3d/global/goal`、`/v8/3d/global/start`、`/v8_support_map`、`/clock` |
+| global remap（渲染件） | 只有 `/v8/3d/global/goal`（恒等）与 `/v8_support_map`（恒等）；**start 没有 remap** |
+| `/v8/3d/global/start` | Publishers: **None**，Subscribers: global —— 起点没人发 |
+| `/v8/local/pose` | 发布者 carrier；订阅者 bt、local（**global 不在其中**） |
+| `/v8/3d/global/goal` | 发布者 bt；订阅者 global ✅ |
+| 图里 `global.start` | `external: {to: global.start, source: operator}` —— 是**外部输入**，不是 carrier 的边 |
+
+### 11.2 定因（逐行源码）
+
+`planner/topic_node.py:89-92` 的 `replan()`：`state['map'] is None or state['start'] is None or state['goal'] is None`
+→ 发 `E_PLAN_NOT_READY`。本次实测：map 已到（`map_version: 2`）、goal 已到、**start 缺失** ⇒ 恒不发规划。
+`map_version=2` 只是地图 JSON 的版本号，**不等于**规划就绪；就绪还要求 start 与 goal 同时存在。
+
+⇒ 不是 remap 错、也不是订阅时机错，而是**操作员没有提供声明式外部输入（起点）**。这与 FAR 图的差别正在这里：
+FAR 图显式写了 `carrier.pose → global.start` 的边（`graph_3d_lite3_far.yaml:206`），support 图没有。
+
+### 11.3 最小修复
+
+**不改规划器、不伪造 ready、不注入假目标**：探针按图契约补发**起点**（`--start-topic`，默认 `/v8/3d/global/start`，latch 发布），
+并顺带把 `path/status/local_goal` 话题参数化（此前写死 `/global_path`，而本图发 `/v8/3d/global/path`，导致误判"缺 path"）。
+
+### 11.4 修复后实测（同一 master 11313，隔离仿真）
+
+| 验收项 | 结果 | 证据 |
+| --- | --- | --- |
+| global 收到目标与起点 | ✅ | probe `start_sent`、`goal_sent`、`planner_goal` |
+| 地图就绪 | ✅ | `/v8_support_map` 有发布者；`map_version: 2` |
+| global 产出 path/status | ✅ | `/v8/3d/global/status` = `{"ok": true, "points": 16, "expansions": 97, "goal": [1.5,0,0]}` |
+| BT 收到 path/status | ✅（间接但明确） | BT 由 `WaitPath` 转 `FollowPath` 并下发局部目标（`local_goal` 事件） |
+| local 收到执行目标 | ✅ | probe `local_goal` = (1.5, 0.0) |
+| 取消 ACK | ✅ | `cancel_ack` = `1:cancelled` |
+| cmd3d_mux 状态 | ✅（真实读数） | `{"reason": "track", "velocity": [0,0,0,0], "input_frame": "map"}`；另一轮 `E_CMD3D_STALE` |
+
+### 11.5 分级结论
+
+| 等级 | 结论 |
+| --- | --- |
+| **启动级** | **PASS**：7/7（gazebo、map、global、local、mux3d、bt、carrier） |
+| **链路级** | **PASS**：目标→规划→路径→BT→局部目标→取消回执 全部有实际读数 |
+| **运动级** | **FAIL**：`/cmd_vel` 全程 0、`/v8/local/pose` 恒为 (0, -3.06)；BT `root=RUNNING` 且 `event=localization_ok` |
+| **导航级** | **NOT RUN**（无运动即无到达） |
+
+**运动级下一步**：`localization_ok` 有发布者（carrier）但 BT 仍停在 `localization_ok` 节点，需核对 carrier 实际发布的 Bool 值
+与 local 的同类门控；这不是"没接线"，是**门控输入的值/时序**问题。
+

@@ -1,0 +1,103 @@
+=== global rosnode info ===
+--------------------------------------------------------------------------------
+Node [/v8/3d/global/global]
+Publications: 
+ * /rosout [rosgraph_msgs/Log]
+ * /v8/3d/global/path [nav_msgs/Path]
+ * /v8/3d/global/status [std_msgs/String]
+
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+ * /v8/3d/global/goal [geometry_msgs/PoseStamped]
+ * /v8/3d/global/start [unknown type]
+ * /v8_support_map [std_msgs/String]
+
+Services: 
+ * /v8/3d/global/global/cancel
+ * /v8/3d/global/global/get_loggers
+ * /v8/3d/global/global/set_logger_level
+
+
+contacting node http://35ea6bfef95a:33561/ ...
+Pid: 76213
+Connections:
+ * topic: /rosout
+    * to: /rosout
+    * direction: outbound (39423 - 172.20.0.6:54022) [10]
+    * transport: TCPROS
+ * topic: /v8/3d/global/path
+    * to: /v8/bt/bt
+    * direction: outbound (39423 - 172.20.0.6:54030) [18]
+    * transport: TCPROS
+ * topic: /v8/3d/global/status
+    * to: /v8/bt/bt
+    * direction: outbound (39423 - 172.20.0.6:54046) [19]
+    * transport: TCPROS
+ * topic: /clock
+    * to: /gazebo (http://35ea6bfef95a:46295/)
+    * direction: inbound
+    * transport: TCPROS
+ * topic: /v8_support_map
+    * to: /v8/3d/map/map (http://35ea6bfef95a:40981/)
+    * direction: inbound
+    * transport: TCPROS
+ * topic: /v8/3d/global/goal
+    * to: /v8/bt/bt (http://35ea6bfef95a:45655/)
+    * direction: inbound
+    * transport: TCPROS
+
+=== global params ===
+/v8/3d/global/global/goal_topic
+/v8/3d/global/global/map_topic
+/v8/3d/global/global/path_topic
+/v8/3d/global/global/start_topic
+/v8/3d/global/global/status_topic
+start_topic=ERROR: Parameter [/v8/3d/global/start_topic] is not set
+goal_topic=ERROR: Parameter [/v8/3d/global/goal_topic] is not set
+map_topic=ERROR: Parameter [/v8/3d/global/map_topic] is not set
+path_topic=ERROR: Parameter [/v8/3d/global/path_topic] is not set
+status_topic=ERROR: Parameter [/v8/3d/global/status_topic] is not set
+---
+=== 话题 ===
+--- /v8/local/pose
+Type: geometry_msgs/PoseStamped
+
+Publishers: 
+ * /v8/3d/carrier/carrier (http://35ea6bfef95a:43107/)
+
+Subscribers: 
+ * /v8/bt/bt (http://35ea6bfef95a:45655/)
+ * /v8/3d/local/local (http://35ea6bfef95a:36459/)
+
+
+--- /v8/3d/global/goal
+Type: geometry_msgs/PoseStamped
+
+Publishers: 
+ * /v8/bt/bt (http://35ea6bfef95a:45655/)
+
+Subscribers: 
+ * /v8/3d/global/global (http://35ea6bfef95a:33561/)
+
+
+--- /v8/3d/global/start
+Type: geometry_msgs/PoseStamped
+
+Publishers: None
+
+Subscribers: 
+ * /v8/3d/global/global (http://35ea6bfef95a:33561/)
+
+
+--- /v8_support_map
+Type: std_msgs/String
+
+Publishers: 
+ * /v8/3d/map/map (http://35ea6bfef95a:40981/)
+
+Subscribers: 
+ * /v8/3d/local/local (http://35ea6bfef95a:36459/)
+ * /v8/3d/global/global (http://35ea6bfef95a:33561/)
+ * /v8/3d/carrier/carrier (http://35ea6bfef95a:43107/)
+
+

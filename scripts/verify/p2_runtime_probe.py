@@ -38,12 +38,15 @@ class Probe:
 
         self.pose_pub = rospy.Publisher('/v8/local/pose', PoseStamped, queue_size=1)
         self.goal_pub = rospy.Publisher(args.goal_topic, PoseStamped, queue_size=1)
+        # graph 把 global.start 声明为 external（source: operator/localization）——
+        # 起点必须由操作员给，规划器 replan() 里 start is None 就永远是 E_PLAN_NOT_READY。
+        self.start_pub = rospy.Publisher(args.start_topic, PoseStamped, queue_size=1, latch=True)
         self.cancel_pub = rospy.Publisher(args.cancel_topic, String, queue_size=1)
 
         rospy.Subscriber(args.planner_goal_topic, PoseStamped, self.on_planner_goal, queue_size=1)
-        rospy.Subscriber('/global_path', Path, self.on_path, queue_size=1)
-        rospy.Subscriber('/global_path/status', String, self.on_status, queue_size=1)
-        rospy.Subscriber('/v8/local/goal', PoseStamped, self.on_local_goal, queue_size=1)
+        rospy.Subscriber(args.path_topic, Path, self.on_path, queue_size=1)
+        rospy.Subscriber(args.path_status_topic, String, self.on_status, queue_size=1)
+        rospy.Subscriber(args.local_goal_topic, PoseStamped, self.on_local_goal, queue_size=1)
         rospy.Subscriber('/v8/local/cancel_ack', String, self.on_cancel_ack, queue_size=1)
         rospy.Subscriber('/cmd_vel', Twist, self.on_cmd, queue_size=50)
         rospy.Subscriber('/cmd_vel_raw', Twist, self.on_cmd_raw, queue_size=50)
@@ -116,6 +119,17 @@ class Probe:
             self.ev['errors'].append("目标话题无人订阅：%s" % self.args.goal_topic)
             return self.finish()
 
+        # 0) 声明式外部输入：起点（graph external 里 source: operator/localization）
+        st = PoseStamped()
+        st.header.stamp = rospy.Time.now()
+        st.header.frame_id = 'map'
+        st.pose.position.x = self.args.start[0]
+        st.pose.position.y = self.args.start[1]
+        st.pose.orientation.w = 1.0
+        self.start_pub.publish(st)
+        self.mark('start_sent', x=self.args.start[0], y=self.args.start[1])
+        time.sleep(0.5)
+
         # 1) 喂位姿（传统链无载体时用），再发目标；graph 有 carrier 时加 --no-pose
         if not self.args.no_pose:
             self.publish_pose()
@@ -175,10 +189,15 @@ def main():
     ap.add_argument('--combo', required=True)
     ap.add_argument('--evidence-dir', required=True)
     ap.add_argument('--goal', nargs=2, type=float, default=(1.0, 0.0))
+    ap.add_argument('--start', nargs=2, type=float, default=(0.0, 0.0))
+    ap.add_argument('--start-topic', default='/v8/3d/global/start')
     ap.add_argument('--pose', nargs=2, type=float, default=(0.0, 0.0))
     ap.add_argument('--goal-topic', default='/v8/bt/goal')
     ap.add_argument('--cancel-topic', default='/v8/bt/cancel')
     ap.add_argument('--planner-goal-topic', default='/v8/global/goal')
+    ap.add_argument('--path-topic', default='/global_path')
+    ap.add_argument('--path-status-topic', default='/global_path/status')
+    ap.add_argument('--local-goal-topic', default='/v8/local/goal')
     ap.add_argument('--duration', type=float, default=25.0)
     ap.add_argument('--cancel-seq', type=int, default=1)
     ap.add_argument('--expect-cancel-ack', action='store_true', default=True)
