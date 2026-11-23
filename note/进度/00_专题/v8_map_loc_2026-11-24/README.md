@@ -385,3 +385,44 @@ launch 是把 `<param name="globalmap_pcd">` 写在 **`nodelet load` 那个节�
 | P2 建图 | **PASS（路线口径）** | 279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m；路径自检生效、样张零污染 |
 | P3 定位 | **INVALID** | 链路查清：`/velodyne_points` 桥接 + `/globalmap` 命名空间；随后 **manager SIGSEGV 复现**（裁决同因） |
 | P4 导航闭环 | **NOT RUN** | 依赖 P3 的定位输出 |
+
+---
+
+## 24. P3 最后一试：去零点适配器（未救回，崩溃稳定复现）
+
+### 24.1 新证据：点云 72.8% 是 (0,0,0) 填充点
+
+`nan_chk.py` 对 `/rslidar_points` 抽样 20,000 点：
+
+```
+points=20000 checked=20000 NaN=0 zero=14555 (72.8%)
+```
+
+livox 仿真输出**定长 20000 点**，未命中的射线用 `(0,0,0)` 补齐。
+这类退化输入（上万条原点）对 NDT 的目标/源点云是典型的崩因。
+
+### 24.2 写了适配器仍崩
+
+新增 `scripts/verify/cloud_denull.py`：按点拷贝、丢弃全零/非有限点，保持字段布局不变（**不改算法**）。
+用它替换裸 relay 后再起 hdl：
+
+```
+/tmp/hdl_final.sh: line 37: 217532 Segmentation fault  setsid rosrun nodelet nodelet manager __name:=mgr
+```
+
+**manager 再次 SIGSEGV**（第二次稳定复现），`/hdl_odom` 仍 no new messages。
+
+### 24.3 结论
+
+- 崩溃**不随去零点而消失** ⇒ 真正诱因在 hdl 的 NDT_OMP 与 Gazebo 仿真时钟/点云组合，
+  属**第三方算法层**；
+- 按 `M2-R2C` 裁决不改写、不换 LIO 顶替、不动第三方实现；
+- **P3 = INVALID（崩溃稳定复现）**，**P4 = NOT RUN**。
+
+### 24.4 如果要继续，只剩这三条（都需要你点头）
+
+| 选项 | 内容 | 代价 |
+| --- | --- | --- |
+| A | 给 hdl 打补丁：NDT 输入前强制 trim/去 NaN + 限制点数上限，并在崩溃点加日志 | 动第三方算法实现 |
+| B | 换定位方案（如 `hdl_global_localization` 的 BBS 前端 + 自研匹配），重开裁决 | 重新设计，超出本轮 |
+| C | 只保留 P1/P2 成果，P3/P4 作为"受既有裁决阻断"长期挂起 | 无代码风险，但导航闭环无法完成 |
