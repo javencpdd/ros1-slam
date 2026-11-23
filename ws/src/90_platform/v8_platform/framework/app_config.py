@@ -23,6 +23,9 @@ class AppError(Exception):
 
 
 def _path(value, root):
+    text = str(value)
+    if text.startswith('$(find '):
+        return value          # roslaunch 宏，交给 launch 解析；不能当相对路径拼接
     path = Path(value)
     if path.is_absolute():
         return path

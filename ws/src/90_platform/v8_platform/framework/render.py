@@ -1,13 +1,40 @@
 """Assembly plan and ROS1 launch skeleton rendering (no ROS import)."""
 import copy
 import json
+import os
+import re
+from pathlib import Path
 
 import execution
-import re
 from xml.sax.saxutils import escape, quoteattr
 
 PLAN_SCHEMA = 'assembly_plan/v2'
 _NAME = re.compile(r'[^A-Za-z0-9_]')
+
+
+REPO_ROOT = Path(__file__).resolve().parents[5]      # …/framework→v8_platform→90_platform→src→ws→repo
+
+
+def _pkg_rel(value):
+    """把「仓库相对、且落在某个 catkin 包内」的资产路径改写成 $(find pkg)/子路径。
+
+    背景（2026-11-23）：graph 里的 `tree_file: ws/src/.../lite3_bt/trees/x.xml` 是**仓库相对**的，
+    节点以 devel 前缀为 cwd 运行时解析不到；而 `$(find pkg)` 由 roslaunch 解析，两处都成立。
+    非路径、绝对路径、找不到对应包的一律原样返回（不猜）。
+    """
+    if not isinstance(value, str) or value.startswith(('$(', '/')) or os.sep in value[:1]:
+        return value
+    if '/' not in value:
+        return value
+    target = (REPO_ROOT / value)
+    if not target.exists():
+        return value
+    d = target.parent
+    while d != REPO_ROOT and d != d.parent:
+        if (d / 'package.xml').exists():
+            return '$(find %s)/%s' % (d.name, target.relative_to(d).as_posix())
+        d = d.parent
+    return value
 
 
 def _name(instance_id):
@@ -68,8 +95,9 @@ def node_lines(instance_id, spec, namespace, params, config_path=None, remap=Non
             lines.append('    <rosparam command="load" file=%s/>'
                          % quoteattr('$(find %s)/%s' % (spec['package'], param_file)))
     for key in sorted(params):
+        # 仓库相对资产（如 tree_file）换成 $(find pkg)/…，否则节点以 devel 前缀为 cwd 时解析不到
         lines.append('    <param name=%s value=%s/>'
-                     % (quoteattr(str(key)), quoteattr(_value(params[key]))))
+                     % (quoteattr(str(key)), quoteattr(_value(_pkg_rel(params[key])))))
     for source, target in sorted(set(remap or ())):
         lines.append('    <remap from=%s to=%s/>' % (quoteattr(source), quoteattr(target)))
     lines.append('  </node>')

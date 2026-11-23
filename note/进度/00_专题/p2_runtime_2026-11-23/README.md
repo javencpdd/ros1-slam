@@ -82,3 +82,66 @@ graph 组合：`cli.py plan` 渲染到 `/tmp/g.launch` 后 `roslaunch`，需先�
 ## 7. 与正式验收的关系
 
 本轮只证明「传统 + support 的**接线**在真实运行图里成立」，**不构成** formal 签署、真机验收或能力升级；VCC/formal 状态保持原样。
+
+---
+
+## 8. 第二轮（F2/F3 修复后重跑）
+
+### 8.1 F2 根因与修复（tree_file）
+
+| 环节 | 事实 |
+| --- | --- |
+| graph 参数 | `tree_file: ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml`（**仓库相对**） |
+| app_runner 路径 | `app_runner_prepare.py:129-130` 会用 `app_config._path()` 拼成绝对路径 ⇒ 该入口本来正常 |
+| 直接 roslaunch | 渲染出的 launch 原样保留相对路径；节点 cwd 是 `devel/lib/...` ⇒ `createTreeFromFile` 失败，BT 起不来 |
+
+**修复**（`render.py` 新增 `_pkg_rel()`）：渲染时把「仓库相对、且落在某个 catkin 包内」的路径改写成 `$(find pkg)/子路径`，
+由 roslaunch 解析；非路径、绝对路径、找不到包的一律原样返回（不猜）。同时 `app_config._path()` 放行 `$(find …)`，
+避免 app 入口把它当相对路径再拼一次。
+
+**验证**：四张受支持图渲染结果均为 `name="tree_file" value="$(find lite3_bt)/trees/navigate_with_planner.xml"`；
+运行期 BT 能正常加载树（第二轮 graph 运行中 BT 起在 `/v8/bt/bt`）。
+测试：`tests/test_asset_paths.py`（5 项，含「缺失路径原样返回」反例）。
+
+### 8.2 F3 根因与修复（app 资产路径）
+
+两个活跃夹具 `nist_sensor_3d.yaml` / `nist_sensor_3d_lio.yaml` 的 `simulation_declaration` 仍指向
+`ws/src/95_simulation/...`（分仓后已不存在），实际资产在 `subprojects/simulation/ws/src/v8_simulation/config/sim_backends.yaml`。
+已改指向新位置；测试断言「活跃夹具不再含 `ws/src/95_simulation`」「缺失资产抛 `E_EXEC_BACKEND`」。
+
+### 8.3 Gazebo 前置检查（本轮实测通过）
+
+| 检查 | 结果 |
+| --- | --- |
+| 隔离 master | `http://127.0.0.1:11313`（容器内，未连真机） |
+| gzserver | Gazebo 11.15.1，可独立启动（`app_world.launch gui:=false`） |
+| `/gazebo/set_model_state` | **存在**（另有 spawn_sdf/urdf 服务） |
+| 插件与模型 | `libgazebo_ros_api_plugin.so` 在；`GAZEBO_MODEL_PATH` 含 `sim_ws/src` 与 worlds |
+
+### 8.4 graph + support：仍 **INVALID**，新阻断 F4
+
+Gazebo 起来后 `carrier` 正常启动、BT 也起来了（说明 F2 修复生效），但 **6 个节点只起了 2 个**：
+
+```
+Cannot locate node of type [framework/nodes/map_file_node.py] in package [v8_platform]
+Cannot locate node of type [planner/topic_node.py] in package [v8_algorithm]
+Cannot locate node of type [local_planner/ros_node.py] in package [v8_algorithm]
+Cannot locate node of type [local_planner/cmd3d_mux_node.py] in package [v8_algorithm]
+```
+
+- 前三个文件在 `devel/lib/<pkg>/<子目录>/` 里**确实存在且可执行**；`cmd3d_mux_node.py` 连安装目录里都没有。
+- 原因：roslaunch 解析 `type` 时只查 `devel/lib/<pkg>/` 的**顶层**可执行名，**不递归子目录** ⇒ 带 `/` 的 type 一律找不到。
+- 既有 `run_*.py` shim（如 `run_global_planner.py`）就是为绕开这一点而存在，但 graph 的 manifest 仍写子目录路径。
+
+**结论**：graph 两组合仍是 **INVALID**（阻断在 F4，与本轮 F2/F3 无关）。要跑通需三者之一：
+①给四个 type 造顶层 shim 并把 manifest `type` 改为裸名（会动 contract）；
+②render 把 `type` 压成 basename + 提供 shim（`ros_node.py` 在 planner 与 local_planner 下同名，需要消歧）；
+③catkin 侧改为 `CATKIN_PACKAGE_BIN_DESTINATION` 顶层安装（改构建）。
+三条都超出"最小修改"，需要单独授权。
+
+### 8.5 重要更正
+
+上一轮写「已观测到 BT 的 RequestPath 到达 `/v8/3d/global/goal`」——**只说明 BT 发出去了**。
+本轮在 graph 组合里该话题没有任何订阅者（规划器节点没起来），因此**不能**据此说"目标到达后端"。
+这条更正已在 §2 的说明中生效。
+
