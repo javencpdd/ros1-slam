@@ -89,6 +89,7 @@ bool LaserMapping::LoadParams(ros::NodeHandle &nh) {
     nh.param<bool>("mapping/extrinsic_est_en", extrinsic_est_en_, true);
     nh.param<bool>("pcd_save/pcd_save_en", pcd_save_en_, false);
     nh.param<int>("pcd_save/interval", pcd_save_interval_, -1);
+    nh.param<std::string>("pcd_save/path", pcd_save_path_, pcd_save_path_);
     nh.param<std::vector<double>>("mapping/extrinsic_T", extrinT_, std::vector<double>());
     nh.param<std::vector<double>>("mapping/extrinsic_R", extrinR_, std::vector<double>());
 
@@ -748,7 +749,9 @@ void LaserMapping::PublishFrameWorld() {
             pcd_index_++;
             // std::string all_points_dir(std::string(std::string(ROOT_DIR) + "PCD/scans_") + std::to_string(pcd_index_) +
             //                            std::string(".pcd"));
-            std::string all_points_dir(std::string("/home/ros1-slam/data/maps/lite3") + std::string(".pcd"));
+            // 2026-11-24：原先硬编码 /home/ros1-slam/data/maps/lite3.pcd（GAP-5 红线：sim 跑批会覆盖样张）。
+            // 改为可配置：默认值保持原路径与文件名，行为不变；仿真验证用 pcd_save/path 指到独立目录。
+            std::string all_points_dir = pcd_save_path_;
             pcl::PCDWriter pcd_writer;
             LOG(INFO) << "current scan saved to /PCD/" << all_points_dir;
             pcd_writer.writeBinary(all_points_dir, *pcl_wait_save_);

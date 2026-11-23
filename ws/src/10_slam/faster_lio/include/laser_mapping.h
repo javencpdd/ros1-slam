@@ -163,6 +163,8 @@ class LaserMapping {
     bool scan_body_pub_en_ = false;
     bool scan_effect_pub_en_ = false;
     bool pcd_save_en_ = false;
+    // 2026-11-24：仿真验证需要独立输出，避免覆盖 data/maps/lite3.pcd 样张；默认值保持原路径。
+    std::string pcd_save_path_ = "/home/ros1-slam/data/maps/lite3.pcd";
     bool runtime_pos_log_ = true;
     int pcd_save_interval_ = -1;
     bool path_save_en_ = false;
