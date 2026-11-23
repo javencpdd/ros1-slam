@@ -1,7 +1,17 @@
 <launch>
   <!-- Console BT stack: Nav2-style orchestration tree + ROS-level goal gate.
-       BT publishes /v8/bt/goal_request and /v8/bt/lease; the gate is the only
-       intended writer of /v8/3d/global/goal.
+       BT publishes /v8/bt/goal_request and /v8/bt/lease; the gate forwards a
+       request only while the lease is fresh and the callerid is allowed.
+
+       ★边界（2026-11-23 实测，勿按旧说法理解）★
+       本 gate 的输出 /v8/3d/global/goal 在**当前四条启动方式下都没有订阅者**：
+       3D 链的执行目标由 path_goal（传统）或 bt.out_goal（graph/support）直接写
+       /v8/local/goal，不经过 gate；graph 装配里根本不启动本节点。
+       gate 保留的原因不是"它守住了执行"，而是 real_preflight 的 REQUIRED_NODES
+       把 v8_goal_gate 列为真机 SCAN 链的节点契约。
+       真正的执行边界是：local 的源时效/取消检查 + safety mux 的速度仲裁；
+       callerid 白名单只是可伪造的软过滤，不等于身份认证。
+       若将来把 gate 输出接入执行链，必须同步改写本段与测试 test_graph_wiring。
 
        Profiles: `profile:=demo` loads config/bt_console_demo.yaml (the previous
        hard-coded defaults, unchanged).  `profile:=real` requires

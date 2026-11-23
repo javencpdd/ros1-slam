@@ -74,8 +74,8 @@ instances:
       goal_topic: /v8/bt/goal
       pose_topic: /v8/local/pose
       planner_goal_topic: /v8/3d/global/goal
-      path_topic: /v8/3d/global/path
-      path_status_topic: /v8/3d/global/status
+      path_topic: /global_path          # ★必须等于 FAR 实际输出（include 不吃 remap）
+      path_status_topic: /global_path/status
       # 哑话题：本图没有 bt.out_goal 边，必须退回 bt_console 自己的缺省值，
       # 否则 BT 仍然每拍直写 /v8/local/goal，与 path_goal 抢同一个话题（双写者）
       out_goal_topic: /v8/bt/goal_request
