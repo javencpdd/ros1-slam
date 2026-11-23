@@ -193,7 +193,9 @@ def main():
         # 持续零速窗口：从最后非零帧到探针结束
         # 阈值必须留 ε：last_nonzero 已 round 到毫秒，直接用 t > 它会把边界那一帧
         # （真实 1.1914 被记成 1.191）又算进窗口，导致 all_zero 假阴。
-        tail = [v for (t, v) in pr.cmd_after if t > result['last_nonzero_at_s'] + 1e-6]
+        # ε 必须与 round 精度同量级：last_nonzero 记到毫秒，5e-4 的截断会让边界那一帧
+        # （真实 0.1274 被记为 0.127）又落回窗口内，造成 all_zero 假阴。
+        tail = [v for (t, v) in pr.cmd_after if t > result['last_nonzero_at_s'] + 1e-3]
         result['quiet_window_frames'] = len(tail)
         result['quiet_window_all_zero'] = bool(tail) and max(tail) < STOP_SPEED
         result['quiet_window_s'] = (round(pr.cmd_after[-1][0] - result['last_nonzero_at_s'], 3)
