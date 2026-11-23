@@ -762,3 +762,82 @@ perception status : {"state":"ok","points":19200,"kept":2137,"voxels":69,
    需读 local 的 `stop_reason/last_error` 与 `gate_m` 判据，判断是"障碍挡道"还是"控制状态未就绪"。
    只有证明是参数/坐标语义错误才改；不得放宽门值。
 
+---
+
+## 19. 闭环打通：正常导航 SUCCESS、障碍拒动、断感知零速、取消 ACK（第十一轮）
+
+### 19.1 零速的真根因：障碍框**厚度为 0**，被 local 整帧拒收
+
+| 证据 | 读数 |
+| --- | --- |
+| `/v8/local/status` | `{"stop": true, "reason": "E_LOCAL_OBSTACLES_STALE", "input_ages": {"obstacles_cb": 92, ...}}` |
+| local 日志 | `[local] obstacles rejected: LocalError: E_LOCAL_INPUT: invalid obstacle bounds/time window` |
+| 消息内容 | `min.x == max.x`（薄墙聚类 + 3 位小数舍入 ⇒ 某轴厚度 0） |
+| 契约 | `local_native._obstacles()` 要求三轴**严格** `lo < hi` |
+
+⇒ 不是"没收到"，而是"收到了但整帧丢弃" → 永远 stale → 永久零速。
+
+**修复**：`dynamic_obstacles_node.box_minmax()` 把退化轴撑到最小区分厚度 **0.02 m**（保中心、不动其它轴），
+发布处统一走该函数。回归 `tests/test_obstacle_contract.py`（4 项，含"local 真的能接受该框"）。
+
+### 19.2 目标一 · 正常导航：**PASS**
+
+| 项 | 读数 |
+| --- | --- |
+| 起点 → 目标 | (0.000, −3.060) → (1.200, −3.060)，frame `map` |
+| 路径 | **5 点**（`path_state: ready`） |
+| 非零速度 | **98 帧**，mux 透传 |
+| 位姿 | 0.000 → **1.128**（y −3.054） |
+| 最终距离 | **0.072 m** |
+| BT 终态 | **`outcome: "reached"`**；节点链 `request_path / wait_path / follow_path / wait_arrival` 全 **SUCCESS** |
+| 结束零速 | cmd 采样末段为 0 |
+
+> 抓取时 `root` 仍为 RUNNING（`dwell_at_goal` 停留计时中），但 `outcome` 已写 `reached`、`wait_arrival=SUCCESS`
+> ⇒ 这是**明确定义的成功终态**，不是"在途快照"。
+
+### 19.3 目标二 · 障碍安全：**PASS（拒动）**
+
+| 步骤 | 读数 |
+| --- | --- |
+| 在车正前 0.8 m 生成真箱体 | `spawn ok=true` |
+| `/v8/local/obstacles` | **非空**（1 条航迹，`stamp/active_from/active_until` 齐全） |
+| 发目标 (+2.0 m) 后 10 s | `/cmd_vel` **全 0**、位移 **0.000** |
+| local 判决 | `{"stop": true, "reason": "E_LOCAL_SUPPORT"}` —— 路径支撑检查判定不可通行而拒动 |
+
+即：**检出障碍 → 拒动**，没有"绕过障碍硬冲"，也没有放宽门控。
+
+### 19.4 目标三 · 断感知安全：**PASS（机制），延迟未在运动中测到**
+
+| 步骤 | 读数 |
+| --- | --- |
+| 运行中 `rosnode kill /v8/3d/perception/perception` | 成功 |
+| local 判决 | `{"stop": true, "reason": "E_LOCAL_OBSTACLES_STALE"}`，`max_age=1.0` |
+| 速度 | 0（`zero_after_kill = 0.02 s`） |
+
+**诚实说明**：该次试验中机器人**在 kill 之前已因上一目标结束而停住**，所以 0.02 s 只是"状态翻转时间"，
+**不是从运动中刹停的延迟**。`blind_timeout_s=1.0` 的端到端停止延迟**仍未测量**（需要"运动中断云"那一次）。
+
+### 19.5 目标四 · 取消安全：**部分 PASS**
+
+| 读数 | 值 |
+| --- | --- |
+| 取消消息 | `9:all:p4C` |
+| ACK | **`9:cancelled`，70 ms** |
+| 速度 | 0；位姿不变 |
+
+**诚实说明**：该次取消发生在机器人已停住的时刻（同一脚本里前一目标已结束），因此**"运动中取消"尚未验证**。
+
+### 19.6 分级（第十一轮）
+
+| 目标 | 结论 |
+| --- | --- |
+| 1 正常导航（非零运动 + 位姿 + BT 成功终态） | **PASS** |
+| 2 障碍安全（检出后拒动） | **PASS** |
+| 3 断感知安全 | **PASS（机制）/ 停止延迟 UNVERIFIED** |
+| 4 取消安全 | **PASS（ACK+零速）/ 运动中取消 UNVERIFIED** |
+
+### 19.7 仍缺的两条（下轮一次性补齐）
+
+1. **运动中取消**：发目标后 1.5 s（此时确有非零 cmd）立即取消，测「ack 时刻 → cmd 归零时刻」；
+2. **运动中断云**：同样在运动窗口内 kill 感知，测「最后一帧点云 → cmd 归零」的实际延迟，并与 `max_age=1.0 s` 契约对比。
+

@@ -53,6 +53,30 @@ def transform_points(points, transform):
     return points.dot(matrix.T) + np.array([t.x, t.y, t.z])
 
 
+MIN_BOX_EXTENT_M = 0.02
+
+
+def box_minmax(lo, hi, min_extent=MIN_BOX_EXTENT_M):
+    """把跟踪框规范成**严格正体积**的三维盒（保留 3 位小数）。
+
+    2026-11-24：薄墙/平面在聚类后某一轴厚度为 0（四舍五入到 3 位后更常见），
+    而 local 的 `_obstacles()` 要求三轴都 `lo < hi`，否则整帧按 `E_LOCAL_INPUT` 丢弃，
+    表现就是 `E_LOCAL_OBSTACLES_STALE` + 永久零速。这里只把退化轴撑到最小区分厚度，
+    不搬动盒子中心、不改变其它轴尺寸。
+    """
+    out_lo, out_hi = [], []
+    for a, b in zip(lo, hi):
+        a, b = round(float(a), 3), round(float(b), 3)
+        if b - a < min_extent:
+            center = (a + b) / 2.0
+            a, b = round(center - min_extent / 2.0, 3), round(center + min_extent / 2.0, 3)
+            if b - a < min_extent:      # 四舍五入再次压平
+                b = round(a + min_extent, 3)
+        out_lo.append(a)
+        out_hi.append(b)
+    return out_lo, out_hi
+
+
 class DynamicObstaclesNode(object):
     def __init__(self):
         self.enable = bool(rospy.get_param('~enable', True))
@@ -140,8 +164,8 @@ class DynamicObstaclesNode(object):
             payload = []
             for track in tracks:
                 payload.append({
-                    'min': [round(v, 3) for v in track.box()['min']],
-                    'max': [round(v, 3) for v in track.box()['max']],
+                    'min': box_minmax(track.box()['min'], track.box()['max'])[0],
+                    'max': box_minmax(track.box()['min'], track.box()['max'])[1],
                     'velocity': [round(v, 3) for v in track.velocity()],
                     'track_id': track.id, 'age': track.age, 'missed': track.missed,
                     'stamp': round(now, 3),

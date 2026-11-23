@@ -1,0 +1,33 @@
+=== 正常导航终态 ===
+data: "{\"tree\":\"NavigateWithPlanner\",\"root\":\"RUNNING\",\"event\":\"localization_ok\"\
+  ,\"queue_depth\":0,\"goal_seq\":1,\"current_seq\":1,\"outcome\":\"\",\"outcome_seq\"\
+  :0,\"path_state\":\"ready\",\"path_points\":7,\"planner_mode\":\"pose\",\"cancel_requested\"\
+  :false,\"cancel_scope\":\"current\",\"cancel_ack\":\"\",\"cancel_origin\":\"\",\"\
+  external_cancel_seq\":0,\"wire_foreign_seen\":0,\"backend_cancel_seen\":0,\"stray_ack_seen\"\
+  :0,\"stale_queue_dropped\":0,\"leg_active\":true,\"pending_dropped\":0,\"attempts\"\
+  :0,\"recovery_mode\":\"skip\",\"goal_index\":1,\"goals_total\":0,\"localization_ok\"\
+  :true,\"localization_check\":true,\"arrival_signal\":false,\"nodes\":[{\"name\"\
+  :\"mission_or_cancel_or_recovery\",\"status\":\"RUNNING\"},{\"name\":\"mission\"\
+  ,\"status\":\"RUNNING\"},{\"name\":\"not_cancelled\",\"status\":\"SUCCESS\"},{\"\
+  name\":\"wait_goal\",\"status\":\"SUCCESS\"},{\"name\":\"check_localization\",\"\
+  status\":\"SUCCESS\"},{\"name\":\"request_path\",\"status\":\"SUCCESS\"},{\"name\"\
+  :\"wait_path\",\"status\":\"SUCCESS\"},{\"name\":\"follow_path\",\"status\":\"SUCCESS\"\
+  },{\"name\":\"wait_arrival\",\"status\":\"RUNNING\"},{\"name\":\"dwell_at_goal\"\
+  ,\"status\":\"IDLE\"},{\"name\":\"stop_after_success\",\"status\":\"IDLE\"},{\"\
+  name\":\"cancel\",\"status\":\"IDLE\"},{\"name\":\"cancelled\",\"status\":\"IDLE\"\
+  },{\"name\":\"cancel_current\",\"status\":\"IDLE\"},{\"name\":\"recovery_on_failure\"\
+  ,\"status\":\"IDLE\"}]}"
+---
+=== 当前 local ===
+data: "{\"velocity\": [0.0, 0.0, 0.0], \"stop\": true, \"reason\": \"E_LOCAL_SUPPORT\",\
+  \ \"clock\": \"ros_source+monotonic_progress\", \"pose_clock\": {\"ok\": true, \"\
+  reason\": \"ok\", \"source_stamp\": 26.459, \"observed_source_stamp\": 26.459, \"\
+  source_age_s\": 0.007999999999999119, \"progress_age_s\": 0.01614609800162725, \"\
+  epoch\": 0}, \"wall_watchdog_s\": 90.0, \"plan_ms\": null, \"detail\": \"E_LOCAL_SUPPORT:\
+  \ goal requires a matching z support | start=(0.0, -3.06, -1e-06) goal=(2.0, -3.06,\
+  \ 0.0) now=26.438 obs=2\", \"map_version\": 2, \"plan_ms_max\": 0.0, \"latched\"\
+  : false, \"plain_twist_frame\": null, \"capability_domain\": \"experimental_kinematic_carrier\"\
+  , \"cancel\": {\"requested\": false, \"seq\": 0, \"reason\": null}, \"input_ages\"\
+  : {\"pose\": 0.016, \"obstacles\": 0.035, \"localization\": 0.015, \"obstacles_cb\"\
+  : 235, \"max_age\": 1.0}}"
+---
