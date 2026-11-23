@@ -162,6 +162,13 @@ def cmd_docs(args) -> int:
     return subprocess.run(['bash', '-lc', cmd], cwd=str(REPO)).returncode
 
 
+def cmd_lint(args) -> int:
+    """note 文档健康巡检（只读）：断链/孤儿/同名/戳失真/空件。有问题返回 5。"""
+    flag = ' --all' if getattr(args, 'all', False) else ''
+    cmd = f'python3 -B {REPO}/scripts/ops/lint_notes.py{flag}'
+    return subprocess.run(['bash', '-lc', cmd], cwd=str(REPO)).returncode
+
+
 def cmd_smoke(args) -> int:
     stage = args.stage
     inner = with_env(f'bash {CONT_DIR}/docker/sim.sh smoke {stage}')
@@ -198,6 +205,10 @@ def main(argv=None) -> int:
     d = sub.add_parser('docs', help='重建 note 索引层（--check 只读核对）')
     d.add_argument('--check', action='store_true', help='只读：不一致返回 5，前置缺失返回 9')
     d.set_defaults(fn=cmd_docs)
+
+    l = sub.add_parser('lint', help='note 文档健康巡检（只读，有问题返回 5）')
+    l.add_argument('--all', action='store_true', help='连历史区一起查')
+    l.set_defaults(fn=cmd_lint)
 
     args = ap.parse_args(argv)
     try:
