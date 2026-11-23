@@ -335,3 +335,53 @@ launch 是把 `<param name="globalmap_pcd">` 写在 **`nodelet load` 那个节�
 1. `export ROSCONSOLE_CONFIG_FILE` 提高 nodelet 日志级别，或直接 `gdb -p <manager>` 看卡点；
 2. 确认 `nodelet load` 的返回码（当前 stdout 0 字节说明 CLI 没打印成功横幅，可能仍在等 manager 的 service）；
 3. 若参数路径确认走不通，可改用 **非 nodelet 的可执行**（hdl_localization 源码里是否有 standalone app）绕开 nodelet 命名空间问题。
+
+---
+
+## 22. P3 收官：定位链查清，并**复现了 M2-R2C 的 SIGSEGV**（第七轮）
+
+### 22.1 三个被误判的点，逐个纠正
+
+| 我之前的判断 | 事实 | 依据（源码） |
+| --- | --- | --- |
+| 地图发到 `/map` | map server 发的是 **`/globalmap`**（PointCloud2, latched） | `globalmap_server_nodelet.cpp:36` `nh.advertise<sensor_msgs::PointCloud2>("/globalmap", 5, true)` |
+| hdl 订 `/rslidar_points` | hdl **硬编码** `/velodyne_points` | `hdl_localization_nodelet.cpp:63` `mt_nh.subscribe("/velodyne_points", 5, ...)` |
+| 参数写在 launch 的 load 节点下即可 | nodelet 的私有 ns 是**自己的 `__name`**；必须 `rosparam set /<name>/globalmap_pcd` 且**在 load 之前** | 实测：这样设后 `/globalmap` 立刻出现 |
+
+### 22.2 补齐后链路确实通了
+
+- `rosrun topic_tools relay /rslidar_points /velodyne_points` → `/velodyne_points` 出现订阅者（hdl 侧）；
+- `rosparam set /gms/globalmap_pcd <pcd>` + 在 `/gms` 命名空间下发参 → **`/globalmap` 出现**（`rostopic list` 命中 1）；
+- 至此 map→hdl 的地图链、点云链**都成立**。
+
+### 22.3 最后一跳：**manager SIGSEGV（复现历史裁决）**
+
+加载 `HdlLocalizationNodelet` 后，脚本报：
+
+```
+/tmp/hdl_ok.sh: line 36: 213553 Segmentation fault   setsid rosrun nodelet nodelet manager __name:=mgr
+```
+
+即 **nodelet manager 进程崩溃**（退出信号 11），与 `note/02_问题与坑.md` 的
+「M2-R2C 最终轮 2026-10-06：hdl 仿真验证终止——/clock 门控 + --no-bond 落地后，manager 于 /clock 放行后
+~2 sim-s 内仍 SIGSEGV exit -11」**完全一致**。
+
+⇒ 崩溃发生在 **hdl 的 NDT_OMP 匹配阶段**（与点云/地图/参数都无关：那时地图已出、点云已订），
+这是**算法/构建层面的第三方问题**，不是配置问题。
+
+### 22.4 P3 最终结论：**INVALID（崩溃已复现，裁决得到印证）**
+
+- 定位**未取得输出**（`/hdl_odom` no new messages）；
+- 崩溃**已复现**（manager SIGSEGV），与历史裁决同因同象；
+- **不改写裁决**、**不换 LIO 顶替**、**不降门控**；
+- 若要在仿真里推进地图重定位，需要第三方 hdl 的 NDT 在 Gazebo 仿真时钟/点云下的稳定性修复
+  （属算法层，超出本轮"最小修复"边界，且会动第三方实现）。
+
+## 23. 四阶段最终结论（本轮收口）
+
+| 阶段 | 结论 | 关键证据 |
+| --- | --- | --- |
+| P1 传感器 | **PASS** | 点云 11.45 Hz、IMU 200 Hz、TF 断言通过 |
+| P2 建图 | **PASS（路线口径）** | 279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m；路径自检生效、样张零污染 |
+| P3 定位 | **INVALID** | 链路查清：`/velodyne_points` 桥接 + `/globalmap` 命名空间；随后 **manager SIGSEGV 复现**（裁决同因） |
+| P4 导航闭环 | **NOT RUN** | 依赖 P3 的定位输出 |
