@@ -164,8 +164,8 @@ def build_index(docs: list[dict]) -> dict[str, str]:
               '正文提过但标题没写的不算，避免误归）。', '',
           '## 其它入口', '',
           '- [v7 索引](v7-索引.md) — v7 全部 702 件的四类分列与覆盖统计',
-          '- [计划书代际对照](../计划书代际对照.md) — 七代计划书各是什么',
-          '- [04 主题速查](../04_配置改动diff_主题速查.md) — 528 段按主题翻',
+          '- [计划书代际对照](../索引/计划书代际对照.md) — 七代计划书各是什么',
+          '- [04 主题速查](../索引/04_配置改动diff_主题速查.md) — 528 段按主题翻',
           '', '## 怎么用', '',
           '1. 先按问题选维度：某天 / 某模块 / 某里程碑 / 某工作包。',
           '2. 页里每行都链回原始正文；读数、边界、证据在正文里。',
@@ -350,12 +350,12 @@ def build_plans() -> dict[str, str]:
     for r in rows:
         status = '**现行**' if r['dir'] == CURRENT_PLAN else '历史（时点快照）'
         t = r['title'].replace('|', '／')[:110] or '（无 21 号件）'
-        L.append(f'| [{r["dir"]}]({r["dir"]}/) | {r["files"]} | {t} | {status} |')
+        L.append(f'| [{r["dir"]}](../{r["dir"]}/) | {r["files"]} | {t} | {status} |')
     L += ['', '## 读法', '',
           f'- 现行路线只看 **{CURRENT_PLAN}** 目录（README 与 21—25 号件）；其余为历史。',
           '- 各代题目由原文抄录，不做归纳；要判断「那代解决什么」，读该代 21 号件正文。',
           '- 旧代的完整路径引用仍散在 `note/04` 与 `note/02` 里（合计 273 处），故本表不搬动任何文件。', '']
-    return {'note/计划书代际对照.md': '\n'.join(L)}
+    return {'note/索引/计划书代际对照.md': '\n'.join(L)}
 
 
 def build_theme04() -> dict[str, str]:
@@ -375,7 +375,7 @@ def build_theme04() -> dict[str, str]:
     covered = {ln for ln, (_, hits) in assign.items() if hits != ['未命中主题']}
 
     L = head('04 · 配置改动 diff 主题速查',
-             '源件：[04_配置改动diff.md](04_配置改动diff.md)（528 段，逐段核对一致）。',
+             '源件：[04_配置改动diff.md](../04_配置改动diff.md)（528 段，逐段核对一致）。',
              '只给「主题 → 段标题 + 行号」，**不改源件一个字节**：源件是 append-only 台账且被 VCC 按 `文件:行号` 引用。')
     listed = len(covered) + (len(secs) - len(covered))
     if listed != EXPECT['sec04']:
@@ -406,7 +406,7 @@ def build_theme04() -> dict[str, str]:
             tt = (t if len(t) <= 56 else t[:56] + '…').replace('|', '／')
             L.append(f'| {ln} | {tt} |')
         L.append('')
-    return {'note/04_配置改动diff_主题速查.md': '\n'.join(L)}
+    return {'note/索引/04_配置改动diff_主题速查.md': '\n'.join(L)}
 
 
 def build_all() -> dict[str, str]:
