@@ -553,3 +553,69 @@ FAR 图显式写了 `carrier.pose → global.start` 的边（`graph_3d_lite3_far
 2. mux 的 frame 校验与非法值拒绝未构造用例；
 3. 障碍场景（ROI 内有障碍时的检出与绕行）未跑。
 
+---
+
+## 16. 收尾三件：mux 用例 PASS、BT 终态部分、障碍场景受阻（第八轮）
+
+### 16.1 mux 的 frame 校验与非法值拒绝：**PASS（单测）**
+
+`local_planner/tests/test_cmd3d_arbiter.py` 直接测纯函数 `arbitrate()`，6 项全绿：
+
+| 用例 | 期望 |
+| --- | --- |
+| 新鲜 map 帧命令 | `track`，值原样透传 |
+| 过期输入 | `E_CMD3D_STALE` + 零 |
+| hold | `hold` + 零 |
+| 非 map 帧 | **`E_CMD3D_FRAME`** + 零 |
+| 非有限值（inf） | **`E_CMD3D_INVALID`** + 零 |
+| bool / 长度不符 | `E_CMD3D_INVALID` |
+
+⇒ 上一轮记 "NOT RUN" 的两项，改为 **PASS（代码级用例）**；speed_cap / 多源优先级仍**不存在**，不记。
+
+### 16.2 BT 到达终态：**部分（抓到在途快照）**
+
+到达瞬间（pose (1.487, −3.029)，目标 1.8，偏差 0.31 m）抓到的 `/v8/bt/status`：
+
+```json
+{"root":"RUNNING","event":"localization_ok","goal_seq":1,"current_seq":1,
+ "outcome":"","path_state":"ready","path_points":7,"cancel_requested":false}
+```
+
+即：**路径已就绪、7 点、任务在执行中**；`outcome` 为空说明抓取点仍在执行窗口内（BT 的终态要在 WaitArrival 判定后才写）。
+− 到达本身由位姿判据成立（0.31 m < 0.35 m）；
+− **BT 成功终态仍未取得**，需要在到达后继续轮询 status 直到 `outcome` 非空（下轮补）。
+
+### 16.3 障碍场景：**NOT RUN（受阻）**
+
+| 尝试 | 结果 |
+| --- | --- |
+| `spawn_sdf_model` 在 (0.85, −3.06) 放 0.4×0.4×0.8 箱体 | **成功**（`SpawnModel: Successfully spawned entity`） |
+| 期望 `/v8/local/obstacles` 非空 | 仍为 `[]` |
+| `/v8/3d/perception/status` | `{"state":"no_cloud","objects":0}` |
+| `/cloud_registered` | `rostopic hz` 曾达 10 Hz；`rostopic echo` 能打出 `header`（seq 42、stamp 有值）⇒ **消息本身合法** |
+| 但 perception 与该轮探针**都收不到**（`cloud: null` / `no_cloud`） | 现象一致 |
+
+**结论**：障碍检测未验证成功。两个候选原因需下一轮定位（都不是"改安全开关"能解决的）：
+
+1. **仿真时钟/节流**：`rostopic hz` 打印 `WARNING: may be using simulated time` 且无速率读数，说明 `/clock` 可能停走（gazebo 暂停或重启后未推进）⇒ 大消息 + `queue_size=1` 的订阅端会持续丢帧；
+2. **大消息订阅端丢帧**：点云约 2880×8 点、载荷百余 KB、10 Hz，`queue_size=1` 在 Python 端易丢；perception 与探针同时表现为"从未回调"。
+
+**因此把 §14.3 的 P3 结论降级**：感知链"**心跳 PASS**（`/v8/local/obstacles` 10 Hz、空检测合法、fail-closed 正确释放）"，但"**真实障碍检出未验证**"。
+
+### 16.4 本轮分级（修订）
+
+| 等级 | 结论 |
+| --- | --- |
+| 启动级 | PASS 8/8 |
+| 链路级 | PASS |
+| 运动级 | PASS（非零速度、位姿推进、到达 0.27–0.31 m、结束零速） |
+| 导航级 | PASS（位姿判据）；BT 终态待补 |
+| 感知检测 | **NOT RUN**（点云合法但订阅端未收到，候选原因见 16.3） |
+
+### 16.5 下一轮的最小验证路径
+
+1. 先确认 `/clock` 是否推进（`rostopic hz /clock`），必要时重开 world；
+2. 把 perception 的 `queue_size` 从 1 调到 5–10，或改订阅 `PointCloud2` 的 `tcp_nodelay`；
+3. 再放障碍箱，验 `objects ≥ 1` 且 local 收到非空 obstacles；
+4. 到达后轮询 BT status 抓 `outcome` 非空的终态。
+
