@@ -954,7 +954,7 @@ extra = v·reaction_s + v²/(2·brake_decel_mps2)，上限 dynamic_margin_cap_m
 | --- | --- | --- | --- |
 | 1 正常导航 | **PARTIAL** | 非零运动：`speed_frames` 最高 **764**、`max_speed 0.6`、位移 **0.6169** vs 真值 **0.6174**（差 0.5 mm）；BT `outcome=reached` | reached 是在**估计坐标系**成立：该点 hdl 估计 (3.724,2.159) 对真值 (3.825,2.399)，**误差 0.26 m > 容差 0.15 m** |
 | 2 障碍安全 | **PASS** | 多轮实测 **碰撞 0 次**；密集区 `E_LOCAL_COLLISION` 拒动（`obs=27`） | — |
-| 3 定位失效安全 | **INVALID** | 两次均**未在运动中触发**：固定时刻触发时车已停（`speed_first_frame_after=0`） | 探针 `ROSInterruptException` 未捕获导致 JSON 不落盘（已修） |
+| 3 定位失效安全 | **PASS** | 0.6 m/s 时 kill manager：停止延迟 **0.032 s**、滑行 **0.125 m**、`zero_after_trigger=true`（速度保持为零） | — |
 | 4 取消安全 | **NOT RUN** | — | 依赖 3 的同一运动窗口 |
 
 ### 36.3 本轮修掉的两个探针缺陷
@@ -985,3 +985,51 @@ FAR INVALID、VCC RED=39、真机禁止**均未改动**。本轮未放宽任何�
    在 `--on-speed 0.10` 触发，探针已修好；
 2. 若要可信的 reached，先在开阔区把 hdl 误差压到 0.05 m 以内（或换特征更丰富的位置），
    否则 reached 永远只能算"估计意义下成立"。
+
+### 36.7 取消安全实测：ACK 成功，但速度没有保持在零（FAIL）
+
+`--mode cancel --on-speed 0.10`，在速度 0.6 m/s 时发 `/v8/bt/cancel = "1:current:operator"`：
+
+| 指标 | 读数 | 判定 |
+| --- | --- | --- |
+| 是否运动中触发 | `triggered_while_moving=true`，`speed_at_trigger=0.6` | ✅ 前提成立 |
+| 取消 ACK | `cancel_ack="3:cancelled"` | ✅ 收到 |
+| 停止延迟 | **0.03 s** | ✅ 控制器响应很快 |
+| 滑行距离 | **0.153 m** | ✅ 与 0.03 s @ 0.6 m/s 相符 |
+| **速度保持为零** | `zero_after_trigger=false`，`max_speed_after_2s=0.6` | ❌ **2 s 后速度仍 0.6** |
+
+**根因（代码可证）**：`path_goal3d` 只订阅 `/v8/3d/global/path`，**不订阅任何取消话题**。
+BT 收到 cancel 后停止发目标，但全局路径仍在（latched），`path_goal` 继续按 2 Hz 逐点下发
+`/v8/local/goal`，local 于是被重新驱动 —— 表现为"先归零 30 ms、随后恢复满速"。
+
+**这是真实缺陷，不是测试误差**：取消链路只覆盖了 BT→local 的 ack 路径，
+没有覆盖 path_goal→local 这条旁路。修法应当让 `path_goal` 订阅 `/v8/local/cancel`
+并在收到时清空当前路径（或让 BT 取消时清掉路径话题）。**本轮不改** —— 它动的是取消语义，
+需要单独裁决，且已超出"不放宽安全参数"的授权范围。
+
+⇒ **第 4 项判定 FAIL**（ACK 与瞬态归零成立，稳态归零不成立）。
+
+### 36.8 定位失效实测：PASS
+
+`--mode stop --on-speed 0.10`，速度 0.6 m/s 时 `pkill -f "nodelet manager"`（HDL 定位中断）：
+
+| 指标 | 读数 |
+| --- | --- |
+| 运动中断开 | `triggered_while_moving=true`，`speed_at_trigger=0.6` |
+| 停止延迟 | **0.032 s** |
+| 滑行距离（真值） | **0.125 m** |
+| 2 s 后速度 | `zero_after_trigger=true`（tail 全 < 0.05） |
+
+与 §36.7 的取消测试形成对照，**恰好定位了取消缺陷的边界**：
+kill manager 会连带关停 roslaunch/master，`path_goal` 随之死亡，所以速度真正归零；
+而 cancel 只让 BT 停手，`path_goal` 活着继续下发 —— 同一个 local/mux 超时机制在两种场景下表现相反。
+这一对照说明**超时归零机制本身是好的**，问题在取消信号没有覆盖到 `path_goal`。
+
+### 36.9 四项汇总（最终）
+
+| # | 目标 | 判定 | 关键读数 |
+| --- | --- | --- | --- |
+| 1 | 正常导航 | **PARTIAL** | 运动 764 帧 / 0.6169 m（真值 0.6174）/ BT `outcome=reached`；但该点定位误差 0.26 m > 容差 0.15 m |
+| 2 | 障碍安全 | **PASS** | 碰撞 **0** 次；密集区 `E_LOCAL_COLLISION` 拒动 |
+| 3 | 定位失效安全 | **PASS** | 停止延迟 0.032 s / 滑行 0.125 m / 归零保持 |
+| 4 | 取消安全 | **FAIL** | ACK `3:cancelled` 与 30 ms 瞬态归零成立；2 s 后速度回到 0.6（`path_goal` 旁路未受控） |
