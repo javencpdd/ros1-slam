@@ -33,6 +33,9 @@ class PathGoal(object):
         self.goal_topic = rospy.get_param('~goal_topic', '/v8/local/goal')
         self.status_topic = rospy.get_param('~status_topic', '/v8/3d/path_goal/status')
         self.pose_topic = rospy.get_param('~pose_topic', '/v8/local/pose')
+        # 取消必须贯穿到这一层：本节点是 local 目标的直接下发者，BT 收到 cancel 后
+        # 若这里不停手，latched 的全局路径会让它继续逐点下发，local 被重新驱动。
+        self.cancel_topic = rospy.get_param('~cancel_topic', '/v8/local/cancel')
         self.arrive_m = float(rospy.get_param('~arrive_m', 0.30))
         self.advance_timeout_s = float(rospy.get_param('~advance_timeout_s', 8.0))
         self.goal_pub = rospy.Publisher(self.goal_topic, PoseStamped, queue_size=10)
@@ -41,18 +44,43 @@ class PathGoal(object):
         self.index = 0
         self.published_at = None
         self.pose = None
+        # 取消时刻：此后只接受 stamp 更新的 path，杜绝旧路径重放
+        self.cancelled_at = None
 
         rospy.Subscriber(self.path_topic, Path, self.on_path, queue_size=10)
         rospy.Subscriber(self.pose_topic, PoseStamped, self.on_pose, queue_size=10)
+        rospy.Subscriber(self.cancel_topic, String, self.on_cancel, queue_size=10)
         rospy.Timer(rospy.Duration(0.2), self.tick)
 
     def on_pose(self, message):
         self.pose = message.pose.position
 
+    def on_cancel(self, message):
+        """立即清空活动路径；此后只有 stamp 更新的 path 才能重新武装。"""
+        dropped = len(self.poses)
+        self.cancelled_at = rospy.Time.now()
+        self.poses = []
+        self.index = 0
+        self.published_at = None
+        self.status_pub.publish(String(data=json.dumps({
+            'ok': True, 'cancelled': True, 'dropped_poses': dropped,
+            'reason': message.data[:80]})))
+
     def on_path(self, message):
         if not message.poses:
             self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'empty_path'})))
             return
+        if self.cancelled_at is not None:
+            stamp = message.header.stamp
+            # stamp 缺失（0）时无法区分新旧，按 fail-closed 拒绝；只有明确更新的
+            # 路径（新任务重规划产生）才解除取消态。
+            if not stamp or stamp <= self.cancelled_at:
+                self.status_pub.publish(String(data=json.dumps({
+                    'ok': False, 'reason': 'stale_path_after_cancel',
+                    'path_stamp': 0.0 if not stamp else round(stamp.to_sec(), 3),
+                    'cancelled_at': round(self.cancelled_at.to_sec(), 3)})))
+                return
+            self.cancelled_at = None
         self.poses = list(message.poses)
         self.index = 0
         self.publish_current()
@@ -76,6 +104,8 @@ class PathGoal(object):
             'frame': goal.header.frame_id})))
 
     def tick(self, _event):
+        if self.cancelled_at is not None:
+            return
         if not self.poses or self.index >= len(self.poses) - 1:
             return
         rest = self.remaining()

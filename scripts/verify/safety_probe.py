@@ -43,7 +43,9 @@ class Probe(object):
         rospy.Subscriber('/v8/local/cancel_ack', String, self.on_ack, queue_size=10)
 
     def on_cmd(self, msg):
-        now = rospy.Time.now().to_sec()
+        # ★用 wall clock 而不是 rospy.Time★：后者是仿真时间，Gazebo 一暂停 /clock 不走，
+        # elapsed 永远为 0，探针在 timeout 边界上死等（实测卡住 160 s 以上不返回）。
+        now = time.monotonic()
         if self.t0 is None:
             self.t0 = now
         self.v = math.hypot(msg.linear.x, msg.linear.y)
@@ -62,14 +64,20 @@ class Probe(object):
 
 
 def trigger_stop_hdl():
-    subprocess.call(['pkill', '-f', 'nodelet manager'])
-    return 'killed nodelet manager (hdl 定位中断)'
+    """只中断 HDL 定位数据，不碰 master 与导航进程。
+
+    先前用 pkill nodelet manager：那会连带让 roslaunch 关停整个启动文件、master 随之消失，
+    于是"速度归零"其实是所有节点一起死掉的结果，测不出门控本身。改成 rosnode kill 只卸载
+    hdl 这个 nodelet 实例，/mgr 与 9 个导航节点都应继续存活。
+    """
+    subprocess.call(['rosnode', 'kill', '/hdl'])
+    return 'rosnode kill /hdl (only localization data interrupted)'
 
 
-def trigger_cancel(seq):
+def trigger_cancel(seq, scope='all'):
     pub = rospy.Publisher('/v8/bt/cancel', String, queue_size=5)
     rospy.sleep(0.3)
-    text = '%d:current:operator' % seq
+    text = '%d:%s:operator' % (seq, scope)
     pub.publish(String(data=text))
     rospy.sleep(0.3)
     pub.publish(String(data=text))
@@ -82,6 +90,9 @@ def main():
     ap.add_argument('--at', type=float, default=6.0, help='触发时刻（相对节点启动，秒）')
     ap.add_argument('--duration', type=float, default=22.0)
     ap.add_argument('--seq', type=int, default=1)
+    ap.add_argument('--scope', default='all',
+                    help='current 只取消当前腿；all 还会 dropPendingLocked() 清空目标队列。'
+                         '取消语义要求「只有明确的新任务才能重启」，故默认 all')
     ap.add_argument('--on-speed', type=float, default=0.0,
                     help='速度首次达到该值时才触发（>0 时优先于 --at）；'
                          '固定时刻触发容易在车已停下时误判为"运动中"')
@@ -90,8 +101,7 @@ def main():
 
     rospy.init_node('safety_probe', anonymous=True)
     pr = Probe()
-    rate = rospy.Rate(20.0)
-    begin = rospy.Time.now().to_sec()
+    begin = time.monotonic()
     action = None
     speed_at_trigger = None
     # ★必须兜住 ROSInterrupt★：kill 掉 nodelet manager 后 roslaunch 会关停 master，
@@ -99,7 +109,7 @@ def main():
     # 表现为"测了但没数据"。
     try:
       while not rospy.is_shutdown():
-        now = rospy.Time.now().to_sec()
+        now = time.monotonic()
         elapsed = now - begin
         moving = args.on_speed > 0.0 and pr.v >= args.on_speed
         timed = args.on_speed <= 0.0 and elapsed >= args.at
@@ -107,15 +117,28 @@ def main():
             pr.trigger_at = now
             pr.trigger_pose = pr.gt
             speed_at_trigger = pr.v
-            action = trigger_stop_hdl() if args.mode == 'stop' else trigger_cancel(args.seq)
+            action = (trigger_stop_hdl() if args.mode == 'stop'
+                      else trigger_cancel(args.seq, args.scope))
         if elapsed >= args.duration:
             break
-        rate.sleep()
+        time.sleep(0.05)
     except rospy.ROSInterruptException:
         pass
 
+    # 健康检查：取消/断定位之后，框架本身必须还在
+    alive = []
+    try:
+        out = subprocess.check_output(['rosnode', 'list'], stderr=subprocess.DEVNULL, timeout=10)
+        alive = [n for n in out.decode().split() if n.startswith('/v8') or n in ('/mgr', '/gazebo', '/hdl')]
+    except Exception:
+        alive = []
     result = {
         'mode': args.mode,
+        'alive_nodes_after': len(alive),
+        'alive_has_mgr': '/mgr' in alive,
+        'alive_has_gazebo': '/gazebo' in alive,
+        'alive_has_hdl': '/hdl' in alive,
+        'alive_v8_nodes': len([n for n in alive if n.startswith('/v8')]),
         'trigger_at_s': round(args.at, 2),
         'trigger_on_speed_mps': args.on_speed or None,
         'triggered_while_moving': bool((speed_at_trigger or 0.0) >= max(args.on_speed, 0.05)),
@@ -135,6 +158,11 @@ def main():
         result['zero_after_trigger'] = bool(tail) and max(tail) < STOP_SPEED
     if pr.trigger_at is not None and pr.stop_time is not None:
         result['stop_delay_s'] = round(pr.stop_time - pr.trigger_at, 3)
+        # 用户判据：停止后必须**持续 5 s** 保持零速，而不只是某一瞬为零
+        stop_rel = pr.stop_time - pr.trigger_at
+        window = [v for (t, v) in pr.cmd_after if stop_rel <= t <= stop_rel + 5.0]
+        result['zero_for_5s_window_frames'] = len(window)
+        result['zero_for_5s'] = bool(window) and max(window) < STOP_SPEED
     if pr.trigger_pose is not None and pr.gt is not None:
         result['coast_distance_m'] = round(
             math.hypot(pr.gt[0] - pr.trigger_pose[0], pr.gt[1] - pr.trigger_pose[1]), 3)

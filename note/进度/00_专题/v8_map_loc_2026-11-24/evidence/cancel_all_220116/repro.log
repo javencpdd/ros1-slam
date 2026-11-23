@@ -1,0 +1,54 @@
+===== MODE=normal DUR=8s MAP=/opt/ros1-slam/data/maps/mapped_m1.pcd =====
+EV=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261123_220120
+live_lib_sha=00f975bdd53711f7 backup_sha=a8164428b4f0dff9
+--- [0] 清理陈旧节点与 gzserver ---
+after_clean_nodes=/gazebo /gms /gms2 /hdl /mgr /robot_state_publisher /rosout /rostopic_195168_1795454317520 /rostopic_197725_1795454399751 /rostopic_202387_1795454599704 /rslidar_points_relay_1795460175593990754 /rslidar_points_relay_1795460296391746640 /rslidar_points_relay_1795460417712833935 /rslidar_points_relay_1795460611549887116 /rslidar_points_relay_1795460942054819501 /rslidar_points_relay_1795461077870360887 /rslidar_points_relay_1795461275307983150 /rslidar_points_relay_1795461475852665177 /rslidar_points_relay_1795464098851574075 /rslidar_points_relay_1795464931105779362 /rslidar_points_relay_1795465768612134027 /rslidar_points_relay_1795467586845989167 /rslidar_points_relay_1795468842179710662 /rslidar_points_relay_1795469157141222747 /rslidar_points_relay_1795469397979524771 /rslidar_points_relay_1795469572779675221 /rslidar_points_relay_1795469764638729080 /rslidar_points_relay_1795469924453318350 /rslidar_points_relay_1795470994478140392 /sim_adapter /tf_echo_1795440403832431413 /tf_echo_1795440640512424274 /v8/3d/carrier/carrier /v8/3d/global/global /v8/3d/loc/loc /v8/3d/local/local /v8/3d/map/map /v8/3d/mux/mux3d /v8/3d/path_goal/path_goal /v8/3d/perception/perception /v8/bt/bt /velodyne_nodelet_manager 
+after_clean_leftover=0
+--- [1] 启动 Gazebo（map_to_odom=false）---
+复用已在跑的 Gazebo（SKIP_GAZEBO=1 且 /rslidar_points 有数据）
+average rate: 10.204
+--- [2] relay /rslidar_points -> /velodyne_points ---
+average rate: 10.135
+--- [3] 启动 nodelet manager ---
+mgr_pid=533851 libasan_in_maps=0
+--- [4] 加载 GlobalmapServerNodelet（正式库）---
+globalmap_ready_after=1x2s width=10237
+globalmap_width=10237
+--- [5] 加载 HdlLocalizationNodelet（MODE=normal）---
+load_result=instance_at=1s
+mgr_alive=yes
+--- [6] 注入有效性：实际加载的是哪一份 .so ---
+maps_asan=0 maps_dbg=0 maps_live=6
+--- [7] 实例与订阅闸门 ---
+nodes=/hdl /mgr 
+hdl_node=/hdl
+-- /velodyne_points Subscribers --
+Subscribers: 
+ * /velodyne_nodelet_manager (http://35ea6bfef95a:34211/)
+ * /mgr (http://35ea6bfef95a:39679/)
+velodyne_has_subscriber=1
+-- /hdl Subscriptions --
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+ * /mgr/bond [bond/Status]
+
+--- [8] 等待进入 scan -> align（最多 40s）---
+scan_seen_after=1s
+align_seen_after=1s
+got_scan=1 got_align=1
+manager_log_lines=88
+对照 logs/latest 计数（历史误判来源）: scan=24282 align=24281
+--- [9] 已进入 align，观察 8s 崩溃 ---
+crash_at=none
+asan_reports=0
+===== 汇总 =====
+mode=normal crash_at=none
+scan_lines=62
+align_lines=62
+align_begin=62
+lidar_timeout_drops=0
+globalmap_msgs=1
+live_lib_sha_now=00f975bdd53711f7
+hdl_odom_hz=average rate: 9.749
+P3_VERDICT=PASS（/hdl_odom 有输出：average rate: 9.749）
+EV=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261123_220120

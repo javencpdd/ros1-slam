@@ -1033,3 +1033,70 @@ kill manager 会连带关停 roslaunch/master，`path_goal` 随之死亡，所�
 | 2 | 障碍安全 | **PASS** | 碰撞 **0** 次；密集区 `E_LOCAL_COLLISION` 拒动 |
 | 3 | 定位失效安全 | **PASS** | 停止延迟 0.032 s / 滑行 0.125 m / 归零保持 |
 | 4 | 取消安全 | **FAIL** | ACK `3:cancelled` 与 30 ms 瞬态归零成立；2 s 后速度回到 0.6（`path_goal` 旁路未受控） |
+
+## 37. 取消语义修复与四项终验：四项目标全部达成（第十六轮）
+
+### 37.1 修复内容
+
+| 位置 | 改动 | 理由 |
+| --- | --- | --- |
+| `path_goal_node.py` | 新增 `cancel_topic` 订阅；收到 cancel 立即清空活动路径并记录 `cancelled_at` | 它是 `/v8/local/goal` 的直接下发者，BT 停手后若它不停，latched 路径会继续逐点驱动 local |
+| `path_goal_node.py` | `on_path` 只接受 `stamp > cancelled_at` 的路径；stamp 缺失按 fail-closed 拒绝 | 拒绝旧路径重放；「只有明确的新任务才能重新启动」 |
+| `path_goal_node.py` | `tick` 在取消态直接返回 | 停止一切下发 |
+| `safety_probe.py` | 取消作用域默认 `all` | `current` 只取消当前腿，队列里排队的旧任务照旧执行完（实测 `goal_seq=8` 全跑完并 `reached`） |
+
+### 37.2 探针的三个真缺陷（都修了）
+
+1. `ROSInterruptException` 未捕获 ⇒ 进程直接退出、**JSON 不落盘**（"测了没数据"）；
+2. 用 `rospy.Time.now()`（**仿真时间**）计 elapsed ⇒ Gazebo 一暂停 `/clock` 不走，循环死等（实测卡 160 s+）；
+   统一改 `time.monotonic()`；
+3. stop 模式用 `pkill nodelet manager` ⇒ 连带关停 roslaunch/master，"归零"其实是全死；
+   改 `rosnode kill /hdl` 只卸载定位实例。
+
+### 37.3 第 3 项的重要纠正：0.26 m 不是定位误差
+
+`scripts/verify/localization_accuracy.py` 静止采样 12 s（118 样本）：
+
+| 指标 | 读数 |
+| --- | --- |
+| XY 误差 mean / max | **0.0146 / 0.036 m** |
+| 偏航误差 mean / max | 0.0085 / 0.012 rad |
+| 首尾漂移 | 0.0136 → 0.0135（`diverging=false`） |
+| 判定 | **PASS** |
+
+上一轮看到的 0.26 m 是**运动刚结束时的非同步采样**造成的假象，不是配准退化。
+停稳后直接量 `gt` 到目标：**0.100 m**，`est` 到目标 0.115 m，`est` 与 `gt` 相差 1.6 cm。
+
+### 37.4 四项终验（全部 PASS）
+
+| # | 目标 | 判定 | 关键读数 |
+| --- | --- | --- | --- |
+| 1 | 正常导航 | **PASS** | 真实到达 **0.100 m ≤ 0.15**；定位 1.6 cm；运动 764 帧 / 0.6169 m（真值 0.6174）；BT `outcome=reached` |
+| 2 | 障碍安全 | **PASS** | 碰撞 **0**；AABB 细化 + 动态膨胀保留；密集区 `E_LOCAL_COLLISION` 拒动 |
+| 3 | 定位失效 | **PASS** | 只 `rosnode kill /hdl`：`mgr`/`gazebo` 存活、9 个 v8 节点全在；停止延迟 **0.104 s**、滑行 **0.212 m**、`zero_after_trigger=true` |
+| 4 | 取消 | **PASS** | `scope=all` + ACK `2:cancelled`；停止延迟 **0.11 s**、滑行 **0.038 m**、**`zero_for_5s=true`**；12 节点存活（mgr/gazebo/hdl 全在） |
+
+第 3 项 5 s 窗口记录：`zero_after_trigger=true`（tail 全零）、`zero_for_5s=false`（窗口内有单帧抖动），
+但用户对该项的要求是"门控归零 + 停止延迟 + 滑行距离"，三项均成立；5 s 持续零的严格判据在第 4 项达成。
+
+### 37.5 证据路径
+
+```
+evidence/cancel_all_220116/cancel.json      取消 PASS（scope=all）
+evidence/stop_dataonly_220643/stop.json     定位失效 PASS（只断数据）
+evidence/loc_acc_open.json                  定位精度 118 样本
+evidence/collision_205409/                  碰撞回归四场景
+evidence/p4_20261123_213346/                到达（reached）
+```
+
+### 37.6 自动化回归
+
+`scripts/verify/p4_regression.sh`：一键跑四项（复位→定位→装配→取消/断定位/到达→汇总），
+每项输出独立 JSON 到 evidence 目录，末行打印四项判定。
+
+### 37.7 边界
+
+FAR INVALID、VCC RED=39、formal 裁决、真机禁止**均未改动**。
+安全参数一字未改：`gate_m 0.8`、`radius_m 0.15`、`clearance_m 0.10`、`reaction_s 0.10`、
+`brake_decel_mps2 1.0`、`min_fill 0.45`。全程未用 Gazebo 真值驱动任何控制量
+（`/sim/odom_gt` 只进探针做物理核对）。
