@@ -68,7 +68,7 @@ def main():
                # ★必须用能发标准 PointCloud2 的插件★：libgazebo_ros_block_laser 发的是旧
                # sensor_msgs/PointCloud，订阅 PointCloud2 的 perception 永远收不到（2026-11-23 实测）。
                '<plugin filename="libgazebo_ros_depth_camera.so" name="carrier_cloud">'
-               '<pointCloudTopicName>%s</pointCloudTopicName><frameName>%s/link</frameName>'
+               '<pointCloudTopicName>%s</pointCloudTopicName><frameName>%s/link/camera</frameName>'
                '</plugin></sensor>'
                '</link></model></sdf>' % (model, cloud_topic, model))
         result = spawner(model, sdf, '', Pose(), reference)
@@ -135,6 +135,14 @@ def main():
             tf_msg.transform.translation.z = position[2] if len(position) > 2 else 0.0
             tf_msg.transform.rotation.w = 1.0
             tf_broadcaster.sendTransform(tf_msg)
+            # 深度相机的光学坐标系（z 前/x 右/y 下）与 link 差一个绕 x 的 -90°；
+            # 不补这条 TF 会把地面/墙面按 link 轴解释，产生"恒在 +y 0.35 m"的幻影障碍。
+            cam = TransformStamped()
+            cam.header.stamp, cam.header.frame_id = stamp, model + '/link'
+            cam.child_frame_id = model + '/link/camera'
+            cam.transform.rotation.x = -0.70710678
+            cam.transform.rotation.w = 0.70710678
+            tf_broadcaster.sendTransform(cam)
             loc_pub.publish(Bool(data=True))
             state = ModelState()
             state.model_name, state.reference_frame = model, reference
