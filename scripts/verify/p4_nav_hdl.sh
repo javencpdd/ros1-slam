@@ -96,6 +96,19 @@ rosnode list 2>/dev/null | grep -qE '^/v8/3d/loc(/|$)' \
 say "loc_instance=present"
 
 # ---------- 4. 探针 + 发目标 ----------
+if [ -n "${SKIP_PROBE:-}" ]; then
+  say "--- [4] SKIP_PROBE：只发 start/goal，探针由调用方接管 ---"
+  timeout 3 rostopic pub -r 5 /v8/3d/global/start geometry_msgs/PoseStamped \
+    "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y, z: 0.0}, orientation: {w: 1.0}}}" \
+    >/dev/null 2>&1
+  sleep 1
+  timeout 3 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
+    "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y, z: 0.0}, orientation: {w: 1.0}}}" \
+    >/dev/null 2>&1
+  say "goal_sent=$GOAL_X,$GOAL_Y (no probe)"
+  say "EV=$EV"
+  exit 0
+fi
 say "--- [4] 起探针并发 start/goal ---"
 python3 "$REPO/scripts/verify/p4_nav_probe.py" \
   --goal-x "$GOAL_X" --goal-y "$GOAL_Y" --duration "$DURATION" --out "$EV/probe.json" \

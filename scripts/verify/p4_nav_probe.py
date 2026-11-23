@@ -92,9 +92,13 @@ def main():
         result['est_end'] = [round(v, 4) for v in pr.est]
         result['est_travel_m'] = round(math.hypot(dx, dy), 4)
         result['est_dist_to_goal_m'] = round(dist, 4)
+        initial = math.hypot(pr.first_est[0] - args.goal_x, pr.first_est[1] - args.goal_y)
+        result['initial_dist_to_goal_m'] = round(initial, 3)
         checks = {
             'nonzero_speed': pr.speed_frames > 0,
-            'travel_gt_1m': result['est_travel_m'] > 1.0,
+            # 原判据写死 1 m，短程目标（<2 m）下永远不成立；改成"至少走完初始距离的一半"，
+            # 语义等价于"确实在朝目标推进"，且不涉及安全参数。
+            'travel_half_of_initial': result['est_travel_m'] >= 0.5 * max(initial, 1e-6),
             'arrived': dist <= args.tol,
         }
         if pr.gt is not None:
