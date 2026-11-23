@@ -58,20 +58,17 @@ def main():
                '<box><size>0.45 0.30 0.20</size></box></geometry>'
                '<material><ambient>0.2 0.5 0.9 1</ambient></material>'
                '</visual>'
-               '<sensor type="ray" name="lidar">'
+               '<sensor type="depth" name="lidar">'
                '<pose>0 0 0.25 0 0 0</pose>'
                '<update_rate>10</update_rate>'
                '<visualize>false</visualize>'
-               '<ray><scan><horizontal><samples>360</samples>'
-               '<resolution>1</resolution><min_angle>-3.14159</min_angle>'
-               '<max_angle>3.14159</max_angle></horizontal>'
-               '<vertical><samples>8</samples><resolution>1</resolution>'
-               '<min_angle>-0.26</min_angle><max_angle>0.26</max_angle></vertical>'
-               '</scan><range><min>0.15</min><max>12.0</max><resolution>0.01</resolution></range>'
-               '</ray>'
-               '<plugin filename="libgazebo_ros_block_laser.so" name="carrier_lidar">'
-               '<topicName>%s</topicName><frameName>%s/link</frameName>'
-               '<radiation>laser</radiation><gaussianNoise>0.005</gaussianNoise>'
+               '<camera><horizontal_fov>1.047</horizontal_fov>'
+               '<image><width>160</width><height>120</height></image>'
+               '<clip><near>0.15</near><far>12.0</far></clip></camera>'
+               # ★必须用能发标准 PointCloud2 的插件★：libgazebo_ros_block_laser 发的是旧
+               # sensor_msgs/PointCloud，订阅 PointCloud2 的 perception 永远收不到（2026-11-23 实测）。
+               '<plugin filename="libgazebo_ros_depth_camera.so" name="carrier_cloud">'
+               '<pointCloudTopicName>%s</pointCloudTopicName><frameName>%s/link</frameName>'
                '</plugin></sensor>'
                '</link></model></sdf>' % (model, cloud_topic, model))
         result = spawner(model, sdf, '', Pose(), reference)

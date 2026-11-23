@@ -619,3 +619,80 @@ FAR 图显式写了 `carrier.pose → global.start` 的边（`graph_3d_lite3_far
 3. 再放障碍箱，验 `objects ≥ 1` 且 local 收到非空 obstacles；
 4. 到达后轮询 BT status 抓 `outcome` 非空的终态。
 
+---
+
+## 17. no_cloud 定因、假健康修复与障碍检出（第九轮）
+
+### 17.1 第一项：**确实存在"假健康心跳"风险**，已按既有机制修掉
+
+| 事实 | 证据 |
+| --- | --- |
+| perception 在 `no_cloud` 状态下**仍按 10 Hz 发布 `[]`** | `status: {"state":"no_cloud"}` 与 `/v8/local/obstacles` 的 `[]`（10 Hz）同时存在 |
+| 原因 | `blind_timeout_s` **默认 0.0 ⇒ blind 守卫被禁用**（`dynamic_obstacles_node.py:76`、`:173`） |
+| local 后果 | local 只看"障碍心跳是否新鲜"，于是把"从未处理过点云"的 `[]` 当成健康输入 ⇒ **允许运动** |
+
+**修复（零代码、复用既有机制）**：给该图的 perception 加 `blind_timeout_s: 1.0`——
+无有效点云 1 s 后 perception **停止发布 obstacles**，local 的心跳随之超时（原有 fail-closed），
+不再需要任何"改 local 默认值"的动作。**local 的安全默认值一字未改。**
+
+> 这是本轮最重要的安全发现：此前"非零速度 + 到达 0.27 m"的那次运行，**是在感知未生效的假健康状态下取得的**，
+> 因此**不能**算导航验收；本轮据此把运动/导航结论降级重述（见 17.5）。
+
+### 17.2 第二项：点云不进回调的**真实原因**（不是 queue_size）
+
+| 排查 | 结果 |
+| --- | --- |
+| `/clock` 是否推进 | **推进**：`rostopic hz /clock` = **1000 Hz**（sim time 正常） |
+| Publisher/Subscriber 是否连接 | 已连接（`rostopic info` 同时列出 /gazebo 与 perception） |
+| **消息类型** | **`Type: sensor_msgs/PointCloud`** —— 旧类型！ |
+| perception 订阅类型 | `sensor_msgs/PointCloud2` ⇒ **类型不匹配，回调永不触发** |
+| 队列因素 | 自写订阅者 q=1 与 q=10+tcp_nodelay **都是 0 命中** ⇒ **与队列无关**（未改 queue_size） |
+
+**修复**：传感器插件由 `libgazebo_ros_block_laser.so`（发旧 `PointCloud`）改为
+`libgazebo_ros_depth_camera.so`（发标准 **PointCloud2**，`pointCloudTopicName=/cloud_registered`、frame `app_carrier/link`），
+传感器类型 `ray → depth`，10 Hz、HFOV 60°、0.15–12 m。
+
+**修复后读数**：
+```
+/cloud_registered : sensor_msgs/PointCloud2, 10.03 Hz
+perception status : {"state":"ok","points":19200,"kept":2137,"voxels":69,
+                     "objects":2,"tracks":2,"detections":2,"latency_ms":8.0}
+/v8/local/obstacles: 2 条真实航迹（含 min/max/stamp/track_id/active_from..until）
+```
+
+### 17.3 第三项：BT 终态 —— **仍未取得，原因变了**
+
+修复后重跑（目标 (1.2, −3.06)，起点 (0, −3.06)）：
+
+- 60 s 内 `/cmd_vel` **全 0**、位姿**未移动**（仍 (0.000, −3.060)，距目标 1.2 m）；
+- `/v8/bt/status` 始终没有 `outcome` ⇒ **无终态**。
+
+原因：感知现在真的在工作，检出 **2 个障碍**（y≈−2.71 的两段结构），local 按障碍门控**拒绝推进**。
+即"从假健康变为真拒绝"——方向是对的，但**空场地/走廊的可用性还没确认**。
+
+⇒ BT SUCCESS **未取得**；不能拿旧的 0.27 m 到达充数（那次是假健康）。
+
+### 17.4 第四项：障碍检出 —— **PASS**
+
+- `objects/tracks/detections = 2/2/2`，来自真实点云（points 19200，过滤后 kept 2137、69 voxels）；
+- `/v8/local/obstacles` 收到**非空**数组，含 2 条航迹的 min/max、速度、age、missed、stamp、active 窗口；
+- 箱体 spawn 成功只是前置，判定用的是"检出数量 + 消息内容"。
+
+### 17.5 分级（修订，只认运行证据）
+
+| 等级 | 结论 | 说明 |
+| --- | --- | --- |
+| 启动级 | **PASS 8/8** | 稳定 |
+| 链路级 | **PASS** | 目标→路径→BT→局部目标→取消，均有读数 |
+| 运动级 | **FAIL（修订）** | 早先 0.597 m/s 与到达 0.27 m 是在**假健康**下取得；修复后 local 因真实障碍拒绝运动 |
+| 导航级 | **FAIL / NOT RUN** | 无 BT 终态；机器人 60 s 未移动 |
+| 感知链 | **PASS** | 真实 PointCloud2 → 检出 2 障碍 → 送达 local |
+| 假健康风险 | **已消除** | `blind_timeout_s=1.0`，local 默认未改 |
+
+### 17.6 下一轮（明确的唯一入口）
+
+1. 选一条**确实空旷**的走廊（现位置 y≈−3.06 两侧 0.45 m 处就是结构）或把起点/目标挪到空区；
+2. 若空旷处仍检出障碍，则说明 ROI/`gate_m` 与场地尺度不匹配，按参数语义**校准**（不是放宽门值）；
+3. 再跑 BT 终态：轮询到 `outcome` 非空；
+4. 最后做「停点云 → blind → local 归零」的反例（现已有 blind 机制，可直接验）。
+

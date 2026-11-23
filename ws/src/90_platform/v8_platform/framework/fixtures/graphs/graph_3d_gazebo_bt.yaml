@@ -54,6 +54,7 @@ instances:
       cloud_topic: /cloud_registered
       map_frame: map
       rate_hz: 10.0
+      blind_timeout_s: 1.0   # 无有效点云 1 s 后停止发 obstacles，让 local 心跳超时回零
       roi_forward_m: 6.0
       roi_lateral_m: 3.0
       min_height_m: 0.15
