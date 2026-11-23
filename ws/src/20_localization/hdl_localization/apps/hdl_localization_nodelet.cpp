@@ -191,6 +191,10 @@ private:
    * @param points_msg
    */
   void points_callback(const sensor_msgs::PointCloud2ConstPtr& points_msg) {
+    // 2026-11-24 最小补丁：nodelet 走多线程 spinner，本回调会并发进入，
+    // 而 downsample 用的 voxelgrid 与 pose_estimator 都是成员状态 ⇒ 数据竞争致 SIGSEGV。
+    // 这里只做串行化，不改任何算法参数。
+    std::lock_guard<std::mutex> cb_lock(callback_mutex_);
     auto t_diff_ms = (ros::Time::now() - points_msg->header.stamp).toSec() * 1000;
     if(t_diff_ms > lidar_timeout_ms){
       ROS_WARN("Disgarding a timeout lidar msg, t_diss: %lf ms", t_diff_ms);
@@ -228,6 +232,11 @@ private:
     }
 
     auto filtered = downsample(cloud);
+    NODELET_INFO("scan: raw=%zu filtered=%zu", cloud->size(), filtered->size());
+    if(filtered->size() < 30) {
+      NODELET_WARN("filtered scan too small (%zu points), skip registration", filtered->size());
+      return;
+    }
     last_scan = filtered;
 
     if(relocalizing) {
@@ -279,7 +288,9 @@ private:
     }
 
     // correct
+    NODELET_INFO("align begin: target=%zu source=%zu", globalmap ? globalmap->size() : 0, filtered->size());
     auto aligned = pose_estimator->correct(stamp, filtered);
+    NODELET_INFO("align done: %zu points", aligned ? aligned->size() : 0);
 
     if(aligned_pub.getNumSubscribers()) {
       aligned->header.frame_id = "map";
@@ -304,6 +315,12 @@ private:
     pcl::fromROSMsg(*points_msg, *cloud);
     globalmap = cloud;
 
+    // 2026-11-24 诊断补丁：NDT 的 target 为空/过小会在 align 里崩，先记录规模并护栏。
+    if(globalmap->size() < 100) {
+      NODELET_ERROR("globalmap too small (%zu points), skip setInputTarget", globalmap->size());
+      return;
+    }
+    NODELET_INFO("globalmap received: %zu points -> NDT target", globalmap->size());
     registration->setInputTarget(globalmap);
 
     NODELET_INFO("use global map: %d", use_global_localization);
@@ -564,6 +581,7 @@ private:
 
   // pose estimator
   std::mutex pose_estimator_mutex;
+  std::mutex callback_mutex_;   // 串行化 points_callback（见函数内注释）
   std::unique_ptr<hdl_localization::PoseEstimator> pose_estimator;
 
   // global localization

@@ -426,3 +426,63 @@ livox 仿真输出**定长 20000 点**，未命中的射线用 `(0,0,0)` 补齐�
 | A | 给 hdl 打补丁：NDT 输入前强制 trim/去 NaN + 限制点数上限，并在崩溃点加日志 | 动第三方算法实现 |
 | B | 换定位方案（如 `hdl_global_localization` 的 BBS 前端 + 自研匹配），重开裁决 | 重新设计，超出本轮 |
 | C | 只保留 P1/P2 成果，P3/P4 作为"受既有裁决阻断"长期挂起 | 无代码风险，但导航闭环无法完成 |
+
+---
+
+## 25. P3 按 A 方案执行：加日志 + 两道护栏，崩溃仍未消除（第八轮）
+
+### 25.1 为什么没用 gdb
+
+容器内 **无 gdb**（只有 `catchsegv`），且 `ulimit -c = 0`、`core_pattern = core` ⇒ **拿不到 core**。
+因此改用"源码内打点 + 护栏"的方式定位崩溃点（补丁可回退、行为可复现）。
+
+### 25.2 补丁（三处，均在第三方 `hdl_localization_nodelet.cpp`）
+
+1. `globalmap_callback`：target < 100 点时拒绝 `setInputTarget`，并打印实际点数；
+2. `points_callback`：打印 `raw/filtered` 点数；`filtered < 30` 时跳过配准；
+3. `align` 前后各打一行（`align begin: target=… source=…` / `align done: … points`）。
+
+### 25.3 打点结果：**第一次配准是成功的**
+
+rosout 实测（`/opt/ros1-slam/logs/latest/*.log`）：
+
+```
+globalmap received!
+scan: raw=5439 filtered=…            (231 行)
+align begin: target=… source=…       (287 行)
+align done: 474 points               (289 行)   ← 第一次 align 成功
+```
+
+之后**再次 SIGSEGV**（manager 进程，exit -11）。⇒ 崩溃**不在首帧配准**，也不是"target 为空"。
+
+### 25.4 第二道补丁：回调互斥（怀疑多线程 spinner 数据竞争）
+
+nodelet 用 `mt_nh`（多线程），`voxelgrid`/`pose_estimator` 都是成员状态，加了
+`std::lock_guard<std::mutex> callback_mutex_` 串行化整个 `points_callback`。
+
+**结果：仍然 SIGSEGV**（第三次复现）⇒ **不是简单的回调并发竞争**。
+
+### 25.5 本轮 P3 结论：**INVALID（补丁未消除崩溃，缺调试器取栈）**
+
+| 项 | 结果 |
+| --- | --- |
+| 地图链 | ✅ `/globalmap` 正常（19 万+ 点） |
+| 点云链 | ✅ `/velodyne_points` 有订阅者，`raw=5439` 到帧 |
+| 首帧配准 | ✅ `align done: 474 points` |
+| 稳定性 | ❌ 首帧后 manager SIGSEGV（三次复现：裸跑 / 去零点 / 加互斥） |
+| 定位输出 | ❌ `/hdl_odom` 无消息 |
+
+**下一步必须换手段**（不是再猜）：
+
+1. **装 gdb**（`apt-get install gdb`，需网络授权）→ `gdb -p <manager>` 或 core 分析，直接取崩栈；
+2. 或把 hdl 编译成 **Debug + ASAN**（`-fsanitize=address -g`）→ 让崩溃自带调用栈与越界报告；
+3. 二者都需要"允许安装调试器/改编译选项"，属环境级改动，**等你点头**。
+
+## 26. 四阶段最终（第八轮）
+
+| 阶段 | 结论 |
+| --- | --- |
+| P1 传感器 | **PASS** |
+| P2 建图 | **PASS（路线口径）**（279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m） |
+| P3 定位 | **INVALID**（三道补丁后仍崩；无 gdb 无法取栈） |
+| P4 导航 | **NOT RUN** |
