@@ -140,6 +140,11 @@ def render_launch(graph, catalog, report):
         if spec['kind'] == 'nodelet_group':
             lines.extend(nodelet_group_lines(iid, spec, rec['namespace'], rec['params']))
             continue
+        # 端口→ROS 参数名：本渲染器只认 `<port>_topic`。已核的例外（2026-11-23）：
+        #   v8.fw.local_native_raw：端口 cmd      → 参数 command_topic
+        #   v8.fw.local_native_raw：端口 cmd_twist → 参数 twist_topic
+        # 这两处若在 graph 里被改成与 manifest 默认不同的值，remap 会按默认名生成而空转；
+        # 由 tests/test_graph_wiring.py::test_known_param_name_exceptions_do_not_drift 守。
         remaps = [(item['from'], item['to']) for item in spec.get('remap', [])]
         for edge in report['edges']:
             if edge['to_instance'] != iid:
@@ -148,8 +153,10 @@ def render_launch(graph, catalog, report):
             # 若 remap 仍按 manifest 默认名生成，就会把消费者重定向到一个没人发的话题
             # （2026-11-23 实测：bt.out_goal 参数为 /v8/local/goal，而 local 被 remap 到
             #  manifest 默认的 /v8/bt/goal_request ⇒ 执行目标永远收不到）。
-            to_port = edge['to'].split('.', 1)[-1]
-            from_port = edge['from'].split('.', 1)[-1]
+            # ★必须按最后一个点号切★：INSTANCE_ID 允许点号（config.py:21），
+            # graph._endpoint 也用 rsplit('.', 1)；用 split 会把 bt.a.out_goal 切成 a.out_goal。
+            to_port = edge['to'].rsplit('.', 1)[-1]
+            from_port = edge['from'].rsplit('.', 1)[-1]
             producer = executable_instances[edge['from_instance']]['params']
             target_topic = rec['params'].get(to_port + '_topic') or edge['to_port'].get('topic')
             source_topic = producer.get(from_port + '_topic') or edge['from_port'].get('topic')

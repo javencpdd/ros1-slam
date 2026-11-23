@@ -21,8 +21,12 @@ REPO = Path(__file__).resolve().parents[6]
 V8P = REPO / 'ws/src/90_platform/v8_platform'
 FRAMEWORK = V8P / 'framework'
 MANIFESTS = FRAMEWORK / 'fixtures/manifests'
-GRAPHS = sorted((V8P / 'configs/lite3').glob('*.yaml')) + \
-         sorted((FRAMEWORK / 'fixtures/graphs').glob('*.yaml'))
+SUPPORTED = [
+    V8P / 'configs/lite3/graph_3d_lite3_bt.yaml',
+    V8P / 'configs/lite3/graph_3d_lite3_far.yaml',
+    FRAMEWORK / 'fixtures/graphs/graph_3d_gazebo_bt.yaml',
+    FRAMEWORK / 'fixtures/graphs/graph_3d_gazebo_far.yaml',
+]
 
 sys.path.insert(0, str(FRAMEWORK))
 from config import load_components, load_graph            # noqa: E402
@@ -77,8 +81,9 @@ def inst_of(graph, iid):
 
 def element_for(graph, nodes, includes, iid):
     comp = inst_of(graph, iid)['component']
-    if iid in nodes:
-        return nodes[iid]['params'], nodes[iid]['remaps']
+    key = render_mod._name(iid)          # 渲染时实例 ID 的点号会转成下划线
+    if key in nodes:
+        return nodes[key]['params'], nodes[key]['remaps']
     launch = manifest_index()[comp].get('launch', {})
     for path, args in includes.items():
         if launch.get('launch_file') and launch['launch_file'] in path:
@@ -122,8 +127,16 @@ def problems(graph, nodes=None, includes=None):
 
     if 'local' in ids:
         target = effective(graph, nodes, includes, 'local', 'goal', 'inputs')
-        writers = [w for w, port in (('bt', 'out_goal'), ('path_goal', 'goal'))
-                   if w in ids and effective(graph, nodes, includes, w, port, 'outputs') == target]
+        writers = []
+        for iid in ids:
+            outs = {p.get('name') for p in
+                    manifest_index()[inst_of(graph, iid)['component']]
+                    .get('ports', {}).get('outputs', [])}
+            for port in ('out_goal', 'goal'):
+                if port in outs and effective(graph, nodes, includes, iid, port,
+                                              'outputs') == target:
+                    writers.append(iid)
+                    break
         if len(writers) > 1:
             bad.append('局部目标双写者：%s 都发 %s' % (writers, target))
         if not writers:
@@ -133,22 +146,18 @@ def problems(graph, nodes=None, includes=None):
 
 class GraphWiringTest(unittest.TestCase):
 
-    def test_all_graphs_render_connected(self):
-        checked = 0
-        for path in GRAPHS:
-            if 'pipeline_graph/v1' not in path.read_text(errors='ignore'):
-                continue           # 只测装配图，跳过其它 schema 的样例
-            try:
-                graph = load(path)
-            except Exception:      # noqa: BLE001 — 非装配图样例（schema 不同/故意重复键）
-                continue
-            ids = list(graph.get('instances', {}))
-            if 'bt' not in ids or 'global' not in ids:
-                continue
+    def test_supported_graphs_render_connected(self):
+        """四张受支持图逐一加载→校验→渲染；任何一步失败即 FAIL，不跳过。"""
+        for path in SUPPORTED:
             with self.subTest(graph=path.name):
-                self.assertEqual([], problems(graph), path.name)
-            checked += 1
-        self.assertGreaterEqual(checked, 4, '覆盖的图太少：%d' % checked)
+                self.assertTrue(path.exists(), '受支持图缺失：%s' % path)
+                graph = load(path)                      # 失败＝测试失败（无 try/except）
+                ids = list(graph.get('instances', {}))
+                self.assertIn('bt', ids, '%s 缺少 bt 实例' % path.name)
+                self.assertIn('global', ids, '%s 缺少 global 实例' % path.name)
+                nodes, includes = render_graph(graph)   # 校验或渲染失败同样 FAIL
+                self.assertTrue(nodes, '%s 渲染后没有任何节点' % path.name)
+                self.assertEqual([], problems(graph, nodes, includes), path.name)
 
     def _far(self, mutate):
         graph = load(V8P / 'configs/lite3/graph_3d_lite3_far.yaml')
@@ -197,6 +206,43 @@ class GraphWiringTest(unittest.TestCase):
         self.assertLess(len(pg['remaps']), before, '反例前提不成立：没删到那条 remap')
         self.assertTrue(problems(graph, nodes, includes),
                         '删掉必要 remap 后仍未报错 ⇒ 判据只看"可能有 remap"')
+
+    def test_dotted_instance_id_keeps_port_name(self):
+        """INSTANCE_ID 允许点号（config.py:21）；切端口必须按最后一个点号。
+
+        用 bt→bt.a 改一张真图：若渲染器用 split('.', 1)，端口会被切成 a.out_goal，
+        取不到参数就回落到 manifest 默认名 ⇒ local 被 remap 到 /v8/bt/goal_request。
+        """
+        graph = load(V8P / 'configs/lite3/graph_3d_lite3_bt.yaml')
+        inst = graph['instances'].pop('bt')
+        graph['instances']['bt.a'] = inst
+        for edge in graph.get('edges', []) + graph.get('external', []):
+            for key in ('from', 'to'):
+                if key in edge and edge[key].startswith('bt.'):
+                    edge[key] = 'bt.a.' + edge[key][len('bt.'):]
+        nodes, includes = render_graph(graph)          # check/render 必须接受带点实例 ID
+        self.assertIn(render_mod._name('bt.a'), nodes, '带点实例 ID 未出现在渲染结果里')
+        goal_remaps = [r for r in nodes['local']['remaps'] if r[0] == '/v8/local/goal']
+        self.assertEqual([('/v8/local/goal', '/v8/local/goal')], goal_remaps,
+                         '带点实例 ID 下局部目标被 remap 到别处 ⇒ 端口名切错了')
+        self.assertEqual([], problems(graph, nodes, includes))
+
+    def test_known_param_name_exceptions_do_not_drift(self):
+        """渲染器只认 `<port>_topic`；已知例外若被改值，remap 会按默认名空转。"""
+        local_man = json.loads((MANIFESTS / 'manifest_local_native_raw.json').read_text())
+        defaults = {p['name']: p.get('topic')
+                    for d in ('inputs', 'outputs') for p in local_man['ports'][d]}
+        for path in SUPPORTED:
+            graph = load(path)
+            params = graph['instances']['local'].get('params') or {}
+            with self.subTest(graph=path.name):
+                if 'twist_topic' in params:
+                    self.assertEqual(defaults['cmd_twist'], params['twist_topic'],
+                                     '%s: local 的 cmd_twist 走了 twist_topic（非 <port>_topic），'
+                                     '改值前须在 render.py 增加端口→参数名映射' % path.name)
+                if 'command_topic' in params:
+                    self.assertEqual(defaults['cmd'], params['command_topic'],
+                                     '%s: local 的 cmd 走了 command_topic，同上' % path.name)
 
 
 if __name__ == '__main__':
