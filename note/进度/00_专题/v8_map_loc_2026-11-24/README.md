@@ -588,3 +588,115 @@ ASAN 路线能编、能加载、能长跑，但**没跑到崩点**，因此没�
 | P2 建图 | **PASS（路线口径）** | 279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m |
 | P3 定位 | **INVALID** | 普通构建三次崩；ASAN 120 s 不崩但回调 0 次（未跑到崩点）；`/hdl_odom` 无消息 |
 | P4 导航 | **NOT RUN** | 依赖 P3 |
+
+## 31. P3 收官（第十一轮）：先修四处判据缺陷，再抓到真根因
+
+### 31.1 前几轮的判定建立在错误的读数上
+
+「ASAN 120 s 不崩、回调 0 次」这个结论，实际由四个判据缺陷叠加而成，逐个纠正：
+
+| 缺陷 | 事实 | 判定依据 |
+| --- | --- | --- |
+| 查 `/mgr` 的 Subscriptions | `/mgr` 是 manager 进程，自身永远 `Subscriptions: None`；nodelet 实例另外注册 | 同一时刻 maps 里 `.so` 命中 0，才说明连库都没打开 |
+| 查 `/opt/ros1-slam/logs/latest/` | 那是 roslaunch 的 run 目录；`rosrun` 起的 manager 不写那里，`NODELET_INFO` 打在 manager 进程 stdout | 同一轮 manager.log 有 154 条 `scan: raw` |
+| `timeout 8 rostopic hz \| grep -q` 判有无数据 | `rostopic hz` 不会自己退出，timeout 必然以 124 杀掉它，脚本开着 `pipefail` ⇒ 整管道返回 124 ⇒ `if` 永远判假 | Gazebo 明明 10 Hz 在发点云，脚本却卡在 [1] 等 450 秒 |
+| `LD_LIBRARY_PATH` 前置注入调试库 | class_loader 用 rospack 拼**绝对路径** `devel/lib/...`，前置对它无效 | libSegFault 的 maps 里始终是 `devel/lib//libhdl_localization_nodelet.so`，`.dbg` 命中 0 |
+
+第四条尤其致命：用它算出的「调试版回溯行号」是假结论（拿 dbg 偏移去解正式库的地址）。
+
+### 31.2 ASAN 注入被判死：不是掩盖 bug，是根本没加载
+
+`MODE=asan` 时 manager 进程出现 `State: R`、**`Threads: 1`**、`wchan: 0`；
+`rosnode ping /mgr` connection refused，`rosservice call /mgr/list` 无法通信；
+`nodelet load` 静默挂起 40 s 零输出，`hdl.log` 0 字节。
+⇒ 把 libasan 预加载进**未用 ASAN 编译**的 nodelet manager，会让它单线程自旋、XMLRPC 完全不响应，
+load 请求从未被处理，`.so` 两份都没打开。所以「ASAN 120 s 不崩」不是 ASAN 掩盖了 bug，
+而是**什么都没跑起来**。
+
+### 31.3 换 catchsegv + 预加载：一次拿到真现场
+
+- 注入改为 `LD_PRELOAD=<libstdbuf>:devel/.dbg/libhdl_localization_nodelet.so`：
+  两份 soname 都是 `libhdl_localization_nodelet.so`，dlopen 按 soname 去重 ⇒ class_loader 再
+  dlopen 绝对路径时复用已加载的调试版。**不覆盖 devel/lib，也不改插件 XML**。
+- 外层套 `catchsegv`（libSegFault），stdout/stderr 行缓冲，崩溃前的 `NODELET_INFO` 全部落盘。
+- 闸门前置：manager 起来后立刻 `grep /proc/<pid>/maps`，`preload_dbg_in_maps=5` 证明注入命中，
+  **在崩溃之前**就排除「没注入」这个假象。
+
+于是拿到完整现场：`align done: N points` 之后第一次 `publish_odometry` 就崩：
+
+```
+nodelet: boost/smart_ptr/shared_ptr.hpp:734:
+shared_ptr<T>::operator->() [with T = const nav_msgs::Odometry_<...>]:
+Assertion `px != 0' failed.  →  Aborted
+```
+
+### 31.4 根因：`leg_odom2_msg` 空 shared_ptr 解引用
+
+`hdl_localization_nodelet.cpp` 原第 477 行：
+
+```cpp
+odom.twist = leg_odom2_msg->twist;
+```
+
+`leg_odom2_msg` 是 `nav_msgs::OdometryConstPtr`，只在 `/leg_odom2` 回调里赋值；仿真（以及任何
+没有腿部里程计的载具）该话题没有 publisher ⇒ 它永远为空。
+
+- 正式库带 `-DNDEBUG`，boost 的 `BOOST_ASSERT(px != 0)` 被编译掉 ⇒ 裸解引用 NULL ⇒ **SIGSEGV**；
+- 调试库断言生效 ⇒ **Aborted**。
+
+两种现象同一根因 —— 这就是历史裁决 M2-R2C 里反复复现的那个「偶发段错误」。
+
+### 31.5 最小修复
+
+保持语义不变：有腿部里程计就照旧填 twist，没有就不填（保持默认零值）。
+
+```cpp
+if (leg_odom2_msg) {
+  odom.twist = leg_odom2_msg->twist;
+}
+```
+
+不动任何算法参数、不动安全门控。
+
+### 31.6 验证读数（MODE=normal，修复后）
+
+| 项 | 读数 |
+| --- | --- |
+| 加载 | `load_result=instance_at=1s`；`maps_live=6`（正式库 sha `00f975bdd53711f7`） |
+| 回调 | `scan: raw` 154 次 / `align begin` 154 次 / `align done` 154 次 |
+| 崩溃 | `crash_at=none`（30 s 观察期）；ASAN 报告 0 份 |
+| 丢帧 | `lidar_timeout_drops=0`（`lidar_timeout_ms` 200→500，仅放宽不丢帧，不改配准参数） |
+| 输出 | `/hdl_odom` **8.407 Hz** |
+
+### 31.7 定位误差（对 Gazebo 真值 `/sim/odom_gt`）
+
+时间戳配对（|Δt| ≤ 50 ms）共 108 对：
+
+| 指标 | mean | median | max |
+| --- | --- | --- | --- |
+| 绝对 XY（m） | 0.0265 | 0.0266 | 0.0452 |
+| 相对 XY（m，去常数偏置后） | 0.0117 | 0.0117 | 0.0292 |
+| 偏航（rad） | 0.0045 | 0.0041 | 0.0130 |
+
+常数偏置 `(0.0162, -0.0011) m` 是 map 系与 odom 系原点之差。
+
+### 31.8 两个顺带纠正的配置事实
+
+- `robot_odom_frame_id` 必须＝`odom`：`publish_odometry` 按它选边。默认值 `robot_odom` 在 Gazebo 的
+  TF 树里没有这条边，会走 else 分支发 `map→base_link`，与 Gazebo 的 `odom→base_link` 撞成双父。
+- 真定位接入时 `m1_gazebo.launch` 必须 `map_to_odom:=false`（launch 注释本就这么要求，之前没照做）。
+
+### 31.9 复现用件（均已入仓）
+
+- `scripts/verify/asan_hdl_build.sh`：`MODE=dbg|asan` 两档构建，产物落 `devel/.dbg` / `devel/.asan`，不碰 `devel/lib`。
+- `scripts/verify/asan_hdl_repro.sh`：`MODE=normal|dbg|asan` 分级复现，十道闸门，stdout 全部落 evidence。
+- `scripts/verify/hdl_pose_error.py`：`/hdl_odom` 对 `/sim/odom_gt` 的误差探针（只读）。
+
+## 32. 四阶段最终（第十一轮）
+
+| 阶段 | 结论 | 依据 |
+| --- | --- | --- |
+| P1 传感器 | **PASS** | 点云 10.1 Hz / `/clock` 1000 Hz |
+| P2 建图 | **PASS（路线口径）** | 279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m |
+| P3 定位 | **PASS** | 根因＝空 shared_ptr，已最小修复；`/hdl_odom` 8.4 Hz；XY 误差 mean 0.0265 m / max 0.0452 m |
+| P4 导航 | 见 §33 | 用算法位姿驱动 graph+support |

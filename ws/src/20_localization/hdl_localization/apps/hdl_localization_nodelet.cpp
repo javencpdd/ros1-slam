@@ -474,7 +474,15 @@ private:
     tf::poseEigenToMsg(Eigen::Isometry3d(pose.cast<double>()), odom.pose.pose);
     odom.pose.pose.position.z = 0.0;
     odom.child_frame_id = odom_child_frame_id;
-    odom.twist = leg_odom2_msg->twist;
+    // 2026-11-24 最小修复：leg_odom2_msg 是空 shared_ptr 时不能解引用。
+    // 它只在 /leg_odom2 回调里被赋值，而仿真/无腿部里程计的平台上该话题没有 publisher，
+    // 于是它永远为空。原代码直接 odom.twist = leg_odom2_msg->twist 解引用空指针：
+    // 正式库带 -DNDEBUG，boost 的 BOOST_ASSERT(px != 0) 被编译掉 ⇒ 裸解引用 NULL ⇒ SIGSEGV；
+    // 调试库断言生效 ⇒ 直接 Aborted。两种现象同一根因，这就是历史裁决里的偶发段错误。
+    // 语义保持不变：没有腿部里程计时不填 twist（保持默认零值），有则照旧。
+    if (leg_odom2_msg) {
+      odom.twist = leg_odom2_msg->twist;
+    }
     pose_pub.publish(odom);
   }
 
