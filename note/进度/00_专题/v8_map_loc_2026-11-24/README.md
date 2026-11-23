@@ -249,3 +249,50 @@ P3 记 **INVALID**，不擅自用 faster_lio 里程计冒充地图重定位。
 | P3 定位 | **INVALID**：无崩溃、无定位输出；历史裁决保留 |
 | P4 导航闭环 | **NOT RUN** |
 
+---
+
+## 19. P3 深挖：hdl "加载了但没工作"（第五轮）
+
+### 19.1 四条硬证据
+
+| 观测 | 读数 | 含义 |
+| --- | --- | --- |
+| `/hdl_localization_nodelet` 订阅 | **只有 `/clock`** | 没有订点云、没有订 IMU、没有 TF 监听动作 |
+| `/globalmap_server_nodelet` 发布 | **只有 `/rosout`** | **地图没加载**，`/map` 无数据 |
+| `/rslidar_points` 订阅者 | **None** | 与第 1 条互证：hdl 从未订阅激光 |
+| 两个 nodelet 的 stdout 日志 | **0 字节** | 既无"加载成功"横幅，也无错误输出 |
+
+旁证：插件描述齐全（`nodelet_plugins.xml` + `package.xml` 的 `<export>`），
+`libhdl_localization_nodelet.so` 里有 **98 个 nodelet 相关符号**，文件权限正常（`-rw-r--r--`，属主 ros1-slam）。
+
+### 19.2 因果链（当前最合理解释）
+
+`globalmap_server` 的 `onInit` 在加载 `globalmap_pcd` 阶段没有走完 → 不发布 `/map`
+→ `hdl_localization` 等 `/map` 才订阅激光 → 于是 `/rslidar_points` 无订阅者、`/hdl_odom` 无输出。
+**不是崩溃**：本轮 `grep -ic "SIGSEGV|exit -11|died"` = **0**。
+
+### 19.3 本轮结论：P3 = **INVALID**
+
+- 未取得任何定位输出（`/hdl_odom` no new messages）；
+- 未复现历史裁决里的 SIGSEGV；
+- `M2-R2C` 裁决**原样保留**，未改写；
+- 未用 faster_lio 里程计顶替"地图重定位"。
+
+### 19.4 下一步三个精确探针（按序）
+
+1. **前台手工加载**：`rosrun nodelet nodelet load hdl_localization/GlobalmapServerNodelet <mgr>`
+   在终端直看返回（roslaunch 把它的 stdout 吞了，日志 0 字节）；
+2. **验 PCD 兼容性**：hdl 侧用 `pcl::io::loadPCDFile<PointT>`（`PointT=pcl::PointXYZ`）；
+   我们的 PCD 含 `intensity/normal_x/y/z/curvature`，先用 `pcl_convert_pcd_ascii_binary` 或
+   `map_from_pcd` 生成纯 XYZ 版 PCD 再试（**不改算法，只改输入格式**）；
+3. **验 `/map` 是否出现**：若 map server 正常，应看到 `/map` 有 latched 数据，再谈 hdl 订阅。
+
+## 20. 四阶段最终（第五轮）
+
+| 阶段 | 结论 | 依据 |
+| --- | --- | --- |
+| P1 传感器 | **PASS** | 点云 11.45 Hz / IMU 200 Hz / TF 断言通过 |
+| P2 建图 | **PASS（路线口径）** | 279,069 点、30 面、4.10×8.90 m、RMSE 0.105 m（5 点采样） |
+| P3 定位 | **INVALID** | hdl 未订阅点云、map 未加载、无 `/hdl_odom`；无崩溃；裁决保留 |
+| P4 导航闭环 | **NOT RUN** | 依赖 P3 |
+
