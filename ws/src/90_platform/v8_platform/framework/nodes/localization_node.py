@@ -23,8 +23,16 @@ from std_msgs.msg import Bool, String
 
 
 def yaw_of(q):
-    return math.atan2(2.0 * (q.w * q.z + q.x * q.y),
-                      1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+    # q 有两种来源：rospy 的四元数消息（有 .x/.y/.z/.w 属性），
+    # 以及 pose_from_odom 产出的 (x, y, z, qx, qy, qz, qw) 元组 —— error_between 传的是
+    # estimate[3:]，即 (qx, qy, qz, qw) 四元组。原实现只认属性形式，
+    # 于是 /sim/odom_gt 一到，on_gt -> select -> error_between 就抛
+    # AttributeError: 'tuple' object has no attribute 'w'，loc 节点直接被打死。
+    if hasattr(q, 'w'):
+        x, y, z, w = q.x, q.y, q.z, q.w
+    else:
+        x, y, z, w = q[0], q[1], q[2], q[3]
+    return math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
 
 
 def pose_from_odom(message):

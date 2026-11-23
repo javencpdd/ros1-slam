@@ -700,3 +700,82 @@ if (leg_odom2_msg) {
 | P2 建图 | **PASS（路线口径）** | 279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m |
 | P3 定位 | **PASS** | 根因＝空 shared_ptr，已最小修复；`/hdl_odom` 8.4 Hz；XY 误差 mean 0.0265 m / max 0.0452 m |
 | P4 导航 | 见 §33 | 用算法位姿驱动 graph+support |
+
+## 33. P4 第一轮：装配跑通到 BT，未达成到达（第十二轮）
+
+### 33.1 为什么 P4 不能沿用现成装配
+
+| 现成件 | 问题 |
+| --- | --- |
+| `graph_3d_gazebo_bt.yaml` | 位姿来自 `gazebo_carrier3d` 自己算的模型位姿，是**真值**，不能用来证明定位参与了导航 |
+| `graph_3d_gazebo_loc.yaml` | 结构对（loc 独占 pose、carrier 位姿挪到 pose_raw），但地图是 NIST、且会 spawn 一台 app_carrier |
+| `v8.fw.carrier_lite3` | 执行域声明是 `real_robot` / `robot_id=lite3`，放进 simulation 图直接撞 `E_EXEC_MODE`；**不做绕过**，那等于削弱执行域门控 |
+| `v8.fw.carrier3d`（kinematic） | 自己按 cmd 积分位姿，接不了外部输入 |
+
+⇒ 新建 `graph_3d_m1_hdl_bt.yaml`：`loc` 取自 `v8.fw.localization_source`（`lio_topic=/hdl_odom`）并独占
+`/v8/local/pose`；`carrier` 保留 `gazebo_carrier3d` 但 `spawn=false`、位姿输出挪到 `pose_raw`，
+只为满足 app_runner「图里必须有名为 carrier 的实例且 component 与 backend 对应」这条硬校验。
+感知点云改 `/rslidar_points`（不跑 faster_lio，没有 `/cloud_registered`）。
+
+### 33.2 地图必须换，否则起点在图外
+
+`v8_flat_r4_v1.json` 的源是 `run11.pcd`（208,174 点），该文件随 `/tmp` 清空已**永久丢失**；
+且它的 ROI 是 x∈[1.5,5.6]、y∈[−4.5,4.4]，**不含 lite3 的实际起点 (0,0)**。
+
+改用还在的 `mapped_m1.pcd`（与 hdl 的 globalmap 同一份，坐标系天然自洽）重新生成：
+
+- `v8_m1_hdl_v1.json`：`frame=map`、`origin=[-0.5,-5.2]`、`extent=130×112` ⇒ x∈[−0.5,12.5]、y∈[−5.2,5.9]
+- 自动 task：start (1.15, 0.45) → goal (4.65, 0.45)，直线 3.5 m，到达容差 0.15 m
+- 起点被工具挪到 (1.15,0.45) 是正常的：`--drop-self` 会挖掉机器人脚下的点，(0,0) 本身是洞
+- 顺带发现：`data/maps/*` 被 gitignore，`registry.json` 从不入仓（只有 `registry.template.json`），
+  所以这份地图与注册表都是本机产物，需要按 §33.5 的命令重建
+
+### 33.3 本轮修掉的三个真缺陷
+
+| 缺陷 | 症状 | 修法 |
+| --- | --- | --- |
+| `localization_node.py` 的 `yaw_of` 只认四元数消息 | `/sim/odom_gt` 一到就 `AttributeError: 'tuple' object has no attribute 'w'`，loc 节点被打死，`localization_ok` 永远没有 | `yaw_of` 同时接受属性形式与 `(qx,qy,qz,qw)` 元组 |
+| `manifest_localization_source.json` 的 `launch.type` 带 `/` | `framework/nodes/localization_node.py` 让 roslaunch 找不到类型，进程根本不启动，**连 `v8-3d-loc-*.log` 都不建**；8 个实例只起 7 个 | 新增顶层 shim `scripts/run_localization_source.py`，`type` 改裸名（与 `run_map_file.py` 同模式，即 F4 的同类遗漏） |
+| 判据按数量判「都起来了」 | 7/8 也判过，缺的正是 loc，于是后面的 `E_PLAN_NOT_READY`、`loc_ok` 空全被当成下游问题 | 脚本增加「`/v8/3d/loc(/|$)` 必须在列表里」这道独立闸门 |
+
+### 33.4 当前读数（如实）
+
+| 项 | 读数 | 判定 |
+| --- | --- | --- |
+| 装配实例 | 8/8 全起：carrier, global, loc, local, map, mux3d, perception, bt | ✅ |
+| 地图 | `/v8_map_status`：`ok=true, map_id=v8_m1_hdl, surfaces=1` | ✅ |
+| 定位 | `/v8/local/localization_ok: True`；`/v8/local/pose` 6.6 Hz | ✅ |
+| 全局规划 | `/v8/3d/global/status`：`ok=true, points=36, expansions=35` | ✅ |
+| BT | `root=RUNNING`、`path_state=ready`、`path_points=36`、`localization_ok=true`、`leg_active=true` | ⚠️ 停在 RUNNING |
+| local 目标 | `/v8/local/goal` **无消息** | ❌ BT 未进 FollowPath |
+| 速度 | `/cmd_vel` 恒 0 | ❌ |
+| 到达 | 未发生 | ❌ |
+
+**P4 结论：PARTIAL（未达成）。** 链路已通到 BT 且全局路径有解，卡在 BT → local 的目标下发。
+
+### 33.5 复现命令
+
+```bash
+# 0) 重建支持地图与注册表（本机产物，不入仓）
+cp data/maps/registry.template.json data/maps/registry.json
+cd ws/src/90_platform/v8_platform/framework && python3 tools/map_from_pcd.py \
+  --pcd /opt/ros1-slam/data/maps/mapped_m1.pcd --map-id v8_m1_hdl --version 1 \
+  --x-min -2.5 --x-max 15.2 --y-min -8.7 --y-max 8.9 \
+  --start-x 0.0 --start-y 0.0 --goal-max 3.5 \
+  --out /opt/ros1-slam/data/maps/generated/v8_m1_hdl_v1.json --register
+#   注意：该工具会顺手重写同目录的 *_app.yaml（把 localization.source 改回 carrier），
+#   所以跑完必须再按 §33.1 的取值把它改回来
+
+# 1) 起 Gazebo（真定位接入，占位桥必须退位）+ hdl
+SKIP_GAZEBO=0 MODE=normal DUR=20 bash scripts/verify/asan_hdl_repro.sh
+
+# 2) 起装配、发目标、采样
+bash scripts/verify/p4_nav_hdl.sh
+```
+
+### 33.6 下一轮要查的（已缩小范围）
+
+BT 的 `request_path` 已 SUCCESS、`path_state=ready`，但 `/v8/local/goal` 没有任何消息。下一步看
+`lite3_bt/trees/navigate_with_planner.xml` 里 FollowPath 的前置条件与 `out_goal` 的发布路径：
+是 `follow_path` 叶节点没被 tick 到，还是 tick 到了但 `out_goal` 的 latch/频率让它没落到话题上。
+判据不能只看 `root=RUNNING`，要盯 `nodes[]` 里 `follow_path` 那一项的状态。
