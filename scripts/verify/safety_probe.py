@@ -76,11 +76,15 @@ def trigger_stop_hdl():
     """只中断 HDL 定位数据，不碰 master 与导航进程。
 
     先前用 pkill nodelet manager：那会连带让 roslaunch 关停整个启动文件、master 随之消失，
-    于是"速度归零"其实是所有节点一起死掉的结果，测不出门控本身。改成 rosnode kill 只卸载
-    hdl 这个 nodelet 实例，/mgr 与 9 个导航节点都应继续存活。
+    于是"速度归零"其实是所有节点一起死掉的结果，测不出门控本身。
+    rosnode kill /hdl 也不行：roslaunch 把 /hdl 当 required 节点，死了照样关栈。
+    最终用 nodelet unload —— 只把插件从 manager 卸下，/mgr、roslaunch 与 9 个导航节点都活着。
     """
-    subprocess.call(['rosnode', 'kill', '/hdl'])
-    return 'rosnode kill /hdl (only localization data interrupted)'
+    # nodelet unload 只把 hdl 插件从 manager 卸下：/hdl_odom 停发，但 /mgr、
+    # roslaunch 与 9 个导航节点全部存活。rosnode kill /hdl 会让 roslaunch
+    # 把 /hdl 当 required 节点死亡而关停整套（实测探针随即被打断）。
+    subprocess.call(['rosrun', 'nodelet', 'nodelet', 'unload', 'hdl', 'mgr'])
+    return 'nodelet unload hdl from mgr (data stops, stack alive)'
 
 
 def trigger_cancel(seq, scope='all'):

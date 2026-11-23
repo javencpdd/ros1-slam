@@ -115,7 +115,9 @@ instances:
       hold_topic: /lite3/supervisor/hold
       output_topic: /cmd_vel
       status_topic: /v8/3d/mux/status
-      timeout_s: 0.4
+      # 0.25 s：local 的 cmd 发布在 20 Hz 以上，0.25 s 相当于 5 帧余量；
+      # 原来的 0.4 s 会在上游停发后多保持 0.4 s（实测三级超时里的最后一段）。
+      timeout_s: 0.25
   - id: loc
     component: v8.fw.localization_source
     namespace: /v8/3d/loc

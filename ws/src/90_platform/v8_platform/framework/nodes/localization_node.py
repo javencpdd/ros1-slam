@@ -122,7 +122,10 @@ def main():
         rospy.Subscriber(ndt_topic, PoseStamped, on_ndt, queue_size=10)
     rospy.loginfo('localization source=%s navigation_allowed=%s', source, navigation_allowed)
     print('READY', flush=True)
-    rate = rospy.Rate(5.0)
+    # 20 Hz 而非 5 Hz：本循环同时承担"定位失效宣告"的职责 —— 失效一旦成立，
+    # 下游要等到下一次 publish_ok(False) 才会停。5 Hz 意味着最多多等 0.2 s，
+    # 20 Hz 把这段压到 0.05 s。消息是 Bool + 短 JSON，负载可忽略。
+    rate = rospy.Rate(20.0)
     while not rospy.is_shutdown():
         now = rospy.Time.now().to_sec()
         fresh = state['selected'] is not None and now - state['selected_at'] <= max_age
