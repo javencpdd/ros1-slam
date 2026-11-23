@@ -6,6 +6,20 @@ Updated 2026-11-21. BT owns mission order, cancellation and bounded recovery.
 plugins. No planning algorithm is reimplemented. The existing topic-based V8/SCAN
 trees remain separate backends; planar integration does not certify 3D or hardware.
 
+## Package name and portability (2026-11-23)
+
+`lite3` in this package name denotes the **deployment domain** and a historical
+package name. It does **not** mean the BT orchestration algorithm must depend on
+Lite3 hardware.
+
+- The manifest component ID `v8.fw.bt_console` is the more general logical identity.
+- Current code still carries Lite3-specific default bindings (see `stop_topic`),
+  so cross-robot reuse requires checking the actual launch/config and dependencies.
+- Re-evaluate a generic package (plus a compatibility migration) only when a
+  second robot model is supported.
+- Keep the `stop_topic` default as it is: that topic has a real subscriber on the
+  stop path, so neutralising the name would publish a stop command nobody hears.
+
 ## Native navigation execution
 
 Use the TOP-level `lite3_bringup/mode_sim_teb.launch` in an approved isolated
