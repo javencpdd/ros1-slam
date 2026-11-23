@@ -29,6 +29,9 @@ PARAMS = {
     'min_height_m': 0.15, 'max_height_m': 1.6, 'voxel_m': 0.10,
     'min_points': 8, 'max_objects': 32, 'self_radius_m': 0.45,
 }
+# 被检验的细化开关：默认 0.45（已交付配置）。传 1.0 可做反控 —— 判定必须随之变 FAIL，
+# 否则说明"判定"根本没在看细化效果。
+REFINE_FILL = 0.45
 BASE_CFG = dict(radius_m=0.15, clearance_m=0.10, max_speed_mps=0.6,
                 height_m=0.35, reaction_s=0.10, brake_decel_mps2=1.0,
                 dynamic_margin_cap_m=0.30)
@@ -99,7 +102,7 @@ def scene_a_complex(frame_path, center):
     """真实帧：算出"能走的候选方向"在细化前后的比例。"""
     points = np.load(frame_path)
     before = boxes_from_cloud(points, center, 1.0)
-    after = boxes_from_cloud(points, center, 0.45)
+    after = boxes_from_cloud(points, center, REFINE_FILL)
     config = cfg()
     total = ok_before = ok_after = 0
     gap_before = gap_after = float('inf')
@@ -162,7 +165,7 @@ def scene_a2_lshape():
     points = l_shape_cloud()
     center = (0.5, 1.0)
     before = boxes_from_cloud(points, center, 1.0)
-    after = boxes_from_cloud(points, center, 0.45)
+    after = boxes_from_cloud(points, center, REFINE_FILL)
     config = cfg()
     segment = seg(2.0, 1.0, 2.0, 2.5, z=0.30, duration=6.0)
     hit_before = blocked(segment, before, config, speed=0.25)
@@ -240,13 +243,69 @@ def scene_d_open():
     }
 
 
+def judge(results):
+    """把四个场景的读数折成机器判定；任一不成立即整体 FAIL（调用方据此返回非零）。
+
+    判据只表达"优化不该变差、且安全侧必须成立"，不引入新的阈值：
+      A  复杂障碍（真实帧）：细化后的通行率不得低于细化前（允许相等）；
+      A2 受控 L 形：必须确实把误判去掉（before 碰、after 不碰）；
+      B  狭窄通道：实测最小可通过净宽不得小于理论下界（否则说明膨胀没生效）；
+      C  动态障碍：余量随速度单调不减，且速度未知时判碰（fail-closed）；
+      D  空旷：无障碍与远处障碍都必须可通过。
+    skipped 的场景（如没有 --frame）记为 INVALID，不参与通过性判定但会让整体不是 PASS。
+    """
+    checks = {}
+    verdicts = {}
+    for item in results:
+        scene = item.get('scene')
+        if item.get('skipped'):
+            verdicts[scene] = 'INVALID'
+            continue
+        ok = None
+        if scene == 'A_complex_real_frame':
+            ok = item['pass_rate_after'] >= item['pass_rate_before'] - 1e-9
+            checks[scene] = 'pass_rate_after %.3f >= before %.3f' % (
+                item['pass_rate_after'], item['pass_rate_before'])
+        elif scene == 'A2_lshape_controlled':
+            ok = bool(item.get('false_block_removed'))
+            checks[scene] = 'blocked_before=%s blocked_after=%s' % (
+                item.get('blocked_before'), item.get('blocked_after'))
+        elif scene == 'B_narrow_corridor':
+            need = item.get('required_clearance_m')
+            got = item.get('smallest_passable_gap_m')
+            ok = (got is not None) and (need is not None) and got >= need - 1e-9
+            checks[scene] = 'smallest_passable %.3f >= required %.3f' % (got or -1, need or -1)
+        elif scene == 'C_dynamic_obstacle':
+            rows = item.get('head_on_by_speed') or []
+            extras = [r[1] for r in rows]
+            monotone = all(extras[i + 1] >= extras[i] - 1e-9 for i in range(len(extras) - 1))
+            failclosed = bool(item.get('blocked_when_speed_unknown'))
+            ok = monotone and failclosed
+            checks[scene] = 'extra_monotone=%s failclosed=%s' % (monotone, failclosed)
+        elif scene == 'D_open_space':
+            ok = bool(item.get('passable_no_obstacles')) and bool(item.get('passable_far_obstacle'))
+            checks[scene] = 'open=%s far=%s' % (item.get('passable_no_obstacles'),
+                                                item.get('passable_far_obstacle'))
+        if ok is not None:
+            verdicts[scene] = 'PASS' if ok else 'FAIL'
+
+    overall = ('PASS' if verdicts and all(v == 'PASS' for v in verdicts.values())
+               else 'INVALID' if any(v == 'INVALID' for v in verdicts.values())
+               else 'FAIL')
+    return {'verdict': overall, 'per_scene': verdicts, 'checks': checks}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--frame', default='', help='scene A 用的点云 npy')
     ap.add_argument('--center', default='0.927,-3.098')
     ap.add_argument('--out', default='')
+    ap.add_argument('--min-fill', type=float, default=0.45,
+                    help='细化开关；1.0 = 不细化，用于反控（判定应变 FAIL 且退出码非零）')
     args = ap.parse_args()
 
+    global REFINE_FILL
+    REFINE_FILL = args.min_fill
     center = tuple(float(v) for v in args.center.split(','))
     results = []
     if args.frame and os.path.isfile(args.frame):
@@ -260,10 +319,15 @@ def main():
 
     for item in results:
         print(json.dumps(item, ensure_ascii=False))
+
+    verdict = judge(results)
+    print(json.dumps({'verdict': verdict['verdict'], **verdict}, ensure_ascii=False, indent=1))
     if args.out:
         with open(args.out, 'w') as stream:
-            stream.write(json.dumps(results, ensure_ascii=False, indent=1) + '\n')
-    return 0
+            stream.write(json.dumps({'results': results, 'judgement': verdict},
+                                    ensure_ascii=False, indent=1) + '\n')
+    # 失败必须非零退出：否则 CI/回归脚本会把 FAIL 当成功
+    return 0 if verdict['verdict'] == 'PASS' else 1
 
 
 if __name__ == '__main__':

@@ -18,6 +18,21 @@ from nav_msgs.msg import Path
 from std_msgs.msg import String
 
 
+def accepts_path_stamp(cancelled_at, path_stamp):
+    """取消之后是否接受这条路径。两个参数都是秒（float 或 None）。
+
+    返回 (accepted, reason)。判定只看时间序，不依赖 ROS 类型，便于离线单测。
+    fail-closed：调用方拿不到 stamp 时按拒绝处理 —— 无法区分新旧就不能重放。
+    """
+    if cancelled_at is None:
+        return True, 'no_cancel'
+    if not path_stamp:
+        return False, 'no_stamp_fail_closed'
+    if path_stamp <= cancelled_at:
+        return False, 'stale_after_cancel'
+    return True, 'newer_than_cancel'
+
+
 def make_goal(pose):
     goal = PoseStamped()
     goal.header = pose.header
@@ -46,6 +61,10 @@ class PathGoal(object):
         self.pose = None
         # 取消时刻：此后只接受 stamp 更新的 path，杜绝旧路径重放
         self.cancelled_at = None
+        # 任务代次：每接受一条路径 +1（供审计"是否重放"）；被拒的旧路径单独计数
+        self.accepted_generation = 0
+        self.rejected_stale = 0
+        self.last_reject_reason = None
 
         rospy.Subscriber(self.path_topic, Path, self.on_path, queue_size=10)
         rospy.Subscriber(self.pose_topic, PoseStamped, self.on_pose, queue_size=10)
@@ -70,17 +89,21 @@ class PathGoal(object):
         if not message.poses:
             self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'empty_path'})))
             return
+        stamp_obj = message.header.stamp
+        stamp = stamp_obj.to_sec() if stamp_obj else 0.0
+        cancelled = self.cancelled_at.to_sec() if self.cancelled_at is not None else None
+        accepted, why = accepts_path_stamp(cancelled, stamp)
+        if not accepted:
+            self.rejected_stale += 1
+            self.last_reject_reason = why
+            self.status_pub.publish(String(data=json.dumps({
+                'ok': False, 'reason': why, 'path_stamp': round(stamp, 3),
+                'cancelled_at': None if cancelled is None else round(cancelled, 3),
+                'rejected_stale': self.rejected_stale})))
+            return
         if self.cancelled_at is not None:
-            stamp = message.header.stamp
-            # stamp 缺失（0）时无法区分新旧，按 fail-closed 拒绝；只有明确更新的
-            # 路径（新任务重规划产生）才解除取消态。
-            if not stamp or stamp <= self.cancelled_at:
-                self.status_pub.publish(String(data=json.dumps({
-                    'ok': False, 'reason': 'stale_path_after_cancel',
-                    'path_stamp': 0.0 if not stamp else round(stamp.to_sec(), 3),
-                    'cancelled_at': round(self.cancelled_at.to_sec(), 3)})))
-                return
             self.cancelled_at = None
+        self.accepted_generation += 1
         self.poses = list(message.poses)
         self.index = 0
         self.publish_current()
@@ -97,7 +120,9 @@ class PathGoal(object):
         self.published_at = rospy.Time.now()
         rest = self.remaining()
         self.status_pub.publish(String(data=json.dumps({
-            'ok': True, 'poses': len(self.poses), 'index': self.index + 1,
+            'ok': True, 'generation': self.accepted_generation,
+            'rejected_stale': self.rejected_stale,
+            'poses': len(self.poses), 'index': self.index + 1,
             'remaining_m': None if rest is None else round(rest, 3),
             'goal': [round(goal.pose.position.x, 3), round(goal.pose.position.y, 3),
                      round(goal.pose.position.z, 3)],

@@ -156,6 +156,19 @@ def main():
         result['max_speed_after_2s'] = round(max(after2), 4) if after2 else None
         tail = [v for (t, v) in pr.cmd_after if t > 2.0]
         result['zero_after_trigger'] = bool(tail) and max(tail) < STOP_SPEED
+    # 定位失效后可能残留短暂非零命令：把每一条的时间与幅度都留下来，
+    # 不能只报一句 zero_after_trigger（那会掩盖"抖了多久、抖多大"）。
+    nonzero = [(round(t, 3), round(v, 3)) for (t, v) in pr.cmd_after if v >= STOP_SPEED]
+    result['nonzero_after_count'] = len(nonzero)
+    result['nonzero_after_max'] = max([v for (_, v) in nonzero], default=0.0)
+    if nonzero:
+        result['nonzero_after_t_range'] = [nonzero[0][0], nonzero[-1][0]]
+        result['nonzero_after_head'] = nonzero[:20]
+        # 首条非零命令相对触发时刻的延迟（这才是"门控反应"的真实时间）
+        result['first_nonzero_after_s'] = nonzero[0][0]
+    else:
+        result['nonzero_after_t_range'] = None
+
     if pr.trigger_at is not None and pr.stop_time is not None:
         result['stop_delay_s'] = round(pr.stop_time - pr.trigger_at, 3)
         # 用户判据：停止后必须**持续 5 s** 保持零速，而不只是某一瞬为零

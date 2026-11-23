@@ -1100,3 +1100,83 @@ FAR INVALID、VCC RED=39、formal 裁决、真机禁止**均未改动**。
 安全参数一字未改：`gate_m 0.8`、`radius_m 0.15`、`clearance_m 0.10`、`reaction_s 0.10`、
 `brake_decel_mps2 1.0`、`min_fill 0.45`。全程未用 Gazebo 真值驱动任何控制量
 （`/sim/odom_gt` 只进探针做物理核对）。
+
+## 38. P4 封版加固：机器判定、代次拒绝、非零命令明细（第十七轮）
+
+不改已通过的导航算法，只补证据与判据。
+
+### 38.1 障碍回归改为机器判定，失败非零退出
+
+`collision_regression.py` 新增 `judge()`，把五个场景折成 PASS/FAIL，`main` 按判定返回 0/1：
+
+| 场景 | 判据 |
+| --- | --- |
+| A 复杂障碍 | `pass_rate_after >= pass_rate_before`（细化不得变差） |
+| A2 受控 L 形 | `false_block_removed == True` |
+| B 狭窄通道 | `smallest_passable >= required_clearance`（膨胀确实生效） |
+| C 动态障碍 | 余量随速度单调不减 **且** 速度未知时判碰（fail-closed） |
+| D 空旷 | 无障碍与远处障碍均可通过 |
+
+**反控**：加 `--min-fill` 参数，传 `1.0`（不细化）时判定必须翻转。
+
+```
+正式（min_fill 0.45）：verdict=PASS  rc=0
+反控（min_fill 1.00）：verdict=FAIL  rc=1   A2: blocked_before=True blocked_after=True
+```
+
+反控成立说明判定确实在看细化效果，不是空判。
+（第一次量 `rc` 时踩了 `cmd | tail` 的坑——`$?` 拿到的是 `tail` 的退出码，已改正为直连。）
+
+### 38.2 取消后按代次拒绝旧任务重放 + 反控测试
+
+- 把判定抽成纯函数 `path_goal_node.accepts_path_stamp(cancelled_at, path_stamp)`，
+  返回 `(accepted, reason)`，不依赖 ROS 类型；
+- `PathGoal` 新增 `accepted_generation`（每接受一条路径 +1）与 `rejected_stale`（被拒旧路径计数），
+  都写进 `/v8/3d/path_goal/status`，可直接审计"是否重放"；
+- 新增 `tests/test_path_goal_cancel.py` **6 项**（含反控）：取消前接受、取消后旧 stamp 拒、
+  新 stamp 接受、无 stamp fail-closed、**反控（同一 stamp 在未取消时必须被接受）**、代次序列。
+
+**反控的意义**：同一条 120 s 的路径，取消后拒、取消前收 —— 证明判定看的是取消态，
+而不是"stamp 是否存在"。
+
+`local_planner` 全套 **168 + 6 = 174 项全过**。
+
+### 38.3 定位失效后非零命令的时间与幅度（新证据，如实记录）
+
+探针新增 `nonzero_after_*` 明细，实测（0.6 m/s 时 `rosnode kill /hdl`）：
+
+| 指标 | 读数 |
+| --- | --- |
+| 首条非零命令 | 触发后 **0.017 s** |
+| 非零命令条数 | **56 帧** |
+| 最大幅度 | **0.6 m/s（满速）** |
+| 非零命令时间跨度 | **0.017 – 1.638 s** |
+| 停止延迟（首次 < 0.05） | 0.099 s |
+| 滑行距离（真值） | 0.146 m |
+| 5 s 窗口内是否全零 | **否**（1.638 s 内仍有脉冲） |
+
+**这是一个此前被"归零"结论掩盖的事实**：定位中断后约 **1.6 秒内仍会出现满速命令脉冲**。
+来源是 `local` 的 `input_max_age_s = 1.0` —— 定位数据停发后，局部规划器在超时窗口内
+仍按最后一帧有效位姿继续下发。**这是既有设计的安全参数，本轮不放宽也不收紧**，只如实记录。
+
+因此本项判定维持 **PASS** 的口径必须写清楚：**门控最终归零、停止延迟 0.099 s、滑行 0.146 m 成立；
+但"持续 5 秒零速"不成立**（那是第 4 项取消才达到的指标）。
+
+### 38.4 四项结果（保持）
+
+| # | 目标 | 判定 | 说明 |
+| --- | --- | --- | --- |
+| 1 | 正常导航 | **PASS** | 真实到达 0.100 m；定位 1.6 cm；reached |
+| 2 | 障碍安全 | **PASS** | 机器判定 PASS/rc=0；反控 FAIL/rc=1；碰撞 0 |
+| 3 | 定位失效 | **PASS**（口径见 38.3） | 归零 + 0.099 s + 0.146 m；但 1.638 s 内有满速脉冲 |
+| 4 | 取消 | **PASS** | ACK + 0.11 s + 0.038 m + `zero_for_5s=true` |
+
+### 38.5 边界
+
+FAR INVALID、VCC RED=39、formal、真机禁止**未动**。
+安全参数未动：`gate_m 0.8` / `radius_m 0.15` / `clearance_m 0.10` / `reaction_s 0.10` /
+`brake_decel_mps2 1.0` / `min_fill 0.45` / `input_max_age_s 1.0`。
+
+**遗留（需裁决，不在本轮授权内）**：若要把定位失效后的满速脉冲压到"立即停"，
+应缩短 `local` 的 `input_max_age_s` 或对 `localization_ok` 引入更短的门限 ——
+那动的是安全时序参数，需单独评估对正常导航的影响。
