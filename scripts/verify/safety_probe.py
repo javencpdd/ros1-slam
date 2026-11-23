@@ -59,7 +59,9 @@ class Probe(object):
                 # 短暂零命令，用"首次 <阈值"当停止时刻会把一次 tick 间隙误判成停止，
                 # 从而把后续正常推进屈解为"复动"。
                 self.last_nonzero_at = now
-            if self.stop_time is None and self.v < STOP_SPEED:
+            if self.first_zero_at is None and self.v < STOP_SPEED:
+                # 条件必须判 first_zero_at 本身：判 stop_time 会让它被每帧覆盖，
+                # 结果记成"最后一个零帧"，把 first_zero 报成 22.8 s（实测踩过）。
                 self.first_zero_at = now
 
     def on_gt(self, msg):
@@ -183,7 +185,9 @@ def main():
         result['last_nonzero_at_s'] = round(pr.last_nonzero_at - pr.trigger_at, 3)
         result['stop_delay_s'] = result['last_nonzero_at_s']
         # 持续零速窗口：从最后非零帧到探针结束
-        tail = [v for (t, v) in pr.cmd_after if t > result['last_nonzero_at_s']]
+        # 阈值必须留 ε：last_nonzero 已 round 到毫秒，直接用 t > 它会把边界那一帧
+        # （真实 1.1914 被记成 1.191）又算进窗口，导致 all_zero 假阴。
+        tail = [v for (t, v) in pr.cmd_after if t > result['last_nonzero_at_s'] + 1e-6]
         result['quiet_window_frames'] = len(tail)
         result['quiet_window_all_zero'] = bool(tail) and max(tail) < STOP_SPEED
         result['quiet_window_s'] = (round(pr.cmd_after[-1][0] - result['last_nonzero_at_s'], 3)
