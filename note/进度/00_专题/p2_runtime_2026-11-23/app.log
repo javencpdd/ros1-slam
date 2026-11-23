@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "nodes/app_runner.py", line 17, in <module>
+    sys.exit(main())
+  File "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner_execute.py", line 485, in main
+    return execute(args.app, args.out, args.port, not args.real and not args.no_gazebo, args.gui,
+  File "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner_execute.py", line 97, in execute
+    prepared = prepare_execution(app_path, real=real, with_gazebo=with_gazebo)
+  File "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner_prepare.py", line 142, in prepare_execution
+    return _prepare_app(app_path, real, with_gazebo, root, executable=True)
+  File "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner_prepare.py", line 106, in _prepare_app
+    sim_launch = (resolve_sim_launch(raw, root)
+  File "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/nodes/app_runner_prepare.py", line 41, in resolve_sim_launch
+    raise config.FrameworkError('E_EXEC_BACKEND', 'simulation backend declaration missing: %s' % path)
+config.FrameworkError: E_EXEC_BACKEND: simulation backend declaration missing: /opt/ros1-slam/ws/src/95_simulation/v8_simulation/config/sim_backends.yaml
