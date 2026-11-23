@@ -366,3 +366,41 @@ FAR 图显式写了 `carrier.pose → global.start` 的边（`graph_3d_lite3_far
 | 运动级 | **FAIL**（首个阻断＝local 缺 obstacles 心跳） |
 | 导航级 | **NOT RUN** |
 
+---
+
+## 13. 方案 A 前置判定：**环境 INVALID（Gazebo 无真实点云）**
+
+用户批准「给 Gazebo support 图补 `v8.fw.dynamic_obstacles` + 边」，并附三条硬条件。按条件 1 先验证"Gazebo 是否真提供点云"：
+
+| 检查 | 读数 |
+| --- | --- |
+| 运行中话题总数 | 36 |
+| 含 `points` / `cloud` / `lidar` / `scan` 的话题 | **（none）**——`/rslidar_points`、`/velodyne_points`、`/livox/lidar`、`/cloud_registered` 全部不存在 |
+| 世界模型 | `ground_plane`、`perimeter_north/south`、`obs_1` …、`app_carrier`（`rosservice call /gazebo/get_world_properties`） |
+| 传感器定义 | 只在 `lite3_planar.urdf.xacro` 与 `Mid360_simulation_plugin/.../model.sdf` 里；本图使用的 `app_carrier` 模型**未带激光** |
+| 世界插件 | `m1_world.world` 内无 `ray/gpu_ray/lidar/topicName` |
+
+⇒ **本环境不存在任何真实点云源**。按硬条件「若 Gazebo 没有可用的真实点云，应记录环境 INVALID，不能制造运动 PASS」：
+
+- **不添加** `perception` 实例与 `perception.obstacles → local.obstacles` 边：加了也没有数据，只会让图看起来"接了感知"，属误导。
+- **不动** local 的 fail-closed：它现在的零速正是"感知缺失必须拒绝运动"的正确行为（§12 A 组 823 帧全零即该反例的实证）。
+- 也**未**新增无感知开关（按指示不选 B）。
+
+### 13.1 继续 A 方案需要的前置（需另行授权，且都会改仿真资产）
+
+| 步骤 | 内容 | 说明 |
+| --- | --- | --- |
+| P1 | 让 `app_carrier` 带激光：spawn 带传感器的模型，或给 `m1_world.world` 加 `ray/gpu_ray` 插件并把话题对齐到 `dynamic_obstacles` 的 `cloud` 端口（默认 `/cloud_registered`） | 改仿真资产/SDF，不是接线 |
+| P2 | 确认点云**持续**更新（`rostopic hz` 有稳定频率、`header.frame_id` 与 `map` 一致） | 硬条件 1 |
+| P3 | 给 `v8.fw.dynamic_obstacles` 补顶层 shim（manifest 现写 `framework/nodes/dynamic_obstacles_node.py`，属 F4 同类） | 否则 roslaunch 起不来 |
+| P4 | 再往图里加实例与边，然后跑：正常→非零速度/位姿变化；**杀感知→必须回零**；取消→ACK；到达 | 硬条件 1—3 |
+
+### 13.2 本轮分级（维持，未强行升级）
+
+| 等级 | 结论 | 依据 |
+| --- | --- | --- |
+| 启动级 | **PASS** 7/7 | 前轮 |
+| 链路级 | **PASS** | 前轮（path 6 点、局部目标、取消 ACK） |
+| 运动级 | **INVALID**（原 FAIL 已定因：local 缺障碍心跳；补感知的**环境前置**不成立） | §12 + §13 |
+| 导航级 | **NOT RUN** | 依赖运动级 |
+
