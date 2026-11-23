@@ -167,3 +167,85 @@ P3 记 **INVALID**，不擅自用 faster_lio 里程计冒充地图重定位。
 | P3 定位 | **INVALID** | hdl 49 s 内未崩溃但无定位输出；历史裁决保留 |
 | P4 导航闭环 | **NOT RUN** | 依赖 P3 |
 
+---
+
+## 15. 第四轮：3D 地图确认、路径自检、覆盖率与全程误差
+
+### 15.1 地图是 **3D**（不是 2D 占据栅格）
+
+以 `v8_flat_r4_v1.json` 为例：
+
+| 字段 | 值 | 说明 |
+| --- | --- | --- |
+| `kind` | `support_map` | 支撑面地图（3D 规划器消费） |
+| `surfaces[].representation` | **`elevation_grid`** | 高度栅格，不是 occupancy |
+| `surfaces[].z_reference` | 0.01 / 0.02 / 0.12 / 0.19 / 0.27 / 0.34 … | **每面独立高度层** |
+| `surfaces[].thickness_m` | 0.05 | 面厚度 |
+| `surfaces` 数 | **30**（raw 813 → consolidated） | 多层/多段支撑面 |
+| 源 PCD 字段 | `x y z intensity normal_x/y/z curvature` | 完整 3D 点云 |
+
+⇒ 产物是**分层高程 3D 地图**；`map_from_pcd` 输出的 2D 网格只是每个面的 `cells` 索引，不代表整体是 2D。
+
+### 15.2 输出路径自检（已强制，且失败即退出）
+
+`map_run10.sh` 开头做四道检查，任一不满足直接 `exit`：
+
+1. 必须显式传输出路径（否则 `exit 2`）；
+2. 路径等于样张 `lite3.pcd` 或其同名（`exit 3`）；
+3. 输出目录与样张同目录（`exit 4`）；
+4. 目录不可写（`exit 5`）。
+
+本轮实测：`路径自检通过: /tmp/v8map/run11.pcd`，运行结束 `saved to /tmp/v8map/run11.pcd`，
+样张 `lite3.pcd` **sha 未变 ✓** —— 不再依赖备份恢复。
+
+### 15.3 建图读数（更长路线：直行 + 两次 90° 转 + 再直行）
+
+| 项 | 读数 |
+| --- | --- |
+| PCD | **8.6 MB / 279,069 点**（`/tmp/v8map/run11.pcd`） |
+| support_map | **30 面**（raw 813），res 0.1 m |
+| 覆盖 | **4.10 m × 8.90 m** |
+| 行程 | GT 终点 (3.829, 0.000)，约 **4.3 m** 实际行进 |
+
+### 15.4 全程轨迹误差（LIO vs Gazebo 真值）
+
+| 指标 | 值 |
+| --- | --- |
+| 采样点 | **5**（受探针逐点 `rostopic echo` 速率限制，非高频） |
+| 终点 | GT (3.829, 0.000) vs LIO (3.979, 0.023) |
+| **RMSE** | **0.105 m** |
+| 最大分量误差 | \|ex\| 0.187 m，\|ey\| 0.024 m |
+| 相对行程漂移 | ≈ **3.9 %**（0.15 m / 3.83 m） |
+
+⚠ 采样仅 5 点，只能算"量级证据"，不是严格的全程统计；需高频采集（直接订阅并按时间戳存盘）才能给出可信 RMSE。
+
+### 15.5 P2 结论：**PASS（按本轮导航路线口径）**
+
+覆盖 4.10×8.90 m 足以包含本轮 4.3 m 的行驶路线，且地图为 3D 分层、点数与面数正常；
+按用户"以实际导航路线评估覆盖、不强制对齐旧图尺寸"的口径 ⇒ **PASS**。
+遗留：全程 RMSE 采样过稀（5 点）。
+
+## 16. P3 定位：再次尝试仍 **INVALID**
+
+| 项 | 结果 |
+| --- | --- |
+| 节点 | `velodyne_nodelet_manager` + `globalmap_server_nodelet` + `hdl_localization_nodelet` 均在跑 |
+| 崩溃 | **0 次**（`grep -ic SIGSEGV/exit -11/died` = 0） |
+| `/hdl_odom` | **no new messages**（下发 `/initialpose` 后 12 s 仍无输出） |
+| 日志 | roslaunch 日志中无 map/load/error 关键字可读（nodelet 输出未落盘） |
+
+⇒ 本轮**未复现 SIGSEGV**，但也**未取得定位输出**；`M2-R2C` 历史裁决保留不动。
+下一步需要：核对 hdl 的 `map_pcd` 加载是否成功（PCD 含 intensity/normal 字段可能被拒）、
+`/imu/data` 与 TF（`map→base_link`）是否齐备、以及是否需要 `/gps/fix` 或全局重定位服务触发。
+
+## 17. P4 导航闭环：**NOT RUN**（依赖 P3）
+
+## 18. 四阶段结论（第四轮）
+
+| 阶段 | 结论 |
+| --- | --- |
+| P1 传感器 | **PASS**（未退化：点云 11.45 Hz、IMU 200 Hz、TF 断言通过） |
+| P2 建图 | **PASS（本轮路线口径）**：279,069 点 / 30 面 / 4.10×8.90 m / RMSE 0.105 m（5 点采样） |
+| P3 定位 | **INVALID**：无崩溃、无定位输出；历史裁决保留 |
+| P4 导航闭环 | **NOT RUN** |
+
