@@ -155,6 +155,13 @@ def cmd_gate(args) -> int:
     return 1 if bad else 0
 
 
+def cmd_docs(args) -> int:
+    """重建 note 索引层；--check 只读核对（不一致返回 5，前置缺失 9）。"""
+    flag = ' --check' if getattr(args, 'check', False) else ''
+    cmd = f'python3 -B {REPO}/scripts/ops/compile_notes.py{flag}'
+    return subprocess.run(['bash', '-lc', cmd], cwd=str(REPO)).returncode
+
+
 def cmd_smoke(args) -> int:
     stage = args.stage
     inner = with_env(f'bash {CONT_DIR}/docker/sim.sh smoke {stage}')
@@ -187,6 +194,10 @@ def main(argv=None) -> int:
     s = sub.add_parser('smoke', help='仿真冒烟')
     s.add_argument('stage', nargs='?', default='stageA')
     s.set_defaults(fn=cmd_smoke)
+
+    d = sub.add_parser('docs', help='重建 note 索引层（--check 只读核对）')
+    d.add_argument('--check', action='store_true', help='只读：不一致返回 5，前置缺失返回 9')
+    d.set_defaults(fn=cmd_docs)
 
     args = ap.parse_args(argv)
     try:
