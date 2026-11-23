@@ -1,10 +1,14 @@
 experimental_config:
   resolution: 0.30
-  tick_s: 1.20
+  # tick_s 是"检查新鲜度"的周期，不只影响规划频率：定位中断后，local 最坏要等一个
+# tick 才发现输入过期。原来 1.20 s 这一项就是失效延迟的主因（实测 1.518 s ≈ 0.7+1.2 分量的叠加）。
+# 0.40 s 把这段压到 0.4；max_step_m 同步从 0.30 收到 0.20，保证 0.20/0.40 = 0.5 m/s
+# 不超 max_speed_mps 0.6，不改变单步速度上限。
+  tick_s: 0.40
   horizon_s: 6.0
   validity_s: 20.0
   max_speed_mps: 0.6
-  max_step_m: 0.30
+  max_step_m: 0.20
   max_slope_deg: 35.0
   radius_m: 0.15
   height_m: 0.35

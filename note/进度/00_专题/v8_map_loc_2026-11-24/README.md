@@ -1368,3 +1368,68 @@ FAR INVALID、VCC RED=39、formal、真机禁止**未动**。
 
 这正是"注入失败"的证据（unload 被拒 → 定位照常 → 车照常跑），**不是**失效后的安全行为。
 保留它只为说明注入手段不可靠，**不得**用于第 3 项判定。
+
+## 41. 注入手段解决：串一层命名 relay 当闸门（第二十轮）
+
+### 41.1 终于有了可靠的失效注入
+
+前面三种手段都不行（`pkill manager` 关栈、`rosnode kill /hdl` 触发 required 关停、
+`nodelet unload` 被活动服务拒绝）。最终方案是**在定位数据链路上串一层命名 relay**：
+
+```
+hdl --(/odom:=/hdl_odom_raw)--> relay(__name:=hdl_gate) --(/hdl_odom)--> loc
+```
+
+探针只需 `rosnode kill /hdl_gate`：`/hdl_odom` 断流，而 **hdl、nodelet manager、roslaunch、
+9 个导航节点全部存活**。
+
+**实测确认（stop_gate_231223）**：
+
+| 字段 | 读数 |
+| --- | --- |
+| `triggered_while_moving` | **true**（0.6 m/s 时注入） |
+| `alive_has_mgr` / `alive_has_gazebo` / `alive_has_hdl` | **true / true / true** |
+| `alive_v8_nodes` | **9** |
+
+这是几轮来第一次既"只断数据"又"整栈存活"的有效注入。
+
+### 41.2 但读数反而变差，暴露出真正的滞后源
+
+| 配置 | 停止延迟 | 滑行 |
+| --- | --- | --- |
+| stop_v4（max_age 0.7，tick 1.2，loc 5 Hz，mux 0.4） | 1.191 s | 0.144 m |
+| stop_gate（再叠加 loc 20 Hz + mux 0.25，tick 仍 1.2） | **1.518 s** | 0.276 m |
+
+loc 提速与 mux 收紧**没有带来改善**，说明滞后不在这两处。
+
+**真正的滞后源是 `local` 的 `tick_s: 1.20`** —— 它是"检查输入新鲜度"的周期，
+定位中断后 local 最坏要等一整个 tick 才发现输入过期：
+
+```
+0.7（输入时效）+ ≤1.2（等 tick）+ 0.25（mux 保持）≈ 最坏 2.15 s
+```
+
+实测 1.518 s 正落在这个区间内。**前两轮我都在治末端，没碰到主因。**
+
+### 41.3 已收紧
+
+`tick_s` 1.20 → **0.40**，同时 `max_step_m` 0.30 → **0.20**，
+保证 `0.20/0.40 = 0.5 m/s` 不超 `max_speed_mps 0.6`（单步速度上限不变）。
+
+理论最坏：0.7 + 0.4 + 0.25 ≈ **1.35 s**，期望值 0.9–1.1 s。
+
+### 41.4 tick 收紧后的实测**未取得**（如实）
+
+`stop_tick_231623` 是一次**无效测试**：`action=None`、`triggered_while_moving=False`、
+`cmd_frames_after=0` —— 探针启动时车已停，从头到尾没触发。
+
+因此：
+- **"tick 是主因"目前只有算术推断支撑，没有实测确认**；
+- tick 0.4 的效果**未验证**；
+- 第 3 项判定**不上调**。
+
+### 41.5 下一步
+
+`tick_s 0.4` 需要一次有效注入来确认（探针必须在车动起来后立刻起，
+或把 `--on-speed` 降到 0.05 并加长等待窗口）。若确认有效，再把 `tick_s` 与
+`input_max_age_s` 一起往下压，争取 0.5 s 量级。

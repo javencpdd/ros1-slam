@@ -83,8 +83,10 @@ def trigger_stop_hdl():
     # nodelet unload 只把 hdl 插件从 manager 卸下：/hdl_odom 停发，但 /mgr、
     # roslaunch 与 9 个导航节点全部存活。rosnode kill /hdl 会让 roslaunch
     # 把 /hdl 当 required 节点死亡而关停整套（实测探针随即被打断）。
-    subprocess.call(['rosrun', 'nodelet', 'nodelet', 'unload', 'hdl', 'mgr'])
-    return 'nodelet unload hdl from mgr (data stops, stack alive)'
+    # 闸门 relay 才是干净的注入点：kill 它只让 /hdl_odom 断流，
+    # hdl、nodelet manager、roslaunch 与 9 个导航节点全部不受影响。
+    subprocess.call(['rosnode', 'kill', '/hdl_gate'])
+    return 'killed hdl_gate relay (localization data cut, stack alive)'
 
 
 def trigger_cancel(seq, scope='all'):

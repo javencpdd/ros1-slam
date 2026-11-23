@@ -220,7 +220,7 @@ rosparam set /hdl/cool_time_duration 1.0
 # 判成 timeout 丢掉（实测 WARN: t_diss 210.000000 ms，align 频率只剩 ~5 Hz）。
 # 放宽到 500 ms 只为不丢帧，不改变任何配准算法参数。
 rosparam set /hdl/lidar_timeout_ms 500
-setsid rosrun nodelet nodelet load hdl_localization/HdlLocalizationNodelet mgr __name:=hdl /odom:=/hdl_odom \
+setsid rosrun nodelet nodelet load hdl_localization/HdlLocalizationNodelet mgr __name:=hdl /odom:=/hdl_odom_raw \
   > "$EV/hdl.log" 2>&1 < /dev/null &
 # 不固定 sleep：崩溃是即时的，等 8 秒既浪费时间又可能错过现场。轮询「实例出现 or manager 已死」。
 LOAD_AT=""
@@ -356,6 +356,16 @@ say "align_begin=$(logcnt 'align begin')"
 say "lidar_timeout_drops=$(logcnt 'Disgarding a timeout lidar msg')"
 say "globalmap_msgs=$(logcnt 'globalmap received:')"
 say "live_lib_sha_now=$(sha256sum "$LIVE_LIB" | cut -c1-16)"
+
+# ---------- 定位数据闸门（可注入失效）----------
+# hdl 现在发 /hdl_odom_raw，由这个命名 relay 转发成 /hdl_odom，loc 只订后者。
+# 杀掉 relay 即可"只断定位数据"：hdl、manager、roslaunch、9 个导航节点全部不受影响。
+# 之前试过的三种手段都不行 —— pkill manager 关栈、rosnode kill /hdl 触发 required 关停、
+# nodelet unload 被活动服务拒绝。串一层 relay 是唯一干净且可复现的注入点。
+say "--- [8b] 定位数据闸门 /hdl_odom_raw -> /hdl_odom ---"
+setsid rosrun topic_tools relay /hdl_odom_raw /hdl_odom __name:=hdl_gate > "$EV/hdl_gate.log" 2>&1 < /dev/null &
+sleep 2
+hz_probe /hdl_odom || { say "hdl_gate.log:"; tail -10 "$EV/hdl_gate.log"; gate_fail "/hdl_odom 无数据（闸门未通）"; }
 
 # /hdl_odom 是 P3 的验收对象：必须有稳定输出。
 ODOM_HZ=$(timeout 8 rostopic hz /hdl_odom 2>/dev/null | grep -E "average rate" | tail -1)
