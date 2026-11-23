@@ -51,3 +51,69 @@
 
 未伪造传感器、未固定 `localization_ok=true`、未绕过安全门控、未接触真机；
 FAR 两组合仍 INVALID；VCC RED=39 与 formal 状态未动。
+
+---
+
+## 7. 第二轮：建图跑通（P2 部分 PASS）
+
+### 7.1 构建问题（未解决，但已绕过）
+
+| 事实 | 读数 |
+| --- | --- |
+| 主工作区 `catkin_make -DCATKIN_WHITELIST_PACKAGES=faster_lio` | **rc=1**：`tf/transform_broadcaster.h`、`ros/types.h` 找不到（cmake 未带 `/opt/ros/noetic` 前缀） |
+| profile 工作区同名命令 | rc=0 但**未真正重编**该包（`strings` 命中 `pcd_save/path` = 0） |
+| `rosrun` 实际解析 | `/opt/ros1-slam/ws/devel/lib/faster_lio/run_mapping_online`（Nov 21 旧二进制） |
+
+⇒ 参数化改动**尚未生效**。为不阻塞验证，改用「**备份样张 → 用默认硬编码路径跑 → 取回 → 还原**」，
+还原后 sha256 与备份一致（`047c7257…`），**未污染样张**。
+
+### 7.2 一个真实的坑：`pcd_save/interval` 会清空缓冲
+
+`interval=5` 时每次落盘都 `pcl_wait_save_->clear()` 且写**同一文件名** ⇒ 最终只剩最后一批点：
+两次短跑分别只有 **2,574 / 1,752 点**，`map_from_pcd` 直接报 `no horizontal points after normal filter`。
+
+改为 `interval=-1`（不中途落盘，只在退出时整图保存）后：
+
+| 项 | 读数 |
+| --- | --- |
+| PCD | **4.3 MB / 139,698 点** |
+| support_map | **19 个 surface**，res 0.1 m，origin (1.40, −4.50)，extent **41×65 格 = 4.1 × 6.5 m** |
+| 产物 | `data/maps/generated/v8_flat_full_v1.json`（32 KB）＋ `_app.yaml` / `_task.json` |
+
+### 7.3 精度：LIO 里程计 vs Gazebo 真值（短程）
+
+| 项 | 值 |
+| --- | --- |
+| 真值终点 | (0.6227, −4.1390) |
+| LIO `/Odometry` 终点 | (0.6279, −4.1199) |
+| 终点偏差 | **≈ 0.020 m** |
+
+⚠ 这是**单次终点**比对，不等于全程漂移；全程漂移需按轨迹逐点对齐后统计（本轮未做）。
+
+### 7.4 覆盖率：**未达标**
+
+覆盖只有 4.1 × 6.5 m（60 s 遥操作、单向直行 + 两次原地转）；而 `m1_world.world` 的可达区域远大于此
+（对照既有 `nist_sensor_v2.json` 为 15 × 18 m）。⇒ 建图**能出图**，但**覆盖不足**，达不到"可导航地图"标准。
+
+## 8. P3 定位：**INVALID（受既有裁决约束）**
+
+`note/02_问题与坑.md`（M2-3 终态补记，M2-R2C 最终轮 2026-10-06）明确：
+
+> hdl 仿真验证**终止**——/clock 门控 + --no-bond 落地后，manager 于 /clock 放行后 ~2 sim-s 内仍 **SIGSEGV exit -11**
+
+即 hdl 在仿真中的验证已被**既有正式裁决终止**（转真机 G8）。按本轮授权「不擅自推翻既有正式裁决」：
+P3 记 **INVALID**，不擅自用 faster_lio 里程计冒充地图重定位。
+
+## 9. P4 导航闭环（估计位姿替代真值）：**NOT RUN**
+
+依赖 P3。
+
+## 10. 各阶段结论
+
+| 阶段 | 结论 | 依据 |
+| --- | --- | --- |
+| P1 传感器 | **PASS** | 点云 11.45 Hz、IMU 200 Hz、TF 断言通过 |
+| P2 建图 | **FAIL（部分达成）** | 能出 4.3 MB / 139,698 点 PCD 与 19 面 support_map；但覆盖仅 4.1×6.5 m，未达可导航标准；构建未生效靠备份绕过 |
+| P3 定位 | **INVALID** | hdl 仿真验证已被 M2-R2C 裁决终止 |
+| P4 导航闭环 | **NOT RUN** | 依赖 P3 |
+
