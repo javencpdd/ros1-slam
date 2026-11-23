@@ -302,3 +302,67 @@ FAR 图显式写了 `carrier.pose → global.start` 的边（`graph_3d_lite3_far
 **运动级下一步**：`localization_ok` 有发布者（carrier）但 BT 仍停在 `localization_ok` 节点，需核对 carrier 实际发布的 Bool 值
 与 local 的同类门控；这不是"没接线"，是**门控输入的值/时序**问题。
 
+---
+
+## 12. 运动级 FAIL 定因（第五轮，只定位不接线）
+
+### 12.1 首个阻断组件：local（`v8.fw.local_native`），条件是**障碍心跳缺失**
+
+| 证据 | 读数 |
+| --- | --- |
+| `ros_node.py:157` 注释与实现 | `Missing localization or obstacle heartbeat is unsafe, including at startup.`；`state` 里 `obstacles_at=-1e100`、初始 `last_error=E_LOCAL_NOT_READY` |
+| `/v8/local/obstacles` | **Publishers: None**；Subscribers: `/v8/3d/local/local` |
+| 渲染 launch 的 local 节点 | 只有 cancel/goal/localization/pose/map 的 remap，**没有 obstacles** |
+| 该图组件清单 | `map, global, bt, local, mux3d, carrier` —— **没有 perception/obstacles 生产者** |
+
+⇒ local 按**设计**在缺障碍心跳时不下发速度（fail-closed），这是安全语义，不是 bug。
+**运动失败的第一个阻断点就在这一层**，与 mux、Gazebo、规划都无关。
+
+### 12.2 三层输出对照（证明零速来源在 local）
+
+| 层 | 实测 |
+| --- | --- |
+| local 输入 | pose=(0,−3.06,0) frame `map` stamp 25.4 s 新鲜；`localization_ok`=**true**（18 s 内 425 条）；goal 已到；**obstacles 缺失** |
+| local 输出 `/v8/local/cmd_vel_3d` | 823 帧，**全 0**，frame `map` |
+| mux `/cmd_vel` | `{"reason":"track","velocity":[0,0,0,0],"input_frame":"map"}` —— 忠实透传 0 |
+| Gazebo 载具 | pose 恒为 (0,−3.06,0)，无位移 |
+
+⇒ 属于「local 自己输出零速」，**不是** mux 阻止，也**不是** Gazebo 不动。
+
+### 12.3 起点与位姿一致性（外部输入不伪造）
+
+| 项 | 值 |
+| --- | --- |
+| carrier 实测位姿 | (0.000, −3.060, 0.000)，frame `map` |
+| 探针发送的 start | (0.000, −3.060)，由**当前位姿生成**（非固定常量） |
+| 规划路径首点 | (0.150, −3.150)，6 点，frame `map`；与 start 差 0.15/0.09 m（规划器起点吸附量级） |
+
+### 12.4 A/B 分离测试
+
+| 组 | 做法 | 读数 |
+| --- | --- | --- |
+| **A 正常执行** | 发 start+goal，**14 s 窗口内不取消** | `cmd_vel_3d` 823 帧全 0；`cmd_vel` 834 帧全 0；pose 不变；mux `track` |
+| **B 取消** | 发 goal → 3 s 后 `2:all:probe-B` | **100 ms** 内收到 `2:cancelled`；`cmd_vel` 345 帧全 0；节点顺序有时间戳 |
+
+⇒ A 组窗口内速度恒零，才是"运动失败"的判据；B 组只证明取消链正常（ACK 及时）。
+
+### 12.5 本轮未做修复（受"不改 graph 接线"约束）
+
+两条候选，都需授权，且**都不能靠伪造**：
+
+| 选项 | 做法 | 风险 |
+| --- | --- | --- |
+| A（推荐） | 给 Gazebo support 图补 `perception`（`v8.fw.dynamic_obstacles`）实例与 `perception.obstacles → local.obstacles` 边 | 动 graph 接线；需确认赛道的感知配置在仿真域可用 |
+| B | 若该图设计上**不打算**有障碍源，则应在 local 侧提供"无感知域"的显式开关（配置项），默认仍 fail-closed | 动算法契约，需评审 |
+
+**不做的事**：不写死 `localization_ok=true`、不关 stale 检查、不跳 hold、不伪造速度、不注入 Gazebo 位姿。
+
+### 12.6 分级（本轮维持）
+
+| 等级 | 结论 |
+| --- | --- |
+| 启动级 | **PASS** 7/7 |
+| 链路级 | **PASS**（path 6 点、局部目标、取消 ACK 均有读数） |
+| 运动级 | **FAIL**（首个阻断＝local 缺 obstacles 心跳） |
+| 导航级 | **NOT RUN** |
+
