@@ -284,11 +284,14 @@ def build_v7() -> dict[str, str]:
     # 口径＝git 跟踪件（仓库内容）；落盘的未跟踪残渣（__pycache__ 等）另行报数，不混入分类
     tracked = subprocess.run(['git', 'ls-files', '-z', 'note/进度/v7'], cwd=ROOT,
                              capture_output=True, text=True).stdout.split('\0')
-    files = sorted(ROOT / f for f in tracked if f)
+    all_tracked = sorted(ROOT / f for f in tracked if f)
+    # 目录说明（v7/README.md）是入口文档，不计入「记录」四分类
+    files = [p for p in all_tracked if p.relative_to(V7).as_posix() != 'README.md']
+    entry_docs = len(all_tracked) - len(files)
     if len(files) != EXPECT['v7_files']:
         raise BuildError(f'v7 跟踪件数 {len(files)} ≠ 期望 {EXPECT["v7_files"]}')
     on_disk = sum(1 for p in V7.rglob('*') if p.is_file())
-    extras = on_disk - len(files)
+    extras = on_disk - len(all_tracked)
     buckets = {'设计': [], '证据': [], '批次': [], '其他/待分类': []}
     for p in files:
         parts = p.parts
@@ -308,7 +311,7 @@ def build_v7() -> dict[str, str]:
     L = head('v7 索引（全量覆盖）',
              f'源：`note/进度/v7` 的 **{len(files)}** 件跟踪文件；四类合计 {total} 件，与跟踪件数逐一相等。',
              '分类规则：路径**任一段包含**「设计」→设计；包含「证据」/evidence→证据；文件名是进度文档或 R*.md→批次；其余→其他/待分类。',
-             f'另有 {extras} 件落盘但未跟踪（`__pycache__` 等运行残渣），不入分类、不计入上述 702。')
+             f'另计目录说明 {entry_docs} 件（`v7/README.md`，冻结标记）与 {extras} 件落盘未跟踪残渣；三者都不入四分类。')
     L += ['## 覆盖统计', '', '| 类别 | 件数 | 字节 |', '| --- | --- | --- |']
     for k, v in buckets.items():
         b = sum(p.stat().st_size for p in v if p.exists())
