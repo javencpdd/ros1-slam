@@ -1180,3 +1180,87 @@ FAR INVALID、VCC RED=39、formal、真机禁止**未动**。
 **遗留（需裁决，不在本轮授权内）**：若要把定位失效后的满速脉冲压到"立即停"，
 应缩短 `local` 的 `input_max_age_s` 或对 `localization_ok` 引入更短的门限 ——
 那动的是安全时序参数，需单独评估对正常导航的影响。
+
+## 39. 定位失效 fail-closed 加固：查明时间线，重测仍未取得（第十八轮）
+
+**第 3 项按用户裁决改为 FAIL**，理由成立：1.638 s 内有满速命令不能算"持续停止"。
+
+### 39.1 时间线查明：不是"复动"，是三级串行超时
+
+| 环节 | 阈值 | 来源 |
+| --- | --- | --- |
+| `local` 的输入时效 | **1.0 s** | `local_native_app_mapped.yaml` 的 `input_max_age_s` |
+| loc 转发 ok 的周期 | ≤ 0.2 s | loc 以 5 Hz 发布 |
+| `mux3d` 的保持时间 | **0.4 s** | graph 的 `timeout_s` |
+| **合计** | **≈ 1.6 s** | 与实测 1.638 s 吻合 |
+
+`track_segment` 本身**有** `freshness` 门控（含 `localization_ok`），`command()` 也有。
+所以缺陷不是"缺门控"，而是**阈值太长**。
+
+### 39.2 探针口径纠错：1.638 s 是停止延迟，不是"持续有速度"
+
+原 `stop_time` 取"首次 < 0.05"，而局部规划器是**步进式**（`tick_s 1.2`），tick 之间会出现
+短暂零命令 ⇒ 把一次 tick 间隙误判成"已停"，后续正常推进就被屈解为"复动"。
+
+已改为按用户要求的四项口径：
+- `first_zero_at_s`（首次归零）
+- `last_nonzero_at_s`（最后非零帧）＝**真正的停止延迟**
+- `quiet_window_*`（从最后非零帧起的持续零速窗口）
+- `nonzero_after_*`（每条非零命令的时间与幅度）
+
+### 39.3 超时依据：实测 hdl 只有 4.16 Hz
+
+`scripts/verify/topic_interval.py` 实测 `/hdl_odom`（20 s，83 样本）：
+
+| 指标 | 读数 |
+| --- | --- |
+| 平均间隔 | 240.2 ms（4.16 Hz） |
+| p95 / p99 | 447.0 / 471.9 ms |
+| **最大间隔** | **544.1 ms** |
+| 300 ms 超时的误停次数 | **5 次**（不可用） |
+
+⇒ 300 ms 会误停；**0.7 s** 覆盖最长空档并留 156 ms 余量。
+已把 `input_max_age_s` 从 1.0 改为 **0.7**（收紧，非放宽），并在配置里写明依据。
+
+（顺带发现：容器里累积了 **30+ 个 `rslidar_points_relay`** 未被清理，把 `/hdl_odom` 从 10 Hz 拖到 7 Hz。
+清理后恢复。这会影响任何频率类判据，需在 repro 里修。）
+
+### 39.4 任务身份：代次编进消息，而不是只靠本地计数
+
+- `make_goal()` 把代次写进 `header.seq`；
+- `local` 新增 `~require_goal_seq`（graph 里已开）：goal 代次必须**严格大于**已接受代次，
+  否则 `E_LOCAL_STALE_GOAL` 拒绝 —— 这样"旧任务带着更新 timestamp 回来"也进不来；
+- 6 项单测覆盖取消前后与无时间戳，含反控。
+
+### 39.5 重测未取得（如实）
+
+三次尝试均未产出有效 JSON：
+
+| 轮次 | 现象 | 原因 |
+| --- | --- | --- |
+| stop_v2 | 只有 repro.log | `rosnode kill` 循环卡死 |
+| stop_v3 | probe.log 只有 `killing /hdl` | `--at 20 + --duration 30 = 50` 正好撞上 `timeout 50` |
+| stop_v4 | probe.log 仍有 `killing /hdl` 后中断 | **`rosnode kill /hdl` 会让 roslaunch 关停整套** |
+
+第三轮揭示了关键约束：`/hdl` 在 launch 里是 required 节点，杀掉它等于关停整个启动文件，
+**因此"只中断定位数据、保持 ROS/Gazebo/导航存活"无法用 `rosnode kill` 实现**。
+上一轮那份 stop 数据（`alive_has_mgr=true`）能存活，是因为当时用的是 `pkill nodelet manager` 的**另一种**时序，
+两者不可直接比较 —— 这一点本轮才算清楚。
+
+### 39.6 结论
+
+| # | 目标 | 判定 |
+| --- | --- | --- |
+| 1 | 正常导航 | PASS（保持） |
+| 2 | 障碍安全 | PASS（保持） |
+| 3 | 定位失效 | **FAIL** —— 时间线已查明、阈值已按实测收紧、身份校验已加，但**加固后的实测未取得** |
+| 4 | 取消 | PASS（保持） |
+
+**不宣布四项全 PASS。**
+
+### 39.7 下一步（需授权或改结构）
+
+1. 让 `/hdl` 从 required 改为非 required（或用 `nodelet unload` 而非 `rosnode kill`），
+   才能实现"只断定位、不关栈"的失效注入；
+2. 或引入 `rosbag play` 假定位源 + 中途停发，作为可复现的注入手段；
+3. 之后重跑 39.2 的四项口径，再判第 3 项。

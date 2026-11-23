@@ -33,11 +33,18 @@ def accepts_path_stamp(cancelled_at, path_stamp):
     return True, 'newer_than_cancel'
 
 
-def make_goal(pose):
+def make_goal(pose, generation=None):
+    """把代次写进 header.seq —— 这是**任务身份**，不是本地计数器。
+
+    只靠本地 generation 计数无法防住"旧任务带着更新 timestamp 重新下发"：
+    下游看不出两者区别。把代次编码进消息后，接收端可以按身份拒绝更老的代次。
+    """
     goal = PoseStamped()
     goal.header = pose.header
     goal.header.stamp = rospy.Time.now()
     goal.header.frame_id = goal.header.frame_id or 'map'
+    if generation is not None:
+        goal.header.seq = int(generation)
     goal.pose = pose.pose
     return goal
 
@@ -115,7 +122,7 @@ class PathGoal(object):
         return math.hypot(p.x - self.pose.x, p.y - self.pose.y)
 
     def publish_current(self):
-        goal = make_goal(self.poses[self.index])
+        goal = make_goal(self.poses[self.index], self.accepted_generation)
         self.goal_pub.publish(goal)
         self.published_at = rospy.Time.now()
         rest = self.remaining()

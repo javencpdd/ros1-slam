@@ -36,6 +36,8 @@ class Probe(object):
         self.trigger_at = None
         self.trigger_pose = None
         self.stop_time = None
+        self.first_zero_at = None
+        self.last_nonzero_at = None
         self.ack = None
         self.t0 = None
         rospy.Subscriber('/cmd_vel', Twist, self.on_cmd, queue_size=20)
@@ -52,8 +54,13 @@ class Probe(object):
         self.v_at = now
         if self.trigger_at is not None:
             self.cmd_after.append((now - self.trigger_at, self.v))
+            if self.v >= STOP_SPEED:
+                # ★真正"停下"要等最后一个非零帧★：局部规划器是步进式的，tick 之间会出现
+                # 短暂零命令，用"首次 <阈值"当停止时刻会把一次 tick 间隙误判成停止，
+                # 从而把后续正常推进屈解为"复动"。
+                self.last_nonzero_at = now
             if self.stop_time is None and self.v < STOP_SPEED:
-                self.stop_time = now
+                self.first_zero_at = now
 
     def on_gt(self, msg):
         p = msg.pose.pose.position
@@ -169,8 +176,21 @@ def main():
     else:
         result['nonzero_after_t_range'] = None
 
+    # 口径按用户要求拆成四项：首次归零、最后非零帧、持续零速窗口、真实滑行
+    if pr.trigger_at is not None and pr.first_zero_at is not None:
+        result['first_zero_at_s'] = round(pr.first_zero_at - pr.trigger_at, 3)
+    if pr.trigger_at is not None and pr.last_nonzero_at is not None:
+        result['last_nonzero_at_s'] = round(pr.last_nonzero_at - pr.trigger_at, 3)
+        result['stop_delay_s'] = result['last_nonzero_at_s']
+        # 持续零速窗口：从最后非零帧到探针结束
+        tail = [v for (t, v) in pr.cmd_after if t > result['last_nonzero_at_s']]
+        result['quiet_window_frames'] = len(tail)
+        result['quiet_window_all_zero'] = bool(tail) and max(tail) < STOP_SPEED
+        result['quiet_window_s'] = (round(pr.cmd_after[-1][0] - result['last_nonzero_at_s'], 3)
+                                    if pr.cmd_after else None)
     if pr.trigger_at is not None and pr.stop_time is not None:
-        result['stop_delay_s'] = round(pr.stop_time - pr.trigger_at, 3)
+        # 保留旧口径供对照，但不再覆盖 stop_delay_s（后者已按"最后非零帧"定义）
+        result['first_zero_delay_s'] = round(pr.stop_time - pr.trigger_at, 3)
         # 用户判据：停止后必须**持续 5 s** 保持零速，而不只是某一瞬为零
         stop_rel = pr.stop_time - pr.trigger_at
         window = [v for (t, v) in pr.cmd_after if stop_rel <= t <= stop_rel + 5.0]

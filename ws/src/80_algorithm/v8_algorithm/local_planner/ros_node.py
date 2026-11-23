@@ -44,6 +44,16 @@ def accept_goal(shared, message):
     if message.header.frame_id != 'map':
         shared.update(goal=None, last_error='E_LOCAL_FRAME')
         return False
+    # 任务身份：goal 的 header.seq 由上游写成"任务代次"。开启 require_goal_seq 后，
+    # 代次必须严格大于已接受的代次 —— 这样即便旧任务带着更新的时间戳回来，也进不来。
+    if shared.get('require_goal_seq'):
+        seq = int(getattr(message.header, 'seq', 0) or 0)
+        last = int(shared.get('last_goal_seq') or 0)
+        if seq != 0 and seq <= last:
+            shared.update(last_error='E_LOCAL_STALE_GOAL')
+            return False
+        if seq > last:
+            shared['last_goal_seq'] = seq
     p = message.pose.position
     shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
                   stop_latched=False, stop_reason=None, last_error='ok',
@@ -127,6 +137,7 @@ def main():
     config = native.Config(**rospy.get_param('~experimental_config', {}))
     config.validate()
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
+    require_goal_seq = bool(rospy.get_param('~require_goal_seq', False))
     if not math.isfinite(max_age) or max_age <= 0:
         raise ValueError('input_max_age_s must be positive')
     wall_watchdog_s = float(rospy.get_param('~wall_watchdog_s', max(5., 4. * config.validity_s)))
@@ -156,6 +167,7 @@ def main():
             profile = json.load(stream)
     # Missing localization or obstacle heartbeat is unsafe, including at startup.
     shared = {'pose': None, 'goal': None, 'pose_at': -1e100, 'obstacles': [],
+              'require_goal_seq': require_goal_seq, 'last_goal_seq': 0,
               'obstacles_at': -1e100, 'localization_at': -1e100, 'localization_ok': False,
               'result': None, 'result_at': -1e100, 'map': None, 'generation': 0,
               'result_generation': -1, 'last_error': 'E_LOCAL_NOT_READY', 'last_error_detail': None,

@@ -10,7 +10,10 @@ experimental_config:
   height_m: 0.35
   clearance_m: 0.10
   goal_tolerance_m: 0.15
-input_max_age_s: 1.0
+# 0.7 s 由实测确定，不是随手调小：/hdl_odom 实测 4.16 Hz、间隔 p99 472 ms、max 544 ms
+# （scripts/verify/topic_interval.py），0.7 s 覆盖最长空档并留 156 ms 余量。
+# 原先的 1.0 s 会让定位中断后多放行约 0.3 s 的运动。
+input_max_age_s: 0.7
 wall_watchdog_s: 90.0
 map_topic: /v8_support_map
 pose_topic: /v8/local/pose

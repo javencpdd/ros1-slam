@@ -104,6 +104,9 @@ instances:
     params:
       cancel_topic: /v8/local/cancel
       cancel_ack_topic: /v8/local/cancel_ack
+      # 任务身份校验：goal 的 header.seq 携带上游代次，只有严格更新的代次才能接管。
+      # 这样"旧任务带着新 timestamp 回来"也进不来（时间戳不是身份）。
+      require_goal_seq: true
   - id: mux3d
     component: v8.fw.cmd3d_mux
     namespace: /v8/3d/mux
