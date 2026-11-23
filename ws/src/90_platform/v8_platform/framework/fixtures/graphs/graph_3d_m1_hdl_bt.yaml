@@ -80,6 +80,13 @@ instances:
       voxel_m: 0.10
       min_points: 8
       max_objects: 32
+      # AABB 细化：1.0 是历史行为（一个连通分量一个框）。0.45 启用递归二分，
+      # 实测同一帧面积 6.62->1.46 m2、空洞率 78%->0.1%，且未覆盖点数不增加；
+      # 受控 L 形场景里一条真实可走的通道从"误判不可通行"翻成"可通行"。
+      # 膨胀距离不变，所以这是收紧包围盒，不是放宽安全。
+      min_fill: 0.45
+      min_extent_m: 0.45
+      max_depth: 4
       self_radius_m: 0.45
       max_speed_mps: 1.5
       gate_m: 0.8

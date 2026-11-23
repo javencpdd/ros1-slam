@@ -47,6 +47,14 @@ class Config:
     max_expansions: int = 20000
     command_latency_bound_s: float = 0.01
     support_tol_m: float = 1e-6
+    # 速度相关安全距离（只在 base 之上做加法，永不减少既有 clearance）。
+    # reaction_s       感知周期 + 决策延迟；obstacles 实测 10 Hz，取 0.10 覆盖一个周期
+    # brake_decel_mps2 保守制动减速度；Lite3 实际能力高于此值，取小值属安全侧
+    # dynamic_margin_cap_m 额外量的上限，避免高速时把通道算成不可通行
+    # 定位误差不单独计入：clearance_m=0.10 已大于 hdl 实测 XY 误差（mean 0.0265 / max 0.0452 m）
+    reaction_s: float = 0.10
+    brake_decel_mps2: float = 1.0
+    dynamic_margin_cap_m: float = 0.30
 
     def validate(self):
         for name, value in asdict(self).items():
@@ -213,7 +221,38 @@ def _steppable_surfaces(surfaces, start_id, max_step, max_slope, radius):
     return result
 
 
-def _swept_hit(a, b, obstacle, config):
+def dynamic_margin_extra(config, speed_mps):
+    """速度相关的额外安全距离（米）。**只增不减**，且 fail-closed。
+
+    物理含义：以 speed 行驶时，从"感知到障碍"到"停下来"会多走
+        v * reaction_s + v^2 / (2 * brake_decel_mps2)
+    这段距离必须在碰撞判定里提前预留，否则低速阈值在高速度下不够用。
+
+    速度无法确定（None / 非有限 / 负数）时按 config.max_speed_mps 取值 ——
+    宁可多留，不能因为拿不到速度就把余量降回固定值。
+    """
+    limit = max(float(getattr(config, 'max_speed_mps', 0.6)), 1e-6)
+    speed = limit if speed_mps is None else float(speed_mps)
+    if not math.isfinite(speed) or speed < 0.0:
+        speed = limit
+    reaction = float(getattr(config, 'reaction_s', 0.0))
+    decel = float(getattr(config, 'brake_decel_mps2', 0.0))
+    extra = speed * reaction
+    if decel > 1e-6:
+        extra += speed * speed / (2.0 * decel)
+    cap = float(getattr(config, 'dynamic_margin_cap_m', extra))
+    return min(max(extra, 0.0), cap)
+
+
+def _segment_speed(a, b):
+    """计划段的平均速度；段时长无效时返回 None（交给 fail-closed 分支）。"""
+    duration = b[3] - a[3]
+    if not math.isfinite(duration) or duration <= 1e-9:
+        return None
+    return _distance(a, b) / duration
+
+
+def _swept_hit(a, b, obstacle, config, margin_extra=0.0):
     """Exact segment/linearly moving inflated AABB intersection, including time.
 
     Horizontal expansion contains radius and requested clearance. Vertical
@@ -227,11 +266,11 @@ def _swept_hit(a, b, obstacle, config):
     leave = min(1.0, (active_until - a[3]) / duration)
     if enter > leave:
         return False
-    lower = (lo[0] - config.radius_m - config.clearance_m,
-             lo[1] - config.radius_m - config.clearance_m,
+    lower = (lo[0] - config.radius_m - config.clearance_m - margin_extra,
+             lo[1] - config.radius_m - config.clearance_m - margin_extra,
              lo[2] - config.height_m)
-    upper = (hi[0] + config.radius_m + config.clearance_m,
-             hi[1] + config.radius_m + config.clearance_m, hi[2])
+    upper = (hi[0] + config.radius_m + config.clearance_m + margin_extra,
+             hi[1] + config.radius_m + config.clearance_m + margin_extra, hi[2])
     for axis in range(3):
         origin = a[axis] - velocity[axis] * (a[3] - epoch)
         delta = b[axis] - a[axis] - velocity[axis] * duration
@@ -331,8 +370,12 @@ def body_collision(map_value, a, b, obstacles, config, contacts=(None, None), co
                            max(config.height_m, config.clearance_m),
                            cells=cell_sets.get(surface['surface_id'])):
             return 'static:' + surface['surface_id']
+    # 速度相关的额外安全距离：按本段计划速度预留反应+制动距离（只增不减）。
+    # 段时长无效时 _segment_speed 返回 None，dynamic_margin_extra 会退到 max_speed（fail-closed）。
+    speed = _segment_speed(a, b)
+    margin_extra = dynamic_margin_extra(config, speed)
     for index, obstacle in enumerate(_obstacles(obstacles)):
-        if _swept_hit(a, b, obstacle, config):
+        if _swept_hit(a, b, obstacle, config, margin_extra):
             return 'dynamic:%d' % index
     return None
 
