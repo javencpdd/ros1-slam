@@ -861,8 +861,9 @@ void LaserMapping::Finish() {
     if (pcl_wait_save_->size() > 0 && pcd_save_en_) {
         // std::string file_name = std::string("scans.pcd");
         // std::string all_points_dir(std::string(std::string(ROOT_DIR) + "PCD/") + file_name);
-        // std::string file_name = std::string("lite3.pcd");
-        std::string all_points_dir(std::string("/home/ros1-slam/data/maps/lite3") + std::string(".pcd"));
+        // 2026-11-24：退出时整图保存也必须走可配置路径（此前只改了中途落盘那一段，
+        // 结果 interval=-1 时仍写死 /home/ros1-slam/data/maps/lite3.pcd，覆盖样张）。
+        std::string all_points_dir = pcd_save_path_;
         pcl::PCDWriter pcd_writer;
         // LOG(INFO) << "current scan saved to /PCD/" << file_name;
         LOG(INFO) << "current scan saved to " << all_points_dir;

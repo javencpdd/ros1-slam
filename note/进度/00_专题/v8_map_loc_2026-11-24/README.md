@@ -117,3 +117,53 @@ P3 记 **INVALID**，不擅自用 faster_lio 里程计冒充地图重定位。
 | P3 定位 | **INVALID** | hdl 仿真验证已被 M2-R2C 裁决终止 |
 | P4 导航闭环 | **NOT RUN** | 依赖 P3 |
 
+---
+
+## 11. 第三轮：构建与参数真正打通（P2 复跑）
+
+### 11.1 三个真因，逐个击破
+
+| # | 现象 | 根因 | 证据 |
+| --- | --- | --- | --- |
+| 1 | 改了源码但二进制不含参数 | `run_mapping_online` 是**薄可执行**，字面量在 `libfaster_lio.so`；且主工作区 `catkin_make` 缺 `/opt/ros/noetic/include` | `grep -ac pcd_save/path libfaster_lio.so` 由 0→1；补 `-DCMAKE_CXX_FLAGS=-I/opt/ros/noetic/include -I.../devel/include` 后 rc=0 |
+| 2 | 设了 `pcd_save/path` 但仍写死路径 | 该参数是**私有**参数（`~pcd_save/...`），需 `rosparam set /faster_lio_online/pcd_save/path`，且**必须在节点 init 之前**设 | 先设后起：`pre_set=/tmp/v8map/out.pcd` |
+| 3 | 退出时仍写死路径 | 只改了「中途落盘」分支；`LaserMapping::Finish()` 里还有一处硬编码 | 本次补上，重建后生效 |
+
+### 11.2 结果：**路径生效、样张零污染**
+
+| 项 | 读数 |
+| --- | --- |
+| PCD 输出 | **`/tmp/v8map/out.pcd`，7.0 MB / 226,592 点** |
+| 样张 `lite3.pcd` | sha256 `047c7257…` **前后一致（未改动）** |
+| support_map | 19 surfaces（raw 749 / consolidated 403），res 0.1，origin (1.5, −4.4) |
+| 覆盖 | **3.90 m × 7.10 m** |
+
+### 11.3 P2 结论：仍 **FAIL**（阻塞项已消除，覆盖不足）
+
+- 构建、参数、样张保护**三项都已修好**（可复现：`map_run9.sh`）；
+- 但覆盖只有 3.9×7.1 m，远小于可导航需求（对照 `nist_sensor_v2.json` 15×18 m）⇒ 地图**不可用于导航验收**；
+- 轨迹误差本轮未做全程统计（上一轮终点比对 0.020 m 仅单点）。
+
+## 12. P3 定位：复现尝试 **INVALID（未取得定位结果；历史裁决保留）**
+
+| 步 | 结果 |
+| --- | --- |
+| 起 hdl 冒烟（`hdl_m1_tracking_smoke.launch`，底图用本轮 PCD） | 节点在跑（3 节点 / 2 进程），**40 s 内未出现 SIGSEGV** |
+| 输出 | `/hdl_odom`、`/aligned_points`、`/status` 话题**存在但无消息** ⇒ 未收敛/未初始化 |
+| 历史裁决 | `note/02_问题与坑.md`（M2-R2C）仍有效：hdl 仿真验证终止（~2 sim-s 内 SIGSEGV exit -11） |
+
+⇒ 本轮**没有**推翻裁决，也**没有**用 LIO 里程计顶替地图重定位。P3 记 **INVALID**（本次未复现崩溃，但也未取得定位输出）。
+
+## 13. P4 导航闭环（算法位姿替代真值）：**NOT RUN**
+
+依赖 P3。
+
+## 14. 四阶段结论（本轮）
+
+| 阶段 | 结论 | 关键读数 |
+| --- | --- | --- |
+| P1 传感器 | **PASS** | 点云 11.45 Hz / IMU 200 Hz / TF 断言通过 |
+| P2 建图 | **FAIL** | 226,592 点、19 面、覆盖 3.9×7.1 m；构建与参数已修好、样张未污染 |
+| P3 定位 | **INVALID** | hdl 49 s 内未崩溃但无定位输出；历史裁决保留 |
+| P4 导航闭环 | **NOT RUN** | 依赖 P3 |
+
