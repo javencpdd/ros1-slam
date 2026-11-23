@@ -68,6 +68,8 @@ def main():
     ap.add_argument('--goal-y', type=float, required=True)
     ap.add_argument('--duration', type=float, default=60.0)
     ap.add_argument('--tol', type=float, default=0.50)
+    ap.add_argument('--arrive-tol', type=float, default=0.15,
+                    help='真实到达容差（用 /sim/odom_gt 判，不是估计位姿）')
     ap.add_argument('--out', default='')
     args = ap.parse_args()
 
@@ -108,6 +110,9 @@ def main():
             result['gt_dist_to_goal_m'] = round(
                 math.hypot(pr.gt[0] - args.goal_x, pr.gt[1] - args.goal_y), 4)
             checks['est_gt_travel_agree'] = abs(result['est_travel_m'] - result['gt_travel_m']) <= 0.5
+            # ★真实到达用真值判★：估计位姿说"到了"不算，必须 gt 到 goal 也在容差内。
+            # BT 的 reached 用的是估计位姿，两者可能不一致（定位误差大时尤其）。
+            checks['gt_arrived'] = result['gt_dist_to_goal_m'] <= args.arrive_tol
         else:
             result['gt_travel_m'] = None
             checks['est_gt_travel_agree'] = False
