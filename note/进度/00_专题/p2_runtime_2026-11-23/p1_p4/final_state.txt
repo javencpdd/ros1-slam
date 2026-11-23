@@ -1,0 +1,29 @@
+=== 结束态 ===
+data: "{\"tree\":\"NavigateWithPlanner\",\"root\":\"RUNNING\",\"event\":\"localization_ok\"\
+  ,\"queue_depth\":0,\"goal_seq\":4,\"current_seq\":4,\"outcome\":\"failed\",\"outcome_seq\"\
+  :4,\"path_state\":\"idle\",\"path_points\":0,\"planner_mode\":\"pose\",\"cancel_requested\"\
+  :false,\"cancel_scope\":\"all\",\"cancel_ack\":\"cancelled\",\"cancel_origin\":\"\
+  operator\",\"external_cancel_seq\":0,\"wire_foreign_seen\":0,\"backend_cancel_seen\"\
+  :0,\"stray_ack_seen\":0,\"stale_queue_dropped\":0,\"leg_active\":false,\"pending_dropped\"\
+  :0,\"attempts\":0,\"recovery_mode\":\"skip\",\"goal_index\":4,\"goals_total\":0,\"\
+  localization_ok\":true,\"localization_check\":true,\"arrival_signal\":false,\"nodes\"\
+  :[{\"name\":\"mission_or_cancel_or_recovery\",\"status\":\"RUNNING\"},{\"name\"\
+  :\"mission\",\"status\":\"RUNNING\"},{\"name\":\"not_cancelled\",\"status\":\"SUCCESS\"\
+  },{\"name\":\"wait_goal\",\"status\":\"RUNNING\"},{\"name\":\"check_localization\"\
+  ,\"status\":\"IDLE\"},{\"name\":\"request_path\",\"status\":\"IDLE\"},{\"name\"\
+  :\"wait_path\",\"status\":\"IDLE\"},{\"name\":\"follow_path\",\"status\":\"IDLE\"\
+  },{\"name\":\"wait_arrival\",\"status\":\"IDLE\"},{\"name\":\"dwell_at_goal\",\"\
+  status\":\"IDLE\"},{\"name\":\"stop_after_success\",\"status\":\"IDLE\"},{\"name\"\
+  :\"cancel\",\"status\":\"IDLE\"},{\"name\":\"cancelled\",\"status\":\"IDLE\"},{\"\
+  name\":\"cancel_current\",\"status\":\"IDLE\"},{\"name\":\"recovery_on_failure\"\
+  ,\"status\":\"IDLE\"}]}"
+---
+=== cmd 零速 ===
+linear: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+=== mux ===
+data: "{\"reason\": \"track\", \"velocity\": [0.0, 0.0, 0.0, 0.0], \"input_frame\": \"map\"\
+  , \"age_s\": 0.017392266003298573, \"hold\": false}"
+---

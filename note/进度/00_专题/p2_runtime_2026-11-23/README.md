@@ -474,3 +474,82 @@ FAR 图显式写了 `carrier.pose → global.start` 的边（`graph_3d_lite3_far
 | 运动级 | **部分 PASS**：非零命令已出；位姿未推进 ⇒ 不能记运动 PASS |
 | 导航级 | **NOT RUN** |
 
+---
+
+## 15. 运动级打通与 P4 全项（第七轮）
+
+### 15.1 新根因：渲染器把 mux 的输出当成它的输入
+
+`cmd3d_mux` 的端口 `cmd`：**输入**侧读 `~cmd_topic`、**输出**侧读 `~output_topic`。渲染器统一按
+`<port>_topic` 推导，于是 `mux3d.cmd → carrier.cmd` 这条边给载体生成了
+
+```
+<remap from="/cmd_vel" to="/v8/local/cmd_vel_3d"/>
+```
+
+载体声明的是 `Twist`、而 `/v8/local/cmd_vel_3d` 是 `TwistStamped` ⇒ **消息被静默丢弃**，速度恒为 0。
+这正是上一轮"命令非零但车不动"的原因。
+
+**修复**：`render.py` 新增 `PORT_PARAM_OVERRIDES`（端口×方向 → 真实参数名），remap 推导按两端**各自方向**取参数：
+
+| 组件 | 端口 | 方向 | 参数 |
+| --- | --- | --- | --- |
+| `v8.fw.cmd3d_mux` | `cmd` | outputs | `output_topic` |
+| `v8.fw.local_native_raw` | `cmd` | outputs | `command_topic` |
+| `v8.fw.local_native_raw` | `cmd_twist` | outputs | `twist_topic` |
+
+修后载体 remap 变恒等 `/cmd_vel → /cmd_vel`。回归：`test_graph_wiring.py::test_mux_output_not_confused_with_its_input`
+（断言载体 remap 指向 mux 输出、且不含 mux 输入话题）。
+
+### 15.2 P4-A 正常导航：**PASS**
+
+| 验收项 | 读数 |
+| --- | --- |
+| 起点 / 目标 | (0.000, −3.060) → (1.200, −3.060)，frame `map` |
+| 路径 | 6 点，首点 (0.150, −3.150) |
+| **非零速度** | **96 帧**，`vx = 0.597 m/s`（`t=2.85 → 10.62`） |
+| **位姿变化** | (0.000, −3.060) → **(0.934, −3.033)** |
+| **到达** | 判据 0.35 m：实测偏差 **0.27 m** ⇒ 到达成立，用时约 **8 s** |
+| 结束零速 | 到达后 `/cmd_vel` 采样为 0；后续目标期间 mux 仍报 `track` 0 |
+
+> 诚实说明：**BT 对该到达目标的最终成功状态未捕获**（后一次 `goal_seq=4` 因断感知而 `outcome=failed`，
+> 覆盖了状态快照）。到达是以位姿判据确认的，不是以 BT 状态确认的。
+
+### 15.3 P4-B 断感知：**PASS**
+
+`rosnode kill /v8/3d/perception/perception` 后 3 s 再发新目标：
+
+- `/cmd_vel` 全部为 **0**（未执行新目标），位姿停在 (1.700, −3.060) 不再推进；
+- mux 报 `{"reason":"track","velocity":[0,0,0,0]}` —— 是 local 侧 fail-closed 拒绝下发，**未改任何安全开关**。
+
+### 15.4 P4-C 取消：**PASS**
+
+运动中发 `7:all:p4-C`：**60 ms** 内收到 `7:cancelled`，之后 `/cmd_vel` 全 0；BT 状态里
+`cancel_ack: cancelled`、`cancel_origin: operator`。
+
+### 15.5 P4-D mux 行为：**部分 PASS（只记实现具备的）**
+
+| 项 | 结果 | 读数 |
+| --- | --- | --- |
+| hold 归零 | ✅ | `{"reason":"hold","velocity":[0,0,0,0],"hold":true}` |
+| 输入超时归零 | ✅ | `{"reason":"E_CMD3D_STALE","velocity":[0,0,0,0]}`（早前观测） |
+| 单写者 | ✅ | plan `command_owner=mux3d`；`/cmd_vel` 仅 mux 发布 |
+| frame 校验 | **NOT RUN** | 未构造非 map 帧输入 |
+| 非法值拒绝 | **NOT RUN** | 未构造 NaN/长度非法输入 |
+| speed_cap / 多源优先级 | **不存在** | 实现里没有，不记 PASS |
+
+### 15.6 分级
+
+| 等级 | 结论 |
+| --- | --- |
+| 启动级 | **PASS 8/8** |
+| 链路级 | **PASS** |
+| 运动级 | **PASS**（非零速度 + 位姿推进 + 到达 0.27 m + 结束零速） |
+| 导航级 | **PASS（位姿判据）**；BT 终态未捕获，记一条待补 |
+
+### 15.7 未解决 / 待补
+
+1. BT 对到达目标的终态证据（下轮用「到达即抓 status」的取样点补）；
+2. mux 的 frame 校验与非法值拒绝未构造用例；
+3. 障碍场景（ROI 内有障碍时的检出与绕行）未跑。
+

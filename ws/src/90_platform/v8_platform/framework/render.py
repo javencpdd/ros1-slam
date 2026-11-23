@@ -37,6 +37,20 @@ def _pkg_rel(value):
     return value
 
 
+# 端口名 ≠ ROS 参数名的已知例外（端口, 方向）→ 参数键。渲染 remap 必须用**同一侧**的真实参数，
+# 否则会像 2026-11-23 那样把 mux 的**输出**当成它的输入：v8.fw.cmd3d_mux 的端口 `cmd` 在输入侧
+# 读 `cmd_topic`、在输出侧读 `output_topic`，混用会给载体生成 /cmd_vel→/v8/local/cmd_vel_3d 的错误 remap。
+PORT_PARAM_OVERRIDES = {
+    ('v8.fw.cmd3d_mux', 'cmd', 'outputs'): 'output_topic',
+    ('v8.fw.local_native_raw', 'cmd', 'outputs'): 'command_topic',
+    ('v8.fw.local_native_raw', 'cmd_twist', 'outputs'): 'twist_topic',
+}
+
+
+def _param_key(component, port, direction):
+    return PORT_PARAM_OVERRIDES.get((component, port, direction), port + '_topic')
+
+
 def _name(instance_id):
     return _NAME.sub('_', instance_id)
 
@@ -186,8 +200,12 @@ def render_launch(graph, catalog, report):
             to_port = edge['to'].rsplit('.', 1)[-1]
             from_port = edge['from'].rsplit('.', 1)[-1]
             producer = executable_instances[edge['from_instance']]['params']
-            target_topic = rec['params'].get(to_port + '_topic') or edge['to_port'].get('topic')
-            source_topic = producer.get(from_port + '_topic') or edge['from_port'].get('topic')
+            prod_comp = catalog['components'][executable_instances[edge['from_instance']]['component']]
+            cons_comp = catalog['components'][rec['component']]
+            target_topic = (rec['params'].get(_param_key(cons_comp['id'], to_port, 'inputs'))
+                            or edge['to_port'].get('topic'))
+            source_topic = (producer.get(_param_key(prod_comp['id'], from_port, 'outputs'))
+                            or edge['from_port'].get('topic'))
             if source_topic and target_topic:
                 remaps.append((target_topic, source_topic))  # 同名也保留一条：旧契约按「每边一条」断言
         config = report.get('configs', {}).get(iid)

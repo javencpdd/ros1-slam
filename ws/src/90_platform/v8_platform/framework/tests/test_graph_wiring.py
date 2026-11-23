@@ -244,6 +244,22 @@ class GraphWiringTest(unittest.TestCase):
                     self.assertEqual(defaults['cmd'], params['command_topic'],
                                      '%s: local 的 cmd 走了 command_topic，同上' % path.name)
 
+    def test_mux_output_not_confused_with_its_input(self):
+        """cmd3d_mux 的端口 `cmd` 在输入侧读 cmd_topic、输出侧读 output_topic。
+
+        2026-11-23 实测：混用会给载体生成 `/cmd_vel → /v8/local/cmd_vel_3d` 的错误 remap，
+        载体订阅了 TwistStamped 却声明 Twist ⇒ 消息被静默丢弃、车不动。
+        """
+        graph = load(V8P / 'framework/fixtures/graphs/graph_3d_gazebo_bt.yaml')
+        nodes, includes = render_graph(graph)
+        carrier = nodes['carrier']
+        self.assertIn(('/cmd_vel', '/cmd_vel'), carrier['remaps'],
+                      '载体的 cmd 应 remap 到 mux 输出 /cmd_vel')
+        self.assertNotIn('/v8/local/cmd_vel_3d',
+                         [t for _, t in carrier['remaps']],
+                         '载体被错误 remap 到 mux 的输入话题')
+        self.assertEqual([], problems(graph, nodes, includes))
+
 
 if __name__ == '__main__':
     unittest.main()
