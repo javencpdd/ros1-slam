@@ -45,7 +45,7 @@ instances:
       lookahead_m: 1.5
       cloud_topic: /rslidar_points
       start_topic: /v8/local/pose
-      goal_topic: /v8/global/goal
+      goal_topic: /v8/3d/global/goal   # ★必须与 bt.planner_goal_topic 同名★：include 型实例不生成 remap（render.py 跳过），话题不同即断线
       path_topic: /global_path
       gait_path_topic: /v8/gait_guard/path
       status_topic: /global_path/status
