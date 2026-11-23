@@ -1,0 +1,52 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T17:18:11.983056+08:00",
+  "window_id": "R1127-upstairs-r11",
+  "case": "upstairs",
+  "source_commit": "f82ac688f04151a90245d3262418037de6ea5f0d",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    3.220035626049347,
+    1.199999999999831,
+    0.2113469421569058
+  ],
+  "goal_distance_m": 9.120583853044128,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 47,
+    "E_LOCAL_OBSTACLES_STALE": 49,
+    "E_LOCAL_NO_TRAJECTORY": 105,
+    "E_LOCAL_WORLD_UPDATED": 1,
+    "E_LOCAL_CLOCK": 595,
+    "track": 118,
+    "segment_complete": 138,
+    "hold": 2,
+    "E_LOCAL_SUPPORT": 7559
+  },
+  "max_sample_gap_s": {
+    "pose": 0.5237050040159374,
+    "command": 0.5452826289983932,
+    "gazebo_model": 0.5377937500015832
+  },
+  "clock_ordering": {
+    "initial_ros": 178.881,
+    "source_stamp": 178.882,
+    "received_wall": 177468.393502584,
+    "waited_wall_s": 0.0005404039984568954,
+    "outcome": "accepted",
+    "wait_count": 141,
+    "accepted_count": 133,
+    "timeout_count": 8
+  },
+  "validation_error": "unexpected app subprocess return code: 6",
+  "app_error": null,
+  "reason": "Repeated scheduler timeouts under the original 10ms deadline still revoked active trajectories; no arrival.",
+  "trace_sha256": "4ae47b7389be3b903a06fad52adb1b1dfea85dbd61c2bc31e7f2a069858346da",
+  "app_sha256": "5417f106f7e5d4bcfc35258699810b4cc3318aa2bbe075f70d134d002870bd3e",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r11",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

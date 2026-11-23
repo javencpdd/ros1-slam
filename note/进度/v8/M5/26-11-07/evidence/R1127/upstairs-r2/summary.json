@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-11-07T13:49:50.217746+08:00",
+  "window_id": "R1127-upstairs-r2",
+  "state": "NOT_RUN",
+  "classification": "INVALID preparation; no preflight or engine invocation",
+  "driver_rc": 1,
+  "missing_in_container": [
+    "README.md"
+  ],
+  "reason": "root host-only README included in target hash list; runtime source not mismatched",
+  "after": {
+    "processes": [],
+    "ps_all": [
+      "      1       0 root     docker-init     /sbin/docker-init -- /usr/local/bin/entrypoint.sh bash -lc sleep infinity",
+      "      7       1 root     sleep           sleep infinity",
+      "     46       7 root     Xvfb            Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp",
+      "  14363       0 root     python3         /usr/bin/python3 -c import json,os,socket,subprocess lines=subprocess.check_output(['ps','-eo','pid,ppid,user,comm,args','--no-headers']).decode().splitlines() interesting=[] for line in lines:  p=line.split(None,4)  if len(p)<5 or int(p[0])==os.getpid():continue  cmd,args=p[3],p[4]  if cmd in ('rosmaster','roscore','roslaunch','rosout','gzserver','gzclient','rviz') or '/v8_platform/' in args or '/v8_simulation/' in args or 'two_floor_nav.py' in args or any('/'+x+' ' in args for x in ('rosmaster','roscore','roslaunch','rosout')):interesting.append(line) ports={} for port in (11657,11657+1):  with socket.socket() as s:   s.settimeout(.2);ports[str(port)]=s.connect_ex(('127.0.0.1',port))==0 print(json.dumps({'processes':interesting,'ps_all':lines,'ports_listening':ports})) ",
+      "  14369   14363 root     ps              ps -eo pid,ppid,user,comm,args --no-headers"
+    ],
+    "ports_listening": {
+      "11657": false,
+      "11658": false
+    }
+  }
+}

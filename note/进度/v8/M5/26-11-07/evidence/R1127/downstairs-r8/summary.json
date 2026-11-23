@@ -1,0 +1,52 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T17:18:12.541193+08:00",
+  "window_id": "R1127-downstairs-r8",
+  "case": "downstairs",
+  "source_commit": "f82ac688f04151a90245d3262418037de6ea5f0d",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -3.1999990459845438,
+    1.2000000000000002,
+    1.44
+  ],
+  "goal_distance_m": 8.300601433832632,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_OBSTACLES_STALE": 44,
+    "E_LOCAL_NOT_READY": 24,
+    "E_LOCAL_NO_TRAJECTORY": 21,
+    "track": 250,
+    "E_LOCAL_WORLD_UPDATED": 1,
+    "E_LOCAL_CLOCK": 163,
+    "segment_complete": 169,
+    "hold": 6,
+    "E_LOCAL_COLLISION": 7898
+  },
+  "max_sample_gap_s": {
+    "pose": 0.2997396210266743,
+    "command": 0.3272382029972505,
+    "gazebo_model": 0.31170180698973127
+  },
+  "clock_ordering": {
+    "initial_ros": 141.849,
+    "source_stamp": 141.85,
+    "received_wall": 177674.872651009,
+    "waited_wall_s": 0.0007908209809102118,
+    "outcome": "accepted",
+    "wait_count": 132,
+    "accepted_count": 127,
+    "timeout_count": 5
+  },
+  "validation_error": "unexpected app subprocess return code: 6",
+  "app_error": null,
+  "reason": "Execution stopped with E_LOCAL_COLLISION during the descent; no arrival.",
+  "trace_sha256": "26396005d539b3b4104cc90329169b52e9ace4234ae3e076062e8b227bc37f82",
+  "app_sha256": "5423c87088a375fd4045ba75374b3d77d93f6aa8b3c2a3378f37dd6de6fd960b",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/downstairs-r8",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

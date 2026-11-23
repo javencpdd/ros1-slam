@@ -1,0 +1,72 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-08T00:19:35.647529+08:00",
+  "window_id": "R1127-upper_detour-r10",
+  "case": "upper_detour",
+  "source_commit": "ae6ef3223b2defbb3c7ba9ea7ab6537edee43e32",
+  "working_tree_contact_boundary_patch": false,
+  "preflight_rc": 0,
+  "app_rc": 0,
+  "scenario_ok": true,
+  "motion_verdict": "PASS",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -6.870629325460601,
+    -2.7470910444383114,
+    1.6
+  ],
+  "goal_distance_m": 0.1557041592696411,
+  "global_path_points": 15,
+  "status_reasons": {
+    "E_LOCAL_OBSTACLES_STALE": 52,
+    "E_LOCAL_NOT_READY": 11,
+    "E_LOCAL_NO_TRAJECTORY": 12,
+    "track": 187,
+    "E_LOCAL_CLOCK": 11,
+    "segment_complete": 46
+  },
+  "max_sample_gap_s": {
+    "pose": 0.03125649600406177,
+    "command": 0.043681351002305746,
+    "gazebo_model": 0.04488463499001227
+  },
+  "clock_ordering": {
+    "initial_ros": 12.849,
+    "source_stamp": 12.854,
+    "received_wall": 203104.028758887,
+    "waited_wall_s": 0.004435650014784187,
+    "outcome": "accepted",
+    "wait_count": 98,
+    "accepted_count": 97,
+    "timeout_count": 1
+  },
+  "contact_sources": {},
+  "validation": {
+    "command_integral_max_xy_error_m": 0.014042229719413305,
+    "command_integral_max_z_error_m": 0.0,
+    "command_samples": 543,
+    "four_foot_physics": "NOT_TESTED",
+    "gazebo_samples": 578,
+    "global_corridor_following": "NOT_ESTABLISHED: current adapter forwards final goal only",
+    "global_paths": 1,
+    "local_plans": 8,
+    "max_command_gap_s": 0.043681351002305746,
+    "max_model_gap_s": 0.04488463499001227,
+    "max_pose_gap_s": 0.03125649600406177,
+    "ok": true,
+    "paired": 547,
+    "pose_samples": 547,
+    "scope": "declared-map Gazebo kinematic planning; no physical gait",
+    "visited_height_levels": [
+      10
+    ]
+  },
+  "validation_error": null,
+  "reason": "Final-source regression passed.",
+  "trace_sha256": "747318d660473955763601306bd3cc23861424dd66db0c24c6d1e2bc2da8e210",
+  "app_sha256": "88aed0f6e2b92f355450809b7a619b459c03185fd3e29d494f3863f078235630",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upper_detour-r10",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim",
+  "contact_boundary_patch_commit": "6b51b9376c54e2ef31c4f968b80314b53bd58017"
+}

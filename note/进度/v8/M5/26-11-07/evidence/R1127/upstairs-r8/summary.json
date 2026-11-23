@@ -1,0 +1,44 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T16:29:46+08:00",
+  "window_id": "R1127-upstairs-r8",
+  "case": "upstairs",
+  "source_commit": "0b1234f702cea60fe3f042ee674ab57582349e97",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    3.997031594461854,
+    1.17678806559194,
+    0.0
+  ],
+  "goal_distance_m": 9.897329477631503,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 56,
+    "E_LOCAL_OBSTACLES_STALE": 48,
+    "E_LOCAL_NO_TRAJECTORY": 106,
+    "E_LOCAL_WORLD_UPDATED": 2,
+    "track": 57,
+    "segment_complete": 0,
+    "E_LOCAL_CLOCK": 6812,
+    "E_LOCAL_SUPPORT": 1521
+  },
+  "max_sample_gap_s": {
+    "pose": 0.46436482202261686,
+    "command": 0.48780987100326456,
+    "model": 0.4700130359851755
+  },
+  "clock_ordering": {
+    "wait_count": 123,
+    "accepted_count": 26,
+    "timeout_count": 97
+  },
+  "reason": "Keeping the event set removed the clear/wait race but caused a bounded busy loop while holding the pose state lock. In the real ROS runtime this starved clock progress and produced 97 deadline timeouts. The candidate is rejected; a generation-based condition wait must preserve events across the eligibility check without busy spinning.",
+  "trace_sha256": "368297281c531e793627af79d0326c4d3b37e73666eba267eaa0fed7d145ea9d",
+  "app_sha256": "0fbf99ad588da0f9feede95b1dee303eebbc8f2dd16b6475d3ddb8f04f219751",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r8",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

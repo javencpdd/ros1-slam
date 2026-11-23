@@ -1,0 +1,88 @@
+{
+  "schema": "two_floor_evidence_summary/v2",
+  "updated_at": "2026-11-08T16:38:11.949810+08:00",
+  "window_id": "R1127-upper_detour-r14",
+  "case": "upper_detour",
+  "source_commit": "473ab79eac931cce1f8eccf509b21ee0738f0e2f",
+  "source_binding_verdict": "PASS",
+  "source_file_count": 958,
+  "contact_egress_sha256": "e4d7bd8f021ac581d499c51cfc6f06d183b6dd848bd69216e4d84b24ebebde87",
+  "preflight_rc": 0,
+  "app_rc": 0,
+  "driver_rc": 0,
+  "scenario_ok": true,
+  "motion_verdict": "PASS",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -6.866370310457668,
+    -2.731852444772759,
+    1.6
+  ],
+  "goal_distance_m": 0.17147756805953268,
+  "global_path_points": 15,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 14,
+    "E_LOCAL_OBSTACLES_STALE": 49,
+    "E_LOCAL_NO_TRAJECTORY": 9,
+    "track": 183,
+    "segment_complete": 50
+  },
+  "max_sample_gap_s": {
+    "pose": 0.06100641199736856,
+    "command": 0.06127346301218495,
+    "gazebo_model": 0.0594094599946402
+  },
+  "clock_ordering": {
+    "initial_ros": 12.253,
+    "source_stamp": 12.254,
+    "received_wall": 262092.691197396,
+    "waited_wall_s": 0.000418490992160514,
+    "outcome": "accepted",
+    "wait_count": 6,
+    "accepted_count": 6,
+    "timeout_count": 0
+  },
+  "validation": {
+    "ok": true,
+    "scope": "declared-map Gazebo kinematic planning; no physical gait",
+    "pose_samples": 552,
+    "gazebo_samples": 577,
+    "command_samples": 547,
+    "paired": 552,
+    "global_paths": 1,
+    "local_plans": 7,
+    "command_integral_max_xy_error_m": 0.028557852596674607,
+    "command_integral_max_z_error_m": 0.0,
+    "max_pose_gap_s": 0.06100641199736856,
+    "max_command_gap_s": 0.06127346301218495,
+    "max_model_gap_s": 0.0594094599946402,
+    "visited_height_levels": [
+      10
+    ],
+    "four_foot_physics": "NOT_TESTED",
+    "global_corridor_following": "NOT_ESTABLISHED: current adapter forwards final goal only"
+  },
+  "validation_error": null,
+  "capture_validation": {
+    "ok": true,
+    "scope": "interactive capture integrity only; no task arrival acceptance",
+    "pose_samples": 552,
+    "gazebo_samples": 577,
+    "paired": 552,
+    "command_integral_max_xy_error_m": 0.028557852596674607,
+    "command_integral_max_z_error_m": 0.0
+  },
+  "capture_validation_error": null,
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upper_detour-r14",
+  "raw_sha256": {
+    "invocation.json": "bed9a178edaac164b71a015d42769ad0890a33f5a141587f99308457d507266d",
+    "driver-result.json": "b2fe9b32353e372614440bfe2f452068d6a4876f3e83871f9a0ed7956c34f74a",
+    "container-inputs-before.json": "0fdeece6d43ece563aa2d85dadf4b1b46f4233c3054914c9d29fbf6a2de4eeef",
+    "container-inputs-after.json": "0fdeece6d43ece563aa2d85dadf4b1b46f4233c3054914c9d29fbf6a2de4eeef",
+    "captured/result.json": "62c768a404d66354ce5a1ec14933957b9d41a7aed332253554737f3aceb94562",
+    "captured/result.app.json": "f99df8c52486065ebaa4a67be39d6420010397acd125a69bf8e594a1ba5398a0",
+    "captured/result.trace.json": "f9ecb4913c6618fee3852ad0f0e96af43f8c6895603d18c0cde7ef282fef0732"
+  },
+  "scope": "known-map Gazebo kinematic visual-box planning; no physical gait or full corridor claim"
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "two_floor_evidence_summary/v1",
+  "updated_at": "2026-11-07T14:03:28.863413+08:00",
+  "window_id": "R1127-upstairs-r3",
+  "case": "upstairs",
+  "source_commit": "6aae523fa8af0844e5983e813500dd550b984685",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "goal": [
+    -5.9,
+    1.1,
+    1.6
+  ],
+  "final_pose": [
+    3.9999990071222777,
+    1.1999999999988245,
+    0.0
+  ],
+  "goal_distance_m": 10.028957091393993,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 51,
+    "E_LOCAL_LOCALIZATION": 1,
+    "E_LOCAL_OBSTACLES_STALE": 48,
+    "E_LOCAL_NO_TRAJECTORY": 98,
+    "track": 105,
+    "segment_complete": 80,
+    "E_LOCAL_SUPPORT": 8365
+  },
+  "max_sample_gap_s": {
+    "pose": 0.3438693640055135,
+    "command": 0.2750324119988363,
+    "model": 0.35639960801927373
+  },
+  "clock_ordering": {
+    "unique_waits": 25,
+    "all_accepted": true,
+    "timeouts": 0
+  },
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r3",
+  "independent_index": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/l1-runtime-r2/upstairs-r3-index.json",
+  "reason": "fixed clock ordering accepted all waits. Segment completion near x=4 boundary allowed old command tail to cross out of ground support before replanning. Original 0.25s coverage exceeded in long idle tail; preserve FAIL and INVALID separately.",
+  "scope": "known-map kinematic visual-box planning; no contact or full global corridor claim"
+}

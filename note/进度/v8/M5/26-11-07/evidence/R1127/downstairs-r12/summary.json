@@ -1,0 +1,70 @@
+{
+  "schema": "two_floor_evidence_summary/v2",
+  "updated_at": "2026-11-08T03:56:11.689237+08:00",
+  "window_id": "R1127-downstairs-r12",
+  "case": "downstairs",
+  "source_commit": "f9a9c0aecb20d08276da3ee9ecc7e58e4c7d9be0",
+  "source_binding_verdict": "PASS",
+  "source_file_count": 958,
+  "contact_egress_sha256": "308e1c2d9396f2a3b4382b328d55987f5b31c38c5fa9cfad1e4cf0f2c01954dd",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "driver_rc": 6,
+  "scenario_ok": false,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "PASS",
+  "cleanup_verdict": "PASS",
+  "final_pose": [
+    -4.001649682287918,
+    1.2,
+    1.6
+  ],
+  "goal_distance_m": 9.102199016671287,
+  "global_path_points": 57,
+  "status_reasons": {
+    "E_LOCAL_OBSTACLES_STALE": 51,
+    "E_LOCAL_NOT_READY": 24,
+    "E_LOCAL_NO_TRAJECTORY": 20,
+    "track": 129,
+    "segment_complete": 93,
+    "E_LOCAL_POSE_STALE": 5
+  },
+  "max_sample_gap_s": {
+    "pose": 0.06868765599210747,
+    "command": 0.06678298200131394,
+    "gazebo_model": 0.08340384101029485
+  },
+  "clock_ordering": {
+    "initial_ros": 6.696,
+    "source_stamp": 6.697,
+    "received_wall": 216327.12196739,
+    "waited_wall_s": 0.002675934985745698,
+    "outcome": "accepted",
+    "wait_count": 1,
+    "accepted_count": 1,
+    "timeout_count": 0
+  },
+  "validation": null,
+  "validation_error": "app did not report successful arrival",
+  "capture_validation": {
+    "ok": true,
+    "scope": "interactive capture integrity only; no task arrival acceptance",
+    "pose_samples": 466,
+    "gazebo_samples": 464,
+    "paired": 466,
+    "command_integral_max_xy_error_m": 0.04120383062121719,
+    "command_integral_max_z_error_m": 0.0
+  },
+  "capture_validation_error": null,
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/downstairs-r12",
+  "raw_sha256": {
+    "invocation.json": "aa1beb6716609be339de1c232d724fefd4ac6b7f9968062eb2cb0eaa0540aa31",
+    "driver-result.json": "a59355faf879ce96b5923b0c7cbb6f1da3e4987c670cf7889637aeb49ed38fde",
+    "container-inputs-before.json": "5b01448d798f0f80a85878861d09396a99cdddb319a2d694846d5993d4ad8414",
+    "container-inputs-after.json": "5b01448d798f0f80a85878861d09396a99cdddb319a2d694846d5993d4ad8414",
+    "captured/result.json": "36f6d3d82c7d6590ba742fcb039c3f296eaf3a0db2360972485b1051bb0b232e",
+    "captured/result.app.json": "6eae0e307b1e91be58aba8fb7d669d1ed47b02fad043cafb9d94cff3732d1318",
+    "captured/result.trace.json": "79af19938898e7d282ddc3e75fd9d414a6af3a4a95b6d9f3fd48ea4e4cb0bda3"
+  },
+  "scope": "known-map Gazebo kinematic visual-box planning; no physical gait or full corridor claim"
+}

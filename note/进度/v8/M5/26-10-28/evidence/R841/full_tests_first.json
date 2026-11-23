@@ -1,0 +1,176 @@
+[
+  {
+    "path": "adapters/test_closed_loop.py",
+    "rc": 0,
+    "wall_s": 0.125,
+    "output": "test_cancel_gives_zero_twist (__main__.ClosedLoopTests) ... ok\ntest_never_exceeds_speed_limits (__main__.ClosedLoopTests) ... ok\ntest_reaches_all_waypoints_in_order (__main__.ClosedLoopTests) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.002s\n\nOK\n"
+  },
+  {
+    "path": "adapters/test_declarations.py",
+    "rc": 0,
+    "wall_s": 0.293,
+    "output": "test_cli (__main__.DeclarationTests) ... ok\ntest_losses_grounded (__main__.DeclarationTests) ... ok\ntest_matrix_all_pass_and_distinct (__main__.DeclarationTests) ... ok\ntest_undeclared_rejected (__main__.DeclarationTests) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.152s\n\nOK\n"
+  },
+  {
+    "path": "adapters/test_follower.py",
+    "rc": 0,
+    "wall_s": 0.122,
+    "output": "test_arrived (__main__.FollowerTests) ... ok\ntest_cancel_is_zero (__main__.FollowerTests) ... ok\ntest_forward (__main__.FollowerTests) ... ok\ntest_turn_before_drive (__main__.FollowerTests) ... ok\ntest_wrap (__main__.FollowerTests) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.000s\n\nOK\n"
+  },
+  {
+    "path": "adapters/test_io_match.py",
+    "rc": 0,
+    "wall_s": 0.317,
+    "output": "test_cli (__main__.IoMatchTests) ... ok\ntest_localization_backend_swap_a6 (__main__.IoMatchTests)\nA6 \u9762\uff1ahdl\u21c4lite3 \u540c\u4efb\u52a1\u63a5\u53e3\u6362\u540e\u7aef\u2014\u2014\u63a5\u7ebf\u7ed3\u6784\u540c\u5f62\u3001\u9501\u6458\u8981\u4ec5\u56e0\u8be5\u7ec4\u4ef6\u800c\u5f02\u3002 ... ok\ntest_missing_global_planner_negative (__main__.IoMatchTests)\n\u4e03\u4ef6\u5957\uff08\u65e0\u5168\u5c40\u89c4\u5212\u5668\uff09\uff1ddwa \u7684 nav_msgs/Path \u65e0\u6e90\u2014\u2014\u6d88\u606f\u7ea7\u5339\u914d\u7684\u771f\u8d1f\u4f8b\u3002 ... ok\ntest_msg_type_parse (__main__.IoMatchTests) ... ok\ntest_seven_stack_wiring_closed (__main__.IoMatchTests) ... ok\ntest_unknown_id (__main__.IoMatchTests) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.169s\n\nOK\n"
+  },
+  {
+    "path": "adapters/test_localization_state.py",
+    "rc": 0,
+    "wall_s": 0.12,
+    "output": "test_backend_rejection_holds_even_if_old_pose_is_republished (__main__.LocalizationStateTests) ... ok\ntest_invalid_covariance_flag_revokes (__main__.LocalizationStateTests) ... ok\ntest_jump_and_relocalization_invalidate_even_with_fresh_messages (__main__.LocalizationStateTests) ... ok\ntest_stale_or_invalid_sample_never_refreshes_receipt (__main__.LocalizationStateTests) ... ok\ntest_stale_revokes_once_and_old_lease_cannot_revive (__main__.LocalizationStateTests) ... ok\ntest_startup_requires_stable_samples_and_explicit_lease (__main__.LocalizationStateTests) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.001s\n\nOK\n"
+  },
+  {
+    "path": "calibration/flat2d/test_flat2d.py",
+    "rc": 0,
+    "wall_s": 4.023,
+    "output": ".................\n----------------------------------------------------------------------\nRan 17 tests in 3.834s\n\nOK\n"
+  },
+  {
+    "path": "calibration/test_calibration.py",
+    "rc": 0,
+    "wall_s": 0.379,
+    "output": "test_all_scenarios_in_denominator (__main__.CalibrationTests)\nv2 \u89e3\u5c01\u540e\uff1a\u6b63\u5f0f\u5206\u6bcd\uff1d\u5168 14 \u573a\u666f\uff08\u6784\u9020\u5668\u9f50\uff0cR661\uff09\u3002 ... ok\ntest_budget_raise_not_flagged_by_loosening (__main__.CalibrationTests) ... ok\ntest_calibration_set_runs (__main__.CalibrationTests)\n\u5b9a\u6807\u96c6\u4e24\u573a\u666f\u771f\u5b9e\u53ef\u8dd1\uff08\u6b63\u5411\uff0b\u5355\u5411\u6b63\u4f8b\uff09\u2014\u2014\u5c01\u7248\u4e0d\u53ea\u7eb8\u9762\u3002 ... ok\ntest_cancel_time_lower_requires_unfreeze (__main__.CalibrationTests) ... ok\ntest_cli (__main__.CalibrationTests) ... ok\ntest_digest_golden_rejects_value_change (__main__.CalibrationTests) ... ok\ntest_empty_evidence_rejected (__main__.CalibrationTests) ... ok\ntest_freeze_guard_bad_baseline_r758 (__main__.CalibrationTests) ... ok\ntest_freeze_guard_detects_loosening_r758 (__main__.CalibrationTests) ... ok\ntest_freeze_guard_first_freeze_without_baseline_r758 (__main__.CalibrationTests) ... ok\ntest_freeze_guard_same_config_passes_r758 (__main__.CalibrationTests) ... ok\ntest_frozen_valid_and_digest_stable (__main__.CalibrationTests) ... ok\ntest_localization_bare_value_rejected_r787 (__main__.CalibrationTests) ... ok\ntest_localization_frozen_scoped_r787 (__main__.CalibrationTests) ... ok\ntest_localization_raise_requires_unfreeze_r787 (__main__.CalibrationTests) ... ok\ntest_localization_scope_and_sample_guard_r787 (__main__.CalibrationTests) ... ok\ntest_loosened_with_empty_reason_rejected (__main__.CalibrationTests) ... ok\ntest_loosened_with_unfreeze_passes (__main__.CalibrationTests) ... ok\ntest_loosened_without_unfreeze_rejected (__main__.CalibrationTests) ... ok\ntest_missing_evidence_rejected (__main__.CalibrationTests) ... ok\ntest_missing_key_rejected (__main__.CalibrationTests) ... ok\ntest_missing_section_rejected (__main__.CalibrationTests) ... ok\ntest_none_type_and_empty_table_rejected (__main__.CalibrationTests) ... ok\ntest_p95_global_raise_blocked_without_unfreeze (__main__.CalibrationTests) ... ok\ntest_p95_global_raise_with_scoped_unfreeze_passes (__main__.CalibrationTests) ... ok\ntest_p95_local_frozen_scoped_r722 (__main__.CalibrationTests) ... ok\ntest_p95_local_scope_and_sample_guard (__main__.CalibrationTests) ... ok\ntest_pending_report_not_green (__main__.CalibrationTests) ... ok\ntest_pending_value_rejected (__main__.CalibrationTests) ... ok\ntest_repetitions_revert_caught (__main__.CalibrationTests)\n\u628a repetitions \u4ece 3 \u6539\u56de 1\uff1agolden digest \u5fc5\u7ea2\u4e14 pending \u590d\u73b0\u3002 ... ok\ntest_resource_cap_raise_requires_unfreeze (__main__.CalibrationTests) ... ok\ntest_resources_and_sampling_frozen_shape (__main__.CalibrationTests) ... ok\ntest_resources_section_required (__main__.CalibrationTests) ... ok\ntest_scoped_field_metadata_required (__main__.CalibrationTests) ... ok\ntest_scoped_fields_frozen_with_scope_sample_evidence (__main__.CalibrationTests) ... ok\ntest_separation_guard (__main__.CalibrationTests) ... ok\ntest_stop_brake_component_scope_and_sample_guard (__main__.CalibrationTests) ... ok\ntest_stop_brake_components_frozen_scoped (__main__.CalibrationTests) ... ok\ntest_stop_chain_osmesa_distance_guard (__main__.CalibrationTests) ... ok\ntest_stop_chain_osmesa_proxies_scoped_r726 (__main__.CalibrationTests) ... ok\ntest_stop_chain_osmesa_scope_guard (__main__.CalibrationTests) ... ok\ntest_stop_component_raise_logged (__main__.CalibrationTests) ... ok\ntest_stop_distance_negative_rejected_r759 (__main__.CalibrationTests) ... ok\ntest_stop_fields_stay_pending_r716 (__main__.CalibrationTests) ... ok\ntest_stop_full_chain_keys_stay_pending_r720 (__main__.CalibrationTests) ... ok\ntest_stop_time_bare_value_stays_pending_r759 (__main__.CalibrationTests) ... ok\ntest_stop_time_with_metadata_leaves_pending_r759 (__main__.CalibrationTests) ... ok\ntest_success_rate_bare_value_stays_pending_r748 (__main__.CalibrationTests) ... ok\ntest_success_rate_lower_requires_unfreeze_r748 (__main__.CalibrationTests) ... ok\ntest_success_rate_metadata_complete_only_other_three_pending_r748 (__main__.CalibrationTests) ... ok\ntest_success_rate_missing_evidence_and_alpha_r752 (__main__.CalibrationTests) ... ok\ntest_success_rate_raise_not_loosening_r752 (__main__.CalibrationTests) ... ok\ntest_success_rate_same_metadata_no_change_r755 (__main__.CalibrationTests) ... ok\ntest_success_rate_sample_and_method_guard_r748 (__main__.CalibrationTests) ... ok\ntest_success_rate_sample_n_down_requires_unfreeze_r755 (__main__.CalibrationTests) ... ok\ntest_success_rate_scope_change_requires_unfreeze_r755 (__main__.CalibrationTests) ... ok\ntest_success_rate_scope_exact_and_type_r752 (__main__.CalibrationTests) ... ok\ntest_success_rate_value_domain_r752 (__main__.CalibrationTests) ... ok\ntest_unknown_scenario_rejected (__main__.CalibrationTests) ... ok\n\n----------------------------------------------------------------------\nRan 59 tests in 0.217s\n\nOK\n"
+  },
+  {
+    "path": "composer/test_composer.py",
+    "rc": 0,
+    "wall_s": 0.648,
+    "output": "test_advice_and_arbiter_distinct (__main__.ComposerTests)\ndwa \u5efa\u8bae\u8bdd\u9898\u4e0e safety \u4ef2\u88c1 /cmd_vel \u5206\u5c42\u2014\u201422 \u53f7\u5dee\u5f02\u8868\u7684\u7ec4\u5408\u5c42\u843d\u70b9\u3002 ... ok\ntest_cli (__main__.ComposerTests) ... ok\ntest_cli_lock_and_reject (__main__.ComposerTests) ... ok\ntest_command_topic_dup (__main__.ComposerTests) ... ok\ntest_compat_report_positive (__main__.ComposerTests) ... ok\ntest_duplicate_role_real (__main__.ComposerTests) ... ok\ntest_empty_selection (__main__.ComposerTests) ... ok\ntest_kinematics_not_applicable_motion_role (__main__.ComposerTests) ... ok\ntest_kinematics_pairing_negative (__main__.ComposerTests)\nholonomic \u89c4\u5212 \u00d7 differential \u63a7\u5236\uff1d\u9519\u914d\uff08\u4e0d\u5728\u5141\u8bb8\u914d\u5bf9\u8868\uff09\u3002 ... ok\ntest_lock_deterministic_and_annotated (__main__.ComposerTests) ... ok\ntest_map_supply_negative (__main__.ComposerTests)\noccupancy\u00d7support \u4f9b\u9700\u9519\u914d\uff1ascan \u6539\u8981 support_map/v1\uff08dims 3\uff09\u540e\u65e0\u751f\u4ea7\u8005\u3002 ... ok\ntest_missing_role (__main__.ComposerTests) ... ok\ntest_positive_real_stack (__main__.ComposerTests) ... ok\ntest_role_cycle_defensive (__main__.ComposerTests) ... ok\ntest_tf_cycle (__main__.ComposerTests) ... ok\ntest_tf_dup_child (__main__.ComposerTests) ... ok\ntest_unknown_id (__main__.ComposerTests) ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 0.517s\n\nOK\n"
+  },
+  {
+    "path": "contracts/test_contracts.py",
+    "rc": 0,
+    "wall_s": 0.358,
+    "output": "test_cases (__main__.ContractTests) ... ok\ntest_cli_rc_and_reason (__main__.ContractTests) ... ok\ntest_one_way_edge_is_legal (__main__.ContractTests) ... ok\ntest_pair_task_and_map (__main__.ContractTests) ... ok\ntest_positive_control_removing_required_fails (__main__.ContractTests) ... ok\ntest_two_kinds_expressible (__main__.ContractTests) ... ok\ntest_two_separate_rings_rejected (__main__.ContractTests) ... ok\ntest_validator_rejects_array_without_items (__main__.ContractTests) ... ok\ntest_validator_rejects_nested_additional_properties (__main__.ContractTests) ... ok\ntest_validator_rejects_unsupported_keyword (__main__.ContractTests) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.224s\n\nOK\n"
+  },
+  {
+    "path": "delivery/test_delivery.py",
+    "rc": 0,
+    "wall_s": 0.745,
+    "output": "test_cli (__main__.DeliveryTests) ... ok\ntest_manifest_covers_modules (__main__.DeliveryTests) ... ok\ntest_scale_curve_bounded_and_growing (__main__.DeliveryTests) ... ok\ntest_scale_curve_deterministic (__main__.DeliveryTests) ... ok\ntest_unplugged_statement_on_file (__main__.DeliveryTests)\n\u672a\u63a5\u5165\u8bf4\u660e\u5728\u7528\u6237\u6307\u5357\u5728\u518c\uff08apt \u540e\u7aef/SCAN \u8fd0\u884c\u9762\u672a\u5b9e\u88c5\uff09\u3002 ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.612s\n\nOK\n"
+  },
+  {
+    "path": "local_planner/test_local_native.py",
+    "rc": 0,
+    "wall_s": 0.559,
+    "output": "test_3d_obstacle_does_not_flatten_distinct_layers (__main__.NativeTests) ... ok\ntest_budget_and_cancel_distinct_from_no_route (__main__.NativeTests) ... ok\ntest_expiry_map_change_localization_stop_each_tick (__main__.NativeTests) ... ok\ntest_horizon_has_finite_progress_and_terminal_hold (__main__.NativeTests) ... ok\ntest_input_heartbeats_fail_closed (__main__.NativeTests) ... ok\ntest_moving_obstacle_predicted_in_time (__main__.NativeTests) ... ok\ntest_new_obstacle_changes_motion_and_independent_evaluator_agrees (__main__.NativeTests) ... ok\ntest_no_route_refuses_and_clears_command (__main__.NativeTests) ... ok\ntest_nonfinite_and_malformed_inputs_refused (__main__.NativeTests) ... ok\ntest_prohibited_robot_profile_is_not_promoted (__main__.NativeTests) ... ok\ntest_same_xy_two_layers_remain_distinct (__main__.NativeTests) ... ok\ntest_short_step_is_locally_searched_and_z_matters (__main__.NativeTests) ... ok\ntest_straight_three_dimensional_arrival (__main__.NativeTests) ... ok\ntest_swept_collision_detects_between_safe_endpoints (__main__.NativeTests) ... ok\ntest_thin_roof_between_clear_body_endpoints_cannot_be_tunneled (__main__.NativeTests) ... ok\ntest_thin_static_roof_counterexample_is_refused_and_independently_red (__main__.NativeTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 0.414s\n\nOK\n"
+  },
+  {
+    "path": "orchestrator/test_orchestrator.py",
+    "rc": 0,
+    "wall_s": 0.368,
+    "output": "test_gpu_conflict (__main__.BudgetTests) ... ok\ntest_pass_and_demand (__main__.BudgetTests) ... ok\ntest_submit_fail_closed (__main__.BudgetTests) ... ok\ntest_cancel_stops_cleanly (__main__.LifecycleTests) ... ok\ntest_declared_stop_method_used (__main__.LifecycleTests) ... ok\ntest_die_in_running_detected_and_stopped (__main__.LifecycleTests) ... ok\ntest_happy_path_and_stop_order (__main__.LifecycleTests) ... ok\ntest_invalid_transition_guarded (__main__.LifecycleTests) ... ok\ntest_lock_integration (__main__.LifecycleTests)\ncomposer \u9501\u6587\u4ef6 \u2192 \u7ec4\u4ef6\u89c4\u683c \u2192 \u7f16\u6392\u5168\u6d41\u7a0b\uff08\u6d88\u8d39\u6d41\u7a0b6 \u4ea7\u7269\uff09\u3002 ... ok\ntest_readiness_by_condition_not_fixed_wait (__main__.LifecycleTests) ... ok\ntest_ready_timeout_stops_chain (__main__.LifecycleTests) ... ok\ntest_stop_hang_escalates_to_force (__main__.LifecycleTests) ... ok\ntest_task_isolation (__main__.LifecycleTests)\nA2 \u7b2c\u4e09\u5224\u636e\uff1aA \u5931\u8d25\u9000\u51c0\u4e0d\u5f71\u54cd B\u3002 ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.246s\n\nOK\n"
+  },
+  {
+    "path": "orchestrator/test_process_runner.py",
+    "rc": 0,
+    "wall_s": 2.621,
+    "output": "test_orchestrator_full_loop_real_processes (__main__.ProcessRunnerTests)\n\u5168\u94fe\uff1asubmit\u2192start\uff08\u5c31\u7eea\u95e8\uff09\u2192\u8fd0\u884c\u4e2d\u6b7b\u4ea1\u2192\u5065\u5eb7\u68c0\u67e5\u2192\u505c\u6b62\u94fe\u2192FAILED\uff0b\u9000\u51c0\u3002 ... ok\ntest_partial_stdout_cannot_block_readiness_deadline (__main__.ProcessRunnerTests) ... ok\ntest_ready_gate_by_marker (__main__.ProcessRunnerTests) ... ok\ntest_ready_timeout_rejected (__main__.ProcessRunnerTests) ... ok\ntest_repeated_start_keeps_original_process (__main__.ProcessRunnerTests) ... ok\ntest_runtime_timeout_cleans_processes (__main__.ProcessRunnerTests) ... ok\ntest_start_failure_cleans_previous_real_process (__main__.ProcessRunnerTests) ... ok\ntest_stdout_after_ready_is_drained (__main__.ProcessRunnerTests) ... ok\ntest_stop_chain_order_and_clean (__main__.ProcessRunnerTests) ... ok\ntest_term_hang_escalates_to_kill (__main__.ProcessRunnerTests) ... ok\ntest_two_task_isolation_real (__main__.ProcessRunnerTests) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 2.488s\n\nOK\n"
+  },
+  {
+    "path": "planner/test_ros_node.py",
+    "rc": 0,
+    "wall_s": 0.153,
+    "output": "test_clearance_policy_reaches_planner (__main__.RosNodeTests) ... ok\ntest_refusal_is_reportable (__main__.RosNodeTests) ... ok\ntest_request_shape_and_z_required (__main__.RosNodeTests) ... ok\ntest_route_points_match_plan (__main__.RosNodeTests) ... ok\ntest_unknown_hint_refused (__main__.RosNodeTests) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.016s\n\nOK\n"
+  },
+  {
+    "path": "planner/test_scene_map.py",
+    "rc": 0,
+    "wall_s": 0.123,
+    "output": "test_build_matches_world (__main__.SceneMapTests) ... /repo/ws/src/90_platform/v8_platform/planner/scene_map.py:32: ResourceWarning: unclosed file <_io.BufferedReader name='/tmp/tmpmft8rkip/w.world'>\n  raw = open(world_path, 'rb').read()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n/repo/ws/src/90_platform/v8_platform/planner/scene_map.py:34: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpmft8rkip/s.json' mode='r' encoding='utf-8'>\n  scene = json.load(open(scene_path, encoding='utf-8'))\nResourceWarning: Enable tracemalloc to get the object allocation traceback\nok\ntest_wrong_footprint_rejected (__main__.SceneMapTests) ... /repo/ws/src/90_platform/v8_platform/planner/scene_map.py:32: ResourceWarning: unclosed file <_io.BufferedReader name='/tmp/tmp5b7398pp/w.world'>\n  raw = open(world_path, 'rb').read()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n/repo/ws/src/90_platform/v8_platform/planner/scene_map.py:34: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp5b7398pp/s.json' mode='r' encoding='utf-8'>\n  scene = json.load(open(scene_path, encoding='utf-8'))\nResourceWarning: Enable tracemalloc to get the object allocation traceback\nok\ntest_wrong_z_rejected (__main__.SceneMapTests) ... /repo/ws/src/90_platform/v8_platform/planner/scene_map.py:32: ResourceWarning: unclosed file <_io.BufferedReader name='/tmp/tmph4q9coy8/w.world'>\n  raw = open(world_path, 'rb').read()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n/repo/ws/src/90_platform/v8_platform/planner/scene_map.py:34: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmph4q9coy8/s.json' mode='r' encoding='utf-8'>\n  scene = json.load(open(scene_path, encoding='utf-8'))\nResourceWarning: Enable tracemalloc to get the object allocation traceback\nok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.009s\n\nOK\n"
+  },
+  {
+    "path": "planner/test_support_planner.py",
+    "rc": 0,
+    "wall_s": 0.178,
+    "output": "test_budget_exceeded (__main__.PlannerTests) ... ok\ntest_cancelled (__main__.PlannerTests) ... ok\ntest_clearance_policy_invalid_values_are_input_errors (__main__.PlannerTests) ... ok\ntest_clearance_policy_preserves_reachable_detour (__main__.PlannerTests) ... ok\ntest_clearance_policy_rejects_low_roof_goal_before_returning_path (__main__.PlannerTests) ... ok\ntest_goal_off_any_surface (__main__.PlannerTests) ... ok\ntest_invalid_map_rejected (__main__.PlannerTests) ... ok\ntest_oneway_edge_unreachable (__main__.PlannerTests)\n\u5355\u5411\u8fb9\uff1amap \u5408\u6cd5\uff08\u9996\u9762 ground \u53ef\u8fbe\u5168\u56fe\uff09\uff0cmezz \u51fa\u53d1\u56de\u4e0d\u53bb ground\uff1d\u65e0\u8def\u3002 ... ok\ntest_positive_route_supported_and_continuous (__main__.PlannerTests)\nA4 \u6b63\u4f8b\uff1a\u5730\u9762\u2192\u5761\u2192\u5939\u5c42\uff1b\u8def\u5f84\u9010\u70b9\u843d\u5176\u5206\u6bb5\u9762\u8db3\u8ff9\u5185\uff08\u6709\u652f\u6491\u4e14\u8fde\u7eed\u5b89\u5168\uff09\u3002 ... ok\ntest_same_surface_short_route (__main__.PlannerTests) ... ok\ntest_thin_low_roof_between_grid_centers_is_not_crossed (__main__.PlannerTests) ... ok\ntest_unsupported_surface_inexpressible_in_map (__main__.PlannerTests)\n\u8bed\u4e49\u53d1\u73b0\u65ad\u8a00\uff1a\u5408\u6cd5 support_map \u7ed3\u6784\u6027\u5bb9\u4e0d\u4e0b unsupported \u9762\u3002 ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.053s\n\nOK\n"
+  },
+  {
+    "path": "registry/test_registry.py",
+    "rc": 0,
+    "wall_s": 0.712,
+    "output": "test_array_json (__main__.RegistryTests) ... ok\ntest_by_role (__main__.RegistryTests) ... ok\ntest_by_tag (__main__.RegistryTests) ... ok\ntest_cli (__main__.RegistryTests) ... ok\ntest_cli_provenance (__main__.RegistryTests) ... ok\ntest_core_data_shape (__main__.RegistryTests)\n\u771f\u5b9e\u6eaf\u6e90\u6570\u636e\u4ef6\uff08R616 \u6838\u5fc3\u683c\uff09\u5185\u90e8\u4e00\u81f4\u6027\uff1aid \u552f\u4e00\u3001\u4e09\u5b57\u6bb5\u975e\u7a7a\u767d\u3002 ... ok\ntest_core_manifests_with_provenance (__main__.RegistryTests)\n\u6838\u5fc3\u683c 13 \u4efd\u771f\u5b9e manifest \u5168\u90e8\u8fc7\u5951\u7ea6\u6821\u9a8c\uff0cprovenance \u5168\u91cf\u6302\u8f7d\u96f6\u7f3a\u53e3\u3002 ... ok\ntest_duplicate_id (__main__.RegistryTests) ... ok\ntest_empty_and_missing_directory (__main__.RegistryTests) ... ok\ntest_evidence_separation (__main__.RegistryTests) ... ok\ntest_fail_closed_directory (__main__.RegistryTests) ... ok\ntest_get_and_missing (__main__.RegistryTests) ... ok\ntest_invalid_manifest_surfaces_contract_reason (__main__.RegistryTests) ... ok\ntest_load_positive (__main__.RegistryTests) ... ok\ntest_not_json (__main__.RegistryTests) ... ok\ntest_provenance_bad_json_and_missing (__main__.RegistryTests) ... ok\ntest_provenance_blank_field (__main__.RegistryTests) ... ok\ntest_provenance_sidecar (__main__.RegistryTests) ... ok\ntest_provenance_unknown_id (__main__.RegistryTests) ... ok\n\n----------------------------------------------------------------------\nRan 19 tests in 0.583s\n\nOK\n"
+  },
+  {
+    "path": "registry/test_runtime.py",
+    "rc": 0,
+    "wall_s": 0.297,
+    "output": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.134s\n\nOK\n"
+  },
+  {
+    "path": "regression/test_a3_runtime.py",
+    "rc": 0,
+    "wall_s": 0.223,
+    "output": "test_bad_evidence_never_becomes_free (__main__.A3RuntimeTests) ... ok\ntest_full_query_semantics_and_legal_oneway_map (__main__.A3RuntimeTests) ... ok\ntest_query_assertions_detect_collapsed_layer_and_unknown_as_free (__main__.A3RuntimeTests) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.023s\n\nOK\n"
+  },
+  {
+    "path": "regression/test_a4_runtime.py",
+    "rc": 0,
+    "wall_s": 0.488,
+    "output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.328s\n\nOK\n"
+  },
+  {
+    "path": "regression/test_a6_runtime.py",
+    "rc": 0,
+    "wall_s": 0.133,
+    "output": "test_missing_stop_and_missing_injection_are_rejected (__main__.A6EvidenceTests) ... ok\ntest_nonfinite_output_cannot_be_counted_as_zero (__main__.A6EvidenceTests) ... ok\ntest_old_lease_revival_is_rejected (__main__.A6EvidenceTests) ... ok\ntest_real_seed_diversity_and_duplicate_cell_detection (__main__.A6EvidenceTests) ... ok\ntest_renaming_seed_without_changing_packets_is_rejected (__main__.A6EvidenceTests) ... ok\ntest_wire_evidence_passes_without_reading_status_green_flags (__main__.A6EvidenceTests) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.005s\n\nOK\n"
+  },
+  {
+    "path": "regression/test_regression.py",
+    "rc": 0,
+    "wall_s": 2.947,
+    "output": "test_cli (__main__.MatrixTests) ... ok\ntest_estimate_track_not_falsly_failing (__main__.MatrixTests)\n\u4f30\u8ba1\u8f68\u6270\u52a8\uff080.05<\u5bb9\u5dee\uff09\u4e0d\u5f97\u5047\u5931\u8d25\u2014\u2014\u6b63\u4f8b\u573a\u666f\u4e24\u8f68\u540c\u8fc7\u3002 ... ok\ntest_failure_injection_localizes (__main__.MatrixTests)\n\u6ce8\u5165\uff1a\u76ee\u6807\u9762\u5916\uff08map \u6709\u6548\u4f46 goal \u65e0\u652f\u6491\uff09\u2192 plan \u9636\u6bb5 E_PLAN_GOAL_INVALID\u3002 ... ok\ntest_lock_digest_traceable (__main__.MatrixTests) ... ok\ntest_matrix_all_green (__main__.MatrixTests)\nv2 \u5206\u6bcd\uff0814 \u573a\u666f\u00d74 \u7ec4\u5408\u00d72 \u8f68=112 cell\uff09\uff1apass=11 \u573a\u666f\u00d78\uff1b\u9884\u671f\u5931\u8d25=SC07/09/10\u00d78\u3002 ... ok\ntest_negative_localized_at_plan (__main__.MatrixTests) ... ok\ntest_non_planning_kinds_pass (__main__.MatrixTests)\nSC11\uff08\u8ddf\u8e2a\u64a4\u9500\uff09/SC12\uff08\u591a\u4efb\u52a1\u9694\u79bb\uff09/SC13\uff08\u7248\u672c\u6f02\u79fb\uff09/SC14\uff08\u5b50\u77e9\u9635\uff09\u5168\u8fc7\u3002 ... ok\ntest_sc05_bridge_solved_by_support_graph (__main__.MatrixTests)\nSC05 \u540c\u9ad8\u5929\u6865\uff1a\u652f\u6491\u56fe\u539f\u751f\u53ef\u89e3\uff08\u975e\u5355\u8c03\u5256\u9762\uff0c\u5bf9\u7167 mode3 \u4e0d\u53ef\u8868\u8fbe\uff09\u3002 ... ok\ntest_sc09_clearance_expected_at_eval (__main__.MatrixTests)\nSC09\uff1a\u4f4e\u9876\u4e0b\u7a7f\uff1deval \u671f\u9884\u671f\u5931\u8d25\uff08E_TRAJ_CLEARANCE\uff09\uff0cplan \u671f\u6b63\u5e38\u51fa\u5f84\u3002 ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 2.767s\n\nOK\n"
+  },
+  {
+    "path": "representation/test_elevation.py",
+    "rc": 0,
+    "wall_s": 0.155,
+    "output": "test_advisory_edges_not_auto_applied (__main__.ElevationTests)\nedges \u53ea\u51fa\u54a8\u8be2\u5019\u9009\uff1b\u6210\u56fe\u5fc5\u987b\u7528\u786e\u8ba4\u540e\u7684\u8fb9\uff08\u65ad\u6865\u4e0d\u8bef\u8fde\u7684\u5168\u94fe\u843d\u70b9\uff09\u3002 ... ok\ntest_min_cells_threshold (__main__.ElevationTests)\n2\u00d72 \u683c\uff084 \u70b9\uff09\u6070\u597d\u8fbe\u6807\u6210\u9762\uff1b3 \u70b9\u4e0d\u6210\u9762\u3002 ... ok\ntest_surfaces_extracted_and_noise_dropped (__main__.ElevationTests) ... ok\ntest_two_layers_kept_per_cell (__main__.ElevationTests)\nA3-1 \u5168\u94fe\u8bc1\u636e\uff1a\u70b9\u4e91\u8fdb\u3001\u540c\u683c\u53cc\u5c42\u5217\u51fa\uff08\u91cd\u53e0\u533a heights=[0.0, 0.6]\uff09\u3002 ... ok\ntest_z_cluster_tolerance (__main__.ElevationTests) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.009s\n\nOK\n"
+  },
+  {
+    "path": "representation/test_map_service.py",
+    "rc": 0,
+    "wall_s": 0.156,
+    "output": "test_clearance_api (__main__.MapServiceTests) ... ok\ntest_evidence_integration (__main__.MapServiceTests)\n\u8bc1\u636e\u5c42\u968f\u7248\u672c\u7ba1\u7406\uff1a\u8bc1\u636e\u53d8\u5316\u5373\u5185\u5bb9\u53d8\u5316\uff08\u5347\u7248\uff09\uff1b\u6458\u8981\u6309\u8db3\u8ff9\u7edf\u8ba1\u3002 ... ok\ntest_existing_unsupported_surface_is_not_reported_as_support (__main__.MapServiceTests) ... ok\ntest_fractional_query_does_not_extend_roof_past_footprint (__main__.MapServiceTests) ... ok\ntest_map_id_and_contract_guards (__main__.MapServiceTests) ... ok\ntest_negative_fractional_query_does_not_truncate_toward_zero (__main__.MapServiceTests) ... ok\ntest_publish_and_update_semantics (__main__.MapServiceTests) ... ok\ntest_version_drift_check (__main__.MapServiceTests) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.024s\n\nOK\n"
+  },
+  {
+    "path": "representation/test_support_map.py",
+    "rc": 0,
+    "wall_s": 0.154,
+    "output": "test_build_valid_and_extent_defined (__main__.BuilderTests)\nR631 \u6302\u8d26\u95ed\u5408\uff1asupport_map \u7684 extent\uff1d\u8db3\u8ff9\u5e76\u96c6\u5916\u5305\u6846\u683c\u6570\u3002 ... ok\ntest_disconnected_rejected_per_component_split (__main__.BuilderTests)\n\u4e0d\u8fde\u901a\u652f\u6491\u57df\u6309\u5951\u7ea6\u62d2\uff08E_MAP_DISCONNECTED\uff09\u2014\u2014\u767b\u8bb0\u7684\u8bed\u4e49\u88c1\u5b9a\uff1d\u6309\u8fde\u901a\u5206\u91cf\u62c6 map\u3002 ... ok\ntest_extent_scales_with_footprints (__main__.BuilderTests) ... ok\ntest_no_surfaces_rejected (__main__.BuilderTests) ... ok\ntest_clearance (__main__.ColumnTests) ... ok\ntest_same_xy_keeps_all_layers (__main__.ColumnTests)\nA3-1\uff1a\u540c XY \u53cc\u5c42\u4e0d\u4e22\u5c42\u2014\u2014\u6784\u9020\u4e0a\u65e0\u300e\u53d6\u6700\u9ad8\u300f\u5165\u53e3\uff0c\u67e5\u8be2\u8fd4\u56de\u5168\u90e8\u3002 ... ok\ntest_z_conflict_rejected (__main__.ColumnTests) ... ok\ntest_suggest_edges_advisory_only (__main__.EdgeTests)\nA3-3\uff1a\u51e0\u4f55\u90bb\u8fd1\u53ea\u51fa\u54a8\u8be2\u5019\u9009\uff0c\u4e0d\u81ea\u52a8\u6210\u8fb9\u3002 ... ok\ntest_unknown_never_free_by_default (__main__.EvidenceTests)\nA3-2\uff1a\u7f3a\u8bc1\uff1dunknown\uff0c\u6ca1\u6709\u9ed8\u8ba4 free \u8def\u5f84\u3002 ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.005s\n\nOK\n"
+  },
+  {
+    "path": "scenarios/test_scenarios.py",
+    "rc": 0,
+    "wall_s": 0.179,
+    "output": "test_a7_no_leakage_surface (__main__.ScenarioTests)\nA7 \u7ed3\u6784\u9762\uff1a\u8bc4\u4ef7\u5668\u6e90\u4e0d import \u88ab\u6d4b\u89c4\u5212\u94fe\uff08\u6570\u636e\u4e0d\u56de\u6d41\u7684\u7ed3\u6784\u4fdd\u8bc1\uff09\u3002 ... ok\ntest_all_constructors_and_kinds (__main__.ScenarioTests)\nR661 \u540e\u5168 14 \u573a\u666f\u6709\u6784\u9020\u5668\uff1bkind \u4e94\u7c7b\u5206\u5e03\u6b63\u786e\u3002 ... ok\ntest_evaluator_rejects_hover (__main__.ScenarioTests)\n\u8bc4\u4ef7\u5668\u8d1f\u63a7\uff1a\u60ac\u7a7a\u8f68\u8ff9 FAIL \u4e14\u4e0d\u4fee\u590d\uff08\u9519\u8bef\u8def\u5f84\u4e0d\u88ab\u8f7d\u4f53\u81ea\u52a8\u4fee\u6b63\u63a9\u76d6\uff09\u3002 ... ok\ntest_evaluator_rejects_wrong_goal (__main__.ScenarioTests) ... ok\ntest_sc01_flat (__main__.ScenarioTests) ... ok\ntest_sc02_ramp (__main__.ScenarioTests) ... ok\ntest_sc03_transition_return (__main__.ScenarioTests) ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.042s\n\nOK\n"
+  },
+  {
+    "path": "validator/test_enforcement.py",
+    "rc": 0,
+    "wall_s": 0.165,
+    "output": "test_decel_violation (__main__.KinematicsTests)\n\u51cf\u901f 1.5\u21920.1 m/s \u4e8e 0.4 s\uff1d\u51cf\u901f\u5ea6 3.5 > brake 1.0\u3002 ... ok\ntest_guards (__main__.KinematicsTests) ... ok\ntest_iron_rule_declared_prohibited_refuses (__main__.KinematicsTests)\n\u94c1\u5219\uff1adeclared+prohibited \u80fd\u529b\u503c\u4e0d\u5f97\u7528\u4e8e\u5224\u5b9a\u2014\u2014\u62d2\u7edd\u5224\u5b9a\u800c\u975e\u5047\u7eff\u3002 ... ok\ntest_slope_violation (__main__.KinematicsTests) ... ok\ntest_step_violation (__main__.KinematicsTests)\nrobot max_step=0.08\uff1a0.6 m \u76f4\u4e0a\u8de8\u9762\u6b65\uff08\u5373\u4f7f\u5730\u56fe\u8fb9\u5408\u6cd5\uff09\u8fdd\u673a\u5668\u4eba\u80fd\u529b\u3002 ... ok\ntest_within_limits_pass (__main__.KinematicsTests) ... ok\ntest_full_loop_rejection_stops_orchestrator (__main__.RevocationTests)\n\u7f16\u6392\u95ed\u73af\uff1a\u68c0\u67e5\u5668\u5426\u51b3\u2192on_rejection\u2192V8-06 \u505c\u6b62\u94fe\u2192\u4efb\u52a1 FAILED \u4e14\u9000\u51c0\u3002 ... ok\ntest_on_rejection_maps_to_stop_chain (__main__.RevocationTests) ... ok\ntest_rejection_tracker_forces_stop (__main__.RevocationTests)\nA5\uff1a\u8fde\u7eed\u88ab\u62d2\u8fbe\u9650\u2192\u5f3a\u5236\u505c\uff0c\u4e0d\u65e0\u9650\u91cd\u89c4\u5212\uff1b\u901a\u8fc7\u5373\u590d\u4f4d\u3002 ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.016s\n\nOK\n"
+  },
+  {
+    "path": "validator/test_tracking.py",
+    "rc": 0,
+    "wall_s": 0.135,
+    "output": "test_deviation_triggers_revocation_loop (__main__.TrackingTests)\n\u8ddf\u8e2a\u95ed\u73af\uff1a\u504f\u5dee\u8d8a\u9650\u2192on_rejection\u2192Tracker \u8fbe\u9650\u505c\u3002 ... ok\ntest_guard (__main__.TrackingTests) ... ok\ntest_lateral_deviation (__main__.TrackingTests) ... ok\ntest_on_route_passes (__main__.TrackingTests) ... ok\ntest_overrun (__main__.TrackingTests) ... ok\ntest_timestamp_matching (__main__.TrackingTests) ... ok\ntest_vertical_deviation (__main__.TrackingTests) ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.008s\n\nOK\n"
+  },
+  {
+    "path": "validator/test_trajectory_checker.py",
+    "rc": 0,
+    "wall_s": 0.147,
+    "output": "test_clearance_rejected (__main__.CheckerTests)\nroof \u8ddd\u5730\u9762 1.0\uff1a\u5730\u9762\u6bb5\u51c0\u7a7a\u4e0d\u8db3\u9608\u503c\uff08\u673a\u5668\u4eba\u5305\u7edc\uff09\u88ab\u62d2\u3002 ... ok\ntest_clearance_uses_exact_positive_and_negative_roof_boundaries (__main__.CheckerTests) ... ok\ntest_discontinuity_rejected (__main__.CheckerTests) ... ok\ntest_guards (__main__.CheckerTests) ... ok\ntest_hovering_rejected (__main__.CheckerTests)\nV8-03 \u5bf9\u7b56\u5b9e\u8bc1\uff1a\u60ac\u7a7a\u8f68\u8ff9\uff08R633 \u5761\u811a\u60ac\u7a7a\u540c\u578b\uff09\u88ab\u9010\u70b9\u652f\u6491\u68c0\u67e5\u62d2\u7edd\u3002 ... ok\ntest_planner_output_passes (__main__.CheckerTests)\n\u5168\u94fe\uff1aV8-09 \u89c4\u5212\u5668\u8def\u5f84\u2192\u68c0\u67e5\u5668\u901a\u8fc7\uff08\u652f\u6491/\u51c0\u7a7a/\u8fde\u7eed\u5b89\u5168\u9f50\uff09\u3002 ... ok\ntest_time_validity (__main__.CheckerTests) ... ok\ntest_transition_without_edge_rejected (__main__.CheckerTests)\n\u5355\u5411\u8fb9\uff1amezz\u2192ground \u65e0\u56de\u8fb9\uff0c\u8de8\u9762\u6b65\u88ab\u62d2\uff08\u65b9\u5411\u654f\u611f\uff09\u3002 ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.024s\n\nOK\n"
+  }
+]

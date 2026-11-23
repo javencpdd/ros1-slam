@@ -1,0 +1,119 @@
+{
+ "summary": {
+  "cells": 4,
+  "passed": 4,
+  "expected_failures": 0,
+  "unexpected_failures": 0,
+  "same_as_design": 0
+ },
+ "cells": [
+  {
+   "scenario": "SC09",
+   "request": "official_geometry_safe_route",
+   "track": "truth",
+   "min_clearance_m": 0.2,
+   "stage": "eval",
+   "reason": "ok",
+   "points": 17,
+   "info": {
+    "ok": true,
+    "segments": [
+     {
+      "surface": "ground",
+      "cells": 17
+     }
+    ],
+    "transitions": [],
+    "expansions": 49,
+    "length": 8.828427,
+    "map_id": "low_roof_map",
+    "map_version": 1,
+    "policy": {
+     "min_clearance_m": 0.2
+    }
+   },
+   "evaluation": {
+    "scenario": "SC09",
+    "ok": true,
+    "check_violations": [],
+    "failures": []
+   },
+   "outcome": "pass"
+  },
+  {
+   "scenario": "SC09",
+   "request": "derived_low_roof_goal",
+   "track": "truth",
+   "min_clearance_m": 0.2,
+   "stage": "plan",
+   "reason": "E_PLAN_CLEARANCE",
+   "points": 0,
+   "info": {
+    "ok": false,
+    "reason": "E_PLAN_CLEARANCE",
+    "detail": "goal clearance < 0.2 m",
+    "map_id": "low_roof_map",
+    "map_version": 1,
+    "policy": {
+     "min_clearance_m": 0.2
+    }
+   },
+   "evaluation": null,
+   "outcome": "pass"
+  },
+  {
+   "scenario": "SC09",
+   "request": "official_geometry_safe_route",
+   "track": "estimate",
+   "min_clearance_m": 0.2,
+   "stage": "eval",
+   "reason": "ok",
+   "points": 17,
+   "info": {
+    "ok": true,
+    "segments": [
+     {
+      "surface": "ground",
+      "cells": 17
+     }
+    ],
+    "transitions": [],
+    "expansions": 49,
+    "length": 8.828427,
+    "map_id": "low_roof_map",
+    "map_version": 1,
+    "policy": {
+     "min_clearance_m": 0.2
+    }
+   },
+   "evaluation": {
+    "scenario": "SC09",
+    "ok": true,
+    "check_violations": [],
+    "failures": []
+   },
+   "outcome": "pass"
+  },
+  {
+   "scenario": "SC09",
+   "request": "derived_low_roof_goal",
+   "track": "estimate",
+   "min_clearance_m": 0.2,
+   "stage": "plan",
+   "reason": "E_PLAN_CLEARANCE",
+   "points": 0,
+   "info": {
+    "ok": false,
+    "reason": "E_PLAN_CLEARANCE",
+    "detail": "goal clearance < 0.2 m",
+    "map_id": "low_roof_map",
+    "map_version": 1,
+    "policy": {
+     "min_clearance_m": 0.2
+    }
+   },
+   "evaluation": null,
+   "outcome": "pass"
+  }
+ ]
+}

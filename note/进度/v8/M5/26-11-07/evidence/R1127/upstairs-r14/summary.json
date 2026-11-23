@@ -1,0 +1,44 @@
+{
+  "schema": "two_floor_evidence_summary/v2",
+  "updated_at": "2026-11-08T03:50:42.235223+08:00",
+  "window_id": "R1127-upstairs-r14",
+  "case": "upstairs",
+  "source_commit": "e34dc557da9c92dafc2b62d8221a164f39329db6",
+  "source_binding_verdict": "PASS",
+  "source_file_count": 253,
+  "input_list_note": "curated carrier-final list (253 files); omits local_planner/contact_egress.py by registration design",
+  "preflight_rc": 0,
+  "app_rc": 6,
+  "driver_rc": 6,
+  "scenario_ok": false,
+  "motion_verdict": "FAIL",
+  "capture_verdict": "INVALID",
+  "cleanup_verdict": "PASS",
+  "final_pose": null,
+  "goal_distance_m": null,
+  "global_path_points": null,
+  "status_reasons": {
+    "E_LOCAL_NOT_READY": 51
+  },
+  "early_exit_root_cause": "carrier node NameError on stale loop name surfaces at first status publish; process atexit ~0.7s; app never received pose",
+  "max_sample_gap_s": {
+    "pose": 0.0,
+    "command": 0.021388720982940868,
+    "gazebo_model": 0.021348606009269133
+  },
+  "validation": null,
+  "validation_error": "missing pose",
+  "capture_validation": null,
+  "capture_validation_error": "missing pose",
+  "raw_archive": "/home/jack/ros1-slam-archive/2026-11-06/two-floor-gazebo/runtime/upstairs-r14",
+  "raw_sha256": {
+    "invocation.json": "642813c1fa23433a8ff59773f734d1de13093a4c463ad86d3026745c9a3757b0",
+    "driver-result.json": "5408d8ce72f8c1f74d206696e30cd6cbc93f867e920d6fe0bbb3ef69333efebb",
+    "container-inputs-before.json": "7aaca895df3c12b044de13aa28752b780d82f21a2ec49ce1896ab0d31e51797a",
+    "container-inputs-after.json": "7aaca895df3c12b044de13aa28752b780d82f21a2ec49ce1896ab0d31e51797a",
+    "captured/result.json": "bd675199d65d8441a9f63830971717b318be996335277380176c7267418d17ee",
+    "captured/result.app.json": "fe6c9784d29d90f383451faf21a57b26888e1a6cb9bdd8c32d2212c73c9fddec",
+    "captured/result.trace.json": "5b4acc8848d7377cdc75e45782e5283d559c06612579e65feb3497120c6fe8a6"
+  },
+  "scope": "known-map Gazebo kinematic visual-box planning; no physical gait or full corridor claim"
+}
