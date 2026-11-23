@@ -197,3 +197,55 @@ Cannot locate node of type [local_planner/cmd3d_mux_node.py] in package [v8_algo
 
 Gazebo 未起来 + 地图未加载 ⇒ 无 carrier 位姿、无 path、`/cmd_vel` 全程为 0。**不能**据此声称作动或到达。
 
+---
+
+## 10. F5 修复与 Gazebo 诊断（第三轮）
+
+### 10.1 F5 根因与修法
+
+| 项 | 事实 |
+| --- | --- |
+| 资产位置 | `data/maps/generated/nist_sensor_v2.json`（仓库 `data/`，**不在任何 catkin 包内**） |
+| graph 声明 | `graph_3d_gazebo_bt.yaml:14` 显式写 `map_json: data/maps/generated/nist_sensor_v2.json`（仓库相对） |
+| 节点读法 | `map_file_node.py` 直接 `open(~map_json)` ⇒ 依赖 cwd（实际是 `.ros`） |
+| 首版修法为何失败 | 按 `__file__` **硬数层数**求仓库根；profile 视图（`ws/.profiles/<t>/src/...`）层数不同，算到 `ws/` ⇒ 仍找不到 |
+
+**最终修法**：`_repo_root()` 改为**向上找标记**（同时含 `data/maps` 与 `.git` 的目录），两种运行视图都能定位；
+`resolve_map_path()` 对绝对路径直用、对相对路径按仓库根解析、**缺失即抛 `FileNotFoundError` 并带原值与尝试路径**（不静默兜底）。
+TDD 覆盖：`test_asset_paths.py` 11 项（仓库相对可解析 / 绝对路径直用 / 缺失明确失败 / graph 声明与磁盘一致 / app 与 roslaunch 同一份）。
+
+### 10.2 Gazebo 退出原因（先诊断后修）
+
+| 检查 | 结果 |
+| --- | --- |
+| 原始 stderr / 退出码 | `app_world.launch` 只留 `all processes on machine have died`；**stderr 为空**，无 OOM（内存 31 GB、可用 17 GB） |
+| 残留进程 | **发现 2 个陈旧 gzserver**（pid 50022/50060，均为 `lite3_gazebo_sim/worlds`） |
+| 三次独立 headless 启动（同一 world，逐次清理本次 PID） | **3/3 存活**；不带 ROS 插件时无 `/gazebo/*` 服务（插件由 `gazebo_ros/empty_world.launch` 加载，属预期） |
+
+⇒ 退出原因是**上一次运行留下的 gzserver 占用 gazebo master/端口**，新进程起不来，不是 world 或资源问题。
+**最小修复**：启动前按「命令行包含 `lite3_gazebo_sim/worlds`」**限定范围**清理陈旧 gzserver（不 `pkill 全部`，不误杀其它 master）。
+**未换 world、未用 Xvfb。**
+
+### 10.3 graph + support 实跑结果（分级）
+
+| 等级 | 结果 | 证据 |
+| --- | --- | --- |
+| **启动级** | **PASS**：7/7 进程在运行——`gazebo`、`map`、`global`、`local`、`mux3d`、`bt`、`carrier` | 节点列表；`live4_tail.log` |
+| **链路级** | **FAIL**：`planner_goal` 到达（BT 发到 `/v8/3d/global/goal`），但 **global 未产出 path**；`local_goal` 无；取消 ACK 有 | `probe_graph_support.json`、`wiring_diag.txt` |
+| **运动级** | **未取得**：`/cmd_vel` 全程 0；`mux` 报 `reason=track, velocity=[0,0,0,0]` | 同上 |
+| **导航级** | **未取得**：无路径、无到达、BT 未终止 | 同上 |
+
+**链路失败的两个直接读数**（下一步的入口）：
+1. `/v8/3d/global/status` = `{"ok": false, "reason": "E_PLAN_NOT_READY", "map_version": 2}`；
+2. `/v8/3d/global/start` 的 **Publishers: None**（global 是该话题唯一订阅者），而 graph 声明了 `carrier.pose → global.start` 边；
+   同时 `/v8/3d/global/goal` 的 **Subscribers 为空**（BT 在发，global 未订）——需要核对 `topic_node` 的订阅时机与 remap 落点。
+
+### 10.4 已确认的能力（只按实现）
+
+- `cmd3d_mux`：单写者、`hold→0`、0.4 s 超时→`0 + E_CMD3D_STALE`、`frame!=map→E_CMD3D_FRAME`；**无 speed_cap、无多源优先级**。
+- 实跑观测到 `track` 与 `E_CMD3D_STALE` 两种真实状态；`track` 时速度为零是因为上游命令本身为零（无路径），**不能算运动验收**。
+
+### 10.5 环境清理
+
+收尾：`rosnode kill -a` + 按 world 路径杀本次 gzserver ⇒ 剩余节点仅 `/rosout`，gzserver 计数 0，`/cmd_vel` 与 `/cmd_vel_raw` 的发布者均为 0（`final_cleanup3.txt`）。
+

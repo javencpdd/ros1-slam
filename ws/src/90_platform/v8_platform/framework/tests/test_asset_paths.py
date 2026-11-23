@@ -60,6 +60,37 @@ class TreeFilePathTest(unittest.TestCase):
                              '%s 仍保留仓库相对路径' % path.name)
 
 
+class MapJsonTest(unittest.TestCase):
+    """F5：graph 里的仓库相对地图路径必须能被解析；缺失必须明确失败。"""
+
+    def setUp(self):
+        import sys as _s
+        _s.path.insert(0, str(FRAMEWORK / 'nodes'))
+        import map_file_node
+        self.mod = map_file_node
+
+    def test_repo_relative_map_resolves_from_any_cwd(self):
+        got = self.mod.resolve_map_path('data/maps/generated/nist_sensor_v2.json')
+        self.assertTrue(Path(got).is_file())
+        self.assertTrue(Path(got).is_absolute())
+
+    def test_absolute_map_path_still_works(self):
+        abs_path = str(REPO / 'data/maps/generated/nist_sensor_v2.json')
+        self.assertEqual(abs_path, self.mod.resolve_map_path(abs_path))
+
+    def test_missing_map_raises_instead_of_falling_back(self):
+        with self.assertRaises(FileNotFoundError) as ctx:
+            self.mod.resolve_map_path('data/maps/generated/does_not_exist.json')
+        self.assertIn('map_json not found', str(ctx.exception))
+
+    def test_graph_declares_the_same_asset(self):
+        graph = config.load_yaml(V8P / 'framework/fixtures/graphs/graph_3d_gazebo_bt.yaml')[0]
+        declared = graph['instances'][0]['params']['map_json'] if isinstance(
+            graph['instances'], list) else graph['instances']['map']['params']['map_json']
+        self.assertTrue((REPO / declared).is_file(),
+                        'graph 声明的 %s 必须真实存在' % declared)
+
+
 class SimulationDeclarationTest(unittest.TestCase):
 
     def test_active_apps_resolve_to_existing_assets(self):

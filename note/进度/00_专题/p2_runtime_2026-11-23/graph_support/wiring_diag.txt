@@ -1,0 +1,26 @@
+--- global status ---
+data: "{\"ok\": false, \"reason\": \"E_PLAN_NOT_READY\", \"map_version\": 2}"
+---
+--- start ---
+Type: geometry_msgs/PoseStamped
+
+Publishers: None
+
+Subscribers: 
+ * /v8/3d/global/global (http://35ea6bfef95a:36495/)
+--- goal ---
+Type: geometry_msgs/PoseStamped
+
+Publishers: 
+ * /v8/bt/bt (http://35ea6bfef95a:43531/)
+
+Subscribers: 
+--- pose subs ---
+Type: geometry_msgs/PoseStamped
+
+Publishers: 
+ * /v8/3d/carrier/carrier (http://35ea6bfef95a:34363/)
+
+Subscribers: 
+ * /v8/bt/bt (http://35ea6bfef95a:43531/)
+ * /v8/3d/local/local (http://35ea6bfef95a:38581/)
