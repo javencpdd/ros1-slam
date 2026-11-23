@@ -144,10 +144,17 @@ def render_launch(graph, catalog, report):
         for edge in report['edges']:
             if edge['to_instance'] != iid:
                 continue
-            source_topic = edge['from_port'].get('topic')
-            target_topic = edge['to_port'].get('topic')
+            # ★用**有效话题**而不是 manifest 默认值★：graph 会用 `<port>_topic` 覆盖参数，
+            # 若 remap 仍按 manifest 默认名生成，就会把消费者重定向到一个没人发的话题
+            # （2026-11-23 实测：bt.out_goal 参数为 /v8/local/goal，而 local 被 remap 到
+            #  manifest 默认的 /v8/bt/goal_request ⇒ 执行目标永远收不到）。
+            to_port = edge['to'].split('.', 1)[-1]
+            from_port = edge['from'].split('.', 1)[-1]
+            producer = executable_instances[edge['from_instance']]['params']
+            target_topic = rec['params'].get(to_port + '_topic') or edge['to_port'].get('topic')
+            source_topic = producer.get(from_port + '_topic') or edge['from_port'].get('topic')
             if source_topic and target_topic:
-                remaps.append((target_topic, source_topic))
+                remaps.append((target_topic, source_topic))  # 同名也保留一条：旧契约按「每边一条」断言
         config = report.get('configs', {}).get(iid)
         lines.extend(node_lines(iid, spec, rec['namespace'], rec['params'],
                                 None if config is None else config['path'], remaps))
