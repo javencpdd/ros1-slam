@@ -19,7 +19,8 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import rospy
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import DeleteModel, SetModelState, SpawnModel
-from geometry_msgs.msg import Pose, PoseStamped, Twist
+from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, Twist
+from tf2_ros import TransformBroadcaster
 from std_msgs.msg import Bool, String
 
 import carrier_kinematics
@@ -41,6 +42,7 @@ def main():
     status_topic = rospy.get_param('~status_topic', '/v8/3d/carrier/status')
     spawn = bool(rospy.get_param('~spawn', True))
     reference = rospy.get_param('~reference_frame', 'world')
+    cloud_topic = rospy.get_param('~cloud_topic', '/cloud_registered')
 
     rospy.wait_for_service('/gazebo/set_model_state', timeout=20.)
     set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
@@ -48,11 +50,30 @@ def main():
     if spawn:
         rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=20.)
         spawner = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+        # 2026-11-23 P1：给载体挂 Gazebo 原生 ray 传感器，由 libgazebo_ros_block_laser.so
+        # 输出**真实测距**生成的 PointCloud2（不是伪造心跳）。frameName 用模型 link 的真实名字，
+        # 由本节点按自身位姿广播 map→link 的 TF，禁用"直接把 frame 写成 map"的掩盖手法。
         sdf = ('<sdf version="1.6"><model name="%s"><static>true</static>'
                '<link name="link"><visual name="visual"><geometry>'
                '<box><size>0.45 0.30 0.20</size></box></geometry>'
                '<material><ambient>0.2 0.5 0.9 1</ambient></material>'
-               '</visual></link></model></sdf>' % model)
+               '</visual>'
+               '<sensor type="ray" name="lidar">'
+               '<pose>0 0 0.25 0 0 0</pose>'
+               '<update_rate>10</update_rate>'
+               '<visualize>false</visualize>'
+               '<ray><scan><horizontal><samples>360</samples>'
+               '<resolution>1</resolution><min_angle>-3.14159</min_angle>'
+               '<max_angle>3.14159</max_angle></horizontal>'
+               '<vertical><samples>8</samples><resolution>1</resolution>'
+               '<min_angle>-0.26</min_angle><max_angle>0.26</max_angle></vertical>'
+               '</scan><range><min>0.15</min><max>12.0</max><resolution>0.01</resolution></range>'
+               '</ray>'
+               '<plugin filename="libgazebo_ros_block_laser.so" name="carrier_lidar">'
+               '<topicName>%s</topicName><frameName>%s/link</frameName>'
+               '<radiation>laser</radiation><gaussianNoise>0.005</gaussianNoise>'
+               '</plugin></sensor>'
+               '</link></model></sdf>' % (model, cloud_topic, model))
         result = spawner(model, sdf, '', Pose(), reference)
         if not result.success:
             raise SystemExit('spawn failed: ' + result.status_message)
@@ -78,6 +99,9 @@ def main():
     rospy.Subscriber(cmd_topic, Twist, on_cmd, queue_size=50)
     rospy.Subscriber(map_topic, String, on_map, queue_size=1)
     pose_pub = rospy.Publisher(pose_topic, PoseStamped, queue_size=50)
+    # P1：TF 与 pose 同源（都是 map 下的载体位姿），供点云按真实链 map→link 变换；
+    # 不把点云 frame 直接写成 map，避免掩盖缺失的 TF。
+    tf_broadcaster = TransformBroadcaster()
     loc_pub = rospy.Publisher(loc_topic, Bool, queue_size=1)
     status_pub = rospy.Publisher(status_topic, String, queue_size=20)
 
@@ -106,6 +130,14 @@ def main():
             pose.pose.position.x, pose.pose.position.y, pose.pose.position.z = position
             pose.pose.orientation.w = 1.
             pose_pub.publish(pose)
+            tf_msg = TransformStamped()
+            tf_msg.header.stamp, tf_msg.header.frame_id = stamp, 'map'
+            tf_msg.child_frame_id = model + '/link'
+            tf_msg.transform.translation.x = position[0]
+            tf_msg.transform.translation.y = position[1]
+            tf_msg.transform.translation.z = position[2] if len(position) > 2 else 0.0
+            tf_msg.transform.rotation.w = 1.0
+            tf_broadcaster.sendTransform(tf_msg)
             loc_pub.publish(Bool(data=True))
             state = ModelState()
             state.model_name, state.reference_frame = model, reference

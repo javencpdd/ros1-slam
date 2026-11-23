@@ -46,6 +46,24 @@ instances:
       recovery_mode: skip
       retry_max: 1
       retry_delay_s: 0.0
+  - id: perception
+    component: v8.fw.dynamic_obstacles
+    namespace: /v8/3d/perception
+    params:
+      enable: true
+      cloud_topic: /cloud_registered
+      map_frame: map
+      rate_hz: 10.0
+      roi_forward_m: 6.0
+      roi_lateral_m: 3.0
+      min_height_m: 0.15
+      max_height_m: 1.6
+      voxel_m: 0.10
+      min_points: 8
+      max_objects: 32
+      self_radius_m: 0.45
+      max_speed_mps: 1.5
+      gate_m: 0.8
   - id: local
     component: v8.fw.local_native
     namespace: /v8/3d/local
@@ -93,6 +111,9 @@ edges:
   - {from: bt.planner_goal, to: global.goal, feedback: true,
      policy: {period_s: 0.10, max_age_s: 2.0}}
   - {from: bt.out_goal, to: local.goal}
+  - {from: carrier.pose, to: perception.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: perception.obstacles, to: local.obstacles}
   - {from: carrier.pose, to: local.pose, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: carrier.localization, to: local.localization, feedback: true,
@@ -106,8 +127,8 @@ edges:
      policy: {period_s: 0.05, max_age_s: 1.0}}
 external:
   - {to: global.start, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: perception.cloud, type: sensor_msgs/PointCloud2, source: lidar}
   - {to: bt.goal, type: geometry_msgs/PoseStamped, source: operator}
-  - {to: local.obstacles, type: std_msgs/String, source: perception}
   - {to: mux3d.hold, type: std_msgs/Bool, source: supervisor}
   - {to: bt.cancel, type: std_msgs/String, source: operator}
   - {to: bt.goal_policy, type: std_msgs/String, source: operator}

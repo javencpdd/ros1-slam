@@ -404,3 +404,73 @@ FAR 图显式写了 `carrier.pose → global.start` 的边（`graph_3d_lite3_far
 | 运动级 | **INVALID**（原 FAIL 已定因：local 缺障碍心跳；补感知的**环境前置**不成立） | §12 + §13 |
 | 导航级 | **NOT RUN** | 依赖运动级 |
 
+---
+
+## 14. P1～P4 连续执行（第六轮）
+
+### 14.1 P1 传感器：**PASS**
+
+给 `gazebo_carrier3d_node.py` 的内联 SDF 加了 Gazebo 原生 ray 传感器（`libgazebo_ros_block_laser.so` → **真实 PointCloud2**）：
+
+- 参数：`update_rate=10`、水平 360 线、垂直 8 层、量程 0.15–12 m、`gaussianNoise=0.005`；
+- `frameName = app_carrier/link`（**真实 link 名**，不是把 frame 写成 map）；
+- 载体模型名、位姿来源、控制接口与既有导航链未改。
+
+| 读数 | 值 |
+| --- | --- |
+| `/cloud_registered` 频率 | **10.03 Hz**（两次采样：9.967 / 10.033） |
+| `frame_id` | `app_carrier/link` |
+| TF `map → app_carrier/link` | 存在，平移 (0.000, −3.060, 0)，与 carrier pose 一致 |
+
+### 14.2 P2 点云与 TF：**PASS（部分项保持未测）**
+
+- 点云连续更新、时间戳随 `/clock`（gazebo 由 `empty_world.launch` 提供 `/clock`，节点订阅 `/clock`）；
+- TF 链：`map → app_carrier/link`（由 carrier 节点按自身 pose 广播，与 pose 同源）；
+- **空场景差异**：ROI 内无障碍时 `dynamic_obstacles` 输出 `[]`（合法空检测）；
+- 未构造障碍场景（本轮无新增障碍物需求，留待后续）。
+
+### 14.3 P3 感知组件与接线：**PASS**
+
+| 项 | 处置 |
+| --- | --- |
+| manifest | `v8.fw.dynamic_obstacles` 的 `type` 由 `framework/nodes/dynamic_obstacles_node.py` 改为 `run_dynamic_obstacles.py`（F4 同类） |
+| shim | 新增 `v8_platform/scripts/run_dynamic_obstacles.py`；该模块**无 main()**，入口是 `DynamicObstaclesNode().spin()`，节点名由 `__name:=perception` 覆盖 |
+| package index | 补 `run_dynamic_obstacles.py` 裸名条目 |
+| graph | `graph_3d_gazebo_bt.yaml` 新增 `perception` 实例（`cloud_topic: /cloud_registered` 等）、边 `carrier.pose→perception.pose`、`perception.obstacles→local.obstacles`、外部输入 `perception.cloud ← lidar`；**并删除**旧的 `local.obstacles` 外部声明（否则 `E_GRAPH_INPUT_DUP`） |
+
+| 读数 | 值 |
+| --- | --- |
+| 节点数 | **8/8**（含 `/v8/3d/perception/perception`） |
+| `/v8/local/obstacles` | **10.0 Hz**，内容 `[]`（空检测，来自真实点云处理，非独立假心跳） |
+| `/v8/3d/perception/status` | 曾报 `no_cloud`，随后按 10 Hz 稳定发布 |
+
+**未改** local 的 fail-closed、未关闭新鲜度检查。
+
+### 14.4 P4-A 正常导航：**部分 PASS（运动命令已出，位姿未推进）**
+
+| 验收项 | 结果 | 证据 |
+| --- | --- | --- |
+| BT 收到目标 | ✅ | `goal_sent` |
+| global 生成路径 | ✅ | `path` 6 点，首点 (0.15, −3.15) |
+| BT 收到路径 | ✅ | 由 WaitPath 转 FollowPath |
+| local 收到目标/位姿/地图/新鲜障碍 | ✅ | `local_goal`、pose、map、obstacles 10 Hz |
+| **local 输出非零速度** | ✅ | `cmd_vel_3d` 由全 0 变为非零（此前 823 帧全 0） |
+| **cmd3d_mux 输出非零** | ✅ | `{"reason":"track","velocity":[0.597, 0.0597, 0, 0],"input_frame":"map"}` |
+| **Gazebo 载体位姿变化** | ❌ | 20 s 内 `/v8/local/pose` 恒为 (0, −3.06) |
+| 到达 / BT 终止 / 结束零速 | ❌ | 无位移即无到达 |
+
+**新阻断（下一轮入口）**：carrier 订阅的是 `/v8/local/cmd_vel_3d`（TwistStamped，图内 remap 结果），
+而非 mux 输出 `/cmd_vel`；需要确认它的运动积分是否读这个端口、以及 `snap_m`/地图贴面是否把位移夹回原处。
+这是**运动链最后一环**，不是感知问题。
+
+### 14.5 P4-B/C/D：**NOT RUN**（依赖 A 的位姿推进）
+
+### 14.6 分级
+
+| 等级 | 结论 |
+| --- | --- |
+| 启动级 | **PASS 8/8** |
+| 链路级 | **PASS** |
+| 运动级 | **部分 PASS**：非零命令已出；位姿未推进 ⇒ 不能记运动 PASS |
+| 导航级 | **NOT RUN** |
+
