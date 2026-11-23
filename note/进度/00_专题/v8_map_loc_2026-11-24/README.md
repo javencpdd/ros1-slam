@@ -296,3 +296,42 @@ P3 记 **INVALID**，不擅自用 faster_lio 里程计冒充地图重定位。
 | P3 定位 | **INVALID** | hdl 未订阅点云、map 未加载、无 `/hdl_odom`；无崩溃；裁决保留 |
 | P4 导航闭环 | **NOT RUN** | 依赖 P3 |
 
+
+---
+
+## 21. P3 深挖第二轮：抓到决定性错误，仍未出 `/map`（第六轮）
+
+### 21.1 前台手工加载，拿到真实报错
+
+`rosrun nodelet nodelet load hdl_localization/GlobalmapServerNodelet mgr` 后，**manager 的 stdout** 出现：
+
+```
+[pcl::PCDReader::read] Could not find file ''.
+[pcl::NormalDistributionsTransform::setInputTarget] Invalid or empty point cloud dataset given!
+[pcl::VoxelGridCovariance::applyFilter] No input dataset given!
+```
+
+⇒ **`globalmap_pcd` 被读成空串**，PCD 根本没打开 ⇒ 不发布 `/map` ⇒ `hdl_localization` 等 `/map`
+⇒ 不订阅 `/rslidar_points`（实测订阅者 None）⇒ 没有 `/hdl_odom`。
+
+这条把 P3 的根因从"崩不崩"缩小到**参数解析**，与点云格式、TF、时间戳无关。
+
+### 21.2 为什么 roslaunch 里参数没用
+
+launch 是把 `<param name="globalmap_pcd">` 写在 **`nodelet load` 那个节点**下；
+而 nodelet 内部节点的私有命名空间由 manager 决定，**不是 load 节点的名字**。
+实测把参数同时写到 `/globalmap_pcd`、`/gms/globalmap_pcd`、`/mgr/gms/globalmap_pcd`、
+`/globalmap_server_nodelet/globalmap_pcd` 四处后再加载，**30 s 内仍无 `/map`**，mgr 日志也没有新增行
+⇒ 说明当前流程在 `onInit` 更早处就停了（或加载请求未被 manager 处理），需更细的调试手段。
+
+### 21.3 本轮 P3 结论：**INVALID（根因已缩小到参数/命名空间）**
+
+- 不是 SIGSEGV（0 次）；
+- 不是点云/TF/时间戳（hdl 根本没走到订阅）；
+- 决定性错误是 **PCD 路径为空**；补参后仍未发布 `/map`，需继续用 `rosconsole` 或 gdb 看 `onInit` 停在哪。
+
+### 21.4 继续所需（下轮，不需要新授权）
+
+1. `export ROSCONSOLE_CONFIG_FILE` 提高 nodelet 日志级别，或直接 `gdb -p <manager>` 看卡点；
+2. 确认 `nodelet load` 的返回码（当前 stdout 0 字节说明 CLI 没打印成功横幅，可能仍在等 manager 的 service）；
+3. 若参数路径确认走不通，可改用 **非 nodelet 的可执行**（hdl_localization 源码里是否有 standalone app）绕开 nodelet 命名空间问题。
