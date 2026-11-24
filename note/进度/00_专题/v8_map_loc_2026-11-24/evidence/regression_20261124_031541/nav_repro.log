@@ -1,0 +1,54 @@
+===== MODE=normal DUR=8s MAP=/opt/ros1-slam/data/maps/mapped_m1.pcd =====
+EV=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261124_031555
+live_lib_sha=00f975bdd53711f7 backup_sha=a8164428b4f0dff9
+--- [0] 清理陈旧节点与 gzserver ---
+after_clean_nodes=/gazebo /gms /hdl /hdl_gate /mgr /robot_state_publisher /rosout /rostopic_195168_1795454317520 /rostopic_197725_1795454399751 /rostopic_202387_1795454599704 /rslidar_points_relay_1795476062268448064 /rslidar_points_relay_1795486521205715948 /rslidar_points_relay_1795486815923899283 /rslidar_points_relay_1795487151278985662 /rslidar_points_relay_1795487403316933900 /rslidar_points_relay_1795488199650109814 /rslidar_points_relay_1795488408102345448 /rslidar_points_relay_1795488631589294679 /rslidar_points_relay_1795488839347102184 /rslidar_points_relay_1795489535034465200 /rslidar_points_relay_1795489754648972143 /rslidar_points_relay_1795489907921235605 /sim_adapter 
+after_clean_leftover=0
+--- [1] 启动 Gazebo（map_to_odom=false）---
+复用已在跑的 Gazebo（SKIP_GAZEBO=1 且 /rslidar_points 有数据）
+average rate: 10.033
+--- [2] relay /rslidar_points -> /velodyne_points ---
+average rate: 9.975
+--- [3] 启动 nodelet manager ---
+mgr_pid=1121820 libasan_in_maps=0
+--- [4] 加载 GlobalmapServerNodelet（正式库）---
+globalmap_ready_after=1x2s width=10237
+globalmap_width=10237
+--- [5] 加载 HdlLocalizationNodelet（MODE=normal）---
+load_result=instance_at=1s
+mgr_alive=yes
+--- [6] 注入有效性：实际加载的是哪一份 .so ---
+maps_asan=0 maps_dbg=0 maps_live=6
+--- [7] 实例与订阅闸门 ---
+nodes=/hdl /hdl_gate /mgr 
+hdl_node=/hdl
+-- /velodyne_points Subscribers --
+Subscribers: 
+ * /mgr (http://35ea6bfef95a:45777/)
+velodyne_has_subscriber=1
+-- /hdl Subscriptions --
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+ * /mgr/bond [bond/Status]
+
+--- [8] 等待进入 scan -> align（最多 40s）---
+scan_seen_after=1s
+align_seen_after=1s
+got_scan=1 got_align=1
+manager_log_lines=69
+对照 logs/latest 计数（历史误判来源）: scan=83081 align=83079
+--- [9] 已进入 align，观察 8s 崩溃 ---
+crash_at=none
+asan_reports=0
+===== 汇总 =====
+mode=normal crash_at=none
+scan_lines=55
+align_lines=55
+align_begin=55
+lidar_timeout_drops=0
+globalmap_msgs=1
+live_lib_sha_now=00f975bdd53711f7
+--- [8b] 定位数据闸门 /hdl_odom_raw -> /hdl_odom ---
+hdl_odom_hz=average rate: 8.731
+P3_VERDICT=PASS（/hdl_odom 有输出：average rate: 8.731）
+EV=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261124_031555
