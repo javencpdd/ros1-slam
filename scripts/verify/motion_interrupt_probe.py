@@ -81,11 +81,15 @@ def main():
             rospy.sleep(0.2)
             pub.publish(String(data=text))
             act = 'cancel ' + text
-        print('INJECT at v=%.3f action=%s' % (fire_v, act))
+        print('INJECT at v=%.3f action=%s' % (fire_v, act), flush=True)
         # 3) 注入后继续观察 hold_s
+        # ★必须用纯 time.sleep，不能带 rospy.is_shutdown() 条件★：
+        # 实测注入后 rospy 的 shutdown 标志会变 True，循环立刻退出，
+        # rosbag 随即被 SIGINT —— bag 的结束时刻正好等于"末非零命令"时刻，
+        # 零速窗口覆盖 0.00 s，5 s 判据永远测不出来。
         t_fire = time.monotonic()
-        while not rospy.is_shutdown() and time.monotonic() - t_fire < args.hold_s:
-            time.sleep(0.05)
+        time.sleep(args.hold_s)
+        print('HOLD done %.2fs after inject' % (time.monotonic() - t_fire), flush=True)
     else:
         print('NO_MOTION: %.0f s 内未见非零 cmd（frames=%d）' % (args.wait_motion_s, state['frames']))
 
