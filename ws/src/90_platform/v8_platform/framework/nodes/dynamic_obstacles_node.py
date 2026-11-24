@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Dynamic obstacles from the registered cloud -> /v8/local/obstacles.
 
-It always publishes at ~rate_hz (an empty list when there is no cloud or pose),
-so it doubles as the local planner's obstacle heartbeat. It never publishes a
-velocity or a gait command.
+It publishes the obstacle heartbeat **only when a real, fresh cloud was processed
+successfully and no obstacle was detected** (an empty list is then legitimate).
+Any other state — no_cloud / no_pose / unsupported_cloud / tf_missing / error /
+blind / stale_frame — publishes **nothing** on the obstacle topic, so the local
+planner's input goes stale and it fails closed. The six states are reported on a
+**separate** status topic that never participates in the local planner's gating.
+It never publishes a velocity or a gait command.
 """
 import os as _os
 import sys as _sys
@@ -77,6 +81,16 @@ def box_minmax(lo, hi, min_extent=MIN_BOX_EXTENT_M):
     return out_lo, out_hi
 
 
+def should_publish(status):
+    """只有 process() 明确回 ok 才允许在障碍话题上发（此时空表＝确认无障碍）。
+
+    单列成模块级纯函数，是为了让"六态一律不发"这条不变量能被无 ROS 的单测钉住——
+    此前它正是测试盲区（`grep blind framework/tests` 零命中），
+    结果实现与 docstring 打架、local 永久零速却没人发现。
+    """
+    return isinstance(status, dict) and status.get('state') == 'ok'
+
+
 class DynamicObstaclesNode(object):
     def __init__(self):
         self.enable = bool(rospy.get_param('~enable', True))
@@ -120,6 +134,7 @@ class DynamicObstaclesNode(object):
         self.previous_boxes = None
         self.previous_time = None
         self.last_payload = []
+        self.processed_stamp = None   # 已处理的点云帧戳：同一帧重复到达不得二次刷新心跳
         self.last_status = {'state': 'init'}
 
         self.buffer = tf2_ros.Buffer()
@@ -128,6 +143,27 @@ class DynamicObstaclesNode(object):
         self.status_pub = rospy.Publisher(self.status_topic, String, queue_size=1, latch=True)
         rospy.Subscriber(self.cloud_topic, PointCloud2, self.on_cloud, queue_size=1)
         rospy.Subscriber(self.pose_topic, PoseStamped, self.on_pose, queue_size=1)
+
+    def _gate(self, now):
+        """纯判据：这一次循环到底该不该发布有效障碍表。
+
+        返回 (publish, state)。state 只用于诊断话题，**不参与 local 的判定**。
+        规则（2026-11-25 真人裁定）：
+          - 从未收到点云 / 超时未收 ⇒ blind，不发；
+          - 点云帧没变（同一 stamp 重复到达）⇒ stale_frame，不发；
+          - 其余交给 process()，只有 process 明确回 'ok' 才发。
+        任何"未知/异常"一律不发 —— 空表等于给 local 发"这条路是通的"，
+        在没看过点云的时候发空表，就是把"感知没起来"伪装成"一路畅通"。
+        """
+        if self.blind_timeout_s > 0:
+            if self.last_cloud_wall is None:
+                return False, {'state': 'blind', 'silent_s': 0.0}
+            silent = now - self.last_cloud_wall
+            if silent > self.blind_timeout_s:
+                return False, {'state': 'blind', 'silent_s': round(silent, 2)}
+        if self.cloud_stamp is not None and self.cloud_stamp == self.processed_stamp:
+            return False, {'state': 'stale_frame', 'stamp': round(self.cloud_stamp, 3)}
+        return True, None
 
     def on_cloud(self, msg):
         self.cloud = msg
@@ -198,28 +234,27 @@ class DynamicObstaclesNode(object):
         rate = rospy.Rate(self.rate_hz)
         while not rospy.is_shutdown():
             started = time.monotonic()
-            try:
-                payload, status = self.process()
-            except Exception as error:  # keep the heartbeat fail-closed
-                payload, status = [], {'state': 'error', 'detail': str(error)[:120]}
-            blind = (self.blind_timeout_s > 0
-                     and (self.last_cloud_wall is None
-                          or rospy.get_time() - self.last_cloud_wall > self.blind_timeout_s))
-            if blind:
-                # fail-closed: stop publishing so the local planner's heartbeat
-                # times out and the robot stops instead of assuming a clear path.
-                status = {'state': 'blind',
-                          'silent_s': round(rospy.get_time() - (self.last_cloud_wall or rospy.get_time()), 2)}
-                self.status_pub.publish(String(data=json.dumps(status)))
-                rate.sleep()
-                continue
-            self.pub.publish(String(data=json.dumps(payload, separators=(',', ':'))))
+            now = rospy.get_time()
+            publish, early = self._gate(now)
+            if early is not None:
+                status = dict(early)
+                status['heartbeat_valid'] = False
+            else:
+                try:
+                    payload, status = self.process()
+                except Exception as error:      # 异常也不得刷新心跳
+                    payload, status = None, {'state': 'error', 'detail': str(error)[:120]}
+                self.processed_stamp = self.cloud_stamp
+                ok = should_publish(status)
+                status['heartbeat_valid'] = ok
+                if ok:
+                    # 只有"真实点云 + 成功处理"才允许发；此时空表才等价于"确认无障碍"
+                    self.pub.publish(String(data=json.dumps(payload, separators=(',', ':'))))
+                else:
+                    status['published'] = False
             status['latency_ms'] = round((time.monotonic() - started) * 1000.0, 1)
-            status['objects'] = status.get('objects', len(payload))
+            # 诊断话题：六态都发，且**不被 local 订阅**，只用于观察
             self.status_pub.publish(String(data=json.dumps(status)))
             rate.sleep()
 
 
-if __name__ == '__main__':
-    rospy.init_node('v8_dynamic_obstacles')
-    DynamicObstaclesNode().spin()

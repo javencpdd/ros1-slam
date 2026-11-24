@@ -8546,3 +8546,18 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   composer 17 OK｜adapters 48 OK｜orchestrator 28 OK｜解耦 9 OK｜`dev.py status` rc=0｜
   compose config rc=0｜docker 构建回归 11 OK。反控：临时挪走 `manifest_global_far.json` ⇒ 守卫报
   「清单登记但磁盘缺件：['v8.fw.global_far']」，复原即绿
+- ★perception 心跳语义修正（同日，按真人调整 1）★：`dynamic_obstacles_node.spin()` 原实现有两个相反方向的
+  缺陷：①`blind_timeout_s>0` 且从未收云时 `blind` 恒真、`continue` 跳过唯一发布点 ⇒ local 永收不到
+  （`obstacles_cb=0`，车恒零速）；②而 `no_cloud/no_pose/tf_missing/error` 这些分支**原本会发空表** ⇒
+  把"感知没起来"伪装成"一路畅通"，是更危险的假健康。
+  改为：抽出纯判据 `_gate(now)` 与 `should_publish(status)` —— 六态（no_cloud／no_pose／
+  unsupported_cloud／tf_missing／error／blind）＋`stale_frame` **一律不发**；只有 process 明确回 `ok`
+  才发，此时空表才等价于"确认无障碍"；同一 `header.stamp` 重复到达按 `stale_frame` 处理，不得二次
+  刷新心跳；诊断六态走独立话题 `~status`（不参与 local 判定）。文件头 docstring 同步改为与实现一致
+  新增 `framework/tests/test_dynamic_obstacles_heartbeat.py` 8 项（主测四态不发＋反控"真 ok 必须发"
+  与"重复帧不算新数据"＋正向"ok 空表允许发"），补上了此前的测试盲区（`grep blind framework/tests` 原零命中）
+- ★环境固化（同日，按真人调整 3）★：新增 `scripts/verify/acceptance_criteria.md`（**测试前**定死量化判据：
+  零速 `|v|≤0.02 m/s`／`|ω|≤0.05 rad/s`、持续停止 ≥5.0 s、停止延迟只作指标不作判据、到达误差 ≤0.15 m、
+  C3/C4 触发前 3 s 内必须有 `|v|>0.05` 否则判 INVALID）与 `scripts/verify/far_closed_loop.sh`
+  （单命令：环境加载＋唯一 master 断言＋限定范围清场＋起 Gazebo 等点云＋渲染起图＋节点存活前置＋跑场景＋
+  读数落盘；整链在一次 exec 内完成，避免进程组被清）
