@@ -8601,3 +8601,12 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ⑧★构建层缺陷（未修，需重编）★：即使路径补齐，`ctypes.CDLL('libhdl_localization_nodelet.so')`
   仍报 `undefined symbol: _Z`（`ldd` 无 not found）⇒ 该 `.so` 链接不完整/ABI 不匹配，nodelet 永远加载不了。
   这是 HDL 不出 `/hdl_odom` 的当前最后一环；处置应重编 `hdl_localization`，本轮未做
+- ★HDL 构建链结论（同日，未闭合）★：`hdl_global_localization` 的 `CMakeLists.txt` 的
+  `find_package(catkin COMPONENTS ...)` **缺 `nav_msgs`**，而 `bbs/occupancy_gridmap.hpp` include 了
+  `nav_msgs/OccupancyGrid.h` ⇒ 该包编不过（`fatal error: nav_msgs/OccupancyGrid.h: No such file`）。
+  这解释了为什么现存 `.so` 会带 `undefined symbol: _Z`——它是**历史产物**，当前源码编不出来。
+  ★尝试与回退★：把它加进 COMPONENTS 后，`catkin_INCLUDE_DIRS` 整体变空（连 `ros/ros.h`、乃至
+  `ndt_omp` 的同名错误都出现）；改独立 `find_package(nav_msgs)` 亦然。故判定这是**工作区级构建状态**
+  问题（裸 `catkin_make` 重建了 build 缓存），**已把该 CMakeLists 还原**，不留未经编译验证的改动。
+  待办：用项目既定构建入口（非裸 catkin_make）补 `nav_msgs` 依赖并重编 `hdl_localization`，
+  之后 HDL nodelet 才可加载、`/hdl_odom` 才会出现。devel 产物当前完好（`libhdl_*.so` 2 件、`bt_console` 在位）
