@@ -72,6 +72,8 @@ class PathGoal(object):
         self.accepted_generation = 0
         self.rejected_stale = 0
         self.last_reject_reason = None
+        # 上一次真正发出去的局部目标（用于抑制重复下发；见 publish_current 的注释）
+        self.last_goal_xyz = None
 
         rospy.Subscriber(self.path_topic, Path, self.on_path, queue_size=10)
         rospy.Subscriber(self.pose_topic, PoseStamped, self.on_pose, queue_size=10)
@@ -112,8 +114,28 @@ class PathGoal(object):
             self.cancelled_at = None
         self.accepted_generation += 1
         self.poses = list(message.poses)
-        self.index = 0
+        # ★2026-11-25 修★：原先无条件 `self.index = 0` 再发 poses[0]。
+        # 对 support 的完整路径，poses[0] 恰好是当前位姿，发出去等于"原地不动"，
+        # 由 tick 推进到下一个点；但 FAR 给的是**两点滚动路径**（当前位姿 + 航点），
+        # 每秒重发一次 ⇒ 每秒都把 local 重置成"去我站的地方"，于是 local 输出恒零、
+        # 车一步不走（实测 32 条路径 → 64 个局部目标，在 (0,-3.06) 与 (1,0) 之间交替）。
+        # 正解：从"第一个还没到达的点"开始，绝不把已到达的点当目标下发。
+        self.index = self._first_unreached()
         self.publish_current()
+
+    def _first_unreached(self):
+        """返回第一个"还没到达"的点下标；全都已在半径内时退回最后一个点。
+
+        判据用与 tick 相同的 arrive_m，保证"跳过"与"推进"是同一把尺子——
+        两处若用不同阈值，会出现跳过点与推进点打架、目标在两处来回跳。
+        """
+        if not self.poses or self.pose is None:
+            return 0
+        for i, pose in enumerate(self.poses):
+            p = pose.pose.position
+            if math.hypot(p.x - self.pose.x, p.y - self.pose.y) > self.arrive_m:
+                return i
+        return len(self.poses) - 1
 
     def remaining(self):
         if not self.poses or self.pose is None:
@@ -123,6 +145,13 @@ class PathGoal(object):
 
     def publish_current(self):
         goal = make_goal(self.poses[self.index], self.accepted_generation)
+        xyz = (round(goal.pose.position.x, 6), round(goal.pose.position.y, 6),
+               round(goal.pose.position.z, 6))
+        if xyz == self.last_goal_xyz:
+            # 目标没变就别再发：local 每收到一条新目标会重开跟踪代次，
+            # 每秒重发同一个点会让它反复重启、看起来"拒动"。
+            return
+        self.last_goal_xyz = xyz
         self.goal_pub.publish(goal)
         self.published_at = rospy.Time.now()
         rest = self.remaining()

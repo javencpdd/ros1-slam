@@ -8489,3 +8489,18 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ⑤support 后端零影响：全仓 `package.xml` 无一处依赖 far_planner；support 图 digest 仍
   `e8fb7967…` 不变；框架 345 项 OK、N6 8/0
   证据目录 `note/进度/00_专题/far_p2_2026-11-25/`
+- ★本轮再续（核验 63fab76c 后）★：FAR 运动闭环排查到**根因并修复**，但端到端仍未闭合，四项验收如实记 INVALID。
+  ①根因（`v8_algorithm/local_planner/path_goal_node.py`）：`on_path` 收路径即 `index = 0` 并重发 `poses[0]`。
+  support 的完整路径下 `poses[0]`＝当前位姿、靠 tick 推进一步，顶层看不出；**FAR 是两点滚动路径且每秒重发**
+  ⇒ 每秒把"去我站的地方"当目标下发给 local，local 反复重开跟踪、输出恒零。证据：`path=32 → local_goal=64`，
+  两个值在 `(0,-3.06)`（＝当时位姿，实测比对 `/v8/local/pose`）与 `(1,0)`（航点）之间严格交替
+  ②修法：新增 `_first_unreached()`（从第一个未到达点起，判据与 `tick` 同一把 `arrive_m`）＋
+  `publish_current` 目标去重（同一坐标不重发）＋全在半径内退回最后一点。单测
+  `tests/test_path_goal_first_unreached.py` 5 项（含两条反控），与既有取消测试合计 **11 项通过**
+  ③端到端复跑（FAR 图＋Gazebo，30 s）：`max_speed=0.0`／`displacement=0.0`／`/v8/bt/arrived` 无消息
+  ⇒ **根因已修但车仍不走**，阻断点下移到 `local`；四项验收（正常导航／障碍安全／定位失效／取消）
+  **全部 INVALID**，不假绿
+  ④★环境硬伤（6 次重跑均栽）★：`docker exec` 不加 `-d` 会随主进程退出清进程组（`setsid nohup &` 也留不住）；
+  镜像默认 `ROS_MASTER_URI=11313` 与我另起的 11311 并存 ⇒ **双 master**，探针与图各连一个；容器只挂载
+  `ws/note/scripts/tooling` 等子目录，仓根文件不同步；`rostopic echo -n1` 无消息时无限等，必须套 `timeout`
+  ⑤新增可复用采集器 `scripts/verify/far_closed_loop_probe.py`（分相位测速度/位移/到达/取消 ACK）
