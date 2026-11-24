@@ -23,6 +23,7 @@ import time
 
 import rospy
 from geometry_msgs.msg import Twist
+from std_msgs.msg import String
 
 STOP_SPEED = 0.02
 
@@ -72,11 +73,12 @@ def main():
             subprocess.call(args.action.split())
             act = args.action
         else:
-            pub = rospy.Publisher('/v8/bt/cancel', __import__('std_msgs.msg', fromlist=['String']).String,
-                                  queue_size=5)
-            rospy.sleep(0.2)
+            pub = rospy.Publisher('/v8/bt/cancel', String, queue_size=5)
+            rospy.sleep(0.3)
             text = '1:all:operator'
-            pub.publish(__import__('std_msgs.msg', fromlist=['String']).String(data=text))
+            pub.publish(String(data=text))
+            rospy.sleep(0.2)
+            pub.publish(String(data=text))
             act = 'cancel ' + text
         print('INJECT at v=%.3f action=%s' % (fire_v, act))
         # 3) 注入后继续观察 hold_s
