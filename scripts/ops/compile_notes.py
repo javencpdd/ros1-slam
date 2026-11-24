@@ -41,7 +41,7 @@ HUMAN_FILES = {
 }
 
 # 源规模期望值：对不上即视为前置缺失（不假绿）
-EXPECT = {'r_docs': 500, 'v7_files': 702, 'sec04': 528, 'plan_dirs': 7}
+EXPECT = {'r_docs': 500, 'v7_files': 702, 'sec04': 529, 'plan_dirs': 7}
 
 SPLIT_THRESHOLD = 120          # 单页批次行数超过此值则按里程碑拆页
 WP_RE = re.compile(r'V8-(\d{2})')
@@ -165,7 +165,7 @@ def build_index(docs: list[dict]) -> dict[str, str]:
           '## 其它入口', '',
           '- [v7 索引](v7-索引.md) — v7 全部 702 件的四类分列与覆盖统计',
           '- [计划书代际对照](../索引/计划书代际对照.md) — 七代计划书各是什么',
-          '- [04 主题速查](../索引/04_配置改动diff_主题速查.md) — 528 段按主题翻',
+          f'- [04 主题速查](../索引/04_配置改动diff_主题速查.md) — {EXPECT["sec04"]} 段按主题翻',
           '', '## 怎么用', '',
           '1. 先按问题选维度：某天 / 某模块 / 某里程碑 / 某工作包。',
           '2. 页里每行都链回原始正文；读数、边界、证据在正文里。',
@@ -378,7 +378,7 @@ def build_theme04() -> dict[str, str]:
     covered = {ln for ln, (_, hits) in assign.items() if hits != ['未命中主题']}
 
     L = head('04 · 配置改动 diff 主题速查',
-             '源件：[04_配置改动diff.md](../04_配置改动diff.md)（528 段，逐段核对一致）。',
+             f'源件：[04_配置改动diff.md](../04_配置改动diff.md)（{EXPECT["sec04"]} 段，逐段核对一致）。',
              '只给「主题 → 段标题 + 行号」，**不改源件一个字节**：源件是 append-only 台账且被 VCC 按 `文件:行号` 引用。')
     listed = len(covered) + (len(secs) - len(covered))
     if listed != EXPECT['sec04']:
