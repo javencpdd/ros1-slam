@@ -48,3 +48,49 @@ python3 cli.py check fixtures/manifests ../configs/lite3/graph_3d_lite3_bt.yaml
 python3 -m unittest test_bt_graph_assembly test_sim_backends
 cd ../verify && python3 -m unittest test_port_conformance
 ```
+
+## 5. 2026-11-24 复核：§1 第一行那个「已就绪」是错的
+
+本节更正上文的判断。**`path_goal` 不是可省的优化，缺了它真机只会走一步。** 未改图，先立据。
+
+证据链（全部离线可复跑，不涉真机）：
+
+1. `lite3_bt` 的 `FollowPath` 是 **`BT::SyncActionNode`**（`bt_console.cpp:472`），`tick` 里
+   `goal_pub.publish(goal)` **只发一次**（`:522`），随后返回 SUCCESS，序列进入 `wait_arrival`。
+2. 真机局部执行 `v8.fw.local_native_raw` 的输入口只有 `goal`，**没有 `path`**
+   （`framework/fixtures/manifests/manifest_local_native_raw.json`），与仿真同源，
+   是**步进式**的：一个 goal 走满 `max_step_m` 就 segment_complete。
+3. 真机配置 `local_native.yaml` 的 `max_step_m: 0.15`、`tick_s: 0.5`。
+4. 于是按同一组件的实测行为推断：**真机每段只走 0.15 m 就停**，BT 还要等 `advance_timeout`
+   或 `retry_max` 才重试，表现为"走走停停、几乎不前进"。
+
+仿真侧已经踩过并修掉了同一个坑：`graph_3d_m1_hdl_bt.yaml` 里加了 `v8.fw.path_goal3d`
+沿全局路径逐点重发，并在该图的 `bt` 段注释里写明原因（"FollowPath 只发一次 ⇒ 车只走 0.30 m"）。
+该修法**可直接搬到真机图**：`manifest_path_goal3d.json` 的 `execution.modes` 含 `real_robot`。
+
+建议改法（**未执行，属真机件，待授权**）：
+
+- 在 `graph_3d_lite3_bt.yaml` 增 `path_goal` 实例（`component: v8.fw.path_goal3d`，
+  `path_topic: /v8/3d/global/path`、`goal_topic: /v8/local/goal`）；
+- 把 `bt.out_goal_topic` 改为 `/v8/bt/out_goal`（与仿真同名，不再直写 local），
+  边改 `global.path → path_goal.path`、`path_goal.goal → local.goal`；
+- 改完必须重跑 `cli.py check`，并要求 digest 变化被记录。
+
+## 6. 2026-11-24 复核：其余口径与今日实测
+
+- `cli.py check .../graph_3d_lite3_bt.yaml` 今日仍 `ok: true`，digest **`e09e2b2e…`**。
+  §1 引的 `c3ad3d01…` 是旧值，图已变更过，引用时以现跑为准。
+- lite3 构建闭包（`scripts/build/target_workspace.py plan --target lite3`）今日 **27 包**：
+  含 `v8_algorithm`／`v8_platform`／`v8_grid`／`lite3_bt`／`lite3_slam`／`faster_lio`／
+  `hdl_localization`／`hdl_global_localization`／`lite3_navigation`／`lite3_safety`／
+  `lite3_supervisor`／`lite3_scan`／`lite3_drivers`／`lite3_bringup`／`v8_ndt_odom`／
+  `message_transformer`／`livox_ros_driver2`／`pipeline` 及 3rd 件。
+  **不在闭包**：`v8_simulation`、`lite3_gazebo_sim`、`elevation_mapping`、`mockamap`、
+  `pcd2grid`、`lite3_description`、`lite3_perception`。
+  `host_only.robot_forbidden=true`（`web`、`subprojects/console`、`data/console` 已由规划器拦）。
+- 建图后的 PCD → 支撑图转换件 `framework/tools/map_from_pcd.py`：依赖 `numpy` 与同目录的
+  `paths`／`gazebo3d_mapping`／`support_map`，**全部在 `v8_platform` 内**（numpy 随 Noetic 自带）
+  ⇒ **在闭包内、可在真机原生跑**，不需要开发机或容器。
+- 仍缺（与 §2 一致，未变）：`hdl_localization.launch` 的 `tf_x/tf_y/tf_z/tf_pitch`
+  四项仍是 `0.0` 占位（`:32—35`），须现场量；真机地图目录 `data/maps/real_lite3_20261103/`
+  被 `.gitignore:13` 排除、且是 11-03 样张，**不等于现行真机地图**。
