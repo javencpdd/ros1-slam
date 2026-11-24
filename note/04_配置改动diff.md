@@ -8579,3 +8579,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ④仍未闭合：`/hdl_odom` 无输出 ⇒ `loc` 无输入 ⇒ `/v8/local/pose` 未发布（探针 `displacement_m=null`、
   `localization=1e+100`）⇒ C1 仍 INVALID。已按 URDF 的仿真安装几何（`xyz=(0,0,0.34)`、`rpy=(0,15°,0)`）
   与 `m1_world_synth_v1.pcd` 起 HDL 一次，仍未出 `/hdl_odom`，需继续查 nodelet/地图加载/收敛
+- ★环境再修一处（同日）★：`env.sh` 追加剔除冗余的 `ws/src` —— `ws/devel` 的 setup 会把它塞进
+  `ROS_PACKAGE_PATH`，而 profile src 是同一批包的符号链接视图，同一包出现两次时 roslaunch 报
+  `multiple files named [hdl_localization.launch] in package [lite3_localization]`（HDL 启动即死在这条）。
+  实测：剔除后 `ROS_PACKAGE_PATH` 只剩 profile src／overlay src／noetic 三项；但 `find_resource` 仍返回
+  两份（属 rospack 侧的重复索引，`rospack profile` 亦不消除）⇒ **启动一律改用全路径**，绕开解析。
+   改用全路径后 HDL 不再报 RLException，但 30 s 内 `/hdl_odom` 仍无输出，需继续查地图加载与收敛

@@ -35,6 +35,21 @@ _far_prepend() {  # 变量名 路径
   export "$var"
 }
 
+# ★先剔除冗余的 ws/src★：ws/devel 的 setup 会把 `ws/src` 也塞进 ROS_PACKAGE_PATH，而 profile src
+# 是同一批包的符号链接视图 ⇒ 同一个包出现两次 ⇒ roslaunch 报
+# `multiple files named [x.launch] in package [y]`（HDL 启动就是这么失败的）。
+_far_strip() {  # 变量名 要剔除的路径
+  local var="$1" drop="$2" out="" p IFS=:
+  for p in ${!var}; do
+    [ "$p" = "$drop" ] && continue
+    out="${out:+$out:}$p"
+  done
+  printf -v "$var" '%s' "$out"
+  export "$var"
+}
+_far_strip ROS_PACKAGE_PATH "$(dirname "$(dirname "$FAR_WS_SRC")")/../src"
+_far_strip ROS_PACKAGE_PATH "/opt/ros1-slam/ws/src"
+
 _far_prepend ROS_PACKAGE_PATH "$FAR_WS_SRC"
 _far_prepend ROS_PACKAGE_PATH "$FAR_OVERLAY_DIR/src"
 _far_prepend CMAKE_PREFIX_PATH "$FAR_WS_DEVEL"
