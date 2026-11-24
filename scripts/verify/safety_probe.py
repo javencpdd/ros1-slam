@@ -33,6 +33,8 @@ class Probe(object):
         self.v_at = None
         self.gt = None
         self.cmd_after = []
+        self.cmd_frames_total = 0
+        self.pending_trigger = None
         self.trigger_at = None
         self.trigger_pose = None
         self.stop_time = None
@@ -40,6 +42,7 @@ class Probe(object):
         self.last_nonzero_at = None
         self.ack = None
         self.t0 = None
+        self.on_speed = 0.0
         rospy.Subscriber('/cmd_vel', Twist, self.on_cmd, queue_size=20)
         rospy.Subscriber('/sim/odom_gt', Odometry, self.on_gt, queue_size=20)
         rospy.Subscriber('/v8/local/cancel_ack', String, self.on_ack, queue_size=10)
@@ -48,6 +51,12 @@ class Probe(object):
         # ★用 wall clock 而不是 rospy.Time★：后者是仿真时间，Gazebo 一暂停 /clock 不走，
         # elapsed 永远为 0，探针在 timeout 边界上死等（实测卡住 160 s 以上不返回）。
         now = time.monotonic()
+        self.cmd_frames_total += 1
+        # ★在回调里直接判定触发★：主循环 50 ms 轮询会漏掉短窗口；这里收到第一帧非零就置位，
+        # 由主循环尽快消费。实测"车走了 0.67 m 但探针从未触发"就是这个窗口被漏掉的表现。
+        if (self.pending_trigger is None and self.on_speed > 0.0
+                and math.hypot(msg.linear.x, msg.linear.y) >= self.on_speed):
+            self.pending_trigger = now
         if self.t0 is None:
             self.t0 = now
         self.v = math.hypot(msg.linear.x, msg.linear.y)
@@ -116,6 +125,7 @@ def main():
 
     rospy.init_node('safety_probe', anonymous=True)
     pr = Probe()
+    pr.on_speed = args.on_speed
     begin = time.monotonic()
     action = None
     speed_at_trigger = None
@@ -126,7 +136,7 @@ def main():
       while not rospy.is_shutdown():
         now = time.monotonic()
         elapsed = now - begin
-        moving = args.on_speed > 0.0 and pr.v >= args.on_speed
+        moving = pr.pending_trigger is not None
         timed = args.on_speed <= 0.0 and elapsed >= args.at
         if action is None and (moving or timed):
             pr.trigger_at = now
@@ -162,6 +172,7 @@ def main():
         'stop_delay_s': None,
         'coast_distance_m': None,
         'cancel_ack': pr.ack,
+        'cmd_frames_total': pr.cmd_frames_total,
         'cmd_frames_after': len(pr.cmd_after),
         'max_speed_after_2s': None,
         'zero_after_trigger': None,
