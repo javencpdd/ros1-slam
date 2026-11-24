@@ -40,8 +40,8 @@
 
 | 当时写法 | 核实真值（原样行文本） | 牵动判定 | 重放命令 |
 |---|---|---|---|
-| `ws/src/95_simulation/mockamap/src/maps.cpp:599`（键名 block） | `:599` = `{`；**`:600`** = `Eigen::MatrixXi sub = maze.block(0, 0, px + 1, py + 1);` | 否——键名与语义均对，仅行号差一 | `sed -n '599,600p' ws/src/95_simulation/mockamap/src/maps.cpp` |
-| `ws/src/95_simulation/config/faster_lio_sim.yaml:29`（键名 mapping.extrinsic_est_en） | `:29` = `extrinsic_T: [0.0, 0.0, 0.0]`；**`:30`** = `extrinsic_est_en: false` | 否——该键的值/注记引用无误 | `sed -n '29,30p' ws/src/95_simulation/config/faster_lio_sim.yaml` |
+| `ws/src/95_simulation/mockamap/src/maps.cpp:599（勘误：实为 subprojects/simulation/ws/src/mockamap/src/maps.cpp:599，95_simulation 已分仓至 subprojects/simulation）`（键名 block） | `:599` = `{`；**`:600`** = `Eigen::MatrixXi sub = maze.block(0, 0, px + 1, py + 1);` | 否——键名与语义均对，仅行号差一 | `sed -n '599,600p' ws/src/95_simulation/mockamap/src/maps.cpp` |
+| `ws/src/95_simulation/config/faster_lio_sim.yaml:29（勘误：实为 subprojects/simulation/ws/src/lite3_gazebo_sim/config/faster_lio_sim.yaml:29，原引用缺 lite3_gazebo_sim 段）`（键名 mapping.extrinsic_est_en） | `:29` = `extrinsic_T: [0.0, 0.0, 0.0]`；**`:30`** = `extrinsic_est_en: false` | 否——该键的值/注记引用无误 | `sed -n '29,30p' ws/src/95_simulation/config/faster_lio_sim.yaml` |
 | 同件 `:37`（键名 preprocess.blind） | `:37` = `preprocess:`；**`:38`** = `blind: 0.2` | 否——同上 | `sed -n '37,38p' ws/src/95_simulation/config/faster_lio_sim.yaml` |
 | 写成 `ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml:12` 带键名 allow_unknown | `:12` = `publish_scale: 100`；**`:8`** = `allow_unknown: false` | 否——坑58③ 已自曝，正解已在册 | `sed -n '8p;12p' ws/src/40_navigation/lite3_navigation/config/global_planner_params.yaml` |
 

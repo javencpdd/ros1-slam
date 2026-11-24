@@ -41,7 +41,7 @@ HUMAN_FILES = {
 }
 
 # 源规模期望值：对不上即视为前置缺失（不假绿）
-EXPECT = {'r_docs': 500, 'v7_files': 702, 'sec04': 529, 'plan_dirs': 7}
+EXPECT = {'r_docs': 500, 'v7_files': 702, 'sec04': 530, 'plan_dirs': 7}
 
 SPLIT_THRESHOLD = 120          # 单页批次行数超过此值则按里程碑拆页
 WP_RE = re.compile(r'V8-(\d{2})')

@@ -14,7 +14,7 @@
 | 项 | 实际值 | 来源 |
 |---|---|---|
 | 仿真实际加载的配置 | **`ws/src/95_simulation/config/faster_lio_sim.yaml`**（不是 `10_slam/lite3_slam/config/faster_lio_outdoor.yaml`） | `95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch`；真机/离线跑才走 C1 那份 |
-| `preprocess/blind` | **0.2**（坑13-R1 差异⑥，与 render `min_raylength 0.3` 同步） | `faster_lio_sim.yaml:38` |
+| `preprocess/blind` | **0.2**（坑13-R1 差异⑥，与 render `min_raylength 0.3` 同步） | `faster_lio_sim.yaml:38（勘误：实为 subprojects/simulation/ws/src/lite3_gazebo_sim/config/faster_lio_sim.yaml:38，原引用缺 lite3_gazebo_sim 段）` |
 | `preprocess/lidar_type` | **2 = VELO32 分支**（sim_adapter 契约；真机 C1 为 4 = C16Handler） | `faster_lio_sim.yaml:39` |
 | `filter_size_surf` | 0.3（当前帧体素降采样叶子） | `faster_lio_sim.yaml:19` |
 | `publish/scan_bodyframe_pub_en` | **true ⇒ `/cloud_registered_body` 已经在发**（pre-voxel、post-preprocess） | `faster_lio_sim.yaml:45`、`faster_lio/src/laser_mapping.cc:263` |
@@ -22,7 +22,7 @@
 ### §1 之**更正**（2026-10-10 01:4x，登记后自查发现；原表不回改，本节向前指向）
 
 **上表第一行错了。** 我按 `faster_lio_sim.yaml` 头部自己的声明（"仿真加载这份"）推断加载关系，**没有去读 launch**；
-实读 `ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch:7`：
+实读 `ws/src/95_simulation/lite3_gazebo_sim/launch/m2_mapping.launch:7（勘误：实为 subprojects/simulation/ws/src/lite3_gazebo_sim/launch/m2_mapping.launch:7，95_simulation 已分仓至 subprojects/simulation）`：
 
     <rosparam command="load" file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
 
@@ -74,7 +74,7 @@
 
 `10_slam/lite3_slam/config/faster_lio_outdoor.yaml:12` 写
 `filter_size_map: 0.3  # fork未使用(c16.yaml注释证实),纯装饰键,回退减误导`——**失实**：该键在 `laser_mapping.cc:514` 与 `:518–520` 被实际使用
-（决定"要不要把点加进地图"的三轴距离判据）。仿真那份 `95_simulation/config/faster_lio_sim.yaml:18` **没有**这句错注释，
+（决定"要不要把点加进地图"的三轴距离判据）。仿真那份 `95_simulation/config/faster_lio_sim.yaml:18（勘误：实为 subprojects/simulation/ws/src/lite3_gazebo_sim/config/faster_lio_sim.yaml:18，原引用缺 lite3_gazebo_sim 段）` **没有**这句错注释，
 只写"与 C1 现值一致"⇒ **错误认知是按值传导的**：当年"回退 `filter_size_surf` 而不提 `filter_size_map`"的判断，
 建立在"它没被用"这句失实注释上。**本档不改注释**（改配置注释属 04 登记项），只登记事实。
 待裁：是否单开一条小批改注释＋复跑隔离自检（零参数值改动）。
