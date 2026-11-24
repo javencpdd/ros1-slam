@@ -1,6 +1,6 @@
 # ros1-slam · 四足机器人 SLAM 与导航
 
-> 最新更新时间：2026-11-23 14:05 CST。**当前基线 v8.1**。本页只回答「现在的系统是什么、怎么跑、怎么验、还没做什么」；历史过程一律走[历史追溯入口](note/历史追溯入口.md)。
+> 最新更新时间：2026-11-24 15:25 CST。**当前基线 v8.1**。本页只回答「现在的系统是什么、怎么跑、怎么验、还没做什么」；想知道**最近做到了哪**直接看 §2，历史过程一律走[历史追溯入口](note/历史追溯入口.md)。
 
 ## 0. 三个入口（先看这里）
 
@@ -17,7 +17,7 @@
 | 仓库结构、两条装配链、单写者与运行边界 | [项目架构与目录](note/架构/项目架构与目录.md) | 本页 §1 只给 30 秒摘要 |
 | 接口（话题/类型/参数/时序） | [运行链路与接口](note/架构/运行链路与接口_2026-11-23.md) + [接口清单 TSV](note/架构/接口清单_2026-11-23.tsv)<br>**人类可读参考**，依据 `7989c859` 时点的源码静态生成 | **实际接口以现行 manifest／graph／launch／配置与源码为准**；该参考未经运行验证，**其中的行为描述不作实测结论**。本页只列入口，不抄表 |
 | 能力状态与验收范围 | [24 号验证与交付方案](note/计划书v8.1/24_验证与交付方案.md) | [v8 能力表](note/进度/v8/README.md) 按运行面索引 |
-| 构建/启动/测试/门禁命令 | [开发维护入口](note/开发维护入口.md) | 本页 §5 只给一行式速查 |
+| 构建/启动/测试/门禁命令 | [开发维护入口](note/开发维护入口.md) | 本页 §6 只给一行式速查 |
 | 真机操作与取消口径 | [10 真机上机Runbook](note/10_真机上机Runbook.md) | — |
 | 工程约束（提交、构建、算法接口） | [工程标准](note/架构/工程标准.md) | — |
 
@@ -76,7 +76,75 @@ flowchart LR
 - **P81-x／V81-xx**：**v8.1** 的阶段组与任务编号（[v8.1 任务队列](note/计划书v8.1/23_v8.1任务队列.md)），沿用 v8 的目录与批次，**不重排里程碑**。
 - 按里程碑找批次：`note/编译/里程碑/M0.md`…`M6.md`（可选工具，自动生成）。
 
-## 2. 现在能做什么（能力与验收状态）
+## 2. 最近进展（2026-11-22 → 11-24）
+
+> 逐轮读数与踩坑记录在 [P4 三维导航仿真验收专题](note/进度/00_专题/v8_map_loc_2026-11-24/README.md)（现行结论见其 §52）；本节只回答「做到哪、结论是什么、去哪看」，不重复维护读数。
+
+### 2.1 这几天在做什么
+
+| 工作流 | 状态 | 一句话结论 | 去哪看 |
+| --- | --- | --- | --- |
+| **三维导航仿真闭环**（P4 四项验收） | **完成（仿真域）** | 正常导航、障碍安全、定位失效、取消安全四项都有机器判定，且四项全 PASS | 专题 §52、`note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261124_031541/` |
+| 障碍包络与动态膨胀 | **完成** | AABB 细化后同一帧投影面积 6.620→1.461 m²（−78%），膨胀后 10.223→7.906 m²（−23%）；受控 L 形从「误判不可通行」翻成可通行；真障碍零放过，三轮实测碰撞 0 次 | 专题 §35 |
+| 局部执行节拍与步长 | **完成** | 车「走走停停」的根因不是 tick 偏高，而是同时收小 `max_step_m` 导致前视不足；定版 `tick_s=0.60` + `max_step_m=0.30`（0.30/0.60 = 0.5 m/s ≤ `max_speed_mps` 0.6） | 专题 §42—§44 |
+| 定位失效 fail-closed | **完成** | 只断 HDL 定位数据：停止延迟 0.658 s、真值滑行 0.109 m、10.42 s 仿真零速，ROS/Gazebo/HDL 全部存活 | 专题 §52.3 |
+| 取消语义贯穿 BT → path_goal → local | **完成** | ACK 后 12.04 s 仿真零速、取消后位移 0.013 m；取消后旧 stamp 路径被拒（代次即任务身份，不是本地计数） | 专题 §52.2 |
+| support / FAR 双后端 | FAR = **INVALID** | 缺上游 overlay 包，不记 PASS/FAIL，也不据此判算法好坏 | 专题 §36 |
+| 仓库瘦身与结构治理 `T-20261123-01` | **blocked（等真人）** | 审计与 S0—S5 已实施，终检与基线一致 | `.ai/HANDOFF.md` |
+
+### 2.2 目前这条 3D 导航运行链
+
+P4 验收跑的就是这条链，节点与连线取自 `ws/src/90_platform/v8_platform/framework/fixtures/graphs/graph_3d_m1_hdl_bt.yaml`：
+
+```mermaid
+flowchart LR
+    R["/rslidar_points"] --> PC["perception<br/>障碍聚类 + AABB 细化"]
+    H["HDL 定位<br/>/hdl_odom"] --> LC["loc<br/>位姿源与新鲜度"]
+    OP["operator<br/>goal · cancel · start"] --> BT["BT<br/>目标与流程的唯一所有者"]
+    MP["support map<br/>/v8_support_map"] --> GL["global<br/>支撑图有界 A*"]
+    BT -->|planner_goal| GL
+    GL -->|path| BT
+    GL -->|path| PG["path_goal<br/>沿全局路径逐点下发"]
+    PG -->|/v8/local/goal| LO["local<br/>3D 局部执行 · 扫掠检查<br/>含速度相关膨胀（只增不减）"]
+    MP --> LO
+    PC -->|obstacles| LO
+    LC -->|/v8/local/pose| BT
+    LC -->|/v8/local/pose| LO
+    LC -->|localization_ok| BT
+    LO -->|/v8/local/cmd_vel_3d| MX["mux3d<br/>/cmd_vel 唯一写者"]
+    MX --> CV["/cmd_vel → 载体"]
+    BT -.->|cancel| LO
+    LO -.->|cancel_ack| BT
+```
+
+四条不变量（读这张图最该抓住的）：
+
+- **单写者**：`/v8/local/pose` 只由 `loc` 写（carrier 的位姿被挪到 `/v8/3d/carrier/pose_raw`，两个写者不撞同一条话题）；`/cmd_vel` 只由 `mux3d` 写。
+- **BT 不写速度**：它只产出目标、取消、状态、租约与停止，速度一律出自局部执行。
+- **逐点下发**：`local_native` 是步进式的（一个 goal 走满 `max_step_m` 就结束），所以由 `path_goal` 沿全局路径逐点重发；否则车只走一步就停。
+- **两条旁路**：定位失效经 `localization_ok` 直连 BT 与 local；取消经 `cancel`/`cancel_ack` 贯穿到 local，都不经过规划器。
+
+### 2.3 四项验收读数（仿真域，2026-11-24）
+
+| # | 判定 | 核心读数 |
+| --- | --- | --- |
+| 1 正常导航 | **PASS** | 真值到点 0.020 m（算法估计 0.057 m），位移 1.066 m，非零运动 811 帧 |
+| 2 障碍安全 | **PASS** | A / A2 / B / C / D 五场景全过（含实测点云帧），反控 rc=1 生效，碰撞 0 次 |
+| 3 定位失效 | **PASS** | 停止延迟 0.658 s、滑行 0.109 m、10.42 s 仿真零速、9/9 节点存活 |
+| 4 取消安全 | **PASS** | 末条非零命令 0.734 s 内归零、12.04 s 仿真零速（1326 帧全 0）、位移 0.013 m、重放被拒 |
+
+一键复跑：`bash scripts/verify/p4_regression.sh`（四项一次跑完，末行给机器判定）；只重判不重跑：`python3 scripts/verify/p4_judge.py --root <证据目录>`。
+
+**边界（别外推）**：这四项是**仿真域**的专项验收。它**不改**下一节 A2 = PASS\*（窄域）与 A1/A3—A7 = PARTIAL 的判定，也不改变 formal 未签与真机禁令；FAR 仍 INVALID、VCC 历史 RED 仍 39 条。仿真闭环 PASS ≠ 四足物理验收，更 ≠ 真机能力。
+
+### 2.4 复现时最容易踩的四个坑
+
+- **先查目标可达**，再查探针。`python3 scripts/verify/free_space_width.py` 一条命令就能回答；把目标发进障碍里会表现为「车不动」，最容易误判成探针或时序问题。
+- **搬车之后要核实**。`teleport` 会被上一轮残留的编排覆盖（它继续把车开回旧目标），而 HDL 已在起点初始化 ⇒ 位姿与真值错位，「已到达」判定全歪。
+- **`/v8/local/pose` 与真值有约 0.24 m 固定偏置**（map 与 odom 的配准差）。目标近于 0.65 m 时会被判成已到达，验收路线要留 1.3 m 以上。
+- **`rosbag` 的 duration 按仿真时间统计**（rtf 约 0.46）。判据要么显式按仿真时间写，要么别用 rosbag 采样。
+
+## 3. 现在能做什么（能力与验收状态）
 
 **A2 = PASS\*（窄域）；A1/A3/A4/A5/A6/A7 = PARTIAL；formal 与真机尚未签署（#151 两键 pending）。**
 
@@ -86,7 +154,7 @@ flowchart LR
 
 > 仿真 GT 建图、声明地图、单策略结果、运动学载体都只适用于记录中的范围，**不等于**四足物理验收或真机能力。
 
-## 3. support / FAR 双后端：怎么工作、怎么切
+## 4. support / FAR 双后端：怎么工作、怎么切
 
 | | support（默认） | far |
 | --- | --- | --- |
@@ -103,7 +171,7 @@ roslaunch lite3_bringup mode_sim_bt.launch global_backend:=far arrival_topic:=/v
 
 设计与验收：[改造清单](note/架构/双后端可替换改造清单_2026-11-22.md)、[验证记录](note/架构/双后端可替换_验证记录_2026-11-22.md)、[前置条件确认单](note/架构/双后端可替换_前置条件确认单_2026-11-22.md)。
 
-## 4. 从哪起手：launch / graph / manifest / 配置
+## 5. 从哪起手：launch / graph / manifest / 配置
 
 | 类型 | 位置 | 典型文件 | 干什么 |
 | --- | --- | --- | --- |
@@ -113,7 +181,7 @@ roslaunch lite3_bringup mode_sim_bt.launch global_backend:=far arrival_topic:=/v
 | 配置 | `ws/src/90_platform/v8_platform/configs/lite3/`、各包 `config/` | `local_native.yaml`、`graph_3d_lite3.yaml` | 阈值、话题名、后端选择 |
 | app（一键跑） | `framework/fixtures/apps/` | `nist_sensor_3d.yaml` | `app_runner --app` 的入口 |
 
-## 5. 构建、启动、测试、验证
+## 6. 构建、启动、测试、验证
 
 | 目的 | 命令 | 期望 |
 | --- | --- | --- |
@@ -125,10 +193,13 @@ roslaunch lite3_bringup mode_sim_bt.launch global_backend:=far arrival_topic:=/v
 | 单测 | `python3 scripts/dev/dev.py test` | v8_platform 344 项 OK |
 | 正式门禁 | `python3 scripts/dev/dev.py gate` | 11 成员逐项 rc |
 | 文档一致性 | `python3 scripts/dev/dev.py docs --check`、`… lint` | 均为 0 |
+| **四项仿真验收（P4）** | `bash scripts/verify/p4_regression.sh` | 正常导航/障碍/定位失效/取消，末行给机器判定，rc=0 即四项全过 |
+| 只重判、不重跑 | `python3 scripts/verify/p4_judge.py --root <证据目录>` | 打印四项 PASS/FAIL/INVALID；任一项未过即非零退出 |
+| 目标点是否可达（先查这个） | `python3 scripts/verify/free_space_width.py --pcd <pcd> --start x,y --mask-map <map.json>` | 净宽与可达性；目标落在障碍里会表现为「车不动」 |
 
 一键入口是 `scripts/dev/dev.py`（`status|build|test|gate|smoke|docs|lint`），详见[开发维护入口](note/开发维护入口.md)。
 
-## 6. 还没做什么、已知限制
+## 7. 还没做什么、已知限制
 
 | 项 | 状态 | 权威位置 |
 | --- | --- | --- |
@@ -139,7 +210,7 @@ roslaunch lite3_bringup mode_sim_bt.launch global_backend:=far arrival_topic:=/v
 | 结构性欠款 | 见技术债台账 | [08 技术债](note/08_技术债台账.md) |
 | 当前在办任务 | 以 `.ai` 任务卡为准 | `python3 .ai/bridge.py ls`、[23 号队列](note/计划书v8.1/23_v8.1任务队列.md) |
 
-## 7. 仓库结构与约定
+## 8. 仓库结构与约定
 
 ```
 ws/                 主 catkin 工作区（算法/平台/驱动/导航/安全）
@@ -155,13 +226,14 @@ data/  docker/  tooling/  scripts/  docs/  web/
 - **真机运动**仍需单项授权，本文不授权启动硬件。
 - **工程约束真源**：[工程标准](note/架构/工程标准.md)（提交纪律、目标构建、算法接口标准）。规范统一不等于能力已实现。
 
-## 8. 新读者六问自检
+## 9. 新读者自检（七问）
 
 | 问题 | 答案在哪 |
 | --- | --- |
+| **最近做到了哪？** | §2（进展表 + 现行 3D 导航运行链 + 四项仿真验收读数） |
 | 当前架构？ | §1 本页 + [项目架构与目录](note/架构/项目架构与目录.md) |
 | 哪些文件现行、哪些退役？ | §0 三入口；退役件在[历史追溯入口](note/历史追溯入口.md)标「冻结」 |
-| 各 ROS 组件的代码与配置？ | §4 四类入口表 + [运行链路与接口](note/架构/运行链路与接口_2026-11-23.md) |
-| 怎么构建与测试？ | §5 + [开发维护入口](note/开发维护入口.md) |
-| 哪些能力还没验证？ | §6 |
+| 各 ROS 组件的代码与配置？ | §5 四类入口表 + [运行链路与接口](note/架构/运行链路与接口_2026-11-23.md) |
+| 怎么构建与测试？ | §6 + [开发维护入口](note/开发维护入口.md) |
+| 哪些能力还没验证？ | §7 |
 | 不看 v7 能开发吗？ | 能。日常只需本页 + 架构 + 开发维护三处 |
