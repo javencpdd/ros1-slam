@@ -1851,3 +1851,49 @@ rosbag record /cmd_vel /hdl_odom /sim/odom_gt /v8/local/status -O stop.bag
 
 同时**不能再用 `rosnode kill /hdl_gate`**（会关栈）—— 应改为 `nodelet unload` 或直接
 `rosbag play` 假定位源（后者最干净：录像时用假源，随时可停）。
+
+### 44.16 闭环触发 + 录包：仍然失败，问题在测量装置
+
+按 §44.15 的方案做了闭环触发（`trigger_on_motion.py`：`/cmd_vel` 首帧非零即注入），
+配合 rosbag 全程录制。结果：
+
+| 环节 | 现象 |
+| --- | --- |
+| 触发脚本 | 未产出 `trigger.txt`（35 s 超时分支，说明它也没看到非零帧） |
+| `rec.bag.active` | 318 KB，但离线读取 `cmd=0 hdl=0 gt=0` —— **bag 里没有任何消息** |
+| 原因 | `kill -INT $BAGPID` 杀的是 `setsid` 的包装进程，rosbag 未收到 SIGINT、未 flush |
+
+**至此五种测量方案全部失败**：
+
+| # | 方案 | 失败原因 |
+| --- | --- | --- |
+| 1 | 固定 `--at` 探针 | 1.2 s 太早（车未起步）、45 s 太晚（车已停） |
+| 2 | `--on-speed` 轮询 | 同上，且轮询窗口漏判 |
+| 3 | 回调内触发 | 未产出读数 |
+| 4 | `rosbag record` + `pkill` 收尾 | `pkill` 匹配自身，bag 未关闭 |
+| 5 | `rosbag record` + `setsid` + `kill -INT` | 杀错 pid，bag 无消息 |
+
+**共同点是"进程管理与收尾"**，不是被测系统的行为。
+
+### 44.17 最终判定（如实）
+
+| # | 判定 | 依据 |
+| --- | --- | --- |
+| 1 正常导航 | **PASS** | `nav_t6_235716`：真值到达 **0.0339 m**、位移 0.6114 m、位姿一致 |
+| 2 障碍安全 | **PASS** | `collision_205409/regression.json`：5 场景 PASS + 反控 rc=1 |
+| 3 定位失效 | **INVALID** | 五种测量方案均未取得有效读数 |
+| 4 取消 | **INVALID**（当前配置） | 仅旧配置（tick 1.2）有 PASS 读数 |
+
+**INVALID 的含义必须说清**：它表示**没有可信读数**，既不表示系统做对了，也不表示做错了。
+已确认成立的部分：注入手段本身有效（`alive_has_mgr/gazebo/hdl` 全 true、9 节点在）、
+门控在旧配置下确实会归零（tick 1.2 时实测过 0.032 s / 0.125 m）。
+
+### 44.18 若继续，应当先修测量装置而不是调系统
+
+下一步不该再动 `tick` / `min_points` 这类系统参数，而应：
+
+1. 把"录制 + 注入 + 收尾"写成一个**单进程脚本**，由它自己持有 rosbag 子进程句柄，
+   用 `proc.send_signal(SIGINT)` + `proc.wait()` 保证 flush（不要再用 `setsid`/`pkill`/`$!` 混用）；
+2. 注入动作也放在同一脚本里，用 `rospy` 订阅 `/cmd_vel` 闭环触发；
+3. 录完先 `rosbag reindex`，再用 `allow_unindexed=True` 读；
+4. 只有在拿到 `cmd` 非零帧数 > 0 的 bag 之后，才谈第 3、4 项的判定。
