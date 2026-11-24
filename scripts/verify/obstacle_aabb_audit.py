@@ -141,6 +141,8 @@ def main():
                     help='1.0=一个连通分量一个 AABB（历史行为）；0.45 启用递归二分')
     ap.add_argument('--min-extent', type=float, default=0.45)
     ap.add_argument('--max-depth', type=int, default=4)
+    ap.add_argument('--min-points', type=int, default=8,
+                    help='簇的最小点数；提高可滤掉点云噪声形成的小簇（实测拐点 16）')
     ap.add_argument('--save-npy', default='', help='把这一帧点云存下来，便于同一帧做前后对比')
     args = ap.parse_args()
 
@@ -148,6 +150,7 @@ def main():
     params['min_fill'] = args.min_fill
     params['min_extent_m'] = args.min_extent
     params['max_depth'] = args.max_depth
+    params['min_points'] = args.min_points
     if args.npy:
         points = np.load(args.npy)
         center_xy = [float(v) for v in args.center.split(',')][:2] if args.center else [0.0, 0.0]
