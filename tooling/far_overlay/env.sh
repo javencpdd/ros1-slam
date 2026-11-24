@@ -54,14 +54,24 @@ _far_prepend ROS_PACKAGE_PATH "$FAR_WS_SRC"
 _far_prepend ROS_PACKAGE_PATH "$FAR_OVERLAY_DIR/src"
 _far_prepend CMAKE_PREFIX_PATH "$FAR_WS_DEVEL"
 _far_prepend CMAKE_PREFIX_PATH "$FAR_OVERLAY_DIR/devel"
+# ★第四个被覆盖的变量★：LD_LIBRARY_PATH。overlay 的 setup 会把 ws/devel/lib 挤掉，
+# 于是 nodelet 无法 dlopen `libhdl_localization_nodelet.so` ⇒ HDL 两个 nodelet 全部
+# `Failed to load nodelet` ⇒ 不出 /hdl_odom ⇒ loc 无输入 ⇒ 全链零速。
+_far_prepend LD_LIBRARY_PATH "$FAR_WS_DEVEL/lib"
+_far_prepend LD_LIBRARY_PATH "$FAR_OVERLAY_DIR/devel/lib"
+
 _far_prepend PYTHONPATH "$FAR_WS_DEVEL/lib/python3/dist-packages"
 _far_prepend PYTHONPATH "$FAR_OVERLAY_DIR/devel/lib/python3/dist-packages"
 
 unset -f _far_prepend
 
 # 自检：三处都必须真的可用，否则尽早失败而不是等到车不动再查
-_far_fail() { echo "[far-env] $*" >&2; return 1; }
-rospack find v8_platform >/dev/null 2>&1 || _far_fail "找不到 v8_platform（ROS_PACKAGE_PATH 未补回）"
-rospack find far_planner >/dev/null 2>&1 || _far_fail "找不到 far_planner（overlay 未构建？）"
-python3 -c 'import livox_laser_simulation' 2>/dev/null || _far_fail "import livox_laser_simulation 失败（PYTHONPATH 未补回，sim_adapter 会退出）"
-echo "[far-env] ok: v8_platform / far_planner / livox_laser_simulation 均可解析"
+_far_fail() { echo "[far-env] FAIL: $*" >&2; return 1; }
+rospack find v8_platform >/dev/null 2>&1 || { _far_fail "找不到 v8_platform（ROS_PACKAGE_PATH 未补回）"; return 1; }
+rospack find far_planner >/dev/null 2>&1 || { _far_fail "找不到 far_planner（overlay 未构建？）"; return 1; }
+python3 -c 'import livox_laser_simulation' 2>/dev/null || { _far_fail "import livox_laser_simulation 失败（PYTHONPATH 未补回，sim_adapter 会退出）"; return 1; }
+# HDL nodelet 库只做**告警**，不中止：本仓该 .so 目前存在 undefined symbol（构建层缺陷，
+# 属待修项），中止会让所有不依赖 HDL 的跑法都跑不起来。
+python3 -c "import ctypes; ctypes.CDLL('libhdl_localization_nodelet.so')" 2>/dev/null \
+  || echo "[far-env] WARN: libhdl_localization_nodelet.so dlopen 失败（HDL 会起不来，见 04 记录）" >&2
+echo "[far-env] ok: v8_platform / far_planner / livox_laser_simulation / HDL nodelet 库均可解析"

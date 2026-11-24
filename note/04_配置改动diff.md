@@ -8585,3 +8585,19 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   实测：剔除后 `ROS_PACKAGE_PATH` 只剩 profile src／overlay src／noetic 三项；但 `find_resource` 仍返回
   两份（属 rospack 侧的重复索引，`rospack profile` 亦不消除）⇒ **启动一律改用全路径**，绕开解析。
    改用全路径后 HDL 不再报 RLException，但 30 s 内 `/hdl_odom` 仍无输出，需继续查地图加载与收敛
+- ★导航链续查（同日）：又挖出四处，逐层往下，全部有实测依据★
+  ⑤`lite3_localization/scripts/hdl_status_adapter.py` 的 git mode 是 **100644（无执行位）**，
+  而 `roslib.find_node` 的过滤器要求可执行 ⇒ roslaunch 报
+  `cannot launch node of type [lite3_localization/hdl_status_adapter.py]`。已改 100755（含 shebang）。
+  ★这正是"入口不可复现"的一个真实样本★：`v8_platform` 的 `run_*.py` 都是 100755 所以能解析，
+  唯独这一件是 644；而 `v8_platform/CMakeLists.txt:14` 的注释提到 `catkin_install_python` 但全文件
+  **无 `install()` 调用**（注释与实现不符，属文档/构建漂移，留待结构整治批处理）
+  ⑥`m1_gazebo.launch` 给 sim_adapter 传了 `--no-imu`，其注释假设"`/livox/imu` 由 Gazebo IMU 插件直发"，
+  但实测该话题**不存在**（`rostopic list` 只有空订阅 `/imu/data`）⇒ HDL 收不到 IMU。已去掉 `--no-imu`
+  （由适配器合成 `/livox/imu` 200 Hz），HDL 以 `imu_topic:=/livox/imu` 对齐
+  ⑦★第四个被 overlay 覆盖的变量：`LD_LIBRARY_PATH`★。覆盖后 `ws/devel/lib` 掉落 ⇒ nodelet 无法
+  `dlopen` 插件库 ⇒ `Failed to load nodelet 'hdl_localization/GlobalmapServerNodelet'`。已在 `env.sh`
+  补回 ws/devel/lib 与 overlay/devel/lib
+  ⑧★构建层缺陷（未修，需重编）★：即使路径补齐，`ctypes.CDLL('libhdl_localization_nodelet.so')`
+  仍报 `undefined symbol: _Z`（`ldd` 无 not found）⇒ 该 `.so` 链接不完整/ABI 不匹配，nodelet 永远加载不了。
+  这是 HDL 不出 `/hdl_odom` 的当前最后一环；处置应重编 `hdl_localization`，本轮未做
