@@ -59,6 +59,9 @@ run_one() { # 代号 件路径 rc语义
     DC)    ( cd "$ROOT" && DC_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
     账构)  ( cd "$ROOT" && VLB_ROOT="$ROOT" bash "$path" ) > "$out" 2>&1 ;;
     规矩⑨) ( cd "$ROOT" && python3 "$path" ) > "$out" 2>&1 ;;
+    # ★2026-11-24 追加（真人批准接入第 12 件）★：REALGATE 是 .py，`*)` 兜底用 bash 会语法错，故显式 python3 直跑。
+    #   只加跑法、不改任何件的 rc 语义；件只报不判。
+    REALGATE) ( cd "$ROOT" && REALGATE_ROOT="$ROOT" python3 "$path" ) > "$out" 2>&1 ;;
     *)     ( cd "$ROOT" && bash "$path" ) > "$out" 2>&1 ;;
   esac
   rc=$?

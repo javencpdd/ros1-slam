@@ -8423,3 +8423,26 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   转全绿（其中 10 个 error 经查是当轮没 source ROS 环境的假红，已在带环境口径下复核）
 - 未做：四个外参的具体数值；`quality_min` 的真实下限（现为 0.0＝只要求"存在且新鲜"）；
   把 TF 门禁与定位健康接进门禁串（改 `gate_chain.txt` 需主理人裁定，施工侧不自改）
+- ★本轮（真人批准接入 gate_chain 后）追加★：TF/阈值门禁由"只报"升级为**真拦在启动链**。
+  新增 `framework/nodes/real_preflight_guard.py`（未标定或 `quality_min==0.0` ⇒ `sys.exit(1)`），
+  在 `mode_navigation.launch` 里带 `required="true"`——roslaunch 见 required 节点退出即带走整窗；
+  `require_calibrated` 绑 `enable_motion`，所以只有会动的入口才阻断，建图与定位干跑只告警
+  （标定数据本身要在真机上采，把采数入口一起堵死就成了死结）。它还**读真实 TF**判断是否恒等，
+  因为驱动侧那条恒等 TF 写死在第三方 launch 里、配置文件里没有这个字段
+- 新增 `framework/nodes/loc_motion_gate_node.py` + `common/real_gate.py` 的 `MotionGate`：
+  收敛/质量/新鲜度/跳变任一异常 ⇒ 往 BT 取消入口发 `seq:scope:reason` 立即清队。
+  ★为什么不靠 BT 自带的 `CheckLocalization`★：它只返回 FAILURE，而 `recovery_mode=skip`
+  与 `retry_max>=1` 会把失败目标重新排队 ⇒ 定位一恢复就自动接着跑旧任务。本闸在异常当刻
+  发取消，且恢复后**不发任何目标**，旧任务只能由操作者用新目标重新下达
+- 门禁串第 12 件：`gate_chain.txt` 增 `REALGATE`（真人当轮明令批准），运行器补一条
+  `python3` 直跑分支（`*)` 兜底是 `bash`，跑 .py 会语法错）；**只报不判**——未标定是当前
+  真机常态，做成拦性成员会让串永久红，真机侧的拦在启动链不在提交链。成员 11→12，前 11 件一字未动
+- 组合件 `scripts/verify/v_real_migration_gate.py`：TF 唯一直且非恒等 ＋ 标定记录在位且字段全
+  ＋ 图与 launch 两处 `quality_min` 都已确值，三条合取。现跑 **0/3，rc=5**（期望态）
+- 新增用例：进程级阻断 7 项（`test_real_preflight_blocking.py`：未标定必须非零退出、只告警档
+  必须不退出、达标必须常驻；另加 4 条 launch 静态断言含"仿真入口不含真机闸"）、
+  `real_gate` 17 项、组合件 8 项
+- 未做/待真人：G8 实测的四个外参与 `quality_min` 真实下限（现值仍是 0.0 占位，门禁因此 0/3）；
+  3D 图路径的启动侧接线（`E_GRAPH_INPUT_DUP` 不允许同一输入既有 external 又有实例边，
+  故本闸按 launch 起、与 operator 共用 `/v8/bt/cancel`；3D 路径若不经 `mode_navigation`
+  启动，需显式起该节点，命令见任务卡）

@@ -22,7 +22,10 @@
        N-4 联动注记（主理人裁决，04 台账）：顶层 rviz arg 仅透传给声明了该 arg 的
        60_safety.launch；90_supervisor.launch 死 rviz arg 已清理，SUP include 不透传。
        ══════════════════════════════════════════════════════════════════════════════ -->
-  <arg name="rviz" default="false"/>  <!-- C10：rviz 默认关闭（SSH 无 X）；仅透传给声明了该 arg 的子 launch -->
+  <arg name="rviz" default="false"/>
+  <!-- 本入口只做定位、不发布速度 ⇒ 前置闸只告警不阻断（require_calibrated:=false） -->
+  <arg name="extrinsic_attestation" default="data/calib/rslidar_extrinsic.json"/>
+  <arg name="quality_min" default="0.0"/>  <!-- C10：rviz 默认关闭（SSH 无 X）；仅透传给声明了该 arg 的子 launch -->
   <!-- SUP 最先起（v4 §12 铁律/N5；mode 逐字 = health_watch.yaml#modes 键名；N-4 后 SUP 不再
        声明 rviz arg，本 include 不透传——roslaunch 未声明 arg 传参必报错） -->
   <include file="$(find lite3_supervisor)/launch/90_supervisor.launch">
@@ -36,6 +39,17 @@
   <include file="$(find lite3_localization)/launch/hdl_localization.launch">
     <arg name="publish_extrinsic" value="false"/>
   </include>
+
+  <!-- 前置闸（只告警）：本入口不发布速度，require_calibrated:=false，
+       标定数据与内点下限未定时允许干跑；但日志会一直报缺什么。 -->
+  <node pkg="v8_platform" type="real_preflight_guard.py" name="v8_real_preflight_guard"
+        output="screen">
+    <param name="extrinsic_attestation" value="$(arg extrinsic_attestation)"/>
+    <param name="quality_min" value="$(arg quality_min)"/>
+    <param name="require_calibrated" value="false"/>
+    <param name="check_tf" value="false"/>
+    <param name="repo_root" value="$(optenv ROS1_SLAM_ROOT /opt/ros1-slam)"/>
+  </node>
   <!-- M6：安全 mux（底盘速度唯一写者，§2.6-a；liveness_m6 心跳在其内） -->
   <include file="$(find lite3_safety)/launch/60_safety.launch">
     <arg name="rviz" value="$(arg rviz)"/>

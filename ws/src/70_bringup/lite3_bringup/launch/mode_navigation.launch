@@ -34,6 +34,13 @@
        bt_console.launch 会 fail-closed，不会静默回落到 demo 话题。
        桌面验证可显式传 bt_profile:=demo。 -->
   <arg name="enable_bt" default="false"/>
+  <!-- 真机启动前置闸（2026-11-24）：外参未标定、或 quality_min 仍是 0.0 占位 ⇒
+       本节点非零退出，launch 里 marked required ⇒ 整窗被 roslaunch 带走。
+       ★require_calibrated 绑 enable_motion★：只有会动的入口才阻断；建图与定位干跑
+       只告警（标定数据本身要在真机上采，把采数入口也堵死就成了死结）。 -->
+  <arg name="extrinsic_attestation" default="data/calib/rslidar_extrinsic.json"/>
+  <arg name="quality_min" default="0.0"/>
+  <arg name="allow_uncalibrated" default="false"/>
   <arg name="bt_profile" default="real"/>
 
   <!-- SUP 最先起（v4 §12 铁律/N5；mode 名与 health_watch.yaml#modes 键名逐字一致） -->
@@ -51,6 +58,29 @@
   <include file="$(find lite3_localization)/launch/hdl_localization.launch">
     <arg name="publish_extrinsic" value="false"/>
   </include>
+
+  <!-- ★真机启动前置闸（2026-11-24）★：required="true" 是它与"只打警告"的分水岭——
+       本节点判定未标定/阈值占位时 sys.exit(1)，roslaunch 见到 required 节点退出即
+       带走整个 launch。require_calibrated 绑 enable_motion：只有会动的入口才阻断。 -->
+  <node pkg="v8_platform" type="real_preflight_guard.py" name="v8_real_preflight_guard"
+        required="true" output="screen">
+    <param name="extrinsic_attestation" value="$(arg extrinsic_attestation)"/>
+    <param name="quality_min" value="$(arg quality_min)"/>
+    <param name="allow_uncalibrated" value="$(arg allow_uncalibrated)"/>
+    <param name="require_calibrated" value="$(arg enable_motion)"/>
+    <param name="repo_root" value="$(optenv ROS1_SLAM_ROOT /opt/ros1-slam)"/>
+  </node>
+
+  <!-- ★定位运动门控（2026-11-24）★：收敛/质量/新鲜度/跳变任一异常 ⇒ 往 BT 取消入口
+       发 seq:scope:reason 中止任务；恢复后不发任何目标（旧任务不得自动重启）。
+       注：BT 的 cancel 输入在 v8 图里登记为 external（operator），本节点是第二个发布者，
+       同一条话题在 ROS 层允许多发布者；图侧不登记它，故不触 E_GRAPH_INPUT_DUP。 -->
+  <node pkg="v8_platform" type="loc_motion_gate_node.py" name="v8_loc_motion_gate" output="screen">
+    <param name="localization_topic" value="/v8/local/localization_ok"/>
+    <param name="carrier_status_topic" value="/v8/3d/carrier/status"/>
+    <param name="cancel_topic" value="/v8/bt/cancel"/>
+    <param name="republish_s" value="2.0"/>
+  </node>
 
   <!-- M6：安全仲裁（最终速度通道唯一写者；liveness_m6 心跳在其内） -->
   <include file="$(find lite3_safety)/launch/60_safety.launch">
