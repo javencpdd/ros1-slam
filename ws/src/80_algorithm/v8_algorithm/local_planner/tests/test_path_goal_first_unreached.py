@@ -81,12 +81,43 @@ class FirstUnreachedTest(unittest.TestCase):
         o.accepted_generation = 1
         o.goal_pub, o.status_pub = MagicMock(), MagicMock()
         o.published_at = None
-        o.last_goal_xyz = None
+        o.last_goal_key = None
         o.rejected_stale = 0
         pg.rospy.Time.now.return_value = MagicMock()
         o.publish_current()
         o.publish_current()
         self.assertEqual(1, o.goal_pub.publish.call_count, '同一目标被重复下发')
+
+    def test_same_xyz_next_index_steps_continuously(self):
+        """反控：坐标相同但 index 前进（路径里连续同点）必须再发，否则同航点无法步进。"""
+        o = _obj([_pose(1.0, 0.0), _pose(1.0, 0.0)], _robot(0.0, 0.0))
+        o.accepted_generation = 1
+        o.goal_pub, o.status_pub = MagicMock(), MagicMock()
+        o.published_at = None
+        o.last_goal_key = None
+        o.rejected_stale = 0
+        pg.rospy.Time.now.return_value = MagicMock()
+        o.index = 0
+        o.publish_current()
+        o.index = 1
+        o.publish_current()
+        self.assertEqual(2, o.goal_pub.publish.call_count, '同坐标步进被去重吃掉')
+
+    def test_after_cancel_same_xyz_publishes_again(self):
+        """反控：取消后同坐标的新任务必须能下发（去重键要随取消清空）。"""
+        o = _obj([_pose(1.0, 0.0)], _robot(0.0, 0.0))
+        o.accepted_generation = 1
+        o.goal_pub, o.status_pub = MagicMock(), MagicMock()
+        o.published_at = None
+        o.last_goal_key = None
+        o.rejected_stale = 0
+        pg.rospy.Time.now.return_value = MagicMock()
+        o.index = 0
+        o.publish_current()
+        # 模拟 on_cancel 的关键副作用（其余字段与本测无关）
+        o.last_goal_key = None
+        o.publish_current()
+        self.assertEqual(2, o.goal_pub.publish.call_count, '取消后同坐标任务被去重吃掉')
 
 
 if __name__ == '__main__':

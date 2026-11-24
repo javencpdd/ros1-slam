@@ -8504,3 +8504,19 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   镜像默认 `ROS_MASTER_URI=11313` 与我另起的 11311 并存 ⇒ **双 master**，探针与图各连一个；容器只挂载
   `ws/note/scripts/tooling` 等子目录，仓根文件不同步；`rostopic echo -n1` 无消息时无限等，必须套 `timeout`
   ⑤新增可复用采集器 `scripts/verify/far_closed_loop_probe.py`（分相位测速度/位移/到达/取消 ACK）
+- ★本轮三续（核验 f00918a3 后）★：按要求"先查装配差异、不动 local_native 算法"。新增对照图
+  `framework/fixtures/graphs/graph_3d_m1_hdl_bt_far.yaml`——M1 图原样保留（M1 地图／HDL 定位／
+  `perception`／`local`／`mux3d`／单载体），**只把 `global` 换成 `v8.fw.global_far`**，去掉
+  `map.map→global.map`（FAR 不吃 2D 地图），`global.cloud` 按 external 声明；check ok，digest `965ddcf9…`
+  ①装配差异定位：旧 FAR 图缺 `perception`(dynamic_obstacles)、缺 `loc`(localization_source)、
+  缺 `local.require_goal_seq`；其中 `perception.obstacles→local.obstacles` 是与"能跑"的关键差
+  ②拒动码（实测）：`/v8/local/status` 为 `{"localization":0.008,"obstacles_cb":0,"max_age":0.7}`
+  ⇒ **local 一条障碍消息都没收到**，对障碍 fail-closed ⇒ 恒零速。`/v8/local/obstacles` 发布者
+  `/v8/3d/perception/perception` 存在，但 `rostopic hz` 6 s 内 `no new messages`。
+  本轮**未修**该实现点（先查清再说），也未动 local_native 算法
+  ③path_goal 去重边界三修：键由"仅坐标"改为 `(index, 坐标)` 且取消时清空 ⇒ 滚动重发不发／
+  同坐标换 index 必须发（同航点可步进）／取消后同坐标新任务必须发／旧 stamp 仍拒重放。
+  新增 3 项反控，`local_planner` 全量 **181 项 OK**，框架 **345 项 OK**
+  ④四项验收（真实到达／障碍安全／定位失效／运动中取消）**仍全部 INVALID**，阻断点同一：
+  障碍心跳缺失；不假绿。定位失效的数据源隔离方案（停 `loc` 唯一发布者，不另发竞争性
+  `localization_ok`）已写入 §7.5，留下一轮执行

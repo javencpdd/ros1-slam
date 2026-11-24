@@ -73,7 +73,7 @@ class PathGoal(object):
         self.rejected_stale = 0
         self.last_reject_reason = None
         # 上一次真正发出去的局部目标（用于抑制重复下发；见 publish_current 的注释）
-        self.last_goal_xyz = None
+        self.last_goal_key = None   # (index, xyz)：见 publish_current 的去重边界
 
         rospy.Subscriber(self.path_topic, Path, self.on_path, queue_size=10)
         rospy.Subscriber(self.pose_topic, PoseStamped, self.on_pose, queue_size=10)
@@ -89,6 +89,7 @@ class PathGoal(object):
         self.cancelled_at = rospy.Time.now()
         self.poses = []
         self.index = 0
+        self.last_goal_key = None      # 取消后同坐标的新任务不得被去重吃掉
         self.published_at = None
         self.status_pub.publish(String(data=json.dumps({
             'ok': True, 'cancelled': True, 'dropped_poses': dropped,
@@ -147,11 +148,14 @@ class PathGoal(object):
         goal = make_goal(self.poses[self.index], self.accepted_generation)
         xyz = (round(goal.pose.position.x, 6), round(goal.pose.position.y, 6),
                round(goal.pose.position.z, 6))
-        if xyz == self.last_goal_xyz:
-            # 目标没变就别再发：local 每收到一条新目标会重开跟踪代次，
-            # 每秒重发同一个点会让它反复重启、看起来"拒动"。
+        # ★去重边界（2026-11-25 三修）★：键必须含 index，不能只看坐标——
+        #   ①同一 index 且坐标未变（滚动路径每秒重发）⇒ 不发，避免 local 反复重开跟踪；
+        #   ②index 前进但坐标恰好相同（路径里连续同点）⇒ 必须发，否则"同航点无法连续步进"；
+        #   ③取消时把键清空（见 on_cancel）⇒ 取消后同坐标的新任务照样能下发。
+        key = (self.index, xyz)
+        if key == self.last_goal_key:
             return
-        self.last_goal_xyz = xyz
+        self.last_goal_key = key
         self.goal_pub.publish(goal)
         self.published_at = rospy.Time.now()
         rest = self.remaining()
