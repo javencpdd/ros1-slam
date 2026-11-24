@@ -1,0 +1,66 @@
+# 组件 ID 清单（独立工件，用于双向完整性守卫）
+#
+# 为什么单独成文件：契约测试原先写 `assertEqual(len(glob(...)), 53)` —— 那是拿文件系统的
+# 枚举结果跟一个手写总数比，新增/删件只能靠人肉追平，已复发过两次（52→53、53→54）。
+# 但"把总数改成从 glob 派生"更糟：自己跟自己比，删件也绿。这里改成**独立清单**：
+#   清单有、磁盘没有 ⇒ 缺件，红；
+#   磁盘有、清单没有 ⇒ 未登记的新件，红；
+#   同一 id 出现两次 ⇒ 重复，红。
+# 新增组件时必须同时：改本清单 + 加 manifest，二者互为校验。
+#
+# 列：类别<TAB>组件 ID。类别取自所在目录（runtime=framework/fixtures/manifests，
+# verification=framework/fixtures/verification_manifests），不看 id 前缀（sim_fake_* 名字带 fw 但属 verification）。
+runtime	v8.boundary.adapter
+runtime	v8.fw.bt_console
+runtime	v8.fw.carrier3d
+runtime	v8.fw.carrier_lite3
+runtime	v8.fw.cmd3d_mux
+runtime	v8.fw.delta_map_provider
+runtime	v8.fw.dynamic_obstacles
+runtime	v8.fw.faster_lio
+runtime	v8.fw.faster_lio_sim
+runtime	v8.fw.gait_guard
+runtime	v8.fw.gazebo_carrier3d
+runtime	v8.fw.global2d
+runtime	v8.fw.global3d
+runtime	v8.fw.global3d_topic
+runtime	v8.fw.global_far
+runtime	v8.fw.hdl_localization
+runtime	v8.fw.hdl_nodelet_group
+runtime	v8.fw.local2d
+runtime	v8.fw.local3d
+runtime	v8.fw.local_native
+runtime	v8.fw.local_native_raw
+runtime	v8.fw.localization_source
+runtime	v8.fw.map2d
+runtime	v8.fw.map3d
+runtime	v8.fw.map3d_v2
+runtime	v8.fw.map_cache
+runtime	v8.fw.map_cache_ros
+runtime	v8.fw.map_delta_relay
+runtime	v8.fw.map_file
+runtime	v8.fw.map_merge
+runtime	v8.fw.map_merge_ros
+runtime	v8.fw.mux
+runtime	v8.fw.mux_dual
+runtime	v8.nav2d.dwa_stack
+runtime	v8.nav2d.mux
+runtime	v8.nav2d.teb_stack
+runtime	v8.fw.nodelet_group_plus
+runtime	v8.fw.nodelet_plus
+runtime	v8.fw.obstacle_heartbeat
+runtime	v8.fw.path_goal3d
+runtime	v8.fw.pose_mux
+runtime	v8.fw.robot_lite3
+runtime	v8.fw.robot_test_b
+runtime	v8.fw.safety_mux_lite3
+runtime	v8.fw.semantic_bridge
+runtime	v8.fw.semantic_obstacles
+runtime	v8.fw.semantic_provider
+runtime	v8.fw.semantic_provider_support
+runtime	v8.fw.sensors
+runtime	v8.fw.ultrasonic_guard
+verification	v8.verify.gazebo_truth
+verification	v8.verify.mujoco_truth
+verification	v8.fw.sim_fake_a
+verification	v8.fw.sim_fake_b

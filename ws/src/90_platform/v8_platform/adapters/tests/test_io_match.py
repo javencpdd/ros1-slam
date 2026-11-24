@@ -15,9 +15,10 @@ import composer as comp  # noqa: E402
 import io_match  # noqa: E402
 
 MDIR = HERE.parent / 'registry' / 'data' / 'manifests'
-EIGHT = ['v8.odometry.faster_lio', 'v8.global_localization.lite3', 'v8.map_server.apt',
-         'v8.representation.costmap_layers', 'v8.local_planner.scan_planner',
-         'v8.global_planner.apt', 'v8.controller.dwa_adapter', 'v8.safety_arbiter.lite3']
+SEVEN = ['v8.odometry.faster_lio', 'v8.global_localization.lite3', 'v8.map_server.apt',
+         'v8.local_planner.scan_planner', 'v8.global_planner.apt',
+         'v8.controller.dwa_adapter', 'v8.safety_arbiter.lite3']
+EIGHT = SEVEN  # 2026-11-25：costmap_layers 退役后基底为 7 件；保留旧名为兼容调用点
 
 
 class IoMatchTests(unittest.TestCase):

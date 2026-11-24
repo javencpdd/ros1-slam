@@ -25,12 +25,6 @@ ADAPTER_LOSSES = {
          'domain': '单层平面导航',
          'evidence': 'R616 历史判读（实栈 /planners=[GlobalPlanner]）'},
     ],
-    'v8.representation.costmap_layers': [
-        {'kind': 'aggregation_loss',
-         'description': '多高度列／层间信息聚合压缩为单一代价层',
-         'domain': '平面代价决策（多层表征归 V8-08）',
-         'evidence': '22 号 §1 representation 职责表'},
-    ],
     'v8.local_planner.scan_planner': [
         {'kind': 'transition_loss',
          'description': '0.5 m 3D 抽稀吞掉短于 0.5 m 的转层（离线弦悬空 0.2 m；运行时坡脚悬空 0.298 m）',
@@ -84,8 +78,10 @@ def losses(store, component_ids):
 
 
 # 组合样例矩阵：八件套基底上，定位 {hdl, lite3} × 控制 {dwa, teb} × 全局 {GlobalPlanner.apt}
+# 2026-11-25：`v8.representation.costmap_layers` 按 b38ec273 整包退役（manifest 与源码均已删），
+# 从基底组合移除；供图角色由 BASE 里原有的 `v8.map_server.apt` 承担，角色覆盖不减。8 件 → 7 件。
 BASE = ['v8.odometry.faster_lio', 'v8.global_localization.lite3', 'v8.map_server.apt',
-        'v8.representation.costmap_layers', 'v8.local_planner.scan_planner',
+        'v8.local_planner.scan_planner',
         'v8.global_planner.apt', 'v8.controller.dwa_adapter', 'v8.safety_arbiter.lite3']
 AXIS_LOCALIZATION = ('v8.global_localization.lite3', 'v8.global_localization.hdl')
 AXIS_CONTROLLER = ('v8.controller.dwa_adapter', 'v8.controller.teb_adapter')

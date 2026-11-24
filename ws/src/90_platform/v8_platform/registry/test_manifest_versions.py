@@ -24,10 +24,24 @@ CHAIN = ['v8.fw.sensors', 'v8.fw.faster_lio', 'v8.fw.map2d', 'v8.fw.global2d',
 class ManifestVersionTests(unittest.TestCase):
     def test_registry_derives_io_from_ports(self):
         store = reg.Registry().load_dir(V3)
-        # 2026-11-17 修：此处原断言 48。8135a370（11-12「BT 作为图内一等组件」）
-        # 往该目录新增了 manifest_bt_console.json，当时未同步本断言，此后本用例
-        # 一直红着（49 != 48）。现读该目录 49 件、id 无重复、全部加载成功。
-        self.assertEqual(len(store.entries), 49)
+        # 2026-11-17 修：此处原断言 48 → 49（8135a370 新增 bt_console 未同步）。
+        # 2026-11-25 再修：不再写死件数（9a6e48c5 新增 global_far 后变 50，同类事故第三次）。
+        # 改成与契约层**共用的独立清单**互通——注册表加载到的 id 集合必须等于清单里
+        # runtime 类别的 id 集合，缺件/多件都红。清单本身由 contracts 层的双向守卫把关。
+        expected = set()
+        for line in (HERE.parent / 'contracts' / 'expected_components.txt').read_text(
+                encoding='utf-8').splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            kind, _, cid = line.partition('\t')
+            if kind == 'runtime':
+                expected.add(cid)
+        self.assertTrue(expected, '独立清单为空 —— 空集不得判绿')
+        self.assertEqual(set(store.entries), expected,
+                         '注册表与独立清单不一致：缺 %s／多 %s' % (
+                             sorted(expected - set(store.entries)),
+                             sorted(set(store.entries) - expected)))
         self.assertEqual(store.get('v8.fw.map2d')['io']['map_schema'], 'occupancy_grid/v1')
         self.assertEqual(store.get('v8.fw.map2d')['io']['dimensions'], 2)
         self.assertEqual(store.get('v8.fw.map3d')['io']['map_schema'], 'support_map/v1')

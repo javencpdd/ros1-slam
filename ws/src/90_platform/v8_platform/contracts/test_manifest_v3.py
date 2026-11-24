@@ -104,14 +104,43 @@ class ManifestV3Tests(unittest.TestCase):
         self.rejected(value, 'E_SCHEMA_UNKNOWN_FIELD')
 
     def test_all_runtime_manifests_declare_their_domains_without_evidence_upgrade(self):
-        paths = list((HERE.parent / 'framework/fixtures/manifests').glob('manifest_*.json'))
-        paths += list((HERE.parent / 'framework/fixtures/verification_manifests').glob('manifest_*.json'))
-        self.assertEqual(len(paths), 53)
-        for path in paths:
-            with self.subTest(file=path.name):
+        """双向完整性守卫：独立清单 ↔ 磁盘枚举，缺件/多件/重复件都红。
+
+        ★不用"文件数等于文件数"★（2026-11-25 修）：原先是 `assertEqual(len(paths), 53)`，
+        新增 `manifest_global_far.json` 后变 54 就红；而如果改成"从同一个 glob 派生总数再和自己比"，
+        删掉一个 manifest 也会绿——那等于取消了完整性校验。这里用**独立工件**
+        `contracts/expected_components.txt`（人维护、与磁盘互为校验）：
+        清单有磁盘无 → 缺件；磁盘有清单无 → 未登记新件；同 id 两次 → 重复。
+        逐件的 schema / 执行域 / 能力 / 证据等级校验全部保留在下面，一条没减。
+        """
+        expected = {}
+        for line in (HERE / 'expected_components.txt').read_text(encoding='utf-8').splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            kind, _, cid = line.partition('\t')
+            self.assertIn(kind, ('runtime', 'verification'), '清单行格式错：%r' % line)
+            self.assertNotIn(cid, expected, '清单内组件 ID 重复：%s' % cid)
+            expected[cid] = kind
+        self.assertTrue(expected, '清单为空 —— 空集不得判绿')
+
+        seen = {}
+        for kind, sub in (('runtime', 'framework/fixtures/manifests'),
+                          ('verification', 'framework/fixtures/verification_manifests')):
+            for path in sorted((HERE.parent / sub).glob('manifest_*.json')):
                 value = json.loads(path.read_text())
-                self.assertEqual(value['schema_version'], 3)
-                self.assertTrue(validate.validate('manifest', value))
+                cid = value['id']
+                with self.subTest(file=path.name, component=cid):
+                    self.assertIn(cid, expected, '磁盘上存在但清单未登记：%s' % cid)
+                    self.assertEqual(expected[cid], kind,
+                                     '%s 的类别应为 %s（按所在目录判定）' % (cid, kind))
+                    self.assertNotIn(cid, seen, '重复的组件 ID：%s（另见 %s）' % (cid, seen.get(cid)))
+                    seen[cid] = path.name
+                    self.assertEqual(value['schema_version'], 3)
+                    self.assertTrue(validate.validate('manifest', value))
+
+        missing = sorted(set(expected) - set(seen))
+        self.assertEqual(missing, [], '清单登记但磁盘缺件：%s' % missing)
 
     def test_capability_feedback_modes_and_timeout_are_validated(self):
         value = v3()

@@ -56,8 +56,11 @@ class DeclarationTests(unittest.TestCase):
         digests = {c['digest'] for c in result['combos']}
         self.assertEqual(len(digests), 4)  # 组合间摘要互异（换后端可区分）
         for combo in result['combos']:
-            self.assertEqual(combo['wires'], 13)       # 八件套接线数固定
-            self.assertEqual(combo['loss_records'], 5)  # scan 2＋global_planner 1＋costmap 1＋controller 1
+            # 2026-11-25：基底从 8 件变 7 件（costmap_layers 退役，见 b38ec273）：
+            # 接线 13→12（少一条 costmap 供线）、附损记录 5→4（少 costmap 的 aggregation_loss）。
+            # 数值按退役后的实际栈形取，不是放宽断言——同一栈的四组合仍须逐项相等。
+            self.assertEqual(combo['wires'], 12)        # 七件套接线数固定
+            self.assertEqual(combo['loss_records'], 4)  # scan 2＋global_planner 1＋controller 1
         self.assertEqual(result['negative_dual_controller'],
                          {'ok': False, 'reason': 'E_COMP_DUP_ROLE'})
 

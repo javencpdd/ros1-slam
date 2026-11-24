@@ -182,7 +182,7 @@ class LifecycleTests(unittest.TestCase):
         import composer as comp
         store = comp.load(HERE.parent / 'registry' / 'data' / 'manifests')
         ids = ['v8.odometry.faster_lio', 'v8.global_localization.lite3',
-               'v8.representation.costmap_layers', 'v8.local_planner.scan_planner',
+               'v8.map_server.apt', 'v8.local_planner.scan_planner',
                'v8.controller.dwa_adapter', 'v8.safety_arbiter.lite3']
         lock = comp.lock(store, ids)
         specs = []

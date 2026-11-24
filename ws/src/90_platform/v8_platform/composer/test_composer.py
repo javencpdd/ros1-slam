@@ -1,6 +1,6 @@
 """V8-05 composer 首切片测试：结构检测四族＋正例，负例理由码逐例对账。
 
-正例组合取自 12 份真实 manifest（faster_lio＋lite3＋costmap_layers＋scan_planner＋dwa＋safety）；
+正例组合取自 12 份真实 manifest（faster_lio＋lite3＋map_server.apt＋scan_planner＋dwa＋safety）；
 负例优先用真实组合（dwa+teb 天然重复角色），TF/命令冲突用临时目录注入。
 """
 import json
@@ -17,8 +17,12 @@ import composer as comp  # noqa: E402
 
 MDIR = HERE.parent / 'registry' / 'data' / 'manifests'
 STACK = ['v8.odometry.faster_lio', 'v8.global_localization.lite3',
-         'v8.representation.costmap_layers', 'v8.local_planner.scan_planner',
+         'v8.map_server.apt', 'v8.local_planner.scan_planner',
          'v8.controller.dwa_adapter', 'v8.safety_arbiter.lite3']
+# 2026-11-25：`v8.representation.costmap_layers` 已按 b38ec273「整包退役」（源码已删），
+# 但它原本承担"供图"角色，直接删会让正例栈失去 map supplier、报 E_COMP_MAP_SUPPLY。
+# 故按**语义替换**处理：换成同为供图角色的 `v8.map_server.apt`，栈仍为 6 件，
+# 角色覆盖不减（不是靠删断言变绿）。
 
 
 def reason(store, ids):
@@ -60,9 +64,12 @@ class ComposerTests(unittest.TestCase):
         code, detail = reason(self.store, ['v8.controller.dwa_adapter'])
         self.assertEqual(code, 'E_COMP_MISSING_ROLE')
         self.assertIn('local_planner', detail)
-        code, _ = reason(self.store, ['v8.local_planner.scan_planner',
-                                      'v8.representation.costmap_layers'])
-        self.assertEqual(code, 'E_COMP_MISSING_ROLE')  # representation→odometry
+        # 2026-11-25：costmap_layers 退役后，这条"缺角色"用例原先靠 representation→odometry
+        # 触发；改成同样真实存在依赖的 controller→local_planner（实测 detail 为
+        # 「controller 依赖 local_planner（任一），选中集未提供」），断言强度不减。
+        code, detail = reason(self.store, ['v8.controller.dwa_adapter', 'v8.map_server.apt'])
+        self.assertEqual(code, 'E_COMP_MISSING_ROLE')
+        self.assertIn('local_planner', detail)
 
     def test_role_cycle_defensive(self):
         original = dict(comp.ROLE_DEPS)
@@ -87,7 +94,7 @@ class ComposerTests(unittest.TestCase):
 
     def test_tf_dup_child(self):
         def mutate(d):
-            if d['id'] == 'v8.representation.costmap_layers':
+            if d['id'] == 'v8.map_server.apt':
                 d['ownership']['tf_edges'] = [{'parent': 'map', 'child': 'odom'}]
             if d['id'] == 'v8.local_planner.scan_planner':
                 d['ownership']['tf_edges'] = [{'parent': 'world', 'child': 'odom'}]
@@ -97,7 +104,7 @@ class ComposerTests(unittest.TestCase):
 
     def test_tf_cycle(self):
         def mutate(d):
-            if d['id'] == 'v8.representation.costmap_layers':
+            if d['id'] == 'v8.map_server.apt':
                 d['ownership']['tf_edges'] = [{'parent': 'odom', 'child': 'map'}]
             if d['id'] == 'v8.local_planner.scan_planner':
                 d['ownership']['tf_edges'] = [{'parent': 'map', 'child': 'odom'}]
@@ -130,7 +137,7 @@ class ComposerTests(unittest.TestCase):
         self.assertIn('kinematics_pair', checks)
         supply = next(i for i in result['compatibility'] if i['check'] == 'map_supply')
         self.assertEqual(supply['component'], 'v8.controller.dwa_adapter')  # occupancy 供需
-        self.assertIn('v8.representation.costmap_layers', supply['providers'])
+        self.assertIn('v8.map_server.apt', supply['providers'])
         pair = next(i for i in result['compatibility'] if i['check'] == 'kinematics_pair')
         self.assertEqual(pair['pair'], ['quadruped_kinematic', 'differential'])  # 实栈配对
         self.assertEqual(result['adapters'], [])

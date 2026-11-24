@@ -8529,3 +8529,20 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   前置校验：包内 168 件＝原 168 件；抽 2 件解包后与原文件**逐字节 sha256 相同**才删原件。
   处置理由：该专题 README 无一处引用这批目录，入库只增体积无引用价值；沿 11-23 先例外置可追溯。
   清理后 `git status` 全空（未跟踪 0／待提交 0）
+- ★CI 收口（2026-11-25）★：GitHub `static-and-unit` 的红不止一处，实为两族四个根因，逐条修：
+  ①`contracts/test_manifest_v3.py:109` 原写 `assertEqual(len(glob(...)), 53)`，`9a6e48c5` 新增
+  `manifest_global_far.json` 后变 54 ⇒ 改为**独立组件 ID 清单** `contracts/expected_components.txt`
+  （54 行，runtime 50／verification 4，按所在目录分档）做双向守卫：清单有磁盘无＝缺件、磁盘有清单无＝
+  未登记、同 id 两次＝重复，schema/执行域/能力/证据等级逐条校验一字未减。**不用同一 glob 与自身比较**
+  ②`registry/test_manifest_versions.py:30` 原写死 49 ⇒ 改为与同一份清单的 runtime 集合互校
+  ③`b38ec273` 退役 `v8.representation.costmap_layers` 后，composer/adapters/orchestrator 三处仍引用该 id
+  （15+ 项失败）。处置按**语义替换/删除**：composer 正例栈该位由 `v8.map_server.apt` 承担（栈仍 6 件、
+  角色覆盖不减）；adapters 基底 8→7 件、`wires` 13→12、`loss_records` 5→4（少一条 costmap 供线与
+  一条 aggregation_loss），按实测值取；orchestrator 同步
+  ④★退役的连带缺陷★：`dwa/teb` 仍声明输入 `costmap_2d/Costmap`，而该类型在 V1 已无生产者
+  ⇒ `E_ADAPTER_NO_SOURCE`。按架构现状修正声明为 `nav_msgs/OccupancyGrid`（`schema: occupancy_grid/v1`
+  不变）——退役 layers 后控制器直接消费 map_server 的栅格图，**不是删断言/放宽类型必填**
+  读数（本地按 ci.yml 逐步）：SYN 91 件 OK｜PYST 68 件 OK｜contracts 19 OK｜registry 29 OK｜
+  composer 17 OK｜adapters 48 OK｜orchestrator 28 OK｜解耦 9 OK｜`dev.py status` rc=0｜
+  compose config rc=0｜docker 构建回归 11 OK。反控：临时挪走 `manifest_global_far.json` ⇒ 守卫报
+  「清单登记但磁盘缺件：['v8.fw.global_far']」，复原即绿
