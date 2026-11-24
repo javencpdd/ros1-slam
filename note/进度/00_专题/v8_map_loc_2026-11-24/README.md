@@ -1897,3 +1897,35 @@ rosbag record /cmd_vel /hdl_odom /sim/odom_gt /v8/local/status -O stop.bag
 2. 注入动作也放在同一脚本里，用 `rospy` 订阅 `/cmd_vel` 闭环触发；
 3. 录完先 `rosbag reindex`，再用 `allow_unindexed=True` 读；
 4. 只有在拿到 `cmd` 非零帧数 > 0 的 bag 之后，才谈第 3、4 项的判定。
+
+### 44.19 单进程探针（正解方向）首次运行即失败，本轮到此为止
+
+按 §44.18 写了 `scripts/verify/motion_interrupt_probe.py`：一个进程内 `subprocess.Popen`
+持有 rosbag 句柄、`/cmd_vel` 首帧非零闭环注入、`send_signal(2)` + `wait()` 收尾、随后 `rosbag reindex`。
+
+**首次运行即失败**：`probe.log` 为空、`m.bag` 未生成、`probe.json` 未产出。
+
+未排查的具体原因（留给下一轮）：
+- `rospy.init_node` 与同时启动的 `rosbag record` 子进程之间的时序；
+- 或 `--bag` 传绝对路径时 `rosbag record -O` 的路径处理；
+- 或脚本在 `init_node` 阶段就被 `timeout 70` 之外的因数打断。
+
+**本轮不再重试** —— 已在同一问题上消耗六种方案，继续试错只会累积噪声。
+
+### 44.20 本轮最终结论
+
+| # | 判定 | 说明 |
+| --- | --- | --- |
+| 1 正常导航 | **PASS** | 真值到达 **0.0339 m**（`nav_t6_235716`） |
+| 2 障碍安全 | **PASS** | 5 场景 PASS + 反控 rc=1（`collision_205409`） |
+| 3 定位失效 | **INVALID** | 六种测量方案均未取得读数 |
+| 4 取消 | **INVALID**（当前配置） | 仅旧配置有 PASS 读数 |
+
+**INVALID 是因为测不出来，不是因为系统坏了。** 已确认可用的事实：
+
+- 注入手段有效：`rosnode kill /hdl_gate` 只断 `/hdl_odom`，`mgr`/`gazebo`/`hdl` 与 9 个导航节点全存活；
+- 门控在旧配置（tick 1.2 / max_age 0.7）下确实归零，实测 0.032 s 延迟 / 0.125 m 滑行；
+- 当前配置（tick 0.6）下这三项**没有复测过**。
+
+**下一步只做一件事**：把 `motion_interrupt_probe.py` 调通（先在一帧未动的情况下确认它至少能录出非空 bag），
+再去谈判定。在此之前不再动任何系统参数。
