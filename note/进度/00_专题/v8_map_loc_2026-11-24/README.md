@@ -2325,3 +2325,70 @@ bag 在注入瞬间就被 SIGINT 截断。
 单独跑 `rosbag record -O t.bag /cmd_vel` 15 s，然后 `rosbag info t.bag` 看 duration
 是否 ≈15 s。如果 duration 明显小于预期，就是 rosbag 自身或磁盘/权限问题，
 与导航系统无关。这条不查清，第 4 项永远测不出来。
+
+## 51. 根因：判据时间口径没统一（sim vs wall）（第二十八轮）
+
+### 51.1 最小判据测 `rosbag` 本身
+
+不涉及导航，单独跑 15 s wall：
+
+```
+rosbag record -O t.bag /cmd_vel   # 15 s wall
+rosbag info t.bag  →  duration: 6.5s, messages: 690
+```
+
+**6.5 s ≠ 15 s**。原因是 `rosbag` 的 `duration` 按**消息 stamp（仿真时间）**统计，
+而 Gazebo 的实时因子只有 **0.46**：
+
+```
+wall=8.04 s  →  sim=3.70 s  实时因子 0.460
+⇒ 5 s 仿真时间 需要 10.9 s 墙钟
+```
+
+### 51.2 这解释了之前所有"窗口不够"
+
+| 我设的 hold（wall） | 折算 sim | 够不够 5 s sim |
+| --- | --- | --- |
+| 12 s | 5.5 s | 勉强够，但注入点吃掉大半 |
+| 18 s | 8.3 s | 够 |
+| 20 s | 9.2 s | 够 |
+
+而 bag 实测 `cmd/gt` 时间跨度 **16.2 s sim = 35 s wall** —— **比 hold 的 20 s wall 还长**。
+说明 **`rosbag` 的停止与 `hold` 根本不同步**（SIGINT 未按预期生效，bag 被后到的
+`rosbag reindex` 或进程退出截断）。
+
+### 51.3 第 4 项判定：PARTIAL（维持），但性质已明确
+
+| 判据 | 读数 | 状态 |
+| --- | --- | --- |
+| 运动中取消 | v=0.600 | ✅ |
+| ACK | `1000:cancelled` | ✅ |
+| 取消后无命令 | cmd 末非零后 0 帧 | ✅ |
+| 取消后位移 | **0.0120 m** | ✅ |
+| 持续 5 s **sim** 零速 | gt 只覆盖 **0.01 s sim** | ❌ 窗口未张开 |
+
+**结论：四项判据里三条成立，"5 s 零速"始终测不出来 —— 而根因是采样窗口管理，不是导航系统。**
+
+### 51.4 要真正解决，必须换掉 rosbag 这条路
+
+四轮下来，`rosbag` 的启停始终不可控（`pkill` 自杀、`$!` 是 setsid 的 pid、
+`.active` 未索引、SIGINT 不同步、duration 是 sim time）。
+
+**建议改为在进程内直接记录**：探针已经订阅 `/cmd_vel` 与 `/sim/odom_gt`，
+让它在内存里累计 `(wall, sim, v, x, y)` 序列，**直接输出 JSON**，完全不经过 rosbag。
+
+这样：
+- 不需要 SIGINT、不需要 reindex、不受 sim/wall 混淆影响；
+- 每条样本同时带 wall 与 sim 时间戳，判据可以**明确指定口径**；
+- `hold` 用 wall 计时，判据用 sim 换算（5 s sim = 10.9 s wall，可按实测因子算）。
+
+### 51.5 四项最终状态（本轮不再变动）
+
+| # | 判定 | 核心读数 |
+| --- | --- | --- |
+| 1 正常导航 | **PASS** | 真值到达 0.0339 m |
+| 2 障碍安全 | **PASS** | 5 场景 + 反控 rc=1 |
+| 3 定位失效 | **PASS** | 0.247 s / 0.106 m |
+| 4 取消 | **PARTIAL** | ACK ✅、位移 1.2 cm ✅；5 s 窗口未覆盖 ❌ |
+
+**3 PASS + 1 PARTIAL。** 第 4 项差的不是功能，是一个能稳定覆盖 5 s 的采样装置。
