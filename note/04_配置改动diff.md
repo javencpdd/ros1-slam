@@ -8610,3 +8610,17 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   问题（裸 `catkin_make` 重建了 build 缓存），**已把该 CMakeLists 还原**，不留未经编译验证的改动。
   待办：用项目既定构建入口（非裸 catkin_make）补 `nav_msgs` 依赖并重编 `hdl_localization`，
   之后 HDL nodelet 才可加载、`/hdl_odom` 才会出现。devel 产物当前完好（`libhdl_*.so` 2 件、`bt_console` 在位）
+- ★定位源结论（同日，卡在外部依赖）★：查清 `/hdl_odom` 缺失的两条可能路径都不通，且都不是"配置写错"：
+  ①**HDL 路线（硬阻断）**：`hdl_localization_nodelet.cpp:26,116` **无条件** `#include <fast_gicp/ndt/ndt_cuda.hpp>`
+  并实例化 `fast_gicp::NDTCuda<PointT,PointT>`；而 `fast_gicp/CMakeLists.txt:7` 的 `BUILD_VGICP_CUDA` 默认 **OFF**，
+  容器内**无 nvcc** ⇒ `NDTCuda::setResolution` 等符号只有声明没有定义 ⇒ 链接出的 `.so` 必然带
+  `undefined symbol: _ZN9fast_gicp7NDTCuda...setResolutionEd` ⇒ `dlopen` 失败 ⇒ nodelet 永远加载不了。
+  ★已用项目规范构建环境（`CPATH=/opt/ros/noetic/include`，取自 `docker/build.sh`）重编成功（rc=0、21 条编译），
+  重编后符号依旧缺失★ —— 证明这不是"旧产物"，而是**源码对 CUDA 的硬依赖**。此前裸 `catkin_make` 报的
+  `nav_msgs/OccupancyGrid.h`/`ros/ros.h` 找不到，是我漏了 `CPATH`，**与源码无关**，故未改任何 CMakeLists
+  ②**faster_lio_sim 路线**：`10_slam_mapping_sim.launch` 起后节点数在 150 s 内归零、日志仅 2 行，
+  未能产出 `/Odometry` 或 `/hdl_odom`；需前台跑该 launch 才能抓到退出的真实原因（`nohup`/`&` 重定向在本容器
+  常丢输出，本轮已多次踩到）
+  处置建议：①给镜像装 CUDA 工具链并 `BUILD_VGICP_CUDA=ON` 重编 fast_gicp＋hdl；或②把 hdl 的配准后端改为
+  CPU（`fast_gicp::NDT`／`ndt_omp`，仓内已有 `ndt_omp` 包）。二者都改动了既有 HDL 配置，超出"不破坏已通过配置"
+  的边界，**留待真人裁定**。四项验收因此仍全部 INVALID，不假绿
