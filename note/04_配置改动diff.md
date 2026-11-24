@@ -8469,3 +8469,23 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - 读数（现跑）：FAR 装配 PASS（`/far_planner`＋`/v8_global_far` 起、订阅面与六话题契约逐条对上、
   日志进入 `STATIC ENV PLANNING`）；FAR 完整 P2 路径验收 **INVALID**（缺 Gazebo 点云/odom 前置，
   `/global_path` 无产出，前提交代命令已写入 PROVENANCE.md §5）
+- ★本轮续（远程三提交核验后）★：FAR 从"包缺失 ⇒ INVALID"推进到**实测**，并把来源/许可补齐。
+  ①上游补齐：完整 SHA **`2799b6964c141cacd1c32a14b19bc7abffbe0e52`**（2025-03-31）、许可证 **BSD**
+  （`package.xml`）、版权 `Copyright (C) 2021 Fan Yang - All rights reserved`；★上游**没有 LICENSE 文件**，
+  此事实如实登记，不代拟许可证全文★；依赖按 `package.xml` 列为 roscpp/std_msgs/sensor_msgs/
+  `visibility_graph_msg`/pcl_ros，**上游不存在 `far_planner_msgs`**（任务书口径已更正）
+  ②指纹验证：拉固定 SHA 的 tarball 逐文件对表，`far_planner` **38/38**、`visibility_graph_msg` **4/4**
+  字节相同，无「仅上游」「仅本地」；上游 `src/` 另有 4 个配套包（boundary_handler／graph_decoder／
+  goalpoint_rviz_plugin／teleop_rviz_plugin）按依赖闭合未收
+  ③独立 Gazebo 实测（点云 10 Hz、TF map→base_link 通、14 节点含 `/far_planner`）：
+  - **PASS**：装配接线（订阅六话题契约）、FAR 规划在动（`global vertices: 35`、`Path Search 0.187ms`）、
+    有效路径（两点、终点＝航点 1.0）、取消闭环（`cancel_sent=1/cancel_ack=1`）
+  - **INVALID**：非零速度（`nonzero_cmd_samples=0`；`/v8/local/cmd_vel_3d` twist 恒 0，mux
+    `reason=track`/`hold=false` ⇒ 非 mux 拦截）、BT 到达、运动中障碍安全、定位失效停止
+  - 阻断点定位到 **`local` 输出恒零**，属 v8 local_native 侧，与本 overlay 无关
+  ④★环境接缝（本轮两次误判的根因）★：独立 overlay 的 `setup.bash` 会**覆盖** `ROS_PACKAGE_PATH`
+  与 `CMAKE_PREFIX_PATH` ⇒ 表现为 `far_stack.launch 不是 launch 文件`、`Cannot locate node [bt_console]`；
+  正解是补回 ws 两处路径且**不重复 prepend**（重复会 `multiple files named [far_stack.launch]`）
+  ⑤support 后端零影响：全仓 `package.xml` 无一处依赖 far_planner；support 图 digest 仍
+  `e8fb7967…` 不变；框架 345 项 OK、N6 8/0
+  证据目录 `note/进度/00_专题/far_p2_2026-11-25/`
