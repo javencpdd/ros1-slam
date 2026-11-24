@@ -8561,3 +8561,21 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   C3/C4 触发前 3 s 内必须有 `|v|>0.05` 否则判 INVALID）与 `scripts/verify/far_closed_loop.sh`
   （单命令：环境加载＋唯一 master 断言＋限定范围清场＋起 Gazebo 等点云＋渲染起图＋节点存活前置＋跑场景＋
   读数落盘；整链在一次 exec 内完成，避免进程组被清）
+- ★导航链三处装配根因（同日，按真人"先查装配"）★：三处都是"环境变量被覆盖/漏注入"，与算法无关，
+  每处都能单独造成"全链恒零速"，此前一直被误当成 local 拒动：
+  ①`m1_gazebo.launch` **漏 `GAZEBO_PLUGIN_PATH`**：livox 插件 `liblivox_laser_simulation.so` 只在
+  `subprojects/simulation/ws/devel/lib`，主 ws devel 没有 ⇒ 插件不加载 ⇒ `/livox/lidar` 不产生。
+  m2 早已有此行并注明"原值漏了它 ⇒ /rslidar_points 永不发布"，m1 就是漏的那个。已按同一修法补齐
+  ②FAR overlay 的 `setup.bash` **覆盖 `PYTHONPATH`** ⇒ `import livox_laser_simulation` 失败 ⇒
+  `sim_adapter` 启动即退出 ⇒ `/rslidar_points` **无发布者**。实测证据：`rostopic info /rslidar_points`
+  → `Publishers: None`，而 perception/FAR 都已在订阅侧等待；同一份 setup 还覆盖 `ROS_PACKAGE_PATH`
+  与 `CMAKE_PREFIX_PATH`（分别导致"包找不到""bt_console 找不到"）。★正解★：新增
+  `tooling/far_overlay/env.sh` 作为唯一入口，source 后显式补回三处并自检；`catkin_make --extend`
+  在本容器 catkin 版本上会透传给 make 失败，故不依赖生成的链式 setup
+  ③`dynamic_obstacles_node` 心跳语义（见上一段）：六态与 `stale_frame` 一律不发，避免"没看过点云
+  却发空表"的假健康
+  读数：修① 后云仍无发布者（因②未修）；修② 后 `/rslatched` 实测 `/sim_adapter` **3 秒内**发布
+  `/rslidar_points`（`rostopic info` Publishers 命中 sim_adapter）
+  ④仍未闭合：`/hdl_odom` 无输出 ⇒ `loc` 无输入 ⇒ `/v8/local/pose` 未发布（探针 `displacement_m=null`、
+  `localization=1e+100`）⇒ C1 仍 INVALID。已按 URDF 的仿真安装几何（`xyz=(0,0,0.34)`、`rpy=(0,15°,0)`）
+  与 `m1_world_synth_v1.pcd` 起 HDL 一次，仍未出 `/hdl_odom`，需继续查 nodelet/地图加载/收敛

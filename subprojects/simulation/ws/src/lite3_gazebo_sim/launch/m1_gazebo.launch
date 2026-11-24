@@ -1,4 +1,12 @@
 <launch>
+  <!-- ★2026-11-25 修复：补齐 GAZEBO_PLUGIN_PATH（与 m2_gazebo.launch 同一处）★
+       livox 雷达插件 `liblivox_laser_simulation.so` 只产出在 simulation 子仓的 ws/devel/lib，
+       主 ws 的 devel 里没有。不注入本变量时 gzserver 加载插件失败 ⇒ `/livox/lidar` 不产生
+       ⇒ sim_adapter 无输入 ⇒ `/rslidar_points` **没有发布者** ⇒ perception 永远收不到点云
+       ⇒ blind ⇒ local fail-closed ⇒ 全链恒零速。实测证据：`rostopic info /rslidar_points`
+       显示 Publishers: None，而 perception/FAR 都已在订阅侧等着。 -->
+  <env name="GAZEBO_PLUGIN_PATH"
+       value="/opt/ros1-slam/subprojects/simulation/ws/devel/lib:/opt/ros1-slam/ws/devel/lib:/opt/ros/noetic/lib"/>
   <!-- m1_gazebo.launch —— M1 仿真台：headless Gazebo + planar 伪狗 + sim_adapter CustomMsg 分支
        （小张 payload，2026-10-05）。headless 实现：empty_world.launch gui:=false → 只起 gzserver。
        前置：fratopa 包 livox_laser_simulation 原样复制进 ws/src 并 catkin build（见 04 台账 D-02）。 -->

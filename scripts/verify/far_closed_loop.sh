@@ -26,33 +26,15 @@ log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*" >&2; }
 die() { log "ABORT: $*"; exit 9; }
 
 # ---------- 0. 环境 ----------
-source /opt/ros/noetic/setup.bash
-[ -f "$WS/devel/setup.bash" ] && source "$WS/devel/setup.bash"
 if [ "$COMBO" != "graph_support" ]; then
-  [ -f "$OVERLAY/devel/setup.bash" ] || die "FAR overlay 未构建：$OVERLAY/devel"
-  source "$OVERLAY/devel/setup.bash"
+  # ★统一入口★：不要直接 source overlay 的 setup.bash —— 它会覆盖 ROS_PACKAGE_PATH /
+  # CMAKE_PREFIX_PATH / PYTHONPATH 三个变量，分别导致"包找不到""C++ 节点找不到"
+  # "sim_adapter 导入 livox_laser_simulation 失败 ⇒ 无点云 ⇒ 全链零速"。env.sh 负责补回并自检。
+  source "$OVERLAY/env.sh" || die "FAR 环境自检失败（见上）"
+else
+  source /opt/ros/noetic/setup.bash
+  [ -f "$WS/devel/setup.bash" ] && source "$WS/devel/setup.bash"
 fi
-# overlay 的 setup 会覆盖这两处，显式补回；用 case 判重，避免重复 prepend 触发
-# `multiple files named [x] in package [y]`。
-case ":$ROS_PACKAGE_PATH:" in
-  *":$WS/.profiles/x86_sim/src:"*) : ;;
-  *) export ROS_PACKAGE_PATH="$WS/.profiles/x86_sim/src${ROS_PACKAGE_PATH:+:$ROS_PACKAGE_PATH}" ;;
-esac
-if [ "$COMBO" != "graph_support" ]; then
-  case ":$ROS_PACKAGE_PATH:" in
-    *":$OVERLAY/src:"*) : ;;
-    *) export ROS_PACKAGE_PATH="$OVERLAY/src${ROS_PACKAGE_PATH:+:$ROS_PACKAGE_PATH}" ;;
-  esac
-  case ":$CMAKE_PREFIX_PATH:" in
-    *":$OVERLAY/devel:"*) : ;;
-    *) export CMAKE_PREFIX_PATH="$OVERLAY/devel${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" ;;
-  esac
-fi
-case ":$CMAKE_PREFIX_PATH:" in
-  *":$WS/devel:"*) : ;;
-  *) export CMAKE_PREFIX_PATH="$WS/devel${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" ;;
-esac
-
 # ---------- 1. 前置：唯一 master ----------
 MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11313}"
 export ROS_MASTER_URI="$MASTER_URI"
