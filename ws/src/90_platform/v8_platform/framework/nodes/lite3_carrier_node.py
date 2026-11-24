@@ -12,9 +12,10 @@ import rospy
 import tf2_ros
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Bool, String
+from std_msgs.msg import Bool, Float64, String
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from common.localization_health import HealthConfig, evaluate as health_evaluate
 from common.pose_safety import PoseError, PoseFreshness, finite_vector, normalized_quaternion
 
 
@@ -65,6 +66,27 @@ class Lite3Carrier:
         if not self.map_frame or not self.base_frame or self.map_frame == self.base_frame:
             raise ValueError('distinct map_frame/base_frame required')
         self.guard = PoseFreshness(self.stale_s)
+        # ★定位健康的三条附加判据（2026-11-24）★：原来只有"来源新鲜"，而 HDL 停止收敛
+        # 或跳到别处时 TF 照样在更新 —— 只看新鲜度会一直报健康。收敛与质量没有话题就是
+        # "未知"，按 fail-closed 判不健康；唯一降级口 allow_unverified 需显式打开且留痕。
+        self.health_cfg = HealthConfig(
+            max_plausible_mps=float(rospy.get_param('~max_plausible_mps', 1.5)),
+            jump_max_m=float(rospy.get_param('~jump_max_m', 0.50)),
+            jump_max_rad=float(rospy.get_param('~jump_max_rad', 0.60)),
+            quality_min=float(rospy.get_param('~quality_min', 0.0)),
+            quality_stale_s=float(rospy.get_param('~quality_stale_s', 1.0)),
+            converged_stale_s=float(rospy.get_param('~converged_stale_s', 1.0)),
+            require_quality=bool(rospy.get_param('~require_quality', True)),
+            require_converged=bool(rospy.get_param('~require_converged', True)),
+            allow_unverified=bool(rospy.get_param('~allow_unverified', False)))
+        self.quality_topic = rospy.get_param('~quality_topic', '')
+        self.converged_topic = rospy.get_param('~converged_topic', '')
+        self.quality = None
+        self.quality_at = None
+        self.converged = None
+        self.converged_at = None
+        self.latest_at = None
+        self.prev = None          # (x, y, yaw, monotonic)
         self.lock = threading.Lock()
         self.latest = None
         self.pose_pub = rospy.Publisher(self.pose_topic, PoseStamped, queue_size=20)
@@ -75,6 +97,10 @@ class Lite3Carrier:
             self.listener = tf2_ros.TransformListener(self.buffer)
         else:
             rospy.Subscriber(self.input_pose_topic, Odometry, self.on_odom, queue_size=20)
+        if self.quality_topic:
+            rospy.Subscriber(self.quality_topic, Float64, self.on_quality, queue_size=10)
+        if self.converged_topic:
+            rospy.Subscriber(self.converged_topic, Bool, self.on_converged, queue_size=10)
 
     def _invalidate(self, reason):
         self.guard.invalidate(reason)
@@ -98,6 +124,15 @@ class Lite3Carrier:
             return
         if advanced:
             self.latest = pose
+            self.latest_at = time.monotonic()
+
+    def on_quality(self, message):
+        self.quality = float(message.data)
+        self.quality_at = time.monotonic()
+
+    def on_converged(self, message):
+        self.converged = bool(message.data)
+        self.converged_at = time.monotonic()
 
     def on_odom(self, message):
         with self.lock:
@@ -105,6 +140,34 @@ class Lite3Carrier:
                 self._accept(message, _pose_from_odom)
             except (PoseError, AttributeError, TypeError, ValueError) as error:
                 self._invalidate(getattr(error, 'code', 'E_POSE_INPUT'))
+
+    def _health(self, pose_fresh, pose):
+        """收敛／质量／跳变三条附加判据；无数据即"未知"，由 HealthConfig 决定是否放行。"""
+        dt_s = delta_m = delta_rad = None
+        if pose is not None and self.prev is not None and self.latest_at is not None:
+            dt_s = max(0.0, self.latest_at - self.prev[3])
+            delta_m = math.hypot(pose.pose.position.x - self.prev[0],
+                                 pose.pose.position.y - self.prev[1])
+            q = pose.pose.orientation
+            yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y),
+                             1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+            diff = abs(yaw - self.prev[2])
+            delta_rad = min(diff, 2.0 * math.pi - diff)
+        now = time.monotonic()
+        health = health_evaluate(
+            pose_fresh=pose_fresh, dt_s=dt_s, delta_m=delta_m, delta_rad=delta_rad,
+            quality=self.quality,
+            quality_age_s=None if self.quality_at is None else now - self.quality_at,
+            converged=self.converged,
+            converged_age_s=None if self.converged_at is None else now - self.converged_at,
+            config=self.health_cfg)
+        if pose is not None and self.latest_at is not None:
+            q = pose.pose.orientation
+            self.prev = (pose.pose.position.x, pose.pose.position.y,
+                         math.atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                    1.0 - 2.0 * (q.y * q.y + q.z * q.z)),
+                         self.latest_at)
+        return health
 
     def step(self):
         if self.pose_source == 'tf':
@@ -125,14 +188,15 @@ class Lite3Carrier:
             if not status['ok']:
                 self.latest = None
             pose = copy.deepcopy(self.latest)
-            healthy = status['ok'] and pose is not None
+            health = self._health(status['ok'], pose)
+            healthy = status['ok'] and pose is not None and health['ok']
             # The final check and queued publishes share the callback lock:
             # an invalidation cannot complete before an old healthy publish.
             if healthy:
                 self.pose_pub.publish(pose)
             self.loc_pub.publish(Bool(data=healthy))
             self.status_pub.publish(String(data=json.dumps(dict(
-                status, source=self.pose_source, ok=healthy,
+                status, source=self.pose_source, ok=healthy, health=health,
                 frame=self.map_frame, base_frame=self.base_frame))))
             return healthy
 

@@ -54,14 +54,29 @@ ABS=$(awk '/name="hdl_localization_nodelet"/{p=1} p{print} p&&/<\/node>/{exit}' 
 [ "$ABS" -ge 2 ] && mark 0 "N5 块内绝对名 remap 共 $ABS 条（含本次）⇒ 写法先例在位" \
                  || mark 1 "N5 块内绝对名 remap 仅 $ABS 条，缺先例支撑"
 
-# N6 第三方零越界：①git 面上第三方各包零改动 ②SCAN 30_3rd 基线双条件（内容全等＋集合计数）
+# N6 第三方零越界：①git 面上第三方各包零改动 ②SCAN 30_3rd 基线内容全等 ③未入基线的顶层包必须登记
+#
+# ★2026-11-24 改（原判据＝「30_3rd 全部文件数 = 49」）★：那是拿**树大小**冒充**基线覆盖面**。
+#   基线 `scan_src_baseline_49.sha256` 是 2026-10-08 建 SCAN 五包时留的，只覆盖 49 件；
+#   2026-11-21（0fb03fa9）整包接入 elevation_mapping 与 message_logger 后树长到 139 件，
+#   该条件恒红，而它并不构成任何完整性结论。现在：
+#     ① 完整性判据**不变**：基线 49 件逐字节全等（NB=49），基线文件一个字不改；
+#     ② 新增"未纳入基线的顶层包"与登记件对表——新包不进基线就必须登记出处，否则红。
+#   这样新第三方件仍然拦得住，只是拦在"有没有登记"而不是"文件数等不等于 49"。
 GITDIRS="ws/src/20_localization/hdl_localization ws/src/20_localization/hdl_global_localization ws/src/20_localization/fast_gicp ws/src/20_localization/ndt_omp ws/src/30_3rd ws/src/10_slam/faster_lio"
 CHG=$(git status --porcelain -- $GITDIRS 2>/dev/null | wc -l)
 NB=$( ( cd ws/src/30_3rd && sha256sum -c "$ROOT/$BASE" 2>/dev/null | grep -c ': OK$' ) )
-CNT=$(find ws/src/30_3rd -type f ! -name '*.sha256' | wc -l)
-[ "$CHG" = "0" ] && [ "$NB" = "49" ] && [ "$CNT" = "49" ] \
-  && mark 0 "N6 第三方零越界：六处第三方树 git 改动=$CHG、30_3rd 基线可验=$NB 且集合计数=$CNT（双条件，D2 口径）" \
-  || mark 1 "N6 越界或基线不符（git 改动=$CHG 可验=$NB/49 计数=$CNT/49）"
+UNREG=scripts/verify/third_party_unbaselined.tsv
+set +e
+UNREG_RES=$(python3 scripts/verify/third_party_coverage.py --tree ws/src/30_3rd \
+              --baseline "$BASE" --registry "$UNREG" 2>&1)
+UNREG_RC=$?
+set -e
+UNREG_LINE=$(printf '%s' "$UNREG_RES" | head -1)
+UNREG_OK=$(printf '%s' "$UNREG_RES" | tail -1)
+[ "$CHG" = "0" ] && [ "$NB" = "49" ] && [ "$UNREG_RC" = "0" ] \
+  && mark 0 "N6 第三方零越界：六处第三方树 git 改动=$CHG、30_3rd 基线 49 件全等、未入基线包与登记件一致（$UNREG_LINE）" \
+  || mark 1 "N6 越界或基线不符（git 改动=$CHG 可验=$NB/49 未入基线对表 rc=$UNREG_RC｜$UNREG_LINE）"
 
 # N7 帧名走 param 不受话题名影响（FD-G 双父那族坑的边界条件，钉住它别和名字混改）
 # 注意匹配面：launch 里 frame_id 出现两次是**合法结构**（arg 声明 + param 引用），首版我按 `name="odom_child_frame_id"` 计数

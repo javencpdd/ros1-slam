@@ -8387,3 +8387,39 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   R12／R13 为准；本段上文作为当时记录原文保留不回改
 - 该笔更正的性质：探针判据、实测读数、代码与行为树零改动，只改设计件与登记面的表述；原五轮主矩阵
   与 support 三轮的 PASS 结论、以及 T-20261122-04 保持 done 不变
+
+## 2026-11-24 / T-20261124-01 真机迁移离线安全加固：TF 门禁、定位健康、两项既有红灯
+
+- 起因：真人核验远端 0f9fc9a0 后要求继续离线加固，四条——补登记、TF 唯一直发布者与有效外参门禁、
+  真机 localization_ok 增强、以及 N6 与 E_LAUNCH_TYPE 两项既有红灯的根因修复。全程未上机、
+  未伪造外参与定位健康，真机禁令与 FAR INVALID、formal 裁决不变
+- 配置偏离（新增两处门禁，均为 fail-closed）：
+  ① `configs/lite3/graph_3d_lite3_bt.yaml` 的 carrier 增收敛/质量/跳变三组参数
+     （`converged_topic`、`quality_topic`、`quality_min=0.0`、`require_*=true`、`allow_unverified=false`、
+     `max_plausible_mps=1.5`、`jump_max_m=0.50`、`jump_max_rad=0.60`）。原先 localization_ok 只表示
+     "TF 在 stale_s 内更新过"，HDL 停止收敛或跳到别处时 TF 照样更新 ⇒ 一直报健康
+  ② `lite3_localization/launch/hdl_localization.launch` 增 `publish_health`（默认 true）与适配器节点
+     `v8_hdl_status_adapter`，把 hdl `/status` 的 `has_converged`／`inlier_fraction` 折成通用
+     `Bool`／`Float64`；折算放在定位包内，`v8_platform` 不依赖 hdl 的 msg 包
+- 代码面：`common/localization_health.py`（纯判据，未知一律 fail-closed）、`lite3_carrier_node.py`
+  （接入三条判据并在 status 里留 degraded 痕迹）、`lite3_localization/scripts/loc_status_codec.py`
+  与 `hdl_status_adapter.py`（解码失败不发布＝不健康）
+- 新增验收件：`scripts/verify/v_tf_extrinsic_gate.py`（唯一发布者＋非恒等＋与标定记录一致）、
+  `scripts/verify/third_party_coverage.py`（N6 的覆盖面审计）
+- 读数（现跑）：`v_tf_extrinsic_gate.py` rc=5——真机两个入口该 TF 边的唯一发布者是驱动侧
+  `base2livox`，当前仍是恒等占位（未标定），故门禁红且这是**期望态**；外参数值留待 G8 现场实测，
+  本批不填任何数
+- 读数（现跑）：`v_fd_h_name_contract.sh` 由 7/1 转 8/0（N6 绿）；框架套件 345 项 OK、
+  `common` 35 项 OK；`cli.py check graph_3d_lite3_bt.yaml` ok=true，digest `ec763048…`→`e8fb7967…`
+- ★N6 的根因与修法★：基线 `scan_src_baseline_49.sha256` 只覆盖 2026-10-08 建 SCAN 五包时的 49 件，
+  11-21（0fb03fa9）整包接入 `elevation_mapping`／`message_logger` 后树长到 139 件；原判据把
+  "树大小=49"当成"覆盖完整"，恒红且不构成完整性结论。现改为：完整性仍按基线 49 件逐字节全等
+  （**基线文件一字未改**），另把"未入基线的顶层包"与 `scripts/verify/third_party_unbaselined.tsv`
+  双向对表——新包不登记照样红。登记≠免检，表里不提供任何哈希背书
+- ★E_LAUNCH_TYPE 的根因与修法★：`fixtures/package_index.json` 是手工快照（仓内 8 处消费、0 处生产），
+  `run_localization_source.py`／`run_path_goal.py` 两个入口加进来后未同步，且既有用例只拿
+  `graph_3d_cache.yaml` 的 catalog 对表 ⇒ 覆盖不到。现改为全量 manifest 对表（新增用例
+  `test_package_index_covers_all_manifests`）并补齐两条索引项；框架套件由 2 failures + 10 errors
+  转全绿（其中 10 个 error 经查是当轮没 source ROS 环境的假红，已在带环境口径下复核）
+- 未做：四个外参的具体数值；`quality_min` 的真实下限（现为 0.0＝只要求"存在且新鲜"）；
+  把 TF 门禁与定位健康接进门禁串（改 `gate_chain.txt` 需主理人裁定，施工侧不自改）

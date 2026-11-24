@@ -1,0 +1,12 @@
+﻿# 未纳入第三方完整性基线的顶层包（每行 目录<TAB>入库提交<TAB>日期<TAB>定性）
+#
+# 为什么要这张表：`note/进度/v7/S1/SCAN集成/证据/scan_src_baseline_49.sha256` 是
+# 2026-10-08 建 SCAN 五包时留的逐字节基线，只覆盖 bspline_opt／path_environment／
+# plan_env／plan_manage／traj_utils 共 49 件。之后整包接入的第三方件不在其内。
+#
+# ★登记≠免检★：本表只回答"这个包为什么没有基线、从哪里来"，不提供任何哈希背书。
+# 谁要这些包也进完整性基线，得先拿到上游原版再算哈希——拿工作树现算等于自证。
+# 新增包若既不进基线、也不登记，N6 照样红（见 ws/src/20_localization/lite3_localization/verify/v_fd_h_name_contract.sh）。
+目录	入库提交	日期	定性
+elevation_mapping	0fb03fa9	2026-11-21	ANYbotics 高程节点整包接入（可选件）；基线建立于 2026-10-08，晚于它的新增，故不在 49 件内
+message_logger	0fb03fa9	2026-11-21	elevation_mapping 的日志依赖，同一批整包接入；同上不在基线内

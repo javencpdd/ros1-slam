@@ -35,6 +35,7 @@
        若这条 TF 由别处提供（真机驱动侧已发恒等 TF；仿真由 mode_sim_hdl 显式给 0），
        传 publish_extrinsic:=false 关掉本节点即可，此时四个 arg 不需要给。 -->
   <arg name="publish_extrinsic" default="true" />
+  <arg name="publish_health" default="true" />
   <arg name="tf_x" />      <!-- 必填：雷达相对 base_link 前向偏移 -->
   <arg name="tf_y" />      <!-- 必填：雷达相对 base_link 左向偏移 -->
   <arg name="tf_z" />      <!-- 必填：0.38 − h_base，h_base=平地站姿 base_link 离地高 -->
@@ -125,6 +126,19 @@
     </node>
 
     <node pkg="hdl_localization" type="plot_status.py" name="plot_estimation_errors" if="$(arg plot_estimation_errors)" />
+
+  <!-- 定位健康适配器（2026-11-24）：hdl 的 `/status`（ScanMatchingStatus）里有
+       has_converged 与 inlier_fraction，而平台层的 carrier 只认通用契约
+       （std_msgs/Bool 收敛 + std_msgs/Float64 质量）。本节点属于定位包、负责折算，
+       这样 v8_platform 不必依赖 hdl 的 msg 包。
+       ★不发布＝不健康★：解码失败时本节点选择不发布，下游 carrier 对"没有新鲜信号"
+       本来就是 fail-closed。 -->
+  <node pkg="lite3_localization" type="hdl_status_adapter.py" name="v8_hdl_status_adapter"
+        if="$(arg publish_health)" output="screen">
+    <param name="status_topic" value="/hdl_localization/status" />
+    <param name="converged_topic" value="/v8/local/loc_converged" />
+    <param name="quality_topic" value="/v8/local/loc_quality" />
+  </node>
 
   <!-- C13-② 模块心跳（P7 A3 / GAP-1 转正）：
        watch 侧比对 health_watch.yaml#modes.*.watch(M2_localization)，话题逐字 = /lite3/liveness/m2_localization -->

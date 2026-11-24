@@ -44,7 +44,13 @@ class Publisher:
 
 class CarrierTests(unittest.TestCase):
     def setUp(self):
-        self.clock={'ros':100.,'wall':10.};self.params={};self.lookup_hook=None
+        self.clock={'ros':100.,'wall':10.}
+        # 本文件考的是来源新鲜度与纪元隔离，不考 2026-11-24 新增的收敛/质量两条
+        # （那两条在 common/test_localization_health.py 里逐条反控）。此处显式关掉，
+        # 避免新闸默认开把老用例全判红；默认值仍为全开 fail-closed，见
+        # test_defaults_fail_closed_without_health_signals。
+        self.params={'~require_converged':False,'~require_quality':False}
+        self.lookup_hook=None
         self.transform=types.SimpleNamespace(header=types.SimpleNamespace(frame_id='map',stamp=Stamp(100.)),
             child_frame_id='base_link',transform=types.SimpleNamespace(
                 translation=types.SimpleNamespace(x=1.,y=2.,z=0.),
@@ -69,6 +75,9 @@ class CarrierTests(unittest.TestCase):
         geometry=types.ModuleType('geometry_msgs.msg');geometry.PoseStamped=Pose
         nav=types.ModuleType('nav_msgs.msg');nav.Odometry=object
         std=types.ModuleType('std_msgs.msg');std.Bool=Data;std.String=Data
+        # Float64 是 2026-11-24 加的定位质量信号载体；桩必须与真实 std_msgs 对齐，
+        # 否则节点一 import 就 ImportError（当轮实测 15 条用例同时红）。
+        std.Float64=Data
         modules={'rospy':rospy,'tf2_ros':tf2,'geometry_msgs':types.ModuleType('geometry_msgs'),
                  'geometry_msgs.msg':geometry,'nav_msgs':types.ModuleType('nav_msgs'),'nav_msgs.msg':nav,
                  'std_msgs':types.ModuleType('std_msgs'),'std_msgs.msg':std}
@@ -225,6 +234,35 @@ class CarrierTests(unittest.TestCase):
         count=len(carrier.pose_pub.messages);self.assertFalse(carrier.step())
         self.assertEqual(len(carrier.pose_pub.messages),count);self.assertFalse(carrier.loc_pub.messages[-1].data)
         self.assertEqual(events,['pose_publish','invalid_done'])
+
+
+    # ── 2026-11-24 新增：定位健康的收敛／质量两条（默认 fail-closed）───────────
+    def test_defaults_fail_closed_without_health_signals(self):
+        """默认全开、但没有收敛/质量两路信号 ⇒ 必须报不健康。
+
+        这是本轮语义变化的钉子：改动前 localization_ok 只表示"TF 在 stale_s 内更新过"，
+        HDL 停止收敛或跳到别处时 TF 照样更新 ⇒ 一直报健康。现在缺信号即未知即不健康。
+        """
+        self.params.pop('~require_converged',None)
+        self.params.pop('~require_quality',None)
+        self.params['~pose_source']='topic'
+        carrier=self.module.Lite3Carrier()
+        carrier.on_odom(self.odom())
+        self.assertFalse(carrier.step(),'没有收敛/质量信号却报健康')
+        self.assertFalse(carrier.loc_pub.messages[-1].data)
+
+    def test_allow_unverified_releases_unknown_but_marks_degraded(self):
+        """显式降级口：允许放行"未知"，但状态里必须留 degraded 痕迹（不得静默）。"""
+        # 先把 setUp 里关掉的两条闸恢复成默认全开，否则根本不存在"未知"可放行
+        self.params.pop('~require_converged',None)
+        self.params.pop('~require_quality',None)
+        self.params['~allow_unverified']=True
+        self.params['~pose_source']='topic'
+        carrier=self.module.Lite3Carrier()
+        carrier.on_odom(self.odom())
+        self.assertTrue(carrier.step(),'开了降级口仍不放行未知')
+        status=json.loads(carrier.status_pub.messages[-1].data)
+        self.assertTrue(status['health']['degraded'],'放行了未知却没标 degraded')
 
 
 if __name__=='__main__':unittest.main()

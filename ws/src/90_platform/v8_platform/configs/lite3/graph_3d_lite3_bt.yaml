@@ -160,6 +160,25 @@ instances:
       pose_topic: /v8/local/pose
       localization_topic: /v8/local/localization_ok
       status_topic: /v8/3d/carrier/status
+      # ★定位健康三条（2026-11-24）★：原先 localization_ok 只表示"TF 在 stale_s 内更新过"，
+      # 而 HDL 停止收敛或跳到别处时 TF 照样在更新 ⇒ 一直报健康。现在再加：
+      #   收敛：/v8/local/loc_converged（由 lite3_localization 的 hdl_status_adapter 从
+      #         hdl /status 的 has_converged 折出）；
+      #   质量：/v8/local/loc_quality（同源的 inlier_fraction，0..1）；
+      #   跳变：位姿序列自证（无需外部话题，任何配置下都判）。
+      # 没有这两条信号＝未知＝不健康（fail-closed）。quality_min 先留 0.0，表示"只要求
+      # 存在且新鲜"；真正的内点下限必须由 G8 实测数据定，不得凭空填。
+      converged_topic: /v8/local/loc_converged
+      quality_topic: /v8/local/loc_quality
+      quality_min: 0.0
+      quality_stale_s: 1.0
+      converged_stale_s: 1.0
+      require_converged: true
+      require_quality: true
+      allow_unverified: false
+      max_plausible_mps: 1.5
+      jump_max_m: 0.50
+      jump_max_rad: 0.60
       rate_hz: 20.0
       stale_s: 0.5
 edges:

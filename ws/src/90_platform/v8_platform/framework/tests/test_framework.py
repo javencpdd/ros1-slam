@@ -415,6 +415,25 @@ class FrameworkTests(unittest.TestCase):
             launch_mod.check_components(catalog, packages)
         self.assertEqual(caught.exception.code, 'E_LAUNCH_PACKAGE')
 
+    def test_package_index_covers_all_manifests(self):
+        """索引必须覆盖**全部** manifest 的引用，而不只是某一张图用到的组件。
+
+        2026-11-24 的既有红灯就出在这个缝里：下面那条 `..._rejects_unknowns` 只拿
+        `graph_3d_cache.yaml` 的 catalog 去对表，于是 `manifest_path_goal3d.json` 与
+        `manifest_localization_source.json` 引用了两个新脚本时无人发现；而
+        `fixtures/package_index.json` 是**手工快照、没有任何生产者**（仓库内 8 处消费、
+        0 处生成），漂移只能靠一条"全量对表"的测来拦。
+        """
+        catalog = config.load_components(MANIFESTS)
+        index = launch_mod.load_index(INDEX)
+        try:
+            report = launch_mod.check_components(catalog, index)
+        except config.FrameworkError as exc:
+            self.fail('%s —— fixtures/package_index.json 是手工快照（无生产者），'
+                      '新增或改名入口时必须同步该文件' % exc)
+        self.assertEqual(report['components'], len(catalog['components']),
+                         '有组件没被校验到（对表面不完整）')
+
     def test_package_index_rejects_unknowns(self):
         catalog, _ = load_pair(G3D)
         index = launch_mod.load_index(INDEX)
