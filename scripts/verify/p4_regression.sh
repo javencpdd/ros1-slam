@@ -176,6 +176,11 @@ ONLY=${ONLY:-${1:-}}
 [ -z "$ONLY" ] || [ "$ONLY" = loc ]      && case_loc
 [ -z "$ONLY" ] || [ "$ONLY" = cancel ]   && case_cancel
 
+say '=== 收尾：拆掉本轮编排 ==='
+# 不拆的后果是实测过的：残留的 roslaunch 会继续往 EV 目录里的 graph.log 追加，
+# 一次 --only loc 就把它写脏了 1220 行（那份 log 当时已经在仓里）。
+kill_v8
+
 say '=== 汇总（机器判定）==='
 python3 $REPO/scripts/verify/p4_judge.py --root "$EV_ROOT"
 RC=$?
