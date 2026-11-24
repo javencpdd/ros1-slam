@@ -20,8 +20,15 @@
 - `hdl_localization.launch` tf 四项仍 0.0 占位；真机 PCD 未建；定位收敛信号仓内无生产者（影子门恒 `insufficient_data`）。
 - 建图与导航须分两次上机：先 `enable_motion=false` 只建图 → 定位空跑 → 最后才 `enable_motion=true`。
 - **容器 preflight 路径别名漂移**：item[4] 要求 rospack 字面在 `/home/ros1-slam`，item[10]/[9-v8] 以
-  `/opt/ros1-slam` 为规范别名；需把 `/home/ros1-slam/ws/src` 修为指向 `/opt/ros1-slam/ws/src` 的符号链接
-  （有删实目录风险，未擅动）。否则正式窗 preflight rc=5，本平台只能出 SMOKE、不能声称 formal。
+  `/opt/ros1-slam` 为规范别名。否则正式窗 preflight rc=5，本平台只能出 SMOKE、不能声称 formal。
+  ★2026-11-25 更正（原文保留）★：原文写"需把 `/home/ros1-slam/ws/src` 修为指向 `/opt/ros1-slam/ws/src`
+  的符号链接（有删实目录风险）"——**这句已过时**：实测 `/home/ros1-slam/ws` 早在 2026-11-18 就已是
+  指向 `/opt/ros1-slam/ws` 的符号链接，不存在删实目录的风险，也不需要再改。
+  真正卡点换成了另一层：`rospack find lite3_bt` 无论从 `/home` 还是从 `/opt` 视角 source，都返回
+  `/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt`（devel/setup 记的是实路径，别名不参与解析），
+  所以 item[4] 的字面要求在容器里靠改文件系统无法满足；且该返回值是 **x86_sim profile** 的源码视图，
+  正式窗应走 lite3 profile。⇒ 处置：**不改 item[4] 判据、不改历史裁决**，留待 G8 真机窗口在
+  真机镜像里以 `/home` 视角构建后再验（见 `note/04` 对应批段）。
 
 ## 3. M20 迁移合同（无代码，先立接口）
 
