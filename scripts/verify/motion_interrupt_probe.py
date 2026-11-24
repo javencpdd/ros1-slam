@@ -44,6 +44,7 @@ def main():
     # 1) 起 rosbag：直接持有句柄，收尾时对它单独发 SIGINT
     recorder = subprocess.Popen(
         ['rosbag', 'record', '/cmd_vel', '/hdl_odom', '/sim/odom_gt',
+         '/v8/local/cancel_ack', '/v8/local/localization_ok',
          '-O', bag_path],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 

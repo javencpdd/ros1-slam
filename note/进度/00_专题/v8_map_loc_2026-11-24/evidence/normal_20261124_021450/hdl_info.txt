@@ -1,0 +1,51 @@
+--------------------------------------------------------------------------------
+Node [/hdl]
+Publications: 
+ * /mgr/bond [bond/Status]
+ * /rosout [rosgraph_msgs/Log]
+
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+ * /mgr/bond [bond/Status]
+
+Services: 
+ * /hdl/get_loggers
+ * /hdl/set_logger_level
+
+
+contacting node http://35ea6bfef95a:34823/ ...
+Pid: 984872
+Connections:
+ * topic: /rosout
+    * to: /rosout
+    * direction: outbound (44969 - 172.20.0.6:35188) [16]
+    * transport: TCPROS
+ * topic: /mgr/bond
+    * to: /hdl
+    * direction: outbound
+    * transport: INTRAPROCESS
+ * topic: /mgr/bond
+    * to: /mgr
+    * direction: outbound (44969 - 172.20.0.6:35192) [10]
+    * transport: TCPROS
+ * topic: /mgr/bond
+    * to: /gms
+    * direction: outbound (44969 - 172.20.0.6:35190) [12]
+    * transport: TCPROS
+ * topic: /clock
+    * to: /gazebo (http://35ea6bfef95a:45609/)
+    * direction: inbound (53166 - 35ea6bfef95a:42205) [11]
+    * transport: TCPROS
+ * topic: /mgr/bond
+    * to: /hdl (http://35ea6bfef95a:34823/)
+    * direction: inbound
+    * transport: INTRAPROCESS
+ * topic: /mgr/bond
+    * to: /mgr (http://35ea6bfef95a:37405/)
+    * direction: inbound (56864 - 35ea6bfef95a:57717) [17]
+    * transport: TCPROS
+ * topic: /mgr/bond
+    * to: /gms (http://35ea6bfef95a:45399/)
+    * direction: inbound (41838 - 35ea6bfef95a:59693) [18]
+    * transport: TCPROS
+

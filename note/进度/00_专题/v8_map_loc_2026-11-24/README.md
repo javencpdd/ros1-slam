@@ -2045,3 +2045,61 @@ tick 0.6 相对原始的 1.2 改善 **84%**，且保住了步长（导航可用�
 **"车不动"先查目标是否可达。** 我为此在探针上浪费了六种方案、十几轮仿真，
 而 `free_space_width.py` 一条命令就能回答（(5.2,1.25) 可达格数 = 0）。
 之后两个测试都是一次成功。
+
+## 47. 第 4 项补测失败：环境污染（两个 /hdl_odom publisher）
+
+按计划把 `hold_s` 提到 18 s、录制加 `/v8/local/cancel_ack` 与 `/v8/local/localization_ok`，
+重跑取消测试。结果 `NO_MOTION: 45 s 内未见非零 cmd（frames=2204）`。
+
+### 47.1 查明原因：hdl remap 未生效，闸门空转
+
+| 检查项 | 读数 | 说明 |
+| --- | --- | --- |
+| `/hdl_odom` publishers | **2 个**：`/velodyne_nodelet_manager`、`/hdl_gate` | **hdl 仍在直发 `/hdl_odom`** |
+| `hdl_gate` 节点数 | 1 | 闸门在，但转发的 `/hdl_odom_raw` **没有数据源** |
+| `/hdl_odom` 频率 | 10.47 Hz | 表面正常 |
+| **local 报错** | **`E_LOCAL_SUPPORT`** | `start=(-1.2696, 2.3112)` ≠ 期望的 (5.2, 2.45) |
+
+**hdl 的 `/odom:=/hdl_odom_raw` remap 没有生效** —— 它仍以原名发 `/hdl_odom`，
+于是 `/hdl_odom` 上并存两个 publisher（真实位姿 + 空转发），loc 收到的位姿被污染，
+漂到 **(-1.27, 2.31)**，起点落在地图外/无支撑区 ⇒ 车不动。
+
+### 47.2 这不是系统行为，是环境残留
+
+- `velodyne_nodelet_manager` 是**更早实验残留的 manager**（不是本轮 repro 起的 `/mgr`），
+  它持有的 hdl 实例仍在发 `/hdl_odom`；
+- 本轮 repro 的闸门因此转发的是无人发布的 `/hdl_odom_raw`，成为空转；
+- 两个 publisher 叠加 → 位姿错乱。
+
+**需要先清掉残留 manager**（`pkill -f velodyne_nodelet_manager`）再重跑，
+而这需要重新确认 remap 是否真的落到这个实例上。
+
+### 47.3 第 4 项维持 PARTIAL
+
+上一轮 `cancel_mip_010813` 的读数仍然有效（当时环境干净）：
+
+| 判据 | 读数 | 状态 |
+| --- | --- | --- |
+| 运动中取消 | v=0.600 | ✅ |
+| 命令归零 | 末非零后 34 帧全零 | ✅ |
+| 滑行距离 | **0.011 m** | ✅ |
+| 持续 5 s 零速 | 只覆盖 **0.307 s** | ❌ |
+| ACK | 未录进 bag | ❌ |
+
+**因此第 4 项仍是 PARTIAL**，本轮补测没有带来新读数。
+
+### 47.4 四项最终状态（不变）
+
+| # | 判定 |
+| --- | --- |
+| 1 正常导航 | **PASS**（真值 0.0339 m） |
+| 2 障碍安全 | **PASS**（5 场景 + 反控） |
+| 3 定位失效 | **PASS**（0.247 s / 0.106 m） |
+| 4 取消 | **PARTIAL**（归零 ✅ 滑行 0.011 m ✅；窗口 0.307 s ❌ ACK 未录 ❌） |
+
+### 47.5 下一轮的第一件事
+
+**清残留 manager**（`velodyne_nodelet_manager`），确认 `/hdl_odom` 只有**一个** publisher
+（应为 `/hdl_gate`），再跑取消测试。判据：
+`rostopic info /hdl_odom | grep -c '^\s*\*'` 应为 1。
+这是本轮新发现的**环境自检闸门**，之前没有。
