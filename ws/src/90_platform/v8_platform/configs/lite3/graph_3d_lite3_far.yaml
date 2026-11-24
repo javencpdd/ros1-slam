@@ -63,7 +63,9 @@ instances:
   - id: path_goal
     component: v8.fw.path_goal3d
     namespace: /v8/3d/path_goal
-    # support 版没有这个实例：BT 的 FollowPath 自己发 /v8/local/goal。
+    # support 版原先没有这个实例（BT 的 FollowPath 自己发 /v8/local/goal），
+    # 但 FollowPath 是 SyncActionNode 只发一次、local_native_raw 又按 max_step_m
+    # 步进 ⇒ 车只走一步。2026-11-24 起 support 版也补了 path_goal，两版同形。
     # FAR 版把局部目标的所有权交给它——每条 /global_path 取 poses[-1] 发一次 PoseStamped，
     # 这正是 /global_path 只能放两点、不许带前视延长点的原因。
   - id: bt

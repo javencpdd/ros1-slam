@@ -30,8 +30,12 @@
   </include>
   <!-- M0：Livox Mid-360 驱动 + qnx2ros（liveness_m0 心跳在其内，A1；43897 前置见头注） -->
   <include file="$(find lite3_drivers)/launch/01_sensors.launch"/>
-  <!-- M2：hdl_localization 自研承载（A3；liveness_m2 心跳在其内；不含 map_server=A6 裁决 a + N-2） -->
-  <include file="$(find lite3_localization)/launch/hdl_localization.launch"/>
+  <!-- M2：hdl_localization 自研承载（A3；liveness_m2 心跳在其内；不含 map_server=A6 裁决 a + N-2）
+       ★publish_extrinsic:=false 是显式的★（2026-11-24）：base_link→rslidar 由 01_sensors.launch
+       的驱动侧发布，本 launch 不再重复发；四个外参已改必填，明确关掉而不是给假值。 -->
+  <include file="$(find lite3_localization)/launch/hdl_localization.launch">
+    <arg name="publish_extrinsic" value="false"/>
+  </include>
   <!-- M6：安全 mux（底盘速度唯一写者，§2.6-a；liveness_m6 心跳在其内） -->
   <include file="$(find lite3_safety)/launch/60_safety.launch">
     <arg name="rviz" value="$(arg rviz)"/>

@@ -4,7 +4,16 @@ robot_id: lite3
 name: nav3d_lite3_real_bt
 # Real-robot counterpart of graph_3d_gazebo_bt.yaml.  BT owns WHEN; the global
 # planner still computes the path and the local planner still owns motion.
-# path_goal is absent: FollowPath publishes /v8/local/goal itself.
+#
+# ★path_goal 必须有★（2026-11-24 更正）：原先这里写的是「path_goal is absent:
+# FollowPath publishes /v8/local/goal itself」，并把它当成就绪——这是错的。
+# FollowPath 是 BT::SyncActionNode，只在 tick 里发一次 goal 就返回 SUCCESS 进
+# wait_arrival；而 local_native_raw 是**步进式**的（一个 goal 走满 max_step_m
+# 即 segment_complete，真机配置 max_step_m=0.15 / tick_s=0.5）。两者相接的结果
+# 是**每段只走 0.15 m 就停**，随后要等 advance_timeout 或 retry 才会再来一次。
+# 仿真侧同一个坑已经用 path_goal3d 修掉（graph_3d_m1_hdl_bt.yaml 的 bt 段注释），
+# 修法与 graph_3d_lite3_far.yaml 完全同形：path_goal 独占 /v8/local/goal，
+# BT 的 out_goal 退回哑话题。
 # Offline-checkable only.  A physical run still needs note/10 sign-off, the
 # original preflight rc0 and a human present (L2).
 instances:
@@ -28,6 +37,14 @@ instances:
       goal_topic: /v8/3d/global/goal
       path_topic: /v8/3d/global/path
       status_topic: /v8/3d/global/status
+  - id: path_goal
+    component: v8.fw.path_goal3d
+    namespace: /v8/3d/path_goal
+    # 局部目标的唯一写者。沿全局路径逐点下发：本节点 tick 到 poses[index] 剩余
+    # <= arrive_m 才前进，正好补上 local_native_raw 的步进式语义（见文件头）。
+    # 端口全用 manifest 默认：path=/v8/3d/global/path、goal=/v8/local/goal。
+    # 取消不经图：path_goal 自身订阅 /v8/local/cancel（与 bt.cancel_topic 同名默认），
+    # 收到即清空活动路径并置 cancelled_at，此后只收 stamp 更新的 path。
   - id: bt
     component: v8.fw.bt_console
     namespace: /v8/bt
@@ -38,7 +55,9 @@ instances:
       planner_goal_topic: /v8/3d/global/goal
       path_topic: /v8/3d/global/path
       path_status_topic: /v8/3d/global/status
-      out_goal_topic: /v8/local/goal
+      # 哑话题：本图没有 bt.out_goal 边，局部目标归 path_goal。若留成 /v8/local/goal，
+      # BT 每拍仍直写它，与 path_goal 抢同一话题（双写者，测试 test_graph_wiring 会报）。
+      out_goal_topic: /v8/bt/goal_request
       stop_topic: /lite3/teleop/app_cmd_vel
       cancel_input_topic: /v8/bt/cancel
       cancel_topic: /v8/local/cancel
@@ -152,7 +171,9 @@ edges:
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: bt.planner_goal, to: global.goal, feedback: true,
      policy: {period_s: 0.10, max_age_s: 2.0}}
-  - {from: bt.out_goal, to: local.goal}
+  - {from: global.path, to: path_goal.path}
+  # 局部目标的唯一写者。BT 说「去哪」，path_goal 说「下一步走哪」。
+  - {from: path_goal.goal, to: local.goal}
   - {from: carrier.pose, to: local.pose, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: carrier.localization, to: local.localization, feedback: true,

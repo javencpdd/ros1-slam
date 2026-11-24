@@ -144,6 +144,19 @@ def problems(graph, nodes=None, includes=None):
     return bad
 
 
+
+def _edge(graph, src, dst):
+    """按图里现有边的形状造一条新边。
+
+    `graph.resolve()` 直接下标取 `edge['feedback']` / `edge['policy']`，
+    手写的 {from,to} 两键字典会让 check() 抛 KeyError，反控反而变成假红。
+    """
+    tpl = dict(graph['edges'][0])
+    tpl['from'] = src
+    tpl['to'] = dst
+    return tpl
+
+
 class GraphWiringTest(unittest.TestCase):
 
     def test_supported_graphs_render_connected(self):
@@ -243,6 +256,89 @@ class GraphWiringTest(unittest.TestCase):
                 if 'command_topic' in params:
                     self.assertEqual(defaults['cmd'], params['command_topic'],
                                      '%s: local 的 cmd 走了 command_topic，同上' % path.name)
+
+    # ── 步进式局部执行器必须经 path_goal 下发局部目标（2026-11-24 加）───────────
+
+    def _stepwise_route_problems(self, graph, nodes=None, includes=None):
+        """步进式局部执行器的局部目标必须由 path_goal 独占。
+
+        为什么要单独判：`problems()` 只查连通与双写者。而「没有 path_goal、BT 直写
+        /v8/local/goal」在它眼里是**合法的单写者**，于是这个缺陷能一路绿着上真机。
+
+        实测后果（真机图原状）：FollowPath 是 `BT::SyncActionNode`（bt_console.cpp:472），
+        tick 里 `goal_pub.publish` 只发一次（:522）就返回 SUCCESS；而 local_native_raw
+        走满 `max_step_m`（真机 0.15 m）即 segment_complete ⇒ 每段只走一步就停。
+
+        判据只看两件事，不看实例名以外的任何约定：
+          ① 该执行器的输入口有 goal、没有 path（即它是步进式的）；
+          ② 局部目标话题的写者集合必须正好是 `{path_goal}`。
+        """
+        if nodes is None:
+            nodes, includes = render_graph(graph)
+        ids = list(graph['instances'])
+        if 'local' not in ids:
+            return []
+        ports = manifest_index()[inst_of(graph, 'local')['component']].get('ports', {})
+        inputs = {p.get('name') for p in ports.get('inputs', [])}
+        if 'goal' not in inputs or 'path' in inputs:
+            return []           # 收 path 的执行器自己会连续跟随，不受此约束
+        target = effective(graph, nodes, includes, 'local', 'goal', 'inputs')
+        writers = []
+        for iid in ids:
+            outs = {p.get('name') for p in
+                    manifest_index()[inst_of(graph, iid)['component']]
+                    .get('ports', {}).get('outputs', [])}
+            for port in ('out_goal', 'goal'):
+                if port in outs and effective(graph, nodes, includes, iid, port,
+                                              'outputs') == target:
+                    writers.append(iid)
+                    break
+        if 'path_goal' not in ids:
+            return ['步进式局部执行器在，但图里没有 path_goal（局部目标 %s）' % target]
+        if writers != ['path_goal']:
+            return ['局部目标 %s 的写者应为 [path_goal]，实际 %s' % (target, writers)]
+        return []
+
+    def test_stepwise_local_goal_requires_path_goal(self):
+        """lite3 两张 BT 图（support 与 FAR）都必须让 path_goal 独占局部目标。"""
+        for path in (V8P / 'configs/lite3/graph_3d_lite3_bt.yaml',
+                     V8P / 'configs/lite3/graph_3d_lite3_far.yaml'):
+            with self.subTest(graph=path.name):
+                graph = load(path)
+                self.assertEqual([], self._stepwise_route_problems(graph), path.name)
+
+    def test_stepwise_route_check_is_not_vacuous(self):
+        """反控：摘掉 path_goal、把 BT 指回 /v8/local/goal，判据必须翻转。
+
+        只做正向会得到恒真测试 —— 判据若退化成"总是返回空"，正向用例照样绿。
+        """
+        path = V8P / 'configs/lite3/graph_3d_lite3_bt.yaml'
+        graph = load(path)
+        self.assertEqual([], self._stepwise_route_problems(graph), '反控前提：原图应无问题')
+
+        del graph['instances']['path_goal']
+
+        def touch(edge):
+            return (str(edge.get('from', '')).startswith('path_goal.')
+                    or str(edge.get('to', '')).startswith('path_goal.'))
+        graph['edges'] = [e for e in graph['edges'] if not touch(e)]
+        inst_of(graph, 'bt')['params']['out_goal_topic'] = '/v8/local/goal'
+        graph['edges'].append(_edge(graph, 'bt.out_goal', 'local.goal'))
+
+        bad = self._stepwise_route_problems(graph)
+        self.assertTrue(bad, '摘掉 path_goal 后仍判绿 ⇒ 这条测是恒真的')
+
+    def test_stepwise_route_check_flags_param_collision(self):
+        """反控二：path_goal 还在，但 BT 的 out_goal 参数又撞回 /v8/local/goal。
+
+        这里故意**不加边**：`graph.check` 会把"一个输入绑两条边"直接判
+        `E_GRAPH_INPUT_DUP`，所以真实的双写者只能靠参数撞话题产生（remap 层面），
+        这也正是 test_detects_double_writer 用的手法。
+        """
+        graph = load(V8P / 'configs/lite3/graph_3d_lite3_bt.yaml')
+        inst_of(graph, 'bt')['params']['out_goal_topic'] = '/v8/local/goal'
+        self.assertTrue(self._stepwise_route_problems(graph),
+                        'BT 的 out_goal 与 path_goal 撞同一话题却没报')
 
     def test_mux_output_not_confused_with_its_input(self):
         """cmd3d_mux 的端口 `cmd` 在输入侧读 cmd_topic、输出侧读 output_topic。

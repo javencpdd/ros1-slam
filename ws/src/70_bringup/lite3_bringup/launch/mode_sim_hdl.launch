@@ -17,6 +17,14 @@
   <include file="$(find lite3_localization)/launch/hdl_localization.launch">
     <arg name="map_name" value="$(arg map_name)"/>
     <arg name="points_topic" value="/rslidar_points"/>
+    <!-- ★仿真恒等外参是**显式写出来**的，不是靠缺省★（2026-11-24）：
+         仿真世界与 URDF 里没有 rslidar 这一节关节，base_link→rslidar 这条 TF
+         在仿真中只由该 launch 的 static_transform_publisher 发出，所以此处必须
+         保留这条边、且值为恒等。写成显式值，才不会和真机「必填」的语义混淆。 -->
+    <arg name="tf_x" value="0.0"/>
+    <arg name="tf_y" value="0.0"/>
+    <arg name="tf_z" value="0.0"/>
+    <arg name="tf_pitch" value="0.0"/>
     <!-- M2-R2C（小张 R2C manifest 施工件3）：/clock 门控 + manager required 仅仿真域启用；真机 G8 不传=缺省现行为 -->
     <arg name="manager_required" value="true"/>
     <arg name="clock_gate_cmd" value="$(find lite3_gazebo_sim)/scripts/wait_sim_clock.sh"/>

@@ -44,8 +44,13 @@
   <!-- M0：Livox Mid-360 驱动 + qnx2ros（liveness_m0 心跳在其内） -->
   <include file="$(find lite3_drivers)/launch/01_sensors.launch"/>
 
-  <!-- M2：hdl_localization 自研承载（提供 map→base_link；base_link→rslidar 由驱动提供） -->
-  <include file="$(find lite3_localization)/launch/hdl_localization.launch"/>
+  <!-- M2：hdl_localization 自研承载（提供 map→base_link；base_link→rslidar 由驱动提供）
+       ★publish_extrinsic:=false 是显式的★（2026-11-24）：这条 TF 边由 01_sensors.launch
+       的驱动侧发布，本 launch 再发一次就是重复 TF。原先靠"0.0 缺省"碰巧一致，
+       现在四个外参已改成必填，必须明确关掉而不是给一串假值。 -->
+  <include file="$(find lite3_localization)/launch/hdl_localization.launch">
+    <arg name="publish_extrinsic" value="false"/>
+  </include>
 
   <!-- M6：安全仲裁（最终速度通道唯一写者；liveness_m6 心跳在其内） -->
   <include file="$(find lite3_safety)/launch/60_safety.launch">

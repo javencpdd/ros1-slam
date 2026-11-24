@@ -68,13 +68,17 @@ cd ../verify && python3 -m unittest test_port_conformance
 沿全局路径逐点重发，并在该图的 `bt` 段注释里写明原因（"FollowPath 只发一次 ⇒ 车只走 0.30 m"）。
 该修法**可直接搬到真机图**：`manifest_path_goal3d.json` 的 `execution.modes` 含 `real_robot`。
 
-建议改法（**未执行，属真机件，待授权**）：
+已改（2026-11-24，真人当轮授权"两个都做了"，仍属**离线改动**、未上机）：
 
-- 在 `graph_3d_lite3_bt.yaml` 增 `path_goal` 实例（`component: v8.fw.path_goal3d`，
-  `path_topic: /v8/3d/global/path`、`goal_topic: /v8/local/goal`）；
-- 把 `bt.out_goal_topic` 改为 `/v8/bt/out_goal`（与仿真同名，不再直写 local），
-  边改 `global.path → path_goal.path`、`path_goal.goal → local.goal`；
-- 改完必须重跑 `cli.py check`，并要求 digest 变化被记录。
+- `graph_3d_lite3_bt.yaml` 增 `path_goal` 实例（`v8.fw.path_goal3d`，端口全用 manifest 默认）；
+- `bt.out_goal_topic` 由 `/v8/local/goal` 改为哑话题 `/v8/bt/goal_request`；
+- 边改为 `global.path → path_goal.path`、`path_goal.goal → local.goal`（原 `bt.out_goal → local.goal` 已摘）；
+- 文件头原「path_goal is absent」的说明一并更正，写清 SyncActionNode ＋ 步进式的因果。
+
+复核读数：`cli.py check` → `ok: true`，digest 由 `e09e2b2e…` 变为 **`ec763048…`**；
+启动序插入 `path_goal`（`… gait_guard → path_goal → local → mux`）。
+守这个不变量的测试：`tests/test_graph_wiring.py` 的
+`test_stepwise_local_goal_requires_path_goal`（正向）＋ `…_is_not_vacuous`、`…_flags_param_collision`（两条反控）。
 
 ## 6. 2026-11-24 复核：其余口径与今日实测
 
@@ -94,3 +98,28 @@ cd ../verify && python3 -m unittest test_port_conformance
 - 仍缺（与 §2 一致，未变）：`hdl_localization.launch` 的 `tf_x/tf_y/tf_z/tf_pitch`
   四项仍是 `0.0` 占位（`:32—35`），须现场量；真机地图目录 `data/maps/real_lite3_20261103/`
   被 `.gitignore:13` 排除、且是 11-03 样张，**不等于现行真机地图**。
+
+## 7. 2026-11-24 复核：hdl 外参不再有 0.0 缺省
+
+`lite3_localization/launch/hdl_localization.launch` 的 `tf_x/tf_y/tf_z/tf_pitch` 原为
+`default="0.0"`：不给值就静默发布「雷达与 base_link 重合」的恒等 TF —— 一切看着正常，
+实际整条定位与感知偏 0.38 m 量级，且不报任何错。现改为**必填**：
+
+- 四个 arg 去掉 default；另加 `publish_extrinsic`（默认 `true`）控制是否发这条 TF；
+- 直接起该 launch 不给值 ⇒ **解析期**失败：`requires the 'tf_x' arg to be set`；
+- `mode_sim_hdl.launch` 显式传四个 `0.0`：仿真世界与 URDF 里没有 rslidar 那一节关节，
+  这条 TF 在仿真中只由它发出，恒等是**真实值**而不是占位；
+- `mode_navigation.launch`／`mode_localize.launch` 传 `publish_extrinsic:=false`：
+  驱动侧 `01_sensors.launch` 已发恒等 TF，原来这里等于**重复发布同一条 TF**。
+
+实测（`roslaunch --nodes` 三组对照，均为离线解析、不启节点）：
+
+| 调用 | 结果 |
+| --- | --- |
+| 裸跑 | 失败 `requires the 'tf_x' arg to be set` |
+| `publish_extrinsic:=false` | 通过，节点表里**没有** `base_link_to_rslidar` |
+| 四个值给全 | 通过，`base_link_to_rslidar` 在位 |
+| `mode_sim_hdl` / `mode_navigation` / `mode_localize` | 均可解析（前者保留该 TF，后两者 0 条） |
+
+**没做的**：四个值的具体数值仍未测（属现场量，`note/11` §K 第 2 项）。本改动只保证
+「不测就跑不起来」，不提供数值——数值仍须真人在 G8 作业窗量取后写入命令行或本机覆盖件。
