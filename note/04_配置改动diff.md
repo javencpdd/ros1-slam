@@ -8780,3 +8780,12 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   FAR 跑验收要 `EXPECT_NODES=8`（实测值，非猜）
 - `p4_regression.sh` 增 `GRAPH`/`EXPECT_NODES`/`POSE_TOPIC` 透传（用 `env ${VAR:+VAR=...}`，为空不注入 ⇒
   不传时行为与历史完全一致）；并改正文件头那条"`--only nav`"的错误用法说明（实际按裸词比较）
+- ★FAR 组合当前状态（同日，未通过）★：修好 overlay 后 FAR 图能起（实测 8～9 个 `/v8` 实例），
+  但 **BT 报 `global path timeout after 30.0 s`**（连续 4 次），车零速、`frames=0`。
+  已定位到判据层面：`far_node.py` 是适配层（发 `/scan_cloud`、`/terrain_cloud`、`/odom_world`、
+  `/goal_point`、`/way_point`，收 `/global_path`），`far_stack.launch` 的上游契约要求
+  `/odom_world`、`/terrain_cloud`、`/scan_cloud`、`/goal_point`、`/way_point` 齐备；
+  运行时 `/far_planner` 节点 `rosnode info` 显示 **Subscriptions: None**、且无任何 stdout，
+  说明厂商 FAR 节点未真正初始化（不是接线名错）。
+  下一步：抓厂商 far_planner 的启动输出（`output="screen"` 却无输出 ⇒ 多半在加载配置/地图前就退出），
+  并核对 `far_stack.launch` 期望的 config 与实际提供是否一致；**在此之前 FAR 四项记 INVALID，不记 FAIL**
