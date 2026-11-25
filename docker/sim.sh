@@ -125,6 +125,7 @@ base_up() {
     echo "[base] 孤儿清理"
     bash "$WS/scripts/verify/orphan_gzserver.sh" || { echo "[base] 孤儿清理失败"; return 1; }
 
+    local with_hdl="${2:-hdl}"
     case "$kind" in
       m1)
         # ★与历史的职责分工一致★：Gazebo 是"前置"，由本入口用 asan_hdl_repro.sh:97 那条**同一条命令**
@@ -140,14 +141,30 @@ base_up() {
             _wait_node /gazebo 90 || { echo "[base] FAIL: 90s 内 /gazebo 节点未注册（见 /tmp/base_gazebo.log）"; return 1; }
             _check_gazebo_ros || return 1
         fi
-        echo "[base] 复用历史脚本 asan_hdl_repro.sh（SKIP_GAZEBO=1，只装 HDL）"
-        SKIP_GAZEBO=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1
-        local rc=$?
-        [ "$rc" = "0" ] || { echo "[base] asan_hdl_repro rc=$rc（见 /tmp/base_m1.log 尾部）"; tail -12 /tmp/base_m1.log; return 1; }
+        if [ "$with_hdl" = "no-hdl" ]; then
+            echo "[base] 跳过 HDL（no-hdl：定位由图或 p4_regression 自行装载）"
+        else
+            echo "[base] 复用历史脚本 asan_hdl_repro.sh（SKIP_GAZEBO=1，只装 HDL）"
+            SKIP_GAZEBO=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1
+            local rc=$?
+            [ "$rc" = "0" ] || { echo "[base] asan_hdl_repro rc=$rc（见 /tmp/base_m1.log 尾部）"; tail -12 /tmp/base_m1.log; return 1; }
+        fi
         _check_gazebo_ros || return 1
         _check_sensors || return 1
-        _wait_hz /hdl_odom 90 || { echo "[base] FAIL: /hdl_odom 无数据（HDL 未收敛，见 /tmp/base_m1.log）"; return 1; }
-        echo "[base] BASE READY（m1 + HDL；/livox/imu 单发布者）"
+        if [ "$with_hdl" != "no-hdl" ]; then
+            _wait_hz /hdl_odom 90 || { echo "[base] FAIL: /hdl_odom 无数据（HDL 未收敛，见 /tmp/base_m1.log）"; return 1; }
+            # ★必须恰好 1 个 HDL 发布者★：底座一份 + 图内 `v8.fw.hdl_localization` 一份 = 双 HDL，
+            # 实测把 /hdl_odom 拖到 4 Hz、最大断档 0.64 s，正好顶到 local 的 max_age_s=0.7
+            # ⇒ 局部规划器间歇报 E_POSE_MISSING(E_LOCAL_NOT_READY)、车走一半就停。
+            local np; np=$(_pub_count /hdl_odom)
+            if [ "${np:-0}" -gt 1 ]; then
+                echo "[base] FAIL: /hdl_odom 有 ${np} 个发布者（应恰 1）。底座用 no-hdl，别与图内 HDL 抢"
+                return 1
+            fi
+            echo "[base] BASE READY（m1 + HDL 单发布者；/livox/imu 单发布者）"
+        else
+            echo "[base] BASE READY（m1，no-hdl：定位由图装载）"
+        fi
         ;;
       m2)
         echo "[base] 起 m2 底座（m2_gazebo + m2_mapping；/Odometry 为算法位姿）"
@@ -175,7 +192,7 @@ base_down() {
 
 case "$MODE" in
     probe)  probe ;;
-    base)   shift; base_up "${1:-m1}" ;;
+    base)   shift; base_up "${1:-m1}" "${2:-hdl}" ;;
     down)   base_down ;;
     clean)
         # 对齐 m2_smoke.sh 的退净判据：把本域（11313/11345）的进程与端口清干净。
@@ -210,7 +227,7 @@ case "$MODE" in
         fi
         ;;
     *)
-        echo "用法: bash $0 {probe|base [m1|m2]|down|gazebo|smoke [stageA|stageB|stageC|all]}"
+        echo "用法: bash $0 {probe|base [m1|m2] [hdl|no-hdl]|down|gazebo|smoke [stageA|stageB|stageC|all]}"
         exit 2
         ;;
 esac
