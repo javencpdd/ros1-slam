@@ -8904,3 +8904,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   单 HDL（≈9 Hz）**一步不动**。⇒ "位姿频率低导致停"这一解释**被推翻**，停因另有其因。
   下一步不再猜频率：在单 HDL 配置下同时记录 `/v8/3d/global/path` 是否发布、`/v8/local/goal` 是否有值、
   `path_goal` 是否转发——把"没目标"与"有目标但不执行"两类先分开。
+- ★把 nav 失败从"位姿"转成"规划输出"（同日，单 HDL 配置复测）★：底座 `SKIP_HDL=1` + 手动 `asan`(全量)
+  + FAR 图，发 start/goal 后实测：`/v8/3d/global/path` **0 帧**、`/v8/local/goal` **0 帧**、`cmd_vel` 全 0，
+  而 `grep -c "V-Graph" /tmp/f7.log` = **401**、`STATIC ENV` = 1 ⇒ **FAR 在跑、在更新可见性图，
+  但 `global path ready` 计数为 0**（BT 没拿到路径）。
+  同时 `rosnode list | grep far_planner` = 0 而 `pgrep far_planner` = 1 ⇒ FAR 进程活着但**未以该名字注册**，
+  说明它的 node handle 名与预期不同（这也解释了历史上"用 rosnode 判活会误判"）。
+  ⇒ 下一步只剩两个可能：(a) 目标没进 FAR（`/goal_point` 无消息）；(b) FAR 拒答（可见性图无顶点/目标不可达）。
+  查 `/goal_point` 的发布者与消息数即可把两者分开。
