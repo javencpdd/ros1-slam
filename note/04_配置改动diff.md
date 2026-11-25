@@ -8876,7 +8876,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `/v8/local/pose` 与 `/hdl_odom` 的**到达间隔**，而不是均值）。测量结果：
   - `/v8/local/pose` 与 `/hdl_odom` 同为 **4.02 Hz**，最大断档 **0.641 s**，两者 gap 完全同步
   - `rostopic info /hdl_odom` 显示 **2 个发布者**，`/hdl_odom_raw` 也是 2 个，另有 3 个 relay 进程
-  ⇒ 底座那份 HDL 与图内 `v8.fw.hdl_localization` / `asan_hdl_repro` 装的 HDL **撞在一起**，
+  ⇒ ★双 HDL 来自"底座 `sim.sh base m1`（内部 asan）+ `p4_regression` 每个用例再 asan 一次"★，
+  **不是图**——已核实两张图里都没有 `hdl_localization` 实例（manifest 存在 ≠ 图中启用）：
+  `grep "component: v8.fw.hdl_localization"` 在支持图与 FAR 图里均 **0 命中**。
   把 10 Hz 拖到 4 Hz 且抖动到 0.64 s，正好顶到 `local.max_age_s=0.7`
   ⇒ `E_POSE_MISSING`→`E_LOCAL_NOT_READY`，车走一半就停（0.65 m / 1.3 m）。
 - 已加硬守卫：`sim.sh base m1` 在 HDL 分支里检查 `/hdl_odom` 发布者数，**>1 直接判失败**并提示用 `no-hdl`。
