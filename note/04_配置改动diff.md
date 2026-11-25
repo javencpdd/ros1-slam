@@ -8867,3 +8867,8 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   （候选：`path_goal` 的 `lookahead_m` 把局部目标截在 0.65 m 处、或局部到点后没有新局部目标）
 - ★支撑图补面的副作用要复验★：为消除 x=4.0 处的支撑洞，已沿 1.3 m 走廊补 177 格（`fill_start_support.py`，
   地图 JSON 不在 git 跟踪面，命令见上条）。Support 组合需在补面后复跑四项，确认无回归
+- ★FAR nav 停下的直接码（同日，实时读数）★：`/v8/local/status` = `{"stop": true, "reason": "E_LOCAL_NOT_READY"}`，
+  而 `E_LOCAL_NOT_READY` 在 `ros_node_signals.py:109` 的定义就是 `E_POSE_MISSING` 的映射
+  ⇒ 停住那一刻局部规划器**没拿到位姿**。同一份 status 里 `pose_clock.ok=true`、`source_stamp` 在推进，
+  说明是**瞬时缺帧**而非持续丢失。下一步：抓停住瞬间 `/v8/local/pose` 的间隔（是否出现 >1 s 的断档），
+  以及 loc 在 HDL 输出抖动时是否会短暂停发。
