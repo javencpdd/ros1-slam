@@ -8948,3 +8948,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   下一步（定向）：统计 map 系 z<0.1 的地面点占比；若≈0，则核对**传感器俯仰与垂直视场**
   （URDF 里 15° 的符号/朝向 vs 仿真 livox 插件的 FOV）——若雷达是"仰视 15°"，地面自然出视场，
   这是输入契约在**传感器几何**层面的根因。
+- ★Support 4/4 在"单 HDL"正确配置下复现（同日，收口）★：底座 `base m1 no-hdl`（asan `SKIP_HDL=1`
+  只备 `/hdl/*`、`/gms/*`、globalmap 与 manager）+ `p4_regression.sh` 自己装 HDL（无 SKIP_HDL）
+  ⇒ `/hdl_odom` **单发布者**，`p4_judge.py` **rc=0**：
+  `障碍 A/A2/B/C/D 全 PASS｜定位失效 delay 0.694 s / coast 0.152 m｜取消 零速窗 11.38 s / 位移 0.017 m / replay PASS`
+  ⇒ 本轮对适配层与 far_stack 的改动**未影响 Support 主线**。
+- ★FAR 结论（同日，已写入 `note/架构/FAR后端评估_2026-11-25.md`）★：FAR 建图失败**不是算法也不是适配层**，
+  而是 HDL 的 `map→odom` 抬了约 1.05 m、俯仰偏约 12°，使地形在 map 系整体悬空约 1.5 m；
+  适配层输出与 TF 直接变换**逐位一致**（z 中位都是 1.50）。按真人指示：FAR **保留为实验后端**，
+  不参与 Support 主线验收、不阻塞；启用前置条件是先把 `map→rslidar z` 拉回 0.45±0.05、俯仰与
+  `base→rslidar`（15°）一致。FAR 图里**不覆盖** `terrain_ground_z/terrain_flatten`（错位地图下覆盖会把全图判障碍）。

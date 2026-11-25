@@ -1,0 +1,33 @@
+===== MODE=normal DUR=60s MAP=/opt/ros1-slam/data/maps/mapped_m1.pcd =====
+EV=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261125_150347
+live_lib_sha=8467802453724791 backup_sha=a8164428b4f0dff9
+--- [0] 清理陈旧节点与 gzserver ---
+after_clean_nodes=/far_planner /gazebo /gms /hdl /hdl_gate /mgr /robot_state_publisher /rosout /rslidar_points_relay_1795618437329808657 /rslidar_points_relay_1795618533369504364 /rslidar_points_relay_1795618757666861511 /rslidar_points_relay_1795618823363458171 /sim_adapter /v8/3d/carrier/carrier /v8/3d/loc/loc /v8/3d/local/local /v8/3d/map/map /v8/3d/mux/mux3d /v8/3d/path_goal/path_goal /v8/3d/perception/perception /v8/bt/bt /v8_global_far 
+after_clean_leftover=1
+--- [1] 启动 Gazebo（map_to_odom=false）---
+复用已在跑的 Gazebo（SKIP_GAZEBO=1 且 /rslidar_points 有数据）
+average rate: 10.230
+--- [2] relay /rslidar_points -> /velodyne_points ---
+average rate: 10.178
+--- [3] 启动 nodelet manager ---
+mgr_pid=2170607 libasan_in_maps=0
+--- [4] 加载 GlobalmapServerNodelet（正式库）---
+globalmap_ready_after=1x2s width=10237
+globalmap_width=10237
+--- [5] 加载 HdlLocalizationNodelet（MODE=normal）---
+SKIP_HDL=1：跳过 HdlLocalizationNodelet 装载（参数/地图已就绪，HDL 由图提供）
+load_result=instance_at=1s
+mgr_alive=yes
+--- [6] 注入有效性：实际加载的是哪一份 .so ---
+maps_asan=0 maps_dbg=0 maps_live=0
+--- [7] 实例与订阅闸门 ---
+nodes=/hdl /hdl_gate /mgr 
+hdl_node=/hdl
+-- /velodyne_points Subscribers --
+Subscribers: None
+velodyne_has_subscriber=0
+hdl.log:
+tail: cannot open '/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261125_150347/hdl.log' for reading: No such file or directory
+manager.log tail:
+[0m[ INFO] [1795619079.500369724]: Initializing nodelet with 72 worker threads.[0m
+GATE_FAIL: /velodyne_points 没有真订阅者（回调不可能被调用）
