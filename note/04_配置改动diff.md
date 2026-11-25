@@ -8665,3 +8665,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   （它先 wait `/clock`→`/rslidar_points`→`/livox/imu` 再起 mapping，并自带驱动/清理/基线机制）。
   ★结论：不要再重写底座启动，应**在 m2_smoke 的框架内挂载导航图**（或抽它的 start/stop 为可复用函数），
   这是把"手搓 vs 冒烟"这个反复出现的坑一次性关掉的唯一可靠做法★
+- ★补前置等待后暴露的下一处（同日）★：脚本按冒烟口径加上 `/clock→/rslidar_points→/livox/imu` 三个前置等待后，
+  卡在 **`/livox/imu` 未就绪**。核查：`m2_gazebo.launch:36-37` 的 sim_adapter 同样带 `--no-imu`，
+  其设计假设是"IMU 由 Gazebo 插件直发"；而 `GAZEBO_PLUGIN_PATH` 指向的 `/opt/ros1-slam/sim_ws/devel/lib` 里
+  只有 `liblivox_laser_simulation.so`（无独立 IMU 插件），实测 `/livox/imu` 不出现。
+  但同一配方在 `docker/sim.sh smoke stageA` 下 IMU 实测 **200 Hz** ⇒ stageA 走的前置/驱动与
+  `m2_gazebo.launch` 直接起不同（其 `stage_a()` 另有 wait 与驱动段）。⇒ 结论同前：**底座必须复用冒烟框架**，
+  不要再逐条猜它的启动条件

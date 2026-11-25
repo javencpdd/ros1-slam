@@ -64,6 +64,17 @@ for _ in $(seq 1 30); do
   sleep 2
   if timeout 3 rostopic info /rslidar_points 2>/dev/null | grep -q sim_adapter; then break; fi
 done
+# ★照 m2_smoke.sh:101-104 的三个前置等待★：它先等 /clock→/rslidar_points→/livox/imu 才起 mapping。
+# 少了这一步，mapping 会在传感器还没齐时启动并静默失败（我此前正是漏了它，导致 /cloud_registered 永不出）。
+for t in /clock /rslidar_points /livox/imu; do
+  ok=0
+  for _ in $(seq 1 40); do
+    sleep 2
+    if timeout 3 rostopic type "$t" >/dev/null 2>&1; then ok=1; break; fi
+  done
+  [ "$ok" = "1" ] || die "传感器前置未就绪：$t"
+done
+log "传感器前置就绪（clock/cloud/imu）"
 roslaunch lite3_gazebo_sim m2_mapping.launch > "$EV/mapping.log" 2>&1 &
 MAP_PID=$!
 # ★照 m2_smoke 的等待口径★：它等的是 /cloud_registered（LIO 管线活着的证据），
