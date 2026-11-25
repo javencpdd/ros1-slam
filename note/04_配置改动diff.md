@@ -8640,3 +8640,15 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ⑥★镜像侧缺口（必须登记）★：`docker/Dockerfile:210` 明写"仿真本身不需要 NVIDIA GPU / `--gpus`，
   纯 CPU + 软件渲染即可"——这与 HDL 的 CUDA 硬依赖**直接冲突**。本次 CUDA 工具链是**临时装进运行中的
   容器**，镜像重建即丢失；若要长期维持 A 方案，须改 Dockerfile 并把 `BUILD_VGICP_CUDA=ON` 写进构建配置
+- ★找到合规仿真底座（同日，关键发现）★：此前所有"点云/定位不通"的尝试都是**我手搓启动与项目冒烟冲突**所致。
+  用项目自带入口 `bash /opt/ros1-slam/docker/sim.sh smoke stageA` 实测 **13 PASS / 0 FAIL**：
+  `A① 点云 10.0≥5Hz`、`A② IMU 200.0≥100Hz`、`A③ 漂移 0.489≤0.5`、`A④ 飞点 0.0001<1%`、
+  `A0 运动窗 RTF 0.461≥0.25`、`A 闭环走完（out/turn/back 全 done）`，
+  且 `post_a：/Odometry 发布者恰 1 且不再含 odom 族（真值已让位）`、`/sim/odom_gt 恰 1 发布者（真值另名可读）`
+  ⇒ **真值只在 /sim/odom_gt 供评测，控制链用 /Odometry（真实 LIO）**，正好满足"不得用真值作控制输入"
+  合规底座配方（取自 `m2_smoke.sh:31,98,103`）：`ROS_MASTER_URI=127.0.0.1:11313` ＋ `GAZEBO_MASTER_URI=127.0.0.1:11345`
+  ＋ `m2_gazebo.launch` ＋ `m2_mapping.launch`。实测 `/Odometry` **5 秒就绪**
+- 据此新增对照图 `framework/fixtures/graphs/graph_3d_m2_lio_bt_far.yaml`：与 m1 版同构，
+  仅把 `loc.lio_topic` 改为 `/Odometry`（M2 链的 LIO 输出）；`cli.py check` ok
+- 该组合下实测：`/v8/local/status` 的 `localization: 0.114`（位姿新鲜）、`obstacles_cb: 0`（perception 仍判盲）、
+  且 `/v8/local/pose` 有一次读数为空 ⇒ 同一组合内还有时序/首帧问题未定，**未继续盲试**，留待下一轮定点排查
