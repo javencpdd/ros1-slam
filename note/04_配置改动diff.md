@@ -8756,3 +8756,12 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - ★又一个 pipefail 坑（同日）★：我的 `_wait_hz` 写成 `timeout 8 rostopic hz | grep -q`，在 `set -eo pipefail`
   下恒假（grep 提前退出给 rostopic 发 SIGPIPE），导致底座明明好了却报 `/clock 无数据`。
   按 `asan_hdl_repro.sh:33-37` 的写法改成先取变量再判，随即 `BASE READY`（`/hdl_odom` 9.997 Hz）
+- ★Support 基线四项全 PASS（2026-11-25，历史流程原样复现）★：底座 `docker/sim.sh base m1`（内部调
+  `asan_hdl_repro.sh`，含 `map_to_odom:=false`）→ `p4_regression.sh` 四项，`p4_judge.py` rc=**0**：
+  | 项 | 判定 | 读数 |
+  | --- | --- | --- |
+  | 1 正常导航 | PASS | 真值到点 0.137 m（≤0.15），估计 0.029 m，1452 帧 |
+  | 2 障碍安全 | PASS | A / A2 / B / C / D 全 PASS |
+  | 3 定位失效 | PASS | 停止延迟 0.707 s（≤1.55），滑行 0.122 m（≤0.93），after_v=0 |
+  | 4 取消安全 | PASS | 零速窗 11.46 s sim（≥5），窗口位移 0.009 m（≤0.05），replay=PASS |
+  证据：`note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_073132/`
