@@ -8806,9 +8806,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   从 1 PASS 提升到 **2 PASS**（障碍、定位失效通过；nav 与 cancel 仍卡在"车不动"）
 - ★FAR 地形就绪门（同日）★：`p4_nav_hdl.sh` 在发目标前，若渲染出的 launch 含 `far_stack`，先等
   `/terrain_cloud` 有 `average rate`（实测 `terrain_ready_after=1x2s`）。支持后端不含 far_stack，行为不变
-- ★FAR 的剩余差异化线索（未闭合）★：**同一个 `far_stack.launch`**，
-  单独 `roslaunch` 时 `/far_planner` 能注册（`is_multi_layer` 取 true/false 都能起，`cannot launch`=0）；
-  被 3D 图 `include` 后 `/far_planner` **不注册**，且 `rosnode list` 无它、`logs/<uuid>/far_planner*.log`
-  连文件都不建、roslaunch 汇总日志也没有 `cannot launch`/`process has died`。
-  ⇒ 下一步必须抓"图 include 场景"的 per-node 日志与全量 `--screen` 输出，并逐项对比 include 传参
-  （`cloud_topic`/`start_topic`/`goal_topic`/`path_topic`/`status_topic`/`gait_path_topic`/`is_multi_layer`）
+- ★更正：FAR 在图里确实在跑（同日，推翻我上一条错判）★：先前我用 `rosnode list | grep /far_planner`
+  判"没起来"，是取样时机不对。用 `--screen` 前台抓全量输出后，图里 FAR 有 **96 行 `V-Graph` 输出**
+  与 `STATIC ENV PLANNING` 横幅 ⇒ 节点在跑、在规划，`zmq` 报错 0。
+  ★教训：判"节点是否活着"不能只看某一次 `rosnode list` 快照，要看它的 stdout 与持续输出。★
+- ★FAR 仍无路径的实际原因（已缩小）★：`/terrain_cloud` 有数据但**很稀**（实测 5 s 只 4 帧 ≈0.8 Hz，
+  配置是 2.5 Hz），FAR 的 `Number of local vertices: 1` 说明可见性图几乎空 ⇒ 出不了路径 ⇒ BT 等不到。
+  下一步：查 `far_node.on_cloud` 的地形栅格化是否把点滤空了（`terrain_range_m=15`、`GROUND_CELL_M`、
+  `terrain_free_Z=0.2` 与 m1 平地是否匹配），必要时用 `/scan_cloud` 的原始点数对比栅格化后点数
