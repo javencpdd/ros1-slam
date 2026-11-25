@@ -8659,3 +8659,9 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   数进程得 1 而 11313 无人应答（实测踩到），现改用 `roscore -p 11313` 显式起并轮询应答
   实测：脚本能走完 master→底座→等 LIO 的全流程，但本轮 120 s 内 LIO 仍未出 `/Odometry`
   （同一配方在 `docker/sim.sh smoke stageA` 下 **13 PASS/0 FAIL**，差别在冒烟的完整生命周期与驱动脚本）
+- ★手搓底座仍复现不了冒烟（同日，结论）★：把等待口径改成与 `m2_smoke.sh` 一致（先 `/cloud_registered`、
+  再 `/Odometry`）后，自建脚本仍在 120 s 内等不到 `/cloud_registered`，而**同机同配方**跑
+  `docker/sim.sh smoke stageA` 能 13/0 通过。⇒ 差别不在 launch 组合，而在冒烟脚本自带的完整生命周期
+  （它先 wait `/clock`→`/rslidar_points`→`/livox/imu` 再起 mapping，并自带驱动/清理/基线机制）。
+  ★结论：不要再重写底座启动，应**在 m2_smoke 的框架内挂载导航图**（或抽它的 start/stop 为可复用函数），
+  这是把"手搓 vs 冒烟"这个反复出现的坑一次性关掉的唯一可靠做法★

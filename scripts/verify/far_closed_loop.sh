@@ -66,8 +66,16 @@ for _ in $(seq 1 30); do
 done
 roslaunch lite3_gazebo_sim m2_mapping.launch > "$EV/mapping.log" 2>&1 &
 MAP_PID=$!
-ODOM_OK=0
+# ★照 m2_smoke 的等待口径★：它等的是 /cloud_registered（LIO 管线活着的证据），
+# 而 /Odometry 往往要在机器人**动起来之后**才出现（冒烟是在 drive() 之后才读到 odom）。
+CLOUD_OK=0
 for _ in $(seq 1 24); do
+  sleep 5
+  if timeout 4 rostopic hz /cloud_registered 2>/dev/null | grep -q "average rate"; then CLOUD_OK=1; break; fi
+done
+[ "$CLOUD_OK" = "1" ] || die "/cloud_registered 未出（LIO 管线未起，先跑 stageA 判定底座）"
+ODOM_OK=0
+for _ in $(seq 1 12); do
   sleep 5
   if timeout 4 rostopic hz /Odometry 2>/dev/null | grep -q "average rate"; then ODOM_OK=1; break; fi
 done
