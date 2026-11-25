@@ -81,6 +81,11 @@ say "--- [2] 清理上一次的 v8 编排节点 ---"
 for n in $(rosnode list 2>/dev/null | grep -E '^/v8/' | grep -v '^/v8/local/pose' || true); do
   rosnode kill "$n" >/dev/null 2>&1
 done
+# ★残留 bt_console 会占住 ZMQ 5555/5556★（bt_console.cpp:1566-1568），新实例启动即
+# `terminate called after throwing an instance of 'zmq::error_t'  what(): Address already in use`，
+# 整图少一个节点、BT 不工作。rosnode kill 未必让进程退出，这里按**进程名**补一刀
+# （用 -x 不用 -f：-f 会匹配到执行本脚本的 bash 自身，曾把自己杀掉）。
+pkill -x bt_console 2>/dev/null || true
 sleep 4
 say "v8_nodes_after_clean=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)"
 
@@ -107,6 +112,20 @@ fi
 rosnode list 2>/dev/null | grep -qE '^/v8/3d/loc(/|$)' \
   || { rosnode list 2>/dev/null | grep -E '^/v8' | tr '\n' ' '; say; gate_fail "loc 实例缺失（E_PLAN_NOT_READY 的直接原因）"; }
 say "loc_instance=present"
+
+# ---------- 3b. FAR 后端：等地形就绪再发目标 ----------
+# FAR 要先有地形点云才能建可见性图、才可能出路径；地形没起来就发目标，BT 只会 30 s 超时。
+# 支持后端（global planner）不需要这一步，故用渲染出的 launch 里是否含 far_stack 来判定。
+if grep -q "far_stack" "$LAUNCH" 2>/dev/null; then
+  say "--- [3b] FAR 后端：等 /terrain_cloud 有活数据 ---"
+  TER_OK=0
+  for i in $(seq 1 30); do
+    out=$(timeout 5 rostopic hz /terrain_cloud 2>/dev/null || true)
+    if printf '%s' "$out" | grep -q "average rate"; then TER_OK=1; say "terrain_ready_after=${i}x2s"; break; fi
+    sleep 2
+  done
+  [ "$TER_OK" = "1" ] || say "WARN /terrain_cloud 60s 内无数据（FAR 可能无路径）"
+fi
 
 # ---------- 4. 探针 + 发目标 ----------
 if [ -n "${SKIP_PROBE:-}" ]; then

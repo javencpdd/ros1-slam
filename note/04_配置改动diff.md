@@ -8799,3 +8799,16 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   验证：起 `far_stack.launch` 后 `rosnode list` 出现 `/far_planner`，`cannot launch node` 计数 **0**
 - 另有旁证：直接跑该二进制（不经 roslaunch）是正常的（打印 `V-Graph Initialized`、规划耗时），
   说明二进制与 config 都没问题，问题只在 roslaunch 的可执行解析
+- ★残留 bt_console 占 ZMQ 口（同日，已修）★：`bt_console` 绑 `5555/5556`（`bt_console.cpp:1566-1568`），
+  上一轮进程没退干净时新实例启动即 `terminate called after throwing an instance of 'zmq::error_t'
+  what(): Address already in use`。`rosnode kill` 未必让进程退出 ⇒ 在 `p4_nav_hdl.sh` 清场里补
+  `pkill -x bt_console`（用 `-x` 不用 `-f`：`-f` 会匹配执行本脚本的 bash 自身）。修后 FAR 组合
+  从 1 PASS 提升到 **2 PASS**（障碍、定位失效通过；nav 与 cancel 仍卡在"车不动"）
+- ★FAR 地形就绪门（同日）★：`p4_nav_hdl.sh` 在发目标前，若渲染出的 launch 含 `far_stack`，先等
+  `/terrain_cloud` 有 `average rate`（实测 `terrain_ready_after=1x2s`）。支持后端不含 far_stack，行为不变
+- ★FAR 的剩余差异化线索（未闭合）★：**同一个 `far_stack.launch`**，
+  单独 `roslaunch` 时 `/far_planner` 能注册（`is_multi_layer` 取 true/false 都能起，`cannot launch`=0）；
+  被 3D 图 `include` 后 `/far_planner` **不注册**，且 `rosnode list` 无它、`logs/<uuid>/far_planner*.log`
+  连文件都不建、roslaunch 汇总日志也没有 `cannot launch`/`process has died`。
+  ⇒ 下一步必须抓"图 include 场景"的 per-node 日志与全量 `--screen` 输出，并逐项对比 include 传参
+  （`cloud_topic`/`start_topic`/`goal_topic`/`path_topic`/`status_topic`/`gait_path_topic`/`is_multi_layer`）
