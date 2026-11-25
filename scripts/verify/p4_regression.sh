@@ -182,7 +182,7 @@ case_loc() {
   # 闸门 relay：杀它只断 /hdl_odom，master 与导航进程都不受影响。
   # 探针在「首帧非零命令」时下手，不靠固定 sleep（运动窗口只有 2 s 上下）。
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode stop --hold-s 24 \
-    --wait-motion-s 45 --inject-delay-s 1.0 --action "rosnode kill /$GATE_NAME" \
+    --wait-motion-s 90 --inject-delay-s 1.0 --action "rosnode kill /$GATE_NAME" \
     --out "$EV_ROOT/loc_stop.json" --dump "$EV_ROOT/loc_series.tsv" \
     > "$EV_ROOT/loc_stop.log" 2>&1 &
   local pp=$!
@@ -204,25 +204,53 @@ case_loc() {
   cat "$EV_ROOT/loc_recovery.json" 2>/dev/null
 
   # ★正控：恢复后从正式任务入口发一个合法新任务，必须能重新起步★
-  # 只验"恢复不动"会漏掉另一种退化：把车永久钉死。这里断言新任务能解锁。
-  say '=== 3b 正控：正式入口下发新任务，应能重新起步 ==='
-  local mv=0 v
-  # ★只发一次、别刷屏★：BT 队列上限 16，连发会把队列打满（实测 goal queue full → 新任务被拒），
-  # 那样"未解锁"是假象。窗口放宽到 30 s：新任务要等规划出路径才能动。
-  # 正式入口 = start + goal（与历史流程一致）：只发 goal 时规划器没有起点，不会出路径
+  # 判据按第 7 条：任务身份（meta 到达）+ 有效速度 + 真实位移 + 正常导航（BT reached），
+  # 不能只看 cmd_vel 字符串非零（实测过 0.6 m/s 的位移被弱检测漏掉）。
+  say '=== 3b 正控：正式入口下发新任务（导航探针验证）==='
+  python3 "$REPO/scripts/verify/loc_timeline_probe.py" --seconds 55 \
+    --out "$EV_ROOT/loc_rearm_timeline.tsv" > "$EV_ROOT/loc_rearm_timeline.log" 2>&1 &
+  local tp=$!
+  sleep 2
+  python3 "$REPO/scripts/verify/p4_nav_probe.py" --goal-x "$GOAL_X" --goal-y "$GOAL_Y" \
+    --pose-topic "$POSE_TOPIC" --duration 45 \
+    --out "$EV_ROOT/loc_rearm_nav.json" > "$EV_ROOT/loc_rearm_nav.log" 2>&1 &
+  local np=$!
+  sleep 3
   timeout 2 rostopic pub -r 5 /v8/3d/global/start geometry_msgs/PoseStamped \
     "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
   timeout 2 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
     "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
-  for _ in $(seq 1 30); do
-    sleep 1
-    v=$(timeout 3 rostopic hz /cmd_vel 2>/dev/null | tail -1)
-    case "$v" in *"average rate"*) : ;; *) continue ;; esac
-    x=$(timeout 3 rostopic echo -n1 /cmd_vel/linear/x 2>/dev/null | head -1)
-    if [ -n "$x" ] && [ "$x" != "0.0" ]; then mv=1; break; fi
-  done
-  echo "{\"rearmed\": $([ "$mv" = "1" ] && echo true || echo false), \"reason\": \"new task from /v8/bt/goal\"}" \
-    > "$EV_ROOT/loc_rearm.json"
+  wait $np 2>/dev/null
+  wait $tp 2>/dev/null
+  python3 - "$EV_ROOT" <<'PYEOF'
+import json, os, sys
+ev = sys.argv[1]
+try:
+    nav = json.load(open(os.path.join(ev, 'loc_rearm_nav.json')))
+except Exception:
+    nav = {}
+metas = 0
+try:
+    with open(os.path.join(ev, 'loc_rearm_timeline.tsv')) as fh:
+        next(fh)
+        for line in fh:
+            parts = line.rstrip('\n').split('\t')
+            if len(parts) > 3:
+                metas = max(metas, int(parts[3]))
+except Exception:
+    pass
+checks = {
+    'task_identity': metas > 0,
+    'nonzero_speed': (nav.get('speed_frames') or 0) > 0,
+    'real_travel': (nav.get('est_travel_m') or 0) >= 0.30,
+    'bt_reached': bool(nav.get('bt_arrived')),
+}
+res = dict(checks, rearmed=all(checks.values()),
+           speed_frames=nav.get('speed_frames'), travel_m=nav.get('est_travel_m'),
+           meta_msgs=metas, reason='new task from formal entry')
+open(os.path.join(ev, 'loc_rearm.json'), 'w').write(json.dumps(res, ensure_ascii=False) + '\n')
+print(json.dumps(res, ensure_ascii=False))
+PYEOF
   cat "$EV_ROOT/loc_rearm.json"
 }
 
@@ -235,7 +263,7 @@ case_cancel() {
   # ★目标必须在车动起来的那一刻停发★：取消之后再进来新目标，系统重新起步是
   # 正确行为，会被误读成"取消没生效"。goal_until_motion 就干这件事。
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode cancel --hold-s 26 \
-    --wait-motion-s 45 --inject-delay-s 1.5 \
+    --wait-motion-s 90 --inject-delay-s 1.5 \
     --out "$EV_ROOT/cancel.json" --dump "$EV_ROOT/cancel_series.tsv" \
     > "$EV_ROOT/cancel.log" 2>&1 &
   local pp=$!

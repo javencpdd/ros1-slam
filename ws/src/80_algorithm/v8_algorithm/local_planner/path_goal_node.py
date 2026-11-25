@@ -85,6 +85,15 @@ class PathGoal(object):
         # 所以这里也记 path 的代次，不能记本地计数器 accepted_generation（那是 path_goal 自己的自增）。
         self.dead_generation = None
         self.last_path_seq = 0
+        # ★任务身份（meta 契约）★：path_meta -> 配对 -> goal_meta。
+        # mission_id 是**撤销判据**：故障撤销后必须记住 revoked_mission，任何 <= 它的路径都不许复活。
+        self.pending_meta = None
+        self.task_meta = None
+        self.revoked_mission = -1
+        self.goal_meta_pub = rospy.Publisher(
+            rospy.get_param('~goal_meta_topic', '/v8/local/goal_meta'), String, queue_size=10)
+        rospy.Subscriber(rospy.get_param('~path_meta_topic', '/v8/3d/global/path_meta'),
+                         String, self.on_path_meta, queue_size=10)
         try:
             from std_msgs.msg import Bool
             rospy.Subscriber('/v8/local/localization_ok', Bool, self.on_localization, queue_size=5)
@@ -107,6 +116,13 @@ class PathGoal(object):
             'ok': True, 'cancelled': True, 'dropped_poses': dropped,
             'reason': message.data[:80]})))
 
+    def on_path_meta(self, message):
+        """路径元信息先到一步，暂存待配对（单发布者 + TCP 保序 ⇒ 到达顺序可靠）。"""
+        try:
+            self.pending_meta = json.loads(message.data)
+        except Exception:
+            self.pending_meta = None
+
     def on_localization(self, message):
         if message.data:
             return
@@ -115,12 +131,25 @@ class PathGoal(object):
                 'ok': False, 'reason': 'localization_lost',
                 'dropped_poses': len(self.poses), 'generation': self.accepted_generation})))
         self.dead_generation = self.last_path_seq
+        # ★按 mission_id 记撤销线★：之后任何 mission_id <= 它的路径都不许复活
+        if self.task_meta:
+            self.revoked_mission = max(self.revoked_mission,
+                                       int(self.task_meta.get('mission_id', -1)))
         self.poses = []
         self.index = 0
         self.last_goal_key = None
         self.published_at = None
 
     def on_path(self, message):
+        # ★任务身份优先★：meta 与 path 配对后，撤销判据看 mission_id（不看 seq / timestamp）
+        meta = getattr(self, 'pending_meta', None)
+        self.pending_meta = None
+        if meta is not None:
+            if int(meta.get('mission_id', -1)) <= int(getattr(self, 'revoked_mission', -1)):
+                self.status_pub.publish(String(data=json.dumps({
+                    'ok': False, 'reason': 'task_revoked', 'meta': meta})))
+                return
+            self.task_meta = meta
         # 同一代次的旧任务：无论时间戳多新，都不许复活
         if (self.dead_generation is not None
                 and int(getattr(message.header, 'seq', 0) or 0) == int(self.dead_generation)):
@@ -182,8 +211,9 @@ class PathGoal(object):
     def publish_current(self):
         # ★任务代次，不是"第几条路径"★：同一任务的所有滚动重发必须同 seq，
         # 否则 local 每帧都当新任务重置代次 ⇒ 永远不执行（实测 seq 16→23 连发、cmd 恒 0）。
+        _seq = getattr(self, 'last_path_seq', 0)
         goal = make_goal(self.poses[self.index],
-                         self.last_path_seq if self.last_path_seq else self.accepted_generation)
+                         _seq if _seq else self.accepted_generation)
         xyz = (round(goal.pose.position.x, 6), round(goal.pose.position.y, 6),
                round(goal.pose.position.z, 6))
         # ★去重边界（2026-11-25 三修）★：键必须含 index，不能只看坐标——
@@ -194,6 +224,12 @@ class PathGoal(object):
         if key == self.last_goal_key:
             return
         self.last_goal_key = key
+        # ★先发 goal_meta、再发 goal★：把 mission/revision/waypoint 传下去（不依赖 header.seq）
+        if getattr(self, 'task_meta', None):
+            meta = dict(self.task_meta)
+            meta['waypoint_index'] = int(self.index)
+            meta['path_revision'] = int(self.task_meta.get('path_revision', 0))
+            self.goal_meta_pub.publish(String(data=json.dumps(meta, ensure_ascii=False)))
         self.goal_pub.publish(goal)
         self.published_at = rospy.Time.now()
         rest = self.remaining()

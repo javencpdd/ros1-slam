@@ -9,22 +9,27 @@
   ② 反控（防止主测是空控）：失效时长**不足**阈值 ⇒ 不得作废（否则正常连续步进会被毁）；
   ③ 任务身份：作废后同代次 goal 必须被拒，代次更高的才接受。
 """
+import sys
 import time
+import types
 import unittest
+from pathlib import Path
+from unittest.mock import MagicMock
 
-import rospy
-from geometry_msgs.msg import PoseStamped
+# 零 ROS 依赖：见 test_task_identity_contract.py 的说明（避免污染 sys.modules 影响同目录其它测试）
+for _name in ('rospy', 'geometry_msgs', 'geometry_msgs.msg', 'nav_msgs',
+              'nav_msgs.msg', 'std_msgs', 'std_msgs.msg'):
+    sys.modules.setdefault(_name, MagicMock())
 
-from ros_node import accept_goal, drop_task_on_pose_invalid
+HERE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(HERE))
+from ros_node import accept_goal, drop_task_on_pose_invalid  # noqa: E402
 
 
 def _goal(seq=1, x=1.0, y=0.0, frame='map'):
-    msg = PoseStamped()
-    msg.header.frame_id = frame
-    msg.header.seq = seq
-    msg.pose.position.x = x
-    msg.pose.position.y = y
-    return msg
+    return types.SimpleNamespace(
+        header=types.SimpleNamespace(frame_id=frame, seq=seq, stamp=MagicMock()),
+        pose=types.SimpleNamespace(position=types.SimpleNamespace(x=x, y=y, z=0.0)))
 
 
 def _shared(**over):
@@ -74,5 +79,4 @@ class DropTaskOnPoseInvalid(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    rospy.init_node('test_drop_task', anonymous=True)
     unittest.main()

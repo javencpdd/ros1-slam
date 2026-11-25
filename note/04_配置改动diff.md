@@ -9021,3 +9021,23 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
     （`seq=16…23` 连发），但 `cmd_vel` 仍恒 0 ⇒ 断点不在"接不接受"，而在 local 接受后**规划/发布**这一环
     （worker 结果或 stop 锁存与 `cancel_requested` 的交互）。
   ⇒ 仍需一轮定向排查（在 worker 结果回报处打点）。**在此之前 Support 记 3/4，不宣布 4/4**。
+- ★任务身份契约重构（真人裁决 2026-11-26 第 1—7 条，Support 已 4/4）★
+  **实测事实**：ROS1 的 publisher 会把 `header.seq` 改写成"该 publisher 的消息计数"
+  ——实测 rospy 发 `seq=100/101/102`，订阅端收到 **`1/2/3`**。⇒ header.seq 绝不能承载任务身份，
+  每次重发都变成"新 seq"，把同一任务的滚动重发误判成新任务并不断重置规划。
+  **新契约**（独立于 seq 与 timestamp，companion topic + JSON，紧邻 payload 之前发布、单发布者 TCP 保序）：
+  `/v8/bt/goal_meta` → `/v8/3d/global/path_meta` → `/v8/local/goal_meta`，
+  字段 `mission_id / path_revision / waypoint_index / execution_generation`。
+  · BT：`current_seq` 即 mission_id；故障撤销时 `exec_generation += 1` 并 `has_current=false`；
+    meta **latched** 且 goal 前后各发一次（消除"goal 回调先于 meta"的配对竞态）
+  · 规划器：**请求时快照**身份，随结果一起回写（禁止给旧结果盖最新编号）
+  · path_goal：配对 path_meta→path→goal_meta；撤销按 `mission_id <= revoked_mission` 拒绝，
+    与时间戳无关
+  · local：四元组判据——撤销/旧 mission 拒绝；同任务 generation/revision 回退拒绝；
+    **四元组完全相同的重复消息忽略且不重置**（解决"严格递增"与"同任务多航点"的冲突）；
+    waypoint/revision 前进则接受
+  单测：`test_task_identity_contract.py` 六例（多航点/滚动重规划/重复不重置/旧任务新时间戳/
+  撤销不复活/异步晚到）+ `test_localization_loss_task_drop.py` 三例，`local_planner` 全量 **190 项 OK**
+  ★实测（Support 四项，正式回归）★：`nav PASS(bt=reached)｜障碍 PASS(在线 zero=16.18 s, pen=0)｜
+  定位失效 PASS(delay 0.702 s, coast 0.138 m, 恢复不动, **新任务可解锁**)｜取消 PASS(11.24 s, replay PASS)`
+  ⇒ **4 PASS / 0 FAIL，judge_rc=0**；正控四要素 `task_identity/nonzero_speed/real_travel(1.14 m)/bt_reached` 全 true

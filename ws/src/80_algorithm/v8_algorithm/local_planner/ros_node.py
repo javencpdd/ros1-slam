@@ -39,8 +39,59 @@ from ros_node_control import (  # noqa: F401
     LocalControl, finalize_output, publish_output)
 
 
-def accept_goal(shared, message):
-    """Only an actual new goal clears an already latched terminal stop."""
+def accept_goal(shared, message, meta=None):
+    """接收目标。**任务身份看 meta（mission/revision/waypoint/generation），不看 header.seq**。
+
+    为什么不用 header.seq：ROS1 的 publisher 会把它改写成"该 publisher 的消息计数"
+    （实测 rospy 发 seq=100/101/102，订阅端收到 1/2/3），因此每次**重发**都会变成新 seq，
+    把"同一任务的滚动重发"误判成新任务、不断重置规划。
+
+    meta 规则（四元组 (mission_id, path_revision, waypoint_index, execution_generation)）：
+      · mission_id <= revoked_mission          → 撤销过的任务，拒绝（与时间戳无关）
+      · mission_id < 当前                       → 旧任务，拒绝
+      · 同一任务：generation/revision 回退      → 拒绝；四元组与当前完全相同 → **重复消息，忽略且不重置**
+      · 同一任务：waypoint 前进或 revision 前进 → 接受（这是正常的推进/滚动重规划）
+      · mission_id > 当前                       → 新任务，接受
+    无 meta 时退回旧的 seq 语义（兼容历史单测与未接 meta 的调用）。
+    """
+    shared.setdefault('mission_id', 0)
+    shared.setdefault('path_revision', 0)
+    shared.setdefault('waypoint_index', 0)
+    shared.setdefault('exec_gen', 0)
+    shared.setdefault('revoked_mission', -1)
+
+    if meta is not None:
+        m = int(meta.get('mission_id', 0))
+        r = int(meta.get('path_revision', 0))
+        w = int(meta.get('waypoint_index', 0))
+        g = int(meta.get('execution_generation', 0))
+        if m <= int(shared.get('revoked_mission', -1)):
+            shared.update(last_error='E_LOCAL_TASK_REVOKED')
+            return False
+        cur_m = int(shared.get('mission_id', 0))
+        if m < cur_m:
+            shared.update(last_error='E_LOCAL_STALE_MISSION')
+            return False
+        if m == cur_m:
+            if g < int(shared.get('exec_gen', 0)) or r < int(shared.get('path_revision', 0)):
+                shared.update(last_error='E_LOCAL_STALE_TASK_VERSION')
+                return False
+            if (r, w, g) == (int(shared.get('path_revision', 0)),
+                             int(shared.get('waypoint_index', 0)),
+                             int(shared.get('exec_gen', 0))) and shared.get('goal') is not None:
+                # ★重复消息：什么都不做★（不能重置 generation、不能清 stop 锁存）
+                return False
+        if message.header.frame_id != 'map':
+            shared.update(goal=None, last_error='E_LOCAL_FRAME')
+            return False
+        p = message.pose.position
+        shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
+                      stop_latched=False, stop_reason=None, last_error='ok',
+                      cancel_requested=False, cancel_seq=0, cancel_reason=None,
+                      mission_id=m, path_revision=r, waypoint_index=w, exec_gen=g)
+        return True
+
+    """legacy（无 meta）：沿用 header.seq 语义"""
     if message.header.frame_id != 'map':
         shared.update(goal=None, last_error='E_LOCAL_FRAME')
         return False
@@ -85,6 +136,9 @@ def drop_task_on_pose_invalid(shared, now_wall, threshold_s):
         return False
     if shared.get('goal') is None and shared.get('stop_latched'):
         return False                      # 已经作废过，别反复推代次
+    # ★把当前任务记为已撤销★：之后任何 <= 它的 mission 都不许复活（与 seq/时间戳无关）
+    shared['revoked_mission'] = max(int(shared.get('revoked_mission', -1)),
+                                    int(shared.get('mission_id', 0)))
     shared.update(goal=None, result=None, result_generation=-1,
                   stop_latched=True, stop_reason='E_LOCAL_LOCALIZATION_LOST',
                   generation=shared['generation'] + 1,
@@ -262,9 +316,19 @@ def main():
             if error:
                 plan_wake.set()
 
+    pending_meta = {'value': None}
+
+    def on_goal_meta(msg):
+        try:
+            pending_meta['value'] = json.loads(msg.data)
+        except Exception:
+            pending_meta['value'] = None
+
     def on_goal(msg):
         with lock:
-            if accept_goal(shared, msg):
+            meta = pending_meta['value']
+            pending_meta['value'] = None      # 只与紧随其后的一条 goal 配对
+            if accept_goal(shared, msg, meta):
                 plan_wake.set()
 
     def on_obstacles(msg):
@@ -330,6 +394,9 @@ def main():
         rospy.Subscriber(map_topic, String, on_map, queue_size=1)
     rospy.Subscriber(rospy.get_param('~pose_topic', '/v8/local/pose'), PoseStamped, on_pose, queue_size=1)
     rospy.Subscriber(rospy.get_param('~goal_topic', '/v8/local/goal'), PoseStamped, on_goal, queue_size=1)
+    # ★任务身份通道★（独立于 header.seq / timestamp）：path_goal 紧邻 goal 之前发布
+    rospy.Subscriber(rospy.get_param('~goal_meta_topic', '/v8/local/goal_meta'),
+                     String, on_goal_meta, queue_size=10)
     rospy.Subscriber(rospy.get_param('~obstacles_topic', '/v8/local/obstacles'), String, on_obstacles, queue_size=1)
     rospy.Subscriber(rospy.get_param('~localization_topic', '/v8/local/localization_ok'),
                      Bool, on_localization, queue_size=1)

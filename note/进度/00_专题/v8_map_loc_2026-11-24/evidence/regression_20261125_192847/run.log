@@ -1,0 +1,19 @@
+=== 3 定位失效（只断定位数据）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[loc] v8_nodes=9
+{"mode": "stop", "motion_seen": true, "cmd_frames": 1553, "hold_s": 24.0, "cmd_samples": 1553, "gt_samples": 627, "ack_count": 0, "max_speed": 0.6, "nonzero_frames": 26, "last_nonzero_wall_s": 1.403, "zero_window_wall_s": 24.405, "max_speed_after": 0.0, "inject_wall_s": 1.795, "hdl_last_wall_s": 1.493, "hdl_msgs": 34, "stop_delay_s": 0.0, "inject_to_last_nonzero_s": -0.392, "moving_at_inject": false, "gt_coast_after_inject_m": 0.0, "gt_travel_after_m": 0.0114, "anchor_sim_s": 92.708, "zero_window_sim_s": 9.2, "gt_move_within_2s_sim_m": 0.0114, "gt_covers_2s_sim": true, "gt_move_within_5s_sim_m": 0.0114, "gt_covers_5s_sim": true, "gt_move_within_10s_sim_m": 0.0114, "gt_covers_10s_sim": false, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"seconds": 10.0, "pose_msgs": 28, "gt_samples": 198, "cmd_samples": 491, "moved_m": 0.0, "max_speed_mps": 0.0, "max_gt_gap_s": 0.215, "max_cmd_gap_s": 0.023, "tol_m": 0.05, "checks": {"pose_resumed": true, "no_remotion": true, "sampling_coverage": true}, "pass": true}
+=== 3b 正控：正式入口下发新任务（导航探针验证）===
+{"task_identity": true, "nonzero_speed": true, "real_travel": true, "bt_reached": true, "rearmed": true, "speed_frames": 645, "travel_m": 1.1351, "meta_msgs": 23, "reason": "new task from formal entry"}
+{"task_identity": true, "nonzero_speed": true, "real_travel": true, "bt_reached": true, "rearmed": true, "speed_frames": 645, "travel_m": 1.1351, "meta_msgs": 23, "reason": "new task from formal entry"}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       INVALID  缺 nav_arrival.json                                         -
+2 障碍安全       INVALID  缺 obstacle.json                                            -
+3 定位失效       FAIL     delay=0.000 s coast=0.000 m after_v=0.0 注入时已停 恢复不动 新任务可解锁  nodes=9
+4 取消安全       INVALID  缺 cancel.json                                              -
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：0 PASS / 4 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_192847
+judge_rc=1（0=四项全 PASS，非零=有项未通过）

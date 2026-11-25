@@ -53,6 +53,10 @@ struct SharedState
   bool has_pose = false;
   std::uint64_t goal_seq = 0;
   std::uint64_t current_seq = 0;
+  // ★任务身份（独立于 header.seq 与 timestamp）★：header.seq 会被 roscpp/rospy 的 publisher
+  // 覆盖成消息计数（实测 rospy 发 seq=100/101/102，订阅端收到 1/2/3），绝不能承载任务身份。
+  // 这里用 companion topic 传 mission_id / execution_generation。
+  std::uint64_t exec_generation = 0;
   int attempts = 0;
   int goal_index = 0;
   int goals_total = 0;
@@ -148,6 +152,7 @@ struct SharedState
   ros::Publisher execution_request_pub;
   ros::Publisher goal_pub;
   ros::Publisher planner_goal_pub;
+  ros::Publisher goal_meta_pub;
   ros::Publisher cancel_pub;
   ros::Publisher stop_pub;
 };
@@ -376,8 +381,33 @@ public:
     // ★任务代次盖章（真人裁决 2026-11-26）★：把本任务代次写进 goal.header.seq，
     // 规划器原样带到 path 的 header.seq，path_goal 再带到 local 的 goal。
     // 下游据此区分"同一任务的滚动重发"与"新任务"——**只靠时间戳区分不了**（旧任务刷新时间戳照样会来）。
+    // ★先发 meta、再发 goal★：任务身份走独立通道（JSON），不依赖 header.seq
+    {
+      std_msgs::String meta;
+      char buf[192];
+      std::snprintf(buf, sizeof(buf),
+                    "{\"mission_id\":%lu,\"path_revision\":0,\"waypoint_index\":0,"
+                    "\"execution_generation\":%lu}",
+                    static_cast<unsigned long>(g_state.current_seq),
+                    static_cast<unsigned long>(g_state.exec_generation));
+      meta.data = buf;
+      g_state.goal_meta_pub.publish(meta);
+    }
     goal.header.seq = static_cast<std::uint32_t>(g_state.current_seq);
     g_state.planner_goal_pub.publish(goal);
+    // ★goal 之后再发一次 meta★：规划器的 replan 由 goal 回调同步触发，可能先于首条 meta 到达；
+    // 随后 10 Hz 的 map/pose 更新会再次 replan，那时必须能读到本任务的身份。
+    if (g_state.goal_meta_pub) {
+      std_msgs::String meta2;
+      char buf2[192];
+      std::snprintf(buf2, sizeof(buf2),
+                    "{\"mission_id\":%lu,\"path_revision\":0,\"waypoint_index\":0,"
+                    "\"execution_generation\":%lu}",
+                    static_cast<unsigned long>(g_state.current_seq),
+                    static_cast<unsigned long>(g_state.exec_generation));
+      meta2.data = buf2;
+      g_state.goal_meta_pub.publish(meta2);
+    }
     ROS_INFO("[bt] global path requested for goal %lu (seq stamped)",
              static_cast<unsigned long>(g_state.current_seq));
     return BT::NodeStatus::SUCCESS;
@@ -1389,6 +1419,8 @@ void localizationCallback(const std_msgs::Bool::ConstPtr& msg)
     // 恢复后必须由正式任务入口下发新目标才能重新武装。
     // 这里只做"清空待办"，普通规划失败仍走 recovery_mode 的原有策略，两者互不影响。
     dropPendingLocked(false);
+    ++g_state.exec_generation;                 // ★故障撤销：执行代次 +1，旧任务一律作废★
+    g_state.has_current = false;
     g_state.last_event = "localization_lost";
     ROS_WARN("[bt] localization lost: mission aborted, queued goals dropped "
              "(recovery requires a new goal)");
@@ -1492,6 +1524,10 @@ int main(int argc, char** argv)
 
   g_state.goal_pub = nh.advertise<geometry_msgs::PoseStamped>(out_goal_topic, 1);
   g_state.planner_goal_pub = nh.advertise<geometry_msgs::PoseStamped>(planner_goal_topic, 1);
+  // 与 goal 同序、紧邻其前发布：下游按到达顺序配对（单发布者、TCP 保序）
+  // ★latched★：后加入的订阅者也能拿到最近一次任务身份；配合"goal 前后各发一次"消除配对竞态
+  g_state.goal_meta_pub = nh.advertise<std_msgs::String>(
+      pnh.param<std::string>("goal_meta_topic", "/v8/bt/goal_meta"), 10, /*latch=*/true);
   g_state.stop_pub = nh.advertise<geometry_msgs::Twist>(stop_topic, 1);
   g_state.cancel_pub = nh.advertise<std_msgs::String>(cancel_topic, 1);
   ros::Publisher status_pub = nh.advertise<std_msgs::String>("/v8/bt/status", 1);
