@@ -1,1 +1,50 @@
 [33m[ WARN] [1795576037.356960932]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[INFO] [1795576038.069198, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/gazebo_ros/spawn_model", line 239, in <module>
+    exit_code = sm.run()
+  File "/opt/ros/noetic/lib/gazebo_ros/spawn_model", line 183, in run
+    success = gazebo_interface.spawn_urdf_model_client(self.args.model, model_xml, self.args.robot_namespace,
+  File "/opt/ros/noetic/lib/python3/dist-packages/gazebo_ros/gazebo_interface.py", line 28, in spawn_urdf_model_client
+    rospy.wait_for_service(gazebo_namespace+'/spawn_urdf_model')
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/impl/tcpros_service.py", line 166, in wait_for_service
+    raise ROSInterruptException("rospy shutdown")
+rospy.exceptions.ROSInterruptException: rospy shutdown
+[31m[gazebo-1] process has died [pid 1628157, exit code 255, cmd /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/opt/ros1-slam/logs/4ee9d69c-e87d-11f1-abe7-42bc6aba034b/gazebo-1.log].
+log file: /opt/ros1-slam/logs/4ee9d69c-e87d-11f1-abe7-42bc6aba034b/gazebo-1*.log[0m
+... logging to /opt/ros1-slam/logs/4ee9d69c-e87d-11f1-abe7-42bc6aba034b/roslaunch-35ea6bfef95a-1628010.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/launch/m2_gazebo.launch
+[1mstarted roslaunch server http://35ea6bfef95a:33105/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/launch/m2_gazebo.launch http://127.0.0.1:11313
+[1mprocess[gazebo-1]: started with pid [1628157][0m
+[1mprocess[robot_state_publisher-2]: started with pid [1628160][0m
+[1mprocess[spawn_lite3_planar-3]: started with pid [1628163][0m
+[1mprocess[sim_adapter-4]: started with pid [1628164][0m
+[sim_adapter-4] killing on exit
+[spawn_lite3_planar-3] killing on exit
+[robot_state_publisher-2] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
