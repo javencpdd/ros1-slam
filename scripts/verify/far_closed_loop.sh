@@ -36,31 +36,48 @@ else
   [ -f "$WS/devel/setup.bash" ] && source "$WS/devel/setup.bash"
 fi
 # ---------- 1. 前置：唯一 master ----------
-MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11313}"
-export ROS_MASTER_URI="$MASTER_URI"
-N=$(pgrep -c -f "noetic/bin/[r]osmaster" || true)
-[ "$N" = "1" ] || die "rosmaster 实例数=$N（必须恰好 1 个；不许双 master）"
-timeout 10 rostopic list >/dev/null 2>&1 || die "master 无响应：$MASTER_URI"
+# ★与项目冒烟同款★（m2_smoke.sh:31）：nav 用 11313、Gazebo 用 11345。
+# 之前手搓时两个 URI 混用，是"有时有 odom、有时没有"的直接原因。
+export ROS_MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11313}"
+export GAZEBO_MASTER_URI="${GAZEBO_MASTER_URI:-http://127.0.0.1:11345}"
+# ★按"端口是否可应答"判断，而不是数进程★：容器里可能残留一个跑在默认 11311 的 master，
+# 数进程会得 1 而实际 11313 没人应答（实测踩过）。这里以 $ROS_MASTER_URI 能否应答为准。
+if ! timeout 4 rostopic list >/dev/null 2>&1; then
+  log "master($ROS_MASTER_URI) 不可应答，清掉旧的并显式起一个"
+  pkill -f "noetic/bin/[r]osmaster" 2>/dev/null || true
+  sleep 3
+  roscore -p "${ROS_MASTER_URI##*:}" > "$EV/roscore.log" 2>&1 &
+  for _ in $(seq 1 20); do
+    sleep 2
+    timeout 3 rostopic list >/dev/null 2>&1 && break
+  done
+fi
+timeout 5 rostopic list >/dev/null 2>&1 || die "master 无响应：$ROS_MASTER_URI（见 $EV/roscore.log）"
 
 # ---------- 2. 起仿真（只起一次；已起则复用） ----------
-if ! timeout 5 rostopic type /rslidar_points 2>/dev/null | grep -q PointCloud2; then
-  log "启动 Gazebo（m1_gazebo）"
-  roslaunch lite3_gazebo_sim m1_gazebo.launch > "$EV/gazebo.log" 2>&1 &
-  GZ_PID=$!
-  for _ in $(seq 1 40); do
-    sleep 1
-    if timeout 3 rostopic type /rslidar_points 2>/dev/null | grep -q PointCloud2; then break; fi
-  done
-else
-  GZ_PID=""
-fi
-timeout 6 rostopic hz /rslidar_points > "$EV/cloud_hz.txt" 2>&1
-grep -q "average rate" "$EV/cloud_hz.txt" || die "无点云：/rslidar_points 未发布（查 GAZEBO_PLUGIN_PATH）"
-log "点云：$(grep 'average rate' "$EV/cloud_hz.txt" | tail -1)"
+# ★M2 底座★：m2_gazebo（传感器）+ m2_mapping（真实 LIO → /Odometry）。
+# 真值单独在 /sim/odom_gt，仅供评测；控制链只吃 /Odometry。
+log "启动 M2 底座（gazebo + mapping）"
+roslaunch lite3_gazebo_sim m2_gazebo.launch > "$EV/gazebo.log" 2>&1 &
+GZ_PID=$!
+for _ in $(seq 1 30); do
+  sleep 2
+  if timeout 3 rostopic info /rslidar_points 2>/dev/null | grep -q sim_adapter; then break; fi
+done
+roslaunch lite3_gazebo_sim m2_mapping.launch > "$EV/mapping.log" 2>&1 &
+MAP_PID=$!
+ODOM_OK=0
+for _ in $(seq 1 24); do
+  sleep 5
+  if timeout 4 rostopic hz /Odometry 2>/dev/null | grep -q "average rate"; then ODOM_OK=1; break; fi
+done
+[ "$ODOM_OK" = "1" ] || die "LIO 未产出 /Odometry（底座不健康，先跑 docker/sim.sh smoke stageA 判定）"
+log "LIO 就绪：$(timeout 5 rostopic hz /Odometry 2>&1 | grep 'average rate' | tail -1)"
 
 # ---------- 3. 起图 ----------
 case "$COMBO" in
-  graph_far)     GY="$GRAPH/graph_3d_m1_hdl_bt_far.yaml" ;;
+  graph_far)     GY="$GRAPH/graph_3d_m2_lio_bt_far.yaml" ;;   # M2 底座 → 用 LIO 版对照图
+  graph_far_m1)  GY="$GRAPH/graph_3d_m1_hdl_bt_far.yaml" ;;
   graph_support) GY="$GRAPH/graph_3d_m1_hdl_bt.yaml" ;;
   trad_far)      GY="";;
   *) die "未知 combo：$COMBO" ;;

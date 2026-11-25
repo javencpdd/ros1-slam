@@ -8652,3 +8652,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   仅把 `loc.lio_topic` 改为 `/Odometry`（M2 链的 LIO 输出）；`cli.py check` ok
 - 该组合下实测：`/v8/local/status` 的 `localization: 0.114`（位姿新鲜）、`obstacles_cb: 0`（perception 仍判盲）、
   且 `/v8/local/pose` 有一次读数为空 ⇒ 同一组合内还有时序/首帧问题未定，**未继续盲试**，留待下一轮定点排查
+- ★跑法脚本对齐冒烟生命周期（同日）★：`scripts/verify/far_closed_loop.sh` 按 `m2_smoke.sh` 的三处硬教训改写：
+  ①双 URI：`ROS_MASTER_URI=11313` ＋ `GAZEBO_MASTER_URI=11345`（此前混用是"时有时无 odom"的直接原因）；
+  ②底座换 `m2_gazebo` ＋ `m2_mapping`，并**等 `/Odometry`**（真实 LIO）就绪才起图，超时即 die；
+  ③master 判据从"数进程"改为"**端口能否应答**"——容器里残留一个跑在默认 11311 的 master 时，
+  数进程得 1 而 11313 无人应答（实测踩到），现改用 `roscore -p 11313` 显式起并轮询应答
+  实测：脚本能走完 master→底座→等 LIO 的全流程，但本轮 120 s 内 LIO 仍未出 `/Odometry`
+  （同一配方在 `docker/sim.sh smoke stageA` 下 **13 PASS/0 FAIL**，差别在冒烟的完整生命周期与驱动脚本）
