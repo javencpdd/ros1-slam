@@ -8739,3 +8739,20 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `/cmd_vel` 全无。下一步：取 gzserver 自己的日志
   `/opt/ros1-slam/logs/<uuid>/gazebo-*.log` 看 `-s libgazebo_ros_api_plugin.so` 的加载结果
   （roslaunch 汇总日志里只有 1 行 KDL 警告，看不到插件信息）。**不放宽就绪判据来"绕过"**
+- ★回滚到历史形态（2026-11-25，按真人第 1 条）★：`m1_gazebo.launch` 用 `git checkout 73d86514` 整份恢复
+  —— 去掉我加的 `<env GAZEBO_PLUGIN_PATH>` 块、恢复 `sim_adapter` 的 `--no-imu`。校验：
+  `no-imu`=2 处、`GAZEBO_PLUGIN_PATH`=0 处、`map_to_odom` arg 保留、XML 良构。
+  插件路径统一由 `docker/sim.sh:37` 注入；IMU 唯一发布者回到 URDF 的 `gazebo_ros_imu_sensor`
+- ★孤儿 gzserver 判据（同日，当前卡点根因）★：新增 `scripts/verify/orphan_gzserver.sh` —— 判据是
+  **"有 gzserver 进程 且 当前 master 上没有 `/gazebo` 节点"**（不数进程），清理范围只到
+  `worlds/m1_world.world` + `__name:=gazebo` 的进程与 11313 的 rosmaster，支持 `DRY=1` 干跑。
+  配套 `test_orphan_gzserver.sh` 四连：正常不动手／孤儿识别＋计划／**反控**（无进程不误报）／真清理回收，
+  实测 **4 PASS / 0 FAIL**
+- ★`sim.sh base` 改为复用历史脚本（同日）★：不再自写起停，`m1` 走
+  `MODE=normal bash scripts/verify/asan_hdl_repro.sh`（它自带 `roslaunch m1_gazebo.launch map_to_odom:=false`
+  与 nodelet 装载 HDL）；`m2` 走 `m2_gazebo + m2_mapping`。就绪判据全改活数据：
+  `/gazebo` 节点在册 + `/gazebo/set_model_state` 存在 + `/clock`／`/rslidar_points`／`/livox/imu` 有 `average rate`
+  + **`/livox/imu` 发布者恰 1 个** + `/hdl_odom` 有数据；任一不成立即非零退出
+- ★又一个 pipefail 坑（同日）★：我的 `_wait_hz` 写成 `timeout 8 rostopic hz | grep -q`，在 `set -eo pipefail`
+  下恒假（grep 提前退出给 rostopic 发 SIGPIPE），导致底座明明好了却报 `/clock 无数据`。
+  按 `asan_hdl_repro.sh:33-37` 的写法改成先取变量再判，随即 `BASE READY`（`/hdl_odom` 9.997 Hz）

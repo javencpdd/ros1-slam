@@ -64,46 +64,83 @@ probe() {
     (ss -lnt 2>/dev/null || netstat -lnt 2>/dev/null) | grep -E '1131[123]|11345' || echo "11311/11312/11313/11345 均无监听 ✔"
 }
 
-# ---- M1 导航底座（唯一入口；验收脚本必须调它，不得各自重写） ----
-# 为什么收敛到 sim.sh：此前每个验收脚本各写一套 "起 master / 起 gazebo / 等话题 / 起 HDL"，
-# 逻辑重复且各自踩坑（Xvfb 死、包路径重复、话题存在但无数据）。底座只应有一处实现。
+# ---- 底座（唯一入口）----
+# ★2026-11-25 收敛★：不再在本文件里自写"起 master / 起 gazebo / 起 HDL"，
+# 一律复用历史已验证脚本 `scripts/verify/asan_hdl_repro.sh`（它自己带
+# `roslaunch m1_gazebo.launch map_to_odom:=false`、nodelet 装载 HDL、relay 出 /hdl_odom，并有闸门）。
+# 本文件只负责：显示守卫 → 孤儿清理 → 调它 → **按活数据**判定就绪。
 BASE_PIDFILE=/tmp/sim_base.pids
+
+_wait_hz() {  # $1=话题 $2=超时秒；判"有没有活数据"，不看话题是否注册
+    # ★不能写 `timeout 8 rostopic hz | grep -q`★：本文件是 `set -eo pipefail`，
+    # grep -q 提前退出会给 rostopic 发 SIGPIPE，整条管道判假 —— 恒假。
+    # 这与 asan_hdl_repro.sh:33-37 记录的是同一个坑，照它的写法先取变量再判。
+    local t="$1" n="$2" i=0 out
+    while [ "$i" -lt "$n" ]; do
+        out=$(timeout 8 rostopic hz "$t" 2>/dev/null || true)
+        printf '%s' "$out" | grep -q "average rate" && return 0
+        sleep 2; i=$((i+2))
+    done
+    return 1
+}
+
+_pub_count() {  # 某话题的发布者数量
+    rostopic info "$1" 2>/dev/null | sed -n '/Publishers/,$p' | grep -c '^ \*' || true
+}
+
+_check_gazebo_ros() {  # Gazebo 的 ROS 面：节点 + 服务（只看进程会漏判"孤儿 gzserver"）
+    rosnode list 2>/dev/null | grep -qx "/gazebo" \
+        || { echo "[base] FAIL: master 上没有 /gazebo 节点（gzserver 未注册/已脱管，见 orphan_gzserver.sh）"; return 1; }
+    rosservice list 2>/dev/null | grep -q "/gazebo/set_model_state" \
+        || { echo "[base] FAIL: /gazebo/set_model_state 不存在（carrier3d 会超时自杀）"; return 1; }
+    return 0
+}
+
+_check_sensors() {
+    _wait_hz /clock 40          || { echo "[base] FAIL: /clock 无数据"; return 1; }
+    _wait_hz /rslidar_points 60 || { echo "[base] FAIL: /rslidar_points 无数据"; return 1; }
+    _wait_hz /livox/imu 60      || { echo "[base] FAIL: /livox/imu 无数据"; return 1; }
+    local n; n=$(_pub_count /livox/imu)
+    [ "$n" = "1" ] || { echo "[base] FAIL: /livox/imu 发布者=$n（应为 1：URDF Gazebo 插件）"; return 1; }
+    return 0
+}
+
 base_up() {
-    want_hdl="${1:-hdl}"
+    local kind="${1:-m1}"
     . "$(dirname "${BASH_SOURCE[0]}")/xvfb_guard.sh"
     xvfb_guard_ensure "${DISPLAY:-:99}" || { echo "[base] 显示服务不可用"; return 1; }
     export ROS_MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11313}"
     export GAZEBO_MASTER_URI="${GAZEBO_MASTER_URI:-http://127.0.0.1:11345}"
     : > "$BASE_PIDFILE"
-    if ! timeout 4 rostopic list >/dev/null 2>&1; then
-        echo "[base] 起 master"
-        roscore -p "${ROS_MASTER_URI##*:}" >/tmp/base_roscore.log 2>&1 &
+
+    echo "[base] 孤儿清理"
+    bash "$WS/scripts/verify/orphan_gzserver.sh" || { echo "[base] 孤儿清理失败"; return 1; }
+
+    case "$kind" in
+      m1)
+        echo "[base] 复用历史脚本 asan_hdl_repro.sh（含 map_to_odom:=false 与 HDL 装载）"
+        MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1
+        local rc=$?
+        [ "$rc" = "0" ] || { echo "[base] asan_hdl_repro rc=$rc（见 /tmp/base_m1.log 尾部）"; tail -12 /tmp/base_m1.log; return 1; }
+        _check_gazebo_ros || return 1
+        _check_sensors || return 1
+        _wait_hz /hdl_odom 90 || { echo "[base] FAIL: /hdl_odom 无数据（HDL 未收敛，见 /tmp/base_m1.log）"; return 1; }
+        echo "[base] BASE READY（m1 + HDL；/livox/imu 单发布者）"
+        ;;
+      m2)
+        echo "[base] 起 m2 底座（m2_gazebo + m2_mapping；/Odometry 为算法位姿）"
+        roslaunch lite3_gazebo_sim m2_gazebo.launch > /tmp/base_m2_gz.log 2>&1 &
         echo $! >> "$BASE_PIDFILE"
-        for _ in $(seq 1 20); do sleep 2; timeout 3 rostopic list >/dev/null 2>&1 && break; done
-    fi
-    timeout 5 rostopic list >/dev/null 2>&1 || { echo "[base] master 无应答"; return 1; }
-    echo "[base] 起 m1_gazebo（世界 + 机器人 + 传感器）"
-    roslaunch lite3_gazebo_sim m1_gazebo.launch >/tmp/base_gazebo.log 2>&1 &
-    echo $! >> "$BASE_PIDFILE"
-    _wait_topic /clock 60 || { echo "[base] /clock 未出（查 /tmp/base_gazebo.log）"; return 1; }
-    _wait_topic /rslidar_points 90 || { echo "[base] /rslidar_points 未出"; return 1; }
-    _wait_topic /livox/imu 60 || { echo "[base] /livox/imu 未出（IMU 传感器未创建）"; return 1; }
-    # 服务面就绪：图里的 carrier3d 要 /gazebo/set_model_state，它由 gazebo_ros_api_plugin 提供。
-    # 只等话题不等服务 ⇒ carrier3d 起手 20s 超时后自杀、整图起不来（实测：/cmd_vel、/v8/local/pose 全无）。
-    for _ in $(seq 1 30); do
-        rosservice list 2>/dev/null | grep -q "/gazebo/set_model_state" && break
-        sleep 1
-    done
-    rosservice list 2>/dev/null | grep -q "/gazebo/set_model_state" \
-        || { echo "[base] /gazebo/set_model_state 未就绪（carrier3d 会超时自杀）"; return 1; }
-    if [ "$want_hdl" = "hdl" ]; then
-        echo "[base] 起 HDL（map=m1_world_synth_v1，外参取 URDF 仿真几何）"
-        roslaunch "$WS/ws/.profiles/x86_sim/src/lite3_localization/launch/hdl_localization.launch" \
-            tf_x:=0 tf_y:=0 tf_z:=0.34 tf_pitch:=0.2618 \
-            map_name:=m1_world_synth_v1 imu_topic:=/livox/imu >/tmp/base_hdl.log 2>&1 &
+        _check_gazebo_ros || return 1
+        _check_sensors || return 1
+        roslaunch lite3_gazebo_sim m2_mapping.launch > /tmp/base_m2_map.log 2>&1 &
         echo $! >> "$BASE_PIDFILE"
-    fi
-    echo "[base] BASE READY（pid 记录在 $BASE_PIDFILE）"
+        _wait_hz /Odometry 120 || { echo "[base] FAIL: /Odometry 无数据（见 /tmp/base_m2_map.log）"; return 1; }
+        echo "[base] BASE READY（m2 + LIO；/Odometry 为算法位姿）"
+        ;;
+      *)
+        echo "[base] 未知组合：$kind（可选 m1|m2）"; return 1 ;;
+    esac
 }
 
 base_down() {
@@ -111,21 +148,12 @@ base_down() {
         while read -r pid; do [ -n "$pid" ] && kill "$pid" 2>/dev/null || true; done < "$BASE_PIDFILE"
         rm -f "$BASE_PIDFILE"
     fi
-    echo "[base] 已停（只停本入口起的进程）"
-}
-
-_wait_topic() {  # $1=话题 $2=超时秒；用 rostopic list 判存在性（type 对无发布者会返回空）
-    local t="$1" n="$2" i=0
-    while [ "$i" -lt "$n" ]; do
-        rostopic list 2>/dev/null | grep -qx "$t" && return 0
-        sleep 1; i=$((i+1))
-    done
-    return 1
+    echo "[base] 已停（只停本入口记录的进程）"
 }
 
 case "$MODE" in
     probe)  probe ;;
-    base)   shift; base_up "${1:-hdl}" ;;
+    base)   shift; base_up "${1:-m1}" ;;
     down)   base_down ;;
     clean)
         # 对齐 m2_smoke.sh 的退净判据：把本域（11313/11345）的进程与端口清干净。
@@ -160,7 +188,7 @@ case "$MODE" in
         fi
         ;;
     *)
-        echo "用法: bash $0 {probe|base [hdl|no-hdl]|down|gazebo|smoke [stageA|stageB|stageC|all]}"
+        echo "用法: bash $0 {probe|base [m1|m2]|down|gazebo|smoke [stageA|stageB|stageC|all]}"
         exit 2
         ;;
 esac
