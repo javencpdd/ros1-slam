@@ -8845,3 +8845,15 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
      下一步：对验收起点 `(5.2,2.45)` 用该函数补平台（或改用支撑图确有面的起点），再跑 FAR 四项
 - `manifest_global_far.json` 的 `launch.args` 增加 `debug_output`（默认 false）——只是把上游的诊断开关
   暴露到图上，便于看顶点数/拒因，默认行为不变
+- ★支撑图补面工具（2026-11-25）★：新增 `scripts/ops/fill_start_support.py`——对**已生成**的地图 JSON
+  在指定点半径内补最低面的格子（RLE 重编码、幂等、`--dry-run` 可预算）。
+  由来：`E_LOCAL_SUPPORT`＝"start requires a matching z support"，支撑图在机器人所在格没有面；
+  雷达正下方与遮挡区天生无点。仓库自带 `fill_start_platform`（`map_from_pcd.py:269`）只作用于生成期
+  内存结构，本工具补的是运行期的 JSON。
+  ★注意：`data/maps/generated/*.json` **不在 git 跟踪面**（生成物），故补面动作必须按命令复现，
+  不能指望靠 git 回滚★。命令形如：
+  `for x in 5.2 4.9 4.6 4.3 4.0 3.7 3.4 3.1 2.8 2.5 2.4; do python3 scripts/ops/fill_start_support.py data/maps/generated/v8_m1_hdl_v1.json $x 2.45 --radius 0.55; done`
+- ★两组合的地图口径差异（同日，diff 证实）★：支持图用 `global3d_topic` 且 `map_topic: /v8_support_map`，
+  并有边 `map.map → global.map`；FAR 图用 `global_far`（`cloud_topic: /rslidar_points`，自己从点云建地形），
+  **该边被移除**。⇒ FAR 给的是直线 2 点路径，会直接穿过支撑图的洞，局部规划器随即 `E_LOCAL_SUPPORT`。
+  这不是 FAR 算法错，而是两后端对"地图"的消费方式不同：support 吃支撑栅格、FAR 吃地形点云
