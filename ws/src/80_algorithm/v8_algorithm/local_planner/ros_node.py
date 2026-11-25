@@ -60,6 +60,29 @@ def accept_goal(shared, message):
                   cancel_requested=False, cancel_seq=0, cancel_reason=None)
     return True
 
+def drop_task_on_pose_invalid(shared, now_wall, threshold_s):
+    """★定位持续失效 ⇒ 当前任务作废★（真人裁决 2026-11-26）。
+
+    语义：定位失效后当前任务作废，**定位恢复不等于运动授权恢复**——恢复后必须收到
+    合法的新任务（`header.seq` 代次更高的 goal）才能重新武装。
+
+    只由"**持续**失效"触发（`threshold_s` 内一直有 pose_error）：
+    单帧抖动就清任务会破坏正常连续步进，所以这里用超时而不是即时。
+    """
+    if not shared.get('pose_error'):
+        return False
+    since = shared.get('pose_invalid_since')
+    if since is None or (now_wall - since) < threshold_s:
+        return False
+    if shared.get('goal') is None and shared.get('stop_latched'):
+        return False                      # 已经作废过，别反复推代次
+    shared.update(goal=None, result=None, result_generation=-1,
+                  stop_latched=True, stop_reason='E_LOCAL_LOCALIZATION_LOST',
+                  generation=shared['generation'] + 1,
+                  cancel_requested=True, last_error='E_LOCAL_LOCALIZATION_LOST')
+    return True
+
+
 def accept_worker_result(shared, payload, wall_now):
     """Old in-flight results cannot resurrect an invalidated pose/clock epoch."""
     if (payload['generation'] != shared['generation'] or shared.get('pose_error')
@@ -138,6 +161,8 @@ def main():
     config.validate()
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
     require_goal_seq = bool(rospy.get_param('~require_goal_seq', False))
+    # 定位持续失效多久才作废任务（秒）。必须 > 正常帧间隔（~0.1 s），又与"位姿最大龄期"同一量级。
+    task_drop_after_s = float(rospy.get_param('~task_drop_after_s', 0.8))
     if not math.isfinite(max_age) or max_age <= 0:
         raise ValueError('input_max_age_s must be positive')
     wall_watchdog_s = float(rospy.get_param('~wall_watchdog_s', max(5., 4. * config.validity_s)))
@@ -377,6 +402,11 @@ def main():
                                           path_pub, String)
                 with lock:
                     pose_input.check(rospy.Time.now().to_sec(), time.monotonic())
+                    # ★定位持续失效 ⇒ 作废当前任务并锁存停止★（恢复后不会自己续走）
+                    if drop_task_on_pose_invalid(shared, time.monotonic(), task_drop_after_s):
+                        rospy.logwarn('[local] localization lost > %.2fs: task dropped '
+                                      '(goal cleared, stop latched)', task_drop_after_s)
+                        plan_wake.set()
                     snapshot = dict(shared)
                     if pose_input.guard.epoch != last_plan_epoch:
                         last_plan_tick = -1

@@ -8989,3 +8989,20 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
     `fill_start_support.py` 只补半径 0.5~0.6 m，不够整条走廊）；
   ②加一个"常量平移"适配器把 LIO 位姿搬到 map 系（与 HDL 的 init pose 同性质）——属新增组件，需批准。
   ⇒ M2 组合按"扩展组合"登记为**待定**，不参与 Support 主线判定。
+- ★定位失效安全语义（真人裁决 2026-11-26 方案1，已实现并实测）★：语义＝**定位失效后当前任务作废，
+  定位恢复不等于运动授权恢复**。三处协同，各司其职：
+  1) **local**：位姿**持续**失效超 `~task_drop_after_s`(0.8 s) ⇒ 清 goal/result、推代次、锁存停止
+     （`E_LOCAL_LOCALIZATION_LOST`）。单帧抖动作废＝反控，实测不触发（正常步进不受影响）。
+     任务身份沿用既有 `header.seq` 代次（`require_goal_seq`）：**旧任务刷新时间戳也拒**
+  2) **BT**：`localizationCallback` 收到 false ⇒ 调既有 `dropPendingLocked()` 清空待办并记
+     `localization_lost`（"fault stop ends the whole mission" 本就是该函数的设计意图）；
+     普通规划失败仍走 `recovery_mode` 原策略，两者互不影响
+  3) **path_goal**：订阅 `/v8/local/localization_ok`，失效即清活动路径并把**当前代次记为作废**；
+     同代次 path 重发（哪怕时间戳更新）一律拒绝（`task_dead`）
+  另：`loc_recovery_probe` 改为**先采样、后恢复闸门**，连续记录速度与真值轨迹（最大偏离而非首尾），
+  并要求 `sampling_coverage`（真值/速度断档 ≤0.5 s 且速度样本 ≥10），缺失即"未验"不得 PASS。
+  单测：`local_planner/tests/test_localization_loss_task_drop.py` 三连（持续失效才作废／瞬时抖动作废＝反控／
+  同代次拒绝+新代次重新武装）**3/3 OK**；`local_planner` 全量 **181 项 OK**。
+  ★实测（Support 四项）★：`nav PASS（bt=reached）｜障碍 PASS（在线 zero=22.36 s, pen=0）｜
+  定位失效 PASS（delay 0.698 s / coast 0.117 m / **恢复不动**）｜取消 PASS（zero 11.46 s / replay PASS）`
+  ⇒ **4 PASS / 0 FAIL，judge_rc=0**

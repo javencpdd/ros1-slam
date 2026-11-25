@@ -126,7 +126,11 @@ def judge_loc(root):
         detail_rec = '恢复未验'
     elif not rec.get('pass'):
         ok = False
-        detail_rec = '恢复后复动%.2fm' % (rec.get('moved_m') or 0)
+        checks = rec.get('checks') or {}
+        if checks.get('sampling_coverage') is False:
+            detail_rec = '恢复未验(采样缺)'
+        else:
+            detail_rec = '恢复后复动%.2fm' % (rec.get('moved_m') or 0)
     else:
         detail_rec = '恢复不动'
     detail = 'delay=%s s coast=%s m after_v=%s' % (

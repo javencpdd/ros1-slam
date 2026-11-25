@@ -113,6 +113,10 @@ class LocalPoseInput:
             value['generation'] += 1
             self.revocation += 1
         self.guard.invalidate(detail or reason)
+        # ★记录"位姿从何时开始持续失效"★：单帧抖动不应立刻毁任务（会破坏正常连续步进），
+        # 但持续失效必须作废当前任务。清零由 accept() 负责。
+        if value.get('pose_invalid_since') is None:
+            value['pose_invalid_since'] = __import__('time').monotonic()
         value.update(pose=None, pose_orientation=None, pose_at=-1e100,
                      result=None, result_at=-1e100, result_generation=-1,
                      pose_error=reason, pose_detail=detail or reason,
@@ -136,7 +140,8 @@ class LocalPoseInput:
             if advanced:
                 self.shared.update(pose=position, pose_orientation=orientation,
                                    pose_at=wall_now, pose_ros_stamp=message.header.stamp.to_sec(),
-                                   pose_error=None, pose_detail=None)
+                                   pose_error=None, pose_detail=None,
+                                   pose_invalid_since=None)
             return None
         except (PoseError, AttributeError, TypeError, ValueError) as error:
             reason = getattr(error, 'code', 'E_LOCAL_POSE_INVALID')

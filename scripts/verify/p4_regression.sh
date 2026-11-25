@@ -193,11 +193,14 @@ case_loc() {
   cat "$EV_ROOT/loc_stop.json" 2>/dev/null
   # ★恢复段：把定位闸门重新拉起来，断言车不自行复动★
   # 只验"断流会停"是不够的：恢复瞬间位姿可能跳变、局部规划器误以为离目标很远而重新起步。
+  # ★必须先采样、后恢复闸门★：先恢复再采样会漏掉"恢复瞬间窜出去"的那一段。
+  python3 "$REPO/scripts/verify/loc_recovery_probe.py" --seconds 10 --pose-topic "$POSE_TOPIC" \
+    --out "$EV_ROOT/loc_recovery.json" > "$EV_ROOT/loc_recovery.log" 2>&1 &
+  local rp=$!
+  sleep 2
   rosrun topic_tools relay "$GATE_IN" "$GATE_OUT" __name:="$GATE_NAME" \
     > "$EV_ROOT/loc_recovery_relay.log" 2>&1 &
-  sleep 2
-  python3 "$REPO/scripts/verify/loc_recovery_probe.py" --seconds 6 --pose-topic "$POSE_TOPIC" \
-    --out "$EV_ROOT/loc_recovery.json" > "$EV_ROOT/loc_recovery.log" 2>&1
+  wait $rp 2>/dev/null
   cat "$EV_ROOT/loc_recovery.json" 2>/dev/null
 }
 

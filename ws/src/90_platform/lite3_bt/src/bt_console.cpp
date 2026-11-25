@@ -1378,7 +1378,19 @@ void localizationCallback(const std_msgs::Bool::ConstPtr& msg)
 {
   std::lock_guard<std::mutex> lock(g_state.mutex);
   g_state.localization_ok = msg->data;
-  g_state.last_event = msg->data ? "localization_ok" : "localization_lost";
+  if (!msg->data)
+  {
+    // ★定位失效＝任务作废（真人裁决 2026-11-26）★
+    // 语义：定位失效后当前任务作废，**定位恢复不等于运动授权恢复**——
+    // 恢复后必须由正式任务入口下发新目标才能重新武装。
+    // 这里只做"清空待办"，普通规划失败仍走 recovery_mode 的原有策略，两者互不影响。
+    dropPendingLocked(false);
+    g_state.last_event = "localization_lost";
+    ROS_WARN("[bt] localization lost: mission aborted, queued goals dropped "
+             "(recovery requires a new goal)");
+    return;
+  }
+  g_state.last_event = "localization_ok";
 }
 }  // namespace
 

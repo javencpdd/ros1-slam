@@ -78,6 +78,15 @@ class PathGoal(object):
         rospy.Subscriber(self.path_topic, Path, self.on_path, queue_size=10)
         rospy.Subscriber(self.pose_topic, PoseStamped, self.on_pose, queue_size=10)
         rospy.Subscriber(self.cancel_topic, String, self.on_cancel, queue_size=10)
+        # ★定位失效＝任务作废（真人裁决 2026-11-26）★
+        # 恢复后不得自行重新武装：这里清空活动路径，并把**当前代次**记为"作废"，
+        # 之后即使全局规划器带更新的时间戳重发同一代次路径，也必须拒绝（任务身份看代次，不看时间戳）。
+        self.dead_generation = None
+        try:
+            from std_msgs.msg import Bool
+            rospy.Subscriber('/v8/local/localization_ok', Bool, self.on_localization, queue_size=5)
+        except Exception:
+            pass
         rospy.Timer(rospy.Duration(0.2), self.tick)
 
     def on_pose(self, message):
@@ -95,7 +104,26 @@ class PathGoal(object):
             'ok': True, 'cancelled': True, 'dropped_poses': dropped,
             'reason': message.data[:80]})))
 
+    def on_localization(self, message):
+        if message.data:
+            return
+        if self.poses:
+            self.status_pub.publish(String(data=json.dumps({
+                'ok': False, 'reason': 'localization_lost',
+                'dropped_poses': len(self.poses), 'generation': self.accepted_generation})))
+        self.dead_generation = self.accepted_generation
+        self.poses = []
+        self.index = 0
+        self.last_goal_key = None
+        self.published_at = None
+
     def on_path(self, message):
+        # 同一代次的旧任务：无论时间戳多新，都不许复活
+        if (self.dead_generation is not None
+                and int(getattr(message.header, 'seq', 0) or 0) == int(self.dead_generation)):
+            self.status_pub.publish(String(data=json.dumps({
+                'ok': False, 'reason': 'task_dead', 'generation': self.dead_generation})))
+            return
         if not message.poses:
             self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'empty_path'})))
             return
