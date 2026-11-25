@@ -1,0 +1,30 @@
+=== 1 正常导航 ===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[nav] v8_nodes=9
+{"est_to_goal_m": 1.236, "gt_to_goal_m": 1.3, "est_gt_gap_m": 0.064, "verdict": "FAIL"}
+=== 2 障碍安全（离线回归，不需重置栈）===
+  "B_narrow_corridor": "smallest_passable 0.650 >= required 0.613",
+  "C_dynamic_obstacle": "extra_monotone=True failclosed=True",
+  "D_open_space": "open=True far=True"
+ }
+}
+=== 3 定位失效（只断定位数据）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[loc] v8_nodes=9
+{"mode": "stop", "motion_seen": false, "cmd_frames": 2178, "hold_s": 24.0, "cmd_samples": 2178, "gt_samples": 951, "ack_count": 0, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+=== 4 取消（scope=all）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[cancel] v8_nodes=9
+{"mode": "cancel", "motion_seen": false, "cmd_frames": 2168, "hold_s": 26.0, "cmd_samples": 2168, "gt_samples": 764, "ack_count": 0, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"conns": 1, "cancel_conns": 0, "stale_replies": [{"ok": true, "generation": 1, "rejected_stale": 0, "poses": 4, "index": 1, "remaining_m": 0.779, "goal": [4.35, 2.45, 0.0], "frame": "map"}], "stale_rejected": false, "stale_generation_bump": true, "fresh_replies": [], "fresh_accepted": false, "fresh_generation": null, "pass": false}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       FAIL     gt=1.300 m est=1.236 无非零运动                                 frames=0 travel=0.002
+2 障碍安全       PASS     A2=PASS A=PASS B=PASS C=PASS D=PASS                        -
+3 定位失效       INVALID  注入前未取得非零运动                                                 -
+4 取消安全       INVALID  注入前未取得非零运动                                                 -
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：1 PASS / 3 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_084442
+judge_rc=1（0=四项全 PASS，非零=有项未通过）
