@@ -120,6 +120,12 @@ def judge_loc(root):
           and bool(d.get('moving_at_inject'))
           and delay is not None and delay <= LOC_STOP_DELAY_MAX_S
           and coast is not None and coast <= LOC_COAST_MAX_M)
+    rearm = load(root, 'loc_rearm.json')
+    if not rearm or not rearm.get('rearmed'):
+        ok = False
+        detail_re = '新任务未解锁'
+    else:
+        detail_re = '新任务可解锁'
     rec = load(root, 'loc_recovery.json')
     if not rec:
         ok = False
@@ -138,7 +144,7 @@ def judge_loc(root):
         '%.3f' % coast if coast is not None else 'NA', after)
     if not d.get('moving_at_inject'):
         detail += ' 注入时已停'
-    return ('PASS' if ok else 'FAIL'), detail + ' ' + detail_rec, 'nodes=%s' % d.get('v8_nodes_after', 'NA')
+    return ('PASS' if ok else 'FAIL'), detail + ' ' + detail_rec + ' ' + detail_re, 'nodes=%s' % d.get('v8_nodes_after', 'NA')
 
 
 def judge_cancel(root):

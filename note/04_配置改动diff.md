@@ -9006,3 +9006,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ★实测（Support 四项）★：`nav PASS（bt=reached）｜障碍 PASS（在线 zero=22.36 s, pen=0）｜
   定位失效 PASS（delay 0.698 s / coast 0.117 m / **恢复不动**）｜取消 PASS（zero 11.46 s / replay PASS）`
   ⇒ **4 PASS / 0 FAIL，judge_rc=0**
+- ★正控（新任务解锁）当前失败，已定位到 local 侧（同日，待收口）★：定位失效后
+  **反控通过**（`loc_recovery.json`: `moved_m=0.0 / pose_resumed / sampling_coverage` 全绿），
+  BT 也正确执行了 abort（日志 `localization lost: mission aborted, queued goals dropped`），
+  之后从正式入口（`/v8/3d/global/start` + `/v8/bt/goal`）下的新任务：
+  `goal 2/3/4 dequeued`、`global path ready (14 points)` 都正常 ⇒ **规划链路没问题**，
+  但 `cmd_vel` 恒 0 ⇒ 卡在 local 接受新任务这一环（`loc_rearm.json: rearmed=false`）。
+  已排除的假象：①连发把 BT 队列打满（`goal queue full (16)`）——改成单次下发；
+  ②只发 goal 不发 start——已补 start。两条都排除后仍不动。
+  ⇒ 下一步只需在 local 里打印一次 accept_goal 的判定（seq 比较与 stop_latched），即可定位是
+  `E_LOCAL_STALE_GOAL` 还是锁存未清；**在此之前 Support 记 3/4，不宣布 4/4**。

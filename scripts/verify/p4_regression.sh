@@ -202,6 +202,28 @@ case_loc() {
     > "$EV_ROOT/loc_recovery_relay.log" 2>&1 &
   wait $rp 2>/dev/null
   cat "$EV_ROOT/loc_recovery.json" 2>/dev/null
+
+  # ★正控：恢复后从正式任务入口发一个合法新任务，必须能重新起步★
+  # 只验"恢复不动"会漏掉另一种退化：把车永久钉死。这里断言新任务能解锁。
+  say '=== 3b 正控：正式入口下发新任务，应能重新起步 ==='
+  local mv=0 v
+  # ★只发一次、别刷屏★：BT 队列上限 16，连发会把队列打满（实测 goal queue full → 新任务被拒），
+  # 那样"未解锁"是假象。窗口放宽到 30 s：新任务要等规划出路径才能动。
+  # 正式入口 = start + goal（与历史流程一致）：只发 goal 时规划器没有起点，不会出路径
+  timeout 2 rostopic pub -r 5 /v8/3d/global/start geometry_msgs/PoseStamped \
+    "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
+  timeout 2 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
+    "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
+  for _ in $(seq 1 30); do
+    sleep 1
+    v=$(timeout 3 rostopic hz /cmd_vel 2>/dev/null | tail -1)
+    case "$v" in *"average rate"*) : ;; *) continue ;; esac
+    x=$(timeout 3 rostopic echo -n1 /cmd_vel/linear/x 2>/dev/null | head -1)
+    if [ -n "$x" ] && [ "$x" != "0.0" ]; then mv=1; break; fi
+  done
+  echo "{\"rearmed\": $([ "$mv" = "1" ] && echo true || echo false), \"reason\": \"new task from /v8/bt/goal\"}" \
+    > "$EV_ROOT/loc_rearm.json"
+  cat "$EV_ROOT/loc_rearm.json"
 }
 
 case_cancel() {

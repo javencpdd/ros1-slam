@@ -373,8 +373,12 @@ public:
       g_state.last_event = "request_path";
     }
     goal.header.stamp = ros::Time::now();
+    // ★任务代次盖章（真人裁决 2026-11-26）★：把本任务代次写进 goal.header.seq，
+    // 规划器原样带到 path 的 header.seq，path_goal 再带到 local 的 goal。
+    // 下游据此区分"同一任务的滚动重发"与"新任务"——**只靠时间戳区分不了**（旧任务刷新时间戳照样会来）。
+    goal.header.seq = static_cast<std::uint32_t>(g_state.current_seq);
     g_state.planner_goal_pub.publish(goal);
-    ROS_INFO("[bt] global path requested for goal %lu",
+    ROS_INFO("[bt] global path requested for goal %lu (seq stamped)",
              static_cast<unsigned long>(g_state.current_seq));
     return BT::NodeStatus::SUCCESS;
   }

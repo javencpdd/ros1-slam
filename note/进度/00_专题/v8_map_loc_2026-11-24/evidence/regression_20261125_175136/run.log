@@ -1,0 +1,37 @@
+=== 1 正常导航 ===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[nav] v8_nodes=9
+{"est_to_goal_m": 0.039, "gt_to_goal_m": 0.034, "est_gt_gap_m": 0.071, "verdict": "PASS"}
+=== 2 障碍安全（离线回归，不需重置栈）===
+  "B_narrow_corridor": "smallest_passable 0.650 >= required 0.613",
+  "C_dynamic_obstacle": "extra_monotone=True failclosed=True",
+  "D_open_space": "open=True far=True"
+ }
+}
+=== 2b 运动中障碍（在线）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[obstacle] v8_nodes=9
+{"lead_m": 1.2, "size_m": 0.5, "spawned": true, "moving_before_spawn": true, "box_at": [5.92, 2.337], "penetrations": 0, "penetration_samples": [], "max_zero_run_s": 14.92, "max_travel_m": 0.785, "checks": {"moving_before_spawn": true, "no_penetration": true, "responded": true}, "verdict": "PASS", "deleted": true}
+=== 3 定位失效（只断定位数据）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[loc] v8_nodes=9
+{"mode": "stop", "motion_seen": true, "cmd_frames": 1581, "hold_s": 24.0, "cmd_samples": 1581, "gt_samples": 719, "ack_count": 0, "max_speed": 0.6, "nonzero_frames": 64, "last_nonzero_wall_s": 2.327, "zero_window_wall_s": 23.649, "max_speed_after": 0.0, "inject_wall_s": 1.965, "hdl_last_wall_s": 1.634, "hdl_msgs": 29, "stop_delay_s": 0.694, "inject_to_last_nonzero_s": 0.363, "moving_at_inject": true, "gt_coast_after_inject_m": 0.1287, "gt_travel_after_m": 0.012, "anchor_sim_s": 267.906, "zero_window_sim_s": 10.5, "gt_move_within_2s_sim_m": 0.012, "gt_covers_2s_sim": true, "gt_move_within_5s_sim_m": 0.012, "gt_covers_5s_sim": true, "gt_move_within_10s_sim_m": 0.012, "gt_covers_10s_sim": true, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"seconds": 10.0, "pose_msgs": 24, "gt_samples": 223, "cmd_samples": 492, "moved_m": 0.0, "max_speed_mps": 0.0, "max_gt_gap_s": 0.099, "max_cmd_gap_s": 0.022, "tol_m": 0.05, "checks": {"pose_resumed": true, "no_remotion": true, "sampling_coverage": true}, "pass": true}
+=== 3b 正控：正式入口下发新任务，应能重新起步 ===
+{"rearmed": false, "reason": "new task from /v8/bt/goal"}
+=== 4 取消（scope=all）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[cancel] v8_nodes=9
+{"mode": "cancel", "motion_seen": true, "cmd_frames": 1713, "hold_s": 26.0, "cmd_samples": 1713, "gt_samples": 783, "ack_count": 2, "ack_last": "2:cancelled", "ack_latency_wall_s": 2.259, "max_speed": 0.6, "nonzero_frames": 64, "last_nonzero_wall_s": 2.246, "zero_window_wall_s": 26.399, "max_speed_after": 0.0, "inject_wall_s": 2.626, "stop_delay_s": 0.0, "inject_to_last_nonzero_s": -0.38, "moving_at_inject": false, "gt_coast_after_inject_m": 0.0, "gt_travel_after_m": 0.0138, "anchor_sim_s": 368.406, "zero_window_sim_s": 11.78, "gt_move_within_2s_sim_m": 0.0138, "gt_covers_2s_sim": true, "gt_move_within_5s_sim_m": 0.0138, "gt_covers_5s_sim": true, "gt_move_within_10s_sim_m": 0.0138, "gt_covers_10s_sim": true, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"conns": 2, "cancel_conns": 1, "stale_replies": [{"ok": false, "reason": "stale_after_cancel", "path_stamp": 376.796, "cancelled_at": 381.376, "rejected_stale": 1}], "stale_rejected": true, "stale_generation_bump": false, "fresh_replies": [{"ok": true, "generation": 2, "rejected_stale": 1, "poses": 4, "index": 1, "remaining_m": 0.532, "goal": [4.35, 2.45, 0.0], "frame": "map"}], "fresh_accepted": true, "fresh_generation": 2, "pass": true}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       PASS     gt=0.034 m est=0.039                                       frames=1472 travel=1.036 bt=reached
+2 障碍安全       PASS     A2=PASS A=PASS B=PASS C=PASS D=PASS                        在线PASS(zero=14.92s,pen=0)
+3 定位失效       FAIL     delay=0.694 s coast=0.129 m after_v=0.0 恢复不动 新任务未解锁        nodes=9
+4 取消安全       PASS     ack=2:cancelled zero=11.78 s sim move5s=0.014 m after_v=0.0 replay=PASS
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：3 PASS / 1 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_175136
+judge_rc=1（0=四项全 PASS，非零=有项未通过）

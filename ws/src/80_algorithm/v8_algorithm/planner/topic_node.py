@@ -49,7 +49,11 @@ def main():
                                Path, queue_size=1, latch=True)
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/global_path/status'),
                                  String, queue_size=10, latch=True)
-    state = {'map': None, 'map_version': None, 'start': None, 'goal': None}
+    state = {'map': None, 'map_version': None, 'start': None, 'goal': None,
+             # ★任务代次★：goal 的 header.seq 由 BT 盖章（每次出队新任务自增）。
+             # 必须原样带到 path 上——下游 path_goal 用它区分"同一任务的滚动重发"与"新任务"，
+             # 只看时间戳无法区分（旧任务刷新时间戳照样会来）。
+             'goal_seq': 0}
     lock = threading.Lock()
     job = {'generation': 0, 'cancel': None}
 
@@ -71,6 +75,7 @@ def main():
         points = legacy.to_path_points(result)
         message = Path()
         message.header.frame_id, message.header.stamp = frame, rospy.Time.now()
+        message.header.seq = int(state.get('goal_seq') or 0)
         for x, y, z, _surface in points:
             pose = PoseStamped()
             pose.header = message.header
@@ -133,8 +138,18 @@ def main():
                      on_map, queue_size=1)
     rospy.Subscriber(rospy.get_param('~start_topic', '/v8/global/start'), PoseStamped,
                      on_pose('start'), queue_size=1)
+    _goal_cb = on_pose('goal')
+
+    def on_goal(message):
+        # 记录任务代次后再走通用路径（顺序无关，但要保证 run() 读到的是本任务的值）
+        try:
+            state['goal_seq'] = int(getattr(message.header, 'seq', 0) or 0)
+        except Exception:
+            state['goal_seq'] = 0
+        _goal_cb(message)
+
     rospy.Subscriber(rospy.get_param('~goal_topic', '/v8/global/goal'), PoseStamped,
-                     on_pose('goal'), queue_size=1)
+                     on_goal, queue_size=1)
     rospy.Service(rospy.get_param('~cancel_service',
                                  rospy.get_name() + '/cancel'), Trigger, on_cancel)
     keep_alive_s = float(rospy.get_param('~keep_alive_s', 0.0))
