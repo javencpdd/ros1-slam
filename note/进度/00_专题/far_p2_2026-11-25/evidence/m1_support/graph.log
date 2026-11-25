@@ -1,39 +1,19 @@
 Traceback (most recent call last):
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/scripts/run_cmd3d_mux.py", line 19, in <module>
-    cmd3d_mux_node.main()
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/cmd3d_mux_node.py", line 68, in main
-    output.publish(value)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
-    self.impl.publish(data)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1075, in publish
-    c.write_data(data)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/impl/tcpros_pubsub.py", line 418, in write_data
-    self._cond_data_available.notify()
-  File "/usr/lib/python3.8/threading.py", line 358, in notify
-    waiter.release()
-KeyboardInterrupt
-[ERROR] [1795580234.861683, 13.934000]: kinematic carrier loop failed:
-Traceback (most recent call last):
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 162, in main
-    rate.sleep()
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
-    sleep(self._remaining(curr_time))
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
-    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
-rospy.exceptions.ROSInterruptException: ROS shutdown request
-
-Traceback (most recent call last):
   File "/opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py", line 15, in <module>
     exec(compile(fh.read(), python_script, 'exec'), context)
   File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 177, in <module>
     main()
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 162, in main
-    rate.sleep()
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
-    sleep(self._remaining(curr_time))
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
-    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
-rospy.exceptions.ROSInterruptException: ROS shutdown request
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 47, in main
+    rospy.wait_for_service('/gazebo/set_model_state', timeout=20.)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/impl/tcpros_service.py", line 148, in wait_for_service
+    raise ROSException("timeout exceeded while waiting for service %s"%resolved_name)
+rospy.exceptions.ROSException: timeout exceeded while waiting for service /gazebo/set_model_state
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/scripts/run_cmd3d_mux.py", line 19, in <module>
+    cmd3d_mux_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/cmd3d_mux_node.py", line 73, in main
+    time.sleep(.02)
+KeyboardInterrupt
 Traceback (most recent call last):
   File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_localization_source.py", line 21, in <module>
     localization_node.main()
@@ -64,12 +44,14 @@ Traceback (most recent call last):
   File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
     raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
 rospy.exceptions.ROSInterruptException: ROS shutdown request
-... logging to /opt/ros1-slam/logs/f6362406-e886-11f1-b327-42bc6aba034b/roslaunch-35ea6bfef95a-1680879.log
+[31m[v8/3d/carrier/carrier-9] process has died [pid 1712892, exit code 1, cmd /opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py /cmd_vel:=/cmd_vel /v8_support_map:=/v8_support_map __name:=carrier __log:=/opt/ros1-slam/logs/083ebb56-e88a-11f1-92a1-42bc6aba034b/v8-3d-carrier-carrier-9.log].
+log file: /opt/ros1-slam/logs/083ebb56-e88a-11f1-92a1-42bc6aba034b/v8-3d-carrier-carrier-9*.log[0m
+... logging to /opt/ros1-slam/logs/083ebb56-e88a-11f1-92a1-42bc6aba034b/roslaunch-35ea6bfef95a-1712800.log
 Checking log directory for disk usage. This may take a while.
 Press Ctrl-C to interrupt
 Done checking log file disk usage. Usage is <1GB.
 ]2;/opt/ros1-slam/note/进度/00_专题/far_p2_2026-11-25/evidence/m1_support/graph.launch
-[1mstarted roslaunch server http://35ea6bfef95a:39301/[0m
+[1mstarted roslaunch server http://35ea6bfef95a:32785/[0m
 
 SUMMARY
 ========
@@ -198,16 +180,15 @@ NODES
 
 [1mROS_MASTER_URI=http://127.0.0.1:11313[0m
 ]2;/opt/ros1-slam/note/进度/00_专题/far_p2_2026-11-25/evidence/m1_support/graph.launch http://127.0.0.1:11313
-[1mprocess[v8/3d/loc/loc-1]: started with pid [1681319][0m
-[1mprocess[v8/3d/map/map-2]: started with pid [1681320][0m
-[1mprocess[v8/3d/perception/perception-3]: started with pid [1681323][0m
-[1mprocess[v8/3d/global/global-4]: started with pid [1681326][0m
-[1mprocess[v8/bt/bt-5]: started with pid [1681328][0m
-[1mprocess[v8/3d/path_goal/path_goal-6]: started with pid [1681333][0m
-[1mprocess[v8/3d/local/local-7]: started with pid [1681346][0m
-[1mprocess[v8/3d/mux/mux3d-8]: started with pid [1681413][0m
-[1mprocess[v8/3d/carrier/carrier-9]: started with pid [1681444][0m
-[v8/3d/carrier/carrier-9] killing on exit
+[1mprocess[v8/3d/loc/loc-1]: started with pid [1712879][0m
+[1mprocess[v8/3d/map/map-2]: started with pid [1712880][0m
+[1mprocess[v8/3d/perception/perception-3]: started with pid [1712881][0m
+[1mprocess[v8/3d/global/global-4]: started with pid [1712882][0m
+[1mprocess[v8/bt/bt-5]: started with pid [1712883][0m
+[1mprocess[v8/3d/path_goal/path_goal-6]: started with pid [1712884][0m
+[1mprocess[v8/3d/local/local-7]: started with pid [1712889][0m
+[1mprocess[v8/3d/mux/mux3d-8]: started with pid [1712891][0m
+[1mprocess[v8/3d/carrier/carrier-9]: started with pid [1712892][0m
 [v8/3d/mux/mux3d-8] killing on exit
 [v8/3d/local/local-7] killing on exit
 [v8/3d/path_goal/path_goal-6] killing on exit
