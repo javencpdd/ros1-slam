@@ -1,0 +1,49 @@
+=== 1 正常导航 ===
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/client.py", line 420, in wait_for_message
+    raise rospy.exceptions.ROSException("timeout exceeded while waiting for message on topic %s"%resolve_name)
+rospy.exceptions.ROSException: timeout exceeded while waiting for message on topic /sim/odom_gt
+[place] target=(5.2,2.45) err= m ok=
+[place] 未到位，重试一次
+[nav] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[nav] v8_nodes=9
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/client.py", line 420, in wait_for_message
+    raise rospy.exceptions.ROSException("timeout exceeded while waiting for message on topic %s"%resolve_name)
+rospy.exceptions.ROSException: timeout exceeded while waiting for message on topic /hdl_odom
+=== 2 障碍安全（离线回归，不需重置栈）===
+  "B_narrow_corridor": "smallest_passable 0.650 >= required 0.613",
+  "C_dynamic_obstacle": "extra_monotone=True failclosed=True",
+  "D_open_space": "open=True far=True"
+ }
+}
+=== 2b 运动中障碍（在线）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[obstacle] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[obstacle] v8_nodes=9
+{"lead_m": 1.2, "size_m": 0.5, "spawned": true, "moving_before_spawn": false, "box_at": [6.4, 2.45], "penetrations": 0, "penetration_samples": [], "max_zero_run_s": 24.14, "max_travel_m": 0.0, "checks": {"moving_before_spawn": false, "no_penetration": true, "responded": true}, "verdict": "FAIL", "deleted": true}
+=== 3 定位失效（只断定位数据）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[loc] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[loc] v8_nodes=9
+{"mode": "stop", "motion_seen": false, "cmd_frames": 2186, "hold_s": 24.0, "cmd_samples": 2186, "gt_samples": 979, "ack_count": 0, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": false}
+{"seconds": 6.0, "pose_msgs": 0, "moved_m": 0.0, "tol_m": 0.05, "checks": {"pose_resumed": false, "no_remotion": true}, "pass": false}
+=== 4 取消（scope=all）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[cancel] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[cancel] v8_nodes=9
+{"mode": "cancel", "motion_seen": false, "cmd_frames": 2180, "hold_s": 26.0, "cmd_samples": 2180, "gt_samples": 917, "ack_count": 0, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": false}
+{"conns": 2, "cancel_conns": 1, "stale_replies": [{"ok": false, "reason": "stale_after_cancel", "path_stamp": 172.146, "cancelled_at": 176.736, "rejected_stale": 1}], "stale_rejected": true, "stale_generation_bump": false, "fresh_replies": [{"ok": true, "generation": 1, "rejected_stale": 1, "poses": 4, "index": 1, "remaining_m": null, "goal": [4.35, 2.45, 0.0], "frame": "map"}], "fresh_accepted": true, "fresh_generation": 1, "pass": true}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       INVALID  缺 nav_arrival.json                                         -
+2 障碍安全       FAIL     A2=PASS A=PASS B=PASS C=PASS D=PASS                        在线=FAIL
+3 定位失效       INVALID  注入前未取得非零运动                                                 -
+4 取消安全       INVALID  注入前未取得非零运动                                                 -
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：0 PASS / 4 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_161358
+judge_rc=1（0=四项全 PASS，非零=有项未通过）

@@ -8977,3 +8977,15 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ⇒ BT 的 `localization_ok` 闸门只做"暂停"，没有"作废当前目标"；恢复后旧目标仍然有效，规划器随即续走。
   这属于**安全语义**（故障恢复是否允许自动续行），我不擅自改 BT/局部行为，先登记证据与建议：
   建议在 `localization_ok` 变假时取消/作废当前 goal，恢复后必须收到**新目标**才允许运动。
+- ★M2+LIO 扩展组合：框架已就位，卡在坐标系原点（同日）★
+  已做：新增图 `graph_3d_m2_lio_bt.yaml`（support 规划器 + `lio_topic=/Odometry_gated`）；
+  `p4_regression.sh` 增 `M2=1` 模式（跳过 HDL、起独立数据闸门 `/Odometry→/Odometry_gated` 名 `m2_gate`、
+  静态 map→odom、探针与到达核对走 `POSE_TOPIC`）；`sim.sh base m2` 补 `/gazebo` 节点等待。
+  实测：底座 `BASE READY（m2 + LIO）`，但四例仍 0 PASS。根因是**坐标系原点不重合**：
+  LIO 的 `/Odometry` 以自己起点为原点（实测 `est_start≈(0,0)`），而验收路线写在 map 系 (5.2,2.45)，
+  规划器用的支撑图也是世界系 ⇒ `initial_dist=4.596` 而真值只差 1.3 m，车不动。
+  两条解法都需要决策，暂不擅自做：
+  ①把验收起点放到世界 (0,0) 使两个原点重合——但实测原点周围 **0~1 m 无支撑格**（建图盲区，
+    `fill_start_support.py` 只补半径 0.5~0.6 m，不够整条走廊）；
+  ②加一个"常量平移"适配器把 LIO 位姿搬到 map 系（与 HDL 的 init pose 同性质）——属新增组件，需批准。
+  ⇒ M2 组合按"扩展组合"登记为**待定**，不参与 Support 主线判定。

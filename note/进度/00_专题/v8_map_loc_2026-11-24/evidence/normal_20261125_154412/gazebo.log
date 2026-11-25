@@ -3,3 +3,57 @@
 [FATAL] [1795621476.443273, 4.155000]: [tf_frame_assert] ★窗口内一条 odom 的父边都没采到★（map 虽在 tf buffer 里可达，但那多半是缓存里残留的旧变换）—— 台上没有节点在发 map→odom。本 launch 应带 map→odom 恒等桥；若被有意移除（真定位接入时），须同时撤掉本断言节点。
 [INFO] [1795621468.390802, 1.142000]: [tf_frame_assert] 保护子帧=odom ‖ 期望父帧=map ‖ 观察窗=3.0s
 [INFO] [1795621476.440322, 4.153000]: [tf_frame_assert] 窗口内 151 条 TFMessage；odom 的父帧取值集合=[]
+[33m[ WARN] [1795622367.624038774, 398.609000000]: Shutdown request received.[0m
+[33m[ WARN] [1795622367.624236470, 398.609000000]: Reason given for shutdown: [[/robot_state_publisher] Reason: new node registered with same name][0m
+[INFO] [1795621468.589091, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+shutdown request: [/sim_adapter] Reason: new node registered with same name
+[31m[spawn_lite3_planar-3] process has died [pid 2218644, exit code 1, cmd /opt/ros/noetic/lib/gazebo_ros/spawn_model -urdf -param robot_description -model lite3_planar -x 0 -y 0 -z 0.15 __name:=spawn_lite3_planar __log:=/opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/spawn_lite3_planar-3.log].
+log file: /opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/spawn_lite3_planar-3*.log[0m
+[31m[gazebo-1] process has died [pid 2218637, exit code 255, cmd /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/gazebo-1.log].
+log file: /opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/gazebo-1*.log[0m
+[31m[tf_frame_assert-4] process has died [pid 2218645, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/tf_frame_assert.py __name:=tf_frame_assert __log:=/opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/tf_frame_assert-4.log].
+log file: /opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/tf_frame_assert-4*.log[0m
+... logging to /opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/roslaunch-35ea6bfef95a-2218425.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/launch/m1_gazebo.launch
+[1mstarted roslaunch server http://35ea6bfef95a:40965/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /tf_frame_assert/expect_parent: map
+ * /tf_frame_assert/observe_sec: 3.0
+ * /tf_frame_assert/protected_child: odom
+ * /tf_frame_assert/timeout: 30.0
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+    tf_frame_assert (lite3_gazebo_sim/tf_frame_assert.py)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/launch/m1_gazebo.launch http://127.0.0.1:11313
+[1mprocess[gazebo-1]: started with pid [2218637][0m
+[1mprocess[robot_state_publisher-2]: started with pid [2218641][0m
+[1mprocess[spawn_lite3_planar-3]: started with pid [2218644][0m
+[1mprocess[tf_frame_assert-4]: started with pid [2218645][0m
+[1mprocess[sim_adapter-5]: started with pid [2218651][0m
+[1m[robot_state_publisher-2] process has finished cleanly
+log file: /opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/robot_state_publisher-2*.log[0m
+[1m[sim_adapter-5] process has finished cleanly
+log file: /opt/ros1-slam/logs/0bed7794-e8e7-11f1-b22d-42bc6aba034b/sim_adapter-5*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

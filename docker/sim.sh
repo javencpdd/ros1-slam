@@ -176,6 +176,7 @@ base_up() {
         echo "[base] 起 m2 底座（m2_gazebo + m2_mapping；/Odometry 为算法位姿）"
         roslaunch lite3_gazebo_sim m2_gazebo.launch > /tmp/base_m2_gz.log 2>&1 &
         echo $! >> "$BASE_PIDFILE"
+        _wait_node /gazebo 90 || { echo "[base] FAIL: 90s 内 /gazebo 节点未注册（见 /tmp/base_m2_gz.log）"; return 1; }
         _check_gazebo_ros || return 1
         _check_sensors || return 1
         roslaunch lite3_gazebo_sim m2_mapping.launch > /tmp/base_m2_map.log 2>&1 &

@@ -23,6 +23,14 @@ CANCEL_START_X=${CANCEL_START_X:-5.2}; CANCEL_START_Y=${CANCEL_START_Y:-2.45}
 CANCEL_GOAL_X=${CANCEL_GOAL_X:-3.9};   CANCEL_GOAL_Y=${CANCEL_GOAL_Y:-2.45}
 # scene A 用的实测点云帧（缺省用证据目录里那一份）
 FRAME_NPY=${FRAME_NPY:-$REPO/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/collision_205409/frame.npy}
+# ★组合模式★：M2=1 表示"LIO 位姿"组合——底座已由 sim.sh base m2 提供 /Odometry，
+# 本脚本不再装载 HDL，而是用一个独立数据闸门 /Odometry → /Odometry_gated（节点名 m2_gate），
+# 供"定位断流"用例 kill/重启，从而不杀 LIO 本身。
+M2=${M2:-0}
+POSE_TOPIC=${POSE_TOPIC:-$([ "$M2" = "1" ] && echo /Odometry || echo /hdl_odom)}
+GATE_IN=${GATE_IN:-$([ "$M2" = "1" ] && echo /Odometry || echo /hdl_odom_raw)}
+GATE_OUT=${GATE_OUT:-$([ "$M2" = "1" ] && echo /Odometry_gated || echo /hdl_odom)}
+GATE_NAME=${GATE_NAME:-$([ "$M2" = "1" ] && echo m2_gate || echo hdl_gate)}
 
 
 mkdir -p "$EV_ROOT"
@@ -82,8 +90,25 @@ reset_stack() {
   # 而 HDL 已经在 START 初始化了 ⇒ 位姿与真值错位，"到达"判定全歪。
   kill_v8
   place "$START_X" "$START_Y"
-  SKIP_GAZEBO=1 MODE=normal DUR=8 WAIT_SCAN=40 INIT_X=$START_X INIT_Y=$START_Y \
-    bash $REPO/scripts/verify/asan_hdl_repro.sh > "$EV_ROOT/${tag}_repro.log" 2>&1
+  if [ "$M2" = "1" ]; then
+    # M2：底座已有 LIO（/Odometry），这里只把数据闸门拉起来（幂等）
+    # 只杀本组合的闸门进程（按 __name:= 精确匹配，避免误杀别的 relay）
+    pkill -f "__name:=$GATE_NAME" 2>/dev/null || true
+    rosrun topic_tools relay "$GATE_IN" "$GATE_OUT" __name:="$GATE_NAME" \
+      > "$EV_ROOT/${tag}_gate.log" 2>&1 &
+    sleep 2
+    # ★map→odom 静态对齐★：LIO 的 /Odometry 以自己的起点为原点，而验收路线写在 map 系
+    # （起点 (START_X,START_Y)）。这与 HDL 用 init pos 建立 map→odom 是同一件事——**常量对齐，
+    # 不引真值流**。缺了它 loc 会把 map 目标当成 5 m 外的目标（实测 initial_dist=4.589）。
+    pkill -f "__name:=m2_map_odom" 2>/dev/null || true
+    rosrun tf2_ros static_transform_publisher "$START_X" "$START_Y" 0.0 0 0 0 map odom \
+      __name:=m2_map_odom > "$EV_ROOT/${tag}_map_odom.log" 2>&1 &
+    sleep 1
+    say "[$tag] M2 模式：闸门 $GATE_IN -> $GATE_OUT（$GATE_NAME）+ 静态 map→odom($START_X,$START_Y)"
+  else
+    SKIP_GAZEBO=1 MODE=normal DUR=8 WAIT_SCAN=40 INIT_X=$START_X INIT_Y=$START_Y \
+      bash $REPO/scripts/verify/asan_hdl_repro.sh > "$EV_ROOT/${tag}_repro.log" 2>&1
+  fi
   # ★2026-11-25：GRAPH/EXPECT_NODES 透传★（只换后端，不改任何参数）。
   # 用 `env ${VAR:+VAR=$VAR}` 形式：为空时**不注入**，p4_nav_hdl 的默认值照旧生效，
   # 从而保证"不传 GRAPH 时行为与历史完全一致"。POSE_TOPIC 同理（M2 组合传 /Odometry）。
@@ -101,15 +126,16 @@ case_nav() {
   say '=== 1 正常导航 ==='
   reset_stack nav
   python3 $REPO/scripts/verify/p4_nav_probe.py --goal-x "$GOAL_X" --goal-y "$GOAL_Y" \
+    --pose-topic "$POSE_TOPIC" \
     --duration 40 --out "$EV_ROOT/nav_probe.json" > "$EV_ROOT/nav_probe.log" 2>&1
   sleep 5   # 停稳后再量真实到达误差，避免运动末段的非同步采样
   python3 - "$GOAL_X" "$GOAL_Y" "$EV_ROOT/nav_arrival.json" <<'PY'
-import json, math, sys
+import json, math, os, sys
 import rospy
 from nav_msgs.msg import Odometry
 gx, gy, out = float(sys.argv[1]), float(sys.argv[2]), sys.argv[3]
 rospy.init_node('arrival_check', anonymous=True)
-e = rospy.wait_for_message('/hdl_odom', Odometry, timeout=8).pose.pose.position
+e = rospy.wait_for_message(os.environ.get('POSE_TOPIC', '/hdl_odom'), Odometry, timeout=8).pose.pose.position
 g = rospy.wait_for_message('/sim/odom_gt', Odometry, timeout=8).pose.pose.position
 res = {'est_to_goal_m': round(math.hypot(e.x - gx, e.y - gy), 3),
        'gt_to_goal_m': round(math.hypot(g.x - gx, g.y - gy), 3),
@@ -156,7 +182,7 @@ case_loc() {
   # 闸门 relay：杀它只断 /hdl_odom，master 与导航进程都不受影响。
   # 探针在「首帧非零命令」时下手，不靠固定 sleep（运动窗口只有 2 s 上下）。
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode stop --hold-s 24 \
-    --wait-motion-s 45 --inject-delay-s 1.0 --action 'rosnode kill /hdl_gate' \
+    --wait-motion-s 45 --inject-delay-s 1.0 --action "rosnode kill /$GATE_NAME" \
     --out "$EV_ROOT/loc_stop.json" --dump "$EV_ROOT/loc_series.tsv" \
     > "$EV_ROOT/loc_stop.log" 2>&1 &
   local pp=$!
@@ -167,10 +193,10 @@ case_loc() {
   cat "$EV_ROOT/loc_stop.json" 2>/dev/null
   # ★恢复段：把定位闸门重新拉起来，断言车不自行复动★
   # 只验"断流会停"是不够的：恢复瞬间位姿可能跳变、局部规划器误以为离目标很远而重新起步。
-  rosrun topic_tools relay /hdl_odom_raw /hdl_odom __name:=hdl_gate \
+  rosrun topic_tools relay "$GATE_IN" "$GATE_OUT" __name:="$GATE_NAME" \
     > "$EV_ROOT/loc_recovery_relay.log" 2>&1 &
   sleep 2
-  python3 "$REPO/scripts/verify/loc_recovery_probe.py" --seconds 6 \
+  python3 "$REPO/scripts/verify/loc_recovery_probe.py" --seconds 6 --pose-topic "$POSE_TOPIC" \
     --out "$EV_ROOT/loc_recovery.json" > "$EV_ROOT/loc_recovery.log" 2>&1
   cat "$EV_ROOT/loc_recovery.json" 2>/dev/null
 }

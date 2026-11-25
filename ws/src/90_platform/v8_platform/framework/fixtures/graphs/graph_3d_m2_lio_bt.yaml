@@ -1,0 +1,197 @@
+schema: pipeline_graph/v1
+execution_mode: simulation
+robot_id: generic_sim
+name: nav3d_m2_lio_bt
+# P4 装配：算法位姿驱动 3D 导航。
+#
+# 位姿从哪来 —— 这是本图的关键，不靠伪造也不靠真值回落：
+#   loc（v8.fw.localization_source, lio_topic=/hdl_odom）独占 /v8/local/pose，
+#   carrier 的位姿输出被挪到 /v8/3d/carrier/pose_raw（照 graph_3d_gazebo_loc.yaml 的做法），
+#   两写者不撞同一条话题。carrier 仍保留，是因为 app_runner 强制要求图里存在名为 carrier
+#   的实例且 component 与 app 的 carrier.backend 对应；它在本图里 spawn=false，
+#   只把 /cmd_vel 转给图外的 lite3_planar_drive，不再参与位姿。
+#
+# 为什么不用 v8.fw.carrier_lite3：它的执行域声明是 real_robot / robot_id=lite3，
+# 放进 simulation 图会直接撞 E_EXEC_MODE。这里不做绕过，因为那等于削弱执行域门控。
+#
+# 与 graph_3d_gazebo_bt.yaml 的其它差别：
+#   1) 感知点云用 /rslidar_points（m1 的 C16 雷达）。不走 /cloud_registered，因为 P4 不跑
+#      faster_lio，没人发布后者。
+#   2) 不 spawn 任何载体。lite3 由 m1_gazebo.launch 起好，并由 lite3_planar_drive 直接
+#      订阅 /cmd_vel 驱动，再 spawn 一个就是两台车。
+#   3) mux3d 的 cmd 输出不连实例：/cmd_vel 由图外的 lite3_planar_drive 消费
+#      （external 只表达「外部供给某输入口」，没有「输出给外部执行器」的写法）。
+instances:
+  - id: map
+    component: v8.fw.map_file
+    namespace: /v8/3d/map
+    params:
+      # 会被 app.yaml 的 map id/version 覆盖成 data/maps/generated/v8_m1_hdl_v1.json
+      map_json: data/maps/generated/v8_m1_hdl_v1.json
+      map_topic: /v8_support_map
+      status_topic: /v8_map_status
+  - id: global
+    component: v8.fw.global3d_topic
+    namespace: /v8/3d/global
+    params:
+      map_topic: /v8_support_map
+      start_topic: /v8/3d/global/start
+      goal_topic: /v8/3d/global/goal
+      path_topic: /v8/3d/global/path
+      status_topic: /v8/3d/global/status
+  - id: bt
+    component: v8.fw.bt_console
+    namespace: /v8/bt
+    params:
+      tree_file: ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml
+      goal_topic: /v8/bt/goal
+      pose_topic: /v8/local/pose
+      planner_goal_topic: /v8/3d/global/goal
+      path_topic: /v8/3d/global/path
+      path_status_topic: /v8/3d/global/status
+      # 不再直接写 /v8/local/goal：local_native 是步进式的（一个 goal 走一步 max_step_m），
+      # BT 的 FollowPath 是 SyncActionNode 只发一次，之后进 wait_arrival 就不再发，
+      # 结果车只走 0.30 m 就停。改由 path_goal3d 沿全局路径逐点下发。
+      out_goal_topic: /v8/bt/out_goal
+      stop_topic: /lite3/teleop/app_cmd_vel
+      cancel_input_topic: /v8/bt/cancel
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+      policy_topic: /v8/bt/goal_policy
+      mission_topic: /v8/bt/goal_mission
+      localization_topic: /v8/local/localization_ok
+      cancel_ack_timeout: 2.0
+      recovery_mode: skip
+      retry_max: 1
+      retry_delay_s: 0.0
+  - id: perception
+    component: v8.fw.dynamic_obstacles
+    namespace: /v8/3d/perception
+    params:
+      enable: true
+      cloud_topic: /rslidar_points
+      map_frame: map
+      rate_hz: 10.0
+      blind_timeout_s: 1.0
+      roi_forward_m: 6.0
+      roi_lateral_m: 3.0
+      min_height_m: 0.15
+      max_height_m: 1.6
+      voxel_m: 0.10
+      # 8 -> 16：★这是本场景通行的关键★。perception 把点云噪声聚成大量小簇
+      # （实测最小框 0.05x0.24 m、63 框、投影 21.73 m2），而同一位置的静态净宽分析
+      # 显示 3.0 m 完全可通行 —— 差 20 倍，说明狗是被自己的噪声挡住的。
+      # 同一帧离线扫阈值：8 -> 8 框/膨胀后 7.63 m2；16 -> 4 框/5.57 m2（-27%）；
+      # 20/30/40 与 16 完全相同 ⇒ 9-15 点的小簇就是噪声，16 是拐点。
+      # 代价：远距离稀疏真障碍可能漏检（已获用户确认可接受）。
+      min_points: 16
+      max_objects: 32
+      # AABB 细化：1.0 是历史行为（一个连通分量一个框）。0.45 启用递归二分，
+      # 实测同一帧面积 6.62->1.46 m2、空洞率 78%->0.1%，且未覆盖点数不增加；
+      # 受控 L 形场景里一条真实可走的通道从"误判不可通行"翻成"可通行"。
+      # 膨胀距离不变，所以这是收紧包围盒，不是放宽安全。
+      min_fill: 0.45
+      min_extent_m: 0.45
+      # max_depth 4 -> 2：★碎得越细，膨胀后覆盖越大★。同一帧实测：
+      #   depth=4 -> 12 框 / 投影 1.76 m2 / 膨胀后 9.26 m2
+      #   depth=2 ->  8 框 / 投影 1.99 m2 / 膨胀后 7.63 m2
+      #   depth=1 ->  6 框 / 投影 2.52 m2 / 膨胀后 7.07 m2
+      # 碎片各自 +0.306 m 膨胀、边缘重叠少，所以细化到深处反而更堵。
+      # 取 2 是折中：保留"大空心框拆开"的收益，又不让框数爆炸把路封死。
+      max_depth: 2
+      self_radius_m: 0.45
+      max_speed_mps: 1.5
+      gate_m: 0.8
+  - id: path_goal
+    component: v8.fw.path_goal3d
+    namespace: /v8/3d/path_goal
+    params:
+      path_topic: /v8/3d/global/path
+      goal_topic: /v8/local/goal
+      status_topic: /v8/3d/path_goal/status
+  - id: local
+    component: v8.fw.local_native
+    namespace: /v8/3d/local
+    config: ../configs/local_native_app_mapped.yaml
+    params:
+      cancel_topic: /v8/local/cancel
+      cancel_ack_topic: /v8/local/cancel_ack
+      # 任务身份校验：goal 的 header.seq 携带上游代次，只有严格更新的代次才能接管。
+      # 这样"旧任务带着新 timestamp 回来"也进不来（时间戳不是身份）。
+      require_goal_seq: true
+  - id: mux3d
+    component: v8.fw.cmd3d_mux
+    namespace: /v8/3d/mux
+    params:
+      cmd_topic: /v8/local/cmd_vel_3d
+      hold_topic: /lite3/supervisor/hold
+      output_topic: /cmd_vel
+      status_topic: /v8/3d/mux/status
+      # 0.25 s：local 的 cmd 发布在 20 Hz 以上，0.25 s 相当于 5 帧余量；
+      # 原来的 0.4 s 会在上游停发后多保持 0.4 s（实测三级超时里的最后一段）。
+      timeout_s: 0.25
+  - id: loc
+    component: v8.fw.localization_source
+    namespace: /v8/3d/loc
+    params:
+      source: faster_lio
+      lio_topic: /Odometry_gated   # ★M2 组合：LIO 输出经数据闸门，便于独立断流★
+      gt_topic: /sim/odom_gt
+      frame: map
+      max_age_s: 1.0
+      pose_topic: /v8/local/pose
+      localization_topic: /v8/local/localization_ok
+      status_topic: /v8/local/localization_status
+      error_topic: /v8/local/localization_error
+  - id: carrier
+    component: v8.fw.gazebo_carrier3d
+    namespace: /v8/3d/carrier
+    params:
+      model_name: app_carrier
+      spawn: false
+      start_x: 0.0
+      start_y: 0.0
+      start_z: 0.0
+      center_z: 0.1
+      snap_m: 0.03
+      rate_hz: 50.0
+      cmd_topic: /cmd_vel
+      map_topic: /v8_support_map
+      # 挪到独立话题，避免与 loc 同时写 /v8/local/pose
+      pose_topic: /v8/3d/carrier/pose_raw
+      localization_topic: /v8/3d/carrier/loc_raw
+      status_topic: /v8/3d/carrier/status
+edges:
+  - {from: map.map, to: global.map}
+  - {from: map.map, to: local.map}
+  - {from: map.map, to: carrier.map}
+  - {from: global.path, to: bt.path}
+  - {from: global.status, to: bt.path_status}
+  - {from: loc.pose, to: bt.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: bt.planner_goal, to: global.goal, feedback: true,
+     policy: {period_s: 0.10, max_age_s: 2.0}}
+  - {from: global.path, to: path_goal.path}
+  - {from: path_goal.goal, to: local.goal}
+  - {from: loc.pose, to: perception.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: perception.obstacles, to: local.obstacles}
+  - {from: loc.pose, to: local.pose, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: loc.localization, to: local.localization, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+  - {from: local.cmd, to: mux3d.cmd}
+  - {from: mux3d.cmd, to: carrier.cmd}
+  - {from: bt.cancel_cmd, to: local.cancel}
+  - {from: local.cancel_ack, to: bt.cancel_ack, feedback: true,
+     policy: {period_s: 0.0, max_age_s: 1.0}}
+  - {from: loc.localization, to: bt.localization_ok, feedback: true,
+     policy: {period_s: 0.05, max_age_s: 1.0}}
+external:
+  - {to: global.start, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: perception.cloud, type: sensor_msgs/PointCloud2, source: lidar}
+  - {to: bt.goal, type: geometry_msgs/PoseStamped, source: operator}
+  - {to: mux3d.hold, type: std_msgs/Bool, source: supervisor}
+  - {to: bt.cancel, type: std_msgs/String, source: operator}
+  - {to: bt.goal_policy, type: std_msgs/String, source: operator}
+  - {to: bt.mission_goal, type: std_msgs/String, source: operator}
