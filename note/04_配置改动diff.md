@@ -8814,3 +8814,12 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   配置是 2.5 Hz），FAR 的 `Number of local vertices: 1` 说明可见性图几乎空 ⇒ 出不了路径 ⇒ BT 等不到。
   下一步：查 `far_node.on_cloud` 的地形栅格化是否把点滤空了（`terrain_range_m=15`、`GROUND_CELL_M`、
   `terrain_free_Z=0.2` 与 m1 平地是否匹配），必要时用 `/scan_cloud` 的原始点数对比栅格化后点数
+- ★FAR 卡点再收窄（同日，实测点数）★：用 python 直取三路点云——
+  `/scan_cloud` **20000** 点（map 系）、`/terrain_cloud` **19832** 点（map 系）、`/rslidar_points` 20000 点（rslidar 系）。
+  ⇒ 地形**不稀疏**，先前"0.8 Hz 很稀"是我用 `rostopic hz` 短窗读数的错觉。
+  FAR 仍报 `Number of local vertices: 1` ⇒ 问题在**地形语义**而非数量：`far_node` 发 `/terrain_cloud` 时
+  `intensity = 离地高 h`（见 `far_node.py:16`），上游 FAR 用 `Util/terrain_free_Z` 与 `vehicle_height`
+  判可通行；m1 是平地，`h` 恒 0（≤0.2 算地面）本应全可通行，但若 intensity 与上游期望的量纲/含义
+  不一致（例如上游要绝对高度而非离地高），可见性图就会建不起来。
+  下一步（定向）：对照上游 `terrain_free_Z`/`vehicle_height`/`height_voxel_dim` 的用法，
+  用一条最小用例验证"平地上 intensity=h 与 intensity=z 哪种能建出顶点"
