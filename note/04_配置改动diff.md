@@ -8897,3 +8897,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   修法：`asan_hdl_repro.sh` 增 **`SKIP_HDL=1`**——只准备 `/hdl/*`、`/gms/*`、globalmap 与 nodelet manager，
   **不装载 HDL 节点**；`sim.sh base m1 no-hdl` 改为跑 `SKIP_HDL=1`（而不是完全不跑 asan，
   因为完全不跑时连参数都没有）。这样：底座备参数、回归/图装 HDL ⇒ 单一 HDL 发布者。
+- ★单一 HDL 配置下的 FAR 四项（同日，最新实测）★：底座 `no-hdl`（asan SKIP_HDL=1 只备参数）+
+  `p4_regression` 自己装 HDL（无 SKIP_HDL）⇒ `/hdl_odom` 单发布者：
+  `障碍 PASS｜定位失效 PASS（delay 0.672 s / coast 0.083 m）｜nav FAIL（gt=1.300，零位移）｜取消 INVALID`。
+  ★与双 HDL 配置的对比仍然反直觉★：双 HDL（3.5 Hz、断档 0.6 s）反而 **走 0.65 m**；
+  单 HDL（≈9 Hz）**一步不动**。⇒ "位姿频率低导致停"这一解释**被推翻**，停因另有其因。
+  下一步不再猜频率：在单 HDL 配置下同时记录 `/v8/3d/global/path` 是否发布、`/v8/local/goal` 是否有值、
+  `path_goal` 是否转发——把"没目标"与"有目标但不执行"两类先分开。
