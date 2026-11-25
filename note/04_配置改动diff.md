@@ -8832,3 +8832,16 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   （候选：`/odom_world` 的 z 与 `vehicle_height=0.0` 的组合、或 FAR 的 `is_multi_layer` 多楼层分支
   在平地世界里的退化行为）。**下一步应开 FAR 的 debug 输出**（`debug_output:=true` / `is_debug_output`）
   看它把地形判成了什么，而不是继续猜
+- ★FAR 链路已打通到"局部规划器"（同日，三个实测突破）★：
+  1) **FAR 出路径的条件**：`GPlanner/goal_adjust_radius=2.0` ⇒ 目标距离 < 约 2 m 时 FAR 不规划。
+     验收里 nav 用的 `(5.2,2.45)→(3.9,2.45)` 只有 **1.3 m**，正好落在阈值内 ⇒ 永远无路径。
+     实测把目标放到 4.2 m 外，`/v8/3d/global/path` **立刻有数据（≈2.5 Hz）**
+  2) **`/v8/3d/global/start` 必须发**：只发 `/v8/bt/goal` 时 `path_goal` 不转发（`/v8/local/goal`
+     无消息）；补发 start 后 `/v8/local/goal` 立即 2.5 Hz
+  3) **当前唯一阻断＝`E_LOCAL_SUPPORT`**：`/v8/local/status` 报
+     `{"stop": true, "reason": "E_LOCAL_SUPPORT"}`；源码注释（`framework/tools/map_from_pcd.py:270-274`）
+     写明这是"start requires a matching z support"——**支撑图在机器人当前格缺面**，不是参数能调的，
+     仓库自带补救 `fill_start_platform(value, x, y, radius, resolution)`（建图起点因雷达正下方盲区必然留洞）。
+     下一步：对验收起点 `(5.2,2.45)` 用该函数补平台（或改用支撑图确有面的起点），再跑 FAR 四项
+- `manifest_global_far.json` 的 `launch.args` 增加 `debug_output`（默认 false）——只是把上游的诊断开关
+  暴露到图上，便于看顶点数/拒因，默认行为不变

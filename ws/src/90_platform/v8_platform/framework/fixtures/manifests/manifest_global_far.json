@@ -1,71 +1,72 @@
 {
- "schema_version": 3,
- "id": "v8.fw.global_far",
- "version": "0.1.0",
- "roles": [
-  "global_planner"
- ],
- "dimensions": 3,
- "capability": {
-  "kinematics": "not_applicable",
-  "cancellation": "cooperative",
-  "supports_dynamic_obstacles": false
- },
- "ownership": {
-  "tf_edges": [],
-  "command_topics": [],
-  "namespace": "/",
-  "stop": "process_group_signal"
- },
- "launch": {
-  "kind": "include",
-  "package": "v8_platform",
-  "launch_file": "launch/far_stack.launch",
-  "args": {
-   "is_multi_layer": "true"
+  "schema_version": 3,
+  "id": "v8.fw.global_far",
+  "version": "0.1.0",
+  "roles": [
+    "global_planner"
+  ],
+  "dimensions": 3,
+  "capability": {
+    "kinematics": "not_applicable",
+    "cancellation": "cooperative",
+    "supports_dynamic_obstacles": false
+  },
+  "ownership": {
+    "tf_edges": [],
+    "command_topics": [],
+    "namespace": "/",
+    "stop": "process_group_signal"
+  },
+  "launch": {
+    "kind": "include",
+    "package": "v8_platform",
+    "launch_file": "launch/far_stack.launch",
+    "args": {
+      "is_multi_layer": "true",
+      "debug_output": "false"
+    }
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "cloud",
+        "type": "sensor_msgs/PointCloud2",
+        "topic": "/rslidar_points"
+      },
+      {
+        "name": "start",
+        "type": "geometry_msgs/PoseStamped",
+        "required": false,
+        "topic": "/v8/local/pose"
+      },
+      {
+        "name": "goal",
+        "type": "geometry_msgs/PoseStamped",
+        "topic": "/v8/global/goal"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "path",
+        "type": "nav_msgs/Path",
+        "topic": "/global_path"
+      },
+      {
+        "name": "status",
+        "type": "std_msgs/String",
+        "topic": "/global_path/status"
+      }
+    ]
+  },
+  "evidence": {
+    "level": "declared",
+    "reports": []
+  },
+  "execution": {
+    "modes": [
+      "simulation",
+      "real_robot"
+    ],
+    "robot_id": null
   }
- },
- "ports": {
-  "inputs": [
-   {
-    "name": "cloud",
-    "type": "sensor_msgs/PointCloud2",
-    "topic": "/rslidar_points"
-   },
-   {
-    "name": "start",
-    "type": "geometry_msgs/PoseStamped",
-    "required": false,
-    "topic": "/v8/local/pose"
-   },
-   {
-    "name": "goal",
-    "type": "geometry_msgs/PoseStamped",
-    "topic": "/v8/global/goal"
-   }
-  ],
-  "outputs": [
-   {
-    "name": "path",
-    "type": "nav_msgs/Path",
-    "topic": "/global_path"
-   },
-   {
-    "name": "status",
-    "type": "std_msgs/String",
-    "topic": "/global_path/status"
-   }
-  ]
- },
- "evidence": {
-  "level": "declared",
-  "reports": []
- },
- "execution": {
-  "modes": [
-   "simulation",
-   "real_robot"
-  ],
-  "robot_id": null
- }
 }
