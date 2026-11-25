@@ -8731,3 +8731,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   等 API 服务不存在（而 `/clock`、`/rslidar_points`、`/livox/imu` 都正常）⇒ 图内 `carrier3d`
   等该服务 20 s 后自杀。下一步查 `gazebo_ros_api_plugin` 是否真的加载（`/clock` 可能来自其他来源），
   而不是放宽就绪判据
+- ★`GAZEBO_PLUGIN_PATH` 写法修正（同日）★：我给 m1 加的那行是**整体替换**，会切断调用方（sim.sh）
+  已注入的路径；改为**追加** `$(optenv GAZEBO_PLUGIN_PATH)`。但改后 `rosservice list | grep gazebo`
+  仍为 0、`/clock` 无发布者 ⇒ API 插件仍未加载，属**独立问题**，尚未定位
+- ★当前唯一阻断（新）★：gzserver 进程在跑，但 `gazebo_ros_api_plugin` 未生效 ⇒ 无 `/clock`、
+  无 `/gazebo/*` 服务 ⇒ 图内 `carrier3d` 等 `set_model_state` 20s 后自杀 ⇒ `/v8/local/pose`、
+  `/cmd_vel` 全无。下一步：取 gzserver 自己的日志
+  `/opt/ros1-slam/logs/<uuid>/gazebo-*.log` 看 `-s libgazebo_ros_api_plugin.so` 的加载结果
+  （roslaunch 汇总日志里只有 1 行 KDL 警告，看不到插件信息）。**不放宽就绪判据来"绕过"**
