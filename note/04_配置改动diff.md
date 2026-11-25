@@ -8823,3 +8823,12 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   不一致（例如上游要绝对高度而非离地高），可见性图就会建不起来。
   下一步（定向）：对照上游 `terrain_free_Z`/`vehicle_height`/`height_voxel_dim` 的用法，
   用一条最小用例验证"平地上 intensity=h 与 intensity=z 哪种能建出顶点"
+- ★上游 FAR 的地形语义契约（同日，读源码确证）★：`utility.cpp:200-221` 的 `ExtractFreeAndObsCloud` 用
+  **`p.intensity < kFreeZ`（`Util/terrain_free_Z`，我们传 0.2）判"可通行"**，否则判障碍；
+  `utility.cpp:55-67` 的 `ExtractNewCloud` 则用 `intensity < kNewPIThred`(2.0) 判"新点"，
+  且在此之前会 `ResetCloudIntensity` 把 intensity 覆写成 0/255。
+  ⇒ 我们 `far_node` 发的 `intensity = 离地高 h` 与"可通行"判据**方向一致**（平地 h≈0 ⇒ 全可通行），
+  所以"地形语义反了"这个假设**不成立**；FAR 仍只建 1 个顶点，说明卡点在别处
+  （候选：`/odom_world` 的 z 与 `vehicle_height=0.0` 的组合、或 FAR 的 `is_multi_layer` 多楼层分支
+  在平地世界里的退化行为）。**下一步应开 FAR 的 debug 输出**（`debug_output:=true` / `is_debug_output`）
+  看它把地形判成了什么，而不是继续猜
