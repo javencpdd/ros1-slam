@@ -8703,3 +8703,19 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   不可应答时清残留锁再起，并轮询到真的应答为止。
   配套 `scripts/verify/test_xvfb_guard.sh` 四连自测（正常复用／已死重起／残留锁清锁重起／**反控**：
   杀掉服务后判据必须翻转），实测 **4 PASS / 0 FAIL**
+- ★我造成的 XML 回归（同日，已修并加断言）★：为去掉 `--no-imu` 而写的注释里含**连续两个短横线**，
+  XML 规定注释内不得出现 `--` ⇒ `m1_gazebo.launch` 直接 `RLException: not well-formed`，
+  整份 launch 连解析都过不去（表现为 gzserver 没起、`/clock` 不出，我又误判了一轮）。
+  已改写注释去掉 `--`，并新增 `scripts/verify/test_launch_xml.sh`：全量解析 127 份 `.launch`，
+  良构性失败即非零退出（实测 127/127 通过）
+- ★M1+HDL+Support 基线已跑通（同日）★：新增 `scripts/verify/m1_hdl_support.sh`（真实验收入口：
+  master→m1_gazebo→3D 图→HDL，每步 fail-fast，EXIT trap 只收本进程，先采读数后关栈，判定失败非零）。
+  实测 `BASELINE READY`：`/v8/local/pose` ~10 Hz、**`/v8/local/obstacles` 7~11 Hz**、
+  `/cmd_vel` 77 Hz；perception 状态连采为 `ok / duplicate_frame / ok / ok / duplicate_frame`
+  ⇒ **`ok` 出现、障碍心跳真的在发**（此前那一串"感知不工作"在本组合下不成立）
+- 底座取舍记录：`app_world.launch`（只起世界、机器人由图内 carrier3d spawn）实测 `/rslidar_points` 有、
+  **`/livox/imu` 无**（传感器未创建）；`m1_gazebo.launch`（spawn_model 起 lite3_planar.xacro）两者都有 ⇒ 基线用后者
+- ★当前卡点（新，已定位到数据层）★：发 `/v8/bt/goal` 后 `/cmd_vel.linear.x` 恒 0，且
+  `/v8/local/pose` 落在 **x=-63.2, y=40.3** —— HDL 解出的位姿与目标（map 原点附近）不在同一原点，
+  目标因此不可达、FAR 不出路径。下一步须核对合成 PCD 的坐标原点与 Gazebo world 原点是否同源
+  （这正是"PCD 与 support map 同源"那条），**不得用恒等 TF 或改 frame_id 掩盖**

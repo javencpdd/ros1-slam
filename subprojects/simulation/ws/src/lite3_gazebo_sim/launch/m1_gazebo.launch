@@ -52,10 +52,10 @@
 
   <!-- sim_adapter（Gazebo 变体）：
        参数 input=custommsg：吃 fratopa /livox/lidar（livox_laser_simulation/CustomMsg）→ /rslidar_points（C16 契约布局不变）
-       ★2026-11-25 改动★：去掉 `--no-imu`。原注释假设"/livox/imu 由 Gazebo IMU 插件直发"，
-       但该插件在 m1 的 URDF 里并未产出该话题（实测 `rostopic list` 只有空的 /imu/data），
-       结果是 HDL 收不到 IMU ⇒ 不出 /hdl_odom ⇒ loc 无输入 ⇒ 全链零速。
-       现由 sim_adapter 合成 /livox/imu（200 Hz），HDL 侧以 imu_topic:=/livox/imu 对齐。 -->
+       ★2026-11-25 改动★：去掉 no-imu 开关（由适配器合成 /livox/imu，200Hz）。
+       原注释假设 IMU 由 Gazebo 插件直发，但 m1 的 URDF 实测未产出该话题，
+       结果 HDL 收不到 IMU，不出 /hdl_odom，loc 无输入，全链零速。
+       注：XML 注释内不得出现连续两个短横线，故这里用文字描述参数名。 -->
   <node name="sim_adapter" pkg="lite3_drivers" type="sim_adapter.py"
         args="--input custommsg --rate-lidar 10" output="screen"/>
 
