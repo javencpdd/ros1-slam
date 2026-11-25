@@ -442,6 +442,13 @@ def main():
     terrain_range_m = float(rospy.get_param('~terrain_range_m', 15.0))
     terrain_rate_hz = float(rospy.get_param('~terrain_rate_hz', 2.5))
     terrain_flatten = bool(rospy.get_param('~terrain_flatten', True))
+    # ★已知地面高度（可选）★：默认 None = 沿用"逐格最小 z 估地面"。
+    # 为什么需要它：逐格最低点会把**只有墙面、没有地面回波**的格子判成"地面=墙面"，
+    # 于是该格所有点高度 h≈0 ⇒ 被上游判成 free（`utility.cpp` 用 intensity<terrain_free_Z 判可通行）。
+    # 平地世界（地面高度已知=0）应直接给 h，而不是让每格自己猜。实测 m1 平地：
+    # 不给该参数时 /terrain_cloud 的 z 中位数 1.55 m（墙面低点），free 占 91%，FAR 建不出可见性图。
+    _ground_z = rospy.get_param('~terrain_ground_z', None)
+    terrain_ground_z = None if _ground_z is None else float(_ground_z)
     tf_timeout_s = float(rospy.get_param('~tf_timeout_s', 1.0))
     # 到达信号：给 BT 的 arrival_topic 用（std_msgs/Bool）。空则不发，BT 保持自己的 xy 判据。
     arrival_topic = rospy.get_param('~arrival_topic', '')
@@ -528,7 +535,7 @@ def main():
                 ox, oy = origin[0], origin[1]
                 points = [p for p in points
                           if math.hypot(p[0] - ox, p[1] - oy) <= terrain_range_m]
-            levelled = terrain_cloud(points, flatten=terrain_flatten)
+            levelled = terrain_cloud(points, h=terrain_ground_z, flatten=terrain_flatten)
         except Exception as error:                     # tf 未就绪、点云字段缺失都走这里
             publish_status(status_json(False, 0, 'E_FAR_TERRAIN', detail=str(error)[:120]))
             return

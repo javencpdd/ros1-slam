@@ -8933,3 +8933,18 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ①`/rslidar_points` 里**几乎没有地面点**（适配层 repack CustomMsg 时可能已滤掉近地回波）；
   ②逐格 0.2 m 单元太粗，远处地面点落进含墙的格子被墙的低点顶高。
   下一步：直接统计 `/rslidar_points` 转到 map 系后的 z 分布（是否 1% 分位仍 ≫0），即可判定是 ① 还是 ②。
+- ★适配层修正 + 地面点缺失的证据链（同日）★：
+  1) 给 `far_node.py` 增可选参数 **`~terrain_ground_z`**（默认 None＝沿用"逐格最小 z 估地面"），
+     并在 `far_stack.launch`/manifest 暴露（`terrain_ground_z`、`terrain_flatten`），
+     FAR 图对 m1 平地设 `terrain_ground_z: 0.0`、`terrain_flatten: false`。默认行为不变。
+  2) 改后实测（机器人已在 (5.2,2.45)、`P3_VERDICT=PASS`）：`/terrain_cloud` n=19905，
+     `free=91.0% / obs=9.0%`，**z 分位 1%=0.96 / 50%=1.31 / 99%=1.86**（flatten=false，即原始 map 系 z）。
+     `/v8/3d/global/path` 仍 **0 帧**、`global path ready` 计数 0。
+  3) TF 链自洽：`map→odom z=0.00`、`odom→base_link z=0.11`、`base_link→rslidar z=0.34`，
+     `to_map()` 走的是真 tf（`far_node.py:502-518`）⇒ 地面点若存在，map 系 z 应≈0。
+     **可 z 中位数是 1.31 m（在雷达上方约 0.86 m）⇒ 点云里几乎没有地面点，绝大多数是墙/台面。**
+  4) 于是"逐格最小 z"必然取到墙面 ⇒ h≈0 ⇒ 全判 free ⇒ FAR 无可用障碍/自由边界 ⇒ 可见性图退化 ⇒ 无路径。
+     ★这与上游算法无关，是**给 FAR 的地形输入不达标**（缺地面回波）。★
+  下一步（定向）：统计 map 系 z<0.1 的地面点占比；若≈0，则核对**传感器俯仰与垂直视场**
+  （URDF 里 15° 的符号/朝向 vs 仿真 livox 插件的 FOV）——若雷达是"仰视 15°"，地面自然出视场，
+  这是输入契约在**传感器几何**层面的根因。

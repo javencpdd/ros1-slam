@@ -52,6 +52,10 @@
        默认值会让 FAR 认为目标"已在手边"而不规划（表现为 BT 等 30 s 超时、车不动）。
        这里暴露成 arg，由图按场景给值，默认仍保持上游 2.0。 -->
   <arg name="goal_adjust_radius" default="2.0"/>
+  <!-- 2026-11-25：地形地面口径。默认 none = 沿用上游"逐格最小 z 估地面"；
+       平地世界给具体高度（如 0.0）可避免"只有墙面无地面回波"的格子把墙当成地面（h≈0 ⇒ 判 free）。 -->
+  <arg name="terrain_ground_z" default="none"/>
+  <arg name="terrain_flatten" default="true"/>
   <!-- 到达判据出口：BT 侧 arrival_topic 指同一个话题。空则不发，BT 退回自己的 xy 判据。
        判据由适配器自己算：|pose−goal|_3d ≤ hypot(arrival_r_xy, arrival_z_tol)。
        r_xy 对齐 BT 树 WaitArrival 的 0.25，z_tol 是竖向容差（验收 3 的偏置标定写回这里）。 -->
@@ -78,6 +82,8 @@
 
   <!-- 5) v8 侧适配器：语义地形、两点/带前视的步态路径、取消写者、3D 到达判据。 -->
   <node pkg="v8_platform" type="run_global_far.py" name="v8_global_far" output="screen">
+    <param name="terrain_ground_z" value="$(arg terrain_ground_z)" if="$(eval arg('terrain_ground_z') != 'none')"/>
+    <param name="terrain_flatten" value="$(arg terrain_flatten)"/>
     <param name="world_frame" value="$(arg world_frame)"/>
     <param name="cloud_topic" value="$(arg cloud_topic)"/>
     <param name="start_topic" value="$(arg start_topic)"/>
