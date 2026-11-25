@@ -142,7 +142,13 @@ base_up() {
             _check_gazebo_ros || return 1
         fi
         if [ "$with_hdl" = "no-hdl" ]; then
-            echo "[base] 跳过 HDL（no-hdl：定位由图或 p4_regression 自行装载）"
+            # ★仍要跑 asan，只是带 SKIP_HDL=1★：HDL 节点由图提供，但 /hdl/*、/gms/*、globalmap 与
+            # nodelet manager 这些**参数与地图**必须由 asan 准备——实测完全不跑 asan 时，
+            # 图里那份 HDL 连地图都不加载（/hdl_odom 0 帧、pose_clock.ok=false、local 报 E_LOCAL_CLOCK）。
+            echo "[base] 准备 HDL 参数（asan SKIP_HDL=1，不装 HDL 节点；HDL 由图提供）"
+            SKIP_GAZEBO=1 SKIP_HDL=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1_params.log 2>&1
+            local rc2=$?
+            [ "$rc2" = "0" ] || { echo "[base] asan(SKIP_HDL=1) rc=$rc2（见 /tmp/base_m1_params.log）"; tail -8 /tmp/base_m1_params.log; return 1; }
         else
             echo "[base] 复用历史脚本 asan_hdl_repro.sh（SKIP_GAZEBO=1，只装 HDL）"
             SKIP_GAZEBO=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1

@@ -220,8 +220,17 @@ rosparam set /hdl/cool_time_duration 1.0
 # 判成 timeout 丢掉（实测 WARN: t_diss 210.000000 ms，align 频率只剩 ~5 Hz）。
 # 放宽到 500 ms 只为不丢帧，不改变任何配准算法参数。
 rosparam set /hdl/lidar_timeout_ms 500
+# ★SKIP_HDL=1：只准备参数与地图（/hdl/*、/gms/*、globalmap、manager），**不装载 HDL 节点**★。
+# 用途：图里已有 HDL 实例时（如 3D 图固定带一份），底座再装一份就成了双发布者——实测把
+# /hdl_odom 拖到 3.5~4 Hz、最大断档 0.6 s，正好顶到 local.max_age_s=0.7，局部规划器间歇
+# 报 E_POSE_MISSING(E_LOCAL_NOT_READY)、车走一半就停。参数仍必须由这里准备：
+# 没有这些 rosparam，图里那份 HDL 连地图都不加载（实测 no-hdl 直接 pose 为 0 帧）。
+if [ "${SKIP_HDL:-0}" = "1" ]; then
+  say "SKIP_HDL=1：跳过 HdlLocalizationNodelet 装载（参数/地图已就绪，HDL 由图提供）"
+else
 setsid rosrun nodelet nodelet load hdl_localization/HdlLocalizationNodelet mgr __name:=hdl /odom:=/hdl_odom_raw \
   > "$EV/hdl.log" 2>&1 < /dev/null &
+fi
 # 不固定 sleep：崩溃是即时的，等 8 秒既浪费时间又可能错过现场。轮询「实例出现 or manager 已死」。
 LOAD_AT=""
 for _i in $(seq 1 20); do

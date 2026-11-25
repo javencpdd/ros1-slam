@@ -8885,3 +8885,15 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `no-hdl` 分支实测：asar 自己装 HDL 报 **9.123 Hz PASS**，但 FAR nav 反而一步不动（frames=0）
   ⇒ 说明"底座 HDL × 图内 HDL × p4_regression 再装 HDL"这三者的组合还没理清，
   必须在**同一份配置**下把三者收敛成一份，而不是再逐次试。
+- ★HDL 归属与"只备参数"开关（同日，A/B 定案）★：受控 A/B（`scripts/verify/ab_hdl_config.sh`，
+  同路线同目标，只切底座 hdl/no-hdl）实测：
+  | 配置 | `/hdl_odom` 发布者 | 有数据 | local 停因 |
+  | --- | --- | --- | --- |
+  | base hdl | **2** | 3.5 Hz、断档 0.6 s | `E_LOCAL_NOT_READY` |
+  | base no-hdl | 1 | **0 帧** | `E_LOCAL_CLOCK`（pose_clock.ok=false） |
+  再核渲染产物：`grep -ci hdl /tmp/f2.launch` 只有 3 行且全是**输入话题/地图路径**，
+  **图里没有 HDL 实例** ⇒ 双发布者＝**asan 被跑两次**（底座一次 + `p4_regression` 每用例一次），
+  不是图。`ab_hdl_config.sh` 的 no-hdl 一列因当时没人装 HDL 才 0 帧，属实验设计缺陷，已由下面开关修正。
+  修法：`asan_hdl_repro.sh` 增 **`SKIP_HDL=1`**——只准备 `/hdl/*`、`/gms/*`、globalmap 与 nodelet manager，
+  **不装载 HDL 节点**；`sim.sh base m1 no-hdl` 改为跑 `SKIP_HDL=1`（而不是完全不跑 asan，
+  因为完全不跑时连参数都没有）。这样：底座备参数、回归/图装 HDL ⇒ 单一 HDL 发布者。
