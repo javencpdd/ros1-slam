@@ -8672,3 +8672,19 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   但同一配方在 `docker/sim.sh smoke stageA` 下 IMU 实测 **200 Hz** ⇒ stageA 走的前置/驱动与
   `m2_gazebo.launch` 直接起不同（其 `stage_a()` 另有 wait 与驱动段）。⇒ 结论同前：**底座必须复用冒烟框架**，
   不要再逐条猜它的启动条件
+- ★IMU 缺失根因查明（同日，决定性）★：不是 URDF、不是 launch、不是包解析、不是 overlay 环境。
+  `docker/sim.sh:42-49` 有"Xvfb 兜底"逻辑，但**只在 `DISPLAY` 为空时才补起 Xvfb**；镜像里
+  `DISPLAY=:99` 且 Xvfb 进程已死（只剩 `/tmp/.X11-unix/X99` 与 `/tmp/.X99-lock` 残留）⇒ 兜底被跳过
+  ⇒ gzserver 打不开显示 ⇒ **模型 spawn 失败/传感器不创建** ⇒ `/livox/imu` 连话题都不出现
+  （`rostopic list` 无、`rostopic type` 空），而 `/rslidar_points` 仍可能由 sim_adapter 部分工作。
+  实测对照：补起 `Xvfb :99` 后，冒烟 `A②: IMU 200.0 ≥100Hz` **PASS**；不补则连 `/clock` 都不出。
+  ★这也是此前"Spawn service failed"与"时好时坏"的总根源★
+- ★按批准改为"在冒烟框架内挂载"★：给 `m2_smoke.sh` 增可选钩子 `M2_SMOKE_HOOK`（stage_a 内、
+  驱动段之前执行），新增 `scripts/verify/smoke_hook_nav.sh`：在冒烟上下文里渲染并启动 FAR 图、
+  采集定位/感知/local/cmd 读数。钩子内**必须收敛 `ROS_PACKAGE_PATH`**——冒烟环境同时含 `ws/src` 与
+  `sim_ws/src`，同一包出现两次会让 `roslaunch` 解析 include 时抛 `multiple files named`，图一起就退出
+  （实测：一个 `/v8/*` 话题都不出现）
+- 挂载后实测（3 次里 2 次）：`localization_status` → `ok:true, samples:140, xy 误差 0.026 m`；
+  `/v8/local/pose` ~10 Hz；`/cmd_vel` 77 Hz（mux 在发零速）。**唯一新卡点**：perception 报
+  `state: stale_frame`（`stamp` 停在 42.059）⇒ 点云回调只进了首帧、帧戳不推进，被我这版"旧帧不得刷新
+  心跳"的严格判据拦住。下一轮只需查"帧戳为何不推进"（`/clock` 是否冻结、relay 是否只转一次）

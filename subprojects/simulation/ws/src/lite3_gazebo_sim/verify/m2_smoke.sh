@@ -106,6 +106,16 @@ stage_a() {
   #   /sim/odom_gt 恰 1 且为 odom 族）。**只打印不判据**——升不升为阻断项属验收判据增删（05 A3），权在小美。
   bash "$SIM_PKG/verify/v_pose_source.sh" post_a 8 2>&1 | sed 's/^/[posesrc] /' || echo "[posesrc] 断言件执行异常（不判 FAIL，见坑27 同源纪律）"
 
+  # ★2026-11-25 新增：可选挂载钩子★
+  # 目的：让"导航图 + 探针"在**冒烟自己的上下文**里跑，而不是另起一套手搓底座。
+  # 实测教训：同一份 m2_gazebo.launch、同一份 URDF、同一套环境变量，另起进程跑时 /livox/imu
+  # 不出现（`rostopic list` 里连话题都没有），而在本脚本里 IMU 稳定 200Hz；差异只在执行上下文。
+  # 用法：M2_SMOKE_HOOK=/path/to/hook.sh bash docker/sim.sh smoke stageA
+  if [ -n "${M2_SMOKE_HOOK:-}" ]; then
+    echo "[hook] 执行挂载脚本：$M2_SMOKE_HOOK"
+    bash "$M2_SMOKE_HOOK" || echo "[hook] 返回非零（不影响本段判定，结果见 hook 自己的证据）"
+  fi
+
   python3 - <<'PYEOF' > "$LOGDIR/stageA.txt" 2>&1
 import math, time
 import numpy as np, rospy
