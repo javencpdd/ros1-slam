@@ -134,6 +134,20 @@ case_obstacle() {
   python3 $REPO/scripts/verify/collision_regression.py --out "$EV_ROOT/obstacle.json" \
     $frame_arg > "$EV_ROOT/obstacle.log" 2>&1
   tail -5 "$EV_ROOT/obstacle.log"
+
+  # ★2b 运动中障碍（在线）★：离线回归只验算法本身，证不了"整条链在运动中真的会停/绕"。
+  # 这里让车真的朝目标走，途中在它前方投一个箱子，断言不穿透 + 有响应（停≥0.5s 或横移≥0.10m）。
+  say '=== 2b 运动中障碍（在线）==='
+  reset_stack obstacle 1
+  python3 $REPO/scripts/verify/goal_until_motion.py --x "$GOAL_X" --y "$GOAL_Y" \
+    --timeout-s 45 --out "$EV_ROOT/obstacle_goal.json" > "$EV_ROOT/obstacle_goal.log" 2>&1 &
+  local gp=$!
+  sleep 6
+  python3 $REPO/scripts/verify/obstacle_inmotion_probe.py \
+    --pose-topic "${POSE_TOPIC:-/hdl_odom}" \
+    --out "$EV_ROOT/obstacle_inmotion.json" > "$EV_ROOT/obstacle_inmotion.log" 2>&1
+  wait $gp 2>/dev/null
+  cat "$EV_ROOT/obstacle_inmotion.json" 2>/dev/null
 }
 
 case_loc() {
@@ -151,6 +165,14 @@ case_loc() {
     --timeout-s 45 --out "$EV_ROOT/loc_goal.json" > "$EV_ROOT/loc_goal.log" 2>&1
   wait $pp
   cat "$EV_ROOT/loc_stop.json" 2>/dev/null
+  # ★恢复段：把定位闸门重新拉起来，断言车不自行复动★
+  # 只验"断流会停"是不够的：恢复瞬间位姿可能跳变、局部规划器误以为离目标很远而重新起步。
+  rosrun topic_tools relay /hdl_odom_raw /hdl_odom __name:=hdl_gate \
+    > "$EV_ROOT/loc_recovery_relay.log" 2>&1 &
+  sleep 2
+  python3 "$REPO/scripts/verify/loc_recovery_probe.py" --seconds 6 \
+    --out "$EV_ROOT/loc_recovery.json" > "$EV_ROOT/loc_recovery.log" 2>&1
+  cat "$EV_ROOT/loc_recovery.json" 2>/dev/null
 }
 
 case_cancel() {

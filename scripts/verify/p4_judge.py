@@ -6,10 +6,12 @@
 且**任一项 FAIL/INVALID 就返回非零**，让 CI/回归能靠退出码拦。
 
 阈值都有出处，改动必须同时改注释与 note 里的判据表：
-  1 正常导航  真值到点 ≤ 0.15 m（HDL 绝对误差量级 0.2 m，取真值而非估计值判定）
+  1 正常导航  真值到点 ≤ NAV_GT_TOL_M(0.15 m)，且 **BT 必须报 reached**、**采样必须连续**
   2 障碍安全  离线回归 judgement.verdict == PASS（5 场景 + 反控）
-  3 定位失效  末非零命令后不再复动；停止延迟 ≤ 1.0 s；真值滑行 ≤ 0.30 m
-  4 取消      取消后 ≥5 s 仿真时间零速、期间真值位移 ≤ 0.05 m，且旧 stamp 路径被拒
+  3 定位失效  末非零命令后不再复动；停止延迟 ≤ LOC_STOP_DELAY_MAX_S(1.55 s)；真值滑行 ≤ LOC_COAST_MAX_M(0.93 m)；
+              且**定位恢复后不得自行复动**（loc_recovery.json 必须 PASS）
+  4 取消      取消后 ≥ CANCEL_ZERO_WINDOW_SIM_S(5 s) 仿真时间零速、期间真值位移 ≤ CANCEL_MOVE_MAX_M(0.05 m)，
+              且**旧 stamp 路径被拒（cancel_replay 必须有且 PASS，缺文件按 FAIL 计）**
 
 用法：
   p4_judge.py --root <evidence 目录>
@@ -61,18 +63,46 @@ def judge_nav(root):
         if not probe.get('speed_frames'):
             ok = False
             detail += ' 无非零运动'
+        # ★BT 到达事件★：真值近但树没收敛（没报 reached）不算闭环走完
+        if not probe.get('bt_arrived'):
+            ok = False
+            detail += ' BT未报reached'
+        else:
+            extra += ' bt=reached'
+        # ★采样连续★：探针自身漏采时读数不可信
+        gap = probe.get('max_cmd_gap_s')
+        if gap is not None and gap > 0.5:
+            ok = False
+            detail += ' 采样断档%.2fs' % gap
+    else:
+        ok = False
+        detail += ' 缺 nav_probe.json'
     return ('PASS' if ok else 'FAIL'), detail, extra
 
 
 def judge_obstacle(root):
     data = load(root, 'obstacle.json')
+    online = load(root, 'obstacle_inmotion.json')
     if not data:
         return 'INVALID', '缺 obstacle.json', '-'
     judgement = data.get('judgement') or data
     verdict = judgement.get('verdict')
     per = judgement.get('per_scene') or {}
     detail = ' '.join('%s=%s' % (k.split('_')[0], v) for k, v in sorted(per.items())) or '-'
-    return (verdict if verdict in ('PASS', 'FAIL') else 'INVALID'), detail, '-'
+    ok = (verdict == 'PASS')
+    # ★在线段必须也有证据且 PASS★：离线只验算法本身，证不了"运动中整条链会停/绕"。
+    if not online:
+        ok = False
+        extra = '在线=缺'
+    elif online.get('verdict') != 'PASS':
+        ok = False
+        extra = '在线=%s' % online.get('verdict')
+    else:
+        extra = '在线PASS(zero=%ss,pen=%s)' % (online.get('max_zero_run_s'),
+                                               online.get('penetrations'))
+    if verdict not in ('PASS', 'FAIL'):
+        return 'INVALID', detail, extra
+    return ('PASS' if ok else 'FAIL'), detail, extra
 
 
 def judge_loc(root):
@@ -90,12 +120,21 @@ def judge_loc(root):
           and bool(d.get('moving_at_inject'))
           and delay is not None and delay <= LOC_STOP_DELAY_MAX_S
           and coast is not None and coast <= LOC_COAST_MAX_M)
+    rec = load(root, 'loc_recovery.json')
+    if not rec:
+        ok = False
+        detail_rec = '恢复未验'
+    elif not rec.get('pass'):
+        ok = False
+        detail_rec = '恢复后复动%.2fm' % (rec.get('moved_m') or 0)
+    else:
+        detail_rec = '恢复不动'
     detail = 'delay=%s s coast=%s m after_v=%s' % (
         '%.3f' % delay if delay is not None else 'NA',
         '%.3f' % coast if coast is not None else 'NA', after)
     if not d.get('moving_at_inject'):
         detail += ' 注入时已停'
-    return ('PASS' if ok else 'FAIL'), detail, 'nodes=%s' % d.get('v8_nodes_after', 'NA')
+    return ('PASS' if ok else 'FAIL'), detail + ' ' + detail_rec, 'nodes=%s' % d.get('v8_nodes_after', 'NA')
 
 
 def judge_cancel(root):
@@ -118,7 +157,10 @@ def judge_cancel(root):
         ok = ok and bool(replay.get('pass'))
         replay_txt = 'replay=%s' % ('PASS' if replay.get('pass') else 'FAIL')
     else:
-        replay_txt = 'replay=NA'
+        # ★缺 replay 不能当"未验"放过★：取消重放（旧 stamp 必被拒）是取消语义的活体反控，
+        # 缺这份证据就说明反控没跑，按 FAIL 计。
+        ok = False
+        replay_txt = 'replay=缺'
     detail = 'ack=%s zero=%s s sim move5s=%s m after_v=%s' % (
         d.get('ack_last'), '%.2f' % zero_sim if zero_sim is not None else 'NA',
         '%.3f' % move if move is not None else 'NA', after)

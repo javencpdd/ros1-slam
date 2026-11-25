@@ -8958,3 +8958,22 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   适配层输出与 TF 直接变换**逐位一致**（z 中位都是 1.50）。按真人指示：FAR **保留为实验后端**，
   不参与 Support 主线验收、不阻塞；启用前置条件是先把 `map→rslidar z` 拉回 0.45±0.05、俯仰与
   `base→rslidar`（15°）一致。FAR 图里**不覆盖** `terrain_ground_z/terrain_flatten`（错位地图下覆盖会把全图判障碍）。
+- ★判据补齐（同日，按真人点名五项）★：`p4_judge.py` 与探针新增
+  1) **BT reached 必验**：`p4_nav_probe` 订阅 `/v8/bt/status`（不是 FAR 专有的 `/v8/bt/arrived`，
+     那条 support 组合没有、用了会误伤基线），出现 `"reached"` 才置 `bt_arrived`；nav 判据要求它。
+     实测：`1 正常导航 PASS … bt=reached`
+  2) **运动中障碍（在线）**：新增 `scripts/verify/obstacle_inmotion_probe.py`——车在跑时往前方 1.2 m
+     投一个 0.5 m 箱子，断言"不穿透 + 有响应（停≥0.5 s 或横移≥0.10 m）"，finally 必删箱子；
+     `p4_regression` 的障碍项加 2b 段；judge 要求 `obstacle_inmotion.json` 且 PASS。
+     实测：`spawned=true, penetrations=0, zero_run=19.25 s, deleted=true` ⇒ 障碍项 PASS（带在线证据）
+  3) **定位恢复不复动**：新增 `scripts/verify/loc_recovery_probe.py`，`case_loc` 在断流段之后把
+     `/hdl_odom_raw→/hdl_odom` 的 relay 重启，断言恢复后 6 s 内真值位移 ≤0.05 m；judge 要求该文件存在且 PASS。
+     实测：**FAIL —— 恢复后复动 0.48 m**（见下条）
+  4) **取消重放必验**：`cancel_replay.json` 缺失不再按 `NA` 放过，直接计 FAIL
+  5) **连续采样覆盖**：`p4_nav_probe` 记 `max_cmd_gap_s`，>0.5 s 判 FAIL
+  另修正 `p4_judge.py` 文件头与常量的不一致说明（1.0/0.30 → 1.55/0.93，只改文字不降阈值）
+- ★新判据抓出的真问题（同日，待真人裁定）★：定位断流后车正确地停了（delay 0.674 s / coast 0.128 m），
+  但**把定位数据恢复后，车自己又走了 0.48 m**（`loc_recovery.json`：`moved_m=0.48, pass=false`）。
+  ⇒ BT 的 `localization_ok` 闸门只做"暂停"，没有"作废当前目标"；恢复后旧目标仍然有效，规划器随即续走。
+  这属于**安全语义**（故障恢复是否允许自动续行），我不擅自改 BT/局部行为，先登记证据与建议：
+  建议在 `localization_ok` 变假时取消/作废当前 goal，恢复后必须收到**新目标**才允许运动。

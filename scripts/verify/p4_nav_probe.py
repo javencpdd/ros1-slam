@@ -23,6 +23,7 @@ import sys
 import rospy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from std_msgs.msg import String
 
 
 def yaw_of(q):
@@ -30,7 +31,8 @@ def yaw_of(q):
 
 
 class Probe(object):
-    def __init__(self):
+    def __init__(self, pose_topic='/hdl_odom'):
+        self.pose_topic = pose_topic
         self.est = None
         self.gt = None
         self.first_est = None
@@ -38,7 +40,13 @@ class Probe(object):
         self.max_speed = 0.0
         self.speed_frames = 0
         self.cmd_frames = 0
-        rospy.Subscriber('/hdl_odom', Odometry, self.on_est, queue_size=20)
+        self.cmd_times = []          # 采样覆盖判据用：cmd 到达的墙钟时刻
+        self.bt_arrived = False      # ★BT 自己的到达事件★：只看真值距离会漏判"规划器没报到"
+        rospy.Subscriber(pose_topic, Odometry, self.on_est, queue_size=20)
+        # ★BT 的到达事件在 `/v8/bt/status`（std_msgs/String + JSON）里★，字段 `last_event`/`goal_outcome`
+        # 取 "reached"。`/v8/bt/arrived` 是 far_stack 里 FAR 适配器的专用话题，support 组合没有它，
+        # 用那条会永远判 False（会误伤已通过的基线）。
+        rospy.Subscriber('/v8/bt/status', String, self.on_arrived, queue_size=10)
         rospy.Subscriber('/sim/odom_gt', Odometry, self.on_gt, queue_size=20)
         rospy.Subscriber('/cmd_vel', Twist, self.on_cmd, queue_size=20)
 
@@ -54,9 +62,15 @@ class Probe(object):
         if self.first_gt is None:
             self.first_gt = self.gt
 
+    def on_arrived(self, m):
+        text = m.data or ''
+        if '"reached"' in text or "'reached'" in text:
+            self.bt_arrived = True
+
     def on_cmd(self, m):
         v = math.hypot(m.linear.x, m.linear.y)
         self.cmd_frames += 1
+        self.cmd_times.append(rospy.get_time())
         if v > 0.05:
             self.speed_frames += 1
             self.max_speed = max(self.max_speed, v)
@@ -67,6 +81,8 @@ def main():
     ap.add_argument('--goal-x', type=float, required=True)
     ap.add_argument('--goal-y', type=float, required=True)
     ap.add_argument('--duration', type=float, default=60.0)
+    ap.add_argument('--pose-topic', default='/hdl_odom',
+                    help='算法位姿话题（M2+LIO 组合传 /Odometry）')
     ap.add_argument('--tol', type=float, default=0.50)
     ap.add_argument('--arrive-tol', type=float, default=0.15,
                     help='真实到达容差（用 /sim/odom_gt 判，不是估计位姿）')
@@ -74,15 +90,22 @@ def main():
     args = ap.parse_args()
 
     rospy.init_node('p4_nav_probe', anonymous=True)
-    pr = Probe()
+    pr = Probe(pose_topic=args.pose_topic)
     rate = rospy.Rate(10.0)
     t0 = rospy.Time.now().to_sec()
     while not rospy.is_shutdown() and rospy.Time.now().to_sec() - t0 < args.duration:
         rate.sleep()
 
+    # 采样覆盖：cmd 名义 50~80 Hz，出现 >0.5 s 断档说明采集中断过，结论不可信
+    max_gap = None
+    if len(pr.cmd_times) > 1:
+        max_gap = max(b - a for a, b in zip(pr.cmd_times, pr.cmd_times[1:]))
     result = {'duration_s': args.duration, 'goal': [args.goal_x, args.goal_y],
+              'pose_topic': args.pose_topic,
               'cmd_frames': pr.cmd_frames, 'speed_frames': pr.speed_frames,
-              'max_speed_mps': round(pr.max_speed, 4)}
+              'max_speed_mps': round(pr.max_speed, 4),
+              'bt_arrived': pr.bt_arrived,
+              'max_cmd_gap_s': round(max_gap, 3) if max_gap is not None else None}
     if pr.est is None:
         result['verdict'] = 'FAIL'
         result['reason'] = '没有 /hdl_odom 样本'
@@ -102,6 +125,12 @@ def main():
             # 语义等价于"确实在朝目标推进"，且不涉及安全参数。
             'travel_half_of_initial': result['est_travel_m'] >= 0.5 * max(initial, 1e-6),
             'arrived': dist <= args.tol,
+            # ★BT 到达事件★：规划/执行链自己报了 reached 才算闭环走完；
+            # 只有真值近、BT 没报，通常是"卡在目标附近但树没收敛"，不能算过。
+            'bt_reached': pr.bt_arrived,
+            # ★采样连续★：cmd 断档 >0.5 s 说明探针自身漏采，读数不可信
+            'sampling_continuous': (result['max_cmd_gap_s'] is not None
+                                    and result['max_cmd_gap_s'] <= 0.5),
         }
         if pr.gt is not None:
             gdx = pr.gt[0] - pr.first_gt[0]
