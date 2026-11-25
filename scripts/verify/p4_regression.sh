@@ -5,7 +5,11 @@
 # 单项耗时约 3–4 分钟，全套约 15 分钟。判定只看各自 JSON 里的字段，不做二次解释。
 #
 # 前置：Gazebo（lite3_planar + rslidar）已在运行。
-# 用法：bash p4_regression.sh [--only nav|obstacle|loc|cancel]
+# 用法：bash p4_regression.sh [nav|obstacle|loc|cancel]   或   ONLY=nav bash p4_regression.sh
+#       注意：不接受 `--only nav` 这种写法（脚本按裸词比较，传 --only 会四项都不跑）。
+# 组合切换（只换后端，其余不变）：
+#   GRAPH=<...graph_3d_m1_hdl_bt_far.yaml> EXPECT_NODES=<n> bash p4_regression.sh
+#   POSE_TOPIC=/Odometry GRAPH=<...graph_3d_m2_lio_bt_far.yaml> bash p4_regression.sh
 set -uo pipefail
 
 REPO=/opt/ros1-slam
@@ -80,7 +84,12 @@ reset_stack() {
   place "$START_X" "$START_Y"
   SKIP_GAZEBO=1 MODE=normal DUR=8 WAIT_SCAN=40 INIT_X=$START_X INIT_Y=$START_Y \
     bash $REPO/scripts/verify/asan_hdl_repro.sh > "$EV_ROOT/${tag}_repro.log" 2>&1
-  SKIP_PROBE=1 NO_GOAL="$no_goal" START_X=$START_X START_Y=$START_Y GOAL_X=$GOAL_X GOAL_Y=$GOAL_Y \
+  # ★2026-11-25：GRAPH/EXPECT_NODES 透传★（只换后端，不改任何参数）。
+  # 用 `env ${VAR:+VAR=$VAR}` 形式：为空时**不注入**，p4_nav_hdl 的默认值照旧生效，
+  # 从而保证"不传 GRAPH 时行为与历史完全一致"。POSE_TOPIC 同理（M2 组合传 /Odometry）。
+  env ${GRAPH:+GRAPH="$GRAPH"} ${EXPECT_NODES:+EXPECT_NODES="$EXPECT_NODES"} \
+      ${POSE_TOPIC:+POSE_TOPIC="$POSE_TOPIC"} \
+      SKIP_PROBE=1 NO_GOAL="$no_goal" START_X=$START_X START_Y=$START_Y GOAL_X=$GOAL_X GOAL_Y=$GOAL_Y \
     EV="$EV_ROOT/${tag}_graph" bash $REPO/scripts/verify/p4_nav_hdl.sh > "$EV_ROOT/${tag}_setup.log" 2>&1
   local n
   n=$(rosnode list 2>/dev/null | grep -cE '^/v8' || true)

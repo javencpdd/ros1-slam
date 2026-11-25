@@ -8765,3 +8765,18 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   | 3 定位失效 | PASS | 停止延迟 0.707 s（≤1.55），滑行 0.122 m（≤0.93），after_v=0 |
   | 4 取消安全 | PASS | 零速窗 11.46 s sim（≥5），窗口位移 0.009 m（≤0.05），replay=PASS |
   证据：`note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_073132/`
+- ★底座职责按历史分工（同日）★：`sim.sh base m1` = 孤儿清理 → **自己用 `m1_gazebo.launch map_to_odom:=false`
+  起一次 Gazebo**（与 `asan_hdl_repro.sh:97` 同一条命令）→ 调 `asan_hdl_repro.sh` 且带 `SKIP_GAZEBO=1`（只装 HDL）
+  → 活数据判定。若让 asan 自己起 Gazebo，它的清理段会 `rosnode kill -a` 并杀 gzserver 重启，
+  与已有实例叠成双 gzserver，实测随后 `/hdl_odom` 就断流
+- ★FAR 后端的两个坑（同日，均已修）★：
+  ①`p4_nav_hdl.sh` 里 `source $WS/devel/setup.bash` 会**重置** `ROS_PACKAGE_PATH`，把调用方 source 的
+  overlay 抹掉 ⇒ `Resource not found: far_planner`、整图 0 节点。修法：在该 source **之后**追加
+  `tooling/far_overlay/src`、对应 `PYTHONPATH`/`LD_LIBRARY_PATH`（overlay 只含 far_planner，与主 ws 无重叠）
+  ②判据不能 `grep far_planner "$GRAPH"`：图里写的是组件名（`v8.fw.global_far`），字面 far_planner
+  只在 manifest 与 include 的 launch 里 ⇒ 改为"overlay 目录存在即追加"
+- ★FAR 组合的实例数实测 8（不是 9）★：`/v8/3d/{carrier,loc,local,map,mux3d,path_goal,perception}` + `/v8/bt`；
+  支持图多出来的那个是 `global`，FAR 用 `far_planner` 顶替且其节点名不在 `/v8` 前缀下 ⇒
+  FAR 跑验收要 `EXPECT_NODES=8`（实测值，非猜）
+- `p4_regression.sh` 增 `GRAPH`/`EXPECT_NODES`/`POSE_TOPIC` 透传（用 `env ${VAR:+VAR=...}`，为空不注入 ⇒
+  不传时行为与历史完全一致）；并改正文件头那条"`--only nav`"的错误用法说明（实际按裸词比较）

@@ -49,6 +49,19 @@ gate_fail() { say "GATE_FAIL: $*"; exit 9; }
 
 source /opt/ros/noetic/setup.bash
 source $WS/devel/setup.bash
+# ★FAR 后端需要 overlay，且必须在这里补★：`$WS/devel/setup.bash` 会把 ROS_PACKAGE_PATH
+# **重置**成它自己那套，调用方在外面 source 过的 overlay 路径会被抹掉 ⇒ roslaunch 报
+# `Resource not found: far_planner`、整图 0 节点（实测两轮都是这条）。
+# 只在图里确实引用 far_planner 时追加，support 组合行为完全不变。
+# 判据用"overlay 目录存在"而不是 grep 图内容：图里写的是组件名（v8.fw.global_far），
+# 字面 far_planner 只出现在 manifest 与被 include 的 launch 里，grep 图必然落空（实测踩到）。
+# overlay/src 只含 far_planner 与其 msgs，与主 ws 无重叠，无条件追加是安全的。
+if [ -d "$REPO/tooling/far_overlay/src" ]; then
+  export ROS_PACKAGE_PATH="$ROS_PACKAGE_PATH:$REPO/tooling/far_overlay/src"
+  export PYTHONPATH="${PYTHONPATH:-}:$REPO/tooling/far_overlay/devel/lib/python3/dist-packages"
+  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}:$REPO/tooling/far_overlay/devel/lib"
+  say "overlay_paths_appended=1（FAR 后端）"
+fi
 export ROS_MASTER_URI=${ROS_MASTER_URI:-http://127.0.0.1:11313}
 
 LAUNCH=$EV/graph.launch

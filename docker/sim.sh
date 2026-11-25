@@ -84,6 +84,15 @@ _wait_hz() {  # $1=话题 $2=超时秒；判"有没有活数据"，不看话题�
     return 1
 }
 
+_wait_node() {  # $1=节点名 $2=超时秒
+    local n="$1" t="$2" i=0
+    while [ "$i" -lt "$t" ]; do
+        rosnode list 2>/dev/null | grep -qx "$n" && return 0
+        sleep 2; i=$((i+2))
+    done
+    return 1
+}
+
 _pub_count() {  # 某话题的发布者数量
     rostopic info "$1" 2>/dev/null | sed -n '/Publishers/,$p' | grep -c '^ \*' || true
 }
@@ -118,8 +127,21 @@ base_up() {
 
     case "$kind" in
       m1)
-        echo "[base] 复用历史脚本 asan_hdl_repro.sh（含 map_to_odom:=false 与 HDL 装载）"
-        MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1
+        # ★与历史的职责分工一致★：Gazebo 是"前置"，由本入口用 asan_hdl_repro.sh:97 那条**同一条命令**
+        # 起一次（map_to_odom:=false）；HDL 交给 asan_hdl_repro.sh 且带 SKIP_GAZEBO=1（它只装 HDL）。
+        # 不要让 asan 自己起 Gazebo：它的清理段会 `rosnode kill -a` 并把 gzserver 杀掉重启，
+        # 与已在跑的实例叠成双 gzserver（实测 /hdl_odom 随后就没数据了）。
+        if _wait_hz /rslidar_points 6; then
+            echo "[base] 复用已在跑的 Gazebo"
+        else
+            echo "[base] 起 Gazebo：roslaunch lite3_gazebo_sim m1_gazebo.launch map_to_odom:=false"
+            roslaunch lite3_gazebo_sim m1_gazebo.launch map_to_odom:=false > /tmp/base_gazebo.log 2>&1 &
+            echo $! >> "$BASE_PIDFILE"
+            _wait_node /gazebo 90 || { echo "[base] FAIL: 90s 内 /gazebo 节点未注册（见 /tmp/base_gazebo.log）"; return 1; }
+            _check_gazebo_ros || return 1
+        fi
+        echo "[base] 复用历史脚本 asan_hdl_repro.sh（SKIP_GAZEBO=1，只装 HDL）"
+        SKIP_GAZEBO=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1
         local rc=$?
         [ "$rc" = "0" ] || { echo "[base] asan_hdl_repro rc=$rc（见 /tmp/base_m1.log 尾部）"; tail -12 /tmp/base_m1.log; return 1; }
         _check_gazebo_ros || return 1
