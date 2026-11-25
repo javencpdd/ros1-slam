@@ -8857,3 +8857,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   并有边 `map.map → global.map`；FAR 图用 `global_far`（`cloud_topic: /rslidar_points`，自己从点云建地形），
   **该边被移除**。⇒ FAR 给的是直线 2 点路径，会直接穿过支撑图的洞，局部规划器随即 `E_LOCAL_SUPPORT`。
   这不是 FAR 算法错，而是两后端对"地图"的消费方式不同：support 吃支撑栅格、FAR 吃地形点云
+- ★把 FAR 的"目标就近吸附半径"暴露并可配（同日）★：`far_stack.launch` 增 arg `goal_adjust_radius`
+  （默认保持上游 2.0，`<param name="GPlanner/goal_adjust_radius">`），`manifest_global_far.json` 暴露同名 arg，
+  FAR 图里设 **1.0**（本仓库验收走廊只有 1.3 m）。效果实测：
+  - 设 1.0 前：目标 1.3 m ⇒ FAR 不规划、BT 30 s 超时、**车零速**
+  - 设 1.0 后：同一目标 ⇒ `global path ready (2 points)`，**车走了 0.65 m**（travel=0.650，frames=144）
+- ★FAR nav 当前读数（未通过）★：`gt_to_goal=0.507 m / est=0.400 m`，即停在离目标约 0.5 m 处。
+  已排除路径问题（有 2 点路径、无任何 `E_*` 码）；下一步查"为何只走一半就停"
+  （候选：`path_goal` 的 `lookahead_m` 把局部目标截在 0.65 m 处、或局部到点后没有新局部目标）
+- ★支撑图补面的副作用要复验★：为消除 x=4.0 处的支撑洞，已沿 1.3 m 走廊补 177 格（`fill_start_support.py`，
+  地图 JSON 不在 git 跟踪面，命令见上条）。Support 组合需在补面后复跑四项，确认无回归

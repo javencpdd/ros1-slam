@@ -48,6 +48,10 @@
   <arg name="config" default="default"/>
   <!-- 诊断开关：上游只在 is_debug_output 为真时才打印图顶点数、拒因等；平时关掉免得刷屏。 -->
   <arg name="debug_output" default="false"/>
+  <!-- 2026-11-25：目标"就近吸附"半径。上游默认 2.0 m 是面向大场景的；本仓库验收走廊只有 1.3 m，
+       默认值会让 FAR 认为目标"已在手边"而不规划（表现为 BT 等 30 s 超时、车不动）。
+       这里暴露成 arg，由图按场景给值，默认仍保持上游 2.0。 -->
+  <arg name="goal_adjust_radius" default="2.0"/>
   <!-- 到达判据出口：BT 侧 arrival_topic 指同一个话题。空则不发，BT 退回自己的 xy 判据。
        判据由适配器自己算：|pose−goal|_3d ≤ hypot(arrival_r_xy, arrival_z_tol)。
        r_xy 对齐 BT 树 WaitArrival 的 0.25，z_tol 是竖向容差（验收 3 的偏置标定写回这里）。 -->
@@ -69,6 +73,7 @@
     <param name="vehicle_height" value="$(arg vehicle_height)"/>
     <param name="Util/terrain_free_Z" value="$(arg terrain_free_Z)"/>
     <param name="is_debug_output" value="$(arg debug_output)"/>
+    <param name="GPlanner/goal_adjust_radius" value="$(arg goal_adjust_radius)"/>
   </node>
 
   <!-- 5) v8 侧适配器：语义地形、两点/带前视的步态路径、取消写者、3D 到达判据。 -->

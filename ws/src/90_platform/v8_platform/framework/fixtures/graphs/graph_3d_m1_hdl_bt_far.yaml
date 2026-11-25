@@ -44,6 +44,7 @@ instances:
       status_topic: /v8/3d/global/status
       gait_path_topic: /v8/gait_guard/path
       is_multi_layer: true
+      goal_adjust_radius: 1.0   # 验收走廊 1.3 m；上游默认 2.0 会让 FAR 判定"目标在手边"而不规划
   - id: bt
     component: v8.fw.bt_console
     namespace: /v8/bt
