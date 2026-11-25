@@ -64,8 +64,69 @@ probe() {
     (ss -lnt 2>/dev/null || netstat -lnt 2>/dev/null) | grep -E '1131[123]|11345' || echo "11311/11312/11313/11345 均无监听 ✔"
 }
 
+# ---- M1 导航底座（唯一入口；验收脚本必须调它，不得各自重写） ----
+# 为什么收敛到 sim.sh：此前每个验收脚本各写一套 "起 master / 起 gazebo / 等话题 / 起 HDL"，
+# 逻辑重复且各自踩坑（Xvfb 死、包路径重复、话题存在但无数据）。底座只应有一处实现。
+BASE_PIDFILE=/tmp/sim_base.pids
+base_up() {
+    want_hdl="${1:-hdl}"
+    . "$(dirname "${BASH_SOURCE[0]}")/xvfb_guard.sh"
+    xvfb_guard_ensure "${DISPLAY:-:99}" || { echo "[base] 显示服务不可用"; return 1; }
+    export ROS_MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11313}"
+    export GAZEBO_MASTER_URI="${GAZEBO_MASTER_URI:-http://127.0.0.1:11345}"
+    : > "$BASE_PIDFILE"
+    if ! timeout 4 rostopic list >/dev/null 2>&1; then
+        echo "[base] 起 master"
+        roscore -p "${ROS_MASTER_URI##*:}" >/tmp/base_roscore.log 2>&1 &
+        echo $! >> "$BASE_PIDFILE"
+        for _ in $(seq 1 20); do sleep 2; timeout 3 rostopic list >/dev/null 2>&1 && break; done
+    fi
+    timeout 5 rostopic list >/dev/null 2>&1 || { echo "[base] master 无应答"; return 1; }
+    echo "[base] 起 m1_gazebo（世界 + 机器人 + 传感器）"
+    roslaunch lite3_gazebo_sim m1_gazebo.launch >/tmp/base_gazebo.log 2>&1 &
+    echo $! >> "$BASE_PIDFILE"
+    _wait_topic /clock 60 || { echo "[base] /clock 未出（查 /tmp/base_gazebo.log）"; return 1; }
+    _wait_topic /rslidar_points 90 || { echo "[base] /rslidar_points 未出"; return 1; }
+    _wait_topic /livox/imu 60 || { echo "[base] /livox/imu 未出（IMU 传感器未创建）"; return 1; }
+    # 服务面就绪：图里的 carrier3d 要 /gazebo/set_model_state，它由 gazebo_ros_api_plugin 提供。
+    # 只等话题不等服务 ⇒ carrier3d 起手 20s 超时后自杀、整图起不来（实测：/cmd_vel、/v8/local/pose 全无）。
+    for _ in $(seq 1 30); do
+        rosservice list 2>/dev/null | grep -q "/gazebo/set_model_state" && break
+        sleep 1
+    done
+    rosservice list 2>/dev/null | grep -q "/gazebo/set_model_state" \
+        || { echo "[base] /gazebo/set_model_state 未就绪（carrier3d 会超时自杀）"; return 1; }
+    if [ "$want_hdl" = "hdl" ]; then
+        echo "[base] 起 HDL（map=m1_world_synth_v1，外参取 URDF 仿真几何）"
+        roslaunch "$WS/ws/.profiles/x86_sim/src/lite3_localization/launch/hdl_localization.launch" \
+            tf_x:=0 tf_y:=0 tf_z:=0.34 tf_pitch:=0.2618 \
+            map_name:=m1_world_synth_v1 imu_topic:=/livox/imu >/tmp/base_hdl.log 2>&1 &
+        echo $! >> "$BASE_PIDFILE"
+    fi
+    echo "[base] BASE READY（pid 记录在 $BASE_PIDFILE）"
+}
+
+base_down() {
+    if [ -f "$BASE_PIDFILE" ]; then
+        while read -r pid; do [ -n "$pid" ] && kill "$pid" 2>/dev/null || true; done < "$BASE_PIDFILE"
+        rm -f "$BASE_PIDFILE"
+    fi
+    echo "[base] 已停（只停本入口起的进程）"
+}
+
+_wait_topic() {  # $1=话题 $2=超时秒；用 rostopic list 判存在性（type 对无发布者会返回空）
+    local t="$1" n="$2" i=0
+    while [ "$i" -lt "$n" ]; do
+        rostopic list 2>/dev/null | grep -qx "$t" && return 0
+        sleep 1; i=$((i+1))
+    done
+    return 1
+}
+
 case "$MODE" in
     probe)  probe ;;
+    base)   shift; base_up "${1:-hdl}" ;;
+    down)   base_down ;;
     clean)
         # 对齐 m2_smoke.sh 的退净判据：把本域（11313/11345）的进程与端口清干净。
         # 反复起停后残留的重复 gzserver/rosmaster 会让旁观者（rviz/gzclient）
@@ -99,7 +160,7 @@ case "$MODE" in
         fi
         ;;
     *)
-        echo "用法: bash $0 {probe|gazebo|smoke [stageA|stageB|stageC|all]}"
+        echo "用法: bash $0 {probe|base [hdl|no-hdl]|down|gazebo|smoke [stageA|stageB|stageC|all]}"
         exit 2
         ;;
 esac

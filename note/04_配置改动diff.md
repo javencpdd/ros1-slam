@@ -8719,3 +8719,15 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `/v8/local/pose` 落在 **x=-63.2, y=40.3** —— HDL 解出的位姿与目标（map 原点附近）不在同一原点，
   目标因此不可达、FAR 不出路径。下一步须核对合成 PCD 的坐标原点与 Gazebo world 原点是否同源
   （这正是"PCD 与 support map 同源"那条），**不得用恒等 TF 或改 frame_id 掩盖**
+- ★启动逻辑收敛（同日，按架构约束）★：底座启动**唯一实现处**改为 `docker/sim.sh base [hdl|no-hdl]`
+  ＋ `down`（含 master、Xvfb 守卫、m1_gazebo、可选 HDL、`/gazebo/set_model_state` 服务就绪判据），
+  `scripts/verify/m1_hdl_support.sh` 改为**调用该入口**，自己只做"装配 + 采样 + 判定"，
+  不再各写一套起停逻辑（此前每处都重复踩 Xvfb / 包路径 / 话题假就绪的坑）。
+  传统 launch 装配与 Graph 装配并存，未删任何历史入口
+- ★双 HDL 冲突（同日，实测）★：`graph_3d_m1_hdl_bt.yaml` 的 manifest 里 `v8.fw.hdl_localization` 是
+  include ⇒ **图自带 HDL**；底座若再起一份即双 HDL，抢 nodelet 与 TF，整图起不来
+  （`carrier3d` 超时自杀、`/v8/local/pose` 与 `/cmd_vel` 全无）。故底座用 `no-hdl`，定位由图提供
+- ★当前卡点（新）★：底座就绪后 `rosservice list | grep gazebo` = **0**，即 `/gazebo/set_model_state`
+  等 API 服务不存在（而 `/clock`、`/rslidar_points`、`/livox/imu` 都正常）⇒ 图内 `carrier3d`
+  等该服务 20 s 后自杀。下一步查 `gazebo_ros_api_plugin` 是否真的加载（`/clock` 可能来自其他来源），
+  而不是放宽就绪判据
