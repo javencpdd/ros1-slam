@@ -27,7 +27,9 @@ FRAME_NPY=${FRAME_NPY:-$REPO/note/进度/00_专题/v8_map_loc_2026-11-24/evidenc
 # 本脚本不再装载 HDL，而是用一个独立数据闸门 /Odometry → /Odometry_gated（节点名 m2_gate），
 # 供"定位断流"用例 kill/重启，从而不杀 LIO 本身。
 M2=${M2:-0}
-POSE_TOPIC=${POSE_TOPIC:-$([ "$M2" = "1" ] && echo /Odometry || echo /hdl_odom)}
+# ★M2 的算法位姿取"实际导航输入" `/v8/local/pose`★（已做 LIO→map 刚体变换），
+# 不是原始 `/Odometry`（那是 LIO 自己原点的坐标系，只在断流探针里作为闸门上游使用）。
+POSE_TOPIC=${POSE_TOPIC:-$([ "$M2" = "1" ] && echo /v8/local/pose || echo /hdl_odom)}
 GATE_IN=${GATE_IN:-$([ "$M2" = "1" ] && echo /Odometry || echo /hdl_odom_raw)}
 GATE_OUT=${GATE_OUT:-$([ "$M2" = "1" ] && echo /Odometry_gated || echo /hdl_odom)}
 GATE_NAME=${GATE_NAME:-$([ "$M2" = "1" ] && echo m2_gate || echo hdl_gate)}

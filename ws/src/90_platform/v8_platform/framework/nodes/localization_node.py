@@ -63,6 +63,14 @@ def main():
     ok_topic = rospy.get_param('~localization_topic', '/v8/local/localization_ok')
     status_topic = rospy.get_param('~status_topic', '/v8/local/localization_status')
     error_topic = rospy.get_param('~error_topic', '/v8/local/localization_error')
+    # ★LIO→map 的真实刚体变换（真人裁决 2026-11-26 第 2 条）★
+    # 原实现只把 header.frame_id 写成 map，坐标仍是 LIO 自己原点的（等于撒谎）。
+    # 这里按**已知初始位姿**建立常量刚体变换（平移 + 绕 Z 旋转），不使用 Gazebo 真值实时驱动。
+    lio_frame = rospy.get_param('~lio_frame', 'odom')
+    origin_x = float(rospy.get_param('~lio_origin_x', 0.0))
+    origin_y = float(rospy.get_param('~lio_origin_y', 0.0))
+    origin_yaw = float(rospy.get_param('~lio_origin_yaw', 0.0))
+    need_transform = bool(rospy.get_param('~lio_to_map', source != 'sim_gt'))
     pose_pub = rospy.Publisher(pose_topic, PoseStamped, queue_size=20)
     ok_pub = rospy.Publisher(ok_topic, Bool, queue_size=1)
     status_pub = rospy.Publisher(status_topic, String, queue_size=10)
@@ -73,7 +81,18 @@ def main():
     def publish_ok(ok):
         ok_pub.publish(Bool(data=bool(ok)))
 
+    def to_map(pose):
+        """把 LIO 系位姿搬到 map 系：p_map = R(yaw)·p_lio + (x, y)。"""
+        import math as _m
+        x, y, z, qx, qy, qz, qw = pose
+        c, s_ = _m.cos(origin_yaw), _m.sin(origin_yaw)
+        return (c * x - s_ * y + origin_x,
+                s_ * x + c * y + origin_y,
+                z, qx, qy, qz, qw)
+
     def select(pose, now, label):
+        if need_transform and label != 'sim_gt':
+            pose = to_map(pose)
         state['selected'], state['selected_at'] = pose, now
         message = PoseStamped()
         message.header.frame_id, message.header.stamp = frame, rospy.Time.now()

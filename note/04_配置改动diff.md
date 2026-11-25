@@ -9041,3 +9041,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ★实测（Support 四项，正式回归）★：`nav PASS(bt=reached)｜障碍 PASS(在线 zero=16.18 s, pen=0)｜
   定位失效 PASS(delay 0.702 s, coast 0.138 m, 恢复不动, **新任务可解锁**)｜取消 PASS(11.24 s, replay PASS)`
   ⇒ **4 PASS / 0 FAIL，judge_rc=0**；正控四要素 `task_identity/nonzero_speed/real_travel(1.14 m)/bt_reached` 全 true
+- ★M2+LIO 坐标变换（真人裁决第 2 条，已实现；验收待收口）★
+  · `localization_node.py` 原实现只把 `header.frame_id` 写成 map、坐标仍是 LIO 自己原点的（等于撒谎）。
+    现增 **真实刚体变换**：`p_map = R(yaw)·p_lio + (x,y)`，参数 `lio_to_map / lio_origin_x/yaw`，
+    按**已知初始位姿**取常量（不引 Gazebo 真值实时驱动）；`source=sim_gt` 时不施加
+  · `graph_3d_m2_lio_bt.yaml` 设 `lio_to_map: true, lio_origin_x: 5.2, lio_origin_y: 2.45, yaw: 0`
+  · `p4_regression.sh` 的 M2 模式：探针位姿源改为**实际导航输入** `/v8/local/pose`
+    （原读原始 `/Odometry` 是 LIO 原点系，与 map 目标不同坐标系）；断流闸门仍监测 `/Odometry→/Odometry_gated`
+  ★当前状态★：M2 四例 0 PASS，`/v8/local/pose` **无消息**（`nav_probe.est_start=None`）⇒ loc 在 M2 组合下
+  没发位姿。参数 `lio_to_map: True` 已在渲染产物中，需下一轮定位 loc 侧（是否 0 帧输入/异常）。
+  **不宣布 M2 可用**；Support 主线不受影响（4/4 PASS）。

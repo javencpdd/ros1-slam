@@ -136,6 +136,13 @@ instances:
     params:
       source: faster_lio
       lio_topic: /Odometry_gated   # ★M2 组合：LIO 输出经数据闸门，便于独立断流★
+      # ★LIO 系 → map 系的真实刚体变换★（按已知初始位姿，常量，不引真值流）：
+      # LIO 以自己的起点为原点，验收起点在 map 系 (5.2, 2.45)、朝向 0；不设这三项就等于
+      # 只改 frame_id 不改坐标（原实现的缺陷）。
+      lio_to_map: true
+      lio_origin_x: 5.2
+      lio_origin_y: 2.45
+      lio_origin_yaw: 0.0
       gt_topic: /sim/odom_gt
       frame: map
       max_age_s: 1.0
