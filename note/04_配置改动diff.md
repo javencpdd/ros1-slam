@@ -8695,3 +8695,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   连续采 6 条状态的实测轮转：`duplicate_frame ×5 + tf_missing ×1`，**`ok` 一次都没有**
   ⇒ 真正的阻断是 **`map→rslidar` TF 不可解析**（`process()` 在 TF 那步就返回 `tf_missing`），
   与点云/位姿无关。下一步只需把 `map→odom`（及 `odom→base_link`）补齐到该组合的 TF 链里。
+- ★Xvfb 永久修复（2026-11-25，按真人第 1 条）★：原 `docker/sim.sh` 只在 `DISPLAY` 为空时补起 Xvfb
+  ⇒ 镜像 `DISPLAY=:99` 且 Xvfb 已死时兜底被跳过 ⇒ gzserver 无显示 ⇒ 模型不 spawn、传感器不创建
+  ⇒ `/livox/imu` 连话题都不出现（"冒烟时好时坏"的真因）。
+  改为独立守卫件 `docker/xvfb_guard.sh`：判据＝**显示服务是否真的应答**（`/tmp/.X11-unix/X<N>` 存在
+  ＋ `xdpyinfo` 实答；无 xdpyinfo 时退化为存在服务该 DISPLAY 的 Xvfb 进程），**不看环境变量是否为空**；
+  不可应答时清残留锁再起，并轮询到真的应答为止。
+  配套 `scripts/verify/test_xvfb_guard.sh` 四连自测（正常复用／已死重起／残留锁清锁重起／**反控**：
+  杀掉服务后判据必须翻转），实测 **4 PASS / 0 FAIL**

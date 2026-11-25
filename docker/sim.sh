@@ -39,14 +39,13 @@ export GAZEBO_MODEL_PATH=/usr/share/gazebo-11/models:$WS/sim_ws/src:$SIM_PKG/wor
 export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:$WS/sim_ws/src
 export LIBGL_ALWAYS_SOFTWARE=1
 
-# Xvfb 兜底：entrypoint 没起（USE_XVFB=0 直跑时）就在这里起
-if [ -z "${DISPLAY:-}" ] && command -v Xvfb >/dev/null 2>&1; then
-    rm -f /tmp/.X99-lock
-    Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
-    export DISPLAY=:99
-    sleep 1
-    echo "[sim] 已补起 Xvfb :99"
-fi
+# Xvfb 兜底（2026-11-25 改为**存活检测**，不再只看 DISPLAY 是否为空）
+# 事故：镜像 DISPLAY=:99 但 Xvfb 已死、锁文件残留 ⇒ 旧逻辑跳过兜底 ⇒ gzserver 无显示
+#       ⇒ 模型 spawn 失败、传感器不创建 ⇒ /livox/imu 连话题都不出现（冒烟"时好时坏"的真因）。
+# 判据与三种场景（正常/已死/残留锁）由 docker/xvfb_guard.sh 实现，并有
+# scripts/verify/test_xvfb_guard.sh 的三连＋反控守着。
+. "$(dirname "${BASH_SOURCE[0]}")/xvfb_guard.sh"
+xvfb_guard_ensure "${DISPLAY:-:99}" || echo "[sim] 警告：显示服务不可用，Gazebo 可能起不来" >&2
 
 probe() {
     echo "=== 仿真环境自检 ==="
