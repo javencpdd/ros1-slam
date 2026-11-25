@@ -45,13 +45,28 @@ sleep 40
 # ---------- 3. 采关键读数（先采集，不关栈） ----------
 {
   echo "== /v8/local/localization_status:"; timeout 5 rostopic echo -n1 /v8/local/localization_status 2>&1 | head -3
-  echo "== /v8/3d/perception/status:";     timeout 5 rostopic echo -n1 /v8/3d/perception/status 2>&1 | head -3
+  echo "== /v8/3d/perception/status（连采 6 条，看状态轮转）:"
+  timeout 8 rostopic echo -n6 /v8/3d/perception/status 2>&1 | grep -o 'state[^,]*' | head -6
   echo "== /v8/local/obstacles 速率:";     timeout 6 rostopic hz /v8/local/obstacles 2>&1 | tail -1
   echo "== /v8/local/pose 速率:";          timeout 6 rostopic hz /v8/local/pose 2>&1 | tail -1
   echo "== /v8/local/status:";             timeout 5 rostopic echo -n1 /v8/local/status 2>&1 | tail -2
   echo "== /cmd_vel 速率:";                timeout 6 rostopic hz /cmd_vel 2>&1 | tail -1
 } > "$EV/readings.txt" 2>&1
-log "读数已落盘：$EV/readings.txt"
+# ---------- 3b. 帧戳推进性（stale_frame 的真相） ----------
+{
+  echo "== /clock 两采样（间隔 1.5s）:"
+  timeout 4 rostopic echo -n1 /clock/clock/secs 2>&1 | tail -1
+  sleep 1.5
+  timeout 4 rostopic echo -n1 /clock/clock/secs 2>&1 | tail -1
+  echo "== /rslidar_points 两采样帧戳:"
+  timeout 4 rostopic echo -n1 /rslidar_points/header/stamp 2>&1 | tail -2
+  sleep 1.5
+  timeout 4 rostopic echo -n1 /rslidar_points/header/stamp 2>&1 | tail -2
+  echo "== 该话题的发布者/订阅者:"
+  timeout 4 rostopic info /rslidar_points 2>&1 | head -8
+} > "$EV/stamps.txt" 2>&1
+
+log "读数已落盘：$EV/readings.txt（帧戳见 stamps.txt）"
 
 kill "$ST_PID" 2>/dev/null || true
 exit 0

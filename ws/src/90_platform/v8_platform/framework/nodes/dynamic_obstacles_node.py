@@ -162,7 +162,11 @@ class DynamicObstaclesNode(object):
             if silent > self.blind_timeout_s:
                 return False, {'state': 'blind', 'silent_s': round(silent, 2)}
         if self.cloud_stamp is not None and self.cloud_stamp == self.processed_stamp:
-            return False, {'state': 'stale_frame', 'stamp': round(self.cloud_stamp, 3)}
+            # ★这一拍没有新帧（轮询 10Hz 与点云 10Hz 常撞帧），**不是**"数据陈旧"★：
+            # 只跳过本次发布（避免用旧帧重复刷新心跳＝假健康），但状态要如实叫 duplicate_frame，
+            # 且不得把 heartbeat_valid 打成 false（此前误标 stale_frame，被 local 当异常读了）。
+            return False, {'state': 'duplicate_frame', 'stamp': round(self.cloud_stamp, 3),
+                           'note': 'no new cloud frame this tick'}
         return True, None
 
     def on_cloud(self, msg):

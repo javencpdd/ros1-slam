@@ -1,9 +1,9 @@
-... logging to /opt/ros1-slam/logs/2d76c99c-e883-11f1-93e0-42bc6aba034b/roslaunch-35ea6bfef95a-1645997.log
+... logging to /opt/ros1-slam/logs/91cf976a-e884-11f1-975a-42bc6aba034b/roslaunch-35ea6bfef95a-1659623.log
 Checking log directory for disk usage. This may take a while.
 Press Ctrl-C to interrupt
 Done checking log file disk usage. Usage is <1GB.
 ]2;/opt/ros1-slam/note/进度/00_专题/far_p2_2026-11-25/evidence/hook_nav/graph.launch
-[1mstarted roslaunch server http://35ea6bfef95a:38401/[0m
+[1mstarted roslaunch server http://35ea6bfef95a:44303/[0m
 
 SUMMARY
 ========
@@ -193,27 +193,22 @@ NODES
 Traceback (most recent call last):
   File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/scripts/run_cmd3d_mux.py", line 19, in <module>
     cmd3d_mux_node.main()
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/cmd3d_mux_node.py", line 73, in main
-    time.sleep(.02)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/cmd3d_mux_node.py", line 70, in main
+    status.publish(String(data=json.dumps({
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 888, in publish
+    self.impl.release()            
 KeyboardInterrupt
-Exception in thread Thread-13:
 Traceback (most recent call last):
-  File "/usr/lib/python3.8/threading.py", line 932, in _bootstrap_inner
-    self.run()
-  File "/usr/lib/python3.8/threading.py", line 870, in run
-    self._target(*self._args, **self._kwargs)
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node.py", line 342, in control_loop
-    controller.tick(lambda: rospy.Time.now().to_sec(), time.monotonic, rospy.Time.from_sec,
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node_control.py", line 254, in tick
-    out = publish_output(out, self.shared.get('pose_orientation'), stamp_factory(stamp_sec),
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node_control.py", line 47, in publish_output
-    command_pub.publish(message)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
-    self.impl.publish(data)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
-    raise ROSException("publish() to a closed topic")
-rospy.exceptions.ROSException: publish() to a closed topic
-[ERROR] [1795578697.480722, 52.290000]: kinematic carrier loop failed:
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_global_far.py", line 18, in <module>
+    raise SystemExit(far_node.main())
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/planner/far_node.py", line 659, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[ERROR] [1795579304.460839, 54.045000]: kinematic carrier loop failed:
 Traceback (most recent call last):
   File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 162, in main
     rate.sleep()
@@ -256,19 +251,9 @@ Traceback (most recent call last):
     raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
 rospy.exceptions.ROSInterruptException: ROS shutdown request
 Traceback (most recent call last):
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_global_far.py", line 18, in <module>
-    raise SystemExit(far_node.main())
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/planner/far_node.py", line 659, in main
-    rate.sleep()
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
-    sleep(self._remaining(curr_time))
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
-    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
-rospy.exceptions.ROSInterruptException: ROS shutdown request
-Traceback (most recent call last):
   File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_dynamic_obstacles.py", line 22, in <module>
     impl.DynamicObstaclesNode().spin()
-  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/dynamic_obstacles_node.py", line 258, in spin
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/dynamic_obstacles_node.py", line 262, in spin
     rate.sleep()
   File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
     sleep(self._remaining(curr_time))
@@ -276,26 +261,26 @@ Traceback (most recent call last):
     raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
 rospy.exceptions.ROSInterruptException: ROS shutdown request
 ]2;/opt/ros1-slam/note/进度/00_专题/far_p2_2026-11-25/evidence/hook_nav/graph.launch http://127.0.0.1:11313
-[1mprocess[far_planner-1]: started with pid [1646076][0m
-[1mprocess[v8_global_far-2]: started with pid [1646077][0m
-[1mprocess[v8/3d/loc/loc-3]: started with pid [1646078][0m
-[1mprocess[v8/3d/map/map-4]: started with pid [1646079][0m
-[1mprocess[v8/3d/perception/perception-5]: started with pid [1646080][0m
-[1mprocess[v8/bt/bt-6]: started with pid [1646081][0m
-[1mprocess[v8/3d/path_goal/path_goal-7]: started with pid [1646082][0m
-[1mprocess[v8/3d/local/local-8]: started with pid [1646087][0m
-[1mprocess[v8/3d/mux/mux3d-9]: started with pid [1646089][0m
-[1mprocess[v8/3d/carrier/carrier-10]: started with pid [1646090][0m
+[1mprocess[far_planner-1]: started with pid [1659702][0m
+[1mprocess[v8_global_far-2]: started with pid [1659703][0m
+[1mprocess[v8/3d/loc/loc-3]: started with pid [1659704][0m
+[1mprocess[v8/3d/map/map-4]: started with pid [1659705][0m
+[1mprocess[v8/3d/perception/perception-5]: started with pid [1659706][0m
+[1mprocess[v8/bt/bt-6]: started with pid [1659707][0m
+[1mprocess[v8/3d/path_goal/path_goal-7]: started with pid [1659708][0m
+[1mprocess[v8/3d/local/local-8]: started with pid [1659713][0m
+[1mprocess[v8/3d/mux/mux3d-9]: started with pid [1659715][0m
+[1mprocess[v8/3d/carrier/carrier-10]: started with pid [1659716][0m
 [v8/3d/carrier/carrier-10] killing on exit
 [v8/3d/mux/mux3d-9] killing on exit
-[v8/3d/local/local-8] killing on exit
-[v8/3d/path_goal/path_goal-7] killing on exit
 [v8/bt/bt-6] killing on exit
+[v8/3d/path_goal/path_goal-7] killing on exit
+[v8/3d/local/local-8] killing on exit
 [v8/3d/perception/perception-5] killing on exit
-[v8/3d/map/map-4] killing on exit
-[v8/3d/loc/loc-3] killing on exit
-[v8_global_far-2] killing on exit
 [far_planner-1] killing on exit
+[v8/3d/map/map-4] killing on exit
+[v8_global_far-2] killing on exit
+[v8/3d/loc/loc-3] killing on exit
 shutting down processing monitor...
 ... shutting down processing monitor complete
 [1mdone[0m

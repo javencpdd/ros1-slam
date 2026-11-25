@@ -8688,3 +8688,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `/v8/local/pose` ~10 Hz；`/cmd_vel` 77 Hz（mux 在发零速）。**唯一新卡点**：perception 报
   `state: stale_frame`（`stamp` 停在 42.059）⇒ 点云回调只进了首帧、帧戳不推进，被我这版"旧帧不得刷新
   心跳"的严格判据拦住。下一轮只需查"帧戳为何不推进"（`/clock` 是否冻结、relay 是否只转一次）
+- ★perception 判据再修一处（同日，我自己引入的）★：原先把"这一拍没有新帧"标成 `stale_frame`，
+  与"数据陈旧"混为一谈。实测点云帧戳**是推进的**（`nsecs 231000000 → 433000000`），
+  10 Hz 轮询撞 10 Hz 点云必然产生重复帧 ⇒ 改名 `duplicate_frame` 并在注释里写明"这不是陈旧"。
+  行为不变（重复帧仍不发布，避免用旧帧刷新心跳＝假健康），但状态语义不再误导。
+  连续采 6 条状态的实测轮转：`duplicate_frame ×5 + tf_missing ×1`，**`ok` 一次都没有**
+  ⇒ 真正的阻断是 **`map→rslidar` TF 不可解析**（`process()` 在 TF 那步就返回 `tf_missing`），
+  与点云/位姿无关。下一步只需把 `map→odom`（及 `odom→base_link`）补齐到该组合的 TF 链里。

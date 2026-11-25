@@ -65,11 +65,15 @@ class GateTest(unittest.TestCase):
         self.assertEqual(state['state'], 'blind')
 
     def test_duplicate_frame_not_new_data(self):
-        """⑤同一 stamp 重复到达：不算新数据，不许借此维持"健康"。"""
+        """⑤同一 stamp 重复到达：不算新数据，不许借此维持"健康"。
+
+        注意语义：这**不是**"数据陈旧"（云是新鲜到达的，只是这一拍没新帧），
+        故状态名用 duplicate_frame；本地 10Hz 轮询与 10Hz 点云撞帧属正常现象。
+        """
         publish, state = _gate_obj(last_cloud_wall=99.5, cloud_stamp=99.0,
                                    processed_stamp=99.0)._gate(now=100.0)
         self.assertFalse(publish)
-        self.assertEqual(state['state'], 'stale_frame')
+        self.assertEqual(state['state'], 'duplicate_frame')
 
     # ---------- 反控：真 ok 必须放行 ----------
     def test_fresh_frame_passes_gate(self):
@@ -83,7 +87,7 @@ class ShouldPublishTest(unittest.TestCase):
     # ---------- 主测：六态一律不发 ----------
     def test_six_states_never_publish(self):
         for state in ('no_cloud', 'no_pose', 'unsupported_cloud', 'tf_missing',
-                      'error', 'blind', 'disabled', 'stale_frame'):
+                      'error', 'blind', 'disabled', 'duplicate_frame'):
             self.assertFalse(node.should_publish({'state': state}),
                              '%s 竟然允许发有效障碍表' % state)
 
