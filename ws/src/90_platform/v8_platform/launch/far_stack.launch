@@ -55,7 +55,6 @@
   <!-- 2026-11-25：地形地面口径。默认 none = 沿用上游"逐格最小 z 估地面"；
        平地世界给具体高度（如 0.0）可避免"只有墙面无地面回波"的格子把墙当成地面（h≈0 ⇒ 判 free）。 -->
   <arg name="terrain_ground_z" default="none"/>
-  <arg name="terrain_flatten" default="true"/>
   <!-- 到达判据出口：BT 侧 arrival_topic 指同一个话题。空则不发，BT 退回自己的 xy 判据。
        判据由适配器自己算：|pose−goal|_3d ≤ hypot(arrival_r_xy, arrival_z_tol)。
        r_xy 对齐 BT 树 WaitArrival 的 0.25，z_tol 是竖向容差（验收 3 的偏置标定写回这里）。 -->
@@ -98,6 +97,5 @@
     <param name="waypoint_timeout_s" value="$(arg waypoint_timeout_s)"/>
     <param name="terrain_range_m" value="$(arg terrain_range_m)"/>
     <param name="terrain_rate_hz" value="$(arg terrain_rate_hz)"/>
-    <param name="terrain_flatten" value="$(arg terrain_flatten)"/>
   </node>
 </launch>
