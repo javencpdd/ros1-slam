@@ -9014,5 +9014,10 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   但 `cmd_vel` 恒 0 ⇒ 卡在 local 接受新任务这一环（`loc_rearm.json: rearmed=false`）。
   已排除的假象：①连发把 BT 队列打满（`goal queue full (16)`）——改成单次下发；
   ②只发 goal 不发 start——已补 start。两条都排除后仍不动。
-  ⇒ 下一步只需在 local 里打印一次 accept_goal 的判定（seq 比较与 stop_latched），即可定位是
-  `E_LOCAL_STALE_GOAL` 还是锁存未清；**在此之前 Support 记 3/4，不宣布 4/4**。
+  ★已做的三处定位（都推翻了一个假设）★：
+  ①`path_goal.dead_generation` 与拒绝判据**编号混用**（记的是本地计数器、比的是 path 代次）→ 已统一为
+    `last_path_seq`；②`make_goal` 用的是"第几条路径"而非任务代次 ⇒ 同一任务每次重发都变新任务
+    → 已改为任务代次；③给 `accept_goal` 加接受/拒绝日志后实测：**goals 被正常 ACCEPTED**
+    （`seq=16…23` 连发），但 `cmd_vel` 仍恒 0 ⇒ 断点不在"接不接受"，而在 local 接受后**规划/发布**这一环
+    （worker 结果或 stop 锁存与 `cancel_requested` 的交互）。
+  ⇒ 仍需一轮定向排查（在 worker 结果回报处打点）。**在此之前 Support 记 3/4，不宣布 4/4**。

@@ -1,0 +1,18 @@
+=== 3 定位失效（只断定位数据）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[loc] v8_nodes=9
+{"mode": "stop", "motion_seen": true, "cmd_frames": 1565, "hold_s": 24.0, "cmd_samples": 1565, "gt_samples": 650, "ack_count": 0, "max_speed": 0.6, "nonzero_frames": 69, "last_nonzero_wall_s": 1.879, "zero_window_wall_s": 23.776, "max_speed_after": 0.0, "inject_wall_s": 1.642, "hdl_last_wall_s": 1.174, "hdl_msgs": 31, "stop_delay_s": 0.705, "inject_to_last_nonzero_s": 0.237, "moving_at_inject": true, "gt_coast_after_inject_m": 0.1169, "gt_travel_after_m": 0.0072, "anchor_sim_s": 89.228, "zero_window_sim_s": 9.42, "gt_move_within_2s_sim_m": 0.0072, "gt_covers_2s_sim": true, "gt_move_within_5s_sim_m": 0.0072, "gt_covers_5s_sim": true, "gt_move_within_10s_sim_m": 0.0072, "gt_covers_10s_sim": false, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"seconds": 10.0, "pose_msgs": 27, "gt_samples": 190, "cmd_samples": 489, "moved_m": 0.0, "max_speed_mps": 0.0, "max_gt_gap_s": 0.26, "max_cmd_gap_s": 0.023, "tol_m": 0.05, "checks": {"pose_resumed": true, "no_remotion": true, "sampling_coverage": true}, "pass": true}
+=== 3b 正控：正式入口下发新任务，应能重新起步 ===
+{"rearmed": false, "reason": "new task from /v8/bt/goal"}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       INVALID  缺 nav_arrival.json                                         -
+2 障碍安全       INVALID  缺 obstacle.json                                            -
+3 定位失效       FAIL     delay=0.705 s coast=0.117 m after_v=0.0 恢复不动 新任务未解锁        nodes=9
+4 取消安全       INVALID  缺 cancel.json                                              -
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：0 PASS / 4 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_183130
+judge_rc=1（0=四项全 PASS，非零=有项未通过）

@@ -51,10 +51,19 @@ def accept_goal(shared, message):
         last = int(shared.get('last_goal_seq') or 0)
         if seq != 0 and seq <= last:
             shared.update(last_error='E_LOCAL_STALE_GOAL')
+            import rospy as _r
+            _r.logwarn('[local] goal REJECTED stale: seq=%d last=%d stop_latched=%s',
+                       seq, last, shared.get('stop_latched'))
             return False
         if seq > last:
             shared['last_goal_seq'] = seq
     p = message.pose.position
+    try:
+        import rospy as _r
+        _r.loginfo('[local] goal ACCEPTED seq=%d (last=%d)', int(getattr(message.header, 'seq', 0) or 0),
+                   int(shared.get('last_goal_seq') or 0))
+    except Exception:
+        pass
     shared.update(goal=(p.x, p.y, p.z), generation=shared['generation'] + 1, result=None,
                   stop_latched=False, stop_reason=None, last_error='ok',
                   cancel_requested=False, cancel_seq=0, cancel_reason=None)

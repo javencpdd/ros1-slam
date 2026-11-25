@@ -81,7 +81,10 @@ class PathGoal(object):
         # ★定位失效＝任务作废（真人裁决 2026-11-26）★
         # 恢复后不得自行重新武装：这里清空活动路径，并把**当前代次**记为"作废"，
         # 之后即使全局规划器带更新的时间戳重发同一代次路径，也必须拒绝（任务身份看代次，不看时间戳）。
+        # ★作废标记必须与"拒绝判据"用同一套编号★：on_path 里比较的是 path.header.seq（BT 任务代次），
+        # 所以这里也记 path 的代次，不能记本地计数器 accepted_generation（那是 path_goal 自己的自增）。
         self.dead_generation = None
+        self.last_path_seq = 0
         try:
             from std_msgs.msg import Bool
             rospy.Subscriber('/v8/local/localization_ok', Bool, self.on_localization, queue_size=5)
@@ -111,7 +114,7 @@ class PathGoal(object):
             self.status_pub.publish(String(data=json.dumps({
                 'ok': False, 'reason': 'localization_lost',
                 'dropped_poses': len(self.poses), 'generation': self.accepted_generation})))
-        self.dead_generation = self.accepted_generation
+        self.dead_generation = self.last_path_seq
         self.poses = []
         self.index = 0
         self.last_goal_key = None
@@ -142,6 +145,10 @@ class PathGoal(object):
         if self.cancelled_at is not None:
             self.cancelled_at = None
         self.accepted_generation += 1
+        try:
+            self.last_path_seq = int(getattr(message.header, 'seq', 0) or 0)
+        except Exception:
+            self.last_path_seq = 0
         self.poses = list(message.poses)
         # ★2026-11-25 修★：原先无条件 `self.index = 0` 再发 poses[0]。
         # 对 support 的完整路径，poses[0] 恰好是当前位姿，发出去等于"原地不动"，
@@ -173,7 +180,10 @@ class PathGoal(object):
         return math.hypot(p.x - self.pose.x, p.y - self.pose.y)
 
     def publish_current(self):
-        goal = make_goal(self.poses[self.index], self.accepted_generation)
+        # ★任务代次，不是"第几条路径"★：同一任务的所有滚动重发必须同 seq，
+        # 否则 local 每帧都当新任务重置代次 ⇒ 永远不执行（实测 seq 16→23 连发、cmd 恒 0）。
+        goal = make_goal(self.poses[self.index],
+                         self.last_path_seq if self.last_path_seq else self.accepted_generation)
         xyz = (round(goal.pose.position.x, 6), round(goal.pose.position.y, 6),
                round(goal.pose.position.z, 6))
         # ★去重边界（2026-11-25 三修）★：键必须含 index，不能只看坐标——
