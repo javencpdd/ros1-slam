@@ -8872,3 +8872,14 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ⇒ 停住那一刻局部规划器**没拿到位姿**。同一份 status 里 `pose_clock.ok=true`、`source_stamp` 在推进，
   说明是**瞬时缺帧**而非持续丢失。下一步：抓停住瞬间 `/v8/local/pose` 的间隔（是否出现 >1 s 的断档），
   以及 loc 在 HDL 输出抖动时是否会短暂停发。
+- ★HDL 双发布者＝位姿 4 Hz 的真因（同日，实测）★：新增 `scripts/verify/pose_gap_probe.py`（记录
+  `/v8/local/pose` 与 `/hdl_odom` 的**到达间隔**，而不是均值）。测量结果：
+  - `/v8/local/pose` 与 `/hdl_odom` 同为 **4.02 Hz**，最大断档 **0.641 s**，两者 gap 完全同步
+  - `rostopic info /hdl_odom` 显示 **2 个发布者**，`/hdl_odom_raw` 也是 2 个，另有 3 个 relay 进程
+  ⇒ 底座那份 HDL 与图内 `v8.fw.hdl_localization` / `asan_hdl_repro` 装的 HDL **撞在一起**，
+  把 10 Hz 拖到 4 Hz 且抖动到 0.64 s，正好顶到 `local.max_age_s=0.7`
+  ⇒ `E_POSE_MISSING`→`E_LOCAL_NOT_READY`，车走一半就停（0.65 m / 1.3 m）。
+- 已加硬守卫：`sim.sh base m1` 在 HDL 分支里检查 `/hdl_odom` 发布者数，**>1 直接判失败**并提示用 `no-hdl`。
+  `no-hdl` 分支实测：asar 自己装 HDL 报 **9.123 Hz PASS**，但 FAR nav 反而一步不动（frames=0）
+  ⇒ 说明"底座 HDL × 图内 HDL × p4_regression 再装 HDL"这三者的组合还没理清，
+  必须在**同一份配置**下把三者收敛成一份，而不是再逐次试。
