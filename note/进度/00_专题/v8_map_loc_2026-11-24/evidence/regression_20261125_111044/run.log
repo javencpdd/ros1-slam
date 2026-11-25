@@ -1,0 +1,15 @@
+=== 1 正常导航 ===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[nav] v8_nodes=9
+{"est_to_goal_m": 1.175, "gt_to_goal_m": 1.223, "est_gt_gap_m": 0.049, "verdict": "FAIL"}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       FAIL     gt=1.223 m est=1.175 无非零运动                                 frames=0 travel=0.005
+2 障碍安全       INVALID  缺 obstacle.json                                            -
+3 定位失效       INVALID  缺 loc_stop.json                                            -
+4 取消安全       INVALID  缺 cancel.json                                              -
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：0 PASS / 4 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_111044
+judge_rc=1（0=四项全 PASS，非零=有项未通过）

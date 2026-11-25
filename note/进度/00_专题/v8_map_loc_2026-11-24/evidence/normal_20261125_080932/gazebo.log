@@ -131,4 +131,51 @@ data size:800000
 [0m[ INFO] [1795594455.278364640, 105.000000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
 [0m[ INFO] [1795594457.544800205, 106.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
 [0m[ INFO] [1795594459.793889931, 107.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00) v_phy=(-0.000,0.000,0.000) w_phy=(-0.000,-0.000,0.000) mode=dynamic[0m
-[0m[ INFO] [1795594462.040212301, 108.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00
+[0m[ INFO] [1795594462.040212301, 108.001000000]: [lite3_planar_drive] beat: stale=0 cmd=(0.00,0.00,0.00[INFO] [1795594186.297815, 0.000000]: [sim_adapter] up: mode=adapt input=custommsg time-unit=s rate_lidar=10 rate_imu=200 no_imu=True
+[31m[tf_frame_assert-4] process has died [pid 1782241, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/scripts/tf_frame_assert.py __name:=tf_frame_assert __log:=/opt/ros1-slam/logs/c07e35d2-e8a0-11f1-a5d4-42bc6aba034b/tf_frame_assert-4.log].
+log file: /opt/ros1-slam/logs/c07e35d2-e8a0-11f1-a5d4-42bc6aba034b/tf_frame_assert-4*.log[0m
+[31m[gazebo-1] process has died [pid 1782198, exit code -15, cmd /opt/ros/noetic/lib/gazebo_ros/gzserver -e ode /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/worlds/m1_world.world __name:=gazebo __log:=/opt/ros1-slam/logs/c07e35d2-e8a0-11f1-a5d4-42bc6aba034b/gazebo-1.log].
+log file: /opt/ros1-slam/logs/c07e35d2-e8a0-11f1-a5d4-42bc6aba034b/gazebo-1*.log[0m
+... logging to /opt/ros1-slam/logs/c07e35d2-e8a0-11f1-a5d4-42bc6aba034b/roslaunch-35ea6bfef95a-1782051.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/launch/m1_gazebo.launch
+[1mstarted roslaunch server http://35ea6bfef95a:37219/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /tf_frame_assert/expect_parent: map
+ * /tf_frame_assert/observe_sec: 3.0
+ * /tf_frame_assert/protected_child: odom
+ * /tf_frame_assert/timeout: 30.0
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    sim_adapter (lite3_drivers/sim_adapter.py)
+    spawn_lite3_planar (gazebo_ros/spawn_model)
+    tf_frame_assert (lite3_gazebo_sim/tf_frame_assert.py)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/launch/m1_gazebo.launch http://127.0.0.1:11313
+[1mprocess[gazebo-1]: started with pid [1782198][0m
+[1mprocess[robot_state_publisher-2]: started with pid [1782200][0m
+[1mprocess[spawn_lite3_planar-3]: started with pid [1782204][0m
+[1mprocess[tf_frame_assert-4]: started with pid [1782241][0m
+[1mprocess[sim_adapter-5]: started with pid [1782274][0m
+[1m[spawn_lite3_planar-3] process has finished cleanly
+log file: /opt/ros1-slam/logs/c07e35d2-e8a0-11f1-a5d4-42bc6aba034b/spawn_lite3_planar-3*.log[0m
+[sim_adapter-5] killing on exit
+[robot_state_publisher-2] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

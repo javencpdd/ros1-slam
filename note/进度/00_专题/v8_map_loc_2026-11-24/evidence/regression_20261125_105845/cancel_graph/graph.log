@@ -1,0 +1,465 @@
+... logging to /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/roslaunch-35ea6bfef95a-1882580.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_105845/cancel_graph/graph.launch
+[1mstarted roslaunch server http://35ea6bfef95a:40083/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /far_planner/CDetector/filter_count_value: 3
+ * /far_planner/CDetector/img_folder_path: /path
+ * /far_planner/CDetector/is_save_img: False
+ * /far_planner/CDetector/resize_ratio: 3.0
+ * /far_planner/GPlanner/converge_distance: 0.5
+ * /far_planner/GPlanner/free_counter_thred: 7
+ * /far_planner/GPlanner/goal_adjust_radius: 2.0
+ * /far_planner/GPlanner/path_momentum_thred: 3
+ * /far_planner/GPlanner/reach_goal_vote_size: 3
+ * /far_planner/Graph/clear_dumper_thred: 4
+ * /far_planner/Graph/connect_votes_size: 10
+ * /far_planner/Graph/filter_pool_size: 12
+ * /far_planner/Graph/node_finalize_thred: 6
+ * /far_planner/GraphMsger/robot_id: 1
+ * /far_planner/MapHandler/cell_length: 5.0
+ * /far_planner/MapHandler/floor_height: 2.0
+ * /far_planner/MapHandler/map_grad_max_height: 100.0
+ * /far_planner/MapHandler/map_grid_max_length: 1000.0
+ * /far_planner/Util/accept_max_align_angle: 4.0
+ * /far_planner/Util/angle_noise: 15.0
+ * /far_planner/Util/dynamic_obs_dacay_time: 10.0
+ * /far_planner/Util/dyosb_update_thred: 4
+ * /far_planner/Util/new_intensity_thred: 2.0
+ * /far_planner/Util/new_point_counter: 5
+ * /far_planner/Util/new_points_decay_time: 1.0
+ * /far_planner/Util/obs_inflate_size: 1
+ * /far_planner/Util/terrain_free_Z: 0.2
+ * /far_planner/is_attempt_autoswitch: True
+ * /far_planner/is_debug_output: False
+ * /far_planner/is_multi_layer: True
+ * /far_planner/is_opencv_visual: False
+ * /far_planner/is_pub_boundary: False
+ * /far_planner/is_static_env: True
+ * /far_planner/is_viewpoint_extend: True
+ * /far_planner/local_planner_range: 5.0
+ * /far_planner/main_run_freq: 2.5
+ * /far_planner/robot_dim: 0.8
+ * /far_planner/sensor_range: 30.0
+ * /far_planner/terrain_range: 15.0
+ * /far_planner/vehicle_height: 0.0
+ * /far_planner/visualize_ratio: 0.75
+ * /far_planner/voxel_dim: 0.15
+ * /far_planner/world_frame: map
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /v8/3d/carrier/carrier/center_z: 0.1
+ * /v8/3d/carrier/carrier/cmd_topic: /cmd_vel
+ * /v8/3d/carrier/carrier/localization_topic: /v8/3d/carrier/lo...
+ * /v8/3d/carrier/carrier/map_topic: /v8_support_map
+ * /v8/3d/carrier/carrier/model_name: app_carrier
+ * /v8/3d/carrier/carrier/pose_topic: /v8/3d/carrier/po...
+ * /v8/3d/carrier/carrier/rate_hz: 50.0
+ * /v8/3d/carrier/carrier/snap_m: 0.03
+ * /v8/3d/carrier/carrier/spawn: False
+ * /v8/3d/carrier/carrier/start_x: 0.0
+ * /v8/3d/carrier/carrier/start_y: 0.0
+ * /v8/3d/carrier/carrier/start_z: 0.0
+ * /v8/3d/carrier/carrier/status_topic: /v8/3d/carrier/st...
+ * /v8/3d/loc/loc/error_topic: /v8/local/localiz...
+ * /v8/3d/loc/loc/frame: map
+ * /v8/3d/loc/loc/gt_topic: /sim/odom_gt
+ * /v8/3d/loc/loc/lio_topic: /hdl_odom
+ * /v8/3d/loc/loc/localization_topic: /v8/local/localiz...
+ * /v8/3d/loc/loc/max_age_s: 1.0
+ * /v8/3d/loc/loc/pose_topic: /v8/local/pose
+ * /v8/3d/loc/loc/source: faster_lio
+ * /v8/3d/loc/loc/status_topic: /v8/local/localiz...
+ * /v8/3d/local/local/cancel_ack_topic: /v8/local/cancel_ack
+ * /v8/3d/local/local/cancel_topic: /v8/local/cancel
+ * /v8/3d/local/local/command_topic: /v8/local/cmd_vel_3d
+ * /v8/3d/local/local/experimental_config/clearance_m: 0.1
+ * /v8/3d/local/local/experimental_config/goal_tolerance_m: 0.15
+ * /v8/3d/local/local/experimental_config/height_m: 0.35
+ * /v8/3d/local/local/experimental_config/horizon_s: 6.0
+ * /v8/3d/local/local/experimental_config/max_slope_deg: 35.0
+ * /v8/3d/local/local/experimental_config/max_speed_mps: 0.6
+ * /v8/3d/local/local/experimental_config/max_step_m: 0.3
+ * /v8/3d/local/local/experimental_config/radius_m: 0.15
+ * /v8/3d/local/local/experimental_config/resolution: 0.3
+ * /v8/3d/local/local/experimental_config/tick_s: 0.6
+ * /v8/3d/local/local/experimental_config/validity_s: 20.0
+ * /v8/3d/local/local/goal_topic: /v8/local/goal
+ * /v8/3d/local/local/input_max_age_s: 0.7
+ * /v8/3d/local/local/localization_topic: /v8/local/localiz...
+ * /v8/3d/local/local/map_topic: /v8_support_map
+ * /v8/3d/local/local/obstacles_topic: /v8/local/obstacles
+ * /v8/3d/local/local/pose_topic: /v8/local/pose
+ * /v8/3d/local/local/require_goal_seq: True
+ * /v8/3d/local/local/status_topic: /v8/local/status
+ * /v8/3d/local/local/trajectory_topic: /v8/local/trajectory
+ * /v8/3d/local/local/wall_watchdog_s: 90.0
+ * /v8/3d/map/map/map_json: data/maps/generat...
+ * /v8/3d/map/map/map_topic: /v8_support_map
+ * /v8/3d/map/map/status_topic: /v8_map_status
+ * /v8/3d/mux/mux3d/cmd_topic: /v8/local/cmd_vel_3d
+ * /v8/3d/mux/mux3d/hold_topic: /lite3/supervisor...
+ * /v8/3d/mux/mux3d/output_topic: /cmd_vel
+ * /v8/3d/mux/mux3d/status_topic: /v8/3d/mux/status
+ * /v8/3d/mux/mux3d/timeout_s: 0.25
+ * /v8/3d/path_goal/path_goal/goal_topic: /v8/local/goal
+ * /v8/3d/path_goal/path_goal/path_topic: /v8/3d/global/path
+ * /v8/3d/path_goal/path_goal/status_topic: /v8/3d/path_goal/...
+ * /v8/3d/perception/perception/blind_timeout_s: 1.0
+ * /v8/3d/perception/perception/cloud_topic: /rslidar_points
+ * /v8/3d/perception/perception/enable: True
+ * /v8/3d/perception/perception/gate_m: 0.8
+ * /v8/3d/perception/perception/map_frame: map
+ * /v8/3d/perception/perception/max_depth: 2
+ * /v8/3d/perception/perception/max_height_m: 1.6
+ * /v8/3d/perception/perception/max_objects: 32
+ * /v8/3d/perception/perception/max_speed_mps: 1.5
+ * /v8/3d/perception/perception/min_extent_m: 0.45
+ * /v8/3d/perception/perception/min_fill: 0.45
+ * /v8/3d/perception/perception/min_height_m: 0.15
+ * /v8/3d/perception/perception/min_points: 16
+ * /v8/3d/perception/perception/rate_hz: 10.0
+ * /v8/3d/perception/perception/roi_forward_m: 6.0
+ * /v8/3d/perception/perception/roi_lateral_m: 3.0
+ * /v8/3d/perception/perception/self_radius_m: 0.45
+ * /v8/3d/perception/perception/voxel_m: 0.1
+ * /v8/bt/bt/cancel_ack_timeout: 2.0
+ * /v8/bt/bt/cancel_ack_topic: /v8/local/cancel_ack
+ * /v8/bt/bt/cancel_input_topic: /v8/bt/cancel
+ * /v8/bt/bt/cancel_topic: /v8/local/cancel
+ * /v8/bt/bt/goal_topic: /v8/bt/goal
+ * /v8/bt/bt/localization_topic: /v8/local/localiz...
+ * /v8/bt/bt/mission_topic: /v8/bt/goal_mission
+ * /v8/bt/bt/out_goal_topic: /v8/bt/out_goal
+ * /v8/bt/bt/path_status_topic: /v8/3d/global/status
+ * /v8/bt/bt/path_topic: /v8/3d/global/path
+ * /v8/bt/bt/planner_goal_topic: /v8/3d/global/goal
+ * /v8/bt/bt/policy_topic: /v8/bt/goal_policy
+ * /v8/bt/bt/pose_topic: /v8/local/pose
+ * /v8/bt/bt/recovery_mode: skip
+ * /v8/bt/bt/retry_delay_s: 0.0
+ * /v8/bt/bt/retry_max: 1
+ * /v8/bt/bt/stop_topic: /lite3/teleop/app...
+ * /v8/bt/bt/tree_file: /opt/ros1-slam/ws...
+ * /v8_global_far/arrival_r_xy: 0.25
+ * /v8_global_far/arrival_topic: /v8/bt/arrived
+ * /v8_global_far/arrival_z_tol: 0.3
+ * /v8_global_far/cloud_topic: /rslidar_points
+ * /v8_global_far/gait_path_topic: /v8/gait_guard/path
+ * /v8_global_far/goal_topic: /v8/3d/global/goal
+ * /v8_global_far/lookahead_m: 1.5
+ * /v8_global_far/path_topic: /v8/3d/global/path
+ * /v8_global_far/start_topic: /v8/local/pose
+ * /v8_global_far/status_topic: /v8/3d/global/status
+ * /v8_global_far/terrain_flatten: True
+ * /v8_global_far/terrain_range_m: 15.0
+ * /v8_global_far/terrain_rate_hz: 2.5
+ * /v8_global_far/waypoint_timeout_s: 10.0
+ * /v8_global_far/world_frame: map
+
+NODES
+  /
+    far_planner (far_planner/far_planner)
+    v8_global_far (v8_platform/run_global_far.py)
+  /v8/3d/carrier/
+    carrier (v8_simulation/gazebo_carrier3d_node.py)
+  /v8/3d/loc/
+    loc (v8_platform/run_localization_source.py)
+  /v8/3d/local/
+    local (v8_algorithm/run_local_ros_node.py)
+  /v8/3d/map/
+    map (v8_platform/run_map_file.py)
+  /v8/3d/mux/
+    mux3d (v8_algorithm/run_cmd3d_mux.py)
+  /v8/3d/path_goal/
+    path_goal (v8_platform/run_path_goal.py)
+  /v8/3d/perception/
+    perception (v8_platform/run_dynamic_obstacles.py)
+  /v8/bt/
+    bt (lite3_bt/bt_console)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+[33m[ WARN] [1795604754.772496031]: Shutdown request received.[0m
+[33m[ WARN] [1795604754.779342753]: Reason given for shutdown: [[/far_planner] Reason: new node registered with same name][0m
+[INFO] [1795604755.620371, 374.103000]: localization source=faster_lio navigation_allowed=True
+READY
+READY
+READY
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link (parent map) at time 375.445000 according to authority /v8/3d/carrier/carrier
+         at line 277 in /tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link/camera (parent app_carrier/link) at time 375.445000 according to authority /v8/3d/carrier/carrier
+         at line 277 in /tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link (parent map) at time 375.445000 according to authority /v8/3d/carrier/carrier
+         at line 277 in /tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link/camera (parent app_carrier/link) at time 375.445000 according to authority /v8/3d/carrier/carrier
+         at line 277 in /tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp
+Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link (parent map) at time 375.445000 according to authority /v8/3d/carrier/carrier
+         at line 277Warning:  in TF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link (parent map) at time 375.445000 according to authority /v8/3d/carrier/carrier/tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp
+
+         at line 277 in /tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp
+Warning: Warning: TF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link/camera (parent app_carrier/link) at time 375.445000 according to authority /v8/3d/carrier/carrierTF_REPEATED_DATA ignoring data with redundant timestamp for frame app_carrier/link/camera (parent app_carrier/link) at time 375.445000 according to authority /v8/3d/carrier/carrier
+
+         at line 277         at line  in 277/tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp in 
+/tmp/binarydeb/ros-noetic-tf2-0.7.10/src/buffer_core.cpp
+[2J[0;0H
+[1;33m **************** STATIC ENV PLANNING **************** [0m
+
+
+
+[33m[ WARN] [1795604775.814068121, 381.349000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604776.214129569, 381.519000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604776.614360427, 381.704000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604777.064154735, 381.897000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604777.464039022, 382.044000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604777.864060958, 382.200000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604778.264024303, 382.329000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604778.664197693, 382.469000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604779.064062363, 382.635000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604779.464127395, 382.815000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604779.864144856, 382.983000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604780.264075283, 383.148000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604780.664137263, 383.315000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604781.064235292, 383.489000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604781.464088503, 383.651000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604781.864220179, 383.815000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604782.264050392, 383.999000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604782.664203128, 384.167000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604783.114138084, 384.362000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604783.514111571, 384.526000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604783.914301554, 384.704000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604784.314178878, 384.860000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604784.714155033, 385.028000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604785.114083088, 385.211000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604785.514170638, 385.378000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604785.914051372, 385.536000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604786.314064570, 385.711000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604786.714128307, 385.891000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604787.114070349, 386.056000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604787.514139889, 386.218000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604787.914229984, 386.399000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604788.314063433, 386.559000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604788.714055420, 386.726000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604789.114332409, 386.907000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604789.564118353, 387.106000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604789.964103112, 387.275000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604790.364024763, 387.449000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604790.764178235, 387.611000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604791.164119902, 387.795000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604791.564112257, 387.959000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604791.964233582, 388.125000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604792.364240574, 388.298000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604792.764197744, 388.486000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604793.164068555, 388.642000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604793.564067107, 388.815000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604793.964117376, 388.988000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604794.364179743, 389.169000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604794.764114817, 389.338000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604795.164084775, 389.514000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604795.564219353, 389.684000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604796.014069352, 389.889000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604796.414109482, 390.065000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604796.814154172, 390.232000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604797.214126110, 390.405000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604797.614083733, 390.583000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604798.014142014, 390.769000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604798.414039533, 390.947000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604798.814238083, 391.121000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604799.064183641, 391.231000000]: [bt] global path timeout after 30.0 s[0m
+[33m[ WARN] [1795604799.614058519, 391.477000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604800.014045833, 391.648000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604800.414139476, 391.826000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604800.814072902, 392.004000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604801.264040757, 392.198000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604801.664136910, 392.388000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604802.064126051, 392.561000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604802.464095831, 392.735000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604802.864106473, 392.916000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604803.264112129, 393.071000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604803.664160504, 393.224000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604804.064051785, 393.347000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604804.464167756, 393.521000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604804.864062282, 393.688000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604805.264096061, 393.865000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604805.664045282, 394.040000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604806.064085105, 394.211000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604806.464157163, 394.395000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604806.864168314, 394.571000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604807.264123209, 394.746000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604807.714035953, 394.949000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604808.114148907, 395.126000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604808.514094094, 395.292000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604808.914121633, 395.481000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604809.314072949, 395.656000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604809.714089045, 395.831000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604810.114050163, 396.006000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604810.514065248, 396.189000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604810.914216339, 396.323000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604811.314113715, 396.464000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604811.714147086, 396.627000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604812.114157155, 396.748000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604812.514070537, 396.884000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604812.914110210, 396.945000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604813.314091052, 397.096000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604813.714107268, 397.227000000]: [bt] goal queue full (16); goal refused, none dropped[0m
+[33m[ WARN] [1795604815.914132235, 398.063000000]: [bt] dropped 16 queued goal(s) after fault stop[0m
+[33m[ WARN] [1795604815.914317853, 398.063000000]: [bt] cancel requested seq=5 scope=all[0m
+[ERROR] [1795604822.245311, 400.185000]: kinematic carrier loop failed:
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 162, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 177, in <module>
+    main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 162, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_localization_source.py", line 21, in <module>
+    localization_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/localization_node.py", line 138, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[WARN] [1795604815.966055, 398.089000]: [local] cancel accepted seq=5 scope=all
+[INFO] [1795604756.790862, 374.551000]: [local] obstacles ok: 6
+[INFO] [1795604771.065408, 379.646000]: [local] obstacles ok: 12
+[INFO] [1795604783.807360, 384.650000]: [local] obstacles ok: 16
+[INFO] [1795604795.933347, 389.849000]: [local] obstacles ok: 21
+[INFO] [1795604807.730059, 394.957000]: [local] obstacles ok: 16
+[INFO] [1795604821.441623, 400.057000]: [local] obstacles ok: 15
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py", line 18, in <module>
+    map_file_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/map_file_node.py", line 81, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+shutdown request: user request
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_dynamic_obstacles.py", line 22, in <module>
+    impl.DynamicObstaclesNode().spin()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/dynamic_obstacles_node.py", line 262, in spin
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[33m[ WARN] [1795604827.487290485, 402.681000000]: Shutdown request received.[0m
+[33m[ WARN] [1795604827.487487846, 402.681000000]: Reason given for shutdown: [user request][0m
+[0m[ INFO] [1795604754.595346599]: [bt] pose-based arrival mode (no planner_result_topic)[0m
+[0m[ INFO] [1795604754.641852583]: [bt] localization gate: /v8/local/localization_ok[0m
+[0m[ INFO] [1795604754.642074338]: [bt] cancel in /v8/bt/cancel, out /v8/local/cancel, ack in /v8/local/cancel_ack, policy in /v8/bt/goal_policy, mission in /v8/bt/goal_mission[0m
+[0m[ INFO] [1795604754.663741935]: [bt] tree loaded: /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/trees/navigate_with_planner.xml[0m
+[0m[ INFO] [1795604754.663840369]: [bt] planner input /v8/3d/global/goal, status /v8/3d/global/status[0m
+[0m[ INFO] [1795604754.663876439]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[0m[ INFO] [1795604768.964101388, 378.927000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795604769.014144770, 378.951000000]: [bt] goal 1 dequeued (0 waiting)[0m
+[0m[ INFO] [1795604769.014863140, 378.951000000]: [bt] global path requested for goal 1[0m
+[0m[ INFO] [1795604769.414126424, 379.110000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795604769.814097989, 379.232000000]: [bt] goal queued (depth=2, max=16)[0m
+[0m[ INFO] [1795604770.214070020, 379.400000000]: [bt] goal queued (depth=3, max=16)[0m
+[0m[ INFO] [1795604770.614044436, 379.539000000]: [bt] goal queued (depth=4, max=16)[0m
+[0m[ INFO] [1795604771.014131258, 379.624000000]: [bt] goal queued (depth=5, max=16)[0m
+[0m[ INFO] [1795604771.414119368, 379.775000000]: [bt] goal queued (depth=6, max=16)[0m
+[0m[ INFO] [1795604771.814062348, 379.917000000]: [bt] goal queued (depth=7, max=16)[0m
+[0m[ INFO] [1795604772.214082727, 380.040000000]: [bt] goal queued (depth=8, max=16)[0m
+[0m[ INFO] [1795604772.614106426, 380.201000000]: [bt] goal queued (depth=9, max=16)[0m
+[0m[ INFO] [1795604773.014148613, 380.321000000]: [bt] goal queued (depth=10, max=16)[0m
+[0m[ INFO] [1795604773.414197917, 380.471000000]: [bt] goal queued (depth=11, max=16)[0m
+[0m[ INFO] [1795604773.814069087, 380.617000000]: [bt] goal queued (depth=12, max=16)[0m
+[0m[ INFO] [1795604774.214116849, 380.741000000]: [bt] goal queued (depth=13, max=16)[0m
+[0m[ INFO] [1795604774.614035394, 380.907000000]: [bt] goal queued (depth=14, max=16)[0m
+[0m[ INFO] [1795604775.014146113, 381.026000000]: [bt] goal queued (depth=15, max=16)[0m
+[0m[ INFO] [1795604775.414284581, 381.191000000]: [bt] goal queued (depth=16, max=16)[0m
+[0m[ INFO] [1795604799.114144917, 391.256000000]: [bt] goal 2 dequeued (15 waiting)[0m
+[0m[ INFO] [1795604799.114213991, 391.256000000]: [bt] global path requested for goal 2[0m
+[0m[ INFO] [1795604799.214125857, 391.291000000]: [bt] goal queued (depth=16, max=16)[0m
+[ERROR] [1795604828.389390, 403.064000]: bad callback: <function main.<locals>.on_cloud at 0x735fdb78cdc0>
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
+    cb(msg)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/planner/far_node.py", line 537, in on_cloud
+    terrain_pub.publish(pc2.create_cloud(header, fields, levelled))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
+    raise ROSException("publish() to a closed topic")
+rospy.exceptions.ROSException: publish() to a closed topic
+
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_global_far.py", line 18, in <module>
+    raise SystemExit(far_node.main())
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/planner/far_node.py", line 659, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[31m[v8/3d/carrier/carrier-10] process has died [pid 1882700, exit code 1, cmd /opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py /cmd_vel:=/cmd_vel /v8_support_map:=/v8_support_map __name:=carrier __log:=/opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-carrier-carrier-10.log].
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-carrier-carrier-10*.log[0m
+[31m[v8/3d/loc/loc-3] process has died [pid 1882664, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_localization_source.py __name:=loc __log:=/opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-loc-loc-3.log].
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-loc-loc-3*.log[0m
+[31m[v8/3d/map/map-4] process has died [pid 1882665, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py __name:=map __log:=/opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-map-map-4.log].
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-map-map-4*.log[0m
+[31m[v8/3d/perception/perception-5] process has died [pid 1882666, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_dynamic_obstacles.py /v8/local/pose:=/v8/local/pose __name:=perception __log:=/opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-perception-perception-5.log].
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-perception-perception-5*.log[0m
+[31m[v8_global_far-2] process has died [pid 1882660, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_global_far.py __name:=v8_global_far __log:=/opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8_global_far-2.log].
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8_global_far-2*.log[0m
+]2;/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261125_105845/cancel_graph/graph.launch http://127.0.0.1:11313
+[1mprocess[far_planner-1]: started with pid [1882659][0m
+[1mprocess[v8_global_far-2]: started with pid [1882660][0m
+[1mprocess[v8/3d/loc/loc-3]: started with pid [1882664][0m
+[1mprocess[v8/3d/map/map-4]: started with pid [1882665][0m
+[1mprocess[v8/3d/perception/perception-5]: started with pid [1882666][0m
+[1mprocess[v8/bt/bt-6]: started with pid [1882667][0m
+[1mprocess[v8/3d/path_goal/path_goal-7]: started with pid [1882668][0m
+[1mprocess[v8/3d/local/local-8]: started with pid [1882674][0m
+[1mprocess[v8/3d/mux/mux3d-9]: started with pid [1882676][0m
+[1mprocess[v8/3d/carrier/carrier-10]: started with pid [1882700][0m
+[1m[far_planner-1] process has finished cleanly
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/far_planner-1*.log[0m
+[1m[v8/3d/local/local-8] process has finished cleanly
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-local-local-8*.log[0m
+[1m[v8/3d/mux/mux3d-9] process has finished cleanly
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-mux-mux3d-9*.log[0m
+[1m[v8/3d/path_goal/path_goal-7] process has finished cleanly
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-3d-path_goal-path_goal-7*.log[0m
+[1m[v8/bt/bt-6] process has finished cleanly
+log file: /opt/ros1-slam/logs/1ff9af7e-e8be-11f1-8496-42bc6aba034b/v8-bt-bt-6*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
