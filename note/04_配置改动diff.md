@@ -8789,3 +8789,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   说明厂商 FAR 节点未真正初始化（不是接线名错）。
   下一步：抓厂商 far_planner 的启动输出（`output="screen"` 却无输出 ⇒ 多半在加载配置/地图前就退出），
   并核对 `far_stack.launch` 期望的 config 与实际提供是否一致；**在此之前 FAR 四项记 INVALID，不记 FAIL**
+- ★FAR 后端"从未跑起来"的真因（同日，决定性）★：`roslaunch` 解析 `type="far_planner"` 时只在
+  **包源码目录**找可执行，而 overlay 是 devel 空间构建（二进制在 `devel/lib/far_planner/far_planner`）
+  ⇒ 启动日志里是 `ERROR: cannot launch node of type [far_planner/far_planner]: Cannot locate node of
+  type [far_planner] in package [far_planner]`，节点**根本没起**，BT 只能连续等 30 s 超时
+  （`global path timeout after 30.0 s`）。这解释了历史上 FAR 组合一直 INVALID——不是算法不行，是节点没跑。
+  修法：`tooling/far_overlay/build.sh` 末尾加"构建后把 devel 里的可执行在包内补成软链"（幂等、
+  不覆盖真实文件）；软链已加进 `.gitignore`（指向 devel，不入仓）。
+  验证：起 `far_stack.launch` 后 `rosnode list` 出现 `/far_planner`，`cannot launch node` 计数 **0**
+- 另有旁证：直接跑该二进制（不经 roslaunch）是正常的（打印 `V-Graph Initialized`、规划耗时），
+  说明二进制与 config 都没问题，问题只在 roslaunch 的可执行解析
