@@ -60,6 +60,12 @@ _far_prepend CMAKE_PREFIX_PATH "$FAR_OVERLAY_DIR/devel"
 _far_prepend LD_LIBRARY_PATH "$FAR_WS_DEVEL/lib"
 _far_prepend LD_LIBRARY_PATH "$FAR_OVERLAY_DIR/devel/lib"
 
+# CUDA 运行库（A 方案）：hdl_localization 的 nodelet 链依赖 fast_gicp 的 CUDA 后端，
+# 缺这条路径会在 dlopen 阶段报找不到 libcudart/libcublas。
+for _cuda in /usr/local/cuda-11.8/lib64 /usr/local/cuda/lib64; do
+  [ -d "$_cuda" ] && _far_prepend LD_LIBRARY_PATH "$_cuda"
+done
+
 _far_prepend PYTHONPATH "$FAR_WS_DEVEL/lib/python3/dist-packages"
 _far_prepend PYTHONPATH "$FAR_OVERLAY_DIR/devel/lib/python3/dist-packages"
 

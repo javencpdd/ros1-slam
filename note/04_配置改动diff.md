@@ -8624,3 +8624,19 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   处置建议：①给镜像装 CUDA 工具链并 `BUILD_VGICP_CUDA=ON` 重编 fast_gicp＋hdl；或②把 hdl 的配准后端改为
   CPU（`fast_gicp::NDT`／`ndt_omp`，仓内已有 `ndt_omp` 包）。二者都改动了既有 HDL 配置，超出"不破坏已通过配置"
   的边界，**留待真人裁定**。四项验收因此仍全部 INVALID，不假绿
+- ★A 方案（装 CUDA）执行结果（同日）★：按真人裁定走"装工具链 + 开 CUDA 重编"。
+  ①容器内装 CUDA 11.8 最小集（`cuda-nvcc-11-8`／`cuda-cudart-11-8`／`cuda-cudart-dev-11-8`／
+  `libcublas-dev-11-8`／`libcusparse-dev-11-8`／`libcusolver-dev-11-8`，来自 NVIDIA ubuntu2004 源）；
+  实测容器**有 GPU**（RTX 2060 SUPER，`nvidia-smi -L` 可见）且有 `libcuda.so`
+  ②用项目规范环境（`env -i … CPATH=/opt/ros/noetic/include`，另加 `CUDA_HOME=/usr/local/cuda-11.8`、
+  `-DBUILD_VGICP_CUDA=ON -DCUDA_TOOLKIT_ROOT_DIR=… -DCUDA_ARCH_BIN=7.5`）重编 fast_gicp＋hdl_localization：
+  **rc=0**。此前 `CUDA_cublas_LIBRARY NOTFOUND` 由补装 libcublas-dev 解决
+  ③验证：`ctypes.CDLL('libhdl_localization_nodelet.so')` 与 `libfast_vgicp_cuda.so` **均 dlopen OK**
+  （此前的 `undefined symbol: _ZN9fast_gicp7NDTCuda…setResolutionEd` 已消失）⇒ CUDA 硬依赖已被真实解决
+  ④`env.sh` 增补 `/usr/local/cuda-11.8/lib64` 到 `LD_LIBRARY_PATH`（否则运行期找不到 libcudart/libcublas）
+  ⑤★仍未闭合★：HDL nodelet 在 `velodyne_nodelet_manager` 内加载仍失败（清掉容器里别的会话遗留的
+  `mgr`/`gms` 管理器后，一次能加载但 120 s 内无 `/hdl_odom`；加 `use_global_localization:=true` 后又回到
+  `Failed to load nodelet`）。且 `/hdl_localization/status` 无消息、`/Odometry` 无数据
+  ⑥★镜像侧缺口（必须登记）★：`docker/Dockerfile:210` 明写"仿真本身不需要 NVIDIA GPU / `--gpus`，
+  纯 CPU + 软件渲染即可"——这与 HDL 的 CUDA 硬依赖**直接冲突**。本次 CUDA 工具链是**临时装进运行中的
+  容器**，镜像重建即丢失；若要长期维持 A 方案，须改 Dockerfile 并把 `BUILD_VGICP_CUDA=ON` 写进构建配置
