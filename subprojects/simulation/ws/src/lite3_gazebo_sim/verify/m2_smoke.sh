@@ -633,6 +633,20 @@ PYEOF
   rosnode kill -a 2>/dev/null; sleep 3; pkill -f gzserver 2>/dev/null; sleep 2
   # C-2 重定位：hdl 载入 sim_venue → /initialpose 注入真值邻域（±0.15m/5°）→ 三判据
   T_HDL0=$(date +%s)   # M2-R2C：稳定性判据计时起点（hdl 栈存活 ≥120s 观测窗）
+  # ★观测窗采样（2026-11-27 新增）★：只判"末了还在不在册"无法回答"谁先消失、第几秒消失"。
+  # 每 5 s 记一行：节点总数 / manager / relay / hdl_odom 是否有数据。循环自己在 125 s 退出。
+  ( while : ; do
+      _el=$(( $(date +%s) - T_HDL0 )); [ "$_el" -ge 125 ] && break
+      printf '%s t=%ss nodes=%s mgr=%s relay=%s odom=%s\n' \
+        "$(date +%H:%M:%S)" "$_el" \
+        "$(rosnode list 2>/dev/null | wc -l)" \
+        "$(rosnode list 2>/dev/null | grep -c '^/mgr$')" \
+        "$(rosnode list 2>/dev/null | grep -c 'imu_relay')" \
+        "$(timeout 2 rostopic hz /hdl_odom 2>/dev/null | grep -c 'average rate')" \
+        >> "$LOGDIR/stageC_alive.tsv"
+      sleep 5
+    done ) &
+  ALIVE_SAMPLER=$!
   local hdl_launch
   # 同 Stage B：`.profiles/x86_sim` 里有同内容的 lite3_bringup，包名解析会撞
   # RLException: multiple files named [...]; 优先用 ws/src 下的规范件。
@@ -722,6 +736,9 @@ PYEOF
   #    行），故 manifest「grep hdlC.log」扩为 hdlC.log + 本 launch 日志目录 *-stdout.log 双扫。
   ELAPSED=$(( $(date +%s) - T_HDL0 ))
   if [ "$ELAPSED" -lt 120 ]; then sleep $(( 120 - ELAPSED )); fi
+  wait "$ALIVE_SAMPLER" 2>/dev/null || true
+  say "[C] 观测窗采样首行：$(head -1 "$LOGDIR/stageC_alive.tsv" 2>/dev/null)"
+  say "[C] 观测窗采样末行：$(tail -1 "$LOGDIR/stageC_alive.tsv" 2>/dev/null)"
   ROSL_LOGDIR="${ROS_LOG_DIR:-$HOME/.ros}/logs"
   HDL_UUID=$(ls -t "$ROSL_LOGDIR" 2>/dev/null | head -1)
   HDL_STDOUT_GLOB="$ROSL_LOGDIR/$HDL_UUID"/*-stdout.log
