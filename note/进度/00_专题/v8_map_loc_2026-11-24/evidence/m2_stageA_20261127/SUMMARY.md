@@ -19,3 +19,10 @@ bt_outcome=reached dt=15.1 s（sim 时钟）dev_odom=0.097 dev_gt=0.095 pose_cla
 根因：`ws/.profiles/x86_sim/src` 有一份内容完全相同的 lite3_bringup，包名解析撞出
 RLException: multiple files named [mode_sim_bt.launch] ⇒ /clock 永不到 ⇒ 整段 FAIL。
 修法：优先用 ws/src 下的规范 launch（显式路径），找到才回退包名。
+
+## Stage C 干净重跑（2026-11-27 04:5x）：暴露坐标系偏移
+SMOKE initialpose=(0.150,-0.100,-5deg) gt=(0.000,0.000)
+SMOKE reloc conv=False dev=1046.597 worst30s=3508.262
+20Hz 逐样本 trace 见 stageC_trace_1046m.tsv：d 从 1046 m 增至 3508 m。
+⇒ 映射段生成的 sim_venue.pcd 在 Faster-LIO 的 camera_init 系里，与 Gazebo 世界坐标相差 ~1 km，
+   HDL 载入后位姿落在 map 系原点上，与 GT 无从比较；此前的 0.66 是在旧栈（已对齐）上测到的。
