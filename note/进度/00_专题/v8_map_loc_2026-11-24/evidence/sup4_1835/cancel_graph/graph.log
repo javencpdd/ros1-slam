@@ -1,0 +1,78 @@
+[INFO] [1795719176.437728, 2319.360000]: localization source=faster_lio navigation_allowed=True
+READY
+READY
+READY
+[33m[ WARN] [1795719202.627700713, 2330.734000000]: [bt] cancel requested seq=1 scope=all[0m
+[33m[ WARN] [1795719202.727580551, 2330.769000000]: [bt] cancel requested seq=1 scope=all[0m
+[ERROR] [1795719245.088160, 2348.743000]: kinematic carrier loop failed:
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 162, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 177, in <module>
+    main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 162, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_localization_source.py", line 21, in <module>
+    localization_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/localization_node.py", line 157, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[WARN] [1795719202.682011, 2330.752000]: [local] cancel accepted seq=1 scope=all
+[WARN] [1795719238.250039, 2346.084000]: [local] cancel accepted seq=5 scope=all
+Exception in thread Thread-14:
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node.py", line 522, in control_loop
+    controller.tick(lambda: rospy.Time.now().to_sec(), time.monotonic, rospy.Time.from_sec,
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node_control.py", line 254, in tick
+    out = publish_output(out, self.shared.get('pose_orientation'), stamp_factory(stamp_sec),
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node_control.py", line 47, in publish_output
+    command_pub.publish(message)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
+    raise ROSException("publish() to a closed topic")
+rospy.exceptions.ROSException: publish() to a closed topic
+[INFO] [1795719177.161052, 2319.674000]: [local] obstacles ok: 5
+[INFO] [1795719188.829407, 2324.780000]: [local] obstacles ok: 9
+[INFO] [1795719200.355986, 2329.785000]: [local] obstacles ok: 16
+[INFO] [1795719212.195398, 2334.881000]: [local] obstacles ok: 24
+[INFO] [1795719223.865364, 2339.978000]: [local] obstacles ok: 17
+[INFO] [1795719235.951388, 2345.081000]: [local] obstacles ok: 14
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py", line 18, in <module>
+    map_file_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/map_file_node.py", line 81, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
