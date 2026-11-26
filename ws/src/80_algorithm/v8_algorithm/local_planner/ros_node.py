@@ -196,9 +196,15 @@ def drop_task_on_pose_invalid(shared, now_wall, threshold_s):
 
 
 def accept_worker_result(shared, payload, wall_now):
-    """Old in-flight results cannot resurrect an invalidated pose/clock epoch."""
+    """Old in-flight results cannot resurrect an invalidated pose/clock epoch.
+
+    ★任务有效性在**所有出口**都校验★（真人 2026-11-26 第 3 条）：除了代次，
+    还要求该结果所属 mission 未被撤销 —— 否则"取消/定位失效之后"的晚到结果仍可能发出路径。
+    """
     if (payload['generation'] != shared['generation'] or shared.get('pose_error')
             or shared['stop_latched']):
+        return False
+    if int(shared.get('mission_id', 0)) <= int(shared.get('revoked_mission', -1)):
         return False
     if payload['ok']:
         result = payload.get('result')
@@ -435,6 +441,9 @@ def main():
             return
         seq, scope, reason = parsed
         with lock:
+            # ★取消＝任务撤销★：把当前 mission 记入撤销线，之后任何 revision 都不许复活
+            shared['revoked_mission'] = max(int(shared.get('revoked_mission', -1)),
+                                            int(shared.get('mission_id', 0)))
             shared.update(cancel_requested=True, cancel_seq=seq, cancel_reason=reason,
                           goal=None, result=None,
                           generation=shared['generation'] + 1,

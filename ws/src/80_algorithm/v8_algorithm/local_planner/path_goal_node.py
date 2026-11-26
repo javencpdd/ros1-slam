@@ -11,6 +11,7 @@ BT 的 wait_arrival 一直空等到超时 —— 实测 travel 恰好 0.308 m / 
 """
 import json
 import math
+import time
 
 import rospy
 from geometry_msgs.msg import PoseStamped
@@ -60,6 +61,10 @@ class PathGoal(object):
         self.cancel_topic = rospy.get_param('~cancel_topic', '/v8/local/cancel')
         self.arrive_m = float(rospy.get_param('~arrive_m', 0.30))
         self.advance_timeout_s = float(rospy.get_param('~advance_timeout_s', 8.0))
+        # ★单段最小目标距离★：local 是"给一个目标走一段"，目标离当前位姿太近时它不产生速度
+        # （实测：路径点间距 0.1 m，发出去之后 `mux reason=track` 而 cmd 恒零，车一动不动）。
+        # 这里要求推进后的目标至少离当前位姿这么远；接近终点时才允许更近（见 tick 的兜底）。
+        self.min_goal_m = float(rospy.get_param('~min_goal_m', 0.30))
         self.goal_pub = rospy.Publisher(self.goal_topic, PoseStamped, queue_size=10)
         self.status_pub = rospy.Publisher(self.status_topic, String, queue_size=10)
         self.poses = []
@@ -111,9 +116,18 @@ class PathGoal(object):
         self.pose = message.pose.position
 
     def on_cancel(self, message):
-        """立即清空活动路径；此后只有 stamp 更新的 path 才能重新武装。"""
+        """立即清空活动路径；此后只有 stamp 更新的 path 才能重新武装。
+
+        ★原子模式下取消＝任务撤销★（真人 2026-11-26 第 4 条）：撤销判据只能用
+        mission_id，不能靠时间戳 —— 旧任务重放时 timestamp 一定是新的，仅凭 stamp
+        区分不开"取消后的合法新任务"与"旧任务复活"。所以这里把当前 mission 记进
+        `revoked_mission`，之后 `mission_id <= 它` 的 path_task 一律拒绝。
+        """
         dropped = len(self.poses)
         self.cancelled_at = rospy.Time.now()
+        if getattr(self, 'task_meta', None):
+            self.revoked_mission = max(int(getattr(self, 'revoked_mission', -1)),
+                                       int(self.task_meta.get('mission_id', -1)))
         self.poses = []
         self.index = 0
         self.last_goal_key = None      # 取消后同坐标的新任务不得被去重吃掉
@@ -123,38 +137,81 @@ class PathGoal(object):
             'reason': message.data[:80]})))
 
     def on_path_task(self, message):
-        """原子路径：{identity..., poses:[[x,y,z],...]}。身份与点列一起到，不存在错配。"""
-        import types as _t
+        """★原子控制通道（唯一权威）★：`{identity..., poses:[[x,y,z],...]}`。
+
+        语义（真人 2026-11-26 第 3 条）：
+          · 完全重复（identity 与内容都相同）⇒ 什么都不做，不重置、不重发；
+          · 内容变化 ⇒ 必须带**合法的新 revision**（回退/相同皆拒）；
+          · 新路径的进度**按几何重算**（`_first_unreached`），不盲目沿用旧 index——
+            沿用旧 index 会在路径变短/换条时把目标指到已到达点或越界。
+        """
         try:
             value = json.loads(message.data)
-            poses = value.pop('poses')
+            raw_poses = value.pop('poses')
+            mission = int(value.get('mission_id', 0))
+            revision = int(value.get('path_revision', 0))
         except Exception:
             self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'path_task_malformed'})))
             return
-        if int(value.get('mission_id', -1)) <= int(getattr(self, 'revoked_mission', -1)):
-            self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'task_revoked',
-                                                            'mission_id': value.get('mission_id')})))
+        if mission <= int(getattr(self, 'revoked_mission', -1)):
+            # ★拒绝回执也要带撤销线★：验收探针要靠它选一个"在撤销线之上"的 mission 去播种，
+            # 否则只能猜编号 —— 猜小了会一直撞 task_revoked（看着像"系统锁死"）。
+            self.status_pub.publish(String(data=json.dumps({
+                'ok': False, 'reason': 'task_revoked', 'mission_id': mission,
+                'revoked_mission': int(getattr(self, 'revoked_mission', -1)),
+                'mission': (getattr(self, 'task_meta', None) or {}).get('mission_id')})))
             return
-        # ★同一任务/同一版本的滚动重发不得重置航点进度★：否则永远停在第一个航点（实测只走 0.3 m）。
-        new_key = (int(value.get('mission_id', 0)), int(value.get('path_revision', 0)))
-        old_key = getattr(self, 'task_key', None)
-        reset_index = (old_key != new_key)
-        self.task_key = new_key
-        self.task_meta = value
-        self.poses = [_t.SimpleNamespace(
-            pose=_t.SimpleNamespace(position=_t.SimpleNamespace(x=p[0], y=p[1], z=p[2])))
-            for p in poses]
-        if reset_index:
-            self.index = 0
-            self.last_goal_key = None
-        else:
-            self.index = min(int(getattr(self, 'index', 0)), max(len(self.poses) - 1, 0))
-        self.pending_meta = None
+        # 版本回退拒绝（同一 mission 内 revision 只能前进）
+        cur = getattr(self, 'task_meta', None)
+        if cur is not None and int(cur.get('mission_id', -1)) >= 0:
+            cur_mission = int(cur.get('mission_id', -1))
+            if mission < cur_mission:
+                # ★晚到的旧 mission★：没有撤销线也要拒 —— 否则"取消过的任务在下个任务之后
+                # 才到"会重新驱动 local，而撤销线只覆盖 cancel/loc-loss 两条路径。
+                self.status_pub.publish(String(data=json.dumps({
+                    'ok': False, 'reason': 'stale_mission', 'mission_id': mission,
+                    'mission': cur_mission,
+                    'revoked_mission': int(getattr(self, 'revoked_mission', -1)),
+                    'current': cur_mission})))
+                return
+            if mission == cur_mission and revision < int(cur.get('path_revision', 0)):
+                self.status_pub.publish(String(data=json.dumps({
+                    'ok': False, 'reason': 'stale_revision', 'revision': revision,
+                    'mission_id': mission, 'mission': cur_mission,
+                    'revoked_mission': int(getattr(self, 'revoked_mission', -1)),
+                    'current': int(cur.get('path_revision', 0))})))
+                return
+        # 完全重复：identity + 内容都相同 ⇒ 不动
+        signature = (mission, revision, json.dumps(raw_poses))
+        if getattr(self, 'task_signature', None) == signature and self.poses:
+            return
+        self.task_signature = signature
+        # ★完整载荷★：make_goal 会读 pose.header，缺 header 会 AttributeError（实测会静默不发布）
+        self.poses = []
+        for p in raw_poses:
+            ps = PoseStamped()
+            ps.header.frame_id = 'map'
+            ps.header.stamp = rospy.Time.now()
+            ps.pose.position.x, ps.pose.position.y, ps.pose.position.z = float(p[0]), float(p[1]), float(p[2])
+            ps.pose.orientation.w = 1.0
+            self.poses.append(ps)
+        self.task_meta = {k: int(value.get(k, 0)) for k in
+                          ('mission_id', 'path_revision', 'waypoint_index', 'execution_generation')}
         self.accepted_generation += 1
+        self.last_path_seq = mission
+        # ★单一控制通道★：原子路径生效后，legacy 的 Path/path_meta 不再改控制状态
+        self.atomic_mode = True
+        if not self.poses:
+            self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'empty_path'})))
+            return
+        self.index = self._first_unreached()      # 按几何重算，不沿用旧 index
+        self.last_goal_key = None
         self.publish_current()
 
     def on_path_meta(self, message):
-        """路径元信息先到一步，暂存待配对（单发布者 + TCP 保序 ⇒ 到达顺序可靠）。"""
+        """legacy 配对通道：原子模式下不再使用（跨 topic 无保序）。"""
+        if getattr(self, 'atomic_mode', False):
+            return
         try:
             self.pending_meta = json.loads(message.data)
         except Exception:
@@ -178,6 +235,11 @@ class PathGoal(object):
         self.published_at = None
 
     def on_path(self, message):
+        if getattr(self, 'atomic_mode', False):
+            # ★原子模式：legacy Path 只当可视化输入，不改控制状态★（三路写同一状态＝结构冲突）
+            self.status_pub.publish(String(data=json.dumps({'ok': True, 'legacy_ignored': True,
+                                                            'poses': len(message.poses)})))
+            return
         # ★任务身份优先★：meta 与 path 配对后，撤销判据看 mission_id（不看 seq / timestamp）
         meta = getattr(self, 'pending_meta', None)
         self.pending_meta = None
@@ -275,11 +337,17 @@ class PathGoal(object):
             if hasattr(self, 'goal_task_pub') and self.goal_task_pub is not None:
                 self.goal_task_pub.publish(String(data=json.dumps(task, ensure_ascii=False)))
         self.goal_pub.publish(goal)
-        self.published_at = rospy.Time.now()
+        # ★墙钟★：本节点没有 /clock 时 `rospy.Time.now()` 恒为 0，超时判据永远不成立，
+        # 于是"卡住就往前推一格"的兜底彻底失效（实测 index 冻结 139 s 不动）。
+        self.published_at = time.monotonic()
         rest = self.remaining()
         self.status_pub.publish(String(data=json.dumps({
             'ok': True, 'generation': self.accepted_generation,
             'rejected_stale': self.rejected_stale,
+            # ★暴露任务号与撤销线★：验收探针要"在撤销线之上"播种一条新任务来证明
+            # 取消只封旧 mission（不能靠猜编号，那会造出假绿/假红）。
+            'mission': (getattr(self, 'task_meta', None) or {}).get('mission_id'),
+            'revoked_mission': getattr(self, 'revoked_mission', -1),
             'poses': len(self.poses), 'index': self.index + 1,
             'remaining_m': None if rest is None else round(rest, 3),
             'goal': [round(goal.pose.position.x, 3), round(goal.pose.position.y, 3),
@@ -287,16 +355,35 @@ class PathGoal(object):
             'frame': goal.header.frame_id})))
 
     def tick(self, _event):
-        if self.cancelled_at is not None:
+        """推进航点：当前目标"到了/太近/卡住超时"就往前找一个**够远**的点，只发一次。
+
+        三条实测约束（2026-11-26，靠 `nav_timeline.tsv` 才看清）：
+          ① local 每段只走 `max_step_m`（0.30 m）就停，必须给新目标才继续；
+          ② 目标离当前位姿太近（路径点间距仅 0.1 m）时它**不产生速度**： timeline 里
+             `mux reason=track` 而 `cmd` 恒零，车不动，看起来像"卡死"；
+          ③ 兜底超时不能依赖 `rospy.Time.now()`：该节点没有 `/clock` 时它恒为 0，
+             超时永不成立 ⇒ index 冻结（实测 139 s 一直是 index=5/14）。
+        所以：按墙钟判超时，并且推进时**跳过**那些离位姿 < `min_goal_m` 的点（末段兜底发最后一点）。
+        """
+        if self.cancelled_at is not None or not self.poses or self.pose is None:
             return
-        if not self.poses or self.index >= len(self.poses) - 1:
+        now = time.monotonic()
+        stale = (self.published_at is not None
+                 and now - self.published_at > self.advance_timeout_s)
+        cur = self.poses[self.index].pose.position
+        rest = math.hypot(cur.x - self.pose.x, cur.y - self.pose.y)
+        if rest > self.min_goal_m and not stale:
             return
-        rest = self.remaining()
-        stale = (self.published_at is not None and
-                 (rospy.Time.now() - self.published_at).to_sec() > self.advance_timeout_s)
-        if (rest is not None and rest <= self.arrive_m) or stale:
-            self.index += 1
-            self.publish_current()
+        for i in range(self.index + 1, len(self.poses)):
+            p = self.poses[i].pose.position
+            if math.hypot(p.x - self.pose.x, p.y - self.pose.y) >= self.min_goal_m:
+                self.index = i
+                self.publish_current()
+                return
+        # 兜底：后面没有"够远"的点了 ⇒ 直接以最后一点为目标（末段可能很近，但必须发出，
+        # 否则永远到不了终点）。同一坐标重复发会被 publish_current 的去重键吃掉，不会刷屏。
+        self.index = len(self.poses) - 1
+        self.publish_current()
 
 
 def main():

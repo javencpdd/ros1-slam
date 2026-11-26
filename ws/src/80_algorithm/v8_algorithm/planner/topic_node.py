@@ -159,6 +159,7 @@ def main():
                      on_pose('start'), queue_size=1)
     def on_goal_task(message):
         """★原子任务★：身份与位姿同一条消息，直接设置 state（不依赖跨话题顺序）。"""
+        state['atomic_goal'] = True
         try:
             value = json.loads(message.data)
         except Exception:
@@ -176,6 +177,8 @@ def main():
                      _String, on_goal_task, queue_size=5)
 
     def on_goal_meta(message):
+        if state.get('atomic_goal'):
+            return          # ★原子模式下 legacy meta 不参与★
         try:
             value = json.loads(message.data)
         except Exception:
@@ -189,6 +192,8 @@ def main():
     _goal_cb = on_pose('goal')
 
     def on_goal(message):
+        if state.get('atomic_goal'):
+            return          # ★原子目标已在用，legacy goal 不再改 state★
         # 记录任务代次后再走通用路径（顺序无关，但要保证 run() 读到的是本任务的值）
         try:
             state['goal_seq'] = int(getattr(message.header, 'seq', 0) or 0)
