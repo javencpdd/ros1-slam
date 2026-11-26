@@ -549,6 +549,14 @@ PYEOF
 
 # ============ Stage C：hdl 重定位（M2-3） ============
 stage_c() {
+  # ★段首硬清场★（2026-11-27 实测）：上一轮残留的 gazebo/rosmaster/launch 会让本段的
+  # `wait_topic` 立刻通过（连着旧栈），驱动却跑在旧状态上、结果文件不产出，
+  # 表现为 "驱动未产出结果文件"。这里先按进程面清干净再起。
+  pkill -f gzserver 2>/dev/null; pkill -f gzclient 2>/dev/null
+  pkill -f "roslaunch.*m2_" 2>/dev/null; pkill -f "roslaunch.*mode_sim_" 2>/dev/null
+  pkill -f run_mapping_online 2>/dev/null; pkill -f sim_adapter 2>/dev/null
+  pkill -f "rosmaster --core -p 11313" 2>/dev/null
+  sleep 4
   SEG=C
 # _strip_profiles  # 同上：改用显式 launch 路径解决重复包
   # C-1 建图（pcd_save:=true）：复用 Stage A 驱动序列走一遍（out/turn/back），优雅 SIGINT 落盘
