@@ -468,7 +468,15 @@ PYEOF
 stage_c() {
   SEG=C   # R26 三：本段退净按段各检一次
   # C-1 建图（pcd_save:=true）：复用 Stage A 驱动序列走一遍（out/turn/back），优雅 SIGINT 落盘
+  # ★先挂一个 /livox/lidar 订阅者★（2026-11-27 实测）：该 mid360 插件**在有订阅者之后**才发布点云，
+  # 冷启动时 `wait_topic /rslidar_points` 会等到超时（实跑三次都卡在这里，插件日志却显示已加载）。
+  # 这里只是让传感器激活，不改变任何判据，也不重打时间戳。
   roslaunch lite3_gazebo_sim m2_gazebo.launch > "$LOGDIR/gazeboC.log" 2>&1 &
+  # ★顺序很关键★（2026-11-27 实测两次）：master 是**这个 launch 拉起来的**，抢在它之前挂订阅者
+  # 只会得到 "Unable to communicate with master!"。正确做法＝先等 master 就绪，再挂**常驻**订阅者
+  # （`-n1` 拿到一条就退出，传感器随即失活，实测仍等不到 /rslidar_points）。
+  for _ in $(seq 1 60); do rostopic list >/dev/null 2>&1 && break; sleep 1; done
+  timeout 600 rostopic hz /livox/lidar > "$LOGDIR/livox_primed.log" 2>&1 &
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出"; return 1; }
   wait_topic /livox/imu 300 || { echo "FAIL C: /livox/imu 未出"; return 1; }
   roslaunch lite3_gazebo_sim m2_mapping.launch pcd_save:=true > "$LOGDIR/mappingC.log" 2>&1 &
