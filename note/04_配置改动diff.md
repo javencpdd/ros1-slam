@@ -9185,3 +9185,32 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `E_LOCAL_NOT_READY`（pose/obstacles/localization 都在，缺 map 与 goal）。
   `collision_evidence_probe` 已就位但这一轮**没有捕获到碰撞现场**——local 从未就绪，
   所以"读 collision 对象再复放"这一步要等 map/goal 恢复后才做得了。
+
+## 2026-11-26 / T-20261126-08 支撑地图"缺失"证伪、原子模式禁回退、地图组合可核验
+
+- **`/v8_support_map` 并没有缺失**：它是 **latched 静态地图**，map_file_node 只发一次，`rostopic hz`
+  对这类话题恒为 0。用 `rostopic info`（有 publisher `/v8/3d/map/map`）、`echo -n1`（拿到
+  `map_id=v8_m1_hdl / resolution=0.1 / origin=[-0.5,-5.2,0] / 130x112`）与 `/v8_map_status`
+  （`ok=true / sha256=43e0d48f…`）三路核实，数据在。前一轮据此判"缺失"是**探针口径错**，
+  已改正；没有改成周期重发。
+- **FAR 的真实断点不在 map**：FAR 图里 `/v8/3d/global/path_task` 为 0 帧的根因是
+  **`/way_point` 一帧不出**（BT 的 `outcome=failed, path_state=idle, path_points=0`），
+  即 FAR 自身没算出路径；`/terrain_cloud` 2.5 Hz 正常、`/v8_support_map` 在、local 也订阅了它。
+- **原子模式禁止启动回退**（裁决②）：`far_node` 增 `~atomic_only`（默认 true），`goal_meta`/legacy goal
+  从第一帧起就不参与身份。单测补两条：
+  `test_waypoint_cannot_create_mission`（航点永不建 mission）、
+  `test_late_waypoint_beyond_window_is_known_limitation`（**超过 300 ms 的旧航点仍会被打上新 mission 标号
+  —— 记为已知残余风险，不是通过项**；因为 `/way_point` 本身无身份，只能靠"身份只来自 goal_task +
+  航点不得建任务 + 有效航点才推 revision"三条保证）。planner 全量 **80 项 OK**。
+- **地图组合从"登记"变成"可核验"**：新增 `scripts/verify/check_map_combo.py`，解析四件套
+  （world / pcd / support_json / task_json）并记路径与 sha256，`--from-ros` 直接读 `/v8_map_status`，
+  按 `map_file_node` 同口径（**规范化 JSON 串**的 sha256，不是文件字节）判等。
+  **实测抓到一处登记与实载不符**：`m1_slam.json` 原写 `mapped_m1_v1.json`，而运行期 sha 对应
+  `v8_m1_hdl_v1.json`，已按实载修正；现跑 `VERDICT PASS`，
+  四件套 sha256 分别为 world `fb52d5e6…`、pcd `b9bad7cd…`、support `e92ccbae…`（规范化 `43e0d48f…`，
+  与运行期一致）、task `cc2b8104…`。
+- 组合配置放在 `ws/.../framework/fixtures/map_combos/`：容器按**子目录**挂载仓库，
+  新顶层目录（如 `configs/`）在容器里不可见，且 `data/maps/*` 被 gitignore 无法固化。
+- **TF 报告口径修正**（裁决③）：`0.493 m` 落在 0.40–0.50 m 内，`0.542 m` 才超限；
+  后者才是当前严格同帧读数（`pitch 13.92°`、地图地面 tilt 1.09°/z0 0.001 m）。变换闭合
+  （复合残差 8.9e-16 m/0°）只证明 TF 链条自洽，**不证明三维定位准确**。P0 继续记"改善、待验收"。
