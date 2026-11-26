@@ -35,6 +35,13 @@ GATE_OUT=${GATE_OUT:-$([ "$M2" = "1" ] && echo /Odometry_gated || echo /hdl_odom
 GATE_NAME=${GATE_NAME:-$([ "$M2" = "1" ] && echo m2_gate || echo hdl_gate)}
 # ★必须 export★：到达核对那段是内联 python，靠 os.environ 读 POSE_TOPIC；
 # 不导出时它永远回退到 /hdl_odom（M2 组合下必然超时，失败日志已证实）。
+# ★观测窗口必须 ≥ 系统自己的到达预算★（2026-11-26 修）：
+# BT 会按路径长度算 `arrival budget`（本走廊 1.30 m ⇒ 65.0 s，日志逐次打印）。
+# 原窗口 45 s **短于系统自己的预算** ⇒ 只要任务按预算节奏走完，探针也已经在 45 s 收工，
+# 读数必然"没到"（实测 est_travel=0.89 m / 45 s，恰是每步靠 8 s 推进超时攒出来的）。
+# 窗口取 140 s＝预算 65 s + 步进式推进（local 每段 0.30 m 就停，要等新航点）的余量；
+# 实测同一走廊的完成时间在 60–130 s 之间抖动，窗口短于这个上界会把"慢但正确"判成失败。
+NAV_WINDOW=${NAV_WINDOW:-140}
 export POSE_TOPIC
 # ★断流锚按组合取★：HDL 锚 /hdl_odom（asan 的 relay 输出），M2 锚闸门输出 /Odometry_gated
 ANCHOR_TOPIC=${ANCHOR_TOPIC:-$([ "$M2" = "1" ] && echo "$GATE_OUT" || echo /hdl_odom)}
@@ -109,7 +116,8 @@ reset_stack() {
     # 就绪判定放在**图起来之后**（见函数末尾），判的是 loc 真正消费的位姿话题。
     say "[$tag] M2 验收模式（闸门由图内 lio_gate 组件提供）"
   else
-    SKIP_GAZEBO=1 MODE=normal DUR=8 WAIT_SCAN=40 INIT_X=$START_X INIT_Y=$START_Y \
+    SKIP_GAZEBO=1 NO_LAUNCH_GAZEBO=1 MODE=normal DUR=8 WAIT_SCAN=40 \
+      INIT_X=$START_X INIT_Y=$START_Y \
       bash $REPO/scripts/verify/asan_hdl_repro.sh > "$EV_ROOT/${tag}_repro.log" 2>&1
   fi
   # ★2026-11-25：GRAPH/EXPECT_NODES 透传★（只换后端，不改任何参数）。
@@ -119,19 +127,22 @@ reset_stack() {
       ${POSE_TOPIC:+POSE_TOPIC="$POSE_TOPIC"} \
       SKIP_PROBE=1 NO_GOAL="$no_goal" START_X=$START_X START_Y=$START_Y GOAL_X=$GOAL_X GOAL_Y=$GOAL_Y \
     EV="$EV_ROOT/${tag}_graph" bash $REPO/scripts/verify/p4_nav_hdl.sh > "$EV_ROOT/${tag}_setup.log" 2>&1
-  if [ "$M2" = "1" ]; then
-    # ★就绪判定：看"实际消费的位姿话题"有没有连续数据★（不是原始 /Odometry）。
-    # 闸门没起来/没转发时这里会明确报错，而不是让后续用例集体 INVALID 却看不出原因。
-    local ready=0 tick
-    for _ in $(seq 1 20); do
-      sleep 2
-      tick=$(timeout 4 rostopic hz "$POSE_TOPIC" 2>/dev/null | tail -1)
-      case "$tick" in *"average rate"*) ready=1; break ;; esac
-    done
-    if [ "$ready" != "1" ]; then
-      say "[$tag] ABORT：定位输入未就绪（$POSE_TOPIC 无连续数据）——拒绝在无定位状态下做验收"
-      return 9
-    fi
+  # ★就绪判定：两种组合都做，看"实际消费的位姿话题"有没有连续数据★（不是原始 /Odometry）。
+  # 闸门没起来/没转发时这里会明确报错，而不是让后续用例集体 INVALID 却看不出原因。
+  # ★判据不能用 `tail -1`★（2026-11-26 修）：`rostopic hz` 的输出是两行——
+  #   `average rate: 9.606` ／ `\tmin: … max: … window: N`
+  # 取最后一行永远拿到 min/max 那行 ⇒ `case … "average rate"` 恒不匹配 ⇒ 就绪判定**恒假**，
+  # 明明 /hdl_odom 9.6 Hz 也判"无连续数据"、四个用例集体 ABORT（现场读数见 05:21 那轮 run.log）。
+  # 正确做法是判整段输出里有没有 "average rate"，不能只看某一行。
+  local ready=0 out
+  for _ in $(seq 1 20); do
+    sleep 2
+    out=$(timeout 4 rostopic hz "$POSE_TOPIC" 2>/dev/null || true)
+    printf '%s' "$out" | grep -q "average rate" && { ready=1; break; }
+  done
+  if [ "$ready" != "1" ]; then
+    say "[$tag] ABORT：定位输入未就绪（$POSE_TOPIC 无连续数据）——拒绝在无定位状态下做验收"
+    return 9
   fi
   local n
   n=$(rosnode list 2>/dev/null | grep -cE '^/v8' || true)
@@ -139,28 +150,45 @@ reset_stack() {
   [ "$n" -ge 9 ] || say "[$tag] WARN 装配不全（$n/9），本项结果不可信"
 }
 
+# ★目标只能发一条★（2026-11-26 修）：`/v8/bt/goal` 是 **FIFO 多任务入口**，
+# 每收到一条就 `current_seq=++goal_seq` 入队；`rostopic pub -r 5` 三秒＝15 个任务 ⇒
+# 同一件事被拆成 15 个 mission：每出队一个就重发全局路径 + `follow path`，
+# 且"出队下一个"会把上一个记成 `goal_outcome=reached` ⇒ BT 报到达而车还差 0.6 m
+# （实测 est_to_goal=0.595 / gt=0.677，bt=reached）。三处用例失败同源于此。
+send_start() {
+  timeout 3 rostopic pub -r 5 /v8/3d/global/start geometry_msgs/PoseStamped \
+    "{header: {frame_id: map}, pose: {position: {x: $1, y: $2}, orientation: {w: 1.0}}}" >/dev/null 2>&1
+}
+
+send_goal_once() {  # $1=x $2=y $3=输出 json
+  python3 "$REPO/scripts/verify/bt_goal_once.py" --x "$1" --y "$2" --out "$3" \
+    > "${3%.json}.log" 2>&1
+}
+
 case_nav() {
   say '=== 1 正常导航 ==='
-  reset_stack nav
+  # ★探针先就绪、再下发任务★：先把图起好（不发目标），探针起订阅，再由正式入口发 start+goal。
+  # 反序（先发目标再起探针）会漏掉起步段，也算不出连续采样覆盖。
+  reset_stack nav 1 || { say '=== 1 正常导航：前置未就绪，用例阻断 ==='; return 9; }
+  # ★并行留时间线★（2026-11-26）：导航偶发"只走 0.3–0.9 m 就停"时，只看末端读数分不清
+  # 是 path_goal 没推进、local 拒绝、mux 拦了还是 BT 结束任务。这条 TSV 每次都留，
+  # 出事时能直接看"谁在停"。成本是每 0.1 s 一条记录，可忽略。
+  python3 $REPO/scripts/verify/loc_timeline_probe.py --seconds "$NAV_WINDOW" \
+    --out "$EV_ROOT/nav_timeline.tsv" > "$EV_ROOT/nav_timeline.log" 2>&1 &
+  local tp=$!
   python3 $REPO/scripts/verify/p4_nav_probe.py --goal-x "$GOAL_X" --goal-y "$GOAL_Y" \
     --pose-topic "$POSE_TOPIC" \
-    --duration 40 --out "$EV_ROOT/nav_probe.json" > "$EV_ROOT/nav_probe.log" 2>&1
-  sleep 5   # 停稳后再量真实到达误差，避免运动末段的非同步采样
-  python3 - "$GOAL_X" "$GOAL_Y" "$EV_ROOT/nav_arrival.json" <<'PY'
-import json, math, os, sys
-import rospy
-from nav_msgs.msg import Odometry
-gx, gy, out = float(sys.argv[1]), float(sys.argv[2]), sys.argv[3]
-rospy.init_node('arrival_check', anonymous=True)
-e = rospy.wait_for_message(os.environ.get('POSE_TOPIC', '/hdl_odom'), Odometry, timeout=8).pose.pose.position
-g = rospy.wait_for_message('/sim/odom_gt', Odometry, timeout=8).pose.pose.position
-res = {'est_to_goal_m': round(math.hypot(e.x - gx, e.y - gy), 3),
-       'gt_to_goal_m': round(math.hypot(g.x - gx, g.y - gy), 3),
-       'est_gt_gap_m': round(math.hypot(e.x - g.x, e.y - g.y), 3),
-       'verdict': 'PASS' if math.hypot(g.x - gx, g.y - gy) <= 0.15 else 'FAIL'}
-print(json.dumps(res, ensure_ascii=False))
-open(out, 'w').write(json.dumps(res, ensure_ascii=False) + '\n')
-PY
+    --duration "$NAV_WINDOW" --out "$EV_ROOT/nav_probe.json" > "$EV_ROOT/nav_probe.log" 2>&1 &
+  local np=$!
+  sleep 4                      # 给探针完成订阅/采样就绪
+  send_start "$START_X" "$START_Y"
+  send_goal_once "$GOAL_X" "$GOAL_Y" "$EV_ROOT/nav_goal_once.json" || \
+    say '[nav] WARN 目标未被 BT 受理（见 nav_goal_once.log）'
+  wait $np 2>/dev/null
+  wait $tp 2>/dev/null
+  sleep 5
+  python3 $REPO/scripts/verify/nav_arrival_check.py "$GOAL_X" "$GOAL_Y" "$EV_ROOT/nav_arrival.json" \
+    > "$EV_ROOT/nav_arrival.log" 2>&1
 }
 
 case_obstacle() {
@@ -181,9 +209,10 @@ case_obstacle() {
   # ★2b 运动中障碍（在线）★：离线回归只验算法本身，证不了"整条链在运动中真的会停/绕"。
   # 这里让车真的朝目标走，途中在它前方投一个箱子，断言不穿透 + 有响应（停≥0.5s 或横移≥0.10m）。
   say '=== 2b 运动中障碍（在线）==='
-  reset_stack obstacle 1
-  python3 $REPO/scripts/verify/goal_until_motion.py --x "$GOAL_X" --y "$GOAL_Y" \
-    --timeout-s 45 --out "$EV_ROOT/obstacle_goal.json" > "$EV_ROOT/obstacle_goal.log" 2>&1 &
+  reset_stack obstacle 1 || { say '=== 2b 运动中障碍：前置未就绪，用例阻断 ==='; return 9; }
+  send_start "$START_X" "$START_Y"
+  send_goal_once "$GOAL_X" "$GOAL_Y" "$EV_ROOT/obstacle_goal_once.json" || \
+    say '[obstacle] WARN 目标未被 BT 受理（见 obstacle_goal_once.log）' &
   local gp=$!
   sleep 6
   python3 $REPO/scripts/verify/obstacle_inmotion_probe.py \
@@ -195,7 +224,7 @@ case_obstacle() {
 
 case_loc() {
   say '=== 3 定位失效（只断定位数据）==='
-  reset_stack loc 1
+  reset_stack loc 1 || { say '=== 3 定位失效：前置未就绪，用例阻断 ==='; return 9; }
   # 闸门 relay：杀它只断 /hdl_odom，master 与导航进程都不受影响。
   # 探针在「首帧非零命令」时下手，不靠固定 sleep（运动窗口只有 2 s 上下）。
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode stop --hold-s 24 \
@@ -205,8 +234,9 @@ case_loc() {
     > "$EV_ROOT/loc_stop.log" 2>&1 &
   local pp=$!
   sleep 6
-  python3 $REPO/scripts/verify/goal_until_motion.py --x "$GOAL_X" --y "$GOAL_Y" \
-    --timeout-s 45 --out "$EV_ROOT/loc_goal.json" > "$EV_ROOT/loc_goal.log" 2>&1
+  send_start "$START_X" "$START_Y"
+  send_goal_once "$GOAL_X" "$GOAL_Y" "$EV_ROOT/loc_goal_once.json" || \
+    say '[loc] WARN 目标未被 BT 受理（见 loc_goal_once.log）'
   wait $pp
   cat "$EV_ROOT/loc_stop.json" 2>/dev/null
   # ★恢复段：把定位闸门重新拉起来，断言车不自行复动★
@@ -238,14 +268,13 @@ case_loc() {
   local tp=$!
   sleep 2
   python3 "$REPO/scripts/verify/p4_nav_probe.py" --goal-x "$GOAL_X" --goal-y "$GOAL_Y" \
-    --pose-topic "$POSE_TOPIC" --duration 45 \
+    --pose-topic "$POSE_TOPIC" --duration "$NAV_WINDOW" \
     --out "$EV_ROOT/loc_rearm_nav.json" > "$EV_ROOT/loc_rearm_nav.log" 2>&1 &
   local np=$!
   sleep 3
-  timeout 2 rostopic pub -r 5 /v8/3d/global/start geometry_msgs/PoseStamped \
-    "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
-  timeout 2 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
-    "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
+  send_start "$START_X" "$START_Y"
+  send_goal_once "$GOAL_X" "$GOAL_Y" "$EV_ROOT/loc_rearm_goal_once.json" || \
+    say '[3b] WARN 目标未被 BT 受理（见 loc_rearm_goal_once.log）'
   wait $np 2>/dev/null
   wait $tp 2>/dev/null
   python3 - "$EV_ROOT" <<'PYEOF'
@@ -287,26 +316,25 @@ case_cancel() {
   # 取消测试要一条「够长、够宽」的走廊：目标是 1.3 m 外的 (3.9, 2.45)，
   # 净宽 2.8 m。太近（0.65 m）会被算法位姿 0.24 m 的偏置判成"已到达"，车根本不动。
   START_X=$CANCEL_START_X START_Y=$CANCEL_START_Y \
-    GOAL_X=$CANCEL_GOAL_X GOAL_Y=$CANCEL_GOAL_Y reset_stack cancel 1
-  # ★目标必须在车动起来的那一刻停发★：取消之后再进来新目标，系统重新起步是
-  # 正确行为，会被误读成"取消没生效"。goal_until_motion 就干这件事。
+    GOAL_X=$CANCEL_GOAL_X GOAL_Y=$CANCEL_GOAL_Y reset_stack cancel 1 || {
+      say '=== 4 取消：前置未就绪，用例阻断 ==='; return 9; }
+  # ★目标只发一条★：取消之后若还有目标进来，系统重新起步是正确行为，会被误读成
+  # "取消没生效"——`send_goal_once` 发一条并确认受理，不再连续刷。
   # ★注入前必须在动★：历史证据里出现过 moving_at_inject=false —— 那种情况下"取消后不动"
   # 不能证明取消生效。这里先等到真值速度非零，再开始注入窗口。
-  local mv=0 vv
-  for _ in $(seq 1 60); do
-    sleep 1
-    vv=$(timeout 3 rostopic echo -n1 /cmd_vel/linear/x 2>/dev/null | head -1)
-    if [ -n "$vv" ] && [ "$vv" != "0.0" ]; then mv=1; break; fi
-  done
-  [ "$mv" = "1" ] || say '[cancel] WARN 注入前未取得运动（本项将按 INVALID 记）'
+  # ★删掉"先等一次 /cmd_vel 非零"的预检★（2026-11-26）：它每秒起一个 rostopic 进程，
+  # 冷启动本身就要 ~1 s，等于在"没看"的状态下耗掉最宝贵的第一步窗口；而且它只是打印一句 WARN，
+  # 真正的"等运动"由 motion_interrupt_probe 自己做（并且现在还会等"此刻仍在动"）。
+  # 实测：该预检报"未取得运动"，而探针在同一轮里 motion_seen=true —— 预检只贡献噪音与延迟。
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode cancel --hold-s 26 \
     --wait-motion-s 90 --inject-delay-s 1.5 \
     --out "$EV_ROOT/cancel.json" --dump "$EV_ROOT/cancel_series.tsv" \
     > "$EV_ROOT/cancel.log" 2>&1 &
   local pp=$!
   sleep 6
-  python3 $REPO/scripts/verify/goal_until_motion.py --x "$CANCEL_GOAL_X" --y "$CANCEL_GOAL_Y" \
-    --timeout-s 45 --out "$EV_ROOT/cancel_goal.json" > "$EV_ROOT/cancel_goal.log" 2>&1
+  send_start "$CANCEL_START_X" "$CANCEL_START_Y"
+  send_goal_once "$CANCEL_GOAL_X" "$CANCEL_GOAL_Y" "$EV_ROOT/cancel_goal_once.json" || \
+    say '[cancel] WARN 目标未被 BT 受理（见 cancel_goal_once.log）'
   wait $pp
   cat "$EV_ROOT/cancel.json" 2>/dev/null
   # 活体反控：同一进程里先取消、再喂旧 stamp 路径（必须被拒）、再喂新 stamp（必须被收）

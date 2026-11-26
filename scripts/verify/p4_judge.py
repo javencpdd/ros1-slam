@@ -153,6 +153,9 @@ def judge_cancel(root):
         return 'INVALID', '缺 cancel.json', '-'
     if not d.get('motion_seen'):
         return 'INVALID', '注入前未取得非零运动', '-'
+    # ★注入瞬间必须仍在动★：moving_at_inject=false 说明"取消后不动"什么也没证明（历史证据里出现过）
+    if not d.get('moving_at_inject'):
+        return 'INVALID', '注入时已停（取消语义未被验证）', '-'
     zero_sim = d.get('zero_window_sim_s')
     covers = d.get('gt_covers_5s_sim')
     move = d.get('gt_move_within_5s_sim_m')
@@ -167,7 +170,7 @@ def judge_cancel(root):
         ok = ok and bool(replay.get('pass'))
         replay_txt = 'replay=%s' % ('PASS' if replay.get('pass') else 'FAIL')
     else:
-        # ★缺 replay 不能当"未验"放过★：取消重放（旧 stamp 必被拒）是取消语义的活体反控，
+        # ★缺 replay 不能当"未验"放过★：取消重放（同一条 mission 重放必被拒）是取消语义的活体反控，
         # 缺这份证据就说明反控没跑，按 FAIL 计。
         ok = False
         replay_txt = 'replay=缺'

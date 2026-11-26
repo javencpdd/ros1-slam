@@ -53,12 +53,13 @@ run_case() {  # $1=hdl|no-hdl
   timeout 3 rostopic pub -r 3 /v8/3d/global/start geometry_msgs/PoseStamped \
     "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
   sleep 1
-  timeout 3 rostopic pub -r 3 /v8/bt/goal geometry_msgs/PoseStamped \
-    "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y}, orientation: {w: 1.0}}}" >/dev/null 2>&1
+  # ★单发★：重复发会把同一个目标拆成多个 mission（BT 是 FIFO 多任务队列）
+  python3 "$(dirname "${BASH_SOURCE[0]}")/bt_goal_once.py" --x "$GOAL_X" --y "$GOAL_Y" \
+    --out "$d/goal_once.json" >/dev/null 2>&1
   sleep 22
 
   {
-    echo "hdl_odom_pubs=$(rostopic info /hdl_odom 2>/dev/null | sed -n '/Publishers/,$p' | grep -c '^ \*')"
+    echo "hdl_odom_pubs=$(rostopic info /hdl_odom 2>/dev/null | sed -n '/^Publishers:/,/^Subscribers:/p' | grep -c '^ \*')"
     echo "hdl_odom_hz=$(timeout 6 rostopic hz /hdl_odom 2>/dev/null | tail -1)"
     echo "path_hz=$(timeout 6 rostopic hz /v8/3d/global/path 2>/dev/null | tail -1)"
     echo "localgoal_hz=$(timeout 6 rostopic hz /v8/local/goal 2>/dev/null | tail -1)"

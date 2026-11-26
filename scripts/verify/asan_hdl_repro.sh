@@ -91,8 +91,33 @@ STDBUF_LIB=/usr/lib/x86_64-linux-gnu/coreutils/libstdbuf.so
 # 占位恒等桥，launch 注释写明「凡本台引入 hdl／faster_lio 等发 map 系的节点，必须注释掉本节点」。
 # 不退位就会出现两个源同时发 map→odom，TF 树成环/多父。
 say "--- [1] 启动 Gazebo（map_to_odom=false）---"
-if [ "${SKIP_GAZEBO:-0}" = "1" ] && hz_probe /rslidar_points; then
-  say "复用已在跑的 Gazebo（SKIP_GAZEBO=1 且 /rslidar_points 有数据）"
+# ★NO_LAUNCH_GAZEBO=1：只许复用，不许再起一个★（2026-11-26 实测事故）
+# 调用方（docker/sim.sh）已经起好 Gazebo，本脚本带 SKIP_GAZEBO=1 进来；但这里的 hz_probe 是
+# **瞬时**判据，而 roslaunch 起到传感器出数据要 20–30 s ⇒ 判假后走 else 分支又起一个 Gazebo，
+# 结果两个 gzserver 抢同一份物理，`/rslidar_points` 出现 2 个发布者、10 个 `/clock` 发布者，
+# 整轮验收的读数全部失真（而且现象很像"定位收敛不好"，会误导排查方向）。
+# 所以把"复用"变成**强制**：宁可等，也不许起第二个。
+if [ "${SKIP_GAZEBO:-0}" = "1" ]; then
+  if ! hz_probe /rslidar_points; then
+    say "SKIP_GAZEBO=1：等上游 Gazebo 出数据（最多 90 s，绝不再起一个）"
+    for i in $(seq 1 45); do
+      sleep 2
+      if hz_probe /rslidar_points; then say "rslidar_ready_after=${i}x2s"; break; fi
+    done
+  fi
+  if [ "${NO_LAUNCH_GAZEBO:-0}" = "1" ]; then
+    hz_probe /rslidar_points || gate_fail "NO_LAUNCH_GAZEBO=1 但 /rslidar_points 无数据：拒绝另起 Gazebo（双实例会压垮 /hdl_odom）"
+    say "复用已在跑的 Gazebo（NO_LAUNCH_GAZEBO=1 强制复用，未启动新实例）"
+  else
+    hz_probe /rslidar_points || {
+      setsid roslaunch lite3_gazebo_sim m1_gazebo.launch map_to_odom:=false \
+        > "$EV/gazebo.log" 2>&1 < /dev/null &
+      for i in $(seq 1 45); do
+        sleep 2
+        if hz_probe /rslidar_points; then say "rslidar_ready_after=${i}x2s"; break; fi
+      done
+    }
+  fi
 else
   setsid roslaunch lite3_gazebo_sim m1_gazebo.launch map_to_odom:=false \
     > "$EV/gazebo.log" 2>&1 < /dev/null &
@@ -233,11 +258,16 @@ setsid rosrun nodelet nodelet load hdl_localization/HdlLocalizationNodelet mgr _
 fi
 # 不固定 sleep：崩溃是即时的，等 8 秒既浪费时间又可能错过现场。轮询「实例出现 or manager 已死」。
 LOAD_AT=""
-for _i in $(seq 1 20); do
-  sleep 1
-  if ! [ -d "/proc/$MGR_PID" ]; then LOAD_AT="mgr_died_at=${_i}s"; break; fi
-  if rosnode list 2>/dev/null | grep -qxE '/hdl|/mgr/(hdl|HdlLocalizationNodelet)'; then LOAD_AT="instance_at=${_i}s"; break; fi
-done
+if [ "${SKIP_HDL:-0}" = "1" ]; then
+  # 没装载实例，等"实例出现"必然空转 20 s（白等），直接跳过
+  LOAD_AT="skipped(SKIP_HDL=1)"
+else
+  for _i in $(seq 1 20); do
+    sleep 1
+    if ! [ -d "/proc/$MGR_PID" ]; then LOAD_AT="mgr_died_at=${_i}s"; break; fi
+    if rosnode list 2>/dev/null | grep -qxE '/hdl|/mgr/(hdl|HdlLocalizationNodelet)'; then LOAD_AT="instance_at=${_i}s"; break; fi
+  done
+fi
 say "load_result=${LOAD_AT:-timeout_20s}"
 
 if [ -d "/proc/$MGR_PID" ]; then
@@ -246,6 +276,25 @@ else
   say "mgr_alive=NO（加载即崩）"
   say "--- manager.log 尾 40（崩溃现场；空＝崩在任何 NODELET_INFO 之前）---"
   tail -40 "$EV/manager.log" 2>/dev/null || say "(manager.log 不存在)"
+fi
+
+# ★SKIP_HDL=1 到此为止★（2026-11-26 修）：本模式只负责"把 HDL 需要的参数与地图准备好"，
+# 实例由**图**装载。历史实现只跳过了 nodelet load，却继续往下走 [7] 订阅闸门与 [8] align 闸门，
+# 这两道闸门判的正是"本脚本装载的 HDL 有没有在收点云/进 align"⇒ 没有实例时必然 gate_fail：
+# 实测 `sim.sh base m1 no-hdl` 因此永远回 rc=9，而调用方只看到"底座没起来"。
+# 闸门在这里提前收口：manager 活着 + 参数与地图在位 = 本模式的完成条件。
+if [ "${SKIP_HDL:-0}" = "1" ]; then
+  say "===== SKIP_HDL=1 汇总（只准备参数与地图；不装载实例、不做订阅/align 闸门）====="
+  say "mgr_alive=$([ -d /proc/$MGR_PID ] && echo yes || echo no)"
+  say "hdl_params=$(rosparam list 2>/dev/null | grep -c '^/hdl/')"
+  say "gms_params=$(rosparam list 2>/dev/null | grep -c '^/gms/')"
+  say "globalmap_loaded=$(rosparam get /hdl/globalmap 2>/dev/null | head -c 40 || true)"
+  [ -d /proc/$MGR_PID ] || gate_fail "manager 未存活：参数虽写入，图里的 HDL 仍会起不来"
+  [ "$(rosparam list 2>/dev/null | grep -c '^/hdl/')" -ge 10 ] \
+    || gate_fail "/hdl/* 参数不全，图里的 HDL 会因缺参数不加载地图"
+  say "SKIP_HDL_READY=1（定位实例由图的 v8.fw.hdl_localization 提供）"
+  say "EV=$EV"
+  exit 0
 fi
 
 # ---------- 6. 注入有效性闸门 ----------

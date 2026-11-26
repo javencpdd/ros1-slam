@@ -94,7 +94,11 @@ _wait_node() {  # $1=节点名 $2=超时秒
 }
 
 _pub_count() {  # 某话题的发布者数量
-    rostopic info "$1" 2>/dev/null | sed -n '/Publishers/,$p' | grep -c '^ \*' || true
+    # ★范围必须止于 Subscribers 段★（2026-11-26 修）：原来写 `/Publishers/,$p`（到文件尾），
+    # 把 Subscribers 的条目也算进发布者 ⇒ **只要有人订阅，计数就 ≥2**。
+    # 后果：单发布者守卫成了"恒假"，`/rslidar_points`/`/hdl_odom` 永远判"双发布者"，
+    # 真双实例反而看不出（两次误判都出自这里：把 2 当成"两个 gzserver"，实际是一发一订）。
+    rostopic info "$1" 2>/dev/null | sed -n '/^Publishers:/,/^Subscribers:/p' | grep -c '^ \*' || true
 }
 
 _check_gazebo_ros() {  # Gazebo 的 ROS 面：节点 + 服务（只看进程会漏判"孤儿 gzserver"）
@@ -111,6 +115,12 @@ _check_sensors() {
     _wait_hz /livox/imu 60      || { echo "[base] FAIL: /livox/imu 无数据"; return 1; }
     local n; n=$(_pub_count /livox/imu)
     [ "$n" = "1" ] || { echo "[base] FAIL: /livox/imu 发布者=$n（应为 1：URDF Gazebo 插件）"; return 1; }
+    # ★2026-11-26 补：/rslidar_points 也必须恰 1 个发布者★。
+    # 事故：sim.sh 起了一份 Gazebo，asan 的瞬时 hz_probe 判假后又起一份 ⇒ 两个 gzserver 抢物理，
+    # /rslidar_points 有 2 个发布者、/clock 有 10 个，整轮验收读数失真（现象却像"定位不收敛"）。
+    # 双实例时 /livox/imu 反而仍是 1 个（另一份实例的模型没 spawn 成功），所以只查它抓不到。
+    local lidar; lidar=$(_pub_count /rslidar_points)
+    [ "$lidar" = "1" ] || { echo "[base] FAIL: /rslidar_points 发布者=$lidar（应为 1：双 gzserver 抢物理，先 sim.sh 清理）"; return 1; }
     return 0
 }
 
@@ -146,12 +156,12 @@ base_up() {
             # nodelet manager 这些**参数与地图**必须由 asan 准备——实测完全不跑 asan 时，
             # 图里那份 HDL 连地图都不加载（/hdl_odom 0 帧、pose_clock.ok=false、local 报 E_LOCAL_CLOCK）。
             echo "[base] 准备 HDL 参数（asan SKIP_HDL=1，不装 HDL 节点；HDL 由图提供）"
-            SKIP_GAZEBO=1 SKIP_HDL=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1_params.log 2>&1
+            SKIP_GAZEBO=1 SKIP_HDL=1 NO_LAUNCH_GAZEBO=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1_params.log 2>&1
             local rc2=$?
             [ "$rc2" = "0" ] || { echo "[base] asan(SKIP_HDL=1) rc=$rc2（见 /tmp/base_m1_params.log）"; tail -8 /tmp/base_m1_params.log; return 1; }
         else
             echo "[base] 复用历史脚本 asan_hdl_repro.sh（SKIP_GAZEBO=1，只装 HDL）"
-            SKIP_GAZEBO=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1
+            SKIP_GAZEBO=1 NO_LAUNCH_GAZEBO=1 MODE=normal bash "$WS/scripts/verify/asan_hdl_repro.sh" > /tmp/base_m1.log 2>&1
             local rc=$?
             [ "$rc" = "0" ] || { echo "[base] asan_hdl_repro rc=$rc（见 /tmp/base_m1.log 尾部）"; tail -12 /tmp/base_m1.log; return 1; }
         fi

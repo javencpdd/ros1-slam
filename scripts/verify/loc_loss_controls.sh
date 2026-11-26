@@ -21,8 +21,9 @@ export ROS_MASTER_URI=${ROS_MASTER_URI:-http://127.0.0.1:11313}
 
 say() { printf '[ctrl] %s\n' "$*"; }
 goal() {  # 正式任务入口
-  timeout 3 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
-    "{header: {frame_id: map}, pose: {position: {x: $1, y: $2}, orientation: {w: 1.0}}}" >/dev/null 2>&1
+  # ★发一条就够★：/v8/bt/goal 是 FIFO 多任务入口，`-r 5` 会把同一件事刷成十几个 mission
+  python3 "$(dirname "${BASH_SOURCE[0]}")/bt_goal_once.py" --x "$1" --y "$2" \
+    --out "${EV:-/tmp}/goal_once.json" >/dev/null 2>&1
 }
 loc_ok() {  # 显式置位/清位定位闸门；$1=data $2=持续秒数
   timeout "${2:-1}" rostopic pub -r 10 /v8/local/localization_ok std_msgs/Bool "data: $1" >/dev/null 2>&1

@@ -139,9 +139,11 @@ if [ -n "${SKIP_PROBE:-}" ]; then
     "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y, z: 0.0}, orientation: {w: 1.0}}}" \
     >/dev/null 2>&1
   sleep 1
-  timeout 3 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
-    "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y, z: 0.0}, orientation: {w: 1.0}}}" \
-    >/dev/null 2>&1
+  # ★只发一条★：/v8/bt/goal 是 FIFO 多任务入口，`-r 5` 三秒=15 个任务，会把同一件事
+  # 拆成 15 个 mission（每出队一个就重发全局路径 + follow path，还会把上一个记成 reached）。
+  python3 "$REPO/scripts/verify/bt_goal_once.py" --x "$GOAL_X" --y "$GOAL_Y" \
+    --out "$EV/goal_once.json" > "$EV/goal_once.log" 2>&1 || \
+    say "WARN 目标未被 BT 受理（见 $EV/goal_once.log）"
   say "goal_sent=$GOAL_X,$GOAL_Y (no probe)"
   say "EV=$EV"
   exit 0
@@ -156,9 +158,10 @@ timeout 3 rostopic pub -r 5 /v8/3d/global/start geometry_msgs/PoseStamped \
   "{header: {frame_id: map}, pose: {position: {x: $START_X, y: $START_Y, z: 0.0}, orientation: {w: 1.0}}}" \
   >/dev/null 2>&1
 sleep 1
-timeout 3 rostopic pub -r 5 /v8/bt/goal geometry_msgs/PoseStamped \
-  "{header: {frame_id: map}, pose: {position: {x: $GOAL_X, y: $GOAL_Y, z: 0.0}, orientation: {w: 1.0}}}" \
-  >/dev/null 2>&1
+# ★只发一条★（同上）：重复发会把目标刷成多个 mission
+python3 "$REPO/scripts/verify/bt_goal_once.py" --x "$GOAL_X" --y "$GOAL_Y" \
+  --out "$EV/goal_once.json" > "$EV/goal_once.log" 2>&1 || \
+  say "WARN 目标未被 BT 受理（见 $EV/goal_once.log）"
 say "goal_sent=$GOAL_X,$GOAL_Y"
 
 # ---------- 5. 等待探针 ----------

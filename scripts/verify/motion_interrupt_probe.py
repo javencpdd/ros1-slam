@@ -68,7 +68,7 @@ def main():
     # 1) 不启 rosbag：改为进程内记录（rosbag 的 SIGINT/reindex/sim-wall 混淆已四次坑死本项）
     samples = []
 
-    state = {'frames': 0, 'first': None}
+    state = {'frames': 0, 'first': None, 'last_nonzero_w': None}
 
     def on_cmd(msg):
         state['frames'] += 1
@@ -76,6 +76,9 @@ def main():
         samples.append({'w': time.monotonic(), 's': CLK['sim'], 'v': v})
         if state['first'] is None and v >= args.on_speed:
             state['first'] = (time.monotonic(), v)
+        if v >= args.on_speed:
+            # 最近一次"真的在动"的墙钟：注入前用它判"此刻是否仍在动"
+            state['last_nonzero_w'] = time.monotonic()
 
     from nav_msgs.msg import Odometry
     gt_samples = []
@@ -125,6 +128,26 @@ def main():
         fire_at, fire_v = state['first']
         if args.inject_delay_s > 0:
             time.sleep(args.inject_delay_s)
+
+        # ★注入必须"此刻仍在动"★：local 是**步进式**的（默认 0.3 m 一步，步与步之间会停），
+        # "首帧非零 + 固定延迟"很容易落在两步之间的静止段（实测 cancel 项因此连报两轮 INVALID）。
+        # 闸门放在**真正动手之前**（不能放在建 publisher 之前：那 0.3 s 就足够跨过静止段）。
+        _t_wait = time.monotonic()
+        while not rospy.is_shutdown():
+            _last = state.get('last_nonzero_w')
+            if _last is not None and time.monotonic() - _last <= 0.25:
+                break
+            if time.monotonic() - _t_wait > args.wait_motion_s:
+                print('WARN 等不到"仍在运动"的注入窗口（继续按现状注入）', flush=True)
+                break
+            time.sleep(0.02)
+        # ★"注入时在动"要按**动作开始前**判★：stop 模式用锚点（最后一条 /hdl_odom）当 t_eff，
+        # 它与"最后一条非零命令"只差几毫秒，比大小等于抛硬币（实测 1.410 vs 1.411 ⇒ 判 false）。
+        # 判据改成：动作开始前 0.25 s 内还有非零命令。注入之后的静止由 zero_window 判。
+        t_action_start = time.monotonic()
+        state['moving_at_action'] = bool(
+            state.get('last_nonzero_w') is not None
+            and t_action_start - state['last_nonzero_w'] <= 0.25)
         if args.mode == 'stop':
             subprocess.call(args.action.split())
             act = args.action
@@ -133,12 +156,17 @@ def main():
             rospy.sleep(0.3)
             text = '1:all:operator'
             pub.publish(String(data=text))
-            rospy.sleep(0.2)
+            # ★时刻要打在**第一帧取消真正发出**的那一刻★：原来打在"发完两帧之后"，
+            # 中间那 0.2 s 睡眠被算进了 inject_to_last_nonzero（实测 -0.352 s），
+            # 于是 moving_at_inject 恒为 false、取消项恒 INVALID —— 判据把自己的动作开销
+            # 当成了"注入时车已停"。
+            t_cancel_pub = time.monotonic()
+            rospy.sleep(0.05)
             pub.publish(String(data=text))
             act = 'cancel ' + text
         # 注入动作**做完**才打时间戳：`rosnode kill` 是阻塞调用（实测耗时近 1 s），
         # 打在下发之前会把命令行自身的耗时算成"停止延迟"。
-        t_inject = time.monotonic()
+        t_inject = t_cancel_pub if args.mode != 'stop' else time.monotonic()
         print('INJECT at v=%.3f action=%s' % (fire_v, act), flush=True)
         # 3) 注入后继续观察 hold_s
         # ★必须用纯 time.sleep，不能带 rospy.is_shutdown() 条件★：
@@ -184,7 +212,9 @@ def main():
                     result['hdl_msgs'] = HDL['n']
                 result['stop_delay_s'] = round(max(0.0, last['w'] - t_eff), 3)
                 result['inject_to_last_nonzero_s'] = round(last['w'] - t_inject, 3)
-                result['moving_at_inject'] = bool(last['w'] >= t_eff)
+                # ★用"动作开始前是否在动"★（见上）：锚点级别的毫秒比较不可判。
+                result['moving_at_inject'] = bool(state.get('moving_at_action'))
+                result['moving_at_inject_anchor'] = bool(last['w'] >= t_eff)
                 # 注入后真值滑行：从失效生效时刻算到观测结束，这才是"车又走了多远"
                 base_i = [g for g in gt_samples if g['w'] <= t_eff]
                 after_i = [g for g in gt_samples if g['w'] > t_eff]

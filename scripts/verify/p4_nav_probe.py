@@ -19,6 +19,7 @@ import argparse
 import json
 import math
 import sys
+import time
 
 import rospy
 from geometry_msgs.msg import Twist
@@ -43,11 +44,29 @@ class Probe(object):
         self.cmd_frames = 0
         self.cmd_times = []          # 采样覆盖判据用：cmd 到达的墙钟时刻
         self.bt_arrived = False      # ★BT 自己的到达事件★：只看真值距离会漏判"规划器没报到"
-        # ★位姿话题可能是 Odometry 也可能是 PoseStamped★（M1 的 /hdl_odom 是 Odometry，
-        # M2 的 /v8/local/pose 是 PoseStamped）。两种类型都订阅，只有类型匹配的那条会收到消息——
-        # 之前只按 Odometry 订，M2 组合拿不到位姿（est_start=None），这是脚本层 bug 不是系统 bug。
-        rospy.Subscriber(pose_topic, Odometry, self.on_est_odom, queue_size=20)
-        rospy.Subscriber(pose_topic, PoseStamped, self.on_est_pose, queue_size=20)
+        # ★按类型只订一次★（同一 topic 建两种类型订阅会让其中一条永远空转，也掩盖类型配错）：
+        # M1 的 /hdl_odom 是 Odometry，M2 的 /v8/local/pose 是 PoseStamped。
+        resolved = rospy.resolve_name(pose_topic)
+        published = dict(rospy.get_published_topics())
+        mtype = published.get(resolved) or published.get(pose_topic) or ''
+        if 'PoseStamped' in mtype:
+            rospy.Subscriber(pose_topic, PoseStamped, self.on_est_pose, queue_size=20)
+        elif 'Odometry' in mtype:
+            rospy.Subscriber(pose_topic, Odometry, self.on_est_odom, queue_size=20)
+        else:
+            # 类型未知：等一小会儿再判一次；仍未知则明确报错（不猜类型）
+            for _ in range(20):
+                rospy.sleep(0.25)
+                published = dict(rospy.get_published_topics())
+                mtype = published.get(resolved) or ''
+                if mtype:
+                    break
+            if 'PoseStamped' in mtype:
+                rospy.Subscriber(pose_topic, PoseStamped, self.on_est_pose, queue_size=20)
+            elif 'Odometry' in mtype:
+                rospy.Subscriber(pose_topic, Odometry, self.on_est_odom, queue_size=20)
+            else:
+                rospy.logerr('位姿话题 %s 类型未知（未发布？），本探针不会订阅任何类型', pose_topic)
         # ★BT 的到达事件在 `/v8/bt/status`（std_msgs/String + JSON）里★，字段 `last_event`/`goal_outcome`
         # 取 "reached"。`/v8/bt/arrived` 是 far_stack 里 FAR 适配器的专用话题，support 组合没有它，
         # 用那条会永远判 False（会误伤已通过的基线）。
@@ -81,7 +100,9 @@ class Probe(object):
     def on_cmd(self, m):
         v = math.hypot(m.linear.x, m.linear.y)
         self.cmd_frames += 1
-        self.cmd_times.append(rospy.get_time())
+        # ★墙钟，不用 rospy.get_time()★：本探针的窗口是"探针自己的采样时长"，
+        # 用仿真钟会被仿真速率带偏（实测 45 仿秒＝18 实秒：目标还没发，窗口已经结束）。
+        self.cmd_times.append(time.monotonic())
         if v > 0.05:
             self.speed_frames += 1
             self.max_speed = max(self.max_speed, v)
@@ -103,8 +124,10 @@ def main():
     rospy.init_node('p4_nav_probe', anonymous=True)
     pr = Probe(pose_topic=args.pose_topic)
     rate = rospy.Rate(10.0)
-    t0 = rospy.Time.now().to_sec()
-    while not rospy.is_shutdown() and rospy.Time.now().to_sec() - t0 < args.duration:
+    # ★窗口用墙钟★：/clock 是仿真时间，实测 45 仿秒只对应约 18 实测秒 ——
+    # 用 rospy.Time 计时会让"探针窗口"在目标下发之前就结束（读数变成"车没动"）。
+    t0 = time.monotonic()
+    while not rospy.is_shutdown() and time.monotonic() - t0 < args.duration:
         rate.sleep()
 
     # 采样覆盖：cmd 名义 50~80 Hz，出现 >0.5 s 断档说明采集中断过，结论不可信

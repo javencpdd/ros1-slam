@@ -54,9 +54,26 @@ def main():
         state['gt_times'].append(time.monotonic())
         state['gt_pts'].append((p.x, p.y))
 
-    # 位姿话题可能是 Odometry 或 PoseStamped，两种都订（类型不匹配的那条不会来消息）
-    rospy.Subscriber(args.pose_topic, Odometry, on_est, queue_size=20)
-    rospy.Subscriber(args.pose_topic, PoseStamped, lambda _m: on_est(None), queue_size=20)
+    # ★按类型只订一次★：同一 topic 建两种类型订阅，另一条永远空转且掩盖配错
+    resolved = rospy.resolve_name(args.pose_topic)
+    published = dict(rospy.get_published_topics())
+    mtype = published.get(resolved) or ''
+    if 'PoseStamped' in mtype:
+        rospy.Subscriber(args.pose_topic, PoseStamped, lambda _m: on_est(None), queue_size=20)
+    elif 'Odometry' in mtype:
+        rospy.Subscriber(args.pose_topic, Odometry, on_est, queue_size=20)
+    else:
+        for _ in range(20):
+            rospy.sleep(0.25)
+            mtype = (dict(rospy.get_published_topics()).get(resolved) or '')
+            if mtype:
+                break
+        if 'PoseStamped' in mtype:
+            rospy.Subscriber(args.pose_topic, PoseStamped, lambda _m: on_est(None), queue_size=20)
+        elif 'Odometry' in mtype:
+            rospy.Subscriber(args.pose_topic, Odometry, on_est, queue_size=20)
+        else:
+            rospy.logerr('位姿话题 %s 类型未知，本探针不订阅', args.pose_topic)
     rospy.Subscriber(args.gt_topic, Odometry, on_gt, queue_size=20)
     from geometry_msgs.msg import Twist
     rospy.Subscriber('/cmd_vel', Twist, on_cmd, queue_size=50)
