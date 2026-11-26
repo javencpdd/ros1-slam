@@ -93,20 +93,9 @@ reset_stack() {
   kill_v8
   place "$START_X" "$START_Y"
   if [ "$M2" = "1" ]; then
-    # M2：底座已有 LIO（/Odometry），这里只把数据闸门拉起来（幂等）
-    # 只杀本组合的闸门进程（按 __name:= 精确匹配，避免误杀别的 relay）
-    pkill -f "__name:=$GATE_NAME" 2>/dev/null || true
-    rosrun topic_tools relay "$GATE_IN" "$GATE_OUT" __name:="$GATE_NAME" \
-      > "$EV_ROOT/${tag}_gate.log" 2>&1 &
-    sleep 2
-    # ★map→odom 静态对齐★：LIO 的 /Odometry 以自己的起点为原点，而验收路线写在 map 系
-    # （起点 (START_X,START_Y)）。这与 HDL 用 init pos 建立 map→odom 是同一件事——**常量对齐，
-    # 不引真值流**。缺了它 loc 会把 map 目标当成 5 m 外的目标（实测 initial_dist=4.589）。
-    pkill -f "__name:=m2_map_odom" 2>/dev/null || true
-    rosrun tf2_ros static_transform_publisher "$START_X" "$START_Y" 0.0 0 0 0 map odom \
-      __name:=m2_map_odom > "$EV_ROOT/${tag}_map_odom.log" 2>&1 &
-    sleep 1
-    say "[$tag] M2 模式：闸门 $GATE_IN -> $GATE_OUT（$GATE_NAME）+ 静态 map→odom($START_X,$START_Y)"
+    # ★M2 验收模式★：定位输入链（闸门）由图内 `v8.fw.lio_gate` 组件提供，不在本脚本里 rosrun。
+    # 就绪判定放在**图起来之后**（见函数末尾），判的是 loc 真正消费的位姿话题。
+    say "[$tag] M2 验收模式（闸门由图内 lio_gate 组件提供）"
   else
     SKIP_GAZEBO=1 MODE=normal DUR=8 WAIT_SCAN=40 INIT_X=$START_X INIT_Y=$START_Y \
       bash $REPO/scripts/verify/asan_hdl_repro.sh > "$EV_ROOT/${tag}_repro.log" 2>&1
@@ -118,6 +107,17 @@ reset_stack() {
       ${POSE_TOPIC:+POSE_TOPIC="$POSE_TOPIC"} \
       SKIP_PROBE=1 NO_GOAL="$no_goal" START_X=$START_X START_Y=$START_Y GOAL_X=$GOAL_X GOAL_Y=$GOAL_Y \
     EV="$EV_ROOT/${tag}_graph" bash $REPO/scripts/verify/p4_nav_hdl.sh > "$EV_ROOT/${tag}_setup.log" 2>&1
+  if [ "$M2" = "1" ]; then
+    # ★就绪判定：看"实际消费的位姿话题"有没有连续数据★（不是原始 /Odometry）。
+    # 闸门没起来/没转发时这里会明确报错，而不是让后续用例集体 INVALID 却看不出原因。
+    local ready=0 tick
+    for _ in $(seq 1 20); do
+      sleep 2
+      tick=$(timeout 4 rostopic hz "$POSE_TOPIC" 2>/dev/null | tail -1)
+      case "$tick" in *"average rate"*) ready=1; break ;; esac
+    done
+    [ "$ready" = "1" ] || say "[$tag] 错误：定位输入未就绪（$POSE_TOPIC 无连续数据）——本项结果不可信"
+  fi
   local n
   n=$(rosnode list 2>/dev/null | grep -cE '^/v8' || true)
   say "[$tag] v8_nodes=$n"
@@ -184,7 +184,8 @@ case_loc() {
   # 闸门 relay：杀它只断 /hdl_odom，master 与导航进程都不受影响。
   # 探针在「首帧非零命令」时下手，不靠固定 sleep（运动窗口只有 2 s 上下）。
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode stop --hold-s 24 \
-    --wait-motion-s 90 --inject-delay-s 1.0 --action "rosnode kill /$GATE_NAME" \
+    --wait-motion-s 90 --inject-delay-s 1.0 \
+    --action "rosservice call /v8/3d/lio_gate/lio_gate/set_enabled '{data: false}'" \
     --out "$EV_ROOT/loc_stop.json" --dump "$EV_ROOT/loc_series.tsv" \
     > "$EV_ROOT/loc_stop.log" 2>&1 &
   local pp=$!
@@ -200,8 +201,9 @@ case_loc() {
     --out "$EV_ROOT/loc_recovery.json" > "$EV_ROOT/loc_recovery.log" 2>&1 &
   local rp=$!
   sleep 2
-  rosrun topic_tools relay "$GATE_IN" "$GATE_OUT" __name:="$GATE_NAME" \
-    > "$EV_ROOT/loc_recovery_relay.log" 2>&1 &
+  # ★恢复走服务★：闸门是图内组件，把它置回 true 即可（进程生命周期归装配）
+  rosservice call /v8/3d/lio_gate/lio_gate/set_enabled '{data: true}' \
+    > "$EV_ROOT/loc_recovery_gate.log" 2>&1
   wait $rp 2>/dev/null
   cat "$EV_ROOT/loc_recovery.json" 2>/dev/null
 

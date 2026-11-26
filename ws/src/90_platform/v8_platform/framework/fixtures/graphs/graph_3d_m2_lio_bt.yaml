@@ -135,7 +135,7 @@ instances:
     namespace: /v8/3d/loc
     params:
       source: faster_lio
-      lio_topic: /Odometry_gated   # ★M2 组合：LIO 输出经数据闸门，便于独立断流★
+      lio_topic: /Odometry   # 正常导航：直接消费 LIO 输出（不经闸门）
       # ★LIO 系 → map 系的真实刚体变换★（按已知初始位姿，常量，不引真值流）：
       # LIO 以自己的起点为原点，验收起点在 map 系 (5.2, 2.45)、朝向 0；不设这三项就等于
       # 只改 frame_id 不改坐标（原实现的缺陷）。

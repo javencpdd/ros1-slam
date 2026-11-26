@@ -9051,3 +9051,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   ★当前状态★：M2 四例 0 PASS，`/v8/local/pose` **无消息**（`nav_probe.est_start=None`）⇒ loc 在 M2 组合下
   没发位姿。参数 `lio_to_map: True` 已在渲染产物中，需下一轮定位 loc 侧（是否 0 帧输入/异常）。
   **不宣布 M2 可用**；Support 主线不受影响（4/4 PASS）。
+- ★定位闸门改由图内组件拥有（真人补裁决，2026-11-26）★：不再由验收脚本 `rosrun relay` 临时维护导航输入
+  （那个进程一死，导航静默失去定位 —— 实测 `/Odometry_gated` 0 帧 ⇒ `/v8/local/pose` 0 帧 ⇒ 整轮 INVALID
+  却看不出原因）。新增组件 `v8.fw.lio_gate`（`framework/nodes/gate_relay_node.py` + `scripts/run_gate_relay.py`
+  + `manifest_gate_relay.json` + package_index 登记），带服务 `~set_enabled` 与状态 `~status`。
+  两种模式**用现有配置区分**：
+  · `graph_3d_m2_lio_bt.yaml`（正常导航）：`loc.lio_topic=/Odometry`，**不经过闸门**
+  · `graph_3d_m2_lio_accept_bt.yaml`（故障注入验收）：图内实例化 `lio_gate`，`loc.lio_topic=/Odometry_gated`
+  验收入口只做两件事：**判就绪**（看 loc 真正消费的 `$POSE_TOPIC` 是否有连续数据，缺则显式报错、拒绝继续）
+  与**调服务**注入（`/v8/3d/lio_gate/lio_gate/set_enabled false|true`）；启停与退出清理归装配（roslaunch）。
+  定点实测：`/Odometry_gated` 与 `/v8/local/pose` 均约 **10 Hz**，`/v8/local/pose=(5.211, 2.474)`（与验收起点一致）。
