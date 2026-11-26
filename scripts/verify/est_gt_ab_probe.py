@@ -102,6 +102,9 @@ def main():
                 pairs.append({'t': k,
                               'dxy': math.hypot(e[0] - g[0], e[1] - g[1]),
                               'dz': abs(e[2] - g[2]),
+                              # ★有符号分量★：只看 dxy 无法判断是"整体平移"还是"沿某轴拉伸"，
+                              # 也无法判断是否与航向相关（yaw 误差会让 dx/dy 随朝向旋转）。
+                              'dx': e[0] - g[0], 'dy': e[1] - g[1], 'dz_signed': e[2] - g[2],
                               'est': e, 'gt': g})
     dxy = [p['dxy'] for p in pairs]
     dz = [p['dz'] for p in pairs]
@@ -136,6 +139,18 @@ def main():
         'err_p95_dxy': round(sorted(dxy)[int(0.95 * (len(dxy) - 1))], 4) if dxy else None,
         'err_max_dxy': round(max(dxy), 4) if dxy else None,
         'err_max_dz': round(max(dz), 4) if dz else None,
+        # 有符号统计：均值 + 标准差（标准差大 ⇒ 不是常量偏置，别用"减一个常数"去修）
+        'signed_dx': ({'mean': round(statistics.mean([p['dx'] for p in pairs]), 4),
+                       'std': round(statistics.pstdev([p['dx'] for p in pairs]), 4)}
+                      if pairs else None),
+        'signed_dy': ({'mean': round(statistics.mean([p['dy'] for p in pairs]), 4),
+                       'std': round(statistics.pstdev([p['dy'] for p in pairs]), 4)}
+                      if pairs else None),
+        'signed_dz': ({'mean': round(statistics.mean([p['dz_signed'] for p in pairs]), 4),
+                       'std': round(statistics.pstdev([p['dz_signed'] for p in pairs]), 4)}
+                      if pairs else None),
+        # 配对质量：参与配对的 est 帧占比（低 ⇒ 结论不可信）
+        'pair_quality': round(len(pairs) / max(1, len(est_keys)), 3),
         'final': ({'est': pairs[-1]['est'], 'gt': pairs[-1]['gt'],
                    'dxy': round(pairs[-1]['dxy'], 4)} if pairs else None),
         'first_reached_wall_s': None if first_reached is None else round(first_reached - t0, 2),
