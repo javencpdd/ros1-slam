@@ -181,20 +181,57 @@ class PathGoal(object):
                     'revoked_mission': int(getattr(self, 'revoked_mission', -1)),
                     'current': int(cur.get('path_revision', 0))})))
                 return
-        # 完全重复：identity + 内容都相同 ⇒ 不动
+        def build(poses):
+            """★完整载荷★：make_goal 会读 pose.header，缺 header 会 AttributeError（实测静默不发）。"""
+            out = []
+            for p in poses:
+                ps = PoseStamped()
+                ps.header.frame_id = 'map'
+                ps.header.stamp = rospy.Time.now()
+                ps.pose.position.x, ps.pose.position.y, ps.pose.position.z = float(p[0]), float(p[1]), float(p[2])
+                ps.pose.orientation.w = 1.0
+                out.append(ps)
+            return out
+
+        # ★失效广播★：`poses` 为空且带 `invalidated` ⇒ 路径不可用（上游判定失效）。
+        # 安全信号不走"内容有没有变"的去重门：必须清空活动路径并回执，哪怕内容与上一帧相同。
+        invalidated = value.get('invalidated')
+        if invalidated:
+            dropped = len(getattr(self, 'poses', []))
+            self.poses = []
+            self.index = 0
+            self.last_goal_key = None
+            self.published_at = None
+            self.invalidated_at = invalidated
+            self.status_pub.publish(String(data=json.dumps({
+                'ok': False, 'reason': 'path_invalidated', 'invalidated': str(invalidated)[:80],
+                'dropped_poses': dropped, 'mission': mission, 'path_revision': revision})))
+            return
+
+        # ★同一 (mission, path_revision) = 几何刷新★（真人裁决③）：
+        # FAR 的两点路径首点随位姿实时变化，但"位姿变了"不是新任务。
+        # 这里只换点列，保持 index / 执行代次 / 去重键不变，且**不向 local 重发目标**。
+        cur_mission = (getattr(self, 'task_meta', None) or {}).get('mission_id')
+        cur_revision = (getattr(self, 'task_meta', None) or {}).get('path_revision')
+        if (self.poses and cur_mission is not None
+                and int(cur_mission) == mission and int(cur_revision) == revision):
+            self.poses = build(raw_poses)
+            self.task_signature = (mission, revision, json.dumps(raw_poses))
+            self.index = min(int(getattr(self, 'index', 0)), max(len(self.poses) - 1, 0))
+            self.status_pub.publish(String(data=json.dumps({
+                'ok': True, 'refreshed': True, 'mission': mission, 'path_revision': revision,
+                'index': self.index + 1, 'poses': len(self.poses),
+                'goal': [round(self.poses[self.index].pose.position.x, 3),
+                         round(self.poses[self.index].pose.position.y, 3),
+                         round(self.poses[self.index].pose.position.z, 3)]})))
+            return
+
+        # 完全重复（同身份同内容，且不是刷新路径）⇒ 不动
         signature = (mission, revision, json.dumps(raw_poses))
         if getattr(self, 'task_signature', None) == signature and self.poses:
             return
         self.task_signature = signature
-        # ★完整载荷★：make_goal 会读 pose.header，缺 header 会 AttributeError（实测会静默不发布）
-        self.poses = []
-        for p in raw_poses:
-            ps = PoseStamped()
-            ps.header.frame_id = 'map'
-            ps.header.stamp = rospy.Time.now()
-            ps.pose.position.x, ps.pose.position.y, ps.pose.position.z = float(p[0]), float(p[1]), float(p[2])
-            ps.pose.orientation.w = 1.0
-            self.poses.append(ps)
+        self.poses = build(raw_poses)
         self.task_meta = {k: int(value.get(k, 0)) for k in
                           ('mission_id', 'path_revision', 'waypoint_index', 'execution_generation')}
         self.accepted_generation += 1

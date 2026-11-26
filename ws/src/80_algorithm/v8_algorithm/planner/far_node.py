@@ -32,6 +32,11 @@ GROUND_CELL_M = 0.2     # 地面栅格边长（米）
 LOOKAHEAD_M = 1.5       # 步态路径最小前视距离（米）
 LOOKAHEAD_MARGIN_M = 0.3   # 延长段在 lookahead 之外多留的余量（米）：总长 = lookahead + 此值
 CANCEL_SEQ_BASE = 900000000   # 取消序号起点：避开 BT 的 cancel_seq（从 1 起递增）
+# ★航点"同一个"的量化步长★：FAR 每次事件都会吐一条新 `/way_point`，点位在厘米级抖动。
+# 小于这个步长的位移不算"有效航点变化"，不得推进 path_revision（否则等于每帧新任务）。
+WAYPOINT_QUANTUM_M = 0.05
+# ★mission 切换后的保护窗★：窗口内到达的航点视为"上一目标在途残留"，不打上新 mission 标号。
+STALE_WAYPOINT_GUARD_S = 0.30
 ARRIVAL_R_XY_M = 0.25      # 到达判据的水平半径（米）：与 BT 树 WaitArrival 的 distance 同值
 ARRIVAL_Z_TOL_M = 0.30     # 到达判据的竖向容差（米）：与 support_map 的 z_tol 同量级
 
@@ -274,6 +279,20 @@ class AdapterState:
         # `/global_path/status` 是 BT `WaitForPath` 的判据（`bt_console.cpp:315-332`），
         # 拿「还没到」去写 `ok=false`，等于拿到达语义改写路径语义。
         self.far_reach = None
+        # ★原子任务身份（2026-11-26 真人裁决③）★
+        # 本适配器**不造 mission**：身份只来自 BT 的 `goal_task`（原子消息）。
+        # 它只负责把 FAR 的航点"挂到当前 mission 上"，并决定要不要推进 path_revision。
+        self.mission = None              # {mission_id, path_revision, waypoint_index, execution_generation}
+        self.mission_switched_at = None  # 墙钟：用于"晚到旧航点"保护窗
+        self.waypoint_key = None         # 量化后的有效航点（日志/读数用）
+        self.waypoint_point = None       # 上一次"有效"航点的原始坐标（判距离用）
+        self.path_revision = 0
+        self.waypoint_index = 0
+        # 读数：任务帧发布数 / 有效航点变化次数 / 丢弃的晚到航点数 / 失效广播次数
+        self.task_publishes = 0
+        self.effective_changes = 0
+        self.stale_waypoints = 0
+        self.invalidations = 0
 
     # ---- 生命周期 ----
     def next_cancel_seq(self):
@@ -368,6 +387,107 @@ class AdapterState:
         pending['reported'] = True
         return status_json(False, 0, 'E_FAR_CANCEL_UNACKED', seq=pending['seq'])
 
+    # ---- 任务身份（原子契约） ----
+    @staticmethod
+    def _key(waypoint, quantum=WAYPOINT_QUANTUM_M):
+        """航点的"有效身份"：按 `quantum` 量化。厘米级抖动不该被当成新航点。"""
+        q = max(float(quantum), 1e-6)
+        x, y, z = _xyz(waypoint)
+        return (round(x / q), round(y / q), round(z / q))
+
+    def on_task_identity(self, payload, now=None):
+        """接 BT 的原子任务身份，返回 `'new' | 'same' | 'stale' | 'ignored'`。
+
+        * `new`  —— 换 mission：清掉上一目标的航点缓存与版本号，开保护窗。
+        * `same` —— 同一 mission：只更新执行代次（≥ 才收），**不重建任务**。
+        * `stale`—— 旧 mission 晚到（编号更小）：直接忽略，绝不把旧航点标成新任务。
+        """
+        if not isinstance(payload, dict) or 'mission_id' not in payload:
+            return 'ignored'
+        try:
+            mission = int(payload['mission_id'])
+            generation = int(payload.get('execution_generation', 0))
+        except (TypeError, ValueError):
+            return 'ignored'
+        now = 0.0 if now is None else float(now)
+        current = self.mission
+        if current is not None:
+            if mission < int(current['mission_id']):
+                return 'stale'
+            if mission == int(current['mission_id']):
+                if generation > int(current.get('execution_generation', 0)):
+                    current['execution_generation'] = generation
+                return 'same'
+        self.mission = {'mission_id': mission,
+                        'path_revision': 0,
+                        'waypoint_index': 0,
+                        'execution_generation': generation}
+        self.path_revision = 0
+        self.waypoint_index = 0
+        self.waypoint_key = None
+        self.waypoint_point = None
+        self.mission_switched_at = now
+        return 'new'
+
+    def task_message(self, pose, waypoint, now=None):
+        """把一次航点事件变成**原子任务帧**（dict）；不该发时返回 `None`。
+
+        语义（真人裁决③）：位姿变化**不算**新任务；只有"有效航点"变化才推进 `path_revision`。
+        同一 revision 的重复发布是**几何刷新**，下游据此更新首点而**不得重置**执行状态。
+
+        返回 `None` 的三种情况都会计数，便于事后区分"没发"和"发了被丢"：
+          · `E_FAR_HALTED`（取消后残留航点）——不计；
+          · 没有身份（BT 还没下发 mission）——不计；
+          · mission 切换保护窗内的航点（上一目标在途残留）——计入 `stale_waypoints`。
+        """
+        if pose is None or waypoint is None or self.mission is None or self.halted:
+            return None
+        now = 0.0 if now is None else float(now)
+        if (self.mission_switched_at is not None
+                and now - self.mission_switched_at < STALE_WAYPOINT_GUARD_S):
+            self.stale_waypoints += 1
+            return None
+        # ★按**距离**判"是不是同一个航点"，不要用量化分桶★：
+        # 分桶在桶边界上会把 ±1 cm 的抖动判成"换了航点"（4.03 与 4.00 分属两桶），
+        # 于是位姿稍动就推进一个版本，等于把抖动变成新任务。
+        point = _xyz(waypoint)
+        key = self._key(point)
+        fresh = (self.waypoint_point is None
+                 or math.dist(self.waypoint_point, point) > WAYPOINT_QUANTUM_M)
+        if fresh:
+            self.waypoint_point = point
+            self.waypoint_key = key
+            self.path_revision += 1
+            self.waypoint_index += 1
+            self.effective_changes += 1
+        payload = {'mission_id': int(self.mission['mission_id']),
+                   'path_revision': int(self.path_revision),
+                   'waypoint_index': int(self.waypoint_index),
+                   'execution_generation': int(self.mission['execution_generation']),
+                   'poses': [list(_xyz(pose)), list(_xyz(waypoint))],
+                   'source': 'far'}
+        self.task_publishes += 1
+        return payload
+
+    def invalidate(self, reason, now=None):
+        """★失效广播★：路径不可用时发一条**必定不被去重**的任务帧。
+
+        为什么要单列：`path_revision` 只在航点变化时动，若失效也走同一个门，
+        下游会把"路径失效"当成重复帧丢掉——安全信号绝不能靠"内容有无变化"来决定是否传达。
+        所以失效帧推进 revision 并带 `invalidated` 字段，还带 `poses: []`（清空活动路径）。
+        """
+        if self.mission is None:
+            return None
+        self.path_revision += 1
+        self.invalidations += 1
+        return {'mission_id': int(self.mission['mission_id']),
+                'path_revision': int(self.path_revision),
+                'waypoint_index': int(self.waypoint_index),
+                'execution_generation': int(self.mission['execution_generation']),
+                'poses': [],
+                'invalidated': str(reason)[:80],
+                'source': 'far'}
+
     # ---- 航点 ----
     def on_waypoint(self, pose, waypoint, now=None):
         """返回 `(path_points, gait_points, status_text)`。
@@ -431,6 +551,11 @@ def main():
     far_goal_topic = rospy.get_param('~far_goal_topic', '/goal_point')
     waypoint_topic = rospy.get_param('~waypoint_topic', '/way_point')
     reach_topic = rospy.get_param('~reach_topic', '/far_reach_goal_status')
+    # ★原子任务通道（裁决③/⑥）★：身份只从 BT 的 goal_task 来；路径以原子帧下发。
+    task_topic = rospy.get_param('~task_topic', '/v8/bt/goal_task')
+    legacy_task_topic = rospy.get_param('~legacy_task_topic', '/v8/bt/goal_meta')
+    path_task_topic = rospy.get_param('~path_task_topic', '/v8/3d/global/path_task')
+    refresh_hz = float(rospy.get_param('~path_task_refresh_hz', 2.5))
     path_topic = rospy.get_param('~path_topic', '/global_path')
     gait_path_topic = rospy.get_param('~gait_path_topic', '/v8/gait_guard/path')
     status_topic = rospy.get_param('~status_topic', '/global_path/status')
@@ -467,6 +592,8 @@ def main():
     # 一旦 latched，后加入的订阅者会先吃一条过期路径，把车往已经走过的地方带。
     path_pub = rospy.Publisher(path_topic, Path, queue_size=1, latch=False)
     gait_path_pub = rospy.Publisher(gait_path_topic, Path, queue_size=1, latch=False)
+    # 原子路径帧也**不 latch**：它是"这一刻的位姿 + 这一刻的航点"，latch 会把过期首点喂给后来者。
+    path_task_pub = rospy.Publisher(path_task_topic, String, queue_size=5, latch=False)
     status_pub = rospy.Publisher(status_topic, String, queue_size=10, latch=True)
     cancel_pub = rospy.Publisher(cancel_topic, String, queue_size=1)
     # 到达信号**要 latch**：BT 可能比本节点晚启动（`bt_console` 在树加载后才订阅），
@@ -478,6 +605,18 @@ def main():
     tf2_ros.TransformListener(tf_buffer)
     fields = [PointField(name=n, offset=i * 4, datatype=PointField.FLOAT32, count=1)
               for i, n in enumerate(('x', 'y', 'z', 'intensity'))]
+
+    def task_readings():
+        """原子任务侧读数（裁决③要求的六项里属于本层的那几项）。"""
+        mission = state.mission or {}
+        return {'mission_id': mission.get('mission_id'),
+                'path_revision': state.path_revision,
+                'waypoint_index': state.waypoint_index,
+                'execution_generation': mission.get('execution_generation'),
+                'task_publishes': state.task_publishes,
+                'effective_changes': state.effective_changes,
+                'stale_waypoints': state.stale_waypoints,
+                'invalidations': state.invalidations}
 
     def publish_status(text):
         status_pub.publish(String(data=text))
@@ -577,6 +716,24 @@ def main():
         # 否则 `WaitForPath` 会在暖机这一拍判 FAILURE。
         publish_status(status_json(False, 0, WARMUP_PLAN_REASON, detail='E_FAR_WARMUP'))
 
+    def publish_task(pose_value, waypoint, now=None):
+        """发一帧原子任务。返回是否真的发了（便于测试与读数）。"""
+        payload = state.task_message(pose_value, waypoint, now=now)
+        if payload is None:
+            return False
+        path_task_pub.publish(String(data=json.dumps(payload, ensure_ascii=False)))
+        return True
+
+    def on_task_identity(message):
+        """BT 的原子任务身份。`stale`（旧 mission 晚到）只记一笔，不覆盖当前任务。"""
+        try:
+            payload = json.loads(message.data)
+        except Exception:
+            return
+        result = state.on_task_identity(payload, now=rospy.get_time())
+        if result == 'stale':
+            state.stale_waypoints += 1
+
     def on_waypoint(message):
         point = message.point
         path_points, gait_points, text = state.on_waypoint(
@@ -586,6 +743,7 @@ def main():
             return
         stamp = rospy.Time.now()
         path_pub.publish(to_path(path_points, stamp))
+        publish_task(pose['value'], (point.x, point.y, point.z))
         # 步态路径另发一条：`/global_path` 的末点必须就是 FAR 航点本身，
         # 前视延长点只喂 `gait_guard`。远航点时两者点数相同，近航点时这里多一个点。
         gait_path_pub.publish(to_path(gait_points, stamp))
@@ -632,6 +790,8 @@ def main():
     rospy.Subscriber(scan_in, PointCloud2, on_scan, queue_size=1)
     rospy.Subscriber(pose_topic, PoseStamped, on_pose, queue_size=2)
     rospy.Subscriber(goal_topic, PoseStamped, on_goal, queue_size=1)
+    rospy.Subscriber(task_topic, String, on_task_identity, queue_size=5)
+    rospy.Subscriber(legacy_task_topic, String, on_task_identity, queue_size=5)
     rospy.Subscriber(waypoint_topic, PointStamped, on_waypoint, queue_size=1)
     rospy.Subscriber(reach_topic, Bool, on_reach, queue_size=1)
     rospy.Subscriber(cancel_topic, String, on_cancel, queue_size=1)
@@ -639,14 +799,25 @@ def main():
 
     publish_status(status_json(True, 0, 'ok', waiting=True))
     rate = rospy.Rate(5.0)
+    refresh = {'at': -1e9}
     while not rospy.is_shutdown():
         now = rospy.get_time()
+        # ★同版本几何刷新★：两点路径的首点必须跟着位姿走（FAR 的输入是实时位姿），
+        # 但**不许**推进 path_revision —— 位姿变化不是新任务。下游据此只换首点、不重置执行。
+        if (refresh_hz > 0 and state.mission is not None and state.last_waypoint is not None
+                and pose['value'] is not None and now - refresh['at'] >= 1.0 / refresh_hz):
+            refresh['at'] = now
+            publish_task(pose['value'], state.last_waypoint, now=now)
         stale_status = state.stale(now, timeout_s)
         if stale_status is not None:
             publish_status(stale_status)
             # 航点断了就自己发一次取消（故障停止手段），并记住 seq 等 ack
             _seq, frame = state.request_cancel(now, 'far_waypoint_stale')
             cancel_pub.publish(String(data=frame))
+            # ★失效广播：单独一帧、revision 前进、poses 清空★（安全信号不参与去重/限频）
+            invalidation = state.invalidate('far_waypoint_stale')
+            if invalidation is not None:
+                path_task_pub.publish(String(data=json.dumps(invalidation, ensure_ascii=False)))
             state.last_waypoint_at = now            # 同一轮故障只触发一次
         unacked = state.ack_timeout(now, cancel_ack_timeout_s)
         if unacked is not None:
@@ -662,7 +833,7 @@ def main():
             #   还没出过路径时给瞬态名，避免 `ok=true, points=0` 把 BT 拖到 30 s 超时。
             publish_status(status_json(True, state.waypoint_count,
                                        'ok' if state.waypoint_count > 0 else WARMUP_PLAN_REASON,
-                                       arrived=arrived))
+                                       arrived=arrived, task=task_readings()))
         rate.sleep()
     return 0
 
