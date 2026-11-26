@@ -92,8 +92,14 @@ class PathGoal(object):
         self.revoked_mission = -1
         self.goal_meta_pub = rospy.Publisher(
             rospy.get_param('~goal_meta_topic', '/v8/local/goal_meta'), String, queue_size=10)
+        # ★原子任务通道★：给 local 的身份+位姿同一条消息
+        self.goal_task_pub = rospy.Publisher(
+            rospy.get_param('~goal_task_topic', '/v8/local/goal_task'), String, queue_size=10)
         rospy.Subscriber(rospy.get_param('~path_meta_topic', '/v8/3d/global/path_meta'),
                          String, self.on_path_meta, queue_size=10)
+        # ★原子路径（首选）★：身份与点列同一条消息
+        rospy.Subscriber(rospy.get_param('~path_task_topic', '/v8/3d/global/path_task'),
+                         String, self.on_path_task, queue_size=10)
         try:
             from std_msgs.msg import Bool
             rospy.Subscriber('/v8/local/localization_ok', Bool, self.on_localization, queue_size=5)
@@ -115,6 +121,37 @@ class PathGoal(object):
         self.status_pub.publish(String(data=json.dumps({
             'ok': True, 'cancelled': True, 'dropped_poses': dropped,
             'reason': message.data[:80]})))
+
+    def on_path_task(self, message):
+        """原子路径：{identity..., poses:[[x,y,z],...]}。身份与点列一起到，不存在错配。"""
+        import types as _t
+        try:
+            value = json.loads(message.data)
+            poses = value.pop('poses')
+        except Exception:
+            self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'path_task_malformed'})))
+            return
+        if int(value.get('mission_id', -1)) <= int(getattr(self, 'revoked_mission', -1)):
+            self.status_pub.publish(String(data=json.dumps({'ok': False, 'reason': 'task_revoked',
+                                                            'mission_id': value.get('mission_id')})))
+            return
+        # ★同一任务/同一版本的滚动重发不得重置航点进度★：否则永远停在第一个航点（实测只走 0.3 m）。
+        new_key = (int(value.get('mission_id', 0)), int(value.get('path_revision', 0)))
+        old_key = getattr(self, 'task_key', None)
+        reset_index = (old_key != new_key)
+        self.task_key = new_key
+        self.task_meta = value
+        self.poses = [_t.SimpleNamespace(
+            pose=_t.SimpleNamespace(position=_t.SimpleNamespace(x=p[0], y=p[1], z=p[2])))
+            for p in poses]
+        if reset_index:
+            self.index = 0
+            self.last_goal_key = None
+        else:
+            self.index = min(int(getattr(self, 'index', 0)), max(len(self.poses) - 1, 0))
+        self.pending_meta = None
+        self.accepted_generation += 1
+        self.publish_current()
 
     def on_path_meta(self, message):
         """路径元信息先到一步，暂存待配对（单发布者 + TCP 保序 ⇒ 到达顺序可靠）。"""
@@ -230,6 +267,13 @@ class PathGoal(object):
             meta['waypoint_index'] = int(self.index)
             meta['path_revision'] = int(self.task_meta.get('path_revision', 0))
             self.goal_meta_pub.publish(String(data=json.dumps(meta, ensure_ascii=False)))
+            # ★原子任务★：身份 + 位姿一条消息（跨话题无保序，配对不可靠）
+            task = dict(meta)
+            task['x'] = goal.pose.position.x
+            task['y'] = goal.pose.position.y
+            task['z'] = goal.pose.position.z
+            if hasattr(self, 'goal_task_pub') and self.goal_task_pub is not None:
+                self.goal_task_pub.publish(String(data=json.dumps(task, ensure_ascii=False)))
         self.goal_pub.publish(goal)
         self.published_at = rospy.Time.now()
         rest = self.remaining()

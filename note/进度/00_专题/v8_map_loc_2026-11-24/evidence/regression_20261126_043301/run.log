@@ -1,0 +1,39 @@
+=== 1 正常导航 ===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[nav] v8_nodes=9
+{"est_to_goal_m": 0.586, "gt_to_goal_m": 0.651, "est_gt_gap_m": 0.065, "verdict": "FAIL"}
+=== 2 障碍安全（离线回归，不需重置栈）===
+  "B_narrow_corridor": "smallest_passable 0.650 >= required 0.613",
+  "C_dynamic_obstacle": "extra_monotone=True failclosed=True",
+  "D_open_space": "open=True far=True"
+ }
+}
+=== 2b 运动中障碍（在线）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[obstacle] v8_nodes=9
+{"lead_m": 1.2, "size_m": 0.5, "spawned": true, "moving_before_spawn": true, "box_at": [5.883, 2.545], "penetrations": 0, "penetration_samples": [], "max_zero_run_s": 6.82, "max_travel_m": 0.78, "checks": {"moving_before_spawn": true, "no_penetration": true, "responded": true}, "verdict": "PASS", "deleted": true}
+=== 3 定位失效（只断定位数据）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[loc] v8_nodes=9
+{"mode": "stop", "motion_seen": true, "cmd_frames": 1578, "hold_s": 24.0, "cmd_samples": 1578, "gt_samples": 712, "ack_count": 0, "max_speed": 0.6, "nonzero_frames": 61, "last_nonzero_wall_s": 2.386, "zero_window_wall_s": 23.562, "max_speed_after": 0.0, "inject_wall_s": 1.927, "hdl_last_wall_s": 1.67, "hdl_msgs": 37, "stop_delay_s": 0.716, "inject_to_last_nonzero_s": 0.459, "moving_at_inject": true, "gt_coast_after_inject_m": 0.0862, "gt_travel_after_m": 0.006, "anchor_sim_s": 228.48, "zero_window_sim_s": 10.3, "gt_move_within_2s_sim_m": 0.006, "gt_covers_2s_sim": true, "gt_move_within_5s_sim_m": 0.006, "gt_covers_5s_sim": true, "gt_move_within_10s_sim_m": 0.006, "gt_covers_10s_sim": true, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"seconds": 10.0, "pose_msgs": 70, "gt_samples": 219, "cmd_samples": 486, "moved_m": 0.0, "max_speed_mps": 0.0, "max_gt_gap_s": 0.105, "max_cmd_gap_s": 0.023, "tol_m": 0.05, "checks": {"pose_resumed": true, "no_remotion": true, "sampling_coverage": true}, "pass": true}
+=== 3b 正控：正式入口下发新任务（导航探针验证）===
+{"task_identity": true, "nonzero_speed": true, "real_travel": true, "bt_reached": true, "rearmed": true, "speed_frames": 343, "travel_m": 0.3742, "gt_travel_m": 0.3585, "meta_msgs": 12, "reason": "new task from formal entry"}
+{"task_identity": true, "nonzero_speed": true, "real_travel": true, "bt_reached": true, "rearmed": true, "speed_frames": 343, "travel_m": 0.3742, "gt_travel_m": 0.3585, "meta_msgs": 12, "reason": "new task from formal entry"}
+=== 4 取消（scope=all）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[cancel] v8_nodes=9
+[cancel] WARN 注入前未取得运动（本项将按 INVALID 记）
+{"mode": "cancel", "motion_seen": true, "cmd_frames": 1794, "hold_s": 26.0, "cmd_samples": 1794, "gt_samples": 749, "ack_count": 2, "ack_last": "2:cancelled", "ack_latency_wall_s": 2.299, "max_speed": 0.6, "nonzero_frames": 43, "last_nonzero_wall_s": 2.238, "zero_window_wall_s": 26.491, "max_speed_after": 0.0, "inject_wall_s": 2.724, "stop_delay_s": 0.0, "inject_to_last_nonzero_s": -0.486, "moving_at_inject": false, "gt_coast_after_inject_m": 0.0, "gt_travel_after_m": 0.0162, "anchor_sim_s": 422.5, "zero_window_sim_s": 10.9, "gt_move_within_2s_sim_m": 0.0162, "gt_covers_2s_sim": true, "gt_move_within_5s_sim_m": 0.0162, "gt_covers_5s_sim": true, "gt_move_within_10s_sim_m": 0.0162, "gt_covers_10s_sim": true, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"conns": 2, "cancel_conns": 1, "stale_replies": [{"ok": false, "reason": "stale_after_cancel", "path_stamp": 429.863, "cancelled_at": 434.527, "rejected_stale": 1}], "stale_rejected": true, "stale_generation_bump": false, "fresh_replies": [{"ok": true, "generation": 5, "rejected_stale": 1, "poses": 4, "index": 1, "remaining_m": 0.617, "goal": [4.35, 2.45, 0.0], "frame": "map"}], "fresh_accepted": true, "fresh_generation": 5, "pass": true}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       FAIL     gt=0.651 m est=0.586 BT未报reached                           frames=7 travel=0.000
+2 障碍安全       PASS     A2=PASS A=PASS B=PASS C=PASS D=PASS                        在线PASS(zero=6.82s,pen=0)
+3 定位失效       PASS     delay=0.716 s coast=0.086 m after_v=0.0 恢复不动 新任务可解锁        nodes=9
+4 取消安全       PASS     ack=2:cancelled zero=10.90 s sim move5s=0.016 m after_v=0.0 replay=PASS
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：3 PASS / 1 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/regression_20261126_043301
+judge_rc=1（0=四项全 PASS，非零=有项未通过）

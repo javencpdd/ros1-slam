@@ -120,6 +120,55 @@ def accept_goal(shared, message, meta=None):
                   cancel_requested=False, cancel_seq=0, cancel_reason=None)
     return True
 
+def accept_task_json(shared, payload, require_task_meta=True):
+    """★原子任务消息★：`{mission_id, path_revision, waypoint_index, execution_generation, x, y, z, yaw}`。
+
+    为什么要它：ROS 的**不同 topic 之间没有保序保证**，`meta` + `payload` 两条消息配对在
+    拥塞/重连时会错配（把 A 的身份配到 B 的位姿上，或丢 meta 后回退到 header.seq——而 header.seq
+    会被 publisher 覆写成消息计数，根本不是任务身份）。所以把身份与位姿放进**同一条消息**，
+    要么一起到、要么都不到。
+    """
+    if not isinstance(payload, dict) or 'mission_id' not in payload:
+        shared.update(last_error='E_LOCAL_NO_TASK_IDENTITY')
+        return False
+    try:
+        pose = (float(payload['x']), float(payload['y']), float(payload.get('z', 0.0)))
+        meta = {k: int(payload.get(k, 0)) for k in
+                ('mission_id', 'path_revision', 'waypoint_index', 'execution_generation')}
+    except (KeyError, TypeError, ValueError):
+        shared.update(last_error='E_LOCAL_TASK_MALFORMED')
+        return False
+    return accept_goal_meta(shared, pose, meta)
+
+
+def accept_goal_meta(shared, pose, meta):
+    """按四元组接受一个目标（位姿已是 (x,y,z) 形式，不再从消息里取）。"""
+    m = int(meta.get('mission_id', 0))
+    r = int(meta.get('path_revision', 0))
+    w = int(meta.get('waypoint_index', 0))
+    g = int(meta.get('execution_generation', 0))
+    if m <= int(shared.get('revoked_mission', -1)):
+        shared.update(last_error='E_LOCAL_TASK_REVOKED')
+        return False
+    cur_m = int(shared.get('mission_id', 0))
+    if m < cur_m:
+        shared.update(last_error='E_LOCAL_STALE_MISSION')
+        return False
+    if m == cur_m:
+        if g < int(shared.get('exec_gen', 0)) or r < int(shared.get('path_revision', 0)):
+            shared.update(last_error='E_LOCAL_STALE_TASK_VERSION')
+            return False
+        if (r, w, g) == (int(shared.get('path_revision', 0)),
+                         int(shared.get('waypoint_index', 0)),
+                         int(shared.get('exec_gen', 0))) and shared.get('goal') is not None:
+            return False                      # 重复消息：忽略且不重置
+    shared.update(goal=pose, generation=shared['generation'] + 1, result=None,
+                  stop_latched=False, stop_reason=None, last_error='ok',
+                  cancel_requested=False, cancel_seq=0, cancel_reason=None,
+                  mission_id=m, path_revision=r, waypoint_index=w, exec_gen=g)
+    return True
+
+
 def drop_task_on_pose_invalid(shared, now_wall, threshold_s):
     """★定位持续失效 ⇒ 当前任务作废★（真人裁决 2026-11-26）。
 
@@ -224,6 +273,8 @@ def main():
     config.validate()
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
     require_goal_seq = bool(rospy.get_param('~require_goal_seq', False))
+    # ★安全模式：任务身份必须是原子消息★（默认开）；关掉才会退回 legacy 的 PoseStamped+seq
+    require_task_meta = bool(rospy.get_param('~require_task_meta', True))
     # 定位持续失效多久才作废任务（秒）。必须 > 正常帧间隔（~0.1 s），又与"位姿最大龄期"同一量级。
     task_drop_after_s = float(rospy.get_param('~task_drop_after_s', 0.8))
     if not math.isfinite(max_age) or max_age <= 0:
@@ -326,9 +377,25 @@ def main():
 
     def on_goal(msg):
         with lock:
+            if require_task_meta:
+                # ★安全模式：没有原子身份就不收★（header.seq 会被 publisher 覆写，不可当身份）
+                shared.update(last_error='E_LOCAL_NO_TASK_IDENTITY')
+                return
             meta = pending_meta['value']
-            pending_meta['value'] = None      # 只与紧随其后的一条 goal 配对
+            pending_meta['value'] = None
             if accept_goal(shared, msg, meta):
+                plan_wake.set()
+
+    def on_goal_task(msg):
+        """原子任务：身份与位姿同一条消息（跨话题无保序，配对不可靠）。"""
+        try:
+            payload = json.loads(msg.data)
+        except Exception:
+            with lock:
+                shared.update(last_error='E_LOCAL_TASK_MALFORMED')
+            return
+        with lock:
+            if accept_task_json(shared, payload):
                 plan_wake.set()
 
     def on_obstacles(msg):
@@ -397,6 +464,9 @@ def main():
     # ★任务身份通道★（独立于 header.seq / timestamp）：path_goal 紧邻 goal 之前发布
     rospy.Subscriber(rospy.get_param('~goal_meta_topic', '/v8/local/goal_meta'),
                      String, on_goal_meta, queue_size=10)
+    # ★原子任务通道（首选）★
+    rospy.Subscriber(rospy.get_param('~goal_task_topic', '/v8/local/goal_task'),
+                     String, on_goal_task, queue_size=10)
     rospy.Subscriber(rospy.get_param('~obstacles_topic', '/v8/local/obstacles'), String, on_obstacles, queue_size=1)
     rospy.Subscriber(rospy.get_param('~localization_topic', '/v8/local/localization_ok'),
                      Bool, on_localization, queue_size=1)

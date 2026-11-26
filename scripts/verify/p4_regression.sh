@@ -33,6 +33,18 @@ POSE_TOPIC=${POSE_TOPIC:-$([ "$M2" = "1" ] && echo /v8/local/pose || echo /hdl_o
 GATE_IN=${GATE_IN:-$([ "$M2" = "1" ] && echo /Odometry || echo /hdl_odom_raw)}
 GATE_OUT=${GATE_OUT:-$([ "$M2" = "1" ] && echo /Odometry_gated || echo /hdl_odom)}
 GATE_NAME=${GATE_NAME:-$([ "$M2" = "1" ] && echo m2_gate || echo hdl_gate)}
+# ★必须 export★：到达核对那段是内联 python，靠 os.environ 读 POSE_TOPIC；
+# 不导出时它永远回退到 /hdl_odom（M2 组合下必然超时，失败日志已证实）。
+export POSE_TOPIC
+# ★断流锚按组合取★：HDL 锚 /hdl_odom（asan 的 relay 输出），M2 锚闸门输出 /Odometry_gated
+ANCHOR_TOPIC=${ANCHOR_TOPIC:-$([ "$M2" = "1" ] && echo "$GATE_OUT" || echo /hdl_odom)}
+export ANCHOR_TOPIC
+# 断流注入：HDL 组合杀 asan 的 relay；M2 组合调图内闸门服务（两种机制不混用）
+if [ "$M2" = "1" ]; then
+  INJECT_ACTION="rosservice call /v8/3d/lio_gate/lio_gate/set_enabled '{data: false}'"
+else
+  INJECT_ACTION="rosnode kill /hdl_gate"
+fi
 
 
 mkdir -p "$EV_ROOT"
@@ -116,7 +128,10 @@ reset_stack() {
       tick=$(timeout 4 rostopic hz "$POSE_TOPIC" 2>/dev/null | tail -1)
       case "$tick" in *"average rate"*) ready=1; break ;; esac
     done
-    [ "$ready" = "1" ] || say "[$tag] 错误：定位输入未就绪（$POSE_TOPIC 无连续数据）——本项结果不可信"
+    if [ "$ready" != "1" ]; then
+      say "[$tag] ABORT：定位输入未就绪（$POSE_TOPIC 无连续数据）——拒绝在无定位状态下做验收"
+      return 9
+    fi
   fi
   local n
   n=$(rosnode list 2>/dev/null | grep -cE '^/v8' || true)
@@ -184,8 +199,8 @@ case_loc() {
   # 闸门 relay：杀它只断 /hdl_odom，master 与导航进程都不受影响。
   # 探针在「首帧非零命令」时下手，不靠固定 sleep（运动窗口只有 2 s 上下）。
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode stop --hold-s 24 \
-    --wait-motion-s 90 --inject-delay-s 1.0 \
-    --action "rosservice call /v8/3d/lio_gate/lio_gate/set_enabled '{data: false}'" \
+    --wait-motion-s 90 --inject-delay-s 1.0 --anchor-topic "$ANCHOR_TOPIC" \
+    --action "$INJECT_ACTION" \
     --out "$EV_ROOT/loc_stop.json" --dump "$EV_ROOT/loc_series.tsv" \
     > "$EV_ROOT/loc_stop.log" 2>&1 &
   local pp=$!
@@ -201,9 +216,16 @@ case_loc() {
     --out "$EV_ROOT/loc_recovery.json" > "$EV_ROOT/loc_recovery.log" 2>&1 &
   local rp=$!
   sleep 2
-  # ★恢复走服务★：闸门是图内组件，把它置回 true 即可（进程生命周期归装配）
-  rosservice call /v8/3d/lio_gate/lio_gate/set_enabled '{data: true}' \
-    > "$EV_ROOT/loc_recovery_gate.log" 2>&1
+  # ★恢复机制按组合★：M2 走闸门服务；Support 走 asan 的 relay（图里没有 lio_gate，
+  # 无条件调 M2 的服务在 Support 下必然失败）
+  if [ "$M2" = "1" ]; then
+    rosservice call /v8/3d/lio_gate/lio_gate/set_enabled '{data: true}' \
+      > "$EV_ROOT/loc_recovery_gate.log" 2>&1
+  else
+    rosrun topic_tools relay /hdl_odom_raw /hdl_odom __name:=hdl_gate \
+      > "$EV_ROOT/loc_recovery_relay.log" 2>&1 &
+    sleep 2
+  fi
   wait $rp 2>/dev/null
   cat "$EV_ROOT/loc_recovery.json" 2>/dev/null
 
@@ -246,11 +268,13 @@ except Exception:
 checks = {
     'task_identity': metas > 0,
     'nonzero_speed': (nav.get('speed_frames') or 0) > 0,
-    'real_travel': (nav.get('est_travel_m') or 0) >= 0.30,
+    # ★真实位移必须用真值★：估计算法位姿的位移不能冒充真实运动
+    'real_travel': (nav.get('gt_travel_m') or 0) >= 0.30,
     'bt_reached': bool(nav.get('bt_arrived')),
 }
 res = dict(checks, rearmed=all(checks.values()),
-           speed_frames=nav.get('speed_frames'), travel_m=nav.get('est_travel_m'),
+           speed_frames=nav.get('speed_frames'),
+           travel_m=nav.get('est_travel_m'), gt_travel_m=nav.get('gt_travel_m'),
            meta_msgs=metas, reason='new task from formal entry')
 open(os.path.join(ev, 'loc_rearm.json'), 'w').write(json.dumps(res, ensure_ascii=False) + '\n')
 print(json.dumps(res, ensure_ascii=False))
@@ -266,6 +290,15 @@ case_cancel() {
     GOAL_X=$CANCEL_GOAL_X GOAL_Y=$CANCEL_GOAL_Y reset_stack cancel 1
   # ★目标必须在车动起来的那一刻停发★：取消之后再进来新目标，系统重新起步是
   # 正确行为，会被误读成"取消没生效"。goal_until_motion 就干这件事。
+  # ★注入前必须在动★：历史证据里出现过 moving_at_inject=false —— 那种情况下"取消后不动"
+  # 不能证明取消生效。这里先等到真值速度非零，再开始注入窗口。
+  local mv=0 vv
+  for _ in $(seq 1 60); do
+    sleep 1
+    vv=$(timeout 3 rostopic echo -n1 /cmd_vel/linear/x 2>/dev/null | head -1)
+    if [ -n "$vv" ] && [ "$vv" != "0.0" ]; then mv=1; break; fi
+  done
+  [ "$mv" = "1" ] || say '[cancel] WARN 注入前未取得运动（本项将按 INVALID 记）'
   python3 $REPO/scripts/verify/motion_interrupt_probe.py --mode cancel --hold-s 26 \
     --wait-motion-s 90 --inject-delay-s 1.5 \
     --out "$EV_ROOT/cancel.json" --dump "$EV_ROOT/cancel_series.tsv" \

@@ -22,6 +22,7 @@ import math
 import time
 
 import rospy
+from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 
 
@@ -53,7 +54,9 @@ def main():
         state['gt_times'].append(time.monotonic())
         state['gt_pts'].append((p.x, p.y))
 
+    # 位姿话题可能是 Odometry 或 PoseStamped，两种都订（类型不匹配的那条不会来消息）
     rospy.Subscriber(args.pose_topic, Odometry, on_est, queue_size=20)
+    rospy.Subscriber(args.pose_topic, PoseStamped, lambda _m: on_est(None), queue_size=20)
     rospy.Subscriber(args.gt_topic, Odometry, on_gt, queue_size=20)
     from geometry_msgs.msg import Twist
     rospy.Subscriber('/cmd_vel', Twist, on_cmd, queue_size=50)

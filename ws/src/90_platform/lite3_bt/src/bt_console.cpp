@@ -153,6 +153,7 @@ struct SharedState
   ros::Publisher goal_pub;
   ros::Publisher planner_goal_pub;
   ros::Publisher goal_meta_pub;
+  ros::Publisher goal_task_pub;   // ★原子任务：身份+位姿同一条消息（跨话题无保序）
   ros::Publisher cancel_pub;
   ros::Publisher stop_pub;
 };
@@ -392,6 +393,21 @@ public:
                     static_cast<unsigned long>(g_state.exec_generation));
       meta.data = buf;
       g_state.goal_meta_pub.publish(meta);
+    }
+    // ★原子任务消息★：身份与位姿一起发（不依赖跨话题顺序，缺失/错配即无效）
+    if (g_state.goal_task_pub) {
+      std_msgs::String task;
+      char tbuf[320];
+      std::snprintf(tbuf, sizeof(tbuf),
+                    "{\"mission_id\":%lu,\"path_revision\":0,\"waypoint_index\":0,"
+                    "\"execution_generation\":%lu,\"x\":%.6f,\"y\":%.6f,\"z\":%.6f,"
+                    "\"frame\":\"%s\"}",
+                    static_cast<unsigned long>(g_state.current_seq),
+                    static_cast<unsigned long>(g_state.exec_generation),
+                    goal.pose.position.x, goal.pose.position.y, goal.pose.position.z,
+                    goal.header.frame_id.c_str());
+      task.data = tbuf;
+      g_state.goal_task_pub.publish(task);
     }
     goal.header.seq = static_cast<std::uint32_t>(g_state.current_seq);
     g_state.planner_goal_pub.publish(goal);
@@ -1528,6 +1544,8 @@ int main(int argc, char** argv)
   // ★latched★：后加入的订阅者也能拿到最近一次任务身份；配合"goal 前后各发一次"消除配对竞态
   g_state.goal_meta_pub = nh.advertise<std_msgs::String>(
       pnh.param<std::string>("goal_meta_topic", "/v8/bt/goal_meta"), 10, /*latch=*/true);
+  g_state.goal_task_pub = nh.advertise<std_msgs::String>(
+      pnh.param<std::string>("goal_task_topic", "/v8/bt/goal_task"), 10, /*latch=*/true);
   g_state.stop_pub = nh.advertise<geometry_msgs::Twist>(stop_topic, 1);
   g_state.cancel_pub = nh.advertise<std_msgs::String>(cancel_topic, 1);
   ros::Publisher status_pub = nh.advertise<std_msgs::String>("/v8/bt/status", 1);

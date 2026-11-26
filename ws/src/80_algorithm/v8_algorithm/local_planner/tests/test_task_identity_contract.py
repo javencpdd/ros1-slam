@@ -26,7 +26,8 @@ for _name in ('rospy', 'geometry_msgs', 'geometry_msgs.msg', 'nav_msgs',
 
 HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
-from ros_node import accept_goal, accept_worker_result  # noqa: E402
+from ros_node import (accept_goal, accept_task_json,  # noqa: E402
+                      accept_worker_result)
 
 
 def _goal(x=1.0, y=0.0, frame='map', stamp_sec=0.0):
@@ -94,6 +95,36 @@ class TaskIdentity(unittest.TestCase):
         self.assertEqual(sh['last_error'], 'E_LOCAL_TASK_REVOKED')
         # 新任务（mission 更大）可以重新武装
         self.assertTrue(accept_goal(sh, _goal(6.0), _meta(mission=4, wp=0)))
+
+    def test_atomic_task_missing_identity_rejected(self):
+        """★原子消息缺身份必须拒★（禁止回退 header.seq）。"""
+        sh = _shared()
+        self.assertFalse(accept_task_json(sh, {'x': 1.0, 'y': 0.0}))
+        self.assertEqual(sh['last_error'], 'E_LOCAL_NO_TASK_IDENTITY')
+        self.assertIsNone(sh['goal'])
+
+    def test_atomic_task_malformed_rejected(self):
+        sh = _shared()
+        self.assertFalse(accept_task_json(sh, {'mission_id': 1, 'x': 'oops'}))
+        self.assertEqual(sh['last_error'], 'E_LOCAL_TASK_MALFORMED')
+
+    def test_atomic_task_out_of_order_rejected(self):
+        """乱序：older mission 晚到必须拒（不因后到而覆盖当前任务）。"""
+        sh = _shared()
+        self.assertTrue(accept_task_json(sh, {'mission_id': 7, 'path_revision': 0,
+                                              'waypoint_index': 0, 'execution_generation': 0,
+                                              'x': 1.0, 'y': 0.0}))
+        self.assertFalse(accept_task_json(sh, {'mission_id': 6, 'path_revision': 9,
+                                               'waypoint_index': 9, 'execution_generation': 0,
+                                               'x': 9.0, 'y': 9.0}))
+        self.assertEqual(sh['last_error'], 'E_LOCAL_STALE_MISSION')
+        self.assertEqual(sh['goal'], (1.0, 0.0, 0.0))
+
+    def test_atomic_task_revoked_rejected(self):
+        sh = _shared()
+        sh['revoked_mission'] = 5
+        self.assertFalse(accept_task_json(sh, {'mission_id': 5, 'x': 2.0, 'y': 2.0}))
+        self.assertEqual(sh['last_error'], 'E_LOCAL_TASK_REVOKED')
 
     def test_late_async_result_dropped(self):
         """⑥ 异步结果晚到：代次不符即丢弃，不得覆盖当前结果。"""

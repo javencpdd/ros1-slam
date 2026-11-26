@@ -57,6 +57,8 @@ def main():
     # 保证「目标已停发 → 再取消」，否则取消后随后的新目标会让系统合法重新起步。
     ap.add_argument('--inject-delay-s', type=float, default=0.0)
     ap.add_argument('--action', default='rosnode kill /hdl_gate')
+    ap.add_argument('--anchor-topic', default='/hdl_odom',
+                    help='断流锚话题：HDL 组合 /hdl_odom；M2 组合 /Odometry_gated')
     ap.add_argument('--out', default='')
     ap.add_argument('--dump', default='', help='原始序列落盘（TSV），判据可复核')
     args = ap.parse_args()
@@ -99,12 +101,15 @@ def main():
     def on_clock(msg):
         CLK['sim'] = msg.clock.to_sec()
 
+    # ★断流锚必须按组合参数化★：HDL 组合锚在 /hdl_odom，M2 组合锚在闸门输出 /Odometry_gated。
+    # 写死 /hdl_odom 会让 M2 的"失效生效时刻"永远取不到（延迟/滑行读数失真）。
+    anchor_topic = args.anchor_topic
     rospy.init_node('motion_interrupt_probe', anonymous=True)
     rospy.Subscriber('/clock', Clock, on_clock, queue_size=20)
     rospy.Subscriber('/cmd_vel', Twist, on_cmd, queue_size=50)
     rospy.Subscriber('/sim/odom_gt', Odometry, on_gt, queue_size=50)
     rospy.Subscriber('/v8/local/cancel_ack', String, on_ack, queue_size=20)
-    rospy.Subscriber('/hdl_odom', Odometry, on_hdl, queue_size=50)
+    rospy.Subscriber(anchor_topic, Odometry, on_hdl, queue_size=50)
 
     # 2) 等首帧非零（车真的动了）
     t0 = time.monotonic()

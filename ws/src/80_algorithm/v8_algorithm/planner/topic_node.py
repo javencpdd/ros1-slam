@@ -48,6 +48,8 @@ def main():
     from std_msgs.msg import String as _String
     path_meta_pub = rospy.Publisher(rospy.get_param('~path_meta_topic', '/v8/3d/global/path_meta'),
                                     _String, queue_size=10)
+    path_task_pub = rospy.Publisher(rospy.get_param('~path_task_topic', '/v8/3d/global/path_task'),
+                                    _String, queue_size=10)
     path_pub = rospy.Publisher(rospy.get_param('~path_topic', '/global_path'),
                                Path, queue_size=1, latch=True)
     status_pub = rospy.Publisher(rospy.get_param('~status_topic', '/global_path/status'),
@@ -80,7 +82,12 @@ def main():
             publish(dict(legacy.refusal(error), map_version=version))
             return
         points = legacy.to_path_points(result)
-        # ★先发 meta、再发 path★：meta 来自**本次请求的快照**（不是最新共享值）
+        # ★原子路径：身份与点列同一条消息★（跨话题不保序，配对不可靠）
+        if meta:
+            payload = dict(meta)
+            payload['poses'] = [[round(x, 6), round(y, 6), round(z, 6)] for x, y, z, _s in points]
+            path_task_pub.publish(_String(data=json.dumps(payload, ensure_ascii=False)))
+        # 兼容：仍发 meta + Path 给旧消费者
         if meta:
             path_meta_pub.publish(_String(data=json.dumps(meta, ensure_ascii=False)))
         message = Path()
@@ -150,6 +157,24 @@ def main():
                      on_map, queue_size=1)
     rospy.Subscriber(rospy.get_param('~start_topic', '/v8/global/start'), PoseStamped,
                      on_pose('start'), queue_size=1)
+    def on_goal_task(message):
+        """★原子任务★：身份与位姿同一条消息，直接设置 state（不依赖跨话题顺序）。"""
+        try:
+            value = json.loads(message.data)
+        except Exception:
+            return
+        try:
+            state['goal'] = (float(value['x']), float(value['y']), float(value.get('z', 0.0)))
+            state['goal_meta'] = {k: int(value.get(k, 0)) for k in
+                                  ('mission_id', 'path_revision', 'waypoint_index',
+                                   'execution_generation')}
+        except (KeyError, TypeError, ValueError):
+            return
+        replan()
+
+    rospy.Subscriber(rospy.get_param('~goal_task_topic', '/v8/bt/goal_task'),
+                     _String, on_goal_task, queue_size=5)
+
     def on_goal_meta(message):
         try:
             value = json.loads(message.data)

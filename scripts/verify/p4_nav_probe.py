@@ -23,6 +23,7 @@ import sys
 import rospy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import String
 
 
@@ -42,7 +43,11 @@ class Probe(object):
         self.cmd_frames = 0
         self.cmd_times = []          # 采样覆盖判据用：cmd 到达的墙钟时刻
         self.bt_arrived = False      # ★BT 自己的到达事件★：只看真值距离会漏判"规划器没报到"
-        rospy.Subscriber(pose_topic, Odometry, self.on_est, queue_size=20)
+        # ★位姿话题可能是 Odometry 也可能是 PoseStamped★（M1 的 /hdl_odom 是 Odometry，
+        # M2 的 /v8/local/pose 是 PoseStamped）。两种类型都订阅，只有类型匹配的那条会收到消息——
+        # 之前只按 Odometry 订，M2 组合拿不到位姿（est_start=None），这是脚本层 bug 不是系统 bug。
+        rospy.Subscriber(pose_topic, Odometry, self.on_est_odom, queue_size=20)
+        rospy.Subscriber(pose_topic, PoseStamped, self.on_est_pose, queue_size=20)
         # ★BT 的到达事件在 `/v8/bt/status`（std_msgs/String + JSON）里★，字段 `last_event`/`goal_outcome`
         # 取 "reached"。`/v8/bt/arrived` 是 far_stack 里 FAR 适配器的专用话题，support 组合没有它，
         # 用那条会永远判 False（会误伤已通过的基线）。
@@ -50,8 +55,14 @@ class Probe(object):
         rospy.Subscriber('/sim/odom_gt', Odometry, self.on_gt, queue_size=20)
         rospy.Subscriber('/cmd_vel', Twist, self.on_cmd, queue_size=20)
 
-    def on_est(self, m):
+    def on_est_odom(self, m):
         p = m.pose.pose
+        self._take_est(p)
+
+    def on_est_pose(self, m):
+        self._take_est(m.pose)
+
+    def _take_est(self, p):
         self.est = (p.position.x, p.position.y, yaw_of(p.orientation))
         if self.first_est is None:
             self.first_est = self.est

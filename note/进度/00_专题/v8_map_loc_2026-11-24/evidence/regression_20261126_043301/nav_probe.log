@@ -1,0 +1,11 @@
+[ERROR] [1795667710.318245, 97.056000]: bad callback: <bound method Probe.on_est_pose of <__main__.Probe object at 0x7ba195eb80a0>>
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
+    cb(msg)
+  File "/opt/ros1-slam/scripts/verify/p4_nav_probe.py", line 63, in on_est_pose
+    self._take_est(m.pose)
+  File "/opt/ros1-slam/scripts/verify/p4_nav_probe.py", line 66, in _take_est
+    self.est = (p.position.x, p.position.y, yaw_of(p.orientation))
+AttributeError: 'PoseWithCovariance' object has no attribute 'position'
+
+{"duration_s": 40.0, "goal": [3.9, 2.45], "pose_topic": "/hdl_odom", "cmd_frames": 11, "speed_frames": 7, "max_speed_mps": 0.6, "bt_arrived": false, "max_cmd_gap_s": 0.011, "est_start": [4.7077, 2.4843, 0.0107], "est_end": [4.7077, 2.4843, 0.0107], "est_travel_m": 0.0, "est_dist_to_goal_m": 0.8084, "initial_dist_to_goal_m": 0.808, "gt_travel_m": 0.0353, "gt_dist_to_goal_m": 0.7578, "checks": {"nonzero_speed": true, "travel_half_of_initial": false, "arrived": false, "bt_reached": false, "sampling_continuous": true, "est_gt_travel_agree": true, "gt_arrived": false}, "verdict": "FAIL", "reason": "未通过: travel_half_of_initial,arrived,bt_reached,gt_arrived"}

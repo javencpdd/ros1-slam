@@ -9061,3 +9061,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   验收入口只做两件事：**判就绪**（看 loc 真正消费的 `$POSE_TOPIC` 是否有连续数据，缺则显式报错、拒绝继续）
   与**调服务**注入（`/v8/3d/lio_gate/lio_gate/set_enabled false|true`）；启停与退出清理归装配（roslaunch）。
   定点实测：`/Odometry_gated` 与 `/v8/local/pose` 均约 **10 Hz**，`/v8/local/pose=(5.211, 2.474)`（与验收起点一致）。
+- ★原子任务契约（真人 2026-11-26 第 2 条，进行中）★：跨 topic 无保序 ⇒ 废除 `meta + payload` 配对，
+  改为**身份与载荷同一条消息**（JSON String）：
+  `/v8/bt/goal_task` → `/v8/3d/global/path_task`（含 identity + poses）→ `/v8/local/goal_task`（identity + xyz）。
+  local 侧新增 `accept_task_json()`：缺 `mission_id` ⇒ `E_LOCAL_NO_TASK_IDENTITY`（**安全模式不回退 header.seq**），
+  畸形 ⇒ `E_LOCAL_TASK_MALFORMED`，撤销/旧 mission/版本回退/重复各有独立错误码；
+  参数 `~require_task_meta`（默认 true）。单测补 4 例（缺身份/畸形/乱序/撤销），`local_planner` 全量 **194 项 OK**。
+  ★当前状态★：Support 三项 PASS（障碍/定位失效/取消），**nav 回归**：robot 只走 ~0.5 m 即停
+  （`nav_probe: start=(4.71,2.48), travel=0, frames=7, bt=False`），推测 `path_goal` 在原子路径下
+  航点推进与去重键的配合仍有问题（同任务滚动重发时 `last_goal_key` 未随 poses 变化更新）。
+  ⇒ **Support 暂记 3/4**，不宣布 4/4。
