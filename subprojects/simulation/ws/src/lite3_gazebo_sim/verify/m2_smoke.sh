@@ -669,7 +669,14 @@ PYEOF
   _pcd=$(rosparam get /gms/globalmap_pcd 2>/dev/null)
   case "$_pcd" in
     *sim_venue.pcd) echo "[C] 定位源地图=$_pcd" ;;
-    *) echo "FAIL C: 定位源地图不对（$_pcd）"; return 1 ;;
+    *) echo "FAIL C: 定位源地图不对（$_pcd）"
+       # ★这条 FAIL 有历史裁决背书★（note/02_问题与坑.md 坑14 / M2-R2C 2026-10-06）：
+       #   "hdl 仿真验证终止 —— /clock 门控+--no-bond 落地后 manager 仍 SIGSEGV exit -11，
+       #    稳定性 FAIL，按红线 stageC 终止（第 3 轮不做）；hdl 仿真面未过，转真机 G8 顺带验证"。
+       # 也就是说 /gms（GlobalmapServer）在这里起不来是**已知终态**，不是本轮的代码缺陷。
+       # 保留 FAIL（不伪装 PASS），但把裁决出处印出来，避免下一轮又当新 bug 从头查。
+       echo "NOTE C: 依据 坑14/M2-R2C，hdl 仿真面已裁决终止；stageC 的 PASS 不可得，转真机 G8"
+       return 1 ;;
   esac
   _pub=$(rostopic info /hdl_odom 2>/dev/null | sed -n '/Publishers/,/Subscribers/p' | grep -c '^ \*')
   echo "[C] /hdl_odom 发布者数=$_pub"
