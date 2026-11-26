@@ -459,9 +459,20 @@ hz_probe /hdl_odom || { say "hdl_gate.log:"; tail -10 "$EV/hdl_gate.log"; gate_f
 # /hdl_odom 是 P3 的验收对象：必须有稳定输出。
 ODOM_HZ=$(timeout 8 rostopic hz /hdl_odom 2>/dev/null | grep -E "average rate" | tail -1)
 say "hdl_odom_hz=${ODOM_HZ:-none}"
+
+# ★光有 /hdl_odom 不够（2026-11-27 实测踩到）★：HdlLocalizationNodelet 若在 onInit 后
+# 没有订阅到扫描，"里程计"仍然会以 passthrough 形式流动，`hz` 一样漂亮，但**根本没有做配准**
+# —— 表现为 `/status`(ScanMatchingStatus) 0 帧、TF 里没有 `map→odom`、`/terrain_cloud` 随后停发。
+# 所以 P3 必须同时要求：①有 /hdl_odom；②有 /status；③有 map→odom。
+STATUS_HZ=$(timeout 8 rostopic hz /status 2>/dev/null | grep -E "average rate" | tail -1)
+say "scan_matching_status_hz=${STATUS_HZ:-none}"
+TF_MAP=$(timeout 6 rosrun tf tf_echo map odom 2>&1 | grep -c "Translation" || true)
+say "tf_map_to_odom=$TF_MAP"
 if [ -z "$ODOM_HZ" ]; then
   say "P3_VERDICT=FAIL（/hdl_odom 无输出）"
+elif [ -z "$STATUS_HZ" ] || [ "${TF_MAP:-0}" -lt 1 ]; then
+  say "P3_VERDICT=FAIL（/hdl_odom 有数据，但没有做配准：status=${STATUS_HZ:-none} tf_map_odom=$TF_MAP）"
 else
-  say "P3_VERDICT=PASS（/hdl_odom 有输出：$ODOM_HZ）"
+  say "P3_VERDICT=PASS（/hdl_odom 有输出：$ODOM_HZ；配准 status=${STATUS_HZ}；map→odom 存在）"
 fi
 say "EV=$EV"
