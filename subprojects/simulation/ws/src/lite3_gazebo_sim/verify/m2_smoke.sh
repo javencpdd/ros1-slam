@@ -92,6 +92,16 @@ if [ -f "$MAP" ]; then cp "$MAP" "$LOGDIR/lite3.pcd.bak"
 #   (1) 防复验跑到过期副本（m2_teb.launch 已因 [6] 改名与 [5] include 上收而变，/tmp 侧仍是旧版）
 #   (2) teb/hdl 改指 TOP 编排件 lite3_bringup/mode_sim_*.launch（[5] 返工；判据/阈值/stage 数/进程拓扑零改动）
 
+# ★激光传感器激活 helper★（2026-11-27 实测）：mid360 插件**有订阅者才发布**点云，
+# 冷启动时 `wait_topic /rslidar_points` 会等到超时（插件日志却显示已加载）。
+# 顺序：先等 master 就绪（master 由 launch 自己拉起）→ 再挂**常驻**订阅者（-n1 拿到一条就退出，
+# 传感器随即失活）。只做激活，不改判据、不重打时间戳。
+prime_lidar() {
+  local tag=${1:-stage}
+  for _ in $(seq 1 60); do rostopic list >/dev/null 2>&1 && break; sleep 1; done
+  timeout 900 rostopic hz /livox/lidar > "${LOGDIR:-/tmp}/livox_primed_${tag}.log" 2>&1 &
+}
+
 # ============ Stage A：闭环回归（M2-1/M2-4） ============
 stage_a() {
   SEG=A   # R26 三：本段退净按段各检一次
@@ -515,8 +525,7 @@ stage_c() {
   # ★顺序很关键★（2026-11-27 实测两次）：master 是**这个 launch 拉起来的**，抢在它之前挂订阅者
   # 只会得到 "Unable to communicate with master!"。正确做法＝先等 master 就绪，再挂**常驻**订阅者
   # （`-n1` 拿到一条就退出，传感器随即失活，实测仍等不到 /rslidar_points）。
-  for _ in $(seq 1 60); do rostopic list >/dev/null 2>&1 && break; sleep 1; done
-  timeout 600 rostopic hz /livox/lidar > "$LOGDIR/livox_primed.log" 2>&1 &
+  prime_lidar C1
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出"; return 1; }
   wait_topic /livox/imu 300 || { echo "FAIL C: /livox/imu 未出"; return 1; }
   roslaunch lite3_gazebo_sim m2_mapping.launch pcd_save:=true > "$LOGDIR/mappingC.log" 2>&1 &
@@ -590,8 +599,13 @@ PYEOF
   rosnode kill -a 2>/dev/null; sleep 3; pkill -f gzserver 2>/dev/null; sleep 2
   # C-2 重定位：hdl 载入 sim_venue → /initialpose 注入真值邻域（±0.15m/5°）→ 三判据
   T_HDL0=$(date +%s)   # M2-R2C：稳定性判据计时起点（hdl 栈存活 ≥120s 观测窗）
-  roslaunch lite3_bringup mode_sim_hdl.launch > "$LOGDIR/hdlC.log" 2>&1 &
-  wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出"; return 1; }
+  local hdl_launch
+  # 同 Stage B：`.profiles/x86_sim` 里有同内容的 lite3_bringup，包名解析会撞
+  # RLException: multiple files named [...]; 优先用 ws/src 下的规范件。
+  hdl_launch=$(ls -1 "${M2_WS:-/opt/ros1-slam/ws}/src"/*/lite3_bringup/launch/mode_sim_hdl.launch 2>/dev/null | head -1)
+  roslaunch "${hdl_launch:-lite3_bringup}" > "$LOGDIR/hdlC.log" 2>&1 &
+  prime_lidar C2
+  wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出（relocalization 段，已挂常驻订阅）"; return 1; }
   timeout 60 rostopic echo -n 1 /hdl_odom >/dev/null 2>&1 || true
   python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
 import math, time, rospy
