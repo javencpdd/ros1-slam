@@ -1,0 +1,88 @@
+[m2] 日志目录: /tmp/m2_payload/logs-20261126_185523
+[m2] HARNESS sha256=f41777e17fecffe6ff8992feee0df91fc5d097a8e4a6556d279d5fb59de97188 path=m2_smoke.sh
+[m2] FP m2_exitclean_lib.sh sha256=b17022766fa415314aa6967c41370e990d74b80b38b75cec520e8bc388dd5353
+[m2] FP lite3_planar.urdf.xacro sha256=b891f51c50fe7d3b6bccfd23d9c92cf6b390cd729f56cf2af513097ae0583acc
+[m2] FP lite3_planar_drive.cpp sha256=5d310f4725b13b2bcf582b4aaac05e2e1d5cc709177bbd0e9bbb851bf0961bb7
+[m2] FP liblite3_planar_drive.so sha256=19211b76269d1ec8ea8dfc8cbfa82b1d389a6c81ee10487f525965c8cdb8acf0
+[PASS] 探针敏感度自检：临时口 41133 读出 TCP=1 UDP=0 身份=TCP/p41133/148460/ros1-slam（R27 三 阳性对照命中，探针对非零态有分辨力）
+[exitbase] # exitbase @2026-11-26 18:55:24 stage=stageA seg=pre
+[exitbase] PIDS 562,765,838,845,853,1156,142286,143366
+[exitbase] PORT 11311 TCP=0 UDP=0
+[exitbase] PORT 11312 TCP=0 UDP=0
+[exitbase] PORT 11313 TCP=1 UDP=0
+[exitbase] PORT 11345 TCP=1 UDP=0
+[exitbase] IDENT 11313 TCP/p11313/765/ros1-slam
+[exitbase] IDENT 11345 TCP/p11345/1156/ros1-slam
+[m2] 样张 pcd 已备份（O2 勘误：比对前移至此）
+[posesrc]   /Odometry：Publishers=1 [/faster_lio_online]  帧对集合={  frame_id: "camera_init" child_frame_id: "body" }
+[posesrc]   [PASS] post_a：/Odometry 发布者恰 1 且不再含 odom 族（真值已让位）
+[posesrc]   /sim/odom_gt：Publishers=1 [/gazebo]  帧对集合={  frame_id: "odom" child_frame_id: "base_link" }
+[posesrc]   [PASS] post_a：/sim/odom_gt 恰 1 发布者且为 odom 族（真值另名可读）
+[posesrc] POSE SOURCE VERDICT: PASS (post_a)
+SMOKE start=(4.478,2.474) imu_yaw0=-0.058
+SMOKE phase_fwd_out_done
+SMOKE phase_turn180_done
+SMOKE phase_fwd_back_TIMEOUT
+SMOKE drift=27.170 gt_drift=27.170 rate_pts=9.6 rate_imu=200.0 fly_ratio=0.0000 rtf_motion=0.422 mw_sim=79.1 mw_wall=187.7 phases out=True turn=True back=False
+[FAIL] A: 闭环未走完
+[FAIL] A③(M2-4): 漂移 27.170 >0.5
+[PASS] A①: 点云 9.6 ≥5Hz
+[PASS] A②: IMU 200.0 ≥100Hz
+[PASS] A④: 飞点 0.0000 <1%
+[PASS] A0(前置): 运动窗 RTF 0.422 ≥0.25
+[PASS] 样张 lite3.pcd sha256 未变
+killing:
+ * /faster_lio_online
+ * /gazebo
+ * /gms
+ * /hdl
+ * /hdl_gate
+ * /mgr
+ * /robot_state_publisher
+ * /rosout
+ * /rslidar_points_relay_1795713884078511946
+ * /rslidar_points_relay_1795713951203298756
+ * /rslidar_points_relay_1795715954406850416
+ * /rslidar_points_relay_1795716938819955706
+ * /rslidar_points_relay_1795717274649943527
+ * /rslidar_points_relay_1795717494957984889
+ * /rslidar_points_relay_1795717879285307897
+ * /rslidar_points_relay_1795718174964269561
+ * /rslidar_points_relay_1795718501507729723
+ * /rslidar_points_relay_1795718711686095774
+ * /rslidar_points_relay_1795719082901314594
+ * /sim_adapter
+ * /tf_echo_1795714013068240248
+ * /tf_echo_1795714063395933645
+ * /tf_echo_1795714171584531565
+ * /tf_echo_1795715157797798516
+ * /tf_echo_1795715223219900770
+ * /tf_echo_1795715368878275535
+ * /tf_echo_1795715374021012186
+ * /tf_echo_1795715378849054739
+ * /tf_echo_1795716078890146754
+ * /tf_echo_1795717012595988190
+ * /tf_echo_1795717346344013607
+ * /tf_echo_1795717568121961356
+ * /tf_echo_1795717952743828816
+ * /tf_echo_1795718247157912524
+ * /tf_echo_1795718574223090050
+ * /tf_echo_1795718783997113523
+ * /tf_echo_1795719156589650864
+killed
+[exitclean] # 退净核验 @2026-11-26 18:59:38  stage=stageA seg=A
+[exitclean] -- 命中进程（ps -o pid,user,ppid,lstart,args，R21 一：属主与起时落成件字段）--
+[exitclean]   （零命中）
+[exitclean] -- 监听端口分查（计数面）--
+[exitclean]   port 11311 TCP=0 UDP=0
+[exitclean]   port 11312 TCP=0 UDP=0
+[exitclean]   port 11313 TCP=0 UDP=0
+[exitclean]   port 11345 TCP=0 UDP=0
+[exitclean] -- 监听端口分查（身份三元组面，R26 二）--
+[PASS] 退净/端口面：四口相对基线零新增（R22 一）
+[PASS] 退净/端口身份面：相对基线零新增监听身份（R26 二）
+[PASS] 退净/进程面：本跑派生零残留（差集为空；既存命中不入判据，R26 一）
+SUMMARY marks pass=9 fail=2
+==================================================
+M2 SMOKE: FAIL
+==================================================
