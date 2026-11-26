@@ -501,12 +501,40 @@ def ph(vx,wz,done,lim=60.0):
         if done(): pub.publish(Twist()); return True
         if time.time()-w0>lim: pub.publish(Twist()); return False
         t=Twist(); t.linear.x=vx; t.angular.z=wz; pub.publish(t); time.sleep(0.05)
-ph(0.5,0.0,lambda:S['o'].pose.pose.position.x-sx>=4.85)
-ph(0.0,0.6,lambda:math.degrees(abs(qyaw(S['iq'])-y0))>=178.0)
-ph(0.5,0.0,lambda:math.hypot(S['o'].pose.pose.position.x-sx,S['o'].pose.pose.position.y)<=0.4)
+def wrap(a):
+    """角度跨界：差值的绝对值要折到 [-pi, pi]，否则 ±180° 附近会判成没转够。"""
+    return (a + math.pi) % (2*math.pi) - math.pi
+
+def back_done():
+    p = S['o'].pose.pose.position
+    # ★与 Stage A 同修法★：终点窗 0.4 m，另加"沿出程轴已回到起点以内"——
+    # 定速开环只要跨过终点圆，单一条 hypot 判据就永不成立（Stage A 曾因此跑到 27.17 m）。
+    return (math.hypot(p.x-sx, p.y) <= 0.4) or ((p.x-sx) <= 0.3)
+
+res = []
+res.append(('fwd_out', ph(0.5, 0.0, lambda: S['o'].pose.pose.position.x - sx >= 4.85)))
+res.append(('turn180', ph(0.0, 0.6, lambda: abs(wrap(qyaw(S['iq']) - y0)) >= math.radians(178.0))))
+res.append(('fwd_back', ph(0.5, 0.0, back_done)))
 rospy.sleep(2.0)
+# ★返回值必须落盘被外壳检查★：原来三个 ph() 的返回值直接丢掉，只靠 sleep 150 就去收地图。
+import json as _json, os as _os
+_out = _os.environ.get('M2_DRIVE_OUT', '/tmp/m2_driveC.json')
+with open(_out, 'w') as fh:
+    fh.write(_json.dumps({'phases': [{'name': n, 'ok': bool(v)} for n, v in res],
+                          'all_ok': all(v for _, v in res)}, ensure_ascii=False) + '\n')
+print('DRIVE ' + _json.dumps(res))
 PYEOF
-  sleep 150   # 驱动循环跑完（26 sim-s × 实测 RTF≈0.30 → ~87 wall-s，150s 裕度）D-M2-P5
+  # ★等驱动**真的跑完**，不再固定 sleep 150★：固定等待既可能在没跑完时就收图，
+  # 也可能在跑飞时白等；同时检查三个阶段返回值（任一 False 即判 C 失败，不进地图验收）。
+  _drv="${TMPDIR:-/tmp}/m2_driveC.json"; rm -f "$_drv"
+  for _ in $(seq 1 300); do [ -f "$_drv" ] && break; sleep 1; done
+  if [ ! -f "$_drv" ]; then
+    echo "FAIL C: 驱动未产出结果文件（未跑完/未启动）"; return 1
+  fi
+  if ! grep -q '"all_ok": true' "$_drv"; then
+    echo "FAIL C: 驱动阶段未全部完成 -> $(cat "$_drv")"; return 1
+  fi
+  echo "[m2] 驱动三阶段全部完成：$(cat "$_drv")"
   rosnode kill /faster_lio_online 2>/dev/null
   for i in $(seq 1 30); do   # 等优雅落盘：样张 sha256 变化 = 新图已写
     [ -f "$MAP" ] && sha256sum "$MAP" | awk '{print $1}' > "$LOGDIR/pcd.sha256.mapped"
@@ -565,7 +593,10 @@ if not all(gateC.values()):
 print('SMOKE gateC=PASS t=%.1fs' % (time.time()-g0t))
 ip=PoseStamped(); ip.header.frame_id='map'; ip.header.stamp=rospy.Time.now()
 ip.pose.position.x=S['gt'][0]+0.15; ip.pose.position.y=S['gt'][1]-0.10
-ip.pose.orientation.w=math.cos((-5.0/2)/2); ip.pose.orientation.z=math.sin((-5.0/2)/2)
+# ★-5° 是**度**★：原式 cos((-5.0/2)/2)＝cos(-1.25 rad) ⇒ 实际初始 yaw≈-143.24°，不是 -5°。
+# 正确构造：θ=radians(-5)，四元数用半角 w=cos(θ/2)、z=sin(θ/2)。
+_th = math.radians(-5.0)
+ip.pose.orientation.w=math.cos(_th/2.0); ip.pose.orientation.z=math.sin(_th/2.0)
 pubi=rospy.Publisher('/initialpose', PoseStamped, queue_size=1, latch=True)
 for _ in range(5): pubi.publish(ip); time.sleep(0.2)
 print('SMOKE initialpose=(%.3f,%.3f,-5deg) gt=(%.3f,%.3f)'%(ip.pose.position.x,ip.pose.position.y,S['gt'][0],S['gt'][1]))
