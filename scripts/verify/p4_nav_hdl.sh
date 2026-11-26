@@ -22,6 +22,9 @@ FW=$WS/src/90_platform/v8_platform/framework
 APP=${APP:-$REPO/data/maps/generated/v8_m1_hdl_v1_app.yaml}
 GRAPH=${GRAPH:-$FW/fixtures/graphs/graph_3d_m1_hdl_bt.yaml}
 DURATION=${DURATION:-45}
+# ★计数口径要含 FAR 侧★（2026-11-27 实测）：FAR 图里 global 实例被 include 取代，节点名是
+# /v8_global_far 与 /far_planner（都不带 /v8/ 前缀）。只数 ^/v8/3d|^/v8/bt 时 M2 图最多数到 8，
+# 却按 EXPECT_NODES=10 判 ⇒ "编排未起来（8/10）" 属于口径造成的假失败。
 EXPECT_NODES=${EXPECT_NODES:-9}
 NOTE=$REPO/note/进度/00_专题/v8_map_loc_2026-11-24
 EV=${EV:-$NOTE/evidence/p4_$(date +%Y%m%d_%H%M%S)}
@@ -116,7 +119,7 @@ for _p in 'far_planner/far_planner' 'run_global_far.py'; do
 done
 sleep 2
 sleep 4
-say "v8_nodes_after_clean=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)"
+say "v8_nodes_after_clean=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt|^/v8_global_|^/far_planner' || true)"
 
 # ---------- 3. 启动装配 ----------
 say "--- [3] 启动装配 ---"
@@ -150,12 +153,12 @@ scene_dump() {
 }
 for i in $(seq 1 20); do
   sleep 2
-  N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)
+  N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt|^/v8_global_|^/far_planner' || true)
   [ "$N" -ge "$EXPECT_NODES" ] && { say "nodes_ready_after=${i}x2s n=$N"; break; }
 done
-N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)
+N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt|^/v8_global_|^/far_planner' || true)
 say "v8_nodes=$N (expect>=$EXPECT_NODES)"
-rosnode list 2>/dev/null | grep -E '^/v8/3d|^/v8/bt' | tr '\n' ' '; say
+rosnode list 2>/dev/null | grep -E '^/v8/3d|^/v8/bt|^/v8_global_|^/far_planner' | tr '\n' ' '; say
 if [ "$N" -lt "$EXPECT_NODES" ]; then
   say "--- graph.log 尾部 ---"; tail -25 "$EV/graph.log"
   gate_fail "编排未起来（$N/$EXPECT_NODES）"
