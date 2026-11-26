@@ -9115,3 +9115,44 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   `goal_tolerance_m: 0.15` 组合下，0.15 m 真值精度本就贴着分辨率极限；且 `/v8/local/status` 在
   总线上一片空白，看不出 local 为何给零速。两条待选：①把 `resolution` 降到 0.15（规划开销上升）；
   ②按分辨率把到达容差改到 0.30 并如实标注。二者都改系统行为/判据口径，未擅自执行。
+
+## 2026-11-26 / T-20261126-06 FAR 版本仲裁落地、Support 4/4 复验、M2 阻断定位
+
+- 裁决依据：真人 2026-11-26 方案③——FAR 保留实时定位与原生动态规划，**不**限频、**不**改一次性起点；
+  版本仲裁下沉到适配层与 path_goal。
+- **区分两个适配层（本轮先做的核对）**
+  · Support：`planner/topic_node.py`，`on_pose` 每帧 `replan()`；起点由 `/v8/3d/global/start` 一次性给定
+  · FAR：`v8.fw.global_far` → `far_stack.launch` → `planner/far_node.py`；位姿只更新 `/odom_world`，
+    上游 `main_run_freq=2.5 Hz` 定时规划。三张 FAR 图的 `start_topic=/v8/local/pose` 是**有意设计**
+- **适配层（far_node.py）**
+  · 身份只认 BT 的 `/v8/bt/goal_task`（原子），适配器不造 mission；旧 mission 身份晚到只记 stale，不覆盖
+  · 两点路径首点随位姿 2.5 Hz 刷新，**同版本几何刷新**不推进 `path_revision`
+  · 只有"有效航点变化"才推进版本：按**距离** > `WAYPOINT_QUANTUM_M`(0.05) 判（不用量化分桶——
+    分桶在桶边界会把 1 cm 抖动当换航点，实测 4.03 与 4.00 分属两桶）
+  · 换 mission 开 `STALE_WAYPOINT_GUARD_S`(0.30) 保护窗，窗内航点按"上一目标在途残留"丢弃并计数
+  · `invalidate()`：失效帧 revision 前进 + `poses: []` + `invalidated` 字段，安全信号不参与去重
+- **path_goal**
+  · 同一 `(mission, path_revision)` ⇒ 只换点列，保持 index/执行代次，**不向 local 重发目标**
+  · 带 `invalidated` ⇒ 清空活动路径、不下发目标（失效优先于去重）
+- **离线正反控（宿主可跑，不依赖 roscore）**
+  · `planner/tests/test_far_task_identity.py` 7 项：位姿流不推进版本 / 抖动不算新航点 / 有效航点推进 /
+    换目标保护窗 / 旧身份晚到 / 失效必发 / 取消后残留不发
+  · `local_planner/tests/test_path_goal_task_revision.py` 5 项：同版本刷新不重置、换版本要执行、
+    失效清空、**10 Hz 刷新 100 帧目标只发 1 次**、旧 mission 仍拒
+  · 全量：local_planner **211 项 OK**、planner **75 项 OK**
+- **Support 四项（复验，改动后仍全绿）** `reg_support4_b_105003`：导航 PASS（gt=0.046 travel=1.269
+  bt=reached）、障碍 PASS（5/5＋在线 zero=19.18 s pen=0）、定位失效 PASS（delay=0.709 恢复不复动
+  新任务可解锁）、取消 PASS（zero=11.42 仿秒 gt 位移 0.008 replay=PASS）。同批 `reg_support4_100056`
+  也是 4/4。
+- **任务链实测读数（Support 后端，`reg_support4_b_105003/nav_timeline.tsv` 10 Hz × 60 s）**
+  · 定位频率 10 Hz（`/hdl_odom` 实测 9.6–10.3）；规划 1 次（BT 请求 1 次、路径 14 点）
+  · local 目标更新 10 次；path_goal **执行重置 1 次**（generation 恒为 1，全任务未重建）
+  · 航点推进到 index 14/14；实际位移 est 1.269 m / gt 1.269 m；末端真值距目标 0.046 m
+- **M2 四项：阻断，未通过**（`reg_m2_110916`）：导航 `est_travel=0.002` 完全不动，
+  `/v8/local/status` 的 reason 是 `E_LOCAL_OBSTACLES_STALE`（518 帧）。根因定位到 M2 世界的感知链：
+  `/v8/3d/perception/status` 报 `state=duplicate_frame, note="no new cloud frame this tick"` ——
+  `/rslidar_points` 有 10 Hz 数据但 **header.stamp 不前进**（M2 世界），感知按戳去重后认为"没有新帧"，
+  于是 `/v8/local/obstacles` 一帧不发，local 判障碍陈旧而停。属 M2 底座/感知的时间戳问题，与任务身份无关。
+- **FAR 运行时专项：未完成**（`far_special2_*`）：`far_closed_loop.sh graph_far` 在
+  "传感器前置就绪"之后停住，`/v8` 节点数为 0（未进到装配步骤），需单独定位该脚本的下一道闸门。
+  适配层的身份/版本语义已由上述 12 项离线正反控覆盖。
