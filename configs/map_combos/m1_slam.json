@@ -1,0 +1,14 @@
+{
+  "combo_id": "m1_slam",
+  "note": "仿真 M1 的 Support 基线组合：支撑栅格是 v8_m1_hdl_v1.json（map_id=v8_m1_hdl），HDL 用实采 mapped_m1.pcd。★2026-11-26 实测★：组合里原先登记 mapped_m1_v1.json 与实际加载不符（运行期 /v8_map_status 的 sha256 对应 v8_m1_hdl_v1.json），本文件已按实载修正。",
+  "world": "subprojects/simulation/ws/install/share/lite3_gazebo_sim/worlds/m1_world.world",
+  "pcd": "data/maps/mapped_m1.pcd",
+  "support_json": "data/maps/generated/v8_m1_hdl_v1.json",
+  "task_json": "data/maps/generated/v8_m1_hdl_v1_task.json",
+  "lidar": {
+    "base_to_rslidar_z_m": 0.34,
+    "base_to_rslidar_pitch_deg": 15.0,
+    "odom_to_base_link_z_m": 0.11,
+    "expected_map_rslidar_z_m": 0.45
+  }
+}

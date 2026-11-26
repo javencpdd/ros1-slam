@@ -1,0 +1,10 @@
+{
+  "combo_id": "m1_synth",
+  "note": "仿真 M1：地图与世界观几何必须同源。mapped_m1.pcd 是实采（带累积漂移，x 到 14.8），配 m1_world.world 会让 NDT 用倾斜去凑（实测 map→odom pitch −11.9°）。",
+  "world": "subprojects/simulation/ws/install/share/lite3_gazebo_sim/worlds/m1_world.world",
+  "pcd": "data/maps/m1_world_synth_v1.pcd",
+  "support_json": "data/maps/generated/v8_m1_hdl_v1.json",
+  "task_json": "data/maps/generated/v8_m1_hdl_v1_task.json",
+  "lidar": {"base_to_rslidar_z_m": 0.34, "base_to_rslidar_pitch_deg": 15.0,
+            "odom_to_base_link_z_m": 0.11, "expected_map_rslidar_z_m": 0.45}
+}

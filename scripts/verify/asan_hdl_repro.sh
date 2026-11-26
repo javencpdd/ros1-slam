@@ -21,9 +21,9 @@ WAIT_SCAN=${WAIT_SCAN:-60}
 # 坐标契约/P0 对照用 `MAP_COMBO=m1_synth`（与世界几何同源），但合成 PCD 尚无配套支撑图，
 # 所以它**不能**做 Support 验收的默认值。
 MAP_COMBO=${MAP_COMBO:-m1_slam}
-COMBO_JSON=/opt/ros1-slam/data/maps/combos/${MAP_COMBO}.json
+COMBO_JSON=/opt/ros1-slam/configs/map_combos/${MAP_COMBO}.json
 if [ ! -f "$COMBO_JSON" ]; then
-  echo "[asan] ABORT: 地图组合不存在 $COMBO_JSON（见 data/maps/combos/）" >&2
+  echo "[asan] ABORT: 地图组合不存在 $COMBO_JSON（见 configs/map_combos/）" >&2
   exit 9
 fi
 COMBO_PCD=$(python3 -c "import json,sys;print(json.load(open('$COMBO_JSON'))['pcd'])")
