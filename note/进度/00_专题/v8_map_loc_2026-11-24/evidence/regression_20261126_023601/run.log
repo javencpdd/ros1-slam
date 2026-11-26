@@ -1,0 +1,45 @@
+=== 1 正常导航 ===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[nav] WARN 闸门 /Odometry_gated 无数据（loc 将无输入）
+[nav] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[nav] v8_nodes=9
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/client.py", line 420, in wait_for_message
+    raise rospy.exceptions.ROSException("timeout exceeded while waiting for message on topic %s"%resolve_name)
+rospy.exceptions.ROSException: timeout exceeded while waiting for message on topic /hdl_odom
+=== 2 障碍安全（离线回归，不需重置栈）===
+  "B_narrow_corridor": "smallest_passable 0.650 >= required 0.613",
+  "C_dynamic_obstacle": "extra_monotone=True failclosed=True",
+  "D_open_space": "open=True far=True"
+ }
+}
+=== 2b 运动中障碍（在线）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[obstacle] WARN 闸门 /Odometry_gated 无数据（loc 将无输入）
+[obstacle] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[obstacle] v8_nodes=9
+{"lead_m": 1.2, "size_m": 0.5, "spawned": true, "moving_before_spawn": false, "box_at": [6.4, 2.45], "penetrations": 0, "penetration_samples": [], "max_zero_run_s": 24.0, "max_travel_m": 0.0, "checks": {"moving_before_spawn": false, "no_penetration": true, "responded": true}, "verdict": "FAIL", "deleted": true}
+=== 3 定位失效（只断定位数据）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[loc] WARN 闸门 /Odometry_gated 无数据（loc 将无输入）
+[loc] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[loc] v8_nodes=9
+{"mode": "stop", "motion_seen": false, "cmd_frames": 4365, "hold_s": 24.0, "cmd_samples": 4365, "gt_samples": 1962, "ack_count": 0, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": false}
+{"seconds": 10.0, "pose_msgs": 0, "gt_samples": 217, "cmd_samples": 486, "moved_m": 0.0, "max_speed_mps": 0.0, "max_gt_gap_s": 0.12, "max_cmd_gap_s": 0.023, "tol_m": 0.05, "checks": {"pose_resumed": false, "no_remotion": true, "sampling_coverage": true}, "pass": false}
+=== 3b 正控：正式入口下发新任务（导航探针验证）===
+{"task_identity": true, "nonzero_speed": false, "real_travel": false, "bt_reached": false, "rearmed": false, "speed_frames": 0, "travel_m": null, "meta_msgs": 4, "reason": "new task from formal entry"}
+{"task_identity": true, "nonzero_speed": false, "real_travel": false, "bt_reached": false, "rearmed": false, "speed_frames": 0, "travel_m": null, "meta_msgs": 4, "reason": "new task from formal entry"}
+=== 4 取消（scope=all）===
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/client.py", line 420, in wait_for_message
+    raise rospy.exceptions.ROSException("timeout exceeded while waiting for message on topic %s"%resolve_name)
+rospy.exceptions.ROSException: timeout exceeded while waiting for message on topic /sim/odom_gt
+[place] target=(5.2,2.45) err=Unable m ok=trying.
+[place] 未到位，重试一次
+[cancel] WARN 闸门 /Odometry_gated 无数据（loc 将无输入）
+[cancel] M2 模式：闸门 /Odometry -> /Odometry_gated（m2_gate）+ 静态 map→odom(5.2,2.45)
+[cancel] v8_nodes=9
+{"mode": "cancel", "motion_seen": false, "cmd_frames": 4316, "hold_s": 26.0, "cmd_samples": 4316, "gt_samples": 2009, "ack_count": 0, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": false}
+{"conns": 2, "cancel_conns": 1, "stale_replies": [{"ok": false, "reason": "stale_after_cancel", "path_stamp": 125.97, "cancelled_at": 130.559, "rejected_stale": 1}], "stale_rejected": true, "stale_generation_bump": false, "fresh_replies": [{"ok": true, "generation": 47, "rejected_stale": 1, "poses": 4, "index": 1, "remaining_m": 0.856, "goal": [4.35, 2.45, 0.0], "frame": "map"}], "fresh_accepted": true, "fresh_generation": 47, "pass": true}

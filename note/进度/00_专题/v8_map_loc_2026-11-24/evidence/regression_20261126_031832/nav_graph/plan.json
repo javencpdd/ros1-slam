@@ -1,0 +1,685 @@
+{
+ "schema": "assembly_plan/v2",
+ "execution_origin": "declared",
+ "name": "nav3d_m2_lio_accept_bt",
+ "digest": "20d03976cba7e8b0bf07a907038921dc1036c8e56347325237f53427a377bec0",
+ "catalog": {
+  "path": "fixtures/manifests",
+  "sha256": "c5d52accb948bb1c6fa6d398467589f9276c9b8f6da6fa6a27bcdc82dfe7017f"
+ },
+ "instances": [
+  {
+   "id": "lio_gate",
+   "component": "v8.fw.lio_gate",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": false,
+    "type": "run_gate_relay.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "74b9ae6b2b2c37a4a423fa53fbc6b8bee43f1ea1c2671a033e088cd29a6eab51",
+   "namespace": "/v8/3d/lio_gate",
+   "params": {
+    "in_topic": "/Odometry",
+    "out_topic": "/Odometry_gated",
+    "enabled": true,
+    "source": "sim_gt"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {}
+  },
+  {
+   "id": "loc",
+   "component": "v8.fw.localization_source",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": false,
+    "ready_marker": "READY",
+    "type": "run_localization_source.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "b513ddd1bf84736ac32725fb0527c728b92495e5d26cb5c5786bbb3c95f8da1e",
+   "namespace": "/v8/3d/loc",
+   "params": {
+    "source": "faster_lio",
+    "lio_topic": "/Odometry_gated",
+    "lio_to_map": true,
+    "lio_origin_x": 5.2,
+    "lio_origin_y": 2.45,
+    "lio_origin_yaw": 0.0,
+    "gt_topic": "/sim/odom_gt",
+    "frame": "map",
+    "max_age_s": 1.0,
+    "pose_topic": "/v8/local/pose",
+    "localization_topic": "/v8/local/localization_ok",
+    "status_topic": "/v8/local/localization_status",
+    "error_topic": "/v8/local/localization_error"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {}
+  },
+  {
+   "id": "map",
+   "component": "v8.fw.map_file",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": false,
+    "ready_marker": "READY",
+    "type": "run_map_file.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "e309deecf6b1662ebbe8bffbcd30c79b93c3cde1df2850c094f2520e6ccd450c",
+   "namespace": "/v8/3d/map",
+   "params": {
+    "map_json": "data/maps/generated/v8_m1_hdl_v1.json",
+    "map_topic": "/v8_support_map",
+    "status_topic": "/v8_map_status"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {}
+  },
+  {
+   "id": "perception",
+   "component": "v8.fw.dynamic_obstacles",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": false,
+    "type": "run_dynamic_obstacles.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "6c224c74ffa6cf564b83e5f7dfcdfa3710f97aa5cdf52f913a5df0e9c5526de0",
+   "namespace": "/v8/3d/perception",
+   "params": {
+    "enable": true,
+    "cloud_topic": "/rslidar_points",
+    "map_frame": "map",
+    "rate_hz": 10.0,
+    "blind_timeout_s": 1.0,
+    "roi_forward_m": 6.0,
+    "roi_lateral_m": 3.0,
+    "min_height_m": 0.15,
+    "max_height_m": 1.6,
+    "voxel_m": 0.1,
+    "min_points": 16,
+    "max_objects": 32,
+    "min_fill": 0.45,
+    "min_extent_m": 0.45,
+    "max_depth": 2,
+    "self_radius_m": 0.45,
+    "max_speed_mps": 1.5,
+    "gate_m": 0.8
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "pose": {
+     "source": "edge",
+     "from": "loc.pose",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    },
+    "cloud": {
+     "source": "external:lidar",
+     "type": "sensor_msgs/PointCloud2",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "global",
+   "component": "v8.fw.global3d_topic",
+   "launch": {
+    "kind": "node",
+    "package": "v8_algorithm",
+    "test_double": false,
+    "type": "run_topic_node.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "df4e3e4e49631aa09489445587c85b3fd457cfb6c59ae0923cd95708b8c68873",
+   "namespace": "/v8/3d/global",
+   "params": {
+    "map_topic": "/v8_support_map",
+    "start_topic": "/v8/3d/global/start",
+    "goal_topic": "/v8/3d/global/goal",
+    "path_topic": "/v8/3d/global/path",
+    "status_topic": "/v8/3d/global/status"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "map": {
+     "source": "edge",
+     "from": "map.map",
+     "type": "std_msgs/String",
+     "schema": "support_map/v1"
+    },
+    "goal": {
+     "source": "edge",
+     "from": "bt.planner_goal",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    },
+    "start": {
+     "source": "external:operator",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "bt",
+   "component": "v8.fw.bt_console",
+   "launch": {
+    "kind": "node",
+    "package": "lite3_bt",
+    "test_double": false,
+    "type": "bt_console",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "acee2651242f21f119979a07f3e013cf40ea8f0d4de5009083603055b9bbe234",
+   "namespace": "/v8/bt",
+   "params": {
+    "tree_file": "ws/src/90_platform/lite3_bt/trees/navigate_with_planner.xml",
+    "goal_topic": "/v8/bt/goal",
+    "pose_topic": "/v8/local/pose",
+    "planner_goal_topic": "/v8/3d/global/goal",
+    "path_topic": "/v8/3d/global/path",
+    "path_status_topic": "/v8/3d/global/status",
+    "out_goal_topic": "/v8/bt/out_goal",
+    "stop_topic": "/lite3/teleop/app_cmd_vel",
+    "cancel_input_topic": "/v8/bt/cancel",
+    "cancel_topic": "/v8/local/cancel",
+    "cancel_ack_topic": "/v8/local/cancel_ack",
+    "policy_topic": "/v8/bt/goal_policy",
+    "mission_topic": "/v8/bt/goal_mission",
+    "localization_topic": "/v8/local/localization_ok",
+    "cancel_ack_timeout": 2.0,
+    "recovery_mode": "skip",
+    "retry_max": 1,
+    "retry_delay_s": 0.0
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "path": {
+     "source": "edge",
+     "from": "global.path",
+     "type": "nav_msgs/Path",
+     "schema": null
+    },
+    "path_status": {
+     "source": "edge",
+     "from": "global.status",
+     "type": "std_msgs/String",
+     "schema": null
+    },
+    "pose": {
+     "source": "edge",
+     "from": "loc.pose",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    },
+    "cancel_ack": {
+     "source": "edge",
+     "from": "local.cancel_ack",
+     "type": "std_msgs/String",
+     "schema": null
+    },
+    "localization_ok": {
+     "source": "edge",
+     "from": "loc.localization",
+     "type": "std_msgs/Bool",
+     "schema": null
+    },
+    "goal": {
+     "source": "external:operator",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    },
+    "cancel": {
+     "source": "external:operator",
+     "type": "std_msgs/String",
+     "schema": null
+    },
+    "goal_policy": {
+     "source": "external:operator",
+     "type": "std_msgs/String",
+     "schema": null
+    },
+    "mission_goal": {
+     "source": "external:operator",
+     "type": "std_msgs/String",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "path_goal",
+   "component": "v8.fw.path_goal3d",
+   "launch": {
+    "kind": "node",
+    "package": "v8_platform",
+    "test_double": false,
+    "type": "run_path_goal.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "c4bb673e56462104d61762a463273347ac20ece9eccedbb97a00471e3dd557bf",
+   "namespace": "/v8/3d/path_goal",
+   "params": {
+    "path_topic": "/v8/3d/global/path",
+    "goal_topic": "/v8/local/goal",
+    "status_topic": "/v8/3d/path_goal/status"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "path": {
+     "source": "edge",
+     "from": "global.path",
+     "type": "nav_msgs/Path",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "local",
+   "component": "v8.fw.local_native",
+   "launch": {
+    "kind": "node",
+    "package": "v8_algorithm",
+    "test_double": false,
+    "type": "run_local_ros_node.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "bb6b365e641301d91ed325d3cd4cb711eae086147690f89ea4e804ee70e9a5c5",
+   "namespace": "/v8/3d/local",
+   "params": {
+    "cancel_topic": "/v8/local/cancel",
+    "cancel_ack_topic": "/v8/local/cancel_ack",
+    "require_goal_seq": true
+   },
+   "config": "/opt/ros1-slam/ws/src/90_platform/v8_platform/framework/fixtures/configs/local_native_app_mapped.yaml",
+   "config_sha256": "e8e4ba42ced3b1e4bfed70e3ca37b362ffc0629fbf2eca8fafdaf3294a5b5850",
+   "inputs": {
+    "map": {
+     "source": "edge",
+     "from": "map.map",
+     "type": "std_msgs/String",
+     "schema": "support_map/v1"
+    },
+    "goal": {
+     "source": "edge",
+     "from": "path_goal.goal",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    },
+    "obstacles": {
+     "source": "edge",
+     "from": "perception.obstacles",
+     "type": "std_msgs/String",
+     "schema": null
+    },
+    "pose": {
+     "source": "edge",
+     "from": "loc.pose",
+     "type": "geometry_msgs/PoseStamped",
+     "schema": null
+    },
+    "localization": {
+     "source": "edge",
+     "from": "loc.localization",
+     "type": "std_msgs/Bool",
+     "schema": null
+    },
+    "cancel": {
+     "source": "edge",
+     "from": "bt.cancel_cmd",
+     "type": "std_msgs/String",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "mux3d",
+   "component": "v8.fw.cmd3d_mux",
+   "launch": {
+    "kind": "node",
+    "package": "v8_algorithm",
+    "test_double": false,
+    "type": "run_cmd3d_mux.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "453eb7e546a7a7ec95c10815b769c62ba6b5ee1e955d3acd51071f435967501d",
+   "namespace": "/v8/3d/mux",
+   "params": {
+    "cmd_topic": "/v8/local/cmd_vel_3d",
+    "hold_topic": "/lite3/supervisor/hold",
+    "output_topic": "/cmd_vel",
+    "status_topic": "/v8/3d/mux/status",
+    "timeout_s": 0.25
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "cmd": {
+     "source": "edge",
+     "from": "local.cmd",
+     "type": "geometry_msgs/TwistStamped",
+     "schema": null
+    },
+    "hold": {
+     "source": "external:supervisor",
+     "type": "std_msgs/Bool",
+     "schema": null
+    }
+   }
+  },
+  {
+   "id": "carrier",
+   "component": "v8.fw.gazebo_carrier3d",
+   "launch": {
+    "kind": "node",
+    "package": "v8_simulation",
+    "test_double": false,
+    "ready_marker": "READY",
+    "type": "gazebo_carrier3d_node.py",
+    "param_files": [],
+    "remap": []
+   },
+   "component_sha256": "23e3c5ac34eff87d42db8545b72625ca96135689d447bbbee783840ac2ff726b",
+   "namespace": "/v8/3d/carrier",
+   "params": {
+    "model_name": "app_carrier",
+    "spawn": false,
+    "start_x": 0.0,
+    "start_y": 0.0,
+    "start_z": 0.0,
+    "center_z": 0.1,
+    "snap_m": 0.03,
+    "rate_hz": 50.0,
+    "cmd_topic": "/cmd_vel",
+    "map_topic": "/v8_support_map",
+    "pose_topic": "/v8/3d/carrier/pose_raw",
+    "localization_topic": "/v8/3d/carrier/loc_raw",
+    "status_topic": "/v8/3d/carrier/status"
+   },
+   "config": null,
+   "config_sha256": null,
+   "inputs": {
+    "map": {
+     "source": "edge",
+     "from": "map.map",
+     "type": "std_msgs/String",
+     "schema": "support_map/v1"
+    },
+    "cmd": {
+     "source": "edge",
+     "from": "mux3d.cmd",
+     "type": "geometry_msgs/Twist",
+     "schema": null
+    }
+   }
+  }
+ ],
+ "edges": [
+  {
+   "from": "map.map",
+   "to": "global.map",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "map.map",
+   "to": "local.map",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "map.map",
+   "to": "carrier.map",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "global.path",
+   "to": "bt.path",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "global.status",
+   "to": "bt.path_status",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "loc.pose",
+   "to": "bt.pose",
+   "feedback": true,
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "bt.planner_goal",
+   "to": "global.goal",
+   "feedback": true,
+   "policy": {
+    "period_s": 0.1,
+    "max_age_s": 2.0
+   }
+  },
+  {
+   "from": "global.path",
+   "to": "path_goal.path",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "path_goal.goal",
+   "to": "local.goal",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "loc.pose",
+   "to": "perception.pose",
+   "feedback": true,
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "perception.obstacles",
+   "to": "local.obstacles",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "loc.pose",
+   "to": "local.pose",
+   "feedback": true,
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "loc.localization",
+   "to": "local.localization",
+   "feedback": true,
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "local.cmd",
+   "to": "mux3d.cmd",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "mux3d.cmd",
+   "to": "carrier.cmd",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "bt.cancel_cmd",
+   "to": "local.cancel",
+   "feedback": false,
+   "policy": {}
+  },
+  {
+   "from": "local.cancel_ack",
+   "to": "bt.cancel_ack",
+   "feedback": true,
+   "policy": {
+    "period_s": 0.0,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "loc.localization",
+   "to": "bt.localization_ok",
+   "feedback": true,
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  }
+ ],
+ "external": [
+  {
+   "to": "global.start",
+   "type": "geometry_msgs/PoseStamped",
+   "source": "operator"
+  },
+  {
+   "to": "perception.cloud",
+   "type": "sensor_msgs/PointCloud2",
+   "source": "lidar"
+  },
+  {
+   "to": "bt.goal",
+   "type": "geometry_msgs/PoseStamped",
+   "source": "operator"
+  },
+  {
+   "to": "mux3d.hold",
+   "type": "std_msgs/Bool",
+   "source": "supervisor"
+  },
+  {
+   "to": "bt.cancel",
+   "type": "std_msgs/String",
+   "source": "operator"
+  },
+  {
+   "to": "bt.goal_policy",
+   "type": "std_msgs/String",
+   "source": "operator"
+  },
+  {
+   "to": "bt.mission_goal",
+   "type": "std_msgs/String",
+   "source": "operator"
+  }
+ ],
+ "startup_order": [
+  "lio_gate",
+  "loc",
+  "map",
+  "perception",
+  "global",
+  "bt",
+  "path_goal",
+  "local",
+  "mux3d",
+  "carrier"
+ ],
+ "feedback": [
+  {
+   "from": "loc.pose",
+   "to": "bt.pose",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "bt.planner_goal",
+   "to": "global.goal",
+   "policy": {
+    "period_s": 0.1,
+    "max_age_s": 2.0
+   }
+  },
+  {
+   "from": "loc.pose",
+   "to": "perception.pose",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "loc.pose",
+   "to": "local.pose",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "loc.localization",
+   "to": "local.localization",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "local.cancel_ack",
+   "to": "bt.cancel_ack",
+   "policy": {
+    "period_s": 0.0,
+    "max_age_s": 1.0
+   }
+  },
+  {
+   "from": "loc.localization",
+   "to": "bt.localization_ok",
+   "policy": {
+    "period_s": 0.05,
+    "max_age_s": 1.0
+   }
+  }
+ ],
+ "command_writers": {
+  "/cmd_vel": "mux3d",
+  "/v8/local/cmd_vel_3d": "local"
+ },
+ "execution_mode": "simulation",
+ "robot_id": "generic_sim",
+ "execution_sha256": "ef2e0a30145f84fc814fd10b9af20400f593d71bfd80e24b67a1e4b824107a4e"
+}
