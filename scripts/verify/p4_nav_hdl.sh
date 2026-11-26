@@ -105,6 +105,16 @@ done
 # 整图少一个节点、BT 不工作。rosnode kill 未必让进程退出，这里按**进程名**补一刀
 # （用 -x 不用 -f：-f 会匹配到执行本脚本的 bash 自身，曾把自己杀掉）。
 pkill -x bt_console 2>/dev/null || true
+# ★FAR 后端：先清同名残留★（2026-11-27 实测）——上一轮的 `/far_planner` 还在 master 里时，
+# 新的同名节点会以 "new node registered with same name" 自我关停，于是门禁看到"节点缺失"，
+# 而 graph.log 里只有一行 WARN，很容易被当成环境问题。
+for _n in /far_planner /far_planner_node /v8_global_far; do
+  rosnode kill "$_n" >/dev/null 2>&1 || true
+done
+for _p in 'far_planner/far_planner' 'run_global_far.py'; do
+  pkill -f "$_p" 2>/dev/null || true
+done
+sleep 2
 sleep 4
 say "v8_nodes_after_clean=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)"
 

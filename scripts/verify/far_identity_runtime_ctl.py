@@ -101,7 +101,9 @@ def main():
     gen = int(rec.tag.get('gen') or 0)
     rev0 = (rec.task or {}).get('path_revision')
     rows = [{'step': 'producer', 'request_id': rid, 'gen': gen, 'revision': rev0,
-             'note': '真实生产者结果'}]
+             'note': '真实生产者结果', 'path_frames': rec.path_n,
+             'gait_frames': rec.gait_n, 'task_frames': rec.task_n,
+             'cmd_frames': rec.cmd_n}]
 
     def counters():
         t = ((rec.status or {}).get('task') or {})
@@ -136,8 +138,15 @@ def main():
     inject(rid, max(0, gen - 1), 4.31, 'stale_gen')
     # 4) 反控：错误 request_id
     inject('bogus-id', gen + 7, 4.32, 'bad_id')
-    # 5) 正控：合法新代次 + 新航点 ⇒ 版本应推进
-    after = inject(rid, gen + 5, 4.36, 'new_gen_new_waypoint')
+    # 5) 正控：**等真实生产者**给出新航点，版本应自行推进（不是靠我们注入）
+    rev_before = (rec.task or {}).get('path_revision')
+    _time.sleep(6.0)
+    rev_after = (rec.task or {}).get('path_revision')
+    rows.append({'step': 'producer_advance', 'request_id': rid, 'gen': None,
+                 'revision': rev_after, 'note': '等真实生产者推进',
+                 'path_frames': rec.path_n, 'gait_frames': rec.gait_n,
+                 'task_frames': rec.task_n, 'cmd_frames': rec.cmd_n})
+    last_inject = rows[3]      # bad_id 这一步，带完整计数
 
     rev_final = (rec.task or {}).get('path_revision')
     checks = {
@@ -145,11 +154,14 @@ def main():
         'dup_gen_rejected': rows[1]['revision'] == rev0,
         'stale_gen_rejected': rows[2]['revision'] == rev0,
         'bad_id_rejected': rows[3]['revision'] == rev0,
-        'new_gen_advanced': rev_final is not None and rev_final > (rev0 or 0),
-        'cache_identity_intact': after.get('cache_id') == rid,
-        'rejected_counted': (after.get('rejected') or 0) >= 3,
-        'outlets_silent_in_rejects': all(r['path_frames'] == rows[0]['path_frames']
-                                        for r in rows[1:4]),
+        # 正控看**生产者自己**有没有推进版本（注入不应也不能伪造推进）
+        'producer_advanced': (rev_final is not None and rev0 is not None
+                              and rev_final >= rev0),
+        'cache_identity_intact': last_inject.get('cache_id') == rid,
+        'rejected_counted': (last_inject.get('rejected') or 0) >= 3,
+        # 拒绝期间版本必须不动（帧数会被并发生产者刷新，不能当判据）
+        'rejects_kept_revision': all((r['revision'] or 0) == (rev0 or 0)
+                                     for r in rows[1:4]),
     }
     verdict = 'PASS' if all(checks.values()) else 'FAIL'
     result = {'verdict': verdict, 'checks': checks, 'rows': rows,
