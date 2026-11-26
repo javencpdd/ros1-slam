@@ -14,7 +14,21 @@ set -uo pipefail
 MODE=${MODE:-normal}
 DUR=${DUR:-60}
 WAIT_SCAN=${WAIT_SCAN:-60}
-MAP_PCD=${MAP_PCD:-/opt/ros1-slam/data/maps/mapped_m1.pcd}
+# ★地图组合（2026-11-26 起）★：不再默认实采地图。`MAP_COMBO` 选 data/maps/combos/<id>.json，
+# 里面同时绑定 world / pcd / support_json / task_json；`MAP_PCD` 仍可单独覆盖（临时实验用）。
+# ★默认 m1_slam（实采地图）★：它是 Support 支撑栅格 `v8_m1_hdl_v1.json` 的同源地图，
+# 两者必须成套使用（拿合成 PCD 配实采支撑图会立刻 `E_LOCAL_SUPPORT` 停住——实测）。
+# 坐标契约/P0 对照用 `MAP_COMBO=m1_synth`（与世界几何同源），但合成 PCD 尚无配套支撑图，
+# 所以它**不能**做 Support 验收的默认值。
+MAP_COMBO=${MAP_COMBO:-m1_slam}
+COMBO_JSON=/opt/ros1-slam/data/maps/combos/${MAP_COMBO}.json
+if [ ! -f "$COMBO_JSON" ]; then
+  echo "[asan] ABORT: 地图组合不存在 $COMBO_JSON（见 data/maps/combos/）" >&2
+  exit 9
+fi
+COMBO_PCD=$(python3 -c "import json,sys;print(json.load(open('$COMBO_JSON'))['pcd'])")
+MAP_PCD=${MAP_PCD:-/opt/ros1-slam/$COMBO_PCD}
+echo "[asan] 地图组合=$MAP_COMBO pcd=$MAP_PCD"
 WS=${WS:-/opt/ros1-slam/ws}
 NOTE=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24
 EV=${EV:-$NOTE/evidence/${MODE}_$(date +%Y%m%d_%H%M%S)}

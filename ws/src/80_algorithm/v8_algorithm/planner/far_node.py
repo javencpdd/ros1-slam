@@ -293,6 +293,8 @@ class AdapterState:
         self.effective_changes = 0
         self.stale_waypoints = 0
         self.invalidations = 0
+        self.identity_source = None      # 'goal_task'（权威）| 'goal_meta'（兜底）
+        self.legacy_identity_ignored = 0
 
     # ---- 生命周期 ----
     def next_cancel_seq(self):
@@ -616,7 +618,9 @@ def main():
                 'task_publishes': state.task_publishes,
                 'effective_changes': state.effective_changes,
                 'stale_waypoints': state.stale_waypoints,
-                'invalidations': state.invalidations}
+                'invalidations': state.invalidations,
+                'identity_source': state.identity_source,
+                'legacy_identity_ignored': state.legacy_identity_ignored}
 
     def publish_status(text):
         status_pub.publish(String(data=text))
@@ -724,15 +728,29 @@ def main():
         path_task_pub.publish(String(data=json.dumps(payload, ensure_ascii=False)))
         return True
 
-    def on_task_identity(message):
-        """BT 的原子任务身份。`stale`（旧 mission 晚到）只记一笔，不覆盖当前任务。"""
+    def on_task_identity(message, source='goal_task'):
+        """BT 的任务身份。★单一权威输入★：`goal_task`（身份+目标同一条消息）。
+
+        `goal_meta` 是 legacy 旁路：只在**还没见过任何 goal_task** 时用来兜底，
+        一旦原子通道建立就永久让位（计数 `legacy_identity_ignored`）——
+        否则"目标来自 legacy goal、身份来自 goal_meta"这种两条消息拼出来的任务，
+        正是跨话题不保序时会把 A 的身份配到 B 的目标上的那类错误。
+        """
         try:
             payload = json.loads(message.data)
         except Exception:
             return
+        if source != 'goal_task' and state.identity_source == 'goal_task':
+            state.legacy_identity_ignored += 1
+            return
         result = state.on_task_identity(payload, now=rospy.get_time())
+        if result in ('new', 'same'):
+            state.identity_source = source
         if result == 'stale':
             state.stale_waypoints += 1
+
+    def on_task_goal_meta(message):
+        on_task_identity(message, source='goal_meta')
 
     def on_waypoint(message):
         point = message.point
@@ -743,7 +761,10 @@ def main():
             return
         stamp = rospy.Time.now()
         path_pub.publish(to_path(path_points, stamp))
-        publish_task(pose['value'], (point.x, point.y, point.z))
+        # ★必须把 now 传进去★：`task_message` 的默认 now=0.0，而保护窗判据是
+        # `now - mission_switched_at < 0.3`；0 减一个正值恒为负 ⇒ 每一条航点都被当"晚到"丢掉，
+        # 只剩主循环那 2.5 Hz 的几何刷新在发（实测 path_task 里 revision 一直停在 1）。
+        publish_task(pose['value'], (point.x, point.y, point.z), now=rospy.get_time())
         # 步态路径另发一条：`/global_path` 的末点必须就是 FAR 航点本身，
         # 前视延长点只喂 `gait_guard`。远航点时两者点数相同，近航点时这里多一个点。
         gait_path_pub.publish(to_path(gait_points, stamp))
@@ -791,7 +812,7 @@ def main():
     rospy.Subscriber(pose_topic, PoseStamped, on_pose, queue_size=2)
     rospy.Subscriber(goal_topic, PoseStamped, on_goal, queue_size=1)
     rospy.Subscriber(task_topic, String, on_task_identity, queue_size=5)
-    rospy.Subscriber(legacy_task_topic, String, on_task_identity, queue_size=5)
+    rospy.Subscriber(legacy_task_topic, String, on_task_goal_meta, queue_size=5)
     rospy.Subscriber(waypoint_topic, PointStamped, on_waypoint, queue_size=1)
     rospy.Subscriber(reach_topic, Bool, on_reach, queue_size=1)
     rospy.Subscriber(cancel_topic, String, on_cancel, queue_size=1)

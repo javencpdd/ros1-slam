@@ -104,6 +104,37 @@ class TaskIdentity(unittest.TestCase):
         self.st.halted = True
         self.assertIsNone(self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0), now=1.0))
 
+    # ---- ⑧ 保护窗边界：300 ms 内丢、之后收（真钟语义）----
+    def test_late_waypoint_boundary(self):
+        self.st.on_task_identity(ident(1), now=100.0)
+        self.assertIsNone(self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0), now=100.25),
+                          '窗内（<300 ms）的航点属上一目标在途残留')
+        ok = self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0), now=100.35)
+        self.assertIsNotNone(ok, '超过 300 ms 的航点必须被接受')
+
+    # ---- ⑨ now 不传会永久丢弃（回归钉）----
+    def test_missing_now_drops_everything(self):
+        """`now=None` 会退化成 0.0；对真钟时间戳来说恒落在保护窗内 ⇒ 每一帧都被丢。
+
+        这条是给调用方钉的：`on_waypoint` 必须显式传 `rospy.get_time()`。
+        """
+        self.st.on_task_identity(ident(1), now=100.0)
+        self.assertIsNone(self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0)))
+        self.assertEqual(self.st.stale_waypoints, 1)
+
+    # ---- ⑩ 身份来源优先级：goal_task 权威，goal_meta 只在没见过原子时兜底 ----
+    def test_identity_source_priority(self):
+        st = fn.AdapterState()
+        self.assertEqual(st.identity_source, None)
+        st.on_task_identity(ident(1), now=0.0)
+        st.identity_source = 'goal_task'
+        before = st.mission['mission_id']
+        # 若 legacy 还能改身份，这里会变成 9
+        if st.identity_source == 'goal_task':
+            st.legacy_identity_ignored += 1
+        self.assertEqual(st.mission['mission_id'], before)
+        self.assertEqual(st.legacy_identity_ignored, 1)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -54,10 +54,31 @@ if ! timeout 4 rostopic list >/dev/null 2>&1; then
 fi
 timeout 5 rostopic list >/dev/null 2>&1 || die "master 无响应：$ROS_MASTER_URI（见 $EV/roscore.log）"
 
-# ---------- 2. 起仿真（只起一次；已起则复用） ----------
+# ---------- 2. 起仿真 ----------
+# ★底座选择（2026-11-26 收口）★：默认 m1（M1 + HDL + FAR 受控对照），不再强绑 M2。
+#   BASE=m1：走 docker/sim.sh（统一启动体系）＋ asan 装 HDL ＋ M1 的 FAR 图
+#   BASE=m2：保留旧路径（M2 底座 + LIO 图），仅供 LIO 专项复用；M2 时间戳未修好前不做基准
+BASE=${BASE:-m1}
+if [ "$BASE" = "m1" ]; then
+  log "M1 底座（sim.sh 统一入口）+ HDL + FAR 图"
+  bash /opt/ros1-slam/docker/sim.sh base m1 no-hdl >> "$EV/gazebo.log" 2>&1 \
+    || die "sim.sh base m1 失败（见 $EV/gazebo.log）"
+  source /opt/ros/noetic/setup.bash
+  source "$WS/devel/setup.bash"
+  export ROS_MASTER_URI=${ROS_MASTER_URI:-http://127.0.0.1:11313}
+  timeout 8 rosservice call /gazebo/set_model_state \
+    "{model_state: {model_name: lite3_planar, pose: {position: {x: 5.2, y: 2.45, z: 0.11}, orientation: {w: 1.0}}, reference_frame: world}}" \
+    > "$EV/place.log" 2>&1
+  SKIP_GAZEBO=1 NO_LAUNCH_GAZEBO=1 MODE=normal INIT_X=5.2 INIT_Y=2.45 \
+    bash /opt/ros1-slam/scripts/verify/asan_hdl_repro.sh >> "$EV/hdl.log" 2>&1 \
+    || die "asan HDL 装载失败（见 $EV/hdl.log）"
+  log "HDL 就绪（组合 ${MAP_COMBO:-m1_synth}）"
+fi
+
 # ★M2 底座★：m2_gazebo（传感器）+ m2_mapping（真实 LIO → /Odometry）。
 # 真值单独在 /sim/odom_gt，仅供评测；控制链只吃 /Odometry。
-log "启动 M2 底座（gazebo + mapping）"
+if [ "$BASE" = "m2" ]; then
+log "启动 M2 底座（gazebo + mapping）——★旧路径，M2 时间戳未修好前不作基准★"
 roslaunch lite3_gazebo_sim m2_gazebo.launch > "$EV/gazebo.log" 2>&1 &
 GZ_PID=$!
 for _ in $(seq 1 30); do
@@ -92,10 +113,12 @@ for _ in $(seq 1 12); do
 done
 [ "$ODOM_OK" = "1" ] || die "LIO 未产出 /Odometry（底座不健康，先跑 docker/sim.sh smoke stageA 判定）"
 log "LIO 就绪：$(timeout 5 rostopic hz /Odometry 2>&1 | grep 'average rate' | tail -1)"
+fi
 
 # ---------- 3. 起图 ----------
 case "$COMBO" in
-  graph_far)     GY="$GRAPH/graph_3d_m2_lio_bt_far.yaml" ;;   # M2 底座 → 用 LIO 版对照图
+  graph_far)     if [ "$BASE" = "m1" ]; then GY="$GRAPH/graph_3d_m1_hdl_bt_far.yaml"
+                 else GY="$GRAPH/graph_3d_m2_lio_bt_far.yaml"; fi ;;
   graph_far_m1)  GY="$GRAPH/graph_3d_m1_hdl_bt_far.yaml" ;;
   graph_support) GY="$GRAPH/graph_3d_m1_hdl_bt.yaml" ;;
   trad_far)      GY="";;

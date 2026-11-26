@@ -84,7 +84,10 @@ def main():
     ap.add_argument('--target', default='map')
     ap.add_argument('--cloud-topic', default='/rslidar_points')
     ap.add_argument('--terrain-topic', default='/terrain_cloud')
-    ap.add_argument('--stamp-tol', type=float, default=0.15)
+    ap.add_argument('--allow-latest', action='store_true',
+                    help='允许 TF 退到最新（默认禁止：退到最新就等于拿未来的变换搬过去的点）')
+    ap.add_argument('--expect-z', type=float, default=0.45)
+    ap.add_argument('--expect-tol', type=float, default=0.05)
     ap.add_argument('--no-terrain', action='store_true')
     args = ap.parse_args()
 
@@ -127,13 +130,33 @@ def main():
         tr = buf.lookup_transform(args.target, args.source, stamp, rospy.Duration(1.0))
         tf_at = 'stamp'
     except Exception as error:
+        if not args.allow_latest:
+            print('[tf] 该戳查不到（%.3f）：%s' % (stamp.to_sec(), str(error)[:120]))
+            print('RESULT ' + json.dumps({'verdict': 'FAIL', 'reason': 'tf_not_at_stamp'},
+                                         ensure_ascii=False))
+            raise SystemExit(2)
         tr = buf.lookup_transform(args.target, args.source, rospy.Time(0), rospy.Duration(2.0))
         tf_at = 'latest'
-        print('[tf] 该戳查不到，退到最新：%s' % str(error)[:120])
+        print('[tf] 该戳查不到，退到最新（--allow-latest）：%s' % str(error)[:120])
     R = quat_to_R((tr.transform.rotation.x, tr.transform.rotation.y,
                    tr.transform.rotation.z, tr.transform.rotation.w))
     t = np.array([tr.transform.translation.x, tr.transform.translation.y,
                   tr.transform.translation.z])
+    # ★复合一致性★：直查 map←rslidar 与 map←odom∘odom←base_link∘base_link←rslidar 必须逐元素相等
+    chain = np.eye(4)
+    for a, b in ((args.target, 'odom'), ('odom', 'base_link'), ('base_link', args.source)):
+        h = buf.lookup_transform(a, b, stamp, rospy.Duration(0.5))
+        H = np.eye(4)
+        H[:3, :3] = quat_to_R((h.transform.rotation.x, h.transform.rotation.y,
+                               h.transform.rotation.z, h.transform.rotation.w))
+        H[:3, 3] = [h.transform.translation.x, h.transform.translation.y,
+                    h.transform.translation.z]
+        chain = chain @ H
+    T_direct = np.eye(4)
+    T_direct[:3, :3], T_direct[:3, 3] = R, t
+    dt = float(np.abs(chain[:3, 3] - t).max())
+    dR = float(np.degrees(np.arccos(min(1.0, (np.trace(chain[:3, :3].T @ R) - 1) / 2))))
+    print('[compose] 直查 vs 链式：平移最大差 %.3g m，旋转最大差 %.3g°' % (dt, dR))
     M = P @ R.T + t
     print('[map] %s<-%s t=(%.3f,%.3f,%.3f) rpy=(%.2f,%.2f,%.2f) tf_at=%s'
           % (args.target, args.source, *t, *rpy_deg(R), tf_at))
@@ -141,7 +164,25 @@ def main():
     print('[map] z 分位 1%%=%.2f 50%%=%.2f 99%%=%.2f  z<0.1 占 %.1f%%'
           % (*np.percentile(zg, [1, 50, 99]), 100 * (zg < 0.1).mean()))
 
-    result = {'raw_frame': raw.header.frame_id, 'stamp': stamp.to_sec(),
+    ginl, gn, gz0 = ransac_ground(M)
+    gtilt = None
+    if gn is not None:
+        gtilt = float(np.degrees(np.arccos(min(1.0, abs(gn[2])))))
+        print('[map] 地面 RANSAC: 内点 %d (%.1f%%) 倾角 %.2f° 平面 z0=%.3f'
+              % (ginl, 100 * ginl / len(M), gtilt, gz0))
+
+    checks = {'tf_at_stamp': tf_at == 'stamp',
+              'compose_consistent': dt <= 1e-3 and dR <= 5e-2,
+              'map_rslidar_z': abs(float(t[2]) - args.expect_z) <= args.expect_tol,
+              'map_ground_level': (gtilt is not None and gtilt <= 1.0
+                                   and abs(gz0) <= 0.05)}
+    verdict = 'PASS' if all(checks.values()) else 'FAIL'
+    print('[verdict] %s  %s' % (verdict, ' '.join('%s=%s' % (k, v) for k, v in checks.items())))
+
+    result = {'verdict': verdict, 'checks': checks,
+              'compose_dt_m': dt, 'compose_dr_deg': dR,
+              'map_ground_tilt_deg': gtilt, 'map_ground_z0': None if gz0 is None else float(gz0),
+              'raw_frame': raw.header.frame_id, 'stamp': stamp.to_sec(),
               'n_raw': int(len(P)), 'tf_at': tf_at,
               'map_to_source_t': t.tolist(), 'map_to_source_rpy_deg': list(rpy_deg(R)),
               'map_z_percentiles': [float(v) for v in np.percentile(zg, [1, 50, 99])],
@@ -156,8 +197,7 @@ def main():
         deadline = rospy.Time.now() + rospy.Duration(8.0)
         while not rospy.is_shutdown() and rospy.Time.now() < deadline:
             cand = rospy.wait_for_message(args.terrain_topic, PointCloud2, timeout=8.0)
-            d = abs(cand.header.stamp.to_sec() - stamp.to_sec())
-            if d <= args.stamp_tol:
+            if cand.header.stamp == stamp:      # ★帧身份必须精确相等，不再用秒级容差★
                 terrain = cand
                 break
             terrain = terrain or cand
@@ -171,9 +211,24 @@ def main():
                 key = lambda A: np.round(A / 0.25).astype(np.int64)
                 K = set(map(tuple, key(M)))
                 hit = sum(1 for k in key(sub) if tuple(k) in K)
-                print('[terrain] 落在变换后原始点 0.25 m 体素内的比例 %.1f%%（%d/%d）'
-                      % (100.0 * hit / len(sub), hit, len(sub)))
-                result['terrain_voxel_hit_frac'] = float(hit) / len(sub)
+                same = terrain.header.stamp.to_sec() == stamp.to_sec()
+                print('[terrain] 帧身份：与 raw 同戳=%s' % same)
+                result['checks']['terrain_same_frame'] = bool(same)
+                if not same:
+                    result['verdict'] = 'FAIL'
+                else:
+                    # ★同帧才做逐点残差★：地形云就是这一帧点的变换结果，
+                    # 残差只应反映"far_node 用的那份 TF"与"本探针按戳查到的 TF"之间的差。
+                    q = sub[::max(1, len(sub) // 800)]
+                    d = np.array([np.min(np.linalg.norm(M - p0, axis=1)) for p0 in q])
+                    med, p95 = float(np.median(d)), float(np.percentile(d, 95))
+                    print('[terrain] 与变换后原始点的最近邻残差：中位 %.3f m、95%% %.3f m'
+                          % (med, p95))
+                    result['terrain_residual_median_m'] = med
+                    result['terrain_residual_p95_m'] = p95
+                    result['checks']['terrain_residual_small'] = med <= 0.05
+                    if med > 0.05:
+                        result['verdict'] = 'FAIL'
 
     print('RESULT ' + json.dumps(result, ensure_ascii=False))
 
