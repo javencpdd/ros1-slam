@@ -656,6 +656,7 @@ PYEOF
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出（relocalization 段，已挂常驻订阅）"; return 1; }
   timeout 60 rostopic echo -n 1 /hdl_odom >/dev/null 2>&1 || true
   python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
+import os
 import math, time, rospy
 from gazebo_msgs.msg import ModelStates
 from nav_msgs.msg import Odometry
@@ -714,12 +715,24 @@ while time.time()-t0<40 and not rospy.is_shutdown():
     time.sleep(0.05)
 t_conv=time.time()-t0
 worst=0.0; t0b=time.time()
+# ★30s 窗逐样本落盘★（2026-11-27）：只给 worst 一个数，无法区分"缓慢漂移"还是"某一刻跳变"，
+# 也就没法判断是配准退化还是重定位解跳。这里每 0.5 s 记一行 d/yaw，供事后对时刻。
+_trace = open((os.environ.get('M2_TRACE_C') or '/tmp/m2_stageC_trace.tsv'), 'w')
+_trace.write('t\td\tyaw_err_deg\tgt_x\tgt_y\n'); _trace.flush()
+_tick = 0.0
 while time.time()-t0b<30 and not rospy.is_shutdown():
     m=S['ip']
     if m is not None:
         d=math.hypot(m.pose.pose.position.x-S['gt'][0], m.pose.pose.position.y-S['gt'][1])
         worst=max(worst, d)
+        if time.time()-t0b >= _tick:
+            _tick += 0.5
+            _trace.write('%.1f\t%.3f\t%.1f\t%.3f\t%.3f\n' % (
+                time.time()-t0b, d,
+                abs(math.degrees(qyaw(m.pose.pose.orientation)-S['gyaw'])),
+                S['gt'][0], S['gt'][1])); _trace.flush()
     time.sleep(0.05)
+_trace.close()
 print('SMOKE reloc conv=%s t=%.1fs dev=%.3f worst30s=%.3f'%(conv,t_conv,last if last else -1,worst))
 PYEOF
   cat "$LOGDIR/stageC.txt"
