@@ -90,6 +90,46 @@ PY
     say '[place] 未到位，重试一次'
     teleport "$x" "$y"
   fi
+  # ★放好之后必须让 HDL 以"这个位姿"重新初始化★（2026-11-27 实测）：
+  #   不重初始化时，HDL 沿用启动时的假设，实测 est↔gt 偏 **3.59 m**；
+  #   同一机器人同一位置，重初始化后偏 **0.051 m**。
+  #   这条不补，后面所有"到达"判定都是在一个错位的坐标系里做的（19 cm 到达差就是这么来的）。
+  reinit_and_check_localization "$x" "$y"
+}
+
+reinit_and_check_localization() {
+  local x=$1 y=$2 off
+  timeout 5 rostopic pub -1 /initialpose geometry_msgs/PoseWithCovarianceStamped \
+    "{header: {frame_id: map}, pose: {pose: {position: {x: $x, y: $y, z: 0.0}, orientation: {w: 1.0}}, covariance: [0.25,0,0,0,0,0, 0,0.25,0,0,0,0, 0,0,0,0.25,0,0, 0,0,0,0.25,0,0, 0,0,0,0,0.25,0, 0,0,0,0,0,0.25]}}" >/dev/null 2>&1 || true
+  sleep 3
+  off=$(python3 - <<'PY'
+import math, statistics
+import rospy
+from nav_msgs.msg import Odometry
+rospy.init_node('loc_offset_check', anonymous=True, disable_signals=True)
+est, gt = [], []
+rospy.Subscriber('/hdl_odom', Odometry, lambda m: est.append(
+    (m.pose.pose.position.x, m.pose.pose.position.y)), queue_size=50)
+rospy.Subscriber('/sim/odom_gt', Odometry, lambda m: gt.append(
+    (m.pose.pose.position.x, m.pose.pose.position.y)), queue_size=50)
+import time
+t0 = time.monotonic()
+while time.monotonic() - t0 < 6.0:
+    time.sleep(0.2)
+n = min(len(est), len(gt))
+if n < 10:
+    print('9.999')
+else:
+    d = [math.hypot(est[i][0] - gt[i][0], est[i][1] - gt[i][1]) for i in range(n)]
+    print('%.3f' % statistics.median(d[-min(n, 200):]))
+PY
+)
+  say "[place] est_gt_offset=${off} m (限 ${LOC_MAX_OFFSET_M:-0.15} m)"
+  if awk "BEGIN{exit !($off > ${LOC_MAX_OFFSET_M:-0.15})}"; then
+    say '[place] 定位未收敛：拒绝在该状态下跑验收'
+    return 1
+  fi
+  return 0
 }
 
 kill_v8() {
