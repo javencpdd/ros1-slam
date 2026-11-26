@@ -57,10 +57,19 @@ source $WS/devel/setup.bash
 # 字面 far_planner 只出现在 manifest 与被 include 的 launch 里，grep 图必然落空（实测踩到）。
 # overlay/src 只含 far_planner 与其 msgs，与主 ws 无重叠，无条件追加是安全的。
 if [ -d "$REPO/tooling/far_overlay/src" ]; then
-  export ROS_PACKAGE_PATH="$ROS_PACKAGE_PATH:$REPO/tooling/far_overlay/src"
-  export PYTHONPATH="${PYTHONPATH:-}:$REPO/tooling/far_overlay/devel/lib/python3/dist-packages"
-  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}:$REPO/tooling/far_overlay/devel/lib"
-  say "overlay_paths_appended=1（FAR 后端）"
+  # ★统一入口（裁决①）★：不要手写追加。overlay 的 setup.bash 会**覆盖**四个变量，
+  # 少任何一个都致命：ROS_PACKAGE_PATH（找不到包）/ CMAKE_PREFIX_PATH（找不到 ws 的 C++ 可执行）
+  # / LD_LIBRARY_PATH（nodelet dlopen 失败）/ PYTHONPATH（sim_adapter 起不来）。
+  # `tooling/far_overlay/env.sh` 就是为此写的：source 两边后显式补回并去重。
+  # shellcheck disable=SC1090
+  source "$REPO/tooling/far_overlay/env.sh"
+  say "[env] far_planner pkg=$(rospack find far_planner 2>/dev/null)"
+  FB="$REPO/tooling/far_overlay/devel/lib/far_planner/far_planner"
+  if [ -f "$FB" ]; then
+    say "[env] far_planner bin=$(readlink -f "$FB") sha256=$(sha256sum "$FB" | cut -c1-16)"
+  else
+    say "[env] WARN: 未找到 far_planner 可执行（$FB）"
+  fi
 fi
 export ROS_MASTER_URI=${ROS_MASTER_URI:-http://127.0.0.1:11313}
 
@@ -94,6 +103,10 @@ say "--- [3] 启动装配 ---"
 # --screen 是必须的：不加的话各节点的 ROS_INFO 只进 rosout，graph.log 是空的，
 # 行为树/规划器为什么失败完全看不到（bb-bt-bt-5-stdout.log 实测 0 行）。
 setsid roslaunch --screen "$LAUNCH" > "$EV/graph.log" 2>&1 < /dev/null &
+LPID=$!
+# ★记录 roslaunch 的真实退出码★（裁决③）：只数节点数量会把"进程已死但注册还在"当成通过
+( wait "$LPID"; echo $? > "$EV/roslaunch.rc" ) &
+say "roslaunch_pid=$LPID"
 for i in $(seq 1 20); do
   sleep 2
   N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)
@@ -112,6 +125,23 @@ fi
 rosnode list 2>/dev/null | grep -qE '^/v8/3d/loc(/|$)' \
   || { rosnode list 2>/dev/null | grep -E '^/v8' | tr '\n' ' '; say; gate_fail "loc 实例缺失（E_PLAN_NOT_READY 的直接原因）"; }
 say "loc_instance=present"
+# ★FAR 组合的额外就绪判据（裁决②）★：节点存在 + 有 PID + 唯一发布者 + 有活数据。
+# 只看 v8 节点数会漏掉 far_planner/v8_global_far —— 它们不在 /v8 前缀下，之前正是这样
+# "数量通过、规划器其实没起来"。
+if printf '%s' "$GRAPH" | grep -q 'far'; then
+  for n in /far_planner /v8_global_far; do
+    rosnode list 2>/dev/null | grep -qx "$n" || gate_fail "FAR 节点缺失：$n（graph.log 见 $EV/graph.log）"
+  done
+  FPID=$(rosnode info /far_planner 2>/dev/null | grep -oE 'Pid: [0-9]+' | head -1 | cut -d' ' -f2)
+  [ -n "${FPID:-}" ] || gate_fail "far_planner 无 PID（节点注册但进程不在）"
+  say "far_planner_pid=$FPID"
+  for t in /terrain_cloud /v8/3d/global/path_task; do
+    P=$(rostopic info "$t" 2>/dev/null | sed -n '/Publishers/,/Subscribers/p' | grep -c '^ \*' || true)
+    [ "${P:-0}" -ge 1 ] || gate_fail "$t 无发布者（FAR 适配层未接上）"
+  done
+  say "far_publishers_ok=1"
+fi
+
 
 # ---------- 3b. FAR 后端：等地形就绪再发目标 ----------
 # FAR 要先有地形点云才能建可见性图、才可能出路径；地形没起来就发目标，BT 只会 30 s 超时。

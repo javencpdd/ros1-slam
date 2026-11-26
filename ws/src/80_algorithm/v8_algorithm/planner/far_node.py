@@ -40,6 +40,8 @@ STALE_WAYPOINT_GUARD_S = 0.30
 # 换目标后"按几何判是不是上一轮航点"的保护期（秒）：FAR 重新收敛需要几秒，
 # 这期间只接受"明确朝新目标去"的航点。
 STALE_GOAL_GUARD_S = 5.0
+# "几乎落在上一目标上"的半径（米）：几何判据只在这个范围内生效，避免误杀绕行
+STALE_GOAL_NEAR_M = 0.75
 ARRIVAL_R_XY_M = 0.25      # 到达判据的水平半径（米）：与 BT 树 WaitArrival 的 distance 同值
 ARRIVAL_Z_TOL_M = 0.30     # 到达判据的竖向容差（米）：与 support_map 的 z_tol 同量级
 
@@ -304,6 +306,9 @@ class AdapterState:
         self.prev_target = None
         self.prev_target_at = None
         self.stale_goal_waypoints = 0
+        # ★撤销线★：取消/安全停止之后，该 mission 及其之前**永不重新武装**
+        # （身份、目标、halted 三件事都不得因它再变）。同 mission 的重复 goal_task 也必须幂等。
+        self.revoked_mission = -1
 
     # ---- 生命周期 ----
     def next_cancel_seq(self):
@@ -430,6 +435,9 @@ class AdapterState:
         except (TypeError, ValueError):
             return 'ignored'
         now = 0.0 if now is None else float(now)
+        if mission <= int(getattr(self, 'revoked_mission', -1)):
+            # 已撤销的 mission（或更早的）再出现 ⇒ 只可能是残留/重放，绝不重新武装
+            return 'stale'
         current = self.mission
         if current is not None:
             if mission < int(current['mission_id']):
@@ -448,6 +456,18 @@ class AdapterState:
         self.waypoint_point = None
         self.mission_switched_at = now
         return 'new'
+
+    def revoke(self, mission=None, reason='cancel'):
+        """把 mission 写进撤销线：之后同一编号**永不重新武装**（同 mission 幂等、旧 mission 拒收）。"""
+        target = int(mission) if mission is not None else \
+            int((self.mission or {}).get('mission_id', -1))
+        if target > int(getattr(self, 'revoked_mission', -1)):
+            self.revoked_mission = target
+        self.halted = True
+        self.last_waypoint = None
+        self.last_waypoint_at = None
+        self.revoke_reason = reason
+        return self.revoked_mission
 
     def task_message(self, pose, waypoint, now=None):
         """把一次航点事件变成**原子任务帧**（dict）；不该发时返回 `None`。
@@ -475,7 +495,10 @@ class AdapterState:
             p = _xyz(waypoint)
             d_prev = math.dist(p, self.prev_target)
             d_now = math.dist(p, self.target)
-            if d_prev + 0.10 < d_now:
+            # ★判据要窄★：只挡"几乎就落在上一目标上"的航点。用"离旧目标更近"当判据会把
+            # 合法避障绕行一起误杀（绕行点天然比新目标更靠近旧目标方向，实测 (5,4) 就是这样）。
+            # 这条只是**辅助**，不是航点身份安全的证明——真正的身份要上游在 way_point 上带 id。
+            if d_prev <= STALE_GOAL_NEAR_M and d_now >= d_prev + 0.5:
                 self.stale_goal_waypoints += 1
                 return None
         # ★按**距离**判"是不是同一个航点"，不要用量化分桶★：
@@ -799,7 +822,9 @@ def main():
             state.stale_waypoints += 1
         # ★同一条 goal_task 同时决定身份与目标★（裁决④）：带 x/y/z 就地生效，
         # 不再依赖另一条 legacy PoseStamped 去解除 halted / 下发 FAR 目标点。
-        if source == 'goal_task' and result in ('new', 'same'):
+        # ★只有 `new` 才生效★（裁决⑤）：同 mission 的重复 goal_task 必须幂等——
+        # 不能因为又收到一条就 apply_goal 一遍（那会把 halted 解开、把已撤销的任务重新武装）。
+        if source == 'goal_task' and result == 'new':
             try:
                 xyz = (float(payload['x']), float(payload['y']), float(payload.get('z', 0.0)))
             except (KeyError, TypeError, ValueError):
@@ -854,7 +879,10 @@ def main():
         if len(parts) < 2 or not parts[0].isdigit() or parts[1] not in ('current', 'all'):
             return
         seq = state.on_cancel(int(parts[0]))
-        publish_status(status_json(False, 0, 'E_FAR_CANCEL_RECEIVED', seq=seq))
+        # 取消即撤销：当前 mission 进撤销线，之后同编号的 goal_task 一律拒收（不重新武装）
+        revoked = state.revoke(None, reason='cancel')
+        publish_status(status_json(False, 0, 'E_FAR_CANCEL_RECEIVED', seq=seq,
+                                   revoked_mission=revoked))
 
     def on_ack(message):
         confirmed = state.note_ack(message.data)

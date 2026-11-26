@@ -93,11 +93,23 @@ PY
 }
 
 kill_v8() {
-  local n
-  for n in $(rosnode list 2>/dev/null | grep -E '^/v8' || true); do
+  local n pat
+  # ★覆盖 FAR 后端（裁决②）★：`far_planner` 与 `v8_global_far` 不在 `/v8` 前缀下，
+  # 旧实现只清 `/v8*`，上一轮的规划器会带着旧目标活到下一轮，表现为"新车一启动就被拖走"。
+  for n in $(rosnode list 2>/dev/null | grep -E '^/v8|^/far_planner|^/far_planner_node|^/v8_global_far' || true); do
     rosnode kill "$n" >/dev/null 2>&1 || true
   done
-  sleep 2
+  # 等它们真的消失（rosnode kill 只是请求）；超时再按进程名精确补刀，不做宽泛 pkill
+  for _ in $(seq 1 10); do
+    n=$(rosnode list 2>/dev/null | grep -cE '^/v8|^/far_planner|^/v8_global_far' || true)
+    [ "${n:-0}" -eq 0 ] && break
+    sleep 1
+  done
+  for pat in 'far_planner/far_planner' 'run_global_far.py'; do
+    pkill -f "$pat" 2>/dev/null || true
+  done
+  sleep 1
+  rosnode list 2>/dev/null | grep -cE '^/v8|^/far_planner|^/v8_global_far' > "${EV_ROOT:-/tmp}/leftover_nodes.txt" 2>/dev/null || true
 }
 
 reset_stack() {
@@ -119,6 +131,14 @@ reset_stack() {
     SKIP_GAZEBO=1 NO_LAUNCH_GAZEBO=1 MODE=normal DUR=8 WAIT_SCAN=40 \
       INIT_X=$START_X INIT_Y=$START_Y \
       bash $REPO/scripts/verify/asan_hdl_repro.sh > "$EV_ROOT/${tag}_repro.log" 2>&1
+    local hdl_rc=$?
+    # ★返回码必须检查（裁决③）★：asan 失败时以前会继续往下跑，用"节点数量够了"冒充就绪，
+    # 于是后面每个用例都在没有定位的情况下测，读数全是 INVALID。
+    if [ "$hdl_rc" -ne 0 ]; then
+      say "[$tag] ABORT：asan_hdl_repro rc=$hdl_rc（见 ${tag}_repro.log 尾部）"
+      tail -15 "$EV_ROOT/${tag}_repro.log" | sed 's/^/    /'
+      return 1
+    fi
   fi
   # ★2026-11-25：GRAPH/EXPECT_NODES 透传★（只换后端，不改任何参数）。
   # 用 `env ${VAR:+VAR=$VAR}` 形式：为空时**不注入**，p4_nav_hdl 的默认值照旧生效，
@@ -148,6 +168,12 @@ reset_stack() {
   n=$(rosnode list 2>/dev/null | grep -cE '^/v8' || true)
   say "[$tag] v8_nodes=$n"
   [ "$n" -ge 9 ] || say "[$tag] WARN 装配不全（$n/9），本项结果不可信"
+  local nav_rc=$?
+  # ★p4_nav_hdl 的返回码也要看★：只数节点会把"roslaunch 已死"当成就绪（裁决③）
+  if [ "$nav_rc" -ne 0 ]; then
+    say "[$tag] ABORT：p4_nav_hdl rc=$nav_rc（见 $EV_ROOT/${tag}_setup.log / graph.log）"
+    return 1
+  fi
 }
 
 # ★目标只能发一条★（2026-11-26 修）：`/v8/bt/goal` 是 **FIFO 多任务入口**，

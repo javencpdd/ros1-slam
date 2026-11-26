@@ -187,6 +187,54 @@ class TaskIdentity(unittest.TestCase):
         after = self.st.task_message((5.0, 2.0, 0.0), (5.4, 2.0, 0.0), now=10.0 + 5.5)
         self.assertIsNotNone(after, '超过 5 s 保护期后不再按几何判据丢弃')
 
+    # ---- ⑮ 同 mission 重复 goal_task 幂等 ----
+    def test_same_mission_is_idempotent(self):
+        self.assertEqual(self.st.on_task_identity(ident(1), now=0.0), 'new')
+        self.st.set_target((5.0, 2.0, 0.0))
+        rev0, idx0 = self.st.path_revision, self.st.waypoint_index
+        self.assertEqual(self.st.on_task_identity(ident(1, gen=1), now=1.0), 'same')
+        self.assertEqual(self.st.path_revision, rev0, '同 mission 不得重置版本')
+        self.assertEqual(self.st.waypoint_index, idx0, '同 mission 不得重置航点序号')
+        self.assertEqual(self.st.mission['execution_generation'], 1, '执行代次可以更新')
+
+    # ---- ⑯ 已撤销 mission 永不重新武装 ----
+    def test_revoked_mission_never_rearmed(self):
+        self.st.on_task_identity(ident(2), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.revoke(reason='cancel')
+        self.assertEqual(self.st.on_task_identity(ident(2), now=5.0), 'stale')
+        self.assertEqual(self.st.on_task_identity(ident(1), now=6.0), 'stale')
+        self.assertTrue(self.st.halted, '撤销后必须保持 halted')
+        self.assertIsNone(self.st.task_message((5.0, 2.0, 0.0), (4.0, 2.0, 0.0), now=7.0))
+        self.assertEqual(self.st.on_task_identity(ident(3), now=8.0), 'new', '新 mission 可放行')
+
+    # ---- ⑰ 同坐标新任务 ----
+    def test_same_coordinate_new_mission_is_new(self):
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        self.assertEqual(self.st.on_task_identity(ident(2), now=1.0), 'new')
+        self.st.set_target((3.0, 2.0, 0.0))     # 目标坐标完全相同
+        # 同坐标时没有"上一目标"可判：几何判据在这里**不起作用**，只能靠 mission 编号。
+        self.assertIsNone(self.st.prev_target, '同坐标新任务没有几何可判别（不假装能挡）')
+
+    # ---- ⑱ 同向目标：不得被几何判据误杀 ----
+    def test_same_direction_waypoint_allowed(self):
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((5.0, 2.0, 0.0))     # 新目标与旧目标同向同点
+        w = self.st.task_message((6.0, 2.0, 0.0), (5.4, 2.0, 0.0), now=10.5)
+        self.assertIsNotNone(w, '同向航点必须放行（几何判据只挡"离旧目标更近"的）')
+
+    # ---- ⑲ 合法避障绕行：离两个目标都远 ⇒ 不得被拒 ----
+    def test_detour_waypoint_allowed(self):
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        detour = self.st.task_message((5.0, 2.0, 0.0), (5.0, 4.0, 0.0), now=10.5)
+        self.assertIsNotNone(detour, '绕行点离两目标都远，属合法避障，不得按残留丢弃')
+
 
 if __name__ == '__main__':
     unittest.main()
