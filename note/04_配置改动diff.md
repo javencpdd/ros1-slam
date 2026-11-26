@@ -9071,3 +9071,47 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
   （`nav_probe: start=(4.71,2.48), travel=0, frames=7, bt=False`），推测 `path_goal` 在原子路径下
   航点推进与去重键的配合仍有问题（同任务滚动重发时 `last_goal_key` 未随 poses 变化更新）。
   ⇒ **Support 暂记 3/4**，不宣布 4/4。
+
+## 2026-11-26 / T-20261126-05 原子控制通道收口、撤销语义统一、验收判据七处修正
+
+- 起因：真人三轮裁决——①原子契约下 path_goal 不得再同时消费 Path/path_meta/path_task；
+  ②取消与定位失效都必须撤销 mission（判据是任务身份，不是时间戳）；③脚本层五项未完成项。
+- **代码侧（`v8_algorithm`，全部有单测）**
+  · `path_goal` 只认 `/v8/3d/global/path_task` 一条原子通道；`on_path`/`on_path_meta` 在原子模式下
+    只做可视化回执（`legacy_ignored`），不再改控制状态 —— 原来三路写同一状态
+  · 撤销判据统一到 `mission_id`：`on_cancel` 与 `on_localization` 都写 `revoked_mission`；
+    晚到的旧 mission 另有 `stale_mission`（无撤销线也要拒，否则取消过的任务在下个任务之后到达会复活）
+  · 目标消息构造完整 `PoseStamped`（原 `SimpleNamespace` 缺 `header` ⇒ `make_goal` 抛异常、静默不发）
+  · 航点推进：发布时刻改**墙钟**（该节点无 `/clock` 时 `rospy.Time.now()` 恒 0，超时兜底永不成立，
+    实测 index 冻结 139 s）、推进时跳过离位姿 < `min_goal_m`(0.30) 的点（点间距仅 0.1 m 的目标
+    local 推不动：`mux reason=track` 而 `cmd` 恒零）
+  · 状态回执带 `mission` / `revoked_mission`，供探针在"撤销线之上"播种
+- **验收脚本侧**
+  · 目标只发一条：`/v8/bt/goal` 是 **FIFO 多任务入口**，`rostopic pub -r 5` 三秒＝15 个 mission，
+    且"出队下一个"会把上一个记成 `reached` ⇒ 读数出现 `bt_reached=true` 而实差 0.6 m。
+    新增 `scripts/verify/bt_goal_once.py`（单发 + 用 `/v8/bt/status` 的 `current_seq`/`queue_depth` 确认受理）
+  · 观测窗口 `NAV_WINDOW=140` s：BT 自己算的 `arrival budget` 是 65 s，原窗口 45 s 短于系统预算
+  · `p4_nav_probe` 计时改墙钟（原用 `rospy.Time.now()`，45 仿秒≈18 实测秒，窗口在目标下发前就结束）
+  · 就绪判定改 `grep -q "average rate"`（原 `tail -1` 拿到的是 `min:/max:/window:` 行 ⇒ 恒假）
+  · 位姿探针按 `get_published_topics()` 判类型后**只订一次**（同 topic 两种类型订阅会让一条永远空转）
+  · `_pub_count` 只数 Publishers 段（原 `$p` 到文件尾把 Subscribers 算进来 ⇒ 单发布者守卫恒假）；
+    补 `scripts/verify/test_pub_count.sh` 三连＋反控
+  · `asan_hdl_repro.sh` 的 `SKIP_HDL=1` 在"参数与地图就绪"处收口 `exit 0`（原实现必 `gate_fail`，
+    `sim.sh base m1 no-hdl` 因此永远 rc=9）；并加 `NO_LAUNCH_GAZEBO=1`（只许复用，不许再起第二个 gzserver）
+  · `cancel_replay_probe` 改**原子三相位**：播种 mission M ⇒ 取消 ⇒ 同一 M 原样重放必拒
+    (`task_revoked`) ⇒ M+1 必收。旧实现测的是 legacy Path 的 stamp 判据，在原子模式下只会拿到
+    `legacy_ignored`，属 false-green
+  · `motion_interrupt_probe` 注入前加"此刻仍在动"闸门，注入时刻打在第一帧取消**发出时**
+    （原打在两帧发完之后，0.2 s 睡眠被算成"注入时已停"⇒ 取消项连报两轮 INVALID）
+  · 取消用例删掉"每秒起一个 rostopic"的运动预检；导航用例并行留 `nav_timeline.tsv`（10 Hz 记
+    local/bt/path_goal/mux/cmd），"谁在停"一眼可见
+- **本轮现跑读数**（`evidence/reg_final_084930`）：障碍 5/5＋在线 PASS（zero=10.0 s、pen=0）；
+  定位失效 PASS（stop delay 0.00–0.70 s、零速窗口 10.6–12.3 仿秒、恢复不复动、新任务可解锁）；
+  取消 PASS（ack=1:cancelled、zero=11.46 仿秒、gt 位移 0.010 m、replay=PASS）；
+  **正常导航 FAIL**：`gt=0.446 m est=0.282`，BT 未报 reached，cmd 恒零停在距终点 0.28 m 处。
+  同一套代码在 `reg_diag2` 里 nav 是 PASS（`est 0.014 / gt 0.101 / travel 1.225`）—— 5 轮里 3 轮 PASS。
+- **未闭合（待裁决）**：nav 末段停在 0.28 m（估计）/0.45 m（真值）后 `cmd` 恒零。现有证据指向
+  **local 执行层**：`local_native_app_mapped.yaml` 的 `resolution: 0.30` / `max_step_m: 0.30` 与
+  `goal_tolerance_m: 0.15` 组合下，0.15 m 真值精度本就贴着分辨率极限；且 `/v8/local/status` 在
+  总线上一片空白，看不出 local 为何给零速。两条待选：①把 `resolution` 降到 0.15（规划开销上升）；
+  ②按分辨率把到达容差改到 0.30 并如实标注。二者都改系统行为/判据口径，未擅自执行。

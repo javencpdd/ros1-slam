@@ -1,0 +1,16 @@
+=== 4 取消（scope=all）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[cancel] v8_nodes=9
+{"mode": "cancel", "motion_seen": true, "cmd_frames": 2811, "hold_s": 26.0, "cmd_samples": 2811, "gt_samples": 1286, "ack_count": 2, "ack_last": "2:cancelled", "ack_latency_wall_s": 21.138, "max_speed": 0.6, "nonzero_frames": 50, "last_nonzero_wall_s": 21.14, "zero_window_wall_s": 26.046, "max_speed_after": 0.0, "inject_wall_s": 21.074, "stop_delay_s": 0.066, "inject_to_last_nonzero_s": 0.066, "moving_at_inject": true, "gt_coast_after_inject_m": 0.0245, "gt_travel_after_m": 0.018, "anchor_sim_s": 613.602, "zero_window_sim_s": 11.8, "gt_move_within_2s_sim_m": 0.018, "gt_covers_2s_sim": true, "gt_move_within_5s_sim_m": 0.018, "gt_covers_5s_sim": true, "gt_move_within_10s_sim_m": 0.018, "gt_covers_10s_sim": true, "v8_nodes_after": 9, "gazebo_alive": true, "hdl_alive": true}
+{"path_task_conns": 1, "cancel_conns": 2, "seed_mission": 2, "mission_base": 1, "seed_replies": [{"ok": true, "generation": 3, "rejected_stale": 0, "mission": 2, "revoked_mission": 1, "poses": 6, "index": 2, "remaining_m": 0.407, "goal": [4.5, 2.45, 0.0], "frame": "map"}], "seeded": true, "replay_replies": [{"ok": false, "reason": "task_revoked", "mission_id": 2, "revoked_mission": 2, "mission": 2}], "replay_rejected": true, "replay_accepted_badly": false, "fresh_replies": [{"ok": true, "generation": 4, "rejected_stale": 0, "mission": 3, "revoked_mission": 2, "poses": 6, "index": 3, "remaining_m": 0.354, "goal": [4.35, 2.45, 0.0], "frame": "map"}], "fresh_accepted": true, "pass": true}
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       INVALID  缺 nav_arrival.json                                         -
+2 障碍安全       INVALID  缺 obstacle.json                                            -
+3 定位失效       INVALID  缺 loc_stop.json                                            -
+4 取消安全       PASS     ack=2:cancelled zero=11.80 s sim move5s=0.018 m after_v=0.0 replay=PASS
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：1 PASS / 3 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/reg_cancel4_075019
+judge_rc=1（0=四项全 PASS，非零=有项未通过）

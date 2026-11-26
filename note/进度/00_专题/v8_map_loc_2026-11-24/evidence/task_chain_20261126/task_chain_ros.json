@@ -1,0 +1,51 @@
+{
+ "verdict": "PASS",
+ "cases": [
+  {
+   "name": "node_start",
+   "verdict": "PASS",
+   "detail": "订阅建立=True"
+  },
+  {
+   "name": "A_order_revision",
+   "verdict": "PASS",
+   "detail": "rev2→rev1 被拒=True 目标数 1→1(0)"
+  },
+  {
+   "name": "B_lossy_revision",
+   "verdict": "PASS",
+   "detail": "丢包后仍接受 rev5：status 2→3 目标 1→2"
+  },
+  {
+   "name": "C_duplicate_noop",
+   "verdict": "PASS",
+   "detail": "重复消息未产生新目标/新 goal_task：目标 2→2 task 2→2"
+  },
+  {
+   "name": "D_late_mission",
+   "verdict": "PASS",
+   "detail": "旧 mission 晚到被拒=True 目标 3→3"
+  },
+  {
+   "name": "E_cancel_replay",
+   "verdict": "PASS",
+   "detail": "取消后旧 mission 重放被拒=True 目标 3→3"
+  },
+  {
+   "name": "F_new_mission_after_cancel",
+   "verdict": "PASS",
+   "detail": "取消后新 mission 放行：目标 3→4"
+  },
+  {
+   "name": "G_restart_no_reissue",
+   "verdict": "PASS",
+   "detail": "重启后 2.5 s 内无自发目标：4→4（重启成功=True）"
+  },
+  {
+   "name": "G_restart_accepts_new",
+   "verdict": "PASS",
+   "detail": "重启后新 mission 生效：目标 4→5"
+  }
+ ],
+ "ts": "2026-11-26T09:07:22"
+}
