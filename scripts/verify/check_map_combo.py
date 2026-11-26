@@ -64,7 +64,7 @@ def main():
                     help='直接订阅 /v8_map_status（避免解析 rostopic echo 的包装文本）')
     args = ap.parse_args()
 
-    combo_path = os.path.join(args.root, 'configs/map_combos', args.combo + '.json')
+    combo_path = os.path.join(args.root, 'ws/src/90_platform/v8_platform/framework/fixtures/map_combos', args.combo + '.json')
     if not os.path.isfile(combo_path):
         print('FAIL 组合不存在: %s' % combo_path)
         return 2
