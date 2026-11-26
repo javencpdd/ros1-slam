@@ -1,0 +1,39 @@
+===== MODE=normal DUR=60s MAP=/opt/ros1-slam/data/maps/m1_world_synth_v1.pcd =====
+EV=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261126_125002
+live_lib_sha=8467802453724791 backup_sha=a8164428b4f0dff9
+--- [0] 清理陈旧节点与 gzserver ---
+after_clean_nodes=/gazebo /hdl_gate /robot_state_publisher /rosout /rostopic_384562_1795697402398 /rslidar_points_relay_1795696226701293094 /rslidar_points_relay_1795696309145446857 /rslidar_points_relay_1795696746861498354 /rslidar_points_relay_1795696946132572573 /rslidar_points_relay_1795697156051293075 /rslidar_points_relay_1795697305240810256 /sim_adapter 
+after_clean_leftover=0
+--- [1] 启动 Gazebo（map_to_odom=false）---
+复用已在跑的 Gazebo（NO_LAUNCH_GAZEBO=1 强制复用，未启动新实例）
+average rate: 9.901
+--- [2] relay /rslidar_points -> /velodyne_points ---
+average rate: 7.712
+--- [3] 启动 nodelet manager ---
+mgr_pid=385517 libasan_in_maps=0
+--- [4] 加载 GlobalmapServerNodelet（正式库）---
+globalmap_ready_after=1x2s width=5808
+globalmap_width=5808
+--- [5] 加载 HdlLocalizationNodelet（MODE=normal）---
+load_result=instance_at=1s
+mgr_alive=yes
+--- [6] 注入有效性：实际加载的是哪一份 .so ---
+maps_asan=0 maps_dbg=0 maps_live=6
+--- [7] 实例与订阅闸门 ---
+nodes=/hdl /hdl_gate /mgr 
+hdl_node=/hdl
+-- /velodyne_points Subscribers --
+Subscribers: 
+ * /mgr (http://35ea6bfef95a:42549/)
+velodyne_has_subscriber=1
+-- /hdl Subscriptions --
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+
+--- [8] 等待进入 scan -> align（最多 60s）---
+scan_seen_after=1s
+align_seen_after=1s
+got_scan=1 got_align=1
+manager_log_lines=74
+对照 logs/latest 计数（历史误判来源）: scan=3165 align=3164
+--- [9] 已进入 align，观察 60s 崩溃 ---

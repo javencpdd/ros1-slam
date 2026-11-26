@@ -1,0 +1,96 @@
+===== MODE=normal DUR=60s MAP=/opt/ros1-slam/data/maps/mapped_m1.pcd =====
+EV=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/normal_20261126_124744
+live_lib_sha=8467802453724791 backup_sha=a8164428b4f0dff9
+--- [0] 清理陈旧节点与 gzserver ---
+after_clean_nodes=/gazebo /robot_state_publisher /rosout /rslidar_points_relay_1795696226701293094 /rslidar_points_relay_1795696309145446857 /rslidar_points_relay_1795696746861498354 /rslidar_points_relay_1795696946132572573 /rslidar_points_relay_1795697156051293075 /sim_adapter 
+after_clean_leftover=0
+--- [1] 启动 Gazebo（map_to_odom=false）---
+复用已在跑的 Gazebo（NO_LAUNCH_GAZEBO=1 强制复用，未启动新实例）
+average rate: 10.000
+--- [2] relay /rslidar_points -> /velodyne_points ---
+average rate: 10.000
+--- [3] 启动 nodelet manager ---
+mgr_pid=382998 libasan_in_maps=0
+--- [4] 加载 GlobalmapServerNodelet（正式库）---
+globalmap_ready_after=1x2s width=10237
+globalmap_width=10237
+--- [5] 加载 HdlLocalizationNodelet（MODE=normal）---
+load_result=instance_at=1s
+mgr_alive=yes
+--- [6] 注入有效性：实际加载的是哪一份 .so ---
+maps_asan=0 maps_dbg=0 maps_live=6
+--- [7] 实例与订阅闸门 ---
+nodes=/hdl /mgr 
+hdl_node=/hdl
+-- /velodyne_points Subscribers --
+Subscribers: 
+ * /mgr (http://35ea6bfef95a:34189/)
+velodyne_has_subscriber=1
+-- /hdl Subscriptions --
+Subscriptions: 
+ * /clock [rosgraph_msgs/Clock]
+
+--- [8] 等待进入 scan -> align（最多 60s）---
+scan_seen_after=1s
+align_seen_after=1s
+got_scan=1 got_align=1
+manager_log_lines=74
+对照 logs/latest 计数（历史误判来源）: scan=2920 align=2919
+--- [9] 已进入 align，观察 60s 崩溃 ---
+scripts/verify/asan_hdl_repro.sh: line 405: 382998 Segmentation fault      setsid "${MGR_RUN[@]}" "${MGR_CMD[@]}" > "$EV/manager.log" 2>&1 < /dev/null
+mgr_died_at=58s
+crash_at=58
+asan_reports=0
+--- ASAN 报告（若有）---
+--- manager.log 尾部 ---
+[0m[ INFO] [1795697395.504931419, 525.503000000]: align begin: target=10237 source=778[0m
+[0m[ INFO] [1795697395.516565007, 525.509000000]: align done: 778 points[0m
+[0m[ INFO] [1795697395.725676322, 525.603000000]: scan: raw=5214 filtered=775[0m
+[0m[ INFO] [1795697395.727807685, 525.604000000]: align begin: target=10237 source=775[0m
+[0m[ INFO] [1795697395.747007634, 525.614000000]: align done: 775 points[0m
+[0m[ INFO] [1795697395.950388009, 525.704000000]: scan: raw=5191 filtered=736[0m
+[0m[ INFO] [1795697395.952333208, 525.705000000]: align begin: target=10237 source=736[0m
+[0m[ INFO] [1795697395.956241806, 525.707000000]: align done: 736 points[0m
+[0m[ INFO] [1795697396.172528567, 525.803000000]: scan: raw=5233 filtered=774[0m
+[0m[ INFO] [1795697396.174482981, 525.804000000]: align begin: target=10237 source=774[0m
+[0m[ INFO] [1795697396.185847659, 525.810000000]: align done: 774 points[0m
+[0m[ INFO] [1795697396.393649455, 525.904000000]: scan: raw=5275 filtered=801[0m
+[0m[ INFO] [1795697396.395908127, 525.905000000]: align begin: target=10237 source=801[0m
+[0m[ INFO] [1795697396.411592892, 525.913000000]: align done: 801 points[0m
+[0m[ INFO] [1795697396.612134204, 526.002000000]: scan: raw=5223 filtered=772[0m
+[0m[ INFO] [1795697396.614598222, 526.004000000]: align begin: target=10237 source=772[0m
+[0m[ INFO] [1795697396.617704147, 526.005000000]: align done: 772 points[0m
+[0m[ INFO] [1795697397.054458741, 526.203000000]: scan: raw=5229 filtered=770[0m
+[0m[ INFO] [1795697397.056095236, 526.203000000]: align begin: target=10237 source=770[0m
+[0m[ INFO] [1795697397.068901699, 526.210000000]: align done: 770 points[0m
+[0m[ INFO] [1795697397.276952043, 526.303000000]: scan: raw=5267 filtered=793[0m
+[0m[ INFO] [1795697397.278904647, 526.304000000]: align begin: target=10237 source=793[0m
+[0m[ INFO] [1795697397.296973527, 526.314000000]: align done: 793 points[0m
+[0m[ INFO] [1795697397.720129115, 526.504000000]: scan: raw=5189 filtered=725[0m
+[0m[ INFO] [1795697397.722451863, 526.505000000]: align begin: target=10237 source=725[0m
+[0m[ INFO] [1795697397.749103130, 526.518000000]: align done: 725 points[0m
+[0m[ INFO] [1795697397.936517021, 526.603000000]: scan: raw=5223 filtered=769[0m
+[0m[ INFO] [1795697397.939037729, 526.604000000]: align begin: target=10237 source=769[0m
+[0m[ INFO] [1795697397.962470048, 526.616000000]: align done: 769 points[0m
+[0m[ INFO] [1795697398.164255523, 526.706000000]: scan: raw=5275 filtered=791[0m
+[0m[ INFO] [1795697398.169502875, 526.708000000]: align begin: target=10237 source=791[0m
+[0m[ INFO] [1795697398.219985776, 526.734000000]: align done: 791 points[0m
+[0m[ INFO] [1795697398.625145541, 526.905000000]: scan: raw=5188 filtered=733[0m
+[0m[ INFO] [1795697398.628180537, 526.906000000]: align begin: target=10237 source=733[0m
+[0m[ INFO] [1795697398.647877143, 526.916000000]: align done: 733 points[0m
+[0m[ INFO] [1795697398.846162565, 527.004000000]: scan: raw=5213 filtered=768[0m
+[0m[ INFO] [1795697398.854060487, 527.008000000]: align begin: target=10237 source=768[0m
+[0m[ INFO] [1795697398.883912426, 527.023000000]: align done: 768 points[0m
+[33m[ WARN] [1795697399.132987269, 527.130000000]: Shutdown request received.[0m
+[33m[ WARN] [1795697399.133126452, 527.130000000]: Reason given for shutdown: [user request][0m
+===== 汇总 =====
+mode=normal crash_at=58
+scan_lines=246
+align_lines=246
+align_begin=246
+lidar_timeout_drops=0
+globalmap_msgs=1
+live_lib_sha_now=8467802453724791
+--- [8b] 定位数据闸门 /hdl_odom_raw -> /hdl_odom ---
+hdl_gate.log:
+GATE_FAIL: /hdl_odom 无数据（闸门未通）

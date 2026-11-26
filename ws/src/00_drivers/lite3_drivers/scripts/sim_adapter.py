@@ -41,6 +41,12 @@ GYRO_BIAS, GYRO_SIGMA, ACC_SIGMA = 0.002, 0.01, 0.05   # 偏置/噪声（防纯�
 ACC_CLAMP = 4.0 * 9.81     # |a_b| 限幅
 LPF_ALPHA, YAW_RATE_MAX = 0.3, 1.0                     # 低通系数 / 轨迹偏航角速率限幅 rad/s
 Z_MIN_WORLD = -0.02     # 坑13-R1①：world 系地下幻影点剔除阈值（mockamap 墙底格心 z≥0.0，幻影层实测 ≤-0.19m，-0.02 给 0.17m 安全边距）
+# ★无效射线剔除（2026-11-26 P0 实测）★：livox 插件按 CSV 图案打满 20000 条射线，未命中的
+# 写成 (0,0,0)。实测一帧里 **14579/20000 = 72.9%** 是精确零点 —— 这些点在 HDL 的 NDT 里
+# 是一坨落在传感器原点的"假点云"，会把配准拽歪（实测 map→odom pitch 偏 −8°），
+# 在 FAR 的地形编码里又是一块假的"地面"。阈值取插件 `<range><min>0.1</min>`：
+# 比它更近的返回在物理上不存在，只能是未命中占位。
+MIN_RANGE_M = 0.1
 
 # 输入视图 pcl::PointXYZI（x@0,y@4,z@8,intensity@16）/ 输出视图 velodyne_ros::Point（preprocess.h:12-20）
 DTYPE_IN = np.dtype({'names': ['x', 'y', 'z', 'p0', 'intensity', 'p1'],
@@ -105,7 +111,7 @@ def sg2_accel(pos5, dt):
     return (2 * pos5[0] - pos5[1] - 2 * pos5[2] - pos5[3] + 2 * pos5[4]) / (7.0 * dt * dt)
 
 
-def repack_cloud(msg, time_unit, zcut=None):
+def repack_cloud(msg, time_unit, zcut=None, min_range=MIN_RANGE_M):
     """sensor_cloud → velodyne_ros::Point 布局 PointCloud2（纯函数，供 selfcheck 复用）
     zcut=(R 第 3 行 (3,), 配对位姿 z, z_min)：world 系 zw=x*r2[0]+y*r2[1]+z*r2[2]+pz < z_min 的点剔除（坑13-R1①）"""
     if msg.point_step != 32:
@@ -116,6 +122,15 @@ def repack_cloud(msg, time_unit, zcut=None):
     out['x'], out['y'], out['z'], out['intensity'] = pts['x'], pts['y'], pts['z'], pts['intensity']
     out['time'] = 0.0   # 坑13-R1④：render 单位姿整帧成像，合成 0..0.1s 扫掠时戳致 deskew 剪切（0.5m/s 端点~5cm/帧），改全 0=帧内瞬时
     out['ring'] = np.arange(n) % 32
+    # ★先剔无效返回，再做任何几何处理★：未命中点全在原点，留着等于给下游灌 70% 假数据
+    if min_range is not None and min_range > 0:
+        keep = (out['x'] * out['x'] + out['y'] * out['y'] + out['z'] * out['z']) >= min_range * min_range
+        dropped = int((~keep).sum())
+        if dropped:
+            out = out[keep]
+            n = len(out)
+            if n == 0:
+                raise ValueError('all points invalid (r < %.3f)' % min_range)
     if zcut is not None:                      # 坑13-R1①：world 系地下幻影点剔除
         r2, pz, z_min = zcut                  # R 第 3 行、配对位姿 z、阈值
         zw = out['x']*r2[0] + out['y']*r2[1] + out['z']*r2[2] + pz

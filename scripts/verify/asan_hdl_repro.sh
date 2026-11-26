@@ -228,17 +228,28 @@ rosparam set /hdl/odom_child_frame_id base_link
 # 与 Gazebo 的 odom→base_link 撞成双父。设成 odom 后走 if 分支，hdl 独占 map→odom。
 rosparam set /hdl/robot_odom_frame_id odom
 rosparam set /hdl/use_imu false
+# ★用里程计增量做预测★：地图只有 0..1 m 高（薄片），NDT 在竖直/俯仰方向约束很弱，
+# 关闭预测时实测会漂到 pitch≈−3°（map→rslidar 被抬到 0.68 m）。开着预测时位姿跟着 odom 增量走，
+# 不允许自由漂移。可用 ODOM_PRED=0 关掉做对照。
+rosparam set /hdl/enable_robot_odometry_prediction ${ODOM_PRED:-true}
 rosparam set /hdl/specify_init_pose true
 # 初始位姿可配：机器人的真实起点未必是建图原点（雷达近距离地面点被过滤后，(0,0) 在地图里
 # 是未观测区，全局规划器到不了任何地方）。这里传的是机器人**实际所在**的位置，不是伪造。
 rosparam set /hdl/init_pos_x ${INIT_X:-0.0}
 rosparam set /hdl/init_pos_y ${INIT_Y:-0.0}
-rosparam set /hdl/init_pos_z 0.0
+# ★初始位姿必须是 base_link 在 map 里的位置★：地图地面在 z=0，base_link 在 0.11 m，
+# 所以 init_pos_z 应为 0.11 而非 0（P0 实测：odom→base_link z=0.110）。
+# 可用 INIT_Z 覆盖，便于做收敛对比实验。
+rosparam set /hdl/init_pos_z ${INIT_Z:-0.11}
 rosparam set /hdl/init_ori_w 1.0
 rosparam set /hdl/reg_method NDT_OMP
-rosparam set /hdl/ndt_resolution 1.0
+# NDT 分辨率可用 NDT_RES 覆盖：地图 z 只有 0..1 m（薄片），1.0 m 体素下竖向/俯仰约束很弱，
+# 实测收敛到 map→odom pitch≈−12°；改成 0.5 做对照（不写死任何补偿）。
+rosparam set /hdl/ndt_resolution ${NDT_RES:-1.0}
 rosparam set /hdl/ndt_neighbor_search_method DIRECT1
-rosparam set /hdl/ndt_neighbor_search_radius 3.0
+# 搜索半径：地图只有 0..1 m 的薄片，3.0 m 半径允许"隔着一层楼"去匹配，实测把俯仰拽偏；
+# 可 SEARCH_R 覆盖做对照。
+rosparam set /hdl/ndt_neighbor_search_radius ${SEARCH_R:-3.0}
 rosparam set /hdl/downsample_resolution 0.3
 rosparam set /hdl/cool_time_duration 1.0
 # 仿真里 now 与 header.stamp 的差包含 relay 转发与排队延迟，默认 200 ms 阈值会把近一半帧
