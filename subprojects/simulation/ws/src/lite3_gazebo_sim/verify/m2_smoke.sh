@@ -98,8 +98,25 @@ if [ -f "$MAP" ]; then cp "$MAP" "$LOGDIR/lite3.pcd.bak"
 # 传感器随即失活）。只做激活，不改判据、不重打时间戳。
 prime_lidar() {
   local tag=${1:-stage}
-  for _ in $(seq 1 60); do rostopic list >/dev/null 2>&1 && break; sleep 1; done
-  timeout 900 rostopic hz /livox/lidar > "${LOGDIR:-/tmp}/livox_primed_${tag}.log" 2>&1 &
+  # ★必须能扛住 master 重启★：`roslaunch` 会自己拉起/重启 master，一次性 `rostopic hz` 经常抢在
+  # 重启窗口里，得到 "Unable to communicate with master!" 后白白退掉（实测连续两轮）。
+  # 这里用一个**会重连**的订阅者进程，连不上就每秒重试，直到整段跑完被清场。
+  M2_PRIME_TAG="$tag" nohup python3 - > "${LOGDIR:-/tmp}/livox_primed_${tag}.log" 2>&1 <<'PY' &
+import os, sys, time
+import rospy
+from sensor_msgs.msg import PointCloud2
+tag = os.environ.get('M2_PRIME_TAG', 'x')
+while True:
+    try:
+        rospy.init_node('livox_prime_%s' % tag, anonymous=True, disable_signals=True)
+        rospy.Subscriber('/livox/lidar', PointCloud2, lambda m: None, queue_size=1)
+        print('[prime] subscribed as livox_prime_%s' % tag)
+        sys.stdout.flush()
+        rospy.spin()
+    except Exception as e:
+        print('[prime] retry: %s' % e); sys.stdout.flush()
+    time.sleep(1.0)
+PY
 }
 
 # ★把陈旧 profile 树从包路径里摘掉★（2026-11-27 实测）：devel/setup.bash 把
@@ -116,7 +133,7 @@ _strip_profiles() {
   done
   export ROS_PACKAGE_PATH="$out"
 }
-_strip_profiles
+# _strip_profiles  # 见 128 行说明：整体摘除会连带摘掉 lite3_gazebo_sim 本身
 
 # ============ Stage A：闭环回归（M2-1/M2-4） ============
 stage_a() {
@@ -533,7 +550,7 @@ PYEOF
 # ============ Stage C：hdl 重定位（M2-3） ============
 stage_c() {
   SEG=C
-  _strip_profiles   # launch 前再摘一次（脚本中途可能重新 source 过 setup.bash）   # R26 三：本段退净按段各检一次
+# _strip_profiles  # 同上：改用显式 launch 路径解决重复包
   # C-1 建图（pcd_save:=true）：复用 Stage A 驱动序列走一遍（out/turn/back），优雅 SIGINT 落盘
   # ★先挂一个 /livox/lidar 订阅者★（2026-11-27 实测）：该 mid360 插件**在有订阅者之后**才发布点云，
   # 冷启动时 `wait_topic /rslidar_points` 会等到超时（实跑三次都卡在这里，插件日志却显示已加载）。
