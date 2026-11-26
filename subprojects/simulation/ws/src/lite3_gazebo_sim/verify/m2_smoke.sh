@@ -663,6 +663,20 @@ PYEOF
   prime_lidar C2
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出（relocalization 段，已挂常驻订阅）"; return 1; }
   timeout 60 rostopic echo -n 1 /hdl_odom >/dev/null 2>&1 || true
+  # ★定位源三重核验★（2026-11-27 裁决）：1046 m 那组读数就是"读到的不是本段的 hdl_odom"。
+  # 进收敛判据前必须确认：①地图是本段生成的 sim_venue.pcd；②/hdl_odom 发布者恰 1 个；
+  # ③frame_id 是 map。任一不符即判"定位源不对"，不拿这组数去判收敛。
+  _pcd=$(rosparam get /gms/globalmap_pcd 2>/dev/null)
+  case "$_pcd" in
+    *sim_venue.pcd) echo "[C] 定位源地图=$_pcd" ;;
+    *) echo "FAIL C: 定位源地图不对（$_pcd）"; return 1 ;;
+  esac
+  _pub=$(rostopic info /hdl_odom 2>/dev/null | sed -n '/Publishers/,/Subscribers/p' | grep -c '^ \*')
+  echo "[C] /hdl_odom 发布者数=$_pub"
+  [ "$_pub" = "1" ] || { echo "FAIL C: /hdl_odom 发布者数=$_pub（应恰 1，多个说明有残留栈）"; return 1; }
+  _fid=$(timeout 6 rostopic echo -n1 /hdl_odom/header/frame_id 2>/dev/null | head -1)
+  echo "[C] /hdl_odom frame_id=$_fid"
+  [ "$_fid" = "map" ] || { echo "FAIL C: /hdl_odom frame_id=$_fid（应为 map）"; return 1; }
   python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
 import os
 import math, time, rospy
