@@ -695,20 +695,32 @@ PYEOF
   _fid=$(timeout 6 rostopic echo -n1 /hdl_odom/header/frame_id 2>/dev/null | head -1 | tr -d '"\r')
   echo "[C] /hdl_odom frame_id=$_fid"
   [ "$_fid" = "map" ] || { echo "FAIL C: /hdl_odom frame_id=$_fid（应为 map）"; return 1; }
-  python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
+  M2_HDLLOG="$LOGDIR/hdlC.log" python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
 import os
 import math, time, rospy
 from gazebo_msgs.msg import ModelStates
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import PoseStamped, Twist
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Twist
 from sensor_msgs.msg import Imu
 rospy.init_node('m2_stage_c_reloc')
 pub=rospy.Publisher('/cmd_vel',Twist,queue_size=5)
 S=dict(gt=None,gyaw=None,ip=None,iq=None)
-rospy.Subscriber('/gazebo/model_states', ModelStates, lambda m:[S.update(gt=(p.position.x,p.position.y),
-    gyaw=math.atan2(2*(p.orientation.w*p.orientation.z+p.orientation.x*p.orientation.y),
-    1-2*(p.orientation.y**2+p.orientation.z**2)))
-    for p,n in zip(m.pose,m.name) if n=='lite3_planar'] and None, queue_size=1)
+# ★GT 取证三件套★（2026-11-27）：①回调计数（0 次＝根本没收到 /gazebo/model_states）；
+# ②模型名一次性打印（名字不符时 gt 会恒为 None，而不是零——原源码初值就是 None）；
+# ③同时取 z 与 yaw，供 initialpose 用真实高度与"相对 yaw 扰动"（而不是写死 -5°）。
+S['gt_n'] = 0
+S['gt_names'] = None
+def _on_model_states(m):
+    S['gt_n'] += 1
+    if S['gt_names'] is None:
+        S['gt_names'] = list(m.name)
+    for p, n in zip(m.pose, m.name):
+        if n == 'lite3_planar':
+            S.update(gt=(p.position.x, p.position.y), gtz=p.position.z,
+                     gyaw=math.atan2(2*(p.orientation.w*p.orientation.z+p.orientation.x*p.orientation.y),
+                                     1-2*(p.orientation.y**2+p.orientation.z**2)))
+            return
+rospy.Subscriber('/gazebo/model_states', ModelStates, _on_model_states, queue_size=1)
 rospy.Subscriber('/hdl_odom', Odometry, lambda m:S.update(ip=m), queue_size=2)
 rospy.Subscriber('/livox/imu', Imu, lambda m:S.update(iq=m.orientation), queue_size=1)
 def qyaw(q): return math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
@@ -734,15 +746,47 @@ gateC=dict(globalmap=ok_map, hdl_odom=S.get('ip') is not None, tf_robot=ok_tf)
 if not all(gateC.values()):
     print('SMOKE gateC=FAIL t=%.1fs %s' % (time.time()-g0t, gateC)); raise SystemExit(2)
 print('SMOKE gateC=PASS t=%.1fs' % (time.time()-g0t))
-ip=PoseStamped(); ip.header.frame_id='map'; ip.header.stamp=rospy.Time.now()
-ip.pose.position.x=S['gt'][0]+0.15; ip.pose.position.y=S['gt'][1]-0.10
-# ★-5° 是**度**★：原式 cos((-5.0/2)/2)＝cos(-1.25 rad) ⇒ 实际初始 yaw≈-143.24°，不是 -5°。
-# 正确构造：θ=radians(-5)，四元数用半角 w=cos(θ/2)、z=sin(θ/2)。
-_th = math.radians(-5.0)
-ip.pose.orientation.w=math.cos(_th/2.0); ip.pose.orientation.z=math.sin(_th/2.0)
-pubi=rospy.Publisher('/initialpose', PoseStamped, queue_size=1, latch=True)
+# ★/initialpose 的真实类型是 PoseWithCovarianceStamped★（2026-11-27 核实）：
+#   hdl_localization_nodelet.cpp:65 订阅 `/initialpose`，:394 回调签名是
+#   `const geometry_msgs::PoseWithCovarianceStampedConstPtr&`。
+#   原实现发 PoseStamped（类型不符），ROS 层根本连不上 ⇒ HDL 从未收到初值，
+#   于是从缺省位姿起配准、极易发散（与实测 ~1 km 偏差吻合）。这里按真实接口发。
+# 初值构造：位置取 GT + (0.15, -0.10) 平移扰动；z 取 GT 的真实高度；
+# yaw 取 **GT 真实 yaw + (-5°)** 的相对扰动，差值用 wrap 折到 [-pi, pi]，避免跨界。
+def _wrap(a): return (a + math.pi) % (2*math.pi) - math.pi
+_yaw0 = S.get('gyaw')
+if _yaw0 is None:
+    print('SMOKE initialpose=SKIP gt_yaw_unknown'); raise SystemExit(3)
+_yp = _wrap(_yaw0 + math.radians(-5.0))
+ip = PoseWithCovarianceStamped(); ip.header.frame_id='map'; ip.header.stamp=rospy.Time.now()
+ip.pose.pose.position.x=S['gt'][0]+0.15; ip.pose.pose.position.y=S['gt'][1]-0.10
+ip.pose.pose.position.z=S.get('gtz') or 0.0
+ip.pose.pose.orientation.z=math.sin(_yp/2.0); ip.pose.pose.orientation.w=math.cos(_yp/2.0)
+cv=ip.pose.covariance
+for _i in (0,7): cv[_i]=0.25          # x/y: 0.5 m 1sigma（与 ±0.15 m 扰动同量级）
+cv[14]=0.01                            # z: 0.1 m
+cv[35]=0.0685                          # yaw: 15° 1sigma
+pubi=rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=1, latch=True)
+_conn = pubi.get_num_connections()
 for _ in range(5): pubi.publish(ip); time.sleep(0.2)
-print('SMOKE initialpose=(%.3f,%.3f,-5deg) gt=(%.3f,%.3f)'%(ip.pose.position.x,ip.pose.position.y,S['gt'][0],S['gt'][1]))
+print('SMOKE gt_n=%d gt=(%.3f,%.3f,%.3f) gt_yaw=%.1fdeg inject=(%.3f,%.3f,%.3f) inject_yaw=%.1fdeg subscribers=%d'
+      % (S['gt_n'], S['gt'][0], S['gt'][1], S.get('gtz') or -1, math.degrees(_yaw0),
+         ip.pose.pose.position.x, ip.pose.pose.position.y, ip.pose.pose.position.z,
+         math.degrees(_yp), _conn))
+print('SMOKE gt_models=%s' % (','.join(S['gt_names'] or [])[:300]))
+# ★初值是否真被消费★：HDL 在 initialpose_callback 里打 `initial pose received!!`
+# （hdl_localization_nodelet.cpp:395）。只有它出现，才能说"初值进了估计器"；
+# 发布端 `subscribers=N` 只证明连上了，不证明被处理。
+_ip_hit = 0
+for _ in range(20):
+    if os.path.exists(os.environ.get('M2_HDLLOG', '')):
+        try:
+            _ip_hit = open(os.environ['M2_HDLLOG'], errors='ignore').read().count('initial pose received!!')
+        except Exception:
+            _ip_hit = 0
+    if _ip_hit: break
+    time.sleep(0.5)
+print('SMOKE initial_pose_consumed=%d' % _ip_hit)
 t0=time.time(); conv=False; last=None; jump=0.0
 while time.time()-t0<40 and not rospy.is_shutdown():
     m=S['ip']
