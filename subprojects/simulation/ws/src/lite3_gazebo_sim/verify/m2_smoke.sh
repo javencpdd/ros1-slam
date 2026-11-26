@@ -142,8 +142,14 @@ def on_imu(m):  # F4：iq 全程更新（供初始等待/转向判据）；频�
 rospy.Subscriber('/sim/odom_gt', Odometry, lambda m: S.update(odom=m), queue_size=2)  # 批1/F-D：插件世界位里程计改名；/Odometry 归 faster_lio
 rospy.Subscriber('/rslidar_points', PointCloud2, on_pts, queue_size=1)
 rospy.Subscriber('/livox/imu', Imu, on_imu, queue_size=1)
-rospy.Subscriber('/gazebo/model_states', ModelStates, lambda m: [S.update(gt=(p.position.x, p.position.y))
-    for p, n in zip(m.pose, m.name) if n=='lite3_planar'] and None, queue_size=1)
+def _on_gt_states(m):
+    for p, n in zip(m.pose, m.name):
+        if n == 'lite3_planar':
+            S.update(gt=(p.position.x, p.position.y))
+            # 记 GT 朝向历史：只用于和 LIO 的**相对** yaw 变化比较（不参与生产定位）
+            S.setdefault('gt_hist', []).append(
+                (0.0, p.position.x, p.position.y, qyaw(p.orientation)))
+rospy.Subscriber('/gazebo/model_states', ModelStates, _on_gt_states, queue_size=1)
 DZ = np.dtype([('x','<f4'),('y','<f4'),('z','<f4'),('pad','V20')])
 def on_cloud(m):
     if not m.width: return
@@ -173,6 +179,20 @@ def phase(name, vx, wz, done, wall_limit=150.0, max_travel=25.0):
         drive(vx,wz); time.sleep(0.05)
     return False
 # ★ M2-1 修法 A 语义：转向判据=IMU 物理姿态反馈（不再信 odom yaw 开环值）；回程=位置反馈
+# ★真实 LIO 读数（2026-11-27 补齐）★：原来 A③ 的 `drift` 取自 `/sim/odom_gt`、`gt_drift` 取自
+# `/gazebo/model_states`，**两个都是 Gazebo 真值**，等于拿真值回环比真值，根本没测 Faster-LIO。
+# 这里按消息戳记一份 `/Odometry`（LIO）轨迹，用**相对位移**比较（LIO 的 camera_init 与 GT 的 odom
+# 原点不同，只有相对量可比），并给 yaw 差的跨界折返值。
+S['lio'] = None
+S['lio_hist'] = []
+def _on_lio(m):
+    S['lio'] = m
+    if S['mot']:
+        S['lio_hist'].append((m.header.stamp.to_sec(),
+                              m.pose.pose.position.x, m.pose.pose.position.y,
+                              qyaw(m.pose.pose.orientation)))
+rospy.Subscriber('/Odometry', Odometry, _on_lio, queue_size=5)
+S['lio0'] = None
 S['mot']=1; S['m0_wall']=time.time()  # F4：运动窗起点（墙钟，供 A0 RTF 前置判据）
 ok_out = phase('fwd_out', 0.5, 0.0, lambda: S['odom'].pose.pose.position.x - sx >= 4.85)
 ok_turn = phase('turn180', 0.0, 0.6, lambda: math.degrees(abs(qyaw(S['iq'])-i_yaw0)) >= 178.0)
@@ -190,6 +210,26 @@ mw_wall = max(time.time()-S['m0_wall'], 0.001)  # F4：运动窗墙钟宽
 t0=rospy.get_rostime(); rospy.sleep(5.0); t1=rospy.get_rostime()
 m=S['odom']; drift=math.hypot(m.pose.pose.position.x-sx, m.pose.pose.position.y-sy)
 g=S['gt']; gdrift=math.hypot(g[0]-S['g0'][0], g[1]-S['g0'][1])
+# —— 真实 LIO 相对误差（同一条消息流，不使用 GT 修正）——
+def _wrap(a): return (a + math.pi) % (2*math.pi) - math.pi
+lio_drift = None; lio_gt_delta = None; lio_yaw_err = None
+if S.get('lio_hist'):
+    t0_, x0_, y0_, yaw0_ = S['lio_hist'][0]
+    t1_, x1_, y1_, yaw1_ = S['lio_hist'][-1]
+    lio_drift = math.hypot(x1_-x0_, y1_-y0_)
+    lio_gt_delta = lio_drift - gdrift
+    # GT 的起终 yaw：用首末 /sim/odom_gt 的朝向差（与 LIO 的起终朝向差比较，都是相对量）
+    if S.get('gt_hist') and len(S['gt_hist']) >= 2:
+        lio_yaw_err = _wrap((yaw1_-yaw0_) - _wrap(S['gt_hist'][-1][2] - S['gt_hist'][0][2]))
+# ★键名不得与主行撞车★：外壳用 `grep -o "drift=[...]" | head -1` 取值，
+# 原来这行写成 "SMOKE LIO drift=" 会被当成 A③ 的漂移（实测把 0.564 顶掉了 0.487）。
+# 这里改用 lio_loop / lio_gt_delta 两个独立键，A③ 仍只看真值回环那一行。
+# yaw 差暂不给数：GT 朝向采样与本窗口不同步，实测给出 172.93° 明显是采样错位，
+# 在核实配对方式前不写进读数（宁可缺一项，也不报一个假指标）。
+print('SMOKE_LIO lio_loop=%.3f gt_loop=%.3f lio_gt_delta=%.3f samples=%d yaw_check=NA'
+      % (lio_drift if lio_drift is not None else -1, gdrift,
+         lio_gt_delta if lio_gt_delta is not None else -1,
+         len(S.get('lio_hist') or [])))
 # F4（M2-R1）：A①② 分母改运动窗 sim-time（消息头 stamp 差分），剔除启动/settle 段；
 #   阈值不变（口径 bug 修复，非放宽）；旧口径=全程计数÷5s settle 窗（rate_pts 曾虚标 200.2/20.6）。
 pts_span = (S['pts_t1']-S['pts_t0']) if (S['pts_t0'] is not None and S['pts_t1'] is not None) else 0.0
