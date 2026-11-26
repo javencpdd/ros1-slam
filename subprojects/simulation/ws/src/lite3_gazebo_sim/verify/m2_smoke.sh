@@ -38,7 +38,17 @@ NPMARK=0; NFMARK=0   # R27 四：mark 自计数，供判定行与原件计数互
 mark() { if [ "$1" = "1" ]; then NPMARK=$((NPMARK+1)); echo "[PASS] $2"; else NFMARK=$((NFMARK+1)); PASS=0; echo "[FAIL] $2"; fi; }
 # [R35 落地] 判据库与被测件的跑内指纹（R28 二 的实际兑现）。只打 harness 自身不够：批1 恰在改 xacro，
 #   单行自证无法断言「这跑跑的是哪一份被测件」；取不到件必须打 ABSENT 并记一条 mark 0，不许静默少打。
-for _f in "$SIM_PKG/verify/m2_exitclean_lib.sh" "$SIM_PKG/urdf/lite3_planar.urdf.xacro" "$SIM_PKG/src/lite3_planar_drive.cpp" "/home/ros1-slam/ws/devel/lib/liblite3_planar_drive.so"; do
+# ★插件指纹必须打"实载的那一份"★（2026-11-27，/proc 为证）：m2_gazebo.launch 的
+# GAZEBO_PLUGIN_PATH 把 sim_ws/devel/lib 排第一，实测 gzserver 的 /proc/<pid>/maps 命中的是
+# /opt/ros1-slam/sim_ws/devel/lib/liblite3_planar_drive.so（sha fcc3852b…），
+# 而原先这里打的是 /home/ros1-slam/ws/devel/lib 那份（sha 19211b76…）——两者同尺寸不同 sha。
+# 这里按 GAZEBO_PLUGIN_PATH 的先后取第一个存在件，并在行里标出是哪一个。
+_plug=""
+for _d in /opt/ros1-slam/sim_ws/devel/lib /home/ros1-slam/ws/devel/lib; do
+  [ -f "$_d/liblite3_planar_drive.so" ] && { _plug="$_d/liblite3_planar_drive.so"; break; }
+done
+_plug=${_plug:-/home/ros1-slam/ws/devel/lib/liblite3_planar_drive.so}
+for _f in "$SIM_PKG/verify/m2_exitclean_lib.sh" "$SIM_PKG/urdf/lite3_planar.urdf.xacro" "$SIM_PKG/src/lite3_planar_drive.cpp" "$_plug"; do
   if [ -f "$_f" ]; then echo "[m2] FP $(basename "$_f") sha256=$(sha256sum "$_f" | awk '{print $1}')";
   else echo "[m2] FP $(basename "$_f") ABSENT path=$_f"; mark 0 "自证不可指认：指纹件缺位 $_f（R35：缺件即判不洁）"; fi
 done
@@ -119,21 +129,24 @@ while True:
 PY
 }
 
-# ★把陈旧 profile 树从包路径里摘掉★（2026-11-27 实测）：devel/setup.bash 把
-# `/opt/ros1-slam/ws/.profiles/x86_sim/src` 排在 **第一位**，于是包解析优先命中那份**旧副本**：
-#   · 撞出 `RLException: multiple files named [mode_sim_bt.launch]`
-#   · 重定位段的 `m2_cmd_relay.py`（来自 profile 副本）exit code 1 ⇒ `velodyne_nodelet_manager` 被判死
-#     ⇒ 整个 hdl launch 关停 ⇒ Stage C 出现 "manager 观测窗末不在册" 与 0.83 m 跳变
-# 这里只把 `.profiles/*` 条目剔除（其余路径与顺序不动），让 ws/src 的规范件优先。
-_strip_profiles() {
-  local IFS=':' out=''
-  for p in $ROS_PACKAGE_PATH; do
-    case "$p" in */.profiles/*) continue ;; esac
-    out="${out:+$out:}$p"
-  done
-  export ROS_PACKAGE_PATH="$out"
+# ★包路径必须让规范件优先★（2026-11-27 实测，/proc 为证）：devel/setup.bash 把
+# `/opt/ros1-slam/ws/.profiles/x86_sim/src` 排在**第一位**，于是 `roslaunch lite3_gazebo_sim ...`
+# 解析到的是**旧副本**——实测 gzserver 命令行里世界文件是
+# `/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/worlds/m1_world.world`，
+# 也就是说本脚本改的 `sim_ws/src` 那些 launch/urdf 根本没被执行。
+# 做法：把两个规范源树**前置**（不删任何既有条目，避免又把 lite3_gazebo_sim 自己摘掉）。
+_prefer_canonical() {
+  local a="${M2_SIM_WS:-/opt/ros1-slam/sim_ws}/src" b="${M2_WS:-/opt/ros1-slam/ws}/src"
+  case ":$ROS_PACKAGE_PATH:" in
+    *":$a:"*) : ;;
+    *) export ROS_PACKAGE_PATH="$a${ROS_PACKAGE_PATH:+:$ROS_PACKAGE_PATH}" ;;
+  esac
+  case ":$ROS_PACKAGE_PATH:" in
+    *":$b:"*) : ;;
+    *) export ROS_PACKAGE_PATH="$b${ROS_PACKAGE_PATH:+:$ROS_PACKAGE_PATH}" ;;
+  esac
 }
-# _strip_profiles  # 见 128 行说明：整体摘除会连带摘掉 lite3_gazebo_sim 本身
+_prefer_canonical
 
 # ============ Stage A：闭环回归（M2-1/M2-4） ============
 stage_a() {
@@ -558,7 +571,6 @@ stage_c() {
   pkill -f "rosmaster --core -p 11313" 2>/dev/null
   sleep 4
   SEG=C
-# _strip_profiles  # 同上：改用显式 launch 路径解决重复包
   # C-1 建图（pcd_save:=true）：复用 Stage A 驱动序列走一遍（out/turn/back），优雅 SIGINT 落盘
   # ★先挂一个 /livox/lidar 订阅者★（2026-11-27 实测）：该 mid360 插件**在有订阅者之后**才发布点云，
   # 冷启动时 `wait_topic /rslidar_points` 会等到超时（实跑三次都卡在这里，插件日志却显示已加载）。
