@@ -46,5 +46,14 @@ if __name__ == '__main__':
     rospy.Subscriber(src, msg_cls, cb, queue_size=10)
     rate = rospy.Rate(0.5)
     while not rospy.is_shutdown():
-        rospy.loginfo_throttle(60, '[m2_cmd_relay] %s -> %s (%s) fwd=%d' % (src, dst, typ, n[0]))
-        rate.sleep()
+        rospy.loginfo_throttle(60, '[m2_cmd_relay] %s -> %s (%s) fwd=%d pitch=%.1f' % (src, dst, typ, n[0], pitch_deg))
+        try:
+            rate.sleep()
+        except rospy.ROSInterruptException:
+            break
+        except rospy.ROSException as e:
+            # ★仿真时钟回跳会把 Rate.sleep 打成异常★（2026-11-27 实跑：map 存盘/节点重启时
+            # rospy.timer.sleep → ROSTimeMovedBackwardsException，异常冒到 <module> 直接杀进程，
+            # /imu/data 断流后 HDL 退回运动模型）。转发器不该因为时钟跳一下就死，这里吞掉继续。
+            rospy.logwarn_throttle(30, '[m2_cmd_relay] 时钟异常（继续转发）: %s', e)
+            rospy.sleep(0.2)
