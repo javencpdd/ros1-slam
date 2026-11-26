@@ -115,7 +115,12 @@ reinit_and_check_localization() {
   # 原来的内联实现按数组下标对齐，两侧帧率不同就会把不同时刻的位姿相减。
   off=$(python3 "$(dirname "${BASH_SOURCE[0]}")/est_gt_ab_probe.py" \
         --seconds 6 --out "${EV:-/tmp}/loc_offset.json" 2>/dev/null \
-        | python3 -c 'import json,sys;d=json.loads(sys.stdin.read().strip().split("\n")[-1]);print("%.3f"%(d.get("err_median_dxy") or 9.999))' 2>/dev/null)
+        | python3 -c 'import json,sys
+raw=sys.stdin.read().strip().split("\n")[-1]
+d=json.loads(raw)
+v=d.get("err_median_dxy")
+# ★0.0 是合法读数，不能被 `or 9.999` 当成缺失★（2026-11-27 裁决）：只有 None 才算没测到。
+print("9.999" if v is None else "%.3f"%v)' 2>/dev/null)
   off=${off:-9.999}
   say "[place] est_gt_offset=${off} m (限 ${LOC_MAX_OFFSET_M:-0.15} m)"
   if awk "BEGIN{exit !($off > ${LOC_MAX_OFFSET_M:-0.15})}"; then
