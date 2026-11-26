@@ -1,0 +1,849 @@
+... logging to /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/roslaunch-35ea6bfef95a-109742.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/far4_1814/cancel_graph/graph.launch
+[1mstarted roslaunch server http://35ea6bfef95a:35913/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /far_planner/CDetector/filter_count_value: 3
+ * /far_planner/CDetector/img_folder_path: /path
+ * /far_planner/CDetector/is_save_img: False
+ * /far_planner/CDetector/resize_ratio: 3.0
+ * /far_planner/GPlanner/converge_distance: 0.5
+ * /far_planner/GPlanner/free_counter_thred: 7
+ * /far_planner/GPlanner/goal_adjust_radius: 1.0
+ * /far_planner/GPlanner/path_momentum_thred: 3
+ * /far_planner/GPlanner/reach_goal_vote_size: 3
+ * /far_planner/Graph/clear_dumper_thred: 4
+ * /far_planner/Graph/connect_votes_size: 10
+ * /far_planner/Graph/filter_pool_size: 12
+ * /far_planner/Graph/node_finalize_thred: 6
+ * /far_planner/GraphMsger/robot_id: 1
+ * /far_planner/MapHandler/cell_length: 5.0
+ * /far_planner/MapHandler/floor_height: 2.0
+ * /far_planner/MapHandler/map_grad_max_height: 100.0
+ * /far_planner/MapHandler/map_grid_max_length: 1000.0
+ * /far_planner/Util/accept_max_align_angle: 4.0
+ * /far_planner/Util/angle_noise: 15.0
+ * /far_planner/Util/dynamic_obs_dacay_time: 10.0
+ * /far_planner/Util/dyosb_update_thred: 4
+ * /far_planner/Util/new_intensity_thred: 2.0
+ * /far_planner/Util/new_point_counter: 5
+ * /far_planner/Util/new_points_decay_time: 1.0
+ * /far_planner/Util/obs_inflate_size: 1
+ * /far_planner/Util/terrain_free_Z: 0.2
+ * /far_planner/is_attempt_autoswitch: True
+ * /far_planner/is_debug_output: False
+ * /far_planner/is_multi_layer: True
+ * /far_planner/is_opencv_visual: False
+ * /far_planner/is_pub_boundary: False
+ * /far_planner/is_static_env: True
+ * /far_planner/is_viewpoint_extend: True
+ * /far_planner/local_planner_range: 5.0
+ * /far_planner/main_run_freq: 2.5
+ * /far_planner/robot_dim: 0.8
+ * /far_planner/sensor_range: 30.0
+ * /far_planner/terrain_range: 15.0
+ * /far_planner/vehicle_height: 0.0
+ * /far_planner/visualize_ratio: 0.75
+ * /far_planner/voxel_dim: 0.15
+ * /far_planner/world_frame: map
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /v8/3d/carrier/carrier/center_z: 0.1
+ * /v8/3d/carrier/carrier/cmd_topic: /cmd_vel
+ * /v8/3d/carrier/carrier/localization_topic: /v8/3d/carrier/lo...
+ * /v8/3d/carrier/carrier/map_topic: /v8_support_map
+ * /v8/3d/carrier/carrier/model_name: app_carrier
+ * /v8/3d/carrier/carrier/pose_topic: /v8/3d/carrier/po...
+ * /v8/3d/carrier/carrier/rate_hz: 50.0
+ * /v8/3d/carrier/carrier/snap_m: 0.03
+ * /v8/3d/carrier/carrier/spawn: False
+ * /v8/3d/carrier/carrier/start_x: 0.0
+ * /v8/3d/carrier/carrier/start_y: 0.0
+ * /v8/3d/carrier/carrier/start_z: 0.0
+ * /v8/3d/carrier/carrier/status_topic: /v8/3d/carrier/st...
+ * /v8/3d/loc/loc/error_topic: /v8/local/localiz...
+ * /v8/3d/loc/loc/frame: map
+ * /v8/3d/loc/loc/gt_topic: /sim/odom_gt
+ * /v8/3d/loc/loc/lio_topic: /hdl_odom
+ * /v8/3d/loc/loc/localization_topic: /v8/local/localiz...
+ * /v8/3d/loc/loc/max_age_s: 1.0
+ * /v8/3d/loc/loc/pose_topic: /v8/local/pose
+ * /v8/3d/loc/loc/source: faster_lio
+ * /v8/3d/loc/loc/status_topic: /v8/local/localiz...
+ * /v8/3d/local/local/cancel_ack_topic: /v8/local/cancel_ack
+ * /v8/3d/local/local/cancel_topic: /v8/local/cancel
+ * /v8/3d/local/local/command_topic: /v8/local/cmd_vel_3d
+ * /v8/3d/local/local/experimental_config/clearance_m: 0.1
+ * /v8/3d/local/local/experimental_config/goal_tolerance_m: 0.15
+ * /v8/3d/local/local/experimental_config/height_m: 0.35
+ * /v8/3d/local/local/experimental_config/horizon_s: 6.0
+ * /v8/3d/local/local/experimental_config/max_slope_deg: 35.0
+ * /v8/3d/local/local/experimental_config/max_speed_mps: 0.6
+ * /v8/3d/local/local/experimental_config/max_step_m: 0.3
+ * /v8/3d/local/local/experimental_config/radius_m: 0.15
+ * /v8/3d/local/local/experimental_config/resolution: 0.3
+ * /v8/3d/local/local/experimental_config/tick_s: 0.6
+ * /v8/3d/local/local/experimental_config/validity_s: 20.0
+ * /v8/3d/local/local/goal_topic: /v8/local/goal
+ * /v8/3d/local/local/input_max_age_s: 0.7
+ * /v8/3d/local/local/localization_topic: /v8/local/localiz...
+ * /v8/3d/local/local/map_topic: /v8_support_map
+ * /v8/3d/local/local/obstacles_topic: /v8/local/obstacles
+ * /v8/3d/local/local/pose_topic: /v8/local/pose
+ * /v8/3d/local/local/require_goal_seq: True
+ * /v8/3d/local/local/status_topic: /v8/local/status
+ * /v8/3d/local/local/trajectory_topic: /v8/local/trajectory
+ * /v8/3d/local/local/wall_watchdog_s: 90.0
+ * /v8/3d/map/map/map_json: data/maps/generat...
+ * /v8/3d/map/map/map_topic: /v8_support_map
+ * /v8/3d/map/map/status_topic: /v8_map_status
+ * /v8/3d/mux/mux3d/cmd_topic: /v8/local/cmd_vel_3d
+ * /v8/3d/mux/mux3d/hold_topic: /lite3/supervisor...
+ * /v8/3d/mux/mux3d/output_topic: /cmd_vel
+ * /v8/3d/mux/mux3d/status_topic: /v8/3d/mux/status
+ * /v8/3d/mux/mux3d/timeout_s: 0.25
+ * /v8/3d/path_goal/path_goal/goal_topic: /v8/local/goal
+ * /v8/3d/path_goal/path_goal/path_topic: /v8/3d/global/path
+ * /v8/3d/path_goal/path_goal/status_topic: /v8/3d/path_goal/...
+ * /v8/3d/perception/perception/blind_timeout_s: 1.0
+ * /v8/3d/perception/perception/cloud_topic: /rslidar_points
+ * /v8/3d/perception/perception/enable: True
+ * /v8/3d/perception/perception/gate_m: 0.8
+ * /v8/3d/perception/perception/map_frame: map
+ * /v8/3d/perception/perception/max_depth: 2
+ * /v8/3d/perception/perception/max_height_m: 1.6
+ * /v8/3d/perception/perception/max_objects: 32
+ * /v8/3d/perception/perception/max_speed_mps: 1.5
+ * /v8/3d/perception/perception/min_extent_m: 0.45
+ * /v8/3d/perception/perception/min_fill: 0.45
+ * /v8/3d/perception/perception/min_height_m: 0.15
+ * /v8/3d/perception/perception/min_points: 16
+ * /v8/3d/perception/perception/rate_hz: 10.0
+ * /v8/3d/perception/perception/roi_forward_m: 6.0
+ * /v8/3d/perception/perception/roi_lateral_m: 3.0
+ * /v8/3d/perception/perception/self_radius_m: 0.45
+ * /v8/3d/perception/perception/voxel_m: 0.1
+ * /v8/bt/bt/cancel_ack_timeout: 2.0
+ * /v8/bt/bt/cancel_ack_topic: /v8/local/cancel_ack
+ * /v8/bt/bt/cancel_input_topic: /v8/bt/cancel
+ * /v8/bt/bt/cancel_topic: /v8/local/cancel
+ * /v8/bt/bt/goal_topic: /v8/bt/goal
+ * /v8/bt/bt/localization_topic: /v8/local/localiz...
+ * /v8/bt/bt/mission_topic: /v8/bt/goal_mission
+ * /v8/bt/bt/out_goal_topic: /v8/bt/out_goal
+ * /v8/bt/bt/path_status_topic: /v8/3d/global/status
+ * /v8/bt/bt/path_topic: /v8/3d/global/path
+ * /v8/bt/bt/planner_goal_topic: /v8/3d/global/goal
+ * /v8/bt/bt/policy_topic: /v8/bt/goal_policy
+ * /v8/bt/bt/pose_topic: /v8/local/pose
+ * /v8/bt/bt/recovery_mode: skip
+ * /v8/bt/bt/retry_delay_s: 0.0
+ * /v8/bt/bt/retry_max: 1
+ * /v8/bt/bt/stop_topic: /lite3/teleop/app...
+ * /v8/bt/bt/tree_file: /opt/ros1-slam/ws...
+ * /v8_global_far/arrival_r_xy: 0.25
+ * /v8_global_far/arrival_topic: /v8/bt/arrived
+ * /v8_global_far/arrival_z_tol: 0.3
+ * /v8_global_far/cloud_topic: /rslidar_points
+ * /v8_global_far/gait_path_topic: /v8/gait_guard/path
+ * /v8_global_far/goal_topic: /v8/3d/global/goal
+ * /v8_global_far/lookahead_m: 1.5
+ * /v8_global_far/path_topic: /v8/3d/global/path
+ * /v8_global_far/start_topic: /v8/local/pose
+ * /v8_global_far/status_topic: /v8/3d/global/status
+ * /v8_global_far/terrain_flatten: False
+ * /v8_global_far/terrain_ground_z: 0.0
+ * /v8_global_far/terrain_range_m: 15.0
+ * /v8_global_far/terrain_rate_hz: 2.5
+ * /v8_global_far/waypoint_timeout_s: 10.0
+ * /v8_global_far/world_frame: map
+
+NODES
+  /
+    far_planner (far_planner/far_planner)
+    v8_global_far (v8_platform/run_global_far.py)
+  /v8/3d/carrier/
+    carrier (v8_simulation/gazebo_carrier3d_node.py)
+  /v8/3d/loc/
+    loc (v8_platform/run_localization_source.py)
+  /v8/3d/local/
+    local (v8_algorithm/run_local_ros_node.py)
+  /v8/3d/map/
+    map (v8_platform/run_map_file.py)
+  /v8/3d/mux/
+    mux3d (v8_algorithm/run_cmd3d_mux.py)
+  /v8/3d/path_goal/
+    path_goal (v8_platform/run_path_goal.py)
+  /v8/3d/perception/
+    perception (v8_platform/run_dynamic_obstacles.py)
+  /v8/bt/
+    bt (lite3_bt/bt_console)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+READY
+READY
+[INFO] [1795717972.484335, 1791.923000]: localization source=faster_lio navigation_allowed=True
+READY
+[2J[0;0H
+[1;33m **************** STATIC ENV PLANNING **************** [0m
+
+
+
+[A[A[2K[1;32m V-Graph Initialized [0m
+
+[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 43
+    Total V-Graph Update Time: 8.517ms
+[2K    Global V-Graph Updated. Number of global vertices: 83
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 62
+[2K    Number of new vertices adding to global V-Graph: 41
+    Total V-Graph Update Time: 7.858ms
+[2K    Global V-Graph Updated. Number of global vertices: 124
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 54
+[2K    Number of new vertices adding to global V-Graph: 10
+    Total V-Graph Update Time: 9.101ms
+[2K    Global V-Graph Updated. Number of global vertices: 134
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 58
+[2K    Number of new vertices adding to global V-Graph: 7
+    Total V-Graph Update Time: 10.735ms
+[2K    Global V-Graph Updated. Number of global vertices: 141
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 59
+[2K    Number of new vertices adding to global V-Graph: 11
+    Total V-Graph Update Time: 9.915ms
+[2K    Global V-Graph Updated. Number of global vertices: 152
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 59
+[2K    Number of new vertices adding to global V-Graph: 10
+    Total V-Graph Update Time: 9.811ms
+[2K    Global V-Graph Updated. Number of global vertices: 162
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 61
+[2K    Number of new vertices adding to global V-Graph: 15
+    Total V-Graph Update Time: 12.54ms
+[2K    Global V-Graph Updated. Number of global vertices: 177
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 60
+[2K    Number of new vertices adding to global V-Graph: 10
+    Total V-Graph Update Time: 9.792ms
+[2K    Global V-Graph Updated. Number of global vertices: 187
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 59
+[2K    Number of new vertices adding to global V-Graph: 8
+    Total V-Graph Update Time: 13.809ms
+[2K    Global V-Graph Updated. Number of global vertices: 195
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 58
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 10.334ms
+[2K    Global V-Graph Updated. Number of global vertices: 195
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 57
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.045ms
+[2K    Global V-Graph Updated. Number of global vertices: 195
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 58
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 11.182ms
+[2K    Global V-Graph Updated. Number of global vertices: 195
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 57
+[2K    Number of new vertices adding to global V-Graph: 1
+    Total V-Graph Update Time: 8.136ms
+[2K    Global V-Graph Updated. Number of global vertices: 196
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 59
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.372ms
+[2K    Global V-Graph Updated. Number of global vertices: 196
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 59
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 11.301ms
+[2K    Global V-Graph Updated. Number of global vertices: 196
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 59
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.536ms
+[2K    Global V-Graph Updated. Number of global vertices: 196
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 59
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.75ms
+[2K    Global V-Graph Updated. Number of global vertices: 196
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 65
+[2K    Number of new vertices adding to global V-Graph: 4
+    Total V-Graph Update Time: 7.493ms
+[2K    Global V-Graph Updated. Number of global vertices: 200
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 67
+[2K    Number of new vertices adding to global V-Graph: 3
+    Total V-Graph Update Time: 10.119ms
+[2K    Global V-Graph Updated. Number of global vertices: 203
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 3
+    Total V-Graph Update Time: 7.609ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 64
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.711ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 66
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.278ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 64
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.273ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 66
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.989ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.183ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 62
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.667ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.798ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.299ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.246ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.468ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 62
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.085ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 60
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.625ms
+[2K    Global V-Graph Updated. Number of global vertices: 206
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 64
+[2K    Number of new vertices adding to global V-Graph: 2
+    Total V-Graph Update Time: 9.285ms
+[2K    Global V-Graph Updated. Number of global vertices: 208
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0ms
+[2K    Path Search Time: 0ms
+[2K    Local V-Graph Updated. Number of local vertices: 64
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.408ms
+[2K    Global V-Graph Updated. Number of global vertices: 209
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.28ms
+[2K    Path Search Time: 0.511ms
+[2K    Local V-Graph Updated. Number of local vertices: 65
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.725ms
+[2K    Global V-Graph Updated. Number of global vertices: 209
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.138ms
+[2K    Path Search Time: 0.15ms
+[2K    Local V-Graph Updated. Number of local vertices: 56
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.355ms
+[2K    Global V-Graph Updated. Number of global vertices: 209
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.117ms
+[2K    Path Search Time: 0.196ms
+[2K    Local V-Graph Updated. Number of local vertices: 62
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.074ms
+[2K    Global V-Graph Updated. Number of global vertices: 209
+[33m[ WARN] [1795718010.609166296, 1808.928000000]: [bt] cancel requested seq=1 scope=all[0m
+[33m[ WARN] [1795718010.709169952, 1808.978000000]: [bt] cancel requested seq=1 scope=all[0m
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.125ms
+[2K    Path Search Time: 0.37ms
+[2K    Local V-Graph Updated. Number of local vertices: 58
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.414ms
+[2K    Global V-Graph Updated. Number of global vertices: 209
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.133ms
+[2K    Path Search Time: 0.118ms
+[2K    Local V-Graph Updated. Number of local vertices: 62
+[2K    Number of new vertices adding to global V-Graph: 3
+    Total V-Graph Update Time: 9.094ms
+[2K    Global V-Graph Updated. Number of global vertices: 212
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.165ms
+[2K    Path Search Time: 0.178ms
+[2K    Local V-Graph Updated. Number of local vertices: 56
+[2K    Number of new vertices adding to global V-Graph: 5
+    Total V-Graph Update Time: 9.394ms
+[2K    Global V-Graph Updated. Number of global vertices: 217
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.296ms
+[2K    Path Search Time: 0.274ms
+[2K    Local V-Graph Updated. Number of local vertices: 56
+[2K    Number of new vertices adding to global V-Graph: 5
+    Total V-Graph Update Time: 7.868ms
+[2K    Global V-Graph Updated. Number of global vertices: 222
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.099ms
+[2K    Path Search Time: 0.166ms
+[2K    Local V-Graph Updated. Number of local vertices: 60
+[2K    Number of new vertices adding to global V-Graph: 2
+    Total V-Graph Update Time: 9.609ms
+[2K    Global V-Graph Updated. Number of global vertices: 224
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.122ms
+[2K    Path Search Time: 0.097ms
+[2K    Local V-Graph Updated. Number of local vertices: 61
+[2K    Number of new vertices adding to global V-Graph: 2
+    Total V-Graph Update Time: 8.97ms
+[2K    Global V-Graph Updated. Number of global vertices: 226
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.192ms
+[2K    Path Search Time: 0.087ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.228ms
+[2K    Global V-Graph Updated. Number of global vertices: 226
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.1ms
+[2K    Path Search Time: 0.092ms
+[2K    Local V-Graph Updated. Number of local vertices: 55
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.105ms
+[2K    Global V-Graph Updated. Number of global vertices: 226
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.142ms
+[2K    Path Search Time: 0.219ms
+[2K    Local V-Graph Updated. Number of local vertices: 56
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 10.342ms
+[2K    Global V-Graph Updated. Number of global vertices: 226
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.244ms
+[2K    Path Search Time: 0.268ms
+[2K    Local V-Graph Updated. Number of local vertices: 61
+[2K    Number of new vertices adding to global V-Graph: 10
+    Total V-Graph Update Time: 7.768ms
+[2K    Global V-Graph Updated. Number of global vertices: 236
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.378ms
+[2K    Path Search Time: 0.256ms
+[2K    Local V-Graph Updated. Number of local vertices: 61
+[2K    Number of new vertices adding to global V-Graph: 8
+    Total V-Graph Update Time: 10.989ms
+[2K    Global V-Graph Updated. Number of global vertices: 244
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.178ms
+[2K    Path Search Time: 0.23ms
+[2K    Local V-Graph Updated. Number of local vertices: 65
+[2K    Number of new vertices adding to global V-Graph: 7
+    Total V-Graph Update Time: 8.34ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.381ms
+[2K    Path Search Time: 0.384ms
+[2K    Local V-Graph Updated. Number of local vertices: 66
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.833ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.204ms
+[2K    Path Search Time: 0.192ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.891ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.125ms
+[2K    Path Search Time: 0.184ms
+[2K    Local V-Graph Updated. Number of local vertices: 56
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.404ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.183ms
+[2K    Path Search Time: 0.163ms
+[2K    Local V-Graph Updated. Number of local vertices: 66
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.016ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.128ms
+[2K    Path Search Time: 0.193ms
+[2K    Local V-Graph Updated. Number of local vertices: 61
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.715ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.184ms
+[2K    Path Search Time: 0.168ms
+[2K    Local V-Graph Updated. Number of local vertices: 63
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.62ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.185ms
+[2K    Path Search Time: 0.132ms
+[2K    Local V-Graph Updated. Number of local vertices: 56
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.746ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.138ms
+[2K    Path Search Time: 0.138ms
+[2K    Local V-Graph Updated. Number of local vertices: 60
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.53ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.161ms
+[2K    Path Search Time: 0.123ms
+[2K    Local V-Graph Updated. Number of local vertices: 61
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.597ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.198ms
+[2K    Path Search Time: 0.143ms
+[2K    Local V-Graph Updated. Number of local vertices: 65
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 13.189ms
+[2K    Global V-Graph Updated. Number of global vertices: 251
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.261ms
+[2K    Path Search Time: 0.142ms
+[2K    Local V-Graph Updated. Number of local vertices: 77
+[2K    Number of new vertices adding to global V-Graph: 12
+    Total V-Graph Update Time: 10.738ms
+[2K    Global V-Graph Updated. Number of global vertices: 263
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.258ms
+[2K    Path Search Time: 0.103ms
+[2K    Local V-Graph Updated. Number of local vertices: 80
+[2K    Number of new vertices adding to global V-Graph: 14
+    Total V-Graph Update Time: 8.631ms
+[2K    Global V-Graph Updated. Number of global vertices: 277
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.41ms
+[2K    Path Search Time: 0.426ms
+[2K    Local V-Graph Updated. Number of local vertices: 79
+[2K    Number of new vertices adding to global V-Graph: 13
+    Total V-Graph Update Time: 8.751ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.254ms
+[2K    Path Search Time: 0.097ms
+[2K    Local V-Graph Updated. Number of local vertices: 83
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 9.801ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.373ms
+[2K    Path Search Time: 0.187ms
+[2K    Local V-Graph Updated. Number of local vertices: 84
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 7.695ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.33ms
+[2K    Path Search Time: 0.123ms
+[2K    Local V-Graph Updated. Number of local vertices: 85
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.144ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.351ms
+[2K    Path Search Time: 0.198ms
+[2K    Local V-Graph Updated. Number of local vertices: 80
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.986ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.461ms
+[2K    Path Search Time: 0.126ms
+[2K    Local V-Graph Updated. Number of local vertices: 83
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 36.986ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.384ms
+[2K    Path Search Time: 0.08ms
+[2K    Local V-Graph Updated. Number of local vertices: 75
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.913ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.205ms
+[2K    Path Search Time: 0.138ms
+[2K    Local V-Graph Updated. Number of local vertices: 79
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.267ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.45ms
+[2K    Path Search Time: 0.208ms
+[2K    Local V-Graph Updated. Number of local vertices: 79
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 12.229ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.522ms
+[2K    Path Search Time: 0.276ms
+[2K    Local V-Graph Updated. Number of local vertices: 76
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.852ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.284ms
+[2K    Path Search Time: 0.097ms
+[2K    Local V-Graph Updated. Number of local vertices: 78
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.847ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.318ms
+[2K    Path Search Time: 0.136ms
+[2K    Local V-Graph Updated. Number of local vertices: 80
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 11.556ms
+[2K    Global V-Graph Updated. Number of global vertices: 290
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.254ms
+[2K    Path Search Time: 0.156ms
+[2K    Local V-Graph Updated. Number of local vertices: 72
+[2K    Number of new vertices adding to global V-Graph: 1
+    Total V-Graph Update Time: 13.809ms
+[2K    Global V-Graph Updated. Number of global vertices: 291
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.43ms
+[2K    Path Search Time: 0.135ms
+[2K    Local V-Graph Updated. Number of local vertices: 73
+[2K    Number of new vertices adding to global V-Graph: 2
+    Total V-Graph Update Time: 7.92ms
+[2K    Global V-Graph Updated. Number of global vertices: 293
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.261ms
+[2K    Path Search Time: 0.14ms
+[2K    Local V-Graph Updated. Number of local vertices: 71
+[2K    Number of new vertices adding to global V-Graph: 2
+    Total V-Graph Update Time: 7.882ms
+[2K    Global V-Graph Updated. Number of global vertices: 295
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.211ms
+[2K    Path Search Time: 0.11ms
+[2K    Local V-Graph Updated. Number of local vertices: 67
+[2K    Number of new vertices adding to global V-Graph: 2
+    Total V-Graph Update Time: 11.279ms
+[2K    Global V-Graph Updated. Number of global vertices: 297
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.252ms
+[2K    Path Search Time: 0.121ms
+[2K    Local V-Graph Updated. Number of local vertices: 71
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 8.112ms
+[2K    Global V-Graph Updated. Number of global vertices: 297
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.222ms
+[2K    Path Search Time: 0.104ms
+[2K    Local V-Graph Updated. Number of local vertices: 72
+[2K    Number of new vertices adding to global V-Graph: 0
+    Total V-Graph Update Time: 11.625ms
+[2K    Global V-Graph Updated. Number of global vertices: 297
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.409ms
+[2K    Path Search Time: 0.321ms
+[2K    Local V-Graph Updated. Number of local vertices: 102
+[2K    Number of new vertices adding to global V-Graph: 19
+    Total V-Graph Update Time: 10.302ms
+[2K    Global V-Graph Updated. Number of global vertices: 316
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.381ms
+[2K    Path Search Time: 0.188ms
+[2K    Local V-Graph Updated. Number of local vertices: 94
+[2K    Number of new vertices adding to global V-Graph: 23
+    Total V-Graph Update Time: 9.213ms
+[2K    Global V-Graph Updated. Number of global vertices: 339
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.246ms
+[2K    Path Search Time: 0.171ms
+[2K    Local V-Graph Updated. Number of local vertices: 95
+[2K    Number of new vertices adding to global V-Graph: 31
+    Total V-Graph Update Time: 12.073ms
+[2K    Global V-Graph Updated. Number of global vertices: 370
+[A[A[A[A[A[A[2K    Adding Goal to V-Graph Time: 0.332ms
+[2K    Path Search Time: 0.175ms
+[2K    Local V-Graph Updated. Number of local vertices: 92
+[2K    Number of new vertices adding to global V-Graph: 26
+    Total V-Graph Update Time: 10.271ms
+[2K    Global V-Graph Updated. Number of global vertices: 396
+[33m[ WARN] [1795718052.509600499, 1827.183000000]: Shutdown request received.[0m
+[33m[ WARN] [1795718052.512945580, 1827.184000000]: Reason given for shutdown: [user request][0m
+[ERROR] [1795718053.247009, 1827.495000]: kinematic carrier loop failed:
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 129, in main
+    pose_pub.publish(pose)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
+    raise ROSException("publish() to a closed topic")
+rospy.exceptions.ROSException: publish() to a closed topic
+
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 177, in <module>
+    main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_simulation/scripts/gazebo_carrier3d_node.py", line 129, in main
+    pose_pub.publish(pose)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
+    raise ROSException("publish() to a closed topic")
+rospy.exceptions.ROSException: publish() to a closed topic
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_localization_source.py", line 21, in <module>
+    localization_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/localization_node.py", line 157, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[WARN] [1795718010.663948, 1808.950000]: [local] cancel accepted seq=1 scope=all
+[WARN] [1795718046.393509, 1824.522000]: [local] cancel accepted seq=5 scope=all
+[WARN] [1795718054.874916, 1828.149000]: [local] localization lost > 0.80s: task dropped (goal cleared, stop latched)
+Exception in thread Thread-19:
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node.py", line 522, in control_loop
+    controller.tick(lambda: rospy.Time.now().to_sec(), time.monotonic, rospy.Time.from_sec,
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node_control.py", line 254, in tick
+    out = publish_output(out, self.shared.get('pose_orientation'), stamp_factory(stamp_sec),
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node_control.py", line 47, in publish_output
+    command_pub.publish(message)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
+    self.impl.publish(data)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1041, in publish
+    raise ROSException("publish() to a closed topic")
+rospy.exceptions.ROSException: publish() to a closed topic
+[INFO] [1795717973.249461, 1792.268000]: [local] obstacles ok: 6
+[INFO] [1795717984.635006, 1797.367000]: [local] obstacles ok: 7
+[INFO] [1795717995.870228, 1802.368000]: [local] obstacles ok: 11
+[INFO] [1795718007.173144, 1807.375000]: [local] obstacles ok: 7
+[INFO] [1795718018.328364, 1812.384000]: [local] obstacles ok: 15
+[INFO] [1795718029.922346, 1817.572000]: [local] obstacles ok: 17
+[INFO] [1795718041.984027, 1822.668000]: [local] obstacles ok: 22
+[INFO] [1795718053.935412, 1827.768000]: [local] obstacles ok: 27
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py", line 18, in <module>
+    map_file_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/map_file_node.py", line 81, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[A[A[A[A[A[Ashutdown request: user request
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_dynamic_obstacles.py", line 22, in <module>
+    impl.DynamicObstaclesNode().spin()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/dynamic_obstacles_node.py", line 262, in spin
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[33m[ WARN] [1795718060.113501946, 1830.406000000]: Shutdown request received.[0m
+[33m[ WARN] [1795718060.113658557, 1830.406000000]: Reason given for shutdown: [user request][0m
+[0m[ INFO] [1795717971.281418170]: [bt] pose-based arrival mode (no planner_result_topic)[0m
+[0m[ INFO] [1795717971.303859211]: [bt] localization gate: /v8/local/localization_ok[0m
+[0m[ INFO] [1795717971.303940142]: [bt] cancel in /v8/bt/cancel, out /v8/local/cancel, ack in /v8/local/cancel_ack, policy in /v8/bt/goal_policy, mission in /v8/bt/goal_mission[0m
+[0m[ INFO] [1795717971.308891474]: [bt] tree loaded: /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/trees/navigate_with_planner.xml[0m
+[0m[ INFO] [1795717971.308915980]: [bt] planner input /v8/3d/global/goal, status /v8/3d/global/status[0m
+[0m[ INFO] [1795717971.308934252]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[0m[ INFO] [1795718006.559268932, 1807.109000000]: [bt] goal queued (depth=1, max=16)[0m
+[0m[ INFO] [1795718006.609198549, 1807.124000000]: [bt] goal 1 dequeued (0 waiting)[0m
+[0m[ INFO] [1795718006.610021537, 1807.125000000]: [bt] global path requested for goal 1 (seq stamped)[0m
+[0m[ INFO] [1795718008.259122427, 1807.876000000]: [bt] global path ready (2 points)[0m
+[0m[ INFO] [1795718008.259474490, 1807.876000000]: [bt] follow path -> dispatch goal 3.9, 2.45, 0[0m
+[0m[ INFO] [1795718008.259547207, 1807.876000000]: [bt] arrival budget 61.7 s (path 1.23 m, floor 0.020 m/s, tree 60.0 s)[0m
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_global_far.py", line 18, in <module>
+    raise SystemExit(far_node.main())
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/planner/far_node.py", line 1197, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[31mWARNING: disk usage in log directory [/opt/ros1-slam/logs] is over 1GB.
+It's recommended that you use the 'rosclean' command.[0m
+[31m[v8/3d/carrier/carrier-10] process has died [pid 109834, exit code 1, cmd /opt/ros1-slam/ws/devel/lib/v8_simulation/gazebo_carrier3d_node.py /cmd_vel:=/cmd_vel /v8_support_map:=/v8_support_map __name:=carrier __log:=/opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-carrier-carrier-10.log].
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-carrier-carrier-10*.log[0m
+[31m[v8/3d/loc/loc-3] process has died [pid 109822, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_localization_source.py __name:=loc __log:=/opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-loc-loc-3.log].
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-loc-loc-3*.log[0m
+[31m[v8/3d/map/map-4] process has died [pid 109823, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py __name:=map __log:=/opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-map-map-4.log].
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-map-map-4*.log[0m
+[31m[v8/3d/perception/perception-5] process has died [pid 109824, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_dynamic_obstacles.py /v8/local/pose:=/v8/local/pose __name:=perception __log:=/opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-perception-perception-5.log].
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-perception-perception-5*.log[0m
+[31m[v8_global_far-2] process has died [pid 109821, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_global_far.py __name:=v8_global_far __log:=/opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8_global_far-2.log].
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8_global_far-2*.log[0m
+]2;/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/far4_1814/cancel_graph/graph.launch http://127.0.0.1:11313
+[1mprocess[far_planner-1]: started with pid [109820][0m
+[1mprocess[v8_global_far-2]: started with pid [109821][0m
+[1mprocess[v8/3d/loc/loc-3]: started with pid [109822][0m
+[1mprocess[v8/3d/map/map-4]: started with pid [109823][0m
+[1mprocess[v8/3d/perception/perception-5]: started with pid [109824][0m
+[1mprocess[v8/bt/bt-6]: started with pid [109825][0m
+[1mprocess[v8/3d/path_goal/path_goal-7]: started with pid [109826][0m
+[1mprocess[v8/3d/local/local-8]: started with pid [109831][0m
+[1mprocess[v8/3d/mux/mux3d-9]: started with pid [109833][0m
+[1mprocess[v8/3d/carrier/carrier-10]: started with pid [109834][0m
+[1m[v8/3d/local/local-8] process has finished cleanly
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-local-local-8*.log[0m
+[1m[far_planner-1] process has finished cleanly
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/far_planner-1*.log[0m
+[1m[v8/3d/mux/mux3d-9] process has finished cleanly
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-mux-mux3d-9*.log[0m
+[1m[v8/3d/path_goal/path_goal-7] process has finished cleanly
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-3d-path_goal-path_goal-7*.log[0m
+[1m[v8/bt/bt-6] process has finished cleanly
+log file: /opt/ros1-slam/logs/2971583a-e9be-11f1-93f5-d281408808ae/v8-bt-bt-6*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
