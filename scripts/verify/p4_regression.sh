@@ -147,6 +147,14 @@ reset_stack() {
       ${POSE_TOPIC:+POSE_TOPIC="$POSE_TOPIC"} \
       SKIP_PROBE=1 NO_GOAL="$no_goal" START_X=$START_X START_Y=$START_Y GOAL_X=$GOAL_X GOAL_Y=$GOAL_Y \
     EV="$EV_ROOT/${tag}_graph" bash $REPO/scripts/verify/p4_nav_hdl.sh > "$EV_ROOT/${tag}_setup.log" 2>&1
+  local nav_rc=$?
+  # ★必须紧贴命令取 rc★（这里以前隔了 40 行，$? 拿到的是中间某条 rostopic 的返回码，
+  # 于是"装配失败"被当成"装配成功"往下跑——裁决②）
+  if [ "$nav_rc" -ne 0 ]; then
+    say "[$tag] ABORT：p4_nav_hdl rc=$nav_rc（见 $EV_ROOT/${tag}_setup.log / ${tag}_graph/graph.log）"
+    tail -20 "$EV_ROOT/${tag}_setup.log" | sed 's/^/    /'
+    return "$nav_rc"
+  fi
   # ★就绪判定：两种组合都做，看"实际消费的位姿话题"有没有连续数据★（不是原始 /Odometry）。
   # 闸门没起来/没转发时这里会明确报错，而不是让后续用例集体 INVALID 却看不出原因。
   # ★判据不能用 `tail -1`★（2026-11-26 修）：`rostopic hz` 的输出是两行——
@@ -168,12 +176,6 @@ reset_stack() {
   n=$(rosnode list 2>/dev/null | grep -cE '^/v8' || true)
   say "[$tag] v8_nodes=$n"
   [ "$n" -ge 9 ] || say "[$tag] WARN 装配不全（$n/9），本项结果不可信"
-  local nav_rc=$?
-  # ★p4_nav_hdl 的返回码也要看★：只数节点会把"roslaunch 已死"当成就绪（裁决③）
-  if [ "$nav_rc" -ne 0 ]; then
-    say "[$tag] ABORT：p4_nav_hdl rc=$nav_rc（见 $EV_ROOT/${tag}_setup.log / graph.log）"
-    return 1
-  fi
 }
 
 # ★目标只能发一条★（2026-11-26 修）：`/v8/bt/goal` 是 **FIFO 多任务入口**，

@@ -45,7 +45,17 @@ mkdir -p "$EV"
 exec > >(tee "$EV/run.log") 2>&1
 
 say() { printf '%s\n' "$*"; }
-gate_fail() { say "GATE_FAIL: $*"; exit 9; }
+gate_fail() {
+  say "GATE_FAIL: $*"
+  if [ -n "${LPID:-}" ]; then
+    scene_dump
+    # 按**本轮进程所有权**清理：只杀自己起的那个会话组
+    kill -TERM -"$LPID" 2>/dev/null || kill -TERM "$LPID" 2>/dev/null || true
+    sleep 2
+    kill -KILL -"$LPID" 2>/dev/null || true
+  fi
+  exit 9
+}
 
 source /opt/ros/noetic/setup.bash
 source $WS/devel/setup.bash
@@ -102,11 +112,32 @@ say "v8_nodes_after_clean=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt
 say "--- [3] 启动装配 ---"
 # --screen 是必须的：不加的话各节点的 ROS_INFO 只进 rosout，graph.log 是空的，
 # 行为树/规划器为什么失败完全看不到（bb-bt-bt-5-stdout.log 实测 0 行）。
-setsid roslaunch --screen "$LAUNCH" > "$EV/graph.log" 2>&1 < /dev/null &
+# ★roslaunch 必须由**同一个 shell** 启动并 wait★：`setsid roslaunch &` 再在子 shell 里
+# `wait $!` 是无效的——那个 PID 不是子 shell 的子进程，wait 立刻返回 127，写进 rc 的是
+# 一个假码。这里用 `sh -c` 包一层：roslaunch 是那个 sh 的子进程，由它自己 wait 并把真实
+# 退出码落盘；setsid 放在最外层保证脱离当前会话。
+setsid sh -c 'roslaunch --screen "$1" > "$2" 2>&1; echo $? > "$3"' _ \
+  "$LAUNCH" "$EV/graph.log" "$EV/roslaunch.rc" < /dev/null &
 LPID=$!
-# ★记录 roslaunch 的真实退出码★（裁决③）：只数节点数量会把"进程已死但注册还在"当成通过
-( wait "$LPID"; echo $? > "$EV/roslaunch.rc" ) &
 say "roslaunch_pid=$LPID"
+
+# ★失败现场保留（裁决③）★：门禁失败时先别退出——留 6 s 让 roslaunch 报出
+# `process has died [pid, exit code, signal]`，同时把节点/URI/进程树/命令行一起落盘。
+scene_dump() {
+  local out="$EV/scene"; mkdir -p "$out"
+  sleep 6
+  rosnode list > "$out/nodes.txt" 2>&1 || true
+  rosnode info /far_planner > "$out/far_planner_xmlrpc.txt" 2>&1 || true
+  rosnode info /v8_global_far > "$out/v8_global_far_xmlrpc.txt" 2>&1 || true
+  pgrep -af 'far_planner|run_global_far|roslaunch' > "$out/procs.txt" 2>&1 || true
+  ps -ef --forest > "$out/ps_tree.txt" 2>&1 || true
+  [ -f "$EV/roslaunch.rc" ] && cp "$EV/roslaunch.rc" "$out/roslaunch.rc" 2>/dev/null || true
+  tail -80 "$EV/graph.log" > "$out/graph_tail.txt" 2>&1 || true
+  grep -aE 'process has died|exit code|signal' "$EV/graph.log" > "$out/died.txt" 2>&1 || true
+  printf 'launch_pid=%s\n' "$LPID" > "$out/launch_pid.txt"
+  say "[scene] 已落盘到 $out（died.txt / graph_tail.txt / procs.txt / xmlrpc）"
+  say "[scene] died.txt: $(cat "$out/died.txt" 2>/dev/null | head -3 | tr '\n' ' ')"
+}
 for i in $(seq 1 20); do
   sleep 2
   N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt' || true)
