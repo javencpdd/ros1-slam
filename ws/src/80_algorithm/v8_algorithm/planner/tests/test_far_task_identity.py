@@ -36,7 +36,13 @@ class TaskIdentity(unittest.TestCase):
         self.st.on_far_path(-1e9 + 0.1, None)
 
     def tm(self, pose, waypoint, now=None):
-        """发一帧任务：显式带上当前请求编号（身份由请求方决定，被测代码不得自补）。"""
+        """发一帧任务：显式带上当前请求编号（身份由请求方决定，被测代码不得自补）。
+
+        换任务后 `request_id` 会被清空（生产侧由 apply_goal 重新分配），这里按同一时序补一次请求。
+        """
+        if not self.st.request_id:
+            self.st.next_request_id()
+            self.st.on_goal_request(now or 0.0)
         return self.st.task_message(pose, waypoint, request_id=self.st.request_id, now=now)
 
     # ---- ① 位姿变化不是新任务 ----
@@ -322,6 +328,9 @@ class TaskAssociation(unittest.TestCase):
         self.st.on_far_path(path_at, path_goal)
 
     def tm(self, pose, waypoint, now=None):
+        if not self.st.request_id:
+            self.st.next_request_id()
+            self.st.on_goal_request(now or 0.0)
         return self.st.task_message(pose, waypoint, request_id=self.st.request_id, now=now)
 
     def test_association_is_diagnostic_only(self):
@@ -374,7 +383,10 @@ class TaskAssociation(unittest.TestCase):
         """没有请求就没有关联：任何航点都不得输出（防"无人认领"的结果被贴标）。"""
         self.st.on_task_identity(ident(1), now=0.0)
         self.st.set_target((3.0, 2.0, 0.0))
-        self.assertIsNone(self.tm((5.2, 2.45, 0.0), (4.0, 2.0, 0.0), now=1.0))
+        # 直接调被测函数（不走 helper），确保"没有请求"这个前置条件成立
+        self.st.request_id = ''
+        self.assertIsNone(self.st.task_message((5.2, 2.45, 0.0), (4.0, 2.0, 0.0),
+                                               request_id=self.st.request_id, now=1.0))
 
     def test_same_coordinate_repeat_request_is_idempotent(self):
         """重复请求（同坐标同 mission）：不推进版本；结果时间更新即可继续用。"""
@@ -397,3 +409,68 @@ class TaskAssociation(unittest.TestCase):
         self.bind(request_at=0.0, path_at=0.2, path_goal=(3.0, 2.0, 0.0))
         self.st.revoke(reason='cancel')
         self.assertIsNone(self.tm((5.2, 2.45, 0.0), (4.0, 2.0, 0.0), now=0.3))
+
+
+class CacheAndFreshness(unittest.TestCase):
+    """换任务清缓存、生产时间有效期、刷新只用缓存身份（2026-11-27 裁决）。"""
+
+    def setUp(self):
+        self.st = fn.AdapterState()
+
+    def bind(self, now, gen, goal=None, produced=None):
+        if not self.st.request_id:
+            # 生产侧 apply_goal 的时序：解除 halted → 分配编号 → 登记请求 → 下发
+            self.st.on_goal(goal)
+            self.st.next_request_id()
+            self.st.on_goal_request(now)
+        return self.st.on_waypoint((5.0, 2.45, 0.0), goal or (4.0, 2.45, 0.0),
+                                   request_id=self.st.request_id, now=now,
+                                   result_gen=gen, produced_at=produced)
+
+    def test_new_mission_low_gen_not_rejected_by_old_cache(self):
+        """上一任务跑到 gen=99，新任务 gen 从 1 开始也必须被接受。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((4.0, 2.45, 0.0))
+        self.assertIsNotNone(self.bind(1.0, 99)[3], '旧任务 gen=99 应被接受')
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((3.5, 2.45, 0.0))
+        self.assertEqual(self.st.cache_result_gen, 0, '换任务必须清零代次')
+        self.assertEqual(self.st.cache_request_id, '', '换任务必须清空缓存身份')
+        self.assertIsNotNone(self.bind(10.5, 1, goal=(3.9, 2.45, 0.0))[3],
+                             '新任务 gen=1 不得被旧缓存拒')
+
+    def test_expired_production_time_rejected(self):
+        """生产时间过旧 ⇒ 过期，不看接收时间。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((4.0, 2.45, 0.0))
+        out = self.bind(10.0, 1, produced=8.0)      # 2 s 前生产
+        self.assertEqual(out[0], [], '过期结果不得出路径')
+        self.assertEqual(self.st.expired_results, 1)
+
+    def test_fresh_production_time_accepted(self):
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((4.0, 2.45, 0.0))
+        out = self.bind(10.0, 1, produced=9.7)
+        self.assertIsNotNone(out[3])
+
+    def test_refresh_uses_cached_identity_only(self):
+        """刷新只用已通过校验的缓存身份；换任务后旧缓存不得继续发。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((4.0, 2.45, 0.0))
+        self.assertIsNotNone(self.bind(1.0, 3)[3])
+        self.assertIsNotNone(self.st.refresh_frame((5.0, 2.45, 0.0), now=2.0),
+                             '同一任务内刷新应可发')
+        self.st.on_task_identity(ident(2), now=10.0)      # 换任务：清空缓存
+        self.assertIsNone(self.st.refresh_frame((5.0, 2.45, 0.0), now=11.0),
+                          '换任务后旧缓存不得继续发')
+
+    def test_revoke_then_new_mission_works(self):
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((4.0, 2.45, 0.0))
+        self.assertIsNotNone(self.bind(1.0, 1)[3])
+        self.st.revoke(reason='cancel')
+        self.assertIsNone(self.st.refresh_frame((5.0, 2.45, 0.0), now=2.0), '撤销后刷新必须停')
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((3.5, 2.45, 0.0))
+        self.assertIsNotNone(self.bind(10.5, 1, goal=(3.9, 2.45, 0.0))[3],
+                             '撤销后新任务应重新武装')

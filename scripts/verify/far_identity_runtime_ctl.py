@@ -17,6 +17,8 @@ import json
 import sys
 
 import rospy
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Path
 from std_msgs.msg import String
 
 
@@ -26,6 +28,10 @@ class Rec(object):
         self.task = None
         self.status = None
         self.task_hist = []
+        self.path_n = 0          # /v8/3d/global/path 帧数
+        self.gait_n = 0          # /v8/gait_guard/path 帧数
+        self.task_n = 0          # path_task 帧数
+        self.cmd_n = 0           # 非零速度帧数
 
     def on_tag(self, msg):
         try:
@@ -42,6 +48,16 @@ class Rec(object):
         self.task_hist.append({'rev': value.get('path_revision'),
                                'idx': value.get('waypoint_index'),
                                'wp': (value.get('poses') or [[], []])[-1][:2]})
+
+    def on_path(self, msg):
+        self.path_n += 1
+
+    def on_gait(self, msg):
+        self.gait_n += 1
+
+    def on_cmd(self, msg):
+        if abs(msg.linear.x) > 1e-3 or abs(msg.angular.z) > 1e-3:
+            self.cmd_n += 1
 
     def on_status(self, msg):
         try:
@@ -63,6 +79,9 @@ def main():
     rospy.Subscriber('/far/waypoint_tagged', String, rec.on_tag, queue_size=10)
     rospy.Subscriber('/v8/3d/global/path_task', String, rec.on_task, queue_size=10)
     rospy.Subscriber('/v8/3d/global/status', String, rec.on_status, queue_size=30)
+    rospy.Subscriber('/v8/3d/global/path', Path, rec.on_path, queue_size=10)
+    rospy.Subscriber('/v8/gait_guard/path', Path, rec.on_gait, queue_size=10)
+    rospy.Subscriber('/lite3/teleop/app_cmd_vel', Twist, rec.on_cmd, queue_size=50)
     pub = rospy.Publisher('/far/waypoint_tagged', String, queue_size=5)
 
     # 1) 等真实生产者的第一条结果
@@ -100,7 +119,13 @@ def main():
         _time.sleep(1.5)
         row = {'step': step, 'request_id': tag_id, 'gen': g,
                'revision': (rec.task or {}).get('path_revision'),
-               'reason': (rec.status or {}).get('reason')}
+               'reason': (rec.status or {}).get('reason'),
+               'path_frames': rec.path_n, 'gait_frames': rec.gait_n,
+               'task_frames': rec.task_n, 'cmd_frames': rec.cmd_n,
+               'cache_produced_at': (((rec.status or {}).get('task') or {})
+                                     .get('cache_produced_at')),
+               'cache_received_at': (((rec.status or {}).get('task') or {})
+                                     .get('cache_received_at'))}
         row.update(counters())
         rows.append(row)
         return row
@@ -121,7 +146,10 @@ def main():
         'stale_gen_rejected': rows[2]['revision'] == rev0,
         'bad_id_rejected': rows[3]['revision'] == rev0,
         'new_gen_advanced': rev_final is not None and rev_final > (rev0 or 0),
-        'cache_identity_intact': (after.get('cache_id') in (rid,)),
+        'cache_identity_intact': after.get('cache_id') == rid,
+        'rejected_counted': (after.get('rejected') or 0) >= 3,
+        'outlets_silent_in_rejects': all(r['path_frames'] == rows[0]['path_frames']
+                                        for r in rows[1:4]),
     }
     verdict = 'PASS' if all(checks.values()) else 'FAIL'
     result = {'verdict': verdict, 'checks': checks, 'rows': rows,

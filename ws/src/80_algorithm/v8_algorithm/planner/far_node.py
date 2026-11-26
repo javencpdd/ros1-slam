@@ -46,6 +46,8 @@ STALE_GOAL_GUARD_S = 5.0
 STALE_GOAL_NEAR_M = 0.75
 # 结果与请求的时间比较容差（秒）：同一帧内 FAR 可能先发 path 再被我们读到
 PATH_ASSOC_SLACK_S = 0.05
+# 结果从生产到被处理的最大允许时延（秒）：超过即视为过期（由生产时间算，不看接收时间）
+RESULT_MAX_AGE_S = 1.0
 ARRIVAL_R_XY_M = 0.25      # 到达判据的水平半径（米）：与 BT 树 WaitArrival 的 distance 同值
 ARRIVAL_Z_TOL_M = 0.30     # 到达判据的竖向容差（米）：与 support_map 的 z_tol 同量级
 
@@ -338,6 +340,7 @@ class AdapterState:
         self.cache_produced_at = None      # FAR 侧生产时刻（来自结果里的 stamp）
         self.cache_received_at = None      # 本地接收时刻（只作读数，不参与有效期）
         self.stale_gen_results = 0
+        self.expired_results = 0
         self.bad_results = 0
         self.unnamed_results = 0
         self.invalid_results = 0
@@ -492,6 +495,15 @@ class AdapterState:
         self.waypoint_index = 0
         self.waypoint_key = None
         self.waypoint_point = None
+        # ★换任务必须清空上一任务的结果缓存与代次★：新任务的 gen 从 1 开始，
+        # 若沿用上一任务的大 gen，"代次不递增"会把新任务的第一条合法结果整段拒掉。
+        self.cache_request_id = ''
+        self.cache_result_gen = 0
+        self.cache_produced_at = None
+        self.cache_received_at = None
+        self.last_waypoint = None
+        self.last_waypoint_at = None
+        self.request_id = ''
         self.mission_switched_at = now
         return 'new'
 
@@ -549,7 +561,7 @@ class AdapterState:
                 return False
         return True
 
-    def _gate(self, waypoint, request_id, now, result_gen=None):
+    def _gate(self, waypoint, request_id, now, result_gen=None, produced_at=None):
         """★唯一身份闸门★：任何出口（Path / gait_path / path_task / status / 缓存）都必须先过它。
 
         判据顺序固定：身份（request_id）→ 同请求内代次单调 → 时效窗 → 几何辅助。
@@ -569,6 +581,14 @@ class AdapterState:
             return False, 'E_FAR_STALE_RESULT'
         # 同请求内**代次必须严格递增**：重复 gen / 乱序旧 gen / 重放一律拒。
         # （旧实现只把 gen 存起来，不参与仲裁，旧结果会覆盖新结果。）
+        # ★生产时间参与有效性★：结果从 FAR 产出到被我们处理之间隔太久 ⇒ 已过期。
+        # 用生产时刻而不是接收时刻，避免"排队晚到"被当成新鲜结果。
+        if produced_at is not None:
+            age = float(now) - float(produced_at)
+            if age > RESULT_MAX_AGE_S:
+                self.rejected_results += 1
+                self.expired_results += 1
+                return False, 'E_FAR_RESULT_EXPIRED'
         if result_gen is not None:
             if int(result_gen) <= int(self.cache_result_gen or 0):
                 self.rejected_results += 1
@@ -654,6 +674,20 @@ class AdapterState:
                 'source': 'far'}
 
     # ---- 航点 ----
+    def refresh_frame(self, pose, now=None):
+        """几何刷新用的任务帧：**只**基于已通过校验的缓存，不补填当前身份、不推进代次。
+
+        身份取自 `cache_request_id`（结果自身携带的那个），并要求它仍等于当前有效请求；
+        否则返回 None —— 换任务之后、旧缓存还没被新结果替换时，刷新不得继续发旧任务。
+        """
+        if self.last_waypoint is None or not self.cache_request_id:
+            return None
+        if str(self.cache_request_id) != str(self.request_id):
+            return None
+        if self.mission is None or self.halted:
+            return None
+        return self._frame(pose, self.last_waypoint)
+
     def on_waypoint(self, pose, waypoint, request_id=None, now=None, result_gen=None,
                     produced_at=None):
         """返回 `(path_points, gait_points, status_text)`。
@@ -672,7 +706,7 @@ class AdapterState:
         now = 0.0 if now is None else float(now)
         # ★闸门在最前★：缓存（last_waypoint / waypoint_count）、两条路径、status、任务帧
         # 全都在它之后才可能产生。任何一条出口都不许绕过它。
-        ok, reason = self._gate(waypoint, request_id, now, result_gen)
+        ok, reason = self._gate(waypoint, request_id, now, result_gen, produced_at)
         if not ok:
             return [], [], status_json(False, 0, reason, seq=self.cancel_seq), None
         path_points = two_point_path(pose, waypoint)
@@ -946,7 +980,7 @@ def main():
     def publish_task(pose_value, waypoint, now=None, payload=None):
         """发一帧原子任务。返回是否真的发了（便于测试与读数）。"""
         payload = payload if payload is not None else \
-            state.task_message(pose_value, waypoint, request_id=state.request_id, now=now)
+            state.refresh_frame(pose_value, now)
         if payload is None:
             return False
         path_task_pub.publish(String(data=json.dumps(payload, ensure_ascii=False)))
