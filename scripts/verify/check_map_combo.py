@@ -123,9 +123,19 @@ def main():
 
         pcd_live = None
         try:
-            out = subprocess.run(['rosparam', 'get', '/gms/globalmap_pcd'], capture_output=True,
-                                 text=True, timeout=5).stdout.strip()
-            pcd_live = out or None
+            # ★键名不能写死★（2026-11-27）：正式 launch 里节点名是 globalmap_server_nodelet，
+            # 参数落在**节点私有命名空间**（/globalmap_server_nodelet/globalmap_pcd）；
+            # 而 asan_hdl_repro.sh 用 __name:=gms 装载时键才是 /gms/globalmap_pcd。
+            # 这里按 rosparam list 实测解析，避免"查错键 ⇒ 误判未加载"。
+            keys = subprocess.run(['rosparam', 'list'], capture_output=True,
+                                  text=True, timeout=5).stdout.split()
+            cand = [k for k in keys if k.endswith('/globalmap_pcd')]
+            for k in (cand or ['/gms/globalmap_pcd']):
+                out = subprocess.run(['rosparam', 'get', k], capture_output=True,
+                                     text=True, timeout=5).stdout.strip()
+                if out:
+                    pcd_live = out
+                    break
         except Exception:
             pcd_live = None
         pcd_ok = bool(pcd_live) and os.path.realpath(pcd_live) == \

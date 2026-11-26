@@ -17,14 +17,23 @@
   <include file="$(find lite3_localization)/launch/hdl_localization.launch">
     <arg name="map_name" value="$(arg map_name)"/>
     <arg name="points_topic" value="/rslidar_points"/>
-    <!-- ★仿真恒等外参是**显式写出来**的，不是靠缺省★（2026-11-24）：
-         仿真世界与 URDF 里没有 rslidar 这一节关节，base_link→rslidar 这条 TF
-         在仿真中只由该 launch 的 static_transform_publisher 发出，所以此处必须
-         保留这条边、且值为恒等。写成显式值，才不会和真机「必填」的语义混淆。 -->
+    <!-- ★关掉 HDL 的重复外参发布★（2026-11-27 真人裁定，纠正 2026-11-24 的错误假设）：
+         上一版这里写"仿真里 URDF 没有 rslidar 这一节关节"，**与事实相反**——
+         `lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro:55-59` 有 base_to_rslidar，
+         z=0.34、pitch=15°，由 robot_state_publisher 发布，这是 R409 定下的真实安装几何。
+         于是同一条 (base_link→rslidar) 被两处发布、值不同，/tf_static 后到者覆盖，
+         点云平移在 0 与 0.34 m 之间翻转。唯一权威＝URDF 与 R409 裁决，
+         所以这里传 publish_extrinsic:=false 关掉本节点的外参发布（参数语义见
+         lite3_localization/launch/hdl_localization.launch:36-39），不再给恒等值。 -->
+    <arg name="publish_extrinsic" value="false"/>
+    <!-- 四个 arg 在 hdl_localization.launch:39-42 声明为**无缺省**（roslaunch 要求必给），
+         所以仍要传；但取值一律对齐 URDF 真值，避免"关掉发布却留着假值"这种二次踩坑：
+         tf_pitch 单位是**弧度**（static_transform_publisher 的 yaw/pitch/roll 槽），
+         15° = 0.2617993877991494，与 xacro 展开值逐位一致。 -->
     <arg name="tf_x" value="0.0"/>
     <arg name="tf_y" value="0.0"/>
-    <arg name="tf_z" value="0.0"/>
-    <arg name="tf_pitch" value="0.0"/>
+    <arg name="tf_z" value="0.34"/>
+    <arg name="tf_pitch" value="0.2617993877991494"/>
     <!-- M2-R2C（小张 R2C manifest 施工件3）：/clock 门控 + manager required 仅仿真域启用；真机 G8 不传=缺省现行为 -->
     <arg name="manager_required" value="true"/>
     <arg name="clock_gate_cmd" value="$(find lite3_gazebo_sim)/scripts/wait_sim_clock.sh"/>

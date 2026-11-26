@@ -663,20 +663,30 @@ PYEOF
   prime_lidar C2
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出（relocalization 段，已挂常驻订阅）"; return 1; }
   timeout 60 rostopic echo -n 1 /hdl_odom >/dev/null 2>&1 || true
-  # ★定位源三重核验★（2026-11-27 裁决）：1046 m 那组读数就是"读到的不是本段的 hdl_odom"。
-  # 进收敛判据前必须确认：①地图是本段生成的 sim_venue.pcd；②/hdl_odom 发布者恰 1 个；
-  # ③frame_id 是 map。任一不符即判"定位源不对"，不拿这组数去判收敛。
-  _pcd=$(rosparam get /gms/globalmap_pcd 2>/dev/null)
+  # ★GMS 地图参数必须按**实际命名空间**取★（2026-11-27 真人指出并已核实）：
+  # 正式件 `ws/src/20_localization/lite3_localization/launch/hdl_localization.launch:77-79`
+  # 的节点名是 `globalmap_server_nodelet`，其 `<param name="globalmap_pcd">` 落在**节点私有命名空间**
+  # ⇒ 键是 `/globalmap_server_nodelet/globalmap_pcd`。本 launch 下**不存在** `/gms/globalmap_pcd`
+  # （`/gms/*` 只出现在 asan_hdl_repro.sh 里，且那份 nodelet 读 private_nh，根本绑不上）。
+  # 所以旧写法取到空值 ⇒ 曾被我判成"GMS 未启动"，属**探针查错键**，不是 GMS 没起。
+  # 这里先解析实际键名，再分三种判词：节点不在册 / 键缺失 / 路径不符。
+  _gms_node=$(rosnode list 2>/dev/null | grep -o '/[^ ]*globalmap_server[^ ]*' | head -1)
+  _pcd_key=$(rosparam list 2>/dev/null | grep -E 'globalmap_pcd$' | head -1)
+  echo "[C] GMS 节点=${_gms_node:-<不在册>} 参数键=${_pcd_key:-<缺失>}"
+  if [ -z "$_gms_node" ]; then
+    echo "FAIL C: GMS 节点不在册（globalmap_server_nodelet 未起，与探针键名无关）"; return 1
+  fi
+  if [ -z "$_pcd_key" ]; then
+    echo "FAIL C: GMS 参数键缺失（${_gms_node} 私有命名空间下没有 globalmap_pcd）"; return 1
+  fi
+  _pcd=$(rosparam get "$_pcd_key" 2>/dev/null)
+  _utm_key=$(printf '%s' "$_pcd_key" | sed 's/globalmap_pcd$/convert_utm_to_local/')
+  _utm_on=$(rosparam get "$_utm_key" 2>/dev/null)
+  echo "[C] 定位源地图=$_pcd sha256=$(sha256sum "$_pcd" 2>/dev/null | cut -c1-16) size=$([ -f "$_pcd" ] && stat -c %s "$_pcd" || echo MISSING)"
+  echo "[C] utm 侧车=$([ -f "${_pcd}.utm" ] && echo present || echo absent) convert_utm_to_local=${_utm_on:-<未设>}"
   case "$_pcd" in
-    *sim_venue.pcd) echo "[C] 定位源地图=$_pcd" ;;
-    *) echo "FAIL C: 定位源地图不对（$_pcd）"
-       # ★这条 FAIL 有历史裁决背书★（note/02_问题与坑.md 坑14 / M2-R2C 2026-10-06）：
-       #   "hdl 仿真验证终止 —— /clock 门控+--no-bond 落地后 manager 仍 SIGSEGV exit -11，
-       #    稳定性 FAIL，按红线 stageC 终止（第 3 轮不做）；hdl 仿真面未过，转真机 G8 顺带验证"。
-       # 也就是说 /gms（GlobalmapServer）在这里起不来是**已知终态**，不是本轮的代码缺陷。
-       # 保留 FAIL（不伪装 PASS），但把裁决出处印出来，避免下一轮又当新 bug 从头查。
-       echo "NOTE C: 依据 坑14/M2-R2C，hdl 仿真面已裁决终止；stageC 的 PASS 不可得，转真机 G8"
-       return 1 ;;
+    */sim_venue.pcd) ;;
+    *) echo "FAIL C: 地图路径不是本段生成的 sim_venue.pcd（$_pcd）"; return 1 ;;
   esac
   _pub=$(rostopic info /hdl_odom 2>/dev/null | sed -n '/Publishers/,/Subscribers/p' | grep -c '^ \*')
   echo "[C] /hdl_odom 发布者数=$_pub"
