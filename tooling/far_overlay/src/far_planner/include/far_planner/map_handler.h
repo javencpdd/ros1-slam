@@ -60,6 +60,18 @@ public:
         pcl_p.x = p.x, pcl_p.y = p.y, pcl_p.z = 0.0f, pcl_p.intensity = 0.0f;
         minH = maxH = p.z;
         is_matched = false;
+        // ★空地形/未建索引时不得调用 radiusSearch★（2026-11-26 catchsegv 实测）：
+        // 空树上 KdTreeFLANN::radiusSearch 会解引用内部空指针 ⇒ SIGSEGV，回溯为
+        //   libpcl_kdtree …::radiusSearch
+        //   ← MapHandler::NearestHeightOfRadius  map_handler.h:63
+        //   ← MapHandler::AdjustCTNodeHeight    map_handler.cpp:350
+        //   ← FARMaster::Loop
+        // 地形还没到/被清空时"关联不到地形"是正常状态：返回 p.z 且 is_matched 保持 false。
+        if (kdtree_terrain_clould_ == nullptr
+                || kdtree_terrain_clould_->getInputCloud() == nullptr
+                || kdtree_terrain_clould_->getInputCloud()->empty()) {
+            return p.z;
+        }
         if (kdtree_terrain_clould_->radiusSearch(pcl_p, radius, pIdxK, pdDistK) > 0) {
             float avgH = kdtree_terrain_clould_->getInputCloud()->points[pIdxK[0]].intensity;
             minH = maxH = avgH;
@@ -146,6 +158,12 @@ private:
         PCLPoint pcl_p;
         dist_square = FARUtil::kINF;
         pcl_p.x = p.x, pcl_p.y = p.y, pcl_p.z = 0.0f, pcl_p.intensity = 0.0f;
+        // 同一类空树风险：最近邻在空云上同样会解引用空指针（同一次排查发现，预防性加同一道闸）
+        if (kdtree_terrain_clould_ == nullptr
+                || kdtree_terrain_clould_->getInputCloud() == nullptr
+                || kdtree_terrain_clould_->getInputCloud()->empty()) {
+            return p.z;
+        }
         if (kdtree_terrain_clould_->nearestKSearch(pcl_p, 1, pIdxK, pdDistK) > 0) {
             pcl_p = kdtree_terrain_clould_->getInputCloud()->points[pIdxK[0]];
             dist_square = pdDistK[0];
