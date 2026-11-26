@@ -658,7 +658,8 @@ PYEOF
   # 同 Stage B：`.profiles/x86_sim` 里有同内容的 lite3_bringup，包名解析会撞
   # RLException: multiple files named [...]; 优先用 ws/src 下的规范件。
   hdl_launch=$(ls -1 "${M2_WS:-/opt/ros1-slam/ws}/src"/*/lite3_bringup/launch/mode_sim_hdl.launch 2>/dev/null | head -1)
-  roslaunch "${hdl_launch:-lite3_bringup}" > "$LOGDIR/hdlC.log" 2>&1 &
+  # 诊断口：HDL_USE_IMU=false 只用于"关 IMU"单变量对照，**不作为正式 PASS**。
+  roslaunch "${hdl_launch:-lite3_bringup}" use_imu:="${HDL_USE_IMU:-true}" > "$LOGDIR/hdlC.log" 2>&1 &
   prime_lidar C2
   wait_topic /rslidar_points 480 || { echo "FAIL C: /rslidar_points 未出（relocalization 段，已挂常驻订阅）"; return 1; }
   timeout 60 rostopic echo -n 1 /hdl_odom >/dev/null 2>&1 || true

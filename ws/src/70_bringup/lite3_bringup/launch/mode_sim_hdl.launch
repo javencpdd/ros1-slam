@@ -8,6 +8,9 @@
        风险注记：hdl 的**仿真验证**已被 M2-R2C 裁决终止（manager SIGSEGV，转真机 G8 顺带验证），
                  本文件属「低风险纯搬运」——不改变 hdl 在仿真域不可用的既有结论，也不重启该实验。 -->
   <arg name="map_name" default="sim_venue"/>
+  <!-- 诊断口（2026-11-27）：把 use_imu 透传出去，供"开/关 IMU"单变量对照。
+       缺省 true＝现行行为不变；只作诊断用，不改判据。 -->
+  <arg name="use_imu" default="true"/>
 
   <include file="$(find lite3_gazebo_sim)/launch/m2_hdl.launch">
     <arg name="map_name" value="$(arg map_name)"/>
@@ -17,6 +20,7 @@
   <include file="$(find lite3_localization)/launch/hdl_localization.launch">
     <arg name="map_name" value="$(arg map_name)"/>
     <arg name="points_topic" value="/rslidar_points"/>
+    <arg name="use_imu" value="$(arg use_imu)"/>
     <!-- ★关掉 HDL 的重复外参发布★（2026-11-27 真人裁定，纠正 2026-11-24 的错误假设）：
          上一版这里写"仿真里 URDF 没有 rslidar 这一节关节"，**与事实相反**——
          `lite3_gazebo_sim/urdf/lite3_planar.urdf.xacro:55-59` 有 base_to_rslidar，
