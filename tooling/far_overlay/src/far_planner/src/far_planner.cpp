@@ -293,9 +293,10 @@ void FARMaster::PlanningCallBack(const ros::TimerEvent& event) {
         ++result_gen_;
         char buf[512];
         std::snprintf(buf, sizeof(buf),
-                      "{\"request_id\":\"%s\",\"gen\":%u,\"x\":%.4f,\"y\":%.4f,\"z\":%.4f,\"frame\":\"%s\"}",
+                      "{\"request_id\":\"%s\",\"gen\":%u,\"x\":%.4f,\"y\":%.4f,\"z\":%.4f,\"frame\":\"%s\",\"stamp\":%.6f}",
                       goal_identity_id_.c_str(), result_gen_,
-                      waypoint.x, waypoint.y, waypoint.z, master_params_.world_frame.c_str());
+                      waypoint.x, waypoint.y, waypoint.z, master_params_.world_frame.c_str(),
+                      ros::Time::now().toSec());
         std_msgs::String tagged;
         tagged.data = buf;
         waypoint_tagged_pub_.publish(tagged);

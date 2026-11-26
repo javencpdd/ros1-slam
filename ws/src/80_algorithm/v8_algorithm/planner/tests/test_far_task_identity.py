@@ -324,13 +324,17 @@ class TaskAssociation(unittest.TestCase):
     def tm(self, pose, waypoint, now=None):
         return self.st.task_message(pose, waypoint, request_id=self.st.request_id, now=now)
 
-    def test_result_before_request_is_rejected(self):
-        """迟到/乱序：结果是**请求之前**产生的 ⇒ 拒绝（哪怕它现在才到）。"""
+    def test_association_is_diagnostic_only(self):
+        """★关联不再是判据（2026-11-27 裁决）★
+
+        `/global_path` 的路径时间/终点只是旁路诊断：身份由 request_id 决定、同请求内由 gen 保证不倒退。
+        这条用例钉住"关联失败只计数、不拦截"。"""
         self.st.on_task_identity(ident(1), now=0.0)
         self.st.set_target((3.9, 2.45, 0.0))
         self.bind(request_at=10.0, path_at=9.5, path_goal=(3.9, 2.45, 0.0))
-        self.assertIsNone(self.tm((5.2, 2.45, 0.0), (4.5, 2.45, 0.0), now=10.5))
-        self.assertEqual(self.st.unassociated_waypoints, 1)
+        self.assertIsNotNone(self.tm((5.2, 2.45, 0.0), (4.5, 2.45, 0.0), now=10.5),
+                             '身份正确就放行，关联陈旧只记诊断')
+        self.assertEqual(self.st.assoc_diagnostic_fail, 1)
 
     def test_late_waypoint_from_old_goal_rejected(self):
         """旧任务旧航点：结果时间够新，但**终点偏向上一目标** ⇒ 拒绝。"""
@@ -339,8 +343,9 @@ class TaskAssociation(unittest.TestCase):
         self.st.on_task_identity(ident(2), now=10.0)
         self.st.set_target((5.6, 2.0, 0.0))
         self.bind(request_at=10.0, path_at=10.2, path_goal=(5.0, 2.0, 0.0))
+        # 身份正确、但点位几乎压在上一目标上且明显背离新目标 ⇒ 由**几何辅助**拒（不是关联）
         self.assertIsNone(self.tm((5.2, 2.45, 0.0), (5.0, 2.1, 0.0), now=10.4))
-        self.assertEqual(self.st.unassociated_waypoints, 1)
+        self.assertEqual(self.st.stale_goal_waypoints, 1)
 
     def test_result_for_current_goal_accepted(self):
         """合法：结果晚于请求、终点朝新目标 ⇒ 接受。"""

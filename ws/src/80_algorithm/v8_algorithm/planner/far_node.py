@@ -26,6 +26,8 @@
 """
 import json
 import math
+import os
+import time
 
 FREE_Z_M = 0.2          # 与上游 `Util/terrain_free_Z: 0.2` 同值；h < 此值算地面
 GROUND_CELL_M = 0.2     # 地面栅格边长（米）
@@ -329,10 +331,17 @@ class AdapterState:
         # scripts/verify/ros_seq_transport_test.py 的 SEQ_UNRELIABLE 证据。
         self.request_id = ''
         self.request_counter = 0
+        self.session_nonce = '%d-%d' % (os.getpid(), int(time.time() * 1000 % 1000000))
         # 缓存只在结果**通过校验**后刷新，且记录这条结果的原始身份与生产时间
         self.cache_request_id = ''
         self.cache_result_gen = 0
-        self.cache_produced_at = None
+        self.cache_produced_at = None      # FAR 侧生产时刻（来自结果里的 stamp）
+        self.cache_received_at = None      # 本地接收时刻（只作读数，不参与有效期）
+        self.stale_gen_results = 0
+        self.bad_results = 0
+        self.unnamed_results = 0
+        self.invalid_results = 0
+        self.assoc_diagnostic_fail = 0
         self.rejected_results = 0            # 因身份不对被丢弃的结果数
         self.goal_request_stamp = None
         self.path_stamp = None
@@ -507,7 +516,9 @@ class AdapterState:
         """分配**唯一请求编号**（字符串）：mission + 自增，天然唯一且与 ROS seq 无关。"""
         self.request_counter += 1
         mission = (self.mission or {}).get('mission_id', 0)
-        self.request_id = 'm%s-r%d' % (mission, self.request_counter)
+        # ★跨进程/跨重启不复用★：加一个启动时生成的 nonce（pid + 启动单调时刻），
+        # 只靠 mission+counter 在节点重启后会撞号，重启前的旧结果就会被当成新请求。
+        self.request_id = 'm%s-r%d@%s' % (mission, self.request_counter, self.session_nonce)
         return self.request_id
 
     def on_goal_request(self, now):
@@ -538,11 +549,12 @@ class AdapterState:
                 return False
         return True
 
-    def _gate(self, waypoint, request_id, now):
+    def _gate(self, waypoint, request_id, now, result_gen=None):
         """★唯一身份闸门★：任何出口（Path / gait_path / path_task / status / 缓存）都必须先过它。
 
-        判据顺序固定：身份（seq）→ 请求/结果关联 → 时效窗 → 几何辅助。
-        前两条是"这条结果属于哪一次请求"的**事实**，后两条只是兜底辅助。
+        判据顺序固定：身份（request_id）→ 同请求内代次单调 → 时效窗 → 几何辅助。
+        第一条是"这条结果属于哪一次请求"的**事实**；第二条保证同请求内不倒退；
+        后两条只是兜底辅助。另一条无身份 Path 的时间/终点**不再参与判定**（仅诊断）。
         """
         if self.mission is None:
             return False, 'E_FAR_NO_MISSION'
@@ -555,9 +567,13 @@ class AdapterState:
             # 旧请求（或别的请求/节点重启前的编号）的结果：**不得**用当前 mission 补身份
             self.rejected_results += 1
             return False, 'E_FAR_STALE_RESULT'
-        if not self.result_associated():
-            self.unassociated_waypoints += 1
-            return False, 'E_FAR_UNASSOCIATED'
+        # 同请求内**代次必须严格递增**：重复 gen / 乱序旧 gen / 重放一律拒。
+        # （旧实现只把 gen 存起来，不参与仲裁，旧结果会覆盖新结果。）
+        if result_gen is not None:
+            if int(result_gen) <= int(self.cache_result_gen or 0):
+                self.rejected_results += 1
+                self.stale_gen_results += 1
+                return False, 'E_FAR_STALE_GEN'
         if (self.mission_switched_at is not None
                 and now - self.mission_switched_at < STALE_WAYPOINT_GUARD_S):
             self.stale_waypoints += 1
@@ -571,9 +587,11 @@ class AdapterState:
             if d_prev <= STALE_GOAL_NEAR_M and d_now >= d_prev + 0.5:
                 self.stale_goal_waypoints += 1
                 return False, 'E_FAR_STALE_GOAL'
+        if not self.result_associated():
+            self.assoc_diagnostic_fail += 1     # 只计数，不阻断
         return True, 'ok'
 
-    def task_message(self, pose, waypoint, request_id=None, now=None):
+    def task_message(self, pose, waypoint, request_id=None, now=None, result_gen=None):
         """把一次航点事件变成**原子任务帧**（dict）；不该发时返回 `None`。
 
         语义（真人裁决③）：位姿变化**不算**新任务；只有"有效航点"变化才推进 `path_revision`。
@@ -587,7 +605,7 @@ class AdapterState:
         if pose is None or waypoint is None:
             return None
         now = 0.0 if now is None else float(now)
-        ok, _reason = self._gate(waypoint, request_id, now)
+        ok, _reason = self._gate(waypoint, request_id, now, result_gen=result_gen)
         if not ok:
             return None
         return self._frame(pose, waypoint)
@@ -636,7 +654,8 @@ class AdapterState:
                 'source': 'far'}
 
     # ---- 航点 ----
-    def on_waypoint(self, pose, waypoint, request_id=None, now=None, result_gen=None):
+    def on_waypoint(self, pose, waypoint, request_id=None, now=None, result_gen=None,
+                    produced_at=None):
         """返回 `(path_points, gait_points, status_text)`。
 
         两条路径**在意料分歧时给出不同点数**，这是本方法返回两个列表的原因：
@@ -653,7 +672,7 @@ class AdapterState:
         now = 0.0 if now is None else float(now)
         # ★闸门在最前★：缓存（last_waypoint / waypoint_count）、两条路径、status、任务帧
         # 全都在它之后才可能产生。任何一条出口都不许绕过它。
-        ok, reason = self._gate(waypoint, request_id, now)
+        ok, reason = self._gate(waypoint, request_id, now, result_gen)
         if not ok:
             return [], [], status_json(False, 0, reason, seq=self.cancel_seq), None
         path_points = two_point_path(pose, waypoint)
@@ -661,9 +680,10 @@ class AdapterState:
         # ★缓存记录"这条结果自身"的身份与生产时间★，不是拿当前 request 再补一遍
         self.last_waypoint = _xyz(waypoint)
         self.last_waypoint_at = now
-        self.cache_request_id = str(request_id)
+        self.cache_request_id = str(request_id)      # 结果**自身**的身份，不补填当前请求
         self.cache_result_gen = int(result_gen or 0)
-        self.cache_produced_at = now
+        self.cache_produced_at = produced_at          # 生产时刻（FAR 给的），不是本地接收时刻
+        self.cache_received_at = now
         self.waypoint_count += 1
         payload = self._frame(pose, waypoint)
         # status 的 `points` 报主路径（`/global_path`）帧数，步态侧单独记一个字段：
@@ -785,7 +805,17 @@ def main():
                 'legacy_identity_ignored': state.legacy_identity_ignored,
                 'legacy_goal_ignored': state.legacy_goal_ignored,
                 'unassociated_waypoints': state.unassociated_waypoints,
-                'result_associated': state.result_associated()}
+                'result_associated': state.result_associated(),   # 仅诊断
+                'request_id': state.request_id,
+                'cache_request_id': state.cache_request_id,
+                'cache_result_gen': state.cache_result_gen,
+                'cache_produced_at': state.cache_produced_at,
+                'cache_received_at': state.cache_received_at,
+                'rejected_results': state.rejected_results,
+                'stale_gen_results': state.stale_gen_results,
+                'bad_results': state.bad_results,
+                'unnamed_results': state.unnamed_results,
+                'assoc_diagnostic_fail': state.assoc_diagnostic_fail}
 
     def publish_status(text):
         status_pub.publish(String(data=text))
@@ -907,7 +937,7 @@ def main():
     def publish_task(pose_value, waypoint, now=None, payload=None):
         """发一帧原子任务。返回是否真的发了（便于测试与读数）。"""
         payload = payload if payload is not None else \
-            state.task_message(pose_value, waypoint, seq=state.request_seq, now=now)
+            state.task_message(pose_value, waypoint, request_id=state.request_id, now=now)
         if payload is None:
             return False
         path_task_pub.publish(String(data=json.dumps(payload, ensure_ascii=False)))
@@ -1044,14 +1074,24 @@ def main():
         try:
             payload = json.loads(message.data)
             pt = (float(payload['x']), float(payload['y']), float(payload.get('z', 0.0)))
+            gen = int(payload.get('gen', 0))
+            produced = float(payload['stamp']) if 'stamp' in payload else None
+            res_frame = str(payload.get('frame', '') or '')
         except Exception:
+            state.bad_results += 1
             state.rejected_results += 1
             publish_status(status_json(False, 0, 'E_FAR_BAD_RESULT'))
+            return
+        # 坐标系必须与工作系一致（不一致的结果不能当成本系的航点）
+        if res_frame and res_frame != frame:
+            state.bad_results += 1
+            state.rejected_results += 1
+            publish_status(status_json(False, 0, 'E_FAR_BAD_FRAME', detail=res_frame[:32]))
             return
         now = rospy.get_time()
         path_points, gait_points, text, task = state.on_waypoint(
             pose['value'], pt, request_id=payload.get('request_id'),
-            now=now, result_gen=payload.get('gen'))
+            now=now, result_gen=gen, produced_at=produced)
         publish_status(text)
         if not path_points:
             return
@@ -1063,8 +1103,10 @@ def main():
     def on_waypoint_unnamed(message):
         """无身份入口（`/way_point` 原样）：只计数 + 报状态，**不产生任何出口**。
         保留订阅是为了让"有人还在发无身份结果"这件事可见，而不是静默丢弃。"""
+        # 只计数，**不发 status**：`/global_path/status` 是 BT `WaitForPath` 的判据，
+        # 兼容话题上的无身份消息不该把正式任务判成失败。
         state.rejected_results += 1
-        publish_status(status_json(False, 0, 'E_FAR_NO_IDENTITY'))
+        state.unnamed_results += 1
 
     rospy.Subscriber(far_tagged_topic, String, on_waypoint_tagged, queue_size=5)
     rospy.Subscriber(waypoint_topic, PointStamped, on_waypoint_unnamed, queue_size=1)
