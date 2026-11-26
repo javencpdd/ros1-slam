@@ -696,6 +696,25 @@ PYEOF
   _fid=$(timeout 6 rostopic echo -n1 /hdl_odom/header/frame_id 2>/dev/null | head -1 | tr -d '"\r')
   echo "[C] /hdl_odom frame_id=$_fid"
   [ "$_fid" = "map" ] || { echo "FAIL C: /hdl_odom frame_id=$_fid（应为 map）"; return 1; }
+  # ★实跑 relay 身份核验★（2026-11-27）：/initialpose 与 IMU 旋转都过 relay，
+  # 若跑到的是 .profiles 旧副本，本轮的修复根本没被执行，判据再对也没意义。
+  # 取**进程 cmdline 里的脚本路径**（不是我们以为的路径），比 sha，并要求旋转日志出现。
+  _rp=""; for _i in $(seq 1 30); do
+    _rp=$(pgrep -af "m2_cmd_relay" | grep -v pgrep | head -1 | awk '{for(i=1;i<=NF;i++) if($i ~ /m2_cmd_relay\.py$/){print $i; exit}}')
+    [ -n "$_rp" ] && break; sleep 1
+  done
+  if [ -z "$_rp" ]; then echo "FAIL C: 找不到 imu_relay 进程（relay 未起，后续判据无意义）"; return 1; fi
+  _rp_cmd=$(pgrep -af "m2_cmd_relay" | grep -v pgrep | head -1)
+  echo "[C] relay 路径=$_rp"
+  echo "[C] relay sha256=$(sha256sum "$_rp" 2>/dev/null | cut -c1-16) 工作树sha256=$(sha256sum "$SIM_PKG/scripts/m2_cmd_relay.py" 2>/dev/null | cut -c1-16)"
+  echo "[C] relay argv=$_rp_cmd"
+  if ! cmp -s "$_rp" "$SIM_PKG/scripts/m2_cmd_relay.py" 2>/dev/null; then
+    echo "FAIL C: 实跑 relay 与工作树不是同一份（$_rp）→ 本轮修复未生效，禁止用该次结果判收敛"; return 1
+  fi
+  case "$_rp_cmd" in
+    *" Imu tf"*) echo "[C] relay 旋转源=tf（单一来源）" ;;
+    *) echo "FAIL C: relay 未按 tf 取旋转（argv 见上）"; return 1 ;;
+  esac
   M2_HDLLOG="$LOGDIR/hdlC.log" python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
 import os
 import math, time, rospy

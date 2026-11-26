@@ -39,31 +39,92 @@ def _sleep_guarded(rate, warn=None):
 def _rot_y(v, c, s):
     return (c * v[0] + s * v[2], v[1], -s * v[0] + c * v[2])
 
+
+def _quat_to_matrix(q):
+    """四元数 → 3x3 旋转矩阵（行主序的九元组）。"""
+    x, y, z, w = q.x, q.y, q.z, q.w
+    xx, yy, zz = x * x, y * y, z * z
+    xy, xz, yz = x * y, x * z, y * z
+    wx, wy, wz = w * x, w * y, w * z
+    return (1 - 2 * (yy + zz), 2 * (xy - wz),     2 * (xz + wy),
+            2 * (xy + wz),     1 - 2 * (xx + zz), 2 * (yz - wx),
+            2 * (xz - wy),     2 * (yz + wx),     1 - 2 * (xx + yy))
+
+
+def _mat_vec(m, v):
+    return (m[0] * v[0] + m[1] * v[1] + m[2] * v[2],
+            m[3] * v[0] + m[4] * v[1] + m[5] * v[2],
+            m[6] * v[0] + m[7] * v[1] + m[8] * v[2])
+
+
+def _tf_rotation(parent, child, timeout=30.0):
+    """从**真实 TF** 取 parent←child 的旋转矩阵。
+
+    ★为什么不是写死 15°★（2026-11-27 真人裁决）：URDF 里 lidar_pitch_deg=15 已经由
+    robot_state_publisher 发成 base_link→rslidar 的 TF；如果在 launch 或本脚本再写一份 15，
+    就有了两个维护点，改 URDF 忘了改这里会静默错。这里直接读 TF：单一来源，改 URDF 自动跟随。
+    """
+    try:
+        import tf2_ros
+    except ImportError:
+        return None, 'tf2_ros 不可用'
+    buf = tf2_ros.Buffer()
+    tf2_ros.TransformListener(buf)
+    t0 = time.time()
+    while time.time() - t0 < timeout and not rospy.is_shutdown():
+        try:
+            tr = buf.lookup_transform(parent, child, rospy.Time(0), rospy.Duration(1.0))
+            return _quat_to_matrix(tr.transform.rotation), None
+        except Exception as e:
+            last = str(e)
+            rospy.sleep(0.2)
+    return None, 'TF %s←%s 在 %.0fs 内不可得（%s）' % (parent, child, timeout, last)
+
 if __name__ == '__main__':
     rospy.init_node('m2_cmd_relay')
     src, dst, typ = sys.argv[1], sys.argv[2], sys.argv[3]
-    # 第 4 参可选：pitch 角（度）。缺省 0 = 行为与旧版逐字一致。
-    pitch_deg = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0
-    _th = math.radians(pitch_deg)
-    _c, _s = math.cos(_th), math.sin(_th)
+    # 第 4 参可选：`tf` 表示从真实 TF 取旋转（推荐、单一来源）；给数值则按该 pitch（度）绕 Y 旋转，
+    # 缺省 0 = 与旧版逐字一致。真机/仿真都不该在脚本里再抄一份安装角。
+    _arg4 = sys.argv[4] if len(sys.argv) > 4 else '0'
+    _R = None
+    pitch_deg = 0.0
+    if _arg4 == 'tf':
+        _R, _err = _tf_rotation('base_link', 'rslidar')
+        if _R is None:
+            rospy.logerr('[m2_cmd_relay] 取 TF 失败，IMU 将**原样转发不做旋转**：%s', _err)
+        else:
+            # 由旋转矩阵反推等效俯仰角，只为日志可读（真实使用的是矩阵本身）
+            pitch_deg = math.degrees(math.atan2(-_R[6], math.hypot(_R[0], _R[3])))
+            rospy.loginfo('[m2_cmd_relay] IMU 旋转源=TF(base_link←rslidar) 等效pitch=%.3fdeg R=%s',
+                          pitch_deg, ['%.4f' % v for v in _R])
+    else:
+        pitch_deg = float(_arg4)
+        _th = math.radians(pitch_deg)
+        _c, _s = math.cos(_th), math.sin(_th)
     _shown = [False]
     mod = {'Twist': 'geometry_msgs.msg', 'Imu': 'sensor_msgs.msg'}[typ]
     msg_cls = getattr(__import__(mod, fromlist=['x']), typ)
     pub = rospy.Publisher(dst, msg_cls, queue_size=10)
     n = [0]
     def cb(m):
-        if typ == 'Imu' and pitch_deg != 0.0:
+        _rot_on = (typ == 'Imu') and (_R is not None or pitch_deg != 0.0)
+        if _rot_on:
             a, w = m.linear_acceleration, m.angular_velocity
-            ax, ay, az = _rot_y((a.x, a.y, a.z), _c, _s)
-            wx, wy, wz = _rot_y((w.x, w.y, w.z), _c, _s)
+            if _R is not None:
+                ax, ay, az = _mat_vec(_R, (a.x, a.y, a.z))
+                wx, wy, wz = _mat_vec(_R, (w.x, w.y, w.z))
+            else:
+                ax, ay, az = _rot_y((a.x, a.y, a.z), _c, _s)
+                wx, wy, wz = _rot_y((w.x, w.y, w.z), _c, _s)
             m.linear_acceleration.x, m.linear_acceleration.y, m.linear_acceleration.z = ax, ay, az
             m.angular_velocity.x, m.angular_velocity.y, m.angular_velocity.z = wx, wy, wz
             if m.header.frame_id != 'base_link':
                 m.header.frame_id = 'base_link'
             if not _shown[0]:
                 _shown[0] = True
-                rospy.loginfo('[m2_cmd_relay] IMU 旋转 rslidar→base_link pitch=%.3fdeg 首帧 acc=(%.3f,%.3f,%.3f) gyro=(%.3f,%.3f,%.3f)',
-                              pitch_deg, ax, ay, az, wx, wy, wz)
+                _src = 'TF' if _R is not None else ('pitch=%.1fdeg' % pitch_deg)
+                rospy.loginfo('[m2_cmd_relay] IMU 旋转生效 源=%s 首帧 acc=(%.3f,%.3f,%.3f) gyro=(%.3f,%.3f,%.3f) in_frame=%s out_frame=base_link',
+                              _src, ax, ay, az, wx, wy, wz, m.header.frame_id)
         pub.publish(m); n[0] += 1
     rospy.Subscriber(src, msg_cls, cb, queue_size=10)
     rate = rospy.Rate(0.5, reset=True)

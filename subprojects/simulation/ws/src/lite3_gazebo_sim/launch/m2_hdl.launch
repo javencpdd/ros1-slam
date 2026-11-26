@@ -12,13 +12,13 @@
   <param name="use_sim_time" value="true"/>
 
   <include file="$(find lite3_gazebo_sim)/launch/m2_gazebo.launch"/>
-  <!-- ★第 4 参＝IMU 的安装俯仰角（度）★（2026-11-27）：IMU 挂在 rslidar 上，随雷达下倾 15°
-       （urdf/lite3_planar.urdf.xacro 的 lidar_pitch_deg）。relay 只做刚体向量旋转
-       rslidar→base_link，并把 frame_id 标成 base_link；不改滤波、不改门控。
-       该值必须与 URDF 的 lidar_pitch_deg 一致，改 URDF 要同步改这里。 -->
-  <arg name="imu_pitch_deg" default="15.0"/>
+  <!-- ★IMU 旋转源＝真实 TF★（2026-11-27 真人裁决，消除重复维护）：
+       IMU 挂在 rslidar 上、随雷达下倾（URDF 的 lidar_pitch_deg），该安装关系已经由
+       robot_state_publisher 发成 base_link→rslidar 的 TF。
+       这里传 `tf` 让 relay **直接读 TF 取旋转矩阵**，不在 launch／脚本里再抄一份角度——
+       改 URDF 自动跟随，只有一处真值。relay 侧若取不到 TF 会打 logerr 并原样转发（不静默假转）。 -->
   <node pkg="lite3_gazebo_sim" type="m2_cmd_relay.py" name="imu_relay"
-        args="/livox/imu /imu/data Imu $(arg imu_pitch_deg)"/>
+        args="/livox/imu /imu/data Imu tf"/>
 
   <!-- hdl 重定位的 include 已上收至 TOP 编排层：lite3_bringup/launch/mode_sim_hdl.launch
        （[5] 返工 2026-10-08，设计=小张路 A；K3 禁平级 lite3_* 互 include，sim 壳包不伸手进生产模块。
