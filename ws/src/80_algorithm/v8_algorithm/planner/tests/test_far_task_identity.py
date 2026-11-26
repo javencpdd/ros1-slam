@@ -31,13 +31,13 @@ class TaskIdentity(unittest.TestCase):
         self.st = fn.AdapterState()
         # 默认把"很久以前的一次请求 + 它对应的结果"绑好：既有用例关心的是身份/版本语义，
         # 不该被请求-结果关联挡住。关联本身的用例在 TaskAssociation 里单独写。
-        self.st.request_seq = 1
+        self.st.request_id = 'test-r0'
         self.st.on_goal_request(-1e9)
         self.st.on_far_path(-1e9 + 0.1, None)
 
     def tm(self, pose, waypoint, now=None):
         """发一帧任务：显式带上当前请求编号（身份由请求方决定，被测代码不得自补）。"""
-        return self.st.task_message(pose, waypoint, seq=self.st.request_seq, now=now)
+        return self.st.task_message(pose, waypoint, request_id=self.st.request_id, now=now)
 
     # ---- ① 位姿变化不是新任务 ----
     def test_pose_stream_does_not_advance_revision(self):
@@ -154,7 +154,7 @@ class TaskIdentity(unittest.TestCase):
         """
         self.st.on_task_identity(ident(1), now=0.0)
         self.st.set_target((5.0, 2.4, 0.0))
-        seq1 = self.st.next_request_seq()              # 请求 1
+        seq1 = self.st.next_request_id()              # 请求 1
         self.st.on_goal_request(0.0)
         self.st.on_far_path(0.1, None)
         self.assertIsNotNone(self.tm((5.0, 2.4, 0.0), (4.0, 2.4, 0.0), now=1.0))
@@ -162,39 +162,39 @@ class TaskIdentity(unittest.TestCase):
         # 换任务：请求 2
         self.st.on_task_identity(ident(2), now=10.0)
         self.st.set_target((3.0, 2.4, 0.0))
-        seq2 = self.st.next_request_seq()
+        seq2 = self.st.next_request_id()
         self.st.on_goal_request(10.0)
         self.st.on_far_path(10.1, (3.0, 2.4, 0.0))
 
         # 旧请求（seq=1）的结果在 15 s 才到：**必须拒**，且不得刷新缓存/版本
         before = (self.st.path_revision, self.st.waypoint_count)
         self.assertIsNone(self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0),
-                                               seq=seq1, now=15.0))
+                                               request_id=seq1, now=15.0))
         self.assertEqual((self.st.path_revision, self.st.waypoint_count), before,
                          '被拒的结果不得推进版本，也不得刷新缓存')
         self.assertGreaterEqual(self.st.rejected_results, 1)
         # 新请求的结果正常通过
         self.assertIsNotNone(self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0),
-                                                  seq=seq2, now=15.2))
+                                                  request_id=seq2, now=15.2))
 
     def test_new_result_then_old_result_interleaved(self):
         """新任务合法 Path 先到、旧任务结果随后到：旧结果不得借用新关联进入新任务。"""
         self.st.on_task_identity(ident(1), now=0.0)
         self.st.set_target((5.0, 2.4, 0.0))
-        seq1 = self.st.next_request_seq()
+        seq1 = self.st.next_request_id()
         self.st.on_goal_request(0.0)
         self.st.on_far_path(0.1, None)
 
         self.st.on_task_identity(ident(2), now=10.0)
         self.st.set_target((3.0, 2.4, 0.0))
-        seq2 = self.st.next_request_seq()
+        seq2 = self.st.next_request_id()
         self.st.on_goal_request(10.0)
         self.st.on_far_path(10.1, (3.0, 2.4, 0.0))     # 新结果先到
 
-        good = self.st.task_message((5.0, 2.4, 0.0), (4.2, 2.4, 0.0), seq=seq2, now=10.5)
+        good = self.st.task_message((5.0, 2.4, 0.0), (4.2, 2.4, 0.0), request_id=seq2, now=10.5)
         self.assertIsNotNone(good)
         rev = good['path_revision']
-        old = self.st.task_message((5.0, 2.4, 0.0), (4.6, 2.4, 0.0), seq=seq1, now=10.6)
+        old = self.st.task_message((5.0, 2.4, 0.0), (4.6, 2.4, 0.0), request_id=seq1, now=10.6)
         self.assertIsNone(old, '旧结果不得被贴上 mission 2 的标号')
         self.assertEqual(self.st.path_revision, rev, '被拒结果不得推进版本')
 
@@ -204,24 +204,24 @@ class TaskIdentity(unittest.TestCase):
         for mission, goal in ((1, (5.0, 2.0, 0.0)), (2, (4.0, 2.0, 0.0)), (3, (3.0, 2.0, 0.0))):
             self.st.on_task_identity(ident(mission), now=float(mission * 10))
             self.st.set_target(goal)
-            seqs.append(self.st.next_request_seq())
+            seqs.append(self.st.next_request_id())
             self.st.on_goal_request(float(mission * 10))
         self.st.on_far_path(30.0, (3.0, 2.0, 0.0))
         for seq in seqs[:2]:
             self.assertIsNone(self.st.task_message((5.0, 2.45, 0.0), (4.4, 2.0, 0.0),
-                                                   seq=seq, now=30.5))
+                                                   request_id=seq, now=30.5))
         self.assertIsNotNone(self.st.task_message((5.0, 2.45, 0.0), (3.6, 2.0, 0.0),
-                                                  seq=seqs[2], now=30.6))
+                                                  request_id=seqs[2], now=30.6))
 
     def test_zero_seq_result_is_rejected(self):
         """无身份结果（seq=0，例如 FAR 重置时发的那条）一律拒。"""
         self.st.on_task_identity(ident(1), now=0.0)
         self.st.set_target((3.0, 2.0, 0.0))
-        self.st.next_request_seq()
+        self.st.next_request_id()
         self.st.on_goal_request(0.0)
         self.st.on_far_path(0.1, None)
         self.assertIsNone(self.st.task_message((5.0, 2.45, 0.0), (4.0, 2.0, 0.0),
-                                               seq=0, now=1.0))
+                                               request_id='', now=1.0))
         self.assertEqual(self.st.last_waypoint, None, '被拒结果不得写 last_waypoint 缓存')
 
     # ---- ⑫ 航点永远不能创建 mission ----
@@ -317,12 +317,12 @@ class TaskAssociation(unittest.TestCase):
         self.st = fn.AdapterState()
 
     def bind(self, request_at, path_at, path_goal):
-        self.st.next_request_seq()
+        self.st.next_request_id()
         self.st.on_goal_request(request_at)
         self.st.on_far_path(path_at, path_goal)
 
     def tm(self, pose, waypoint, now=None):
-        return self.st.task_message(pose, waypoint, seq=self.st.request_seq, now=now)
+        return self.st.task_message(pose, waypoint, request_id=self.st.request_id, now=now)
 
     def test_result_before_request_is_rejected(self):
         """迟到/乱序：结果是**请求之前**产生的 ⇒ 拒绝（哪怕它现在才到）。"""

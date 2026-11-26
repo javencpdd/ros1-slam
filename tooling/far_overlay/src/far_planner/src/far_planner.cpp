@@ -21,6 +21,9 @@ void FARMaster::Init() {
   joy_command_sub_    = nh.subscribe("/joy", 5, &FARMaster::JoyCommandCallBack, this);
   update_command_sub_ = nh.subscribe("/update_visibility_graph", 5, &FARMaster::UpdateCommandCallBack, this);
   goal_pub_           = nh.advertise<geometry_msgs::PointStamped>("/way_point",5);
+  // 带身份的航点结果：JSON {"request_id","gen","x","y","z","frame"}；/way_point 保留给既有消费者
+  waypoint_tagged_pub_ = nh.advertise<std_msgs::String>("/far/waypoint_tagged", 5);
+  goal_task_sub_      = nh.subscribe("/far/goal_task", 5, &FARMaster::GoalTaskCallBack, this);
   boundary_pub_       = nh.advertise<geometry_msgs::PolygonStamped>("/navigation_boundary",5);
   // Timers
   runtime_pub_        = nh.advertise<std_msgs::Float32>("/runtime",1);
@@ -285,6 +288,18 @@ void FARMaster::PlanningCallBack(const ros::TimerEvent& event) {
       }
       goal_waypoint_stamped_.point = FARUtil::Point3DToGeoMsgPoint(waypoint);
       goal_pub_.publish(goal_waypoint_stamped_);
+      // ★带身份的结果★：request_id 来自请求侧，gen 在同一请求内自增；几何与上面完全一致
+      {
+        ++result_gen_;
+        char buf[512];
+        std::snprintf(buf, sizeof(buf),
+                      "{\"request_id\":\"%s\",\"gen\":%u,\"x\":%.4f,\"y\":%.4f,\"z\":%.4f,\"frame\":\"%s\"}",
+                      goal_identity_id_.c_str(), result_gen_,
+                      waypoint.x, waypoint.y, waypoint.z, master_params_.world_frame.c_str());
+        std_msgs::String tagged;
+        tagged.data = buf;
+        waypoint_tagged_pub_.publish(tagged);
+      }
       is_planner_running_ = true;
       planner_viz_.VizPoint3D(waypoint, "waypoint", VizColor::MAGNA, 1.5);
       planner_viz_.VizPoint3D(current_free_goal, "free_goal", VizColor::GREEN, 1.5);
@@ -704,10 +719,47 @@ void FARMaster::WaypointCallBack(const geometry_msgs::PointStamped& route_goal) 
     if (FARUtil::IsDebug) ROS_WARN("FARMaster: wait for v-graph to init before sending any goals");
     return;
   }
-  // 绑定请求身份：同一个 seq 会跟着这条请求产生的每一条 /way_point 走
+  // 旧入口：没有请求编号的调用方按 "legacy" 处理（结果仍会带这个 id，下游能识别）
   goal_identity_seq_ = route_goal.header.seq;
-  Point3D goal_p(route_goal.point.x, route_goal.point.y, route_goal.point.z);
-  const std::string goal_frame = route_goal.header.frame_id;
+  ApplyGoal(Point3D(route_goal.point.x, route_goal.point.y, route_goal.point.z),
+            route_goal.header.frame_id, std::string("legacy"));
+}
+
+void FARMaster::GoalTaskCallBack(const std_msgs::String& task) {
+  if (!is_graph_init_) {
+    if (FARUtil::IsDebug) ROS_WARN("FARMaster: wait for v-graph to init before sending any goals");
+    return;
+  }
+  // 极简解析：本仓库自己发的固定格式（不引入 JSON 依赖），字段缺省即视为无效请求
+  const std::string& raw = task.data;
+  auto field = [&raw](const std::string& key) -> std::string {
+    const std::string pat = "\"" + key + "\":";
+    size_t pos = raw.find(pat);
+    if (pos == std::string::npos) return std::string();
+    pos += pat.size();
+    while (pos < raw.size() && (raw[pos] == ' ' || raw[pos] == '\"')) ++pos;
+    size_t end = pos;
+    while (end < raw.size() && raw[end] != ',' && raw[end] != '}' && raw[end] != '\"') ++end;
+    return raw.substr(pos, end - pos);
+  };
+  const std::string id = field("request_id");
+  if (id.empty()) {
+    ROS_WARN("FARMaster: goal_task without request_id, ignored");
+    return;
+  }
+  const std::string sx = field("x"), sy = field("y"), sz = field("z");
+  if (sx.empty() || sy.empty()) return;
+  const std::string frame = field("frame").empty() ? master_params_.world_frame : field("frame");
+  goal_identity_seq_ = 0;
+  ApplyGoal(Point3D(std::stof(sx), std::stof(sy), sz.empty() ? 0.0f : std::stof(sz)),
+            frame, id);
+}
+
+void FARMaster::ApplyGoal(const Point3D& goal_p_in, const std::string& goal_frame,
+                          const std::string& request_id) {
+  goal_identity_id_ = request_id;      // ★身份在这一刻绑定，之后只读
+  result_gen_ = 0;
+  Point3D goal_p = goal_p_in;
   if (!FARUtil::IsSameFrameID(goal_frame, master_params_.world_frame)) {
     if (FARUtil::IsDebug) ROS_WARN_THROTTLE(1.0, "FARMaster: waypoint published is not on world frame!");
     FARUtil::TransformPoint3DFrame(goal_frame, master_params_.world_frame, tf_listener_, goal_p); 

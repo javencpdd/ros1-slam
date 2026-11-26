@@ -44,8 +44,10 @@ private:
     ros::NodeHandle nh;
     ros::Subscriber reset_graph_sub_, joy_command_sub_, update_command_sub_;
     ros::Subscriber odom_sub_, terrain_sub_, terrain_local_sub_, scan_sub_, waypoint_sub_;
+    ros::Subscriber goal_task_sub_;          // /far/goal_task（String JSON：request_id + 目标）
     ros::Subscriber read_command_sub_, save_command_sub_; // only use for terminal formatting
     ros::Publisher  goal_pub_, boundary_pub_;
+    ros::Publisher  waypoint_tagged_pub_;    // /far/waypoint_tagged（String JSON：request_id + gen + 点）
     ros::Publisher  dynamic_obs_pub_, surround_free_debug_, surround_obs_debug_;
     ros::Publisher  scan_grid_debug_, new_PCL_pub_, terrain_height_pub_;
     ros::Publisher  runtime_pub_, planning_time_pub_, traverse_time_pub_, reach_goal_pub_;
@@ -63,6 +65,8 @@ private:
     // "我属于哪一次请求"，下游不必（也不允许）用接收时刻的 mission 去补填身份。
     // seq==0 表示"没有请求"（初始化/重置时发的那条），下游必须丢弃。
     uint32_t goal_identity_seq_ = 0;
+    std::string goal_identity_id_;   // 请求编号（字符串），与 ROS 的 header.seq 完全解耦
+    uint32_t result_gen_ = 0;        // 结果代次：同一请求内每发一条结果自增
 
     bool is_cloud_init_, is_scan_init_, is_odom_init_, is_planner_running_;
     bool is_graph_init_;
@@ -186,6 +190,10 @@ private:
 
     void ScanCallBack(const sensor_msgs::PointCloud2ConstPtr& pc);
     void WaypointCallBack(const geometry_msgs::PointStamped& route_goal);
+    // ★原子goal任务（2026-11-27）★：一条 String(JSON) 同时携带**请求编号**与目标几何，
+    // 消除"几何走一个话题、身份走另一个话题"的乱序风险。`request_id` 会原样回传到结果里。
+    void GoalTaskCallBack(const std_msgs::String& task);
+    void ApplyGoal(const Point3D& goal_p, const std::string& frame, const std::string& request_id);
 
     void ExtractDynamicObsFromScan(const PointCloudPtr& scanCloudIn, 
                                    const PointCloudPtr& obsCloudIn,

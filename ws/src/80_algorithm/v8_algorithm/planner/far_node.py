@@ -323,7 +323,16 @@ class AdapterState:
         #   · `goal_request_stamp`：我们最后一次把目标交给 FAR 的时刻
         #   · `path_stamp` / `path_goal`：FAR 最近一次回报的规划结果（时间、终点）
         # 结果早于请求 ⇒ 是上一轮的在途产物；终点更靠近上一目标 ⇒ 是旧目标的结果。
-        self.request_seq = 0                 # 当前有效请求的编号（FAR 原样回传）
+        self.request_seq = 0                 # 历史字段：仅用于读数对比，不再参与判据
+        # ★请求编号（字符串）★：FAR 原样回传。**不能用 header.seq** —— 实测 rospy/roscpp
+        # 会按发布次数重写 seq（发 1/4242/0/999999 收到的是 1/2/3/4/5），详见
+        # scripts/verify/ros_seq_transport_test.py 的 SEQ_UNRELIABLE 证据。
+        self.request_id = ''
+        self.request_counter = 0
+        # 缓存只在结果**通过校验**后刷新，且记录这条结果的原始身份与生产时间
+        self.cache_request_id = ''
+        self.cache_result_gen = 0
+        self.cache_produced_at = None
         self.rejected_results = 0            # 因身份不对被丢弃的结果数
         self.goal_request_stamp = None
         self.path_stamp = None
@@ -490,9 +499,16 @@ class AdapterState:
         return self.revoked_mission
 
     def next_request_seq(self):
-        """分配一个新的请求编号（1 起，0 保留给"无请求"）。"""
+        """历史接口：仍维护一个自增整数（仅读数用）。"""
         self.request_seq = int(self.request_seq) + 1
         return self.request_seq
+
+    def next_request_id(self):
+        """分配**唯一请求编号**（字符串）：mission + 自增，天然唯一且与 ROS seq 无关。"""
+        self.request_counter += 1
+        mission = (self.mission or {}).get('mission_id', 0)
+        self.request_id = 'm%s-r%d' % (mission, self.request_counter)
+        return self.request_id
 
     def on_goal_request(self, now):
         """目标已交给 FAR：此后到达的规划结果才算本轮。清掉上一轮的结果缓存。"""
@@ -522,7 +538,7 @@ class AdapterState:
                 return False
         return True
 
-    def _gate(self, waypoint, seq, now):
+    def _gate(self, waypoint, request_id, now):
         """★唯一身份闸门★：任何出口（Path / gait_path / path_task / status / 缓存）都必须先过它。
 
         判据顺序固定：身份（seq）→ 请求/结果关联 → 时效窗 → 几何辅助。
@@ -532,11 +548,11 @@ class AdapterState:
             return False, 'E_FAR_NO_MISSION'
         if self.halted:
             return False, 'E_FAR_HALTED'
-        if seq is None or int(seq) == 0:
+        if not request_id:
             self.rejected_results += 1
             return False, 'E_FAR_NO_IDENTITY'
-        if int(seq) != int(self.request_seq):
-            # 旧请求（或别的请求）的结果：**不得**用当前 mission 给它补身份
+        if str(request_id) != str(self.request_id):
+            # 旧请求（或别的请求/节点重启前的编号）的结果：**不得**用当前 mission 补身份
             self.rejected_results += 1
             return False, 'E_FAR_STALE_RESULT'
         if not self.result_associated():
@@ -557,7 +573,7 @@ class AdapterState:
                 return False, 'E_FAR_STALE_GOAL'
         return True, 'ok'
 
-    def task_message(self, pose, waypoint, seq=None, now=None):
+    def task_message(self, pose, waypoint, request_id=None, now=None):
         """把一次航点事件变成**原子任务帧**（dict）；不该发时返回 `None`。
 
         语义（真人裁决③）：位姿变化**不算**新任务；只有"有效航点"变化才推进 `path_revision`。
@@ -571,7 +587,7 @@ class AdapterState:
         if pose is None or waypoint is None:
             return None
         now = 0.0 if now is None else float(now)
-        ok, _reason = self._gate(waypoint, seq, now)
+        ok, _reason = self._gate(waypoint, request_id, now)
         if not ok:
             return None
         return self._frame(pose, waypoint)
@@ -620,7 +636,7 @@ class AdapterState:
                 'source': 'far'}
 
     # ---- 航点 ----
-    def on_waypoint(self, pose, waypoint, seq=None, now=None):
+    def on_waypoint(self, pose, waypoint, request_id=None, now=None, result_gen=None):
         """返回 `(path_points, gait_points, status_text)`。
 
         两条路径**在意料分歧时给出不同点数**，这是本方法返回两个列表的原因：
@@ -637,13 +653,17 @@ class AdapterState:
         now = 0.0 if now is None else float(now)
         # ★闸门在最前★：缓存（last_waypoint / waypoint_count）、两条路径、status、任务帧
         # 全都在它之后才可能产生。任何一条出口都不许绕过它。
-        ok, reason = self._gate(waypoint, seq, now)
+        ok, reason = self._gate(waypoint, request_id, now)
         if not ok:
             return [], [], status_json(False, 0, reason, seq=self.cancel_seq), None
         path_points = two_point_path(pose, waypoint)
         gait_points = gait_path(pose, waypoint, self.lookahead_m)
+        # ★缓存记录"这条结果自身"的身份与生产时间★，不是拿当前 request 再补一遍
         self.last_waypoint = _xyz(waypoint)
         self.last_waypoint_at = now
+        self.cache_request_id = str(request_id)
+        self.cache_result_gen = int(result_gen or 0)
+        self.cache_produced_at = now
         self.waypoint_count += 1
         payload = self._frame(pose, waypoint)
         # status 的 `points` 报主路径（`/global_path`）帧数，步态侧单独记一个字段：
@@ -694,6 +714,8 @@ def main():
     refresh_hz = float(rospy.get_param('~path_task_refresh_hz', 2.5))
     atomic_only = bool(rospy.get_param('~atomic_only', True))
     far_path_topic = rospy.get_param('~far_result_topic', '/global_path')
+    far_task_topic = rospy.get_param('~far_task_topic', '/far/goal_task')
+    far_tagged_topic = rospy.get_param('~far_tagged_topic', '/far/waypoint_tagged')
     path_topic = rospy.get_param('~path_topic', '/global_path')
     gait_path_topic = rospy.get_param('~gait_path_topic', '/v8/gait_guard/path')
     status_topic = rospy.get_param('~status_topic', '/global_path/status')
@@ -726,6 +748,9 @@ def main():
     scan_pub = rospy.Publisher(scan_out, PointCloud2, queue_size=1)
     odom_pub = rospy.Publisher(odom_topic, Odometry, queue_size=2)
     far_goal_pub = rospy.Publisher(far_goal_topic, PointStamped, queue_size=1)
+    # ★原子 goal 任务★：一条 String 同时带"请求编号 + 目标几何"，FAR 在受理时绑定编号，
+    # 结果原样带回。`header.seq` 不可用（实测被 ROS 重写），`/goal_point` 只留给旧调用方。
+    far_task_pub = rospy.Publisher(far_task_topic, String, queue_size=5)
     # 两条路径话题都**不 latch**：路径是「这一刻的位姿 + 这一刻的航点」，
     # 一旦 latched，后加入的订阅者会先吃一条过期路径，把车往已经走过的地方带。
     path_pub = rospy.Publisher(path_topic, Path, queue_size=1, latch=False)
@@ -866,16 +891,15 @@ def main():
         # ★身份必须先于发布★（裁决①）：先分配编号、先记录请求时刻并清掉上一轮结果缓存，
         # 再往 FAR 发目标。反过来的话，一条足够快的结果可能在我们登记之前就带着新 seq 到达，
         # 而 `request_seq` 还是旧值 —— 那就是"结果先到、身份后补"的时序洞。
-        seq = state.next_request_seq()
+        # ★编号先于发布★：先拿到 request_id、先登记请求（清上一轮结果缓存），再发出去。
+        rid = state.next_request_id()
         state.on_goal_request(rospy.get_time())
         if arrival_pub is not None:
             arrival_pub.publish(Bool(data=False))
-        point = PointStamped()
-        if header is not None:
-            point.header = header
-        point.header.seq = seq               # FAR 会把这个 seq 原样带进每条 /way_point
-        point.point.x, point.point.y, point.point.z = xyz
-        far_goal_pub.publish(point)
+        far_task_pub.publish(String(data=json.dumps(
+            {'request_id': rid, 'x': float(xyz[0]), 'y': float(xyz[1]), 'z': float(xyz[2]),
+             'frame': (header.frame_id if header is not None else 'map') or 'map'},
+            ensure_ascii=False)))
         # 占位帧用 BT 认的瞬态名（见 `BT_TRANSIENT_REASONS` 上方的注释），
         # 否则 `WaitForPath` 会在暖机这一拍判 FAILURE。
         publish_status(status_json(False, 0, WARMUP_PLAN_REASON, detail='E_FAR_WARMUP'))
@@ -1011,7 +1035,39 @@ def main():
         rospy.Subscriber(far_path_topic, Path, on_far_goal_path, queue_size=2)
     rospy.Subscriber(task_topic, String, on_task_identity, queue_size=5)
     rospy.Subscriber(legacy_task_topic, String, on_task_goal_meta, queue_size=5)
-    rospy.Subscriber(waypoint_topic, PointStamped, on_waypoint, queue_size=1)
+    def on_waypoint_tagged(message):
+        """★唯一结果入口★：JSON 里带 request_id（FAR 受理请求时绑定、随结果原样返回）。
+
+        闸门在 `state.on_waypoint` 内部：编号不匹配就一条出口都不发、缓存不刷新，
+        并把 `rejected_results` 加一（可独立观测，不依赖地形状态）。
+        """
+        try:
+            payload = json.loads(message.data)
+            pt = (float(payload['x']), float(payload['y']), float(payload.get('z', 0.0)))
+        except Exception:
+            state.rejected_results += 1
+            publish_status(status_json(False, 0, 'E_FAR_BAD_RESULT'))
+            return
+        now = rospy.get_time()
+        path_points, gait_points, text, task = state.on_waypoint(
+            pose['value'], pt, request_id=payload.get('request_id'),
+            now=now, result_gen=payload.get('gen'))
+        publish_status(text)
+        if not path_points:
+            return
+        stamp = rospy.Time.now()
+        path_pub.publish(to_path(path_points, stamp))
+        publish_task(pose['value'], pt, now=now, payload=task)
+        gait_path_pub.publish(to_path(gait_points, stamp))
+
+    def on_waypoint_unnamed(message):
+        """无身份入口（`/way_point` 原样）：只计数 + 报状态，**不产生任何出口**。
+        保留订阅是为了让"有人还在发无身份结果"这件事可见，而不是静默丢弃。"""
+        state.rejected_results += 1
+        publish_status(status_json(False, 0, 'E_FAR_NO_IDENTITY'))
+
+    rospy.Subscriber(far_tagged_topic, String, on_waypoint_tagged, queue_size=5)
+    rospy.Subscriber(waypoint_topic, PointStamped, on_waypoint_unnamed, queue_size=1)
     rospy.Subscriber(reach_topic, Bool, on_reach, queue_size=1)
     rospy.Subscriber(cancel_topic, String, on_cancel, queue_size=1)
     rospy.Subscriber(ack_topic, String, on_ack, queue_size=1)

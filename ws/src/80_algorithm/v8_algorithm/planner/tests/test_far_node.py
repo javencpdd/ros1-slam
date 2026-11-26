@@ -39,7 +39,7 @@ def ready_state():
     但必须满足身份闸门，否则它们测到的是"被拦"而不是"形状"。"""
     st = far_node.AdapterState()
     st.on_task_identity({'mission_id': 1, 'execution_generation': 0}, now=0.0)
-    st.next_request_seq()
+    st.next_request_id()
     st.on_goal_request(0.0)
     st.on_far_path(0.1, None)
     return st
@@ -73,11 +73,11 @@ class PathShapeTests(unittest.TestCase):
 class StateTests(unittest.TestCase):
     def test_04_missing_input_publishes_status_only(self):
         state = far_node.AdapterState()
-        path_points, gait_points, text, _payload = state.on_waypoint(None, (1., 0., 0.), seq=state.request_seq)
+        path_points, gait_points, text, _payload = state.on_waypoint(None, (1., 0., 0.), request_id=state.request_id)
         self.assertEqual(path_points, [])
         self.assertEqual(gait_points, [])
         self.assertEqual(json.loads(text)['reason'], 'E_FAR_NO_POSE')
-        path_points, gait_points, text, _payload = state.on_waypoint((0., 0., 0.), None, seq=state.request_seq)
+        path_points, gait_points, text, _payload = state.on_waypoint((0., 0., 0.), None, request_id=state.request_id)
         self.assertEqual(path_points, [])
         self.assertEqual(gait_points, [])
         self.assertEqual(json.loads(text)['reason'], 'E_FAR_NO_WAYPOINT')
@@ -87,18 +87,18 @@ class StateTests(unittest.TestCase):
         state = ready_state()
         seq = state.on_cancel()
         self.assertTrue(state.halted)
-        path_points, gait_points, text, _payload = state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=1., seq=state.request_seq)
+        path_points, gait_points, text, _payload = state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=1., request_id=state.request_id)
         self.assertEqual(path_points, [])
         self.assertEqual(gait_points, [])
         self.assertEqual(json.loads(text)['reason'], 'E_FAR_HALTED')
         # ack 到位也不解除——ack 只说明「取消收到了」，不说明「可以继续走」
         self.assertEqual(state.on_ack('%d:cancelled' % seq), (seq, 'cancelled'))
         self.assertTrue(state.halted)
-        self.assertEqual(state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=2., seq=state.request_seq)[0], [])
+        self.assertEqual(state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=2., request_id=state.request_id)[0], [])
         # 只有新 goal 解除
         self.assertTrue(state.on_goal())
         self.assertFalse(state.halted)
-        self.assertEqual(len(state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=3., seq=state.request_seq)[0]), 2)
+        self.assertEqual(len(state.on_waypoint((0., 0., 0.), (2., 0., 0.), now=3., request_id=state.request_id)[0]), 2)
 
     def test_06_near_waypoint_extends_to_lookahead(self):
         pose, lookahead = (0., 0., 0.), 1.5
@@ -128,7 +128,7 @@ class StateTests(unittest.TestCase):
         """
         state = ready_state()
         # 近航点（0.3 m < 前视 1.5 m）：主路径仍两点，步态路径补第三点
-        path_points, gait_points, text, _payload = state.on_waypoint((0., 0., 0.), (0.3, 0., 0.), now=1., seq=state.request_seq)
+        path_points, gait_points, text, _payload = state.on_waypoint((0., 0., 0.), (0.3, 0., 0.), now=1., request_id=state.request_id)
         self.assertEqual(len(path_points), 2)
         self.assertEqual(path_points[-1], (0.3, 0., 0.))
         self.assertEqual(len(gait_points), 3)
@@ -137,7 +137,7 @@ class StateTests(unittest.TestCase):
         payload = json.loads(text)
         self.assertEqual((payload['points'], payload['gait_points']), (2, 3))
         # 远航点（2.5 m）：两条话题内容逐字相同
-        path_points, gait_points, _text, _payload = state.on_waypoint((0., 0., 0.), (2.5, 0., 0.), now=2., seq=state.request_seq)
+        path_points, gait_points, _text, _payload = state.on_waypoint((0., 0., 0.), (2.5, 0., 0.), now=2., request_id=state.request_id)
         self.assertEqual(path_points, gait_points)
 
 
@@ -296,12 +296,12 @@ class BtHandshakeTests(unittest.TestCase):
         拒一次路径。
         """
         state = ready_state()
-        _path, _gait, text, _payload = state.on_waypoint((0., 0., 0.), (1., 0., 0.), now=1., seq=state.request_seq)
+        _path, _gait, text, _payload = state.on_waypoint((0., 0., 0.), (1., 0., 0.), now=1., request_id=state.request_id)
         payload = json.loads(text)
         self.assertIsNone(payload['far_reach'])
         self.assertEqual(payload['reason'], 'ok')
         state.far_reach = False
-        _path, _gait, text, _payload = state.on_waypoint((0., 0., 0.), (1., 0., 0.), now=1.5, seq=state.request_seq)
+        _path, _gait, text, _payload = state.on_waypoint((0., 0., 0.), (1., 0., 0.), now=1.5, request_id=state.request_id)
         payload = json.loads(text)
         self.assertIs(payload['far_reach'], False)
         self.assertEqual(payload['reason'], 'ok')
