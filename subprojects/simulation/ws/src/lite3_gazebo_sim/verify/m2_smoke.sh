@@ -725,7 +725,7 @@ while time.time()-t0b<30 and not rospy.is_shutdown():
     if m is not None:
         d=math.hypot(m.pose.pose.position.x-S['gt'][0], m.pose.pose.position.y-S['gt'][1])
         worst=max(worst, d)
-        if time.time()-t0b >= _tick:
+        if True:   # 逐样本记录（20 Hz）：0.5 s 抽样会把单帧尖峰漏掉，而 worst 是全样本最大值
             _tick += 0.5
             _trace.write('%.1f\t%.3f\t%.1f\t%.3f\t%.3f\n' % (
                 time.time()-t0b, d,
