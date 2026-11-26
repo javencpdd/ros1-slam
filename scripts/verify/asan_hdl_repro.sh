@@ -69,7 +69,13 @@ export ROS_MASTER_URI=${ROS_MASTER_URI:-http://127.0.0.1:11313}
 # rosnode kill -a 只发 shutdown 请求，杀不掉 rosrun 起的进程；残留的旧 manager / relay
 # 会占住 /velodyne_points 与 /mgr 名字，让后续闸门全部失真。所以按命令行匹配直接杀。
 say "--- [0] 清理陈旧节点与 gzserver ---"
-for pat in 'nodelet manager' 'nodelet load' 'topic_tools.*relay'; do
+# ★只清 HDL 自己的东西★（裁决②）：旧版 `nodelet manager` / `topic_tools.*relay` 是**全局**匹配，
+# 会把地图节点、感知、以及别的子系统的 relay 一起端掉——实测"闸门中继刚起就没了"就是这么来的。
+# 这里按**归属**限定：本脚本的 manager 名是 `/mgr`，HDL 的 nodelet 是 hdl/gms 两个，
+# 两条 relay 是 `/velodyne_points`（喂 HDL）与 `/hdl_odom_raw→/hdl_odom`（闸门）。
+for pat in 'nodelet manager .*__name:=mgr' 'nodelet load hdl_localization' \
+           'nodelet load globalmap' 'topic_tools/relay /hdl_odom_raw /hdl_odom' \
+           'topic_tools/relay /rslidar_points /velodyne_points'; do
   pkill -f "$pat" 2>/dev/null
 done
 sleep 2

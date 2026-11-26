@@ -161,6 +161,32 @@ class TaskIdentity(unittest.TestCase):
                           '没有 goal_task 之前，任何航点都不得产生任务帧')
         self.assertIsNone(self.st.mission)
 
+    # ---- ⑬ 换目标后"旧航点晚到"的几何拒绝（不靠时间窗）----
+    def test_stale_waypoint_rejected_by_geometry(self):
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.task_message((5.0, 2.0, 0.0), (4.6, 2.0, 0.0), now=1.0)
+
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        # 时间窗早就过了：这条"去旧目标方向"的航点在 15 s 才到
+        late = self.st.task_message((5.0, 2.0, 0.0), (5.4, 2.0, 0.0), now=15.0)
+        self.assertIsNone(late, '离上一目标更近的航点必须按残留丢弃')
+        self.assertEqual(self.st.stale_goal_waypoints, 1)
+
+        good = self.st.task_message((5.0, 2.0, 0.0), (4.0, 2.0, 0.0), now=15.2)
+        self.assertIsNotNone(good, '朝新目标去的航点必须放行')
+        self.assertEqual(good['mission_id'], 2)
+
+    # ---- ⑭ 保护期过了以后不再用几何判据（避免长期误杀）----
+    def test_geometry_guard_expires(self):
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        after = self.st.task_message((5.0, 2.0, 0.0), (5.4, 2.0, 0.0), now=10.0 + 5.5)
+        self.assertIsNotNone(after, '超过 5 s 保护期后不再按几何判据丢弃')
+
 
 if __name__ == '__main__':
     unittest.main()

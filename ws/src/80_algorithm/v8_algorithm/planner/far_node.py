@@ -37,6 +37,9 @@ CANCEL_SEQ_BASE = 900000000   # 取消序号起点：避开 BT 的 cancel_seq（
 WAYPOINT_QUANTUM_M = 0.05
 # ★mission 切换后的保护窗★：窗口内到达的航点视为"上一目标在途残留"，不打上新 mission 标号。
 STALE_WAYPOINT_GUARD_S = 0.30
+# 换目标后"按几何判是不是上一轮航点"的保护期（秒）：FAR 重新收敛需要几秒，
+# 这期间只接受"明确朝新目标去"的航点。
+STALE_GOAL_GUARD_S = 5.0
 ARRIVAL_R_XY_M = 0.25      # 到达判据的水平半径（米）：与 BT 树 WaitArrival 的 distance 同值
 ARRIVAL_Z_TOL_M = 0.30     # 到达判据的竖向容差（米）：与 support_map 的 z_tol 同量级
 
@@ -295,6 +298,12 @@ class AdapterState:
         self.invalidations = 0
         self.identity_source = None      # 'goal_task'（权威）| 'goal_meta'（兜底）
         self.legacy_identity_ignored = 0
+        self.legacy_goal_ignored = 0
+        # ★换目标后"旧航点晚到"的几何判据★：`/way_point` 本身无身份，光靠时间窗挡不住。
+        # 记下上一目标：新目标生效后的保护期内，凡是"离旧目标更近"的航点一律按残留丢弃。
+        self.prev_target = None
+        self.prev_target_at = None
+        self.stale_goal_waypoints = 0
 
     # ---- 生命周期 ----
     def next_cancel_seq(self):
@@ -397,6 +406,15 @@ class AdapterState:
         x, y, z = _xyz(waypoint)
         return (round(x / q), round(y / q), round(z / q))
 
+    def set_target(self, goal):
+        """记下本 mission 的操作员目标（3D 元组），并把上一目标留作"晚到航点"判据。"""
+        if goal is None:
+            return
+        point = _xyz(goal)
+        if self.target is not None and point != self.target:
+            self.prev_target, self.prev_target_at = self.target, self.mission_switched_at
+        self.target = point
+
     def on_task_identity(self, payload, now=None):
         """接 BT 的原子任务身份，返回 `'new' | 'same' | 'stale' | 'ignored'`。
 
@@ -449,6 +467,17 @@ class AdapterState:
                 and now - self.mission_switched_at < STALE_WAYPOINT_GUARD_S):
             self.stale_waypoints += 1
             return None
+        # ★超出时间窗的旧航点，用几何判据拒★：保护期（默认 5 s）内，若这点离**上一目标**
+        # 比离当前目标更近，那就是上一轮在途残留，不能打上新 mission 标号。
+        if (self.prev_target is not None and self.target is not None
+                and self.prev_target_at is not None
+                and now - self.prev_target_at <= STALE_GOAL_GUARD_S):
+            p = _xyz(waypoint)
+            d_prev = math.dist(p, self.prev_target)
+            d_now = math.dist(p, self.target)
+            if d_prev + 0.10 < d_now:
+                self.stale_goal_waypoints += 1
+                return None
         # ★按**距离**判"是不是同一个航点"，不要用量化分桶★：
         # 分桶在桶边界上会把 ±1 cm 的抖动判成"换了航点"（4.03 与 4.00 分属两桶），
         # 于是位姿稍动就推进一个版本，等于把抖动变成新任务。
@@ -619,9 +648,11 @@ def main():
                 'task_publishes': state.task_publishes,
                 'effective_changes': state.effective_changes,
                 'stale_waypoints': state.stale_waypoints,
+                'stale_goal_waypoints': state.stale_goal_waypoints,
                 'invalidations': state.invalidations,
                 'identity_source': state.identity_source,
-                'legacy_identity_ignored': state.legacy_identity_ignored}
+                'legacy_identity_ignored': state.legacy_identity_ignored,
+                'legacy_goal_ignored': state.legacy_goal_ignored}
 
     def publish_status(text):
         status_pub.publish(String(data=text))
@@ -709,13 +740,27 @@ def main():
         BT 再来一次 `WaitArrival` 会在第一拍就成立。`bt_console.cpp:1065-1070` 的
         `arrivalCallback` 是直接赋值（`arrival_signal = msg->data`），回 false 是安全的。
         """
+        if atomic_only:
+            # ★正式原子模式：legacy `/v8/global/goal` 不得改任何控制状态★（裁决④）——
+            # 目标、身份、重新武装（解除 halted）三件事必须由**同一条 goal_task** 决定。
+            state.legacy_goal_ignored += 1
+            return
         p = message.pose.position
-        state.on_goal((p.x, p.y, p.z))
+        apply_goal((p.x, p.y, p.z), message.header)
+
+    def apply_goal(xyz, header=None):
+        """目标生效的唯一实现：清 halted + 重置到达判据 + 记 target + 下发给 FAR。
+
+        atomic 模式下只有 `goal_task` 能走到这里；legacy goal 被挡在 `on_goal` 入口。
+        """
+        state.on_goal(xyz)
+        state.set_target(xyz)             # 留作"旧航点晚到"的几何判据
         if arrival_pub is not None:
             arrival_pub.publish(Bool(data=False))
         point = PointStamped()
-        point.header = message.header
-        point.point.x, point.point.y, point.point.z = p.x, p.y, p.z
+        if header is not None:
+            point.header = header
+        point.point.x, point.point.y, point.point.z = xyz
         far_goal_pub.publish(point)
         # 占位帧用 BT 认的瞬态名（见 `BT_TRANSIENT_REASONS` 上方的注释），
         # 否则 `WaitForPath` 会在暖机这一拍判 FAILURE。
@@ -752,6 +797,15 @@ def main():
             state.identity_source = source
         if result == 'stale':
             state.stale_waypoints += 1
+        # ★同一条 goal_task 同时决定身份与目标★（裁决④）：带 x/y/z 就地生效，
+        # 不再依赖另一条 legacy PoseStamped 去解除 halted / 下发 FAR 目标点。
+        if source == 'goal_task' and result in ('new', 'same'):
+            try:
+                xyz = (float(payload['x']), float(payload['y']), float(payload.get('z', 0.0)))
+            except (KeyError, TypeError, ValueError):
+                xyz = None
+            if xyz is not None:
+                apply_goal(xyz)
 
     def on_task_goal_meta(message):
         on_task_identity(message, source='goal_meta')

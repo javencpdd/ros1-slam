@@ -60,6 +60,8 @@ def main():
     ap.add_argument('--root', default=ROOT)
     ap.add_argument('--launch', default='')
     ap.add_argument('--status-json', default='')
+    ap.add_argument('--runtime', action='store_true',
+                    help='核验运行期实际加载的 World/PCD（world 取 gzserver 命令行、pcd 取 /gms/globalmap_pcd）')
     ap.add_argument('--from-ros', action='store_true',
                     help='直接订阅 /v8_map_status（避免解析 rostopic echo 的包装文本）')
     args = ap.parse_args()
@@ -93,6 +95,47 @@ def main():
         print('launch map_json: %s ⇒ 与组合 %s' % (m[:2], '一致' if hit else '不一致'))
         if not hit:
             report['checks']['all_files_exist'] = False
+
+    # ---- 运行期 World / PCD 实际加载核验（裁决⑥）----
+    if args.runtime:
+        import subprocess
+        world_live = None
+        try:
+            out = subprocess.run(['pgrep', '-af', 'gzserver'], capture_output=True,
+                                 text=True, timeout=5).stdout
+            # gzserver 的形态是 `gzserver -e ode <world.world> ...`（没有 --world 参数）
+            m = re.search(r'gzserver\b.*?\s(/[^\s]+\.world)', out)
+            world_live = m.group(1) if m else None
+        except Exception:
+            world_live = None
+        # 路径可能落在 sim_ws 的部署副本上：以**内容 sha** 判等，路径不同但同内容也算一致
+        world_ok = False
+        if world_live and os.path.isfile(world_live):
+            same_path = os.path.realpath(world_live) == \
+                os.path.realpath(report['files']['world']['path'])
+            same_sha = sha256(world_live) == report['files']['world']['sha256']
+            world_ok = same_path or same_sha
+            note = '路径一致' if same_path else ('路径不同但内容相同（部署副本）' if same_sha else '内容不一致')
+        else:
+            note = '未核验'
+        report['checks']['runtime_world_matches'] = world_ok
+        print('运行期 world: %s ⇒ %s' % (world_live, note))
+
+        pcd_live = None
+        try:
+            out = subprocess.run(['rosparam', 'get', '/gms/globalmap_pcd'], capture_output=True,
+                                 text=True, timeout=5).stdout.strip()
+            pcd_live = out or None
+        except Exception:
+            pcd_live = None
+        pcd_ok = bool(pcd_live) and os.path.realpath(pcd_live) == \
+            os.path.realpath(report['files']['pcd']['path'])
+        report['checks']['runtime_pcd_matches'] = pcd_ok
+        print('运行期 pcd  : %s ⇒ %s' % (pcd_live, '与组合一致' if pcd_ok else '未核验/不一致'))
+
+        # Task：运行期不可观测（由验收脚本读取），显式标未核验，不冒充通过
+        report['checks']['runtime_task_unverified'] = True
+        print('运行期 task : 不可观测（验收脚本读取）⇒ 标记未核验')
 
     # 运行期 sha 与文件 sha 一致 ⇒ 真正加载的就是登记的那份
     if args.from_ros:
@@ -144,7 +187,8 @@ def main():
     # 但会在上面单独打印一行，避免把"没核验"说成"核验通过"。
     core = {k: v for k, v in report['checks'].items()
             if k in ('all_files_exist', 'runtime_sha_matches',
-                     'launch_map_json_matches')}
+                     'launch_map_json_matches', 'runtime_world_matches',
+                     'runtime_pcd_matches')}
     verdict = 'PASS' if all(core.values()) else 'FAIL'
     print('VERDICT %s %s' % (verdict, json.dumps(report['checks'], ensure_ascii=False)))
     print('REPORT ' + json.dumps(report, ensure_ascii=False))

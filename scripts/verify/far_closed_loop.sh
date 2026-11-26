@@ -1,172 +1,39 @@
 #!/usr/bin/env bash
-# FAR / support 闭环验收的一键跑法（容器内运行）。
+# FAR / Support 后端对照的一键入口（2026-11-26 收敛版）。
 #
-# 为什么要有这个脚本：此前每轮验收都靠手敲一长串命令，踩过四类环境坑并各浪费一轮：
-#   ① docker exec 不加 -d 会随主进程退出清进程组 ⇒ 整链必须在**同一次 exec** 内跑完；
-#   ② 镜像默认 ROS_MASTER_URI=11313，另起 roscore(11311) 会形成双 master ⇒ 本脚本只认现有 master，不自己起；
-#   ③ 独立 overlay 的 setup 会覆盖 ROS_PACKAGE_PATH/CMAKE_PREFIX_PATH ⇒ 显式补回且不重复 prepend；
-#   ④ pkill 的模式若出现在本命令自身命令行里会自杀 ⇒ 一律括号模式，且清场与本脚本分离。
+# 为什么要改成薄壳（真人裁决②③）：
+#   · 旧版自己 roslaunch M2 底座、自己起图、自己跑 `far_closed_loop_probe.py`。而
+#     `p4_nav_hdl.sh`/`p4_regression.sh` 已经有一套完整的底座+HDL+图+探针+judge；
+#     两者并存导致"同一批 manager/relay 被准备两次"，也导致 FAR 的验收口径与 Support 不一致
+#     （旧探针直接发 localization_ok=false、固定目标、用估计位移、取消 scope 也是旧的，
+#      且没有完整 judge）。
+#   · 现在**只做后端切换**：把 GRAPH/EXPECT_NODES/POSE_TOPIC 交给 p4_regression，其余完全复用
+#     已通过的 Support 验收链（四项 + judge）。
 #
-# 用法（容器内）：bash scripts/verify/far_closed_loop.sh <combo> <scenario> <evidence_dir>
-#   combo    : graph_far | graph_support | trad_far
-#   scenario : c1（正常导航）
-# 退出码：0 探针判定 PASS；5 判定 FAIL/INVALID；9 前置不成立（无 master / 无点云 / 图未起全）。
+# 用法（容器内）：
+#   bash scripts/verify/far_closed_loop.sh                 # 默认 M1 + HDL + FAR 图
+#   BASE=m2 bash scripts/verify/far_closed_loop.sh          # LIO 组合（M2 时间戳未修好前不作基准）
+#   EV_ROOT=/path/to/evidence bash scripts/verify/far_closed_loop.sh
+#
+# 退出码沿用 p4_regression：0＝四项全 PASS。
 set -uo pipefail
 
-COMBO="${1:?combo: graph_far|graph_support|trad_far}"
-SCENARIO="${2:-c1}"
-EV="${3:?evidence dir}"
 REPO="${REPO:-/opt/ros1-slam}"
-WS="$REPO/ws"
-OVERLAY="$REPO/tooling/far_overlay"
-GRAPH="$WS/src/90_platform/v8_platform/framework/fixtures/graphs"
-mkdir -p "$EV"
+BASE="${BASE:-m1}"
+FW="$REPO/ws/src/90_platform/v8_platform/framework/fixtures/graphs"
 
-log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*" >&2; }
-die() { log "ABORT: $*"; exit 9; }
-
-# ---------- 0. 环境 ----------
-if [ "$COMBO" != "graph_support" ]; then
-  # ★统一入口★：不要直接 source overlay 的 setup.bash —— 它会覆盖 ROS_PACKAGE_PATH /
-  # CMAKE_PREFIX_PATH / PYTHONPATH 三个变量，分别导致"包找不到""C++ 节点找不到"
-  # "sim_adapter 导入 livox_laser_simulation 失败 ⇒ 无点云 ⇒ 全链零速"。env.sh 负责补回并自检。
-  source "$OVERLAY/env.sh" || die "FAR 环境自检失败（见上）"
-else
-  source /opt/ros/noetic/setup.bash
-  [ -f "$WS/devel/setup.bash" ] && source "$WS/devel/setup.bash"
-fi
-# ---------- 1. 前置：唯一 master ----------
-# ★与项目冒烟同款★（m2_smoke.sh:31）：nav 用 11313、Gazebo 用 11345。
-# 之前手搓时两个 URI 混用，是"有时有 odom、有时没有"的直接原因。
-export ROS_MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11313}"
-export GAZEBO_MASTER_URI="${GAZEBO_MASTER_URI:-http://127.0.0.1:11345}"
-# ★按"端口是否可应答"判断，而不是数进程★：容器里可能残留一个跑在默认 11311 的 master，
-# 数进程会得 1 而实际 11313 没人应答（实测踩过）。这里以 $ROS_MASTER_URI 能否应答为准。
-if ! timeout 4 rostopic list >/dev/null 2>&1; then
-  log "master($ROS_MASTER_URI) 不可应答，清掉旧的并显式起一个"
-  pkill -f "noetic/bin/[r]osmaster" 2>/dev/null || true
-  sleep 3
-  roscore -p "${ROS_MASTER_URI##*:}" > "$EV/roscore.log" 2>&1 &
-  for _ in $(seq 1 20); do
-    sleep 2
-    timeout 3 rostopic list >/dev/null 2>&1 && break
-  done
-fi
-timeout 5 rostopic list >/dev/null 2>&1 || die "master 无响应：$ROS_MASTER_URI（见 $EV/roscore.log）"
-
-# ---------- 2. 起仿真 ----------
-# ★底座选择（2026-11-26 收口）★：默认 m1（M1 + HDL + FAR 受控对照），不再强绑 M2。
-#   BASE=m1：走 docker/sim.sh（统一启动体系）＋ asan 装 HDL ＋ M1 的 FAR 图
-#   BASE=m2：保留旧路径（M2 底座 + LIO 图），仅供 LIO 专项复用；M2 时间戳未修好前不做基准
-BASE=${BASE:-m1}
 if [ "$BASE" = "m1" ]; then
-  log "M1 底座（sim.sh 统一入口）+ HDL + FAR 图"
-  bash /opt/ros1-slam/docker/sim.sh base m1 no-hdl >> "$EV/gazebo.log" 2>&1 \
-    || die "sim.sh base m1 失败（见 $EV/gazebo.log）"
-  source /opt/ros/noetic/setup.bash
-  source "$WS/devel/setup.bash"
-  export ROS_MASTER_URI=${ROS_MASTER_URI:-http://127.0.0.1:11313}
-  timeout 8 rosservice call /gazebo/set_model_state \
-    "{model_state: {model_name: lite3_planar, pose: {position: {x: 5.2, y: 2.45, z: 0.11}, orientation: {w: 1.0}}, reference_frame: world}}" \
-    > "$EV/place.log" 2>&1
-  SKIP_GAZEBO=1 NO_LAUNCH_GAZEBO=1 MODE=normal INIT_X=5.2 INIT_Y=2.45 \
-    bash /opt/ros1-slam/scripts/verify/asan_hdl_repro.sh >> "$EV/hdl.log" 2>&1 \
-    || die "asan HDL 装载失败（见 $EV/hdl.log）"
-  log "HDL 就绪（组合 ${MAP_COMBO:-m1_synth}）"
-fi
-
-# ★M2 底座★：m2_gazebo（传感器）+ m2_mapping（真实 LIO → /Odometry）。
-# 真值单独在 /sim/odom_gt，仅供评测；控制链只吃 /Odometry。
-if [ "$BASE" = "m2" ]; then
-log "启动 M2 底座（gazebo + mapping）——★旧路径，M2 时间戳未修好前不作基准★"
-roslaunch lite3_gazebo_sim m2_gazebo.launch > "$EV/gazebo.log" 2>&1 &
-GZ_PID=$!
-for _ in $(seq 1 30); do
-  sleep 2
-  if timeout 3 rostopic info /rslidar_points 2>/dev/null | grep -q sim_adapter; then break; fi
-done
-# ★照 m2_smoke.sh:101-104 的三个前置等待★：它先等 /clock→/rslidar_points→/livox/imu 才起 mapping。
-# 少了这一步，mapping 会在传感器还没齐时启动并静默失败（我此前正是漏了它，导致 /cloud_registered 永不出）。
-for t in /clock /rslidar_points /livox/imu; do
-  ok=0
-  for _ in $(seq 1 40); do
-    sleep 2
-    if timeout 3 rostopic type "$t" >/dev/null 2>&1; then ok=1; break; fi
-  done
-  [ "$ok" = "1" ] || die "传感器前置未就绪：$t"
-done
-log "传感器前置就绪（clock/cloud/imu）"
-roslaunch lite3_gazebo_sim m2_mapping.launch > "$EV/mapping.log" 2>&1 &
-MAP_PID=$!
-# ★照 m2_smoke 的等待口径★：它等的是 /cloud_registered（LIO 管线活着的证据），
-# 而 /Odometry 往往要在机器人**动起来之后**才出现（冒烟是在 drive() 之后才读到 odom）。
-CLOUD_OK=0
-for _ in $(seq 1 24); do
-  sleep 5
-  if timeout 4 rostopic hz /cloud_registered 2>/dev/null | grep -q "average rate"; then CLOUD_OK=1; break; fi
-done
-[ "$CLOUD_OK" = "1" ] || die "/cloud_registered 未出（LIO 管线未起，先跑 stageA 判定底座）"
-ODOM_OK=0
-for _ in $(seq 1 12); do
-  sleep 5
-  if timeout 4 rostopic hz /Odometry 2>/dev/null | grep -q "average rate"; then ODOM_OK=1; break; fi
-done
-[ "$ODOM_OK" = "1" ] || die "LIO 未产出 /Odometry（底座不健康，先跑 docker/sim.sh smoke stageA 判定）"
-log "LIO 就绪：$(timeout 5 rostopic hz /Odometry 2>&1 | grep 'average rate' | tail -1)"
-fi
-
-# ---------- 3. 起图 ----------
-case "$COMBO" in
-  graph_far)     if [ "$BASE" = "m1" ]; then GY="$GRAPH/graph_3d_m1_hdl_bt_far.yaml"
-                 else GY="$GRAPH/graph_3d_m2_lio_bt_far.yaml"; fi ;;
-  graph_far_m1)  GY="$GRAPH/graph_3d_m1_hdl_bt_far.yaml" ;;
-  graph_support) GY="$GRAPH/graph_3d_m1_hdl_bt.yaml" ;;
-  trad_far)      GY="";;
-  *) die "未知 combo：$COMBO" ;;
-esac
-
-if [ -n "$GY" ]; then
-  ( cd "$WS/src/90_platform/v8_platform/framework" && \
-    python3 cli.py plan fixtures/manifests "$GY" --package-index fixtures/package_index.json \
-      --out-plan "$EV/plan.json" --out-launch "$EV/graph.launch" > "$EV/plan.out" 2>&1 ) \
-    || die "图渲染失败，见 $EV/plan.out"
-  roslaunch "$EV/graph.launch" > "$EV/stack.log" 2>&1 &
-  ST_PID=$!
-  sleep 28
+  export GRAPH="${GRAPH:-$FW/graph_3d_m1_hdl_bt_far.yaml}"
+  export EXPECT_NODES="${EXPECT_NODES:-8}"     # far_stack 以 include 起 far_planner + v8_global_far
+  export POSE_TOPIC="${POSE_TOPIC:-/hdl_odom}"
 else
-  # trad_far：手工链（far_stack + path_goal + local + mux + BT + relay），全用 M1 的同一批组件
-  roslaunch v8_platform far_stack.launch > "$EV/far_stack.log" 2>&1 &
-  roslaunch v8_platform run_path_goal.launch > "$EV/path_goal.log" 2>&1 || true
-  ST_PID=$!
-  sleep 20
+  export M2=1
+  export GRAPH="${GRAPH:-$FW/graph_3d_m2_lio_bt_far.yaml}"
+  export EXPECT_NODES="${EXPECT_NODES:-10}"
+  export POSE_TOPIC="${POSE_TOPIC:-/v8/local/pose}"
 fi
 
-# ---------- 4. 节点存活前置 ----------
-timeout 10 rosnode list > "$EV/nodes.txt" 2>&1
-for want in "local" "bt" "mux" "global"; do
-  grep -q "$want" "$EV/nodes.txt" || die "节点缺失：$want（见 $EV/nodes.txt）"
-done
+echo "[far] BASE=$BASE GRAPH=$(basename "$GRAPH") EXPECT_NODES=$EXPECT_NODES POSE_TOPIC=$POSE_TOPIC"
+echo "[far] 旧 far_closed_loop_probe.py 已停用（口径与 Support 不一致），验收统一走 p4_regression"
 
-# ---------- 5. 跑场景 ----------
-rc=0
-case "$SCENARIO" in
-  c1)
-    timeout 180 python3 "$REPO/scripts/verify/far_closed_loop_probe.py" "$EV/probe_c1.json" \
-      > "$EV/probe_c1.out" 2>&1 || rc=$?
-    ;;
-  *) die "未知 scenario：$SCENARIO" ;;
-esac
-
-# ---------- 6. 收尾：只清本脚本起的进程 ----------
-[ -n "${ST_PID:-}" ] && kill "$ST_PID" 2>/dev/null
-[ -n "${GZ_PID:-}" ] && kill "$GZ_PID" 2>/dev/null
-sleep 2
-
-# ---------- 7. 关键读数落盘（排查用） ----------
-for t in /v8/local/status /v8/3d/mux/status /v8/3d/perception/status /v8/local/localization_status; do
-  n=$(echo "${t#/}" | tr '/' '_')
-  timeout 4 rostopic echo -n1 "$t" > "$EV/read_$n.txt" 2>&1 || true
-done
-
-if [ "$rc" = "0" ]; then log "SCENARIO $SCENARIO rc=0（看 $EV/probe_$SCENARIO.json 的 verdict）"; else log "SCENARIO $SCENARIO rc=$rc"; fi
-exit "$rc"
+exec bash "$REPO/scripts/verify/p4_regression.sh"
