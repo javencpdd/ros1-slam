@@ -324,6 +324,7 @@ class PathGoal(object):
             return
         self.last_goal_key = key
         # ★先发 goal_meta、再发 goal★：把 mission/revision/waypoint 传下去（不依赖 header.seq）
+        atomic = bool(getattr(self, 'atomic_mode', False))
         if getattr(self, 'task_meta', None):
             meta = dict(self.task_meta)
             meta['waypoint_index'] = int(self.index)
@@ -336,7 +337,12 @@ class PathGoal(object):
             task['z'] = goal.pose.position.z
             if hasattr(self, 'goal_task_pub') and self.goal_task_pub is not None:
                 self.goal_task_pub.publish(String(data=json.dumps(task, ensure_ascii=False)))
-        self.goal_pub.publish(goal)
+        if not atomic:
+            # ★原子模式下不再发 legacy `/v8/local/goal`★：local 开了 `require_task_meta`，
+            # 收到的无身份目标会被拒并写 `E_LOCAL_NO_TASK_IDENTITY`，把状态机的 reason 刷成
+            # "没有任务身份"，现场看起来像"任务丢了/车自己停"（实测 107 Hz 状态里 529 帧都是它）。
+            # 控制通道只留 goal_task 一条，legacy 仅在没有身份时兜底。
+            self.goal_pub.publish(goal)
         # ★墙钟★：本节点没有 /clock 时 `rospy.Time.now()` 恒为 0，超时判据永远不成立，
         # 于是"卡住就往前推一格"的兜底彻底失效（实测 index 冻结 139 s 不动）。
         self.published_at = time.monotonic()

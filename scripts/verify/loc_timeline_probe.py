@@ -31,7 +31,9 @@ def main():
     def sub(topic, key, msg_type=String):
         def cb(m):
             if msg_type is String:
-                s[key] = (m.data or '')[:400]
+                # ★别截太短★：local 的 status JSON 有 700+ 字符，截到 400 会让 json.loads 失败、
+                # pick() 返回空串 —— 时间线里 local 列整列空白就是这么来的（2026-11-26 实测）。
+                s[key] = (m.data or '')[:4000]
             else:
                 s['v'] = (m.linear.x ** 2 + m.linear.y ** 2) ** 0.5
         rospy.Subscriber(topic, msg_type, cb, queue_size=20)

@@ -1,0 +1,14 @@
+=== 1 正常导航 ===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[nav] v8_nodes=9
+=== 收尾：拆掉本轮编排 ===
+=== 汇总（机器判定）===
+项            判定       读数                                                         备注
+1 正常导航       PASS     gt=0.018 m est=0.055                                       frames=233 travel=1.290 bt=reached
+2 障碍安全       INVALID  缺 obstacle.json                                            -
+3 定位失效       INVALID  缺 loc_stop.json                                            -
+4 取消安全       INVALID  缺 cancel.json                                              -
+————————————————————————————————————————————————————————————————————————————————————————————————————
+四项：1 PASS / 3 未通过
+EV_ROOT=/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/reg_nav_b_095523
+judge_rc=1（0=四项全 PASS，非零=有项未通过）
