@@ -1,0 +1,14 @@
+=== 1 正常导航 ===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[nav] M2 验收模式（闸门由图内 lio_gate 组件提供）
+[nav] v8_nodes=10
+=== 2 障碍安全（离线回归，不需重置栈）===
+  "B_narrow_corridor": "smallest_passable 0.650 >= required 0.613",
+  "C_dynamic_obstacle": "extra_monotone=True failclosed=True",
+  "D_open_space": "open=True far=True"
+ }
+}
+=== 2b 运动中障碍（在线）===
+[place] target=(5.2,2.45) err=0.000 m ok=1
+[obstacle] M2 验收模式（闸门由图内 lio_gate 组件提供）
+[obstacle] v8_nodes=10

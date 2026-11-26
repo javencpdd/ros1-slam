@@ -1,0 +1,42 @@
+[INFO] [1795691561.134964, 107.631000]: localization source=faster_lio navigation_allowed=True
+READY
+READY
+[33m[ WARN] [1795691561.482808720, 107.797000000]: [bt] localization lost: mission aborted, queued goals dropped (recovery requires a new goal)[0m
+READY
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/scripts/run_local_ros_node.py", line 19, in <module>
+    ros_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_algorithm/local_planner/ros_node.py", line 545, in main
+    if rospy.get_param('~pause_planning', False):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/client.py", line 468, in get_param
+    return _param_server[param_name] #MasterProxy does all the magic for us
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/msproxy.py", line 121, in __getitem__
+    code, msg, value = self.target.getParam(rospy.names.get_caller_id(), resolved_key)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1109, in __call__
+    return self.__send(self.__name, args)
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/core.py", line 696, in _ServerProxy__request
+    return xmlrpcclient.ServerProxy._ServerProxy__request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1450, in __request
+    response = self.__transport.request(
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1153, in request
+    return self.single_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1165, in single_request
+    http_conn = self.send_request(host, handler, request_body, verbose)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1278, in send_request
+    self.send_content(connection, request_body)
+  File "/usr/lib/python3.8/xmlrpc/client.py", line 1308, in send_content
+    connection.endheaders(request_body)
+  File "/usr/lib/python3.8/http/client.py", line 1251, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.8/http/client.py", line 1011, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.8/http/client.py", line 951, in send
+    self.connect()
+  File "/usr/lib/python3.8/http/client.py", line 922, in connect
+    self.sock = self._create_connection(
+  File "/usr/lib/python3.8/socket.py", line 808, in create_connection
+    raise err
+  File "/usr/lib/python3.8/socket.py", line 796, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+[33m[ WARN] [1795691644.833022719, 134.677000000]: [bt] arrival timeout after 65.0 s (budget 65.0 s)[0m
