@@ -558,6 +558,7 @@ def main():
     legacy_task_topic = rospy.get_param('~legacy_task_topic', '/v8/bt/goal_meta')
     path_task_topic = rospy.get_param('~path_task_topic', '/v8/3d/global/path_task')
     refresh_hz = float(rospy.get_param('~path_task_refresh_hz', 2.5))
+    atomic_only = bool(rospy.get_param('~atomic_only', True))
     path_topic = rospy.get_param('~path_topic', '/global_path')
     gait_path_topic = rospy.get_param('~gait_path_topic', '/v8/gait_guard/path')
     status_topic = rospy.get_param('~status_topic', '/global_path/status')
@@ -740,7 +741,10 @@ def main():
             payload = json.loads(message.data)
         except Exception:
             return
-        if source != 'goal_task' and state.identity_source == 'goal_task':
+        # ★正式原子模式禁止任何 legacy 回退★（2026-11-26 裁决②）：`atomic_only=true`（默认）时
+        # `goal_meta`/legacy goal 一律不参与身份，从**启动第一帧**起就只认 `goal_task`。
+        # 只有在显式 `~atomic_only:=false`（legacy 后端联调）时才允许"没见过原子消息就先兜底"。
+        if source != 'goal_task' and (atomic_only or state.identity_source == 'goal_task'):
             state.legacy_identity_ignored += 1
             return
         result = state.on_task_identity(payload, now=rospy.get_time())

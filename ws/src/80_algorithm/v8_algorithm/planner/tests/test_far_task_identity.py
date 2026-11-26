@@ -135,6 +135,32 @@ class TaskIdentity(unittest.TestCase):
         self.assertEqual(st.mission['mission_id'], before)
         self.assertEqual(st.legacy_identity_ignored, 1)
 
+    # ---- ⑪ 超过保护窗的旧航点晚到：把"当前能做到什么"钉死，别拿它当身份安全 ----
+    def test_late_waypoint_beyond_window_is_known_limitation(self):
+        """★这是已知残余风险，不是通过项★
+
+        `/way_point` 本身**没有身份**：一条在 mission 1 期间生成、却在 mission 2 开始 5 s 之后
+        才到的航点，适配器无法与"mission 2 的正常航点"区分，会被打上 mission 2 的标号。
+        能证明的只有三件事（都不依赖时间窗）：
+          ① 身份永远来自 BT 的 goal_task，航点**绝不能创建 mission**；
+          ② path_revision 只在"有效航点变化"时前进；
+          ③ 换 mission 必开保护窗（窗内航点丢弃并计数）。
+        因此本用例断言的是"会发生什么"，用来防止后续把这条当成已解决。
+        """
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0), now=1.0)
+        self.st.on_task_identity(ident(2), now=10.0)
+        late = self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0), now=15.0)
+        self.assertIsNotNone(late, '超过保护窗的迟到航点会被接受——这是残余风险')
+        self.assertEqual(late['mission_id'], 2, '且会被标成新的 mission')
+        self.assertEqual(self.st.mission['mission_id'], 2, '但 mission 本身仍只由 goal_task 决定')
+
+    # ---- ⑫ 航点永远不能创建 mission ----
+    def test_waypoint_cannot_create_mission(self):
+        self.assertIsNone(self.st.task_message((5.0, 2.4, 0.0), (4.0, 2.4, 0.0), now=1.0),
+                          '没有 goal_task 之前，任何航点都不得产生任务帧')
+        self.assertIsNone(self.st.mission)
+
 
 if __name__ == '__main__':
     unittest.main()
