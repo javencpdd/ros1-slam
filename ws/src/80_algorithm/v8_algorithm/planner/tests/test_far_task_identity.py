@@ -29,6 +29,10 @@ def ident(mission, gen=0):
 class TaskIdentity(unittest.TestCase):
     def setUp(self):
         self.st = fn.AdapterState()
+        # 默认把"很久以前的一次请求 + 它对应的结果"绑好：既有用例关心的是身份/版本语义，
+        # 不该被请求-结果关联挡住。关联本身的用例在 TaskAssociation 里单独写。
+        self.st.on_goal_request(-1e9)
+        self.st.on_far_path(-1e9 + 0.1, None)
 
     # ---- ① 位姿变化不是新任务 ----
     def test_pose_stream_does_not_advance_revision(self):
@@ -238,3 +242,84 @@ class TaskIdentity(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TaskAssociation(unittest.TestCase):
+    """请求/结果关联（2026-11-27 裁决①）：/way_point 无身份，靠 FAR 自己回报的
+    /global_path（时间戳 + 终点）把"结果"绑到"这次请求"上。"""
+
+    def setUp(self):
+        self.st = fn.AdapterState()
+
+    def bind(self, request_at, path_at, path_goal):
+        self.st.on_goal_request(request_at)
+        self.st.on_far_path(path_at, path_goal)
+
+    def test_result_before_request_is_rejected(self):
+        """迟到/乱序：结果是**请求之前**产生的 ⇒ 拒绝（哪怕它现在才到）。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((3.9, 2.45, 0.0))
+        self.bind(request_at=10.0, path_at=9.5, path_goal=(3.9, 2.45, 0.0))
+        self.assertIsNone(self.st.task_message((5.2, 2.45, 0.0), (4.5, 2.45, 0.0), now=10.5))
+        self.assertEqual(self.st.unassociated_waypoints, 1)
+
+    def test_late_waypoint_from_old_goal_rejected(self):
+        """旧任务旧航点：结果时间够新，但**终点偏向上一目标** ⇒ 拒绝。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((5.6, 2.0, 0.0))
+        self.bind(request_at=10.0, path_at=10.2, path_goal=(5.0, 2.0, 0.0))
+        self.assertIsNone(self.st.task_message((5.2, 2.45, 0.0), (5.0, 2.1, 0.0), now=10.4))
+        self.assertEqual(self.st.unassociated_waypoints, 1)
+
+    def test_result_for_current_goal_accepted(self):
+        """合法：结果晚于请求、终点朝新目标 ⇒ 接受。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        self.bind(request_at=10.0, path_at=10.2, path_goal=(3.0, 2.0, 0.0))
+        msg = self.st.task_message((5.2, 2.45, 0.0), (4.0, 2.0, 0.0), now=10.4)
+        self.assertIsNotNone(msg)
+        self.assertEqual(msg['mission_id'], 2)
+
+    def test_concurrent_switch_uses_latest_request(self):
+        """并发切换：连续两次换目标，只有**最后一次请求之后**的结果被接受。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((5.0, 2.0, 0.0))
+        self.st.on_task_identity(ident(2), now=10.0)
+        self.st.set_target((4.0, 2.0, 0.0))
+        self.st.on_task_identity(ident(3), now=11.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        # 请求来自 mission 2 那次（10.0），结果也是那时的
+        self.bind(request_at=11.0, path_at=10.4, path_goal=(4.0, 2.0, 0.0))
+        self.assertIsNone(self.st.task_message((5.2, 2.45, 0.0), (4.2, 2.0, 0.0), now=11.5))
+
+    def test_no_request_no_result(self):
+        """没有请求就没有关联：任何航点都不得输出（防"无人认领"的结果被贴标）。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        self.assertIsNone(self.st.task_message((5.2, 2.45, 0.0), (4.0, 2.0, 0.0), now=1.0))
+
+    def test_same_coordinate_repeat_request_is_idempotent(self):
+        """重复请求（同坐标同 mission）：不推进版本；结果时间更新即可继续用。"""
+        self.st.on_task_identity(ident(1), now=0.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        self.bind(request_at=0.0, path_at=0.2, path_goal=(3.0, 2.0, 0.0))
+        first = self.st.task_message((5.2, 2.45, 0.0), (4.0, 2.0, 0.0), now=0.3)
+        self.assertIsNotNone(first)
+        rev = first['path_revision']
+        # BT 重复下发同一条 goal_task：幂等 ⇒ 不重新武装、**也不刷新请求时刻**
+        self.assertEqual(self.st.on_task_identity(ident(1), now=5.0), 'same')
+        again = self.st.task_message((5.2, 2.45, 0.0), (4.0, 2.0, 0.0), now=9.0)
+        self.assertIsNotNone(again, '幂等请求不刷新关联：上一轮结果依然有效')
+        self.assertEqual(again['path_revision'], rev, '同航点不得推进版本')
+
+    def test_revoked_blocks_even_when_associated(self):
+        """撤销后即使结果关联成立也不得输出。"""
+        self.st.on_task_identity(ident(2), now=0.0)
+        self.st.set_target((3.0, 2.0, 0.0))
+        self.bind(request_at=0.0, path_at=0.2, path_goal=(3.0, 2.0, 0.0))
+        self.st.revoke(reason='cancel')
+        self.assertIsNone(self.st.task_message((5.2, 2.45, 0.0), (4.0, 2.0, 0.0), now=0.3))

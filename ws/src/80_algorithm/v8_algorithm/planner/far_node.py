@@ -42,6 +42,8 @@ STALE_WAYPOINT_GUARD_S = 0.30
 STALE_GOAL_GUARD_S = 5.0
 # "几乎落在上一目标上"的半径（米）：几何判据只在这个范围内生效，避免误杀绕行
 STALE_GOAL_NEAR_M = 0.75
+# 结果与请求的时间比较容差（秒）：同一帧内 FAR 可能先发 path 再被我们读到
+PATH_ASSOC_SLACK_S = 0.05
 ARRIVAL_R_XY_M = 0.25      # 到达判据的水平半径（米）：与 BT 树 WaitArrival 的 distance 同值
 ARRIVAL_Z_TOL_M = 0.30     # 到达判据的竖向容差（米）：与 support_map 的 z_tol 同量级
 
@@ -315,6 +317,16 @@ class AdapterState:
         # ★撤销线★：取消/安全停止之后，该 mission 及其之前**永不重新武装**
         # （身份、目标、halted 三件事都不得因它再变）。同 mission 的重复 goal_task 也必须幂等。
         self.revoked_mission = -1
+        # ★请求/结果关联（2026-11-27 裁决①）★：FAR 的 `/way_point` 本身没有身份，
+        # 但它**同时**发布 `/global_path`（终点＝它这次真正规划的目标）。用生产者自己的
+        # 时间戳与终点做关联，才是"从上游建立请求与结果的关系"：
+        #   · `goal_request_stamp`：我们最后一次把目标交给 FAR 的时刻
+        #   · `path_stamp` / `path_goal`：FAR 最近一次回报的规划结果（时间、终点）
+        # 结果早于请求 ⇒ 是上一轮的在途产物；终点更靠近上一目标 ⇒ 是旧目标的结果。
+        self.goal_request_stamp = None
+        self.path_stamp = None
+        self.path_goal = None
+        self.unassociated_waypoints = 0
 
     # ---- 生命周期 ----
     def next_cancel_seq(self):
@@ -475,6 +487,34 @@ class AdapterState:
         self.revoke_reason = reason
         return self.revoked_mission
 
+    def on_goal_request(self, now):
+        """目标已交给 FAR：此后到达的规划结果才算本轮。清掉上一轮的结果缓存。"""
+        self.goal_request_stamp = float(now)
+        self.path_stamp = None
+        self.path_goal = None
+
+    def on_far_path(self, stamp, goal):
+        """FAR 回报了一次规划结果：记下它的**生产者时间戳**与终点。"""
+        self.path_stamp = float(stamp)
+        self.path_goal = _xyz(goal) if goal is not None else None
+
+    def result_associated(self):
+        """这次规划结果是否属于**当前这次请求**（不清状态，只回答）。"""
+        if self.goal_request_stamp is None or self.path_stamp is None:
+            return False
+        # ① 生产者时钟：结果必须不早于请求（留 PATH_ASSOC_SLACK_S 容忍同帧延迟）
+        if self.path_stamp + PATH_ASSOC_SLACK_S < self.goal_request_stamp:
+            return False
+        # ② 内容：终点若明显更靠近**上一目标**，说明 FAR 还在按旧目标规划
+        #    （FAR 会把目标吸附进可见性图，所以不能要求终点等于目标，只能比较"偏向谁"）
+        if (self.prev_target is not None and self.target is not None
+                and self.path_goal is not None):
+            d_prev = math.dist(self.path_goal, self.prev_target)
+            d_now = math.dist(self.path_goal, self.target)
+            if d_prev + 0.25 < d_now:
+                return False
+        return True
+
     def task_message(self, pose, waypoint, now=None):
         """把一次航点事件变成**原子任务帧**（dict）；不该发时返回 `None`。
 
@@ -489,6 +529,11 @@ class AdapterState:
         if pose is None or waypoint is None or self.mission is None or self.halted:
             return None
         now = 0.0 if now is None else float(now)
+        # ★关联校验放在最前面★（裁决①）：它必须早于 last_waypoint / revision / 任何发布，
+        # 否则"先更新状态再判身份"正是给旧结果贴新标签的那条路。
+        if not self.result_associated():
+            self.unassociated_waypoints += 1
+            return None
         if (self.mission_switched_at is not None
                 and now - self.mission_switched_at < STALE_WAYPOINT_GUARD_S):
             self.stale_waypoints += 1
@@ -617,6 +662,7 @@ def main():
     path_task_topic = rospy.get_param('~path_task_topic', '/v8/3d/global/path_task')
     refresh_hz = float(rospy.get_param('~path_task_refresh_hz', 2.5))
     atomic_only = bool(rospy.get_param('~atomic_only', True))
+    far_path_topic = rospy.get_param('~far_result_topic', '/global_path')
     path_topic = rospy.get_param('~path_topic', '/global_path')
     gait_path_topic = rospy.get_param('~gait_path_topic', '/v8/gait_guard/path')
     status_topic = rospy.get_param('~status_topic', '/global_path/status')
@@ -681,7 +727,9 @@ def main():
                 'invalidations': state.invalidations,
                 'identity_source': state.identity_source,
                 'legacy_identity_ignored': state.legacy_identity_ignored,
-                'legacy_goal_ignored': state.legacy_goal_ignored}
+                'legacy_goal_ignored': state.legacy_goal_ignored,
+                'unassociated_waypoints': state.unassociated_waypoints,
+                'result_associated': state.result_associated()}
 
     def publish_status(text):
         status_pub.publish(String(data=text))
@@ -794,6 +842,8 @@ def main():
         # 占位帧用 BT 认的瞬态名（见 `BT_TRANSIENT_REASONS` 上方的注释），
         # 否则 `WaitForPath` 会在暖机这一拍判 FAILURE。
         publish_status(status_json(False, 0, WARMUP_PLAN_REASON, detail='E_FAR_WARMUP'))
+        # 记下"这次请求"的时刻：此后 FAR 回报的规划结果才算本轮（见 AdapterState.result_associated）
+        state.on_goal_request(rospy.get_time())
 
     def publish_task(pose_value, waypoint, now=None):
         """发一帧原子任务。返回是否真的发了（便于测试与读数）。"""
@@ -903,6 +953,23 @@ def main():
     rospy.Subscriber(scan_in, PointCloud2, on_scan, queue_size=1)
     rospy.Subscriber(pose_topic, PoseStamped, on_pose, queue_size=2)
     rospy.Subscriber(goal_topic, PoseStamped, on_goal, queue_size=1)
+    def on_far_goal_path(message):
+        """FAR 的规划结果：`/global_path` 的终点就是它这次真正去规划的目标。
+
+        只用它的**时间戳与终点**做请求/结果关联，不用它当路径来源（路径来源是 `/way_point`）。
+        """
+        if not message.poses:
+            return
+        end = message.poses[-1].pose.position
+        state.on_far_path(message.header.stamp.to_sec(), (end.x, end.y, end.z))
+
+    # ★防自环★：`path_topic`（本模块的输出）若与结果话题同名，订阅到的就是自己发的路径，
+    # 关联判据会永远成立——那不是校验，是自证。发现同名直接拒绝订阅并报错。
+    if far_path_topic.strip() == str(path_topic).strip():
+        rospy.logerr('far_result_topic(%s) 与 path_topic 同名：结果关联不可用，已停止订阅',
+                     far_path_topic)
+    else:
+        rospy.Subscriber(far_path_topic, Path, on_far_goal_path, queue_size=2)
     rospy.Subscriber(task_topic, String, on_task_identity, queue_size=5)
     rospy.Subscriber(legacy_task_topic, String, on_task_goal_meta, queue_size=5)
     rospy.Subscriber(waypoint_topic, PointStamped, on_waypoint, queue_size=1)
