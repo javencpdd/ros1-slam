@@ -191,7 +191,12 @@ def arrival_radius(r_xy=ARRIVAL_R_XY_M, z_tol=ARRIVAL_Z_TOL_M):
 
 
 def is_arrived(pose, goal, r_xy=ARRIVAL_R_XY_M, z_tol=ARRIVAL_Z_TOL_M):
-    """3D 到达判据：`|pose - goal|_3d ≤ hypot(r_xy, z_tol)`。
+    """3D 到达判据：**水平与竖向分别判**（`dxy ≤ r_xy` 且 `|Δz| ≤ z_tol`）。
+
+    ★为什么改（2026-11-26 裁决④）★：旧的球形写法 `|pose-goal|_3d ≤ hypot(r_xy, z_tol)`
+    把两个容差合成一个 0.39 m 的半径，于是 **水平 0.38 m 的点也判"到了"**——水平容差被竖向
+    容差吃掉了（旧测试 T15 里还把这个行为当正常）。到达语义必须逐轴可比，否则
+    "水平到没到"根本无法从判据里读出来。
 
     ★ 这是**近似式**，不等于「到对了楼层」★ 两楼层间距若小于 `2 × z_tol` 它分不开。
     真正稳的判据是「pose 所在支撑面 id ＝ goal 指定面 id」，属押后项 D1；
@@ -200,8 +205,9 @@ def is_arrived(pose, goal, r_xy=ARRIVAL_R_XY_M, z_tol=ARRIVAL_Z_TOL_M):
     if pose is None or goal is None:
         raise ValueError('pose and goal are both required')
     a, b = _xyz(pose), _xyz(goal)
-    dist = math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
-    return dist <= arrival_radius(r_xy, z_tol)
+    dxy = math.hypot(b[0] - a[0], b[1] - a[1])
+    dz = abs(b[2] - a[2])
+    return dxy <= float(r_xy) and dz <= float(z_tol)
 
 
 def status_json(ok, points, reason, **extra):

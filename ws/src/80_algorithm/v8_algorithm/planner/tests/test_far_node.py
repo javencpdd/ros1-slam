@@ -187,29 +187,35 @@ class ArrivalTests(unittest.TestCase):
         self.assertTrue(far_node.is_arrived((1., 2., 0.5), (1., 2., 0.5)))
         # 跨层同 xy、z 差 3.0：不得到达（主测 1）
         self.assertFalse(far_node.is_arrived((1., 2., 0.5), (1., 2., 3.5)))
-        # 半径边界：正好等于半径算到达，略超不算
-        r = far_node.arrival_radius(0.25, 0.30)
-        self.assertTrue(far_node.is_arrived((0., 0., 0.), (r, 0., 0.)))
-        self.assertFalse(far_node.is_arrived((0., 0., 0.), (r + 1e-6, 0., 0.)))
+        # ★边界改按**逐轴**判（2026-11-26 裁决④）★：arrival_radius 只留作读数上报，
+        # 不再是判据本体——用它当判据会把水平 0.38 m 判成到达。
+        self.assertTrue(far_node.is_arrived((0., 0., 0.), (0.25, 0., 0.)))
+        self.assertFalse(far_node.is_arrived((0., 0., 0.), (0.25 + 1e-6, 0., 0.)))
+        self.assertTrue(far_node.is_arrived((0., 0., 0.), (0., 0., 0.30)))
+        self.assertFalse(far_node.is_arrived((0., 0., 0.), (0., 0., 0.30 + 1e-6)))
 
-    def test_T15_two_clause_form_collapses_to_one_radius(self):
-        """「水平 ≤ r_xy 且 |Δz| ≤ z_tol」蕴含「三点范数 ≤ hypot(r_xy, z_tol)」。
+    def test_T15_arrival_is_per_axis(self):
+        """★到达判据逐轴判（2026-11-26 裁决④）★
 
-        所以计划里的两段式与单一半径判据**完全等价**：第二段永远不接纳第一段拒绝的点。
-        反例方向也要测：`(0.38, 0, 0)` 过第一段（3D 半径）却被第二段拒绝，
-        说明真正生效的是半径——这正是上游 `converge_dist=0.5` 比本判据松的地方。
+        旧写法 `|p-g|_3d ≤ hypot(0.25,0.30)=0.39` 会把 **水平 0.38 m** 的点判成"到了"，
+        等于用竖向容差补贴水平误差。现在要求：水平 ≤0.25 且 |Δz| ≤0.30，两条都满足才算到。
         """
         r_xy, z_tol = 0.25, 0.30
+        # 逐轴边界内
         for a in (0.0, 0.1, 0.25):
             for b in (-0.30, -0.1, 0.0, 0.1, 0.30):
-                self.assertTrue(far_node.is_arrived((0., 0., 0.), (a, 0., b), r_xy, z_tol))
-                self.assertLessEqual(math.hypot(a, b), far_node.arrival_radius(r_xy, z_tol) + 1e-12)
-        # 只过第一段的点：xy 0.38 > r_xy，但 3D 距离 0.38 < 0.3905
+                self.assertTrue(far_node.is_arrived((0., 0., 0.), (a, 0., b), r_xy, z_tol),
+                                'a=%s b=%s 在逐轴容差内' % (a, b))
+        # 水平越界：3D 距离 0.38 < 0.3905，但水平 0.38 > 0.25 ⇒ 不算到达（旧判据会误判）
         point = (0.38, 0., 0.)
-        self.assertGreater(math.hypot(point[0], point[1]), r_xy)
-        self.assertTrue(far_node.is_arrived((0., 0., 0.), point, r_xy, z_tol))
-        # 上游只用 converge_dist=0.5：z 差 0.45 m 它会判到达，本判据不判
-        self.assertFalse(far_node.is_arrived((0., 0., 0.), (0., 0., 0.45), r_xy, z_tol))
+        self.assertLess(math.hypot(point[0], point[1]), far_node.arrival_radius(r_xy, z_tol))
+        self.assertFalse(far_node.is_arrived((0., 0., 0.), point, r_xy, z_tol),
+                         '水平超差不得靠竖向余量补贴')
+        # 竖向越界单独测
+        self.assertFalse(far_node.is_arrived((0., 0., 0.), (0., 0., 0.31), r_xy, z_tol))
+        self.assertTrue(far_node.is_arrived((0., 0., 0.), (0., 0., 0.30), r_xy, z_tol))
+        # 水平两轴合成：0.2/0.2 的 dxy=0.283 > 0.25 ⇒ 不到
+        self.assertFalse(far_node.is_arrived((0., 0., 0.), (0.2, 0.2, 0.), r_xy, z_tol))
 
     def test_T16_new_goal_resets_arrival(self):
         state = far_node.AdapterState()
