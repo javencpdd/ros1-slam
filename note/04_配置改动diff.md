@@ -9156,3 +9156,32 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - **FAR 运行时专项：未完成**（`far_special2_*`）：`far_closed_loop.sh graph_far` 在
   "传感器前置就绪"之后停住，`/v8` 节点数为 0（未进到装配步骤），需单独定位该脚本的下一道闸门。
   适配层的身份/版本语义已由上述 12 项离线正反控覆盖。
+
+## 2026-11-26 / T-20261126-07 FAR 原子契约两处修正、地图组合固化、Support 复验 4/4
+
+- **far_node 单一权威任务输入**：身份只认 `/v8/bt/goal_task`；`goal_meta` 只在从未见过原子消息时兜底，
+  其后永久让位（计数 `legacy_identity_ignored`）。原来两条消息都能改身份，"目标来自 legacy goal、
+  身份来自 goal_meta"正是跨话题不保序时的错配路径。
+- **`on_waypoint` 补传 now**：`task_message` 默认 `now=0.0`，而保护窗判据是 `now − switched < 0.3`，
+  0 减正数恒成立 ⇒ **每一条航点都被当"晚到"丢掉**，只剩 2.5 Hz 几何刷新在发（实测 path_task 的
+  revision 一直停在 1）。单测补两条：`test_late_waypoint_boundary`（<300 ms 丢、>300 ms 收）、
+  `test_missing_now_drops_everything`（把这条坑钉住）。planner 全量 78 项 OK。
+- **地图组合固化**：新增 `data/maps/combos/{m1_slam,m1_synth}.json`，各绑定 world / pcd / support_json / task_json。
+  `asan_hdl_repro.sh` 默认 `MAP_COMBO=m1_slam`（与支撑栅格 `v8_m1_hdl_v1.json` 同源），不再默认
+  `mapped_m1.pcd`、也不依赖手工记住 `MAP_PCD` 覆盖；坐标契约/P0 用 `MAP_COMBO=m1_synth`。
+  **实测教训**：拿合成 PCD 配实采支撑图会立刻 `E_LOCAL_SUPPORT` 停住 —— 两者必须成套。
+- **探针严格化**（`terrain_tf_ab_probe.py`）：默认**禁止 latest 回退**（该戳查不到即 `FAIL` 并退出 2）、
+  增加"直查 vs 三跳链式相乘"复合残差、增加地图地面 RANSAC、地形云只在**同戳**时才做最近邻残差、
+  输出机读 `verdict`。现跑（`p0_tf_20261126`）：`tf_at=stamp`、复合残差 8.9e-16 m / 0°、
+  `map→rslidar z=0.542 / pitch 13.92°`、地图地面 tilt 1.09° / z0=0.001 m ⇒ 判定 **FAIL**
+  （z 未达 0.45±0.05、tilt 超 1°）。**P0 记"改善、待最终验收"**。
+- **`far_closed_loop.sh` 收敛**：新增 `BASE=m1`（默认）走 `docker/sim.sh` + asan HDL + M1 的 FAR 图，
+  不再强绑 M2 底座；M2 路径保留但标注"时间戳未修好前不作基准"。
+- **Support 复验（最新代码，`reg_support4_e_133147`）= 四项 4/4 PASS**：导航 gt=**0.014 m**（剔零后精度
+  明显改善，此前 0.046）、障碍 5/5＋在线 zero=17.5 s pen=0、定位失效 delay=0.278 s coast=0.006 m
+  新任务可解锁、取消 zero=10.82 仿秒 gt 位移 0.015 m replay=PASS。组合为 `MAP_COMBO=m1_slam`。
+- **FAR 运行时：仍未通过，阻断点在输入契约**（`far_block_20261126`）：FAR 图起来后
+  `/v8_support_map` 与 `/v8/3d/global/path_task` 均为 0 帧，`/v8/local/status` 因此是
+  `E_LOCAL_NOT_READY`（pose/obstacles/localization 都在，缺 map 与 goal）。
+  `collision_evidence_probe` 已就位但这一轮**没有捕获到碰撞现场**——local 从未就绪，
+  所以"读 collision 对象再复放"这一步要等 map/goal 恢复后才做得了。
