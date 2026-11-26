@@ -102,6 +102,22 @@ prime_lidar() {
   timeout 900 rostopic hz /livox/lidar > "${LOGDIR:-/tmp}/livox_primed_${tag}.log" 2>&1 &
 }
 
+# ★把陈旧 profile 树从包路径里摘掉★（2026-11-27 实测）：devel/setup.bash 把
+# `/opt/ros1-slam/ws/.profiles/x86_sim/src` 排在 **第一位**，于是包解析优先命中那份**旧副本**：
+#   · 撞出 `RLException: multiple files named [mode_sim_bt.launch]`
+#   · 重定位段的 `m2_cmd_relay.py`（来自 profile 副本）exit code 1 ⇒ `velodyne_nodelet_manager` 被判死
+#     ⇒ 整个 hdl launch 关停 ⇒ Stage C 出现 "manager 观测窗末不在册" 与 0.83 m 跳变
+# 这里只把 `.profiles/*` 条目剔除（其余路径与顺序不动），让 ws/src 的规范件优先。
+_strip_profiles() {
+  local IFS=':' out=''
+  for p in $ROS_PACKAGE_PATH; do
+    case "$p" in */.profiles/*) continue ;; esac
+    out="${out:+$out:}$p"
+  done
+  export ROS_PACKAGE_PATH="$out"
+}
+_strip_profiles
+
 # ============ Stage A：闭环回归（M2-1/M2-4） ============
 stage_a() {
   SEG=A   # R26 三：本段退净按段各检一次
@@ -516,7 +532,8 @@ PYEOF
 
 # ============ Stage C：hdl 重定位（M2-3） ============
 stage_c() {
-  SEG=C   # R26 三：本段退净按段各检一次
+  SEG=C
+  _strip_profiles   # launch 前再摘一次（脚本中途可能重新 source 过 setup.bash）   # R26 三：本段退净按段各检一次
   # C-1 建图（pcd_save:=true）：复用 Stage A 驱动序列走一遍（out/turn/back），优雅 SIGINT 落盘
   # ★先挂一个 /livox/lidar 订阅者★（2026-11-27 实测）：该 mid360 插件**在有订阅者之后**才发布点云，
   # 冷启动时 `wait_topic /rslidar_points` 会等到超时（实跑三次都卡在这里，插件日志却显示已加载）。
