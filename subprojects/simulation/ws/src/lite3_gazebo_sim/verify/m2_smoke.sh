@@ -229,7 +229,14 @@ stage_b() {
   SEG=B   # R26 三：本段退净按段各检一次
   # [M2R3] TF_SOURCE 环境变量为阴性对照口子：置 static 可回退旧静态件；
   #   缺省空＝用 launch 内 fresh 缺省（mode_sim_bt 透传 m2_teb 的 tf_source）。
-  roslaunch lite3_bringup mode_sim_bt.launch ${TF_SOURCE:+tf_source:=$TF_SOURCE} > "$LOGDIR/btB.log" 2>&1 &
+  # ★用显式路径起 launch★（2026-11-27 实测）：`ws/.profiles/x86_sim/src` 里有一份**内容完全相同**
+  # 的 `lite3_bringup`，包名解析会撞出
+  #   RLException: multiple files named [mode_sim_bt.launch] in package [lite3_bringup]
+  # 于是 /clock 永远等不到、整段判 FAIL。这里优先用 ws/src 下的规范件；找不到再退回包名。
+  local bt_launch
+  bt_launch=$(ls -1 "${M2_WS:-/opt/ros1-slam/ws}/src"/*/lite3_bringup/launch/mode_sim_bt.launch 2>/dev/null | head -1)
+  roslaunch "${bt_launch:-lite3_bringup}" ${bt_launch:+} \
+            ${TF_SOURCE:+tf_source:=$TF_SOURCE} > "$LOGDIR/btB.log" 2>&1 &
   wait_topic /clock 300 || { echo "FAIL B: /clock 未出"; return 1; }
   wait_topic /rslidar_points 480 || { echo "FAIL B: /rslidar_points 未出"; return 1; }
   timeout 60 rostopic echo -n 1 /cmd_vel >/dev/null 2>&1 || true
