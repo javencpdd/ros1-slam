@@ -640,7 +640,7 @@ PYEOF
       printf '%s t=%ss nodes=%s mgr=%s relay=%s odom=%s\n' \
         "$(date +%H:%M:%S)" "$_el" \
         "$(rosnode list 2>/dev/null | wc -l)" \
-        "$(rosnode list 2>/dev/null | grep -c '^/mgr$')" \
+        "$(rosnode list 2>/dev/null | grep -c 'nodelet_manager')" \
         "$(rosnode list 2>/dev/null | grep -c 'imu_relay')" \
         "$(timeout 2 rostopic hz /hdl_odom 2>/dev/null | grep -c 'average rate')" \
         >> "$LOGDIR/stageC_alive.tsv"
@@ -737,8 +737,8 @@ PYEOF
   ELAPSED=$(( $(date +%s) - T_HDL0 ))
   if [ "$ELAPSED" -lt 120 ]; then sleep $(( 120 - ELAPSED )); fi
   wait "$ALIVE_SAMPLER" 2>/dev/null || true
-  say "[C] 观测窗采样首行：$(head -1 "$LOGDIR/stageC_alive.tsv" 2>/dev/null)"
-  say "[C] 观测窗采样末行：$(tail -1 "$LOGDIR/stageC_alive.tsv" 2>/dev/null)"
+  echo "[C] 观测窗采样首行：$(head -1 "$LOGDIR/stageC_alive.tsv" 2>/dev/null)"
+  echo "[C] 观测窗采样末行：$(tail -1 "$LOGDIR/stageC_alive.tsv" 2>/dev/null)"
   ROSL_LOGDIR="${ROS_LOG_DIR:-$HOME/.ros}/logs"
   HDL_UUID=$(ls -t "$ROSL_LOGDIR" 2>/dev/null | head -1)
   HDL_STDOUT_GLOB="$ROSL_LOGDIR/$HDL_UUID"/*-stdout.log
@@ -750,7 +750,9 @@ PYEOF
   else
     mark 1 "C: 稳定性 PASS（hdl 栈存活 ≥120s：无 exit-11/Bond broken/进程死亡）"
   fi
-  rosnode list 2>/dev/null | grep -qx "velodyne_nodelet_manager" \
+  # ★`rosnode list` 输出带前导斜杠★：原来 grep -qx "velodyne_nodelet_manager" 永远匹配不上，
+  # 这条"旁证"因此**结构性恒 FAIL**（2026-11-27 实测：窗口内采样 nodes=12 稳定，却仍判不在册）。
+  rosnode list 2>/dev/null | grep -qx "/velodyne_nodelet_manager" \
     && mark 1 "C: 稳定性旁证（manager 观测窗末在册存活）" || mark 0 "C: 稳定性旁证（manager 观测窗末不在册）"
   # 静置微动（真实底盘静止，仅扰动指令零速）判据旁证：发零速
   true
