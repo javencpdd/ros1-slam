@@ -129,24 +129,11 @@ while True:
 PY
 }
 
-# ★包路径必须让规范件优先★（2026-11-27 实测，/proc 为证）：devel/setup.bash 把
-# `/opt/ros1-slam/ws/.profiles/x86_sim/src` 排在**第一位**，于是 `roslaunch lite3_gazebo_sim ...`
-# 解析到的是**旧副本**——实测 gzserver 命令行里世界文件是
-# `/opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_gazebo_sim/worlds/m1_world.world`，
-# 也就是说本脚本改的 `sim_ws/src` 那些 launch/urdf 根本没被执行。
-# 做法：把两个规范源树**前置**（不删任何既有条目，避免又把 lite3_gazebo_sim 自己摘掉）。
-_prefer_canonical() {
-  local a="${M2_SIM_WS:-/opt/ros1-slam/sim_ws}/src" b="${M2_WS:-/opt/ros1-slam/ws}/src"
-  case ":$ROS_PACKAGE_PATH:" in
-    *":$a:"*) : ;;
-    *) export ROS_PACKAGE_PATH="$a${ROS_PACKAGE_PATH:+:$ROS_PACKAGE_PATH}" ;;
-  esac
-  case ":$ROS_PACKAGE_PATH:" in
-    *":$b:"*) : ;;
-    *) export ROS_PACKAGE_PATH="$b${ROS_PACKAGE_PATH:+:$ROS_PACKAGE_PATH}" ;;
-  esac
-}
-_prefer_canonical
+# ★不要重排 ROS_PACKAGE_PATH★（2026-11-27 实跑回退）：把 sim_ws/src 前置后，
+# stageC 在第一个 `/rslidar_points` 等待处就失败——说明容器实际部署用的是
+# `ws/.profiles/x86_sim/src` 那棵被构建过的树，python 侧 `roslaunch lite3_gazebo_sim` 依赖它的世界/插件布局。
+# 这属于"部署树 vs 源码树"的架构问题，不能用具名脚本顺手改环境来解决；
+# 重复包引起的歧义仍按既有做法用**显式 launch 路径**绕开。
 
 # ============ Stage A：闭环回归（M2-1/M2-4） ============
 stage_a() {
@@ -703,7 +690,9 @@ PYEOF
   _pub=$(rostopic info /hdl_odom 2>/dev/null | sed -n '/Publishers/,/Subscribers/p' | grep -c '^ \*')
   echo "[C] /hdl_odom 发布者数=$_pub"
   [ "$_pub" = "1" ] || { echo "FAIL C: /hdl_odom 发布者数=$_pub（应恰 1，多个说明有残留栈）"; return 1; }
-  _fid=$(timeout 6 rostopic echo -n1 /hdl_odom/header/frame_id 2>/dev/null | head -1)
+  # ★rostopic echo 打印 string 字段会带引号★（2026-11-27 实测：取到的是 "map" 而不是 map，
+  # 于是 `[ "$_fid" = "map" ]` 恒假，把正常的定位源判成不对）。这里剥掉引号与 CR。
+  _fid=$(timeout 6 rostopic echo -n1 /hdl_odom/header/frame_id 2>/dev/null | head -1 | tr -d '"\r')
   echo "[C] /hdl_odom frame_id=$_fid"
   [ "$_fid" = "map" ] || { echo "FAIL C: /hdl_odom frame_id=$_fid（应为 map）"; return 1; }
   python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
