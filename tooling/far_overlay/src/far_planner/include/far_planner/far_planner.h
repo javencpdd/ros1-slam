@@ -58,6 +58,11 @@ private:
     bool is_reset_env_, is_stop_update_;
 
     geometry_msgs::PointStamped goal_waypoint_stamped_;
+    // ★请求身份（2026-11-27）★：上游 `/goal_point` 的 `header.seq` 是该请求的唯一编号。
+    // 本节点在处理这个请求期间，把同样的 seq 原样写进每一条 `/way_point` —— 结果因此自带
+    // "我属于哪一次请求"，下游不必（也不允许）用接收时刻的 mission 去补填身份。
+    // seq==0 表示"没有请求"（初始化/重置时发的那条），下游必须丢弃。
+    uint32_t goal_identity_seq_ = 0;
 
     bool is_cloud_init_, is_scan_init_, is_odom_init_, is_planner_running_;
     bool is_graph_init_;

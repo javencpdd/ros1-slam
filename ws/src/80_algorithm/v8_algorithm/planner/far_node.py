@@ -323,6 +323,8 @@ class AdapterState:
         #   · `goal_request_stamp`：我们最后一次把目标交给 FAR 的时刻
         #   · `path_stamp` / `path_goal`：FAR 最近一次回报的规划结果（时间、终点）
         # 结果早于请求 ⇒ 是上一轮的在途产物；终点更靠近上一目标 ⇒ 是旧目标的结果。
+        self.request_seq = 0                 # 当前有效请求的编号（FAR 原样回传）
+        self.rejected_results = 0            # 因身份不对被丢弃的结果数
         self.goal_request_stamp = None
         self.path_stamp = None
         self.path_goal = None
@@ -487,6 +489,11 @@ class AdapterState:
         self.revoke_reason = reason
         return self.revoked_mission
 
+    def next_request_seq(self):
+        """分配一个新的请求编号（1 起，0 保留给"无请求"）。"""
+        self.request_seq = int(self.request_seq) + 1
+        return self.request_seq
+
     def on_goal_request(self, now):
         """目标已交给 FAR：此后到达的规划结果才算本轮。清掉上一轮的结果缓存。"""
         self.goal_request_stamp = float(now)
@@ -515,7 +522,42 @@ class AdapterState:
                 return False
         return True
 
-    def task_message(self, pose, waypoint, now=None):
+    def _gate(self, waypoint, seq, now):
+        """★唯一身份闸门★：任何出口（Path / gait_path / path_task / status / 缓存）都必须先过它。
+
+        判据顺序固定：身份（seq）→ 请求/结果关联 → 时效窗 → 几何辅助。
+        前两条是"这条结果属于哪一次请求"的**事实**，后两条只是兜底辅助。
+        """
+        if self.mission is None:
+            return False, 'E_FAR_NO_MISSION'
+        if self.halted:
+            return False, 'E_FAR_HALTED'
+        if seq is None or int(seq) == 0:
+            self.rejected_results += 1
+            return False, 'E_FAR_NO_IDENTITY'
+        if int(seq) != int(self.request_seq):
+            # 旧请求（或别的请求）的结果：**不得**用当前 mission 给它补身份
+            self.rejected_results += 1
+            return False, 'E_FAR_STALE_RESULT'
+        if not self.result_associated():
+            self.unassociated_waypoints += 1
+            return False, 'E_FAR_UNASSOCIATED'
+        if (self.mission_switched_at is not None
+                and now - self.mission_switched_at < STALE_WAYPOINT_GUARD_S):
+            self.stale_waypoints += 1
+            return False, 'E_FAR_STALE_WAYPOINT'
+        if (self.prev_target is not None and self.target is not None
+                and self.prev_target_at is not None
+                and now - self.prev_target_at <= STALE_GOAL_GUARD_S):
+            p = _xyz(waypoint)
+            d_prev = math.dist(p, self.prev_target)
+            d_now = math.dist(p, self.target)
+            if d_prev <= STALE_GOAL_NEAR_M and d_now >= d_prev + 0.5:
+                self.stale_goal_waypoints += 1
+                return False, 'E_FAR_STALE_GOAL'
+        return True, 'ok'
+
+    def task_message(self, pose, waypoint, seq=None, now=None):
         """把一次航点事件变成**原子任务帧**（dict）；不该发时返回 `None`。
 
         语义（真人裁决③）：位姿变化**不算**新任务；只有"有效航点"变化才推进 `path_revision`。
@@ -526,32 +568,16 @@ class AdapterState:
           · 没有身份（BT 还没下发 mission）——不计；
           · mission 切换保护窗内的航点（上一目标在途残留）——计入 `stale_waypoints`。
         """
-        if pose is None or waypoint is None or self.mission is None or self.halted:
+        if pose is None or waypoint is None:
             return None
         now = 0.0 if now is None else float(now)
-        # ★关联校验放在最前面★（裁决①）：它必须早于 last_waypoint / revision / 任何发布，
-        # 否则"先更新状态再判身份"正是给旧结果贴新标签的那条路。
-        if not self.result_associated():
-            self.unassociated_waypoints += 1
+        ok, _reason = self._gate(waypoint, seq, now)
+        if not ok:
             return None
-        if (self.mission_switched_at is not None
-                and now - self.mission_switched_at < STALE_WAYPOINT_GUARD_S):
-            self.stale_waypoints += 1
-            return None
-        # ★超出时间窗的旧航点，用几何判据拒★：保护期（默认 5 s）内，若这点离**上一目标**
-        # 比离当前目标更近，那就是上一轮在途残留，不能打上新 mission 标号。
-        if (self.prev_target is not None and self.target is not None
-                and self.prev_target_at is not None
-                and now - self.prev_target_at <= STALE_GOAL_GUARD_S):
-            p = _xyz(waypoint)
-            d_prev = math.dist(p, self.prev_target)
-            d_now = math.dist(p, self.target)
-            # ★判据要窄★：只挡"几乎就落在上一目标上"的航点。用"离旧目标更近"当判据会把
-            # 合法避障绕行一起误杀（绕行点天然比新目标更靠近旧目标方向，实测 (5,4) 就是这样）。
-            # 这条只是**辅助**，不是航点身份安全的证明——真正的身份要上游在 way_point 上带 id。
-            if d_prev <= STALE_GOAL_NEAR_M and d_now >= d_prev + 0.5:
-                self.stale_goal_waypoints += 1
-                return None
+        return self._frame(pose, waypoint)
+
+    def _frame(self, pose, waypoint):
+        """只在**已通过身份闸门**之后调用：推进版本并组装原子任务帧。"""
         # ★按**距离**判"是不是同一个航点"，不要用量化分桶★：
         # 分桶在桶边界上会把 ±1 cm 的抖动判成"换了航点"（4.03 与 4.00 分属两桶），
         # 于是位姿稍动就推进一个版本，等于把抖动变成新任务。
@@ -594,7 +620,7 @@ class AdapterState:
                 'source': 'far'}
 
     # ---- 航点 ----
-    def on_waypoint(self, pose, waypoint, now=None):
+    def on_waypoint(self, pose, waypoint, seq=None, now=None):
         """返回 `(path_points, gait_points, status_text)`。
 
         两条路径**在意料分歧时给出不同点数**，这是本方法返回两个列表的原因：
@@ -605,21 +631,26 @@ class AdapterState:
         缺输入或处于 halted 时**只出状态、两条都不出**。
         """
         if pose is None:
-            return [], [], status_json(False, 0, 'E_FAR_NO_POSE')
+            return [], [], status_json(False, 0, 'E_FAR_NO_POSE'), None
         if waypoint is None:
-            return [], [], status_json(False, 0, 'E_FAR_NO_WAYPOINT')
-        if self.halted:
-            return [], [], status_json(False, 0, 'E_FAR_HALTED', seq=self.cancel_seq)
+            return [], [], status_json(False, 0, 'E_FAR_NO_WAYPOINT'), None
+        now = 0.0 if now is None else float(now)
+        # ★闸门在最前★：缓存（last_waypoint / waypoint_count）、两条路径、status、任务帧
+        # 全都在它之后才可能产生。任何一条出口都不许绕过它。
+        ok, reason = self._gate(waypoint, seq, now)
+        if not ok:
+            return [], [], status_json(False, 0, reason, seq=self.cancel_seq), None
         path_points = two_point_path(pose, waypoint)
         gait_points = gait_path(pose, waypoint, self.lookahead_m)
         self.last_waypoint = _xyz(waypoint)
         self.last_waypoint_at = now
         self.waypoint_count += 1
+        payload = self._frame(pose, waypoint)
         # status 的 `points` 报主路径（`/global_path`）帧数，步态侧单独记一个字段：
         # 两个数混用一个字段，事后查日志就分不清「谁少了一点」。
         return path_points, gait_points, status_json(True, len(path_points), 'ok',
                                                      gait_points=len(gait_points),
-                                                     far_reach=self.far_reach)
+                                                     far_reach=self.far_reach), payload
 
     def stale(self, now, timeout_s):
         """航点超时。正常返回 None，超时返回 `E_FAR_WAYPOINT_STALE` 状态帧。
@@ -832,22 +863,27 @@ def main():
         """
         state.on_goal(xyz)
         state.set_target(xyz)             # 留作"旧航点晚到"的几何判据
+        # ★身份必须先于发布★（裁决①）：先分配编号、先记录请求时刻并清掉上一轮结果缓存，
+        # 再往 FAR 发目标。反过来的话，一条足够快的结果可能在我们登记之前就带着新 seq 到达，
+        # 而 `request_seq` 还是旧值 —— 那就是"结果先到、身份后补"的时序洞。
+        seq = state.next_request_seq()
+        state.on_goal_request(rospy.get_time())
         if arrival_pub is not None:
             arrival_pub.publish(Bool(data=False))
         point = PointStamped()
         if header is not None:
             point.header = header
+        point.header.seq = seq               # FAR 会把这个 seq 原样带进每条 /way_point
         point.point.x, point.point.y, point.point.z = xyz
         far_goal_pub.publish(point)
         # 占位帧用 BT 认的瞬态名（见 `BT_TRANSIENT_REASONS` 上方的注释），
         # 否则 `WaitForPath` 会在暖机这一拍判 FAILURE。
         publish_status(status_json(False, 0, WARMUP_PLAN_REASON, detail='E_FAR_WARMUP'))
-        # 记下"这次请求"的时刻：此后 FAR 回报的规划结果才算本轮（见 AdapterState.result_associated）
-        state.on_goal_request(rospy.get_time())
 
-    def publish_task(pose_value, waypoint, now=None):
+    def publish_task(pose_value, waypoint, now=None, payload=None):
         """发一帧原子任务。返回是否真的发了（便于测试与读数）。"""
-        payload = state.task_message(pose_value, waypoint, now=now)
+        payload = payload if payload is not None else \
+            state.task_message(pose_value, waypoint, seq=state.request_seq, now=now)
         if payload is None:
             return False
         path_task_pub.publish(String(data=json.dumps(payload, ensure_ascii=False)))
@@ -892,18 +928,21 @@ def main():
         on_task_identity(message, source='goal_meta')
 
     def on_waypoint(message):
+        """FAR 的一条结果。★身份先行★：`message.header.seq` 是 FAR 从我们的请求里
+        原样带回来的编号；闸门在 `state.on_waypoint` 内部，过不了就**一条出口都不发**
+        （status 除外，且 status 里带 reason），缓存也不会被刷新。"""
         point = message.point
-        path_points, gait_points, text = state.on_waypoint(
-            pose['value'], (point.x, point.y, point.z), now=rospy.get_time())
+        now = rospy.get_time()
+        path_points, gait_points, text, payload = state.on_waypoint(
+            pose['value'], (point.x, point.y, point.z),
+            seq=message.header.seq, now=now)
         publish_status(text)
         if not path_points:
             return
         stamp = rospy.Time.now()
         path_pub.publish(to_path(path_points, stamp))
-        # ★必须把 now 传进去★：`task_message` 的默认 now=0.0，而保护窗判据是
-        # `now - mission_switched_at < 0.3`；0 减一个正值恒为负 ⇒ 每一条航点都被当"晚到"丢掉，
-        # 只剩主循环那 2.5 Hz 的几何刷新在发（实测 path_task 里 revision 一直停在 1）。
-        publish_task(pose['value'], (point.x, point.y, point.z), now=rospy.get_time())
+        # 任务帧与两条路径同源同判：payload 为空说明闸门已拒，这里根本不会执行
+        publish_task(pose['value'], (point.x, point.y, point.z), now=now, payload=payload)
         # 步态路径另发一条：`/global_path` 的末点必须就是 FAR 航点本身，
         # 前视延长点只喂 `gait_guard`。远航点时两者点数相同，近航点时这里多一个点。
         gait_path_pub.publish(to_path(gait_points, stamp))

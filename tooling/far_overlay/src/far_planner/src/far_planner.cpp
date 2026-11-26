@@ -125,6 +125,7 @@ void FARMaster::ResetEnvironmentAndGraph() {
   FARUtil::cur_dyobs_cloud_->clear();
   /* Stop the robot if it is moving */
   goal_waypoint_stamped_.header.stamp = ros::Time::now();
+  goal_waypoint_stamped_.header.seq = 0;   // 重置帧不带请求身份：下游必须丢弃
   goal_waypoint_stamped_.point = FARUtil::Point3DToGeoMsgPoint(robot_pos_);
   goal_pub_.publish(goal_waypoint_stamped_);
   NodePtrStack empty_path;
@@ -271,6 +272,8 @@ void FARMaster::PlanningCallBack(const ros::TimerEvent& event) {
     NavNodePtr last_nav_ptr = nav_node_ptr_;
     bool is_planning_fails = false;
     goal_waypoint_stamped_.header.stamp = ros::Time::now();
+    // 把这次请求的编号写进结果：stamp 仍用 now()（下游新鲜度/超时判据靠它），身份走 seq
+    goal_waypoint_stamped_.header.seq = goal_identity_seq_;
     bool is_current_free_nav = false;
     bool is_reach_goal = false;
     if (graph_planner_.PathToGoal(goal_ptr, global_path, nav_node_ptr_, current_free_goal, is_planning_fails, is_reach_goal, is_current_free_nav) && nav_node_ptr_ != NULL) {
@@ -701,6 +704,8 @@ void FARMaster::WaypointCallBack(const geometry_msgs::PointStamped& route_goal) 
     if (FARUtil::IsDebug) ROS_WARN("FARMaster: wait for v-graph to init before sending any goals");
     return;
   }
+  // 绑定请求身份：同一个 seq 会跟着这条请求产生的每一条 /way_point 走
+  goal_identity_seq_ = route_goal.header.seq;
   Point3D goal_p(route_goal.point.x, route_goal.point.y, route_goal.point.z);
   const std::string goal_frame = route_goal.header.frame_id;
   if (!FARUtil::IsSameFrameID(goal_frame, master_params_.world_frame)) {
