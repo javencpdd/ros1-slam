@@ -5,7 +5,7 @@ name: nav3d_m2_lio_accept_bt
 # P4 装配：算法位姿驱动 3D 导航。
 #
 # 位姿从哪来 —— 这是本图的关键，不靠伪造也不靠真值回落：
-#   loc（v8.fw.localization_source, lio_topic=/hdl_odom）独占 /v8/local/pose，
+#   loc（v8.fw.localization_source, lio_topic=/Odometry_gated）独占 /v8/local/pose，
 #   carrier 的位姿输出被挪到 /v8/3d/carrier/pose_raw（照 graph_3d_gazebo_loc.yaml 的做法），
 #   两写者不撞同一条话题。carrier 仍保留，是因为 app_runner 强制要求图里存在名为 carrier
 #   的实例且 component 与 app 的 carrier.backend 对应；它在本图里 spawn=false，
