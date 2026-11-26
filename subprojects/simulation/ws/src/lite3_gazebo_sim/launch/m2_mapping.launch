@@ -8,5 +8,16 @@
   <param name="use_sim_time" value="true"/>
   <param name="pcd_save/pcd_save_en" value="$(arg pcd_save)"/>
 
+  <!-- ★map←camera_init 静态锚点★（2026-11-27 补）：faster_lio 的世界系是 camera_init（取首帧位姿为原点），
+       而 v8 的 loc 节点按 `frame: map` 工作、每条 /Odometry 都要查 map←camera_init；
+       不给这条 TF 时回调每帧抛异常（localization_node.py:94/102），/v8/local/pose 无输出、编排只起 6/10。
+       语义＝"LIO 的世界原点就是机器人在 map 里的出生位姿"，所以平移取 spawn、yaw 取 spawn_yaw，
+       **由调用方按实际放置点传参**，不在代码里写死。 -->
+  <arg name="map_spawn_x"   default="0"/>
+  <arg name="map_spawn_y"   default="0"/>
+  <arg name="map_spawn_yaw" default="0"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_lio_world"
+        args="$(arg map_spawn_x) $(arg map_spawn_y) 0 $(arg map_spawn_yaw) 0 0 map camera_init"/>
+
   <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
 </launch>
