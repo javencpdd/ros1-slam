@@ -158,10 +158,17 @@ while (S['odom'] is None or S['gt'] is None or S['iq'] is None) and time.time()-
 assert S['odom'] is not None, 'no /sim/odom_gt（插件里程计断供；/Odometry 已让给 faster_lio，勿混用）'
 p0=S['odom'].pose.pose.position; sx,sy=p0.x,p0.y; i_yaw0=qyaw(S['iq']); S['g0']=S['gt']
 print('SMOKE start=(%.3f,%.3f) imu_yaw0=%.3f' % (sx,sy,i_yaw0))
-def phase(name, vx, wz, done, wall_limit=150.0):
-    w0=time.time()
+def phase(name, vx, wz, done, wall_limit=150.0, max_travel=25.0):
+    """跑到 done 或墙钟超时；另外**累计行程超限即停**——判据万一再次失效时不许跑飞，
+    宁可判 TIMEOUT 也不能把 27 m 的行程当成一次正常闭环。"""
+    w0=time.time(); p_start=S['odom'].pose.pose.position
+    travel=0.0; last=(p_start.x, p_start.y)
     while not rospy.is_shutdown():
         if done(): drive(0,0); print('SMOKE phase_%s_done'%name); return True
+        p=S['odom'].pose.pose.position
+        travel += math.hypot(p.x-last[0], p.y-last[1]); last=(p.x, p.y)
+        if travel > max_travel:
+            drive(0,0); print('SMOKE phase_%s_RUNAWAY(%.2fm)'%(name,travel)); return False
         if time.time()-w0>wall_limit: drive(0,0); print('SMOKE phase_%s_TIMEOUT'%name); return False
         drive(vx,wz); time.sleep(0.05)
     return False
@@ -169,8 +176,15 @@ def phase(name, vx, wz, done, wall_limit=150.0):
 S['mot']=1; S['m0_wall']=time.time()  # F4：运动窗起点（墙钟，供 A0 RTF 前置判据）
 ok_out = phase('fwd_out', 0.5, 0.0, lambda: S['odom'].pose.pose.position.x - sx >= 4.85)
 ok_turn = phase('turn180', 0.0, 0.6, lambda: math.degrees(abs(qyaw(S['iq'])-i_yaw0)) >= 178.0)
-ok_back = phase('fwd_back', 0.5, 0.0, lambda: math.hypot(S['odom'].pose.pose.position.x-sx,
-                                                          S['odom'].pose.pose.position.y-sy) <= 0.5)  # M2R2 主理人裁决 done 窗 0.25→0.5m（转向接触非确定残差 ±2-4° 在 4.85m 直线天然 ±0.34m 侧偏；与 A③ 同尺度，A③ 本体不动）
+# ★回程终止判据必须能"越过起点即停"★（2026-11-27 实测）：原来只判"离起点 ≤0.5 m"，
+# 而回程是**定速开环**直行（vx=0.5），只要某一帧跨过 0.5 m 圆就再也不会满足条件——
+# 实测一路开到 27.17 m 才被 150 s 墙钟掐断，判据与里程同时爆表（drift=gt_drift=27.170）。
+# 这不是 RTF 的问题：27.17 m ÷ 0.5 m/s = 54 s 仿真时间 < 窗内可用 63 s（150 s×RTF 0.422）。
+# 修法：终点窗保留 0.5 m，另加"沿出程轴已回到起点以内"与"累计行程超限"两条终止条件。
+def _back_done():
+    p = S['odom'].pose.pose.position
+    return (math.hypot(p.x - sx, p.y - sy) <= 0.5) or ((p.x - sx) <= 0.35)
+ok_back = phase('fwd_back', 0.5, 0.0, _back_done)
 S['mot']=0
 mw_wall = max(time.time()-S['m0_wall'], 0.001)  # F4：运动窗墙钟宽
 t0=rospy.get_rostime(); rospy.sleep(5.0); t1=rospy.get_rostime()

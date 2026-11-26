@@ -99,31 +99,24 @@ PY
 
 reinit_and_check_localization() {
   local x=$1 y=$2 off
-  timeout 5 rostopic pub -1 /initialpose geometry_msgs/PoseWithCovarianceStamped \
-    "{header: {frame_id: map}, pose: {pose: {position: {x: $x, y: $y, z: 0.0}, orientation: {w: 1.0}}, covariance: [0.25,0,0,0,0,0, 0,0.25,0,0,0,0, 0,0,0,0.25,0,0, 0,0,0,0.25,0,0, 0,0,0,0,0.25,0, 0,0,0,0,0,0.25]}}" >/dev/null 2>&1 || true
+  # ★按实际定位后端分支★（2026-11-27 裁决）：`LOC_BACKEND=hdl`（缺省）才做 HDL 重初始化；
+  # `lio`（Faster-LIO）/`none` 时**不得**用 HDL 就绪当作前置——那是拿另一套后端冒充验收条件。
+  case "${LOC_BACKEND:-hdl}" in
+    hdl) ;;
+    *) say "[place] LOC_BACKEND=${LOC_BACKEND}：跳过 HDL 初始化/收敛检查"; return 0 ;;
+  esac
+  if ! timeout 5 rostopic pub -1 /initialpose geometry_msgs/PoseWithCovarianceStamped \
+    "{header: {frame_id: map}, pose: {pose: {position: {x: $x, y: $y, z: 0.0}, orientation: {w: 1.0}}, covariance: [0.25,0,0,0,0,0, 0,0.25,0,0,0,0, 0,0,0,0.25,0,0, 0,0,0,0.25,0,0, 0,0,0,0,0.25,0, 0,0,0,0,0,0.25]}}" >/dev/null 2>&1; then
+    say '[place] /initialpose 发布失败：定位未被重置，拒绝继续'
+    return 1
+  fi
   sleep 3
-  off=$(python3 - <<'PY'
-import math, statistics
-import rospy
-from nav_msgs.msg import Odometry
-rospy.init_node('loc_offset_check', anonymous=True, disable_signals=True)
-est, gt = [], []
-rospy.Subscriber('/hdl_odom', Odometry, lambda m: est.append(
-    (m.pose.pose.position.x, m.pose.pose.position.y)), queue_size=50)
-rospy.Subscriber('/sim/odom_gt', Odometry, lambda m: gt.append(
-    (m.pose.pose.position.x, m.pose.pose.position.y)), queue_size=50)
-import time
-t0 = time.monotonic()
-while time.monotonic() - t0 < 6.0:
-    time.sleep(0.2)
-n = min(len(est), len(gt))
-if n < 10:
-    print('9.999')
-else:
-    d = [math.hypot(est[i][0] - gt[i][0], est[i][1] - gt[i][1]) for i in range(n)]
-    print('%.3f' % statistics.median(d[-min(n, 200):]))
-PY
-)
+  # ★复用共享探针★（2026-11-27 裁决）：`est_gt_ab_probe.py` 按**消息戳**配对并给中位数，
+  # 原来的内联实现按数组下标对齐，两侧帧率不同就会把不同时刻的位姿相减。
+  off=$(python3 "$(dirname "${BASH_SOURCE[0]}")/est_gt_ab_probe.py" \
+        --seconds 6 --out "${EV:-/tmp}/loc_offset.json" 2>/dev/null \
+        | python3 -c 'import json,sys;d=json.loads(sys.stdin.read().strip().split("\n")[-1]);print("%.3f"%(d.get("err_median_dxy") or 9.999))' 2>/dev/null)
+  off=${off:-9.999}
   say "[place] est_gt_offset=${off} m (限 ${LOC_MAX_OFFSET_M:-0.15} m)"
   if awk "BEGIN{exit !($off > ${LOC_MAX_OFFSET_M:-0.15})}"; then
     say '[place] 定位未收敛：拒绝在该状态下跑验收'
