@@ -14,6 +14,28 @@ import math, sys, rospy
 # 收敛后很快发散——单变量实测：use_imu=false 全判据 PASS，use_imu=true 30s 窗最差 337 m。
 # 这里在**接口适配层**把向量从 rslidar 系旋到 base_link 系（R_y(+pitch)），并把 frame_id 标成 base_link。
 # 只做刚体向量旋转，不改滤波、不改门控；三个诊断状态共用同一份地图/外参/初值。
+def _sleep_guarded(rate, warn=None):
+    """转发器的心跳等待：**时钟回跳不得杀进程**。
+
+    返回 True＝继续循环，False＝收到正常关机请求、应退出。
+    异常顺序必须"子类在前"：ROSTimeMovedBackwardsException 是 ROSInterruptException 的子类
+    （MRO 实测：[ROSTimeMovedBackwardsException, ROSInterruptException, ROSException, Exception]）。
+    抽成独立函数是为了能做零节点负控（见 verify/test_m2_relay_clock_guard.py）。
+    """
+    warn = warn or (lambda m: None)
+    try:
+        rate.sleep()
+        return True
+    except rospy.ROSTimeMovedBackwardsException as e:
+        warn('时钟回跳（继续转发）: %s' % e)
+        return True
+    except rospy.ROSInterruptException:
+        return False
+    except rospy.ROSException as e:
+        warn('时钟异常（继续转发）: %s' % e)
+        return True
+
+
 def _rot_y(v, c, s):
     return (c * v[0] + s * v[2], v[1], -s * v[0] + c * v[2])
 
@@ -44,16 +66,14 @@ if __name__ == '__main__':
                               pitch_deg, ax, ay, az, wx, wy, wz)
         pub.publish(m); n[0] += 1
     rospy.Subscriber(src, msg_cls, cb, queue_size=10)
-    rate = rospy.Rate(0.5)
+    rate = rospy.Rate(0.5, reset=True)
     while not rospy.is_shutdown():
         rospy.loginfo_throttle(60, '[m2_cmd_relay] %s -> %s (%s) fwd=%d pitch=%.1f' % (src, dst, typ, n[0], pitch_deg))
-        try:
-            rate.sleep()
-        except rospy.ROSInterruptException:
+        # ★异常顺序是有讲究的★（2026-11-27 真人指出，已用 MRO 核实）：
+        # rospy.ROSTimeMovedBackwardsException 的 MRO 是
+        #   [ROSTimeMovedBackwardsException, ROSInterruptException, ROSException, Exception]
+        # 也就是说它是 ROSInterruptException 的**子类**。上一版把 ROSInterruptException 放在前面，
+        # 时钟回跳会被那个分支捕获并 break —— 节点照样退出，等于没修。
+        # 因此必须"子类在前、父类在后"，并且 Rate 用 reset=True。
+        if not _sleep_guarded(rate, lambda m: rospy.logwarn_throttle(30, '[m2_cmd_relay] %s', m)):
             break
-        except rospy.ROSException as e:
-            # ★仿真时钟回跳会把 Rate.sleep 打成异常★（2026-11-27 实跑：map 存盘/节点重启时
-            # rospy.timer.sleep → ROSTimeMovedBackwardsException，异常冒到 <module> 直接杀进程，
-            # /imu/data 断流后 HDL 退回运动模型）。转发器不该因为时钟跳一下就死，这里吞掉继续。
-            rospy.logwarn_throttle(30, '[m2_cmd_relay] 时钟异常（继续转发）: %s', e)
-            rospy.sleep(0.2)
