@@ -818,6 +818,15 @@ def main():
                 'assoc_diagnostic_fail': state.assoc_diagnostic_fail}
 
     def publish_status(text):
+        """★每一帧状态都带 task 读数★（2026-11-27 裁决）：身份、代次、拒绝计数、缓存与时间
+        是排查"结果被谁拒的"唯一线索；只在个别分支里带，等于关键帧没有证据。"""
+        try:
+            value = json.loads(text)
+        except Exception:
+            value = None
+        if isinstance(value, dict):
+            value.setdefault('task', task_readings())
+            text = json.dumps(value, ensure_ascii=False)
         status_pub.publish(String(data=text))
 
     def to_path(points, stamp):
