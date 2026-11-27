@@ -70,3 +70,11 @@ GT 与估计位姿差约 6.1 cm（三维），与 A4 118 帧残差分布（mean 
 - 未改 `support_tol_m`、`support_assoc_tol_m`、`cmd_vel` 安全参数、FAR 核心搜索、`local_native` 几何判据。
 - 未启用风险权重。
 - 未上真机；未向真机发送任何帧。
+
+## 补记（2026-11-28 晚）
+
+后续定位到两处契约错误并已修复：T3 接触位姿未接线、T2 未计入 Faster-LIO
+`body=IMU` 的 `extrinsic_T`。修正后静置 20 s 的 `pose_plan.z` 为
+`mean +1.618 mm / min -3.181 mm / max +4.329 mm`，不再是最初的 ~5 cm。
+本目录的 `E_LOCAL_SUPPORT z=0.0597` 是修正前读数，保留为历史现场；
+最新读数与推导见 `../m2_imu_t2_20261128/README.md`。

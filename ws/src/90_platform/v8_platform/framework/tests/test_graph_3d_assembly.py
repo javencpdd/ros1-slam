@@ -6,6 +6,7 @@ from pathlib import Path as _Path
 _BASE = _Path(__file__).resolve().parent.parent
 for _entry in ('', 'nodes', 'tools', 'smokes'):
     _sys.path.insert(0, str(_BASE / _entry) if _entry else str(_BASE))
+import math
 import sys
 import unittest
 from pathlib import Path
@@ -75,6 +76,11 @@ class M2LioContactPoseWiringTests(unittest.TestCase):
                 edges = {(e['from'], e['to']) for e in report['edges']}
                 self.assertIn(('loc.pose_plan', 'local.pose'), edges)
                 self.assertNotIn(('loc.pose', 'local.pose'), edges)
+                loc = value['instances']['loc']['params']
+                self.assertAlmostEqual(loc['sensor_to_base_xyz'][0], 0.076998, places=6)
+                self.assertAlmostEqual(loc['sensor_to_base_xyz'][1], -0.02329, places=6)
+                self.assertAlmostEqual(loc['sensor_to_base_xyz'][2], -0.284295, places=6)
+                self.assertAlmostEqual(loc['sensor_to_base_rpy'][1], -math.radians(15), places=9)
 
 
 if __name__ == '__main__':

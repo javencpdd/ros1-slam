@@ -161,8 +161,10 @@ instances:
       lio_origin_roll: 0.0
       lio_origin_pitch: 0.2617993877991494
       lio_origin_yaw: 0.0
-      # T2: body -> base_link, inverse of URDF base->rslidar (0,0,0.34, +15 deg).
-      sensor_to_base_xyz: [0.08799, 0.0, -0.328415]
+      # T2: body -> base_link. Faster-LIO body is the IMU; include the
+      # production extrinsic_T [-0.011,-0.02329,0.04412] before inverting
+      # base->lidar (0,0,0.34, +15 deg).
+      sensor_to_base_xyz: [0.076998, -0.02329, -0.284295]
       sensor_to_base_rpy: [0.0, -0.2617993877991494, 0.0]
       # T3: base reference -> planning contact point (world z).
       pose_plan_topic: /v8/local/pose_plan
