@@ -191,9 +191,15 @@ base_up() {
         spawn_args+=(spawn_x:="${M2_MAP_SPAWN_X:-0}" spawn_y:="${M2_MAP_SPAWN_Y:-0}"
                      spawn_z:="${M2_SPAWN_Z:-0.15}" spawn_yaw:="${M2_MAP_SPAWN_YAW:-0}")
         if [ "${M2_ISOLATE_GT:-0}" = "1" ]; then
-            gt_args=(gt_odom_frame:=gt_odom gt_base_frame:=gt_base)
             map_args+=(isolate_gt:=true)
-            echo "[base] GT 隔离模式：gt_odom/gt_base + body->base_link"
+            if [ "${M2_GT_RAW:-0}" = "1" ]; then
+                gt_args=(gt_odom_frame:=gt_raw_odom gt_base_frame:=gt_raw_base
+                         gt_odom_topic:=/sim/odom_gt_raw)
+                echo "[base] GT 隔离 + raw 域：gt_raw_odom/gt_raw_base，/sim/odom_gt_raw"
+            else
+                gt_args=(gt_odom_frame:=gt_odom gt_base_frame:=gt_base)
+                echo "[base] GT 隔离模式：gt_odom/gt_base + body->base_link"
+            fi
         fi
         echo "[base] map 锚点=$(printf '%s ' "${map_args[@]}")"
         roslaunch lite3_gazebo_sim m2_gazebo.launch "${gt_args[@]}" "${spawn_args[@]}" > /tmp/base_m2_gz.log 2>&1 &
