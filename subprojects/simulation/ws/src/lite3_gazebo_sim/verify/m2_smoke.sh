@@ -696,25 +696,40 @@ PYEOF
   _fid=$(timeout 6 rostopic echo -n1 /hdl_odom/header/frame_id 2>/dev/null | head -1 | tr -d '"\r')
   echo "[C] /hdl_odom frame_id=$_fid"
   [ "$_fid" = "map" ] || { echo "FAIL C: /hdl_odom frame_id=$_fid（应为 map）"; return 1; }
-  # ★实跑 relay 身份核验★（2026-11-27）：/initialpose 与 IMU 旋转都过 relay，
-  # 若跑到的是 .profiles 旧副本，本轮的修复根本没被执行，判据再对也没意义。
-  # 取**进程 cmdline 里的脚本路径**（不是我们以为的路径），比 sha，并要求旋转日志出现。
-  _rp=""; for _i in $(seq 1 30); do
-    _rp=$(pgrep -af "m2_cmd_relay" | grep -v pgrep | head -1 | awk '{for(i=1;i<=NF;i++) if($i ~ /m2_cmd_relay\.py$/){print $i; exit}}')
-    [ -n "$_rp" ] && break; sleep 1
-  done
-  if [ -z "$_rp" ]; then echo "FAIL C: 找不到 imu_relay 进程（relay 未起，后续判据无意义）"; return 1; fi
-  _rp_cmd=$(pgrep -af "m2_cmd_relay" | grep -v pgrep | head -1)
-  echo "[C] relay 路径=$_rp"
-  echo "[C] relay sha256=$(sha256sum "$_rp" 2>/dev/null | cut -c1-16) 工作树sha256=$(sha256sum "$SIM_PKG/scripts/m2_cmd_relay.py" 2>/dev/null | cut -c1-16)"
-  echo "[C] relay argv=$_rp_cmd"
-  if ! cmp -s "$_rp" "$SIM_PKG/scripts/m2_cmd_relay.py" 2>/dev/null; then
-    echo "FAIL C: 实跑 relay 与工作树不是同一份（$_rp）→ 本轮修复未生效，禁止用该次结果判收敛"; return 1
+  # ★实跑 relay 身份核验（从 /imu/data 的**实际发布者**反查，不靠进程名）★
+  # 2026-11-27：pgrep 版只能证明"有个进程名字像"，证明不了"HDL 吃的是它"。
+  # 这里走 ROS 自己的账：/imu/data → 发布者节点 → XMLRPC getPid → /proc/PID/cmdline，
+  # 再比脚本 SHA 与 argv；身份、频率、转换正确性三项分别保留，互不代替。
+  _imunode=$(rostopic info /imu/data 2>/dev/null | sed -n '/Publishers/,/Subscribers/p' | grep -oE '/[A-Za-z0-9_/]+' | head -1)
+  if [ -z "$_imunode" ]; then echo "FAIL C: /imu/data 无发布者（HDL 拿不到 IMU，后续判据无意义）"; return 1; fi
+  _ipid=$(rosnode info "$_imunode" 2>/dev/null | grep -oE 'Pid: [0-9]+' | grep -oE '[0-9]+' | head -1)
+  if [ -z "$_ipid" ] || [ ! -r "/proc/$_ipid/cmdline" ]; then
+    echo "FAIL C: 取不到 $_imunode 的 Pid/cmdline（身份不可指认）"; return 1
   fi
-  case "$_rp_cmd" in
-    *" Imu tf"*) echo "[C] relay 旋转源=tf（单一来源）" ;;
+  _icmd=$(tr '\0' ' ' < "/proc/$_ipid/cmdline")
+  _ipath=$(printf '%s' "$_icmd" | tr ' ' '\n' | grep -E 'm2_cmd_relay\.py$' | head -1)
+  echo "[C] IMU 发布者=$_imunode pid=$_ipid"
+  echo "[C] relay 路径=${_ipath:-<未识别>}"
+  echo "[C] relay argv=$_icmd"
+  if [ -z "$_ipath" ]; then echo "FAIL C: 发布者 cmdline 里没有 m2_cmd_relay.py（可能不是本 relay）"; return 1; fi
+  if ! cmp -s "$_ipath" "$SIM_PKG/scripts/m2_cmd_relay.py" 2>/dev/null; then
+    echo "FAIL C: 实跑 relay 与工作树不是同一份（$_ipath）→ 修复未生效"; return 1
+  fi
+  echo "[C] relay sha256=$(sha256sum "$_ipath" 2>/dev/null | cut -c1-16)（与工作树一致）"
+  case "$_icmd" in
+    *"Imu tf"*) echo "[C] relay 旋转源=tf（单一来源）" ;;
     *) echo "FAIL C: relay 未按 tf 取旋转（argv 见上）"; return 1 ;;
   esac
+  # 转换正确性：relay 必须打出"旋转生效"那行，且转换前 frame 必须是雷达系（不是 base_link 冒充）
+  if grep -aq "IMU 旋转生效" "$LOGDIR/hdlC.log" 2>/dev/null; then
+    echo "[C] 旋转日志=$(grep -a "IMU 旋转生效" "$LOGDIR/hdlC.log" | head -1 | cut -c1-160)"
+  else
+    echo "FAIL C: hdlC.log 里没有旋转生效日志（转换未执行）"; return 1
+  fi
+  # 频率：relay 活着且持续转发（3s 窗，仅作旁证，不替代判据）
+  _ihz=$(timeout 6 rostopic hz /imu/data 2>/dev/null | grep -oE 'average rate: [0-9.]+' | tail -1 | grep -oE '[0-9.]+')
+  echo "[C] /imu/data 频率=${_ihz:-<无数据>} Hz"
+  [ -n "$_ihz" ] || { echo "FAIL C: /imu/data 无数据（relay 未持续转发）"; return 1; }
   M2_HDLLOG="$LOGDIR/hdlC.log" python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
 import os
 import math, time, rospy
