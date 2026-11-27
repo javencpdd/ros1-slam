@@ -112,3 +112,28 @@ VERDICT PASS
    - `ros1_slam_sim_task_layout.json` 任务生命周期（BT status + cancel_ack）
 3. 3D 面板里把 **Fixed frame** 设为 `map`，否则点云与轨迹会因缺 TF 不显示。
 4. 三类布局由 `scripts/ops/gen_foxglove_layouts.py` 生成，话题名按实际图核过，改图后重跑该脚本即可。
+
+## 本目录每个文件是干什么的
+
+| 文件 | 作用 | 什么时候用 |
+|---|---|---|
+| `README.md` | 本说明：连接方式、导入步骤、每个文件的作用、核验口径 | 第一次用、或换了机器/网段时 |
+| `ros1_slam_sim_loc_layout.json` | **定位诊断布局**：3D（pose / TF / 点云）+ Raw Messages 看 `/v8/local/status` | 怀疑位姿不对、z 偏差、定位失效时 |
+| `ros1_slam_sim_nav_layout.json` | **导航诊断布局**：3D（全局路径 / gait 路径 / 局部轨迹 / 障碍 / 地形）+ local status | 车不动、走偏、避障异常时 |
+| `ros1_slam_sim_task_layout.json` | **任务生命周期布局**：`/v8/bt/status` + `/v8/local/cancel_ack` | 目标不生效、取消没确认、任务序列异常时 |
+| `ros1_slam_sim_layout.json` | 旧版**通用仿真**布局（SCAN 时代的单 3D + BT 原始消息） | 只做兼容保留；新排查优先用上面三份 |
+| `ros1_slam_scan_layout.json` | 旧版**建图/编排阶段**布局（`/cloud_registered`、`/global_path`、`/v8/bt/stage_markers`） | 建图（Stage A）阶段用，不是导航排查 |
+
+### 三份新布局怎么来、怎么改
+- 生成器：`scripts/ops/gen_foxglove_layouts.py`（话题名按**实际图**核过，不按默认猜）。
+- 改图后重跑生成器即可，别手改 JSON：
+  `python3 scripts/ops/gen_foxglove_layouts.py`
+- 格式要点（踩过的坑）：顶层必须是 `configById / globalVariables / userNodes / playbackConfig / layout`；
+  `configById` 的**值直接是面板配置**，不能再包 `{id,title,config}`，否则客户端报「未知的面板类型」；
+  面板类型由 key 前缀表达（`3D!` / `RawMessages!`）；`layout` 是 JSON **字符串**。
+
+### 布局能显示什么、不能显示什么
+- `String` 类型的 JSON（`/v8/local/status`、`/v8/bt/status`）用 **Raw Messages** 面板读原文，
+  不会自动变成曲线或 3D 图元——需要曲线时另配 Plot 面板并解析字段，属待办。
+- 3D 面板只画**原生消息类型**（PointCloud2 / Path / PoseStamped / TF）。
+- 因此"轨迹/障碍/任务数据能看见"必须用对应面板单独验，不能只在 3D 面板里加了话题就说显示成功。
