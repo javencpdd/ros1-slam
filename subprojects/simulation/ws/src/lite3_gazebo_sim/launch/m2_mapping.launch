@@ -16,8 +16,13 @@
   <arg name="map_spawn_x"   default="0"/>
   <arg name="map_spawn_y"   default="0"/>
   <arg name="map_spawn_yaw" default="0"/>
+  <!-- ★锚点的 z 不能写死 0★（2026-11-27 实测）：camera_init 是**机体起始位姿**，
+       机体离地 0.11 m（URDF：lidar_z 0.34 = 目标 0.45 − 实测稳态基座 0.11）。
+       实测 converted_z 与 gt_z 差 −0.187 = 锚点缺 0.11 + LIO 自身 −0.077。
+       这里给合法几何值 0.11（不是按残差拟合），剩余部分属 LIO 估计误差，另议容差。 -->
+  <arg name="map_spawn_z"   default="0.11"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_lio_world"
-        args="$(arg map_spawn_x) $(arg map_spawn_y) 0 $(arg map_spawn_yaw) 0 0 map camera_init"/>
+        args="$(arg map_spawn_x) $(arg map_spawn_y) $(arg map_spawn_z) $(arg map_spawn_yaw) 0 0 map camera_init"/>
   <!-- ★把两棵 TF 树接起来★（2026-11-27 实测）：当前帧集合是两套互不连通——
          Tree A: map→camera_init（本文件上一行）
          Tree B: odom→base_link→rslidar、base_link→TORSO（gazebo 插件 + URDF）
