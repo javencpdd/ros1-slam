@@ -60,13 +60,34 @@ def rotate_to_map(pose, origin_x, origin_y, origin_z, origin_yaw):
     x, y, z, qx, qy, qz, qw = pose
     c, s_ = math.cos(origin_yaw), math.sin(origin_yaw)
     hc, hs = math.cos(origin_yaw / 2.0), math.sin(origin_yaw / 2.0)
-    nx = hc * qx + hs * qy
-    ny = hc * qy - hs * qx
+    # Hamilton 积 a⊗b（a = q_z = (0,0,s,c)）：
+    #   x = aw*bx + ax*bw + ay*bz - az*by = c*qx - s*qy
+    #   y = aw*by - ax*bz + ay*bw + az*bx = c*qy + s*qx
+    # 2026-11-27 真人指出上一版把这两个符号写反了——只测纯 yaw 时 qx=qy=0，
+    # 符号错了也照样过，所以必须补 roll/pitch/yaw 组合用例。
+    nx = hc * qx - hs * qy
+    ny = hc * qy + hs * qx
     nz = hc * qz + hs * qw
     nw = hc * qw - hs * qz
     return (c * x - s_ * y + origin_x,
             s_ * x + c * y + origin_y,
             z + origin_z, nx, ny, nz, nw)
+
+
+def freshness(selected, accepted_stamp, now, max_age):
+    """新鲜度判定：**回调与健康循环必须共用这一处**。
+
+    2026-11-27：原实现两处各写一遍，回调那份因为"先赋值再比较"恒真，
+    循环那份却引用了已被改名的 `state['selected_at']`，首个样本到达后直接 KeyError
+    把节点打死（loc 一死，p4_nav_hdl 的 gate_fail 清掉整个进程组，于是 local/BT
+    "没有状态"看起来像自己崩了，其实是连带清理）。
+
+    返回 (fresh, age)：无样本时 fresh=False、age=None。
+    """
+    if selected is None or accepted_stamp is None:
+        return False, None
+    age = max(0.0, now - accepted_stamp)
+    return age <= max_age, age
 
 
 def stamp_verdict(stamp, now, prev_accepted, future_tol):
@@ -164,10 +185,17 @@ def main():
         pose_pub.publish(message)
         # T3：同一时刻、同一次刚体偏移，另发一条规划参考点（真实机体位姿仍走上面那条）
         if plan_pub is not None:
+            # ★独立对象★：直接 `plan_msg.pose = message.pose` 会让两条消息共享同一个
+            # Pose（Python 对象语义），改 z 就把已发布的机体位姿也改了。
             plan_msg = PoseStamped()
-            plan_msg.header = message.header
-            plan_msg.pose = message.pose
+            plan_msg.header.frame_id, plan_msg.header.stamp = frame, rospy.Time.from_sec(stamp)
+            plan_msg.pose.position.x = pose[0]
+            plan_msg.pose.position.y = pose[1]
             plan_msg.pose.position.z = pose[2] + plan_ref_z
+            plan_msg.pose.orientation.x = pose[3]
+            plan_msg.pose.orientation.y = pose[4]
+            plan_msg.pose.orientation.z = pose[5]
+            plan_msg.pose.orientation.w = pose[6]
             plan_pub.publish(plan_msg)
         if state['gt'] is not None:
             error = error_between(state['gt'], pose)
@@ -176,8 +204,8 @@ def main():
             state['count'] += 1
             error_pub.publish(String(data=json.dumps(dict(error, source=label),
                                                      ensure_ascii=False)))
-        age = max(0.0, now - state['accepted_stamp'])
-        fresh = age <= max_age
+        fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age)
+        age = age or 0.0
         publish_ok(navigation_allowed and fresh)
         status_pub.publish(String(data=json.dumps({
             'ok': navigation_allowed and fresh, 'source': label,
@@ -217,12 +245,15 @@ def main():
     rate = rospy.Rate(20.0)
     while not rospy.is_shutdown():
         now = rospy.Time.now().to_sec()
-        fresh = state['selected'] is not None and now - state['selected_at'] <= max_age
+        # ★与回调共用 freshness()★：两处各写一遍是这次 KeyError 的根源，
+        # 且必须用**源戳**判定，而不是本地时钟——停流时源戳不动，age 才会涨。
+        fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age)
         publish_ok(navigation_allowed and fresh)
         status_pub.publish(String(data=json.dumps({
             'ok': navigation_allowed and fresh, 'source': source,
             'navigation_allowed': navigation_allowed,
-            'fresh': fresh, 'samples': state['count'],
+            'fresh': fresh, 'age_s': age, 'samples': state['count'],
+            'rejected': {k: state.get(k, 0) for k in ('rej_bad', 'rej_future', 'rej_back')},
             'last_error': state['last_error']}, ensure_ascii=False)))
         rate.sleep()
 

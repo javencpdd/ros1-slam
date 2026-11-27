@@ -70,5 +70,101 @@ class StampContractTest(unittest.TestCase):
         self.assertLessEqual(now - selected_at, max_age)
 
 
+
+
+def _q_from_rpy(roll, pitch, yaw):
+    """独立实现：由 rpy 造四元数（ZYX 顺序），用于交叉验证。"""
+    cr, sr = math.cos(roll / 2), math.sin(roll / 2)
+    cp, sp = math.cos(pitch / 2), math.sin(pitch / 2)
+    cy, sy = math.cos(yaw / 2), math.sin(yaw / 2)
+    return (sr * cp * cy - cr * sp * sy,
+            cr * sp * cy + sr * cp * sy,
+            cr * cp * sy - sr * sp * cy,
+            cr * cp * cy + sr * sp * sy)
+
+
+def _R_from_q(q):
+    """独立实现：四元数 → 旋转矩阵（行主序）。"""
+    x, y, z, w = q
+    return [[1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+            [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+            [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]]
+
+
+def _Rz(a):
+    c, s = math.cos(a), math.sin(a)
+    return [[c, -s, 0.0], [s, c, 0.0], [0.0, 0.0, 1.0]]
+
+
+def _mul(A, B):
+    return [[sum(A[i][k] * B[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+
+
+class CrossCheckTest(unittest.TestCase):
+    """★独立实现交叉验证★：只测纯 yaw 时 qx=qy=0，符号写反也能过（2026-11-27 就这么漏的）。"""
+
+    def _check(self, roll, pitch, yaw, oyaw, ox, oy, oz):
+        q = _q_from_rpy(roll, pitch, yaw)
+        got = loc.rotate_to_map((1.3, -0.7, 0.4) + q, ox, oy, oz, oyaw)
+        expect_R = _mul(_Rz(oyaw), _R_from_q(q))
+        got_R = _R_from_q(got[3:])
+        for i in range(3):
+            for j in range(3):
+                self.assertAlmostEqual(got_R[i][j], expect_R[i][j], places=9,
+                                       msg='R[%d][%d] 与独立实现不符（rpy=%.2f,%.2f,%.2f oyaw=%.2f）'
+                                           % (i, j, roll, pitch, yaw, oyaw))
+        p = [1.3, -0.7, 0.4]
+        for i in range(3):
+            exp = sum(_Rz(oyaw)[i][k] * p[k] for k in range(3)) + (ox, oy, oz)[i]
+            self.assertAlmostEqual(got[i], exp, places=9)
+
+    def test_combined_roll_pitch_yaw_matches_independent_impl(self):
+        self._check(0.30, -0.20, 1.10, 0.70, 5.2, 2.45, -0.11)
+
+    def test_negative_yaw_and_pitch(self):
+        self._check(-0.15, 0.25, -2.30, -1.20, -1.0, 0.5, 0.0)
+
+    def test_pure_roll_only(self):
+        self._check(0.40, 0.0, 0.0, 0.55, 0.0, 0.0, 0.0)
+
+
+class FreshnessTest(unittest.TestCase):
+    """新鲜度必须由**源戳**驱动：回调与健康循环共用同一个函数。"""
+
+    def test_no_sample_is_not_fresh(self):
+        self.assertEqual(loc.freshness(None, None, 100.0, 1.0), (False, None))
+
+    def test_flow_stops_then_expires(self):
+        fresh, age = loc.freshness(('p',), 100.0, 100.3, 1.0)
+        self.assertTrue(fresh)
+        fresh, age = loc.freshness(('p',), 100.0, 103.0, 1.0)
+        self.assertFalse(fresh, '停流 3s 必须判不新鲜')
+        self.assertAlmostEqual(age, 3.0, places=6)
+
+    def test_duplicate_stamp_does_not_refresh(self):
+        # 重复戳（同一帧被重发）不能让 age 回零
+        fresh, age = loc.freshness(('p',), 100.0, 102.0, 1.0)
+        self.assertFalse(fresh)
+
+    def test_clock_frozen_keeps_age_constant(self):
+        # 仿真时钟冻结：now 不前进 ⇒ age 不上涨，判"仍新鲜"属设计语义（不是 bug），
+        # 但绝不能崩、也不能造出负 age。
+        a = loc.freshness(('p',), 100.0, 100.0, 1.0)
+        b = loc.freshness(('p',), 100.0, 100.0, 1.0)
+        self.assertEqual(a, b)
+        self.assertGreaterEqual(a[1], 0.0)
+
+    def test_clock_jump_backwards_does_not_produce_negative_age(self):
+        fresh, age = loc.freshness(('p',), 100.0, 90.0, 1.0)
+        self.assertGreaterEqual(age, 0.0)
+        self.assertTrue(fresh)
+
+    def test_health_loop_key_error_regression(self):
+        # 回归：健康循环曾引用已改名的 state['selected_at']，首个样本后 KeyError 打死节点
+        st = {'selected': ('p',), 'accepted_stamp': 100.0}
+        fresh, age = loc.freshness(st['selected'], st['accepted_stamp'], 100.2, 1.0)
+        self.assertTrue(fresh)
+
+
 if __name__ == '__main__':
     unittest.main()

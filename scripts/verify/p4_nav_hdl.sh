@@ -159,6 +159,17 @@ done
 N=$(rosnode list 2>/dev/null | grep -cE '^/v8/3d|^/v8/bt|^/v8_global_|^/far_planner' || true)
 say "v8_nodes=$N (expect>=$EXPECT_NODES)"
 rosnode list 2>/dev/null | grep -E '^/v8/3d|^/v8/bt|^/v8_global_|^/far_planner' | tr '\n' ' '; say
+# ★就绪判据不止"数够个数"★（2026-11-27）：个数骗过一次——loc 因 KeyError 退出后
+# 残留注册还在、别的实例又多起来，个数照样够。这里加一层"身份 + 存活 + 关键接口活数据"，
+# 直接复用本脚本已渲染出的 plan.json，不新建平行系统。
+if [ -f "$EV/plan.json" ]; then
+  python3 "$REPO/scripts/verify/graph_readiness.py" "$EV/plan.json" \
+      --window "${READY_WINDOW:-6}" --json-out "$EV/readiness.json" || \
+      gate_fail "编排未就绪（身份/存活/活数据，详见 readiness.json）"
+else
+  say "[readiness] 无 plan.json，跳过身份级判定（仅按个数）"
+fi
+
 if [ "$N" -lt "$EXPECT_NODES" ]; then
   say "--- graph.log 尾部 ---"; tail -25 "$EV/graph.log"
   gate_fail "编排未起来（$N/$EXPECT_NODES）"
