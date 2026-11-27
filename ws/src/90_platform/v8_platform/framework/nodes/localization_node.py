@@ -74,7 +74,7 @@ def rotate_to_map(pose, origin_x, origin_y, origin_z, origin_yaw):
             z + origin_z, nx, ny, nz, nw)
 
 
-def freshness(selected, accepted_stamp, now, max_age):
+def freshness(selected, accepted_stamp, now, max_age, wall_now=None, wall_at_accept=None):
     """新鲜度判定：**回调与健康循环必须共用这一处**。
 
     2026-11-27：原实现两处各写一遍，回调那份因为"先赋值再比较"恒真，
@@ -87,7 +87,14 @@ def freshness(selected, accepted_stamp, now, max_age):
     if selected is None or accepted_stamp is None:
         return False, None
     age = max(0.0, now - accepted_stamp)
-    return age <= max_age, age
+    fresh = age <= max_age
+    # ★墙钟旁路：ROS 时钟冻结时 age 不会涨，判 fresh 会一直放行★（2026-11-27 真人指出，
+    # 「停钟仍判 fresh」不能当作安全闭合）。所以再要一条墙钟条件：
+    # 源戳在**墙钟**上停滞超过 max_age，同样判不新鲜。回跳同理——墙钟只进不退。
+    if fresh and wall_now is not None and wall_at_accept is not None:
+        if (wall_now - wall_at_accept) > max_age:
+            fresh = False
+    return fresh, age
 
 
 def stamp_verdict(stamp, now, prev_accepted, future_tol):
@@ -146,6 +153,7 @@ def main():
     status_pub = rospy.Publisher(status_topic, String, queue_size=10)
     error_pub = rospy.Publisher(error_topic, String, queue_size=20)
     state = {'gt': None, 'gt_at': -1e100, 'selected': None, 'accepted_stamp': None,
+             'accepted_wall': None,
              'errors': [], 'count': 0, 'last_error': None}
 
     def publish_ok(ok):
@@ -176,6 +184,7 @@ def main():
         if need_transform and label != 'sim_gt':
             pose = to_map(pose)
         state['selected'], state['accepted_stamp'] = pose, stamp
+        state['accepted_wall'] = time.monotonic()
         edited_at = rospy.Time.now()
         message = PoseStamped()
         message.header.frame_id, message.header.stamp = frame, rospy.Time.from_sec(stamp)
@@ -204,7 +213,8 @@ def main():
             state['count'] += 1
             error_pub.publish(String(data=json.dumps(dict(error, source=label),
                                                      ensure_ascii=False)))
-        fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age)
+        fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age,
+                               time.monotonic(), state['accepted_wall'])
         age = age or 0.0
         publish_ok(navigation_allowed and fresh)
         status_pub.publish(String(data=json.dumps({
@@ -247,7 +257,8 @@ def main():
         now = rospy.Time.now().to_sec()
         # ★与回调共用 freshness()★：两处各写一遍是这次 KeyError 的根源，
         # 且必须用**源戳**判定，而不是本地时钟——停流时源戳不动，age 才会涨。
-        fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age)
+        fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age,
+                               time.monotonic(), state['accepted_wall'])
         publish_ok(navigation_allowed and fresh)
         status_pub.publish(String(data=json.dumps({
             'ok': navigation_allowed and fresh, 'source': source,

@@ -20,6 +20,7 @@ rc：0 全过；1 有失败。stdout 逐条打印，便于落证据。
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -46,9 +47,35 @@ def node_list():
     return set(x.strip() for x in out.splitlines() if x.strip().startswith('/'))
 
 
-def node_alive(name):
-    rc, out = run(['rosnode', 'ping', name], timeout=4)
-    return 'reply' in out.lower()
+def node_alive(name, tries=3):
+    """有限次 ping + 看返回码：`rosnode ping` 对死节点 rc≠0，不能只靠字符串。"""
+    for i in range(tries):
+        rc, out = run(['rosnode', 'ping', '-c', '1', name], timeout=5)
+        if rc == 0 and 'reply' in out.lower():
+            return True, 'ok'
+        last = ('rc=%d' % rc)
+    return False, 'ping 无响应（%s，%d 次）' % (last, tries)
+
+
+def topic_publishers(topic):
+    rc, out = run(['rostopic', 'info', topic], timeout=6)
+    if rc != 0:
+        return []
+    block = out.split('Publishers:')[-1].split('Subscribers:')[0] if 'Publishers:' in out else ''
+    return [ln.strip(' *') for ln in block.splitlines() if ln.strip().startswith('*')]
+
+
+def topic_sustained(topic, window, need=3):
+    """持续活数据：窗内至少 need 条，而不是"有一条就算活"。"""
+    rc, out = run(['timeout', str(int(window)), 'rostopic', 'hz', topic], timeout=window + 2)
+    last = [l for l in out.splitlines() if 'window:' in l]
+    if not last:
+        return False, '窗内无数据'
+    try:
+        n = int(last[-1].rsplit('window:', 1)[-1].strip())
+    except Exception:
+        return False, '无法解析窗口计数'
+    return n >= need, 'window=%d（需≥%d）' % (n, need)
 
 
 def topic_alive(topic, window):
@@ -63,6 +90,10 @@ def main():
     ap.add_argument('--json-out', default='')
     a = ap.parse_args()
 
+    if not os.path.exists(a.plan):
+        # 负控：没有 plan.json 就不能"默认就绪"，直接判 FAIL 且给不同 rc
+        print('VERDICT FAIL 缺少 plan.json（无法做身份级判定）')
+        return 2
     plan = json.load(open(a.plan, encoding='utf-8'))
     instances = plan.get('instances') or []
     nodes = node_list()
@@ -72,7 +103,16 @@ def main():
         iid = inst.get('id')
         launch = inst.get('launch') or {}
         if launch.get('kind') == 'include':
-            continue                      # include 型由被嵌 launch 自己保证
+            # include 型：不能直接跳过（内部节点无人核对）。至少要求**它的命名空间下
+            # 有节点在册**，否则等于这一整块没起。
+            ns = (inst.get('namespace') or '').rstrip('/')
+            covered = [n for n in nodes if ns and n.startswith(ns + '/')]
+            rec = {'instance': iid, 'expect': ns or '<include>', 'include': True,
+                   'found': sorted(covered)[:3], 'ok': bool(covered),
+                   'why': 'ok' if covered else 'include 命名空间下无任何节点在册'}
+            results.append(rec)
+            ok_all = ok_all and rec['ok']
+            continue
         ns = inst.get('namespace') or ''
         want = ns.rstrip('/') + '/' + iid if ns else '/' + iid
         hit = [n for n in nodes if n == want or n.endswith('/' + iid)]
@@ -80,9 +120,13 @@ def main():
         if not hit:
             rec.update(ok=False, why='节点不在册')
         else:
-            live = [n for n in hit if node_alive(n)]
+            live, why = [], ''
+            for n in hit:
+                good, why = node_alive(n)
+                if good:
+                    live.append(n)
             if not live:
-                rec.update(ok=False, why='在册但 ping 无响应（残留注册）')
+                rec.update(ok=False, why=why or '在册但 ping 无响应（残留注册）')
             else:
                 rec.update(ok=True, why='ok', alive=sorted(live)[:3])
         results.append(rec)
@@ -94,14 +138,22 @@ def main():
         if not any(r['instance'] == iid for r in results):
             continue
         for t in topics:
-            alive = topic_alive(t, a.window)
-            topic_rec.append({'instance': iid, 'topic': t, 'ok': alive})
-            ok_all = ok_all and alive
+            sustained, why = topic_sustained(t, a.window)
+            pubs = topic_publishers(t)
+            # ★发布者归属★：有数据还不够，得确认数据来自**本实例**，而不是旁路/残留发布者。
+            owns = any(any(p.endswith('/' + iid) or ('/' + iid + '/' + iid) in p for p in pubs))
+            ok = sustained and bool(pubs) and owns
+            topic_rec.append({'instance': iid, 'topic': t, 'ok': ok,
+                              'sustained': sustained, 'why': why,
+                              'publishers': pubs[:3], 'owns_publisher': owns})
+            ok_all = ok_all and ok
 
     for r in results:
         print('NODE %-10s ok=%s %s' % (r['instance'], r['ok'], r['why']))
     for r in topic_rec:
-        print('TOPIC %-10s %-32s ok=%s' % (r['instance'], r['topic'], r['ok']))
+        print('TOPIC %-10s %-32s ok=%s pubs=%s owns=%s %s'
+              % (r['instance'], r['topic'], r['ok'], r.get('publishers'),
+                 r.get('owns_publisher'), r.get('why', '')))
     print('VERDICT %s nodes=%d topics=%d' % ('PASS' if ok_all else 'FAIL', len(results), len(topic_rec)))
 
     if a.json_out:

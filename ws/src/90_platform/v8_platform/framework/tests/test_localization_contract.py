@@ -166,5 +166,35 @@ class FreshnessTest(unittest.TestCase):
         self.assertTrue(fresh)
 
 
+
+
+class WallClockSafetyTest(unittest.TestCase):
+    """ROS 时钟冻结/回跳时不得继续放行（2026-11-27 真人指出）。"""
+
+    def test_frozen_ros_clock_expires_via_wall_clock(self):
+        # 源戳停在 100、ROS 时钟也停在 100（停钟），但墙钟走了 5s ⇒ 必须判不新鲜
+        fresh, age = loc.freshness(('p',), 100.0, 100.0, 1.0,
+                                   wall_now=105.0, wall_at_accept=100.0)
+        self.assertFalse(fresh, '停钟 + 墙钟 5s 无新帧，不得继续判 fresh')
+        self.assertEqual(age, 0.0)      # ROS 年龄仍是 0，说明判据不是靠它
+
+    def test_clock_jump_backwards_expires_via_wall_clock(self):
+        # ROS 时钟回跳：now < accepted_stamp，age 被夹到 0，但墙钟照样在走
+        fresh, age = loc.freshness(('p',), 100.0, 90.0, 1.0,
+                                   wall_now=104.0, wall_at_accept=100.0)
+        self.assertFalse(fresh)
+        self.assertGreaterEqual(age, 0.0)
+
+    def test_healthy_flow_stays_fresh_on_both_clocks(self):
+        fresh, _ = loc.freshness(('p',), 100.0, 100.2, 1.0,
+                                 wall_now=100.2, wall_at_accept=100.0)
+        self.assertTrue(fresh)
+
+    def test_without_wall_input_keeps_legacy_behaviour(self):
+        # 不传墙钟＝旧语义（仅用于单点判断），但生产路径必须传
+        fresh, _ = loc.freshness(('p',), 100.0, 100.5, 1.0)
+        self.assertTrue(fresh)
+
+
 if __name__ == '__main__':
     unittest.main()
