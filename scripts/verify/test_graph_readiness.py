@@ -53,15 +53,33 @@ class PublisherVerdictTest(unittest.TestCase):
     def test_single_allowed_is_authoritative(self):
         self.assertTrue(gr.publisher_verdict(['/v8/3d/loc/loc'], ['/v8/3d/loc/loc'])[0])
 
-    def test_second_publisher_makes_it_non_authoritative(self):
-        # 这就是 TypeError 那行的真实语义：出现第二个发布者即判不权威
-        ok, why = gr.publisher_verdict(['/v8/3d/loc/loc', '/sim_pose_source'],
-                                       ['/v8/3d/loc/loc'])
+    def test_two_live_publishers_is_double_write(self):
+        # 两个都活着 ⇒ 真双写，必须判红
+        ok, why, stale = gr.publisher_verdict(['/v8/3d/loc/loc', '/sim_pose_source'],
+                                              ['/v8/3d/loc/loc'], alive=lambda n: True)
         self.assertFalse(ok)
-        self.assertIn('不唯一', why)
+        self.assertIn('双写', why)
+
+    def test_dead_registration_is_not_treated_as_double_write(self):
+        # 第二个发布者已死（残留注册）⇒ 不是双写，但要显式报出 stale
+        ok, why, stale = gr.publisher_verdict(['/v8/3d/loc/loc', '/bt_console'],
+                                              ['/v8/3d/loc/loc'],
+                                              alive=lambda n: n == '/v8/3d/loc/loc')
+        self.assertTrue(ok, why)
+        self.assertEqual(stale, ['/bt_console'])
+        self.assertIn('残留注册', why)
+
+    def test_all_publishers_dead(self):
+        ok, why, _ = gr.publisher_verdict(['/a', '/b'], ['/a'], alive=lambda n: False)
+        self.assertFalse(ok)
+        self.assertIn('不可达', why)
+
+    def test_alive_unknown_is_conservative(self):
+        ok, why, _ = gr.publisher_verdict(['/a', '/b'], ['/a'])
+        self.assertFalse(ok, '无法判存活时必须按双写处理')
 
     def test_wrong_publisher(self):
-        ok, why = gr.publisher_verdict(['/sim_pose_source'], ['/v8/3d/loc/loc'])
+        ok, why, _ = gr.publisher_verdict(['/sim_pose_source'], ['/v8/3d/loc/loc'])
         self.assertFalse(ok)
         self.assertIn('白名单', why)
 

@@ -75,22 +75,35 @@ def parse_publishers(text):
     return out
 
 
-def publisher_verdict(pubs, allowed):
-    """发布者归属判定：必须**恰有一个**权威发布者，且名字在允许列表里。
+def publisher_verdict(pubs, allowed, alive=None):
+    """发布者归属判定：(ok, why, stale)。
 
-    返回 (ok, why)。出现第二发布者即判不权威——这正是"旁路/残留发布者冒充"的形态。
+    · 0 个 → 不通过；
+    · 1 个但不在白名单 → 不通过；
+    · 多个：必须区分"**活着的第二个写者**"与"**已死但仍在 master 里挂着的残留注册**"。
+      前者是真双写，判不通过；后者没人会写，但必须显式报出来并建议 cleanup，
+      不能当成"通过"糊过去。alive=None 表示无法判存活，按真双写处理（宁可判红）。
     """
     if not pubs:
-        return False, '无发布者'
-    if len(pubs) > 1:
-        return False, '发布者不唯一：%s' % pubs
-    if pubs[0] not in allowed:
-        return False, '发布者 %s 不在白名单 %s' % (pubs[0], allowed)
-    return True, 'ok'
+        return False, '无发布者', []
+    if len(pubs) == 1:
+        if pubs[0] not in allowed:
+            return False, '发布者 %s 不在白名单 %s' % (pubs[0], allowed), []
+        return True, 'ok', []
+    if alive is None:
+        return False, '发布者不唯一：%s' % pubs, []
+    live = [p for p in pubs if alive(p)]
+    stale = [p for p in pubs if p not in live]
+    if len(live) > 1:
+        return False, '双写：活着的发布者 %s' % live, stale
+    if not live:
+        return False, '发布者全部不可达（残留注册待清理）：%s' % pubs, stale
+    if live[0] not in allowed:
+        return False, '存活发布者 %s 不在白名单 %s' % (live[0], allowed), stale
+    return True, 'ok（另有残留注册 %s，建议 rosnode cleanup）' % stale, stale
 
-
-def latched_verdict(got_one, payload_ok, pubs, allowed):
-    ok_pub, why_pub = publisher_verdict(pubs, allowed)
+def latched_verdict(got_one, payload_ok, pubs, allowed, alive=None):
+    ok_pub, why_pub, _st = publisher_verdict(pubs, allowed, alive)
     if not ok_pub:
         return False, why_pub
     if not got_one:
@@ -156,14 +169,18 @@ def main():
         for topic, kind, allowed, need in specs:
             rc3, info = run(['rostopic', 'info', topic], timeout=6)
             pubs = parse_publishers(info) if rc3 == 0 else []
+            def _alive(name):
+                rc_a, out_a = run(['rosnode', 'ping', '-c', '1', name], timeout=4)
+                return rc_a == 0 and 'reply' in out_a.lower()
+
             if kind == 'latched':
                 rc4, payload = run(['timeout', '6', 'rostopic', 'echo', '-n1', topic], timeout=10)
                 got = rc4 == 0 and len(payload.strip()) > 0
                 keys = LATCHED_KEYS.get(topic, ())
                 payload_ok = got and all(k in payload for k in keys) if keys else got
-                ok, why = latched_verdict(got, payload_ok, pubs, allowed)
+                ok, why = latched_verdict(got, payload_ok, pubs, allowed, _alive)
             else:
-                ok_pub, why_pub = publisher_verdict(pubs, allowed)
+                ok_pub, why_pub, _st = publisher_verdict(pubs, allowed, _alive)
                 rc5, hz = run(['timeout', str(int(a.window)), 'rostopic', 'hz', topic],
                               timeout=a.window + 2)
                 n = 0
