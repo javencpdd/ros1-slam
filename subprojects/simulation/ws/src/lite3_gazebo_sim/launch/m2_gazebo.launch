@@ -28,7 +28,7 @@
     <env name="GAZEBO_MODEL_PATH" value="$(arg model_path):/usr/share/gazebo-11/models:$(optenv GAZEBO_MODEL_PATH)"/>
   </include>
 
-  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/urdf/lite3_planar.urdf.xacro"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(arg payload_dir)/urdf/lite3_planar.urdf.xacro gt_odom_frame:=gt_odom gt_base_frame:=gt_base"/>
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
   <node name="spawn_lite3_planar" pkg="gazebo_ros" type="spawn_model"
         args="-urdf -param robot_description -model lite3_planar -x $(arg spawn_x) -y $(arg spawn_y) -z $(arg spawn_z) -Y $(arg spawn_yaw)"/>

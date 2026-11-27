@@ -115,6 +115,16 @@ def audit(edges, contract, now=None):
         if not chain or chain[-1] != root:
             problems.append({'kind': 'no_root', 'target': target,
                              'chain': chain, 'root': root})
+        # ★链上每一跳都必须"现在是活的"★（2026-11-27 实测暴露）：
+        # 边集是 8 秒缓冲，动态边可能早已停发，但集合里还留着 ⇒ 会给出假 PASS。
+        # tf_echo 现场查不到、审计却 PASS 就是这么来的。动态跳要求 last_wall 在 stale_s 内。
+        for child, parent in zip(chain, chain[1:]):
+            info = (edges.get(child) or {}).get(parent) or {}
+            if info.get('dynamic') and info.get('last_wall') is not None \
+                    and now - info['last_wall'] > stale_s:
+                problems.append({'kind': 'chain_stale',
+                                 'edge': '%s->%s' % (parent, child),
+                                 'age_s': round(now - info['last_wall'], 2)})
         hit = [f for f in chain if f in gt]
         if hit:
             problems.append({'kind': 'production_uses_gt', 'chain': chain, 'gt_frames': hit})

@@ -16,11 +16,12 @@
   <arg name="map_spawn_x"   default="0"/>
   <arg name="map_spawn_y"   default="0"/>
   <arg name="map_spawn_yaw" default="0"/>
-  <!-- ★锚点的 z 不能写死 0★（2026-11-27 实测）：camera_init 是**机体起始位姿**，
-       机体离地 0.11 m（URDF：lidar_z 0.34 = 目标 0.45 − 实测稳态基座 0.11）。
-       实测 converted_z 与 gt_z 差 −0.187 = 锚点缺 0.11 + LIO 自身 −0.077。
-       这里给合法几何值 0.11（不是按残差拟合），剩余部分属 LIO 估计误差，另议容差。 -->
-  <arg name="map_spawn_z"   default="0.11"/>
+  <!-- ★锚点 z = 雷达离地 0.45，不是机体高 0.11★（2026-11-27 源码核验后纠正）：
+       Faster-LIO 的 child_frame_id 是 "body"（laser_mapping.cc:686），本仿真里 IMU 挂在
+       rslidar 链上且 <frameName>rslidar</frameName> ⇒ body ≡ rslidar 系，LIO 位姿是雷达位姿。
+       故 camera_init 原点离地 = lidar_z 0.34 + 基座 0.11 = 0.45。
+       0.11 属 base_link 离地（T3 段），不要与锚点混用。 -->
+  <arg name="map_spawn_z"   default="0.45"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_lio_world"
         args="$(arg map_spawn_x) $(arg map_spawn_y) $(arg map_spawn_z) $(arg map_spawn_yaw) 0 0 map camera_init"/>
   <!-- ★把两棵 TF 树接起来★（2026-11-27 实测）：当前帧集合是两套互不连通——
@@ -33,11 +34,20 @@
        `odom→base_link` 由 lite3_planar_drive 直接用 Gazebo WorldPose 发，**已经是世界坐标**；
        而 map→camera_init 已经按 spawn 施加了 (5.2,2.45)。若再接 camera_init→odom 恒等，
        两段平移会叠加，实测 `map→base_link` 得到 (10.4,4.9)≈2×5.2 —— 重复平移。
-       正确接法：map 与 odom 同为世界系 ⇒ 恒等边直接 `map → odom`。
+       ★2026-11-27 GT 隔离接线：改为在 body→base_link 相接，不再用 map→odom★
+       理由：odom→base_link 是 Gazebo WorldPose（GT），接 map→odom 等于让生产链继续吃 GT。
+       新接法让生产链走估计位姿：map→camera_init→body→base_link→rslidar。
+       几何依据（**非恒等**）：URDF base_to_rslidar = xyz(0,0,0.34) rpy(0,15°,0)，
+       而 LIO 的 body ≡ rslidar 系（IMU 挂在 rslidar 上且 frameName=rslidar），
+       ★但**不要带 −15° 旋转**★（2026-11-27 实测纠正）：FAST-LIO 的 camera_init 由首帧 IMU
+       姿态初始化 ⇒ 世界系已按重力对齐，雷达那 15° 倾角被 LIO 的 extrinsic_R 吸收，
+       不再体现在 TF 上。实测带 −15° 时 `map→base_link` 的 pitch 变成 −15°（GT 是 0°），
+       去掉旋转后只保留平移 (0,0,−0.34)，与 GT 的 pitch 一致。
+       场景生成时已令 GT 落到 gt_odom/gt_base 独立评价域（m2_gazebo.launch 传参）。 -->
        这样 map→base_link = odom→base_link = 真实世界位姿；camera_init 仍作为 map 的另一个
        子分支（LIO 自己的世界系），两条分支同挂 map，树依然连通，且不会把 GT 顶替成生产定位。 -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
-        args="0 0 0 0 0 0 map odom"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="body_to_base_link"
+        args="0 0 -0.34 0 0 0 body base_link"/>
 
   <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
 </launch>
