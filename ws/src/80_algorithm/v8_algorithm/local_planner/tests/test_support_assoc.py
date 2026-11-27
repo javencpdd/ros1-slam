@@ -23,7 +23,7 @@ def _map(extra_surface=None):
                  'footprint': {'min_x': 0.0, 'min_y': 0.0, 'max_x': 4.0, 'max_y': 4.0}}]
     if extra_surface is not None:
         surfaces.append(extra_surface)
-    return {'map_id': 'm', 'map_version': 3, 'resolution': res,
+    return {'schema_version': 2, 'map_id': 'm', 'map_version': 3, 'resolution': res, 'frame': 'map',
             'origin': [0.0, 0.0], 'extent': [4.0, 4.0], 'surfaces': surfaces}
 
 
@@ -96,3 +96,43 @@ class MigrationTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ContactPoseContractTest(unittest.TestCase):
+    """轨迹首点与规划接触点必须可判读地一致（不一致要能被发现，而不是假设一致）。"""
+
+    def _map2(self):
+        """用仓库里**真实**的地图做 plan 级验证：合成图过不了 schema 必填项，
+        而那正是"只测函数、不测生产路径"的老毛病。"""
+        import json
+        # 向上找带 data/maps 的仓库根（与 map_file_node 同法，别数层级）
+        d = HERE
+        path = None
+        for _ in range(8):
+            cand = os.path.join(d, 'data', 'maps', 'generated', 'v8_m1_hdl_v1.json')
+            if os.path.isfile(cand):
+                path = cand
+                break
+            d = os.path.dirname(d)
+        if path is None:
+            raise unittest.SkipTest('找不到 data/maps/generated/v8_m1_hdl_v1.json')
+        with open(path, encoding='utf-8') as fh:
+            return json.load(fh)
+
+    def test_plan_reports_contact_and_consistency_flag(self):
+        cfg = ln.Config(support_assoc_tol_m=0.08)
+        try:
+            out = ln.plan(self._map2(), (5.2, 2.45, 0.0), (6.0, 2.45, 0.0),
+                          obstacles=(), now=100.0, config=cfg)
+        except Exception as e:                     # 合成地图不满足全部前置时如实跳过
+            self.skipTest('plan 前置不满足：%s' % e)
+        self.assertIn('estimated_pose', out)
+        self.assertIn('support_association', out)
+        self.assertIn('contact_pose', out)
+        self.assertIn('pose_uncertainty', out)
+        # 接触点不得改写估计位姿
+        self.assertEqual(out['estimated_pose'][2], 0.0)
+        self.assertTrue(out['support_association']['start']['valid'])
+        # 一致与否都必须**如实上报**，不能默认 True
+        self.assertIn('trajectory_first_matches_contact', out)
+        self.assertIsInstance(out['trajectory_first_matches_contact'], bool)

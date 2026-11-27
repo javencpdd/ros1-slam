@@ -673,6 +673,11 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
                        and s['z_reference'] - s.get('thickness_m', 0.) - point[2] < required_ceiling
                        for s in map_value['surfaces'])
 
+    def assoc_info(point, tol):
+        return associate(map_value, point, config, tol=tol,
+                         surfaces=surfaces, cell_sets=cell_sets,
+                         map_version=map_value.get('map_version'))
+
     def resolve(point, label):
         # ★起点是**估计位姿**，用 support_assoc_tol_m 关联；目标是标称路径点，仍用几何容差
         #   support_tol_m★（2026-11-27 裁决：两类容差分离，几何/碰撞/净空判据一律不动）。
@@ -689,9 +694,10 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
                                 len(info['candidates']), info['ambiguous'], info['map_version']))
         if not safe_ceiling(point, chosen['surface_id']):
             raise LocalError('E_LOCAL_CLEARANCE', label + ' is below a low ceiling')
-        return chosen['surface_id']
+        return chosen['surface_id'], assoc_info(point, tol)
 
-    first_sid, goal_sid = resolve(start, 'start'), resolve(goal, 'goal')
+    first_sid, start_assoc = resolve(start, 'start')
+    goal_sid, goal_assoc = resolve(goal, 'goal')
     allowed = {}
     for sid, surface in surfaces.items():
         for edge in surface['edges']:
@@ -885,7 +891,23 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
             raise LocalError(error.code, str(error))
         if violations:
             raise LocalError('E_LOCAL_KINEMATICS', repr(violations))
+    # ★契约分层（2026-11-27）★：把"估计位姿 / 关联结果 / 规划接触点 / 不确定度 / 轨迹"
+    # 分开表达。接触点只用于规划层与日志，**不覆盖** estimated_pose；
+    # 轨迹、碰撞、净空、制动仍按原几何判据计算，未因关联而放宽。
+    contact_pose = (start[0], start[1], start_assoc.get('z_reference', start[2])
+                    if start_assoc.get('valid') else start[2])
+    first_pt = points[0][:3] if points else None
     return {'ok': True, 'reason': 'arrived' if _distance(points[-1], goal) <= config.goal_tolerance_m else 'horizon',
+            'estimated_pose': start,
+            'support_association': {'start': start_assoc, 'goal': goal_assoc},
+            'contact_pose': contact_pose,
+            'pose_uncertainty': {'support_assoc_tol_m': config.support_assoc_tol_m,
+                                 'support_tol_m': config.support_tol_m},
+            'trajectory_first_matches_contact': bool(
+                first_pt is not None
+                and abs(first_pt[0] - contact_pose[0]) <= 1e-9
+                and abs(first_pt[1] - contact_pose[1]) <= 1e-9
+                and abs(first_pt[2] - contact_pose[2]) <= 1e-6),
             'trajectory': points, 'surfaces': layers, 'map_id': map_value['map_id'],
             'map_version': map_value['map_version'], 'created_at': float(now),
             'valid_until': float(now) + min(config.validity_s, points[-1][3] - now),
