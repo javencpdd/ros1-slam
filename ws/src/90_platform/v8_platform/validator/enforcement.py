@@ -44,6 +44,93 @@ def _usable(capability_block, name):
     return capability_block.get('value', capability_block.get('max_decel_mps2'))
 
 
+# CAP-03: unified query over the existing robot.v2 contract. It never promotes
+# declared/simulated values to motion authorization. `safety_limits` can only
+# tighten maxima and raise minima, never widen them.
+QUERY_MAX_FIELDS = ('max_slope_deg', 'max_step_height_m', 'max_roughness_m', 'max_speed_mps')
+QUERY_MIN_FIELDS = ('min_clearance_m',)
+QUERY_FIELDS = QUERY_MAX_FIELDS + QUERY_MIN_FIELDS
+
+
+def query_capabilities(profile, safety_limits=None):
+    _validated_robot(profile)
+    safety_limits = safety_limits or {}
+    values, unknown, unverified = {}, [], []
+    for name in QUERY_FIELDS:
+        item = profile['capability'].get(name)
+        if item is None:
+            unknown.append(name)
+            continue
+        try:
+            value = _usable(item, name)
+        except EnforcementError:
+            unverified.append(name)
+            continue
+        if name in safety_limits:
+            cap = float(safety_limits[name])
+            value = min(value, cap) if name in QUERY_MAX_FIELDS else max(value, cap)
+        values[name] = value
+    brake = {}
+    for name, key in (('max_decel_mps2', 'max_decel_mps2'), ('latency_s', 'latency_s')):
+        try:
+            value = _usable(profile['brake'], 'brake.' + name)
+        except EnforcementError:
+            unverified.append('brake.' + name)
+            continue
+        if name in safety_limits:
+            value = min(value, float(safety_limits[name])) if name == 'max_decel_mps2' else value
+        brake[key] = value
+    success = profile['capability'].get('success_rate')
+    success_rate = None
+    if success is not None:
+        try:
+            success_rate = _usable(success, 'success_rate')
+            if 'success_rate' in safety_limits:
+                success_rate = min(success_rate, float(safety_limits['success_rate']))
+        except EnforcementError:
+            unverified.append('success_rate')
+    return {
+        'robot_id': profile['robot_id'],
+        'model': profile.get('model'),
+        'capabilities': values,
+        'brake': brake,
+        'success_rate': success_rate,
+        'unknown': unknown,
+        'unverified': unverified,
+        'evidence': profile.get('evidence'),
+    }
+
+
+def authorize_capabilities(profile, request, safety_limits=None):
+    """Return an explicit allow/deny decision; unknown or untested never allows."""
+    query = query_capabilities(profile, safety_limits)
+    reasons = []
+    for name, wanted in (request or {}).items():
+        if name == 'success_rate':
+            if query['success_rate'] is None:
+                reasons.append({'code': 'E_ROBOT_UNVERIFIED', 'field': name})
+            elif float(wanted) > query['success_rate'] + 1e-12:
+                reasons.append({'code': 'E_ROBOT_INSUFFICIENT', 'field': name,
+                                'requested': float(wanted), 'available': query['success_rate']})
+            continue
+        if name in query['brake']:
+            available = query['brake'][name]
+        else:
+            available = query['capabilities'].get(name)
+        if available is None:
+            reasons.append({'code': 'E_ROBOT_UNVERIFIED', 'field': name})
+            continue
+        if name in QUERY_MAX_FIELDS or name == 'max_decel_mps2':
+            if float(wanted) > available + 1e-12:
+                reasons.append({'code': 'E_ROBOT_INSUFFICIENT', 'field': name,
+                                'requested': float(wanted), 'available': available})
+        elif name in QUERY_MIN_FIELDS or name == 'latency_s':
+            if float(wanted) < available - 1e-12:
+                reasons.append({'code': 'E_ROBOT_INSUFFICIENT', 'field': name,
+                                'requested': float(wanted), 'available': available})
+    return {'allowed': not reasons, 'reasons': reasons, 'query': query}
+
+
 def check_kinematics(trajectory, robot_profile, slope_tol_deg=1e-6):
     """时戳轨迹 [(x,y,z[,t]),...] 对 robot.v1 能力/制动上限核验；返回违例列表。"""
     _validated_robot(robot_profile)

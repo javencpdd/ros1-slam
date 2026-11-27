@@ -19,6 +19,8 @@ import support_planner as pln  # noqa: E402
 import trajectory_checker as chk  # noqa: E402
 
 ROBOT = json.loads((HERE.parent / 'contracts' / 'fixtures' / 'robot_lite3_design.json').read_text())
+ROBOT_V2_TESTED = json.loads((HERE.parent / 'contracts' / 'fixtures' / 'robot_v2_tested_fixture.json').read_text())
+ROBOT_V2_DECLARED = json.loads((HERE.parent / 'contracts' / 'fixtures' / 'robot_lite3_v2_declared.json').read_text())
 SRC = {'uri': 'design://x', 'sha256': 'a' * 64}
 
 
@@ -129,6 +131,53 @@ class RevocationTests(unittest.TestCase):
         route = pln.plan(value, (-4.0, -4.0, 0.0), (3.0, 2.0, 0.6))
         ok_verdict = chk.check(value, [(x, y, z) for x, y, z, _ in route['path']])
         self.assertEqual(enf.RejectionTracker().record(ok_verdict), 'accept')
+
+
+class CapabilityQueryTests(unittest.TestCase):
+    def test_tested_v2_query_exposes_new_fields(self):
+        query = enf.query_capabilities(ROBOT_V2_TESTED)
+        self.assertEqual(query['capabilities']['max_slope_deg'], 20.0)
+        self.assertEqual(query['capabilities']['max_roughness_m'], 0.03)
+        self.assertEqual(query['capabilities']['max_speed_mps'], 0.8)
+        self.assertEqual(query['capabilities']['min_clearance_m'], 0.3)
+        self.assertEqual(query['success_rate'], 0.92)
+        self.assertEqual(query['brake']['max_decel_mps2'], 1.2)
+        self.assertEqual(query['unknown'], [])
+        self.assertEqual(query['unverified'], [])
+
+    def test_declared_v2_query_never_promotes_values(self):
+        query = enf.query_capabilities(ROBOT_V2_DECLARED)
+        self.assertEqual(query['capabilities'], {})
+        self.assertIn('max_slope_deg', query['unverified'])
+        self.assertIn('max_roughness_m', query['unknown'])
+        self.assertIn('max_speed_mps', query['unknown'])
+
+    def test_safety_limits_only_tighten_or_raise(self):
+        query = enf.query_capabilities(ROBOT_V2_TESTED, {
+            'max_slope_deg': 10., 'max_step_height_m': 0.2,
+            'max_speed_mps': 0.9, 'min_clearance_m': 0.4,
+            'max_decel_mps2': 0.5,
+        })
+        self.assertEqual(query['capabilities']['max_slope_deg'], 10.)
+        self.assertEqual(query['capabilities']['max_step_height_m'], 0.1)
+        self.assertEqual(query['capabilities']['max_speed_mps'], 0.8)
+        self.assertEqual(query['capabilities']['min_clearance_m'], 0.4)
+        self.assertEqual(query['brake']['max_decel_mps2'], 0.5)
+
+    def test_authorize_denies_above_effective_limit(self):
+        decision = enf.authorize_capabilities(ROBOT_V2_TESTED, {'max_slope_deg': 25.}, {'max_slope_deg': 10.})
+        self.assertFalse(decision['allowed'])
+        self.assertEqual(decision['reasons'][0]['code'], 'E_ROBOT_INSUFFICIENT')
+        allowed = enf.authorize_capabilities(ROBOT_V2_TESTED, {'max_slope_deg': 8.}, {'max_slope_deg': 10.})
+        self.assertTrue(allowed['allowed'])
+
+    def test_authorize_rejects_unknown_and_success_shortfall(self):
+        decision = enf.authorize_capabilities(ROBOT_V2_DECLARED, {'max_slope_deg': 5.})
+        self.assertFalse(decision['allowed'])
+        self.assertEqual(decision['reasons'][0]['code'], 'E_ROBOT_UNVERIFIED')
+        short = enf.authorize_capabilities(ROBOT_V2_TESTED, {'success_rate': 0.95})
+        self.assertFalse(short['allowed'])
+        self.assertEqual(short['reasons'][0]['code'], 'E_ROBOT_INSUFFICIENT')
 
 
 if __name__ == '__main__':
