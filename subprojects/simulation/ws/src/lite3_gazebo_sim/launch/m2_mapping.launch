@@ -18,6 +18,16 @@
   <arg name="map_spawn_yaw" default="0"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_lio_world"
         args="$(arg map_spawn_x) $(arg map_spawn_y) 0 $(arg map_spawn_yaw) 0 0 map camera_init"/>
+  <!-- ★把两棵 TF 树接起来★（2026-11-27 实测）：当前帧集合是两套互不连通——
+         Tree A: map→camera_init（本文件上一行）
+         Tree B: odom→base_link→rslidar、base_link→TORSO（gazebo 插件 + URDF）
+       `tf_echo map rslidar` 直接报 "not part of the same tree"，FAR 取地形时
+       得到 E_FAR_TERRAIN（detail 原文引用该异常），于是全局无路径、BT path_state=failed、
+       local 永远 goal=null。
+       camera_init 与 odom 同为"世界原点"系（map 锚点已按 spawn 施加），故补恒等边：
+       camera_init → odom。这样 map→camera_init→odom→base_link→rslidar 连通。 -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="lio_world_to_odom"
+        args="0 0 0 0 0 0 camera_init odom"/>
 
   <node pkg="faster_lio" type="run_mapping_online" name="faster_lio_online" output="screen"/>
 </launch>

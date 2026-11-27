@@ -144,6 +144,14 @@ instances:
     params:
       source: faster_lio
       lio_topic: /Odometry   # ★M2 链：m2_mapping 产出 /Odometry（真实 LIO），非 /hdl_odom
+      # ★世界锚点必须与本图 Support 版一致★（2026-11-27 真人指出）：
+      # 缺这三项时 localization_source 默认 0/0/0，于是 /v8/local/pose 落在原点附近
+      # （实测 0.03,-0.004），而 Support 图给的是 spawn 基准 5.2/2.45/0（实测 5.08,2.51）。
+      # 同一台车、同一个世界，两套读数就是这么来的。这里复用**已有合法世界锚点**，
+      # 不是拿 GT 误差去拟合补偿。
+      lio_origin_x: 5.2
+      lio_origin_y: 2.45
+      lio_origin_yaw: 0.0
       gt_topic: /sim/odom_gt
       frame: map
       max_age_s: 1.0

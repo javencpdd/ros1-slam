@@ -159,28 +159,9 @@ instances:
       localization_topic: /v8/local/localization_ok
       status_topic: /v8/local/localization_status
       error_topic: /v8/local/localization_error
-  - id: carrier
-    component: v8.fw.gazebo_carrier3d
-    namespace: /v8/3d/carrier
-    params:
-      model_name: app_carrier
-      spawn: false
-      start_x: 0.0
-      start_y: 0.0
-      start_z: 0.0
-      center_z: 0.1
-      snap_m: 0.03
-      rate_hz: 50.0
-      cmd_topic: /cmd_vel
-      map_topic: /v8_support_map
-      # 挪到独立话题，避免与 loc 同时写 /v8/local/pose
-      pose_topic: /v8/3d/carrier/pose_raw
-      localization_topic: /v8/3d/carrier/loc_raw
-      status_topic: /v8/3d/carrier/status
 edges:
   - {from: map.map, to: global.map}
   - {from: map.map, to: local.map}
-  - {from: map.map, to: carrier.map}
   - {from: global.path, to: bt.path}
   - {from: global.status, to: bt.path_status}
   - {from: loc.pose, to: bt.pose, feedback: true,
@@ -197,7 +178,6 @@ edges:
   - {from: loc.localization, to: local.localization, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: local.cmd, to: mux3d.cmd}
-  - {from: mux3d.cmd, to: carrier.cmd}
   - {from: bt.cancel_cmd, to: local.cancel}
   - {from: local.cancel_ack, to: bt.cancel_ack, feedback: true,
      policy: {period_s: 0.0, max_age_s: 1.0}}
