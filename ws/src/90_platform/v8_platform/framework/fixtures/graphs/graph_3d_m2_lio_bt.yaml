@@ -181,7 +181,7 @@ edges:
   - {from: loc.pose, to: perception.pose, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: perception.obstacles, to: local.obstacles}
-  - {from: loc.pose, to: local.pose, feedback: true,
+  - {from: loc.pose_plan, to: local.pose, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: loc.localization, to: local.localization, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}

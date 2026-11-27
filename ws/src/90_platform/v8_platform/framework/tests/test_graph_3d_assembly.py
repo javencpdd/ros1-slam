@@ -49,5 +49,33 @@ class Graph3DAssemblyTests(unittest.TestCase):
         self.assertIn(('carrier.pose', 'local.pose'), edges)
 
 
+class M2LioContactPoseWiringTests(unittest.TestCase):
+    """M2 LIO 图：local 必须吃 T3 接触位姿，不能吃 base_link 高度。"""
+
+    GRAPHS = (
+        'graph_3d_m2_lio_bt.yaml',
+        'graph_3d_m2_lio_bt_far.yaml',
+        'graph_3d_m2_lio_accept_bt.yaml',
+    )
+
+    def setUp(self):
+        self.catalog = config.load_components(FRAMEWORK / 'fixtures' / 'manifests')
+
+    def test_manifest_exposes_pose_plan_port(self):
+        ports = self.catalog['components']['v8.fw.localization_source']['outputs']
+        by_name = {p['name']: p for p in ports}
+        self.assertIn('pose_plan', by_name)
+        self.assertEqual(by_name['pose_plan']['topic'], '/v8/local/pose_plan')
+
+    def test_local_consumes_contact_pose_not_base_pose(self):
+        for name in self.GRAPHS:
+            with self.subTest(graph=name):
+                value = config.load_graph(FRAMEWORK / 'fixtures' / 'graphs' / name)
+                report = graph.check(value, self.catalog)
+                edges = {(e['from'], e['to']) for e in report['edges']}
+                self.assertIn(('loc.pose_plan', 'local.pose'), edges)
+                self.assertNotIn(('loc.pose', 'local.pose'), edges)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -6,6 +6,18 @@
   <arg name="pcd_save" default="false"/>
   <rosparam command="load" file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
   <param name="use_sim_time" value="true"/>
+  <!-- ★仿真专用外参置零★（2026-11-28）：outdoor yaml 的 extrinsic_T 是**真机**
+       Mid-360 工厂外参 [-0.011,-0.02329,0.04412]（lidar 在 IMU 系中的位置）。
+       sim_adapter 合成的 IMU 与 rslidar 同点，若沿用该值，Faster-LIO 的 body
+       会比雷达低 4.41 cm，而 map 锚点 z=0.45 是按雷达高度给的，于是
+       /Odometry.z 从第一帧起就有 -0.044 的固定偏置（实测 -0.047..-0.054），
+       经 T1/T2 后 base_z 从 0.11 掉到约 0.06。
+       这里只改仿真 launch，不动生产 yaml；sim_extrinsic_zero:=false 可复现旧行为。 -->
+  <arg name="sim_extrinsic_zero" default="false"/>
+  <param if="$(arg sim_extrinsic_zero)" name="mapping/extrinsic_R"
+         value="[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]"/>
+  <param if="$(arg sim_extrinsic_zero)" name="mapping/extrinsic_T" value="[0.0, 0.0, 0.0]"/>
+  <param if="$(arg sim_extrinsic_zero)" name="mapping/extrinsic_est_en" value="false"/>
   <param name="pcd_save/pcd_save_en" value="$(arg pcd_save)"/>
   <!-- Raw LIO TF is not a production edge. The graph-owned lio_gate republishes
        camera_init->body from /Odometry_gated, so disabling the gate also freezes
