@@ -9232,3 +9232,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - `m2_mapping.launch` 把原始 LIO TF 帧改为 `lio_body_raw`（非生产域），防止原始 LIO TF 绕过闸门。原始 `/Odometry` 仍由 LIO 发布，供闸门输入与评价。
 - 活体：关闸后 loc=false、动态边 stale、GT 仍正常；kill 闸门后 no_root；双发布者/双父/停钟均判 FAIL。证据 `note/进度/00_专题/v8_map_loc_2026-11-24/evidence/a3_tf_audit_20261128/`。
 - **未闭合**：GT TF/话题独立关断需 GT 评价域中继；恢复不自动续跑与 FAR/感知运行时不消费 GT 需全图任务窗（A5）。
+
+## 2026-11-28 / T-20261128-01 A4 接触点 z_reference 与残差测量
+
+- `local_native.plan` 的 `contact_pose` 由裸 xyz 元组改为显式 `{xyz, z_reference, surface_id, source}`；`estimated_pose` 不被覆盖，轨迹/碰撞/净空/制动判据未改。
+- 新增预测位姿失支撑、反馈仍在支撑面的零速保护测试；未把“预测脱离支撑”一刀切判死，避免破坏既有合法转层/超调语义。
+- 新增只读 `scripts/verify/contact_residual_probe.py`，在隔离 M2 基座上对 `v8_m1_hdl_v1.json` 采 118 帧：残差 mean −0.05416、min −0.06103、max −0.04756、std 0.00315 m；0.05 不满足、0.08 仅读数且未批准。原始 CSV/JSON 在 `note/进度/00_专题/v8_map_loc_2026-11-24/evidence/a4_contact_20261128/`。
+- `support_tol_m`、`support_assoc_tol_m` 均未改；0.08 未批准。
+- **未闭合**：`test_execution.py` 在基线 `7b1f6847` 已有 9 项红（起点 z 漂移 vs 1e-6 关联），A4 的制动尾段/运动中失关联负控未取得新绿；合法多层图非零残差 plan/track 的正式口径待裁定。

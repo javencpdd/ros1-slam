@@ -130,8 +130,13 @@ class ContactPoseContractTest(unittest.TestCase):
         self.assertIn('support_association', out)
         self.assertIn('contact_pose', out)
         self.assertIn('pose_uncertainty', out)
-        # 接触点不得改写估计位姿
+        # 接触点不得改写估计位姿；顶层 z_reference 必须显式给出
         self.assertEqual(out['estimated_pose'][2], 0.0)
+        self.assertIsInstance(out['contact_pose'], dict)
+        self.assertIn('z_reference', out['contact_pose'])
+        self.assertEqual(out['contact_pose']['xyz'][2], out['contact_pose']['z_reference'])
+        self.assertEqual(out['contact_pose']['surface_id'],
+                         out['support_association']['start']['surface_id'])
         self.assertTrue(out['support_association']['start']['valid'])
         # 一致与否都必须**如实上报**，不能默认 True
         self.assertIn('trajectory_first_matches_contact', out)

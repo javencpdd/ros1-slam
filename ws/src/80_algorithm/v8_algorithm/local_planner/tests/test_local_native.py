@@ -252,6 +252,15 @@ class NativeTests(unittest.TestCase):
             native.plan(flat(), (0., 0., 0.), (2., 0., 0.), cancel=lambda: True)
         self.assertEqual(caught.exception.code, 'E_LOCAL_CANCELLED')
 
+    def test_predicted_support_loss_holds_zero_while_feedback_is_on_support(self):
+        value = flat()
+        result = native.plan(value, (0., 0., 0.), (1., 0., 0.), now=0.)
+        out = native.track_segment(value, result, (0., 0., 0.5), 0., [],
+                                   feedback_pose=(0., 0., 0.), uncertainty_m=0.)
+        self.assertTrue(out['stop'])
+        self.assertEqual(out['velocity'], [0., 0., 0.])
+        self.assertIn(out['reason'], ('hold', 'E_LOCAL_SUPPORT'))
+
     def test_prohibited_robot_profile_is_not_promoted(self):
         profile = json.loads((Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts/fixtures/robot_lite3_design.json').read_text())
         with self.assertRaises(native.LocalError) as caught:

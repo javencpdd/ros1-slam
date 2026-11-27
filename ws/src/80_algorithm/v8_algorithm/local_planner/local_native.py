@@ -900,13 +900,17 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
     # ★契约分层（2026-11-27）★：把"估计位姿 / 关联结果 / 规划接触点 / 不确定度 / 轨迹"
     # 分开表达。接触点只用于规划层与日志，**不覆盖** estimated_pose；
     # 轨迹、碰撞、净空、制动仍按原几何判据计算，未因关联而放宽。
-    contact_pose = (start[0], start[1], start_assoc.get('z_reference', start[2])
-                    if start_assoc.get('valid') else start[2])
+    start_valid = bool(start_assoc.get('valid'))
+    contact_z = start_assoc.get('z_reference', start[2]) if start_valid else start[2]
+    contact_pose = (start[0], start[1], contact_z)
     first_pt = points[0][:3] if points else None
     return {'ok': True, 'reason': 'arrived' if _distance(points[-1], goal) <= config.goal_tolerance_m else 'horizon',
             'estimated_pose': start,
             'support_association': {'start': start_assoc, 'goal': goal_assoc},
-            'contact_pose': contact_pose,
+            'contact_pose': {'xyz': contact_pose,
+                             'z_reference': contact_z,
+                             'surface_id': start_assoc.get('surface_id') if start_valid else None,
+                             'source': 'support_association' if start_valid else 'estimated_pose'},
             'pose_uncertainty': {'support_assoc_tol_m': config.support_assoc_tol_m,
                                  'support_tol_m': config.support_tol_m},
             'trajectory_first_matches_contact': bool(
