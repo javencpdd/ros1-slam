@@ -1,0 +1,282 @@
+{
+  "title": "robot_profile/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "robot_id",
+    "model",
+    "reference_point",
+    "footprint",
+    "kinematics",
+    "capability",
+    "brake"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "robot_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reference_point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frame",
+        "xyz"
+      ],
+      "properties": {
+        "frame": {
+          "type": "string",
+          "minLength": 1
+        },
+        "xyz": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "footprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "polygon",
+            "circle"
+          ]
+        },
+        "points": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "radius_m": {
+          "type": "number",
+          "minimum": 0.001
+        },
+        "height_m": {
+          "type": "number",
+          "minimum": 0.001
+        }
+      }
+    },
+    "kinematics": {
+      "enum": [
+        "differential",
+        "holonomic",
+        "quadruped_kinematic"
+      ]
+    },
+    "mass_kg": {
+      "type": "number",
+      "minimum": 0.001
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_slope_deg",
+        "max_step_height_m",
+        "min_clearance_m"
+      ],
+      "properties": {
+        "max_slope_deg": {
+          "$ref": "#/definitions/capability_value"
+        },
+        "max_step_height_m": {
+          "$ref": "#/definitions/capability_value"
+        },
+        "max_roughness_m": {
+          "$ref": "#/definitions/capability_value"
+        },
+        "max_speed_mps": {
+          "$ref": "#/definitions/capability_value"
+        },
+        "min_clearance_m": {
+          "$ref": "#/definitions/capability_value"
+        },
+        "success_rate": {
+          "$ref": "#/definitions/success_rate_value"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_size",
+        "test_environment",
+        "report",
+        "applicable_boundary"
+      ],
+      "properties": {
+        "sample_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "test_environment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "report": {
+          "type": "string",
+          "minLength": 1
+        },
+        "applicable_boundary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "brake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_decel_mps2",
+        "latency_s",
+        "source",
+        "level",
+        "composition_use"
+      ],
+      "properties": {
+        "max_decel_mps2": {
+          "type": "number",
+          "minimum": 0.001
+        },
+        "latency_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "enum": [
+            "declared",
+            "tested"
+          ]
+        },
+        "composition_use": {
+          "enum": [
+            "allowed",
+            "prohibited"
+          ]
+        },
+        "report": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "definitions": {
+    "capability_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit",
+        "source",
+        "level",
+        "composition_use"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "enum": [
+            "declared",
+            "tested"
+          ]
+        },
+        "composition_use": {
+          "enum": [
+            "allowed",
+            "prohibited"
+          ]
+        },
+        "report": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "success_rate_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit",
+        "source",
+        "level",
+        "composition_use"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unit": {
+          "const": "ratio"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "enum": [
+            "declared",
+            "tested"
+          ]
+        },
+        "composition_use": {
+          "enum": [
+            "allowed",
+            "prohibited"
+          ]
+        },
+        "report": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

@@ -258,6 +258,16 @@ class NativeTests(unittest.TestCase):
             native.plan(flat(), (0., 0., 0.), (1., 0., 0.), robot_profile=profile)
         self.assertEqual(caught.exception.code, 'E_TRAJ_CAPABILITY_UNVERIFIED')
 
+    def test_v2_profiles_keep_the_same_local_consumer_contract(self):
+        base = Path(__file__).resolve().parent / '../../../..' / '90_platform/v8_platform' / 'contracts/fixtures'
+        declared = json.loads((base / 'robot_lite3_v2_declared.json').read_text())
+        with self.assertRaises(native.LocalError) as caught:
+            native.plan(flat(), (0., 0., 0.), (1., 0., 0.), robot_profile=declared)
+        self.assertEqual(caught.exception.code, 'E_TRAJ_CAPABILITY_UNVERIFIED')
+        tested = json.loads((base / 'robot_v2_tested_fixture.json').read_text())
+        config = replace(native.Config(), radius_m=0.3, height_m=0.5, clearance_m=0.3)
+        self.assertEqual(native._profile_limits(tested, config), (0.1, 20.0))
+
     def test_nonfinite_and_malformed_inputs_refused(self):
         for kwargs in ({'start': (0., 0., float('nan'))}, {'now': float('inf')},
                        {'obstacles': [{'min': [0, 0, 0], 'max': [0, 1, 1]}]},

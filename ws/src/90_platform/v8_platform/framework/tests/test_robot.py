@@ -22,6 +22,8 @@ MANIFESTS = FRAMEWORK / 'fixtures' / 'manifests'
 G2D = FRAMEWORK / 'fixtures' / 'graphs' / 'graph_2d.yaml'
 LITE3 = FRAMEWORK.parent / 'contracts' / 'fixtures' / 'robot_lite3_design.json'
 ROBOT_B = FRAMEWORK / 'fixtures' / 'robot_test_b.json'
+LITE3_V2 = FRAMEWORK.parent / 'contracts' / 'fixtures' / 'robot_lite3_v2_declared.json'
+ROBOT_V2_TESTED = FRAMEWORK.parent / 'contracts' / 'fixtures' / 'robot_v2_tested_fixture.json'
 
 
 class RobotTests(unittest.TestCase):
@@ -37,6 +39,20 @@ class RobotTests(unittest.TestCase):
         self.assertEqual(limits['max_step_height_m'], 0.1)
         self.assertEqual(limits['max_slope_deg'], 20.0)
         self.assertEqual(limits['max_decel_mps2'], 1.2)
+
+    def test_v2_declared_loads_but_cannot_drive_planning(self):
+        profile = robot.load_profile(LITE3_V2)
+        self.assertEqual(profile['model'], 'Lite3')
+        with self.assertRaises(config.FrameworkError) as caught:
+            robot.limits(profile)
+        self.assertEqual(caught.exception.code, 'E_ROBOT_UNVERIFIED')
+
+    def test_v2_tested_limits_keep_the_v1_consumer_surface(self):
+        profile = robot.load_profile(ROBOT_V2_TESTED)
+        limits = robot.limits(profile)
+        self.assertEqual(sorted(limits), sorted(robot.CAPABILITY + ('max_decel_mps2', 'latency_s')))
+        self.assertEqual(limits['max_step_height_m'], 0.1)
+        self.assertEqual(limits['max_slope_deg'], 20.0)
 
     def test_adapter_ports(self):
         catalog = config.load_components(MANIFESTS)

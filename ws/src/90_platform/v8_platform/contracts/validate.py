@@ -274,13 +274,35 @@ def semantic(kind, value):
             elif not op.get('surface_id'):
                 raise ContractError('E_DELTA_OP', 'remove_surface requires surface_id')
     elif kind == 'robot':
-        items = [value['capability'][name] for name in ('max_slope_deg', 'max_step_height_m', 'min_clearance_m')]
+        items = list(value['capability'].values())
         items.append(value['brake'])
         for item in items:
             if item['level'] == 'declared' and item['composition_use'] != 'prohibited':
                 raise ContractError('E_ROBOT_UNSOURCED', 'declared %r must be prohibited' % item['source'])
             if item['level'] == 'tested' and not item.get('report'):
                 raise ContractError('E_ROBOT_EVIDENCE', 'tested value requires a report path')
+        if value['schema_version'] == 2:
+            expected_units = {
+                'max_slope_deg': 'deg',
+                'max_step_height_m': 'm',
+                'max_roughness_m': 'm',
+                'max_speed_mps': 'm/s',
+                'min_clearance_m': 'm',
+                'success_rate': 'ratio',
+            }
+            for name, expected in expected_units.items():
+                item = value['capability'].get(name)
+                if item is None:
+                    continue
+                if item['unit'] != expected:
+                    raise ContractError('E_ROBOT_UNIT', '%s must use unit %r, got %r'
+                                        % (name, expected, item['unit']))
+            evidence = value.get('evidence')
+            if any(item['level'] == 'tested' for item in items):
+                if evidence is None:
+                    raise ContractError('E_ROBOT_EVIDENCE', 'tested values require an evidence block')
+                if evidence['sample_size'] < 1:
+                    raise ContractError('E_ROBOT_EVIDENCE', 'tested values require sample_size >= 1')
         footprint = value['footprint']
         if footprint['type'] == 'circle':
             if 'radius_m' not in footprint:
@@ -431,6 +453,13 @@ def validate(kind, value, *, allow_obstacles=False):
                 'E_VERSION',
                 'manifest must be schema_version 3; v1/v2 are retired (got %r)' % (version,))
         root = json.loads((HERE / 'schema/manifest.v3.json').read_text())
+    elif kind == 'robot':
+        if not isinstance(value, dict):
+            raise ContractError('E_SCHEMA_TYPE', 'robot profile must be a JSON object')
+        version = value.get('schema_version')
+        if version not in (1, 2):
+            raise ContractError('E_VERSION', 'robot profile must be schema_version 1 or 2 (got %r)' % (version,))
+        root = json.loads((HERE / ('schema/robot.v%d.json' % version)).read_text())
     else:
         root = load(kind)
     _walk(root, value, root, '')

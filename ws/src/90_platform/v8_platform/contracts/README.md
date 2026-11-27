@@ -9,7 +9,8 @@
 | 文件 | 内容与消费者边界 |
 | --- | --- |
 | [manifest.v3.json](schema/manifest.v3.json) | 保留命名端口并必需 execution.modes/robot_id；null 显式表示机器人无关，selectors 声明受控后端枚举；运行入口消费 |
-| [robot.v1.json](schema/robot.v1.json) | 参考点、包络、运动学、能力、制动；数值来源与证据级别 |
+| [robot.v1.json](schema/robot.v1.json) | 参考点、包络、运动学、三能力、制动；数值来源与证据级别；既有消费者兼容面 |
+| [robot.v2.json](schema/robot.v2.json) | 在 v1 上增 `model`、可选粗糙度/速度/成功率、`evidence`（样本量/环境/报告/适用边界）；能力单位校验 |
 | [map.v1.json](schema/map.v1.json) | 单层 occupancy_grid 或单/多层 support_map |
 | [map.v2.json](schema/map.v2.json) | support_map 与显式 `obstacles` 三维盒 |
 | [map.v3.json](schema/map.v3.json) | 支撑面可携带 RLE `cells` 真实格集，并可带障碍 |
@@ -44,7 +45,7 @@ manifest 只剩 v3 一份 schema（v1/v2 均已退役，非 v3 输入一律 `E_V
 
 ## 能力与所有权
 
-robot 能力/制动值为 declared 时必须 `composition_use=prohibited`；tested 值须带报告。manifest 证据高于 declared 时 reports 不得为空。控制器必须声明停止方法和命令话题；跨组件 TF、命令冲突由 [composer](../composer/README.md) 与 [framework](../framework/README.md) 检查。
+robot 能力/制动值为 declared 时必须 `composition_use=prohibited`；tested 值须带报告。robot v2 另有：`model` 必填；粗糙度/速度/成功率可选，缺省即 `unknown`；`evidence` 在任一值为 tested 时必填且 `sample_size>=1`；能力单位按字段校验（deg/m/m/s/ratio）。新增字段不改变现有 `framework.robot.limits` 的三能力+制动消费面，也不构成运动授权。manifest 证据高于 declared 时 reports 不得为空。控制器必须声明停止方法和命令话题；跨组件 TF、命令冲突由 [composer](../composer/README.md) 与 [framework](../framework/README.md) 检查。
 
 常见理由码：`E_SCHEMA_*`（形状/字段/有限性）、`E_VERSION`、`E_MANIFEST_*`、`E_ROBOT_*`、`E_MAP_*`、`E_TASK_*`、`E_PAIR_*`。精确定义以 `validate.py` 和对应负例为准。
 
@@ -57,6 +58,7 @@ python3 -B ws/src/90_platform/v8_platform/contracts/validate.py map \
   ws/src/90_platform/v8_platform/contracts/fixtures/map_ml_two_surfaces.json
 python3 -B ws/src/90_platform/v8_platform/contracts/test_contracts.py
 python3 -B ws/src/90_platform/v8_platform/contracts/test_manifest_v3.py
+python3 -B ws/src/90_platform/v8_platform/contracts/test_robot_v2.py
 ```
 
 CLI：rc 0 合规、rc 5 拒绝并给理由码、rc 9 用法或前置错误。样例与单测只验证表达和拒绝语义，运行与正式验收另查[进度](../../../../../note/进度/v8/README.md)。

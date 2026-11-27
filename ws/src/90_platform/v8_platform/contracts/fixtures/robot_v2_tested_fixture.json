@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "robot_id": "robot_v2_fixture",
+  "model": "contract-test-only",
+  "reference_point": {
+    "frame": "base_link",
+    "xyz": [0.0, 0.0, 0.25],
+    "note": "synthetic fixture, not a physical robot"
+  },
+  "footprint": {
+    "type": "circle",
+    "radius_m": 0.3,
+    "height_m": 0.5
+  },
+  "kinematics": "differential",
+  "mass_kg": 20.0,
+  "capability": {
+    "max_slope_deg": {
+      "value": 20.0,
+      "unit": "deg",
+      "source": "synthetic contract fixture",
+      "level": "tested",
+      "composition_use": "allowed",
+      "report": "evidence://robot_v2_fixture/slope"
+    },
+    "max_step_height_m": {
+      "value": 0.1,
+      "unit": "m",
+      "source": "synthetic contract fixture",
+      "level": "tested",
+      "composition_use": "allowed",
+      "report": "evidence://robot_v2_fixture/step"
+    },
+    "max_roughness_m": {
+      "value": 0.03,
+      "unit": "m",
+      "source": "synthetic contract fixture",
+      "level": "tested",
+      "composition_use": "allowed",
+      "report": "evidence://robot_v2_fixture/roughness"
+    },
+    "max_speed_mps": {
+      "value": 0.8,
+      "unit": "m/s",
+      "source": "synthetic contract fixture",
+      "level": "tested",
+      "composition_use": "allowed",
+      "report": "evidence://robot_v2_fixture/speed"
+    },
+    "min_clearance_m": {
+      "value": 0.3,
+      "unit": "m",
+      "source": "synthetic contract fixture",
+      "level": "tested",
+      "composition_use": "allowed",
+      "report": "evidence://robot_v2_fixture/clearance"
+    },
+    "success_rate": {
+      "value": 0.92,
+      "unit": "ratio",
+      "source": "synthetic contract fixture",
+      "level": "tested",
+      "composition_use": "allowed",
+      "report": "evidence://robot_v2_fixture/success"
+    }
+  },
+  "evidence": {
+    "sample_size": 100,
+    "test_environment": "synthetic contract fixture",
+    "report": "evidence://robot_v2_fixture",
+    "applicable_boundary": "contract tests only; not a physical capability claim"
+  },
+  "brake": {
+    "max_decel_mps2": 1.2,
+    "latency_s": 0.08,
+    "source": "synthetic contract fixture",
+    "level": "tested",
+    "composition_use": "allowed",
+    "report": "evidence://robot_v2_fixture/brake"
+  }
+}
