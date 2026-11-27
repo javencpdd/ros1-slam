@@ -102,3 +102,13 @@ VERDICT PASS
 - 只读：不发 goal / initialpose / cmd_vel，不调改状态的服务；允许 `rosapi` 查询。
 - 不重启验收容器；11312 域的桥保持原样。
 - 观察开销需记录（RTF、`/rslidar_points` 激活与感知负载），且**不改变正式判据**。
+
+### 在 Foxglove 客户端里怎么点（桌面版，中文界面）
+1. 右上角 **「打开连接」** → 选 **Rosbridge (ROS 1)** → 地址填 `ws://172.20.0.5:9090` → 连接。
+   - 连不上时先 `ping 172.20.0.5`；跨机就用 `ssh -L 19090:172.20.0.5:9090 <宿主>`，再连 `ws://127.0.0.1:19090`。
+2. 左侧 **「布局」** → 右上 **「⋯」→ 导入** → 选本目录下的 json：
+   - `ros1_slam_sim_loc_layout.json`  定位诊断（3D + local status 原始消息）
+   - `ros1_slam_sim_nav_layout.json`  导航诊断（全局/局部路径、障碍、地形）
+   - `ros1_slam_sim_task_layout.json` 任务生命周期（BT status + cancel_ack）
+3. 3D 面板里把 **Fixed frame** 设为 `map`，否则点云与轨迹会因缺 TF 不显示。
+4. 三类布局由 `scripts/ops/gen_foxglove_layouts.py` 生成，话题名按实际图核过，改图后重跑该脚本即可。

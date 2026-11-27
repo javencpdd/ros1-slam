@@ -1,0 +1,76 @@
+{
+ "id": "ros1-slam-sim-loc",
+ "name": "ros1-slam 仿真 · 定位诊断",
+ "version": 1,
+ "data": {
+  "configById": {
+   "3D!loc": {
+    "id": "3D!loc",
+    "title": "3D · 定位（pose/TF/点云）",
+    "config": {
+     "cameraState": {
+      "distance": 12,
+      "fovy": 0.7853981852531433,
+      "near": 0.1,
+      "far": 5000,
+      "perspective": true,
+      "phi": 0.7853981852531433,
+      "target": [
+       0,
+       0,
+       0
+      ],
+      "targetOffset": [
+       0,
+       0,
+       0
+      ],
+      "thetaOffset": 0
+     },
+     "followMode": "follow-pose",
+     "scene": {
+      "enableStats": false,
+      "grid": {
+       "color": "#248eff",
+       "divisions": 10,
+       "size": 40
+      },
+      "labelScaleFactor": 1
+     },
+     "topics": {
+      "/cloud_registered": {
+       "visible": true,
+       "colorBy": "z",
+       "pointShape": "circle",
+       "pointSize": 0.04,
+       "decayTime": 0
+      },
+      "/v8/local/pose": {
+       "visible": true
+      },
+      "/sim/odom_gt": {
+       "visible": true
+      },
+      "/rslidar_points": {
+       "visible": false
+      },
+      "/tf": {
+       "visible": true,
+       "axisScale": 1
+      }
+     },
+     "transforms": {}
+    }
+   },
+   "RawMessages!loc_status": {
+    "id": "RawMessages!loc_status",
+    "title": "local status（reason/detail/age）",
+    "config": {
+     "topicName": "/v8/local/status",
+     "diffEnabled": false
+    }
+   }
+  },
+  "layout": "{\"direction\": \"row\", \"first\": \"3D!loc\", \"second\": \"RawMessages!loc_status\", \"splitPercentage\": 65}"
+ }
+}

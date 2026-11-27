@@ -1,0 +1,26 @@
+{
+ "id": "ros1-slam-sim-task",
+ "name": "ros1-slam 仿真 · 任务生命周期",
+ "version": 1,
+ "data": {
+  "configById": {
+   "RawMessages!bt": {
+    "id": "RawMessages!bt",
+    "title": "BT status（event/seq/outcome）",
+    "config": {
+     "topicName": "/v8/bt/status",
+     "diffEnabled": false
+    }
+   },
+   "RawMessages!cancel": {
+    "id": "RawMessages!cancel",
+    "title": "local cancel_ack",
+    "config": {
+     "topicName": "/v8/local/cancel_ack",
+     "diffEnabled": false
+    }
+   }
+  },
+  "layout": "{\"direction\": \"row\", \"first\": \"RawMessages!bt\", \"second\": \"RawMessages!cancel\", \"splitPercentage\": 60}"
+ }
+}
