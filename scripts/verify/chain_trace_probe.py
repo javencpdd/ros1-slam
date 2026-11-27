@@ -22,6 +22,9 @@ from std_msgs.msg import String
 
 CHAIN = [
     ('bt_goal_task', '/v8/bt/goal_task', String),
+    # ★RequestPath 的 goal 只发一次、不 latch★（2026-11-27）：事后 echo/hz 会整段漏采，
+    # 所以必须与 probe 同窗订阅。BT path_state=running 而这里 0 条 ⇒ 才是真没发。
+    ('global_goal', '/v8/3d/global/goal', PoseStamped),
     ('far_goal_task', '/far/goal_task', String),
     ('waypoint_tagged', '/far/waypoint_tagged', String),
     ('global_path_task', '/v8/3d/global/path_task', String),
