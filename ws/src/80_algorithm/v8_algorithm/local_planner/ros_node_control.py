@@ -284,7 +284,8 @@ class LocalControl:
             # 在逻辑上互斥，所以不能只盯 pose：goal=None、result=None、历史 last_error
             # 任何一条都会给出同一个码。这里把同一 tick 内的契约面全量落一条，供按时间对齐。
             try:
-                _w = self.worker
+                # worker 属 ros_node 侧，LocalControl 没有这个属性（实测 KeyError 被捕获成 error）
+                _w = getattr(self, 'worker', None)
                 status['contract'] = {
                     'pose_error': snapshot.get('pose_error'),
                     'pose_detail': snapshot.get('pose_detail'),
