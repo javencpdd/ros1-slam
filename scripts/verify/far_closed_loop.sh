@@ -29,7 +29,9 @@ if [ "$BASE" = "m1" ]; then
 else
   export M2=1
   export GRAPH="${GRAPH:-$FW/graph_3d_m2_lio_bt_far.yaml}"
-  export EXPECT_NODES="${EXPECT_NODES:-10}"
+  # 9 而不是 10：2026-11-27 把内部运动学载体 carrier 从 M2 LIO 图移除后，实例少一个。
+  # 数量只作快速预检，权威判据是 graph_readiness（身份/存活/活数据/发布者归属）。
+  export EXPECT_NODES="${EXPECT_NODES:-9}"
   export POSE_TOPIC="${POSE_TOPIC:-/v8/local/pose}"
 fi
 
