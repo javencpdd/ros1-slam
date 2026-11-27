@@ -1,97 +1,205 @@
 #!/usr/bin/env python3
-"""TF 生产链审计：谁是谁的父、有没有双父/环路/超龄、生产链是否偷偷经过 GT。
+"""TF 生产链审计：按**装配契约**判生产链是否合法（不只看"能不能查到"）。
 
-背景（2026-11-27）：`odom→base_link` 由 lite3_planar_drive 用 Gazebo WorldPose 发布，
-而 FAR 的 on_cloud 走 `map→rslidar`，中间经过 base_link ⇒ **地形转换间接消费 GT**。
-"本地能查到 map→base_link"并不能证明坐标正确，更不能证明没用 GT。
+2026-11-27 重写（真人指出旧版六个确定性缺陷）：
+  · 旧的 stale 只打印不进 problems ⇒ 超龄不影响 PASS；
+  · /tf 与 /tf_static 混在一起统计 ⇒ 静态边被当动态心跳判超龄；
+  · 不要求生产链最终到达 map ⇒ 断链也能 PASS；
+  · 不检测同一条边被多个发布者写；
+  · 只用接收墙钟，不证明**源戳在推进**；
+  · GT 帧名单写死。
 
-判定口径：
-  · 双父：同一 child 有两个不同 parent（TF 语义上非法）
-  · 环路：沿 parent 链走回自己
-  · 超龄：动态边的最近时间戳落后于 now 超过 max_age
-  · 生产链途经 GT：map→rslidar 的父链上出现 GT 源帧（默认名单 odom）
+现在的模型：
+  contract = {'root': 'map', 'production_target': 'rslidar',
+              'gt_frames': {...}, 'stale_s': 1.0}
+  边 = {child: {parent: {'publisher': name, 'dynamic': bool, 'stamps': [...]}}}
+  静态边（/tf_static）不按心跳判超龄，只判同一 child 的双父与重复发布。
 
-用法：tf_chain_audit.py [--max-age 1.0] [--out out.json]
-只读。退出码：0 全部通过；1 有违例；2 无 TF 数据。
+判红项（任一即 FAIL）：
+  double_parent / cycle / no_root（生产链没到 root）/ production_uses_gt /
+  duplicate_publisher（同一条边多个发布者）/ stale（仅动态）/ stamp_stalled（仅动态）/
+  future_stamp / duplicate_stamp
+
+纯逻辑在 audit()，可由单测直接喂合成数据；ROS 采集只在 main() 里。
+用法：tf_chain_audit.py [--root map] [--target rslidar] [--gt-frames odom,gt_odom]
+                       [--stale 1.0] [--out out.json]
+退出码：0 PASS / 1 FAIL / 2 无数据。
 """
 import argparse
 import json
 import sys
 import time
 
-import rospy
-from tf2_msgs.msg import TFMessage
+# ---------------------------------------------------------------- 纯逻辑
 
-GT_FRAMES = {'odom'}          # 当前 GT 源帧；改名后此处同步
+
+def _walk(edges, node, problems):
+    """从 node 沿父链上溯，返回链；检测环路。"""
+    chain, seen = [], set()
+    while True:
+        chain.append(node)
+        if node not in edges or not edges[node]:
+            return chain
+        if node in seen:
+            problems.append({'kind': 'cycle', 'at': node, 'chain': list(chain)})
+            return chain
+        seen.add(node)
+        parents = list(edges[node].keys())
+        if len(parents) > 1:
+            problems.append({'kind': 'double_parent', 'child': node, 'parents': parents})
+        node = parents[0]
+
+
+def _conflicts(values, stamps, eps=1e-6, bucket=0.05):
+    """同一条边在**同一时刻**出现两套不同数值 ⇒ 双写嫌疑。
+
+    关键：不能拿整段采集比——机器人本来就在动，8 秒里位姿必然变化。
+    按源戳分桶（默认 50 ms），只有**同一桶内**数值不一致才算冲突。
+    """
+    if len(values) < 2 or len(stamps) != len(values):
+        return False
+    groups = {}
+    for st, v in zip(stamps, values):
+        groups.setdefault(round(st / bucket), []).append(v)
+    for vs in groups.values():
+        if len(vs) >= 2 and any(abs(v - vs[0]) > eps for v in vs[1:]):
+            return True
+    return False
+
+
+def audit(edges, contract, now=None):
+    """edges: {child: {parent: {'publisher':str,'dynamic':bool,'stamps':[float]}}}"""
+    problems = []
+    root = contract['root']
+    gt = set(contract.get('gt_frames') or ())
+    stale_s = float(contract.get('stale_s', 1.0))
+    now = time.time() if now is None else now
+
+    for child, parents in edges.items():
+        if len(parents) > 1:
+            problems.append({'kind': 'double_parent', 'child': child,
+                             'parents': sorted(parents)})
+        for parent, info in parents.items():
+            pubs = info.get('publishers') or ([info['publisher']] if info.get('publisher') else [])
+            if len(set(pubs)) > 1:
+                problems.append({'kind': 'duplicate_publisher',
+                                 'edge': '%s->%s' % (parent, child),
+                                 'publishers': sorted(set(pubs))})
+            # 注意：/tf 有多个发布者是**正常**的（插件、LIO、静态各发各的边），
+            # 所以话题级多发布者只作信息输出，不判红。真正的"双写"看同一条边的值冲突。
+            vals = info.get('values') or []
+            if _conflicts(vals, info.get('stamps') or []):
+                problems.append({'kind': 'double_write',
+                                 'edge': '%s->%s' % (parent, child),
+                                 'samples': len(vals)})
+            stamps = info.get('stamps') or []
+            if info.get('dynamic'):
+                if stamps:
+                    if any(b < a for a, b in zip(stamps, stamps[1:])):
+                        problems.append({'kind': 'stamp_regression',
+                                         'edge': '%s->%s' % (parent, child)})
+                    if len(stamps) >= 2 and stamps[-1] == stamps[0]:
+                        problems.append({'kind': 'stamp_stalled',
+                                         'edge': '%s->%s' % (parent, child)})
+                    if any(s > now + 1.0 for s in stamps):
+                        problems.append({'kind': 'future_stamp',
+                                         'edge': '%s->%s' % (parent, child),
+                                         'max': max(stamps)})
+                if info.get('last_wall') is not None and now - info['last_wall'] > stale_s:
+                    problems.append({'kind': 'stale', 'edge': '%s->%s' % (parent, child),
+                                     'age_s': round(now - info['last_wall'], 2)})
+
+    target = contract.get('production_target')
+    chain = _walk(edges, target, problems) if target else []
+    if target:
+        if not chain or chain[-1] != root:
+            problems.append({'kind': 'no_root', 'target': target,
+                             'chain': chain, 'root': root})
+        hit = [f for f in chain if f in gt]
+        if hit:
+            problems.append({'kind': 'production_uses_gt', 'chain': chain, 'gt_frames': hit})
+    return {'verdict': 'PASS' if not problems else 'FAIL',
+            'problems': problems, 'chain': chain}
+
+
+# ---------------------------------------------------------------- ROS 采集
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--max-age', type=float, default=1.0)
+    ap.add_argument('--root', default='map')
+    ap.add_argument('--target', default='rslidar')
+    ap.add_argument('--gt-frames', default='odom,gt_odom')
+    ap.add_argument('--stale', type=float, default=1.0)
+    ap.add_argument('--seconds', type=float, default=6.0)
     ap.add_argument('--out', default='')
     a = ap.parse_args()
 
-    rospy.init_node('tf_chain_audit', anonymous=True, disable_signals=True)
-    edges = {}          # child -> [parent]
-    stamps = {}         # (parent, child) -> (stamp, wall)
+    import rospy
+    from tf2_msgs.msg import TFMessage
 
-    def cb(msg):
-        now = time.monotonic()
+    rospy.init_node('tf_chain_audit', anonymous=True, disable_signals=True)
+    edges = {}
+
+    def record(msg, dynamic):
+        wall = time.time()
         for tr in msg.transforms:
             p, c = tr.header.frame_id, tr.child_frame_id
-            edges.setdefault(c, [])
-            if p not in edges[c]:
-                edges[c].append(p)
-            stamps[(p, c)] = (tr.header.stamp.to_sec(), now)
+            slot = edges.setdefault(c, {}).setdefault(
+                p, {'publishers': [], 'dynamic': dynamic, 'stamps': []})
+            slot['dynamic'] = slot['dynamic'] or dynamic
+            slot['last_wall'] = wall
+            slot['stamps'].append(tr.header.stamp.to_sec())
+            slot['stamps'] = slot['stamps'][-50:]
+            t = tr.transform.translation
+            slot.setdefault('values', []).append(round(t.x + t.y * 7 + t.z * 13, 6))
+            slot['values'] = slot['values'][-50:]
 
-    rospy.Subscriber('/tf', TFMessage, cb, queue_size=100)
-    rospy.Subscriber('/tf_static', TFMessage, cb, queue_size=100)
-    time.sleep(6)
+    rospy.Subscriber('/tf', TFMessage, lambda m: record(m, True), queue_size=200)
+    rospy.Subscriber('/tf_static', TFMessage, lambda m: record(m, False), queue_size=200)
+    time.sleep(a.seconds)
 
+    # 发布者身份：消息里没有节点名，所以只能按**话题**取发布者列表。
+    # /tf 或 /tf_static 出现 >1 个发布者，就是多写嫌疑（我们无法把某条边归给某节点）。
+    topic_pubs = {}
+    try:
+        import rosgraph
+        state = rosgraph.Master('/tf_chain_audit').getSystemState()
+        for topic, dynamic in (('/tf', True), ('/tf_static', False)):
+            # getSystemState 的 publishers 是 [(topic, [node...])]，不是反过来的
+            names = []
+            for tname, nodes in state[0]:
+                if tname == topic:
+                    names = list(nodes)
+            topic_pubs[topic] = names
+            if len(names) > 1:
+                for child, parents in edges.items():
+                    for parent, info in parents.items():
+                        if info['dynamic'] == dynamic:
+                            info.setdefault('topic_multi', []).append(topic)
+    except Exception as e:
+        topic_pubs = {'error': str(e)}
+
+    contract = {'root': a.root, 'production_target': a.target,
+                'gt_frames': [x for x in a.gt_frames.split(',') if x],
+                'stale_s': a.stale}
     if not edges:
         print('VERDICT NO_DATA')
         return 2
-
-    problems = []
-    for c, parents in edges.items():
-        if len(parents) > 1:
-            problems.append({'kind': 'double_parent', 'child': c, 'parents': parents})
-
-    def chain(target):
-        """返回 target 到根的父链（检测环路）。"""
-        out, node, seen = [], target, set()
-        while node in edges and edges[node]:
-            if node in seen:
-                problems.append({'kind': 'cycle', 'at': node, 'chain': out})
-                break
-            seen.add(node)
-            node = edges[node][0]
-            out.append(node)
-        return out
-
-    prod = chain('rslidar')
-    gt_hit = [f for f in prod if f in GT_FRAMES]
-    if gt_hit:
-        problems.append({'kind': 'production_uses_gt', 'chain': prod, 'gt_frames': gt_hit})
-
-    # 超龄：动态边（/tf 里的）用观测墙钟判，不看 ROS 时间
-    now_wall = time.monotonic()
-    stale = []
-    for (p, c), (stamp, wall) in stamps.items():
-        if now_wall - wall > a.max_age:
-            stale.append({'edge': '%s->%s' % (p, c), 'age_s': round(now_wall - wall, 2)})
-
-    print('CHAIN rslidar <- %s' % ' <- '.join(prod))
-    print('EDGES %d  DYN_STALE %d' % (len(edges), len(stale)))
-    for p in problems:
+    out = audit(edges, contract)
+    # chain 已包含 target 本身，别再拼一次（旧版拼出 "rslidar <- rslidar <- ..."）
+    print('CHAIN %s' % ' <- '.join(out['chain']))
+    print('EDGES %d  TOPIC_PUBLISHERS %s' % (sum(len(v) for v in edges.values()),
+                                             json.dumps(topic_pubs, ensure_ascii=False)))
+    for p in out['problems']:
         print('PROBLEM %s' % json.dumps(p, ensure_ascii=False))
-    verdict = 'FAIL' if problems else 'PASS'
-    print('VERDICT %s' % verdict)
+    print('VERDICT %s' % out['verdict'])
     if a.out:
-        json.dump({'verdict': verdict, 'problems': problems, 'chain': prod,
-                   'edges': {k: v for k, v in edges.items()}, 'stale': stale},
-                  open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    return 0 if verdict == 'PASS' else 1
+        payload = dict(out, edges={c: {p: {k: v for k, v in i.items() if k != 'stamps'}
+                                       for p, i in ps.items()} for c, ps in edges.items()})
+        with open(a.out, 'w', encoding='utf-8') as fh:
+            json.dump(payload, fh, ensure_ascii=False, indent=1)
+    return 0 if out['verdict'] == 'PASS' else 1
 
 
 if __name__ == '__main__':
