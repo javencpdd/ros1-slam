@@ -1,0 +1,16 @@
+===RECOVER===
+data: True
+---
+===PAUSE===
+
+data: False
+---
+===AUDIT_PAUSED===
+CHAIN rslidar <- base_link <- body
+EDGES 4  TOPIC_PUBLISHERS {"/tf": ["/robot_state_publisher", "/gazebo", "/faster_lio_online", "/lio_gate_probe"], "/tf_static": ["/robot_state_publisher", "/map_to_lio_world", "/body_to_base_link"]}
+PROBLEM {"kind": "no_root", "target": "rslidar", "chain": ["rslidar", "base_link", "body"], "root": "map"}
+VERDICT FAIL
+===UNPAUSE===
+
+data: True
+---

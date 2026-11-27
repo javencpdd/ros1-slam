@@ -12,7 +12,12 @@
     "supports_dynamic_obstacles": false
   },
   "ownership": {
-    "tf_edges": [],
+    "tf_edges": [
+      {
+        "parent": "camera_init",
+        "child": "body"
+      }
+    ],
     "command_topics": [],
     "namespace": "/",
     "stop": "process_group_signal"

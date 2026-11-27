@@ -1,0 +1,17 @@
+CHAIN rslidar <- base_link <- body <- camera_init <- map
+EDGES 7  TOPIC_PUBLISHERS {"/tf": ["/robot_state_publisher", "/gazebo", "/faster_lio_online", "/lio_gate_probe"], "/tf_static": ["/robot_state_publisher", "/map_to_lio_world", "/body_to_base_link"]}
+PROBLEM {"kind": "stale", "edge": "camera_init->body", "age_s": 4.75}
+PROBLEM {"kind": "chain_stale", "edge": "camera_init->body", "age_s": 4.75}
+VERDICT FAIL
+===LOC===
+data: False
+---
+===GT===
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, 0.000, 0.000]
+            in RPY (degree) [0.000, 0.000, 0.000]
+At time 138.327
+- Translation: [0.000, 0.000, 0.110]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, 0.000, 0.000]
+            in RPY (degree) [0.000, 0.000, 0.000]

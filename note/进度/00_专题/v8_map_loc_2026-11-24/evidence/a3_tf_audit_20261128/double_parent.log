@@ -1,0 +1,5 @@
+CHAIN rslidar <- base_link <- body <- camera_init <- map
+EDGES 8  TOPIC_PUBLISHERS {"/tf": ["/robot_state_publisher", "/gazebo", "/faster_lio_online", "/lio_gate_probe"], "/tf_static": ["/robot_state_publisher", "/map_to_lio_world", "/body_to_base_link", "/rogue_parent"]}
+PROBLEM {"kind": "double_parent", "child": "base_link", "parents": ["body", "camera_init"]}
+PROBLEM {"kind": "double_parent", "child": "base_link", "parents": ["body", "camera_init"]}
+VERDICT FAIL

@@ -67,13 +67,23 @@ def _conflicts(values, stamps, eps=1e-6, bucket=0.05):
     return False
 
 
-def audit(edges, contract, now=None):
-    """edges: {child: {parent: {'publisher':str,'dynamic':bool,'stamps':[float]}}}"""
+def audit(edges, contract, now=None, now_ros=None, now_mono=None):
+    """Audit by wall-monotonic freshness and ROS source-stamp plausibility separately.
+
+    `now` is retained for synthetic callers and feeds both clocks. Live collection
+    passes `now_ros=rospy.Time.now()` and `now_mono=time.monotonic()`.
+    """
     problems = []
+    observations = []
     root = contract['root']
     gt = set(contract.get('gt_frames') or ())
     stale_s = float(contract.get('stale_s', 1.0))
-    now = time.time() if now is None else now
+    if now is not None:
+        mono_now = now if now_mono is None else now_mono
+        ros_now = now if now_ros is None else now_ros
+    else:
+        mono_now = time.monotonic() if now_mono is None else now_mono
+        ros_now = time.time() if now_ros is None else now_ros
 
     for child, parents in edges.items():
         if len(parents) > 1:
@@ -87,11 +97,13 @@ def audit(edges, contract, now=None):
                                  'publishers': sorted(set(pubs))})
             # 注意：/tf 有多个发布者是**正常**的（插件、LIO、静态各发各的边），
             # 所以话题级多发布者只作信息输出，不判红。真正的"双写"看同一条边的值冲突。
+            # Numeric conflicts remain a diagnostic only. The authoritative
+            # double-write signal is the per-edge callerid set above.
             vals = info.get('values') or []
             if _conflicts(vals, info.get('stamps') or []):
-                problems.append({'kind': 'double_write',
-                                 'edge': '%s->%s' % (parent, child),
-                                 'samples': len(vals)})
+                observations.append({'kind': 'value_conflict',
+                                     'edge': '%s->%s' % (parent, child),
+                                     'samples': len(vals)})
             stamps = info.get('stamps') or []
             if info.get('dynamic'):
                 if stamps:
@@ -101,13 +113,13 @@ def audit(edges, contract, now=None):
                     if len(stamps) >= 2 and stamps[-1] == stamps[0]:
                         problems.append({'kind': 'stamp_stalled',
                                          'edge': '%s->%s' % (parent, child)})
-                    if any(s > now + 1.0 for s in stamps):
+                    if any(s > ros_now + 1.0 for s in stamps):
                         problems.append({'kind': 'future_stamp',
                                          'edge': '%s->%s' % (parent, child),
-                                         'max': max(stamps)})
-                if info.get('last_wall') is not None and now - info['last_wall'] > stale_s:
+                                         'max': max(stamps), 'now_ros': round(ros_now, 3)})
+                if info.get('last_wall') is not None and mono_now - info['last_wall'] > stale_s:
                     problems.append({'kind': 'stale', 'edge': '%s->%s' % (parent, child),
-                                     'age_s': round(now - info['last_wall'], 2)})
+                                     'age_s': round(mono_now - info['last_wall'], 2)})
 
     target = contract.get('production_target')
     chain = _walk(edges, target, problems) if target else []
@@ -121,15 +133,15 @@ def audit(edges, contract, now=None):
         for child, parent in zip(chain, chain[1:]):
             info = (edges.get(child) or {}).get(parent) or {}
             if info.get('dynamic') and info.get('last_wall') is not None \
-                    and now - info['last_wall'] > stale_s:
+                    and mono_now - info['last_wall'] > stale_s:
                 problems.append({'kind': 'chain_stale',
                                  'edge': '%s->%s' % (parent, child),
-                                 'age_s': round(now - info['last_wall'], 2)})
+                                 'age_s': round(mono_now - info['last_wall'], 2)})
         hit = [f for f in chain if f in gt]
         if hit:
             problems.append({'kind': 'production_uses_gt', 'chain': chain, 'gt_frames': hit})
     return {'verdict': 'PASS' if not problems else 'FAIL',
-            'problems': problems, 'chain': chain}
+            'problems': problems, 'observations': observations, 'chain': chain}
 
 
 # ---------------------------------------------------------------- ROS 采集
@@ -152,13 +164,16 @@ def main():
     edges = {}
 
     def record(msg, dynamic):
-        wall = time.time()
+        wall = time.monotonic()
+        callerid = msg._connection_header.get('callerid', '') if hasattr(msg, '_connection_header') else ''
         for tr in msg.transforms:
             p, c = tr.header.frame_id, tr.child_frame_id
             slot = edges.setdefault(c, {}).setdefault(
                 p, {'publishers': [], 'dynamic': dynamic, 'stamps': []})
             slot['dynamic'] = slot['dynamic'] or dynamic
             slot['last_wall'] = wall
+            if callerid and callerid not in slot['publishers']:
+                slot['publishers'].append(callerid)
             slot['stamps'].append(tr.header.stamp.to_sec())
             slot['stamps'] = slot['stamps'][-50:]
             t = tr.transform.translation
@@ -182,11 +197,6 @@ def main():
                 if tname == topic:
                     names = list(nodes)
             topic_pubs[topic] = names
-            if len(names) > 1:
-                for child, parents in edges.items():
-                    for parent, info in parents.items():
-                        if info['dynamic'] == dynamic:
-                            info.setdefault('topic_multi', []).append(topic)
     except Exception as e:
         topic_pubs = {'error': str(e)}
 
@@ -196,13 +206,15 @@ def main():
     if not edges:
         print('VERDICT NO_DATA')
         return 2
-    out = audit(edges, contract)
+    out = audit(edges, contract, now_ros=rospy.Time.now().to_sec(), now_mono=time.monotonic())
     # chain 已包含 target 本身，别再拼一次（旧版拼出 "rslidar <- rslidar <- ..."）
     print('CHAIN %s' % ' <- '.join(out['chain']))
     print('EDGES %d  TOPIC_PUBLISHERS %s' % (sum(len(v) for v in edges.values()),
                                              json.dumps(topic_pubs, ensure_ascii=False)))
     for p in out['problems']:
         print('PROBLEM %s' % json.dumps(p, ensure_ascii=False))
+    for p in out['observations']:
+        print('OBSERVE %s' % json.dumps(p, ensure_ascii=False))
     print('VERDICT %s' % out['verdict'])
     if a.out:
         payload = dict(out, edges={c: {p: {k: v for k, v in i.items() if k != 'stamps'}

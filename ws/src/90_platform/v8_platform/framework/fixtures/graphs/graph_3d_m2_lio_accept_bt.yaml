@@ -29,6 +29,8 @@ instances:
       in_topic: /Odometry
       out_topic: /Odometry_gated
       enabled: true
+      tf_parent: camera_init
+      tf_child: body
   - id: map
     component: v8.fw.map_file
     namespace: /v8/3d/map

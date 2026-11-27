@@ -3,7 +3,7 @@
        publishes /v8/local/pose and /v8/local/pose_plan, and does not publish TF. -->
   <node pkg="v8_platform" type="run_localization_source.py" name="loc_tf_contract_probe" output="screen">
     <param name="source" value="faster_lio"/>
-    <param name="lio_topic" value="/Odometry"/>
+    <param name="lio_topic" value="/Odometry_gated"/>
     <param name="frame" value="map"/>
     <param name="lio_origin_x" value="0.0"/>
     <param name="lio_origin_y" value="0.0"/>

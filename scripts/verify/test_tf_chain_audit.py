@@ -118,6 +118,49 @@ class AuditTest(unittest.TestCase):
         res = A.audit(edges, dict(CONTRACT, gt_frames=['gt_odom_x']), now=3.0)
         self.assertIn('production_uses_gt', kinds(res))
 
+    def test_source_stamp_stall_is_not_masked_by_fresh_wall(self):
+        edges = merge(E('map', 'camera_init', dynamic=False),
+                      E('camera_init', 'body', stamps=(5.0, 5.0), wall=9.9),
+                      E('body', 'base_link', dynamic=False),
+                      E('base_link', 'rslidar', dynamic=False))
+        res = A.audit(edges, CONTRACT, now=10.0)
+        self.assertIn('stamp_stalled', kinds(res))
+
+    def test_ros_and_monotonic_clocks_are_separate(self):
+        # 墙钟 10s，ROS 时钟只有 3s；源戳 4s 不能因墙钟超龄被判未来
+        edges = merge(E('map', 'camera_init', dynamic=False),
+                      E('camera_init', 'body', stamps=(4.0,), wall=9.9),
+                      E('body', 'base_link', dynamic=False),
+                      E('base_link', 'rslidar', dynamic=False))
+        res = A.audit(edges, CONTRACT, now_ros=3.0, now_mono=10.0)
+        self.assertNotIn('future_stamp', kinds(res))
+        # 反过来：ROS 时钟 10s、墙钟 3s，源戳 4s 不是未来
+        res = A.audit(edges, CONTRACT, now_ros=10.0, now_mono=3.0)
+        self.assertNotIn('future_stamp', kinds(res))
+        # 同一条边源戳 11s 才判未来
+        edges_future = merge(E('map', 'camera_init', dynamic=False),
+                             E('camera_init', 'body', stamps=(12.5,), wall=2.9),
+                             E('body', 'base_link', dynamic=False),
+                             E('base_link', 'rslidar', dynamic=False))
+        res = A.audit(edges_future, CONTRACT, now_ros=10.0, now_mono=3.0)
+        self.assertIn('future_stamp', kinds(res))
+
+    def test_value_conflict_is_observation_not_proof(self):
+        edge = E('map', 'camera_init', dynamic=False, stamps=(1.0, 1.02), pubs=['/one'])
+        edge['camera_init']['map']['values'] = [0.0, 0.2]
+        res = A.audit(edge, dict(CONTRACT, production_target='camera_init'), now=2.0)
+        self.assertEqual(res['verdict'], 'PASS')
+        self.assertIn('value_conflict', [o['kind'] for o in res['observations']])
+
+    def test_edge_level_publishers_do_not_cross_contaminate(self):
+        edges = merge(E('map', 'camera_init', dynamic=False, pubs=['/static']),
+                      E('camera_init', 'body', pubs=['/lio']),
+                      E('body', 'base_link', dynamic=False, pubs=['/static2']),
+                      E('base_link', 'rslidar', dynamic=False, pubs=['/urdf']))
+        res = A.audit(edges, CONTRACT, now=3.0)
+        self.assertEqual(res['verdict'], 'PASS')
+        self.assertNotIn('duplicate_publisher', kinds(res))
+
 
 if __name__ == '__main__':
     unittest.main()

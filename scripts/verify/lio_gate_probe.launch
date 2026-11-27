@@ -1,0 +1,11 @@
+<launch>
+  <!-- Graph-owned LIO gate stand-in for negative controls. It forwards both
+       /Odometry_gated and the production camera_init->body TF only while enabled. -->
+  <node pkg="v8_platform" type="run_gate_relay.py" name="lio_gate_probe" output="screen">
+    <param name="in_topic" value="/Odometry"/>
+    <param name="out_topic" value="/Odometry_gated"/>
+    <param name="enabled" value="true"/>
+    <param name="tf_parent" value="camera_init"/>
+    <param name="tf_child" value="body"/>
+  </node>
+</launch>

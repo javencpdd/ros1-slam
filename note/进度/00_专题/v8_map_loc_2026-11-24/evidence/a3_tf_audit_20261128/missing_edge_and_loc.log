@@ -1,0 +1,17 @@
+===MISSING_EDGE===
+CHAIN rslidar <- base_link <- body
+EDGES 6  TOPIC_PUBLISHERS {"/tf": ["/robot_state_publisher", "/gazebo", "/faster_lio_online"], "/tf_static": ["/robot_state_publisher", "/map_to_lio_world", "/body_to_base_link"]}
+PROBLEM {"kind": "no_root", "target": "rslidar", "chain": ["rslidar", "base_link", "body"], "root": "map"}
+VERDICT FAIL
+===LOC_AFTER_GATE_KILL===
+data: False
+---
+===GT_STILL===
+Frame TORSO exists with parent base_link.
+Frame camera_init exists with parent map.
+
+At time 121.707
+- Translation: [0.000, 0.000, 0.110]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, 0.000, 0.000]
+            in RPY (degree) [0.000, 0.000, 0.000]

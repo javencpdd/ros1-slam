@@ -7,6 +7,10 @@
   <rosparam command="load" file="$(find lite3_slam)/config/faster_lio_outdoor.yaml"/>
   <param name="use_sim_time" value="true"/>
   <param name="pcd_save/pcd_save_en" value="$(arg pcd_save)"/>
+  <!-- Raw LIO TF is not a production edge. The graph-owned lio_gate republishes
+       camera_init->body from /Odometry_gated, so disabling the gate also freezes
+       production TF instead of letting raw LIO bypass it. -->
+  <param name="/publish/tf_imu_frame" value="lio_body_raw"/>
 
   <!-- ★map←camera_init 静态锚点★（2026-11-27 补）：faster_lio 的世界系是 camera_init（取首帧位姿为原点），
        而 v8 的 loc 节点按 `frame: map` 工作、每条 /Odometry 都要查 map←camera_init；

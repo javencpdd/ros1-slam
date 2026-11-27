@@ -23,6 +23,15 @@ name: nav3d_m2_lio_bt
 #   3) mux3d 的 cmd 输出不连实例：/cmd_vel 由图外的 lite3_planar_drive 消费
 #      （external 只表达「外部供给某输入口」，没有「输出给外部执行器」的写法）。
 instances:
+  - id: lio_gate
+    component: v8.fw.lio_gate
+    namespace: /v8/3d/lio_gate
+    params:
+      in_topic: /Odometry
+      out_topic: /Odometry_gated
+      enabled: true
+      tf_parent: camera_init
+      tf_child: body
   - id: map
     component: v8.fw.map_file
     namespace: /v8/3d/map
@@ -136,7 +145,7 @@ instances:
     namespace: /v8/3d/loc
     params:
       source: faster_lio
-      lio_topic: /Odometry   # 正常导航：直接消费 LIO 输出（不经闸门）
+      lio_topic: /Odometry_gated   # production pose and TF both pass the graph gate
       # T1 camera_init -> map: full initial attitude (rslidar pitched 15 deg).
       lio_to_map: true
       lio_origin_x: 5.2

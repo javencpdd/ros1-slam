@@ -9224,3 +9224,11 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - **FAR 消费面**：`graph_3d_m2_lio_bt_far.yaml` 增图内 `lio_gate`，loc 改消费 `/Odometry_gated`；三张 M2 图都写入 T1/T2/T3 参数与 `/v8/local/pose_plan`。
 - **验证**：`test_pose_contract.py` 6 项、`test_localization_contract.py` 29 项（新增列表参数 2 项）通过；隔离模式活体 TF 审计 PASS，非零 yaw 下 loc 与 `map→base_link` 差 0.000 m，`pose_plan` 比 base 低 0.110000 m。证据 `note/进度/00_专题/v8_map_loc_2026-11-24/evidence/a2_tf_contract_20261128/`。
 - **未闭合**：五组 GT 隔离负控、TF 审计时间口径/边级 publisher/非法边负控仍在 A3；Stage A/B/C 全量未在本切片重跑。
+
+## 2026-11-28 / T-20261128-01 A3 TF 审计与定位闸门同时约束 TF/位姿
+
+- `tf_chain_audit.py`：`stale`/`chain_stale` 改用 monotonic 接收墙钟，`future_stamp` 改用 `rospy.Time.now()` ROS 时钟；边级发布者从 `TFMessage._connection_header.callerid` 归因；50ms/xyz 冲突降为 `OBSERVE value_conflict`，不再当双写证明。
+- `gate_relay_node.py` 新增 `tf_parent/tf_child`，从 `/Odometry_gated` 重发 `camera_init→body` TF；`manifest_gate_relay.json` 声明该 TF 边。三张 M2 图均启用闸门 TF，loc 消费 `/Odometry_gated`。
+- `m2_mapping.launch` 把原始 LIO TF 帧改为 `lio_body_raw`（非生产域），防止原始 LIO TF 绕过闸门。原始 `/Odometry` 仍由 LIO 发布，供闸门输入与评价。
+- 活体：关闸后 loc=false、动态边 stale、GT 仍正常；kill 闸门后 no_root；双发布者/双父/停钟均判 FAIL。证据 `note/进度/00_专题/v8_map_loc_2026-11-24/evidence/a3_tf_audit_20261128/`。
+- **未闭合**：GT TF/话题独立关断需 GT 评价域中继；恢复不自动续跑与 FAR/感知运行时不消费 GT 需全图任务窗（A5）。
