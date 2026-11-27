@@ -23,7 +23,10 @@
 - 感知订阅：`/rslidar_points` + `/v8/local/pose`，**无 GT**；
 - BT 订阅：`/v8/local/pose`，**无 GT**。
 
-FAR 运行时本轮未起（Support 图），FAR 侧仍只有静态装配/源码证明（A3 README）。
+FAR 运行时（补记）：在 raw 底座、eval GT 全关、无中继时启动 `graph_3d_m2_lio_bt_far.yaml`，
+10/10 节点就绪、`/terrain_cloud` 2.3 Hz、`/sim/odom_gt` 0 帧、`gt_odom→gt_base` 无 Translation；
+`/far_planner` 只订 `/terrain_cloud`、`/tf`、`/tf_static`，`/v8_global_far` 只订
+`/tf`、`/v8/local/pose`；生产 `map→rslidar` 仍可查。FAR 侧不再只是静态证明。
 
 ## 实现
 
@@ -68,6 +71,16 @@ rosservice call /gt_eval_relay/set_topic "{data: false}"
 
 ## 未闭合
 
-- FAR 运行时 GT 消费证明仍需 FAR 图窗口。
 - GT 恢复后是否自动回到原任务仍以 A3 gate-recovery 的 stop-latch 证据为准（本切片未重跑任务）。
 - `support_assoc_tol_m=1e-6` 的 3–4 mm 阻断仍需 L2（见 `m2_imu_t2_20261128/`）。
+
+## FAR 运行时读数（far_graph_gt_off/）
+
+- 节点：`far_planner`、`v8_global_far` + 8 个 v8 实例，10/10；
+- `/terrain_cloud`：2.301 Hz（window 4）；
+- `/sim/odom_gt`：0 条平均速率；`gt_odom→gt_base`：0 Translation；
+- `/v8/local/pose`：`(5.18373, 2.44903, 0.11370)`；
+- `map→rslidar`：可查；
+- `/far_planner` 订阅：`/terrain_cloud`、`/tf`、`/tf_static`；
+- `/v8_global_far` 订阅：`/tf`、`/tf_static`、`/v8/local/pose`；
+- 证据文件：`far_graph_gt_off/far_subs.txt`、`global_far_subs.txt`、`terrain_hz.log`、`gt_off_hz.log`、`gt_off_tf.log`、`pose.yaml`、`production_tf.log`。
