@@ -137,3 +137,33 @@ VERDICT PASS
   不会自动变成曲线或 3D 图元——需要曲线时另配 Plot 面板并解析字段，属待办。
 - 3D 面板只画**原生消息类型**（PointCloud2 / Path / PoseStamped / TF）。
 - 因此"轨迹/障碍/任务数据能看见"必须用对应面板单独验，不能只在 3D 面板里加了话题就说显示成功。
+
+## 2026-11-28 复验修正：桥必须连 **sim 容器的 IP:11313**
+
+`sim` 与 `sim-viz` 是两个网络命名空间。在 `sim-viz` 里写
+`ROS_MASTER_URI=http://127.0.0.1:11313` 连到的是 **sim-viz 自己的 master**
+（只有 4 条桥自身话题），不是仿真的 11313。实测该错误表现为
+`TOPICS n=4 m2_ok=False`、`DATA FAIL`，而端口 9090 本身是通的。
+
+正确做法：
+
+```bash
+SIMIP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ros1-slam-sim)
+VIZIP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ros1-slam-sim-viz)
+
+# 起在 9091，避开宿主 9090 的开发域桥
+docker exec -d ros1-slam-sim-viz bash -lc \
+  "source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash; \
+   export ROS_MASTER_URI=http://$SIMIP:11313; \
+   exec roslaunch rosbridge_server rosbridge_websocket.launch port:=9091 address:=0.0.0.0"
+
+# 本地 TF 检查也必须用同一个 sim master
+docker exec ros1-slam-sim-viz bash -lc \
+  "source /opt/ros/noetic/setup.bash; source /opt/ros1-slam/ws/devel/setup.bash; \
+   export ROS_MASTER_URI=http://$SIMIP:11313; \
+   python3 /opt/ros1-slam/scripts/verify/foxglove_ws_check.py ws://$VIZIP:9091 --topic /v8/local/pose"
+```
+
+2026-11-28 实测：`TOPICS n=64 m2_ok=True`、`DATA OK n=3`、`TF(local) OK`、
+`TF(ws) OK edges=7`、`VERDICT PASS`。证据：
+`note/进度/00_专题/v8_map_loc_2026-11-24/evidence/foxglove_20261128/ws_check.log`。

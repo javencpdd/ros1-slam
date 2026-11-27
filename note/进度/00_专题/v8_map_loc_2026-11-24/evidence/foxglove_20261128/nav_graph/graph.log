@@ -1,0 +1,231 @@
+[INFO] [1795806557.936464, 271.580000]: localization source=faster_lio navigation_allowed=True
+READY
+[33m[ WARN] [1795806558.176640023, 271.688000000]: [bt] localization lost: mission aborted, queued goals dropped (recovery requires a new goal)[0m
+[33m[ WARN] [1795806558.226629432, 271.707000000]: [bt] localization lost: mission aborted, queued goals dropped (recovery requires a new goal)[0m
+[33m[ WARN] [1795806558.276615480, 271.732000000]: [bt] localization lost: mission aborted, queued goals dropped (recovery requires a new goal)[0m
+READY
+shutdown request: user request
+[INFO] [1795806558.229426, 271.708000]: [lio_gate] /Odometry -> /Odometry_gated enabled=True
+shutdown request: user request
+shutdown request: user request
+[WARN] [1795806747.497686, 357.152000]: [local] localization lost > 0.80s: task dropped (goal cleared, stop latched)
+[INFO] [1795806558.699212, 271.926000]: [local] obstacles ok: 3
+[INFO] [1795806570.116634, 277.052000]: [local] obstacles ok: 3
+[INFO] [1795806581.366363, 282.124000]: [local] obstacles ok: 3
+[INFO] [1795806592.643970, 287.224000]: [local] obstacles ok: 3
+[INFO] [1795806604.332493, 292.425000]: [local] obstacles ok: 3
+[INFO] [1795806615.577016, 297.525000]: [local] obstacles ok: 3
+[INFO] [1795806626.838845, 302.627000]: [local] obstacles ok: 3
+[INFO] [1795806638.366291, 307.825000]: [local] obstacles ok: 3
+[INFO] [1795806649.729549, 312.926000]: [local] obstacles ok: 3
+[INFO] [1795806661.052858, 318.025000]: [local] obstacles ok: 3
+[INFO] [1795806672.365994, 323.125000]: [local] obstacles ok: 3
+[INFO] [1795806683.735785, 328.223000]: [local] obstacles ok: 3
+[INFO] [1795806694.757144, 333.225000]: [local] obstacles ok: 3
+[INFO] [1795806706.028517, 338.324000]: [local] obstacles ok: 3
+[INFO] [1795806717.290959, 343.424000]: [local] obstacles ok: 3
+[INFO] [1795806728.530444, 348.523000]: [local] obstacles ok: 3
+[INFO] [1795806739.495144, 353.525000]: [local] obstacles ok: 3
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py", line 18, in <module>
+    map_file_node.main()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/map_file_node.py", line 81, in main
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+shutdown request: user request
+shutdown request: user request
+shutdown request: user request
+Traceback (most recent call last):
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_dynamic_obstacles.py", line 22, in <module>
+    impl.DynamicObstaclesNode().spin()
+  File "/opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/framework/nodes/dynamic_obstacles_node.py", line 262, in spin
+    rate.sleep()
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 103, in sleep
+    sleep(self._remaining(curr_time))
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/timer.py", line 165, in sleep
+    raise rospy.exceptions.ROSInterruptException("ROS shutdown request")
+rospy.exceptions.ROSInterruptException: ROS shutdown request
+[33m[ WARN] [1795806752.107825156, 359.227000000]: Shutdown request received.[0m
+[33m[ WARN] [1795806752.108140975, 359.227000000]: Reason given for shutdown: [user request][0m
+[0m[ INFO] [1795806557.203129615]: [bt] pose-based arrival mode (no planner_result_topic)[0m
+[0m[ INFO] [1795806557.267869823]: [bt] localization gate: /v8/local/localization_ok[0m
+[0m[ INFO] [1795806557.267972888]: [bt] cancel in /v8/bt/cancel, out /v8/local/cancel, ack in /v8/local/cancel_ack, policy in /v8/bt/goal_policy, mission in /v8/bt/goal_mission[0m
+[0m[ INFO] [1795806557.276285941]: [bt] tree loaded: /opt/ros1-slam/ws/.profiles/x86_sim/src/lite3_bt/trees/navigate_with_planner.xml[0m
+[0m[ INFO] [1795806557.276346022]: [bt] planner input /v8/3d/global/goal, status /v8/3d/global/status[0m
+[0m[ INFO] [1795806557.276391622]: [bt] Groot2 ZMQ publisher ports 5555/5556[0m
+[31mWARNING: disk usage in log directory [/opt/ros1-slam/logs] is over 1GB.
+It's recommended that you use the 'rosclean' command.[0m
+[31m[v8/3d/map/map-3] process has died [pid 89214, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_map_file.py __name:=map __log:=/opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-map-map-3.log].
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-map-map-3*.log[0m
+[31m[v8/3d/perception/perception-4] process has died [pid 89215, exit code 1, cmd /opt/ros1-slam/ws/.profiles/x86_sim/src/v8_platform/scripts/run_dynamic_obstacles.py /v8/local/pose:=/v8/local/pose __name:=perception __log:=/opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-perception-perception-4.log].
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-perception-perception-4*.log[0m
+... logging to /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/roslaunch-69aa573b8ab8-89134.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/foxglove_20261128/nav_graph/graph.launch
+[1mstarted roslaunch server http://69aa573b8ab8:44037/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /v8/3d/global/global/goal_topic: /v8/3d/global/goal
+ * /v8/3d/global/global/map_topic: /v8_support_map
+ * /v8/3d/global/global/path_topic: /v8/3d/global/path
+ * /v8/3d/global/global/start_topic: /v8/3d/global/start
+ * /v8/3d/global/global/status_topic: /v8/3d/global/status
+ * /v8/3d/lio_gate/lio_gate/enabled: True
+ * /v8/3d/lio_gate/lio_gate/in_topic: /Odometry
+ * /v8/3d/lio_gate/lio_gate/out_topic: /Odometry_gated
+ * /v8/3d/lio_gate/lio_gate/source: sim_gt
+ * /v8/3d/lio_gate/lio_gate/tf_child: body
+ * /v8/3d/lio_gate/lio_gate/tf_parent: camera_init
+ * /v8/3d/loc/loc/error_topic: /v8/local/localiz...
+ * /v8/3d/loc/loc/frame: map
+ * /v8/3d/loc/loc/gt_topic: /sim/odom_gt
+ * /v8/3d/loc/loc/lio_origin_pitch: 0.2617993877991494
+ * /v8/3d/loc/loc/lio_origin_roll: 0.0
+ * /v8/3d/loc/loc/lio_origin_x: 5.2
+ * /v8/3d/loc/loc/lio_origin_y: 2.45
+ * /v8/3d/loc/loc/lio_origin_yaw: 0.0
+ * /v8/3d/loc/loc/lio_origin_z: 0.45
+ * /v8/3d/loc/loc/lio_to_map: True
+ * /v8/3d/loc/loc/lio_topic: /Odometry_gated
+ * /v8/3d/loc/loc/localization_topic: /v8/local/localiz...
+ * /v8/3d/loc/loc/max_age_s: 1.0
+ * /v8/3d/loc/loc/plan_ref_z: -0.11
+ * /v8/3d/loc/loc/pose_plan_topic: /v8/local/pose_plan
+ * /v8/3d/loc/loc/pose_topic: /v8/local/pose
+ * /v8/3d/loc/loc/sensor_to_base_rpy: [0.0,-0.261799387...
+ * /v8/3d/loc/loc/sensor_to_base_xyz: [0.076998,-0.0232...
+ * /v8/3d/loc/loc/source: faster_lio
+ * /v8/3d/loc/loc/status_topic: /v8/local/localiz...
+ * /v8/3d/local/local/cancel_ack_topic: /v8/local/cancel_ack
+ * /v8/3d/local/local/cancel_topic: /v8/local/cancel
+ * /v8/3d/local/local/command_topic: /v8/local/cmd_vel_3d
+ * /v8/3d/local/local/experimental_config/clearance_m: 0.1
+ * /v8/3d/local/local/experimental_config/goal_tolerance_m: 0.15
+ * /v8/3d/local/local/experimental_config/height_m: 0.35
+ * /v8/3d/local/local/experimental_config/horizon_s: 6.0
+ * /v8/3d/local/local/experimental_config/max_slope_deg: 35.0
+ * /v8/3d/local/local/experimental_config/max_speed_mps: 0.6
+ * /v8/3d/local/local/experimental_config/max_step_m: 0.3
+ * /v8/3d/local/local/experimental_config/radius_m: 0.15
+ * /v8/3d/local/local/experimental_config/resolution: 0.3
+ * /v8/3d/local/local/experimental_config/tick_s: 0.6
+ * /v8/3d/local/local/experimental_config/validity_s: 20.0
+ * /v8/3d/local/local/goal_topic: /v8/local/goal
+ * /v8/3d/local/local/input_max_age_s: 0.7
+ * /v8/3d/local/local/localization_topic: /v8/local/localiz...
+ * /v8/3d/local/local/map_topic: /v8_support_map
+ * /v8/3d/local/local/obstacles_topic: /v8/local/obstacles
+ * /v8/3d/local/local/pose_topic: /v8/local/pose
+ * /v8/3d/local/local/require_goal_seq: True
+ * /v8/3d/local/local/status_topic: /v8/local/status
+ * /v8/3d/local/local/trajectory_topic: /v8/local/trajectory
+ * /v8/3d/local/local/wall_watchdog_s: 90.0
+ * /v8/3d/map/map/map_json: data/maps/generat...
+ * /v8/3d/map/map/map_topic: /v8_support_map
+ * /v8/3d/map/map/status_topic: /v8_map_status
+ * /v8/3d/mux/mux3d/cmd_topic: /v8/local/cmd_vel_3d
+ * /v8/3d/mux/mux3d/hold_topic: /lite3/supervisor...
+ * /v8/3d/mux/mux3d/output_topic: /cmd_vel
+ * /v8/3d/mux/mux3d/status_topic: /v8/3d/mux/status
+ * /v8/3d/mux/mux3d/timeout_s: 0.25
+ * /v8/3d/path_goal/path_goal/goal_topic: /v8/local/goal
+ * /v8/3d/path_goal/path_goal/path_topic: /v8/3d/global/path
+ * /v8/3d/path_goal/path_goal/status_topic: /v8/3d/path_goal/...
+ * /v8/3d/perception/perception/blind_timeout_s: 1.0
+ * /v8/3d/perception/perception/cloud_topic: /rslidar_points
+ * /v8/3d/perception/perception/enable: True
+ * /v8/3d/perception/perception/gate_m: 0.8
+ * /v8/3d/perception/perception/map_frame: map
+ * /v8/3d/perception/perception/max_depth: 2
+ * /v8/3d/perception/perception/max_height_m: 1.6
+ * /v8/3d/perception/perception/max_objects: 32
+ * /v8/3d/perception/perception/max_speed_mps: 1.5
+ * /v8/3d/perception/perception/min_extent_m: 0.45
+ * /v8/3d/perception/perception/min_fill: 0.45
+ * /v8/3d/perception/perception/min_height_m: 0.15
+ * /v8/3d/perception/perception/min_points: 16
+ * /v8/3d/perception/perception/rate_hz: 10.0
+ * /v8/3d/perception/perception/roi_forward_m: 6.0
+ * /v8/3d/perception/perception/roi_lateral_m: 3.0
+ * /v8/3d/perception/perception/self_radius_m: 0.45
+ * /v8/3d/perception/perception/voxel_m: 0.1
+ * /v8/bt/bt/cancel_ack_timeout: 2.0
+ * /v8/bt/bt/cancel_ack_topic: /v8/local/cancel_ack
+ * /v8/bt/bt/cancel_input_topic: /v8/bt/cancel
+ * /v8/bt/bt/cancel_topic: /v8/local/cancel
+ * /v8/bt/bt/goal_topic: /v8/bt/goal
+ * /v8/bt/bt/localization_topic: /v8/local/localiz...
+ * /v8/bt/bt/mission_topic: /v8/bt/goal_mission
+ * /v8/bt/bt/out_goal_topic: /v8/bt/out_goal
+ * /v8/bt/bt/path_status_topic: /v8/3d/global/status
+ * /v8/bt/bt/path_topic: /v8/3d/global/path
+ * /v8/bt/bt/planner_goal_topic: /v8/3d/global/goal
+ * /v8/bt/bt/policy_topic: /v8/bt/goal_policy
+ * /v8/bt/bt/pose_topic: /v8/local/pose
+ * /v8/bt/bt/recovery_mode: skip
+ * /v8/bt/bt/retry_delay_s: 0.0
+ * /v8/bt/bt/retry_max: 1
+ * /v8/bt/bt/stop_topic: /lite3/teleop/app...
+ * /v8/bt/bt/tree_file: /opt/ros1-slam/ws...
+
+NODES
+  /v8/3d/global/
+    global (v8_algorithm/run_topic_node.py)
+  /v8/3d/lio_gate/
+    lio_gate (v8_platform/run_gate_relay.py)
+  /v8/3d/loc/
+    loc (v8_platform/run_localization_source.py)
+  /v8/3d/local/
+    local (v8_algorithm/run_local_ros_node.py)
+  /v8/3d/map/
+    map (v8_platform/run_map_file.py)
+  /v8/3d/mux/
+    mux3d (v8_algorithm/run_cmd3d_mux.py)
+  /v8/3d/path_goal/
+    path_goal (v8_platform/run_path_goal.py)
+  /v8/3d/perception/
+    perception (v8_platform/run_dynamic_obstacles.py)
+  /v8/bt/
+    bt (lite3_bt/bt_console)
+
+[1mROS_MASTER_URI=http://127.0.0.1:11313[0m
+]2;/opt/ros1-slam/note/进度/00_专题/v8_map_loc_2026-11-24/evidence/foxglove_20261128/nav_graph/graph.launch http://127.0.0.1:11313
+[1mprocess[v8/3d/lio_gate/lio_gate-1]: started with pid [89212][0m
+[1mprocess[v8/3d/loc/loc-2]: started with pid [89213][0m
+[1mprocess[v8/3d/map/map-3]: started with pid [89214][0m
+[1mprocess[v8/3d/perception/perception-4]: started with pid [89215][0m
+[1mprocess[v8/3d/global/global-5]: started with pid [89216][0m
+[1mprocess[v8/bt/bt-6]: started with pid [89217][0m
+[1mprocess[v8/3d/path_goal/path_goal-7]: started with pid [89218][0m
+[1mprocess[v8/3d/local/local-8]: started with pid [89224][0m
+[1mprocess[v8/3d/mux/mux3d-9]: started with pid [89351][0m
+[1m[v8/3d/global/global-5] process has finished cleanly
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-global-global-5*.log[0m
+[1m[v8/3d/lio_gate/lio_gate-1] process has finished cleanly
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-lio_gate-lio_gate-1*.log[0m
+[1m[v8/3d/loc/loc-2] process has finished cleanly
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-loc-loc-2*.log[0m
+[1m[v8/3d/local/local-8] process has finished cleanly
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-local-local-8*.log[0m
+[1m[v8/3d/mux/mux3d-9] process has finished cleanly
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-mux-mux3d-9*.log[0m
+[1m[v8/3d/path_goal/path_goal-7] process has finished cleanly
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-3d-path_goal-path_goal-7*.log[0m
+[1m[v8/bt/bt-6] process has finished cleanly
+log file: /opt/ros1-slam/logs/99442454-ea94-11f1-97bb-3a38c2681f3a/v8-bt-bt-6*.log[0m
+all processes on machine have died, roslaunch will exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

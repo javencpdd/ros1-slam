@@ -26,6 +26,7 @@ PASSED = [False]
 
 class Client(WebSocketClientProtocol):
     def __init__(self, argv, opts):
+        super(Client, self).__init__()
         self.opts = opts
         self.topics = None
         self.got_data = 0
