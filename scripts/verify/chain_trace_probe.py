@@ -9,8 +9,9 @@
   /v8/bt/goal_task → /far/goal_task → /far/waypoint_tagged
   → /v8/3d/global/path_task → /v8/local/goal_task → /cmd_vel
 
-用法：chain_trace_probe.py --x 6.5 --y 2.6 [--window 25] [--out out.json]
-只读订阅 + 发一条目标；不发 cmd_vel、不改任何节点参数。
+用法：chain_trace_probe.py --x 6.5 --y 2.6 [--window 25] [--out out.json] [--send]
+默认只读订阅；只有显式 --send 才向 /v8/bt/goal_task 发一条目标。
+不发 cmd_vel、不改任何节点参数。
 """
 import argparse
 import json
@@ -66,8 +67,8 @@ def main():
     ap.add_argument('--out', default='')
     ap.add_argument('--pubs', action='store_true',
                     help='额外查每段发布者（较慢，默认关；要判发布者身份时再开）')
-    ap.add_argument('--no-send', action='store_true',
-                    help='只订阅、不发目标（目标由官方发送器发，避免用错 schema）')
+    ap.add_argument('--send', action='store_true',
+                    help='显式发一条 goal_task；默认只读订阅（目标由官方发送器发，避免用错 schema）')
     a = ap.parse_args()
 
     rospy.init_node('chain_trace_probe', anonymous=True, disable_signals=True)
@@ -113,12 +114,12 @@ def main():
     # 先等订阅生效，再发目标——顺序反了就等于用"事后 echo"取证
     time.sleep(2.0)
     t0 = time.monotonic()
-    if a.no_send:
-        # ★只订阅★：`/v8/bt/goal_task` 要的是任务/使命结构，裸 {x,y} 会被收下但不进
+    if not a.send:
+        # ★默认只读★：`/v8/bt/goal_task` 要的是任务/使命结构，裸 {x,y} 会被收下但不进
         # current_seq（实测 seq 恒 0，而官方发送器能让 0→1）。用错 schema 会得出假结论，
-        # 所以这里干脆不发，交给官方 bt_goal_once。
+        # 所以默认不发，交给官方 bt_goal_once；需要本探针自证发送链时才加 --send。
         sent_at = t0
-        print('NO_SEND 模式：等待外部发送目标')
+        print('READ_ONLY 模式：等待外部发送目标（--send 才发）')
     else:
         pub = rospy.Publisher('/v8/bt/goal_task', String, queue_size=5)
         task = {'request_id': 'chain-%d' % int(t0), 'gen': 1,
