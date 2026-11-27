@@ -93,5 +93,28 @@ class RouteContractTests(unittest.TestCase):
         self.assertIsNone(value['cost_decomposition']['risk_expected_m'])
 
 
+    def test_from_support_plan_preserves_three_layer_transitions(self):
+        plan = {
+            'map_id': 'three_layers', 'map_version': 7, 'length': 3.4,
+            'path': [(-2.0, 0.0, 0.0, 'ground'), (0.2, 0.0, 0.0, 'ground'),
+                     (0.4, 0.0, 0.15, 'step1'), (0.8, 0.0, 0.30, 'step2')],
+            'transitions': [{'from': 'ground', 'to': 'step1'},
+                            {'from': 'step1', 'to': 'step2'}],
+        }
+        value = route.from_support_plan(
+            plan, 'lite3', 'robot.v2:tested:1',
+            {('ground', 'step1'): 'step', ('step1', 'step2'): 'step'})
+        self.assertEqual([(t['from_surface'], t['to_surface'], t['kind'])
+                          for t in value['transitions']],
+                         [('ground', 'step1', 'step'), ('step1', 'step2', 'step')])
+        self.assertEqual([p['surface_id'] for p in value['path']],
+                         ['ground', 'ground', 'step1', 'step2'])
+        self.assertEqual(value['map']['map_version'], 7)
+        self.assertEqual(value['capability']['capability_version'], 'robot.v2:tested:1')
+        self.assertFalse(value['cost_decomposition']['risk_known'])
+        self.assertIsNone(value['cost_decomposition']['risk_expected_m'])
+        self.assertEqual(reason(value), 'OK')
+
+
 if __name__ == '__main__':
     unittest.main()
