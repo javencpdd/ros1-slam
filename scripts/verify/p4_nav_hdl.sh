@@ -111,9 +111,14 @@ pkill -x bt_console 2>/dev/null || true
 # ★FAR 后端：先清同名残留★（2026-11-27 实测）——上一轮的 `/far_planner` 还在 master 里时，
 # 新的同名节点会以 "new node registered with same name" 自我关停，于是门禁看到"节点缺失"，
 # 而 graph.log 里只有一行 WARN，很容易被当成环境问题。
-for _n in /far_planner /far_planner_node /v8_global_far; do
+# ★所有 3d/bt 实例名都要清★（2026-11-27 实证）：只清 FAR 三个名字不够——
+# 上一轮残留的 `/v8/3d/map/map` 在 master 里挂着时，新起的 map 进程 init 即退出
+# （exit 1、连 READY 都不打），于是 /v8_support_map 无发布者、就绪判红、整组被清，
+# 表面上像"map 节点自己崩了"。这里按前缀把本轮要起的实例全清一遍。
+for _n in $(rosnode list 2>/dev/null | grep -E '^/v8/3d|^/v8/bt|^/v8_global_|^/far_planner' || true); do
   rosnode kill "$_n" >/dev/null 2>&1 || true
 done
+sleep 1
 for _p in 'far_planner/far_planner' 'run_global_far.py'; do
   pkill -f "$_p" 2>/dev/null || true
 done
