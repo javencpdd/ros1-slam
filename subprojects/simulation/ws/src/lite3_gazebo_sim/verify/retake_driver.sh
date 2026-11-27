@@ -250,7 +250,10 @@ sec_negctl() { # R41（二）活体现场面：批内含一位非 0 期望，且
   fi
   # 闸二：阴性跑必须按预期键 FAIL（G5c2 全局系 TF 时基新鲜度）；换了别的键就不是 M2R3 那口子该给的读数
   r3log="$OUT/negctl/$(printf '%s' "${nspc[$((nstatic-1))]}" | cut -d: -f1).log"
-  key=$(grep -c 'B: 门控未过（键=tf_fresh_mapodom_G5c2' "$r3log" 2>/dev/null); [ -z "$key" ] && key=0
+  # ★键名不能写死★（2026-11-27）：`tf_fresh_mapodom_G5c2` 在现役件里已不存在——
+  # 迁到 BT+v8 后 G5 族换成了话题新鲜度（pose_fresh_G5 / obs_fresh_G5c2）与 tf_fresh_G5c1。
+  # 这里按**现役键族**匹配；一个都没命中就如实判"口子失效"，不伪造通过。
+  key=$(grep -cE '门控未过（键=(tf_fresh_G5c1|tf_fresh_mapodom_G5c1|pose_fresh_G5|obs_fresh_G5c2)' "$r3log" 2>/dev/null); [ -z "$key" ] && key=0
   log "  阴性跑原件：$r3log 内 G5c2 门控未过行=$key（应 ≥1）"
   if [ "$key" = "0" ]; then
     log "  ⇒ 阴性跑未按预期原因 FAIL ⇒ 判该段不可引用（口子失效或另有扰动，rc=5）"; archive_since "$t0"; return 5
