@@ -831,7 +831,7 @@ docker compose exec sim-viz bash \
 
           <p><b>Foxglove（可选，后台服务）</b></p>
           <pre><code><span class="kw">cd</span> /home/jack/ysc-code/ros1-slam/docker
-docker compose --profile extras up -d rosbridge</code><button class="copy">复制</button></pre>
+docker exec -d ros1-slam-sim-viz bash -lc 'source /opt/ros/noetic/setup.bash; export ROS_MASTER_URI=http://127.0.0.1:11313; roslaunch rosbridge_server rosbridge_websocket.launch port:=9090 address:=0.0.0.0'  # 浏览器连 ws://172.20.0.5:9090</code><button class="copy">复制</button></pre>
         </article>
       </div>
 
@@ -1284,7 +1284,7 @@ docker compose exec sim-viz bash -lc '
             <tr>
               <td><b>Foxglove</b></td>
               <td>浏览器看话题、发终点／起点</td>
-              <td><code>docker compose --profile extras up -d rosbridge</code><br>连 <code>ws://&lt;host&gt;:9090</code></td>
+              <td><code>docker exec -d ros1-slam-sim-viz bash -lc 'source /opt/ros/noetic/setup.bash; export ROS_MASTER_URI=http://127.0.0.1:11313; roslaunch rosbridge_server rosbridge_websocket.launch port:=9090 address:=0.0.0.0'  # 浏览器连 ws://172.20.0.5:9090</code><br>连 <code>ws://&lt;host&gt;:9090</code></td>
               <td>ROS1 rosbridge；网页端起点需 <code>sim_pose_bridge.py</code></td>
             </tr>
             <tr>
@@ -1412,7 +1412,7 @@ python3 sim_pose.py --status</code><button class="copy">复制</button></pre>
 python3 subprojects/simulation/ws/src/lite3_gazebo_sim/scripts/sim_pose_bridge.py
 
 <span class="cmt"># rosbridge（compose extras profile；浏览器连 ws://&lt;host&gt;:9090）</span>
-docker compose --profile extras up -d rosbridge</code><button class="copy">复制</button></pre>
+docker exec -d ros1-slam-sim-viz bash -lc 'source /opt/ros/noetic/setup.bash; export ROS_MASTER_URI=http://127.0.0.1:11313; roslaunch rosbridge_server rosbridge_websocket.launch port:=9090 address:=0.0.0.0'  # 浏览器连 ws://172.20.0.5:9090</code><button class="copy">复制</button></pre>
           <div class="tags"><span class="tag">Publish 面板</span><span class="tag">/sim/set_start</span><span class="tag">不猜坐标系</span></div>
         </div>
       </details>
