@@ -47,6 +47,12 @@ class Config:
     max_expansions: int = 20000
     command_latency_bound_s: float = 0.01
     support_tol_m: float = 1e-6
+    # ★估计位姿的支撑面关联容差（2026-11-27 裁决批准）★
+    # 与 support_tol_m 分离：support_tol_m 仍是**几何/接触**判据（目标点、轨迹点、碰撞、净空
+    # 全部继续用它），本字段只用于"把估计位姿关联到某个支撑面"这一步。
+    # 默认 1e-6 保持历史兼容；正式取值必须先有误差依据与多层可分辨性证据，另行裁决。
+    # 绝不允许用关联后的 z 覆盖原始定位输出——关联结果只用于选面与记录。
+    support_assoc_tol_m: float = 1e-6
     # 速度相关安全距离（只在 base 之上做加法，永不减少既有 clearance）。
     # reaction_s       感知周期 + 决策延迟；obstacles 实测 10 Hz，取 0.10 覆盖一个周期
     # brake_decel_mps2 保守制动减速度；Lite3 实际能力高于此值，取小值属安全侧
@@ -80,8 +86,13 @@ def _distance(a, b):
     return math.sqrt(sum((x - y) ** 2 for x, y in zip(a[:3], b[:3])))
 
 
-def _support_at(map_value, point, config, surfaces=None, cell_sets=None):
-    """Resolve a contact with the same cells, radius and z rule as planning."""
+def _support_at(map_value, point, config, surfaces=None, cell_sets=None, tol=None):
+    """Resolve a contact with the same cells, radius and z rule as planning.
+
+    tol 显式给出时用该容差（估计位姿关联用 support_assoc_tol_m）；
+    不给则沿用 support_tol_m（几何/接触判据）。
+    """
+    z_tol = config.support_tol_m if tol is None else tol
     if surfaces is None:
         surfaces = {s['surface_id']: s for s in map_value['surfaces']
                     if s['traversability'] == 'supported'}
@@ -90,8 +101,45 @@ def _support_at(map_value, point, config, surfaces=None, cell_sets=None):
     choices = [s for sid, s in surfaces.items()
                if rep.contains_xy(s, map_value['resolution'], point[0], point[1],
                                   config.radius_m, cells=cell_sets[sid])
-               and abs(point[2] - s['z_reference']) <= config.support_tol_m]
+               and abs(point[2] - s['z_reference']) <= z_tol]
     return rep.select_support(choices, point[2])
+
+
+def associate(map_value, point, config, tol=None, map_version=None):
+    """把（估计）位姿关联到支撑面，并给出**可判读的关联结果**。
+
+    返回 dict：valid / surface_id / residual_z / candidates / ambiguous / map_version。
+    无匹配、多层歧义（同 XY 有多个候选且 z 不可区分）都返回 valid=False —— 调用方据此拒绝运动，
+    而不是把最近的面对面硬套上去。绝不修改 point 本身（关联后的 z 不得覆盖原始定位输出）。
+    """
+    z_tol = config.support_assoc_tol_m if tol is None else tol
+    surfaces = {s['surface_id']: s for s in map_value.get('surfaces', ())
+                if s.get('traversability') == 'supported'}
+    cell_sets = {sid: rep.surface_cells(s) for sid, s in surfaces.items()}
+    cands = []
+    for sid, s in surfaces.items():
+        if not rep.contains_xy(s, map_value['resolution'], point[0], point[1],
+                               config.radius_m, cells=cell_sets[sid]):
+            continue
+        residual = point[2] - s['z_reference']
+        if abs(residual) <= z_tol:
+            cands.append({'surface_id': sid, 'residual_z': residual,
+                          'z_reference': s['z_reference']})
+    result = {'valid': False, 'surface_id': None, 'residual_z': None,
+              'candidates': cands, 'ambiguous': False,
+              'map_version': map_version if map_version is not None else map_value.get('map_version')}
+    if not cands:
+        return result
+    chosen = rep.select_support([surfaces[c['surface_id']] for c in cands], point[2])
+    if chosen is None:
+        return result
+    # 多层歧义：候选里存在与所选面高度**不同**的另一面，且同样在容差内
+    others = [c for c in cands if c['surface_id'] != chosen['surface_id']
+              and abs(c['z_reference'] - chosen['z_reference']) > 1e-9]
+    result.update(valid=True, ambiguous=bool(others),
+                  surface_id=chosen['surface_id'],
+                  residual_z=point[2] - chosen['z_reference'])
+    return result
 
 
 def _support_contains_segment(surface, resolution, a, b, config, cells=None):
@@ -430,9 +478,10 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
                                                _support_contains_segment)
         if contact_window is None:
             return dict(zero, reason='hold')
-    support = _support_at(map_value, observed, config)
+    # observed / predicted 都是**估计量**，用关联容差；后续碰撞/净空/制动仍走几何判据
+    support = _support_at(map_value, observed, config, tol=config.support_assoc_tol_m)
     target_supported = support is not None and support['surface_id'] == contacts[1]
-    predicted_support = _support_at(map_value, pose, config)
+    predicted_support = _support_at(map_value, pose, config, tol=config.support_assoc_tol_m)
     predicted_target_supported = predicted_support is not None and predicted_support['surface_id'] == contacts[1]
     tail_end = tuple(pose[i] + previous[i] * config.command_latency_bound_s for i in range(3))
     target_cells = rep.surface_cells(support) if target_supported else None
@@ -602,9 +651,19 @@ def plan(map_value, start, goal, obstacles=(), now=0.0, config=None,
                        for s in map_value['surfaces'])
 
     def resolve(point, label):
-        chosen = _support_at(map_value, point, config, surfaces, cell_sets)
+        # ★起点是**估计位姿**，用 support_assoc_tol_m 关联；目标是标称路径点，仍用几何容差
+        #   support_tol_m★（2026-11-27 裁决：两类容差分离，几何/碰撞/净空判据一律不动）。
+        tol = config.support_assoc_tol_m if label == 'start' else None
+        chosen = _support_at(map_value, point, config, surfaces, cell_sets, tol=tol)
         if chosen is None:
-            raise LocalError('E_LOCAL_SUPPORT', label + ' requires a matching z support')
+            info = associate(map_value, point, config,
+                             tol=config.support_assoc_tol_m if label == 'start' else None,
+                             map_version=map_value.get('map_version'))
+            raise LocalError('E_LOCAL_SUPPORT',
+                             '%s requires a matching z support | z=%s z_tol=%.6g 候选=%d 歧义=%s 地图=%s'
+                             % (label, round(point[2], 4),
+                                config.support_assoc_tol_m if label == 'start' else config.support_tol_m,
+                                len(info['candidates']), info['ambiguous'], info['map_version']))
         if not safe_ceiling(point, chosen['surface_id']):
             raise LocalError('E_LOCAL_CLEARANCE', label + ' is below a low ceiling')
         return chosen['surface_id']
