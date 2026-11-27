@@ -503,6 +503,12 @@ def track_segment(map_value, result, pose, now, obstacles, config=None, control_
             return dict(zero, reason='hold')
     # observed / predicted 都是**估计量**，用关联容差；后续碰撞/净空/制动仍走几何判据
     support = _support_at(map_value, observed, config, tol=config.support_assoc_tol_m)
+    # ★运动中失去支撑关联必须立即停车★（2026-11-27 实测出来的洞）：
+    # 原来 support 只在"段末判定是否到段"处用到，跟踪过程中它可以是 None 而车照走。
+    # 实测：把反馈位姿抬 0.5 m（完全脱离支撑面）后 track_segment 仍返回 stop=False。
+    # 这里在**跟踪入口**就拒绝：关联不上就没有合法的接触语义，继续发速度等于盲走。
+    if support is None:
+        return dict(zero, reason='E_LOCAL_SUPPORT')
     target_supported = support is not None and support['surface_id'] == contacts[1]
     predicted_support = _support_at(map_value, pose, config, tol=config.support_assoc_tol_m)
     predicted_target_supported = predicted_support is not None and predicted_support['surface_id'] == contacts[1]
