@@ -1,77 +1,68 @@
 {
  "configById": {
   "3D!nav": {
-   "id": "3D!nav",
-   "title": "3D · 导航（路径/障碍/地形）",
-   "config": {
-    "cameraState": {
-     "distance": 12,
-     "fovy": 0.7853981852531433,
-     "near": 0.1,
-     "far": 5000,
-     "perspective": true,
-     "phi": 0.7853981852531433,
-     "target": [
-      0,
-      0,
-      0
-     ],
-     "targetOffset": [
-      0,
-      0,
-      0
-     ],
-     "thetaOffset": 0
+   "cameraState": {
+    "distance": 12,
+    "fovy": 0.7853981852531433,
+    "near": 0.1,
+    "far": 5000,
+    "perspective": true,
+    "phi": 0.7853981852531433,
+    "target": [
+     0,
+     0,
+     0
+    ],
+    "targetOffset": [
+     0,
+     0,
+     0
+    ],
+    "thetaOffset": 0
+   },
+   "followMode": "follow-pose",
+   "scene": {
+    "enableStats": false,
+    "grid": {
+     "color": "#248eff",
+     "divisions": 10,
+     "size": 40
     },
-    "followMode": "follow-pose",
-    "scene": {
-     "enableStats": false,
-     "grid": {
-      "color": "#248eff",
-      "divisions": 10,
-      "size": 40
-     },
-     "labelScaleFactor": 1
+    "labelScaleFactor": 1
+   },
+   "topics": {
+    "/cloud_registered": {
+     "visible": true,
+     "colorBy": "z",
+     "pointShape": "circle",
+     "pointSize": 0.04,
+     "decayTime": 0
     },
-    "topics": {
-     "/cloud_registered": {
-      "visible": true,
-      "colorBy": "z",
-      "pointShape": "circle",
-      "pointSize": 0.04,
-      "decayTime": 0
-     },
-     "/v8/3d/global/path": {
-      "visible": true
-     },
-     "/v8/gait_guard/path": {
-      "visible": true
-     },
-     "/v8/local/trajectory": {
-      "visible": true
-     },
-     "/v8/local/obstacles": {
-      "visible": true
-     },
-     "/terrain_cloud": {
-      "visible": false,
-      "colorBy": "z"
-     },
-     "/tf": {
-      "visible": true,
-      "axisScale": 1
-     }
+    "/v8/3d/global/path": {
+     "visible": true
     },
-    "transforms": {}
-   }
+    "/v8/gait_guard/path": {
+     "visible": true
+    },
+    "/v8/local/trajectory": {
+     "visible": true
+    },
+    "/v8/local/obstacles": {
+     "visible": true
+    },
+    "/terrain_cloud": {
+     "visible": false,
+     "colorBy": "z"
+    },
+    "/tf": {
+     "visible": true,
+     "axisScale": 1
+    }
+   },
+   "transforms": {}
   },
   "RawMessages!nav_status": {
-   "id": "RawMessages!nav_status",
-   "title": "local status",
-   "config": {
-    "topicName": "/v8/local/status",
-    "diffEnabled": false
-   }
+   "topicName": "/v8/local/status"
   }
  },
  "globalVariables": {},

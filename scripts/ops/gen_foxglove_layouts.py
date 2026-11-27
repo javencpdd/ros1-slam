@@ -20,8 +20,10 @@ def panel_3d(name, title, topics):
     t = dict(PCD_TOPICS)
     t.update(topics)
     t["/tf"] = {"visible": True, "axisScale": 1}
-    return {name: {"id": name, "title": title,
-                   "config": {"cameraState": {"distance": 12, "fovy": 0.7853981852531433,
+    # ★configById 的值就是**面板自身配置**★，不能再包 {id,title,config}：
+    # 面板类型由 key 前缀（"3D!"）表达，包一层会让客户端认不出类型，
+    # 报"未知的面板类型：{...}"（2026-11-27 实测）。
+    return {name: {"cameraState": {"distance": 12, "fovy": 0.7853981852531433,
                                               "near": 0.1, "far": 5000, "perspective": True,
                                               "phi": 0.7853981852531433, "target": [0, 0, 0],
                                               "targetOffset": [0, 0, 0], "thetaOffset": 0},
@@ -29,12 +31,11 @@ def panel_3d(name, title, topics):
                               "scene": {"enableStats": False,
                                         "grid": {"color": "#248eff", "divisions": 10, "size": 40},
                                         "labelScaleFactor": 1},
-                              "topics": t, "transforms": {}}}}
+            "topics": t, "transforms": {}}}
 
 
 def panel_raw(name, title, topic):
-    return {name: {"id": name, "title": title,
-                   "config": {"topicName": topic, "diffEnabled": False}}}  # 只读文本
+    return {name: {"topicName": topic}}  # 只读文本
 
 
 def mk(lid, lname, panels, tree):
