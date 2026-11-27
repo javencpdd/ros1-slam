@@ -18,6 +18,7 @@ import time
 
 import rospy
 from geometry_msgs.msg import PoseStamped, Twist, PointStamped
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import String
 
@@ -36,7 +37,25 @@ CHAIN = [
     # 于是探针自己造出一个假断点。用真实类型订阅，并记录点数与源戳是否推进。
     ('terrain_cloud', '/terrain_cloud', PointCloud2),
     ('cmd_vel', '/cmd_vel', Twist),
+    ('gt_odom', '/sim/odom_gt', Odometry),
 ]
+
+
+def _run(cmd):
+    import subprocess
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
+        return p.returncode, p.stdout
+    except Exception as e:
+        return 99, str(e)
+
+
+def _pubs(info):
+    if 'Publishers:' not in info:
+        return []
+    block = info.split('Publishers:')[-1].split('Subscribers:')[0]
+    return [ln.strip().lstrip('* ').split('(')[0].strip()
+            for ln in block.splitlines() if ln.strip().startswith('*')]
 
 
 def main():
@@ -45,12 +64,16 @@ def main():
     ap.add_argument('--y', type=float, required=True)
     ap.add_argument('--window', type=float, default=25.0)
     ap.add_argument('--out', default='')
+    ap.add_argument('--pubs', action='store_true',
+                    help='额外查每段发布者（较慢，默认关；要判发布者身份时再开）')
     ap.add_argument('--no-send', action='store_true',
                     help='只订阅、不发目标（目标由官方发送器发，避免用错 schema）')
     a = ap.parse_args()
 
     rospy.init_node('chain_trace_probe', anonymous=True, disable_signals=True)
-    rec = {name: {'n': 0, 'first': None, 'last': None, 'sample': None} for name, _, _ in CHAIN}
+    rec = {name: {'n': 0, 'first': None, 'last': None, 'sample': None,
+                  'nonempty': 0, 'stamps': [], 'nonzero': 0, 'vmax': 0.0,
+                  'gt': []} for name, _, _ in CHAIN}
 
     def mk(name):
         def cb(msg):
@@ -63,10 +86,23 @@ def main():
                     r['sample'] = str(msg.data)[:200]
                 elif hasattr(msg, 'width'):
                     r['sample'] = 'points=%d' % (msg.width * msg.height)
+            # 点云：非空点数 + 源戳集合（判"在推进"，不是重复同一帧）
             if hasattr(msg, 'width') and msg.width * msg.height > 0:
-                r['nonempty'] = True
-            if hasattr(msg, 'header'):
-                r['stamp'] = msg.header.stamp.to_sec()
+                r['nonempty'] += 1
+            if hasattr(msg, 'header') and name == 'terrain_cloud':
+                ts = msg.header.stamp.to_sec()
+                if not r['stamps'] or ts != r['stamps'][-1]:
+                    r['stamps'].append(ts)
+            # 速度：只认**非零**帧，总帧数不等于运动证据
+            if name == 'cmd_vel':
+                v = (msg.linear.x ** 2 + msg.linear.y ** 2 + msg.angular.z ** 2) ** .5
+                if v > 1e-3:
+                    r['nonzero'] += 1
+                    r['vmax'] = max(r['vmax'], v)
+            # GT 实际位移：用 /sim/odom_gt 的首末位置差
+            if name == 'gt_odom':
+                p = msg.pose.pose.position
+                r['gt'].append((p.x, p.y, p.z))
             r['last'] = now
         return cb
 
@@ -102,12 +138,42 @@ def main():
                      'first_after_goal_s': (None if r['first'] is None
                                             else round(r['first'] - sent_at, 3)),
                      'sample': r['sample']})
+    # 逐段补发布者身份（只读，不订阅）
+    for row, (name, topic, _) in zip(rows, CHAIN):
+        r = rec[name]
+        # 只为**有数据**的段查发布者：空话题查一次要好几秒，10 段能把窗口拖爆（实测 rc=124）
+        if a.pubs and row['msgs'] > 0:
+            rc2, info = _run(['rostopic', 'info', topic])
+            row['publishers'] = _pubs(info) if rc2 == 0 else []
+        else:
+            row['publishers'] = []
+        if name == 'terrain_cloud':
+            row['nonempty'] = r['nonempty']
+            row['unique_stamps'] = len(r['stamps'])
+            row['stamp_advancing'] = len(r['stamps']) >= 2 and r['stamps'][-1] > r['stamps'][0]
+        if name == 'cmd_vel':
+            row['nonzero_frames'] = r['nonzero']
+            row['vmax'] = round(r['vmax'], 3)
+        if name == 'gt_odom' and len(r['gt']) >= 2:
+            g0, g1 = r['gt'][0], r['gt'][-1]
+            row['gt_displacement_m'] = round(((g1[0]-g0[0])**2 + (g1[1]-g0[1])**2) ** .5, 3)
+
     first_dead = next((x['segment'] for x in rows if x['msgs'] == 0), None)
     result = {'goal': [a.x, a.y], 'window_s': a.window, 'rows': rows,
               'first_silent_segment': first_dead,
               'verdict': 'CHAIN_OK' if first_dead is None else 'BREAK_AT_%s' % first_dead}
-    print(''.join('%-18s %-28s msgs=%-4d first=%s\n'
-                  % (x['segment'], x['topic'], x['msgs'], x['first_after_goal_s']) for x in rows))
+    for x in rows:
+        extra = ''
+        if 'nonempty' in x:
+            extra = ' nonempty=%d stamps=%d advancing=%s' % (
+                x['nonempty'], x['unique_stamps'], x['stamp_advancing'])
+        elif 'nonzero_frames' in x:
+            extra = ' nonzero=%d vmax=%s' % (x['nonzero_frames'], x['vmax'])
+        elif 'gt_displacement_m' in x:
+            extra = ' gt_move=%sm' % x['gt_displacement_m']
+        print('%-18s %-28s msgs=%-4d first=%-7s pubs=%s%s'
+              % (x['segment'], x['topic'], x['msgs'], x['first_after_goal_s'],
+                 x['publishers'][:2], extra))
     print('VERDICT ' + result['verdict'])
     if a.out:
         open(a.out, 'w', encoding='utf-8').write(json.dumps(result, ensure_ascii=False, indent=1))
