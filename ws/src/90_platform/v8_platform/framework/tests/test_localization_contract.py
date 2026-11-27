@@ -46,6 +46,17 @@ class PoseTransformTest(unittest.TestCase):
         self.assertAlmostEqual(got[2], 0.39, places=9)
 
 
+class VectorParamTest(unittest.TestCase):
+    def test_accepts_list_and_launch_string(self):
+        self.assertEqual(loc.parse_vector([1.0, 2.0, 3.0]), (1.0, 2.0, 3.0))
+        self.assertEqual(loc.parse_vector('[1.0, 2.0, 3.0]'), (1.0, 2.0, 3.0))
+        self.assertEqual(loc.parse_vector('1.0 2.0 3.0'), (1.0, 2.0, 3.0))
+
+    def test_rejects_wrong_length(self):
+        with self.assertRaises(ValueError):
+            loc.parse_vector('[1, 2]')
+
+
 class StampContractTest(unittest.TestCase):
     def test_ok_past_stamp(self):
         self.assertEqual(loc.stamp_verdict(100.0, 100.4, 99.0, 0.5), 'ok')

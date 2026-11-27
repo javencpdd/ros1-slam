@@ -184,12 +184,19 @@ base_up() {
         ;;
       m2)
         echo "[base] 起 m2 底座（m2_gazebo + m2_mapping；/Odometry 为算法位姿）"
-        roslaunch lite3_gazebo_sim m2_gazebo.launch > /tmp/base_m2_gz.log 2>&1 &
+        # GT isolation is opt-in so historical callers keep odom/base_link.
+        local gt_args=() map_args=()
+        if [ "${M2_ISOLATE_GT:-0}" = "1" ]; then
+            gt_args=(gt_odom_frame:=gt_odom gt_base_frame:=gt_base)
+            map_args=(isolate_gt:=true)
+            echo "[base] GT 隔离模式：gt_odom/gt_base + body->base_link"
+        fi
+        roslaunch lite3_gazebo_sim m2_gazebo.launch "${gt_args[@]}" > /tmp/base_m2_gz.log 2>&1 &
         echo $! >> "$BASE_PIDFILE"
         _wait_node /gazebo 90 || { echo "[base] FAIL: 90s 内 /gazebo 节点未注册（见 /tmp/base_m2_gz.log）"; return 1; }
         _check_gazebo_ros || return 1
         _check_sensors || return 1
-        roslaunch lite3_gazebo_sim m2_mapping.launch > /tmp/base_m2_map.log 2>&1 &
+        roslaunch lite3_gazebo_sim m2_mapping.launch "${map_args[@]}" > /tmp/base_m2_map.log 2>&1 &
         echo $! >> "$BASE_PIDFILE"
         _wait_hz /Odometry 120 || { echo "[base] FAIL: /Odometry 无数据（见 /tmp/base_m2_map.log）"; return 1; }
         echo "[base] BASE READY（m2 + LIO；/Odometry 为算法位姿）"

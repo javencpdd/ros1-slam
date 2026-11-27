@@ -1,0 +1,25 @@
+<launch>
+  <!-- Read-only localization contract probe. It subscribes to /Odometry and GT,
+       publishes /v8/local/pose and /v8/local/pose_plan, and does not publish TF. -->
+  <node pkg="v8_platform" type="run_localization_source.py" name="loc_tf_contract_probe" output="screen">
+    <param name="source" value="faster_lio"/>
+    <param name="lio_topic" value="/Odometry"/>
+    <param name="frame" value="map"/>
+    <param name="lio_origin_x" value="0.0"/>
+    <param name="lio_origin_y" value="0.0"/>
+    <param name="lio_origin_z" value="0.45"/>
+    <param name="lio_origin_roll" value="0.0"/>
+    <param name="lio_origin_pitch" value="0.2617993877991494"/>
+    <param name="lio_origin_yaw" value="0.0"/>
+    <param name="sensor_to_base_xyz" value="[0.08799, 0.0, -0.328415]"/>
+    <param name="sensor_to_base_rpy" value="[0.0, -0.2617993877991494, 0.0]"/>
+    <param name="pose_plan_topic" value="/v8/local/pose_plan"/>
+    <param name="plan_ref_z" value="-0.11"/>
+    <param name="gt_topic" value="/sim/odom_gt"/>
+    <param name="max_age_s" value="1.0"/>
+    <param name="pose_topic" value="/v8/local/pose"/>
+    <param name="localization_topic" value="/v8/local/localization_ok"/>
+    <param name="status_topic" value="/v8/local/localization_status"/>
+    <param name="error_topic" value="/v8/local/localization_error"/>
+  </node>
+</launch>

@@ -9214,3 +9214,13 @@ SYN rc=0（94，段 48）｜PYST rc=0（62）｜PARITY rc=0｜DC rc=1（真内�
 - **TF 报告口径修正**（裁决③）：`0.493 m` 落在 0.40–0.50 m 内，`0.542 m` 才超限；
   后者才是当前严格同帧读数（`pitch 13.92°`、地图地面 tilt 1.09°/z0 0.001 m）。变换闭合
   （复合残差 8.9e-16 m/0°）只证明 TF 链条自洽，**不证明三维定位准确**。P0 继续记"改善、待验收"。
+
+## 2026-11-28 / T-20261128-01 M2 生产 TF 与导航位姿契约统一（A2）
+
+- **T1/T2/T3 统一实现**：新增 `ws/src/90_platform/v8_platform/framework/pose_contract.py`，定位适配器按同一纯函数处理 `map←camera_init`、`body→base_link`、`base→contact`。`localization_node.py` 新增 `lio_origin_roll/pitch`、`sensor_to_base_xyz/rpy`、`pose_plan_topic/plan_ref_z` 消费。
+- **T2 更正**：`body→base_link` 不再是 `(0,0,-0.34)` 纯平移，改为逆 URDF 外参 `xyz=(0.08799,0,-0.328415)`、`rpy=(0,-15°,0)`。依据是 `imu_processing.hpp` 不设置初始 `rot`、活体 IMU 重力 x 分量非零；`camera_init` 就是首帧 rslidar/body 系。
+- **T1 更正**：`m2_mapping.launch` 的 `map→camera_init` 默认带 `pitch=+15°`，z 保持 0.45；M2 三图 `lio_origin_z=0.45`，不再用 0.11。
+- **GT 显式隔离**：`m2_gazebo.launch` 新增 `gt_odom_frame/gt_base_frame` 参数，默认 `odom/base_link`；`m2_mapping.launch` 新增 `isolate_gt`，默认 false（保留历史 `map→odom` 恒等边）。`M2_ISOLATE_GT=1` 才启用 `gt_odom/gt_base + body→base_link`。历史 Stage A/B/C 调用方不自动改模式。
+- **FAR 消费面**：`graph_3d_m2_lio_bt_far.yaml` 增图内 `lio_gate`，loc 改消费 `/Odometry_gated`；三张 M2 图都写入 T1/T2/T3 参数与 `/v8/local/pose_plan`。
+- **验证**：`test_pose_contract.py` 6 项、`test_localization_contract.py` 29 项（新增列表参数 2 项）通过；隔离模式活体 TF 审计 PASS，非零 yaw 下 loc 与 `map→base_link` 差 0.000 m，`pose_plan` 比 base 低 0.110000 m。证据 `note/进度/00_专题/v8_map_loc_2026-11-24/evidence/a2_tf_contract_20261128/`。
+- **未闭合**：五组 GT 隔离负控、TF 审计时间口径/边级 publisher/非法边负控仍在 A3；Stage A/B/C 全量未在本切片重跑。

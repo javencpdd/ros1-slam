@@ -14,6 +14,7 @@ import sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 import json
 import math
+import re
 import threading
 import time
 
@@ -21,6 +22,19 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, String
+
+import pose_contract as pc
+
+
+def parse_vector(value, size=3):
+    if isinstance(value, str):
+        value = value.strip().strip('[]').replace('(', '').replace(')', '')
+        parts = [part for part in re.split(r'[,\s]+', value) if part]
+    else:
+        parts = list(value)
+    if len(parts) != size:
+        raise ValueError('expected %d numbers, got %r' % (size, value))
+    return tuple(float(part) for part in parts)
 
 
 def yaw_of(q):
@@ -49,30 +63,16 @@ def error_between(gt, estimate):
             'yaw_rad': abs(dyaw), 'distance_m': math.sqrt(dx * dx + dy * dy + dz * dz)}
 
 
-def rotate_to_map(pose, origin_x, origin_y, origin_z, origin_yaw):
-    """T1：LIO 系 → map 系，**位置与姿态一起转**（纯函数，便于零节点测试）。
+def rotate_to_map(pose, origin_x, origin_y, origin_z, origin_yaw,
+                  origin_roll=0.0, origin_pitch=0.0):
+    """T1: LIO camera_init -> map, including the full initial attitude.
 
-    p_map = R(yaw)·p_lio + (x, y, z)
-    q_map = q_z(yaw) ⊗ q_lio   （左乘绕 Z 的四元数）
-
-    修复背景（2026-11-27）：原实现只转位置、四元数原样返回，origin_yaw≠0 时
-    位置在 map、朝向还在 LIO，下游按朝向取支撑面会整体偏。
+    Faster-LIO fixes camera_init to the first body frame. In this URDF the body
+    is the rslidar frame, which is pitched 15 deg relative to a level base, so a
+    yaw-only or translation-only anchor is wrong. T2 is applied separately.
     """
-    x, y, z, qx, qy, qz, qw = pose
-    c, s_ = math.cos(origin_yaw), math.sin(origin_yaw)
-    hc, hs = math.cos(origin_yaw / 2.0), math.sin(origin_yaw / 2.0)
-    # Hamilton 积 a⊗b（a = q_z = (0,0,s,c)）：
-    #   x = aw*bx + ax*bw + ay*bz - az*by = c*qx - s*qy
-    #   y = aw*by - ax*bz + ay*bw + az*bx = c*qy + s*qx
-    # 2026-11-27 真人指出上一版把这两个符号写反了——只测纯 yaw 时 qx=qy=0，
-    # 符号错了也照样过，所以必须补 roll/pitch/yaw 组合用例。
-    nx = hc * qx - hs * qy
-    ny = hc * qy + hs * qx
-    nz = hc * qz + hs * qw
-    nw = hc * qw - hs * qz
-    return (c * x - s_ * y + origin_x,
-            s_ * x + c * y + origin_y,
-            z + origin_z, nx, ny, nz, nw)
+    return pc.compose(pc.rigid((origin_x, origin_y, origin_z),
+                               (origin_roll, origin_pitch, origin_yaw)), pose)
 
 
 def renew_permission(prev_stamp, stamp, prev_wall, wall_now, tol=1e-9):
@@ -149,14 +149,16 @@ def main():
     lio_frame = rospy.get_param('~lio_frame', 'odom')
     origin_x = float(rospy.get_param('~lio_origin_x', 0.0))
     origin_y = float(rospy.get_param('~lio_origin_y', 0.0))
-    origin_yaw = float(rospy.get_param('~lio_origin_yaw', 0.0))
-    need_transform = bool(rospy.get_param('~lio_to_map', source != 'sim_gt'))
-    # ★三层转换必须分开表达、各配置一次★（2026-11-27 真人裁决）：
-    #   T1 世界系  ：LIO 世界 → map，平移 (origin_x, origin_y, origin_z) + 绕 Z 的 origin_yaw；
-    #   T2 传感器→机体：rslidar→base_link 外参，由 URDF 唯一给出（本节点不参与，也不许在这里再补）；
-    #   T3 机体→规划参考点：机体原点 → 支撑参考点（足底/接触面语义），只在这里做一次刚体偏移。
-    # 把三件事揉成一个"z 偏移"会让下游分不清"世界没对齐"和"参考点不同"，历史上就是这么丢的。
     origin_z = float(rospy.get_param('~lio_origin_z', 0.0))
+    origin_roll = float(rospy.get_param('~lio_origin_roll', 0.0))
+    origin_pitch = float(rospy.get_param('~lio_origin_pitch', 0.0))
+    origin_yaw = float(rospy.get_param('~lio_origin_yaw', 0.0))
+    sensor_to_base_xyz = parse_vector(rospy.get_param('~sensor_to_base_xyz', [0.0, 0.0, 0.0]))
+    sensor_to_base_rpy = parse_vector(rospy.get_param('~sensor_to_base_rpy', [0.0, 0.0, 0.0]))
+    need_transform = bool(rospy.get_param('~lio_to_map', source != 'sim_gt'))
+    # T1 maps camera_init -> map (full initial attitude). T2 maps LIO body ->
+    # base_link (inverse URDF extrinsic, full rotation). T3 is a world-z offset
+    # to the planning contact reference. Three separate contracts, one module.
     plan_ref_topic = rospy.get_param('~pose_plan_topic', '')
     plan_ref_z = float(rospy.get_param('~plan_ref_z', 0.0))
     future_tol = float(rospy.get_param('~stamp_future_tol_s', 0.5))
@@ -173,7 +175,11 @@ def main():
         ok_pub.publish(Bool(data=bool(ok)))
 
     def to_map(pose):
-        return rotate_to_map(pose, origin_x, origin_y, origin_z, origin_yaw)
+        mapped = rotate_to_map(pose, origin_x, origin_y, origin_z, origin_yaw,
+                               origin_roll, origin_pitch)
+        if source == 'faster_lio':
+            mapped = pc.compose(mapped, pc.rigid(sensor_to_base_xyz, sensor_to_base_rpy))
+        return mapped
 
     def select(pose, stamp, label):
         """发布位姿并维护时效。**stamp 是源戳**（输入消息的 header.stamp），不是本地时间。
@@ -210,19 +216,15 @@ def main():
         message.pose.orientation.x, message.pose.orientation.y = pose[3], pose[4]
         message.pose.orientation.z, message.pose.orientation.w = pose[5], pose[6]
         pose_pub.publish(message)
-        # T3：同一时刻、同一次刚体偏移，另发一条规划参考点（真实机体位姿仍走上面那条）
+        # T3: emit the planning contact reference from the base pose without
+        # mutating the base message (Pose objects would otherwise alias).
         if plan_pub is not None:
-            # ★独立对象★：直接 `plan_msg.pose = message.pose` 会让两条消息共享同一个
-            # Pose（Python 对象语义），改 z 就把已发布的机体位姿也改了。
+            plan_pose = pc.contact_pose(pose, plan_ref_z)
             plan_msg = PoseStamped()
             plan_msg.header.frame_id, plan_msg.header.stamp = frame, rospy.Time.from_sec(stamp)
-            plan_msg.pose.position.x = pose[0]
-            plan_msg.pose.position.y = pose[1]
-            plan_msg.pose.position.z = pose[2] + plan_ref_z
-            plan_msg.pose.orientation.x = pose[3]
-            plan_msg.pose.orientation.y = pose[4]
-            plan_msg.pose.orientation.z = pose[5]
-            plan_msg.pose.orientation.w = pose[6]
+            plan_msg.pose.position.x, plan_msg.pose.position.y, plan_msg.pose.position.z = plan_pose[:3]
+            plan_msg.pose.orientation.x, plan_msg.pose.orientation.y = plan_pose[3], plan_pose[4]
+            plan_msg.pose.orientation.z, plan_msg.pose.orientation.w = plan_pose[5], plan_pose[6]
             plan_pub.publish(plan_msg)
         if state['gt'] is not None:
             error = error_between(state['gt'], pose)
@@ -240,6 +242,10 @@ def main():
             'navigation_allowed': navigation_allowed,
             'age_s': age, 'src_stamp': state['accepted_stamp'],
             'samples': state['count'], 'last_error': state['last_error'],
+            'tf_contract': {'t1_rpy': [origin_roll, origin_pitch, origin_yaw],
+                            't2_xyz': list(sensor_to_base_xyz),
+                            't2_rpy': list(sensor_to_base_rpy),
+                            't3_z': plan_ref_z},
             'rejected': {k: state.get(k, 0) for k in ('rej_bad', 'rej_future', 'rej_back')}},
             ensure_ascii=False)))
 

@@ -25,6 +25,13 @@ name: nav3d_m2_lio_bt_far
 #   3) mux3d 的 cmd 输出不连实例：/cmd_vel 由图外的 lite3_planar_drive 消费
 #      （external 只表达「外部供给某输入口」，没有「输出给外部执行器」的写法）。
 instances:
+  - id: lio_gate
+    component: v8.fw.lio_gate
+    namespace: /v8/3d/lio_gate
+    params:
+      in_topic: /Odometry
+      out_topic: /Odometry_gated
+      enabled: true
   - id: map
     component: v8.fw.map_file
     namespace: /v8/3d/map
@@ -143,18 +150,21 @@ instances:
     namespace: /v8/3d/loc
     params:
       source: faster_lio
-      lio_topic: /Odometry   # ★M2 链：m2_mapping 产出 /Odometry（真实 LIO），非 /hdl_odom
-      # ★世界锚点必须与本图 Support 版一致★（2026-11-27 真人指出）：
-      # 缺这三项时 localization_source 默认 0/0/0，于是 /v8/local/pose 落在原点附近
-      # （实测 0.03,-0.004），而 Support 图给的是 spawn 基准 5.2/2.45/0（实测 5.08,2.51）。
-      # 同一台车、同一个世界，两套读数就是这么来的。这里复用**已有合法世界锚点**，
-      # 不是拿 GT 误差去拟合补偿。
+      lio_topic: /Odometry_gated   # LIO raw only enters through the graph-owned gate
+      # T1: camera_init -> map. Faster-LIO fixes camera_init to the first body
+      # frame; body is the pitched rslidar frame, so the initial attitude is +15 deg.
       lio_origin_x: 5.2
       lio_origin_y: 2.45
+      lio_origin_z: 0.45
+      lio_origin_roll: 0.0
+      lio_origin_pitch: 0.2617993877991494
       lio_origin_yaw: 0.0
-      # 世界锚点的 z：机体起始高度（URDF 几何 0.11，非残差拟合）。
-      # 与 m2_mapping.launch 的 map_spawn_z 必须一致，否则 TF 与定位各偏一半。
-      lio_origin_z: 0.11
+      # T2: body -> base_link, inverse of URDF base->rslidar (0,0,0.34, +15 deg).
+      sensor_to_base_xyz: [0.08799, 0.0, -0.328415]
+      sensor_to_base_rpy: [0.0, -0.2617993877991494, 0.0]
+      # T3: base reference -> planning contact point (world z).
+      pose_plan_topic: /v8/local/pose_plan
+      plan_ref_z: -0.11
       gt_topic: /sim/odom_gt
       frame: map
       max_age_s: 1.0

@@ -1,0 +1,52 @@
+===T1===
+At time 0.000
+- Translation: [0.000, 0.000, 0.450]
+- Rotation: in Quaternion [0.000, 0.131, 0.000, 0.991]
+            in RPY (radian) [0.000, 0.262, 0.000]
+            in RPY (degree) [0.000, 15.000, 0.000]
+At time 0.000
+- Translation: [0.000, 0.000, 0.450]
+- Rotation: in Quaternion [0.000, 0.131, 0.000, 0.991]
+            in RPY (radian) [0.000, 0.262, 0.000]
+            in RPY (degree) [0.000, 15.000, 0.000]
+At time 0.000
+- Translation: [0.000, 0.000, 0.450]
+- Rotation: in Quaternion [0.000, 0.131, 0.000, 0.991]
+            in RPY (radian) [0.000, 0.262, 0.000]
+            in RPY (degree) [0.000, 15.000, 0.000]
+===T2===
+At time 0.000
+- Translation: [0.088, 0.000, -0.328]
+- Rotation: in Quaternion [0.000, -0.131, 0.000, 0.991]
+            in RPY (radian) [0.000, -0.262, 0.000]
+            in RPY (degree) [0.000, -15.000, 0.000]
+At time 0.000
+- Translation: [0.088, 0.000, -0.328]
+- Rotation: in Quaternion [0.000, -0.131, 0.000, 0.991]
+            in RPY (radian) [0.000, -0.262, 0.000]
+            in RPY (degree) [0.000, -15.000, 0.000]
+At time 0.000
+- Translation: [0.088, 0.000, -0.328]
+- Rotation: in Quaternion [0.000, -0.131, 0.000, 0.991]
+            in RPY (radian) [0.000, -0.262, 0.000]
+            in RPY (degree) [0.000, -15.000, 0.000]
+===GT===
+At time 117.933
+- Translation: [0.000, 0.000, 0.110]
+- Rotation: in Quaternion [0.000, -0.000, 0.272, 0.962]
+            in RPY (radian) [0.000, -0.000, 0.551]
+            in RPY (degree) [0.000, -0.000, 31.557]
+At time 117.933
+- Translation: [0.000, 0.000, 0.110]
+- Rotation: in Quaternion [0.000, -0.000, 0.272, 0.962]
+            in RPY (radian) [0.000, -0.000, 0.551]
+            in RPY (degree) [0.000, -0.000, 31.557]
+At time 118.933
+- Translation: [0.000, 0.000, 0.110]
+- Rotation: in Quaternion [0.000, -0.000, 0.272, 0.962]
+            in RPY (radian) [0.000, -0.000, 0.551]
+            in RPY (degree) [0.000, -0.000, 31.557]
+===AUDIT===
+CHAIN rslidar <- base_link <- body <- camera_init <- map
+EDGES 6  TOPIC_PUBLISHERS {"/tf": ["/robot_state_publisher", "/gazebo", "/faster_lio_online"], "/tf_static": ["/robot_state_publisher", "/map_to_lio_world", "/body_to_base_link"]}
+VERDICT PASS
