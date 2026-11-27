@@ -730,6 +730,12 @@ PYEOF
   _ihz=$(timeout 6 rostopic hz /imu/data 2>/dev/null | grep -oE 'average rate: [0-9.]+' | tail -1 | grep -oE '[0-9.]+')
   echo "[C] /imu/data 频率=${_ihz:-<无数据>} Hz"
   [ -n "$_ihz" ] || { echo "FAIL C: /imu/data 无数据（relay 未持续转发）"; return 1; }
+  # ★唯一发布者 + 连续性 + 新鲜度 + 来源★（2026-11-27）：上面取的是"第一个发布者"，
+  # 只够定位进程，不够证明供源唯一。这里跑独立探针，8s 窗看发布者数、最大间隔、戳单调与 frame 集合。
+  timeout 60 python3 "$SIM_PKG/verify/imu_continuity_probe.py" /imu/data 8.0 base_link > "$LOGDIR/imuC.txt" 2>&1
+  _irc=$?
+  cat "$LOGDIR/imuC.txt"
+  [ "$_irc" = "0" ] || { echo "FAIL C: IMU 供源核验未通过（rc=$_irc，见上）"; return 1; }
   M2_HDLLOG="$LOGDIR/hdlC.log" python3 - <<'PYEOF' > "$LOGDIR/stageC.txt" 2>&1
 import os
 import math, time, rospy

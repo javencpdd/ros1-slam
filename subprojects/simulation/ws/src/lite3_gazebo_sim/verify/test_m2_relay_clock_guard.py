@@ -89,7 +89,7 @@ class TfRotationTest(unittest.TestCase):
         import math
         got, err = relay._tf_rotation('base_link', 'rslidar', timeout=1.0,
                                       lookup=lambda: _Tr(_Q(math.radians(15.0))),
-                                      clock=lambda: 0.0, sleep=lambda s: None,
+                                      sleep=lambda s: None,
                                       is_shutdown=lambda: False)
         self.assertIsNone(err)
         # 绕 Y +15°：把 (0,0,1) 旋过去应得 (sin15, 0, cos15)
@@ -97,15 +97,12 @@ class TfRotationTest(unittest.TestCase):
         self.assertAlmostEqual(v[0], math.sin(math.radians(15.0)), places=6)
         self.assertAlmostEqual(v[2], math.cos(math.radians(15.0)), places=6)
 
-    def test_e_timeout_uses_wall_clock_and_returns_reason(self):
-        ticks = [0.0]
-        def clock():
-            ticks[0] += 10.0      # 每次读表都推进，模拟墙钟流逝
-            return ticks[0]
+    def test_e_timeout_returns_reason(self):
+        import time as _t
         def boom():
             raise RuntimeError('no tf yet')
-        got, err = relay._tf_rotation('base_link', 'rslidar', timeout=15.0,
-                                      lookup=boom, clock=clock, sleep=lambda s: None,
+        got, err = relay._tf_rotation('base_link', 'rslidar', timeout=0.1,
+                                      lookup=boom, sleep=lambda s: _t.sleep(0.01),
                                       is_shutdown=lambda: False)
         self.assertIsNone(got)
         self.assertIn('不可得', err or '')
@@ -113,8 +110,7 @@ class TfRotationTest(unittest.TestCase):
     def test_f_shutdown_aborts_quickly(self):
         got, err = relay._tf_rotation('base_link', 'rslidar', timeout=30.0,
                                       lookup=lambda: (_ for _ in ()).throw(RuntimeError('x')),
-                                      clock=lambda: 0.0, sleep=lambda s: None,
-                                      is_shutdown=lambda: True)
+                                      sleep=lambda s: None, is_shutdown=lambda: True)
         self.assertIsNone(got)
         self.assertIn('shutdown', err or '')
 
@@ -128,6 +124,54 @@ class TfRotationTest(unittest.TestCase):
         self.assertAlmostEqual(back[0], 0.0, places=6)
         self.assertAlmostEqual(back[2], 9.81, places=6)
 
+
+
+
+class FramePolicyTest(unittest.TestCase):
+    """输入 frame 的三态：转 / 跳过（防重复旋转）/ 丢弃（未知系）。"""
+
+    def test_h_source_frame_rotates(self):
+        self.assertEqual(relay._frame_action('rslidar', 'rslidar', 'base_link'), 'rotate')
+
+    def test_i_already_output_frame_skips(self):
+        # 上游已经转过：再转一次＝30°，必须跳过
+        self.assertEqual(relay._frame_action('base_link', 'rslidar', 'base_link'), 'skip')
+
+    def test_j_unknown_frame_is_dropped(self):
+        self.assertEqual(relay._frame_action('map', 'rslidar', 'base_link'), 'drop')
+
+    def test_k_no_src_declared_still_guards_double_rotation(self):
+        self.assertEqual(relay._frame_action('anything', '', 'base_link'), 'rotate')
+        self.assertEqual(relay._frame_action('base_link', '', 'base_link'), 'skip')
+
+
+class WallClockWaitTest(unittest.TestCase):
+    """时钟冻结/回跳对照：截止只认 time.monotonic，坏时钟注不进去。"""
+
+    def test_l_frozen_lookup_returns_by_wall_deadline(self):
+        import time as _t
+        n = [0]
+        def lookup():
+            n[0] += 1
+            raise RuntimeError('frozen clock, no tf')
+        t0 = _t.monotonic()
+        got, err = relay._tf_rotation('a', 'b', timeout=0.2, lookup=lookup,
+                                      sleep=lambda s: _t.sleep(0.01),
+                                      is_shutdown=lambda: False)
+        self.assertIsNone(got)
+        self.assertIn('不可得', err or '')
+        self.assertLess(_t.monotonic() - t0, 2.0, '必须按墙钟 0.2s 截止，不能死等')
+
+    def test_m_clock_cannot_be_injected_to_bend_deadline(self):
+        import time as _t
+        # 即便调用方塞一个"永远不动"的 clock，也不该影响截止（实现里已固定用 monotonic）
+        t0 = _t.monotonic()
+        got, err = relay._tf_rotation('a', 'b', timeout=0.15,
+                                      lookup=lambda: (_ for _ in ()).throw(RuntimeError('x')),
+                                      clock=lambda: 0.0, sleep=lambda s: _t.sleep(0.01),
+                                      is_shutdown=lambda: False)
+        self.assertIsNone(got)
+        self.assertLess(_t.monotonic() - t0, 2.0)
 
 if __name__ == '__main__':
     unittest.main()

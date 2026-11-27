@@ -57,6 +57,21 @@ def _mat_vec(m, v):
             m[6] * v[0] + m[7] * v[1] + m[8] * v[2])
 
 
+def _frame_action(in_frame, src_frame, out_frame):
+    """输入 frame 的处理策略：'rotate' | 'skip' | 'drop'。
+
+    ★为什么要这条★（2026-11-27 真人裁决）：只把 frame_id 记日志等于没约束。
+    · 已是输出系 ⇒ 'skip'：上游已经转过，再转一次就是 30°，比不转更糟；
+    · 未知系（既非源系也非输出系，且声明了源系）⇒ 'drop'：宁可少一帧，不转发错误坐标；
+    · 等于源系（或未声明源系）⇒ 'rotate'。
+    """
+    if in_frame == out_frame:
+        return 'skip'
+    if src_frame and in_frame != src_frame:
+        return 'drop'
+    return 'rotate'
+
+
 def _tf_rotation(parent, child, timeout=30.0, lookup=None, clock=None, sleep=None, is_shutdown=None):
     """从**真实 TF** 取 parent←child 的旋转矩阵；取不到返回 (None, 原因)。
 
@@ -70,10 +85,13 @@ def _tf_rotation(parent, child, timeout=30.0, lookup=None, clock=None, sleep=Non
     （见 verify/test_m2_relay_clock_guard.py；py_compile 抓不到 NameError 这类错误，
       2026-11-27 就是这么漏掉 `time` 未导入、relay 在 tf 模式当场 NameError 死掉的）。
     """
-    clock = clock or time.monotonic
+    # ★截止时间只用系统墙钟 time.monotonic★（2026-11-27 真人裁决）：它保证单调、不受
+    # ROS 时钟冻结/回跳影响，也不允许外部注入"坏钟"把死循环藏起来。
+    clock = time.monotonic
     is_shutdown = is_shutdown or rospy.is_shutdown
-    if sleep is None:
-        sleep = rospy.sleep
+    # ★等待必须走墙钟★（2026-11-27 真人裁决）：默认 rospy.sleep 依赖 ROS 时钟，
+    # 仿真时钟冻结时它永不返回、回跳时又立刻返回，两种情况都会把"墙钟超时"架空。
+    sleep = sleep or time.sleep
     if lookup is None:
         try:
             import tf2_ros
@@ -81,7 +99,9 @@ def _tf_rotation(parent, child, timeout=30.0, lookup=None, clock=None, sleep=Non
             return None, 'tf2_ros 不可用'
         buf = tf2_ros.Buffer()
         tf2_ros.TransformListener(buf)
-        lookup = lambda: buf.lookup_transform(parent, child, rospy.Time(0), rospy.Duration(1.0))
+        # ★非阻塞查询★：lookup_transform(...) 带 timeout 时内部按 ROS 时间等，
+        # 时钟冻结会一直等下去。lookup_transform_core 拿不到就立刻抛，由外层墙钟控制节奏。
+        lookup = lambda: buf.lookup_transform_core(parent, child, rospy.Time(0))
     t0 = clock()
     last = '尚未尝试'
     while clock() - t0 < timeout:
@@ -122,6 +142,11 @@ if __name__ == '__main__':
         _th = math.radians(pitch_deg)
         _c, _s = math.cos(_th), math.sin(_th)
     _shown = [False]
+    # 输入/输出的期望 frame（强校验用）：tf 模式下源系固定为 TF 的子帧 rslidar，
+    # 数值模式不给 src 则不做来源限制（保持旧行为），只防"已是 base_link 又转一次"。
+    _out_frame = 'base_link'
+    _src_frame = 'rslidar' if _arg4 == 'tf' else ''
+    _skip_shown = [False]
     mod = {'Twist': 'geometry_msgs.msg', 'Imu': 'sensor_msgs.msg'}[typ]
     msg_cls = getattr(__import__(mod, fromlist=['x']), typ)
     pub = rospy.Publisher(dst, msg_cls, queue_size=10)
@@ -130,6 +155,20 @@ if __name__ == '__main__':
         _rot_on = (typ == 'Imu') and (_R is not None or pitch_deg != 0.0)
         if _rot_on:
             _in_frame = m.header.frame_id
+            # ★输入坐标必须强校验★（2026-11-27 真人裁决）：只记录不拦等于没约束。
+            #   · frame 已是 base_link ⇒ 上游已经转过，**绝不能再转一次**（会变成 30°）；
+            #   · frame 既不是期望源系也不是 base_link ⇒ 坐标系未知，转发即错，直接丢弃；
+            #   · frame 等于期望源系 ⇒ 正常旋转。
+            # 期望源系默认取 TF 的子帧名（rslidar）；无 TF 且给了数值角时用 --src 指定。
+            _act = _frame_action(_in_frame, _src_frame, _out_frame)
+            if _act == 'skip':
+                if not _skip_shown[0]:
+                    _skip_shown[0] = True
+                    rospy.logwarn_throttle(30, '[m2_cmd_relay] 输入 frame 已是 %s，跳过旋转（防重复旋转）', _out_frame)
+            elif _act == 'drop':
+                rospy.logerr_throttle(5, '[m2_cmd_relay] 输入 frame=%s 非期望源系 %s，**丢弃该帧**（不转发错误坐标）',
+                                      _in_frame, _src_frame)
+                return
             a, w = m.linear_acceleration, m.angular_velocity
             if _R is not None:
                 ax, ay, az = _mat_vec(_R, (a.x, a.y, a.z))
