@@ -196,5 +196,37 @@ class WallClockSafetyTest(unittest.TestCase):
         self.assertTrue(fresh)
 
 
+
+
+class RenewPermissionTest(unittest.TestCase):
+    """重复帧不得续期运动许可（2026-11-27）。"""
+
+    def test_duplicate_stamp_does_not_renew(self):
+        adv, st, wl = loc.renew_permission(100.0, 100.0, 1000.0, 1005.0)
+        self.assertFalse(adv)
+        self.assertEqual((st, wl), (100.0, 1000.0), '重复戳不能把墙钟推进到 1005')
+
+    def test_advanced_stamp_renews(self):
+        adv, st, wl = loc.renew_permission(100.0, 100.1, 1000.0, 1005.0)
+        self.assertTrue(adv)
+        self.assertEqual((st, wl), (100.1, 1005.0))
+
+    def test_first_sample_renews(self):
+        self.assertTrue(loc.renew_permission(None, 100.0, None, 5.0)[0])
+
+    def test_stuck_source_keeps_old_wall_so_it_expires(self):
+        # 源卡住后不断重发同一戳：墙钟停在首次推进点 ⇒ 超时后 freshness 必须判不新鲜
+        wall_at_accept = 1000.0
+        for _ in range(10):
+            adv, _, wall_at_accept = loc.renew_permission(100.0, 100.0, wall_at_accept, 1005.0)
+            self.assertFalse(adv)
+        fresh, _ = loc.freshness(('p',), 100.0, 100.0, 1.0,
+                                 wall_now=1010.0, wall_at_accept=wall_at_accept)
+        self.assertFalse(fresh, '只靠重发的源不得一直保持可运动')
+
+    def test_backwards_stamp_is_rejected_before_renewing(self):
+        self.assertEqual(loc.stamp_verdict(95.0, 100.0, 100.0, 0.5), 'back')
+
+
 if __name__ == '__main__':
     unittest.main()

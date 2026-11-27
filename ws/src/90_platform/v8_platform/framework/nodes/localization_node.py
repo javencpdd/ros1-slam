@@ -14,6 +14,7 @@ import sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 import json
 import math
+import threading
 import time
 
 import rospy
@@ -74,6 +75,17 @@ def rotate_to_map(pose, origin_x, origin_y, origin_z, origin_yaw):
             z + origin_z, nx, ny, nz, nw)
 
 
+def renew_permission(prev_stamp, stamp, prev_wall, wall_now, tol=1e-9):
+    """源戳是否**真的推进**——决定要不要续期运动许可。
+
+    重复帧（同戳重发）不得续期：否则一个卡住的源靠重发就能一直"活着"。
+    返回 (advanced, stamp, wall)。advanced=False 时后两者原样返回。
+    """
+    if prev_stamp is not None and abs(stamp - prev_stamp) <= tol:
+        return False, prev_stamp, prev_wall
+    return True, stamp, wall_now
+
+
 def freshness(selected, accepted_stamp, now, max_age, wall_now=None, wall_at_accept=None):
     """新鲜度判定：**回调与健康循环必须共用这一处**。
 
@@ -88,9 +100,10 @@ def freshness(selected, accepted_stamp, now, max_age, wall_now=None, wall_at_acc
         return False, None
     age = max(0.0, now - accepted_stamp)
     fresh = age <= max_age
-    # ★墙钟旁路：ROS 时钟冻结时 age 不会涨，判 fresh 会一直放行★（2026-11-27 真人指出，
-    # 「停钟仍判 fresh」不能当作安全闭合）。所以再要一条墙钟条件：
-    # 源戳在**墙钟**上停滞超过 max_age，同样判不新鲜。回跳同理——墙钟只进不退。
+    # ★墙钟旁路：ROS 时钟冻结时 age 不会涨，判 fresh 会一直放行★（2026-11-27 真人指出）。
+    # 所以再要一条墙钟条件：源戳在**墙钟**上停滞超过 max_age 即判不新鲜。
+    # wall_at_accept 语义 = **源戳最后一次推进**的墙钟时刻，不是"最近一次收到"：
+    # 重复帧（同戳重发）不得续期运动许可，否则一个卡住的源可以靠重发一直"活着"。
     if fresh and wall_now is not None and wall_at_accept is not None:
         if (wall_now - wall_at_accept) > max_age:
             fresh = False
@@ -153,7 +166,7 @@ def main():
     status_pub = rospy.Publisher(status_topic, String, queue_size=10)
     error_pub = rospy.Publisher(error_topic, String, queue_size=20)
     state = {'gt': None, 'gt_at': -1e100, 'selected': None, 'accepted_stamp': None,
-             'accepted_wall': None,
+             'stamp_wall': None,
              'errors': [], 'count': 0, 'last_error': None}
 
     def publish_ok(ok):
@@ -181,10 +194,15 @@ def main():
                                    {'bad': '非法', 'future': '未来', 'back': '回退'}[verdict],
                                    stamp, now, state['accepted_stamp'] or -1.0, label)
             return
+        advanced, new_stamp, new_wall = renew_permission(
+            state['accepted_stamp'], stamp, state['stamp_wall'], time.monotonic())
         if need_transform and label != 'sim_gt':
             pose = to_map(pose)
-        state['selected'], state['accepted_stamp'] = pose, stamp
-        state['accepted_wall'] = time.monotonic()
+        state['selected'] = pose
+        if advanced:
+            state['accepted_stamp'], state['stamp_wall'] = new_stamp, new_wall
+        else:
+            state['dup'] = state.get('dup', 0) + 1
         edited_at = rospy.Time.now()
         message = PoseStamped()
         message.header.frame_id, message.header.stamp = frame, rospy.Time.from_sec(stamp)
@@ -214,7 +232,7 @@ def main():
             error_pub.publish(String(data=json.dumps(dict(error, source=label),
                                                      ensure_ascii=False)))
         fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age,
-                               time.monotonic(), state['accepted_wall'])
+                               time.monotonic(), state['stamp_wall'])
         age = age or 0.0
         publish_ok(navigation_allowed and fresh)
         status_pub.publish(String(data=json.dumps({
@@ -252,21 +270,31 @@ def main():
     # 20 Hz 而非 5 Hz：本循环同时承担"定位失效宣告"的职责 —— 失效一旦成立，
     # 下游要等到下一次 publish_ok(False) 才会停。5 Hz 意味着最多多等 0.2 s，
     # 20 Hz 把这段压到 0.05 s。消息是 Bool + 短 JSON，负载可忽略。
-    rate = rospy.Rate(20.0)
-    while not rospy.is_shutdown():
-        now = rospy.Time.now().to_sec()
-        # ★与回调共用 freshness()★：两处各写一遍是这次 KeyError 的根源，
-        # 且必须用**源戳**判定，而不是本地时钟——停流时源戳不动，age 才会涨。
-        fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age,
-                               time.monotonic(), state['accepted_wall'])
-        publish_ok(navigation_allowed and fresh)
-        status_pub.publish(String(data=json.dumps({
-            'ok': navigation_allowed and fresh, 'source': source,
-            'navigation_allowed': navigation_allowed,
-            'fresh': fresh, 'age_s': age, 'samples': state['count'],
-            'rejected': {k: state.get(k, 0) for k in ('rej_bad', 'rej_future', 'rej_back')},
-            'last_error': state['last_error']}, ensure_ascii=False)))
-        rate.sleep()
+    # ★看门狗必须由**独立墙钟**驱动★（2026-11-27 真人指出）：原来的
+    # `rospy.Rate(20).sleep()` 走 ROS 时钟，仿真时钟一冻结它就不返回，
+    # 于是"停钟 → 判不新鲜"这条路径根本没机会执行——墙钟判断写了也白写。
+    # 改为 time.sleep 线程，ROS 时间只用来算年龄，不用来定时。
+    def _watchdog():
+        while not rospy.is_shutdown():
+            time.sleep(0.05)
+            try:
+                now = rospy.get_time()
+                fresh, age = freshness(state['selected'], state['accepted_stamp'], now, max_age,
+                                       time.monotonic(), state['stamp_wall'])
+                publish_ok(navigation_allowed and fresh)
+                status_pub.publish(String(data=json.dumps({
+                    'ok': navigation_allowed and fresh, 'source': source,
+                    'navigation_allowed': navigation_allowed,
+                    'fresh': fresh, 'age_s': age, 'samples': state['count'],
+                    'dup': state.get('dup', 0),
+                    'rejected': {k: state.get(k, 0)
+                                 for k in ('rej_bad', 'rej_future', 'rej_back')},
+                    'last_error': state['last_error']}, ensure_ascii=False)))
+            except rospy.ROSException:
+                break
+
+    threading.Thread(target=_watchdog, name='loc_watchdog', daemon=True).start()
+    rospy.spin()
 
 
 if __name__ == '__main__':
