@@ -1148,7 +1148,10 @@ def main():
         保留订阅是为了让"有人还在发无身份结果"这件事可见，而不是静默丢弃。"""
         # 只计数，**不发 status**：`/global_path/status` 是 BT `WaitForPath` 的判据，
         # 兼容话题上的无身份消息不该把正式任务判成失败。
-        state.rejected_results += 1
+        # ★无名/兼容消息不计入 rejected_results★（2026-11-27 真人指出）：
+        # 之前两者都加，于是"总拒绝数"里混进了兼容话题的流量，身份验收的
+        # "本次注入被拒了几条"根本无法归因——注入一条、兼容来一条，总数照样够。
+        # 现在分开记账：unnamed 单独一栏，rejected 只统计**带身份的拒绝**。
         state.unnamed_results += 1
 
     rospy.Subscriber(far_tagged_topic, String, on_waypoint_tagged, queue_size=5)

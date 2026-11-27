@@ -71,6 +71,27 @@ class Rec(object):
             self.status = value
 
 
+def _attributed(rows, base):
+    """三条注入是否各自留下了对应原因的增量（dup 归 stale_gen/bad/unnamed 之一）。
+
+    2026-11-27：`far_node.py:1146` 附近 on_waypoint_unnamed 会同时加
+    rejected_results 与 unnamed_results，所以"总拒绝数增加"本身不能证明
+    "这次注入被按预期原因拒绝"。这里要求每条注入行都带 request_id/gen，
+    并且三条注入后至少出现两类不同原因的增长。
+    """
+    kinds = set()
+    for r in rows[1:4]:
+        if r.get('rejected') is None:
+            return False
+        if not r.get('request_id'):
+            return False
+        for key in ('stale_gen', 'bad', 'unnamed'):
+            if (r.get(key) or 0) > (base.get(key) or 0):
+                kinds.add(key)
+                break
+    return len(kinds) >= 2
+
+
 def _rej_delta(last_inject, base):
     """本次注入带来的拒绝增量。计数器缺失或回绕时按 0 处理（宁可判不通过）。"""
     now = last_inject.get('rejected')
@@ -125,6 +146,12 @@ def main():
                 'cache_id': t.get('cache_request_id'),
                 'cache_gen': t.get('cache_result_gen')}
 
+    # ★真基线★（2026-11-27 真人指出）：上一版 `rej_base = rows[0].get('rejected')`，
+    # 而 rows[0] 里根本没记录 rejected ⇒ 基线恒 0，增量判据等于看总数。
+    # 这里在第一笔注入**之前**抓一次 counters()，作为差值的锚点。
+    base = counters()
+    rows[0].update(base)
+
     def inject(tag_id, g, x, step):
         payload = {'request_id': tag_id, 'gen': g, 'x': x, 'y': 2.45, 'z': 0.0,
                    'frame': 'map', 'stamp': rospy.get_time()}
@@ -161,7 +188,7 @@ def main():
 
     rev_final = (rec.task or {}).get('path_revision')
     # 注入前的累计拒绝数（rows[0] 是注入前快照），用于算增量而不是绝对值
-    rej_base = (rows[0].get('rejected') or 0) if rows else 0
+    rej_base = base.get('rejected') or 0
     checks = {
         'producer_identity': bool(rid),
         'dup_gen_rejected': rows[1]['revision'] == rev0,
@@ -174,7 +201,9 @@ def main():
         'cache_identity_intact': last_inject.get('cache_id') == rid,
         # ★必须看**注入增量**★：累计计数里混着正常并发带来的拒绝，
         # 拿绝对值 `>=3` 判，会在"本次注入一条都没被拒"时照样通过。
+        # 增量 + 归因：dup/stale/bad 三条各自应有对应计数增长，不能只看总数。
         'rejected_counted': (_rej_delta(last_inject, rej_base) >= 3),
+        'rejected_attributed': _attributed(rows, base),
         # 拒绝期间版本必须不动（帧数会被并发生产者刷新，不能当判据）
         'rejects_kept_revision': all((r['revision'] or 0) == (rev0 or 0)
                                      for r in rows[1:4]),

@@ -6,10 +6,11 @@ name: nav3d_m2_lio_bt
 #
 # 位姿从哪来 —— 这是本图的关键，不靠伪造也不靠真值回落：
 #   loc（v8.fw.localization_source, lio_topic=/Odometry）独占 /v8/local/pose，
-#   carrier 的位姿输出被挪到 /v8/3d/carrier/pose_raw（照 graph_3d_gazebo_loc.yaml 的做法），
-#   两写者不撞同一条话题。carrier 仍保留，是因为 app_runner 强制要求图里存在名为 carrier
-#   的实例且 component 与 app 的 carrier.backend 对应；它在本图里 spawn=false，
-#   只把 /cmd_vel 转给图外的 lite3_planar_drive，不再参与位姿。
+#   ★本图同样不含内部运动学载体★（2026-11-27，与 far 图同口径纠正）：
+#   物理载体是图外的 lite3_planar，由 gazebo 插件直接订阅 /cmd_vel 驱动，mux3d 的
+#   output_topic 就是 /cmd_vel，链路不需要转发者；v8.fw.gazebo_carrier3d 会自积分位姿
+#   并对 model_name=app_carrier 调 SetModelState（该模型本场景不存在），
+#   留着就是"两套载体 + 双重控制"。外部物理载体与内部运动学载体由此分离：本图只用前者。
 #
 # 为什么不用 v8.fw.carrier_lite3：它的执行域声明是 real_robot / robot_id=lite3，
 # 放进 simulation 图会直接撞 E_EXEC_MODE。这里不做绕过，因为那等于削弱执行域门控。
@@ -150,28 +151,9 @@ instances:
       localization_topic: /v8/local/localization_ok
       status_topic: /v8/local/localization_status
       error_topic: /v8/local/localization_error
-  - id: carrier
-    component: v8.fw.gazebo_carrier3d
-    namespace: /v8/3d/carrier
-    params:
-      model_name: app_carrier
-      spawn: false
-      start_x: 0.0
-      start_y: 0.0
-      start_z: 0.0
-      center_z: 0.1
-      snap_m: 0.03
-      rate_hz: 50.0
-      cmd_topic: /cmd_vel
-      map_topic: /v8_support_map
-      # 挪到独立话题，避免与 loc 同时写 /v8/local/pose
-      pose_topic: /v8/3d/carrier/pose_raw
-      localization_topic: /v8/3d/carrier/loc_raw
-      status_topic: /v8/3d/carrier/status
 edges:
   - {from: map.map, to: global.map}
   - {from: map.map, to: local.map}
-  - {from: map.map, to: carrier.map}
   - {from: global.path, to: bt.path}
   - {from: global.status, to: bt.path_status}
   - {from: loc.pose, to: bt.pose, feedback: true,
@@ -188,7 +170,6 @@ edges:
   - {from: loc.localization, to: local.localization, feedback: true,
      policy: {period_s: 0.05, max_age_s: 1.0}}
   - {from: local.cmd, to: mux3d.cmd}
-  - {from: mux3d.cmd, to: carrier.cmd}
   - {from: bt.cancel_cmd, to: local.cancel}
   - {from: local.cancel_ack, to: bt.cancel_ack, feedback: true,
      policy: {period_s: 0.0, max_age_s: 1.0}}

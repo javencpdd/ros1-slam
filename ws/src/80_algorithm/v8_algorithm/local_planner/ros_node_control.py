@@ -279,6 +279,30 @@ class LocalControl:
                     'localization': round(latest_wall - self.shared['localization_at'], 3),
                     'obstacles_cb': self.shared.get('obstacles_cb', 0),
                     'max_age': self.max_age}
+            # ★拒动诊断快照★（2026-11-27）：只想回答一个问题——E_LOCAL_NOT_READY
+            # 到来自哪一处。现场读数 pose_clock.ok=True、pose age=0.098 与"advanced 从未为真"
+            # 在逻辑上互斥，所以不能只盯 pose：goal=None、result=None、历史 last_error
+            # 任何一条都会给出同一个码。这里把同一 tick 内的契约面全量落一条，供按时间对齐。
+            try:
+                _w = self.worker
+                status['contract'] = {
+                    'pose_error': snapshot.get('pose_error'),
+                    'pose_detail': snapshot.get('pose_detail'),
+                    'pose': snapshot.get('pose'),
+                    'goal': snapshot.get('goal'),
+                    'mission': snapshot.get('mission') or snapshot.get('goal_mission'),
+                    'revision': snapshot.get('revision') or snapshot.get('path_revision'),
+                    'waypoint': snapshot.get('waypoint') or snapshot.get('waypoint_index'),
+                    'revoked_mission': snapshot.get('revoked_mission'),
+                    'stop_latched': bool(snapshot.get('stop_latched')),
+                    'last_error': snapshot.get('last_error'),
+                    'worker_alive': bool(_w.process.is_alive()) if _w is not None else None,
+                    'worker_pending': bool(getattr(_w, 'pending', None) is not None) if _w is not None else None,
+                    'generation': snapshot.get('generation'),
+                    'result_generation': snapshot.get('result_generation'),
+                                 'result_at': snapshot.get('result_at')}
+            except Exception as _e:      # 诊断字段绝不能把主循环带崩
+                status['contract'] = {'error': str(_e)}
             if gait_state is not None:
                 observed_at = self.shared.get('chassis_status_at')
                 status['gait_hold'] = gait_state
