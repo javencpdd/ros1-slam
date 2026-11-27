@@ -40,6 +40,9 @@ class Rec(object):
             pass
 
     def on_task(self, msg):
+        # ★task_n 必须真的累加★（2026-11-27）：此前只有初始化、没有任何递增点，
+        # 于是 'task_frames' 恒为 0——报告里的"原子任务帧数"从来没反映过实际。
+        self.task_n += 1
         try:
             value = json.loads(msg.data)
         except Exception:
@@ -66,6 +69,14 @@ class Rec(object):
             return
         if value.get('task'):
             self.status = value
+
+
+def _rej_delta(last_inject, base):
+    """本次注入带来的拒绝增量。计数器缺失或回绕时按 0 处理（宁可判不通过）。"""
+    now = last_inject.get('rejected')
+    if now is None or base is None:
+        return 0
+    return max(0, now - base)
 
 
 def main():
@@ -149,16 +160,21 @@ def main():
     last_inject = rows[3]      # bad_id 这一步，带完整计数
 
     rev_final = (rec.task or {}).get('path_revision')
+    # 注入前的累计拒绝数（rows[0] 是注入前快照），用于算增量而不是绝对值
+    rej_base = (rows[0].get('rejected') or 0) if rows else 0
     checks = {
         'producer_identity': bool(rid),
         'dup_gen_rejected': rows[1]['revision'] == rev0,
         'stale_gen_rejected': rows[2]['revision'] == rev0,
         'bad_id_rejected': rows[3]['revision'] == rev0,
-        # 正控看**生产者自己**有没有推进版本（注入不应也不能伪造推进）
+        # 正控看**生产者自己**有没有推进版本（注入不应也不能伪造推进）。
+        # ★必须严格 >★：`>=` 时"版本没动"也算通过，等于把"没推进"判成"推进了"。
         'producer_advanced': (rev_final is not None and rev0 is not None
-                              and rev_final >= rev0),
+                              and rev_final > rev0),
         'cache_identity_intact': last_inject.get('cache_id') == rid,
-        'rejected_counted': (last_inject.get('rejected') or 0) >= 3,
+        # ★必须看**注入增量**★：累计计数里混着正常并发带来的拒绝，
+        # 拿绝对值 `>=3` 判，会在"本次注入一条都没被拒"时照样通过。
+        'rejected_counted': (_rej_delta(last_inject, rej_base) >= 3),
         # 拒绝期间版本必须不动（帧数会被并发生产者刷新，不能当判据）
         'rejects_kept_revision': all((r['revision'] or 0) == (rev0 or 0)
                                      for r in rows[1:4]),
