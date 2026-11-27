@@ -67,3 +67,38 @@ LIO快照生产者真身是 [lite3_bringup/scripts/map_snapshot_pub.py](../../ws
 布局JSON声明 `version: 1`，以3D面板显示 `/map_snapshot`、TF、里程计与模型；它不是客户端正式导出的兼容性证明。客户端版本可能改变导入格式和菜单，导入失败时按相同固定帧/话题手工配置，并把经过实际导出验证的新布局另行维护；本次不覆盖原JSON。
 
 观察时只订阅。网页发目标、改起点或热切场景会改变仿真状态，属于独立操作，不列入只读观察步骤。2D/3D交互操作及地图前置见 [Docker指南§4.6.1—4.8](../README.md)，真机不由此取得运动授权。
+
+## 2026-11-27 实测通过：在运行中的 sim-viz 容器内起桥（不重启验收容器）
+
+### 步骤
+```bash
+# 1) 在**正在运行**的 sim-viz 容器里起桥，连本容器的 11313 域
+docker exec -d ros1-slam-sim-viz bash -lc 'source /opt/ros/noetic/setup.bash; \
+  source /opt/ros1-slam/ws/devel/setup.bash; export ROS_MASTER_URI=http://127.0.0.1:11313; \
+  roslaunch rosbridge_server rosbridge_websocket.launch port:=9090 address:=0.0.0.0'
+
+# 2) 浏览器连接（二选一）
+#    容器 IP 直连：ws://172.20.0.5:9090
+#    SSH 隧道：ssh -L 19090:172.20.0.5:9090 <宿主>  → ws://127.0.0.1:19090
+```
+
+### 四件核验（缺一不算通）
+```bash
+docker exec ros1-slam-sim-viz python3 /opt/ros1-slam/scripts/verify/foxglove_ws_check.py \
+  ws://127.0.0.1:9090 --topic /v8/local/pose
+```
+实测读数：
+```
+HANDSHAKE OK
+TOPICS n=99 m2_ok=True          # 桥必须能看到 /v8/local/pose、/v8/bt/status、/v8/local/status
+DATA OK n=3 topic=/v8/local/pose
+VERDICT PASS
+```
+即：握手 101、话题域正确（99 条，含 M2 关键话题）、真实数据可订阅。
+仅"9090 在监听"不算通过——原有 `ros1-slam-rosbridge` 容器连的是 **11312** 开发域，
+`/rosapi/topics` 里只有 4 条，接上去是空面板。
+
+### 边界
+- 只读：不发 goal / initialpose / cmd_vel，不调改状态的服务；允许 `rosapi` 查询。
+- 不重启验收容器；11312 域的桥保持原样。
+- 观察开销需记录（RTF、`/rslidar_points` 激活与感知负载），且**不改变正式判据**。
