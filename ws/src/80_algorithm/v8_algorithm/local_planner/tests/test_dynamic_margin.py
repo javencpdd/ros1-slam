@@ -48,6 +48,20 @@ class DynamicMarginTests(unittest.TestCase):
                                          margin_extra=native.dynamic_margin_extra(cfg, 0.6)))
 
     # ---------- 2) 注入有效性 ----------
+    def test_weaker_brake_increases_tail_and_flips_hit(self):
+        # 同一速度/几何，只改制动减速度：弱制动必须给出更长尾段，且能把“不碰”翻成“碰”。
+        normal = config(dynamic_margin_cap_m=1.0)
+        weak = config(brake_decel_mps2=0.25, dynamic_margin_cap_m=1.0)
+        speed = 0.6
+        normal_extra = native.dynamic_margin_extra(normal, speed)
+        weak_extra = native.dynamic_margin_extra(weak, speed)
+        self.assertGreater(weak_extra, normal_extra)
+        lo, hi = (1.0, 0.0, 0.0), (1.2, 0.2, 1.0)
+        obstacle = (lo, hi, (0.0, 0.0, 0.0), 0.0, 0.0, 10.0)
+        a, b = (0.0, 0.8, 0.0, 0.0), (2.0, 0.8, 0.0, 4.0)
+        self.assertFalse(native._swept_hit(a, b, obstacle, normal, margin_extra=normal_extra))
+        self.assertTrue(native._swept_hit(a, b, obstacle, weak, margin_extra=weak_extra))
+
     def test_flat_when_terms_zeroed(self):
         """把反应与制动项清零后，余量必须与速度无关 —— 否则主测测的是别的东西。"""
         cfg = config(reaction_s=1e-9, brake_decel_mps2=1e9)
