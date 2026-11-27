@@ -13,6 +13,9 @@
            note/进度/M2/设计/m2r5_双父TF设计.md 方案 A）。
 -->
 <robot name="lite3_planar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- GT 评价域的帧名；默认与历史一致，只有需要隔离 GT 的验收场景才覆盖 -->
+  <xacro:arg name="gt_odom_frame" default="odom"/>
+  <xacro:arg name="gt_base_frame" default="base_link"/>
   <xacro:arg name="carrier_visual" default="true"/>
   <xacro:property name="lidar_z" value="0.34"/><xacro:property name="lidar_pitch_deg" value="15"/><!-- ★R409 乙（真人 2026-10-19 两句到签＝★符号＝下倾 15° ‖ ★离地目标＝0.45 m）。本行存★度数与★安装高；★槽位硬约束＝rpy 三元＝(roll, pitch, yaw)＝绕 X,Y,Z，雷达前向＝+X ⇒ 要让光轴俯仰必须把角度放进★第二槽（绕 Y 的 pitch）；★放进第一槽＝把雷达侧倾（★本 boot 首刀就踩过、R409 自纠留名）。rpy 单位是弧度 ⇒ 展开处必须写 ${radians(lidar_pitch_deg)}、★不得把 15 直接填进去（那是 15 弧度）。0.34 的算法＝目标离地 0.45 − ★实测稳态基座 0.11（R405 活体窗），★不是按 spawn 初始位 0.15 推的 0.30＝★坑68 的直接兑现。 -->
   <!-- ================= 官方骨架：TORSO（保持官方名；M2R5 起非 root，恒等挂于 base_link 下） ================= -->
@@ -150,8 +153,14 @@
            名字带 _gt 是刻意的：它语义上就是 WorldPose 真值，不得冒充估计量。
            odometryFrame=odom 与 robotBaseFrame=base_link **不动**（护住 M2R5/U1 的单父拓扑与 E3/G5c1 锚）。 -->
       <odometryTopic>/sim/odom_gt</odometryTopic>
-      <odometryFrame>odom</odometryFrame>
-      <robotBaseFrame>base_link</robotBaseFrame>
+      <!-- ★帧名参数化（2026-11-27）：默认值与历史完全一致，场景不改就不变行为★
+           原因：`odom→base_link` 是 Gazebo WorldPose（GT），而 FAR 的 on_cloud 走
+           `map→rslidar`，父链会经过 base_link ⇒ **地形转换间接消费 GT**（tf_chain_audit 实测判 FAIL）。
+           需要 GT 隔离的场景把这两个参数改成 gt_odom / gt_base，GT 就落到独立评价域；
+           生产链改由 `body→base_link`（估计位姿）承接，URDF 继续只管传感器外参。
+           不改默认值，是为护住既有 M2R5/U1 单父拓扑与 E3/G5c1 锚。 -->
+      <odometryFrame>$(arg gt_odom_frame)</odometryFrame>
+      <robotBaseFrame>$(arg gt_base_frame)</robotBaseFrame>
       <driveMode>dynamic</driveMode>
       <cmdTimeout>10.0</cmdTimeout>
       <odometryRate>50</odometryRate>
