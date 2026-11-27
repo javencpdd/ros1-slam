@@ -11,6 +11,7 @@ import sys
 
 import rospy
 from nav_msgs.msg import Odometry
+from std_msgs.msg import String
 
 
 def main():
@@ -27,10 +28,17 @@ def main():
     else:
         raise SystemExit('位姿话题 %s 类型未知（未发布？）' % topic)
     g = rospy.wait_for_message('/sim/odom_gt', Odometry, timeout=10).pose.pose.position
-    res = {'pose_topic': topic, 'pose_type': mtype,
+    bt = {}
+    try:
+        bt = json.loads(rospy.wait_for_message('/v8/bt/status', String, timeout=3).data)
+    except Exception:
+        pass
+    res = {'pose_topic': topic, 'pose_type': mtype, 'goal': [gx, gy],
            'est_to_goal_m': round(math.hypot(e.x - gx, e.y - gy), 3),
            'gt_to_goal_m': round(math.hypot(g.x - gx, g.y - gy), 3),
            'est_gt_gap_m': round(math.hypot(e.x - g.x, e.y - g.y), 3),
+           'bt_goal_seq': bt.get('goal_seq'), 'bt_current_seq': bt.get('current_seq'),
+           'bt_outcome': bt.get('outcome'),
            'verdict': 'PASS' if math.hypot(g.x - gx, g.y - gy) <= tol else 'FAIL'}
     text = json.dumps(res, ensure_ascii=False)
     print(text)

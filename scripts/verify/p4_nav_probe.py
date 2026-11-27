@@ -44,6 +44,7 @@ class Probe(object):
         self.cmd_frames = 0
         self.cmd_times = []          # 采样覆盖判据用：cmd 到达的墙钟时刻
         self.bt_arrived = False      # ★BT 自己的到达事件★：只看真值距离会漏判"规划器没报到"
+        self.bt = {}                 # 同任务身份：goal_seq/current_seq/outcome
         # ★按类型只订一次★（同一 topic 建两种类型订阅会让其中一条永远空转，也掩盖类型配错）：
         # M1 的 /hdl_odom 是 Odometry，M2 的 /v8/local/pose 是 PoseStamped。
         resolved = rospy.resolve_name(pose_topic)
@@ -94,6 +95,10 @@ class Probe(object):
 
     def on_arrived(self, m):
         text = m.data or ''
+        try:
+            self.bt = json.loads(text)
+        except Exception:
+            pass
         if '"reached"' in text or "'reached'" in text:
             self.bt_arrived = True
 
@@ -139,6 +144,10 @@ def main():
               'cmd_frames': pr.cmd_frames, 'speed_frames': pr.speed_frames,
               'max_speed_mps': round(pr.max_speed, 4),
               'bt_arrived': pr.bt_arrived,
+              'bt_goal_seq': pr.bt.get('goal_seq'),
+              'bt_current_seq': pr.bt.get('current_seq'),
+              'bt_outcome': pr.bt.get('outcome'),
+              'bt_path_state': pr.bt.get('path_state'),
               'max_cmd_gap_s': round(max_gap, 3) if max_gap is not None else None}
     if pr.est is None:
         result['verdict'] = 'FAIL'

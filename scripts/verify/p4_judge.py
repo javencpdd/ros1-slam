@@ -45,6 +45,27 @@ def load(root, name):
         return None
 
 
+def task_identity(goal_once, probe, arrival):
+    """同一任务的受理凭据、运动探针与到达核对必须指向同一个 goal_seq/goal。"""
+    if not goal_once or not goal_once.get('accepted'):
+        return False, '无任务受理凭据'
+    seq = goal_once.get('seq_after')
+    if seq is None:
+        return False, '受理凭据缺 seq_after'
+    for label, src in (('探针', probe), ('到达', arrival)):
+        if not src:
+            return False, '%s缺失' % label
+        if src.get('bt_goal_seq') != seq:
+            return False, '%s goal_seq=%r≠%r' % (label, src.get('bt_goal_seq'), seq)
+        g = goal_once.get('goal') or []
+        got = src.get('goal') or []
+        if len(g) < 2 or len(got) < 2:
+            return False, '%s 缺目标坐标' % label
+        if (round(float(g[0]), 3), round(float(g[1]), 3)) != (round(float(got[0]), 3), round(float(got[1]), 3)):
+            return False, '%s 目标不一致' % label
+    return True, 'seq=%s' % seq
+
+
 def judge_nav(root):
     arr = load(root, 'nav_arrival.json')
     probe = load(root, 'nav_probe.json')
@@ -77,6 +98,12 @@ def judge_nav(root):
     else:
         ok = False
         detail += ' 缺 nav_probe.json'
+    id_ok, id_txt = task_identity(load(root, 'nav_goal_once.json'), probe, arr)
+    if not id_ok:
+        ok = False
+        detail += ' 身份:' + id_txt
+    else:
+        extra += ' ' + id_txt
     return ('PASS' if ok else 'FAIL'), detail, extra
 
 
