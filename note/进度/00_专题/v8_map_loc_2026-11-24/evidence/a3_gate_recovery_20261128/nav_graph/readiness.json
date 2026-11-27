@@ -1,0 +1,111 @@
+{
+ "ok": true,
+ "nodes": [
+  {
+   "instance": "lio_gate",
+   "expect": "/v8/3d/lio_gate/lio_gate",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "loc",
+   "expect": "/v8/3d/loc/loc",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "map",
+   "expect": "/v8/3d/map/map",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "perception",
+   "expect": "/v8/3d/perception/perception",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "global",
+   "expect": "/v8/3d/global/global",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "bt",
+   "expect": "/v8/bt/bt",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "path_goal",
+   "expect": "/v8/3d/path_goal/path_goal",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "local",
+   "expect": "/v8/3d/local/local",
+   "ok": true,
+   "why": "ok"
+  },
+  {
+   "instance": "mux3d",
+   "expect": "/v8/3d/mux/mux3d",
+   "ok": true,
+   "why": "ok"
+  }
+ ],
+ "topics": [
+  {
+   "instance": "loc",
+   "topic": "/v8/local/pose",
+   "kind": "stream",
+   "ok": true,
+   "why": "window=23（需≥5）",
+   "publishers": [
+    "/v8/3d/loc/loc"
+   ]
+  },
+  {
+   "instance": "loc",
+   "topic": "/v8/local/localization_ok",
+   "kind": "heartbeat",
+   "ok": true,
+   "why": "window=119",
+   "publishers": [
+    "/v8/3d/loc/loc"
+   ]
+  },
+  {
+   "instance": "local",
+   "topic": "/v8/local/status",
+   "kind": "heartbeat",
+   "ok": true,
+   "why": "window=243",
+   "publishers": [
+    "/v8/3d/local/local"
+   ]
+  },
+  {
+   "instance": "bt",
+   "topic": "/v8/bt/status",
+   "kind": "heartbeat",
+   "ok": true,
+   "why": "window=9",
+   "publishers": [
+    "/v8/bt/bt"
+   ]
+  },
+  {
+   "instance": "map",
+   "topic": "/v8_support_map",
+   "kind": "latched",
+   "ok": true,
+   "why": "ok",
+   "publishers": [
+    "/v8/3d/map/map"
+   ]
+  }
+ ]
+}
