@@ -60,8 +60,18 @@ class AssociateTest(unittest.TestCase):
                  'footprint': {'min_x': 0.0, 'min_y': 0.0, 'max_x': 4.0, 'max_y': 4.0}}
         cfg = ln.Config(support_assoc_tol_m=0.08)
         r = ln.associate(_map(upper), (1.0, 1.0, 0.02), cfg)
-        # 两层都在容差内 ⇒ 必须标 ambiguous，供上层拒绝运动
+        # 两层都在容差内 ⇒ 必须标 ambiguous **且 valid=False**
         self.assertTrue(r['ambiguous'], '同 XY 两层都在容差内必须报歧义')
+        self.assertFalse(r['valid'], '歧义必须直接判无效（上一版这里仍是 True，是真安全漏洞）')
+
+    def test_ambiguous_support_is_refused_by_support_at(self):
+        # 生产路径（plan/track 走 _support_at）必须同样拒绝，不能只在 associate 里标歧义
+        upper = {'surface_id': 'floor2', 'traversability': 'supported',
+                 'z_reference': 0.05, 'thickness_m': 0.1,
+                 'footprint': {'min_x': 0.0, 'min_y': 0.0, 'max_x': 4.0, 'max_y': 4.0}}
+        cfg = ln.Config(support_assoc_tol_m=0.08)
+        self.assertIsNone(ln._support_at(_map(upper), (1.0, 1.0, 0.02), cfg,
+                                         tol=cfg.support_assoc_tol_m))
 
     def test_outside_cells_is_invalid(self):
         r = ln.associate(_map(), (9.0, 9.0, 0.0), ln.Config())
@@ -71,6 +81,17 @@ class AssociateTest(unittest.TestCase):
         p = (1.0, 1.0, -0.0637)
         ln.associate(_map(), p, ln.Config(support_assoc_tol_m=0.08))
         self.assertEqual(p[2], -0.0637, '关联不得改写原始位姿（z 不能被覆盖）')
+
+
+class MigrationTest(unittest.TestCase):
+    def test_explicit_large_support_tol_emits_note_not_silent_inherit(self):
+        cfg = ln.Config(support_tol_m=0.25)
+        notes = cfg.migration_notes()
+        self.assertEqual(len(notes), 1)
+        self.assertAlmostEqual(cfg.support_assoc_tol_m, 1e-6, msg='不得自动继承大容差')
+
+    def test_defaults_emit_no_note(self):
+        self.assertEqual(ln.Config().migration_notes(), [])
 
 
 if __name__ == '__main__':

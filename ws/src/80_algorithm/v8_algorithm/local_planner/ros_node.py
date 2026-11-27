@@ -277,6 +277,8 @@ def main():
         raise ValueError('plan_sim_tick_s must be non-negative')
     config = native.Config(**rospy.get_param('~experimental_config', {}))
     config.validate()
+    for _note in config.migration_notes():
+        rospy.logwarn('[local] 配置迁移提示：%s', _note)
     max_age = float(rospy.get_param('~input_max_age_s', 1.0))
     require_goal_seq = bool(rospy.get_param('~require_goal_seq', False))
     # ★安全模式：任务身份必须是原子消息★（默认开）；关掉才会退回 legacy 的 PoseStamped+seq

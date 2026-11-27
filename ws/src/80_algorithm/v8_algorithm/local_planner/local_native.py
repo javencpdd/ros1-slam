@@ -62,6 +62,22 @@ class Config:
     brake_decel_mps2: float = 1.0
     dynamic_margin_cap_m: float = 0.30
 
+    def migration_notes(self):
+        """历史配置迁移提示（只提示，不自动改值）。
+
+        2026-11-27：起点关联改用 support_assoc_tol_m。若某份历史配置显式写了较大的
+        support_tol_m（例如 0.25/0.05）而没写 assoc，起点关联会**比过去更严**——
+        这不是放宽，而是不能静默"继承大容差"。这里返回提示供节点打日志，
+        让人显式决定要不要给 assoc 单独取值占位，而不是代码替他们继承。
+        """
+        notes = []
+        if self.support_tol_m != 1e-6 and self.support_assoc_tol_m == 1e-6:
+            notes.append('support_tol_m=%.6g 为显式非默认值，但 support_assoc_tol_m 仍是 1e-6：'
+                         '起点支撑关联会比旧版本更严（不会自动继承大容差）。'
+                         '如该场景依赖旧行为，请显式给出 support_assoc_tol_m 并通过验收裁决。'
+                         % self.support_tol_m)
+        return notes
+
     def validate(self):
         for name, value in asdict(self).items():
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
@@ -93,19 +109,20 @@ def _support_at(map_value, point, config, surfaces=None, cell_sets=None, tol=Non
     不给则沿用 support_tol_m（几何/接触判据）。
     """
     z_tol = config.support_tol_m if tol is None else tol
+    # ★唯一实现★：plan 与 track 都经这里 → 都经 associate() 的 valid/ambiguous 判定，
+    # 不再各自调 rep.select_support（那会把"歧义"吞掉，诊断与控制两套语义）。
+    info = associate(map_value, point, config, tol=z_tol,
+                     surfaces=surfaces, cell_sets=cell_sets)
+    if not info['valid']:
+        return None
     if surfaces is None:
         surfaces = {s['surface_id']: s for s in map_value['surfaces']
                     if s['traversability'] == 'supported'}
-    if cell_sets is None:
-        cell_sets = {sid: rep.surface_cells(s) for sid, s in surfaces.items()}
-    choices = [s for sid, s in surfaces.items()
-               if rep.contains_xy(s, map_value['resolution'], point[0], point[1],
-                                  config.radius_m, cells=cell_sets[sid])
-               and abs(point[2] - s['z_reference']) <= z_tol]
-    return rep.select_support(choices, point[2])
+    return surfaces.get(info['surface_id'])
 
 
-def associate(map_value, point, config, tol=None, map_version=None):
+def associate(map_value, point, config, tol=None, map_version=None,
+              surfaces=None, cell_sets=None):
     """把（估计）位姿关联到支撑面，并给出**可判读的关联结果**。
 
     返回 dict：valid / surface_id / residual_z / candidates / ambiguous / map_version。
@@ -113,9 +130,11 @@ def associate(map_value, point, config, tol=None, map_version=None):
     而不是把最近的面对面硬套上去。绝不修改 point 本身（关联后的 z 不得覆盖原始定位输出）。
     """
     z_tol = config.support_assoc_tol_m if tol is None else tol
-    surfaces = {s['surface_id']: s for s in map_value.get('surfaces', ())
-                if s.get('traversability') == 'supported'}
-    cell_sets = {sid: rep.surface_cells(s) for sid, s in surfaces.items()}
+    if surfaces is None:
+        surfaces = {s['surface_id']: s for s in map_value.get('surfaces', ())
+                    if s.get('traversability') == 'supported'}
+    if cell_sets is None:
+        cell_sets = {sid: rep.surface_cells(s) for sid, s in surfaces.items()}
     cands = []
     for sid, s in surfaces.items():
         if not rep.contains_xy(s, map_value['resolution'], point[0], point[1],
@@ -136,7 +155,11 @@ def associate(map_value, point, config, tol=None, map_version=None):
     # 多层歧义：候选里存在与所选面高度**不同**的另一面，且同样在容差内
     others = [c for c in cands if c['surface_id'] != chosen['surface_id']
               and abs(c['z_reference'] - chosen['z_reference']) > 1e-9]
-    result.update(valid=True, ambiguous=bool(others),
+    ambiguous = bool(others)
+    # ★歧义即拒绝★（2026-11-27 真人指出）：上一版在这里仍写 valid=True，
+    # 与"多层歧义必须拒绝运动"的契约自相矛盾，而且诊断说歧义、控制照走，
+    # 等于两套安全语义。surface_id 仍回填，仅供日志判读，valid 必须为 False。
+    result.update(valid=not ambiguous, ambiguous=ambiguous,
                   surface_id=chosen['surface_id'],
                   residual_z=point[2] - chosen['z_reference'])
     return result
