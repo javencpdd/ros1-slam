@@ -30,6 +30,8 @@ class Client(WebSocketClientProtocol):
         self.topics = None
         self.got_data = 0
         self.handshake_ok = False
+        self.ws_edges = set()
+        self.tf_ws = None
         self.done = False
         self.fail = None
 
@@ -59,11 +61,35 @@ class Client(WebSocketClientProtocol):
             self.sendMessage(json.dumps({'op': 'subscribe', 'id': 'sub',
                                          'topic': self.opts.topic,
                                          'throttle_rate': 200}).encode())
+            # ★TF 必须走**客户端实际拿到的数据**判定★（2026-11-27 裁决）：
+            # 本地 tf2 能查 ≠ WebSocket 客户端能拿到 TF 数据。这里真的经桥订阅 /tf 与 /tf_static。
+            for _t in ('/tf', '/tf_static'):
+                self.sendMessage(json.dumps({'op': 'subscribe', 'id': 'tf' + _t,
+                                             'topic': _t}).encode())
+        elif msg.get('op') == 'publish' and msg.get('topic') in ('/tf', '/tf_static'):
+            for tr in (msg.get('msg') or {}).get('transforms') or []:
+                self.ws_edges.add((tr.get('header', {}).get('frame_id', ''),
+                                   tr.get('child_frame_id', '')))
         elif msg.get('op') == 'publish' and msg.get('topic') == self.opts.topic:
             self.got_data += 1
             if self.got_data >= 3:
-                self._check_tf()
+                self._check_tf()          # 本地 ROS 侧能否查到
+                self._check_tf_ws()       # 客户端经桥能否拿到 TF
                 self.finish()
+
+    def _check_tf_ws(self):
+        """用**客户端收到的 /tf+/tf_static** 边集判断 map→base_link 是否连通。"""
+        parent = {}
+        for p, c in self.ws_edges:
+            if p and c:
+                parent[c] = p
+        node, hops = 'base_link', 0
+        while node in parent and hops < 20:
+            if parent[node] == 'map':
+                self.tf_ws = True
+                return
+            node, hops = parent[node], hops + 1
+        self.tf_ws = bool(self.ws_edges) and node == 'map'
 
     def _check_tf(self):
         """文档声称的 TF 可查询性必须真的查一次——不能只写在 README 里。"""
@@ -94,8 +120,13 @@ class Client(WebSocketClientProtocol):
         print('DATA %s n=%d topic=%s' % ('OK' if self.got_data >= 1 else 'FAIL',
                                          self.got_data, self.opts.topic))
         tf_ok = getattr(self, 'tf_ok', None)
-        print('TF map->base_link %s' % ('OK' if tf_ok else 'FAIL' if tf_ok is False else 'SKIP'))
-        ok = (self.handshake_ok and self.fail is None and self.got_data >= 1 and tf_ok is not False)
+        tf_ws = getattr(self, 'tf_ws', None)
+        # ★SKIP 不得通过★：拿不到结论就是没验过，按 FAIL 处理（2026-11-27 裁决）。
+        print('TF(local ROS) map->base_link %s' % ('OK' if tf_ok else 'FAIL'))
+        print('TF(ws client)   map->base_link %s  edges=%d' % ('OK' if tf_ws else 'FAIL',
+                                                              len(self.ws_edges)))
+        ok = (self.handshake_ok and self.fail is None and self.got_data >= 1
+              and tf_ok is True and tf_ws is True)
         PASSED[0] = ok
         print('VERDICT %s' % ('PASS' if ok else 'FAIL'))
         if self.fail:
