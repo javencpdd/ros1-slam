@@ -185,13 +185,18 @@ base_up() {
       m2)
         echo "[base] 起 m2 底座（m2_gazebo + m2_mapping；/Odometry 为算法位姿）"
         # GT isolation is opt-in so historical callers keep odom/base_link.
-        local gt_args=() map_args=()
+        local gt_args=() map_args=() spawn_args=()
+        map_args+=(map_spawn_x:="${M2_MAP_SPAWN_X:-0}" map_spawn_y:="${M2_MAP_SPAWN_Y:-0}"
+                   map_spawn_z:="${M2_MAP_SPAWN_Z:-0.45}" map_spawn_yaw:="${M2_MAP_SPAWN_YAW:-0}")
+        spawn_args+=(spawn_x:="${M2_MAP_SPAWN_X:-0}" spawn_y:="${M2_MAP_SPAWN_Y:-0}"
+                     spawn_z:="${M2_SPAWN_Z:-0.15}" spawn_yaw:="${M2_MAP_SPAWN_YAW:-0}")
         if [ "${M2_ISOLATE_GT:-0}" = "1" ]; then
             gt_args=(gt_odom_frame:=gt_odom gt_base_frame:=gt_base)
-            map_args=(isolate_gt:=true)
+            map_args+=(isolate_gt:=true)
             echo "[base] GT 隔离模式：gt_odom/gt_base + body->base_link"
         fi
-        roslaunch lite3_gazebo_sim m2_gazebo.launch "${gt_args[@]}" > /tmp/base_m2_gz.log 2>&1 &
+        echo "[base] map 锚点=$(printf '%s ' "${map_args[@]}")"
+        roslaunch lite3_gazebo_sim m2_gazebo.launch "${gt_args[@]}" "${spawn_args[@]}" > /tmp/base_m2_gz.log 2>&1 &
         echo $! >> "$BASE_PIDFILE"
         _wait_node /gazebo 90 || { echo "[base] FAIL: 90s 内 /gazebo 节点未注册（见 /tmp/base_m2_gz.log）"; return 1; }
         _check_gazebo_ros || return 1
