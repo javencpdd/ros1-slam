@@ -38,8 +38,16 @@ def panel_raw(name, title, topic):
 
 
 def mk(lid, lname, panels, tree):
-    return {"id": lid, "name": lname, "version": 1,
-            "data": {"configById": panels, "layout": json.dumps(tree, ensure_ascii=False)}}
+    """Foxglove 布局的**顶层**格式（2026-11-27 实测：包一层 id/name/data 会报"不兼容的布局"）。
+
+    客户端认的是顶层 `configById` + `layout`（JSON 字符串）+ 三个空容器；
+    多余的外壳字段会让它判定为"不是 Foxglove 布局"。
+    """
+    return {"configById": panels,
+            "globalVariables": {},
+            "userNodes": {},
+            "playbackConfig": {"speed": 1},
+            "layout": json.dumps(tree, ensure_ascii=False)}
 
 
 def main():

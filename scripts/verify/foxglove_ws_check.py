@@ -15,11 +15,13 @@ import argparse
 import json
 import sys
 
+import rospy
 from autobahn.twisted.websocket import WebSocketClientFactory, WebSocketClientProtocol
 from twisted.internet import reactor
 
 
 LATEST = []
+PASSED = [False]
 
 
 class Client(WebSocketClientProtocol):
@@ -60,7 +62,27 @@ class Client(WebSocketClientProtocol):
         elif msg.get('op') == 'publish' and msg.get('topic') == self.opts.topic:
             self.got_data += 1
             if self.got_data >= 3:
+                self._check_tf()
                 self.finish()
+
+    def _check_tf(self):
+        """文档声称的 TF 可查询性必须真的查一次——不能只写在 README 里。"""
+        try:
+            import tf2_ros
+            buf = tf2_ros.Buffer()
+            tf2_ros.TransformListener(buf)
+            import time as _t
+            t0 = _t.monotonic()
+            while _t.monotonic() - t0 < 3.0:
+                try:
+                    buf.lookup_transform('map', 'base_link', rospy.Time(0))
+                    self.tf_ok = True
+                    return
+                except Exception:
+                    _t.sleep(0.2)
+            self.tf_ok = False
+        except Exception:
+            self.tf_ok = None      # 无 tf2 环境时如实标 SKIP，不当作通过
 
     def finish(self):
         if self.done:
@@ -71,8 +93,11 @@ class Client(WebSocketClientProtocol):
                                         bool(self.topics) and self.fail is None))
         print('DATA %s n=%d topic=%s' % ('OK' if self.got_data >= 1 else 'FAIL',
                                          self.got_data, self.opts.topic))
-        print('VERDICT %s' % ('PASS' if (self.handshake_ok and self.fail is None
-                                         and self.got_data >= 1) else 'FAIL'))
+        tf_ok = getattr(self, 'tf_ok', None)
+        print('TF map->base_link %s' % ('OK' if tf_ok else 'FAIL' if tf_ok is False else 'SKIP'))
+        ok = (self.handshake_ok and self.fail is None and self.got_data >= 1 and tf_ok is not False)
+        PASSED[0] = ok
+        print('VERDICT %s' % ('PASS' if ok else 'FAIL'))
         if self.fail:
             print('REASON %s' % self.fail)
         reactor.stop()
@@ -92,6 +117,8 @@ def main():
     ap.add_argument('--timeout', type=float, default=12.0)
     o = ap.parse_args()
 
+    # tf2 的 Buffer/Listener 需要一个 ROS 节点上下文，否则 lookup 直接抛异常被当成 SKIP
+    rospy.init_node('foxglove_ws_check', anonymous=True, disable_signals=True)
     factory = WebSocketClientFactory(o.url)
     factory.protocol = lambda: Client(sys.argv, o)
     reactor.connectTCP(o.url.split('//')[1].split(':')[0],
@@ -106,6 +133,7 @@ def main():
 
     reactor.callLater(o.timeout, _timeout)
     reactor.run()
+    return 0 if PASSED[0] else 1
 
 
 def _soft_stop(o):
@@ -115,4 +143,4 @@ def _soft_stop(o):
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

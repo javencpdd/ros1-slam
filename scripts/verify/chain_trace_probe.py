@@ -18,6 +18,7 @@ import time
 
 import rospy
 from geometry_msgs.msg import PoseStamped, Twist, PointStamped
+from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import String
 
 CHAIN = [
@@ -31,7 +32,9 @@ CHAIN = [
     ('local_goal_task', '/v8/local/goal_task', String),
     ('bt_status', '/v8/bt/status', String),
     ('global_status', '/v8/3d/global/status', String),
-    ('terrain_cloud', '/terrain_cloud', None),
+    # ★不能写 None★（2026-11-27 真人指出）：订阅循环会跳过 None 类型，计数必然为 0，
+    # 于是探针自己造出一个假断点。用真实类型订阅，并记录点数与源戳是否推进。
+    ('terrain_cloud', '/terrain_cloud', PointCloud2),
     ('cmd_vel', '/cmd_vel', Twist),
 ]
 
@@ -42,6 +45,8 @@ def main():
     ap.add_argument('--y', type=float, required=True)
     ap.add_argument('--window', type=float, default=25.0)
     ap.add_argument('--out', default='')
+    ap.add_argument('--no-send', action='store_true',
+                    help='只订阅、不发目标（目标由官方发送器发，避免用错 schema）')
     a = ap.parse_args()
 
     rospy.init_node('chain_trace_probe', anonymous=True, disable_signals=True)
@@ -56,6 +61,12 @@ def main():
                 r['first'] = now
                 if hasattr(msg, 'data'):
                     r['sample'] = str(msg.data)[:200]
+                elif hasattr(msg, 'width'):
+                    r['sample'] = 'points=%d' % (msg.width * msg.height)
+            if hasattr(msg, 'width') and msg.width * msg.height > 0:
+                r['nonempty'] = True
+            if hasattr(msg, 'header'):
+                r['stamp'] = msg.header.stamp.to_sec()
             r['last'] = now
         return cb
 
@@ -66,13 +77,20 @@ def main():
     # 先等订阅生效，再发目标——顺序反了就等于用"事后 echo"取证
     time.sleep(2.0)
     t0 = time.monotonic()
-    pub = rospy.Publisher('/v8/bt/goal_task', String, queue_size=5)
-    task = {'request_id': 'chain-%d' % int(t0), 'gen': 1,
-            'x': a.x, 'y': a.y, 'z': 0.0, 'frame': 'map'}
-    for _ in range(3):
-        pub.publish(String(data=json.dumps(task)))
-        time.sleep(0.2)
-    sent_at = time.monotonic()
+    if a.no_send:
+        # ★只订阅★：`/v8/bt/goal_task` 要的是任务/使命结构，裸 {x,y} 会被收下但不进
+        # current_seq（实测 seq 恒 0，而官方发送器能让 0→1）。用错 schema 会得出假结论，
+        # 所以这里干脆不发，交给官方 bt_goal_once。
+        sent_at = t0
+        print('NO_SEND 模式：等待外部发送目标')
+    else:
+        pub = rospy.Publisher('/v8/bt/goal_task', String, queue_size=5)
+        task = {'request_id': 'chain-%d' % int(t0), 'gen': 1,
+                'x': a.x, 'y': a.y, 'z': 0.0, 'frame': 'map'}
+        for _ in range(3):
+            pub.publish(String(data=json.dumps(task)))
+            time.sleep(0.2)
+        sent_at = time.monotonic()
 
     while time.monotonic() - t0 < a.window and not rospy.is_shutdown():
         time.sleep(0.2)
