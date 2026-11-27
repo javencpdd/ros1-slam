@@ -72,6 +72,18 @@ class OutletTest(unittest.TestCase):
         self.assertTrue(step['stop'], '失关联必须停车')
         self.assertEqual(list(step['velocity']), [0.0, 0.0, 0.0])
 
+    def test_track_stops_on_loss_while_already_moving(self):
+        cfg = ln.Config(support_assoc_tol_m=1e-6)
+        m = _real_map()
+        out = ln.plan(m, (5.2, 2.45, 0.0), (6.0, 2.45, 0.0),
+                      obstacles=(), now=100.0, config=cfg)
+        step = ln.track_segment(m, out, (5.2, 2.45, 0.5), 100.0, (),
+                                config=cfg, feedback_pose=(5.2, 2.45, 0.5),
+                                previous_velocity=(0.5, 0.0, 0.0))
+        self.assertTrue(step['stop'], '运动中失关联必须停车')
+        self.assertEqual(list(step['velocity']), [0.0, 0.0, 0.0])
+        self.assertEqual(step['reason'], 'E_LOCAL_SUPPORT')
+
     def test_track_blocks_on_map_version_change(self):
         cfg = ln.Config()
         m = _real_map()

@@ -206,6 +206,31 @@ class NativeTests(unittest.TestCase):
             native.plan(value, (-.4, 0., 0.), (.6, 0., 0.))
         self.assertEqual(caught.exception.code, 'E_LOCAL_SUPPORT')
 
+    def test_slope_edge_honours_declared_and_config_limits(self):
+        def value(limit):
+            v = layers()
+            edge = v['surfaces'][0]['edges'][0]
+            edge.pop('max_step_height_m', None)
+            edge.update(kind='slope', max_slope_deg=limit)
+            return v
+
+        cfg = replace(native.Config(), tick_s=1.2, validity_s=2., max_slope_deg=40.)
+        legal = native.plan(value(40.), (-.4, 0., 0.), (.6, 0., .15), config=cfg)
+        self.assertEqual(legal['reason'], 'arrived')
+        self.assertIn('deck', legal['surfaces'])
+
+        # A slope steeper than the edge's declared limit is not crossable.
+        edge_refused = native.plan(value(5.), (-.4, 0., 0.), (.6, 0., .15), config=cfg)
+        self.assertEqual(edge_refused['reason'], 'horizon')
+        self.assertNotIn('deck', edge_refused['surfaces'])
+        self.assertTrue(all(abs(p[2]) < 1e-9 for p in edge_refused['trajectory']))
+
+        # The robot profile/config limit is the second, stricter gate.
+        with self.assertRaises(native.LocalError) as caught:
+            native.plan(value(40.), (-.4, 0., 0.), (.6, 0., .15),
+                        config=replace(cfg, max_slope_deg=10.))
+        self.assertEqual(caught.exception.code, 'E_LOCAL_NO_ROUTE')
+
     def test_same_xy_two_layers_remain_distinct(self):
         value = layers()
         value['surfaces'][0]['footprint']['max_x'] = 3.
