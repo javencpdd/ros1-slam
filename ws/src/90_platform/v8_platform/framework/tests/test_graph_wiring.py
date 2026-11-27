@@ -26,6 +26,9 @@ SUPPORTED = [
     V8P / 'configs/lite3/graph_3d_lite3_far.yaml',
     FRAMEWORK / 'fixtures/graphs/graph_3d_gazebo_bt.yaml',
     FRAMEWORK / 'fixtures/graphs/graph_3d_gazebo_far.yaml',
+    FRAMEWORK / 'fixtures/graphs/graph_3d_m2_lio_bt.yaml',
+    FRAMEWORK / 'fixtures/graphs/graph_3d_m2_lio_bt_far.yaml',
+    FRAMEWORK / 'fixtures/graphs/graph_3d_m2_lio_accept_bt.yaml',
 ]
 
 sys.path.insert(0, str(FRAMEWORK))
